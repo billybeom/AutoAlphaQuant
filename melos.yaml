@@ -1,0 +1,107 @@
+# AutoAlphaQuant — melos 워크스페이스 설정
+#
+# 이 파일이 하는 일: 여러 패키지(packages/·apps/)를 한 저장소에서 한꺼번에
+# 가져오고(bootstrap), 분석하고, 테스트하고, 경계 규칙을 검사한다.
+#
+# 🔴 명령은 이 저장소 루트에서 실행한다. 개별 패키지에서 `flutter pub get`을
+#    직접 부르지 말 것 — 경로 의존(path dependency) 연결이 melos 몫이다.
+#
+# ⚠️ 이 PC에는 아직 Flutter·Dart·melos가 설치돼 있지 않다(2026-09-06).
+#    그래서 이 파일은 **한 번도 실행돼 본 적이 없다** — 문법만 맞춰 뒀다.
+#    설치 절차와 첫 검증 순서는 docs/SETUP.md §4. 첫 bootstrap이 성공하면
+#    그 커밋에서 잠정 버전 제약을 실제 값으로 좁힌다(SETUP §4-6).
+
+name: autoalphaquant
+
+packages:
+  - packages/**
+  - apps/**
+
+ignore:
+  - "**/build/**"
+  - "**/.dart_tool/**"
+
+# ⚠️ 버전 제약: melos 6.x + Dart 3.6 이상에서는 pub workspace(루트 pubspec의
+#    `workspace:` 목록 + 각 패키지의 `resolution: workspace`) 방식이 권장된다.
+#    지금은 SDK 버전이 확정되지 않아 melos 고전 방식(위 `packages:` 글롭)을 쓴다.
+#    SDK 설치 후 실제 버전을 확인하고 한쪽으로 정리할 것 — 두 방식을 섞으면
+#    bootstrap이 조용히 다른 pubspec을 읽는다.
+
+command:
+  bootstrap:
+    runPubGetInParallel: true
+
+scripts:
+  # ── 일상 검사 ─────────────────────────────────────────────────────────────
+  analyze:
+    description: 전 패키지 정적 분석. 경고 0이 병합 조건이다(07 §9 기계 검사 5).
+    exec: dart analyze . --fatal-infos
+
+  format:
+    description: >-
+      포맷 검사. 고치지 않고 어긋난 파일이 있으면 실패한다.
+      ⚠️ CI에서는 build:gen 뒤에 돌기 때문에 *.g.dart·*.freezed.dart 도 검사 대상이다.
+      생성기와 포매터가 같은 SDK를 쓰면 문제가 없지만, 만약 «우리가 쓰지 않은 파일»
+      때문에 이 게이트가 실패하기 시작하면 그때는 규칙을 끄지 말고 검사 대상에서
+      생성물을 빼라(커밋된 .dart 파일만 넘기는 형태). 고칠 수 없는 조건으로 점검을
+      실패시키지 않는다.
+    run: dart format --output=none --set-exit-if-changed .
+
+  format:fix:
+    description: 포맷을 실제로 고친다(로컬 전용).
+    run: dart format .
+
+  # ── 테스트 ────────────────────────────────────────────────────────────────
+  test:
+    description: 순수 Dart 패키지와 Flutter 패키지 테스트를 모두 돌린다.
+    run: melos run test:dart && melos run test:flutter
+
+  test:dart:
+    description: 순수 Dart 패키지(domain_contracts·core_engine 등) 테스트.
+    exec: dart test
+    packageFilters:
+      flutter: false
+      dirExists: test
+
+  test:flutter:
+    description: Flutter 패키지(ui_*·apps/*) 테스트.
+    exec: flutter test
+    packageFilters:
+      flutter: true
+      dirExists: test
+
+  # ── 경계 규칙 강제 ────────────────────────────────────────────────────────
+  check:boundaries:
+    description: >
+      의존 경계 검사(01 §1-1 · 00_README §5). ui_*가 core_engine·decimal·
+      broker_gateway·trading_runtime·data_sync·sqflite·supabase·http를 의존하거나
+      import하면 실패한다(C-3). 한글 리터럴은 경고만 낸다(C-5 보조).
+    run: bash tool/check_boundaries.sh
+
+  # ── 골든 스냅샷 ───────────────────────────────────────────────────────────
+  golden:verify:
+    description: >
+      골든 스냅샷 검증. 뷰모델 골든(*.golden.json, C-1)과 위젯 골든 PNG(C-2)를
+      현재 코드로 재생성하지 않고 비교만 한다. 🔴 실패했다고 스냅샷을 다시 찍지
+      말 것 — 표시 계약이 바뀌었다는 신호다(01 §7 골든 규칙).
+    run: melos run test:dart && melos run test:flutter
+    # ⚠️ 지금은 test와 같은 명령이다. 골든 테스트에 태그를 붙이기로 하면
+    #    `--tags golden`으로 좁힌다. 태그 규약은 M2 계약 확정 시 정한다.
+
+  test:contracts:
+    description: >
+      계약 회귀 테스트 C-1~C-16(01 §7). 07 §9 병합 검사의 {{SNAPSHOT_CMD}}가
+      이 스크립트다.
+    run: melos run check:boundaries && melos run golden:verify
+    # ⚠️ C-4·C-6·C-7·C-8~C-16은 domain_contracts에 테스트 하네스가 들어온 뒤
+    #    이 스크립트에 추가된다. 지금은 C-3(경계)·C-1/C-2(골든)만 실제로 돈다.
+
+  # ── 코드 생성 ─────────────────────────────────────────────────────────────
+  build:gen:
+    description: >
+      freezed·json_serializable 생성 코드를 만든다. 생성물(*.freezed.dart·
+      *.g.dart)은 .gitignore에 있으므로 clone 직후와 CI에서 한 번 돌려야 한다.
+    exec: dart run build_runner build --delete-conflicting-outputs
+    packageFilters:
+      dependsOn:
+        - build_runner

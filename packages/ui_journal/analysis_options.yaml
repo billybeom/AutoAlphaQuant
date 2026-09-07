@@ -1,0 +1,5 @@
+# ui_journal 정적 분석 — 규칙 정본은 저장소 루트 한 곳이다.
+analyzer:
+  exclude:
+    - build/**
+include: ../../analysis_options.yaml

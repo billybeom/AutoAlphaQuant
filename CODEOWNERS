@@ -1,0 +1,43 @@
+# AutoAlphaQuant — 코드 소유권
+#
+# 이 파일이 하는 일: 어떤 경로의 변경이 누구의 승인을 받아야 하는가를 GitHub가
+# 강제하게 한다. 「소유 경계」는 검수 대화의 주제가 아니라 **파일 경로**여야 한다
+# (00_README §5 경계 규칙 ③ · 07 §9 기계적 검사 3).
+#
+# 🔴 최종 병합 승인은 어느 경로든 @billybeom 한 사람이다. 아래 구분은 «누가
+#    코드를 쓰느냐»이지 «누가 병합을 승인하느냐»가 아니다.
+#
+# ⚠️ 이 파일이 실제 효력을 가지려면 GitHub 저장소 설정에서 main 브랜치 보호 +
+#    「Require review from Code Owners」를 켜야 한다(docs/SETUP.md §5).
+#    1인 저장소에서는 자기 PR을 자기가 승인할 수 없으므로, 보호 규칙을 켜기
+#    전에 그 제약을 감수할지 먼저 판단할 것 — 켜지 않아도 이 파일은 리뷰어
+#    자동 지정으로는 동작한다.
+
+# ── 기본값 ──────────────────────────────────────────────────────────────────
+*                               @billybeom
+
+# ── Claude 소유 — 계산·판정·사유 문구·안전 (다른 AI 편집 금지) ───────────────
+# 이 경로들이 화면 담당 AI의 PR에 들어 있으면 07 §9 기계 검사 3에 따라 즉시 반려.
+/packages/domain_contracts/     @billybeom   # M2 계약·픽스처 — 계약이 곧 분업 경계
+/packages/core_engine/          @billybeom   # M1·M3 신호·목표비중·한도·시뮬레이션
+/packages/broker_gateway/       @billybeom   # M1 KIS 토큰·유량·멱등 주문
+/packages/trading_runtime/      @billybeom   # M1·X2 FGS·정확 알람·재개
+/packages/data_sync/            @billybeom   # M4·X1·X4·X5 Supabase·GitHub·키 금고
+/packages/ui_safety/            @billybeom   # M5·X1·X2 게이트·X5 정정 마법사
+                                             #   「불편이 사양」인 화면 — UX 개선 제안은 거절이 기본값
+
+# ── 화면 담당 AI 산출 — 코드는 그 AI가 쓰고, 병합은 @billybeom ──────────────
+# Claude는 계약(뷰모델·사유 문구)만 소유하고 렌더 코드는 소유하지 않는다.
+/packages/ui_journal/           @billybeom   # M6 매매일지·보유현황
+/packages/ui_analytics/         @billybeom   # M7 성과·리밸런싱·플래너
+/packages/ui_shell/             @billybeom   # M8·X3 셸·운영 홈·알림·온보딩
+/packages/ui_settings/          @billybeom   # M9 설정·키·기기·연결
+
+# ── 조립 · 도구 · 규칙 자체 ─────────────────────────────────────────────────
+/apps/                          @billybeom
+/tool/                          @billybeom
+/.github/                       @billybeom
+/docs/                          @billybeom
+/melos.yaml                     @billybeom
+/analysis_options.yaml          @billybeom
+/CODEOWNERS                     @billybeom

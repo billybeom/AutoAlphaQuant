@@ -1,0 +1,7 @@
+# app_operator_android 정적 분석 — 규칙 정본은 저장소 루트 한 곳이다.
+# 🔴 앱이라고 규칙을 느슨하게 두지 않는다. 조립 코드에도 재계산·사유 문구 금지가
+#    그대로 적용된다(00_README §5·§6).
+analyzer:
+  exclude:
+    - build/**
+include: ../../analysis_options.yaml

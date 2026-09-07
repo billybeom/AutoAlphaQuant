@@ -1,0 +1,29 @@
+name: ui_safety
+description: >-
+  AutoAlphaQuant M5 안전·마찰 화면 패키지. 킬스위치·해제 게이트·재개 리포트·
+  정정 마법사를 그린다. Claude 소유이며 다른 AI는 이 패키지를 편집하지 않는다.
+publish_to: none
+version: 0.1.0
+
+environment:
+  # ⚠️ 저장소 전체가 ^3.5.0으로 통일돼 있다(루트·packages·apps).
+  #    SDK 설치 후 실제 버전에 맞춰 좁힐 것 — docs/SETUP.md §4-6.
+  sdk: ^3.5.0
+  flutter: ">=3.24.0" # ⚠️ 설치 버전 확인 후 확정
+
+# 🔴 소유자가 Claude여도 의존 규칙은 다른 ui_*와 똑같다(01 §1-1). 안전 화면이
+#    엔진을 직접 부르면 «화면이 판정한다»가 되고, 그것이 가장 위험한 형태다.
+#    킬스위치 발동조차 CommandApi(계약의 인터페이스)를 통해서만 나간다.
+# 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
+dependencies:
+  domain_contracts:
+    path: ../domain_contracts
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.0 # ⚠️ 전 ui_*가 같은 메이저를 쓸 것
+
+dev_dependencies:
+  # ⚠️ 루트 analysis_options.yaml의 package: include 해석용.
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter

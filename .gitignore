@@ -1,0 +1,108 @@
+# AutoAlphaQuant — 저장소 제외 규칙
+#
+# 원칙 2개:
+#  ① 「다시 만들 수 있는 것」은 커밋하지 않는다(빌드 산출물·생성 코드·의존 캐시).
+#  ② 🔴 「새면 돈이 나가는 것」은 무슨 일이 있어도 커밋하지 않는다(키·인증서·계좌).
+#     NR-5(00_SPEC §5): 자격증명은 OS 키체인에만. 소스·설정·로그·저장소 금지.
+#
+# 🔴 픽스처(packages/domain_contracts/fixtures/)는 **커밋한다** — 화면이 네트워크
+#    없이 그려지는 유일한 근거다. 대신 실제 키·계좌가 섞이지 않았는지는 계약
+#    테스트 C-14(픽스처 시크릿 스캔)가 매 CI에서 확인한다.
+
+# ── Dart / Flutter ──────────────────────────────────────────────────────────
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+pubspec.lock.bak
+doc/api/
+
+# 🔴 pubspec.lock: 앱(apps/*)은 커밋, 라이브러리 패키지(packages/*)는 제외가
+#    Dart 관례다. 지금은 전부 제외하고, apps/ 릴리스 빌드를 시작할 때
+#    apps/*/pubspec.lock 만 예외로 되살린다(그때 이 줄을 고칠 것).
+pubspec.lock
+
+# 생성 코드 — `melos run build:gen` 으로 언제든 다시 만든다.
+# ⚠️ 그래서 clone 직후와 CI에서는 analyze 전에 build:gen 을 한 번 돌려야 한다.
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# 테스트 산출물
+coverage/
+test/.test_coverage.dart
+failures/
+**/test/**/failures/
+
+# ── Android ─────────────────────────────────────────────────────────────────
+**/android/**/gradle-wrapper.jar
+**/android/.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/key.properties
+*.jks
+*.keystore
+
+# ── iOS / macOS ─────────────────────────────────────────────────────────────
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/Pods/
+**/ios/.symlinks/
+**/macos/Pods/
+**/macos/Flutter/ephemeral/
+**/Podfile.lock
+*.mobileprovision
+*.p12
+*.cer
+
+# ── Web / Windows / Linux 빌드 부산물 ───────────────────────────────────────
+**/web/.dart_tool/
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+
+# ── IDE / OS ────────────────────────────────────────────────────────────────
+.idea/
+# 🔴 `.vscode/` 로 디렉터리째 제외하면 그 아래의 `!` 되살리기가 **동작하지 않는다**
+#    (git이 제외된 디렉터리 안으로 들어가지 않기 때문). 그래서 `*`로 «안의 파일»을
+#    제외하고 예외 파일만 되살린다. 확인: `git check-ignore -v .vscode/settings.json.example`
+.vscode/*
+!.vscode/settings.json.example
+*.iml
+*.ipr
+*.iws
+.history/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── 🔴 비밀값 — 한 줄이라도 지우기 전에 다시 생각할 것 ───────────────────────
+.env
+.env.*
+!.env.example
+secrets/
+**/secrets/
+*.secret
+*.secrets.json
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+supabase/.temp/
+*.pem
+*.key
+
+# ── 🔴 커밋해야 하는 것(위 규칙에 걸리지 않게 못 박음) ───────────────────────
+!packages/domain_contracts/fixtures/**
+!**/test/golden/**
+
+# melos bootstrap 이 만드는 경로 오버라이드(로컬 전용, 2026-09-07 실측 후 추가)
+pubspec_overrides.yaml

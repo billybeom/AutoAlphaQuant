@@ -1,0 +1,29 @@
+name: ui_shell
+description: >-
+  AutoAlphaQuant M8·X3 화면 패키지. 앱 셸(탭)·운영 홈·알림함·핸드북·온보딩
+  위저드를 그린다. 계약(domain_contracts)이 준 값을 표시만 한다.
+publish_to: none
+version: 0.1.0
+
+environment:
+  # ⚠️ 저장소 전체가 ^3.5.0으로 통일돼 있다(루트·packages·apps).
+  #    SDK 설치 후 실제 버전에 맞춰 좁힐 것 — docs/SETUP.md §4-6.
+  sdk: ^3.5.0
+  flutter: ">=3.24.0" # ⚠️ 설치 버전 확인 후 확정
+
+# 🔴 허용 목록은 아래 셋이 전부다(01 §1-1).
+# 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
+# ⚠️ 라우팅 패키지(go_router 등)는 아직 고르지 않았다. 셸이 탭·딥링크
+#    (handbook://…)를 다루므로 여기서 한 번만 고르고 다른 ui_*는 따라간다.
+dependencies:
+  domain_contracts:
+    path: ../domain_contracts
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.0 # ⚠️ 전 ui_*가 같은 메이저를 쓸 것
+
+dev_dependencies:
+  # ⚠️ 루트 analysis_options.yaml의 package: include 해석용.
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter

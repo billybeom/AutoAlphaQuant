@@ -1,0 +1,52 @@
+# app_viewer_web — ⚠️ **스텁**. v1 포함 여부는 발주자 결정 **Q-D** 대기 중이다.
+#
+# 🔴 화면 패키지를 아직 의존하지 않는 것이 사양이다. Q-D가 「v1에서 뺀다」로 나면
+#    이 폴더는 통째로 지워진다 — 그때 지울 것을 지금 늘려 두지 않는다(오버엔지니어링 금지).
+#    Q-D가 「포함」으로 나면 아래 «Q-D 확정 시 살릴 목록»을 그대로 주석 해제하면 된다
+#    (app_viewer_ios와 같은 집합이며, 그 목록은 이미 알파벳 순으로 적어 두었다).
+#
+# ⚠️ 이 PC에 Flutter·Dart가 없어 해석 검증을 하지 못했다(2026-09-06).
+
+name: app_viewer_web
+description: >-
+  AutoAlphaQuant viewer 타깃(웹·데스크탑 공유) — 스텁.
+  v1 포함 여부는 발주자 결정 Q-D 대기(00_README §8-2).
+publish_to: none
+version: 0.1.0
+
+environment:
+  # ⚠️ packages/ 쪽 하한(^3.5.0)과 맞춘 값이다. SDK 설치 후 좁힐 것(docs/SETUP.md §4-6).
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
+
+# ── 의존 (알파벳 순 — sort_pub_dependencies + --fatal-infos) ────────────────
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.0
+
+  # ── Q-D 확정 시 살릴 목록 (app_viewer_ios와 동일 집합 · 알파벳 순) ─────────
+  # 🔴 살릴 때도 `trading_runtime`·`broker_gateway`·`core_engine`은 넣지 않는다.
+  #    웹은 브라우저 저장소에 키를 둘 안전한 자리가 없어 제약이 iOS보다 더 세다(README §3).
+  #    🔴 주석을 풀 때 순서를 지킬 것 — data_sync는 flutter보다 앞이다.
+  # data_sync:            # 읽기 전용
+  #   path: ../../packages/data_sync
+  # ui_analytics:
+  #   path: ../../packages/ui_analytics
+  # ui_journal:
+  #   path: ../../packages/ui_journal
+  # ui_safety:            # 킬스위치 «발동»만 — 해제 화면은 빌드 제외
+  #   path: ../../packages/ui_safety
+  # ui_settings:
+  #   path: ../../packages/ui_settings
+  # ui_shell:
+  #   path: ../../packages/ui_shell
+
+dev_dependencies:
+  # 🔴 알파벳 순 — flutter_lints가 flutter_test보다 앞이다.
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

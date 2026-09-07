@@ -1,0 +1,31 @@
+name: ui_journal
+description: >-
+  AutoAlphaQuant M6 화면 패키지. 매매일지 타임라인과 보유현황을 그린다.
+  계약(domain_contracts)이 준 값을 표시만 하며 재계산하지 않는다.
+publish_to: none
+version: 0.1.0
+
+environment:
+  # ⚠️ 저장소 전체가 ^3.5.0으로 통일돼 있다(루트·packages·apps).
+  #    SDK 설치 후 실제 버전에 맞춰 좁힐 것 — docs/SETUP.md §4-6.
+  sdk: ^3.5.0
+  flutter: ">=3.24.0" # ⚠️ Dart 3.5에 대응하는 Flutter. 설치 버전 확인 후 확정
+
+# 🔴 허용 목록은 아래 셋이 전부다(01 §1-1). core_engine·decimal·sqflite·
+#    supabase_flutter·http·broker_gateway·trading_runtime·data_sync를 추가하면
+#    C-3(의존 규칙 lint)이 **빌드를 실패시킨다**. 리뷰로 봐주는 항목이 아니다.
+#    decimal이 없어야 화면이 금액 산술을 아예 할 수 없다.
+# 🔴 알파벳 순서를 지킬 것 — 루트의 sort_pub_dependencies + melos analyze
+#    --fatal-infos 조합이라 순서가 어긋나면 분석이 실패한다.
+dependencies:
+  domain_contracts:
+    path: ../domain_contracts
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.0 # ⚠️ Riverpod 3.x는 API가 다르다. 전 ui_*가 같은 메이저를 쓸 것
+
+dev_dependencies:
+  # ⚠️ 루트 analysis_options.yaml의 package: include 해석용.
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter

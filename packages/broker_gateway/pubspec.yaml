@@ -1,0 +1,27 @@
+name: broker_gateway
+description: >-
+  AutoAlphaQuant M1 브로커 게이트웨이. KIS 토큰·유량 제어·멱등 주문 발주를
+  담당하며 화면(ui_*)을 의존하지 않는다.
+publish_to: none
+version: 0.1.0
+
+environment:
+  # ⚠️ 저장소 전체가 ^3.5.0으로 통일돼 있다(루트·packages·apps).
+  #    SDK 설치 후 실제 버전에 맞춰 좁힐 것 — docs/SETUP.md §4-6.
+  sdk: ^3.5.0
+
+dependencies:
+  # 🔴 ui_*를 의존하지 않는다. 주문 경로가 화면을 알면 안 된다.
+  core_engine:
+    path: ../core_engine
+  domain_contracts:
+    path: ../domain_contracts
+  # ⚠️ HTTP 클라이언트(KIS REST)는 아직 선언하지 않는다 — 구현 착수 시
+  #    `http` 또는 `dio` 중 하나를 고르고 여기에 한 번만 추가한다.
+  #    지금 넣으면 쓰지 않는 의존이 lock 파일에 먼저 박힌다.
+
+# 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
+dev_dependencies:
+  # ⚠️ 루트 analysis_options.yaml의 package: include 해석용(Flutter를 끌어오지 않는다).
+  flutter_lints: ^5.0.0
+  test: ^1.25.0

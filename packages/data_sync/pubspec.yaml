@@ -1,0 +1,28 @@
+name: data_sync
+description: >-
+  AutoAlphaQuant M4·X1·X4·X5 동기화 계층. 로컬 SQLite 정본 읽기·Supabase 읽기 모델·
+  키 금고·정합 검사 구현체를 담으며 화면(ui_*)을 의존하지 않는다.
+publish_to: none
+version: 0.1.0
+
+environment:
+  # ⚠️ 저장소 전체가 ^3.5.0으로 통일돼 있다(루트·packages·apps).
+  #    SDK 설치 후 실제 버전에 맞춰 좁힐 것 — docs/SETUP.md §4-6.
+  sdk: ^3.5.0
+
+dependencies:
+  # 🔴 ui_*를 의존하지 않는다.
+  core_engine:
+    path: ../core_engine
+  domain_contracts:
+    path: ../domain_contracts
+  # ⚠️ 01 §1-1이 이 패키지에 허용한 sqflite·supabase_flutter는 아직 선언하지
+  #    않았다. 둘 다 Flutter 플러그인이라 추가하는 순간 이 패키지가 순수 Dart를
+  #    벗어나고 melos의 test:dart → test:flutter로 옮겨간다.
+  #    구현 착수 시 한 번에 결정하고, 그때 이 주석을 지울 것.
+
+# 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
+dev_dependencies:
+  # ⚠️ 루트 analysis_options.yaml의 package: include 해석용(Flutter를 끌어오지 않는다).
+  flutter_lints: ^5.0.0
+  test: ^1.25.0

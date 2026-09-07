@@ -1,0 +1,31 @@
+name: ui_analytics
+description: >-
+  AutoAlphaQuant M7 화면 패키지. 성과·리밸런싱 이력·입출금 플래너를 그린다.
+  계약(domain_contracts)이 준 값을 표시만 하며 재계산하지 않는다.
+publish_to: none
+version: 0.1.0
+
+environment:
+  # ⚠️ 저장소 전체가 ^3.5.0으로 통일돼 있다(루트·packages·apps).
+  #    SDK 설치 후 실제 버전에 맞춰 좁힐 것 — docs/SETUP.md §4-6.
+  sdk: ^3.5.0
+  flutter: ">=3.24.0" # ⚠️ 설치 버전 확인 후 확정
+
+# 🔴 허용 목록은 아래 셋이 전부다(01 §1-1). core_engine·decimal·sqflite·
+#    supabase_flutter·http를 추가하면 C-3이 빌드를 실패시킨다.
+# 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
+# ⚠️ 차트 라이브러리는 아직 고르지 않았다. 고를 때 「결측 구간을 보간하지 않고
+#    공백으로 그릴 수 있는가」(C-10)를 첫 기준으로 볼 것 — 대부분의 차트
+#    라이브러리는 null을 조용히 이어 그린다.
+dependencies:
+  domain_contracts:
+    path: ../domain_contracts
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.0 # ⚠️ 전 ui_*가 같은 메이저를 쓸 것
+
+dev_dependencies:
+  # ⚠️ 루트 analysis_options.yaml의 package: include 해석용.
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter

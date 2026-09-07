@@ -1,0 +1,31 @@
+name: trading_runtime
+description: >-
+  AutoAlphaQuant M1·X2 실행 런타임. 잡 스케줄·워치독·장기 미실행 재개(catch-up)를
+  담당하며 화면(ui_*)을 의존하지 않는다.
+publish_to: none
+version: 0.1.0
+
+environment:
+  # ⚠️ 저장소 전체가 ^3.5.0으로 통일돼 있다(루트·packages·apps).
+  #    SDK 설치 후 실제 버전에 맞춰 좁힐 것 — docs/SETUP.md §4-6.
+  sdk: ^3.5.0
+
+dependencies:
+  # 🔴 ui_*를 의존하지 않는다.
+  broker_gateway:
+    path: ../broker_gateway
+  core_engine:
+    path: ../core_engine
+  domain_contracts:
+    path: ../domain_contracts
+  # ⚠️ FGS(포그라운드 서비스)·정확 알람은 Android 플랫폼 기능이라 구현 시점에
+  #    Flutter 플러그인이 필요해질 수 있다. 그렇게 되면 이 패키지는 순수 Dart를
+  #    벗어나고 melos의 test:dart가 아니라 test:flutter로 옮겨간다.
+  #    🔴 플랫폼 경계를 app_operator_android 쪽 얇은 어댑터로 밀어낼 수 있는지
+  #       먼저 검토할 것 — 여기서 Flutter를 의존하면 재개 로직을 폰 없이 테스트할 수 없다.
+
+# 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
+dev_dependencies:
+  # ⚠️ 루트 analysis_options.yaml의 package: include 해석용(Flutter를 끌어오지 않는다).
+  flutter_lints: ^5.0.0
+  test: ^1.25.0
