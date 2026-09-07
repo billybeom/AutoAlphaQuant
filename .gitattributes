@@ -1,0 +1,11 @@
+# 개행 규약: 저장소는 LF (bash 스크립트·CI 리눅스 러너 호환). Windows 체크아웃에서도 CRLF로 바꾸지 않는다.
+* text=auto eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.webp binary
+*.ttf binary
+*.otf binary
+*.jar binary
+*.keystore binary
