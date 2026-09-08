@@ -1,0 +1,288 @@
+// C-5 사유 문구 하드코딩 탐지 / 코드 사전 완결성 — 01 §7 표 C-5 · §1-5 · §3.
+//
+// 정의(01 §7): 「`ui_*` 에서 `lib/l10n/labels.dart` 를 제외한 전 파일의 한글 리터럴
+//   0건 + §3 의 label 문자열·`'TIER '`·`'SAF-'` 리터럴 금지」.
+// 🟡 그 절반(`ui_*` 스캔)은 화면 코드가 있어야 실효가 있다 — `tool/check_labels.sh`
+//   가 셸에서 같은 일을 하며, 여기서는 **나머지 절반**을 고정한다:
+//   «코드 → 문구» 를 화면이 지어내지 못하게 하는 근거인 **코드 사전의 완결성**이다.
+//
+// 🔴 이 폴더(`lib/src/labels/`)에 있는 것은 «어떤 **코드**가 오는가» 의 상수 목록이지
+//    코드→문자열 매핑이 아니다(labels.dart 머리 주석). 그래서 이 검사는
+//    ① 모든 코드가 사전에 등재돼 있고 ② 중복이 문서가 밝힌 것뿐이며
+//    ③ 미등록 코드가 조용히 통과하지 않는지를 본다.
+
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:domain_contracts/domain_contracts.dart';
+import 'package:test/test.dart';
+
+import 'c00_support.dart';
+
+/// 01 §3 사전의 도메인 간 중복 — labels.dart 머리 주석이 밝힌 **네 쌍**.
+const Set<String> _documentedCrossDomainDuplicates = <String>{
+  'MANUAL_ORDER',
+  'PUSH_LAG',
+  'RECON_MISMATCH',
+  'SELF_AUDIT_DUE',
+};
+
+/// 픽스처의 코드 필드 → 조회할 도메인(빈 값이면 전역 조회).
+const Map<String, String> _fixtureCodeFields = <String, String>{
+  'flag_id': 'flag_id',
+  'kind_code': 'deviation_kind',
+  'step_code': 'aftertax_step',
+  'stale_reason_code': 'stale_reason',
+  'reject_reason_code': 'advice_reject',
+  'close_reason_code': 'decision_reason',
+  'cause_code': 'advice_transition_cause',
+  'reason_code': '',
+};
+
+/// 🔴 **사전에 없는 코드 축** — 01 §3 이 열거하지 않은 값이라 검사 대상이 아니다.
+///    지우지 않고 남긴다: 「검사에서 빠졌다」와 「검사 대상이 아니다」는 다르다.
+const Map<String, String> _fieldsOutsideDictionary = <String, String>{
+  'failure_reason_code':
+      'OnboardingStep.failureReasonCode — 01 §3 에 온보딩 실패 코드 목록이 없다'
+      '(픽스처 값: CONSENT_EXPIRED·PERMISSION_DENIED). 등재는 M2-8 의 일이다.',
+  'status_code':
+      '진단·인시던트 칸의 상태 코드(OK·LAG·TOKEN_EXPIRED) — §3 이 아니라 화면 상태 축이며 '
+      '짝이 되는 status_label 이 함께 온다.',
+  'state_code': '워치독·진단 칸의 상태 코드 — 위와 같은 축(state_label 이 짝이다).',
+};
+
+void main() {
+  group('C-5 코드 사전 완결성 (01 §7 · §3)', () {
+    test('C-5 labels/ 가 선언한 모든 코드 상수가 사전에 등재돼 있다', () {
+      final Map<String, List<String>> byClass = _codeConstantsByClass();
+      expect(byClass, isNotEmpty, reason: '코드 상수 클래스를 하나도 못 읽었다.');
+
+      final List<String> unregistered = <String>[];
+      for (final MapEntry<String, List<String>> e in byClass.entries) {
+        for (final String code in e.value) {
+          if (!ContractCodes.isRegistered(code)) {
+            unregistered.add('${e.key}.$code');
+          }
+        }
+      }
+      expect(
+        unregistered,
+        isEmpty,
+        reason:
+            '상수는 선언했는데 ContractCodes.byDomain 에 올리지 않았다 — '
+            '전역 조회가 그 코드를 «모르는 코드»로 취급한다(labels.dart).',
+      );
+    });
+
+    test('C-5 values 집합을 가진 모든 코드 클래스가 byDomain 에 등재돼 있다', () {
+      final String labelsBarrel = stripComments(
+        File('${libDir.path}/src/labels/labels.dart').readAsStringSync(),
+      );
+      final List<String> missing = <String>[];
+      for (final String className in _classesWithValuesSet()) {
+        if (!labelsBarrel.contains('$className.values')) {
+          missing.add(className);
+        }
+      }
+      expect(
+        missing,
+        isEmpty,
+        reason:
+            'ContractCodes.byDomain 에 빠진 코드 클래스다. 사전이 «전 목록 배럴» 이라는 '
+            '약속이 깨지면 미등록 코드 조기 실패(C-15 입력)가 그 축만 통째로 건너뛴다.',
+      );
+    });
+
+    test('C-5 한 도메인 안에 같은 문자열을 두 번 선언하지 않는다', () {
+      final List<String> duplicates = <String>[];
+      for (final MapEntry<String, List<String>> e
+          in _codeConstantsByClass().entries) {
+        final Set<String> seen = <String>{};
+        for (final String code in e.value) {
+          if (!seen.add(code)) {
+            duplicates.add('${e.key}: $code');
+          }
+        }
+      }
+      expect(duplicates, isEmpty, reason: '같은 코드에 상수 이름이 둘이면 인용처가 갈린다.');
+    });
+
+    test('C-5 도메인 간 중복은 문서가 밝힌 네 쌍뿐이다', () {
+      final Set<String> duplicated = <String>{
+        for (final String code in ContractCodes.all)
+          if (ContractCodes.domainsOf(code).length > 1) code,
+      };
+      expect(
+        duplicated,
+        _documentedCrossDomainDuplicates,
+        reason:
+            '같은 문자열이 여러 축에 있으면 전역 조회로는 «flag_id 자리에 알림 코드»를 '
+            '못 잡는다. 새 중복이 생기면 labels.dart 머리 주석과 여기를 함께 고친다.',
+      );
+      // 🔴 중복이 있으므로 전역 집합의 크기는 등재 건수보다 작다(labels.dart 주석).
+      final int registrations = ContractCodes.byDomain.values.fold<int>(
+        0,
+        (int sum, Set<String> codes) => sum + codes.length,
+      );
+      expect(ContractCodes.all.length, lessThan(registrations));
+    });
+
+    test('C-5 미등록 코드는 조용히 통과하지 않는다', () {
+      expect(
+        () => ContractCodes.requireRegistered('NOT_A_REAL_CODE'),
+        throwsA(isA<UnregisteredContractCodeError>()),
+      );
+      expect(
+        () => ContractCodes.requireRegisteredIn('flag_id', 'ADVICE_ISSUED'),
+        throwsA(isA<UnregisteredContractCodeError>()),
+        reason: '알림 코드가 flag_id 자리에 들어오면 실패해야 한다(도메인 지정 조회의 목적).',
+      );
+      expect(
+        () => ContractCodes.requireRegisteredIn('no_such_domain', 'X'),
+        throwsA(isA<UnregisteredContractCodeError>()),
+      );
+      expect(
+        ContractCodes.requireRegisteredIn('flag_id', FlagIds.reconMismatch),
+        FlagIds.reconMismatch,
+        reason: '등재된 코드는 그대로 돌려준다(파이프라인 안에서 쓸 수 있게).',
+      );
+      expect(ContractCodes.hasDomain('exit_kind'), isTrue);
+    });
+
+    test('C-5 픽스처가 쓰는 코드가 전부 사전에 있다', () {
+      final List<String> unknown = <String>[];
+      for (final String path in FixturePaths.all) {
+        walkJson(jsonDecode(readFixture(path)), (
+          String jsonPath,
+          String key,
+          Object? value,
+        ) {
+          final String? domain = _fixtureCodeFields[key];
+          if (domain == null || value is! String) {
+            return;
+          }
+          final bool ok = domain.isEmpty
+              ? ContractCodes.isRegistered(value)
+              : ContractCodes.isRegisteredIn(domain, value);
+          if (!ok) {
+            unknown.add('$path $jsonPath = $value');
+          }
+        });
+      }
+      expect(
+        unknown,
+        isEmpty,
+        reason:
+            '픽스처가 사전에 없는 코드를 쓴다 — 화면이 그 코드를 보고 자기 나름의 '
+            '문구·아이콘·색을 고르기 시작한다(01 §3).',
+      );
+    });
+
+    test('C-5 알림 픽스처의 code 는 전부 alert_code 도메인에 있다', () {
+      const List<String> alertFixtures = <String>[
+        FixturePaths.alerts12,
+        FixturePaths.m8AlertsAdvice9codes,
+        FixturePaths.m8AlertsDigest,
+        FixturePaths.m8AlertsP0Ack,
+      ];
+      for (final String path in alertFixtures) {
+        final FixtureEnvelope envelope = decodeEnvelope(readFixture(path));
+        for (final Map<String, Object?> row in envelope.rows) {
+          final Object? code = row['code'];
+          expect(
+            ContractCodes.isRegisteredIn('alert_code', code! as String),
+            isTrue,
+            reason: '$path — 미등재 알림 코드 $code (01 §3 · 인벤토리 §6-9).',
+          );
+        }
+      }
+    });
+
+    test('C-5 정합 픽스처의 원인 코드는 전부 origin_code 도메인에 있다', () {
+      final FixtureEnvelope envelope = decodeEnvelope(
+        readFixture(FixturePaths.ledgerDiffs4),
+      );
+      for (final Map<String, Object?> row in envelope.rows) {
+        for (final Object? code
+            in row['candidate_origin_codes']! as List<Object?>) {
+          expect(
+            ContractCodes.isRegisteredIn('origin_code', code! as String),
+            isTrue,
+            reason: '자유 서술 거부의 근거가 이 목록이다(01 §3-4).',
+          );
+        }
+      }
+    });
+
+    test('C-5 사전 밖 코드 축은 사유와 함께 남아 있다', () {
+      for (final MapEntry<String, String> e
+          in _fieldsOutsideDictionary.entries) {
+        expect(e.value, isNotEmpty, reason: '${e.key} — 제외 사유가 비어 있다.');
+        expect(
+          _fixtureCodeFields.containsKey(e.key),
+          isFalse,
+          reason: '${e.key} 가 검사 대상과 제외 목록 양쪽에 있다.',
+        );
+      }
+    });
+
+    test(
+      'C-5 ui_* 전 파일의 한글 리터럴 0건 + TIER·SAF- 리터럴 금지',
+      () {},
+      skip:
+          '`ui_*` 에 화면 코드가 아직 없다(스텁 2파일씩). 지금 도는 검사는 '
+          'tool/check_labels.sh 이며, 화면이 들어오는 PR 에서 이 자리를 정본 구현으로 '
+          '채운다(01 §7 C-5 — 「C-5 의 정본 구현은 test/ 의 계약 테스트」).',
+    );
+
+    test(
+      'C-5 labels.dart 전수 — «램프» 단독 사용 0건(M2-3 소유)',
+      () {},
+      skip:
+          'ui_* 의 lib/l10n/labels.dart 가 아직 비어 있다(스텁). C-5 는 그 파일을 '
+          '예외로 두므로 «램프»(«운영 램프»/«초기 진입» 접두 없이)를 잡을 검사가 따로 '
+          '필요하다 — 보조 구현은 tool/check_labels.sh --ramp 다(01 §7 각주).',
+    );
+  });
+}
+
+/// `lib/src/labels/` 의 `abstract final class` → 그 안의 코드 문자열 목록.
+Map<String, List<String>> _codeConstantsByClass() {
+  final Map<String, List<String>> out = <String, List<String>>{};
+  final RegExp classRe = RegExp(
+    r'abstract final class (\w+)\s*\{(.*?)\n\}',
+    dotAll: true,
+  );
+  final RegExp constRe = RegExp(r"static const String \w+ = '([^']*)';");
+  for (final File f in dartSourcesIn(Directory('${libDir.path}/src/labels'))) {
+    final String source = stripComments(f.readAsStringSync());
+    for (final RegExpMatch m in classRe.allMatches(source)) {
+      final List<String> codes = constRe
+          .allMatches(m.group(2)!)
+          .map((RegExpMatch c) => c.group(1)!)
+          .toList();
+      if (codes.isNotEmpty) {
+        out[m.group(1)!] = codes;
+      }
+    }
+  }
+  return out;
+}
+
+/// `static const Set<String> values` 를 선언한 코드 클래스 이름.
+List<String> _classesWithValuesSet() {
+  final List<String> out = <String>[];
+  final RegExp classRe = RegExp(
+    r'abstract final class (\w+)\s*\{(.*?)\n\}',
+    dotAll: true,
+  );
+  for (final File f in dartSourcesIn(Directory('${libDir.path}/src/labels'))) {
+    final String source = stripComments(f.readAsStringSync());
+    for (final RegExpMatch m in classRe.allMatches(source)) {
+      if (m.group(2)!.contains('static const Set<String> values')) {
+        out.add(m.group(1)!);
+      }
+    }
+  }
+  return out;
+}

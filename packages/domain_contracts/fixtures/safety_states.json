@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.0.0",
+    "generated_at": "2026-09-06T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260906,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "breaker_level": "NORMAL",
+      "breaker_label": "정상",
+      "drawdown": -0.021,
+      "active_flags": [],
+      "kill_switch": { "active": false, "state_label": "꺼짐" },
+      "stopped_release_eligible": false,
+      "release_progress": [],
+      "alert_block_sat_entry": false,
+      "ramp_level": "L3",
+      "mode": "LIVE",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안전 상태 기준 2026-08-31" }
+    },
+    {
+      "breaker_level": "ALERT",
+      "breaker_label": "경보",
+      "drawdown": -0.062,
+      "active_flags": [
+        { "flag_id": "SELF_AUDIT_DUE", "label": "분기 실사 기한이 다가옵니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "실사를 마치면 자동으로 풀립니다." }
+      ],
+      "kill_switch": { "active": false, "state_label": "꺼짐" },
+      "stopped_release_eligible": false,
+      "release_progress": [],
+      "alert_block_sat_entry": true,
+      "ramp_level": "L3",
+      "mode": "LIVE",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안전 상태 기준 2026-08-31" }
+    },
+    {
+      "breaker_level": "REDUCED",
+      "breaker_label": "축소 운용",
+      "drawdown": -0.094,
+      "active_flags": [
+        { "flag_id": "TIER_B_UNJUDGED", "label": "TIER B 판정이 남아 있습니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "판정이 끝나면 자동으로 풀립니다." }
+      ],
+      "kill_switch": { "active": false, "state_label": "꺼짐" },
+      "stopped_release_eligible": false,
+      "release_progress": [
+        { "code": "DD_RECOVERY", "label": "드로다운 회복", "normalized": 0.42, "value_text": "회복 42% 진행" }
+      ],
+      "alert_block_sat_entry": true,
+      "ramp_level": "L2",
+      "mode": "LIVE",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안전 상태 기준 2026-08-31" }
+    },
+    {
+      "breaker_level": "HALTED",
+      "breaker_label": "중지",
+      "drawdown": -0.131,
+      "active_flags": [
+        {
+          "flag_id": "RECON_MISMATCH",
+          "label": "브로커 원장과 어긋납니다",
+          "set_at": "2026-08-28T01:00:00Z",
+          "clear_route": "CAUSE_CODE_REQUIRED",
+          "clear_instruction": "원인 코드를 골라 해소하십시오. /resume 으로는 풀리지 않습니다.",
+          "origin_code": "FILL_LAG"
+        },
+        { "flag_id": "JOURNAL_MISSING", "label": "일지가 비어 있습니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "일지를 채우면 자동으로 풀립니다." }
+      ],
+      "kill_switch": { "active": false, "state_label": "꺼짐" },
+      "stopped_release_eligible": false,
+      "release_progress": [
+        { "code": "DD_RECOVERY", "label": "드로다운 회복", "normalized": 0.18, "value_text": "회복 18% 진행" }
+      ],
+      "alert_block_sat_entry": true,
+      "ramp_level": "L1",
+      "mode": "LIVE",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안전 상태 기준 2026-08-31" }
+    },
+    {
+      "breaker_level": "STOPPED",
+      "breaker_label": "정지",
+      "drawdown": -0.158,
+      "active_flags": [
+        { "flag_id": "LEDGER_INTEGRITY", "label": "원장 무결성 점검이 필요합니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "WIZARD_ONLY", "clear_instruction": "복구 위저드에서만 해소됩니다." }
+      ],
+      "kill_switch": { "active": true, "state_label": "작동 중", "activated_at": "2026-08-29T02:10:00Z", "activated_by_device_label": "운영 폰", "checklist_state_label": "체크리스트 확인 완료", "release_eta_text": "해제 가능까지 남은 시간은 엔진이 계산합니다" },
+      "stopped_release_eligible": true,
+      "release_progress": [
+        { "code": "DD_RECOVERY", "label": "드로다운 회복", "normalized": 1.0, "value_text": "회복 완료" },
+        { "code": "COOLDOWN", "label": "냉각 기간", "normalized": 1.0, "value_text": "냉각 완료" }
+      ],
+      "alert_block_sat_entry": true,
+      "ramp_level": "L0",
+      "mode": "LIVE",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안전 상태 기준 2026-08-31" }
+    }
+  ]
+}

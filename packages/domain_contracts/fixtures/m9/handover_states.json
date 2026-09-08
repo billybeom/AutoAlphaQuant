@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.0.0",
+    "generated_at": "2026-09-06T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260906,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "전환 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "path": "SIM_TO_AUTO",
+      "path_label": "모의에서 자동 매매로",
+      "steps": [
+        { "step_id": "h1", "order": 1, "title": "모의 기록 확인", "why_line": "모의 기간의 기록을 그대로 남깁니다.", "state": "PASS", "state_label": "통과" },
+        { "step_id": "h2", "order": 2, "title": "실계좌 키 등록", "why_line": "주문 권한이 필요합니다.", "state": "PASS", "state_label": "통과" },
+        { "step_id": "h3", "order": 3, "title": "개시 잔고 확정", "why_line": "실전 원장을 엽니다.", "state": "PASS", "state_label": "통과" }
+      ],
+      "adoption_preview": [
+        { "symbol": "069500", "symbol_label": "069500 KODEX 200", "quantity": 212, "sleeve": "A", "adoption_id": "ap_069500", "disposition": "ADOPT", "disposition_label": "시스템이 인수" },
+        { "symbol": "379810", "symbol_label": "379810 KODEX 미국S&P500", "quantity": 248, "sleeve": "B", "adoption_id": "ap_379810", "disposition": "ADOPT", "disposition_label": "시스템이 인수" }
+      ],
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "전환 기준 2026-08-31" }
+    },
+    {
+      "path": "FRESH_AUTO",
+      "path_label": "처음부터 자동 매매로",
+      "steps": [
+        { "step_id": "h1", "order": 1, "title": "계좌 검증", "why_line": "계좌 배치를 확인합니다.", "state": "PASS", "state_label": "통과" },
+        { "step_id": "h2", "order": 2, "title": "개시 잔고 확정", "why_line": "실전 원장을 엽니다.", "state": "BLOCK", "state_label": "막힘", "blocked_reason_code": "ACCOUNT_MISDECLARED" }
+      ],
+      "adoption_preview": [],
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "전환 기준 2026-08-31" }
+    },
+    {
+      "path": "ADOPT_LEDGER",
+      "path_label": "기존 보유를 인수",
+      "steps": [
+        { "step_id": "h1", "order": 1, "title": "보유 목록 확인", "why_line": "무엇을 인수할지 고릅니다.", "state": "PASS", "state_label": "통과" },
+        { "step_id": "h2", "order": 2, "title": "유니버스 밖 자산 분리", "why_line": "시스템 밖 자산은 따로 둡니다.", "state": "PASS", "state_label": "통과" },
+        { "step_id": "h3", "order": 3, "title": "커밋", "why_line": "되돌아온 값을 다시 그립니다.", "state": "UNKNOWN", "state_label": "모름" }
+      ],
+      "adoption_preview": [
+        { "symbol": "069500", "symbol_label": "069500 KODEX 200", "quantity": 212, "sleeve": "A", "adoption_id": "ap_069500", "disposition": "ADOPT", "disposition_label": "시스템이 인수" },
+        { "symbol": "0085P0", "symbol_label": "0085P0 KODEX 국고채30년", "quantity": 437, "sleeve": "C", "adoption_id": "ap_0085P0", "disposition": "ADOPT", "disposition_label": "시스템이 인수" },
+        { "symbol": "132030", "symbol_label": "132030 KODEX 골드선물", "quantity": 75, "sleeve": "B", "adoption_id": "ap_132030", "disposition": "EXTERNAL", "disposition_label": "시스템 밖으로 둠" }
+      ],
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "전환 기준 2026-08-31" }
+    },
+    {
+      "path": "HANDBACK_MANUAL",
+      "path_label": "안내 모드로 되돌리기",
+      "steps": [
+        { "step_id": "h1", "order": 1, "title": "미이행 안내 정리", "why_line": "회수할 안내를 셉니다.", "state": "PASS", "state_label": "통과" },
+        { "step_id": "h2", "order": 2, "title": "냉각 기간 고지", "why_line": "전환 직후에는 신규 안내를 내지 않습니다.", "state": "PASS", "state_label": "통과" },
+        { "step_id": "h3", "order": 3, "title": "커밋", "why_line": "되돌아온 값을 다시 그립니다.", "state": "BLOCK", "state_label": "막힘", "blocked_reason_code": "AMEND_TARGET_NOT_ACTIVE" }
+      ],
+      "adoption_preview": [
+        { "symbol": "411060", "symbol_label": "411060 ACE 미국30년국채", "quantity": 480, "sleeve": "C", "adoption_id": "ap_411060", "disposition": "EXTERNAL", "disposition_label": "시스템 밖으로 둠" }
+      ],
+      "handback_branch": "HANDBACK_WITH_OPEN_FILLS",
+      "branch_reason_label": "미체결이 남아 있어 커밋 직전 단계로 돌아갑니다.",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "전환 기준 2026-08-31" }
+    }
+  ]
+}

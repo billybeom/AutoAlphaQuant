@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.0.0",
+    "generated_at": "2026-09-06T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260906,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "알림 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "alert_id": "al_0001",
+      "level": "P0",
+      "raised_at": "2026-08-31T01:05:00Z",
+      "code": "ADVICE_EXIT_URGENT",
+      "title": "즉시 확인이 필요한 청산 안내",
+      "body_text": "손절선에 닿은 종목이 있습니다.",
+      "action_line": "지금 안내함을 여십시오.",
+      "grouped_count": 1,
+      "deep_link": "aaq://advice/inbox",
+      "ack": { "acked": false, "state_label": "수신 확인 전", "escalation_step": 1 }
+    },
+    {
+      "alert_id": "al_0002",
+      "level": "P0",
+      "raised_at": "2026-08-31T01:08:00Z",
+      "code": "ADVICE_REVOKED",
+      "title": "발행한 안내를 회수했습니다",
+      "body_text": "전환 커밋으로 미이행 안내가 회수되었습니다.",
+      "action_line": "회수 목록을 확인하십시오.",
+      "grouped_count": 1,
+      "deep_link": "aaq://advice/history",
+      "ack": { "acked": false, "state_label": "수신 확인 전", "escalation_step": 1 }
+    },
+    {
+      "alert_id": "al_0003",
+      "level": "P1",
+      "raised_at": "2026-08-31T01:11:00Z",
+      "code": "ADVICE_ISSUED",
+      "title": "오늘의 안내가 도착했습니다",
+      "body_text": "8월 31일자 안내 3건이 발행되었습니다.",
+      "action_line": "안내함에서 하나씩 처리하십시오.",
+      "grouped_count": 1,
+      "deep_link": "aaq://advice/inbox",
+      "ack": { "acked": true, "acked_at": "2026-08-31T02:40:00Z", "state_label": "수신 확인함", "escalation_step": 0 }
+    },
+    {
+      "alert_id": "al_0004",
+      "level": "P1",
+      "raised_at": "2026-08-31T01:14:00Z",
+      "code": "ADVICE_DUE_SOON",
+      "title": "유효기한이 오늘까지인 안내",
+      "body_text": "오늘까지 기록하지 않으면 만료됩니다.",
+      "action_line": "안내함에서 기록하십시오.",
+      "grouped_count": 1,
+      "deep_link": "aaq://advice/inbox"
+    },
+    {
+      "alert_id": "al_0005",
+      "level": "P1",
+      "raised_at": "2026-08-31T02:17:00Z",
+      "code": "MANUAL_FILL_REJECTED",
+      "title": "수기 기록이 거부되었습니다",
+      "body_text": "입력한 가격이 그날 범위 밖입니다.",
+      "action_line": "입력값을 확인하고 다시 제출하십시오.",
+      "grouped_count": 1,
+      "deep_link": "aaq://advice/fill"
+    },
+    {
+      "alert_id": "al_0006",
+      "level": "P1",
+      "raised_at": "2026-08-31T02:20:00Z",
+      "code": "LEDGER_TRUST_DOWNGRADE",
+      "title": "원장 신뢰 등급이 내려갔습니다",
+      "body_text": "자가 보고 상태로 내려왔습니다.",
+      "action_line": "실사를 마치면 등급이 회복됩니다.",
+      "grouped_count": 1,
+      "deep_link": "aaq://ledger/trust"
+    },
+    {
+      "alert_id": "al_0007",
+      "level": "P2",
+      "raised_at": "2026-08-31T02:23:00Z",
+      "code": "ADVICE_EXPIRED",
+      "title": "만료된 안내 2건",
+      "body_text": "어제자 안내 2건이 만료되었습니다.",
+      "action_line": "만료 확인 카드에서 정리하십시오.",
+      "grouped_count": 2,
+      "deep_link": "aaq://advice/history"
+    },
+    {
+      "alert_id": "al_0008",
+      "level": "P2",
+      "raised_at": "2026-08-31T02:26:00Z",
+      "code": "SELF_AUDIT_DUE",
+      "title": "분기 실사 기한",
+      "body_text": "이번 분기 실사가 아직 남아 있습니다.",
+      "action_line": "실사 화면에서 잔고를 보고하십시오.",
+      "grouped_count": 1,
+      "deep_link": "aaq://ledger/self-report"
+    },
+    {
+      "alert_id": "al_0009",
+      "level": "P2",
+      "raised_at": "2026-08-31T03:29:00Z",
+      "code": "CONTRIBUTION_CHANGED",
+      "title": "월 납입 설정이 바뀌었습니다",
+      "body_text": "설정에서 월 납입 금액이 변경되었습니다.",
+      "action_line": "다음 납입 주기부터 적용됩니다.",
+      "grouped_count": 1,
+      "deep_link": "aaq://settings/contribution"
+    },
+    {
+      "alert_id": "al_0010",
+      "level": "P2",
+      "raised_at": "2026-08-31T03:32:00Z",
+      "code": "HANDOVER_COOLING_ACTIVE",
+      "title": "전환 냉각 기간입니다",
+      "body_text": "전환 직후 냉각 기간이 진행 중입니다.",
+      "action_line": "냉각이 끝날 때까지 신규 안내가 멈춥니다.",
+      "grouped_count": 1,
+      "deep_link": "aaq://handover/status"
+    },
+    {
+      "alert_id": "al_0011",
+      "level": "P2",
+      "raised_at": "2026-08-31T03:35:00Z",
+      "code": "MAINTENANCE_WINDOW_OVERDUE",
+      "title": "유지보수 창을 넘겼습니다",
+      "body_text": "예정된 유지보수가 지연되고 있습니다.",
+      "action_line": "유지보수 창을 다시 잡으십시오.",
+      "grouped_count": 3,
+      "deep_link": "aaq://ops/maintenance"
+    },
+    {
+      "alert_id": "al_0012",
+      "level": "P2",
+      "raised_at": "2026-08-31T03:38:00Z",
+      "code": "HANDOVER_COMMITTED",
+      "title": "전환이 확정되었습니다",
+      "body_text": "운영 모드 전환이 커밋되었습니다.",
+      "action_line": "전환 결과를 확인하십시오.",
+      "grouped_count": 1,
+      "deep_link": "aaq://handover/status"
+    }
+  ]
+}

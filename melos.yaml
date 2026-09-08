@@ -6,10 +6,12 @@
 # 🔴 명령은 이 저장소 루트에서 실행한다. 개별 패키지에서 `flutter pub get`을
 #    직접 부르지 말 것 — 경로 의존(path dependency) 연결이 melos 몫이다.
 #
-# ⚠️ 이 PC에는 아직 Flutter·Dart·melos가 설치돼 있지 않다(2026-09-06).
-#    그래서 이 파일은 **한 번도 실행돼 본 적이 없다** — 문법만 맞춰 뒀다.
-#    설치 절차와 첫 검증 순서는 docs/SETUP.md §4. 첫 bootstrap이 성공하면
-#    그 커밋에서 잠정 버전 제약을 실제 값으로 좁힌다(SETUP §4-6).
+# ✅ 실측(2026-09-08 · G3 통합): Dart 3.13.2 / Flutter 3.47.2 / 저장소 안 melos
+#    6.3.3. `bootstrap` → `build:gen` → `analyze` → `format` 이 13패키지 전부
+#    SUCCESS 였다. 실행 방식은 Git Bash에서
+#      export PATH="/c/src/flutter/bin:/c/Users/BeomLee/AppData/Local/Pub/Cache/bin:$PATH"
+#      cd "C:/Work/Bob/AutoAlphaQuant" && melos.bat run <script>
+#    (`melos`는 이 PC에 .bat만 있다 — docs/toolchain_notes.md §1.)
 
 name: autoalphaquant
 
@@ -21,11 +23,12 @@ ignore:
   - "**/build/**"
   - "**/.dart_tool/**"
 
-# ⚠️ 버전 제약: melos 6.x + Dart 3.6 이상에서는 pub workspace(루트 pubspec의
-#    `workspace:` 목록 + 각 패키지의 `resolution: workspace`) 방식이 권장된다.
-#    지금은 SDK 버전이 확정되지 않아 melos 고전 방식(위 `packages:` 글롭)을 쓴다.
-#    SDK 설치 후 실제 버전을 확인하고 한쪽으로 정리할 것 — 두 방식을 섞으면
-#    bootstrap이 조용히 다른 pubspec을 읽는다.
+# ⚠️ 방식 선택은 **고전 `packages:` 글롭 하나로 유지한다**(위 목록).
+#    melos 6.3.3 + Dart 3.13이면 pub workspace(루트 pubspec의 `workspace:` 목록
+#    + 각 패키지의 `resolution: workspace`) 방식도 쓸 수 있지만, 지금 글롭 방식이
+#    13패키지 전부 실측 통과했으므로 옮기지 않는다 — 옮기려면 13개 pubspec을
+#    한 커밋에서 함께 고쳐야 하고, 🔴 **두 방식을 섞으면 bootstrap이 조용히 다른
+#    pubspec을 읽는다.** (SETUP §4-6)
 
 command:
   bootstrap:
@@ -78,6 +81,14 @@ scripts:
       import하면 실패한다(C-3). 한글 리터럴은 경고만 낸다(C-5 보조).
     run: bash tool/check_boundaries.sh
 
+  check:labels:
+    description: >
+      C-5 보조 스캐너(01 §1-5 · §7 C-5). ui_* 전 파일에서 한글 문자열 리터럴과
+      'TIER '·'SAF-' 리터럴, 월 납입 금액 리터럴(C-32 보조)을 찾는다.
+      🔴 보조다 — C-5 의 정본 구현은 domain_contracts/test/ 의 계약 테스트이며
+      여기서 통과했다고 C-5 를 대신하지 않는다. 반대로 여기서 걸린 것은 진짜다.
+    run: bash packages/domain_contracts/tool/check_labels.sh
+
   # ── 골든 스냅샷 ───────────────────────────────────────────────────────────
   golden:verify:
     description: >
@@ -90,18 +101,26 @@ scripts:
 
   test:contracts:
     description: >
-      계약 회귀 테스트 C-1~C-16(01 §7). 07 §9 병합 검사의 {{SNAPSHOT_CMD}}가
+      계약 회귀 테스트 C-1~C-32(01 §7). 07 §9 병합 검사의 {{SNAPSHOT_CMD}}가
       이 스크립트다.
-    run: melos run check:boundaries && melos run golden:verify
-    # ⚠️ C-4·C-6·C-7·C-8~C-16은 domain_contracts에 테스트 하네스가 들어온 뒤
-    #    이 스크립트에 추가된다. 지금은 C-3(경계)·C-1/C-2(골든)만 실제로 돈다.
+    run: melos run check:boundaries && melos run check:labels && melos run golden:verify
+    # ✅ 실측(2026-09-08 · G3 확정): C-1~C-32 가 **전부 이 스크립트로 돈다** —
+    #    golden:verify 가 test:dart 를 부르고, 거기서 domain_contracts/test/contracts/
+    #    34파일이 실행된다(204 케이스 = 170 통과 · 34 skip · 0 실패).
+    # 🔴 34 skip 은 «미구현»이 아니라 «아직 검사할 대상이 없다»(ui_* 화면 패키지·
+    #    엔진 런타임·골든 파일 선행). 각 skip 은 테스트 안에 사유 문장을 달고 있고,
+    #    같은 사유가 01 §7 «C-n 구현 상태» 열에 전건 기록돼 있다.
+    #    🔴 skip 을 지우거나 통과로 바꾸지 말 것 — 화면 PR 이 그 자리를 채운다.
 
   # ── 코드 생성 ─────────────────────────────────────────────────────────────
   build:gen:
     description: >
       freezed·json_serializable 생성 코드를 만든다. 생성물(*.freezed.dart·
       *.g.dart)은 .gitignore에 있으므로 clone 직후와 CI에서 한 번 돌려야 한다.
-    exec: dart run build_runner build --delete-conflicting-outputs
+    # 🔴 `--delete-conflicting-outputs` 를 붙이지 않는다 — build_runner 2.16에서
+    #    **제거**된 플래그라 경고(`These options have been removed and were
+    #    ignored`)만 남기고 아무 일도 하지 않는다(docs/toolchain_notes.md §5 #4).
+    exec: dart run build_runner build
     packageFilters:
       dependsOn:
         - build_runner

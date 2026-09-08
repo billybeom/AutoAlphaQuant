@@ -1,13 +1,18 @@
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
-// 자리표시 테스트 — 계약 코드가 아직 없으므로 «패키지가 컴파일되고 배럴이
-// 계약 버전을 노출한다»까지만 확인한다.
+// 배럴 연기(smoke) 테스트 — 「패키지가 컴파일되고 배럴이 계약 버전을 노출한다」까지.
 //
-// G3에서 01 §7의 계약 회귀 테스트(C-1 뷰모델 골든 · C-8 JSON 라운드트립 ·
-// C-12 열거값 전수 커버 · C-15 픽스처↔DDL 정합)가 이 파일을 대체한다.
+// ✅ G3 확정(2026-09-08): 01 §7 의 계약 회귀 테스트 C-1~C-32 는 `test/contracts/` 에
+//    실물로 들어왔다(33파일). 이 파일은 그것들에 «대체»된 것이 아니라, 배럴
+//    `lib/domain_contracts.dart` 하나만 import 해도 계약 버전이 보이는지를 지키는 가장 바깥
+//    껍데기로 남는다 — C-1·C-15 는 봉투와 상수를 대조할 뿐 배럴 노출 여부를 보지 않는다.
 void main() {
-  test('contractVersion은 계약 확정 전까지 초안 표식을 유지한다', () {
-    expect(contractVersion, '0.0.0-draft');
+  test('배럴이 계약 버전을 노출하고, 값이 확정판이다', () {
+    // 🔴 이 상수와 77개 픽스처 봉투의 `meta.contract_version` 은 같은 축이며
+    //    한쪽만 올리지 않는다(C-1 · C-15 ④ 가 전량 대조한다).
+    expect(contractVersion, '1.0.0');
+    // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.
+    expect(contractVersion, isNot(contains('draft')));
   });
 }

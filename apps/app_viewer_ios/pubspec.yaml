@@ -16,10 +16,10 @@ publish_to: none
 version: 0.1.0
 
 environment:
-  # ⚠️ packages/ 쪽 하한(^3.5.0)과 맞춘 값이다 — 앱만 낮추면 해석이 실패한다.
-  #    SDK 설치 후 좁힐 것(docs/SETUP.md §4-6).
-  sdk: ^3.5.0
-  flutter: ">=3.24.0" # ⚠️ ui_* 패키지와 같은 값을 유지할 것
+  # ✅ packages/ 쪽 하한(^3.13.0)과 맞춘 값이다 — 앱만 낮추면 해석이 실패한다.
+  #    실측 확정(2026-09-08 · docs/toolchain_notes.md §1): Dart 3.13.2 / Flutter 3.47.2.
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
 
 # ── 의존 (알파벳 순) ────────────────────────────────────────────────────────
 dependencies:

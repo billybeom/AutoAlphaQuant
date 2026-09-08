@@ -7,28 +7,45 @@ publish_to: none
 version: 0.1.0
 
 environment:
-  # ✅ 저장소 전체가 ^3.5.0으로 통일돼 있다(루트·packages·apps — 2026-09-06 정리).
-  #    01 §1-1의 «≥3.3 전제»는 extension type(Ratio·TradeDate) 하한이고 ^3.5.0은
-  #    그것을 만족한다. ⚠️ SDK 설치 후 실제 버전에 맞춰 좁힐 것 — docs/SETUP.md §4-6.
-  sdk: ^3.5.0
+  # ✅ 실측 확정(2026-09-08 · docs/toolchain_notes.md §1): Dart 3.13.2 / Flutter 3.47.2.
+  #    🔴 ^3.5.0에서 ^3.13.0으로 올린 이유는 「최신이라서」가 아니라 **생성기가 요구**해서다:
+  #      · freezed 4.0.1  → environment.sdk >=3.13.0 (Dart 3.13 생성자 문법 변경 대응)
+  #      · json_serializable 6.14.1 → 이 패키지의 **언어 버전**이 ^3.9.0 미만이면
+  #        빌드 중 경고를 내고 해당 입력을 **skip** 한다(= *.g.dart가 조용히 안 나온다).
+  #        언어 버전은 이 sdk 제약의 «하한»에서 나온다 — 설치된 SDK가 3.13이어도 여기가
+  #        ^3.5.0이면 언어 버전은 3.5다.
+  #    ✅ SETUP.md §4-6의 «13개 pubspec을 같은 값으로, 한 커밋에서» — 통합 단계에서
+  #       나머지 12개(루트·packages/*·apps/*)도 ^3.13.0 · flutter ">=3.47.0" 으로 맞추었다.
+  sdk: ^3.13.0
 
 dependencies:
   # 01 §1-1 허용 목록 그대로. 🔴 여기에 flutter·core_engine·sqflite·supabase를
   #    넣는 순간 계약이 플랫폼에 묶이고 viewer 빌드가 깨진다.
-  decimal: ^3.0.0 # ⚠️ 2.x와 API가 다르다(Decimal.parse·Decimal.one 동일, 연산 반환형 차이). SDK 설치 후 확정
-  freezed_annotation: ^2.4.0 # ⚠️ freezed 3.x로 올리면 annotation도 3.x로 함께 올려야 한다
-  json_annotation: ^4.9.0
-  meta: ^1.15.0
+  # ⚠️ decimal 3.x는 2.x와 API가 다르다(Decimal.parse·Decimal.one 동일, 연산 반환형 차이).
+  #    3.2.6은 intl(>=0.19 <0.21)·rational ^2.0.0을 끌어온다 — 둘 다 순수 Dart.
+  decimal: ^3.2.6
+  # 🔴 freezed(dev)와 메이저를 맞출 것. freezed 4.0.1의 짝은 freezed_annotation 3.1.0이다
+  #    (annotation은 3.x에 머물러 있고 generator만 4.x로 갔다 — 숫자가 어긋난 것이 정상).
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.12.0
+  meta: ^1.19.0
 
 # 🔴 알파벳 순서를 지킬 것 — 루트 analysis_options.yaml의 sort_pub_dependencies가
 #    켜져 있고 melos analyze는 --fatal-infos라 순서가 어긋나면 **분석이 실패**한다.
 dev_dependencies:
-  build_runner: ^2.4.0 # melos run build:gen이 dependsOn: build_runner로 이 패키지를 고른다
+  # melos run build:gen이 dependsOn: build_runner로 이 패키지를 고른다.
+  # ⚠️ 2.16.x에서 `--delete-conflicting-outputs`가 **제거**됐다(무시되고 경고만 뜬다).
+  #    melos.yaml build:gen의 그 플래그는 지워도 된다 — docs/toolchain_notes.md §5.
+  build_runner: ^2.16.1
   # ⚠️ 루트 analysis_options.yaml의 `package:flutter_lints/...` include는 **이
   #    패키지의** package config로 해석된다. 여기 없으면 include가 조용히 실패하고
   #    lint가 꺼진 채로 통과한다(루트 파일의 같은 ⚠️ 주석 참조).
   #    flutter_lints는 규칙 YAML만 담은 순수 Dart 패키지라 Flutter를 끌어오지 않는다.
+  # 🔴 6.0.0이 나와 있지만 **올리지 않는다** — 저장소 13개 패키지가 모두 ^5.0.0이고
+  #    lint 기준선을 한 패키지만 다르게 두면 분석 결과가 조용히 갈린다(루트에서 함께 결정).
   flutter_lints: ^5.0.0
-  freezed: ^2.5.0 # ⚠️ freezed_annotation과 메이저를 맞출 것
-  json_serializable: ^6.8.0
-  test: ^1.25.0
+  # 🔴 freezed_annotation과 「짝」을 맞출 것(4.0.1 ↔ 3.1.0). analyzer >=13 <15를 요구하므로
+  #    analyzer 14.x가 딸려 온다 — build_runner·json_serializable도 함께 올려야 맞물린다.
+  freezed: ^4.0.1
+  json_serializable: ^6.14.1
+  test: ^1.32.0

@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.0.0",
+    "generated_at": "2026-09-06T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260906,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "대조 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "diff_id": "ld_0001",
+      "pair": "CANON_BROKER",
+      "axis": "QUANTITY",
+      "authored_date": "2026-08-28",
+      "delta_label": "069500 수량이 12주 적습니다",
+      "severity": "BLOCKING",
+      "candidate_origin_codes": ["FILL_LAG", "MANUAL_ORDER"],
+      "status": "OPEN",
+      "route": "APPROVAL",
+      "evidence_hash": "ev_8f21c0a4b7d3",
+      "applicable": true
+    },
+    {
+      "diff_id": "ld_0002",
+      "pair": "CANON_SUPABASE",
+      "axis": "EXECUTION_ROW",
+      "authored_date": "2026-08-30",
+      "delta_label": "미러에 체결 2행이 아직 없습니다",
+      "severity": "OBSERVATIONAL",
+      "candidate_origin_codes": ["PUSH_LAG"],
+      "status": "OPEN",
+      "route": "AUTO",
+      "evidence_hash": "ev_2b90d5e14c6f",
+      "applicable": true
+    },
+    {
+      "diff_id": "ld_0003",
+      "pair": "CANON_GITHUB",
+      "axis": "CHAIN_HASH",
+      "authored_date": "2026-08-29",
+      "delta_label": "아카이브 체인 해시가 하루 뒤처집니다",
+      "severity": "OBSERVATIONAL",
+      "candidate_origin_codes": ["ARCHIVE_LAG"],
+      "status": "ACCEPTED",
+      "route": "AUTO",
+      "evidence_hash": "ev_71ac3d9e05b2",
+      "applicable": true
+    },
+    {
+      "diff_id": "ld_0004",
+      "pair": "CANON_CALENDAR",
+      "axis": "EXECUTION_ROW",
+      "authored_date": "2026-08-27",
+      "delta_label": "캘린더 이벤트 1건이 기록되지 않았습니다",
+      "severity": "OBSERVATIONAL",
+      "candidate_origin_codes": ["CAL_WRITE_FAILED"],
+      "status": "RESOLVED",
+      "route": "AUTO",
+      "evidence_hash": "ev_5d64bf0a37e1",
+      "applicable": true
+    }
+  ]
+}

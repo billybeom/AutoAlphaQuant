@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.0.0",
+    "generated_at": "2026-09-06T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260906,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안내 기준 2026-08-31 종가" },
+  "empty_kind": "NO_DATA",
+  "empty_label": "오늘 발행된 안내가 없습니다.",
+  "has_more": false,
+  "rows": [],
+  "summary": {
+    "batch_id": "ab_20260831_01",
+    "trade_date": "2026-08-31",
+    "open_count": 0,
+    "due_today_count": 0,
+    "has_suppressed_notice": false,
+    "overdue_unrecorded_count": 0,
+    "headline": "오늘 처리할 안내가 없습니다.",
+    "level": "OK",
+    "handover_cooling_active": false,
+    "trust": { "grade": "RECONCILED", "level": "OK", "label": "대사 완료", "consequence_line": "브로커 원장과 수량·현금이 맞습니다.", "last_verified_on": "2026-08-31" },
+    "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안내 기준 2026-08-31 종가" }
+  }
+}

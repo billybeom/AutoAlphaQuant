@@ -1,0 +1,193 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.0.0",
+    "generated_at": "2026-09-06T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260906,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-08-31 종가" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "event_id": "re_20260403_01",
+      "mode": "LIVE",
+      "trade_date": "2026-04-03",
+      "kind": "MONTHLY_REGULAR",
+      "kind_label": "월간 정기",
+      "before": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.184, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.401, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.351, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.043, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.021, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "after": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.199, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.418, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.322, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.041, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "trigger": {
+        "config_hash": "cfg_fake_0000000000000000",
+        "raw_values": { "trend_score_kr": "0.42", "band_breach_sleeve": "B", "days_since_last": "31" },
+        "threshold_registered": 0.35,
+        "summary": "월간 정기 판정으로 2026-04-03 리밸런싱을 실행했습니다."
+      },
+      "order_intent_ids": ["i_re_20260403_01_1", "i_re_20260403_01_2"],
+      "as_of": { "observed_at": "2026-04-03T09:00:00Z", "trade_date": "2026-04-03", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-04-03 종가" }
+    },
+    {
+      "event_id": "re_20260504_01",
+      "mode": "LIVE",
+      "trade_date": "2026-05-04",
+      "kind": "MONTHLY_REGULAR",
+      "kind_label": "월간 정기",
+      "before": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.206, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.409, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.325, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.04, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "after": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.201, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.419, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.32, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.04, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "trigger": {
+        "config_hash": "cfg_fake_0000000000000000",
+        "raw_values": { "trend_score_kr": "0.42", "band_breach_sleeve": "B", "days_since_last": "31" },
+        "threshold_registered": 0.35,
+        "summary": "월간 정기 판정으로 2026-05-04 리밸런싱을 실행했습니다."
+      },
+      "order_intent_ids": ["i_re_20260504_01_1", "i_re_20260504_01_2"],
+      "as_of": { "observed_at": "2026-05-04T09:00:00Z", "trade_date": "2026-05-04", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-05-04 종가" }
+    },
+    {
+      "event_id": "re_20260601_01",
+      "mode": "LIVE",
+      "trade_date": "2026-06-01",
+      "kind": "BAND",
+      "kind_label": "밴드 이탈",
+      "before": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.176, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.478, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.288, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.038, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "after": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.198, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.421, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.321, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.04, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "trigger": {
+        "config_hash": "cfg_fake_0000000000000000",
+        "raw_values": { "trend_score_kr": "0.42", "band_breach_sleeve": "B", "days_since_last": "31" },
+        "threshold_registered": 0.35,
+        "summary": "밴드 이탈 판정으로 2026-06-01 리밸런싱을 실행했습니다.",
+        "trigger_price": "17420"
+      },
+      "order_intent_ids": ["i_re_20260601_01_1", "i_re_20260601_01_2"],
+      "as_of": { "observed_at": "2026-06-01T09:00:00Z", "trade_date": "2026-06-01", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-06-01 종가" },
+      "quality": { "slippage_text": "실측 슬리피지 6bp", "assumed_slippage_text": "가정치 10bp", "unfilled_rate_text": "미체결 0%", "summary": "실측이 가정치보다 낮았습니다." }
+    },
+    {
+      "event_id": "re_20260701_01",
+      "mode": "LIVE",
+      "trade_date": "2026-07-01",
+      "kind": "MONTHLY_REGULAR",
+      "kind_label": "월간 정기",
+      "before": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.194, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.427, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.318, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.041, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "after": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.2, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.42, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.32, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.04, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "trigger": {
+        "config_hash": "cfg_fake_0000000000000000",
+        "raw_values": { "trend_score_kr": "0.42", "band_breach_sleeve": "B", "days_since_last": "31" },
+        "threshold_registered": 0.35,
+        "summary": "월간 정기 판정으로 2026-07-01 리밸런싱을 실행했습니다."
+      },
+      "order_intent_ids": ["i_re_20260701_01_1", "i_re_20260701_01_2"],
+      "as_of": { "observed_at": "2026-07-01T09:00:00Z", "trade_date": "2026-07-01", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-07-01 종가" }
+    },
+    {
+      "event_id": "re_20260803_01",
+      "mode": "LIVE",
+      "trade_date": "2026-08-03",
+      "kind": "DEPOSIT",
+      "kind_label": "월 납입 배분",
+      "before": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.198, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.418, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.322, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.041, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.021, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "after": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.2, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.42, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.32, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.04, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "trigger": {
+        "config_hash": "cfg_fake_0000000000000000",
+        "raw_values": { "trend_score_kr": "0.42", "band_breach_sleeve": "B", "days_since_last": "31" },
+        "threshold_registered": 0.35,
+        "summary": "월 납입 배분 판정으로 2026-08-03 리밸런싱을 실행했습니다."
+      },
+      "order_intent_ids": ["i_re_20260803_01_1", "i_re_20260803_01_2"],
+      "as_of": { "observed_at": "2026-08-03T09:00:00Z", "trade_date": "2026-08-03", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-08-03 종가" }
+    },
+    {
+      "event_id": "re_20261030_01",
+      "mode": "LIVE",
+      "trade_date": "2026-10-30",
+      "kind": "SEASONAL",
+      "kind_label": "계절 진입 게이트",
+      "before": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.152, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.436, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.351, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.041, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "after": [
+        { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.201, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A · 국내 지수 ETF" },
+        { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.419, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B · 해외 지수·금 ETF" },
+        { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.32, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C · 방어 자산" },
+        { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.04, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT · 파킹" },
+        { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH · 원화 현금" }
+      ],
+      "trigger": {
+        "config_hash": "cfg_fake_0000000000000000",
+        "raw_values": { "trend_score_kr": "0.42", "band_breach_sleeve": "B", "days_since_last": "31" },
+        "threshold_registered": 0.35,
+        "summary": "계절 진입 게이트 판정으로 2026-10-30 리밸런싱을 실행했습니다."
+      },
+      "order_intent_ids": ["i_re_20261030_01_1", "i_re_20261030_01_2"],
+      "as_of": { "observed_at": "2026-10-30T09:00:00Z", "trade_date": "2026-10-30", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-10-30 종가" }
+    }
+  ]
+}

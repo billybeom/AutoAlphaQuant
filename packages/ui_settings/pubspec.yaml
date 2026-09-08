@@ -6,10 +6,10 @@ publish_to: none
 version: 0.1.0
 
 environment:
-  # ⚠️ 저장소 전체가 ^3.5.0으로 통일돼 있다(루트·packages·apps).
-  #    SDK 설치 후 실제 버전에 맞춰 좁힐 것 — docs/SETUP.md §4-6.
-  sdk: ^3.5.0
-  flutter: ">=3.24.0" # ⚠️ 설치 버전 확인 후 확정
+  # ✅ 실측 확정(2026-09-08 · docs/toolchain_notes.md §1·§2-3): Dart 3.13.2 / Flutter 3.47.2.
+  #    🔴 저장소 13개 pubspec이 같은 값이다 — 한 곳만 다르면 해석이 조용히 갈린다(SETUP §4-6).
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
 
 # 🔴 허용 목록은 아래 셋이 전부다(01 §1-1). 🔴 특히 설정 화면이라고 해서
 #    supabase_flutter·sqflite·http를 넣지 않는다 — 저장·검증은 전부

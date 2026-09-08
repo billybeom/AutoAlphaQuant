@@ -1,0 +1,837 @@
+# `domain_contracts` 구현 인벤토리 — G3·G4 병렬 구현자의 단일 참조
+
+> **무엇**: `11_앱설계/01_M2_도메인계약_초안.md`(§1~§10) + `06 M2-1~M2-10` + `10 §3` + X7 확정 식별자 목록 ③ 을 **구현 가능한 목록**으로 옮긴 것. 여기 있는 이름·필드·경로만 만든다.
+> **누가 읽나**: 영역 A~F 를 병렬로 맡은 구현자 6명. 🔴 **자기 영역 밖의 Dart 파일을 고치지 않는다** — 남의 영역 타입은 이 문서의 경로대로 `import` 하고, 아직 없으면 «그 영역이 만들 것»을 전제로 쓴 뒤 통합 단계에 맡긴다.
+> **정본 우선순위**: 01 문서 > 이 문서 > 06·10·X7 목록. 01 과 X7 목록이 다르면 **01 §10 이 이긴다**(01 §0 · X7 ③ 서문).
+> **이름 미확정(⚠️ M2-8)** 은 `docs/m2-8_naming.md` 가 확정한 이름을 쓴다. 🔴 **구현자가 즉석에서 새 이름을 만들지 않는다.**
+
+---
+
+## §0. 영역 6분할 — 누가 어느 파일을 쓰는가
+
+| 영역 | 무엇 | 소유 경로 | 다른 영역이 이 영역에서 가져다 쓰는 것 |
+|---|---|---|---|
+| **A** | 원시타입 · 열거형 **전량** | `lib/src/primitives/**` · `lib/src/enums/**` | 전 영역이 의존한다. **A 가 먼저 서야 B~F 가 컴파일된다** |
+| **B** | DTO 1조 — M6(일지·보유) · M8(알림·안전·온보딩) · X5(정합) · X2(재개) · X3 · 공통 봉투 DTO | `lib/src/dto/common.dart` · `journal.dart` · `holdings.dart` · `resume.dart` · `calendar.dart` · `ledger.dart` · `safety.dart` | `ReasonChip`·`DecisionRef`·`GateBadge`·`FeatureFlags`·`SleeveCatalogEntry`(→ C·D) · `TradeJournalEntry`(→ D 리포지토리 시그니처) |
+| **C** | DTO 2조 — M7(성과·리밸런싱·플래너·세후) · M9(설정·운영) · X6 · X7(안내·신뢰·전환) | `lib/src/dto/performance.dart` · `rebalance.dart` · `plan.dart` · `advice.dart` · `ledger_trust.dart` · `handover.dart` · `ops.dart` · `settings.dart` | `ContributionSetting`·`AdviceItem`·`ManualFillFormSpec`·`SelfReportLine`·`ExecutionGapReport`(→ D) |
+| **D** | 리포지토리 인터페이스 · `CommandApi` · 명령 인자 · `SettingsActions` | `lib/src/repositories/**` · `lib/src/commands/**` | 없음(최종 소비자) |
+| **E** | 코드→문구 매핑 사전 · `contract_version` · DDL 배치 A~F | `lib/src/labels/**` · `lib/src/contract_version.dart` · `ddl/*.sql` | `contractVersion`(→ F 봉투 검증) · 코드 상수(→ F 픽스처 값) |
+| **F** | 픽스처 JSON + 로더 + 계약 테스트 | `fixtures/**` · `lib/src/fixtures/**` · `test/**` | 없음(최종 소비자) |
+
+> 🔴 **배럴 `lib/domain_contracts.dart` 는 통합 담당만 편집한다.** 영역 구현자는 `export` 를 추가하지 않는다.
+> 🔴 **`lib/src/` 아래를 화면이 직접 import 하지 않는다** — 공개 진입점은 배럴 하나다.
+
+### 0-1. 영역 간 컴파일 순서 (선행 의존)
+
+```
+A(primitives·enums)
+ ├─▶ B(DTO 1조)  ─┬─▶ D(리포지토리·명령)
+ ├─▶ C(DTO 2조)  ─┘        │
+ ├─▶ E(라벨·DDL·버전)       │
+ └───────────────────────────┴─▶ F(픽스처·로더·테스트)
+```
+
+- A 는 **다른 어떤 영역도 기다리지 않는다.** 먼저 끝낸다.
+- B·C 는 서로를 참조하지 않는다 — 단 하나의 예외가 `BackdateStamp`(B 소유, C 의 X7 문맥에서 정의됨)와 `LedgerDiffRow.applicable`(B 소유 DTO 의 X7 신설 필드)이며, **둘 다 B 가 만든다**(01 §2-11 말미 조문).
+- D 는 B·C 의 타입 이름만 알면 되므로 **선언이 없어도 import 문을 먼저 쓰고 통합 단계에 맡긴다.**
+
+### 0-2. 전 영역 공통 규약 5조 (어기면 계약 테스트가 빌드를 깨뜨린다)
+
+1. **금액은 `Decimal` + `@DecimalStringConverter()`**, JSON 은 문자열(`"38250.00"`). 숫자 리터럴은 C-8 이 잡는다(01 §1-2).
+2. **비율·스코어는 `double`**, 거래일은 `TradeDate`(`extension type`), 시각은 **UTC `DateTime`**. `DateTime.now()` 직접 호출 0건(01 §1-3).
+3. **계산 getter 0건 · `save_`/`write_`/`submit_`/`send_` 함수 0건**(01 §1-4). 값과 «그 값의 완성 문자열»을 함께 싣는다.
+4. **열거값에는 짝이 되는 `*Label` 문자열 필드가 붙는다**(01 §1-5). 짝이 없으면 계약 결함으로 보고하고 화면이 문구를 짓지 않는다.
+5. **enum 직렬화는 `@JsonValue` 로 못 박는다** — Dart camelCase ↔ JSON·DDL SCREAMING_SNAKE_CASE. 신규 열거값은 **DDL `CHECK` → `@JsonValue` → 픽스처** 순서로 같은 커밋(01 §1-2 · C-15).
+
+### 0-3. 코드 스타일 (루트 `analysis_options.yaml`)
+
+- `dart analyze --fatal-infos` 통과 필수 · `pubspec` 의존 알파벳 순 · 파일 EOL = **LF**.
+- 한국어 주석은 **문서 절 번호를 인용**한다(예 `// 01 §2-11 A8 — 버튼의 유일한 근거`).
+- 빌드 생성물(`*.freezed.dart`·`*.g.dart`)은 커밋하지 않고 `melos.bat run build:gen` 으로 만든다.
+
+---
+
+## §1. ① 원시타입 — 영역 **A** · `lib/src/primitives/`
+
+> 근거: 01 §1-2(금액) · §1-3(시각·날짜·신선도) · §2-1(봉투·구간).
+
+| 파일 | 타입 | 표현 | 연산 금지 규약 |
+|---|---|---|---|
+| `money.dart` | `enum Currency { krw, usd }` | `'KRW'`·`'USD'` | — |
+| `money.dart` | `@freezed class Money { Decimal amount; Currency currency }` + `Money.krw(String)`·`Money.usd(String)` | 🔴 **예약 타입 — 1차 릴리스 DTO 에서 쓰지 않는다**(P0S 는 전 금액 KRW). 통화는 상위 DTO 의 `currency` 축으로 표현 | 🔴 유일한 생성 경로는 **문자열**. `Decimal.fromDouble` / `Decimal.parse(d.toString())` 우회 금지 |
+| `money.dart` | `extension type const Ratio(double value) {}` | 비율·스코어 | 🔴 산술 연산자를 정의하지 않는다 |
+| `money.dart` | `extension type const TradeDate(String yyyyMmDd) {}` | 시장 **현지** 거래일 `'YYYY-MM-DD'`(US 는 ET · KST 환산 금지) | 🔴 **날짜 산술 없음** — «다음 거래일»·«D-6» 은 거래소 캘린더를 아는 엔진만 판정(M1-6) |
+| `money.dart` | `abstract interface class Clock { DateTime nowUtc(); }` | 구현체 주입은 `data_sync` | 🔴 화면이 이 값을 쓰는 자리는 **전 앱에서 하나** — `observedAt + staleAfter < clock.nowUtc()`(신선도 배너). 카운트다운·경과·D-day·TTL 잔여는 엔진 문자열 |
+| `money.dart` | `class DecimalStringConverter implements JsonConverter<Decimal, String>` | `fromJson` = `Decimal.parse` · `toJson` = `d.toString()` | 🔴 **필드 어노테이션이다** — 메서드 인자에 붙여도 아무 일도 하지 않는다(§4-2 조문) |
+| `money.dart` | `class DurationSecondsConverter implements JsonConverter<Duration, int>` | JSON 키는 `*_seconds` | — |
+| `as_of.dart` | `enum AsOfSource { localSqlite, supabaseMirror, archive }` | `'LOCAL_SQLITE'`·`'SUPABASE_MIRROR'`·`'ARCHIVE'` | — |
+| `as_of.dart` | `@freezed class AsOf` | 필드 = `observedAt`(UTC, required) · `tradeDate`(`TradeDate`, required) · `source`(required) · `staleAfter`(`Duration` + `@DurationSecondsConverter()`, required) · `label`(String, required — 「잔고 기준 2026-09-05 종가」) · `staleReasonCode`(String?) · `staleLabel`(String?) | 🔴 **UTC `DateTime` 필드는 정렬·비교용이지 표시용이 아니다.** 화면이 시각을 포맷하는 자리는 `TzInstant` 가 실린 필드뿐 |
+| `as_of.dart` | `@freezed class TzInstant { DateTime utc; String tzName }` | `tzName` 기본 `'Asia/Seoul'` | 화면은 `tzName` 으로만 포맷한다 |
+| `list_result.dart` | `@freezed class ListResult<T>` | `rows`(List\<T\>, **엔진이 이미 정렬**) · `asOf` · `emptyKind` · `emptyLabel`(String?) · `hasMore`(bool) | 🔴 화면 재정렬 금지. 빈 목록에도 네 값이 실린다(계약 3조 ③) |
+| `date_range.dart` | `@freezed class DateRange` | `from`·`to`(`TradeDate`) · `presetCode`(String?) · `label`(String?) | 🔴 화면이 날짜 산술로 만들지 않는다 — 프리셋 창구는 `ConfigRepository.watchRangePresets()` **하나**(G-38) |
+
+> 🔴 **`AsOfStamp` 라는 타입은 실재하지 않는다.** 화면 명세들의 «기준일 고지»는 전부 `AsOf` 하나이며 표시 문구는 `label` 이다(01 §1-3).
+> 🔴 **신뢰 시각**(리스 TTL·킬스위치 48h·냉각 30일)은 **Supabase 서버 시각**이다. 로컬 시계로 마찰 카운트다운을 만들지 않는다.
+> ⚠️ `Money` 는 정의하되 **§2·§4 의 어떤 DTO 필드에도 쓰지 않는다**. 산술 차단은 `Money` 유무가 아니라 C-4(`Decimal` 필드까지 탐지)가 한다.
+
+---
+
+## §2. ② 열거형 전량 — 영역 **A** · `lib/src/enums/`
+
+> 🔴 **52종 전부 A 가 만든다.** `CommandKind`·`CommandState`·`SettingsActionId` 도 여기다(D 는 import 만 한다) — 열거형이 두 영역에 흩어지면 `@JsonValue` 규약의 소유자가 둘이 된다.
+> 🔴 표의 «DB» 열이 비어 있으면 **DDL `CHECK` 에 대응 컬럼이 없다**(뷰모델 전용). 값이 있으면 §7 DDL 의 `CHECK` 와 **문자 그대로 일치**해야 하며 불일치는 C-15 가 잡는다.
+
+### 2-1. `sleeve.dart` — 슬리브·기준 축
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `SleeveId` | `a, b, c, pot, cash, satellite` | `A`·`B`·`C`·`POT`·`CASH`·**`SAT`** | 01 §2-1 · §6-1 CHECK. 🔴 `satellite` ↔ `'SAT'` 은 **기계적 대문자 변환이 아니다** — `@JsonValue('SAT')` 로 못 박는다. 🔵 v2.31 P0S 에서 `satellite` 는 **열거값 보존·화면 미노출**(목록은 `SleeveCatalogEntry` 가 준다) |
+| `AllocationBasis` | `engineColumn, accounting` | `ENGINE_COLUMN`·`ACCOUNTING` | 01 §2-1 P 회차. 🔴 `SleeveWeight.basis` 는 **`accounting` 외 값을 갖지 않는다**(엔진 쪽 계약). `engineColumn` 은 진단 전용 별도 창구로만 |
+
+### 2-2. `mode.dart` — 3축(직교)
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `RunMode` | `simInternal, simBroker, live` | `SIM_INTERNAL`·`SIM_BROKER`·`LIVE` | 01 §2-1·§9-1. 🔴 «어느 계좌·어느 서버인가». ⚠️ **배치 A·B 의 기존 `CHECK (mode IN ('SIM','LIVE'))` 는 3값으로 넓힌다**(§9-5 ④ 권고 = 3값 + 파일별 CHECK) — 확정 사항은 `m2-8_naming.md` D-2 |
+| `ExecPolicy` | `dryRun, execute` | `DRY_RUN`·`EXECUTE` | 01 §9-5 ① · §10-1. 🔴 **`FeatureFlags` 에 넣지 않는다** — 화면이 3축을 곱해 분기한다. 구 `order_intents.dry_run` 의 «이름만 바꾼 것»이며 컬럼은 그대로 |
+| `OperatingMode` | `autoTrade, advisory` | `AUTO_TRADE`·`ADVISORY` | 01 §2-1·§10-1 · X7 ③ 3-1. 🔴 «누가 집행하는가». 🔴 **엔진의 어떤 안전 강등도 이 값을 건드리지 않는다**(강등은 `ExecPolicy` 전용) |
+
+### 2-3. `order.dart` · `ui.dart` — 주문·표시 공통
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `OrderSide` | `buy, sell` | `BUY`·`SELL` | 01 §2-1 · `advice.side` CHECK |
+| `ChipTone` | `neutral, caution, blocked, prevented` | `NEUTRAL`·`CAUTION`·`BLOCKED`·`PREVENTED` | 01 §2-1. 🔴 `prevented` 는 **실패가 아니라 방어**다 |
+| `GateState` | `pass, block, notApplicable, unknown` | `PASS`·`BLOCK`·`NOT_APPLICABLE`·`UNKNOWN` | 01 §2-1. 🔴 `unknown` ≠ `notApplicable` — X3 리스·기기 원장의 «모름»이며 **진행 차단**(04 §9-8) |
+| `UiLevel` | `ok, info, watch, act, blocked` | `OK`·`INFO`·`WATCH`·`ACT`·`BLOCKED` | 01 §2-1. 🔴 **값의 부호로 색을 고르지 않는다** |
+| `EmptyKind` | `noData, notLoaded, notApplicable` | `NO_DATA`·`NOT_LOADED`·`NOT_APPLICABLE` | 01 §2-1. «없는 것»·«못 받은 것»·«해당 없음»(계약 3조 ③) |
+
+### 2-4. `journal.dart` — 일지·체결
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `JournalStatus` | `filled, partial, cancelled, rejected, unknown, skipped, prevented, reversed, restated` | `FILLED`·`PARTIAL`·`CANCELLED`·`REJECTED`·`UNKNOWN`·`SKIPPED`·`PREVENTED`·`REVERSED`·`RESTATED` | 01 §2-2. 🔴 `reversed`·`restated` = X7 §10-3 정정 규약. 🔴 C-12(default 없는 exhaustive switch)가 전 화면을 동시에 깨뜨리는 것이 **의도된 게이트** |
+| `FillVisibility` | `settled, pendingBatch, awaitingConfirm` | `SETTLED`·`PENDING_BATCH`·`AWAITING_CONFIRM` | 01 §2-2 · ⚠️ **초안값**(§8-8) — `m2-8_naming.md` A-1 확정 |
+| `FillOrigin` | `broker, manual, simulated, brokerRecovered` | `BROKER`·`MANUAL`·`SIMULATED`·`BROKER_RECOVERED` | 01 §2-1 X7 · `executions.fill_origin` CHECK |
+| `FillKind` | `original, reversal, restatement` | `ORIGINAL`·`REVERSAL`·`RESTATEMENT` | 01 §2-1 X7 · `executions.fill_kind` CHECK |
+| `CostSource` | `broker, userEntered, estimated` | `BROKER`·`USER_ENTERED`·`ESTIMATED` | 01 §2-1 X7(C18) · `executions.cost_source` CHECK. 🔴 구 `costsOverridden`(bool) **폐기** |
+
+### 2-5. `performance.dart` — 성과·세후
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `PerfMetric` | `twr, mwr` | `TWR`·`MWR` | 01 §2-4 · `rm_performance_point.metric`. 🔴 `twr` 은 **외부 현금흐름 보정판**이다(P 회차 실측 1.79%p 차) |
+| `PerfGranularity` | `daily, weekly, monthly, yearly` | `DAILY`·`WEEKLY`·`MONTHLY`·`YEARLY` | 01 §2-4 |
+| `SegmentKind` | `measured, unavailable, simExcluded, manualExecuted` | `MEASURED`·`UNAVAILABLE`·`SIM_EXCLUDED`·`MANUAL_EXECUTED` | 01 §2-4. 🔴 `manualExecuted` 는 `simExcluded` 와 달리 **합산에 포함**되고 경계는 실선(D6). 겹치면 `freshAuto` 절단선이 이긴다 |
+| `TaxLadderBranch` | `specPotTaxFree, cfPotTaxableComp26, cfPotTaxableComp38, cfPotTaxableFlat` | `SPEC_POT_TAX_FREE`·`CF_POT_TAXABLE_COMP26`·`CF_POT_TAXABLE_COMP38`·`CF_POT_TAXABLE_FLAT` | 01 §2-4 · ⚠️ M2-8. 🔴 **갈래는 계좌 배치가 정한다**(SAF-309) — 화면·인자로 고르는 경로를 만들지 않는다 |
+
+### 2-6. `rebalance.dart`
+
+| 이름 | Dart 값 | JSON / DB | 근거 |
+|---|---|---|---|
+| `RebalanceKind` | `monthlyRegular, seasonal, band, regime, deposit` | `MONTHLY_REGULAR`·`SEASONAL`·`BAND`·`REGIME`·`DEPOSIT` | 01 §2-5 · `rebalance_event.kind` CHECK |
+
+### 2-7. `resume.dart` — X2 재개
+
+| 이름 | Dart 값 | JSON / DB | 근거 |
+|---|---|---|---|
+| `PlannedWorkState` | `planned, reevaluated, superseded, expired, done, blocked` | `PLANNED`·`REEVALUATED`·`SUPERSEDED`·`EXPIRED`·`DONE`·`BLOCKED` | 01 §2-7 · `planned_work.state` CHECK |
+| `ResumeMode` | `normal, conservative, recoveryDry, recoveryFull` | `NORMAL`·`CONSERVATIVE`·`RECOVERY_DRY`·`RECOVERY_FULL` | 01 §2-7 · `resume_run.mode` CHECK |
+| `ResumePhase` | `r0 … r8`(9값) | `R0` … `R8` | 01 §2-7 · `resume_run.phase`(CHECK 없음 — 값 도메인은 이 열거형이 정본) |
+
+### 2-8. `calendar.dart` — X4
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `CalendarOrigin` | `live, archive, brokerRecovered, inferred, manualEntry` | `LIVE`·`ARCHIVE`·`BROKER_RECOVERED`·`INFERRED`·`MANUAL_ENTRY` | 01 §2-8 · `calendar_event_log.origin` CHECK(G-28 배치 E 재작성). 🔴 `MANUAL_ENTRY` 가 없으면 수기 체결 이벤트가 `QUARANTINED` 로 빠지고 `canonCalendar` 가 매일 불일치 |
+| `CalendarEventKind` | `execution, orderAccepted, orderRejected, orderCancelled, rebalance, cashFlow, safety, system, dailySummary, engineDown, executionCorrection` | `EXECUTION`·`ORDER_ACCEPTED`·`ORDER_REJECTED`·`ORDER_CANCELLED`·`REBALANCE`·`CASH_FLOW`·`SAFETY`·`SYSTEM`·`DAILY_SUMMARY`·`ENGINE_DOWN`·`EXECUTION_CORRECTION` | 01 §2-8(C11). 🔴 정정 2행을 «체결» 3건으로 그리지 않는다 |
+
+### 2-9. `ledger.dart` — X5 정합 · 신뢰
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `LedgerPair` | `canonBroker, canonSupabase, canonGithub, canonCalendar, canonSelfReport` | `CANON_BROKER`·`CANON_SUPABASE`·`CANON_GITHUB`·`CANON_CALENDAR`·`CANON_SELF_REPORT` | 01 §2-9 · `ledger_diff.pair` CHECK **재작성 N-01**(4값→5값). 🔴 재작성 없이 `applicable=0` 의 `CANON_SELF_REPORT` 행을 넣으면 CHECK 위반으로 보드가 4칸으로 퇴화 |
+| `LedgerAxis` | `quantity, executionRow, cash, chainHash` | `QUANTITY`·`EXECUTION_ROW`·`CASH`·`CHAIN_HASH` | 01 §2-9 · `ledger_diff.axis` CHECK |
+| `DiffSeverity` | `blocking, observational` | `BLOCKING`·`OBSERVATIONAL` | 01 §2-9 · CHECK |
+| `DiffStatus` | `open, resolved, accepted` | `OPEN`·`RESOLVED`·`ACCEPTED` | 01 §2-9 · CHECK |
+| `RepairRoute` | `auto, approval, x1Emergency` | `AUTO`·`APPROVAL`·`X1_EMERGENCY` | 01 §2-9 (DDL 대응 컬럼 없음 — 뷰모델 파생) |
+| `LedgerTrustGrade` | `reconciled, selfReported, drifting, unverifiable` | `RECONCILED`·`SELF_REPORTED`·`DRIFTING`·`UNVERIFIABLE` | 01 §2-1 X7. 🔴 `selfReported` 는 **실패가 아니라 정상 운영 상태**다 |
+| `LedgerEventKind` ⏸ | `withdrawal, distribution, corporateAction, taxWithheld` | `WITHDRAWAL`·`DISTRIBUTION`·`CORPORATE_ACTION`·`TAX_WITHHELD` | 01 §2-1 · X7 ③ 3-1. ⏸ 🔴 **결정 ㊲ 채택 시에만 신설** — 지금은 파일에 **주석으로만** 남기고 코드로 만들지 않는다 |
+
+### 2-10. `safety.dart` — 알림·브레이커
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `AlertLevel` | `p0, p1, p2` | `P0`·`P1`·`P2` | 01 §2-10. 🔴 **표시 계층의 사적 재분류 금지**(결정 7c) · 배치 E 가 구 `INFO`/`ALERT`/`DIGEST` 를 이 3값으로 개편 |
+| `BreakerLevel` | `normal, alert, reduced, halted, stopped` | `NORMAL`·`ALERT`·`REDUCED`·`HALTED`·`STOPPED` | 01 §2-10 |
+| `ClearRoute` | `automatic, causeCodeRequired, noManualPath, wizardOnly` | `AUTOMATIC`·`CAUSE_CODE_REQUIRED`·`NO_MANUAL_PATH`·`WIZARD_ONLY` | 01 §2-10·§3-5 |
+
+### 2-11. `onboarding.dart` — X3
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `OnboardingTrack` | `fresh, reconnect, viewerPairing` | `FRESH`·`RECONNECT`·`VIEWER_PAIRING` | 01 §2-10 · `onboarding_progress.track` CHECK |
+| `StepRequirement` | `required_, recommended, optional` | `REQUIRED`·`RECOMMENDED`·`OPTIONAL` | 01 §2-10. 🔴 `required_` 의 트레일링 언더스코어는 **Dart 예약어 회피**이며 `@JsonValue('REQUIRED')` 로 못 박는다(기계 변환하면 `REQUIRED_` 가 되어 픽스처와 갈린다) |
+| `StepState` | `notStarted, inProgress, verified, failed, expired` | `NOT_STARTED`·`IN_PROGRESS`·`VERIFIED`·`FAILED`·`EXPIRED` | 01 §2-10 · `onboarding_progress.state` CHECK |
+
+### 2-12. `advice.dart` — X7 안내·기록·전환
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `AdviceStatus` | `open, partial, filled, skipped, expired, superseded, revoked` | `OPEN`·`PARTIAL`·`FILLED`·`SKIPPED`·`EXPIRED`·`SUPERSEDED`·`REVOKED` | 01 §2-1 · `advice.status` CHECK. 🔴 terminal 4종은 어떤 경로로도 되살아나지 않는다 |
+| `AdviceKind` | `entry, exit, rebalance, deposit, withdrawal, funding, noAction` | `ENTRY`·`EXIT`·`REBALANCE`·`DEPOSIT`·`WITHDRAWAL`·`FUNDING`·`NO_ACTION` | 01 §2-1(G-08) · `advice.kind` CHECK. 🔴 `noAction` 행의 NULL 허용 범위는 §6-6 조문이 정한다(둘뿐) |
+| `AdviceSkipReason` | `priceUnacceptable, cashShort, intentionalPause, brokerIssue, misissued, other` | `PRICE_UNACCEPTABLE`·`CASH_SHORT`·`INTENTIONAL_PAUSE`·`BROKER_ISSUE`·`MISISSUED`·`OTHER` | 01 §2-1. 🔴 «유효기한 방치»는 **여기 없다**(사람이 고르는 값이 아니라 엔진 전이). `other` 는 1줄 필수 |
+| `AdviceActionId` | `record, skip, detail` | — (**뷰모델 전용 · JSON 표기 없음**) | 01 §2-1(A8) · X7 ③ 3-1. ⚠️ `deferConfirm` 흡수 여부는 M2-8(§8 미결 30) |
+| `HoldingScope` | `managed, external` | `MANAGED`·`EXTERNAL` | 01 §2-1 · `rm_holding.scope` |
+| `HandoverPath` | `simToAuto, freshAuto, adoptLedger, handbackManual` | `SIM_TO_AUTO`·`FRESH_AUTO`·`ADOPT_LEDGER`·`HANDBACK_MANUAL` | 01 §2-1 · `handover_session.path` CHECK. 🔴 «안내 개시»는 여기 없다(별도 게이트 `M5-10`) |
+| `CredentialUse` | `reconcileOnly, full` | `RECONCILE_ONLY`·`FULL` | 01 §2-1 · `credential_registry.usage` CHECK. 🔴 브로커 속성이 아니라 **앱 측 런타임 봉인 선언** |
+| `SelfReportPurpose` | `periodicAudit, simOpening` | `PERIODIC_AUDIT`·`SIM_OPENING` | 01 §4-2(N-2) · ⚠️ 이름 M2-8(§8 미결 32). 🔴 **기본값을 두지 않는다** |
+| `SeasonalEntryGateState` | `octPassed, deferredToNov, enteredInNov, deferredToDec, forcedEntryDec` | `OCT_PASSED`·`DEFERRED_TO_NOV`·`ENTERED_IN_NOV`·`DEFERRED_TO_DEC`·`FORCED_ENTRY_DEC` | 01 §3-7 · ⚠️ M2-8. 🔴 상태 5 : 사유 코드 3 의 비대칭을 화면이 분기로 메우지 않는다 |
+
+### 2-13. `command.dart` — 명령·설정 동작 (🔴 A 가 소유 · D 가 import)
+
+| 이름 | Dart 값 | JSON / DB | 근거 · 주의 |
+|---|---|---|---|
+| `CommandKind` | `killSwitchActivate, journalDraft, blindReviewScore, disclosureView, depositRegister, manualFillRecord, manualFillAmend, manualFillVoid, adviceSkip, selfReportBalance, alertAck, killChecklistConfirm` (⏸ `+ ledgerEventRecord`) | `KILL_SWITCH_ACTIVATE`·`JOURNAL_DRAFT`·`BLIND_REVIEW_SCORE`·`DISCLOSURE_VIEW`·`DEPOSIT_REGISTER`·**`RECORD_MANUAL_FILL`**·**`AMEND_MANUAL_FILL`**·**`VOID_MANUAL_FILL`**·**`SKIP_ADVICE`**·`SELF_REPORT_BALANCE`·`ALERT_ACK`·`KILL_CHECKLIST_CONFIRM` | 01 §4-2 · §6-6 배치 D 추가분. 🔴 **X7 4종은 Dart 이름과 DB 값의 어순이 뒤집혀 있다**(`manualFillRecord` ↔ `RECORD_MANUAL_FILL`) — 기계 변환에 맡기면 `command_queue.kind` CHECK 위반이 런타임에 터진다. `@JsonValue` 로 못 박고 C-15 가 검사한다 |
+| `CommandState` | `requested, received, executed, rejected, expired, staleContext, heldForIntegrity, pendingLeaseConfirm, noOperator` | `REQUESTED`·`RECEIVED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`STALE_CONTEXT`·`HELD_FOR_INTEGRITY`·`PENDING_LEASE_CONFIRM`·`NO_OPERATOR` | 01 §4-2 · §6-2 `command_inbox.state` CHECK(G-30). ⚠️ `noOperator` 는 **M2-8 신설 후보**이며 현행 DDL CHECK 에 없다 → 열린 물음(§10-2) |
+| `SettingsActionId` | `settingsGeneralUpdate, credentialVerify, credentialRegister, accountVerifyMapping, accountMapSleeve, strategyPreview, strategyApplyRequest, onboardingOperatingModeSelect, runtimeModeSwitchRequest, runtimeOperatingModeSwitchRequest, handoverAdoptionSet, handoverExternalRegister, handoverCommit, runtimeEngineStart, runtimeEngineStop, devicePairingTicketCreate, deviceTokenRevoke, connectionTest, connectionSyncNow, calendarSyncNow, calendarRebackfill, backupRunNow, backupRestoreStart, selftestGoldenRun, selftestIntegrityRun` + ⚠️ **M2-8 신설 2종** `settingsContributionUpdate`·`calendarReconnect` | SCREAMING_SNAKE(DDL CHECK 없음) | 01 §4-3. 🔴 **개수를 숫자로 적지 않는다**(G-91). `M9` 가 부르는 값은 05 §7 이 정본이고, **`M5`·`M8` 전용 4값**(`onboardingOperatingModeSelect`·`handover*` 3종)은 **이 파일이 정본**이다 — 05 §7 에 없다는 이유로 지우지 않는다 |
+
+> 🔴 **`SettingsActionId` 는 「05 §7 에 없는 값 4개」를 포함한 상태가 정상이다.** 지우면 G-01·G-03 이 닫은 구멍(위저드·온보딩의 쓰기 경로 부재)이 되살아난다.
+---
+
+## §3. ③ DTO 전량
+
+> 표기: **R** = required · **?** = nullable · `@D` = `@DecimalStringConverter()` · `@Def(x)` = `@Default(x)`.
+> 🔴 전부 `@freezed` 불변이며 **계산 getter 0건**. 🔴 «필드 근거» 열이 비어 있으면 01 의 해당 절 본문이 근거다.
+
+### 3-1. 영역 **B** — `lib/src/dto/common.dart` (01 §2-1)
+
+| 타입 | 필드 |
+|---|---|
+| `ReasonChip` | `code` R String(`'TIER_1B'`·`'SAF309_ACCOUNT_UNVERIFIED'`·`'REBALANCE_BAND'`) · `label` R String(**엔진 생성**) · `tone` R `ChipTone` · `detailDeepLink` ? String(`'handbook://exit/tier1b'`) |
+| `DecisionRef` | `decisionId` R String · `parentDecisionId` ? String(X2 재판정 child) · `intentId` ? String · `brokerOrderNo` ? String · `executionId` ? String · `configHash` R String |
+| `GateBadge` | `code` R String · `label` R String · `state` R `GateState` · `blockedReasonCode` ? String |
+| `FeatureFlags` | `satelliteEnabled` R bool · `webViewerEnabled` R bool(Q-D 미결) · `calendarEnabled` R bool(X4 채택 미결) · `runMode` R `RunMode` · `operatingMode` R `OperatingMode`(⚠️ `@Def(OperatingMode.autoTrade)` 부여 여부 = M2-8 §8-19) · `configHash` R String. 🔴 **`ExecPolicy` 를 넣지 않는다**(§10-1) |
+| `SleeveCatalogEntry` | `sleeve` R `SleeveId` · `label` R String(「A · KOSDAQ 지수 ETF」) · `rollsUpTo` ? `SleeveId`(POT → A, 회계 소속 03 §2-9-3) · `order` R int |
+
+> 🔴 **슬리브 목록은 플래그가 아니라 `SleeveCatalogEntry` 목록으로 온다** — 화면이 `SleeveId` 를 순회하며 `satellite` 를 걸러내는 코드를 쓰지 않게(거르는 규칙이 화면에 생기면 그것이 판정이다).
+
+### 3-2. 영역 **B** — `lib/src/dto/journal.dart` (01 §2-2 · §2-11 일부)
+
+| 타입 | 필드 |
+|---|---|
+| `TradeJournalEntry` | `entryId` R String · `mode` R `RunMode` · `tradeDate` R `TradeDate` · `executedAt` ? DateTime(UTC · null = 미체결) · `symbol` R String · `symbolLabel` R String · `sleeve` R `SleeveId` · `side` R `OrderSide` · `quantity` R int · `price` R `@D Decimal` · `commission` R `@D Decimal` · `tax` R `@D Decimal` · `status` R `JournalStatus` · `statusLabel` R String · `statusTone` R `ChipTone` · `visibility` R `FillVisibility` · `visibilityLabel` R String · `reasons` R `List<ReasonChip>`(**최소 1개**) · `decision` R `DecisionRef` · `deviation` R `DeviationBadge` · `accountAlias` ? String(🔴 계좌 전체번호 금지) · **X7 신설 6** `fillOrigin` R `FillOrigin` · `fillKind` R `FillKind` · `adviceId` ? String · `backdate` R `BackdateStamp` · `costSource` R `CostSource` · `costSourceLabel` R String · `originLabel` R String · `rebalanceEventId` ? String(G-40) · `asOf` R `AsOf` |
+| `DeviationBadge` | `isDeviation` R bool · `kindCode` ? String · `label` R String · `journalId` ? String |
+| `BackdateStamp` 🆕X7 | `tradeDate` R `TradeDate` · `authoredAt` R DateTime · `backdateTradingDays` R int · `isBackdated` R bool · `label` R String · `priceRangeSourceDate` R `TradeDate`(B4 — 검증의 근거일) · `crossesClosedPeriod` R bool · `closedPeriodNote` ? String |
+
+- `DeviationBadge.kindCode` 의 값 목록(**문자열 상수 · 영역 E 의 사전이 정본**): 기존 4 = `DISCRETION`·`MANUAL_ORDER`·`RECON_CLEAR`·`KILL_SWITCH_RESUME` / X7 9 = `ADVICE_LAPSE`·`ADVICE_SKIP`·`ADVICE_LATE_FILL`·`MANUAL_ENTRY`·`ADVICE_PRICE_DEVIATION`·`ADVICE_QTY_DEVIATION`·`ADVICE_EXIT_AVOIDED`·`FILL_AMENDED`·`BACKDATED_FILL`.
+- 🔴 **분할 집행 진도는 이 타입에 없다**(G-46 · §8 미결 29) — 「n일차」·「이월 n주」 필드를 만들지 않는다.
+- 🔴 `status = prevented` 는 «이중 발주 차단 작동»이며 **성공으로 렌더**한다. `status = unknown` 은 UNKNOWN 해소 보드로 딥링크.
+
+### 3-3. 영역 **B** — `lib/src/dto/holdings.dart` (01 §2-3)
+
+| 타입 | 필드 |
+|---|---|
+| `HoldingRow` | `symbol` R · `symbolLabel` R · `sleeve` R `SleeveId` · `accountAlias` R String · `quantity` R int · `avgPrice` R `@D Decimal` · `entryDate` R `TradeDate` · `entryDecision` R `DecisionRef` · `entryReasons` R `List<ReasonChip>` · `smaTranches` R `List<TrancheStep>` · `gates` R `List<GateBadge>` · `stopLine` ? `StopLine` · `momentum` ? `MomentumPanel`(⚠️ M2-8 · v2.31 거의 항상 null) · `pnl` `@Def(null) HoldingPnl?` · **X7** `scope` R `HoldingScope` · `scopeLabel` R String · `asOf` R `AsOf` |
+| `TrancheStep` | `stepNo` R int · `filled` R bool · `label` R String · `filledOn` ? `TradeDate` |
+| `StopLine` | `absoluteStop` ? `@D Decimal`(TIER 1B) · `trailStop` ? `@D Decimal`(TIER 2) · `customStop` ? `@D Decimal`(TIER 1A · ⚠️ 1차 릴리스 항상 null) · `highWaterMark` ? `@D Decimal` · `label` R String |
+| `HoldingPnl` | `unrealizedPnl` R `@D Decimal` · `pnlPct` R double · `disclosureNote` R String |
+
+- 🔴 **결정 8** — `HoldingPnl` 은 `watchHoldings(includePnl: true)` 일 때만 채워진다. 홈·알림·위젯·일지 타임라인에 이 타입을 렌더하면 **C-6 실패**.
+- 🔴 **X7 D7** — 파생은 `positions` 만 읽는다. `external_holding`(= `scope == external`)의 표시 UNION 은 `HoldingsRepository` **한 곳**에서만 만든다(C-23).
+
+### 3-4. 영역 **B** — `lib/src/dto/resume.dart` (01 §2-7)
+
+| 타입 | 필드 |
+|---|---|
+| `PlannedWorkSummary` | `workId` R · `digest` R String(sha256 앞 12자) · `oneLine` R String · `dueBy` R `TradeDate` · `state` R `PlannedWorkState` · `stateLabel` R String · `rowVersion` R int · `leaseEpoch` R int |
+| `ResumeReport` | `resumeRunId` R · `startedAt` R DateTime · `finishedAt` ? DateTime · `gapTradingDays` R int · `mode` R `ResumeMode` · `modeLabel` R String · `phase` R `ResumePhase` · `counts` R `ResumeCounts`(⚠️ M2-8) · `items` R `List<ResumeItem>`(⚠️ M2-8) · `unrecoverableGaps` R `List<DataGapRow>`(⚠️ M2-8) · `headline` R String. 🔴 **손익 필드 없음** |
+
+### 3-5. 영역 **B** — `lib/src/dto/calendar.dart` (01 §2-8)
+
+| 타입 | 필드 |
+|---|---|
+| `CalendarEventDto` | `aaqKey` R String(멱등 원문 키) · `kind` R `CalendarEventKind` · `startUtc` R DateTime · `endUtc` ? DateTime · `allDay` R bool · `title` R String · `body` R String · `origin` R `CalendarOrigin` · `decisionId` ? String · `configHash` R String · `chainHash` ? String(G-09 — 🔴 `dailySummary` 에만) |
+
+- 🔴 **화이트리스트 직렬화**: 타입에 아예 없음 = 손익·수익률·평가액·잔고·계좌 전체번호·시크릿.
+- 🔴 **미래 시각 이벤트를 만들지 않는다**(예정 리밸런싱·월 납입 예정 금지). extendedProperties 는 **6키**(`aaq_key`·`kind`·`decision_id`·`origin`·`config_hash` + `chain_hash`).
+- `kind ↔ source_table ↔ aaq_key` 매핑 9행은 01 §2-8 표를 그대로 쓴다(픽스처·매퍼의 입력). `advice`·`advice_batch`·`self_report_balance` 는 **캘린더에 내지 않는다**.
+
+### 3-6. 영역 **B** — `lib/src/dto/ledger.dart` (01 §2-9)
+
+| 타입 | 필드 |
+|---|---|
+| `LedgerDiffRow` | `diffId` R · `pair` R `LedgerPair` · `axis` R `LedgerAxis` · `authoredDate` R `TradeDate` · `deltaLabel` R String · `severity` R `DiffSeverity` · `candidateOriginCodes` R `List<String>`(§3-4 코드) · `status` R `DiffStatus` · `route` R `RepairRoute` · `evidenceHash` R String · **X7** `applicable` R bool(C15·G-27) |
+
+- 🔴 파생 불일치(`canonSupabase`·`canonGithub`·`canonCalendar`)는 **어떤 심각도에서도 주문을 막지 않는다**.
+- 🔴 `applicable == false` 인 칸은 «점검 안 함»으로 그린다(빈칸·통과로 그리지 않는다). 보드 칸 수는 모드와 무관하게 **5 고정**.
+
+### 3-7. 영역 **B** — `lib/src/dto/safety.dart` (01 §2-10)
+
+| 타입 | 필드 |
+|---|---|
+| `AlertItem` | `alertId` R · `level` R `AlertLevel` · `raisedAt` R DateTime · `code` R String · `title` R String · `bodyText` R String(「무슨 일인가」) · `actionLine` R String(「지금 할 일」) · `groupedCount` R int · `deepLink` ? String · `ack` ? `AckState`(⚠️ M2-8 · 쓰기 경로 §8-10). 🔴 **손익 필드 없음** |
+| `SafetyState` | `breakerLevel` R `BreakerLevel` · `breakerLabel` R String · `drawdown` R double · `activeFlags` R `List<BlockFlag>` · `killSwitch` R `KillSwitchView`(⚠️ M2-8) · `stoppedReleaseEligible` R bool · `releaseProgress` R `List<GaugeProgress>`(⚠️ M2-8) · `alertBlockSatEntry` R bool · `rampLevel` R `RampLevel`(⚠️ M2-8 · 🔵 **OpsRamp** L0~L5) · `mode` R `RunMode` · `asOf` R `AsOf` |
+| `BlockFlag` | `flagId` R String(§3-5) · `label` R String · `setAt` R DateTime · `clearRoute` R `ClearRoute` · `clearInstruction` R String(🔴 플래그마다 다른 문구) · `originCode` ? String |
+| `OnboardingStep` | `stepId` R · `track` R `OnboardingTrack` · `order` R int · `title` R String · `whyLine` R String · `whereDeepLink` ? String · `estimated` R `Duration`(`@DurationSecondsConverter()`) · `estimatedText` R String · `requirement` R `StepRequirement` · `state` R `StepState` · `verificationLabel` ? String · `verifiedUntil` ? DateTime · `failureReasonCode` ? String |
+
+- 🔴 **소유 경계는 타입이 아니라 «무엇을 그리는가»** 다(01 §2-10 표) — 상태 표시는 허용, **상태를 바꾸는 경로를 만드는 것은 금지**. C-7 이 이 표대로 검사한다.
+- 🔴 `RampLevel` = **OpsRamp**(운영 램프 L0~L5)이며 전략 §12-⑫ 의 **EntryRamp**(초기 진입 6개월 분할)와 **다른 것**이다. 하나의 «램프 진행» 위젯으로 합치지 않는다.
+
+### 3-8. 영역 **C** — `lib/src/dto/performance.dart` (01 §2-4)
+
+| 타입 | 필드 |
+|---|---|
+| `PerformanceSeries` | `metric` R `PerfMetric` · `granularity` R `PerfGranularity` · `cumulative` R bool · `segments` R `List<PerfSegment>` · `points` R `List<PerfPoint>` · `benchmark` ? `BenchmarkSeries`(⚠️ M2-8) · `disclosure` R `PerfDisclosure`(⚠️ M2-8) · `afterTax` ? `AfterTaxLadder` · `asOf` R `AsOf` |
+| `PerfPoint` | `date` R `TradeDate` · `value` ? double(🔴 **null = 결측 · 보간 금지**) · `gapReasonCode` ? String(`EQUITY_SNAPSHOT_MISSING`·`RESUME_GAP`) |
+| `PerfSegment` | `from` R · `to` R `TradeDate` · `kind` R `SegmentKind` · `label` R String |
+| `AfterTaxStep` | `stepCode` R String(`PRETAX`·`AFTER_POT`·`AFTER_POT_C`·`WD_5P5`·`WD_16P5`·`HONEST`) · `label` R String · `valueText` R String(🔴 **표시의 정본**) · `cagrPct` ? double(🔴 골든 대조 전용 · `ui_*` 참조 금지 — C-30) · `endMult` ? double(같음) · `noteLine` ? String |
+| `AfterTaxLadder` | `branch` R `TaxLadderBranch` · `branchLabel` R String · `steps` R `List<AfterTaxStep>`(순서 그대로 · 층을 합치거나 건너뛰지 않는다) · `honestExpectationLine` R String · `basisNote` R String · `isReferenceOnly` R bool(🔴 **§8-18 확정 전 항상 true**) · `configHash` R String · `asOf` R `AsOf` |
+
+- 🔴 화면은 TWR/MWR 을 계산하지 않고 누적곱도 하지 않는다. 세율 곱셈·층 간 차액도 금지 — **C-30** 이 검사한다.
+- 🔴 «정직 기대»·«10.4%»·사다리 4자리 수치를 **코드·라벨·주석에 옮기지 않는다**. 인용처는 픽스처 `aftertax_ladder_1.json` 과 골든 `aftertax_full_S7` 뿐.
+
+### 3-9. 영역 **C** — `lib/src/dto/rebalance.dart` (01 §2-5)
+
+| 타입 | 필드 |
+|---|---|
+| `RebalanceEvent` | `eventId` R · `mode` R `RunMode` · `tradeDate` R `TradeDate` · `kind` R `RebalanceKind` · `kindLabel` R String · `before` R `List<SleeveWeight>` · `after` R `List<SleeveWeight>` · `trigger` R `TriggerSnapshot` · `orderIntentIds` R `List<String>` · `quality` ? `ExecutionQuality`(⚠️ M2-8) · `asOf` R `AsOf` |
+| `SleeveWeight` | `sleeve` R `SleeveId` · `basis` ? `AllocationBasis`(🔴 **M2-2 배치 전 nullable** · null = 미표기 → 목표·밴드 비교 금지 · 배치 후 required 승격) · `weight` R double · `targetWeight` R double · `bandLow` R double · `bandHigh` R double · `label` R String |
+| `TriggerSnapshot` | `configHash` R String · `rawValues` R `Map<String, String>`(지표명 → 엔진 포맷 문자열 · 계절 게이트 키는 **`trend_score_kr`**) · `triggerPrice` ? `@D Decimal` · `thresholdRegistered` ? double · `summary` R String |
+
+- 🔴 **`SleeveWeight.basis` 는 `accounting` 외 값을 갖지 않는다.** 엔진 원장 열은 `SleeveAllocationRow.engineColumnNote`(문자열) 또는 진단 전용 타입으로만 흐른다. **C-31** 이 basis 혼합·`A + POT` 산술을 탐지한다.
+- 🔴 `basis` 를 required 로 올리면 `SleeveWeight` 를 싣는 **모든 픽스처·C-1 골든이 동시에 깨진다** — 갱신 주체는 M2 하나다.
+
+### 3-10. 영역 **C** — `lib/src/dto/plan.dart` (01 §2-6)
+
+| 타입 | 필드 |
+|---|---|
+| `DepositPlan` | `planId` R · `computedAt` R DateTime · `asOfTradeDate` R `TradeDate` · `expiresAt` R DateTime(🔴 만료 계획은 등록 거부) · `configHash` R String · `depositAmount` R `@D Decimal` · `allocations` R `List<SleeveAllocation>`(⚠️ M2-8) · `pensionLimitConsumed` R `@D Decimal` · `residualKrwCash` R `@D Decimal`(D2 원화 현금 대기) · `orderDrafts` R `List<OrderDraft>` · `costs` R `CostEstimate`(⚠️ M2-8) · `fundingSteps` ? `List<FundingStep>`(⚠️ M2-8 · v2.32 `PENSION_FUNDING`. **null·빈 목록 = 절을 통째로 숨긴다** — 0건을 「0원」으로 그리지 않는다) · `previewNotice` R String |
+| `OrderDraft` | `symbol` R · `symbolLabel` R · `sleeve` R `SleeveId` · `accountAlias` R String · `side` R `OrderSide` · `quantity` R int · `limitPrice` ? `@D Decimal` · `reasons` R `List<ReasonChip>` |
+
+- 🔴 **월 추가 납입 운영값(현행 10만원)을 화면·계약·픽스처에 상수로 적지 않는다.** 읽기 창구는 `ConfigRepository.watchContributionSetting()` 하나이고 변경 창구는 `SettingsActions`(운영 등급)다. **C-32** 가 `100000`·`90000`·`97000`·`124000`·`100_000`·`'10만'`·`'9.7만'` 리터럴을 탐지한다(🔴 `labels.dart` 도 예외 아님).
+
+### 3-11. 영역 **C** — `lib/src/dto/advice.dart` (01 §2-11 X7)
+
+| 타입 | 필드 |
+|---|---|
+| `AdviceItem` | `adviceId` R · `batchId` R · `kind` R `AdviceKind` · `tradeDate` R `TradeDate` · `issuedAt` R DateTime · `validUntilDate` R `TradeDate` · `validityLabel` R String · `symbol` ? · `symbolLabel` ? · `phoneOnlyLabel` ? String · `sleeve` R `SleeveId`(viewer 도 본다) · `side` ? `OrderSide` · `quantity` ? int · `priceBand` ? `AdvicePriceBand` · `sizingLabel` R String · `recordedQuantity` ? int(🔴 **viewer 판 null · 폰 판 non-null**) · `progressLabel` R String · `reasons` R `List<ReasonChip>`(최소 1개) · `status` R `AdviceStatus`(🔴 저장값 — 배지·정렬에 쓰지 않는다) · `effectiveStatus` R `AdviceStatus`(🔴 **화면이 쓰는 유일한 값**) · `statusLabel` R String · `statusTone` R `ChipTone` · `actions` R `List<AdviceAction>` · `recordedDeviationChips` R `List<ReasonChip>` · `closeReasonCode` ? String · `isUrgent` R bool · `dependsOnAdviceId` ? String · `onHold` R bool · `holdReasonLabel` ? String · `decision` R `DecisionRef` · `accountAlias` ? String · `suppressed` R bool · `suppressedLabel` ? String · `deferAvailable` R bool(⚠️ M2-8 §8-30) · `asOf` R `AsOf`. 🔴 **`mode`·`operatingMode` 필드를 두지 않는다**(A7) |
+| `AdviceAction` | `actionId` R `AdviceActionId` · `label` R String · `enabled` R bool · `disabledReasonLabel` ? String(enabled == false 일 때만) |
+| `AdvicePriceBand` | `low` R `@D Decimal` · `high` R `@D Decimal` · `reference` R `@D Decimal` · `label` R String |
+| `AdviceInboxSummary` | `batchId` R · `tradeDate` R `TradeDate` · `openCount` R int · `dueTodayCount` R int · `hasSuppressedNotice` R bool · `overdueUnrecordedCount` R int · `headline` R String · `level` R `UiLevel` · `dueSoonLabel` ? String · `staleReasonCode` ? String · `staleLabel` ? String · `handoverCoolingActive` R bool(⚠️ 이름 M2-8 · N-1) · `handoverCoolingLabel` ? String · `trust` R `LedgerTrustBadge` · `asOf` R `AsOf` |
+| `ManualFillFormSpec` | `symbols` R `List<SymbolOption>` · `accounts` R `List<AccountOption>` · `skipReasons` R `List<ReasonOption>` · `minTradeDate` R · `maxTradeDate` R `TradeDate` · `nonTradingDates` R `List<TradeDate>` · `priceHintLabel` R String · `quantityMax` R int · `appendOnlyNotice` R String · `asOf` R `AsOf`(A16). 🔴 `amendReasons`·`voidReasons` **없음**(→ `M5-12`) · 시간외·단주 힌트 **없음**(B5) |
+| `SymbolOption` · `AccountOption` · `ReasonOption` | ⚠️ **필드 M2-8** — 최소 축 `code`·`label`(+`ReasonOption` 은 `requiresNote` bool). 🔴 `ReasonOption` ↔ `J-3` `rule_cited` 통합 여부는 **선행 미결**(§8-20 · D19) |
+
+- **`openCount` 의 정의**(G-08 · 🔴 화면이 재구현하지 않는다): `effectiveStatus ∈ {open, partial}` 이고 `suppressed == false` 인 안내의 수. `onHold == true` 는 **센다** · `suppressed == true` 는 **세지 않는다** · `EXPIRED` 미확인은 `overdueUnrecordedCount` 가 따로 센다.
+- 🔴 **C14 의 예외 2가지** — `openCount == 0` 이어도 `hasSuppressedNotice == true` 또는 `handoverCoolingActive == true` 면 홈 블록 3b·`J-1` 배지를 **렌더한다**.
+- 🔴 `kind == noAction` 이면 폰 판에서도 `symbol`·`quantity`·`side` 가 null 이고 `suppressed == true`·`suppressedLabel` 필수·`actions` 빈 목록이다.
+
+### 3-12. 영역 **C** — `lib/src/dto/ledger_trust.dart` · `handover.dart` · `ops.dart` (01 §2-11)
+
+| 파일 | 타입 | 필드 |
+|---|---|---|
+| `ledger_trust.dart` | `LedgerTrustBadge` | `grade` R `LedgerTrustGrade` · `level` R `UiLevel` · `label` R String · `consequenceLine` R String(🔴 **어느 카운터 때문인지**를 말한다 — B22) · `upgradeHint` ? String · `lastVerifiedOn` ? `TradeDate` · `actionDeepLink` ? String |
+| `ledger_trust.dart` | `ExecutionGapReport` | `range` R `DateRange` · `periodLabel` R String · `issued`·`filled`·`partial`·`skipped`·`lapsed`·`revoked`·`lateFilled` R int · `complianceRateNormalized` R double(0.0~1.0 · **게이지 폭 전용**) · `complianceRateLabel` R String · `medianDelayLabel` R String · `priceGapLabel` R String(🔴 **bp, 금액 아님**) · `amendChainMaxLabel` R String · `skipReasonBuckets` R `List<ReasonChip>` · `selectiveExecutionChips` R `List<ReasonChip>` · `backdatedCount` R int · `selfReportCorrectionCount` R int · `trust` R `LedgerTrustBadge` · `modeAdviceLine` R String(🔴 **3갈래로 갈라 생성** — B21) · `asOf` R `AsOf` |
+| `ledger_trust.dart` | `ExternalHoldingRow` | `externalId` R · `symbol` R · `symbolLabel` R · `accountAlias` R String · `quantity` R int · `registeredOn` R `TradeDate` · `scopeLabel` R String · `decision` R `DecisionRef`(🔴 등록도 결정이다) |
+| `ledger_trust.dart` | `CashEstimateNotice` | `isEstimate` R bool · `label` R String · `lastConfirmedOn` ? `TradeDate` |
+| `ledger_trust.dart` | `SelfReportLine` | `symbol` R · `symbolLabel` R · `quantity` R int |
+| `handover.dart` | `OperatingModeView` | `current` R `OperatingMode` · `label` R String · `explainLine` R String · `options` R `List<OperatingModeOption>`(🔴 **기본 선택 없음**) · `trust` R `LedgerTrustBadge` · `switchGates` R `List<GateBadge>` |
+| `handover.dart` | `OperatingModeOption` | `mode` R `OperatingMode` · `title`·`body`·`prepLine`·`honestyLine` R String(🔴 전부 엔진 문구) |
+| `handover.dart` | `HandoverPlan` | `path` R `HandoverPath` · `pathLabel` R String · `steps` R `List<HandoverStep>` · `adoptionPreview` R `List<AdoptionPreviewRow>` · `handbackBranch` ? String(🔴 엔진이 판정 — B12) · `branchReasonLabel` ? String · `asOf` R `AsOf`(B13 스냅샷 신선도) |
+| `handover.dart` | `HandoverStep` | `stepId` R · `order` R int · `title` R String · `whyLine` R String · `state` R `GateState` · `stateLabel` R String · `blockedReasonCode` ? String |
+| `handover.dart` | `AdoptionPreviewRow` | `symbol` R · `symbolLabel` R · `quantity` R int · `sleeve` R `SleeveId` · `adoptionId` R String(G-03) · `disposition` R String(`'ADOPT'`\|`'EXTERNAL'` — 🔴 **낙관 갱신 금지**, 되돌아온 값을 다시 그린다) · `dispositionLabel` R String |
+
+### 3-13. 영역 **C** — `lib/src/dto/settings.dart` (01 §4-1 · §2-6)
+
+| 타입 | 필드 |
+|---|---|
+| `ContributionSetting` | `amount` R `@D Decimal`(🔴 «지금 유효한 값» — 예정 금액을 넣지 않는다) · `amountText` R String · `equivalentNoteText` R String · `appliesFromText` R String · `lastChangedText` R String · `pensionLimitNoteText` ? String(G-102 · null 이면 줄을 그리지 않는다) · `asOf` R `AsOf` |
+
+- 🔴 **최소·최대·0 허용 여부를 필드로 내려보내지 않는다** — 범위 판정은 저장 명령의 `ActionResult.headline`·`reasonCode` 로만 돌아온다.
+- 🔴 `MonthlyContributionVm`(⚠️ M2-8)은 이 타입의 **1:1 투영**이며 `editable` 하나만 런타임 값이다. 🔴 **`ContributionVm` 이라는 이름을 재사용하지 않는다**(03 §10 `S7-3b` 슬리브 기여 분해가 이미 그 이름을 쓴다).
+
+### 3-14. ⚠️ 이름만 있고 필드가 M2-8 확정 대기인 타입 (01 §2-6 표)
+
+> 🔴 **구현자는 이 타입들의 필드를 상상해서 쓰지 않는다.** `docs/m2-8_naming.md` 가 확정한 «최소 축»만 만들고, 축이 없는 것은 **선언만 두거나 만들지 않는다**.
+
+| 갈래 | 타입 | 배정 영역 · 파일 |
+|---|---|---|
+| 공통·안전 | `KillSwitchView` · `AckState` · `GaugeProgress` · `RampLevel` · `EntryRampProgress` · `ResumeCounts` · `ResumeItem` · `DataGapRow` | **B** `dto/safety.dart`(앞 4) · `dto/resume.dart`(뒤 3) |
+| 명령 페이로드 3종 | `JournalDraft` · `BlindReviewScore` · `DisclosureViewEvent` | **D** `commands/payloads.dart` — 🔴 **M2-8 최우선**(명령 5종 중 3종이 호출 불가) |
+| 핸드북 | `HandbookIndex` · `HandbookPage` | **C** `dto/handbook.dart` |
+| M7 | `MonthlyReport` · `BenchmarkSeries` · `PerfDisclosure` · `ExecutionQuality` · `SleeveAllocation` · `CostEstimate` · `WithdrawalPlan` · `RebalancePreview` · `FundingStep` · `DrawdownContextVm` · `GoalPathVm` · `ReportArchiveVm` · `DisclosureGateVm` · `ContributionVm` · `NextRebalanceVm` · `AnnualReviewVm` | **C** `dto/performance.dart`·`plan.dart`·`ops.dart` |
+| M6 미정의 9건 | `DecisionSnapshot` · `ThresholdCompare` · `RejectTrace` · `JournalDraftFormSpec` · `BlindReviewCard` · UNKNOWN 단계 · `SleeveAllocationRow` · 손절선 정규값 · `LedgerRepairRow` | **B** `dto/journal.dart`·`ledger.dart` |
+| M8·M9 | `ShellVm` · `OpsRhythmRow` · `WatchdogCheck` · `SettingsHomeVm` · `CredentialListVm` · `ConnectionsVm` · `DeviceAccessVm` · `BackupVm` · `DiagnosticsVm` · `OpsDailySummary` · `MonthlyContributionVm` | **C** `dto/ops.dart`·`settings.dart` |
+| 기타 | `MomentumPanel` · `CalendarSyncStatus` | **B** `dto/holdings.dart`·`calendar.dart` |
+
+---
+
+## §4. ④ 리포지토리 인터페이스 — 영역 **D** · `lib/src/repositories/`
+
+> 🔴 **인터페이스만 둔다.** 구현체는 `data_sync` 의 `LocalSqliteReader`(폰 정본 SQLite) / `SupabaseReadModel`(viewer RLS + Realtime) 둘이다.
+> **계약 3조** ① 두 구현체는 **같은 필드값**을 낸다(viewer 전용 필드 금지 — 유일한 예외가 §10-7 «값 비움») ② 모든 스트림은 `AsOf` 를 싣고 viewer 의 «엔진 정지»는 `observedAt` 신선도에서 **파생** ③ 데이터가 없으면 빈 리스트가 아니라 `ListResult` 를 준다.
+
+| 파일 | 인터페이스 · 시그니처 |
+|---|---|
+| `journal_repository.dart` | `JournalRepository`<br>`Stream<ListResult<TradeJournalEntry>> watchTimeline({required DateRange range, SleeveId? sleeve, String? symbol, JournalStatus? status, FillOrigin? origin, String? rebalanceEventId, RunMode mode = RunMode.live, int limit = 100})`<br>`Future<TradeJournalEntry?> findByDecisionId(String decisionId)`<br>`Future<List<TradeJournalEntry>> chainOf(String decisionId)`<br>`Future<List<TradeJournalEntry>> fillChain(String entryId)` 🆕X7 — ORIGINAL→REVERSAL→RESTATEMENT |
+| `holdings_repository.dart` | `HoldingsRepository`<br>`Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false})` — 🔴 기본 false(결정 8) · `external_holding` 표시 UNION 은 **여기 한 곳**(C-23) |
+| `performance_repository.dart` | `PerformanceRepository`<br>`Future<PerformanceSeries> series({required PerfMetric metric, required PerfGranularity granularity, required bool cumulative, required DateRange range})`<br>`Future<MonthlyReport> monthlyReport(String yyyyMm)`<br>`Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear})` — 🔴 **인자는 연도 하나** · 갈래는 계좌 매핑에서 파생<br>`Future<ReportArchiveVm> reportArchive()`<br>`Stream<DisclosureGateVm> watchDisclosureGate()`<br>`Future<DrawdownContextVm> drawdownContext({DateRange? range})`<br>`Future<ContributionVm> contribution({required DateRange range})`<br>`Future<AnnualReviewVm> annualReview({required String year})` |
+| `rebalance_repository.dart` | `RebalanceRepository`<br>`Stream<List<RebalanceEvent>> watchEvents(DateRange r)`<br>`Stream<NextRebalanceVm> watchNext()` — 🔴 **nullable 이 아니다**(N-4). 「예정 없음」도 값으로 오며 문구는 `emptyLabel` |
+| `safety_repository.dart` | `SafetyRepository` — `Stream<SafetyState> watchState()` |
+| `alert_repository.dart` | `AlertRepository` — `Stream<List<AlertItem>> watchInbox({AlertLevel? min})` |
+| `resume_repository.dart` | `ResumeRepository` — `Stream<ResumeReport?> watchLatest()` · `Stream<List<PlannedWorkSummary>> watchPlannedWork()` |
+| `ledger_repository.dart` | `LedgerRepository` — `Stream<ListResult<LedgerDiffRow>> watchOpenDiffs()` · `Stream<ListResult<ExternalHoldingRow>> watchExternalHoldings()` 🆕X7 |
+| `onboarding_repository.dart` | `OnboardingRepository` — `Stream<List<OnboardingStep>> watchSteps(OnboardingTrack t)`. 🔴 **`OperatingMode` 를 인자로 넘기지 않는다**(G-01) — 갈래별 준비물의 근거는 `onboarding_choice` |
+| `calendar_repository.dart` | `CalendarRepository` — `Future<CalendarSyncStatus> status()` |
+| `config_repository.dart` | `ConfigRepository`<br>`Stream<FeatureFlags> watchFlags()`<br>`Stream<List<SleeveCatalogEntry>> watchSleeves()`<br>`Stream<List<DateRange>> watchRangePresets()` 🆕G-38 — 🔴 목록 길이·순서도 엔진이 정한다<br>`Stream<ContributionSetting> watchContributionSetting()` 🆕G-07 — ⚠️ 소속 리포지토리는 M2-8 택일 |
+| `advice_repository.dart` 🆕X7 | `AdviceRepository`<br>`Stream<ListResult<AdviceItem>> watchInbox({AdviceStatus? status, int limit = 50})`<br>`Stream<AdviceInboxSummary> watchSummary()`<br>`Future<AdviceItem?> findById(String adviceId)`<br>`Stream<ListResult<AdviceItem>> watchHistory({required DateRange range})`<br>`Stream<ManualFillFormSpec> watchManualFillFormSpec()` — 🔴 **Future 가 아니라 Stream**(A16)<br>`Future<List<TradeJournalEntry>> fillsOfAdvice(String adviceId)` ⚠️ M2-8 — 🔴 `fillChain(entryId)` 와 **다른 것**(G-23) |
+| `ledger_trust_repository.dart` 🆕X7 | `LedgerTrustRepository` — `Stream<LedgerTrustBadge> watchGrade()` |
+| `execution_gap_repository.dart` 🆕X7 | `ExecutionGapRepository` — `Future<ExecutionGapReport> monthly(String yyyyMm)` · `Stream<ExecutionGapReport> watchRolling()` |
+| `ops_repository.dart` 🆕G-29 | `OpsStatusRepository` — `Stream<ListResult<WatchdogCheck>> watchWatchdog()` · `Stream<ConnectionsVm> watchConnections()` · `Stream<DeviceAccessVm> watchDeviceAccess()` · `Stream<BackupVm> watchBackup()` · `Stream<DiagnosticsVm> watchDiagnostics()` · `Stream<AnnualReviewVm> watchAnnualReview()`<br>`OpsSummaryRepository` — `Stream<OpsDailySummary> watchToday()` |
+| `what_if_api.dart` | `WhatIfApi` — 🔴 **리포지토리가 아니라 부작용 0의 로컬 재계산**(구 `PlannerRepository` 폐기)<br>`Future<DepositPlan> simulateDeposit({required Decimal amount, required String accountAlias})`<br>`Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount})`<br>`Future<RebalancePreview> previewRebalance({TradeDate? plannedDate})`<br>`Future<CostEstimate> estimateCosts(String planId)`<br>`Future<DepositPlan?> findPlan(String planId)` |
+
+- 🔴 **정렬·페이징은 엔진 몫**이다. 페이징은 커서가 아니라 `limit` 증가 재구독 하나(1인 사용자·연 ~934건).
+- 🔴 **거르기도 판정이다** — `origin`·`rebalanceEventId` 필터를 화면이 `rows` 위에서 재현하면 반려.
+- 🔴 홈 블록 5·7 의 «세는 수»는 전부 엔진이 세어 **문자열로** 준다(`OpsDailySummary`). 화면이 목록 길이로 만들지 않는다.
+
+---
+
+## §5. ⑤ 명령 API · 명령 인자 · `CommandReceipt` 상태기계 · `CommandContext` · `SettingsActions` — 영역 **D** · `lib/src/commands/`
+
+### 5-1. `command_api.dart` — `CommandApi`(앱이 호출할 수 있는 **전부**)
+
+```
+Future<CommandReceipt> activateKillSwitch({required String reasonFreeText, required String deviceId})
+Future<CommandReceipt> submitJournalDraft(JournalDraft draft)
+Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score)
+Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event)
+Future<CommandReceipt> registerDeposit(DepositRegistration registration)
+Stream<CommandReceipt>  watchCommand(String commandId)
+// ── X7 7종 · 🔴 전량 폰(operator) 전용 ──
+Future<CommandReceipt> recordManualFill(ManualFillRecord record)
+Future<CommandReceipt> amendManualFill(ManualFillAmendment amendment)
+Future<CommandReceipt> voidManualFill(ManualFillVoid v)
+Future<CommandReceipt> skipAdvice(AdviceSkip skip)
+Future<CommandReceipt> submitSelfReportBalance(SelfReportBalance b)
+Future<CommandReceipt> acknowledgeAlert(AlertAck ack)
+Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack)
+// ⏸ recordLedgerEvent(LedgerEventRecord) — 결정 ㊲ 채택 시에만 8번째
+```
+
+- 🔴 **킬스위치 «해제» 명령은 없다**(결정 6). `deactivate` 제안은 거절이 기본값.
+- 🔴 **뷰어가 쓸 수 있는 것은 앞 5종**이며 X7 7종은 뷰어 화이트리스트를 건드리지 않는다. ⚠️ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결.
+- 🔴 **화면이 `state` 를 낙관 갱신하지 않는다** — 「요청됨」과 「집행됨」의 구별이 이 계약의 목적이다.
+- 🔴 **인자가 2개를 넘는 명령은 전부 DTO 로 받는다**(`@DecimalStringConverter()` 는 필드 어노테이션이라 메서드 인자에서 무효).
+
+### 5-2. `CommandReceipt` 상태기계
+
+| 필드 | 타입 |
+|---|---|
+| `commandId` R String · `kind` R `CommandKind` · `state` R `CommandState` · `stateLabel` R String(엔진 생성) · `requestedAt` R DateTime · `expiresAt` R DateTime(TTL) · `nonce` R String · `issuedByDeviceId` R String · `rejectReasonCode` ? String |
+
+```
+requested ──▶ received ──┬──▶ executed        (종단)
+                         ├──▶ rejected        (종단 · rejectReasonCode 필수)
+                         └──▶ expired         (종단 · 서버 expires_at)
+requested/received ──┬──▶ staleContext        ┐
+                     ├──▶ heldForIntegrity    ├ 🔴 보류 3(+1)상태 — TTL 을 소비하지 않는다
+                     ├──▶ pendingLeaseConfirm ┘   재확인·인수·복구 후 received 로 되돌아온다
+                     └──▶ noOperator (⚠️ M2-8) — 소비할 엔진이 없는 창(X1 이전·비상 TTL 대기)
+```
+
+- 🔴 **보류는 거부가 아니다.** 무결성 차단·리스 만료·오프라인·맥락 불일치에서 기록 명령을 **거부하지 않고 보류**한다 — 명령은 ⓐ 기기 로컬 내구 큐(암호화·재부팅 생존·**만료 없음**)에 먼저 쌓이고 ⓑ 네트워크가 되면 `command_queue` 에 INSERT.
+- 🔴 **거부는 초안을 지우지 않는다**(C17). 초안 삭제는 `state == executed` 수신 시에만.
+- 🔴 **멱등은 봉투가 보장한다** — payload 에 `idempotencyKey` 를 **두지 않는다**(`command_id` + `unique(kind, nonce)`). 중복은 `DUPLICATE_SUSPECTED` 거부 + `duplicateAck = true` 재제출.
+- 🔴 `noOperator` 의 표시 문구는 **M2 가 사전 공급한 고정 카탈로그**에서 고른다(앱이 상태를 조합해 문장을 만들지 않는다 — §10-8).
+
+### 5-3. `command_context.dart` — `CommandContext`
+
+| 필드 | 타입 |
+|---|---|
+| `runMode` R `RunMode`(발행 시점) · `operatingMode` R `OperatingMode`(발행 시점) · `leaseEpoch` R int(발행 시점 X1 리스 epoch) · `deviceId` R String |
+
+- 🔴 **`context` 를 채우는 것은 화면이 아니라 `CommandApi` 구현이다**(G-19). 뷰모델·화면 계층에서 `CommandContext` 를 **생성하는 코드 0건**을 **C-28** 이 검사한다.
+- 🔴 소비 규칙 — 발행 시점 맥락으로 판정하고, 소비 시점 런타임과 다르면 **거부하지 않고 `staleContext`**. 단 **`runMode` 불일치는 예외 없이 거부**한다(파일 경계는 협상 대상이 아니다).
+- ⏸ 기존 5종에도 붙일지는 M2-8(§8-21).
+
+### 5-4. `payloads.dart` — 명령 인자 DTO
+
+| 타입 | 필드 |
+|---|---|
+| `DepositRegistration` | `planId` R String · `amount` R `@D Decimal`(🔴 **예시값** — 금액은 설정값에서 온다) · `valueDate` R `TradeDate` |
+| `JournalDraft` ⚠️M2-8 | 최소 축 = `decisionId` · `rationaleBefore` · `expectedOutcome` · `ruleCited`(🔴 **엔진 제공 목록** · 자유 입력 금지) · `note` |
+| `BlindReviewScore` ⚠️M2-8 | 최소 축 = `decisionId` · 문항 id → 점수 `Map`(문항·선택지 문구도 엔진) |
+| `DisclosureViewEvent` ⚠️M2-8 | 최소 축 = `surfaceCode` · `viewedAt` · `durationSec`. 🔴 **집계 키 `yyyy_mm` 은 엔진이 `viewedAt` 에서 파생**한다(G-42) |
+| `ManualFillRecord` | `adviceId` ? String(null = 안내 무관 수기 신규 → `MANUAL_ENTRY`·예산 차감) · `tradeDate` R `TradeDate` · `symbol` R String(🔴 **`sleeve` 를 보내지 않는다** — 엔진이 판정) · `side` R `OrderSide` · `quantity` R int · `price` R `@D Decimal` · `commission` ? `@D Decimal`(null = 미입력 ≠ 0) · `tax` ? `@D Decimal` · `accountAlias` R String · `offHourTrade` R bool(🔴 폼 체크박스가 **아니다** — 거부 뒤 엔진이 준 옵션으로만 true) · `duplicateAck` R bool(기본 false) · `prefilledFields` R `List<String>`(기본 빈 목록) · `deviationNote` ? String · `context` R `CommandContext` |
+| `ManualFillPatchable` | `tradeDate` R · `quantity` R int · `price` R `@D Decimal` · `commission` ? · `tax` ? · `accountAlias` R String · `offHourTrade` R bool · `deviationNote` ? String. 🔴 **`symbol`·`side` 는 여기 없다**(A13) |
+| `ManualFillAmendment` | `targetFillId` R String · `replacement` R `ManualFillPatchable`(🔴 부분 패치가 아니라 **전체 값**) · `reasonCode` R String · `note` R String(1줄 필수) · `context` R |
+| `ManualFillVoid` | `targetFillId` R · `reasonCode` R · `note` R · `context` R |
+| `AdviceSkip` | `adviceId` R · `reason` R `AdviceSkipReason` · `note` ? String(🔴 **예산 코드 2종에만 필수**) · `context` R |
+| `SelfReportBalance` | `asOfTradeDate` R `TradeDate` · `purpose` R `SelfReportPurpose`(🔴 **기본값 없음**) · `sessionStartedAt` R DateTime(B15) · `lines` R `List<SelfReportLine>` · `cashKrw` R `@D Decimal` · `accountAlias` R String · `declaredComplete` R bool · `context` R |
+| `AlertAck` | `alertId` R String · `context` R. 🔴 **`SafetyState` 에 아무 효력이 없다**(A5 — P0 승급 사다리 정지만) |
+| `KillChecklistAck` | `safetyEventId` R · `openOrdersQueried` R bool · `openOrdersCancelled` R bool · `remainingCountZero` R bool · `queriedAt` R DateTime · `note` R String(1줄 필수) · `context` R. 🔴 **이것만이 48h 해제 카운트다운을 개시**한다 |
+| `LedgerEventRecord` ⏸ | 🔴 결정 ㊲ 채택 시에만 |
+
+- 🔴 `purpose == simOpening` 의 완화 3가지(세션 밖 제출 거부 미적용 · autoTrade 갈래는 `lines` 빈 배열 + `cashKrw` 1칸 · `ledger_sim.sqlite` 만 쓰고 `ledger_diff` 를 열지 않음)는 `periodicAudit` 에 **하나도** 적용되지 않는다.
+
+### 5-5. `settings_actions.dart` — `SettingsActions`(⚠️ `CommandApi` 가 아니다)
+
+```
+abstract interface class SettingsActions {
+  Future<ActionResult> run(SettingsActionId id, {Map<String, String> args});
+  Stream<ActionResult>  watch(String actionRunId);
+}
+```
+
+| 타입 | 필드 |
+|---|---|
+| `ActionResult` | `actionRunId` R String · `id` R `SettingsActionId` · `level` R `UiLevel` · `headline` R String(요약·의역 금지) · `reasonCode` ? String(원문 코드 `'EGW00133'` 등) · `handoffRoute` ? String(게이트 필요 동작은 여기로 — M5) · `retryable` R bool |
+
+- 🔴 **폰(operator) 빌드에만 구현체가 주입된다.** 뷰어에서는 `null` 이고 그때 화면은 컨트롤을 **렌더하지 않는다**(«비활성»이 아니라 **부재**).
+- 🔴 **`SettingsActions` 는 «동작»만**이다(G-29) — 상태 구독은 `OpsStatusRepository`·`OpsSummaryRepository` 다.
+- 🔴 **args 는 화이트리스트**다. 확정분: `handoverAdoptionSet` = `{handover_session_id, symbol, disposition ∈ {ADOPT, EXTERNAL}}` · `handoverExternalRegister` = `{handover_session_id, symbol, quantity, accountAlias, action ∈ {REGISTER, RELEASE}}` · `handoverCommit` = `{handover_session_id}`. 🔴 `handover_session_id` 는 세 동작 모두 **필수**.
+- 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에 넣지 않는다**(영구 기각된 규칙의 부활 경로).
+- 🔴 **`OperatingMode` 전환은 `CommandApi` 에 없다** — `runtimeOperatingModeSwitchRequest` 1종이며 반환 `handoffRoute` 로 위저드에 넘긴다.
+---
+
+## §6. ⑥ 코드 → 문구 매핑 사전 — 영역 **E** · `lib/src/labels/`
+
+> 🔴 **오해 금지**: 문구는 **엔진 소유**이며 런타임에 DTO 의 `label`·`actionLine`·`clearInstruction`·`headline`·`stateLabel` 에 실려 온다. 여기 두는 것은 «어떤 **코드**가 오는가»의 **상수 목록**이지 화면이 코드를 보고 문자열을 고르라는 사전이 아니다. 화면이 매핑을 만들면 **C-5** 가 빌드를 실패시킨다.
+> **파일 배치**: `labels/exit_kind.dart` · `saf_codes.dart` · `verdict_codes.dart` · `origin_codes.dart` · `flag_ids.dart` · `advice_codes.dart` · `alert_codes.dart` · `deviation_kind_codes.dart` · `ledger_event_codes.dart` · `labels.dart`(§1-5 조문 주석 + 전 목록 배럴).
+> **총 137 코드.** 각 파일은 `abstract final class XxxCodes { static const ... }` 형태의 상수 묶음 + `Set<String>` 전량 목록(픽스처·C-15 대조용)을 낸다.
+
+### 6-1. `exit_kind` — 6종 (01 §3-1)
+
+`CORPORATE`(TIER 0 · 쿨다운 영구) · `STOP`(1A·1B) · `TREND_BREAK`(1.5·2) · `TARGET`(3) · `REBALANCE` · `RISK`. 🔵 v2.31 P0S 에서는 대부분 비집행.
+
+### 6-2. SAF 코드 — 접두 7대역 + `SAF309_` 상세 6 (01 §3-2)
+
+접두 = `SAF-1xx`(포지션 리스크 한도) · `SAF-2xx`(슬리브 한도·종목 필터) · `SAF-3xx`(포트폴리오·세금 게이트) · `SAF-4xx`(시스템·주문 게이트) · `SAF-5xx`(드로다운 서킷브레이커) · `SAF-7xx`(타임존·스케줄) · `SAF-8xx`·`SAF-9xx`(장애·보안).
+`SAF309_` 상세 6 = `OK_TAX_ADVANTAGED` · `DENY_TAXABLE_ACCOUNT` · `DENY_UNVERIFIED_FAIL_CLOSED` · `WARN_TAXABLE_ACCOUNT` · `WARN_UNVERIFIED` · `NA_QUERY_NOT_AN_ORDER`. 🔴 화면은 배지로만 쓴다(진리표는 주문 게이트의 사양 벡터).
+
+### 6-3. `verdict_code` — 5종 (01 §3-3 · X2 재판정)
+
+`EXECUTED_AS_REEVALUATED` · `EXPIRED` · `SUPERSEDED` · `BLOCKED` · `UNRECOVERABLE`.
+
+### 6-4. 원인 코드 — 20종 (01 §3-4 · X5 대사·정합 · 🔴 자유 서술 거부)
+
+- 브로커 계열 7 — `FILL_LAG` · `MANUAL_ORDER` · `DB_ERROR` · `BROKER_ERROR` · `EXTERNAL_CASHFLOW` · `CORPORATE_ACTION` · `CORP_ACTION`(⚠️ 뒤 둘은 **중복 후보** §8-6 — 통합 전까지 **둘 다 상수로 둔다**)
+- 파생 계열 7 — `PUSH_LAG` · `PUSH_FAILED` · `ARCHIVE_LAG` · `CAL_WRITE_FAILED` · `SCHEMA_SKEW` · `CHAIN_BROKEN` · `RESTORE_ROLLBACK`
+- X7 계열 6 — `ADVISORY_FILL`(🔴 **안내 모드의 정상 수기 체결** — 없으면 모든 체결이 `MANUAL_ORDER` 로 들어가 매일 SEV2 를 연다) · `UNRECORDED_FILL` · `MISRECORDED_FILL`(→ `ledger_repair(DERIVED_RESYNC)` 1행, C-29) · `SELF_REPORT_CORRECTION` · `EXTERNAL_HOLDING` · `ACCOUNT_MISDECLARED`
+
+### 6-5. 차단 플래그 `flag_id` — 12종 (01 §3-5)
+
+| flag_id | 차단 범위 | `ClearRoute` |
+|---|---|---|
+| `RECON_MISMATCH` | 전 주문 | `causeCodeRequired`(🔴 `/resume` 으로 안 풀림) |
+| `JOURNAL_MISSING` | 신규 매수 | `automatic`(🔴 수동 해제 버튼 **부재**) |
+| `TIER_B_UNJUDGED` | 신규 매수 | `automatic` |
+| `DST_WEEK` | ⚠️ 차단 아님 — 상태 표식 | `automatic` |
+| `RESUME_INCOMPLETE` X2 | 전 주문 | `automatic` |
+| `LEDGER_FIX` X5 | 정정 트랜잭션 뮤텍스 | 자동·사람 해제 **둘 다 없음** |
+| `LEDGER_INTEGRITY` X5 | 전 주문 | `wizardOnly` |
+| `ADVICE_LEDGER_UNVERIFIED` X7 | **신규 진입 안내** 중단(청산·방어는 유지) | `wizardOnly` → `M5-13` |
+| `SELF_AUDIT_OVERDUE` X7 | 신규 진입 안내 | `automatic` — 🔴 차단은 **차이의 크기가 아니라 실사의 부재**에만 |
+| `SELF_AUDIT_DUE` X7 | ⚠️ 표식 | `automatic` |
+| `SELF_AUDIT_PATTERN_UNVERIFIED` X7 | ⚠️ 표식 | `automatic` |
+| `ADVICE_SELECTIVE_EXECUTION` X7 | ⚠️ 표식 · 🔴 **알림을 만들지 않는다**(월간 리포트에만) | `automatic` |
+
+### 6-6. 원장 이벤트 코드 — 1종 (01 §3-6)
+
+`PENSION_FUNDING`(v2.32 · 엔진 플래그 `pension_funding=true`). ⚠️ `decision_log.reason_code` 로만 올지 `kind` 값을 신설할지는 **배치 E 판단** — 확정 전까지 화면은 `reason_code` 문자열로만 분기.
+
+### 6-7. 슬리브 A 계절 진입 게이트 — 3종 (01 §3-7)
+
+`F1_ENTRY_OK`(⚠️ 이름 M2-3 확정 — 통과) · `F1_ENTRY_DEFER`(보류) · `F1_ENTRY_LATE`(지연 진입).
+🔴 상태 5값 ↔ 코드 3종 매핑: `octPassed`→`F1_ENTRY_OK` / `deferredToNov`·`deferredToDec`→`F1_ENTRY_DEFER` / `enteredInNov`·`forcedEntryDec`→`F1_ENTRY_LATE`.
+🔴 임계값·보류 상한(`seasonality.f1_entry_gate_score`·`f1_entry_defer_max`)을 **상수로 적지 않는다**. 🔴 픽스처 봉투 예시의 `ENTRY_GATE_OCT` 는 «통과» 사유이며 **코드명 확정 전까지 픽스처를 고치지 않는다**.
+
+### 6-8. X7 명령 거부 사유 코드 — 15종 (01 §3-8)
+
+`MODE_COMBINATION_DENIED` · `OPERATING_MODE_MISMATCH` · `ADVICE_NOT_OPEN`(🔴 `SKIPPED`·`REVOKED`·`SUPERSEDED` **3종에만** — `EXPIRED` 제외) · `FILL_DATE_NOT_TRADING_DAY` · `FILL_DATE_OUTSIDE_ADVICE_WINDOW` · `PRICE_OUT_OF_RANGE` · `SYMBOL_NOT_MAPPED` · `SYMBOL_IN_UNIVERSE_CANNOT_BE_EXTERNAL` · `AMEND_TARGET_NOT_ACTIVE` · `AMEND_SYMBOL_OR_SIDE_CHANGE` · `AMEND_LIMIT_EXCEEDED` · `ADVICE_FILL_SYMBOL_MISMATCH` · `SKIP_NOTE_REQUIRED`(🔴 예산 코드 2종에만) · `LEASE_EXPIRED`(🔴 `amend`·`void`·`skip`·`selfReport` 에만) · `DUPLICATE_SUSPECTED`.
+🔴 **폐기** — `LEDGER_INTEGRITY_BLOCKED`(B18 → `heldForIntegrity` 보관).
+
+### 6-9. 알림 코드 — 24종 (01 §3-7 X7 목록 + M2-3 추가 등재)
+
+- **X7 9** — `ADVICE_ISSUED`(P1·배치당 1) · `ADVICE_EXIT_URGENT`(P0 · 🔴 ack 사다리 미적용) · `ADVICE_DUE_SOON`(P1) · `ADVICE_EXPIRED`(P2·일 1건 묶음) · `ADVICE_REVOKED`(🔴 독립 P0 · 킬스위치와 같은 `groupKey`) · `ADVICE_SUPPRESSED`(P0) · `LEDGER_TRUST_DOWNGRADE`(P1·1회) · `SELF_AUDIT_DUE`(P2) · `MANUAL_FILL_REJECTED`(P1·즉시)
+- **자동 매매 10** — 04 §5-1c 카탈로그(⚠️ 코드 이름·등급은 **이 사전이 정본** · 등재 전에는 화면이 `code` 로 아이콘·색도 고르지 않는다)
+- **전환 2** — `HANDOVER_COOLING_ACTIVE` · `HANDOVER_COMMITTED`
+- **운영 파라미터 1** — `CONTRIBUTION_CHANGED`(P2 · 변경 1건당 1회 · 멱등 키 = `operating_param_log.row_id`)
+- **유지보수 창 2** — `MAINTENANCE_WINDOW_OVERDUE`(P1) · `MAINTENANCE_RESUME_FAILED`(P0)
+
+🔴 **알림을 만들지 않는 것** — 키 미등록 · `ADVICE_SELECTIVE_EXECUTION` · `SELF_AUDIT_PATTERN_UNVERIFIED`(전부 상태 표식·월간 리포트로만).
+🔴 **등급의 최종 정본은 엔진 `04_안전장치` notify 등급**이며 «앱 알림 코드 ↔ 엔진 등급 대조 1회» 를 통과한 값만 유효하다.
+
+### 6-10. `DeviationBadge.kindCode` — 13종 (01 §2-2)
+
+기존 4 = `DISCRETION`·`MANUAL_ORDER`·`RECON_CLEAR`·`KILL_SWITCH_RESUME` / X7 9 = `ADVICE_LAPSE`(예산 미차감) · `ADVICE_SKIP` · `ADVICE_LATE_FILL`(🔴 예산 미차감·정식 저널 불요) · `MANUAL_ENTRY`(🔴 예산 차감·M5-6) · `ADVICE_PRICE_DEVIATION` · `ADVICE_QTY_DEVIATION` · `ADVICE_EXIT_AVOIDED` · `FILL_AMENDED` · `BACKDATED_FILL`.
+
+### 6-11. `advice_transition.cause_code` — 9종 (01 §6-6)
+
+`RECORD` · `SKIP` · `LAPSE` · `SUPERSEDE` · `REVOKE` · `AMEND` · `LATE_FILL`(🔴 상태 불변 · `EXPIRED→EXPIRED` 1행) · `HANDOVER_CLOSE`(🔴 사람의 미이행이 아니다 — 예산 미차감·분모 제외) · `DEFER_CONFIRM`(🔴 **행의 존재 자체가 「이미 한 번 미뤘다」의 정본**).
+
+### 6-12. `decision_log.reason_code` 특수값 — 3종
+
+`OPENING_BALANCE`(G-04 실전 개시 원장 · `kind='MANUAL'` 1행 공유) · `SIM_OPENING_BALANCE`(N-2 모의 개시 원장) · `HANDOVER_CLOSED`(G-20 `advice.close_reason_code`).
+🔴 `decision_log.kind='MANUAL'` 인 **세 갈래**(정정 · `external_holding` 등록 · 경로 b 귀속)는 **재량 예산·이탈 집계의 모집단이 아니다**(C7).
+
+### 6-13. 기타 코드 상수 — 7종
+
+- `AfterTaxStep.stepCode` 6 = `PRETAX`·`AFTER_POT`·`AFTER_POT_C`·`WD_5P5`·`WD_16P5`·`HONEST`
+- `SafetyState` hold 사유 1 = `LIVE_AWAITING_KEYS`(⚠️ M2-8 · 🔴 `autoTrade` 에서만 배치 중단 — C9)
+
+### 6-14. `PerfPoint.gapReasonCode` — 2종 · `planned_work.kind` — 3종 · `operating_param_log.param_key` — 1종
+
+`EQUITY_SNAPSHOT_MISSING`·`RESUME_GAP` / `SEASONAL_WINDOW`·`DEFER_COUNT`·`SPLIT_LEG` / `monthly_contribution`(🔴 화이트리스트 · `fx_overlay` 계열 키 금지).
+
+---
+
+## §7. ⑦ DDL 배치 A~F — 영역 **E** · `ddl/`
+
+> **파일**: `ddl/batch_a_decision_mode.sql` · `batch_b_plan_command.sql` · `batch_c_x2_x5_local.sql` · `batch_d_supabase.sql` · `batch_e_enum_widen.sql` · `batch_f_x7_advisory.sql` · `batch_z_archive_layout.md`(§6-7 — 스키마가 아니라 출력 포맷 계약).
+> 🔴 **마이그레이션 창은 1회**이고 `schema_version` 번호는 창 전체에 **하나만** 배정한다(부분 반영 상태를 남기지 않는다).
+> 🔴 **적용 순서** — ① 신설 표 → ② CHECK 재작성(테이블 재생성) → ③ ALTER → ④ Supabase RLS → ⑤ Supabase `mode` 키 + 전량 재push.
+> 🔴 SQLite 는 `CHECK` 를 `ALTER` 로 못 바꾼다 — **새 테이블 → 복사 → RENAME**, `PRAGMA foreign_keys=OFF` 창을 스크립트에 명시.
+> 🔴 스타일은 `06_시스템설계/02_데이터모델.md` 그대로(컬럼 정렬 · `CHECK` 인라인 · 🔴 주석 · 후행 `CREATE INDEX`).
+
+### 7-1. 배치 A — 결정 7 승인 4건 + `mode`(로컬 SQLite)
+
+| 대상 | 무엇 |
+|---|---|
+| `decision_log` **신설** | `decision_id` PK · `created_at` · `trade_date` · `mode`(CHECK · fail-closed 기본 SIM) · `kind` CHECK(`ENTRY`·`EXIT`·`REBALANCE`·`DEPOSIT`·`WITHDRAWAL`·`SAFETY`·`RESUME`·`LEDGER_FIX`·`MANUAL`) · `strategy_id` · `sleeve` CHECK(`A`·`B`·`C`·`POT`·`CASH`·`SAT`) · `symbol` · `reason` · `reason_code` · `tier` · `exit_kind` CHECK(6종) · `trigger_price` · `threshold_registered` · `rule_cited` · `regime_ref` · `config_hash` · `parent_decision_id` · `journal_id` / IDX `(trade_date, kind)`·`(parent_decision_id)` |
+| `positions` ALTER | `entry_decision_id TEXT` |
+| `order_intents`·`trades`·`equity_snapshot` ALTER | `mode` + CHECK |
+| `holding_signal_daily` **신설** | PK `(trade_date, symbol, strategy_id)` · `momentum_12_1`·`rs_rank`·`template_passed`·`failed_conditions`(JSON)·`sma_tranche_step`·`gate_states`(JSON)·`source` CHECK(`LIVE`·`BACKFILL`) |
+| `rebalance_event` **신설** | `event_id` PK · `trade_date` · `mode` · `kind` CHECK(5종) · `decision_id` · `trigger_snapshot`·`weights_before`·`weights_after`(JSON) · `config_hash` · `created_at` / IDX `(trade_date)` |
+
+⚠️ `mode` CHECK 는 `('SIM','LIVE')` 2값이 초안이나 §9-5 ④ 권고는 **3값 + 파일별 CHECK**다 → `m2-8_naming.md` D-2 확정을 따른다.
+
+### 7-2. 배치 B — Q-F 계획 스냅샷·명령 인입(로컬)
+
+| 대상 | 무엇 |
+|---|---|
+| `plan_snapshot` **신설** | `plan_id` PK · `kind` CHECK(`DEPOSIT`·`WITHDRAWAL`·`REBALANCE`) · `computed_at` · `as_of_trade_date` · `expires_at`(🔴 만료 계획으로 실입금 등록 거부) · `inputs`·`outputs`(JSON) · `config_hash` · `consumed_by_decision_id` |
+| `command_inbox` **신설** | `command_id` PK · `kind` · `ingested_at` · `state` CHECK 7값(`RECEIVED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`STALE_CONTEXT`·`HELD_FOR_INTEGRITY`·`PENDING_LEASE_CONFIRM`) · `state_label` · `reject_reason_code` · `decision_id` · `run_mode`·`operating_mode`·`lease_epoch`(G-30 발행 시점 맥락) · `payload_digest`(🔴 원문 재저장 금지) |
+| `operating_param_log` **신설** G-06 | `row_id` AUTOINCREMENT PK · `param_key`(화이트리스트) · `value_text`(Decimal 문자열) · `changed_at`(🔴 **신뢰 시각**) · `effective_from` · `action_run_id` · `device_id` · `superseded_by` · `UNIQUE(param_key, changed_at)` |
+| `read_model_push` **신설** | `table_name` PK · `last_pushed_key` · `last_ok_at` · `row_version` · `status` CHECK(`OK`·`PUSH_LAG`·`PUSH_FAILED`) |
+
+🔴 **현재 유효값 조회 규약**(N-S4-01): `param_key` 별 `effective_from <= 신뢰 시각 오늘` 인 행 중 `changed_at` 최대 행. `effective_from` 이 미래인 행은 **예정값**이며 현재값 조회에 섞이지 않는다. 🔴 이 표는 전략 `config_hash` 에 들어가지 않는다.
+
+### 7-3. 배치 C — X2~X5(로컬)
+
+| 대상 | 무엇 |
+|---|---|
+| X2 | `planned_work`(`idempotency_key` UNIQUE · `state` CHECK 6값 · `origin` CHECK `LOCAL`·`MIRROR` · `row_version`) · `planned_work_transition`(append) · `resume_run`(`mode` CHECK 4값 · `phase` R0..R8 · `counts` JSON) · `data_gap` |
+| X3 | `onboarding_progress`(PK `(step_id, track)` · `track`·`state` CHECK) · `onboarding_choice` **신설 G-01**(`id=1` · `operating_mode` CHECK `AUTO_TRADE`·`ADVISORY` · `chosen_at` · `committed_at` — 🔴 채워지면 읽기 전용) · `credential_registry`(🔴 **값 저장 금지** · `keystore_ref` 별칭만 · `health` CHECK 5값) |
+| X4 | `calendar_link`(🔴 PK = `mode` CHECK `LIVE`·`SIM` — G-32 · 🔵 **v1 은 `LIVE` 행 하나**) · `calendar_sync_state`(PK = `mode` · `last_ok_date` 단조 전진 · `status` CHECK 4값) · `calendar_event_log`(PK `(source_table, source_id)` · `aaq_key` UNIQUE · `origin` CHECK 5값 · `state` CHECK `PENDING`·`SYNCED`·`QUARANTINED`·`SKIPPED`) · `cash_flow` ALTER `recorded_at` |
+| X5 | `executions`·`trades` ALTER `authored_at` · `ledger_daily_hash`(PK `authored_date` · `chain_hash` · `hash_format_version` · `row_counts` JSON) · `ledger_diff`(`pair`·`axis`·`severity`·`status` CHECK) · `ledger_repair`(append-only · `direction` CHECK `DERIVED_RESYNC`·`CANON_CORRECT`) · `sync_state`(`status` CHECK 5값 · `operator_epoch`) |
+
+🔴 **authored 축 컬럼 매핑**(X5-1 정규 직렬화 골든의 입력): `executions`·`trades`→`authored_at` / `cash_flow`→`recorded_at` / `decision_log`·`rebalance_event`→`created_at` / `decision_journal`·`order_intents`→기존 생성 시각(⚠️ 실제 컬럼명 확인 후 확정). 🔴 **`equity_snapshot`·`positions`·`ramp` 는 제외**.
+
+### 7-4. 배치 D — Supabase(Postgres) 공유 계층
+
+- **표**: `app_device`(`role` CHECK `operator`·`viewer` · `status` CHECK 4값 · 🔴 최초 INSERT 는 viewer/PENDING 강제) · `operator_lease`(단일 행 · `epoch` · TTL · 🔴 쓰기는 CAS RPC 만) · `recovery_secret`(🔴 해시만 · **SELECT 정책 없음**) · `command_queue`(append-only · `kind` CHECK · `unique(kind, nonce)` · **+ `run_mode`·`operating_mode`·`lease_epoch`**) · `command_ack` · `planned_work_mirror` · `resume_run_mirror` · `ledger_stamp`(🔴 PK `(mode, authored_date)`) · `calendar_sync_status`(PK `mode`).
+- **RLS**: 🔴 **표마다 예외 없이** `enable row level security` + select 전용 정책. 🔴 **클라이언트 INSERT·UPDATE·DELETE 정책을 만들지 않는다** — 쓰기는 **operator 리스 epoch 를 검사하는 security definer RPC 하나**뿐(G-10). `command_queue` 만 예외적으로 두 INSERT 정책(viewer 4종 화이트리스트 / operator 전량)을 **분리한 채로** 유지한다.
+- **읽기 모델 `rm_*` 18표**: `rm_journal` · `rm_holding` · `rm_performance_point` · `rm_rebalance_event` · `rm_alert` · `rm_safety_state` · `rm_config_view` · `rm_advice` · `rm_advice_summary` · `rm_monthly_report` · `rm_report_archive` · `rm_ledger_diff` · `rm_sleeve_allocation` · `rm_perf_context` · `rm_disclosure_view` · `rm_ops_summary` · `rm_ledger_trust` · `rm_execution_gap`.
+- **규칙 5조** ① 전 `rm_*` 에 `row_version`·`lease_epoch`·`pushed_at` **+ `mode`**(RunMode 3값) — 🔴 **증분 키에도 `mode` 가 들어간다** ② upsert 는 `row_version` 큰 쪽만 · 정정은 새 행 ③ 백필은 증분 키 오름차순 ④ RLS 는 `rm_*` 도 예외 아님 ⑤ 🔴 시크릿·계좌 전체번호·손익 원장 금지 ⑥ push 시 `rm_config_view` 의 **버전 스탬프 3필드**(`schema_version`·`hash_format_version`·`contract_version`)를 **매번 함께** 갱신.
+- 🔴 **명령 표의 모드 축은 `run_mode` 하나**다(N-02) — `command_queue`·`command_ack` 에는 `mode` 컬럼을 **붙이지 않는다**. `command_ack` 는 `command_id` 참조로 축을 따라온다.
+- 🔴 **읽기 모델 컬럼 목록은 DTO 필수 필드의 상위집합**이어야 한다(G-22). 아니면 viewer 구현자가 축약 타입을 만들어 계약 3조 ① 을 우회한다.
+- 🔴 `rm_advice` 는 **A6 마스킹** — `symbol`·`quantity`·`price_low/high/ref`·`recorded_quantity`·`actions` 를 **싣지 않는다**.
+- 🔵 **v1 필수 신설 4표** = `rm_monthly_report`·`rm_report_archive`·`rm_ledger_diff`·`rm_advice_summary`. `rm_sleeve_allocation`·`rm_perf_context` 는 조건부, `rm_ops_summary` 는 홈 블록 5·7 소유 결정에 종속(⬜ 택일 — 정하지 않은 상태가 가장 나쁘다).
+
+### 7-5. 배치 E — 열거형 확장(기존 CHECK 재작성 = 테이블 재생성)
+
+| 대상 | 추가 |
+|---|---|
+| `trading_block.flag_id` | `RESUME_INCOMPLETE`·`LEDGER_FIX`·`LEDGER_INTEGRITY` + X7 5종 |
+| `trading_block.origin_code` | `EXTERNAL_CASHFLOW`·`CORPORATE_ACTION` + 파생 7종 |
+| `04 §3-1` 2단계 판정 SQL | `RESUME_INCOMPLETE`·`LEDGER_INTEGRITY`·`ADVICE_LEDGER_UNVERIFIED`·`SELF_AUDIT_OVERDUE` 를 **실제 추가** — 🔴 플래그만 읽고 SQL 을 안 고친 구현은 실격 |
+| `04 §5-3` 알림 등급 | `INFO`/`ALERT`/`DIGEST` → **P0/P1/P2** 개편 + 매핑표 |
+| `ledger_diff.pair`·`origin_code` | `CANON_SELF_REPORT` + 원인 코드 6종 |
+| `decision_log.kind` | 🔴 **추가 없음** — 정정 2행·`external_holding` 등록·경로 b 귀속은 전부 기존 `MANUAL` 재사용(C7) |
+| `calendar_event_log.origin` | `MANUAL_ENTRY`(G-28 — 재생성 · PK 와 `aaq_key` UNIQUE 를 함께 옮긴다) |
+| `command_inbox.state` | 보류 3값 + 컬럼 3개(G-30) |
+| `calendar_link`·`calendar_sync_state` | `CHECK (id = 1)` → `mode` PK(G-32 — PK 변경이므로 재생성) |
+| `ledger_diff.applicable` | ALTER ADD COLUMN(G-27 — 🔴 **배치 F 창 안에서**) |
+
+### 7-6. 배치 F — X7 투자 안내(로컬)
+
+| 대상 | 무엇 |
+|---|---|
+| `advice_batch` **신설** | `batch_id` PK · `trade_date` · `mode` CHECK **= 'LIVE'** · `operating_mode` CHECK **= 'ADVISORY'** · `intent_batch_id` NOT NULL(🔴 `exec_policy` 컬럼을 **두지 않는다** — A11) · `handover_session_id`(B20 조건부 조합 #12 의 유일한 근거) · `issued_at` · `headline` · `resume_run_id` · `config_hash` / IDX `(trade_date)` |
+| `advice` **신설** | `advice_id` PK · `batch_id` · `intent_id`(🔴 `NO_ACTION` 은 NULL) · `decision_id` NOT NULL · `mode` CHECK='LIVE' · `trade_date` · `valid_until_date`(🔴 **거래일 달력**) · `kind` CHECK 7값(+`NO_ACTION`) · `symbol`(NULL 허용) · `sleeve` CHECK 6값 · `side` CHECK(NULL 또는 BUY/SELL) · `quantity`(NULL 또는 >0) · `price_low`·`price_high`·`price_ref` · `is_urgent` · `reason`·`reason_code` · `depends_on_advice_id` · `account_alias` · `status` CHECK 7값 · `close_reason_code` · `superseded_by` · `suppressed` · `suppressed_label` · `sizing_label` NOT NULL · `config_hash` · `created_at` / IDX `(status, valid_until_date)`·`(intent_id)`·`(symbol, trade_date)` |
+| `advice_transition` **신설** | `transition_id` PK · `advice_id` · `from_status`·`to_status` · `cause_code` CHECK 9값 · `command_id`·`fill_id`·`decision_id` · `occurred_at` / IDX `(advice_id, occurred_at)` |
+| `executions` ALTER **11컬럼** | `fill_origin` CHECK 4값 · `fill_kind` CHECK 3값 · `advice_id` · `reverses_fill_id` · `restates_fill_id` · `authored_by_device_id` · `backdate_trading_days` · `cost_source` CHECK 3값 · `off_hour_trade` · `during_halt`(🔴 **접수 시점 판정** — 사후 불가) · `price_range_source_date` |
+| `trades` ALTER 2컬럼 | `fill_origin` · `fill_kind` |
+| `order_intents` ALTER | `operating_mode` CHECK(`AUTO_TRADE`·`ADVISORY`) |
+| `external_holding` **신설** | `external_id` PK · `symbol`·`account_alias`·`quantity` · `decision_id`(🔴 등록도 결정) · `note` · `registered_at` · `released_at`. 🔴 **유니버스 종목 등록 금지**(앱 층 판정 + `SYMBOL_IN_UNIVERSE_CANNOT_BE_EXTERNAL`) |
+| `self_report_balance`·`self_report_line` **신설** | 전자 = `report_id` PK · `as_of_trade_date`·`account_alias`·`session_started_at`(B15)·`cash_krw`·`declared_complete`·`device_id`·`command_id`·`reported_at` / 후자 = PK `(report_id, symbol)`·`quantity` |
+| `credential_registry` ALTER | `usage` CHECK(`RECONCILE_ONLY`·`FULL`) |
+| `handover_session` **신설 G-02** | `handover_session_id` PK · `kind` CHECK(`GATE_M5_10`·`WIZARD_M5_11`) · `path` CHECK 4값 · `device_id`·`lease_epoch` · `opened_at`·`expires_at`·`closed_at` · `close_code` CHECK(`COMMITTED`·`CANCELLED`·`EXPIRED`·`ROLLED_BACK`) |
+| `operating_mode_transition` **신설 G-02** | `transition_id` PK · `handover_session_id` · `from_mode`·`to_mode` · `decision_id` · `committed_at` |
+| `ledger_diff.pair` **재작성 N-01** | 4값 → **5값**(`CANON_SELF_REPORT` 포함). 🔴 **`applicable` ALTER 보다 먼저** — 아니면 `applicable=0` 의 `CANON_SELF_REPORT` 행이 CHECK 위반으로 실패하고 보드가 4칸으로 퇴화 |
+| `ledger_diff.applicable` ALTER G-27 | `INTEGER NOT NULL DEFAULT 1 CHECK (applicable IN (0,1))` |
+| **배치 D 추가분** | `command_queue.kind` CHECK += **7종** · `state` CHECK += 3값 · 컬럼 3개. 🔴 신규 7종은 **`command_insert_operator` 정책에만** — viewer 4종 화이트리스트는 그대로 |
+
+🔴 **`advice` 의 NULL 허용 조건은 둘뿐이다**: ① `kind='NO_ACTION'`(symbol·quantity·side·intent_id 전부 NULL · `suppressed=1` · `suppressed_label` 필수) ② `unverifiable`·`drifting` 등급의 청산 안내(quantity 만 NULL · `sizing_label` 이 말한다). **그 밖의 행은 네 컬럼이 전부 NOT NULL 이며 엔진 선행 가드가 강제한다**(CHECK 로 조건부 NOT NULL 을 표현하지 않는다).
+🔴 `ledger_sim.sqlite` 판은 `CHECK (mode = 'SIM_INTERNAL')` 로 좁힌다(C8 — `simBroker × advisory` 는 정의 모순으로 금지).
+🔴 새 컬럼이 직렬화 규약에 들어가므로 **`hash_format_version` 을 올리고 골든벡터를 다시 고정**한다.
+
+### 7-7. §6-7 GitHub 아카이브 레이아웃 (스키마 아님 — 출력 포맷 계약)
+
+| 항목 | 계약 |
+|---|---|
+| 경로(실전) | `archive/{yyyy}/{yyyy-mm-dd}/{table}.jsonl` |
+| 경로(모의) | `sim/{yyyy}/{yyyy-mm-dd}/{table}.jsonl` |
+| 한 줄 | **한 원장 행** · 컬럼 순·수치 표기·NULL 규칙은 🔴 **X5-1 정규 직렬화와 같은 골든벡터** |
+| 대상 표 | `day_hash` 대상 스트림 **전량** + 배치 F 신설 6표 + `operating_param_log` |
+| 체크포인트 | `archive/checkpoint.json` = `{schema_version, hash_format_version, authored_date, chain_hash, operator_epoch, writer_device_id, committed_at}` 단일 객체 · 매 커밋 덮어쓰기 |
+| 금지 | 🔴 **force push 금지**. 커밋 실패는 매매를 막지 않고 24h 적체 시 P1 |
+
+🔴 **해시 체인 모집단 = 아카이브 대상**이어야 한다. 어긋나면 `canonGithub`·`canonCalendar` 대조가 «불일치 아님»을 **증명하지 못한다**.
+
+---
+
+## §8. ⑧ 픽스처 목록 — 영역 **F** · `fixtures/` + `lib/src/fixtures/`
+
+> **위치 확정**: `packages/domain_contracts/fixtures/`(저장소 루트 기준 상대 경로). 🔴 코드·문서 어디에도 절대 경로를 적지 않는다.
+> **원칙**: 실키·계좌 전체번호·비밀번호 **0건** · 계좌는 별칭만(`"연금저축"`·`"일반"`) · 티커는 실제 국내 ETF, **수량·가격은 가공값** · 금액은 **문자열**(`"38250.00"`).
+> 🔴 **픽스처 갱신은 M2 만 한다.** 화면 담당이 「테스트가 안 맞아서」 고치는 것은 반려.
+> 🔴 **월 납입 운영값 예시는 `100000`** 이며 **파일명에 금액을 넣지 않는다**(`_default`·`_limit`·`_expired`).
+
+### 8-1. 봉투 형식 (전 픽스처 공통)
+
+```json
+{
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "M2-0.1",
+            "generated_at": "…Z", "mode": "LIVE",
+            "config_hash": "cfg_fake_…", "seed": 20260906,
+            "notice": "합성 데이터. 실계좌·실키 없음." },
+  "as_of": { "observed_at": "…Z", "trade_date": "YYYY-MM-DD",
+             "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "…" },
+  "empty_kind": "NO_DATA", "empty_label": null, "has_more": false,
+  "rows": [ … ]
+}
+```
+
+🔴 `as_of`·`empty_kind`·`empty_label`·`has_more` 는 `ListResult<T>` 에 그대로 대응하며 **빈 목록 픽스처도 네 값을 싣는다**. 🔴 `meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 **같은 축**이다(한쪽만 올리지 않는다).
+
+### 8-2. 계약 코어 11건 — `fixtures/` 바로 아래
+
+| 파일 | 건수 | 내용 |
+|---|---|---|
+| `journal_30.json` | 30 | 체결 22 · 부분 3 · 거부 2 · UNKNOWN 1 · prevented 1 · SIM 1 |
+| `holdings_6.json` | 6 | 069500(A) · 379810·132030(B) · 0085P0·411060(C) · POT 1종 — `pnl` 은 3건만 |
+| `performance_24m.json` | 24 | 월간 TWR/MWR + 결측 구간 1(`unavailable`) + 벤치마크 |
+| `rebalance_6.json` | 6 | monthlyRegular 3 · seasonal 1 · band 1 · deposit 1 |
+| `resume_report_1.json` | 1 | 7거래일 갭 · `recoveryDry` · 4/3/2/1/2 |
+| `safety_states.json` | 5 | normal · alert · reduced · halted · stopped(자격 충족 1) |
+| `alerts_12.json` | 12 | P0 2 · P1 4 · P2 6(묶임 2) |
+| `ledger_diffs_4.json` | 4 | canonBroker 1(blocking) · 파생 3(observational) |
+| `onboarding_fresh.json` | 14 | 처음 시작하기(verified/failed/expired 각 1) |
+| `onboarding_reconnect.json` | 9 | 재연결 갈래 |
+| `deposit_plan_1.json` | 1 | 월 납입 = 엔진 설정값 예시 · 잔여 = 원화 현금 대기(D2) · 주문 초안 3 · `funding_steps` **null** |
+
+### 8-3. P 회차 3건 · S 회차 3건
+
+| 파일 | 배치 | 내용 |
+|---|---|---|
+| `aftertax_ladder_1.json` | `m7/` | 정본 갈래(`SPEC_POT_TAX_FREE`) 5단 + 반사실 1(접힘) · `is_reference_only: true` · 층 값은 골든 4자리 |
+| `deposit_plan_funding_1.json` | `fixtures/`(코어 옆) | 납입 조달 발동 · `funding_steps` 2단. 🔵 정본 경로에서 **한 번도 발동하지 않으므로** 없으면 §3-6 표시 경로가 영영 미검증 |
+| `entry_gate_nov_pass_1.json` | `m6/` | 계절 게이트 **11월 재판정 통과**(`enteredInNov`). 🔵 26시즌 실측 발동 0 — 실데이터로는 검증 불가한 유일한 경로 |
+| `m7_deposit_plan_default.json`·`_limit.json`·`_expired.json` | `m7/` | `S7-4` 3벌: 기본 / 연 한도 소진 / 계획 만료. 🔴 **파일명에 금액 금지** |
+| `realized_alloc_S7.json` | `m7/` | **C-31 의 입력** — 회계 열(`A_acct`·`C_acct`·`pot`) 대조 |
+
+### 8-4. X7 22파일 — `m6/`·`m7/`·`m8/`·`m9/`
+
+`advice_12` · `advice_empty` · `advice_blocked` · `advice_expired_confirm` · `advice_no_action`(🔴 **C-26 의 입력** — 없으면 「억제된 날의 침묵」 검사가 입력 없이 자동 통과) · `advice_handover_cooling`(`handoverCoolingActive == true` + `openCount == 0` 조합) · `advice_detail_partial` · `advice_detail_onhold` · `advice_viewer_4`(🔴 **A6 마스킹판** — C-27 의 입력) · `fill_form_spec` · `fill_form_spec_stale`(A16 폼을 열지 않는 갈래) · `manual_fills_8`(original 5 · 상쇄+재기재 2쌍 · backdated 1) · `fill_rejected_price`(🔴 **입력값 보존** — C17) · `advice_skip_reasons` · `self_report_1` · `execution_gap_cant`·`_wont`·`_mixed`(🔴 **B21 3갈래** — `modeAdviceLine` 이 각각 달라야 한다) · `ledger_trust_4` · `handover_states` · `external_holdings_2` · `onboarding_fresh_advisory`.
+
+**총 40파일**(코어 11 + P 3 + S 3(+`realized_alloc_S7` 1) + X7 22).
+
+### 8-5. 로더 — `lib/src/fixtures/fixture_loader.dart`
+
+- 🔴 **순수 Dart**여야 한다(`dart:io` 를 쓰면 web viewer 빌드가 깨진다) → 파일 읽기는 호출자가 하고 로더는 **문자열 → DTO** 만 한다. 시그니처 축: `ListResult<T> decodeList<T>(String json, T Function(Map<String,Object?>) rowFrom)` · `FixtureEnvelope decodeEnvelope(String json)`.
+- 🔴 봉투 필수 4값(`as_of`·`empty_kind`·`empty_label`·`has_more`)이 없으면 **예외를 던진다**(빈 값으로 넘기지 않는다).
+
+### 8-6. 🔴 기존 픽스처 전량 개정 규약 (C10)
+
+X7 은 `TradeJournalEntry` 에 required 6, `HoldingRow` 에 required 2, `FeatureFlags` 에 required 1 을 넣는다 — 세 타입은 거의 전 픽스처가 참조하므로 **통째로 역직렬화에 실패**하고 그 위 골든이 동시에 깨진다.
+🔴 **«계약 변경 고지» 규약**(골든 규칙의 유일한 예외) — M2 가 개정 픽스처와 함께 고지 1건을 내고, **그 고지가 있는 PR 에서만** C-2 위젯 골든 재베이스라인을 허용한다. 고지가 없으면 「픽스처가 그대로인데 다시 찍었다」와 구별되지 않으므로 반려.
+
+---
+
+## §9. ⑨ 계약 회귀 테스트 C-1 ~ C-32 — 영역 **F** · `test/`
+
+> `melos run test:contracts` 하나로 돈다. **위반은 «잘못된 화면»이 아니라 «빌드 실패»다.**
+> «자동화» 열: 🟢 = 이 패키지 안에서 지금 자동화 가능 · 🟡 = `ui_*`·`data_sync` 가 있어야 실효(지금은 **스켈레톤 + skip**) · 🔵 = 골든 파일이 선행.
+
+| # | 무엇을 어떻게 검사하나 | 자동화 |
+|---|---|---|
+| C-1 | 픽스처 → 뷰모델 변환 결과를 `*.golden.json` 과 비교 | 🔵 F 가 픽스처와 함께 만든다. 🔴 **골든은 M2 소유**이며 화면 담당은 읽기만 |
+| C-2 | 대표 화면 9개를 픽스처로 렌더 → PNG 비교(light/dark) | 🟡 `ui_*` 선행. 최초 베이스라인은 그 화면 PR 에서만 «추가» 허용 |
+| C-3 | `ui_*` 의 pubspec·import 그래프에서 `core_engine`·`decimal`·`sqflite`·`supabase_flutter` 금지 | 🟡(pubspec 파싱은 지금도 가능 — **부분 자동화**) |
+| C-4 | `ui_*` 에서 `Money`/`Decimal` 필드에 `*`·`/`·`+` 적용 탐지(custom_lint). 🔴 **확장 대상** = `*Pct`·`*Ratio`·`cagr*` 이름의 double 필드 | 🟡 |
+| C-5 | `ui_*` 전 파일(🔴 `lib/l10n/labels.dart` 제외)에서 **한글 리터럴 0건** + `'TIER '`·`'SAF-'` 리터럴 금지 | 🟡 |
+| C-6 | 홈·알림·위젯 위젯트리에 `HoldingPnl`·`PerformanceSeries` 타입 참조 금지 | 🟡 |
+| C-7 | `ui_*`(`ui_safety` 제외)에 ① `killSwitch`·`releaseProgress`·`ResumeReport` **원본** 렌더 ② 조작 위젯 ③ `CommandApi`·`SettingsActions` 밖의 쓰기 — 🔴 §2-10 표의 ✅ 항목(배너·읽기 목록·딥링크)은 **통과** | 🟡 |
+| C-8 | 전 DTO `fromJson(toJson(x)) == x` · 금액은 **문자열 유지** | 🟢 |
+| C-9 | Decimal 규약 벡터 GV-8a/8d/8f 를 Dart 로 재현(곱셈 선행 · `Decimal.one −`) | 🟢 |
+| C-10 | `PerfPoint.value == null` 구간이 **보간되지 않고 공백**인지 | 🟡(뷰모델 층은 🟢) |
+| C-11 | `staleAfter` 초과 픽스처에서 배너가 뜨는지 | 🟡 |
+| C-12 | 모든 enum 을 `default:` 없이 exhaustive switch 로 분기 | 🟡 — 🔴 **파급이 의도된 게이트**다 |
+| C-13 | 픽스처 `config_hash` vs 핸드북 메타 불일치 시 실패 | 🔵 핸드북 원고 선행 |
+| C-14 | `fixtures/` 에 KIS 앱키·`ya29.`·`1//`·8자리 계좌 패턴 탐지 | 🟢 |
+| C-15 | 픽스처의 **열거값·필드**가 §7 DDL 의 `CHECK`·컬럼과 일치 | 🟢 — 🔴 `SAT`·`REQUIRED`·`RECORD_MANUAL_FILL` 같은 **비기계적 매핑**을 잡는 것이 이 검사의 요점 |
+| C-16 | `CommandApi` 구현이 `command_queue` 에 UPDATE/DELETE 를 부르지 않는지 | 🟡 `data_sync` 선행 |
+| C-17 X6 | `runMode` = SIM 계열 픽스처로 **모든 라우트** 렌더 → 골든 텍스트에 «모의투자» 포함. **표본 아님·전수**(라우트 테이블에서 열거) | 🟡 |
+| C-18 X7 | `advisory` 픽스처 전 라우트 렌더 · **띠 1개**(2줄 금지) · 접두 순서 «모의투자 · 투자 안내 · 제목» · 🔴 `A-1` 위젯 트리에 `AdviceStatus`·`onHold`·`suppressed` 조건 분기 **0건** · 🔴 `autoTrade` 픽스처에서 `A-3`·`A-4`·`L-3` **가드 리다이렉트** | 🟡 |
+| C-19 X7 | 금지 6칸을 config·전환 명령으로 주입 → **기동 거부** · 🔴 세션 토큰 없는 **#12** 주입 → 거부 | 🟡 엔진 런타임 선행 |
+| C-20 X7 | 브로커 주문 호출 0건 · 🔴 advisory 런타임에서 `ExecPolicy` **쓰기 0건** · 🔴 `operatingMode` 쓰기가 **M5 게이트·위저드 커밋 경로 밖에 0건** | 🟡 |
+| C-21 X7 | 수기 기록 UPDATE/DELETE 0회 · amend 1회 = `REVERSAL`+`RESTATEMENT` **2행** · 🔴 두 행의 `symbol`·`side` 동일 · 🔴 체인 상한(2회) 초과 시 거부 | 🟡(픽스처 대조분은 🟢) |
+| C-22 X7 | 정정 픽스처에서 **필터 없는 단순 SUM** 이 최종 수량·금액과 일치 | 🟢 |
+| C-23 X7 | 파생 계산 경로가 `advice`·`external_holding` 을 참조하지 않음 + 캘린더 매퍼에 `AdviceItem` 타입 차단 | 🟡 |
+| C-24 X7 | 🔴 `costSource == estimated` **배지 존재** · 🔴 `priceRangeSourceDate` **라벨 존재** | 🟡 |
+| C-25 X7 | `S7-10` 골든에 **금액 리터럴 0건**(bp 만) + `S7-1` **13항목 불변** | 🔵 |
+| C-26 X7 | 「냉각 중 신규 기록 → 커밋 거부 → 단계 5 복귀」 · 「커밋 직전 미체결 발견 → 단계 4 복귀」 · 🔴 `NO_ACTION` 픽스처에서 `A-1`·`A-2` 가 렌더되고(`openCount == 0` + `hasSuppressedNotice == true`) **이행 갭 분모(`issued`)에 계상되지 않는지** · 🔴 커밋이 회수한 안내가 `REVOKED`·`HANDOVER_CLOSED` 이고 예산·분모에서 빠지는지 | 🟡 |
+| C-27 X7 | `advice_viewer_4.json` 으로 **`A-1`·`A-2` 2라우트만** 렌더 → 🔴 검사는 「**종목 코드 · 주(株) 단위 수량 · 원(₩) 단위 가격**」 **세 패턴 0건**(비율 %·건수는 허용 — 정규식으로 고정, 허용 목록을 넓히지 않는다) + `phoneOnlyLabel` 존재 | 🟡 |
+| C-28 X7 | `simInternal × advisory` 발행 명령을 `live × advisory` 런타임이 소비 → ⓐ `ledger.sqlite` 쓰기 0건 ⓑ 상태가 `rejected` 가 아니라 **`staleContext`** · 🔴 **뷰모델·화면 계층에서 `CommandContext` 를 생성하는 코드 0건** | 🟡(정적 스캔분은 🟢) |
+| C-29 X7 | 소급 amend 픽스처에서 `trade_date` 기준 재계산 후 `equity_snapshot` 시계열이 **정확히 정정분만큼** 다르고 대응 `ledger_repair` 행이 **정확히 1개** | 🟡 |
+| C-30 P | `aftertax_ladder_1.json` 렌더 → ⓐ `ui_*` 위젯트리에 `cagrPct`·`endMult` 등 **double 값 필드 참조 0건** ⓑ 숫자 리터럴 0건 ⓒ 본문 갈래가 **정확히 1개** ⓓ `steps` 층 수를 코드로 고정하지 않음 | 🟡 |
+| C-31 P | ⓐ 한 위젯트리에서 서로 다른 `basis` 의 `SleeveWeight` 가 같은 합계·같은 목록에 들어가는지 ⓑ `ui_*` 에서 **A 와 POT 를 더하는 산술** — `realized_alloc_S7` 픽스처 | 🟡 |
+| C-32 G-89 | `ui_*` 소스에 월 납입 금액으로 읽힐 숫자 리터럴(`100000`·`90000`·`97000`·`124000`·`100_000`)과 `'10만'`·`'9.7만'` 문자열 → 실패. 🔴 **`labels.dart` 도 예외 아님** · 🔵 `fixtures/`·명세 산문은 대상 아님 | 🟡(정적 스캔) |
+
+**추가 검사 1건(번호 없음 · M2-3 소유)** — 🔴 `lib/l10n/labels.dart` 의 키·문자열 **전수**와 재개 리포트 템플릿에서 «램프»가 접두(«운영 램프»/«초기 진입») 없이 단독으로 쓰인 항목 **0건**. C-5 는 `labels.dart` 를 예외로 두므로 C-5 로는 잡히지 않는다. 🔴 C-5 전역 경고로 만들지 않는다(개발 쪽 경보 피로).
+
+🔴 **골든 스냅샷 폭발 회피** — 라우트 전수 검사는 **축당 1조합**(C-17 = SIM×auto · C-18 = live×advisory), 접두 합성 순서만 대표 라우트 3개, C-27 은 2라우트.
+
+---
+
+## §10. 착수 순서 · 열린 물음
+
+### 10-1. 영역별 첫 커밋 체크리스트
+
+| 영역 | 첫 커밋에 반드시 들어가는 것 |
+|---|---|
+| **A** | `primitives/` 5파일 + `enums/` 13파일 **전량**. 🔴 `@JsonValue` 를 **모든 값에** 붙인다(자동 변환 0건) |
+| **B** | `dto/common.dart` 먼저(다른 영역이 기다린다) → journal → holdings → safety → ledger → calendar → resume |
+| **C** | `dto/performance.dart`(`AfterTaxLadder` 포함) → rebalance → plan → advice → ledger_trust → handover → settings → ops |
+| **D** | 리포지토리 15파일(선언만) → `commands/command_api.dart` → `command_context.dart` → `payloads.dart` → `settings_actions.dart` |
+| **E** | `labels/` 10파일 + `contract_version.dart` **버전 상향 보류**(🔴 01 문서가 «확정 v1.0» 이 되는 커밋에서만 `1.0.0`) + `ddl/` 6+1파일 |
+| **F** | 봉투 로더 → 코어 11 픽스처 → C-8·C-9·C-14·C-15·C-22 (🟢 5건) → 나머지는 스켈레톤 + `skip` 사유 주석 |
+
+### 10-2. 🔴 열린 물음 — 임의 확정 금지 (구현 중 부딪히면 멈추고 보고한다)
+
+1. **`CommandState.noOperator` 의 DDL 자리** — `command_inbox.state`·`command_ack.state` CHECK 어디에도 `NO_OPERATOR` 가 없다. G-30 은 「`command_inbox` 의 state 집합 = `command_queue` 의 state 집합」을 요구하는데 `command_ack.state` CHECK 는 여전히 4값이다. 셋 중 어디까지 넓히는가?
+2. **`RunMode` 2값 vs 3값** — 배치 A·B 의 `CHECK (mode IN ('SIM','LIVE'))` 와 §9-5 ④ 의 3값 권고가 문서에 함께 남아 있다. 3값으로 넓히면 배치 A·B 도 재작성 대상이 된다(§9-1 은 «확정 전에는 DDL 을 고치지 않는다»).
+   - 🔴 **G3 통합 실측(2026-09-08) — 이 물음은 «장차»가 아니라 «이미» 충돌한다.** 두 가지를 정정한다.
+     - ⓐ 「픽스처 `meta.mode` 는 `"LIVE"` 다」는 **봉투에 한해서만** 참이다(77 픽스처 전량 `LIVE`). 그러나 **행 필드**는 다르다 — `fixtures/journal_30.json` 의 `je_0030` 이 `"mode": "SIM_INTERNAL"` 을 싣는다(X6 모의투자 갈래 시연 행). 봉투만 보고 «정합» 이라고 판정하면 안 된다.
+     - ⓑ 더 중요한 것: **`'SIM'` 은 `RunMode` 의 `@JsonValue` 가 아니다.** `RunMode` 는 `SIM_INTERNAL`·`SIM_BROKER`·`LIVE` 3값이라 2값 CHECK 와 겹치는 값은 **`LIVE` 하나뿐**이다. 즉 2값 CHECK 는 「SIM 계열을 좁게 받는다」가 아니라 **SIM 계열 행을 하나도 표현하지 못한다**. 「2값 유지 = 보수적 선택」이 아니라는 뜻이다.
+   - 🔴 그럼에도 **이번 통합에서 DDL·열거형·픽스처 중 무엇도 고치지 않았다** — §9-1·§9-5 ④ 가 «확정 전 DDL 불변» 이고 `m2-8_naming` I-3 이 ⏸ 이며, 위 ⓑ 는 어느 쪽으로 닫을지의 **근거**이지 결정이 아니다. 확정이 오면 `ddl/batch_a`·`batch_b`·`batch_f` + `fixtures/journal_30.json` + C-15 를 **한 커밋에서** 움직인다.
+3. **`CORPORATE_ACTION` vs `CORP_ACTION`** — 중복 후보(§8-6). 통합 전까지 **둘 다 상수로 두되** 픽스처에는 `CORPORATE_ACTION` 만 쓴다(X2 계열이 먼저 등재됐다).
+4. **`order_intents.dry_run` ↔ `ExecPolicy` 이중 정본**(§8-7) — `ExecPolicy` 를 열거형으로 만들되 `dry_run` 컬럼은 **그대로 둔다**(§9-5 ①). 파생 규칙 명문화는 M2-1 창.
+5. **`rm_ops_summary` 표 존폐** — 만들거나, 홈 블록 5·7 을 폰 전용으로 명시하거나 **둘 중 하나**다. 정하지 않은 상태가 가장 나쁘다(뷰어가 값을 지어낸다).
+6. **`ReasonOption` ↔ `J-3` `rule_cited` 통합**(§8-20 · D19) — 🔴 **선행 미결**. 닫히기 전에는 `A-4`·`M5-12` 폼 계약이 확정되지 않는다.
+7. **`FeatureFlags.operatingMode` 의 `@Default`**(§8-19) — 주면 «기본이 자동»이 조용한 전제가 되고, 안 주면 `rm_config_view` 미갱신 상태에서 뷰어가 죽는다.
+8. **`AlertItem.ack` 의 쓰기 경로**(§8-10) — `alertAck` 명령은 생겼으나 **뷰어 허용 여부**는 여전히 열려 있다(X7 이 대신 답하지 않는다).
+9. **픽스처 티커** — `069500` 은 **KOSPI200** ETF 라 P0S 의 슬리브 A(KOSDAQ 지수 ETF)와 맞지 않는다. 실전 종목 확정 전까지 **문법 예시**이며, 화면은 티커를 슬리브의 정의로 읽지 않는다(A/B/C 라벨은 `SleeveCatalogEntry.label`).
+10. **`SettingsActionId` 신설 2종의 이름** — `settingsContributionUpdate`(G-45 · 🔴 «운영 등급») · `calendarReconnect`(G-64). `m2-8_naming.md` 가 권고 이름으로 확정했으나 **발주자 몫 표시(⏸)** 가 붙어 있다.

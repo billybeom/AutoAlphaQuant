@@ -1,43 +1,204 @@
-# `fixtures/` — 모의 데이터 픽스처 (**G4 예정 — 아직 비어 있다**)
+# `fixtures/` — 모의 데이터 픽스처 (**G4 · 77파일 · 생성 완료**)
 
-정본: 01_M2_도메인계약 **§5**
+정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
+화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
 
-화면은 **네트워크 없이 이 파일만으로** 그려진다. 파일이 없으면 화면 담당 AI가 가짜 데이터를 만들고, 그 값이 스크린샷에 남는다 — 그것이 G4가 하드 게이트인 이유다(00_README §0-1).
+화면은 **네트워크 없이 이 파일만으로** 그려진다. 파일이 없으면 화면 담당 AI가 가짜 데이터를 만들고,
+그 값이 스크린샷에 남는다 — 그것이 G4가 하드 게이트인 이유다(00_README §0-1).
 
 ## 🔴 대원칙 — 실키 금지
 
 - 실키·계좌 전체번호·비밀번호 **0건**. 계좌는 **별칭만**(`"연금저축"`·`"일반"`).
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
-- 위반은 §7 **C-14**(KIS 앱키·`ya29.`·`1//`·8자리 계좌 패턴 스캔)가 잡는다.
+- 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
+  `scanForSecrets` 이며 현재 77파일 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
-## 예정 파일 — 계약 코어 (`fixtures/` 바로 아래)
+## 🔴 누가 고치나
+
+**픽스처 갱신은 계약 소유자(M2)만 한다.** 화면 AI가 「테스트가 안 맞아서」 픽스처를 고치는 것은
+**반려 사유**다. 픽스처는 골든 스냅샷의 입력이기도 해서, 값을 바꾸면 스냅샷이 깨진다 —
+**그것이 의도된 게이트**다. 화면 명세가 나열한 파일명은 **요청 목록**이지 자기 소유 선언이 아니다.
+
+---
+
+## 봉투 형식
+
+전 픽스처가 `meta` + `as_of` + `empty_kind` + `empty_label` + `has_more` + `rows` 형태를 쓴다.
+뒤 네 값은 `ListResult<T>`(01 §2-1)에 그대로 대응하며 **빈 목록 픽스처도 싣는다** — 그래야
+「없음」(`NO_DATA` + 문구)과 「모름」(`NOT_LOADED` + `stale_reason_code`)이 화면에서 갈린다.
+예시 JSON은 01 §5에 있다.
+
+```json
+{
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.0.0",
+            "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
+            "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
+            "notice": "합성 데이터. 실계좌·실키 없음." },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31",
+             "source": "LOCAL_SQLITE", "stale_after_seconds": 93600,
+             "label": "잔고 기준 2026-08-31 종가" },
+  "empty_kind": "NO_DATA", "empty_label": null, "has_more": false,
+  "rows": [ … ]
+}
+```
+
+읽는 창구는 `lib/src/fixtures/fixture_loader.dart` 하나다 —
+`decodeEnvelope(json)` · `decodeList<T>(json, T Function(Map) rowFrom)` ·
+`decodeSingle<T>(…)`. 🔴 로더는 **순수 Dart**이고 파일을 읽지 않는다(§8-5). 경로 상수는
+`lib/src/fixtures/fixture_paths.dart` 의 `FixturePaths` 이며 `FixturePaths.all` 이 전량 목록이다.
+
+### 🔴 세 가지 표기 규약 (어기면 계약 테스트가 깨진다)
+
+1. **금액은 문자열이되 `decimal` 정규형으로 적는다** — `"38250"` 이지 `"38250.00"` 이 **아니다**.
+   `decimal` 3.x 는 값을 정규화하므로(`Decimal.parse('38250.00').toString() == '38250'`)
+   `.00` 을 남기면 「픽스처 → DTO → 다시 JSON」 문자열 비교가 **내용이 같은데도** 어긋난다
+   (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
+   자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
+2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
+   ✅ **지금 값은 `1.0.0`**(2026-09-08 G3 확정 — 01 문서가 «상태: 확정 v1.0» 줄을 받은 커밋에서
+   상수와 77개 픽스처를 **함께** 올렸다). 한쪽만 올리지 않는다. ~~⚠️ 01 §5 예시의 `"M2-0.1"` 은
+   코드 상수와 형식이 다르다~~ ✅ **해소** — 01 §5 봉투 예시도 같은 커밋에서 `"1.0.0"` 으로 맞췄다.
+   🔴 `fixture_version`(`0.1.0-draft`)은 **다른 축**이며 계약 확정이 올리는 값이 아니다 — 픽스처
+   내용이 개정될 때 M2 가 올린다(C-15 는 이 값이 비어 있지 않은지만 본다).
+3. **JSON 키는 snake_case**(패키지 `build.yaml` 의 `field_rename: snake`), **열거값은
+   SCREAMING_SNAKE**(`@JsonValue` 로 못 박은 값 그대로). 🔴 기계 변환이 틀리는 자리가 있다 —
+   `SleeveId.satellite → "SAT"` · `StepRequirement.required_ → "REQUIRED"` ·
+   `CommandKind.manualFillRecord → "RECORD_MANUAL_FILL"` · `AdviceActionId → "RECORD"/"SKIP"/"DETAIL"`.
+
+### 봉투 확장 — 부속 블록
+
+한 화면이 「목록 + 그 목록의 요약」을 함께 받는 갈래가 있어(`A-1` 안내함이 대표) 봉투에
+**형제 키**를 하나 더 싣는다. 봉투 필수 6키는 그대로이고 로더는 이 키를 무시한다.
+
+| 키 | 타입 | 쓰는 파일 |
+|---|---|---|
+| `summary` | `AdviceInboxSummary` | `m6/advice_*.json` 9벌 |
+| `advice_summary` | `AdviceInboxSummary` | `m8/ops_home_advice_*.json` |
+| `counterfactual` · `counterfactual_collapsed` | `AfterTaxLadder` · bool | `m7/aftertax_ladder_1.json` |
+| `trust` | `LedgerTrustBadge` | `m6/self_report_1.json` |
+| `index` | `HandbookIndex` | `m8/handbook_page_sleeve_b.json` |
+| `incident_alert` | `AlertItem` | `m8/incident_token_expired.json` |
+| `preserved_input` · `reject_reason` · `price_range_source_date` | 원시 · `ReasonChip` · `TradeDate` | `m6/fill_rejected_price.json` |
+| `active_flags` · `resume_headline` · `resume_route` · `pending_notice` 계열 | `BlockFlag` 등 | `m8/ops_home_*.json` · `m7/m7_monthly_pending.json` |
+
+---
+
+## 파일 목록 (77)
+
+### 계약 코어 12 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
 | 파일 | 건수 | 내용 |
 |---|---|---|
 | `journal_30.json` | 30 | 체결 22 · 부분 3 · 거부 2 · UNKNOWN 1 · prevented 1 · SIM 1 |
-| `holdings_6.json` | 6 | A 1 · B 2 · C 2 · POT 1 — `pnl`은 3건만 |
-| `performance_24m.json` | 24 | 월간 TWR/MWR + 결측 구간 1개(`unavailable`) + 벤치마크 |
+| `holdings_6.json` | 6 | 069500(A) · 379810·132030(B) · 0085P0·411060(C) · POT 1종 — `pnl` 은 3건만 |
+| `performance_24m.json` | 2계열 | 월간 TWR·MWR 각 24점 + 결측 구간 1(`UNAVAILABLE`) + 벤치마크 |
 | `rebalance_6.json` | 6 | monthlyRegular 3 · seasonal 1 · band 1 · deposit 1 |
-| `resume_report_1.json` | 1 | 7거래일 갭 · `recoveryDry` · 실행 4/만료 3/대체 2/차단 1/복구불가 2 |
-| `safety_states.json` | 5 | normal · alert · reduced · halted · stopped(자격 충족 1건) |
-| `alerts_12.json` | 12 | P0 2 · P1 4 · P2 6 (묶임 사례 2건) |
-| `ledger_diffs_4.json` | 4 | canonBroker 1(blocking) · 파생 3(observational) |
-| `onboarding_fresh.json` | 14 | 처음 시작하기 (verified/failed/expired 각 1건) |
-| `onboarding_reconnect.json` | 9 | 기존 계정에서 다시 시작하기 — `OnboardingTrack.reconnect` |
-| `deposit_plan_1.json` | 1 | 월 9만원 납입 · 잔여 = 원화 현금 대기(D2) · 주문 초안 3건 |
+| `resume_report_1.json` | 1 | 7거래일 갭 · `RECOVERY_DRY` · 4/3/2/1/2 |
+| `safety_states.json` | 5 | normal · alert · reduced · halted · stopped(자격 충족 1) |
+| `alerts_12.json` | 12 | P0 2 · P1 4 · P2 6(묶임 2) |
+| `ledger_diffs_4.json` | 4 | `CANON_BROKER` 1(blocking) · 파생 3(observational) |
+| `onboarding_fresh.json` | 14 | 처음 시작하기(verified/failed/expired 각 1) |
+| `onboarding_reconnect.json` | 9 | 재연결 갈래 |
+| `deposit_plan_1.json` | 1 | 월 납입 = 엔진 설정값 예시 · 잔여 = 원화 현금 대기(D2) · 주문 초안 3 · `funding_steps` **null** |
+| `deposit_plan_funding_1.json` | 1 | 납입 조달 발동 · `funding_steps` 2단(파킹 잉여 0 → C 방어자산 매각) |
 
-> ⚠️ **건수 불일치 — 임의로 정하지 말 것.** 01 §5 본문과 00_README §0-1(G4)은 「10건」이라고 적었는데 위 표는 **11행**이다(`onboarding_reconnect.json`이 🆕로 나중에 추가되면서 총계가 갱신되지 않은 것으로 보인다). G4 착수 전에 M2가 문서 쪽 총계를 고칠 것.
+### `m6/` 17 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
 
-화면 그룹 전용 상태 조합(04 §10의 `ops_home_*`·`watchdog_*`·`handbook_page_*`, 05의 설정 화면 픽스처)은 `fixtures/m6/`·`m7/`·`m8/`·`m9/`에 둔다. **생성·소유는 똑같이 M2다** — 화면 명세가 나열한 파일명은 요청 목록이지 자기 소유 선언이 아니다.
+`advice_12`(open 4·partial 1·filled 3·skipped 1·expired 2·revoked 1) · `advice_empty`(🔴 `open_count == 0`) ·
+`advice_blocked`(`ADVICE_LEDGER_UNVERIFIED`) · `advice_expired_confirm` ·
+`advice_no_action`(🔴 **C-26의 입력** — `kind='NO_ACTION'` · `suppressed` · `actions` 빈 목록 ·
+요약은 `open_count == 0` **이면서** `has_suppressed_notice == true`) ·
+`advice_handover_cooling`(🔴 C14 예외 둘째 — `handover_cooling_active == true` + `open_count == 0`) ·
+`advice_detail_partial` · `advice_detail_onhold` ·
+`advice_viewer_4`(🔴 **A6 마스킹판 · C-27의 입력** — `symbol`·`quantity`·`price_band` null + `phone_only_label`) ·
+`fill_form_spec` · `fill_form_spec_stale`(A16 — 폼을 열지 않는 갈래) ·
+`manual_fills_8`(original 5 · 상쇄+재기재 한 쌍 · backdated 1) ·
+`fill_rejected_price`(🔴 **입력값 보존** — C17) · `advice_skip_reasons` · `self_report_1` ·
+`external_holdings_2` · `entry_gate_nov_pass_1`(🔵 11월 재판정 통과 — 실데이터로는 검증 불가한 경로).
 
-## 봉투 형식
+### `m7/` 29 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
 
-전 픽스처가 `meta` + `as_of` + `empty_kind` + `empty_label` + `has_more` + `rows` 형태를 쓴다. 이 네 값은 `ListResult<T>`(§2-1)에 그대로 대응하며 **빈 목록 픽스처도 싣는다** — 그래야 «없음»(`NO_DATA` + 문구)과 «모름»(`NOT_LOADED` + `stale_reason_code`)이 화면에서 갈린다. 예시 JSON은 01 §5에 있다.
+`aftertax_ladder_1`(정본 갈래 5단 + 반사실 1 접힘 · `is_reference_only: true`) ·
+`realized_alloc_S7`(🔴 **C-31의 입력** — 회계 열 대조) · `ledger_trust_4` ·
+`execution_gap_cant`·`_wont`·`_mixed`(🔴 **B21 3갈래** — `mode_advice_line` 이 각각 다르다) · `execution_gap_1` ·
+`m7_deposit_plan_default`·`_limit`·`_expired`(🔴 이름에 금액 금지) ·
+`m7_withdrawal_general`·`_pension_penalty`·`_shortfall` ·
+`m7_monthly_2026_08`·`_gap`·`_pending`(13항목 고정 배열) · `m7_report_archive_18` · `m7_disclosure_gate` ·
+`m7_perf_daily_gap` · `m7_dd_context_normal`·`_deep` · `m7_contrib_3sleeve` ·
+`m7_next_rebalance_d6` · `m7_rebalance_detail_band` · `m7_annual_2026`·`_first_year` ·
+`m7_goal_path_on`·`_hold`·`_realworld`.
 
-- 🔴 금액은 **문자열**이다(`"38250.00"`). 숫자 리터럴로 쓰면 C-8이 실패한다.
-- 🔴 `meta.contract_version`은 `lib/src/contract_version.dart`의 상수와 같은 축이다. 한쪽만 올리지 않는다.
+### `m8/` 18 — 셸·운영 홈·알림·온보딩 (04 §10)
 
-## 🔴 누가 고치나
+`ops_home_normal`·`_blocked`·`_resume_gap7`·`_advice_open`·`_advice_zero` · `ops_rhythm_rows` ·
+`recon_board_diff`(🔴 칸 수 **5 고정** · `CANON_SELF_REPORT` 는 `applicable: false` = 「점검 안 함」) ·
+`alerts_p0_ack` · `alerts_digest` · `alerts_advice_9codes`(X7 알림 9종) ·
+`watchdog_delayed` · `watchdog_holiday`(🔴 휴장의 쉼은 결측이 아니다) · `incident_token_expired` ·
+`onboarding_finish` · `restart_lost_phone` · `onboarding_fresh_advisory` ·
+`onboarding_mode_pick`(🔴 **기본 선택 없음 · 「권장」 배지 없음**) · `handbook_page_sleeve_b`.
 
-**픽스처 갱신은 계약 소유자(Claude)만 한다.** 화면 AI가 「테스트가 안 맞아서」 픽스처를 고치는 것은 **반려 사유**다. 픽스처는 골든 스냅샷의 입력이기도 해서, 값을 바꾸면 스냅샷이 깨진다 — **그것이 의도된 게이트**다.
+> ⚠️ 04 §10 목록의 `onboarding_fresh.json` 은 **코어의 같은 이름 파일이 정본**이라
+> `m8/` 에 다시 두지 않았다(같은 데이터가 두 벌이 되면 한쪽만 갱신된다).
+
+### `m9/` 1 — 설정·운영 모드 전환 (05)
+
+`handover_states`(경로 4 × 성공/실패 — `SIM_TO_AUTO` 통과 · `FRESH_AUTO` 차단 ·
+`ADOPT_LEDGER` 모름 · `HANDBACK_MANUAL` 차단 + `handback_branch`).
+
+---
+
+## 값을 고를 때 지킨 것
+
+- **티커는 전부 자리표시자**다(01 §5 말미). `069500` 은 KOSPI200 ETF라 P0S 슬리브 A(KOSDAQ 지수)와
+  맞지 않지만 **실전 종목 확정 전까지 고치지 않는다** — 화면은 티커를 슬리브의 정의로 읽지 않는다
+  (A/B/C 라벨은 `SleeveCatalogEntry.label`). 🔴 POT 자리의 `357870` 은 03 §15 가 열거한 5종 밖이라
+  **이 회차가 새로 고른 자리표시자**이며, 실전 종목이 확정되면 함께 교체된다.
+- **월 납입 예시값은 `100000`**(01 §5 · 04 §10). 🔴 **파일명에 금액을 넣지 않는다**
+  (`_default`·`_limit`·`_expired`). 값은 파일 **안**에만 있고 운영값의 창구는
+  `ConfigRepository.watchContributionSetting()` 하나다. C-32는 `ui_*` 소스만 보며 `fixtures/` 는 대상이 아니다.
+- **세후 사다리 4자리 수치를 인용해도 되는 자리는 `m7/aftertax_ladder_1.json` 과 골든뿐**이다
+  (01 §2-4). 코드·라벨·주석에 옮기지 않는다.
+- **`ENTRY_GATE_OCT`** 은 「10월말 진입 게이트 통과」 = 정상 통과 사유다. 🔴 `F1_ENTRY_DEFER`·
+  `F1_ENTRY_LATE` 로 바꾸지 않는다(01 §5 말미 — 코드명 확정 전까지 픽스처를 고치지 않는다).
+- 정정 픽스처(`m6/manual_fills_8.json`)의 상쇄 행은 **수량·수수료의 부호를 뒤집어** 담는다 —
+  🔴 C-22(「필터 없는 단순 SUM 이 최종 수량·금액과 일치」)가 성립하려면 그래야 한다.
+- **`m6/entry_gate_nov_pass_1.json` 의 `F1_ENTRY_GATE`** 는 `GateBadge.code` 자리에 놓인
+  **자리표시자**다. 01 §3-7 은 계절 게이트의 **사유 코드 3종**(⚠️ `F1_ENTRY_OK`·`F1_ENTRY_DEFER`·
+  `F1_ENTRY_LATE`)만 등재했고 **게이트 배지 코드는 문서 어디에도 없다**. 🔴 `ENTRY_GATE_OCT` 와
+  같은 취급이다 — M2-3 이 이름을 등재하기 전에는 **고치지 않는다**. 같은 파일의 다른 배지
+  (`SAF-401`)는 §3-2 에 있는 코드다.
+
+---
+
+## 역직렬화 실측 (2026-09-08 · 233행 · 실패 0)
+
+77파일 전량이 봉투 검사를 통과하고, 그중 **75파일 233행**이 실제 DTO 의 `fromJson` 을 지나
+`fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
+값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
+일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
+
+### 🔴 DTO 로 열리지 **않는** 픽스처 2건 — 설계이지 결함이 아니다
+
+| 파일 | 왜 DTO 가 없나 | 화면이 할 일 |
+|---|---|---|
+| `m6/self_report_1.json` | 행 모양은 `SelfReportBalance`(§5-4)이되 **`context` 가 없다**. `CommandContext` 를 채우는 것은 화면이 아니라 `CommandApi` 구현이고(G-19) 화면 계층이 그것을 만드는 코드는 **C-28** 이 0건으로 검사한다 — 픽스처가 `context` 를 실으면 그 규약을 픽스처가 먼저 어긴다 | 폼 값으로만 읽고 `SelfReportBalance.fromJson` 을 **부르지 않는다**. 봉투 형제 키 `trust` 는 `LedgerTrustBadge` 로 연다 |
+| `m6/entry_gate_nov_pass_1.json` | 계절 진입 게이트에 **이름 붙은 DTO 가 문서에 없다**(01 §3-7 은 상태 5·코드 3 만 정한다) | 🔴 타입을 지어내지 않는다. `SeasonalEntryGateState`·`ReasonChip`·`GateBadge`·`TriggerSnapshot` 은 있으니 그 부분만 연다 |
+
+> 같은 이유로 `m6/fill_rejected_price.json` 의 형제 키 `preserved_input`(= `ManualFillRecord` 모양)도
+> `context` 가 없다. 행 자체는 `CommandReceipt` 로 열린다.
+> 🔴 **명령 인자 픽스처에 `context` 를 넣지 않는다**가 이 묶음의 규약이다.
+
+### ⚠️ 골든(`*.golden.json`)을 만들 사람에게
+
+`DateTime` 은 `toJson` 에서 `toIso8601String()` 을 타므로 픽스처의 `"…T09:00:00Z"` 가
+**`"…T09:00:00.000Z"`** 로 되돌아온다. 값은 같고 C-8 도 통과하지만 **문자열 비교로 골든을 뜨면
+어긋난다** — 🔴 골든은 픽스처 원문이 아니라 **`toJson` 출력**으로 뜬다. 같은 이유로 `toJson` 은
+픽스처가 생략한 선택 키를 `null` 로 **명시해** 내보낸다(둘 다 계약 위반이 아니다).
+
+## 아직 없는 것
+
+- **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
+  🔴 구현자가 이름을 지어내지 않는다(인벤토리 §0 규칙) — M2가 05 에 목록을 등재한 뒤 만든다.
+- `test/` 의 계약 회귀 C-1~C-32 — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
+  C-1 골든(`*.golden.json`)도 아직 없다.

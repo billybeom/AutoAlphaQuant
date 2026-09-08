@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.0.0",
+    "generated_at": "2026-09-06T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260906,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "재개 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "resume_run_id": "rr_20260831_01",
+      "started_at": "2026-08-31T00:12:00Z",
+      "finished_at": "2026-08-31T00:41:00Z",
+      "gap_trading_days": 7,
+      "mode": "RECOVERY_DRY",
+      "mode_label": "복구 — 발주 없이 재판정",
+      "phase": "R8",
+      "counts": { "executed": 4, "expired": 3, "superseded": 2, "blocked": 1, "unrecoverable": 2 },
+      "items": [
+        { "work_id": "pw_0001", "one_line": "슬리브 B 밴드 이탈 매수", "planned_line": "8월 21일 밴드 이탈로 계획됨", "reevaluated_line": "8월 31일 재판정에서 여전히 이탈", "verdict_code": "EXECUTED_AS_REEVALUATED", "verdict_label": "재판정 값으로 실행" },
+        { "work_id": "pw_0002", "one_line": "슬리브 A 트랜치 3단계", "planned_line": "8월 24일 3단계 예정", "reevaluated_line": "유효기한이 지났습니다", "verdict_code": "EXPIRED", "verdict_label": "만료" },
+        { "work_id": "pw_0003", "one_line": "금 ETF 상한 조정", "planned_line": "8월 25일 상한 조정 예정", "reevaluated_line": "8월 28일 계획이 이를 대체했습니다", "verdict_code": "SUPERSEDED", "verdict_label": "대체됨" },
+        { "work_id": "pw_0004", "one_line": "슬리브 C 재매수", "planned_line": "8월 27일 재매수 예정", "reevaluated_line": "대사 불일치로 주문이 막혀 있습니다", "verdict_code": "BLOCKED", "verdict_label": "차단" },
+        { "work_id": "pw_0005", "one_line": "8월 26일 일간 스냅샷", "planned_line": "8월 26일 스냅샷 예정", "reevaluated_line": "원천 데이터가 남아 있지 않습니다", "verdict_code": "UNRECOVERABLE", "verdict_label": "복구 불가" }
+      ],
+      "unrecoverable_gaps": [
+        { "gap_id": "gap_0001", "dataset": "equity_snapshot", "from": "2026-08-25", "to": "2026-08-26", "recoverable": false, "reason_code": "EQUITY_SNAPSHOT_MISSING", "label": "8월 25~26일 평가액 스냅샷 없음" },
+        { "gap_id": "gap_0002", "dataset": "holding_signal_daily", "from": "2026-08-25", "to": "2026-08-27", "recoverable": false, "reason_code": "RESUME_GAP", "label": "8월 25~27일 신호 원천 없음" }
+      ],
+      "headline": "7거래일 공백을 재판정했습니다. 발주는 하지 않았습니다."
+    }
+  ]
+}

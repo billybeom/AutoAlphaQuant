@@ -1,0 +1,77 @@
+// 01 §4-3 · §5-5 — 설정·진단 «동작». ⚠️ `CommandApi` 가 아니다.
+//
+// 🔴 M9 의 «적용»·«검증»·«백업»·«셀프테스트»와 M8 온보딩의 «검증 드라이런 실행»은 Supabase
+//    명령 테이블을 거치지 않는다 — **폰 로컬에서 Claude 소유 구현체가 직접 수행**한다
+//    (시크릿이 관여하므로 뷰어에 경로가 있어서는 안 된다).
+// 🔴 **폰(operator) 빌드에만 구현체가 주입된다.** 뷰어 빌드에서는 `null` 이고 그때 화면은
+//    컨트롤을 **렌더하지 않는다**(«비활성»이 아니라 **부재** — 05 §5-2).
+// 🔴 **«동작»만이다**(G-29) — 상태 구독은 `OpsStatusRepository`·`OpsSummaryRepository` 다.
+//    화면이 `run()` 을 폴링해 상태를 만들면 경계 규칙 ① 위반이다.
+// 🔴 «적용»류는 **`run()` 1회 + `handoffRoute` 이동**으로 끝난다. 냉각 30일·12월 창·48h
+//    대기·체크리스트 7항 UI 를 화면이 만들면 반려다.
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/command.dart';
+import '../enums/ui.dart';
+
+part 'settings_actions.freezed.dart';
+part 'settings_actions.g.dart';
+
+/// 설정·진단 동작의 주입 콜백.
+///
+/// 🔴 **`args` 는 화이트리스트다** — 「무엇을 뺄까」가 아니라 「무엇만 넣을까」로 정의한다.
+///    키는 **snake_case** 다(H-7 — `Map<String, String>` 이므로 Dart 관례가 아니라 전송 규약을 따른다):
+///
+///    · `handoverAdoptionSet`      = `{handover_session_id, symbol, disposition ∈ {ADOPT, EXTERNAL}}`
+///    · `handoverExternalRegister` = `{handover_session_id, symbol, quantity, account_alias,
+///                                     action ∈ {REGISTER, RELEASE}}`
+///    · `handoverCommit`           = `{handover_session_id}`
+///
+///    🔴 `handover_session_id` 는 세 동작 모두 **필수**이고 그 토큰의 정의처는 §6-6
+///    `handover_session` 이다(G-02). 🔴 세 동작 모두 `decision_log(kind='MANUAL')` 1행을
+///    **엔진이** 낳으며, 그 세 갈래는 재량 예산·이탈 집계의 모집단이 **아니다**(§10-3).
+///
+/// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
+///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
+///
+/// ⚠️ 나머지 동작의 args 스키마는 **미확정**이다(§4-3 말미 · 05 §7 표가 입력) — 확정 전에는
+///    화면이 키를 지어내지 않는다.
+abstract interface class SettingsActions {
+  /// ⚠️ 01 §4-3 원문은 `{Map<String, String> args}` 이지만 Dart 에서 non-nullable 선택
+  ///    명명 인자는 기본값 없이는 선언되지 않는다 — **의미(선택·비어 있을 수 있음)를 지키는
+  ///    최소 보정**으로 `const {}` 기본값을 둔다. 타입·이름은 원문 그대로다.
+  Future<ActionResult> run(
+    SettingsActionId id, {
+    Map<String, String> args = const <String, String>{},
+  });
+
+  Stream<ActionResult> watch(String actionRunId);
+}
+
+/// 동작 1회의 결과.
+@freezed
+abstract class ActionResult with _$ActionResult {
+  const factory ActionResult({
+    required String actionRunId,
+    required SettingsActionId id,
+    required UiLevel level,
+
+    /// 결과 문구 — 🔴 엔진 생성(요약·의역 금지).
+    /// 🔴 월 납입 범위 판정 같은 «허용/불허»도 이 문장과 `reasonCode` 로만 돌아온다 —
+    ///    화면이 범위를 미리 알면 「저장 버튼 비활성」이라는 **화면의 판정**이 생긴다(§2-6).
+    required String headline,
+
+    /// 원문 코드(예 `'EGW00133'`)가 있으면 함께 온다.
+    String? reasonCode,
+
+    /// 🔴 게이트가 필요한 동작은 여기로 넘긴다(M5).
+    /// ⏸ H-9 — 반환값은 M5·X1·X2·X5 라우트 **권고 확정 목록에 있는 이름만**이며 화면이
+    ///    이름을 지어 쓰지 않는다.
+    String? handoffRoute,
+    required bool retryable,
+  }) = _ActionResult;
+
+  factory ActionResult.fromJson(Map<String, dynamic> json) =>
+      _$ActionResultFromJson(json);
+}

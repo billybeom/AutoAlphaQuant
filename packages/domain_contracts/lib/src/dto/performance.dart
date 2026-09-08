@@ -1,0 +1,403 @@
+// 01 §2-4 — 수익률(M7 요구 2) · 세후 사다리 · §2-6 M7 뷰모델(G-41).
+//
+// 🔴 화면은 TWR/MWR 을 계산하지 않고 누적곱도 하지 않는다. 세율 곱셈·층 간
+//    차액도 금지이며 C-30 이 이것을 검사한다(01 §2-4 말미).
+// 🔴 «정직 기대»·사다리 4자리 수치를 코드·라벨·주석에 옮기지 않는다 —
+//    인용처는 픽스처 `aftertax_ladder_1.json` 과 골든 `aftertax_full_S7` 뿐이다.
+// 🔴 `PerfMetric.twr` 은 외부 현금흐름 «보정판»이다(01 §2-4 P 회차 실측).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/performance.dart';
+import '../enums/sleeve.dart';
+import '../primitives/as_of.dart';
+import '../primitives/money.dart';
+import 'ledger_trust.dart';
+
+part 'performance.freezed.dart';
+part 'performance.g.dart';
+
+/// 01 §2-4 — 수익률 시리즈. 🔴 누적/비누적 토글도 엔진이 두 시리즈를 주거나
+/// `cumulative` 로 재요청한다(화면 누적곱은 단일 산식 원칙 위반).
+@freezed
+abstract class PerformanceSeries with _$PerformanceSeries {
+  const factory PerformanceSeries({
+    required PerfMetric metric,
+    required PerfGranularity granularity,
+    required bool cumulative,
+
+    /// 🔴 결측·재개로 분절된 구간들.
+    required List<PerfSegment> segments,
+    required List<PerfPoint> points,
+
+    /// 표본 크기 고지·인터스티셜 문구·열람 횟수(01 §2-4).
+    required PerfDisclosure disclosure,
+    required AsOf asOf,
+
+    /// KOSPI 50% + S&P500(KRW) 50% — m2-8 F-9.
+    BenchmarkSeries? benchmark,
+
+    /// 🆕 P 회차 — 세후는 «층»이다. 단일 스칼라 필드를 만들지 않는다.
+    AfterTaxLadder? afterTax,
+  }) = _PerformanceSeries;
+
+  factory PerformanceSeries.fromJson(Map<String, dynamic> json) =>
+      _$PerformanceSeriesFromJson(json);
+}
+
+/// 01 §2-4 — 시계열 1점. 🔴 `value == null` 은 결측이며 **보간 금지**(C-10).
+@freezed
+abstract class PerfPoint with _$PerfPoint {
+  const factory PerfPoint({
+    @TradeDateConverter() required TradeDate date,
+
+    /// 🔴 null = 결측. 공백으로 그린다 — 이어 붙이지 않는다.
+    double? value,
+
+    /// `EQUITY_SNAPSHOT_MISSING` · `RESUME_GAP`(인벤토리 §6-14).
+    String? gapReasonCode,
+  }) = _PerfPoint;
+
+  factory PerfPoint.fromJson(Map<String, dynamic> json) =>
+      _$PerfPointFromJson(json);
+}
+
+/// 01 §2-4 — 분절 구간. 🔴 `manualExecuted` 는 `simExcluded` 와 달리 합산에
+/// 포함되고 경계는 실선이다(D6). 겹치면 `freshAuto` 절단선이 이긴다.
+@freezed
+abstract class PerfSegment with _$PerfSegment {
+  const factory PerfSegment({
+    @TradeDateConverter() required TradeDate from,
+    @TradeDateConverter() required TradeDate to,
+    required SegmentKind kind,
+
+    /// "7거래일 미실행 — 산출 불가" — 엔진 생성.
+    required String label,
+  }) = _PerfSegment;
+
+  factory PerfSegment.fromJson(Map<String, dynamic> json) =>
+      _$PerfSegmentFromJson(json);
+}
+
+/// 01 §2-4 · m2-8 F-9 — 벤치마크 시리즈.
+@freezed
+abstract class BenchmarkSeries with _$BenchmarkSeries {
+  const factory BenchmarkSeries({
+    required String label,
+    required List<PerfPoint> points,
+
+    /// 구성 고지 한 줄 — 엔진 생성.
+    required String compositionNote,
+  }) = _BenchmarkSeries;
+
+  factory BenchmarkSeries.fromJson(Map<String, dynamic> json) =>
+      _$BenchmarkSeriesFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-8 — 기대치 문구의 유일한 운반처(🔴 **M7 화면 한정**).
+/// 🔴 M8 온보딩·핸드북은 같은 문자열을 **각자의 뷰모델 필드**로 받는다 —
+///    성과 타입을 건너 참조하지 않는 것이 C-3 규약이다.
+@freezed
+abstract class PerfDisclosure with _$PerfDisclosure {
+  const factory PerfDisclosure({
+    required String sampleSizeLine,
+    required String interstitialText,
+
+    /// 🔴 명령 테이블(append-only)의 이번 달 집계 — 화면이 세지 않는다(G-42).
+    required int viewCountThisMonth,
+    required String honestExpectationLine,
+    String? drawdownCaveatLine,
+  }) = _PerfDisclosure;
+
+  factory PerfDisclosure.fromJson(Map<String, dynamic> json) =>
+      _$PerfDisclosureFromJson(json);
+}
+
+/// 01 §2-4 · m2-8 A-7 · F-16 — 세후 사다리의 한 층.
+/// 🔴 `valueText` 가 **표시의 정본**이다. `cagrPct`·`endMult` 는 골든 대조·회귀
+///    전용이며 `ui_*` 위젯트리에서 참조하면 C-30 이 실패한다.
+@freezed
+abstract class AfterTaxStep with _$AfterTaxStep {
+  const factory AfterTaxStep({
+    /// `PRETAX`·`AFTER_POT`·`AFTER_POT_C`·`WD_5P5`·`WD_16P5`·`HONEST`
+    /// (인벤토리 §6-13 · 영역 E 의 상수 목록이 정본).
+    required String stepCode,
+
+    /// "② 전 계좌 세후 — 연금 인출세 16.5%" — 엔진 생성.
+    required String label,
+
+    /// 🔴 표시의 정본. 엔진이 포맷한 완성 문자열.
+    required String valueText,
+
+    /// 🔴 골든 대조 전용 — 화면 참조 금지(C-30).
+    double? cagrPct,
+
+    /// 🔴 같음 — 층 간 차액을 빼는 경로를 데이터 형태로도 열지 않는다.
+    double? endMult,
+    String? noteLine,
+  }) = _AfterTaxStep;
+
+  factory AfterTaxStep.fromJson(Map<String, dynamic> json) =>
+      _$AfterTaxStepFromJson(json);
+}
+
+/// 01 §2-4 — 세후 사다리. 🔴 갈래는 **계좌 배치가 정한다**(SAF-309) —
+/// 화면·인자로 고르는 경로를 만들지 않는다.
+@freezed
+abstract class AfterTaxLadder with _$AfterTaxLadder {
+  const factory AfterTaxLadder({
+    required TaxLadderBranch branch,
+
+    /// "POT = 절세계좌(명세 준수)" — 엔진 생성.
+    required String branchLabel,
+
+    /// 🔴 순서 그대로 그린다. 층을 합치거나 건너뛰지 않는다.
+    required List<AfterTaxStep> steps,
+
+    /// 🔴 숫자 상수 금지 — 엔진 생성 문장을 그대로 그린다.
+    required String honestExpectationLine,
+    required String basisNote,
+
+    /// 🔴 §8-18 확정 전에는 **항상 true**(골든 참고치이지 실계좌 산출이 아니다).
+    /// 🔴 SIM 에서도 이 라벨을 유지한다(01 §9-4).
+    required bool isReferenceOnly,
+    required String configHash,
+    required AsOf asOf,
+  }) = _AfterTaxLadder;
+
+  factory AfterTaxLadder.fromJson(Map<String, dynamic> json) =>
+      _$AfterTaxLadderFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-7 — 월간 1페이지 리포트(`S7-1`).
+/// 🔴 **단일 `afterTaxPct` 필드를 만들지 않는다** — 세후는 `AfterTaxLadder` 로만
+///    실어 나른다. 🔴 반사실 항목을 14번째로 늘리지 않는다(C-25).
+@freezed
+abstract class MonthlyReport with _$MonthlyReport {
+  const factory MonthlyReport({
+    required String yyyyMm,
+
+    /// 🔴 **13항목 고정 배열**. 결측에서도 자리를 유지하며 항목을 더하거나
+    ///    빼지 않는다(03 §3 · C-25).
+    required List<ReportItem> items,
+    required String goalLine,
+
+    /// 🔴 화면이 「n회」를 숫자로 조립하지 않는다(G-42).
+    required String disclosureViewCountText,
+
+    /// X7 — 헤더 배지(01 §2-11 · G-97).
+    required LedgerTrustBadge trust,
+    required AsOf asOf,
+
+    /// 세후 사다리. 🔴 13항목 배열에는 넣지 않는다(03 §3).
+    AfterTaxLadder? afterTax,
+
+    /// 전월 소급 정정 각주 — 🔴 마감된 달을 재계산하지 않는다(G-97).
+    String? backdateFootnote,
+  }) = _MonthlyReport;
+
+  factory MonthlyReport.fromJson(Map<String, dynamic> json) =>
+      _$MonthlyReportFromJson(json);
+}
+
+/// ⚠️ **M2-8 미확정** — `m2-8_naming.md` F-7 이 `List<ReportItem>` 이라는 **이름만**
+/// 확정했고 필드 축은 어느 문서에도 없다. 아래는 03 §3(13항목 고정 배열 · 섹션
+/// A~G · 「결측에서도 자리를 유지」 · 전부 엔진 완성 문자열)에서 읽어낸 **임시
+/// 최소 축**이며, `AnnualReviewSection`(F-6)·`OpsRhythmRow`(G-2)와 같은 모양이다.
+/// 🔴 화면 담당은 이 타입을 픽스처 고정 모드로만 쓰고, 축 확정 전에는 항목을
+///    코드로 세거나 순서를 재정렬하지 않는다.
+@freezed
+abstract class ReportItem with _$ReportItem {
+  const factory ReportItem({
+    required String code,
+
+    /// 🔴 13항목의 고정 순서. 화면이 정렬 키를 만들지 않는다.
+    required int order,
+
+    /// 섹션 A~G(03 §3).
+    required String sectionCode,
+    required String title,
+
+    /// 🔴 엔진 완성 문자열 — 결측이면 그 사실도 이 문자열이 말한다.
+    required String valueText,
+    String? noteText,
+  }) = _ReportItem;
+
+  factory ReportItem.fromJson(Map<String, dynamic> json) =>
+      _$ReportItemFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-1 — 월간 리포트 아카이브(`S7-1b`). 🔴 **수치 필드 0건**.
+@freezed
+abstract class ReportArchiveVm with _$ReportArchiveVm {
+  const factory ReportArchiveVm({
+    required List<ReportArchiveRow> rows,
+    required AsOf asOf,
+    String? emptyLabel,
+  }) = _ReportArchiveVm;
+
+  factory ReportArchiveVm.fromJson(Map<String, dynamic> json) =>
+      _$ReportArchiveVmFromJson(json);
+}
+
+/// m2-8 F-1 — 아카이브 1행. 🔴 수치 컬럼이 없다(`rm_report_archive`).
+@freezed
+abstract class ReportArchiveRow with _$ReportArchiveRow {
+  const factory ReportArchiveRow({
+    required String yyyyMm,
+    required String label,
+    required bool generated,
+
+    /// 🔴 모드 표시도 엔진 문자열이다 — 화면이 `RunMode` 로 분기하지 않는다.
+    required String modeLabel,
+    String? reasonLabel,
+    String? route,
+  }) = _ReportArchiveRow;
+
+  factory ReportArchiveRow.fromJson(Map<String, dynamic> json) =>
+      _$ReportArchiveRowFromJson(json);
+}
+
+/// 01 §4-1 · m2-8 F-2 — 성과 열람 게이트(`S7-2G`).
+/// 🔴 `viewCountThisMonth` 숫자 필드를 두지 않는다 — 화면이 「n회」를 조립하지
+///    않게 `viewCountText` 하나만 온다.
+@freezed
+abstract class DisclosureGateVm with _$DisclosureGateVm {
+  const factory DisclosureGateVm({
+    required bool gateOpen,
+    required String headline,
+    required String viewCountText,
+    required AsOf asOf,
+    String? frictionLine,
+    String? route,
+  }) = _DisclosureGateVm;
+
+  factory DisclosureGateVm.fromJson(Map<String, dynamic> json) =>
+      _$DisclosureGateVmFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-3 — 드로다운 맥락(`S7-3`).
+/// 🔴 `referenceBandCaveatText` 가 null 이면 그 줄을 **그리지 않는다**
+///    («최대낙폭은 하한»의 단서이며 화면이 대신 문장을 짓지 않는다).
+@freezed
+abstract class DrawdownContextVm with _$DrawdownContextVm {
+  const factory DrawdownContextVm({
+    required String periodLabel,
+    required String currentDdText,
+    required String maxDdText,
+    required String tuwText,
+
+    /// 🔴 게이지 폭 전용 정규값(0.0~1.0). 표시는 `*Text` 필드다.
+    required double ddNormalized,
+    required AsOf asOf,
+    String? referenceBandText,
+    String? referenceBandCaveatText,
+  }) = _DrawdownContextVm;
+
+  factory DrawdownContextVm.fromJson(Map<String, dynamic> json) =>
+      _$DrawdownContextVmFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-4 — **슬리브 기여 분해**(`S7-3b` · 03 §10).
+/// 🔴 `MonthlyContributionVm`(월 납입 운영값 카드 · `settings.dart`)과 **다른
+///    타입**이며 이름을 공유하지 않는다(01 §2-6 이름 충돌 방지 조문 · N-01).
+/// 🔴 **종목 단위 행 없음**.
+@freezed
+abstract class ContributionVm with _$ContributionVm {
+  const factory ContributionVm({
+    required String periodLabel,
+    required List<ContributionRow> rows,
+    required String methodNoteText,
+    required AsOf asOf,
+    String? fxNoteText,
+  }) = _ContributionVm;
+
+  factory ContributionVm.fromJson(Map<String, dynamic> json) =>
+      _$ContributionVmFromJson(json);
+}
+
+/// m2-8 F-4 — 슬리브 1행. 🔴 `normalized` 는 막대 폭 전용이고 표시는
+/// `contributionText` 다(화면이 비율로 문장을 만들지 않는다).
+@freezed
+abstract class ContributionRow with _$ContributionRow {
+  const factory ContributionRow({
+    required SleeveId sleeve,
+    required String label,
+    required String contributionText,
+    required double normalized,
+  }) = _ContributionRow;
+
+  factory ContributionRow.fromJson(Map<String, dynamic> json) =>
+      _$ContributionRowFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-6 — 연간 리뷰(`S7-7`). 🔴 **묶음이지 재집계가 아니다** —
+/// 화면이 `windowState` 를 «달»로 판정하지 않는다.
+/// 🔴 세후는 `AfterTaxLadder` 를 그대로 실어 나르고 재계산하지 않는다(M1-20b).
+@freezed
+abstract class AnnualReviewVm with _$AnnualReviewVm {
+  const factory AnnualReviewVm({
+    required String year,
+    required String windowStateCode,
+    required String windowStateLabel,
+    required List<AnnualReviewSection> sections,
+    required AsOf asOf,
+  }) = _AnnualReviewVm;
+
+  factory AnnualReviewVm.fromJson(Map<String, dynamic> json) =>
+      _$AnnualReviewVmFromJson(json);
+}
+
+/// m2-8 F-6 — 연간 리뷰 섹션. 🔴 `lines` 는 전부 엔진 완성 문자열이다.
+@freezed
+abstract class AnnualReviewSection with _$AnnualReviewSection {
+  const factory AnnualReviewSection({
+    required String code,
+    required String title,
+    required List<String> lines,
+    String? route,
+  }) = _AnnualReviewSection;
+
+  factory AnnualReviewSection.fromJson(Map<String, dynamic> json) =>
+      _$AnnualReviewSectionFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-15 · C-4 — 목표 경로(`S7-9`).
+/// 🔴 `basisText` 와 `backtestBasisText` 는 **두 필드**이며 화면이 둘을 동시에
+///    그리지 않는다(C-4 — 확장이 아니라 신설을 고른 이유가 이 조문의 검사
+///    가능성이다).
+@freezed
+abstract class GoalPathVm with _$GoalPathVm {
+  const factory GoalPathVm({
+    required String startingCapitalAssumptionText,
+    required String basisText,
+    required String backtestBasisText,
+    required String honestExpectationWorstText,
+    required List<GoalPathPoint> points,
+    required AsOf asOf,
+  }) = _GoalPathVm;
+
+  factory GoalPathVm.fromJson(Map<String, dynamic> json) =>
+      _$GoalPathVmFromJson(json);
+}
+
+/// ⚠️ **M2-8 미확정** — F-15 가 `List<GoalPathPoint>` 라는 **이름만** 확정했고
+/// 필드 축은 문서에 없다(03 §14 의 `PathPointVm` 도 필드가 비어 있다).
+/// 아래는 `PerfPoint`(§2-4)와 같은 모양으로 둔 **임시 최소 축**이다 —
+/// 🔴 계획선·실제선의 구분은 `seriesCode`(엔진 코드)로 오며 화면이 두 목록을
+///    합치거나 차액을 계산하지 않는다.
+@freezed
+abstract class GoalPathPoint with _$GoalPathPoint {
+  const factory GoalPathPoint({
+    @TradeDateConverter() required TradeDate date,
+
+    /// 엔진이 준 계열 코드(계획/실제) — 화면이 문자열을 짓지 않는다.
+    required String seriesCode,
+
+    /// 🔴 그래프 기하 전용. 표시는 `valueText` 다.
+    required double normalized,
+    required String valueText,
+  }) = _GoalPathPoint;
+
+  factory GoalPathPoint.fromJson(Map<String, dynamic> json) =>
+      _$GoalPathPointFromJson(json);
+}

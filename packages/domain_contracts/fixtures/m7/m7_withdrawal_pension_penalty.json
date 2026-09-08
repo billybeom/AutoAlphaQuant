@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.0.0",
+    "generated_at": "2026-09-06T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260906,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "인출 계획 기준 2026-08-31 종가" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "plan_id": "wd_20260901_02",
+      "computed_at": "2026-08-31T21:10:00Z",
+      "expires_at": "2026-09-01T21:10:00Z",
+      "amount": "3000000",
+      "order_drafts": [
+        {
+          "symbol": "379810",
+          "symbol_label": "379810 KODEX 미국S&P500",
+          "sleeve": "B",
+          "account_alias": "연금저축",
+          "side": "SELL",
+          "quantity": 110,
+          "limit_price": "17420",
+          "reasons": [
+            { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
+          ]
+        }
+      ],
+      "costs": { "commission": "380", "tax": "0", "total": "380", "total_text": "약 380원", "source": "ESTIMATED", "source_label": "추정치", "basis_note": "수수료·세금은 접수 전 추정치이며 체결 후 브로커 원장으로 대체됩니다." },
+      "after_tax": {
+        "branch": "CF_POT_TAXABLE_FLAT",
+        "branch_label": "반사실 — 일반계좌에서 굴렸다면",
+        "steps": [
+          { "step_code": "PRETAX", "label": "세금 전", "value_text": "연 11.13%", "cagr_pct": 11.13 },
+          { "step_code": "WD_16P5", "label": "연금 외 수령 16.5% 뒤", "value_text": "연 9.7%", "cagr_pct": 9.7, "note_line": "접힌 갈래입니다. 화면은 본문 갈래를 하나만 폅니다." }
+        ],
+        "honest_expectation_line": "반사실은 비교용이며 지금 계좌 배치의 결과가 아닙니다.",
+        "basis_note": "계좌 배치가 갈래를 정합니다(SAF-309). 화면·인자로 고르지 않습니다.",
+        "is_reference_only": true,
+        "config_hash": "cfg_fake_0000000000000000",
+        "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "세후 사다리 기준 2026-08-31" }
+      },
+      "preview_notice": "연금 계좌에서 먼저 인출하면 연금 외 수령으로 과세됩니다. 갈래는 계좌 배치가 정합니다.",
+      "config_hash": "cfg_fake_0000000000000000"
+    }
+  ]
+}

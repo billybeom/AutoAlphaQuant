@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.0.0",
+    "generated_at": "2026-09-06T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260906,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "symbol": "069500",
+      "symbol_label": "069500 KODEX 200",
+      "sleeve": "A",
+      "account_alias": "연금저축",
+      "quantity": 212,
+      "avg_price": "38410",
+      "entry_date": "2026-08-03",
+      "entry_decision": { "decision_id": "d_20260803_a_01", "intent_id": "i_h001", "config_hash": "cfg_fake_0000000000000000" },
+      "entry_reasons": [
+        { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+      ],
+      "sma_tranches": [
+        { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-03" },
+        { "step_no": 2, "filled": true, "label": "2/3 단계", "filled_on": "2026-08-17" },
+        { "step_no": 3, "filled": false, "label": "3/3 단계" }
+      ],
+      "gates": [
+        { "code": "SAF-301", "label": "포트폴리오 한도 여유", "state": "PASS" }
+      ],
+      "scope": "MANAGED",
+      "scope_label": "시스템 관리",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+      "stop_line": { "absolute_stop": "34570", "high_water_mark": "39140", "label": "TIER 1B 절대 손절선" },
+      "pnl": { "unrealized_pnl": "158420", "pnl_pct": 0.0193, "disclosure_note": "이 값은 열람 기록이 남는 화면에서만 보입니다." }
+    },
+    {
+      "symbol": "379810",
+      "symbol_label": "379810 KODEX 미국S&P500",
+      "sleeve": "B",
+      "account_alias": "연금저축",
+      "quantity": 248,
+      "avg_price": "17590",
+      "entry_date": "2026-08-03",
+      "entry_decision": { "decision_id": "d_20260803_b_02", "intent_id": "i_h002", "config_hash": "cfg_fake_0000000000000000" },
+      "entry_reasons": [
+        { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+      ],
+      "sma_tranches": [
+        { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-03" },
+        { "step_no": 2, "filled": true, "label": "2/3 단계", "filled_on": "2026-08-13" },
+        { "step_no": 3, "filled": true, "label": "3/3 단계", "filled_on": "2026-08-27" }
+      ],
+      "gates": [
+        { "code": "SAF-201", "label": "슬리브 B 한도 여유", "state": "PASS" }
+      ],
+      "scope": "MANAGED",
+      "scope_label": "시스템 관리",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+      "pnl": { "unrealized_pnl": "62130", "pnl_pct": 0.0142, "disclosure_note": "이 값은 열람 기록이 남는 화면에서만 보입니다." }
+    },
+    {
+      "symbol": "132030",
+      "symbol_label": "132030 KODEX 골드선물",
+      "sleeve": "B",
+      "account_alias": "연금저축",
+      "quantity": 75,
+      "avg_price": "22400",
+      "entry_date": "2026-08-05",
+      "entry_decision": { "decision_id": "d_20260805_b_03", "intent_id": "i_h003", "config_hash": "cfg_fake_0000000000000000" },
+      "entry_reasons": [
+        { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+      ],
+      "sma_tranches": [
+        { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-05" },
+        { "step_no": 2, "filled": true, "label": "2/3 단계", "filled_on": "2026-08-19" },
+        { "step_no": 3, "filled": false, "label": "3/3 단계" }
+      ],
+      "gates": [
+        { "code": "SAF-208", "label": "금 상한 8% 근접", "state": "PASS" },
+        { "code": "SAF-209", "label": "금 신규 매수 여력", "state": "BLOCK", "blocked_reason_code": "SLEEVE_CAP_REACHED" }
+      ],
+      "scope": "MANAGED",
+      "scope_label": "시스템 관리",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" }
+    },
+    {
+      "symbol": "0085P0",
+      "symbol_label": "0085P0 KODEX 국고채30년",
+      "sleeve": "C",
+      "account_alias": "일반",
+      "quantity": 437,
+      "avg_price": "51190",
+      "entry_date": "2026-08-04",
+      "entry_decision": { "decision_id": "d_20260804_c_04", "intent_id": "i_h004", "config_hash": "cfg_fake_0000000000000000" },
+      "entry_reasons": [
+        { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+      ],
+      "sma_tranches": [
+        { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-04" },
+        { "step_no": 2, "filled": true, "label": "2/3 단계", "filled_on": "2026-08-20" },
+        { "step_no": 3, "filled": false, "label": "3/3 단계" }
+      ],
+      "gates": [
+        { "code": "SAF-302", "label": "세금 게이트 통과", "state": "PASS" }
+      ],
+      "scope": "MANAGED",
+      "scope_label": "시스템 관리",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" }
+    },
+    {
+      "symbol": "411060",
+      "symbol_label": "411060 ACE 미국30년국채",
+      "sleeve": "C",
+      "account_alias": "일반",
+      "quantity": 480,
+      "avg_price": "8930",
+      "entry_date": "2026-08-04",
+      "entry_decision": { "decision_id": "d_20260804_c_05", "intent_id": "i_h005", "config_hash": "cfg_fake_0000000000000000" },
+      "entry_reasons": [
+        { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+      ],
+      "sma_tranches": [
+        { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-04" },
+        { "step_no": 2, "filled": false, "label": "2/3 단계" },
+        { "step_no": 3, "filled": false, "label": "3/3 단계" }
+      ],
+      "gates": [
+        { "code": "SAF-302", "label": "세금 게이트 통과", "state": "PASS" }
+      ],
+      "scope": "MANAGED",
+      "scope_label": "시스템 관리",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+      "pnl": { "unrealized_pnl": "-19200", "pnl_pct": -0.0045, "disclosure_note": "이 값은 열람 기록이 남는 화면에서만 보입니다." }
+    },
+    {
+      "symbol": "357870",
+      "symbol_label": "357870 파킹 ETF",
+      "sleeve": "POT",
+      "account_alias": "연금저축",
+      "quantity": 36,
+      "avg_price": "104640",
+      "entry_date": "2026-08-10",
+      "entry_decision": { "decision_id": "d_20260810_pot_06", "intent_id": "i_h006", "config_hash": "cfg_fake_0000000000000000" },
+      "entry_reasons": [
+        { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+      ],
+      "sma_tranches": [
+        { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-10" }
+      ],
+      "gates": [
+        { "code": "SAF-401", "label": "주문 게이트 통과", "state": "PASS" }
+      ],
+      "scope": "MANAGED",
+      "scope_label": "시스템 관리",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" }
+    }
+  ]
+}
