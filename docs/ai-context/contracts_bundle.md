@@ -1,0 +1,7668 @@
+# `contracts_bundle.md` — `domain_contracts` 공개 API 원문 (웹 채팅 첨부용)
+
+> **저장소를 클론할 수 있으면 이 파일을 쓰지 마십시오.** 실제 코드(`packages/domain_contracts/`)가
+> 최종 정본이고, 이것은 그 시점의 **사본**입니다. 웹 채팅처럼 저장소를 붙일 수 없는 자리에만 씁니다.
+>
+> 담은 것 = 배럴 `lib/domain_contracts.dart` + `lib/src/**/*.dart` 중 **생성물 제외** 원문
+> (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
+> 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
+>
+> 파일 78개 · 조립일 2026-09-09. 각 절의 제목이 저장소 기준 파일 경로입니다.
+
+
+---
+
+## `packages/domain_contracts/lib/domain_contracts.dart`
+
+```dart
+// domain_contracts — M2 도메인 계약의 공개 진입점(배럴).
+//
+// 🔴 화면(ui_*)이 import 하는 파일은 이것 하나다. lib/src/ 아래를 직접 import
+//    하지 않는다 — 내부 구조를 바꿀 때 화면이 조용히 깨진다(인벤토리 §0).
+// 🔴 **이 파일은 통합 담당만 편집한다.** 영역 구현자는 자기 폴더에 파일을
+//    더하고, 그 폴더의 재수출 창구(`src/<영역>.dart`)에 통합 단계가 줄을 넣는다.
+//
+// 창구 8개 — 영역 A(primitives·enums) · B·C(dto) · D(repositories·commands) ·
+// E(labels·contract_version) · F(fixtures). 어느 창구에 무엇이 있는지는
+// 각 `src/<영역>.dart` 머리 주석과 `docs/contracts_inventory.md` 가 정본이다.
+//
+// ⚠️ 아직 여기에 없는 것(= 계약에 아직 존재하지 않는 것)은 각 영역의 인계
+//    사항에 사유와 함께 적혀 있다. 대표적으로 `LedgerEventKind`/
+//    `LedgerEventRecord`(결정 ㊲ 대기 · M2-8 A-15·J-6) · `SplitExecutionLeg`
+//    (M2-8 C-11) · `AccountMappingVm`·`AllocationEditorVm`·`OperationsVm`
+//    (M2-8 §G 표 미등재) · `IncidentBanner`/`Runbook`(이름 미확정)이다.
+//    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
+
+export 'src/commands.dart';
+export 'src/contract_version.dart';
+export 'src/dto.dart';
+export 'src/enums.dart';
+export 'src/fixtures.dart';
+export 'src/labels/labels.dart';
+export 'src/primitives.dart';
+export 'src/repositories.dart';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands.dart`
+
+```dart
+// 영역 D 재수출 창구 — 명령 API·명령 인자·설정 액션(`lib/src/commands/**`).
+//
+// 🔴 이 파일은 통합 담당이 관리한다(인벤토리 §0).
+// 🔴 화면이 상태를 바꾸는 경로는 여기 있는 것이 전부다. 리포지토리에는
+//    쓰기 메서드가 없다(01 §4-1·§4-2).
+//
+// 근거: 01 §4-2·§4-3 · 인벤토리 §5-4.
+
+export 'commands/command_api.dart';
+export 'commands/command_context.dart';
+export 'commands/command_receipt.dart';
+export 'commands/command_state_machine.dart';
+export 'commands/payloads.dart';
+export 'commands/payloads_x7.dart';
+export 'commands/settings_actions.dart';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/contract_version.dart`
+
+```dart
+// 계약 버전 — 화면·픽스처·골든이 같은 계약을 보고 있는지 확인하는 단 하나의 값.
+//
+// 🔴 픽스처 봉투의 `meta.contract_version`(01 §5)과 같은 축이다. 한쪽만 올리면
+//    C-1(뷰모델 골든)·C-15(픽스처↔DDL 정합)가 갈라진 채로 통과한다.
+//
+// ✅ **'1.0.0' 로 상향(2026-09-08 · G3 확정)** — 01 문서가 «상태: 확정 v1.0» 줄을 받는
+//    바로 그 커밋이 이 값을 올리는 커밋이다(구 주석의 조건이 성립했다). 인벤토리 §10-1 의
+//    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
+// 🔴 이 상수와 77개 픽스처 봉투의 `meta.contract_version` 은 **같은 커밋에서 함께** 움직였다 —
+//    한쪽만 올리면 C-1·C-15 가 갈라진 채로 통과한다.
+// 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
+//    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
+//    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
+
+/// 이 패키지가 표현하는 M2 계약의 버전.
+const String contractVersion = '1.0.0';
+
+// ════════════════════════════════════════════════════════════════════════════
+// G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
+// ════════════════════════════════════════════════════════════════════════════
+// 01 §6-4 `rm_config_view` 는 `schema_version`(배치 DDL 번호) ·
+// `hash_format_version`(X5-1 정규 직렬화 규약) · `contract_version`(이 파일) 셋을 싣는다.
+// 뷰어는 **자기 빌드에 컴파일된 값**과 그 셋을 비교해 `ok`/`degraded`/`incompatible` 을
+// 판정한다(04 §2-4 스키마 버전 게이트의 유일한 입력). 🔴 판정 문자열도 엔진이 준다.
+// 🔴 이 행을 못 읽는 경우(표 부재·RLS 거부)는 `ok` 가 아니라 **`incompatible`** 이다 —
+//    잘못 그리는 것보다 안 그리는 것이 안전하다.
+//
+// ⛔ **`schemaVersion`·`hashFormatVersion` 상수를 여기 두지 않는다 — 아직 값이 없다.**
+//    ⓐ `schema_version` 번호는 «배치 A~F 마이그레이션 창 전체에 하나만» 배정되며(01 §6-0·§6-5)
+//       그 번호가 아직 배정되지 않았다. §6-0 은 「`00_SPEC §9` 최신값 +1 을 쓰되 v2.31(P0S)
+//       소비 여부를 먼저 확인」이라고만 정했다.
+//    ⓑ `hash_format_version` 은 배치 F 가 `executions` 에 11컬럼을 더하면서 **올리고 골든벡터를
+//       다시 고정**해야 하는 값이다(01 §6-6 말미). 새 값도 골든도 아직 없다.
+//    🔴 둘 중 어느 것이든 임의의 숫자를 상수로 박으면 뷰어의 버전 게이트가 **틀린 판정을
+//       조용히 통과시킨다**(없는 것보다 나쁘다). 값이 배정되는 커밋에서 함께 넣는다.
+
+// ════════════════════════════════════════════════════════════════════════════
+// `config_hash` 의 자리 — 🔴 여기 상수로 두지 않는다
+// ════════════════════════════════════════════════════════════════════════════
+// `config_hash` 는 **엔진이 런타임에 만드는 값**이고, 계약에서는 DTO 필드로만 흐른다:
+//   `DecisionRef.configHash` · `FeatureFlags.configHash` · `TriggerSnapshot.configHash` ·
+//   `AfterTaxLadder.configHash` · `DepositPlan.configHash` · `HandbookIndex.configHash` ·
+//   `CalendarEventDto.configHash` · 픽스처 봉투 `meta.config_hash`.
+// 🔴 빌드 시점 상수를 두면 화면이 «지금 보고 있는 값»과 «컴파일된 값»을 비교하기 시작하고,
+//    그 비교는 엔진의 판정을 화면이 재구현하는 것이다(경계 규칙 ①).
+// 🔴 픽스처의 `config_hash` 는 `cfg_fake_…` 로 시작하는 **합성값**이며(01 §5 봉투),
+//    C-13 이 픽스처의 값과 핸드북 메타의 값이 어긋나면 실패시킨다.
+// 🔴 `operating_param_log`(월 납입 운영값)는 전략 `config_hash` 에 **들어가지 않는다**
+//    (01 §6-2 — 골든벡터 불변).
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto.dart`
+
+```dart
+// 영역 B·C 재수출 창구 — DTO·뷰모델(`lib/src/dto/**`).
+//
+// 🔴 이 파일은 통합 담당이 관리한다(인벤토리 §0).
+// 🔵 B(1조: common·journal·holdings·resume·calendar·ledger·safety)와
+//    C(2조: performance·rebalance·plan·advice·ledger_trust·handover·ops·settings·
+//    handbook)를 한 창구로 합친다 — 화면에게 «1조·2조»는 의미가 없다.
+//
+// 근거: 01 §2 · 인벤토리 §3.
+
+export 'dto/advice.dart';
+export 'dto/calendar.dart';
+export 'dto/common.dart';
+export 'dto/handbook.dart';
+export 'dto/handover.dart';
+export 'dto/holdings.dart';
+export 'dto/journal.dart';
+export 'dto/ledger.dart';
+export 'dto/ledger_trust.dart';
+export 'dto/ops.dart';
+export 'dto/performance.dart';
+export 'dto/plan.dart';
+export 'dto/rebalance.dart';
+export 'dto/resume.dart';
+export 'dto/safety.dart';
+export 'dto/settings.dart';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums.dart`
+
+```dart
+// 영역 A 재수출 창구 — 열거형 전량(`lib/src/enums/**`).
+//
+// 🔴 이 파일은 통합 담당이 관리한다(인벤토리 §0).
+// 🔴 열거값의 JSON·DB 표기는 `@JsonValue` 가 유일한 출처다(인벤토리 §0-2 5조).
+//    여기에 별칭·재정의를 두지 않는다.
+//
+// 근거: 01 §2-1 · 인벤토리 §2.
+
+export 'enums/advice.dart';
+export 'enums/calendar.dart';
+export 'enums/command.dart';
+export 'enums/journal.dart';
+export 'enums/ledger.dart';
+export 'enums/mode.dart';
+export 'enums/onboarding.dart';
+export 'enums/order.dart';
+export 'enums/performance.dart';
+export 'enums/rebalance.dart';
+export 'enums/resume.dart';
+export 'enums/safety.dart';
+export 'enums/sleeve.dart';
+export 'enums/ui.dart';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/fixtures.dart`
+
+```dart
+// 영역 F 재수출 창구 — 픽스처 경로·봉투 로더(`lib/src/fixtures/**`).
+//
+// 🔴 이 파일은 통합 담당이 관리한다(인벤토리 §0).
+// 🔴 픽스처는 **합성 데이터**다(C-14 · 실키 0건). `scanForSecrets` 가 그
+//    검사의 술어이며 화면 코드가 픽스처를 실행 경로에서 읽지 않는다.
+// 🔵 배럴에 올리는 이유: 화면·테스트가 `lib/src/` 를 직접 import 하는 것이
+//    인벤토리 §0 의 금지 사항이기 때문이다(영역 F 인계 사항).
+//
+// 근거: 01 §5 · 인벤토리 §8.
+
+export 'fixtures/fixture_loader.dart';
+export 'fixtures/fixture_paths.dart';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/primitives.dart`
+
+```dart
+// 영역 A 재수출 창구 — 원시타입(`lib/src/primitives/**`).
+//
+// 🔴 이 파일은 통합 담당이 관리한다. 영역 구현자는 자기 폴더의 파일만 만들고
+//    여기에 줄을 더하지 않는다(인벤토리 §0).
+// 🔴 `primitives/converters.dart` 는 `money.dart` 의 컨버터 4종을 재수출하는
+//    창구일 뿐이라 여기서 다시 내보내지 않는다 — 같은 선언이 두 경로로
+//    배럴에 오르면 «어느 쪽이 정본인가»가 다시 흐려진다(인벤토리 §1).
+//
+// 근거: 01 §1-2(금액) · §1-3(시각·날짜·신선도) · §2-1(봉투·구간).
+
+export 'primitives/as_of.dart';
+export 'primitives/date_range.dart';
+export 'primitives/list_result.dart';
+export 'primitives/money.dart';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories.dart`
+
+```dart
+// 영역 D 재수출 창구 — 읽기 리포지토리 인터페이스(`lib/src/repositories/**`).
+//
+// 🔴 이 파일은 통합 담당이 관리한다(인벤토리 §0).
+// 🔴 리포지토리는 **읽기 전용**이다. 쓰기는 `CommandApi`·`SettingsActions`
+//    하나뿐이며 `save_`/`write_`/`submit_`/`send_` 이름은 계약에 존재하지
+//    않는다(01 §1-4 · 인벤토리 §0-2 3조).
+//
+// 근거: 01 §4-1 · 인벤토리 §5.
+
+export 'repositories/advice_repository.dart';
+export 'repositories/alert_repository.dart';
+export 'repositories/calendar_repository.dart';
+export 'repositories/config_repository.dart';
+export 'repositories/execution_gap_repository.dart';
+export 'repositories/holdings_repository.dart';
+export 'repositories/journal_repository.dart';
+export 'repositories/ledger_repository.dart';
+export 'repositories/ledger_trust_repository.dart';
+export 'repositories/onboarding_repository.dart';
+export 'repositories/ops_repository.dart';
+export 'repositories/performance_repository.dart';
+export 'repositories/rebalance_repository.dart';
+export 'repositories/resume_repository.dart';
+export 'repositories/safety_repository.dart';
+export 'repositories/what_if_api.dart';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands/command_api.dart`
+
+```dart
+// 01 §4-2 · §5-1 — 앱이 호출할 수 있는 **전부**.
+//
+// 🔴 경계 규칙 ②. 앱은 DB 에 쓰지 않는다. Supabase append-only 명령 테이블에 INSERT 하고
+//    엔진이 구독·검증·집행한다. 반환값은 «요청 접수»이지 «집행 완료»가 아니다.
+// 🔴 구현은 `command_queue` 에 UPDATE·DELETE 를 부르지 않는다(C-16).
+// 🔴 **킬스위치 «해제» 명령은 없다**(결정 6). 해제는 폰 M5 재개 게이트 전용이며
+//    `deactivate` 추가 제안은 **거절이 기본값**이다.
+// 🔴 **뷰어가 쓸 수 있는 것은 앞 5종이 전부다.** X7 7종은 전량 폰(operator) 전용이라
+//    뷰어 화이트리스트를 건드리지 않는다. ⏸ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이고
+//    현행 4종 화이트리스트를 유지한다(J-3).
+// 🔴 화면은 `CommandReceipt.state` 를 스스로 낙관 갱신하지 않는다.
+// 🔴 **`OperatingMode` 전환은 여기 없다** — `SettingsActionId.runtimeOperatingModeSwitchRequest`
+//    1종이며 반환 `ActionResult.handoffRoute` 로 위저드에 넘긴다(§4-3).
+
+import 'command_receipt.dart';
+import 'payloads.dart';
+import 'payloads_x7.dart';
+
+/// 명령 발행 창구.
+abstract interface class CommandApi {
+  Future<CommandReceipt> activateKillSwitch({
+    required String reasonFreeText,
+    required String deviceId,
+  });
+
+  /// 사전 작성(폰) / 초안(viewer).
+  Future<CommandReceipt> submitJournalDraft(JournalDraft draft);
+
+  /// 사후 blind 리뷰(결정 9b).
+  Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score);
+
+  /// 열람 기록(결정 8).
+  Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event);
+
+  Future<CommandReceipt> registerDeposit(DepositRegistration registration);
+
+  Stream<CommandReceipt> watchCommand(String commandId);
+
+  // ───── 🆕 X7(§10) 7종 — 🔴 전량 폰(operator) 전용 ─────
+
+  /// 사실 추가.
+  Future<CommandReceipt> recordManualFill(ManualFillRecord record);
+
+  /// 정정 = 상쇄 + 재기재.
+  Future<CommandReceipt> amendManualFill(ManualFillAmendment amendment);
+
+  /// 무효 = 상쇄만.
+  Future<CommandReceipt> voidManualFill(ManualFillVoid v);
+
+  /// 미이행 + 사유 코드.
+  Future<CommandReceipt> skipAdvice(AdviceSkip skip);
+
+  /// 원장 실사.
+  Future<CommandReceipt> submitSelfReportBalance(SelfReportBalance b);
+
+  /// 🔴 효력 없는 «수신 확인».
+  Future<CommandReceipt> acknowledgeAlert(AlertAck ack);
+
+  /// 🔴 48h 해제 카운트다운 개시의 유일한 방아쇠.
+  Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack);
+
+  // ⏸ `recordLedgerEvent(LedgerEventRecord)` — 🔴 **결정 ㊲ 채택 시에만** 8번째로 신설(J-6).
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands/command_context.dart`
+
+```dart
+// 01 §4-2(A10) · §5-3 — 명령 봉투의 **실행 맥락**.
+//
+// 🔴 명령은 Supabase 에 INSERT 되고 엔진이 **나중에** 소비하므로, «어느 맥락에 적용할
+//    명령인가»가 명령 안에 있어야 한다. 없으면 소비 시점 런타임이 정하고, 모드가 그 사이
+//    바뀌면 모의 체결이 `ledger.sqlite` 에 들어가 §9-5 ④(파일 분리가 경계)가 무너진다.
+//
+// 🔴 **`context` 를 채우는 것은 화면이 아니라 `CommandApi` 구현이다**(G-19). 화면은
+//    `ManualFillRecord` 등을 만들 때 이 필드를 비운 형태로 넘기고, 런타임 값
+//    (`runMode`·`operatingMode`·`leaseEpoch`·`deviceId`)은 **폰 구현체가 실어 준다**.
+//    🔴 뷰모델·화면 계층에서 `CommandContext` 를 생성하는 코드가 **0건**인 것을 C-28 이 검사한다.
+//
+// 🔴 소비 규칙 — 발행 시점 맥락으로 판정하고, 소비 시점 런타임과 다르면 **거부하지 않고
+//    `CommandState.staleContext`**. 단 **`runMode` 불일치는 예외 없이 거부**한다
+//    (파일 경계는 협상 대상이 아니다).
+//
+// ⏸ H-6 — 기존 5종(`journalDraft` 등)에도 이 필드를 붙일지는 M2-8 물음(§8-21)이며
+//    「붙인다」가 권고 확정이다. ⏸ 사유 = `command_queue` 3컬럼이 전 명령에 걸리므로
+//    **배치 D 와 같은 창**이어야 성립한다 → 이 회차의 코드는 **X7 8종에만** 붙인다.
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/mode.dart';
+
+part 'command_context.freezed.dart';
+part 'command_context.g.dart';
+
+/// 명령 발행 시점의 실행 맥락.
+@freezed
+abstract class CommandContext with _$CommandContext {
+  const factory CommandContext({
+    /// 🔴 발행 시점 값.
+    required RunMode runMode,
+
+    /// 🔴 발행 시점 값.
+    required OperatingMode operatingMode,
+
+    /// 🔴 발행 시점 X1 리스 epoch.
+    required int leaseEpoch,
+    required String deviceId,
+  }) = _CommandContext;
+
+  factory CommandContext.fromJson(Map<String, dynamic> json) =>
+      _$CommandContextFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands/command_receipt.dart`
+
+```dart
+// 01 §4-2 · §5-2 — 명령 접수증.
+//
+// 🔴 반환값은 «요청 접수»이지 «집행 완료»가 아니다. 화면은 `state` 를 스스로 낙관
+//    갱신하지 않는다 — 「요청됨」과 「집행됨」의 구별이 이 계약의 목적이다.
+//    🔴 X7 에서는 이것이 표류 인지의 출발점이다: 「기록 버튼을 눌렀다」와 「원장에 들어갔다」는
+//    다른 사건이다.
+// 🔴 멱등은 봉투가 보장한다(`command_id` + `unique(kind, nonce)`) — payload 에
+//    `idempotencyKey` 를 두지 않는다(A9).
+// 🔴 표시 문구는 `stateLabel` 하나다. 화면이 `state` 를 보고 문장을 조합하지 않는다(§1-5).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/command.dart';
+
+part 'command_receipt.freezed.dart';
+part 'command_receipt.g.dart';
+
+/// 명령 1건의 접수 상태.
+@freezed
+abstract class CommandReceipt with _$CommandReceipt {
+  const factory CommandReceipt({
+    required String commandId,
+    required CommandKind kind,
+    required CommandState state,
+
+    /// 「요청됨 — 엔진 수신 대기」 — 🔴 엔진 생성 문자열.
+    /// 🔴 `CommandState.noOperator` 의 문구는 **M2 가 사전 공급한 고정 카탈로그**에서
+    ///    고른 값이 실려 온다(§10-8) — 앱이 상태를 조합해 문장을 만들지 않는다.
+    required String stateLabel,
+    required DateTime requestedAt,
+
+    /// TTL. 🔴 **보류 4상태는 TTL 을 소비하지 않는다**(`CommandStateMachine.consumesTtl`).
+    required DateTime expiresAt,
+    required String nonce,
+    required String issuedByDeviceId,
+
+    /// 🔴 `state == CommandState.rejected` 이면 필수다(§5-2 ·
+    ///    `CommandStateMachine.requiresRejectReasonCode`).
+    ///    🔴 **거부는 초안을 지우지 않는다**(C17) — 초안 삭제는 `executed` 수신 시에만.
+    String? rejectReasonCode,
+  }) = _CommandReceipt;
+
+  factory CommandReceipt.fromJson(Map<String, dynamic> json) =>
+      _$CommandReceiptFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands/command_state_machine.dart`
+
+```dart
+// 01 §4-2 · §5-2 — `CommandReceipt` 상태기계를 **선언 표**로 옮긴 것.
+//
+// 🔴 이 파일은 «판정»이 아니라 «문서의 전이 표»다. 문구를 고르거나 상태를 만들어 내지
+//    않는다 — 표시 문구의 유일한 출처는 `CommandReceipt.stateLabel` 이고(§1-5), 상태를
+//    바꾸는 주체는 엔진·Supabase RPC 다. 여기 있는 것은 **순수 함수 4개**뿐이고 소비처는
+//    ⓐ 계약 회귀 테스트(§7) ⓑ `data_sync` 구현체의 자기 점검이다.
+//
+// 🔴 화면(`ui_*`)이 이 표로 분기해 문장을 만들면 §1-5 위반이다.
+//
+// 01 §5-2 원문 다이어그램:
+//
+//   requested ──▶ received ──┬──▶ executed        (종단)
+//                            ├──▶ rejected        (종단 · rejectReasonCode 필수)
+//                            └──▶ expired         (종단 · 서버 expires_at)
+//   requested/received ──┬──▶ staleContext        ┐
+//                        ├──▶ heldForIntegrity    ├ 🔴 보류 3(+1)상태 — TTL 을 소비하지 않는다
+//                        ├──▶ pendingLeaseConfirm ┘   재확인·인수·복구 후 received 로 되돌아온다
+//                        └──▶ noOperator          — 소비할 엔진이 없는 창(X1 이전·비상 TTL 대기)
+//
+// 🔴 **보류는 거부가 아니다.** 무결성 차단·리스 만료·오프라인·맥락 불일치에서 기록 명령을
+//    거부하지 않고 보류한다 — 명령은 ⓐ 기기 로컬 내구 큐(암호화·재부팅 생존·**만료 없음**)에
+//    먼저 쌓이고 ⓑ 네트워크가 되면 `command_queue` 에 INSERT 된다.
+//
+// ⚠️ 이름 주의 — `CommandStateMachine` 과 그 멤버 이름은 `docs/m2-8_naming.md` 에 없는
+//    **영역 D 작성 이름**이다(전이 표를 코드로 옮기라는 이번 회차 지시의 산물). 계약 타입이
+//    아니라 표의 접근자이므로 이름 확정 창에서 바꿔도 DTO·픽스처·DDL 은 흔들리지 않는다.
+
+import '../enums/command.dart';
+
+/// 01 §5-2 전이 표 · 그 표에서 바로 읽히는 술어들.
+abstract final class CommandStateMachine {
+  /// 🔴 표를 넓히려면 §5-2 원문을 먼저 고친다 — 코드가 문서를 앞지르지 않는다.
+  static const Map<CommandState, Set<CommandState>> transitions =
+      <CommandState, Set<CommandState>>{
+        CommandState.requested: <CommandState>{
+          CommandState.received,
+          CommandState.staleContext,
+          CommandState.heldForIntegrity,
+          CommandState.pendingLeaseConfirm,
+          CommandState.noOperator,
+        },
+        CommandState.received: <CommandState>{
+          CommandState.executed,
+          CommandState.rejected,
+          CommandState.expired,
+          CommandState.staleContext,
+          CommandState.heldForIntegrity,
+          CommandState.pendingLeaseConfirm,
+          CommandState.noOperator,
+        },
+        // 🔴 보류 4상태는 «재확인·인수·복구» 뒤 `received` 로 되돌아온다.
+        CommandState.staleContext: <CommandState>{CommandState.received},
+        CommandState.heldForIntegrity: <CommandState>{CommandState.received},
+        CommandState.pendingLeaseConfirm: <CommandState>{CommandState.received},
+        CommandState.noOperator: <CommandState>{CommandState.received},
+        // 🔴 종단 3상태에서 나가는 화살표는 없다.
+        CommandState.executed: <CommandState>{},
+        CommandState.rejected: <CommandState>{},
+        CommandState.expired: <CommandState>{},
+      };
+
+  /// 종단 3상태 — 어떤 경로로도 되살아나지 않는다.
+  static const Set<CommandState> terminal = <CommandState>{
+    CommandState.executed,
+    CommandState.rejected,
+    CommandState.expired,
+  };
+
+  /// 보류 4상태 — 🔴 **TTL 을 소비하지 않는다**(§5-2).
+  static const Set<CommandState> hold = <CommandState>{
+    CommandState.staleContext,
+    CommandState.heldForIntegrity,
+    CommandState.pendingLeaseConfirm,
+    CommandState.noOperator,
+  };
+
+  /// `from → to` 가 §5-2 표에 있는 화살표인가.
+  static bool allows(CommandState from, CommandState to) =>
+      transitions[from]?.contains(to) ?? false;
+
+  /// 종단 상태인가.
+  static bool isTerminal(CommandState state) => terminal.contains(state);
+
+  /// TTL(`CommandReceipt.expiresAt`)을 소비하는 상태인가.
+  /// 🔴 보류 4상태는 `false` — 보류가 만료로 둔갑하면 「명령은 사실을 잃지 않는다」가 깨진다.
+  static bool consumesTtl(CommandState state) => !hold.contains(state);
+
+  /// `CommandReceipt.rejectReasonCode` 가 필수인 상태인가(§5-2 「종단 · rejectReasonCode 필수」).
+  static bool requiresRejectReasonCode(CommandState state) =>
+      state == CommandState.rejected;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands/payloads.dart`
+
+```dart
+// 01 §4-2 · §5-4 — 명령 인자 DTO(기존 5종 계열).
+//
+// 🔴 인자가 2개를 넘는 명령은 전부 DTO 로 받는다 — `@DecimalStringConverter()` 는
+//    **필드 어노테이션**이라 메서드 인자에 붙여도 아무 일도 하지 않고, 직렬화 규약이
+//    사라진 payload 가 만들어진다.
+// 🔴 payload 에 `idempotencyKey` 를 두지 않는다(A9) — 멱등은 봉투가 보장한다
+//    (`command_queue.command_id` + `unique(kind, nonce)`).
+// ⏸ H-6 — 이 4종에 `CommandContext` 를 붙일지는 M2-8 물음(§8-21)이며 「붙인다」가 권고
+//    확정이다. ⏸ 사유 = `command_queue` 3컬럼이 전 명령에 걸리므로 배치 D 와 같은 창이어야
+//    성립한다 → 확정 전까지 여기에 `context` 필드를 만들지 않는다.
+//
+// 🔴 X7 8종은 `payloads_x7.dart` 에 있다(파일 크기 규약상 분리 · 계약상 같은 §5-4 표).
+
+import 'package:decimal/decimal.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../primitives/money.dart';
+
+part 'payloads.freezed.dart';
+part 'payloads.g.dart';
+
+/// 실입금 등록(§2-6 · 플래너 계획 스냅샷 소비).
+@freezed
+abstract class DepositRegistration with _$DepositRegistration {
+  const factory DepositRegistration({
+    /// 🔴 만료된 계획이면 엔진이 거부한다(§2-6) — 화면이 만료를 미리 판정하지 않는다.
+    required String planId,
+
+    /// JSON 은 문자열이다.
+    /// 🔴 금액은 **엔진 설정값**(`ConfigRepository.watchContributionSetting`)에서 오며
+    ///    화면·계약이 상수로 적지 않는다(§2-6 · C-32).
+    @DecimalStringConverter() required Decimal amount,
+    @TradeDateConverter() required TradeDate valueDate,
+  }) = _DepositRegistration;
+
+  factory DepositRegistration.fromJson(Map<String, dynamic> json) =>
+      _$DepositRegistrationFromJson(json);
+}
+
+/// ✅ H-1 — 사전 작성 저널 초안(결정 9b · 폰은 사전 작성 / viewer 는 초안).
+@freezed
+abstract class JournalDraft with _$JournalDraft {
+  const factory JournalDraft({
+    required String decisionId,
+    required String rationaleBefore,
+    required String expectedOutcome,
+
+    /// 🔴 **엔진 제공 목록의 코드**다(자유 입력 금지). 선택지는
+    ///    `JournalDraftFormSpec.ruleCitedOptions`(E-4)가 준다.
+    required String ruleCited,
+    String? note,
+  }) = _JournalDraft;
+
+  factory JournalDraft.fromJson(Map<String, dynamic> json) =>
+      _$JournalDraftFromJson(json);
+}
+
+/// ✅ H-2 — 사후 blind 리뷰 점수(결정 9b).
+@freezed
+abstract class BlindReviewScore with _$BlindReviewScore {
+  const factory BlindReviewScore({
+    required String decisionId,
+
+    /// 문항 id → 점수.
+    /// 🔴 문항·선택지 문구는 `BlindReviewCard`(E-5)가 준다 — 화면이 짓지 않는다.
+    required Map<String, int> answers,
+  }) = _BlindReviewScore;
+
+  factory BlindReviewScore.fromJson(Map<String, dynamic> json) =>
+      _$BlindReviewScoreFromJson(json);
+}
+
+/// ✅ H-3 — 성과 열람 기록(결정 8 · G-42).
+@freezed
+abstract class DisclosureViewEvent with _$DisclosureViewEvent {
+  const factory DisclosureViewEvent({
+    required String surfaceCode,
+
+    /// 🔴 집계 키 `yyyy_mm` 을 화면이 넣지 않는다 — 엔진이 이 값에서 파생한다(G-42).
+    required DateTime viewedAt,
+    required int durationSec,
+  }) = _DisclosureViewEvent;
+
+  factory DisclosureViewEvent.fromJson(Map<String, dynamic> json) =>
+      _$DisclosureViewEventFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands/payloads_x7.dart`
+
+```dart
+// 01 §4-2 · §5-4 · §10 — 🆕 X7 명령 인자 DTO 8종.
+//
+// 🔴 각 DTO 의 `deviceId` 는 `CommandContext` 로 **옮겨졌다** — payload 가 기기를 다시
+//    말하지 않는다. 🔴 payload 에 `idempotencyKey` 를 두지 않는다(A9).
+// 🔴 `context` 를 채우는 것은 화면이 아니라 `CommandApi` 구현이다(G-19 · C-28).
+// 🔴 X7 8종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트를 건드리지 않는다.
+//
+// (§5-4 표는 기존 5종 계열과 이 8종을 한 표로 적는다 — 파일만 크기 규약상 나눴다.)
+
+import 'package:decimal/decimal.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../dto/ledger_trust.dart';
+import '../enums/advice.dart';
+import '../enums/order.dart';
+import '../primitives/money.dart';
+import 'command_context.dart';
+
+part 'payloads_x7.freezed.dart';
+part 'payloads_x7.g.dart';
+
+/// 수기 체결 «사실 추가».
+@freezed
+abstract class ManualFillRecord with _$ManualFillRecord {
+  const factory ManualFillRecord({
+    /// null = 안내와 무관한 수기 신규 → 🔴 `MANUAL_ENTRY`(재량 예산 **차감**).
+    String? adviceId,
+
+    /// 🔴 «거래일자 변경»의 자리 — 검증(거래일 여부·안내 창 안인지)은 §3-8 거부 코드가 한다.
+    @TradeDateConverter() required TradeDate tradeDate,
+
+    /// 🔴 `sleeve` 를 보내지 않는다 — 엔진이 판정한다.
+    required String symbol,
+    required OrderSide side,
+    required int quantity,
+    @DecimalStringConverter() required Decimal price,
+
+    /// null = 미입력(0 이 아니다 — 「없음」과 「모름」).
+    /// 🔴 엔진이 채우면 `CostSource.estimated` 가 되고 C-24 가 그 배지를 요구한다.
+    @DecimalStringConverter() Decimal? commission,
+    @DecimalStringConverter() Decimal? tax,
+    required String accountAlias,
+
+    /// 🔴 B5 — 폼의 체크박스가 **아니다**. `PRICE_OUT_OF_RANGE` 거부 뒤 엔진이 «실을지
+    ///    판정해서» 준 옵션으로만 true 가 된다.
+    required bool offHourTrade,
+
+    /// 🆕 A9 — `DUPLICATE_SUSPECTED` 재제출 시 true(평시 false).
+    required bool duplicateAck,
+
+    /// 🆕 A1 — 「안내 수량 채우기」 버튼을 쓴 필드 목록(평시 빈 목록).
+    /// 이행 갭이 «직접 적은 값»과 «옮겨 온 값»을 구별한다.
+    required List<String> prefilledFields,
+
+    /// 지정가 밖·소급 등 마찰이 붙었을 때 1줄.
+    String? deviationNote,
+    required CommandContext context,
+  }) = _ManualFillRecord;
+
+  factory ManualFillRecord.fromJson(Map<String, dynamic> json) =>
+      _$ManualFillRecordFromJson(json);
+}
+
+/// 🔴 A13 — amend 가 고칠 수 있는 것은 «한 체결의 속성»뿐이다. **종목·방향은 여기 없다.**
+///    종목·방향 변경은 `void` + 새 `record` 2명령으로 강제한다 — 「없던 일 + 새 사실」이
+///    실제로 일어난 일이므로 원장 표현도 그래야 한다(거부 코드 `AMEND_SYMBOL_OR_SIDE_CHANGE`).
+@freezed
+abstract class ManualFillPatchable with _$ManualFillPatchable {
+  const factory ManualFillPatchable({
+    @TradeDateConverter() required TradeDate tradeDate,
+    required int quantity,
+    @DecimalStringConverter() required Decimal price,
+    @DecimalStringConverter() Decimal? commission,
+    @DecimalStringConverter() Decimal? tax,
+    required String accountAlias,
+    required bool offHourTrade,
+    String? deviationNote,
+  }) = _ManualFillPatchable;
+
+  factory ManualFillPatchable.fromJson(Map<String, dynamic> json) =>
+      _$ManualFillPatchableFromJson(json);
+}
+
+/// 정정 = 상쇄 + 재기재. 🔴 엔진이 `REVERSAL`+`RESTATEMENT` **2행**을 원자적으로 낳는다(C-21).
+@freezed
+abstract class ManualFillAmendment with _$ManualFillAmendment {
+  const factory ManualFillAmendment({
+    required String targetFillId,
+
+    /// 🔴 부분 패치가 아니라 **전체 값**이다.
+    required ManualFillPatchable replacement,
+
+    /// 🔴 엔진 제공 목록의 코드(자유 입력 금지) + 1줄 필수(마찰).
+    required String reasonCode,
+    required String note,
+    required CommandContext context,
+  }) = _ManualFillAmendment;
+
+  factory ManualFillAmendment.fromJson(Map<String, dynamic> json) =>
+      _$ManualFillAmendmentFromJson(json);
+}
+
+/// 무효 = 상쇄만.
+@freezed
+abstract class ManualFillVoid with _$ManualFillVoid {
+  const factory ManualFillVoid({
+    required String targetFillId,
+    required String reasonCode,
+    required String note,
+    required CommandContext context,
+  }) = _ManualFillVoid;
+
+  factory ManualFillVoid.fromJson(Map<String, dynamic> json) =>
+      _$ManualFillVoidFromJson(json);
+}
+
+/// 안내 미이행 + 사유 코드.
+@freezed
+abstract class AdviceSkip with _$AdviceSkip {
+  const factory AdviceSkip({
+    required String adviceId,
+
+    /// 🔴 «유효기한 방치»는 이 열거형에 없다 — 사람이 고르는 값이 아니라 엔진 전이다.
+    required AdviceSkipReason reason,
+
+    /// 🔴 A2·B3 — **예산 코드 2종에만 필수**다(거부 코드 `SKIP_NOTE_REQUIRED`).
+    ///    나머지 사유는 1탭으로 끝난다 — 경량 경로가 사유 수집의 정본이다.
+    String? note,
+    required CommandContext context,
+  }) = _AdviceSkip;
+
+  factory AdviceSkip.fromJson(Map<String, dynamic> json) =>
+      _$AdviceSkipFromJson(json);
+}
+
+/// 원장 실사. 🔴 «지금 계좌에 무엇이 얼마나 있는가»를 사람이 옮겨 적는다.
+///
+/// 🔴 `purpose == simOpening` 의 완화 3가지 — ① `sessionStartedAt` 이 «세션 밖 제출 거부»의
+///    대상이 아니다 ② autoTrade 갈래는 `lines` 빈 배열 + `cashKrw` 1칸 ③ `ledger_sim.sqlite`
+///    만 쓰고 `ledger_diff` 를 열지 않는다 — 는 `periodicAudit` 에 **하나도** 적용되지 않는다.
+@freezed
+abstract class SelfReportBalance with _$SelfReportBalance {
+  const factory SelfReportBalance({
+    @TradeDateConverter() required TradeDate asOfTradeDate,
+
+    /// 🔴 **기본값을 두지 않는다**(A-10) — 목적이 없으면 엔진이 세 규약을 어디에 걸지 모른다.
+    required SelfReportPurpose purpose,
+
+    /// 🆕 B15 — 🔴 세션 밖 제출 거부·앱 전역 가림의 근거.
+    required DateTime sessionStartedAt,
+
+    /// 종목·수량. 🔴 `periodicAudit` 에서는 유니버스 전 종목 행이며 0 도 필수 입력이다.
+    required List<SelfReportLine> lines,
+    @DecimalStringConverter() required Decimal cashKrw,
+    required String accountAlias,
+
+    /// «이것이 전부입니다» 확인 1단계.
+    required bool declaredComplete,
+    required CommandContext context,
+  }) = _SelfReportBalance;
+
+  factory SelfReportBalance.fromJson(Map<String, dynamic> json) =>
+      _$SelfReportBalanceFromJson(json);
+}
+
+/// 🔴 A5 — 순수 수신 확인. `SafetyState` 에 **아무 효력이 없다**. P0 승급 사다리 정지만.
+/// ⏸ J-3 — 뷰어 허용 여부는 §8-10 미결이며 현행 `command_insert_viewer` 4종 화이트리스트를
+///    유지한다(= 지금은 폰 전용).
+@freezed
+abstract class AlertAck with _$AlertAck {
+  const factory AlertAck({
+    required String alertId,
+    required CommandContext context,
+  }) = _AlertAck;
+
+  factory AlertAck.fromJson(Map<String, dynamic> json) =>
+      _$AlertAckFromJson(json);
+}
+
+/// 🔴 A5 — 킬스위치 체크리스트 이행 «선언». **이것만이 48h 해제 카운트다운을 개시**한다.
+///    폰 전용 · M5 소유 화면 · 생체인증 · 항목별 개별 체크. 🔴 대사 전용 키가 있으면 엔진의
+///    미체결 조회 0건으로 교차검증하고 불일치면 확인을 무효로 하고 P0 를 다시 올린다.
+@freezed
+abstract class KillChecklistAck with _$KillChecklistAck {
+  const factory KillChecklistAck({
+    required String safetyEventId,
+
+    /// 미체결 주문 조회함.
+    required bool openOrdersQueried,
+
+    /// 전량 취소함.
+    required bool openOrdersCancelled,
+
+    /// 잔여 건수 0 확인.
+    required bool remainingCountZero,
+
+    /// 증권사 앱에서 조회한 시각.
+    required DateTime queriedAt,
+
+    /// 1줄 필수.
+    required String note,
+    required CommandContext context,
+  }) = _KillChecklistAck;
+
+  factory KillChecklistAck.fromJson(Map<String, dynamic> json) =>
+      _$KillChecklistAckFromJson(json);
+}
+
+// ⏸ `LedgerEventRecord` — 🔴 **결정 ㊲ 채택 시에만** 신설한다(J-6 · A-15).
+//    이름은 확정됐고 **코드는 만들지 않는다**. 채택되지 않으면 인출·분배금·기업행위·
+//    원천징수가 원장 밖에 남아 현금 추정이 단조적으로 어긋나고 그 위에서 안내 수량이
+//    계산된다 — 그 사실을 여기 주석으로 남겨 둔다.
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands/settings_actions.dart`
+
+```dart
+// 01 §4-3 · §5-5 — 설정·진단 «동작». ⚠️ `CommandApi` 가 아니다.
+//
+// 🔴 M9 의 «적용»·«검증»·«백업»·«셀프테스트»와 M8 온보딩의 «검증 드라이런 실행»은 Supabase
+//    명령 테이블을 거치지 않는다 — **폰 로컬에서 Claude 소유 구현체가 직접 수행**한다
+//    (시크릿이 관여하므로 뷰어에 경로가 있어서는 안 된다).
+// 🔴 **폰(operator) 빌드에만 구현체가 주입된다.** 뷰어 빌드에서는 `null` 이고 그때 화면은
+//    컨트롤을 **렌더하지 않는다**(«비활성»이 아니라 **부재** — 05 §5-2).
+// 🔴 **«동작»만이다**(G-29) — 상태 구독은 `OpsStatusRepository`·`OpsSummaryRepository` 다.
+//    화면이 `run()` 을 폴링해 상태를 만들면 경계 규칙 ① 위반이다.
+// 🔴 «적용»류는 **`run()` 1회 + `handoffRoute` 이동**으로 끝난다. 냉각 30일·12월 창·48h
+//    대기·체크리스트 7항 UI 를 화면이 만들면 반려다.
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/command.dart';
+import '../enums/ui.dart';
+
+part 'settings_actions.freezed.dart';
+part 'settings_actions.g.dart';
+
+/// 설정·진단 동작의 주입 콜백.
+///
+/// 🔴 **`args` 는 화이트리스트다** — 「무엇을 뺄까」가 아니라 「무엇만 넣을까」로 정의한다.
+///    키는 **snake_case** 다(H-7 — `Map<String, String>` 이므로 Dart 관례가 아니라 전송 규약을 따른다):
+///
+///    · `handoverAdoptionSet`      = `{handover_session_id, symbol, disposition ∈ {ADOPT, EXTERNAL}}`
+///    · `handoverExternalRegister` = `{handover_session_id, symbol, quantity, account_alias,
+///                                     action ∈ {REGISTER, RELEASE}}`
+///    · `handoverCommit`           = `{handover_session_id}`
+///
+///    🔴 `handover_session_id` 는 세 동작 모두 **필수**이고 그 토큰의 정의처는 §6-6
+///    `handover_session` 이다(G-02). 🔴 세 동작 모두 `decision_log(kind='MANUAL')` 1행을
+///    **엔진이** 낳으며, 그 세 갈래는 재량 예산·이탈 집계의 모집단이 **아니다**(§10-3).
+///
+/// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
+///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
+///
+/// ⚠️ 나머지 동작의 args 스키마는 **미확정**이다(§4-3 말미 · 05 §7 표가 입력) — 확정 전에는
+///    화면이 키를 지어내지 않는다.
+abstract interface class SettingsActions {
+  /// ⚠️ 01 §4-3 원문은 `{Map<String, String> args}` 이지만 Dart 에서 non-nullable 선택
+  ///    명명 인자는 기본값 없이는 선언되지 않는다 — **의미(선택·비어 있을 수 있음)를 지키는
+  ///    최소 보정**으로 `const {}` 기본값을 둔다. 타입·이름은 원문 그대로다.
+  Future<ActionResult> run(
+    SettingsActionId id, {
+    Map<String, String> args = const <String, String>{},
+  });
+
+  Stream<ActionResult> watch(String actionRunId);
+}
+
+/// 동작 1회의 결과.
+@freezed
+abstract class ActionResult with _$ActionResult {
+  const factory ActionResult({
+    required String actionRunId,
+    required SettingsActionId id,
+    required UiLevel level,
+
+    /// 결과 문구 — 🔴 엔진 생성(요약·의역 금지).
+    /// 🔴 월 납입 범위 판정 같은 «허용/불허»도 이 문장과 `reasonCode` 로만 돌아온다 —
+    ///    화면이 범위를 미리 알면 「저장 버튼 비활성」이라는 **화면의 판정**이 생긴다(§2-6).
+    required String headline,
+
+    /// 원문 코드(예 `'EGW00133'`)가 있으면 함께 온다.
+    String? reasonCode,
+
+    /// 🔴 게이트가 필요한 동작은 여기로 넘긴다(M5).
+    /// ⏸ H-9 — 반환값은 M5·X1·X2·X5 라우트 **권고 확정 목록에 있는 이름만**이며 화면이
+    ///    이름을 지어 쓰지 않는다.
+    String? handoffRoute,
+    required bool retryable,
+  }) = _ActionResult;
+
+  factory ActionResult.fromJson(Map<String, dynamic> json) =>
+      _$ActionResultFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/advice.dart`
+
+```dart
+// 01 §2-11 — X7 투자 안내 뷰모델(안내 · 폼 선택지).
+//
+// 🔴 계산 산출물이므로 화면이 만들지 않는다(경계 규칙 ①).
+// 🔴 금액 필드는 «가격»뿐이고 평가액·손익은 타입에 없다(결정 8).
+// 🔴 A7 — `AdviceItem` 에 `mode`·`operatingMode` 필드를 두지 않는다. 모드가 표시에
+//    영향을 주는 자리는 셸의 띠 하나뿐이고 그것은 `FeatureFlags` 가 담당한다.
+// 🔴 §10-7 — viewer 판은 종목·수량·가격이 **오지 않는다**(A6 마스킹 · C-27).
+import 'package:decimal/decimal.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/advice.dart';
+import '../enums/order.dart';
+import '../enums/sleeve.dart';
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import '../primitives/money.dart';
+import 'common.dart';
+import 'ledger_trust.dart';
+
+part 'advice.freezed.dart';
+part 'advice.g.dart';
+
+/// 01 §2-11 — 안내 1건.
+/// 🔴 `kind == noAction` 이면 폰 판에서도 `symbol`·`quantity`·`side` 가 null 이고
+///    `suppressed == true` · `suppressedLabel` 필수 · `actions` 는 빈 목록이다(G-08).
+@freezed
+abstract class AdviceItem with _$AdviceItem {
+  const factory AdviceItem({
+    required String adviceId,
+    required String batchId,
+    required AdviceKind kind,
+
+    /// 안내가 겨냥한 거래일.
+    @TradeDateConverter() required TradeDate tradeDate,
+    required DateTime issuedAt,
+
+    /// 🔴 거래일 달력. 화면이 D-day 를 세지 않는다.
+    @TradeDateConverter() required TradeDate validUntilDate,
+
+    /// "오늘 장 마감까지 · D-0" — 엔진 생성.
+    required String validityLabel,
+
+    /// 계열 표시용 — viewer 도 본다.
+    required SleeveId sleeve,
+
+    /// "3분할 중 2회차 · 12주" — 엔진 생성.
+    /// 🔴 `unverifiable`·`drifting` 등급의 청산 안내는 수량 대신 «보유 전량» 계열
+    ///    표현이 오며, 바뀌는 것은 라벨뿐이고 `quantity` 는 엔진이 아는 최선의
+    ///    원장값으로 채운다(G-85).
+    required String sizingLabel,
+
+    /// "12주 중 7주 기록됨" — 엔진 생성.
+    /// 🔴 viewer 판은 `phoneOnlyLabel` 과 같은 고정 문장이다(G-21).
+    required String progressLabel,
+
+    /// 진입 사유 / 청산 티어 — 🔴 최소 1개.
+    required List<ReasonChip> reasons,
+
+    /// 🔴 저장값. 화면은 배지·정렬에도 이것을 쓰지 않는다.
+    required AdviceStatus status,
+
+    /// 🔴 만료는 UPDATE 가 아니라 **파생 판정**이다(A4). 화면이 쓰는 유일한 값.
+    required AdviceStatus effectiveStatus,
+    required String statusLabel,
+    required ChipTone statusTone,
+
+    /// 🔴 A8 — 버튼의 유일한 근거. 상태를 조합해 버튼을 판정하지 않는다.
+    required List<AdviceAction> actions,
+
+    /// 🔴 A1 — «안내와 다름»은 명령 집행 후 엔진이 **사후** 재발행으로 싣는다.
+    required List<ReasonChip> recordedDeviationChips,
+
+    /// 🔴 손절 계열 — 알림 등급의 근거. 화면은 배지만 그린다.
+    required bool isUrgent,
+
+    /// 선행 미이행이면 보류.
+    required bool onHold,
+
+    /// decision_log 체인 — 자동 모드와 **같은 타입**.
+    required DecisionRef decision,
+
+    /// 🔴 엔진이 안내를 낼 수 없는 상태.
+    required bool suppressed,
+
+    /// 🔴 G-86 — 만료 확인 카드의 「내일 다시」 노출 여부. **엔진 판정**이며
+    ///    화면이 «몇 번 미뤘나»를 세지 않는다(저장 정본은
+    ///    `advice_transition(cause_code='DEFER_CONFIRM')` 행의 존재 자체다).
+    required bool deferAvailable,
+    required AsOf asOf,
+
+    /// 🔴 viewer 판은 null(A6) · `kind == noAction` 이면 폰 판도 null(G-08).
+    String? symbol,
+    String? symbolLabel,
+
+    /// "종목·수량은 운영 폰에서 확인합니다" — 엔진 생성.
+    String? phoneOnlyLabel,
+    OrderSide? side,
+    int? quantity,
+
+    /// 🔴 viewer 판은 null · null 이면 라벨이 그 사실을 말한다.
+    AdvicePriceBand? priceBand,
+
+    /// 지금까지 기록된 합 — 🔴 화면이 더하지 않는다.
+    /// 🔴 viewer 판은 null(0 을 채우면 「0주 기록됨」이라는 거짓이 된다 · G-22).
+    int? recordedQuantity,
+
+    /// skipped·expired·superseded·revoked 의 사유 코드.
+    String? closeReasonCode,
+
+    /// 🔴 조달 순서 의존(`PENSION_FUNDING` · X2 «매도 먼저»).
+    String? dependsOnAdviceId,
+    String? holdReasonLabel,
+
+    /// "연금저축" — 🔴 계좌 전체번호 금지.
+    String? accountAlias,
+
+    /// "골든벡터 재검증 실패 — 오늘은 아무것도 하지 마십시오" 계열.
+    String? suppressedLabel,
+  }) = _AdviceItem;
+
+  factory AdviceItem.fromJson(Map<String, dynamic> json) =>
+      _$AdviceItemFromJson(json);
+}
+
+/// 01 §2-11 A8 — 화면은 이 목록을 «순서대로 그리기»만 한다. 없으면 버튼을
+/// 만들지 않는다. 🔴 `status`·`effectiveStatus`·`onHold`·`suppressed` 를 조합해
+/// 버튼을 판정하지 않는다(조합이 7×2×2×4다).
+@freezed
+abstract class AdviceAction with _$AdviceAction {
+  const factory AdviceAction({
+    required AdviceActionId actionId,
+
+    /// 엔진 생성.
+    required String label,
+    required bool enabled,
+
+    /// 엔진 생성 — `enabled == false` 일 때만.
+    String? disabledReasonLabel,
+  }) = _AdviceAction;
+
+  factory AdviceAction.fromJson(Map<String, dynamic> json) =>
+      _$AdviceActionFromJson(json);
+}
+
+/// 01 §2-11 — 지정가 밴드. 🔴 `reference` 가 이행 갭의 기준가다.
+@freezed
+abstract class AdvicePriceBand with _$AdvicePriceBand {
+  const factory AdvicePriceBand({
+    @DecimalStringConverter() required Decimal low,
+    @DecimalStringConverter() required Decimal high,
+    @DecimalStringConverter() required Decimal reference,
+
+    /// "38,100 ~ 38,400 지정가" — 엔진 생성.
+    required String label,
+  }) = _AdvicePriceBand;
+
+  factory AdvicePriceBand.fromJson(Map<String, dynamic> json) =>
+      _$AdvicePriceBandFromJson(json);
+}
+
+/// 01 §2-11 — 홈 한 줄·알림 앵커·`A-1` 헤더가 **같은 값**을 본다. 🔴 손익 필드 없음.
+/// 🔴 `openCount == 0` 이면 홈 블록·배지를 렌더하지 않는다(C14·D16). 예외는 둘 —
+///    `hasSuppressedNotice == true` 와 `handoverCoolingActive == true`.
+@freezed
+abstract class AdviceInboxSummary with _$AdviceInboxSummary {
+  const factory AdviceInboxSummary({
+    required String batchId,
+    @TradeDateConverter() required TradeDate tradeDate,
+
+    /// G-08 정의 — `effectiveStatus ∈ {open, partial}` 이고 `suppressed == false`
+    /// 인 안내의 수. `onHold == true` 는 세고 `suppressed == true` 는 세지 않는다.
+    /// 🔴 화면이 이 정의를 재구현하지 않는다(목록 길이로 세지 않는다).
+    required int openCount,
+    required int dueTodayCount,
+
+    /// 🔴 C14 의 예외 ① — 「오늘은 아무것도 하지 마십시오」는 무소식이 아니다.
+    required bool hasSuppressedNotice,
+
+    /// 🔴 표류의 선행 지표(만료 미확인 건수).
+    required int overdueUnrecordedCount,
+
+    /// "9월 7일 매매 안내 3건 · 미기록 1건" — 엔진 생성.
+    required String headline,
+
+    /// 🔴 색의 근거. 값의 부호로 고르지 않는다.
+    required UiLevel level,
+
+    /// 🔴 C14 의 예외 ② — 전환 냉각 24h 창(N-1). 화면이 위저드 상태·
+    ///    `handover_session` 을 직접 읽어 배너를 만들지 않는다.
+    required bool handoverCoolingActive,
+    required LedgerTrustBadge trust,
+    required AsOf asOf,
+    String? dueSoonLabel,
+
+    /// 🔴 A4 — 엔진이 멈추면 안내의 유효성을 보증하지 않는다.
+    String? staleReasonCode,
+    String? staleLabel,
+    String? handoverCoolingLabel,
+  }) = _AdviceInboxSummary;
+
+  factory AdviceInboxSummary.fromJson(Map<String, dynamic> json) =>
+      _$AdviceInboxSummaryFromJson(json);
+}
+
+/// 01 §2-11 — 수기 체결 기록 폼 규격(`A-3`).
+/// 🔴 A16 — 창구는 **Stream** 이며 신선도 초과면 화면이 폼을 열지 않는다.
+/// 🔴 A3 — `amendReasons`·`voidReasons` 는 여기 **없다**(정정·무효는 `M5-12` 소유).
+/// 🔴 B5 — 시간외·단주 힌트도 **없다**(검증 강도를 사람이 고르지 않는다).
+@freezed
+abstract class ManualFillFormSpec with _$ManualFillFormSpec {
+  const factory ManualFillFormSpec({
+    /// 매핑된 종목만 — 🔴 자유 티커 입력 금지.
+    required List<SymbolOption> symbols,
+
+    /// 별칭만.
+    required List<AccountOption> accounts,
+    required List<ReasonOption> skipReasons,
+    @TradeDateConverter() required TradeDate minTradeDate,
+    @TradeDateConverter() required TradeDate maxTradeDate,
+
+    /// 🔴 「토·일 제외」 근사는 임시공휴일에 틀린다.
+    @TradeDateConverter() required List<TradeDate> nonTradingDates,
+
+    /// "1주당 원화. 세금·수수료는 비워 두면 추정합니다" — 엔진 생성.
+    required String priceHintLabel,
+
+    /// 오입력 방어(0 하나 더 찍기).
+    required int quantityMax,
+
+    /// "원본은 지워지지 않습니다" — 엔진 생성.
+    required String appendOnlyNotice,
+    required AsOf asOf,
+  }) = _ManualFillFormSpec;
+
+  factory ManualFillFormSpec.fromJson(Map<String, dynamic> json) =>
+      _$ManualFillFormSpecFromJson(json);
+}
+
+/// 01 §2-11 · m2-8 H-4 — 폼 선택지 3형제 ①.
+@freezed
+abstract class SymbolOption with _$SymbolOption {
+  const factory SymbolOption({
+    required String symbol,
+    required String label,
+    required SleeveId sleeve,
+  }) = _SymbolOption;
+
+  factory SymbolOption.fromJson(Map<String, dynamic> json) =>
+      _$SymbolOptionFromJson(json);
+}
+
+/// 01 §2-11 · m2-8 H-4 — 폼 선택지 3형제 ②. 🔴 계좌 전체번호 금지.
+@freezed
+abstract class AccountOption with _$AccountOption {
+  const factory AccountOption({required String alias, required String label}) =
+      _AccountOption;
+
+  factory AccountOption.fromJson(Map<String, dynamic> json) =>
+      _$AccountOptionFromJson(json);
+}
+
+/// 01 §2-11 · m2-8 H-4 — 폼 선택지 3형제 ③.
+/// ⏸ m2-8 H-5 — `J-3` 의 `rule_cited` 목록과 **통합한다**(같은 타입을 쓴다).
+///    통합 여부 자체는 §8-20 · D19 의 선행 미결이며, 통합 전까지 사유 목록이 두
+///    벌이 되어 한쪽만 갱신되는 사고를 막는 것이 이 결정의 이유다.
+@freezed
+abstract class ReasonOption with _$ReasonOption {
+  const factory ReasonOption({
+    required String code,
+    required String label,
+
+    /// 🔴 `other` 계열·예산 코드 2종은 1줄 메모가 필수다(§3-8 `SKIP_NOTE_REQUIRED`).
+    required bool requiresNote,
+  }) = _ReasonOption;
+
+  factory ReasonOption.fromJson(Map<String, dynamic> json) =>
+      _$ReasonOptionFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/calendar.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/calendar.dart
+//
+// 01 §2-8 «CalendarEventDto — X4(화이트리스트 필드만)» + m2-8 D-8(`CalendarSyncStatus`)
+// · 인벤토리 §3-5 · §3-14(영역 B).
+//
+// ⏸ m2-8 J-5 — X4 채택 자체가 미결(01 §8-5, OAuth 동의화면 7일 만료 스모크)이다.
+//    **이름·타입은 등재하되 기능(동기·재백필)은 구현하지 않는다.**
+// 🔴 **화이트리스트 직렬화** — 블랙리스트 정규식이 아니라 «허용 필드만 있는 타입»으로
+//    강제한다. 타입에 아예 없음: 손익·수익률·평가액·잔고·계좌 전체번호·시크릿.
+// 🔴 **미래 시각 이벤트를 만들지 않는다**(예정 리밸런싱·월 납입 예정 금지).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/calendar.dart';
+import '../primitives/money.dart';
+
+part 'calendar.freezed.dart';
+part 'calendar.g.dart';
+
+/// 캘린더 이벤트 1건(01 §2-8).
+///
+/// `kind ↔ source_table ↔ aaq_key` 매핑 9행은 01 §2-8 표가 정본이다.
+/// 🔴 `advice`·`advice_batch`·`self_report_balance` 는 캘린더에 내지 않는다.
+/// 🔴 extendedProperties 는 **6키**(`aaq_key`·`kind`·`decision_id`·`origin`·`config_hash`
+///    + `chain_hash`) — 타입에 없는 필드는 나갈 수 없다.
+@freezed
+abstract class CalendarEventDto with _$CalendarEventDto {
+  const factory CalendarEventDto({
+    /// 'exec.{execution_id}' 등 멱등 원문 키
+    required String aaqKey,
+    required CalendarEventKind kind,
+    required DateTime startUtc,
+    DateTime? endUtc,
+    required bool allDay,
+
+    /// "체결 · 매수 069500" — 엔진 생성
+    required String title,
+
+    /// 수량·체결가·수수료·비중%·사유 코드·계좌 별칭까지만 — 엔진 생성
+    required String body,
+    required CalendarOrigin origin,
+    String? decisionId,
+    required String configHash,
+
+    /// 🆕 G-09(X5) — 🔴 `dailySummary`(종일 요약) 이벤트에만 싣는다.
+    /// 정본 `ledger_daily_hash.chain_hash` 앞 N자(축약 규칙은 X5-1 정규 직렬화와
+    /// **같은 골든벡터**). 🔴 이 한 필드가 `canonCalendar` 대조를 O(1) 로 만든다.
+    String? chainHash,
+  }) = _CalendarEventDto;
+
+  factory CalendarEventDto.fromJson(Map<String, dynamic> json) =>
+      _$CalendarEventDtoFromJson(json);
+}
+
+/// 캘린더 동기 상태 — `calendar_sync_status` 컬럼 + G-34(m2-8 D-8).
+///
+/// 🔴 «사용자 삭제 n건»은 불일치가 아니라 **별도 수치**다(G-34) — 대조 모집단에서
+///    빠지며 되살리기는 기간 재배치의 `resurrect` 하나뿐이다.
+/// 🔴 `modeCode` 는 캘린더 축의 **계열 2값**(`LIVE`·`SIM`)이며 `RunMode` 3값이 아니다
+///    (G-32 · 🔵 v1 은 `LIVE` 행 하나).
+@freezed
+abstract class CalendarSyncStatus with _$CalendarSyncStatus {
+  const factory CalendarSyncStatus({
+    required String modeCode,
+    @TradeDateConverter() TradeDate? lastOkDate,
+    required String statusCode,
+    required String statusLabel,
+    required int quarantinedCount,
+    required int userDeletedCount,
+    String? actionDeepLink,
+  }) = _CalendarSyncStatus;
+
+  factory CalendarSyncStatus.fromJson(Map<String, dynamic> json) =>
+      _$CalendarSyncStatusFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/common.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/common.dart
+//
+// 01 §2-1 «공통 값 객체» · 인벤토리 §3-1(영역 B).
+// 사유 칩 · 결정 체인 참조 · 게이트 배지 · 피처 플래그 · 슬리브 카탈로그.
+//
+// 🔴 문구(`label`)는 전부 **엔진 생성**이다(01 §1-5) — 화면이 코드→문구 매핑을
+//    만들면 §7 C-5 가 빌드를 깨뜨린다.
+// 🔴 계산 getter 0건(01 §1-4).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/mode.dart';
+import '../enums/sleeve.dart';
+import '../enums/ui.dart';
+
+part 'common.freezed.dart';
+part 'common.g.dart';
+
+/// 사유 칩 — 진입 사유·청산 티어·거부 사유의 표시 단위(01 §2-1).
+///
+/// 🔴 `label` 은 엔진 생성이며 화면은 조립하지 않는다.
+@freezed
+abstract class ReasonChip with _$ReasonChip {
+  const factory ReasonChip({
+    /// 'TIER_1B' · 'SAF309_ACCOUNT_UNVERIFIED' · 'REBALANCE_BAND' (코드 목록은 영역 E 의 사전이 정본)
+    required String code,
+
+    /// "TIER 1B 절대손절 −7.0% 도달" — 엔진 생성
+    required String label,
+    required ChipTone tone,
+
+    /// M8 핸드북 앵커 'handbook://exit/tier1b'
+    String? detailDeepLink,
+  }) = _ReasonChip;
+
+  factory ReasonChip.fromJson(Map<String, dynamic> json) =>
+      _$ReasonChipFromJson(json);
+}
+
+/// 결정 체인 참조 — 매매일지 상세의 뼈대(01 §2-1).
+@freezed
+abstract class DecisionRef with _$DecisionRef {
+  const factory DecisionRef({
+    required String decisionId,
+
+    /// X2 재판정 child 의 원행
+    String? parentDecisionId,
+    String? intentId,
+    String? brokerOrderNo,
+    String? executionId,
+    required String configHash,
+  }) = _DecisionRef;
+
+  factory DecisionRef.fromJson(Map<String, dynamic> json) =>
+      _$DecisionRefFromJson(json);
+}
+
+/// 국면·진입 게이트 배지(01 §2-1).
+///
+/// 🔴 `GateState.unknown` 은 `notApplicable` 과 다르다 — «모름»이며 진행 차단이다(04 §9-8).
+@freezed
+abstract class GateBadge with _$GateBadge {
+  const factory GateBadge({
+    required String code,
+    required String label,
+    required GateState state,
+    String? blockedReasonCode,
+  }) = _GateBadge;
+
+  factory GateBadge.fromJson(Map<String, dynamic> json) =>
+      _$GateBadgeFromJson(json);
+}
+
+/// 피처 플래그(01 §2-1).
+///
+/// 🔴 화면이 «지금 슬리브가 3칸»을 상수로 아는 것을 막는 유일한 통로다.
+/// 🔴 `ExecPolicy` 를 여기에 **넣지 않는다**(01 §10-1) — 넣는 순간 화면이 3축을 곱해 분기한다.
+/// 🔴 `operatingMode` 에 기본값을 주지 않는다(m2-8 C-2 · J-1) — «온보딩 미완»은 «자동 매매»가
+///    아니다(G-02). 뷰어가 명시적으로 죽는 쪽이 조용한 전제보다 낫다.
+@freezed
+abstract class FeatureFlags with _$FeatureFlags {
+  const factory FeatureFlags({
+    /// v2.31 P0S = false. 🔵 되살아나면 목록에 행이 늘 뿐 화면은 그대로다.
+    required bool satelliteEnabled,
+
+    /// Q-D 미결(01 §8-2) — 발주자 판단까지 레이아웃 분기만
+    required bool webViewerEnabled,
+
+    /// X4 채택 미결(01 §8-5) — false 면 M9 캘린더 화면 자체가 없다
+    required bool calendarEnabled,
+
+    /// 🆕 X6(01 §9) — 모드 판정의 유일한 통로. 🔴 화면은 이 값으로 타이틀 접두를
+    /// 만들지 않는다(셸이 주입 · C-17 이 강제).
+    required RunMode runMode,
+
+    /// 🆕 X7(01 §10) — `runMode` 와 대칭. 🔴 접두·띠는 셸 주입(C-18).
+    required OperatingMode operatingMode,
+
+    /// 🔴 C-13 핸드북 정합 게이트의 입력
+    required String configHash,
+  }) = _FeatureFlags;
+
+  factory FeatureFlags.fromJson(Map<String, dynamic> json) =>
+      _$FeatureFlagsFromJson(json);
+}
+
+/// 슬리브 목록의 유일한 창구(01 §2-1).
+///
+/// 🔴 화면이 `SleeveId` 를 순회하며 `satellite` 를 걸러내는 코드를 쓰지 않는다 —
+///    거르는 규칙이 화면에 생기면 그것이 판정이다.
+@freezed
+abstract class SleeveCatalogEntry with _$SleeveCatalogEntry {
+  const factory SleeveCatalogEntry({
+    required SleeveId sleeve,
+
+    /// "A · KOSDAQ 지수 ETF" — 엔진 생성
+    required String label,
+
+    /// P 회차: POT → A (회계 소속, 03 §2-9-3). 화면이 아니라 엔진이 정한다.
+    SleeveId? rollsUpTo,
+    required int order,
+  }) = _SleeveCatalogEntry;
+
+  factory SleeveCatalogEntry.fromJson(Map<String, dynamic> json) =>
+      _$SleeveCatalogEntryFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/handbook.dart`
+
+```dart
+// 01 §2-6(요구 6 핸드북) · m2-8 D-9 — 04 §8 이 렌더하는 핸드북.
+//
+// 🔴 `ReasonChip.detailDeepLink`(`handbook://…`)의 **도착지**다.
+// 🔴 **C-13 의 `config_hash` 메타를 싣는 주체**이며, 픽스처의 `config_hash` 와
+//    어긋나면 계약 테스트가 실패한다 — 화면이 두 값을 비교하지 않는다.
+// 🔴 본문 문구는 전부 원고(엔진·핸드북 소스)에서 오며 화면이 문장을 짓지 않는다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'handbook.freezed.dart';
+part 'handbook.g.dart';
+
+/// m2-8 D-9 — 핸드북 목차.
+@freezed
+abstract class HandbookIndex with _$HandbookIndex {
+  const factory HandbookIndex({
+    required List<HandbookEntry> entries,
+    required String configHash,
+  }) = _HandbookIndex;
+
+  factory HandbookIndex.fromJson(Map<String, dynamic> json) =>
+      _$HandbookIndexFromJson(json);
+}
+
+/// m2-8 D-9 — 목차 1행. 🔴 `order` 는 엔진이 정한다(화면이 정렬하지 않는다).
+@freezed
+abstract class HandbookEntry with _$HandbookEntry {
+  const factory HandbookEntry({
+    required String anchor,
+    required String title,
+    required int order,
+  }) = _HandbookEntry;
+
+  factory HandbookEntry.fromJson(Map<String, dynamic> json) =>
+      _$HandbookEntryFromJson(json);
+}
+
+/// m2-8 D-9 — 핸드북 한 쪽.
+@freezed
+abstract class HandbookPage with _$HandbookPage {
+  const factory HandbookPage({
+    required String anchor,
+    required String title,
+    required List<HandbookBlock> blocks,
+    required String configHash,
+  }) = _HandbookPage;
+
+  factory HandbookPage.fromJson(Map<String, dynamic> json) =>
+      _$HandbookPageFromJson(json);
+}
+
+/// m2-8 D-9 — 본문 블록 1개. 🔴 `kind` 는 엔진이 준 블록 종류 코드이며 화면이
+/// 이 값으로 문구를 고르지 않는다(C-5).
+@freezed
+abstract class HandbookBlock with _$HandbookBlock {
+  const factory HandbookBlock({
+    required String kind,
+    required String text,
+    String? deepLink,
+  }) = _HandbookBlock;
+
+  factory HandbookBlock.fromJson(Map<String, dynamic> json) =>
+      _$HandbookBlockFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/handover.dart`
+
+```dart
+// 01 §2-11 — X7 운영 방식 표시와 전환 위저드(`M5-10` 게이트 · `M5-11` 위저드).
+//
+// 🔴 `OperatingMode` 전환은 `CommandApi` 에 없다 — `SettingsActions` 의
+//    `runtimeOperatingModeSwitchRequest` 1종이며 반환 `handoffRoute` 로 위저드에
+//    넘긴다(01 §4-3).
+// 🔴 엔진의 어떤 안전 강등도 `OperatingMode` 를 건드리지 않는다(§10-1 · C-20).
+// 🔒 전환 위저드는 M5 소유 화면이다 — 다른 화면은 읽을 수는 있으나 렌더하지 않는다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/advice.dart';
+import '../enums/mode.dart';
+import '../enums/sleeve.dart';
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import 'common.dart';
+import 'ledger_trust.dart';
+
+part 'handover.freezed.dart';
+part 'handover.g.dart';
+
+/// 01 §2-11 — M9 `S05` 표시 + M8 `O-00b` 선택 카드가 **같은 타입**을 쓴다.
+@freezed
+abstract class OperatingModeView with _$OperatingModeView {
+  const factory OperatingModeView({
+    required OperatingMode current,
+
+    /// "투자 안내(수동 매매)" — 엔진 생성.
+    required String label,
+    required String explainLine,
+
+    /// `O-00b` 카드 2장 — 🔴 **기본 선택 없음**(«온보딩 미완»은 «자동 매매»가
+    /// 아니다 · G-02).
+    required List<OperatingModeOption> options,
+    required LedgerTrustBadge trust,
+
+    /// 전환 사전 점검 결과.
+    required List<GateBadge> switchGates,
+  }) = _OperatingModeView;
+
+  factory OperatingModeView.fromJson(Map<String, dynamic> json) =>
+      _$OperatingModeViewFromJson(json);
+}
+
+/// 01 §2-11 — 선택 카드 1장. 🔴 전부 엔진 문구다.
+@freezed
+abstract class OperatingModeOption with _$OperatingModeOption {
+  const factory OperatingModeOption({
+    required OperatingMode mode,
+    required String title,
+    required String body,
+    required String prepLine,
+    required String honestyLine,
+  }) = _OperatingModeOption;
+
+  factory OperatingModeOption.fromJson(Map<String, dynamic> json) =>
+      _$OperatingModeOptionFromJson(json);
+}
+
+/// 01 §2-11 — 전환 계획(`M5-11`).
+/// 🔴 B13 — `asOf` 는 스냅샷 신선도다. 낡으면 커밋 직전에 되돌린다.
+@freezed
+abstract class HandoverPlan with _$HandoverPlan {
+  const factory HandoverPlan({
+    required HandoverPath path,
+    required String pathLabel,
+    required List<HandoverStep> steps,
+    required List<AdoptionPreviewRow> adoptionPreview,
+    required AsOf asOf,
+
+    /// 🔴 B12 — **엔진이 갈래를 판정한다**(사고 대응 / 자발적 전환).
+    ///    화면은 준 갈래만 표시하고 자체 판정하지 않는다.
+    String? handbackBranch,
+    String? branchReasonLabel,
+  }) = _HandoverPlan;
+
+  factory HandoverPlan.fromJson(Map<String, dynamic> json) =>
+      _$HandoverPlanFromJson(json);
+}
+
+/// 01 §2-11 — 전환 단계 1행(`OnboardingStep`·`UnknownResolutionStep` 과 같은 모양).
+@freezed
+abstract class HandoverStep with _$HandoverStep {
+  const factory HandoverStep({
+    required String stepId,
+    required int order,
+    required String title,
+    required String whyLine,
+    required GateState state,
+    required String stateLabel,
+    String? blockedReasonCode,
+  }) = _HandoverStep;
+
+  factory HandoverStep.fromJson(Map<String, dynamic> json) =>
+      _$HandoverStepFromJson(json);
+}
+
+/// 01 §2-11 — 편입 미리보기 1행.
+/// 🔴 G-03 — `disposition` 은 엔진이 준 **현재** 처분(`'ADOPT'`|`'EXTERNAL'`)이며,
+///    바꿀 때는 `handoverAdoptionSet` 를 호출한 뒤 **되돌아온 값**을 다시 그린다
+///    (낙관 갱신 금지 — 커밋 전 상태를 화면이 소유하지 않는다).
+@freezed
+abstract class AdoptionPreviewRow with _$AdoptionPreviewRow {
+  const factory AdoptionPreviewRow({
+    required String symbol,
+    required String symbolLabel,
+    required int quantity,
+    required SleeveId sleeve,
+
+    /// 🔴 처분 제출의 대상 식별자. 티커 문자열로 지목하면 같은 종목이 두 계좌에
+    ///    있을 때 조용히 한쪽만 반영된다.
+    required String adoptionId,
+    required String disposition,
+
+    /// "편입" / "제외(시스템 밖 자산)" — 엔진 생성.
+    required String dispositionLabel,
+  }) = _AdoptionPreviewRow;
+
+  factory AdoptionPreviewRow.fromJson(Map<String, dynamic> json) =>
+      _$AdoptionPreviewRowFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/holdings.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/holdings.dart
+//
+// 01 §2-3 «HoldingRow — 보유현황 1행»(M6, 요구 3) + m2-8 D-7(`MomentumPanel`)
+// · E-8(`StopLineNormalized`) · 인벤토리 §3-3 · §3-14(영역 B).
+//
+// 🔴 결정 8 — `HoldingPnl` 은 `watchHoldings(includePnl: true)` 일 때만 채워진다.
+//    홈·알림·위젯·일지 타임라인에 이 타입을 렌더하면 §7 C-6 실패.
+// 🔴 X7 D7 — 파생은 `positions` 만 읽는다. `external_holding`(= `scope == external`)의
+//    표시 UNION 은 `HoldingsRepository` **한 곳**에서만 만든다(C-23).
+
+import 'package:decimal/decimal.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/advice.dart';
+import '../enums/sleeve.dart';
+import '../primitives/as_of.dart';
+import '../primitives/money.dart';
+import 'common.dart';
+
+part 'holdings.freezed.dart';
+part 'holdings.g.dart';
+
+/// 보유현황 1행(01 §2-3).
+///
+/// 🔵 슬리브 목록은 A / B / C 3칸이다(v2.31 P0S) — 목록의 정본은 `SleeveCatalogEntry` 다.
+@freezed
+abstract class HoldingRow with _$HoldingRow {
+  const factory HoldingRow({
+    required String symbol,
+    required String symbolLabel,
+    required SleeveId sleeve,
+
+    /// "연금저축" — 🔴 계좌 전체번호 금지
+    required String accountAlias,
+    required int quantity,
+
+    /// 매수가
+    @DecimalStringConverter() required Decimal avgPrice,
+    @TradeDateConverter() required TradeDate entryDate,
+
+    /// `positions.entry_decision_id`
+    required DecisionRef entryDecision,
+
+    /// 매수 사유
+    required List<ReasonChip> entryReasons,
+
+    /// SMA 트랜치 진행
+    required List<TrancheStep> smaTranches,
+
+    /// 국면·진입 게이트 배지
+    required List<GateBadge> gates,
+
+    /// 손절선(트레일링·절대)
+    StopLine? stopLine,
+
+    /// 🔵 v2.31: 개별주 소멸 — 거의 항상 null
+    MomentumPanel? momentum,
+
+    /// 🔴 기본 접힘(결정 8)
+    @Default(null) HoldingPnl? pnl,
+
+    /// 🆕 X7 — managed / external
+    required HoldingScope scope,
+
+    /// "시스템 밖 자산(수동) — 비중 계산에서 빠집니다" — 엔진 생성
+    required String scopeLabel,
+    required AsOf asOf,
+  }) = _HoldingRow;
+
+  factory HoldingRow.fromJson(Map<String, dynamic> json) =>
+      _$HoldingRowFromJson(json);
+}
+
+/// SMA 트랜치 1단계(01 §2-3).
+@freezed
+abstract class TrancheStep with _$TrancheStep {
+  const factory TrancheStep({
+    required int stepNo,
+    required bool filled,
+
+    /// "1/3 진입 (SMA200 상회)" — 엔진 생성
+    required String label,
+    @TradeDateConverter() TradeDate? filledOn,
+  }) = _TrancheStep;
+
+  factory TrancheStep.fromJson(Map<String, dynamic> json) =>
+      _$TrancheStepFromJson(json);
+}
+
+/// 손절선(01 §2-3).
+@freezed
+abstract class StopLine with _$StopLine {
+  const factory StopLine({
+    /// TIER 1B
+    @DecimalStringConverter() Decimal? absoluteStop,
+
+    /// TIER 2 (단조 비감소)
+    @DecimalStringConverter() Decimal? trailStop,
+
+    /// TIER 1A ⚠️ 1차 릴리스에서 항상 null
+    @DecimalStringConverter() Decimal? customStop,
+    @DecimalStringConverter() Decimal? highWaterMark,
+
+    /// "트레일링 −2.5×ATR(20)" — 엔진 생성
+    required String label,
+  }) = _StopLine;
+
+  factory StopLine.fromJson(Map<String, dynamic> json) =>
+      _$StopLineFromJson(json);
+}
+
+/// 🔴 결정 8 — 종목 손익은 **별도 optional 필드**다. 기본 접힘, 손익 정렬 미제공.
+@freezed
+abstract class HoldingPnl with _$HoldingPnl {
+  const factory HoldingPnl({
+    @DecimalStringConverter() required Decimal unrealizedPnl,
+    required double pnlPct,
+
+    /// "전일 종가 기준" — 엔진 생성
+    required String disclosureNote,
+  }) = _HoldingPnl;
+
+  factory HoldingPnl.fromJson(Map<String, dynamic> json) =>
+      _$HoldingPnlFromJson(json);
+}
+
+/// 모멘텀 패널 — `holding_signal_daily` 컬럼 1:1 (m2-8 D-7).
+///
+/// 🔵 v2.31 P0S 에서 **거의 항상 null** 이다(개별주 소멸).
+@freezed
+abstract class MomentumPanel with _$MomentumPanel {
+  const factory MomentumPanel({
+    /// `holding_signal_daily.momentum_12_1`(01 §6-1 배치 A) —
+    /// 🔴 컬럼명이 `momentum_12_1` 이라 자동 snake 변환(`momentum121`)과 갈린다.
+    @JsonKey(name: 'momentum_12_1') double? momentum121,
+    @JsonKey(name: 'rs_rank') int? rsRank,
+    @JsonKey(name: 'template_passed') bool? templatePassed,
+
+    /// `failed_conditions`(JSON) — 🔴 문구는 엔진 생성
+    required List<ReasonChip> failedConditions,
+    required String label,
+  }) = _MomentumPanel;
+
+  factory MomentumPanel.fromJson(Map<String, dynamic> json) =>
+      _$MomentumPanelFromJson(json);
+}
+
+/// 손절선 표시 정규화판(02 §8-1 · m2-8 E-8).
+///
+/// 🔴 `StopLine`(01 §2-3)을 **대체하지 않는다** — 표시용 정규화 1행이다.
+/// 🔴 `levelText` 가 표시의 정본이고 `level` 은 정렬·대조용이다.
+@freezed
+abstract class StopLineNormalized with _$StopLineNormalized {
+  const factory StopLineNormalized({
+    /// 'TIER_1A' · 'TIER_1B' · 'TIER_2' (코드 목록은 영역 E 의 사전)
+    required String tierCode,
+    required String tierLabel,
+    @DecimalStringConverter() Decimal? level,
+    required String levelText,
+    required bool isActive,
+    required String basisLabel,
+  }) = _StopLineNormalized;
+
+  factory StopLineNormalized.fromJson(Map<String, dynamic> json) =>
+      _$StopLineNormalizedFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/journal.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/journal.dart
+//
+// 01 §2-2 «TradeJournalEntry — 매매일지 1행»(M6, 요구 1) + 01 §2-11 `BackdateStamp`(X7)
+// + M6 미정의 9건 중 6건(m2-8 E-1~E-5 · D-10) · 인벤토리 §3-2 · §3-14(영역 B).
+//
+// 조인 체인 `signals → order_intents → broker_orders → executions → trades → decision_log`
+// 을 **화면이 조인하지 않도록** 평탄화한 것이다(01 §2-2).
+//
+// 🔴 계산 getter 0건(01 §1-4) · 문구는 전부 엔진 생성(01 §1-5).
+// 🔴 분할 집행 진도는 이 타입에 **없다**(01 §2-2 말미 · G-46 · m2-8 C-11 ⏸) —
+//    「n일차」·「이월 n주」 필드를 만들지 않는다.
+
+import 'package:decimal/decimal.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/journal.dart';
+import '../enums/mode.dart';
+import '../enums/order.dart';
+import '../enums/sleeve.dart';
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import '../primitives/money.dart';
+import 'advice.dart';
+import 'common.dart';
+import 'rebalance.dart';
+
+part 'journal.freezed.dart';
+part 'journal.g.dart';
+
+/// 매매일지 1행(01 §2-2).
+///
+/// 🔴 `status == prevented` 는 «이중 발주 차단이 작동함»이며 **성공으로 렌더**한다.
+/// 🔴 `status == unknown` 은 UNKNOWN 해소 보드로 딥링크한다 — 화면이 «실패»로 단정하지 않는다.
+/// 🔴 `fillKind == reversal`·`restatement` 행은 «매매로 읽히는 표현»을 쓰지 않는다
+///    (방향 색 금지 · 손익 기여 0) — 문구는 `statusLabel`·`originLabel` 이 준다.
+@freezed
+abstract class TradeJournalEntry with _$TradeJournalEntry {
+  const factory TradeJournalEntry({
+    required String entryId,
+
+    /// SIM 행은 배지 + 수익률 집계 제외
+    required RunMode mode,
+    @TradeDateConverter() required TradeDate tradeDate,
+
+    /// UTC. null 이면 미체결.
+    /// 🔴 정렬·비교용이지 표시용이 아니다(01 §1-3).
+    DateTime? executedAt,
+    required String symbol,
+
+    /// "069500 KODEX 200" — 엔진 생성
+    required String symbolLabel,
+    required SleeveId sleeve,
+    required OrderSide side,
+    required int quantity,
+    @DecimalStringConverter() required Decimal price,
+    @DecimalStringConverter() required Decimal commission,
+    @DecimalStringConverter() required Decimal tax,
+    required JournalStatus status,
+
+    /// "체결" · "결과 확인 중" · "이중 발주 차단됨" — 엔진 생성.
+    /// 🔴 화면이 `status` 로 문구를 고르지 않는다(01 §1-5).
+    required String statusLabel,
+
+    /// 배지 색의 근거. `prevented` 는 실패가 아니라 방어다.
+    required ChipTone statusTone,
+    required FillVisibility visibility,
+
+    /// "반영 대기 +12주" · "확정" — 엔진 생성.
+    /// 🔴 화면이 수량을 더해 만들지 않는다.
+    required String visibilityLabel,
+
+    /// 진입 사유 / 청산 티어 / 거부 사유 — 🔴 **최소 1개**
+    required List<ReasonChip> reasons,
+    required DecisionRef decision,
+    required DeviationBadge deviation,
+
+    /// "연금저축" — 🔴 계좌 전체번호 금지
+    String? accountAlias,
+
+    // ── 🆕 X7(01 §10) — 수기 체결이 같은 스트림으로 들어오므로
+    //    «누가·무엇을·언제 적었나»가 행에 붙는다 ──────────────────────────
+    required FillOrigin fillOrigin,
+    required FillKind fillKind,
+
+    /// null = 안내와 무관한 수기 신규(01 §10-3)
+    String? adviceId,
+
+    /// 🔴 «기록일 ≠ 거래일»의 유일한 표현 — 화면이 두 날짜를 빼지 않는다.
+    required BackdateStamp backdate,
+
+    /// 🆕 C18 — 구 `costsOverridden`(bool) 폐기
+    required CostSource costSource,
+
+    /// "비용 추정치" / "비용 수정됨" / 공백 — 엔진 생성
+    required String costSourceLabel,
+
+    /// "수기 기록" / "브로커 체결" — 엔진 생성
+    required String originLabel,
+
+    /// 🆕 G-40 — 이 체결이 속한 리밸런싱 회차. null = 회차 밖(수기·입금 배분 등).
+    /// 🔴 화면이 `RebalanceEvent.orderIntentIds` 배열로 목록을 거르지 않게 하는 필드다.
+    String? rebalanceEventId,
+    required AsOf asOf,
+  }) = _TradeJournalEntry;
+
+  factory TradeJournalEntry.fromJson(Map<String, dynamic> json) =>
+      _$TradeJournalEntryFromJson(json);
+}
+
+/// 규칙대로인가, 사람이 개입했나(01 §2-2).
+///
+/// `kindCode` 값 13종은 영역 E 의 `labels/deviation_kind_codes.dart` 가 정본이다
+/// (기존 4 + X7 9 · 인벤토리 §6-10).
+@freezed
+abstract class DeviationBadge with _$DeviationBadge {
+  const factory DeviationBadge({
+    required bool isDeviation,
+    String? kindCode,
+
+    /// "규칙대로" / "재량 조정 (롤링 12개월 4회 중 2회째)" — 엔진 생성
+    required String label,
+
+    /// `decision_journal` 링크(사전 근거·기대 결과·인용 규칙)
+    String? journalId,
+  }) = _DeviationBadge;
+
+  factory DeviationBadge.fromJson(Map<String, dynamic> json) =>
+      _$DeviationBadgeFromJson(json);
+}
+
+/// 🆕 X7 — «기록일 ≠ 거래일»의 유일한 표현(01 §2-11).
+///
+/// 🔴 화면이 두 날짜를 빼지 않는다. 🔴 `priceRangeSourceDate` 는 **검증의 근거일**이며
+///    라벨에 "가격은 9월 2일 기준 [저가, 고가]로 검증됨"을 엔진이 쓴다(B4) —
+///    근거일이 보이지 않으면 사람은 그것을 조작 축으로 쓴다.
+@freezed
+abstract class BackdateStamp with _$BackdateStamp {
+  const factory BackdateStamp({
+    @TradeDateConverter() required TradeDate tradeDate,
+    required DateTime authoredAt,
+    required int backdateTradingDays,
+    required bool isBackdated,
+
+    /// "소급 기록 · 거래일 대비 D+4" — 엔진 생성
+    required String label,
+    @TradeDateConverter() required TradeDate priceRangeSourceDate,
+
+    /// 월간 리포트가 발행된 달로의 소급
+    required bool crossesClosedPeriod,
+    String? closedPeriodNote,
+  }) = _BackdateStamp;
+
+  factory BackdateStamp.fromJson(Map<String, dynamic> json) =>
+      _$BackdateStampFromJson(json);
+}
+
+/// 결정 스냅샷 — `J-2` 결정 상세의 뼈대(02 §8-1 · m2-8 E-1).
+///
+/// 🔴 `ruleCited` 는 엔진 제공 목록의 코드다(자유 입력 금지).
+@freezed
+abstract class DecisionSnapshot with _$DecisionSnapshot {
+  const factory DecisionSnapshot({
+    required DecisionRef ref,
+    @TradeDateConverter() required TradeDate tradeDate,
+
+    /// "진입" · "청산(TIER 1B)" — 엔진 생성
+    required String kindLabel,
+    required List<ReasonChip> reasons,
+    required TriggerSnapshot trigger,
+    String? ruleCited,
+
+    /// 한 줄 요약 — 엔진 생성
+    required String summary,
+  }) = _DecisionSnapshot;
+
+  factory DecisionSnapshot.fromJson(Map<String, dynamic> json) =>
+      _$DecisionSnapshotFromJson(json);
+}
+
+/// 임계값 대조 1행(02 §8-1 · m2-8 E-2).
+///
+/// 🔴 수치는 전부 **엔진 포맷 문자열**이다 — 화면이 비교식을 만들지 않는다.
+@freezed
+abstract class ThresholdCompare with _$ThresholdCompare {
+  const factory ThresholdCompare({
+    required String metricKey,
+    required String metricLabel,
+    required String observedText,
+    required String thresholdText,
+    required bool passed,
+    required String verdictLabel,
+  }) = _ThresholdCompare;
+
+  factory ThresholdCompare.fromJson(Map<String, dynamic> json) =>
+      _$ThresholdCompareFromJson(json);
+}
+
+/// 거부 추적 1행 — 어느 단계에서 왜 막혔나(02 §8-1 · m2-8 E-3).
+@freezed
+abstract class RejectTrace with _$RejectTrace {
+  const factory RejectTrace({
+    required String stageCode,
+    required String stageLabel,
+    required String reasonCode,
+    required String reasonLabel,
+    required DateTime occurredAt,
+  }) = _RejectTrace;
+
+  factory RejectTrace.fromJson(Map<String, dynamic> json) =>
+      _$RejectTraceFromJson(json);
+}
+
+/// 사전 저널(`J-3`) 폼 스펙(02 §8-1 · m2-8 E-4).
+///
+/// 🔴 `ruleCitedOptions` 는 **엔진 제공 목록**이며 자유 입력을 허용하지 않는다.
+/// ⏸ `ReasonOption` 재사용은 m2-8 H-5(선행 미결 §8-20 · D19) — 통합 권고를 따랐다.
+@freezed
+abstract class JournalDraftFormSpec with _$JournalDraftFormSpec {
+  const factory JournalDraftFormSpec({
+    required List<ReasonOption> ruleCitedOptions,
+    required int rationaleMinChars,
+
+    /// "제출 뒤에는 수정할 수 없습니다" — 엔진 생성
+    required String noticeLine,
+    required AsOf asOf,
+  }) = _JournalDraftFormSpec;
+
+  factory JournalDraftFormSpec.fromJson(Map<String, dynamic> json) =>
+      _$JournalDraftFormSpecFromJson(json);
+}
+
+/// 블라인드 리뷰 카드(`J-4`)(02 §8-1 · m2-8 E-5).
+///
+/// 🔴 문항·선택지 문구도 엔진이 준다.
+@freezed
+abstract class BlindReviewCard with _$BlindReviewCard {
+  const factory BlindReviewCard({
+    required String decisionId,
+    required String promptText,
+    required List<BlindReviewQuestion> questions,
+  }) = _BlindReviewCard;
+
+  factory BlindReviewCard.fromJson(Map<String, dynamic> json) =>
+      _$BlindReviewCardFromJson(json);
+}
+
+/// 블라인드 리뷰 문항 1건(m2-8 E-5).
+@freezed
+abstract class BlindReviewQuestion with _$BlindReviewQuestion {
+  const factory BlindReviewQuestion({
+    required String questionId,
+    required String text,
+    required List<ReasonOption> choices,
+  }) = _BlindReviewQuestion;
+
+  factory BlindReviewQuestion.fromJson(Map<String, dynamic> json) =>
+      _$BlindReviewQuestionFromJson(json);
+}
+
+/// UNKNOWN 해소 보드의 단계 1행(02 §8-1 · m2-8 D-10).
+///
+/// `OnboardingStep`·`HandoverStep` 과 **같은 모양**을 따른다 — 같은 모양을 세 번째로
+/// 만드는 것이 새 모양을 만드는 것보다 낫다.
+@freezed
+abstract class UnknownResolutionStep with _$UnknownResolutionStep {
+  const factory UnknownResolutionStep({
+    required String stepId,
+    required int order,
+    required String title,
+
+    /// 왜 필요한가 — 엔진 생성
+    required String whyLine,
+    required GateState state,
+    required String stateLabel,
+    String? deepLink,
+  }) = _UnknownResolutionStep;
+
+  factory UnknownResolutionStep.fromJson(Map<String, dynamic> json) =>
+      _$UnknownResolutionStepFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/ledger.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/ledger.dart
+//
+// 01 §2-9 «LedgerDiffRow — X5 정합 검사» + m2-8 E-9(`LedgerRepairRow`)
+// · 인벤토리 §3-6 · §3-14(영역 B).
+//
+// 🔴 파생 불일치(`canonSupabase`·`canonGithub`·`canonCalendar`)는 **어떤 심각도에서도
+//    주문을 막지 않는다** — 화면이 «매매 중단»으로 읽히는 문구를 만들지 않는다.
+// 🔴 대조 보드의 칸 수는 모드와 무관하게 **5 고정**이고 `applicable == false` 인 칸은
+//    «점검 안 함»으로 그린다(빈칸·통과로 그리지 않는다).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/ledger.dart';
+import '../primitives/money.dart';
+
+part 'ledger.freezed.dart';
+part 'ledger.g.dart';
+
+/// 정합 검사 1행(01 §2-9).
+@freezed
+abstract class LedgerDiffRow with _$LedgerDiffRow {
+  const factory LedgerDiffRow({
+    required String diffId,
+    required LedgerPair pair,
+    required LedgerAxis axis,
+    @TradeDateConverter() required TradeDate authoredDate,
+
+    /// "069500 수량 −3주 (정본 120 / 브로커 123)" — 엔진 생성
+    required String deltaLabel,
+    required DiffSeverity severity,
+
+    /// 원인 코드 후보(01 §3-4) — 문자열 상수의 정본은 영역 E 의 `labels/origin_codes.dart`
+    required List<String> candidateOriginCodes,
+    required DiffStatus status,
+    required RepairRoute route,
+
+    /// 🔴 브로커 근거 원문은 로컬 전용 — 외부엔 해시만
+    required String evidenceHash,
+
+    /// 🆕 X7(C15 · G-27) — 🔴 «해당 없음»과 «일치»를 가르는 값.
+    /// 저장 컬럼은 01 §6-6 배치 F 의 `ledger_diff.applicable` 이다.
+    required bool applicable,
+  }) = _LedgerDiffRow;
+
+  factory LedgerDiffRow.fromJson(Map<String, dynamic> json) =>
+      _$LedgerDiffRowFromJson(json);
+}
+
+/// 정정 이력 1행 — `ledger_repair`(append-only)의 표시판(02 §8-1 · m2-8 E-9).
+///
+/// 🔴 `recomputedFrom` 이 C-29(소급 정정 시계열 재계산)의 표시 축이다 —
+///    이 값이 있으면 «그 날짜부터 다시 계산됐다»가 보여야 한다.
+/// 🔴 `directionCode` 는 `ledger_repair.direction` CHECK 2값
+///    (`DERIVED_RESYNC`·`CANON_CORRECT`)이며 화면이 문구를 고르지 않는다.
+@freezed
+abstract class LedgerRepairRow with _$LedgerRepairRow {
+  const factory LedgerRepairRow({
+    required String repairId,
+    required String diffId,
+    required String directionCode,
+    required String directionLabel,
+
+    /// 원인 코드(01 §3-4)
+    required String originCode,
+    String? decisionId,
+    required String evidenceHash,
+
+    /// 이 정정이 대체한 앞선 정정 행
+    String? supersedes,
+
+    /// 🔴 소급 정정이면 여기부터 시계열을 다시 계산한다(C-29)
+    @TradeDateConverter() TradeDate? recomputedFrom,
+    required DateTime appliedAt,
+
+    /// "브로커 기준으로 수량 정정 · 2026-08-24부터 재계산" — 엔진 생성
+    required String label,
+  }) = _LedgerRepairRow;
+
+  factory LedgerRepairRow.fromJson(Map<String, dynamic> json) =>
+      _$LedgerRepairRowFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/ledger_trust.dart`
+
+```dart
+// 01 §2-11 — X7 원장 신뢰 등급 · 이행 갭 · 시스템 밖 자산 · 현금 추정 고지.
+//
+// 🔴 `LedgerTrustGrade.selfReported` 는 **실패가 아니라 정상 운영 상태**다.
+// 🔴 이행 갭에 원화 손익 필드가 없다 — 가격 갭은 **bp** 로만 온다(C-25).
+// 🔴 «추천·권유·자문·시그널» 금지어 규약이 `modeAdviceLine` 에도 적용된다(§10-1).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/ledger.dart';
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import '../primitives/date_range.dart';
+import '../primitives/money.dart';
+import 'common.dart';
+
+part 'ledger_trust.freezed.dart';
+part 'ledger_trust.g.dart';
+
+/// 01 §2-11 — 원장 신뢰 배지.
+/// 🔴 `consequenceLine` 은 **어느 카운터 때문인지**를 말한다(B22) — "마지막 실사
+///    후 63일 경과 — 실사 1회로 회복됩니다" 계열. 화면이 카운터를 세지 않는다.
+@freezed
+abstract class LedgerTrustBadge with _$LedgerTrustBadge {
+  const factory LedgerTrustBadge({
+    required LedgerTrustGrade grade,
+    required UiLevel level,
+
+    /// "자가 기록 — 브로커 대조 없음" — 엔진 생성.
+    required String label,
+    required String consequenceLine,
+
+    /// "대사 전용 키를 등록하면 대조가 켜집니다" — 엔진 생성.
+    String? upgradeHint,
+    @TradeDateConverter() TradeDate? lastVerifiedOn,
+    String? actionDeepLink,
+  }) = _LedgerTrustBadge;
+
+  factory LedgerTrustBadge.fromJson(Map<String, dynamic> json) =>
+      _$LedgerTrustBadgeFromJson(json);
+}
+
+/// 01 §2-11 — 이행 갭. M7 이 그리는 유일한 X7 지표 묶음(`S7-10`).
+/// 🔴 `lateFilled`(지연 이행)는 분자에 **별도 계상**하고 라벨에 "(지연 이행 n건
+///    포함)"을 엔진이 붙인다 — 지표는 정직하게, 벌점은 없다(A4).
+@freezed
+abstract class ExecutionGapReport with _$ExecutionGapReport {
+  const factory ExecutionGapReport({
+    required DateRange range,
+    required String periodLabel,
+    required int issued,
+    required int filled,
+    required int partial,
+    required int skipped,
+    required int lapsed,
+    required int revoked,
+    required int lateFilled,
+
+    /// 0.0~1.0 — 🔴 게이지 폭 계산용 정규값만. 표시는 `complianceRateLabel`.
+    required double complianceRateNormalized,
+
+    /// "이행률 82%(건수) · 76%(금액 가중)" — 엔진 생성.
+    required String complianceRateLabel,
+
+    /// "기록까지 중앙값 1거래일" — 엔진 생성.
+    required String medianDelayLabel,
+
+    /// "안내 대비 중앙값 +9bp(불리)" — 🔴 bp, 금액 아님.
+    required String priceGapLabel,
+
+    /// 정정 체인 길이(상한 2회) — B6.
+    required String amendChainMaxLabel,
+    required List<ReasonChip> skipReasonBuckets,
+
+    /// 진입/청산 이행률 비대칭 표식 — B2. 🔴 알림을 만들지 않는다.
+    required List<ReasonChip> selectiveExecutionChips,
+    required int backdatedCount,
+    required int selfReportCorrectionCount,
+    required LedgerTrustBadge trust,
+
+    /// 🔴 B21 — **3갈래로 갈라 생성**된다: ⓐ「못 함」 우세 → 자동 이관 제안 /
+    ///    ⓑ「안 함」 우세 → 이관을 제안하지 않는다 / ⓒ 갈리지 않음 → 아무 제안도
+    ///    하지 않는다. 화면은 준 문장을 그대로 그린다.
+    required String modeAdviceLine,
+    required AsOf asOf,
+  }) = _ExecutionGapReport;
+
+  factory ExecutionGapReport.fromJson(Map<String, dynamic> json) =>
+      _$ExecutionGapReportFromJson(json);
+}
+
+/// 01 §2-11 — 시스템 밖 자산 1행(`external_holding`).
+/// 🔴 표시 UNION 은 `HoldingsRepository` 한 곳에서만 만든다(D7 · C-23).
+/// 🔴 유니버스 종목은 등록할 수 없다(`SYMBOL_IN_UNIVERSE_CANNOT_BE_EXTERNAL`).
+@freezed
+abstract class ExternalHoldingRow with _$ExternalHoldingRow {
+  const factory ExternalHoldingRow({
+    required String externalId,
+    required String symbol,
+    required String symbolLabel,
+    required String accountAlias,
+    required int quantity,
+    @TradeDateConverter() required TradeDate registeredOn,
+
+    /// "시스템 밖 자산(수동) — 비중 계산에서 빠집니다" — 엔진 생성.
+    required String scopeLabel,
+
+    /// 🔴 등록도 결정이다.
+    required DecisionRef decision,
+  }) = _ExternalHoldingRow;
+
+  factory ExternalHoldingRow.fromJson(Map<String, dynamic> json) =>
+      _$ExternalHoldingRowFromJson(json);
+}
+
+/// 01 §2-11 — 현금 추정 고지. 키가 없으면 예수금을 모른다는 사실을 그대로 말한다.
+@freezed
+abstract class CashEstimateNotice with _$CashEstimateNotice {
+  const factory CashEstimateNotice({
+    required bool isEstimate,
+
+    /// "현금은 기록 기반 추정치입니다 · 마지막 확인 9/1" — 엔진 생성.
+    required String label,
+    @TradeDateConverter() TradeDate? lastConfirmedOn,
+  }) = _CashEstimateNotice;
+
+  factory CashEstimateNotice.fromJson(Map<String, dynamic> json) =>
+      _$CashEstimateNoticeFromJson(json);
+}
+
+/// 01 §2-11 — 자가 실사 1행(`SelfReportBalance.lines` 의 원소).
+@freezed
+abstract class SelfReportLine with _$SelfReportLine {
+  const factory SelfReportLine({
+    required String symbol,
+    required String symbolLabel,
+    required int quantity,
+  }) = _SelfReportLine;
+
+  factory SelfReportLine.fromJson(Map<String, dynamic> json) =>
+      _$SelfReportLineFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/ops.dart`
+
+```dart
+// 01 §2-6 · §4-1 — M8·M9 운영 상태 뷰모델(m2-8 G-1~G-4 · G-7~G-10 · J-2).
+//
+// 🔴 **읽기 전용**이다. 조작은 §4-3 `SettingsActions` 이며, 뷰어 빌드에서는 그
+//    구현체가 주입되지 않으므로 컨트롤은 «비활성»이 아니라 **부재**다.
+// 🔴 홈 블록 5·7 의 «세는 수»는 전부 엔진이 세어 **문자열로** 준다 — 화면이 목록
+//    길이로 만들지 않는다(01 §4-1 · G-29). int·double 산술이라 C-4 가 잡지 못한다.
+// 🔴 `actionAvailable == false` 는 «비활성»이 아니라 **카드·버튼의 부재**로 그린다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/ledger.dart';
+import '../primitives/as_of.dart';
+
+part 'ops.freezed.dart';
+part 'ops.g.dart';
+
+/// m2-8 G-1 — 셸(`ui_shell`)이 주입하는 모드 접두와 상단 띠.
+/// 🔴 **띠는 하나이고 칩이 2개**다(2줄로 만들지 않는다 · C-18).
+/// 🔴 접두 순서는 «모의투자 · 투자 안내 · 제목» 이며 화면이 접두를 직접 쓰지
+///    않는다(01 §9-3 · C-17 — 한 화면만 빠뜨려도 그 화면이 실전처럼 보인다).
+@freezed
+abstract class ShellVm with _$ShellVm {
+  const factory ShellVm({
+    required List<ShellChip> bandChips,
+
+    /// null 이면 접두를 붙이지 않는다(`live` 는 접두가 없다).
+    String? runModePrefix,
+
+    /// null 이면 접두를 붙이지 않는다(`autoTrade` 는 접두가 없다).
+    String? operatingModePrefix,
+
+    /// 🔴 색의 근거는 이 코드다 — 값의 부호로 고르지 않는다.
+    String? bandToneCode,
+  }) = _ShellVm;
+
+  factory ShellVm.fromJson(Map<String, dynamic> json) =>
+      _$ShellVmFromJson(json);
+}
+
+/// ⚠️ **M2-8 미확정** — G-1 이 `List<ShellChip>` 이라는 **이름만** 확정했고 필드
+/// 축은 문서에 없다. 아래는 `GateBadge`(§2-1)·`SettingsCard`(G-5)와 같은 모양으로
+/// 둔 **임시 최소 축**이다. 🔴 문구는 엔진이 주고 화면이 조합하지 않는다.
+@freezed
+abstract class ShellChip with _$ShellChip {
+  const factory ShellChip({
+    required String code,
+    required String label,
+    String? toneCode,
+  }) = _ShellChip;
+
+  factory ShellChip.fromJson(Map<String, dynamic> json) =>
+      _$ShellChipFromJson(json);
+}
+
+/// m2-8 G-2 — 운영 리듬 1행(04 §4-7 `H-02`).
+/// 🔴 `dDayText` 는 엔진 생성 문자열이다 — 화면이 날짜를 빼지 않는다.
+@freezed
+abstract class OpsRhythmRow with _$OpsRhythmRow {
+  const factory OpsRhythmRow({
+    required String code,
+    required String title,
+    required String whenText,
+    String? dDayText,
+    String? route,
+  }) = _OpsRhythmRow;
+
+  factory OpsRhythmRow.fromJson(Map<String, dynamic> json) =>
+      _$OpsRhythmRowFromJson(json);
+}
+
+/// m2-8 G-3 — 워치독 체크 1행(04 §7 `W-01`).
+/// 🔴 `slug` 는 **2축 합성** `{sim|live}-{auto|advisory}-{체크명}` 이며(§9-5 ⑦ · C20)
+///    목록의 길이·이름은 **서버가 준다** — 화면이 상수 배열을 갖지 않는다.
+@freezed
+abstract class WatchdogCheck with _$WatchdogCheck {
+  const factory WatchdogCheck({
+    required String slug,
+    required String label,
+    required String stateCode,
+    required String stateLabel,
+    required String lastPingText,
+    String? graceText,
+    String? route,
+  }) = _WatchdogCheck;
+
+  factory WatchdogCheck.fromJson(Map<String, dynamic> json) =>
+      _$WatchdogCheckFromJson(json);
+}
+
+/// 01 §4-1 · m2-8 G-4 — 홈 블록 5·7 의 오늘 요약.
+/// 🔴 **전부 엔진 완성 문자열이며 수치 필드가 0건**이다.
+@freezed
+abstract class OpsDailySummary with _$OpsDailySummary {
+  const factory OpsDailySummary({
+    required AsOf asOf,
+    required String todayOrdersText,
+    required String todayErrorsText,
+    required String signalMatchText,
+    required String streakText,
+    required String discretionBudgetText,
+    required String nextRebalanceDDayText,
+    required List<OpsRhythmRow> upcoming,
+  }) = _OpsDailySummary;
+
+  factory OpsDailySummary.fromJson(Map<String, dynamic> json) =>
+      _$OpsDailySummaryFromJson(json);
+}
+
+/// m2-8 G-7 — 연결 관리(05 `S07`).
+@freezed
+abstract class ConnectionsVm with _$ConnectionsVm {
+  const factory ConnectionsVm({
+    required List<ConnectionRow> rows,
+    required AsOf asOf,
+  }) = _ConnectionsVm;
+
+  factory ConnectionsVm.fromJson(Map<String, dynamic> json) =>
+      _$ConnectionsVmFromJson(json);
+}
+
+/// m2-8 G-7 — 연결 1행.
+@freezed
+abstract class ConnectionRow with _$ConnectionRow {
+  const factory ConnectionRow({
+    required String target,
+    required String label,
+    required String statusCode,
+    required String statusLabel,
+    required String lastOkText,
+
+    /// 🔴 false 면 버튼을 **만들지 않는다**(비활성이 아니다).
+    required bool actionAvailable,
+    String? route,
+  }) = _ConnectionRow;
+
+  factory ConnectionRow.fromJson(Map<String, dynamic> json) =>
+      _$ConnectionRowFromJson(json);
+}
+
+/// m2-8 G-8 — 기기·접근 관리(05 `S06`). 🔴 **리스는 읽기 전용**이다.
+@freezed
+abstract class DeviceAccessVm with _$DeviceAccessVm {
+  const factory DeviceAccessVm({
+    required List<DeviceRow> devices,
+    required String leaseHolderLabel,
+    required String leaseStateLabel,
+    required AsOf asOf,
+
+    /// 🔴 신뢰 시각(Supabase 서버 시각) 기반 엔진 문자열 — 폰 시계로 남은 시간을
+    ///    계산하지 않는다.
+    String? leaseEtaText,
+  }) = _DeviceAccessVm;
+
+  factory DeviceAccessVm.fromJson(Map<String, dynamic> json) =>
+      _$DeviceAccessVmFromJson(json);
+}
+
+/// m2-8 G-8 — 기기 1행. 🔴 기기 전체 식별자를 화면 문구로 만들지 않는다.
+@freezed
+abstract class DeviceRow with _$DeviceRow {
+  const factory DeviceRow({
+    required String deviceId,
+    required String label,
+    required String roleLabel,
+    required String statusLabel,
+    required String lastSeenText,
+  }) = _DeviceRow;
+
+  factory DeviceRow.fromJson(Map<String, dynamic> json) =>
+      _$DeviceRowFromJson(json);
+}
+
+/// m2-8 G-9 — 백업·복원(05 `S09`).
+@freezed
+abstract class BackupVm with _$BackupVm {
+  const factory BackupVm({
+    required String lastOkText,
+    required String statusCode,
+    required String statusLabel,
+    required bool actionAvailable,
+    required AsOf asOf,
+    String? sizeText,
+    String? route,
+  }) = _BackupVm;
+
+  factory BackupVm.fromJson(Map<String, dynamic> json) =>
+      _$BackupVmFromJson(json);
+}
+
+/// m2-8 G-10 — 진단 보드(05 `S10`).
+/// 🔴 **칸 수 5 고정은 엔진이 준다** — 모드와 무관하며 화면이 세지 않는다(§2-9).
+@freezed
+abstract class DiagnosticsVm with _$DiagnosticsVm {
+  const factory DiagnosticsVm({
+    required List<DiagnosticCell> cells,
+    required String headline,
+    required AsOf asOf,
+  }) = _DiagnosticsVm;
+
+  factory DiagnosticsVm.fromJson(Map<String, dynamic> json) =>
+      _$DiagnosticsVmFromJson(json);
+}
+
+/// m2-8 G-10 — 진단 1칸.
+/// 🔴 `applicable == false` 는 «점검 안 함»으로 그린다 — 빈칸·통과로 그리지
+///    않는다(C15 · G-27).
+@freezed
+abstract class DiagnosticCell with _$DiagnosticCell {
+  const factory DiagnosticCell({
+    required LedgerPair pair,
+    required String label,
+    required bool applicable,
+    required String stateCode,
+    required String stateLabel,
+  }) = _DiagnosticCell;
+
+  factory DiagnosticCell.fromJson(Map<String, dynamic> json) =>
+      _$DiagnosticCellFromJson(json);
+}
+
+/// ⏸ m2-8 J-2 — `live × dryRun` 관찰 기간·승격 확인(§8-28 G-43).
+/// 🔴 **이름만 확정이고 기능은 발주자 확정 대기**다: 관찰 거래일 수는 엔진 config
+///    신설 키이며 화면·계약이 상수로 적지 않는다(`requiredTradingDays` 로 온다).
+/// 🔴 **승격에 새 화면·새 라우트를 만들지 않는다** — `S05` 엔진 상태 칩 + 기존 M5
+///    게이트 다이얼로그(생체 1회)다.
+@freezed
+abstract class LiveDryRunObservationVm with _$LiveDryRunObservationVm {
+  const factory LiveDryRunObservationVm({
+    required int observedTradingDays,
+    required int requiredTradingDays,
+
+    /// 🔴 표시의 정본 — 화면이 두 수치로 「n/m」을 조립하지 않는다.
+    required String progressText,
+    required bool promotionAvailable,
+    required String stateLabel,
+  }) = _LiveDryRunObservationVm;
+
+  factory LiveDryRunObservationVm.fromJson(Map<String, dynamic> json) =>
+      _$LiveDryRunObservationVmFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/performance.dart`
+
+```dart
+// 01 §2-4 — 수익률(M7 요구 2) · 세후 사다리 · §2-6 M7 뷰모델(G-41).
+//
+// 🔴 화면은 TWR/MWR 을 계산하지 않고 누적곱도 하지 않는다. 세율 곱셈·층 간
+//    차액도 금지이며 C-30 이 이것을 검사한다(01 §2-4 말미).
+// 🔴 «정직 기대»·사다리 4자리 수치를 코드·라벨·주석에 옮기지 않는다 —
+//    인용처는 픽스처 `aftertax_ladder_1.json` 과 골든 `aftertax_full_S7` 뿐이다.
+// 🔴 `PerfMetric.twr` 은 외부 현금흐름 «보정판»이다(01 §2-4 P 회차 실측).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/performance.dart';
+import '../enums/sleeve.dart';
+import '../primitives/as_of.dart';
+import '../primitives/money.dart';
+import 'ledger_trust.dart';
+
+part 'performance.freezed.dart';
+part 'performance.g.dart';
+
+/// 01 §2-4 — 수익률 시리즈. 🔴 누적/비누적 토글도 엔진이 두 시리즈를 주거나
+/// `cumulative` 로 재요청한다(화면 누적곱은 단일 산식 원칙 위반).
+@freezed
+abstract class PerformanceSeries with _$PerformanceSeries {
+  const factory PerformanceSeries({
+    required PerfMetric metric,
+    required PerfGranularity granularity,
+    required bool cumulative,
+
+    /// 🔴 결측·재개로 분절된 구간들.
+    required List<PerfSegment> segments,
+    required List<PerfPoint> points,
+
+    /// 표본 크기 고지·인터스티셜 문구·열람 횟수(01 §2-4).
+    required PerfDisclosure disclosure,
+    required AsOf asOf,
+
+    /// KOSPI 50% + S&P500(KRW) 50% — m2-8 F-9.
+    BenchmarkSeries? benchmark,
+
+    /// 🆕 P 회차 — 세후는 «층»이다. 단일 스칼라 필드를 만들지 않는다.
+    AfterTaxLadder? afterTax,
+  }) = _PerformanceSeries;
+
+  factory PerformanceSeries.fromJson(Map<String, dynamic> json) =>
+      _$PerformanceSeriesFromJson(json);
+}
+
+/// 01 §2-4 — 시계열 1점. 🔴 `value == null` 은 결측이며 **보간 금지**(C-10).
+@freezed
+abstract class PerfPoint with _$PerfPoint {
+  const factory PerfPoint({
+    @TradeDateConverter() required TradeDate date,
+
+    /// 🔴 null = 결측. 공백으로 그린다 — 이어 붙이지 않는다.
+    double? value,
+
+    /// `EQUITY_SNAPSHOT_MISSING` · `RESUME_GAP`(인벤토리 §6-14).
+    String? gapReasonCode,
+  }) = _PerfPoint;
+
+  factory PerfPoint.fromJson(Map<String, dynamic> json) =>
+      _$PerfPointFromJson(json);
+}
+
+/// 01 §2-4 — 분절 구간. 🔴 `manualExecuted` 는 `simExcluded` 와 달리 합산에
+/// 포함되고 경계는 실선이다(D6). 겹치면 `freshAuto` 절단선이 이긴다.
+@freezed
+abstract class PerfSegment with _$PerfSegment {
+  const factory PerfSegment({
+    @TradeDateConverter() required TradeDate from,
+    @TradeDateConverter() required TradeDate to,
+    required SegmentKind kind,
+
+    /// "7거래일 미실행 — 산출 불가" — 엔진 생성.
+    required String label,
+  }) = _PerfSegment;
+
+  factory PerfSegment.fromJson(Map<String, dynamic> json) =>
+      _$PerfSegmentFromJson(json);
+}
+
+/// 01 §2-4 · m2-8 F-9 — 벤치마크 시리즈.
+@freezed
+abstract class BenchmarkSeries with _$BenchmarkSeries {
+  const factory BenchmarkSeries({
+    required String label,
+    required List<PerfPoint> points,
+
+    /// 구성 고지 한 줄 — 엔진 생성.
+    required String compositionNote,
+  }) = _BenchmarkSeries;
+
+  factory BenchmarkSeries.fromJson(Map<String, dynamic> json) =>
+      _$BenchmarkSeriesFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-8 — 기대치 문구의 유일한 운반처(🔴 **M7 화면 한정**).
+/// 🔴 M8 온보딩·핸드북은 같은 문자열을 **각자의 뷰모델 필드**로 받는다 —
+///    성과 타입을 건너 참조하지 않는 것이 C-3 규약이다.
+@freezed
+abstract class PerfDisclosure with _$PerfDisclosure {
+  const factory PerfDisclosure({
+    required String sampleSizeLine,
+    required String interstitialText,
+
+    /// 🔴 명령 테이블(append-only)의 이번 달 집계 — 화면이 세지 않는다(G-42).
+    required int viewCountThisMonth,
+    required String honestExpectationLine,
+    String? drawdownCaveatLine,
+  }) = _PerfDisclosure;
+
+  factory PerfDisclosure.fromJson(Map<String, dynamic> json) =>
+      _$PerfDisclosureFromJson(json);
+}
+
+/// 01 §2-4 · m2-8 A-7 · F-16 — 세후 사다리의 한 층.
+/// 🔴 `valueText` 가 **표시의 정본**이다. `cagrPct`·`endMult` 는 골든 대조·회귀
+///    전용이며 `ui_*` 위젯트리에서 참조하면 C-30 이 실패한다.
+@freezed
+abstract class AfterTaxStep with _$AfterTaxStep {
+  const factory AfterTaxStep({
+    /// `PRETAX`·`AFTER_POT`·`AFTER_POT_C`·`WD_5P5`·`WD_16P5`·`HONEST`
+    /// (인벤토리 §6-13 · 영역 E 의 상수 목록이 정본).
+    required String stepCode,
+
+    /// "② 전 계좌 세후 — 연금 인출세 16.5%" — 엔진 생성.
+    required String label,
+
+    /// 🔴 표시의 정본. 엔진이 포맷한 완성 문자열.
+    required String valueText,
+
+    /// 🔴 골든 대조 전용 — 화면 참조 금지(C-30).
+    double? cagrPct,
+
+    /// 🔴 같음 — 층 간 차액을 빼는 경로를 데이터 형태로도 열지 않는다.
+    double? endMult,
+    String? noteLine,
+  }) = _AfterTaxStep;
+
+  factory AfterTaxStep.fromJson(Map<String, dynamic> json) =>
+      _$AfterTaxStepFromJson(json);
+}
+
+/// 01 §2-4 — 세후 사다리. 🔴 갈래는 **계좌 배치가 정한다**(SAF-309) —
+/// 화면·인자로 고르는 경로를 만들지 않는다.
+@freezed
+abstract class AfterTaxLadder with _$AfterTaxLadder {
+  const factory AfterTaxLadder({
+    required TaxLadderBranch branch,
+
+    /// "POT = 절세계좌(명세 준수)" — 엔진 생성.
+    required String branchLabel,
+
+    /// 🔴 순서 그대로 그린다. 층을 합치거나 건너뛰지 않는다.
+    required List<AfterTaxStep> steps,
+
+    /// 🔴 숫자 상수 금지 — 엔진 생성 문장을 그대로 그린다.
+    required String honestExpectationLine,
+    required String basisNote,
+
+    /// 🔴 §8-18 확정 전에는 **항상 true**(골든 참고치이지 실계좌 산출이 아니다).
+    /// 🔴 SIM 에서도 이 라벨을 유지한다(01 §9-4).
+    required bool isReferenceOnly,
+    required String configHash,
+    required AsOf asOf,
+  }) = _AfterTaxLadder;
+
+  factory AfterTaxLadder.fromJson(Map<String, dynamic> json) =>
+      _$AfterTaxLadderFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-7 — 월간 1페이지 리포트(`S7-1`).
+/// 🔴 **단일 `afterTaxPct` 필드를 만들지 않는다** — 세후는 `AfterTaxLadder` 로만
+///    실어 나른다. 🔴 반사실 항목을 14번째로 늘리지 않는다(C-25).
+@freezed
+abstract class MonthlyReport with _$MonthlyReport {
+  const factory MonthlyReport({
+    required String yyyyMm,
+
+    /// 🔴 **13항목 고정 배열**. 결측에서도 자리를 유지하며 항목을 더하거나
+    ///    빼지 않는다(03 §3 · C-25).
+    required List<ReportItem> items,
+    required String goalLine,
+
+    /// 🔴 화면이 「n회」를 숫자로 조립하지 않는다(G-42).
+    required String disclosureViewCountText,
+
+    /// X7 — 헤더 배지(01 §2-11 · G-97).
+    required LedgerTrustBadge trust,
+    required AsOf asOf,
+
+    /// 세후 사다리. 🔴 13항목 배열에는 넣지 않는다(03 §3).
+    AfterTaxLadder? afterTax,
+
+    /// 전월 소급 정정 각주 — 🔴 마감된 달을 재계산하지 않는다(G-97).
+    String? backdateFootnote,
+  }) = _MonthlyReport;
+
+  factory MonthlyReport.fromJson(Map<String, dynamic> json) =>
+      _$MonthlyReportFromJson(json);
+}
+
+/// ⚠️ **M2-8 미확정** — `m2-8_naming.md` F-7 이 `List<ReportItem>` 이라는 **이름만**
+/// 확정했고 필드 축은 어느 문서에도 없다. 아래는 03 §3(13항목 고정 배열 · 섹션
+/// A~G · 「결측에서도 자리를 유지」 · 전부 엔진 완성 문자열)에서 읽어낸 **임시
+/// 최소 축**이며, `AnnualReviewSection`(F-6)·`OpsRhythmRow`(G-2)와 같은 모양이다.
+/// 🔴 화면 담당은 이 타입을 픽스처 고정 모드로만 쓰고, 축 확정 전에는 항목을
+///    코드로 세거나 순서를 재정렬하지 않는다.
+@freezed
+abstract class ReportItem with _$ReportItem {
+  const factory ReportItem({
+    required String code,
+
+    /// 🔴 13항목의 고정 순서. 화면이 정렬 키를 만들지 않는다.
+    required int order,
+
+    /// 섹션 A~G(03 §3).
+    required String sectionCode,
+    required String title,
+
+    /// 🔴 엔진 완성 문자열 — 결측이면 그 사실도 이 문자열이 말한다.
+    required String valueText,
+    String? noteText,
+  }) = _ReportItem;
+
+  factory ReportItem.fromJson(Map<String, dynamic> json) =>
+      _$ReportItemFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-1 — 월간 리포트 아카이브(`S7-1b`). 🔴 **수치 필드 0건**.
+@freezed
+abstract class ReportArchiveVm with _$ReportArchiveVm {
+  const factory ReportArchiveVm({
+    required List<ReportArchiveRow> rows,
+    required AsOf asOf,
+    String? emptyLabel,
+  }) = _ReportArchiveVm;
+
+  factory ReportArchiveVm.fromJson(Map<String, dynamic> json) =>
+      _$ReportArchiveVmFromJson(json);
+}
+
+/// m2-8 F-1 — 아카이브 1행. 🔴 수치 컬럼이 없다(`rm_report_archive`).
+@freezed
+abstract class ReportArchiveRow with _$ReportArchiveRow {
+  const factory ReportArchiveRow({
+    required String yyyyMm,
+    required String label,
+    required bool generated,
+
+    /// 🔴 모드 표시도 엔진 문자열이다 — 화면이 `RunMode` 로 분기하지 않는다.
+    required String modeLabel,
+    String? reasonLabel,
+    String? route,
+  }) = _ReportArchiveRow;
+
+  factory ReportArchiveRow.fromJson(Map<String, dynamic> json) =>
+      _$ReportArchiveRowFromJson(json);
+}
+
+/// 01 §4-1 · m2-8 F-2 — 성과 열람 게이트(`S7-2G`).
+/// 🔴 `viewCountThisMonth` 숫자 필드를 두지 않는다 — 화면이 「n회」를 조립하지
+///    않게 `viewCountText` 하나만 온다.
+@freezed
+abstract class DisclosureGateVm with _$DisclosureGateVm {
+  const factory DisclosureGateVm({
+    required bool gateOpen,
+    required String headline,
+    required String viewCountText,
+    required AsOf asOf,
+    String? frictionLine,
+    String? route,
+  }) = _DisclosureGateVm;
+
+  factory DisclosureGateVm.fromJson(Map<String, dynamic> json) =>
+      _$DisclosureGateVmFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-3 — 드로다운 맥락(`S7-3`).
+/// 🔴 `referenceBandCaveatText` 가 null 이면 그 줄을 **그리지 않는다**
+///    («최대낙폭은 하한»의 단서이며 화면이 대신 문장을 짓지 않는다).
+@freezed
+abstract class DrawdownContextVm with _$DrawdownContextVm {
+  const factory DrawdownContextVm({
+    required String periodLabel,
+    required String currentDdText,
+    required String maxDdText,
+    required String tuwText,
+
+    /// 🔴 게이지 폭 전용 정규값(0.0~1.0). 표시는 `*Text` 필드다.
+    required double ddNormalized,
+    required AsOf asOf,
+    String? referenceBandText,
+    String? referenceBandCaveatText,
+  }) = _DrawdownContextVm;
+
+  factory DrawdownContextVm.fromJson(Map<String, dynamic> json) =>
+      _$DrawdownContextVmFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-4 — **슬리브 기여 분해**(`S7-3b` · 03 §10).
+/// 🔴 `MonthlyContributionVm`(월 납입 운영값 카드 · `settings.dart`)과 **다른
+///    타입**이며 이름을 공유하지 않는다(01 §2-6 이름 충돌 방지 조문 · N-01).
+/// 🔴 **종목 단위 행 없음**.
+@freezed
+abstract class ContributionVm with _$ContributionVm {
+  const factory ContributionVm({
+    required String periodLabel,
+    required List<ContributionRow> rows,
+    required String methodNoteText,
+    required AsOf asOf,
+    String? fxNoteText,
+  }) = _ContributionVm;
+
+  factory ContributionVm.fromJson(Map<String, dynamic> json) =>
+      _$ContributionVmFromJson(json);
+}
+
+/// m2-8 F-4 — 슬리브 1행. 🔴 `normalized` 는 막대 폭 전용이고 표시는
+/// `contributionText` 다(화면이 비율로 문장을 만들지 않는다).
+@freezed
+abstract class ContributionRow with _$ContributionRow {
+  const factory ContributionRow({
+    required SleeveId sleeve,
+    required String label,
+    required String contributionText,
+    required double normalized,
+  }) = _ContributionRow;
+
+  factory ContributionRow.fromJson(Map<String, dynamic> json) =>
+      _$ContributionRowFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-6 — 연간 리뷰(`S7-7`). 🔴 **묶음이지 재집계가 아니다** —
+/// 화면이 `windowState` 를 «달»로 판정하지 않는다.
+/// 🔴 세후는 `AfterTaxLadder` 를 그대로 실어 나르고 재계산하지 않는다(M1-20b).
+@freezed
+abstract class AnnualReviewVm with _$AnnualReviewVm {
+  const factory AnnualReviewVm({
+    required String year,
+    required String windowStateCode,
+    required String windowStateLabel,
+    required List<AnnualReviewSection> sections,
+    required AsOf asOf,
+  }) = _AnnualReviewVm;
+
+  factory AnnualReviewVm.fromJson(Map<String, dynamic> json) =>
+      _$AnnualReviewVmFromJson(json);
+}
+
+/// m2-8 F-6 — 연간 리뷰 섹션. 🔴 `lines` 는 전부 엔진 완성 문자열이다.
+@freezed
+abstract class AnnualReviewSection with _$AnnualReviewSection {
+  const factory AnnualReviewSection({
+    required String code,
+    required String title,
+    required List<String> lines,
+    String? route,
+  }) = _AnnualReviewSection;
+
+  factory AnnualReviewSection.fromJson(Map<String, dynamic> json) =>
+      _$AnnualReviewSectionFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-15 · C-4 — 목표 경로(`S7-9`).
+/// 🔴 `basisText` 와 `backtestBasisText` 는 **두 필드**이며 화면이 둘을 동시에
+///    그리지 않는다(C-4 — 확장이 아니라 신설을 고른 이유가 이 조문의 검사
+///    가능성이다).
+@freezed
+abstract class GoalPathVm with _$GoalPathVm {
+  const factory GoalPathVm({
+    required String startingCapitalAssumptionText,
+    required String basisText,
+    required String backtestBasisText,
+    required String honestExpectationWorstText,
+    required List<GoalPathPoint> points,
+    required AsOf asOf,
+  }) = _GoalPathVm;
+
+  factory GoalPathVm.fromJson(Map<String, dynamic> json) =>
+      _$GoalPathVmFromJson(json);
+}
+
+/// ⚠️ **M2-8 미확정** — F-15 가 `List<GoalPathPoint>` 라는 **이름만** 확정했고
+/// 필드 축은 문서에 없다(03 §14 의 `PathPointVm` 도 필드가 비어 있다).
+/// 아래는 `PerfPoint`(§2-4)와 같은 모양으로 둔 **임시 최소 축**이다 —
+/// 🔴 계획선·실제선의 구분은 `seriesCode`(엔진 코드)로 오며 화면이 두 목록을
+///    합치거나 차액을 계산하지 않는다.
+@freezed
+abstract class GoalPathPoint with _$GoalPathPoint {
+  const factory GoalPathPoint({
+    @TradeDateConverter() required TradeDate date,
+
+    /// 엔진이 준 계열 코드(계획/실제) — 화면이 문자열을 짓지 않는다.
+    required String seriesCode,
+
+    /// 🔴 그래프 기하 전용. 표시는 `valueText` 다.
+    required double normalized,
+    required String valueText,
+  }) = _GoalPathPoint;
+
+  factory GoalPathPoint.fromJson(Map<String, dynamic> json) =>
+      _$GoalPathPointFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/plan.dart`
+
+```dart
+// 01 §2-6 — 미리보기 계획 스냅샷(M3·M7 요구 4 · Q-F)와 그 값 객체들.
+//
+// 🔴 **월 추가 납입 운영값을 화면·계약·픽스처에 상수로 적지 않는다**(01 §2-6 ·
+//    C-32). 읽기 창구는 `ConfigRepository.watchContributionSetting()` 하나이고
+//    변경 창구는 `SettingsActions`(운영 등급)다.
+// 🔴 `fundingSteps` 가 null·빈 목록이면 화면은 그 절을 **통째로 숨긴다** —
+//    0건을 「0원」으로 그리지 않는다(01 §2-6 v2.32 `PENSION_FUNDING`).
+import 'package:decimal/decimal.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/journal.dart';
+import '../enums/order.dart';
+import '../enums/sleeve.dart';
+import '../primitives/money.dart';
+import 'common.dart';
+import 'performance.dart';
+import 'rebalance.dart';
+
+part 'plan.freezed.dart';
+part 'plan.g.dart';
+
+/// 01 §2-6 — 입금 미리보기 계획.
+/// 🔴 `expiresAt` 이 지난 계획으로는 실입금 등록이 거부된다(`plan_snapshot`).
+@freezed
+abstract class DepositPlan with _$DepositPlan {
+  const factory DepositPlan({
+    /// 🔴 실입금 등록 시 바인딩(계획 대비 실제 대조).
+    required String planId,
+    required DateTime computedAt,
+    @TradeDateConverter() required TradeDate asOfTradeDate,
+    required DateTime expiresAt,
+    required String configHash,
+    @DecimalStringConverter() required Decimal depositAmount,
+
+    /// 슬리브별 충당액 — m2-8 F-11.
+    required List<SleeveAllocation> allocations,
+    @DecimalStringConverter() required Decimal pensionLimitConsumed,
+
+    /// D2 = 원화 현금 대기(결정 7b). 🔴 유휴 자금이 아니다.
+    @DecimalStringConverter() required Decimal residualKrwCash,
+    required List<OrderDraft> orderDrafts,
+    required CostEstimate costs,
+
+    /// "미리보기입니다" — 엔진 생성.
+    required String previewNotice,
+
+    /// 🆕 v2.32 연금 납입 조달 단계(§3-6 `PENSION_FUNDING`).
+    /// 🔴 null·빈 목록 = 절을 통째로 숨긴다.
+    List<FundingStep>? fundingSteps,
+  }) = _DepositPlan;
+
+  factory DepositPlan.fromJson(Map<String, dynamic> json) =>
+      _$DepositPlanFromJson(json);
+}
+
+/// 01 §2-6 — 주문 초안 1행.
+@freezed
+abstract class OrderDraft with _$OrderDraft {
+  const factory OrderDraft({
+    required String symbol,
+    required String symbolLabel,
+    required SleeveId sleeve,
+
+    /// 🔴 계좌 전체번호 금지 — 별칭만.
+    required String accountAlias,
+    required OrderSide side,
+    required int quantity,
+    required List<ReasonChip> reasons,
+    @DecimalStringConverter() Decimal? limitPrice,
+  }) = _OrderDraft;
+
+  factory OrderDraft.fromJson(Map<String, dynamic> json) =>
+      _$OrderDraftFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-11 — 플래너 충당액 1행.
+/// 🔴 `SleeveAllocationRow`(배분 현황 행 · `rebalance.dart`)와 **다른 타입**이다.
+@freezed
+abstract class SleeveAllocation with _$SleeveAllocation {
+  const factory SleeveAllocation({
+    required SleeveId sleeve,
+    required String label,
+    @DecimalStringConverter() required Decimal amount,
+
+    /// 🔴 표시의 정본 — 화면이 금액을 포맷하지 않는다.
+    required String amountText,
+    String? accountAlias,
+  }) = _SleeveAllocation;
+
+  factory SleeveAllocation.fromJson(Map<String, dynamic> json) =>
+      _$SleeveAllocationFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-12 — 비용 추정(C18).
+/// 🔴 구 `costsOverridden`(bool)은 폐기됐고 출처는 `CostSource` 가 말한다.
+@freezed
+abstract class CostEstimate with _$CostEstimate {
+  const factory CostEstimate({
+    @DecimalStringConverter() required Decimal commission,
+    @DecimalStringConverter() required Decimal tax,
+    @DecimalStringConverter() required Decimal total,
+    required String totalText,
+    required CostSource source,
+    required String sourceLabel,
+    required String basisNote,
+  }) = _CostEstimate;
+
+  factory CostEstimate.fromJson(Map<String, dynamic> json) =>
+      _$CostEstimateFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 C-3 — 연금 납입 조달 1단계(SPEC v2.32 · 03 §5-5b).
+/// C 원화현금이 부족할 때 «무엇을 얼마나 팔아 납입했는지»를 순서대로 담는다.
+@freezed
+abstract class FundingStep with _$FundingStep {
+  const factory FundingStep({
+    /// 🔴 실행 순서. 화면이 정렬 키를 만들지 않는다.
+    required int order,
+    required SleeveId sourceSleeve,
+    required int quantity,
+    @DecimalStringConverter() required Decimal expectedProceeds,
+
+    /// 근거 규칙 코드 — 🔴 엔진 제공 목록의 값이며 자유 입력이 아니다.
+    required String ruleCited,
+
+    /// 엔진 생성 한 줄.
+    required String label,
+    String? symbol,
+    String? symbolLabel,
+  }) = _FundingStep;
+
+  factory FundingStep.fromJson(Map<String, dynamic> json) =>
+      _$FundingStepFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-13 — 인출 미리보기(`DepositPlan` 대칭).
+@freezed
+abstract class WithdrawalPlan with _$WithdrawalPlan {
+  const factory WithdrawalPlan({
+    required String planId,
+    required DateTime computedAt,
+    required DateTime expiresAt,
+    @DecimalStringConverter() required Decimal amount,
+    required List<OrderDraft> orderDrafts,
+    required CostEstimate costs,
+    required String previewNotice,
+    required String configHash,
+
+    /// 🔴 세후는 층이다 — 단일 스칼라 필드를 만들지 않는다(§2-4).
+    AfterTaxLadder? afterTax,
+  }) = _WithdrawalPlan;
+
+  factory WithdrawalPlan.fromJson(Map<String, dynamic> json) =>
+      _$WithdrawalPlanFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 F-14 — 리밸런싱 미리보기.
+/// 🔴 `DepositPlan` 과 **같은** `fundingSteps` 를 싣는다(v2.32).
+@freezed
+abstract class RebalancePreview with _$RebalancePreview {
+  const factory RebalancePreview({
+    required String planId,
+    @TradeDateConverter() required TradeDate plannedDate,
+    required List<SleeveWeight> before,
+    required List<SleeveWeight> after,
+    required List<OrderDraft> orderDrafts,
+    required CostEstimate costs,
+    required String previewNotice,
+
+    /// 🔴 null·빈 목록 = 조달 절을 통째로 숨긴다.
+    List<FundingStep>? fundingSteps,
+  }) = _RebalancePreview;
+
+  factory RebalancePreview.fromJson(Map<String, dynamic> json) =>
+      _$RebalancePreviewFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/rebalance.dart`
+
+```dart
+// 01 §2-5 — 리밸런싱(M7 요구 5) · §2-6 배분 현황 행(P 회차) · 다음 회차 예고.
+//
+// 🔴 `SleeveWeight.basis` 는 `accounting` 외 값을 갖지 않는다(01 §2-5). 엔진 원장
+//    열의 값은 `SleeveAllocationRow.engineColumnNote`(문자열)로만 흐르며, 두 기준을
+//    한 표에 섞어 합계 100% 를 만들지 않는다 — C-31 이 basis 혼합과 `A + POT`
+//    산술을 탐지한다.
+// 🔴 P 회차 실측 수치(엔진 열 vs 회계 열)를 코드·주석에 상수로 옮기지 않는다.
+import 'package:decimal/decimal.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/mode.dart';
+import '../enums/rebalance.dart';
+import '../enums/sleeve.dart';
+import '../primitives/as_of.dart';
+import '../primitives/money.dart';
+
+part 'rebalance.freezed.dart';
+part 'rebalance.g.dart';
+
+/// 01 §2-5 — 리밸런싱 1회차.
+@freezed
+abstract class RebalanceEvent with _$RebalanceEvent {
+  const factory RebalanceEvent({
+    required String eventId,
+    required RunMode mode,
+    @TradeDateConverter() required TradeDate tradeDate,
+    required RebalanceKind kind,
+
+    /// 엔진 생성.
+    required String kindLabel,
+    required List<SleeveWeight> before,
+    required List<SleeveWeight> after,
+
+    /// 당시 국면·신호 원값·밴드 여유.
+    required TriggerSnapshot trigger,
+    required List<String> orderIntentIds,
+    required AsOf asOf,
+
+    /// 실측 슬리피지 vs 가정치·미체결률 — m2-8 F-10.
+    ExecutionQuality? quality,
+  }) = _RebalanceEvent;
+
+  factory RebalanceEvent.fromJson(Map<String, dynamic> json) =>
+      _$RebalanceEventFromJson(json);
+}
+
+/// 01 §2-5 — 슬리브 비중 1행. 홈의 «목표 대비 편차·밴드 여유»가 이 타입이다.
+/// 🔴 `basis` 는 M2-2 배치 전까지 **nullable** 이며 null = 미표기 →
+///    목표·밴드와 비교하지 않는다. 승격은 M2 하나가 하며, 올리면 이 타입을
+///    싣는 모든 픽스처·C-1 골든이 동시에 깨진다(01 §2-5).
+@freezed
+abstract class SleeveWeight with _$SleeveWeight {
+  const factory SleeveWeight({
+    required SleeveId sleeve,
+    required double weight,
+    required double targetWeight,
+    required double bandLow,
+    required double bandHigh,
+
+    /// "B 42.0% (목표 42.0%, 밴드 여유 1.8%p)" — 엔진 생성.
+    required String label,
+
+    /// 🆕 P 회차 — 기준 축. 🔴 `accounting` 외 값을 갖지 않는다.
+    AllocationBasis? basis,
+  }) = _SleeveWeight;
+
+  factory SleeveWeight.fromJson(Map<String, dynamic> json) =>
+      _$SleeveWeightFromJson(json);
+}
+
+/// 01 §2-5 — 판정 근거 스냅샷. 🔴 수치는 전부 엔진이 포맷한 문자열이다.
+@freezed
+abstract class TriggerSnapshot with _$TriggerSnapshot {
+  const factory TriggerSnapshot({
+    required String configHash,
+
+    /// 지표명 → 엔진 포맷 문자열. 계절 게이트 키는 `trend_score_kr`.
+    required Map<String, String> rawValues,
+
+    /// 엔진 생성 한 줄.
+    required String summary,
+    @DecimalStringConverter() Decimal? triggerPrice,
+
+    /// 🔴 사전 등록 임계값 — 사후 변경 감사용.
+    double? thresholdRegistered,
+  }) = _TriggerSnapshot;
+
+  factory TriggerSnapshot.fromJson(Map<String, dynamic> json) =>
+      _$TriggerSnapshotFromJson(json);
+}
+
+/// 01 §2-5 · m2-8 F-10 — 실행 품질. 🔴 실측 vs 가정치 비교 문장도 엔진이 만든다.
+@freezed
+abstract class ExecutionQuality with _$ExecutionQuality {
+  const factory ExecutionQuality({
+    required String slippageText,
+    required String assumedSlippageText,
+    required String unfilledRateText,
+    required String summary,
+  }) = _ExecutionQuality;
+
+  factory ExecutionQuality.fromJson(Map<String, dynamic> json) =>
+      _$ExecutionQualityFromJson(json);
+}
+
+/// 01 §2-6 · m2-8 C-7 · E-7 — 배분 현황 1행(`H-1`·`H-3`).
+/// 🔴 `SleeveWeight`·`AllocationBasis` 와 **같은 파일**에 둔다 — C-31 이 한
+///    트리에서 basis 혼합을 검사할 수 있어야 한다(E-7).
+/// 🔴 `SleeveAllocation`(플래너 충당액 · `plan.dart`)과 **다른 타입**이다.
+@freezed
+abstract class SleeveAllocationRow with _$SleeveAllocationRow {
+  const factory SleeveAllocationRow({
+    required SleeveId sleeve,
+    required AllocationBasis basis,
+
+    /// 투입분 금액 문자열 — 🔴 홈으로 새면 04 §2-6 금지에 걸린다.
+    required String deployedText,
+    required String parkingText,
+
+    /// 🔴 막대 세그먼트 **기하 전용**. 여집합 `1 − x` 를 화면이 계산하지 않도록
+    ///    두 값을 모두 준다.
+    required double deployedRatio,
+    required double parkingRatio,
+    required String trancheStateText,
+
+    /// 🔴 홈 재사용은 **비중(%) 전용 필드**로만 한다(금액 문자열 금지).
+    required String deployedPctText,
+    required String parkingPctText,
+
+    /// POT → A 의 하위 행(회계 소속 · 03 §2-9-3).
+    SleeveId? parentSleeve,
+
+    /// 엔진 원장 열 값의 유일한 출구 — 🔴 문자열이며 비교·합산하지 않는다.
+    String? engineColumnNote,
+    String? parkingNoteText,
+  }) = _SleeveAllocationRow;
+
+  factory SleeveAllocationRow.fromJson(Map<String, dynamic> json) =>
+      _$SleeveAllocationRowFromJson(json);
+}
+
+/// 01 §4-1 · m2-8 F-5 — 다음 회차 예고(`S7-6c`·`H-02`).
+/// 🔴 리포지토리 반환은 **nullable 이 아니다**(N-4) — 「예정 없음」도 값으로 오며
+///    그때 `emptyLabel` 이 non-null 이면 카운트다운 카드를 그리지 않고 이 문장만
+///    그린다(계약 3조 ③).
+/// 🔴 `dDayText`·`expectedDateText` 는 엔진 생성 문자열이다 — 화면이 날짜를 빼지
+///    않는다.
+@freezed
+abstract class NextRebalanceVm with _$NextRebalanceVm {
+  const factory NextRebalanceVm({
+    required String expectedDateText,
+    required String dDayText,
+    String? emptyLabel,
+    RebalanceKind? expectedKind,
+    String? kindLabel,
+    String? previewRoute,
+    String? noticeText,
+  }) = _NextRebalanceVm;
+
+  factory NextRebalanceVm.fromJson(Map<String, dynamic> json) =>
+      _$NextRebalanceVmFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/resume.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/resume.dart
+//
+// 01 §2-7 «PlannedWorkSummary · ResumeReport — X2 재개» + m2-8 D-4·D-5·D-6
+// · 인벤토리 §3-4 · §3-14(영역 B).
+//
+// 🔴 재개 리포트는 **M5 소유 화면**이다(안전·마찰) — 다른 AI 는 이 DTO 를 읽을 수는
+//    있으나 원본 화면을 렌더하지 않는다(01 §2-10 소유 표 · §7 C-7).
+// 🔴 **손익 필드 없음**(청사진 X2 화면 · 결정 8).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/resume.dart';
+import '../primitives/money.dart';
+
+part 'resume.freezed.dart';
+part 'resume.g.dart';
+
+/// Supabase 미러 목록 1행(01 §2-7).
+///
+/// 🔴 계획 **원문이 아니라** digest + 한 줄 요약뿐이다(X2 원칙 ②).
+@freezed
+abstract class PlannedWorkSummary with _$PlannedWorkSummary {
+  const factory PlannedWorkSummary({
+    required String workId,
+
+    /// sha256 앞 12자
+    required String digest,
+
+    /// "10월말 슬리브 A 진입 게이트 판정" — 엔진 생성
+    required String oneLine,
+    @TradeDateConverter() required TradeDate dueBy,
+    required PlannedWorkState state,
+    required String stateLabel,
+    required int rowVersion,
+    required int leaseEpoch,
+  }) = _PlannedWorkSummary;
+
+  factory PlannedWorkSummary.fromJson(Map<String, dynamic> json) =>
+      _$PlannedWorkSummaryFromJson(json);
+}
+
+/// 재개 리포트(01 §2-7).
+///
+/// 🔴 손익 필드 없음. 🔴 «램프»라는 낱말은 접두 없이 쓰지 않는다
+///    («운영 램프» / «초기 진입» — 01 §2-6 말미 · M2-3 추가 검사).
+@freezed
+abstract class ResumeReport with _$ResumeReport {
+  const factory ResumeReport({
+    required String resumeRunId,
+    required DateTime startedAt,
+    DateTime? finishedAt,
+    required int gapTradingDays,
+    required ResumeMode mode,
+
+    /// "7거래일 미실행 — RECOVERY_DRY" — 엔진 생성
+    required String modeLabel,
+    required ResumePhase phase,
+
+    /// 실행/만료/대체/차단/복구불가
+    required ResumeCounts counts,
+
+    /// 항목별 계획 vs 재판정 vs 사유
+    required List<ResumeItem> items,
+    required List<DataGapRow> unrecoverableGaps,
+
+    /// "7거래일 미실행: 실행 4 / 만료 3 / 대체 2 / 차단 1 / 복구 불가 2" — 엔진 생성
+    required String headline,
+  }) = _ResumeReport;
+
+  factory ResumeReport.fromJson(Map<String, dynamic> json) =>
+      _$ResumeReportFromJson(json);
+}
+
+/// 재개 집계 — `resume_run.counts` JSON 키 그대로(01 §6-3 · m2-8 D-4).
+///
+/// 🔴 화면이 합계를 만들지 않는다 — 표시 문장은 `ResumeReport.headline` 이다.
+@freezed
+abstract class ResumeCounts with _$ResumeCounts {
+  const factory ResumeCounts({
+    required int executed,
+    required int expired,
+    required int superseded,
+    required int blocked,
+    required int unrecoverable,
+  }) = _ResumeCounts;
+
+  factory ResumeCounts.fromJson(Map<String, dynamic> json) =>
+      _$ResumeCountsFromJson(json);
+}
+
+/// 재개 항목 1행 — 계획 vs 재판정 vs 사유(01 §2-7 · m2-8 D-5).
+///
+/// `verdictCode` 5종은 영역 E 의 `labels/verdict_codes.dart` 가 정본이다(01 §3-3).
+@freezed
+abstract class ResumeItem with _$ResumeItem {
+  const factory ResumeItem({
+    required String workId,
+    required String oneLine,
+
+    /// 계획 시점의 한 줄 — 엔진 생성
+    required String plannedLine,
+
+    /// 재판정 결과의 한 줄 — 엔진 생성
+    required String reevaluatedLine,
+    required String verdictCode,
+    required String verdictLabel,
+  }) = _ResumeItem;
+
+  factory ResumeItem.fromJson(Map<String, dynamic> json) =>
+      _$ResumeItemFromJson(json);
+}
+
+/// 복구 불가 데이터 공백 1행 — `data_gap` 표 컬럼 1:1 + `label`(m2-8 D-6).
+@freezed
+abstract class DataGapRow with _$DataGapRow {
+  const factory DataGapRow({
+    required String gapId,
+    required String dataset,
+    @TradeDateConverter() required TradeDate from,
+    @TradeDateConverter() required TradeDate to,
+    required bool recoverable,
+    required String reasonCode,
+
+    /// "2026-08-24~08-28 일봉 없음 — 복구 불가" — 엔진 생성
+    required String label,
+  }) = _DataGapRow;
+
+  factory DataGapRow.fromJson(Map<String, dynamic> json) =>
+      _$DataGapRowFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/safety.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/safety.dart
+//
+// 01 §2-10 «AlertItem · SafetyState · OnboardingStep» + m2-8 D-1~D-3(`KillSwitchView`·
+// `AckState`·`GaugeProgress`) · C-5(`EntryRampProgress`) · C-6(`RampLevel`)
+// · 인벤토리 §3-7 · §3-14(영역 B).
+//
+// 🔴 소유 경계는 «타입»이 아니라 «무엇을 그리는가»다(01 §2-10 표) — 상태 표시는 허용,
+//    **상태를 바꾸는 경로를 만드는 것은 금지**다. §7 C-7 이 그 표대로 검사한다.
+// 🔴 신뢰 시각(킬스위치 48h·냉각 30일)은 **Supabase 서버 시각**이다 — 로컬 시계로
+//    카운트다운을 만들지 말고 `releaseProgress` 를 그대로 표시한다(01 §1-3).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/mode.dart';
+import '../enums/onboarding.dart';
+import '../enums/safety.dart';
+import '../enums/sleeve.dart';
+import '../primitives/as_of.dart';
+import '../primitives/money.dart';
+
+part 'safety.freezed.dart';
+part 'safety.g.dart';
+
+/// 운영 램프 단계 — **OpsRamp** L0~L5(03_실행 §9 자금 투입 단계 · `ramp_state` 단일 행).
+///
+/// 🔴 전략 §12-⑫ 의 **EntryRamp**(초기 진입 6개월 분할)와 **다른 것**이다
+///    (01 §2-6 말미 · m2-8 C-6) — 하나의 «램프 진행» 위젯으로 합치지 않는다.
+/// ⚠️ 인벤토리 §2 열거형 52종 표에는 이 이름이 없고 §3-14 가 이 파일(영역 B)로
+///    배정했다 — 영역 A 가 `enums/` 에 같은 이름을 만들면 통합 단계에서 한쪽을 지운다.
+enum RampLevel {
+  @JsonValue('L0')
+  l0,
+  @JsonValue('L1')
+  l1,
+  @JsonValue('L2')
+  l2,
+  @JsonValue('L3')
+  l3,
+  @JsonValue('L4')
+  l4,
+  @JsonValue('L5')
+  l5,
+}
+
+/// 알림 1건(01 §2-10).
+///
+/// 🔴 **손익 필드 없음**(결정 8).
+/// 🔴 `level` 의 표시 계층 사적 재분류 금지(결정 7c).
+/// 🔴 `bodyText`(무슨 일인가)와 `actionLine`(지금 할 일)은 **분리**돼야
+///    「조치가 다르면 다르게 말한다」가 지켜진다(04 §5-3).
+@freezed
+abstract class AlertItem with _$AlertItem {
+  const factory AlertItem({
+    required String alertId,
+    required AlertLevel level,
+    required DateTime raisedAt,
+
+    /// 'SAF-407' · 'RESUME_INCOMPLETE' · 'WATCHDOG_LATE'
+    /// (코드 목록은 영역 E 의 `labels/alert_codes.dart` 가 정본)
+    required String code,
+    required String title,
+
+    /// 「무슨 일인가」 문단 — 엔진 생성
+    required String bodyText,
+
+    /// 「지금 할 일」 한 줄 — 조치가 같으면 엔진이 이미 묶었다
+    required String actionLine,
+    required int groupedCount,
+    String? deepLink,
+
+    /// P0 수신 확인 사다리 ⚠️ 쓰기 경로 미결(01 §8-10 · m2-8 J-3)
+    AckState? ack,
+  }) = _AlertItem;
+
+  factory AlertItem.fromJson(Map<String, dynamic> json) =>
+      _$AlertItemFromJson(json);
+}
+
+/// P0 수신 확인 상태(m2-8 D-2).
+///
+/// ⚠️ 쓰기 경로(`alertAck` 명령의 뷰어 허용 여부)는 01 §8-10 미결이다 —
+///    m2-8 J-3 권고는 «허용하지 않는다»(현행 viewer 4종 화이트리스트 유지).
+/// 🔴 ack 는 `SafetyState` 에 아무 효력이 없다(A5 — P0 승급 사다리 정지만).
+@freezed
+abstract class AckState with _$AckState {
+  const factory AckState({
+    required bool acked,
+    DateTime? ackedAt,
+    required String stateLabel,
+    required int escalationStep,
+  }) = _AckState;
+
+  factory AckState.fromJson(Map<String, dynamic> json) =>
+      _$AckStateFromJson(json);
+}
+
+/// 안전 상태(01 §2-10).
+///
+/// 🔴 **읽기 전용**이다 — 화면은 상태를 바꾸지 않는다. 킬스위치 «발동»만 01 §4-2 명령 API 다.
+/// 🔴 `killSwitch`·`releaseProgress`·`stoppedReleaseEligible` **판정 UI** 는 M5 소유다.
+@freezed
+abstract class SafetyState with _$SafetyState {
+  const factory SafetyState({
+    required BreakerLevel breakerLevel,
+    required String breakerLabel,
+    required double drawdown,
+    required List<BlockFlag> activeFlags,
+    required KillSwitchView killSwitch,
+
+    /// v2.29 STOPPED_RELEASE_ELIGIBLE
+    required bool stoppedReleaseEligible,
+
+    /// 48h 카운트다운 · dd 회복 잔여 · BULL 연속일
+    required List<GaugeProgress> releaseProgress,
+
+    /// v2.30 — 🔵 v2.31 대상 없음(문구는 엔진 판단)
+    required bool alertBlockSatEntry,
+
+    /// 🔵 OpsRamp(L0~L5) — 초기 진입 분할(EntryRamp)이 아니다(01 §2-6)
+    required RampLevel rampLevel,
+    required RunMode mode,
+    required AsOf asOf,
+  }) = _SafetyState;
+
+  factory SafetyState.fromJson(Map<String, dynamic> json) =>
+      _$SafetyStateFromJson(json);
+}
+
+/// 킬스위치 상태(m2-8 D-1).
+///
+/// 🔒 **M5 만 렌더**한다(결정 6). 🔴 «해제» 필드·버튼을 만들지 않는다 —
+///    킬스위치 해제 명령은 계약에 존재하지 않는다(01 §4-2).
+@freezed
+abstract class KillSwitchView with _$KillSwitchView {
+  const factory KillSwitchView({
+    required bool active,
+    required String stateLabel,
+    DateTime? activatedAt,
+
+    /// 🔴 기기 별칭 — 기기 식별자 원문을 화면에 싣지 않는다
+    String? activatedByDeviceLabel,
+    String? checklistStateLabel,
+
+    /// "해제 가능 예정 09-10 14:00" — 엔진 생성(신뢰 시각 기준)
+    String? releaseEtaText,
+  }) = _KillSwitchView;
+
+  factory KillSwitchView.fromJson(Map<String, dynamic> json) =>
+      _$KillSwitchViewFromJson(json);
+}
+
+/// 진행 게이지 1칸(m2-8 D-3).
+///
+/// 🔴 `normalized` 는 **게이지 폭 전용**이고 표시는 `valueText` 다
+///    (§2-11 `complianceRateNormalized` 와 같은 형식).
+@freezed
+abstract class GaugeProgress with _$GaugeProgress {
+  const factory GaugeProgress({
+    required String code,
+    required String label,
+
+    /// 0.0~1.0
+    required double normalized,
+    required String valueText,
+  }) = _GaugeProgress;
+
+  factory GaugeProgress.fromJson(Map<String, dynamic> json) =>
+      _$GaugeProgressFromJson(json);
+}
+
+/// 차단 플래그 1건(01 §2-10).
+///
+/// 🔴 `clearInstruction` 은 **플래그마다 다른 문구**다(경보 피로 규칙) —
+///    화면이 하나의 문장으로 뭉치지 않는다.
+@freezed
+abstract class BlockFlag with _$BlockFlag {
+  const factory BlockFlag({
+    /// 01 §3-5 의 12종 — 정본은 영역 E 의 `labels/flag_ids.dart`
+    required String flagId,
+    required String label,
+    required DateTime setAt,
+    required ClearRoute clearRoute,
+    required String clearInstruction,
+    String? originCode,
+  }) = _BlockFlag;
+
+  factory BlockFlag.fromJson(Map<String, dynamic> json) =>
+      _$BlockFlagFromJson(json);
+}
+
+/// 온보딩 단계 1행 — X3(01 §2-10).
+///
+/// 🔴 화면이 `Duration` 을 포맷하지 않는다(01 §1-3) — 표시는 `estimatedText` 다.
+@freezed
+abstract class OnboardingStep with _$OnboardingStep {
+  const factory OnboardingStep({
+    required String stepId,
+    required OnboardingTrack track,
+    required int order,
+    required String title,
+
+    /// 왜 필요한가 — 엔진 생성
+    required String whyLine,
+    String? whereDeepLink,
+
+    /// 정렬·집계용. JSON 키는 `*_seconds`(01 §1-2 `DurationSecondsConverter`)
+    @JsonKey(name: 'estimated_seconds')
+    @DurationSecondsConverter()
+    required Duration estimated,
+
+    /// "약 20분" — 엔진 생성
+    required String estimatedText,
+    required StepRequirement requirement,
+    required StepState state,
+
+    /// "KIS 토큰 발급 + 잔고 조회 1회" — 엔진 생성
+    String? verificationLabel,
+
+    /// 검증 유효기간(KIS 접근토큰 24h · PAT 만료일 등)
+    DateTime? verifiedUntil,
+    String? failureReasonCode,
+  }) = _OnboardingStep;
+
+  factory OnboardingStep.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingStepFromJson(json);
+}
+
+/// 초기 진입 램프(**EntryRamp**) 진행 — 슬리브별 상태 목록(m2-8 C-5).
+///
+/// 🔴 «n/6» **단일 게이지가 아니다** — A(계절 캘린더)·C(첫 달 즉시 배분)에 n/6 을
+///    그리면 거짓 진행률이다(01 §2-6 말미).
+/// 🔴 `RampLevel`(OpsRamp)과 하나의 위젯으로 합치지 않는다.
+/// ⚠️ 파일 배정 주의 — 인벤토리 §3-14 «공통·안전» 행은 이 타입을 영역 B 로 두면서도
+///    «앞 4 = safety.dart · 뒤 3 = resume.dart» 로만 갈라 이 타입의 파일을 남겨 두지
+///    않았다. 이름·필드는 m2-8 C-5 확정본 그대로이고 **파일만 잠정**이다.
+@freezed
+abstract class EntryRampProgress with _$EntryRampProgress {
+  const factory EntryRampProgress({
+    required List<EntryRampSleeveState> sleeves,
+  }) = _EntryRampProgress;
+
+  factory EntryRampProgress.fromJson(Map<String, dynamic> json) =>
+      _$EntryRampProgressFromJson(json);
+}
+
+/// 초기 진입 램프의 슬리브 1행(m2-8 C-5).
+///
+/// `stateCode` ∈ {`MONTHLY_SPLIT`, `COMPLETED_IMMEDIATELY`, `AWAITING_SEASONAL_GATE`}.
+/// 🔴 조기 종료 여부는 엔진이 판정해 `stepLabel` 로 준다 — 화면이 한도 소진을 계산하지 않는다.
+@freezed
+abstract class EntryRampSleeveState with _$EntryRampSleeveState {
+  const factory EntryRampSleeveState({
+    required SleeveId sleeve,
+    required String stateCode,
+    required String stepLabel,
+  }) = _EntryRampSleeveState;
+
+  factory EntryRampSleeveState.fromJson(Map<String, dynamic> json) =>
+      _$EntryRampSleeveStateFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/settings.dart`
+
+```dart
+// 01 §4-1(G-07) · §2-6 — M9 설정 뷰모델과 월 납입 운영값.
+//
+// 🔴 **월 추가 납입 운영값을 코드·라벨·픽스처에 상수로 적지 않는다**(C-32).
+//    읽기 창구는 `ConfigRepository.watchContributionSetting()` **하나**이고 변경
+//    창구는 `SettingsActions`(운영 등급 · `settingsContributionUpdate` ⏸)다.
+// 🔴 화면이 `금액 × 12` 를 계산하지 않는다 — 한도 판정은 엔진 단일 소스다.
+// 🔴 **최소·최대·0 허용 여부를 필드로 내려보내지 않는다** — 범위 판정은 저장
+//    명령의 `ActionResult.headline`·`reasonCode` 로만 돌아온다(그래야 「저장 버튼
+//    비활성」이라는 **화면의 판정**이 생기지 않는다).
+import 'package:decimal/decimal.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/advice.dart';
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import '../primitives/converters.dart';
+
+part 'settings.freezed.dart';
+part 'settings.g.dart';
+
+/// 01 §4-1 G-07 — 월 납입 운영 파라미터의 읽기 창구가 내려주는 값.
+/// 🔴 `amount`·`amountText` 는 «지금 유효한 값»이다(N-S4-01) — 접수됐으나 아직
+///    시작되지 않은 변경은 `appliesFromText` 가 **문장으로만** 알린다. 예정 금액을
+///    `amount` 에 넣지 않는다.
+/// 🔴 `amount` 는 플래너 스텝 ①의 **초기값 전용**이고 화면이 이 값으로 어떤 계산도
+///    하지 않는다.
+@freezed
+abstract class ContributionSetting with _$ContributionSetting {
+  const factory ContributionSetting({
+    @DecimalStringConverter() required Decimal amount,
+
+    /// 표시 문자열 — 엔진 생성.
+    required String amountText,
+
+    /// 12%-등가 참고 + 「충족/부족」 한 줄 — 엔진 생성.
+    required String equivalentNoteText,
+
+    /// 「다음 납입 주기」 문구 — 엔진 생성(§2-6 `contribution_day` 규칙).
+    required String appliesFromText,
+
+    /// 「최근 변경: …」 한 줄 — 엔진 생성(G-101).
+    required String lastChangedText,
+    required AsOf asOf,
+
+    /// 연 한도·세액공제 구간과의 관계 한 줄 — 엔진 생성(G-102).
+    /// 🔴 null 이면 화면이 이 줄을 **그리지 않는다**.
+    String? pensionLimitNoteText,
+  }) = _ContributionSetting;
+
+  factory ContributionSetting.fromJson(Map<String, dynamic> json) =>
+      _$ContributionSettingFromJson(json);
+}
+
+/// m2-8 G-11 — 05 `S05` 월 납입 운영값 카드.
+/// 🔴 `ContributionSetting` 의 **1:1 투영**이며 `editable` 하나만 런타임 값이다
+///    (`SettingsActions` 주입 여부 — 뷰어에서는 false 가 아니라 **카드 부재**).
+/// 🔴 **필드를 이어 붙여 문장을 만들지 않는다.** 투영을 늘리는 것은 허용된다
+///    (엔진 문자열 필드가 늘면 여기도 **같은 이름으로** 는다 · N-S4-03).
+/// 🔴 03 §10 `S7-3b` 의 `ContributionVm`(슬리브 기여 분해)과 **다른 타입**이며
+///    이름을 재사용하지 않는다(N-01).
+@freezed
+abstract class MonthlyContributionVm with _$MonthlyContributionVm {
+  const factory MonthlyContributionVm({
+    required String amountText,
+    required String equivalentNoteText,
+    required String appliesFromText,
+    required String lastChangedText,
+    required bool editable,
+    String? pensionLimitNoteText,
+  }) = _MonthlyContributionVm;
+
+  factory MonthlyContributionVm.fromJson(Map<String, dynamic> json) =>
+      _$MonthlyContributionVmFromJson(json);
+}
+
+/// m2-8 G-5 — 설정 홈(05 `S01`).
+@freezed
+abstract class SettingsHomeVm with _$SettingsHomeVm {
+  const factory SettingsHomeVm({required List<SettingsCard> cards}) =
+      _SettingsHomeVm;
+
+  factory SettingsHomeVm.fromJson(Map<String, dynamic> json) =>
+      _$SettingsHomeVmFromJson(json);
+}
+
+/// m2-8 G-5 — 설정 카드 1장.
+/// 🔴 `actionAvailable == false` 는 «비활성»이 아니라 **카드 부재**로 그린다.
+@freezed
+abstract class SettingsCard with _$SettingsCard {
+  const factory SettingsCard({
+    required String code,
+    required String title,
+
+    /// 🔴 색의 근거. 값의 부호로 고르지 않는다.
+    required UiLevel level,
+    required bool actionAvailable,
+    String? statusLabel,
+    String? route,
+  }) = _SettingsCard;
+
+  factory SettingsCard.fromJson(Map<String, dynamic> json) =>
+      _$SettingsCardFromJson(json);
+}
+
+/// m2-8 G-6 — 증권사 키 관리(05 `S02`).
+/// 🔴 값은 어떤 필드로도 오지 않는다 — `credential_registry` 는 별칭·상태만 싣는다.
+@freezed
+abstract class CredentialListVm with _$CredentialListVm {
+  const factory CredentialListVm({required List<CredentialCardVm> cards}) =
+      _CredentialListVm;
+
+  factory CredentialListVm.fromJson(Map<String, dynamic> json) =>
+      _$CredentialListVmFromJson(json);
+}
+
+/// m2-8 G-6 — 키 카드 1장. `kind` 에는 X7 의 `KIS_RECONCILE` 이 포함된다.
+/// 🔴 `CredentialUse` 는 브로커 속성이 아니라 **앱 측 런타임 봉인 선언**이다.
+@freezed
+abstract class CredentialCardVm with _$CredentialCardVm {
+  const factory CredentialCardVm({
+    required String alias,
+    required String kind,
+    required String kindLabel,
+    required String healthCode,
+    required String healthLabel,
+    required CredentialUse usage,
+    required String usageLabel,
+
+    /// 만료 고지 — 엔진 생성. 🔴 화면이 남은 일수를 세지 않는다.
+    String? expiresText,
+  }) = _CredentialCardVm;
+
+  factory CredentialCardVm.fromJson(Map<String, dynamic> json) =>
+      _$CredentialCardVmFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/advice.dart`
+
+```dart
+// 01 §2-1(X7 신규 열거형) · §3-7(계절 진입 게이트) · §4-2 — 안내·기록·전환 축(인벤토리 §2-12).
+//
+// ✅ X7 13종은 `m2-8_naming.md` A-5 로 확정됐다 — 「X7 확정 식별자 목록 ③ 의 이름을 그대로
+//    쓰고 이후 바꾸지 않는다」.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-1 · `advice.status` CHECK — 안내 1건의 생애.
+///
+/// 🔴 terminal 4종(`filled`·`skipped`·`expired`·`superseded`)과 `revoked` 는 **어떤 경로로도
+///    되살아나지 않는다**(X2 원칙 ①과 동형). 전이 이력은 `advice_transition` 에 병행 append.
+/// 🔴 저장값 `status` 는 배지·정렬에 쓰지 않는다 — 화면이 쓰는 유일한 값은
+///    `AdviceItem.effectiveStatus` 다.
+enum AdviceStatus {
+  @JsonValue('OPEN')
+  open('OPEN'),
+  @JsonValue('PARTIAL')
+  partial('PARTIAL'),
+  @JsonValue('FILLED')
+  filled('FILLED'),
+  @JsonValue('SKIPPED')
+  skipped('SKIPPED'),
+  @JsonValue('EXPIRED')
+  expired('EXPIRED'),
+  @JsonValue('SUPERSEDED')
+  superseded('SUPERSEDED'),
+  @JsonValue('REVOKED')
+  revoked('REVOKED');
+
+  const AdviceStatus(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+
+/// 01 §2-1(G-08) · `advice.kind` CHECK.
+///
+/// `decision_log.kind` 와 같은 갈래 + `funding`(v2.32 `PENSION_FUNDING` 조달 단계 · §3-6).
+/// 🔴 `noAction` — «오늘은 아무것도 하지 마십시오»(suppressed)와 «믿을 수 없는 원장의 방어
+///    안내»를 표현하지 못하면 억제된 날의 홈 블록 3b·`J-1` 배지가 통째로 사라지고(C14),
+///    그 침묵이 「엔진이 죽었다」와 구별되지 않는다.
+/// 🔴 이 값이 붙은 행의 NULL 허용 범위는 §6-6 `advice` DDL 조문이 정한다(둘뿐이다).
+enum AdviceKind {
+  @JsonValue('ENTRY')
+  entry('ENTRY'),
+  @JsonValue('EXIT')
+  exit('EXIT'),
+  @JsonValue('REBALANCE')
+  rebalance('REBALANCE'),
+  @JsonValue('DEPOSIT')
+  deposit('DEPOSIT'),
+  @JsonValue('WITHDRAWAL')
+  withdrawal('WITHDRAWAL'),
+  @JsonValue('FUNDING')
+  funding('FUNDING'),
+  @JsonValue('NO_ACTION')
+  noAction('NO_ACTION');
+
+  const AdviceKind(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-1 — 사람이 «건너뜀»을 고를 때의 사유.
+///
+/// 🔴 자유 서술 거부(§3-4 X5 원인 코드 원칙 준용). `other` 를 고르면 1줄이 필수다.
+/// 🔴 «유효기한 방치»는 **여기 없다** — 사람이 고르는 값이 아니라 엔진이 부여하는 전이다.
+/// 🔴 `note` 가 필수인 것은 예산 코드 2종과 `other` 뿐이다(01 §5-4 `AdviceSkip` 조문).
+enum AdviceSkipReason {
+  @JsonValue('PRICE_UNACCEPTABLE')
+  priceUnacceptable('PRICE_UNACCEPTABLE'),
+  @JsonValue('CASH_SHORT')
+  cashShort('CASH_SHORT'),
+  @JsonValue('INTENTIONAL_PAUSE')
+  intentionalPause('INTENTIONAL_PAUSE'),
+  @JsonValue('BROKER_ISSUE')
+  brokerIssue('BROKER_ISSUE'),
+  @JsonValue('MISISSUED')
+  misissued('MISISSUED'),
+  @JsonValue('OTHER')
+  other('OTHER');
+
+  const AdviceSkipReason(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-1(A8) — 버튼 노출·비활성의 **유일한** 근거.
+/// 🔴 화면은 `status`·`onHold`·`suppressed` 를 조합해 버튼을 만들지 않는다(C-18).
+///
+/// ⚠️ 인벤토리 §2-12 는 이 열거형을 «뷰모델 전용 · JSON 표기 없음»(대응 DB 컬럼 없음)으로
+///    적었다. 그래도 `@JsonValue` 를 붙이는 이유는 픽스처가 JSON 이고 「자동 변환 0건」이
+///    규약이기 때문이다(인벤토리 §10-1 영역 A 체크리스트). 🔴 표기는 §1-2 규약대로
+///    SCREAMING_SNAKE 이며 픽스처도 이 표기를 쓴다.
+/// ✅ `deferConfirm` 흡수 여부는 `m2-8_naming.md` A-16 이 **3값 유지**로 확정했다 —
+///    「내일 다시」는 `AdviceItem.deferAvailable`(bool) 필드로 남는다.
+enum AdviceActionId {
+  @JsonValue('RECORD')
+  record('RECORD'),
+  @JsonValue('SKIP')
+  skip('SKIP'),
+  @JsonValue('DETAIL')
+  detail('DETAIL');
+
+  const AdviceActionId(this.wire);
+
+  /// JSON 표기(DDL 대응 컬럼 없음).
+  final String wire;
+}
+
+/// 01 §2-1 · `rm_holding.scope` — «관리 대상»과 «시스템 밖 자산»을 한 목록에 섞지 않게 한다.
+/// 🔴 `external` 행의 표시 UNION 은 `HoldingsRepository` **한 곳**에서만 만든다(C-23).
+enum HoldingScope {
+  @JsonValue('MANAGED')
+  managed('MANAGED'),
+  @JsonValue('EXTERNAL')
+  external('EXTERNAL');
+
+  const HoldingScope(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-1 · `handover_session.path` CHECK — 집행 주체 전환 위저드(`M5-11`)의 진입 상태.
+/// 🔴 «안내 개시»는 여기 없다 — 별도 게이트 `M5-10` 이다.
+enum HandoverPath {
+  @JsonValue('SIM_TO_AUTO')
+  simToAuto('SIM_TO_AUTO'),
+  @JsonValue('FRESH_AUTO')
+  freshAuto('FRESH_AUTO'),
+  @JsonValue('ADOPT_LEDGER')
+  adoptLedger('ADOPT_LEDGER'),
+  @JsonValue('HANDBACK_MANUAL')
+  handbackManual('HANDBACK_MANUAL');
+
+  const HandoverPath(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-1 · `credential_registry.usage` CHECK — 키의 사용 범위.
+/// 🔴 브로커가 주는 속성이 아니라 **앱 측 런타임 봉인 선언**이다(§9-3 「키 봉인」 재사용).
+enum CredentialUse {
+  @JsonValue('RECONCILE_ONLY')
+  reconcileOnly('RECONCILE_ONLY'),
+  @JsonValue('FULL')
+  full('FULL');
+
+  const CredentialUse(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §4-2(N-2) — 원장 실사의 목적. `m2-8_naming.md` A-10 확정.
+///
+/// 🔴 **기본값을 두지 않는다** — 목적이 없으면 엔진이 세 규약(세션 밖 제출 거부 ·
+///    `lines` 전 종목 필수 · `ledger_diff` 개시)을 어디에 걸지 모른다.
+/// 🔴 `simOpening` 의 완화 3가지는 `periodicAudit` 에 **하나도** 적용되지 않는다.
+enum SelfReportPurpose {
+  @JsonValue('PERIODIC_AUDIT')
+  periodicAudit('PERIODIC_AUDIT'),
+  @JsonValue('SIM_OPENING')
+  simOpening('SIM_OPENING');
+
+  const SelfReportPurpose(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §3-7(P 회차) — 슬리브 A 계절 진입 게이트의 상태. `m2-8_naming.md` A-8 확정.
+///
+/// 🔴 **상태 5 : 사유 코드 3 의 비대칭을 화면이 분기로 메우지 않는다** — 화면은 상태값으로
+///    색·배지만 고르고 문구는 전부 `label` 을 쓴다.
+///    (`octPassed` = ⏸ `F1_ENTRY_OK` · `deferredToNov`·`deferredToDec` = `F1_ENTRY_DEFER` ·
+///     `enteredInNov`·`forcedEntryDec` = `F1_ENTRY_LATE`)
+/// 🔴 임계값과 보류 상한을 화면·계약에 상수로 적지 않는다 — 엔진 config 키를 읽어 문자열로 받는다.
+enum SeasonalEntryGateState {
+  @JsonValue('OCT_PASSED')
+  octPassed('OCT_PASSED'),
+  @JsonValue('DEFERRED_TO_NOV')
+  deferredToNov('DEFERRED_TO_NOV'),
+  @JsonValue('ENTERED_IN_NOV')
+  enteredInNov('ENTERED_IN_NOV'),
+  @JsonValue('DEFERRED_TO_DEC')
+  deferredToDec('DEFERRED_TO_DEC'),
+  @JsonValue('FORCED_ENTRY_DEC')
+  forcedEntryDec('FORCED_ENTRY_DEC');
+
+  const SeasonalEntryGateState(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/calendar.dart`
+
+```dart
+// 01 §2-8 «X4 캘린더» 축(인벤토리 §2-8).
+//
+// ⏸ X4 채택 자체가 미결이다(`m2-8_naming.md` J-5 · 01 §8-5 OAuth 동의화면 7일 만료).
+//    🔴 **이름·타입은 등재하되 기능을 구현하지 않는다** — 이 파일은 그 등재분이다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-8 · `calendar_event_log.origin` CHECK(G-28 배치 E 재작성).
+/// 🔴 `MANUAL_ENTRY` 가 없으면 수기 체결 이벤트가 `QUARANTINED` 로 빠지고
+///    `canonCalendar` 대사가 매일 불일치한다.
+enum CalendarOrigin {
+  @JsonValue('LIVE')
+  live('LIVE'),
+  @JsonValue('ARCHIVE')
+  archive('ARCHIVE'),
+  @JsonValue('BROKER_RECOVERED')
+  brokerRecovered('BROKER_RECOVERED'),
+  @JsonValue('INFERRED')
+  inferred('INFERRED'),
+  @JsonValue('MANUAL_ENTRY')
+  manualEntry('MANUAL_ENTRY');
+
+  const CalendarOrigin(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+
+/// 01 §2-8(C11) — 캘린더 이벤트의 갈래.
+///
+/// 🔴 정정 2행을 «체결» 3건으로 그리지 않는다 — 캘린더는 앱 밖에서 보는 통로라
+///    「내가 3번 샀나」로 읽히고, 그 오인이 이중 매수를 부른다. `canonCalendar` 대사는
+///    1:1 이라 감사로도 잡히지 않는다.
+enum CalendarEventKind {
+  @JsonValue('EXECUTION')
+  execution('EXECUTION'),
+  @JsonValue('ORDER_ACCEPTED')
+  orderAccepted('ORDER_ACCEPTED'),
+  @JsonValue('ORDER_REJECTED')
+  orderRejected('ORDER_REJECTED'),
+  @JsonValue('ORDER_CANCELLED')
+  orderCancelled('ORDER_CANCELLED'),
+  @JsonValue('REBALANCE')
+  rebalance('REBALANCE'),
+  @JsonValue('CASH_FLOW')
+  cashFlow('CASH_FLOW'),
+  @JsonValue('SAFETY')
+  safety('SAFETY'),
+  @JsonValue('SYSTEM')
+  system('SYSTEM'),
+  @JsonValue('DAILY_SUMMARY')
+  dailySummary('DAILY_SUMMARY'),
+  @JsonValue('ENGINE_DOWN')
+  engineDown('ENGINE_DOWN'),
+  @JsonValue('EXECUTION_CORRECTION')
+  executionCorrection('EXECUTION_CORRECTION');
+
+  const CalendarEventKind(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/command.dart`
+
+```dart
+// 01 §4-2 «명령 API» · §4-3 «설정 동작» 축(인벤토리 §2-13).
+//
+// 🔴 이 세 열거형은 **영역 A 가 소유**하고 `lib/src/commands/`(영역 D)는 import 만 한다 —
+//    열거형이 두 영역에 흩어지면 `@JsonValue` 규약의 소유자가 둘이 된다(인벤토리 §2 서문).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §4-2 · §6-6 `command_queue.kind` CHECK.
+///
+/// 🔴 **X7 4종은 Dart 이름과 DB 값의 어순이 뒤집혀 있다**(`manualFillRecord` ↔
+///    `'RECORD_MANUAL_FILL'`) — 기계 변환에 맡기면 CHECK 위반이 런타임에 터진다.
+///    Dart 이름은 §4-2 열거형이, DB 값은 `command_queue.kind` CHECK 가 각각 정본이고
+///    **둘 다 바꾸지 않는다**(`m2-8_naming.md` B-3). C-15 가 이 비대칭을 검사한다.
+/// 🔴 뒤 3종(`selfReportBalance`·`alertAck`·`killChecklistConfirm`)은 기계 변환과 일치한다 —
+///    그래서 위 4종과 섞이면 더 위험하다(B-4).
+/// 🔴 X7 7종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트(앞 5종)를 건드리지 않는다.
+/// 🔴 킬스위치 «해제» 명령은 없다(결정 6).
+enum CommandKind {
+  @JsonValue('KILL_SWITCH_ACTIVATE')
+  killSwitchActivate('KILL_SWITCH_ACTIVATE'),
+  @JsonValue('JOURNAL_DRAFT')
+  journalDraft('JOURNAL_DRAFT'),
+  @JsonValue('BLIND_REVIEW_SCORE')
+  blindReviewScore('BLIND_REVIEW_SCORE'),
+  @JsonValue('DISCLOSURE_VIEW')
+  disclosureView('DISCLOSURE_VIEW'),
+  @JsonValue('DEPOSIT_REGISTER')
+  depositRegister('DEPOSIT_REGISTER'),
+
+  // ── X7 7종 · 🔴 전량 operator 전용 ──
+  @JsonValue('RECORD_MANUAL_FILL')
+  manualFillRecord('RECORD_MANUAL_FILL'),
+  @JsonValue('AMEND_MANUAL_FILL')
+  manualFillAmend('AMEND_MANUAL_FILL'),
+  @JsonValue('VOID_MANUAL_FILL')
+  manualFillVoid('VOID_MANUAL_FILL'),
+  @JsonValue('SKIP_ADVICE')
+  adviceSkip('SKIP_ADVICE'),
+  @JsonValue('SELF_REPORT_BALANCE')
+  selfReportBalance('SELF_REPORT_BALANCE'),
+  @JsonValue('ALERT_ACK')
+  alertAck('ALERT_ACK'),
+  @JsonValue('KILL_CHECKLIST_CONFIRM')
+  killChecklistConfirm('KILL_CHECKLIST_CONFIRM');
+
+  // ⏸ `ledgerEventRecord` → 'LEDGER_EVENT_RECORD' — 결정 ㊲ 채택 시에만 8번째로 신설한다
+  //    (01 §4-2 ⏸ 원문 · `m2-8_naming.md` J-6). 지금은 만들지 않는다.
+
+  const CommandKind(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2). 🔴 Dart 이름과 어순이 다른 값이 넷 있다 — 위 조문 참조.
+  final String wire;
+}
+
+/// 01 §4-2 · §6-2 `command_inbox.state` CHECK(G-30).
+///
+/// ```
+/// requested ──▶ received ──┬──▶ executed        (종단)
+///                          ├──▶ rejected        (종단 · rejectReasonCode 필수)
+///                          └──▶ expired         (종단 · 서버 expires_at)
+/// requested/received ──┬──▶ staleContext        ┐
+///                      ├──▶ heldForIntegrity    ├ 🔴 보류 3(+1)상태 — TTL 을 소비하지 않는다
+///                      ├──▶ pendingLeaseConfirm ┘
+///                      └──▶ noOperator
+/// ```
+///
+/// 🔴 **보류는 거부가 아니다.** 무결성 차단·리스 만료·오프라인·맥락 불일치에서 기록 명령을
+///    거부하지 않고 보류한다.
+/// 🔴 화면이 `state` 를 낙관 갱신하지 않는다 — 「요청됨」과 「집행됨」의 구별이 이 계약의 목적이다.
+/// 🔴 `noOperator` 는 「요청됨」이 «껐다»로 읽히는 것을 막는 유일한 값이며, 표시 문구는
+///    M2 가 사전 공급한 **고정 카탈로그**에서 고른다(앱이 상태를 조합해 문장을 만들지 않는다).
+/// ⚠️ **열린 물음** — `NO_OPERATOR` 는 현행 `command_inbox.state`·`command_ack.state`
+///    CHECK 어디에도 없다. 「셋 중 어디까지 넓히는가」는 이름 문제가 아니라 스키마 결정이며
+///    영역 E(DDL)가 확정 전까지 이 값을 실은 픽스처를 만들면 CHECK 위반이 된다
+///    (인벤토리 §10-2 ① · `m2-8_naming.md` K-1 · A-11 은 **이름만** 확정했다).
+enum CommandState {
+  @JsonValue('REQUESTED')
+  requested('REQUESTED'),
+  @JsonValue('RECEIVED')
+  received('RECEIVED'),
+  @JsonValue('EXECUTED')
+  executed('EXECUTED'),
+  @JsonValue('REJECTED')
+  rejected('REJECTED'),
+  @JsonValue('EXPIRED')
+  expired('EXPIRED'),
+  @JsonValue('STALE_CONTEXT')
+  staleContext('STALE_CONTEXT'),
+  @JsonValue('HELD_FOR_INTEGRITY')
+  heldForIntegrity('HELD_FOR_INTEGRITY'),
+  @JsonValue('PENDING_LEASE_CONFIRM')
+  pendingLeaseConfirm('PENDING_LEASE_CONFIRM'),
+  @JsonValue('NO_OPERATOR')
+  noOperator('NO_OPERATOR');
+
+  const CommandState(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §4-3 — `SettingsActions.run(id, args:)` 가 받는 동작 식별자.
+///
+/// 🔴 **개수를 숫자로 적지 않는다**(G-91 · §8-17 — 골든벡터 총계와 같은 이유).
+/// 🔴 `M9` 가 부르는 값은 05 §7 이 정본이고 행이 늘면 여기가 따라온다. 그러나
+///    **`M5`·`M8` 전용 4값**(`onboardingOperatingModeSelect`·`handoverAdoptionSet`·
+///    `handoverExternalRegister`·`handoverCommit`)은 **이 파일이 정본**이며 05 §7 표에
+///    나타나지 않는 것이 설계다 — 🔴 05 §7 에 없다는 이유로 지우지 않는다. 지우면 G-01·G-03
+///    이 닫은 구멍(위저드·온보딩의 쓰기 경로 부재)이 되살아난다.
+/// 🔴 DDL `CHECK` 대응 컬럼은 없다. 표기는 §1-2 규약대로 SCREAMING_SNAKE 다.
+enum SettingsActionId {
+  @JsonValue('SETTINGS_GENERAL_UPDATE')
+  settingsGeneralUpdate('SETTINGS_GENERAL_UPDATE'),
+  @JsonValue('CREDENTIAL_VERIFY')
+  credentialVerify('CREDENTIAL_VERIFY'),
+  @JsonValue('CREDENTIAL_REGISTER')
+  credentialRegister('CREDENTIAL_REGISTER'),
+  @JsonValue('ACCOUNT_VERIFY_MAPPING')
+  accountVerifyMapping('ACCOUNT_VERIFY_MAPPING'),
+  @JsonValue('ACCOUNT_MAP_SLEEVE')
+  accountMapSleeve('ACCOUNT_MAP_SLEEVE'),
+  @JsonValue('STRATEGY_PREVIEW')
+  strategyPreview('STRATEGY_PREVIEW'),
+  @JsonValue('STRATEGY_APPLY_REQUEST')
+  strategyApplyRequest('STRATEGY_APPLY_REQUEST'),
+
+  /// 🆕 G-01 — 🔴 온보딩 `O-00b` 의 **최초 선택 전용**이다. 전환이 아니므로 M5 게이트를
+  /// 거치지 않으며, `O-04` 완료 후에는 이 동작이 거부되고 아래 전환 요청으로만 바뀐다.
+  @JsonValue('ONBOARDING_OPERATING_MODE_SELECT')
+  onboardingOperatingModeSelect('ONBOARDING_OPERATING_MODE_SELECT'),
+
+  @JsonValue('RUNTIME_MODE_SWITCH_REQUEST')
+  runtimeModeSwitchRequest('RUNTIME_MODE_SWITCH_REQUEST'),
+  @JsonValue('RUNTIME_OPERATING_MODE_SWITCH_REQUEST')
+  runtimeOperatingModeSwitchRequest('RUNTIME_OPERATING_MODE_SWITCH_REQUEST'),
+
+  /// 🆕 G-03 X7 — 귀속 1건의 처분 제출(편입/제외). `M5-11` 위저드 안에서만 호출된다.
+  @JsonValue('HANDOVER_ADOPTION_SET')
+  handoverAdoptionSet('HANDOVER_ADOPTION_SET'),
+
+  /// 🆕 G-03 X7 — 시스템 밖 자산 등록·해제(`released_at`).
+  @JsonValue('HANDOVER_EXTERNAL_REGISTER')
+  handoverExternalRegister('HANDOVER_EXTERNAL_REGISTER'),
+
+  /// 🆕 G-03 X7 — 위저드 커밋 1회.
+  @JsonValue('HANDOVER_COMMIT')
+  handoverCommit('HANDOVER_COMMIT'),
+
+  @JsonValue('RUNTIME_ENGINE_START')
+  runtimeEngineStart('RUNTIME_ENGINE_START'),
+  @JsonValue('RUNTIME_ENGINE_STOP')
+  runtimeEngineStop('RUNTIME_ENGINE_STOP'),
+  @JsonValue('DEVICE_PAIRING_TICKET_CREATE')
+  devicePairingTicketCreate('DEVICE_PAIRING_TICKET_CREATE'),
+  @JsonValue('DEVICE_TOKEN_REVOKE')
+  deviceTokenRevoke('DEVICE_TOKEN_REVOKE'),
+  @JsonValue('CONNECTION_TEST')
+  connectionTest('CONNECTION_TEST'),
+  @JsonValue('CONNECTION_SYNC_NOW')
+  connectionSyncNow('CONNECTION_SYNC_NOW'),
+  @JsonValue('CALENDAR_SYNC_NOW')
+  calendarSyncNow('CALENDAR_SYNC_NOW'),
+  @JsonValue('CALENDAR_REBACKFILL')
+  calendarRebackfill('CALENDAR_REBACKFILL'),
+  @JsonValue('BACKUP_RUN_NOW')
+  backupRunNow('BACKUP_RUN_NOW'),
+  @JsonValue('BACKUP_RESTORE_START')
+  backupRestoreStart('BACKUP_RESTORE_START'),
+  @JsonValue('SELFTEST_GOLDEN_RUN')
+  selftestGoldenRun('SELFTEST_GOLDEN_RUN'),
+  @JsonValue('SELFTEST_INTEGRITY_RUN')
+  selftestIntegrityRun('SELFTEST_INTEGRITY_RUN'),
+
+  /// ⏸ `m2-8_naming.md` A-13(G-45) — 월 납입 운영값 변경.
+  /// 🔴 **«운영 등급»이며 `settingsGeneralUpdate` 로 태우지 않는다** — 일반 등급이면
+  /// 「즉시 반영」이 되어 「다음 납입 주기부터 적용」이 깨지고 생체 재인증도 건너뛴다.
+  /// ⏸ 사유 = 05 §1 등급표에 «운영 등급» 행이 신설되어야 성립한다. **이름만 등재**한다.
+  @JsonValue('SETTINGS_CONTRIBUTION_UPDATE')
+  settingsContributionUpdate('SETTINGS_CONTRIBUTION_UPDATE'),
+
+  /// ⏸ `m2-8_naming.md` A-14(G-64) — 캘린더 재연결.
+  /// ⏸ 사유 = X4 채택 자체가 미결이다(§8-5). **이름만 등재**한다.
+  @JsonValue('CALENDAR_RECONNECT')
+  calendarReconnect('CALENDAR_RECONNECT');
+
+  const SettingsActionId(this.wire);
+
+  /// JSON 표기(DDL 대응 컬럼 없음).
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/journal.dart`
+
+```dart
+// 01 §2-2 «TradeJournalEntry» · §2-1(X7) — 일지·체결 축(인벤토리 §2-4).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-2 — 체결 1행의 상태.
+///
+/// 🔴 `reversed`·`restated` 는 X7 §10-3 정정 규약(역분개 + 재기재)이다.
+/// 🔴 `prevented` = «이중 발주 차단 작동» 이며 **성공으로 렌더**한다.
+///    `unknown` 은 UNKNOWN 해소 보드로 딥링크한다.
+/// 🔴 C-12(`default:` 없는 망라 switch)가 전 화면을 동시에 깨뜨리는 것이 **의도된 게이트**다.
+enum JournalStatus {
+  @JsonValue('FILLED')
+  filled('FILLED'),
+  @JsonValue('PARTIAL')
+  partial('PARTIAL'),
+  @JsonValue('CANCELLED')
+  cancelled('CANCELLED'),
+  @JsonValue('REJECTED')
+  rejected('REJECTED'),
+  @JsonValue('UNKNOWN')
+  unknown('UNKNOWN'),
+  @JsonValue('SKIPPED')
+  skipped('SKIPPED'),
+  @JsonValue('PREVENTED')
+  prevented('PREVENTED'),
+  @JsonValue('REVERSED')
+  reversed('REVERSED'),
+  @JsonValue('RESTATED')
+  restated('RESTATED');
+
+  const JournalStatus(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+
+/// 01 §2-2 — 「체결 → 표시 as-of 계약」의 3상태(청사진 §9-2).
+/// ✅ `m2-8_naming.md` A-1 로 초안 지위 해제 — 값은 01 §2-2 원문 3값 그대로다.
+enum FillVisibility {
+  @JsonValue('SETTLED')
+  settled('SETTLED'),
+  @JsonValue('PENDING_BATCH')
+  pendingBatch('PENDING_BATCH'),
+  @JsonValue('AWAITING_CONFIRM')
+  awaitingConfirm('AWAITING_CONFIRM');
+
+  const FillVisibility(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+
+/// 01 §2-1(X7) · `executions.fill_origin` CHECK — 체결 1행의 **출처**.
+/// 🔴 원장은 한 스트림이고, [FillOrigin]·[FillKind] 두 값이 그 안에서 «누가·무엇을» 말한다.
+enum FillOrigin {
+  @JsonValue('BROKER')
+  broker('BROKER'),
+  @JsonValue('MANUAL')
+  manual('MANUAL'),
+  @JsonValue('SIMULATED')
+  simulated('SIMULATED'),
+  @JsonValue('BROKER_RECOVERED')
+  brokerRecovered('BROKER_RECOVERED');
+
+  const FillOrigin(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-1(X7) · `executions.fill_kind` CHECK — 체결 1행의 **성격**.
+/// 🔴 정정 1회 = `REVERSAL` + `RESTATEMENT` **2행**이며 UPDATE·DELETE 는 없다(C-21).
+enum FillKind {
+  @JsonValue('ORIGINAL')
+  original('ORIGINAL'),
+  @JsonValue('REVERSAL')
+  reversal('REVERSAL'),
+  @JsonValue('RESTATEMENT')
+  restatement('RESTATEMENT');
+
+  const FillKind(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-1(X7 C18) · `executions.cost_source` CHECK — 비용의 출처.
+///
+/// 🔴 구 `costsOverridden`(bool) 은 **폐기**됐다 — 하나로는 «브로커 확정»과 «엔진 추정»이
+///    구별되지 않는다. 추정치를 확정치처럼 그리지 않는다는 원칙을 비용에도 적용한 것이며,
+///    `estimated` 배지의 존재는 C-24 가 검사한다.
+enum CostSource {
+  @JsonValue('BROKER')
+  broker('BROKER'),
+  @JsonValue('USER_ENTERED')
+  userEntered('USER_ENTERED'),
+  @JsonValue('ESTIMATED')
+  estimated('ESTIMATED');
+
+  const CostSource(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/ledger.dart`
+
+```dart
+// 01 §2-9 «X5 정합» · §2-1(X7 신뢰) 축(인벤토리 §2-9).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-9 · `ledger_diff.pair` CHECK **재작성 N-01**(4값 → 5값).
+///
+/// 🔴 재작성 없이 `applicable = 0` 의 `CANON_SELF_REPORT` 행을 넣으면 CHECK 위반으로
+///    보드가 4칸으로 퇴화한다. 🔴 보드 칸 수는 모드와 무관하게 **5 고정**이다.
+/// 🔵 `canonSelfReport` 의 기본 심각도는 `observational` 이다(A12) — 차단은 «차이의 크기»가
+///    아니라 «실사의 부재»(`SELF_AUDIT_OVERDUE`)에만 건다.
+/// 🔴 파생 불일치(`canonSupabase`·`canonGithub`·`canonCalendar`)는 **어떤 심각도에서도
+///    주문을 막지 않는다**.
+enum LedgerPair {
+  @JsonValue('CANON_BROKER')
+  canonBroker('CANON_BROKER'),
+  @JsonValue('CANON_SUPABASE')
+  canonSupabase('CANON_SUPABASE'),
+  @JsonValue('CANON_GITHUB')
+  canonGithub('CANON_GITHUB'),
+  @JsonValue('CANON_CALENDAR')
+  canonCalendar('CANON_CALENDAR'),
+  @JsonValue('CANON_SELF_REPORT')
+  canonSelfReport('CANON_SELF_REPORT');
+
+  const LedgerPair(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+
+/// 01 §2-9 · `ledger_diff.axis` CHECK.
+enum LedgerAxis {
+  @JsonValue('QUANTITY')
+  quantity('QUANTITY'),
+  @JsonValue('EXECUTION_ROW')
+  executionRow('EXECUTION_ROW'),
+  @JsonValue('CASH')
+  cash('CASH'),
+  @JsonValue('CHAIN_HASH')
+  chainHash('CHAIN_HASH');
+
+  const LedgerAxis(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-9 · `ledger_diff.severity` CHECK.
+enum DiffSeverity {
+  @JsonValue('BLOCKING')
+  blocking('BLOCKING'),
+  @JsonValue('OBSERVATIONAL')
+  observational('OBSERVATIONAL');
+
+  const DiffSeverity(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-9 · `ledger_diff.status` CHECK.
+enum DiffStatus {
+  @JsonValue('OPEN')
+  open('OPEN'),
+  @JsonValue('RESOLVED')
+  resolved('RESOLVED'),
+  @JsonValue('ACCEPTED')
+  accepted('ACCEPTED');
+
+  const DiffStatus(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-9 — 복구 경로. DDL 대응 컬럼이 없는 **뷰모델 파생값**이다.
+/// 🔴 `x1Emergency` ↔ `'X1_EMERGENCY'` — 숫자를 낀 camelCase 의 표기 규약을 여기서 못 박는다
+///    (`m2-8_naming.md` B-5 · `X_1_EMERGENCY` 가 아니다).
+enum RepairRoute {
+  @JsonValue('AUTO')
+  auto('AUTO'),
+  @JsonValue('APPROVAL')
+  approval('APPROVAL'),
+  @JsonValue('X1_EMERGENCY')
+  x1Emergency('X1_EMERGENCY');
+
+  const RepairRoute(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+
+/// 01 §2-1(X7) — 원장을 얼마나 믿을 수 있는가.
+///
+/// 🔴 배너·리포트 헤더·안내 발행 범위의 유일한 근거다.
+/// 🔴 `selfReported` 는 **실패가 아니라 정상 운영 상태**다 — 키 없이 도는 것이 요구의 핵심이다.
+enum LedgerTrustGrade {
+  @JsonValue('RECONCILED')
+  reconciled('RECONCILED'),
+  @JsonValue('SELF_REPORTED')
+  selfReported('SELF_REPORTED'),
+  @JsonValue('DRIFTING')
+  drifting('DRIFTING'),
+  @JsonValue('UNVERIFIABLE')
+  unverifiable('UNVERIFIABLE');
+
+  const LedgerTrustGrade(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+// ⏸ `LedgerEventKind { withdrawal, distribution, corporateAction, taxWithheld }`
+//    → 'WITHDRAWAL'·'DISTRIBUTION'·'CORPORATE_ACTION'·'TAX_WITHHELD'
+//
+// 🔴 **결정 ㊲ 채택 시에만 신설한다.** 지금은 주석으로만 남기고 코드로 만들지 않는다
+//    (01 §2-1 ⏸ 원문 · `m2-8_naming.md` A-15 · J-6 · 인벤토리 §2-9).
+//    이름은 확정됐고 기능만 대기다 — 함께 대기 중인 것이 `CommandKind.ledgerEventRecord`·
+//    `CommandApi.recordLedgerEvent(LedgerEventRecord)` 다.
+// ⚠️ 채택되지 않으면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 현금 추정이 단조적으로
+//    어긋나고 그 위에서 안내 수량이 계산된다(J-6 조문).
+// ⚠️ `CORPORATE_ACTION` vs `CORP_ACTION` 은 **열린 물음**이다(인벤토리 §10-2 ③ ·
+//    `m2-8_naming.md` I-4 ⏸ = `CORPORATE_ACTION` 으로 통합 권고). 픽스처에는
+//    `CORPORATE_ACTION` 만 쓴다.
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/mode.dart`
+
+```dart
+// 01 §2-1 · §9(X6 모의투자) · §10(X7 투자 안내) — **직교하는 3축**(인벤토리 §2-2).
+//
+// 🔴 세 축은 서로를 대체하지 않는다:
+//    `RunMode`        = 어느 계좌·어느 서버인가
+//    `OperatingMode`  = 누가 주문을 집행하는가
+//    `ExecPolicy`     = 엔진이 이번 배치에 바깥으로 무엇을 내보내는가
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-1 · §9-1 — X6 모의투자 모드의 축(Q-E).
+///
+/// ✅ 적대 검증 완료(2026-09-07 · §9-5)로 초안 지위 해제 · `m2-8_naming.md` A-3 확정.
+/// 🔴 화면은 세 값을 개별 분기하지 말고 뷰모델이 준 라벨·배지를 그린다. 「모의냐」 판정이 꼭
+///    필요하면 [RunModeIsSim.isSim] 만 쓴다(01 §2-1 주석 원문).
+/// 🔴 화면은 이 값으로 타이틀 접두를 만들지 않는다 — 셸이 주입하고 C-17 이 강제한다.
+/// ⚠️ 배치 A·B 의 기존 `CHECK (mode IN ('SIM','LIVE'))` 를 3값으로 넓히는 것은
+///    **열린 물음**이다(인벤토리 §10-2 ② · `m2-8_naming.md` I-3 ⏸ = 3값 + 파일별 CHECK 권고).
+enum RunMode {
+  @JsonValue('SIM_INTERNAL')
+  simInternal('SIM_INTERNAL'),
+  @JsonValue('SIM_BROKER')
+  simBroker('SIM_BROKER'),
+  @JsonValue('LIVE')
+  live('LIVE');
+
+  const RunMode(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-1 — 「SIM 계열 = {simInternal, simBroker}」의 **유일한** 판정 창구.
+///
+/// 🔴 `default:` 없는 망라 switch 다 — 값이 늘면 컴파일이 깨진다(C-12 의 의도된 게이트).
+extension RunModeIsSim on RunMode {
+  bool get isSim => switch (this) {
+    RunMode.simInternal || RunMode.simBroker => true,
+    RunMode.live => false,
+  };
+}
+
+/// 01 §9-5 ① · §10-1 — 「이번 배치가 어디까지 가는가」.
+/// `m2-8_naming.md` A-4 확정.
+///
+/// 🔴 **`FeatureFlags` 에 넣지 않는다**(01 §2-1 조문) — 넣는 순간 화면이 3축을 곱해 분기한다.
+/// 🔴 **3값으로 넓히지 않는다**(§10-1) — 넓히면 골든벡터 재검증 실패의 `dryRun` 강등이
+///    발주자가 고른 운영 방식을 덮어써 지우고, 복구 시 원래 값을 알 수 없어 그림자 필드가
+///    필요해지며, 그것이 §8-7 이 닫은 이중 정본의 부활이다.
+/// ⚠️ 구 `order_intents.dry_run` 의 «이름만 바꾼 것»이며 **컬럼은 그대로 둔다**
+///    (인벤토리 §10-2 ④ · `m2-8_naming.md` I-5 ⏸).
+enum ExecPolicy {
+  @JsonValue('DRY_RUN')
+  dryRun('DRY_RUN'),
+  @JsonValue('EXECUTE')
+  execute('EXECUTE');
+
+  const ExecPolicy(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-1 · §10-1(X7) — 「누가 주문을 집행하는가」.
+///
+/// 🔴 값을 바꾸는 유일한 경로는 M5 게이트(`M5-10`)·위저드(`M5-11`)다.
+/// 🔴 **엔진의 어떤 안전 강등도 이 값을 건드리지 않는다** — 강등은 [ExecPolicy] 전용이다
+///    (§9-5 ①③ · C-20 이 검사한다).
+/// 🔴 화면은 이 값으로 문구를 고르지 않는다 — 라벨은 뷰모델, 접두·띠는 셸 주입(§10-5 · C-18).
+enum OperatingMode {
+  @JsonValue('AUTO_TRADE')
+  autoTrade('AUTO_TRADE'),
+  @JsonValue('ADVISORY')
+  advisory('ADVISORY');
+
+  const OperatingMode(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/onboarding.dart`
+
+```dart
+// 01 §2-10 «X3 온보딩» 축(인벤토리 §2-11).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-10 · `onboarding_progress.track` CHECK.
+/// 🔴 갈래별 준비물의 근거는 `onboarding_choice` 이며 `OnboardingRepository.watchSteps` 에
+///    `OperatingMode` 를 인자로 넘기지 않는다(G-01).
+enum OnboardingTrack {
+  @JsonValue('FRESH')
+  fresh('FRESH'),
+  @JsonValue('RECONNECT')
+  reconnect('RECONNECT'),
+  @JsonValue('VIEWER_PAIRING')
+  viewerPairing('VIEWER_PAIRING');
+
+  const OnboardingTrack(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+
+/// 01 §2-10 — 단계의 필수도.
+///
+/// 🔴 `required_` 의 트레일링 언더스코어는 **Dart 예약어 회피**이며 표기에 새지 않는다 —
+///    `@JsonValue('REQUIRED')` 로 못 박는다(`m2-8_naming.md` B-2). 기계 변환하면
+///    `REQUIRED_` 가 되어 픽스처와 갈린다.
+enum StepRequirement {
+  @JsonValue('REQUIRED')
+  required_('REQUIRED'),
+  @JsonValue('RECOMMENDED')
+  recommended('RECOMMENDED'),
+  @JsonValue('OPTIONAL')
+  optional('OPTIONAL');
+
+  const StepRequirement(this.wire);
+
+  /// JSON·DDL 표기. 🔴 `required_` 의 표기는 `'REQUIRED'` 다(언더스코어 없음).
+  final String wire;
+}
+
+/// 01 §2-10 · `onboarding_progress.state` CHECK.
+enum StepState {
+  @JsonValue('NOT_STARTED')
+  notStarted('NOT_STARTED'),
+  @JsonValue('IN_PROGRESS')
+  inProgress('IN_PROGRESS'),
+  @JsonValue('VERIFIED')
+  verified('VERIFIED'),
+  @JsonValue('FAILED')
+  failed('FAILED'),
+  @JsonValue('EXPIRED')
+  expired('EXPIRED');
+
+  const StepState(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/order.dart`
+
+```dart
+// 01 §2-1 — 주문 방향(인벤토리 §2-3 · `advice.side` CHECK).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+enum OrderSide {
+  @JsonValue('BUY')
+  buy('BUY'),
+  @JsonValue('SELL')
+  sell('SELL');
+
+  const OrderSide(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/performance.dart`
+
+```dart
+// 01 §2-4 «성과·세후» 축(인벤토리 §2-5).
+//
+// 🔴 화면은 TWR/MWR 을 계산하지 않고 누적곱도 하지 않는다. 세율 곱셈·층 간 차액도 금지 —
+//    C-30 이 검사한다.
+// 🔴 «정직 기대»·사다리 4자리 수치를 코드·라벨·주석에 옮기지 않는다(01 §2-4 조문).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-4 · `rm_performance_point.metric`.
+/// 🔵 `twr` 은 **외부 현금흐름 보정판**이다(P 회차 실측으로 MWR 과 유의한 차가 확인됐다).
+enum PerfMetric {
+  @JsonValue('TWR')
+  twr('TWR'),
+  @JsonValue('MWR')
+  mwr('MWR');
+
+  const PerfMetric(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+
+/// 01 §2-4 — 시계열 간격.
+enum PerfGranularity {
+  @JsonValue('DAILY')
+  daily('DAILY'),
+  @JsonValue('WEEKLY')
+  weekly('WEEKLY'),
+  @JsonValue('MONTHLY')
+  monthly('MONTHLY'),
+  @JsonValue('YEARLY')
+  yearly('YEARLY');
+
+  const PerfGranularity(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-4 — 구간의 성격.
+///
+/// 🔴 `manualExecuted`(X7)는 `simExcluded` 와 달리 **합산에 포함**되고 경계는 실선이다(D6).
+///    겹치면 `freshAuto` 절단선이 이긴다.
+enum SegmentKind {
+  @JsonValue('MEASURED')
+  measured('MEASURED'),
+  @JsonValue('UNAVAILABLE')
+  unavailable('UNAVAILABLE'),
+  @JsonValue('SIM_EXCLUDED')
+  simExcluded('SIM_EXCLUDED'),
+  @JsonValue('MANUAL_EXECUTED')
+  manualExecuted('MANUAL_EXECUTED');
+
+  const SegmentKind(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-4(P 회차) — 세후 사다리의 갈래. `m2-8_naming.md` A-7 확정.
+///
+/// 🔴 **갈래는 계좌 배치가 정한다**(SAF-309) — 화면·인자로 고르는 경로를 만들지 않는다.
+///    `PerformanceRepository.afterTaxLadder({required String fiscalYear})` 의 인자는 연도 하나다.
+enum TaxLadderBranch {
+  @JsonValue('SPEC_POT_TAX_FREE')
+  specPotTaxFree('SPEC_POT_TAX_FREE'),
+  @JsonValue('CF_POT_TAXABLE_COMP26')
+  cfPotTaxableComp26('CF_POT_TAXABLE_COMP26'),
+  @JsonValue('CF_POT_TAXABLE_COMP38')
+  cfPotTaxableComp38('CF_POT_TAXABLE_COMP38'),
+  @JsonValue('CF_POT_TAXABLE_FLAT')
+  cfPotTaxableFlat('CF_POT_TAXABLE_FLAT');
+
+  const TaxLadderBranch(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/rebalance.dart`
+
+```dart
+// 01 §2-5 — 리밸런싱 회차의 갈래(인벤토리 §2-6 · `rebalance_event.kind` CHECK).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+enum RebalanceKind {
+  @JsonValue('MONTHLY_REGULAR')
+  monthlyRegular('MONTHLY_REGULAR'),
+  @JsonValue('SEASONAL')
+  seasonal('SEASONAL'),
+  @JsonValue('BAND')
+  band('BAND'),
+  @JsonValue('REGIME')
+  regime('REGIME'),
+  @JsonValue('DEPOSIT')
+  deposit('DEPOSIT');
+
+  const RebalanceKind(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/resume.dart`
+
+```dart
+// 01 §2-7 «X2 재개» 축(인벤토리 §2-7).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-7 · `planned_work.state` CHECK.
+/// 🔴 X2 원칙 ① — 종단 상태는 어떤 경로로도 되살아나지 않는다.
+enum PlannedWorkState {
+  @JsonValue('PLANNED')
+  planned('PLANNED'),
+  @JsonValue('REEVALUATED')
+  reevaluated('REEVALUATED'),
+  @JsonValue('SUPERSEDED')
+  superseded('SUPERSEDED'),
+  @JsonValue('EXPIRED')
+  expired('EXPIRED'),
+  @JsonValue('DONE')
+  done('DONE'),
+  @JsonValue('BLOCKED')
+  blocked('BLOCKED');
+
+  const PlannedWorkState(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+
+/// 01 §2-7 · `resume_run.mode` CHECK.
+enum ResumeMode {
+  @JsonValue('NORMAL')
+  normal('NORMAL'),
+  @JsonValue('CONSERVATIVE')
+  conservative('CONSERVATIVE'),
+  @JsonValue('RECOVERY_DRY')
+  recoveryDry('RECOVERY_DRY'),
+  @JsonValue('RECOVERY_FULL')
+  recoveryFull('RECOVERY_FULL');
+
+  const ResumeMode(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-7 · `resume_run.phase`.
+/// 🔴 DDL 에 `CHECK` 가 없다 — **값 도메인의 정본이 이 열거형**이다(인벤토리 §2-7).
+enum ResumePhase {
+  @JsonValue('R0')
+  r0('R0'),
+  @JsonValue('R1')
+  r1('R1'),
+  @JsonValue('R2')
+  r2('R2'),
+  @JsonValue('R3')
+  r3('R3'),
+  @JsonValue('R4')
+  r4('R4'),
+  @JsonValue('R5')
+  r5('R5'),
+  @JsonValue('R6')
+  r6('R6'),
+  @JsonValue('R7')
+  r7('R7'),
+  @JsonValue('R8')
+  r8('R8');
+
+  const ResumePhase(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/safety.dart`
+
+```dart
+// 01 §2-10 «알림·브레이커» 축(인벤토리 §2-10).
+//
+// 🔴 소유 경계는 타입이 아니라 «무엇을 그리는가» 다(01 §2-10 표) — 상태 표시는 허용,
+//    **상태를 바꾸는 경로를 만드는 것은 금지**. C-7 이 그 표대로 검사한다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-10 — 알림 등급.
+/// 🔴 **표시 계층의 사적 재분류 금지**(결정 7c). 배치 E 가 구 `INFO`/`ALERT`/`DIGEST` 를
+///    이 3값으로 개편한다.
+enum AlertLevel {
+  @JsonValue('P0')
+  p0('P0'),
+  @JsonValue('P1')
+  p1('P1'),
+  @JsonValue('P2')
+  p2('P2');
+
+  const AlertLevel(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+
+/// 01 §2-10 — 브레이커 단계.
+/// 🔵 `stopped` 의 자격 판정은 명세 v2.29 조문이 정한다 — 화면은 `stoppedReleaseEligible`
+///    필드를 그대로 그리고 자격을 재판정하지 않는다.
+enum BreakerLevel {
+  @JsonValue('NORMAL')
+  normal('NORMAL'),
+  @JsonValue('ALERT')
+  alert('ALERT'),
+  @JsonValue('REDUCED')
+  reduced('REDUCED'),
+  @JsonValue('HALTED')
+  halted('HALTED'),
+  @JsonValue('STOPPED')
+  stopped('STOPPED');
+
+  const BreakerLevel(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 01 §2-10·§3-5 — 차단 플래그의 해제 경로.
+/// 🔴 해제 문구는 **플래그마다 다르다**(`BlockFlag.clearInstruction`) — 화면이 경로로
+///    문구를 고르지 않는다.
+enum ClearRoute {
+  @JsonValue('AUTOMATIC')
+  automatic('AUTOMATIC'),
+  @JsonValue('CAUSE_CODE_REQUIRED')
+  causeCodeRequired('CAUSE_CODE_REQUIRED'),
+  @JsonValue('NO_MANUAL_PATH')
+  noManualPath('NO_MANUAL_PATH'),
+  @JsonValue('WIZARD_ONLY')
+  wizardOnly('WIZARD_ONLY');
+
+  const ClearRoute(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/sleeve.dart`
+
+```dart
+// 01 §2-1 «공통 값 객체» — 슬리브·기준 축(인벤토리 §2-1).
+//
+// 🔴 열거값의 JSON·DDL 표기는 `@JsonValue` 로 못 박는다(01 §1-2 enum 직렬화 규약).
+//    자동 변환에 맡기면 픽스처(§5)·DDL `CHECK`(§6)와 갈라지고 §7 C-15 가 실패한다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-1 · §6-1 `decision_log.sleeve`·`advice.sleeve` CHECK.
+///
+/// 🔴 `satellite` ↔ `'SAT'` 은 **기계적 대문자 변환이 아니다**(m2-8_naming B-1).
+/// 🔵 v2.31 P0S 에서 `satellite` 는 **열거값 보존·화면 미노출**이다
+///    (`satellite_enabled = false`). 🔴 화면이 `SleeveId` 를 순회하며 `satellite` 를 걸러내는
+///    코드를 쓰지 않게 슬리브 목록은 `SleeveCatalogEntry` 로 온다 — 거르는 규칙이 화면에
+///    생기면 그것이 판정이다.
+enum SleeveId {
+  @JsonValue('A')
+  a('A'),
+  @JsonValue('B')
+  b('B'),
+  @JsonValue('C')
+  c('C'),
+  @JsonValue('POT')
+  pot('POT'),
+  @JsonValue('CASH')
+  cash('CASH'),
+  @JsonValue('SAT')
+  satellite('SAT');
+
+  const SleeveId(this.wire);
+
+  /// JSON·DDL 표기. 🔴 바로 위 `@JsonValue` 와 **같은 문자열**이며 한쪽만 고치지 않는다.
+  final String wire;
+}
+
+/// 01 §2-1(P 회차 K §6 ⑪) — 같은 «비중»에 기준이 둘이다.
+/// 섞으면 슬리브 A 가 8.1% 로도 20.2% 로도 보인다.
+///
+/// - `engineColumn` = 엔진 원장 열(POT 잔액이 C 에 합산됨)
+/// - `accounting` = 회계 소속(POT → A, 03 §2-9-3)
+///
+/// 🔴 목표 배분·밴드 판정과 비교할 수 있는 것은 **`accounting` 하나뿐**이다.
+/// 🔴 화면은 `basis` 로 분기하지 않는다 — `SleeveWeight.basis` 는 `accounting` 외 값을 갖지
+///    않으며(엔진 쪽 계약), `engineColumn` 행은 진단 전용 별도 창구로만 온다. 혼합은 C-31 이 잡는다.
+enum AllocationBasis {
+  @JsonValue('ENGINE_COLUMN')
+  engineColumn('ENGINE_COLUMN'),
+  @JsonValue('ACCOUNTING')
+  accounting('ACCOUNTING');
+
+  const AllocationBasis(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/ui.dart`
+
+```dart
+// 01 §2-1 — 표시 공통 축(인벤토리 §2-3).
+//
+// 🔴 이 파일의 네 열거형은 **뷰모델 전용**이라 DDL `CHECK` 대응 컬럼이 없다.
+//    그래도 `@JsonValue` 를 붙인다 — 픽스처가 JSON 이고, 자동 변환 0건이 규약이다(인벤토리 §10-1 A).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 01 §2-1 — 사유 칩의 색조.
+/// 🔴 `prevented` 는 **실패가 아니라 방어**다(이중 발주 차단 작동 = 성공으로 렌더).
+enum ChipTone {
+  @JsonValue('NEUTRAL')
+  neutral('NEUTRAL'),
+  @JsonValue('CAUTION')
+  caution('CAUTION'),
+  @JsonValue('BLOCKED')
+  blocked('BLOCKED'),
+  @JsonValue('PREVENTED')
+  prevented('PREVENTED');
+
+  const ChipTone(this.wire);
+
+  /// JSON 표기(01 §1-2).
+  final String wire;
+}
+
+/// 01 §2-1 — 게이트 판정.
+/// 🔴 `unknown` 은 `notApplicable` 과 뜻이 다르다 — X3 리스·기기 원장 판정의 «모름»이며
+///    **진행 차단**이다(04 §9-8).
+enum GateState {
+  @JsonValue('PASS')
+  pass('PASS'),
+  @JsonValue('BLOCK')
+  block('BLOCK'),
+  @JsonValue('NOT_APPLICABLE')
+  notApplicable('NOT_APPLICABLE'),
+  @JsonValue('UNKNOWN')
+  unknown('UNKNOWN');
+
+  const GateState(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+
+/// 01 §2-1 — 색·아이콘의 유일한 근거.
+/// 🔴 **값의 부호로 색을 고르지 않는다**(음수=빨강은 손익 은유다).
+enum UiLevel {
+  @JsonValue('OK')
+  ok('OK'),
+  @JsonValue('INFO')
+  info('INFO'),
+  @JsonValue('WATCH')
+  watch('WATCH'),
+  @JsonValue('ACT')
+  act('ACT'),
+  @JsonValue('BLOCKED')
+  blocked('BLOCKED');
+
+  const UiLevel(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+
+/// 01 §2-1 — 빈 상태 3분. «없는 것»·«못 받은 것»·«해당 없음» 은 다르다(계약 3조 ③).
+enum EmptyKind {
+  @JsonValue('NO_DATA')
+  noData('NO_DATA'),
+  @JsonValue('NOT_LOADED')
+  notLoaded('NOT_LOADED'),
+  @JsonValue('NOT_APPLICABLE')
+  notApplicable('NOT_APPLICABLE');
+
+  const EmptyKind(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/fixtures/fixture_loader.dart`
+
+```dart
+// 01 §5 «모의 데이터 픽스처» — 봉투(meta + as_of + empty_kind + empty_label +
+// has_more + rows) 디코더와 검증 헬퍼.
+//
+// 🔴 순수 Dart 여야 한다(인벤토리 §8-5) — `dart:io` 를 쓰면 web viewer 빌드가
+//    깨진다. 파일을 읽는 것은 호출자(테스트·화면 하네스)의 일이고 이 파일은
+//    «문자열 → DTO» 만 한다.
+// 🔴 봉투 필수 4값(as_of·empty_kind·empty_label·has_more)이 하나라도 없으면
+//    빈 값으로 넘기지 않고 예외를 던진다(같은 §8-5). 「없음」(NO_DATA + 문구)과
+//    「모름」(NOT_LOADED + stale_reason_code)이 화면에서 갈리는 근거가 이 넷이다.
+// 🔴 이 파일은 판정하지 않는다(01 §1-4) — 계산 getter·부작용 함수 0건.
+
+import 'dart:convert';
+
+import '../enums/ui.dart'; // EmptyKind — 영역 A
+import '../primitives/as_of.dart'; // AsOf — 영역 A
+import '../primitives/list_result.dart'; // ListResult<T> — 영역 A
+
+/// 픽스처 봉투가 계약대로 생기지 않았을 때 던진다.
+///
+/// 🔴 「필드가 없으면 기본값」은 이 계약의 반대다 — 빠진 값은 실패로 드러낸다.
+class FixtureFormatException implements Exception {
+  const FixtureFormatException(this.message, {this.path});
+
+  /// 사람이 읽을 사유 한 줄.
+  final String message;
+
+  /// 문제가 난 자리(`meta.seed`·`rows[3].price` 처럼 점 표기).
+  final String? path;
+
+  @override
+  String toString() => path == null
+      ? 'FixtureFormatException: $message'
+      : 'FixtureFormatException: $message (at $path)';
+}
+
+/// 봉투 머리의 `meta` 블록(01 §5 봉투 형식).
+///
+/// 🔴 `contractVersion` 은 `lib/src/contract_version.dart` 상수와 **같은 축**이다
+///    — 한쪽만 올리면 C-1(뷰모델 골든)·C-15(픽스처↔DDL)가 갈라진 채 통과한다.
+class FixtureMeta {
+  const FixtureMeta({
+    required this.fixtureVersion,
+    required this.contractVersion,
+    required this.generatedAt,
+    required this.mode,
+    required this.configHash,
+    required this.seed,
+    required this.notice,
+  });
+
+  /// 픽스처 묶음 자체의 판본.
+  final String fixtureVersion;
+
+  /// 이 픽스처가 표현하는 M2 계약의 판본.
+  final String contractVersion;
+
+  /// 픽스처를 생성한 시각(UTC 문자열 원문 — 표시용이 아니다).
+  final String generatedAt;
+
+  /// `RunMode` 의 JSON 표기(`SIM_INTERNAL`·`SIM_BROKER`·`LIVE`).
+  final String mode;
+
+  /// 합성 config 해시(`cfg_fake_…`).
+  final String configHash;
+
+  /// 합성 데이터 생성 시드.
+  final int seed;
+
+  /// 「합성 데이터. 실계좌·실키 없음.」 고지 문구.
+  final String notice;
+}
+
+/// 디코드된 봉투. `rows` 는 아직 DTO 가 아니라 원시 Map 이다.
+class FixtureEnvelope {
+  const FixtureEnvelope({
+    required this.meta,
+    required this.asOf,
+    required this.emptyKind,
+    required this.emptyLabel,
+    required this.hasMore,
+    required this.rows,
+  });
+
+  final FixtureMeta meta;
+
+  /// 봉투의 `as_of` 원문 Map. `AsOf.fromJson` 의 입력이다.
+  final Map<String, Object?> asOf;
+
+  /// `EmptyKind` 의 JSON 표기(`NO_DATA`·`NOT_LOADED`·`NOT_APPLICABLE`).
+  final String emptyKind;
+
+  /// 빈 목록일 때 화면이 그대로 그릴 문구. 엔진 생성 — 화면이 짓지 않는다.
+  final String? emptyLabel;
+
+  final bool hasMore;
+
+  /// 엔진이 **이미 정렬한** 행. 🔴 화면·테스트가 재정렬하지 않는다.
+  final List<Map<String, Object?>> rows;
+}
+
+/// 봉투 JSON 문자열을 검증하며 디코드한다.
+///
+/// 필수 키가 없거나 타입이 다르면 [FixtureFormatException].
+FixtureEnvelope decodeEnvelope(String json) {
+  final Object? decoded = jsonDecode(json);
+  if (decoded is! Map<String, Object?>) {
+    throw const FixtureFormatException('봉투 최상위가 객체가 아니다.');
+  }
+
+  final Map<String, Object?> metaJson = _requireMap(decoded, 'meta');
+  final Map<String, Object?> asOfJson = _requireMap(decoded, 'as_of');
+
+  // 🔴 empty_label 은 값이 null 이어도 «키가 있어야» 한다 — 「없음」과
+  //    「고지를 아직 못 받았다」를 구별하는 것이 이 계약의 목적이다.
+  if (!decoded.containsKey('empty_label')) {
+    throw const FixtureFormatException(
+      '봉투에 empty_label 키가 없다.',
+      path: 'empty_label',
+    );
+  }
+  final Object? emptyLabel = decoded['empty_label'];
+  if (emptyLabel != null && emptyLabel is! String) {
+    throw const FixtureFormatException(
+      'empty_label 은 문자열이거나 null 이다.',
+      path: 'empty_label',
+    );
+  }
+
+  final List<Map<String, Object?>> rows = <Map<String, Object?>>[];
+  final Object? rawRows = decoded['rows'];
+  if (rawRows is! List) {
+    throw const FixtureFormatException('봉투에 rows 배열이 없다.', path: 'rows');
+  }
+  for (int i = 0; i < rawRows.length; i++) {
+    final Object? row = rawRows[i];
+    if (row is! Map<String, Object?>) {
+      throw FixtureFormatException('행이 객체가 아니다.', path: 'rows[$i]');
+    }
+    rows.add(row);
+  }
+
+  return FixtureEnvelope(
+    meta: FixtureMeta(
+      fixtureVersion: _requireString(
+        metaJson,
+        'fixture_version',
+        prefix: 'meta',
+      ),
+      contractVersion: _requireString(
+        metaJson,
+        'contract_version',
+        prefix: 'meta',
+      ),
+      generatedAt: _requireString(metaJson, 'generated_at', prefix: 'meta'),
+      mode: _requireString(metaJson, 'mode', prefix: 'meta'),
+      configHash: _requireString(metaJson, 'config_hash', prefix: 'meta'),
+      seed: _requireInt(metaJson, 'seed', prefix: 'meta'),
+      notice: _requireString(metaJson, 'notice', prefix: 'meta'),
+    ),
+    asOf: asOfJson,
+    emptyKind: _requireString(decoded, 'empty_kind'),
+    emptyLabel: emptyLabel as String?,
+    hasMore: _requireBool(decoded, 'has_more'),
+    rows: rows,
+  );
+}
+
+/// 봉투 JSON 을 `ListResult<T>` 로 디코드한다(인벤토리 §8-5 시그니처 축).
+///
+/// [rowFrom] 은 각 DTO 의 `fromJson` 을 그대로 넘긴다.
+ListResult<T> decodeList<T>(
+  String json,
+  T Function(Map<String, Object?>) rowFrom,
+) {
+  final FixtureEnvelope envelope = decodeEnvelope(json);
+  return ListResult<T>(
+    rows: envelope.rows.map(rowFrom).toList(growable: false),
+    asOf: AsOf.fromJson(envelope.asOf),
+    emptyKind: emptyKindFromJson(envelope.emptyKind),
+    emptyLabel: envelope.emptyLabel,
+    hasMore: envelope.hasMore,
+  );
+}
+
+/// 단일 객체 픽스처(`resume_report_1.json` 처럼 `rows` 가 1행인 것)의 편의 창구.
+///
+/// 🔴 행이 정확히 1개가 아니면 예외다 — 「첫 행을 쓴다」는 조용한 판정이 된다.
+T decodeSingle<T>(String json, T Function(Map<String, Object?>) rowFrom) {
+  final FixtureEnvelope envelope = decodeEnvelope(json);
+  if (envelope.rows.length != 1) {
+    throw FixtureFormatException(
+      '단일 객체 픽스처인데 행이 ${envelope.rows.length}개다.',
+      path: 'rows',
+    );
+  }
+  return rowFrom(envelope.rows.single);
+}
+
+/// `EmptyKind` 의 JSON 표기 → 열거값(01 §2-1).
+///
+/// 🔴 표기 문자열의 정본은 영역 A 의 `EmptyKind.wire` 하나다 — 여기에 두 번째
+///    목록을 만들지 않는다. 🔴 알 수 없는 값을 기본값으로 흘려보내지 않는다.
+EmptyKind emptyKindFromJson(String raw) {
+  for (final EmptyKind kind in EmptyKind.values) {
+    if (kind.wire == raw) {
+      return kind;
+    }
+  }
+  throw FixtureFormatException('알 수 없는 empty_kind: $raw', path: 'empty_kind');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 시크릿 스캔 — C-14 의 판정부(인벤토리 §9)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// C-14 가 찾는 패턴 하나.
+class SecretPattern {
+  const SecretPattern(this.code, this.description, this.pattern);
+
+  /// 사유 코드(테스트 실패 메시지에 그대로 실린다).
+  final String code;
+
+  /// 무엇을 찾는가.
+  final String description;
+
+  final RegExp pattern;
+}
+
+/// C-14 스캔 결과 1건.
+class SecretFinding {
+  const SecretFinding({
+    required this.code,
+    required this.description,
+    required this.matchedText,
+    required this.offset,
+  });
+
+  final String code;
+  final String description;
+
+  /// 걸린 문자열 원문. 🔴 실키를 로그에 남기지 않기 위해 호출자가 마스킹한다.
+  final String matchedText;
+
+  /// 원문에서의 위치(0-기반).
+  final int offset;
+
+  @override
+  String toString() => '$code($description) @$offset: $matchedText';
+}
+
+/// 픽스처 원문에서 시크릿으로 보이는 것을 찾는다(C-14).
+///
+/// 🔴 판정은 «찾았다/못 찾았다» 뿐이다 — 이 함수는 파일을 고치지 않는다.
+List<SecretFinding> scanForSecrets(String text) {
+  final List<SecretFinding> findings = <SecretFinding>[];
+  for (final SecretPattern rule in secretPatterns) {
+    for (final RegExpMatch m in rule.pattern.allMatches(text)) {
+      findings.add(
+        SecretFinding(
+          code: rule.code,
+          description: rule.description,
+          matchedText: m[0]!,
+          offset: m.start,
+        ),
+      );
+    }
+  }
+  findings.sort(
+    (SecretFinding a, SecretFinding b) => a.offset.compareTo(b.offset),
+  );
+  return findings;
+}
+
+/// C-14 패턴 목록(01 §5 대원칙 · 인벤토리 §9 C-14).
+///
+/// 🔴 「KIS 앱키 · `ya29.` · `1//` · 8자리 계좌」 네 축이 문서가 지목한 것이고,
+///    나머지 둘은 같은 사고(자격증명이 픽스처에 새는 것)의 이웃 패턴이다.
+/// 🔴 «8자리 이상 연속 숫자» 를 그대로 잡으면 **금액 문자열이 걸린다**
+///    (`"30000000"` = 3천만원 인출 · 1억은 9자리다). 그래서 계좌번호는
+///    ① 계좌번호꼴(`123456-78`) ② 계좌를 가리키는 키의 값 ③ 「계좌」 뒤의 숫자
+///    세 갈래로만 찾는다. 🔴 계좌는 픽스처에 **별칭만** 실리므로 이 셋이면 충분하다.
+final List<SecretPattern> secretPatterns = <SecretPattern>[
+  SecretPattern(
+    'KIS_APP_KEY',
+    'KIS 앱키·앱시크릿으로 보이는 긴 영숫자 토큰',
+    // KIS 앱키는 36자, 앱시크릿은 180자 안팎의 연속 영숫자다.
+    // 픽스처의 정상 값(티커·별칭·`cfg_fake_…`·sha256 앞 12자)은 밑줄·하이픈이
+    // 섞이거나 32자 미만이다.
+    RegExp('"[A-Za-z0-9]{32,}"'),
+  ),
+  SecretPattern(
+    'GOOGLE_OAUTH_ACCESS_TOKEN',
+    'Google OAuth 액세스 토큰 접두 ya29.',
+    RegExp(r'ya29\.[A-Za-z0-9_\-]+'),
+  ),
+  SecretPattern(
+    'GOOGLE_OAUTH_REFRESH_TOKEN',
+    'Google OAuth 리프레시 토큰 접두 1//',
+    RegExp(r'"1//[A-Za-z0-9_\-]+'),
+  ),
+  SecretPattern(
+    'ACCOUNT_NUMBER_FORM',
+    '계좌번호꼴 숫자(6자리 이상 - 2자리 이상)',
+    RegExp('[0-9]{6,}-[0-9]{2,}'),
+  ),
+  SecretPattern(
+    'ACCOUNT_NUMBER_FIELD',
+    '계좌를 가리키는 키에 실린 8자리 이상 연속 숫자',
+    RegExp(
+      '"[A-Za-z_]*account[A-Za-z_]*"\\s*:\\s*"[0-9]{8,}"',
+      caseSensitive: false,
+    ),
+  ),
+  SecretPattern(
+    'ACCOUNT_NUMBER_IN_TEXT',
+    '문구 안에 적힌 계좌 전체번호',
+    RegExp('계좌[^0-9]{0,4}[0-9]{8,}'),
+  ),
+  SecretPattern(
+    'BEARER_TOKEN',
+    'Authorization 헤더 형태의 Bearer 토큰',
+    RegExp(r'[Bb]earer\s+[A-Za-z0-9._\-]{16,}'),
+  ),
+  SecretPattern(
+    'PRIVATE_KEY_BLOCK',
+    'PEM 개인키 블록',
+    RegExp('BEGIN [A-Z ]*PRIVATE KEY'),
+  ),
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 원시 접근 헬퍼 — 「없으면 기본값」을 금지하기 위한 것이다.
+// ─────────────────────────────────────────────────────────────────────────────
+
+Map<String, Object?> _requireMap(
+  Map<String, Object?> json,
+  String key, {
+  String? prefix,
+}) {
+  final Object? v = json[key];
+  if (v is! Map<String, Object?>) {
+    throw FixtureFormatException(
+      '$key 블록이 없거나 객체가 아니다.',
+      path: _path(prefix, key),
+    );
+  }
+  return v;
+}
+
+String _requireString(Map<String, Object?> json, String key, {String? prefix}) {
+  final Object? v = json[key];
+  if (v is! String) {
+    throw FixtureFormatException(
+      '$key 가 없거나 문자열이 아니다.',
+      path: _path(prefix, key),
+    );
+  }
+  return v;
+}
+
+int _requireInt(Map<String, Object?> json, String key, {String? prefix}) {
+  final Object? v = json[key];
+  if (v is! int) {
+    throw FixtureFormatException(
+      '$key 가 없거나 정수가 아니다.',
+      path: _path(prefix, key),
+    );
+  }
+  return v;
+}
+
+bool _requireBool(Map<String, Object?> json, String key, {String? prefix}) {
+  final Object? v = json[key];
+  if (v is! bool) {
+    throw FixtureFormatException(
+      '$key 가 없거나 참·거짓이 아니다.',
+      path: _path(prefix, key),
+    );
+  }
+  return v;
+}
+
+String _path(String? prefix, String key) =>
+    prefix == null ? key : '$prefix.$key';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/fixtures/fixture_paths.dart`
+
+```dart
+// 01 §5 «모의 데이터 픽스처» · 인벤토리 §8 — 픽스처 상대 경로 상수.
+//
+// 🔴 경로는 **저장소 루트 기준 상대 경로**다(01 §5 · 04 §10 · 05 §8-2).
+//    절대 경로가 코드에 들어가면 반려다.
+// 🔴 파일을 읽는 것은 호출자의 일이다 — 이 파일도 `dart:io` 를 쓰지 않는다(§8-5).
+// 🔴 파일명은 계약이다 — 「테스트가 안 맞아서」 이름을 바꾸는 것은 반려 사유이고,
+//    픽스처 갱신은 M2 만 한다(01 §5).
+
+/// 픽스처 디렉터리(저장소 루트 기준).
+const String fixtureRoot = 'packages/domain_contracts/fixtures';
+
+/// 픽스처 파일의 [fixtureRoot] 기준 상대 경로 모음.
+abstract final class FixturePaths {
+  // ── 계약 코어 · 인벤토리 §8-2·§8-3 (`fixtures/` 바로 아래) ──
+  static const String alerts12 = 'alerts_12.json';
+  static const String depositPlan1 = 'deposit_plan_1.json';
+  static const String depositPlanFunding1 = 'deposit_plan_funding_1.json';
+  static const String holdings6 = 'holdings_6.json';
+  static const String journal30 = 'journal_30.json';
+  static const String ledgerDiffs4 = 'ledger_diffs_4.json';
+  static const String onboardingFresh = 'onboarding_fresh.json';
+  static const String onboardingReconnect = 'onboarding_reconnect.json';
+  static const String performance24m = 'performance_24m.json';
+  static const String rebalance6 = 'rebalance_6.json';
+  static const String resumeReport1 = 'resume_report_1.json';
+  static const String safetyStates = 'safety_states.json';
+
+  // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
+  static const String m6Advice12 = 'm6/advice_12.json';
+  static const String m6AdviceBlocked = 'm6/advice_blocked.json';
+  static const String m6AdviceDetailOnhold = 'm6/advice_detail_onhold.json';
+  static const String m6AdviceDetailPartial = 'm6/advice_detail_partial.json';
+  static const String m6AdviceEmpty = 'm6/advice_empty.json';
+  static const String m6AdviceExpiredConfirm = 'm6/advice_expired_confirm.json';
+  static const String m6AdviceHandoverCooling =
+      'm6/advice_handover_cooling.json';
+  static const String m6AdviceNoAction = 'm6/advice_no_action.json';
+  static const String m6AdviceSkipReasons = 'm6/advice_skip_reasons.json';
+  static const String m6AdviceViewer4 = 'm6/advice_viewer_4.json';
+  static const String m6EntryGateNovPass1 = 'm6/entry_gate_nov_pass_1.json';
+  static const String m6ExternalHoldings2 = 'm6/external_holdings_2.json';
+  static const String m6FillFormSpec = 'm6/fill_form_spec.json';
+  static const String m6FillFormSpecStale = 'm6/fill_form_spec_stale.json';
+  static const String m6FillRejectedPrice = 'm6/fill_rejected_price.json';
+  static const String m6ManualFills8 = 'm6/manual_fills_8.json';
+  static const String m6SelfReport1 = 'm6/self_report_1.json';
+
+  // ── m7/ — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15) ──
+  static const String m7AftertaxLadder1 = 'm7/aftertax_ladder_1.json';
+  static const String m7ExecutionGap1 = 'm7/execution_gap_1.json';
+  static const String m7ExecutionGapCant = 'm7/execution_gap_cant.json';
+  static const String m7ExecutionGapMixed = 'm7/execution_gap_mixed.json';
+  static const String m7ExecutionGapWont = 'm7/execution_gap_wont.json';
+  static const String m7LedgerTrust4 = 'm7/ledger_trust_4.json';
+  static const String m7M7Annual2026 = 'm7/m7_annual_2026.json';
+  static const String m7M7AnnualFirstYear = 'm7/m7_annual_first_year.json';
+  static const String m7M7Contrib3sleeve = 'm7/m7_contrib_3sleeve.json';
+  static const String m7M7DdContextDeep = 'm7/m7_dd_context_deep.json';
+  static const String m7M7DdContextNormal = 'm7/m7_dd_context_normal.json';
+  static const String m7M7DepositPlanDefault =
+      'm7/m7_deposit_plan_default.json';
+  static const String m7M7DepositPlanExpired =
+      'm7/m7_deposit_plan_expired.json';
+  static const String m7M7DepositPlanLimit = 'm7/m7_deposit_plan_limit.json';
+  static const String m7M7DisclosureGate = 'm7/m7_disclosure_gate.json';
+  static const String m7M7GoalPathHold = 'm7/m7_goal_path_hold.json';
+  static const String m7M7GoalPathOn = 'm7/m7_goal_path_on.json';
+  static const String m7M7GoalPathRealworld = 'm7/m7_goal_path_realworld.json';
+  static const String m7M7Monthly202608 = 'm7/m7_monthly_2026_08.json';
+  static const String m7M7MonthlyGap = 'm7/m7_monthly_gap.json';
+  static const String m7M7MonthlyPending = 'm7/m7_monthly_pending.json';
+  static const String m7M7NextRebalanceD6 = 'm7/m7_next_rebalance_d6.json';
+  static const String m7M7PerfDailyGap = 'm7/m7_perf_daily_gap.json';
+  static const String m7M7RebalanceDetailBand =
+      'm7/m7_rebalance_detail_band.json';
+  static const String m7M7ReportArchive18 = 'm7/m7_report_archive_18.json';
+  static const String m7M7WithdrawalGeneral = 'm7/m7_withdrawal_general.json';
+  static const String m7M7WithdrawalPensionPenalty =
+      'm7/m7_withdrawal_pension_penalty.json';
+  static const String m7M7WithdrawalShortfall =
+      'm7/m7_withdrawal_shortfall.json';
+  static const String m7RealizedAllocS7 = 'm7/realized_alloc_S7.json';
+
+  // ── m8/ — 셸·운영 홈·알림·온보딩 (04 §10) ──
+  static const String m8AlertsAdvice9codes = 'm8/alerts_advice_9codes.json';
+  static const String m8AlertsDigest = 'm8/alerts_digest.json';
+  static const String m8AlertsP0Ack = 'm8/alerts_p0_ack.json';
+  static const String m8HandbookPageSleeveB = 'm8/handbook_page_sleeve_b.json';
+  static const String m8IncidentTokenExpired = 'm8/incident_token_expired.json';
+  static const String m8OnboardingFinish = 'm8/onboarding_finish.json';
+  static const String m8OnboardingFreshAdvisory =
+      'm8/onboarding_fresh_advisory.json';
+  static const String m8OnboardingModePick = 'm8/onboarding_mode_pick.json';
+  static const String m8OpsHomeAdviceOpen = 'm8/ops_home_advice_open.json';
+  static const String m8OpsHomeAdviceZero = 'm8/ops_home_advice_zero.json';
+  static const String m8OpsHomeBlocked = 'm8/ops_home_blocked.json';
+  static const String m8OpsHomeNormal = 'm8/ops_home_normal.json';
+  static const String m8OpsHomeResumeGap7 = 'm8/ops_home_resume_gap7.json';
+  static const String m8OpsRhythmRows = 'm8/ops_rhythm_rows.json';
+  static const String m8ReconBoardDiff = 'm8/recon_board_diff.json';
+  static const String m8RestartLostPhone = 'm8/restart_lost_phone.json';
+  static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
+  static const String m8WatchdogHoliday = 'm8/watchdog_holiday.json';
+
+  // ── m9/ — 설정·운영 모드 전환 (05) ──
+  static const String m9HandoverStates = 'm9/handover_states.json';
+
+  /// 전량 목록 — C-14 시크릿 스캔·C-15 열거값 대조가 이 목록을 돈다.
+  static const List<String> all = <String>[
+    alerts12,
+    depositPlan1,
+    depositPlanFunding1,
+    holdings6,
+    journal30,
+    ledgerDiffs4,
+    onboardingFresh,
+    onboardingReconnect,
+    performance24m,
+    rebalance6,
+    resumeReport1,
+    safetyStates,
+    m6Advice12,
+    m6AdviceBlocked,
+    m6AdviceDetailOnhold,
+    m6AdviceDetailPartial,
+    m6AdviceEmpty,
+    m6AdviceExpiredConfirm,
+    m6AdviceHandoverCooling,
+    m6AdviceNoAction,
+    m6AdviceSkipReasons,
+    m6AdviceViewer4,
+    m6EntryGateNovPass1,
+    m6ExternalHoldings2,
+    m6FillFormSpec,
+    m6FillFormSpecStale,
+    m6FillRejectedPrice,
+    m6ManualFills8,
+    m6SelfReport1,
+    m7AftertaxLadder1,
+    m7ExecutionGap1,
+    m7ExecutionGapCant,
+    m7ExecutionGapMixed,
+    m7ExecutionGapWont,
+    m7LedgerTrust4,
+    m7M7Annual2026,
+    m7M7AnnualFirstYear,
+    m7M7Contrib3sleeve,
+    m7M7DdContextDeep,
+    m7M7DdContextNormal,
+    m7M7DepositPlanDefault,
+    m7M7DepositPlanExpired,
+    m7M7DepositPlanLimit,
+    m7M7DisclosureGate,
+    m7M7GoalPathHold,
+    m7M7GoalPathOn,
+    m7M7GoalPathRealworld,
+    m7M7Monthly202608,
+    m7M7MonthlyGap,
+    m7M7MonthlyPending,
+    m7M7NextRebalanceD6,
+    m7M7PerfDailyGap,
+    m7M7RebalanceDetailBand,
+    m7M7ReportArchive18,
+    m7M7WithdrawalGeneral,
+    m7M7WithdrawalPensionPenalty,
+    m7M7WithdrawalShortfall,
+    m7RealizedAllocS7,
+    m8AlertsAdvice9codes,
+    m8AlertsDigest,
+    m8AlertsP0Ack,
+    m8HandbookPageSleeveB,
+    m8IncidentTokenExpired,
+    m8OnboardingFinish,
+    m8OnboardingFreshAdvisory,
+    m8OnboardingModePick,
+    m8OpsHomeAdviceOpen,
+    m8OpsHomeAdviceZero,
+    m8OpsHomeBlocked,
+    m8OpsHomeNormal,
+    m8OpsHomeResumeGap7,
+    m8OpsRhythmRows,
+    m8ReconBoardDiff,
+    m8RestartLostPhone,
+    m8WatchdogDelayed,
+    m8WatchdogHoliday,
+    m9HandoverStates,
+  ];
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/advice_codes.dart`
+
+```dart
+// 01 §3-8 X7 명령 거부 사유 15종 · §6-6 `advice_transition.cause_code` 9종
+// · `decision_log.reason_code` 특수값 3종 · §3-7 슬리브 A 계절 진입 게이트 사유 3종.
+//
+// 🔴 전부 «어떤 코드가 오는가»의 목록이다. 거부 사유의 문구는 `ActionResult.headline`·
+//    `CommandReceipt.stateLabel` 에, 게이트 사유의 문구는 `ReasonChip.label` 에 실려 온다.
+// 🔴 **거부는 초안을 지우지 않는다**(C17) — 어떤 거부 코드로 돌아와도 화면은 값을 채운 채
+//    사유와 재제출 버튼을 보인다. 초안 삭제는 `CommandReceipt.state == executed` 수신 시에만.
+
+/// X7 명령 거부 사유 코드 15종(01 §3-8).
+///
+/// 🔴 **폐기** — `LEDGER_INTEGRITY_BLOCKED`(B18). 무결성 차단 중에도 기록 명령은 거부하지 않고
+///    `CommandState.heldForIntegrity` 로 **보관**한다. 이 상수를 되살리지 않는다.
+abstract final class AdviceRejectCodes {
+  /// 금지 조합(01 §10-2) 진입 시도. 🔴 조건부 칸 #12 는 `handover_session_id` 가 없으면 여기로.
+  static const String modeCombinationDenied = 'MODE_COMBINATION_DENIED';
+
+  /// `autoTrade` 에 수기 기록 명령이 도착.
+  static const String operatingModeMismatch = 'OPERATING_MODE_MISMATCH';
+
+  /// 🔴 `SKIPPED`·`REVOKED`·`SUPERSEDED` **3종에만** 적용한다 — `EXPIRED` 는 **제외**(A4).
+  /// 만료 뒤 도착한 기록은 «지연 이행»이며 받는다.
+  static const String adviceNotOpen = 'ADVICE_NOT_OPEN';
+
+  /// 거래일자가 휴장일·미래일·모드 개시 이전. 🔴 판정은 거래소 캘린더를 아는 엔진만.
+  static const String fillDateNotTradingDay = 'FILL_DATE_NOT_TRADING_DAY';
+
+  /// 🔴 B4 — 기록의 `tradeDate` 가 [안내 발행 거래일, `validUntilDate`] 창 밖.
+  static const String fillDateOutsideAdviceWindow =
+      'FILL_DATE_OUTSIDE_ADVICE_WINDOW';
+
+  /// 그날 그 종목의 [저가, 고가] 밖. 🔴 B5 — **완화는 사용자가 고르지 않는다**:
+  /// 엔진이 「시간외·단주 신고로 재제출」 옵션을 실을지 판정해 담고 화면은 준 옵션만 그린다.
+  static const String priceOutOfRange = 'PRICE_OUT_OF_RANGE';
+
+  /// 슬리브 매핑 밖 종목. 🔴 «시스템 밖 자산 등록» 경로를 함께 제시한다.
+  static const String symbolNotMapped = 'SYMBOL_NOT_MAPPED';
+
+  /// 🔴 B11 — 유니버스 종목을 `external_holding` 으로 등록하려는 시도(«2배 노출» 방어).
+  static const String symbolInUniverseCannotBeExternal =
+      'SYMBOL_IN_UNIVERSE_CANNOT_BE_EXTERNAL';
+
+  /// 이미 상쇄·재기재된 행을 다시 정정.
+  static const String amendTargetNotActive = 'AMEND_TARGET_NOT_ACTIVE';
+
+  /// 🔴 A13 — `amend` 에 종목·방향 변경이 실림. 그 변경은 `void` + 새 `record` **2명령**이다.
+  static const String amendSymbolOrSideChange = 'AMEND_SYMBOL_OR_SIDE_CHANGE';
+
+  /// 🔴 B6 — 정정 체인 길이 상한(엔진 config · 권고 2회) 초과 → `L-3` 실사로 유도.
+  static const String amendLimitExceeded = 'AMEND_LIMIT_EXCEEDED';
+
+  /// 안내의 종목과 다른 체결이 그 `advice_id` 로 들어옴.
+  static const String adviceFillSymbolMismatch = 'ADVICE_FILL_SYMBOL_MISMATCH';
+
+  /// 🔴 예산 코드 2종(`intentionalPause`·`priceUnacceptable`)에만 — 나머지 사유는 1탭으로 끝난다.
+  static const String skipNoteRequired = 'SKIP_NOTE_REQUIRED';
+
+  /// 🔴 B19 — `amend`·`void`·`skip`·`selfReport`(원장 재해석 계열)에만 남는다.
+  /// `recordManualFill`(사실 추가)은 거부가 아니라 `pendingLeaseConfirm` 강등 접수다.
+  static const String leaseExpired = 'LEASE_EXPIRED';
+
+  /// 🔴 A9 — 24h 내 유사 기록(같은 `advice_id`·거래일·수량·가격).
+  /// 재제출은 `duplicateAck = true`.
+  static const String duplicateSuspected = 'DUPLICATE_SUSPECTED';
+
+  /// 전량 15종.
+  static const Set<String> values = <String>{
+    modeCombinationDenied,
+    operatingModeMismatch,
+    adviceNotOpen,
+    fillDateNotTradingDay,
+    fillDateOutsideAdviceWindow,
+    priceOutOfRange,
+    symbolNotMapped,
+    symbolInUniverseCannotBeExternal,
+    amendTargetNotActive,
+    amendSymbolOrSideChange,
+    amendLimitExceeded,
+    adviceFillSymbolMismatch,
+    skipNoteRequired,
+    leaseExpired,
+    duplicateSuspected,
+  };
+}
+
+/// `advice_transition.cause_code` 9종(01 §6-6 CHECK).
+abstract final class AdviceTransitionCauseCodes {
+  /// 수기 체결 기록.
+  static const String record = 'RECORD';
+
+  /// 미이행 선언.
+  static const String skip = 'SKIP';
+
+  /// 유효기한 경과(엔진 스윕).
+  static const String lapse = 'LAPSE';
+
+  /// 새 안내가 자리를 대체.
+  static const String supersede = 'SUPERSEDE';
+
+  /// 회수(킬스위치·차단·억제).
+  static const String revoke = 'REVOKE';
+
+  /// 기록 정정.
+  static const String amend = 'AMEND';
+
+  /// 🔴 A4 — 만료 뒤 기록. **상태를 바꾸지 않고** `EXPIRED → EXPIRED` 1행으로 사실만 남긴다.
+  static const String lateFill = 'LATE_FILL';
+
+  /// 🔴 G-20 — 집행 주체 전환 커밋이 살아 있는 안내를 **회수**한 사실.
+  /// 사람의 미이행이 아니므로 **예산 미차감·이행률 분모 제외**다.
+  static const String handoverClose = 'HANDOVER_CLOSE';
+
+  /// 🔴 G-86 — 만료 확인 카드를 하루 미룬 사실. 상태는 바꾸지 않고
+  /// (`EXPIRED → EXPIRED`) **행의 존재 자체가 «이미 한 번 미뤘다»의 정본**이다.
+  static const String deferConfirm = 'DEFER_CONFIRM';
+
+  /// 전량 9종.
+  static const Set<String> values = <String>{
+    record,
+    skip,
+    lapse,
+    supersede,
+    revoke,
+    amend,
+    lateFill,
+    handoverClose,
+    deferConfirm,
+  };
+}
+
+/// `decision_log.reason_code` 의 특수값 3종(인벤토리 §6-12).
+///
+/// 🔴 `decision_log.kind='MANUAL'` 인 **세 갈래**(정정 · `external_holding` 등록 · 경로 b 귀속)는
+///    재량 예산·이탈 집계의 **모집단이 아니다**(C7).
+abstract final class DecisionReasonCodes {
+  /// G-04 — 실전 개시 원장(`kind='MANUAL'` 1행 공유).
+  static const String openingBalance = 'OPENING_BALANCE';
+
+  /// N-2 — 모의 개시 원장.
+  static const String simOpeningBalance = 'SIM_OPENING_BALANCE';
+
+  /// G-20 — `advice.close_reason_code` 에 실리는 전환 커밋 회수 사유.
+  static const String handoverClosed = 'HANDOVER_CLOSED';
+
+  /// 전량 3종.
+  static const Set<String> values = <String>{
+    openingBalance,
+    simOpeningBalance,
+    handoverClosed,
+  };
+}
+
+/// 슬리브 A 계절 진입 게이트 사유 코드 3종(01 §3-7).
+///
+/// 🔴 **상태 5값 ↔ 코드 3종의 비대칭을 화면이 분기로 메우지 않는다** —
+///    `octPassed`→[entryOk] · `deferredToNov`·`deferredToDec`→[entryDefer] ·
+///    `enteredInNov`·`forcedEntryDec`→[entryLate]. 화면은 상태값으로 색·배지만 고르고
+///    문구는 전부 `ReasonChip.label` 을 쓴다.
+/// 🔴 임계값·보류 상한(`seasonality.f1_entry_gate_score`·`f1_entry_defer_max`)을
+///    **상수로 적지 않는다** — 값이 화면에 박히면 조문과 화면이 각자 정본이 된다.
+/// 🔴 **보류에 안내를 만들지 않는다**(G-25) — 매달 오는 «안 함»의 통보는 경보 피로다.
+abstract final class SeasonalEntryGateCodes {
+  /// ⏸ 정상 통과. ⚠️ **엔진 코드명 M2-3 확정 대기**(M2-8 A-9) —
+  /// 03_알고리즘에 통과 케이스용 이벤트 이름이 아직 없다.
+  /// 🔴 등재 전에는 픽스처 봉투의 `ENTRY_GATE_OCT` 를 **고치지 않는다**
+  ///    (정상 통과가 «보류·지연»으로 오표기되는 것을 막는다).
+  static const String entryOk = 'F1_ENTRY_OK';
+
+  /// 임계 미만(또는 결측 = fail-closed) → 이번 달 보류.
+  static const String entryDefer = 'F1_ENTRY_DEFER';
+
+  /// 보류 뒤 실제 진입(11월말 재판정 통과 / 12월말 강제).
+  static const String entryLate = 'F1_ENTRY_LATE';
+
+  /// 전량 3종.
+  static const Set<String> values = <String>{entryOk, entryDefer, entryLate};
+
+  /// ⏸ 코드명 확정 전까지 픽스처 봉투가 «통과»에 쓰는 값(01 §3-7 · §5 봉투 예시).
+  ///
+  /// 🔴 [entryOk] 로 갈아치우지 않는다 — M2-3 등재가 끝난 창에서만 옮긴다.
+  static const String fixtureEntryGatePass = 'ENTRY_GATE_OCT';
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/alert_codes.dart`
+
+```dart
+// 알림 코드 24종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 10 + 유지보수 2) · §5-1d(운영 1).
+// 인벤토리 §6-9 의 분류를 그대로 쓴다.
+//
+// 🔴 **등급(P0/P1/P2)을 이 파일에 사전으로 만들지 않는다.** 등급의 런타임 정본은
+//    `AlertItem.level` 하나이고(01 §2-10 · 결정 7c 표시 계층의 사적 재분류 금지),
+//    최종 정본은 엔진 `06_시스템설계/04_안전장치.md` 의 notify 등급이다.
+//    아래 각 코드의 주석에 적은 등급은 04 의 **잠정 카탈로그 기록**이며,
+//    «앱 알림 코드 ↔ 엔진 등급 대조 1회»(06 §4 ③)를 통과하기 전에는 유효하지 않다.
+// 🔴 **등재 전에는 화면이 `code` 로 아이콘·색도 고르지 않는다**(픽스처 고정) — 04 §5-1b·§5-1c 말미.
+// 🔴 **알림을 만들지 않는 것** — 키 미등록 · `ADVICE_SELECTIVE_EXECUTION` ·
+//    `SELF_AUDIT_PATTERN_UNVERIFIED`(전부 상태 표식·월간 리포트로만).
+
+/// 알림 코드(04 §5-1b·§5-1c·§5-1d).
+abstract final class AlertCodes {
+  // ── X7 안내 9 (04 §5-1b) ──────────────────────────────────────────────────
+  /// 잠정 P1 · 🔴 **배치당 1건**(항목별 발송 금지).
+  static const String adviceIssued = 'ADVICE_ISSUED';
+
+  /// 잠정 P0 · 🔴 **ack 승급 사다리 미적용** — 대신 T-90분 [adviceDueSoon] 이 한 번 더 온다.
+  static const String adviceExitUrgent = 'ADVICE_EXIT_URGENT';
+
+  /// 잠정 P1 · 유효기한 당일 장 마감 T-90분, 미기록 잔존. 1건으로 묶음.
+  static const String adviceDueSoon = 'ADVICE_DUE_SOON';
+
+  /// 잠정 P2 · 만료 스윕 직후. 일 1건 묶음.
+  static const String adviceExpired = 'ADVICE_EXPIRED';
+
+  /// 잠정 P0 · 🔴 **독립 `AlertItem`** 이며 킬스위치 알림과 같은 `groupKey` 로 인접 렌더한다
+  /// («동봉»은 세 번째 발송 형태라 만들지 않는다 · C13).
+  static const String adviceRevoked = 'ADVICE_REVOKED';
+
+  /// 잠정 P0 · 골든벡터 재검증 실패 등으로 안내가 눌렸을 때.
+  static const String adviceSuppressed = 'ADVICE_SUPPRESSED';
+
+  /// 잠정 P1 · 신뢰 등급 하향 시 **1회**.
+  static const String ledgerTrustDowngrade = 'LEDGER_TRUST_DOWNGRADE';
+
+  /// 잠정 P2 · 월 1회 원장 실사 요구. 🔴 같은 이름의 `flag_id` 와 **다른 축**이다.
+  static const String selfAuditDue = 'SELF_AUDIT_DUE';
+
+  /// 잠정 P1 · 가격 범위·거래일 검증 거부. 즉시.
+  static const String manualFillRejected = 'MANUAL_FILL_REJECTED';
+
+  // ── 전환 2 (04 §5-1b) ─────────────────────────────────────────────────────
+  /// 잠정 P1 · 전환 냉각 24h 동안 **1일 1건**. 🔴 조르지 않는다(경보 피로 규칙).
+  static const String handoverCoolingActive = 'HANDOVER_COOLING_ACTIVE';
+
+  /// 잠정 P1 · 전환 커밋 성공 직후 **1회** — 띠·탭이 바뀐 이유를 말하는 유일한 자리.
+  static const String handoverCommitted = 'HANDOVER_COMMITTED';
+
+  // ── 자동 매매 10 (04 §5-1c) ───────────────────────────────────────────────
+  /// 잠정 P1 · 주문 거부. 배치당 묶음.
+  static const String orderRejected = 'ORDER_REJECTED';
+
+  /// 잠정 P0 · 결과 불명(UNKNOWN) 잔존. 🔴 배치당 1건으로 묶음.
+  static const String orderOutcomeUnknown = 'ORDER_OUTCOME_UNKNOWN';
+
+  /// 잠정 P0 · 재대사 후에도 잔존하는 불일치. 🔴 재대사 전에는 발행하지 않는다.
+  /// 🔴 같은 이름의 `flag_id` 와 **다른 축**이다.
+  static const String reconMismatch = 'RECON_MISMATCH';
+
+  /// 잠정 P2 · 월말 리밸런싱 D-7 예고. 🔴 회차당 1건.
+  static const String rebalanceD7 = 'REBALANCE_D7';
+
+  /// 잠정 P1 · 월말 리밸런싱 D-1 통보. advisory 에서는 [adviceIssued] 에 **묶여** 온다.
+  /// 🔴 묶는 주체는 엔진이며 화면이 두 알림을 발견해 합치지 않는다.
+  static const String rebalanceD1 = 'REBALANCE_D1';
+
+  /// 잠정 P1 · 워치독 유예 초과. 체크당 1건.
+  static const String watchdogLate = 'WATCHDOG_LATE';
+
+  /// 잠정 P0 · 브로커 인증 실패(토큰·앱키).
+  static const String brokerAuthFailed = 'BROKER_AUTH_FAILED';
+
+  /// 잠정 P1 · 시세·데이터 소스 장애. 소스당 1건.
+  static const String dataSourceDown = 'DATA_SOURCE_DOWN';
+
+  /// 잠정 P1 · 백업 나이 26h 초과. 일 1건.
+  static const String backupStale = 'BACKUP_STALE';
+
+  /// 잠정 P2 · 월 납입 리마인더(`H-02` 행과 같은 트리거). 일일 다이제스트.
+  static const String depositReminder = 'DEPOSIT_REMINDER';
+
+  // ── 유지보수 창 2 (04 §5-1c · S7 재추적 N-2) ────────────────────────────────
+  /// 잠정 P1 · X1 유지보수 창이 T시간을 넘겨 열려 있음. 🔴 창 1개당 1건.
+  /// ⚠️ 코드명 M2-3 확정 대기.
+  static const String maintenanceWindowOverdue = 'MAINTENANCE_WINDOW_OVERDUE';
+
+  /// 잠정 P0 · 부팅 시 미종료 창을 감지해 `/resume` 을 시도했으나 실패. 부팅 1회당 1건.
+  /// ⚠️ 코드명 M2-3 확정 대기.
+  static const String maintenanceResumeFailed = 'MAINTENANCE_RESUME_FAILED';
+
+  // ── 운영 파라미터 1 (04 §5-1d) ─────────────────────────────────────────────
+  /// 잠정 P2 · 월 납입 운영값 변경 명령이 집행된 직후.
+  /// 🔴 변경 1건당 1건(멱등 키 = `operating_param_log.row_id`) · **일일 다이제스트에만** 실린다.
+  /// 🔴 앱이 은행을 대신 바꾸지 않으므로 «지금 변경» 버튼·딥링크를 만들지 않는다.
+  /// ⚠️ 코드명 M2-3 확정 대기.
+  static const String contributionChanged = 'CONTRIBUTION_CHANGED';
+
+  /// X7 안내 9종.
+  static const Set<String> x7Advice = <String>{
+    adviceIssued,
+    adviceExitUrgent,
+    adviceDueSoon,
+    adviceExpired,
+    adviceRevoked,
+    adviceSuppressed,
+    ledgerTrustDowngrade,
+    selfAuditDue,
+    manualFillRejected,
+  };
+
+  /// 집행 주체 전환 2종.
+  static const Set<String> handover = <String>{
+    handoverCoolingActive,
+    handoverCommitted,
+  };
+
+  /// 자동 매매 10종.
+  static const Set<String> autoTrade = <String>{
+    orderRejected,
+    orderOutcomeUnknown,
+    reconMismatch,
+    rebalanceD7,
+    rebalanceD1,
+    watchdogLate,
+    brokerAuthFailed,
+    dataSourceDown,
+    backupStale,
+    depositReminder,
+  };
+
+  /// 유지보수 창 2종.
+  static const Set<String> maintenance = <String>{
+    maintenanceWindowOverdue,
+    maintenanceResumeFailed,
+  };
+
+  /// 운영 파라미터 1종.
+  static const Set<String> operatingParam = <String>{contributionChanged};
+
+  /// 전량 24종.
+  static const Set<String> values = <String>{
+    ...x7Advice,
+    ...handover,
+    ...autoTrade,
+    ...maintenance,
+    ...operatingParam,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/deviation_kind_codes.dart`
+
+```dart
+// 01 §2-2 — `DeviationBadge.kindCode` 13종(기존 4 + X7 9).
+//
+// 🔴 이 목록의 **정본은 이 파일**이다(인벤토리 §3-2 말미 조문). `DeviationBadge` 자체는
+//    영역 B 의 `dto/journal.dart` 가 만들고, 여기는 그 `kindCode` 가 가질 수 있는 값의 집합이다.
+// 🔴 「예산 차감」·「저널 필요」 여부는 주석으로만 적는다 — 판정은 엔진이고
+//    화면은 `DeviationBadge.label` 을 그대로 그린다.
+
+/// `DeviationBadge.kindCode` 값 13종(01 §2-2).
+abstract final class DeviationKindCodes {
+  // ── 기존 4 ────────────────────────────────────────────────────────────────
+  /// 재량 행사(예산 차감).
+  static const String discretion = 'DISCRETION';
+
+  /// 수동 주문. 🔴 자동 모드의 규칙 이탈 — 저널 + SEV2 postmortem 이 함께 열린다.
+  static const String manualOrder = 'MANUAL_ORDER';
+
+  /// 대사 불일치 해제.
+  static const String reconClear = 'RECON_CLEAR';
+
+  /// 킬스위치 해제 후 재개.
+  static const String killSwitchResume = 'KILL_SWITCH_RESUME';
+
+  // ── X7 9 ─────────────────────────────────────────────────────────────────
+  /// 안내 유효기한 경과(미이행). 🔴 **예산 미차감**.
+  static const String adviceLapse = 'ADVICE_LAPSE';
+
+  /// 사람이 미이행을 선언.
+  static const String adviceSkip = 'ADVICE_SKIP';
+
+  /// 만료 뒤 지연 이행. 🔴 **예산 미차감 · 정식 저널 불요**.
+  static const String adviceLateFill = 'ADVICE_LATE_FILL';
+
+  /// 안내와 무관한 수기 신규. 🔴 **예산 차감 · `M5-6`**.
+  static const String manualEntry = 'MANUAL_ENTRY';
+
+  /// 안내 가격대 밖 체결.
+  static const String advicePriceDeviation = 'ADVICE_PRICE_DEVIATION';
+
+  /// 안내 수량과 다른 체결.
+  static const String adviceQtyDeviation = 'ADVICE_QTY_DEVIATION';
+
+  /// 청산 안내를 피함.
+  static const String adviceExitAvoided = 'ADVICE_EXIT_AVOIDED';
+
+  /// 기록 정정(상쇄 + 재기재).
+  static const String fillAmended = 'FILL_AMENDED';
+
+  /// 소급 기재.
+  static const String backdatedFill = 'BACKDATED_FILL';
+
+  /// 기존 4종.
+  static const Set<String> legacy = <String>{
+    discretion,
+    manualOrder,
+    reconClear,
+    killSwitchResume,
+  };
+
+  /// X7 9종.
+  static const Set<String> x7 = <String>{
+    adviceLapse,
+    adviceSkip,
+    adviceLateFill,
+    manualEntry,
+    advicePriceDeviation,
+    adviceQtyDeviation,
+    adviceExitAvoided,
+    fillAmended,
+    backdatedFill,
+  };
+
+  /// 전량 13종.
+  static const Set<String> values = <String>{...legacy, ...x7};
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/exit_kind.dart`
+
+```dart
+// 01 §3-1 — `exit_kind` 6종. `decision_log.exit_kind` CHECK 와 문자 그대로 일치한다.
+//
+// 🔴 이 파일은 «어떤 코드가 오는가»의 목록이다. 문구(«TIER 1B 절대손절 −7.0% 도달»)는
+//    엔진이 만들어 DTO 의 label·reason 필드에 실어 준다 — 화면이 코드로 문구를 고르면 C-5 위반이다.
+// 🔵 v2.31 P0S 에서는 대부분 비집행이지만 코드는 보존한다(01 §3-1 표제).
+
+/// `exit_kind` — 청산 사유의 갈래(01 §3-1 · `decision_log.exit_kind` CHECK).
+abstract final class ExitKindCodes {
+  /// TIER 0 기업행위 청산 — 쿨다운 영구(재진입 불가).
+  static const String corporate = 'CORPORATE';
+
+  /// TIER 1A·1B 손절.
+  static const String stop = 'STOP';
+
+  /// TIER 1.5·2 추세 이탈.
+  static const String trendBreak = 'TREND_BREAK';
+
+  /// TIER 3 목표가 도달.
+  static const String target = 'TARGET';
+
+  /// 정기 교체.
+  static const String rebalance = 'REBALANCE';
+
+  /// 브레이커·한도·대사·킬스위치에 의한 시스템 게이트 청산.
+  static const String risk = 'RISK';
+
+  /// 전량 — 픽스처·C-15 대조용. 🔴 `decision_log.exit_kind` CHECK 와 같은 집합이어야 한다.
+  static const Set<String> values = <String>{
+    corporate,
+    stop,
+    trendBreak,
+    target,
+    rebalance,
+    risk,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/flag_ids.dart`
+
+```dart
+// 01 §3-5 — 차단 플래그 `flag_id` 12종 · §9-5 ③ `SafetyState` hold 사유 1종.
+//
+// 🔴 «차단 범위»와 «해제 경로»는 주석으로만 적는다 — 런타임 값은 `BlockFlag.clearRoute` 와
+//    `BlockFlag.clearInstruction`(플래그마다 다른 문구)로 온다. 화면이 flag_id 로 문구·경로를
+//    고르는 사전을 만들면 C-5 위반이다.
+// 🔴 저장 위치는 `trading_block`(06 §2-6 02_데이터모델)이며 **그 표에는 `flag_id` CHECK 가 없다** —
+//    열거는 이 목록과 그 표의 주석, 그리고 04 §3-1 2단계 판정 SQL 이 함께 갖는다(배치 E 참조).
+
+/// 주문 차단·상태 표식 플래그(01 §3-5 · `trading_block.flag_id`).
+abstract final class FlagIds {
+  /// 대사 불일치 — **전 주문** 차단. 해제 = `causeCodeRequired`(원인 코드 + `decision_id`).
+  /// 🔴 `/resume` 으로 풀리지 않는다.
+  static const String reconMismatch = 'RECON_MISMATCH';
+
+  /// 이탈 저널 미작성 — **신규 매수** 차단. 해제 = `automatic`.
+  /// 🔴 수동 해제 버튼이 **존재하지 않는다**.
+  static const String journalMissing = 'JOURNAL_MISSING';
+
+  /// 계층 B 월간 미판정 — **신규 매수** 차단. 해제 = `automatic`.
+  static const String tierBUnjudged = 'TIER_B_UNJUDGED';
+
+  /// DST 전환 주간. ⚠️ **차단이 아니라 상태 표식**(램프 하향으로 통과). 해제 = `automatic`(주간 종료).
+  static const String dstWeek = 'DST_WEEK';
+
+  /// X2 재개 미완 — **전 주문** 차단. 해제 = `automatic`(재개 완료 시).
+  static const String resumeIncomplete = 'RESUME_INCOMPLETE';
+
+  /// X5 정정 트랜잭션 뮤텍스. 🔴 자동·사람 해제가 **둘 다 없다**(트랜잭션 종료 시 소멸).
+  static const String ledgerFix = 'LEDGER_FIX';
+
+  /// X5 원장 무결성 — **전 주문** 차단. 해제 = `wizardOnly`(원인 코드 + `decision_id` + 체인 재스탬프).
+  static const String ledgerIntegrity = 'LEDGER_INTEGRITY';
+
+  /// X7 원장 미검증 — **신규 진입 안내**만 중단(청산·방어 안내는 유지 · 비대칭 원칙).
+  /// 해제 = `wizardOnly` → `M5-13`.
+  static const String adviceLedgerUnverified = 'ADVICE_LEDGER_UNVERIFIED';
+
+  /// X7 실사 기한 초과 — **신규 진입 안내** 중단. 해제 = `automatic`(실사 1회 통과).
+  /// 🔴 차단은 **차이의 크기가 아니라 실사의 부재**에만 건다(A12).
+  static const String selfAuditOverdue = 'SELF_AUDIT_OVERDUE';
+
+  /// X7 실사 예정. ⚠️ **차단 아님** — 상태 표식(D-15 재고지 → D-0 `SELF_AUDIT_OVERDUE`).
+  static const String selfAuditDue = 'SELF_AUDIT_DUE';
+
+  /// X7 실사 패턴 미검증. ⚠️ **차단 아님** — 상태 표식.
+  static const String selfAuditPatternUnverified =
+      'SELF_AUDIT_PATTERN_UNVERIFIED';
+
+  /// X7 선택적 이행(진입/청산 이행률 비대칭). ⚠️ **차단 아님** — 상태 표식.
+  /// 🔴 **알림을 만들지 않는다** — 월간 리포트에만 실린다.
+  static const String adviceSelectiveExecution = 'ADVICE_SELECTIVE_EXECUTION';
+
+  /// 전량 12종.
+  static const Set<String> values = <String>{
+    reconMismatch,
+    journalMissing,
+    tierBUnjudged,
+    dstWeek,
+    resumeIncomplete,
+    ledgerFix,
+    ledgerIntegrity,
+    adviceLedgerUnverified,
+    selfAuditOverdue,
+    selfAuditDue,
+    selfAuditPatternUnverified,
+    adviceSelectiveExecution,
+  };
+
+  /// 주문을 실제로 막는 것 — 04 §3-1 2단계 판정 SQL 이 읽어야 하는 집합.
+  ///
+  /// 🔴 배치 E 는 이 넷을 판정 SQL 에 **실제로 추가**할 것을 요구한다(01 §6-5) —
+  ///    플래그만 읽고 SQL 을 안 고친 구현은 실격이다.
+  static const Set<String> blocking = <String>{
+    reconMismatch,
+    journalMissing,
+    tierBUnjudged,
+    resumeIncomplete,
+    ledgerIntegrity,
+    adviceLedgerUnverified,
+    selfAuditOverdue,
+  };
+
+  /// 차단하지 않는 상태 표식 4종.
+  static const Set<String> markerOnly = <String>{
+    dstWeek,
+    selfAuditDue,
+    selfAuditPatternUnverified,
+    adviceSelectiveExecution,
+  };
+}
+
+/// `SafetyState` 의 배치 보류 사유 코드(01 §9-5 ③ · M2-8 A-17).
+///
+/// 🔴 `trading_block.flag_id` 가 **아니다** — 안전 상태의 hold 사유다.
+abstract final class SafetyHoldCodes {
+  /// 실키 검증 전 보류.
+  ///
+  /// 🔴 **`operatingMode == autoTrade` 에서만 배치를 중단한다**(C9). `live × advisory` 에서는
+  ///    키가 없는 것이 **정상 상태**이므로 hold 를 걸지 않는다 —
+  ///    걸면 배치가 무기한 중단되고 안내가 영영 나오지 않는다(«침묵이 안전으로 위장되는» 상태).
+  static const String liveAwaitingKeys = 'LIVE_AWAITING_KEYS';
+
+  /// 전량 1종.
+  static const Set<String> values = <String>{liveAwaitingKeys};
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/labels.dart`
+
+```dart
+// 01 §1-5 조문 + §3 코드 사전의 **단일 소스**.
+//
+// ════════════════════════════════════════════════════════════════════════════
+// §1-5 화면 문자열 규약 — «사유 문구»와 «정적 라벨»의 경계 (조문)
+// ════════════════════════════════════════════════════════════════════════════
+// 금지 2항은 «한국어를 한 글자도 쓰지 말라»가 아니라
+// **«상태를 설명하는 문장을 화면이 만들지 말라»** 이다.
+//
+//   | 갈래                | 누가 만드나                | 어디에 두나                          |
+//   |---------------------|---------------------------|--------------------------------------|
+//   | 사유·상태·판정 문구 | 🔴 엔진(M2)               | DTO 의 label·actionLine·             |
+//   |                     |                           | clearInstruction·headline·           |
+//   |                     |                           | stateLabel·statusLabel·emptyLabel·   |
+//   |                     |                           | disclosureNote — 화면 코드에         |
+//   |                     |                           | 리터럴로 존재하지 않는다             |
+//   | 정적 UI 라벨        | 화면 담당                 | `<패키지>/lib/l10n/labels.dart`       |
+//   |                     |                           | **한 파일에만** 상수로               |
+//
+// - **판단 기준**: 데이터가 바뀌어도 글자가 그대로면 정적 라벨,
+//   데이터·상태에 따라 달라지면 사유 문구다.
+//   `if 상태 then A else B` 처럼 **분기로 고르는 것은 정적 라벨이 아니라 생성**이다.
+// - 그래서 열거값에는 짝이 되는 `*Label` 문자열 필드가 반드시 붙는다
+//   (`status`↔`statusLabel` · `visibility`↔`visibilityLabel` · `state`↔`stateLabel`).
+//   짝이 없는 열거값을 발견하면 화면이 문구를 지어내지 말고 **계약 결함으로 보고**한다.
+// - C-5 는 `lib/l10n/labels.dart` 를 제외한 `ui_*` 전 파일에서 한글 리터럴 0건을 요구한다.
+//   `labels.dart` 안에서도 §3 의 사유 문구를 베껴 적으면 위반이다.
+//   (보조 스캐너 = `tool/check_labels.sh`)
+//
+// 🔴 **이 폴더의 성격** — 여기 두는 것은 «어떤 **코드**가 오는가»의 상수 목록이지
+//    화면이 코드를 보고 문자열을 고르라는 사전이 **아니다**. 화면이 매핑을 만들면 C-5 가
+//    빌드를 실패시킨다. 이 목록의 쓰임은 ① 픽스처·DDL 대조(C-15) ② 미등록 코드 조기 실패다.
+// 🔴 C-32 — 이 파일도 예외가 아니다. 월 납입 금액으로 읽힐 숫자·문자열을 적지 않는다.
+
+import 'advice_codes.dart';
+import 'alert_codes.dart';
+import 'deviation_kind_codes.dart';
+import 'exit_kind.dart';
+import 'flag_ids.dart';
+import 'ledger_event_codes.dart';
+import 'origin_codes.dart';
+import 'saf_codes.dart';
+import 'verdict_codes.dart';
+
+export 'advice_codes.dart';
+export 'alert_codes.dart';
+export 'deviation_kind_codes.dart';
+export 'exit_kind.dart';
+export 'flag_ids.dart';
+export 'ledger_event_codes.dart';
+export 'origin_codes.dart';
+export 'saf_codes.dart';
+export 'verdict_codes.dart';
+
+/// 세후 사다리 층 코드 6종(01 §2-4 `AfterTaxStep.stepCode` · M2-8 A-7).
+///
+/// 🔴 **층을 합치거나 건너뛰지 않는다** — `AfterTaxLadder.steps` 의 순서 그대로 그린다.
+/// 🔴 «정직 기대»·사다리 4자리 수치를 **코드·라벨·주석에 옮기지 않는다**(C-30).
+///    인용처는 픽스처 `aftertax_ladder_1.json` 과 골든 `aftertax_full_S7` 뿐이다.
+/// 🔴 표시의 정본은 `AfterTaxStep.valueText` 이고 `cagrPct`·`endMult` 는 골든 대조 전용이다.
+abstract final class AfterTaxStepCodes {
+  /// 세전.
+  static const String pretax = 'PRETAX';
+
+  /// POT 반영 후.
+  static const String afterPot = 'AFTER_POT';
+
+  /// POT + C 반영 후.
+  static const String afterPotC = 'AFTER_POT_C';
+
+  /// 인출세 5.5% 적용.
+  static const String wd5p5 = 'WD_5P5';
+
+  /// 인출세 16.5% 적용.
+  static const String wd16p5 = 'WD_16P5';
+
+  /// 정직 기대.
+  static const String honest = 'HONEST';
+
+  /// 전량 6종(순서 = 사다리 층 순서).
+  static const Set<String> values = <String>{
+    pretax,
+    afterPot,
+    afterPotC,
+    wd5p5,
+    wd16p5,
+    honest,
+  };
+}
+
+/// ⏸ `AsOf.staleReasonCode` 최소 카탈로그 4값(M2-8 A-2 · 01 §8-8).
+///
+/// ⏸ **엔진(M1) 확정 대기.** 문서 전체를 통틀어 이 필드의 값이 한 번도 열거되지 않았고,
+/// 아래 4값은 §1-3·§2-11 `staleLabel` 용례에서 **역산**한 것이다.
+/// 🔴 그래도 상수로 둔다 — 자유 문자열로 두면 화면이 코드→문구 매핑을 만들고
+///    그것이 C-5 위반의 입구다. 🔴 값이 확정되면 **이 목록을 고치고 픽스처를 함께 고친다**.
+abstract final class StaleReasonCodes {
+  /// 엔진 정지.
+  static const String engineDown = 'ENGINE_DOWN';
+
+  /// push 지연. 🔴 [OriginCodes.pushLag] 와 **문자열이 같고 축이 다르다**.
+  static const String pushLag = 'PUSH_LAG';
+
+  /// 배치 미수행.
+  static const String batchMissing = 'BATCH_MISSING';
+
+  /// 시계 어긋남.
+  static const String clockSkew = 'CLOCK_SKEW';
+
+  /// 전량 4종(⏸).
+  static const Set<String> values = <String>{
+    engineDown,
+    pushLag,
+    batchMissing,
+    clockSkew,
+  };
+}
+
+/// 등재되지 않은 코드가 사전 조회에 들어왔을 때 던진다.
+///
+/// 🔴 «모르는 코드를 조용히 통과시키는 것»이 이 계약이 가장 막고 싶은 것이다 —
+///    통과하면 화면이 그 코드를 보고 자기 나름의 문구·아이콘·색을 고르기 시작한다.
+final class UnregisteredContractCodeError extends Error {
+  UnregisteredContractCodeError(this.code, {this.domain});
+
+  /// 등재되지 않은 코드.
+  final String code;
+
+  /// 조회 대상 도메인(전역 조회면 null).
+  final String? domain;
+
+  @override
+  String toString() => domain == null
+      ? 'UnregisteredContractCodeError: "$code" is not in the 01 §3 code dictionary'
+      : 'UnregisteredContractCodeError: "$code" is not registered in domain "$domain"';
+}
+
+/// 01 §3 코드 사전의 **단일 소스**(인벤토리 §6 «전 목록 배럴»).
+///
+/// 집계: 문서 137 + 6 =
+///   ① SAF 접두 대역 7행 → 접두 **문자열** 8개(§3-2 표가 `SAF-8xx`·`SAF-9xx` 를 한 행으로 묶는다)
+///   ② 계절 게이트 픽스처값 `ENTRY_GATE_OCT` 1개(⏸ 코드명 확정 전까지 픽스처가 쓰는 값)
+///   ③ ⏸ `AsOf.staleReasonCode` 4개(M2-8 A-2 · 엔진 확정 대기)
+/// 🔴 도메인이 다르면 **같은 문자열이 두 번 등재될 수 있다**
+///    (`MANUAL_ORDER`·`RECON_MISMATCH`·`SELF_AUDIT_DUE`·`PUSH_LAG` 네 쌍) —
+///    그래서 [all] 의 크기는 등재 건수보다 작다. 전역 조회보다 [requireRegisteredIn] 을 쓴다.
+abstract final class ContractCodes {
+  /// 도메인 → 코드 집합. 🔴 키 이름은 01 §3·§6 의 절 제목에서 따온다.
+  static const Map<String, Set<String>> byDomain = <String, Set<String>>{
+    'exit_kind': ExitKindCodes.values,
+    'saf_band': SafBandCodes.values,
+    'saf309': Saf309Codes.values,
+    'verdict_code': VerdictCodes.values,
+    'planned_work_kind': PlannedWorkKindCodes.values,
+    'gap_reason_code': GapReasonCodes.values,
+    'origin_code': OriginCodes.values,
+    'flag_id': FlagIds.values,
+    'safety_hold': SafetyHoldCodes.values,
+    'advice_reject': AdviceRejectCodes.values,
+    'advice_transition_cause': AdviceTransitionCauseCodes.values,
+    'decision_reason': DecisionReasonCodes.values,
+    'seasonal_entry_gate': SeasonalEntryGateCodes.values,
+    'seasonal_entry_gate_fixture': <String>{
+      SeasonalEntryGateCodes.fixtureEntryGatePass,
+    },
+    'alert_code': AlertCodes.values,
+    'deviation_kind': DeviationKindCodes.values,
+    'ledger_event': LedgerEventCodes.values,
+    'operating_param_key': OperatingParamKeys.values,
+    'aftertax_step': AfterTaxStepCodes.values,
+    'stale_reason': StaleReasonCodes.values,
+  };
+
+  /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
+  static final Set<String> all = <String>{
+    for (final Set<String> codes in byDomain.values) ...codes,
+  };
+
+  /// 이 도메인이 사전에 있는가.
+  static bool hasDomain(String domain) => byDomain.containsKey(domain);
+
+  /// 어느 도메인에든 등재된 코드인가.
+  static bool isRegistered(String code) => all.contains(code);
+
+  /// 이 도메인에 등재된 코드인가. 도메인 자체가 없으면 false.
+  static bool isRegisteredIn(String domain, String code) =>
+      byDomain[domain]?.contains(code) ?? false;
+
+  /// 이 코드가 속한 도메인 전부(중복 등재가 있으므로 **집합**을 돌려준다).
+  static Set<String> domainsOf(String code) => <String>{
+    for (final MapEntry<String, Set<String>> e in byDomain.entries)
+      if (e.value.contains(code)) e.key,
+  };
+
+  /// 🔴 **미등록이면 실패한다** — 도메인을 지정한 조회(권장).
+  ///
+  /// 반환값은 입력 [code] 그대로이므로 파이프라인 안에서 그대로 쓸 수 있다.
+  /// Throws [UnregisteredContractCodeError].
+  static String requireRegisteredIn(String domain, String code) {
+    if (!byDomain.containsKey(domain)) {
+      throw UnregisteredContractCodeError(code, domain: domain);
+    }
+    if (!byDomain[domain]!.contains(code)) {
+      throw UnregisteredContractCodeError(code, domain: domain);
+    }
+    return code;
+  }
+
+  /// 🔴 **미등록이면 실패한다** — 도메인을 모를 때의 전역 조회.
+  ///
+  /// 🔴 도메인을 아는 자리에서는 [requireRegisteredIn] 을 쓴다.
+  /// 전역 조회는 «`flag_id` 자리에 알림 코드가 들어온 것»을 잡지 못한다.
+  /// Throws [UnregisteredContractCodeError].
+  static String requireRegistered(String code) {
+    if (!all.contains(code)) {
+      throw UnregisteredContractCodeError(code);
+    }
+    return code;
+  }
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/ledger_event_codes.dart`
+
+```dart
+// 01 §3-6 — 원장 이벤트 코드 1종(납입 조달) · §6-2 `operating_param_log.param_key` 1종.
+//
+// 🔴 **조달은 계산이지 화면의 판단이 아니다.** 무엇을 얼마나 파는지는 엔진이
+//    `00_SPEC §5-5b` 순서로 정하고, 화면은 `DepositPlan`·`RebalancePreview` 가 실어 주는
+//    **조달 단계 목록을 순서 그대로** 그린다. 화면이 "부족하니 이걸 팔면 된다"를 계산하면 C-5 위반이다.
+
+/// 원장 이벤트 코드(01 §3-6).
+abstract final class LedgerEventCodes {
+  /// v2.32 납입 조달 — 코어 밴드·초기 램프의 C→B 신규 납입에서 슬리브 C 원화현금이
+  /// 한도 내 필요액에 못 미쳐 부족분을 조달 순서(**연금계좌 제외** · 새틀 잉여 → C 방어자산 매각)로
+  /// 먼저 조달한 경우. 엔진 플래그 `pension_funding=true`.
+  ///
+  /// ⚠️ 이 코드가 `decision_log.reason_code` 로만 오는지 `decision_log.kind` 값을 신설할지는
+  ///    **배치 E 판단**(01 §3-6 말미). 🔴 확정 전까지 화면은 `reason_code` 문자열로만 분기한다.
+  ///    배치 E 는 「`decision_log.kind` 추가 없음」을 명시하므로 현재는 `reason_code` 다.
+  static const String pensionFunding = 'PENSION_FUNDING';
+
+  /// 전량 1종.
+  static const Set<String> values = <String>{pensionFunding};
+}
+
+/// `operating_param_log.param_key` 화이트리스트(01 §6-2 · 인벤토리 §6-14).
+///
+/// 🔴 **화이트리스트다** — `fx_overlay` 계열 키를 넣지 않는다(영구 기각된 규칙의 부활 경로).
+/// 🔴 이 표는 전략 `config_hash` 에 들어가지 않는다(골든벡터 불변).
+/// 🔴 **금액 자체를 여기 상수로 적지 않는다**(C-32) — 값은 `operating_param_log.value_text` 다.
+abstract final class OperatingParamKeys {
+  /// 월 추가 납입 운영값.
+  static const String monthlyContribution = 'monthly_contribution';
+
+  /// 전량 1종.
+  static const Set<String> values = <String>{monthlyContribution};
+}
+
+// ⏸ `LedgerEventKind { withdrawal, distribution, corporateAction, taxWithheld }`
+//    (`WITHDRAWAL`·`DISTRIBUTION`·`CORPORATE_ACTION`·`TAX_WITHHELD`)
+//    — M2-8 A-15·J-6. 🔴 **결정 ㊲ 채택 시에만 신설**하며 지금은 코드로 만들지 않는다.
+//    열거형 자체의 자리는 영역 A 의 `enums/ledger.dart` 주석이고, 여기 상수로 앞질러 두지 않는다.
+//    채택되지 않으면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 현금 추정이 단조적으로
+//    어긋나고 그 위에서 안내 수량이 계산된다(J-6).
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/origin_codes.dart`
+
+```dart
+// 01 §3-4 — X5 대사·정합 원인 코드 20종 (🔴 자유 서술 거부).
+//
+// 소비처: `trading_block.origin_code`(RECON_MISMATCH 전용) · `ledger_diff.origin_code` ·
+//        `ledger_repair.origin_code` · `LedgerDiffRow.candidateOriginCodes` · `BlockFlag.originCode`.
+// 🔴 `reasonCode` 는 자유 서술을 거부한다 — `note` 는 그 위의 한 줄이지 사유 코드의 대체가 아니다.
+
+/// X5 대사·정합 원인 코드(01 §3-4).
+abstract final class OriginCodes {
+  // ── 브로커 계열 7 (04 §3-5 기존 4 + X2·X5 확장) ────────────────────────────
+  /// 체결 보고 지연.
+  static const String fillLag = 'FILL_LAG';
+
+  /// 수동 주문. ⚠️ 이 코드로 해제하면 **저널과 SEV2 postmortem(7일)이 동시에 열린다**(04 §3-5) —
+  /// 화면은 이 분기를 만들지 말고 정정 마법사(M5)로 넘긴다.
+  static const String manualOrder = 'MANUAL_ORDER';
+
+  /// 로컬 DB 오류.
+  static const String dbError = 'DB_ERROR';
+
+  /// 브로커 API 오류.
+  static const String brokerError = 'BROKER_ERROR';
+
+  /// 시스템 밖 입출금.
+  static const String externalCashflow = 'EXTERNAL_CASHFLOW';
+
+  /// 기업행위. 🔴 X2 계열이 먼저 등재된 이름이며 **픽스처·신규 코드는 이 이름만 쓴다**.
+  static const String corporateAction = 'CORPORATE_ACTION';
+
+  /// 기업행위(X5 계열의 옛 표기). ⚠️ **중복 후보**(01 §8-6 · 인벤토리 §10-2 ③) —
+  /// 통합 전까지 **상수로는 남기되** 픽스처·신규 코드에 쓰지 않는다.
+  static const String corpActionLegacy = 'CORP_ACTION';
+
+  // ── 파생 계열 7 (X5 신설) ─────────────────────────────────────────────────
+  /// Supabase push 지연.
+  static const String pushLag = 'PUSH_LAG';
+
+  /// Supabase push 실패.
+  static const String pushFailed = 'PUSH_FAILED';
+
+  /// GitHub 아카이브 적체.
+  static const String archiveLag = 'ARCHIVE_LAG';
+
+  /// 캘린더 쓰기 실패.
+  static const String calWriteFailed = 'CAL_WRITE_FAILED';
+
+  /// 스키마 어긋남.
+  static const String schemaSkew = 'SCHEMA_SKEW';
+
+  /// 해시 체인 단절.
+  static const String chainBroken = 'CHAIN_BROKEN';
+
+  /// 복원 롤백.
+  static const String restoreRollback = 'RESTORE_ROLLBACK';
+
+  // ── X7 계열 6 (01 §10) ────────────────────────────────────────────────────
+  /// 🔴 안내 모드의 **정상** 수기 체결. 이 코드가 없으면 advisory 의 모든 체결이
+  /// `MANUAL_ORDER` 로 들어가 「저널 + SEV2 postmortem 7일」을 매일 연다(경보 피로 규칙 정면 위반).
+  static const String advisoryFill = 'ADVISORY_FILL';
+
+  /// 체결이 있었는데 기록되지 않음.
+  static const String unrecordedFill = 'UNRECORDED_FILL';
+
+  /// 잘못 기록된 체결. 🔴 소급 정정이 `ledger_repair(direction='DERIVED_RESYNC')` 1행을
+  /// 낳는 원인 코드다(C-29).
+  static const String misrecordedFill = 'MISRECORDED_FILL';
+
+  /// 원장 실사(자가보고)에서 나온 정정.
+  static const String selfReportCorrection = 'SELF_REPORT_CORRECTION';
+
+  /// 시스템 밖 자산.
+  static const String externalHolding = 'EXTERNAL_HOLDING';
+
+  /// 🔴 D11 — 대사 키가 있으면 계좌별 잔고 대조로 교차검증하고, 불일치는
+  /// `SELF_REPORT_CORRECTION` 이 아니라 **이 코드**로 `ledger_diff` 를 연다.
+  static const String accountMisdeclared = 'ACCOUNT_MISDECLARED';
+
+  /// 브로커 계열 7종.
+  static const Set<String> broker = <String>{
+    fillLag,
+    manualOrder,
+    dbError,
+    brokerError,
+    externalCashflow,
+    corporateAction,
+    corpActionLegacy,
+  };
+
+  /// 파생 계열 7종.
+  static const Set<String> derived = <String>{
+    pushLag,
+    pushFailed,
+    archiveLag,
+    calWriteFailed,
+    schemaSkew,
+    chainBroken,
+    restoreRollback,
+  };
+
+  /// X7 계열 6종.
+  static const Set<String> x7 = <String>{
+    advisoryFill,
+    unrecordedFill,
+    misrecordedFill,
+    selfReportCorrection,
+    externalHolding,
+    accountMisdeclared,
+  };
+
+  /// 전량 20종.
+  static const Set<String> values = <String>{...broker, ...derived, ...x7};
+
+  /// 픽스처·신규 코드가 쓸 수 있는 것 — `CORP_ACTION`(중복 후보)을 뺀 19종.
+  ///
+  /// 🔴 인벤토리 §10-2 ③ — 통합 전까지 둘 다 상수로 두되 **픽스처에는 `CORPORATE_ACTION` 만** 쓴다.
+  static const Set<String> writable = <String>{
+    fillLag,
+    manualOrder,
+    dbError,
+    brokerError,
+    externalCashflow,
+    corporateAction,
+    ...derived,
+    ...x7,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/saf_codes.dart`
+
+```dart
+// 01 §3-2 — SAF 코드 접두 대역 + `SAF309_` 상세 6종.
+//
+// 🔴 개별 SAF 코드(37종)의 정본은 엔진 `06_시스템설계/04_안전장치.md` 다. 여기 두는 것은
+//    ① 화면·픽스처가 만나는 **접두 대역**과 ② 주문 게이트 진리표가 내는 **SAF309_ 상세 6종**이다.
+// 🔴 화면은 배지로만 쓴다 — 진리표는 주문 게이트의 사양 벡터이지 표시 분기가 아니다(01 §3-2 말미).
+// 🔴 `ui_*` 소스에 `'SAF-'` 리터럴이 있으면 C-5 가 실패시킨다. 이 파일은 `domain_contracts` 이므로
+//    C-5 의 대상이 아니지만, **여기서 문구를 만들지 않는다**는 규약은 같다.
+
+/// SAF 코드의 접두 대역(01 §3-2).
+abstract final class SafBandCodes {
+  /// 포지션 리스크 한도.
+  static const String band1xx = 'SAF-1xx';
+
+  /// 슬리브 한도·종목 필터.
+  static const String band2xx = 'SAF-2xx';
+
+  /// 포트폴리오·세금 게이트.
+  static const String band3xx = 'SAF-3xx';
+
+  /// 시스템·주문 게이트.
+  static const String band4xx = 'SAF-4xx';
+
+  /// 드로다운 서킷브레이커. 🔵 v2.31 P0S 에서 대상 없음.
+  static const String band5xx = 'SAF-5xx';
+
+  /// 타임존·스케줄.
+  static const String band7xx = 'SAF-7xx';
+
+  /// 장애 대응. 🔴 §3-2 표는 8xx·9xx 를 **한 행**(장애·보안)으로 묶어 «7대역»이라 부른다 —
+  ///    접두 **문자열**은 둘이므로 이 집합의 원소는 8개다(대역 수 7 ≠ 접두 문자열 수 8).
+  static const String band8xx = 'SAF-8xx';
+
+  /// 보안. §3-2 표에서 `SAF-8xx` 와 한 행이다.
+  static const String band9xx = 'SAF-9xx';
+
+  /// 전량 — 접두 문자열 8개(대역은 7행).
+  static const Set<String> values = <String>{
+    band1xx,
+    band2xx,
+    band3xx,
+    band4xx,
+    band5xx,
+    band7xx,
+    band8xx,
+    band9xx,
+  };
+}
+
+/// SAF-309(POT 주문 계좌 절세 게이트) 상세 사유 코드 6종.
+///
+/// 진리표 원본 = `09_백테스트/백테스트6/runs/H2_saf/saf309_vector.json` (05 GV-SAF-309).
+/// 🔴 `SAF309_` 접두가 **코드 문자열의 일부**다(진리표의 `reason_codes` 키와 문자 그대로 일치).
+/// 🔴 갈래는 계좌 배치가 정한다 — 화면·인자로 고르는 경로를 만들지 않는다.
+abstract final class Saf309Codes {
+  /// 등록 절세계좌 확인 — 주문 허용.
+  static const String okTaxAdvantaged = 'SAF309_OK_TAX_ADVANTAGED';
+
+  /// 일반계좌 — 실주문 거부.
+  static const String denyTaxableAccount = 'SAF309_DENY_TAXABLE_ACCOUNT';
+
+  /// 계좌 유형 확인 불가 — fail-closed 거부.
+  static const String denyUnverifiedFailClosed =
+      'SAF309_DENY_UNVERIFIED_FAIL_CLOSED';
+
+  /// DRY_RUN·백테스트 — 일반계좌 경고.
+  static const String warnTaxableAccount = 'SAF309_WARN_TAXABLE_ACCOUNT';
+
+  /// DRY_RUN·백테스트 — 확인 불가 경고.
+  static const String warnUnverified = 'SAF309_WARN_UNVERIFIED';
+
+  /// 조회는 주문이 아님 — 게이트 대상 아님.
+  static const String naQueryNotAnOrder = 'SAF309_NA_QUERY_NOT_AN_ORDER';
+
+  /// 전량 6종.
+  ///
+  /// ⚠️ `contracts_inventory.md` §3-1 의 `ReasonChip.code` 예시 `'SAF309_ACCOUNT_UNVERIFIED'` 는
+  ///    이 6종에 **없다**. 예시가 진리표와 어긋난 것이므로 임의로 추가하지 않는다(멈추고 보고).
+  static const Set<String> values = <String>{
+    okTaxAdvantaged,
+    denyTaxableAccount,
+    denyUnverifiedFailClosed,
+    warnTaxableAccount,
+    warnUnverified,
+    naQueryNotAnOrder,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/verdict_codes.dart`
+
+```dart
+// 01 §3-3 — X2 재판정 `verdict_code` 5종.
+// + `planned_work.kind` 3종(01 §6-3 DDL 주석) · 결측 사유 코드 2종(01 §2-4 `PerfPoint.gapReasonCode`).
+//
+// 🔴 세 묶음을 한 파일에 두는 이유: 전부 X2(재개·계획 작업·결측 복원)의 코드 축이고,
+//    `contracts_inventory.md` §6 의 `labels/` 파일 배치가 X2 전용 파일을 하나만 둔다.
+// 🔴 문구는 엔진이 만든다 — `ResumeItem.verdictLabel`·`DataGapRow.label` 에 실려 온다.
+
+/// X2 재판정 결과 코드(01 §3-3 · `planned_work.verdict_code`·`planned_work_transition.verdict_code`).
+abstract final class VerdictCodes {
+  /// 재판정 후 실행(수량·가격이 재개일 기준으로 바뀔 수 있다).
+  static const String executedAsReevaluated = 'EXECUTED_AS_REEVALUATED';
+
+  /// 창을 지나 만료.
+  static const String expired = 'EXPIRED';
+
+  /// 보수 모드 등으로 다음 정기 회차에 자리를 넘김.
+  static const String superseded = 'SUPERSEDED';
+
+  /// 차단 플래그로 진행 불가.
+  static const String blocked = 'BLOCKED';
+
+  /// 소급 복원 불가.
+  static const String unrecoverable = 'UNRECOVERABLE';
+
+  /// 전량 5종.
+  static const Set<String> values = <String>{
+    executedAsReevaluated,
+    expired,
+    superseded,
+    blocked,
+    unrecoverable,
+  };
+}
+
+/// `planned_work.kind` 3종(01 §6-3 DDL).
+///
+/// 🔴 `SPLIT_LEG` 는 이름만 있고 **분할 집행 진도 필드는 계약에 없다**(01 §2-2 · M2-8 C-11) —
+///    화면이 「n일차」·「이월 n주」를 만들지 않는다.
+abstract final class PlannedWorkKindCodes {
+  /// 계절 진입 창(슬리브 A).
+  static const String seasonalWindow = 'SEASONAL_WINDOW';
+
+  /// 보류 회차 카운트.
+  static const String deferCount = 'DEFER_COUNT';
+
+  /// 분할 집행 leg.
+  static const String splitLeg = 'SPLIT_LEG';
+
+  /// 전량 3종.
+  static const Set<String> values = <String>{
+    seasonalWindow,
+    deferCount,
+    splitLeg,
+  };
+}
+
+/// 성과 시계열의 결측 사유 코드 2종(01 §2-4 `PerfPoint.gapReasonCode`).
+///
+/// 🔴 `PerfPoint.value == null` 은 **결측이며 보간하지 않는다**(C-10). 이 코드는 «왜 비었는가»다.
+abstract final class GapReasonCodes {
+  /// `equity_snapshot` 결측.
+  static const String equitySnapshotMissing = 'EQUITY_SNAPSHOT_MISSING';
+
+  /// 재개 갭 구간.
+  static const String resumeGap = 'RESUME_GAP';
+
+  /// 전량 2종.
+  static const Set<String> values = <String>{equitySnapshotMissing, resumeGap};
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/primitives/as_of.dart`
+
+```dart
+// 01 §1-3 «시각·날짜·신선도» 원문.
+//
+// 🔴 화면 명세들이 부르는 «`AsOfStamp`»·«기준일 고지»는 전부 **이 `AsOf` 하나**이며
+//    표시 문구는 `label` 이다. 별도 타입은 실재하지 않는다(01 §1-3 · 인벤토리 §1).
+// 🔴 UTC `DateTime` 필드는 정렬·비교용이지 표시용이 아니다. 화면이 시각을 포맷하는 자리는
+//    `TzInstant` 가 실린 필드뿐이다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'money.dart';
+
+part 'as_of.freezed.dart';
+part 'as_of.g.dart';
+
+/// 01 §1-3 — 이 값이 어디서 왔는가.
+/// 🔵 viewer 의 «엔진이 멈췄다» 는 push 된 상태값이 아니라 `observedAt` 신선도에서 **파생**한다
+///    (계약 3조 ② · 청사진 X2 규칙) — 죽은 엔진은 「나 죽었다」를 보내 주지 않는다.
+enum AsOfSource {
+  @JsonValue('LOCAL_SQLITE')
+  localSqlite('LOCAL_SQLITE'),
+  @JsonValue('SUPABASE_MIRROR')
+  supabaseMirror('SUPABASE_MIRROR'),
+  @JsonValue('ARCHIVE')
+  archive('ARCHIVE');
+
+  const AsOfSource(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2). 🔴 바로 위 `@JsonValue` 와 같은 문자열이다.
+  final String wire;
+}
+
+/// 01 §1-3 — 기준일 고지. 🔴 **빈 목록에도 실려 온다**(계약 3조 ③).
+@freezed
+abstract class AsOf with _$AsOf {
+  const factory AsOf({
+    /// UTC — 이 값이 만들어진 시각(정렬·신선도 판정용).
+    required DateTime observedAt,
+
+    /// 어느 거래일 기준인가.
+    @TradeDateConverter() required TradeDate tradeDate,
+
+    required AsOfSource source,
+
+    /// 초과 시 「오래된 데이터」 배너(M4 신선도 계약).
+    /// 🔴 JSON 키는 `stale_after_seconds` 다(01 §1-2 · §5 봉투 예시).
+    @JsonKey(name: 'stale_after_seconds')
+    @DurationSecondsConverter()
+    required Duration staleAfter,
+
+    /// 화면에 그대로 찍는 기준일 고지 문구 — **엔진 생성**(01 §1-5).
+    /// 「잔고 기준 2026-09-05 종가」 · 「체결 반영 09:12」.
+    required String label,
+
+    /// 이미 stale 이면 그 사유 코드(문구는 01 §3 매핑 사전).
+    /// ⚠️ 값 목록은 **엔진(M1) 확정 대기**다 — `m2-8_naming.md` A-2 의 권고 4값
+    ///    (`ENGINE_DOWN`·`PUSH_LAG`·`BATCH_MISSING`·`CLOCK_SKEW`)은 역산이며 ⏸ 다.
+    ///    🔴 그래서 이 필드는 열거형이 아니라 String 이다 — 화면이 코드→문구 매핑을 만들지 않는다.
+    String? staleReasonCode,
+
+    /// 그 사유의 배너 문구 — 엔진 생성.
+    String? staleLabel,
+  }) = _AsOf;
+
+  factory AsOf.fromJson(Map<String, dynamic> json) => _$AsOfFromJson(json);
+}
+
+/// 01 §1-3 — 화면이 포맷해도 되는 **유일한** 시각 표현.
+/// 화면은 `tzName` 으로만 포맷한다(⚠️ 표시 구현은 `package:timezone` · 이 패키지 밖).
+@freezed
+abstract class TzInstant with _$TzInstant {
+  const factory TzInstant({
+    required DateTime utc,
+    @Default('Asia/Seoul') String tzName,
+  }) = _TzInstant;
+
+  factory TzInstant.fromJson(Map<String, dynamic> json) =>
+      _$TzInstantFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/primitives/converters.dart`
+
+```dart
+// 01 §1-2 · docs/toolchain_notes.md §3-3 — JSON 컨버터 4종의 재수출 창구.
+//
+// 🔴 **선언은 `money.dart` 에 있다**(인벤토리 §1 표: money.dart 가 `DecimalStringConverter`·
+//    `DurationSecondsConverter` 를 담는다). toolchain_notes §3-1 의 템플릿이 부르는 경로가
+//    `../primitives/converters.dart` 라 두 문서의 경로가 갈리므로, 어느 쪽으로 import 해도
+//    같은 4종이 오도록 여기서 다시 내보낸다.
+// 🔴 이 파일에 새 컨버터를 **선언하지 않는다** — 선언이 두 곳이 되면 규약의 소유자가 둘이 된다.
+export 'money.dart'
+    show
+        DecimalStringConverter,
+        DurationSecondsConverter,
+        RatioConverter,
+        TradeDateConverter;
+```
+
+---
+
+## `packages/domain_contracts/lib/src/primitives/date_range.dart`
+
+```dart
+// 01 §2-1 «조회 구간» 원문.
+//
+// 🔴 화면이 날짜 산술로 만들지 않는다 — 프리셋의 창구는
+//    `ConfigRepository.watchRangePresets()` **하나**다(G-38 · 01 §4-1).
+//    화면이 `presetCode` 문자열을 코드에 나열하거나 `DateTime` 산술로 from·to 를 만들지 않는다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'money.dart';
+
+part 'date_range.freezed.dart';
+part 'date_range.g.dart';
+
+@freezed
+abstract class DateRange with _$DateRange {
+  const factory DateRange({
+    @TradeDateConverter() required TradeDate from,
+    @TradeDateConverter() required TradeDate to,
+
+    /// 엔진이 준 프리셋의 식별자. 화면이 값을 나열하지 않는다.
+    String? presetCode,
+
+    /// 「최근 30일」 — 엔진 생성(01 §1-5).
+    String? label,
+  }) = _DateRange;
+
+  factory DateRange.fromJson(Map<String, dynamic> json) =>
+      _$DateRangeFromJson(json);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/primitives/list_result.dart`
+
+```dart
+// 01 §2-1 «목록 스트림의 봉투» 원문.
+//
+// 🔴 계약 3조 ③ «없는 것»·«못 받은 것»·«해당 없음» 의 구별을 **타입으로** 강제한다 —
+//    빈 목록에도 `asOf`·`emptyKind`·`emptyLabel`·`hasMore` 가 실려 오므로 화면이 빈 상태를
+//    지어낼 필요가 없다.
+// 🔴 `rows` 는 **엔진이 이미 정렬해서** 준다 — 화면 재정렬 금지(인벤토리 §4 말미).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/ui.dart';
+import 'as_of.dart';
+
+part 'list_result.freezed.dart';
+
+/// 🔴 `fromJson`/`toJson` 을 두지 않는다 — 픽스처 봉투는 영역 F 의 로더가
+/// `decodeList<T>(String json, T Function(Map<String,Object?>) rowFrom)` 로 조립한다
+/// (인벤토리 §8-5). 제네릭 팩토리를 계약에 열면 행 타입마다 생성기 설정이 갈린다.
+@freezed
+abstract class ListResult<T> with _$ListResult<T> {
+  const factory ListResult({
+    /// 엔진이 이미 정렬해서 준다 — 화면 재정렬 금지.
+    required List<T> rows,
+    required AsOf asOf,
+
+    /// `rows` 가 비어 있을 때의 갈래.
+    required EmptyKind emptyKind,
+
+    /// 「아직 기록된 거래가 없습니다 · 다음 리밸런싱 D-6」 — 엔진 생성(01 §1-5).
+    String? emptyLabel,
+
+    /// 더 받을 것이 남았는가(01 §4-1 페이징 — 커서가 아니라 `limit` 증가 재구독).
+    required bool hasMore,
+  }) = _ListResult<T>;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/primitives/money.dart`
+
+```dart
+// 01 §1-2 «금액 — Decimal 문자열 승격» · §1-3 «시각·날짜·신선도»의 원시타입 원문.
+// 🔴 이름·필드·규약은 01 §1-2 가 정본이고, **클래스 선언 문법만** freezed 4 로 바꿔 읽는다
+//    (docs/toolchain_notes.md §3-1 — 01 의 코드 예시는 freezed 2.x 문법이다).
+// 🔴 이 파일에는 산술이 없다. `domain_contracts` 안에 Decimal 산술이 등장하면
+//    그 자체가 설계 오류 신호다(toolchain_notes §4-2 말미 · 01 §1-2 규약 5조 말미).
+import 'package:decimal/decimal.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'money.freezed.dart';
+part 'money.g.dart';
+
+/// 01 §1-2 — 통화 축.
+///
+/// 🔵 v2.31 P0S 1차 자동화는 국내상장 ETF 만이라 전 금액이 KRW 다. 통화가 섞이는 시점
+///    (미국 직접주문 부활)에 상위 DTO 의 `currency` 축이 이 값을 싣는다.
+enum Currency {
+  @JsonValue('KRW')
+  krw('KRW'),
+  @JsonValue('USD')
+  usd('USD');
+
+  const Currency(this.wire);
+
+  /// JSON·DDL 표기(01 §1-2 enum 직렬화 규약). 🔴 바로 위 `@JsonValue` 와 **같은 문자열**이며
+  /// 한쪽만 고치지 않는다 — 갈라지면 픽스처·DDL `CHECK` 와 어긋나고 §7 C-15 가 실패한다.
+  final String wire;
+}
+
+/// ⚠️ **예약 타입 — 1차 릴리스 DTO 에서는 쓰지 않는다**(인벤토리 §1 · 01 §1-2 주석 원문).
+///
+/// P0S 는 전 금액이 KRW 라 §2 의 금액 필드는 `Decimal` 하나로 쓰고 통화는 상위 DTO
+/// (계좌·플랜)의 `currency` 축으로 표현한다. 지금 전면 도입하면 값 객체 한 겹이
+/// 화면·픽스처·골든에 그대로 비용으로 남는다.
+/// 🔴 화면의 산술 차단은 `Money` 유무가 아니라 §7 C-4(`Decimal` 필드까지 탐지)가 한다.
+@freezed
+abstract class Money with _$Money {
+  // 🔴 이름 있는 factory 를 두므로 private 생성자가 필수다(toolchain_notes §3-1 규칙 3).
+  const Money._();
+
+  const factory Money({
+    @DecimalStringConverter() required Decimal amount,
+    required Currency currency,
+  }) = _Money;
+
+  /// 🔴 유일한 생성 경로는 **문자열**이다.
+  /// `Decimal.fromDouble` / `Decimal.parse(d.toString())` 우회 금지(01 §1-2).
+  factory Money.krw(String v) =>
+      Money(amount: Decimal.parse(v), currency: Currency.krw);
+
+  factory Money.usd(String v) =>
+      Money(amount: Decimal.parse(v), currency: Currency.usd);
+
+  factory Money.fromJson(Map<String, dynamic> json) => _$MoneyFromJson(json);
+}
+
+/// 01 §1-2 — 비율·스코어는 `double`.
+/// 🔴 산술 연산자를 정의하지 않는다(인벤토리 §1) — 정의하는 순간 화면이 비율을 곱할 수 있게 된다.
+extension type const Ratio(double value) {}
+
+/// 01 §1-2 — 해당 시장 **현지** 거래일 `'YYYY-MM-DD'`(US 는 ET · KST 환산 금지).
+/// 🔴 **날짜 산술 없음** — 「다음 거래일」·「D-6」 은 거래소 캘린더를 아는 엔진만 판정한다(M1-6).
+extension type const TradeDate(String yyyyMmDd) {}
+
+/// 01 §1-2·§1-3 — 화면이 `DateTime.now()` 를 부르지 않게 하는 유일한 통로.
+/// 구현체 주입은 `data_sync`.
+///
+/// 🔴 화면이 이 값을 쓰는 자리는 **전 앱에서 하나**다 —
+///    `observedAt + staleAfter < clock.nowUtc()`(신선도 배너).
+///    카운트다운·경과·D-day·TTL 잔여는 엔진이 문자열 필드로 준다.
+/// 🔴 신뢰 시각(리스 TTL·킬스위치 48h·냉각 30일)은 **Supabase 서버 시각**이다.
+///    로컬 시계로 마찰 카운트다운을 만들지 않는다.
+abstract interface class Clock {
+  DateTime nowUtc();
+}
+
+/// 01 §1-2 — 금액의 JSON 표기는 **문자열**이다(`"38250.00"`). 숫자로 쓰면 파서가 double 로 읽어
+/// 정밀도가 날아간다.
+///
+/// 🔴 **필드 어노테이션이다** — 메서드 인자에 붙여도 아무 일도 하지 않는다(01 §4-2 조문).
+///    그래서 인자가 2개를 넘는 명령은 전부 DTO 로 받는다.
+/// ⚠️ decimal 3.x 는 값을 정규화한다 — `Decimal.parse('38250.00').toString() == '38250'`.
+///    값 왕복(`fromJson(toJson(d)) == d`)은 안전하지만 **문자열 왕복은 보장되지 않는다**
+///    (toolchain_notes §4-1). 픽스처의 금액 문자열은 정규형으로 적는다.
+/// 🔴 표시용 자릿수는 컨버터의 일이 아니다 — 화면 문자열은 전부 엔진 완성 문자열이다(01 §1-5).
+class DecimalStringConverter implements JsonConverter<Decimal, String> {
+  const DecimalStringConverter();
+
+  @override
+  Decimal fromJson(String s) => Decimal.parse(s);
+
+  @override
+  String toJson(Decimal d) => d.toString();
+}
+
+/// 01 §1-2 — `Duration` 의 JSON 표기는 **초(int)** 이고 키는 `*_seconds` 다.
+/// 키 이름은 필드마다 `@JsonKey(name: '..._seconds')` 로 직접 적는다
+/// (build.yaml 의 `field_rename: snake` 는 `_seconds` 접미를 붙여 주지 않는다).
+class DurationSecondsConverter implements JsonConverter<Duration, int> {
+  const DurationSecondsConverter();
+
+  @override
+  Duration fromJson(int s) => Duration(seconds: s);
+
+  @override
+  int toJson(Duration d) => d.inSeconds;
+}
+
+/// docs/toolchain_notes.md §3-3 — 🔴 extension type 에는 컨버터가 **반드시** 필요하다.
+/// json_serializable 은 extension type 을 대표 타입(double)으로 자동으로 풀어 주지 않는다 —
+/// 애너테이션 없이 두면 «cannot handle» 로 생성이 실패한다.
+class RatioConverter implements JsonConverter<Ratio, double> {
+  const RatioConverter();
+
+  @override
+  Ratio fromJson(double v) => Ratio(v);
+
+  @override
+  double toJson(Ratio r) => r.value;
+}
+
+/// docs/toolchain_notes.md §3-3 — `TradeDate` 의 대표 타입(String) 풀이.
+class TradeDateConverter implements JsonConverter<TradeDate, String> {
+  const TradeDateConverter();
+
+  @override
+  TradeDate fromJson(String s) => TradeDate(s);
+
+  @override
+  String toJson(TradeDate d) => d.yyyyMmDd;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/advice_repository.dart`
+
+```dart
+// 01 §4-1 · §10 — 🆕 X7 투자 안내 읽기 창구.
+//
+// 🔴 전부 읽기 전용이며 쓰기는 §4-2 명령 API 경유다.
+
+import '../dto/advice.dart';
+import '../dto/journal.dart';
+import '../enums/advice.dart';
+import '../primitives/date_range.dart';
+import '../primitives/list_result.dart';
+
+/// 안내함 · 요약 · 상세 · 이력 · 수기 기록 폼 사양.
+abstract interface class AdviceRepository {
+  /// `A-1` 안내함.
+  Stream<ListResult<AdviceItem>> watchInbox({
+    AdviceStatus? status,
+    int limit = 50,
+  });
+
+  /// 홈·알림 앵커.
+  /// 🔴 `openCount` 의 정의는 엔진이 갖는다(G-08) — 화면이 재구현하지 않는다.
+  Stream<AdviceInboxSummary> watchSummary();
+
+  /// `A-2` 상세.
+  Future<AdviceItem?> findById(String adviceId);
+
+  Stream<ListResult<AdviceItem>> watchHistory({required DateRange range});
+
+  /// `A-3` 수기 기록 폼 사양.
+  /// 🔴 A16 — **Future 가 아니라 Stream 이다.** 계약 3조 ②(모든 스트림은 `AsOf` 를 싣는다)를
+  ///    Future 한 방으로 우회하면, 임시공휴일 해제·슬리브 종목 교체 뒤에도 화면이 **오래된
+  ///    판정으로** 사람의 실제 거래일을 막는다. 신선도 초과면 `A-3` 는 폼을 열지 않고
+  ///    엔진 문구를 보인다 — 🔴 «오래된 규칙으로 막는 것»보다 «막지 못한다고 말하는 것»이 안전하다.
+  Stream<ManualFillFormSpec> watchManualFillFormSpec();
+
+  /// 🆕 G-23 — 이 **안내**에 연결된 체결 목록(`A-2` 「기록된 체결」 블록).
+  /// 🔴 `JournalRepository.fillChain(entryId)` 와 **다른 것이다** — `fillChain` 은 «한 체결의
+  ///    정정 체인», 이것은 «한 안내의 체결들»이다. 02 §3-7 의 `fillChain(adviceId)` 인용은
+  ///    오기이며 정본 우선순위상 01 이 이긴다.
+  /// 🔴 정정된 행도 전부 온다 — 화면이 `fillKind` 로 접어 묶는다.
+  /// 🔴 지연 이행(`LATE_FILL`)으로 참조만 걸린 체결도 포함한다.
+  Future<List<TradeJournalEntry>> fillsOfAdvice(String adviceId);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/alert_repository.dart`
+
+```dart
+// 01 §4-1 — 알림함(M8) 읽기 창구.
+//
+// 🔴 `AlertLevel` 의 **표시 계층 사적 재분류는 금지**다(결정 7c) — `min` 은 거르기이지
+//    등급을 다시 매기는 자리가 아니다.
+
+import '../dto/safety.dart';
+import '../enums/safety.dart';
+
+/// 알림 목록.
+abstract interface class AlertRepository {
+  Stream<List<AlertItem>> watchInbox({AlertLevel? min});
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/calendar_repository.dart`
+
+```dart
+// 01 §4-1 — X4 구글 캘린더 동기 상태 읽기 창구.
+//
+// ⏸ J-5 — X4 계열 전체는 **이름·타입을 등재하되 구현하지 않는다**(OAuth 동의화면
+//    «테스트» 상태 7일 만료 스모크가 미결 · §8-5). 인터페이스 선언까지가 이 회차의 몫이다.
+
+import '../dto/calendar.dart';
+
+/// 캘린더 동기 상태 1건.
+abstract interface class CalendarRepository {
+  Future<CalendarSyncStatus> status();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/config_repository.dart`
+
+```dart
+// 01 §4-1 — 플래그·슬리브 카탈로그·구간 프리셋·운영 파라미터 읽기 창구.
+//
+// 🔴 화면이 「지금 슬리브가 몇 칸인가」·「캘린더 화면을 그릴 것인가」를 아는 유일한 경로다.
+//    상수·컴파일 타임 분기로 대체하면 플래그가 켜졌을 때 화면이 조용히 틀린다.
+
+import '../dto/common.dart';
+import '../dto/settings.dart';
+import '../primitives/date_range.dart';
+
+/// 런타임 구성 읽기.
+abstract interface class ConfigRepository {
+  Stream<FeatureFlags> watchFlags();
+
+  /// 🔴 슬리브 목록은 플래그가 아니라 `SleeveCatalogEntry` 목록으로 온다 — 화면이
+  ///    `SleeveId` 를 순회하며 `satellite` 를 걸러내는 코드를 쓰지 않게(거르는 규칙이
+  ///    화면에 생기면 그것이 판정이다).
+  Stream<List<SleeveCatalogEntry>> watchSleeves();
+
+  /// 🆕 G-38 조회 구간 프리셋 목록 — 🔴 「최근 30일」·「이번 달」·「올해」의 `from`·`to`·
+  ///    `label` 을 엔진이 **거래일 캘린더(M1-6)로** 만들어 준다. 화면이 `DateTime` 산술로
+  ///    만들지 않는다. 🔴 목록의 길이·순서도 엔진이 정한다.
+  Stream<List<DateRange>> watchRangePresets();
+
+  /// 🆕 G-07 월 납입 운영값 — 🔴 「S05·S7-4·H-02 + S7-9 가정 카드가 **같은 값 하나**를
+  ///    읽는다」의 그 하나다. 값을 바꾸는 경로는 §4-3(운영 등급)이고 여기는 **읽기 전용**이다.
+  /// ✅ C-10 — 소속 리포지토리는 `ConfigRepository` 로 확정(별도 리포지토리를 만들지 않는다).
+  /// 🔴 화면·계약·픽스처가 월 납입 금액을 상수로 적지 않는다(C-32).
+  Stream<ContributionSetting> watchContributionSetting();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/execution_gap_repository.dart`
+
+```dart
+// 01 §4-1 · §10 — 🆕 X7 이행 갭 리포트 읽기 창구.
+
+import '../dto/ledger_trust.dart';
+
+/// 월간 이행 갭(`S7-10`) · 롤링 이행 갭.
+/// 🔴 `modeAdviceLine` 은 엔진이 **3갈래로 갈라 생성**한다(B21) — 화면이 조립하지 않는다.
+abstract interface class ExecutionGapRepository {
+  Future<ExecutionGapReport> monthly(String yyyyMm);
+
+  Stream<ExecutionGapReport> watchRolling();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/holdings_repository.dart`
+
+```dart
+// 01 §4-1 — 보유현황(M6) 읽기 창구.
+
+import '../dto/holdings.dart';
+import '../primitives/list_result.dart';
+
+/// 보유 종목 목록.
+abstract interface class HoldingsRepository {
+  /// 🔴 `includePnl` 은 **기본 false**다(결정 8) — 화면이 값을 받아 놓고 접기만 하면
+  ///    결정 8이 렌더 구현 디테일에 의존하게 된다.
+  /// 🔴 X7 D7 — `external_holding`(= `scope == external`)의 표시 UNION 은
+  ///    **이 리포지토리 한 곳에서만** 만든다(C-23). 파생 계산 경로는 `positions` 만 읽는다.
+  Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false});
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/journal_repository.dart`
+
+```dart
+// 01 §4-1 — 매매일지(M6) 읽기 창구.
+//
+// 🔴 여기에는 인터페이스만 있다. 구현체는 둘뿐이고 둘 다 같은 DTO를 돌려준다
+//    (`LocalSqliteReader` = 폰 정본 SQLite / `SupabaseReadModel` = viewer RLS + Realtime).
+
+import '../dto/journal.dart';
+import '../enums/journal.dart';
+import '../enums/mode.dart';
+import '../enums/sleeve.dart';
+import '../primitives/date_range.dart';
+import '../primitives/list_result.dart';
+
+/// 매매일지 타임라인·결정 체인·정정 체인.
+abstract interface class JournalRepository {
+  /// 🔴 `rows` 는 **엔진이 시간 역순으로 정렬해서** 준다 — 화면이 정렬 키를 만들지 않는다.
+  /// 🔴 페이징은 커서가 아니라 `limit` 증가 재구독 하나뿐이다(1인 사용자·연 ~934건).
+  ///    무한 스크롤 = 바닥 도달 시 `limit += 100` 으로 재구독하고 `hasMore == false` 면 멈춘다.
+  /// 🆕 G-39 `origin` — 「수기 기록만」·「브로커 체결만」 필터(02 §3-1 X7).
+  ///    🔴 화면이 `rows` 를 받아 거르지 않는다 — **거르기도 판정이다**.
+  /// 🆕 G-40 `rebalanceEventId` — `S7-6b` 「이 회차의 주문 N건」 딥링크의 **유일한 경로**.
+  ///    🔴 화면이 `RebalanceEvent.orderIntentIds` 를 순회해 거르는 구현은 반려.
+  Stream<ListResult<TradeJournalEntry>> watchTimeline({
+    required DateRange range,
+    SleeveId? sleeve,
+    String? symbol,
+    JournalStatus? status,
+    FillOrigin? origin,
+    String? rebalanceEventId,
+    RunMode mode = RunMode.live,
+    int limit = 100,
+  });
+
+  Future<TradeJournalEntry?> findByDecisionId(String decisionId);
+
+  /// 의도 → 주문 → 체결.
+  Future<List<TradeJournalEntry>> chainOf(String decisionId);
+
+  /// 🆕 X7 — 한 체결의 **정정 체인**(ORIGINAL → REVERSAL → RESTATEMENT).
+  /// 🔴 `AdviceRepository.fillsOfAdvice(adviceId)` 와 **다른 것이다**(G-23) — 이쪽은
+  ///    «한 체결의 정정 체인», 저쪽은 «한 안내의 체결들»이다.
+  Future<List<TradeJournalEntry>> fillChain(String entryId);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/ledger_repository.dart`
+
+```dart
+// 01 §4-1 — X5 정합(원장 대조) 읽기 창구.
+
+import '../dto/ledger.dart';
+import '../dto/ledger_trust.dart';
+import '../primitives/list_result.dart';
+
+/// 열린 불일치 목록 · 시스템 밖 자산 목록.
+abstract interface class LedgerRepository {
+  /// 🔴 파생 불일치(`canonSupabase`·`canonGithub`·`canonCalendar`)는 **어떤 심각도에서도
+  ///    주문을 막지 않는다**(01 §2-9).
+  /// 🔴 `applicable == false` 인 칸은 «점검 안 함»으로 그린다 — 보드 칸 수는 모드와
+  ///    무관하게 **5 고정**이다.
+  Stream<ListResult<LedgerDiffRow>> watchOpenDiffs();
+
+  /// 🆕 X7 — 시스템 밖 자산(`external_holding`).
+  /// 🔴 이 목록은 표시 전용이며 파생 계산 경로가 읽지 않는다(C-23).
+  Stream<ListResult<ExternalHoldingRow>> watchExternalHoldings();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/ledger_trust_repository.dart`
+
+```dart
+// 01 §4-1 · §10 — 🆕 X7 원장 신뢰 등급 읽기 창구.
+
+import '../dto/ledger_trust.dart';
+
+/// 원장 신뢰 등급 배지.
+/// 🔴 `LedgerTrustGrade.selfReported` 는 **실패가 아니라 정상 운영 상태**다(01 §2-1 X7).
+abstract interface class LedgerTrustRepository {
+  Stream<LedgerTrustBadge> watchGrade();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/onboarding_repository.dart`
+
+```dart
+// 01 §4-1 — X3 온보딩 읽기 창구.
+
+import '../dto/safety.dart';
+import '../enums/onboarding.dart';
+
+/// 온보딩 단계 목록.
+abstract interface class OnboardingRepository {
+  /// 🆕 G-01 — 🔴 **갈래별(자동 매매 / 투자 안내) 준비물 목록의 근거는 `onboarding_choice`**
+  ///    이며 화면이 `OperatingMode` 를 **인자로 넘기지 않는다**. 선택 전에는 공통 단계만
+  ///    오고, `O-00b` 가 선택을 저장한 뒤부터 갈래 단계가 목록에 나타난다.
+  Stream<List<OnboardingStep>> watchSteps(OnboardingTrack t);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/ops_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 G-29 M8·M9 운영 상태 읽기 창구.
+//
+// 🔴 **읽기 전용**이고 조작은 §4-3 `SettingsActions` 다. 화면이 `SettingsActions.run()` 을
+//    폴링해 상태를 만들면 경계 규칙 ① 위반이다 — 「버튼을 누르지 않았는데 값이 갱신되는
+//    자리」는 전부 여기다.
+// 🔴 폰 빌드는 로컬에서, viewer 는 `rm_*` 읽기 모델에서 **같은 DTO** 를 받는다(계약 3조 ①).
+
+import '../dto/ops.dart';
+import '../dto/performance.dart';
+import '../primitives/list_result.dart';
+
+/// 워치독·연결·기기·백업·진단·연간 리뷰.
+/// ✅ H-8 — 반환 타입 이름은 `m2-8_naming.md` G-3·G-7·G-8·G-9·G-10·F-6 이 확정한 그대로다.
+abstract interface class OpsStatusRepository {
+  /// `W-01` — 🔴 목록 길이·슬러그 이름은 **서버가 준다**(2축 합성 `{sim|live}-{auto|advisory}-{체크명}`).
+  Stream<ListResult<WatchdogCheck>> watchWatchdog();
+
+  /// `S07`.
+  Stream<ConnectionsVm> watchConnections();
+
+  /// `S06` — 🔴 리스는 읽기 전용이다.
+  Stream<DeviceAccessVm> watchDeviceAccess();
+
+  /// `S09`.
+  Stream<BackupVm> watchBackup();
+
+  /// `S10` — 🔴 칸 수 5 고정은 엔진이 준다(§2-9 `applicable`).
+  Stream<DiagnosticsVm> watchDiagnostics();
+
+  /// `S12` — 🔴 화면이 `windowState` 를 «달»로 판정하지 않는다.
+  Stream<AnnualReviewVm> watchAnnualReview();
+}
+
+/// 홈 블록 5·7 의 오늘 요약.
+/// 🔴 «세는 수»는 전부 엔진이 세어 **문자열로** 준다 — 화면이 목록 길이로 만들지 않는다
+///    (double·int 산술이라 C-4 가 잡지 못한다 — 그래서 조문이 필요하다).
+/// ⬜ 열린 물음 §10-2 ⑤ — viewer 경로의 원천 표 `rm_ops_summary` 존폐가 미결이다
+///    (표를 만들거나, 홈 블록 5·7 을 폰 전용으로 명시하거나 둘 중 하나).
+abstract interface class OpsSummaryRepository {
+  Stream<OpsDailySummary> watchToday();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/performance_repository.dart`
+
+```dart
+// 01 §4-1 — 성과·리포트(M7) 읽기 창구.
+//
+// 🔴 화면은 TWR/MWR 을 계산하지 않고 누적곱도 하지 않는다. 세율 곱셈·층 간 차액도
+//    금지이며 C-30 이 검사한다(01 §2-4).
+
+import '../dto/performance.dart';
+import '../enums/performance.dart';
+import '../primitives/date_range.dart';
+
+/// 성과 시리즈 · 월간 리포트 · 세후 사다리 + G-41 뷰모델 6종의 창구.
+abstract interface class PerformanceRepository {
+  Future<PerformanceSeries> series({
+    required PerfMetric metric,
+    required PerfGranularity granularity,
+    required bool cumulative,
+    required DateRange range,
+  });
+
+  /// 기본 창구.
+  Future<MonthlyReport> monthlyReport(String yyyyMm);
+
+  /// 🆕 P 회차 — 세후 사다리(§2-4). 기존 2종에 **추가**되는 세 번째 창구다.
+  /// 🔴 갈래는 인자가 아니라 **계좌 매핑에서 파생**한다 — 화면이 갈래를 고르지 못한다.
+  /// 🔴 인자는 **연도 하나**다. 임의 구간(`DateRange`)을 받지 않는다 — 세후는 연 1회
+  ///    산출이고, 구간을 화면이 고르면 «어느 창의 세후가 진짜인가»를 화면이 판정하게 된다.
+  /// 🔴 보정판 산식 확정 전에는 `isReferenceOnly == true` 인 골든 참고 사다리만 돌아온다(§8-18).
+  Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear});
+
+  // ───── 🆕 G-41 — M7 뷰모델 6종의 창구 ─────
+
+  /// `S7-1b` — 🔴 수치 필드가 없는 월 목록이다.
+  Future<ReportArchiveVm> reportArchive();
+
+  /// `S7-2G` 열람 게이트. 🔴 이번 달 열람 횟수는 **명령 테이블(append-only)의 집계**이며
+  ///    화면이 세지 않는다(G-42). 화면이 「n회」를 숫자로 조립하지 않는다.
+  Stream<DisclosureGateVm> watchDisclosureGate();
+
+  /// `S7-3` 드로다운 맥락.
+  Future<DrawdownContextVm> drawdownContext({DateRange? range});
+
+  /// `S7-3b` 슬리브 기여 분해.
+  /// 🔴 월 납입 설정과 무관한 타입이다 — `MonthlyContributionVm` 과 이름을 공유하지 않는다(§2-6).
+  Future<ContributionVm> contribution({required DateRange range});
+
+  /// `S7-7` — 🔴 묶음이지 재집계가 아니다. 화면이 `windowState` 를 «달»로 판정하지 않는다.
+  Future<AnnualReviewVm> annualReview({required String year});
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/rebalance_repository.dart`
+
+```dart
+// 01 §4-1 — 리밸런싱(M7) 읽기 창구.
+
+import '../dto/rebalance.dart';
+import '../primitives/date_range.dart';
+
+/// 리밸런싱 회차 목록 · 다음 회차 예상.
+abstract interface class RebalanceRepository {
+  Stream<List<RebalanceEvent>> watchEvents(DateRange r);
+
+  /// 🆕 G-41 — 다음 회차 예상(`S7-6c` · `H-02` D-7 예고 행).
+  /// 🔴 `dDayText`·`expectedDateText` 는 엔진 생성 문자열이다 — 화면이 날짜를 빼지 않는다.
+  /// 🔴 **nullable 이 아니다**(N-4) — 「예정 없음」도 **값으로** 오며 그 상태의 유일한
+  ///    문구가 `emptyLabel` 이다. null 을 허용하면 화면이 「예정된 회차 없음」을 스스로
+  ///    쓰게 되어 계약 3조 ③(빈 상태 문구도 엔진 생성)이 깨진다.
+  Stream<NextRebalanceVm> watchNext();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/resume_repository.dart`
+
+```dart
+// 01 §4-1 — X2 재개 읽기 창구.
+
+import '../dto/resume.dart';
+
+/// 최근 재개 리포트 · 계획된 작업 목록.
+abstract interface class ResumeRepository {
+  /// 🔴 `ResumeReport` 에는 손익 필드가 없다(01 §2-7).
+  Stream<ResumeReport?> watchLatest();
+
+  Stream<List<PlannedWorkSummary>> watchPlannedWork();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/safety_repository.dart`
+
+```dart
+// 01 §4-1 — 안전 상태(M5·M8) 읽기 창구.
+//
+// 🔴 소유 경계는 타입이 아니라 «무엇을 그리는가»다(01 §2-10 표) — 상태 표시는 허용,
+//    **상태를 바꾸는 경로를 만드는 것은 금지**다. C-7 이 그 표대로 검사한다.
+
+import '../dto/safety.dart';
+
+/// 브레이커·차단 플래그·킬스위치 표시 상태.
+abstract interface class SafetyRepository {
+  Stream<SafetyState> watchState();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/what_if_api.dart`
+
+```dart
+// 01 §4-1 — M3 미리보기.
+//
+// 🔴 리포지토리가 **아니라** 부작용 0의 로컬 재계산이다(결정 2 파생 · `core_engine/lib/whatif/`).
+//    03(M7 명세) §1-5 의 `WhatIfApi` 가 이것이며 이름은 **여기가 정본**이다
+//    (구 `PlannerRepository` 폐기). DB 를 건드리지 않는다.
+
+import 'package:decimal/decimal.dart';
+
+import '../dto/plan.dart';
+import '../primitives/money.dart';
+
+/// 입금·인출·리밸런싱 미리보기.
+abstract interface class WhatIfApi {
+  Future<DepositPlan> simulateDeposit({
+    required Decimal amount,
+    required String accountAlias,
+  });
+
+  Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount});
+
+  Future<RebalancePreview> previewRebalance({TradeDate? plannedDate});
+
+  Future<CostEstimate> estimateCosts(String planId);
+
+  /// 🔴 만료 판정도 결과의 상태값으로 온다 — 화면이 `expiresAt` 을 시계와 비교하지 않는다.
+  Future<DepositPlan?> findPlan(String planId);
+}
+```
