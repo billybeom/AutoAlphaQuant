@@ -12,10 +12,11 @@
 
 | 라운드ID | AI | 모듈 | 범위(화면ID) | 준 것 | 팩 판 | 발송일 | 상태 | PR·브랜치 | 질문 파일 | 비고 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| R0-Bob-ENV | Bob | M6 | — | 11 시작가이드 부록 A · 저장소 접근 | 2026-09-09 | | 미발송 | | | 클론·`melos bootstrap`·`melos run test:contracts` 통과 확인까지 |
-| R0-Bob-READ | Bob | M6 | J-1 | `prompt_M6.md` + 문서 5부 | 2026-09-09 | | 미발송 | | `inbox/J1_questions.md` | 읽기만. 구현 착수 전 질문 목록 1회 제출 |
-| R0-Gem-ENV | Gemini | M7 | — | 11 시작가이드 부록 B · 저장소 접근 | 2026-09-09 | | 미발송 | | | 클론·`melos bootstrap`·`melos run test:contracts` 통과 확인까지 |
-| R0-Gem-READ | Gemini | M7 | S7-1 | `prompt_M7.md` + 문서 5부 | 2026-09-09 | | 미발송 | | `inbox/S7-1_questions.md` | 읽기만. 구현 착수 전 질문 목록 1회 제출 |
+| R0-Bob-ENV | Bob | M6 | — | 11 시작가이드 부록 A · 저장소 접근 | 2026-09-09 | | 미발송 | | | 클론·`melos bootstrap`·`melos run test:contracts` 통과 확인까지 · **패킷 `send/R0-Bob-ENV.md`(09-14)** · origin에 4커밋 있음(푸시 권한 확인 가능) |
+| R0-Bob-READ | Bob | M6 | J-1 | `prompt_M6.md` + 문서 5부 | 2026-09-09 | | 미발송 | | `inbox/J1_questions.md` | 읽기만. 구현 착수 전 질문 목록 1회 제출 · **패킷 `send/R0-Bob-READ.md`(09-14)** |
+| R0-Gem-ENV | Gemini | M7 | — | 11 시작가이드 부록 B · 저장소 접근 | 2026-09-09 | | 미발송 | | | 클론·`melos bootstrap`·`melos run test:contracts` 통과 확인까지 · **패킷 `send/R0-Gem-ENV.md`(09-14)**(CLI/웹 두 본문) |
+| R0-Gem-READ | Gemini | M7 | S7-1 | `prompt_M7.md` + 문서 5부 | 2026-09-09 | | 미발송 | | `inbox/S7-1_questions.md` | 읽기만. 구현 착수 전 질문 목록 1회 제출 · **패킷 `send/R0-Gem-READ.md`(09-14)** |
+| R1-Bob-J1 | Bob | M6 | J-1 | `prompt_M6.md`(범위 J-1) + 문서 5부 + `fixtures/journal_30.json` | 2026-09-09 | | 미발송 | `ui/m6-j1-timeline` · `[M6] J-1 매매일지 타임라인` | `inbox/J1_questions.md` | 첫 코드 과제 · **패킷 `send/R1-Bob-J1.md`(09-14)** · R0-Bob-READ와 같은 날 보내도 됨 |
 
 ## 아직 열지 않은 라운드
 
