@@ -93,8 +93,6 @@ class DrawdownContextScreen extends ConsumerWidget {
               _buildMetricCards(context, vm),
               const SizedBox(height: 16),
               _buildGaugeCard(context, vm),
-              const SizedBox(height: 16),
-              _buildFooter(context, vm),
             ],
           ),
         ),
@@ -123,70 +121,33 @@ class DrawdownContextScreen extends ConsumerWidget {
   }
 
   Widget _buildMetricCards(BuildContext context, DrawdownContextVm vm) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: _buildSingleMetricCard(
-            context,
-            AnalyticsLabels.currentDdTitle,
-            vm.currentDdText,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildSingleMetricCard(
-            context,
-            AnalyticsLabels.maxDdTitle,
-            vm.maxDdText,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildSingleMetricCard(
-            context,
-            AnalyticsLabels.tuwTitle,
-            vm.tuwText,
-          ),
-        ),
+        _buildMetricRow(context, vm.currentDdText),
+        const SizedBox(height: 8),
+        _buildMetricRow(context, vm.maxDdText),
+        const SizedBox(height: 8),
+        _buildMetricRow(context, vm.tuwText),
       ],
     );
   }
 
-  Widget _buildSingleMetricCard(
-    BuildContext context,
-    String title,
-    String valueText,
-  ) {
+  Widget _buildMetricRow(BuildContext context, String text) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0.5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                valueText,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace',
-                ),
-              ),
-            ),
-          ],
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
         ),
       ),
     );
@@ -241,17 +202,6 @@ class DrawdownContextScreen extends ConsumerWidget {
             ],
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context, DrawdownContextVm vm) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Text(
-        vm.asOf.label,
-        style: TextStyle(fontSize: 11, color: colorScheme.outline),
       ),
     );
   }

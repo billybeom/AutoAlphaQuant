@@ -10,9 +10,4 @@ abstract final class AnalyticsLabels {
 
   /// 에러 상태 재시도 버튼
   static const String retryButton = '다시 시도';
-
-  /// S7-3 지표 카드 제목 (불변 헤더)
-  static const String currentDdTitle = '현재 DD';
-  static const String maxDdTitle = '최대 DD';
-  static const String tuwTitle = 'TUW';
 }

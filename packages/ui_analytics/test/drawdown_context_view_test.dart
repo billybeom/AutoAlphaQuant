@@ -108,7 +108,6 @@ void main() {
     if (normal.referenceBandText != null) {
       expect(find.text(normal.referenceBandText!), findsOneWidget);
     }
-    // normal 픽스처는 caveatText 가 null 이므로 위젯트리에 나타나지 않아야 함
     expect(find.text(deep.referenceBandCaveatText!), findsNothing);
   });
 
@@ -209,5 +208,51 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(markerFlag.label), findsOneWidget);
+  });
+
+  testWidgets('S7-3 세 값 Text 조상에 FittedBox 부재 검증', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(390, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+          performanceRepositoryProvider.overrideWithValue(
+            FakePerformanceRepository(drawdownVm: deep),
+          ),
+          safetyRepositoryProvider.overrideWithValue(
+            FakeSafetyRepository(safetyRow0),
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: DrawdownContextScreen())),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(
+      find.ancestor(
+        of: find.text(deep.currentDdText),
+        matching: find.byType(FittedBox),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.ancestor(
+        of: find.text(deep.maxDdText),
+        matching: find.byType(FittedBox),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.ancestor(
+        of: find.text(deep.tuwText),
+        matching: find.byType(FittedBox),
+      ),
+      findsNothing,
+    );
   });
 }
