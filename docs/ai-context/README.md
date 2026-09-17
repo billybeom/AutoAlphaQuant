@@ -4,14 +4,14 @@
 §2(치환값·조립법)이고, 이 폴더의 파일은 전부 **사본**입니다 — 정본은 `11_앱설계/`의 같은 번호 문서이고,
 문서와 코드가 다르면 **코드(`packages/domain_contracts/`)가 이깁니다.**
 
-조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/R1-Bob-J1-재제출.md`) · **J-1 병합(PR #1 · 2026-09-17)** 뒤 `send/R1-Gem-S71.md` 신설 · `packages/ui_analytics/test/` 골든 하네스 설치 · **팩 판 2026-09-17b**(C4 R1-Gem-S71 1회차 — 03·01 사본 갱신 · `inbox/S7-1_questions.md` · `send/R1-Gem-S71-재제출.md`).
+조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/R1-Bob-J1-재제출.md`) · **J-1 병합(PR #1 · 2026-09-17)** 뒤 `send/R1-Gem-S71.md` 신설 · `packages/ui_analytics/test/` 골든 하네스 설치 · **팩 판 2026-09-17b**(C4 R1-Gem-S71 1회차 — 03·01 사본 갱신 · `inbox/S7-1_questions.md` · `send/R1-Gem-S71-재제출.md`) · **팩 판 2026-09-17c**(S7-1 병합 PR #2 뒤 — 03 §7·§8 «코드 정본» · 01 §8 미결 44·45 · `prompt_M7.md` 범위 = S7-3 · S7-3b · `send/R2-Gem-S73.md`).
 
 ## 구성
 
 | 파일 | 무엇 | 정본 |
 |---|---|---|
 | `prompt_M6.md` | Bob에게 주는 프롬프트 (M6 매매일지·보유현황, 범위 `J-1`) | 07 §3 + §4 |
-| `prompt_M7.md` | Gemini에게 주는 프롬프트 (M7 성과·리밸런싱·플래너, 범위 `S7-1`) | 07 §3 + §5 |
+| `prompt_M7.md` | Gemini에게 주는 프롬프트 (M7 성과·리밸런싱·플래너, 범위 ~~`S7-1`~~ → `S7-3 · S7-3b` 2026-09-17) | 07 §3 + §5 |
 | `prompt_M8.md` | Gemini 2차 (M8 셸·운영 홈·알림·온보딩 렌더, 범위 `S-01`) | 07 §3 + §6 |
 | `prompt_M9.md` | Bob 2차 (M9 관리자·설정 렌더, 범위 `S01`) | 07 §3 + §7 |
 | `00_README_개발착수패키지.md` | **발췌** — §5 기계적 강제 · §6 금지 4항 · §7 용어 | 11_앱설계/00 |

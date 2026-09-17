@@ -92,3 +92,21 @@ void main() {
 - 🔴 테스트 파일에도 한국어 문자열 리터럴을 두지 않는다 — 글자는 전부 픽스처에서 온다.
 - 🔴 픽스처를 복사·편집해 «내 픽스처»를 만들지 않는다. 상태 조합이 더 필요하면 `docs/ai-context/inbox/S7-1_questions.md` 에 발주한다.
 - 🔴 위 뼈대의 Provider·위젯 이름은 **예시**다 — 실제 이름은 화면 담당이 정하되 `Provider<XRepository>((_) => throw UnimplementedError('...'))` 규약(01 §4-1)을 따른다.
+
+## R2 — `S7-3` · `S7-3b` (2026-09-17)
+
+골든 이름(명세 지정) — `s73_normal` · `s73_deep_dd` · `s73b_three_sleeves` × light/dark = 6장. 테스트 파일 `test/golden/s73_golden_test.dart`.
+(`s73_insufficient`·`s73b_partial` 은 01 §8 미결 44·45 가 닫힌 뒤 — 입력 픽스처가 아직 없다.)
+
+```dart
+final DrawdownContextVm normal = singleFixture(FixturePaths.m7M7DdContextNormal, DrawdownContextVm.fromJson);
+final DrawdownContextVm deep = singleFixture(FixturePaths.m7M7DdContextDeep, DrawdownContextVm.fromJson);
+final ContributionVm contrib = singleFixture(FixturePaths.m7M7Contrib3sleeve, ContributionVm.fromJson);
+final SafetyState safety = SafetyState.fromJson(fixtureEnvelope(FixturePaths.safetyStates).rows[0]);
+final DateRange range = DateRange(from: TradeDate('2026-08-01'), to: TradeDate('2026-08-31'), presetCode: 'FIXTURE');
+// overrides: analyticsClockProvider → FixedClock(kGoldenNowUtc) · performanceRepositoryProvider → 픽스처를 돌려주는 Fake ·
+//            safetyRepositoryProvider → Stream.value(safety)
+```
+
+- 🔴 **긴 엔진 문자열은 Row 안에서 Expanded/Flexible** — 테스트 폰트는 글자당 1em 폭이라 390px 에서 쉽게 넘친다(S7-1 2회차 실패 원인).
+- 비교기는 3판이다(가장 빽빽한 24×24 창 밀도 ≤12% · 전체 ≤0.5%) — 아이콘 하나만 빠져도 실패한다.
