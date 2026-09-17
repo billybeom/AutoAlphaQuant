@@ -1,11 +1,10 @@
-// comparator_test.dart — «유의 픽셀» 비교기의 자체 검증 (C-2 하네스 · M2 소유)
+// comparator_test.dart — «유의 픽셀» 비교기의 자체 검증 (C-2 하네스 · M2 소유 · 3판)
 //
-// 하네스가 «무엇을 무시하고 무엇을 잡는가»를 코드로 고정한다. 이 셋이 깨지면 골든 게이트의
+// 하네스가 «무엇을 무시하고 무엇을 잡는가»를 코드로 고정한다. 이것들이 깨지면 골든 게이트의
 // 뜻이 바뀐 것이다 — 임계를 바꾸기 전에 이 파일을 먼저 읽는다.
-//   ① 같은 그림 → 0
-//   ② 사각형이 1px 옆으로 이동 → 0 (플랫폼 글자 위치 차이의 모형)
-//   ③ 사각형(칩 크기)이 사라짐 → 그 넓이만큼 유의 픽셀 (누락 탐지의 모형)
-//   ④ 배경만 살짝 다른 회색(AA 모형) → 0
+//   무시: ① 같은 그림 ② 1px 이동(가로·대각) ③ 작은 회색 차(AA) ④ 가는 획의 농도 차
+//         («진한 1칸» vs «흐린 2칸» — 어두운 배경의 밝은 글자에서 플랫폼마다 다르다)
+//   잡음: ⑤ 속이 찬 칩 누락 ⑥ **가는 테두리뿐인 칩 누락**(2판이 놓치던 것) ⑦ 2px 이동
 //
 // 🔴 dart:ui 이미지 디코드를 쓰지 않는다 — 바이트 버퍼를 직접 만든다(빠르고 결정적).
 
@@ -41,6 +40,14 @@ void _rect(Uint8List px, int x0, int y0, int w, int h, {int gray = 20}) {
   }
 }
 
+/// 1px 두께의 빈 상자(테두리만).
+void _outline(Uint8List px, int x0, int y0, int w, int h, {int gray = 20}) {
+  _rect(px, x0, y0, w, 1, gray: gray);
+  _rect(px, x0, y0 + h - 1, w, 1, gray: gray);
+  _rect(px, x0, y0, 1, h, gray: gray);
+  _rect(px, x0 + w - 1, y0, 1, h, gray: gray);
+}
+
 int _count(Uint8List a, Uint8List b) => countSignificantDiffs(
   a,
   b,
@@ -51,7 +58,7 @@ int _count(Uint8List a, Uint8List b) => countSignificantDiffs(
 );
 
 void main() {
-  group('shift-tolerant golden compare', () {
+  group('shift-tolerant golden compare (v3: blur + symmetric)', () {
     test('identical images -> 0 significant pixels', () {
       final Uint8List a = _canvas();
       _rect(a, 10, 10, 60, 32);
@@ -77,17 +84,12 @@ void main() {
       expect(_count(a, b), 0);
     });
 
-    test('missing chip-sized box -> roughly its area is significant', () {
-      final Uint8List a = _canvas(); // candidate: chip missing
+    test('1px shift of a thin outlined box -> 0', () {
+      final Uint8List a = _canvas();
+      _outline(a, 10, 10, 60, 32);
       final Uint8List b = _canvas();
-      _rect(b, 10, 10, 60, 32); // golden: chip present
-      final int n = _count(a, b);
-      // 60×32 = 1,920. The 1px rim can match neighbours, so allow the interior
-      // (58×30 = 1,740) as the floor.
-      expect(n, greaterThanOrEqualTo(58 * 30));
-      expect(n, lessThanOrEqualTo(60 * 32));
-      // and the reverse direction (extra chip) is also detected
-      expect(_count(b, a), greaterThanOrEqualTo(58 * 30));
+      _outline(b, 11, 10, 60, 32);
+      expect(_count(a, b), 0);
     });
 
     test('anti-aliasing-like small gray delta -> 0', () {
@@ -96,15 +98,86 @@ void main() {
       expect(_count(a, b), 0);
     });
 
-    test(
-      '2px shift is NOT absorbed by radius 1 (guards the tolerance meaning)',
-      () {
-        final Uint8List a = _canvas();
-        _rect(a, 10, 10, 60, 32);
-        final Uint8List b = _canvas();
-        _rect(b, 12, 10, 60, 32);
-        expect(_count(a, b), greaterThan(0));
-      },
-    );
+    test('thin stroke density: one solid column vs two half columns -> 0', () {
+      // dark background, light text: platform gamma renders a 1px stroke either as
+      // one strong column or as two weak columns.
+      final Uint8List a = _canvas(bg: 20);
+      _rect(a, 40, 10, 1, 40, gray: 230);
+      final Uint8List b = _canvas(bg: 20);
+      _rect(b, 40, 10, 1, 40, gray: 125);
+      _rect(b, 41, 10, 1, 40, gray: 125);
+      expect(_count(a, b), 0);
+      expect(_count(b, a), 0);
+    });
+
+    test('missing solid chip -> roughly its area, either direction', () {
+      final Uint8List a = _canvas(); // candidate: chip missing
+      final Uint8List b = _canvas();
+      _rect(b, 10, 10, 60, 32); // golden: chip present
+      final int n = _count(a, b);
+      // 60×32 = 1,920. Blur softens the rim; the interior (58×30) is the floor
+      // and the 1px halo (62×34) is the ceiling.
+      expect(n, greaterThanOrEqualTo(58 * 30));
+      expect(n, lessThanOrEqualTo(62 * 34));
+      expect(_count(b, a), n, reason: 'the check is symmetric');
+    });
+
+    test('missing OUTLINED chip (1px border only) is detected', () {
+      // v2 (one-directional) returned ~0 here: every background pixel of the
+      // candidate finds background in the golden neighbourhood.
+      final Uint8List a = _canvas(); // candidate: outlined chip missing
+      final Uint8List b = _canvas();
+      _outline(b, 10, 10, 60, 32);
+      final int n = _count(a, b);
+      // perimeter = 2*(60+32)-4 = 180 px; blur widens it to ~3px.
+      expect(n, greaterThanOrEqualTo(180));
+      expect(_count(b, a), n);
+    });
+
+    test('small icon-sized outline missing: tiny total, dense window', () {
+      // 18px lock icon in the real J-1 screen: total 0.06% but window density 27%.
+      final Uint8List a = _canvas(); // candidate: icon missing
+      final Uint8List b = _canvas();
+      _outline(b, 50, 30, 16, 16);
+      final SignificantDiffStats s = analyzeSignificantDiffs(
+        a,
+        b,
+        width: _w,
+        height: _h,
+      );
+      expect(s.total / (_w * _h), lessThan(0.05), reason: 'small overall');
+      expect(
+        s.maxWindowDensity,
+        greaterThan(0.12),
+        reason: 'but clustered -> the window rule must catch it',
+      );
+    });
+
+    test('scattered platform-like noise: low window density', () {
+      // isolated 3x3 specks every 20px: spread thin, never clustered.
+      final Uint8List a = _canvas();
+      final Uint8List b = _canvas();
+      for (int y = 6; y < _h - 6; y += 20) {
+        for (int x = 6; x < _w - 6; x += 20) {
+          _rect(b, x, y, 3, 3);
+        }
+      }
+      final SignificantDiffStats s = analyzeSignificantDiffs(
+        a,
+        b,
+        width: _w,
+        height: _h,
+      );
+      expect(s.total, greaterThan(0));
+      expect(s.maxWindowDensity, lessThan(0.12));
+    });
+
+    test('2px shift is NOT absorbed by radius 1', () {
+      final Uint8List a = _canvas();
+      _rect(a, 10, 10, 60, 32);
+      final Uint8List b = _canvas();
+      _rect(b, 12, 10, 60, 32);
+      expect(_count(a, b), greaterThan(0));
+    });
   });
 }
