@@ -20,13 +20,13 @@
 - 플랫폼·폰트 차이로 스냅샷이 흔들리면 **임계 조정은 M2가 한다**. 스스로 임계를 풀지 않는다.
 - 대표 화면 9개가 C-2의 대상이다(01 §7). 어느 9개인지는 화면 명세 확정과 함께 정한다.
 
-## 하네스 (M2 제공 · 2026-09-17 · C4 R1-Bob-J1 질문 Q1 의 답)
+## 하네스 (M2 제공 · 2026-09-17 · C4 R1-Bob-J1 질문 Q1 의 답 · 비교기 2판 = 이동·AA 허용)
 
 화면 담당이 만드는 것은 **골든 테스트 파일과 PNG** 뿐이다. 나머지는 이미 있다.
 
 | 파일 | 누가 | 무엇 |
 |---|---|---|
-| `test/flutter_test_config.dart` | 🔴 M2 | `flutter test` 가 자동으로 먼저 부른다. 골든 비교기를 **허용 오차 0.5%** 비교기로 바꾼다(Windows 에서 찍고 리눅스 CI 에서 비교할 때의 안티에일리어싱 차이 흡수). 화면 담당은 고치지 않는다 |
+| `test/flutter_test_config.dart` | 🔴 M2 | `flutter test` 가 자동으로 먼저 부른다. 골든 비교기를 **이동·AA 허용 비교기**로 바꾼다 — 1px 이동·안티에일리어싱은 무시하고 «이웃 3×3 어디에도 비슷한 색이 없는 유의 픽셀»만 세어 **0.2% 이하면 통과**(`golden/shift_tolerant_compare.dart` · 자체 검증 `golden/comparator_test.dart`). 🔵 2026-09-17 실측: Windows 골든을 리눅스 CI 가 비교하면 글자 위치가 1px 어긋나 원시 픽셀 0.74~1.44% 가 다르다 — 단순 허용률로는 칩 누락(≈0.6%)을 못 잡아 이 방식으로 바꿨다. 화면 담당은 고치지 않는다 |
 | `test/golden/golden_support.dart` | 🔴 M2 | 픽스처 로더(`journalFixture`·`journalSlice`·`safetyFixtureRow`) · 고정 시계 `FixedClock`·`kGoldenNowUtc` · 폰 크기 `kGoldenPhoneSize`(390×844) · `pumpForGolden`(light/dark 테마) · `expectGolden(name, brightness)` |
 | `test/golden/<화면id>_golden_test.dart` | 화면 담당 | 아래 예시대로. 파일명은 `j1_golden_test.dart` 처럼 화면 ID 소문자 |
 | `test/golden/goldens/<name>_<light\|dark>.png` | 화면 담당(최초 1회) | `expectGolden` 이 만드는 경로. `.gitignore` 의 `!**/test/golden/**` 로 **커밋 대상**이다 |
