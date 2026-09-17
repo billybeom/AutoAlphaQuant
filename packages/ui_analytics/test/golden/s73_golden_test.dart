@@ -81,6 +81,10 @@ void main() {
     FixturePaths.m7M7Contrib3sleeve,
     ContributionVm.fromJson,
   );
+  final contribPartial = singleFixture(
+    FixturePaths.m7M7ContribPartial,
+    ContributionVm.fromJson,
+  );
   final safetyState = SafetyState.fromJson(
     fixtureEnvelope(FixturePaths.safetyStates).rows[0],
   );
@@ -155,6 +159,29 @@ void main() {
         brightness: b,
       );
       await expectGolden('s73b_three_sleeves', b);
+    });
+
+    // S7-3b Partial (결측 슬리브)
+    testWidgets('s73b_partial ${brightnessSuffix(b)}', (
+      WidgetTester tester,
+    ) async {
+      await pumpForGolden(
+        tester,
+        ProviderScope(
+          overrides: <Override>[
+            analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+            performanceRepositoryProvider.overrideWithValue(
+              _FakePerformanceRepository(contributionVm: contribPartial),
+            ),
+            safetyRepositoryProvider.overrideWithValue(
+              _FakeSafetyRepository(safetyState),
+            ),
+          ],
+          child: const ContributionScreen(range: testRange),
+        ),
+        brightness: b,
+      );
+      await expectGolden('s73b_partial', b);
     });
   }
 }

@@ -67,6 +67,10 @@ void main() {
     FixturePaths.m7M7Contrib3sleeve,
     ContributionVm.fromJson,
   );
+  final partialVm = singleFixture(
+    FixturePaths.m7M7ContribPartial,
+    ContributionVm.fromJson,
+  );
   final safetyEnvelope = fixtureEnvelope(FixturePaths.safetyStates);
   final safetyRow0 = SafetyState.fromJson(safetyEnvelope.rows[0]);
   const testRange = DateRange(
@@ -138,5 +142,53 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(AnalyticsLabels.staleBannerTitle), findsOneWidget);
+  });
+
+  testWidgets('S7-3b ⑨ partial: unavailableLabel 문장 표시 및 해당 행 막대 없음 검증', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+          performanceRepositoryProvider.overrideWithValue(
+            FakePerformanceRepository(contributionVm: partialVm),
+          ),
+          safetyRepositoryProvider.overrideWithValue(
+            FakeSafetyRepository(safetyRow0),
+          ),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: ContributionScreen(range: testRange)),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final unavailableRow = partialVm.rows.firstWhere(
+      (r) => r.unavailableLabel != null,
+    );
+
+    // unavailableLabel 렌더 확인
+    expect(find.text(unavailableRow.unavailableLabel!), findsOneWidget);
+    expect(find.text(unavailableRow.contributionText), findsOneWidget);
+
+    // 막대 개수 = unavailableLabel == null 인 행의 개수
+    final expectedBarCount = partialVm.rows
+        .where((r) => r.unavailableLabel == null)
+        .length;
+
+    final barFinder = find.byWidgetPredicate((widget) {
+      final key = widget.key;
+      return key is ValueKey<String> && key.value.startsWith('bar_');
+    });
+
+    expect(barFinder, findsNWidgets(expectedBarCount));
   });
 }

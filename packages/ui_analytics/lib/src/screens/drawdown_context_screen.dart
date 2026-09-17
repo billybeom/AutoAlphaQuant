@@ -26,7 +26,7 @@ class DrawdownContextScreen extends ConsumerWidget {
       loading: _buildSkeletonLoader,
       error: (err, stack) =>
           _buildErrorState(ref, asyncValue.valueOrNull?.asOf.label),
-      data: (vm) => _buildContent(context, vm, activeFlags),
+      data: (vm) => _buildContent(context, ref, vm, activeFlags),
     );
   }
 
@@ -77,13 +77,19 @@ class DrawdownContextScreen extends ConsumerWidget {
 
   Widget _buildContent(
     BuildContext context,
+    WidgetRef ref,
     DrawdownContextVm vm,
     List<BlockFlag> activeFlags,
   ) {
     return Column(
       children: [
         StaleBanner(asOf: vm.asOf),
-        SafetyBlockBanner(activeFlags: activeFlags),
+        SafetyBlockBanner(
+          activeFlags: activeFlags,
+          onOpenLink: (link) {
+            ref.read(analyticsLinkOpenerProvider).open(link);
+          },
+        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(16.0),
