@@ -11,8 +11,15 @@
 //     테마가 아니라 글자 위치 차이다. 그 차이로 게이트가 빨개지면 「스냅샷을 다시 찍자」가
 //     되고, 그것이 01 §7 이 막으려는 위조의 입구다.
 //   · 단순 «달라진 픽셀 비율» 허용치를 1.5% 로 올리면 칩 하나 누락(약 0.6%)을 놓친다.
-//     그래서 `shift_tolerant_compare.dart` 의 «유의 픽셀»(이웃 어디에도 비슷한 색이 없는
-//     픽셀)만 센다 — 1px 이동·AA 는 0 에 가깝고, 칩·행·배지가 사라지면 수백~수천 px 다.
+//     그래서 `shift_tolerant_compare.dart` 의 «유의 픽셀»(3×3 흐림 뒤 양방향으로 이웃 어디에도
+//     비슷한 색이 없는 픽셀)만 센다 — 그리고 그 «양»과 «뭉침» 둘 다로 판정한다(3판).
+//   · 실측(2026-09-17 · 리눅스 CI vs Windows 골든 14장 = J-1 8 + S7-1 6):
+//       플랫폼 소음  = 전체 0.004~0.177% · 가장 빽빽한 24×24 창 1.0~5.6%(6~32px) — 얇게 흩어진다
+//       구조 변화    = 18px 아이콘 1개 누락: 전체 0.06% · 창 27%(153px) / 칩 1개: 1.4% · 47% /
+//                      글자 줄 1개: 3.4% · 83% / 배너 1개: 15.8% · 96% — 한 곳에 뭉친다
+//     전체 비율만으로는 아이콘 누락(0.06%)이 소음(0.18%)보다 작아 못 가른다. 뭉침(창 밀도)은
+//     소음 최대 5.6% vs 신호 최소 27% 로 5배 벌어진다 → **창 12%** 를 주 판정으로, **전체 0.5%**
+//     를 넓게 퍼진 변화(색 전체 이동 등)의 보조 판정으로 둔다.
 //   · **임계는 M2 가 한 곳에서** 정한다 — 화면 담당은 이 파일을 고치지 않는다
 //     (01 §7 「C-2 가 플랫폼·폰트 차이로 흔들리면 임계 조정은 M2 가 한다」).
 //
@@ -27,8 +34,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'golden/shift_tolerant_compare.dart';
 
-/// 유의 픽셀 비율 상한. 390×844 화면(329,160px)에서 0.2% ≈ 658px. 🔴 M2 만 바꾼다.
-const double kGoldenSignificantDiffTolerance = 0.002;
+/// 유의 픽셀 **전체 비율** 상한(보조 판정). 390×844 화면(329,160px)에서 0.5% ≈ 1,646px.
+/// 실측 소음 최대 0.177%. 🔴 M2 만 바꾼다.
+const double kGoldenSignificantDiffTolerance = 0.005;
+
+/// 가장 빽빽한 24×24 창의 유의 픽셀 **밀도** 상한(주 판정). 12% = 69px.
+/// 실측 소음 최대 5.6%(32px) · 가장 작은 구조 변화(18px 아이콘 누락) 26.6%(153px). 🔴 M2 만 바꾼다.
+const double kGoldenMaxWindowDensity = 0.12;
 
 /// 같은 색으로 볼 채널 차(0~255). AA 회색 단계 차이는 이 안에 든다.
 const int kGoldenChannelDelta = 48;
@@ -45,6 +57,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
     goldenFileComparator = ShiftTolerantGoldenFileComparator(
       current.basedir.resolve('_placeholder_test.dart'),
       tolerance: kGoldenSignificantDiffTolerance,
+      maxWindowDensity: kGoldenMaxWindowDensity,
       channelDelta: kGoldenChannelDelta,
       radius: kGoldenShiftRadius,
     );
@@ -52,7 +65,8 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   await testMain();
 }
 
-/// 1px 이동·AA 차이는 무시하고 «유의 픽셀» 비율이 [tolerance] 이하면 통과로 보는 비교기.
+/// 1px 이동·AA 차이는 무시하고 «유의 픽셀»의 전체 비율이 [tolerance] 이하 **그리고** 가장
+/// 빽빽한 창의 밀도가 [maxWindowDensity] 이하면 통과로 보는 비교기.
 ///
 /// 바이트가 완전히 같으면 디코드 없이 바로 통과한다(같은 PC 에서 찍은 경우).
 /// 실패하면 기본 비교기와 똑같이 `failures/` 폴더에 masked/isolated diff 이미지를 남긴다
@@ -61,12 +75,16 @@ class ShiftTolerantGoldenFileComparator extends LocalFileComparator {
   ShiftTolerantGoldenFileComparator(
     super.testFile, {
     required this.tolerance,
+    required this.maxWindowDensity,
     required this.channelDelta,
     required this.radius,
   });
 
-  /// 0.0 ~ 1.0 — 유의 픽셀 비율의 상한.
+  /// 0.0 ~ 1.0 — 유의 픽셀 전체 비율의 상한(보조 판정).
   final double tolerance;
+
+  /// 0.0 ~ 1.0 — 가장 빽빽한 창의 유의 픽셀 밀도 상한(주 판정).
+  final double maxWindowDensity;
 
   /// 같은 색으로 볼 채널 차.
   final int channelDelta;
@@ -120,8 +138,9 @@ class ShiftTolerantGoldenFileComparator extends LocalFileComparator {
           '${(ratio * 100).toStringAsFixed(3)}% (tolerance ${(tolerance * 100).toStringAsFixed(2)}%, '
           'radius $radius, channelDelta $channelDelta) '
           'maxWindow ${stats.maxWindowCount}/${stats.windowSize * stats.windowSize} = '
-          '${(stats.maxWindowDensity * 100).toStringAsFixed(1)}%';
-      if (ratio <= tolerance) {
+          '${(stats.maxWindowDensity * 100).toStringAsFixed(1)}% '
+          '(limit ${(maxWindowDensity * 100).toStringAsFixed(0)}%)';
+      if (ratio <= tolerance && stats.maxWindowDensity <= maxWindowDensity) {
         debugPrint('$summary -> accepted');
         return true;
       }

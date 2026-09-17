@@ -103,6 +103,8 @@ supabase/.temp/
 # ── 🔴 커밋해야 하는 것(위 규칙에 걸리지 않게 못 박음) ───────────────────────
 !packages/domain_contracts/fixtures/**
 !**/test/golden/**
+# 🔴 위 예외(골든 PNG 는 커밋 대상)가 실패 산출물까지 되살리지 않게 다시 무시한다.
+**/test/golden/failures/
 
 # melos bootstrap 이 만드는 경로 오버라이드(로컬 전용, 2026-09-07 실측 후 추가)
 pubspec_overrides.yaml

@@ -134,6 +134,44 @@ void main() {
       expect(_count(b, a), n);
     });
 
+    test('small icon-sized outline missing: tiny total, dense window', () {
+      // 18px lock icon in the real J-1 screen: total 0.06% but window density 27%.
+      final Uint8List a = _canvas(); // candidate: icon missing
+      final Uint8List b = _canvas();
+      _outline(b, 50, 30, 16, 16);
+      final SignificantDiffStats s = analyzeSignificantDiffs(
+        a,
+        b,
+        width: _w,
+        height: _h,
+      );
+      expect(s.total / (_w * _h), lessThan(0.05), reason: 'small overall');
+      expect(
+        s.maxWindowDensity,
+        greaterThan(0.12),
+        reason: 'but clustered -> the window rule must catch it',
+      );
+    });
+
+    test('scattered platform-like noise: low window density', () {
+      // isolated 3x3 specks every 20px: spread thin, never clustered.
+      final Uint8List a = _canvas();
+      final Uint8List b = _canvas();
+      for (int y = 6; y < _h - 6; y += 20) {
+        for (int x = 6; x < _w - 6; x += 20) {
+          _rect(b, x, y, 3, 3);
+        }
+      }
+      final SignificantDiffStats s = analyzeSignificantDiffs(
+        a,
+        b,
+        width: _w,
+        height: _h,
+      );
+      expect(s.total, greaterThan(0));
+      expect(s.maxWindowDensity, lessThan(0.12));
+    });
+
     test('2px shift is NOT absorbed by radius 1', () {
       final Uint8List a = _canvas();
       _rect(a, 10, 10, 60, 32);
