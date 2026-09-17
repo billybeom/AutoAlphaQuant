@@ -10,3 +10,4 @@
 // export 한다.
 
 export 'l10n/labels.dart';
+export 'src/timeline.dart';
