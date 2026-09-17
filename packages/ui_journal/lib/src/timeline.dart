@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/labels.dart';
 
+// ── Injection providers ───────────────────────────────────────────────────────
+
 /// J-1 timeline repository — supplied by the application composition root.
 final journalTimelineRepositoryProvider = Provider<JournalRepository>(
   (Ref ref) => throw UnimplementedError('journalTimelineRepositoryProvider'),
@@ -21,8 +23,28 @@ final journalClockProvider = Provider<Clock>(
   (Ref ref) => throw UnimplementedError('journalClockProvider'),
 );
 
-/// The range and filters used by the J-1 timeline query.
-/// limit/withLimit removed (F8) — limit comes from journalTimelineLimitProvider.
+/// 🆕 v1.1 — ConfigRepository for range presets and sleeves (ⓒ 필터).
+/// Supplied by the application composition root.
+final journalConfigRepositoryProvider = Provider<ConfigRepository>(
+  (Ref ref) => throw UnimplementedError('journalConfigRepositoryProvider'),
+);
+
+/// 🆕 v1.1 — AppLinkOpener for all navigation (ⓔ 이동). §11-1.
+/// Supplied by the application composition root.
+final journalLinkOpenerProvider = Provider<AppLinkOpener>(
+  (Ref ref) => throw UnimplementedError('journalLinkOpenerProvider'),
+);
+
+// ── Filter state ──────────────────────────────────────────────────────────────
+
+/// The range and filters representing the user's current J-1 selection.
+///
+/// 🆕 v1.1: Changed from plain Provider (throws) to StateProvider so the filter
+/// UI can write new selections.  Composition root overrides with the initial
+/// default-preset query; tests override with [JournalTimelineQuery].
+/// Initial value seeds from [_journalDefaultRangeProvider] — but since this
+/// package's throw-UnimplementedError default is always overridden in practice,
+/// the seed is never evaluated in production or tests.
 @immutable
 class JournalTimelineQuery {
   const JournalTimelineQuery({
@@ -42,11 +64,17 @@ class JournalTimelineQuery {
   final String? rebalanceEventId;
 }
 
-final journalTimelineQueryProvider = Provider<JournalTimelineQuery>(
-  (Ref ref) => throw UnimplementedError('journalTimelineQueryProvider'),
-);
+/// Mutable filter state.  Composition root overrides with the default-preset
+/// query; tests override directly with [overrideWith] or [overrideWithValue].
+final journalTimelineQueryProvider = StateProvider<JournalTimelineQuery>((
+  Ref ref,
+) {
+  throw UnimplementedError('journalTimelineQueryProvider');
+});
 
 final journalTimelineLimitProvider = StateProvider<int>((Ref ref) => 100);
+
+// ── Derived stream providers ──────────────────────────────────────────────────
 
 final journalTimelineProvider = StreamProvider<ListResult<TradeJournalEntry>>((
   Ref ref,
@@ -70,6 +98,30 @@ final journalSafetyStateProvider = StreamProvider<SafetyState>(
   (Ref ref) => ref.watch(journalSafetyRepositoryProvider).watchState(),
 );
 
+/// 🆕 v1.1 — range presets from ConfigRepository (ⓒ).
+final _journalRangePresetsProvider = StreamProvider<List<DateRange>>(
+  (Ref ref) => ref.watch(journalConfigRepositoryProvider).watchRangePresets(),
+);
+
+/// 🆕 v1.1 — sleeve catalog from ConfigRepository (ⓒ).
+final _journalSleeveCatalogProvider = StreamProvider<List<SleeveCatalogEntry>>(
+  (Ref ref) => ref.watch(journalConfigRepositoryProvider).watchSleeves(),
+);
+
+/// 🆕 v1.1 — filter catalog from JournalRepository (ⓒ).
+final _journalFilterCatalogProvider = StreamProvider<JournalFilterCatalog>(
+  (Ref ref) =>
+      ref.watch(journalTimelineRepositoryProvider).watchFilterCatalog(),
+);
+
+/// 🆕 v1.1 — timeline badges from JournalRepository (ⓓ).
+final _journalBadgesProvider = StreamProvider<List<JournalTimelineBadge>>(
+  (Ref ref) =>
+      ref.watch(journalTimelineRepositoryProvider).watchTimelineBadges(),
+);
+
+// ── Root widget ───────────────────────────────────────────────────────────────
+
 /// J-1 매매일지 타임라인.
 ///
 /// Renders repository output verbatim — does not derive display values.
@@ -86,6 +138,9 @@ class JournalTimeline extends ConsumerWidget {
     final AsyncValue<SafetyState> safety = ref.watch(
       journalSafetyStateProvider,
     );
+    final AsyncValue<List<JournalTimelineBadge>> badges = ref.watch(
+      _journalBadgesProvider,
+    );
     final Clock clock = ref.watch(journalClockProvider);
 
     return timeline.when(
@@ -97,6 +152,7 @@ class JournalTimeline extends ConsumerWidget {
       data: (ListResult<TradeJournalEntry> result) => _TimelineContent(
         result: result,
         safety: safety.valueOrNull,
+        badges: badges.valueOrNull ?? <JournalTimelineBadge>[],
         clock: clock,
         onLoadMore: result.hasMore ? () => _loadMore(ref) : null,
       ),
@@ -114,12 +170,14 @@ class _TimelineContent extends StatelessWidget {
   const _TimelineContent({
     required this.result,
     required this.safety,
+    required this.badges,
     required this.clock,
     required this.onLoadMore,
   });
 
   final ListResult<TradeJournalEntry> result;
   final SafetyState? safety;
+  final List<JournalTimelineBadge> badges;
   final Clock clock;
   final VoidCallback? onLoadMore;
 
@@ -128,17 +186,13 @@ class _TimelineContent extends StatelessWidget {
     final List<BlockFlag> flags = safety?.activeFlags ?? <BlockFlag>[];
 
     // Separate marker-only flags (info chips) from blocking flags (warning cards).
+    // markerOnly membership drives banner vs info-chip — no other logic here.
     final List<BlockFlag> blockingFlags = flags
         .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
         .toList();
     final List<BlockFlag> markerFlags = flags
         .where((BlockFlag f) => FlagIds.markerOnly.contains(f.flagId))
         .toList();
-
-    // LEDGER_INTEGRITY hides engine-computed values (quantity/price/commission/tax).
-    final bool integrityBlocked = blockingFlags.any(
-      (BlockFlag f) => f.flagId == FlagIds.ledgerIntegrity,
-    );
 
     // Stale detection: observedAt + staleAfter < now (A4 · F3).
     final bool stale = result.asOf.observedAt
@@ -161,19 +215,36 @@ class _TimelineContent extends StatelessWidget {
             SliverToBoxAdapter(child: _BlockingFlags(flags: blockingFlags)),
           if (markerFlags.isNotEmpty)
             SliverToBoxAdapter(child: _MarkerChips(flags: markerFlags)),
+          // ⓓ badge row — absent when empty
+          if (badges.isNotEmpty)
+            SliverToBoxAdapter(child: _BadgeRow(badges: badges)),
+          // ⓒ filter bar
+          const SliverToBoxAdapter(child: _FilterBar()),
           if (result.rows.isEmpty)
             SliverFillRemaining(
               hasScrollBody: false,
               child: _EmptyState(result: result),
             )
           else
-            _JournalRows(
-              rows: result.rows,
-              integrityBlocked: integrityBlocked,
-              onLoadMore: onLoadMore,
-            ),
+            _JournalRows(rows: result.rows, onLoadMore: onLoadMore),
         ],
       ),
+    );
+  }
+}
+
+// ─── As-of header ─────────────────────────────────────────────────────────────
+
+class _AsOfHeader extends StatelessWidget {
+  const _AsOfHeader({required this.asOf});
+
+  final AsOf asOf;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Text(asOf.label),
     );
   }
 }
@@ -200,22 +271,6 @@ class _StaleBanner extends StatelessWidget {
   }
 }
 
-// ─── As-of header ─────────────────────────────────────────────────────────────
-
-class _AsOfHeader extends StatelessWidget {
-  const _AsOfHeader({required this.asOf});
-
-  final AsOf asOf;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Text(asOf.label),
-    );
-  }
-}
-
 // ─── Blocking flags — top-2 cards + overflow count (F4 / A5) ─────────────────
 
 class _BlockingFlags extends StatelessWidget {
@@ -230,7 +285,7 @@ class _BlockingFlags extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        ...flags.take(2).map(_BlockFlagCard.new),
+        ...flags.take(2).map((BlockFlag f) => _BlockFlagCard(flag: f)),
         if (overflowCount > 0)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -241,19 +296,48 @@ class _BlockingFlags extends StatelessWidget {
   }
 }
 
-class _BlockFlagCard extends StatelessWidget {
-  const _BlockFlagCard(this.flag);
+/// ⓔ Banner card — arrow present only when clearDeepLink is non-null (§11-4).
+class _BlockFlagCard extends ConsumerWidget {
+  const _BlockFlagCard({required this.flag});
 
   final BlockFlag flag;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final String? clearLink = flag.clearDeepLink;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: ListTile(
-        leading: const Icon(Icons.warning_amber_rounded),
-        title: Text(flag.label),
-        subtitle: Text(flag.clearInstruction),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                const Icon(Icons.warning_amber_rounded),
+                const SizedBox(width: 8),
+                Expanded(child: Text(flag.label)),
+                // ⓔ arrow ABSENT (not disabled) when clearDeepLink == null
+                if (clearLink != null)
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onPressed: () =>
+                        ref.read(journalLinkOpenerProvider).open(clearLink),
+                  ),
+              ],
+            ),
+            Text(flag.clearInstruction),
+            // ⓔ checkpointLabel — rendered only when non-null
+            if (flag.checkpointLabel != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  flag.checkpointLabel!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -288,17 +372,468 @@ class _MarkerChips extends StatelessWidget {
   }
 }
 
+// ─── ⓓ Badge row — rendered only when non-empty ──────────────────────────────
+
+class _BadgeRow extends StatelessWidget {
+  const _BadgeRow({required this.badges});
+
+  final List<JournalTimelineBadge> badges;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 4,
+        children: badges
+            .map((JournalTimelineBadge b) => _BadgeChip(badge: b))
+            .toList(growable: false),
+      ),
+    );
+  }
+}
+
+class _BadgeChip extends ConsumerWidget {
+  const _BadgeChip({required this.badge});
+
+  final JournalTimelineBadge badge;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final String? link = badge.deepLink;
+    return ActionChip(
+      label: Text(badge.label),
+      backgroundColor: _toneColor(context, badge.tone),
+      // null deepLink → no tap reaction
+      onPressed: link != null
+          ? () => ref.read(journalLinkOpenerProvider).open(link)
+          : null,
+    );
+  }
+
+  static Color _toneColor(BuildContext context, ChipTone tone) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return switch (tone) {
+      ChipTone.caution => cs.errorContainer,
+      ChipTone.blocked => cs.error,
+      ChipTone.neutral => cs.surfaceContainerHighest,
+      ChipTone.prevented => cs.surfaceContainerHighest,
+    };
+  }
+}
+
+// ─── ⓒ Filter bar — horizontally scrollable chip row + bottom sheet ──────────
+
+/// Filter bar rendered above the journal list.  All catalog data comes from the
+/// repository stream providers; no selection or filtering is done here.
+/// Writing selections goes to [journalTimelineQueryProvider].
+class _FilterBar extends ConsumerWidget {
+  const _FilterBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<List<DateRange>> rangesAsync = ref.watch(
+      _journalRangePresetsProvider,
+    );
+    final AsyncValue<List<SleeveCatalogEntry>> sleevesAsync = ref.watch(
+      _journalSleeveCatalogProvider,
+    );
+    final AsyncValue<JournalFilterCatalog> catalogAsync = ref.watch(
+      _journalFilterCatalogProvider,
+    );
+    final JournalTimelineQuery query = ref.watch(journalTimelineQueryProvider);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        children: <Widget>[
+          // "필터" trigger chip
+          ActionChip(
+            avatar: const Icon(Icons.tune, size: 16),
+            label: const Text(JournalLabels.filter),
+            onPressed: () => _showFilterSheet(
+              context,
+              ref,
+              query: query,
+              ranges: rangesAsync.valueOrNull ?? <DateRange>[],
+              sleeves: sleevesAsync.valueOrNull ?? <SleeveCatalogEntry>[],
+              catalog: catalogAsync.valueOrNull,
+            ),
+          ),
+          const SizedBox(width: 6),
+          // Active range chip (always shown when presets loaded)
+          if (rangesAsync.hasValue)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Chip(
+                label: Text(query.range.label ?? JournalLabels.filterAll),
+              ),
+            ),
+          // Active sleeve chip
+          if (query.sleeve != null)
+            _ActiveFilterChip(
+              label: _sleeveLabel(query.sleeve!, sleevesAsync.valueOrNull),
+              onRemove: () => _writeQuery(ref, _clearSleeve(query)),
+            ),
+          // Active symbol chip
+          if (query.symbol != null)
+            _ActiveFilterChip(
+              label: _symbolLabel(query.symbol!, catalogAsync.valueOrNull),
+              onRemove: () => _writeQuery(ref, _clearSymbol(query)),
+            ),
+          // Active status chip
+          if (query.status != null)
+            _ActiveFilterChip(
+              label: _statusLabel(query.status!, catalogAsync.valueOrNull),
+              onRemove: () => _writeQuery(ref, _clearStatus(query)),
+            ),
+          // Active origin chip
+          if (query.origin != null)
+            _ActiveFilterChip(
+              label: _originLabel(query.origin!, catalogAsync.valueOrNull),
+              onRemove: () => _writeQuery(ref, _clearOrigin(query)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ── label helpers ──────────────────────────────────────────────────────────
+
+  static String _sleeveLabel(
+    SleeveId sleeve,
+    List<SleeveCatalogEntry>? entries,
+  ) {
+    if (entries == null) return sleeve.wire;
+    for (final SleeveCatalogEntry e in entries) {
+      if (e.sleeve == sleeve) return e.label;
+    }
+    return sleeve.wire;
+  }
+
+  static String _symbolLabel(String symbol, JournalFilterCatalog? catalog) {
+    if (catalog == null) return symbol;
+    for (final SymbolOption s in catalog.symbolOptions) {
+      if (s.symbol == symbol) return s.label;
+    }
+    return symbol;
+  }
+
+  static String _statusLabel(
+    JournalStatus status,
+    JournalFilterCatalog? catalog,
+  ) {
+    if (catalog == null) return status.wire;
+    for (final JournalStatusOption o in catalog.statusOptions) {
+      if (o.status == status) return o.label;
+    }
+    return status.wire;
+  }
+
+  static String _originLabel(FillOrigin origin, JournalFilterCatalog? catalog) {
+    if (catalog == null) return origin.wire;
+    for (final FillOriginOption o in catalog.originOptions) {
+      if (o.origin == origin) return o.label;
+    }
+    return origin.wire;
+  }
+
+  // ── query mutation helpers — produce a new query, no row filtering ─────────
+
+  static JournalTimelineQuery _clearSleeve(JournalTimelineQuery q) =>
+      JournalTimelineQuery(
+        range: q.range,
+        symbol: q.symbol,
+        status: q.status,
+        origin: q.origin,
+        rebalanceEventId: q.rebalanceEventId,
+      );
+
+  static JournalTimelineQuery _clearSymbol(JournalTimelineQuery q) =>
+      JournalTimelineQuery(
+        range: q.range,
+        sleeve: q.sleeve,
+        status: q.status,
+        origin: q.origin,
+        rebalanceEventId: q.rebalanceEventId,
+      );
+
+  static JournalTimelineQuery _clearStatus(JournalTimelineQuery q) =>
+      JournalTimelineQuery(
+        range: q.range,
+        sleeve: q.sleeve,
+        symbol: q.symbol,
+        origin: q.origin,
+        rebalanceEventId: q.rebalanceEventId,
+      );
+
+  static JournalTimelineQuery _clearOrigin(JournalTimelineQuery q) =>
+      JournalTimelineQuery(
+        range: q.range,
+        sleeve: q.sleeve,
+        symbol: q.symbol,
+        status: q.status,
+        rebalanceEventId: q.rebalanceEventId,
+      );
+
+  static void _writeQuery(WidgetRef ref, JournalTimelineQuery q) {
+    ref.read(journalTimelineQueryProvider.notifier).state = q;
+  }
+
+  void _showFilterSheet(
+    BuildContext context,
+    WidgetRef ref, {
+    required JournalTimelineQuery query,
+    required List<DateRange> ranges,
+    required List<SleeveCatalogEntry> sleeves,
+    JournalFilterCatalog? catalog,
+  }) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext sheetCtx) => _FilterSheet(
+        initialQuery: query,
+        ranges: ranges,
+        sleeves: sleeves,
+        catalog: catalog,
+      ),
+    );
+  }
+}
+
+class _ActiveFilterChip extends StatelessWidget {
+  const _ActiveFilterChip({required this.label, required this.onRemove});
+
+  final String label;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: Chip(
+        label: Text(label),
+        deleteIcon: const Icon(Icons.close, size: 14),
+        onDeleted: onRemove,
+      ),
+    );
+  }
+}
+
+// ── Filter bottom sheet ───────────────────────────────────────────────────────
+
+class _FilterSheet extends ConsumerStatefulWidget {
+  const _FilterSheet({
+    required this.initialQuery,
+    required this.ranges,
+    required this.sleeves,
+    required this.catalog,
+  });
+
+  final JournalTimelineQuery initialQuery;
+  final List<DateRange> ranges;
+  final List<SleeveCatalogEntry> sleeves;
+  final JournalFilterCatalog? catalog;
+
+  @override
+  ConsumerState<_FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends ConsumerState<_FilterSheet> {
+  late DateRange _range;
+  SleeveId? _sleeve;
+  String? _symbol;
+  JournalStatus? _status;
+  FillOrigin? _origin;
+
+  @override
+  void initState() {
+    super.initState();
+    _range = widget.initialQuery.range;
+    _sleeve = widget.initialQuery.sleeve;
+    _symbol = widget.initialQuery.symbol;
+    _status = widget.initialQuery.status;
+    _origin = widget.initialQuery.origin;
+  }
+
+  void _apply() {
+    // ⓒ Passes selected values straight to watchTimeline args — no row filtering.
+    ref
+        .read(journalTimelineQueryProvider.notifier)
+        .state = JournalTimelineQuery(
+      range: _range,
+      sleeve: _sleeve,
+      symbol: _symbol,
+      status: _status,
+      origin: _origin,
+    );
+    Navigator.of(context).pop();
+  }
+
+  void _reset() {
+    final DateRange? def = widget.ranges
+        .where((DateRange r) => r.isDefault)
+        .cast<DateRange?>()
+        .firstOrNull;
+    setState(() {
+      if (def != null) _range = def;
+      _sleeve = null;
+      _symbol = null;
+      _status = null;
+      _origin = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final JournalFilterCatalog? catalog = widget.catalog;
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (BuildContext ctx, ScrollController sc) => ListView(
+        controller: sc,
+        padding: const EdgeInsets.all(16),
+        children: <Widget>[
+          // ── Header ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                JournalLabels.filter,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              TextButton(
+                onPressed: _reset,
+                child: const Text(JournalLabels.filterReset),
+              ),
+            ],
+          ),
+          const Divider(),
+
+          // ── 기간 ──
+          Text(JournalLabels.filterRange),
+          Wrap(
+            spacing: 6,
+            children: widget.ranges
+                .map(
+                  (DateRange r) => ChoiceChip(
+                    label: Text(r.label ?? ''),
+                    selected: _range.presetCode == r.presetCode,
+                    onSelected: (_) => setState(() => _range = r),
+                  ),
+                )
+                .toList(growable: false),
+          ),
+          const SizedBox(height: 8),
+
+          // ── 슬리브 ──
+          Text(JournalLabels.filterSleeve),
+          Wrap(
+            spacing: 6,
+            children: <Widget>[
+              ChoiceChip(
+                label: const Text(JournalLabels.filterAll),
+                selected: _sleeve == null,
+                onSelected: (_) => setState(() => _sleeve = null),
+              ),
+              ...widget.sleeves.map(
+                (SleeveCatalogEntry s) => ChoiceChip(
+                  label: Text(s.label),
+                  selected: _sleeve == s.sleeve,
+                  onSelected: (_) => setState(() => _sleeve = s.sleeve),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // ── 종목·상태·출처 (catalog may not be loaded yet) ──
+          if (catalog != null) ...<Widget>[
+            Text(JournalLabels.filterSymbol),
+            Wrap(
+              spacing: 6,
+              children: <Widget>[
+                ChoiceChip(
+                  label: const Text(JournalLabels.filterAll),
+                  selected: _symbol == null,
+                  onSelected: (_) => setState(() => _symbol = null),
+                ),
+                ...catalog.symbolOptions.map(
+                  (SymbolOption s) => ChoiceChip(
+                    label: Text(s.label),
+                    selected: _symbol == s.symbol,
+                    onSelected: (_) => setState(() => _symbol = s.symbol),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            Text(JournalLabels.filterStatus),
+            Wrap(
+              spacing: 6,
+              children: <Widget>[
+                ChoiceChip(
+                  label: const Text(JournalLabels.filterAll),
+                  selected: _status == null,
+                  onSelected: (_) => setState(() => _status = null),
+                ),
+                ...catalog.statusOptions.map(
+                  (JournalStatusOption o) => ChoiceChip(
+                    label: Text(o.label),
+                    selected: _status == o.status,
+                    onSelected: (_) => setState(() => _status = o.status),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            Text(JournalLabels.filterOrigin),
+            Wrap(
+              spacing: 6,
+              children: <Widget>[
+                ChoiceChip(
+                  label: const Text(JournalLabels.filterAll),
+                  selected: _origin == null,
+                  onSelected: (_) => setState(() => _origin = null),
+                ),
+                ...catalog.originOptions.map(
+                  (FillOriginOption o) => ChoiceChip(
+                    label: Text(o.label),
+                    selected: _origin == o.origin,
+                    onSelected: (_) => setState(() => _origin = o.origin),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+
+          const Divider(),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: _apply,
+              child: const Text(JournalLabels.filterApply),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Journal rows ─────────────────────────────────────────────────────────────
 
 class _JournalRows extends StatelessWidget {
-  const _JournalRows({
-    required this.rows,
-    required this.integrityBlocked,
-    required this.onLoadMore,
-  });
+  const _JournalRows({required this.rows, required this.onLoadMore});
 
   final List<TradeJournalEntry> rows;
-  final bool integrityBlocked;
   final VoidCallback? onLoadMore;
 
   @override
@@ -310,9 +845,7 @@ class _JournalRows extends StatelessWidget {
         children.add(_DateHeader(label: entry.tradeDate.yyyyMmDd));
         previousTradeDate = entry.tradeDate.yyyyMmDd;
       }
-      children.add(
-        _JournalRow(entry: entry, integrityBlocked: integrityBlocked),
-      );
+      children.add(_JournalRow(entry: entry));
     }
     return SliverList(delegate: SliverChildListDelegate(children));
   }
@@ -332,17 +865,19 @@ class _DateHeader extends StatelessWidget {
   }
 }
 
-class _JournalRow extends StatelessWidget {
-  const _JournalRow({required this.entry, required this.integrityBlocked});
+/// ⓐ Renders display strings (*Text · sideLabel) — never raw values.
+/// ⓑ No screen-side hiding — *Text already contains "숨김" / "120주?" from engine.
+/// ⓔ Row tap opens entry.detailDeepLink; null → no reaction.
+class _JournalRow extends ConsumerWidget {
+  const _JournalRow({required this.entry});
 
   final TradeJournalEntry entry;
-  final bool integrityBlocked;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final bool isPrevented = entry.statusTone == ChipTone.prevented;
+    final String? detailLink = entry.detailDeepLink;
 
-    // SIM rows rendered in greyscale (F5 / A6).
     Widget card = Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Padding(
@@ -350,7 +885,7 @@ class _JournalRow extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // ── Header row: chips ──────────────────────────────────────────
+            // ── Status / deviation / prevented chips ───────────────────────
             Wrap(
               spacing: 6,
               runSpacing: 4,
@@ -368,28 +903,25 @@ class _JournalRow extends StatelessWidget {
             Text(entry.symbolLabel),
             if (entry.accountAlias != null) Text(entry.accountAlias!),
             const SizedBox(height: 6),
-            // ── Trade values (hidden when LEDGER_INTEGRITY blocks) ─────────
-            // side.wire and visibilityLabel are always visible (A5 rule).
-            Text(entry.side.wire),
-            if (!integrityBlocked) ...<Widget>[
-              Text(entry.quantity.toString()),
-              Text(entry.price.toString()),
-              Text('${JournalLabels.commission}: ${entry.commission}'),
-              Text('${JournalLabels.tax}: ${entry.tax}'),
-            ],
+            // ── ⓐ Direction and values — *Text only; raw values not shown ─
+            Text(entry.sideLabel),
+            Text(entry.quantityText),
+            Text(entry.priceText),
+            Text('${JournalLabels.commission}: ${entry.commissionText}'),
+            Text('${JournalLabels.tax}: ${entry.taxText}'),
             Text(entry.visibilityLabel),
             // ── Metadata ───────────────────────────────────────────────────
             Text(entry.originLabel),
             if (entry.backdate.isBackdated) Text(entry.backdate.label),
             Text(entry.costSourceLabel),
-            // ── Reason chips ───────────────────────────────────────────────
+            // ── ⓔ Reason chips — chip tap opens chip.detailDeepLink ───────
             Wrap(
               spacing: 6,
               runSpacing: 4,
               children: <Widget>[
                 ...entry.reasons
                     .take(3)
-                    .map((ReasonChip r) => Chip(label: Text(r.label))),
+                    .map((ReasonChip r) => _ReasonChipWidget(chip: r)),
                 if (entry.reasons.length > 3)
                   Text('+${entry.reasons.length - 3}'),
               ],
@@ -428,7 +960,34 @@ class _JournalRow extends StatelessWidget {
       );
     }
 
+    // ⓔ Row tap — present only when detailDeepLink is non-null.
+    if (detailLink != null) {
+      return InkWell(
+        onTap: () => ref.read(journalLinkOpenerProvider).open(detailLink),
+        child: card,
+      );
+    }
     return card;
+  }
+}
+
+// ─── ⓔ Reason chip with optional tap ─────────────────────────────────────────
+
+class _ReasonChipWidget extends ConsumerWidget {
+  const _ReasonChipWidget({required this.chip});
+
+  final ReasonChip chip;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final String? link = chip.detailDeepLink;
+    if (link != null) {
+      return ActionChip(
+        label: Text(chip.label),
+        onPressed: () => ref.read(journalLinkOpenerProvider).open(link),
+      );
+    }
+    return Chip(label: Text(chip.label));
   }
 }
 
