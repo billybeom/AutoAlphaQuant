@@ -124,6 +124,26 @@ final DtoCodec<Object> _drawdownContextVm = DtoCodec<DrawdownContextVm>(
   DrawdownContextVm.fromJson,
   (DrawdownContextVm v) => v.toJson(),
 );
+final DtoCodec<Object> _contributionVm = DtoCodec<ContributionVm>(
+  'ContributionVm',
+  ContributionVm.fromJson,
+  (ContributionVm v) => v.toJson(),
+);
+final DtoCodec<Object> _decisionDetailVm = DtoCodec<DecisionDetailVm>(
+  'DecisionDetailVm',
+  DecisionDetailVm.fromJson,
+  (DecisionDetailVm v) => v.toJson(),
+);
+final DtoCodec<Object> _journalDraftFormSpec = DtoCodec<JournalDraftFormSpec>(
+  'JournalDraftFormSpec',
+  JournalDraftFormSpec.fromJson,
+  (JournalDraftFormSpec v) => v.toJson(),
+);
+final DtoCodec<Object> _unknownBoardVm = DtoCodec<UnknownBoardVm>(
+  'UnknownBoardVm',
+  UnknownBoardVm.fromJson,
+  (UnknownBoardVm v) => v.toJson(),
+);
 final DtoCodec<Object> _goalPathVm = DtoCodec<GoalPathVm>(
   'GoalPathVm',
   GoalPathVm.fromJson,
@@ -156,6 +176,14 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.onboardingFresh: FixtureBinding(_onboardingStep),
   FixturePaths.onboardingReconnect: FixtureBinding(_onboardingStep),
   FixturePaths.performance24m: FixtureBinding(_performanceSeries),
+  // 🆕 v1.1 — 구간 프리셋(§8 미결 33 `isDefault`).
+  FixturePaths.rangePresets4: FixtureBinding(
+    DtoCodec<DateRange>(
+      'DateRange',
+      DateRange.fromJson,
+      (DateRange v) => v.toJson(),
+    ),
+  ),
   FixturePaths.rebalance6: FixtureBinding(_rebalanceEvent),
   FixturePaths.resumeReport1: FixtureBinding(
     DtoCodec<ResumeReport>(
@@ -169,6 +197,14 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       'SafetyState',
       SafetyState.fromJson,
       (SafetyState v) => v.toJson(),
+    ),
+  ),
+  // 🆕 v1.1 — 슬리브 카탈로그(01 §2-1 — 목록의 유일한 창구).
+  FixturePaths.sleeveCatalog4: FixtureBinding(
+    DtoCodec<SleeveCatalogEntry>(
+      'SleeveCatalogEntry',
+      SleeveCatalogEntry.fromJson,
+      (SleeveCatalogEntry v) => v.toJson(),
     ),
   ),
 
@@ -232,6 +268,40 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (CommandReceipt v) => v.toJson(),
     ),
   ),
+  // 🆕 v1.1 — J-2 거래 상세 6갈래 · J-1 배지·필터·가림 · J-3 폼 스펙 · J-5 보드.
+  FixturePaths.m6DecisionDetailAmended: FixtureBinding(_decisionDetailVm),
+  FixturePaths.m6DecisionDetailFull: FixtureBinding(_decisionDetailVm),
+  FixturePaths.m6DecisionDetailPartial: FixtureBinding(_decisionDetailVm),
+  FixturePaths.m6DecisionDetailReevaluatedChild: FixtureBinding(
+    _decisionDetailVm,
+  ),
+  FixturePaths.m6DecisionDetailRejectedSaf309: FixtureBinding(
+    _decisionDetailVm,
+  ),
+  FixturePaths.m6DecisionDetailUnknown: FixtureBinding(_decisionDetailVm),
+  FixturePaths.m6JournalBadges2: FixtureBinding(
+    DtoCodec<JournalTimelineBadge>(
+      'JournalTimelineBadge',
+      JournalTimelineBadge.fromJson,
+      (JournalTimelineBadge v) => v.toJson(),
+    ),
+  ),
+  FixturePaths.m6JournalDraftSpecDiscretion: FixtureBinding(
+    _journalDraftFormSpec,
+  ),
+  FixturePaths.m6JournalDraftSpecReconClear: FixtureBinding(
+    _journalDraftFormSpec,
+  ),
+  FixturePaths.m6JournalFilterCatalog: FixtureBinding(
+    DtoCodec<JournalFilterCatalog>(
+      'JournalFilterCatalog',
+      JournalFilterCatalog.fromJson,
+      (JournalFilterCatalog v) => v.toJson(),
+    ),
+  ),
+  FixturePaths.m6JournalMaskedIntegrity: FixtureBinding(_tradeJournalEntry),
+  FixturePaths.m6UnknownBoard2: FixtureBinding(_unknownBoardVm),
+  FixturePaths.m6UnknownBoardEmpty: FixtureBinding(_unknownBoardVm),
   // 🆕 2026-09-17 — 0행이지만 봉투 타입은 같다(C-1 은 빈 rows 도 등록부를 요구한다).
   FixturePaths.m6JournalEmpty: FixtureBinding(_tradeJournalEntry),
   FixturePaths.m6ManualFills8: FixtureBinding(_tradeJournalEntry),
@@ -257,13 +327,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   ),
   FixturePaths.m7M7Annual2026: FixtureBinding(_annualReviewVm),
   FixturePaths.m7M7AnnualFirstYear: FixtureBinding(_annualReviewVm),
-  FixturePaths.m7M7Contrib3sleeve: FixtureBinding(
-    DtoCodec<ContributionVm>(
-      'ContributionVm',
-      ContributionVm.fromJson,
-      (ContributionVm v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.m7M7Contrib3sleeve: FixtureBinding(_contributionVm),
+  FixturePaths.m7M7ContribPartial: FixtureBinding(_contributionVm),
   FixturePaths.m7M7DdContextDeep: FixtureBinding(_drawdownContextVm),
   FixturePaths.m7M7DdContextNormal: FixtureBinding(_drawdownContextVm),
   FixturePaths.m7M7DepositPlanDefault: FixtureBinding(_depositPlan),
@@ -281,6 +346,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m7M7GoalPathRealworld: FixtureBinding(_goalPathVm),
   FixturePaths.m7M7Monthly202608: FixtureBinding(_monthlyReport),
   FixturePaths.m7M7MonthlyGap: FixtureBinding(_monthlyReport),
+  FixturePaths.m7M7MonthlyMaskedIntegrity: FixtureBinding(_monthlyReport),
+  FixturePaths.m7M7MonthlyMaskedRecon: FixtureBinding(_monthlyReport),
   FixturePaths.m7M7MonthlyPending: FixtureBinding(_monthlyReport),
   FixturePaths.m7M7NextRebalanceD6: FixtureBinding(
     DtoCodec<NextRebalanceVm>(

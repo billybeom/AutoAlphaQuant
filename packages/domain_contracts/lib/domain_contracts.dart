@@ -5,8 +5,8 @@
 // 🔴 **이 파일은 통합 담당만 편집한다.** 영역 구현자는 자기 폴더에 파일을
 //    더하고, 그 폴더의 재수출 창구(`src/<영역>.dart`)에 통합 단계가 줄을 넣는다.
 //
-// 창구 8개 — 영역 A(primitives·enums) · B·C(dto) · D(repositories·commands) ·
-// E(labels·contract_version) · F(fixtures). 어느 창구에 무엇이 있는지는
+// 창구 9개 — 영역 A(primitives·enums) · B·C(dto) · D(repositories·commands) ·
+// E(labels·contract_version) · F(fixtures) · G(navigation — 🆕 v1.1). 어느 창구에 무엇이 있는지는
 // 각 `src/<영역>.dart` 머리 주석과 `docs/contracts_inventory.md` 가 정본이다.
 //
 // ⚠️ 아직 여기에 없는 것(= 계약에 아직 존재하지 않는 것)은 각 영역의 인계
@@ -22,5 +22,6 @@ export 'src/dto.dart';
 export 'src/enums.dart';
 export 'src/fixtures.dart';
 export 'src/labels/labels.dart';
+export 'src/navigation.dart';
 export 'src/primitives.dart';
 export 'src/repositories.dart';

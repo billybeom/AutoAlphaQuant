@@ -1,4 +1,5 @@
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,7 +10,8 @@ import 'golden_support.dart';
 // Minimal in-test repository implementations that stream fixture values.
 // These do NOT compute or modify any values.
 
-class _FakeJournalRepository implements JournalRepository {
+// 🔵 계약 v1.1(M2 추종 수정) — 받침대를 상속한다. M2 가 창구를 더해도 이 가짜는 깨지지 않는다.
+class _FakeJournalRepository extends UnimplementedJournalRepository {
   _FakeJournalRepository(this._result);
 
   final ListResult<TradeJournalEntry> _result;

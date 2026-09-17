@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.0.0",
+    "contract_version": "1.1.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -30,7 +30,7 @@
       "label": "확인 불가",
       "consequence_line": "원장을 대조할 근거가 없습니다. 청산 안내의 수량을 비웁니다.",
       "upgrade_hint": "복구 위저드에서 원장을 다시 세우십시오.",
-      "action_deep_link": "aaq://m5/ledger-repair-wizard"
+      "action_deep_link": "aaq://x5/repair-wizard"
     }
   ]
 }

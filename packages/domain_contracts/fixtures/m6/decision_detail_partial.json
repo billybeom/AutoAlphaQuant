@@ -1,0 +1,400 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.1.0",
+    "generated_at": "2026-09-17T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260917,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": {
+    "observed_at": "2026-08-31T09:00:00Z",
+    "trade_date": "2026-08-31",
+    "source": "LOCAL_SQLITE",
+    "stale_after_seconds": 93600,
+    "label": "일지 기준 2026-08-31"
+  },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "entry": {
+        "entry_id": "je_0006",
+        "mode": "LIVE",
+        "trade_date": "2026-08-10",
+        "symbol": "069500",
+        "symbol_label": "069500 KODEX 200",
+        "sleeve": "A",
+        "side": "BUY",
+        "side_label": "매수",
+        "quantity": 60,
+        "price": "38410",
+        "commission": "345",
+        "tax": "0",
+        "quantity_text": "60주",
+        "price_text": "38,410원",
+        "commission_text": "345원",
+        "tax_text": "0원",
+        "status": "PARTIAL",
+        "status_label": "부분 체결",
+        "status_tone": "CAUTION",
+        "visibility": "PENDING_BATCH",
+        "visibility_label": "반영 대기",
+        "reasons": [
+          {
+            "code": "REBALANCE_BAND",
+            "label": "밴드 이탈 리밸런싱",
+            "tone": "NEUTRAL",
+            "detail_deep_link": "handbook://rebalance/band"
+          }
+        ],
+        "decision": {
+          "decision_id": "d_20260810_a_06",
+          "intent_id": "i_0006",
+          "broker_order_no": "B0006",
+          "execution_id": "X0006#1",
+          "config_hash": "cfg_fake_0000000000000000"
+        },
+        "deviation": {
+          "is_deviation": false,
+          "label": "규칙대로"
+        },
+        "account_alias": "연금저축",
+        "fill_origin": "BROKER",
+        "fill_kind": "ORIGINAL",
+        "backdate": {
+          "trade_date": "2026-08-10",
+          "authored_at": "2026-08-10T07:17:05Z",
+          "backdate_trading_days": 0,
+          "is_backdated": false,
+          "label": "당일 기록",
+          "price_range_source_date": "2026-08-10",
+          "crosses_closed_period": false
+        },
+        "cost_source": "BROKER",
+        "cost_source_label": "브로커 원장",
+        "origin_label": "브로커 체결",
+        "detail_deep_link": "aaq://journal/decision/d_20260810_a_06",
+        "as_of": {
+          "observed_at": "2026-08-10T09:30:00Z",
+          "trade_date": "2026-08-10",
+          "source": "LOCAL_SQLITE",
+          "stale_after_seconds": 93600,
+          "label": "체결 반영 18:15"
+        },
+        "executed_at": "2026-08-10T07:17:05Z"
+      },
+      "steps": [
+        {
+          "stage_code": "SIGNAL",
+          "stage_label": "신호",
+          "state_label": "완료",
+          "tone": "NEUTRAL",
+          "occurred_at_text": "08-10 08:40",
+          "detail_lines": [
+            "밴드 이탈 · A 슬리브 비중 부족"
+          ]
+        },
+        {
+          "stage_code": "INTENT",
+          "stage_label": "의도",
+          "state_label": "완료",
+          "tone": "NEUTRAL",
+          "occurred_at_text": "08-10 08:41",
+          "detail_lines": [
+            "의도 i_0006 · 100주 매수"
+          ]
+        },
+        {
+          "stage_code": "BROKER_ORDER",
+          "stage_label": "브로커 주문",
+          "state_label": "완료",
+          "tone": "NEUTRAL",
+          "occurred_at_text": "08-10 14:39",
+          "detail_lines": [
+            "주문번호 B0006"
+          ]
+        },
+        {
+          "stage_code": "EXECUTION",
+          "stage_label": "체결",
+          "state_label": "부분 체결",
+          "tone": "CAUTION",
+          "occurred_at_text": "08-10 16:17",
+          "detail_lines": [
+            "3회에 걸쳐 60주 체결",
+            "잔여 40주 미체결"
+          ]
+        },
+        {
+          "stage_code": "TRADE",
+          "stage_label": "거래",
+          "state_label": "반영 대기",
+          "tone": "CAUTION",
+          "detail_lines": [
+            "다음 배치에서 원장에 반영됩니다"
+          ]
+        },
+        {
+          "stage_code": "JOURNAL",
+          "stage_label": "저널",
+          "state_label": "대상 아님",
+          "tone": "NEUTRAL",
+          "detail_lines": [
+            "규칙대로 집행된 거래입니다"
+          ]
+        }
+      ],
+      "snapshot": {
+        "ref": {
+          "decision_id": "d_20260810_a_06",
+          "intent_id": "i_0006",
+          "broker_order_no": "B0006",
+          "execution_id": "X0006#1",
+          "config_hash": "cfg_fake_0000000000000000"
+        },
+        "trade_date": "2026-08-10",
+        "kind_label": "리밸런싱 매수",
+        "reasons": [
+          {
+            "code": "REBALANCE_BAND",
+            "label": "밴드 이탈 리밸런싱",
+            "tone": "NEUTRAL",
+            "detail_deep_link": "handbook://rebalance/band"
+          }
+        ],
+        "trigger": {
+          "config_hash": "cfg_fake_0000000000000000",
+          "raw_values": {
+            "band_gap_pp": "−2.4%p",
+            "sleeve": "A"
+          },
+          "summary": "밴드 이탈 — A 슬리브가 목표보다 2.4%p 낮습니다 (허용 ±2.0%p)"
+        },
+        "summary": "밴드를 벗어나 A 슬리브를 보충 매수했습니다."
+      },
+      "thresholds": [
+        {
+          "metric_key": "band_gap_pp",
+          "metric_label": "목표 대비 편차",
+          "observed_text": "−2.4%p",
+          "threshold_text": "±2.0%p 이내",
+          "passed": false,
+          "verdict_label": "이탈 — 리밸런싱 대상"
+        }
+      ],
+      "reject_traces": [],
+      "fills": [
+        {
+          "entry_id": "je_0006_x1",
+          "mode": "LIVE",
+          "trade_date": "2026-08-10",
+          "symbol": "069500",
+          "symbol_label": "069500 KODEX 200",
+          "sleeve": "A",
+          "side": "BUY",
+          "side_label": "매수",
+          "quantity": 25,
+          "price": "38410",
+          "commission": "144",
+          "tax": "0",
+          "quantity_text": "25주",
+          "price_text": "38,410원",
+          "commission_text": "144원",
+          "tax_text": "0원",
+          "status": "PARTIAL",
+          "status_label": "부분 체결",
+          "status_tone": "CAUTION",
+          "visibility": "PENDING_BATCH",
+          "visibility_label": "반영 대기",
+          "reasons": [
+            {
+              "code": "REBALANCE_BAND",
+              "label": "밴드 이탈 리밸런싱",
+              "tone": "NEUTRAL",
+              "detail_deep_link": "handbook://rebalance/band"
+            }
+          ],
+          "decision": {
+            "decision_id": "d_20260810_a_06",
+            "intent_id": "i_0006",
+            "broker_order_no": "B0006",
+            "execution_id": "X0006#1",
+            "config_hash": "cfg_fake_0000000000000000"
+          },
+          "deviation": {
+            "is_deviation": false,
+            "label": "규칙대로"
+          },
+          "account_alias": "연금저축",
+          "fill_origin": "BROKER",
+          "fill_kind": "ORIGINAL",
+          "backdate": {
+            "trade_date": "2026-08-10",
+            "authored_at": "2026-08-10T07:17:05Z",
+            "backdate_trading_days": 0,
+            "is_backdated": false,
+            "label": "당일 기록",
+            "price_range_source_date": "2026-08-10",
+            "crosses_closed_period": false
+          },
+          "cost_source": "BROKER",
+          "cost_source_label": "브로커 원장",
+          "origin_label": "브로커 체결",
+          "detail_deep_link": "aaq://journal/decision/d_20260810_a_06",
+          "as_of": {
+            "observed_at": "2026-08-10T09:30:00Z",
+            "trade_date": "2026-08-10",
+            "source": "LOCAL_SQLITE",
+            "stale_after_seconds": 93600,
+            "label": "체결 반영 18:15"
+          },
+          "executed_at": "2026-08-10T05:41:10Z"
+        },
+        {
+          "entry_id": "je_0006_x2",
+          "mode": "LIVE",
+          "trade_date": "2026-08-10",
+          "symbol": "069500",
+          "symbol_label": "069500 KODEX 200",
+          "sleeve": "A",
+          "side": "BUY",
+          "side_label": "매수",
+          "quantity": 20,
+          "price": "38410",
+          "commission": "115",
+          "tax": "0",
+          "quantity_text": "20주",
+          "price_text": "38,410원",
+          "commission_text": "115원",
+          "tax_text": "0원",
+          "status": "PARTIAL",
+          "status_label": "부분 체결",
+          "status_tone": "CAUTION",
+          "visibility": "PENDING_BATCH",
+          "visibility_label": "반영 대기",
+          "reasons": [
+            {
+              "code": "REBALANCE_BAND",
+              "label": "밴드 이탈 리밸런싱",
+              "tone": "NEUTRAL",
+              "detail_deep_link": "handbook://rebalance/band"
+            }
+          ],
+          "decision": {
+            "decision_id": "d_20260810_a_06",
+            "intent_id": "i_0006",
+            "broker_order_no": "B0006",
+            "execution_id": "X0006#2",
+            "config_hash": "cfg_fake_0000000000000000"
+          },
+          "deviation": {
+            "is_deviation": false,
+            "label": "규칙대로"
+          },
+          "account_alias": "연금저축",
+          "fill_origin": "BROKER",
+          "fill_kind": "ORIGINAL",
+          "backdate": {
+            "trade_date": "2026-08-10",
+            "authored_at": "2026-08-10T07:17:05Z",
+            "backdate_trading_days": 0,
+            "is_backdated": false,
+            "label": "당일 기록",
+            "price_range_source_date": "2026-08-10",
+            "crosses_closed_period": false
+          },
+          "cost_source": "BROKER",
+          "cost_source_label": "브로커 원장",
+          "origin_label": "브로커 체결",
+          "detail_deep_link": "aaq://journal/decision/d_20260810_a_06",
+          "as_of": {
+            "observed_at": "2026-08-10T09:30:00Z",
+            "trade_date": "2026-08-10",
+            "source": "LOCAL_SQLITE",
+            "stale_after_seconds": 93600,
+            "label": "체결 반영 18:15"
+          },
+          "executed_at": "2026-08-10T06:30:42Z"
+        },
+        {
+          "entry_id": "je_0006_x3",
+          "mode": "LIVE",
+          "trade_date": "2026-08-10",
+          "symbol": "069500",
+          "symbol_label": "069500 KODEX 200",
+          "sleeve": "A",
+          "side": "BUY",
+          "side_label": "매수",
+          "quantity": 15,
+          "price": "38410",
+          "commission": "86",
+          "tax": "0",
+          "quantity_text": "15주",
+          "price_text": "38,410원",
+          "commission_text": "86원",
+          "tax_text": "0원",
+          "status": "PARTIAL",
+          "status_label": "부분 체결",
+          "status_tone": "CAUTION",
+          "visibility": "PENDING_BATCH",
+          "visibility_label": "반영 대기",
+          "reasons": [
+            {
+              "code": "REBALANCE_BAND",
+              "label": "밴드 이탈 리밸런싱",
+              "tone": "NEUTRAL",
+              "detail_deep_link": "handbook://rebalance/band"
+            }
+          ],
+          "decision": {
+            "decision_id": "d_20260810_a_06",
+            "intent_id": "i_0006",
+            "broker_order_no": "B0006",
+            "execution_id": "X0006#3",
+            "config_hash": "cfg_fake_0000000000000000"
+          },
+          "deviation": {
+            "is_deviation": false,
+            "label": "규칙대로"
+          },
+          "account_alias": "연금저축",
+          "fill_origin": "BROKER",
+          "fill_kind": "ORIGINAL",
+          "backdate": {
+            "trade_date": "2026-08-10",
+            "authored_at": "2026-08-10T07:17:05Z",
+            "backdate_trading_days": 0,
+            "is_backdated": false,
+            "label": "당일 기록",
+            "price_range_source_date": "2026-08-10",
+            "crosses_closed_period": false
+          },
+          "cost_source": "BROKER",
+          "cost_source_label": "브로커 원장",
+          "origin_label": "브로커 체결",
+          "detail_deep_link": "aaq://journal/decision/d_20260810_a_06",
+          "as_of": {
+            "observed_at": "2026-08-10T09:30:00Z",
+            "trade_date": "2026-08-10",
+            "source": "LOCAL_SQLITE",
+            "stale_after_seconds": 93600,
+            "label": "체결 반영 18:15"
+          },
+          "executed_at": "2026-08-10T07:17:05Z"
+        }
+      ],
+      "remaining_text": "잔여 40주 미체결",
+      "journal_state_label": "규칙대로 — 저널 대상이 아닙니다",
+      "as_of": {
+        "observed_at": "2026-08-31T09:00:00Z",
+        "trade_date": "2026-08-31",
+        "source": "LOCAL_SQLITE",
+        "stale_after_seconds": 93600,
+        "label": "일지 기준 2026-08-31"
+      }
+    }
+  ]
+}

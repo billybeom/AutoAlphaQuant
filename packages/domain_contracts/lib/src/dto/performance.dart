@@ -193,6 +193,17 @@ abstract class MonthlyReport with _$MonthlyReport {
 
     /// 전월 소급 정정 각주 — 🔴 마감된 달을 재계산하지 않는다(G-97).
     String? backdateFootnote,
+
+    /// 🆕 v1.1(§8 미결 40) — 미생성 달의 한 문장: "9월 1일 생성일에 만들어집니다 · D-4".
+    /// 🔴 non-null 이면 헤더 아래에 그대로 그린다. 화면이 D-day 를 계산하지 않는다.
+    String? pendingNoticeText,
+
+    /// 🆕 v1.1(§8 미결 43) — "2026-09-01 생성" · 미생성이면 null.
+    String? generatedAtText,
+
+    /// 🆕 v1.1(§8 미결 43) — 이 리포트를 만든 설정의 해시(모노스페이스 축약 표시용).
+    /// 🔴 화면이 다른 해시와 비교하지 않는다(contract_version.dart 말미 조문). 미생성이면 null.
+    String? configHash,
   }) = _MonthlyReport;
 
   factory MonthlyReport.fromJson(Map<String, dynamic> json) =>
@@ -218,8 +229,14 @@ abstract class ReportItem with _$ReportItem {
     required String title,
 
     /// 🔴 엔진 완성 문자열 — 결측이면 그 사실도 이 문자열이 말한다.
+    /// 🔴 차단 시 가림도 엔진 읽기 경로가 끝낸다(01 §2-10) — 화면은 바꾸지 않는다.
     required String valueText,
     String? noteText,
+
+    /// 🆕 v1.1(§8 미결 41) — 이 항목의 「자세히」 목적지. 🔴 **non-null 인 항목에만** 버튼을
+    ///    그린다. 어느 항목에 링크가 붙는지는 엔진이 정한다 — 화면이 `order`·`code`·
+    ///    `OperatingMode` 로 판정하지 않는다.
+    String? detailDeepLink,
   }) = _ReportItem;
 
   factory ReportItem.fromJson(Map<String, dynamic> json) =>
@@ -281,9 +298,19 @@ abstract class DisclosureGateVm with _$DisclosureGateVm {
 @freezed
 abstract class DrawdownContextVm with _$DrawdownContextVm {
   const factory DrawdownContextVm({
+    /// "최근 24개월" — `range == null` 이면 엔진 기본 구간이고 그 결과를 이 문구가 말한다.
     required String periodLabel,
+
+    // 🔴 아래 세 값은 짧은 숫자가 아니라 **제목을 포함한 엔진 완성 문장**이다(C4 R2-Gem-S73
+    //    교훈). 화면이 제목을 따로 달면 같은 말을 두 번 하게 되고, 좁은 칸에 넣으면
+    //    들어가지 않는다 — 전체 폭 한 줄씩 그린다. `FittedBox` 로 줄이지 않는다.
+    /// "현재 낙폭 −2.1%"
     required String currentDdText,
+
+    /// "최대 낙폭 −6.4%"
     required String maxDdText,
+
+    /// "회복까지 걸린 최장 기간 3개월"
     required String tuwText,
 
     /// 🔴 게이지 폭 전용 정규값(0.0~1.0). 표시는 `*Text` 필드다.
@@ -321,9 +348,20 @@ abstract class ContributionVm with _$ContributionVm {
 abstract class ContributionRow with _$ContributionRow {
   const factory ContributionRow({
     required SleeveId sleeve,
+
+    /// "A · 국내 지수 ETF" — 엔진 생성(화면이 `sleeve` 로 문구를 고르지 않는다)
     required String label,
+
+    /// "+0.42%p" · 산출 불가면 "산출 불가" — 엔진 생성
     required String contributionText,
+
+    /// 막대 폭 전용(0.0~1.0). 🔴 [unavailableLabel] 이 non-null 이면 **0.0** 으로 온다.
     required double normalized,
+
+    /// 🆕 v1.1(§8 미결 45) — 「이 슬리브는 산출할 수 없다」의 사유 한 줄
+    ///    ("8월 12~14일 가격 결측 — 산출 불가"). 🔴 non-null 이면 **막대를 그리지 않고**
+    ///    이 문장을 그린다. 🔴 화면이 나머지 행을 100% 로 재정규화하지 않는다(03 §8).
+    String? unavailableLabel,
   }) = _ContributionRow;
 
   factory ContributionRow.fromJson(Map<String, dynamic> json) =>

@@ -36,6 +36,7 @@ import 'alert_codes.dart';
 import 'deviation_kind_codes.dart';
 import 'exit_kind.dart';
 import 'flag_ids.dart';
+import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
 import 'origin_codes.dart';
 import 'saf_codes.dart';
@@ -46,6 +47,7 @@ export 'alert_codes.dart';
 export 'deviation_kind_codes.dart';
 export 'exit_kind.dart';
 export 'flag_ids.dart';
+export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
 export 'origin_codes.dart';
 export 'saf_codes.dart';
@@ -168,6 +170,11 @@ abstract final class ContractCodes {
     'operating_param_key': OperatingParamKeys.values,
     'aftertax_step': AfterTaxStepCodes.values,
     'stale_reason': StaleReasonCodes.values,
+    // 🆕 v1.1 — J-2 체인 단계 · 전수 검사 층 · J-5 해소 단계 · J-1 배지
+    'decision_chain_stage': DecisionChainStageCodes.values,
+    'safety_check_level': SafetyCheckLevelCodes.values,
+    'unknown_resolution_stage': UnknownResolutionStageCodes.values,
+    'journal_badge': JournalBadgeCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

@@ -28,6 +28,23 @@ Directory fixturesDir() =>
 String fixtureText(String relPath) =>
     File('${fixturesDir().path}/$relPath').readAsStringSync();
 
+/// 🆕 v1.1 — 봉투 원형(meta·as_of·empty_kind·empty_label·has_more·rows 원시 Map).
+FixtureEnvelope fixtureEnvelope(String relPath) =>
+    decodeEnvelope(fixtureText(relPath));
+
+/// 🆕 v1.1 — 목록 픽스처 → `ListResult<T>`.
+/// 예: `listFixture(FixturePaths.m6JournalBadges2, JournalTimelineBadge.fromJson)`.
+ListResult<T> listFixture<T>(
+  String relPath,
+  T Function(Map<String, dynamic>) fromJson,
+) => decodeList<T>(fixtureText(relPath), fromJson);
+
+/// 🆕 v1.1 — 1행 픽스처 → 그 DTO.
+/// 예: `singleFixture(FixturePaths.m6DecisionDetailFull, DecisionDetailVm.fromJson)`.
+/// 🔴 행이 정확히 1개가 아니면 던진다 — 「첫 행을 쓴다」는 조용한 판정이다.
+T singleFixture<T>(String relPath, T Function(Map<String, dynamic>) fromJson) =>
+    decodeSingle<T>(fixtureText(relPath), fromJson);
+
 /// 매매일지 봉투 픽스처 → `ListResult<TradeJournalEntry>`.
 ///
 /// 예: `journalFixture(FixturePaths.journal30)` · `journalFixture(FixturePaths.m6JournalEmpty)`.

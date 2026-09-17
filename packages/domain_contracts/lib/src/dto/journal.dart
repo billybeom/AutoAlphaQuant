@@ -50,11 +50,36 @@ abstract class TradeJournalEntry with _$TradeJournalEntry {
     /// "069500 KODEX 200" — 엔진 생성
     required String symbolLabel,
     required SleeveId sleeve,
+
+    /// 🔴 필터 인자·테스트용이지 **표시용이 아니다** — 화면은 [sideLabel] 을 그린다.
     required OrderSide side,
+
+    /// 🆕 v1.1(§8 미결 34) — "매수" · "매도" / 정정 행은 "역분개" · "재기재" — 엔진 생성.
+    /// 🔴 화면이 `side`·`fillKind` 로 문구를 고르지 않는다(01 §1-5).
+    required String sideLabel,
+
+    // ── 원값 4종 — 🔴 **표시용이 아니다**(계약 테스트 C-22 합산·정렬의 입력).
+    //    화면은 아래 `*Text` 만 그린다(v1.1 · §8 미결 35).
     required int quantity,
     @DecimalStringConverter() required Decimal price,
     @DecimalStringConverter() required Decimal commission,
     @DecimalStringConverter() required Decimal tax,
+
+    // ── 🆕 v1.1(§8 미결 35) 표시 문자열 4종 — 천 단위 구분·단위·부호까지 엔진 완성.
+    //    🔴 차단 시 **가림도 여기서 끝난다**(01 §2-10 «값 가림의 주체 = 엔진 읽기 경로») —
+    //       `LEDGER_INTEGRITY` 면 "숨김", `RECON_MISMATCH` 대상 종목이면 "120주?" 로 온다.
+    //       화면은 플래그를 보고 이 문자열을 바꾸거나 감추지 않는다.
+    /// "120주" · "−8주"(역분개) · "숨김"
+    required String quantityText,
+
+    /// "38,250원"
+    required String priceText,
+
+    /// "688원"
+    required String commissionText,
+
+    /// "0원"
+    required String taxText,
     required JournalStatus status,
 
     /// "체결" · "결과 확인 중" · "이중 발주 차단됨" — 엔진 생성.
@@ -100,6 +125,10 @@ abstract class TradeJournalEntry with _$TradeJournalEntry {
     /// 🆕 G-40 — 이 체결이 속한 리밸런싱 회차. null = 회차 밖(수기·입금 배분 등).
     /// 🔴 화면이 `RebalanceEvent.orderIntentIds` 배열로 목록을 거르지 않게 하는 필드다.
     String? rebalanceEventId,
+
+    /// 🆕 v1.1(§8 미결 36) — 이 행의 `J-2` 거래 상세 링크(`aaq://journal/decision/…`).
+    /// 🔴 null 이면 행 탭에 반응이 없다(상세 없음). 화면이 `decisionId` 로 링크를 조립하지 않는다.
+    String? detailDeepLink,
     required AsOf asOf,
   }) = _TradeJournalEntry;
 
@@ -196,6 +225,9 @@ abstract class ThresholdCompare with _$ThresholdCompare {
 }
 
 /// 거부 추적 1행 — 어느 단계에서 왜 막혔나(02 §8-1 · m2-8 E-3).
+///
+/// `stageCode` = 전수 검사의 층(`labels/journal_codes.dart` `SafetyCheckLevelCodes` —
+/// 04_안전장치 P2 «Level 4 → 3 → 2 → 1»). `reasonCode` 는 SAF 코드 **원문 그대로**다.
 @freezed
 abstract class RejectTrace with _$RejectTrace {
   const factory RejectTrace({
@@ -203,7 +235,12 @@ abstract class RejectTrace with _$RejectTrace {
     required String stageLabel,
     required String reasonCode,
     required String reasonLabel,
+
+    /// 🔴 정렬·비교용이지 표시용이 아니다(01 §1-3).
     required DateTime occurredAt,
+
+    /// 🆕 v1.1 — "08-13 09:01" 엔진 포맷. 화면이 `occurredAt` 을 포맷하지 않는다.
+    String? occurredAtText,
   }) = _RejectTrace;
 
   factory RejectTrace.fromJson(Map<String, dynamic> json) =>
@@ -214,9 +251,19 @@ abstract class RejectTrace with _$RejectTrace {
 ///
 /// 🔴 `ruleCitedOptions` 는 **엔진 제공 목록**이며 자유 입력을 허용하지 않는다.
 /// ⏸ `ReasonOption` 재사용은 m2-8 H-5(선행 미결 §8-20 · D19) — 통합 권고를 따랐다.
+/// 🆕 v1.1 — 읽기 창구 `JournalRepository.draftFormSpec(decisionId)` 와 함께 4필드 추가:
+///    `decisionId`(제출 `JournalDraft.decisionId` 에 그대로 넣는 값) · `pledgeLines`(본인
+///    서약문 — 🔴 편집 불가 · 0줄이면 서약 블록 자체가 없다) · `contextChips`(문맥 칩) ·
+///    `deviation`(표시만 — 🔴 화면이 이탈 여부를 판정하지 않는다).
 @freezed
 abstract class JournalDraftFormSpec with _$JournalDraftFormSpec {
   const factory JournalDraftFormSpec({
+    required String decisionId,
+
+    /// 본인 서약문(청사진 §9-2) — 엔진이 준 문장을 **그대로·순서대로** 그린다.
+    required List<String> pledgeLines,
+    required List<ReasonChip> contextChips,
+    required DeviationBadge deviation,
     required List<ReasonOption> ruleCitedOptions,
     required int rationaleMinChars,
 
@@ -277,4 +324,219 @@ abstract class UnknownResolutionStep with _$UnknownResolutionStep {
 
   factory UnknownResolutionStep.fromJson(Map<String, dynamic> json) =>
       _$UnknownResolutionStepFromJson(json);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 🆕 계약 v1.1(2026-09-17 · M2 보강) — J-1 필터·배지 · J-2 상세 · J-5 보드
+// ════════════════════════════════════════════════════════════════════════════
+
+/// `J-1` 필터의 「상태」 선택지 1건(§8 미결 37).
+///
+/// 🔴 선택지의 **목록·순서·문구**를 엔진이 준다 — 화면이 `JournalStatus.values` 를 순회하며
+///    라벨을 붙이지 않는다(01 §1-5). 고른 값은 `watchTimeline(status:)` 인자로 그대로 간다.
+@freezed
+abstract class JournalStatusOption with _$JournalStatusOption {
+  const factory JournalStatusOption({
+    required JournalStatus status,
+
+    /// "체결" · "결과 확인 중" — 엔진 생성
+    required String label,
+  }) = _JournalStatusOption;
+
+  factory JournalStatusOption.fromJson(Map<String, dynamic> json) =>
+      _$JournalStatusOptionFromJson(json);
+}
+
+/// `J-1` 필터의 「출처」 선택지 1건(§8 미결 37 · G-39).
+@freezed
+abstract class FillOriginOption with _$FillOriginOption {
+  const factory FillOriginOption({
+    required FillOrigin origin,
+
+    /// "브로커 체결만" · "수기 기록만" — 엔진 생성
+    required String label,
+  }) = _FillOriginOption;
+
+  factory FillOriginOption.fromJson(Map<String, dynamic> json) =>
+      _$FillOriginOptionFromJson(json);
+}
+
+/// `J-1` 필터 카탈로그(§8 미결 37) — 창구는 `JournalRepository.watchFilterCatalog()`.
+///
+/// 🔵 기간은 `ConfigRepository.watchRangePresets()`, 슬리브는 `watchSleeves()` 가 준다 —
+///    이 타입은 **나머지 셋**(상태·출처·종목)만 싣는다(같은 목록을 두 벌 두지 않는다).
+/// 🔴 「전체」(필터 없음)는 선택지가 아니라 **인자 null** 이다 — 그 버튼 문구는 정적 라벨이다.
+@freezed
+abstract class JournalFilterCatalog with _$JournalFilterCatalog {
+  const factory JournalFilterCatalog({
+    required List<JournalStatusOption> statusOptions,
+    required List<FillOriginOption> originOptions,
+
+    /// 일지에 등장한 종목 — 🔴 화면이 `rows` 에서 종목을 모으지 않는다.
+    required List<SymbolOption> symbolOptions,
+    required AsOf asOf,
+  }) = _JournalFilterCatalog;
+
+  factory JournalFilterCatalog.fromJson(Map<String, dynamic> json) =>
+      _$JournalFilterCatalogFromJson(json);
+}
+
+/// `J-1` 상단 배지 1건(§8 미결 38) — 창구는 `JournalRepository.watchTimelineBadges()`.
+///
+/// 🔴 **건수는 문구 안에 있다**("확인 중 2건") — 화면이 `rows` 를 세지 않는다(집계 = 재계산).
+/// 🔴 목록이 비면 배지 줄 자체가 없다(「정상 = 무소식」 · 02 §3-5).
+/// `badgeCode` 값은 `labels/journal_codes.dart` 의 `JournalBadgeCodes` 가 정본이다.
+@freezed
+abstract class JournalTimelineBadge with _$JournalTimelineBadge {
+  const factory JournalTimelineBadge({
+    required String badgeCode,
+
+    /// "확인 중 2건" — 엔진 생성
+    required String label,
+    required ChipTone tone,
+
+    /// 탭 목적지(`aaq://journal/unknown-board`). null 이면 탭 반응 없음.
+    String? deepLink,
+  }) = _JournalTimelineBadge;
+
+  factory JournalTimelineBadge.fromJson(Map<String, dynamic> json) =>
+      _$JournalTimelineBadgeFromJson(json);
+}
+
+/// `J-2` 체인 타임라인의 1단계(02 §3-2).
+///
+/// 🔴 단계는 **언제나 6칸**이고 결측이어도 자리를 유지한다 — 엔진이 6건을 순서대로 준다.
+///    화면은 받은 순서대로 그리고 `stageCode` 로 문구·아이콘을 고르지 않는다.
+/// 🔵 advisory 체인의 치환(브로커 주문·체결 → 안내·수기 기록)도 엔진이 이미 했다 —
+///    화면이 `operatingMode` 로 갈래를 고르지 않는다.
+/// `stageCode` 값은 `labels/journal_codes.dart` 의 `DecisionChainStageCodes` 가 정본이다.
+@freezed
+abstract class DecisionChainStep with _$DecisionChainStep {
+  const factory DecisionChainStep({
+    required String stageCode,
+
+    /// "신호" · "의도" · "브로커 주문" · "안내" — 엔진 생성
+    required String stageLabel,
+
+    /// "완료" · "확인 중" · "거부" · "기록 없음" — 엔진 생성
+    required String stateLabel,
+    required ChipTone tone,
+
+    /// "08-03 14:12" — 엔진 포맷(01 §1-3). null = 그 단계에 시각이 없다.
+    String? occurredAtText,
+
+    /// 단계 아래 보조 줄 — "주문번호 B0006" · "잔여 40주 미체결". 엔진 생성 · 순서 그대로.
+    @Default(<String>[]) List<String> detailLines,
+
+    /// 그 단계의 상세로 가는 링크(예 「안내」 노드 → `A-2`). null = 탭 반응 없음.
+    String? deepLink,
+  }) = _DecisionChainStep;
+
+  factory DecisionChainStep.fromJson(Map<String, dynamic> json) =>
+      _$DecisionChainStepFromJson(json);
+}
+
+/// `J-2` 거래 상세 한 화면의 전부 — 창구는 `JournalRepository.watchDecisionDetail(decisionId)`.
+///
+/// 🔴 화면이 조인·추정 재구성을 하지 않게 하는 타입이다: 체인 6단계 · 결정 당시 스냅샷 ·
+///    임계값 대조 · 거부 추적 · 부분 체결/정정 체인 · 이동 버튼 4종이 **한 번에** 온다.
+/// 🔴 손익 필드 없음(02 §3-2 금지 ③). 「재시도」·「강제 취소」 류 조작 링크도 오지 않는다.
+/// 🔴 `LEDGER_INTEGRITY` 중에는 `entry`·`fills` 의 `*Text` 가 가려져 온다(구조만 렌더).
+@freezed
+abstract class DecisionDetailVm with _$DecisionDetailVm {
+  const factory DecisionDetailVm({
+    /// 상단 요약 — `J-1` 의 그 행과 같은 객체다.
+    required TradeJournalEntry entry,
+
+    /// 🔴 **항상 6건**(결측 단계도 자리 유지).
+    required List<DecisionChainStep> steps,
+
+    /// 결정 당시 스냅샷. null 이면 [snapshotMissingLabel] 을 그린다.
+    DecisionSnapshot? snapshot,
+
+    /// "스냅샷 없음(구 버전 기록)" — 🔴 화면이 추정해 재구성하지 않는다.
+    String? snapshotMissingLabel,
+
+    /// 트리거 값 vs 사전 등록 임계값 — 0건이면 표 자체가 없다.
+    required List<ThresholdCompare> thresholds,
+
+    /// 거부 추적(전수 검사 Level 4→1 순 · 04_안전장치 P2) — 0건이면 접이식 자체가 없다.
+    required List<RejectTrace> rejectTraces,
+
+    /// 이 결정의 체결 행들 — 부분 체결 다중 행 · 정정 체인(원본→역분개→재기재).
+    /// 🔴 엔진이 정렬해서 준다. 화면이 체인 길이를 세어 버튼을 감추지 않는다.
+    required List<TradeJournalEntry> fills,
+
+    /// "잔여 40주 미체결" — 엔진 생성. 🔴 화면이 수량을 빼서 만들지 않는다.
+    String? remainingText,
+
+    /// "브로커 결과 확인 중 — 다음 배치에서 확정됩니다" — `status == unknown` 일 때.
+    String? pendingNoticeText,
+
+    /// X2 재판정 child 의 「원행 보기」.
+    LinkAction? parentLink,
+
+    /// 「이 회차」 → `S7-6b`. 🔴 null 이면 버튼은 **부재**다(비활성 아님 · G-40).
+    LinkAction? rebalanceLink,
+
+    /// "저널 작성됨" · "저널 미작성" — 엔진 생성
+    required String journalStateLabel,
+
+    /// 저널 읽기 또는 `J-3` 작성 유도. 웹·iOS 읽기 경로는 작성 링크를 주지 않는다.
+    LinkAction? journalLink,
+
+    /// 수기 체결 「정정」 → `M5-12`. 🔴 폰 읽기 경로만 채운다(웹·iOS 는 null = 진입점 부재).
+    LinkAction? amendLink,
+    required AsOf asOf,
+  }) = _DecisionDetailVm;
+
+  factory DecisionDetailVm.fromJson(Map<String, dynamic> json) =>
+      _$DecisionDetailVmFromJson(json);
+}
+
+/// `J-5` UNKNOWN 해소 보드의 카드 1건(02 §3-5).
+///
+/// 🔴 경과 시간·건수를 화면이 계산하지 않는다 — `elapsedText` 가 준다.
+/// 🔴 「재조회」·「강제 해소」 링크는 **오지 않는다**(브로커 재호출은 엔진 소관).
+@freezed
+abstract class UnknownResolutionItem with _$UnknownResolutionItem {
+  const factory UnknownResolutionItem({
+    required TradeJournalEntry entry,
+
+    /// "발생 08-21 14:02 · 3영업일 경과" — 엔진 생성
+    required String elapsedText,
+
+    /// "이 종목의 신규 주문이 막혀 있습니다" — 엔진 생성
+    required String effectLine,
+
+    /// 단계 진행 4칸(`RECORDED → QUERY_PENDING → BROKER_CONFIRMED → RESOLVED`).
+    required List<UnknownResolutionStep> steps,
+
+    /// 장기 미해소 강조 — 🔴 임계 배치 수는 엔진이 판정한다(화면 상수 금지 · 02 §8-4).
+    required bool emphasized,
+
+    /// 장기 미해소일 때의 M5 안내 링크.
+    LinkAction? escalationLink,
+  }) = _UnknownResolutionItem;
+
+  factory UnknownResolutionItem.fromJson(Map<String, dynamic> json) =>
+      _$UnknownResolutionItemFromJson(json);
+}
+
+/// `J-5` 보드 전체 — 창구는 `JournalRepository.watchUnknownBoard()`.
+@freezed
+abstract class UnknownBoardVm with _$UnknownBoardVm {
+  const factory UnknownBoardVm({
+    required List<UnknownResolutionItem> items,
+
+    /// "다음 배치(18:10)에서 조회로 확정됩니다" — 엔진 생성
+    String? nextBatchNoticeText,
+
+    /// "미해소 건이 없습니다" — `items` 가 비었을 때.
+    String? emptyLabel,
+    required AsOf asOf,
+  }) = _UnknownBoardVm;
+
+  factory UnknownBoardVm.fromJson(Map<String, dynamic> json) =>
+      _$UnknownBoardVmFromJson(json);
 }

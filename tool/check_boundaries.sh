@@ -129,6 +129,23 @@ if [ -n "$KOREAN_SCAN" ]; then
   done
 fi
 
+# ── [5] 링크 리터럴 (01 §4-4 내비게이션 계약 · 계약 v1.1) ────────────────────
+# 🔴 「링크는 데이터로 온다」 — 화면(ui_*)은 링크를 만들지 않으므로 `aaq://`·`handbook://`
+#    문자열이 화면 코드에 있을 이유가 없다. 있으면 그것이 곧 «화면이 목적지를 지어냈다»다.
+#    고정 목적지가 필요하면 `AppRoutes.*` 상수를 쓴다(화면 명세가 그 버튼을 명시한 경우만).
+#    주석 줄은 건너뛴다(설명은 정상) — 코드 줄의 따옴표 안 리터럴만 잡는다.
+LINK_RE="['\"](aaq|handbook)://"
+for pkg in $UI_PKGS; do
+  [ -d "$pkg/lib" ] || continue
+  hits=$(grep -rnE "$LINK_RE" "$pkg/lib" 2>/dev/null \
+         | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|///|\*)' \
+         || true)
+  if [ -n "$hits" ]; then
+    fail "[§4-4] $(basename "$pkg"): 화면 코드에 링크 리터럴이 있다 — 링크는 DTO 가 준 값을 AppLinkOpener 에 그대로 넘긴다:"
+    printf '     %s\n' "$hits" | head -20
+  fi
+done
+
 # ── 결과 ────────────────────────────────────────────────────────────────────
 say "──"
 if [ "$FAIL" -ne 0 ]; then

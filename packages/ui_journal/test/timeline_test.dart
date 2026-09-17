@@ -1,11 +1,13 @@
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ui_journal/ui_journal.dart';
 
-class _FakeJournalRepository implements JournalRepository {
+// 🔵 계약 v1.1(M2 추종 수정) — 받침대를 상속한다. M2 가 창구를 더해도 이 가짜는 깨지지 않는다.
+class _FakeJournalRepository extends UnimplementedJournalRepository {
   _FakeJournalRepository(this.result);
 
   final ListResult<TradeJournalEntry> result;

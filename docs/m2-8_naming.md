@@ -201,3 +201,31 @@
 2. **`AsOf.staleReasonCode` 의 값 목록**(A-2) — 문서 어디에도 열거가 없다. 권고 4값은 **역산**이며 엔진(M1) 확정이 필요하다.
 3. **자동 매매 알림 10종의 개별 코드 이름** — 04 §5-1c 가 «카탈로그로 나열»한다고만 되어 있고 01 §3 에 등재되지 않았다. 🔴 등재 전에는 화면이 `code` 로 아이콘·색도 고르지 않는다(픽스처 고정).
 4. **M2-8 창을 닫는 시점** — 06 M2-8 은 「단계 1 마이그레이션 창과 같은 창에서 열고 그 창이 닫힐 때 함께 닫는다」고 정했다. 🔴 **창이 닫힌 뒤 발견된 이름은 다음 창까지 ⚠️ 로 남기고 그 화면을 만들지 않는다.**
+
+---
+
+## L. 🆕 계약 v1.1 (2026-09-17 · M2 보강 회차) — 창이 닫힌 뒤의 «다음 창» 1회
+
+K-4 가 말한 「창이 닫힌 뒤 발견된 이름은 다음 창」이 이것이다. C4(병합 검사) R1-Bob-J1 · R1-Gem-S71 · R2-Gem-S73 이
+찾아낸 계약 공백 13건(01 §8 미결 33~45)과 J-2·J-3·J-5 의 읽기 창구 부재를 **한 번에** 닫았다.
+`contractVersion` = **`1.1.0`** · 픽스처 96건 봉투 동시 상향.
+
+| # | 01 §8 | **확정 이름** | 자리 | 한 줄 규칙 |
+|---|---|---|---|---|
+| L-1 | 36 | `AppLinkOpener` · `AppLinkSchemes` · `AppRoutes`(40 라우트 · `isRegistered`) | `lib/src/navigation/app_links.dart` | **링크는 데이터로 온다** — 화면은 만들지도 해석하지도 않고 `open(link)` 에 그대로 넘긴다. `aaq://`·`handbook://` 두 스킴. C-33 |
+| L-2 | 36 | `LinkAction { label, deepLink }` | `dto/common.dart` | 엔진이 준 이동 버튼 1개. null = 버튼 **부재** |
+| L-3 | 33 | `DateRange.isDefault`(`@Default(false)`) | `primitives/date_range.dart` | 프리셋 목록에서 true 는 정확히 1건(C-34 ①) |
+| L-4 | 34·35·36 | `TradeJournalEntry.sideLabel` · `quantityText`·`priceText`·`commissionText`·`taxText` · `detailDeepLink?` | `dto/journal.dart` | 원값 4종은 **표시용이 아니다**. 가림도 `*Text` 안에서 끝난다 |
+| L-5 | 37 | `JournalFilterCatalog { statusOptions, originOptions, symbolOptions, asOf }` · `JournalStatusOption` · `FillOriginOption` | `dto/journal.dart` · `JournalRepository.watchFilterCatalog()` | 기간·슬리브는 `ConfigRepository` 가 준다(두 벌 금지). 「전체」= 인자 null |
+| L-6 | 38 | `JournalTimelineBadge { badgeCode, label, tone, deepLink? }` · `JournalBadgeCodes` | `JournalRepository.watchTimelineBadges()` | 건수는 문구 안에 있다 — 화면이 세지 않는다 |
+| L-7 | 39·36 | `BlockFlag.checkpointLabel?` · `clearDeepLink?` | `dto/safety.dart` | `clearRoute`(열거) = 해제의 **성격**, 목적지는 `clearDeepLink` |
+| L-8 | 40·43 | `MonthlyReport.pendingNoticeText?` · `generatedAtText?` · `configHash?` | `dto/performance.dart` | 봉투 형제 키 `pending_d_day_text` **폐기** |
+| L-9 | 41 | `ReportItem.detailDeepLink?` | `dto/performance.dart` | non-null 인 항목에만 「자세히」 — 항목을 한정하지 않는다 |
+| L-10 | 45 | `ContributionRow.unavailableLabel?` | `dto/performance.dart` | non-null 이면 막대 없음 · `normalized == 0.0` · 재정규화 금지 |
+| L-11 | — (J-2) | `DecisionDetailVm` · `DecisionChainStep` · `DecisionChainStageCodes`(8) · `SafetyCheckLevelCodes`(4) · `RejectTrace.occurredAtText?` | `JournalRepository.watchDecisionDetail(decisionId)` | 체인은 **언제나 6칸**. 화면이 `chainOf`·`findByDecisionId`·`fillChain` 을 조립하지 않는다 |
+| L-12 | — (J-3) | `JournalDraftFormSpec` + `decisionId`·`pledgeLines`·`contextChips`·`deviation` | `JournalRepository.draftFormSpec(decisionId)` | 서약문 0줄이면 서약 블록 자체가 없다 |
+| L-13 | — (J-5) | `UnknownBoardVm` · `UnknownResolutionItem` · `UnknownResolutionStageCodes`(4) | `JournalRepository.watchUnknownBoard()` | 재조회·강제 해소 링크는 오지 않는다 |
+| L-14 | — | `package:domain_contracts/testing.dart` — `UnimplementedJournalRepository`·`…PerformanceRepository`·`…ConfigRepository` · `RecordingLinkOpener` | `lib/testing.dart`(배럴 밖 · test 전용) | 화면 테스트의 가짜는 `extends` 한다 — 창구가 늘어도 깨지지 않는다 |
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 44(`S7-3` 초안 필드: 에피소드 표·백분위·회복 필요 수익률 — 엔진 분석 산출물 정의가 선행) ·
+🆕 미결 46(`J-4` blind 리뷰: 읽기 창구·픽스처 + `BlindReviewScore.answers: Map<String,int>` ↔ `BlindReviewQuestion.choices: List<ReasonOption>` 축 불일치).

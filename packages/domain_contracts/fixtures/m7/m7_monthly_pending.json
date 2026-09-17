@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.0.0",
+    "contract_version": "1.1.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -34,8 +34,8 @@
       "disclosure_view_count_text": "이번 달 2번 열어 보셨습니다",
       "trust": { "grade": "RECONCILED", "level": "OK", "label": "대사 완료", "consequence_line": "브로커 원장과 수량·현금이 맞습니다.", "last_verified_on": "2026-08-31" },
       "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리포트 기준 2026-08-31" },
-      "after_tax": null
+      "after_tax": null,
+      "pending_notice_text": "이번 달 리포트는 9월 1일 생성일에 만들어집니다 · D-4"
     }
-  ],
-  "pending_d_day_text": "D-4"
+  ]
 }
