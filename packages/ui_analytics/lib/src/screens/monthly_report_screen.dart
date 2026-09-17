@@ -191,12 +191,15 @@ class MonthlyReportScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                item.valueText,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace',
+              Flexible(
+                child: Text(
+                  item.valueText,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace',
+                  ),
                 ),
               ),
             ],
