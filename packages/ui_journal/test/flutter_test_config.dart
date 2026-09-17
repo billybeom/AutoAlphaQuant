@@ -104,7 +104,7 @@ class ShiftTolerantGoldenFileComparator extends LocalFileComparator {
       }
       final Uint8List a = await _rgba(candidate);
       final Uint8List b = await _rgba(reference);
-      final int significant = countSignificantDiffs(
+      final SignificantDiffStats stats = analyzeSignificantDiffs(
         a,
         b,
         width: candidate.width,
@@ -112,12 +112,15 @@ class ShiftTolerantGoldenFileComparator extends LocalFileComparator {
         radius: radius,
         channelDelta: channelDelta,
       );
+      final int significant = stats.total;
       final double ratio = significant / (candidate.width * candidate.height);
       final String summary =
           'golden "$golden": raw diff ${(exact.diffPercent * 100).toStringAsFixed(2)}% '
           '(${exact.diffPercent > 0 ? 'nonzero' : 'zero'}), significant $significant px = '
           '${(ratio * 100).toStringAsFixed(3)}% (tolerance ${(tolerance * 100).toStringAsFixed(2)}%, '
-          'radius $radius, channelDelta $channelDelta)';
+          'radius $radius, channelDelta $channelDelta) '
+          'maxWindow ${stats.maxWindowCount}/${stats.windowSize * stats.windowSize} = '
+          '${(stats.maxWindowDensity * 100).toStringAsFixed(1)}%';
       if (ratio <= tolerance) {
         debugPrint('$summary -> accepted');
         return true;

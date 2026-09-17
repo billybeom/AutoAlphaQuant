@@ -35,6 +35,50 @@ int countSignificantDiffs(
   int radius = 1,
   int channelDelta = 48,
   bool blur = true,
+}) => analyzeSignificantDiffs(
+  candidate,
+  golden,
+  width: width,
+  height: height,
+  radius: radius,
+  channelDelta: channelDelta,
+  blur: blur,
+).total;
+
+/// 유의 픽셀의 «양»과 «뭉침».
+///
+/// 플랫폼 소음은 화면 전체의 글자 가장자리에 **얇게 흩어지고**, 칩·행·배지의 누락은
+/// **한 곳에 뭉친다**. 전체 비율 하나로는 둘을 가르기 어려워(소음 0.18% vs 테두리 칩 0.16%)
+/// 가장 빽빽한 창(window) 하나의 유의 픽셀 수를 함께 본다.
+class SignificantDiffStats {
+  const SignificantDiffStats({
+    required this.total,
+    required this.maxWindowCount,
+    required this.windowSize,
+  });
+
+  /// 화면 전체의 유의 픽셀 수.
+  final int total;
+
+  /// [windowSize]×[windowSize] 창(보폭 = 절반) 가운데 가장 많은 유의 픽셀 수.
+  final int maxWindowCount;
+
+  /// 창 한 변(px).
+  final int windowSize;
+
+  /// 가장 빽빽한 창의 밀도(0.0~1.0).
+  double get maxWindowDensity => maxWindowCount / (windowSize * windowSize);
+}
+
+SignificantDiffStats analyzeSignificantDiffs(
+  Uint8List candidate,
+  Uint8List golden, {
+  required int width,
+  required int height,
+  int radius = 1,
+  int channelDelta = 48,
+  bool blur = true,
+  int windowSize = 24,
 }) {
   final int expected = width * height * 4;
   if (candidate.length != expected || golden.length != expected) {
@@ -47,6 +91,7 @@ int countSignificantDiffs(
   final Uint8List b = blur ? boxBlur3x3(golden, width, height) : golden;
 
   int significant = 0;
+  final Uint8List mask = Uint8List(width * height);
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       final int i = (y * width + x) * 4;
@@ -69,10 +114,42 @@ int countSignificantDiffs(
           _hasNeighbour(b, i, a, x, y, width, height, radius, channelDelta);
       if (!(forward && backward)) {
         significant++;
+        mask[y * width + x] = 1;
       }
     }
   }
-  return significant;
+
+  // 가장 빽빽한 창 — 적분 영상(summed-area table)으로 O(1) 창 합.
+  final int stride = windowSize ~/ 2 > 0 ? windowSize ~/ 2 : 1;
+  final Int32List sat = Int32List((width + 1) * (height + 1));
+  for (int y = 0; y < height; y++) {
+    int rowSum = 0;
+    for (int x = 0; x < width; x++) {
+      rowSum += mask[y * width + x];
+      sat[(y + 1) * (width + 1) + (x + 1)] =
+          sat[y * (width + 1) + (x + 1)] + rowSum;
+    }
+  }
+  int maxWindow = 0;
+  for (int y = 0; y < height; y += stride) {
+    final int y1 = y + windowSize < height ? y + windowSize : height;
+    for (int x = 0; x < width; x += stride) {
+      final int x1 = x + windowSize < width ? x + windowSize : width;
+      final int sum =
+          sat[y1 * (width + 1) + x1] -
+          sat[y * (width + 1) + x1] -
+          sat[y1 * (width + 1) + x] +
+          sat[y * (width + 1) + x];
+      if (sum > maxWindow) {
+        maxWindow = sum;
+      }
+    }
+  }
+  return SignificantDiffStats(
+    total: significant,
+    maxWindowCount: maxWindow,
+    windowSize: windowSize,
+  );
 }
 
 /// 3×3 상자 흐림(가장자리는 있는 픽셀만 평균). 알파 포함 4채널.
