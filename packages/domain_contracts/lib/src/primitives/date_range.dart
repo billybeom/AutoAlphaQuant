@@ -21,6 +21,11 @@ abstract class DateRange with _$DateRange {
 
     /// 「최근 30일」 — 엔진 생성(01 §1-5).
     String? label,
+
+    /// 🆕 v1.1(§8 미결 33) — 프리셋 목록에서 **첫 화면의 기본**인 항목.
+    /// 🔴 `watchRangePresets()` 목록에서 `true` 는 **정확히 하나**다(엔진 보장 · C-34).
+    ///    화면은 그 항목을 고르기만 한다 — 날짜 산술로 기본 구간을 만들지 않는다.
+    @Default(false) bool isDefault,
   }) = _DateRange;
 
   factory DateRange.fromJson(Map<String, dynamic> json) =>

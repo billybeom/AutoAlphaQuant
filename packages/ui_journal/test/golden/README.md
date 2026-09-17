@@ -110,3 +110,34 @@ void main() {
 - 🔴 `DateTime.now()` 를 테스트에서도 부르지 않는다 — 시계는 `FixedClock(kGoldenNowUtc)` 로 주입한다.
 - 🔴 테스트 파일에도 한국어 문자열 리터럴을 두지 않는다 — 화면에 보이는 글자는 전부 픽스처에서 온다(`range.label` 도 비워 둔다).
 - 🔴 `journal_30.json` 을 복사·편집해 «내 픽스처»를 만들지 않는다. 상태 조합이 더 필요하면 질문 목록(`docs/ai-context/inbox/<화면ID>_questions.md`)에 발주한다.
+
+## 🆕 계약 v1.1(2026-09-17) — 테스트에서 달라지는 것 3가지
+
+1. **가짜 리포지토리는 받침대를 상속한다** — `import 'package:domain_contracts/testing.dart';` 한 뒤
+   `class _FakeX extends UnimplementedXRepository { @override …필요한 메서드만… }`.
+   `implements XRepository` 로 통째 구현하면 M2 가 창구를 하나 더할 때마다 테스트가 컴파일에서 깨진다
+   (v1.1 에서 실제로 일어났다). 받침대: `UnimplementedJournalRepository` · `UnimplementedPerformanceRepository` ·
+   `UnimplementedConfigRepository`. 없는 것이 필요하면 **질문 표에 적는다**(M2 가 더한다).
+2. **링크는 기록기로 확인한다** — 화면은 DTO 가 준 링크를 `AppLinkOpener.open(link)` 에 **그대로** 넘긴다(01 §4-4).
+   테스트는 `RecordingLinkOpener`(같은 `testing.dart`)를 주입하고
+   `expect(opener.opened, <String>[entry.detailDeepLink!])` 처럼 **픽스처에서 읽은 값**과 비교한다.
+   🔴 테스트에도 `'aaq://…'` 리터럴을 적지 않는다 — 링크가 null 인 픽스처 행에서는 「버튼이 없다」를 확인한다.
+3. **값은 `*Text` 만 그린다** — 일지 행은 `sideLabel`·`quantityText`·`priceText`·`commissionText`·`taxText`,
+   가림도 그 문자열 안에 이미 들어 있다(`m6/journal_masked_integrity.json` · `m7/m7_monthly_masked_*.json`).
+   화면이 차단 플래그를 보고 값을 감추거나 바꾸는 코드는 v1.1 부터 **반려**다(배너만 얹는다).
+
+### `J-1` R1b · `J-2` · `J-3` · `J-5` 의 입력 픽스처(v1.1)
+
+| 화면·상태 | 픽스처(`FixturePaths.*`) | 타입 |
+|---|---|---|
+| `J-1` 필터 선택지 | `m6JournalFilterCatalog` + 코어 `rangePresets4`·`sleeveCatalog4` | `JournalFilterCatalog` · `DateRange` · `SleeveCatalogEntry` |
+| `J-1` 상단 배지 | `m6JournalBadges2` | `JournalTimelineBadge` |
+| `J-1` 무결성 가림 | `m6JournalMaskedIntegrity` + `safetyStates` 4행 | `TradeJournalEntry` |
+| `J-2` 6갈래 | `m6DecisionDetailFull`·`Partial`·`RejectedSaf309`·`Unknown`·`ReevaluatedChild`·`Amended` | `DecisionDetailVm` |
+| `J-3` 2갈래 | `m6JournalDraftSpecDiscretion`·`m6JournalDraftSpecReconClear` | `JournalDraftFormSpec` |
+| `J-5` 2갈래 | `m6UnknownBoard2`·`m6UnknownBoardEmpty` | `UnknownBoardVm` |
+
+읽는 법(v1.1 에서 `golden_support.dart` 에 추가된 범용 도우미 — ui_analytics 와 같은 이름):
+`singleFixture(FixturePaths.m6DecisionDetailFull, DecisionDetailVm.fromJson)`(1행 픽스처) ·
+`listFixture(FixturePaths.m6JournalBadges2, JournalTimelineBadge.fromJson).rows`(목록) ·
+`fixtureEnvelope(path)`(봉투 원형). 기존 `journalFixture`·`journalSlice`·`safetyFixtureRow` 는 그대로다.

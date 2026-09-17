@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 78개 · 조립일 2026-09-09. 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 81개 · 계약 v1.1.0 · 조립일 2026-09-17(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -22,8 +22,8 @@
 // 🔴 **이 파일은 통합 담당만 편집한다.** 영역 구현자는 자기 폴더에 파일을
 //    더하고, 그 폴더의 재수출 창구(`src/<영역>.dart`)에 통합 단계가 줄을 넣는다.
 //
-// 창구 8개 — 영역 A(primitives·enums) · B·C(dto) · D(repositories·commands) ·
-// E(labels·contract_version) · F(fixtures). 어느 창구에 무엇이 있는지는
+// 창구 9개 — 영역 A(primitives·enums) · B·C(dto) · D(repositories·commands) ·
+// E(labels·contract_version) · F(fixtures) · G(navigation — 🆕 v1.1). 어느 창구에 무엇이 있는지는
 // 각 `src/<영역>.dart` 머리 주석과 `docs/contracts_inventory.md` 가 정본이다.
 //
 // ⚠️ 아직 여기에 없는 것(= 계약에 아직 존재하지 않는 것)은 각 영역의 인계
@@ -39,6 +39,7 @@ export 'src/dto.dart';
 export 'src/enums.dart';
 export 'src/fixtures.dart';
 export 'src/labels/labels.dart';
+export 'src/navigation.dart';
 export 'src/primitives.dart';
 export 'src/repositories.dart';
 ```
@@ -85,7 +86,7 @@ export 'commands/settings_actions.dart';
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.0.0';
+const String contractVersion = '1.1.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -199,6 +200,19 @@ export 'enums/ui.dart';
 
 export 'fixtures/fixture_loader.dart';
 export 'fixtures/fixture_paths.dart';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/navigation.dart`
+
+```dart
+// 영역 G — 내비게이션 계약의 재수출 창구(🆕 계약 v1.1 · 01 §4-4).
+//
+// 🔴 「링크는 데이터로 온다」 — 화면은 링크를 만들지도 해석하지도 않고 `AppLinkOpener` 에
+//    그대로 넘긴다. 라우트 정본 목록은 `AppRoutes.all` 이며 셸(M8)이 전량 등록한다.
+
+export 'navigation/app_links.dart';
 ```
 
 ---
@@ -1332,6 +1346,25 @@ abstract class ReasonChip with _$ReasonChip {
       _$ReasonChipFromJson(json);
 }
 
+/// 🆕 v1.1 — 엔진이 준 «이동 버튼 1개»(01 §4-4 내비게이션 계약).
+///
+/// 🔴 버튼 문구(`label`)도 목적지(`deepLink`)도 엔진이 준다. 화면은 이 객체가 **null 이면
+///    버튼을 그리지 않고**(비활성 아님) non-null 이면 `label` 을 찍고 탭에서
+///    `AppLinkOpener.open(deepLink)` 를 부른다 — 그것이 전부다.
+@freezed
+abstract class LinkAction with _$LinkAction {
+  const factory LinkAction({
+    /// "이 회차 보기" · "원행 보기" · "저널 작성" — 엔진 생성
+    required String label,
+
+    /// `aaq://…` 또는 `handbook://…` — 화면은 해석하지 않는다.
+    required String deepLink,
+  }) = _LinkAction;
+
+  factory LinkAction.fromJson(Map<String, dynamic> json) =>
+      _$LinkActionFromJson(json);
+}
+
 /// 결정 체인 참조 — 매매일지 상세의 뼈대(01 §2-1).
 @freezed
 abstract class DecisionRef with _$DecisionRef {
@@ -1848,11 +1881,36 @@ abstract class TradeJournalEntry with _$TradeJournalEntry {
     /// "069500 KODEX 200" — 엔진 생성
     required String symbolLabel,
     required SleeveId sleeve,
+
+    /// 🔴 필터 인자·테스트용이지 **표시용이 아니다** — 화면은 [sideLabel] 을 그린다.
     required OrderSide side,
+
+    /// 🆕 v1.1(§8 미결 34) — "매수" · "매도" / 정정 행은 "역분개" · "재기재" — 엔진 생성.
+    /// 🔴 화면이 `side`·`fillKind` 로 문구를 고르지 않는다(01 §1-5).
+    required String sideLabel,
+
+    // ── 원값 4종 — 🔴 **표시용이 아니다**(계약 테스트 C-22 합산·정렬의 입력).
+    //    화면은 아래 `*Text` 만 그린다(v1.1 · §8 미결 35).
     required int quantity,
     @DecimalStringConverter() required Decimal price,
     @DecimalStringConverter() required Decimal commission,
     @DecimalStringConverter() required Decimal tax,
+
+    // ── 🆕 v1.1(§8 미결 35) 표시 문자열 4종 — 천 단위 구분·단위·부호까지 엔진 완성.
+    //    🔴 차단 시 **가림도 여기서 끝난다**(01 §2-10 «값 가림의 주체 = 엔진 읽기 경로») —
+    //       `LEDGER_INTEGRITY` 면 "숨김", `RECON_MISMATCH` 대상 종목이면 "120주?" 로 온다.
+    //       화면은 플래그를 보고 이 문자열을 바꾸거나 감추지 않는다.
+    /// "120주" · "−8주"(역분개) · "숨김"
+    required String quantityText,
+
+    /// "38,250원"
+    required String priceText,
+
+    /// "688원"
+    required String commissionText,
+
+    /// "0원"
+    required String taxText,
     required JournalStatus status,
 
     /// "체결" · "결과 확인 중" · "이중 발주 차단됨" — 엔진 생성.
@@ -1898,6 +1956,10 @@ abstract class TradeJournalEntry with _$TradeJournalEntry {
     /// 🆕 G-40 — 이 체결이 속한 리밸런싱 회차. null = 회차 밖(수기·입금 배분 등).
     /// 🔴 화면이 `RebalanceEvent.orderIntentIds` 배열로 목록을 거르지 않게 하는 필드다.
     String? rebalanceEventId,
+
+    /// 🆕 v1.1(§8 미결 36) — 이 행의 `J-2` 거래 상세 링크(`aaq://journal/decision/…`).
+    /// 🔴 null 이면 행 탭에 반응이 없다(상세 없음). 화면이 `decisionId` 로 링크를 조립하지 않는다.
+    String? detailDeepLink,
     required AsOf asOf,
   }) = _TradeJournalEntry;
 
@@ -1994,6 +2056,9 @@ abstract class ThresholdCompare with _$ThresholdCompare {
 }
 
 /// 거부 추적 1행 — 어느 단계에서 왜 막혔나(02 §8-1 · m2-8 E-3).
+///
+/// `stageCode` = 전수 검사의 층(`labels/journal_codes.dart` `SafetyCheckLevelCodes` —
+/// 04_안전장치 P2 «Level 4 → 3 → 2 → 1»). `reasonCode` 는 SAF 코드 **원문 그대로**다.
 @freezed
 abstract class RejectTrace with _$RejectTrace {
   const factory RejectTrace({
@@ -2001,7 +2066,12 @@ abstract class RejectTrace with _$RejectTrace {
     required String stageLabel,
     required String reasonCode,
     required String reasonLabel,
+
+    /// 🔴 정렬·비교용이지 표시용이 아니다(01 §1-3).
     required DateTime occurredAt,
+
+    /// 🆕 v1.1 — "08-13 09:01" 엔진 포맷. 화면이 `occurredAt` 을 포맷하지 않는다.
+    String? occurredAtText,
   }) = _RejectTrace;
 
   factory RejectTrace.fromJson(Map<String, dynamic> json) =>
@@ -2012,9 +2082,19 @@ abstract class RejectTrace with _$RejectTrace {
 ///
 /// 🔴 `ruleCitedOptions` 는 **엔진 제공 목록**이며 자유 입력을 허용하지 않는다.
 /// ⏸ `ReasonOption` 재사용은 m2-8 H-5(선행 미결 §8-20 · D19) — 통합 권고를 따랐다.
+/// 🆕 v1.1 — 읽기 창구 `JournalRepository.draftFormSpec(decisionId)` 와 함께 4필드 추가:
+///    `decisionId`(제출 `JournalDraft.decisionId` 에 그대로 넣는 값) · `pledgeLines`(본인
+///    서약문 — 🔴 편집 불가 · 0줄이면 서약 블록 자체가 없다) · `contextChips`(문맥 칩) ·
+///    `deviation`(표시만 — 🔴 화면이 이탈 여부를 판정하지 않는다).
 @freezed
 abstract class JournalDraftFormSpec with _$JournalDraftFormSpec {
   const factory JournalDraftFormSpec({
+    required String decisionId,
+
+    /// 본인 서약문(청사진 §9-2) — 엔진이 준 문장을 **그대로·순서대로** 그린다.
+    required List<String> pledgeLines,
+    required List<ReasonChip> contextChips,
+    required DeviationBadge deviation,
     required List<ReasonOption> ruleCitedOptions,
     required int rationaleMinChars,
 
@@ -2075,6 +2155,221 @@ abstract class UnknownResolutionStep with _$UnknownResolutionStep {
 
   factory UnknownResolutionStep.fromJson(Map<String, dynamic> json) =>
       _$UnknownResolutionStepFromJson(json);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 🆕 계약 v1.1(2026-09-17 · M2 보강) — J-1 필터·배지 · J-2 상세 · J-5 보드
+// ════════════════════════════════════════════════════════════════════════════
+
+/// `J-1` 필터의 「상태」 선택지 1건(§8 미결 37).
+///
+/// 🔴 선택지의 **목록·순서·문구**를 엔진이 준다 — 화면이 `JournalStatus.values` 를 순회하며
+///    라벨을 붙이지 않는다(01 §1-5). 고른 값은 `watchTimeline(status:)` 인자로 그대로 간다.
+@freezed
+abstract class JournalStatusOption with _$JournalStatusOption {
+  const factory JournalStatusOption({
+    required JournalStatus status,
+
+    /// "체결" · "결과 확인 중" — 엔진 생성
+    required String label,
+  }) = _JournalStatusOption;
+
+  factory JournalStatusOption.fromJson(Map<String, dynamic> json) =>
+      _$JournalStatusOptionFromJson(json);
+}
+
+/// `J-1` 필터의 「출처」 선택지 1건(§8 미결 37 · G-39).
+@freezed
+abstract class FillOriginOption with _$FillOriginOption {
+  const factory FillOriginOption({
+    required FillOrigin origin,
+
+    /// "브로커 체결만" · "수기 기록만" — 엔진 생성
+    required String label,
+  }) = _FillOriginOption;
+
+  factory FillOriginOption.fromJson(Map<String, dynamic> json) =>
+      _$FillOriginOptionFromJson(json);
+}
+
+/// `J-1` 필터 카탈로그(§8 미결 37) — 창구는 `JournalRepository.watchFilterCatalog()`.
+///
+/// 🔵 기간은 `ConfigRepository.watchRangePresets()`, 슬리브는 `watchSleeves()` 가 준다 —
+///    이 타입은 **나머지 셋**(상태·출처·종목)만 싣는다(같은 목록을 두 벌 두지 않는다).
+/// 🔴 「전체」(필터 없음)는 선택지가 아니라 **인자 null** 이다 — 그 버튼 문구는 정적 라벨이다.
+@freezed
+abstract class JournalFilterCatalog with _$JournalFilterCatalog {
+  const factory JournalFilterCatalog({
+    required List<JournalStatusOption> statusOptions,
+    required List<FillOriginOption> originOptions,
+
+    /// 일지에 등장한 종목 — 🔴 화면이 `rows` 에서 종목을 모으지 않는다.
+    required List<SymbolOption> symbolOptions,
+    required AsOf asOf,
+  }) = _JournalFilterCatalog;
+
+  factory JournalFilterCatalog.fromJson(Map<String, dynamic> json) =>
+      _$JournalFilterCatalogFromJson(json);
+}
+
+/// `J-1` 상단 배지 1건(§8 미결 38) — 창구는 `JournalRepository.watchTimelineBadges()`.
+///
+/// 🔴 **건수는 문구 안에 있다**("확인 중 2건") — 화면이 `rows` 를 세지 않는다(집계 = 재계산).
+/// 🔴 목록이 비면 배지 줄 자체가 없다(「정상 = 무소식」 · 02 §3-5).
+/// `badgeCode` 값은 `labels/journal_codes.dart` 의 `JournalBadgeCodes` 가 정본이다.
+@freezed
+abstract class JournalTimelineBadge with _$JournalTimelineBadge {
+  const factory JournalTimelineBadge({
+    required String badgeCode,
+
+    /// "확인 중 2건" — 엔진 생성
+    required String label,
+    required ChipTone tone,
+
+    /// 탭 목적지(`aaq://journal/unknown-board`). null 이면 탭 반응 없음.
+    String? deepLink,
+  }) = _JournalTimelineBadge;
+
+  factory JournalTimelineBadge.fromJson(Map<String, dynamic> json) =>
+      _$JournalTimelineBadgeFromJson(json);
+}
+
+/// `J-2` 체인 타임라인의 1단계(02 §3-2).
+///
+/// 🔴 단계는 **언제나 6칸**이고 결측이어도 자리를 유지한다 — 엔진이 6건을 순서대로 준다.
+///    화면은 받은 순서대로 그리고 `stageCode` 로 문구·아이콘을 고르지 않는다.
+/// 🔵 advisory 체인의 치환(브로커 주문·체결 → 안내·수기 기록)도 엔진이 이미 했다 —
+///    화면이 `operatingMode` 로 갈래를 고르지 않는다.
+/// `stageCode` 값은 `labels/journal_codes.dart` 의 `DecisionChainStageCodes` 가 정본이다.
+@freezed
+abstract class DecisionChainStep with _$DecisionChainStep {
+  const factory DecisionChainStep({
+    required String stageCode,
+
+    /// "신호" · "의도" · "브로커 주문" · "안내" — 엔진 생성
+    required String stageLabel,
+
+    /// "완료" · "확인 중" · "거부" · "기록 없음" — 엔진 생성
+    required String stateLabel,
+    required ChipTone tone,
+
+    /// "08-03 14:12" — 엔진 포맷(01 §1-3). null = 그 단계에 시각이 없다.
+    String? occurredAtText,
+
+    /// 단계 아래 보조 줄 — "주문번호 B0006" · "잔여 40주 미체결". 엔진 생성 · 순서 그대로.
+    @Default(<String>[]) List<String> detailLines,
+
+    /// 그 단계의 상세로 가는 링크(예 「안내」 노드 → `A-2`). null = 탭 반응 없음.
+    String? deepLink,
+  }) = _DecisionChainStep;
+
+  factory DecisionChainStep.fromJson(Map<String, dynamic> json) =>
+      _$DecisionChainStepFromJson(json);
+}
+
+/// `J-2` 거래 상세 한 화면의 전부 — 창구는 `JournalRepository.watchDecisionDetail(decisionId)`.
+///
+/// 🔴 화면이 조인·추정 재구성을 하지 않게 하는 타입이다: 체인 6단계 · 결정 당시 스냅샷 ·
+///    임계값 대조 · 거부 추적 · 부분 체결/정정 체인 · 이동 버튼 4종이 **한 번에** 온다.
+/// 🔴 손익 필드 없음(02 §3-2 금지 ③). 「재시도」·「강제 취소」 류 조작 링크도 오지 않는다.
+/// 🔴 `LEDGER_INTEGRITY` 중에는 `entry`·`fills` 의 `*Text` 가 가려져 온다(구조만 렌더).
+@freezed
+abstract class DecisionDetailVm with _$DecisionDetailVm {
+  const factory DecisionDetailVm({
+    /// 상단 요약 — `J-1` 의 그 행과 같은 객체다.
+    required TradeJournalEntry entry,
+
+    /// 🔴 **항상 6건**(결측 단계도 자리 유지).
+    required List<DecisionChainStep> steps,
+
+    /// 결정 당시 스냅샷. null 이면 [snapshotMissingLabel] 을 그린다.
+    DecisionSnapshot? snapshot,
+
+    /// "스냅샷 없음(구 버전 기록)" — 🔴 화면이 추정해 재구성하지 않는다.
+    String? snapshotMissingLabel,
+
+    /// 트리거 값 vs 사전 등록 임계값 — 0건이면 표 자체가 없다.
+    required List<ThresholdCompare> thresholds,
+
+    /// 거부 추적(전수 검사 Level 4→1 순 · 04_안전장치 P2) — 0건이면 접이식 자체가 없다.
+    required List<RejectTrace> rejectTraces,
+
+    /// 이 결정의 체결 행들 — 부분 체결 다중 행 · 정정 체인(원본→역분개→재기재).
+    /// 🔴 엔진이 정렬해서 준다. 화면이 체인 길이를 세어 버튼을 감추지 않는다.
+    required List<TradeJournalEntry> fills,
+
+    /// "잔여 40주 미체결" — 엔진 생성. 🔴 화면이 수량을 빼서 만들지 않는다.
+    String? remainingText,
+
+    /// "브로커 결과 확인 중 — 다음 배치에서 확정됩니다" — `status == unknown` 일 때.
+    String? pendingNoticeText,
+
+    /// X2 재판정 child 의 「원행 보기」.
+    LinkAction? parentLink,
+
+    /// 「이 회차」 → `S7-6b`. 🔴 null 이면 버튼은 **부재**다(비활성 아님 · G-40).
+    LinkAction? rebalanceLink,
+
+    /// "저널 작성됨" · "저널 미작성" — 엔진 생성
+    required String journalStateLabel,
+
+    /// 저널 읽기 또는 `J-3` 작성 유도. 웹·iOS 읽기 경로는 작성 링크를 주지 않는다.
+    LinkAction? journalLink,
+
+    /// 수기 체결 「정정」 → `M5-12`. 🔴 폰 읽기 경로만 채운다(웹·iOS 는 null = 진입점 부재).
+    LinkAction? amendLink,
+    required AsOf asOf,
+  }) = _DecisionDetailVm;
+
+  factory DecisionDetailVm.fromJson(Map<String, dynamic> json) =>
+      _$DecisionDetailVmFromJson(json);
+}
+
+/// `J-5` UNKNOWN 해소 보드의 카드 1건(02 §3-5).
+///
+/// 🔴 경과 시간·건수를 화면이 계산하지 않는다 — `elapsedText` 가 준다.
+/// 🔴 「재조회」·「강제 해소」 링크는 **오지 않는다**(브로커 재호출은 엔진 소관).
+@freezed
+abstract class UnknownResolutionItem with _$UnknownResolutionItem {
+  const factory UnknownResolutionItem({
+    required TradeJournalEntry entry,
+
+    /// "발생 08-21 14:02 · 3영업일 경과" — 엔진 생성
+    required String elapsedText,
+
+    /// "이 종목의 신규 주문이 막혀 있습니다" — 엔진 생성
+    required String effectLine,
+
+    /// 단계 진행 4칸(`RECORDED → QUERY_PENDING → BROKER_CONFIRMED → RESOLVED`).
+    required List<UnknownResolutionStep> steps,
+
+    /// 장기 미해소 강조 — 🔴 임계 배치 수는 엔진이 판정한다(화면 상수 금지 · 02 §8-4).
+    required bool emphasized,
+
+    /// 장기 미해소일 때의 M5 안내 링크.
+    LinkAction? escalationLink,
+  }) = _UnknownResolutionItem;
+
+  factory UnknownResolutionItem.fromJson(Map<String, dynamic> json) =>
+      _$UnknownResolutionItemFromJson(json);
+}
+
+/// `J-5` 보드 전체 — 창구는 `JournalRepository.watchUnknownBoard()`.
+@freezed
+abstract class UnknownBoardVm with _$UnknownBoardVm {
+  const factory UnknownBoardVm({
+    required List<UnknownResolutionItem> items,
+
+    /// "다음 배치(18:10)에서 조회로 확정됩니다" — 엔진 생성
+    String? nextBatchNoticeText,
+
+    /// "미해소 건이 없습니다" — `items` 가 비었을 때.
+    String? emptyLabel,
+    required AsOf asOf,
+  }) = _UnknownBoardVm;
+
+  factory UnknownBoardVm.fromJson(Map<String, dynamic> json) =>
+      _$UnknownBoardVmFromJson(json);
 }
 ```
 
@@ -2759,6 +3054,17 @@ abstract class MonthlyReport with _$MonthlyReport {
 
     /// 전월 소급 정정 각주 — 🔴 마감된 달을 재계산하지 않는다(G-97).
     String? backdateFootnote,
+
+    /// 🆕 v1.1(§8 미결 40) — 미생성 달의 한 문장: "9월 1일 생성일에 만들어집니다 · D-4".
+    /// 🔴 non-null 이면 헤더 아래에 그대로 그린다. 화면이 D-day 를 계산하지 않는다.
+    String? pendingNoticeText,
+
+    /// 🆕 v1.1(§8 미결 43) — "2026-09-01 생성" · 미생성이면 null.
+    String? generatedAtText,
+
+    /// 🆕 v1.1(§8 미결 43) — 이 리포트를 만든 설정의 해시(모노스페이스 축약 표시용).
+    /// 🔴 화면이 다른 해시와 비교하지 않는다(contract_version.dart 말미 조문). 미생성이면 null.
+    String? configHash,
   }) = _MonthlyReport;
 
   factory MonthlyReport.fromJson(Map<String, dynamic> json) =>
@@ -2784,8 +3090,14 @@ abstract class ReportItem with _$ReportItem {
     required String title,
 
     /// 🔴 엔진 완성 문자열 — 결측이면 그 사실도 이 문자열이 말한다.
+    /// 🔴 차단 시 가림도 엔진 읽기 경로가 끝낸다(01 §2-10) — 화면은 바꾸지 않는다.
     required String valueText,
     String? noteText,
+
+    /// 🆕 v1.1(§8 미결 41) — 이 항목의 「자세히」 목적지. 🔴 **non-null 인 항목에만** 버튼을
+    ///    그린다. 어느 항목에 링크가 붙는지는 엔진이 정한다 — 화면이 `order`·`code`·
+    ///    `OperatingMode` 로 판정하지 않는다.
+    String? detailDeepLink,
   }) = _ReportItem;
 
   factory ReportItem.fromJson(Map<String, dynamic> json) =>
@@ -2847,9 +3159,19 @@ abstract class DisclosureGateVm with _$DisclosureGateVm {
 @freezed
 abstract class DrawdownContextVm with _$DrawdownContextVm {
   const factory DrawdownContextVm({
+    /// "최근 24개월" — `range == null` 이면 엔진 기본 구간이고 그 결과를 이 문구가 말한다.
     required String periodLabel,
+
+    // 🔴 아래 세 값은 짧은 숫자가 아니라 **제목을 포함한 엔진 완성 문장**이다(C4 R2-Gem-S73
+    //    교훈). 화면이 제목을 따로 달면 같은 말을 두 번 하게 되고, 좁은 칸에 넣으면
+    //    들어가지 않는다 — 전체 폭 한 줄씩 그린다. `FittedBox` 로 줄이지 않는다.
+    /// "현재 낙폭 −2.1%"
     required String currentDdText,
+
+    /// "최대 낙폭 −6.4%"
     required String maxDdText,
+
+    /// "회복까지 걸린 최장 기간 3개월"
     required String tuwText,
 
     /// 🔴 게이지 폭 전용 정규값(0.0~1.0). 표시는 `*Text` 필드다.
@@ -2887,9 +3209,20 @@ abstract class ContributionVm with _$ContributionVm {
 abstract class ContributionRow with _$ContributionRow {
   const factory ContributionRow({
     required SleeveId sleeve,
+
+    /// "A · 국내 지수 ETF" — 엔진 생성(화면이 `sleeve` 로 문구를 고르지 않는다)
     required String label,
+
+    /// "+0.42%p" · 산출 불가면 "산출 불가" — 엔진 생성
     required String contributionText,
+
+    /// 막대 폭 전용(0.0~1.0). 🔴 [unavailableLabel] 이 non-null 이면 **0.0** 으로 온다.
     required double normalized,
+
+    /// 🆕 v1.1(§8 미결 45) — 「이 슬리브는 산출할 수 없다」의 사유 한 줄
+    ///    ("8월 12~14일 가격 결측 — 산출 불가"). 🔴 non-null 이면 **막대를 그리지 않고**
+    ///    이 문장을 그린다. 🔴 화면이 나머지 행을 100% 로 재정규화하지 않는다(03 §8).
+    String? unavailableLabel,
   }) = _ContributionRow;
 
   factory ContributionRow.fromJson(Map<String, dynamic> json) =>
@@ -3644,9 +3977,21 @@ abstract class BlockFlag with _$BlockFlag {
     required String flagId,
     required String label,
     required DateTime setAt,
+
+    /// 🔴 **해제가 어떤 성격인가**(자동·원인 코드 필요·수동 경로 없음·마법사 전용)이지
+    ///    이동 목적지가 아니다 — 목적지는 [clearDeepLink] 다.
     required ClearRoute clearRoute,
     required String clearInstruction,
     String? originCode,
+
+    /// 🆕 v1.1(§8 미결 39) — "마지막 검증 09-05 18:10" · `LEDGER_INTEGRITY` 배너의
+    ///    «마지막 검증 체크포인트 시각»(02 §2-2 표). 엔진 완성 문자열(01 §1-3).
+    String? checkpointLabel,
+
+    /// 🆕 v1.1(§8 미결 36) — 조치 진입점 링크(`aaq://m5/…` · `aaq://journal/draft/…` 등).
+    /// 🔴 null 이면 배너에 이동 화살표·버튼이 **없다**(`LEDGER_FIX` 처럼 해제 경로가 없는 것).
+    /// 🔴 화면이 `flagId`·`clearRoute` 로 목적지를 고르지 않는다(그 표가 곧 판정이다).
+    String? clearDeepLink,
   }) = _BlockFlag;
 
   factory BlockFlag.fromJson(Map<String, dynamic> json) =>
@@ -5565,9 +5910,15 @@ abstract final class FixturePaths {
   static const String onboardingFresh = 'onboarding_fresh.json';
   static const String onboardingReconnect = 'onboarding_reconnect.json';
   static const String performance24m = 'performance_24m.json';
+
+  /// 🆕 v1.1 — `ConfigRepository.watchRangePresets()` 의 입력. `is_default` 는 정확히 1건.
+  static const String rangePresets4 = 'range_presets_4.json';
   static const String rebalance6 = 'rebalance_6.json';
   static const String resumeReport1 = 'resume_report_1.json';
   static const String safetyStates = 'safety_states.json';
+
+  /// 🆕 v1.1 — `ConfigRepository.watchSleeves()` 의 입력(P0S — 새틀라이트 행 없음).
+  static const String sleeveCatalog4 = 'sleeve_catalog_4.json';
 
   // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
   static const String m6Advice12 = 'm6/advice_12.json';
@@ -5581,13 +5932,45 @@ abstract final class FixturePaths {
   static const String m6AdviceNoAction = 'm6/advice_no_action.json';
   static const String m6AdviceSkipReasons = 'm6/advice_skip_reasons.json';
   static const String m6AdviceViewer4 = 'm6/advice_viewer_4.json';
+
+  // 🆕 v1.1 — `J-2` 거래 상세(`JournalRepository.watchDecisionDetail`) 6갈래.
+  static const String m6DecisionDetailAmended =
+      'm6/decision_detail_amended.json';
+  static const String m6DecisionDetailFull = 'm6/decision_detail_full.json';
+  static const String m6DecisionDetailPartial =
+      'm6/decision_detail_partial.json';
+  static const String m6DecisionDetailReevaluatedChild =
+      'm6/decision_detail_reevaluated_child.json';
+  static const String m6DecisionDetailRejectedSaf309 =
+      'm6/decision_detail_rejected_saf309.json';
+  static const String m6DecisionDetailUnknown =
+      'm6/decision_detail_unknown.json';
   static const String m6EntryGateNovPass1 = 'm6/entry_gate_nov_pass_1.json';
   static const String m6ExternalHoldings2 = 'm6/external_holdings_2.json';
   static const String m6FillFormSpec = 'm6/fill_form_spec.json';
   static const String m6FillFormSpecStale = 'm6/fill_form_spec_stale.json';
   static const String m6FillRejectedPrice = 'm6/fill_rejected_price.json';
+
+  /// 🆕 2026-09-17(C4 · R1-Bob-J1) — `J-1` 빈 상태 골든 `j1_empty` 의 입력.
+  ///    `journal_30.json` 의 0행 슬라이스는 `empty_label` 이 null 이라 화면이 그릴 것이 없다 —
+  ///    「없음」(NO_DATA)은 문구를 실어야 하므로(계약 3조 ③) M2 가 파일로 준다(02 §3-1 · §6).
+  static const String m6JournalEmpty = 'm6/journal_empty.json';
+
+  // 🆕 v1.1 — `J-1` 배지·필터 · `J-3` 폼 스펙 · 가림(LEDGER_INTEGRITY) 일지.
+  static const String m6JournalBadges2 = 'm6/journal_badges_2.json';
+  static const String m6JournalDraftSpecDiscretion =
+      'm6/journal_draft_spec_discretion.json';
+  static const String m6JournalDraftSpecReconClear =
+      'm6/journal_draft_spec_recon_clear.json';
+  static const String m6JournalFilterCatalog = 'm6/journal_filter_catalog.json';
+  static const String m6JournalMaskedIntegrity =
+      'm6/journal_masked_integrity.json';
   static const String m6ManualFills8 = 'm6/manual_fills_8.json';
   static const String m6SelfReport1 = 'm6/self_report_1.json';
+
+  // 🆕 v1.1 — `J-5` UNKNOWN 해소 보드.
+  static const String m6UnknownBoard2 = 'm6/unknown_board_2.json';
+  static const String m6UnknownBoardEmpty = 'm6/unknown_board_empty.json';
 
   // ── m7/ — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15) ──
   static const String m7AftertaxLadder1 = 'm7/aftertax_ladder_1.json';
@@ -5599,6 +5982,9 @@ abstract final class FixturePaths {
   static const String m7M7Annual2026 = 'm7/m7_annual_2026.json';
   static const String m7M7AnnualFirstYear = 'm7/m7_annual_first_year.json';
   static const String m7M7Contrib3sleeve = 'm7/m7_contrib_3sleeve.json';
+
+  /// 🆕 v1.1(§8 미결 45) — 산출 불가 슬리브 1행(`unavailable_label`).
+  static const String m7M7ContribPartial = 'm7/m7_contrib_partial.json';
   static const String m7M7DdContextDeep = 'm7/m7_dd_context_deep.json';
   static const String m7M7DdContextNormal = 'm7/m7_dd_context_normal.json';
   static const String m7M7DepositPlanDefault =
@@ -5612,6 +5998,12 @@ abstract final class FixturePaths {
   static const String m7M7GoalPathRealworld = 'm7/m7_goal_path_realworld.json';
   static const String m7M7Monthly202608 = 'm7/m7_monthly_2026_08.json';
   static const String m7M7MonthlyGap = 'm7/m7_monthly_gap.json';
+
+  // 🆕 v1.1(§8 미결 42) — 엔진 읽기 경로가 **가려서 준** 월간 리포트 2갈래.
+  static const String m7M7MonthlyMaskedIntegrity =
+      'm7/m7_monthly_masked_integrity.json';
+  static const String m7M7MonthlyMaskedRecon =
+      'm7/m7_monthly_masked_recon.json';
   static const String m7M7MonthlyPending = 'm7/m7_monthly_pending.json';
   static const String m7M7NextRebalanceD6 = 'm7/m7_next_rebalance_d6.json';
   static const String m7M7PerfDailyGap = 'm7/m7_perf_daily_gap.json';
@@ -5660,9 +6052,11 @@ abstract final class FixturePaths {
     onboardingFresh,
     onboardingReconnect,
     performance24m,
+    rangePresets4,
     rebalance6,
     resumeReport1,
     safetyStates,
+    sleeveCatalog4,
     m6Advice12,
     m6AdviceBlocked,
     m6AdviceDetailOnhold,
@@ -5673,13 +6067,27 @@ abstract final class FixturePaths {
     m6AdviceNoAction,
     m6AdviceSkipReasons,
     m6AdviceViewer4,
+    m6DecisionDetailAmended,
+    m6DecisionDetailFull,
+    m6DecisionDetailPartial,
+    m6DecisionDetailReevaluatedChild,
+    m6DecisionDetailRejectedSaf309,
+    m6DecisionDetailUnknown,
     m6EntryGateNovPass1,
     m6ExternalHoldings2,
     m6FillFormSpec,
     m6FillFormSpecStale,
     m6FillRejectedPrice,
+    m6JournalEmpty,
+    m6JournalBadges2,
+    m6JournalDraftSpecDiscretion,
+    m6JournalDraftSpecReconClear,
+    m6JournalFilterCatalog,
+    m6JournalMaskedIntegrity,
     m6ManualFills8,
     m6SelfReport1,
+    m6UnknownBoard2,
+    m6UnknownBoardEmpty,
     m7AftertaxLadder1,
     m7ExecutionGap1,
     m7ExecutionGapCant,
@@ -5689,6 +6097,7 @@ abstract final class FixturePaths {
     m7M7Annual2026,
     m7M7AnnualFirstYear,
     m7M7Contrib3sleeve,
+    m7M7ContribPartial,
     m7M7DdContextDeep,
     m7M7DdContextNormal,
     m7M7DepositPlanDefault,
@@ -5700,6 +6109,8 @@ abstract final class FixturePaths {
     m7M7GoalPathRealworld,
     m7M7Monthly202608,
     m7M7MonthlyGap,
+    m7M7MonthlyMaskedIntegrity,
+    m7M7MonthlyMaskedRecon,
     m7M7MonthlyPending,
     m7M7NextRebalanceD6,
     m7M7PerfDailyGap,
@@ -6315,6 +6726,97 @@ abstract final class SafetyHoldCodes {
 
 ---
 
+## `packages/domain_contracts/lib/src/labels/journal_codes.dart`
+
+```dart
+// 🆕 계약 v1.1(2026-09-17) — 매매일지 상세(J-2)·UNKNOWN 보드(J-5)·타임라인 배지(J-1)의 코드 상수.
+//
+// 🔴 이 파일은 «어떤 **코드**가 오는가»의 목록이지 코드→문구 매핑이 아니다(labels.dart 머리 주석).
+//    문구는 짝이 되는 `*Label` 필드가 준다 — 화면이 이 상수로 문구·아이콘·색을 고르지 않는다.
+//    쓰는 곳은 테스트(«6단계가 이 순서로 왔는가»)와 엔진 구현이다.
+
+/// `J-2` 체인 타임라인의 단계(02 §3-2) — 자동 매매 6단계 + advisory 치환 2단계.
+///
+/// 🔴 한 체인은 **언제나 6칸**이다: `SIGNAL → INTENT → (BROKER_ORDER | ADVICE) →
+///    (EXECUTION | MANUAL_RECORD) → TRADE → JOURNAL`. 어느 갈래인지는 엔진이 정한다.
+abstract final class DecisionChainStageCodes {
+  static const String signal = 'SIGNAL';
+  static const String intent = 'INTENT';
+  static const String brokerOrder = 'BROKER_ORDER';
+  static const String execution = 'EXECUTION';
+  static const String trade = 'TRADE';
+  static const String journal = 'JOURNAL';
+
+  /// X7 advisory — `BROKER_ORDER` 자리의 치환.
+  static const String advice = 'ADVICE';
+
+  /// X7 advisory — `EXECUTION` 자리의 치환.
+  static const String manualRecord = 'MANUAL_RECORD';
+
+  static const Set<String> values = <String>{
+    signal,
+    intent,
+    brokerOrder,
+    execution,
+    trade,
+    journal,
+    advice,
+    manualRecord,
+  };
+}
+
+/// 주문 전 전수 검사의 층(04_안전장치 P2 — 검사 순서 Level 4 → 3 → 2 → 1).
+/// `RejectTrace.stageCode` 의 값이다.
+abstract final class SafetyCheckLevelCodes {
+  /// Level 4 — 시스템.
+  static const String level4System = 'LEVEL_4_SYSTEM';
+
+  /// Level 3 — 포트폴리오.
+  static const String level3Portfolio = 'LEVEL_3_PORTFOLIO';
+
+  /// Level 2 — 슬리브.
+  static const String level2Sleeve = 'LEVEL_2_SLEEVE';
+
+  /// Level 1 — 종목.
+  static const String level1Position = 'LEVEL_1_POSITION';
+
+  static const Set<String> values = <String>{
+    level4System,
+    level3Portfolio,
+    level2Sleeve,
+    level1Position,
+  };
+}
+
+/// `J-5` UNKNOWN 해소 단계 4칸(02 §3-5) — `UnknownResolutionStep.stepId` 의 값이다.
+abstract final class UnknownResolutionStageCodes {
+  static const String recorded = 'RECORDED';
+  static const String queryPending = 'QUERY_PENDING';
+  static const String brokerConfirmed = 'BROKER_CONFIRMED';
+  static const String resolved = 'RESOLVED';
+
+  static const Set<String> values = <String>{
+    recorded,
+    queryPending,
+    brokerConfirmed,
+    resolved,
+  };
+}
+
+/// `J-1` 상단 배지의 종류 — `JournalTimelineBadge.badgeCode` 의 값이다.
+abstract final class JournalBadgeCodes {
+  /// 「확인 중 N건」 → `J-5`.
+  static const String unknownOpen = 'UNKNOWN_OPEN';
+
+  /// 「리뷰 대기 N건」 → `J-4`.
+  static const String blindReviewPending = 'BLIND_REVIEW_PENDING';
+
+  static const Set<String> values = <String>{unknownOpen, blindReviewPending};
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/labels/labels.dart`
 
 ```dart
@@ -6356,6 +6858,7 @@ import 'alert_codes.dart';
 import 'deviation_kind_codes.dart';
 import 'exit_kind.dart';
 import 'flag_ids.dart';
+import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
 import 'origin_codes.dart';
 import 'saf_codes.dart';
@@ -6366,6 +6869,7 @@ export 'alert_codes.dart';
 export 'deviation_kind_codes.dart';
 export 'exit_kind.dart';
 export 'flag_ids.dart';
+export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
 export 'origin_codes.dart';
 export 'saf_codes.dart';
@@ -6488,6 +6992,11 @@ abstract final class ContractCodes {
     'operating_param_key': OperatingParamKeys.values,
     'aftertax_step': AfterTaxStepCodes.values,
     'stale_reason': StaleReasonCodes.values,
+    // 🆕 v1.1 — J-2 체인 단계 · 전수 검사 층 · J-5 해소 단계 · J-1 배지
+    'decision_chain_stage': DecisionChainStageCodes.values,
+    'safety_check_level': SafetyCheckLevelCodes.values,
+    'unknown_resolution_stage': UnknownResolutionStageCodes.values,
+    'journal_badge': JournalBadgeCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -6889,6 +7398,232 @@ abstract final class GapReasonCodes {
 
 ---
 
+## `packages/domain_contracts/lib/src/navigation/app_links.dart`
+
+```dart
+// 01 §4-4 «내비게이션 계약» — 🆕 계약 v1.1(2026-09-17 · §8 미결 36 해소).
+//
+// 한 문장: **링크는 데이터로 온다.** 화면은 링크 문자열을 만들지도 해석하지도 않는다 —
+// DTO 가 실어 온 문자열을 그대로 [AppLinkOpener.open] 에 넘긴다. 여는 일(라우트 테이블 ·
+// 가드 리다이렉트 · 핸드북 뷰어)은 셸(M8)의 몫이다(04 §1-2 「라우트 테이블은 정적으로 전
+// 라우트를 등록하고 «부재»는 가드 리다이렉트」).
+//
+// 🔴 화면 규칙 4조
+//   ① 링크 필드가 null 이면 그 진입점은 **부재**다(비활성 버튼·자리표시자를 그리지 않는다).
+//   ② 링크 문자열을 파싱·분기하지 않는다(`startsWith('aaq://m5')` 같은 코드 = 판정).
+//   ③ [AppRoutes] 의 **패턴**(`:param` 이 든 것)에 값을 끼워 링크를 조립하지 않는다 —
+//      파라미터가 든 링크는 언제나 엔진이 완성해서 준다.
+//   ④ 파라미터 없는 고정 목적지는 화면 명세가 그 버튼을 **명시한 경우에만** [AppRoutes]
+//      상수를 그대로 넘길 수 있다. 목록에 없는 목적지가 필요하면 멈추고 질문한다.
+// 🔴 엔진·픽스처 규칙: `aaq://` 링크는 전부 [AppRoutes.all] 의 패턴 하나와 일치해야 한다
+//    (계약 테스트 C-33). `handbook://` 는 핸드북 앵커이며 도착지는 `HandbookPage` 다.
+// 🔴 이 파일은 순수 Dart 다(Flutter import 없음 — 01 §1-1). 구현체는 `ui_shell` 이 준다.
+
+/// 화면이 링크를 여는 **유일한** 창구. 구현은 셸(M8)이 주입한다.
+///
+/// 화면 패키지는 `Provider<AppLinkOpener>((_) => throw UnimplementedError(...))` 를 두고
+/// 조립 앱(`apps/*/lib/main.dart`)이 override 한다(01 §4-1 주입 규약과 같은 모양).
+/// 테스트는 넘어온 문자열을 기록하는 가짜 구현으로 «DTO 의 링크가 그대로 전달되는가»를 본다.
+abstract interface class AppLinkOpener {
+  /// [link] 는 DTO 가 준 문자열 **그대로**다(`aaq://…` · `handbook://…`).
+  void open(String link);
+}
+
+/// 링크의 스킴 2종.
+abstract final class AppLinkSchemes {
+  /// 앱 안의 화면.
+  static const String app = 'aaq';
+
+  /// 핸드북 앵커(`ReasonChip.detailDeepLink` 의 도착지).
+  static const String handbook = 'handbook';
+
+  static const Set<String> values = <String>{app, handbook};
+}
+
+/// 앱 라우트 **정본 목록**. 셸은 [all] 을 전량 라우트 테이블에 등록한다(04 §1-2).
+///
+/// `:name` 세그먼트는 파라미터다(빈 문자열 불가). 고정 세그먼트가 파라미터보다 먼저
+/// 일치한다(`aaq://report/archive` 는 `reportArchive` 이지 `reportMonthly` 가 아니다).
+/// 🔴 목록은 회차마다 **M2 가** 늘린다 — 화면·엔진이 이름을 지어 쓰지 않는다.
+abstract final class AppRoutes {
+  // ── M6 매매일지·안내·원장(02) ─────────────────────────────────────────────
+  /// `J-1` 매매일지 타임라인.
+  static const String journalTimeline = 'aaq://journal/timeline';
+
+  /// `J-2` 거래 상세 — `TradeJournalEntry.detailDeepLink` 가 완성해서 준다.
+  static const String journalDecision = 'aaq://journal/decision/:decisionId';
+
+  /// `J-3` 사전 저널 작성(폰 전용) — `DecisionDetailVm.journalLink` 등이 준다.
+  static const String journalDraft = 'aaq://journal/draft/:decisionId';
+
+  /// `J-4` 사후 blind 리뷰.
+  static const String journalBlindReview = 'aaq://journal/blind-review';
+
+  /// `J-5` UNKNOWN 해소 보드 — `JournalTimelineBadge.deepLink` 가 준다.
+  static const String journalUnknownBoard = 'aaq://journal/unknown-board';
+
+  /// `A-1` 안내 인박스.
+  static const String adviceInbox = 'aaq://advice/inbox';
+
+  /// `A-2` 안내 상세.
+  static const String adviceDetail = 'aaq://advice/detail/:adviceId';
+
+  /// `A-3` 수기 체결 기록(폰 전용).
+  static const String adviceFill = 'aaq://advice/fill';
+
+  /// 안내 이력.
+  static const String adviceHistory = 'aaq://advice/history';
+
+  /// `L-3` 원장 실사(폰 전용).
+  static const String ledgerSelfReport = 'aaq://ledger/self-report';
+
+  /// 원장 신뢰 등급 설명.
+  static const String ledgerTrust = 'aaq://ledger/trust';
+
+  /// `S7-10` 이행 갭.
+  static const String ledgerExecutionGap = 'aaq://ledger/execution-gap';
+
+  // ── M7 성과·리밸런싱·플래너(03) ───────────────────────────────────────────
+  /// `S7-1b` 리포트 아카이브.
+  static const String reportArchive = 'aaq://report/archive';
+
+  /// `S7-7` 세후 사다리.
+  static const String reportAfterTax = 'aaq://report/aftertax';
+
+  /// `S7-8` 연간 리뷰.
+  static const String reportAnnual = 'aaq://report/annual';
+
+  /// `S7-1` 월간 리포트(`yyyy-MM`).
+  static const String reportMonthly = 'aaq://report/:yyyyMm';
+
+  /// `S7-2` 성과 탐색(열람 게이트 뒤).
+  static const String performanceExplore = 'aaq://performance/explore';
+
+  /// `S7-3` 드로다운·TUW 컨텍스트.
+  static const String performanceDrawdown = 'aaq://performance/drawdown';
+
+  /// `S7-3b` 슬리브 기여 분해.
+  static const String performanceContribution =
+      'aaq://performance/contribution';
+
+  /// `S7-4` 납입 플래너.
+  static const String planDeposit = 'aaq://plan/deposit';
+
+  /// `S7-6c` 리밸런싱 미리보기.
+  static const String rebalancePreview = 'aaq://rebalance/preview';
+
+  /// `S7-6b` 리밸런싱 회차 상세 — `DecisionDetailVm.rebalanceLink` 등이 준다.
+  static const String rebalanceEvent =
+      'aaq://rebalance/event/:rebalanceEventId';
+
+  // ── M8 셸·운영·온보딩 · M9 설정(04 · 05) ─────────────────────────────────
+  /// 온보딩·재연결 단계(`o_00`~ · `r_00`~).
+  static const String onboardingStep = 'aaq://onboarding/:stepId';
+  static const String opsArchive = 'aaq://ops/archive';
+  static const String opsMaintenance = 'aaq://ops/maintenance';
+  static const String opsWatchdog = 'aaq://ops/watchdog';
+  static const String settingsContribution = 'aaq://settings/contribution';
+  static const String settingsCredentials = 'aaq://settings/credentials';
+  static const String handoverStatus = 'aaq://handover/status';
+
+  // ── M5 · X1 · X2 · X5 소유(06 §3-5 목록 — 위젯은 Claude, 등록은 셸) ────────
+  static const String m5KillSwitch = 'aaq://m5/kill-switch';
+  static const String m5ReleaseGate = 'aaq://m5/release-gate';
+  static const String m5BlockBoard = 'aaq://m5/block-board';
+  static const String m5Intervention = 'aaq://m5/intervention';
+  static const String m5HandoverGate = 'aaq://m5/handover-gate';
+  static const String m5HandoverWizard = 'aaq://m5/handover-wizard';
+
+  /// `M5-13` 원장 실사 해소·격리 검토.
+  static const String m5SelfAuditResolve = 'aaq://m5/self-audit-resolve';
+  static const String x1Migration = 'aaq://x1/migration';
+  static const String x2ResumeReport = 'aaq://x2/resume-report';
+  static const String x2ResumeGate = 'aaq://x2/resume-gate';
+
+  /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.
+  static const String x5RepairWizard = 'aaq://x5/repair-wizard';
+
+  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단.
+  static const List<String> all = <String>[
+    journalTimeline,
+    journalDecision,
+    journalDraft,
+    journalBlindReview,
+    journalUnknownBoard,
+    adviceInbox,
+    adviceDetail,
+    adviceFill,
+    adviceHistory,
+    ledgerSelfReport,
+    ledgerTrust,
+    ledgerExecutionGap,
+    reportArchive,
+    reportAfterTax,
+    reportAnnual,
+    reportMonthly,
+    performanceExplore,
+    performanceDrawdown,
+    performanceContribution,
+    planDeposit,
+    rebalancePreview,
+    rebalanceEvent,
+    onboardingStep,
+    opsArchive,
+    opsMaintenance,
+    opsWatchdog,
+    settingsContribution,
+    settingsCredentials,
+    handoverStatus,
+    m5KillSwitch,
+    m5ReleaseGate,
+    m5BlockBoard,
+    m5Intervention,
+    m5HandoverGate,
+    m5HandoverWizard,
+    m5SelfAuditResolve,
+    x1Migration,
+    x2ResumeReport,
+    x2ResumeGate,
+    x5RepairWizard,
+  ];
+
+  /// [link] 가 [all] 의 패턴 하나와 일치하는가.
+  ///
+  /// 🔴 **화면은 부르지 않는다**(규칙 ② — 해석 금지). 쓰는 곳은 셸의 라우트 등록 검증과
+  ///    계약 테스트 C-33 둘이다. 쿼리·프래그먼트가 붙은 링크는 일치하지 않는다(링크에
+  ///    개인 정보·상태를 싣지 않는다).
+  static bool isRegistered(String link) {
+    for (final String pattern in all) {
+      if (_matches(pattern, link)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static bool _matches(String pattern, String link) {
+    final List<String> p = pattern.split('/');
+    final List<String> l = link.split('/');
+    if (p.length != l.length) {
+      return false;
+    }
+    for (int i = 0; i < p.length; i++) {
+      final bool isParam = p[i].startsWith(':');
+      if (isParam) {
+        if (l[i].isEmpty || l[i].contains('?') || l[i].contains('#')) {
+          return false;
+        }
+      } else if (p[i] != l[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/primitives/as_of.dart`
 
 ```dart
@@ -7019,6 +7754,11 @@ abstract class DateRange with _$DateRange {
 
     /// 「최근 30일」 — 엔진 생성(01 §1-5).
     String? label,
+
+    /// 🆕 v1.1(§8 미결 33) — 프리셋 목록에서 **첫 화면의 기본**인 항목.
+    /// 🔴 `watchRangePresets()` 목록에서 `true` 는 **정확히 하나**다(엔진 보장 · C-34).
+    ///    화면은 그 항목을 고르기만 한다 — 날짜 산술로 기본 구간을 만들지 않는다.
+    @Default(false) bool isDefault,
   }) = _DateRange;
 
   factory DateRange.fromJson(Map<String, dynamic> json) =>
@@ -7409,6 +8149,31 @@ abstract interface class JournalRepository {
   /// 🔴 `AdviceRepository.fillsOfAdvice(adviceId)` 와 **다른 것이다**(G-23) — 이쪽은
   ///    «한 체결의 정정 체인», 저쪽은 «한 안내의 체결들»이다.
   Future<List<TradeJournalEntry>> fillChain(String entryId);
+
+  // ── 🆕 계약 v1.1(2026-09-17 · M2 보강) ────────────────────────────────────
+
+  /// `J-1` 필터의 상태·출처·종목 선택지(§8 미결 37).
+  /// 🔵 기간 = `ConfigRepository.watchRangePresets()` · 슬리브 = `watchSleeves()`.
+  /// 🔴 화면이 열거값을 순회해 선택지를 만들거나 `rows` 에서 종목을 모으지 않는다.
+  Stream<JournalFilterCatalog> watchFilterCatalog();
+
+  /// `J-1` 상단 배지(「확인 중 2건」 등 — §8 미결 38). 🔴 비면 배지 줄이 없다.
+  /// 🔴 화면이 `watchTimeline` 의 `rows` 를 세어 건수를 만들지 않는다.
+  Stream<List<JournalTimelineBadge>> watchTimelineBadges({
+    RunMode mode = RunMode.live,
+  });
+
+  /// `J-2` 거래 상세 한 화면의 전부 — 체인 6단계·스냅샷·임계 대조·거부 추적·체결 행·이동 버튼.
+  /// 🔵 `chainOf`·`findByDecisionId`·`fillChain` 은 남는다(다른 화면의 참조 링크용) — `J-2` 는
+  ///    이 메서드 **하나만** 구독한다(화면이 세 결과를 조립하면 그것이 조인이다).
+  Stream<DecisionDetailVm> watchDecisionDetail(String decisionId);
+
+  /// `J-3` 사전 저널 폼 스펙(서약문·문맥 칩·규칙 인용 선택지).
+  /// 🔴 제출은 `CommandApi.submitJournalDraft` — 여기는 읽기뿐이다.
+  Future<JournalDraftFormSpec> draftFormSpec(String decisionId);
+
+  /// `J-5` UNKNOWN 해소 보드. 🔴 이 화면에서 `CommandApi` 호출은 0건이다(02 §3-5 수용 a).
+  Stream<UnknownBoardVm> watchUnknownBoard();
 }
 ```
 
@@ -7563,6 +8328,8 @@ abstract interface class PerformanceRepository {
   Stream<DisclosureGateVm> watchDisclosureGate();
 
   /// `S7-3` 드로다운 맥락.
+  /// 🆕 v1.1(C4 R2-Gem Q1) — `range == null` = **엔진 기본 구간**. 그 결과가 무엇인지는
+  ///    `DrawdownContextVm.periodLabel` 이 말한다 — 화면은 기본 구간을 알 필요가 없다.
   Future<DrawdownContextVm> drawdownContext({DateRange? range});
 
   /// `S7-3b` 슬리브 기여 분해.

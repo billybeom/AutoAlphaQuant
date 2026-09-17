@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.0.0",
+    "contract_version": "1.1.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -19,11 +19,11 @@
         { "code": "A1_PERIOD_RETURN", "order": 1, "section_code": "A", "title": "이번 달 수익률", "value_text": "+0.67%" },
         { "code": "A2_CUMULATIVE_RETURN", "order": 2, "section_code": "A", "title": "누적 수익률", "value_text": "+11.94%" },
         { "code": "B1_BENCHMARK", "order": 3, "section_code": "B", "title": "벤치마크 대비", "value_text": "벤치마크 +10.02% 대비 +1.92%p" },
-        { "code": "C1_MAX_DRAWDOWN", "order": 4, "section_code": "C", "title": "최대 낙폭", "value_text": "−6.4%" },
-        { "code": "C2_TIME_UNDER_WATER", "order": 5, "section_code": "C", "title": "회복까지 걸린 기간", "value_text": "최장 3개월" },
+        { "code": "C1_MAX_DRAWDOWN", "order": 4, "section_code": "C", "title": "최대 낙폭", "value_text": "−6.4%", "detail_deep_link": "aaq://performance/drawdown" },
+        { "code": "C2_TIME_UNDER_WATER", "order": 5, "section_code": "C", "title": "회복까지 걸린 기간", "value_text": "최장 3개월", "detail_deep_link": "aaq://performance/drawdown" },
         { "code": "D1_REGIME_SWITCHES", "order": 6, "section_code": "D", "title": "국면 전환 횟수", "value_text": "이번 달 1회" },
         { "code": "D2_ALLOCATION", "order": 7, "section_code": "D", "title": "슬리브 배분 현황", "value_text": "회계 기준 A 20.0% · B 42.0% · C 32.0% / 엔진 열 기준 A 24.0%" },
-        { "code": "D3_EXECUTION", "order": 8, "section_code": "D", "title": "규칙 이행", "value_text": "규칙대로 21건 · 재량 1건 · 이행률 88%" },
+        { "code": "D3_EXECUTION", "order": 8, "section_code": "D", "title": "규칙 이행", "value_text": "규칙대로 21건 · 재량 1건 · 이행률 88%", "detail_deep_link": "aaq://ledger/execution-gap" },
         { "code": "D4_DISCRETION_BUDGET", "order": 9, "section_code": "D", "title": "재량 예산 사용", "value_text": "2회 중 1회 사용" },
         { "code": "E1_STRATEGY_STATE", "order": 10, "section_code": "E", "title": "전략 상태", "value_text": "정상 · 차단 플래그 없음" },
         { "code": "F1_SCORING_2X2", "order": 11, "section_code": "F", "title": "2×2 채점", "value_text": "규칙 준수 O · 결과 O" },
@@ -34,7 +34,9 @@
       "disclosure_view_count_text": "이번 달 2번 열어 보셨습니다",
       "trust": { "grade": "RECONCILED", "level": "OK", "label": "대사 완료", "consequence_line": "브로커 원장과 수량·현금이 맞습니다.", "last_verified_on": "2026-08-31" },
       "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리포트 기준 2026-08-31" },
-      "after_tax": null
+      "after_tax": null,
+      "generated_at_text": "2026-09-01 생성",
+      "config_hash": "cfg_fake_0000000000000000"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.0.0",
+    "contract_version": "1.1.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -31,7 +31,7 @@
       "breaker_label": "경보",
       "drawdown": -0.062,
       "active_flags": [
-        { "flag_id": "SELF_AUDIT_DUE", "label": "분기 실사 기한이 다가옵니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "실사를 마치면 자동으로 풀립니다." }
+        { "flag_id": "SELF_AUDIT_DUE", "label": "분기 실사 기한이 다가옵니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "실사를 마치면 자동으로 풀립니다.", "clear_deep_link": "aaq://ledger/self-report" }
       ],
       "kill_switch": { "active": false, "state_label": "꺼짐" },
       "stopped_release_eligible": false,
@@ -69,9 +69,10 @@
           "set_at": "2026-08-28T01:00:00Z",
           "clear_route": "CAUSE_CODE_REQUIRED",
           "clear_instruction": "원인 코드를 골라 해소하십시오. /resume 으로는 풀리지 않습니다.",
-          "origin_code": "FILL_LAG"
+          "origin_code": "FILL_LAG",
+          "clear_deep_link": "aaq://m5/block-board"
         },
-        { "flag_id": "JOURNAL_MISSING", "label": "일지가 비어 있습니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "일지를 채우면 자동으로 풀립니다." }
+        { "flag_id": "JOURNAL_MISSING", "label": "일지가 비어 있습니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "일지를 채우면 자동으로 풀립니다.", "clear_deep_link": "aaq://journal/draft/d_20260810_b_27" }
       ],
       "kill_switch": { "active": false, "state_label": "꺼짐" },
       "stopped_release_eligible": false,
@@ -88,7 +89,7 @@
       "breaker_label": "정지",
       "drawdown": -0.158,
       "active_flags": [
-        { "flag_id": "LEDGER_INTEGRITY", "label": "원장 무결성 점검이 필요합니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "WIZARD_ONLY", "clear_instruction": "복구 위저드에서만 해소됩니다." }
+        { "flag_id": "LEDGER_INTEGRITY", "label": "원장 무결성 점검이 필요합니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "WIZARD_ONLY", "clear_instruction": "복구 위저드에서만 해소됩니다.", "checkpoint_label": "마지막 검증 08-30 18:10", "clear_deep_link": "aaq://x5/repair-wizard" }
       ],
       "kill_switch": { "active": true, "state_label": "작동 중", "activated_at": "2026-08-29T02:10:00Z", "activated_by_device_label": "운영 폰", "checklist_state_label": "체크리스트 확인 완료", "release_eta_text": "해제 가능까지 남은 시간은 엔진이 계산합니다" },
       "stopped_release_eligible": true,

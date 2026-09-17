@@ -36,6 +36,8 @@ abstract interface class PerformanceRepository {
   Stream<DisclosureGateVm> watchDisclosureGate();
 
   /// `S7-3` 드로다운 맥락.
+  /// 🆕 v1.1(C4 R2-Gem Q1) — `range == null` = **엔진 기본 구간**. 그 결과가 무엇인지는
+  ///    `DrawdownContextVm.periodLabel` 이 말한다 — 화면은 기본 구간을 알 필요가 없다.
   Future<DrawdownContextVm> drawdownContext({DateRange? range});
 
   /// `S7-3b` 슬리브 기여 분해.

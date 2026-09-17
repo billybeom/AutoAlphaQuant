@@ -179,9 +179,21 @@ abstract class BlockFlag with _$BlockFlag {
     required String flagId,
     required String label,
     required DateTime setAt,
+
+    /// 🔴 **해제가 어떤 성격인가**(자동·원인 코드 필요·수동 경로 없음·마법사 전용)이지
+    ///    이동 목적지가 아니다 — 목적지는 [clearDeepLink] 다.
     required ClearRoute clearRoute,
     required String clearInstruction,
     String? originCode,
+
+    /// 🆕 v1.1(§8 미결 39) — "마지막 검증 09-05 18:10" · `LEDGER_INTEGRITY` 배너의
+    ///    «마지막 검증 체크포인트 시각»(02 §2-2 표). 엔진 완성 문자열(01 §1-3).
+    String? checkpointLabel,
+
+    /// 🆕 v1.1(§8 미결 36) — 조치 진입점 링크(`aaq://m5/…` · `aaq://journal/draft/…` 등).
+    /// 🔴 null 이면 배너에 이동 화살표·버튼이 **없다**(`LEDGER_FIX` 처럼 해제 경로가 없는 것).
+    /// 🔴 화면이 `flagId`·`clearRoute` 로 목적지를 고르지 않는다(그 표가 곧 판정이다).
+    String? clearDeepLink,
   }) = _BlockFlag;
 
   factory BlockFlag.fromJson(Map<String, dynamic> json) =>

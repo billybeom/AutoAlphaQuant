@@ -28,7 +28,9 @@ String fixtureText(String relPath) =>
     File('${fixturesDir().path}/$relPath').readAsStringSync();
 
 /// 봉투 원형(meta·as_of·empty_kind·empty_label·has_more·rows 원시 Map).
-/// 봉투 형제 키(예 `m7_monthly_pending.json` 의 `pending_d_day_text`)를 읽을 때 쓴다.
+/// 봉투 값(`empty_kind`·`empty_label` 등)을 직접 볼 때 쓴다.
+/// 🔵 v1.1 — `m7_monthly_pending.json` 의 봉투 형제 키 `pending_d_day_text` 는 **폐기**됐다
+///    (D-day 문장은 행의 `MonthlyReport.pendingNoticeText` 로 온다 — 01 §8 미결 40).
 FixtureEnvelope fixtureEnvelope(String relPath) =>
     decodeEnvelope(fixtureText(relPath));
 
@@ -38,7 +40,7 @@ ListResult<T> listFixture<T>(
   T Function(Map<String, dynamic>) fromJson,
 ) => decodeList<T>(fixtureText(relPath), fromJson);
 
-/// 1행 픽스처 → 그 DTO. 예: `singleFixture(FixturePaths.m7M7Monthly2026_08, MonthlyReport.fromJson)`.
+/// 1행 픽스처 → 그 DTO. 예: `singleFixture(FixturePaths.m7M7Monthly202608, MonthlyReport.fromJson)`.
 /// 🔴 행이 정확히 1개가 아니면 던진다 — 「첫 행을 쓴다」는 조용한 판정이다.
 T singleFixture<T>(String relPath, T Function(Map<String, dynamic>) fromJson) =>
     decodeSingle<T>(fixtureText(relPath), fromJson);

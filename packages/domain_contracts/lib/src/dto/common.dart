@@ -37,6 +37,25 @@ abstract class ReasonChip with _$ReasonChip {
       _$ReasonChipFromJson(json);
 }
 
+/// 🆕 v1.1 — 엔진이 준 «이동 버튼 1개»(01 §4-4 내비게이션 계약).
+///
+/// 🔴 버튼 문구(`label`)도 목적지(`deepLink`)도 엔진이 준다. 화면은 이 객체가 **null 이면
+///    버튼을 그리지 않고**(비활성 아님) non-null 이면 `label` 을 찍고 탭에서
+///    `AppLinkOpener.open(deepLink)` 를 부른다 — 그것이 전부다.
+@freezed
+abstract class LinkAction with _$LinkAction {
+  const factory LinkAction({
+    /// "이 회차 보기" · "원행 보기" · "저널 작성" — 엔진 생성
+    required String label,
+
+    /// `aaq://…` 또는 `handbook://…` — 화면은 해석하지 않는다.
+    required String deepLink,
+  }) = _LinkAction;
+
+  factory LinkAction.fromJson(Map<String, dynamic> json) =>
+      _$LinkActionFromJson(json);
+}
+
 /// 결정 체인 참조 — 매매일지 상세의 뼈대(01 §2-1).
 @freezed
 abstract class DecisionRef with _$DecisionRef {

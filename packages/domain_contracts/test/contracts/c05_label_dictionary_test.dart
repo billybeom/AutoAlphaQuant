@@ -37,6 +37,10 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   'close_reason_code': 'decision_reason',
   'cause_code': 'advice_transition_cause',
   'reason_code': '',
+  // 🆕 v1.1 — `DecisionChainStep.stageCode`(체인 단계)와 `RejectTrace.stageCode`(전수 검사 층)가
+  //    같은 JSON 키를 쓰므로 전역 조회다(두 도메인 어느 쪽이든 등재돼 있으면 된다).
+  'stage_code': '',
+  'badge_code': 'journal_badge',
 };
 
 /// 🔴 **사전에 없는 코드 축** — 01 §3 이 열거하지 않은 값이라 검사 대상이 아니다.

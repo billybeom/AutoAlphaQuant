@@ -1,0 +1,265 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.1.0",
+    "generated_at": "2026-09-17T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260917,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": {
+    "observed_at": "2026-08-31T09:00:00Z",
+    "trade_date": "2026-08-31",
+    "source": "LOCAL_SQLITE",
+    "stale_after_seconds": 93600,
+    "label": "일지 기준 2026-08-31"
+  },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "entry": {
+        "entry_id": "je_0016_re",
+        "mode": "LIVE",
+        "trade_date": "2026-08-24",
+        "symbol": "411060",
+        "symbol_label": "411060 ACE 미국30년국채",
+        "sleeve": "C",
+        "side": "BUY",
+        "side_label": "매수",
+        "quantity": 150,
+        "price": "8980",
+        "commission": "202",
+        "tax": "0",
+        "quantity_text": "150주",
+        "price_text": "8,980원",
+        "commission_text": "202원",
+        "tax_text": "0원",
+        "status": "FILLED",
+        "status_label": "체결",
+        "status_tone": "NEUTRAL",
+        "visibility": "SETTLED",
+        "visibility_label": "확정",
+        "reasons": [
+          {
+            "code": "MONTHLY_REGULAR",
+            "label": "월간 정기 리밸런싱",
+            "tone": "NEUTRAL",
+            "detail_deep_link": "handbook://rebalance/monthly"
+          }
+        ],
+        "decision": {
+          "decision_id": "d_20260824_c_16_re",
+          "intent_id": "i_0016",
+          "broker_order_no": "B0016",
+          "execution_id": "X0016#1",
+          "config_hash": "cfg_fake_0000000000000000",
+          "parent_decision_id": "d_20260824_c_16"
+        },
+        "deviation": {
+          "is_deviation": false,
+          "label": "규칙대로"
+        },
+        "account_alias": "일반",
+        "fill_origin": "BROKER",
+        "fill_kind": "ORIGINAL",
+        "backdate": {
+          "trade_date": "2026-08-24",
+          "authored_at": "2026-08-24T05:27:05Z",
+          "backdate_trading_days": 0,
+          "is_backdated": false,
+          "label": "당일 기록",
+          "price_range_source_date": "2026-08-24",
+          "crosses_closed_period": false
+        },
+        "cost_source": "BROKER",
+        "cost_source_label": "브로커 원장",
+        "origin_label": "브로커 체결",
+        "detail_deep_link": "aaq://journal/decision/d_20260824_c_16_re",
+        "as_of": {
+          "observed_at": "2026-08-24T09:30:00Z",
+          "trade_date": "2026-08-24",
+          "source": "LOCAL_SQLITE",
+          "stale_after_seconds": 93600,
+          "label": "체결 반영 18:25"
+        },
+        "executed_at": "2026-08-24T05:27:05Z"
+      },
+      "steps": [
+        {
+          "stage_code": "SIGNAL",
+          "stage_label": "신호",
+          "state_label": "재판정",
+          "tone": "NEUTRAL",
+          "occurred_at_text": "08-24 08:52",
+          "detail_lines": [
+            "재개 시점 값으로 다시 판정했습니다"
+          ]
+        },
+        {
+          "stage_code": "INTENT",
+          "stage_label": "의도",
+          "state_label": "완료",
+          "tone": "NEUTRAL",
+          "occurred_at_text": "08-24 08:53",
+          "detail_lines": [
+            "의도 i_0016 · 150주 매수"
+          ]
+        },
+        {
+          "stage_code": "BROKER_ORDER",
+          "stage_label": "브로커 주문",
+          "state_label": "완료",
+          "tone": "NEUTRAL",
+          "occurred_at_text": "08-24 14:20",
+          "detail_lines": [
+            "주문번호 B0016"
+          ]
+        },
+        {
+          "stage_code": "EXECUTION",
+          "stage_label": "체결",
+          "state_label": "완료",
+          "tone": "NEUTRAL",
+          "occurred_at_text": "08-24 14:21",
+          "detail_lines": [
+            "150주 전량 체결"
+          ]
+        },
+        {
+          "stage_code": "TRADE",
+          "stage_label": "거래",
+          "state_label": "완료",
+          "tone": "NEUTRAL",
+          "occurred_at_text": "08-24 18:10",
+          "detail_lines": [
+            "원장 반영 · 확정"
+          ]
+        },
+        {
+          "stage_code": "JOURNAL",
+          "stage_label": "저널",
+          "state_label": "대상 아님",
+          "tone": "NEUTRAL",
+          "detail_lines": [
+            "규칙대로 집행된 거래입니다"
+          ]
+        }
+      ],
+      "snapshot": {
+        "ref": {
+          "decision_id": "d_20260824_c_16_re",
+          "intent_id": "i_0016",
+          "broker_order_no": "B0016",
+          "execution_id": "X0016#1",
+          "config_hash": "cfg_fake_0000000000000000",
+          "parent_decision_id": "d_20260824_c_16"
+        },
+        "trade_date": "2026-08-24",
+        "kind_label": "월 정기 매수(재판정)",
+        "reasons": [
+          {
+            "code": "MONTHLY_REGULAR",
+            "label": "월간 정기 리밸런싱",
+            "tone": "NEUTRAL",
+            "detail_deep_link": "handbook://rebalance/monthly"
+          }
+        ],
+        "trigger": {
+          "config_hash": "cfg_fake_0000000000000000",
+          "raw_values": {
+            "plan_slot": "2026-08 · C",
+            "verdict_code": "EXECUTED_AS_REEVALUATED"
+          },
+          "summary": "중단 구간 뒤 재개 시점 값으로 다시 판정해 실행했습니다"
+        },
+        "summary": "재판정 값으로 월 정기 매수를 실행했습니다."
+      },
+      "thresholds": [],
+      "reject_traces": [],
+      "fills": [
+        {
+          "entry_id": "je_0016_re",
+          "mode": "LIVE",
+          "trade_date": "2026-08-24",
+          "symbol": "411060",
+          "symbol_label": "411060 ACE 미국30년국채",
+          "sleeve": "C",
+          "side": "BUY",
+          "side_label": "매수",
+          "quantity": 150,
+          "price": "8980",
+          "commission": "202",
+          "tax": "0",
+          "quantity_text": "150주",
+          "price_text": "8,980원",
+          "commission_text": "202원",
+          "tax_text": "0원",
+          "status": "FILLED",
+          "status_label": "체결",
+          "status_tone": "NEUTRAL",
+          "visibility": "SETTLED",
+          "visibility_label": "확정",
+          "reasons": [
+            {
+              "code": "MONTHLY_REGULAR",
+              "label": "월간 정기 리밸런싱",
+              "tone": "NEUTRAL",
+              "detail_deep_link": "handbook://rebalance/monthly"
+            }
+          ],
+          "decision": {
+            "decision_id": "d_20260824_c_16_re",
+            "intent_id": "i_0016",
+            "broker_order_no": "B0016",
+            "execution_id": "X0016#1",
+            "config_hash": "cfg_fake_0000000000000000",
+            "parent_decision_id": "d_20260824_c_16"
+          },
+          "deviation": {
+            "is_deviation": false,
+            "label": "규칙대로"
+          },
+          "account_alias": "일반",
+          "fill_origin": "BROKER",
+          "fill_kind": "ORIGINAL",
+          "backdate": {
+            "trade_date": "2026-08-24",
+            "authored_at": "2026-08-24T05:27:05Z",
+            "backdate_trading_days": 0,
+            "is_backdated": false,
+            "label": "당일 기록",
+            "price_range_source_date": "2026-08-24",
+            "crosses_closed_period": false
+          },
+          "cost_source": "BROKER",
+          "cost_source_label": "브로커 원장",
+          "origin_label": "브로커 체결",
+          "detail_deep_link": "aaq://journal/decision/d_20260824_c_16_re",
+          "as_of": {
+            "observed_at": "2026-08-24T09:30:00Z",
+            "trade_date": "2026-08-24",
+            "source": "LOCAL_SQLITE",
+            "stale_after_seconds": 93600,
+            "label": "체결 반영 18:25"
+          },
+          "executed_at": "2026-08-24T05:27:05Z"
+        }
+      ],
+      "parent_link": {
+        "label": "원행 보기",
+        "deep_link": "aaq://journal/decision/d_20260824_c_16"
+      },
+      "journal_state_label": "규칙대로 — 저널 대상이 아닙니다",
+      "as_of": {
+        "observed_at": "2026-08-31T09:00:00Z",
+        "trade_date": "2026-08-31",
+        "source": "LOCAL_SQLITE",
+        "stale_after_seconds": 93600,
+        "label": "일지 기준 2026-08-31"
+      }
+    }
+  ]
+}

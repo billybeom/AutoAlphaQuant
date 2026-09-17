@@ -1,0 +1,420 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.1.0",
+    "generated_at": "2026-09-17T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260917,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": {
+    "observed_at": "2026-08-31T09:00:00Z",
+    "trade_date": "2026-08-31",
+    "source": "LOCAL_SQLITE",
+    "stale_after_seconds": 93600,
+    "label": "잔고 기준 2026-08-31 종가"
+  },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "entry_id": "je_0001",
+      "mode": "LIVE",
+      "trade_date": "2026-08-03",
+      "symbol": "069500",
+      "symbol_label": "069500 KODEX 200",
+      "sleeve": "A",
+      "side": "BUY",
+      "side_label": "매수",
+      "quantity": 120,
+      "price": "38250",
+      "commission": "688",
+      "tax": "0",
+      "quantity_text": "숨김",
+      "price_text": "숨김",
+      "commission_text": "숨김",
+      "tax_text": "숨김",
+      "status": "FILLED",
+      "status_label": "체결",
+      "status_tone": "NEUTRAL",
+      "visibility": "SETTLED",
+      "visibility_label": "확정",
+      "reasons": [
+        {
+          "code": "ENTRY_GATE_OCT",
+          "label": "10월말 진입 게이트 통과",
+          "tone": "NEUTRAL",
+          "detail_deep_link": "handbook://sleeve-a/entry-gate"
+        }
+      ],
+      "decision": {
+        "decision_id": "d_20260803_a_01",
+        "intent_id": "i_0001",
+        "broker_order_no": "B0001",
+        "execution_id": "X0001#1",
+        "config_hash": "cfg_fake_0000000000000000"
+      },
+      "deviation": {
+        "is_deviation": false,
+        "label": "규칙대로"
+      },
+      "account_alias": "연금저축",
+      "fill_origin": "BROKER",
+      "fill_kind": "ORIGINAL",
+      "backdate": {
+        "trade_date": "2026-08-03",
+        "authored_at": "2026-08-03T05:12:00Z",
+        "backdate_trading_days": 0,
+        "is_backdated": false,
+        "label": "당일 기록",
+        "price_range_source_date": "2026-08-03",
+        "crosses_closed_period": false
+      },
+      "cost_source": "BROKER",
+      "cost_source_label": "브로커 원장",
+      "origin_label": "브로커 체결",
+      "detail_deep_link": "aaq://journal/decision/d_20260803_a_01",
+      "as_of": {
+        "observed_at": "2026-08-03T09:30:00Z",
+        "trade_date": "2026-08-03",
+        "source": "LOCAL_SQLITE",
+        "stale_after_seconds": 93600,
+        "label": "체결 반영 18:10"
+      },
+      "executed_at": "2026-08-03T05:12:00Z",
+      "rebalance_event_id": "re_20260803_01"
+    },
+    {
+      "entry_id": "je_0002",
+      "mode": "LIVE",
+      "trade_date": "2026-08-04",
+      "symbol": "379810",
+      "symbol_label": "379810 KODEX 미국S&P500",
+      "sleeve": "B",
+      "side": "BUY",
+      "side_label": "매수",
+      "quantity": 80,
+      "price": "17420",
+      "commission": "209",
+      "tax": "0",
+      "quantity_text": "숨김",
+      "price_text": "숨김",
+      "commission_text": "숨김",
+      "tax_text": "숨김",
+      "status": "FILLED",
+      "status_label": "체결",
+      "status_tone": "NEUTRAL",
+      "visibility": "SETTLED",
+      "visibility_label": "확정",
+      "reasons": [
+        {
+          "code": "MONTHLY_REGULAR",
+          "label": "월간 정기 리밸런싱",
+          "tone": "NEUTRAL",
+          "detail_deep_link": "handbook://rebalance/monthly"
+        }
+      ],
+      "decision": {
+        "decision_id": "d_20260804_b_02",
+        "intent_id": "i_0002",
+        "broker_order_no": "B0002",
+        "execution_id": "X0002#1",
+        "config_hash": "cfg_fake_0000000000000000"
+      },
+      "deviation": {
+        "is_deviation": false,
+        "label": "규칙대로"
+      },
+      "account_alias": "연금저축",
+      "fill_origin": "BROKER",
+      "fill_kind": "ORIGINAL",
+      "backdate": {
+        "trade_date": "2026-08-04",
+        "authored_at": "2026-08-04T06:13:01Z",
+        "backdate_trading_days": 0,
+        "is_backdated": false,
+        "label": "당일 기록",
+        "price_range_source_date": "2026-08-04",
+        "crosses_closed_period": false
+      },
+      "cost_source": "BROKER",
+      "cost_source_label": "브로커 원장",
+      "origin_label": "브로커 체결",
+      "detail_deep_link": "aaq://journal/decision/d_20260804_b_02",
+      "as_of": {
+        "observed_at": "2026-08-04T09:30:00Z",
+        "trade_date": "2026-08-04",
+        "source": "LOCAL_SQLITE",
+        "stale_after_seconds": 93600,
+        "label": "체결 반영 18:11"
+      },
+      "executed_at": "2026-08-04T06:13:01Z"
+    },
+    {
+      "entry_id": "je_0003",
+      "mode": "LIVE",
+      "trade_date": "2026-08-05",
+      "symbol": "0085P0",
+      "symbol_label": "0085P0 KODEX 국고채30년",
+      "sleeve": "C",
+      "side": "BUY",
+      "side_label": "매수",
+      "quantity": 210,
+      "price": "51380",
+      "commission": "1618",
+      "tax": "0",
+      "quantity_text": "숨김",
+      "price_text": "숨김",
+      "commission_text": "숨김",
+      "tax_text": "숨김",
+      "status": "FILLED",
+      "status_label": "체결",
+      "status_tone": "NEUTRAL",
+      "visibility": "SETTLED",
+      "visibility_label": "확정",
+      "reasons": [
+        {
+          "code": "MONTHLY_REGULAR",
+          "label": "월간 정기 리밸런싱",
+          "tone": "NEUTRAL",
+          "detail_deep_link": "handbook://rebalance/monthly"
+        }
+      ],
+      "decision": {
+        "decision_id": "d_20260805_c_03",
+        "intent_id": "i_0003",
+        "broker_order_no": "B0003",
+        "execution_id": "X0003#1",
+        "config_hash": "cfg_fake_0000000000000000"
+      },
+      "deviation": {
+        "is_deviation": false,
+        "label": "규칙대로"
+      },
+      "account_alias": "일반",
+      "fill_origin": "BROKER",
+      "fill_kind": "ORIGINAL",
+      "backdate": {
+        "trade_date": "2026-08-05",
+        "authored_at": "2026-08-05T07:14:02Z",
+        "backdate_trading_days": 0,
+        "is_backdated": false,
+        "label": "당일 기록",
+        "price_range_source_date": "2026-08-05",
+        "crosses_closed_period": false
+      },
+      "cost_source": "BROKER",
+      "cost_source_label": "브로커 원장",
+      "origin_label": "브로커 체결",
+      "detail_deep_link": "aaq://journal/decision/d_20260805_c_03",
+      "as_of": {
+        "observed_at": "2026-08-05T09:30:00Z",
+        "trade_date": "2026-08-05",
+        "source": "LOCAL_SQLITE",
+        "stale_after_seconds": 93600,
+        "label": "체결 반영 18:12"
+      },
+      "executed_at": "2026-08-05T07:14:02Z"
+    },
+    {
+      "entry_id": "je_0004",
+      "mode": "LIVE",
+      "trade_date": "2026-08-06",
+      "symbol": "411060",
+      "symbol_label": "411060 ACE 미국30년국채",
+      "sleeve": "C",
+      "side": "BUY",
+      "side_label": "매수",
+      "quantity": 340,
+      "price": "8940",
+      "commission": "456",
+      "tax": "0",
+      "quantity_text": "숨김",
+      "price_text": "숨김",
+      "commission_text": "숨김",
+      "tax_text": "숨김",
+      "status": "FILLED",
+      "status_label": "체결",
+      "status_tone": "NEUTRAL",
+      "visibility": "SETTLED",
+      "visibility_label": "확정",
+      "reasons": [
+        {
+          "code": "MONTHLY_REGULAR",
+          "label": "월간 정기 리밸런싱",
+          "tone": "NEUTRAL",
+          "detail_deep_link": "handbook://rebalance/monthly"
+        }
+      ],
+      "decision": {
+        "decision_id": "d_20260806_c_04",
+        "intent_id": "i_0004",
+        "broker_order_no": "B0004",
+        "execution_id": "X0004#1",
+        "config_hash": "cfg_fake_0000000000000000"
+      },
+      "deviation": {
+        "is_deviation": false,
+        "label": "규칙대로"
+      },
+      "account_alias": "일반",
+      "fill_origin": "BROKER",
+      "fill_kind": "ORIGINAL",
+      "backdate": {
+        "trade_date": "2026-08-06",
+        "authored_at": "2026-08-06T05:15:03Z",
+        "backdate_trading_days": 0,
+        "is_backdated": false,
+        "label": "당일 기록",
+        "price_range_source_date": "2026-08-06",
+        "crosses_closed_period": false
+      },
+      "cost_source": "BROKER",
+      "cost_source_label": "브로커 원장",
+      "origin_label": "브로커 체결",
+      "detail_deep_link": "aaq://journal/decision/d_20260806_c_04",
+      "as_of": {
+        "observed_at": "2026-08-06T09:30:00Z",
+        "trade_date": "2026-08-06",
+        "source": "LOCAL_SQLITE",
+        "stale_after_seconds": 93600,
+        "label": "체결 반영 18:13"
+      },
+      "executed_at": "2026-08-06T05:15:03Z"
+    },
+    {
+      "entry_id": "je_0005",
+      "mode": "LIVE",
+      "trade_date": "2026-08-07",
+      "symbol": "132030",
+      "symbol_label": "132030 KODEX 골드선물",
+      "sleeve": "B",
+      "side": "BUY",
+      "side_label": "매수",
+      "quantity": 45,
+      "price": "22150",
+      "commission": "149",
+      "tax": "0",
+      "quantity_text": "숨김",
+      "price_text": "숨김",
+      "commission_text": "숨김",
+      "tax_text": "숨김",
+      "status": "FILLED",
+      "status_label": "체결",
+      "status_tone": "NEUTRAL",
+      "visibility": "SETTLED",
+      "visibility_label": "확정",
+      "reasons": [
+        {
+          "code": "MONTHLY_REGULAR",
+          "label": "월간 정기 리밸런싱",
+          "tone": "NEUTRAL",
+          "detail_deep_link": "handbook://rebalance/monthly"
+        }
+      ],
+      "decision": {
+        "decision_id": "d_20260807_b_05",
+        "intent_id": "i_0005",
+        "broker_order_no": "B0005",
+        "execution_id": "X0005#1",
+        "config_hash": "cfg_fake_0000000000000000"
+      },
+      "deviation": {
+        "is_deviation": false,
+        "label": "규칙대로"
+      },
+      "account_alias": "연금저축",
+      "fill_origin": "BROKER",
+      "fill_kind": "ORIGINAL",
+      "backdate": {
+        "trade_date": "2026-08-07",
+        "authored_at": "2026-08-07T06:16:04Z",
+        "backdate_trading_days": 0,
+        "is_backdated": false,
+        "label": "당일 기록",
+        "price_range_source_date": "2026-08-07",
+        "crosses_closed_period": false
+      },
+      "cost_source": "BROKER",
+      "cost_source_label": "브로커 원장",
+      "origin_label": "브로커 체결",
+      "detail_deep_link": "aaq://journal/decision/d_20260807_b_05",
+      "as_of": {
+        "observed_at": "2026-08-07T09:30:00Z",
+        "trade_date": "2026-08-07",
+        "source": "LOCAL_SQLITE",
+        "stale_after_seconds": 93600,
+        "label": "체결 반영 18:14"
+      },
+      "executed_at": "2026-08-07T06:16:04Z"
+    },
+    {
+      "entry_id": "je_0006",
+      "mode": "LIVE",
+      "trade_date": "2026-08-10",
+      "symbol": "069500",
+      "symbol_label": "069500 KODEX 200",
+      "sleeve": "A",
+      "side": "BUY",
+      "side_label": "매수",
+      "quantity": 60,
+      "price": "38410",
+      "commission": "345",
+      "tax": "0",
+      "quantity_text": "숨김",
+      "price_text": "숨김",
+      "commission_text": "숨김",
+      "tax_text": "숨김",
+      "status": "PARTIAL",
+      "status_label": "부분 체결",
+      "status_tone": "CAUTION",
+      "visibility": "PENDING_BATCH",
+      "visibility_label": "반영 대기",
+      "reasons": [
+        {
+          "code": "REBALANCE_BAND",
+          "label": "밴드 이탈 리밸런싱",
+          "tone": "NEUTRAL",
+          "detail_deep_link": "handbook://rebalance/band"
+        }
+      ],
+      "decision": {
+        "decision_id": "d_20260810_a_06",
+        "intent_id": "i_0006",
+        "broker_order_no": "B0006",
+        "execution_id": "X0006#1",
+        "config_hash": "cfg_fake_0000000000000000"
+      },
+      "deviation": {
+        "is_deviation": false,
+        "label": "규칙대로"
+      },
+      "account_alias": "연금저축",
+      "fill_origin": "BROKER",
+      "fill_kind": "ORIGINAL",
+      "backdate": {
+        "trade_date": "2026-08-10",
+        "authored_at": "2026-08-10T07:17:05Z",
+        "backdate_trading_days": 0,
+        "is_backdated": false,
+        "label": "당일 기록",
+        "price_range_source_date": "2026-08-10",
+        "crosses_closed_period": false
+      },
+      "cost_source": "BROKER",
+      "cost_source_label": "브로커 원장",
+      "origin_label": "브로커 체결",
+      "detail_deep_link": "aaq://journal/decision/d_20260810_a_06",
+      "as_of": {
+        "observed_at": "2026-08-10T09:30:00Z",
+        "trade_date": "2026-08-10",
+        "source": "LOCAL_SQLITE",
+        "stale_after_seconds": 93600,
+        "label": "체결 반영 18:15"
+      },
+      "executed_at": "2026-08-10T07:17:05Z"
+    }
+  ]
+}

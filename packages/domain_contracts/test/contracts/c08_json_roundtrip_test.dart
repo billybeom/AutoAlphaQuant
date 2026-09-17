@@ -268,7 +268,7 @@ const String _reasonM9Fixture =
     '05(M9) 설정·운영 화면 픽스처가 인벤토리 §8 목록에 없다(m9/ 는 handover_states 1건뿐). '
     '픽스처가 생기면 등록부에 올리고 여기서 지운다.';
 const String _reasonJournalDetail =
-    '매매일지·기록 폼 «상세» 화면 픽스처가 없다 — 코어 11 은 목록 행만 담는다(인벤토리 §8-2).';
+    '`J-4` blind 리뷰·보유 상세 픽스처가 아직 없다 — v1.1 은 J-2·J-3·J-5 까지 덮었다(01 §8 미결 46).';
 const String _reasonCalendarUndecided =
     'X4 캘린더 채택이 미결이라 픽스처를 만들지 않았다(01 §8-5 · FeatureFlags.calendarEnabled).';
 const String _reasonHandbookDraft =
@@ -311,12 +311,7 @@ const Map<String, String> _knownUncovered = <String, String>{
   // ── M6 상세·기록 폼 ─────────────────────────────────────────────────────
   'BlindReviewCard': _reasonJournalDetail,
   'BlindReviewQuestion': _reasonJournalDetail,
-  'DecisionSnapshot': _reasonJournalDetail,
-  'JournalDraftFormSpec': _reasonJournalDetail,
-  'RejectTrace': _reasonJournalDetail,
   'StopLineNormalized': _reasonJournalDetail,
-  'ThresholdCompare': _reasonJournalDetail,
-  'UnknownResolutionStep': _reasonJournalDetail,
 
   // ── X4 캘린더 ───────────────────────────────────────────────────────────
   'CalendarEventDto': _reasonCalendarUndecided,
@@ -340,6 +335,5 @@ const Map<String, String> _knownUncovered = <String, String>{
   'RebalancePreview': '리밸런싱 미리보기 픽스처가 없다(플래너 픽스처는 납입·인출 갈래만 있다).',
   'SelfReportLine':
       'm6/self_report_1.json 이 미매핑이라 하위 행도 덮이지 않는다 — 등록부 unmappedFixtures 참조.',
-  'SleeveCatalogEntry': '슬리브 카탈로그 픽스처가 없다(01 §2-1 — 목록의 유일한 창구).',
   'TzInstant': '아직 어느 픽스처 필드도 TzInstant 를 싣지 않는다(01 §1-3 — 표시 시각 전용).',
 };

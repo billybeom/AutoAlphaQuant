@@ -33,7 +33,7 @@
 1. `test/golden/s71_golden_test.dart` 를 아래 뼈대로 쓴다. 골든 이름은 **명세가 지정** — `s71_normal` · `s71_partial_gap` · `s71_not_generated`. 입력은 전부 픽스처:
    `s71_normal` = `m7/m7_monthly_2026_08.json`(1행 `MonthlyReport`) ·
    `s71_partial_gap` = `m7/m7_monthly_gap.json` ·
-   `s71_not_generated` = `m7/m7_monthly_pending.json`(`empty_kind: NOT_LOADED` · 봉투 형제 키 `pending_d_day_text` 는 `jsonDecode(fixtureText(...))['pending_d_day_text']` 로 읽는다(`dart:convert`) — 값을 화면이 만들지 않는다) ·
+   `s71_not_generated` = `m7/m7_monthly_pending.json`(`empty_kind: NOT_LOADED` · 🔵 v1.1 — D-day 문장은 행의 `MonthlyReport.pendingNoticeText` 로 온다. 구 봉투 키 `pending_d_day_text` 는 폐기 — 값을 화면이 만들지 않는다) ·
    헤더 신뢰 등급 = `m7/ledger_trust_4.json`(4행 `LedgerTrustBadge` — 골든에는 0행 `RECONCILED` 사용).
 2. 최초 베이스라인 **한 번만**: 패키지 루트(`packages/ui_analytics`)에서
    ```
@@ -62,7 +62,7 @@ class _FakeLedgerTrustRepository implements LedgerTrustRepository { /* watchGrad
 void main() {
   final MonthlyReport normal = singleFixture(FixturePaths.m7M7Monthly202608, MonthlyReport.fromJson);
   final MonthlyReport gap = singleFixture(FixturePaths.m7M7MonthlyGap, MonthlyReport.fromJson);
-  // 미생성: 봉투는 NOT_LOADED — 화면이 그리는 것은 asOf.staleLabel / pending_d_day_text 등 봉투 값이다.
+  // 미생성: 봉투는 NOT_LOADED — 화면이 그리는 것은 13항목 valueText 와 (v1.1) report.pendingNoticeText 다.
   final FixtureEnvelope pending = fixtureEnvelope(FixturePaths.m7M7MonthlyPending);
   final LedgerTrustBadge trust = listFixture(FixturePaths.m7LedgerTrust4, LedgerTrustBadge.fromJson).rows.first;
 
@@ -110,3 +110,18 @@ final DateRange range = DateRange(from: TradeDate('2026-08-01'), to: TradeDate('
 
 - 🔴 **긴 엔진 문자열은 Row 안에서 Expanded/Flexible** — 테스트 폰트는 글자당 1em 폭이라 390px 에서 쉽게 넘친다(S7-1 2회차 실패 원인).
 - 비교기는 3판이다(가장 빽빽한 24×24 창 밀도 ≤12% · 전체 ≤0.5%) — 아이콘 하나만 빠져도 실패한다.
+
+## 🆕 계약 v1.1(2026-09-17) — 테스트에서 달라지는 것 3가지
+
+1. **가짜 리포지토리는 받침대를 상속한다** — `import 'package:domain_contracts/testing.dart';` 한 뒤
+   `class _FakeX extends UnimplementedXRepository { @override …필요한 메서드만… }`.
+   `implements XRepository` 로 통째 구현하면 M2 가 창구를 하나 더할 때마다 테스트가 컴파일에서 깨진다
+   (v1.1 에서 실제로 일어났다). 받침대: `UnimplementedJournalRepository` · `UnimplementedPerformanceRepository` ·
+   `UnimplementedConfigRepository`. 없는 것이 필요하면 **질문 표에 적는다**(M2 가 더한다).
+2. **링크는 기록기로 확인한다** — 화면은 DTO 가 준 링크를 `AppLinkOpener.open(link)` 에 **그대로** 넘긴다(01 §4-4).
+   테스트는 `RecordingLinkOpener`(같은 `testing.dart`)를 주입하고
+   `expect(opener.opened, <String>[entry.detailDeepLink!])` 처럼 **픽스처에서 읽은 값**과 비교한다.
+   🔴 테스트에도 `'aaq://…'` 리터럴을 적지 않는다 — 링크가 null 인 픽스처 행에서는 「버튼이 없다」를 확인한다.
+3. **값은 `*Text` 만 그린다** — 일지 행은 `sideLabel`·`quantityText`·`priceText`·`commissionText`·`taxText`,
+   가림도 그 문자열 안에 이미 들어 있다(`m6/journal_masked_integrity.json` · `m7/m7_monthly_masked_*.json`).
+   화면이 차단 플래그를 보고 값을 감추거나 바꾸는 코드는 v1.1 부터 **반려**다(배너만 얹는다).

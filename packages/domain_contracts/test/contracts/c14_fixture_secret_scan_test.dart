@@ -115,7 +115,11 @@ void main() {
 
     test('C-14 픽스처 디렉터리 밖의 경로를 코드가 절대 경로로 적지 않는다', () {
       // 01 §5 — 「코드·문서 어디에도 절대 경로를 적지 않는다」.
-      final RegExp absolute = RegExp(r'[A-Za-z]:[\\/]|^/(?:home|Users)/');
+      // 🔵 v1.1 — 드라이브 문자는 **한 글자**다. 앞이 글자면 URI 스킴(`aaq://`·`handbook://`)이지
+      //    경로가 아니다(01 §4-4 내비게이션 계약의 라우트 상수가 여기 걸리지 않게 한다).
+      final RegExp absolute = RegExp(
+        r'(?<![A-Za-z])[A-Za-z]:[\\/]|^/(?:home|Users)/',
+      );
       for (final File f in dartSourcesIn(libDir)) {
         expect(
           absolute.hasMatch(stripComments(f.readAsStringSync())),

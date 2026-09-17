@@ -21,9 +21,15 @@ abstract final class FixturePaths {
   static const String onboardingFresh = 'onboarding_fresh.json';
   static const String onboardingReconnect = 'onboarding_reconnect.json';
   static const String performance24m = 'performance_24m.json';
+
+  /// 🆕 v1.1 — `ConfigRepository.watchRangePresets()` 의 입력. `is_default` 는 정확히 1건.
+  static const String rangePresets4 = 'range_presets_4.json';
   static const String rebalance6 = 'rebalance_6.json';
   static const String resumeReport1 = 'resume_report_1.json';
   static const String safetyStates = 'safety_states.json';
+
+  /// 🆕 v1.1 — `ConfigRepository.watchSleeves()` 의 입력(P0S — 새틀라이트 행 없음).
+  static const String sleeveCatalog4 = 'sleeve_catalog_4.json';
 
   // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
   static const String m6Advice12 = 'm6/advice_12.json';
@@ -37,6 +43,19 @@ abstract final class FixturePaths {
   static const String m6AdviceNoAction = 'm6/advice_no_action.json';
   static const String m6AdviceSkipReasons = 'm6/advice_skip_reasons.json';
   static const String m6AdviceViewer4 = 'm6/advice_viewer_4.json';
+
+  // 🆕 v1.1 — `J-2` 거래 상세(`JournalRepository.watchDecisionDetail`) 6갈래.
+  static const String m6DecisionDetailAmended =
+      'm6/decision_detail_amended.json';
+  static const String m6DecisionDetailFull = 'm6/decision_detail_full.json';
+  static const String m6DecisionDetailPartial =
+      'm6/decision_detail_partial.json';
+  static const String m6DecisionDetailReevaluatedChild =
+      'm6/decision_detail_reevaluated_child.json';
+  static const String m6DecisionDetailRejectedSaf309 =
+      'm6/decision_detail_rejected_saf309.json';
+  static const String m6DecisionDetailUnknown =
+      'm6/decision_detail_unknown.json';
   static const String m6EntryGateNovPass1 = 'm6/entry_gate_nov_pass_1.json';
   static const String m6ExternalHoldings2 = 'm6/external_holdings_2.json';
   static const String m6FillFormSpec = 'm6/fill_form_spec.json';
@@ -47,8 +66,22 @@ abstract final class FixturePaths {
   ///    `journal_30.json` 의 0행 슬라이스는 `empty_label` 이 null 이라 화면이 그릴 것이 없다 —
   ///    「없음」(NO_DATA)은 문구를 실어야 하므로(계약 3조 ③) M2 가 파일로 준다(02 §3-1 · §6).
   static const String m6JournalEmpty = 'm6/journal_empty.json';
+
+  // 🆕 v1.1 — `J-1` 배지·필터 · `J-3` 폼 스펙 · 가림(LEDGER_INTEGRITY) 일지.
+  static const String m6JournalBadges2 = 'm6/journal_badges_2.json';
+  static const String m6JournalDraftSpecDiscretion =
+      'm6/journal_draft_spec_discretion.json';
+  static const String m6JournalDraftSpecReconClear =
+      'm6/journal_draft_spec_recon_clear.json';
+  static const String m6JournalFilterCatalog = 'm6/journal_filter_catalog.json';
+  static const String m6JournalMaskedIntegrity =
+      'm6/journal_masked_integrity.json';
   static const String m6ManualFills8 = 'm6/manual_fills_8.json';
   static const String m6SelfReport1 = 'm6/self_report_1.json';
+
+  // 🆕 v1.1 — `J-5` UNKNOWN 해소 보드.
+  static const String m6UnknownBoard2 = 'm6/unknown_board_2.json';
+  static const String m6UnknownBoardEmpty = 'm6/unknown_board_empty.json';
 
   // ── m7/ — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15) ──
   static const String m7AftertaxLadder1 = 'm7/aftertax_ladder_1.json';
@@ -60,6 +93,9 @@ abstract final class FixturePaths {
   static const String m7M7Annual2026 = 'm7/m7_annual_2026.json';
   static const String m7M7AnnualFirstYear = 'm7/m7_annual_first_year.json';
   static const String m7M7Contrib3sleeve = 'm7/m7_contrib_3sleeve.json';
+
+  /// 🆕 v1.1(§8 미결 45) — 산출 불가 슬리브 1행(`unavailable_label`).
+  static const String m7M7ContribPartial = 'm7/m7_contrib_partial.json';
   static const String m7M7DdContextDeep = 'm7/m7_dd_context_deep.json';
   static const String m7M7DdContextNormal = 'm7/m7_dd_context_normal.json';
   static const String m7M7DepositPlanDefault =
@@ -73,6 +109,12 @@ abstract final class FixturePaths {
   static const String m7M7GoalPathRealworld = 'm7/m7_goal_path_realworld.json';
   static const String m7M7Monthly202608 = 'm7/m7_monthly_2026_08.json';
   static const String m7M7MonthlyGap = 'm7/m7_monthly_gap.json';
+
+  // 🆕 v1.1(§8 미결 42) — 엔진 읽기 경로가 **가려서 준** 월간 리포트 2갈래.
+  static const String m7M7MonthlyMaskedIntegrity =
+      'm7/m7_monthly_masked_integrity.json';
+  static const String m7M7MonthlyMaskedRecon =
+      'm7/m7_monthly_masked_recon.json';
   static const String m7M7MonthlyPending = 'm7/m7_monthly_pending.json';
   static const String m7M7NextRebalanceD6 = 'm7/m7_next_rebalance_d6.json';
   static const String m7M7PerfDailyGap = 'm7/m7_perf_daily_gap.json';
@@ -121,9 +163,11 @@ abstract final class FixturePaths {
     onboardingFresh,
     onboardingReconnect,
     performance24m,
+    rangePresets4,
     rebalance6,
     resumeReport1,
     safetyStates,
+    sleeveCatalog4,
     m6Advice12,
     m6AdviceBlocked,
     m6AdviceDetailOnhold,
@@ -134,14 +178,27 @@ abstract final class FixturePaths {
     m6AdviceNoAction,
     m6AdviceSkipReasons,
     m6AdviceViewer4,
+    m6DecisionDetailAmended,
+    m6DecisionDetailFull,
+    m6DecisionDetailPartial,
+    m6DecisionDetailReevaluatedChild,
+    m6DecisionDetailRejectedSaf309,
+    m6DecisionDetailUnknown,
     m6EntryGateNovPass1,
     m6ExternalHoldings2,
     m6FillFormSpec,
     m6FillFormSpecStale,
     m6FillRejectedPrice,
     m6JournalEmpty,
+    m6JournalBadges2,
+    m6JournalDraftSpecDiscretion,
+    m6JournalDraftSpecReconClear,
+    m6JournalFilterCatalog,
+    m6JournalMaskedIntegrity,
     m6ManualFills8,
     m6SelfReport1,
+    m6UnknownBoard2,
+    m6UnknownBoardEmpty,
     m7AftertaxLadder1,
     m7ExecutionGap1,
     m7ExecutionGapCant,
@@ -151,6 +208,7 @@ abstract final class FixturePaths {
     m7M7Annual2026,
     m7M7AnnualFirstYear,
     m7M7Contrib3sleeve,
+    m7M7ContribPartial,
     m7M7DdContextDeep,
     m7M7DdContextNormal,
     m7M7DepositPlanDefault,
@@ -162,6 +220,8 @@ abstract final class FixturePaths {
     m7M7GoalPathRealworld,
     m7M7Monthly202608,
     m7M7MonthlyGap,
+    m7M7MonthlyMaskedIntegrity,
+    m7M7MonthlyMaskedRecon,
     m7M7MonthlyPending,
     m7M7NextRebalanceD6,
     m7M7PerfDailyGap,

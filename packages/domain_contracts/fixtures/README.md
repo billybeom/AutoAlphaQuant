@@ -1,4 +1,4 @@
-# `fixtures/` — 모의 데이터 픽스처 (**G4 · 78파일 · 생성 완료** — 77 + 🆕 `m6/journal_empty.json` 2026-09-17)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.1 · 96파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -11,7 +11,7 @@
 - 실키·계좌 전체번호·비밀번호 **0건**. 계좌는 **별칭만**(`"연금저축"`·`"일반"`).
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 78파일 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 96파일 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -84,9 +84,9 @@
 
 ---
 
-## 파일 목록 (78)
+## 파일 목록 (96)
 
-### 계약 코어 12 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
+### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
 | 파일 | 건수 | 내용 |
 |---|---|---|
@@ -102,8 +102,22 @@
 | `onboarding_reconnect.json` | 9 | 재연결 갈래 |
 | `deposit_plan_1.json` | 1 | 월 납입 = 엔진 설정값 예시 · 잔여 = 원화 현금 대기(D2) · 주문 초안 3 · `funding_steps` **null** |
 | `deposit_plan_funding_1.json` | 1 | 납입 조달 발동 · `funding_steps` 2단(파킹 잉여 0 → C 방어자산 매각) |
+| 🆕 `range_presets_4.json` | 4 | **v1.1** `ConfigRepository.watchRangePresets()` — 최근 30일(**`is_default`**)·이번 달·올해·전체 기간. 🔴 `is_default` 는 정확히 1건(C-34 ①) |
+| 🆕 `sleeve_catalog_4.json` | 4 | **v1.1** `ConfigRepository.watchSleeves()` — A·B·C·POT(`rolls_up_to: A`). P0S 라 새틀라이트 행 없음 |
 
-### `m6/` 18 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
+### `m6/` 31 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
+
+🆕 **계약 v1.1(2026-09-17 · M2 보강) 13건** —
+`journal_filter_catalog`(`J-1` 필터: 상태 7 · 출처 3 · 종목 6 — 기간·슬리브는 코어의 `range_presets_4`·`sleeve_catalog_4`) ·
+`journal_badges_2`(`J-1` 상단 배지: 「확인 중 2건」→`J-5` · 「리뷰 대기 3건」→`J-4` — 🔴 건수는 문구 안에 있다) ·
+`journal_masked_integrity`(`LEDGER_INTEGRITY` 중의 일지 6행 — `*_text` 4종이 「숨김」. 🔴 **가림은 엔진 읽기 경로가 끝낸다**(01 §2-10) · C-34 ③ 이 숫자 누출을 잡는다) ·
+`decision_detail_full`(`J-2` 정상 6단계 · 「이 회차」 링크) · `decision_detail_partial`(부분 체결 3행 + 「잔여 40주 미체결」) ·
+`decision_detail_rejected_saf309`(거부 — SAF 코드 **원문 그대로** + 거부 추적 1행 `LEVEL_3_PORTFOLIO`) ·
+`decision_detail_unknown`(체결 「확인 중」 + `pending_notice_text`) · `decision_detail_reevaluated_child`(X2 재판정 child — 「원행 보기」) ·
+`decision_detail_amended`(advisory 체인 `ADVICE`·`MANUAL_RECORD` · 원본→역분개→재기재 3행 · 「정정」 링크 · 🔴 스냅샷 없음 문구) ·
+`journal_draft_spec_discretion`(`J-3` 재량 개입 — 서약문 3줄 **[합성]**) · `journal_draft_spec_recon_clear`(서약문 0줄 · 원인 코드 문맥 칩) ·
+`unknown_board_2`(`J-5` 장기 1(강조·M5 안내 링크) + 신규 1 · 단계 4칸) · `unknown_board_empty`(「미해소 건이 없습니다」).
+🔵 같은 창에서 `journal_30`·`manual_fills_8` 전 행에 `side_label`·`quantity_text`·`price_text`·`commission_text`·`tax_text`·`detail_deep_link` 가 들어갔다(§8 미결 34·35·36).
 
 🆕 `journal_empty`(2026-09-17 · C4 R1-Bob-J1 — `J-1` 골든 `j1_empty` 의 입력. 0행 + `empty_label` 실림. `journal_30` 의 0행 슬라이스는 `empty_label` 이 null 이라 화면이 그릴 것이 없다 — 「없음」은 문구를 실어야 한다(계약 3조 ③)) ·
 `advice_12`(open 4·partial 1·filled 3·skipped 1·expired 2·revoked 1) · `advice_empty`(🔴 `open_count == 0`) ·
@@ -118,7 +132,10 @@
 `fill_rejected_price`(🔴 **입력값 보존** — C17) · `advice_skip_reasons` · `self_report_1` ·
 `external_holdings_2` · `entry_gate_nov_pass_1`(🔵 11월 재판정 통과 — 실데이터로는 검증 불가한 경로).
 
-### `m7/` 29 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+### `m7/` 32 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+
+🆕 **계약 v1.1 3건** — `m7_monthly_masked_integrity`(13항목 전부 「숨김 — 원장 무결성 점검 중」 · 상세 링크 0 · 13칸 유지) · `m7_monthly_masked_recon`(⑦ 비중만 `?` 미확정 표기 — 02 §2-2 표) · `m7_contrib_partial`(§8 미결 45 — C 슬리브 「산출 불가」 · `normalized: 0.0` · `unavailable_label`).
+🔵 같은 창에서 `m7_monthly_2026_08`·`_gap` 에 `generated_at_text`·`config_hash`·항목 `detail_deep_link`(④⑤→`S7-3` · ⑧→`S7-10`)가, `m7_monthly_pending` 에 `pending_notice_text` 가 들어갔다(봉투 형제 키 `pending_d_day_text` 는 **폐기** — §8 미결 40·41·43).
 
 `aftertax_ladder_1`(정본 갈래 5단 + 반사실 1 접힘 · `is_reference_only: true`) ·
 `realized_alloc_S7`(🔴 **C-31의 입력** — 회계 열 대조) · `ledger_trust_4` ·
@@ -174,7 +191,7 @@
 
 ## 역직렬화 실측 (2026-09-08 · 233행 · 실패 0)
 
-78파일 전량이 봉투 검사를 통과하고(🆕 `m6/journal_empty.json` 은 0행 봉투), 그중 **75파일 233행**이 실제 DTO 의 `fromJson` 을 지나
+96파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json` 은 0행 봉투), 그중 **93파일**(v1.1 실측 2026-09-17)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
@@ -197,9 +214,14 @@
 어긋난다** — 🔴 골든은 픽스처 원문이 아니라 **`toJson` 출력**으로 뜬다. 같은 이유로 `toJson` 은
 픽스처가 생략한 선택 키를 `null` 로 **명시해** 내보낸다(둘 다 계약 위반이 아니다).
 
+## 링크 규약 (🆕 v1.1 · 01 §4-4)
+
+픽스처의 링크 필드(`deep_link`·`detail_deep_link`·`action_deep_link`·`where_deep_link`·`clear_deep_link`·`route`·`preview_route`·`handoff_route`·`resume_route`)에는 `aaq://…`(앱 화면)와 `handbook://…`(핸드북 앵커) **두 스킴만** 온다. `aaq://` 는 전부 `AppRoutes.all`(`lib/src/navigation/app_links.dart`)의 패턴과 일치해야 하며 **C-33** 이 전수 검사한다. 🔴 화면은 이 문자열을 만들지도 해석하지도 않는다 — `AppLinkOpener.open(link)` 에 그대로 넘긴다.
+
 ## 아직 없는 것
 
 - **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
   🔴 구현자가 이름을 지어내지 않는다(인벤토리 §0 규칙) — M2가 05 에 목록을 등재한 뒤 만든다.
-- `test/` 의 계약 회귀 C-1~C-32 — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
+- **`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다).
+- `test/` 의 계약 회귀 C-1~C-34 — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.
