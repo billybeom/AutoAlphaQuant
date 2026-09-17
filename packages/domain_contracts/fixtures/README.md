@@ -1,4 +1,4 @@
-# `fixtures/` — 모의 데이터 픽스처 (**G4 · 77파일 · 생성 완료**)
+# `fixtures/` — 모의 데이터 픽스처 (**G4 · 78파일 · 생성 완료** — 77 + 🆕 `m6/journal_empty.json` 2026-09-17)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -11,7 +11,7 @@
 - 실키·계좌 전체번호·비밀번호 **0건**. 계좌는 **별칭만**(`"연금저축"`·`"일반"`).
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 77파일 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 78파일 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -84,7 +84,7 @@
 
 ---
 
-## 파일 목록 (77)
+## 파일 목록 (78)
 
 ### 계약 코어 12 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
@@ -103,8 +103,9 @@
 | `deposit_plan_1.json` | 1 | 월 납입 = 엔진 설정값 예시 · 잔여 = 원화 현금 대기(D2) · 주문 초안 3 · `funding_steps` **null** |
 | `deposit_plan_funding_1.json` | 1 | 납입 조달 발동 · `funding_steps` 2단(파킹 잉여 0 → C 방어자산 매각) |
 
-### `m6/` 17 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
+### `m6/` 18 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
 
+🆕 `journal_empty`(2026-09-17 · C4 R1-Bob-J1 — `J-1` 골든 `j1_empty` 의 입력. 0행 + `empty_label` 실림. `journal_30` 의 0행 슬라이스는 `empty_label` 이 null 이라 화면이 그릴 것이 없다 — 「없음」은 문구를 실어야 한다(계약 3조 ③)) ·
 `advice_12`(open 4·partial 1·filled 3·skipped 1·expired 2·revoked 1) · `advice_empty`(🔴 `open_count == 0`) ·
 `advice_blocked`(`ADVICE_LEDGER_UNVERIFIED`) · `advice_expired_confirm` ·
 `advice_no_action`(🔴 **C-26의 입력** — `kind='NO_ACTION'` · `suppressed` · `actions` 빈 목록 ·
@@ -173,7 +174,7 @@
 
 ## 역직렬화 실측 (2026-09-08 · 233행 · 실패 0)
 
-77파일 전량이 봉투 검사를 통과하고, 그중 **75파일 233행**이 실제 DTO 의 `fromJson` 을 지나
+78파일 전량이 봉투 검사를 통과하고(🆕 `m6/journal_empty.json` 은 0행 봉투), 그중 **75파일 233행**이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).

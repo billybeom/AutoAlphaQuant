@@ -4,7 +4,7 @@
 §2(치환값·조립법)이고, 이 폴더의 파일은 전부 **사본**입니다 — 정본은 `11_앱설계/`의 같은 번호 문서이고,
 문서와 코드가 다르면 **코드(`packages/domain_contracts/`)가 이깁니다.**
 
-조립일 **2026-09-09**.
+조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/R1-Bob-J1-재제출.md`).
 
 ## 구성
 
@@ -21,7 +21,7 @@
 | `04_화면명세_M8_셸_운영홈_알림_온보딩.md` | M8 화면 명세 (전문 사본, 바이트 동일) | 11_앱설계/04 |
 | `05_화면명세_M9_설정_관리자.md` | M9 화면 명세 (전문 사본, 바이트 동일) | 11_앱설계/05 |
 | `08_Mermaid_전체흐름_핵심로직.md` | 흐름 그림 — **조문이 아님.** 01·02~05와 어긋나면 조문이 맞다 | 11_앱설계/08 |
-| `fixtures_README.md` | 픽스처 규약 사본 + 실제 파일 목록 **77개** | `packages/domain_contracts/fixtures/README.md` |
+| `fixtures_README.md` | 픽스처 규약 사본 + 실제 파일 목록 **78개**(2026-09-17 · 🆕 `m6/journal_empty.json`) | `packages/domain_contracts/fixtures/README.md` |
 | `contracts_bundle.md` | `domain_contracts` 공개 API 원문 — **저장소를 못 붙이는 웹 채팅 전용** | `packages/domain_contracts/lib/` |
 | `inbox/README.md` | 질문·추측 목록 접수 규약(파일명·형식) | — |
 | `rounds.md` | 라운드 로그 — 누가 무엇을 언제 받았나 | — |

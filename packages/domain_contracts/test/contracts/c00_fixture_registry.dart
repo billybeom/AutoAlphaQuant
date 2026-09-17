@@ -232,6 +232,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (CommandReceipt v) => v.toJson(),
     ),
   ),
+  // 🆕 2026-09-17 — 0행이지만 봉투 타입은 같다(C-1 은 빈 rows 도 등록부를 요구한다).
+  FixturePaths.m6JournalEmpty: FixtureBinding(_tradeJournalEntry),
   FixturePaths.m6ManualFills8: FixtureBinding(_tradeJournalEntry),
 
   // ── m7/ — 성과·플래너·이행 갭 ────────────────────────────────────────────

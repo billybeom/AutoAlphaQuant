@@ -42,6 +42,11 @@ abstract final class FixturePaths {
   static const String m6FillFormSpec = 'm6/fill_form_spec.json';
   static const String m6FillFormSpecStale = 'm6/fill_form_spec_stale.json';
   static const String m6FillRejectedPrice = 'm6/fill_rejected_price.json';
+
+  /// 🆕 2026-09-17(C4 · R1-Bob-J1) — `J-1` 빈 상태 골든 `j1_empty` 의 입력.
+  ///    `journal_30.json` 의 0행 슬라이스는 `empty_label` 이 null 이라 화면이 그릴 것이 없다 —
+  ///    「없음」(NO_DATA)은 문구를 실어야 하므로(계약 3조 ③) M2 가 파일로 준다(02 §3-1 · §6).
+  static const String m6JournalEmpty = 'm6/journal_empty.json';
   static const String m6ManualFills8 = 'm6/manual_fills_8.json';
   static const String m6SelfReport1 = 'm6/self_report_1.json';
 
@@ -134,6 +139,7 @@ abstract final class FixturePaths {
     m6FillFormSpec,
     m6FillFormSpecStale,
     m6FillRejectedPrice,
+    m6JournalEmpty,
     m6ManualFills8,
     m6SelfReport1,
     m7AftertaxLadder1,

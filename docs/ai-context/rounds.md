@@ -9,14 +9,16 @@
 - **팩 판** = 이 폴더를 조립한 날짜. 문서가 바뀌면 판이 올라가고, 옛 판으로 작업 중인 라운드는
   **반려가 아니라 재발송** 대상입니다.
 - 🔴 발송 전 확인: 실키 0 · 06_시스템설계와 청사진 HTML 미포함 · 프롬프트 본문 무수정.
+- **팩 판 이력**: 2026-09-09(C2 조립) → **2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신, 픽스처 78, `inbox/J1_questions.md`). 2026-09-09 판으로 작업 중인 라운드 = R1-Bob-J1 1회차 → 재발송 대상(재제출 행).
 
 | 라운드ID | AI | 모듈 | 범위(화면ID) | 준 것 | 팩 판 | 발송일 | 상태 | PR·브랜치 | 질문 파일 | 비고 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| R0-Bob-ENV | Bob | M6 | — | 11 시작가이드 부록 A · 저장소 접근 | 2026-09-09 | | 미발송 | | | 클론·`melos bootstrap`·`melos run test:contracts` 통과 확인까지 · **패킷 `send/R0-Bob-ENV.md`(09-14)** · origin에 4커밋 있음(푸시 권한 확인 가능) |
-| R0-Bob-READ | Bob | M6 | J-1 | `prompt_M6.md` + 문서 5부 | 2026-09-09 | | 미발송 | | `inbox/J1_questions.md` | 읽기만. 구현 착수 전 질문 목록 1회 제출 · **패킷 `send/R0-Bob-READ.md`(09-14)** |
+| R0-Bob-ENV | Bob | M6 | — | 11 시작가이드 부록 A · 저장소 접근 | 2026-09-09 | 2026-09-16 | **수신** | `chore/bob-env-check`(푸시 후 삭제) | | 클론·`melos bootstrap`·`melos run test:contracts` 통과 확인까지 · **패킷 `send/R0-Bob-ENV.md`(09-14)** · ✅ **2026-09-16 결과**: `analyze`(13패키지 · 경고 0) · `test` SUCCESS(skip 은 의도된 것) · 원격 브랜치 생성·푸시·삭제로 **권한 확인 완료** · 파일 수정 0 |
+| R0-Bob-READ | Bob | M6 | J-1 | `prompt_M6.md` + 문서 5부 | 2026-09-09 | — | 미발송 | | `inbox/J1_questions.md` | 읽기만. 구현 착수 전 질문 목록 1회 제출 · **패킷 `send/R0-Bob-READ.md`(09-14)** · ℹ️ 발주자가 R1 을 바로 보내 **이 라운드는 R1 에 흡수**됨(질문 2건이 R1 인라인으로 옴) — 별도 발송 불필요 |
 | R0-Gem-ENV | Gemini | M7 | — | 11 시작가이드 부록 B · 저장소 접근 | 2026-09-09 | | 미발송 | | | 클론·`melos bootstrap`·`melos run test:contracts` 통과 확인까지 · **패킷 `send/R0-Gem-ENV.md`(09-14)**(CLI/웹 두 본문) |
 | R0-Gem-READ | Gemini | M7 | S7-1 | `prompt_M7.md` + 문서 5부 | 2026-09-09 | | 미발송 | | `inbox/S7-1_questions.md` | 읽기만. 구현 착수 전 질문 목록 1회 제출 · **패킷 `send/R0-Gem-READ.md`(09-14)** |
-| R1-Bob-J1 | Bob | M6 | J-1 | `prompt_M6.md`(범위 J-1) + 문서 5부 + `fixtures/journal_30.json` | 2026-09-09 | | 미발송 | `ui/m6-j1-timeline` · `[M6] J-1 매매일지 타임라인` | `inbox/J1_questions.md` | 첫 코드 과제 · **패킷 `send/R1-Bob-J1.md`(09-14)** · R0-Bob-READ와 같은 날 보내도 됨 |
+| R1-Bob-J1 | Bob | M6 | J-1 | `prompt_M6.md`(범위 J-1) + 문서 5부 + `fixtures/journal_30.json` | 2026-09-09 | 2026-09-16 | 🔴 **반려**(2026-09-17) | `ui/m6-j1-timeline` **로컬·미커밋** · PR 없음 | 미생성(인라인 보고 2건) → Claude 가 `inbox/J1_questions.md` 생성(Q1·Q2 + A1~A9) | 첫 코드 과제 · **패킷 `send/R1-Bob-J1.md`(09-14)** · **C4 검사(2026-09-17)**: analyze·test:contracts·boundaries·labels ✅ / **`melos run format` 2파일 ❌**(CI 포맷 게이트) / 제출물 4종(PR·질문 파일·골든·스크린샷) 미제출 / 추측·누락 A1~A8 → 재제출 = 아래 행 |
+| R1-Bob-J1 (재제출) | Bob | M6 | J-1 | 재제출 패킷 + **팩 판 2026-09-17**(01·02 사본 갱신 · 🆕 `m6/journal_empty.json` · C-2 하네스 · `inbox/J1_questions.md` 답) | **2026-09-17** | | 미발송 | `ui/m6-j1-timeline`(같은 브랜치 · `git merge --ff-only main` 선행) · `[M6] J-1 매매일지 타임라인` | `inbox/J1_questions.md`(Q3 부터 추가) | **패킷 `send/R1-Bob-J1-재제출.md`** · 🔴 발송 전 **main 푸시 필요**(PR base 가 Claude 커밋을 포함해야 함 — 발주자 「푸시해」) · 범위 = 02 §3-1 「C4 R1 반영」 ③ R1 범위(필터·딥링크는 R1b) |
 
 ## 아직 열지 않은 라운드
 
