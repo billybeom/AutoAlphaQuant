@@ -20,5 +20,15 @@
 
 /// ui_journal의 정적 UI 라벨 모음. 인스턴스를 만들지 않는다.
 abstract final class JournalLabels {
-  // 예: static const String close = '닫기';
+  static const String simulation = '모의';
+  static const String retry = '다시 시도';
+
+  /// 오래된 데이터 배너 제목 (A4 · F3).
+  static const String staleBannerTitle = '오래된 데이터';
+
+  /// 수수료 필드 이름 (A3 · F6).
+  static const String commission = '수수료';
+
+  /// 세금 필드 이름 (A3 · F6).
+  static const String tax = '세금';
 }
