@@ -21,8 +21,7 @@ class _FakePerformanceRepository implements PerformanceRepository {
     required PerfGranularity granularity,
     required bool cumulative,
     required DateRange range,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear}) =>

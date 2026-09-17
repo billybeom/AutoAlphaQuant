@@ -10,24 +10,26 @@ final Provider<Clock> analyticsClockProvider = Provider<Clock>((ref) {
 
 final Provider<PerformanceRepository> performanceRepositoryProvider =
     Provider<PerformanceRepository>((ref) {
-  throw UnimplementedError('performanceRepositoryProvider must be overridden');
-});
+      throw UnimplementedError(
+        'performanceRepositoryProvider must be overridden',
+      );
+    });
 
 final Provider<SafetyRepository> safetyRepositoryProvider =
     Provider<SafetyRepository>((ref) {
-  throw UnimplementedError('safetyRepositoryProvider must be overridden');
-});
+      throw UnimplementedError('safetyRepositoryProvider must be overridden');
+    });
 
 /// 안전 상태 스트림 (차단 플래그 구독)
 final StreamProvider<SafetyState> safetyStateStreamProvider =
     StreamProvider<SafetyState>((ref) {
-  final repository = ref.watch(safetyRepositoryProvider);
-  return repository.watchState();
-});
+      final repository = ref.watch(safetyRepositoryProvider);
+      return repository.watchState();
+    });
 
 /// 월간 리포트 FutureProvider (family)
 final FutureProviderFamily<MonthlyReport, String> monthlyReportProvider =
     FutureProvider.family<MonthlyReport, String>((ref, yyyyMm) async {
-  final repository = ref.watch(performanceRepositoryProvider);
-  return repository.monthlyReport(yyyyMm);
-});
+      final repository = ref.watch(performanceRepositoryProvider);
+      return repository.monthlyReport(yyyyMm);
+    });

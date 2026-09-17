@@ -4,10 +4,7 @@ import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/material.dart';
 
 class SafetyBlockBanner extends StatelessWidget {
-  const SafetyBlockBanner({
-    super.key,
-    required this.activeFlags,
-  });
+  const SafetyBlockBanner({super.key, required this.activeFlags});
 
   final List<BlockFlag> activeFlags;
 
@@ -37,8 +34,10 @@ class SafetyBlockBanner extends StatelessWidget {
       children: [
         if (markerFlags.isNotEmpty)
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 4.0,
+            ),
             child: Wrap(
               spacing: 6.0,
               runSpacing: 4.0,
@@ -68,8 +67,10 @@ class SafetyBlockBanner extends StatelessWidget {
           Container(
             width: double.infinity,
             color: colorScheme.errorContainer,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,

@@ -4,10 +4,7 @@ import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/material.dart';
 
 class TrustBadgeView extends StatelessWidget {
-  const TrustBadgeView({
-    super.key,
-    required this.trust,
-  });
+  const TrustBadgeView({super.key, required this.trust});
 
   final LedgerTrustBadge trust;
 

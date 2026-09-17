@@ -8,18 +8,16 @@ import '../../l10n/labels.dart';
 import '../providers/analytics_providers.dart';
 
 class StaleBanner extends ConsumerWidget {
-  const StaleBanner({
-    super.key,
-    required this.asOf,
-  });
+  const StaleBanner({super.key, required this.asOf});
 
   final AsOf asOf;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final clock = ref.watch(analyticsClockProvider);
-    final isStale =
-        asOf.observedAt.add(asOf.staleAfter).isBefore(clock.nowUtc());
+    final isStale = asOf.observedAt
+        .add(asOf.staleAfter)
+        .isBefore(clock.nowUtc());
 
     if (!isStale) {
       return const SizedBox.shrink();

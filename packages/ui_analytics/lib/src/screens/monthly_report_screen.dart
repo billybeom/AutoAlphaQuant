@@ -12,10 +12,7 @@ import '../widgets/trust_badge_view.dart';
 
 /// S7-1 월간 1페이지 리포트 본문 뷰 (Scaffold·AppBar 는 셸 소유)
 class MonthlyReportScreen extends ConsumerWidget {
-  const MonthlyReportScreen({
-    super.key,
-    required this.yyyyMm,
-  });
+  const MonthlyReportScreen({super.key, required this.yyyyMm});
 
   final String yyyyMm;
 
@@ -120,16 +117,14 @@ class MonthlyReportScreen extends ConsumerWidget {
                 children: [
                   Text(
                     report.yyyyMm,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     report.asOf.label,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -149,9 +144,9 @@ class MonthlyReportScreen extends ConsumerWidget {
             child: Text(
               report.backdateFootnote!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontStyle: FontStyle.italic,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                fontStyle: FontStyle.italic,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
