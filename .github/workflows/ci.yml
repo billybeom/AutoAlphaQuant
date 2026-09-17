@@ -68,7 +68,11 @@ jobs:
           #    지정한 형태). 두 점으로 비교하면 PR이 열린 뒤 main에 들어간 남의
           #    골든 변경까지 이 PR의 «수정»으로 잡혀 애먼 반려가 난다.
           #    fetch-depth: 0 이라야 공통 조상을 찾을 수 있다(위 checkout 설정).
-          CHANGED=$(git diff --name-status "$BASE_SHA...$HEAD_SHA" -- '*golden*' || true)
+          # 🔴 대상은 «스냅샷 산출물»뿐이다 — 뷰모델 골든(*.golden.json)과 위젯 골든 PNG.
+          #    구 규칙 '*golden*' 은 경로에 golden 이 든 **모든 파일**(test/golden/ 의 하네스 .dart·
+          #    README 포함)을 스냅샷으로 취급해, M2 가 비교기 코드를 고친 PR 을 «골든 수정»으로
+          #    오탐했다(2026-09-17 PR #2). 고칠 수 없는 조건으로 점검을 실패시키지 않는다.
+          CHANGED=$(git diff --name-status "$BASE_SHA...$HEAD_SHA" -- '*.golden.json' '*/test/golden/*.png' '*/goldens/*' || true)
           if [ -z "$CHANGED" ]; then
             echo "✅ 골든 파일 변경 없음"
             exit 0
