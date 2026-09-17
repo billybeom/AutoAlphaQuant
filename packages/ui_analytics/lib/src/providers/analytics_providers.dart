@@ -33,3 +33,20 @@ final FutureProviderFamily<MonthlyReport, String> monthlyReportProvider =
       final repository = ref.watch(performanceRepositoryProvider);
       return repository.monthlyReport(yyyyMm);
     });
+
+/// S7-3 드로다운 맥락 FutureProvider (family)
+final FutureProviderFamily<DrawdownContextVm, DateRange?>
+drawdownContextProvider = FutureProvider.family<DrawdownContextVm, DateRange?>((
+  ref,
+  range,
+) async {
+  final repository = ref.watch(performanceRepositoryProvider);
+  return repository.drawdownContext(range: range);
+});
+
+/// S7-3b 슬리브 기여 분해 FutureProvider (family)
+final FutureProviderFamily<ContributionVm, DateRange> contributionProvider =
+    FutureProvider.family<ContributionVm, DateRange>((ref, range) async {
+      final repository = ref.watch(performanceRepositoryProvider);
+      return repository.contribution(range: range);
+    });
