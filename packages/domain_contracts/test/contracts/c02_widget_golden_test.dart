@@ -12,10 +12,12 @@ void main() {
       'C-2 대표 화면 9개를 픽스처로 렌더해 PNG 를 비교한다(light/dark)',
       () {},
       skip:
-          'ui_* 화면 패키지에 위젯이 아직 없다(스텁 3파일뿐). 이 검사는 Flutter 위젯 '
-          '테스트라 domain_contracts(순수 Dart)에서 돌 수 없다 — 화면 패키지의 '
-          'test/golden/ 에서 돈다. 🔴 최초 베이스라인은 그 화면을 만드는 PR 에서만 '
-          '«추가»가 허용되고, 픽스처가 그대로인데 다시 찍는 것은 위조다(01 §7 표).',
+          '이 검사는 Flutter 위젯 테스트라 domain_contracts(순수 Dart)에서 돌 수 없다 — '
+          '화면 패키지의 test/golden/ 에서 돈다. ✅ 2026-09-17: ui_journal J-1 골든 8장'
+          '(j1_normal·blocked·empty·prevented × light/dark)이 그 패키지의 flutter test 로 '
+          '돌고 있다(비교기 2판 = 1px 이동·AA 허용, 유의 픽셀 0.2%). 대표 화면 9개 중 1개. '
+          '🔴 최초 베이스라인은 그 화면을 만드는 PR 에서만 «추가»가 허용되고, 픽스처가 '
+          '그대로인데 다시 찍는 것은 위조다(01 §7 표).',
     );
   });
 }

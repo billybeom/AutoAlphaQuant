@@ -170,14 +170,49 @@ void main() {
       );
     });
 
-    test(
-      'C-3 ui_* 의 import 그래프 전수(전이 의존 포함)',
-      () {},
-      skip:
-          'ui_* 에 화면 코드가 아직 없다(스텁 3파일). pubspec 검사만으로는 동적 import·'
-          '전이 의존을 못 잡으므로, 화면이 들어오는 PR 에서 이 자리를 채운다 — '
-          '그때까지 tool/check_boundaries.sh [2] 가 grep 수준으로 본다.',
-    );
+    test('C-3 ui_* 의 import 그래프 전수 — 허용 3패키지 + dart: 만 (01 §1-1)', () {
+      // ✅ 2026-09-17(C4 R1) — ui_journal J-1 이 들어와 실효가 생겼다. 전이 의존은
+      //    pubspec 검사(위)가 막고, 여기서는 «lib/ 가 실제로 import 하는 패키지»를 본다.
+      //    🔴 `package:ui_journal/...` 자기 참조는 허용(상대 import 대신 쓴 경우).
+      final List<String> offenders = <String>[];
+      final RegExp importRe = RegExp(
+        r'''^\s*(?:import|export)\s+['"]([^'"]+)['"]''',
+        multiLine: true,
+      );
+      for (final String name in uiPackageNames) {
+        final Directory lib = Directory('${repoRoot.path}/packages/$name/lib');
+        for (final File f in dartSourcesIn(lib)) {
+          final String code = stripComments(f.readAsStringSync());
+          for (final RegExpMatch m in importRe.allMatches(code)) {
+            final String uri = m.group(1)!;
+            if (uri.startsWith('dart:')) {
+              continue;
+            }
+            if (!uri.startsWith('package:')) {
+              continue; // 상대 import — 같은 패키지 안
+            }
+            final String pkg = uri
+                .substring('package:'.length)
+                .split('/')
+                .first;
+            const Set<String> allowed = <String>{
+              'flutter',
+              'flutter_riverpod',
+              'domain_contracts',
+            };
+            if (pkg == name || allowed.contains(pkg)) {
+              continue;
+            }
+            offenders.add('${shortPath(f)}: $uri');
+          }
+        }
+      }
+      expect(
+        offenders,
+        isEmpty,
+        reason: 'ui_* 는 flutter·flutter_riverpod·domain_contracts 만 import 한다(01 §1-1 · C-3).',
+      );
+    });
   });
 }
 

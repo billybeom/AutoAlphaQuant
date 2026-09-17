@@ -226,23 +226,70 @@ void main() {
       }
     });
 
-    test(
-      'C-5 ui_* 전 파일의 한글 리터럴 0건 + TIER·SAF- 리터럴 금지',
-      () {},
-      skip:
-          '`ui_*` 에 화면 코드가 아직 없다(스텁 2파일씩). 지금 도는 검사는 '
-          'tool/check_labels.sh 이며, 화면이 들어오는 PR 에서 이 자리를 정본 구현으로 '
-          '채운다(01 §7 C-5 — 「C-5 의 정본 구현은 test/ 의 계약 테스트」).',
-    );
+    test('C-5 ui_* 전 파일의 한글 리터럴 0건 + TIER·SAF- 리터럴 금지 (01 §1-5)', () {
+      // ✅ 2026-09-17(C4 R1) — 정본 구현. tool/check_labels.sh 는 보조다.
+      //    주석은 대상이 아니다(한국어 주석은 규약상 허용) — stripComments 뒤 «따옴표 안»만 본다.
+      //    ⚠️ 여러 줄 문자열(''' / """)과 보간 안의 중첩 따옴표는 첫 줄까지만 본다(알려진 한계 — 과탐 방향).
+      final List<String> offenders = <String>[];
+      final RegExp literalRe = RegExp(
+        r'''r?'(?:[^'\\\n]|\\.)*'|r?"(?:[^"\\\n]|\\.)*"''',
+      );
+      final RegExp hangul = RegExp(r'[가-힣]');
+      final RegExp forbiddenCodes = RegExp(r'TIER |SAF-');
+      for (final String name in uiPackageNames) {
+        final Directory lib = Directory('${repoRoot.path}/packages/$name/lib');
+        for (final File f in dartSourcesIn(lib)) {
+          final String rel = shortPath(f).replaceAll(r'\', '/');
+          final bool isLabels = rel.endsWith('/lib/l10n/labels.dart');
+          final String code = stripComments(f.readAsStringSync());
+          for (final RegExpMatch m in literalRe.allMatches(code)) {
+            final String lit = m.group(0)!;
+            if (!isLabels && hangul.hasMatch(lit)) {
+              offenders.add('$rel: $lit');
+            }
+            if (forbiddenCodes.hasMatch(lit)) {
+              offenders.add('$rel: $lit (TIER/SAF literal)');
+            }
+          }
+        }
+      }
+      expect(
+        offenders,
+        isEmpty,
+        reason:
+            '화면은 사유·상태 문구를 만들지 않는다 — 한국어 리터럴은 lib/l10n/labels.dart 에만'
+            '(01 §1-5 · C-5). 걸린 것이 정적 라벨이면 그 파일로 옮긴다.',
+      );
+    });
 
-    test(
-      'C-5 labels.dart 전수 — «램프» 단독 사용 0건(M2-3 소유)',
-      () {},
-      skip:
-          'ui_* 의 lib/l10n/labels.dart 가 아직 비어 있다(스텁). C-5 는 그 파일을 '
-          '예외로 두므로 «램프»(«운영 램프»/«초기 진입» 접두 없이)를 잡을 검사가 따로 '
-          '필요하다 — 보조 구현은 tool/check_labels.sh --ramp 다(01 §7 각주).',
-    );
+    test('C-5 labels.dart 전수 — «램프» 단독 사용 0건(M2-3 소유)', () {
+      // ✅ 2026-09-17(C4 R1) — OpsRamp(L0~L5)와 EntryRamp(초기 진입 분할)는 다른 것이다.
+      //    labels.dart 는 C-5 의 예외이므로 «램프» 접두 검사를 따로 둔다(01 §7 각주).
+      final List<String> offenders = <String>[];
+      for (final String name in uiPackageNames) {
+        final File labels = File(
+          '${repoRoot.path}/packages/$name/lib/l10n/labels.dart',
+        );
+        if (!labels.existsSync()) {
+          continue;
+        }
+        final List<String> lines = stripComments(labels.readAsStringSync())
+            .split('\n');
+        for (int i = 0; i < lines.length; i++) {
+          final String l = lines[i];
+          if (l.contains('램프') &&
+              !l.contains('운영 램프') &&
+              !l.contains('초기 진입')) {
+            offenders.add('$name/lib/l10n/labels.dart:${i + 1}: $l');
+          }
+        }
+      }
+      expect(
+        offenders,
+        isEmpty,
+        reason: '«램프»는 «운영 램프» 또는 «초기 진입 램프»로 갈라 쓴다(01 §2-6).',
+      );
+    });
   });
 }
 

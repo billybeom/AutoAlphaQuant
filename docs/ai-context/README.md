@@ -4,7 +4,7 @@
 §2(치환값·조립법)이고, 이 폴더의 파일은 전부 **사본**입니다 — 정본은 `11_앱설계/`의 같은 번호 문서이고,
 문서와 코드가 다르면 **코드(`packages/domain_contracts/`)가 이깁니다.**
 
-조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/R1-Bob-J1-재제출.md`).
+조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/R1-Bob-J1-재제출.md`) · **J-1 병합(PR #1 · 2026-09-17)** 뒤 `send/R1-Gem-S71.md` 신설 · `packages/ui_analytics/test/` 골든 하네스 설치.
 
 ## 구성
 
