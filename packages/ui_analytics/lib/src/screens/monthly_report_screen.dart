@@ -171,11 +171,14 @@ class MonthlyReportScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            TrustBadgeView(
-              trust: report.trust,
-              onOpenLink: (link) {
-                ref.read(analyticsLinkOpenerProvider).open(link);
-              },
+            const SizedBox(width: 8),
+            Flexible(
+              child: TrustBadgeView(
+                trust: report.trust,
+                onOpenLink: (link) {
+                  ref.read(analyticsLinkOpenerProvider).open(link);
+                },
+              ),
             ),
           ],
         ),
