@@ -7,77 +7,67 @@ class TrustBadgeView extends StatelessWidget {
   const TrustBadgeView({
     super.key,
     required this.trust,
-    this.onTap,
   });
 
   final LedgerTrustBadge trust;
-  final VoidCallback? onTap;
 
-  Color _levelColor(UiLevel level) {
+  Color _levelColor(BuildContext context, UiLevel level) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return switch (level) {
-      UiLevel.ok => Colors.green.shade700,
-      UiLevel.info => Colors.blue.shade700,
-      UiLevel.watch => Colors.orange.shade800,
-      UiLevel.act => Colors.deepOrange.shade800,
-      UiLevel.blocked => Colors.red.shade800,
+      UiLevel.ok => isDark ? Colors.green.shade300 : Colors.green.shade700,
+      UiLevel.info => isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+      UiLevel.watch => isDark ? Colors.orange.shade300 : Colors.orange.shade800,
+      UiLevel.act =>
+        isDark ? Colors.deepOrange.shade300 : Colors.deepOrange.shade800,
+      UiLevel.blocked => isDark ? Colors.red.shade300 : Colors.red.shade800,
     };
   }
 
-  Color _levelBackgroundColor(UiLevel level) {
+  Color _levelBackgroundColor(BuildContext context, UiLevel level) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return switch (level) {
-      UiLevel.ok => Colors.green.shade50,
-      UiLevel.info => Colors.blue.shade50,
-      UiLevel.watch => Colors.orange.shade50,
-      UiLevel.act => Colors.deepOrange.shade50,
-      UiLevel.blocked => Colors.red.shade50,
+      UiLevel.ok => isDark ? const Color(0x331B5E20) : Colors.green.shade50,
+      UiLevel.info => isDark ? const Color(0x330D47A1) : Colors.blue.shade50,
+      UiLevel.watch => isDark ? const Color(0x33E65100) : Colors.orange.shade50,
+      UiLevel.act =>
+        isDark ? const Color(0x33BF360C) : Colors.deepOrange.shade50,
+      UiLevel.blocked => isDark ? const Color(0x33B71C1C) : Colors.red.shade50,
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = _levelColor(trust.level);
-    final bgColor = _levelBackgroundColor(trust.level);
+    final borderColor = _levelColor(context, trust.level);
+    final bgColor = _levelBackgroundColor(context, trust.level);
 
-    return InkWell(
-      onTap: trust.actionDeepLink != null ? onTap : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-        decoration: BoxDecoration(
-          color: bgColor,
-          border: Border.all(color: borderColor, width: 1.0),
-          borderRadius: BorderRadius.circular(6.0),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  trust.label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: borderColor,
-                  ),
-                ),
-                if (trust.actionDeepLink != null) ...[
-                  const SizedBox(width: 4),
-                  Icon(Icons.chevron_right, size: 14, color: borderColor),
-                ],
-              ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border.all(color: borderColor, width: 1.0),
+        borderRadius: BorderRadius.circular(6.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            trust.label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: borderColor,
             ),
-            if (trust.consequenceLine.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 2.0),
-                child: Text(
-                  trust.consequenceLine,
-                  style: TextStyle(fontSize: 11, color: borderColor),
-                ),
+          ),
+          if (trust.consequenceLine.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: Text(
+                trust.consequenceLine,
+                style: TextStyle(fontSize: 11, color: borderColor),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

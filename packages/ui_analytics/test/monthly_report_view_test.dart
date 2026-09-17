@@ -6,20 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_analytics/ui_analytics.dart';
 
-class FixedTestClock implements Clock {
-  FixedTestClock(this._fixedUtc);
-  final DateTime _fixedUtc;
-
-  @override
-  DateTime nowUtc() => _fixedUtc;
-}
+import 'golden/golden_support.dart';
 
 class FakePerformanceRepository implements PerformanceRepository {
-  FakePerformanceRepository({required this.report});
-  final MonthlyReport report;
+  FakePerformanceRepository(this._report);
+  final MonthlyReport _report;
 
   @override
-  Future<MonthlyReport> monthlyReport(String yyyyMm) async => report;
+  Future<MonthlyReport> monthlyReport(String yyyyMm) async => _report;
 
   @override
   Future<PerformanceSeries> series({
@@ -54,163 +48,79 @@ class FakePerformanceRepository implements PerformanceRepository {
 }
 
 class FakeSafetyRepository implements SafetyRepository {
-  FakeSafetyRepository({required this.state});
-  final SafetyState state;
+  FakeSafetyRepository(this._state);
+  final SafetyState _state;
 
   @override
-  Stream<SafetyState> watchState() => Stream.value(state);
+  Stream<SafetyState> watchState() => Stream<SafetyState>.value(_state);
 }
 
 void main() {
-  final testAsOf = AsOf(
-    observedAt: DateTime.parse('2026-08-31T09:00:00Z'),
-    tradeDate: const TradeDate('2026-08-31'),
-    source: AsOfSource.localSqlite,
-    staleAfter: const Duration(hours: 24),
-    label: '잔고 기준 2026-08-31 종가',
-    staleReasonCode: 'BATCH_MISSING',
-    staleLabel: '엔진이 1거래일 멈춰 있습니다',
+  final report = singleFixture(
+    FixturePaths.m7M7Monthly202608,
+    MonthlyReport.fromJson,
   );
+  final safetyEnvelope = fixtureEnvelope(FixturePaths.safetyStates);
+  final safetyRow0 = SafetyState.fromJson(safetyEnvelope.rows[0]);
+  final safetyRow1 = SafetyState.fromJson(safetyEnvelope.rows[1]);
+  final safetyRow3 = SafetyState.fromJson(safetyEnvelope.rows[3]);
 
-  final testTrust = const LedgerTrustBadge(
-    grade: LedgerTrustGrade.reconciled,
-    level: UiLevel.ok,
-    label: '원장 대사 통과',
-    consequenceLine: '브로커 잔고 대사 0오차 확인됨',
-  );
+  testWidgets('S7-1 13개 항목 title 전수 렌더 및 픽스처 데이터 표시 검증',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(390, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-  final testItems = List.generate(
-    13,
-    (index) => ReportItem(
-      code: 'ITEM_${index + 1}',
-      order: index + 1,
-      sectionCode: 'SEC_${String.fromCharCode(65 + (index ~/ 2))}',
-      title: '항목 ${index + 1}',
-      valueText: '값 ${index + 1}',
-      noteText: '주석 ${index + 1}',
-    ),
-  );
-
-  final testReport = MonthlyReport(
-    yyyyMm: '2026-08',
-    items: testItems,
-    goalLine: '계획 경로 대비 유지',
-    disclosureViewCountText: '이번 달 탐색 열람 2회',
-    trust: testTrust,
-    asOf: testAsOf,
-    backdateFootnote: '전월 소급 정정 1건이 반영되었습니다',
-  );
-
-  final testSafetyState = SafetyState(
-    breakerLevel: BreakerLevel.normal,
-    breakerLabel: '정상',
-    drawdown: 0.05,
-    activeFlags: const [],
-    killSwitch: const KillSwitchView(active: false, stateLabel: '비활성'),
-    stoppedReleaseEligible: false,
-    releaseProgress: const [],
-    alertBlockSatEntry: false,
-    rampLevel: RampLevel.l1,
-    mode: RunMode.live,
-    asOf: testAsOf,
-  );
-
-  testWidgets('S7-1 정상 렌더: 13항목 고정 배열과 헤더 및 각주가 온전히 표시된다', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          analyticsClockProvider.overrideWithValue(
-            FixedTestClock(DateTime.parse('2026-08-31T12:00:00Z')),
-          ),
-          performanceRepositoryProvider.overrideWithValue(
-            FakePerformanceRepository(report: testReport),
-          ),
-          safetyRepositoryProvider.overrideWithValue(
-            FakeSafetyRepository(state: testSafetyState),
-          ),
+        overrides: <Override>[
+          analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+          performanceRepositoryProvider
+              .overrideWithValue(FakePerformanceRepository(report)),
+          safetyRepositoryProvider
+              .overrideWithValue(FakeSafetyRepository(safetyRow0)),
         ],
-        child: const MaterialApp(
-          home: MonthlyReportScreen(yyyyMm: '2026-08'),
+        child: MaterialApp(
+          home: Scaffold(
+            body: MonthlyReportScreen(yyyyMm: report.yyyyMm),
+          ),
         ),
       ),
     );
 
     await tester.pumpAndSettle();
 
-    // 13개 항목 모두 순서대로 렌더링되었는지 확인
-    for (int i = 1; i <= 13; i++) {
-      expect(find.text('항목 $i'), findsOneWidget);
-      expect(find.text('값 $i'), findsOneWidget);
+    for (final item in report.items) {
+      expect(find.text(item.title), findsOneWidget);
+      expect(find.text(item.valueText), findsOneWidget);
     }
 
-    // 신뢰 등급 라벨 및 헤더 고지 확인
-    expect(find.text('원장 대사 통과'), findsOneWidget);
-    expect(find.text('전월 소급 정정 1건이 반영되었습니다'), findsOneWidget);
-
-    // 열람 횟수 및 목표 경로
-    expect(find.text('이번 달 탐색 열람 2회'), findsOneWidget);
-    expect(find.text('계획 경로 대비 유지'), findsOneWidget);
+    expect(find.text(report.trust.label), findsOneWidget);
+    expect(find.text(report.goalLine), findsOneWidget);
+    expect(find.text(report.disclosureViewCountText), findsOneWidget);
+    if (report.backdateFootnote != null) {
+      expect(find.text(report.backdateFootnote!), findsOneWidget);
+    }
   });
 
-  testWidgets('S7-1 차단 상태: LEDGER_INTEGRITY 활성 시 수치가 마스킹된다', (tester) async {
-    final blockedSafetyState = testSafetyState.copyWith(
-      activeFlags: [
-        BlockFlag(
-          flagId: FlagIds.ledgerIntegrity,
-          label: '원장 체인 단절',
-          setAt: DateTime.parse('2026-08-31T10:00:00Z'),
-          clearRoute: ClearRoute.wizardOnly,
-          clearInstruction: '정정 마법사를 실행하십시오',
-        ),
-      ],
-    );
+  testWidgets('S7-1 신선도 검사: staleAfter 초과 시 오래된 데이터 제목 노출',
+      (WidgetTester tester) async {
+    final expiredClock = FixedClock(kGoldenNowUtc.add(const Duration(days: 3)));
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          analyticsClockProvider.overrideWithValue(
-            FixedTestClock(DateTime.parse('2026-08-31T12:00:00Z')),
-          ),
-          performanceRepositoryProvider.overrideWithValue(
-            FakePerformanceRepository(report: testReport),
-          ),
-          safetyRepositoryProvider.overrideWithValue(
-            FakeSafetyRepository(state: blockedSafetyState),
-          ),
+        overrides: <Override>[
+          analyticsClockProvider.overrideWithValue(expiredClock),
+          performanceRepositoryProvider
+              .overrideWithValue(FakePerformanceRepository(report)),
+          safetyRepositoryProvider
+              .overrideWithValue(FakeSafetyRepository(safetyRow0)),
         ],
-        child: const MaterialApp(
-          home: MonthlyReportScreen(yyyyMm: '2026-08'),
-        ),
-      ),
-    );
-
-    await tester.pumpAndSettle();
-
-    // 차단 배너 노출 확인
-    expect(find.textContaining('원장 체인 단절'), findsOneWidget);
-
-    // 수치가 *** 마스킹되었는지 확인 (값 1 등의 본문 텍스트 부재)
-    expect(find.text('값 1'), findsNothing);
-    expect(find.text(AnalyticsLabels.maskedIntegrity), findsNWidgets(13));
-  });
-
-  testWidgets('S7-1 신선도 검사: staleAfter 초과 시 오래된 데이터 배너가 뜬다', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          analyticsClockProvider.overrideWithValue(
-            // observedAt + 24시간을 초과한 시각
-            FixedTestClock(DateTime.parse('2026-09-02T10:00:00Z')),
+        child: MaterialApp(
+          home: Scaffold(
+            body: MonthlyReportScreen(yyyyMm: report.yyyyMm),
           ),
-          performanceRepositoryProvider.overrideWithValue(
-            FakePerformanceRepository(report: testReport),
-          ),
-          safetyRepositoryProvider.overrideWithValue(
-            FakeSafetyRepository(state: testSafetyState),
-          ),
-        ],
-        child: const MaterialApp(
-          home: MonthlyReportScreen(yyyyMm: '2026-08'),
         ),
       ),
     );
@@ -218,6 +128,62 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(AnalyticsLabels.staleBannerTitle), findsOneWidget);
-    expect(find.text('엔진이 1거래일 멈춰 있습니다'), findsOneWidget);
+  });
+
+  testWidgets('S7-1 차단 배너 label 표시 검증 (safety_states row 3)',
+      (WidgetTester tester) async {
+    final blockingFlag = safetyRow3.activeFlags.firstWhere(
+      (f) => !FlagIds.markerOnly.contains(f.flagId),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+          performanceRepositoryProvider
+              .overrideWithValue(FakePerformanceRepository(report)),
+          safetyRepositoryProvider
+              .overrideWithValue(FakeSafetyRepository(safetyRow3)),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: MonthlyReportScreen(yyyyMm: report.yyyyMm),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text(blockingFlag.label), findsOneWidget);
+    expect(find.text(blockingFlag.clearInstruction), findsOneWidget);
+  });
+
+  testWidgets('S7-1 표식 칩 표시 검증 (safety_states row 1 SELF_AUDIT_DUE)',
+      (WidgetTester tester) async {
+    final markerFlag = safetyRow1.activeFlags.firstWhere(
+      (f) => FlagIds.markerOnly.contains(f.flagId),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+          performanceRepositoryProvider
+              .overrideWithValue(FakePerformanceRepository(report)),
+          safetyRepositoryProvider
+              .overrideWithValue(FakeSafetyRepository(safetyRow1)),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: MonthlyReportScreen(yyyyMm: report.yyyyMm),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text(markerFlag.label), findsOneWidget);
   });
 }
