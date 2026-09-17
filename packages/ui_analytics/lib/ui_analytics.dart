@@ -6,7 +6,7 @@
 // 🔴 결측(value == null)은 **보간하지 않고 공백으로** 그린다(C-10).
 // 🔴 손익 노출은 인터스티셜·격리·열람 기록 3종이 함께 있을 때만이다(결정 8).
 //
-// 아직 비어 있다. 화면 위젯은 lib/src/ 아래로 들어오고 공개할 것만 여기에서
-// export 한다.
-
+// 화면 위젯은 lib/src/ 아래에 두고 공개할 것만 여기에서 export 한다.
 export 'l10n/labels.dart';
+export 'src/providers/analytics_providers.dart';
+export 'src/screens/monthly_report_screen.dart';
