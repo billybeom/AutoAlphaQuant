@@ -60,7 +60,7 @@ class _FakePerformanceRepository implements PerformanceRepository { /* monthlyRe
 class _FakeLedgerTrustRepository implements LedgerTrustRepository { /* watchGrade() => Stream.value(badge) … */ }
 
 void main() {
-  final MonthlyReport normal = singleFixture(FixturePaths.m7M7Monthly2026_08, MonthlyReport.fromJson);
+  final MonthlyReport normal = singleFixture(FixturePaths.m7M7Monthly202608, MonthlyReport.fromJson);
   final MonthlyReport gap = singleFixture(FixturePaths.m7M7MonthlyGap, MonthlyReport.fromJson);
   // 미생성: 봉투는 NOT_LOADED — 화면이 그리는 것은 asOf.staleLabel / pending_d_day_text 등 봉투 값이다.
   final FixtureEnvelope pending = fixtureEnvelope(FixturePaths.m7M7MonthlyPending);

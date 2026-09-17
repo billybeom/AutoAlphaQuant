@@ -58,7 +58,7 @@ G9 (A8) 테스트를 다시 쓰십시오 — **입력은 픽스처**입니다. g
           stale 제목(시계를 kGoldenNowUtc + 3일로) · 차단 배너 label(safety_states.json 3행) · 표식 칩(1행 SELF_AUDIT_DUE 는 배너가 아니라 칩).
           기대값은 픽스처에서 읽은 값으로 비교합니다(예 `find.text(report.items.first.title)`) — 테스트에도 한국어 리터럴을 쓰지 않습니다.
         · test/golden/s71_golden_test.dart — README 뼈대대로. 이름은 명세 지정: s71_normal · s71_partial_gap · s71_not_generated × light/dark = 6.
-          입력: FixturePaths.m7M7Monthly2026_08 / m7M7MonthlyGap / m7M7MonthlyPending 을 `singleFixture(..., MonthlyReport.fromJson)` 로,
+          입력: FixturePaths.m7M7Monthly202608 / m7M7MonthlyGap / m7M7MonthlyPending 을 `singleFixture(..., MonthlyReport.fromJson)` 로,
           안전 상태는 `SafetyState.fromJson(fixtureEnvelope(FixturePaths.safetyStates).rows[0])`, 시계는 `FixedClock(kGoldenNowUtc)`.
           PNG 는 만들 수 없으니 테스트 파일만 내십시오 — 최초 베이스라인은 발주자 PC 에서 1회 생성합니다.
 G10 lint — 저장소는 `--fatal-infos` 입니다. 자주 걸리는 것: unnecessary_lambdas(티어오프) · prefer_final_locals · always_declare_return_types ·
