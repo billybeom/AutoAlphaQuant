@@ -68,24 +68,44 @@ const Key goldenBoundaryKey = Key('golden-boundary');
 /// [child] 를 고정 크기 폰 화면·[brightness] 테마로 올린다.
 ///
 /// 스트림 프로바이더가 첫 값을 내보내도록 한 프레임 더 pump 한다.
+///
+/// 🆕 [wrapApp] — `MaterialApp` **바깥**을 감싼다(2026-09-21 · C4 R1b-Bob-J1 Q5).
+///    바텀시트·다이얼로그 같은 **모달**은 `MaterialApp` 의 Navigator 위에 뜨므로, 주입
+///    (`ProviderScope(overrides: …)`)이 `child` 안쪽에 있으면 모달이 그 주입을 보지 못한다
+///    (실제 앱은 `ProviderScope` 가 앱 루트에 있어 문제가 없다 — 하네스만의 제약이었다).
+///    모달을 여는 골든·테스트는 주입을 여기로 올린다:
+///
+///        await pumpForGolden(
+///          tester,
+///          const JournalTimeline(),
+///          brightness: b,
+///          wrapApp: (Widget app) => ProviderScope(overrides: <Override>[…], child: app),
+///        );
+///        await tester.tap(find.text(JournalLabels.filter));
+///        await tester.pumpAndSettle();
+///        await expectGolden('j1_filter_open', b);
+///
+///    모달이 없는 화면은 지금까지처럼 `child` 에 `ProviderScope` 를 넣어도 된다(기존 골든 무변경).
 Future<void> pumpForGolden(
   WidgetTester tester,
   Widget child, {
   required Brightness brightness,
   Size logicalSize = kGoldenPhoneSize,
+  Widget Function(Widget app)? wrapApp,
 }) async {
   tester.view.physicalSize = logicalSize;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
+  final Widget app = MaterialApp(
+    theme: ThemeData(useMaterial3: true, brightness: brightness),
+    home: Scaffold(body: child),
+  );
   await tester.pumpWidget(
     RepaintBoundary(
       key: goldenBoundaryKey,
-      child: MaterialApp(
-        theme: ThemeData(useMaterial3: true, brightness: brightness),
-        home: Scaffold(body: child),
-      ),
+      child: wrapApp == null ? app : wrapApp(app),
     ),
   );
   await tester.pump();
