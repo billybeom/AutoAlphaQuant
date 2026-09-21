@@ -3,10 +3,13 @@
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/labels.dart';
+
 class TrustBadgeView extends StatelessWidget {
-  const TrustBadgeView({super.key, required this.trust});
+  const TrustBadgeView({super.key, required this.trust, this.onOpenLink});
 
   final LedgerTrustBadge trust;
+  final void Function(String link)? onOpenLink;
 
   Color _levelColor(BuildContext context, UiLevel level) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -64,6 +67,38 @@ class TrustBadgeView extends StatelessWidget {
                 style: TextStyle(fontSize: 11, color: borderColor),
               ),
             ),
+          if (trust.upgradeHint != null && trust.upgradeHint!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: Text(
+                trust.upgradeHint!,
+                style: TextStyle(fontSize: 11, color: borderColor),
+              ),
+            ),
+          if (trust.actionDeepLink != null) ...[
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+                onPressed: () => onOpenLink?.call(trust.actionDeepLink!),
+                child: Text(
+                  AnalyticsLabels.actionViewButton,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: borderColor,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

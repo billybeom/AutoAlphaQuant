@@ -4,9 +4,14 @@ import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/material.dart';
 
 class SafetyBlockBanner extends StatelessWidget {
-  const SafetyBlockBanner({super.key, required this.activeFlags});
+  const SafetyBlockBanner({
+    super.key,
+    required this.activeFlags,
+    this.onOpenLink,
+  });
 
   final List<BlockFlag> activeFlags;
+  final void Function(String link)? onOpenLink;
 
   @override
   Widget build(BuildContext context) {
@@ -107,9 +112,34 @@ class SafetyBlockBanner extends StatelessWidget {
                                   color: colorScheme.onErrorContainer,
                                 ),
                               ),
+                              if (flag.checkpointLabel != null &&
+                                  flag.checkpointLabel!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2.0),
+                                  child: Text(
+                                    flag.checkpointLabel!,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: colorScheme.onErrorContainer,
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
+                        if (flag.clearDeepLink != null)
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            visualDensity: VisualDensity.compact,
+                            icon: Icon(
+                              Icons.chevron_right,
+                              color: colorScheme.onErrorContainer,
+                              size: 20,
+                            ),
+                            onPressed: () =>
+                                onOpenLink?.call(flag.clearDeepLink!),
+                          ),
                       ],
                     ),
                   ),

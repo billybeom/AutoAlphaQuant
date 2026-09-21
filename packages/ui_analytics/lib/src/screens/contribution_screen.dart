@@ -26,7 +26,7 @@ class ContributionScreen extends ConsumerWidget {
       loading: _buildSkeletonLoader,
       error: (err, stack) =>
           _buildErrorState(ref, asyncValue.valueOrNull?.asOf.label),
-      data: (vm) => _buildContent(context, vm, activeFlags),
+      data: (vm) => _buildContent(context, ref, vm, activeFlags),
     );
   }
 
@@ -77,13 +77,19 @@ class ContributionScreen extends ConsumerWidget {
 
   Widget _buildContent(
     BuildContext context,
+    WidgetRef ref,
     ContributionVm vm,
     List<BlockFlag> activeFlags,
   ) {
     return Column(
       children: [
         StaleBanner(asOf: vm.asOf),
-        SafetyBlockBanner(activeFlags: activeFlags),
+        SafetyBlockBanner(
+          activeFlags: activeFlags,
+          onOpenLink: (link) {
+            ref.read(analyticsLinkOpenerProvider).open(link);
+          },
+        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(16.0),
@@ -125,6 +131,7 @@ class ContributionScreen extends ConsumerWidget {
   List<Widget> _buildRows(BuildContext context, List<ContributionRow> rows) {
     final colorScheme = Theme.of(context).colorScheme;
     return rows.map((row) {
+      final isUnavailable = row.unavailableLabel != null;
       return Card(
         margin: const EdgeInsets.symmetric(vertical: 4.0),
         elevation: 0.5,
@@ -157,19 +164,33 @@ class ContributionScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4.0),
-                child: Container(
-                  height: 12.0,
-                  width: double.infinity,
-                  color: colorScheme.surfaceContainerHighest,
-                  alignment: Alignment.centerLeft,
-                  child: FractionallySizedBox(
-                    widthFactor: row.normalized.clamp(0.0, 1.0),
-                    child: Container(color: colorScheme.primary),
+              if (isUnavailable)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Text(
+                    row.unavailableLabel!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                )
+              else
+                ClipRRect(
+                  key: ValueKey<String>('bar_${row.sleeve.name}'),
+                  borderRadius: BorderRadius.circular(4.0),
+                  child: Container(
+                    height: 12.0,
+                    width: double.infinity,
+                    color: colorScheme.surfaceContainerHighest,
+                    alignment: Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: row.normalized.clamp(0.0, 1.0),
+                      child: Container(color: colorScheme.primary),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
