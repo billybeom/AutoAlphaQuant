@@ -141,3 +141,25 @@ void main() {
 `singleFixture(FixturePaths.m6DecisionDetailFull, DecisionDetailVm.fromJson)`(1행 픽스처) ·
 `listFixture(FixturePaths.m6JournalBadges2, JournalTimelineBadge.fromJson).rows`(목록) ·
 `fixtureEnvelope(path)`(봉투 원형). 기존 `journalFixture`·`journalSlice`·`safetyFixtureRow` 는 그대로다.
+
+## 🆕 모달(바텀시트·다이얼로그)이 열린 상태를 찍는 법 (2026-09-21)
+
+모달은 `MaterialApp` 의 Navigator 위에 뜬다. 그래서 `ProviderScope(overrides: …)` 를 `pumpForGolden` 의 `child` **안에** 넣으면
+모달이 그 주입을 보지 못해 `UnimplementedError` 가 난다(실제 앱은 `ProviderScope` 가 앱 루트에 있어 문제없다 — 하네스만의 제약).
+주입을 `wrapApp` 으로 **MaterialApp 바깥**에 올린다:
+
+```dart
+await pumpForGolden(
+  tester,
+  const JournalTimeline(),                    // child 에는 화면만
+  brightness: b,
+  wrapApp: (Widget app) => ProviderScope(overrides: <Override>[ /* … */ ], child: app),
+);
+await tester.tap(find.text(JournalLabels.filter));   // 모달 열기(정적 라벨로 찾는다)
+await tester.pumpAndSettle();
+await expectGolden('j1_filter_open', b);
+```
+
+단위 테스트도 같다 — `ProviderScope` 를 `MaterialApp` **위에** 두면 시트 안의 위젯이 같은 주입을 본다.
+시트 안의 목록은 지연 생성이라 화면 밖 선택지는 위젯 트리에 없다 → `tester.scrollUntilVisible(finder, 120, scrollable: find.byType(Scrollable).last)` 로 내린 뒤 탭한다.
+🔴 「필터를 고르면 그 값이 리포지토리 인자로 간다」는 **UI 를 실제로 조작해서** 확인한다 — 테스트가 쿼리를 직접 주입하면 아무것도 검증하지 않는다.
