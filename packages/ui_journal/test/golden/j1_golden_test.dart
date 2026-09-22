@@ -88,6 +88,38 @@ DateRange _fixtureRange() => DateRange(
 
 // ── Golden pump helper ────────────────────────────────────────────────────────
 
+/// Build the list of overrides for the golden tests.
+/// Uses `wrapApp` pattern so modal bottom sheets see the same injections.
+List<Override> _goldenOverrides({
+  required ListResult<TradeJournalEntry> result,
+  required SafetyState safety,
+  JournalFilterCatalog? filterCatalog,
+  List<JournalTimelineBadge> badges = const <JournalTimelineBadge>[],
+  List<DateRange>? rangePresets,
+  List<SleeveCatalogEntry>? sleeves,
+  JournalTimelineQuery? explicitQuery,
+}) {
+  return <Override>[
+    journalTimelineRepositoryProvider.overrideWithValue(
+      _FakeJournalRepository(
+        result,
+        filterCatalog: filterCatalog,
+        badges: badges,
+      ),
+    ),
+    journalSafetyRepositoryProvider.overrideWithValue(
+      _FakeSafetyRepository(safety),
+    ),
+    if (explicitQuery != null)
+      journalTimelineQueryProvider.overrideWith((Ref ref) => explicitQuery),
+    journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+    journalConfigRepositoryProvider.overrideWithValue(
+      _FakeConfigRepository(rangePresets: rangePresets, sleeves: sleeves),
+    ),
+    // No AppLinkOpener — goldens do not test navigation.
+  ];
+}
+
 Future<void> _pumpGolden(
   WidgetTester tester, {
   required ListResult<TradeJournalEntry> result,
@@ -97,35 +129,25 @@ Future<void> _pumpGolden(
   List<JournalTimelineBadge> badges = const <JournalTimelineBadge>[],
   List<DateRange>? rangePresets,
   List<SleeveCatalogEntry>? sleeves,
-  DateRange? range,
+  JournalTimelineQuery? explicitQuery,
 }) async {
-  final DateRange r = range ?? _fixtureRange();
+  // G4: use wrapApp so modals see the same ProviderScope.
   await pumpForGolden(
     tester,
-    ProviderScope(
-      overrides: <Override>[
-        journalTimelineRepositoryProvider.overrideWithValue(
-          _FakeJournalRepository(
-            result,
-            filterCatalog: filterCatalog,
-            badges: badges,
-          ),
-        ),
-        journalSafetyRepositoryProvider.overrideWithValue(
-          _FakeSafetyRepository(safety),
-        ),
-        journalTimelineQueryProvider.overrideWith(
-          (Ref ref) => JournalTimelineQuery(range: r),
-        ),
-        journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-        journalConfigRepositoryProvider.overrideWithValue(
-          _FakeConfigRepository(rangePresets: rangePresets, sleeves: sleeves),
-        ),
-        // No AppLinkOpener — goldens do not test navigation.
-      ],
-      child: const JournalTimeline(),
-    ),
+    const JournalTimeline(),
     brightness: brightness,
+    wrapApp: (Widget app) => ProviderScope(
+      overrides: _goldenOverrides(
+        result: result,
+        safety: safety,
+        filterCatalog: filterCatalog,
+        badges: badges,
+        rangePresets: rangePresets,
+        sleeves: sleeves,
+        explicitQuery: explicitQuery,
+      ),
+      child: app,
+    ),
   );
 }
 
@@ -176,7 +198,12 @@ void main() {
     (DateRange r) => r.isDefault,
   );
 
-  // ── Existing 4 goldens — re-generated (계약 v1.1 표시 전환으로 재생성) ───
+  // ── Existing 4 goldens (6종 × light/dark = 12 PNG は 既존 파일) ───────────
+  // These pass explicitQuery so presets auto-resolve is bypassed (consistent).
+
+  final JournalTimelineQuery fixtureQuery = JournalTimelineQuery(
+    range: _fixtureRange(),
+  );
 
   final Map<String, (ListResult<TradeJournalEntry>, SafetyState)>
   existingCases = <String, (ListResult<TradeJournalEntry>, SafetyState)>{
@@ -199,6 +226,7 @@ void main() {
           brightness: b,
           rangePresets: rangePresets,
           sleeves: sleeves,
+          explicitQuery: fixtureQuery,
         );
         await expectGolden(c.key, b);
       });
@@ -206,7 +234,6 @@ void main() {
   }
 
   // ── New golden: j1_masked_integrity ────────────────────────────────────────
-  // masked_integrity fixture + safety row 4 (LEDGER_INTEGRITY).
 
   for (final Brightness b in Brightness.values) {
     testWidgets('j1_masked_integrity ${brightnessSuffix(b)}', (
@@ -219,13 +246,13 @@ void main() {
         brightness: b,
         rangePresets: rangePresets,
         sleeves: sleeves,
+        explicitQuery: fixtureQuery,
       );
       await expectGolden('j1_masked_integrity', b);
     });
   }
 
   // ── New golden: j1_badges ──────────────────────────────────────────────────
-  // journal_30 + 2 badges.
 
   for (final Brightness b in Brightness.values) {
     testWidgets('j1_badges ${brightnessSuffix(b)}', (
@@ -239,50 +266,71 @@ void main() {
         badges: badges,
         rangePresets: rangePresets,
         sleeves: sleeves,
+        explicitQuery: fixtureQuery,
       );
       await expectGolden('j1_badges', b);
     });
   }
 
-  // ── New golden: j1_filter_open ─────────────────────────────────────────────
-  // Filter bottom sheet open state — we render with a status filter active
-  // so the active chip is visible.
+  // ── New golden: j1_filter_open (G4 — sheet actually open) ─────────────────
+  // README 레시피: pumpForGolden(wrapApp) → tap filter → pumpAndSettle → expectGolden.
+  // This is a NEW file in this PR — re-generating is allowed.
 
   for (final Brightness b in Brightness.values) {
     testWidgets('j1_filter_open ${brightnessSuffix(b)}', (
       WidgetTester tester,
     ) async {
-      final JournalStatusOption chosenStatus =
-          filterCatalog.statusOptions.first;
       await pumpForGolden(
         tester,
-        ProviderScope(
-          overrides: <Override>[
-            journalTimelineRepositoryProvider.overrideWithValue(
-              _FakeJournalRepository(all, filterCatalog: filterCatalog),
-            ),
-            journalSafetyRepositoryProvider.overrideWithValue(
-              _FakeSafetyRepository(normal),
-            ),
-            journalTimelineQueryProvider.overrideWith(
-              (Ref ref) => JournalTimelineQuery(
-                range: defaultRange,
-                status: chosenStatus.status,
-              ),
-            ),
-            journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            journalConfigRepositoryProvider.overrideWithValue(
-              _FakeConfigRepository(
-                rangePresets: rangePresets,
-                sleeves: sleeves,
-              ),
-            ),
-          ],
-          child: const JournalTimeline(),
-        ),
+        const JournalTimeline(),
         brightness: b,
+        wrapApp: (Widget app) => ProviderScope(
+          overrides: _goldenOverrides(
+            result: all,
+            safety: normal,
+            filterCatalog: filterCatalog,
+            rangePresets: rangePresets,
+            sleeves: sleeves,
+            // No explicitQuery — screen auto-resolves to defaultRange.
+          ),
+          child: app,
+        ),
       );
+      await tester.pumpAndSettle();
+      // Open the filter sheet.
+      await tester.tap(find.text(JournalLabels.filter));
+      await tester.pumpAndSettle();
       await expectGolden('j1_filter_open', b);
+    });
+  }
+
+  // ── New golden: j1_filter_active (G4 — active chip visible) ───────────────
+  // Shows the timeline with one active status chip (no sheet open).
+  // NEW file in this PR — allowed.
+
+  for (final Brightness b in Brightness.values) {
+    testWidgets('j1_filter_active ${brightnessSuffix(b)}', (
+      WidgetTester tester,
+    ) async {
+      final JournalStatusOption chosenStatus = filterCatalog.statusOptions
+          .firstWhere(
+            (JournalStatusOption o) => o.status == JournalStatus.filled,
+          );
+      await _pumpGolden(
+        tester,
+        result: all,
+        safety: normal,
+        brightness: b,
+        filterCatalog: filterCatalog,
+        rangePresets: rangePresets,
+        sleeves: sleeves,
+        explicitQuery: JournalTimelineQuery(
+          range: defaultRange,
+          status: chosenStatus.status,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectGolden('j1_filter_active', b);
     });
   }
 }

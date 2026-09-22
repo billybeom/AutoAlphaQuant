@@ -38,13 +38,6 @@ final journalLinkOpenerProvider = Provider<AppLinkOpener>(
 // ── Filter state ──────────────────────────────────────────────────────────────
 
 /// The range and filters representing the user's current J-1 selection.
-///
-/// 🆕 v1.1: Changed from plain Provider (throws) to StateProvider so the filter
-/// UI can write new selections.  Composition root overrides with the initial
-/// default-preset query; tests override with [JournalTimelineQuery].
-/// Initial value seeds from [_journalDefaultRangeProvider] — but since this
-/// package's throw-UnimplementedError default is always overridden in practice,
-/// the seed is never evaluated in production or tests.
 @immutable
 class JournalTimelineQuery {
   const JournalTimelineQuery({
@@ -64,13 +57,59 @@ class JournalTimelineQuery {
   final String? rebalanceEventId;
 }
 
-/// Mutable filter state.  Composition root overrides with the default-preset
-/// query; tests override directly with [overrideWith] or [overrideWithValue].
-final journalTimelineQueryProvider = StateProvider<JournalTimelineQuery>((
-  Ref ref,
-) {
-  throw UnimplementedError('journalTimelineQueryProvider');
-});
+/// Mutable filter state (G1 · §4-1 · §11-3).
+///
+/// Default value is `null` = «user has not chosen yet».
+/// [journalEffectiveQueryProvider] resolves null to the `isDefault` preset.
+/// Composition root may override with an initial query (e.g. rebalance event).
+/// Filter «reset» writes null → screen reverts to default preset automatically.
+final journalTimelineQueryProvider = StateProvider<JournalTimelineQuery?>(
+  (Ref ref) => null,
+);
+
+/// Derived effective query (G1 · §11-3).
+///
+/// - state != null  → that value (user has made a selection or app injected one)
+/// - state == null  → resolves to [_journalRangePresetsProvider] `isDefault` item
+///   - presets loading  → `AsyncValue.loading()`
+///   - presets loaded but no `isDefault` item (contract violation — C-34 guards)
+///     → `AsyncValue.error(...)` (screen shows retry)
+final journalEffectiveQueryProvider =
+    Provider<AsyncValue<JournalTimelineQuery>>((Ref ref) {
+      final JournalTimelineQuery? explicit = ref.watch(
+        journalTimelineQueryProvider,
+      );
+      if (explicit != null) {
+        return AsyncValue<JournalTimelineQuery>.data(explicit);
+      }
+      // Resolve from presets.
+      final AsyncValue<List<DateRange>> presetsAsync = ref.watch(
+        _journalRangePresetsProvider,
+      );
+      return presetsAsync.when(
+        loading: () => const AsyncValue<JournalTimelineQuery>.loading(),
+        // ignore: unnecessary_lambdas
+        error: (Object e, StackTrace st) =>
+            AsyncValue<JournalTimelineQuery>.error(e, st),
+        data: (List<DateRange> presets) {
+          final DateRange? def = presets.cast<DateRange?>().firstWhere(
+            (DateRange? r) => r!.isDefault,
+            orElse: () => null,
+          );
+          if (def == null) {
+            return AsyncValue<JournalTimelineQuery>.error(
+              StateError(
+                'No isDefault preset in rangePresets — contract violation.',
+              ),
+              StackTrace.current,
+            );
+          }
+          return AsyncValue<JournalTimelineQuery>.data(
+            JournalTimelineQuery(range: def),
+          );
+        },
+      );
+    });
 
 final journalTimelineLimitProvider = StateProvider<int>((Ref ref) => 100);
 
@@ -79,8 +118,15 @@ final journalTimelineLimitProvider = StateProvider<int>((Ref ref) => 100);
 final journalTimelineProvider = StreamProvider<ListResult<TradeJournalEntry>>((
   Ref ref,
 ) {
-  final JournalTimelineQuery query = ref.watch(journalTimelineQueryProvider);
+  final AsyncValue<JournalTimelineQuery> effectiveAsync = ref.watch(
+    journalEffectiveQueryProvider,
+  );
   final int limit = ref.watch(journalTimelineLimitProvider);
+  // While loading/error, emit empty stream so the screen shows skeleton/error.
+  final JournalTimelineQuery? query = effectiveAsync.valueOrNull;
+  if (query == null) {
+    return const Stream<ListResult<TradeJournalEntry>>.empty();
+  }
   return ref
       .watch(journalTimelineRepositoryProvider)
       .watchTimeline(
@@ -132,6 +178,25 @@ class JournalTimeline extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // G1: use the effective query (auto-selects isDefault preset when state==null)
+    final AsyncValue<JournalTimelineQuery> effectiveQuery = ref.watch(
+      journalEffectiveQueryProvider,
+    );
+
+    // While effective query is loading/error, show skeleton or error.
+    if (!effectiveQuery.hasValue) {
+      if (effectiveQuery.hasError) {
+        return _TimelineError(
+          lastAsOfLabel: null,
+          onRetry: () {
+            ref.invalidate(journalEffectiveQueryProvider);
+            ref.invalidate(_journalRangePresetsProvider);
+          },
+        );
+      }
+      return const _TimelineSkeleton();
+    }
+
     final AsyncValue<ListResult<TradeJournalEntry>> timeline = ref.watch(
       journalTimelineProvider,
     );
@@ -442,7 +507,32 @@ class _FilterBar extends ConsumerWidget {
     final AsyncValue<JournalFilterCatalog> catalogAsync = ref.watch(
       _journalFilterCatalogProvider,
     );
-    final JournalTimelineQuery query = ref.watch(journalTimelineQueryProvider);
+    // G1: read the effective query (never null at this point — JournalTimeline
+    // guards above, but valueOrNull is safe as a fallback).
+    final JournalTimelineQuery? query = ref
+        .watch(journalEffectiveQueryProvider)
+        .valueOrNull;
+    if (query == null) return const SizedBox.shrink();
+
+    final List<SleeveCatalogEntry>? sleeves = sleevesAsync.valueOrNull;
+    final JournalFilterCatalog? catalog = catalogAsync.valueOrNull;
+
+    // G2: compute chip labels — null means catalog not yet loaded → hide chip.
+    final String? sleeveChipLabel = query.sleeve != null
+        ? _sleeveLabel(query.sleeve!, sleeves)
+        : null;
+    final String? symbolChipLabel = query.symbol != null
+        ? _symbolLabel(query.symbol!, catalog)
+        : null;
+    final String? statusChipLabel = query.status != null
+        ? _statusLabel(query.status!, catalog)
+        : null;
+    final String? originChipLabel = query.origin != null
+        ? _originLabel(query.origin!, catalog)
+        : null;
+
+    // G3: range chip only shown when label is non-null.
+    final String? rangeChipLabel = query.range.label;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -458,41 +548,39 @@ class _FilterBar extends ConsumerWidget {
               ref,
               query: query,
               ranges: rangesAsync.valueOrNull ?? <DateRange>[],
-              sleeves: sleevesAsync.valueOrNull ?? <SleeveCatalogEntry>[],
-              catalog: catalogAsync.valueOrNull,
+              sleeves: sleeves ?? <SleeveCatalogEntry>[],
+              catalog: catalog,
             ),
           ),
           const SizedBox(width: 6),
-          // Active range chip (always shown when presets loaded)
-          if (rangesAsync.hasValue)
+          // G3: range chip absent when label is null.
+          if (rangeChipLabel != null)
             Padding(
               padding: const EdgeInsets.only(right: 6),
-              child: Chip(
-                label: Text(query.range.label ?? JournalLabels.filterAll),
-              ),
+              child: Chip(label: Text(rangeChipLabel)),
             ),
-          // Active sleeve chip
-          if (query.sleeve != null)
+          // G2: active sleeve chip — absent when label is null (catalog loading).
+          if (sleeveChipLabel != null)
             _ActiveFilterChip(
-              label: _sleeveLabel(query.sleeve!, sleevesAsync.valueOrNull),
+              label: sleeveChipLabel,
               onRemove: () => _writeQuery(ref, _clearSleeve(query)),
             ),
-          // Active symbol chip
-          if (query.symbol != null)
+          // G2: active symbol chip — absent when label is null (catalog loading).
+          if (symbolChipLabel != null)
             _ActiveFilterChip(
-              label: _symbolLabel(query.symbol!, catalogAsync.valueOrNull),
+              label: symbolChipLabel,
               onRemove: () => _writeQuery(ref, _clearSymbol(query)),
             ),
-          // Active status chip
-          if (query.status != null)
+          // G2: active status chip — absent when label is null (catalog loading).
+          if (statusChipLabel != null)
             _ActiveFilterChip(
-              label: _statusLabel(query.status!, catalogAsync.valueOrNull),
+              label: statusChipLabel,
               onRemove: () => _writeQuery(ref, _clearStatus(query)),
             ),
-          // Active origin chip
-          if (query.origin != null)
+          // G2: active origin chip — absent when label is null (catalog loading).
+          if (originChipLabel != null)
             _ActiveFilterChip(
-              label: _originLabel(query.origin!, catalogAsync.valueOrNull),
+              label: originChipLabel,
               onRemove: () => _writeQuery(ref, _clearOrigin(query)),
             ),
         ],
@@ -500,44 +588,47 @@ class _FilterBar extends ConsumerWidget {
     );
   }
 
-  // ── label helpers ──────────────────────────────────────────────────────────
+  // ── label helpers — return null when catalog is not yet loaded (G2) ─────────
 
-  static String _sleeveLabel(
+  static String? _sleeveLabel(
     SleeveId sleeve,
     List<SleeveCatalogEntry>? entries,
   ) {
-    if (entries == null) return sleeve.wire;
+    if (entries == null) return null;
     for (final SleeveCatalogEntry e in entries) {
       if (e.sleeve == sleeve) return e.label;
     }
-    return sleeve.wire;
+    return null;
   }
 
-  static String _symbolLabel(String symbol, JournalFilterCatalog? catalog) {
-    if (catalog == null) return symbol;
+  static String? _symbolLabel(String symbol, JournalFilterCatalog? catalog) {
+    if (catalog == null) return null;
     for (final SymbolOption s in catalog.symbolOptions) {
       if (s.symbol == symbol) return s.label;
     }
-    return symbol;
+    return null;
   }
 
-  static String _statusLabel(
+  static String? _statusLabel(
     JournalStatus status,
     JournalFilterCatalog? catalog,
   ) {
-    if (catalog == null) return status.wire;
+    if (catalog == null) return null;
     for (final JournalStatusOption o in catalog.statusOptions) {
       if (o.status == status) return o.label;
     }
-    return status.wire;
+    return null;
   }
 
-  static String _originLabel(FillOrigin origin, JournalFilterCatalog? catalog) {
-    if (catalog == null) return origin.wire;
+  static String? _originLabel(
+    FillOrigin origin,
+    JournalFilterCatalog? catalog,
+  ) {
+    if (catalog == null) return null;
     for (final FillOriginOption o in catalog.originOptions) {
       if (o.origin == origin) return o.label;
     }
-    return origin.wire;
+    return null;
   }
 
   // ── query mutation helpers — produce a new query, no row filtering ─────────
@@ -673,17 +764,10 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
   }
 
   void _reset() {
-    final DateRange? def = widget.ranges
-        .where((DateRange r) => r.isDefault)
-        .cast<DateRange?>()
-        .firstOrNull;
-    setState(() {
-      if (def != null) _range = def;
-      _sleeve = null;
-      _symbol = null;
-      _status = null;
-      _origin = null;
-    });
+    // G1: «초기화» = write null to StateProvider → effective query reverts to
+    // isDefault preset automatically. Close sheet so the screen reflects reset.
+    ref.read(journalTimelineQueryProvider.notifier).state = null;
+    Navigator.of(context).pop();
   }
 
   @override
@@ -716,12 +800,14 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
 
           // ── 기간 ──
           Text(JournalLabels.filterRange),
+          // G3: skip presets whose label is null (nothing to show).
           Wrap(
             spacing: 6,
             children: widget.ranges
+                .where((DateRange r) => r.label != null)
                 .map(
                   (DateRange r) => ChoiceChip(
-                    label: Text(r.label ?? ''),
+                    label: Text(r.label!),
                     selected: _range.presetCode == r.presetCode,
                     onSelected: (_) => setState(() => _range = r),
                   ),

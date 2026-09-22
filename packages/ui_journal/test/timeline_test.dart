@@ -1,8 +1,9 @@
-// timeline_test.dart — J-1 unit tests (ⓐ~ⓔ · §11 계약 v1.1 · 8 test cases)
+// timeline_test.dart — J-1 unit tests (ⓐ~ⓔ · §11 계약 v1.1 · G4 R1b)
 //
 // 🔴 No link literals — all link expectations use fixture values.
 // 🔴 No raw value display — we expect *Text, not entry.price.toString() etc.
 // 🔴 No row filtering — the fake repository receives args, does not filter.
+// 🔴 G4: tests ② and ③ exercise actual UI (no direct query injection).
 
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:domain_contracts/testing.dart';
@@ -27,8 +28,11 @@ class _FakeJournalRepository extends UnimplementedJournalRepository {
   final JournalFilterCatalog? filterCatalog;
   final List<JournalTimelineBadge> badges;
 
-  // Track watchTimeline call args.
-  Map<String, dynamic>? lastWatchTimelineArgs;
+  // Track every watchTimeline call.
+  final List<Map<String, dynamic>> calls = <Map<String, dynamic>>[];
+
+  Map<String, dynamic>? get lastWatchTimelineArgs =>
+      calls.isEmpty ? null : calls.last;
 
   @override
   Stream<ListResult<TradeJournalEntry>> watchTimeline({
@@ -41,13 +45,13 @@ class _FakeJournalRepository extends UnimplementedJournalRepository {
     RunMode mode = RunMode.live,
     int limit = 100,
   }) {
-    lastWatchTimelineArgs = <String, dynamic>{
+    calls.add(<String, dynamic>{
       'range': range,
       'sleeve': sleeve,
       'symbol': symbol,
       'status': status,
       'origin': origin,
-    };
+    });
     if (timelineResult != null) {
       return Stream<ListResult<TradeJournalEntry>>.value(timelineResult!);
     }
@@ -96,11 +100,17 @@ class _FixedClock implements Clock {
 }
 
 // ── Helper: pump JournalTimeline with injected fakes ─────────────────────────
+//
+// G4: ProviderScope is placed ABOVE MaterialApp (wrapApp pattern) so that
+// bottom sheet modals see the same injections.  This matches the golden
+// harness `wrapApp` approach and the real app structure.
 
 Future<_FakeJournalRepository> _pump(
   WidgetTester tester, {
   required ListResult<TradeJournalEntry> result,
   required SafetyState safety,
+
+  /// Explicit initial query override (null = let screen auto-resolve from presets).
   JournalTimelineQuery? query,
   List<DateRange>? rangePresets,
   List<SleeveCatalogEntry>? sleeves,
@@ -108,40 +118,41 @@ Future<_FakeJournalRepository> _pump(
   List<JournalTimelineBadge> badges = const <JournalTimelineBadge>[],
   RecordingLinkOpener? linkOpener,
 }) async {
-  final DateRange range =
-      query?.range ??
-      DateRange(
-        from: TradeDate('2026-08-01'),
-        to: TradeDate('2026-08-31'),
-        presetCode: 'FIXTURE',
-        label: 'fixture',
-        isDefault: true,
-      );
-  final JournalTimelineQuery q = query ?? JournalTimelineQuery(range: range);
-
   final _FakeJournalRepository fakeJournal = _FakeJournalRepository(
     timelineResult: result,
     filterCatalog: filterCatalog,
     badges: badges,
   );
 
+  final List<Override> overrides = <Override>[
+    journalTimelineRepositoryProvider.overrideWithValue(fakeJournal),
+    journalSafetyRepositoryProvider.overrideWithValue(
+      _FakeSafetyRepository(safety),
+    ),
+    // G1: default is null → auto-resolve from presets.
+    // Caller may pass an explicit query via overrideWith.
+    if (query != null)
+      journalTimelineQueryProvider.overrideWith((Ref ref) => query),
+    journalClockProvider.overrideWithValue(
+      _FixedClock(DateTime.utc(2026, 8, 31, 10)),
+    ),
+    journalConfigRepositoryProvider.overrideWithValue(
+      _FakeConfigRepository(rangePresets: rangePresets, sleeves: sleeves),
+    ),
+    if (linkOpener != null)
+      journalLinkOpenerProvider.overrideWithValue(linkOpener),
+  ];
+
+  // G4: ProviderScope above MaterialApp so modals (bottom sheets) see injections.
+  // Set phone-sized viewport so DraggableScrollableSheet items are reachable.
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
   await tester.pumpWidget(
     ProviderScope(
-      overrides: <Override>[
-        journalTimelineRepositoryProvider.overrideWithValue(fakeJournal),
-        journalSafetyRepositoryProvider.overrideWithValue(
-          _FakeSafetyRepository(safety),
-        ),
-        journalTimelineQueryProvider.overrideWith((Ref ref) => q),
-        journalClockProvider.overrideWithValue(
-          _FixedClock(DateTime.utc(2026, 8, 31, 10)),
-        ),
-        journalConfigRepositoryProvider.overrideWithValue(
-          _FakeConfigRepository(rangePresets: rangePresets, sleeves: sleeves),
-        ),
-        if (linkOpener != null)
-          journalLinkOpenerProvider.overrideWithValue(linkOpener),
-      ],
+      overrides: overrides,
       child: const MaterialApp(home: Scaffold(body: JournalTimeline())),
     ),
   );
@@ -162,12 +173,31 @@ void main() {
   );
   final TradeJournalEntry firstEntry = journal30.rows.first;
 
+  // Range presets + filter catalog (used in multiple tests).
+  final List<DateRange> rangePresets4 = listFixture(
+    FixturePaths.rangePresets4,
+    DateRange.fromJson,
+  ).rows;
+  final DateRange defaultPreset = rangePresets4.firstWhere(
+    (DateRange r) => r.isDefault,
+  );
+  final JournalFilterCatalog filterCatalog = singleFixture(
+    FixturePaths.m6JournalFilterCatalog,
+    JournalFilterCatalog.fromJson,
+  );
+
   // ─── ① *Text displayed; raw values absent ────────────────────────────────
 
   testWidgets(
     '① priceText is shown; raw price.toString() is absent when different',
     (WidgetTester tester) async {
-      await _pump(tester, result: journal30, safety: _normalSafety());
+      await _pump(
+        tester,
+        result: journal30,
+        safety: _normalSafety(),
+        query: JournalTimelineQuery(range: defaultPreset),
+        rangePresets: rangePresets4,
+      );
 
       // The engine-completed priceText must be visible.
       expect(find.text(firstEntry.priceText), findsWidgets);
@@ -187,77 +217,231 @@ void main() {
     },
   );
 
-  // ─── ② Default preset becomes the first watchTimeline range ──────────────
+  // ─── ② Default preset → first watchTimeline call (G4: no query override) ─
+  //
+  // The screen is pumped WITHOUT an explicit query override.
+  // journalEffectiveQueryProvider auto-selects the isDefault preset from the
+  // rangePresets4 fixture.  We verify that the FIRST watchTimeline call
+  // received that preset as its range argument.
 
-  testWidgets('② isDefault preset passes as range to watchTimeline', (
+  testWidgets(
+    '② isDefault preset auto-selected and passed as range to watchTimeline',
+    (WidgetTester tester) async {
+      // No `query` arg → null StateProvider → effective query resolves from presets.
+      final _FakeJournalRepository fakeJournal = await _pump(
+        tester,
+        result: journal30,
+        safety: _normalSafety(),
+        rangePresets: rangePresets4,
+      );
+
+      // Wait for the stream to resolve.
+      await tester.pumpAndSettle();
+
+      // The range passed to watchTimeline must equal the default preset.
+      expect(fakeJournal.calls, isNotEmpty);
+      expect(fakeJournal.calls.first['range'], equals(defaultPreset));
+    },
+  );
+
+  // ─── ②a No isDefault → error state ─────────────────────────────────────
+  //
+  // When rangePresets contains no isDefault item the effective query provider
+  // emits an error and the screen shows a retry button.
+
+  testWidgets('②a No isDefault preset → error state (retry button visible)', (
     WidgetTester tester,
   ) async {
-    final List<DateRange> presets = listFixture(
-      FixturePaths.rangePresets4,
-      DateRange.fromJson,
-    ).rows;
-    final DateRange defaultPreset = presets.firstWhere(
-      (DateRange r) => r.isDefault,
-    );
+    // Build a presets list where none is the default.
+    final List<DateRange> noDefault = rangePresets4
+        .map(
+          (DateRange r) => DateRange(
+            from: r.from,
+            to: r.to,
+            presetCode: r.presetCode,
+            label: r.label,
+            isDefault: false,
+          ),
+        )
+        .toList();
 
-    final JournalTimelineQuery q = JournalTimelineQuery(range: defaultPreset);
-
-    final _FakeJournalRepository fakeJournal = await _pump(
+    await _pump(
       tester,
       result: journal30,
       safety: _normalSafety(),
-      query: q,
-      rangePresets: presets,
+      rangePresets: noDefault,
     );
+    await tester.pumpAndSettle();
 
-    // The range passed to watchTimeline must be the default preset.
-    expect(
-      fakeJournal.lastWatchTimelineArgs?['range'],
-      isA<DateRange>().having(
-        (DateRange r) => r.isDefault,
-        'isDefault',
-        isTrue,
-      ),
-    );
+    // JournalTimeline shows error → retry button.
+    expect(find.text(JournalLabels.retry), findsOneWidget);
   });
 
-  // ─── ③ Filter selection → watchTimeline args ─────────────────────────────
+  // ─── ③ Filter sheet: status tap → watchTimeline arg (G4: real UI) ────────
+  //
+  // Open the filter sheet, tap the «상쇄됨» (REVERSED) status option, tap
+  // 「적용」, and verify that the LAST watchTimeline call received the
+  // chosen status.  This exercises the actual sheet UI rather than injecting
+  // a query directly.
 
-  testWidgets('③ status filter is passed as-is to watchTimeline', (
+  testWidgets(
+    '③ tap status in filter sheet → watchTimeline receives that status',
+    (WidgetTester tester) async {
+      final _FakeJournalRepository fakeJournal = await _pump(
+        tester,
+        result: journal30,
+        safety: _normalSafety(),
+        rangePresets: rangePresets4,
+        filterCatalog: filterCatalog,
+      );
+      await tester.pumpAndSettle();
+
+      // Open filter sheet.
+      await tester.tap(find.text(JournalLabels.filter));
+      await tester.pumpAndSettle();
+
+      expect(find.text(JournalLabels.filterReset), findsOneWidget);
+
+      // Pick a status option that is unlikely to appear in the timeline rows
+      // (REVERSED = «상쇄됨»).
+      final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
+        (JournalStatusOption o) => o.status == JournalStatus.reversed,
+      );
+
+      final Finder sheetScroll = find.byType(Scrollable).last;
+      await tester.scrollUntilVisible(
+        find.text(pick.label),
+        120,
+        scrollable: sheetScroll,
+      );
+      await tester.ensureVisible(find.text(pick.label));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(pick.label));
+      await tester.pumpAndSettle();
+
+      // Tap 「적용」.
+      await tester.scrollUntilVisible(
+        find.text(JournalLabels.filterApply),
+        120,
+        scrollable: sheetScroll,
+      );
+      await tester.ensureVisible(find.text(JournalLabels.filterApply));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(JournalLabels.filterApply));
+      await tester.pumpAndSettle();
+
+      // Sheet is closed.
+      expect(find.text(JournalLabels.filterApply), findsNothing);
+
+      // The last watchTimeline call must have the picked status.
+      expect(fakeJournal.calls.last['status'], equals(pick.status));
+    },
+  );
+
+  // ─── ③a Reset → status/sleeve/symbol/origin null + range = default ───────
+
+  testWidgets(
+    '③a filter reset → watchTimeline gets null filters and default range',
+    (WidgetTester tester) async {
+      // Start with a status filter pre-selected.
+      final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
+        (JournalStatusOption o) => o.status == JournalStatus.reversed,
+      );
+      final _FakeJournalRepository fakeJournal = await _pump(
+        tester,
+        result: journal30,
+        safety: _normalSafety(),
+        rangePresets: rangePresets4,
+        filterCatalog: filterCatalog,
+        query: JournalTimelineQuery(range: defaultPreset, status: pick.status),
+      );
+      await tester.pumpAndSettle();
+
+      // Open filter sheet.
+      await tester.tap(find.text(JournalLabels.filter));
+      await tester.pumpAndSettle();
+
+      // Tap 「초기화」 — this resets and closes the sheet.
+      final Finder sheetScroll = find.byType(Scrollable).last;
+      await tester.scrollUntilVisible(
+        find.text(JournalLabels.filterReset),
+        120,
+        scrollable: sheetScroll,
+      );
+      await tester.ensureVisible(find.text(JournalLabels.filterReset));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(JournalLabels.filterReset));
+      await tester.pumpAndSettle();
+
+      // Sheet closed.
+      expect(find.text(JournalLabels.filterApply), findsNothing);
+
+      // G1: after reset the StateProvider is null → effective query resolves
+      // to isDefault preset.  Verify a new watchTimeline call went out with
+      // null filters and the default range.
+      expect(fakeJournal.calls.last['status'], isNull);
+      expect(fakeJournal.calls.last['sleeve'], isNull);
+      expect(fakeJournal.calls.last['symbol'], isNull);
+      expect(fakeJournal.calls.last['origin'], isNull);
+      expect(fakeJournal.calls.last['range'], equals(defaultPreset));
+    },
+  );
+
+  // ─── ③b Active chip ✕ tap → that filter cleared ─────────────────────────
+
+  testWidgets('③b active status chip ✕ removes status from query', (
     WidgetTester tester,
   ) async {
-    final JournalFilterCatalog catalog = singleFixture(
-      FixturePaths.m6JournalFilterCatalog,
-      JournalFilterCatalog.fromJson,
-    );
-    final JournalStatusOption chosenOption = catalog.statusOptions.first;
-
-    final DateRange range = DateRange(
-      from: TradeDate('2026-08-01'),
-      to: TradeDate('2026-08-31'),
-      presetCode: 'FIXTURE',
-      isDefault: true,
-    );
-    final JournalTimelineQuery q = JournalTimelineQuery(
-      range: range,
-      status: chosenOption.status,
+    final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
+      (JournalStatusOption o) => o.status == JournalStatus.reversed,
     );
 
     final _FakeJournalRepository fakeJournal = await _pump(
       tester,
       result: journal30,
       safety: _normalSafety(),
-      query: q,
-      filterCatalog: catalog,
+      rangePresets: rangePresets4,
+      filterCatalog: filterCatalog,
+      query: JournalTimelineQuery(range: defaultPreset, status: pick.status),
+    );
+    await tester.pumpAndSettle();
+
+    // The active status chip must be visible.
+    expect(find.text(pick.label), findsWidgets);
+
+    // Tap the delete icon on the chip.
+    await tester.tap(find.byIcon(Icons.close).first);
+    await tester.pumpAndSettle();
+
+    // Status is now null in the last watchTimeline call.
+    expect(fakeJournal.calls.last['status'], isNull);
+  });
+
+  // ─── ③c Wire text never shown when catalog absent ─────────────────────────
+  //
+  // G2: if catalog is not loaded, active status/sleeve chips must NOT be
+  // displayed — internal wire strings must not appear in the UI.
+
+  testWidgets('③c no catalog → wire string absent from screen', (
+    WidgetTester tester,
+  ) async {
+    final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
+      (JournalStatusOption o) => o.status == JournalStatus.filled,
     );
 
-    expect(
-      fakeJournal.lastWatchTimelineArgs?['status'],
-      equals(chosenOption.status),
+    // Pump with a status filter but NO filter catalog (Stream.empty).
+    await _pump(
+      tester,
+      result: journal30,
+      safety: _normalSafety(),
+      rangePresets: rangePresets4,
+      // No filterCatalog supplied → _journalFilterCatalogProvider emits nothing.
+      query: JournalTimelineQuery(range: defaultPreset, status: pick.status),
     );
-    // No sleeve or symbol — those are null.
-    expect(fakeJournal.lastWatchTimelineArgs?['sleeve'], isNull);
-    expect(fakeJournal.lastWatchTimelineArgs?['symbol'], isNull);
+    await tester.pumpAndSettle();
+
+    // Wire string must NOT appear.
+    expect(find.text(JournalStatus.filled.wire), findsNothing);
   });
 
   // ─── ④ Badge label and tap link ─────────────────────────────────────────
@@ -279,6 +463,8 @@ void main() {
       safety: _normalSafety(),
       badges: badges,
       linkOpener: opener,
+      query: JournalTimelineQuery(range: defaultPreset),
+      rangePresets: rangePresets4,
     );
 
     expect(find.text(badge.label), findsOneWidget);
@@ -306,6 +492,8 @@ void main() {
       result: journal30,
       safety: _normalSafety(),
       badges: badges,
+      query: JournalTimelineQuery(range: defaultPreset),
+      rangePresets: rangePresets4,
     );
     expect(find.text(badges.first.label), findsOneWidget);
 
@@ -315,6 +503,8 @@ void main() {
       result: journal30,
       safety: _normalSafety(),
       badges: const <JournalTimelineBadge>[],
+      query: JournalTimelineQuery(range: defaultPreset),
+      rangePresets: rangePresets4,
     );
     expect(find.text(badges.first.label), findsNothing);
   });
@@ -343,6 +533,8 @@ void main() {
         result: journal30,
         safety: _normalSafety(),
         linkOpener: opener,
+        query: JournalTimelineQuery(range: defaultPreset),
+        rangePresets: rangePresets4,
       );
 
       // Tap the symbol label of the tappable entry (inside its InkWell).
@@ -373,11 +565,15 @@ void main() {
       return;
     }
 
-    await _pump(tester, result: journal30, safety: blocked);
+    await _pump(
+      tester,
+      result: journal30,
+      safety: blocked,
+      query: JournalTimelineQuery(range: defaultPreset),
+      rangePresets: rangePresets4,
+    );
 
     // Arrow_forward_ios icon must NOT appear for the null-link flags.
-    // (If some flags DO have links, there may be arrows; we just check
-    //  that the count equals the number of non-null links among top-2.)
     final int expectedArrows = blocked.activeFlags
         .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
         .take(2)
@@ -406,7 +602,13 @@ void main() {
       return;
     }
 
-    await _pump(tester, result: journal30, safety: stopped);
+    await _pump(
+      tester,
+      result: journal30,
+      safety: stopped,
+      query: JournalTimelineQuery(range: defaultPreset),
+      rangePresets: rangePresets4,
+    );
 
     expect(find.text(integrityFlag!.checkpointLabel!), findsOneWidget);
   });
