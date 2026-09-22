@@ -15,8 +15,6 @@
 //
 // 🔴 짝이 되는 *Label 필드가 없는 열거값을 발견하면, 문구를 지어내지 말고
 //    **계약 결함으로 보고**한다(01 §1-5).
-//
-// 아직 비어 있다. 화면을 만들면서 실제로 필요한 상수만 추가한다.
 
 /// ui_journal의 정적 UI 라벨 모음. 인스턴스를 만들지 않는다.
 abstract final class JournalLabels {
@@ -31,4 +29,33 @@ abstract final class JournalLabels {
 
   /// 세금 필드 이름 (A3 · F6).
   static const String tax = '세금';
+
+  // ── 🆕 v1.1 — 필터 UI 정적 라벨 (ⓒ) ───────────────────────────────────────
+
+  /// 필터 버튼 / 바텀시트 제목.
+  static const String filter = '필터';
+
+  /// 「전체」 선택지(필터 없음 = 인자 null).
+  static const String filterAll = '전체';
+
+  /// 필터 적용 버튼.
+  static const String filterApply = '적용';
+
+  /// 필터 초기화 버튼.
+  static const String filterReset = '초기화';
+
+  /// 필터 바텀시트 — 기간 섹션 제목.
+  static const String filterRange = '기간';
+
+  /// 필터 바텀시트 — 슬리브 섹션 제목.
+  static const String filterSleeve = '슬리브';
+
+  /// 필터 바텀시트 — 종목 섹션 제목.
+  static const String filterSymbol = '종목';
+
+  /// 필터 바텀시트 — 상태 섹션 제목.
+  static const String filterStatus = '상태';
+
+  /// 필터 바텀시트 — 출처 섹션 제목.
+  static const String filterOrigin = '출처';
 }
