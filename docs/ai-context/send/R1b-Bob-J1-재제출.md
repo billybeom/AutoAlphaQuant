@@ -13,7 +13,9 @@ J-1 필터가 «실제로 조작했을 때» 맞게 동작한다는 것을 테�
 
 ## 2. 보내기 전에 발주자가 할 것
 
-없습니다. (Claude 가 골든 하네스 수정 PR #8 을 `main` 에 병합해 두었습니다 — Bob 이 아래 «먼저 할 것»에서 받아 갑니다.)
+1. Bob 에 이전 대화가 «멈춘 채» 남아 있으면 **강제 중지**하고 **새 대화(new task)** 로 시작합니다. (2026-09-22 실측: 이 카드 대신 이름이 비슷한 옛 카드 `R1-Bob-J1-재제출.md` 가 붙여넣어져 Bob 이 8시간 멈춤 — 옛 패킷은 전부 `send/_완료/` 로 옮겼습니다. 이 폴더에서 `재제출` 이 붙은 파일은 **이것 하나**입니다.)
+2. 붙여넣을 것은 아래 «3» 의 본문 **전부**(0단계 ~ ■ 제출). Bob 이 새 대화라 이전 카드를 기억하지 못하므로 규칙 요약이 본문에 들어 있습니다.
+3. (Claude 가 골든 하네스 수정 PR #8 을 `main` 에 병합해 두었습니다 — Bob 이 «먼저 할 것»에서 받아 갑니다.)
 
 ## 3. 붙여넣을 본문 — 아래 구분선 다음 줄부터 «3-1» 직전까지 그대로
 
@@ -21,6 +23,21 @@ J-1 필터가 «실제로 조작했을 때» 맞게 동작한다는 것을 테�
 
 ```text
 R1b-Bob-J1 재제출 요청 — 1회차(PR #7 · 928f04e) 판정: 반려(가벼운 재제출). 같은 브랜치·같은 PR 에 커밋을 더하십시오.
+
+■ 0단계 — 대상 확인 (새 대화라면 아무것도 읽기 전에 이것부터)
+이 카드는 R1(PR #1 · 브랜치 ui/m6-j1-timeline · 2026-09-17 병합·종료)이 **아닙니다**. PR #1 을 다시 만들거나 ui/m6-j1-timeline 브랜치를 건드리지 마십시오.
+이번 대상 = **PR #7 · 브랜치 ui/m6-j1-complete(커밋 928f04e)** 에 아래 G1~G5 커밋을 «더하는» 일입니다.
+지금 그 브랜치의 파일은 «이미 맞는 상태»가 아닙니다 — G1~G5 는 아직 코드에 없습니다. **변경 0건 커밋·«이미 돼 있다» 보고 = 실패**입니다.
+  git branch --show-current          ← ui/m6-j1-complete 여야 합니다
+  (다른 브랜치면) git status --short   ← 비어 있어야 합니다. 비어 있으면: git checkout ui/m6-j1-complete
+  git log --oneline -1               ← 928f04e [M6] J-1 매매일지 타임라인 완성(계약 v1.1)
+git stash list 에 «WIP on ui/m6-j1-timeline …» 이 있으면 옛 R1 작업의 사본입니다 — pop 하지 말고 그대로 두십시오(main 에 이미 병합된 내용).
+
+■ 규칙 요약 (새 대화라 다시 적음 — 전문은 docs/ai-context/prompt_M6.md · 이 카드 범위는 J-1 하나)
+· 고치는 곳 = packages/ui_journal 만(lib/src/timeline.dart · lib/l10n/labels.dart · test/). 픽스처(fixtures/)·domain_contracts·골든 하네스(test/golden/golden_support.dart · comparator)·pubspec 은 고치지 않습니다(고치면 반려).
+· 링크 리터럴('aaq://'·'handbook://')·링크 조립 금지 — 이동은 전부 AppLinkOpener.open(link) · 한국어 리터럴은 labels.dart 에만 · 화면은 rows 를 거르지도 세지도 않습니다 · 실키·계좌·비밀번호는 어디에도 없습니다.
+· 골든: j1_filter_open 재생성 + j1_filter_active 신규 **만**. 나머지 기존 6종(j1_normal·blocked·empty·prevented·masked_integrity·badges × light/dark)은 다시 찍지 않습니다 — G1~G3 로 화면이 달라져 깨지면 그 사실을 채팅으로 알리고 멈춥니다.
+· 새 PR 을 만들지 않습니다 · 푸시는 같은 브랜치에 · 라벨은 붙이지 않습니다 · PR 본문은 통합 담당이 고칩니다.
 
 ■ 잘된 것 — 그대로 유지하십시오
 format·analyze·test 34/34·경계 검사 전부 통과 · 표시 전환(sideLabel·*Text)과 화면측 가림 삭제가 정확함 · 링크는 전부 AppLinkOpener 로(리터럴 0) ·
@@ -116,3 +133,4 @@ R1b-Bob-J1 재제출: PR #7 에 푸시됨 — 병합 검사해줘
 
 - PR #7 의 CI «골든 스냅샷» 잡이 빨간 것은 정상입니다(기존 골든 8장을 다시 찍었기 때문 · 카드가 지시한 것). 병합 검사를 통과하면 Claude 가 `golden:approved` 라벨을 붙입니다.
 - 🔴 Bob 이 작업 중일 때는 `C:\Work\Bob\AutoAlphaQuant` 폴더에서 다른 AI·사람이 브랜치를 바꾸지 않습니다(Claude 는 전용 폴더 `C:\Work\AAQ-claude` 에서만 작업합니다).
+- 🔴 **파일 이름 주의(2026-09-22 사고)** — `R1-Bob-J1-재제출.md`(b 없음 · 9-17 에 PR #1 로 끝난 카드)와 한 글자 차이입니다. 그 카드를 받은 Bob 은 브랜치를 `ui/m6-j1-timeline` 으로 바꾸고 옛 작업을 다시 만들다가 «이미 병합돼 있다»는 자리에서 8시간 멈췄습니다(PR #7 브랜치는 무사). 끝난 패킷은 `send/_완료/` 로 옮겼고, 본문 0단계가 브랜치를 먼저 확인합니다.

@@ -4,7 +4,7 @@
 §2(치환값·조립법)이고, 이 폴더의 파일은 전부 **사본**입니다 — 정본은 `11_앱설계/`의 같은 번호 문서이고,
 문서와 코드가 다르면 **코드(`packages/domain_contracts/`)가 이깁니다.**
 
-조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/R1-Bob-J1-재제출.md`) · **J-1 병합(PR #1 · 2026-09-17)** 뒤 `send/R1-Gem-S71.md` 신설 · `packages/ui_analytics/test/` 골든 하네스 설치 · **팩 판 2026-09-17b**(C4 R1-Gem-S71 1회차 — 03·01 사본 갱신 · `inbox/S7-1_questions.md` · `send/R1-Gem-S71-재제출.md`) · **팩 판 2026-09-17c**(S7-1 병합 PR #2 뒤 — 03 §7·§8 «코드 정본» · 01 §8 미결 44·45 · `prompt_M7.md` 범위 = S7-3 · S7-3b · `send/R2-Gem-S73.md`). · 🆕 **팩 판 2026-09-17e — 계약 v1.1**(01 «확정 v1.1»·§11 · 02 §3-1 R1b ⓐ~ⓕ · 03 §3 R1b · 04 라우트 정본 = `AppRoutes` · `contracts_bundle.md` 81파일 재조립 · `fixtures_README.md` 96건 · `send/R1b-Bob-J1.md`) · 🆕 2026-09-18 Gemini → Bob 이관(역할 문서만 변경 — 팩 판 유지)
+조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/_완료/R1-Bob-J1-재제출.md`) · **J-1 병합(PR #1 · 2026-09-17)** 뒤 `send/_완료/R1-Gem-S71.md` 신설 · `packages/ui_analytics/test/` 골든 하네스 설치 · **팩 판 2026-09-17b**(C4 R1-Gem-S71 1회차 — 03·01 사본 갱신 · `inbox/S7-1_questions.md` · `send/_완료/R1-Gem-S71-재제출.md`) · **팩 판 2026-09-17c**(S7-1 병합 PR #2 뒤 — 03 §7·§8 «코드 정본» · 01 §8 미결 44·45 · `prompt_M7.md` 범위 = S7-3 · S7-3b · `send/_완료/R2-Gem-S73.md`). · 🆕 **팩 판 2026-09-17e — 계약 v1.1**(01 «확정 v1.1»·§11 · 02 §3-1 R1b ⓐ~ⓕ · 03 §3 R1b · 04 라우트 정본 = `AppRoutes` · `contracts_bundle.md` 81파일 재조립 · `fixtures_README.md` 96건 · `send/R1b-Bob-J1.md`) · 🆕 2026-09-18 Gemini → Bob 이관(역할 문서만 변경 — 팩 판 유지)
 
 ## 구성
 
