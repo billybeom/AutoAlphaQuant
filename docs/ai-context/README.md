@@ -4,15 +4,15 @@
 §2(치환값·조립법)이고, 이 폴더의 파일은 전부 **사본**입니다 — 정본은 `11_앱설계/`의 같은 번호 문서이고,
 문서와 코드가 다르면 **코드(`packages/domain_contracts/`)가 이깁니다.**
 
-조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/R1-Bob-J1-재제출.md`) · **J-1 병합(PR #1 · 2026-09-17)** 뒤 `send/R1-Gem-S71.md` 신설 · `packages/ui_analytics/test/` 골든 하네스 설치 · **팩 판 2026-09-17b**(C4 R1-Gem-S71 1회차 — 03·01 사본 갱신 · `inbox/S7-1_questions.md` · `send/R1-Gem-S71-재제출.md`) · **팩 판 2026-09-17c**(S7-1 병합 PR #2 뒤 — 03 §7·§8 «코드 정본» · 01 §8 미결 44·45 · `prompt_M7.md` 범위 = S7-3 · S7-3b · `send/R2-Gem-S73.md`). · 🆕 **팩 판 2026-09-17e — 계약 v1.1**(01 «확정 v1.1»·§11 · 02 §3-1 R1b ⓐ~ⓕ · 03 §3 R1b · 04 라우트 정본 = `AppRoutes` · `contracts_bundle.md` 81파일 재조립 · `fixtures_README.md` 96건 · `send/R1b-Bob-J1.md`)
+조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/R1-Bob-J1-재제출.md`) · **J-1 병합(PR #1 · 2026-09-17)** 뒤 `send/R1-Gem-S71.md` 신설 · `packages/ui_analytics/test/` 골든 하네스 설치 · **팩 판 2026-09-17b**(C4 R1-Gem-S71 1회차 — 03·01 사본 갱신 · `inbox/S7-1_questions.md` · `send/R1-Gem-S71-재제출.md`) · **팩 판 2026-09-17c**(S7-1 병합 PR #2 뒤 — 03 §7·§8 «코드 정본» · 01 §8 미결 44·45 · `prompt_M7.md` 범위 = S7-3 · S7-3b · `send/R2-Gem-S73.md`). · 🆕 **팩 판 2026-09-17e — 계약 v1.1**(01 «확정 v1.1»·§11 · 02 §3-1 R1b ⓐ~ⓕ · 03 §3 R1b · 04 라우트 정본 = `AppRoutes` · `contracts_bundle.md` 81파일 재조립 · `fixtures_README.md` 96건 · `send/R1b-Bob-J1.md`) · 🆕 2026-09-18 Gemini → Bob 이관(역할 문서만 변경 — 팩 판 유지)
 
 ## 구성
 
 | 파일 | 무엇 | 정본 |
 |---|---|---|
 | `prompt_M6.md` | Bob에게 주는 프롬프트 (M6 매매일지·보유현황, 범위 `J-1`) | 07 §3 + §4 |
-| `prompt_M7.md` | Gemini에게 주는 프롬프트 (M7 성과·리밸런싱·플래너, 범위 ~~`S7-1`~~ → `S7-3 · S7-3b` 2026-09-17) | 07 §3 + §5 |
-| `prompt_M8.md` | Gemini 2차 (M8 셸·운영 홈·알림·온보딩 렌더, 범위 `S-01`) | 07 §3 + §6 |
+| `prompt_M7.md` | Bob 에게 주는 프롬프트(2026-09-18 Gemini 에서 이관) (M7 성과·리밸런싱·플래너, 범위 ~~`S7-1`~~ → `S7-3 · S7-3b` 2026-09-17) | 07 §3 + §5 |
+| `prompt_M8.md` | Bob(2026-09-18 이관) (M8 셸·운영 홈·알림·온보딩 렌더, 범위 `S-01`) | 07 §3 + §6 |
 | `prompt_M9.md` | Bob 2차 (M9 관리자·설정 렌더, 범위 `S01`) | 07 §3 + §7 |
 | `00_README_개발착수패키지.md` | **발췌** — §5 기계적 강제 · §6 금지 4항 · §7 용어 | 11_앱설계/00 |
 | `01_M2_도메인계약_초안.md` | DTO·문구 매핑·픽스처의 문서 정본 (전문 사본) | 11_앱설계/01 |
@@ -22,7 +22,7 @@
 | `05_화면명세_M9_설정_관리자.md` | M9 화면 명세 (전문 사본, 바이트 동일) | 11_앱설계/05 |
 | `08_Mermaid_전체흐름_핵심로직.md` | 흐름 그림 — **조문이 아님.** 01·02~05와 어긋나면 조문이 맞다 | 11_앱설계/08 |
 | `fixtures_README.md` | 픽스처 규약 사본 + 실제 파일 목록 **78개**(2026-09-17 · 🆕 `m6/journal_empty.json`) | `packages/domain_contracts/fixtures/README.md` |
-| `contracts_bundle.md` | `domain_contracts` 공개 API 원문 — **저장소를 못 붙이는 웹 채팅 전용** | `packages/domain_contracts/lib/` |
+| `contracts_bundle.md` | `domain_contracts` 공개 API 원문 — **저장소를 못 붙이는 웹 채팅 전용** — 🗄️ Gemini 웹(PR #6)용 기록 · Bob 은 코드 그대로 | `packages/domain_contracts/lib/` |
 | `inbox/README.md` | 질문·추측 목록 접수 규약(파일명·형식) | — |
 | `rounds.md` | 라운드 로그 — 누가 무엇을 언제 받았나 | — |
 
@@ -31,24 +31,26 @@
 **5부 규칙**(07 §2-2): 한 AI가 받는 문서는 **정확히 5부**입니다 — ① 해당 화면 명세 ② `01` ③ `00` 발췌
 ④ `domain_contracts` 패키지 실물 ⑤ `08` Mermaid. 프롬프트는 문서가 아니라 **지시문**이라 5부에 세지 않습니다.
 
-### Bob — M6 → M9
+🆕 발송 순서는 설계 저장소 12 §6 «Bob 단일 큐»가 정본: R2-Bob-J2J3 → R10-Bob-S7x → R11-Bob-S74 → R12-Bob-S76 → R3-Bob-J4 → R4-Bob-H → R5-Bob-L-X7 → R13~R16-Bob-M8a~d → R6~R9-Bob-M9a~d (선행이 안 풀린 카드는 건너뛰고 돌아옴 · 2026-09-18 · Gemini → Bob 이관)
+
+### Bob — M6 · M9
 
 | 순서 | 프롬프트 | 문서 5부 |
 |---|---|---|
-| 1차 (M6 · `J-1`) | `prompt_M6.md` | `02_화면명세_M6_매매일지_보유현황.md` · `01_M2_도메인계약_초안.md` · `00_README_개발착수패키지.md` · `packages/domain_contracts/`(코드) · `08_Mermaid_전체흐름_핵심로직.md` |
-| 2차 (M9 · `S01`) | `prompt_M9.md` | `05_화면명세_M9_설정_관리자.md` · `01` · `00` · 코드 · `08` |
+| M6 카드 R1~R5(순서 = 12 §6) | `prompt_M6.md` | `02_화면명세_M6_매매일지_보유현황.md` · `01_M2_도메인계약_초안.md` · `00_README_개발착수패키지.md` · `packages/domain_contracts/`(코드) · `08_Mermaid_전체흐름_핵심로직.md` |
+| M9 카드 R6~R9(순서 = 12 §6) | `prompt_M9.md` | `05_화면명세_M9_설정_관리자.md` · `01` · `00` · 코드 · `08` |
 
-### Gemini — M7 → M8
+### Bob — M7 · M8 (2026-09-18 Gemini 에서 이관)
 
 | 순서 | 프롬프트 | 문서 5부 |
 |---|---|---|
-| 1차 (M7 · `S7-1`) | `prompt_M7.md` | `03_화면명세_M7_성과_리밸런싱_플래너.md` · `01_M2_도메인계약_초안.md` · `00_README_개발착수패키지.md` · `packages/domain_contracts/`(코드) · `08_Mermaid_전체흐름_핵심로직.md` |
-| 2차 (M8 · `S-01`) | `prompt_M8.md` | `04_화면명세_M8_셸_운영홈_알림_온보딩.md` · `01` · `00` · 코드 · `08` |
+| M7 카드 R10~R12(순서 = 12 §6) | `prompt_M7.md` | `03_화면명세_M7_성과_리밸런싱_플래너.md` · `01_M2_도메인계약_초안.md` · `00_README_개발착수패키지.md` · `packages/domain_contracts/`(코드) · `08_Mermaid_전체흐름_핵심로직.md` |
+| M8 카드 R13~R16(순서 = 12 §6) | `prompt_M8.md` | `04_화면명세_M8_셸_운영홈_알림_온보딩.md` · `01` · `00` · 코드 · `08` |
 
-- 저장소를 클론할 수 있으면 ④는 **코드 그대로**입니다. 웹 채팅이라 붙일 수 없을 때만 `contracts_bundle.md`로
+- 저장소를 클론할 수 있으면 ④는 **코드 그대로**입니다. 🗄️ (Gemini 웹 기록) 웹 채팅이라 붙일 수 없을 때만 `contracts_bundle.md`로
   대체하고, 그 사실을 `rounds.md`의 «준 것»에 적습니다.
 - `fixtures_README.md`는 ④(코드)에 딸린 부속이라 5부를 늘리지 않습니다.
-- **다른 모듈의 화면 명세는 주지 않습니다.** M6 담당에게 03·04·05를 주면 남의 화면을 그립니다.
+- **카드마다 그 카드 모듈의 명세 1부만 지정합니다.** 한 저장소라 다른 명세 파일도 보이므로, 지시문에 "지정한 모듈 명세 외의 02~05 는 읽지 말 것"을 넣습니다(2026-09-18 · 화면 담당이 Bob 하나가 됨).
 
 ## 주지 않는 것 🔴
 

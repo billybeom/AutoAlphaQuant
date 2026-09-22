@@ -3,10 +3,17 @@
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// 주입 창구 — 조립 앱(apps/*)에서 ProviderScope overrides로 주입 (01 §1-3, §4-1)
+/// 주입 창구 — 조립 앱(apps/*)에서 ProviderScope overrides로 주입 (01 §1-3, §4-1, §4-4)
 final Provider<Clock> analyticsClockProvider = Provider<Clock>((ref) {
   throw UnimplementedError('analyticsClockProvider must be overridden');
 });
+
+final Provider<AppLinkOpener> analyticsLinkOpenerProvider =
+    Provider<AppLinkOpener>((ref) {
+      throw UnimplementedError(
+        'analyticsLinkOpenerProvider must be overridden',
+      );
+    });
 
 final Provider<PerformanceRepository> performanceRepositoryProvider =
     Provider<PerformanceRepository>((ref) {

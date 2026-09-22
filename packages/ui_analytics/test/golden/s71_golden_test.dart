@@ -1,6 +1,7 @@
 // packages/ui_analytics/test/golden/s71_golden_test.dart
 
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,42 +9,12 @@ import 'package:ui_analytics/ui_analytics.dart';
 
 import 'golden_support.dart';
 
-class _FakePerformanceRepository implements PerformanceRepository {
+class _FakePerformanceRepository extends UnimplementedPerformanceRepository {
   _FakePerformanceRepository(this._report);
   final MonthlyReport _report;
 
   @override
   Future<MonthlyReport> monthlyReport(String yyyyMm) async => _report;
-
-  @override
-  Future<PerformanceSeries> series({
-    required PerfMetric metric,
-    required PerfGranularity granularity,
-    required bool cumulative,
-    required DateRange range,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<ReportArchiveVm> reportArchive() => throw UnimplementedError();
-
-  @override
-  Stream<DisclosureGateVm> watchDisclosureGate() => throw UnimplementedError();
-
-  @override
-  Future<DrawdownContextVm> drawdownContext({DateRange? range}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<ContributionVm> contribution({required DateRange range}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<AnnualReviewVm> annualReview({required String year}) =>
-      throw UnimplementedError();
 }
 
 class _FakeSafetyRepository implements SafetyRepository {
@@ -67,17 +38,29 @@ void main() {
     FixturePaths.m7M7MonthlyPending,
     MonthlyReport.fromJson,
   );
-  final safetyState = SafetyState.fromJson(
-    fixtureEnvelope(FixturePaths.safetyStates).rows[0],
+  final maskedIntegrity = singleFixture(
+    FixturePaths.m7M7MonthlyMaskedIntegrity,
+    MonthlyReport.fromJson,
+  );
+  final maskedRecon = singleFixture(
+    FixturePaths.m7M7MonthlyMaskedRecon,
+    MonthlyReport.fromJson,
   );
 
-  final testCases = <(String, MonthlyReport)>[
-    ('s71_normal', normal),
-    ('s71_partial_gap', gap),
-    ('s71_not_generated', pending),
+  final safetyEnvelope = fixtureEnvelope(FixturePaths.safetyStates);
+  final safetyRow0 = SafetyState.fromJson(safetyEnvelope.rows[0]);
+  final safetyRow3 = SafetyState.fromJson(safetyEnvelope.rows[3]);
+  final safetyRow4 = SafetyState.fromJson(safetyEnvelope.rows[4]);
+
+  final testCases = <(String, MonthlyReport, SafetyState)>[
+    ('s71_normal', normal, safetyRow0),
+    ('s71_partial_gap', gap, safetyRow0),
+    ('s71_not_generated', pending, safetyRow0),
+    ('s71_masked_integrity', maskedIntegrity, safetyRow4),
+    ('s71_masked_recon', maskedRecon, safetyRow3),
   ];
 
-  for (final (name, report) in testCases) {
+  for (final (name, report, safetyState) in testCases) {
     for (final b in Brightness.values) {
       testWidgets('$name ${brightnessSuffix(b)}', (WidgetTester tester) async {
         await pumpForGolden(
@@ -86,6 +69,9 @@ void main() {
             overrides: <Override>[
               analyticsClockProvider.overrideWithValue(
                 FixedClock(kGoldenNowUtc),
+              ),
+              analyticsLinkOpenerProvider.overrideWithValue(
+                RecordingLinkOpener(),
               ),
               performanceRepositoryProvider.overrideWithValue(
                 _FakePerformanceRepository(report),

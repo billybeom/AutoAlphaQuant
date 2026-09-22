@@ -28,7 +28,7 @@ class MonthlyReportScreen extends ConsumerWidget {
       loading: _buildSkeletonLoader,
       error: (err, stack) =>
           _buildErrorState(ref, reportAsync.valueOrNull?.asOf.label),
-      data: (report) => _buildContent(context, report, activeFlags),
+      data: (report) => _buildContent(context, ref, report, activeFlags),
     );
   }
 
@@ -79,22 +79,39 @@ class MonthlyReportScreen extends ConsumerWidget {
 
   Widget _buildContent(
     BuildContext context,
+    WidgetRef ref,
     MonthlyReport report,
     List<BlockFlag> activeFlags,
   ) {
     return Column(
       children: [
         StaleBanner(asOf: report.asOf),
-        SafetyBlockBanner(activeFlags: activeFlags),
+        SafetyBlockBanner(
+          activeFlags: activeFlags,
+          onOpenLink: (link) {
+            ref.read(analyticsLinkOpenerProvider).open(link);
+          },
+        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              _buildHeader(context, report),
+              _buildHeader(context, ref, report),
               const SizedBox(height: 16),
-              ..._buildReportItems(report.items),
+              ..._buildReportItems(ref, report.items),
               const SizedBox(height: 20),
               _buildFooter(context, report),
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    ref
+                        .read(analyticsLinkOpenerProvider)
+                        .open(AppRoutes.reportArchive);
+                  },
+                  child: const Text(AnalyticsLabels.pastReportsButton),
+                ),
+              ),
             ],
           ),
         ),
@@ -102,7 +119,11 @@ class MonthlyReportScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, MonthlyReport report) {
+  Widget _buildHeader(
+    BuildContext context,
+    WidgetRef ref,
+    MonthlyReport report,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,12 +147,57 @@ class MonthlyReportScreen extends ConsumerWidget {
                     style: Theme.of(context).textTheme.bodySmall
                         ?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
+                  if (report.generatedAtText != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      report.generatedAtText!,
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                  if (report.configHash != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      report.configHash!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontFamily: 'monospace',
+                        fontSize: 10,
+                        color: colorScheme.outline,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            TrustBadgeView(trust: report.trust),
+            const SizedBox(width: 8),
+            Flexible(
+              child: TrustBadgeView(
+                trust: report.trust,
+                onOpenLink: (link) {
+                  ref.read(analyticsLinkOpenerProvider).open(link);
+                },
+              ),
+            ),
           ],
         ),
+        if (report.pendingNoticeText != null) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            child: Text(
+              report.pendingNoticeText!,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+          ),
+        ],
         if (report.backdateFootnote != null) ...[
           const SizedBox(height: 8),
           Container(
@@ -154,7 +220,7 @@ class MonthlyReportScreen extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildReportItems(List<ReportItem> items) {
+  List<Widget> _buildReportItems(WidgetRef ref, List<ReportItem> items) {
     return items.map((item) {
       return Card(
         margin: const EdgeInsets.symmetric(vertical: 4.0),
@@ -192,14 +258,39 @@ class MonthlyReportScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               Flexible(
-                child: Text(
-                  item.valueText,
-                  textAlign: TextAlign.end,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'monospace',
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      item.valueText,
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    if (item.detailDeepLink != null) ...[
+                      const SizedBox(height: 4),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        onPressed: () {
+                          ref
+                              .read(analyticsLinkOpenerProvider)
+                              .open(item.detailDeepLink!);
+                        },
+                        child: const Text(
+                          AnalyticsLabels.detailButton,
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
