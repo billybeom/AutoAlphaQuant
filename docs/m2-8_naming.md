@@ -226,6 +226,7 @@ K-4 가 말한 「창이 닫힌 뒤 발견된 이름은 다음 창」이 이것�
 | L-12 | — (J-3) | `JournalDraftFormSpec` + `decisionId`·`pledgeLines`·`contextChips`·`deviation` | `JournalRepository.draftFormSpec(decisionId)` | 서약문 0줄이면 서약 블록 자체가 없다 |
 | L-13 | — (J-5) | `UnknownBoardVm` · `UnknownResolutionItem` · `UnknownResolutionStageCodes`(4) | `JournalRepository.watchUnknownBoard()` | 재조회·강제 해소 링크는 오지 않는다 |
 | L-14 | — | `package:domain_contracts/testing.dart` — `UnimplementedJournalRepository`·`…PerformanceRepository`·`…ConfigRepository` · `RecordingLinkOpener` | `lib/testing.dart`(배럴 밖 · test 전용) | 화면 테스트의 가짜는 `extends` 한다 — 창구가 늘어도 깨지지 않는다 |
+| 🆕 L-15 | — (J-3 · R2 준비 2026-09-23 · 01 §11-10) | `JournalDraftRejectCodes`(1 — `journalAlreadyExists = 'JOURNAL_ALREADY_EXISTS'`) · 사전 키 `journal_draft_reject` · 받침대 `UnimplementedCommandApi`(13) · `UnimplementedSafetyRepository`(1) · 픽스처 `m6/journal_draft_receipts_5.json`(`FixturePaths.m6JournalDraftReceipts5`) | `labels/journal_codes.dart` · `lib/testing.dart` | 거부 사유 문구는 `CommandReceipt.stateLabel` 하나 — 코드는 표시·분기 대상이 아니다. 버전 불변(`1.1.0` · DTO 무변경 추가) · 계약 테스트 C-7 쓰기 이름 파일 허용 목록 +1(`lib/testing.dart` — 쓰기 이름 ⊆ `CommandApi` 거울 검사) · C-16 «사유 코드 사전은 `kind` 가 정한다» |
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 44(`S7-3` 초안 필드: 에피소드 표·백분위·회복 필요 수익률 — 엔진 분석 산출물 정의가 선행) ·
 🆕 미결 46(`J-4` blind 리뷰: 읽기 창구·픽스처 + `BlindReviewScore.answers: Map<String,int>` ↔ `BlindReviewQuestion.choices: List<ReasonOption>` 축 불일치).

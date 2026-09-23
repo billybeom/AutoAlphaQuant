@@ -11,6 +11,11 @@
 //       Stream<ListResult<TradeJournalEntry>> watchTimeline({...}) => Stream.value(result);
 //     }
 //
+// 받침대 목록 — `UnimplementedJournalRepository` · `UnimplementedPerformanceRepository` ·
+//   `UnimplementedConfigRepository` · `RecordingLinkOpener`(링크 기록기) ·
+//   🆕 계약 v1.1 R2 준비(2026-09-23) — `UnimplementedCommandApi`(명령 13종) ·
+//   `UnimplementedSafetyRepository`(안전 상태 1종).
+//
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
 //    픽스처에서 읽어 override 로 준다(01 §5).
@@ -120,6 +125,80 @@ class UnimplementedConfigRepository implements ConfigRepository {
   @override
   Stream<ContributionSetting> watchContributionSetting() =>
       throw UnimplementedError('watchContributionSetting');
+}
+
+/// 🆕 계약 v1.1 R2 준비(2026-09-23) — [CommandApi] 받침대(명령 13종 전부).
+/// 필요한 명령만 override 한다.
+///
+/// 🔴 override 하지 않은 명령을 부르면 곧바로 던진다. 탭·제출 **핸들러**에서 부른 것은
+///    잡히지 않은 오류로 테스트가 실패한다(예: `J-3` 은 `submitJournalDraft`·`watchCommand`
+///    둘뿐이다). 다만 프로바이더 **안에서** 부른 것은 에러 상태(`AsyncError`)로 삼켜질 수
+///    있다 — 그래서 테스트는 에러 상태가 없음(정상 본문이 보임)을 함께 확인한다.
+/// 🔴 접수증은 지어내지 않는다 — `m6/journal_draft_receipts_5.json` 같은 픽스처의 행을
+///    `state` 로 골라 돌려준다(`stateLabel` 은 엔진 문구다).
+class UnimplementedCommandApi implements CommandApi {
+  @override
+  Future<CommandReceipt> activateKillSwitch({
+    required String reasonFreeText,
+    required String deviceId,
+  }) => throw UnimplementedError('activateKillSwitch');
+
+  @override
+  Future<CommandReceipt> submitJournalDraft(JournalDraft draft) =>
+      throw UnimplementedError('submitJournalDraft');
+
+  @override
+  Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score) =>
+      throw UnimplementedError('submitBlindReviewScore');
+
+  @override
+  Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event) =>
+      throw UnimplementedError('recordDisclosureView');
+
+  @override
+  Future<CommandReceipt> registerDeposit(DepositRegistration registration) =>
+      throw UnimplementedError('registerDeposit');
+
+  @override
+  Stream<CommandReceipt> watchCommand(String commandId) =>
+      throw UnimplementedError('watchCommand');
+
+  @override
+  Future<CommandReceipt> recordManualFill(ManualFillRecord record) =>
+      throw UnimplementedError('recordManualFill');
+
+  @override
+  Future<CommandReceipt> amendManualFill(ManualFillAmendment amendment) =>
+      throw UnimplementedError('amendManualFill');
+
+  @override
+  Future<CommandReceipt> voidManualFill(ManualFillVoid v) =>
+      throw UnimplementedError('voidManualFill');
+
+  @override
+  Future<CommandReceipt> skipAdvice(AdviceSkip skip) =>
+      throw UnimplementedError('skipAdvice');
+
+  @override
+  Future<CommandReceipt> submitSelfReportBalance(SelfReportBalance b) =>
+      throw UnimplementedError('submitSelfReportBalance');
+
+  @override
+  Future<CommandReceipt> acknowledgeAlert(AlertAck ack) =>
+      throw UnimplementedError('acknowledgeAlert');
+
+  @override
+  Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack) =>
+      throw UnimplementedError('confirmKillChecklist');
+}
+
+/// 🆕 계약 v1.1 R2 준비(2026-09-23) — [SafetyRepository] 받침대.
+///
+/// 🔴 안전 상태는 `safety_states.json` 의 행을 `SafetyState.fromJson` 으로 열어 준다 —
+///    테스트가 `SafetyState(...)` 를 직접 짓지 않는다.
+class UnimplementedSafetyRepository implements SafetyRepository {
+  @override
+  Stream<SafetyState> watchState() => throw UnimplementedError('watchState');
 }
 
 /// 넘어온 링크를 **순서대로 기록**하는 [AppLinkOpener] — 「DTO 의 링크가 그대로 전달됐는가」를

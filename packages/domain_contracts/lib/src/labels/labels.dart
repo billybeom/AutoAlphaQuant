@@ -175,6 +175,9 @@ abstract final class ContractCodes {
     'safety_check_level': SafetyCheckLevelCodes.values,
     'unknown_resolution_stage': UnknownResolutionStageCodes.values,
     'journal_badge': JournalBadgeCodes.values,
+    // 🆕 v1.1 R2 준비(2026-09-23) — J-3 사전 저널 제출의 거부 사유
+    //    (`CommandReceipt.rejectReasonCode` — X7 의 `advice_reject` 와 다른 축)
+    'journal_draft_reject': JournalDraftRejectCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

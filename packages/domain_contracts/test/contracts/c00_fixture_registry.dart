@@ -149,6 +149,12 @@ final DtoCodec<Object> _goalPathVm = DtoCodec<GoalPathVm>(
   GoalPathVm.fromJson,
   (GoalPathVm v) => v.toJson(),
 );
+// 🆕 v1.1 R2 준비(2026-09-23) — 접수증 픽스처가 X7(수기 체결 거부)·J-3(사전 저널 5상태) 둘이 됐다.
+final DtoCodec<Object> _commandReceipt = DtoCodec<CommandReceipt>(
+  'CommandReceipt',
+  CommandReceipt.fromJson,
+  (CommandReceipt v) => v.toJson(),
+);
 
 /// 픽스처 상대 경로 → 등록 내용.
 ///
@@ -261,13 +267,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   ),
   FixturePaths.m6FillFormSpec: FixtureBinding(_manualFillFormSpec),
   FixturePaths.m6FillFormSpecStale: FixtureBinding(_manualFillFormSpec),
-  FixturePaths.m6FillRejectedPrice: FixtureBinding(
-    DtoCodec<CommandReceipt>(
-      'CommandReceipt',
-      CommandReceipt.fromJson,
-      (CommandReceipt v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.m6FillRejectedPrice: FixtureBinding(_commandReceipt),
   // 🆕 v1.1 — J-2 거래 상세 6갈래 · J-1 배지·필터·가림 · J-3 폼 스펙 · J-5 보드.
   FixturePaths.m6DecisionDetailAmended: FixtureBinding(_decisionDetailVm),
   FixturePaths.m6DecisionDetailFull: FixtureBinding(_decisionDetailVm),
@@ -286,6 +286,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (JournalTimelineBadge v) => v.toJson(),
     ),
   ),
+  // 🆕 v1.1 R2 준비(2026-09-23) — J-3 제출 결과 5상태(한 명령의 갈래).
+  FixturePaths.m6JournalDraftReceipts5: FixtureBinding(_commandReceipt),
   FixturePaths.m6JournalDraftSpecDiscretion: FixtureBinding(
     _journalDraftFormSpec,
   ),

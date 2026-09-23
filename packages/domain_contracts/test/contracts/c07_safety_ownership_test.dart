@@ -38,6 +38,14 @@ final RegExp _writeVerb = RegExp(
   r'\b(save|write|submit|send|insert|update|delete|apply|commit)[A-Z_]',
 );
 
+/// [path] 의 코드(주석·문자열 제외)에 나오는 쓰기 이름 전체(예: `submitJournalDraft`).
+Set<String> _writeNamesIn(String path) {
+  final String code = stripCommentsAndStrings(File(path).readAsStringSync());
+  return RegExp(
+    r'\b((?:save|write|submit|send|insert|update|delete|apply|commit)[A-Z_]\w*)',
+  ).allMatches(code).map((RegExpMatch m) => m.group(1)!).toSet();
+}
+
 void main() {
   group('C-7 안전 화면 소유권 (01 §7)', () {
     test('C-7 CODEOWNERS 가 있고 소유 경로 6개를 파일 경로로 적고 있다', () {
@@ -102,10 +110,30 @@ void main() {
       }
       expect(
         writeSurfaces.toSet(),
-        <String>{'packages/domain_contracts/lib/src/commands/command_api.dart'},
+        <String>{
+          'packages/domain_contracts/lib/src/commands/command_api.dart',
+          // 🆕 v1.1 R2 준비(2026-09-23 · 01 §11-10) — `UnimplementedCommandApi` 받침대
+          //    (배럴 밖 · test 전용). CommandApi 를 그대로 비추고 전부 던질 뿐이라 새 쓰기
+          //    창구가 아니다 — 바로 아래 검사가 «CommandApi 에 없는 쓰기 이름 0건»으로 못 박는다.
+          'packages/domain_contracts/lib/testing.dart',
+        },
         reason:
             '계약에서 쓰기 이름이 나오는 파일이 늘었다. 늘어야 한다면 01 §4-2 를 '
             '먼저 고치고 그 커밋에서 이 목록을 고친다.',
+      );
+      final Set<String> apiNames = _writeNamesIn(
+        '${libDir.path}/src/commands/command_api.dart',
+      );
+      final Set<String> mirrorNames = _writeNamesIn(
+        '${libDir.path}/testing.dart',
+      );
+      expect(apiNames, isNotEmpty, reason: 'CommandApi 의 쓰기 이름을 못 읽었다.');
+      expect(
+        mirrorNames.difference(apiNames),
+        isEmpty,
+        reason:
+            'lib/testing.dart 는 CommandApi 의 받침대다 — CommandApi 에 없는 쓰기 '
+            '이름이 나오면 test 전용 파일이 둘째 쓰기 창구가 된 것이다.',
       );
     });
 
