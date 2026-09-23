@@ -4,13 +4,13 @@
 §2(치환값·조립법)이고, 이 폴더의 파일은 전부 **사본**입니다 — 정본은 `11_앱설계/`의 같은 번호 문서이고,
 문서와 코드가 다르면 **코드(`packages/domain_contracts/`)가 이깁니다.**
 
-조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/_완료/R1-Bob-J1-재제출.md`) · **J-1 병합(PR #1 · 2026-09-17)** 뒤 `send/_완료/R1-Gem-S71.md` 신설 · `packages/ui_analytics/test/` 골든 하네스 설치 · **팩 판 2026-09-17b**(C4 R1-Gem-S71 1회차 — 03·01 사본 갱신 · `inbox/S7-1_questions.md` · `send/_완료/R1-Gem-S71-재제출.md`) · **팩 판 2026-09-17c**(S7-1 병합 PR #2 뒤 — 03 §7·§8 «코드 정본» · 01 §8 미결 44·45 · `prompt_M7.md` 범위 = S7-3 · S7-3b · `send/_완료/R2-Gem-S73.md`). · 🆕 **팩 판 2026-09-17e — 계약 v1.1**(01 «확정 v1.1»·§11 · 02 §3-1 R1b ⓐ~ⓕ · 03 §3 R1b · 04 라우트 정본 = `AppRoutes` · `contracts_bundle.md` 81파일 재조립 · `fixtures_README.md` 96건 · `send/R1b-Bob-J1.md`) · 🆕 2026-09-18 Gemini → Bob 이관(역할 문서만 변경 — 팩 판 유지)
+조립일 **2026-09-09** · 🔵 **팩 판 2026-09-17**(C4 R1-Bob-J1 반영 — 01·02 사본 갱신 · `fixtures_README.md` 78건 · `inbox/J1_questions.md` 신설 · `send/_완료/R1-Bob-J1-재제출.md`) · **J-1 병합(PR #1 · 2026-09-17)** 뒤 `send/_완료/R1-Gem-S71.md` 신설 · `packages/ui_analytics/test/` 골든 하네스 설치 · **팩 판 2026-09-17b**(C4 R1-Gem-S71 1회차 — 03·01 사본 갱신 · `inbox/S7-1_questions.md` · `send/_완료/R1-Gem-S71-재제출.md`) · **팩 판 2026-09-17c**(S7-1 병합 PR #2 뒤 — 03 §7·§8 «코드 정본» · 01 §8 미결 44·45 · `prompt_M7.md` 범위 = S7-3 · S7-3b · `send/_완료/R2-Gem-S73.md`). · 🆕 **팩 판 2026-09-17e — 계약 v1.1**(01 «확정 v1.1»·§11 · 02 §3-1 R1b ⓐ~ⓕ · 03 §3 R1b · 04 라우트 정본 = `AppRoutes` · `contracts_bundle.md` 81파일 재조립 · `fixtures_README.md` 96건 · `send/R1b-Bob-J1.md`) · 🆕 2026-09-18 Gemini → Bob 이관(역할 문서만 변경 — 팩 판 유지) · (2026-09-21·09-22 판 = R1b-Bob-J1 반려·병합 — `rounds.md` 이력) · 🆕 **팩 판 2026-09-23**(R2-Bob-J2J3 조립 — 01 §11-10·§8 미결 47~50 · 02 §3-2·§3-3·§3-5 «🆕 계약 v1.1 — R2 범위» 블록 · 01·02 사본 재복사 · `fixtures_README.md` 97건(🆕 `m6/journal_draft_receipts_5.json`) · `contracts_bundle.md` 재조립(81파일 · `JournalDraftRejectCodes`) · `prompt_M6.md` 범위 = J-2 · J-3 · J-5 (+ J-1 후속 A14~A16) · `send/R2-Bob-J2J3.md`)
 
 ## 구성
 
 | 파일 | 무엇 | 정본 |
 |---|---|---|
-| `prompt_M6.md` | Bob에게 주는 프롬프트 (M6 매매일지·보유현황, 범위 `J-1`) | 07 §3 + §4 |
+| `prompt_M6.md` | Bob에게 주는 프롬프트 (M6 매매일지·보유현황, 범위 ~~`J-1`~~ → `J-2 · J-3 · J-5 (+ J-1 후속 A14~A16)` 2026-09-23) | 07 §3 + §4 |
 | `prompt_M7.md` | Bob 에게 주는 프롬프트(2026-09-18 Gemini 에서 이관) (M7 성과·리밸런싱·플래너, 범위 ~~`S7-1`~~ → `S7-3 · S7-3b` 2026-09-17) | 07 §3 + §5 |
 | `prompt_M8.md` | Bob(2026-09-18 이관) (M8 셸·운영 홈·알림·온보딩 렌더, 범위 `S-01`) | 07 §3 + §6 |
 | `prompt_M9.md` | Bob 2차 (M9 관리자·설정 렌더, 범위 `S01`) | 07 §3 + §7 |
@@ -21,7 +21,7 @@
 | `04_화면명세_M8_셸_운영홈_알림_온보딩.md` | M8 화면 명세 (전문 사본, 바이트 동일) | 11_앱설계/04 |
 | `05_화면명세_M9_설정_관리자.md` | M9 화면 명세 (전문 사본, 바이트 동일) | 11_앱설계/05 |
 | `08_Mermaid_전체흐름_핵심로직.md` | 흐름 그림 — **조문이 아님.** 01·02~05와 어긋나면 조문이 맞다 | 11_앱설계/08 |
-| `fixtures_README.md` | 픽스처 규약 사본 + 실제 파일 목록 **78개**(2026-09-17 · 🆕 `m6/journal_empty.json`) | `packages/domain_contracts/fixtures/README.md` |
+| `fixtures_README.md` | 픽스처 규약 사본 + 실제 파일 목록 ~~**78개**(2026-09-17 · 🆕 `m6/journal_empty.json`)~~ → **97개**(2026-09-23 · 🆕 `m6/journal_draft_receipts_5.json`) | `packages/domain_contracts/fixtures/README.md` |
 | `contracts_bundle.md` | `domain_contracts` 공개 API 원문 — **저장소를 못 붙이는 웹 채팅 전용** — 🗄️ Gemini 웹(PR #6)용 기록 · Bob 은 코드 그대로 | `packages/domain_contracts/lib/` |
 | `inbox/README.md` | 질문·추측 목록 접수 규약(파일명·형식) | — |
 | `rounds.md` | 라운드 로그 — 누가 무엇을 언제 받았나 | — |
@@ -31,7 +31,7 @@
 **5부 규칙**(07 §2-2): 한 AI가 받는 문서는 **정확히 5부**입니다 — ① 해당 화면 명세 ② `01` ③ `00` 발췌
 ④ `domain_contracts` 패키지 실물 ⑤ `08` Mermaid. 프롬프트는 문서가 아니라 **지시문**이라 5부에 세지 않습니다.
 
-🆕 발송 순서는 설계 저장소 12 §6 «Bob 단일 큐»가 정본: R2-Bob-J2J3 → R10-Bob-S7x → R11-Bob-S74 → R12-Bob-S76 → R3-Bob-J4 → R4-Bob-H → R5-Bob-L-X7 → R13~R16-Bob-M8a~d → R6~R9-Bob-M9a~d (선행이 안 풀린 카드는 건너뛰고 돌아옴 · 2026-09-18 · Gemini → Bob 이관)
+🆕 발송 순서는 설계 저장소 12 §6 «Bob 단일 큐»가 정본: R2-Bob-J2J3 → (🆕 R2b-Bob-J3 — 선행 01 §8 미결 47·48 · 2026-09-23) → R10-Bob-S7x → R11-Bob-S74 → R12-Bob-S76 → R3-Bob-J4 → R4-Bob-H → R5-Bob-L-X7 → R13~R16-Bob-M8a~d → R6~R9-Bob-M9a~d (선행이 안 풀린 카드는 건너뛰고 돌아옴 · 2026-09-18 · Gemini → Bob 이관)
 
 ### Bob — M6 · M9
 
