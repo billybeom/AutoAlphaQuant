@@ -129,6 +129,8 @@ Future<void> pumpForGolden(
   addTearDown(tester.view.resetDevicePixelRatio);
 
   final Widget app = MaterialApp(
+    // DEBUG 리본이 골든 오른쪽 위를 덮는다 — 2026-09-23 infra
+    debugShowCheckedModeBanner: false,
     theme: ThemeData(useMaterial3: true, brightness: brightness),
     home: Scaffold(body: child),
   );
@@ -143,7 +145,9 @@ Future<void> pumpForGolden(
 
 /// `goldens/<name>_<light|dark>.png` 와 비교한다(경로는 테스트 파일 기준).
 ///
-/// 최초 베이스라인은 `flutter test --update-goldens test/golden` **한 번**으로 만든다.
+/// 최초 베이스라인은 **새 테스트 파일을 지정해**
+/// `flutter test --update-goldens test/golden/<화면id>_golden_test.dart` **한 번**으로 만든다.
+/// 🔴 폴더 지정(`test/golden`) 금지 — 이미 있는 다른 화면의 PNG 까지 다시 찍힌다(README «🆕 R2»).
 /// 그 뒤 픽스처가 그대로인데 다시 찍는 것은 위조다(01 §7).
 Future<void> expectGolden(String name, Brightness brightness) => expectLater(
   find.byKey(goldenBoundaryKey),
