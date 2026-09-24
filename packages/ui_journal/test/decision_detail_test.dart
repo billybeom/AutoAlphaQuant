@@ -69,9 +69,7 @@ Future<void> _pump(
         journalLinkOpenerProvider.overrideWithValue(opener),
       ],
       child: MaterialApp(
-        home: Scaffold(
-          body: JournalDecisionDetail(decisionId: decisionId),
-        ),
+        home: Scaffold(body: JournalDecisionDetail(decisionId: decisionId)),
       ),
     ),
   );
@@ -112,7 +110,9 @@ void main() {
     expect(calls, greaterThan(before));
   });
 
-  testWidgets('stale banner absent with fresh clock', (WidgetTester tester) async {
+  testWidgets('stale banner absent with fresh clock', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
@@ -128,8 +128,9 @@ void main() {
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
-  testWidgets('stale banner shown when clock advances 2 days',
-      (WidgetTester tester) async {
+  testWidgets('stale banner shown when clock advances 2 days', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
@@ -156,9 +157,7 @@ void main() {
           journalLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
         ],
         child: const MaterialApp(
-          home: Scaffold(
-            body: JournalDecisionDetail(decisionId: 'x'),
-          ),
+          home: Scaffold(body: JournalDecisionDetail(decisionId: 'x')),
         ),
       ),
     );
@@ -168,7 +167,9 @@ void main() {
     expect(find.text(vm.asOf.label), findsWidgets);
   });
 
-  testWidgets('safety row(3) → 2 blocking flag cards', (WidgetTester tester) async {
+  testWidgets('safety row(3) → 2 blocking flag cards', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
@@ -191,8 +192,9 @@ void main() {
 
   // ── J-2 specific: decisionId passed to repository ─────────────────────────
 
-  testWidgets('decisionId is passed to watchDecisionDetail',
-      (WidgetTester tester) async {
+  testWidgets('decisionId is passed to watchDecisionDetail', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
@@ -220,8 +222,9 @@ void main() {
 
   // ── full fixture ─────────────────────────────────────────────────────────────
 
-  testWidgets('full: chain steps in order, decisionId arrives',
-      (WidgetTester tester) async {
+  testWidgets('full: chain steps in order, decisionId arrives', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
@@ -261,12 +264,12 @@ void main() {
 
     // Steps in top-to-bottom order
     for (int i = 0; i < vm.steps.length - 1; i++) {
-      final double y0 = tester.getTopLeft(
-        find.byKey(ValueKey<String>('j2-step-$i')),
-      ).dy;
-      final double y1 = tester.getTopLeft(
-        find.byKey(ValueKey<String>('j2-step-${i + 1}')),
-      ).dy;
+      final double y0 = tester
+          .getTopLeft(find.byKey(ValueKey<String>('j2-step-$i')))
+          .dy;
+      final double y1 = tester
+          .getTopLeft(find.byKey(ValueKey<String>('j2-step-${i + 1}')))
+          .dy;
       expect(y0, lessThan(y1));
     }
 
@@ -276,8 +279,9 @@ void main() {
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
-  testWidgets('full: snapshot expand → configHash long-press copies',
-      (WidgetTester tester) async {
+  testWidgets('full: snapshot expand → configHash long-press copies', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
@@ -325,8 +329,9 @@ void main() {
     expect(find.text(JournalLabels.copied), findsOneWidget);
   });
 
-  testWidgets('full: rebalanceLink button present and tap opens link',
-      (WidgetTester tester) async {
+  testWidgets('full: rebalanceLink button present and tap opens link', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
@@ -358,7 +363,9 @@ void main() {
     expect(opener.opened, <String>[vm.rebalanceLink!.deepLink]);
   });
 
-  testWidgets('full: journalLink absent (null in fixture)', (WidgetTester tester) async {
+  testWidgets('full: journalLink absent (null in fixture)', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
@@ -467,8 +474,9 @@ void main() {
 
   // ── reevaluated_child: parentLink ─────────────────────────────────────────
 
-  testWidgets('reevaluated_child: parentLink button tap opens link',
-      (WidgetTester tester) async {
+  testWidgets('reevaluated_child: parentLink button tap opens link', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailReevaluatedChild,
       DecisionDetailVm.fromJson,
@@ -486,17 +494,16 @@ void main() {
       find.byKey(const ValueKey<String>('j2-link-parentLink')),
       findsOneWidget,
     );
-    await tester.tap(
-      find.byKey(const ValueKey<String>('j2-link-parentLink')),
-    );
+    await tester.tap(find.byKey(const ValueKey<String>('j2-link-parentLink')));
     await tester.pump();
     expect(opener.opened, <String>[vm.parentLink!.deepLink]);
   });
 
   // ── amended: snapshotMissingLabel + amendLink ────────────────────────────────
 
-  testWidgets('amended: snapshotMissingLabel shown; no configHash',
-      (WidgetTester tester) async {
+  testWidgets('amended: snapshotMissingLabel shown; no configHash', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailAmended,
       DecisionDetailVm.fromJson,
@@ -511,17 +518,15 @@ void main() {
     expect(vm.snapshot, isNull);
     expect(vm.snapshotMissingLabel, isNotNull);
     // Scroll to snapshotMissingLabel (it's below the fills)
-    await tester.scrollUntilVisible(
-      find.text(vm.snapshotMissingLabel!),
-      100,
-    );
+    await tester.scrollUntilVisible(find.text(vm.snapshotMissingLabel!), 100);
     expect(find.text(vm.snapshotMissingLabel!), findsOneWidget);
     // configHash not shown (no snapshot)
     expect(find.text(vm.entry.decision.configHash), findsNothing);
   });
 
-  testWidgets('amended: amendLink present; tap opens link',
-      (WidgetTester tester) async {
+  testWidgets('amended: amendLink present; tap opens link', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailAmended,
       DecisionDetailVm.fromJson,
@@ -539,15 +544,14 @@ void main() {
       find.byKey(const ValueKey<String>('j2-link-amendLink')),
       findsOneWidget,
     );
-    await tester.tap(
-      find.byKey(const ValueKey<String>('j2-link-amendLink')),
-    );
+    await tester.tap(find.byKey(const ValueKey<String>('j2-link-amendLink')));
     await tester.pump();
     expect(opener.opened, <String>[vm.amendLink!.deepLink]);
   });
 
-  testWidgets('amended: step with deepLink tap opens link',
-      (WidgetTester tester) async {
+  testWidgets('amended: step with deepLink tap opens link', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailAmended,
       DecisionDetailVm.fromJson,
@@ -561,19 +565,20 @@ void main() {
     );
 
     // Find step with deepLink
-    final int stepIdx = vm.steps.indexWhere((DecisionChainStep s) => s.deepLink != null);
+    final int stepIdx = vm.steps.indexWhere(
+      (DecisionChainStep s) => s.deepLink != null,
+    );
     expect(stepIdx, isNot(-1));
     final DecisionChainStep linkedStep = vm.steps[stepIdx];
 
-    await tester.tap(
-      find.byKey(ValueKey<String>('j2-step-$stepIdx')),
-    );
+    await tester.tap(find.byKey(ValueKey<String>('j2-step-$stepIdx')));
     await tester.pump();
     expect(opener.opened, contains(linkedStep.deepLink!));
   });
 
-  testWidgets('amended: reason chip with deepLink tap opens link',
-      (WidgetTester tester) async {
+  testWidgets('amended: reason chip with deepLink tap opens link', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailAmended,
       DecisionDetailVm.fromJson,
@@ -601,8 +606,9 @@ void main() {
 
   // ── unknown: no threshold table, no reject trace section ─────────────────────
 
-  testWidgets('unknown: thresholdCompare and rejectTrace headers absent',
-      (WidgetTester tester) async {
+  testWidgets('unknown: thresholdCompare and rejectTrace headers absent', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailUnknown,
       DecisionDetailVm.fromJson,
@@ -623,8 +629,9 @@ void main() {
 
   // ── rejected_saf309: rejectTrace collapsible ─────────────────────────────────
 
-  testWidgets('rejected_saf309: rejectTrace collapsed → expand shows trace',
-      (WidgetTester tester) async {
+  testWidgets('rejected_saf309: rejectTrace collapsed → expand shows trace', (
+    WidgetTester tester,
+  ) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailRejectedSaf309,
       DecisionDetailVm.fromJson,

@@ -63,9 +63,7 @@ Future<_FakeJournalRepository> _pump(
         journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
         journalLinkOpenerProvider.overrideWithValue(opener),
       ],
-      child: const MaterialApp(
-        home: Scaffold(body: JournalUnknownBoard()),
-      ),
+      child: const MaterialApp(home: Scaffold(body: JournalUnknownBoard())),
     ),
   );
   await tester.pump();
@@ -100,7 +98,9 @@ void main() {
     expect(find.text(JournalLabels.retry), findsOneWidget);
   });
 
-  testWidgets('stale banner absent with fresh clock', (WidgetTester tester) async {
+  testWidgets('stale banner absent with fresh clock', (
+    WidgetTester tester,
+  ) async {
     final UnknownBoardVm vm = singleFixture(
       FixturePaths.m6UnknownBoard2,
       UnknownBoardVm.fromJson,
@@ -115,8 +115,9 @@ void main() {
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
-  testWidgets('stale banner shown when clock advances 2 days',
-      (WidgetTester tester) async {
+  testWidgets('stale banner shown when clock advances 2 days', (
+    WidgetTester tester,
+  ) async {
     final UnknownBoardVm vm = singleFixture(
       FixturePaths.m6UnknownBoard2,
       UnknownBoardVm.fromJson,
@@ -142,9 +143,7 @@ void main() {
           ),
           journalLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
         ],
-        child: const MaterialApp(
-          home: Scaffold(body: JournalUnknownBoard()),
-        ),
+        child: const MaterialApp(home: Scaffold(body: JournalUnknownBoard())),
       ),
     );
     await tester.pump();
@@ -152,7 +151,9 @@ void main() {
     expect(find.text(vm.asOf.label), findsWidgets);
   });
 
-  testWidgets('safety row(3) → 2 blocking flags shown', (WidgetTester tester) async {
+  testWidgets('safety row(3) → 2 blocking flags shown', (
+    WidgetTester tester,
+  ) async {
     final UnknownBoardVm vm = singleFixture(
       FixturePaths.m6UnknownBoard2,
       UnknownBoardVm.fromJson,
@@ -174,8 +175,9 @@ void main() {
 
   // ── two_open: two cards ───────────────────────────────────────────────────────
 
-  testWidgets('two_open: cards present with correct keys and content',
-      (WidgetTester tester) async {
+  testWidgets('two_open: cards present with correct keys and content', (
+    WidgetTester tester,
+  ) async {
     final UnknownBoardVm vm = singleFixture(
       FixturePaths.m6UnknownBoard2,
       UnknownBoardVm.fromJson,
@@ -239,7 +241,9 @@ void main() {
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
-  testWidgets('two_open: cards in top-to-bottom order', (WidgetTester tester) async {
+  testWidgets('two_open: cards in top-to-bottom order', (
+    WidgetTester tester,
+  ) async {
     final UnknownBoardVm vm = singleFixture(
       FixturePaths.m6UnknownBoard2,
       UnknownBoardVm.fromJson,
@@ -251,44 +255,47 @@ void main() {
       opener: RecordingLinkOpener(),
     );
 
-    final double y0 = tester.getTopLeft(
-      find.byKey(const ValueKey<String>('j5-card-0')),
-    ).dy;
-    final double y1 = tester.getTopLeft(
-      find.byKey(const ValueKey<String>('j5-card-1')),
-    ).dy;
+    final double y0 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('j5-card-0')))
+        .dy;
+    final double y1 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('j5-card-1')))
+        .dy;
     expect(y0, lessThan(y1));
   });
 
-  testWidgets('two_open: escalationLink button shown for emphasized card; tap opens link',
-      (WidgetTester tester) async {
-    final UnknownBoardVm vm = singleFixture(
-      FixturePaths.m6UnknownBoard2,
-      UnknownBoardVm.fromJson,
-    );
-    final RecordingLinkOpener opener = RecordingLinkOpener();
-    await _pump(
-      tester,
-      boardStream: Stream<UnknownBoardVm>.value(vm),
-      safety: safetyFixtureRow(0),
-      opener: opener,
-    );
+  testWidgets(
+    'two_open: escalationLink button shown for emphasized card; tap opens link',
+    (WidgetTester tester) async {
+      final UnknownBoardVm vm = singleFixture(
+        FixturePaths.m6UnknownBoard2,
+        UnknownBoardVm.fromJson,
+      );
+      final RecordingLinkOpener opener = RecordingLinkOpener();
+      await _pump(
+        tester,
+        boardStream: Stream<UnknownBoardVm>.value(vm),
+        safety: safetyFixtureRow(0),
+        opener: opener,
+      );
 
-    // Find which card has escalationLink
-    final int idx = vm.items.indexWhere(
-      (UnknownResolutionItem i) => i.escalationLink != null,
-    );
-    expect(idx, isNot(-1));
-    final UnknownResolutionItem item = vm.items[idx];
+      // Find which card has escalationLink
+      final int idx = vm.items.indexWhere(
+        (UnknownResolutionItem i) => i.escalationLink != null,
+      );
+      expect(idx, isNot(-1));
+      final UnknownResolutionItem item = vm.items[idx];
 
-    expect(find.text(item.escalationLink!.label), findsOneWidget);
-    await tester.tap(find.text(item.escalationLink!.label));
-    await tester.pump();
-    expect(opener.opened, <String>[item.escalationLink!.deepLink]);
-  });
+      expect(find.text(item.escalationLink!.label), findsOneWidget);
+      await tester.tap(find.text(item.escalationLink!.label));
+      await tester.pump();
+      expect(opener.opened, <String>[item.escalationLink!.deepLink]);
+    },
+  );
 
-  testWidgets('two_open: card tap opens entry.detailDeepLink',
-      (WidgetTester tester) async {
+  testWidgets('two_open: card tap opens entry.detailDeepLink', (
+    WidgetTester tester,
+  ) async {
     final UnknownBoardVm vm = singleFixture(
       FixturePaths.m6UnknownBoard2,
       UnknownBoardVm.fromJson,
@@ -317,7 +324,9 @@ void main() {
 
   // ── empty board ───────────────────────────────────────────────────────────────
 
-  testWidgets('empty: emptyLabel shown, no card keys', (WidgetTester tester) async {
+  testWidgets('empty: emptyLabel shown, no card keys', (
+    WidgetTester tester,
+  ) async {
     final UnknownBoardVm vm = singleFixture(
       FixturePaths.m6UnknownBoardEmpty,
       UnknownBoardVm.fromJson,

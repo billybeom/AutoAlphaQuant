@@ -138,8 +138,9 @@ void main() {
     });
 
     // ── 6. j2_rejected_saf309_trace_open ─────────────────────────────────────
-    testWidgets('j2_rejected_saf309_trace_open ${b.name}',
-        (WidgetTester tester) async {
+    testWidgets('j2_rejected_saf309_trace_open ${b.name}', (
+      WidgetTester tester,
+    ) async {
       final DecisionDetailVm vm = singleFixture(
         FixturePaths.m6DecisionDetailRejectedSaf309,
         DecisionDetailVm.fromJson,

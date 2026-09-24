@@ -98,11 +98,11 @@ void main() {
       // j5_long_open has no nextBatchNoticeText since we copied from original vm
       // which has nextBatchNoticeText, but slice doesn't change asOf/nextBatchNoticeText
       // (copyWith keeps it). Check bottom widget.
-      final UnknownResolutionItem item = slice.items.first;
-      // The bottom visible widget would be the nextBatchNoticeText or last step
       // Verify the card is within viewport
       expect(
-        tester.getBottomLeft(find.byKey(const ValueKey<String>('j5-card-0'))).dy,
+        tester
+            .getBottomLeft(find.byKey(const ValueKey<String>('j5-card-0')))
+            .dy,
         lessThan(_kTallPhone.height),
       );
       await expectGolden('j5_long_open', b);

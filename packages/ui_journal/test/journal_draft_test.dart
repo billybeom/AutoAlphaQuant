@@ -42,10 +42,7 @@ class _FakeSafetyRepository extends UnimplementedSafetyRepository {
 }
 
 class _FakeCommandApi extends UnimplementedCommandApi {
-  _FakeCommandApi({
-    required this.submitResponse,
-    required this.watchResponse,
-  });
+  _FakeCommandApi({required this.submitResponse, required this.watchResponse});
 
   final CommandReceipt submitResponse;
   final Stream<CommandReceipt> watchResponse;
@@ -98,9 +95,7 @@ Future<void> _pump(
     ProviderScope(
       overrides: overrides,
       child: MaterialApp(
-        home: Scaffold(
-          body: JournalDraftForm(decisionId: decisionId),
-        ),
+        home: Scaffold(body: JournalDraftForm(decisionId: decisionId)),
       ),
     ),
   );
@@ -165,7 +160,9 @@ void main() {
     expect(throwing.calls, greaterThan(callsBefore));
   });
 
-  testWidgets('stale banner absent with fresh clock', (WidgetTester tester) async {
+  testWidgets('stale banner absent with fresh clock', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,
@@ -180,8 +177,9 @@ void main() {
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
-  testWidgets('stale banner shown when clock advances 2 days',
-      (WidgetTester tester) async {
+  testWidgets('stale banner shown when clock advances 2 days', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,
@@ -226,7 +224,8 @@ void main() {
       safety: safetyFixtureRow(3),
       opener: RecordingLinkOpener(),
     );
-    await tester.pump(); // ensure both FutureProvider and StreamProvider resolve
+    await tester
+        .pump(); // ensure both FutureProvider and StreamProvider resolve
     final SafetyState halted = safetyFixtureRow(3);
     final List<BlockFlag> blocking = halted.activeFlags
         .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
@@ -237,14 +236,18 @@ void main() {
 
   // ── discretion: pledge block ────────────────────────────────────────────────
 
-  testWidgets('discretion: pledge block present with all lines',
-      (WidgetTester tester) async {
+  testWidgets('discretion: pledge block present with all lines', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,
     );
-    expect(spec.pledgeLines, isNotEmpty,
-        reason: 'discretion fixture must have pledgeLines');
+    expect(
+      spec.pledgeLines,
+      isNotEmpty,
+      reason: 'discretion fixture must have pledgeLines',
+    );
     await _pump(
       tester,
       spec: spec,
@@ -266,14 +269,18 @@ void main() {
 
   // ── recon_clear: no pledge block ───────────────────────────────────────────
 
-  testWidgets('recon_clear: pledge block absent when pledgeLines empty',
-      (WidgetTester tester) async {
+  testWidgets('recon_clear: pledge block absent when pledgeLines empty', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecReconClear,
       JournalDraftFormSpec.fromJson,
     );
-    expect(spec.pledgeLines, isEmpty,
-        reason: 'recon_clear fixture must have empty pledgeLines');
+    expect(
+      spec.pledgeLines,
+      isEmpty,
+      reason: 'recon_clear fixture must have empty pledgeLines',
+    );
     await _pump(
       tester,
       spec: spec,
@@ -285,8 +292,9 @@ void main() {
 
   // ── Submit button activation ────────────────────────────────────────────────
 
-  testWidgets('submit inactive → active as inputs filled',
-      (WidgetTester tester) async {
+  testWidgets('submit inactive → active as inputs filled', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,
@@ -325,8 +333,9 @@ void main() {
     expect(submitBtn().onPressed, isNull); // still no rule
 
     // Select rule that does NOT require note
-    final ReasonOption noNoteRule = spec.ruleCitedOptions
-        .firstWhere((ReasonOption o) => !o.requiresNote);
+    final ReasonOption noNoteRule = spec.ruleCitedOptions.firstWhere(
+      (ReasonOption o) => !o.requiresNote,
+    );
     await tester.tap(find.byType(DropdownButton<ReasonOption>));
     await tester.pumpAndSettle();
     await tester.tap(find.text(noNoteRule.label).last);
@@ -334,8 +343,9 @@ void main() {
     expect(submitBtn().onPressed, isNotNull); // now active
 
     // Now select rule that requires note → disabled again
-    final ReasonOption noteRule = spec.ruleCitedOptions
-        .firstWhere((ReasonOption o) => o.requiresNote);
+    final ReasonOption noteRule = spec.ruleCitedOptions.firstWhere(
+      (ReasonOption o) => o.requiresNote,
+    );
     await tester.tap(find.byType(DropdownButton<ReasonOption>));
     await tester.pumpAndSettle();
     await tester.tap(find.text(noteRule.label).last);
@@ -350,8 +360,9 @@ void main() {
 
   // ── Submit → REQUESTED (locked) ─────────────────────────────────────────────
 
-  testWidgets('submit → REQUESTED: lock fields, show stateLabel',
-      (WidgetTester tester) async {
+  testWidgets('submit → REQUESTED: lock fields, show stateLabel', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,
@@ -372,8 +383,9 @@ void main() {
     );
 
     final int minChars = spec.rationaleMinChars;
-    final ReasonOption rule =
-        spec.ruleCitedOptions.firstWhere((ReasonOption o) => !o.requiresNote);
+    final ReasonOption rule = spec.ruleCitedOptions.firstWhere(
+      (ReasonOption o) => !o.requiresNote,
+    );
 
     await tester.enterText(find.byType(TextField).first, 'a' * minChars);
     await tester.pump();
@@ -397,7 +409,9 @@ void main() {
 
     // REQUESTED state: fields locked
     expect(find.text(requested.stateLabel), findsOneWidget);
-    for (final TextField field in tester.widgetList<TextField>(find.byType(TextField))) {
+    for (final TextField field in tester.widgetList<TextField>(
+      find.byType(TextField),
+    )) {
       expect(field.enabled, isFalse);
     }
     // Submit button absent (locked state has no submit)
@@ -408,8 +422,9 @@ void main() {
 
   // ── Submit → EXECUTED: input area gone ──────────────────────────────────────
 
-  testWidgets('submit → EXECUTED: input area gone, stateLabel shown',
-      (WidgetTester tester) async {
+  testWidgets('submit → EXECUTED: input area gone, stateLabel shown', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,
@@ -430,8 +445,9 @@ void main() {
     );
 
     final int minChars = spec.rationaleMinChars;
-    final ReasonOption rule =
-        spec.ruleCitedOptions.firstWhere((ReasonOption o) => !o.requiresNote);
+    final ReasonOption rule = spec.ruleCitedOptions.firstWhere(
+      (ReasonOption o) => !o.requiresNote,
+    );
 
     await tester.enterText(find.byType(TextField).first, 'a' * minChars);
     await tester.pump();
@@ -455,8 +471,9 @@ void main() {
 
   // ── Submit → REJECTED: re-editable ──────────────────────────────────────────
 
-  testWidgets('submit → REJECTED: inputs preserved, re-submit possible',
-      (WidgetTester tester) async {
+  testWidgets('submit → REJECTED: inputs preserved, re-submit possible', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,
@@ -478,8 +495,9 @@ void main() {
 
     final int minChars = spec.rationaleMinChars;
     final String rationaleText = 'a' * minChars;
-    final ReasonOption rule =
-        spec.ruleCitedOptions.firstWhere((ReasonOption o) => !o.requiresNote);
+    final ReasonOption rule = spec.ruleCitedOptions.firstWhere(
+      (ReasonOption o) => !o.requiresNote,
+    );
 
     await tester.enterText(find.byType(TextField).first, rationaleText);
     await tester.pump();
@@ -493,7 +511,9 @@ void main() {
     await tester.pumpAndSettle();
 
     // REJECTED: inputs preserved
-    final TextField rationale = tester.widget<TextField>(find.byType(TextField).first);
+    final TextField rationale = tester.widget<TextField>(
+      find.byType(TextField).first,
+    );
     expect(rationale.controller!.text, rationaleText);
 
     // rejectReasonCode must NOT appear in UI
@@ -508,8 +528,9 @@ void main() {
 
   // ── HELD_FOR_INTEGRITY: locked ───────────────────────────────────────────────
 
-  testWidgets('HELD_FOR_INTEGRITY: fields locked, no submit button',
-      (WidgetTester tester) async {
+  testWidgets('HELD_FOR_INTEGRITY: fields locked, no submit button', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,
@@ -530,8 +551,9 @@ void main() {
     );
 
     final int minChars = spec.rationaleMinChars;
-    final ReasonOption rule =
-        spec.ruleCitedOptions.firstWhere((ReasonOption o) => !o.requiresNote);
+    final ReasonOption rule = spec.ruleCitedOptions.firstWhere(
+      (ReasonOption o) => !o.requiresNote,
+    );
 
     await tester.enterText(find.byType(TextField).first, 'a' * minChars);
     await tester.pump();
@@ -545,7 +567,9 @@ void main() {
     await tester.pumpAndSettle();
 
     // Locked: fields disabled
-    for (final TextField field in tester.widgetList<TextField>(find.byType(TextField))) {
+    for (final TextField field in tester.widgetList<TextField>(
+      find.byType(TextField),
+    )) {
       expect(field.enabled, isFalse);
     }
     expect(find.byType(FilledButton), findsNothing);
@@ -554,7 +578,9 @@ void main() {
 
   // ── contextChip tap opens deepLink ───────────────────────────────────────────
 
-  testWidgets('context chip tap opens detailDeepLink', (WidgetTester tester) async {
+  testWidgets('context chip tap opens detailDeepLink', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,
@@ -577,8 +603,9 @@ void main() {
 
   // ── dropdown options visible ─────────────────────────────────────────────────
 
-  testWidgets('dropdown tap shows all ruleCitedOptions labels',
-      (WidgetTester tester) async {
+  testWidgets('dropdown tap shows all ruleCitedOptions labels', (
+    WidgetTester tester,
+  ) async {
     final JournalDraftFormSpec spec = singleFixture(
       FixturePaths.m6JournalDraftSpecDiscretion,
       JournalDraftFormSpec.fromJson,

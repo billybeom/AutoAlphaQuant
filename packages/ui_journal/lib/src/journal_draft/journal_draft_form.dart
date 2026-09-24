@@ -36,10 +36,9 @@ final journalCommandApiProvider = Provider<CommandApi>(
 /// 🔴 데이터 프로바이더: throw 기본값 금지.
 final journalDraftFormSpecProvider =
     FutureProvider.family<JournalDraftFormSpec, String>(
-      (Ref ref, String decisionId) =>
-          ref.watch(journalTimelineRepositoryProvider).draftFormSpec(
-            decisionId,
-          ),
+      (Ref ref, String decisionId) => ref
+          .watch(journalTimelineRepositoryProvider)
+          .draftFormSpec(decisionId),
     );
 
 // ── Public widget ─────────────────────────────────────────────────────────────
@@ -196,20 +195,17 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
             .isBefore(clock.nowUtc());
 
         // Safety state
-        final SafetyState? safety =
-            ref.watch(journalSafetyStateProvider).valueOrNull;
+        final SafetyState? safety = ref
+            .watch(journalSafetyStateProvider)
+            .valueOrNull;
         final List<BlockFlag> blockingFlags =
             safety?.activeFlags
-                .where(
-                  (BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId),
-                )
+                .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
                 .toList() ??
             <BlockFlag>[];
         final List<BlockFlag> markerFlags =
             safety?.activeFlags
-                .where(
-                  (BlockFlag f) => FlagIds.markerOnly.contains(f.flagId),
-                )
+                .where((BlockFlag f) => FlagIds.markerOnly.contains(f.flagId))
                 .toList() ??
             <BlockFlag>[];
 
@@ -344,8 +340,7 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
                       .toList(growable: false),
                   onChanged: (locked || _submitting)
                       ? null
-                      : (ReasonOption? v) =>
-                          setState(() => _selectedRule = v),
+                      : (ReasonOption? v) => setState(() => _selectedRule = v),
                 ),
               ),
 

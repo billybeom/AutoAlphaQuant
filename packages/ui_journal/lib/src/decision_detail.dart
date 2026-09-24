@@ -22,10 +22,9 @@ import 'timeline.dart';
 /// 🔴 데이터 프로바이더: throw 기본값 금지(주입 프로바이더만 throw).
 final journalDecisionDetailProvider =
     StreamProvider.family<DecisionDetailVm, String>(
-      (Ref ref, String decisionId) =>
-          ref.watch(journalTimelineRepositoryProvider).watchDecisionDetail(
-            decisionId,
-          ),
+      (Ref ref, String decisionId) => ref
+          .watch(journalTimelineRepositoryProvider)
+          .watchDecisionDetail(decisionId),
     );
 
 // ── Public widget ─────────────────────────────────────────────────────────────
@@ -54,7 +53,8 @@ class JournalDecisionDetail extends ConsumerWidget {
     return detailAsync.when(
       loading: () => const JournalSkeleton(),
       error: (Object e, _) => JournalErrorView(
-        onRetry: () => ref.invalidate(journalDecisionDetailProvider(decisionId)),
+        onRetry: () =>
+            ref.invalidate(journalDecisionDetailProvider(decisionId)),
       ),
       data: (DecisionDetailVm vm) {
         final Clock clock = ref.watch(journalClockProvider);
@@ -65,16 +65,12 @@ class JournalDecisionDetail extends ConsumerWidget {
         // Safety split (same rule as J-1 _TimelineContent).
         final List<BlockFlag> blockingFlags =
             safety?.activeFlags
-                .where(
-                  (BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId),
-                )
+                .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
                 .toList() ??
             <BlockFlag>[];
         final List<BlockFlag> markerFlags =
             safety?.activeFlags
-                .where(
-                  (BlockFlag f) => FlagIds.markerOnly.contains(f.flagId),
-                )
+                .where((BlockFlag f) => FlagIds.markerOnly.contains(f.flagId))
                 .toList() ??
             <BlockFlag>[];
 
@@ -149,17 +145,25 @@ class _DecisionDetailContent extends ConsumerWidget {
 
         // ── Link buttons ──────────────────────────────────────────────────────
         if (vm.rebalanceLink != null)
-          _LinkButton(key: const ValueKey<String>('j2-link-rebalanceLink'),
-              link: vm.rebalanceLink!),
+          _LinkButton(
+            key: const ValueKey<String>('j2-link-rebalanceLink'),
+            link: vm.rebalanceLink!,
+          ),
         if (vm.parentLink != null)
-          _LinkButton(key: const ValueKey<String>('j2-link-parentLink'),
-              link: vm.parentLink!),
+          _LinkButton(
+            key: const ValueKey<String>('j2-link-parentLink'),
+            link: vm.parentLink!,
+          ),
         if (vm.journalLink != null)
-          _LinkButton(key: const ValueKey<String>('j2-link-journalLink'),
-              link: vm.journalLink!),
+          _LinkButton(
+            key: const ValueKey<String>('j2-link-journalLink'),
+            link: vm.journalLink!,
+          ),
         if (vm.amendLink != null)
-          _LinkButton(key: const ValueKey<String>('j2-link-amendLink'),
-              link: vm.amendLink!),
+          _LinkButton(
+            key: const ValueKey<String>('j2-link-amendLink'),
+            link: vm.amendLink!,
+          ),
 
         // ── pendingNoticeText ─────────────────────────────────────────────────
         if (vm.pendingNoticeText != null)
@@ -174,8 +178,10 @@ class _DecisionDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             for (int i = 0; i < vm.steps.length; i++)
-              _ChainStepRow(key: ValueKey<String>('j2-step-$i'),
-                  step: vm.steps[i]),
+              _ChainStepRow(
+                key: ValueKey<String>('j2-step-$i'),
+                step: vm.steps[i],
+              ),
           ],
         ),
 
@@ -232,8 +238,10 @@ class _ChainStepRow extends ConsumerWidget {
                 backgroundColor: journalToneColor(context, step.tone),
               ),
               if (step.occurredAtText != null)
-                Text(step.occurredAtText!,
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  step.occurredAtText!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
             ],
           ),
           for (final String line in step.detailLines)
@@ -324,9 +332,7 @@ class _SnapshotSectionState extends ConsumerState<_SnapshotSection> {
                 );
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(JournalLabels.copied),
-                    ),
+                    const SnackBar(content: Text(JournalLabels.copied)),
                   );
                 }
               },
@@ -427,8 +433,7 @@ class _RejectTraceSectionState extends State<_RejectTraceSection> {
         if (_expanded)
           for (final RejectTrace trace in widget.traces)
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[

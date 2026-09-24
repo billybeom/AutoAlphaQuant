@@ -495,110 +495,105 @@ void main() {
 
   // ─── ③d A14 — filter apply keeps rebalanceEventId from initial query ──────
 
-  testWidgets(
-    '③d filter apply keeps rebalanceEventId from the initial query',
-    (WidgetTester tester) async {
-      final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
-        (JournalStatusOption o) => o.status == JournalStatus.reversed,
-      );
+  testWidgets('③d filter apply keeps rebalanceEventId from the initial query', (
+    WidgetTester tester,
+  ) async {
+    final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
+      (JournalStatusOption o) => o.status == JournalStatus.reversed,
+    );
 
-      final _FakeJournalRepository fakeJournal = await _pump(
-        tester,
-        result: journal30,
-        safety: _normalSafety(),
-        rangePresets: rangePresets4,
-        filterCatalog: filterCatalog,
-        query: JournalTimelineQuery(
-          range: defaultPreset,
-          rebalanceEventId: reId,
-        ),
-      );
-      await tester.pumpAndSettle();
+    final _FakeJournalRepository fakeJournal = await _pump(
+      tester,
+      result: journal30,
+      safety: _normalSafety(),
+      rangePresets: rangePresets4,
+      filterCatalog: filterCatalog,
+      query: JournalTimelineQuery(range: defaultPreset, rebalanceEventId: reId),
+    );
+    await tester.pumpAndSettle();
 
-      // Precondition: initial call carried rebalanceEventId.
-      expect(fakeJournal.calls.first['rebalanceEventId'], equals(reId));
+    // Precondition: initial call carried rebalanceEventId.
+    expect(fakeJournal.calls.first['rebalanceEventId'], equals(reId));
 
-      // Open filter sheet.
-      await tester.tap(find.text(JournalLabels.filter));
-      await tester.pumpAndSettle();
+    // Open filter sheet.
+    await tester.tap(find.text(JournalLabels.filter));
+    await tester.pumpAndSettle();
 
-      // Pick the same REVERSED status as ③.
-      final Finder sheetScroll = find.byType(Scrollable).last;
-      await tester.scrollUntilVisible(
-        find.text(pick.label),
-        120,
-        scrollable: sheetScroll,
-      );
-      await tester.ensureVisible(find.text(pick.label));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(pick.label));
-      await tester.pumpAndSettle();
+    // Pick the same REVERSED status as ③.
+    final Finder sheetScroll = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(
+      find.text(pick.label),
+      120,
+      scrollable: sheetScroll,
+    );
+    await tester.ensureVisible(find.text(pick.label));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(pick.label));
+    await tester.pumpAndSettle();
 
-      // Tap 「적용」.
-      await tester.scrollUntilVisible(
-        find.text(JournalLabels.filterApply),
-        120,
-        scrollable: sheetScroll,
-      );
-      await tester.ensureVisible(find.text(JournalLabels.filterApply));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(JournalLabels.filterApply));
-      await tester.pumpAndSettle();
+    // Tap 「적용」.
+    await tester.scrollUntilVisible(
+      find.text(JournalLabels.filterApply),
+      120,
+      scrollable: sheetScroll,
+    );
+    await tester.ensureVisible(find.text(JournalLabels.filterApply));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(JournalLabels.filterApply));
+    await tester.pumpAndSettle();
 
-      // Sheet closed.
-      expect(find.text(JournalLabels.filterApply), findsNothing);
+    // Sheet closed.
+    expect(find.text(JournalLabels.filterApply), findsNothing);
 
-      // A14: rebalanceEventId must survive apply, and the chosen status is set.
-      expect(fakeJournal.calls.last['status'], equals(pick.status));
-      expect(fakeJournal.calls.last['rebalanceEventId'], equals(reId));
-    },
-  );
+    // A14: rebalanceEventId must survive apply, and the chosen status is set.
+    expect(fakeJournal.calls.last['status'], equals(pick.status));
+    expect(fakeJournal.calls.last['rebalanceEventId'], equals(reId));
+  });
 
   // ─── ③e A14 — filter reset clears rebalanceEventId ──────────────────────
 
-  testWidgets(
-    '③e filter reset clears rebalanceEventId too',
-    (WidgetTester tester) async {
-      final _FakeJournalRepository fakeJournal = await _pump(
-        tester,
-        result: journal30,
-        safety: _normalSafety(),
-        rangePresets: rangePresets4,
-        filterCatalog: filterCatalog,
-        query: JournalTimelineQuery(
-          range: nonDefaultPreset,
-          rebalanceEventId: reId,
-        ),
-      );
-      await tester.pumpAndSettle();
+  testWidgets('③e filter reset clears rebalanceEventId too', (
+    WidgetTester tester,
+  ) async {
+    final _FakeJournalRepository fakeJournal = await _pump(
+      tester,
+      result: journal30,
+      safety: _normalSafety(),
+      rangePresets: rangePresets4,
+      filterCatalog: filterCatalog,
+      query: JournalTimelineQuery(
+        range: nonDefaultPreset,
+        rebalanceEventId: reId,
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      // Preconditions.
-      expect(fakeJournal.calls.first['rebalanceEventId'], equals(reId));
-      expect(fakeJournal.calls.first['range'], equals(nonDefaultPreset));
+    // Preconditions.
+    expect(fakeJournal.calls.first['rebalanceEventId'], equals(reId));
+    expect(fakeJournal.calls.first['range'], equals(nonDefaultPreset));
 
-      // Open filter sheet.
-      await tester.tap(find.text(JournalLabels.filter));
-      await tester.pumpAndSettle();
+    // Open filter sheet.
+    await tester.tap(find.text(JournalLabels.filter));
+    await tester.pumpAndSettle();
 
-      // Tap 「초기화」.
-      final Finder sheetScroll = find.byType(Scrollable).last;
-      await tester.scrollUntilVisible(
-        find.text(JournalLabels.filterReset),
-        120,
-        scrollable: sheetScroll,
-      );
-      await tester.ensureVisible(find.text(JournalLabels.filterReset));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(JournalLabels.filterReset));
-      await tester.pumpAndSettle();
+    // Tap 「초기화」.
+    final Finder sheetScroll = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(
+      find.text(JournalLabels.filterReset),
+      120,
+      scrollable: sheetScroll,
+    );
+    await tester.ensureVisible(find.text(JournalLabels.filterReset));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(JournalLabels.filterReset));
+    await tester.pumpAndSettle();
 
-      // A14: reset writes null to StateProvider → effective query resolves to
-      // isDefault preset. rebalanceEventId must be null after reset.
-      // _reset() is unchanged (A14 rule).
-      expect(fakeJournal.calls.last['rebalanceEventId'], isNull);
-      expect(fakeJournal.calls.last['range'], equals(defaultPreset));
-    },
-  );
+    // A14: reset writes null to StateProvider → effective query resolves to
+    // isDefault preset. rebalanceEventId must be null after reset.
+    // _reset() is unchanged (A14 rule).
+    expect(fakeJournal.calls.last['rebalanceEventId'], isNull);
+    expect(fakeJournal.calls.last['range'], equals(defaultPreset));
+  });
 
   // ─── ④ Badge label and tap link ─────────────────────────────────────────
 
@@ -716,10 +711,10 @@ void main() {
 
       // Row tap then chip tap: opened list has both links; chip tap does NOT
       // re-fire the row's link.
-      expect(
-        opener.opened,
-        <String>[tappableEntry.detailDeepLink!, linkedChip.detailDeepLink!],
-      );
+      expect(opener.opened, <String>[
+        tappableEntry.detailDeepLink!,
+        linkedChip.detailDeepLink!,
+      ]);
     },
   );
 
@@ -727,47 +722,46 @@ void main() {
   // A16: use safetyFixtureRow(2) which has TIER_B_UNJUDGED (no clearDeepLink).
   // Replace silent return with expect so the fixture contract is pinned.
 
-  testWidgets(
-    '⑦ BlockFlag with null clearDeepLink has no arrow button',
-    (WidgetTester tester) async {
-      // safety row 2 = REDUCED (TIER_B_UNJUDGED — no clearDeepLink).
-      final SafetyState reduced = safetyFixtureRow(2);
+  testWidgets('⑦ BlockFlag with null clearDeepLink has no arrow button', (
+    WidgetTester tester,
+  ) async {
+    // safety row 2 = REDUCED (TIER_B_UNJUDGED — no clearDeepLink).
+    final SafetyState reduced = safetyFixtureRow(2);
 
-      final List<BlockFlag> blockingFlags = reduced.activeFlags
-          .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
-          .take(2)
-          .toList();
+    final List<BlockFlag> blockingFlags = reduced.activeFlags
+        .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
+        .take(2)
+        .toList();
 
-      final bool anyNullLink = blockingFlags.any(
-        (BlockFlag f) => f.clearDeepLink == null,
-      );
-      // A16: precondition as expect — if fixture changes, test fails loudly.
-      expect(
-        anyNullLink,
-        isTrue,
-        reason:
-            'safetyFixtureRow(2) must have at least one blocking flag without '
-            'a clearDeepLink so that the «no arrow» rule is observable.',
-      );
+    final bool anyNullLink = blockingFlags.any(
+      (BlockFlag f) => f.clearDeepLink == null,
+    );
+    // A16: precondition as expect — if fixture changes, test fails loudly.
+    expect(
+      anyNullLink,
+      isTrue,
+      reason:
+          'safetyFixtureRow(2) must have at least one blocking flag without '
+          'a clearDeepLink so that the «no arrow» rule is observable.',
+    );
 
-      await _pump(
-        tester,
-        result: journal30,
-        safety: reduced,
-        query: JournalTimelineQuery(range: defaultPreset),
-        rangePresets: rangePresets4,
-      );
+    await _pump(
+      tester,
+      result: journal30,
+      safety: reduced,
+      query: JournalTimelineQuery(range: defaultPreset),
+      rangePresets: rangePresets4,
+    );
 
-      // The flag label must be visible.
-      final BlockFlag nullLinkFlag = blockingFlags.firstWhere(
-        (BlockFlag f) => f.clearDeepLink == null,
-      );
-      expect(find.text(nullLinkFlag.label), findsOneWidget);
+    // The flag label must be visible.
+    final BlockFlag nullLinkFlag = blockingFlags.firstWhere(
+      (BlockFlag f) => f.clearDeepLink == null,
+    );
+    expect(find.text(nullLinkFlag.label), findsOneWidget);
 
-      // No arrow icon because clearDeepLink is null.
-      expect(find.byIcon(Icons.arrow_forward_ios), findsNothing);
-    },
-  );
+    // No arrow icon because clearDeepLink is null.
+    expect(find.byIcon(Icons.arrow_forward_ios), findsNothing);
+  });
 
   // ─── ⑦b BlockFlag with clearDeepLink shows arrow; tap opens link (A16) ───
 

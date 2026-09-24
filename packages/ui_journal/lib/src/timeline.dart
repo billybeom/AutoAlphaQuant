@@ -826,4 +826,3 @@ class _EmptyState extends StatelessWidget {
     return label == null ? const SizedBox.shrink() : Center(child: Text(label));
   }
 }
-

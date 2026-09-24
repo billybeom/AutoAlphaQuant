@@ -156,8 +156,9 @@ class JournalMarkerChips extends StatelessWidget {
             .map(
               (BlockFlag f) => Chip(
                 label: Text(f.label),
-                backgroundColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                backgroundColor: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest,
               ),
             )
             .toList(growable: false),
