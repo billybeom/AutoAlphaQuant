@@ -11,3 +11,4 @@
 
 export 'l10n/labels.dart';
 export 'src/timeline.dart';
+export 'src/unknown_board.dart';
