@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ⬜ 첫 화면 PR 대기)
+# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ✅ `J-1` 16장(R1b 병합 PR #7) · 🆕 `J-2`·`J-3`·`J-5` 는 R2 PR 에서 최초 생성)
 
 정본: 01_M2_도메인계약 **§7**(C-1·C-2 + 골든 규칙) · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 
@@ -20,14 +20,14 @@
 - 플랫폼·폰트 차이로 스냅샷이 흔들리면 **임계 조정은 M2가 한다**. 스스로 임계를 풀지 않는다.
 - 대표 화면 9개가 C-2의 대상이다(01 §7). 어느 9개인지는 화면 명세 확정과 함께 정한다.
 
-## 하네스 (M2 제공 · 2026-09-17 · C4 R1-Bob-J1 질문 Q1 의 답 · 비교기 2판 = 이동·AA 허용)
+## 하네스 (M2 제공 · 2026-09-17 · C4 R1-Bob-J1 질문 Q1 의 답 · 비교기 3판 = 이동·AA 허용 · infra PR #3)
 
 화면 담당이 만드는 것은 **골든 테스트 파일과 PNG** 뿐이다. 나머지는 이미 있다.
 
 | 파일 | 누가 | 무엇 |
 |---|---|---|
 | `test/flutter_test_config.dart` | 🔴 M2 | `flutter test` 가 자동으로 먼저 부른다. 골든 비교기를 **이동·AA 허용 비교기(3판)** 로 바꾼다 — 두 그림을 3×3 으로 살짝 흐린 뒤 **양방향**으로 «이웃 3×3 어디에도 비슷한 색이 없는 유의 픽셀»을 세고, **가장 빽빽한 24×24 창의 밀도 12% 이하(주 판정) 그리고 전체 0.5% 이하(보조)** 면 통과(`golden/shift_tolerant_compare.dart` · 자체 검증 `golden/comparator_test.dart` 11건). 🔵 2026-09-17 실측(리눅스 CI vs Windows 골든 14장): 플랫폼 소음은 전체 ≤0.18%·창 ≤5.6% 로 **얇게 흩어지고**, 구조 변화는 18px 아이콘 1개 누락도 창 27% 로 **뭉친다**(칩 47% · 글자 줄 83% · 배너 96%). 화면 담당은 고치지 않는다 |
-| `test/golden/golden_support.dart` | 🔴 M2 | 픽스처 로더(`journalFixture`·`journalSlice`·`safetyFixtureRow`) · 고정 시계 `FixedClock`·`kGoldenNowUtc` · 폰 크기 `kGoldenPhoneSize`(390×844) · `pumpForGolden`(light/dark 테마) · `expectGolden(name, brightness)` |
+| `test/golden/golden_support.dart` | 🔴 M2 | 픽스처 로더(`journalFixture`·`journalSlice`·`safetyFixtureRow` · v1.1 `listFixture`·`singleFixture`·`fixtureEnvelope`) · 고정 시계 `FixedClock`·`kGoldenNowUtc` · 폰 크기 `kGoldenPhoneSize`(390×844) · `pumpForGolden`(light/dark 테마 · 선택 인자 `logicalSize:`·`wrapApp:`) · `expectGolden(name, brightness)` |
 | `test/golden/<화면id>_golden_test.dart` | 화면 담당 | 아래 예시대로. 파일명은 `j1_golden_test.dart` 처럼 화면 ID 소문자 |
 | `test/golden/goldens/<name>_<light\|dark>.png` | 화면 담당(최초 1회) | `expectGolden` 이 만드는 경로. `.gitignore` 의 `!**/test/golden/**` 로 **커밋 대상**이다 |
 
@@ -38,18 +38,24 @@
    `blocked` = 전량 + 3행(HALTED · `RECON_MISMATCH`+`JOURNAL_MISSING`) ·
    `empty` = `m6/journal_empty.json` + 0행 ·
    `prevented` = `journal_30.json` 에서 `status == prevented` 행만 + 0행.
-2. 최초 베이스라인 **한 번만**: 패키지 루트(`packages/ui_journal`)에서
+2. 최초 베이스라인 **한 번만**: 패키지 루트(`packages/ui_journal`)에서 **새 테스트 파일을 지정해**
    ```
-   flutter test --update-goldens test/golden
+   flutter test --update-goldens test/golden/j1_golden_test.dart
    ```
-   → `test/golden/goldens/j1_normal_light.png` … 8장이 생긴다. 열어서 눈으로 확인한다.
+   → `test/golden/goldens/j1_normal_light.png` … 이 생긴다. 열어서 눈으로 확인한다.
+   🔴 ~~`flutter test --update-goldens test/golden`~~(폴더 지정) **금지** — 폴더를 주면 이미 있는 다른 화면의 PNG 까지
+   다시 찍힌다(= 기존 골든 재생성 = 위조 · CI 골든 잡이 `M` 으로 막는다). 아래 «🆕 R2» 절 참조.
 3. 그 뒤로는 `flutter test`(또는 `melos.bat run test`)가 **비교만** 한다. 실패하면 `test/golden/failures/` 에 diff 이미지가 남는다 — 스냅샷을 다시 찍기 전에 **무엇이 바뀌었는지** 본다. 픽스처가 그대로인데 다시 찍으면 위조다.
-4. PR 에는 테스트 파일 + PNG 8장을 **추가(A)** 로 넣는다. CI 골든 잡은 «추가만 있음»을 통과시킨다.
+4. PR 에는 테스트 파일 + 새 PNG(이름마다 light/dark 두 장)를 **추가(A)** 로 넣는다. CI 골든 잡은 «추가만 있음»을 통과시킨다.
 
 ### 뼈대 — `j1_golden_test.dart` (화면 담당이 채운다)
 
+> 🔵 이 뼈대는 R1(2026-09-17) 시점의 모양이다. 실물은 병합된 `j1_golden_test.dart`(R1b) 이고, 새 화면 테스트는
+> 아래 «🆕 계약 v1.1» 절(가짜는 받침대를 `extends`)과 «🆕 R2» 절을 따른다 — 뼈대의 가짜 두 줄도 그 규칙대로 적었다.
+
 ```dart
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -58,8 +64,8 @@ import 'package:ui_journal/ui_journal.dart';
 import 'golden_support.dart';
 
 // 픽스처를 그대로 흘려 주는 최소 구현체(테스트 전용). 값을 만들지 않는다.
-class _FakeJournalRepository implements JournalRepository { /* Stream.value(result) … */ }
-class _FakeSafetyRepository implements SafetyRepository { /* Stream.value(state) … */ }
+class _FakeJournalRepository extends UnimplementedJournalRepository { /* @override watchTimeline(…) => Stream.value(result) */ }
+class _FakeSafetyRepository extends UnimplementedSafetyRepository { /* @override watchState() => Stream.value(state) */ }
 
 void main() {
   final ListResult<TradeJournalEntry> all = journalFixture(FixturePaths.journal30);
@@ -117,7 +123,10 @@ void main() {
    `class _FakeX extends UnimplementedXRepository { @override …필요한 메서드만… }`.
    `implements XRepository` 로 통째 구현하면 M2 가 창구를 하나 더할 때마다 테스트가 컴파일에서 깨진다
    (v1.1 에서 실제로 일어났다). 받침대: `UnimplementedJournalRepository` · `UnimplementedPerformanceRepository` ·
-   `UnimplementedConfigRepository`. 없는 것이 필요하면 **질문 표에 적는다**(M2 가 더한다).
+   `UnimplementedConfigRepository` · 🆕 `UnimplementedSafetyRepository` · `UnimplementedCommandApi`(2026-09-23 · R2 준비 —
+   `CommandApi` 13종 전부 · override 하지 않은 명령을 부르면 곧바로 던진다 — 탭·제출 핸들러에서 부른 것은 테스트가 실패하고,
+   프로바이더 안에서 부른 것은 에러 상태로 삼켜질 수 있으니 «에러 상태 없음(정상 본문이 보임)»을 함께 확인한다).
+   없는 것이 필요하면 **질문 표에 적는다**(M2 가 더한다). 🔵 이미 병합된 J-1 테스트의 `implements SafetyRepository` 는 그대로 둔다.
 2. **링크는 기록기로 확인한다** — 화면은 DTO 가 준 링크를 `AppLinkOpener.open(link)` 에 **그대로** 넘긴다(01 §4-4).
    테스트는 `RecordingLinkOpener`(같은 `testing.dart`)를 주입하고
    `expect(opener.opened, <String>[entry.detailDeepLink!])` 처럼 **픽스처에서 읽은 값**과 비교한다.
@@ -126,7 +135,7 @@ void main() {
    가림도 그 문자열 안에 이미 들어 있다(`m6/journal_masked_integrity.json` · `m7/m7_monthly_masked_*.json`).
    화면이 차단 플래그를 보고 값을 감추거나 바꾸는 코드는 v1.1 부터 **반려**다(배너만 얹는다).
 
-### `J-1` R1b · `J-2` · `J-3` · `J-5` 의 입력 픽스처(v1.1)
+### `J-1` R1b · `J-2` · `J-3` · `J-5` 의 입력 픽스처(v1.1 · 🆕 R2 준비 2026-09-23)
 
 | 화면·상태 | 픽스처(`FixturePaths.*`) | 타입 |
 |---|---|---|
@@ -135,7 +144,9 @@ void main() {
 | `J-1` 무결성 가림 | `m6JournalMaskedIntegrity` + `safetyStates` 4행 | `TradeJournalEntry` |
 | `J-2` 6갈래 | `m6DecisionDetailFull`·`Partial`·`RejectedSaf309`·`Unknown`·`ReevaluatedChild`·`Amended` | `DecisionDetailVm` |
 | `J-3` 2갈래 | `m6JournalDraftSpecDiscretion`·`m6JournalDraftSpecReconClear` | `JournalDraftFormSpec` |
+| 🆕 `J-3` 제출 결과 5상태 | `m6JournalDraftReceipts5` — `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY`. 한 명령(같은 `command_id`)의 갈래라 `state` 로 골라 쓴다. 🔴 문구(거부 사유 포함)는 `stateLabel` 하나 — `rejectReasonCode` 는 표시·분기하지 않는다 | `CommandReceipt` |
 | `J-5` 2갈래 | `m6UnknownBoard2`·`m6UnknownBoardEmpty` | `UnknownBoardVm` |
+| `J-2`·`J-3`·`J-5` 안전 상태 | `safetyStates` 0행(NORMAL · 골든 기본) · 3행(HALTED · 차단 배너 — 위젯 테스트로 증명) | `SafetyState` |
 
 읽는 법(v1.1 에서 `golden_support.dart` 에 추가된 범용 도우미 — ui_analytics 와 같은 이름):
 `singleFixture(FixturePaths.m6DecisionDetailFull, DecisionDetailVm.fromJson)`(1행 픽스처) ·
@@ -163,3 +174,36 @@ await expectGolden('j1_filter_open', b);
 단위 테스트도 같다 — `ProviderScope` 를 `MaterialApp` **위에** 두면 시트 안의 위젯이 같은 주입을 본다.
 시트 안의 목록은 지연 생성이라 화면 밖 선택지는 위젯 트리에 없다 → `tester.scrollUntilVisible(finder, 120, scrollable: find.byType(Scrollable).last)` 로 내린 뒤 탭한다.
 🔴 「필터를 고르면 그 값이 리포지토리 인자로 간다」는 **UI 를 실제로 조작해서** 확인한다 — 테스트가 쿼리를 직접 주입하면 아무것도 검증하지 않는다.
+
+## 🆕 R2 — 새 화면 베이스라인을 찍는 규칙 (2026-09-23 · `J-2`·`J-3`·`J-5`)
+
+1. **베이스라인은 새 테스트 파일만 지정해서 찍는다** — 폴더를 주지 않는다. 패키지 루트(`packages/ui_journal`)에서:
+   ```
+   flutter test --update-goldens test/golden/j2_golden_test.dart test/golden/j3_golden_test.dart test/golden/j5_golden_test.dart
+   ```
+   🔴 ~~`flutter test --update-goldens test/golden`~~ 은 `j1_*` 16장까지 다시 찍는다 = **기존 골든 재생성 = 위조**(CI 골든 잡이 `M` 으로 막는다).
+   찍은 뒤 `git status` 에서 `goldens/` 의 **새 PNG 만 `??`(추적 안 됨 · 커밋 뒤 PR 에서는 `A`)** 인지 본다. `j1_*` 에 `M` 이 보이면 커밋하지 않는다.
+2. **세로가 긴 화면**(`J-2` 체인·표·체결 행 · `J-3` 폼 · `J-5` 카드 2장)은 한 화면(390×844)에 다 들어가지 않는다 →
+   **테스트 파일 안** 상수로 높이만 늘려 `logicalSize:` 로 넘긴다. 폭 390 은 그대로 둔다(넘침 검사가 골든의 목적이다).
+   ```dart
+   const Size _kTallPhone = Size(390, 1600);   // 테스트 파일 안 — 하네스(golden_support.dart)에 상수를 더하지 않는다
+   await pumpForGolden(tester, child, brightness: b, logicalSize: _kTallPhone, wrapApp: …);
+   ```
+   🔴 `kGoldenPhoneSize` 는 M2 만 바꾼다(바꾸면 전 골든이 깨진다). 1600 으로 모자라면 값을 올리고 그 사실을 질문 파일에 적는다.
+3. **`J-3` 제출 결과는 접수증 픽스처에서 고른다** — 테스트가 `CommandReceipt(...)`·한국어 `stateLabel` 을 짓지 않는다.
+   ```dart
+   final List<CommandReceipt> receipts =
+       listFixture(FixturePaths.m6JournalDraftReceipts5, CommandReceipt.fromJson).rows;
+   CommandReceipt receiptIn(CommandState s) =>
+       receipts.firstWhere((CommandReceipt r) => r.state == s);
+
+   class _FakeCommandApi extends UnimplementedCommandApi {   // 나머지 11종은 부르면 던진다
+     @override
+     Future<CommandReceipt> submitJournalDraft(JournalDraft draft) async => …;   // 예: receiptIn(CommandState.requested)
+     @override
+     Stream<CommandReceipt> watchCommand(String commandId) => …;                // 예: Stream.value(receiptIn(CommandState.rejected))
+   }
+   ```
+   🔴 제출은 **UI 를 실제로 조작해서** 한다(입력 → 인용 규칙 선택 → 제출 버튼 탭). 가짜가 받은 `JournalDraft` 를 기록해 입력값과 대조한다.
+4. **시계·안전 상태** — `FixedClock(kGoldenNowUtc)` · `safetyFixtureRow(0)`(NORMAL). `J-2`·`J-3`·`J-5` 픽스처 10건과 접수증 픽스처는 전부 그 시각에 신선하다(VM **최상위** `asOf` 기준 — `J-2` 의 `entry.asOf` 는 체결 당시라 이미 오래됐다 · 머리·신선도에 쓰지 않는다).
+   «오래된 데이터» 배너는 골든이 아니라 위젯 테스트에서 `FixedClock(kGoldenNowUtc.add(const Duration(days: 2)))` 로 켠다(테스트 파일 안 로컬 값).

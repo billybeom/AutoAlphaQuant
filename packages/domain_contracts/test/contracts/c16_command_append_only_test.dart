@@ -8,6 +8,7 @@
 //    ① 표면에 갱신·삭제 이름이 없고 ② 상태기계에 되살아나는 화살표가 없으며
 //    ③ 정정은 갱신이 아니라 **새 행**(REVERSAL+RESTATEMENT)이다.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:domain_contracts/domain_contracts.dart';
@@ -146,6 +147,135 @@ void main() {
       );
     });
 
+    test('C-16 J-3 사전 저널 접수증 — 5상태 · 거부 사유는 journal_draft_reject 사전', () {
+      // 🆕 v1.1 R2 준비(2026-09-23) — `m6/journal_draft_receipts_5.json`.
+      //    C-5 는 `reject_reason_code` 를 전역으로 조회한다(X7·J-3 두 사전) — 그래서
+      //    «어느 사전인가»는 여기서 픽스처 단위로 대조한다(X7 은 위 검사의 advice_reject).
+      final List<CommandReceipt> receipts = decodeEnvelope(
+        readFixture(FixturePaths.m6JournalDraftReceipts5),
+      ).rows.map(CommandReceipt.fromJson).toList();
+      expect(receipts, hasLength(5));
+      expect(
+        receipts.map((CommandReceipt r) => r.state).toSet(),
+        <CommandState>{
+          CommandState.requested,
+          CommandState.executed,
+          CommandState.rejected,
+          CommandState.expired,
+          CommandState.heldForIntegrity,
+        },
+        reason: '요청·집행·거부·만료·무결성 보류 — J-3 제출 뒤 화면이 받는 5갈래(02 §3-3).',
+      );
+      for (final CommandReceipt r in receipts) {
+        expect(
+          r.kind,
+          CommandKind.journalDraft,
+          reason: '${r.state} — J-3 접수증이다.',
+        );
+        expect(
+          r.stateLabel,
+          isNotEmpty,
+          reason:
+              '${r.state} — 표시 문구(거부 사유 포함)의 유일한 출처는 '
+              'stateLabel 이다(§1-5).',
+        );
+        if (CommandStateMachine.requiresRejectReasonCode(r.state)) {
+          expect(
+            r.rejectReasonCode,
+            isNotNull,
+            reason: '§5-2 — rejected 는 rejectReasonCode 필수다.',
+          );
+          expect(
+            ContractCodes.isRegisteredIn(
+              'journal_draft_reject',
+              r.rejectReasonCode!,
+            ),
+            isTrue,
+            reason:
+                'J-3 거부 사유는 X7 사전(advice_reject)이 아니라 '
+                'journal_draft_reject 에 있다.',
+          );
+        } else {
+          expect(
+            r.rejectReasonCode,
+            isNull,
+            reason: '${r.state} — 사유 코드는 rejected 행에만 실린다(§5-2).',
+          );
+        }
+        expect(
+          r.expiresAt.isAfter(r.requestedAt),
+          isTrue,
+          reason: '${r.state} — 만료 시각은 요청 시각 뒤다(TTL).',
+        );
+      }
+      expect(
+        receipts
+            .map(
+              (CommandReceipt r) => (r.commandId, r.nonce, r.issuedByDeviceId),
+            )
+            .toSet(),
+        hasLength(1),
+        reason:
+            '5행은 한 명령(같은 command_id·nonce·기기)의 갈래다 — 테스트가 state 로 '
+            '골라 쓰는 전제(fixtures/README · FixturePaths 주석).',
+      );
+    });
+
+    test('C-16 거부 사유 코드의 사전은 명령 종류(kind)가 정한다 — 전 픽스처', () {
+      // 🆕 v1.1 R2 준비(2026-09-23) — C-5 는 `reject_reason_code` 를 **전역**으로 조회한다
+      //    (X7·J-3 두 사전이 같은 JSON 키). 그래서 «어느 사전인가»를 픽스처 이름 목록이 아니라
+      //    **규칙**으로 여기서 고정한다 — 새 거부 픽스처가 들어와도 이 검사가 사전을 가린다.
+      const Map<CommandKind, String> domainByKind = <CommandKind, String>{
+        CommandKind.journalDraft: 'journal_draft_reject',
+        CommandKind.manualFillRecord: 'advice_reject',
+        CommandKind.manualFillAmend: 'advice_reject',
+        CommandKind.manualFillVoid: 'advice_reject',
+        CommandKind.adviceSkip: 'advice_reject',
+        CommandKind.selfReportBalance: 'advice_reject',
+        CommandKind.alertAck: 'advice_reject',
+        CommandKind.killChecklistConfirm: 'advice_reject',
+      };
+      final Set<String> seen = <String>{};
+      for (final String path in FixturePaths.all) {
+        _visitMaps(jsonDecode(readFixture(path)), (Map<String, Object?> m) {
+          final Object? code = m['reject_reason_code'];
+          if (code == null) {
+            return;
+          }
+          seen.add(path);
+          final Object? wire = m['kind'];
+          CommandKind? kind;
+          for (final CommandKind k in CommandKind.values) {
+            if (k.wire == wire) {
+              kind = k;
+            }
+          }
+          final String? domain = domainByKind[kind];
+          expect(
+            domain,
+            isNotNull,
+            reason:
+                '$path — kind=$wire 행에 reject_reason_code 가 있는데 그 명령의 거부 '
+                '사유 사전이 정해져 있지 않다. 01 §3 에 사전을 먼저 두고 이 표를 넓힌다.',
+          );
+          expect(code, isA<String>(), reason: '$path — 사유 코드는 문자열이다.');
+          expect(
+            ContractCodes.isRegisteredIn(domain!, code as String),
+            isTrue,
+            reason: '$path — $code 는 $wire 의 사전($domain)에 없다.',
+          );
+        });
+      }
+      expect(
+        seen,
+        containsAll(<String>[
+          FixturePaths.m6FillRejectedPrice,
+          FixturePaths.m6JournalDraftReceipts5,
+        ]),
+        reason: '거부 접수증 픽스처를 못 읽었다 — 이 검사가 아무것도 보지 않고 통과하면 안 된다.',
+      );
+    });
+
     test('C-16 정정은 갱신이 아니라 새 행이다(FillKind 3값)', () {
       expect(
         FillKind.values.map((FillKind k) => k.wire).toSet(),
@@ -164,6 +294,20 @@ void main() {
           '없다»까지를 고정하고, SQL 문자열 검사는 구현이 들어오는 PR 에서 채운다.',
     );
   });
+}
+
+/// JSON 트리의 모든 맵(행·중첩 객체)을 [visit] 에 넘긴다.
+void _visitMaps(Object? node, void Function(Map<String, Object?> m) visit) {
+  if (node is Map<String, Object?>) {
+    visit(node);
+    for (final Object? v in node.values) {
+      _visitMaps(v, visit);
+    }
+  } else if (node is List<Object?>) {
+    for (final Object? v in node) {
+      _visitMaps(v, visit);
+    }
+  }
 }
 
 String _interfaceBody(String path, String name) {

@@ -69,6 +69,12 @@ abstract final class FixturePaths {
 
   // 🆕 v1.1 — `J-1` 배지·필터 · `J-3` 폼 스펙 · 가림(LEDGER_INTEGRITY) 일지.
   static const String m6JournalBadges2 = 'm6/journal_badges_2.json';
+
+  /// 🆕 v1.1 R2 준비(2026-09-23) — `J-3` 제출 결과(`CommandReceipt` · `JOURNAL_DRAFT`) 5상태:
+  ///    REQUESTED·EXECUTED·REJECTED·EXPIRED·HELD_FOR_INTEGRITY. 한 명령(같은 `command_id`)의
+  ///    갈래이며 테스트는 `state` 로 골라 쓴다. 🔴 사유까지 실린 문구는 `state_label` 하나다.
+  static const String m6JournalDraftReceipts5 =
+      'm6/journal_draft_receipts_5.json';
   static const String m6JournalDraftSpecDiscretion =
       'm6/journal_draft_spec_discretion.json';
   static const String m6JournalDraftSpecReconClear =
@@ -191,6 +197,7 @@ abstract final class FixturePaths {
     m6FillRejectedPrice,
     m6JournalEmpty,
     m6JournalBadges2,
+    m6JournalDraftReceipts5,
     m6JournalDraftSpecDiscretion,
     m6JournalDraftSpecReconClear,
     m6JournalFilterCatalog,

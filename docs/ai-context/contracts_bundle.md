@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 81개 · 계약 v1.1.0 · 조립일 2026-09-17(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 81개 · 계약 v1.1.0 · 조립일 2026-09-23(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -5958,6 +5958,12 @@ abstract final class FixturePaths {
 
   // 🆕 v1.1 — `J-1` 배지·필터 · `J-3` 폼 스펙 · 가림(LEDGER_INTEGRITY) 일지.
   static const String m6JournalBadges2 = 'm6/journal_badges_2.json';
+
+  /// 🆕 v1.1 R2 준비(2026-09-23) — `J-3` 제출 결과(`CommandReceipt` · `JOURNAL_DRAFT`) 5상태:
+  ///    REQUESTED·EXECUTED·REJECTED·EXPIRED·HELD_FOR_INTEGRITY. 한 명령(같은 `command_id`)의
+  ///    갈래이며 테스트는 `state` 로 골라 쓴다. 🔴 사유까지 실린 문구는 `state_label` 하나다.
+  static const String m6JournalDraftReceipts5 =
+      'm6/journal_draft_receipts_5.json';
   static const String m6JournalDraftSpecDiscretion =
       'm6/journal_draft_spec_discretion.json';
   static const String m6JournalDraftSpecReconClear =
@@ -6080,6 +6086,7 @@ abstract final class FixturePaths {
     m6FillRejectedPrice,
     m6JournalEmpty,
     m6JournalBadges2,
+    m6JournalDraftReceipts5,
     m6JournalDraftSpecDiscretion,
     m6JournalDraftSpecReconClear,
     m6JournalFilterCatalog,
@@ -6730,6 +6737,7 @@ abstract final class SafetyHoldCodes {
 
 ```dart
 // 🆕 계약 v1.1(2026-09-17) — 매매일지 상세(J-2)·UNKNOWN 보드(J-5)·타임라인 배지(J-1)의 코드 상수.
+// 🆕 계약 v1.1 R2 준비(2026-09-23) — 사전 저널(J-3) 제출의 거부 사유 코드.
 //
 // 🔴 이 파일은 «어떤 **코드**가 오는가»의 목록이지 코드→문구 매핑이 아니다(labels.dart 머리 주석).
 //    문구는 짝이 되는 `*Label` 필드가 준다 — 화면이 이 상수로 문구·아이콘·색을 고르지 않는다.
@@ -6812,6 +6820,23 @@ abstract final class JournalBadgeCodes {
   static const String blindReviewPending = 'BLIND_REVIEW_PENDING';
 
   static const Set<String> values = <String>{unknownOpen, blindReviewPending};
+}
+
+/// 🆕 계약 v1.1 R2 준비(2026-09-23) — `J-3` 사전 저널 제출(`CommandKind.journalDraft`)의
+/// 거부 사유. `CommandReceipt.rejectReasonCode` 의 값이다(`state == rejected` 일 때).
+///
+/// 🔴 사유의 **문구**는 `CommandReceipt.stateLabel` 에 실려 온다(advice_codes.dart 머리와 같은
+///    규칙) — 화면은 이 코드로 문구를 고르지 않고, 코드를 표시하지도 않는다.
+/// 🔴 거부는 초안을 지우지 않는다(C17) — 화면은 값을 채운 채 `stateLabel` 과 재제출 버튼을 보인다.
+/// 🔴 X7 명령의 거부 사유(`AdviceRejectCodes`)와 **다른 도메인**이다 — 섞어 조회하지 않는다
+///    (`ContractCodes.byDomain` 키 `journal_draft_reject`).
+/// ⏸ 픽스처가 쓰는 1종에서 시작한다. 엔진(M1)이 새 사유를 내면 **여기와 픽스처를 함께** 넓힌다.
+abstract final class JournalDraftRejectCodes {
+  /// 이 결정(`decisionId`)의 사전 저널이 이미 접수돼 있다 — 같은 결정에 두 번째 사전 저널.
+  static const String journalAlreadyExists = 'JOURNAL_ALREADY_EXISTS';
+
+  /// 전량(⏸ 1종).
+  static const Set<String> values = <String>{journalAlreadyExists};
 }
 ```
 
@@ -6997,6 +7022,9 @@ abstract final class ContractCodes {
     'safety_check_level': SafetyCheckLevelCodes.values,
     'unknown_resolution_stage': UnknownResolutionStageCodes.values,
     'journal_badge': JournalBadgeCodes.values,
+    // 🆕 v1.1 R2 준비(2026-09-23) — J-3 사전 저널 제출의 거부 사유
+    //    (`CommandReceipt.rejectReasonCode` — X7 의 `advice_reject` 와 다른 축)
+    'journal_draft_reject': JournalDraftRejectCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

@@ -35,10 +35,12 @@
    `s71_partial_gap` = `m7/m7_monthly_gap.json` ·
    `s71_not_generated` = `m7/m7_monthly_pending.json`(`empty_kind: NOT_LOADED` · 🔵 v1.1 — D-day 문장은 행의 `MonthlyReport.pendingNoticeText` 로 온다. 구 봉투 키 `pending_d_day_text` 는 폐기 — 값을 화면이 만들지 않는다) ·
    헤더 신뢰 등급 = `m7/ledger_trust_4.json`(4행 `LedgerTrustBadge` — 골든에는 0행 `RECONCILED` 사용).
-2. 최초 베이스라인 **한 번만**: 패키지 루트(`packages/ui_analytics`)에서
+2. 최초 베이스라인 **한 번만**: 패키지 루트(`packages/ui_analytics`)에서 **새 테스트 파일을 지정해**
    ```
-   flutter test --update-goldens test/golden
+   flutter test --update-goldens test/golden/s71_golden_test.dart
    ```
+   🔴 ~~`flutter test --update-goldens test/golden`~~(폴더 지정) **금지**(2026-09-23) — 폴더를 주면 이미 있는 다른 화면의 PNG
+   (`s71_*`·`s73_*`)까지 다시 찍힌다 = 기존 골든 재생성 = 위조(CI 골든 잡이 `M` 으로 막는다). 새 PNG 만 `??`(추적 안 됨)인지 본다.
    → `test/golden/goldens/s71_normal_light.png` … 6장. 열어서 눈으로 확인한다.
 3. 그 뒤로는 `flutter test` 가 **비교만** 한다. 실패하면 `test/golden/failures/` 의 diff 를 본다 — 픽스처가 그대로인데 다시 찍으면 위조다.
 4. PR 에는 테스트 파일 + PNG 6장을 **추가(A)** 로 넣는다.
@@ -117,7 +119,8 @@ final DateRange range = DateRange(from: TradeDate('2026-08-01'), to: TradeDate('
    `class _FakeX extends UnimplementedXRepository { @override …필요한 메서드만… }`.
    `implements XRepository` 로 통째 구현하면 M2 가 창구를 하나 더할 때마다 테스트가 컴파일에서 깨진다
    (v1.1 에서 실제로 일어났다). 받침대: `UnimplementedJournalRepository` · `UnimplementedPerformanceRepository` ·
-   `UnimplementedConfigRepository`. 없는 것이 필요하면 **질문 표에 적는다**(M2 가 더한다).
+   `UnimplementedConfigRepository` · 🆕 `UnimplementedSafetyRepository` · `UnimplementedCommandApi`(2026-09-23 · R2 준비 —
+   안전 상태 가짜도 `implements SafetyRepository` 가 아니라 이것을 `extends`). 없는 것이 필요하면 **질문 표에 적는다**(M2 가 더한다).
 2. **링크는 기록기로 확인한다** — 화면은 DTO 가 준 링크를 `AppLinkOpener.open(link)` 에 **그대로** 넘긴다(01 §4-4).
    테스트는 `RecordingLinkOpener`(같은 `testing.dart`)를 주입하고
    `expect(opener.opened, <String>[entry.detailDeepLink!])` 처럼 **픽스처에서 읽은 값**과 비교한다.
