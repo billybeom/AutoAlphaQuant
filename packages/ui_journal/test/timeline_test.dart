@@ -51,6 +51,9 @@ class _FakeJournalRepository extends UnimplementedJournalRepository {
       'symbol': symbol,
       'status': status,
       'origin': origin,
+      'rebalanceEventId': rebalanceEventId,
+      'mode': mode,
+      'limit': limit,
     });
     if (timelineResult != null) {
       return Stream<ListResult<TradeJournalEntry>>.value(timelineResult!);
@@ -185,6 +188,15 @@ void main() {
     FixturePaths.m6JournalFilterCatalog,
     JournalFilterCatalog.fromJson,
   );
+
+  // A14~A17 prep vars — defined after filterCatalog (compile order dependency).
+  final DateRange nonDefaultPreset = rangePresets4.firstWhere(
+    (DateRange r) => !r.isDefault,
+  );
+  final String reId = journal30.rows
+      .firstWhere((TradeJournalEntry e) => e.rebalanceEventId != null)
+      .rebalanceEventId!;
+  final FillOriginOption originPick = filterCatalog.originOptions.first;
 
   // ─── ① *Text displayed; raw values absent ────────────────────────────────
 
@@ -339,11 +351,12 @@ void main() {
   );
 
   // ─── ③a Reset → status/sleeve/symbol/origin null + range = default ───────
+  // A15: start from a non-default range so that «revert to default» is observable.
 
   testWidgets(
     '③a filter reset → watchTimeline gets null filters and default range',
     (WidgetTester tester) async {
-      // Start with a status filter pre-selected.
+      // Start with a status filter and a non-default range pre-selected (A15).
       final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
         (JournalStatusOption o) => o.status == JournalStatus.reversed,
       );
@@ -353,9 +366,15 @@ void main() {
         safety: _normalSafety(),
         rangePresets: rangePresets4,
         filterCatalog: filterCatalog,
-        query: JournalTimelineQuery(range: defaultPreset, status: pick.status),
+        query: JournalTimelineQuery(
+          range: nonDefaultPreset,
+          status: pick.status,
+        ),
       );
       await tester.pumpAndSettle();
+
+      // A15: precondition — initial call used non-default range.
+      expect(fakeJournal.calls.first['range'], equals(nonDefaultPreset));
 
       // Open filter sheet.
       await tester.tap(find.text(JournalLabels.filter));
@@ -387,62 +406,199 @@ void main() {
     },
   );
 
-  // ─── ③b Active chip ✕ tap → that filter cleared ─────────────────────────
+  // ─── ③b Active chip ✕ tap → that filter cleared; other filters preserved ─
+  // A15: tapping ✕ on the status chip must clear only status — range, origin,
+  // and rebalanceEventId must survive unchanged.
 
-  testWidgets('③b active status chip ✕ removes status from query', (
-    WidgetTester tester,
-  ) async {
-    final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
-      (JournalStatusOption o) => o.status == JournalStatus.reversed,
-    );
+  testWidgets(
+    '③b active status chip ✕ removes status; range/origin/rebalanceEventId kept',
+    (WidgetTester tester) async {
+      final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
+        (JournalStatusOption o) => o.status == JournalStatus.reversed,
+      );
 
-    final _FakeJournalRepository fakeJournal = await _pump(
-      tester,
-      result: journal30,
-      safety: _normalSafety(),
-      rangePresets: rangePresets4,
-      filterCatalog: filterCatalog,
-      query: JournalTimelineQuery(range: defaultPreset, status: pick.status),
-    );
-    await tester.pumpAndSettle();
+      final _FakeJournalRepository fakeJournal = await _pump(
+        tester,
+        result: journal30,
+        safety: _normalSafety(),
+        rangePresets: rangePresets4,
+        filterCatalog: filterCatalog,
+        query: JournalTimelineQuery(
+          range: nonDefaultPreset,
+          status: pick.status,
+          origin: originPick.origin,
+          rebalanceEventId: reId,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    // The active status chip must be visible.
-    expect(find.text(pick.label), findsWidgets);
+      // The active status chip must be visible.
+      expect(find.text(pick.label), findsWidgets);
 
-    // Tap the delete icon on the chip.
-    await tester.tap(find.byIcon(Icons.close).first);
-    await tester.pumpAndSettle();
+      // Tap the ✕ on the status chip — find.descendant ensures we get the ✕
+      // that lives inside the chip labelled pick.label (not some other ✕).
+      final Finder chipFinder = find.widgetWithText(Chip, pick.label);
+      final Finder closeInsideChip = find.descendant(
+        of: chipFinder,
+        matching: find.byIcon(Icons.close),
+      );
+      expect(closeInsideChip, findsOneWidget);
+      await tester.ensureVisible(closeInsideChip);
+      await tester.tap(closeInsideChip);
+      await tester.pumpAndSettle();
 
-    // Status is now null in the last watchTimeline call.
-    expect(fakeJournal.calls.last['status'], isNull);
-  });
+      // A15: status cleared; the other three preserved.
+      expect(fakeJournal.calls.last['status'], isNull);
+      expect(fakeJournal.calls.last['range'], equals(nonDefaultPreset));
+      expect(fakeJournal.calls.last['origin'], equals(originPick.origin));
+      expect(fakeJournal.calls.last['rebalanceEventId'], equals(reId));
+    },
+  );
 
   // ─── ③c Wire text never shown when catalog absent ─────────────────────────
   //
   // G2: if catalog is not loaded, active status/sleeve chips must NOT be
   // displayed — internal wire strings must not appear in the UI.
 
-  testWidgets('③c no catalog → wire string absent from screen', (
-    WidgetTester tester,
-  ) async {
-    final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
-      (JournalStatusOption o) => o.status == JournalStatus.filled,
-    );
+  testWidgets(
+    '③c no catalog → status/sleeve/origin wire strings absent from screen',
+    (WidgetTester tester) async {
+      final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
+        (JournalStatusOption o) => o.status == JournalStatus.filled,
+      );
 
-    // Pump with a status filter but NO filter catalog (Stream.empty).
-    await _pump(
-      tester,
-      result: journal30,
-      safety: _normalSafety(),
-      rangePresets: rangePresets4,
-      // No filterCatalog supplied → _journalFilterCatalogProvider emits nothing.
-      query: JournalTimelineQuery(range: defaultPreset, status: pick.status),
-    );
-    await tester.pumpAndSettle();
+      // Pump with status+sleeve+origin filters but NO filter catalog (Stream.empty).
+      // A15: sleeve and origin wire must also be absent.
+      await _pump(
+        tester,
+        result: journal30,
+        safety: _normalSafety(),
+        rangePresets: rangePresets4,
+        // No filterCatalog supplied → _journalFilterCatalogProvider emits nothing.
+        query: JournalTimelineQuery(
+          range: defaultPreset,
+          status: pick.status,
+          sleeve: SleeveId.pot,
+          origin: originPick.origin,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    // Wire string must NOT appear.
-    expect(find.text(JournalStatus.filled.wire), findsNothing);
-  });
+      // Wire strings must NOT appear.
+      expect(find.text(JournalStatus.filled.wire), findsNothing);
+      expect(find.text(SleeveId.pot.wire), findsNothing);
+      expect(find.text(originPick.origin.wire), findsNothing);
+    },
+  );
+
+  // ─── ④ Badge label and tap link ─────────────────────────────────────────
+
+  // ─── ③d A14 — filter apply keeps rebalanceEventId from initial query ──────
+
+  testWidgets(
+    '③d filter apply keeps rebalanceEventId from the initial query',
+    (WidgetTester tester) async {
+      final JournalStatusOption pick = filterCatalog.statusOptions.firstWhere(
+        (JournalStatusOption o) => o.status == JournalStatus.reversed,
+      );
+
+      final _FakeJournalRepository fakeJournal = await _pump(
+        tester,
+        result: journal30,
+        safety: _normalSafety(),
+        rangePresets: rangePresets4,
+        filterCatalog: filterCatalog,
+        query: JournalTimelineQuery(
+          range: defaultPreset,
+          rebalanceEventId: reId,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Precondition: initial call carried rebalanceEventId.
+      expect(fakeJournal.calls.first['rebalanceEventId'], equals(reId));
+
+      // Open filter sheet.
+      await tester.tap(find.text(JournalLabels.filter));
+      await tester.pumpAndSettle();
+
+      // Pick the same REVERSED status as ③.
+      final Finder sheetScroll = find.byType(Scrollable).last;
+      await tester.scrollUntilVisible(
+        find.text(pick.label),
+        120,
+        scrollable: sheetScroll,
+      );
+      await tester.ensureVisible(find.text(pick.label));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(pick.label));
+      await tester.pumpAndSettle();
+
+      // Tap 「적용」.
+      await tester.scrollUntilVisible(
+        find.text(JournalLabels.filterApply),
+        120,
+        scrollable: sheetScroll,
+      );
+      await tester.ensureVisible(find.text(JournalLabels.filterApply));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(JournalLabels.filterApply));
+      await tester.pumpAndSettle();
+
+      // Sheet closed.
+      expect(find.text(JournalLabels.filterApply), findsNothing);
+
+      // A14: rebalanceEventId must survive apply, and the chosen status is set.
+      expect(fakeJournal.calls.last['status'], equals(pick.status));
+      expect(fakeJournal.calls.last['rebalanceEventId'], equals(reId));
+    },
+  );
+
+  // ─── ③e A14 — filter reset clears rebalanceEventId ──────────────────────
+
+  testWidgets(
+    '③e filter reset clears rebalanceEventId too',
+    (WidgetTester tester) async {
+      final _FakeJournalRepository fakeJournal = await _pump(
+        tester,
+        result: journal30,
+        safety: _normalSafety(),
+        rangePresets: rangePresets4,
+        filterCatalog: filterCatalog,
+        query: JournalTimelineQuery(
+          range: nonDefaultPreset,
+          rebalanceEventId: reId,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Preconditions.
+      expect(fakeJournal.calls.first['rebalanceEventId'], equals(reId));
+      expect(fakeJournal.calls.first['range'], equals(nonDefaultPreset));
+
+      // Open filter sheet.
+      await tester.tap(find.text(JournalLabels.filter));
+      await tester.pumpAndSettle();
+
+      // Tap 「초기화」.
+      final Finder sheetScroll = find.byType(Scrollable).last;
+      await tester.scrollUntilVisible(
+        find.text(JournalLabels.filterReset),
+        120,
+        scrollable: sheetScroll,
+      );
+      await tester.ensureVisible(find.text(JournalLabels.filterReset));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(JournalLabels.filterReset));
+      await tester.pumpAndSettle();
+
+      // A14: reset writes null to StateProvider → effective query resolves to
+      // isDefault preset. rebalanceEventId must be null after reset.
+      // _reset() is unchanged (A14 rule).
+      expect(fakeJournal.calls.last['rebalanceEventId'], isNull);
+      expect(fakeJournal.calls.last['range'], equals(defaultPreset));
+    },
+  );
 
   // ─── ④ Badge label and tap link ─────────────────────────────────────────
 
@@ -543,46 +699,121 @@ void main() {
 
       // Must equal fixture value — no literal.
       expect(opener.opened, contains(tappableEntry.detailDeepLink!));
+
+      // A17: chip tap — find a reason chip with a detailDeepLink and tap it.
+      final ReasonChip linkedChip = tappableEntry.reasons.firstWhere(
+        (ReasonChip c) => c.detailDeepLink != null,
+      );
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byType(ActionChip),
+              matching: find.text(linkedChip.label),
+            )
+            .first,
+      );
+      await tester.pump();
+
+      // Row tap then chip tap: opened list has both links; chip tap does NOT
+      // re-fire the row's link.
+      expect(
+        opener.opened,
+        <String>[tappableEntry.detailDeepLink!, linkedChip.detailDeepLink!],
+      );
     },
   );
 
-  // ─── ⑦ clearDeepLink == null → no arrow ──────────────────────────────────
+  // ─── ⑦ clearDeepLink == null → no arrow (A16) ────────────────────────────
+  // A16: use safetyFixtureRow(2) which has TIER_B_UNJUDGED (no clearDeepLink).
+  // Replace silent return with expect so the fixture contract is pinned.
 
-  testWidgets('⑦ BlockFlag with null clearDeepLink has no arrow button', (
-    WidgetTester tester,
-  ) async {
-    // safety row 3 = HALTED (RECON_MISMATCH + JOURNAL_MISSING).
-    // JOURNAL_MISSING has clearRoute = automatic and no clearDeepLink.
-    final SafetyState blocked = safetyFixtureRow(3);
+  testWidgets(
+    '⑦ BlockFlag with null clearDeepLink has no arrow button',
+    (WidgetTester tester) async {
+      // safety row 2 = REDUCED (TIER_B_UNJUDGED — no clearDeepLink).
+      final SafetyState reduced = safetyFixtureRow(2);
 
-    final bool anyNullLink = blocked.activeFlags
-        .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
-        .take(2)
-        .any((BlockFlag f) => f.clearDeepLink == null);
+      final List<BlockFlag> blockingFlags = reduced.activeFlags
+          .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
+          .take(2)
+          .toList();
 
-    if (!anyNullLink) {
-      // Nothing to test in this fixture row — skip gracefully.
-      return;
-    }
+      final bool anyNullLink = blockingFlags.any(
+        (BlockFlag f) => f.clearDeepLink == null,
+      );
+      // A16: precondition as expect — if fixture changes, test fails loudly.
+      expect(
+        anyNullLink,
+        isTrue,
+        reason:
+            'safetyFixtureRow(2) must have at least one blocking flag without '
+            'a clearDeepLink so that the «no arrow» rule is observable.',
+      );
 
-    await _pump(
-      tester,
-      result: journal30,
-      safety: blocked,
-      query: JournalTimelineQuery(range: defaultPreset),
-      rangePresets: rangePresets4,
-    );
+      await _pump(
+        tester,
+        result: journal30,
+        safety: reduced,
+        query: JournalTimelineQuery(range: defaultPreset),
+        rangePresets: rangePresets4,
+      );
 
-    // Arrow_forward_ios icon must NOT appear for the null-link flags.
-    final int expectedArrows = blocked.activeFlags
-        .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
-        .take(2)
-        .where((BlockFlag f) => f.clearDeepLink != null)
-        .length;
-    expect(find.byIcon(Icons.arrow_forward_ios), findsNWidgets(expectedArrows));
-  });
+      // The flag label must be visible.
+      final BlockFlag nullLinkFlag = blockingFlags.firstWhere(
+        (BlockFlag f) => f.clearDeepLink == null,
+      );
+      expect(find.text(nullLinkFlag.label), findsOneWidget);
 
-  // ─── ⑧ checkpointLabel displayed ─────────────────────────────────────────
+      // No arrow icon because clearDeepLink is null.
+      expect(find.byIcon(Icons.arrow_forward_ios), findsNothing);
+    },
+  );
+
+  // ─── ⑦b BlockFlag with clearDeepLink shows arrow; tap opens link (A16) ───
+
+  testWidgets(
+    '⑦b BlockFlag with clearDeepLink shows arrow; tap opens that link',
+    (WidgetTester tester) async {
+      // safety row 3 = HALTED (RECON_MISMATCH + JOURNAL_MISSING).
+      final SafetyState halted = safetyFixtureRow(3);
+      final RecordingLinkOpener opener = RecordingLinkOpener();
+
+      final List<String> links = halted.activeFlags
+          .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
+          .take(2)
+          .map((BlockFlag f) => f.clearDeepLink)
+          .whereType<String>()
+          .toList();
+
+      expect(
+        links.length,
+        2,
+        reason:
+            'safetyFixtureRow(3) must have exactly 2 blocking flags '
+            'with non-null clearDeepLink.',
+      );
+
+      await _pump(
+        tester,
+        result: journal30,
+        safety: halted,
+        linkOpener: opener,
+        query: JournalTimelineQuery(range: defaultPreset),
+        rangePresets: rangePresets4,
+      );
+
+      expect(find.byIcon(Icons.arrow_forward_ios), findsNWidgets(2));
+
+      // Tap the first arrow.
+      await tester.tap(find.byIcon(Icons.arrow_forward_ios).first);
+      await tester.pump();
+
+      expect(opener.opened, <String>[links.first]);
+    },
+  );
+
+  // ─── ⑧ checkpointLabel displayed (A16) ───────────────────────────────────
+  // A16: replace silent return with expect so the fixture contract is pinned.
 
   testWidgets('⑧ checkpointLabel is shown when non-null', (
     WidgetTester tester,
@@ -597,10 +828,15 @@ void main() {
           orElse: () => null,
         );
 
-    if (integrityFlag?.checkpointLabel == null) {
-      // Fixture doesn't populate checkpointLabel — skip gracefully.
-      return;
-    }
+    // A16: precondition as expect — if fixture changes, test fails loudly.
+    expect(
+      integrityFlag?.checkpointLabel,
+      isNotNull,
+      reason:
+          'safetyFixtureRow(4) must have a LEDGER_INTEGRITY flag with a '
+          'non-null checkpointLabel so that the checkpoint label rule can be '
+          'verified.',
+    );
 
     await _pump(
       tester,

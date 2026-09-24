@@ -751,6 +751,8 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
 
   void _apply() {
     // ⓒ Passes selected values straight to watchTimeline args — no row filtering.
+    // A14: rebalanceEventId is carried from the initial query unchanged — the
+    // filter sheet has no field for it and must not drop it.
     ref
         .read(journalTimelineQueryProvider.notifier)
         .state = JournalTimelineQuery(
@@ -759,6 +761,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
       symbol: _symbol,
       status: _status,
       origin: _origin,
+      rebalanceEventId: widget.initialQuery.rebalanceEventId,
     );
     Navigator.of(context).pop();
   }
