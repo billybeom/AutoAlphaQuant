@@ -366,17 +366,18 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
                 ),
               ),
 
-              // ── Submit button ─────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+              // ── Submit button — absent when locked ────────────────────────
+              if (!locked)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: FilledButton(
+                    onPressed: _canSubmit(spec) ? () => _submit(spec) : null,
+                    child: const Text(JournalLabels.draftSubmit),
+                  ),
                 ),
-                child: FilledButton(
-                  onPressed: _canSubmit(spec) ? () => _submit(spec) : null,
-                  child: const Text(JournalLabels.draftSubmit),
-                ),
-              ),
             ],
           ],
         );
