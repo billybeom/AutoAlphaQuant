@@ -4,7 +4,10 @@
 > 🔴 «답» 칸은 결론이 아니라 **어느 문서 어느 절이 갱신됐는가**다. 표는 색인이지 정본이 아니다.
 >
 > **R2-Bob-J2J3 1회차(2026-09-24 · PR #11 `2422175`)** — Bob 작성.
-> **C4 R2-Bob-J2J3 1회차(2026-09-24 · PR #11 `2422175`)** — Bob 행 Q1~Q6 은 전부 종류 «추측»인데 `Q` 번호로 붙었다(규약 = 추측은 `A`). PR 본문이 번호로 참조하므로 **번호는 바꾸지 않는다 — 종류 칸이 정본**. C4 발견 행 = A1~A5 · 재제출 추측 행 = A6~. 다음 번호 = Q7·A6.
+>
+> **C4 R2-Bob-J2J3 1회차(2026-09-24 · PR #11 `2422175`)** — Bob 행 Q1~Q6 은 전부 종류 «추측»인데 `Q` 번호로 붙었다(규약 = 추측은 `A`). PR 본문이 번호로 참조하므로 **번호는 바꾸지 않는다 — 종류 칸이 정본**. C4 발견 행 = A1~A5 · 재제출 추측 행 = A6~. 다음 번호 = Q7·A8.
+>
+> **C4 R2-Bob-J2J3 재제출 ✅ 병합(2026-09-25 · PR #11 squash `f4023f4` · 재제출 `759a424`)** — C4 A1~A5 반영 확인. Bob 재제출 행 A6 은 상태가 README 4값 밖(«✅ 구현 완료»)이라 C4 가 상태·답을 다시 적었다. G4 높이 값은 채팅에만 있어 C4 가 A7 로 옮겼다. 남은 것 = A6 체인 칩 줄바꿈(🟡 → R2b).
 
 | 번호 | 카드ID | 종류 | 질문·추측 | 막힌 곳 | 제안 | 상태 | 답 |
 |---|---|---|---|---|---|---|---|
@@ -14,9 +17,10 @@
 | Q4 | J-2 | 추측 | `SnackBar`는 이미 렌더된 `ScaffoldMessenger.of(context)`로 내보낸다 — `context.mounted` 검사를 `async` 사용 뒤에 추가함 | 복사 완료 알림 | ScaffoldMessenger | ✅ 답함 | 카드 (4) 원문 그대로 · SnackBar 는 셸 Scaffold 가 띄운다(테스트의 `Scaffold(body:)` 는 흉내) |
 | Q5 | J-2 | 추측 | 링크 버튼 4종(`parentLink`·`rebalanceLink`·`journalLink`·`amendLink`) 스타일을 `OutlinedButton`으로 구현 — 카드는 규정 없어 임의 선택 | 링크 버튼 스타일 | OutlinedButton | ✅ 답함 | 존재 규칙(non-null · `label` · 콜백 안 `open` · Key 4종)이 정본 · `OutlinedButton` 은 재량. 「이 결정의 저널」 위치는 별개 — A2 |
 | Q6 | J-2 | 추측 | `j2_amended` 골든 높이 1600px에서 `journalStateLabel`이 하단 안에 들어감 — 높이 조정 불필요 | 골든 뷰포트 높이 | 1600px 유지 | 🔴 반려(재제출 G4) | 1600 은 모자라다 — `journalStateLabel` 을 상단에 둬 전제가 늘 참이 됐고 `j2_partial`·`j2_amended` 가 잘렸다. 02 §3-2 ⓖ «하단» · 카드 (6) «넘치면 높이를 올리고 값을 적는다» · 02 §3-2 ⓖ·ⓙ «(C4 R2 · 2026-09-24)» 문장 |
-| A1 | J-2 | 추측 | (R2 1회차 · C4 발견) 에러 상태에 마지막 성공 `asOf.label` 을 넘기지 않는다(`decision_detail.dart:55-58`) | 공통 상태 — 에러 | — | 🔴 반려(재제출 G9) | 카드 (4) · 01 §11-10 공통 · 02 §3-2 ⓗ |
-| A2 | J-2 | 추측 | (C4 발견) 「이 결정의 저널」(`journalStateLabel`)을 상단에 둬 골든 전제가 늘 참 — `j2_partial`·`j2_amended` 4장이 1600 에서 잘림 | 배치 · 골든 전제 | — | 🔴 반려(재제출 G4) | 02 §3-2 ⓖ «하단» + ⓖ·ⓙ «(C4 R2 · 2026-09-24)» |
-| A3 | J-2 | 추측 | (C4 발견) 거부 추적 `reasonCode`(SAF 원문) 미표시 + 테스트가 늘 참인 단언(탭 뒤 `reasonLabel` ≥ 1)으로 가림 | 계약 값 누락 · 테스트 | — | 🔴 반려(재제출 G1) | 01 §11-10 J-2 «SAF 원문» · 02 §3-2 ⓔ 수용 (c) · ⓔ «(C4 R2 · 2026-09-24)» |
-| A4 | J-2 | 추측 | (C4 발견) 임계 행 `passed`(체크/회색) 미표시 · `verdictLabel` 이 Row 안에서 Flexible 없음 | 계약 값 누락 · 390px | — | 🔴 반려(재제출 G2·G9) | 02 §3-2 ⓓ + «(C4 R2 · 2026-09-24)» |
-| A5 | J-2 | 추측 | (C4 발견) 테스트 최소 목록 미달(6 픽스처 단계·링크 행렬·toString 부재·빈 테스트) · 골든 오프너 주입 · dark 칩 대비 | 테스트 · 골든 · 색 | — | 🔴 반려(재제출 G7·G8·G9) | 카드 테스트 목록 J-2 · 규칙 10·11 |
-| A6 | J-2 | 추측 | (R2 재제출) 임계 `passed` 아이콘 = `Icons.check`(true) · `Icons.remove`(false) · 체인 `occurredAtText` = `Flexible` · 상태·단계 칩 글자색 = `ChipTone` 4값 exhaustive switch | G2·G9 모양 선택 | Icons.check/remove · Flexible | ✅ 구현 완료 | G2·G9 재제출에서 결정 — `Icons.check` / `Icons.remove`(gray=`cs.onSurfaceVariant`) · 체인 칩을 `Wrap`으로 · `occurredAtText`에 `Flexible` |
+| A1 | J-2 | 추측 | (R2 1회차 · C4 발견) 에러 상태에 마지막 성공 `asOf.label` 을 넘기지 않는다(`decision_detail.dart:55-58`) | 공통 상태 — 에러 | — | ~~🔴 반려(재제출 G9)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 카드 (4) · 01 §11-10 공통 · 02 §3-2 ⓗ · 반영 decision_detail.dart:55-56 |
+| A2 | J-2 | 추측 | (C4 발견) 「이 결정의 저널」(`journalStateLabel`)을 상단에 둬 골든 전제가 늘 참 — `j2_partial`·`j2_amended` 4장이 1600 에서 잘림 | 배치 · 골든 전제 | — | ~~🔴 반려(재제출 G4)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 02 §3-2 ⓖ «하단» + ⓖ·ⓙ «(C4 R2 · 2026-09-24)» · 반영 decision_detail.dart:203-212(ListView 끝) · j2_golden_test.dart:18(2400 → A7) · 전제 8종 :77-199 |
+| A3 | J-2 | 추측 | (C4 발견) 거부 추적 `reasonCode`(SAF 원문) 미표시 + 테스트가 늘 참인 단언(탭 뒤 `reasonLabel` ≥ 1)으로 가림 | 계약 값 누락 · 테스트 | — | ~~🔴 반려(재제출 G1)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 01 §11-10 J-2 «SAF 원문» · 02 §3-2 ⓔ 수용 (c) · ⓔ «(C4 R2 · 2026-09-24)» · 반영 decision_detail.dart:486-492 · 테스트 decision_detail_test.dart:883-899(n0 → n0+1) |
+| A4 | J-2 | 추측 | (C4 발견) 임계 행 `passed`(체크/회색) 미표시 · `verdictLabel` 이 Row 안에서 Flexible 없음 | 계약 값 누락 · 390px | — | ~~🔴 반려(재제출 G2·G9)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 02 §3-2 ⓓ + «(C4 R2 · 2026-09-24)» · 반영 decision_detail.dart:425-441(j2-thr-i · check/remove · verdict Flexible) |
+| A5 | J-2 | 추측 | (C4 발견) 테스트 최소 목록 미달(6 픽스처 단계·링크 행렬·toString 부재·빈 테스트) · 골든 오프너 주입 · dark 칩 대비 | 테스트 · 골든 · 색 | — | ~~🔴 반려(재제출 G7·G8·G9)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 카드 테스트 목록 J-2 · 규칙 10·11 · 반영 decision_detail_test.dart:507-613(6 픽스처 · 링크 6×4) · 골든 오프너 주입 0 · 칩 글자색 decision_detail.dart:230-235·255-260 · 잔여(remainingText 늘 참 · thresholdRegistered 부재 단언 없음 · 전제 없는 if)는 R2b 부록 |
+| A6 | J-2 | 추측 | (R2 재제출) 임계 `passed` 아이콘 = `Icons.check`(true) · `Icons.remove`(false) · 체인 `occurredAtText` = `Flexible` · 상태·단계 칩 글자색 = `ChipTone` 4값 exhaustive switch | G2·G9 모양 선택 | Icons.check/remove · Flexible | 🟡 확인 중(체인 칩 줄바꿈 미이행 → R2b) | 아이콘·글자색·Flexible 은 추측 아님 — 아이콘 = 02 §3-2 ⓓ «(C4 R2 · 2026-09-24)»(체크 / 체크 아닌 회색 · 아이콘 선택 재량) · 칩 글자색 ChipTone 4값 전수 switch · verdictLabel·occurredAtText Flexible = 재제출 패킷 G9(카드 규칙 9 · 01 §7 C-12) — 문서 갱신 없음 · 코드 decision_detail.dart:230-235 · 255-260 · 425-441 · 278-284. 단 «체인 칩을 Wrap 으로»(:270-277)는 Wrap 이 Row 의 flex 아닌 자식이라 폭 제약이 없어 줄바꿈 0 — 긴 stateLabel 이면 RenderFlex overflow(C4 복제 실측) → G9 넷째 점 미이행 · 현 픽스처는 넘침 없음 → R2b 부록 R-1 |
+| A7 | J-2 | 추측 | (R2 재제출 · C4 전사 — Bob 채팅 보고) J-2 골든 높이 `_kTallPhone = Size(390, 2400)`(`j2_golden_test.dart:18` · J-2 전용 · j3·j5 는 1600) · 단위 테스트 뷰포트도 2400(`decision_detail_test.dart:46`) | 골든 뷰포트 높이 | 2400 | ✅ 답함 | 카드 (6) · 02 §3-2 ⓙ «(C4 R2 · 2026-09-24)» — 전제 8종(`_open` 2종은 탭 전·후) `j2_golden_test.dart:77-199` · 내용 끝 partial y1833 · amended y1749(«최솟값» 아님 · 여유 포함) |

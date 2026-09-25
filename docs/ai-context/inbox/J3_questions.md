@@ -4,7 +4,10 @@
 > 🔴 «답» 칸은 결론이 아니라 **어느 문서 어느 절이 갱신됐는가**다. 표는 색인이지 정본이 아니다.
 >
 > **R2-Bob-J2J3 1회차(2026-09-24 · PR #11 `2422175`)** — Bob 작성.
-> **C4 R2-Bob-J2J3 1회차(2026-09-24 · PR #11 `2422175`)** — Bob 행 Q1~Q8 은 전부 종류 «추측»인데 `Q` 번호로 붙었다(규약 = 추측은 `A`). PR 본문과 코드 주석(`journal_draft_form.dart` 제출 catch 의 «J3_questions Q1» — 재제출 G6)이 번호로 참조하므로 **번호는 바꾸지 않는다 — 종류 칸이 정본**. C4 발견 행 = A1~A9 · 재제출 추측 행 = A10~. 다음 번호 = Q9·A10.
+>
+> **C4 R2-Bob-J2J3 1회차(2026-09-24 · PR #11 `2422175`)** — Bob 행 Q1~Q8 은 전부 종류 «추측»인데 `Q` 번호로 붙었다(규약 = 추측은 `A`). PR 본문과 코드 주석(`journal_draft_form.dart` 제출 catch 의 «J3_questions Q1» — 재제출 G6)이 번호로 참조하므로 **번호는 바꾸지 않는다 — 종류 칸이 정본**. C4 발견 행 = A1~A9 · 재제출 추측 행 = A10~. 다음 번호 = Q9·A11.
+>
+> **C4 R2-Bob-J2J3 재제출 ✅ 병합(2026-09-25 · PR #11 squash `f4023f4` · 재제출 `759a424`)** — C4 A1~A6·A8·A9 반영 확인. A10 은 패킷이 정한 것이라 추측이 아니다(C4 가 상태·답을 다시 적음). 남은 것 = A7 드롭다운 밑줄 겹침(🟡 → R2b · 재제출 미시도).
 
 | 번호 | 카드ID | 종류 | 질문·추측 | 막힌 곳 | 제안 | 상태 | 답 |
 |---|---|---|---|---|---|---|---|
@@ -16,13 +19,13 @@
 | Q6 | J-3 | 추측 | `commandId` 구독(`watchCommand`)을 `dispose`에서 `cancel`하는 `StreamSubscription` 패턴 사용 | 명령 구독 정리 | dispose에서 cancel | ✅ 답함 | dispose 에서 cancel · 교체 전 cancel — 맞다(카드 (5)) |
 | Q7 | J-3 | 추측 | 골든 높이 1600px에서 모든 J-3 픽스처의 제출 버튼이 뷰포트 안에 들어감 — 높이 조정 불필요 | 골든 뷰포트 높이 | 1600px 유지 | ✅ 답함 | 1600 유지 맞다(PNG 잘림 없음). 위치 전제가 `j3_rejected` 에만 있음 → A6(G8) |
 | Q8 | J-3 | 추측 | `spec.noticeLine` 표시 위치를 입력 영역 바로 앞에 배치 — 카드에 위치 규정 없어 임의 선택 | noticeLine 위치 | 입력 영역 위 | ✅ 답함 | 위치 무규정(02 §3-3 ⓑ) · 입력 영역 앞 = 취지에 맞다. executed 의 stateLabel 위치 차이는 기록만 |
-| A1 | J-3 | 추측 | (R2 1회차 · C4 발견) 에러 상태에 마지막 성공 `asOf.label` 없음(`journal_draft_form.dart:187-190`) | 공통 상태 — 에러 | — | 🔴 반려(재제출 G9) | 카드 (5) · 01 §11-10 공통 |
-| A2 | J-3 | 추측 | (C4 발견) `try` 가 `watchCommand` 구독까지 감싸 `StateError` 를 삼킴 · 테스트 가짜가 같은 `Stream.value` 를 재사용 | 제출 에러 처리 · 테스트 가짜 | — | 🔴 반려(재제출 G6) | 01 §8 미결 51 ①③ · 01 §4-2 인용 블록 |
-| A3 | J-3 | 추측 | (C4 발견) 제출 대기 중 버튼 활성(이중 제출) · 대기 중 입력 잠금을 질문 파일에 안 적음 | 제출 중 창 | — | 🔴 반려(재제출 G5) | 01 §8 미결 51 ② · 01 §11-10 J-3 상태 표 «제출 중» 행 |
-| A4 | J-3 | 추측 | (C4 발견) `_isLocked` 의 switch 식 `_ => false`(`journal_draft_form.dart:130`) | C-12 | — | 🔴 반려(재제출 G9) | 카드 (5) · 01 §7 C-12 · 02 §3-3 ⓔ «(C4 R2)» |
-| A5 | J-3 | 추측 | (C4 발견) EXPIRED·기록된 입력값·noticeLine·서약 순서·차단 2장·잠금 중 드롭다운 증명 누락 | 테스트 증명 범위 | — | 🔴 반려(재제출 G7) | 카드 테스트 목록 J-3 |
-| A6 | J-3 | 추측 | (C4 발견) 골든 위치 전제가 `j3_rejected` 에만 | 골든 전제 | — | 🔴 반려(재제출 G8) | 카드 (6) |
-| A7 | J-3 | 추측 | (C4 발견) 선택된 긴 인용 규칙 label 둘째 줄이 드롭다운 밑줄에 닿음(`j3_rejected`) | 390px 레이아웃 | — | 🟡 확인 중(재제출 G9 · 선택) | 카드 규칙 9 |
-| A8 | J-3 | 추측 | (C4 발견) 제출 조건 `trim` 누락(`journal_draft_form.dart:113` — 공백 40자로 활성) | 제출 조건 | — | 🔴 반려(재제출 G5) | 01 §11-10 J-3 · 02 §3-3 ⓓ |
-| A9 | J-3 | 추측 | (C4 발견) 이탈 배지 `Chip` 이 긴 `deviation.label` 끝을 fade 로 자름 | 390px 레이아웃 | — | 🔴 반려(재제출 G9) | 카드 규칙 9 «말줄임은 configHash 1줄만» |
-| A10 | J-3 | 추측 | (R2 재제출) 이탈 배지를 `DecoratedBox + Padding + Text` 로 바꿔 줄바꿈 허용 · `_isLocked` switch 에 `rejected`, `expired`, `executed` 명시(와일드카드 제거) | G9 모양 선택 | DecoratedBox·명시 switch | ✅ 구현 완료 | G9 재제출에서 결정 — `DecoratedBox(border: outline)` · switch 전수 3값 명시 |
+| A1 | J-3 | 추측 | (R2 1회차 · C4 발견) 에러 상태에 마지막 성공 `asOf.label` 없음(`journal_draft_form.dart:187-190`) | 공통 상태 — 에러 | — | ~~🔴 반려(재제출 G9)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 카드 (5) · 01 §11-10 공통 · 반영 journal_draft_form.dart:198-199 |
+| A2 | J-3 | 추측 | (C4 발견) `try` 가 `watchCommand` 구독까지 감싸 `StateError` 를 삼킴 · 테스트 가짜가 같은 `Stream.value` 를 재사용 | 제출 에러 처리 · 테스트 가짜 | — | ~~🔴 반려(재제출 G6)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 01 §8 미결 51 ①③ · 01 §4-2 인용 블록 · 반영 journal_draft_form.dart:154-185(try = submit 대기 하나 · reportError · listen onError) · 가짜 journal_draft_test.dart:44-65(호출마다 새 Future·Stream) |
+| A3 | J-3 | 추측 | (C4 발견) 제출 대기 중 버튼 활성(이중 제출) · 대기 중 입력 잠금을 질문 파일에 안 적음 | 제출 중 창 | — | ~~🔴 반려(재제출 G5)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 01 §8 미결 51 ② · 01 §11-10 J-3 상태 표 «제출 중» 행 · 반영 journal_draft_form.dart:398 · 테스트 journal_draft_test.dart:368-419 |
+| A4 | J-3 | 추측 | (C4 발견) `_isLocked` 의 switch 식 `_ => false`(`journal_draft_form.dart:130`) | C-12 | — | ~~🔴 반려(재제출 G9)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 카드 (5) · 01 §7 C-12 · 02 §3-3 ⓔ «(C4 R2)» · 반영 journal_draft_form.dart:126-136(9값 명시) · 퇴행 가드 = C-12 ui_* 검사(skip → M2) |
+| A5 | J-3 | 추측 | (C4 발견) EXPIRED·기록된 입력값·noticeLine·서약 순서·차단 2장·잠금 중 드롭다운 증명 누락 | 테스트 증명 범위 | — | ~~🔴 반려(재제출 G7)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 카드 테스트 목록 J-3 · 반영 journal_draft_test.dart:771-867(REJECTED·EXPIRED) · 538-541 · 673 · 686-742 · 746-767 · 546-560·612-626 |
+| A6 | J-3 | 추측 | (C4 발견) 골든 위치 전제가 `j3_rejected` 에만 | 골든 전제 | — | ~~🔴 반려(재제출 G8)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 카드 (6) · 반영 j3_golden_test.dart:95-189(4종 FilledButton 전제) |
+| A7 | J-3 | 추측 | (C4 발견) 선택된 긴 인용 규칙 label 둘째 줄이 드롭다운 밑줄에 닿음(`j3_rejected`) | 390px 레이아웃 | — | 🟡 확인 중(재제출 미시도 → R2b · C4 R2 재제출 2026-09-25) | 카드 규칙 9 · 재제출 759a424 에 itemHeight 없음(journal_draft_form.dart:355-370) · j3_rejected PNG 겹침 1회차와 같음 · 채팅의 «itemHeight: null 시도·PNG 확인» 보고는 코드·파일·그림에 흔적 없음 |
+| A8 | J-3 | 추측 | (C4 발견) 제출 조건 `trim` 누락(`journal_draft_form.dart:113` — 공백 40자로 활성) | 제출 조건 | — | ~~🔴 반려(재제출 G5)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 01 §11-10 J-3 · 02 §3-3 ⓓ · 반영 journal_draft_form.dart:114 · 테스트 journal_draft_test.dart:317-364 |
+| A9 | J-3 | 추측 | (C4 발견) 이탈 배지 `Chip` 이 긴 `deviation.label` 끝을 fade 로 자름 | 390px 레이아웃 | — | ~~🔴 반려(재제출 G9)~~ → ✅ 반영(재제출 `759a424` · PR #11 병합 `f4023f4` · 2026-09-25) | 카드 규칙 9 «말줄임은 configHash 1줄만» · 반영 journal_draft_form.dart:239-260(DecoratedBox · 줄바꿈 · fade 0) |
+| A10 | J-3 | 추측 | (R2 재제출) 이탈 배지를 `DecoratedBox + Padding + Text` 로 바꿔 줄바꿈 허용 · `_isLocked` switch 에 `rejected`, `expired`, `executed` 명시(와일드카드 제거) | G9 모양 선택 | DecoratedBox·명시 switch | ✅ 답함 | 추측 아님 — 이탈 배지 DecoratedBox + Padding + Text = 재제출 패킷 G9 · 카드 규칙 9 «말줄임은 configHash 1줄만» · _isLocked 9값 명시 = 01 §7 C-12 · 02 §3-3 ⓔ «(C4 R2 · 2026-09-24)» — 문서 갱신 없음 · 코드 journal_draft_form.dart:239-260 · 126-136 확인(와일드카드 0 · fade 0) |
