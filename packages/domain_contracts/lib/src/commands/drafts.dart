@@ -9,7 +9,13 @@
 //       세션값(`sessionStartedAt` — 새 세션이 준다) · 엔진 문구(`*Label`) · 모드·기기·시각.
 //    ④ **추가형으로만 진화**한다 — 모든 필드는 nullable 이거나 `@Default` 다. 필드를 지우거나 이름·타입을
 //       바꾸면 앱 업데이트 전에 저장된 초안이 읽히지 않는다(= 초안 유실 · C17 위반). C-35 ④ 가
-//       `fromJson(<String, dynamic>{})` 성공으로 검사한다.
+//       `fromJson(<String, dynamic>{})` 성공으로 검사한다. 🔴 **유일한 예외 = `SelfReportLineInput.symbol`**
+//       (행의 정체 — v1.2 첫 모양부터 required 라 저장된 행에는 반드시 있다). 그 DTO 에도 **새로 더하는**
+//       필드는 nullable/`@Default` 다 — C-35 ④ 가 `fromJson({'symbol': …})` 성공으로 검사한다.
+//    ⑤ 열거형 선택값(`side`·`reason`)은 **모르는 값 = null(미선택)** 이다(`unknownEnumValue:
+//       JsonKey.nullForUndefinedEnumValue`) — 값이 사라진 앱 업데이트 뒤에도 초안 전체가 해독 실패로
+//       유실되지 않게(01 §12-1-3 «사라진 선택지 = 미선택» · C-35 ④). 🔵 엔진이 주는 VM 의 열거값은 이와
+//       달리 모르면 던진다(fixtures/README «역직렬화 실측») — 초안은 기기에 오래 남는 사람의 입력이라 다르다.
 // 🔴 로그·오류 보고·분석 이벤트에 본문 값을 싣지 않는다(자유 서술 칸에 무엇이 붙여 넣어졌을지 모른다).
 
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -101,6 +107,9 @@ abstract class ManualFillInput with _$ManualFillInput {
 
     /// `ManualFillFormSpec.symbols[].symbol`.
     String? symbol,
+
+    /// 모르는 값(앱 업데이트로 사라진 값) = null = 미선택(머리 ⑤).
+    @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
     OrderSide? side,
     @Default('') String quantityText,
     @Default('') String priceText,
@@ -125,6 +134,8 @@ abstract class ManualFillInput with _$ManualFillInput {
 @freezed
 abstract class AdviceSkipInput with _$AdviceSkipInput {
   const factory AdviceSkipInput({
+    /// 모르는 값(앱 업데이트로 사라진 값) = null = 미선택(머리 ⑤).
+    @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
     AdviceSkipReason? reason,
     @Default('') String note,
   }) = _AdviceSkipInput;
@@ -153,6 +164,7 @@ abstract class SelfReportInput with _$SelfReportInput {
 @freezed
 abstract class SelfReportLineInput with _$SelfReportLineInput {
   const factory SelfReportLineInput({
+    /// 행의 정체 — 본문 DTO 에서 **유일하게 허용된 required 필드**(머리 ④ 예외 · C-35 ④).
     required String symbol,
     @Default('') String quantityText,
   }) = _SelfReportLineInput;

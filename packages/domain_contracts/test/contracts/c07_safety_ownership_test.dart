@@ -45,6 +45,37 @@ final RegExp _bareWriteVerbCall = RegExp(
   r'\b(save|write|submit|send|insert|update|delete|apply|commit)\s*\(',
 );
 
+/// 인터페이스 본문 [surface](주석·문자열 제거 뒤 `{ … }` 안)가 **정확히** [names] 의 메서드 선언만으로
+/// 이뤄졌는가 — `Future<…>`/`Stream<…>` 반환 메서드 선언을 지우고 남는 것이 공백뿐이어야 한다.
+/// getter·필드·다른 반환형 메서드가 끼면 글자가 남아 실패한다(🆕 v1.2 검증 반영 · C-7 ⑤ — 이름
+/// 추출 `이름(` 만으로는 `Stream<…> get everything;` 추가가 초록으로 지나갔다 · 변이 M13).
+void _expectSurfaceIsExactly(
+  String surface,
+  String typeName,
+  Set<String> names,
+) {
+  final RegExp decl = RegExp(
+    r'(?:Future|Stream)<[^;{}]*>\s+(\w+)\s*\([^;]*?\)\s*;',
+    dotAll: true,
+  );
+  final List<String> declared =
+      decl.allMatches(surface).map((RegExpMatch m) => m.group(1)!).toList()
+        ..sort();
+  expect(
+    declared,
+    names.toList()..sort(),
+    reason: '$typeName — 선언된 메서드가 ${names.join('·')} 각 1개가 아니다.',
+  );
+  final String rest = surface.replaceAll(decl, '').trim();
+  expect(
+    rest,
+    isEmpty,
+    reason:
+        '$typeName 표면에 메서드 선언 밖의 것이 있다(getter·필드·다른 반환형) — '
+        '표면이 늘었다: «$rest»',
+  );
+}
+
 /// [path] 의 코드(주석·문자열 제외)에 나오는 쓰기 이름 전체(예: `submitJournalDraft`).
 Set<String> _writeNamesIn(String path) {
   final String code = stripCommentsAndStrings(File(path).readAsStringSync());
@@ -168,6 +199,11 @@ void main() {
             '01 §4-3 — «동작»만이다(G-29). 상태 구독은 리포지토리 쪽이고, 여기에 '
             '메서드를 더하면 화면이 run() 을 폴링해 상태를 만들기 시작한다.',
       );
+      // 🆕 v1.2 검증 반영 — getter·필드도 표면이다(선언 전체 대조).
+      _expectSurfaceIsExactly(surface, 'SettingsActions', <String>{
+        'run',
+        'watch',
+      });
     });
 
     test('C-7 셋째 쓰기 창구 DraftStore 의 표면은 load·save·clear 셋뿐이다', () {
@@ -191,6 +227,13 @@ void main() {
             '01 §12-1 — 초안 포트는 load·save·clear 셋이다. 메서드를 더하면 원장·명령 쓰기가 '
             '«초안»이라는 이름으로 새 창구를 얻는다(01 §1-4 예외 1 의 범위를 넘는다).',
       );
+      // 🆕 v1.2 검증 반영 — getter·필드(`Stream<…> get everything;`)도 표면이다. 세 선언을 지우고
+      //    남는 것이 없어야 한다.
+      _expectSurfaceIsExactly(surface, 'DraftStore', <String>{
+        'load',
+        'save',
+        'clear',
+      });
     });
 
     test('C-7 맨 쓰기 동사 메서드는 DraftStore 와 그 받침대에만 있다', () {

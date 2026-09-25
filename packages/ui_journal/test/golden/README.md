@@ -217,9 +217,9 @@ await expectGolden('j1_filter_open', b);
 |---|---|
 | `j3_restored_rejected` | 스펙 `m6JournalDraftSpecDiscretion` + `m6DraftRecordsJ3` **행 2** 시드 + `watchCommand` = `m6JournalDraftReceipts5` 의 `REJECTED` 행 |
 | `j3_submit_not_accepted` | 스펙 discretion + 행 1 시드 + `submitJournalDraft` = `Future.error(Exception())` → 제출 탭 1회(`tester.takeException()` 단언) |
-| `j3_executed_read` | 스펙 discretion + 행 2 시드 + `watchCommand` = `EXECUTED` 행 + `watchDecisionJournal` = `m6JournalReadWritten` |
+| `j3_executed_read` | 스펙 discretion + 행 2 시드 + `watchCommand` = `EXECUTED` 행 + `watchDecisionJournal` = `m6JournalReadWritten` · 🔴 끼워 넣은 `JournalReadContent` 는 **자기 asOf 헤더·신선도 배너를 그리지 않는다**(`J-3` 위쪽 헤더 하나 — 02 §3-3 v1.2 ⓕ) |
 | `j3r_written` | `JournalReadView` + `m6JournalReadWritten` |
-| `j3r_not_written` | `JournalReadView` + `m6JournalReadNotWritten` |
+| `j3r_not_written` | `JournalReadView` + `m6JournalReadNotWritten` **행 0**(`d_20260810_b_27` — 행 1 은 전환 표본) |
 | (선택) `j3r_no_note` · `j2_journal_written` | `m6JournalReadNoNote` · `m6DecisionDetailJournalWritten`(+ 안전 행 0) |
 | 기존 `j3_*` 4종 | + `journalDraftStoreProvider.overrideWithValue(RecordingDraftStore())` → 🔴 **픽셀 불변 · 재생성 금지**(바뀌면 복원 전 상태가 찍힌 것 = 결함) |
 
@@ -237,7 +237,10 @@ final RecordingDraftStore store = RecordingDraftStore(
 ```
 
 - 실패 재현은 `class _FailingStore extends RecordingDraftStore` 로 `load`/`save` 만 `Future.error(...)` 로 override 한다(받침대에 스위치를 두지 않는다).
-- 초안 포트를 부르면 안 되는 테스트는 `UnimplementedDraftStore`(전부 던짐)를 쓴다.
+- 🔴 **`J-3` 테스트는 항상 `RecordingDraftStore`**(빈 것 포함)다 — `J-3` 은 마운트할 때마다 `load` 를 부르므로 «초안 포트를 부르지 않는 `J-3` 테스트»는 없다. `UnimplementedDraftStore`(전부 `Future` 에러 · 동기로 던지지 않음)는 **초안 포트를 읽지 않는 화면**용이다 — `J-3` 에 넣으면 전부 에러 보고로 실패한다(🆕 검증 반영 · 구 문장 «부르면 안 되는 테스트는 `UnimplementedDraftStore`» 폐기).
+- 🔴 시드한 행이 보이려면 `J-3` 의 `decisionId` = 그 행의 `key.targetId` 다 — 기존 `_pump` 의 기본값(`'test-id'`)으로는 어떤 행도 복원되지 않는다.
+- 한 테스트에서 **다른 `decisionId`** 두 개를 보려면 `testWidgets` 를 둘로 나누거나 사이에 `pumpWidget(const SizedBox())` 로 트리를 내린다 — 같은 자리에 다시 `pumpWidget` 하면 State 가 재사용돼(`late final _draftKey` · `didUpdateWidget` 금지) 옛 키가 남는다.
+- `saved` 는 `.last`·내용으로 단언한다 — 개수 단언은 «복원만 하고 입력하지 않으면 0건»(같은 값 저장 생략 규칙 — 02 §3-3 v1.2 ⓑ)에만 쓴다.
 - «재시작 생존»의 **화면층** 증명 = 같은 `store` 인스턴스로 트리를 내렸다(`pumpWidget(const SizedBox())`) 새 `ProviderScope` 로 다시 띄운다. 🔴 실물 영속 증명은 06 M4-9 다 — 카드·PR 보고에서 두 증명을 섞지 않는다.
 
 ### 🔴 한 행씩 시드 — `draft_records_j3` 는 행 순서가 의미다
@@ -248,7 +251,9 @@ final RecordingDraftStore store = RecordingDraftStore(
 | 1 | `J3_COMPLETE` | `d_20260901_a_31` | 완성 본문 · `RULE_DISCRETION_BUDGET` · 연결 없음 | 복원 · 버튼 활성 · 접수 실패 골든 |
 | 2 | `J3_SUBMITTED` | `d_20260901_a_31` | 행 1 본문 · `lastCommandId` = 접수증 픽스처의 명령 | 재구독 · 거부/집행 복원 골든 |
 | 3 | `J3_RETIRED_RULE` | `d_20260810_b_27` | 완성 본문 · 폐기 표본 code(선택지에 없음) | 사라진 code = 미선택 · 다른 키 비노출 |
+| 4 | `J3_OTHER_NOTE` (🆕 검증 반영) | `d_20260901_a_31` | 완성 본문 · `RULE_OTHER`(`requiresNote`) · **메모 있음**(한국어 원문) · 연결 없음 | 메모 복원 · 메모 필수 규칙의 버튼 판정 |
 
-🔴 여러 행을 한꺼번에 시드하지 않는다 — 행 0·1·2 는 **같은 키**라 마지막 행만 남는다(시드 순서가 결과를 바꾼다).
+🔴 여러 행을 한꺼번에 시드하지 않는다 — 행 0·1·2·4 는 **같은 키**라 마지막 행만 남는다(시드 순서가 결과를 바꾼다).
+🔵 `executed` 직후 «미작성 → 본문» 전환은 `m6JournalReadNotWritten` **행 1**(`d_20260901_a_31` 미작성) → `m6JournalReadWritten` 순으로 흘린다(`StreamController` · 같은 결정). `m6JournalReadWritten` 의 본문은 읽기 레이아웃 표본이라 행 2 원문과 다르다 — 초안 원문 ↔ 읽기 본문을 대조하지 않는다.
 🔴 `watchDecisionJournal` 을 쓰는 화면(`executed` 뒤 `J-3` · `JournalReadView`)의 가짜 저장소는 `extends UnimplementedJournalRepository` 에서
 `watchDecisionJournal` 을 override 한다 — 빠뜨리면 받침대가 던져 읽기 본문이 에러 상태(«다시 시도»)가 된다.

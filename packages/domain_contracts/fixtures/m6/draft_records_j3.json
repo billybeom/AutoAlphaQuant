@@ -70,6 +70,19 @@
         "note": ""
       },
       "last_command_id": null
+    },
+    {
+      "key": {
+        "kind": "JOURNAL_DRAFT",
+        "target_id": "d_20260901_a_31"
+      },
+      "journal": {
+        "rationale_before": "[합성] 선택지에 없는 사유로 매수 시점을 하루 미룬다. 해당 조항은 목록에 없어 근거를 메모에 따로 적는다.",
+        "expected_outcome": "[합성] 다음 거래일에 같은 수량으로 체결된다.",
+        "rule_cited": "RULE_OTHER",
+        "note": "[합성] 증권사 점검 공지로 당일 주문 창이 닫혀 있었다."
+      },
+      "last_command_id": null
     }
   ]
 }

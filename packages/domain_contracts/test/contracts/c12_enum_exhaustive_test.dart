@@ -10,7 +10,8 @@
 //    (표기가 자동 변환에 맡겨지면 픽스처·DDL 과 갈라지고 C-15 가 실패한다.)
 // 🔴 «전부 받기» 6형태(2026-09-24 확장 · 계약 v1.2 PR 커밋 1): ① `default:` ② 식 `_ =>`
 //    ③ 문 `case _:` ④ 타입 와일드카드 `T _ =>`·`case T _:` ⑤ 식 `final x =>`·`var x =>`
-//    ⑥ 문 `case final x:`·`case var x:`. 가드 달린 `_ when c =>` 는 전수에 세지 않으므로
+//    ⑥ 문 `case final x:`·`case var x:`(🆕 v1.2 검증 반영 + 타입 바인딩 `case T x:`·`case final T x:`).
+//    알려진 미탐은 `_catchAll` 주석. 가드 달린 `_ when c =>` 는 전수에 세지 않으므로
 //    위반이 아니다. 범위 = 계약 `lib/` + `ui_*/lib` + `apps/*/lib` — 화면·앱은 **대상 타입
 //    불문** 전면 금지다(전부 받기가 없으면 비-enum switch 는 컴파일되지 않으므로 금지가 곧
 //    «화면은 enum·bool 로만 switch»다). 🔴 switch 만 본다 — `if`·`==` 사슬은 범위 밖이다.
@@ -227,10 +228,16 @@ const String _defaultPatternName = '`default:`';
 
 /// C-12 — switch 의 «전부 받기»(= `default:` 와 같은 효과 · 01 §7 C-12 · 2026-09-24 확장 · §12-5).
 /// `stripCommentsAndStrings` 뒤에 적용한다.
-/// 🔴 알려진 미탐 2: 식의 `T x =>`(타입 변수 전부 받기) · 문자열 보간 안의 switch(스트리퍼가 보간을
-///    문자열로 지운다). 둘 중 하나가 실제로 나타나면 구문 AST(`package:analyzer` `parseString` — 이미
-///    전이 의존 14.4.0)로 올린다. 해석 AST 는 쓰지 않는다(30초 · bootstrap·build:gen 의존 → 고칠 수
-///    없는 조건으로 점검이 실패한다).
+/// 🔴 알려진 미탐(🆕 v1.2 검증 반영 — 같은 정규식의 탐침 실측으로 목록을 채웠다 · 01 §12-5):
+///    ① 식의 타입 변수 `T x =>`·`final T x =>` ② 제네릭 타입 `case Foo<Bar> _:`·`case Foo<Bar> x:`
+///    ③ 괄호 와일드카드 `case (_):`·식 `(_) =>`(람다 `(_) =>` 와 글자로 구별되지 않는다)
+///    ④ 전부 와일드카드 레코드 `(_, _) =>` ⑤ 공백 없는 `{default:`(포맷 게이트가 막는다)
+///    ⑥ 문자열 보간 안의 switch(스트리퍼가 보간을 문자열로 지운다).
+///    2026-09-25 실측: `ui_*/lib`·`apps/*/lib` 에 ①~⑥ 형태 0건(`onSelected: (_) =>` 람다 9개만 — 정상 무시).
+///    하나라도 실제로 나타나면 구문 AST(`package:analyzer` `parseString` — 이미 전이 의존 14.4.0)로
+///    올린다. 해석 AST 는 쓰지 않는다(30초 · bootstrap·build:gen 의존 → 고칠 수 없는 조건으로 점검이
+///    실패한다). 문의 타입 바인딩 `case T x:`·`case final T x:` 는 🆕 v1.2 검증 반영으로 ⑥ 에 넣었다
+///    (비-enum 타입 검사 자체가 화면 정책 위반이다).
 final Map<String, RegExp> _catchAll = <String, RegExp>{
   _defaultPatternName: RegExp(r'(^|\s)default\s*:', multiLine: true),
   'switch 식 `_ =>`(`T _ =>` 포함)': RegExp(r'(?<![\w$])_\s*=>'),
@@ -240,8 +247,9 @@ final Map<String, RegExp> _catchAll = <String, RegExp>{
   'switch 식 `final x =>`·`var x =>`': RegExp(
     r'(?<![\w$])(?:final|var)\s+[a-z_]\w*\s*=>',
   ),
-  'switch 문 `case final x:`·`case var x:`': RegExp(
-    r'\bcase\s+(?:final|var)\s+[a-z_]\w*\s*:',
+  'switch 문 `case final x:`·`case var x:`·`case T x:`': RegExp(
+    r'\bcase\s+(?:(?:final|var)\s+[a-z_]\w*'
+    r'|(?:final\s+|var\s+)?[A-Z]\w*\??\s+[a-z_]\w*)\s*:',
   ),
 };
 
@@ -269,6 +277,10 @@ const List<String> _catchAllPositives = <String>[
   'final x = switch (t) { T.a => 1, var other => 2 };',
   'switch (t) { case final other: break; }',
   'switch (t) { case var other: break; }',
+  // 🆕 v1.2 검증 반영 — 문의 타입 바인딩.
+  'switch (t) { case Tone x: break; }',
+  'switch (t) { case final Tone x: break; }',
+  'switch (t) { case Tone? x: break; }',
   // String 대상 — 정책상 위반(화면은 enum·bool 로만 switch).
   "switch (s) { case 'a': break; default: break; }",
 ];
@@ -285,6 +297,8 @@ const List<String> _catchAllNegatives = <String>[
   '@Default(<String>[]) List<String> xs,',
   'for (final x in xs) {}',
   'switch (t) { case final x when x.isEmpty: break; case T.a: break; }',
+  'switch (t) { case Tone x when x.isOk: break; case T.a: break; }',
+  'switch (t) { case T.a: break; case Foo(): break; }',
 ];
 
 /// 소스에서 읽은 열거형 선언 하나.

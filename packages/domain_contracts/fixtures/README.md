@@ -112,12 +112,12 @@
 ### `m6/` 39 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
 
 🆕 **계약 v1.2(2026-09-25 · R2b 선행 M2 보강 · 01 §12) 7건** —
-`draft_records_j3`(`J-3` 기기 로컬 초안 `DraftRecord` 4행 — 🔴 **행 순서가 의미**다, 아래 표 · 테스트는 **한 행씩** 시드한다) ·
+`draft_records_j3`(`J-3` 기기 로컬 초안 `DraftRecord` 5행 — 🔴 **행 순서가 의미**다, 아래 표 · 테스트는 **한 행씩** 시드한다) ·
 `draft_records_x7`(X7 초안 모양 고정 3행 — `RECORD_MANUAL_FILL`/`ad_0002`(세금 `""` = 모름) · `SKIP_ADVICE`/`ad_0001` · `SELF_REPORT_BALANCE`/`PERIODIC_AUDIT`(수량 `""` = 아직 안 적음 ≠ 0) · 화면 미사용 — X7 카드가 쓴다) ·
-`journal_read_written`(`J-3R` 사전 저널 읽기 `DecisionJournalVm` — `d_20260901_a_31` · 본문 원문 **여러 줄 긴 글**(잘림 회귀 탐지) · 메모 있음 · 「이 결정 보기」 링크) ·
+`journal_read_written`(`J-3R` 사전 저널 읽기 `DecisionJournalVm` — `d_20260901_a_31` · 본문 원문 **여러 줄 긴 글**(잘림 회귀 탐지) · 메모 있음 · 「이 결정 보기」 링크 · 🔵 본문은 **읽기 레이아웃 표본**이다 — `draft_records_j3` 행 2 가 제출된 뒤의 저장본이 아니다(초안 원문 ↔ 읽기 본문 대조 테스트 금지 · 읽기 본문은 엔진 저장본)) ·
 `journal_read_no_note`(`d_mf_0002` · 메모 `null` · 결정 링크 `null` — 부재 두 갈래) ·
-`journal_read_not_written`(`d_20260810_b_27` · 「저널 미작성」 · `body` **null** — «미작성»도 값이다) ·
-`decision_detail_journal_written`·`decision_detail_journal_draft_link`(`decision_detail_amended` **사본**에서 두 키만 — `journal_state_label` + `journal_link` → `aaq://journal/read/d_mf_0002`(작성됨) / `aaq://journal/draft/d_mf_0002`(미작성) · 🔴 목적지는 엔진이 고른다 — C-34 ⑨).
+`journal_read_not_written`(2행 — 0 `d_20260810_b_27` · 1 `d_20260901_a_31`(🆕 검증 반영 · `journal_read_written` 과 **같은 결정의 «미작성»** = `J-3` executed 직후 «미작성 → 본문» 전환 표본 · C-34 ⑧ 이 짝을 지킨다) · 「저널 미작성」 · `body` **null** — «미작성»도 값이다) ·
+`decision_detail_journal_written`·`decision_detail_journal_draft_link`(`decision_detail_amended` **사본**에서 두 키만 — `journal_state_label` + `journal_link` → `aaq://journal/read/d_mf_0002`(작성됨) / `aaq://journal/draft/d_mf_0002`(미작성) · 🔴 목적지는 엔진이 고른다 — C-34 ⑨ · 🔵 원본 `decision_detail_amended` 의 «규칙대로 — 저널 대상이 아닙니다»는 v1.1 표본값으로 이탈과 무관하게 남긴 것이다(기존 픽스처 무수정 원칙) — **저널 대상 갈래의 정본은 이 두 사본**이다(같은 결정의 다른 시점 스냅샷으로 읽는다)).
 🔴 초안 행에는 모드·맥락·기기·시각 키가 없다(C-35 ⑤) · 확인값(`duplicate_ack`·`off_hour_trade`·`declared_complete`)·세션값도 없다(C-35 ④).
 
 | `draft_records_j3` 행 | 이름 | 키(`kind`/`target_id`) | 본문 | `last_command_id` | 쓰는 곳 |
@@ -126,6 +126,7 @@
 | 1 | `J3_COMPLETE` | 같은 키 | 근거 ≥ 40자(trim 기준) · 기대 결과 있음 · `RULE_DISCRETION_BUDGET` · 메모 `""` | null | 복원 · 버튼 활성 |
 | 2 | `J3_SUBMITTED` | 같은 키 | 행 1 과 같음 | `cmd_20260831_0031`(= `journal_draft_receipts_5` 의 명령) | 재구독 · 거부/집행 복원 |
 | 3 | `J3_RETIRED_RULE` | `JOURNAL_DRAFT`/`d_20260810_b_27` | 완성 본문 · `rule_cited` = `RULE_RETIRED_SAMPLE` | null | 사라진 code = 미선택 · 다른 키 비노출 |
+| 4 | `J3_OTHER_NOTE` (🆕 검증 반영) | `JOURNAL_DRAFT`/`d_20260901_a_31` | 근거 ≥ 40자 · 기대 결과 있음 · `RULE_OTHER`(두 스펙 모두 `requires_note: true`) · **메모 비어 있지 않음**(한국어 원문) | null | 메모 복원 · 메모 필수 규칙의 버튼 활성(메모를 지우면 비활성) |
 
 🔵 `RULE_RETIRED_SAMPLE` 은 **문서화된 폐기 표본**이다 — 두 폼 스펙(`journal_draft_spec_*`)의 `rule_cited_options` 어디에도 없는 code 를 일부러 실었다(복원 때 code 대조 실패 = 미선택 · 문구 없음).
 
@@ -216,7 +217,9 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 
 ---
 
-## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 → 🆕 2026-09-25 v1.2 · 101파일 280행 + 봉투 형제 키 9 · 실패 0)
+## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 🆕 2026-09-25 v1.2 · 101파일 281행 + 봉투 형제 키 9 · 실패 0)
+
+🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 3건 포함) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 104파일 `rows`)은 284 = 281 + 매핑 없는 3건 각 1행. 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
 
 104파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json` 은 0행 봉투), 그중 **101파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는

@@ -66,8 +66,9 @@ abstract final class FixturePaths {
       'm6/decision_detail_unknown.json';
 
   /// 🆕 v1.2(R2b 선행 · 01 §12-1) — 기기 로컬 입력 초안(`DraftRecord`).
-  ///    🔴 `draft_records_j3` 는 **행 순서가 의미**다(0 작성 중 · 1 완성 · 2 제출됨 · 3 폐기 규칙 —
-  ///    fixtures/README.md 표). 테스트는 **한 행씩** 시드한다. `draft_records_x7` 는 X7 모양 고정용.
+  ///    🔴 `draft_records_j3` 는 **행 순서가 의미**다(0 작성 중 · 1 완성 · 2 제출됨 · 3 폐기 규칙 ·
+  ///    4 메모 필수 규칙 — fixtures/README.md 표). 테스트는 **한 행씩** 시드한다. `draft_records_x7` 는
+  ///    X7 모양 고정용.
   static const String m6DraftRecordsJ3 = 'm6/draft_records_j3.json';
   static const String m6DraftRecordsX7 = 'm6/draft_records_x7.json';
   static const String m6EntryGateNovPass1 = 'm6/entry_gate_nov_pass_1.json';
@@ -98,7 +99,8 @@ abstract final class FixturePaths {
       'm6/journal_masked_integrity.json';
 
   /// 🆕 v1.2(R2b 선행 · 01 §12-2) — `J-3R` 사전 저널 읽기(`DecisionJournalVm`) 3갈래:
-  ///    작성됨 · 작성됨(메모·결정 링크 부재) · 미작성(`body` null).
+  ///    작성됨 · 작성됨(메모·결정 링크 부재) · 미작성(`body` null — 2행: 0 = `b_27` · 1 = `a_31`,
+  ///    작성됨과 같은 결정의 «미작성» = `J-3` executed 직후 전환 표본).
   static const String m6JournalReadNoNote = 'm6/journal_read_no_note.json';
   static const String m6JournalReadNotWritten =
       'm6/journal_read_not_written.json';

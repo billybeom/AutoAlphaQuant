@@ -305,7 +305,9 @@ abstract interface class CommandApi {
     required String deviceId,
   });
 
-  /// 사전 작성(폰) / 초안(viewer).
+  /// 사전 저널 제출(폰 · `J-3`). viewer 경로를 그리는 화면은 없다(`J-3` = 폰 전용 · 01 §11-10).
+  /// 🔴 🆕 v1.2 부터 «초안»은 제출 **전** 기기 로컬 입력 원문(`DraftStore` · 01 §12-1)을 뜻한다 —
+  ///    이 메서드는 그것이 아니라 **제출**이다(인자 이름 `JournalDraft` 는 그대로).
   Future<CommandReceipt> submitJournalDraft(JournalDraft draft);
 
   /// 사후 blind 리뷰(결정 9b).
@@ -316,6 +318,15 @@ abstract interface class CommandApi {
 
   Future<CommandReceipt> registerDeposit(DepositRegistration registration);
 
+  /// 명령 1건의 접수증 흐름 — 화면이 `state` 를 갱신하는 **유일한** 경로(낙관 갱신 금지).
+  ///
+  /// 🔴 구현 의무(🆕 v1.2 · 시그니처 무변경 · 01 §4-2 · §12-1-6 ⑦) — `DraftStore.load` 가 복원한
+  ///    `lastCommandId` 의 재구독이 잠긴 채 멈추지 않게:
+  ///    ① 로컬 내구 큐 ⓐ 에만 있는 명령도 첫 값(`requested` — «전송 대기»)을 **곧바로** 낸다.
+  ///    ② 종단 상태(`executed`·`rejected`·`expired`) 전에는 **완료하지 않는다**(값 없이 끝나지 않는다).
+  ///    ③ 모르는 [commandId] 는 스트림 **에러**로 알린다(침묵·빈 완료 금지).
+  /// 화면: 스트림 에러 = 마지막 접수증 유지(01 §8 미결 51 ③) · 복원 재구독의 첫 접수증 전 에러·완료 =
+  /// 잠금 유지 + 정적 «다시 시도»(01 §12-4). 명령 메서드 `Future` 의 에러는 «접수 실패»다(01 §4-2).
   Stream<CommandReceipt> watchCommand(String commandId);
 
   // ───── 🆕 X7(§10) 7종 — 🔴 전량 폰(operator) 전용 ─────
@@ -551,7 +562,7 @@ abstract final class CommandStateMachine {
 ## `packages/domain_contracts/lib/src/commands/draft_store.dart`
 
 ```dart
-// 01 §12-1(= §4-5) — 🆕 계약 v1.2. **셋째 쓰기 창구** — 기기 로컬 입력 초안.
+// 01 §12-1 — 🆕 계약 v1.2. **셋째 쓰기 창구** — 기기 로컬 입력 초안.
 //
 // 🔴 원장·명령·공유 저장소 쓰기가 **아니다**. 사람이 적던 입력을 **이 기기 안에** 보존할 뿐이며
 //    제출은 여전히 `CommandApi` 하나다(01 §1-4 예외 1 · C-7 ⑤⑥).
@@ -560,14 +571,21 @@ abstract final class CommandStateMachine {
 // 🔴 화면은 저장 위치·암호화·모드(계열)를 모른다 — 아래 «구현 의무»는 전부 구현의 일이다.
 //
 // 구현 의무(01 §12-1-6 — 요지): ① 기기 로컬·정본 원장 파일(`ledger*.sqlite`) 밖 ② 하드웨어 결속 키로
-// 암호화 ③ Supabase·GitHub·DB 백업·OS 백업·로그·오류 보고로 반출 금지 ④ 모드 계열(§9-2 `RunModeIsSim`)별
-// 분리 — `load` 는 현재 계열만 ⑤ `save` 완료 = 재부팅 생존 · 호출 순서대로 적용 ⑥ 복호·해독 실패 = `load`
-// null ⑦ `load` 가 준 `lastCommandId` 는 `watchCommand` 가 첫 값을 낼 수 있는 id ⑧ executed 관찰 시 연결된
-// 초안 삭제 ⑨ 날짜 만료 없음 · 기기 이전 불이동 ⑩ 본문 칸 ≠ `key.kind` 면 `save` 거절.
+// 암호화 ③ Supabase·GitHub·DB 백업·OS 백업·로그·오류 보고로 반출 금지 — 포트가 내는 에러 객체·메시지에도
+// 본문 값을 싣지 않는다 ④ 모드 계열(§9-2 `RunModeIsSim`)별 분리 — `load` 는 현재 계열만 ⑤ `save` 완료 =
+// 재부팅 생존 · `save`·`clear` 는 호출 순서대로 적용(`clear` 는 그 전에 호출된 모든 `save` 뒤에 효력)
+// ⑥ 복호·해독 실패 = `load` null ⑦ `load` 가 준 `lastCommandId` 는 `watchCommand` 가 첫 값을 낼 수 있는 id
+// ⑧ executed 관찰 시 연결된 초안 삭제 ⑨ 날짜 만료 없음 · 기기 이전 불이동 ⑩ 본문 칸 ≠ `key.kind` 면 `save`
+// 거절 · 세 메서드는 **동기로 던지지 않는다**(에러는 전부 반환 `Future` 의 에러).
 
 import 'drafts.dart';
 
 /// 기기 로컬 입력 초안 포트.
+///
+/// 🔴 세 메서드는 **동기로 던지지 않는다** — 에러는 전부 반환 `Future` 의 에러다(구현·받침대 공통 ·
+///    01 §12-1-2). 에러 객체·메시지에 본문 값을 싣지 않는다(01 §12-1-6 ③ — 화면은 그것을 그대로
+///    `FlutterError.reportError` 로 올린다).
+/// 화면 쪽 수명 주기(언제 `load`·`save`·`clear` 를 부르는가) = 01 §12-1-4 · `J-3` 상태 표 = 01 §12-4.
 abstract interface class DraftStore {
   /// [key] 의 초안. 없으면 null — 다른 모드 계열의 초안 · 복호·해독 실패(구현이 값 없이 내부 보고)도 null.
   /// 🔴 돌려준 `lastCommandId` 는 `CommandApi.watchCommand` 가 첫 값을 낼 수 있는 id 다 —
@@ -581,6 +599,8 @@ abstract interface class DraftStore {
   Future<void> save(DraftRecord record);
 
   /// 지운다. 없어도 에러가 아니다(멱등).
+  /// `save` 와 같은 순서 규칙 — 그 전에 호출된 모든 `save` 뒤에 효력이 난다(합쳐져 아직 기록되지 않은
+  /// 옛 `save` 가 지운 초안을 되살리지 않는다 · 01 §12-1-6 ⑤).
   /// 🔴 화면이 부르는 곳은 `CommandState.executed` 수신 **하나뿐**이다(01 §3-8 C17).
   Future<void> clear(DraftKey key);
 }
@@ -602,7 +622,13 @@ abstract interface class DraftStore {
 //       세션값(`sessionStartedAt` — 새 세션이 준다) · 엔진 문구(`*Label`) · 모드·기기·시각.
 //    ④ **추가형으로만 진화**한다 — 모든 필드는 nullable 이거나 `@Default` 다. 필드를 지우거나 이름·타입을
 //       바꾸면 앱 업데이트 전에 저장된 초안이 읽히지 않는다(= 초안 유실 · C17 위반). C-35 ④ 가
-//       `fromJson(<String, dynamic>{})` 성공으로 검사한다.
+//       `fromJson(<String, dynamic>{})` 성공으로 검사한다. 🔴 **유일한 예외 = `SelfReportLineInput.symbol`**
+//       (행의 정체 — v1.2 첫 모양부터 required 라 저장된 행에는 반드시 있다). 그 DTO 에도 **새로 더하는**
+//       필드는 nullable/`@Default` 다 — C-35 ④ 가 `fromJson({'symbol': …})` 성공으로 검사한다.
+//    ⑤ 열거형 선택값(`side`·`reason`)은 **모르는 값 = null(미선택)** 이다(`unknownEnumValue:
+//       JsonKey.nullForUndefinedEnumValue`) — 값이 사라진 앱 업데이트 뒤에도 초안 전체가 해독 실패로
+//       유실되지 않게(01 §12-1-3 «사라진 선택지 = 미선택» · C-35 ④). 🔵 엔진이 주는 VM 의 열거값은 이와
+//       달리 모르면 던진다(fixtures/README «역직렬화 실측») — 초안은 기기에 오래 남는 사람의 입력이라 다르다.
 // 🔴 로그·오류 보고·분석 이벤트에 본문 값을 싣지 않는다(자유 서술 칸에 무엇이 붙여 넣어졌을지 모른다).
 
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -694,6 +720,9 @@ abstract class ManualFillInput with _$ManualFillInput {
 
     /// `ManualFillFormSpec.symbols[].symbol`.
     String? symbol,
+
+    /// 모르는 값(앱 업데이트로 사라진 값) = null = 미선택(머리 ⑤).
+    @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
     OrderSide? side,
     @Default('') String quantityText,
     @Default('') String priceText,
@@ -718,6 +747,8 @@ abstract class ManualFillInput with _$ManualFillInput {
 @freezed
 abstract class AdviceSkipInput with _$AdviceSkipInput {
   const factory AdviceSkipInput({
+    /// 모르는 값(앱 업데이트로 사라진 값) = null = 미선택(머리 ⑤).
+    @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
     AdviceSkipReason? reason,
     @Default('') String note,
   }) = _AdviceSkipInput;
@@ -746,6 +777,7 @@ abstract class SelfReportInput with _$SelfReportInput {
 @freezed
 abstract class SelfReportLineInput with _$SelfReportLineInput {
   const factory SelfReportLineInput({
+    /// 행의 정체 — 본문 DTO 에서 **유일하게 허용된 required 필드**(머리 ④ 예외 · C-35 ④).
     required String symbol,
     @Default('') String quantityText,
   }) = _SelfReportLineInput;
@@ -6260,8 +6292,9 @@ abstract final class FixturePaths {
       'm6/decision_detail_unknown.json';
 
   /// 🆕 v1.2(R2b 선행 · 01 §12-1) — 기기 로컬 입력 초안(`DraftRecord`).
-  ///    🔴 `draft_records_j3` 는 **행 순서가 의미**다(0 작성 중 · 1 완성 · 2 제출됨 · 3 폐기 규칙 —
-  ///    fixtures/README.md 표). 테스트는 **한 행씩** 시드한다. `draft_records_x7` 는 X7 모양 고정용.
+  ///    🔴 `draft_records_j3` 는 **행 순서가 의미**다(0 작성 중 · 1 완성 · 2 제출됨 · 3 폐기 규칙 ·
+  ///    4 메모 필수 규칙 — fixtures/README.md 표). 테스트는 **한 행씩** 시드한다. `draft_records_x7` 는
+  ///    X7 모양 고정용.
   static const String m6DraftRecordsJ3 = 'm6/draft_records_j3.json';
   static const String m6DraftRecordsX7 = 'm6/draft_records_x7.json';
   static const String m6EntryGateNovPass1 = 'm6/entry_gate_nov_pass_1.json';
@@ -6292,7 +6325,8 @@ abstract final class FixturePaths {
       'm6/journal_masked_integrity.json';
 
   /// 🆕 v1.2(R2b 선행 · 01 §12-2) — `J-3R` 사전 저널 읽기(`DecisionJournalVm`) 3갈래:
-  ///    작성됨 · 작성됨(메모·결정 링크 부재) · 미작성(`body` null).
+  ///    작성됨 · 작성됨(메모·결정 링크 부재) · 미작성(`body` null — 2행: 0 = `b_27` · 1 = `a_31`,
+  ///    작성됨과 같은 결정의 «미작성» = `J-3` executed 직후 전환 표본).
   static const String m6JournalReadNoNote = 'm6/journal_read_no_note.json';
   static const String m6JournalReadNotWritten =
       'm6/journal_read_not_written.json';
@@ -7817,7 +7851,8 @@ abstract final class AppRoutes {
   /// `J-3` 사전 저널 작성(폰 전용) — `DecisionDetailVm.journalLink` 등이 준다.
   static const String journalDraft = 'aaq://journal/draft/:decisionId';
 
-  /// `J-3` 사전 저널 **읽기**(`J-3R` · 전 플랫폼 · 🆕 v1.2) — `DecisionDetailVm.journalLink`(작성됨)가 준다.
+  /// `J-3` 사전 저널 **읽기**(`J-3R` · 🆕 v1.2) — `DecisionDetailVm.journalLink`(작성됨)가 준다.
+  /// 등록 = 전 플랫폼(`all`) · 본문 = Android·iOS `JournalReadView` · 웹 = Q-D 전 셸 «부재» 가드(01 §12-2 · 04 §1-2).
   static const String journalRead = 'aaq://journal/read/:decisionId';
 
   /// `J-4` 사후 blind 리뷰.
@@ -8545,7 +8580,8 @@ abstract interface class JournalRepository {
   /// 🆕 v1.2 — 결정 1건의 **사전 저널 본문**(`J-3` 읽기 뷰 `J-3R` · `J-3` executed 뒤 · iOS 의
   /// `journalDraft` 대체 · `J-2 journalLink`(작성됨)의 목적지).
   /// 결정은 있는데 저널이 아직 없으면 `body == null` 인 값을 흘린다(«미작성»도 값이다).
-  /// 결정 자체가 없으면 스트림 에러(01 §8 미결 50 ③ 과 같은 규칙).
+  /// 결정 자체가 없으면 스트림 에러 — `watchDecisionDetail` 의 **잠정** 규칙(01 §8 미결 50 ③ · ⬜ 확인
+  /// 대기)과 같게 둔다. 50 ③ 이 확정되면 두 메서드를 함께 고친다(화면은 어느 쪽이든 공통 에러 상태).
   /// 🔴 화면은 `findByDecisionId`·`chainOf` 로 조립하지 않는다 — 이 스트림 하나만 구독한다.
   Stream<DecisionJournalVm> watchDecisionJournal(String decisionId);
 }

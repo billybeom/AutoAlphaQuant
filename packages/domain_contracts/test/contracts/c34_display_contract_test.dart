@@ -234,47 +234,62 @@ void main() {
       };
       for (final MapEntry<String, bool> e in reads.entries) {
         final String path = e.key;
-        final Map<String, Object?> row = decodeEnvelope(readFixture(path))
-            .rows
-            .single;
-        expect(
-          row.keys.toSet().difference(vmKeys),
-          isEmpty,
-          reason:
-              '$path — DecisionJournalVm 에 허용 목록 밖 키가 있다(01 §12-2 개정이 먼저다).',
-        );
-        final DecisionJournalVm vm = DecisionJournalVm.fromJson(row);
-        expect(vm.journalStateLabel, isNotEmpty, reason: path);
-        expect(
-          vm.body != null,
-          e.value,
-          reason: '$path — «미작성»은 body null 인 값이다(미작성 픽스처만 null).',
-        );
-        final Object? rawBody = row['body'];
-        if (rawBody is Map<String, Object?>) {
+        // 🆕 v1.2 검증 반영 — 미작성 픽스처는 2행(b_27 · a_31 = executed 직후 «미작성 → 본문» 전환 표본)이다.
+        final List<Map<String, Object?>> rows = decodeEnvelope(
+          readFixture(path),
+        ).rows;
+        expect(rows, isNotEmpty, reason: path);
+        for (final Map<String, Object?> row in rows) {
           expect(
-            rawBody.keys.toSet().difference(bodyKeys),
+            row.keys.toSet().difference(vmKeys),
             isEmpty,
-            reason: '$path — DecisionJournalBody 에 결과·손익 류 키가 붙었다.',
+            reason:
+                '$path — DecisionJournalVm 에 허용 목록 밖 키가 있다(01 §12-2 개정이 먼저다).',
           );
-        }
-        final DecisionJournalBody? body = vm.body;
-        if (body != null) {
-          expect(body.writtenAtText, isNotEmpty, reason: path);
-          expect(body.ruleCitedLabel, isNotEmpty, reason: path);
-          expect(body.rationaleBefore, isNotEmpty, reason: path);
-          expect(body.expectedOutcome, isNotEmpty, reason: path);
-        }
-        final LinkAction? link = vm.decisionLink;
-        if (link != null) {
+          final DecisionJournalVm vm = DecisionJournalVm.fromJson(row);
+          expect(vm.journalStateLabel, isNotEmpty, reason: path);
           expect(
-            link.deepLink,
-            'aaq://journal/decision/${vm.decisionId}',
-            reason: '$path — 「이 결정 보기」는 그 결정의 J-2 다.',
+            vm.body != null,
+            e.value,
+            reason: '$path — «미작성»은 body null 인 값이다(미작성 픽스처만 null).',
           );
-          expect(link.label, isNotEmpty, reason: path);
+          final Object? rawBody = row['body'];
+          if (rawBody is Map<String, Object?>) {
+            expect(
+              rawBody.keys.toSet().difference(bodyKeys),
+              isEmpty,
+              reason: '$path — DecisionJournalBody 에 결과·손익 류 키가 붙었다.',
+            );
+          }
+          final DecisionJournalBody? body = vm.body;
+          if (body != null) {
+            expect(body.writtenAtText, isNotEmpty, reason: path);
+            expect(body.ruleCitedLabel, isNotEmpty, reason: path);
+            expect(body.rationaleBefore, isNotEmpty, reason: path);
+            expect(body.expectedOutcome, isNotEmpty, reason: path);
+          }
+          final LinkAction? link = vm.decisionLink;
+          if (link != null) {
+            expect(
+              link.deepLink,
+              'aaq://journal/decision/${vm.decisionId}',
+              reason: '$path — 「이 결정 보기」는 그 결정의 J-2 다.',
+            );
+            expect(link.label, isNotEmpty, reason: path);
+          }
         }
       }
+      // 전환 표본 — 작성됨 픽스처의 결정이 미작성 픽스처에도 있다(`J-3` executed 직후 «미작성 → 본문»을
+      // 같은 결정으로 흘려 보는 테스트의 입력 · 테스트가 한국어 VM 을 짓지 않게).
+      final Object? writtenId = decodeEnvelope(
+        readFixture(FixturePaths.m6JournalReadWritten),
+      ).rows.single['decision_id'];
+      expect(
+        decodeEnvelope(readFixture(FixturePaths.m6JournalReadNotWritten)).rows
+            .map((Map<String, Object?> r) => r['decision_id']),
+        contains(writtenId),
+        reason: '미작성 픽스처에 작성됨 픽스처와 같은 결정의 «미작성» 행이 없다 — 전환 표본이 사라졌다.',
+      );
     });
 
     test('C-34 ⑨ J-2 저널 링크는 그 결정의 읽기·작성 목적지다', () {

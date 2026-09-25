@@ -15,7 +15,7 @@
 //   `UnimplementedConfigRepository` · `RecordingLinkOpener`(링크 기록기) ·
 //   🆕 계약 v1.1 R2 준비(2026-09-23) — `UnimplementedCommandApi`(명령 13종) ·
 //   `UnimplementedSafetyRepository`(안전 상태 1종).
-//   🆕 계약 v1.2 R2b 선행(2026-09-25) — `UnimplementedDraftStore`(초안 포트 · 전부 던짐) ·
+//   🆕 계약 v1.2 R2b 선행(2026-09-25) — `UnimplementedDraftStore`(초안 포트 · 전부 `Future` 에러) ·
 //   `RecordingDraftStore`(메모리 + 호출 기록 · 픽스처 시드) ·
 //   `UnimplementedJournalRepository.watchDecisionJournal`.
 //
@@ -208,16 +208,24 @@ class UnimplementedSafetyRepository implements SafetyRepository {
   Stream<SafetyState> watchState() => throw UnimplementedError('watchState');
 }
 
-/// 🆕 계약 v1.2 — [DraftStore] 받침대(전부 던진다 · 초안 포트를 부르면 안 되는 테스트용).
+/// 🆕 계약 v1.2 — [DraftStore] 받침대(전부 `Future` 에러 · **초안 포트를 읽지 않는 화면**용).
+///
+/// 🔴 다른 받침대와 달리 **동기로 던지지 않는다** — 포트 계약이 «세 메서드는 동기로 던지지 않는다 ·
+///    에러는 전부 `Future`»이기 때문이다(01 §12-1-2 · `DraftStore` 머리).
+/// 🔴 `J-3` 테스트에는 쓰지 않는다 — `J-3` 은 마운트할 때마다 `load` 를 부르므로 이것을 주입하면
+///    전부 에러 보고로 실패한다. `J-3` 테스트는 항상 [RecordingDraftStore](빈 것 포함)다.
 class UnimplementedDraftStore implements DraftStore {
   @override
-  Future<DraftRecord?> load(DraftKey key) => throw UnimplementedError('load');
+  Future<DraftRecord?> load(DraftKey key) =>
+      Future<DraftRecord?>.error(UnimplementedError('load'));
 
   @override
-  Future<void> save(DraftRecord record) => throw UnimplementedError('save');
+  Future<void> save(DraftRecord record) =>
+      Future<void>.error(UnimplementedError('save'));
 
   @override
-  Future<void> clear(DraftKey key) => throw UnimplementedError('clear');
+  Future<void> clear(DraftKey key) =>
+      Future<void>.error(UnimplementedError('clear'));
 }
 
 /// 🆕 계약 v1.2 — 메모리 [DraftStore] + **호출 기록**.
