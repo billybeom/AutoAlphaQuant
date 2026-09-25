@@ -23,7 +23,9 @@ abstract interface class CommandApi {
     required String deviceId,
   });
 
-  /// 사전 작성(폰) / 초안(viewer).
+  /// 사전 저널 제출(폰 · `J-3`). viewer 경로를 그리는 화면은 없다(`J-3` = 폰 전용 · 01 §11-10).
+  /// 🔴 🆕 v1.2 부터 «초안»은 제출 **전** 기기 로컬 입력 원문(`DraftStore` · 01 §12-1)을 뜻한다 —
+  ///    이 메서드는 그것이 아니라 **제출**이다(인자 이름 `JournalDraft` 는 그대로).
   Future<CommandReceipt> submitJournalDraft(JournalDraft draft);
 
   /// 사후 blind 리뷰(결정 9b).
@@ -34,6 +36,15 @@ abstract interface class CommandApi {
 
   Future<CommandReceipt> registerDeposit(DepositRegistration registration);
 
+  /// 명령 1건의 접수증 흐름 — 화면이 `state` 를 갱신하는 **유일한** 경로(낙관 갱신 금지).
+  ///
+  /// 🔴 구현 의무(🆕 v1.2 · 시그니처 무변경 · 01 §4-2 · §12-1-6 ⑦) — `DraftStore.load` 가 복원한
+  ///    `lastCommandId` 의 재구독이 잠긴 채 멈추지 않게:
+  ///    ① 로컬 내구 큐 ⓐ 에만 있는 명령도 첫 값(`requested` — «전송 대기»)을 **곧바로** 낸다.
+  ///    ② 종단 상태(`executed`·`rejected`·`expired`) 전에는 **완료하지 않는다**(값 없이 끝나지 않는다).
+  ///    ③ 모르는 [commandId] 는 스트림 **에러**로 알린다(침묵·빈 완료 금지).
+  /// 화면: 스트림 에러 = 마지막 접수증 유지(01 §8 미결 51 ③) · 복원 재구독의 첫 접수증 전 에러·완료 =
+  /// 잠금 유지 + 정적 «다시 시도»(01 §12-4). 명령 메서드 `Future` 의 에러는 «접수 실패»다(01 §4-2).
   Stream<CommandReceipt> watchCommand(String commandId);
 
   // ───── 🆕 X7(§10) 7종 — 🔴 전량 폰(operator) 전용 ─────

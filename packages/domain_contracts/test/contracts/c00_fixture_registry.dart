@@ -155,6 +155,17 @@ final DtoCodec<Object> _commandReceipt = DtoCodec<CommandReceipt>(
   CommandReceipt.fromJson,
   (CommandReceipt v) => v.toJson(),
 );
+// 🆕 계약 v1.2(R2b 선행 · 01 §12-1·§12-2) — 기기 로컬 초안 · 사전 저널 읽기.
+final DtoCodec<Object> _draftRecord = DtoCodec<DraftRecord>(
+  'DraftRecord',
+  DraftRecord.fromJson,
+  (DraftRecord v) => v.toJson(),
+);
+final DtoCodec<Object> _decisionJournalVm = DtoCodec<DecisionJournalVm>(
+  'DecisionJournalVm',
+  DecisionJournalVm.fromJson,
+  (DecisionJournalVm v) => v.toJson(),
+);
 
 /// 픽스처 상대 경로 → 등록 내용.
 ///
@@ -279,6 +290,19 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     _decisionDetailVm,
   ),
   FixturePaths.m6DecisionDetailUnknown: FixtureBinding(_decisionDetailVm),
+  // 🆕 v1.2 — J-2 `journalLink` 목적지 2갈래(작성됨 → journal/read · 미작성 → journal/draft).
+  FixturePaths.m6DecisionDetailJournalWritten: FixtureBinding(
+    _decisionDetailVm,
+  ),
+  FixturePaths.m6DecisionDetailJournalDraftLink: FixtureBinding(
+    _decisionDetailVm,
+  ),
+  // 🆕 v1.2 — 기기 로컬 초안(`draft_records_j3` 는 행 순서가 의미) · J-3R 읽기 3갈래.
+  FixturePaths.m6DraftRecordsJ3: FixtureBinding(_draftRecord),
+  FixturePaths.m6DraftRecordsX7: FixtureBinding(_draftRecord),
+  FixturePaths.m6JournalReadWritten: FixtureBinding(_decisionJournalVm),
+  FixturePaths.m6JournalReadNoNote: FixtureBinding(_decisionJournalVm),
+  FixturePaths.m6JournalReadNotWritten: FixtureBinding(_decisionJournalVm),
   FixturePaths.m6JournalBadges2: FixtureBinding(
     DtoCodec<JournalTimelineBadge>(
       'JournalTimelineBadge',

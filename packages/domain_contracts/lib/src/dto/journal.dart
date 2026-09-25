@@ -482,7 +482,9 @@ abstract class DecisionDetailVm with _$DecisionDetailVm {
     /// "저널 작성됨" · "저널 미작성" — 엔진 생성
     required String journalStateLabel,
 
-    /// 저널 읽기 또는 `J-3` 작성 유도. 웹·iOS 읽기 경로는 작성 링크를 주지 않는다.
+    /// 이 결정의 저널 버튼 — 🆕 v1.2 **엔진이 목적지를 고른다**(01 §12-2 표): 작성됨 = `journalRead`
+    /// 링크(전 플랫폼) · 저널 대상·미작성 = 폰 읽기 경로만 `journalDraft` 링크(웹·iOS = null) ·
+    /// 대상 아님 = null. 버튼 문구 = `label`(엔진) — 화면 분기 0.
     LinkAction? journalLink,
 
     /// 수기 체결 「정정」 → `M5-12`. 🔴 폰 읽기 경로만 채운다(웹·iOS 는 null = 진입점 부재).
@@ -539,4 +541,56 @@ abstract class UnknownBoardVm with _$UnknownBoardVm {
 
   factory UnknownBoardVm.fromJson(Map<String, dynamic> json) =>
       _$UnknownBoardVmFromJson(json);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 🆕 계약 v1.2(R2b 선행 M2 보강 · 01 §12-2) — `J-3` 사전 저널 읽기(`J-3R`)
+// ════════════════════════════════════════════════════════════════════════════
+
+/// 🆕 v1.2 — 사전 저널 읽기(`J-3R` · 02 §3-3 R2b 블록). 봉투 없는 VM(01 §11-10 공통 상태 규칙).
+/// 창구는 `JournalRepository.watchDecisionJournal(decisionId)`.
+///
+/// 🔴 결과·손익·수량·가격 필드가 **없고, 더하지 않는다** — `J-3` 안에 그려지므로 02 §3-3 금지 ③
+///    «작성 중 손익 노출 금지»를 물려받고, `J-4` blind 리뷰(미결 46)가 [DecisionJournalBody] 를
+///    재사용한다. C-34 ⑧ 이 허용 키 목록으로 막는다(필드 추가 = 01 개정이 먼저).
+@freezed
+abstract class DecisionJournalVm with _$DecisionJournalVm {
+  const factory DecisionJournalVm({
+    required String decisionId,
+
+    /// "저널 작성됨" · "저널 미작성" 류 — 엔진 생성(`DecisionDetailVm.journalStateLabel` 과 같은 사전).
+    required String journalStateLabel,
+
+    /// null = 아직 작성되지 않음 → 본문 블록 **부재**(자리표시자 금지).
+    DecisionJournalBody? body,
+
+    /// 「이 결정 보기」 → `J-2`. null = 부재(엔진이 정한다 — 화면은 판정하지 않는다).
+    LinkAction? decisionLink,
+    required AsOf asOf,
+  }) = _DecisionJournalVm;
+
+  factory DecisionJournalVm.fromJson(Map<String, dynamic> json) =>
+      _$DecisionJournalVmFromJson(json);
+}
+
+/// 🆕 v1.2 — 사전 저널 본문. ⏸ `J-4`(미결 46)의 `BlindReviewCard` 가 같은 타입을 싣는 것이 1순위 후보.
+@freezed
+abstract class DecisionJournalBody with _$DecisionJournalBody {
+  const factory DecisionJournalBody({
+    /// "2026-08-31 09:12 작성" — 엔진 생성(🔴 화면이 시각을 포맷하지 않는다).
+    required String writtenAtText,
+
+    /// 인용 규칙 code 의 문구(작성 당시 선택지 label) — 엔진이 준다(🔴 화면이 선택지 목록으로 찾지 않는다).
+    required String ruleCitedLabel,
+
+    /// ↓ 사람이 쓴 **원문** — 그대로 그린다(자르기·trim·`maxLines`·말줄임 금지 · 여러 줄 유지).
+    required String rationaleBefore,
+    required String expectedOutcome,
+
+    /// null = 메모 블록 **부재**.
+    String? note,
+  }) = _DecisionJournalBody;
+
+  factory DecisionJournalBody.fromJson(Map<String, dynamic> json) =>
+      _$DecisionJournalBodyFromJson(json);
 }

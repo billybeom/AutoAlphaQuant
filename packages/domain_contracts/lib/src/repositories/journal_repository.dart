@@ -64,4 +64,14 @@ abstract interface class JournalRepository {
 
   /// `J-5` UNKNOWN 해소 보드. 🔴 이 화면에서 `CommandApi` 호출은 0건이다(02 §3-5 수용 a).
   Stream<UnknownBoardVm> watchUnknownBoard();
+
+  // ── 🆕 계약 v1.2(R2b 선행 M2 보강 · 01 §12-2) ─────────────────────────────
+
+  /// 🆕 v1.2 — 결정 1건의 **사전 저널 본문**(`J-3` 읽기 뷰 `J-3R` · `J-3` executed 뒤 · iOS 의
+  /// `journalDraft` 대체 · `J-2 journalLink`(작성됨)의 목적지).
+  /// 결정은 있는데 저널이 아직 없으면 `body == null` 인 값을 흘린다(«미작성»도 값이다).
+  /// 결정 자체가 없으면 스트림 에러 — `watchDecisionDetail` 의 **잠정** 규칙(01 §8 미결 50 ③ · ⬜ 확인
+  /// 대기)과 같게 둔다. 50 ③ 이 확정되면 두 메서드를 함께 고친다(화면은 어느 쪽이든 공통 에러 상태).
+  /// 🔴 화면은 `findByDecisionId`·`chainOf` 로 조립하지 않는다 — 이 스트림 하나만 구독한다.
+  Stream<DecisionJournalVm> watchDecisionJournal(String decisionId);
 }

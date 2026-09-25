@@ -1,6 +1,6 @@
 > **사본 · 정본은 `packages/domain_contracts/fixtures/README.md`.** 부록의 파일 목록은 조립 시점 실측입니다.
 
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.1 · 97파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.2 · 104파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -13,7 +13,7 @@
 - 실키·계좌 전체번호·비밀번호 **0건**. 계좌는 **별칭만**(`"연금저축"`·`"일반"`).
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 97파일 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 104파일 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -33,7 +33,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.1.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.2.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -58,7 +58,9 @@
    (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
    자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
 2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
-   ✅ **지금 값은 `1.1.0`**(2026-09-17 M2 보강 — 상수와 그때의 96개 픽스처를 **함께** 올렸다 ·
+   ✅ **지금 값은 `1.2.0`**(2026-09-25 R2b 선행 M2 보강 · 01 §12 — 상수와 기존 97개 + 신규 7개 = **104개**를
+   **함께** 올렸다. 🔴 기존 97개는 `"contract_version"` **한 줄만** 바뀌었다 — 본문 무수정).
+   ~~`1.1.0`~~(2026-09-17 M2 보강 — 상수와 그때의 96개 픽스처를 **함께** 올렸다 ·
    2026-09-23 R2 준비의 `m6/journal_draft_receipts_5.json` 도 `1.1.0` 으로 태어났다 — DTO 무변경 추가라
    버전을 올리지 않았다). ~~`1.0.0`~~(2026-09-08 G3 확정 — 01 문서가 «상태: 확정 v1.0» 줄을 받은 커밋에서
    상수와 77개 픽스처를 함께 올렸다). 한쪽만 올리지 않는다. ~~⚠️ 01 §5 예시의 `"M2-0.1"` 은
@@ -88,7 +90,7 @@
 
 ---
 
-## 파일 목록 (97)
+## 파일 목록 (104)
 
 ### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
@@ -109,7 +111,26 @@
 | 🆕 `range_presets_4.json` | 4 | **v1.1** `ConfigRepository.watchRangePresets()` — 최근 30일(**`is_default`**)·이번 달·올해·전체 기간. 🔴 `is_default` 는 정확히 1건(C-34 ①) |
 | 🆕 `sleeve_catalog_4.json` | 4 | **v1.1** `ConfigRepository.watchSleeves()` — A·B·C·POT(`rolls_up_to: A`). P0S 라 새틀라이트 행 없음 |
 
-### `m6/` 32 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
+### `m6/` 39 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
+
+🆕 **계약 v1.2(2026-09-25 · R2b 선행 M2 보강 · 01 §12) 7건** —
+`draft_records_j3`(`J-3` 기기 로컬 초안 `DraftRecord` 5행 — 🔴 **행 순서가 의미**다, 아래 표 · 테스트는 **한 행씩** 시드한다) ·
+`draft_records_x7`(X7 초안 모양 고정 3행 — `RECORD_MANUAL_FILL`/`ad_0002`(세금 `""` = 모름) · `SKIP_ADVICE`/`ad_0001` · `SELF_REPORT_BALANCE`/`PERIODIC_AUDIT`(수량 `""` = 아직 안 적음 ≠ 0) · 화면 미사용 — X7 카드가 쓴다) ·
+`journal_read_written`(`J-3R` 사전 저널 읽기 `DecisionJournalVm` — `d_20260901_a_31` · 본문 원문 **여러 줄 긴 글**(잘림 회귀 탐지) · 메모 있음 · 「이 결정 보기」 링크 · 🔵 본문은 **읽기 레이아웃 표본**이다 — `draft_records_j3` 행 2 가 제출된 뒤의 저장본이 아니다(초안 원문 ↔ 읽기 본문 대조 테스트 금지 · 읽기 본문은 엔진 저장본)) ·
+`journal_read_no_note`(`d_mf_0002` · 메모 `null` · 결정 링크 `null` — 부재 두 갈래) ·
+`journal_read_not_written`(2행 — 0 `d_20260810_b_27` · 1 `d_20260901_a_31`(🆕 검증 반영 · `journal_read_written` 과 **같은 결정의 «미작성»** = `J-3` executed 직후 «미작성 → 본문» 전환 표본 · C-34 ⑧ 이 짝을 지킨다) · 「저널 미작성」 · `body` **null** — «미작성»도 값이다) ·
+`decision_detail_journal_written`·`decision_detail_journal_draft_link`(`decision_detail_amended` **사본**에서 두 키만 — `journal_state_label` + `journal_link` → `aaq://journal/read/d_mf_0002`(작성됨) / `aaq://journal/draft/d_mf_0002`(미작성) · 🔴 목적지는 엔진이 고른다 — C-34 ⑨ · 🔵 원본 `decision_detail_amended` 의 «규칙대로 — 저널 대상이 아닙니다»는 v1.1 표본값으로 이탈과 무관하게 남긴 것이다(기존 픽스처 무수정 원칙) — **저널 대상 갈래의 정본은 이 두 사본**이다(같은 결정의 다른 시점 스냅샷으로 읽는다)).
+🔴 초안 행에는 모드·맥락·기기·시각 키가 없다(C-35 ⑤) · 확인값(`duplicate_ack`·`off_hour_trade`·`declared_complete`)·세션값도 없다(C-35 ④).
+
+| `draft_records_j3` 행 | 이름 | 키(`kind`/`target_id`) | 본문 | `last_command_id` | 쓰는 곳 |
+|---|---|---|---|---|---|
+| 0 | `J3_PARTIAL` | `JOURNAL_DRAFT`/`d_20260901_a_31` | 근거 < 40자 · 기대 결과 `""` · `rule_cited` null · 메모 `""` | null | 복원 · 버튼 비활성 |
+| 1 | `J3_COMPLETE` | 같은 키 | 근거 ≥ 40자(trim 기준) · 기대 결과 있음 · `RULE_DISCRETION_BUDGET` · 메모 `""` | null | 복원 · 버튼 활성 |
+| 2 | `J3_SUBMITTED` | 같은 키 | 행 1 과 같음 | `cmd_20260831_0031`(= `journal_draft_receipts_5` 의 명령) | 재구독 · 거부/집행 복원 |
+| 3 | `J3_RETIRED_RULE` | `JOURNAL_DRAFT`/`d_20260810_b_27` | 완성 본문 · `rule_cited` = `RULE_RETIRED_SAMPLE` | null | 사라진 code = 미선택 · 다른 키 비노출 |
+| 4 | `J3_OTHER_NOTE` (🆕 검증 반영) | `JOURNAL_DRAFT`/`d_20260901_a_31` | 근거 ≥ 40자 · 기대 결과 있음 · `RULE_OTHER`(두 스펙 모두 `requires_note: true`) · **메모 비어 있지 않음**(한국어 원문) | null | 메모 복원 · 메모 필수 규칙의 버튼 활성(메모를 지우면 비활성) |
+
+🔵 `RULE_RETIRED_SAMPLE` 은 **문서화된 폐기 표본**이다 — 두 폼 스펙(`journal_draft_spec_*`)의 `rule_cited_options` 어디에도 없는 code 를 일부러 실었다(복원 때 code 대조 실패 = 미선택 · 문구 없음).
 
 🆕 **계약 v1.1(2026-09-17 · M2 보강) 13건** —
 `journal_filter_catalog`(`J-1` 필터: 상태 7 · 출처 3 · 종목 6 — 기간·슬리브는 코어의 `range_presets_4`·`sleeve_catalog_4`) ·
@@ -198,9 +219,11 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 
 ---
 
-## 역직렬화 실측 (2026-09-08 · 233행 → 🆕 2026-09-23 · 94파일 267행 + 봉투 형제 키 9 · 실패 0)
+## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 🆕 2026-09-25 v1.2 · 101파일 281행 + 봉투 형제 키 9 · 실패 0)
 
-97파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json` 은 0행 봉투), 그중 **94파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1)이 실제 DTO 의 `fromJson` 을 지나
+🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 3건 포함) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 104파일 `rows`)은 284 = 281 + 매핑 없는 3건 각 1행. 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+
+104파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json` 은 0행 봉투), 그중 **101파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
@@ -231,11 +254,11 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 
 - **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
   🔴 구현자가 이름을 지어내지 않는다(인벤토리 §0 규칙) — M2가 05 에 목록을 등재한 뒤 만든다.
-- **`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다).
+- **`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다). 🆕 v1.2 — 본문 단위는 `DecisionJournalBody`(`journal_read_*` 가 그 모양)로 정했고 점수 축은 여전히 미결이다.
 - `test/` 의 계약 회귀 C-1~C-34 — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.
 
-## 부록 — 실제 픽스처 파일 목록 (97개, 2026-09-23 실측)
+## 부록 — 실제 픽스처 파일 목록 (104개, 2026-09-25 실측)
 
 경로 기준 `packages/domain_contracts/fixtures/`. 이 목록은 조립 시점의 실물이며, 명세가 부르는 파일명과 다르면 **실물이 맞습니다**.
 
@@ -258,7 +281,7 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 | `safety_states.json` | 5,515 |
 | `sleeve_catalog_4.json` | 971 |
 
-### m6 — 32개
+### m6 — 39개
 
 | 파일 | 바이트 |
 |---|---:|
@@ -274,10 +297,14 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 | `m6/advice_viewer_4.json` | 7,731 |
 | `m6/decision_detail_amended.json` | 12,014 |
 | `m6/decision_detail_full.json` | 8,824 |
+| `m6/decision_detail_journal_draft_link.json` | 12,104 |
+| `m6/decision_detail_journal_written.json` | 12,103 |
 | `m6/decision_detail_partial.json` | 13,029 |
 | `m6/decision_detail_reevaluated_child.json` | 8,402 |
 | `m6/decision_detail_rejected_saf309.json` | 6,014 |
 | `m6/decision_detail_unknown.json` | 5,743 |
+| `m6/draft_records_j3.json` | 3,107 |
+| `m6/draft_records_x7.json` | 1,740 |
 | `m6/entry_gate_nov_pass_1.json` | 1,832 |
 | `m6/external_holdings_2.json` | 1,265 |
 | `m6/fill_form_spec.json` | 2,463 |
@@ -290,6 +317,9 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 | `m6/journal_empty.json` | 665 |
 | `m6/journal_filter_catalog.json` | 2,520 |
 | `m6/journal_masked_integrity.json` | 12,720 |
+| `m6/journal_read_no_note.json` | 1,336 |
+| `m6/journal_read_not_written.json` | 1,424 |
+| `m6/journal_read_written.json` | 1,956 |
 | `m6/manual_fills_8.json` | 15,189 |
 | `m6/self_report_1.json` | 1,459 |
 | `m6/unknown_board_2.json` | 8,716 |
@@ -361,4 +391,4 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 |---|---:|
 | `m9/handover_states.json` | 5,203 |
 
-**합계 97개 · 413,287 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
+**합계 104개 · 447,057 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).

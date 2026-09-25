@@ -34,6 +34,15 @@ const Set<String> _forbiddenForUi = <String>{
   'supabase',
   'supabase_flutter',
   'trading_runtime',
+  // 🆕 계약 v1.2(01 §12-1) — 저장 패키지 7종. 입력 초안은 포트(`DraftStore`)로만 둔다 —
+  //    화면이 기기 저장소를 직접 쓰면 암호화·계열 분리·반출 금지(구현 의무 10조)가 우회된다.
+  'drift',
+  'flutter_secure_storage',
+  'hive',
+  'isar',
+  'path_provider',
+  'shared_preferences',
+  'sqlite3',
 };
 
 /// 01 §1-1 — 계약 패키지가 의존하면 안 되는 것.

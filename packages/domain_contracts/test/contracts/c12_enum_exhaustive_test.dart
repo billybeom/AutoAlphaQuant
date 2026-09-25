@@ -1,13 +1,20 @@
-// C-12 열거값 전수 커버 — 01 §7 표 C-12 · §1-2 enum 직렬화 규약 · 인벤토리 §9(🟡).
+// C-12 열거값 전수 커버 — 01 §7 표 C-12 · §1-2 enum 직렬화 규약 · 인벤토리 §9.
 //
-// 정의: 「모든 enum 을 `default:` 없이 exhaustive switch 로 분기하는지」.
+// 정의: 「모든 enum 을 **전부 받기** 없이 exhaustive switch 로 분기하는지」.
 // 잡는 것: **신규 코드 조용히 무시**.
 //
 // 🔴 루트 `analysis_options.yaml` 주석대로 「enum 값이 늘었는데 switch 가 조용히
 //    넘어감」은 Dart 3 에서 **이미 컴파일 오류**다(non_exhaustive_switch). 단
-//    `default:` 를 적으면 그 보호가 사라진다 — 그래서 C-12 가 검사하는 것은
-//    ① `default:` 가 없는가 ② 열거값이 **직렬화 표기와 1:1로 못 박혀 있는가** 다.
+//    «전부 받기»를 적으면 그 보호가 사라진다 — 그래서 C-12 가 검사하는 것은
+//    ① 전부 받기가 없는가 ② 열거값이 **직렬화 표기와 1:1로 못 박혀 있는가** 다.
 //    (표기가 자동 변환에 맡겨지면 픽스처·DDL 과 갈라지고 C-15 가 실패한다.)
+// 🔴 «전부 받기» 6형태(2026-09-24 확장 · 계약 v1.2 PR 커밋 1): ① `default:` ② 식 `_ =>`
+//    ③ 문 `case _:` ④ 타입 와일드카드 `T _ =>`·`case T _:` ⑤ 식 `final x =>`·`var x =>`
+//    ⑥ 문 `case final x:`·`case var x:`(🆕 v1.2 검증 반영 + 타입 바인딩 `case T x:`·`case final T x:`).
+//    알려진 미탐은 `_catchAll` 주석. 가드 달린 `_ when c =>` 는 전수에 세지 않으므로
+//    위반이 아니다. 범위 = 계약 `lib/` + `ui_*/lib` + `apps/*/lib` — 화면·앱은 **대상 타입
+//    불문** 전면 금지다(전부 받기가 없으면 비-enum switch 는 컴파일되지 않으므로 금지가 곧
+//    «화면은 enum·bool 로만 switch»다). 🔴 switch 만 본다 — `if`·`==` 사슬은 범위 밖이다.
 
 import 'dart:io';
 
@@ -132,16 +139,167 @@ void main() {
       }
     });
 
-    test(
-      'C-12 ui_* 의 switch 전수(default: 금지 · 신규 값 파급)',
-      () {},
-      skip:
-          'ui_* 에 화면 코드가 아직 없다. 🔴 이 검사의 파급은 «의도된 게이트»다 — '
-          '열거형·필수 필드·픽스처가 한꺼번에 바뀌면 M6·M7·M8·M9 산출물이 동시에 '
-          '리베이스 대상이 된다(01 §7 C19 주석). 화면이 들어오는 PR 에서 채운다.',
-    );
+    test('C-12 계약 소스에 switch 의 다른 전부 받기(4형태)가 0건이다', () {
+      // 🔴 위 `default:` 검사와 **한 정규식으로 합치지 않는다** — 기존 통과분의 뜻을 보존한다.
+      final List<String> offenders = <String>[];
+      for (final File f in dartSourcesIn(libDir)) {
+        final String code = stripCommentsAndStrings(f.readAsStringSync());
+        for (final String hit in _catchAllHits(code)) {
+          if (hit != _defaultPatternName) {
+            offenders.add('${shortPath(f)}: $hit');
+          }
+        }
+      }
+      expect(
+        offenders,
+        isEmpty,
+        reason:
+            '`_ =>`·`case _:`·`T _`·`final x =>`·`case final x:` 도 `default:` 와 '
+            '같다 — Dart 3 의 exhaustive 검사가 꺼져 열거값이 늘어도 조용히 넘어간다'
+            '(2026-09-24 확장).',
+      );
+    });
+
+    test('C-12 ui_*·apps 의 switch 에 전부 받기가 없다(예외 맵과 일치)', () {
+      final Map<String, List<String>> hits = <String, List<String>>{};
+      final List<Directory> roots = <Directory>[
+        for (final String name in uiPackageNames)
+          Directory('${repoRoot.path}/packages/$name/lib'),
+        for (final String name in appNames)
+          Directory('${repoRoot.path}/apps/$name/lib'),
+      ];
+      int scanned = 0;
+      for (final Directory root in roots) {
+        for (final File f in dartSourcesIn(root)) {
+          scanned++;
+          final List<String> found = _catchAllHits(
+            stripCommentsAndStrings(f.readAsStringSync()),
+          );
+          if (found.isNotEmpty) {
+            hits[shortPath(f)] = found;
+          }
+        }
+      }
+      expect(scanned, greaterThan(0), reason: 'ui_*·apps 의 lib 를 못 읽었다.');
+      final String listing = <String>[
+        for (final MapEntry<String, List<String>> e in hits.entries)
+          '${e.key}: ${e.value.join(' · ')}',
+      ].join('\n');
+      expect(
+        hits.keys.toSet(),
+        _catchAllExceptions.keys.toSet(),
+        reason:
+            '$listing\n'
+            '`default:` 를 적으면 Dart 3 의 exhaustive 검사가 꺼진다 — '
+            '열거값이 늘어도 조용히 넘어간다(루트 analysis_options.yaml 주석). '
+            '`_ =>` 도 default 와 같다(2026-09-24). 예외는 `_catchAllExceptions` 에 '
+            '사유와 함께 올리고, 고치면 맵에서도 지운다(양방향).',
+      );
+    });
+
+    test('C-12 전부 받기 정규식 자체 검증', () {
+      // 🔴 스캔 대상은 `lib/` 뿐이라 이 스니펫이 자기 자신을 잡지 않는다.
+      final Set<String> fired = <String>{};
+      for (final String snippet in _catchAllPositives) {
+        final List<String> found = _catchAllHits(
+          stripCommentsAndStrings(snippet),
+        );
+        expect(found, isNotEmpty, reason: '양성 스니펫을 못 잡았다: $snippet');
+        fired.addAll(found);
+      }
+      expect(
+        fired,
+        _catchAll.keys.toSet(),
+        reason: '양성 스니펫이 한 번도 건드리지 않은 패턴이 있다 — 죽은 정규식이다.',
+      );
+      for (final String snippet in _catchAllNegatives) {
+        expect(
+          _catchAllHits(stripCommentsAndStrings(snippet)),
+          isEmpty,
+          reason: '음성 스니펫을 잘못 잡았다(오탐): $snippet',
+        );
+      }
+    });
   });
 }
+
+/// `_catchAll` 의 `default:` 항목 이름 — 계약 소스 검사가 기존 `default:` 테스트와 나눠 센다.
+const String _defaultPatternName = '`default:`';
+
+/// C-12 — switch 의 «전부 받기»(= `default:` 와 같은 효과 · 01 §7 C-12 · 2026-09-24 확장 · §12-5).
+/// `stripCommentsAndStrings` 뒤에 적용한다.
+/// 🔴 알려진 미탐(🆕 v1.2 검증 반영 — 같은 정규식의 탐침 실측으로 목록을 채웠다 · 01 §12-5):
+///    ① 식의 타입 변수 `T x =>`·`final T x =>` ② 제네릭 타입 `case Foo<Bar> _:`·`case Foo<Bar> x:`
+///    ③ 괄호 와일드카드 `case (_):`·식 `(_) =>`(람다 `(_) =>` 와 글자로 구별되지 않는다)
+///    ④ 전부 와일드카드 레코드 `(_, _) =>` ⑤ 공백 없는 `{default:`(포맷 게이트가 막는다)
+///    ⑥ 문자열 보간 안의 switch(스트리퍼가 보간을 문자열로 지운다).
+///    2026-09-25 실측: `ui_*/lib`·`apps/*/lib` 에 ①~⑥ 형태 0건(`onSelected: (_) =>` 람다 9개만 — 정상 무시).
+///    하나라도 실제로 나타나면 구문 AST(`package:analyzer` `parseString` — 이미 전이 의존 14.4.0)로
+///    올린다. 해석 AST 는 쓰지 않는다(30초 · bootstrap·build:gen 의존 → 고칠 수 없는 조건으로 점검이
+///    실패한다). 문의 타입 바인딩 `case T x:`·`case final T x:` 는 🆕 v1.2 검증 반영으로 ⑥ 에 넣었다
+///    (비-enum 타입 검사 자체가 화면 정책 위반이다).
+final Map<String, RegExp> _catchAll = <String, RegExp>{
+  _defaultPatternName: RegExp(r'(^|\s)default\s*:', multiLine: true),
+  'switch 식 `_ =>`(`T _ =>` 포함)': RegExp(r'(?<![\w$])_\s*=>'),
+  'switch 문 `case _:`·`case T _:`': RegExp(
+    r'\bcase\s+(?:final\s+|var\s+|[A-Z]\w*\??\s+)?_\s*:',
+  ),
+  'switch 식 `final x =>`·`var x =>`': RegExp(
+    r'(?<![\w$])(?:final|var)\s+[a-z_]\w*\s*=>',
+  ),
+  'switch 문 `case final x:`·`case var x:`·`case T x:`': RegExp(
+    r'\bcase\s+(?:(?:final|var)\s+[a-z_]\w*'
+    r'|(?:final\s+|var\s+)?[A-Z]\w*\??\s+[a-z_]\w*)\s*:',
+  ),
+};
+
+/// ui_*·apps 의 문서화된 전부 받기 예외 — 🔴 지금 **빈 맵**. 늘거나 줄면 실패한다.
+///
+/// 키 = `shortPath`(저장소 루트 기준 `packages/ui_x/lib/...`) · 값 = 사유. 병합 직전 재스캔에서
+/// 적중이 나오면 skip 으로 되돌리지 않고 여기에 사유와 함께 올린 뒤, 카드 «고칠 것»의 제거
+/// PR 이 병합될 때 맵에서도 지운다(양방향 검사가 강제한다).
+const Map<String, String> _catchAllExceptions = <String, String>{};
+
+/// [code](주석·문자열 제거 뒤)에서 적중한 패턴 이름.
+List<String> _catchAllHits(String code) => <String>[
+  for (final MapEntry<String, RegExp> e in _catchAll.entries)
+    if (e.value.hasMatch(code)) e.key,
+];
+
+/// 자체 검증 — 반드시 잡혀야 하는 스니펫.
+const List<String> _catchAllPositives = <String>[
+  'switch (t) { case T.a: break; default: break; }',
+  'final x = switch (t) { T.a => 1, _ => 2 };',
+  'switch (t) { case T.a: break; case _: break; }',
+  'final x = switch (c) { Color _ => 0 };',
+  'switch (t) { case Tone _: break; }',
+  'final x = switch (t) { T.a => 1, final other => 2 };',
+  'final x = switch (t) { T.a => 1, var other => 2 };',
+  'switch (t) { case final other: break; }',
+  'switch (t) { case var other: break; }',
+  // 🆕 v1.2 검증 반영 — 문의 타입 바인딩.
+  'switch (t) { case Tone x: break; }',
+  'switch (t) { case final Tone x: break; }',
+  'switch (t) { case Tone? x: break; }',
+  // String 대상 — 정책상 위반(화면은 enum·bool 로만 switch).
+  "switch (s) { case 'a': break; default: break; }",
+];
+
+/// 자체 검증 — 잡혀서는 안 되는 스니펫.
+const List<String> _catchAllNegatives = <String>[
+  'final x = switch (t) { T.a => 1, _ when flag => 2, T.b => 3 };',
+  '// default: _ => case _:',
+  '/* default: */ int a = 1;',
+  "const s = 'default: _ => case _:';",
+  'xs.map((_) => 1);',
+  'f((_, __) {});',
+  'onError: (Object e, _) => null,',
+  '@Default(<String>[]) List<String> xs,',
+  'for (final x in xs) {}',
+  'switch (t) { case final x when x.isEmpty: break; case T.a: break; }',
+  'switch (t) { case Tone x when x.isOk: break; case T.a: break; }',
+  'switch (t) { case T.a: break; case Foo(): break; }',
+];
 
 /// 소스에서 읽은 열거형 선언 하나.
 class _EnumDecl {

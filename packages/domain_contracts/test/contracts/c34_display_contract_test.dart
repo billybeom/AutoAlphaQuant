@@ -7,6 +7,9 @@
 //   ④ `*normalized` 는 0.0~1.0 이다(화면의 `clamp` 는 렌더 가드일 뿐 — 잡는 곳은 여기다).
 //   ⑤ `J-2` 체인은 언제나 6칸이고 등재된 단계 코드만 쓴다.
 //   ⑥ 산출 불가 기여 행은 폭 0.0 + 사유 문구를 함께 싣는다(미결 45).
+//   🆕 v1.2(01 §12-2 · 미결 48)
+//   ⑧ 사전 저널 읽기 VM 은 결과·손익 없이 표시 문자열을 싣는다(허용 키 목록 — 필드 추가 = 01 개정 먼저).
+//   ⑨ `J-2` 저널 링크는 그 결정의 읽기·작성 목적지다(엔진이 고른다 — 화면 분기 0).
 
 import 'dart:convert';
 
@@ -139,6 +142,9 @@ void main() {
         FixturePaths.m6DecisionDetailReevaluatedChild,
         FixturePaths.m6DecisionDetailRejectedSaf309,
         FixturePaths.m6DecisionDetailUnknown,
+        // 🆕 v1.2 — `journalLink` 목적지 2갈래(amended 사본).
+        FixturePaths.m6DecisionDetailJournalWritten,
+        FixturePaths.m6DecisionDetailJournalDraftLink,
       ];
       for (final String path in details) {
         final DecisionDetailVm vm = DecisionDetailVm.fromJson(
@@ -201,6 +207,117 @@ void main() {
         expect(r.normalized, 0.0);
         expect(_digit.hasMatch(r.contributionText), isFalse);
       }
+    });
+
+    test('C-34 ⑧ 사전 저널 읽기 VM 은 결과·손익 없이 표시 문자열을 싣는다', () {
+      // 🔴 허용 키 **목록**이다(금지 목록이 아니다) — `J-3` 안에 그려지므로 «작성 중 손익 노출
+      //    금지»(02 §3-3 금지 ③)를 물려받고 `J-4` blind 리뷰(미결 46)가 본문을 재사용한다.
+      const Set<String> vmKeys = <String>{
+        'decision_id',
+        'journal_state_label',
+        'body',
+        'decision_link',
+        'as_of',
+      };
+      const Set<String> bodyKeys = <String>{
+        'written_at_text',
+        'rule_cited_label',
+        'rationale_before',
+        'expected_outcome',
+        'note',
+      };
+      const Map<String, bool> reads = <String, bool>{
+        // 픽스처 → body 가 있어야 하는가
+        FixturePaths.m6JournalReadWritten: true,
+        FixturePaths.m6JournalReadNoNote: true,
+        FixturePaths.m6JournalReadNotWritten: false,
+      };
+      for (final MapEntry<String, bool> e in reads.entries) {
+        final String path = e.key;
+        // 🆕 v1.2 검증 반영 — 미작성 픽스처는 2행(b_27 · a_31 = executed 직후 «미작성 → 본문» 전환 표본)이다.
+        final List<Map<String, Object?>> rows = decodeEnvelope(
+          readFixture(path),
+        ).rows;
+        expect(rows, isNotEmpty, reason: path);
+        for (final Map<String, Object?> row in rows) {
+          expect(
+            row.keys.toSet().difference(vmKeys),
+            isEmpty,
+            reason:
+                '$path — DecisionJournalVm 에 허용 목록 밖 키가 있다(01 §12-2 개정이 먼저다).',
+          );
+          final DecisionJournalVm vm = DecisionJournalVm.fromJson(row);
+          expect(vm.journalStateLabel, isNotEmpty, reason: path);
+          expect(
+            vm.body != null,
+            e.value,
+            reason: '$path — «미작성»은 body null 인 값이다(미작성 픽스처만 null).',
+          );
+          final Object? rawBody = row['body'];
+          if (rawBody is Map<String, Object?>) {
+            expect(
+              rawBody.keys.toSet().difference(bodyKeys),
+              isEmpty,
+              reason: '$path — DecisionJournalBody 에 결과·손익 류 키가 붙었다.',
+            );
+          }
+          final DecisionJournalBody? body = vm.body;
+          if (body != null) {
+            expect(body.writtenAtText, isNotEmpty, reason: path);
+            expect(body.ruleCitedLabel, isNotEmpty, reason: path);
+            expect(body.rationaleBefore, isNotEmpty, reason: path);
+            expect(body.expectedOutcome, isNotEmpty, reason: path);
+          }
+          final LinkAction? link = vm.decisionLink;
+          if (link != null) {
+            expect(
+              link.deepLink,
+              'aaq://journal/decision/${vm.decisionId}',
+              reason: '$path — 「이 결정 보기」는 그 결정의 J-2 다.',
+            );
+            expect(link.label, isNotEmpty, reason: path);
+          }
+        }
+      }
+      // 전환 표본 — 작성됨 픽스처의 결정이 미작성 픽스처에도 있다(`J-3` executed 직후 «미작성 → 본문»을
+      // 같은 결정으로 흘려 보는 테스트의 입력 · 테스트가 한국어 VM 을 짓지 않게).
+      final Object? writtenId = decodeEnvelope(
+        readFixture(FixturePaths.m6JournalReadWritten),
+      ).rows.single['decision_id'];
+      expect(
+        decodeEnvelope(readFixture(FixturePaths.m6JournalReadNotWritten)).rows
+            .map((Map<String, Object?> r) => r['decision_id']),
+        contains(writtenId),
+        reason: '미작성 픽스처에 작성됨 픽스처와 같은 결정의 «미작성» 행이 없다 — 전환 표본이 사라졌다.',
+      );
+    });
+
+    test('C-34 ⑨ J-2 저널 링크는 그 결정의 읽기·작성 목적지다', () {
+      const List<String> details = <String>[
+        FixturePaths.m6DecisionDetailJournalWritten,
+        FixturePaths.m6DecisionDetailJournalDraftLink,
+      ];
+      final Set<String> seen = <String>{};
+      for (final String path in details) {
+        final DecisionDetailVm vm = DecisionDetailVm.fromJson(
+          decodeEnvelope(readFixture(path)).rows.single,
+        );
+        final LinkAction? link = vm.journalLink;
+        expect(link, isNotNull, reason: '$path — 저널 링크 갈래 픽스처다.');
+        expect(link!.label, isNotEmpty, reason: path);
+        expect(vm.journalStateLabel, isNotEmpty, reason: path);
+        final String id = vm.entry.decision.decisionId;
+        final String read = 'aaq://journal/read/$id';
+        final String draft = 'aaq://journal/draft/$id';
+        expect(
+          <String>{read, draft},
+          contains(link.deepLink),
+          reason:
+              '$path — journalLink 는 그 결정의 읽기(작성됨) 또는 작성(미작성) 목적지다(01 §12-2 표).',
+        );
+        seen.add(link.deepLink == read ? 'read' : 'draft');
+      }
+      expect(seen, <String>{'read', 'draft'}, reason: '두 갈래가 모두 덮여야 한다.');
     });
 
     test('C-34 미생성 월간 리포트는 D-day 를 행 안의 문장으로 싣는다(미결 40)', () {

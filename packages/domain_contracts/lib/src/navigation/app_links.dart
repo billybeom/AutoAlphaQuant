@@ -53,6 +53,10 @@ abstract final class AppRoutes {
   /// `J-3` 사전 저널 작성(폰 전용) — `DecisionDetailVm.journalLink` 등이 준다.
   static const String journalDraft = 'aaq://journal/draft/:decisionId';
 
+  /// `J-3` 사전 저널 **읽기**(`J-3R` · 🆕 v1.2) — `DecisionDetailVm.journalLink`(작성됨)가 준다.
+  /// 등록 = 전 플랫폼(`all`) · 본문 = Android·iOS `JournalReadView` · 웹 = Q-D 전 셸 «부재» 가드(01 §12-2 · 04 §1-2).
+  static const String journalRead = 'aaq://journal/read/:decisionId';
+
   /// `J-4` 사후 blind 리뷰.
   static const String journalBlindReview = 'aaq://journal/blind-review';
 
@@ -145,6 +149,7 @@ abstract final class AppRoutes {
     journalTimeline,
     journalDecision,
     journalDraft,
+    journalRead,
     journalBlindReview,
     journalUnknownBoard,
     adviceInbox,

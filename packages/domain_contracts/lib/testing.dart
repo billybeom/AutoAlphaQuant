@@ -15,6 +15,9 @@
 //   `UnimplementedConfigRepository` · `RecordingLinkOpener`(링크 기록기) ·
 //   🆕 계약 v1.1 R2 준비(2026-09-23) — `UnimplementedCommandApi`(명령 13종) ·
 //   `UnimplementedSafetyRepository`(안전 상태 1종).
+//   🆕 계약 v1.2 R2b 선행(2026-09-25) — `UnimplementedDraftStore`(초안 포트 · 전부 `Future` 에러) ·
+//   `RecordingDraftStore`(메모리 + 호출 기록 · 픽스처 시드) ·
+//   `UnimplementedJournalRepository.watchDecisionJournal`.
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -68,6 +71,10 @@ class UnimplementedJournalRepository implements JournalRepository {
   @override
   Stream<UnknownBoardVm> watchUnknownBoard() =>
       throw UnimplementedError('watchUnknownBoard');
+
+  @override
+  Stream<DecisionJournalVm> watchDecisionJournal(String decisionId) =>
+      throw UnimplementedError('watchDecisionJournal');
 }
 
 /// [PerformanceRepository] 받침대.
@@ -199,6 +206,109 @@ class UnimplementedCommandApi implements CommandApi {
 class UnimplementedSafetyRepository implements SafetyRepository {
   @override
   Stream<SafetyState> watchState() => throw UnimplementedError('watchState');
+}
+
+/// 🆕 계약 v1.2 — [DraftStore] 받침대(전부 `Future` 에러 · **초안 포트를 읽지 않는 화면**용).
+///
+/// 🔴 다른 받침대와 달리 **동기로 던지지 않는다** — 포트 계약이 «세 메서드는 동기로 던지지 않는다 ·
+///    에러는 전부 `Future`»이기 때문이다(01 §12-1-2 · `DraftStore` 머리).
+/// 🔴 `J-3` 테스트에는 쓰지 않는다 — `J-3` 은 마운트할 때마다 `load` 를 부르므로 이것을 주입하면
+///    전부 에러 보고로 실패한다. `J-3` 테스트는 항상 [RecordingDraftStore](빈 것 포함)다.
+class UnimplementedDraftStore implements DraftStore {
+  @override
+  Future<DraftRecord?> load(DraftKey key) =>
+      Future<DraftRecord?>.error(UnimplementedError('load'));
+
+  @override
+  Future<void> save(DraftRecord record) =>
+      Future<void>.error(UnimplementedError('save'));
+
+  @override
+  Future<void> clear(DraftKey key) =>
+      Future<void>.error(UnimplementedError('clear'));
+}
+
+/// 🆕 계약 v1.2 — 메모리 [DraftStore] + **호출 기록**.
+///
+/// 🔴 값을 지어내지 않는다 — `load` 는 시드(픽스처 행)나 앞서 `save` 된 값만 돌려준다.
+/// 🔴 계약 사후조건을 같이 지킨다 — 본문 칸이 `key.kind` 의 칸 1개가 아니면 `save` 가
+///    `Future` 에러(`ArgumentError`)다.
+/// 「재시작 생존」의 **화면층** 증명 = 같은 인스턴스로 위젯 트리를 내렸다가 새 `ProviderScope` 로
+/// 다시 띄운다(실물 영속 증명은 06 M4-9).
+///
+///     final RecordingDraftStore store = RecordingDraftStore(
+///       seed: <DraftRecord>[
+///         listFixture(FixturePaths.m6DraftRecordsJ3, DraftRecord.fromJson).rows[1],
+///       ],
+///     );
+///
+/// 실패 재현은 `extends RecordingDraftStore` 로 `load`/`save` 만 `Future.error(...)` 로 override
+/// 한다(받침대에 스위치를 두지 않는다).
+class RecordingDraftStore implements DraftStore {
+  RecordingDraftStore({Iterable<DraftRecord> seed = const <DraftRecord>[]}) {
+    for (final DraftRecord r in seed) {
+      _byKey[r.key] = r;
+    }
+  }
+
+  final Map<DraftKey, DraftRecord> _byKey = <DraftKey, DraftRecord>{};
+
+  /// `load` 에 넘어온 키 — 호출 순서 그대로.
+  final List<DraftKey> loaded = <DraftKey>[];
+
+  /// `save` 에 넘어온 레코드 — 호출 순서 그대로(거절된 것은 없다).
+  final List<DraftRecord> saved = <DraftRecord>[];
+
+  /// `clear` 에 넘어온 키 — 호출 순서 그대로.
+  final List<DraftKey> cleared = <DraftKey>[];
+
+  /// 지금 들고 있는 값(단언용).
+  DraftRecord? current(DraftKey key) => _byKey[key];
+
+  @override
+  Future<DraftRecord?> load(DraftKey key) {
+    loaded.add(key);
+    return Future<DraftRecord?>.value(_byKey[key]);
+  }
+
+  @override
+  Future<void> save(DraftRecord record) {
+    if (!_bodyMatchesKind(record)) {
+      return Future<void>.error(
+        ArgumentError(
+          'DraftRecord body slot must be exactly the one of key.kind',
+        ),
+      );
+    }
+    saved.add(record);
+    _byKey[record.key] = record;
+    return Future<void>.value();
+  }
+
+  @override
+  Future<void> clear(DraftKey key) {
+    cleared.add(key);
+    _byKey.remove(key);
+    return Future<void>.value();
+  }
+}
+
+bool _bodyMatchesKind(DraftRecord r) {
+  final int filled = <Object?>[
+    r.journal,
+    r.manualFill,
+    r.adviceSkip,
+    r.selfReport,
+  ].where((Object? b) => b != null).length;
+  if (filled != 1) {
+    return false;
+  }
+  return switch (r.key.kind) {
+    DraftKind.journalDraft => r.journal != null,
+    DraftKind.manualFillRecord => r.manualFill != null,
+    DraftKind.adviceSkip => r.adviceSkip != null,
+    DraftKind.selfReportBalance => r.selfReport != null,
+  };
 }
 
 /// 넘어온 링크를 **순서대로 기록**하는 [AppLinkOpener] — 「DTO 의 링크가 그대로 전달됐는가」를

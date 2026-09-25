@@ -121,6 +121,8 @@ void main() {
 
     test('C-33 ④ 일치 규칙 — 파라미터는 비지 않고 쿼리·조각을 받지 않는다', () {
       expect(AppRoutes.isRegistered('aaq://journal/decision/d_1'), isTrue);
+      // 🆕 v1.2 — `journalRead` 는 `journal/draft`·`journal/decision` 과 **둘째 고정 세그먼트**로 갈린다.
+      expect(AppRoutes.isRegistered('aaq://journal/read/d_1'), isTrue);
       expect(AppRoutes.isRegistered('aaq://journal/decision/'), isFalse);
       expect(AppRoutes.isRegistered('aaq://journal/decision/d_1?x=1'), isFalse);
       expect(AppRoutes.isRegistered('aaq://report/2026-08'), isTrue);
