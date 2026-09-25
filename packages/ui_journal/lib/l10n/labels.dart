@@ -58,4 +58,35 @@ abstract final class JournalLabels {
 
   /// 필터 바텀시트 — 출처 섹션 제목.
   static const String filterOrigin = '출처';
+
+  // ── 🆕 R2 — J-2 거래 상세 ─────────────────────────────────────────────────
+
+  /// 결정 당시 스냅샷 접이식 제목.
+  static const String decisionSnapshot = '결정 당시 스냅샷';
+
+  /// 임계값 대조 표 제목.
+  static const String thresholdCompare = '트리거 값 vs 사전 등록 임계값';
+
+  /// 거부 추적 접이식 제목.
+  static const String rejectTrace = '검사 기록';
+
+  /// configHash 길게 누름 → 클립보드 복사 완료 안내.
+  static const String copied = '복사했습니다';
+
+  // ── 🆕 R2 — J-3 사전 저널 폼 ────────────────────────────────────────────
+
+  /// 사전 근거 입력란 레이블.
+  static const String draftRationale = '사전 근거';
+
+  /// 기대 결과 입력란 레이블.
+  static const String draftExpected = '기대 결과';
+
+  /// 인용 규칙 드롭다운 레이블.
+  static const String draftRuleCited = '인용 규칙';
+
+  /// 메모 입력란 레이블.
+  static const String draftNote = '메모';
+
+  /// 제출 버튼 레이블.
+  static const String draftSubmit = '제출';
 }

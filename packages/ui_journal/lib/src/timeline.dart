@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/labels.dart';
+import 'common/journal_common.dart';
 
 // ── Injection providers ───────────────────────────────────────────────────────
 
@@ -186,7 +187,7 @@ class JournalTimeline extends ConsumerWidget {
     // While effective query is loading/error, show skeleton or error.
     if (!effectiveQuery.hasValue) {
       if (effectiveQuery.hasError) {
-        return _TimelineError(
+        return JournalErrorView(
           lastAsOfLabel: null,
           onRetry: () {
             ref.invalidate(journalEffectiveQueryProvider);
@@ -194,7 +195,7 @@ class JournalTimeline extends ConsumerWidget {
           },
         );
       }
-      return const _TimelineSkeleton();
+      return const JournalSkeleton();
     }
 
     final AsyncValue<ListResult<TradeJournalEntry>> timeline = ref.watch(
@@ -209,8 +210,8 @@ class JournalTimeline extends ConsumerWidget {
     final Clock clock = ref.watch(journalClockProvider);
 
     return timeline.when(
-      loading: () => const _TimelineSkeleton(),
-      error: (Object error, StackTrace stackTrace) => _TimelineError(
+      loading: () => const JournalSkeleton(),
+      error: (Object error, StackTrace stackTrace) => JournalErrorView(
         lastAsOfLabel: timeline.valueOrNull?.asOf.label,
         onRetry: () => ref.invalidate(journalTimelineProvider),
       ),
@@ -274,12 +275,15 @@ class _TimelineContent extends StatelessWidget {
       },
       child: CustomScrollView(
         slivers: <Widget>[
-          SliverToBoxAdapter(child: _AsOfHeader(asOf: result.asOf)),
-          if (stale) SliverToBoxAdapter(child: _StaleBanner(asOf: result.asOf)),
+          SliverToBoxAdapter(child: JournalAsOfHeader(asOf: result.asOf)),
+          if (stale)
+            SliverToBoxAdapter(child: JournalStaleBanner(asOf: result.asOf)),
           if (blockingFlags.isNotEmpty)
-            SliverToBoxAdapter(child: _BlockingFlags(flags: blockingFlags)),
+            SliverToBoxAdapter(
+              child: JournalBlockingFlags(flags: blockingFlags),
+            ),
           if (markerFlags.isNotEmpty)
-            SliverToBoxAdapter(child: _MarkerChips(flags: markerFlags)),
+            SliverToBoxAdapter(child: JournalMarkerChips(flags: markerFlags)),
           // ⓓ badge row — absent when empty
           if (badges.isNotEmpty)
             SliverToBoxAdapter(child: _BadgeRow(badges: badges)),
@@ -293,145 +297,6 @@ class _TimelineContent extends StatelessWidget {
           else
             _JournalRows(rows: result.rows, onLoadMore: onLoadMore),
         ],
-      ),
-    );
-  }
-}
-
-// ─── As-of header ─────────────────────────────────────────────────────────────
-
-class _AsOfHeader extends StatelessWidget {
-  const _AsOfHeader({required this.asOf});
-
-  final AsOf asOf;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Text(asOf.label),
-    );
-  }
-}
-
-// ─── Stale banner (F3 / A4) ───────────────────────────────────────────────────
-
-class _StaleBanner extends StatelessWidget {
-  const _StaleBanner({required this.asOf});
-
-  final AsOf asOf;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(JournalLabels.staleBannerTitle),
-          if (asOf.staleLabel != null) Text(asOf.staleLabel!),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Blocking flags — top-2 cards + overflow count (F4 / A5) ─────────────────
-
-class _BlockingFlags extends StatelessWidget {
-  const _BlockingFlags({required this.flags});
-
-  final List<BlockFlag> flags;
-
-  @override
-  Widget build(BuildContext context) {
-    // Engine-sorted order — do NOT re-sort (A5 rule).
-    final int overflowCount = flags.length > 2 ? flags.length - 2 : 0;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        ...flags.take(2).map((BlockFlag f) => _BlockFlagCard(flag: f)),
-        if (overflowCount > 0)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text('+$overflowCount'),
-          ),
-      ],
-    );
-  }
-}
-
-/// ⓔ Banner card — arrow present only when clearDeepLink is non-null (§11-4).
-class _BlockFlagCard extends ConsumerWidget {
-  const _BlockFlagCard({required this.flag});
-
-  final BlockFlag flag;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final String? clearLink = flag.clearDeepLink;
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                const Icon(Icons.warning_amber_rounded),
-                const SizedBox(width: 8),
-                Expanded(child: Text(flag.label)),
-                // ⓔ arrow ABSENT (not disabled) when clearDeepLink == null
-                if (clearLink != null)
-                  IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onPressed: () =>
-                        ref.read(journalLinkOpenerProvider).open(clearLink),
-                  ),
-              ],
-            ),
-            Text(flag.clearInstruction),
-            // ⓔ checkpointLabel — rendered only when non-null
-            if (flag.checkpointLabel != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  flag.checkpointLabel!,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Marker-only flags — grey info chip row (F4b / A5) ────────────────────────
-
-class _MarkerChips extends StatelessWidget {
-  const _MarkerChips({required this.flags});
-
-  final List<BlockFlag> flags;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 4,
-        children: flags
-            .map(
-              (BlockFlag f) => Chip(
-                label: Text(f.label),
-                backgroundColor: Theme.of(context)
-                    .colorScheme
-                    .surfaceContainerHighest,
-              ),
-            )
-            .toList(growable: false),
       ),
     );
   }
@@ -469,22 +334,12 @@ class _BadgeChip extends ConsumerWidget {
     final String? link = badge.deepLink;
     return ActionChip(
       label: Text(badge.label),
-      backgroundColor: _toneColor(context, badge.tone),
+      backgroundColor: journalToneColor(context, badge.tone),
       // null deepLink → no tap reaction
       onPressed: link != null
           ? () => ref.read(journalLinkOpenerProvider).open(link)
           : null,
     );
-  }
-
-  static Color _toneColor(BuildContext context, ChipTone tone) {
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    return switch (tone) {
-      ChipTone.caution => cs.errorContainer,
-      ChipTone.blocked => cs.error,
-      ChipTone.neutral => cs.surfaceContainerHighest,
-      ChipTone.prevented => cs.surfaceContainerHighest,
-    };
   }
 }
 
@@ -751,6 +606,8 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
 
   void _apply() {
     // ⓒ Passes selected values straight to watchTimeline args — no row filtering.
+    // A14: rebalanceEventId is carried from the initial query unchanged — the
+    // filter sheet has no field for it and must not drop it.
     ref
         .read(journalTimelineQueryProvider.notifier)
         .state = JournalTimelineQuery(
@@ -759,6 +616,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
       symbol: _symbol,
       status: _status,
       origin: _origin,
+      rebalanceEventId: widget.initialQuery.rebalanceEventId,
     );
     Navigator.of(context).pop();
   }
@@ -931,7 +789,7 @@ class _JournalRows extends StatelessWidget {
         children.add(_DateHeader(label: entry.tradeDate.yyyyMmDd));
         previousTradeDate = entry.tradeDate.yyyyMmDd;
       }
-      children.add(_JournalRow(entry: entry));
+      children.add(JournalEntryCard(entry: entry));
     }
     return SliverList(delegate: SliverChildListDelegate(children));
   }
@@ -951,132 +809,6 @@ class _DateHeader extends StatelessWidget {
   }
 }
 
-/// ⓐ Renders display strings (*Text · sideLabel) — never raw values.
-/// ⓑ No screen-side hiding — *Text already contains "숨김" / "120주?" from engine.
-/// ⓔ Row tap opens entry.detailDeepLink; null → no reaction.
-class _JournalRow extends ConsumerWidget {
-  const _JournalRow({required this.entry});
-
-  final TradeJournalEntry entry;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final bool isPrevented = entry.statusTone == ChipTone.prevented;
-    final String? detailLink = entry.detailDeepLink;
-
-    Widget card = Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            // ── Status / deviation / prevented chips ───────────────────────
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: <Widget>[
-                if (entry.mode.isSim)
-                  const Chip(label: Text(JournalLabels.simulation)),
-                Chip(label: Text(entry.statusLabel)),
-                if (entry.deviation.isDeviation)
-                  Chip(label: Text(entry.deviation.label)),
-                if (isPrevented) const Icon(Icons.lock_outline, size: 18),
-              ],
-            ),
-            const SizedBox(height: 6),
-            // ── Symbol + account alias ─────────────────────────────────────
-            Text(entry.symbolLabel),
-            if (entry.accountAlias != null) Text(entry.accountAlias!),
-            const SizedBox(height: 6),
-            // ── ⓐ Direction and values — *Text only; raw values not shown ─
-            Text(entry.sideLabel),
-            Text(entry.quantityText),
-            Text(entry.priceText),
-            Text('${JournalLabels.commission}: ${entry.commissionText}'),
-            Text('${JournalLabels.tax}: ${entry.taxText}'),
-            Text(entry.visibilityLabel),
-            // ── Metadata ───────────────────────────────────────────────────
-            Text(entry.originLabel),
-            if (entry.backdate.isBackdated) Text(entry.backdate.label),
-            Text(entry.costSourceLabel),
-            // ── ⓔ Reason chips — chip tap opens chip.detailDeepLink ───────
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: <Widget>[
-                ...entry.reasons
-                    .take(3)
-                    .map((ReasonChip r) => _ReasonChipWidget(chip: r)),
-                if (entry.reasons.length > 3)
-                  Text('+${entry.reasons.length - 3}'),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-
-    // Greyscale filter for SIM rows (F5 / A6).
-    if (entry.mode.isSim) {
-      card = ColorFiltered(
-        colorFilter: const ColorFilter.matrix(<double>[
-          0.2126,
-          0.7152,
-          0.0722,
-          0,
-          0,
-          0.2126,
-          0.7152,
-          0.0722,
-          0,
-          0,
-          0.2126,
-          0.7152,
-          0.0722,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-        ]),
-        child: card,
-      );
-    }
-
-    // ⓔ Row tap — present only when detailDeepLink is non-null.
-    if (detailLink != null) {
-      return InkWell(
-        onTap: () => ref.read(journalLinkOpenerProvider).open(detailLink),
-        child: card,
-      );
-    }
-    return card;
-  }
-}
-
-// ─── ⓔ Reason chip with optional tap ─────────────────────────────────────────
-
-class _ReasonChipWidget extends ConsumerWidget {
-  const _ReasonChipWidget({required this.chip});
-
-  final ReasonChip chip;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final String? link = chip.detailDeepLink;
-    if (link != null) {
-      return ActionChip(
-        label: Text(chip.label),
-        onPressed: () => ref.read(journalLinkOpenerProvider).open(link),
-      );
-    }
-    return Chip(label: Text(chip.label));
-  }
-}
-
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
@@ -1092,47 +824,5 @@ class _EmptyState extends StatelessWidget {
       EmptyKind.notLoaded => result.asOf.staleLabel,
     };
     return label == null ? const SizedBox.shrink() : Center(child: Text(label));
-  }
-}
-
-// ─── Skeleton (loading state) ─────────────────────────────────────────────────
-
-class _TimelineSkeleton extends StatelessWidget {
-  const _TimelineSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 6,
-      itemBuilder: (BuildContext context, int index) => const Card(
-        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: SizedBox(height: 132),
-      ),
-    );
-  }
-}
-
-// ─── Error state ──────────────────────────────────────────────────────────────
-
-class _TimelineError extends StatelessWidget {
-  const _TimelineError({required this.onRetry, this.lastAsOfLabel});
-
-  final VoidCallback onRetry;
-  final String? lastAsOfLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          if (lastAsOfLabel != null) Text(lastAsOfLabel!),
-          FilledButton(
-            onPressed: onRetry,
-            child: const Text(JournalLabels.retry),
-          ),
-        ],
-      ),
-    );
   }
 }
