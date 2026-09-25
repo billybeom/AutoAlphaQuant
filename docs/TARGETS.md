@@ -17,7 +17,7 @@
 | `broker_gateway` | Claude (M1) | ○ | **—** | **—** |
 | `trading_runtime` | Claude (M1·X2) | ● | **—** | **—** |
 | `data_sync` | Claude (M4·X1·X4·X5) | ● 읽기+쓰기 | ● **읽기 전용** | — |
-| `ui_journal` | 다른 AI (M6) | ● | ⚠️ **`J-3` 사전 저널 폼 제외**(T-3) | — |
+| `ui_journal` | 다른 AI (M6) | ● | ⚠️ **`J-3` 사전 저널 폼 제외**(T-3) · 🆕 v1.2 `J-3R` 읽기 뷰(`JournalReadView`)는 **포함** | — |
 | `ui_analytics` | 다른 AI (M7) | ● | ● | — |
 | `ui_shell` | 다른 AI (M8·X3) | ● | ● | — |
 | `ui_settings` | 다른 AI (M9) | ● 전체 | ⚠️ 키 입력 화면 제외 | — |
@@ -44,7 +44,7 @@
 |---|---|---|---|
 | **T-1** | viewer의 `ui_safety` — 발동만, 해제 화면 제외 | 패키지 **전체**를 의존. "해제 화면을 라우팅에 넣지 않는다"는 규칙 | 🔴 **M5 요청**: 해제 화면을 전이 참조하지 않는 **발동 전용 진입점 라이브러리**(예: `package:ui_safety/kill_switch_trigger.dart`)를 내놓으면 viewer가 그것만 import해 진짜 빌드 제외가 됩니다 |
 | **T-2** | viewer의 `ui_settings` — 키 입력 화면 제외 | 패키지 전체를 의존. 라우팅에서 제외하는 규칙 | 🔴 **M9 계약 요청**: 키 입력 위젯을 별도 라이브러리로 분리하거나, 최소한 «operator 전용 라우트» 목록을 계약에 명시. 서버 측 방어는 RLS가 이미 담당(01 §6-4) |
-| **T-3** 🆕 | viewer(iOS)의 `ui_journal` — `J-3` 사전 저널 폼 제외(결정 9b «폰 전용») | 패키지 전체를 의존. ✅ 모양은 정했다(2026-09-23 · R2 준비): `J-3` 은 **배럴 밖** 라이브러리 `package:ui_journal/journal_draft.dart` 에 두고(`CommandApi` 주입 `journalCommandApiProvider` 도 그 안) **operator 앱만 import** 한다 — iOS 는 배럴 `package:ui_journal/ui_journal.dart` 만 쓴다(T-1 이 `ui_safety` 에 요구한 모양과 같다). 웹은 `ui_journal` 자체가 없다 | 🔴 조립 앱 배선 때 `tool/check_boundaries.sh` 에 [6] «`apps/app_viewer_ios/lib` 에 `package:ui_journal/journal_draft.dart` import 0건» 을 더한다(M2/infra) |
+| **T-3** 🆕 | viewer(iOS)의 `ui_journal` — `J-3` 사전 저널 폼 제외(결정 9b «폰 전용») | 패키지 전체를 의존. ✅ 모양은 정했다(2026-09-23 · R2 준비): `J-3` 은 **배럴 밖** 라이브러리 `package:ui_journal/journal_draft.dart` 에 두고(`CommandApi` 주입 `journalCommandApiProvider` 도 그 안 · 🆕 v1.2 초안 포트 주입 `journalDraftStoreProvider` 도 그 안 — C-35 ⑥ 이 기계 검사) **operator 앱만 import** 한다 — iOS 는 배럴 `package:ui_journal/ui_journal.dart` 만 쓴다(T-1 이 `ui_safety` 에 요구한 모양과 같다). 웹은 `ui_journal` 자체가 없다 | 🔴 조립 앱 배선 때 `tool/check_boundaries.sh` 에 [6] «`apps/app_viewer_ios/lib` 에 `package:ui_journal/journal_draft.dart` import 0건» 을 더한다(M2/infra) |
 
 > T-1~T-3이 해소되기 전까지 이 세 항목은 **병합 검사(07 §9 ④)의 사람 판단 대상**입니다.
 

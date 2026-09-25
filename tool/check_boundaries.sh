@@ -31,7 +31,8 @@ WARN=0
 
 # ── 금지 목록 (01 §1-1 · 07 §9 기계 검사 1과 같은 집합) ──────────────────────
 # ui_* 는 domain_contracts · flutter · riverpod 만 의존한다.
-FORBIDDEN_UI='core_engine|decimal|broker_gateway|trading_runtime|data_sync|sqflite|supabase|http|dio'
+# 🆕 계약 v1.2(01 §12-1) — 저장 패키지 7종(shared_preferences … sqlite3). 입력 초안은 포트(DraftStore)로만.
+FORBIDDEN_UI='core_engine|decimal|broker_gateway|trading_runtime|data_sync|sqflite|supabase|http|dio|shared_preferences|flutter_secure_storage|path_provider|hive|isar|drift|sqlite3'
 # domain_contracts 는 순수 Dart. decimal 은 허용(금액 타입의 근거),
 # flutter_lints 도 허용(규칙 YAML만 담은 순수 Dart 패키지 — analysis_options 주석 참조).
 # 그래서 flutter 계열은 접두 일치로 뭉뚱그리지 않고 아래 [3]에서 따로 본다.

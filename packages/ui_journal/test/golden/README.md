@@ -207,3 +207,48 @@ await expectGolden('j1_filter_open', b);
    🔴 제출은 **UI 를 실제로 조작해서** 한다(입력 → 인용 규칙 선택 → 제출 버튼 탭). 가짜가 받은 `JournalDraft` 를 기록해 입력값과 대조한다.
 4. **시계·안전 상태** — `FixedClock(kGoldenNowUtc)` · `safetyFixtureRow(0)`(NORMAL). `J-2`·`J-3`·`J-5` 픽스처 10건과 접수증 픽스처는 전부 그 시각에 신선하다(VM **최상위** `asOf` 기준 — `J-2` 의 `entry.asOf` 는 체결 당시라 이미 오래됐다 · 머리·신선도에 쓰지 않는다).
    «오래된 데이터» 배너는 골든이 아니라 위젯 테스트에서 `FixedClock(kGoldenNowUtc.add(const Duration(days: 2)))` 로 켠다(테스트 파일 안 로컬 값).
+
+## 🆕 R2b(계약 v1.2 · 2026-09-25) — 초안 복원·접수 실패·읽기 뷰 골든
+
+계약 v1.2(01 §12)가 `J-3` 에 기기 로컬 초안 포트 `DraftStore` 와 읽기 창구 `watchDecisionJournal` 을 더했다.
+골든 입력은 전부 픽스처에서 온다 — 🔴 테스트가 `DraftRecord(...)`·`DecisionJournalVm(...)` 을 지어 한국어 값을 넣지 않는다.
+
+| 골든(× light/dark) | 입력 |
+|---|---|
+| `j3_restored_rejected` | 스펙 `m6JournalDraftSpecDiscretion` + `m6DraftRecordsJ3` **행 2** 시드 + `watchCommand` = `m6JournalDraftReceipts5` 의 `REJECTED` 행 |
+| `j3_submit_not_accepted` | 스펙 discretion + 행 1 시드 + `submitJournalDraft` = `Future.error(Exception())` → 제출 탭 1회(`tester.takeException()` 단언) |
+| `j3_executed_read` | 스펙 discretion + 행 2 시드 + `watchCommand` = `EXECUTED` 행 + `watchDecisionJournal` = `m6JournalReadWritten` |
+| `j3r_written` | `JournalReadView` + `m6JournalReadWritten` |
+| `j3r_not_written` | `JournalReadView` + `m6JournalReadNotWritten` |
+| (선택) `j3r_no_note` · `j2_journal_written` | `m6JournalReadNoNote` · `m6DecisionDetailJournalWritten`(+ 안전 행 0) |
+| 기존 `j3_*` 4종 | + `journalDraftStoreProvider.overrideWithValue(RecordingDraftStore())` → 🔴 **픽셀 불변 · 재생성 금지**(바뀌면 복원 전 상태가 찍힌 것 = 결함) |
+
+### 초안 시드하는 법
+
+`RecordingDraftStore`(`package:domain_contracts/testing.dart`)는 메모리 저장소 + 호출 기록(`loaded`·`saved`·`cleared`·`current`)이다.
+값을 지어내지 않고, 본문 칸이 `key.kind` 의 칸 1개가 아니면 `save` 가 `Future` 에러(`ArgumentError`)다(계약 사후조건 — C-35 ⑦ 이 받침대 자체를 검사한다).
+
+```dart
+final RecordingDraftStore store = RecordingDraftStore(
+  seed: <DraftRecord>[
+    listFixture(FixturePaths.m6DraftRecordsJ3, DraftRecord.fromJson).rows[1],
+  ],
+);
+```
+
+- 실패 재현은 `class _FailingStore extends RecordingDraftStore` 로 `load`/`save` 만 `Future.error(...)` 로 override 한다(받침대에 스위치를 두지 않는다).
+- 초안 포트를 부르면 안 되는 테스트는 `UnimplementedDraftStore`(전부 던짐)를 쓴다.
+- «재시작 생존»의 **화면층** 증명 = 같은 `store` 인스턴스로 트리를 내렸다(`pumpWidget(const SizedBox())`) 새 `ProviderScope` 로 다시 띄운다. 🔴 실물 영속 증명은 06 M4-9 다 — 카드·PR 보고에서 두 증명을 섞지 않는다.
+
+### 🔴 한 행씩 시드 — `draft_records_j3` 는 행 순서가 의미다
+
+| 행 | 이름 | 키 | 본문 · 연결 | 쓰는 곳 |
+|---|---|---|---|---|
+| 0 | `J3_PARTIAL` | `d_20260901_a_31` | 근거 < 40자 · 기대 결과 비어 있음 · 인용 규칙 미선택 · 연결 없음 | 복원 · 버튼 비활성 |
+| 1 | `J3_COMPLETE` | `d_20260901_a_31` | 완성 본문 · `RULE_DISCRETION_BUDGET` · 연결 없음 | 복원 · 버튼 활성 · 접수 실패 골든 |
+| 2 | `J3_SUBMITTED` | `d_20260901_a_31` | 행 1 본문 · `lastCommandId` = 접수증 픽스처의 명령 | 재구독 · 거부/집행 복원 골든 |
+| 3 | `J3_RETIRED_RULE` | `d_20260810_b_27` | 완성 본문 · 폐기 표본 code(선택지에 없음) | 사라진 code = 미선택 · 다른 키 비노출 |
+
+🔴 여러 행을 한꺼번에 시드하지 않는다 — 행 0·1·2 는 **같은 키**라 마지막 행만 남는다(시드 순서가 결과를 바꾼다).
+🔴 `watchDecisionJournal` 을 쓰는 화면(`executed` 뒤 `J-3` · `JournalReadView`)의 가짜 저장소는 `extends UnimplementedJournalRepository` 에서
+`watchDecisionJournal` 을 override 한다 — 빠뜨리면 받침대가 던져 읽기 본문이 에러 상태(«다시 시도»)가 된다.

@@ -230,3 +230,34 @@ K-4 가 말한 「창이 닫힌 뒤 발견된 이름은 다음 창」이 이것�
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 44(`S7-3` 초안 필드: 에피소드 표·백분위·회복 필요 수익률 — 엔진 분석 산출물 정의가 선행) ·
 🆕 미결 46(`J-4` blind 리뷰: 읽기 창구·픽스처 + `BlindReviewScore.answers: Map<String,int>` ↔ `BlindReviewQuestion.choices: List<ReasonOption>` 축 불일치).
+
+---
+
+## M. 🆕 계약 v1.2 (2026-09-25 · R2b 선행 M2 보강) — 미결 47·48·51④
+
+R2b-Bob-J3(사전 저널 영속화·읽기 뷰) 발송 전에 계약 면을 닫았다. `contractVersion` = **`1.2.0`** · 픽스처 104건
+(기존 97 봉투 한 줄 + 신규 7) · 라우트 41 · 조문 = 01 §12.
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| M-1 | `DraftStore` · `load` · `save` · `clear` | 셋째 쓰기 창구(기기 로컬 초안 · 원장·명령 쓰기가 아니다 — 01 §1-4 예외 1) · `commands/draft_store.dart` · 동사 = 01 §8 47 원문. C-7 ⑤⑥ |
+| M-2 | `DraftKind`(`journalDraft`·`manualFillRecord`·`adviceSkip`·`selfReportBalance`) | `enums/draft.dart` · Dart 이름·표기 = `CommandKind` 의 같은 값(어순 비대칭 포함) · 영구 제외 6종(C-35 ②) |
+| M-3 | `DraftKey`(`kind`·`targetId`) | 초안 자리 — `targetId` = 위젯 생성자 인자 그대로(링크 조립 아님) · 모드는 키에 없다 |
+| M-4 | `DraftRecord`(`key`·`journal`·`manualFill`·`adviceSkip`·`selfReport`·`lastCommandId`) | 봉투 — 본문 칸은 `key.kind` 의 칸 정확히 1개(C-35 ①) · `lastCommandId` = 재시작 뒤 이중 제출 차단 |
+| M-5 | `…Input` 접미 규칙 | «사람이 친 원문 — 초안 본문» · 필드 이름 = 명령 인자 · 원문 = `<인자>Text` · 확인값·세션값·맥락 제외 · 추가형으로만 진화(C-35 ④) |
+| M-6 | `JournalDraftInput`·`ManualFillInput`·`AdviceSkipInput`·`SelfReportInput`·`SelfReportLineInput` | `commands/drafts.dart` |
+| M-7 | `DecisionJournalVm`(`journalStateLabel`·`body`·`decisionLink`) · `DecisionJournalBody`(`writtenAtText`·`ruleCitedLabel`·`rationaleBefore`·`expectedOutcome`·`note`) | `dto/journal.dart` · 결과·손익 필드 추가 금지(C-34 ⑧ 허용 키 목록) |
+| M-8 | `JournalRepository.watchDecisionJournal` | 10번째 메서드 · «미작성» = `body == null` 인 값 · 결정 부재 = 스트림 에러 |
+| M-9 | `AppRoutes.journalRead` | `aaq://journal/read/:decisionId` · 41번째 · `DecisionDetailVm.journalLink`(작성됨)의 목적지(C-34 ⑨) |
+| M-10 | 화면 ID `J-3R` | `J-3` 읽기 뷰(골든 접두 `j3r_`) |
+| M-11 | `UnimplementedDraftStore` · `RecordingDraftStore`(`loaded`·`saved`·`cleared`·`current`) | `testing.dart` · 받침대 자체 검증 C-35 ⑦ |
+| M-12 | 픽스처 7 · `FixturePaths` 상수 7 | `m6DraftRecordsJ3`·`m6DraftRecordsX7`·`m6JournalReadWritten`·`m6JournalReadNoNote`·`m6JournalReadNotWritten`·`m6DecisionDetailJournalWritten`·`m6DecisionDetailJournalDraftLink` |
+| M-13 | C-35 | 초안 포트 경계(7건) — `test/contracts/c35_draft_store_test.dart` |
+| M-14 | 권고(화면 쪽 · 카드가 확정) | `journalDraftStoreProvider` · `journalReadProvider` · `JournalReadView` · `JournalReadContent` · `JournalLabels.submitNotAccepted` · 키 `j3-submit-not-accepted`·`j3-resubscribe`·`j3r-state`·`j3r-body`·`j3r-written-at`·`j3r-link-decision` |
+
+🔵 같은 PR 의 커밋 1 — C-12 가 `ui_*/lib`·`apps/*/lib` 의 switch «전부 받기» 6형태(`default:`·`_ =>`·`case _:`·`T _`·`final x =>`·`case final x:`)를
+대상 타입 불문으로 금지한다(정규식 5 · 자체 검증 · 문서화 예외 맵 = 빈 맵 · 양방향). C-3 금지 의존 +7(저장 패키지).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 44(`S7-3` 초안 필드) · 46(`J-4` 점수 축·읽기 창구·픽스처 — 본문 단위만 `DecisionJournalBody` 로 정함) ·
+🆕 52(X7 초안 소비 경로 — `adviceFill` 파라미터 · `A-4` 라우트 · 원문→인자 변환 주체 · `L-3` 세션 VM · operator 공용 주입 파일 · `M5-12`) ·
+🆕 53(기기 로컬 암호화 저장소 구현 06 M4-9 · X1 «초안 불이동» 게이트 · 모드 전환 때 초안 처리).

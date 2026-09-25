@@ -2,13 +2,14 @@
 //
 // 정의: 「`ui_*`(`ui_safety` 제외)에 ① `killSwitch`·`releaseProgress`·`ResumeReport`
 //   **원본** 렌더 ② 플래그 해제·게이트 통과·재개·정정 성격의 **조작 위젯**
-//   ③ `CommandApi`·`SettingsActions` 밖의 쓰기 호출이 있으면 실패.
+//   ③ `CommandApi`·`SettingsActions`·`DraftStore`(기기 로컬 초안) 밖의 쓰기 호출이 있으면 실패.
 //   §2-10 표의 ✅ 항목(배너·읽기 목록·딥링크)은 통과」.
 //
 // 🟡 위젯 검사는 `ui_*` 선행이다. 지금 고정할 수 있는 것은 **경계의 뼈대**다 —
 //    ① 소유 경로가 CODEOWNERS 에 파일 경로로 적혀 있고(07 §9 기계 검사 3)
 //    ② 리포지토리에 쓰기 메서드가 하나도 없으며(01 §4-1)
-//    ③ 쓰기 창구가 `CommandApi`·`SettingsActions` 둘뿐이다(01 §4-2·§4-3).
+//    ③ 쓰기 창구가 `CommandApi`·`SettingsActions` 둘 + 🆕 v1.2 예외 1 `DraftStore`(기기 로컬
+//       입력 초안 · 원장·명령 쓰기가 아니다 — 01 §1-4 · §12-1)뿐이다(01 §4-2·§4-3).
 
 import 'dart:io';
 
@@ -36,6 +37,12 @@ const List<String> _claudeOwnedPaths = <String>[
 /// 쓰기로 읽히는 메서드 이름 접두(01 §1-4).
 final RegExp _writeVerb = RegExp(
   r'\b(save|write|submit|send|insert|update|delete|apply|commit)[A-Z_]',
+);
+
+/// 🆕 v1.2 — 접미 없는 **맨** 쓰기 동사 메서드(`save(`·`delete(` …). [_writeVerb] 는 `…[A-Z_]` 만
+/// 보므로 `DraftStore.save(` 는 거기에 걸리지 않는다 — 그 구멍을 이름으로 허용해 닫는다(C-7 ⑥).
+final RegExp _bareWriteVerbCall = RegExp(
+  r'\b(save|write|submit|send|insert|update|delete|apply|commit)\s*\(',
 );
 
 /// [path] 의 코드(주석·문자열 제외)에 나오는 쓰기 이름 전체(예: `submitJournalDraft`).
@@ -160,6 +167,57 @@ void main() {
         reason:
             '01 §4-3 — «동작»만이다(G-29). 상태 구독은 리포지토리 쪽이고, 여기에 '
             '메서드를 더하면 화면이 run() 을 폴링해 상태를 만들기 시작한다.',
+      );
+    });
+
+    test('C-7 셋째 쓰기 창구 DraftStore 의 표면은 load·save·clear 셋뿐이다', () {
+      // 🆕 v1.2(01 §1-4 예외 1 · §12-1) — 기기 로컬 입력 초안. 원장·명령·공유 저장소 쓰기가
+      //    아니며 표면은 01 §8 미결 47 원문의 세 동사로 **고정**한다(SettingsActions 선례).
+      final String code = stripCommentsAndStrings(
+        File('${libDir.path}/src/commands/draft_store.dart').readAsStringSync(),
+      );
+      final String surface = RegExp(
+        r'abstract interface class DraftStore \{(.*?)\n\}',
+        dotAll: true,
+      ).firstMatch(code)!.group(1)!;
+      final List<String> methods = RegExp(r'\b(\w+)\s*\(')
+          .allMatches(surface)
+          .map((RegExpMatch m) => m.group(1)!)
+          .toList();
+      expect(
+        methods.toSet(),
+        <String>{'load', 'save', 'clear'},
+        reason:
+            '01 §12-1 — 초안 포트는 load·save·clear 셋이다. 메서드를 더하면 원장·명령 쓰기가 '
+            '«초안»이라는 이름으로 새 창구를 얻는다(01 §1-4 예외 1 의 범위를 넘는다).',
+      );
+    });
+
+    test('C-7 맨 쓰기 동사 메서드는 DraftStore 와 그 받침대에만 있다', () {
+      // 🔴 사유 — 위 `_writeVerb` 는 `…[A-Z_]` 만 봐서 `save(`·`delete(` 같은 맨 동사를 못 잡는다.
+      //    정규식 구멍을 **명시 허용**으로 닫는다: 맨 동사가 나오는 파일은 초안 포트와 받침대뿐이다.
+      const Set<String> allowed = <String>{
+        'packages/domain_contracts/lib/src/commands/draft_store.dart',
+        'packages/domain_contracts/lib/testing.dart',
+      };
+      final Set<String> found = <String>{};
+      for (final File f in dartSourcesIn(libDir)) {
+        final String code = stripCommentsAndStrings(f.readAsStringSync());
+        if (_bareWriteVerbCall.hasMatch(code)) {
+          found.add(shortPath(f));
+        }
+      }
+      expect(
+        found.difference(allowed),
+        isEmpty,
+        reason:
+            '맨 쓰기 동사 메서드가 초안 포트 밖에 생겼다 — 새 쓰기 창구다. 늘어야 한다면 01 §1-4 를 '
+            '먼저 고치고 그 커밋에서 이 목록을 고친다.',
+      );
+      expect(
+        found,
+        contains('packages/domain_contracts/lib/src/commands/draft_store.dart'),
+        reason: '정규식이 DraftStore.save( 를 못 읽었다 — 검사가 공허해진다.',
       );
     });
 

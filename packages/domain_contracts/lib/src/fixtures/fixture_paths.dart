@@ -48,6 +48,14 @@ abstract final class FixturePaths {
   static const String m6DecisionDetailAmended =
       'm6/decision_detail_amended.json';
   static const String m6DecisionDetailFull = 'm6/decision_detail_full.json';
+
+  /// 🆕 v1.2(R2b 선행 · 01 §12-2) — `J-2 journalLink` 목적지 2갈래. `decision_detail_amended`
+  ///    사본에서 `journal_state_label`·`journal_link` 두 키만 다르다(작성됨 → `journal/read` ·
+  ///    미작성 → `journal/draft`).
+  static const String m6DecisionDetailJournalDraftLink =
+      'm6/decision_detail_journal_draft_link.json';
+  static const String m6DecisionDetailJournalWritten =
+      'm6/decision_detail_journal_written.json';
   static const String m6DecisionDetailPartial =
       'm6/decision_detail_partial.json';
   static const String m6DecisionDetailReevaluatedChild =
@@ -56,6 +64,12 @@ abstract final class FixturePaths {
       'm6/decision_detail_rejected_saf309.json';
   static const String m6DecisionDetailUnknown =
       'm6/decision_detail_unknown.json';
+
+  /// 🆕 v1.2(R2b 선행 · 01 §12-1) — 기기 로컬 입력 초안(`DraftRecord`).
+  ///    🔴 `draft_records_j3` 는 **행 순서가 의미**다(0 작성 중 · 1 완성 · 2 제출됨 · 3 폐기 규칙 —
+  ///    fixtures/README.md 표). 테스트는 **한 행씩** 시드한다. `draft_records_x7` 는 X7 모양 고정용.
+  static const String m6DraftRecordsJ3 = 'm6/draft_records_j3.json';
+  static const String m6DraftRecordsX7 = 'm6/draft_records_x7.json';
   static const String m6EntryGateNovPass1 = 'm6/entry_gate_nov_pass_1.json';
   static const String m6ExternalHoldings2 = 'm6/external_holdings_2.json';
   static const String m6FillFormSpec = 'm6/fill_form_spec.json';
@@ -82,6 +96,13 @@ abstract final class FixturePaths {
   static const String m6JournalFilterCatalog = 'm6/journal_filter_catalog.json';
   static const String m6JournalMaskedIntegrity =
       'm6/journal_masked_integrity.json';
+
+  /// 🆕 v1.2(R2b 선행 · 01 §12-2) — `J-3R` 사전 저널 읽기(`DecisionJournalVm`) 3갈래:
+  ///    작성됨 · 작성됨(메모·결정 링크 부재) · 미작성(`body` null).
+  static const String m6JournalReadNoNote = 'm6/journal_read_no_note.json';
+  static const String m6JournalReadNotWritten =
+      'm6/journal_read_not_written.json';
+  static const String m6JournalReadWritten = 'm6/journal_read_written.json';
   static const String m6ManualFills8 = 'm6/manual_fills_8.json';
   static const String m6SelfReport1 = 'm6/self_report_1.json';
 
@@ -186,10 +207,14 @@ abstract final class FixturePaths {
     m6AdviceViewer4,
     m6DecisionDetailAmended,
     m6DecisionDetailFull,
+    m6DecisionDetailJournalDraftLink,
+    m6DecisionDetailJournalWritten,
     m6DecisionDetailPartial,
     m6DecisionDetailReevaluatedChild,
     m6DecisionDetailRejectedSaf309,
     m6DecisionDetailUnknown,
+    m6DraftRecordsJ3,
+    m6DraftRecordsX7,
     m6EntryGateNovPass1,
     m6ExternalHoldings2,
     m6FillFormSpec,
@@ -202,6 +227,9 @@ abstract final class FixturePaths {
     m6JournalDraftSpecReconClear,
     m6JournalFilterCatalog,
     m6JournalMaskedIntegrity,
+    m6JournalReadNoNote,
+    m6JournalReadNotWritten,
+    m6JournalReadWritten,
     m6ManualFills8,
     m6SelfReport1,
     m6UnknownBoard2,
