@@ -119,9 +119,21 @@ class _UnknownCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final String? detailLink = item.entry.detailDeepLink;
+    final ColorScheme cs = Theme.of(context).colorScheme;
+
+    // G3: emphasized == true → border highlight (02 §3-5 ⓒ · independent of escalationLink)
+    final ShapeBorder shape = item.emphasized
+        ? RoundedRectangleBorder(
+            side: BorderSide(color: cs.error, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          )
+        : const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          );
 
     final Widget cardBody = Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      shape: shape,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -131,7 +143,7 @@ class _UnknownCard extends ConsumerWidget {
             Row(
               children: <Widget>[
                 Expanded(child: Text(item.entry.symbolLabel)),
-                Text(item.entry.sideLabel),
+                Flexible(child: Text(item.entry.sideLabel)),
               ],
             ),
             Text(item.entry.quantityText),

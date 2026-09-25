@@ -54,7 +54,7 @@ Future<void> _pumpBoard(
           _FakeSafetyRepository(safetyFixtureRow(0)),
         ),
         journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-        journalLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
+        // G8: no journalLinkOpenerProvider (카드 규칙 10)
       ],
       child: app,
     ),
@@ -94,15 +94,10 @@ void main() {
       );
       expect(slice.items.length, 1);
       await _pumpBoard(tester, slice, b);
-      // Precondition: nextBatchNoticeText visible (or absent — check emptyLabel too)
-      // j5_long_open has no nextBatchNoticeText since we copied from original vm
-      // which has nextBatchNoticeText, but slice doesn't change asOf/nextBatchNoticeText
-      // (copyWith keeps it). Check bottom widget.
-      // Verify the card is within viewport
+      // G8: precondition — nextBatchNoticeText (copyWith keeps it from full)
+      expect(slice.nextBatchNoticeText, isNotNull);
       expect(
-        tester
-            .getBottomLeft(find.byKey(const ValueKey<String>('j5-card-0')))
-            .dy,
+        tester.getBottomLeft(find.text(slice.nextBatchNoticeText!)).dy,
         lessThan(_kTallPhone.height),
       );
       await expectGolden('j5_long_open', b);

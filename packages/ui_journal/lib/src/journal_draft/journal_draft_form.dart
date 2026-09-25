@@ -110,7 +110,10 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
       }
     }
     if (_selectedRule == null) return false;
-    if (_rationaleCtrl.text.length < spec.rationaleMinChars) return false;
+    // G5: trim() — 공백 40자로 버튼 켜지는 것 방지 (01 §11-10)
+    if (_rationaleCtrl.text.trim().length < spec.rationaleMinChars) {
+      return false;
+    }
     if (_expectedCtrl.text.trim().isEmpty) return false;
     if (_selectedRule!.requiresNote && _noteCtrl.text.trim().isEmpty) {
       return false;
@@ -127,7 +130,9 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
       CommandState.heldForIntegrity ||
       CommandState.pendingLeaseConfirm ||
       CommandState.noOperator => true,
-      _ => false,
+      CommandState.rejected ||
+      CommandState.expired ||
+      CommandState.executed => false,
     };
   }
 
@@ -147,31 +152,37 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
     );
 
     setState(() => _submitting = true);
+    final CommandReceipt initial;
     try {
-      final CommandReceipt initial = await ref
+      initial = await ref
           .read(journalCommandApiProvider)
           .submitJournalDraft(draft);
-      if (!mounted) return;
-      setState(() {
-        _receipt = initial;
-        _submitting = false;
-      });
-      // Watch command stream
-      unawaited(_cmdSub?.cancel() ?? Future<void>.value());
-      _cmdSub = ref
-          .read(journalCommandApiProvider)
-          .watchCommand(initial.commandId)
-          .listen((CommandReceipt r) {
-            if (!mounted) return;
-            setState(() => _receipt = r);
-          });
-    } catch (_) {
-      // On Future error: keep inputs, restore pre-submit state (추측 — J3_questions Q1)
-      if (!mounted) return;
-      setState(() {
-        _submitting = false;
-      });
+    } catch (e, st) {
+      // 01 §4-2 · §8 미결 51 ① (J3_questions Q1)
+      FlutterError.reportError(
+        FlutterErrorDetails(exception: e, stack: st, library: 'ui_journal'),
+      );
+      if (mounted) setState(() => _submitting = false);
+      return;
     }
+    if (!mounted) return;
+    setState(() {
+      _receipt = initial;
+      _submitting = false;
+    });
+    // Watch command stream — outside try (구독 에러는 마지막 접수증 유지 + 보고)
+    unawaited(_cmdSub?.cancel() ?? Future<void>.value());
+    _cmdSub = ref
+        .read(journalCommandApiProvider)
+        .watchCommand(initial.commandId)
+        .listen(
+          (CommandReceipt r) {
+            if (mounted) setState(() => _receipt = r);
+          },
+          onError: (Object e, StackTrace st) => FlutterError.reportError(
+            FlutterErrorDetails(exception: e, stack: st, library: 'ui_journal'),
+          ),
+        );
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -185,6 +196,7 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
     return specAsync.when(
       loading: () => const JournalSkeleton(),
       error: (Object e, _) => JournalErrorView(
+        lastAsOfLabel: specAsync.valueOrNull?.asOf.label,
         onRetry: () =>
             ref.invalidate(journalDraftFormSpecProvider(widget.decisionId)),
       ),
@@ -223,14 +235,28 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
               JournalBlockingFlags(flags: blockingFlags),
             if (markerFlags.isNotEmpty) JournalMarkerChips(flags: markerFlags),
 
-            // ── Deviation badge ───────────────────────────────────────────────
+            // ── Deviation badge (G9 — DecoratedBox, no fade/ellipsis) ─────────
             if (spec.deviation.isDeviation)
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 4,
                 ),
-                child: Chip(label: Text(spec.deviation.label)),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    child: Text(spec.deviation.label),
+                  ),
+                ),
               ),
 
             // ── Pledge block (pledgeLines >= 1) ───────────────────────────────
@@ -361,7 +387,7 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
                 ),
               ),
 
-              // ── Submit button — absent when locked ────────────────────────
+              // ── Submit button — absent when locked; disabled during _submitting ──
               if (!locked)
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -369,7 +395,9 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
                     vertical: 8,
                   ),
                   child: FilledButton(
-                    onPressed: _canSubmit(spec) ? () => _submit(spec) : null,
+                    onPressed: (!_submitting && _canSubmit(spec))
+                        ? () => _submit(spec)
+                        : null,
                     child: const Text(JournalLabels.draftSubmit),
                   ),
                 ),

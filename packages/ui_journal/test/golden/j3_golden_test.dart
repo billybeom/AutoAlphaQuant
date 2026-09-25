@@ -57,7 +57,7 @@ List<Override> _baseOverrides(JournalDraftFormSpec spec, {CommandApi? cmdApi}) {
       _FakeSafetyRepository(safetyFixtureRow(0)),
     ),
     journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-    journalLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
+    // G8: no journalLinkOpenerProvider (카드 규칙 10 «골든은 둘 다 주입하지 않는다»)
     if (cmdApi != null) journalCommandApiProvider.overrideWithValue(cmdApi),
   ];
 }
@@ -91,9 +91,11 @@ void main() {
         JournalDraftFormSpec.fromJson,
       );
       await _pumpForm(tester, spec, b);
-      // Precondition: submit button visible (initial state — inactive)
-      expect(find.byType(FilledButton), findsOneWidget);
-      expect(find.byType(FilledButton).evaluate().length, 1);
+      // G8: position precondition
+      expect(
+        tester.getBottomLeft(find.byType(FilledButton)).dy,
+        lessThan(_kTallPhone.height),
+      );
       await expectGolden('j3_discretion', b);
     });
 
@@ -105,6 +107,11 @@ void main() {
       );
       await _pumpForm(tester, spec, b);
       expect(find.byKey(const Key('j3-pledge-block')), findsNothing);
+      // G8: position precondition
+      expect(
+        tester.getBottomLeft(find.byType(FilledButton)).dy,
+        lessThan(_kTallPhone.height),
+      );
       await expectGolden('j3_recon_clear', b);
     });
 
@@ -115,6 +122,11 @@ void main() {
         JournalDraftFormSpec.fromJson,
       );
       await _pumpForm(tester, spec, b);
+      // G8: precondition before opening dropdown
+      expect(
+        tester.getBottomLeft(find.byType(FilledButton)).dy,
+        lessThan(_kTallPhone.height),
+      );
       // Tap dropdown to open menu
       await tester.tap(find.byType(DropdownButton<ReasonOption>));
       await tester.pumpAndSettle();

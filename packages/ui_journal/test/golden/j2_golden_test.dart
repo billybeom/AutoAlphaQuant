@@ -14,8 +14,8 @@ import 'package:ui_journal/ui_journal.dart';
 import 'golden_support.dart';
 
 // ── Tall phone size for J-2 (content may be long) ────────────────────────────
-
-const Size _kTallPhone = Size(390, 1600);
+// G4: raised to 2400 so j2_partial·j2_amended (3 fills + snapshotMissing + threshold + journal bottom) fit
+const Size _kTallPhone = Size(390, 2400);
 
 // ── Fake repositories ─────────────────────────────────────────────────────────
 
@@ -56,7 +56,6 @@ Future<void> _pumpDetail(
           _FakeSafetyRepository(safetyFixtureRow(0)),
         ),
         journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-        journalLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
       ],
       child: app,
     ),
@@ -89,9 +88,19 @@ void main() {
         DecisionDetailVm.fromJson,
       );
       await _pumpDetail(tester, vm, b);
+      // G4: precondition before tap
+      expect(
+        tester.getBottomLeft(find.text(vm.journalStateLabel)).dy,
+        lessThan(_kTallPhone.height),
+      );
       // Tap snapshot header to expand
       await tester.tap(find.text(JournalLabels.decisionSnapshot));
       await tester.pumpAndSettle();
+      // G4: precondition after expand
+      expect(
+        tester.getBottomLeft(find.text(vm.journalStateLabel)).dy,
+        lessThan(_kTallPhone.height),
+      );
       await expectGolden('j2_full_snapshot_open', b);
     });
 
@@ -146,9 +155,19 @@ void main() {
         DecisionDetailVm.fromJson,
       );
       await _pumpDetail(tester, vm, b);
+      // G4: precondition before tap
+      expect(
+        tester.getBottomLeft(find.text(vm.journalStateLabel)).dy,
+        lessThan(_kTallPhone.height),
+      );
       // Tap reject trace header to expand
       await tester.tap(find.text(JournalLabels.rejectTrace));
       await tester.pumpAndSettle();
+      // G4: precondition after expand
+      expect(
+        tester.getBottomLeft(find.text(vm.journalStateLabel)).dy,
+        lessThan(_kTallPhone.height),
+      );
       await expectGolden('j2_rejected_saf309_trace_open', b);
     });
 

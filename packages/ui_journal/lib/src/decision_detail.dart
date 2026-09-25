@@ -53,6 +53,7 @@ class JournalDecisionDetail extends ConsumerWidget {
     return detailAsync.when(
       loading: () => const JournalSkeleton(),
       error: (Object e, _) => JournalErrorView(
+        lastAsOfLabel: detailAsync.valueOrNull?.asOf.label,
         onRetry: () =>
             ref.invalidate(journalDecisionDetailProvider(decisionId)),
       ),
@@ -129,21 +130,15 @@ class _DecisionDetailContent extends ConsumerWidget {
                   Expanded(child: Text(entry.quantityText)),
                 ],
               ),
-              Chip(
-                label: Text(entry.statusLabel),
-                backgroundColor: journalToneColor(context, entry.statusTone),
+              _StatusChip(
+                statusLabel: entry.statusLabel,
+                tone: entry.statusTone,
               ),
             ],
           ),
         ),
 
-        // ── journalStateLabel (always present) ────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text(vm.journalStateLabel),
-        ),
-
-        // ── Link buttons ──────────────────────────────────────────────────────
+        // ── Link buttons (rebalance · parent · amend — position is discretionary) ──
         if (vm.rebalanceLink != null)
           _LinkButton(
             key: const ValueKey<String>('j2-link-rebalanceLink'),
@@ -153,11 +148,6 @@ class _DecisionDetailContent extends ConsumerWidget {
           _LinkButton(
             key: const ValueKey<String>('j2-link-parentLink'),
             link: vm.parentLink!,
-          ),
-        if (vm.journalLink != null)
-          _LinkButton(
-            key: const ValueKey<String>('j2-link-journalLink'),
-            link: vm.journalLink!,
           ),
         if (vm.amendLink != null)
           _LinkButton(
@@ -209,7 +199,43 @@ class _DecisionDetailContent extends ConsumerWidget {
         // ── Reject trace (collapsible) ────────────────────────────────────────
         if (vm.rejectTraces.isNotEmpty)
           _RejectTraceSection(traces: vm.rejectTraces),
+
+        // ── journalStateLabel + journalLink (02 §3-2 ⓖ «하단») ────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Text(vm.journalStateLabel),
+        ),
+        if (vm.journalLink != null)
+          _LinkButton(
+            key: const ValueKey<String>('j2-link-journalLink'),
+            link: vm.journalLink!,
+          ),
       ],
+    );
+  }
+}
+
+// ── Status chip with paired foreground color (G9 — J-2 only) ─────────────────
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.statusLabel, required this.tone});
+
+  final String statusLabel;
+  final ChipTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final Color bg = journalToneColor(context, tone);
+    final Color fg = switch (tone) {
+      ChipTone.blocked => cs.onError,
+      ChipTone.caution => cs.onErrorContainer,
+      ChipTone.neutral => cs.onSurface,
+      ChipTone.prevented => cs.onSurface,
+    };
+    return Chip(
+      label: Text(statusLabel, style: TextStyle(color: fg)),
+      backgroundColor: bg,
     );
   }
 }
@@ -224,6 +250,14 @@ class _ChainStepRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final String? link = step.deepLink;
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final Color bg = journalToneColor(context, step.tone);
+    final Color fg = switch (step.tone) {
+      ChipTone.blocked => cs.onError,
+      ChipTone.caution => cs.onErrorContainer,
+      ChipTone.neutral => cs.onSurface,
+      ChipTone.prevented => cs.onSurface,
+    };
 
     final Widget content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -233,14 +267,20 @@ class _ChainStepRow extends ConsumerWidget {
           Row(
             children: <Widget>[
               Expanded(child: Text(step.stageLabel)),
-              Chip(
-                label: Text(step.stateLabel),
-                backgroundColor: journalToneColor(context, step.tone),
+              Wrap(
+                children: <Widget>[
+                  Chip(
+                    label: Text(step.stateLabel, style: TextStyle(color: fg)),
+                    backgroundColor: bg,
+                  ),
+                ],
               ),
               if (step.occurredAtText != null)
-                Text(
-                  step.occurredAtText!,
-                  style: Theme.of(context).textTheme.bodySmall,
+                Flexible(
+                  child: Text(
+                    step.occurredAtText!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
             ],
           ),
@@ -374,6 +414,7 @@ class _ThresholdTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -381,15 +422,20 @@ class _ThresholdTable extends StatelessWidget {
         children: <Widget>[
           Text(JournalLabels.thresholdCompare),
           const SizedBox(height: 4),
-          for (final ThresholdCompare row in rows)
+          for (int i = 0; i < rows.length; i++)
             Padding(
+              key: ValueKey<String>('j2-thr-$i'),
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 children: <Widget>[
-                  Expanded(child: Text(row.metricLabel)),
-                  Expanded(child: Text(row.observedText)),
-                  Expanded(child: Text(row.thresholdText)),
-                  Text(row.verdictLabel),
+                  Expanded(child: Text(rows[i].metricLabel)),
+                  Expanded(child: Text(rows[i].observedText)),
+                  Expanded(child: Text(rows[i].thresholdText)),
+                  Flexible(child: Text(rows[i].verdictLabel)),
+                  if (rows[i].passed)
+                    const Icon(Icons.check, size: 16)
+                  else
+                    Icon(Icons.remove, size: 16, color: cs.onSurfaceVariant),
                 ],
               ),
             ),
@@ -439,6 +485,11 @@ class _RejectTraceSectionState extends State<_RejectTraceSection> {
                 children: <Widget>[
                   Text(trace.stageLabel),
                   Text(trace.reasonLabel),
+                  // SAF 원문 — 받은 그대로(01 §11-10 «SAF 원문 = 명시적 예외» · 02 §3-2 ⓔ)
+                  Text(
+                    trace.reasonCode,
+                    style: const TextStyle(fontFamily: 'monospace'),
+                  ),
                   if (trace.occurredAtText != null)
                     Text(
                       trace.occurredAtText!,

@@ -17,15 +17,16 @@ import 'golden/golden_support.dart';
 // ── Fake repositories ─────────────────────────────────────────────────────────
 
 class _FakeJournalRepository extends UnimplementedJournalRepository {
-  _FakeJournalRepository({required this.boardStream});
+  _FakeJournalRepository({required this.boardStreamFn});
 
-  final Stream<UnknownBoardVm> boardStream;
+  /// G7: callback so each call gets a fresh stream
+  final Stream<UnknownBoardVm> Function() boardStreamFn;
   int callCount = 0;
 
   @override
   Stream<UnknownBoardVm> watchUnknownBoard() {
     callCount++;
-    return boardStream;
+    return boardStreamFn();
   }
 }
 
@@ -40,7 +41,7 @@ class _FakeSafetyRepository extends UnimplementedSafetyRepository {
 
 Future<_FakeJournalRepository> _pump(
   WidgetTester tester, {
-  required Stream<UnknownBoardVm> boardStream,
+  required Stream<UnknownBoardVm> Function() boardStreamFn,
   required SafetyState safety,
   required RecordingLinkOpener opener,
 }) async {
@@ -50,7 +51,7 @@ Future<_FakeJournalRepository> _pump(
   addTearDown(tester.view.resetDevicePixelRatio);
 
   final _FakeJournalRepository repo = _FakeJournalRepository(
-    boardStream: boardStream,
+    boardStreamFn: boardStreamFn,
   );
 
   await tester.pumpWidget(
@@ -78,7 +79,7 @@ void main() {
   testWidgets('skeleton shown before first value', (WidgetTester tester) async {
     await _pump(
       tester,
-      boardStream: const Stream<UnknownBoardVm>.empty(),
+      boardStreamFn: () => const Stream<UnknownBoardVm>.empty(),
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
@@ -86,16 +87,18 @@ void main() {
   });
 
   testWidgets('error → retry re-subscribes', (WidgetTester tester) async {
-    await _pump(
+    final _FakeJournalRepository repo = await _pump(
       tester,
-      boardStream: Stream<UnknownBoardVm>.error(Exception('fail')),
+      boardStreamFn: () => Stream<UnknownBoardVm>.error(Exception('fail')),
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
-    // Need provider invalidation — but retry taps JournalLabels.retry
-    // which calls ref.invalidate — so call count goes up
     await tester.pump();
     expect(find.text(JournalLabels.retry), findsOneWidget);
+    final int before = repo.callCount;
+    await tester.tap(find.text(JournalLabels.retry));
+    await tester.pump();
+    expect(repo.callCount, greaterThan(before));
   });
 
   testWidgets('stale banner absent with fresh clock', (
@@ -107,7 +110,7 @@ void main() {
     );
     await _pump(
       tester,
-      boardStream: Stream<UnknownBoardVm>.value(vm),
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
@@ -132,7 +135,7 @@ void main() {
         overrides: <Override>[
           journalTimelineRepositoryProvider.overrideWithValue(
             _FakeJournalRepository(
-              boardStream: Stream<UnknownBoardVm>.value(vm),
+              boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
             ),
           ),
           journalSafetyRepositoryProvider.overrideWithValue(
@@ -160,7 +163,7 @@ void main() {
     );
     await _pump(
       tester,
-      boardStream: Stream<UnknownBoardVm>.value(vm),
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
       safety: safetyFixtureRow(3),
       opener: RecordingLinkOpener(),
     );
@@ -175,7 +178,7 @@ void main() {
 
   // ── two_open: two cards ───────────────────────────────────────────────────────
 
-  testWidgets('two_open: cards present with correct keys and content', (
+  testWidgets('two_open: all display fields shown per card (G7)', (
     WidgetTester tester,
   ) async {
     final UnknownBoardVm vm = singleFixture(
@@ -184,7 +187,7 @@ void main() {
     );
     await _pump(
       tester,
-      boardStream: Stream<UnknownBoardVm>.value(vm),
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
@@ -193,45 +196,34 @@ void main() {
     expect(find.byKey(const ValueKey<String>('j5-card-0')), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('j5-card-1')), findsOneWidget);
 
+    // G7: count-based field check per card (handles values that appear twice in a card)
     for (int i = 0; i < vm.items.length; i++) {
       final UnknownResolutionItem item = vm.items[i];
       final Key cardKey = ValueKey<String>('j5-card-$i');
 
-      // symbolLabel inside card
-      expect(
-        find.descendant(
-          of: find.byKey(cardKey),
-          matching: find.text(item.entry.symbolLabel),
-        ),
-        findsOneWidget,
-      );
+      // Build list of all text values in this card
+      final List<String> allTexts = <String>[
+        item.entry.symbolLabel,
+        item.entry.sideLabel,
+        item.entry.quantityText,
+        item.entry.statusLabel,
+        item.elapsedText,
+        item.effectLine,
+        ...item.steps.map((UnknownResolutionStep s) => s.title),
+        ...item.steps.map((UnknownResolutionStep s) => s.stateLabel),
+        ...item.steps.map((UnknownResolutionStep s) => s.whyLine),
+      ];
 
-      // elapsedText
-      expect(
-        find.descendant(
-          of: find.byKey(cardKey),
-          matching: find.text(item.elapsedText),
-        ),
-        findsOneWidget,
-      );
-
-      // effectLine
-      expect(
-        find.descendant(
-          of: find.byKey(cardKey),
-          matching: find.text(item.effectLine),
-        ),
-        findsOneWidget,
-      );
-
-      // Steps: each step title in card
-      for (final UnknownResolutionStep step in item.steps) {
+      for (final String t in allTexts) {
+        // Count how many times t appears in this item's data
+        int expected = 0;
+        for (final String v in allTexts) {
+          if (v == t) expected++;
+        }
         expect(
-          find.descendant(
-            of: find.byKey(cardKey),
-            matching: find.text(step.title),
-          ),
-          findsAtLeastNWidgets(1),
+          find.descendant(of: find.byKey(cardKey), matching: find.text(t)),
+          findsNWidgets(expected),
+          reason: 'card=$i text="$t"',
         );
       }
     }
@@ -250,7 +242,7 @@ void main() {
     );
     await _pump(
       tester,
-      boardStream: Stream<UnknownBoardVm>.value(vm),
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
@@ -265,7 +257,7 @@ void main() {
   });
 
   testWidgets(
-    'two_open: escalationLink button shown for emphasized card; tap opens link',
+    'two_open: escalationLink button shown for emphasized card; tap opens exact link',
     (WidgetTester tester) async {
       final UnknownBoardVm vm = singleFixture(
         FixturePaths.m6UnknownBoard2,
@@ -274,7 +266,7 @@ void main() {
       final RecordingLinkOpener opener = RecordingLinkOpener();
       await _pump(
         tester,
-        boardStream: Stream<UnknownBoardVm>.value(vm),
+        boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
         safety: safetyFixtureRow(0),
         opener: opener,
       );
@@ -289,7 +281,164 @@ void main() {
       expect(find.text(item.escalationLink!.label), findsOneWidget);
       await tester.tap(find.text(item.escalationLink!.label));
       await tester.pump();
-      expect(opener.opened, <String>[item.escalationLink!.deepLink]);
+      expect(opener.opened, equals(<String>[item.escalationLink!.deepLink]));
+    },
+  );
+
+  // ── G7: all cards: symbolLabel tap → opener.opened exact list ─────────────────
+
+  testWidgets('two_open: all card symbolLabel taps open exact deepLinks', (
+    WidgetTester tester,
+  ) async {
+    final UnknownBoardVm vm = singleFixture(
+      FixturePaths.m6UnknownBoard2,
+      UnknownBoardVm.fromJson,
+    );
+    final RecordingLinkOpener opener = RecordingLinkOpener();
+    await _pump(
+      tester,
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
+      safety: safetyFixtureRow(0),
+      opener: opener,
+    );
+
+    final List<String> expectedLinks = <String>[];
+    for (int i = 0; i < vm.items.length; i++) {
+      final UnknownResolutionItem item = vm.items[i];
+      expect(item.entry.detailDeepLink, isNotNull);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(ValueKey<String>('j5-card-$i')),
+          matching: find.text(item.entry.symbolLabel),
+        ),
+      );
+      await tester.pump();
+      expectedLinks.add(item.entry.detailDeepLink!);
+    }
+    expect(opener.opened, equals(expectedLinks));
+  });
+
+  // ── G3: emphasized highlights ─────────────────────────────────────────────────
+
+  testWidgets('G3: emphasized card has different shape than non-emphasized', (
+    WidgetTester tester,
+  ) async {
+    final UnknownBoardVm vm = singleFixture(
+      FixturePaths.m6UnknownBoard2,
+      UnknownBoardVm.fromJson,
+    );
+    await _pump(
+      tester,
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+    );
+
+    // Find emphasized and non-emphasized indices
+    final int emphIdx = vm.items.indexWhere(
+      (UnknownResolutionItem i) => i.emphasized,
+    );
+    final int plainIdx = vm.items.indexWhere(
+      (UnknownResolutionItem i) => !i.emphasized,
+    );
+    expect(emphIdx, isNot(-1), reason: 'fixture must have emphasized item');
+    expect(
+      plainIdx,
+      isNot(-1),
+      reason: 'fixture must have non-emphasized item',
+    );
+
+    final Card emphCard = tester.widget<Card>(
+      find.descendant(
+        of: find.byKey(ValueKey<String>('j5-card-$emphIdx')),
+        matching: find.byType(Card),
+      ),
+    );
+    final Card plainCard = tester.widget<Card>(
+      find.descendant(
+        of: find.byKey(ValueKey<String>('j5-card-$plainIdx')),
+        matching: find.byType(Card),
+      ),
+    );
+    // emphasized card should have a border (shape != plain shape)
+    expect(emphCard.shape, isNot(equals(plainCard.shape)));
+  });
+
+  testWidgets('G3: emphasized=true + escalationLink=null → still highlighted', (
+    WidgetTester tester,
+  ) async {
+    final UnknownBoardVm full = singleFixture(
+      FixturePaths.m6UnknownBoard2,
+      UnknownBoardVm.fromJson,
+    );
+    // Strip escalation link from emphasized item
+    final int emphIdx = full.items.indexWhere(
+      (UnknownResolutionItem i) => i.emphasized,
+    );
+    final UnknownBoardVm vm = full.copyWith(
+      items: <UnknownResolutionItem>[
+        full.items[emphIdx].copyWith(escalationLink: null),
+        ...full.items.where((UnknownResolutionItem i) => !i.emphasized),
+      ],
+    );
+    await _pump(
+      tester,
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+    );
+
+    final Card emphCard = tester.widget<Card>(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('j5-card-0')),
+        matching: find.byType(Card),
+      ),
+    );
+    final Card plainCard = tester.widget<Card>(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('j5-card-1')),
+        matching: find.byType(Card),
+      ),
+    );
+    // Even with no escalationLink, emphasized card shape differs
+    expect(emphCard.shape, isNot(equals(plainCard.shape)));
+  });
+
+  testWidgets(
+    'G3: emphasized=false + escalationLink present → not highlighted',
+    (WidgetTester tester) async {
+      final UnknownBoardVm full = singleFixture(
+        FixturePaths.m6UnknownBoard2,
+        UnknownBoardVm.fromJson,
+      );
+      // Turn off emphasized but keep escalationLink
+      final UnknownBoardVm vm = full.copyWith(
+        items: <UnknownResolutionItem>[
+          full.items[0].copyWith(emphasized: false),
+          full.items[1],
+        ],
+      );
+      await _pump(
+        tester,
+        boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+      );
+
+      final Card card0 = tester.widget<Card>(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('j5-card-0')),
+          matching: find.byType(Card),
+        ),
+      );
+      final Card card1 = tester.widget<Card>(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('j5-card-1')),
+          matching: find.byType(Card),
+        ),
+      );
+      // Both non-emphasized → same shape
+      expect(card0.shape, equals(card1.shape));
     },
   );
 
@@ -303,7 +452,7 @@ void main() {
     final RecordingLinkOpener opener = RecordingLinkOpener();
     await _pump(
       tester,
-      boardStream: Stream<UnknownBoardVm>.value(vm),
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
       safety: safetyFixtureRow(0),
       opener: opener,
     );
@@ -311,7 +460,7 @@ void main() {
     final UnknownResolutionItem item = vm.items[0];
     expect(item.entry.detailDeepLink, isNotNull);
 
-    // Tap symbolLabel inside card-0 (symbolLabel uniquely identifies the tap area)
+    // Tap symbolLabel inside card-0
     await tester.tap(
       find.descendant(
         of: find.byKey(const ValueKey<String>('j5-card-0')),
@@ -333,7 +482,7 @@ void main() {
     );
     await _pump(
       tester,
-      boardStream: Stream<UnknownBoardVm>.value(vm),
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );

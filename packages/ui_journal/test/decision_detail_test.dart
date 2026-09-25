@@ -42,14 +42,17 @@ class _FakeSafetyRepository extends UnimplementedSafetyRepository {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-Future<void> _pump(
+// G4: viewport height matches _kTallPhone (2400)
+const double _kTestHeight = 2400;
+
+Future<_FakeJournalRepository> _pump(
   WidgetTester tester, {
   required Stream<DecisionDetailVm> Function(String) detailStream,
   required SafetyState safety,
   required RecordingLinkOpener opener,
   String decisionId = 'test-id',
 }) async {
-  tester.view.physicalSize = const Size(390, 1600);
+  tester.view.physicalSize = const Size(390, _kTestHeight);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -74,6 +77,7 @@ Future<void> _pump(
     ),
   );
   await tester.pump();
+  return repo;
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
@@ -135,7 +139,7 @@ void main() {
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
     );
-    tester.view.physicalSize = const Size(390, 1600);
+    tester.view.physicalSize = const Size(390, _kTestHeight);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -200,24 +204,17 @@ void main() {
       DecisionDetailVm.fromJson,
     );
     const String testId = 'd_20260803_a_01';
-    await _pump(
+    final _FakeJournalRepository repo = await _pump(
       tester,
       detailStream: (_) => Stream<DecisionDetailVm>.value(vm),
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
       decisionId: testId,
     );
-    // The correct decisionId from the fixture
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('j2-chain')),
-        matching: find.text(vm.steps[0].stageLabel),
-      ),
-      findsOneWidget,
-    );
-    // decisionId arrived correctly — repo received it
-    // (verified via fixture content)
+    // Received decisionId matches what was passed
+    expect(repo.receivedIds, equals(<String>[testId]));
     expect(find.text(vm.journalStateLabel), findsOneWidget);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── full fixture ─────────────────────────────────────────────────────────────
@@ -229,19 +226,15 @@ void main() {
       FixturePaths.m6DecisionDetailFull,
       DecisionDetailVm.fromJson,
     );
-    late String receivedId;
-    await _pump(
+    final _FakeJournalRepository repo = await _pump(
       tester,
-      detailStream: (String id) {
-        receivedId = id;
-        return Stream<DecisionDetailVm>.value(vm);
-      },
+      detailStream: (String id) => Stream<DecisionDetailVm>.value(vm),
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
       decisionId: vm.entry.decision.decisionId,
     );
 
-    expect(receivedId, vm.entry.decision.decisionId);
+    expect(repo.receivedIds, equals(<String>[vm.entry.decision.decisionId]));
 
     // 6 steps all descendants of j2-chain
     for (int i = 0; i < vm.steps.length; i++) {
@@ -252,11 +245,18 @@ void main() {
         ),
         findsOneWidget,
       );
-      // stageLabel in that row
+      // stageLabel and stateLabel in that row
       expect(
         find.descendant(
           of: find.byKey(ValueKey<String>('j2-step-$i')),
           matching: find.text(vm.steps[i].stageLabel),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey<String>('j2-step-$i')),
+          matching: find.text(vm.steps[i].stateLabel),
         ),
         findsOneWidget,
       );
@@ -273,7 +273,7 @@ void main() {
       expect(y0, lessThan(y1));
     }
 
-    // journalStateLabel shown
+    // journalStateLabel shown (at bottom — G4)
     expect(find.text(vm.journalStateLabel), findsOneWidget);
     // no error
     expect(find.text(JournalLabels.retry), findsNothing);
@@ -302,6 +302,15 @@ void main() {
     final String hash = vm.snapshot!.ref.configHash;
     expect(find.text(hash), findsOneWidget);
 
+    // full: after expand, verify rawValues keys absent and thresholdRegistered absent
+    // (snapshot must be expanded first — previously checked while collapsed = trivially passing)
+    expect(vm.snapshot!.trigger.thresholdRegistered, isNotNull);
+    final TriggerSnapshot trigger = vm.snapshot!.trigger;
+    for (final String key in trigger.rawValues.keys) {
+      expect(find.text(key), findsNothing);
+    }
+    expect(find.text(vm.entry.price.toString()), findsNothing);
+
     // Set up clipboard mock
     String? copiedText;
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -329,7 +338,9 @@ void main() {
     expect(find.text(JournalLabels.copied), findsOneWidget);
   });
 
-  testWidgets('full: rebalanceLink button present and tap opens link', (
+  // ── full: link matrix ─────────────────────────────────────────────────────────
+
+  testWidgets('full: rebalanceLink present, tap opens exact link', (
     WidgetTester tester,
   ) async {
     final DecisionDetailVm vm = singleFixture(
@@ -360,7 +371,7 @@ void main() {
       find.byKey(const ValueKey<String>('j2-link-rebalanceLink')),
     );
     await tester.pump();
-    expect(opener.opened, <String>[vm.rebalanceLink!.deepLink]);
+    expect(opener.opened, equals(<String>[vm.rebalanceLink!.deepLink]));
   });
 
   testWidgets('full: journalLink absent (null in fixture)', (
@@ -419,6 +430,8 @@ void main() {
     );
   });
 
+  // ── full: raw values not shown ────────────────────────────────────────────────
+
   testWidgets('full: raw values not shown', (WidgetTester tester) async {
     final DecisionDetailVm vm = singleFixture(
       FixturePaths.m6DecisionDetailFull,
@@ -431,19 +444,20 @@ void main() {
       opener: RecordingLinkOpener(),
     );
 
-    // raw values must not appear
+    // raw values must not appear (check after snapshot expanded)
+    await tester.tap(find.text(JournalLabels.decisionSnapshot));
+    await tester.pumpAndSettle();
+
     final TriggerSnapshot trigger = vm.snapshot!.trigger;
     for (final String key in trigger.rawValues.keys) {
       expect(find.text(key), findsNothing);
     }
-    // thresholdRegistered should not be displayed
-    // (it's a double, so toString would be something like "0.5")
-    // We confirm it only via absence of the double literal
-    expect(find.text(vm.entry.decision.configHash), findsNothing);
+    // entry price as raw string must not appear (only *Text fields allowed)
+    expect(find.text(vm.entry.price.toString()), findsNothing);
 
-    // entry symbolLabel tap should NOT open a link (no row tap on entry)
+    // entry symbolLabel tap should NOT open a link
     final RecordingLinkOpener opener = RecordingLinkOpener();
-    tester.view.physicalSize = const Size(390, 1600);
+    tester.view.physicalSize = const Size(390, _kTestHeight);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -467,14 +481,220 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.tap(find.text(vm.entry.symbolLabel).first);
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(JournalEntryCard),
+            matching: find.text(vm.entry.symbolLabel),
+          )
+          .first,
+    );
     await tester.pump();
     expect(opener.opened, isEmpty);
   });
 
+  // ── G7: 6-fixture loop ────────────────────────────────────────────────────────
+
+  final List<(String, String)> allFixtures = <(String, String)>[
+    (FixturePaths.m6DecisionDetailFull, 'full'),
+    (FixturePaths.m6DecisionDetailPartial, 'partial'),
+    (FixturePaths.m6DecisionDetailUnknown, 'unknown'),
+    (FixturePaths.m6DecisionDetailRejectedSaf309, 'rejected_saf309'),
+    (FixturePaths.m6DecisionDetailReevaluatedChild, 'reevaluated_child'),
+    (FixturePaths.m6DecisionDetailAmended, 'amended'),
+  ];
+
+  testWidgets('G7: 6-fixture loop — chain steps, journalStateLabel, links', (
+    WidgetTester tester,
+  ) async {
+    for (final (String path, String name) in allFixtures) {
+      final DecisionDetailVm vm = singleFixture(
+        path,
+        DecisionDetailVm.fromJson,
+      );
+
+      final _FakeJournalRepository repo = await _pump(
+        tester,
+        detailStream: (_) => Stream<DecisionDetailVm>.value(vm),
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        decisionId: vm.entry.decision.decisionId,
+      );
+
+      // decisionId arrived correctly — last call is the correct one
+      expect(
+        repo.receivedIds.last,
+        equals(vm.entry.decision.decisionId),
+        reason: 'fixture=$name',
+      );
+
+      // All steps are under j2-chain
+      for (int i = 0; i < vm.steps.length; i++) {
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('j2-chain')),
+            matching: find.byKey(ValueKey<String>('j2-step-$i')),
+          ),
+          findsOneWidget,
+          reason: 'fixture=$name step=$i',
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(ValueKey<String>('j2-step-$i')),
+            matching: find.text(vm.steps[i].stageLabel),
+          ),
+          findsOneWidget,
+          reason: 'fixture=$name step=$i stageLabel',
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(ValueKey<String>('j2-step-$i')),
+            matching: find.text(vm.steps[i].stateLabel),
+          ),
+          findsOneWidget,
+          reason: 'fixture=$name step=$i stateLabel',
+        );
+      }
+
+      // Steps dy order
+      for (int i = 0; i < vm.steps.length - 1; i++) {
+        final double y0 = tester
+            .getTopLeft(find.byKey(ValueKey<String>('j2-step-$i')))
+            .dy;
+        final double y1 = tester
+            .getTopLeft(find.byKey(ValueKey<String>('j2-step-${i + 1}')))
+            .dy;
+        expect(y0, lessThan(y1), reason: 'fixture=$name step $i < ${i + 1}');
+      }
+
+      // journalStateLabel
+      expect(
+        find.text(vm.journalStateLabel),
+        findsOneWidget,
+        reason: 'fixture=$name journalStateLabel',
+      );
+      expect(
+        find.text(JournalLabels.retry),
+        findsNothing,
+        reason: 'fixture=$name no retry',
+      );
+
+      // Link matrix — 4 keys
+      for (final (String fieldName, LinkAction? link)
+          in <(String, LinkAction?)>[
+            ('rebalanceLink', vm.rebalanceLink),
+            ('parentLink', vm.parentLink),
+            ('journalLink', vm.journalLink),
+            ('amendLink', vm.amendLink),
+          ]) {
+        final Finder keyFinder = find.byKey(
+          ValueKey<String>('j2-link-$fieldName'),
+        );
+        if (link != null) {
+          expect(
+            keyFinder,
+            findsOneWidget,
+            reason: 'fixture=$name $fieldName present',
+          );
+          expect(
+            find.descendant(of: keyFinder, matching: find.text(link.label)),
+            findsOneWidget,
+            reason: 'fixture=$name $fieldName label',
+          );
+        } else {
+          expect(
+            keyFinder,
+            findsNothing,
+            reason: 'fixture=$name $fieldName absent',
+          );
+        }
+      }
+    }
+  });
+
+  // ── G7: partial: remainingText, passed false row ─────────────────────────────
+
+  testWidgets(
+    'partial: remainingText shown; threshold passed=false shows remove icon',
+    (WidgetTester tester) async {
+      final DecisionDetailVm vm = singleFixture(
+        FixturePaths.m6DecisionDetailPartial,
+        DecisionDetailVm.fromJson,
+      );
+      await _pump(
+        tester,
+        detailStream: (_) => Stream<DecisionDetailVm>.value(vm),
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+      );
+
+      expect(vm.remainingText, isNotNull);
+      await tester.scrollUntilVisible(find.text(vm.remainingText!).first, 100);
+      expect(find.text(vm.remainingText!), findsAtLeastNWidgets(1));
+      expect(find.text(JournalLabels.retry), findsNothing);
+
+      // G2: passed=false row should show Icons.remove, not Icons.check
+      final int falseIdx = vm.thresholds.indexWhere(
+        (ThresholdCompare t) => !t.passed,
+      );
+      if (falseIdx >= 0) {
+        final Finder rowFinder = find.byKey(
+          ValueKey<String>('j2-thr-$falseIdx'),
+        );
+        // make sure it's built (use .first in case key matches multiple)
+        await tester.scrollUntilVisible(rowFinder.first, 100);
+        expect(
+          find.descendant(of: rowFinder, matching: find.byIcon(Icons.check)),
+          findsNothing,
+          reason: 'passed=false row should not show check icon',
+        );
+        expect(
+          find.descendant(of: rowFinder, matching: find.byIcon(Icons.remove)),
+          findsOneWidget,
+          reason: 'passed=false row should show remove icon',
+        );
+      }
+    },
+  );
+
+  // ── G2: full fixture — passed=true rows have check icon ─────────────────────
+
+  testWidgets('full: threshold passed=true rows show check icon', (
+    WidgetTester tester,
+  ) async {
+    final DecisionDetailVm vm = singleFixture(
+      FixturePaths.m6DecisionDetailFull,
+      DecisionDetailVm.fromJson,
+    );
+    await _pump(
+      tester,
+      detailStream: (_) => Stream<DecisionDetailVm>.value(vm),
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+    );
+
+    for (int i = 0; i < vm.thresholds.length; i++) {
+      final Finder rowFinder = find.byKey(ValueKey<String>('j2-thr-$i'));
+      await tester.scrollUntilVisible(rowFinder.first, 100);
+      if (vm.thresholds[i].passed) {
+        expect(
+          find.descendant(of: rowFinder, matching: find.byIcon(Icons.check)),
+          findsOneWidget,
+          reason: 'thr-$i passed=true should show check',
+        );
+      } else {
+        expect(
+          find.descendant(of: rowFinder, matching: find.byIcon(Icons.remove)),
+          findsOneWidget,
+          reason: 'thr-$i passed=false should show remove',
+        );
+      }
+    }
+  });
+
   // ── reevaluated_child: parentLink ─────────────────────────────────────────
 
-  testWidgets('reevaluated_child: parentLink button tap opens link', (
+  testWidgets('reevaluated_child: parentLink button tap opens exact link', (
     WidgetTester tester,
   ) async {
     final DecisionDetailVm vm = singleFixture(
@@ -496,7 +716,7 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey<String>('j2-link-parentLink')));
     await tester.pump();
-    expect(opener.opened, <String>[vm.parentLink!.deepLink]);
+    expect(opener.opened, equals(<String>[vm.parentLink!.deepLink]));
   });
 
   // ── amended: snapshotMissingLabel + amendLink ────────────────────────────────
@@ -524,7 +744,7 @@ void main() {
     expect(find.text(vm.entry.decision.configHash), findsNothing);
   });
 
-  testWidgets('amended: amendLink present; tap opens link', (
+  testWidgets('amended: amendLink present; tap opens exact link', (
     WidgetTester tester,
   ) async {
     final DecisionDetailVm vm = singleFixture(
@@ -546,7 +766,7 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey<String>('j2-link-amendLink')));
     await tester.pump();
-    expect(opener.opened, <String>[vm.amendLink!.deepLink]);
+    expect(opener.opened, equals(<String>[vm.amendLink!.deepLink]));
   });
 
   testWidgets('amended: step with deepLink tap opens link', (
@@ -573,7 +793,7 @@ void main() {
 
     await tester.tap(find.byKey(ValueKey<String>('j2-step-$stepIdx')));
     await tester.pump();
-    expect(opener.opened, contains(linkedStep.deepLink!));
+    expect(opener.opened, equals(<String>[linkedStep.deepLink!]));
   });
 
   testWidgets('amended: reason chip with deepLink tap opens link', (
@@ -597,11 +817,25 @@ void main() {
       (ReasonChip c) => c.detailDeepLink != null,
     );
     // Scroll chip into view before tapping
-    await tester.ensureVisible(find.text(linkedChip.label).last);
+    await tester.ensureVisible(
+      find
+          .descendant(
+            of: find.byType(ActionChip),
+            matching: find.text(linkedChip.label),
+          )
+          .first,
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text(linkedChip.label).last, warnIfMissed: false);
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(ActionChip),
+            matching: find.text(linkedChip.label),
+          )
+          .first,
+    );
     await tester.pump();
-    expect(opener.opened, contains(linkedChip.detailDeepLink!));
+    expect(opener.opened, equals(<String>[linkedChip.detailDeepLink!]));
   });
 
   // ── unknown: no threshold table, no reject trace section ─────────────────────
@@ -627,37 +861,42 @@ void main() {
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
-  // ── rejected_saf309: rejectTrace collapsible ─────────────────────────────────
+  // ── rejected_saf309: rejectTrace collapsible + reasonCode (G1) ──────────────
 
-  testWidgets('rejected_saf309: rejectTrace collapsed → expand shows trace', (
-    WidgetTester tester,
-  ) async {
-    final DecisionDetailVm vm = singleFixture(
-      FixturePaths.m6DecisionDetailRejectedSaf309,
-      DecisionDetailVm.fromJson,
-    );
-    await _pump(
-      tester,
-      detailStream: (_) => Stream<DecisionDetailVm>.value(vm),
-      safety: safetyFixtureRow(0),
-      opener: RecordingLinkOpener(),
-    );
+  testWidgets(
+    'rejected_saf309: rejectTrace collapsed → expand shows trace + reasonCode',
+    (WidgetTester tester) async {
+      final DecisionDetailVm vm = singleFixture(
+        FixturePaths.m6DecisionDetailRejectedSaf309,
+        DecisionDetailVm.fromJson,
+      );
+      await _pump(
+        tester,
+        detailStream: (_) => Stream<DecisionDetailVm>.value(vm),
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+      );
 
-    expect(vm.rejectTraces, isNotEmpty);
-    final RejectTrace trace = vm.rejectTraces.first;
+      expect(vm.rejectTraces, isNotEmpty);
+      final RejectTrace trace = vm.rejectTraces.first;
 
-    // Before tap: stageLabel not visible (collapsed)
-    expect(find.text(trace.stageLabel), findsNothing);
+      // G1: before tap — reasonCode count is n0 (may appear in detailLines)
+      final int n0 = find.text(trace.reasonCode).evaluate().length;
+      // Precondition: reasonCode already visible in chain detailLines (n0 >= 1)
+      expect(n0, greaterThanOrEqualTo(1));
 
-    // Tap reject trace header
-    await tester.tap(find.text(JournalLabels.rejectTrace));
-    await tester.pumpAndSettle();
+      // Before tap: stageLabel not visible (collapsed)
+      expect(find.text(trace.stageLabel), findsNothing);
 
-    // After tap: stageLabel visible
-    expect(find.text(trace.stageLabel), findsOneWidget);
+      // Tap reject trace header
+      await tester.tap(find.text(JournalLabels.rejectTrace));
+      await tester.pumpAndSettle();
 
-    // reasonLabel visible (it also appears in chain detail lines, so count may be > 1)
-    final int countBefore = find.text(trace.reasonLabel).evaluate().length;
-    expect(countBefore, greaterThanOrEqualTo(1));
-  });
+      // After tap: stageLabel visible
+      expect(find.text(trace.stageLabel), findsOneWidget);
+
+      // G1: reasonCode count increased by 1 (now also in trace section)
+      expect(find.text(trace.reasonCode).evaluate().length, equals(n0 + 1));
+    },
+  );
 }
