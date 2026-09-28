@@ -5,6 +5,7 @@
 //
 //   통과: 본보기 painter(reference/) — 성과 픽스처 정상 6건 × light·dark · 크기 3가지 ·
 //         실제로 띄운 PerfChart · 같은 Path 를 고쳐 가며 다시 쓰는 painter
+//   자리: 실제로 띄운 PerfChart 의 눈금 글자는 전부 그림 왼쪽 바깥 열에 있다(선·띠를 덮지 않는다)
 //   잡음: ① 결측을 이어 그림 ② 띠를 빼먹음 ③ 세로를 뒤집음 ④ 벤치마크를 빼먹음
 //         ⑤ 본선의 가로 자리를 0.9배로 그림
 //         + 빗금만/경계만 빼먹음 · 경계의 점선·실선 뒤바뀜 · 눈금선 빼먹음·어긋남 ·
@@ -31,8 +32,16 @@ import 'reference/chart/perf_chart_geometry.dart';
 import 'reference/chart/perf_chart_painter.dart';
 import 'reference/widgets/perf_chart.dart';
 
-/// 그림 영역의 기본 크기 — 폰 폭 390 · 상자 220 에서 위아래 12 를 뺀 높이.
+/// painter 를 바로 기록할 때의 그림 크기 — 폰 폭 390 · 상자 220 에서 위아래 12 를 뺀 높이.
+/// (비교는 비율이라 크기에 기대지 않는다 — «other sizes» 테스트가 고정한다.)
 const Size _plotSize = Size(390, 196);
+
+/// 실제로 띄운 `PerfChart` 의 그림 크기 — 폰 폭 390 에서 눈금 글자 열 56 과 빈칸 8 을 뺀 폭.
+const Size _widgetPlotSize = Size(390 - 56 - 8, 196);
+
+/// 눈금 글자 열의 폭과 그림 사이 빈칸(본보기 `PerfChart` 의 짜임).
+const double _tickColumnWidth = 56;
+const double _tickColumnGap = 8;
 
 enum _Fault {
   none,
@@ -627,7 +636,8 @@ void main() {
         );
         final ColorScheme scheme = chartSchemeOf(tester);
         final ChartRecording r = recordChart(tester);
-        expect(r.size, _plotSize);
+        expect(r.size, _widgetPlotSize);
+        expect(tester.getSize(find.byKey(kChartProbeKey)), _widgetPlotSize);
         expect(tester.getSize(find.byType(PerfChart)), const Size(390, 220));
         _expectAllPass(r, s, scheme);
 
@@ -645,6 +655,53 @@ void main() {
         }
       });
     }
+
+    testWidgets('tick labels sit in the column left of the plot', (
+      WidgetTester tester,
+    ) async {
+      // 눈금 글자가 그림(선·띠)을 덮지 않는다 — 글자 전부가 그림의 왼쪽 변보다 왼쪽에 있다.
+      int seen = 0;
+      for (final PerformanceSeries s in fixtures.values) {
+        await pumpForGolden(
+          tester,
+          PerfChart(series: s),
+          brightness: Brightness.light,
+        );
+        final Rect box = tester.getRect(find.byType(PerfChart));
+        final Rect plot = tester.getRect(find.byKey(kChartProbeKey));
+        // 그림 = 상자에서 위아래 12 · 왼쪽으로 글자 열과 빈칸을 뺀 자리.
+        expect(plot.left, box.left + _tickColumnWidth + _tickColumnGap);
+        expect(plot.right, box.right);
+        expect(plot.top, box.top + 12);
+        expect(plot.bottom, box.bottom - 12);
+        for (int i = 0; i < s.yTicks.length; i++) {
+          final Rect label = tester.getRect(
+            find.byKey(ValueKey<String>('s72-tick-$i')),
+          );
+          seen++;
+          expect(
+            label.right,
+            lessThanOrEqualTo(plot.left),
+            reason: 'tick label #$i overlaps the plot',
+          );
+          expect(
+            label.right,
+            box.left + _tickColumnWidth,
+            reason: 'tick label #$i is not flush with the column right edge',
+          );
+          expect(label.left, greaterThanOrEqualTo(box.left));
+          expect(label.width, greaterThan(0));
+          // 세로 — 글자는 그림 높이 안에 있고, 그 눈금선의 높이가 글자의 위아래 사이에 든다.
+          expect(label.top, greaterThanOrEqualTo(plot.top));
+          expect(label.bottom, lessThanOrEqualTo(plot.bottom));
+          final double line =
+              plot.top + plot.height * (1 - s.yTicks[i].normalized);
+          expect(label.top, lessThanOrEqualTo(line + 0.001));
+          expect(label.bottom, greaterThanOrEqualTo(line - 0.001));
+        }
+      }
+      expect(seen, greaterThanOrEqualTo(7 * 3));
+    });
 
     testWidgets('dark theme', (WidgetTester tester) async {
       await pumpForGolden(

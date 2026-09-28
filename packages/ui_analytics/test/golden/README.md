@@ -26,7 +26,7 @@
 | `test/flutter_test_config.dart` | 🔴 M2 | `flutter test` 가 자동으로 먼저 부른다. 골든 비교기를 **이동·AA 허용 비교기(3판)** 로 바꾼다 — 두 그림을 3×3 으로 살짝 흐린 뒤 **양방향**으로 «이웃 3×3 어디에도 비슷한 색이 없는 유의 픽셀»을 세고, **가장 빽빽한 24×24 창의 밀도 12% 이하(주 판정) 그리고 전체 0.5% 이하(보조)** 면 통과(`golden/shift_tolerant_compare.dart` · 자체 검증 `golden/comparator_test.dart` 11건). 🔵 2026-09-17 실측(리눅스 CI vs Windows 골든 14장): 플랫폼 소음은 전체 ≤0.18%·창 ≤5.6% 로 **얇게 흩어지고**, 구조 변화는 18px 아이콘 1개 누락도 창 27% 로 **뭉친다**(칩 47% · 글자 줄 83% · 배너 96%). 화면 담당은 고치지 않는다 |
 | `test/golden/golden_support.dart` | 🔴 M2 | 픽스처 로더(`fixtureEnvelope`·`listFixture<T>`·`singleFixture<T>`) · 고정 시계 `FixedClock`·`kGoldenNowUtc` · 폰 크기 `kGoldenPhoneSize`(390×844) · `pumpForGolden`(light/dark) · `expectGolden(name, brightness)` |
 | `test/golden/chart_probe.dart` | 🔴 M2 | 🆕 계약 v1.3 — 차트의 «그리기 기록» 하네스. painter 를 기록용 캔버스에 다시 그려 읽고, 픽스처와 맞는지 **단언까지 한다**(아래 «R10» 절). 화면 담당은 고치지 않는다 |
-| `test/golden/chart_probe_test.dart` | 🔴 M2 | 🆕 위 하네스의 자체 검증 45건 — 본보기 painter 는 통과하고 나쁜 painter 17종은 실패함을 고정한다 |
+| `test/golden/chart_probe_test.dart` | 🔴 M2 | 🆕 위 하네스의 자체 검증 46건 — 본보기 painter 는 통과하고 나쁜 painter 17종은 실패함을 고정한다. 본보기 `PerfChart` 의 눈금 글자가 그림 왼쪽 바깥 열에 있다는 것도 여기서 본다 |
 | `test/golden/reference/` | 🔴 M2 | 🆕 차트 본보기 구현 3파일. 화면 담당은 `lib/` 로 **글자 그대로 베껴** 쓴다(아래 «R10» 절). 여기 있는 원본은 지우지도 고치지도 않는다 |
 | `test/golden/<화면id>_golden_test.dart` | 화면 담당 | 아래 예시대로. `s71_golden_test.dart` |
 | `test/golden/goldens/<name>_<light\|dark>.png` | 화면 담당(최초 1회) | `expectGolden` 이 만드는 경로. **커밋 대상** |
@@ -241,12 +241,16 @@ expectTicksMatch(recording, series, scheme);
 네 함수가 **공통으로** 먼저 보는 것: ① 금지 호출 0 — `saveLayer` · `translate`·`scale`·`rotate`·`transform` · 글자 그리기 · 그라디언트·`MaskFilter` · 짝 없는 `save`/`restore` · `save` 밖의 `clipRect` ② 층 표에 없는 그리기 0 ③ 층의 순서 = 띠 → 눈금선 → 벤치마크 → 본선.
 
 - 비교는 **비율**이다. 가로 = x ÷ 그림 폭 · 세로 = 1 − y ÷ 그림 높이. 그림 영역 = `CustomPaint` 의 크기 전체(안쪽 여백 없음).
+- 🆕 `PerfChart` 의 짜임(2026-09-29) = 상자(높이 220) → 위아래 12 → 가로로 [ **눈금 글자 열(폭 56)** · 빈칸 8 · 그림(`CustomPaint` · 남은 폭 전부) ]. 눈금 글자는 그림 **왼쪽 바깥 열**에 있다 — 글자가 선과 띠를 덮지 않는다(누적 시리즈의 첫 점은 늘 왼쪽 아래 끝에 온다). 글자 자리 = `Align(alignment: FractionalOffset(1, 1 - tick.normalized))`(열의 오른쪽 끝 · 세로는 정규값 그대로). 그림 폭 = 부모 폭 − 64(폰 폭 390 이면 326 × 196).
+- 🔴 그림 안쪽에 여백을 두면 하네스가 `… got 0.02xx` 꼴로 실패한다(예: `main line: point #0 (0.0000, 0.0000) is not on the drawn line (nearest 0.0204)` · 세로 4px 부터 · 메시지는 여백을 말하지 않는다) — 여백은 `PerfChart` **바깥**에서 준다.
+- 🔴 불가 시리즈(`points` 가 비어 있음 · 골든 `s72_unavailable`)는 차트가 없다 — `find.byKey(kChartProbeKey)` 가 0 임을 보고(`findsNothing`) `recordChart` 를 **부르지 않는다**(부르면 실패한다).
 - 🔴 `chart_probe.dart` · `chart_probe_test.dart` · `reference/` 는 **고치면 반려**다. 맞지 않으면 `docs/ai-context/inbox/` 질문 표에 적는다.
 - 🔴 기대값을 테스트에 손으로 적지 않는다(«선이 2개다» 같은 수도). 픽스처를 넘기면 하네스가 센다.
 - 실패 메시지는 영어 한 줄이다. 예: `main line: expected 2 contour(s) — one per run of consecutive non-null points [(0,12) (15,20)] — drew 1. A gap must break the line.`
 
 **하네스가 못 보는 것**(알고 쓴다):
-- 눈금 **글자**의 자리와 내용 — 글자는 위젯이다. `find.byKey(ValueKey<String>('s72-tick-$i'))` 와 픽스처의 `label` 로 위젯 테스트가 본다.
+- 눈금 **글자**의 자리와 내용 — 글자는 위젯이다. `find.byKey(ValueKey<String>('s72-tick-$i'))` 와 픽스처의 `label` 로 위젯 테스트가 본다(글자의 오른쪽 끝 ≤ 그림의 왼쪽 변 — `tester.getRect`).
+- 허용 오차(0.02) 안의 **가로 어긋남** — 왼쪽 끝에 붙은 띠는 가로를 0.9배로 줄여 그려도 통과한다(`m7_perf_monthly_sim_split` 의 띠 0~0.1471 → 0~0.1324 · 차 0.0147). 같은 잘못이 본선이나 오른쪽 띠에 있으면 잡힌다.
 - 점선 벤치마크의 **아주 좁은 틈**(폭의 0.02 안팎보다 좁은 결측)을 이어 그린 것. 점 60개 · 결측 1점(틈 0.034)까지는 잡는다.
 - 실제 픽셀(안티에일리어싱 · 플랫폼 차이) — 그것은 골든 몫이다.
 
@@ -272,7 +276,7 @@ diff -r test/golden/reference/chart lib/src/chart && diff test/golden/reference/
 
 - 본보기 원본은 **지우지 않는다** — 하네스 자체 검증이 쓴다.
 - 배럴(`lib/ui_analytics.dart`)에 세 파일을 export 하지 않는다(내부 파일이다). 테스트는 `package:ui_analytics/src/…` 로 직접 import 한다.
-- 세 파일은 `lib/` 의 기계 검사를 이미 통과한 글자다(C-3 import · C-4 산술 이름 · C-5 한글 리터럴 · C-12 switch 전부 받기 · C-36 ⑦⑧). 이름을 바꾸면 C-4 에 걸릴 수 있다 — `ratio`·`tax`·`cash`·`pct`·`price`·`amount` 가 든 이름(`aspectRatio`·`duration`·`iteration` 포함)을 쓰지 않는다.
+- 세 파일은 `lib/` 의 기계 검사를 이미 통과한 글자다(C-3 import · C-4 산술 이름 · C-5 한글 리터럴 · C-12 switch 전부 받기 · C-36 ⑦⑧). 이름을 바꾸면 C-4 에 걸릴 수 있다 — `ratio`·`tax`·`cash`·`pct`·`price`·`amount`·`pnl`·`commission`·`cagr` 가 든 이름(`aspectRatio`·`duration`·`iteration` 포함)을 쓰지 않는다.
 - 차트에 더할 것이 생기면(예 선택 표시) 코드를 고치지 말고 질문 표에 적는다 — 층 표가 계약이다.
 
 ### 5. 미리보기 PNG (눈 확인용 · 골든 아님)

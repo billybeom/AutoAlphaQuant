@@ -254,7 +254,15 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 
 ### 🔴 성과 시리즈의 표시 필드는 **생성 스크립트**가 만든다 (손 계산 금지)
 
-정규 자리와 글자를 손으로 고치지 않는다. 값을 바꿔야 하면 M2 가 생성 스크립트(`gen_r10_fixtures.py` — 저장소 밖 M2 작업 폴더)를 고쳐 다시 돌린다. 스크립트는 분수로 계산하고 마지막에만 반올림한다. 규칙은 엔진(06 M1-17)이 지킬 규칙과 같다.
+정규 자리와 글자를 손으로 고치지 않는다. 값을 바꿔야 하면 M2 가 생성 스크립트(`packages/domain_contracts/tool/gen_r10_fixtures.py`)를 고쳐 다시 돌린다. 스크립트는 분수로 계산하고 마지막에만 반올림한다. 규칙은 엔진(06 M1-17)이 지킬 규칙과 같다.
+
+```
+# 저장소 루트에서 — 몇 번을 돌려도 결과가 같다. 돌린 뒤 `git status` 에 fixtures 변경이 없어야 한다
+PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures.py
+```
+
+- 개정 4건은 기준 커밋(계약 1.2.0 · `c4c8819`)의 원문에서 다시 만든다 — git 과 그 커밋이 있어야 한다.
+- 기대 표(점 수 · 결측 순번 · 축 · 눈금 · 구간)는 화면에 찍는다. 파일로도 받으려면 `--table <경로>`(저장소 밖).
 
 | 필드 | 규칙 |
 |---|---|

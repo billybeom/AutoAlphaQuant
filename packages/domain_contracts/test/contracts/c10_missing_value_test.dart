@@ -12,7 +12,8 @@
 //   ⑤ 전 점(본선·벤치마크): `value == null ⇔ yNormalized == null`.
 //   ⑥ 결측 점은 `UNAVAILABLE` 또는 `SIM_EXCLUDED` 구간의 `[start, end]` 정규 범위 안에 있다.
 //   ⑦ `SIM_EXCLUDED` 구간 안의 점은 전부 null 이고 사유가 `SIM_EXCLUDED` 다 ·
-//      `MANUAL_EXECUTED` 구간 안의 점은 전부 값이 있다.
+//      `MANUAL_EXECUTED` 구간 안의 점은 전부 값이 있다 ·
+//      `UNAVAILABLE` 구간 안의 점(본선)은 전부 null 이다(빗금 띠 위로 선이 지나가지 않는다).
 // 🔴 ⑤⑥⑦ 은 **망가뜨린 사본**(메모리 안)으로 실패하는 것을 «자체 검증» 테스트가 고정한다.
 
 import 'package:domain_contracts/domain_contracts.dart';
@@ -142,12 +143,13 @@ void main() {
       expect(gaps, greaterThanOrEqualTo(8), reason: '결측 점 표본이 줄었다.');
     });
 
-    test('C-10 ⑦ 모의 구간의 점은 전부 비고, 수동 집행 구간의 점은 전부 값이 있다', () {
+    test('C-10 ⑦ 모의·불가 구간의 점은 전부 비고, 수동 집행 구간의 점은 전부 값이 있다', () {
       _expectClean(_segmentKindViolations);
-      // 입력 확인 — 두 구간 모두 점을 덮는 표본이 있다.
+      // 입력 확인 — 세 구간 모두 점을 덮는 표본이 있다.
       for (final SegmentKind kind in <SegmentKind>[
         SegmentKind.simExcluded,
         SegmentKind.manualExecuted,
+        SegmentKind.unavailable,
       ]) {
         final int inside = allPerfSeriesRows()
             .map((PerfSeriesRow r) => r.series)
@@ -179,6 +181,9 @@ void main() {
       );
       final PerfSeriesRow manual = perfSeriesRow(
         FixturePaths.m7M7PerfDailyManual,
+      );
+      final PerfSeriesRow period = perfSeriesRow(
+        FixturePaths.m7M7PerfMonthlyPeriod,
       );
       final List<_Mutation> mutations = <_Mutation>[
         _Mutation(
@@ -288,6 +293,18 @@ void main() {
             final Map<String, Object?> p = jsonObjects(j, 'points')[6];
             p['value'] = null;
             p['y_normalized'] = null;
+          },
+        ),
+        _Mutation(
+          '⑦ 불가 구간의 점에 값이 실렸다',
+          'points[7] — 불가 구간 안인데 값이 있다',
+          _segmentKindViolations,
+          period,
+          (Map<String, Object?> j) {
+            final Map<String, Object?> p = jsonObjects(j, 'points')[7];
+            p['value'] = 0.0085;
+            p['y_normalized'] = 0.7125;
+            p.remove('gap_reason_code');
           },
         ),
       ];
@@ -403,6 +420,10 @@ List<String> _segmentKindViolations(String where, PerformanceSeries s) {
       if (seg.kind == SegmentKind.manualExecuted &&
           (p.value == null || p.yNormalized == null)) {
         bad.add('$where points[$i] — 수동 집행 구간 안인데 값이 없다(선이 끊긴다)');
+      }
+      if (seg.kind == SegmentKind.unavailable &&
+          (p.value != null || p.yNormalized != null)) {
+        bad.add('$where points[$i] — 불가 구간 안인데 값이 있다(빗금 띠 위로 선이 지나간다)');
       }
     }
   }

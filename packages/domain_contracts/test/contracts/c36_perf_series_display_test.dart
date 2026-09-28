@@ -10,10 +10,12 @@
 //   ⑤  `unavailableLabel != null ⇔ points 가 비어 있다` · 그때 구간·눈금도 비고 벤치마크는 null ·
 //       점이 있으면 그중 하나는 값이 있다.
 //   ⑥  구간: `start ≤ end` · «날짜로 덮는 점» == «정규 자리로 덮는 점» · 측정 아닌 구간의 글자.
-//   ⑦  ui 스캔: 차트·탐색 파일이 `PerfPoint.value` 를 참조하지 않는다(파일이 아직 없으면 통과).
+//   ⑦  ui 스캔: 차트·탐색 파일이 `PerfPoint.value` 를 참조하지 않는다(파일이 아직 없으면 통과) —
+//       점으로 읽는 것(`p.value`)과 패턴으로 풀어 읽는 것(`PerfPoint(:value)`) 둘 다.
 //   ⑧  ui 스캔: `ui_*/lib` 에 숫자 → 글자 포맷 호출이 없다.
 //   ⑨  점은 많아야 60개다(값 표가 받은 순서대로 전부 그린다).
 //   ⑩  가림·불가 시리즈의 문장에 `%` 와 소수점 숫자가 없다.
+//   ⑪  한 시리즈(본선 + 벤치마크)의 값 있는 점에서 `value` 의 크기 순서 == `yNormalized` 의 크기 순서.
 // 🔴 «선을 실제로 끊어 그렸는가»는 렌더 결과다 — `ui_analytics/test/golden/chart_probe.dart`.
 // 🔴 검사마다 **망가뜨린 사본**(메모리 안)으로 실패하는 것을 맨 끝 테스트가 고정한다 —
 //    검사가 «늘 참»이 되면 그 테스트가 먼저 깨진다.
@@ -36,6 +38,10 @@ const int _maxTicks = 5;
 /// `valueOrNull` 은 통과한다.
 final RegExp _valueRef = RegExp(r'\.value\b(?!OrNull)(?!\s*\()');
 
+/// ⑦ 둘째 — 패턴 분해로 읽는 `value`(`final PerfPoint(:value) = p;` · `case PerfPoint(value: final v):`).
+/// 점(`.`)이 없어 [_valueRef] 가 못 잡는다.
+final RegExp _valuePattern = RegExp(r'PerfPoint\s*\([^)]*\bvalue\b');
+
 /// ⑧ 숫자 → 글자 포맷.
 final RegExp _numberFormat = RegExp(
   'toStringAsFixed|toStringAsPrecision|NumberFormat',
@@ -43,6 +49,9 @@ final RegExp _numberFormat = RegExp(
 
 /// ⑩ 가림 문장에 새면 안 되는 것.
 final RegExp _decimalNumber = RegExp(r'\d+\.\d+');
+
+/// ⑪ `value` 두 개를 같다고 보는 차(소수 넷째 자리 반올림의 절반).
+const double _sameValue = 0.00005;
 
 /// ⑦ 의 대상 — `packages/ui_analytics` 기준 상대 경로.
 const List<String> _chartDirs = <String>[
@@ -70,6 +79,18 @@ const List<String> _valueRefNegatives = <String>[
   'yield* Stream<int>.value(1);',
   'Text(p.valueText)',
   'final String t = point.valueText;',
+];
+
+/// [_valuePattern] 자체 검증 — 반드시 걸려야 하는 것.
+const List<String> _valuePatternPositives = <String>[
+  'final PerfPoint(:value) = p;',
+  'case PerfPoint(value: final v):',
+];
+
+/// [_valuePattern] 자체 검증 — 통과해야 하는 것.
+const List<String> _valuePatternNegatives = <String>[
+  'PerfPoint(:yNormalized)',
+  'case PerfPoint(:valueText, :dateText):',
 ];
 
 const List<String> _numberFormatPositives = <String>[
@@ -155,6 +176,18 @@ void main() {
       for (final String s in _valueRefNegatives) {
         expect(_valueRef.hasMatch(s), isFalse, reason: '음성 스니펫을 잘못 잡았다: $s');
       }
+      for (final String s in _valuePatternPositives) {
+        expect(_valuePattern.hasMatch(s), isTrue, reason: '양성 스니펫을 못 잡았다: $s');
+        // 점이 없는 꼴이다 — 첫째 정규식만으로는 빠져나간다(둘째가 있어야 하는 까닭).
+        expect(_valueRef.hasMatch(s), isFalse, reason: s);
+      }
+      for (final String s in _valuePatternNegatives) {
+        expect(
+          _valuePattern.hasMatch(s),
+          isFalse,
+          reason: '음성 스니펫을 잘못 잡았다: $s',
+        );
+      }
       // 대상 고르기 자체 검증.
       expect(_isChartTarget('lib/src/chart/perf_geometry.dart'), isTrue);
       expect(
@@ -179,6 +212,17 @@ void main() {
         }, _valueRef),
         <String>['b.dart'],
       );
+      expect(
+        _scan(<String, String>{
+          'a.dart':
+              '// PerfPoint(:value) 로 풀지 않는다\n'
+              'final PerfPoint(:yNormalized) = p;\n',
+          'b.dart': 'final PerfPoint(:value) = p;\n',
+          'c.dart':
+              'final v = switch (p) {\n  PerfPoint(value: final v) => v,\n};\n',
+        }, _valuePattern),
+        <String>['b.dart', 'c.dart'],
+      );
 
       final Map<String, String> sources = <String, String>{};
       final Directory root = Directory(
@@ -197,6 +241,13 @@ void main() {
         reason:
             '`PerfPoint.value` 는 골든 대조·회귀 전용이다. 그래프는 `xNormalized`·`yNormalized`, '
             '글자는 `valueText` 를 쓴다(01 §13-1 · §13-2).',
+      );
+      expect(
+        _scan(sources, _valuePattern),
+        isEmpty,
+        reason:
+            '`PerfPoint` 를 패턴으로 풀어 `value` 를 읽는 것도 같은 금지다'
+            '(`PerfPoint(:value)` · `PerfPoint(value: final v)` — 01 §13-2).',
       );
     });
 
@@ -237,6 +288,40 @@ void main() {
 
     test('C-36 ⑩ 가림·불가 시리즈의 문장에 %와 소수점 숫자가 없다', () {
       _expectClean(_maskedTextViolations);
+    });
+
+    test('C-36 ⑪ value 의 크기 순서와 yNormalized 의 크기 순서가 같다', () {
+      _expectClean(_orderViolations);
+      // 입력 확인 — 견줄 점이 있는 시리즈 · 두 선을 한 축에서 견주는 시리즈 · 값이 같은 두 점.
+      final List<PerformanceSeries> all = <PerformanceSeries>[
+        for (final PerfSeriesRow r in allPerfSeriesRows()) r.series,
+      ];
+      expect(
+        all.where((PerformanceSeries s) => _valued(s).length >= 2),
+        hasLength(greaterThanOrEqualTo(7)),
+        reason: '견줄 점이 둘 이상인 시리즈 표본이 줄었다.',
+      );
+      expect(
+        all.where(
+          (PerformanceSeries s) =>
+              s.benchmark != null && _valued(s).length > s.points.length,
+        ),
+        isNotEmpty,
+        reason: '본선과 벤치마크를 한 축에서 견주는 표본이 없다.',
+      );
+      expect(
+        all.any((PerformanceSeries s) {
+          final List<_Valued> v = _valued(s);
+          for (int i = 1; i < v.length; i++) {
+            if ((v[i].value - v[i - 1].value).abs() < _sameValue) {
+              return true;
+            }
+          }
+          return false;
+        }),
+        isTrue,
+        reason: '값이 같은 두 점 표본이 없다(«같으면 같다» 갈래가 아무것도 보지 않는다).',
+      );
     });
 
     test('C-36 자체 검증 — 망가뜨린 사본은 검사에 걸린다', () {
@@ -520,6 +605,30 @@ void main() {
                 '관측 표본의 누적은 11.94 입니다.';
           },
         ),
+        // ⑪
+        _Mutation(
+          '⑪ 값은 더 큰데 세로 자리가 더 낮다',
+          'points[5] — value 는 더 큰데',
+          _orderViolations,
+          monthly,
+          (Map<String, Object?> j) {
+            // 점 5(value 0.0338)의 자리를 점 4(value 0.0263 · 자리 0.1753)보다 아래로.
+            jsonObjects(j, 'points')[5]['y_normalized'] = 0.05;
+          },
+        ),
+        _Mutation(
+          '⑪ 값이 같은데 세로 자리가 다르다(벤치마크)',
+          'benchmark.points[12] — value 는 같은데',
+          _orderViolations,
+          period,
+          (Map<String, Object?> j) {
+            // 벤치마크 점 2·12·23 은 value 가 같다(0.0053 · 자리 0.6325).
+            jsonObjects(
+              j['benchmark']! as Map<String, Object?>,
+              'points',
+            )[12]['y_normalized'] = 0.634;
+          },
+        ),
       ];
 
       final Set<String> covered = <String>{};
@@ -536,7 +645,18 @@ void main() {
         );
         covered.add(m.name.split(' ').first);
       }
-      expect(covered, <String>{'①', '②', '③', '④', '④b', '⑤', '⑥', '⑨', '⑩'});
+      expect(covered, <String>{
+        '①',
+        '②',
+        '③',
+        '④',
+        '④b',
+        '⑤',
+        '⑥',
+        '⑨',
+        '⑩',
+        '⑪',
+      });
     });
   });
 }
@@ -760,6 +880,63 @@ List<String> _maskedTextViolations(String where, PerformanceSeries s) {
   for (final MapEntry<String, String> e in texts.entries) {
     if (e.value.contains('%') || _decimalNumber.hasMatch(e.value)) {
       bad.add('$where ${e.key} — 가린 시리즈의 문장에 수익률 꼴 숫자가 있다: ${e.value}');
+    }
+  }
+  return bad;
+}
+
+/// 값 있는 점 1개(⑪ — 어느 선의 몇 번째 점인지와 함께).
+typedef _Valued = ({String at, double value, double y});
+
+/// 본선 + 벤치마크의 값 있는 점을 `value` 오름차순으로(같으면 받은 순서 그대로).
+///
+/// 🔴 두 선은 **같은 축**을 쓴다(01 §13-1) — 그래서 한데 모아 견준다.
+List<_Valued> _valued(PerformanceSeries s) {
+  final List<_Valued> out = <_Valued>[
+    for (final MapEntry<String, List<PerfPoint>> line in _lines(s).entries)
+      for (int i = 0; i < line.value.length; i++)
+        if (line.value[i].value != null && line.value[i].yNormalized != null)
+          (
+            at: '${line.key}[$i]',
+            value: line.value[i].value!,
+            y: line.value[i].yNormalized!,
+          ),
+  ];
+  // 안정 정렬(삽입) — 실패 메시지의 순번이 실행마다 같다.
+  for (int i = 1; i < out.length; i++) {
+    final _Valued cur = out[i];
+    int k = i - 1;
+    while (k >= 0 && out[k].value > cur.value) {
+      out[k + 1] = out[k];
+      k--;
+    }
+    out[k + 1] = cur;
+  }
+  return out;
+}
+
+/// ⑪ `value` 로 줄 세웠을 때 `yNormalized` 가 내려가지 않는다 · `value` 가 같으면 자리도 같다.
+///
+/// 🔴 산술을 다시 하지 않는다(축을 되짚어 계산하지 않는다) — 순서만 본다. 값 하나를 손으로 고쳐
+///    세로 자리와 어긋나면 여기서 걸린다.
+List<String> _orderViolations(String where, PerformanceSeries s) {
+  final List<_Valued> sorted = _valued(s);
+  final List<String> bad = <String>[];
+  for (int i = 1; i < sorted.length; i++) {
+    final _Valued prev = sorted[i - 1];
+    final _Valued cur = sorted[i];
+    final bool same = (cur.value - prev.value).abs() < _sameValue;
+    if (same && cur.y != prev.y) {
+      bad.add(
+        '$where ${cur.at} — value 는 같은데(${cur.value}) 세로 자리가 다르다: '
+        '${cur.y} ≠ ${prev.at} 의 ${prev.y}',
+      );
+    }
+    if (!same && cur.y < prev.y) {
+      bad.add(
+        '$where ${cur.at} — value 는 더 큰데(${cur.value} > ${prev.at} 의 '
+        '${prev.value}) 세로 자리가 더 낮다: ${cur.y} < ${prev.y}',
+      );
     }
   }
   return bad;
