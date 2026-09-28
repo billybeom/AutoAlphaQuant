@@ -34,6 +34,7 @@
 import 'advice_codes.dart';
 import 'alert_codes.dart';
 import 'deviation_kind_codes.dart';
+import 'disclosure_codes.dart';
 import 'exit_kind.dart';
 import 'flag_ids.dart';
 import 'journal_codes.dart';
@@ -45,6 +46,7 @@ import 'verdict_codes.dart';
 export 'advice_codes.dart';
 export 'alert_codes.dart';
 export 'deviation_kind_codes.dart';
+export 'disclosure_codes.dart';
 export 'exit_kind.dart';
 export 'flag_ids.dart';
 export 'journal_codes.dart';
@@ -178,6 +180,8 @@ abstract final class ContractCodes {
     // 🆕 v1.1 R2 준비(2026-09-23) — J-3 사전 저널 제출의 거부 사유
     //    (`CommandReceipt.rejectReasonCode` — X7 의 `advice_reject` 와 다른 축)
     'journal_draft_reject': JournalDraftRejectCodes.values,
+    // 🆕 v1.3(R10 선행) — 성과 열람 기록의 화면 코드(`DisclosureViewEvent.surfaceCode`)
+    'disclosure_surface': DisclosureSurfaceCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

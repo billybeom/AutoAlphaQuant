@@ -64,8 +64,10 @@ extension type const TradeDate(String yyyyMmDd) {}
 /// 01 §1-2·§1-3 — 화면이 `DateTime.now()` 를 부르지 않게 하는 유일한 통로.
 /// 구현체 주입은 `data_sync`.
 ///
-/// 🔴 화면이 이 값을 쓰는 자리는 **전 앱에서 하나**다 —
-///    `observedAt + staleAfter < clock.nowUtc()`(신선도 배너).
+/// 🔴 화면이 이 값을 쓰는 자리는 **둘이다**(🆕 v1.3 · 01 §13-6) —
+///    ① 신선도 비교 `observedAt + staleAfter < clock.nowUtc()`(신선도 배너)
+///    ② 명령 페이로드의 관측 시각(`DisclosureViewEvent.viewedAt`) — 판정이 아니며
+///       집계 월은 엔진이 접수·서버 시각으로 확정한다.
 ///    카운트다운·경과·D-day·TTL 잔여는 엔진이 문자열 필드로 준다.
 /// 🔴 신뢰 시각(리스 TTL·킬스위치 48h·냉각 30일)은 **Supabase 서버 시각**이다.
 ///    로컬 시계로 마찰 카운트다운을 만들지 않는다.

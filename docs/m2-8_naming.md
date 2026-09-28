@@ -261,3 +261,37 @@ R2b-Bob-J3(사전 저널 영속화·읽기 뷰) 발송 전에 계약 면을 닫�
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 44(`S7-3` 초안 필드) · 46(`J-4` 점수 축·읽기 창구·픽스처 — 본문 단위만 `DecisionJournalBody` 로 정함) ·
 🆕 52(X7 초안 소비 경로 — `adviceFill` 파라미터 · `A-4` 라우트 · 원문→인자 변환 주체 · `L-3` 세션 VM · operator 공용 주입 파일 · `M5-12`) ·
 🆕 53(기기 로컬 암호화 저장소 구현 06 M4-9 · X1 «초안 불이동» 게이트 · 모드 전환 때 초안 처리).
+
+---
+
+## N. 🆕 계약 v1.3 (2026-09-28 · R10 선행 M2 보강) — 성과 시리즈 표시 · 열람 게이트·기록 · 아카이브
+
+R10-Bob-S7x(`S7-1b` 아카이브 · `S7-2G` 열람 게이트 · `S7-2` 수익률 탐색) 발송 전에 계약 면을 닫았다. `contractVersion` = **`1.3.0`** · 픽스처 115건
+(기존 104 가운데 100 은 봉투 한 줄 · 4 는 본문 개정 + 신규 11) · 라우트 41 그대로(+ 동작 링크 1) · 조문 = 01 §13.
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| N-1 | `PerfPoint.xNormalized` · `yNormalized` | 점의 가로·세로 자리(0.0~1.0 · 🔴 그래프 기하 전용) · `dto/performance.dart` · `xNormalized` 는 required(엄격히 증가 · 점 1개면 0.5) · `yNormalized` 는 nullable(null = 결측 — 선을 끊는다 · `value == null` 과 늘 함께). 본선과 벤치마크는 같은 축. C-36 ①② · C-10 ⑤ |
+| N-2 | `PerfPoint.dateText` · `valueText` | 점의 글자(둘 다 required · 엔진 생성) — 값 표의 재료 · 결측 점에도 온다(«산출 불가» · «합산 제외»). 🔴 `PerfPoint.value` 는 골든 대조·회귀 전용 — `ui_*` 참조 금지(C-36 ⑦) |
+| N-3 | `PerfSegment.startNormalized` · `endNormalized` | 띠의 가로 범위(그림 영역 폭에 대한 비율 · 둘 다 required) — 엔진이 덮는 점의 앞뒤 반 칸까지 넓혀서 준다 · 화면은 `from`·`to` 를 점의 날짜와 비교하지 않는다. C-36 ④b ⑥ |
+| N-4 | 🆕 타입 `PerfAxisTick`(`normalized`·`label`·`isBaseline`) | 세로축 눈금 1개 · `dto/performance.dart` · `isBaseline` 은 `@Default(false)` · 한 시리즈에 기준선은 많아야 하나 · 눈금 수 ≤ 5(C-36 ④) |
+| N-5 | `PerformanceSeries.seriesLabel` · `periodLabel` · `yTicks` · `unavailableLabel` | 본선 이름(범례) · 덮는 기간 · 눈금 목록(`@Default` 빈 목록) · 불가 문장. 🔴 `unavailableLabel != null ⇔ points 가 비어 있다`(그때 `segments`·`yTicks` 도 비고 `benchmark` 는 null — C-36 ⑤) |
+| N-6 | `GapReasonCodes.simExcluded` | `'SIM_EXCLUDED'` · `labels/verdict_codes.dart` · `values` 3종 — 모의 구간(`SegmentKind.simExcluded`) 안의 점(C-10 ⑦) |
+| N-7 | `PerformanceRepository.series({… DateRange? range})` | **바뀐 시그니처**(required → nullable) · null = 엔진 기본 구간(무엇이 골라졌는지는 `periodLabel`) · v1.3 의 `S7-2` 는 언제나 null · `weekly` 로는 부르지 않는다(01 §8 미결 54). 받침대 `UnimplementedPerformanceRepository.series` 도 같은 커밋 |
+| N-8 | `ReportArchiveRow.sectionLabel` | nullable · non-null 이면 **이 행 위에** 머리글 1줄 — 묶음의 첫 행에만 엔진이 싣는다 · 화면은 앞 행과 비교하지 않는다. `ReportArchiveVm.rows` = 엔진이 최신 달부터 정렬. C-34 ⑩(행 키 ⊆ 7) |
+| N-9 | `DisclosureGateVm.gateOpen` · `frictionLine` · `route` | **뜻 확정**(필드 무변경 — dartdoc) — `gateOpen` = 엔진이 지금 진입을 허용하는가 · `frictionLine == null` = 그 줄이 없다 · `route` = 게이트 밖 진입점용(게이트 화면은 열지 않는다 · `gateOpen == (route != null)` — C-37 ①) |
+| N-10 | `DisclosureViewEvent.durationSec` | **바뀐 기본값**(required → `@Default(0)`) · `commands/payloads.dart` · 진입 시점 기록은 0 — 화면은 적지 않는다(C-37 ④) |
+| N-11 | 🆕 `DisclosureSurfaceCodes.performanceExplore` · `.values` | `'PERFORMANCE_EXPLORE'` · 🆕 `labels/disclosure_codes.dart` · 사전 키 `disclosure_surface`(`ContractCodes.byDomain`) — `DisclosureViewEvent.surfaceCode` 의 값(C-37 ⑤) |
+| N-12 | 🆕 `AppNavActions.back` · `.all` | `'aaq://nav/back'` · `navigation/app_links.dart` · **동작 링크**(목적지가 아니다 — 「돌아가기」) · 🔴 `AppRoutes.all` 밖 · DTO·픽스처에 실리지 않는다(C-33 +2단언) · 동작 링크는 `back` 하나 — 추가는 계약 버전 사안 |
+| N-13 | `Clock` 의 둘째 자리 | 이름 무변경 · dartdoc 개정(`primitives/money.dart`) — ① 신선도 비교 ② 명령 페이로드의 관측 시각(`DisclosureViewEvent.viewedAt`) |
+| N-14 | 픽스처 11 · `FixturePaths` 상수 11 | `m7M7ReportArchiveEmpty` · `m7M7DisclosureGateFirst`·`m7M7DisclosureGateFrequent`·`m7M7DisclosureGateClosed` · `m7M7DisclosureViewReceipts4` · `m7M7PerfMonthlySimSplit`·`m7M7PerfDailyManual`·`m7M7PerfMonthlyPeriod`·`m7M7PerfYearly`·`m7M7PerfUnavailableGap`·`m7M7PerfMaskedIntegrity` · `FixturePaths.all` 115 · 개정 4(`performance24m`·`m7M7PerfDailyGap`·`m7M7DisclosureGate`·`m7M7ReportArchive18` — 상수 이름 그대로) |
+| N-15 | C-36 · C-37 | 성과 시리즈 표시·기하 계약 — `test/contracts/c36_perf_series_display_test.dart` / 열람 게이트·기록 계약 — `test/contracts/c37_disclosure_gate_test.dart` |
+| N-16 | 골든 하네스 `chart_probe` | `packages/ui_analytics/test/golden/chart_probe.dart`(+ 자체 검증 `chart_probe_test.dart`) — «선이 끊겼다»·«띠가 있다»의 주 증명 · 함수 이름은 실물이 정본 |
+| N-17 | 권고(화면 쪽 · 카드가 확정) | 공개 위젯 `ReportArchiveScreen` · `PerformanceExploreScreen` · 주입 `analyticsCommandApiProvider`(배럴 쪽) · 데이터 `reportArchiveProvider`·`disclosureGateProvider`·`performanceSeriesProvider`(열쇠 `PerfSeriesQuery`) · 공용 위젯 `AnalyticsSkeleton`·`AnalyticsErrorView` · 정적 라벨 `AnalyticsLabels.gateBackButton`·`gateContinueButton`·`recordNotAccepted`·`metricTwr`·`metricMwr`·`granularityDaily`·`granularityMonthly`·`granularityYearly`·`cumulativeOn`·`cumulativeOff`·`valuesShowButton`·`valuesHideButton`·`valuesColumnMain`·`valuesColumnBenchmark`·`drawdownLinkButton`·`contributionLinkButton` · 키 접두 `s71b-`·`s72g-`·`s72-` · 골든 접두 `s71b_`·`s72g_`·`s72_` |
+
+🔵 같은 PR 의 커밋 ① — `ui_analytics` 구 테스트 3파일의 가짜를 `implements PerformanceRepository` → `extends UnimplementedPerformanceRepository` 로(버전 무관 · 골든 불변).
+🔴 **만들지 않은 이름**(재론 방지): `nearestIndex`·`chartTapHint`(탭 읽기 줄 기각 — 값 표로 대체) · `ReportArchiveRow.statusLabel` · 아카이브 그룹 DTO · 토글 카탈로그 DTO · 픽스처 `m7_perf_empty`·`m7_perf_all_gap`(불가의 모양은 하나 — `m7_perf_unavailable_gap`).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 🆕 미결 54(주 경계·주간 선택지) · 55(기간 선택 UI) · 56(「월 1회 권장」 문구 필드) · 57(열람 시각을 큐가 채우는 안) ·
+58(절단선·`manualExecuted` 신뢰 배지) · 59(`DISCLOSURE_VIEW` 거부 코드 사전·거부 접수증) · 60(열람 길이 기록) · 61(웹 2열·통계 패널·`afterTax`·토글 카탈로그) ·
+62(셸 몫 — 라우터 가드 테스트·`AppNavActions.back` 구현) · 63(`S7-1` A13 → R11 부록 후보) · 64(CI Flutter 버전 고정·선 그림 골든 실측) · 이전부터의 44·49.

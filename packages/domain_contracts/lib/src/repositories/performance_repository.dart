@@ -9,11 +9,15 @@ import '../primitives/date_range.dart';
 
 /// 성과 시리즈 · 월간 리포트 · 세후 사다리 + G-41 뷰모델 6종의 창구.
 abstract interface class PerformanceRepository {
+  /// `S7-2` 성과 시리즈.
+  /// 🆕 v1.3 — `range == null` = **엔진 기본 구간**(주기마다 엔진이 고른다).
+  ///    무엇이 골라졌는지는 `PerformanceSeries.periodLabel` 이 말한다.
+  /// 🔴 `granularity: weekly` 는 v1.3 에서 화면이 부르지 않는다(01 §8 미결 54 — 주 경계).
   Future<PerformanceSeries> series({
     required PerfMetric metric,
     required PerfGranularity granularity,
     required bool cumulative,
-    required DateRange range,
+    DateRange? range,
   });
 
   /// 기본 창구.
@@ -29,6 +33,7 @@ abstract interface class PerformanceRepository {
   // ───── 🆕 G-41 — M7 뷰모델 6종의 창구 ─────
 
   /// `S7-1b` — 🔴 수치 필드가 없는 월 목록이다.
+  /// 🆕 v1.3 — `rows` 는 엔진이 **최신 달부터** 정렬해서 준다. 화면은 재정렬·묶기를 하지 않는다.
   Future<ReportArchiveVm> reportArchive();
 
   /// `S7-2G` 열람 게이트. 🔴 이번 달 열람 횟수는 **명령 테이블(append-only)의 집계**이며

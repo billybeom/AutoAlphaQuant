@@ -12,6 +12,7 @@
 //      파라미터가 든 링크는 언제나 엔진이 완성해서 준다.
 //   ④ 파라미터 없는 고정 목적지는 화면 명세가 그 버튼을 **명시한 경우에만** [AppRoutes]
 //      상수를 그대로 넘길 수 있다. 목록에 없는 목적지가 필요하면 멈추고 질문한다.
+//      🆕 v1.3 — [AppNavActions].* 도 같다.
 // 🔴 엔진·픽스처 규칙: `aaq://` 링크는 전부 [AppRoutes.all] 의 패턴 하나와 일치해야 한다
 //    (계약 테스트 C-33). `handbook://` 는 핸드북 앵커이며 도착지는 `HandbookPage` 다.
 // 🔴 이 파일은 순수 Dart 다(Flutter import 없음 — 01 §1-1). 구현체는 `ui_shell` 이 준다.
@@ -35,6 +36,21 @@ abstract final class AppLinkSchemes {
   static const String handbook = 'handbook';
 
   static const Set<String> values = <String>{app, handbook};
+}
+
+/// 🆕 v1.3 · 01 §13-7 — **동작 링크**. 목적지가 아니라 «지금 화면을 닫는다»는 뜻이다.
+/// 셸(M8)의 [AppLinkOpener] 구현이 뜻을 정한다: 닫을 화면이 있으면 닫고,
+/// 없으면(링크로 바로 들어온 경우) 그 플랫폼의 첫 화면으로 간다.
+/// 🔴 동작 링크는 `back` 하나다 — 더하는 것은 계약 버전 사안이다.
+/// 🔴 화면 명세가 그 버튼을 **명시한 경우에만** 쓴다(규칙 ④ 와 같다).
+/// 🔴 [AppRoutes.all] 에 넣지 않는다(목적지가 아니다). DTO·픽스처에 실리지 않는다
+///    (C-33 이 검사한다).
+abstract final class AppNavActions {
+  /// 「돌아가기」 — 지금 화면을 닫는다.
+  static const String back = 'aaq://nav/back';
+
+  /// 전량 1종.
+  static const Set<String> all = <String>{back};
 }
 
 /// 앱 라우트 **정본 목록**. 셸은 [all] 을 전량 라우트 테이블에 등록한다(04 §1-2).

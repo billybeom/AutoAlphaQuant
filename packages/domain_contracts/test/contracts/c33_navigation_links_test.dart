@@ -4,6 +4,9 @@
 //   ① `aaq://` 링크는 전부 `AppRoutes.all` 의 패턴 하나와 일치한다.
 //   ② 링크 필드에는 `aaq://`·`handbook://` 두 스킴만 온다(경로 조각·임의 문자열 금지).
 //   ③ 라우트 목록 자체가 건강하다(중복 없음 · 06 §3-5 의 M5·X 라우트 10종 포함).
+//   🆕 v1.3(01 §13-7) — 동작 링크 `AppNavActions`(「돌아가기」)
+//   ⑤ 동작 링크는 목적지가 아니다 — `AppRoutes.all` 과 겹치지 않고 등록된 목적지로 읽히지 않는다.
+//   ⑥ 엔진·픽스처는 동작 링크를 싣지 않는다(화면 명세가 버튼을 명시한 자리에서 화면이 상수로 연다).
 // 🔴 화면은 이 검사의 대상이 아니다 — 화면은 링크를 **만들지 않으므로** 검사할 것이 없고,
 //    만들었다면 `tool/check_boundaries.sh` 의 `aaq://` 리터럴 스캔이 잡는다.
 
@@ -130,5 +133,77 @@ void main() {
       expect(AppRoutes.isRegistered('aaq://nowhere'), isFalse);
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);
     });
+
+    test('C-33 ⑤ 동작 링크는 목적지 목록과 겹치지 않는다', () {
+      expect(AppNavActions.all, isNotEmpty);
+      expect(AppNavActions.all, contains(AppNavActions.back));
+      expect(
+        AppNavActions.all.intersection(AppRoutes.all.toSet()),
+        isEmpty,
+        reason: '동작 링크는 목적지가 아니다 — 셸이 라우트 테이블에 올리지 않는다(01 §13-7).',
+      );
+      for (final String action in AppNavActions.all) {
+        expect(
+          action,
+          startsWith('${AppLinkSchemes.app}://'),
+          reason: '$action — 앱 스킴이다(`AppLinkOpener.open` 한 창구로 연다).',
+        );
+        expect(
+          AppRoutes.isRegistered(action),
+          isFalse,
+          reason:
+              '$action — 파라미터 패턴에 걸려 목적지로 읽힌다. 셸은 동작 링크를 '
+              '`isRegistered` 보다 먼저 처리하지만, 겹치면 순서 하나에 뜻이 매달린다.',
+        );
+      }
+    });
+
+    test('C-33 ⑥ 픽스처는 동작 링크를 싣지 않는다', () {
+      // 자체 검증 — 가짜 봉투에 실린 동작 링크는 걸린다(링크 키 · 링크 키 밖 · 목록 안 모두).
+      expect(
+        _navActionLeaks('fake', <String, Object?>{
+          'rows': <Object?>[
+            <String, Object?>{'route': AppNavActions.back},
+          ],
+        }),
+        hasLength(1),
+      );
+      expect(
+        _navActionLeaks('fake', <String, Object?>{
+          'back_button': <String, Object?>{'note': AppNavActions.back},
+        }),
+        hasLength(1),
+      );
+      expect(
+        _navActionLeaks('fake', <String, Object?>{
+          'route': AppRoutes.performanceExplore,
+          'label': '돌아가기',
+        }),
+        isEmpty,
+      );
+
+      final List<String> leaks = <String>[
+        for (final String path in FixturePaths.all)
+          ..._navActionLeaks(path, jsonDecode(readFixture(path))),
+      ];
+      expect(
+        leaks,
+        isEmpty,
+        reason:
+            '동작 링크는 DTO·픽스처에 실리지 않는다 — 「돌아가기」는 화면 명세가 명시한 버튼이고 '
+            '화면이 `AppNavActions.back` 상수로 연다(01 §13-7).',
+      );
+    });
   });
+}
+
+/// [json] 안의 문자열 값 가운데 동작 링크(`AppNavActions.all`)인 것 — `경로 자리 = 값`.
+List<String> _navActionLeaks(String path, Object? json) {
+  final List<String> out = <String>[];
+  walkJson(json, (String jsonPath, String key, Object? value) {
+    if (value is String && AppNavActions.all.any(value.startsWith)) {
+      out.add('$path $jsonPath = $value');
+    }
+  });
+  return out;
 }

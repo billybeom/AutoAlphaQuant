@@ -84,7 +84,7 @@ class UnimplementedPerformanceRepository implements PerformanceRepository {
     required PerfMetric metric,
     required PerfGranularity granularity,
     required bool cumulative,
-    required DateRange range,
+    DateRange? range,
   }) => throw UnimplementedError('series');
 
   @override

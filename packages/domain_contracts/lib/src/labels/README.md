@@ -11,19 +11,21 @@
 - 판단 기준: 데이터가 바뀌어도 글자가 같으면 정적 라벨, **데이터·상태에 따라 달라지면 사유 문구**다. `if 상태 then A else B` 처럼 **분기로 고르는 것은 정적 라벨이 아니라 생성**이다.
 - 이 목록의 쓰임은 둘뿐이다: ① 픽스처·DDL 대조(**C-15**) ② 미등록 코드 조기 실패.
 
-## 파일 (10)
+## 파일 (12)
 
 | 파일 | 무엇 | 근거 |
 |---|---|---|
 | `exit_kind.dart` | `ExitKindCodes` 6 | §3-1 |
 | `saf_codes.dart` | `SafBandCodes` 8(대역 7행) · `Saf309Codes` 6 | §3-2 |
-| `verdict_codes.dart` | `VerdictCodes` 5 · `PlannedWorkKindCodes` 3 · `GapReasonCodes` 2 | §3-3 · §6-3 · §2-4 |
+| `verdict_codes.dart` | `VerdictCodes` 5 · `PlannedWorkKindCodes` 3 · `GapReasonCodes` 3(🆕 v1.3 `SIM_EXCLUDED`) | §3-3 · §6-3 · §2-4 · §13-3 |
+| 🆕 `disclosure_codes.dart` | **v1.3** `DisclosureSurfaceCodes` 1(`PERFORMANCE_EXPLORE` — 사전 키 `disclosure_surface`) | §13-6 |
 | `origin_codes.dart` | `OriginCodes` 20(브로커 7 · 파생 7 · X7 6) | §3-4 |
 | `flag_ids.dart` | `FlagIds` 12 · `SafetyHoldCodes` 1 | §3-5 · §9-5 ③ |
 | `advice_codes.dart` | `AdviceRejectCodes` 15 · `AdviceTransitionCauseCodes` 9 · `DecisionReasonCodes` 3 · `SeasonalEntryGateCodes` 3(+픽스처값 1) | §3-8 · §6-6 · §3-7 |
 | `alert_codes.dart` | `AlertCodes` 24 | 04 §5-1b·§5-1c·§5-1d |
 | `deviation_kind_codes.dart` | `DeviationKindCodes` 13 | §2-2 |
 | `ledger_event_codes.dart` | `LedgerEventCodes` 1 · `OperatingParamKeys` 1 | §3-6 · §6-2 |
+| `journal_codes.dart` | **v1.1** `DecisionChainStageCodes` 8 · `SafetyCheckLevelCodes` 4 · `UnknownResolutionStageCodes` 4 · `JournalBadgeCodes` 2 · `JournalDraftRejectCodes` 1 | §11 · 02 §3-2 |
 | `labels.dart` | §1-5 조문 · `AfterTaxStepCodes` 6 · ⏸ `StaleReasonCodes` 4 · **`ContractCodes` 배럴·단일 소스 조회** | §1-5 · §2-4 · §8-8 |
 
 ## 단일 소스 조회 — `ContractCodes`
@@ -36,7 +38,8 @@ ContractCodes.byDomain['origin_code'];              // 도메인별 집합(픽�
 
 🔴 **도메인을 아는 자리에서는 `requireRegisteredIn` 을 쓴다.** 전역 조회는 «`flag_id` 자리에 알림 코드가 들어온 것»을 잡지 못한다.
 
-**집계**: 도메인 20 · 등재 143건 · 문자열 139개(중복 4쌍).
+**집계(실측 2026-09-29 · v1.3 · `ContractCodes.byDomain`)**: 도메인 **26** · 등재 **164건** · 문자열 **160개**(중복 4쌍).
+~~도메인 20 · 등재 143건 · 문자열 139개~~ 는 v1.0 의 값이다 — v1.1 `journal_codes.dart` 5도메인 19건 + v1.3 `disclosure_surface` 1도메인 1건 + `gap_reason_code` 1건(`SIM_EXCLUDED`)이 늘었다. 아래 «137 + 6» 풀이도 v1.0 기준이다.
 인벤토리 §6 의 «총 137 코드» + 6 이며 차이는 ① SAF 접두 대역 7행 → 접두 **문자열** 8개(§3-2 표가 `SAF-8xx`·`SAF-9xx` 를 한 행으로 묶는다) ② 계절 게이트 픽스처값 `ENTRY_GATE_OCT` ③ ⏸ `staleReasonCode` 4다.
 같은 문자열이 두 도메인에 있는 4쌍: `MANUAL_ORDER`(origin·deviation) · `RECON_MISMATCH`·`SELF_AUDIT_DUE`(flag·alert) · `PUSH_LAG`(origin·stale).
 

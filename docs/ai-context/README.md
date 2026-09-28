@@ -21,8 +21,8 @@
 | `04_화면명세_M8_셸_운영홈_알림_온보딩.md` | M8 화면 명세 (전문 사본, 바이트 동일) | 11_앱설계/04 |
 | `05_화면명세_M9_설정_관리자.md` | M9 화면 명세 (전문 사본, 바이트 동일) | 11_앱설계/05 |
 | `08_Mermaid_전체흐름_핵심로직.md` | 흐름 그림 — **조문이 아님.** 01·02~05와 어긋나면 조문이 맞다 | 11_앱설계/08 |
-| `fixtures_README.md` | 픽스처 규약 사본 + 실제 파일 목록 ~~**78개**(2026-09-17 · 🆕 `m6/journal_empty.json`)~~ ~~→ **97개**(2026-09-23 · 🆕 `m6/journal_draft_receipts_5.json`)~~ → **104개**(2026-09-25b · 🆕 v1.2 7건 — `m6/draft_records_{j3,x7}` · `m6/journal_read_{written,no_note,not_written}` · `m6/decision_detail_journal_{written,draft_link}`) | `packages/domain_contracts/fixtures/README.md` |
-| `contracts_bundle.md` | `domain_contracts` 공개 API 원문 — **저장소를 못 붙이는 웹 채팅 전용** — 🗄️ Gemini 웹(PR #6)용 기록 · Bob 은 코드 그대로 | `packages/domain_contracts/lib/` |
+| `fixtures_README.md` | 픽스처 규약 사본 + 실제 파일 목록 ~~**78개**(2026-09-17 · 🆕 `m6/journal_empty.json`)~~ ~~→ **97개**(2026-09-23 · 🆕 `m6/journal_draft_receipts_5.json`)~~ ~~→ **104개**(2026-09-25b · 🆕 v1.2 7건 — `m6/draft_records_{j3,x7}` · `m6/journal_read_{written,no_note,not_written}` · `m6/decision_detail_journal_{written,draft_link}`)~~ → **115개**(2026-09-28 · 🆕 v1.3 11건 — `m7/m7_report_archive_empty` · `m7/m7_disclosure_gate_{first,frequent,closed}` · `m7/m7_disclosure_view_receipts_4` · `m7/m7_perf_{monthly_sim_split,daily_manual,monthly_period,yearly,unavailable_gap,masked_integrity}` · 개정 4건) | `packages/domain_contracts/fixtures/README.md` |
+| `contracts_bundle.md` | `domain_contracts` 공개 API 원문(🆕 **계약 v1.3.0** · 85파일 · 2026-09-28 재조립) — **저장소를 못 붙이는 웹 채팅 전용** — 🗄️ Gemini 웹(PR #6)용 기록 · Bob 은 코드 그대로 | `packages/domain_contracts/lib/` |
 | `inbox/README.md` | 질문·추측 목록 접수 규약(파일명·형식) | — |
 | `rounds.md` | 라운드 로그 — 누가 무엇을 언제 받았나 | — |
 

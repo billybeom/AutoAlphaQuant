@@ -1,0 +1,68 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.3.0",
+    "generated_at": "2026-09-28T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260928,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "성과 기준 2026-08-31 종가" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "metric": "TWR",
+      "granularity": "DAILY",
+      "cumulative": true,
+      "series_label": "내 계좌 · 시간가중 · 누적",
+      "period_label": "2026-08-03 ~ 2026-08-31",
+      "y_ticks": [
+        { "normalized": 0.0, "label": "0.0%", "is_baseline": true },
+        { "normalized": 0.3333, "label": "0.5%", "is_baseline": false },
+        { "normalized": 0.6667, "label": "1.0%", "is_baseline": false },
+        { "normalized": 1.0, "label": "1.5%", "is_baseline": false }
+      ],
+      "segments": [
+        { "from": "2026-08-03", "to": "2026-08-07", "kind": "MEASURED", "label": "측정 구간", "start_normalized": 0.0, "end_normalized": 0.225 },
+        { "from": "2026-08-10", "to": "2026-08-14", "kind": "MANUAL_EXECUTED", "label": "수동 집행 구간", "start_normalized": 0.225, "end_normalized": 0.475 },
+        { "from": "2026-08-17", "to": "2026-08-31", "kind": "MEASURED", "label": "측정 구간", "start_normalized": 0.475, "end_normalized": 1.0 }
+      ],
+      "points": [
+        { "date": "2026-08-03", "x_normalized": 0.0, "date_text": "2026-08-03", "value_text": "0.00%", "y_normalized": 0.0, "value": 0.0 },
+        { "date": "2026-08-04", "x_normalized": 0.05, "date_text": "2026-08-04", "value_text": "0.12%", "y_normalized": 0.08, "value": 0.0012 },
+        { "date": "2026-08-05", "x_normalized": 0.1, "date_text": "2026-08-05", "value_text": "0.21%", "y_normalized": 0.14, "value": 0.0021 },
+        { "date": "2026-08-06", "x_normalized": 0.15, "date_text": "2026-08-06", "value_text": "0.18%", "y_normalized": 0.12, "value": 0.0018 },
+        { "date": "2026-08-07", "x_normalized": 0.2, "date_text": "2026-08-07", "value_text": "0.31%", "y_normalized": 0.2067, "value": 0.0031 },
+        { "date": "2026-08-10", "x_normalized": 0.25, "date_text": "2026-08-10", "value_text": "0.44%", "y_normalized": 0.2933, "value": 0.0044 },
+        { "date": "2026-08-11", "x_normalized": 0.3, "date_text": "2026-08-11", "value_text": "0.39%", "y_normalized": 0.26, "value": 0.0039 },
+        { "date": "2026-08-12", "x_normalized": 0.35, "date_text": "2026-08-12", "value_text": "0.52%", "y_normalized": 0.3467, "value": 0.0052 },
+        { "date": "2026-08-13", "x_normalized": 0.4, "date_text": "2026-08-13", "value_text": "0.61%", "y_normalized": 0.4067, "value": 0.0061 },
+        { "date": "2026-08-14", "x_normalized": 0.45, "date_text": "2026-08-14", "value_text": "0.58%", "y_normalized": 0.3867, "value": 0.0058 },
+        { "date": "2026-08-17", "x_normalized": 0.5, "date_text": "2026-08-17", "value_text": "0.72%", "y_normalized": 0.48, "value": 0.0072 },
+        { "date": "2026-08-18", "x_normalized": 0.55, "date_text": "2026-08-18", "value_text": "0.69%", "y_normalized": 0.46, "value": 0.0069 },
+        { "date": "2026-08-19", "x_normalized": 0.6, "date_text": "2026-08-19", "value_text": "0.81%", "y_normalized": 0.54, "value": 0.0081 },
+        { "date": "2026-08-20", "x_normalized": 0.65, "date_text": "2026-08-20", "value_text": "0.88%", "y_normalized": 0.5867, "value": 0.0088 },
+        { "date": "2026-08-21", "x_normalized": 0.7, "date_text": "2026-08-21", "value_text": "0.96%", "y_normalized": 0.64, "value": 0.0096 },
+        { "date": "2026-08-24", "x_normalized": 0.75, "date_text": "2026-08-24", "value_text": "1.04%", "y_normalized": 0.6933, "value": 0.0104 },
+        { "date": "2026-08-25", "x_normalized": 0.8, "date_text": "2026-08-25", "value_text": "1.12%", "y_normalized": 0.7467, "value": 0.0112 },
+        { "date": "2026-08-26", "x_normalized": 0.85, "date_text": "2026-08-26", "value_text": "1.19%", "y_normalized": 0.7933, "value": 0.0119 },
+        { "date": "2026-08-27", "x_normalized": 0.9, "date_text": "2026-08-27", "value_text": "1.26%", "y_normalized": 0.84, "value": 0.0126 },
+        { "date": "2026-08-28", "x_normalized": 0.95, "date_text": "2026-08-28", "value_text": "1.31%", "y_normalized": 0.8733, "value": 0.0131 },
+        { "date": "2026-08-31", "x_normalized": 1.0, "date_text": "2026-08-31", "value_text": "1.42%", "y_normalized": 0.9467, "value": 0.0142 }
+      ],
+      "benchmark": null,
+      "disclosure": {
+        "sample_size_line": "관측 표본은 21거래일입니다. 이 길이로는 아무것도 판정할 수 없습니다.",
+        "interstitial_text": "수익률은 결과이지 목표가 아닙니다. 열람 기록이 남습니다.",
+        "view_count_this_month": 2,
+        "honest_expectation_line": "정직 기대는 백테스트 점추정보다 낮습니다.",
+        "drawdown_caveat_line": "최대낙폭은 관측 하한이며 앞으로의 상한이 아닙니다."
+      },
+      "after_tax": null,
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "성과 기준 2026-08-31 종가" }
+    }
+  ]
+}
