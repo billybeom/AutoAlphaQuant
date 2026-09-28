@@ -1,6 +1,7 @@
 // packages/ui_analytics/test/contribution_view_test.dart
 
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,7 +9,7 @@ import 'package:ui_analytics/ui_analytics.dart';
 
 import 'golden/golden_support.dart';
 
-class FakePerformanceRepository implements PerformanceRepository {
+class FakePerformanceRepository extends UnimplementedPerformanceRepository {
   FakePerformanceRepository({this.contributionVm});
 
   final ContributionVm? contributionVm;
@@ -21,36 +22,6 @@ class FakePerformanceRepository implements PerformanceRepository {
     }
     throw UnimplementedError();
   }
-
-  @override
-  Future<DrawdownContextVm> drawdownContext({DateRange? range}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<MonthlyReport> monthlyReport(String yyyyMm) =>
-      throw UnimplementedError();
-
-  @override
-  Future<PerformanceSeries> series({
-    required PerfMetric metric,
-    required PerfGranularity granularity,
-    required bool cumulative,
-    required DateRange range,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<ReportArchiveVm> reportArchive() => throw UnimplementedError();
-
-  @override
-  Stream<DisclosureGateVm> watchDisclosureGate() => throw UnimplementedError();
-
-  @override
-  Future<AnnualReviewVm> annualReview({required String year}) =>
-      throw UnimplementedError();
 }
 
 class FakeSafetyRepository implements SafetyRepository {
