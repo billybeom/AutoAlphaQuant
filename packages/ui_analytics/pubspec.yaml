@@ -14,9 +14,9 @@ environment:
 # 🔴 허용 목록은 아래 셋이 전부다(01 §1-1). core_engine·decimal·sqflite·
 #    supabase_flutter·http를 추가하면 C-3이 빌드를 실패시킨다.
 # 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
-# ⚠️ 차트 라이브러리는 아직 고르지 않았다. 고를 때 「결측 구간을 보간하지 않고
-#    공백으로 그릴 수 있는가」(C-10)를 첫 기준으로 볼 것 — 대부분의 차트
-#    라이브러리는 null을 조용히 이어 그린다.
+# 🔴 차트 라이브러리는 쓰지 않는다(계약 v1.3 · 2026-09-28 확정) — CustomPaint 로 직접
+#    그린다. 대부분의 차트 라이브러리는 null을 조용히 이어 그린다(C-10 위반).
+#    본보기 코드 = test/golden/reference/ · 증명 = test/golden/chart_probe.dart.
 dependencies:
   domain_contracts:
     path: ../domain_contracts
