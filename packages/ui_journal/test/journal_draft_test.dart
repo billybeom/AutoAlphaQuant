@@ -1130,6 +1130,1280 @@ void main() {
       expect(find.text(o.label), findsWidgets);
     }
   });
+  // ── T1: 행 0 복원 — 사전 근거만, 규칙 미선택 ──────────────────────────────────
+
+  testWidgets('T1: row 0 restore → rationale text, no rule, submit inactive', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row0 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[0];
+    final DraftKey key = DraftKey(
+      kind: DraftKind.journalDraft,
+      targetId: spec.decisionId,
+    );
+    expect(row0.key.targetId, spec.decisionId);
+    final RecordingDraftStore store = RecordingDraftStore(seed: <DraftRecord>[row0]);
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    // 복원 전제
+    expect(store.loaded, equals(<DraftKey>[key]));
+    // 세 입력란 text = 행 0 원문
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+      row0.journal!.rationaleBefore,
+    );
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
+      row0.journal!.expectedOutcome,
+    );
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(2)).controller!.text,
+      row0.journal!.note,
+    );
+    // 규칙 미선택 (row0.journal!.ruleCited == null)
+    expect(
+      tester
+          .widget<DropdownButton<ReasonOption>>(
+            find.byType(DropdownButton<ReasonOption>),
+          )
+          .value,
+      isNull,
+    );
+    // 제출 비활성
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNull,
+    );
+  });
+
+  // ── T2: 행 1 복원 — 규칙 있음, 드롭다운 value, 제출 활성 ─────────────────────
+
+  testWidgets('T2: row 1 restore → rule dropdown value, submit active', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row1 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[1];
+    expect(row1.key.targetId, spec.decisionId);
+    final RecordingDraftStore store = RecordingDraftStore(seed: <DraftRecord>[row1]);
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    // 드롭다운 value.code == 행 1 의 journal!.ruleCited
+    final DropdownButton<ReasonOption> dd = tester.widget(
+      find.byType(DropdownButton<ReasonOption>),
+    );
+    expect(dd.value?.code, row1.journal!.ruleCited);
+    // 그 선택지 label 보임
+    expect(find.text(dd.value!.label), findsWidgets);
+    // 제출 활성
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
+  });
+
+  // ── T3: 화면층 재시작 생존 ────────────────────────────────────────────────────
+
+  testWidgets('T3: layer restart survival — values and rule restored', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final RecordingDraftStore store = RecordingDraftStore();
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    final int minChars = spec.rationaleMinChars;
+    final ReasonOption noNoteRule = spec.ruleCitedOptions.firstWhere(
+      (ReasonOption o) => !o.requiresNote,
+    );
+
+    await tester.enterText(find.byType(TextField).first, 'a' * minChars);
+    await tester.pump();
+    await tester.enterText(find.byType(TextField).at(1), 'outcome');
+    await tester.pump();
+    await tester.tap(find.byType(DropdownButton<ReasonOption>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(noNoteRule.label).last);
+    await tester.pumpAndSettle();
+
+    // 위젯 트리를 내렸다가 같은 store 로 새 ProviderScope 로 다시 띄운다
+    // (실물 영속 증명 아님 — 06 M4-9)
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+
+    tester.view.physicalSize = const Size(390, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          journalTimelineRepositoryProvider.overrideWithValue(
+            _FakeJournalRepo(spec: spec),
+          ),
+          journalSafetyRepositoryProvider.overrideWithValue(
+            _FakeSafetyRepository(safetyFixtureRow(0)),
+          ),
+          journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+          journalLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
+          journalDraftStoreProvider.overrideWithValue(store),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: JournalDraftForm(decisionId: spec.decisionId),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    // 값·규칙 복원
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+      'a' * minChars,
+    );
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
+      'outcome',
+    );
+    expect(
+      tester.widget<DropdownButton<ReasonOption>>(
+        find.byType(DropdownButton<ReasonOption>),
+      ).value?.code,
+      noNoteRule.code,
+    );
+  });
+
+  // ── T4: 입력마다 저장 — trim 없는 원문 ──────────────────────────────────────
+
+  testWidgets('T4: save on input — raw text preserved, key correct', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final RecordingDraftStore store = RecordingDraftStore();
+    final DraftKey key = DraftKey(
+      kind: DraftKind.journalDraft,
+      targetId: spec.decisionId,
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    // 앞뒤 공백을 넣은 ASCII 입력
+    const String rawText = '  ab  ';
+    await tester.enterText(find.byType(TextField).first, rawText);
+    await tester.pump();
+
+    // saved.last.journal!.rationaleBefore == 친 원문 그대로(trim 없음)
+    expect(store.saved, isNotEmpty);
+    expect(store.saved.last.journal!.rationaleBefore, rawText);
+    // saved 의 key 전부 == key
+    for (final DraftRecord r in store.saved) {
+      expect(r.key, key);
+    }
+    // 제출 전 saved.last.lastCommandId == null
+    expect(store.saved.last.lastCommandId, isNull);
+  });
+
+  // ── T5: 행 1 복원만 → saved 비어 있음 ────────────────────────────────────────
+
+  testWidgets('T5: row 1 seed only → saved empty (no-op on same value)', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row1 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[1];
+    expect(row1.key.targetId, spec.decisionId);
+    final RecordingDraftStore store = RecordingDraftStore(seed: <DraftRecord>[row1]);
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    // 복원만 했고 입력이 없으므로 saved 비어 있음
+    expect(store.saved, isEmpty);
+    // 입력란을 탭(포커스)만 해도 비어 있음(같은 값 저장 생략)
+    await tester.tap(find.byType(TextField).first);
+    await tester.pump();
+    expect(store.saved, isEmpty);
+  });
+
+  // ── T6: 제출 성공(REQUESTED) → lastCommandId 저장 + watchedIds ──────────────
+
+  testWidgets('T6: submit REQUESTED → lastCommandId saved, watchedIds correct', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final CommandReceipt requested = _receiptIn(CommandState.requested);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Future<CommandReceipt>.value(requested),
+      onWatch: () => const Stream<CommandReceipt>.empty(),
+    );
+    final RecordingDraftStore store = RecordingDraftStore();
+    final DraftKey key = DraftKey(
+      kind: DraftKind.journalDraft,
+      targetId: spec.decisionId,
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    await _fillToReady(tester, spec);
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    // saved.last.lastCommandId == 돌려준 commandId
+    expect(store.saved, isNotEmpty);
+    expect(store.saved.last.lastCommandId, requested.commandId);
+    // api.watchedIds == <String>[그 commandId]
+    expect(api.watchedIds, equals(<String>[requested.commandId]));
+    // key 일치
+    expect(store.saved.last.key, key);
+  });
+
+  // ── T7: EXECUTED → cleared, JournalReadContent 보임 ─────────────────────────
+
+  testWidgets('T7: EXECUTED → store cleared, JournalReadContent shown', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final CommandReceipt requested = _receiptIn(CommandState.requested);
+    final CommandReceipt executed = _receiptIn(CommandState.executed);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Future<CommandReceipt>.value(requested),
+      onWatch: () => Stream<CommandReceipt>.value(executed),
+    );
+    final RecordingDraftStore store = RecordingDraftStore();
+    final DraftKey key = DraftKey(
+      kind: DraftKind.journalDraft,
+      targetId: spec.decisionId,
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    await _fillToReady(tester, spec);
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    // cleared == <DraftKey>[key]
+    expect(store.cleared, equals(<DraftKey>[key]));
+    // TextField 0
+    expect(find.byType(TextField), findsNothing);
+    // JournalReadContent 1
+    expect(find.byType(JournalReadContent), findsOneWidget);
+    // spec.noticeLine 1
+    expect(find.text(spec.noticeLine), findsOneWidget);
+  });
+
+  // ── T8: rejected·expired·heldForIntegrity — cleared 비어 있음 ──────────────
+
+  testWidgets('T8-rejected: cleared empty, input preserved, submit active', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final CommandReceipt requested = _receiptIn(CommandState.requested);
+    final CommandReceipt rejected = _receiptIn(CommandState.rejected);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Future<CommandReceipt>.value(requested),
+      onWatch: () => Stream<CommandReceipt>.value(rejected),
+    );
+    final RecordingDraftStore store = RecordingDraftStore();
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    await _fillToReady(tester, spec);
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(store.cleared, isEmpty);
+    // 제출 버튼 활성 (재제출)
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
+    expect(find.text(JournalLabels.draftSubmit), findsOneWidget);
+  });
+
+  testWidgets('T8-expired: cleared empty, submit active', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final CommandReceipt requested = _receiptIn(CommandState.requested);
+    final CommandReceipt expired = _receiptIn(CommandState.expired);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Future<CommandReceipt>.value(requested),
+      onWatch: () => Stream<CommandReceipt>.value(expired),
+    );
+    final RecordingDraftStore store = RecordingDraftStore();
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    await _fillToReady(tester, spec);
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(store.cleared, isEmpty);
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('T8-heldForIntegrity: cleared empty, locked', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final CommandReceipt requested = _receiptIn(CommandState.requested);
+    final CommandReceipt held = _receiptIn(CommandState.heldForIntegrity);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Future<CommandReceipt>.value(requested),
+      onWatch: () => Stream<CommandReceipt>.value(held),
+    );
+    final RecordingDraftStore store = RecordingDraftStore();
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    await _fillToReady(tester, spec);
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(store.cleared, isEmpty);
+    // 잠금 상태 — 제출 라벨 0
+    expect(find.text(JournalLabels.draftSubmit), findsNothing);
+    expect(find.text(held.stateLabel), findsOneWidget);
+  });
+
+  // ── T9: 행 2 복원 → 재구독 잠금 ──────────────────────────────────────────────
+
+  testWidgets('T9: row 2 restore → resubscribe lock, then receipt unlocks', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row2 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[2];
+    expect(row2.key.targetId, spec.decisionId);
+    expect(row2.lastCommandId, isNotNull);
+
+    final StreamController<CommandReceipt> ctrl =
+        StreamController<CommandReceipt>();
+    addTearDown(ctrl.close);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Completer<CommandReceipt>().future,
+      onWatch: () => ctrl.stream,
+    );
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[row2],
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    // api.watchedIds == <String>[행 2 의 lastCommandId]
+    expect(api.watchedIds, equals(<String>[row2.lastCommandId!]));
+    // 첫 접수증 전: TextField 3개 전부 enabled == false
+    expect(find.byType(TextField), findsNWidgets(3));
+    for (final TextField field in tester.widgetList<TextField>(
+      find.byType(TextField),
+    )) {
+      expect(field.enabled, isFalse);
+    }
+    // 제출 라벨 0
+    expect(find.text(JournalLabels.draftSubmit), findsNothing);
+    // j3-resubscribe 0
+    expect(find.byKey(const Key('j3-resubscribe')), findsNothing);
+    // j3-submit-not-accepted 0
+    expect(find.byKey(const Key('j3-submit-not-accepted')), findsNothing);
+
+    // REQUESTED 행 add
+    final CommandReceipt requested = _receiptIn(CommandState.requested);
+    ctrl.add(requested);
+    await tester.pump(Duration.zero);
+    await tester.pump(Duration.zero);
+
+    // stateLabel 1
+    expect(find.text(requested.stateLabel), findsOneWidget);
+    // 여전히 잠금 (REQUESTED 는 locked)
+    expect(find.text(JournalLabels.draftSubmit), findsNothing);
+  });
+
+  // ── T10: 행 2 + REJECTED → 복원 원문 + 재제출 가능 ─────────────────────────
+
+  testWidgets('T10: row 2 + REJECTED → original text restored, re-submit', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row2 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[2];
+    expect(row2.key.targetId, spec.decisionId);
+
+    final CommandReceipt rejected = _receiptIn(CommandState.rejected);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Completer<CommandReceipt>().future,
+      onWatch: () => Stream<CommandReceipt>.value(rejected),
+    );
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[row2],
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    // 행 2 원문 복원
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+      row2.journal!.rationaleBefore,
+    );
+    // rejected.stateLabel 1
+    expect(find.text(rejected.stateLabel), findsOneWidget);
+    // 제출 버튼 활성 (재제출)
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
+  });
+
+  // ── T11: 행 2 + EXECUTED → cleared, JournalReadContent ──────────────────────
+
+  testWidgets('T11: row 2 + EXECUTED → cleared, j3r-body shown', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row2 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[2];
+    expect(row2.key.targetId, spec.decisionId);
+    final DraftKey key = DraftKey(
+      kind: DraftKind.journalDraft,
+      targetId: spec.decisionId,
+    );
+
+    final CommandReceipt executed = _receiptIn(CommandState.executed);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Completer<CommandReceipt>().future,
+      onWatch: () => Stream<CommandReceipt>.value(executed),
+    );
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[row2],
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    expect(store.cleared, equals(<DraftKey>[key]));
+    expect(find.byKey(const Key('j3r-body')), findsOneWidget);
+  });
+
+  // ── T12: 행 2 + 첫 값 전 구독 에러 → j3-resubscribe + 재구독 ──────────────
+
+  testWidgets(
+    'T12: row 2 + watch error before receipt → resubscribe button works',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      final DraftRecord row2 = listFixture(
+        FixturePaths.m6DraftRecordsJ3,
+        DraftRecord.fromJson,
+      ).rows[2];
+      expect(row2.key.targetId, spec.decisionId);
+
+      final CommandReceipt requested = _receiptIn(CommandState.requested);
+      int watchCount = 0;
+      final _FakeCommandApi api = _FakeCommandApi(
+        onSubmit: () => Completer<CommandReceipt>().future,
+        onWatch: () {
+          watchCount++;
+          if (watchCount == 1) {
+            return Stream<CommandReceipt>.error(Exception('watch error'));
+          }
+          return Stream<CommandReceipt>.value(requested);
+        },
+      );
+      final RecordingDraftStore store = RecordingDraftStore(
+        seed: <DraftRecord>[row2],
+      );
+
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        commandApi: api,
+        store: store,
+        decisionId: spec.decisionId,
+      );
+
+      // 에러 소비
+      expect(tester.takeException(), isNotNull);
+
+      // 잠금 유지
+      expect(find.text(JournalLabels.draftSubmit), findsNothing);
+      // j3-resubscribe 1 이고 TextButton (key 가 TextButton 자체에 있음)
+      expect(find.byKey(const Key('j3-resubscribe')), findsOneWidget);
+      expect(
+        tester.widget(find.byKey(const Key('j3-resubscribe'))),
+        isA<TextButton>(),
+      );
+
+      // 탭 → 재구독
+      await tester.tap(find.byKey(const Key('j3-resubscribe')));
+      await tester.pump();
+      await tester.pump();
+
+      // watchedIds.length == 2 (initial + resubscribe)
+      expect(api.watchedIds.length, 2);
+      // REQUESTED stateLabel 1
+      expect(find.text(requested.stateLabel), findsOneWidget);
+      // 여전히 잠금 (REQUESTED)
+      expect(find.text(JournalLabels.draftSubmit), findsNothing);
+    },
+  );
+
+  // ── T13: load 에러 → 빈 폼 편집 가능 ────────────────────────────────────────
+
+  testWidgets('T13: load error → empty form editable, no error text', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+
+    // load 만 Future.error 인 저장소
+    final _LoadErrorStore loadErrorStore = _LoadErrorStore();
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      store: loadErrorStore,
+      decisionId: spec.decisionId,
+    );
+
+    // 에러 소비
+    expect(tester.takeException(), isNotNull);
+    // 빈 폼 편집 가능 (TextField 있음)
+    expect(find.byType(TextField), findsNWidgets(3));
+    for (final TextField field in tester.widgetList<TextField>(
+      find.byType(TextField),
+    )) {
+      expect(field.enabled, isTrue);
+    }
+    // j3-submit-not-accepted 0
+    expect(find.byKey(const Key('j3-submit-not-accepted')), findsNothing);
+  });
+
+  // ── T14: save 에러 → 입력 유지, 문구 0 ──────────────────────────────────────
+
+  testWidgets('T14: save error → input kept, no error text', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+
+    final _SaveErrorStore saveErrorStore = _SaveErrorStore();
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      store: saveErrorStore,
+      decisionId: spec.decisionId,
+    );
+
+    await tester.enterText(find.byType(TextField).first, 'abc');
+    await tester.pump();
+
+    // 에러 소비
+    expect(tester.takeException(), isNotNull);
+    // 입력 유지
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+      'abc',
+    );
+    // 문구 0
+    expect(find.byKey(const Key('j3-submit-not-accepted')), findsNothing);
+    // retry 0(에러 상태 아님)
+    expect(find.text(JournalLabels.retry), findsNothing);
+  });
+
+  // ── T15: 51④: 1회차 제출 에러 → j3-submit-not-accepted, 2회차 시작에 사라짐 ─
+
+  testWidgets(
+    'T15: submit error → j3-submit-not-accepted shown, clears on next submit',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      final Completer<CommandReceipt> hangCompleter =
+          Completer<CommandReceipt>();
+      int submitCount = 0;
+      final _FakeCommandApi api = _FakeCommandApi(
+        onSubmit: () {
+          submitCount++;
+          if (submitCount == 1) {
+            return Future<CommandReceipt>.error(Exception('fail'));
+          }
+          return hangCompleter.future;
+        },
+        onWatch: () => const Stream<CommandReceipt>.empty(),
+      );
+      final RecordingDraftStore store = RecordingDraftStore();
+
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        commandApi: api,
+        store: store,
+        decisionId: spec.decisionId,
+      );
+
+      await _fillToReady(tester, spec);
+
+      // 1회차 제출 Future.error
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNotNull);
+      // j3-submit-not-accepted 1
+      expect(find.byKey(const Key('j3-submit-not-accepted')), findsOneWidget);
+      // 입력 유지
+      expect(find.byType(TextField), findsNWidgets(3));
+      // cleared 0
+      expect(store.cleared, isEmpty);
+
+      // 2회차(끝나지 않는 completer) 제출 탭 → 제출 중에는 그 줄 0
+      await tester.tap(find.byType(FilledButton));
+      await tester.pump();
+
+      expect(find.byKey(const Key('j3-submit-not-accepted')), findsNothing);
+
+      // cleanup
+      hangCompleter.completeError(Exception('hang'));
+      await tester.pumpAndSettle();
+      tester.takeException(); // consume
+    },
+  );
+
+  // ── T16: 51④ 공존: REQUESTED → REJECTED → 2회차 에러 → 둘 다 보임 ──────────
+
+  testWidgets(
+    'T16: rejected stateLabel + submitNotAccepted both shown after re-submit error',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      final CommandReceipt requested = _receiptIn(CommandState.requested);
+      final CommandReceipt rejected = _receiptIn(CommandState.rejected);
+      int submitCount = 0;
+      final _FakeCommandApi api = _FakeCommandApi(
+        onSubmit: () {
+          submitCount++;
+          if (submitCount == 1) {
+            return Future<CommandReceipt>.value(requested);
+          }
+          return Future<CommandReceipt>.error(Exception('re-fail'));
+        },
+        onWatch: () => Stream<CommandReceipt>.value(rejected),
+      );
+      final RecordingDraftStore store = RecordingDraftStore();
+
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        commandApi: api,
+        store: store,
+        decisionId: spec.decisionId,
+      );
+
+      await _fillToReady(tester, spec);
+
+      // 1회차 제출 → REQUESTED → REJECTED
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+      expect(find.text(rejected.stateLabel), findsOneWidget);
+
+      // 2회차 제출 → Future.error
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNotNull);
+
+      // rejected.stateLabel 1 그리고 j3-submit-not-accepted 1
+      expect(find.text(rejected.stateLabel), findsOneWidget);
+      expect(find.byKey(const Key('j3-submit-not-accepted')), findsOneWidget);
+    },
+  );
+
+  // ── T17: 51③ 경계: REQUESTED 뒤 watchCommand 에러 → submitNotAccepted 0 ─────
+
+  testWidgets(
+    'T17: REQUESTED then watchCommand error → no submitNotAccepted, receipt kept',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      final CommandReceipt requested = _receiptIn(CommandState.requested);
+      final _FakeCommandApi api = _FakeCommandApi(
+        onSubmit: () => Future<CommandReceipt>.value(requested),
+        onWatch: () => Stream<CommandReceipt>.error(Exception('watch err')),
+      );
+      final RecordingDraftStore store = RecordingDraftStore();
+
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        commandApi: api,
+        store: store,
+        decisionId: spec.decisionId,
+      );
+
+      await _fillToReady(tester, spec);
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      // j3-submit-not-accepted 0 (watchCommand 에러라 submitNotAccepted 아님)
+      expect(find.byKey(const Key('j3-submit-not-accepted')), findsNothing);
+      // requested.stateLabel 1
+      expect(find.text(requested.stateLabel), findsOneWidget);
+      // 에러 소비
+      expect(tester.takeException(), isNotNull);
+    },
+  );
+
+  // ── T18a: 다른 키 → 입력란 3개 빈 칸 ────────────────────────────────────────
+
+  testWidgets(
+    'T18a: row 3 seed + discretion decisionId → row 3 text not shown, fields empty',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      final DraftRecord row3 = listFixture(
+        FixturePaths.m6DraftRecordsJ3,
+        DraftRecord.fromJson,
+      ).rows[3];
+      // 전제: 행 3 의 key.targetId ≠ discretion spec 의 decisionId
+      expect(row3.key.targetId, isNot(spec.decisionId));
+
+      final RecordingDraftStore store = RecordingDraftStore(
+        seed: <DraftRecord>[row3],
+      );
+
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        store: store,
+        decisionId: spec.decisionId,
+      );
+
+      // 행 3 원문 findsNothing(다른 키)
+      expect(find.text(row3.journal!.rationaleBefore), findsNothing);
+      // 입력란 3개 빈 칸
+      expect(find.byType(TextField), findsNWidgets(3));
+      for (final TextField f in tester.widgetList<TextField>(
+        find.byType(TextField),
+      )) {
+        expect(f.controller!.text, isEmpty);
+      }
+    },
+  );
+
+  // ── T18b: 행 3 + recon_clear 스펙 → 복원·드롭다운 null(폐기 code) ─────────
+
+  testWidgets(
+    'T18b: row 3 seed + recon_clear spec → text restored, dropdown null (retired code)',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecReconClear,
+        JournalDraftFormSpec.fromJson,
+      );
+      final DraftRecord row3 = listFixture(
+        FixturePaths.m6DraftRecordsJ3,
+        DraftRecord.fromJson,
+      ).rows[3];
+      // 전제: 행 3 의 key.targetId == recon_clear spec 의 decisionId
+      expect(row3.key.targetId, spec.decisionId);
+
+      final RecordingDraftStore store = RecordingDraftStore(
+        seed: <DraftRecord>[row3],
+      );
+
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        store: store,
+        decisionId: spec.decisionId,
+      );
+
+      // 원문 복원
+      expect(
+        tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+        row3.journal!.rationaleBefore,
+      );
+      // 드롭다운 value == null (폐기 code — 선택지에 없음)
+      expect(
+        tester
+            .widget<DropdownButton<ReasonOption>>(
+              find.byType(DropdownButton<ReasonOption>),
+            )
+            .value,
+        isNull,
+      );
+      // 제출 비활성 (규칙 미선택)
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+    },
+  );
+
+  // ── T25: 동기 throw 방어 ─────────────────────────────────────────────────────
+
+  testWidgets('T25: sync throw save → submit succeeds, REQUESTED shown', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row1 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[1];
+    expect(row1.key.targetId, spec.decisionId);
+
+    final CommandReceipt requested = _receiptIn(CommandState.requested);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Future<CommandReceipt>.value(requested),
+      onWatch: () => const Stream<CommandReceipt>.empty(),
+    );
+    final _SyncThrowStore syncThrowStore = _SyncThrowStore(
+      seed: <DraftRecord>[row1],
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: syncThrowStore,
+      decisionId: spec.decisionId,
+    );
+
+    // load 동기 throw 처리 후 에러 소비
+    // (SyncThrowStore.load 는 Future.error 이지만 save 는 동기 throw)
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    // 동기 throw 를 _port 가 잡아 에러 보고
+    expect(tester.takeException(), isNotNull);
+    // watchedIds == <String>[commandId]
+    expect(api.watchedIds, equals(<String>[requested.commandId]));
+    // REQUESTED stateLabel 1
+    expect(find.text(requested.stateLabel), findsOneWidget);
+    // 입력 잠금
+    for (final TextField f in tester.widgetList<TextField>(
+      find.byType(TextField),
+    )) {
+      expect(f.enabled, isFalse);
+    }
+    // 제출 라벨 0
+    expect(find.text(JournalLabels.draftSubmit), findsNothing);
+    // api.submitted.length == 1
+    expect(api.submitted.length, 1);
+  });
+
+  // ── T26: 재구독 무값 완료 → j3-resubscribe 1 ─────────────────────────────────
+
+  testWidgets('T26: row 2 + empty stream → lock + j3-resubscribe, tap resubscribes', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row2 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[2];
+    expect(row2.key.targetId, spec.decisionId);
+
+    int watchCount = 0;
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Completer<CommandReceipt>().future,
+      onWatch: () {
+        watchCount++;
+        if (watchCount == 1) {
+          return const Stream<CommandReceipt>.empty();
+        }
+        return const Stream<CommandReceipt>.empty();
+      },
+    );
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[row2],
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    // 잠금 유지
+    expect(find.text(JournalLabels.draftSubmit), findsNothing);
+    // j3-resubscribe 1
+    expect(find.byKey(const Key('j3-resubscribe')), findsOneWidget);
+
+    // 탭 → 재구독
+    await tester.tap(find.byKey(const Key('j3-resubscribe')));
+    await tester.pump();
+
+    expect(api.watchedIds.length, 2);
+  });
+
+  // ── T27: executed 직후 전환 → 본문 스트림 교체 ────────────────────────────────
+
+  testWidgets('T27: executed + journal stream updates body live', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row2 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[2];
+    expect(row2.key.targetId, spec.decisionId);
+
+    final DecisionJournalVm notWritten = listFixture(
+      FixturePaths.m6JournalReadNotWritten,
+      DecisionJournalVm.fromJson,
+    ).rows[1]; // row 1: decision_id = d_20260901_a_31, body = null
+    final DecisionJournalVm written = singleFixture(
+      FixturePaths.m6JournalReadWritten,
+      DecisionJournalVm.fromJson,
+    );
+
+    final StreamController<DecisionJournalVm> journalCtrl =
+        StreamController<DecisionJournalVm>();
+    addTearDown(journalCtrl.close);
+
+    final CommandReceipt executed = _receiptIn(CommandState.executed);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Completer<CommandReceipt>().future,
+      onWatch: () => Stream<CommandReceipt>.value(executed),
+    );
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[row2],
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: store,
+      journal: () => journalCtrl.stream,
+      decisionId: spec.decisionId,
+    );
+
+    // not_written 행 1 추가 → body 0
+    journalCtrl.add(notWritten);
+    await tester.pump(Duration.zero);
+    await tester.pump(Duration.zero);
+
+    expect(find.byKey(const Key('j3r-body')), findsNothing);
+    expect(find.text(notWritten.journalStateLabel), findsOneWidget);
+
+    // written 추가 → body 1
+    journalCtrl.add(written);
+    await tester.pump(Duration.zero);
+    await tester.pump(Duration.zero);
+
+    expect(find.byKey(const Key('j3r-body')), findsOneWidget);
+  });
+
+  // ── T28: 행 4 — 메모 + requiresNote rule ────────────────────────────────────
+
+  testWidgets(
+    'T28: row 4 restore → memo shown, note required rule selected, submit active; clear note → inactive',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      final DraftRecord row4 = listFixture(
+        FixturePaths.m6DraftRecordsJ3,
+        DraftRecord.fromJson,
+      ).rows[4];
+      expect(row4.key.targetId, spec.decisionId);
+      expect(row4.journal!.note, isNotEmpty);
+
+      final RecordingDraftStore store = RecordingDraftStore(
+        seed: <DraftRecord>[row4],
+      );
+
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        store: store,
+        decisionId: spec.decisionId,
+      );
+
+      // 메모 칸 = 행 4 원문
+      expect(
+        tester.widget<TextField>(find.byType(TextField).at(2)).controller!.text,
+        row4.journal!.note,
+      );
+      // 드롭다운 label = 행 4 code 의 선택지 label (requiresNote true)
+      final DropdownButton<ReasonOption> dd = tester.widget(
+        find.byType(DropdownButton<ReasonOption>),
+      );
+      expect(dd.value?.code, row4.journal!.ruleCited);
+      expect(dd.value?.requiresNote, isTrue);
+      // 제출 활성
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNotNull,
+      );
+
+      // 메모 칸 enterText('') → 비활성
+      await tester.enterText(find.byType(TextField).at(2), '');
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+    },
+  );
+
+  // ── T29: T11 화면에서 JournalAsOfHeader 1 · stale banner ────────────────────
+
+  testWidgets(
+    'T29: executed = one JournalAsOfHeader; stale clock shows StaleBanner',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      final DraftRecord row2 = listFixture(
+        FixturePaths.m6DraftRecordsJ3,
+        DraftRecord.fromJson,
+      ).rows[2];
+      expect(row2.key.targetId, spec.decisionId);
+
+      final CommandReceipt executed = _receiptIn(CommandState.executed);
+      final _FakeCommandApi api = _FakeCommandApi(
+        onSubmit: () => Completer<CommandReceipt>().future,
+        onWatch: () => Stream<CommandReceipt>.value(executed),
+      );
+      final RecordingDraftStore store = RecordingDraftStore(
+        seed: <DraftRecord>[row2],
+      );
+
+      // 신선 시계 → JournalAsOfHeader 1 (J-3 위쪽만)
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        commandApi: api,
+        store: store,
+        decisionId: spec.decisionId,
+      );
+
+      expect(find.byType(JournalAsOfHeader), findsOneWidget);
+
+      // 스테일 시계로 같은 화면
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        commandApi: _FakeCommandApi(
+          onSubmit: () => Completer<CommandReceipt>().future,
+          onWatch: () => Stream<CommandReceipt>.value(executed),
+        ),
+        store: RecordingDraftStore(seed: <DraftRecord>[row2]),
+        clock: FixedClock(kGoldenNowUtc.add(const Duration(days: 2))),
+        decisionId: spec.decisionId,
+      );
+
+      expect(find.byType(JournalStaleBanner), findsOneWidget);
+    },
+  );
 }
 
 // Helper class for error test
@@ -1140,4 +2414,26 @@ class _FakeThrowingRepo extends UnimplementedJournalRepository {
     calls++;
     throw Exception('fail');
   }
+}
+
+/// load 만 에러인 저장소 (T13).
+class _LoadErrorStore extends RecordingDraftStore {
+  @override
+  Future<DraftRecord?> load(DraftKey key) =>
+      Future<DraftRecord?>.error(StateError('load fail'));
+}
+
+/// save 만 에러인 저장소 (T14).
+class _SaveErrorStore extends RecordingDraftStore {
+  @override
+  Future<void> save(DraftRecord record) =>
+      Future<void>.error(StateError('save fail'));
+}
+
+/// save 가 동기 throw 인 저장소 (T25 — _port 방어 검증).
+class _SyncThrowStore extends RecordingDraftStore {
+  _SyncThrowStore({super.seed});
+
+  @override
+  Future<void> save(DraftRecord record) => throw StateError('save sync throw');
 }

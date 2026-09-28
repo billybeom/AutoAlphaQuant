@@ -89,4 +89,9 @@ abstract final class JournalLabels {
 
   /// 제출 버튼 레이블.
   static const String draftSubmit = '제출';
+
+  // ── 🆕 R2b — J-3 접수 실패 1줄(01 §12-3) ──────────────────────────────────
+
+  /// 명령 Future 에러 때 제출 버튼 바로 위 1줄(01 §12-3 · 문구 5원칙).
+  static const String submitNotAccepted = '제출이 접수되지 않았습니다. 입력은 그대로 있습니다.';
 }
