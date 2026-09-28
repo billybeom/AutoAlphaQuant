@@ -259,28 +259,37 @@ class _ChainStepRow extends ConsumerWidget {
       ChipTone.prevented => cs.onSurface,
     };
 
+    // R-1: Chip was maxLines:1 softWrap:false → long stateLabel overflowed Row.
+    // Fix: Wrap the stage row so the state badge wraps to next line when needed.
+    // Badge = DecoratedBox+Padding+Text (same colour pair, no Chip fade/ellipsis).
     final Widget content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: <Widget>[
-              Expanded(child: Text(step.stageLabel)),
-              Wrap(
-                children: <Widget>[
-                  Chip(
-                    label: Text(step.stateLabel, style: TextStyle(color: fg)),
-                    backgroundColor: bg,
+              Text(step.stageLabel),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                ],
+                  child: Text(step.stateLabel, style: TextStyle(color: fg)),
+                ),
               ),
               if (step.occurredAtText != null)
-                Flexible(
-                  child: Text(
-                    step.occurredAtText!,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                Text(
+                  step.occurredAtText!,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
             ],
           ),

@@ -117,6 +117,7 @@ Future<void> _pump(
 
   await tester.pumpWidget(
     ProviderScope(
+      key: UniqueKey(), // R-5: fresh scope each pump
       overrides: overrides,
       child: MaterialApp(
         home: Scaffold(body: JournalDraftForm(decisionId: decisionId)),
@@ -222,6 +223,8 @@ void main() {
       opener: RecordingLinkOpener(),
       decisionId: 'test-id',
     );
+    // R-4: positive anchor — noticeLine always visible
+    expect(find.text(spec.noticeLine), findsOneWidget);
     expect(find.text(JournalLabels.staleBannerTitle), findsNothing);
     expect(find.text(JournalLabels.retry), findsNothing);
   });
@@ -341,6 +344,8 @@ void main() {
       opener: RecordingLinkOpener(),
       decisionId: 'test-id',
     );
+    // R-4: positive anchor — noticeLine always visible
+    expect(find.text(spec.noticeLine), findsOneWidget);
     expect(find.byKey(const Key('j3-pledge-block')), findsNothing);
   });
 
@@ -807,6 +812,42 @@ void main() {
     expect(find.text(blocking[1].label), findsOneWidget);
   });
 
+  // ── R-7: safety row(3) — blocking flags shown but submit still active ────────
+
+  testWidgets(
+    'R-7: safety row(3) — blocking flags shown, submit active when form ready',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(3),
+        opener: RecordingLinkOpener(),
+        decisionId: spec.decisionId,
+      );
+      await tester.pump();
+
+      // Precondition: blocking flags visible
+      final SafetyState halted = safetyFixtureRow(3);
+      final List<BlockFlag> blocking = halted.activeFlags
+          .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
+          .toList();
+      expect(blocking.length, 2);
+      expect(find.text(blocking[0].label), findsOneWidget);
+
+      // Fill form to ready state — submit must be active despite blocking flags
+      await _fillToReady(tester, spec);
+      // R-7: submit button present and enabled (FlagIds never disable submit)
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNotNull,
+      );
+    },
+  );
+
   // ── Submit → REJECTED and EXPIRED: re-editable ──────────────────────────────
 
   testWidgets(
@@ -1105,7 +1146,8 @@ void main() {
     );
     await tester.tap(find.text(chip.label));
     await tester.pump();
-    expect(opener.opened, contains(chip.detailDeepLink!));
+    // R-4: exact match — not just contains
+    expect(opener.opened, equals(<String>[chip.detailDeepLink!]));
   });
 
   // ── dropdown options visible ─────────────────────────────────────────────────

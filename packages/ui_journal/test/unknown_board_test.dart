@@ -56,6 +56,7 @@ Future<_FakeJournalRepository> _pump(
 
   await tester.pumpWidget(
     ProviderScope(
+      key: UniqueKey(), // R-5: fresh scope each pump
       overrides: <Override>[
         journalTimelineRepositoryProvider.overrideWithValue(repo),
         journalSafetyRepositoryProvider.overrideWithValue(
@@ -114,6 +115,8 @@ void main() {
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
+    // R-4: positive anchor — first card key always visible
+    expect(find.byKey(const ValueKey<String>('j5-card-0')), findsOneWidget);
     expect(find.text(JournalLabels.staleBannerTitle), findsNothing);
     expect(find.text(JournalLabels.retry), findsNothing);
   });
@@ -411,6 +414,9 @@ void main() {
         FixturePaths.m6UnknownBoard2,
         UnknownBoardVm.fromJson,
       );
+      // R-4: preconditions — items[0] must be emphasized with a link
+      expect(full.items[0].emphasized, isTrue, reason: 'fixture items[0] must be emphasized');
+      expect(full.items[0].escalationLink, isNotNull, reason: 'fixture items[0] must have escalationLink');
       // Turn off emphasized but keep escalationLink
       final UnknownBoardVm vm = full.copyWith(
         items: <UnknownResolutionItem>[
@@ -468,7 +474,8 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(opener.opened, contains(item.entry.detailDeepLink!));
+    // R-4: exact match — not just contains
+    expect(opener.opened, equals(<String>[item.entry.detailDeepLink!]));
   });
 
   // ── empty board ───────────────────────────────────────────────────────────────
@@ -490,6 +497,33 @@ void main() {
     expect(vm.emptyLabel, isNotNull);
     expect(find.text(vm.emptyLabel!), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('j5-card-0')), findsNothing);
+    expect(find.text(JournalLabels.retry), findsNothing);
+  });
+
+  // ── R-7: emptyLabel null → no text shown ─────────────────────────────────────
+
+  testWidgets('R-7: emptyLabel null → no empty label text shown', (
+    WidgetTester tester,
+  ) async {
+    final UnknownBoardVm base = singleFixture(
+      FixturePaths.m6UnknownBoardEmpty,
+      UnknownBoardVm.fromJson,
+    );
+    // R-7: emptyLabel null variant — no label text
+    final UnknownBoardVm vm = base.copyWith(emptyLabel: null);
+    await _pump(
+      tester,
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+    );
+    expect(vm.emptyLabel, isNull);
+    // No card-0 (empty board)
+    expect(find.byKey(const ValueKey<String>('j5-card-0')), findsNothing);
+    // No text that would match a null emptyLabel (was 'unwrap' accident)
+    if (base.emptyLabel != null) {
+      expect(find.text(base.emptyLabel!), findsNothing);
+    }
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 }
