@@ -453,6 +453,7 @@ void main() {
       );
       // Both non-emphasized → same shape
       expect(card0.shape, equals(card1.shape));
+      expect(card0.color, equals(card1.color));
     },
   );
 
