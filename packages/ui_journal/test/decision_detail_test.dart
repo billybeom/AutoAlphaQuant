@@ -698,7 +698,11 @@ void main() {
           .expand((DecisionChainStep s) => s.detailLines)
           .where((String l) => l == vm.remainingText!)
           .length;
-      expect(nChain, 1, reason: 'R-2: exactly 1 chain detailLine matches remainingText');
+      expect(
+        nChain,
+        1,
+        reason: 'R-2: exactly 1 chain detailLine matches remainingText',
+      );
       // remainingText appears in chain (nChain) + once more in the remainingText widget
       expect(find.text(vm.remainingText!), findsNWidgets(nChain + 1));
       expect(find.text(JournalLabels.retry), findsNothing);
@@ -708,10 +712,12 @@ void main() {
         (ThresholdCompare t) => !t.passed,
       );
       // R-4: precondition — fixture must have a passed=false threshold
-      expect(falseIdx, isNot(-1), reason: 'partial fixture must have passed=false threshold');
-      final Finder rowFinder = find.byKey(
-        ValueKey<String>('j2-thr-$falseIdx'),
+      expect(
+        falseIdx,
+        isNot(-1),
+        reason: 'partial fixture must have passed=false threshold',
       );
+      final Finder rowFinder = find.byKey(ValueKey<String>('j2-thr-$falseIdx'));
       // make sure it's built (use .first in case key matches multiple)
       await tester.scrollUntilVisible(rowFinder.first, 100);
       expect(
@@ -1017,8 +1023,10 @@ void main() {
       // journalStateLabel present
       expect(find.text(vm.journalStateLabel), findsOneWidget);
       // The journalLink button is the last OutlinedButton on screen
-      final List<Element> allOutlined =
-          find.byType(OutlinedButton).evaluate().toList();
+      final List<Element> allOutlined = find
+          .byType(OutlinedButton)
+          .evaluate()
+          .toList();
       final List<Element> journalOutlined = find
           .descendant(
             of: find.byKey(const ValueKey<String>('j2-link-journalLink')),

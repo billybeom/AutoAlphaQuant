@@ -124,10 +124,8 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
 
   /// 포트 호출 감싸기 — 동기 throw(미주입 throw 기본값·계약을 어긴 구현)도 onError 로 모은다.
   void _port(Future<void> Function(DraftStore s) call) => unawaited(
-    Future<void>.sync(() => call(ref.read(journalDraftStoreProvider))).then<void>(
-      (_) {},
-      onError: _report,
-    ),
+    Future<void>.sync(() => call(ref.read(journalDraftStoreProvider)))
+        .then<void>((_) {}, onError: _report),
   );
 
   Future<void> _restore() async {
@@ -140,7 +138,8 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
     if (!mounted) return;
     final JournalDraftInput? j = r?.journal;
     // 복원값(없으면 빈 본문)을 «직전 저장»으로 둔다 — 포커스·선택만으로는 save 가 나가지 않는다.
-    _lastPersisted = r ?? DraftRecord(key: _draftKey, journal: const JournalDraftInput());
+    _lastPersisted =
+        r ?? DraftRecord(key: _draftKey, journal: const JournalDraftInput());
     _applyingRestore = true;
     if (j != null) {
       _rationaleCtrl.text = j.rationaleBefore;
@@ -185,28 +184,33 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
     });
     if (r.state == CommandState.executed && !_draftCleared) {
       _draftCleared = true;
-      _port((DraftStore s) => s.clear(_draftKey)); // 🔴 clear 를 부르는 곳은 여기 하나(C17)
+      _port(
+        (DraftStore s) => s.clear(_draftKey),
+      ); // 🔴 clear 를 부르는 곳은 여기 하나(C17)
     }
   }
 
   void _subscribe(String commandId) {
     unawaited(_cmdSub?.cancel() ?? Future<void>.value());
-    _cmdSub = ref.read(journalCommandApiProvider).watchCommand(commandId).listen(
-      _applyReceipt,
-      onError: (Object e, StackTrace st) {
-        _report(e, st);
-        if (mounted && _awaitingReceipt) {
-          setState(() => _resubscribeFailed = true);
-        }
-        // 접수증이 이미 있으면 마지막 접수증 유지(51 ③)
-      },
-      onDone: () {
-        // 첫 접수증 없이 끝나면 = 에러와 같다(영구 잠금 탈출구 · 01 §12-4)
-        if (mounted && _awaitingReceipt) {
-          setState(() => _resubscribeFailed = true);
-        }
-      },
-    );
+    _cmdSub = ref
+        .read(journalCommandApiProvider)
+        .watchCommand(commandId)
+        .listen(
+          _applyReceipt,
+          onError: (Object e, StackTrace st) {
+            _report(e, st);
+            if (mounted && _awaitingReceipt) {
+              setState(() => _resubscribeFailed = true);
+            }
+            // 접수증이 이미 있으면 마지막 접수증 유지(51 ③)
+          },
+          onDone: () {
+            // 첫 접수증 없이 끝나면 = 에러와 같다(영구 잠금 탈출구 · 01 §12-4)
+            if (mounted && _awaitingReceipt) {
+              setState(() => _resubscribeFailed = true);
+            }
+          },
+        );
   }
 
   void _resubscribe() {
@@ -292,7 +296,9 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
     });
     final CommandReceipt initial;
     try {
-      initial = await ref.read(journalCommandApiProvider).submitJournalDraft(draft);
+      initial = await ref
+          .read(journalCommandApiProvider)
+          .submitJournalDraft(draft);
     } catch (e, st) {
       // 01 §4-2 · §8 미결 51 ① (J3_questions Q1) · ④ = §12-3
       _report(e, st);

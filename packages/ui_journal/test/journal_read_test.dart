@@ -103,40 +103,39 @@ void main() {
     },
   );
 
-  testWidgets(
-    'T19b: value → error keeps lastAsOfLabel',
-    (WidgetTester tester) async {
-      final DecisionJournalVm written = singleFixture(
-        FixturePaths.m6JournalReadWritten,
-        DecisionJournalVm.fromJson,
-      );
+  testWidgets('T19b: value → error keeps lastAsOfLabel', (
+    WidgetTester tester,
+  ) async {
+    final DecisionJournalVm written = singleFixture(
+      FixturePaths.m6JournalReadWritten,
+      DecisionJournalVm.fromJson,
+    );
 
-      final StreamController<DecisionJournalVm> ctrl =
-          StreamController<DecisionJournalVm>();
-      addTearDown(ctrl.close);
+    final StreamController<DecisionJournalVm> ctrl =
+        StreamController<DecisionJournalVm>();
+    addTearDown(ctrl.close);
 
-      await _pump(
-        tester,
-        journalStream: () => ctrl.stream,
-        decisionId: written.decisionId,
-      );
+    await _pump(
+      tester,
+      journalStream: () => ctrl.stream,
+      decisionId: written.decisionId,
+    );
 
-      // add value first
-      ctrl.add(written);
-      await tester.pump(Duration.zero);
-      await tester.pump(Duration.zero);
+    // add value first
+    ctrl.add(written);
+    await tester.pump(Duration.zero);
+    await tester.pump(Duration.zero);
 
-      // then error
-      ctrl.addError(Exception('after value error'));
-      await tester.pump(Duration.zero);
-      await tester.pump(Duration.zero);
+    // then error
+    ctrl.addError(Exception('after value error'));
+    await tester.pump(Duration.zero);
+    await tester.pump(Duration.zero);
 
-      // lastAsOfLabel from the written vm
-      expect(find.text(written.asOf.label), findsOneWidget);
-      // retry shown
-      expect(find.text(JournalLabels.retry), findsOneWidget);
-    },
-  );
+    // lastAsOfLabel from the written vm
+    expect(find.text(written.asOf.label), findsOneWidget);
+    // retry shown
+    expect(find.text(JournalLabels.retry), findsOneWidget);
+  });
 
   // ── T20: written — all fields + no trim + link tap + receivedIds ─────────────
 

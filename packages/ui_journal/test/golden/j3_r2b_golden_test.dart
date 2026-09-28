@@ -33,7 +33,10 @@ class _FakeJournalRepo extends UnimplementedJournalRepository {
   Stream<DecisionJournalVm> watchDecisionJournal(String decisionId) {
     if (journalStream != null) return journalStream!();
     return Stream<DecisionJournalVm>.value(
-      singleFixture(FixturePaths.m6JournalReadWritten, DecisionJournalVm.fromJson),
+      singleFixture(
+        FixturePaths.m6JournalReadWritten,
+        DecisionJournalVm.fromJson,
+      ),
     );
   }
 }
@@ -120,11 +123,7 @@ void main() {
         brightness: b,
         logicalSize: _kTallPhone,
         wrapApp: (Widget app) => ProviderScope(
-          overrides: _baseOverrides(
-            discSpec,
-            cmdApi: api,
-            store: store,
-          ),
+          overrides: _baseOverrides(discSpec, cmdApi: api, store: store),
           child: app,
         ),
       );
@@ -142,7 +141,9 @@ void main() {
 
     // ── j3_submit_not_accepted ───────────────────────────────────────────────
     // 스펙 discretion + 행 1 시드 + submitJournalDraft = Future.error
-    testWidgets('j3_submit_not_accepted ${b.name}', (WidgetTester tester) async {
+    testWidgets('j3_submit_not_accepted ${b.name}', (
+      WidgetTester tester,
+    ) async {
       final DraftRecord row1 = draftRows[1];
 
       final RecordingDraftStore store = RecordingDraftStore(
@@ -150,7 +151,8 @@ void main() {
       );
       // 🔴 콜백으로 생성 — 미리 만든 Future.error 는 탭 전에 «잡히지 않은 비동기 에러»로 실패
       final _FakeCommandApi api = _FakeCommandApi(
-        onSubmit: () => Future<CommandReceipt>.error(Exception('submit rejected')),
+        onSubmit: () =>
+            Future<CommandReceipt>.error(Exception('submit rejected')),
         onWatch: () => const Stream<CommandReceipt>.empty(),
       );
 
@@ -222,9 +224,7 @@ void main() {
       expect(find.byType(JournalAsOfHeader), findsOneWidget);
       // 맨 아래 = j3r-link-decision
       expect(
-        tester.getBottomLeft(
-          find.byKey(const Key('j3r-link-decision')),
-        ).dy,
+        tester.getBottomLeft(find.byKey(const Key('j3r-link-decision'))).dy,
         lessThan(_kTallPhone.height),
       );
       await expectGolden('j3_executed_read', b);

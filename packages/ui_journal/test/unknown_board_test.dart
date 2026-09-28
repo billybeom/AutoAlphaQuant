@@ -415,8 +415,16 @@ void main() {
         UnknownBoardVm.fromJson,
       );
       // R-4: preconditions — items[0] must be emphasized with a link
-      expect(full.items[0].emphasized, isTrue, reason: 'fixture items[0] must be emphasized');
-      expect(full.items[0].escalationLink, isNotNull, reason: 'fixture items[0] must have escalationLink');
+      expect(
+        full.items[0].emphasized,
+        isTrue,
+        reason: 'fixture items[0] must be emphasized',
+      );
+      expect(
+        full.items[0].escalationLink,
+        isNotNull,
+        reason: 'fixture items[0] must have escalationLink',
+      );
       // Turn off emphasized but keep escalationLink
       final UnknownBoardVm vm = full.copyWith(
         items: <UnknownResolutionItem>[

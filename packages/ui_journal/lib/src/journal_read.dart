@@ -24,8 +24,9 @@ import 'timeline.dart';
 ///
 /// 🔴 데이터 프로바이더: throw 기본값 금지.
 final journalReadProvider = StreamProvider.family<DecisionJournalVm, String>(
-  (Ref ref, String decisionId) =>
-      ref.watch(journalTimelineRepositoryProvider).watchDecisionJournal(decisionId),
+  (Ref ref, String decisionId) => ref
+      .watch(journalTimelineRepositoryProvider)
+      .watchDecisionJournal(decisionId),
 );
 
 // ── Widgets ───────────────────────────────────────────────────────────────────
@@ -51,8 +52,9 @@ class JournalReadContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<DecisionJournalVm> readAsync =
-        ref.watch(journalReadProvider(decisionId));
+    final AsyncValue<DecisionJournalVm> readAsync = ref.watch(
+      journalReadProvider(decisionId),
+    );
 
     return readAsync.when(
       loading: () => const Card(

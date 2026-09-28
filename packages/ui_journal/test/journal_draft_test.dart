@@ -22,10 +22,7 @@ import 'golden/golden_support.dart';
 // ── Fake repositories ─────────────────────────────────────────────────────────
 
 class _FakeJournalRepo extends UnimplementedJournalRepository {
-  _FakeJournalRepo({
-    required this.spec,
-    this.journalStream,
-  });
+  _FakeJournalRepo({required this.spec, this.journalStream});
 
   final JournalDraftFormSpec? spec;
   final Stream<DecisionJournalVm> Function()? journalStream;
@@ -44,7 +41,10 @@ class _FakeJournalRepo extends UnimplementedJournalRepository {
     receivedIds.add(decisionId);
     if (journalStream != null) return journalStream!();
     return Stream<DecisionJournalVm>.value(
-      singleFixture(FixturePaths.m6JournalReadWritten, DecisionJournalVm.fromJson),
+      singleFixture(
+        FixturePaths.m6JournalReadWritten,
+        DecisionJournalVm.fromJson,
+      ),
     );
   }
 }
@@ -104,13 +104,9 @@ Future<void> _pump(
     journalSafetyRepositoryProvider.overrideWithValue(
       _FakeSafetyRepository(safety),
     ),
-    journalClockProvider.overrideWithValue(
-      clock ?? FixedClock(kGoldenNowUtc),
-    ),
+    journalClockProvider.overrideWithValue(clock ?? FixedClock(kGoldenNowUtc)),
     journalLinkOpenerProvider.overrideWithValue(opener),
-    journalDraftStoreProvider.overrideWithValue(
-      store ?? RecordingDraftStore(),
-    ),
+    journalDraftStoreProvider.overrideWithValue(store ?? RecordingDraftStore()),
     if (commandApi != null)
       journalCommandApiProvider.overrideWithValue(commandApi),
   ];
@@ -1190,7 +1186,9 @@ void main() {
       targetId: spec.decisionId,
     );
     expect(row0.key.targetId, spec.decisionId);
-    final RecordingDraftStore store = RecordingDraftStore(seed: <DraftRecord>[row0]);
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[row0],
+    );
 
     await _pump(
       tester,
@@ -1246,7 +1244,9 @@ void main() {
       DraftRecord.fromJson,
     ).rows[1];
     expect(row1.key.targetId, spec.decisionId);
-    final RecordingDraftStore store = RecordingDraftStore(seed: <DraftRecord>[row1]);
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[row1],
+    );
 
     await _pump(
       tester,
@@ -1326,9 +1326,7 @@ void main() {
           journalDraftStoreProvider.overrideWithValue(store),
         ],
         child: MaterialApp(
-          home: Scaffold(
-            body: JournalDraftForm(decisionId: spec.decisionId),
-          ),
+          home: Scaffold(body: JournalDraftForm(decisionId: spec.decisionId)),
         ),
       ),
     );
@@ -1345,9 +1343,12 @@ void main() {
       'outcome',
     );
     expect(
-      tester.widget<DropdownButton<ReasonOption>>(
-        find.byType(DropdownButton<ReasonOption>),
-      ).value?.code,
+      tester
+          .widget<DropdownButton<ReasonOption>>(
+            find.byType(DropdownButton<ReasonOption>),
+          )
+          .value
+          ?.code,
       noNoteRule.code,
     );
   });
@@ -1406,7 +1407,9 @@ void main() {
       DraftRecord.fromJson,
     ).rows[1];
     expect(row1.key.targetId, spec.decisionId);
-    final RecordingDraftStore store = RecordingDraftStore(seed: <DraftRecord>[row1]);
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[row1],
+    );
 
     await _pump(
       tester,
@@ -1427,46 +1430,47 @@ void main() {
 
   // ── T6: 제출 성공(REQUESTED) → lastCommandId 저장 + watchedIds ──────────────
 
-  testWidgets('T6: submit REQUESTED → lastCommandId saved, watchedIds correct', (
-    WidgetTester tester,
-  ) async {
-    final JournalDraftFormSpec spec = singleFixture(
-      FixturePaths.m6JournalDraftSpecDiscretion,
-      JournalDraftFormSpec.fromJson,
-    );
-    final CommandReceipt requested = _receiptIn(CommandState.requested);
-    final _FakeCommandApi api = _FakeCommandApi(
-      onSubmit: () => Future<CommandReceipt>.value(requested),
-      onWatch: () => const Stream<CommandReceipt>.empty(),
-    );
-    final RecordingDraftStore store = RecordingDraftStore();
-    final DraftKey key = DraftKey(
-      kind: DraftKind.journalDraft,
-      targetId: spec.decisionId,
-    );
+  testWidgets(
+    'T6: submit REQUESTED → lastCommandId saved, watchedIds correct',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      final CommandReceipt requested = _receiptIn(CommandState.requested);
+      final _FakeCommandApi api = _FakeCommandApi(
+        onSubmit: () => Future<CommandReceipt>.value(requested),
+        onWatch: () => const Stream<CommandReceipt>.empty(),
+      );
+      final RecordingDraftStore store = RecordingDraftStore();
+      final DraftKey key = DraftKey(
+        kind: DraftKind.journalDraft,
+        targetId: spec.decisionId,
+      );
 
-    await _pump(
-      tester,
-      spec: spec,
-      safety: safetyFixtureRow(0),
-      opener: RecordingLinkOpener(),
-      commandApi: api,
-      store: store,
-      decisionId: spec.decisionId,
-    );
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        commandApi: api,
+        store: store,
+        decisionId: spec.decisionId,
+      );
 
-    await _fillToReady(tester, spec);
-    await tester.tap(find.byType(FilledButton));
-    await tester.pumpAndSettle();
+      await _fillToReady(tester, spec);
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
 
-    // saved.last.lastCommandId == 돌려준 commandId
-    expect(store.saved, isNotEmpty);
-    expect(store.saved.last.lastCommandId, requested.commandId);
-    // api.watchedIds == <String>[그 commandId]
-    expect(api.watchedIds, equals(<String>[requested.commandId]));
-    // key 일치
-    expect(store.saved.last.key, key);
-  });
+      // saved.last.lastCommandId == 돌려준 commandId
+      expect(store.saved, isNotEmpty);
+      expect(store.saved.last.lastCommandId, requested.commandId);
+      // api.watchedIds == <String>[그 commandId]
+      expect(api.watchedIds, equals(<String>[requested.commandId]));
+      // key 일치
+      expect(store.saved.last.key, key);
+    },
+  );
 
   // ── T7: EXECUTED → cleared, JournalReadContent 보임 ─────────────────────────
 
@@ -2221,55 +2225,56 @@ void main() {
 
   // ── T26: 재구독 무값 완료 → j3-resubscribe 1 ─────────────────────────────────
 
-  testWidgets('T26: row 2 + empty stream → lock + j3-resubscribe, tap resubscribes', (
-    WidgetTester tester,
-  ) async {
-    final JournalDraftFormSpec spec = singleFixture(
-      FixturePaths.m6JournalDraftSpecDiscretion,
-      JournalDraftFormSpec.fromJson,
-    );
-    final DraftRecord row2 = listFixture(
-      FixturePaths.m6DraftRecordsJ3,
-      DraftRecord.fromJson,
-    ).rows[2];
-    expect(row2.key.targetId, spec.decisionId);
+  testWidgets(
+    'T26: row 2 + empty stream → lock + j3-resubscribe, tap resubscribes',
+    (WidgetTester tester) async {
+      final JournalDraftFormSpec spec = singleFixture(
+        FixturePaths.m6JournalDraftSpecDiscretion,
+        JournalDraftFormSpec.fromJson,
+      );
+      final DraftRecord row2 = listFixture(
+        FixturePaths.m6DraftRecordsJ3,
+        DraftRecord.fromJson,
+      ).rows[2];
+      expect(row2.key.targetId, spec.decisionId);
 
-    int watchCount = 0;
-    final _FakeCommandApi api = _FakeCommandApi(
-      onSubmit: () => Completer<CommandReceipt>().future,
-      onWatch: () {
-        watchCount++;
-        if (watchCount == 1) {
+      int watchCount = 0;
+      final _FakeCommandApi api = _FakeCommandApi(
+        onSubmit: () => Completer<CommandReceipt>().future,
+        onWatch: () {
+          watchCount++;
+          if (watchCount == 1) {
+            return const Stream<CommandReceipt>.empty();
+          }
           return const Stream<CommandReceipt>.empty();
-        }
-        return const Stream<CommandReceipt>.empty();
-      },
-    );
-    final RecordingDraftStore store = RecordingDraftStore(
-      seed: <DraftRecord>[row2],
-    );
+        },
+      );
+      final RecordingDraftStore store = RecordingDraftStore(
+        seed: <DraftRecord>[row2],
+      );
 
-    await _pump(
-      tester,
-      spec: spec,
-      safety: safetyFixtureRow(0),
-      opener: RecordingLinkOpener(),
-      commandApi: api,
-      store: store,
-      decisionId: spec.decisionId,
-    );
+      await _pump(
+        tester,
+        spec: spec,
+        safety: safetyFixtureRow(0),
+        opener: RecordingLinkOpener(),
+        commandApi: api,
+        store: store,
+        decisionId: spec.decisionId,
+      );
 
-    // 잠금 유지
-    expect(find.text(JournalLabels.draftSubmit), findsNothing);
-    // j3-resubscribe 1
-    expect(find.byKey(const Key('j3-resubscribe')), findsOneWidget);
+      // 잠금 유지
+      expect(find.text(JournalLabels.draftSubmit), findsNothing);
+      // j3-resubscribe 1
+      expect(find.byKey(const Key('j3-resubscribe')), findsOneWidget);
 
-    // 탭 → 재구독
-    await tester.tap(find.byKey(const Key('j3-resubscribe')));
-    await tester.pump();
+      // 탭 → 재구독
+      await tester.tap(find.byKey(const Key('j3-resubscribe')));
+      await tester.pump();
 
-    expect(api.watchedIds.length, 2);
-  });
+      expect(api.watchedIds.length, 2);
+    },
+  );
 
   // ── T27: executed 직후 전환 → 본문 스트림 교체 ────────────────────────────────
 
