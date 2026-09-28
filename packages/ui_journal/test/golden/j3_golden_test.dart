@@ -57,7 +57,8 @@ List<Override> _baseOverrides(JournalDraftFormSpec spec, {CommandApi? cmdApi}) {
       _FakeSafetyRepository(safetyFixtureRow(0)),
     ),
     journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-    // G8: no journalLinkOpenerProvider (카드 규칙 10 «골든은 둘 다 주입하지 않는다»)
+    // G8: no journalLinkOpenerProvider (카드 규칙 «골든은 링크 오프너만 주입하지 않는다»)
+    journalDraftStoreProvider.overrideWithValue(RecordingDraftStore()),
     if (cmdApi != null) journalCommandApiProvider.overrideWithValue(cmdApi),
   ];
 }

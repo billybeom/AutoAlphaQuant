@@ -29,6 +29,15 @@ final journalCommandApiProvider = Provider<CommandApi>(
   (Ref ref) => throw UnimplementedError('journalCommandApiProvider'),
 );
 
+/// J-3 초안 포트 주입 프로바이더 — 애플리케이션 컴포지션 루트가 공급한다(operator 앱 전용).
+///
+/// 🔴 주입 프로바이더: throw 기본값(데이터 프로바이더와 다름 — 규칙 10).
+/// 🔴 initState·콜백 안에서 ref.read 만 — build 에서 watch·read 금지.
+/// 🔴 FutureProvider(.family) 로 감싸지 않는다(autoDispose 0 → 재진입 때 캐시된 옛 초안).
+final journalDraftStoreProvider = Provider<DraftStore>(
+  (Ref ref) => throw UnimplementedError('journalDraftStoreProvider'),
+);
+
 // ── Data provider ─────────────────────────────────────────────────────────────
 
 /// J-3 폼 스펙 — `JournalRepository.draftFormSpec(decisionId)`.

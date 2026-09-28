@@ -22,15 +22,30 @@ import 'golden/golden_support.dart';
 // ── Fake repositories ─────────────────────────────────────────────────────────
 
 class _FakeJournalRepo extends UnimplementedJournalRepository {
-  _FakeJournalRepo({required this.spec});
+  _FakeJournalRepo({
+    required this.spec,
+    this.journalStream,
+  });
+
   final JournalDraftFormSpec? spec;
+  final Stream<DecisionJournalVm> Function()? journalStream;
   int callCount = 0;
+  final List<String> receivedIds = <String>[];
 
   @override
   Future<JournalDraftFormSpec> draftFormSpec(String decisionId) {
     callCount++;
     if (spec != null) return Future<JournalDraftFormSpec>.value(spec!);
     return Completer<JournalDraftFormSpec>().future; // skeleton forever
+  }
+
+  @override
+  Stream<DecisionJournalVm> watchDecisionJournal(String decisionId) {
+    receivedIds.add(decisionId);
+    if (journalStream != null) return journalStream!();
+    return Stream<DecisionJournalVm>.value(
+      singleFixture(FixturePaths.m6JournalReadWritten, DecisionJournalVm.fromJson),
+    );
   }
 }
 
@@ -72,7 +87,10 @@ Future<void> _pump(
   required SafetyState safety,
   required RecordingLinkOpener opener,
   _FakeCommandApi? commandApi,
-  String decisionId = 'test-id',
+  RecordingDraftStore? store,
+  Stream<DecisionJournalVm> Function()? journal,
+  Clock? clock,
+  required String decisionId,
 }) async {
   tester.view.physicalSize = const Size(390, 1600);
   tester.view.devicePixelRatio = 1.0;
@@ -81,13 +99,18 @@ Future<void> _pump(
 
   final List<Override> overrides = <Override>[
     journalTimelineRepositoryProvider.overrideWithValue(
-      _FakeJournalRepo(spec: spec),
+      _FakeJournalRepo(spec: spec, journalStream: journal),
     ),
     journalSafetyRepositoryProvider.overrideWithValue(
       _FakeSafetyRepository(safety),
     ),
-    journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+    journalClockProvider.overrideWithValue(
+      clock ?? FixedClock(kGoldenNowUtc),
+    ),
     journalLinkOpenerProvider.overrideWithValue(opener),
+    journalDraftStoreProvider.overrideWithValue(
+      store ?? RecordingDraftStore(),
+    ),
     if (commandApi != null)
       journalCommandApiProvider.overrideWithValue(commandApi),
   ];
@@ -100,6 +123,8 @@ Future<void> _pump(
       ),
     ),
   );
+  await tester.pump();
+  // 복원은 한 마이크로태스크 뒤 끝난다
   await tester.pump();
 }
 
@@ -144,6 +169,7 @@ void main() {
       spec: null, // completer → forever loading
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
     expect(find.byType(JournalSkeleton), findsOneWidget);
   });
@@ -166,6 +192,7 @@ void main() {
           ),
           journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
           journalLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
+          journalDraftStoreProvider.overrideWithValue(RecordingDraftStore()),
         ],
         child: const MaterialApp(
           home: Scaffold(body: JournalDraftForm(decisionId: 'x')),
@@ -193,6 +220,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
     expect(find.text(JournalLabels.staleBannerTitle), findsNothing);
     expect(find.text(JournalLabels.retry), findsNothing);
@@ -222,6 +250,7 @@ void main() {
             FixedClock(kGoldenNowUtc.add(const Duration(days: 2))),
           ),
           journalLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
+          journalDraftStoreProvider.overrideWithValue(RecordingDraftStore()),
         ],
         child: const MaterialApp(
           home: Scaffold(body: JournalDraftForm(decisionId: 'x')),
@@ -244,6 +273,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(3),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
     await tester
         .pump(); // ensure both FutureProvider and StreamProvider resolve
@@ -275,6 +305,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
     expect(find.byKey(const Key('j3-pledge-block')), findsOneWidget);
     for (final String line in spec.pledgeLines) {
@@ -308,6 +339,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
     expect(find.byKey(const Key('j3-pledge-block')), findsNothing);
   });
@@ -331,6 +363,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
 
     // Fill expected outcome and select rule
@@ -387,6 +420,7 @@ void main() {
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
       commandApi: api,
+      decisionId: 'test-id',
     );
 
     await _fillToReady(tester, spec);
@@ -434,6 +468,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
 
     FilledButton submitBtn() =>
@@ -508,6 +543,7 @@ void main() {
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
       commandApi: api,
+      decisionId: spec.decisionId,
     );
 
     final int minChars = spec.rationaleMinChars;
@@ -586,6 +622,7 @@ void main() {
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
       commandApi: api,
+      decisionId: spec.decisionId,
     );
 
     final int minChars = spec.rationaleMinChars;
@@ -651,6 +688,7 @@ void main() {
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
       commandApi: api,
+      decisionId: spec.decisionId,
     );
 
     final int minChars = spec.rationaleMinChars;
@@ -695,6 +733,7 @@ void main() {
         spec: spec,
         safety: safetyFixtureRow(0),
         opener: RecordingLinkOpener(),
+        decisionId: 'test-id',
       );
 
       expect(find.text(spec.noticeLine), findsOneWidget);
@@ -724,6 +763,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
 
     double prevDy = double.negativeInfinity;
@@ -755,6 +795,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(3),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
     await tester.pump();
     final SafetyState halted = safetyFixtureRow(3);
@@ -794,6 +835,7 @@ void main() {
           safety: safetyFixtureRow(0),
           opener: RecordingLinkOpener(),
           commandApi: api,
+          decisionId: spec.decisionId,
         );
 
         final int minChars = spec.rationaleMinChars;
@@ -887,6 +929,7 @@ void main() {
         safety: safetyFixtureRow(0),
         opener: RecordingLinkOpener(),
         commandApi: api,
+        decisionId: spec.decisionId,
       );
 
       final int minChars = spec.rationaleMinChars;
@@ -953,6 +996,7 @@ void main() {
         safety: safetyFixtureRow(0),
         opener: RecordingLinkOpener(),
         commandApi: api,
+        decisionId: spec.decisionId,
       );
 
       final int minChars = spec.rationaleMinChars;
@@ -1021,6 +1065,7 @@ void main() {
         safety: safetyFixtureRow(0),
         opener: RecordingLinkOpener(),
         commandApi: api,
+        decisionId: spec.decisionId,
       );
 
       await _fillToReady(tester, spec);
@@ -1052,6 +1097,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(0),
       opener: opener,
+      decisionId: 'test-id',
     );
 
     final ReasonChip chip = spec.contextChips.firstWhere(
@@ -1076,6 +1122,7 @@ void main() {
       spec: spec,
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
+      decisionId: 'test-id',
     );
     await tester.tap(find.byType(DropdownButton<ReasonOption>));
     await tester.pumpAndSettle();
