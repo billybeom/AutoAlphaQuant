@@ -12,6 +12,7 @@ import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ui_analytics/src/screens/explore/performance_explore_body.dart';
 import 'package:ui_analytics/ui_analytics.dart';
 
 import 'golden/golden_support.dart';
@@ -172,6 +173,7 @@ Future<void> pumpExplore(
   SafetyState? safetyState,
   Clock? clock,
   RecordingLinkOpener? opener,
+  CommandReceipt? bodyReceipt,
 }) async {
   tester.view.physicalSize = const Size(390, 2400);
   tester.view.devicePixelRatio = 1.0;
@@ -187,10 +189,162 @@ Future<void> pumpExplore(
         clock: clock,
         opener: opener,
       ),
-      child: const MaterialApp(
-        home: Scaffold(body: PerformanceExploreScreen()),
+      child: MaterialApp(
+        home: Scaffold(
+          body: bodyReceipt == null
+              ? const PerformanceExploreScreen()
+              : PerformanceExploreBody(receipt: bodyReceipt),
+        ),
       ),
     ),
   );
   await tester.pump();
+}
+
+/// S7-2 게이트 통과 도우미: 「그래도 보기」 누른 뒤 두 번 pump 하여 본문으로 진입.
+Future<void> passGate(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('s72g-continue')));
+  await tester.pump();
+  await tester.pump();
+}
+
+/// 인자에 따라 매핑된 픽스처 시리즈를 돌려주는 가짜 레포지토리.
+class TableFakePerformanceRepository extends FakePerformanceRepository {
+  TableFakePerformanceRepository({super.gateStreamFactory});
+
+  @override
+  Future<PerformanceSeries> series({
+    required PerfMetric metric,
+    required PerfGranularity granularity,
+    required bool cumulative,
+    DateRange? range,
+  }) {
+    unawaited(
+      super.series(
+        metric: metric,
+        granularity: granularity,
+        cumulative: cumulative,
+        range: range,
+      ),
+    );
+
+    if (metric == PerfMetric.twr &&
+        granularity == PerfGranularity.monthly &&
+        cumulative == true) {
+      return Future<PerformanceSeries>.value(
+        listFixture(
+          FixturePaths.performance24m,
+          PerformanceSeries.fromJson,
+        ).rows[0],
+      );
+    }
+    if (metric == PerfMetric.mwr &&
+        granularity == PerfGranularity.monthly &&
+        cumulative == true) {
+      return Future<PerformanceSeries>.value(
+        listFixture(
+          FixturePaths.performance24m,
+          PerformanceSeries.fromJson,
+        ).rows[1],
+      );
+    }
+    if (metric == PerfMetric.twr &&
+        granularity == PerfGranularity.daily &&
+        cumulative == true) {
+      return Future<PerformanceSeries>.value(
+        singleFixture(
+          FixturePaths.m7M7PerfDailyGap,
+          PerformanceSeries.fromJson,
+        ),
+      );
+    }
+    if (metric == PerfMetric.twr &&
+        granularity == PerfGranularity.yearly &&
+        cumulative == true) {
+      return Future<PerformanceSeries>.value(
+        singleFixture(
+          FixturePaths.m7M7PerfYearly,
+          PerformanceSeries.fromJson,
+        ),
+      );
+    }
+    if (metric == PerfMetric.twr &&
+        granularity == PerfGranularity.monthly &&
+        cumulative == false) {
+      return Future<PerformanceSeries>.value(
+        singleFixture(
+          FixturePaths.m7M7PerfMonthlyPeriod,
+          PerformanceSeries.fromJson,
+        ),
+      );
+    }
+
+    return Future<PerformanceSeries>.value(
+      listFixture(
+        FixturePaths.performance24m,
+        PerformanceSeries.fromJson,
+      ).rows[0],
+    );
+  }
+}
+
+/// series() 호출 시 예외를 던지는 가짜 레포지토리.
+class ThrowingFakePerformanceRepository extends FakePerformanceRepository {
+  ThrowingFakePerformanceRepository({super.gateStreamFactory});
+
+  @override
+  Future<PerformanceSeries> series({
+    required PerfMetric metric,
+    required PerfGranularity granularity,
+    required bool cumulative,
+    DateRange? range,
+  }) {
+    unawaited(
+      super.series(
+        metric: metric,
+        granularity: granularity,
+        cumulative: cumulative,
+        range: range,
+      ),
+    );
+    return Future<PerformanceSeries>.error(
+      StateError('Simulated series error'),
+    );
+  }
+}
+
+/// 첫 요청은 정상 완료되고, 이후 재요청은 Completer 에 매달려 로딩 상태를 유지하는 가짜 레포지토리.
+class CompleterFakePerformanceRepository extends FakePerformanceRepository {
+  CompleterFakePerformanceRepository({
+    super.gateStreamFactory,
+    required this.completer,
+  });
+
+  final Completer<PerformanceSeries> completer;
+
+  @override
+  Future<PerformanceSeries> series({
+    required PerfMetric metric,
+    required PerfGranularity granularity,
+    required bool cumulative,
+    DateRange? range,
+  }) {
+    unawaited(
+      super.series(
+        metric: metric,
+        granularity: granularity,
+        cumulative: cumulative,
+        range: range,
+      ),
+    );
+    if (seriesCalls.length == 1) {
+      return Future<PerformanceSeries>.value(
+        listFixture(
+          FixturePaths.performance24m,
+          PerformanceSeries.fromJson,
+        ).rows[0],
+      );
+    }
+    return completer.future;
+  }
 }
