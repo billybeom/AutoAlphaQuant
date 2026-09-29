@@ -173,6 +173,8 @@ await expectGolden('j1_filter_open', b);
 
 정본: 01 §13 · 03 §4·§5·§6 의 R10 범위 블록 3개. 이 절은 **골든과 차트 증명**만 말한다.
 
+🆕 **3분할(2026-09-29)** — 골든은 카드마다 자기 몫만 만든다: **R10a-Bob-S71b** = `s71b_*` 4장(`s71b_golden_test.dart`) · **R10b-Bob-S72G** = `s72g_*` 8장(`s72g_golden_test.dart`) · **R10c-Bob-S72** = `s72_*` 12장(`s72_golden_test.dart`). 앞 카드가 만든 PNG 는 다음 카드에게 **기존 PNG** 다(바뀌면 반려).
+
 ### 1. 골든 이름 — 12이름 × light/dark = 24장 (전부 신규)
 
 | 이름 | 테스트 파일 | 입력 픽스처(`FixturePaths.…`) | 가는 길 | 크기 |
@@ -193,7 +195,7 @@ await expectGolden('j1_filter_open', b);
 - `s72_*` 는 모두 게이트를 **실제로 눌러** 들어간다. 게이트 입력 = 열린 게이트 픽스처(`m7M7DisclosureGate`) · 접수증 = `m7M7DisclosureViewReceipts4` 행 0. 카드가 입력을 달리 적으면 카드가 이긴다.
 - 가짜 `series()` 는 받은 인자를 기록하고, 그 골든의 픽스처를 돌려준다(값을 만들지 않는다).
 - 🔴 **값 표는 접힌 채 찍는다**(「값 보기」를 누르지 않는다). 값 표의 증명은 위젯 테스트가 한다.
-- 🔴 기존 PNG 18장(`s71_*` · `s73_*` · `s73b_*`)은 한 바이트도 바뀌지 않는다. 만드는 명령은 새 파일 셋만 지정한다:
+- 🔴 기존 PNG 18장(`s71_*` · `s73_*` · `s73b_*`)은 한 바이트도 바뀌지 않는다(3분할 — R10b 에게는 22장 · R10c 에게는 30장). 만드는 명령은 **자기 카드의 새 파일 하나만** 지정한다(아래는 세 장을 합친 모양 — R10a = `s71b_golden_test.dart` · R10b = `s72g_golden_test.dart` · R10c = `s72_golden_test.dart`):
   ```
   flutter test --update-goldens test/golden/s71b_golden_test.dart test/golden/s72g_golden_test.dart test/golden/s72_golden_test.dart
   ```
