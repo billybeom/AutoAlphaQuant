@@ -63,3 +63,35 @@ final AutoDisposeFutureProvider<ReportArchiveVm> reportArchiveProvider =
     FutureProvider.autoDispose<ReportArchiveVm>((ref) {
       return ref.watch(performanceRepositoryProvider).reportArchive();
     });
+
+// ── 🆕 R10b — S7-2G ────────────────────────────────────────────────────────
+
+/// S7-2G 열람 게이트 — CommandApi 주입 창구(뷰어 허용 5종만 부르는 화면 · 01 §13-9)
+final Provider<CommandApi> analyticsCommandApiProvider =
+    Provider<CommandApi>((ref) {
+      throw UnimplementedError('analyticsCommandApiProvider must be overridden');
+    });
+
+/// S7-2G 열람 게이트 스트림 — autoDispose(월→일→월 전환에서 호출 0 방지)
+final AutoDisposeStreamProvider<DisclosureGateVm> disclosureGateProvider =
+    StreamProvider.autoDispose<DisclosureGateVm>((ref) {
+      return ref.watch(performanceRepositoryProvider).watchDisclosureGate();
+    });
+
+/// S7-2 성과 시리즈 쿼리 키
+typedef PerfSeriesQuery = ({
+  PerfMetric metric,
+  PerfGranularity granularity,
+  bool cumulative,
+});
+
+/// S7-2 성과 시리즈 — autoDispose(월→일→월 전환에서 호출 0 방지)
+final AutoDisposeFutureProviderFamily<PerformanceSeries, PerfSeriesQuery>
+performanceSeriesProvider = FutureProvider.autoDispose
+    .family<PerformanceSeries, PerfSeriesQuery>((ref, query) {
+      return ref.watch(performanceRepositoryProvider).series(
+        metric: query.metric,
+        granularity: query.granularity,
+        cumulative: query.cumulative,
+      );
+    });
