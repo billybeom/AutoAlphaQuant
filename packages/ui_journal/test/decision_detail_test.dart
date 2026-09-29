@@ -7,6 +7,7 @@
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -63,6 +64,7 @@ Future<_FakeJournalRepository> _pump(
 
   await tester.pumpWidget(
     ProviderScope(
+      key: UniqueKey(), // R-5: fresh scope each pump → receivedIds == [id]
       overrides: <Override>[
         journalTimelineRepositoryProvider.overrideWithValue(repo),
         journalSafetyRepositoryProvider.overrideWithValue(
@@ -127,6 +129,8 @@ void main() {
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
+    // R-4: positive anchor — journalStateLabel always visible
+    expect(find.text(vm.journalStateLabel), findsOneWidget);
     expect(find.text(JournalLabels.staleBannerTitle), findsNothing);
     // No error state either
     expect(find.text(JournalLabels.retry), findsNothing);
@@ -169,6 +173,42 @@ void main() {
     expect(find.text(JournalLabels.staleBannerTitle), findsOneWidget);
     // Stale asOf label should be vm.asOf.label (not entry.asOf.label)
     expect(find.text(vm.asOf.label), findsWidgets);
+  });
+
+  // ── R-1: long stateLabel — no RenderFlex overflow ───────────────────────────
+
+  testWidgets('R-1: long stateLabel in chain step does not overflow', (
+    WidgetTester tester,
+  ) async {
+    final DecisionDetailVm base = singleFixture(
+      FixturePaths.m6DecisionDetailFull,
+      DecisionDetailVm.fromJson,
+    );
+    // Stretch the first step's stateLabel to something very long (20×)
+    final String longLabel = base.steps.first.stateLabel * 20;
+    final DecisionDetailVm vm = base.copyWith(
+      steps: <DecisionChainStep>[
+        base.steps.first.copyWith(stateLabel: longLabel),
+        ...base.steps.skip(1),
+      ],
+    );
+    await _pump(
+      tester,
+      detailStream: (_) => Stream<DecisionDetailVm>.value(vm),
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      decisionId: vm.entry.decision.decisionId,
+    );
+    // No RenderFlex overflow exception (Wrap lets label flow to next line)
+    expect(tester.takeException(), isNull);
+    // Long label is rendered
+    expect(find.text(longLabel), findsOneWidget);
+    // R-1: badge Text must have softWrap=true and no maxLines
+    final RenderParagraph para = tester.renderObject<RenderParagraph>(
+      find.text(longLabel),
+    );
+    expect(para.maxLines, isNull);
+    expect(para.softWrap, isTrue);
   });
 
   testWidgets('safety row(3) → 2 blocking flag cards', (
@@ -302,7 +342,7 @@ void main() {
     final String hash = vm.snapshot!.ref.configHash;
     expect(find.text(hash), findsOneWidget);
 
-    // full: after expand, verify rawValues keys absent and thresholdRegistered absent
+    // R-3: after expand, rawValues keys absent AND thresholdRegistered absent
     // (snapshot must be expanded first — previously checked while collapsed = trivially passing)
     expect(vm.snapshot!.trigger.thresholdRegistered, isNotNull);
     final TriggerSnapshot trigger = vm.snapshot!.trigger;
@@ -310,6 +350,8 @@ void main() {
       expect(find.text(key), findsNothing);
     }
     expect(find.text(vm.entry.price.toString()), findsNothing);
+    // R-3: thresholdRegistered raw value must not appear on screen
+    expect(find.text(trigger.thresholdRegistered!.toString()), findsNothing);
 
     // Set up clipboard mock
     String? copiedText;
@@ -387,6 +429,9 @@ void main() {
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
+    // R-4: positive anchor
+    expect(find.text(vm.journalStateLabel), findsOneWidget);
+    expect(find.text(JournalLabels.retry), findsNothing);
     expect(vm.journalLink, isNull);
     expect(
       find.byKey(const ValueKey<String>('j2-link-journalLink')),
@@ -405,6 +450,9 @@ void main() {
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
+    // R-4: positive anchor
+    expect(find.text(vm.journalStateLabel), findsOneWidget);
+    expect(find.text(JournalLabels.retry), findsNothing);
     expect(vm.parentLink, isNull);
     expect(
       find.byKey(const ValueKey<String>('j2-link-parentLink')),
@@ -423,6 +471,9 @@ void main() {
       safety: safetyFixtureRow(0),
       opener: RecordingLinkOpener(),
     );
+    // R-4: positive anchor
+    expect(find.text(vm.journalStateLabel), findsOneWidget);
+    expect(find.text(JournalLabels.retry), findsNothing);
     expect(vm.amendLink, isNull);
     expect(
       find.byKey(const ValueKey<String>('j2-link-amendLink')),
@@ -521,11 +572,11 @@ void main() {
         decisionId: vm.entry.decision.decisionId,
       );
 
-      // decisionId arrived correctly — last call is the correct one
+      // R-5: fresh ProviderScope each pump → exactly 1 call with correct id
       expect(
-        repo.receivedIds.last,
-        equals(vm.entry.decision.decisionId),
-        reason: 'fixture=$name',
+        repo.receivedIds,
+        equals(<String>[vm.entry.decision.decisionId]),
+        reason: 'fixture=$name receivedIds',
       );
 
       // All steps are under j2-chain
@@ -609,6 +660,18 @@ void main() {
           );
         }
       }
+      // R-7: OutlinedButton count == non-null link count
+      final int nonNullLinks = <LinkAction?>[
+        vm.rebalanceLink,
+        vm.parentLink,
+        vm.journalLink,
+        vm.amendLink,
+      ].where((LinkAction? l) => l != null).length;
+      expect(
+        find.byType(OutlinedButton).evaluate().length,
+        nonNullLinks,
+        reason: 'fixture=$name OutlinedButton count == non-null link count',
+      );
     }
   });
 
@@ -630,30 +693,43 @@ void main() {
 
       expect(vm.remainingText, isNotNull);
       await tester.scrollUntilVisible(find.text(vm.remainingText!).first, 100);
-      expect(find.text(vm.remainingText!), findsAtLeastNWidgets(1));
+      // R-2: count chain detailLines that show remainingText (precondition: exactly 1)
+      final int nChain = vm.steps
+          .expand((DecisionChainStep s) => s.detailLines)
+          .where((String l) => l == vm.remainingText!)
+          .length;
+      expect(
+        nChain,
+        1,
+        reason: 'R-2: exactly 1 chain detailLine matches remainingText',
+      );
+      // remainingText appears in chain (nChain) + once more in the remainingText widget
+      expect(find.text(vm.remainingText!), findsNWidgets(nChain + 1));
       expect(find.text(JournalLabels.retry), findsNothing);
 
       // G2: passed=false row should show Icons.remove, not Icons.check
       final int falseIdx = vm.thresholds.indexWhere(
         (ThresholdCompare t) => !t.passed,
       );
-      if (falseIdx >= 0) {
-        final Finder rowFinder = find.byKey(
-          ValueKey<String>('j2-thr-$falseIdx'),
-        );
-        // make sure it's built (use .first in case key matches multiple)
-        await tester.scrollUntilVisible(rowFinder.first, 100);
-        expect(
-          find.descendant(of: rowFinder, matching: find.byIcon(Icons.check)),
-          findsNothing,
-          reason: 'passed=false row should not show check icon',
-        );
-        expect(
-          find.descendant(of: rowFinder, matching: find.byIcon(Icons.remove)),
-          findsOneWidget,
-          reason: 'passed=false row should show remove icon',
-        );
-      }
+      // R-4: precondition — fixture must have a passed=false threshold
+      expect(
+        falseIdx,
+        isNot(-1),
+        reason: 'partial fixture must have passed=false threshold',
+      );
+      final Finder rowFinder = find.byKey(ValueKey<String>('j2-thr-$falseIdx'));
+      // make sure it's built (use .first in case key matches multiple)
+      await tester.scrollUntilVisible(rowFinder.first, 100);
+      expect(
+        find.descendant(of: rowFinder, matching: find.byIcon(Icons.check)),
+        findsNothing,
+        reason: 'passed=false row should not show check icon',
+      );
+      expect(
+        find.descendant(of: rowFinder, matching: find.byIcon(Icons.remove)),
+        findsOneWidget,
+        reason: 'passed=false row should show remove icon',
+      );
     },
   );
 
@@ -673,6 +749,12 @@ void main() {
       opener: RecordingLinkOpener(),
     );
 
+    // R-4: precondition — all thresholds in full fixture must pass
+    expect(
+      vm.thresholds.every((ThresholdCompare t) => t.passed),
+      isTrue,
+      reason: 'full fixture: all thresholds should pass',
+    );
     for (int i = 0; i < vm.thresholds.length; i++) {
       final Finder rowFinder = find.byKey(ValueKey<String>('j2-thr-$i'));
       await tester.scrollUntilVisible(rowFinder.first, 100);
@@ -883,7 +965,8 @@ void main() {
       // G1: before tap — reasonCode count is n0 (may appear in detailLines)
       final int n0 = find.text(trace.reasonCode).evaluate().length;
       // Precondition: reasonCode already visible in chain detailLines (n0 >= 1)
-      expect(n0, greaterThanOrEqualTo(1));
+      // R-4: precondition — reasonCode appears exactly once in chain detailLines
+      expect(n0, 1);
 
       // Before tap: stageLabel not visible (collapsed)
       expect(find.text(trace.stageLabel), findsNothing);
@@ -899,4 +982,66 @@ void main() {
       expect(find.text(trace.reasonCode).evaluate().length, equals(n0 + 1));
     },
   );
+
+  // ── T24: J-2 저널 링크 — journalWritten · journalDraftLink ──────────────────
+
+  for (final (String fixturePath, String label) in <(String, String)>[
+    (FixturePaths.m6DecisionDetailJournalWritten, 'journalWritten'),
+    (FixturePaths.m6DecisionDetailJournalDraftLink, 'journalDraftLink'),
+  ]) {
+    testWidgets('T24: $label — j2-link-journalLink present, tap opens link', (
+      WidgetTester tester,
+    ) async {
+      final DecisionDetailVm vm = singleFixture(
+        fixturePath,
+        DecisionDetailVm.fromJson,
+      );
+      final RecordingLinkOpener opener = RecordingLinkOpener();
+      await _pump(
+        tester,
+        detailStream: (_) => Stream<DecisionDetailVm>.value(vm),
+        safety: safetyFixtureRow(0),
+        opener: opener,
+      );
+
+      // precondition: journalLink non-null in these fixtures
+      expect(vm.journalLink, isNotNull);
+
+      // j2-link-journalLink present (1 widget)
+      expect(
+        find.byKey(const ValueKey<String>('j2-link-journalLink')),
+        findsOneWidget,
+      );
+      // journalLink.label inside that widget
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('j2-link-journalLink')),
+          matching: find.text(vm.journalLink!.label),
+        ),
+        findsOneWidget,
+      );
+      // journalStateLabel present
+      expect(find.text(vm.journalStateLabel), findsOneWidget);
+      // The journalLink button is the last OutlinedButton on screen
+      final List<Element> allOutlined = find
+          .byType(OutlinedButton)
+          .evaluate()
+          .toList();
+      final List<Element> journalOutlined = find
+          .descendant(
+            of: find.byKey(const ValueKey<String>('j2-link-journalLink')),
+            matching: find.byType(OutlinedButton),
+          )
+          .evaluate()
+          .toList();
+      expect(allOutlined.last, equals(journalOutlined.single));
+
+      // tap → opener.opened == [journalLink.deepLink]
+      await tester.tap(
+        find.byKey(const ValueKey<String>('j2-link-journalLink')),
+      );
+      await tester.pump();
+      expect(opener.opened, equals(<String>[vm.journalLink!.deepLink]));
+    });
+  }
 }

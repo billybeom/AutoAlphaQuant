@@ -17,9 +17,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/labels.dart';
 import '../common/journal_common.dart';
+import '../journal_read.dart';
 import '../timeline.dart';
 
-// ── Injection provider ────────────────────────────────────────────────────────
+// ── Injection providers ────────────────────────────────────────────────────────
 
 /// J-3 명령 API 주입 프로바이더 — 애플리케이션 컴포지션 루트가 공급한다.
 ///
@@ -27,6 +28,15 @@ import '../timeline.dart';
 /// 🔴 탭·제출 콜백 안에서 ref.read 만 — build 에서 watch·read 금지.
 final journalCommandApiProvider = Provider<CommandApi>(
   (Ref ref) => throw UnimplementedError('journalCommandApiProvider'),
+);
+
+/// J-3 초안 포트 주입 프로바이더 — 애플리케이션 컴포지션 루트가 공급한다(operator 앱 전용).
+///
+/// 🔴 주입 프로바이더: throw 기본값(데이터 프로바이더와 다름 — 규칙 10).
+/// 🔴 initState·콜백 안에서 ref.read 만 — build 에서 watch·read 금지.
+/// 🔴 FutureProvider(.family) 로 감싸지 않는다(autoDispose 0 → 재진입 때 캐시된 옛 초안).
+final journalDraftStoreProvider = Provider<DraftStore>(
+  (Ref ref) => throw UnimplementedError('journalDraftStoreProvider'),
 );
 
 // ── Data provider ─────────────────────────────────────────────────────────────
@@ -67,15 +77,34 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
   StreamSubscription<CommandReceipt>? _cmdSub;
   bool _submitting = false;
 
+  // ── Draft store state ──────────────────────────────────────────────────────
+  late final DraftKey _draftKey = DraftKey(
+    kind: DraftKind.journalDraft,
+    targetId: widget.decisionId,
+  );
+  bool _restoreDone = false;
+  bool _applyingRestore = false;
+  bool _awaitingReceipt = false;
+  bool _resubscribeFailed = false;
+  bool _submitNotAccepted = false;
+  bool _draftCleared = false;
+  String? _pendingRuleCode;
+  String? _commandId;
+  DraftRecord? _lastPersisted;
+
   @override
   void initState() {
     super.initState();
     _rationaleCtrl.addListener(_onInputChanged);
     _expectedCtrl.addListener(_onInputChanged);
     _noteCtrl.addListener(_onInputChanged);
+    unawaited(_restore());
   }
 
-  void _onInputChanged() => setState(() {});
+  void _onInputChanged() {
+    setState(() {});
+    _persist();
+  }
 
   @override
   void dispose() {
@@ -86,11 +115,123 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
     super.dispose();
   }
 
+  // ── Draft store helpers ────────────────────────────────────────────────────
+
+  void _report(Object e, StackTrace st) => FlutterError.reportError(
+    FlutterErrorDetails(exception: e, stack: st, library: 'ui_journal'),
+    // 🔴 입력값을 싣지 않는다
+  );
+
+  /// 포트 호출 감싸기 — 동기 throw(미주입 throw 기본값·계약을 어긴 구현)도 onError 로 모은다.
+  void _port(Future<void> Function(DraftStore s) call) => unawaited(
+    Future<void>.sync(() => call(ref.read(journalDraftStoreProvider)))
+        .then<void>((_) {}, onError: _report),
+  );
+
+  Future<void> _restore() async {
+    DraftRecord? r;
+    try {
+      r = await ref.read(journalDraftStoreProvider).load(_draftKey);
+    } catch (e, st) {
+      _report(e, st);
+    }
+    if (!mounted) return;
+    final JournalDraftInput? j = r?.journal;
+    // 복원값(없으면 빈 본문)을 «직전 저장»으로 둔다 — 포커스·선택만으로는 save 가 나가지 않는다.
+    _lastPersisted =
+        r ?? DraftRecord(key: _draftKey, journal: const JournalDraftInput());
+    _applyingRestore = true;
+    if (j != null) {
+      _rationaleCtrl.text = j.rationaleBefore;
+      _expectedCtrl.text = j.expectedOutcome;
+      _noteCtrl.text = j.note;
+      _pendingRuleCode = j.ruleCited;
+    }
+    _applyingRestore = false;
+    setState(() {
+      _commandId = r?.lastCommandId;
+      _awaitingReceipt = _commandId != null;
+      _restoreDone = true;
+    });
+    if (_commandId != null) {
+      _subscribe(_commandId!);
+    }
+  }
+
+  void _persist() {
+    if (!_restoreDone || _applyingRestore) return;
+    final DraftRecord record = DraftRecord(
+      key: _draftKey,
+      journal: JournalDraftInput(
+        rationaleBefore: _rationaleCtrl.text,
+        expectedOutcome: _expectedCtrl.text,
+        ruleCited: _effectiveRule(null)?.code ?? _pendingRuleCode,
+        note: _noteCtrl.text,
+      ),
+      lastCommandId: _commandId,
+    );
+    if (record == _lastPersisted) return;
+    _lastPersisted = record;
+    _port((DraftStore s) => s.save(record));
+  }
+
+  void _applyReceipt(CommandReceipt r) {
+    if (!mounted) return;
+    setState(() {
+      _receipt = r;
+      _awaitingReceipt = false;
+      _resubscribeFailed = false;
+    });
+    if (r.state == CommandState.executed && !_draftCleared) {
+      _draftCleared = true;
+      _port(
+        (DraftStore s) => s.clear(_draftKey),
+      ); // 🔴 clear 를 부르는 곳은 여기 하나(C17)
+    }
+  }
+
+  void _subscribe(String commandId) {
+    unawaited(_cmdSub?.cancel() ?? Future<void>.value());
+    _cmdSub = ref
+        .read(journalCommandApiProvider)
+        .watchCommand(commandId)
+        .listen(
+          _applyReceipt,
+          onError: (Object e, StackTrace st) {
+            _report(e, st);
+            if (mounted && _awaitingReceipt) {
+              setState(() => _resubscribeFailed = true);
+            }
+            // 접수증이 이미 있으면 마지막 접수증 유지(51 ③)
+          },
+          onDone: () {
+            // 첫 접수증 없이 끝나면 = 에러와 같다(영구 잠금 탈출구 · 01 §12-4)
+            if (mounted && _awaitingReceipt) {
+              setState(() => _resubscribeFailed = true);
+            }
+          },
+        );
+  }
+
+  void _resubscribe() {
+    setState(() => _resubscribeFailed = false);
+    _subscribe(_commandId!);
+  }
+
+  // ── Rule helpers ──────────────────────────────────────────────────────────
+
+  ReasonOption? _effectiveRule(JournalDraftFormSpec? spec) {
+    if (_selectedRule != null) return _selectedRule;
+    if (spec == null || _pendingRuleCode == null) return null;
+    return spec.ruleCitedOptions
+        .where((ReasonOption o) => o.code == _pendingRuleCode)
+        .firstOrNull;
+  }
+
   // ── Submit logic ───────────────────────────────────────────────────────────
 
   bool _canSubmit(JournalDraftFormSpec spec) {
     if (_receipt != null) {
-      // executed → no submit button at all; locked states → no submit
       final CommandState st = _receipt!.state;
       switch (st) {
         case CommandState.executed:
@@ -101,21 +242,19 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
         case CommandState.heldForIntegrity:
         case CommandState.pendingLeaseConfirm:
         case CommandState.noOperator:
-          // locked — button absent
           return false;
         case CommandState.rejected:
         case CommandState.expired:
-          // re-editable → fall through to normal check
           break;
       }
     }
-    if (_selectedRule == null) return false;
-    // G5: trim() — 공백 40자로 버튼 켜지는 것 방지 (01 §11-10)
+    final ReasonOption? rule = _effectiveRule(spec);
+    if (rule == null) return false;
     if (_rationaleCtrl.text.trim().length < spec.rationaleMinChars) {
       return false;
     }
     if (_expectedCtrl.text.trim().isEmpty) return false;
-    if (_selectedRule!.requiresNote && _noteCtrl.text.trim().isEmpty) {
+    if (rule.requiresNote && _noteCtrl.text.trim().isEmpty) {
       return false;
     }
     return true;
@@ -141,7 +280,7 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
   }
 
   Future<void> _submit(JournalDraftFormSpec spec) async {
-    final ReasonOption rule = _selectedRule!;
+    final ReasonOption rule = _effectiveRule(spec)!;
     final String note = _noteCtrl.text.trim().isEmpty ? '' : _noteCtrl.text;
     final JournalDraft draft = JournalDraft(
       decisionId: spec.decisionId,
@@ -151,38 +290,35 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
       note: note.isEmpty ? null : note,
     );
 
-    setState(() => _submitting = true);
+    setState(() {
+      _submitting = true;
+      _submitNotAccepted = false;
+    });
     final CommandReceipt initial;
     try {
       initial = await ref
           .read(journalCommandApiProvider)
           .submitJournalDraft(draft);
     } catch (e, st) {
-      // 01 §4-2 · §8 미결 51 ① (J3_questions Q1)
-      FlutterError.reportError(
-        FlutterErrorDetails(exception: e, stack: st, library: 'ui_journal'),
-      );
-      if (mounted) setState(() => _submitting = false);
+      // 01 §4-2 · §8 미결 51 ① (J3_questions Q1) · ④ = §12-3
+      _report(e, st);
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+          _submitNotAccepted = true;
+        });
+      }
       return;
     }
     if (!mounted) return;
     setState(() {
-      _receipt = initial;
       _submitting = false;
+      _commandId = initial.commandId;
     });
-    // Watch command stream — outside try (구독 에러는 마지막 접수증 유지 + 보고)
-    unawaited(_cmdSub?.cancel() ?? Future<void>.value());
-    _cmdSub = ref
-        .read(journalCommandApiProvider)
-        .watchCommand(initial.commandId)
-        .listen(
-          (CommandReceipt r) {
-            if (mounted) setState(() => _receipt = r);
-          },
-          onError: (Object e, StackTrace st) => FlutterError.reportError(
-            FlutterErrorDetails(exception: e, stack: st, library: 'ui_journal'),
-          ),
-        );
+    // 순서: 연결 저장 → 반영(executed 면 clear) → 구독
+    _persist();
+    _applyReceipt(initial);
+    _subscribe(initial.commandId);
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -192,6 +328,9 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
     final AsyncValue<JournalDraftFormSpec> specAsync = ref.watch(
       journalDraftFormSpecProvider(widget.decisionId),
     );
+
+    // 복원 게이트 — 복원이 끝날 때까지 스켈레톤
+    if (!_restoreDone) return const JournalSkeleton();
 
     return specAsync.when(
       loading: () => const JournalSkeleton(),
@@ -221,7 +360,7 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
                 .toList() ??
             <BlockFlag>[];
 
-        final bool locked = _isLocked();
+        final bool locked = _isLocked() || _awaitingReceipt;
         final bool executed = _isExecuted();
 
         return ListView(
@@ -309,8 +448,11 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
 
             // ── Input area or executed state ──────────────────────────────────
             if (executed)
-              // executed: hide input area, show stateLabel
-              const SizedBox.shrink()
+              // executed: 입력 영역 자리에 읽기 본문(끼워 넣기 · asOf 헤더 생략)
+              JournalReadContent(
+                decisionId: widget.decisionId,
+                showAsOfHeader: false,
+              )
             else ...<Widget>[
               // ── Rationale ─────────────────────────────────────────────────
               Padding(
@@ -354,7 +496,7 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
                 ),
                 child: DropdownButton<ReasonOption>(
                   isExpanded: true,
-                  value: _selectedRule,
+                  value: _effectiveRule(spec),
                   hint: const Text(JournalLabels.draftRuleCited),
                   items: spec.ruleCitedOptions
                       .map(
@@ -366,7 +508,13 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
                       .toList(growable: false),
                   onChanged: (locked || _submitting)
                       ? null
-                      : (ReasonOption? v) => setState(() => _selectedRule = v),
+                      : (ReasonOption? v) {
+                          setState(() {
+                            _selectedRule = v;
+                            _pendingRuleCode = null;
+                          });
+                          _persist();
+                        },
                 ),
               ),
 
@@ -387,8 +535,36 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
                 ),
               ),
 
-              // ── Submit button — absent when locked; disabled during _submitting ──
-              if (!locked)
+              // ── submitNotAccepted 1줄 (01 §12-3) ─────────────────────────
+              if (_submitNotAccepted)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: Text(
+                    JournalLabels.submitNotAccepted,
+                    key: const Key('j3-submit-not-accepted'),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+
+              // ── 재구독 «다시 시도» 또는 제출 버튼 ───────────────────────
+              if (_resubscribeFailed)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: TextButton(
+                    key: const Key('j3-resubscribe'),
+                    onPressed: _resubscribe,
+                    child: const Text(JournalLabels.retry),
+                  ),
+                )
+              else if (!locked)
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
