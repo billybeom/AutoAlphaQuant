@@ -273,7 +273,8 @@ mkdir -p lib/src/chart
 cp test/golden/reference/chart/perf_chart_geometry.dart lib/src/chart/
 cp test/golden/reference/chart/perf_chart_painter.dart  lib/src/chart/
 cp test/golden/reference/widgets/perf_chart.dart        lib/src/widgets/
-# 병합 검사가 보는 것 — 둘 다 출력이 없어야 한다(차이 0)
+# 병합 검사가 보는 것 — 둘 다 «… changed» 요약 줄(예 «1 file changed» · «3 files changed»)이 없어야 한다(차이 0)
+# («warning: in the working copy of … LF will be replaced by CRLF» 줄은 차이가 아니다 — Windows 의 core.autocrlf 경고)
 git diff --no-index --stat test/golden/reference/chart lib/src/chart
 git diff --no-index --stat test/golden/reference/widgets/perf_chart.dart lib/src/widgets/perf_chart.dart
 # (🔴 diff -r 을 쓰지 않는다 — PowerShell 에서 diff 는 Compare-Object 라 파일이 같아도 차이가 찍힌다)
