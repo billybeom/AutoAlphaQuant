@@ -182,7 +182,7 @@ await expectGolden('j1_filter_open', b);
 | `s72g_first` | `s72g_golden_test.dart` | `m7M7DisclosureGateFirst` | 띄운다 | 390 × 844 |
 | `s72g_frequent` | 〃 | `m7M7DisclosureGateFrequent` | 띄운다 | 390 × 844 |
 | `s72g_closed` | 〃 | `m7M7DisclosureGateClosed` | 띄운다 | 390 × 844 |
-| `s72g_not_accepted` | 〃 | 열린 게이트(`m7M7DisclosureGate`) + **던지는** 명령 가짜 | 「그래도 보기」를 1번 누른다 | 390 × 844 |
+| `s72g_not_accepted` | 〃 | 열린 게이트(`m7M7DisclosureGate`) + **던지는** 명령 가짜 | 「그래도 보기」를 1번 누른다 → 찍기 전에 `expect(tester.takeException(), isNotNull)` | 390 × 844 |
 | `s72_monthly_cum` | `s72_golden_test.dart` | `performance24m` 행 0 | 게이트를 눌러 지난다 | 390 × **1400** |
 | `s72_daily_gap` | 〃 | `m7M7PerfDailyGap` | 게이트 → «일» | 390 × 1400 |
 | `s72_sim_split` | 〃 | `m7M7PerfMonthlySimSplit` | 게이트 | 390 × 1400 |
