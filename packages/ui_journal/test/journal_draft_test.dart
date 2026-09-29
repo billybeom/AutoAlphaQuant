@@ -1960,7 +1960,11 @@ void main() {
 
       final StreamController<CommandReceipt> ctrl =
           StreamController<CommandReceipt>();
-      addTearDown(ctrl.close);
+      // 늦게 구독되는 컨트롤러: 탭 전 단언이 실패하면 구독자 0 → close() Future 가
+      // 끝나지 않아 teardown 이 매달린다. 그래서 close 는 호출하되 기다리지 않는다.
+      addTearDown(() {
+        unawaited(ctrl.close());
+      });
       int watchCount = 0;
       final _FakeCommandApi api = _FakeCommandApi(
         onSubmit: () => Completer<CommandReceipt>().future,
@@ -2248,6 +2252,7 @@ void main() {
   // ── R2b C4: 명령 Future 에러 → DraftStore 호출 0(01 §12-4) ──────────────────
   // 대상 변이: M17(Future 에러 때 같은 내용 save 1회 더)
   // 같은 내용을 한 번 더 save 하는 변이는 내용 단언으로 가릴 수 없어 «저장 기록 불변»으로 본다.
+  // 카드 규칙 «saved 개수 단언은 T5(0건)에만»의 완화 = C4 부록 S-7(발주자 승인 대안 (나)).
 
   testWidgets(
     'R2b C4 — command Future error makes no DraftStore call (save log unchanged, no clear)',
