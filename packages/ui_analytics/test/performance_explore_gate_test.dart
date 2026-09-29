@@ -10,7 +10,9 @@ import 'dart:io';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ui_analytics/src/widgets/analytics_error_view.dart';
 import 'package:ui_analytics/src/widgets/analytics_skeleton.dart';
 import 'package:ui_analytics/ui_analytics.dart';
 
@@ -93,6 +95,8 @@ void main() {
 
     await pumpExplore(tester, repo: repo, commandApi: api, opener: opener);
 
+    expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+
     await tester.tap(find.byKey(const Key('s72g-back')));
     await tester.pump();
 
@@ -125,6 +129,8 @@ void main() {
       clock: FixedClock(kGoldenNowUtc),
     );
 
+    expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+
     await tester.tap(find.byKey(const Key('s72g-continue')));
     await tester.pump();
     await tester.pump();
@@ -142,6 +148,21 @@ void main() {
 
     // Series called once
     expect(repo.seriesCalls.length, 1);
+    expect(repo.seriesCalls, <
+      ({
+        PerfMetric metric,
+        PerfGranularity granularity,
+        bool cumulative,
+        DateRange? range,
+      })
+    >[
+      (
+        metric: PerfMetric.twr,
+        granularity: PerfGranularity.monthly,
+        cumulative: true,
+        range: null,
+      ),
+    ]);
 
     // watchCommand received correct id
     expect(api.watchedIds, <String>[receipts[0].commandId]);
@@ -239,6 +260,32 @@ void main() {
     // No series yet
     expect(repo.seriesCalls, isEmpty);
 
+    // F12: Check layout and labels during not-accepted state before retry
+    expect(find.text(gateOpen.asOf.label), findsOneWidget);
+    expect(find.text(gateOpen.route!), findsNothing);
+    expect(find.text(AnalyticsLabels.recordNotAccepted), findsOneWidget);
+    final Finder line = find.byKey(const Key('s72g-record-not-accepted'));
+    expect(
+      find.descendant(of: find.byType(SnackBar), matching: line),
+      findsNothing,
+    );
+    expect(
+      tester.getBottomLeft(find.byKey(const Key('s72g-card'))).dy,
+      lessThan(tester.getTopLeft(line).dy),
+    );
+    expect(
+      tester.getTopLeft(line).dy,
+      lessThan(tester.getTopLeft(find.byKey(const Key('s72g-back'))).dy),
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('s72g-back'))).dx,
+      lessThan(tester.getTopLeft(find.byKey(const Key('s72g-continue'))).dx),
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('s72g-back'))),
+      tester.getSize(find.byKey(const Key('s72g-continue'))),
+    );
+
     // Second tap succeeds
     shouldFail = false;
     await tester.tap(find.byKey(const Key('s72g-continue')));
@@ -255,8 +302,55 @@ void main() {
     expect(find.byKey(const Key('s72-record-line')), findsOneWidget);
   });
 
+  // ── G5b ───────────────────────────────────────────────────────────────────
+  // F11: not-accepted line clears as soon as the next submit starts.
+  testWidgets(
+    'G5b not-accepted line clears as soon as the next submit starts',
+    (WidgetTester tester) async {
+      final completer = Completer<CommandReceipt>();
+      int callCount = 0;
+      final repo = FakePerformanceRepository(
+        gateStream: Stream<DisclosureGateVm>.value(gateOpen),
+      );
+      final api = FakeCommandApi(
+        recordFn: (_) {
+          callCount++;
+          if (callCount == 1) {
+            return Future<CommandReceipt>.error(Exception('first-fail'));
+          }
+          return completer.future;
+        },
+      );
+
+      await pumpExplore(tester, repo: repo, commandApi: api);
+
+      // First tap fails
+      await tester.tap(find.byKey(const Key('s72g-continue')));
+      await tester.pump();
+      await tester.pump();
+
+      expect(tester.takeException(), isNotNull);
+      expect(find.byKey(const Key('s72g-record-not-accepted')), findsOneWidget);
+
+      // Second tap starts in-flight submit
+      await tester.tap(find.byKey(const Key('s72g-continue')));
+      await tester.pump();
+
+      // Clears immediately upon next submit starting
+      expect(find.byKey(const Key('s72g-record-not-accepted')), findsNothing);
+      expect(find.byKey(const Key('s72g-card')), findsOneWidget);
+
+      // Unmount before complete
+      await tester.pumpWidget(const SizedBox());
+      completer.complete(receipts[0]);
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   // ── G6 ────────────────────────────────────────────────────────────────────
   // Each receipt row (0-3) shows stateLabel in record line.
+  // F7: FakeCommandApi default watchCommand returns recorded receipt, so watchFn is not needed.
   for (int i = 0; i < 4; i++) {
     testWidgets('G6 receipt row $i: stateLabel shown in record-line', (
       WidgetTester tester,
@@ -267,11 +361,12 @@ void main() {
       );
       final api = FakeCommandApi(
         recordFn: (_) => Future<CommandReceipt>.value(receipt),
-        watchFn: (_) => Stream<CommandReceipt>.value(receipt),
       );
       final opener = RecordingLinkOpener();
 
       await pumpExplore(tester, repo: repo, commandApi: api, opener: opener);
+
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
       await tester.tap(find.byKey(const Key('s72g-continue')));
       await tester.pump();
@@ -345,6 +440,8 @@ void main() {
 
     await pumpExplore(tester, repo: repo, commandApi: api);
 
+    expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+
     // No continue button
     expect(find.byKey(const Key('s72g-continue')), findsNothing);
 
@@ -379,26 +476,28 @@ void main() {
 
     await pumpExplore(tester, repo: repo, commandApi: api);
 
+    expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+
     expect(find.byKey(const Key('s72g-friction')), findsNothing);
     expect(find.text(gateFirst.viewCountText), findsOneWidget);
   });
 
   // ── G10 ───────────────────────────────────────────────────────────────────
   // After passing, unmount and re-mount: gate shown again; pass again => 2 cmds.
+  // F7: Single fake with gateStreamFactory used across both mounts.
   testWidgets('G10 re-mount always shows gate first', (
     WidgetTester tester,
   ) async {
-    // Each mount gets a fresh broadcast stream so it always emits the value.
-    FakePerformanceRepository makeRepo() => FakePerformanceRepository(
-      gateStream: Stream<DisclosureGateVm>.value(gateOpen).asBroadcastStream(),
+    final repo = FakePerformanceRepository(
+      gateStreamFactory: () => Stream<DisclosureGateVm>.value(gateOpen),
     );
     final api = FakeCommandApi(
       recordFn: (_) => Future<CommandReceipt>.value(receipts[0]),
-      watchFn: (_) => Stream<CommandReceipt>.value(receipts[0]),
     );
 
     // First mount + pass
-    await pumpExplore(tester, repo: makeRepo(), commandApi: api);
+    await pumpExplore(tester, repo: repo, commandApi: api);
+    expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     await tester.tap(find.byKey(const Key('s72g-continue')));
     await tester.pump();
     await tester.pump();
@@ -407,8 +506,8 @@ void main() {
     // Unmount
     await tester.pumpWidget(const SizedBox());
 
-    // Re-mount with fresh repo (new stream)
-    await pumpExplore(tester, repo: makeRepo(), commandApi: api);
+    // Re-mount with the same fake repo (uses gateStreamFactory)
+    await pumpExplore(tester, repo: repo, commandApi: api);
 
     // Gate shown again
     expect(find.byKey(const Key('s72g-card')), findsOneWidget);
@@ -419,14 +518,71 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(api.recordedEvents.length, 2);
+    expect(repo.watchDisclosureGateCalls, 2);
   });
+
+  // ── G10b ──────────────────────────────────────────────────────────────────
+  // F10: same ProviderContainer: leaving and coming back shows the gate again
+  testWidgets(
+    'G10b same ProviderContainer: leaving and coming back shows the gate again',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = FakePerformanceRepository(
+        gateStreamFactory: () => Stream<DisclosureGateVm>.value(gateOpen),
+      );
+      final api = FakeCommandApi(
+        recordFn: (_) => Future<CommandReceipt>.value(receipts[0]),
+      );
+
+      final container = ProviderContainer(
+        overrides: exploreOverrides(repo: repo, commandApi: api),
+      );
+      addTearDown(container.dispose);
+
+      Widget app(bool show) => UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(
+            body: show ? const PerformanceExploreScreen() : const SizedBox(),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(app(true));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('s72g-continue')));
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const Key('s72-record-line')), findsOneWidget);
+
+      await tester.pumpWidget(app(false));
+      await tester.pumpWidget(app(true));
+      await tester.pump();
+
+      expect(find.byKey(const Key('s72g-card')), findsOneWidget);
+      expect(find.byKey(const Key('s72-record-line')), findsNothing);
+    },
+  );
 
   // ── G11 ───────────────────────────────────────────────────────────────────
   // Loading / error states: skeleton or retryButton shown; both with
   // stale+3d safety-row3 => no banners during loading/error.
+  // F6, F9: Full-width back check, blocking list iteration with precondition.
   testWidgets('G11 loading: skeleton back no continue; error: retry back', (
     WidgetTester tester,
   ) async {
+    final List<BlockFlag> blocking = safetyRow3.activeFlags
+        .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
+        .toList();
+    expect(
+      blocking,
+      hasLength(2),
+    ); // precondition — row 3 = RECON_MISMATCH · JOURNAL_MISSING
+
     final staleController = StreamController<DisclosureGateVm>();
     addTearDown(() {
       unawaited(staleController.close());
@@ -447,13 +603,20 @@ void main() {
     expect(find.byType(AnalyticsSkeleton), findsOneWidget);
     expect(find.byKey(const Key('s72g-back')), findsOneWidget);
     expect(find.byKey(const Key('s72g-continue')), findsNothing);
+    expect(
+      tester.widget<AnalyticsSkeleton>(find.byType(AnalyticsSkeleton)).blocks,
+      2,
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('s72g-back'))).width,
+      tester.getSize(find.byType(AnalyticsSkeleton)).width,
+    );
 
     // No banners in loading (values not arrived yet)
     expect(find.text(AnalyticsLabels.staleBannerTitle), findsNothing);
-    final BlockFlag blockingFlag = safetyRow3.activeFlags.firstWhere(
-      (f) => !FlagIds.markerOnly.contains(f.flagId),
-    );
-    expect(find.text(blockingFlag.label), findsNothing);
+    for (final BlockFlag flag in blocking) {
+      expect(find.text(flag.label), findsNothing);
+    }
 
     // Emit error
     staleController.addError(Exception('gate-error'));
@@ -463,11 +626,67 @@ void main() {
     expect(find.text(AnalyticsLabels.retryButton), findsOneWidget);
     expect(find.byKey(const Key('s72g-back')), findsOneWidget);
     expect(find.byKey(const Key('s72g-continue')), findsNothing);
+    expect(
+      tester.getSize(find.byKey(const Key('s72g-back'))).width,
+      tester.getSize(find.byType(AnalyticsErrorView)).width,
+    );
 
     // Still no banners in error (still no data)
     expect(find.text(AnalyticsLabels.staleBannerTitle), findsNothing);
-    expect(find.text(blockingFlag.label), findsNothing);
+    for (final BlockFlag flag in blocking) {
+      expect(find.text(flag.label), findsNothing);
+    }
   });
+
+  // ── G11c ──────────────────────────────────────────────────────────────────
+  // F9: error after a value: no banners, last asOf label, retry resubscribes
+  testWidgets(
+    'G11c error after a value: no banners, last asOf label, retry resubscribes',
+    (WidgetTester tester) async {
+      final List<BlockFlag> blocking = safetyRow3.activeFlags
+          .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
+          .toList();
+      expect(blocking, hasLength(2));
+
+      final StreamController<DisclosureGateVm> c =
+          StreamController<DisclosureGateVm>.broadcast();
+      addTearDown(() {
+        unawaited(c.close());
+      });
+
+      final repo = FakePerformanceRepository(gateStreamFactory: () => c.stream);
+      final api = FakeCommandApi();
+
+      await pumpExplore(
+        tester,
+        repo: repo,
+        commandApi: api,
+        safetyState: safetyRow3,
+        clock: FixedClock(kGoldenNowUtc.add(const Duration(days: 3))),
+      );
+
+      c.add(gateOpen);
+      await tester.pump(Duration.zero);
+      await tester.pump();
+      expect(find.text(AnalyticsLabels.staleBannerTitle), findsOneWidget);
+
+      c.addError(Exception('gate-error'));
+      await tester.pump(Duration.zero);
+      await tester.pump();
+
+      expect(find.text(AnalyticsLabels.retryButton), findsOneWidget);
+      expect(find.text(gateOpen.asOf.label), findsOneWidget);
+      expect(find.text(AnalyticsLabels.staleBannerTitle), findsNothing);
+      for (final BlockFlag flag in blocking) {
+        expect(find.text(flag.label), findsNothing);
+      }
+      expect(repo.watchDisclosureGateCalls, 1);
+
+      await tester.tap(find.text(AnalyticsLabels.retryButton));
+      await tester.pump();
+      expect(repo.watchDisclosureGateCalls, 2);
+    },
+  );
 
   // ── G12 ───────────────────────────────────────────────────────────────────
   // After passing, a new closed gate value arrives: explore body is unchanged.
@@ -486,6 +705,8 @@ void main() {
     );
 
     await pumpExplore(tester, repo: repo, commandApi: api);
+
+    expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
     // Emit open gate
     controller.add(gateOpen);
@@ -534,9 +755,18 @@ void main() {
   // ── G14 ───────────────────────────────────────────────────────────────────
   // Stale +3 days shows staleBannerTitle; safetyRow3 shows flag labels
   // above card dy.
+  // F6: Precondition expect, target list iteration, stale above safety check.
   testWidgets('G14 stale and safety banners shown above card', (
     WidgetTester tester,
   ) async {
+    final List<BlockFlag> blocking = safetyRow3.activeFlags
+        .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
+        .toList();
+    expect(
+      blocking,
+      hasLength(2),
+    ); // precondition — row 3 = RECON_MISMATCH · JOURNAL_MISSING
+
     final repo = FakePerformanceRepository(
       gateStream: Stream<DisclosureGateVm>.value(gateOpen),
     );
@@ -550,21 +780,27 @@ void main() {
       clock: FixedClock(kGoldenNowUtc.add(const Duration(days: 3))),
     );
 
+    expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+
     // Stale banner shown
     expect(find.text(AnalyticsLabels.staleBannerTitle), findsOneWidget);
 
-    // Blocking flag labels shown
-    for (final BlockFlag flag in safetyRow3.activeFlags) {
-      if (!FlagIds.markerOnly.contains(flag.flagId)) {
-        expect(find.text(flag.label), findsOneWidget);
+    // Stale sits above safety
+    expect(
+      tester.getTopLeft(find.text(AnalyticsLabels.staleBannerTitle)).dy,
+      lessThan(tester.getTopLeft(find.text(blocking.first.label)).dy),
+    );
 
-        // Flag dy < card dy
-        final double flagDy = tester.getTopLeft(find.text(flag.label)).dy;
-        final double cardDy = tester
-            .getTopLeft(find.byKey(const Key('s72g-card')))
-            .dy;
-        expect(flagDy, lessThan(cardDy));
-      }
+    // Blocking flag labels shown
+    for (final BlockFlag flag in blocking) {
+      expect(find.text(flag.label), findsOneWidget);
+
+      // Flag dy < card dy
+      final double flagDy = tester.getTopLeft(find.text(flag.label)).dy;
+      final double cardDy = tester
+          .getTopLeft(find.byKey(const Key('s72g-card')))
+          .dy;
+      expect(flagDy, lessThan(cardDy));
     }
   });
 }

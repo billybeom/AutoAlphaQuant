@@ -7,7 +7,6 @@
 // 🔴 s72g_not_accepted : 「그래도 보기」 1회 후 takeException(isNotNull) 먼저.
 
 import 'package:domain_contracts/domain_contracts.dart';
-import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,10 +37,6 @@ void main() {
     DisclosureGateVm.fromJson,
   ).rows[0];
 
-  final SafetyState safety = SafetyState.fromJson(
-    fixtureEnvelope(FixturePaths.safetyStates).rows[0],
-  );
-
   // ── s72g_first ────────────────────────────────────────────────────────────
   for (final Brightness b in Brightness.values) {
     testWidgets('s72g_first ${brightnessSuffix(b)}', (
@@ -56,17 +51,7 @@ void main() {
       await pumpForGolden(
         tester,
         ProviderScope(
-          overrides: <Override>[
-            analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(
-              RecordingLinkOpener(),
-            ),
-            performanceRepositoryProvider.overrideWithValue(repo),
-            safetyRepositoryProvider.overrideWithValue(
-              FakeSafetyRepository(safety),
-            ),
-            analyticsCommandApiProvider.overrideWithValue(api),
-          ],
+          overrides: exploreOverrides(repo: repo, commandApi: api),
           child: const PerformanceExploreScreen(),
         ),
         brightness: b,
@@ -96,17 +81,7 @@ void main() {
       await pumpForGolden(
         tester,
         ProviderScope(
-          overrides: <Override>[
-            analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(
-              RecordingLinkOpener(),
-            ),
-            performanceRepositoryProvider.overrideWithValue(repo),
-            safetyRepositoryProvider.overrideWithValue(
-              FakeSafetyRepository(safety),
-            ),
-            analyticsCommandApiProvider.overrideWithValue(api),
-          ],
+          overrides: exploreOverrides(repo: repo, commandApi: api),
           child: const PerformanceExploreScreen(),
         ),
         brightness: b,
@@ -135,17 +110,7 @@ void main() {
       await pumpForGolden(
         tester,
         ProviderScope(
-          overrides: <Override>[
-            analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(
-              RecordingLinkOpener(),
-            ),
-            performanceRepositoryProvider.overrideWithValue(repo),
-            safetyRepositoryProvider.overrideWithValue(
-              FakeSafetyRepository(safety),
-            ),
-            analyticsCommandApiProvider.overrideWithValue(api),
-          ],
+          overrides: exploreOverrides(repo: repo, commandApi: api),
           child: const PerformanceExploreScreen(),
         ),
         brightness: b,
@@ -179,17 +144,7 @@ void main() {
       await pumpForGolden(
         tester,
         ProviderScope(
-          overrides: <Override>[
-            analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(
-              RecordingLinkOpener(),
-            ),
-            performanceRepositoryProvider.overrideWithValue(repo),
-            safetyRepositoryProvider.overrideWithValue(
-              FakeSafetyRepository(safety),
-            ),
-            analyticsCommandApiProvider.overrideWithValue(api),
-          ],
+          overrides: exploreOverrides(repo: repo, commandApi: api),
           child: const PerformanceExploreScreen(),
         ),
         brightness: b,

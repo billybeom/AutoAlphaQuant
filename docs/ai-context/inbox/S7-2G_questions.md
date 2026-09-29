@@ -7,6 +7,4 @@
 
 | 번호 | 카드ID | 종류 | 질문·추측 | 막힌 곳 | 제안 | 상태 | 답 |
 |---|---|---|---|---|---|---|---|
-| A1 | R10b | 추측 | 측정: s72g_* 4종 × light/dark 공통 — s72g-back bottomLeft.dy = 191.0 (뷰포트 390×2400 DPR 1.0 · gateFirst 픽스처 · kGoldenPhoneSize 390×844) | — | — | ⬜ 미답 | |
-| A2 | R10b | 추측 | DisclosureGateView 내부 위젯의 생성자 모양 — 상태를 가진 ConsumerStatefulWidget 대신 ConsumerWidget 으로 구현(게이트 로직은 부모 PerformanceExploreScreen 의 State 에 있음) | — | — | ⬜ 미답 | |
-| A3 | R10b | 추측 | PerformanceExploreBody 에서 series 에러 시 lastAsOfLabel = null 고정 — 첫 요청이라 앞 값이 없으므로 카드 지시대로 null | — | — | ⬜ 미답 | |
+| A1 | R10b | 추측 | 측정: s72g-back 아래 끝 dy(390×844 · light=dark) — first 191.0 · frequent 235.0 · closed 215.0 · not_accepted 262.0 (모두 < 844) | — | — | ⬜ 미답 | |

@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_initializing_formals
 // test/explore_fakes.dart
 // S7-2G / S7-2 테스트 공용 가짜·띄우기 도우미.
 //
@@ -21,8 +22,14 @@ import 'golden/golden_support.dart';
 /// series() 의 기본 답 = performance24m 행 0.
 /// 생성자 인자 [seriesResult] 로 답을 바꿀 수 있다(null = 기본).
 class FakePerformanceRepository extends UnimplementedPerformanceRepository {
-  FakePerformanceRepository({this._gateStream, this._seriesResult});
+  FakePerformanceRepository({
+    this.gateStreamFactory,
+    Stream<DisclosureGateVm>? gateStream,
+    PerformanceSeries? seriesResult,
+  })  : _gateStream = gateStream,
+        _seriesResult = seriesResult;
 
+  final Stream<DisclosureGateVm> Function()? gateStreamFactory;
   final Stream<DisclosureGateVm>? _gateStream;
   final PerformanceSeries? _seriesResult;
 
@@ -43,6 +50,7 @@ class FakePerformanceRepository extends UnimplementedPerformanceRepository {
   @override
   Stream<DisclosureGateVm> watchDisclosureGate() {
     watchDisclosureGateCalls++;
+    if (gateStreamFactory != null) return gateStreamFactory!();
     if (_gateStream != null) return _gateStream;
     throw StateError('gateStream not provided');
   }
@@ -77,7 +85,11 @@ PerformanceSeries _defaultSeries() {
 /// recordDisclosureView 와 watchCommand 를 둘 다 override 한다.
 /// watchCommand 의 기본 답 = recordDisclosureView 가 돌려준 바로 그 접수증 스트림.
 class FakeCommandApi extends UnimplementedCommandApi {
-  FakeCommandApi({this._recordFn, this._watchFn});
+  FakeCommandApi({
+    Future<CommandReceipt> Function(DisclosureViewEvent)? recordFn,
+    Stream<CommandReceipt> Function(String commandId)? watchFn,
+  })  : _recordFn = recordFn,
+        _watchFn = watchFn;
 
   final Future<CommandReceipt> Function(DisclosureViewEvent)? _recordFn;
   final Stream<CommandReceipt> Function(String commandId)? _watchFn;
@@ -91,7 +103,12 @@ class FakeCommandApi extends UnimplementedCommandApi {
   @override
   Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event) {
     recordedEvents.add(event);
-    if (_recordFn != null) return _recordFn(event);
+    if (_recordFn != null) {
+      return _recordFn(event).then((CommandReceipt r) {
+        _lastReceipt = r;
+        return r;
+      });
+    }
     // 기본: receipts 픽스처 행 0 을 돌려준다
     final receipt = listFixture(
       FixturePaths.m7M7DisclosureViewReceipts4,
@@ -128,6 +145,29 @@ class FakeSafetyRepository extends UnimplementedSafetyRepository {
 
 // ── 띄우기 도우미 ─────────────────────────────────────────────────────────
 
+/// S7-2G/S7-2 화면 프로바이더 오버라이드 5개 목록 생성 도우미.
+List<Override> exploreOverrides({
+  required FakePerformanceRepository repo,
+  required FakeCommandApi commandApi,
+  SafetyState? safetyState,
+  Clock? clock,
+  RecordingLinkOpener? opener,
+}) {
+  final SafetyState safety =
+      safetyState ??
+      SafetyState.fromJson(fixtureEnvelope(FixturePaths.safetyStates).rows[0]);
+  final Clock effectiveClock = clock ?? FixedClock(kGoldenNowUtc);
+  final RecordingLinkOpener effectiveOpener = opener ?? RecordingLinkOpener();
+
+  return <Override>[
+    analyticsClockProvider.overrideWithValue(effectiveClock),
+    analyticsLinkOpenerProvider.overrideWithValue(effectiveOpener),
+    performanceRepositoryProvider.overrideWithValue(repo),
+    safetyRepositoryProvider.overrideWithValue(FakeSafetyRepository(safety)),
+    analyticsCommandApiProvider.overrideWithValue(commandApi),
+  ];
+}
+
 /// S7-2G/S7-2 화면 공용 띄우기 도우미.
 ///
 /// 기본값: 정상 안전 상태(safetyStates 행 0) · kGoldenNowUtc 시계 · RecordingLinkOpener.
@@ -144,25 +184,17 @@ Future<void> pumpExplore(
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  final SafetyState safety =
-      safetyState ??
-      SafetyState.fromJson(fixtureEnvelope(FixturePaths.safetyStates).rows[0]);
-  final Clock effectiveClock = clock ?? FixedClock(kGoldenNowUtc);
-  final RecordingLinkOpener effectiveOpener = opener ?? RecordingLinkOpener();
-
   await tester.pumpWidget(
     ProviderScope(
-      overrides: <Override>[
-        analyticsClockProvider.overrideWithValue(effectiveClock),
-        analyticsLinkOpenerProvider.overrideWithValue(effectiveOpener),
-        performanceRepositoryProvider.overrideWithValue(repo),
-        safetyRepositoryProvider.overrideWithValue(
-          FakeSafetyRepository(safety),
-        ),
-        analyticsCommandApiProvider.overrideWithValue(commandApi),
-      ],
-      child: MaterialApp(
-        home: Scaffold(body: const PerformanceExploreScreen()),
+      overrides: exploreOverrides(
+        repo: repo,
+        commandApi: commandApi,
+        safetyState: safetyState,
+        clock: clock,
+        opener: opener,
+      ),
+      child: const MaterialApp(
+        home: Scaffold(body: PerformanceExploreScreen()),
       ),
     ),
   );
