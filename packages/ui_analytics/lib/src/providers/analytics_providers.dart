@@ -57,3 +57,9 @@ final FutureProviderFamily<ContributionVm, DateRange> contributionProvider =
       final repository = ref.watch(performanceRepositoryProvider);
       return repository.contribution(range: range);
     });
+
+/// S7-1b 리포트 아카이브 FutureProvider (🔴 autoDispose — 01 §4-1)
+final AutoDisposeFutureProvider<ReportArchiveVm> reportArchiveProvider =
+    FutureProvider.autoDispose<ReportArchiveVm>((ref) {
+      return ref.watch(performanceRepositoryProvider).reportArchive();
+    });
