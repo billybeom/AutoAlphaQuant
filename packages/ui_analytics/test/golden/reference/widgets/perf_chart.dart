@@ -12,6 +12,8 @@
 //    가로는 열의 오른쪽 끝에 붙인다(그림 쪽).
 // 🔴 그림 영역 = CustomPaint 의 크기 전체다. 그림 안쪽에는 여백도 글자도 없다.
 // 🔴 색은 Theme.of(context).colorScheme 에서만 뽑는다.
+// 🔵 그림의 왼쪽 변은 상자 왼쪽에서 [plotInsetLeft] 만큼 들어간 자리다 — 차트 아래 x 양 끝 글자 줄이
+//    이 값만큼 왼쪽을 띄워 그림과 줄을 맞춘다.
 //
 // 본보기 원본 = packages/ui_analytics/test/golden/reference/widgets/ (M2 소유).
 // 이 파일은 그 원본을 글자 그대로 옮긴 것이다 — 고칠 일이 생기면 질문 표에 적는다.
@@ -23,6 +25,15 @@ import '../chart/perf_chart_painter.dart';
 
 class PerfChart extends StatelessWidget {
   const PerfChart({super.key, required this.series});
+
+  /// 눈금 글자 열의 폭.
+  static const double tickColumnWidth = 56;
+
+  /// 눈금 글자 열과 그림 사이 빈칸.
+  static const double tickColumnGap = 8;
+
+  /// 상자 왼쪽 끝에서 그림의 왼쪽 변까지(눈금 글자 열 + 빈칸).
+  static const double plotInsetLeft = 64;
 
   final PerformanceSeries series;
 
@@ -40,7 +51,7 @@ class PerfChart extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
-              width: 56,
+              width: tickColumnWidth,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -61,7 +72,7 @@ class PerfChart extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: tickColumnGap),
             Expanded(
               child: CustomPaint(
                 key: const Key('s72-chart'),
