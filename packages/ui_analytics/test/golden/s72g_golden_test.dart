@@ -48,8 +48,8 @@ void main() {
       WidgetTester tester,
     ) async {
       final repo = FakePerformanceRepository(
-        gateStream:
-            Stream<DisclosureGateVm>.value(gateFirst).asBroadcastStream(),
+        gateStream: Stream<DisclosureGateVm>.value(gateFirst)
+            .asBroadcastStream(),
       );
       final api = FakeCommandApi();
 
@@ -58,7 +58,9 @@ void main() {
         ProviderScope(
           overrides: <Override>[
             analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
+            analyticsLinkOpenerProvider.overrideWithValue(
+              RecordingLinkOpener(),
+            ),
             performanceRepositoryProvider.overrideWithValue(repo),
             safetyRepositoryProvider.overrideWithValue(
               FakeSafetyRepository(safety),
@@ -86,9 +88,8 @@ void main() {
       WidgetTester tester,
     ) async {
       final repo = FakePerformanceRepository(
-        gateStream: Stream<DisclosureGateVm>.value(
-          gateFrequent,
-        ).asBroadcastStream(),
+        gateStream: Stream<DisclosureGateVm>.value(gateFrequent)
+            .asBroadcastStream(),
       );
       final api = FakeCommandApi();
 
@@ -97,7 +98,9 @@ void main() {
         ProviderScope(
           overrides: <Override>[
             analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
+            analyticsLinkOpenerProvider.overrideWithValue(
+              RecordingLinkOpener(),
+            ),
             performanceRepositoryProvider.overrideWithValue(repo),
             safetyRepositoryProvider.overrideWithValue(
               FakeSafetyRepository(safety),
@@ -124,8 +127,8 @@ void main() {
       WidgetTester tester,
     ) async {
       final repo = FakePerformanceRepository(
-        gateStream:
-            Stream<DisclosureGateVm>.value(gateClosed).asBroadcastStream(),
+        gateStream: Stream<DisclosureGateVm>.value(gateClosed)
+            .asBroadcastStream(),
       );
       final api = FakeCommandApi();
 
@@ -134,7 +137,9 @@ void main() {
         ProviderScope(
           overrides: <Override>[
             analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
+            analyticsLinkOpenerProvider.overrideWithValue(
+              RecordingLinkOpener(),
+            ),
             performanceRepositoryProvider.overrideWithValue(repo),
             safetyRepositoryProvider.overrideWithValue(
               FakeSafetyRepository(safety),
@@ -162,8 +167,8 @@ void main() {
       WidgetTester tester,
     ) async {
       final repo = FakePerformanceRepository(
-        gateStream:
-            Stream<DisclosureGateVm>.value(gateOpen).asBroadcastStream(),
+        gateStream: Stream<DisclosureGateVm>.value(gateOpen)
+            .asBroadcastStream(),
       );
       final api = FakeCommandApi(
         recordFn: (_) =>
@@ -176,7 +181,9 @@ void main() {
         ProviderScope(
           overrides: <Override>[
             analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
+            analyticsLinkOpenerProvider.overrideWithValue(
+              RecordingLinkOpener(),
+            ),
             performanceRepositoryProvider.overrideWithValue(repo),
             safetyRepositoryProvider.overrideWithValue(
               FakeSafetyRepository(safety),

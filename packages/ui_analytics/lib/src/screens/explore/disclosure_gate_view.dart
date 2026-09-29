@@ -37,11 +37,8 @@ class DisclosureGateView extends ConsumerWidget {
 
     return gateAsync.when(
       loading: () => _buildLoadingLayout(context, ref),
-      error: (_, __) => _buildErrorLayout(
-        context,
-        ref,
-        gateAsync.valueOrNull?.asOf.label,
-      ),
+      error: (_, __) =>
+          _buildErrorLayout(context, ref, gateAsync.valueOrNull?.asOf.label),
       data: (vm) => _buildDataLayout(context, ref, vm, activeFlags),
     );
   }
@@ -152,9 +149,8 @@ class DisclosureGateView extends ConsumerWidget {
             Text(
               vm.headline,
               key: const Key('s72g-headline'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(

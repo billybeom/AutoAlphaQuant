@@ -67,12 +67,13 @@ final AutoDisposeFutureProvider<ReportArchiveVm> reportArchiveProvider =
 // ── 🆕 R10b — S7-2G ────────────────────────────────────────────────────────
 
 /// S7-2G 열람 게이트 — CommandApi 주입 창구(뷰어 허용 5종만 부르는 화면 · 01 §13-9)
-final Provider<CommandApi> analyticsCommandApiProvider =
-    Provider<CommandApi>((ref) {
-      throw UnimplementedError('analyticsCommandApiProvider must be overridden');
-    });
+final Provider<CommandApi> analyticsCommandApiProvider = Provider<CommandApi>((
+  ref,
+) {
+  throw UnimplementedError('analyticsCommandApiProvider must be overridden');
+});
 
-/// S7-2G 열람 게이트 스트림 — autoDispose(월→일→월 전환에서 호출 0 방지)
+/// S7-2G 열람 게이트 스트림 (월→일→월 전환에서 호출 0 방지)
 final AutoDisposeStreamProvider<DisclosureGateVm> disclosureGateProvider =
     StreamProvider.autoDispose<DisclosureGateVm>((ref) {
       return ref.watch(performanceRepositoryProvider).watchDisclosureGate();
@@ -85,13 +86,15 @@ typedef PerfSeriesQuery = ({
   bool cumulative,
 });
 
-/// S7-2 성과 시리즈 — autoDispose(월→일→월 전환에서 호출 0 방지)
+/// S7-2 성과 시리즈 (월→일→월 전환에서 호출 0 방지)
 final AutoDisposeFutureProviderFamily<PerformanceSeries, PerfSeriesQuery>
 performanceSeriesProvider = FutureProvider.autoDispose
     .family<PerformanceSeries, PerfSeriesQuery>((ref, query) {
-      return ref.watch(performanceRepositoryProvider).series(
-        metric: query.metric,
-        granularity: query.granularity,
-        cumulative: query.cumulative,
-      );
+      return ref
+          .watch(performanceRepositoryProvider)
+          .series(
+            metric: query.metric,
+            granularity: query.granularity,
+            cumulative: query.cumulative,
+          );
     });

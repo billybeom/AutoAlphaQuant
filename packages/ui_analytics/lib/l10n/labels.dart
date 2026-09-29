@@ -10,6 +10,5 @@ abstract final class AnalyticsLabels {
   // ── 🆕 R10b — S7-2G ───────────────────────────────────────────────────────
   static const String gateBackButton = '돌아가기';
   static const String gateContinueButton = '그래도 보기';
-  static const String recordNotAccepted =
-      '열람 기록이 접수되지 않았습니다. 화면은 열리지 않았습니다.';
+  static const String recordNotAccepted = '열람 기록이 접수되지 않았습니다. 화면은 열리지 않았습니다.';
 }

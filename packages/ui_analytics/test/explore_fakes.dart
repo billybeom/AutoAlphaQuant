@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_analytics/ui_analytics.dart';
-import 'package:ui_analytics/src/screens/performance_explore_screen.dart';
 
 import 'golden/golden_support.dart';
 
@@ -22,11 +21,7 @@ import 'golden/golden_support.dart';
 /// series() 의 기본 답 = performance24m 행 0.
 /// 생성자 인자 [seriesResult] 로 답을 바꿀 수 있다(null = 기본).
 class FakePerformanceRepository extends UnimplementedPerformanceRepository {
-  FakePerformanceRepository({
-    Stream<DisclosureGateVm>? gateStream,
-    PerformanceSeries? seriesResult,
-  }) : _gateStream = gateStream,
-       _seriesResult = seriesResult;
+  FakePerformanceRepository({this._gateStream, this._seriesResult});
 
   final Stream<DisclosureGateVm>? _gateStream;
   final PerformanceSeries? _seriesResult;
@@ -35,18 +30,20 @@ class FakePerformanceRepository extends UnimplementedPerformanceRepository {
   int watchDisclosureGateCalls = 0;
 
   // series 인자 기록 — 호출마다 append
-  final List<({
-    PerfMetric metric,
-    PerfGranularity granularity,
-    bool cumulative,
-    DateRange? range,
-  })>
+  final List<
+    ({
+      PerfMetric metric,
+      PerfGranularity granularity,
+      bool cumulative,
+      DateRange? range,
+    })
+  >
   seriesCalls = [];
 
   @override
   Stream<DisclosureGateVm> watchDisclosureGate() {
     watchDisclosureGateCalls++;
-    if (_gateStream != null) return _gateStream!;
+    if (_gateStream != null) return _gateStream;
     throw StateError('gateStream not provided');
   }
 
@@ -80,11 +77,7 @@ PerformanceSeries _defaultSeries() {
 /// recordDisclosureView 와 watchCommand 를 둘 다 override 한다.
 /// watchCommand 의 기본 답 = recordDisclosureView 가 돌려준 바로 그 접수증 스트림.
 class FakeCommandApi extends UnimplementedCommandApi {
-  FakeCommandApi({
-    Future<CommandReceipt> Function(DisclosureViewEvent)? recordFn,
-    Stream<CommandReceipt> Function(String commandId)? watchFn,
-  }) : _recordFn = recordFn,
-       _watchFn = watchFn;
+  FakeCommandApi({this._recordFn, this._watchFn});
 
   final Future<CommandReceipt> Function(DisclosureViewEvent)? _recordFn;
   final Stream<CommandReceipt> Function(String commandId)? _watchFn;
@@ -98,7 +91,7 @@ class FakeCommandApi extends UnimplementedCommandApi {
   @override
   Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event) {
     recordedEvents.add(event);
-    if (_recordFn != null) return _recordFn!(event);
+    if (_recordFn != null) return _recordFn(event);
     // 기본: receipts 픽스처 행 0 을 돌려준다
     final receipt = listFixture(
       FixturePaths.m7M7DisclosureViewReceipts4,
@@ -111,7 +104,7 @@ class FakeCommandApi extends UnimplementedCommandApi {
   @override
   Stream<CommandReceipt> watchCommand(String commandId) {
     watchedIds.add(commandId);
-    if (_watchFn != null) return _watchFn!(commandId);
+    if (_watchFn != null) return _watchFn(commandId);
     // 기본: recordDisclosureView 가 돌려준 접수증 스트림
     final receipt =
         _lastReceipt ??
@@ -153,9 +146,7 @@ Future<void> pumpExplore(
 
   final SafetyState safety =
       safetyState ??
-      SafetyState.fromJson(
-        fixtureEnvelope(FixturePaths.safetyStates).rows[0],
-      );
+      SafetyState.fromJson(fixtureEnvelope(FixturePaths.safetyStates).rows[0]);
   final Clock effectiveClock = clock ?? FixedClock(kGoldenNowUtc);
   final RecordingLinkOpener effectiveOpener = opener ?? RecordingLinkOpener();
 

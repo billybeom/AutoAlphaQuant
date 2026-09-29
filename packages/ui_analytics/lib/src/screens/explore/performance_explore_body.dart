@@ -83,10 +83,7 @@ class _PerformanceExploreBodyState
     return Column(
       children: <Widget>[
         // 기록 줄 — 항상 표시 · 상태로 고르지 않는다
-        Text(
-          _shown.stateLabel,
-          key: const Key('s72-record-line'),
-        ),
+        Text(_shown.stateLabel, key: const Key('s72-record-line')),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(16),

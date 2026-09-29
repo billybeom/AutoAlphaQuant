@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_analytics/src/widgets/analytics_skeleton.dart';
 import 'package:ui_analytics/ui_analytics.dart';
@@ -35,19 +34,11 @@ void main() {
     DisclosureGateVm.fromJson,
   ).rows[0];
 
-  final DisclosureGateVm gateFrequent = listFixture(
-    FixturePaths.m7M7DisclosureGateFrequent,
-    DisclosureGateVm.fromJson,
-  ).rows[0];
-
   final DisclosureGateVm gateClosed = listFixture(
     FixturePaths.m7M7DisclosureGateClosed,
     DisclosureGateVm.fromJson,
   ).rows[0];
 
-  final SafetyState safetyRow0 = SafetyState.fromJson(
-    fixtureEnvelope(FixturePaths.safetyStates).rows[0],
-  );
   final SafetyState safetyRow3 = SafetyState.fromJson(
     fixtureEnvelope(FixturePaths.safetyStates).rows[3],
   );
@@ -240,10 +231,7 @@ void main() {
     expect(find.byKey(const Key('s72g-card')), findsOneWidget);
 
     // record-not-accepted shown
-    expect(
-      find.byKey(const Key('s72g-record-not-accepted')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const Key('s72g-record-not-accepted')), findsOneWidget);
 
     // Exception reported
     expect(tester.takeException(), isNotNull);
@@ -258,10 +246,7 @@ void main() {
     await tester.pump();
 
     // record-not-accepted gone
-    expect(
-      find.byKey(const Key('s72g-record-not-accepted')),
-      findsNothing,
-    );
+    expect(find.byKey(const Key('s72g-record-not-accepted')), findsNothing);
 
     // 2 total commands
     expect(api.recordedEvents.length, 2);
@@ -286,12 +271,7 @@ void main() {
       );
       final opener = RecordingLinkOpener();
 
-      await pumpExplore(
-        tester,
-        repo: repo,
-        commandApi: api,
-        opener: opener,
-      );
+      await pumpExplore(tester, repo: repo, commandApi: api, opener: opener);
 
       await tester.tap(find.byKey(const Key('s72g-continue')));
       await tester.pump();
@@ -378,10 +358,12 @@ void main() {
     expect(api.recordedEvents, isEmpty);
 
     // Back button width equals card width
-    final double backWidth =
-        tester.getSize(find.byKey(const Key('s72g-back'))).width;
-    final double cardWidth =
-        tester.getSize(find.byKey(const Key('s72g-card'))).width;
+    final double backWidth = tester
+        .getSize(find.byKey(const Key('s72g-back')))
+        .width;
+    final double cardWidth = tester
+        .getSize(find.byKey(const Key('s72g-card')))
+        .width;
     expect(backWidth, cardWidth);
   });
 
@@ -408,8 +390,7 @@ void main() {
   ) async {
     // Each mount gets a fresh broadcast stream so it always emits the value.
     FakePerformanceRepository makeRepo() => FakePerformanceRepository(
-      gateStream:
-          Stream<DisclosureGateVm>.value(gateOpen).asBroadcastStream(),
+      gateStream: Stream<DisclosureGateVm>.value(gateOpen).asBroadcastStream(),
     );
     final api = FakeCommandApi(
       recordFn: (_) => Future<CommandReceipt>.value(receipts[0]),
@@ -451,9 +432,7 @@ void main() {
       unawaited(staleController.close());
     });
 
-    final repo = FakePerformanceRepository(
-      gateStream: staleController.stream,
-    );
+    final repo = FakePerformanceRepository(gateStream: staleController.stream);
     final api = FakeCommandApi();
 
     await pumpExplore(
@@ -539,10 +518,7 @@ void main() {
     final Set<String> exportPaths = RegExp(
       r"^export '([^']+)';",
       multiLine: true,
-    )
-        .allMatches(content)
-        .map((m) => m.group(1)!)
-        .toSet();
+    ).allMatches(content).map((m) => m.group(1)!).toSet();
 
     expect(exportPaths, <String>{
       'l10n/labels.dart',
@@ -584,8 +560,9 @@ void main() {
 
         // Flag dy < card dy
         final double flagDy = tester.getTopLeft(find.text(flag.label)).dy;
-        final double cardDy =
-            tester.getTopLeft(find.byKey(const Key('s72g-card'))).dy;
+        final double cardDy = tester
+            .getTopLeft(find.byKey(const Key('s72g-card')))
+            .dy;
         expect(flagDy, lessThan(cardDy));
       }
     }
