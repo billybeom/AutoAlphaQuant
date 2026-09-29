@@ -262,10 +262,7 @@ class TableFakePerformanceRepository extends FakePerformanceRepository {
         granularity == PerfGranularity.yearly &&
         cumulative == true) {
       return Future<PerformanceSeries>.value(
-        singleFixture(
-          FixturePaths.m7M7PerfYearly,
-          PerformanceSeries.fromJson,
-        ),
+        singleFixture(FixturePaths.m7M7PerfYearly, PerformanceSeries.fromJson),
       );
     }
     if (metric == PerfMetric.twr &&

@@ -7,7 +7,6 @@ import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_analytics/l10n/labels.dart';
-import 'package:ui_analytics/src/screens/explore/performance_explore_body.dart';
 import 'package:ui_analytics/src/widgets/analytics_error_view.dart';
 import 'package:ui_analytics/src/widgets/analytics_skeleton.dart';
 
@@ -20,9 +19,9 @@ void main() {
       singleFixture(FixturePaths.m7M7DisclosureGate, DisclosureGateVm.fromJson);
 
   CommandReceipt receipt0() => listFixture(
-        FixturePaths.m7M7DisclosureViewReceipts4,
-        CommandReceipt.fromJson,
-      ).rows[0];
+    FixturePaths.m7M7DisclosureViewReceipts4,
+    CommandReceipt.fromJson,
+  ).rows[0];
 
   group('PerformanceExploreView - E1 to E8 toggle interactions', () {
     testWidgets('E1 pass gate records initial series query', (tester) async {
@@ -85,8 +84,9 @@ void main() {
       expect(last.cumulative, isTrue);
     });
 
-    testWidgets('E4 switch to yearly records granularity yearly',
-        (tester) async {
+    testWidgets('E4 switch to yearly records granularity yearly', (
+      tester,
+    ) async {
       final repo = TableFakePerformanceRepository(
         gateStreamFactory: () => Stream<DisclosureGateVm>.value(openGate()),
       );
@@ -128,29 +128,31 @@ void main() {
       expect(last.cumulative, isFalse);
     });
 
-    testWidgets('E6 switch monthly to daily to monthly calls series each time',
-        (tester) async {
-      final repo = TableFakePerformanceRepository(
-        gateStreamFactory: () => Stream<DisclosureGateVm>.value(openGate()),
-      );
-      final commandApi = FakeCommandApi();
+    testWidgets(
+      'E6 switch monthly to daily to monthly calls series each time',
+      (tester) async {
+        final repo = TableFakePerformanceRepository(
+          gateStreamFactory: () => Stream<DisclosureGateVm>.value(openGate()),
+        );
+        final commandApi = FakeCommandApi();
 
-      await pumpExplore(tester, repo: repo, commandApi: commandApi);
-      await passGate(tester);
-      await tester.pump();
-      expect(repo.seriesCalls.length, 1);
+        await pumpExplore(tester, repo: repo, commandApi: commandApi);
+        await passGate(tester);
+        await tester.pump();
+        expect(repo.seriesCalls.length, 1);
 
-      await tester.tap(find.text(AnalyticsLabels.granularityDaily));
-      await tester.pump();
-      await tester.pump();
-      expect(repo.seriesCalls.length, 2);
+        await tester.tap(find.text(AnalyticsLabels.granularityDaily));
+        await tester.pump();
+        await tester.pump();
+        expect(repo.seriesCalls.length, 2);
 
-      await tester.tap(find.text(AnalyticsLabels.granularityMonthly));
-      await tester.pump();
-      await tester.pump();
-      expect(repo.seriesCalls.length, 3);
-      expect(repo.seriesCalls.last.granularity, PerfGranularity.monthly);
-    });
+        await tester.tap(find.text(AnalyticsLabels.granularityMonthly));
+        await tester.pump();
+        await tester.pump();
+        expect(repo.seriesCalls.length, 3);
+        expect(repo.seriesCalls.last.granularity, PerfGranularity.monthly);
+      },
+    );
 
     testWidgets('E8 no weekly segment in granularity toggle', (tester) async {
       final repo = TableFakePerformanceRepository(
@@ -182,8 +184,9 @@ void main() {
   });
 
   group('PerformanceExploreView - E9 to E10 error and loading', () {
-    testWidgets('E9 error view with retry and persistent safety banner',
-        (tester) async {
+    testWidgets('E9 error view with retry and persistent safety banner', (
+      tester,
+    ) async {
       final safety3 = SafetyState.fromJson(
         fixtureEnvelope(FixturePaths.safetyStates).rows[3],
       );
@@ -202,8 +205,9 @@ void main() {
       await tester.pump();
 
       expect(find.text(AnalyticsLabels.retryButton), findsOneWidget);
-      final errorView =
-          tester.widget<AnalyticsErrorView>(find.byType(AnalyticsErrorView));
+      final errorView = tester.widget<AnalyticsErrorView>(
+        find.byType(AnalyticsErrorView),
+      );
       expect(errorView.lastAsOfLabel, isNull);
 
       expect(find.byKey(const Key('s72-disclosure')), findsNothing);
@@ -223,8 +227,9 @@ void main() {
       expect(repo.seriesCalls[1].cumulative, repo.seriesCalls[0].cumulative);
     });
 
-    testWidgets('E10 loading skeleton with persistent safety banner',
-        (tester) async {
+    testWidgets('E10 loading skeleton with persistent safety banner', (
+      tester,
+    ) async {
       final safety3 = SafetyState.fromJson(
         fixtureEnvelope(FixturePaths.safetyStates).rows[3],
       );
@@ -257,8 +262,9 @@ void main() {
       expect(find.byKey(kChartProbeKey), findsNothing);
 
       expect(find.byType(AnalyticsSkeleton), findsOneWidget);
-      final skel =
-          tester.widget<AnalyticsSkeleton>(find.byType(AnalyticsSkeleton));
+      final skel = tester.widget<AnalyticsSkeleton>(
+        find.byType(AnalyticsSkeleton),
+      );
       expect(skel.blocks, 3);
 
       expect(find.byKey(const Key('s72-disclosure')), findsNothing);
@@ -281,14 +287,15 @@ void main() {
 
   group('PerformanceExploreView - E11 to E19 fixtures rendering', () {
     final normalFixtureList = <PerformanceSeries>[
-      listFixture(FixturePaths.performance24m, PerformanceSeries.fromJson)
-          .rows[0],
-      listFixture(FixturePaths.performance24m, PerformanceSeries.fromJson)
-          .rows[1],
-      singleFixture(
-        FixturePaths.m7M7PerfDailyGap,
+      listFixture(
+        FixturePaths.performance24m,
         PerformanceSeries.fromJson,
-      ),
+      ).rows[0],
+      listFixture(
+        FixturePaths.performance24m,
+        PerformanceSeries.fromJson,
+      ).rows[1],
+      singleFixture(FixturePaths.m7M7PerfDailyGap, PerformanceSeries.fromJson),
       singleFixture(
         FixturePaths.m7M7PerfMonthlySimSplit,
         PerformanceSeries.fromJson,
@@ -316,8 +323,9 @@ void main() {
       ),
     ];
 
-    testWidgets('E11 disclosure lines rendered across all 9 series',
-        (tester) async {
+    testWidgets('E11 disclosure lines rendered across all 9 series', (
+      tester,
+    ) async {
       for (final s in allNineSeries) {
         final repo = FakePerformanceRepository(seriesResult: s);
         final commandApi = FakeCommandApi();
@@ -337,8 +345,9 @@ void main() {
       }
     });
 
-    testWidgets('E12 main line probe matches across 7 normal series',
-        (tester) async {
+    testWidgets('E12 main line probe matches across 7 normal series', (
+      tester,
+    ) async {
       for (final s in normalFixtureList) {
         final repo = FakePerformanceRepository(seriesResult: s);
         final commandApi = FakeCommandApi();
@@ -356,8 +365,9 @@ void main() {
       }
     });
 
-    testWidgets('E13 bands probe matches across 7 normal series',
-        (tester) async {
+    testWidgets('E13 bands probe matches across 7 normal series', (
+      tester,
+    ) async {
       for (final s in normalFixtureList) {
         final repo = FakePerformanceRepository(seriesResult: s);
         final commandApi = FakeCommandApi();
@@ -375,8 +385,9 @@ void main() {
       }
     });
 
-    testWidgets('E14 benchmark probe and legend across 7 normal series',
-        (tester) async {
+    testWidgets('E14 benchmark probe and legend across 7 normal series', (
+      tester,
+    ) async {
       for (final s in normalFixtureList) {
         final repo = FakePerformanceRepository(seriesResult: s);
         final commandApi = FakeCommandApi();
@@ -430,8 +441,9 @@ void main() {
       }
     });
 
-    testWidgets('E16 segment captions only for non-measured segments',
-        (tester) async {
+    testWidgets('E16 segment captions only for non-measured segments', (
+      tester,
+    ) async {
       for (final s in normalFixtureList) {
         final repo = FakePerformanceRepository(seriesResult: s);
         final commandApi = FakeCommandApi();
@@ -457,42 +469,48 @@ void main() {
       }
     });
 
-    testWidgets('E18 unavailable series shows card and hides chart components',
-        (tester) async {
-      final unavailList = <PerformanceSeries>[
-        singleFixture(
-          FixturePaths.m7M7PerfUnavailableGap,
-          PerformanceSeries.fromJson,
-        ),
-        singleFixture(
-          FixturePaths.m7M7PerfMaskedIntegrity,
-          PerformanceSeries.fromJson,
-        ),
-      ];
+    testWidgets(
+      'E18 unavailable series shows card and hides chart components',
+      (tester) async {
+        final unavailList = <PerformanceSeries>[
+          singleFixture(
+            FixturePaths.m7M7PerfUnavailableGap,
+            PerformanceSeries.fromJson,
+          ),
+          singleFixture(
+            FixturePaths.m7M7PerfMaskedIntegrity,
+            PerformanceSeries.fromJson,
+          ),
+        ];
 
-      for (final s in unavailList) {
-        final repo = FakePerformanceRepository(seriesResult: s);
-        final commandApi = FakeCommandApi();
+        for (final s in unavailList) {
+          final repo = FakePerformanceRepository(seriesResult: s);
+          final commandApi = FakeCommandApi();
 
-        await pumpExplore(
-          tester,
-          repo: repo,
-          commandApi: commandApi,
-          bodyReceipt: receipt0(),
-        );
+          await pumpExplore(
+            tester,
+            repo: repo,
+            commandApi: commandApi,
+            bodyReceipt: receipt0(),
+          );
 
-        expect(find.text(s.unavailableLabel!), findsOneWidget);
-        expect(find.byKey(kChartProbeKey), findsNothing);
-        expect(find.byKey(const Key('s72-legend-main')), findsNothing);
-        expect(find.byKey(const Key('s72-values-toggle')), findsNothing);
-        expect(find.byKey(const Key('s72-disclosure')), findsOneWidget);
-        expect(find.byKey(const Key('s72-link-drawdown')), findsOneWidget);
-        expect(find.byKey(const Key('s72-link-contribution')), findsOneWidget);
-      }
-    });
+          expect(find.text(s.unavailableLabel!), findsOneWidget);
+          expect(find.byKey(kChartProbeKey), findsNothing);
+          expect(find.byKey(const Key('s72-legend-main')), findsNothing);
+          expect(find.byKey(const Key('s72-values-toggle')), findsNothing);
+          expect(find.byKey(const Key('s72-disclosure')), findsOneWidget);
+          expect(find.byKey(const Key('s72-link-drawdown')), findsOneWidget);
+          expect(
+            find.byKey(const Key('s72-link-contribution')),
+            findsOneWidget,
+          );
+        }
+      },
+    );
 
-    testWidgets('E19 labels and x bounds alignment across 7 normal series',
-        (tester) async {
+    testWidgets('E19 labels and x bounds alignment across 7 normal series', (
+      tester,
+    ) async {
       for (final s in normalFixtureList) {
         final repo = FakePerformanceRepository(seriesResult: s);
         final commandApi = FakeCommandApi();
@@ -510,8 +528,9 @@ void main() {
         expect(find.text(s.seriesLabel), findsOneWidget);
         expect(find.text(s.asOf.label), findsOneWidget);
 
-        final xFirstTopLeft =
-            tester.getTopLeft(find.byKey(const Key('s72-x-first')));
+        final xFirstTopLeft = tester.getTopLeft(
+          find.byKey(const Key('s72-x-first')),
+        );
         final chartRect = tester.getRect(find.byKey(kChartProbeKey));
         expect(xFirstTopLeft.dx, equals(chartRect.left));
       }
@@ -608,7 +627,10 @@ void main() {
 
       final rowCount = s.points.length;
       for (var i = 0; i < rowCount; i++) {
-        expect(find.byKey(ValueKey<String>('s72-value-row-$i')), findsOneWidget);
+        expect(
+          find.byKey(ValueKey<String>('s72-value-row-$i')),
+          findsOneWidget,
+        );
       }
 
       int? missingIdx;
@@ -668,7 +690,10 @@ void main() {
 
       final rowCount = s.points.length;
       for (var i = 0; i < rowCount; i++) {
-        expect(find.byKey(ValueKey<String>('s72-value-row-$i')), findsOneWidget);
+        expect(
+          find.byKey(ValueKey<String>('s72-value-row-$i')),
+          findsOneWidget,
+        );
       }
 
       int? missingIdx;
@@ -704,8 +729,9 @@ void main() {
       }
     });
 
-    testWidgets('V3 switch toggle keeps table expanded and updates rows',
-        (tester) async {
+    testWidgets('V3 switch toggle keeps table expanded and updates rows', (
+      tester,
+    ) async {
       final repo = TableFakePerformanceRepository(
         gateStreamFactory: () => Stream<DisclosureGateVm>.value(openGate()),
       );
@@ -731,7 +757,10 @@ void main() {
 
       expect(find.text(AnalyticsLabels.valuesHideButton), findsOneWidget);
       for (var i = 0; i < dailyGap.points.length; i++) {
-        expect(find.byKey(ValueKey<String>('s72-value-row-$i')), findsOneWidget);
+        expect(
+          find.byKey(ValueKey<String>('s72-value-row-$i')),
+          findsOneWidget,
+        );
       }
       expect(
         find.byKey(ValueKey<String>('s72-value-row-${dailyGap.points.length}')),

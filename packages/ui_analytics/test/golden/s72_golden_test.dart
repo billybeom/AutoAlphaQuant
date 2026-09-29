@@ -11,7 +11,6 @@ import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ui_analytics/l10n/labels.dart';
 import 'package:ui_analytics/ui_analytics.dart';
 
 import '../explore_fakes.dart';
@@ -80,9 +79,7 @@ void main() {
       await tester.pump();
 
       expect(
-        tester
-            .getBottomLeft(find.byKey(const Key('s72-link-contribution')))
-            .dy,
+        tester.getBottomLeft(find.byKey(const Key('s72-link-contribution'))).dy,
         lessThan(kS72GoldenSize.height),
       );
 
@@ -117,9 +114,7 @@ void main() {
       await tester.pump();
 
       expect(
-        tester
-            .getBottomLeft(find.byKey(const Key('s72-link-contribution')))
-            .dy,
+        tester.getBottomLeft(find.byKey(const Key('s72-link-contribution'))).dy,
         lessThan(kS72GoldenSize.height),
       );
 
@@ -152,9 +147,7 @@ void main() {
       await tester.pump();
 
       expect(
-        tester
-            .getBottomLeft(find.byKey(const Key('s72-link-contribution')))
-            .dy,
+        tester.getBottomLeft(find.byKey(const Key('s72-link-contribution'))).dy,
         lessThan(kS72GoldenSize.height),
       );
 
@@ -189,9 +182,7 @@ void main() {
       await tester.pump();
 
       expect(
-        tester
-            .getBottomLeft(find.byKey(const Key('s72-link-contribution')))
-            .dy,
+        tester.getBottomLeft(find.byKey(const Key('s72-link-contribution'))).dy,
         lessThan(kS72GoldenSize.height),
       );
 
@@ -226,9 +217,7 @@ void main() {
       await tester.pump();
 
       expect(
-        tester
-            .getBottomLeft(find.byKey(const Key('s72-link-contribution')))
-            .dy,
+        tester.getBottomLeft(find.byKey(const Key('s72-link-contribution'))).dy,
         lessThan(kS72GoldenSize.height),
       );
 
@@ -263,9 +252,7 @@ void main() {
       await tester.pump();
 
       expect(
-        tester
-            .getBottomLeft(find.byKey(const Key('s72-link-contribution')))
-            .dy,
+        tester.getBottomLeft(find.byKey(const Key('s72-link-contribution'))).dy,
         lessThan(kS72GoldenSize.height),
       );
 

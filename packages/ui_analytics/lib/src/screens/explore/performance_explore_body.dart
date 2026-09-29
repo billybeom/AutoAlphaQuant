@@ -225,10 +225,7 @@ class _PerformanceExploreBodyState
 
                     if (unavailableLabel != null) ...<Widget>[
                       // 불가 카드
-                      Text(
-                        unavailableLabel,
-                        key: const Key('s72-unavailable'),
-                      ),
+                      Text(unavailableLabel, key: const Key('s72-unavailable')),
                     ] else ...<Widget>[
                       // 6 PerfChart
                       PerfChart(series: series),
@@ -423,7 +420,8 @@ class _PerformanceExploreBodyState
                             Text(series.disclosure.sampleSizeLine),
                             const SizedBox(height: 4),
                             Text(series.disclosure.honestExpectationLine),
-                            if (series.disclosure.drawdownCaveatLine != null) ...<Widget>[
+                            if (series.disclosure.drawdownCaveatLine !=
+                                null) ...<Widget>[
                               const SizedBox(height: 4),
                               Text(series.disclosure.drawdownCaveatLine!),
                             ],
