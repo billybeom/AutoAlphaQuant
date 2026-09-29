@@ -79,51 +79,50 @@ class ReportArchiveScreen extends ConsumerWidget {
 
   Widget _buildRow(BuildContext context, WidgetRef ref, ReportArchiveRow row) {
     final colorScheme = Theme.of(context).colorScheme;
-    final Widget card = Card(
-      key: ValueKey<String>('s71b-row-${row.yyyyMm}'),
-      child: Row(
-        children: <Widget>[
-          const SizedBox(width: 12),
-          Icon(
-            row.generated
-                ? Icons.description_outlined
-                : Icons.remove_circle_outline,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(row.label),
-                  if (row.reasonLabel != null)
-                    Text(
-                      row.reasonLabel!,
-                      key: Key('s71b-reason-${row.yyyyMm}'),
-                    ),
-                ],
-              ),
+    final Widget content = Row(
+      children: <Widget>[
+        const SizedBox(width: 12),
+        Icon(
+          row.generated
+              ? Icons.description_outlined
+              : Icons.remove_circle_outline,
+          color: colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(row.label),
+                if (row.reasonLabel != null)
+                  Text(row.reasonLabel!, key: Key('s71b-reason-${row.yyyyMm}')),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          Chip(key: Key('s71b-mode-${row.yyyyMm}'), label: Text(row.modeLabel)),
-          if (row.route != null) ...<Widget>[
-            const SizedBox(width: 4),
-            const Icon(Icons.chevron_right),
-          ],
+        ),
+        const SizedBox(width: 8),
+        Chip(key: Key('s71b-mode-${row.yyyyMm}'), label: Text(row.modeLabel)),
+        if (row.route != null) ...<Widget>[
           const SizedBox(width: 4),
+          const Icon(Icons.chevron_right),
         ],
-      ),
+        const SizedBox(width: 4),
+      ],
     );
 
-    if (row.route != null) {
-      return InkWell(
-        onTap: () => ref.read(analyticsLinkOpenerProvider).open(row.route!),
-        child: card,
-      );
-    }
-    return card;
+    // 누름 표시(물결)가 Card 위에 보이도록 InkWell 은 Card 안쪽에 둔다(C4 R10a N8).
+    return Card(
+      key: ValueKey<String>('s71b-row-${row.yyyyMm}'),
+      clipBehavior: Clip.antiAlias,
+      child: row.route != null
+          ? InkWell(
+              onTap: () =>
+                  ref.read(analyticsLinkOpenerProvider).open(row.route!),
+              child: content,
+            )
+          : content,
+    );
   }
 }
