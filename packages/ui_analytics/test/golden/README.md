@@ -171,7 +171,7 @@ await expectGolden('j1_filter_open', b);
 
 ## 🆕 R10(계약 v1.3) — `S7-1b` · `S7-2G` · `S7-2` (2026-09-28)
 
-정본: 01 §13 · 03 §4·§5·§6 «계약 v1.3 — R10 범위» 블록. 이 절은 **골든과 차트 증명**만 말한다.
+정본: 01 §13 · 03 §4·§5·§6 의 R10 범위 블록 3개. 이 절은 **골든과 차트 증명**만 말한다.
 
 ### 1. 골든 이름 — 12이름 × light/dark = 24장 (전부 신규)
 
@@ -244,7 +244,7 @@ expectTicksMatch(recording, series, scheme);
 네 함수가 **공통으로** 먼저 보는 것: ① 금지 호출 0 — `saveLayer` · `translate`·`scale`·`rotate`·`transform` · 글자 그리기 · 그라디언트·`MaskFilter` · 짝 없는 `save`/`restore` · `save` 밖의 `clipRect` ② 층 표에 없는 그리기 0 ③ 층의 순서 = 띠 → 눈금선 → 벤치마크 → 본선.
 
 - 비교는 **비율**이다. 가로 = x ÷ 그림 폭 · 세로 = 1 − y ÷ 그림 높이. 그림 영역 = `CustomPaint` 의 크기 전체(안쪽 여백 없음).
-- 🆕 `PerfChart` 의 짜임(2026-09-29) = 상자(높이 220) → 위아래 12 → 가로로 [ **눈금 글자 열(폭 56)** · 빈칸 8 · 그림(`CustomPaint` · 남은 폭 전부) ]. 눈금 글자는 그림 **왼쪽 바깥 열**에 있다 — 글자가 선과 띠를 덮지 않는다(누적 시리즈의 첫 점은 늘 왼쪽 아래 끝에 온다). 글자 자리 = `Align(alignment: FractionalOffset(1, 1 - tick.normalized))`(열의 오른쪽 끝 · 세로는 정규값 그대로). 그림 폭 = 부모 폭 − 64(폰 폭 390 이면 326 × 196). 그림의 왼쪽 변 자리는 상수 `PerfChart.plotInsetLeft`(64)로 공개한다 — x 양 끝 글자 줄이 그만큼 왼쪽을 띄운다. 실측 여유(드라이런 2026-09-29): 맨 아래 위젯의 아래 끝 = `s71b_list` 1330 · `s72_*` 608~972 · `s72g_*` 196~272.
+- 🆕 `PerfChart` 의 짜임(2026-09-29) = 상자(높이 220) → 위아래 12 → 가로로 [ **눈금 글자 열(폭 56)** · 빈칸 8 · 그림(`CustomPaint` · 남은 폭 전부) ]. 눈금 글자는 그림 **왼쪽 바깥 열**에 있다 — 글자가 선과 띠를 덮지 않는다(누적 시리즈의 첫 점은 늘 왼쪽 아래 끝에 온다). 글자 자리 = `Align(alignment: FractionalOffset(1, 1 - tick.normalized))`(열의 오른쪽 끝 · 세로는 정규값 그대로). 그림 폭 = 부모 폭 − 64(폰 폭 390 이면 326 × 196). 그림의 왼쪽 변 자리는 상수 `PerfChart.plotInsetLeft`(64)로 공개한다 — x 양 끝 글자 줄이 그만큼 왼쪽을 띄운다. 실측 여유(드라이런 2026-09-29): 맨 아래 위젯의 아래 끝 = `s71b_list` 1330 · `s71b_empty` 104 · `s72_*` 608~972 · `s72g_*` 196~272.
 - 🔴 그림 안쪽에 여백을 두면 하네스가 `… got 0.02xx` 꼴로 실패한다(예: `main line: point #0 (0.0000, 0.0000) is not on the drawn line (nearest 0.0204)` · 세로 4px 부터 · 메시지는 여백을 말하지 않는다) — 여백은 `PerfChart` **바깥**에서 준다.
 - 🔴 불가 시리즈(`points` 가 비어 있음 · 골든 `s72_unavailable`)는 차트가 없다 — `find.byKey(kChartProbeKey)` 가 0 임을 보고(`findsNothing`) `recordChart` 를 **부르지 않는다**(부르면 실패한다).
 - 🔴 `chart_probe.dart` · `chart_probe_test.dart` · `reference/` 는 **고치면 반려**다. 맞지 않으면 `docs/ai-context/inbox/` 질문 표에 적는다.
