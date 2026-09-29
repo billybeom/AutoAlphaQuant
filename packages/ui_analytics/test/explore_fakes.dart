@@ -1,4 +1,3 @@
-// ignore_for_file: prefer_initializing_formals
 // test/explore_fakes.dart
 // S7-2G / S7-2 테스트 공용 가짜·띄우기 도우미.
 //
@@ -23,13 +22,12 @@ import 'golden/golden_support.dart';
 /// 생성자 인자 [seriesResult] 로 답을 바꿀 수 있다(null = 기본).
 class FakePerformanceRepository extends UnimplementedPerformanceRepository {
   FakePerformanceRepository({
-    this.gateStreamFactory,
-    Stream<DisclosureGateVm>? gateStream,
-    PerformanceSeries? seriesResult,
-  })  : _gateStream = gateStream,
-        _seriesResult = seriesResult;
+    this._gateStream,
+    this._seriesResult,
+    this._gateStreamFactory,
+  });
 
-  final Stream<DisclosureGateVm> Function()? gateStreamFactory;
+  final Stream<DisclosureGateVm> Function()? _gateStreamFactory;
   final Stream<DisclosureGateVm>? _gateStream;
   final PerformanceSeries? _seriesResult;
 
@@ -50,7 +48,7 @@ class FakePerformanceRepository extends UnimplementedPerformanceRepository {
   @override
   Stream<DisclosureGateVm> watchDisclosureGate() {
     watchDisclosureGateCalls++;
-    if (gateStreamFactory != null) return gateStreamFactory!();
+    if (_gateStreamFactory != null) return _gateStreamFactory();
     if (_gateStream != null) return _gateStream;
     throw StateError('gateStream not provided');
   }
@@ -85,11 +83,7 @@ PerformanceSeries _defaultSeries() {
 /// recordDisclosureView 와 watchCommand 를 둘 다 override 한다.
 /// watchCommand 의 기본 답 = recordDisclosureView 가 돌려준 바로 그 접수증 스트림.
 class FakeCommandApi extends UnimplementedCommandApi {
-  FakeCommandApi({
-    Future<CommandReceipt> Function(DisclosureViewEvent)? recordFn,
-    Stream<CommandReceipt> Function(String commandId)? watchFn,
-  })  : _recordFn = recordFn,
-        _watchFn = watchFn;
+  FakeCommandApi({this._recordFn, this._watchFn});
 
   final Future<CommandReceipt> Function(DisclosureViewEvent)? _recordFn;
   final Stream<CommandReceipt> Function(String commandId)? _watchFn;
