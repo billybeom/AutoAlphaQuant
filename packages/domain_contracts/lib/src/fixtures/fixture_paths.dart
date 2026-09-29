@@ -133,6 +133,24 @@ abstract final class FixturePaths {
       'm7/m7_deposit_plan_expired.json';
   static const String m7M7DepositPlanLimit = 'm7/m7_deposit_plan_limit.json';
   static const String m7M7DisclosureGate = 'm7/m7_disclosure_gate.json';
+
+  // 🆕 v1.3(R10 선행 · 01 §13-5·§13-6) — `S7-2G` 게이트 3갈래 + 열람 기록 접수증.
+  /// 닫힌 게이트 — `gate_open: false` · `route`·`friction_line` 키 없음 · `headline` = 닫힌 까닭.
+  static const String m7M7DisclosureGateClosed =
+      'm7/m7_disclosure_gate_closed.json';
+
+  /// 이번 달 첫 열람 — `friction_line` 키 없음(그 줄이 없다).
+  static const String m7M7DisclosureGateFirst =
+      'm7/m7_disclosure_gate_first.json';
+
+  /// 잦은 열람 — `friction_line` 있음.
+  static const String m7M7DisclosureGateFrequent =
+      'm7/m7_disclosure_gate_frequent.json';
+
+  /// 열람 기록 `CommandReceipt` 4행 — 🔴 **한 명령의 갈래**(행 순서 = 뜻):
+  /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`.
+  static const String m7M7DisclosureViewReceipts4 =
+      'm7/m7_disclosure_view_receipts_4.json';
   static const String m7M7GoalPathHold = 'm7/m7_goal_path_hold.json';
   static const String m7M7GoalPathOn = 'm7/m7_goal_path_on.json';
   static const String m7M7GoalPathRealworld = 'm7/m7_goal_path_realworld.json';
@@ -147,9 +165,35 @@ abstract final class FixturePaths {
   static const String m7M7MonthlyPending = 'm7/m7_monthly_pending.json';
   static const String m7M7NextRebalanceD6 = 'm7/m7_next_rebalance_d6.json';
   static const String m7M7PerfDailyGap = 'm7/m7_perf_daily_gap.json';
+
+  // 🆕 v1.3(R10 선행 · 01 §13-1·§13-3) — `S7-2` 성과 시리즈 6갈래.
+  /// 일간 · `MANUAL_EXECUTED` 구간(결측 없음 — 구간 안에서도 선이 이어진다).
+  static const String m7M7PerfDailyManual = 'm7/m7_perf_daily_manual.json';
+
+  /// 차단 가림 — `points` 빈 목록 + `unavailable_label`(`safety_states` 행 4 와 짝).
+  static const String m7M7PerfMaskedIntegrity =
+      'm7/m7_perf_masked_integrity.json';
+
+  /// 월간 · **비누적**(월별) · 음수 · 기준선이 가운데 · 벤치마크 있음.
+  static const String m7M7PerfMonthlyPeriod = 'm7/m7_perf_monthly_period.json';
+
+  /// 월간 · 누적 · 앞 3점 `SIM_EXCLUDED`(모의 — 합산 제외).
+  static const String m7M7PerfMonthlySimSplit =
+      'm7/m7_perf_monthly_sim_split.json';
+
+  /// 불가 — 기록이 비어 `points` 빈 목록 + `unavailable_label`.
+  static const String m7M7PerfUnavailableGap =
+      'm7/m7_perf_unavailable_gap.json';
+
+  /// 연간 · 누적 · 3점(마지막 해는 8월까지).
+  static const String m7M7PerfYearly = 'm7/m7_perf_yearly.json';
   static const String m7M7RebalanceDetailBand =
       'm7/m7_rebalance_detail_band.json';
   static const String m7M7ReportArchive18 = 'm7/m7_report_archive_18.json';
+
+  /// 🆕 v1.3 — `S7-1b` 빈 아카이브(`rows` 0 + VM `empty_label`).
+  static const String m7M7ReportArchiveEmpty =
+      'm7/m7_report_archive_empty.json';
   static const String m7M7WithdrawalGeneral = 'm7/m7_withdrawal_general.json';
   static const String m7M7WithdrawalPensionPenalty =
       'm7/m7_withdrawal_pension_penalty.json';
@@ -252,6 +296,10 @@ abstract final class FixturePaths {
     m7M7DepositPlanExpired,
     m7M7DepositPlanLimit,
     m7M7DisclosureGate,
+    m7M7DisclosureGateClosed,
+    m7M7DisclosureGateFirst,
+    m7M7DisclosureGateFrequent,
+    m7M7DisclosureViewReceipts4,
     m7M7GoalPathHold,
     m7M7GoalPathOn,
     m7M7GoalPathRealworld,
@@ -262,8 +310,15 @@ abstract final class FixturePaths {
     m7M7MonthlyPending,
     m7M7NextRebalanceD6,
     m7M7PerfDailyGap,
+    m7M7PerfDailyManual,
+    m7M7PerfMaskedIntegrity,
+    m7M7PerfMonthlyPeriod,
+    m7M7PerfMonthlySimSplit,
+    m7M7PerfUnavailableGap,
+    m7M7PerfYearly,
     m7M7RebalanceDetailBand,
     m7M7ReportArchive18,
+    m7M7ReportArchiveEmpty,
     m7M7WithdrawalGeneral,
     m7M7WithdrawalPensionPenalty,
     m7M7WithdrawalShortfall,

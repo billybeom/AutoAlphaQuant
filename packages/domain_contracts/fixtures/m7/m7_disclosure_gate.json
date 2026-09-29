@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.2.0",
+    "contract_version": "1.3.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -14,7 +14,7 @@
   "has_more": false,
   "rows": [
     {
-      "gate_open": false,
+      "gate_open": true,
       "headline": "수익률은 결과이지 목표가 아닙니다.",
       "view_count_text": "이번 달 2번 열어 보셨습니다",
       "friction_line": "이 화면을 여는 것도 기록으로 남습니다.",

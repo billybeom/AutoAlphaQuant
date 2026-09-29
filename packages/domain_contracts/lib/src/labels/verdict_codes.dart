@@ -54,7 +54,7 @@ abstract final class PlannedWorkKindCodes {
   };
 }
 
-/// 성과 시계열의 결측 사유 코드 2종(01 §2-4 `PerfPoint.gapReasonCode`).
+/// 성과 시계열의 결측 사유 코드 3종(01 §2-4 · §13-3 `PerfPoint.gapReasonCode`).
 ///
 /// 🔴 `PerfPoint.value == null` 은 **결측이며 보간하지 않는다**(C-10). 이 코드는 «왜 비었는가»다.
 abstract final class GapReasonCodes {
@@ -64,6 +64,13 @@ abstract final class GapReasonCodes {
   /// 재개 갭 구간.
   static const String resumeGap = 'RESUME_GAP';
 
-  /// 전량 2종.
-  static const Set<String> values = <String>{equitySnapshotMissing, resumeGap};
+  /// 🆕 v1.3 — 모의 구간(`SegmentKind.simExcluded`) 안의 점. 합산하지 않아 값이 없다.
+  static const String simExcluded = 'SIM_EXCLUDED';
+
+  /// 전량 3종.
+  static const Set<String> values = <String>{
+    equitySnapshotMissing,
+    resumeGap,
+    simExcluded,
+  };
 }

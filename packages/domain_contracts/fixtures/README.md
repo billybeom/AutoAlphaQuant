@@ -1,4 +1,4 @@
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.2 · 104파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.3 · 115파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -11,7 +11,7 @@
 - 실키·계좌 전체번호·비밀번호 **0건**. 계좌는 **별칭만**(`"연금저축"`·`"일반"`).
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 104파일 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 115파일 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -31,7 +31,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.2.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.3.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -56,7 +56,10 @@
    (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
    자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
 2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
-   ✅ **지금 값은 `1.2.0`**(2026-09-25 R2b 선행 M2 보강 · 01 §12 — 상수와 기존 97개 + 신규 7개 = **104개**를
+   ✅ **지금 값은 `1.3.0`**(2026-09-28 R10 선행 M2 보강 · 01 §13 — 상수와 기존 104개 + 신규 11개 = **115개**를
+   **함께** 올렸다. 🔴 기존 104개 가운데 100개는 `"contract_version"` **한 줄만** 바뀌었고, 4개는 본문도
+   개정됐다 — 아래 «계약 v1.3» 절).
+   ~~`1.2.0`~~(2026-09-25 R2b 선행 M2 보강 · 01 §12 — 상수와 기존 97개 + 신규 7개 = **104개**를
    **함께** 올렸다. 🔴 기존 97개는 `"contract_version"` **한 줄만** 바뀌었다 — 본문 무수정).
    ~~`1.1.0`~~(2026-09-17 M2 보강 — 상수와 그때의 96개 픽스처를 **함께** 올렸다 ·
    2026-09-23 R2 준비의 `m6/journal_draft_receipts_5.json` 도 `1.1.0` 으로 태어났다 — DTO 무변경 추가라
@@ -88,7 +91,7 @@
 
 ---
 
-## 파일 목록 (104)
+## 파일 목록 (115)
 
 ### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
@@ -96,7 +99,7 @@
 |---|---|---|
 | `journal_30.json` | 30 | 체결 22 · 부분 3 · 거부 2 · UNKNOWN 1 · prevented 1 · SIM 1 |
 | `holdings_6.json` | 6 | 069500(A) · 379810·132030(B) · 0085P0·411060(C) · POT 1종 — `pnl` 은 3건만 |
-| `performance_24m.json` | 2계열 | 월간 TWR·MWR 각 24점 + 결측 구간 1(`UNAVAILABLE`) + 벤치마크 |
+| `performance_24m.json` | 2계열 | 월간 TWR·MWR 각 24점 + 결측 구간 1(`UNAVAILABLE`) + 벤치마크 · 🆕 v1.3 표시 필드(정규 자리·글자·눈금 — 값·구간·문장은 그대로) |
 | `rebalance_6.json` | 6 | monthlyRegular 3 · seasonal 1 · band 1 · deposit 1 |
 | `resume_report_1.json` | 1 | 7거래일 갭 · `RECOVERY_DRY` · 4/3/2/1/2 |
 | `safety_states.json` | 5 | normal · alert · reduced · halted · stopped(자격 충족 1) |
@@ -160,7 +163,21 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 `fill_rejected_price`(🔴 **입력값 보존** — C17) · `advice_skip_reasons` · `self_report_1` ·
 `external_holdings_2` · `entry_gate_nov_pass_1`(🔵 11월 재판정 통과 — 실데이터로는 검증 불가한 경로).
 
-### `m7/` 32 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+### `m7/` 43 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+
+🆕 **계약 v1.3(2026-09-28 · R10 선행 M2 보강 · 01 §13) 11건** —
+`m7_report_archive_empty`(`S7-1b` 빈 아카이브 — `rows` 0 + VM `empty_label`) ·
+`m7_disclosure_gate_first`(`S7-2G` 이번 달 첫 열람 — `gate_open: true` · 🔴 `friction_line` **키 없음** = 그 줄이 없다) ·
+`m7_disclosure_gate_frequent`(잦은 열람 — `friction_line` 있음) ·
+`m7_disclosure_gate_closed`(닫힌 게이트 — `gate_open: false` · `route`·`friction_line` 키 없음 · `headline` 이 **닫힌 까닭**을 말한다) ·
+`m7_disclosure_view_receipts_4`(열람 기록 `CommandReceipt` 4행 · kind `DISCLOSURE_VIEW` — **한 명령(같은 `command_id`)의 갈래**이고 🔴 **행 순서가 뜻**이다: 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`. 거부(`REJECTED`) 행은 없다 — 거부 코드 사전이 아직 없다) ·
+`m7_perf_monthly_sim_split`(월간 누적 18점 — 앞 3점 `SIM_EXCLUDED`(값 없음 · 「합산 제외」) + 실전 15점 · 구간 `SIM_EXCLUDED` 1 + `MEASURED` 1 · 벤치마크 없음) ·
+`m7_perf_daily_manual`(일간 누적 21점 · **결측 0** · 구간 `MANUAL_EXECUTED` 1 — 구간 안에서도 선이 이어진다) ·
+`m7_perf_monthly_period`(월간 **비누적**(월별) 24점 · 음수 있음 · 기준선이 가운데 · 결측 2점 · 벤치마크 있음) ·
+`m7_perf_yearly`(연간 누적 3점 — 마지막 해는 8월까지) ·
+`m7_perf_unavailable_gap`(불가 — `points`·`segments`·`y_ticks` 빈 목록 · `benchmark` null · `unavailable_label` 있음) ·
+`m7_perf_masked_integrity`(차단 가림 — 같은 모양 · 문장만 다르다 · `safety_states` 행 4 와 짝).
+🔵 같은 창에서 기존 4건의 본문이 개정됐다 — `performance_24m`·`m7_perf_daily_gap`(표시 필드 더함) · `m7_disclosure_gate`(`gate_open: true`) · `m7_report_archive_18`(최신 달부터 · `section_label` · 모의 달은 `route` 없음). 자세한 것은 아래 «계약 v1.3» 절.
 
 🆕 **계약 v1.1 3건** — `m7_monthly_masked_integrity`(13항목 전부 「숨김 — 원장 무결성 점검 중」 · 상세 링크 0 · 13칸 유지) · `m7_monthly_masked_recon`(⑦ 비중만 `?` 미확정 표기 — 02 §2-2 표) · `m7_contrib_partial`(§8 미결 45 — C 슬리브 「산출 불가」 · `normalized: 0.0` · `unavailable_label`).
 🔵 같은 창에서 `m7_monthly_2026_08`·`_gap` 에 `generated_at_text`·`config_hash`·항목 `detail_deep_link`(④⑤→`S7-3` · ⑧→`S7-10`)가, `m7_monthly_pending` 에 `pending_notice_text` 가 들어갔다(봉투 형제 키 `pending_d_day_text` 는 **폐기** — §8 미결 40·41·43).
@@ -217,11 +234,59 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 
 ---
 
-## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 🆕 2026-09-25 v1.2 · 101파일 281행 + 봉투 형제 키 9 · 실패 0)
+## 계약 v1.3 (2026-09-28 · R10 선행 M2 보강 · 01 §13)
 
-🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 3건 포함) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 104파일 `rows`)은 284 = 281 + 매핑 없는 3건 각 1행. 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+화면 카드 `R10-Bob-S7x`(`S7-1b` 아카이브 · `S7-2G` 열람 게이트 · `S7-2` 수익률 탐색)를 보내기 전에 한 보강이다.
 
-104파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json` 은 0행 봉투), 그중 **101파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7)이 실제 DTO 의 `fromJson` 을 지나
+### 개정 4건 (파일 이름·`FixturePaths` 상수 그대로)
+
+| 파일 | 무엇이 바뀌었나 |
+|---|---|
+| `performance_24m.json`(2행) · `m7/m7_perf_daily_gap.json` | 새 표시 필드만 **더했다** — 점 `x_normalized`·`y_normalized`·`date_text`·`value_text` · 구간 `start_normalized`·`end_normalized` · 시리즈 `series_label`·`period_label`·`y_ticks`. 🔴 기존 `value`·구간 날짜·문장은 한 글자도 바뀌지 않았다 |
+| `m7/m7_disclosure_gate.json` | `gate_open: false → true`(뜻 = 엔진이 지금 진입을 허용하는가 · `route` 가 있는 게이트는 열린 게이트다) |
+| `m7/m7_report_archive_18.json` | ① 행 순서 = **최신 달부터**(2026-08 → 2025-03) ② 2026-08 = 생성됨 + `route` · 미생성 2행 = 2026-07·2026-06 ③ 모의 3행(2025-05·04·03)은 `route` 없음 + `reason_label` ④ `section_label` 3곳(2026-08 · 2025-12 · 2025-05 행 — 묶음의 첫 행에만) |
+
+### 신설 11건
+
+위 «`m7/` 43» 절의 v1.3 목록. 상수는 `FixturePaths.m7M7…` 11개다.
+
+### 🔴 성과 시리즈의 표시 필드는 **생성 스크립트**가 만든다 (손 계산 금지)
+
+정규 자리와 글자를 손으로 고치지 않는다. 값을 바꿔야 하면 M2 가 생성 스크립트(`packages/domain_contracts/tool/gen_r10_fixtures.py`)를 고쳐 다시 돌린다. 스크립트는 분수로 계산하고 마지막에만 반올림한다. 규칙은 엔진(06 M1-17)이 지킬 규칙과 같다.
+
+```
+# 저장소 루트에서 — 몇 번을 돌려도 결과가 같다. 돌린 뒤 `git status` 에 fixtures 변경이 없어야 한다
+PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures.py
+```
+
+- 개정 4건은 기준 커밋(계약 1.2.0 · `c4c8819`)의 원문에서 다시 만든다 — git 과 그 커밋이 있어야 한다.
+- 기대 표(점 수 · 결측 순번 · 축 · 눈금 · 구간)는 화면에 찍는다. 파일로도 받으려면 `--table <경로>`(저장소 밖).
+
+| 필드 | 규칙 |
+|---|---|
+| `x_normalized` | 순번 ÷ (점 수 − 1) · 소수 넷째 자리 반올림 · 첫 점 0.0 · 끝 점 1.0 · 점이 1개면 0.5 |
+| 세로축 | 본선과 벤치마크의 값 전체 + 0 을 덮는다. 눈금 간격은 1·2·5 × 10ⁿ 가운데 «눈금 수(양 끝 포함)가 5 이하가 되는 가장 작은 간격» · 아래 끝 = 최솟값 이하인 첫 눈금 · 위 끝 = 최댓값 이상인 첫 눈금 |
+| `y_normalized` | (값 − 아래 끝) ÷ (위 끝 − 아래 끝) · 소수 넷째 자리 · 결측이면 `null`(`value: null` 과 늘 함께). 벤치마크도 **같은 축** |
+| `y_ticks` | 아래 → 위 · `{ normalized, label, is_baseline }` · 글자는 백분율(간격이 1% 이상이면 정수 `"5%"` · 그보다 작으면 소수 한 자리 `"0.5%"`) · 값이 0 인 눈금만 `is_baseline: true` · 음수는 빼기표 `−`(U+2212) |
+| `value_text` | 백분율 소수 둘째 자리(`"11.94%"` · `"0.00%"` · `"−1.10%"`) · 결측 점 = `"산출 불가"` · 모의 구간의 점 = `"합산 제외"` |
+| `date_text` | 일간 `"2026-08-31"` · 월간 `"2026년 8월"` · 연간 `"2026년"`(마지막 해가 12월 전이면 `"2026년(8월까지)"`) |
+| 구간 `start_normalized`·`end_normalized` | «`from` ≤ 날짜 ≤ `to` 인 점»의 첫·끝 자리에서 반 칸(0.5 ÷ (점 수 − 1))씩 넓히고 0.0~1.0 으로 자른다. 모든 구간(측정 구간 포함)에 싣는다 · 구간끼리 겹치지 않는다 |
+| `m7_perf_monthly_sim_split` 의 값 | `performance_24m` 행 0 에서 계산 — 다시 누적 = (1 + 누적(t)) ÷ (1 + 누적(2025-06-30)) − 1 |
+| `m7_perf_monthly_period` 의 값 | 같은 행(과 그 벤치마크)에서 계산 — 월별 = (1 + 누적(t)) ÷ (1 + 누적(t−1)) − 1 · 첫 점 0.0 · 앞 달이 결측이면 그 달도 결측 |
+
+### 표기 — 키를 빼는 것과 `null` 로 적는 것
+
+- 점의 `y_normalized` 는 결측일 때 **`null` 로 적는다**(`"value": null` 과 같은 모양 — 빈 자리도 값이다).
+- `unavailable_label` 은 차트를 그릴 수 있는 시리즈에는 **키가 없다**. 있는 것은 `m7_perf_unavailable_gap`·`m7_perf_masked_integrity` 둘뿐이다.
+- 게이트의 `friction_line`·`route`, 아카이브 행의 `reason_label`·`route`·`section_label` 도 없을 때는 **키가 없다**.
+
+---
+
+## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 🆕 2026-09-28 v1.3 · 112파일 295행 + 봉투 형제 키 9 · 실패 0)
+
+🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 3건 포함) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 115파일 `rows`)은 298 = 295 + 매핑 없는 3건 각 1행(v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+
+115파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json` 은 0행 봉투), 그중 **112파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
@@ -253,5 +318,5 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 - **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
   🔴 구현자가 이름을 지어내지 않는다(인벤토리 §0 규칙) — M2가 05 에 목록을 등재한 뒤 만든다.
 - **`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다). 🆕 v1.2 — 본문 단위는 `DecisionJournalBody`(`journal_read_*` 가 그 모양)로 정했고 점수 축은 여전히 미결이다.
-- `test/` 의 계약 회귀 C-1~C-34 — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
+- `test/` 의 계약 회귀 C-1~C-37 — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.

@@ -166,6 +166,17 @@ final DtoCodec<Object> _decisionJournalVm = DtoCodec<DecisionJournalVm>(
   DecisionJournalVm.fromJson,
   (DecisionJournalVm v) => v.toJson(),
 );
+// 🆕 계약 v1.3(R10 선행 · 01 §13) — 게이트·아카이브 픽스처가 여럿이 됐다.
+final DtoCodec<Object> _disclosureGateVm = DtoCodec<DisclosureGateVm>(
+  'DisclosureGateVm',
+  DisclosureGateVm.fromJson,
+  (DisclosureGateVm v) => v.toJson(),
+);
+final DtoCodec<Object> _reportArchiveVm = DtoCodec<ReportArchiveVm>(
+  'ReportArchiveVm',
+  ReportArchiveVm.fromJson,
+  (ReportArchiveVm v) => v.toJson(),
+);
 
 /// 픽스처 상대 경로 → 등록 내용.
 ///
@@ -360,13 +371,12 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m7M7DepositPlanDefault: FixtureBinding(_depositPlan),
   FixturePaths.m7M7DepositPlanExpired: FixtureBinding(_depositPlan),
   FixturePaths.m7M7DepositPlanLimit: FixtureBinding(_depositPlan),
-  FixturePaths.m7M7DisclosureGate: FixtureBinding(
-    DtoCodec<DisclosureGateVm>(
-      'DisclosureGateVm',
-      DisclosureGateVm.fromJson,
-      (DisclosureGateVm v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.m7M7DisclosureGate: FixtureBinding(_disclosureGateVm),
+  // 🆕 v1.3 — `S7-2G` 게이트 3갈래(닫힘 · 첫 열람 · 잦은 열람) + 열람 기록 접수증 4상태.
+  FixturePaths.m7M7DisclosureGateClosed: FixtureBinding(_disclosureGateVm),
+  FixturePaths.m7M7DisclosureGateFirst: FixtureBinding(_disclosureGateVm),
+  FixturePaths.m7M7DisclosureGateFrequent: FixtureBinding(_disclosureGateVm),
+  FixturePaths.m7M7DisclosureViewReceipts4: FixtureBinding(_commandReceipt),
   FixturePaths.m7M7GoalPathHold: FixtureBinding(_goalPathVm),
   FixturePaths.m7M7GoalPathOn: FixtureBinding(_goalPathVm),
   FixturePaths.m7M7GoalPathRealworld: FixtureBinding(_goalPathVm),
@@ -383,14 +393,17 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     ),
   ),
   FixturePaths.m7M7PerfDailyGap: FixtureBinding(_performanceSeries),
+  // 🆕 v1.3 — `S7-2` 성과 시리즈 6갈래(수동 집행 · 가림 · 월별 · 모의 분리 · 불가 · 연간).
+  FixturePaths.m7M7PerfDailyManual: FixtureBinding(_performanceSeries),
+  FixturePaths.m7M7PerfMaskedIntegrity: FixtureBinding(_performanceSeries),
+  FixturePaths.m7M7PerfMonthlyPeriod: FixtureBinding(_performanceSeries),
+  FixturePaths.m7M7PerfMonthlySimSplit: FixtureBinding(_performanceSeries),
+  FixturePaths.m7M7PerfUnavailableGap: FixtureBinding(_performanceSeries),
+  FixturePaths.m7M7PerfYearly: FixtureBinding(_performanceSeries),
   FixturePaths.m7M7RebalanceDetailBand: FixtureBinding(_rebalanceEvent),
-  FixturePaths.m7M7ReportArchive18: FixtureBinding(
-    DtoCodec<ReportArchiveVm>(
-      'ReportArchiveVm',
-      ReportArchiveVm.fromJson,
-      (ReportArchiveVm v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.m7M7ReportArchive18: FixtureBinding(_reportArchiveVm),
+  // 🆕 v1.3 — `S7-1b` 빈 아카이브.
+  FixturePaths.m7M7ReportArchiveEmpty: FixtureBinding(_reportArchiveVm),
   FixturePaths.m7M7WithdrawalGeneral: FixtureBinding(_withdrawalPlan),
   FixturePaths.m7M7WithdrawalPensionPenalty: FixtureBinding(_withdrawalPlan),
   FixturePaths.m7M7WithdrawalShortfall: FixtureBinding(_withdrawalPlan),

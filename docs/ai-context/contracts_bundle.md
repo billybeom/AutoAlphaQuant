@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 84개 · 계약 v1.2.0 · 조립일 2026-09-25(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 85개 · 계약 v1.3.0 · 조립일 2026-09-28(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -83,16 +83,22 @@ export 'commands/settings_actions.dart';
 //    바로 그 커밋이 이 값을 올리는 커밋이다(구 주석의 조건이 성립했다). 인벤토리 §10-1 의
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
-//    움직인다(1.0.0 상향 때 77개 · 1.2.0 상향 때 104개) — 한쪽만 올리면 C-1·C-15 가 갈라진
-//    채로 통과한다.
+//    움직인다(1.0.0 상향 때 77개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개) — 한쪽만 올리면
+//    C-1·C-15 가 갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
+// 🆕 '1.3.0'(R10 선행 M2 보강 · 01 §13) — 성과 시리즈 표시 필드(`PerfPoint.xNormalized`·
+//    `yNormalized`·`dateText`·`valueText` · `PerfSegment.startNormalized`·`endNormalized` ·
+//    `PerfAxisTick` · `PerformanceSeries.seriesLabel`·`periodLabel`·`yTicks`·`unavailableLabel`) ·
+//    `ReportArchiveRow.sectionLabel` · `DisclosureViewEvent.durationSec` 기본값 0 ·
+//    `PerformanceRepository.series(range:)` nullable · 코드 `DisclosureSurfaceCodes`·
+//    `GapReasonCodes.simExcluded` · 동작 링크 `AppNavActions.back`.
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.2.0';
+const String contractVersion = '1.3.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -864,15 +870,20 @@ abstract class BlindReviewScore with _$BlindReviewScore {
       _$BlindReviewScoreFromJson(json);
 }
 
-/// ✅ H-3 — 성과 열람 기록(결정 8 · G-42).
+/// ✅ H-3 — 성과 열람 기록(결정 8 · G-42). 🆕 v1.3 — 세 값의 뜻(01 §13-6).
 @freezed
 abstract class DisclosureViewEvent with _$DisclosureViewEvent {
   const factory DisclosureViewEvent({
+    /// 어느 화면의 열람인가 — 값은 `DisclosureSurfaceCodes` 가 정본이다.
     required String surfaceCode,
 
-    /// 🔴 집계 키 `yyyy_mm` 을 화면이 넣지 않는다 — 엔진이 이 값에서 파생한다(G-42).
+    /// 「그래도 보기」를 누른 순간의 주입 시계 값(`Clock.nowUtc()`) — 관측 시각이며 참고값이다.
+    /// 🔴 집계 키 `yyyy_mm` 을 화면이 넣지 않는다 — 집계 월은 엔진이 접수·서버 시각으로
+    ///    확정한다(G-42).
     required DateTime viewedAt,
-    required int durationSec,
+
+    /// 🆕 v1.3 — 진입 시점 기록은 **0**. 화면은 이 값을 적지 않는다(열람 길이 = 미결 60).
+    @Default(0) int durationSec,
   }) = _DisclosureViewEvent;
 
   factory DisclosureViewEvent.fromJson(Map<String, dynamic> json) =>
@@ -3196,6 +3207,23 @@ abstract class PerformanceSeries with _$PerformanceSeries {
     required PerfDisclosure disclosure,
     required AsOf asOf,
 
+    /// 🆕 v1.3 — 본선의 이름(범례). "내 계좌 · 시간가중 · 누적" — 엔진 생성.
+    required String seriesLabel,
+
+    /// 🆕 v1.3 — 이 시리즈가 덮는 기간. "2024년 9월 ~ 2026년 8월" — 엔진 생성.
+    /// `range == null` 요청에서 엔진이 고른 구간을 말하는 유일한 글자다.
+    required String periodLabel,
+
+    /// 🆕 v1.3 — 세로축 눈금(아래 → 위 순서). 비면 눈금 없음. 많아야 5개다(C-36 ④).
+    @Default(<PerfAxisTick>[]) List<PerfAxisTick> yTicks,
+
+    /// 🆕 v1.3 — non-null ⇔ `points` 가 비어 있다(C-36 ⑤). 그때는 차트·눈금·범례·값 표
+    /// 대신 **이 문장 카드 1장**이다. `segments`·`yTicks` 도 비고 `benchmark` 는 null 이다.
+    /// 기록이 비었든 차단으로 가렸든 엔진이 이 필드로 말한다.
+    /// 🔴 화면은 점을 세거나 훑어 상태를 고르지 않는다. 점이 하나라도 오면 그중 하나는
+    ///    값이 있다.
+    String? unavailableLabel,
+
     /// KOSPI 50% + S&P500(KRW) 50% — m2-8 F-9.
     BenchmarkSeries? benchmark,
 
@@ -3207,16 +3235,33 @@ abstract class PerformanceSeries with _$PerformanceSeries {
       _$PerformanceSeriesFromJson(json);
 }
 
-/// 01 §2-4 — 시계열 1점. 🔴 `value == null` 은 결측이며 **보간 금지**(C-10).
+/// 01 §2-4 · §13-1 — 시계열 1점. 🔴 `value == null` 은 결측이며 **보간 금지**(C-10).
 @freezed
 abstract class PerfPoint with _$PerfPoint {
   const factory PerfPoint({
     @TradeDateConverter() required TradeDate date,
 
-    /// 🔴 null = 결측. 공백으로 그린다 — 이어 붙이지 않는다.
+    /// 🆕 v1.3 — 가로 자리(0.0 = 그림 영역 왼쪽 끝 · 1.0 = 오른쪽 끝). 🔴 그래프 기하 전용.
+    /// 점의 순서대로 **오름차순**으로 온다. 점이 1개면 0.5 다.
+    required double xNormalized,
+
+    /// 🆕 v1.3 — 이 점을 가리키는 날짜 글자("2026-08-31" · "2026년 8월" · "2026년").
+    /// 주기에 맞춰 엔진이 만든다. 화면이 `date` 를 자르거나 포맷하지 않는다.
+    required String dateText,
+
+    /// 🆕 v1.3 — **표시의 정본**("1.42%"). 결측 점에도 온다("산출 불가" · "합산 제외").
+    required String valueText,
+
+    /// 🆕 v1.3 — 세로 자리(0.0 = 아래 끝 · 1.0 = 위 끝). 🔴 그래프 기하 전용.
+    /// null = 결측 — 선을 끊는다. `value == null` 과 언제나 함께 온다(C-10 ⑤).
+    /// 🔴 본선과 벤치마크는 **같은 축**으로 정규화돼 온다 — 화면은 축 범위를 모른다.
+    double? yNormalized,
+
+    /// 🔴 v1.3 — 골든 대조·회귀 전용. `ui_*` 에서 참조하지 않는다(C-36 ⑦). null = 결측.
+    /// 결측은 공백으로 그린다 — 이어 붙이지 않는다.
     double? value,
 
-    /// `EQUITY_SNAPSHOT_MISSING` · `RESUME_GAP`(인벤토리 §6-14).
+    /// `EQUITY_SNAPSHOT_MISSING` · `RESUME_GAP` · 🆕 v1.3 `SIM_EXCLUDED`(인벤토리 §6-14).
     String? gapReasonCode,
   }) = _PerfPoint;
 
@@ -3224,7 +3269,7 @@ abstract class PerfPoint with _$PerfPoint {
       _$PerfPointFromJson(json);
 }
 
-/// 01 §2-4 — 분절 구간. 🔴 `manualExecuted` 는 `simExcluded` 와 달리 합산에
+/// 01 §2-4 · §13-3 — 분절 구간. 🔴 `manualExecuted` 는 `simExcluded` 와 달리 합산에
 /// 포함되고 경계는 실선이다(D6). 겹치면 `freshAuto` 절단선이 이긴다.
 @freezed
 abstract class PerfSegment with _$PerfSegment {
@@ -3235,10 +3280,35 @@ abstract class PerfSegment with _$PerfSegment {
 
     /// "7거래일 미실행 — 산출 불가" — 엔진 생성.
     required String label,
+
+    /// 🆕 v1.3 — 띠의 가로 범위(그림 영역 폭에 대한 비율 · start ≤ end). 🔴 기하 전용.
+    /// 엔진이 «덮는 점의 앞뒤 반 칸»까지 넓혀서 준다(0.0~1.0 으로 자른다).
+    /// 화면은 `from`·`to` 를 점의 날짜와 **비교하지 않는다**.
+    /// 구간은 받은 순서대로이고 서로 겹치지 않는다(C-36 ④b).
+    required double startNormalized,
+    required double endNormalized,
   }) = _PerfSegment;
 
   factory PerfSegment.fromJson(Map<String, dynamic> json) =>
       _$PerfSegmentFromJson(json);
+}
+
+/// 🆕 v1.3 · 01 §13-1 — 세로축 눈금 1개.
+@freezed
+abstract class PerfAxisTick with _$PerfAxisTick {
+  const factory PerfAxisTick({
+    /// 세로 자리(0.0~1.0). 🔴 기하 전용.
+    required double normalized,
+
+    /// "0%" · "4%" — 엔진 생성.
+    required String label,
+
+    /// 0 기준선인가. 한 시리즈에 많아야 하나다(C-36 ④).
+    @Default(false) bool isBaseline,
+  }) = _PerfAxisTick;
+
+  factory PerfAxisTick.fromJson(Map<String, dynamic> json) =>
+      _$PerfAxisTickFromJson(json);
 }
 
 /// 01 §2-4 · m2-8 F-9 — 벤치마크 시리즈.
@@ -3246,6 +3316,9 @@ abstract class PerfSegment with _$PerfSegment {
 abstract class BenchmarkSeries with _$BenchmarkSeries {
   const factory BenchmarkSeries({
     required String label,
+
+    /// 🆕 v1.3 — 본선(`PerformanceSeries.points`)과 **같은 길이 · 같은 날짜 순서 ·
+    /// 같은 `xNormalized`** 로 온다(C-36 ②). `yNormalized` 도 본선과 같은 축이다.
     required List<PerfPoint> points,
 
     /// 구성 고지 한 줄 — 엔진 생성.
@@ -3410,6 +3483,7 @@ abstract class ReportItem with _$ReportItem {
 @freezed
 abstract class ReportArchiveVm with _$ReportArchiveVm {
   const factory ReportArchiveVm({
+    /// 🆕 v1.3 — 엔진이 **최신 달부터** 정렬해서 준다. 화면은 받은 순서 그대로 그린다.
     required List<ReportArchiveRow> rows,
     required AsOf asOf,
     String? emptyLabel,
@@ -3431,6 +3505,10 @@ abstract class ReportArchiveRow with _$ReportArchiveRow {
     required String modeLabel,
     String? reasonLabel,
     String? route,
+
+    /// 🆕 v1.3 — non-null 이면 **이 행 위에** 머리글 1줄을 그린다("2026년" · "2025년 · 모의투자").
+    /// 🔴 화면은 앞 행과 비교하지 않는다 — 묶음의 첫 행에만 엔진이 실어 준다.
+    String? sectionLabel,
   }) = _ReportArchiveRow;
 
   factory ReportArchiveRow.fromJson(Map<String, dynamic> json) =>
@@ -3443,11 +3521,21 @@ abstract class ReportArchiveRow with _$ReportArchiveRow {
 @freezed
 abstract class DisclosureGateVm with _$DisclosureGateVm {
   const factory DisclosureGateVm({
+    /// 🆕 v1.3(뜻 확정 · 01 §13-5) — **엔진이 지금 진입을 허용하는가.**
+    /// false 면 「그래도 보기」가 없다(「돌아가기」만). «게이트를 건너뛴다»는 뜻이 아니다.
     required bool gateOpen,
+
+    /// 게이트 머리 문장 — 엔진 생성. 닫힌 게이트에서는 **닫힌 까닭**을 말한다.
     required String headline,
     required String viewCountText,
     required AsOf asOf,
+
+    /// 🆕 v1.3(뜻 확정) — null = **그 줄이 없다**(자리표시자·빈 줄을 그리지 않는다).
     String? frictionLine,
+
+    /// 🆕 v1.3(뜻 확정) — `gateOpen` 의 링크 표현이다(`gateOpen == (route != null)` · C-37 ①).
+    /// **게이트 밖 진입점용**이며 🔴 게이트 화면은 이 링크를 열지 않는다
+    /// (열면 자기 자신이 다시 뜬다).
     String? route,
   }) = _DisclosureGateVm;
 
@@ -6359,6 +6447,24 @@ abstract final class FixturePaths {
       'm7/m7_deposit_plan_expired.json';
   static const String m7M7DepositPlanLimit = 'm7/m7_deposit_plan_limit.json';
   static const String m7M7DisclosureGate = 'm7/m7_disclosure_gate.json';
+
+  // 🆕 v1.3(R10 선행 · 01 §13-5·§13-6) — `S7-2G` 게이트 3갈래 + 열람 기록 접수증.
+  /// 닫힌 게이트 — `gate_open: false` · `route`·`friction_line` 키 없음 · `headline` = 닫힌 까닭.
+  static const String m7M7DisclosureGateClosed =
+      'm7/m7_disclosure_gate_closed.json';
+
+  /// 이번 달 첫 열람 — `friction_line` 키 없음(그 줄이 없다).
+  static const String m7M7DisclosureGateFirst =
+      'm7/m7_disclosure_gate_first.json';
+
+  /// 잦은 열람 — `friction_line` 있음.
+  static const String m7M7DisclosureGateFrequent =
+      'm7/m7_disclosure_gate_frequent.json';
+
+  /// 열람 기록 `CommandReceipt` 4행 — 🔴 **한 명령의 갈래**(행 순서 = 뜻):
+  /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`.
+  static const String m7M7DisclosureViewReceipts4 =
+      'm7/m7_disclosure_view_receipts_4.json';
   static const String m7M7GoalPathHold = 'm7/m7_goal_path_hold.json';
   static const String m7M7GoalPathOn = 'm7/m7_goal_path_on.json';
   static const String m7M7GoalPathRealworld = 'm7/m7_goal_path_realworld.json';
@@ -6373,9 +6479,35 @@ abstract final class FixturePaths {
   static const String m7M7MonthlyPending = 'm7/m7_monthly_pending.json';
   static const String m7M7NextRebalanceD6 = 'm7/m7_next_rebalance_d6.json';
   static const String m7M7PerfDailyGap = 'm7/m7_perf_daily_gap.json';
+
+  // 🆕 v1.3(R10 선행 · 01 §13-1·§13-3) — `S7-2` 성과 시리즈 6갈래.
+  /// 일간 · `MANUAL_EXECUTED` 구간(결측 없음 — 구간 안에서도 선이 이어진다).
+  static const String m7M7PerfDailyManual = 'm7/m7_perf_daily_manual.json';
+
+  /// 차단 가림 — `points` 빈 목록 + `unavailable_label`(`safety_states` 행 4 와 짝).
+  static const String m7M7PerfMaskedIntegrity =
+      'm7/m7_perf_masked_integrity.json';
+
+  /// 월간 · **비누적**(월별) · 음수 · 기준선이 가운데 · 벤치마크 있음.
+  static const String m7M7PerfMonthlyPeriod = 'm7/m7_perf_monthly_period.json';
+
+  /// 월간 · 누적 · 앞 3점 `SIM_EXCLUDED`(모의 — 합산 제외).
+  static const String m7M7PerfMonthlySimSplit =
+      'm7/m7_perf_monthly_sim_split.json';
+
+  /// 불가 — 기록이 비어 `points` 빈 목록 + `unavailable_label`.
+  static const String m7M7PerfUnavailableGap =
+      'm7/m7_perf_unavailable_gap.json';
+
+  /// 연간 · 누적 · 3점(마지막 해는 8월까지).
+  static const String m7M7PerfYearly = 'm7/m7_perf_yearly.json';
   static const String m7M7RebalanceDetailBand =
       'm7/m7_rebalance_detail_band.json';
   static const String m7M7ReportArchive18 = 'm7/m7_report_archive_18.json';
+
+  /// 🆕 v1.3 — `S7-1b` 빈 아카이브(`rows` 0 + VM `empty_label`).
+  static const String m7M7ReportArchiveEmpty =
+      'm7/m7_report_archive_empty.json';
   static const String m7M7WithdrawalGeneral = 'm7/m7_withdrawal_general.json';
   static const String m7M7WithdrawalPensionPenalty =
       'm7/m7_withdrawal_pension_penalty.json';
@@ -6478,6 +6610,10 @@ abstract final class FixturePaths {
     m7M7DepositPlanExpired,
     m7M7DepositPlanLimit,
     m7M7DisclosureGate,
+    m7M7DisclosureGateClosed,
+    m7M7DisclosureGateFirst,
+    m7M7DisclosureGateFrequent,
+    m7M7DisclosureViewReceipts4,
     m7M7GoalPathHold,
     m7M7GoalPathOn,
     m7M7GoalPathRealworld,
@@ -6488,8 +6624,15 @@ abstract final class FixturePaths {
     m7M7MonthlyPending,
     m7M7NextRebalanceD6,
     m7M7PerfDailyGap,
+    m7M7PerfDailyManual,
+    m7M7PerfMaskedIntegrity,
+    m7M7PerfMonthlyPeriod,
+    m7M7PerfMonthlySimSplit,
+    m7M7PerfUnavailableGap,
+    m7M7PerfYearly,
     m7M7RebalanceDetailBand,
     m7M7ReportArchive18,
+    m7M7ReportArchiveEmpty,
     m7M7WithdrawalGeneral,
     m7M7WithdrawalPensionPenalty,
     m7M7WithdrawalShortfall,
@@ -6945,6 +7088,29 @@ abstract final class DeviationKindCodes {
 
 ---
 
+## `packages/domain_contracts/lib/src/labels/disclosure_codes.dart`
+
+```dart
+// 🆕 계약 v1.3(2026-09-28 · R10 선행 M2 보강 · 01 §13-6) — 성과 열람 기록의 «어느 화면인가» 코드.
+//
+// 🔴 이 파일은 «어떤 **코드**가 오는가»의 목록이지 코드→문구 매핑이 아니다(labels.dart 머리 주석).
+//    화면은 이 상수를 `DisclosureViewEvent.surfaceCode` 에 **그대로** 넘긴다 — 문자열을 짓지 않는다.
+//    엔진(명령 수신)은 이 목록에 없는 값을 받지 않는다.
+
+/// `DisclosureViewEvent.surfaceCode` 의 값(01 §2-6 · §13-6).
+///
+/// 🔴 목록은 M2 가 늘린다 — 열람 기록을 남기는 화면이 늘면 여기에 상수를 더한다.
+abstract final class DisclosureSurfaceCodes {
+  /// `S7-2` 수익률 탐색(게이트 `S7-2G` 의 「그래도 보기」).
+  static const String performanceExplore = 'PERFORMANCE_EXPLORE';
+
+  /// 전량 1종.
+  static const Set<String> values = <String>{performanceExplore};
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/labels/exit_kind.dart`
 
 ```dart
@@ -7248,6 +7414,7 @@ abstract final class JournalDraftRejectCodes {
 import 'advice_codes.dart';
 import 'alert_codes.dart';
 import 'deviation_kind_codes.dart';
+import 'disclosure_codes.dart';
 import 'exit_kind.dart';
 import 'flag_ids.dart';
 import 'journal_codes.dart';
@@ -7259,6 +7426,7 @@ import 'verdict_codes.dart';
 export 'advice_codes.dart';
 export 'alert_codes.dart';
 export 'deviation_kind_codes.dart';
+export 'disclosure_codes.dart';
 export 'exit_kind.dart';
 export 'flag_ids.dart';
 export 'journal_codes.dart';
@@ -7392,6 +7560,8 @@ abstract final class ContractCodes {
     // 🆕 v1.1 R2 준비(2026-09-23) — J-3 사전 저널 제출의 거부 사유
     //    (`CommandReceipt.rejectReasonCode` — X7 의 `advice_reject` 와 다른 축)
     'journal_draft_reject': JournalDraftRejectCodes.values,
+    // 🆕 v1.3(R10 선행) — 성과 열람 기록의 화면 코드(`DisclosureViewEvent.surfaceCode`)
+    'disclosure_surface': DisclosureSurfaceCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -7776,7 +7946,7 @@ abstract final class PlannedWorkKindCodes {
   };
 }
 
-/// 성과 시계열의 결측 사유 코드 2종(01 §2-4 `PerfPoint.gapReasonCode`).
+/// 성과 시계열의 결측 사유 코드 3종(01 §2-4 · §13-3 `PerfPoint.gapReasonCode`).
 ///
 /// 🔴 `PerfPoint.value == null` 은 **결측이며 보간하지 않는다**(C-10). 이 코드는 «왜 비었는가»다.
 abstract final class GapReasonCodes {
@@ -7786,8 +7956,15 @@ abstract final class GapReasonCodes {
   /// 재개 갭 구간.
   static const String resumeGap = 'RESUME_GAP';
 
-  /// 전량 2종.
-  static const Set<String> values = <String>{equitySnapshotMissing, resumeGap};
+  /// 🆕 v1.3 — 모의 구간(`SegmentKind.simExcluded`) 안의 점. 합산하지 않아 값이 없다.
+  static const String simExcluded = 'SIM_EXCLUDED';
+
+  /// 전량 3종.
+  static const Set<String> values = <String>{
+    equitySnapshotMissing,
+    resumeGap,
+    simExcluded,
+  };
 }
 ```
 
@@ -7810,6 +7987,7 @@ abstract final class GapReasonCodes {
 //      파라미터가 든 링크는 언제나 엔진이 완성해서 준다.
 //   ④ 파라미터 없는 고정 목적지는 화면 명세가 그 버튼을 **명시한 경우에만** [AppRoutes]
 //      상수를 그대로 넘길 수 있다. 목록에 없는 목적지가 필요하면 멈추고 질문한다.
+//      🆕 v1.3 — [AppNavActions].* 도 같다.
 // 🔴 엔진·픽스처 규칙: `aaq://` 링크는 전부 [AppRoutes.all] 의 패턴 하나와 일치해야 한다
 //    (계약 테스트 C-33). `handbook://` 는 핸드북 앵커이며 도착지는 `HandbookPage` 다.
 // 🔴 이 파일은 순수 Dart 다(Flutter import 없음 — 01 §1-1). 구현체는 `ui_shell` 이 준다.
@@ -7833,6 +8011,21 @@ abstract final class AppLinkSchemes {
   static const String handbook = 'handbook';
 
   static const Set<String> values = <String>{app, handbook};
+}
+
+/// 🆕 v1.3 · 01 §13-7 — **동작 링크**. 목적지가 아니라 «지금 화면을 닫는다»는 뜻이다.
+/// 셸(M8)의 [AppLinkOpener] 구현이 뜻을 정한다: 닫을 화면이 있으면 닫고,
+/// 없으면(링크로 바로 들어온 경우) 그 플랫폼의 첫 화면으로 간다.
+/// 🔴 동작 링크는 `back` 하나다 — 더하는 것은 계약 버전 사안이다.
+/// 🔴 화면 명세가 그 버튼을 **명시한 경우에만** 쓴다(규칙 ④ 와 같다).
+/// 🔴 [AppRoutes.all] 에 넣지 않는다(목적지가 아니다). DTO·픽스처에 실리지 않는다
+///    (C-33 이 검사한다).
+abstract final class AppNavActions {
+  /// 「돌아가기」 — 지금 화면을 닫는다.
+  static const String back = 'aaq://nav/back';
+
+  /// 전량 1종.
+  static const Set<String> all = <String>{back};
 }
 
 /// 앱 라우트 **정본 목록**. 셸은 [all] 을 전량 라우트 테이블에 등록한다(04 §1-2).
@@ -8277,8 +8470,10 @@ extension type const TradeDate(String yyyyMmDd) {}
 /// 01 §1-2·§1-3 — 화면이 `DateTime.now()` 를 부르지 않게 하는 유일한 통로.
 /// 구현체 주입은 `data_sync`.
 ///
-/// 🔴 화면이 이 값을 쓰는 자리는 **전 앱에서 하나**다 —
-///    `observedAt + staleAfter < clock.nowUtc()`(신선도 배너).
+/// 🔴 화면이 이 값을 쓰는 자리는 **둘이다**(🆕 v1.3 · 01 §13-6) —
+///    ① 신선도 비교 `observedAt + staleAfter < clock.nowUtc()`(신선도 배너)
+///    ② 명령 페이로드의 관측 시각(`DisclosureViewEvent.viewedAt`) — 판정이 아니며
+///       집계 월은 엔진이 접수·서버 시각으로 확정한다.
 ///    카운트다운·경과·D-day·TTL 잔여는 엔진이 문자열 필드로 준다.
 /// 🔴 신뢰 시각(리스 TTL·킬스위치 48h·냉각 30일)은 **Supabase 서버 시각**이다.
 ///    로컬 시계로 마찰 카운트다운을 만들지 않는다.
@@ -8711,11 +8906,15 @@ import '../primitives/date_range.dart';
 
 /// 성과 시리즈 · 월간 리포트 · 세후 사다리 + G-41 뷰모델 6종의 창구.
 abstract interface class PerformanceRepository {
+  /// `S7-2` 성과 시리즈.
+  /// 🆕 v1.3 — `range == null` = **엔진 기본 구간**(주기마다 엔진이 고른다).
+  ///    무엇이 골라졌는지는 `PerformanceSeries.periodLabel` 이 말한다.
+  /// 🔴 `granularity: weekly` 는 v1.3 에서 화면이 부르지 않는다(01 §8 미결 54 — 주 경계).
   Future<PerformanceSeries> series({
     required PerfMetric metric,
     required PerfGranularity granularity,
     required bool cumulative,
-    required DateRange range,
+    DateRange? range,
   });
 
   /// 기본 창구.
@@ -8731,6 +8930,7 @@ abstract interface class PerformanceRepository {
   // ───── 🆕 G-41 — M7 뷰모델 6종의 창구 ─────
 
   /// `S7-1b` — 🔴 수치 필드가 없는 월 목록이다.
+  /// 🆕 v1.3 — `rows` 는 엔진이 **최신 달부터** 정렬해서 준다. 화면은 재정렬·묶기를 하지 않는다.
   Future<ReportArchiveVm> reportArchive();
 
   /// `S7-2G` 열람 게이트. 🔴 이번 달 열람 횟수는 **명령 테이블(append-only)의 집계**이며

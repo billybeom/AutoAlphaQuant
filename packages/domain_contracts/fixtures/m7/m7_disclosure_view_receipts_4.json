@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.3.0",
+    "generated_at": "2026-09-28T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20260928,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "게이트 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "command_id": "cmd_20260831_0042",
+      "kind": "DISCLOSURE_VIEW",
+      "state": "REQUESTED",
+      "state_label": "요청됨 — 엔진 수신 대기",
+      "requested_at": "2026-08-31T10:00:00Z",
+      "expires_at": "2026-08-31T10:30:00Z",
+      "nonce": "n_5d2a8c1e9b40",
+      "issued_by_device_id": "dev_operator_01"
+    },
+    {
+      "command_id": "cmd_20260831_0042",
+      "kind": "DISCLOSURE_VIEW",
+      "state": "EXECUTED",
+      "state_label": "기록됨 — 열람 기록이 남았습니다",
+      "requested_at": "2026-08-31T10:00:00Z",
+      "expires_at": "2026-08-31T10:30:00Z",
+      "nonce": "n_5d2a8c1e9b40",
+      "issued_by_device_id": "dev_operator_01"
+    },
+    {
+      "command_id": "cmd_20260831_0042",
+      "kind": "DISCLOSURE_VIEW",
+      "state": "EXPIRED",
+      "state_label": "만료됨 — 유효 시간 안에 처리되지 않았습니다",
+      "requested_at": "2026-08-31T10:00:00Z",
+      "expires_at": "2026-08-31T10:30:00Z",
+      "nonce": "n_5d2a8c1e9b40",
+      "issued_by_device_id": "dev_operator_01"
+    },
+    {
+      "command_id": "cmd_20260831_0042",
+      "kind": "DISCLOSURE_VIEW",
+      "state": "HELD_FOR_INTEGRITY",
+      "state_label": "보류됨 — 원장 무결성 점검 중이라 보관했습니다",
+      "requested_at": "2026-08-31T10:00:00Z",
+      "expires_at": "2026-08-31T10:30:00Z",
+      "nonce": "n_5d2a8c1e9b40",
+      "issued_by_device_id": "dev_operator_01"
+    }
+  ]
+}

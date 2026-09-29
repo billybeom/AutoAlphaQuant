@@ -70,15 +70,20 @@ abstract class BlindReviewScore with _$BlindReviewScore {
       _$BlindReviewScoreFromJson(json);
 }
 
-/// ✅ H-3 — 성과 열람 기록(결정 8 · G-42).
+/// ✅ H-3 — 성과 열람 기록(결정 8 · G-42). 🆕 v1.3 — 세 값의 뜻(01 §13-6).
 @freezed
 abstract class DisclosureViewEvent with _$DisclosureViewEvent {
   const factory DisclosureViewEvent({
+    /// 어느 화면의 열람인가 — 값은 `DisclosureSurfaceCodes` 가 정본이다.
     required String surfaceCode,
 
-    /// 🔴 집계 키 `yyyy_mm` 을 화면이 넣지 않는다 — 엔진이 이 값에서 파생한다(G-42).
+    /// 「그래도 보기」를 누른 순간의 주입 시계 값(`Clock.nowUtc()`) — 관측 시각이며 참고값이다.
+    /// 🔴 집계 키 `yyyy_mm` 을 화면이 넣지 않는다 — 집계 월은 엔진이 접수·서버 시각으로
+    ///    확정한다(G-42).
     required DateTime viewedAt,
-    required int durationSec,
+
+    /// 🆕 v1.3 — 진입 시점 기록은 **0**. 화면은 이 값을 적지 않는다(열람 길이 = 미결 60).
+    @Default(0) int durationSec,
   }) = _DisclosureViewEvent;
 
   factory DisclosureViewEvent.fromJson(Map<String, dynamic> json) =>

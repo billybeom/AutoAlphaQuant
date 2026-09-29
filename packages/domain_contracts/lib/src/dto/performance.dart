@@ -33,6 +33,23 @@ abstract class PerformanceSeries with _$PerformanceSeries {
     required PerfDisclosure disclosure,
     required AsOf asOf,
 
+    /// 🆕 v1.3 — 본선의 이름(범례). "내 계좌 · 시간가중 · 누적" — 엔진 생성.
+    required String seriesLabel,
+
+    /// 🆕 v1.3 — 이 시리즈가 덮는 기간. "2024년 9월 ~ 2026년 8월" — 엔진 생성.
+    /// `range == null` 요청에서 엔진이 고른 구간을 말하는 유일한 글자다.
+    required String periodLabel,
+
+    /// 🆕 v1.3 — 세로축 눈금(아래 → 위 순서). 비면 눈금 없음. 많아야 5개다(C-36 ④).
+    @Default(<PerfAxisTick>[]) List<PerfAxisTick> yTicks,
+
+    /// 🆕 v1.3 — non-null ⇔ `points` 가 비어 있다(C-36 ⑤). 그때는 차트·눈금·범례·값 표
+    /// 대신 **이 문장 카드 1장**이다. `segments`·`yTicks` 도 비고 `benchmark` 는 null 이다.
+    /// 기록이 비었든 차단으로 가렸든 엔진이 이 필드로 말한다.
+    /// 🔴 화면은 점을 세거나 훑어 상태를 고르지 않는다. 점이 하나라도 오면 그중 하나는
+    ///    값이 있다.
+    String? unavailableLabel,
+
     /// KOSPI 50% + S&P500(KRW) 50% — m2-8 F-9.
     BenchmarkSeries? benchmark,
 
@@ -44,16 +61,33 @@ abstract class PerformanceSeries with _$PerformanceSeries {
       _$PerformanceSeriesFromJson(json);
 }
 
-/// 01 §2-4 — 시계열 1점. 🔴 `value == null` 은 결측이며 **보간 금지**(C-10).
+/// 01 §2-4 · §13-1 — 시계열 1점. 🔴 `value == null` 은 결측이며 **보간 금지**(C-10).
 @freezed
 abstract class PerfPoint with _$PerfPoint {
   const factory PerfPoint({
     @TradeDateConverter() required TradeDate date,
 
-    /// 🔴 null = 결측. 공백으로 그린다 — 이어 붙이지 않는다.
+    /// 🆕 v1.3 — 가로 자리(0.0 = 그림 영역 왼쪽 끝 · 1.0 = 오른쪽 끝). 🔴 그래프 기하 전용.
+    /// 점의 순서대로 **오름차순**으로 온다. 점이 1개면 0.5 다.
+    required double xNormalized,
+
+    /// 🆕 v1.3 — 이 점을 가리키는 날짜 글자("2026-08-31" · "2026년 8월" · "2026년").
+    /// 주기에 맞춰 엔진이 만든다. 화면이 `date` 를 자르거나 포맷하지 않는다.
+    required String dateText,
+
+    /// 🆕 v1.3 — **표시의 정본**("1.42%"). 결측 점에도 온다("산출 불가" · "합산 제외").
+    required String valueText,
+
+    /// 🆕 v1.3 — 세로 자리(0.0 = 아래 끝 · 1.0 = 위 끝). 🔴 그래프 기하 전용.
+    /// null = 결측 — 선을 끊는다. `value == null` 과 언제나 함께 온다(C-10 ⑤).
+    /// 🔴 본선과 벤치마크는 **같은 축**으로 정규화돼 온다 — 화면은 축 범위를 모른다.
+    double? yNormalized,
+
+    /// 🔴 v1.3 — 골든 대조·회귀 전용. `ui_*` 에서 참조하지 않는다(C-36 ⑦). null = 결측.
+    /// 결측은 공백으로 그린다 — 이어 붙이지 않는다.
     double? value,
 
-    /// `EQUITY_SNAPSHOT_MISSING` · `RESUME_GAP`(인벤토리 §6-14).
+    /// `EQUITY_SNAPSHOT_MISSING` · `RESUME_GAP` · 🆕 v1.3 `SIM_EXCLUDED`(인벤토리 §6-14).
     String? gapReasonCode,
   }) = _PerfPoint;
 
@@ -61,7 +95,7 @@ abstract class PerfPoint with _$PerfPoint {
       _$PerfPointFromJson(json);
 }
 
-/// 01 §2-4 — 분절 구간. 🔴 `manualExecuted` 는 `simExcluded` 와 달리 합산에
+/// 01 §2-4 · §13-3 — 분절 구간. 🔴 `manualExecuted` 는 `simExcluded` 와 달리 합산에
 /// 포함되고 경계는 실선이다(D6). 겹치면 `freshAuto` 절단선이 이긴다.
 @freezed
 abstract class PerfSegment with _$PerfSegment {
@@ -72,10 +106,35 @@ abstract class PerfSegment with _$PerfSegment {
 
     /// "7거래일 미실행 — 산출 불가" — 엔진 생성.
     required String label,
+
+    /// 🆕 v1.3 — 띠의 가로 범위(그림 영역 폭에 대한 비율 · start ≤ end). 🔴 기하 전용.
+    /// 엔진이 «덮는 점의 앞뒤 반 칸»까지 넓혀서 준다(0.0~1.0 으로 자른다).
+    /// 화면은 `from`·`to` 를 점의 날짜와 **비교하지 않는다**.
+    /// 구간은 받은 순서대로이고 서로 겹치지 않는다(C-36 ④b).
+    required double startNormalized,
+    required double endNormalized,
   }) = _PerfSegment;
 
   factory PerfSegment.fromJson(Map<String, dynamic> json) =>
       _$PerfSegmentFromJson(json);
+}
+
+/// 🆕 v1.3 · 01 §13-1 — 세로축 눈금 1개.
+@freezed
+abstract class PerfAxisTick with _$PerfAxisTick {
+  const factory PerfAxisTick({
+    /// 세로 자리(0.0~1.0). 🔴 기하 전용.
+    required double normalized,
+
+    /// "0%" · "4%" — 엔진 생성.
+    required String label,
+
+    /// 0 기준선인가. 한 시리즈에 많아야 하나다(C-36 ④).
+    @Default(false) bool isBaseline,
+  }) = _PerfAxisTick;
+
+  factory PerfAxisTick.fromJson(Map<String, dynamic> json) =>
+      _$PerfAxisTickFromJson(json);
 }
 
 /// 01 §2-4 · m2-8 F-9 — 벤치마크 시리즈.
@@ -83,6 +142,9 @@ abstract class PerfSegment with _$PerfSegment {
 abstract class BenchmarkSeries with _$BenchmarkSeries {
   const factory BenchmarkSeries({
     required String label,
+
+    /// 🆕 v1.3 — 본선(`PerformanceSeries.points`)과 **같은 길이 · 같은 날짜 순서 ·
+    /// 같은 `xNormalized`** 로 온다(C-36 ②). `yNormalized` 도 본선과 같은 축이다.
     required List<PerfPoint> points,
 
     /// 구성 고지 한 줄 — 엔진 생성.
@@ -247,6 +309,7 @@ abstract class ReportItem with _$ReportItem {
 @freezed
 abstract class ReportArchiveVm with _$ReportArchiveVm {
   const factory ReportArchiveVm({
+    /// 🆕 v1.3 — 엔진이 **최신 달부터** 정렬해서 준다. 화면은 받은 순서 그대로 그린다.
     required List<ReportArchiveRow> rows,
     required AsOf asOf,
     String? emptyLabel,
@@ -268,6 +331,10 @@ abstract class ReportArchiveRow with _$ReportArchiveRow {
     required String modeLabel,
     String? reasonLabel,
     String? route,
+
+    /// 🆕 v1.3 — non-null 이면 **이 행 위에** 머리글 1줄을 그린다("2026년" · "2025년 · 모의투자").
+    /// 🔴 화면은 앞 행과 비교하지 않는다 — 묶음의 첫 행에만 엔진이 실어 준다.
+    String? sectionLabel,
   }) = _ReportArchiveRow;
 
   factory ReportArchiveRow.fromJson(Map<String, dynamic> json) =>
@@ -280,11 +347,21 @@ abstract class ReportArchiveRow with _$ReportArchiveRow {
 @freezed
 abstract class DisclosureGateVm with _$DisclosureGateVm {
   const factory DisclosureGateVm({
+    /// 🆕 v1.3(뜻 확정 · 01 §13-5) — **엔진이 지금 진입을 허용하는가.**
+    /// false 면 「그래도 보기」가 없다(「돌아가기」만). «게이트를 건너뛴다»는 뜻이 아니다.
     required bool gateOpen,
+
+    /// 게이트 머리 문장 — 엔진 생성. 닫힌 게이트에서는 **닫힌 까닭**을 말한다.
     required String headline,
     required String viewCountText,
     required AsOf asOf,
+
+    /// 🆕 v1.3(뜻 확정) — null = **그 줄이 없다**(자리표시자·빈 줄을 그리지 않는다).
     String? frictionLine,
+
+    /// 🆕 v1.3(뜻 확정) — `gateOpen` 의 링크 표현이다(`gateOpen == (route != null)` · C-37 ①).
+    /// **게이트 밖 진입점용**이며 🔴 게이트 화면은 이 링크를 열지 않는다
+    /// (열면 자기 자신이 다시 뜬다).
     String? route,
   }) = _DisclosureGateVm;
 
