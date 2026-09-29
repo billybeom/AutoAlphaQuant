@@ -26,11 +26,18 @@ class AnalyticsErrorView extends StatelessWidget {
           if (lastAsOfLabel != null) ...<Widget>[
             Text(
               lastAsOfLabel!,
-              style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
           ],
-          Icon(Icons.error_outline, size: 36, color: colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.error_outline,
+            size: 36,
+            color: colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 12),
           FilledButton(
             onPressed: onRetry,

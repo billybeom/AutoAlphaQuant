@@ -35,7 +35,8 @@ class ReportArchiveScreen extends ConsumerWidget {
           ),
         ],
       ),
-      data: (ReportArchiveVm vm) => _buildContent(context, ref, vm, activeFlags),
+      data: (ReportArchiveVm vm) =>
+          _buildContent(context, ref, vm, activeFlags),
     );
   }
 
@@ -76,11 +77,7 @@ class ReportArchiveScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRow(
-    BuildContext context,
-    WidgetRef ref,
-    ReportArchiveRow row,
-  ) {
+  Widget _buildRow(BuildContext context, WidgetRef ref, ReportArchiveRow row) {
     final colorScheme = Theme.of(context).colorScheme;
     final Widget card = Card(
       key: ValueKey<String>('s71b-row-${row.yyyyMm}'),
@@ -111,10 +108,7 @@ class ReportArchiveScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Chip(
-            key: Key('s71b-mode-${row.yyyyMm}'),
-            label: Text(row.modeLabel),
-          ),
+          Chip(key: Key('s71b-mode-${row.yyyyMm}'), label: Text(row.modeLabel)),
           if (row.route != null) ...<Widget>[
             const SizedBox(width: 4),
             const Icon(Icons.chevron_right),

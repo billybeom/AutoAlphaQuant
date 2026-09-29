@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_analytics/ui_analytics.dart';
-import 'package:ui_analytics/src/screens/report_archive_screen.dart';
 
 import 'golden_support.dart';
 
@@ -32,35 +31,46 @@ class _FakeSafetyRepository extends UnimplementedSafetyRepository {
 
 void main() {
   // 픽스처를 한 번만 읽는다
-  final ReportArchiveVm archive18 =
-      singleFixture(FixturePaths.m7M7ReportArchive18, ReportArchiveVm.fromJson);
-  final ReportArchiveVm archiveEmpty =
-      singleFixture(FixturePaths.m7M7ReportArchiveEmpty, ReportArchiveVm.fromJson);
-  final SafetyState safety =
-      SafetyState.fromJson(fixtureEnvelope(FixturePaths.safetyStates).rows[0]);
+  final ReportArchiveVm archive18 = singleFixture(
+    FixturePaths.m7M7ReportArchive18,
+    ReportArchiveVm.fromJson,
+  );
+  final ReportArchiveVm archiveEmpty = singleFixture(
+    FixturePaths.m7M7ReportArchiveEmpty,
+    ReportArchiveVm.fromJson,
+  );
+  final SafetyState safety = SafetyState.fromJson(
+    fixtureEnvelope(FixturePaths.safetyStates).rows[0],
+  );
 
   // 골든 크기 상수 (테스트 파일 안에 두고 pumpForGolden logicalSize 에 넘긴다)
-  const double _kListHeight = 1700;
-  const double _kEmptyHeight = 844;
+  const double kListHeight = 1700;
+  const double kEmptyHeight = 844;
 
   // ── s71b_list ──────────────────────────────────────────────────────────────
   for (final Brightness b in Brightness.values) {
-    testWidgets('s71b_list ${brightnessSuffix(b)}', (WidgetTester tester) async {
+    testWidgets('s71b_list ${brightnessSuffix(b)}', (
+      WidgetTester tester,
+    ) async {
       await pumpForGolden(
         tester,
         ProviderScope(
           overrides: <Override>[
             analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
-            performanceRepositoryProvider
-                .overrideWithValue(_FakePerformanceRepository(archive18)),
-            safetyRepositoryProvider
-                .overrideWithValue(_FakeSafetyRepository(safety)),
+            analyticsLinkOpenerProvider.overrideWithValue(
+              RecordingLinkOpener(),
+            ),
+            performanceRepositoryProvider.overrideWithValue(
+              _FakePerformanceRepository(archive18),
+            ),
+            safetyRepositoryProvider.overrideWithValue(
+              _FakeSafetyRepository(safety),
+            ),
           ],
           child: const ReportArchiveScreen(),
         ),
         brightness: b,
-        logicalSize: const Size(390, _kListHeight),
+        logicalSize: const Size(390, kListHeight),
       );
 
       // 위치 전제 — 끝 행의 아래 끝이 높이 안에 있다(README §2)
@@ -72,7 +82,7 @@ void main() {
               ),
             )
             .dy,
-        lessThan(_kListHeight),
+        lessThan(kListHeight),
       );
 
       await expectGolden('s71b_list', b);
@@ -81,30 +91,34 @@ void main() {
 
   // ── s71b_empty ─────────────────────────────────────────────────────────────
   for (final Brightness b in Brightness.values) {
-    testWidgets('s71b_empty ${brightnessSuffix(b)}', (WidgetTester tester) async {
+    testWidgets('s71b_empty ${brightnessSuffix(b)}', (
+      WidgetTester tester,
+    ) async {
       await pumpForGolden(
         tester,
         ProviderScope(
           overrides: <Override>[
             analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            analyticsLinkOpenerProvider.overrideWithValue(RecordingLinkOpener()),
-            performanceRepositoryProvider
-                .overrideWithValue(_FakePerformanceRepository(archiveEmpty)),
-            safetyRepositoryProvider
-                .overrideWithValue(_FakeSafetyRepository(safety)),
+            analyticsLinkOpenerProvider.overrideWithValue(
+              RecordingLinkOpener(),
+            ),
+            performanceRepositoryProvider.overrideWithValue(
+              _FakePerformanceRepository(archiveEmpty),
+            ),
+            safetyRepositoryProvider.overrideWithValue(
+              _FakeSafetyRepository(safety),
+            ),
           ],
           child: const ReportArchiveScreen(),
         ),
         brightness: b,
-        logicalSize: const Size(390, _kEmptyHeight),
+        logicalSize: const Size(390, kEmptyHeight),
       );
 
       // 위치 전제 — 빈 상태 글자의 아래 끝이 높이 안에 있다(README §2)
       expect(
-        tester
-            .getBottomLeft(find.byKey(const Key('s71b-empty')))
-            .dy,
-        lessThan(_kEmptyHeight),
+        tester.getBottomLeft(find.byKey(const Key('s71b-empty'))).dy,
+        lessThan(kEmptyHeight),
       );
 
       await expectGolden('s71b_empty', b);
