@@ -1,8 +1,8 @@
 # 발송 패킷 R10b-Bob-S72G — S7-2G 열람 게이트 + 수익률 탐색 화면 합성(본문 껍데기) (계약 v1.3)
 
-> ⏸ **R10a 가 병합된 뒤에 보냅니다**(Claude 가 C4 병합 기록 때 이 줄을 ▶ 로 바꿉니다) — **R10 3장 중 2번째 · 한 번에 카드 1장 · 순서 a → b → c**.
+> ▶ **R10a 병합됨(PR #15 · squash `02e8e06`) — 보낼 수 있습니다**(이 파일이 GitHub `main` 의 `docs/ai-context/send/` 에 보이면) — **R10 3장 중 2번째 · 한 번에 카드 1장 · 순서 a → b → c**.
 > 만든 날 2026-09-29 — 통합 패킷 v5 `R10-Bob-S7x.md`(origin/main `86168d4` · 네 번 검증)를 발주자 결정(「3장으로 쪼개는 안으로 바꿔주세요」)에 따라 3장으로 나눈 둘째 장. 글자·코드·테스트 문장은 v5 그대로이고 카드 경계 때문에 번호·수·가리킴·브랜치·PR 제목만 고쳤다 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 R10 행 · 화면 몫 원본 = 설계 저장소 `10_리뷰/2026-09-28_R10선행_계약v1.3_설계서.md` §2 Δ6 + §3 «4. 화면 구성»·«5. 증명 계획» · 조문 = `01_…` §13(13-5 · 13-6 · 13-7) · `03_…` §5 의 R10 범위 블록 · golden README «🆕 R10(계약 v1.3)» 절 «1»·«2».
-> 사전 조건 — ✅ 계약 v1.3 병합(M2 PR #14 · squash `e820042`) · ✅ R2b-Bob-J3 병합(PR #13 squash `b59a5e1`) · ⏸ **R10a-Bob-S71b 병합**(아카이브 + 공용 위젯 `AnalyticsSkeleton`·`AnalyticsErrorView` — PR 번호·해시는 C4 때 Claude 가 적는다). 병합 확인은 본문 0단계의 확인 줄로(해시 없이 내용으로 확인한다).
+> 사전 조건 — ✅ 계약 v1.3 병합(M2 PR #14 · squash `e820042`) · ✅ R2b-Bob-J3 병합(PR #13 squash `b59a5e1`) · ✅ **R10a-Bob-S71b 병합**(PR #15 · squash `02e8e06` · 2026-09-29 — 아카이브 + 공용 위젯 `AnalyticsSkeleton`·`AnalyticsErrorView`). 병합 확인은 본문 0단계의 확인 줄로(해시 없이 내용으로 확인한다).
 > 카드 확정값(카드 권한): 정적 라벨 3개(본문 «정적 라벨») · 위젯·프로바이더·Key·파일 이름(본문 «주입 구조») · 골든 4이름 8장.
 > 🔴 **올리는 순서(Claude)** — 3장 패킷(`R10a-Bob-S71b.md` · 이 파일 · `R10c-Bob-S72.md`)과 질문 파일 3개는 R10a 를 보내기 전에 이미 `main` 에 있다. R10a 병합 뒤 C4 기록 때 이 머리 첫 줄을 ▶ 로 바꿔 같이 푸시한다. 0단계의 `ls` 줄(R10a 가 만든 파일이 보이는가)이 그 증명이다.
 > 드라이런: 통합 패킷 드라이런(2026-09-29 · 3차 · v3 본문 · `flutter test` 223 통과)의 이 카드 몫 = 게이트 20 + 골든 8. 3분할 드라이런(R10a 위 · 이 카드 본문만): flutter test 139(기존 111 + 새 28 = 게이트 20 · 골든 8) · 새 PNG 8 · 기존 22장 불변 · 변이 6개 잡힘 · dy 196~272.
@@ -104,15 +104,22 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
    호출마다 새 Future/Stream · 전제는 expect(조용한 return·if 건너뛰기 금지) · 동작은 UI 를 실제로 눌러서(프로바이더·State 에 값을 직접 넣지 않는다) ·
    🔴 자기가 주입한 값을 그대로 확인하는 테스트 금지 · 늘 참인 단언 금지 · 정상 상태 테스트는 expect(find.text(AnalyticsLabels.retryButton), findsNothing) + 양성 기준점 1 ·
    DTO·CommandReceipt 를 지어 넣지 않는다(픽스처 행에서 — 이 카드에는 예외가 없다) · 링크는 RecordingLinkOpener 를 픽스처 값·상수와 비교 ·
-   픽스처마다 갈리는 단언은 if/else **양쪽에** expect(있으면 1 · 없으면 그 Key 0 — 한쪽만 쓰면 조건부 단언) · 테스트 이름은 번호 + ASCII(예 'G2 back: opens AppNavActions.back, no command').
+   픽스처마다 갈리는 단언은 if/else **양쪽에** expect(있으면 1 · 없으면 그 Key 0 — 한쪽만 쓰면 조건부 단언) · 테스트 이름은 번호 + ASCII(예 'G2 back: opens AppNavActions.back, no command') ·
+   «… 0» · «… 1»(화면 요소 — Key·글자·위젯)은 find.… 로 화면에서 센다(가짜의 호출 수는 기록 목록으로) — 픽스처 필드를 expect 하는 줄은 전제일 뿐 증명으로 세지 않는다(R10a A6 은 행 Key 0 을 archiveEmpty.rows 로 적었다) ·
+   스켈레톤 1 = expect(find.byType(AnalyticsSkeleton), findsOneWidget)(package:ui_analytics/src/widgets/analytics_skeleton.dart import) — 스피너 부재로 대신하지 않는다 ·
+   if/else 양쪽 단언에서 else 쪽 findsNothing 이 없으면 반려 · 카드가 «<» 라 적은 곳을 «<=» 로 바꾸지 않는다(R10a A9) · 카드가 «N개» 라 적은 곳을 greaterThanOrEqualTo 로 바꾸지 않는다(R10a A8).
 11 골든 = 이 카드의 새 PNG 8장만 · --update-goldens 는 새 테스트 파일 하나를 지정(폴더 지정 금지) · golden:approved 는 안 붙임 · 찍기 전 위치 전제(맨 아래 위젯의 dy < 높이).
 12 도구 = format:fix → format·analyze(--fatal-infos)·test·test:contracts SUCCESS · Windows 의 melos 는 안쪽 실패를 SUCCESS 로 낼 수 있다 — 출력에 «Some tests failed»·«FAILED» 0건을 눈으로 확인 ·
    package:collection 없음 · unawaited_futures 린트(기다리지 않는 Future 는 unawaited(…)).
 13 C-4 이름 함정 — 식별자 이름에 amount·price·pnl·commission·tax·cash·pct·ratio·cagr 가 (부분 문자열로도) 들고 바로 옆에 + * / 가 오면 계약 테스트가 실패한다.
    걸리는 이름 예: ratio · aspectRatio · devicePixelRatio · duration · durationSec · iteration · decoration · syntax. 글자 잇기는 보간 '${a}${b}'.
 14 모르는 것·문서에 없어 정한 것은 질문 파일에 · UI 자리표시자 금지 · 실키·계좌·비밀번호 0 · PR·라벨(golden:approved 포함)·병합은 통합 담당.
-🔴 보고 규칙(R2 재제출 교훈) — 채팅 보고에는 코드·파일·PNG 에 실제로 있는 것만 적습니다. 시도하지 않은 것을 «시도했다»고 쓰지 않고, 골든 표는 PNG 를 열어 픽스처와 대조한 뒤 «배치·잘림»만 적습니다
-   (글자는 테스트 글꼴이라 네모). 자체 점검 ② 는 prompt_M7.md 154~168행 **12항** 원문 번호 그대로. 질문 파일 새 행의 상태는 «⬜ 미답» · 답 칸 비움. 카드가 정한 것은 추측 행으로 적지 않습니다.
+🔴 보고 규칙(R2 재제출 · R2b B01·B02 · R10a 교훈) — 🔴 이 카드부터 «보고와 코드·파일·PNG 가 다르면 1건이라도 재량 없이 반려»입니다.
+   채팅 보고에는 코드·파일·PNG 에 실제로 있는 것만 적습니다. 시도하지 않은 것을 «시도했다»고 쓰지 않고, 골든 표는 PNG 를 열어 픽스처와 대조한 뒤 «배치·잘림»만 적습니다
+   (글자는 테스트 글꼴이라 네모).
+   자체 점검 ② 는 prompt_M7.md 154~168행 12항을 글자 그대로 복사한 뒤 [x] 와 괄호 근거만 붙입니다(범위 밖도 [x] + 괄호 — [—] 는 쓰지 않습니다 · 항목을 새로 만들거나 자기 말로 바꿔 쓰지 않습니다 —
+   R10a 는 12항을 전부 자기 말로 바꿔 1·2·3·11항의 원문 검사가 빠졌습니다).
+   질문 파일에 테스트 강화·카드 지시 이행 내역을 추측 행으로 적지 않습니다(PR 본문 ① 한 줄 · 골든 위치 전제의 dy 는 예외 — 아래 «질문 파일» 절). 질문 파일 새 행의 상태는 «⬜ 미답» · 답 칸 비움. 카드가 정한 것은 추측 행으로 적지 않습니다.
 
 ■ 프롬프트보다 이 카드가 이긴다 — 16항 (prompt_M7.md 행 번호 · 그 파일은 «치환값 외 무수정»이라 여기서 덮습니다)
  ① 9~11행 «의존 … 추가하려면 먼저 질문» → 추가 없음(pubspec 불변) ② 12~13행 라우트 상수 딥링크 → DTO 링크를 AppLinkOpener.open 에 · 고정 상수는 규칙 3 의 하나뿐
@@ -289,16 +296,19 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
 
 ■ 테스트 최소 목록 (번호는 PR 본문 ② 에 인용)
 공통: ProviderScope 는 MaterialApp 위(띄우기 도우미) · 뷰포트 Size(390, 2400) + DPR 1.0 + addTearDown 2개 · 가짜 = 받침대 extends · 받은 인자 전부 기록 · 호출마다 새 Future/Stream ·
+  픽스처는 golden_support.dart 의 singleFixture/listFixture/fixtureEnvelope 로만 읽는다(자체 파일 읽기 도우미 금지) · 띄우기 도우미는 한 벌(시계·오프너는 선택 매개변수) ·
   시계 = FixedClock(kGoldenNowUtc)(오래됨은 kGoldenNowUtc.add(const Duration(days: 3))) · 기대 글자는 픽스처에서 · 보고된 에러는 tester.takeException() 으로 단언 ·
   가짜 PerformanceRepository 는 series() 의 답을 생성자 인자로 받는다(기본 = performance24m 행 0 — 이 카드의 테스트는 기본 답만 쓴다 · 값이 아니라 호출을 본다) —
     받은 네 인자(metric·granularity·cumulative·range)를 호출마다 기록.
   🔴 가짜 CommandApi 는 recordDisclosureView 와 watchCommand 를 **둘 다** override 한다(받침대는 던진다 — 안 하면 탐색 본문의 initState 가 던진다) ·
     watchCommand 의 기본 답 = Stream<CommandReceipt>.value(그 테스트가 recordDisclosureView 로 돌려준 바로 그 접수증)(호출마다 새로 — G6 은 그 행 · 그 밖은 행 0) ·
     G7 만 StreamController. (행 0 을 기본 답으로 굳히면 G6 의 행 1·2·3 에서 기록 줄이 곧바로 행 0 의 글자로 바뀐다.)
-  StreamController 는 만든 줄 바로 뒤 addTearDown(controller.close)(close_sinks 린트 · analyze --fatal-infos) · add·addError 직후는 await tester.pump(Duration.zero)(pump() 한 번은 반영되지 않는다).
+  StreamController 는 만든 줄 바로 뒤 addTearDown(() { unawaited(controller.close()); })(close_sinks 린트 · analyze --fatal-infos · unawaited 는 dart:async) —
+  🔴 addTearDown(controller.close) 로 쓰지 않는다: 탭 뒤에야 구독되는 비방송 컨트롤러(G7 의 watchCommand)는 탭 전 단언이 실패하면 구독자 0 이라 close() Future 가
+  끝나지 않고 teardown 이 testWidgets 타임아웃까지 매달린다(R2b C4 7547d3c). add·addError 직후는 await tester.pump(Duration.zero)(pump() 한 번은 반영되지 않는다).
   가짜와 띄우기 도우미(파일 안에서만 쓰면 `_pump` · 파일 밖에서 쓰면 밑줄 없는 공개 이름 — 예 `pumpExplore`)는 test/explore_fakes.dart 한 파일에 모은다
     (도우미라 «새 테스트 파일 1» 에 세지 않는다 · 골든 테스트는 '../explore_fakes.dart' 로 import).
-    띄우기 도우미(공개 이름)는 가짜 리포지토리·가짜 CommandApi·시계·안전 상태를 인자로 받는다(기본값 = 지금 동작).
+    띄우기 도우미(공개 이름)는 가짜 리포지토리·가짜 CommandApi·시계·오프너·안전 상태를 인자로 받는다(기본값 = 지금 동작).
     🔴 다음 카드 R10c 가 이 파일에 더하기만 한다 — 가짜 series() 의 기본 답(performance24m 행 0)을 이 카드의 G 테스트가 쓴다.
 게이트 — test/performance_explore_gate_test.dart
  G1 띄운다(m7M7DisclosureGate) → headline·viewCountText·frictionLine 글자 · 버튼 2 · find.byKey(const Key('s72-chart')) 0
@@ -307,7 +317,7 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
  G3 「그래도 보기」(명령 = 접수증 행 0) → 명령 1 · event.surfaceCode == DisclosureSurfaceCodes.performanceExplore · event.viewedAt == kGoldenNowUtc · event.durationSec == 0 ·
     s72-record-line 글자 = 행 0 의 stateLabel · series 1 · watchCommand 가 받은 id == 행 0 의 commandId ·
     opener.opened 비어 있음(「그래도 보기」는 어떤 링크도 열지 않는다 — vm.route 포함).
- G4 명령을 Completer 로 멈춘다 → 「그래도 보기」 비활성(다시 눌러도 명령 1) · 「돌아가기」는 눌린다(opened 1) ·
+ G4 명령을 Completer 로 멈춘다 → 「그래도 보기」 비활성 — tester.widget<OutlinedButton>(find.byKey(const Key('s72g-continue'))).onPressed == null 과 다시 눌러도 명령 1 둘 다 · 「돌아가기」는 눌린다(opened 1) ·
     그 뒤 트리를 pumpWidget(const SizedBox()) 로 내리고 Completer 를 끝낸다 → 예외 없음(tester.takeException() == null).
  G5 명령이 던진다 → 게이트 그대로 · s72g-record-not-accepted 1 · takeException 비null · series 0 → 다시 누른다(이번엔 접수증 행 0) → 그 줄 0 · 명령 누계 2 · 탐색 본문.
  G6 첫 접수증을 4행 각각으로(testWidgets 넷 · 가짜 watchCommand 도 같은 행을 낸다) → 전부 탐색 본문(s72-record-line 1) · 글자 = 그 행의 stateLabel · opener.opened 비어 있음.
@@ -321,9 +331,14 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
  G12 통과한 뒤 게이트 스트림이 새 값(m7M7DisclosureGateClosed)을 낸다 → 탐색 본문 그대로(s72-record-line 1 · s72g-card 0).
  G13 File('lib/ui_analytics.dart') 를 읽는다 → export 줄의 집합이 정확히 { l10n/labels.dart · src/providers/analytics_providers.dart · src/screens/contribution_screen.dart ·
      src/screens/drawdown_context_screen.dart · src/screens/monthly_report_screen.dart · src/screens/report_archive_screen.dart · src/screens/performance_explore_screen.dart }.
+     export 줄은 RegExp(r"^export '([^']+)';", multiLine: true).allMatches(내용).map((m) => m.group(1)).toSet() 으로 뽑아 7개 집합과 equals — 파일 전체 contains 로 대신하지 않는다.
  G14 시계 +3일 → staleBannerTitle 1 / safetyStates 행 3 → 플래그 label 글자 각 1 · 그 dy < s72g-card 의 dy.
  (G3·G5·G6·G10·G12 가 «탐색 본문» 을 보는 곳은 s72-record-line 과 s72g-card 뿐이다 — 껍데기로 통과한다.)
 (정적 — PR 본문 ② 에 결과를 적는다) packages/ui_analytics 에서 git grep 으로:
+  새 테스트 파일에 한글 문자열 0 — git grep -nP "'[^'\n]*[\x{AC00}-\x{D7A3}]" -- test/performance_explore_gate_test.dart test/explore_fakes.dart test/golden/s72g_golden_test.dart 가 주석 줄 말고는 출력 없음 ·
+    테스트 이름은 ASCII 만(«—»·«→» 도 금지) ·
+  git grep -nE "AppRoutes|replaceFirst|replaceAll" -- lib/src/screens/performance_explore_screen.dart lib/src/screens/explore → 0(링크는 DTO route 그대로 — 패턴에 값을 끼워 조립 금지) ·
+  git grep -n "analyticsLinkOpenerProvider" -- lib/src/screens/performance_explore_screen.dart lib/src/screens/explore → 결과 줄마다 «탭 콜백 안» 인지 적는다(build 본문에서 읽는 줄 0 · 오프너는 탭 콜백 안에서 읽고 바로 open) ·
   lib 에 CommandState 0 · Navigator 0 · DateTime.now 0 · kIsWeb·Platform. 0 · 'aaq:// 0 · toStringAsFixed 0 · GestureDetector 0 ·
   머티리얼 색 상수 Colors 는 기존 파일에만(새 파일 0 — git grep -nw Colors -- lib 로 센다) ·
   lib/src/screens/explore·performance_explore_screen.dart 에 DateRange·ConfigRepository 0 ·
@@ -348,7 +363,7 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
 🔴 새 파일을 만들지 않는다 — 파일이 이미 있다.
 · S7-2G_questions.md — 머리말의 «다음 번호»에서 이어 붙인다. 이 카드의 질문(R10a 가 만든 공용 위젯을 쓰다 생긴 질문 포함)은 전부 여기에.
 · 표 끝에 새 행만 더한다(머리말은 고치지 않는다) · 질문 = Q · 추측 = A · 새 행 상태 = «⬜ 미답» · 답 칸 비움 · 칸 안에 세로 막대 문자 금지.
-· 꼭 적을 것: 권고와 다르게 지은 이름 · 3개 밖에 새로 더한 정적 라벨 · 골든 위치 전제의 실제 dy · 문서에 없어 정한 것 전부.
+· 꼭 적을 것: 권고와 다르게 지은 이름 · 3개 밖에 새로 더한 정적 라벨 · 골든 위치 전제의 실제 dy(종류 칸은 «추측» 그대로 · «질문·추측» 칸 첫머리에 «측정:» — ⑤ «추측한 것» 에는 세지 않는다 · C4 가 재실측해 ✅ 로 닫는다) · 문서에 없어 정한 것 전부.
 · 적지 않을 것(카드가 정함 = 추측 아님): 위젯·프로바이더·Key·파일 이름 · 정적 라벨 3개 · 읽지 않는 필드 목록(규칙 5) · 「돌아가기」 = AppNavActions.back · 접수 실패 때 진입 안 함 ·
   접수증이면 상태 불문 진입 · 첫 요청 값 · 탐색 본문이 껍데기(값이 와도 스켈레톤)인 것 · 기간 선택 없음 · 골든 이름·높이 ·
   재량인 것(내부 위젯 DisclosureGateView 등의 생성자 모양 · 여백·글자 크기·모서리). 동작·상태·글자·Key 가 갈리는 것만 적는다.
@@ -371,9 +386,11 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
   PR 은 만들지 않습니다(통합 담당 대행) · 라벨도 붙이지 않습니다. PR 제목: [M7] S7-2G 열람 게이트 + 수익률 탐색 화면 합성
   PR 본문 5섹션을 채팅으로:
    ① 화면 ID(S7-2G) + 탐색 화면 합성(PerformanceExploreScreen · 탐색 본문은 껍데기 — 본문 전부는 R10c)
-   ② 자체 점검 12항 — prompt_M7.md 154~168행 원문 번호 그대로 · 코드에 실제로 있는 것만 [x] · 위 «정적» 줄의 grep 결과 ·
+   ② 자체 점검 12항 — prompt_M7.md 154~168행 원문 12항 글자 그대로 복사(위 보고 규칙) · 코드에 실제로 있는 것만 [x] · 위 «정적» 줄의 grep 결과 ·
       4번 = [x] + 괄호 «인터스티셜·열람 기록 = 이 PR · 격리 위치(라우트·진입점) = 셸 몫» · 5·6·7·8·12 와 10 앞절 = [x] + 괄호 «이 카드 범위 밖»(7·8 = 탐색 본문 R10c) ·
-      9번 = [x] + 괄호 «as-of 는 게이트 카드 안 1줄 · 오래됨 배너 = StaleBanner · 탐색 본문의 as-of = R10c»
+      9번 = [x] + 괄호 «as-of 는 게이트 카드 안 1줄 · 오래됨 배너 = StaleBanner · 탐색 본문의 as-of = R10c» ·
+      11번 = [x] + 괄호 «git grep -nE '\b(10\.(2|4|63|85|91|96)|11\.13|12\.(6|70)|8\.38|35\.05)\b' -- lib 결과 N건» · 10번 뒷절(픽스처·골든 스냅샷) = [x] + 괄호 «git status 의 기존 PNG M 0 · domain_contracts 변경 0» ·
+      «정적» 줄은 항목마다 명령 1줄 + 결과 1줄(빠진 항목 = 보고 불일치 = 반려)
    ③ 스크린샷 서술 — 로딩·열림·닫힘·접수 실패·차단 최소 4 + 골든 표(8장: 이름·입력 픽스처·크기·위치 전제 · PNG 를 열어 배치·잘림만 · 못 본 것은 «미열람»)
    ④ 질문 표(새 행 번호·요지) ⑤ 추측한 것(없으면 «없음»)
 ```
