@@ -17,7 +17,7 @@ PR #17 의 탐색 본문에서 고지 카드(배치 10)를 카드가 정한 자�
 
 1. **「푸시해」 뒤에 보냅니다** — Claude 가 이 패킷과 원 패킷의 `_완료/` 이동을 `main` 에 올린 뒤입니다. 먼저 보내면 Bob 이 0단계에서 멈춥니다(그것이 안전장치입니다).
 2. Bob 에 «멈춘» 대화가 있으면 **강제 중지** → **새 대화(new task)** 로 시작합니다. 🔴 1회차를 보낸 대화를 이어 쓰지 않습니다(Bob 은 1회차를 기억하지 못한다는 전제로 본문을 썼습니다).
-3. 패킷은 **`C:\Work\AAQ-claude\docs\ai-context\send\R10c-Bob-S72-재제출.md`** 에서 엽니다(Bob 폴더는 PR 브랜치라 병합 전에는 이 파일이 없습니다 · 그 폴더가 아직 최신 `main` 을 받지 않았으면 GitHub 의 `main` 에서 · 보낼지는 GitHub `main` 에 있는지로 판단).
+3. 패킷은 **GitHub `main`** 에서 엽니다 — <https://github.com/billybeom/AutoAlphaQuant/blob/main/docs/ai-context/send/R10c-Bob-S72-%EC%9E%AC%EC%A0%9C%EC%B6%9C.md> (로컬 사본 = Claude 기록 폴더 `C:\Work\AAQ-claude-r10\docs\ai-context\send\R10c-Bob-S72-재제출.md` · 글자 같음). 🔴 `C:\Work\AAQ-claude\` 는 최신 `main` 을 받지 않아 이 파일이 없고, Bob 폴더 `C:\Work\Bob\AutoAlphaQuant\` 는 PR 브랜치라 **1회차 카드 `R10c-Bob-S72.md` 만** 있습니다(그것을 보내면 안 됩니다). 보낼지는 GitHub `main` 에 있는지로 판단합니다. (2026-09-30 고침 — 처음 판은 `AAQ-claude` 폴더를 가리켰다)
 4. 붙여넣을 것은 아래 «3» 의 본문 **전부**(첫 줄 «R10c-Bob-S72 재제출 요청» ~ «■ 제출» 끝) · 고치지 않습니다. 새 대화라 규칙 요약 · 카드 배치 · 자체 점검 12항 복사 상자 · 정적 22줄 묶음이 본문에 들어 있습니다.
 5. 🔴 **파일 이름 주의** — `send/` 바로 아래에서 R10c 패킷은 **이것 하나**(`R10c-Bob-S72-재제출.md`)입니다. 원 패킷 `R10c-Bob-S72.md`(꼬리 없음)는 `send/_완료/` 로 옮겼습니다(다시 보내면 Bob 이 새 브랜치를 만들려 합니다). 이름이 비슷한 `_완료/R10b-Bob-S72G-재제출.md` 는 끝난 카드입니다(R10b · PR #16 병합됨 — 보내지 않음).
 
