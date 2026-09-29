@@ -1,10 +1,11 @@
 # 발송 패킷 R10-Bob-S7x — S7-1b 아카이브 · S7-2G 열람 게이트 · S7-2 수익률 탐색 (계약 v1.3)
 
 > ⏸ **아직 보내지 않습니다 — 보내는 때는 아래 «2»의 두 조건이 다 찬 뒤입니다**(계약 v1.3 병합 + R2b-Bob-J3 병합 · 한 번에 카드 1장).
-> 만든 날 2026-09-29 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 R10 행 · 화면 몫 원본 = 설계 저장소 `10_리뷰/2026-09-28_R10선행_계약v1.3_설계서.md` §2 Δ6 + §3 «4. 화면 구성»·«5. 증명 계획» · 조문 = `01_…` §13(13-1~13-14) · `03_…` §4·§5·§6 «🆕 계약 v1.3 — R10 범위» 블록 · golden README «🆕 R10(계약 v1.3)» 절.
-> 사전 조건 — ⬜ 계약 v1.3 병합(M2 PR · 로컬 브랜치 `m2/contract-v1.3` — 「푸시해」 뒤 PR 번호·해시를 여기에 채움) · ⬜ R2b-Bob-J3 병합. 병합 확인은 본문 0단계의 확인 줄로(해시 없이 내용으로 확인한다).
+> 만든 날 2026-09-29(검증 4갈래 반영판 — 사실 대조 · 규칙 정합 · Bob 콜드 리드 · 드라이런 구현) · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 R10 행 · 화면 몫 원본 = 설계 저장소 `10_리뷰/2026-09-28_R10선행_계약v1.3_설계서.md` §2 Δ6 + §3 «4. 화면 구성»·«5. 증명 계획» · 조문 = `01_…` §13(13-1~13-14) · `03_…` §4·§5·§6 «🆕 계약 v1.3 — R10 범위» 블록 · golden README «🆕 R10(계약 v1.3)» 절.
+> 사전 조건 — ⬜ 계약 v1.3 병합(M2 PR · 로컬 브랜치 `m2/contract-v1.3` 커밋 5개 — 「푸시해」 뒤 PR 번호·해시를 여기에 채움) · ⬜ R2b-Bob-J3 병합. 병합 확인은 본문 0단계의 확인 줄로(해시 없이 내용으로 확인한다).
 > 카드 확정값(카드 권한): 정적 라벨 16개(본문 «정적 라벨») · 위젯·프로바이더·Key·파일 이름(본문 «주입 구조») · 골든 12이름 24장.
 > 🔴 **올리는 순서(Claude)** — ① M2 PR 병합 ② 이 패킷 + `prompt_M7.md` 범위·PR 제목 치환 + `rounds.md` + `send/README.md` + 질문 파일 3개(빈 머리말)를 **같은 푸시**로 `main` 에. 0단계의 `ls` 줄이 그 증명이다.
+> 드라이런(2026-09-29): 이 본문만 읽고 (1)~(7)을 끝까지 구현해 `flutter test` 222 통과 · 새 골든 24장 · 기존 골든 변경 0 · 계약 테스트 230 유지 · 차트 3파일 차이 0 을 확인했다(구현물은 납품하지 않는다 — 화면은 Bob 몫).
 > 프롬프트 = `docs/ai-context/prompt_M7.md`(범위 치환판) — 본문에 붙이지 않고 Bob 이 저장소에서 읽습니다. 🔴 Bob **새 대화** 전제 · Bob 은 `ui_analytics` 가 처음입니다 — 0단계·규칙 요약·본받지 않는 것·코드 틀을 본문에 담았습니다.
 
 ## 0. 한 줄 목적
@@ -32,7 +33,7 @@ R10-Bob-S7x — 범위: S7-1b 월간 리포트 아카이브(ReportArchiveScreen)
   언제나 게이트로 시작하고 통과하면 같은 위젯 안에서 탐색 본문으로 바뀐다) · 공용 위젯 2개(스켈레톤·에러) · 차트 3파일(본보기를 글자 그대로 옮김).
 하지 않는 것: S7-1·S7-3·S7-3b 기존 화면 수정(S7-1 A13 «값 열 오른쪽 정렬» 포함 — 다음 카드) · 웹 2열·통계 패널·툴팁·하단 시트·차트 탭 읽기·선택 표시 · 기간 선택 UI ·
   «주» 주기 · afterTax · 「이전 기록 보기」 토글 · 절단선 · 「월 1회 권장」 문구 · 부분 동기 · 애니메이션 · 셸 몫(라우트 등록·라우터 가드·「더 보기」 진입점·실제 닫기 동작 — M8).
-🔴 이 카드가 docs/ai-context/prompt_M7.md 보다 이깁니다(아래 «프롬프트보다 이 카드가 이긴다» 15항).
+🔴 이 카드가 docs/ai-context/prompt_M7.md 보다 이깁니다(아래 «프롬프트보다 이 카드가 이긴다» 16항).
 
 ■ 0단계 — 대상 확인 (새 대화라면 아무것도 읽기 전에 이것부터)
 이 카드는 R2b(ui/m6-j3-complete · 병합됨)가 아닙니다. ui/m6-* 브랜치는 건드리지 않습니다(로컬 삭제도 안 함).
@@ -45,11 +46,16 @@ R10-Bob-S7x — 범위: S7-1b 월간 리포트 아카이브(ReportArchiveScreen)
      ← 🔴 git checkout main 금지 — main 은 통합 담당 폴더(같은 저장소의 다른 worktree)에 체크아웃돼 있어 git 이 거부합니다.
   git grep -c "contractVersion = '1.3.0'" -- packages/domain_contracts/lib/src/contract_version.dart     ← «…contract_version.dart:1»(계약 v1.3 병합)
   ls docs/ai-context/send/R10-Bob-S7x.md                                                                ← 보여야 올바른 기준(이 카드가 main 에 있다)
-  ls packages/ui_analytics/test/golden/chart_probe.dart packages/ui_analytics/test/golden/reference/chart/perf_chart_painter.dart   ← 두 줄
-  ls packages/domain_contracts/fixtures/m7/m7_disclosure_view_receipts_4.json packages/domain_contracts/fixtures/m7/m7_perf_monthly_sim_split.json   ← 두 줄
+  ls packages/ui_analytics/test/golden/chart_probe.dart                                                 ← 보여야 함
+  ls packages/ui_analytics/test/golden/reference/chart/perf_chart_painter.dart                          ← 보여야 함
+  ls packages/domain_contracts/fixtures/m7/m7_disclosure_view_receipts_4.json                           ← 보여야 함
+  ls packages/domain_contracts/fixtures/m7/m7_perf_monthly_sim_split.json                               ← 보여야 함
   ls packages/ui_journal/lib/src/journal_read.dart                                                      ← 보여야 R2b 가 병합된 것입니다
-  ls docs/ai-context/inbox/S7-1b_questions.md docs/ai-context/inbox/S7-2G_questions.md docs/ai-context/inbox/S7-2_questions.md      ← 세 줄(빈 표가 이미 있다)
-     (하나라도 «없음»·출력 없음이면 멈추고 채팅으로 — 병합보다 카드가 먼저 왔습니다. ls 가 없는 셸이면 dir ·
+  ls docs/ai-context/inbox/S7-1b_questions.md                                                           ← 보여야 함(빈 표가 이미 있다)
+  ls docs/ai-context/inbox/S7-2G_questions.md                                                           ← 보여야 함
+  ls docs/ai-context/inbox/S7-2_questions.md                                                            ← 보여야 함
+     (🔴 경로는 한 줄에 하나 — PowerShell 은 둘째 경로를 필터로 읽어 첫 파일만 보인다.
+      하나라도 «없음»·출력 없음이면 멈추고 채팅으로 — 병합보다 카드가 먼저 왔습니다. ls 가 없는 셸이면 dir ·
       && 가 안 되는 셸(Windows PowerShell 5.1)이면 명령을 한 줄씩 따로 돌린다)
   melos.bat bootstrap
   melos.bat run build:gen   ← 🔴 필수 — 계약 v1.3 새 타입(PerfAxisTick …)과 새 필드의 생성물은 git 에 없습니다(안 하면 «타입 없음·필드 없음» 가짜 오류).
@@ -61,31 +67,36 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
  1 고치는 곳 = packages/ui_analytics + docs/ai-context/inbox 만. 고치면 반려: domain_contracts/**(픽스처·testing.dart 포함) · pubspec.yaml(차트 패키지 추가 = C-3 실패) · analysis_options.yaml ·
    test/flutter_test_config.dart · test/golden/ 의 golden_support·shift_tolerant_compare·comparator_test·chart_probe·chart_probe_test·reference/**·s71_golden_test·s73_golden_test·README ·
    goldens/s71_*.png · s73_*.png · s73b_*.png(기존 18장 — 하나라도 M 이면 되돌리고 멈춤 · 예외 없음) ·
-   기존 화면 3파일(monthly_report·drawdown_context·contribution)·기존 위젯 3파일(stale_banner·safety_block_banner·trust_badge_view)·기존 테스트 3파일.
- 2 03 본문의 구 초안(§4·§5·§6 「데이터」·「컴포넌트」·「상태」·「모의」 줄과 그림 M7-8~M7-12)은 03 «계약 v1.3 — R10 범위» 블록과 01 §13 에 집니다.
+   기존 화면 3파일(monthly_report·drawdown_context·contribution)·기존 위젯 3파일(stale_banner·safety_block_banner·trust_badge_view)·
+   기존 테스트 4파일(contribution_view·drawdown_context_view·monthly_report_view + 자리표시 ui_analytics_test — 지우지도 고치지도 않는다).
+ 2 03 본문의 구 초안(§4·§5·§6 「데이터」·「컴포넌트」·「상태」·「모의」 줄과 그림 M7-8~M7-12)은 03 의 R10 범위 블록 3개(머리글 «🆕 계약 v1.3 — `S7-1b` R10 범위» 등)와 01 §13 에 집니다.
  3 이동 = AppLinkOpener.open(link) 하나(analyticsLinkOpenerProvider · 탭 콜백 안 ref.read) · 'aaq://'·'handbook://' 리터럴·조립·파싱 금지(lib·테스트) · 링크 null = 부재(비활성 아님) ·
    Navigator 금지 · 플랫폼 판정(kIsWeb·Platform.*) 금지 · 공개 위젯에 콜백 매개변수 금지(공개 위젯 2개의 생성자에는 key 뿐 — 내부 위젯은 콜백을 가져도 된다).
    R10 의 세 화면이 쓰는 고정 상수는 셋뿐: AppNavActions.back(「돌아가기」) · AppRoutes.performanceDrawdown · AppRoutes.performanceContribution.
  4 값 = DTO 의 *Text·*Label·*Line·label·headline 그대로 · 계약이 주는 값은 전부 그린다(이 카드가 «읽지 않는다»고 적은 필드는 예외 — 아래 5) · 원값(double·int·DateTime)·.wire 표시 금지 ·
    폴백 문구 금지 · 색 = Theme.of(context).colorScheme(Colors.* 금지) · 값의 부호로 색을 고르지 않음 · 한국어 리터럴 = lib/l10n/labels.dart 의 AnalyticsLabels 에만(테스트에도 금지).
  5 읽지 않는 필드(카드가 정함 — 질문 아님): PerfPoint.value · gapReasonCode · date / PerfSegment.from · to / PerformanceSeries.metric · granularity · cumulative(되돌아온 요청 인자) · afterTax /
-   PerfDisclosure.interstitialText · viewCountThisMonth / DisclosureGateVm.route / ReportArchiveRow.yyyyMm 은 Key 에만.
+   PerfDisclosure.interstitialText · viewCountThisMonth / DisclosureGateVm.route / ReportArchiveRow.yyyyMm 은 Key 에만 /
+   CommandReceipt 는 stateLabel(그린다)과 commandId(watchCommand 인자) 둘만 읽는다.
    🔴 PerfPoint.value 는 C-36 ⑦ 이 빌드를 깬다 — 차트·탐색 파일에 «.value»(괄호가 바로 오는 Future.value( 와 valueOrNull 은 통과)나 PerfPoint(:value) 패턴 분해가 있으면 실패.
-      그 파일들에서는 MapEntry 의 .value 도 쓰지 않는다(패턴 분해 (k, v) 로).
+      그 파일들에서는 MapEntry 의 .value 도 · AsyncValue 의 .value 도 쓰지 않는다(when(…)·valueOrNull · 패턴 분해 (k, v) 로).
  6 화면 산술은 «엔진이 준 0.0~1.0 정규값 × 폭·높이» 하나뿐(차트 3파일 안에 이미 있다). 최솟값·최댓값·합·차·누적곱·이동평균 · 정규값이나 value 를 글자로(toStringAsFixed·NumberFormat — C-36 ⑧) ·
    결측 보간·직전 값 유지·0 대입 · 점·행 수를 글자로 — 전부 금지. 목록을 거르지도 세지도 정렬하지도 묶지도 않는다.
  7 switch 는 열거값 전수 — C-12 가 ui_*/lib 의 «전부 받기»(default: · _ => · case _: · T _ => · final x => · case final x:)를 기계로 막는다.
    이 카드에서 열거형 switch 는 차트 3파일의 SegmentKind 뿐이다 — 🔴 CommandState 로 갈래·문구를 고르지 않는다(lib 에 CommandState 0건) · rejectReasonCode 를 읽지 않는다.
  8 시계 = analyticsClockProvider(DateTime.now() 금지). 쓰는 자리는 둘: ① StaleBanner(기존 위젯이 한다) ② DisclosureViewEvent.viewedAt. 머문 시간을 재지 않는다.
-   공통 상태 = 스켈레톤(스피너 금지) · 에러 = 마지막 성공 asOf.label + AnalyticsLabels.retryButton + ref.invalidate · 오래됨 = StaleBanner(asOf:) · 차단 = SafetyBlockBanner 만(값을 가리지 않는다).
- 9 공개 위젯은 본문만(Scaffold·AppBar·SafeArea 금지) · 띠 높이 예약 금지 · Row 안 엔진 문자열은 Expanded/Flexible · 엔진 문장에 FittedBox 금지 · 말줄임·maxLines 금지(차트 눈금 글자만 예외 — 본보기 그대로) ·
+   공통 상태 = 스켈레톤(스피너 금지) · 에러 = 마지막 성공 asOf.label(없으면 null — 탐색 시리즈 에러는 열쇠가 바뀌어 앞 값이 없으니 늘 null) + AnalyticsLabels.retryButton + ref.invalidate ·
+   오래됨 = StaleBanner(asOf:) · 차단 = SafetyBlockBanner 만(값을 가리지 않는다) · 🔴 로딩·에러 상태에서는 두 배너를 그리지 않는다(기존 화면과 같다 — 값이 온 뒤에만).
+ 9 공개 위젯은 본문만(Scaffold·AppBar·SafeArea 금지) · 띠 높이 예약 금지 · Row 안 엔진 문자열은 Expanded/Flexible(이 카드가 배치에 맨 Text·Chip 으로 적은 짧은 글자 —
+   값 표의 valueText 칸 · 아카이브 행의 모드 칩 — 는 예외 · 적힌 대로 짓는다) · 엔진 문장에 FittedBox 금지 · 말줄임·maxLines 금지(차트 눈금 글자만 예외 — 본보기 그대로) ·
    390px overflow 0 · 엔진 문자열이 이미 말한 것을 정적 제목으로 다시 말하지 않는다.
 10 주입 프로바이더만 throw 기본값(데이터 프로바이더는 throw 금지) · 이름·타입은 아래 «주입 구조» 고정 · 새 프로바이더는 analytics_providers.dart 에(타입 명시) ·
-   오프너·CommandApi·시계는 탭 콜백 안에서 ref.read — build 에서 read 금지. 🔴 새 데이터 프로바이더 3개는 전부 autoDispose(기존 3개를 본뜨지 않는다 — 본뜨면 월→일→월에서 호출이 0).
+   오프너·CommandApi·시계는 탭 콜백 안에서 ref.read(예외 하나 — 기록 줄 구독은 PerformanceExploreBody.initState 에서) — build 에서 read 금지. 🔴 새 데이터 프로바이더 3개는 전부 autoDispose(기존 3개를 본뜨지 않는다 — 본뜨면 월→일→월에서 호출이 0).
 11 테스트 = testing.dart 받침대 extends(UnimplementedPerformanceRepository · UnimplementedCommandApi · UnimplementedSafetyRepository — 새 가짜에 implements 금지) · 받은 인자 전부 기록 ·
    호출마다 새 Future/Stream · 전제는 expect(조용한 return·if 건너뛰기 금지) · 동작은 UI 를 실제로 눌러서(프로바이더·State 에 값을 직접 넣지 않는다) ·
    🔴 자기가 주입한 값을 그대로 확인하는 테스트 금지 · 늘 참인 단언 금지 · 정상 상태 테스트는 expect(find.text(AnalyticsLabels.retryButton), findsNothing) + 양성 기준점 1 ·
-   DTO·CommandReceipt 를 지어 넣지 않는다(픽스처 행에서 — 예외는 기하 단위 테스트 U2 하나) · 링크는 RecordingLinkOpener 를 픽스처 값·상수와 비교.
+   DTO·CommandReceipt 를 지어 넣지 않는다(픽스처 행에서 — 예외는 기하 단위 테스트 U2 하나) · 링크는 RecordingLinkOpener 를 픽스처 값·상수와 비교 ·
+   픽스처마다 갈리는 단언은 if/else **양쪽에** expect(있으면 1 · 없으면 그 Key 0 — 한쪽만 쓰면 조건부 단언) · 테스트 이름은 번호 + ASCII(예 'A3 not-generated row: reason shown, no link').
 12 차트의 증명 = test/golden/chart_probe.dart 의 expect* 네 함수만(M2 소유 · 기대값은 픽스처에서 하네스가 계산한다). 차트 단언을 직접 짜지 않는다. 골든은 보조.
 13 골든 = 이 카드의 새 PNG 24장만 · --update-goldens 는 새 테스트 파일 셋을 지정(폴더 지정 금지) · golden:approved 는 안 붙임 · 찍기 전 위치 전제(맨 아래 위젯의 dy < 높이).
 14 도구 = format:fix → format·analyze(--fatal-infos)·test·test:contracts SUCCESS · Windows 의 melos 는 안쪽 실패를 SUCCESS 로 낼 수 있다 — 출력에 «Some tests failed»·«FAILED» 0건을 눈으로 확인 ·
@@ -96,7 +107,7 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
 🔴 보고 규칙(R2 재제출 교훈) — 채팅 보고에는 코드·파일·PNG 에 실제로 있는 것만 적습니다. 시도하지 않은 것을 «시도했다»고 쓰지 않고, 골든 표는 PNG 를 열어 픽스처와 대조한 뒤 «배치·잘림»만 적습니다
    (글자는 테스트 글꼴이라 네모). 자체 점검 ② 는 prompt_M7.md 154~168행 **12항** 원문 번호 그대로. 질문 파일 새 행의 상태는 «⬜ 미답» · 답 칸 비움. 카드가 정한 것은 추측 행으로 적지 않습니다.
 
-■ 프롬프트보다 이 카드가 이긴다 (prompt_M7.md 행 번호 · 그 파일은 «치환값 외 무수정»이라 여기서 덮습니다)
+■ 프롬프트보다 이 카드가 이긴다 — 16항 (prompt_M7.md 행 번호 · 그 파일은 «치환값 외 무수정»이라 여기서 덮습니다)
  ① 9~11행 «의존 … 추가하려면 먼저 질문» → 추가 없음(차트는 CustomPaint · pubspec 불변) ② 12~13행 라우트 상수 딥링크 → DTO 링크를 AppLinkOpener.open 에 · 고정 상수는 규칙 3 의 셋뿐
  ③ 14~16행 DateTime.now() 금지 → 그대로 + 주입 시계의 둘째 자리 = viewedAt(01 §13-6) ④ 19~21행 «산술 입력은 0.0~1.0 정규값» → 그대로 유효(그래서 PerfPoint.value 를 읽지 않는다)
  ⑤ 31~32행 C-6(PerformanceSeries 참조 = 실패) → 그 검사의 대상은 홈·알림·셸이다 · S7-2 는 PerformanceSeries 를 쓰는 화면이다 ⑥ 38~41행 자리표시자 → 링크 null = 부재
@@ -105,27 +116,31 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
  ⑪ 97~99행 TODO(question-3)·«M2 미정의» → 질문 파일로 · 세 화면의 타입은 코드에 확정 ⑫ 102~106행 역할 문단 → 범위 = 이 카드의 세 화면 · 폰 세로 하나
  ⑬ 109~114행 «읽을 문서 5개» → 아래 «먼저 읽을 것» ⑭ 116행 브랜치 형식 → ui/m7-s71b-archive
  ⑮ 123~125행 기간 프리셋 → 이 카드에는 기간 선택이 없다(DateRange·ConfigRepository 가 나오지 않는다) · 150행 «주 … 미정 시 비활성» → 선택지 자체가 없다 · 153행 «명세 §12와 1:1» → 무시
+ ⑯ 118~120행 «① 격리된 위치 ② 인터스티셜 ③ 열람 기록을 전부» → 이 카드의 몫은 ② 게이트와 ③ recordDisclosureView 둘이다 · ① 격리 위치(라우트·진입점)는 셸(M8) ·
+    «월간 리포트에 열람 횟수 표기»는 S7-1(이미 병합)
  (93~94행 «기존 스냅샷을 다시 찍는 것은 위조»는 그대로 유효 — 이 카드에는 예외가 없다.)
 
 ■ 먼저 읽을 것 (🔴 02·04·05 명세는 읽지 않음 · 03 은 아래 ③ 의 블록만)
  ① prompt_M7.md 전문 ② 01 §13 전체(13-1~13-14 — 특히 13-2 허용·금지 표와 층 표 · 13-5 · 13-6 · 13-8) + §4-2 «Future 에러 = 접수 실패» + §12-3(접수 실패 1줄 5원칙) + §11-1(링크 4조)
- ③ 03 §4·§5·§6 의 «🆕 계약 v1.3 — R10 범위» 블록 3개(각 절 「모의」 줄 바로 아래 · 그림 앞 — 그림과 위쪽 본문은 «구 초안»이라 블록이 이긴다)
+    (01 §13 머리의 «미푸시 · 병합 전» 은 쓴 날의 상태다 — 0단계 검사가 통과했으면 병합된 것이다)
+ ③ 03 §4·§5·§6 의 R10 범위 블록 3개 — 머리글 «🆕 계약 v1.3 — `S7-1b` R10 범위» · «… `S7-2G` R10 범위» · «… `S7-2` R10 범위»(찾는 말 = «R10 범위(» ·
+    각 절 「모의」 줄 바로 아래 · 그림 앞 — 그림과 위쪽 본문은 «구 초안»이라 블록이 이긴다)
  ④ packages/domain_contracts/lib/ — src/dto/performance.dart 의 PerformanceSeries·PerfPoint·PerfSegment·PerfAxisTick·BenchmarkSeries·PerfDisclosure·ReportArchiveVm·ReportArchiveRow·DisclosureGateVm ·
     src/repositories/performance_repository.dart(series · reportArchive · watchDisclosureGate) · src/commands/payloads.dart(DisclosureViewEvent) · src/commands/command_api.dart(recordDisclosureView · watchCommand) ·
     src/commands/command_receipt.dart · src/labels/disclosure_codes.dart · src/navigation/app_links.dart(규칙 4조 · AppNavActions · performanceDrawdown·performanceContribution) ·
     testing.dart(UnimplementedPerformanceRepository · UnimplementedCommandApi · UnimplementedSafetyRepository · RecordingLinkOpener)
  ⑤ packages/ui_analytics/test/golden/README.md «🆕 R10(계약 v1.3)» 절 전부(골든 표 · 위치 전제 · chart_probe 쓰는 법 · 본보기 3파일 옮기는 법) + «규칙»·«하네스» 절
  ⑥ 지금 코드(packages/ui_analytics) — lib/ui_analytics.dart · lib/l10n/labels.dart · lib/src/providers/analytics_providers.dart 전문 ·
-    lib/src/screens/contribution_screen.dart(화면 틀의 가장 짧은 본보기 — 틀만 본다) · lib/src/screens/monthly_report_screen.dart 의 「지난 리포트」 버튼과 «링크 있는 항목에만 버튼» 자리 ·
+    lib/src/screens/contribution_screen.dart(화면 틀의 본보기 — 틀만 본다) · lib/src/screens/monthly_report_screen.dart 의 「지난 리포트」 버튼과 «링크 있는 항목에만 버튼» 자리 ·
     lib/src/widgets/stale_banner.dart · safety_block_banner.dart · test/monthly_report_view_test.dart(가짜 = extends 받침대 · 링크 기록기) · test/golden/s71_golden_test.dart · test/golden/golden_support.dart ·
     test/golden/reference/ 의 세 파일(옮길 코드) · test/golden/chart_probe_test.dart 머리(하네스를 부르는 모양)
- ⑦ packages/domain_contracts/fixtures/README.md 의 v1.3 절 + 이 카드가 쓰는 픽스처 15건(아래 «픽스처») ⑧ docs/ai-context/inbox/README.md · 새 질문 파일 3개의 머리말
+ ⑦ packages/domain_contracts/fixtures/README.md 의 v1.3 절 + 이 카드가 쓰는 픽스처 15건 + 안전 상태 1건(아래 «픽스처») ⑧ docs/ai-context/inbox/README.md · 새 질문 파일 3개의 머리말
 
 ■ 본받지 않는 것 (ui_analytics 의 기존 코드·문서에 남아 있는 옛 모양 — 고치지도 베끼지도 않는다)
  · 화면 3파일의 _buildSkeletonLoader·_buildErrorState 복붙 · Colors.grey · ElevatedButton 재시도 → 새 화면은 AnalyticsSkeleton·AnalyticsErrorView(colorScheme · FilledButton)
  · analytics_providers.dart 의 비-autoDispose family 3개 → 새 것은 autoDispose
  · 테스트의 class … implements SafetyRepository · «if (x != null) { expect… }» 조건부 단언 · 매 테스트 ProviderScope 통째 반복 → 받침대 extends · 전제는 expect · _pump 도우미를 만들어 쓴다
- · 패키지 README·pubspec 주석의 «차트 라이브러리» 이야기 → 차트는 CustomPaint(의존 3개 고정)
+ · 차트 = CustomPaint(의존 3개 고정) — 패키지 README «차트» 절과 pubspec 주석이 같은 말을 한다
  · ValueKey('bar_…') 모양의 Key → 새 Key 는 화면id-하이픈(s71b-… · s72g-… · s72-…)
 
 ■ 주입 구조 (이름·타입 고정 · 계약 변경 없음)
@@ -158,14 +173,16 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
     widgets/analytics_error_view.dart   const AnalyticsErrorView({super.key, required this.onRetry, this.lastAsOfLabel})   — (있으면) 라벨 → 아이콘 → FilledButton(AnalyticsLabels.retryButton)
     screens/report_archive_screen.dart          const ReportArchiveScreen({super.key})          — ConsumerWidget · 공개
     screens/performance_explore_screen.dart     const PerformanceExploreScreen({super.key})     — ConsumerStatefulWidget · 공개
-    screens/explore/disclosure_gate_view.dart   DisclosureGateView(내부 — 게이트 그림)
+    screens/explore/disclosure_gate_view.dart   DisclosureGateView(내부 — 게이트 그림 · 생성자 매개변수는 재량)
     screens/explore/performance_explore_body.dart   PerformanceExploreBody({super.key, required this.receipt})(내부 — 탐색 본문)
     chart/perf_chart_geometry.dart · chart/perf_chart_painter.dart · widgets/perf_chart.dart   — 본보기 3파일을 글자 그대로
-· 배럴 lib/ui_analytics.dart = 머리 주석 유지 + export **2줄만** 추가: 'src/screens/report_archive_screen.dart' · 'src/screens/performance_explore_screen.dart'.
+· 배럴 lib/ui_analytics.dart = 머리 주석 유지 + export **2줄만** 추가: 'src/screens/performance_explore_screen.dart' · 'src/screens/report_archive_screen.dart'.
+  🔴 export 는 알파벳 순서다(directives_ordering · --fatal-infos) — performance_explore_screen 은 monthly_report_screen 바로 다음 줄 · report_archive_screen 은 맨 끝 줄. 끝에 차례로 붙이면 analyze 가 실패한다.
   🔴 explore/ · chart/ · perf_chart · analytics_skeleton · analytics_error_view 는 export 하지 않는다. 테스트는 package:ui_analytics/src/… 로 직접 import.
 
 ■ 픽스처 (FixturePaths.… · 읽는 법은 golden_support.dart 의 singleFixture / listFixture / fixtureEnvelope)
- 아카이브  m7M7ReportArchive18(18행 · 최신 달부터 · 머리글 3 · 미생성 2 · 모의 3 — 링크 있는 행 13) · m7M7ReportArchiveEmpty(rows 0 + emptyLabel)
+ 아카이브  m7M7ReportArchive18(최신 달부터 18행 · 머리글 3 · 미생성 2 · 모의 3 — 링크 있는 행 13) · m7M7ReportArchiveEmpty(rows 0 + emptyLabel)
+           🔴 읽는 법 = singleFixture(…, ReportArchiveVm.fromJson) — 봉투는 1행이고 그 안의 rows 가 18이다(listFixture 로 열면 깨진다)
  게이트    m7M7DisclosureGate(열림 · 마찰 줄 있음) · m7M7DisclosureGateFirst(열림 · frictionLine 없음) · m7M7DisclosureGateFrequent(열림) · m7M7DisclosureGateClosed(gateOpen false · route 없음)
  접수증    m7M7DisclosureViewReceipts4 — listFixture(…, CommandReceipt.fromJson).rows · 🔴 행 순서 = 뜻: 0 REQUESTED · 1 EXECUTED · 2 EXPIRED · 3 HELD_FOR_INTEGRITY(거부 행은 없다)
  성과      performance24m(🔴 2행 — listFixture(…).rows[0] = 시간가중 · rows[1] = 금액가중 · singleFixture 는 던진다) · m7M7PerfDailyGap · m7M7PerfMonthlySimSplit · m7M7PerfDailyManual ·
@@ -176,8 +193,10 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
 ■ 화면 1 — S7-1b ReportArchiveScreen (03 §4 블록 · 01 §13-8)
  build: ref.watch(reportArchiveProvider) + ref.watch(safetyStateStreamProvider) → activeFlags = safety.valueOrNull?.activeFlags ?? const <BlockFlag>[].
  배치: Column[ StaleBanner(asOf: vm.asOf) , SafetyBlockBanner(activeFlags:, onOpenLink: 오프너로 open) , Expanded(ListView(padding 16)[ asOf 줄 , 행 … ]) ]
- 상태: 로딩 = AnalyticsSkeleton() / 에러 = AnalyticsErrorView(onRetry: () => ref.invalidate(reportArchiveProvider), lastAsOfLabel: 마지막 성공 asOf.label) /
-       빈(rows 0) = 배너 · asOf 줄 · emptyLabel(null 이면 글자 없음 — 폴백 금지) / 차단 = 배너만.
+ 상태: 로딩 = ListView(padding 16)[ AnalyticsSkeleton() ] / 에러 = ListView(padding 16)[ AnalyticsErrorView(onRetry: () => ref.invalidate(reportArchiveProvider),
+       lastAsOfLabel: 마지막 성공 asOf.label — 없으면 null) ] — 로딩·에러에서는 배너를 그리지 않는다 /
+       빈 = vm.emptyLabel != null 이면 asOf 줄 아래에 Text(emptyLabel)(Key s71b-empty) · 행은 받은 대로(0 개면 0 개) — 🔴 고르는 식은 emptyLabel 하나다(rows.isEmpty 로 갈래를 고르지 않는다 ·
+       null 이면 글자 없음 — 폴백 금지) / 차단 = 배너만.
  행(받은 순서 그대로):
    row.sectionLabel != null 이면 그 행 **앞에** Text(sectionLabel)(Key s71b-section-<yyyyMm>) — 🔴 앞 행과 비교하지 않는다 · 자르지 않는다
    Card → Row[ 아이콘(generated ? Icons.description_outlined : Icons.remove_circle_outline) , Expanded(Column[ Text(label) , reasonLabel != null 이면 Text(reasonLabel) ]) ,
@@ -195,7 +214,7 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
 
  게이트 상태 표 (그리는 것 / 「돌아가기」 / 「그래도 보기」 / 1줄)
   로딩(첫 값 전)          AnalyticsSkeleton(blocks: 2)            / 있음 / 없음 / —
-  스트림 에러              AnalyticsErrorView(재시도 = ref.invalidate(disclosureGateProvider)) / 있음 / 없음 / —
+  스트림 에러              AnalyticsErrorView(재시도 = ref.invalidate(disclosureGateProvider) · lastAsOfLabel = 마지막 성공 asOf.label — 없으면 null) / 있음 / 없음 / —
   열림(gateOpen true)     카드: headline · viewCountText · frictionLine(있을 때) · asOf.label / 있음 / 있음(활성) / —
   닫힘(gateOpen false)    같은 카드                                 / 있음 / 없음(부재 — 비활성 아님) / —
   제출 중                  같은 카드                                 / 있음(눌린다) / 있음(비활성) / 직전 1줄은 제출 시작 때 사라짐
@@ -204,6 +223,8 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
   오래됨·차단              카드 위에 StaleBanner(asOf: vm.asOf) · SafetyBlockBanner — 들여보낼지는 gateOpen 이 말한다(화면이 플래그로 판정하지 않는다)
  배치: Column[ StaleBanner , SafetyBlockBanner , Expanded(ListView(padding 16)[ 카드 , (접수 실패 1줄) ,
         Row[ Expanded(FilledButton 「돌아가기」) , SizedBox(width: 12) , Expanded(OutlinedButton 「그래도 보기」) ] ]) ]   ← 두 버튼은 같은 줄·같은 크기(동급 배치)
+       「그래도 보기」가 없는 상태(닫힘·로딩·에러)에서는 「돌아가기」 하나가 줄 전체 폭이다(빈 반쪽을 남기지 않는다).
+       로딩·에러도 같은 틀 — Column[ Expanded(ListView(padding 16)[ 스켈레톤 또는 에러 뷰 , 버튼 줄 ]) ] · 배너는 값이 온 뒤에만.
  「돌아가기」 = ref.read(analyticsLinkOpenerProvider).open(AppNavActions.back) · 명령 0건 · 로딩·에러·제출 중에도 항상 있고 눌린다.
  Key: s72g-card · s72g-headline · s72g-count · s72g-friction · s72g-asof · s72g-back · s72g-continue · s72g-record-not-accepted.
 
@@ -260,19 +281,24 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
         누르면 setState(() => _query = (…그 칸만 바꾼 새 레코드…)) — 재요청은 프로바이더 열쇠가 바뀌어 저절로 일어난다.
     3 series = ref.watch(performanceSeriesProvider(_query))
         로딩(첫 요청·재요청) = 토글 아래 AnalyticsSkeleton(blocks: 3) / 에러 = AnalyticsErrorView(onRetry: () => ref.invalidate(performanceSeriesProvider(_query)), lastAsOfLabel: null)
+        🔴 로딩·에러 때는 0·1·2 와 그 스켈레톤/에러 뷰만 그린다(4~13 없음).
     4 StaleBanner(asOf: series.asOf)
     5 Text(series.asOf.label) · Text(series.periodLabel)                Key s72-asof · s72-period
     6 PerfChart(series: series)                                          안쪽 CustomPaint Key s72-chart · 눈금 글자 s72-tick-<순번>(본보기가 이미 단다)
-    7 x 양 끝 글자 Row(spaceBetween)[ Flexible(Text(points.first.dateText)) , Flexible(Text(points.last.dateText)) ]      Key s72-x-first · s72-x-last
-    8 범례 — 견본 선 + Expanded(Text(series.seriesLabel)) / (benchmark != null) 견본 점선 + Expanded(Text(benchmark.label))   Key s72-legend-main · s72-legend-benchmark
+    7 x 양 끝 글자 — Padding(left: PerfChart.plotInsetLeft) 안 Row(spaceBetween)[ Flexible(Text(points.first.dateText)) , Flexible(Text(points.last.dateText)) ]   Key s72-x-first · s72-x-last
+        (왼쪽을 그림의 왼쪽 변에 맞춘다 — 숫자 64 를 적지 않고 상수를 쓴다)
+    8 범례 — 견본 + Expanded(Text(series.seriesLabel)) / (benchmark != null) 견본 + Expanded(Text(benchmark.label))   Key s72-legend-main · s72-legend-benchmark
+        견본은 색 상자다(painter·산술 없음) — 본선 = SizedBox(width: 24, height: 3) 에 colorScheme.primary · 벤치마크 = Row[ 상자 6 , 빈칸 4 , 상자 6 , 빈칸 4 , 상자 6 ](높이 2 · colorScheme.tertiary)
     9 구간 캡션 — kind != SegmentKind.measured 인 구간마다 Text(seg.label)                                                Key s72-segment-caption-<순번>
+        <순번> = series.segments 안의 자리(0 부터 · 측정 구간의 번호는 비어 있다 — 캡션을 따로 세지 않는다)
    10 고지 카드 — sampleSizeLine · honestExpectationLine · drawdownCaveatLine(있을 때)                                   Key s72-disclosure
    11 (benchmark != null) Text(benchmark.compositionNote)                                                               Key s72-benchmark-note
    12 「값 보기」/「값 접기」 TextButton + (펴졌을 때) 값 표                                                               Key s72-values-toggle · s72-values-table · 행 s72-value-row-<순번>
         표 = 머리 1줄(AnalyticsLabels.valuesColumnMain · benchmark != null 이면 valuesColumnBenchmark) + 점마다 1줄(받은 순서 · Column — 점은 많아야 60개)
-        행 = Row[ Expanded(Text(point.dateText)) , Text(point.valueText) , (benchmark != null) Text(benchmark.points[i].valueText) ] — 결측 점도 행이 있다(엔진 글자)
+        행 = Row[ Expanded(Text(point.dateText)) , 값 칸 , (benchmark != null) 값 칸 ] — 값 칸 = SizedBox(width: 88, child: Text(…valueText, textAlign: TextAlign.end))(두 값이 붙지 않게) ·
+        머리 줄도 같은 칸 폭 · 결측 점도 행이 있다(엔진 글자)
         토글을 바꿔도 _valuesOpen 은 그대로다.
-   13 이동 버튼 2개 — OutlinedButton 「낙폭 맥락 보기」 = open(AppRoutes.performanceDrawdown) · 「슬리브 기여 보기」 = open(AppRoutes.performanceContribution)   Key s72-link-drawdown · s72-link-contribution
+   13 이동 버튼 2개(세로로 쌓는다 · 각 전체 폭) — OutlinedButton 「낙폭 맥락 보기」 = open(AppRoutes.performanceDrawdown) · 「슬리브 기여 보기」 = open(AppRoutes.performanceContribution)   Key s72-link-drawdown · s72-link-contribution
   불가(series.unavailableLabel != null): 6·7·8·9·11·12 를 그리지 않고 그 자리에 불가 카드 Text(unavailableLabel)(Key s72-unavailable) — 0~5·10·13 은 그린다.
     🔴 points.isEmpty·every(null) 로 상태를 고르지 않는다 — 고르는 것은 unavailableLabel 하나다.
   구간 캡션의 kind 비교(9)는 if (seg.kind != SegmentKind.measured) 하나다(switch 아님 · 글자는 seg.label 그대로).
@@ -283,14 +309,19 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
     cp test/golden/reference/chart/perf_chart_geometry.dart lib/src/chart/
     cp test/golden/reference/chart/perf_chart_painter.dart  lib/src/chart/
     cp test/golden/reference/widgets/perf_chart.dart        lib/src/widgets/
-    diff -r test/golden/reference/chart lib/src/chart && diff test/golden/reference/widgets/perf_chart.dart lib/src/widgets/perf_chart.dart   ← 차이 0 이어야 한다(병합 검사가 본다)
+    git diff --no-index --stat test/golden/reference/chart lib/src/chart                                       ← 출력이 없어야 한다(차이 0)
+    git diff --no-index --stat test/golden/reference/widgets/perf_chart.dart lib/src/widgets/perf_chart.dart   ← 출력이 없어야 한다(병합 검사가 본다)
+    (🔴 diff -r 을 쓰지 않는다 — PowerShell 에서 diff 는 다른 명령이라 파일이 같아도 차이가 찍힌다 · mkdir·cp 가 안 되는 셸이면 편집기로 복사)
   🔴 옮긴 파일을 고치지 않는다(이름·색·굵기·층 순서·여백 — 하네스와 맞물린 계약이다). 고치고 싶으면 질문 파일에. 본보기 원본은 지우지 않는다.
   차트 상자 = PerfChart(series:) 하나. 바깥 여백은 ListView 의 padding 이 준다(차트 안쪽에 여백을 더하지 않는다).
+  01 §13-2 의 «위아래 12» 는 PerfChart 안에 이미 있다 — 밖에서 Padding 을 더 주지 않는다.
 
 ■ 할 일 — 이 순서로, 단계마다 커밋(예 «[M7] R10 (1) 주입·공용 위젯·라벨») · 테스트는 그 단계 커밋에 함께
  (1) 주입·데이터 프로바이더 4개 + typedef · AnalyticsSkeleton · AnalyticsErrorView · 정적 라벨 16개(기존 화면·위젯 무변경 — flutter test 가 기존 95건 그대로 통과).
  (2) S7-1b ReportArchiveScreen + 배럴 export 1줄 + test/report_archive_view_test.dart(A1~A9).
- (3) PerformanceExploreScreen(게이트 + 합성) + DisclosureGateView + PerformanceExploreBody 의 **껍데기**(기록 줄만) + 배럴 export 1줄 + test/performance_explore_gate_test.dart(G1~G14).
+ (3) PerformanceExploreScreen(게이트 + 합성) + DisclosureGateView + PerformanceExploreBody 의 **껍데기**(기록 줄 + watchCommand 구독 + ref.watch(performanceSeriesProvider(_query)) 호출까지 —
+     결과는 스켈레톤·에러 뷰로만 그린다 · 그림은 (5)) + 배럴 export 1줄 + test/performance_explore_gate_test.dart(G1~G14).
+     🔴 껍데기가 series 를 부르지 않으면 G3 의 «series 1» 이 실패한다.
  (4) 차트 3파일 옮기기 + test/perf_chart_geometry_test.dart(U1·U2·U4).
  (5) 탐색 본문 전부(토글·차트·글자·캡션·고지·값 표·불가 카드·이동) + test/performance_explore_view_test.dart(E1~E21 · V1~V3).
  (6) 골든 24장 — test/golden/s71b_golden_test.dart · s72g_golden_test.dart · s72_golden_test.dart.
@@ -310,12 +341,18 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
   가짜 series() 의 답 = (twr·monthly·true → performance24m 행 0) · (mwr·monthly·true → 행 1) · (twr·daily·true → m7M7PerfDailyGap) · (twr·yearly·true → m7M7PerfYearly) ·
   (twr·monthly·false → m7M7PerfMonthlyPeriod) · 그 밖 = performance24m 행 0(값이 아니라 호출을 본다) — 받은 네 인자(metric·granularity·cumulative·range)를 호출마다 기록.
   토글을 누른 뒤에는 pump 를 한 번 더(autoDispose 가 옛 열쇠를 버릴 틈).
+  가짜 series() 는 둘이다 — ⓐ 호출 테스트(E1~E10 · V3)는 위 표의 가짜 ⓑ 그림 테스트(E11~E21 · V1·V2)와 골든은 «인자가 무엇이든 그 테스트의 픽스처 하나를 돌려주는» 가짜(받은 인자 기록은 같다).
+  가짜 CommandApi 는 recordDisclosureView 와 watchCommand 를 **둘 다** override 한다(받침대는 던진다 — 안 하면 탐색 본문의 initState 가 던진다) ·
+    watchCommand 의 기본 답 = Stream<CommandReceipt>.value(접수증 행 0)(호출마다 새로) · G7 만 StreamController.
+  StreamController 는 만든 줄 바로 뒤 addTearDown(controller.close)(close_sinks 린트 · analyze --fatal-infos) · add·addError 직후는 await tester.pump(Duration.zero)(pump() 한 번은 반영되지 않는다).
+  가짜와 _pump 도우미는 test/explore_fakes.dart 한 파일에 모아도 된다(도우미라 «새 테스트 파일 4» 에 세지 않는다 · 골든 테스트는 '../explore_fakes.dart' 로 import).
 S7-1b — test/report_archive_view_test.dart
  A1 18행 Key 전부 있음 · 행의 세로 자리(dy)가 픽스처 순번대로 커진다(화면이 뒤집지 않았다).
  A2 전 행의 label·modeLabel 글자가 픽스처와 같다(find.descendant(of: 행 Key, matching: find.text(…))).
- A3 미생성 행(generated false)을 누른다 → reasonLabel 1 · opener.opened 비어 있음 · 그 행에 Icons.chevron_right 0.
+ A3 미생성 행(generated false)을 누른다 → 그 행 안에서(find.descendant(of: 행 Key, matching: find.text(reasonLabel))) 1 · opener.opened 비어 있음 · 그 행에 Icons.chevron_right 0.
+    (같은 사유 글자가 다른 행에도 있다 — 화면 전체에서 find.text 로 세면 1 이 아니다)
  A4 링크 있는 행을 누른다 → opener.opened == <String>[row.route!].
- A5 모의 행(generated true · route null)을 누른다 → opened 비어 있음 · reasonLabel 1(generated 로 고르지 않았다는 증명).
+ A5 모의 행(generated true · route null)을 누른다 → opened 비어 있음 · 그 행 안에서 reasonLabel 1(generated 로 고르지 않았다는 증명).
  A6 빈 픽스처 → emptyLabel 글자 1 · 행 Key 0 · retryButton 0.
  A7 끝나지 않는 Future → AnalyticsSkeleton 1 / 던지는 가짜 → retryButton 1 → 누른다 → reportArchive 호출 2회.
  A8 시계 +3일 → staleBannerTitle 1(신선하면 0) / safetyStates 행 3 → 그 플래그 label 글자 2.
@@ -324,11 +361,12 @@ S7-1b — test/report_archive_view_test.dart
  G1 띄운다(m7M7DisclosureGate) → headline·viewCountText·frictionLine 글자 · 버튼 2 · find.byKey(const Key('s72-chart')) 0 · series 호출 0 · 명령 0.
  G2 「돌아가기」 → opener.opened == <String>[AppNavActions.back] · 명령 0 · series 0.
  G3 「그래도 보기」(명령 = 접수증 행 0) → 명령 1 · event.surfaceCode == DisclosureSurfaceCodes.performanceExplore · event.viewedAt == kGoldenNowUtc · event.durationSec == 0 ·
-    s72-record-line 글자 = 행 0 의 stateLabel · series 1 · watchCommand 가 받은 id == 행 0 의 commandId.
+    s72-record-line 글자 = 행 0 의 stateLabel · series 1 · watchCommand 가 받은 id == 행 0 의 commandId ·
+    opener.opened 비어 있음(「그래도 보기」는 어떤 링크도 열지 않는다 — vm.route 포함).
  G4 명령을 Completer 로 멈춘다 → 「그래도 보기」 비활성(다시 눌러도 명령 1) · 「돌아가기」는 눌린다(opened 1) ·
     그 뒤 트리를 pumpWidget(const SizedBox()) 로 내리고 Completer 를 끝낸다 → 예외 없음(tester.takeException() == null).
  G5 명령이 던진다 → 게이트 그대로 · s72g-record-not-accepted 1 · takeException 비null · series 0 → 다시 누른다(이번엔 접수증 행 0) → 그 줄 0 · 명령 누계 2 · 탐색 본문.
- G6 첫 접수증을 4행 각각으로(testWidgets 넷) → 전부 탐색 본문(s72-record-line 1) · 글자 = 그 행의 stateLabel.
+ G6 첫 접수증을 4행 각각으로(testWidgets 넷) → 전부 탐색 본문(s72-record-line 1) · 글자 = 그 행의 stateLabel · opener.opened 비어 있음.
  G7 watchCommand 가 행 1 을 낸다 → 기록 줄 글자가 행 1 의 stateLabel 로 / watchCommand 가 에러를 낸다 → 마지막 글자 유지 + takeException 비null.
  G8 닫힌 게이트 → s72g-continue 0 · s72g-back 1 · headline 글자 1 · 명령 0.
  G9 첫 열람 게이트 → s72g-friction 0 · viewCountText 글자 1.
@@ -343,20 +381,23 @@ S7-1b — test/report_archive_view_test.dart
  E2 「금액가중」 → 2건 · 마지막의 metric 만 mwr.   E3 「일」 → +1 · granularity daily.   E4 「년」 → +1 · yearly.   E5 「기간별」 → +1 · cumulative false.
  E6 월 → 일 → 월 → 매번 +1(마지막 기록 = monthly · 캐시 적중 0).
  (E7·E17 은 없는 번호다 — 설계에서 뺐다: «이미 고른 칸 다시 누르기»는 증명이 아니고 차트 탭 읽기는 이 카드에 없다.)
- E8 기록 전체에 PerfGranularity.weekly 0 · 주기 칸의 글자 = 일·월·년 3개뿐(find.text 로 셋 · 넷째 없음).
+ E8 기록 전체에 PerfGranularity.weekly 0 · tester.widget<SegmentedButton<PerfGranularity>>(find.byKey(const Key('s72-toggle-granularity'))).segments 의 value 목록 ==
+    <PerfGranularity>[daily, monthly, yearly] · AnalyticsLabels.granularityDaily·granularityMonthly·granularityYearly 글자 각 1.
  E9 던지는 가짜 → retryButton → 누른다 → +1 · 같은 인자.
  E10 재요청을 Completer 로 멈춘다 → 토글 3줄 있음 · s72-chart 0 · AnalyticsSkeleton 1.
- E11 성과 픽스처 9건마다(정상 7 시리즈 + 불가 2) → sampleSizeLine·honestExpectationLine 각 1 · drawdownCaveatLine 있으면 1 · find.text(disclosure.interstitialText) 0.
+ E11 성과 시리즈 9개마다(파일 8개 — 정상 7 시리즈 + 불가 2 · performance24m 만 2행) → sampleSizeLine·honestExpectationLine 각 1 ·
+     전제 expect(disclosure.drawdownCaveatLine, isNotNull)(9개 전부 있다) 뒤 그 글자 1 · find.text(disclosure.interstitialText) 0.
  E12 정상 시리즈 7개마다 → expectMainLineMatches(recordChart(tester), series, chartSchemeOf(tester))   ← 수용 (a) 의 주 증명
- E13 같음 → expectBandsMatch.   E14 같음 → expectBenchmarkMatches · benchmark == null 이면 s72-legend-benchmark 0 · s72-benchmark-note 0.
+ E13 같음 → expectBandsMatch.   E14 같음 → expectBenchmarkMatches · benchmark 가 있으면 s72-legend-benchmark 1 · s72-benchmark-note 1, 없으면 둘 다 0(양쪽 다 단언).
  E15 같음 → expectTicksMatch · yTicks 의 label 글자 각 1 · 눈금 글자의 오른쪽 끝 ≤ 차트(s72-chart)의 왼쪽 변(tester.getRect).
- E16 측정 아닌 구간의 label 각 1 · 측정 구간의 label(«측정 구간») 0.
+ E16 측정 아닌 구간의 seg.label 각 1 · 측정 구간(kind == measured)의 seg.label 을 픽스처에서 읽어 find.text 0.
  E18 불가 2건 → unavailableLabel 글자 1 · find.byKey(kChartProbeKey) 0(🔴 recordChart 를 부르지 않는다) · s72-tick-* · s72-legend-main · s72-values-toggle 0 · 고지 카드 1 · 이동 버튼 2.
  E19 points.first.dateText · points.last.dateText · periodLabel · seriesLabel · asOf.label 글자 각 1.
  E20 이동 버튼 → opened == <String>[AppRoutes.performanceDrawdown] / <String>[AppRoutes.performanceContribution].
  E21 시계 +3일 → staleBannerTitle 1 / safetyStates 행 3 → 배너.
  V1 기본 접힘 — s72-value-row-* 0 · find.text(AnalyticsLabels.valuesShowButton) 1.
- V2 「값 보기」 → 행 수 = series.points.length · 첫·끝·결측 순번 행의 dateText·valueText 글자 = 픽스처 · 벤치마크가 있으면 같은 순번 valueText 도 · 버튼 글자 = valuesHideButton.
+ V2 「값 보기」 → 행 수 = series.points.length · 첫·끝·결측 순번 행의 dateText·valueText 글자 = 픽스처(행 Key 안에서 찾는다) · 벤치마크가 있는 시리즈는 같은 순번 valueText 도 1,
+    없는 시리즈는 머리 줄에 valuesColumnBenchmark 0(양쪽 다 단언) · 버튼 글자 = valuesHideButton.
  V3 편 채로 「일」 → 여전히 펴져 있고 행이 새 시리즈(m7M7PerfDailyGap)의 것으로 바뀐다(행 수 = 새 points.length · 첫 행 dateText = 새 points.first.dateText).
 기하 — test/perf_chart_geometry_test.dart
  U1 splitRuns(픽스처의 points) 가 아래 표와 같다(표는 M2 가 픽스처에서 뽑았다 — 계약 테스트 C-36 이 같은 픽스처를 지킨다):
@@ -364,8 +405,11 @@ S7-1b — test/report_archive_view_test.dart
       m7M7PerfDailyManual → (0,20) / m7M7PerfMonthlyPeriod → (0,5) (8,23) · 벤치마크 (0,23) / m7M7PerfYearly → (0,2)
  U2 경계(🔴 이 테스트에 한해 점을 지어도 된다 — 자리 숫자만 · 글자는 ASCII): [] → [] · [null] → [] · [v] → [(0,0)] · [null,v,null] → [(1,1)] · [v,null,null,v] → [(0,0),(3,3)].
  U4 xOf(0)·xOf(1)·yOf(0)·yOf(1) 이 plot 의 네 변 · 범위 밖 값(−0.5 · 1.5)은 변에 붙는다.
+ (U3 은 없는 번호다 — 설계에서 뺐다: 가장 가까운 점 찾기는 차트 탭 읽기의 것이고 이 카드에 없다.)
 (정적 — PR 본문 ② 에 결과를 적는다) packages/ui_analytics 에서 git grep 으로:
-  lib 에 CommandState 0 · Navigator 0 · DateTime.now 0 · kIsWeb·Platform. 0 · 'aaq:// 0 · toStringAsFixed 0 · GestureDetector 0 · Colors. 는 기존 파일에만(새 파일 0) ·
+  lib 에 CommandState 0 · Navigator 0 · DateTime.now 0 · kIsWeb·Platform. 0 · 'aaq:// 0 · toStringAsFixed 0 · GestureDetector 0 ·
+  머티리얼 색 상수 Colors 는 기존 파일에만(새 파일 0 — git grep -nw Colors -- lib 로 센다 · 옮긴 차트 파일의 PerfChartColors 는 클래스 이름이라 대상이 아니다) ·
+  lib/src/screens/report_archive_screen.dart 에 substring·startsWith·split 0 · modeLabel 은 Text 에 넘기는 1곳뿐(비교 0) ·
   lib/src/screens/explore·lib/src/chart·performance_explore_screen.dart·perf_chart.dart 에 DateRange·ConfigRepository 0 ·
   lib/src/providers 에 autoDispose 3 · lib/ui_analytics.dart 에 explore/·chart/·perf_chart 0.
 🔴 병합 검사 때 통합 담당이 넣어 볼 변이(하나라도 테스트가 그대로 통과하면 반려): 결측을 이어 그림 · 띠 누락 · 세로 뒤집힘 · 통과 전 series 호출 · family 를 비-autoDispose 로 ·
@@ -374,7 +418,9 @@ S7-1b — test/report_archive_view_test.dart
 ■ 골든 — 12이름 × light/dark = 24장(전부 신규 · golden README R10 «1»·«2» 표 그대로)
   s71b_list(390×1700) · s71b_empty / s72g_first · s72g_frequent · s72g_closed · s72g_not_accepted(열린 게이트 + 던지는 명령 가짜 · 「그래도 보기」를 1번 누른 뒤) /
   s72_monthly_cum · s72_daily_gap · s72_sim_split · s72_manual_segment · s72_monthly_period · s72_unavailable(각 390×1400 · 게이트를 실제로 눌러 들어간다 · 값 표는 접힌 채)
-  높이는 테스트 파일 안 상수로 pumpForGolden(…, logicalSize:) 에 · 찍기 전 위치 전제(README «2»의 두 줄) · 안전 상태 = 행 0.
+  가는 길은 README «1» 표의 열 그대로 — daily_gap·manual_segment·unavailable 은 «일», monthly_period 는 «기간별»을 누른 뒤 · 골든의 가짜 series() 는 인자와 무관하게 그 골든의 픽스처를 돌려준다.
+  높이는 테스트 파일 안 상수로 pumpForGolden(…, logicalSize:) 에 · 찍기 전 위치 전제(README «2») — s72_* = s72-link-contribution 의 아래 끝 < 1400 · s71b_list = 끝 행 < 1700 ·
+  s72g_* = s72g-back 의 아래 끝 < 844 · s71b_empty = s71b-empty 의 아래 끝 < 844 · 안전 상태 = 행 0 · s72g_not_accepted 는 찍기 전에 expect(tester.takeException(), isNotNull).
   packages/ui_analytics 에서:
     flutter test --update-goldens test/golden/s71b_golden_test.dart test/golden/s72g_golden_test.dart test/golden/s72_golden_test.dart
     flutter test   ← 옵션 없이 전부 통과 · git status 에 새 PNG 24장만 ??
@@ -385,7 +431,8 @@ S7-1b — test/report_archive_view_test.dart
 · 표 끝에 새 행만 더한다(머리말은 고치지 않는다) · 질문 = Q · 추측 = A · 새 행 상태 = «⬜ 미답» · 답 칸 비움 · 칸 안에 세로 막대 문자 금지.
 · 꼭 적을 것: 권고와 다르게 지은 이름 · 16개 밖에 새로 더한 정적 라벨 · 골든 위치 전제의 실제 dy · 본보기 차트에 고치고 싶은 점 · 문서에 없어 정한 것 전부.
 · 적지 않을 것(카드가 정함 = 추측 아님): 위젯·프로바이더·Key·파일 이름 · 정적 라벨 16개 · 읽지 않는 필드 목록(규칙 5) · 「돌아가기」 = AppNavActions.back · 접수 실패 때 진입 안 함 ·
-  접수증이면 상태 불문 진입 · 첫 요청 값 · «주» 없음 · 기간 선택 없음 · 값 표 기본 접힘 · 골든 이름·높이 · 차트 3파일을 그대로 옮긴 것.
+  접수증이면 상태 불문 진입 · 첫 요청 값 · «주» 없음 · 기간 선택 없음 · 값 표 기본 접힘 · 골든 이름·높이 · 차트 3파일을 그대로 옮긴 것 ·
+  재량인 것(내부 위젯 DisclosureGateView 등의 생성자 모양 · 여백·글자 크기·모서리). 동작·상태·글자·Key 가 갈리는 것만 적는다.
 · 🔴 질문 파일은 브랜치에 커밋한다(채팅 보고만으로는 제출이 아니다).
 
 ■ 제출
@@ -418,7 +465,7 @@ S7-1b — test/report_archive_view_test.dart
 
 - 브랜치 `ui/m7-s71b-archive` 푸시 1건 · 커밋 6~7개(본문 (1)~(6) + format·질문 파일).
 - `lib/` 새 파일 9(`screens/report_archive_screen.dart` · `screens/performance_explore_screen.dart` · `screens/explore/disclosure_gate_view.dart` · `screens/explore/performance_explore_body.dart` · `widgets/analytics_skeleton.dart` · `widgets/analytics_error_view.dart` · `chart/perf_chart_geometry.dart` · `chart/perf_chart_painter.dart` · `widgets/perf_chart.dart`) · 수정 3(`providers/analytics_providers.dart` 끝에 추가 · `l10n/labels.dart` 16개 · `ui_analytics.dart` export 2줄). 기존 화면 3·위젯 3은 바뀌지 않는 것이 정상.
-- `test/` 새 파일 4(`report_archive_view_test.dart` · `performance_explore_gate_test.dart` · `performance_explore_view_test.dart` · `perf_chart_geometry_test.dart`) + 골든 테스트 3 + 새 PNG 24장. 하네스·본보기·기존 PNG 18장은 불변.
+- `test/` 새 파일 4(`report_archive_view_test.dart` · `performance_explore_gate_test.dart` · `performance_explore_view_test.dart` · `perf_chart_geometry_test.dart`) + 도우미 1(`explore_fakes.dart` — 있으면) + 골든 테스트 3 + 새 PNG 24장. 하네스·본보기·기존 PNG 18장은 불변.
 - 질문 파일 3개(새 행이 있을 때만 바뀜) · 채팅: PR 본문 5섹션.
 
 ## 4. 받은 뒤 Claude에게 보낼 문장(한 줄)
@@ -436,4 +483,6 @@ R10-Bob-S7x 결과: 브랜치 ui/m7-s71b-archive 푸시됨 — PR 만들고 병�
 - 계약 테스트 C-36 ⑦⑧(차트·탐색 파일의 `value` 참조 · 숫자 포맷)은 Bob 브랜치가 들어와야 실제 파일을 봅니다 — 병합 검사 때 Claude 가 그 위에서 돌립니다.
 - 「돌아가기」는 셸(R13)이 생기기 전까지 실제로 화면을 닫지 못합니다 — 지금은 «`AppNavActions.back` 을 넘겼다»까지만 증명합니다(01 §8 미결 62).
 - Bob 이 PR 을 못 만드는 것은 정상(Claude 대행). Bob 작업 중에는 `C:\Work\Bob\AutoAlphaQuant` 에서 다른 AI·사람이 브랜치를 바꾸지 않습니다(Claude 는 자기 worktree 에서만).
+- 🔴 **파일 이름 주의** — 같은 M7 의 끝난 카드(`_완료/R1b-Gem-S71.md`·`_완료/R2-Gem-S73.md`)를 붙여넣지 않습니다.
+- 드라이런 실측(2026-09-29 · 참고): 새 테스트 127건(아카이브 11 · 게이트 20 · 기하 3 · 탐색 69 · 골든 24) · 맨 아래 위젯의 아래 끝 = `s71b_list` 1330 · `s72_*` 608~972 · `s72g_*` 196~272 — 높이 1700·1400·844 에 여유가 있습니다. Bob 의 수가 이보다 적다고 반려는 아닙니다(최소 목록의 번호가 기준).
 - 범위 고지: 「주」 주기 · 기간 선택 · 웹 2열·툴팁 · 차트 탭 읽기 · 절단선은 이 카드에 없습니다(01 §8 미결 54·55·58·61). S7-1 A13 «값 열 오른쪽 정렬»은 R11 부록 후보입니다(미결 63).
