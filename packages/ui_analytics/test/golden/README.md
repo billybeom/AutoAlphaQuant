@@ -173,7 +173,7 @@ await expectGolden('j1_filter_open', b);
 
 정본: 01 §13 · 03 §4·§5·§6 의 R10 범위 블록 3개. 이 절은 **골든과 차트 증명**만 말한다.
 
-🆕 **3분할(2026-09-29)** — 골든은 카드마다 자기 몫만 만든다: **R10a-Bob-S71b** = `s71b_*` 4장(`s71b_golden_test.dart`) · **R10b-Bob-S72G** = `s72g_*` 8장(`s72g_golden_test.dart`) · **R10c-Bob-S72** = `s72_*` 12장(`s72_golden_test.dart`). 앞 카드가 만든 PNG 는 다음 카드에게 **기존 PNG** 다(바뀌면 반려).
+🆕 **3분할(2026-09-29)** — 골든은 카드마다 자기 몫만 만든다: **R10a-Bob-S71b** = `s71b_*` 4장(`s71b_golden_test.dart`) · **R10b-Bob-S72G** = `s72g_*` 8장(`s72g_golden_test.dart`) · **R10c-Bob-S72** = `s72_*` 12장(`s72_golden_test.dart`). 앞 카드가 만든 PNG 는 다음 카드에게 **기존 PNG** 다(바뀌면 반려). ✅ 세 장 모두 병합(R10a PR #15 `02e8e06` · R10b PR #16 `510a8d1` · R10c PR #17 `1cada8a`) — 다음 카드에게 `ui_analytics` 기존 PNG 는 **42장**(`s71_*`·`s73_*`·`s73b_*` 18 + `s71b_*` 4 + `s72g_*` 8 + `s72_*` 12).
 
 ### 1. 골든 이름 — 12이름 × light/dark = 24장 (전부 신규)
 
@@ -195,7 +195,7 @@ await expectGolden('j1_filter_open', b);
 - `s72_*` 는 모두 게이트를 **실제로 눌러** 들어간다. 게이트 입력 = 열린 게이트 픽스처(`m7M7DisclosureGate`) · 접수증 = `m7M7DisclosureViewReceipts4` 행 0. 카드가 입력을 달리 적으면 카드가 이긴다.
 - 가짜 `series()` 는 받은 인자를 기록하고, 그 골든의 픽스처를 돌려준다(값을 만들지 않는다).
 - 🔴 **값 표는 접힌 채 찍는다**(「값 보기」를 누르지 않는다). 값 표의 증명은 위젯 테스트가 한다.
-- 🔴 기존 PNG 18장(`s71_*` · `s73_*` · `s73b_*`)은 한 바이트도 바뀌지 않는다(3분할 — R10b 에게는 22장 · R10c 에게는 30장). 만드는 명령은 **자기 카드의 새 파일 하나만** 지정한다(아래는 세 장을 합친 모양 — R10a = `s71b_golden_test.dart` · R10b = `s72g_golden_test.dart` · R10c = `s72_golden_test.dart`):
+- 🔴 기존 PNG 18장(`s71_*` · `s73_*` · `s73b_*`)은 한 바이트도 바뀌지 않는다(3분할 — R10b 에게는 22장 · R10c 에게는 30장 · R10 뒤 카드에게는 42장). 만드는 명령은 **자기 카드의 새 파일 하나만** 지정한다(아래는 세 장을 합친 모양 — R10a = `s71b_golden_test.dart` · R10b = `s72g_golden_test.dart` · R10c = `s72_golden_test.dart`):
   ```
   flutter test --update-goldens test/golden/s71b_golden_test.dart test/golden/s72g_golden_test.dart test/golden/s72_golden_test.dart
   ```
@@ -215,6 +215,7 @@ await expectGolden('j1_filter_open', b);
   ```
 - 병합본 실측(R10a · PR #15 `02e8e06` · 2026-09-29 · C4 재실측 일치): `s71b_list` 끝 행 아래 끝 = **1284**(< 1700) · `s71b_empty` 빈 글자 아래 끝 = **76**(< 844). 드라이런(1330 · 104)과의 차이는 여백·행 높이 재량이다(결함 아님).
 - 병합본 실측(R10b · PR #16 `510a8d1` · 2026-09-29 · C4 2회차 재실측 일치): `s72g-back` 아래 끝 = first **191** · frequent **235** · closed **215** · not_accepted **262**(모두 < 844 · light=dark). 드라이런(196~272)과의 차이는 여백 재량이다(결함 아님).
+- 병합본 실측(R10c · PR #17 `1cada8a` · 2026-09-30 · C4 2회차 재실측 일치): `s72-link-contribution` 아래 끝 = monthly_cum **1040** · daily_gap **944** · sim_split **944** · manual_segment **944** · monthly_period **1040** · unavailable **604**(모두 < 1400 · light=dark). 1회차(`9230112`)와 같은 값이다 — 재제출의 고지 카드 자리 이동은 맨 아래 값을 바꾸지 않았다. 드라이런(608~972)과의 차이는 여백 재량이다(결함 아님 — 고지 카드 높이 160 대 136 · 기록 줄은 R10b 짜임대로 맨 위 0).
 
 ### 3. 골든은 보조다 — 차트의 주 증명은 `chart_probe.dart`
 
@@ -248,7 +249,7 @@ expectTicksMatch(recording, series, scheme);
 네 함수가 **공통으로** 먼저 보는 것: ① 금지 호출 0 — `saveLayer` · `translate`·`scale`·`rotate`·`transform` · 글자 그리기 · 그라디언트·`MaskFilter` · 짝 없는 `save`/`restore` · `save` 밖의 `clipRect` ② 층 표에 없는 그리기 0 ③ 층의 순서 = 띠 → 눈금선 → 벤치마크 → 본선.
 
 - 비교는 **비율**이다. 가로 = x ÷ 그림 폭 · 세로 = 1 − y ÷ 그림 높이. 그림 영역 = `CustomPaint` 의 크기 전체(안쪽 여백 없음).
-- 🆕 `PerfChart` 의 짜임(2026-09-29) = 상자(높이 220) → 위아래 12 → 가로로 [ **눈금 글자 열(폭 56)** · 빈칸 8 · 그림(`CustomPaint` · 남은 폭 전부) ]. 눈금 글자는 그림 **왼쪽 바깥 열**에 있다 — 글자가 선과 띠를 덮지 않는다(누적 시리즈의 첫 점은 늘 왼쪽 아래 끝에 온다). 글자 자리 = `Align(alignment: FractionalOffset(1, 1 - tick.normalized))`(열의 오른쪽 끝 · 세로는 정규값 그대로). 그림 폭 = 부모 폭 − 64(폰 폭 390 이면 326 × 196). 그림의 왼쪽 변 자리는 상수 `PerfChart.plotInsetLeft`(64)로 공개한다 — x 양 끝 글자 줄이 그만큼 왼쪽을 띄운다. 실측 여유: 맨 아래 위젯의 아래 끝 = `s71b_list` 1284 · `s71b_empty` 76(R10a 병합본 · 드라이런 1330 · 104) · `s72_*` 608~972 · `s72g_*` 191~262(R10b 병합본 · 드라이런 196~272).
+- 🆕 `PerfChart` 의 짜임(2026-09-29) = 상자(높이 220) → 위아래 12 → 가로로 [ **눈금 글자 열(폭 56)** · 빈칸 8 · 그림(`CustomPaint` · 남은 폭 전부) ]. 눈금 글자는 그림 **왼쪽 바깥 열**에 있다 — 글자가 선과 띠를 덮지 않는다(누적 시리즈의 첫 점은 늘 왼쪽 아래 끝에 온다). 글자 자리 = `Align(alignment: FractionalOffset(1, 1 - tick.normalized))`(열의 오른쪽 끝 · 세로는 정규값 그대로). 그림 폭 = 부모 폭 − 64(폰 폭 390 이면 326 × 196). 그림의 왼쪽 변 자리는 상수 `PerfChart.plotInsetLeft`(64)로 공개한다 — x 양 끝 글자 줄이 그만큼 왼쪽을 띄운다. 실측 여유: 맨 아래 위젯의 아래 끝 = `s71b_list` 1284 · `s71b_empty` 76(R10a 병합본 · 드라이런 1330 · 104) · `s72_*` 604~1040(R10c 병합본 · 드라이런 608~972) · `s72g_*` 191~262(R10b 병합본 · 드라이런 196~272).
 - 🔴 그림 안쪽에 여백을 두면 하네스가 `… got 0.02xx` 꼴로 실패한다(예: `main line: point #0 (0.0000, 0.0000) is not on the drawn line (nearest 0.0204)` · 세로 4px 부터 · 메시지는 여백을 말하지 않는다) — 여백은 `PerfChart` **바깥**에서 준다.
 - 🔴 불가 시리즈(`points` 가 비어 있음 · 골든 `s72_unavailable`)는 차트가 없다 — `find.byKey(kChartProbeKey)` 가 0 임을 보고(`findsNothing`) `recordChart` 를 **부르지 않는다**(부르면 실패한다).
 - 🔴 `chart_probe.dart` · `chart_probe_test.dart` · `reference/` 는 **고치면 반려**다. 맞지 않으면 `docs/ai-context/inbox/` 질문 표에 적는다.
