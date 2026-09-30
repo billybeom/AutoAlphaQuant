@@ -39,38 +39,27 @@ class FakeWhatIfApi extends UnimplementedWhatIfApi {
   }
 
   @override
-  Future<WithdrawalPreviewResult> simulateWithdrawal({
-    required withdrawalAmount,
-    required destinationSleeve,
-  }) {
+  Future<WithdrawalPlan> simulateWithdrawal({required amount}) {
     otherCalls.add('simulateWithdrawal');
-    return super.simulateWithdrawal(
-      withdrawalAmount: withdrawalAmount,
-      destinationSleeve: destinationSleeve,
-    );
+    return super.simulateWithdrawal(amount: amount);
   }
 
   @override
-  Future<RebalancePreviewResult> previewRebalance({
-    required String configHash,
-    DateTime? asOf,
-  }) {
+  Future<RebalancePreview> previewRebalance({plannedDate}) {
     otherCalls.add('previewRebalance');
-    return super.previewRebalance(configHash: configHash, asOf: asOf);
+    return super.previewRebalance(plannedDate: plannedDate);
   }
 
   @override
-  Future<CostEstimate> estimateCosts({
-    required List<OrderDraft> drafts,
-  }) {
+  Future<CostEstimate> estimateCosts(planId) {
     otherCalls.add('estimateCosts');
-    return super.estimateCosts(drafts: drafts);
+    return super.estimateCosts(planId);
   }
 
   @override
-  Future<DepositPlan?> findPlan({required String planId}) {
+  Future<DepositPlan?> findPlan(planId) {
     otherCalls.add('findPlan');
-    return super.findPlan(planId: planId);
+    return super.findPlan(planId);
   }
 }
 
@@ -163,9 +152,7 @@ List<Override> plannerOverrides({
     ),
     safetyRepositoryProvider.overrideWithValue(
       FakeSafetyRepository(
-        safetyStream: Stream<SafetyState>.value(
-          safetyState ?? defaultSafety,
-        ),
+        safetyState ?? defaultSafety,
       ),
     ),
     plannerWhatIfApiProvider.overrideWithValue(whatIf),
