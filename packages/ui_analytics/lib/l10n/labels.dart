@@ -26,4 +26,22 @@ abstract final class AnalyticsLabels {
   static const String valuesColumnBenchmark = '비교 기준';
   static const String drawdownLinkButton = '낙폭 맥락 보기';
   static const String contributionLinkButton = '슬리브 기여 보기';
+
+  // ── 🆕 R11a — S7-4 ──
+  static const String plannerIntroLine = '입력한 금액으로 미리보기를 계산합니다';
+  static const String plannerCurrentSettingHeader = '현재 설정';
+  static const String plannerAmountFieldLabel = '이번에 넣을 금액(원)';
+  static const String plannerCalculateButton = '미리보기 계산';
+  static const String plannerNextButton = '다음';
+  static const String plannerBackButton = '이전';
+  static const String plannerStepAmountTitle = '금액';
+  static const String plannerStepAllocationTitle = '배분·계좌';
+  static const String plannerStepResultTitle = '결과';
+  static const String plannerPensionLimitTitle = '연금 납입 한도';
+  static const String plannerCostsHeader = '예상 비용';
+  static const String plannerFundingHeader = '연금 납입 조달 순서';
+  static const String plannerRecalculateButton = '다시 계산';
+  static const String plannerRegisterButton = '이 계획으로 입금 등록';
+  static const String plannerRegisterNotAccepted =
+      '등록 요청이 접수되지 않았습니다. 계획은 그대로 있습니다.';
 }
