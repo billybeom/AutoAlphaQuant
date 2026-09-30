@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ✅ S7-1·S7-3·S7-3b 18장 · 🆕 차트 하네스 2026-09-28)
+# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ✅ S7-1·S7-1b·S7-2G·S7-2·S7-3·S7-3b 42장 · 차트 하네스 2026-09-28 · 🆕 목표 경로 본보기 2026-09-30)
 
 정본: 01_M2_도메인계약 **§7**(C-1·C-2 + 골든 규칙) · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 
@@ -27,7 +27,8 @@
 | `test/golden/golden_support.dart` | 🔴 M2 | 픽스처 로더(`fixtureEnvelope`·`listFixture<T>`·`singleFixture<T>`) · 고정 시계 `FixedClock`·`kGoldenNowUtc` · 폰 크기 `kGoldenPhoneSize`(390×844) · `pumpForGolden`(light/dark) · `expectGolden(name, brightness)` |
 | `test/golden/chart_probe.dart` | 🔴 M2 | 🆕 계약 v1.3 — 차트의 «그리기 기록» 하네스. painter 를 기록용 캔버스에 다시 그려 읽고, 픽스처와 맞는지 **단언까지 한다**(아래 «R10» 절). 화면 담당은 고치지 않는다 |
 | `test/golden/chart_probe_test.dart` | 🔴 M2 | 🆕 위 하네스의 자체 검증 46건 — 본보기 painter 는 통과하고 나쁜 painter 17종은 실패함을 고정한다. 본보기 `PerfChart` 의 눈금 글자가 그림 왼쪽 바깥 열에 있다는 것도 여기서 본다 |
-| `test/golden/reference/` | 🔴 M2 | 🆕 차트 본보기 구현 3파일. 화면 담당은 `lib/` 로 **글자 그대로 베껴** 쓴다(아래 «R10» 절). 여기 있는 원본은 지우지도 고치지도 않는다 |
+| `test/golden/reference/` | 🔴 M2 | 🆕 차트 본보기 구현 3파일(`chart/`·`widgets/`) + 🆕 v1.4 목표 경로 2파일(`goal_path/`). 화면 담당은 `lib/` 로 **글자 그대로 베껴** 쓴다(아래 «R10» 절 §4). 여기 있는 원본은 지우지도 고치지도 않는다 |
+| `test/golden/goal_path_probe_test.dart` | 🔴 M2 | 🆕 v1.4 — 목표 경로 하네스(`expectGoalPathMatches`)와 본보기 `reference/goal_path/` 의 자체 검증 16건: 본보기는 목표 경로 픽스처 on·off·realworld 로 통과하고 hold 는 그리지 않으며, 나쁜 painter 2종(보간 · 층 바꿈)은 실패함을 고정한다(아래 «R11» 절) |
 | `test/golden/<화면id>_golden_test.dart` | 화면 담당 | 아래 예시대로. `s71_golden_test.dart` |
 | `test/golden/goldens/<name>_<light\|dark>.png` | 화면 담당(최초 1회) | `expectGolden` 이 만드는 경로. **커밋 대상** |
 
@@ -271,6 +272,8 @@ expectTicksMatch(recording, series, scheme);
 | `test/golden/reference/chart/perf_chart_geometry.dart` | `lib/src/chart/perf_chart_geometry.dart` |
 | `test/golden/reference/chart/perf_chart_painter.dart` | `lib/src/chart/perf_chart_painter.dart` |
 | `test/golden/reference/widgets/perf_chart.dart` | `lib/src/widgets/perf_chart.dart` |
+| 🆕 v1.4 `test/golden/reference/goal_path/goal_path_chart_painter.dart` | `lib/src/goal_path/goal_path_chart_painter.dart`(R11b) |
+| 🆕 v1.4 `test/golden/reference/goal_path/goal_path_chart.dart` | `lib/src/goal_path/goal_path_chart.dart`(R11b) |
 
 ```
 # packages/ui_analytics 에서
@@ -282,11 +285,17 @@ cp test/golden/reference/widgets/perf_chart.dart        lib/src/widgets/
 # («warning: in the working copy of … LF will be replaced by CRLF» 줄은 차이가 아니다 — Windows 의 core.autocrlf 경고)
 git diff --no-index --stat test/golden/reference/chart lib/src/chart
 git diff --no-index --stat test/golden/reference/widgets/perf_chart.dart lib/src/widgets/perf_chart.dart
+# 🆕 v1.4 — R11b(S7-9)는 목표 경로 2파일을 더 옮긴다. geometry 는 '../chart/perf_chart_geometry.dart' 로 lib 쪽 R10 파일에 그대로 풀린다
+mkdir -p lib/src/goal_path
+cp test/golden/reference/goal_path/goal_path_chart_painter.dart lib/src/goal_path/
+cp test/golden/reference/goal_path/goal_path_chart.dart         lib/src/goal_path/
+git diff --no-index --stat test/golden/reference/goal_path lib/src/goal_path
+# (R10 의 위 두 줄도 그대로 돌린다 — R10 파일 무변경도 계속 본다)
 # (🔴 diff -r 을 쓰지 않는다 — PowerShell 에서 diff 는 Compare-Object 라 파일이 같아도 차이가 찍힌다)
 ```
 
 - 본보기 원본은 **지우지 않는다** — 하네스 자체 검증이 쓴다.
-- 배럴(`lib/ui_analytics.dart`)에 세 파일을 export 하지 않는다(내부 파일이다). 테스트는 `package:ui_analytics/src/…` 로 직접 import 한다.
+- 배럴(`lib/ui_analytics.dart`)에 세 파일을 export 하지 않는다(내부 파일이다). 🆕 v1.4 — `lib/src/goal_path/` 두 파일도 같다(G13 이 `src/chart/`·`src/goal_path/` export 0 을 본다). 테스트는 `package:ui_analytics/src/…` 로 직접 import 한다.
 - 세 파일은 `lib/` 의 기계 검사를 이미 통과한 글자다(C-3 import · C-4 산술 이름 · C-5 한글 리터럴 · C-12 switch 전부 받기 · C-36 ⑦⑧). 이름을 바꾸면 C-4 에 걸릴 수 있다 — `ratio`·`tax`·`cash`·`pct`·`price`·`amount`·`pnl`·`commission`·`cagr` 가 든 이름(`aspectRatio`·`duration`·`iteration` 포함)을 쓰지 않는다.
 - 차트에 더할 것이 생기면(예 선택 표시) 코드를 고치지 말고 질문 표에 적는다 — 층 표가 계약이다.
 
@@ -299,3 +308,49 @@ AAQ_CHART_PREVIEW_DIR=/tmp/chart_preview flutter test test/golden/chart_probe_te
 
 본보기 `PerfChart` 를 성과 픽스처 7개(정상 6건 · `performance24m` 은 2행) × light/dark 로 찍어 그 폴더에 둔다. 변수가 없으면 아무것도 하지 않는다.
 🔴 `test/golden/goldens/` 를 가리키지 않는다.
+
+## 🆕 R11(계약 v1.4) — `S7-4` · `S7-9` (2026-09-30 · 뼈대 — 카드 조립 때 채운다)
+
+정본: 01 §14 · 03 §9·§14 의 «🆕 계약 v1.4 — R11 범위» 블록(골든↔픽스처 표는 거기가 이긴다). 이 절은 **골든과 차트 증명**만 말한다.
+카드는 나눠 간다: **R11a-Bob-S74**(플래너 · 폰 전용 · `package:ui_analytics/planner.dart`) → **R11b-Bob-S79**(목표 경로 + S7-1 진입 버튼 부록). S7-5(인출)는 **R11c · v1.5 로 보류**다 — 여기에 골든을 적지 않는다.
+
+### 1. 골든 이름 (⬜ 높이·입력 칸은 드라이런 실측으로 채운다)
+
+| 카드 | 이름 | 장수 | 테스트 파일 | 입력 픽스처 |
+|---|---|---|---|---|
+| R11a | `s74_step1_default` · `s74_step2_normal` · `s74_step3_normal` · `s74_pension_limit_hit` · `s74_expired` · `s74_funding` · `s74_blocked` | 7 × light/dark = **14** | `s74_golden_test.dart` | `m7_deposit_plan_*` — ⬜ 03 §9 R11 블록 표 |
+| R11b | `s79_on_track` · `s79_off_track` · `s79_hold` · `s79_realworld` | 4 × light/dark = **8** | `s79_golden_test.dart` | `m7M7GoalPathOn` · `m7M7GoalPathOff` · `m7M7GoalPathHold` · `m7M7GoalPathRealworld` |
+| R11b 부록 | `s71_*` **재생성** 10(S7-1 진입 버튼 · 값 열 정렬) | 10 | `s71_golden_test.dart`(기존) | 기존 그대로 · 🔴 재생성은 `golden:approved` 라벨로만 |
+
+- 🔴 `s74_viewer` 는 **없다**(폰 전용 · 뷰어 셸은 `planDeposit` 에 부재 안내 — 01 §14).
+- 기존 PNG 불변 수: R11a 에게 **42장** · R11b 에게 **56장** 가운데 허용 목록 `s71_*` 10 을 뺀 **46장**.
+- 높이는 테스트 파일 안 상수 · 찍기 **전에** «맨 아래 위젯 dy < 높이»를 단언한다(R10 §2 와 같다).
+
+### 2. 목표 경로 차트의 주 증명 — `expectGoalPathMatches`
+
+S7-9 차트는 R10 차트와 **같은 층 표**를 쓴다: 띠 → 눈금선 → **계획선**(벤치마크 자리 · `tertiary` 점선 6·4 · 굵기 2) → **실제선**(본선 자리 · `primary` 실선 · 굵기 3 · 둥근 끝·이음). 결측(`yNormalized == null`)에서 실제선을 끊는다.
+
+```dart
+import 'chart_probe.dart';
+import 'golden_support.dart';
+
+final GoalPathVm path = singleFixture(FixturePaths.m7M7GoalPathRealworld, GoalPathVm.fromJson);
+// … 화면을 띄운다(차트가 화면에 있어야 한다) …
+final ColorScheme scheme = chartSchemeOf(tester, key: kGoalPathChartProbeKey);        // Key('s79-chart')
+final ChartRecording recording = recordChart(tester, key: kGoalPathChartProbeKey);
+expectGoalPathMatches(recording, path, scheme);
+```
+
+| 함수 | 통과 조건 |
+|---|---|
+| `expectGoalPathMatches(r, path, scheme)` | `actual` 에 본선 규칙(`expectMainLineMatches`) · `planned` 에 벤치마크 규칙(`expectBenchmarkMatches`) · `segments` 에 띠 규칙 · `yTicks` 에 눈금선 규칙을 건다. 층의 순서 = 띠 → 눈금선 → 계획선 → 실제선. 실패 메시지는 `goal path actual line …` · `goal path planned line …` · `goal path bands …` · `goal path ticks …` 로 시작한다. `chartUnavailableLabel != null` 인 경로로 부르면 실패한다 |
+
+- 🔴 hold(`chartUnavailableLabel` 있음 · 골든 `s79_hold`)는 차트가 없다 — `find.byKey(kGoalPathChartProbeKey)` 가 0 임을 보고 `recordChart` 를 **부르지 않는다**.
+- 🔴 기대 수(«실선 2개» 같은)를 손으로 적지 않는다 — 픽스처를 넘기면 하네스가 센다(realworld = 실제선 윤곽 2 · 띠 채움 1 · on/off = 실제선 윤곽 1 · 띠 0).
+- 자체 검증: `goal_path_probe_test.dart`(16건) — 본보기는 on·off·realworld × light/dark · 크기 3가지 · 성과 픽스처의 띠(SegmentKind 4값)를 얹은 경로 · 실제로 띄운 `GoalPathChart` 에서 통과하고, hold 에서는 아무것도 그리지 않으며, 나쁜 painter 2종 — ① **보간**(실제선의 결측을 건너 이음) ② **층 바꿈**(실제선을 계획선 아래에 · 두 선의 붓을 서로 바꿈) — 은 실패한다.
+- 🔴 `chart_probe.dart` · `goal_path_probe_test.dart` · `reference/goal_path/` 는 **고치면 반려**다. 맞지 않으면 질문 표에 적는다.
+
+### 3. 본보기 옮기기
+
+R10 절 §4 표의 🆕 v1.4 두 행대로 `reference/goal_path/` → `lib/src/goal_path/` 로 **diff 0** 복사한다. `GoalPathChart` 의 짜임은 `PerfChart` 와 같다 — 상자 220 → 위아래 12 → [ 눈금 글자 열 56 · 빈칸 8 · 그림 ] · 눈금 글자 Key `'s79-tick-$i'` · 그림 왼쪽 변 = `GoalPathChart.plotInsetLeft`(64).
+🔵 M2 실측(2026-09-30): 두 파일을 `lib/src/goal_path/` 로 임시 복사해 `git diff --no-index --stat` 차이 0 · `flutter analyze lib` 0 · 계약 C-3·C-4·C-5·C-10·C-12·C-36·C-38·C-39 통과 · `check_labels.sh` 위반 없음 · `check_boundaries.sh` 실패 0 을 본 뒤 지웠다.

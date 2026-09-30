@@ -731,17 +731,23 @@ void main() {
   });
 
   // ── G13 ───────────────────────────────────────────────────────────────────
-  // Barrel exports exactly the 7 expected paths.
-  testWidgets('G13 barrel exports exactly 7 paths', (
+  // Barrel keeps each of the 7 R10 paths exactly once, and exports nothing
+  // from the internal folders (planner, chart, explore, goal_path).
+  // Contract v1.4 (design D15, M2 PR): the exact-set check moved out of this
+  // file so the R11 cards can add exports without editing it. Exact set
+  // ownership: R11a T74-22 (planner.dart) and R11b T79-14 (barrel == 8).
+  // This is an ownership transfer, not a weaker assertion.
+  testWidgets('G13 barrel keeps the 7 paths and no internal folders', (
     WidgetTester tester,
   ) async {
     final String content = File('lib/ui_analytics.dart').readAsStringSync();
-    final Set<String> exportPaths = RegExp(
+    final List<String> exportPaths = RegExp(
       r"^export '([^']+)';",
       multiLine: true,
-    ).allMatches(content).map((m) => m.group(1)!).toSet();
+    ).allMatches(content).map((m) => m.group(1)!).toList();
 
-    expect(exportPaths, <String>{
+    expect(exportPaths, hasLength(greaterThanOrEqualTo(7)));
+    for (final String path in const <String>[
       'l10n/labels.dart',
       'src/providers/analytics_providers.dart',
       'src/screens/contribution_screen.dart',
@@ -749,7 +755,25 @@ void main() {
       'src/screens/monthly_report_screen.dart',
       'src/screens/performance_explore_screen.dart',
       'src/screens/report_archive_screen.dart',
-    });
+    ]) {
+      expect(
+        exportPaths.where((String p) => p == path),
+        hasLength(1),
+        reason: 'barrel must export $path exactly once',
+      );
+    }
+    for (final String internal in const <String>[
+      'src/planner',
+      'src/chart/',
+      'src/screens/explore/',
+      'src/goal_path/',
+    ]) {
+      expect(
+        exportPaths.where((String p) => p.startsWith(internal)),
+        isEmpty,
+        reason: 'barrel must not export anything under $internal',
+      );
+    }
   });
 
   // ── G14 ───────────────────────────────────────────────────────────────────
