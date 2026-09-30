@@ -13,7 +13,12 @@ const String fixtureRoot = 'packages/domain_contracts/fixtures';
 abstract final class FixturePaths {
   // ── 계약 코어 · 인벤토리 §8-2·§8-3 (`fixtures/` 바로 아래) ──
   static const String alerts12 = 'alerts_12.json';
+
+  /// 🔵 v1.4 — 코어 전용(행 = `DepositPlan`) · 화면 미사용. 화면 픽스처는 `m7M7DepositPlan…`
+  ///    (행 = `DepositPreviewResult` 래퍼)이다.
   static const String depositPlan1 = 'deposit_plan_1.json';
+
+  /// 🔵 v1.4 — 코어 전용 · 납입 조달 발동(C 방어 자산 매도 초안 + 조달 단계 1).
   static const String depositPlanFunding1 = 'deposit_plan_funding_1.json';
   static const String holdings6 = 'holdings_6.json';
   static const String journal30 = 'journal_30.json';
@@ -127,11 +132,35 @@ abstract final class FixturePaths {
   static const String m7M7ContribPartial = 'm7/m7_contrib_partial.json';
   static const String m7M7DdContextDeep = 'm7/m7_dd_context_deep.json';
   static const String m7M7DdContextNormal = 'm7/m7_dd_context_normal.json';
+  // 🆕 v1.4(R11 선행 · 01 §14) — 입금 미리보기(`S7-4`). 행 = `DepositPreviewResult` 래퍼
+  //    (plan | input_rejected_text | blocked_text 중 정확히 하나 · C-38 ①).
+  /// 차단 2행 — 0 `blocked_text` 만(버튼 부재) · 1 `blocked_text` + `blocked_action`(재개 리포트).
+  static const String m7M7DepositPlanBlocked =
+      'm7/m7_deposit_plan_blocked.json';
+
+  /// 정상 — 연금 라우팅 · 잔여 = 원화 현금 대기 · 한도 카드(제안·조달 안내 없음).
   static const String m7M7DepositPlanDefault =
       'm7/m7_deposit_plan_default.json';
+
+  /// 만료 — `register_blocked_text`(등록 부재) · 봉투·행 기준일 2026-08-28.
   static const String m7M7DepositPlanExpired =
       'm7/m7_deposit_plan_expired.json';
+
+  /// 납입 조달 발동 + `register_blocked_text`(브로커 대조 미완 — 등록만 불가) 동시 표본.
+  static const String m7M7DepositPlanFunding =
+      'm7/m7_deposit_plan_funding.json';
+
+  /// 입력 거부 — `input_rejected_text` 만.
+  static const String m7M7DepositPlanInputRejected =
+      'm7/m7_deposit_plan_input_rejected.json';
+
+  /// 연 합산 납입한도 소진 — B 행 없음 · 주문 초안 빈 목록 + `orders_empty_text` · 경고 1.
   static const String m7M7DepositPlanLimit = 'm7/m7_deposit_plan_limit.json';
+
+  /// 실입금 등록 `CommandReceipt` 4행 — 🔴 **한 명령의 갈래**(행 순서 = 뜻):
+  /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`.
+  static const String m7M7DepositRegisterReceipts4 =
+      'm7/m7_deposit_register_receipts_4.json';
   static const String m7M7DisclosureGate = 'm7/m7_disclosure_gate.json';
 
   // 🆕 v1.3(R10 선행 · 01 §13-5·§13-6) — `S7-2G` 게이트 3갈래 + 열람 기록 접수증.
@@ -151,8 +180,17 @@ abstract final class FixturePaths {
   /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`.
   static const String m7M7DisclosureViewReceipts4 =
       'm7/m7_disclosure_view_receipts_4.json';
+  // 🔵 v1.4 — 목표 경로(`S7-9` · `GoalPathVm`) 4갈래 · 생성 스크립트 `tool/gen_r11_fixtures.py`.
+  /// 판정 유보 — `chart_unavailable_label` + 네 목록 빈 목록.
   static const String m7M7GoalPathHold = 'm7/m7_goal_path_hold.json';
+
+  /// 🆕 v1.4 — 이탈 · `deviation_text` 있음.
+  static const String m7M7GoalPathOff = 'm7/m7_goal_path_off.json';
+
+  /// 유지.
   static const String m7M7GoalPathOn = 'm7/m7_goal_path_on.json';
+
+  /// 실전 조건 문장(금액 없이) · 갭 1(`UNAVAILABLE` 띠 · 실제선 결측 2점).
   static const String m7M7GoalPathRealworld = 'm7/m7_goal_path_realworld.json';
   static const String m7M7Monthly202608 = 'm7/m7_monthly_2026_08.json';
   static const String m7M7MonthlyGap = 'm7/m7_monthly_gap.json';
@@ -223,6 +261,14 @@ abstract final class FixturePaths {
   static const String m8WatchdogHoliday = 'm8/watchdog_holiday.json';
 
   // ── m9/ — 설정·운영 모드 전환 (05) ──
+  // 🆕 v1.4(R11 선행) — `ConfigRepository.watchContributionSetting()` 의 입력(폴더 규약상 `m9_` 접두 없음).
+  /// 월 납입 설정 — `pension_limit_note_text` 있음.
+  static const String m9ContributionSettingDefault =
+      'm9/contribution_setting_default.json';
+
+  /// 월 납입 설정 — `pension_limit_note_text` 없음(그 줄 부재).
+  static const String m9ContributionSettingNoLimitNote =
+      'm9/contribution_setting_no_limit_note.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
 
   /// 전량 목록 — C-14 시크릿 스캔·C-15 열거값 대조가 이 목록을 돈다.
@@ -292,15 +338,20 @@ abstract final class FixturePaths {
     m7M7ContribPartial,
     m7M7DdContextDeep,
     m7M7DdContextNormal,
+    m7M7DepositPlanBlocked,
     m7M7DepositPlanDefault,
     m7M7DepositPlanExpired,
+    m7M7DepositPlanFunding,
+    m7M7DepositPlanInputRejected,
     m7M7DepositPlanLimit,
+    m7M7DepositRegisterReceipts4,
     m7M7DisclosureGate,
     m7M7DisclosureGateClosed,
     m7M7DisclosureGateFirst,
     m7M7DisclosureGateFrequent,
     m7M7DisclosureViewReceipts4,
     m7M7GoalPathHold,
+    m7M7GoalPathOff,
     m7M7GoalPathOn,
     m7M7GoalPathRealworld,
     m7M7Monthly202608,
@@ -341,6 +392,8 @@ abstract final class FixturePaths {
     m8RestartLostPhone,
     m8WatchdogDelayed,
     m8WatchdogHoliday,
+    m9ContributionSettingDefault,
+    m9ContributionSettingNoLimitNote,
     m9HandoverStates,
   ];
 }

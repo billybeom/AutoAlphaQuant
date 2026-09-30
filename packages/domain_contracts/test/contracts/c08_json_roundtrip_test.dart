@@ -265,7 +265,8 @@ const String _reasonCommandPayload =
     '명령 인자·영수증 봉투는 화면 픽스처가 아니다 — CommandApi 구현이 채운다'
     '(01 §4-2 · C-28 G-19). 왕복은 C-16·C-28 의 몫이다.';
 const String _reasonM9Fixture =
-    '05(M9) 설정·운영 화면 픽스처가 인벤토리 §8 목록에 없다(m9/ 는 handover_states 1건뿐). '
+    '05(M9) 설정·운영 화면 픽스처가 인벤토리 §8 목록에 없다(m9/ 는 handover_states 와 '
+    '🆕 v1.4 contribution_setting 2벌뿐 — `ContributionSetting` 은 덮였다). '
     '픽스처가 생기면 등록부에 올리고 여기서 지운다.';
 const String _reasonJournalDetail =
     '`J-4` blind 리뷰·보유 상세 픽스처가 아직 없다 — v1.1 은 J-2·J-3·J-5 까지 덮었다(01 §8 미결 46).';
@@ -296,7 +297,6 @@ const Map<String, String> _knownUncovered = <String, String>{
   'BackupVm': _reasonM9Fixture,
   'ConnectionRow': _reasonM9Fixture,
   'ConnectionsVm': _reasonM9Fixture,
-  'ContributionSetting': _reasonM9Fixture,
   'CredentialCardVm': _reasonM9Fixture,
   'CredentialListVm': _reasonM9Fixture,
   'DeviceAccessVm': _reasonM9Fixture,

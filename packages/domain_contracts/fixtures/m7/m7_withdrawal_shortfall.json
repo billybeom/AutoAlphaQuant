@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.3.0",
+    "contract_version": "1.4.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -25,7 +25,9 @@
           "sleeve": "C",
           "account_alias": "일반",
           "side": "SELL",
+          "side_label": "매도",
           "quantity": 480,
+          "quantity_text": "480주",
           "limit_price": "8940",
           "reasons": [
             { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
@@ -37,7 +39,9 @@
           "sleeve": "C",
           "account_alias": "일반",
           "side": "SELL",
+          "side_label": "매도",
           "quantity": 437,
+          "quantity_text": "437주",
           "limit_price": "51380",
           "reasons": [
             { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }

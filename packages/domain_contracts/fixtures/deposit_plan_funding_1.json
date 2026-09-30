@@ -1,14 +1,14 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.3.0",
+    "contract_version": "1.4.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
     "seed": 20260906,
     "notice": "합성 데이터. 실계좌·실키 없음."
   },
-  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "계획 기준 2026-09-30 종가" },
+  "as_of": { "observed_at": "2026-09-30T09:00:00Z", "trade_date": "2026-09-30", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "계획 기준 2026-09-30 종가" },
   "empty_kind": "NO_DATA",
   "empty_label": null,
   "has_more": false,
@@ -19,14 +19,23 @@
       "as_of_trade_date": "2026-09-30",
       "expires_at": "2026-10-01T21:05:00Z",
       "config_hash": "cfg_fake_0000000000000000",
+      "as_of": { "observed_at": "2026-09-30T09:00:00Z", "trade_date": "2026-09-30", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "계획 기준 2026-09-30 종가" },
       "deposit_amount": "100000",
+      "deposit_amount_text": "10만원",
       "allocations": [
         { "sleeve": "A", "label": "A · 국내 지수 ETF", "amount": "20000", "amount_text": "2만원", "account_alias": "연금저축" },
-        { "sleeve": "B", "label": "B · 해외 지수·금 ETF", "amount": "42000", "amount_text": "4만 2천원", "account_alias": "연금저축" },
-        { "sleeve": "C", "label": "C · 방어 자산", "amount": "32000", "amount_text": "3만 2천원", "account_alias": "일반" }
+        { "sleeve": "B", "label": "B · 해외 지수·금 ETF", "amount": "42000", "amount_text": "4만 2천원", "account_alias": "연금저축", "routing_reason_text": "해외 ETF 는 연금저축 계좌에서 삽니다(과세 이연)." },
+        { "sleeve": "C", "label": "C · 방어 자산", "amount": "38000", "amount_text": "3만 8천원", "account_alias": "일반" }
       ],
       "pension_limit_consumed": "720000",
+      "pension_limit": {
+        "annual_limit_text": "올해 연금 합산 납입한도 1,800만원 가운데 72만원을 썼습니다(이번 입금 포함).",
+        "tax_credit_text": "세액공제 대상 구간 900만원 가운데 72만원을 채웠습니다.",
+        "deadline_text": "올해 납입 마감(12월 31일)까지 92일 남았습니다.",
+        "funding_note_text": "원화 현금이 모자라 방어 자산을 먼저 팔아 조달합니다(연금 계좌 자산은 팔지 않습니다)."
+      },
       "residual_krw_cash": "0",
+      "order_drafts_title": "주문 초안",
       "order_drafts": [
         {
           "symbol": "069500",
@@ -34,43 +43,66 @@
           "sleeve": "A",
           "account_alias": "연금저축",
           "side": "BUY",
+          "side_label": "매수",
           "quantity": 1,
-          "limit_price": "38250",
+          "quantity_text": "1주",
+          "limit_price": "19150",
+          "limit_price_text": "19,150원",
           "reasons": [
             { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
           ]
         },
         {
-          "symbol": "379810",
-          "symbol_label": "379810 KODEX 미국S&P500",
+          "symbol": "133690",
+          "symbol_label": "133690 TIGER 미국나스닥100",
           "sleeve": "B",
           "account_alias": "연금저축",
           "side": "BUY",
+          "side_label": "매수",
           "quantity": 2,
-          "limit_price": "17420",
+          "quantity_text": "2주",
+          "limit_price": "16380",
+          "limit_price_text": "16,380원",
+          "reasons": [
+            { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
+          ]
+        },
+        {
+          "symbol": "411060",
+          "symbol_label": "411060 ACE KRX금현물",
+          "sleeve": "B",
+          "account_alias": "연금저축",
+          "side": "BUY",
+          "side_label": "매수",
+          "quantity": 1,
+          "quantity_text": "1주",
+          "limit_price": "8940",
+          "limit_price_text": "8,940원",
           "reasons": [
             { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
           ]
         },
         {
           "symbol": "0085P0",
-          "symbol_label": "0085P0 KODEX 국고채30년",
+          "symbol_label": "0085P0 ACE 미국10년국채액티브",
           "sleeve": "C",
           "account_alias": "일반",
-          "side": "BUY",
-          "quantity": 1,
-          "limit_price": "51380",
+          "side": "SELL",
+          "side_label": "매도",
+          "quantity": 2,
+          "quantity_text": "2주",
+          "pending_note_text": "직전 매도 1건이 체결 확인 중이라 수량이 바뀔 수 있습니다.",
           "reasons": [
-            { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
+            { "code": "PENSION_FUNDING", "label": "연금 납입 조달", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
           ]
         }
       ],
       "costs": { "commission": "128", "tax": "0", "total": "128", "total_text": "약 128원", "source": "ESTIMATED", "source_label": "추정치", "basis_note": "수수료·세금은 접수 전 추정치이며 체결 후 브로커 원장으로 대체됩니다." },
+      "preview_notice": "미리보기입니다. 실제 입금이 확인되면 다시 계산합니다.",
+      "warning_lines": [],
       "funding_steps": [
-        { "order": 1, "source_sleeve": "POT", "symbol": "357870", "symbol_label": "357870 파킹 ETF", "quantity": 0, "expected_proceeds": "0", "rule_cited": "03 §5-5b", "label": "파킹 잉여가 없어 이 단계는 조달하지 않습니다." },
-        { "order": 2, "source_sleeve": "C", "symbol": "411060", "symbol_label": "411060 ACE 미국30년국채", "quantity": 11, "expected_proceeds": "98230", "rule_cited": "03 §5-5b", "label": "방어 자산 11주를 팔아 납입을 조달합니다." }
-      ],
-      "preview_notice": "납입 조달이 발동한 미리보기입니다. 실제 입금이 확인되면 다시 계산합니다."
+        { "order": 1, "source_sleeve": "C", "symbol": "0085P0", "symbol_label": "0085P0 ACE 미국10년국채액티브", "quantity": 2, "expected_proceeds": "20500", "rule_cited": "03 §5-5b", "label": "원화 현금이 모자라 방어 자산 2주를 팔아 연금 납입을 조달합니다." }
+      ]
     }
   ]
 }

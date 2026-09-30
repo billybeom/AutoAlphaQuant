@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.3.0",
+    "contract_version": "1.4.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -14,60 +14,39 @@
   "has_more": false,
   "rows": [
     {
-      "plan_id": "pl_20261201_10",
-      "computed_at": "2026-11-30T21:05:00Z",
-      "as_of_trade_date": "2026-11-30",
-      "expires_at": "2026-12-01T21:05:00Z",
-      "config_hash": "cfg_fake_0000000000000000",
-      "deposit_amount": "100000",
-      "allocations": [
-        { "sleeve": "A", "label": "A · 국내 지수 ETF", "amount": "20000", "amount_text": "2만원", "account_alias": "일반" },
-        { "sleeve": "B", "label": "B · 해외 지수·금 ETF", "amount": "42000", "amount_text": "4만 2천원", "account_alias": "일반" },
-        { "sleeve": "C", "label": "C · 방어 자산", "amount": "32000", "amount_text": "3만 2천원", "account_alias": "일반" }
-      ],
-      "pension_limit_consumed": "9000000",
-      "residual_krw_cash": "6000",
-      "order_drafts": [
-        {
-          "symbol": "069500",
-          "symbol_label": "069500 KODEX 200",
-          "sleeve": "A",
-          "account_alias": "일반",
-          "side": "BUY",
-          "quantity": 1,
-          "limit_price": "38250",
-          "reasons": [
-            { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
-          ]
+      "plan": {
+        "plan_id": "pl_20261201_10",
+        "computed_at": "2026-11-30T21:05:00Z",
+        "as_of_trade_date": "2026-11-30",
+        "expires_at": "2026-12-01T21:05:00Z",
+        "config_hash": "cfg_fake_0000000000000000",
+        "as_of": { "observed_at": "2026-11-30T09:00:00Z", "trade_date": "2026-11-30", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "계획 기준 2026-11-30 종가" },
+        "deposit_amount": "100000",
+        "deposit_amount_text": "10만원",
+        "allocations": [
+          { "sleeve": "A", "label": "A · 국내 지수 ETF", "amount": "36000", "amount_text": "3만 6천원", "account_alias": "일반", "routing_reason_text": "올해 연금 납입한도를 다 써서 일반 계좌로 보냅니다." },
+          { "sleeve": "C", "label": "C · 방어 자산", "amount": "58000", "amount_text": "5만 8천원", "account_alias": "일반", "routing_reason_text": "올해 연금 납입한도를 다 써서 일반 계좌로 보냅니다." }
+        ],
+        "pension_limit_consumed": "18000000",
+        "pension_limit": {
+          "annual_limit_text": "올해 연금 합산 납입한도 1,800만원을 모두 썼습니다.",
+          "tax_credit_text": "세액공제 대상 구간 900만원도 모두 채웠습니다.",
+          "deadline_text": "올해 납입 마감(12월 31일)까지 31일 남았습니다.",
+          "suggestion_text": "이번 입금은 일반 계좌로 넣도록 제안합니다.",
+          "funding_note_text": "내년 한도가 열린 뒤 연금 납입이 모자라면 일반 계좌의 방어 자산을 먼저 팔아 조달합니다."
         },
-        {
-          "symbol": "379810",
-          "symbol_label": "379810 KODEX 미국S&P500",
-          "sleeve": "B",
-          "account_alias": "일반",
-          "side": "BUY",
-          "quantity": 2,
-          "limit_price": "17420",
-          "reasons": [
-            { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
-          ]
-        },
-        {
-          "symbol": "0085P0",
-          "symbol_label": "0085P0 KODEX 국고채30년",
-          "sleeve": "C",
-          "account_alias": "일반",
-          "side": "BUY",
-          "quantity": 1,
-          "limit_price": "51380",
-          "reasons": [
-            { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
-          ]
-        }
-      ],
-      "costs": { "commission": "128", "tax": "0", "total": "128", "total_text": "약 128원", "source": "ESTIMATED", "source_label": "추정치", "basis_note": "수수료·세금은 접수 전 추정치이며 체결 후 브로커 원장으로 대체됩니다." },
-      "funding_steps": null,
-      "preview_notice": "올해 연금 납입 한도를 다 썼습니다. 이번 납입은 일반 계좌로 넣도록 제안합니다."
+        "residual_krw_cash": "6000",
+        "residual_krw_cash_text": "6천원은 원화 현금으로 대기합니다(다음 리밸런싱 재원).",
+        "order_drafts_title": "주문 초안",
+        "order_drafts": [],
+        "orders_empty_text": "계좌를 바꾸는 달에는 주문 초안을 만들지 않습니다. 일반 계좌 입금이 확인되면 다시 계산합니다.",
+        "costs": { "commission": "0", "tax": "0", "total": "0", "total_text": "주문이 없어 예상 비용이 없습니다", "source": "ESTIMATED", "source_label": "추정치", "basis_note": "수수료·세금은 접수 전 추정치이며 체결 후 브로커 원장으로 대체됩니다." },
+        "preview_notice": "미리보기입니다. 실제 입금이 확인되면 다시 계산합니다.",
+        "warning_lines": [
+          "올해 연금 납입한도를 다 써서 이번 달에는 슬리브 B 몫을 채우지 못합니다."
+        ],
+        "funding_steps": null
+      }
     }
   ]
 }

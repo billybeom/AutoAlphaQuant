@@ -1,6 +1,6 @@
 > **사본 · 정본은 `packages/domain_contracts/fixtures/README.md`.** 부록의 파일 목록은 조립 시점 실측입니다.
 
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.3 · 115파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.4 · 122파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -10,10 +10,11 @@
 
 ## 🔴 대원칙 — 실키 금지
 
-- 실키·계좌 전체번호·비밀번호 **0건**. 계좌는 **별칭만**(`"연금저축"`·`"일반"`).
+- 실키·계좌 전체번호·비밀번호 **0건**. 계좌는 **별칭만**(`"연금저축"`·`"일반"`) — 🆕 v1.4 쓸 수 있는 별칭은
+  아래 «픽스처 계좌 별칭 표»가 정본이다.
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 115파일 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 122파일 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -33,7 +34,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.3.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.4.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -58,7 +59,10 @@
    (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
    자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
 2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
-   ✅ **지금 값은 `1.3.0`**(2026-09-28 R10 선행 M2 보강 · 01 §13 — 상수와 기존 104개 + 신규 11개 = **115개**를
+   ✅ **지금 값은 `1.4.0`**(2026-09-30 R11 선행 M2 보강 · 01 §14 — 상수와 기존 115개 + 신규 7개 = **122개**를
+   **함께** 올렸다. 🔴 기존 115개 가운데 99개는 `"contract_version"` **한 줄만** 바뀌었고, 16개는 본문도
+   개정됐다 — 아래 «계약 v1.4» 절).
+   ~~`1.3.0`~~(2026-09-28 R10 선행 M2 보강 · 01 §13 — 상수와 기존 104개 + 신규 11개 = **115개**를
    **함께** 올렸다. 🔴 기존 104개 가운데 100개는 `"contract_version"` **한 줄만** 바뀌었고, 4개는 본문도
    개정됐다 — 아래 «계약 v1.3» 절).
    ~~`1.2.0`~~(2026-09-25 R2b 선행 M2 보강 · 01 §12 — 상수와 기존 97개 + 신규 7개 = **104개**를
@@ -75,25 +79,45 @@
    `SleeveId.satellite → "SAT"` · `StepRequirement.required_ → "REQUIRED"` ·
    `CommandKind.manualFillRecord → "RECORD_MANUAL_FILL"` · `AdviceActionId → "RECORD"/"SKIP"/"DETAIL"`.
 
-### 봉투 확장 — 부속 블록
+### 봉투 확장 — 부속 블록 (봉투 형제 키 표)
 
 한 화면이 「목록 + 그 목록의 요약」을 함께 받는 갈래가 있어(`A-1` 안내함이 대표) 봉투에
 **형제 키**를 하나 더 싣는다. 봉투 필수 6키는 그대로이고 로더는 이 키를 무시한다.
 
+🔴 🆕 v1.4 — **이 표가 봉투 최상위 키의 화이트리스트다**(01 §14-12 · 미결 40 과 같은 뿌리).
+봉투 필수 6키(`meta`·`as_of`·`empty_kind`·`empty_label`·`has_more`·`rows`)와 아래 표의 키 밖의
+최상위 키는 계약 검사가 실패시킨다(`lag_notice` 류 고아 키 재발 방지 — v1.4 에서 `m7_goal_path_hold`
+의 `lag_notice` 를 지우고 그 문장을 `m7_goal_path_off` 의 행 필드 `deviation_text` 로 올렸다).
+키를 늘리려면 **이 표를 먼저** 고친다. 한 행에 키 하나씩 적는다(표 = 기계가 읽는 목록).
+
 | 키 | 타입 | 쓰는 파일 |
 |---|---|---|
 | `summary` | `AdviceInboxSummary` | `m6/advice_*.json` 9벌 |
-| `advice_summary` | `AdviceInboxSummary` | `m8/ops_home_advice_*.json` |
-| `counterfactual` · `counterfactual_collapsed` | `AfterTaxLadder` · bool | `m7/aftertax_ladder_1.json` |
+| `advice_summary` | `AdviceInboxSummary` | `m8/ops_home_advice_open.json` · `m8/ops_home_advice_zero.json` |
+| `counterfactual` | `AfterTaxLadder` | `m7/aftertax_ladder_1.json` |
+| `counterfactual_collapsed` | bool | `m7/aftertax_ladder_1.json` |
 | `trust` | `LedgerTrustBadge` | `m6/self_report_1.json` |
 | `index` | `HandbookIndex` | `m8/handbook_page_sleeve_b.json` |
 | `incident_alert` | `AlertItem` | `m8/incident_token_expired.json` |
-| `preserved_input` · `reject_reason` · `price_range_source_date` | 원시 · `ReasonChip` · `TradeDate` | `m6/fill_rejected_price.json` |
-| `active_flags` · `resume_headline` · `resume_route` · `pending_notice` 계열 | `BlockFlag` 등 | `m8/ops_home_*.json` · `m7/m7_monthly_pending.json` |
+| `preserved_input` | 원시(`ManualFillRecord` 모양 · `context` 없음) | `m6/fill_rejected_price.json` |
+| `reject_reason` | `ReasonChip` | `m6/fill_rejected_price.json` |
+| `price_range_source_date` | `TradeDate` | `m6/fill_rejected_price.json` |
+| `active_flags` | `BlockFlag` 목록 | `m6/advice_blocked.json` · `m8/ops_home_blocked.json` · `m8/ops_home_resume_gap7.json` |
+| `resume_headline` | 문장 | `m8/ops_home_resume_gap7.json` |
+| `resume_route` | 링크 | `m8/ops_home_resume_gap7.json` |
+| `credential_use` | 원시 | `m8/onboarding_fresh_advisory.json` |
+| `operating_mode` | 원시 | `m8/onboarding_fresh_advisory.json` |
+| `finish_headline` | 문장 | `m8/onboarding_finish.json` |
+| `holiday_notice` | 문장 | `m8/watchdog_holiday.json` |
+| `lease_notice` | 문장 | `m8/restart_lost_phone.json` |
+
+🔵 v1.4 정정 — 옛 표의 «`pending_notice` 계열 · `m7/m7_monthly_pending.json`»은 지웠다(그 파일의 형제 키
+`pending_d_day_text` 는 v1.1 에서 폐기됐고 지금 형제 키가 없다). `credential_use`·`operating_mode`·
+`finish_headline`·`holiday_notice`·`lease_notice` 5키는 실물에 있었는데 옛 표에 빠져 있던 것을 실측으로 더했다.
 
 ---
 
-## 파일 목록 (115)
+## 파일 목록 (122)
 
 ### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
@@ -109,8 +133,8 @@
 | `ledger_diffs_4.json` | 4 | `CANON_BROKER` 1(blocking) · 파생 3(observational) |
 | `onboarding_fresh.json` | 14 | 처음 시작하기(verified/failed/expired 각 1) |
 | `onboarding_reconnect.json` | 9 | 재연결 갈래 |
-| `deposit_plan_1.json` | 1 | 월 납입 = 엔진 설정값 예시 · 잔여 = 원화 현금 대기(D2) · 주문 초안 3 · `funding_steps` **null** |
-| `deposit_plan_funding_1.json` | 1 | 납입 조달 발동 · `funding_steps` 2단(파킹 잉여 0 → C 방어자산 매각) |
+| `deposit_plan_1.json` | 1 | 🔵 v1.4 **코어 전용(행 = `DepositPlan` · 화면 미사용)** · 월 납입 = 엔진 설정값 예시 · 잔여 = 원화 현금 대기(D2) · 주문 초안 4 · `funding_steps` **null** |
+| `deposit_plan_funding_1.json` | 1 | 🔵 v1.4 **코어 전용** · 납입 조달 발동 · C 방어 자산 매도 초안 + 조달 칩 `PENSION_FUNDING` · `funding_steps` **1단**(0원 단계 삭제) · 잔여 0 |
 | 🆕 `range_presets_4.json` | 4 | **v1.1** `ConfigRepository.watchRangePresets()` — 최근 30일(**`is_default`**)·이번 달·올해·전체 기간. 🔴 `is_default` 는 정확히 1건(C-34 ①) |
 | 🆕 `sleeve_catalog_4.json` | 4 | **v1.1** `ConfigRepository.watchSleeves()` — A·B·C·POT(`rolls_up_to: A`). P0S 라 새틀라이트 행 없음 |
 
@@ -165,7 +189,15 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 `fill_rejected_price`(🔴 **입력값 보존** — C17) · `advice_skip_reasons` · `self_report_1` ·
 `external_holdings_2` · `entry_gate_nov_pass_1`(🔵 11월 재판정 통과 — 실데이터로는 검증 불가한 경로).
 
-### `m7/` 43 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+### `m7/` 48 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+
+🆕 **계약 v1.4(2026-09-30 · R11 선행 M2 보강 · 01 §14) 5건** —
+`m7_deposit_plan_blocked`(`S7-4` 미리보기 차단 2행 — 0 `blocked_text` 만(버튼 부재) · 1 `blocked_text` + `blocked_action` → `aaq://x2/resume-report`) ·
+`m7_deposit_plan_input_rejected`(입력 거부 — `input_rejected_text` 만) ·
+`m7_deposit_plan_funding`(`deposit_plan_funding_1` 과 같은 계획을 감싼 래퍼 + `register_blocked_text`(브로커 대조 미완 — 등록만 불가) 동시 표본) ·
+`m7_deposit_register_receipts_4`(실입금 등록 `CommandReceipt` 4행 · kind `DEPOSIT_REGISTER` — **한 명령(같은 `command_id`)의 갈래**이고 🔴 **행 순서가 뜻**이다: 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`. 거부(`REJECTED`) 행은 없다 — 거부 코드 사전이 아직 없다(01 §8 미결 74)) ·
+`m7_goal_path_off`(`S7-9` 이탈 — `deviation_text` 있음).
+🔵 같은 창에서 16건의 본문이 개정됐다 — 아래 «계약 v1.4» 절.
 
 🆕 **계약 v1.3(2026-09-28 · R10 선행 M2 보강 · 01 §13) 11건** —
 `m7_report_archive_empty`(`S7-1b` 빈 아카이브 — `rows` 0 + VM `empty_label`) ·
@@ -187,12 +219,12 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 `aftertax_ladder_1`(정본 갈래 5단 + 반사실 1 접힘 · `is_reference_only: true`) ·
 `realized_alloc_S7`(🔴 **C-31의 입력** — 회계 열 대조) · `ledger_trust_4` ·
 `execution_gap_cant`·`_wont`·`_mixed`(🔴 **B21 3갈래** — `mode_advice_line` 이 각각 다르다) · `execution_gap_1` ·
-`m7_deposit_plan_default`·`_limit`·`_expired`(🔴 이름에 금액 금지) ·
+`m7_deposit_plan_default`·`_limit`·`_expired`(🔴 이름에 금액 금지 · 🆕 v1.4 행 = `DepositPreviewResult` 래퍼) ·
 `m7_withdrawal_general`·`_pension_penalty`·`_shortfall` ·
 `m7_monthly_2026_08`·`_gap`·`_pending`(13항목 고정 배열) · `m7_report_archive_18` · `m7_disclosure_gate` ·
 `m7_perf_daily_gap` · `m7_dd_context_normal`·`_deep` · `m7_contrib_3sleeve` ·
 `m7_next_rebalance_d6` · `m7_rebalance_detail_band` · `m7_annual_2026`·`_first_year` ·
-`m7_goal_path_on`·`_hold`·`_realworld`.
+`m7_goal_path_on`·`_hold`·`_realworld`(🆕 v1.4 `GoalPathVm` 재설계 — 생성 스크립트).
 
 ### `m8/` 18 — 셸·운영 홈·알림·온보딩 (04 §10)
 
@@ -206,10 +238,19 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 > ⚠️ 04 §10 목록의 `onboarding_fresh.json` 은 **코어의 같은 이름 파일이 정본**이라
 > `m8/` 에 다시 두지 않았다(같은 데이터가 두 벌이 되면 한쪽만 갱신된다).
 
-### `m9/` 1 — 설정·운영 모드 전환 (05)
+### `m9/` 3 — 설정·운영 모드 전환 (05)
 
 `handover_states`(경로 4 × 성공/실패 — `SIM_TO_AUTO` 통과 · `FRESH_AUTO` 차단 ·
 `ADOPT_LEDGER` 모름 · `HANDBACK_MANUAL` 차단 + `handback_branch`).
+
+🆕 **계약 v1.4 2건** — `contribution_setting_default`(`ConfigRepository.watchContributionSetting()` 의 한 값 ·
+`amount "100000"` · `amount_input_text "100000"` · `pension_limit_note_text` 있음) ·
+`contribution_setting_no_limit_note`(같은 값 · `pension_limit_note_text` **키 없음** = 그 줄이 없다).
+🔴 `equivalent_note_text` 는 **금액 없이** 서술한다(12%-등가 납입액을 금액으로 적으면 C-32 ⑥ 폐기값에 걸린다 · 01 §8 미결 75).
+
+🔴 **`m9/` 이름 규약** — 폴더마다 기존 관례를 따른다. `m7/` 은 `m7_` 접두(`m7/m7_deposit_plan_default` →
+`FixturePaths.m7M7DepositPlanDefault`), `m9/` 는 **접두 없음**(`m9/handover_states` → `FixturePaths.m9HandoverStates` ·
+`m9/contribution_setting_default` → `FixturePaths.m9ContributionSettingDefault`).
 
 ---
 
@@ -219,9 +260,12 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
   맞지 않지만 **실전 종목 확정 전까지 고치지 않는다** — 화면은 티커를 슬리브의 정의로 읽지 않는다
   (A/B/C 라벨은 `SleeveCatalogEntry.label`). 🔴 POT 자리의 `357870` 은 03 §15 가 열거한 5종 밖이라
   **이 회차가 새로 고른 자리표시자**이며, 실전 종목이 확정되면 함께 교체된다.
-- **월 납입 예시값은 `100000`**(01 §5 · 04 §10). 🔴 **파일명에 금액을 넣지 않는다**
+- **월 납입 예시값은 `100000`**(01 §5 · 04 §10) **하나**다. 🔴 **파일명에 금액을 넣지 않는다**
   (`_default`·`_limit`·`_expired`). 값은 파일 **안**에만 있고 운영값의 창구는
   `ConfigRepository.watchContributionSetting()` 하나다. C-32는 `ui_*` 소스만 보며 `fixtures/` 는 대상이 아니다.
+  🆕 v1.4 문구 통일(01 §14-13) — **픽스처는 폐기값만 금지**(`fixture_conventions_test.dart` 의 정규식)이고
+  예시값 `100000` 은 허용한다. 🔴 **운영값이 든 실문장**(목표 경로의 «월 납입 얼마» 기록 문장 · 12%-등가 한 줄)은
+  픽스처에서 **금액 없이** 서술한다(01 §8 미결 75).
 - **세후 사다리 4자리 수치를 인용해도 되는 자리는 `m7/aftertax_ladder_1.json` 과 골든뿐**이다
   (01 §2-4). 코드·라벨·주석에 옮기지 않는다.
 - **`ENTRY_GATE_OCT`** 은 「10월말 진입 게이트 통과」 = 정상 통과 사유다. 🔴 `F1_ENTRY_DEFER`·
@@ -284,11 +328,69 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures
 
 ---
 
-## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 🆕 2026-09-28 v1.3 · 112파일 295행 + 봉투 형제 키 9 · 실패 0)
+## 계약 v1.4 (2026-09-30 · R11 선행 M2 보강 · 01 §14)
 
-🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 3건 포함) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 115파일 `rows`)은 298 = 295 + 매핑 없는 3건 각 1행(v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+화면 카드 `R11a-Bob-S74`(`S7-4` 플래너 · 폰 전용)·`R11b-Bob-S79`(`S7-9` 목표 경로 + `S7-1` 진입 버튼)를 보내기 전에 한 보강이다.
+🔴 `S7-5`(인출)는 v1.5 다 — 인출 3벌은 새 필수 키만 기계적으로 더했다.
 
-115파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json` 은 0행 봉투), 그중 **112파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11)이 실제 DTO 의 `fromJson` 을 지나
+### 개정 16건 (파일 이름·`FixturePaths` 상수 그대로)
+
+| 파일 | 무엇이 바뀌었나 |
+|---|---|
+| `m7/m7_deposit_plan_default`·`_limit`·`_expired` | 행이 `DepositPlan` → **`DepositPreviewResult` 래퍼**(`{ "plan": { … } }`)로 바뀌었다(등록부 재바인딩). 새 표시 필드(`as_of`·`deposit_amount_text`·`pension_limit`·`residual_krw_cash_text`·`order_drafts_title`·`orders_empty_text`·`warning_lines`·`register_blocked_text` · 초안 `side_label`·`quantity_text`·`limit_price_text`·`pending_note_text` · 충당 `routing_reason_text`). 종목 라벨 SPEC 정합(`133690` TIGER 미국나스닥100·`411060` ACE KRX금현물 = B · `0085P0` ACE 미국10년국채액티브 = C · `379810` 제거) · 슬리브별 매수 초안 합 ≤ 충당액 · `preview_notice` = «미리보기입니다…» 고지 **전용** |
+| ↳ `_limit` | 🔴 **B 행 없음**(0원 행도 없음 · SPEC v2.23 — B 는 연금 계좌에만) · A·C 를 일반 계좌로 · `order_drafts: []` + `orders_empty_text` · `pension_limit`(`suggestion_text`·`funding_note_text` 있음) · `warning_lines` 1. 🔵 **1,800만 합산 납입한도 소진의 형태 표본**이다 — 이 앱이 실제로 설 조건(시작 2,000만 + 월 납입 운영값)에서는 한도 구속이 0/25년이다(03 §9 금지 ⑤) |
+| ↳ `_expired` | 만료 = `register_blocked_text`(등록 부재) · 봉투와 행의 기준일 = 계획 기준일 2026-08-28 · 옛 봉투 신호(`empty_kind: NOT_APPLICABLE` + `empty_label`)는 행 필드로 옮기고 봉투는 `NO_DATA`/`null` |
+| `deposit_plan_1`·`deposit_plan_funding_1` | 행 = `DepositPlan` 그대로(**코어 전용** · 화면 미사용). 새 필수 키 · 종목 라벨 · `funding_1` 은 0원 조달 단계 삭제 · C 방어 자산 **매도** 초안(`PENSION_FUNDING` 칩 · 지정가 없음 · `pending_note_text`) · 충당 합 + 잔여 = 입금액 · 봉투·행 기준일 2026-09-30 로 정합 |
+| `m7/m7_goal_path_on`·`_hold`·`_realworld` | `GoalPathVm` v1.4 — `planned`·`actual`(`PerfPoint` · 같은 길이·날짜·가로 자리 · 계획선 결측 없음) · `y_ticks` · `segments` · 역할 고정 문장(판정 근거 `basis_text` / 가정 카드 1줄 `backtest_basis_text` / 2줄 `starting_capital_assumption_text`) · `honest_expectation_text`·`_worst_text`(인용 문장) · `disclaimer_text`. `_hold` = `chart_unavailable_label` + 네 목록 빈 목록 · 봉투 **`lag_notice` 삭제**(문장은 `m7_goal_path_off` 의 `deviation_text` 로 올렸다). `_realworld` = 실전 조건 문장(금액 없이) + 갭 1(`UNAVAILABLE` 띠 · 실제선 결측 2점) |
+| `m7/m7_monthly_2026_08`·`_gap` | `goal_deep_link` = `aaq://report/goal/2026-08`(그 행의 `yyyy_mm`) 한 줄 |
+| `m7/m7_monthly_masked_integrity`·`_masked_recon`·`_pending` | `goal_deep_link` **키 없음**(가림·미생성 달 = 버튼 부재) — 버전 줄만 바뀌었다 |
+| `m7/m7_withdrawal_*` 3벌 | 초안 행에 `side_label`·`quantity_text` 두 줄만(기계적 · 내용은 v1.5 에서 다시 만든다) |
+
+### 신설 7건
+
+위 «`m7/` 48» · «`m9/` 3» 절의 v1.4 목록. 상수는 `FixturePaths.m7M7DepositPlanBlocked`·`…InputRejected`·`…Funding`·
+`m7M7DepositRegisterReceipts4`·`m7M7GoalPathOff`·`m9ContributionSettingDefault`·`m9ContributionSettingNoLimitNote` 7개다.
+
+### 🔴 픽스처 계좌 별칭 표 (정본 · 설계 D9 ⑧)
+
+| 축 | 별칭 |
+|---|---|
+| 연금 계좌 | `연금저축` · `IRP` |
+| 과세 계좌 | `일반` |
+
+- 슬리브 B 의 충당·초안은 **연금 계좌**에만 선다(SPEC v2.23). 계획 픽스처의 `account_alias` 는 이 표 안에서만 고른다(표 밖 = 실패 · C-38 ⑦).
+- 같은 집합을 `test/contracts/support/fixture_accounts.dart`(`kFixturePensionAccountAliases`·`kFixtureAccountAliases`)가 코드로 싣는다 — 🔴 **두 곳은 같은 커밋에서 바꾼다**.
+- 🔵 `sleeve_catalog_4.json` 은 계좌 축이 없어(sleeve·label·order 뿐) 정본이 될 수 없다.
+
+### 🔴 개정·신설은 **생성 스크립트**가 만든다 (손 계산 금지)
+
+```
+# 저장소 루트에서 — 몇 번을 돌려도 결과가 같다. 돌린 뒤 `git status` 에 fixtures 변경이 없어야 한다
+PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r11_fixtures.py
+```
+
+- 개정 16건은 기준 커밋(계약 1.3.0 · `5207195`)의 원문에서 다시 만든다 — git 과 그 커밋이 있어야 한다.
+- 스크립트가 규약을 먼저 확인하고 어기면 멈춘다: 폐기 운영값 0 · Σ 충당 + 잔여 == 입금액(예시값 `100000`) · 슬리브별 매수 초안 합 ≤ 충당액 · 슬리브 B = 연금 계좌 · `preview_notice` 는 «미리보기입니다»로 시작 · 목표 경로의 «날짜로 덮는 점» == «자리로 덮는 점» · 값 크기 순서 == 세로 자리 순서 · `value_text` 에 `%` 없음 · `최악의 해` 없음 · `_realworld` 에 `1억` 없음.
+
+| 목표 경로 필드 | 규칙 |
+|---|---|
+| `x_normalized` | 순번 ÷ (점 수 − 1) · 소수 넷째 자리 반올림(성과 시리즈와 같다 — 아래 «계약 v1.3» 표) |
+| 세로축 | 계획선과 실제선의 값 전체를 덮는다 · 🔴 **금액 축이라 0 을 넣지 않는다**(기준선 없음 · `is_baseline` 전부 false) · 눈금 간격 = {1,2,5}×10ⁿ 만원 가운데 «눈금 수(양 끝 포함) ≤ 5»가 되는 가장 작은 간격 |
+| `y_normalized` | (값 − 아래 끝) ÷ (위 끝 − 아래 끝) · 결측이면 `null`(`value: null`·`gap_reason_code` 와 함께) · 계획선은 결측 없음 |
+| `value_text` · 눈금 `label` | 금액 글자(`"2,560만원"`) · 🔴 `%`(달성률) 금지 · 결측 점 = `"산출 불가"` |
+| `value` | 원 단위 금액(double) — 골든 대조 전용 · `ui_*` 참조 금지(C-36 ⑦ 준용) |
+| `segments` | 갭 띠만(`UNAVAILABLE`) — 덮는 점의 앞뒤 반 칸까지 · 유지·이탈 표본은 빈 목록 |
+
+### 표기 — 래퍼·빈 키
+
+- `DepositPreviewResult` 래퍼는 `plan`·`input_rejected_text`·`blocked_text` 가운데 **있는 키 하나만** 싣는다(나머지는 키 없음 · C-38 ①). `blocked_action` 은 `blocked_text` 가 있는 행에만 온다.
+- `DepositPlan` 의 선택 표시 필드(`pension_limit`·`residual_krw_cash_text`·`orders_empty_text`·`register_blocked_text` · 초안 `limit_price`·`limit_price_text`·`pending_note_text` · 충당 `routing_reason_text` · 한도 카드 `suggestion_text`·`funding_note_text`)는 없을 때 **키가 없다**. `warning_lines` 는 비어도 `[]` 로 싣는다. `funding_steps` 는 조달이 없으면 `null` 로 적는다(v1.3 까지와 같다).
+
+## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 🆕 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0)
+
+🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 3건 포함) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 122파일 `rows`)은 309 = 306 + 매핑 없는 3건 각 1행(v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다 · 🆕 v1.4 신규 7파일이 11행을 더했다 — 개정 16건은 행 수 불변). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+
+122파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json` 은 0행 봉투), 그중 **119파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
@@ -313,17 +415,19 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures
 
 ## 링크 규약 (🆕 v1.1 · 01 §4-4)
 
-픽스처의 링크 필드(`deep_link`·`detail_deep_link`·`action_deep_link`·`where_deep_link`·`clear_deep_link`·`route`·`preview_route`·`handoff_route`·`resume_route`)에는 `aaq://…`(앱 화면)와 `handbook://…`(핸드북 앵커) **두 스킴만** 온다. `aaq://` 는 전부 `AppRoutes.all`(`lib/src/navigation/app_links.dart`)의 패턴과 일치해야 하며 **C-33** 이 전수 검사한다. 🔴 화면은 이 문자열을 만들지도 해석하지도 않는다 — `AppLinkOpener.open(link)` 에 그대로 넘긴다.
+픽스처의 링크 필드(`deep_link`·`detail_deep_link`·`action_deep_link`·`where_deep_link`·`clear_deep_link`·`route`·`preview_route`·`handoff_route`·`resume_route` · 🆕 v1.4 `goal_deep_link` — `blocked_action.deep_link` 는 `deep_link` 로 덮인다)에는 `aaq://…`(앱 화면)와 `handbook://…`(핸드북 앵커) **두 스킴만** 온다. `aaq://` 는 전부 `AppRoutes.all`(`lib/src/navigation/app_links.dart`)의 패턴과 일치해야 하며 **C-33** 이 전수 검사한다. 🔴 화면은 이 문자열을 만들지도 해석하지도 않는다 — `AppLinkOpener.open(link)` 에 그대로 넘긴다.
 
 ## 아직 없는 것
 
 - **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
   🔴 구현자가 이름을 지어내지 않는다(인벤토리 §0 규칙) — M2가 05 에 목록을 등재한 뒤 만든다.
+  🔵 v1.4 의 `m9/contribution_setting_*` 2벌은 `S7-4` 스텝 ① 의 입력(`ContributionSetting`)이라 M2 가 먼저 만들었다 —
+  05 화면(`MonthlyContributionVm` 카드 등)의 픽스처는 여전히 없다.
 - **`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다). 🆕 v1.2 — 본문 단위는 `DecisionJournalBody`(`journal_read_*` 가 그 모양)로 정했고 점수 축은 여전히 미결이다.
 - `test/` 의 계약 회귀 C-1~C-37 — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.
 
-## 부록 — 실제 픽스처 파일 목록 (115개, 2026-09-28 실측)
+## 부록 — 실제 픽스처 파일 목록 (122개, 2026-09-30 실측)
 
 경로 기준 `packages/domain_contracts/fixtures/`. 이 목록은 조립 시점의 실물이며, 명세가 부르는 파일명과 다르면 **실물이 맞습니다**.
 
@@ -332,8 +436,8 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures
 | 파일 | 바이트 |
 |---|---:|
 | `alerts_12.json` | 5,713 |
-| `deposit_plan_1.json` | 3,056 |
-| `deposit_plan_funding_1.json` | 3,590 |
+| `deposit_plan_1.json` | 4,817 |
+| `deposit_plan_funding_1.json` | 5,197 |
 | `holdings_6.json` | 8,211 |
 | `journal_30.json` | 54,406 |
 | `ledger_diffs_4.json` | 2,200 |
@@ -390,7 +494,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures
 | `m6/unknown_board_2.json` | 8,716 |
 | `m6/unknown_board_empty.json` | 879 |
 
-### m7 — 43개
+### m7 — 48개
 
 | 파일 | 바이트 |
 |---|---:|
@@ -406,19 +510,24 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures
 | `m7/m7_contrib_partial.json` | 1,723 |
 | `m7/m7_dd_context_deep.json` | 1,171 |
 | `m7/m7_dd_context_normal.json` | 1,053 |
-| `m7/m7_deposit_plan_default.json` | 3,056 |
-| `m7/m7_deposit_plan_expired.json` | 3,159 |
-| `m7/m7_deposit_plan_limit.json` | 3,066 |
+| `m7/m7_deposit_plan_blocked.json` | 932 |
+| `m7/m7_deposit_plan_default.json` | 5,017 |
+| `m7/m7_deposit_plan_expired.json` | 5,170 |
+| `m7/m7_deposit_plan_funding.json` | 5,537 |
+| `m7/m7_deposit_plan_input_rejected.json` | 649 |
+| `m7/m7_deposit_plan_limit.json` | 3,191 |
+| `m7/m7_deposit_register_receipts_4.json` | 2,019 |
 | `m7/m7_disclosure_gate.json` | 1,032 |
 | `m7/m7_disclosure_gate_closed.json` | 934 |
 | `m7/m7_disclosure_gate_first.json` | 969 |
 | `m7/m7_disclosure_gate_frequent.json` | 1,083 |
 | `m7/m7_disclosure_view_receipts_4.json` | 2,005 |
-| `m7/m7_goal_path_hold.json` | 3,005 |
-| `m7/m7_goal_path_on.json` | 2,904 |
-| `m7/m7_goal_path_realworld.json` | 2,928 |
-| `m7/m7_monthly_2026_08.json` | 3,417 |
-| `m7/m7_monthly_gap.json` | 3,788 |
+| `m7/m7_goal_path_hold.json` | 1,888 |
+| `m7/m7_goal_path_off.json` | 4,734 |
+| `m7/m7_goal_path_on.json` | 4,620 |
+| `m7/m7_goal_path_realworld.json` | 4,859 |
+| `m7/m7_monthly_2026_08.json` | 3,470 |
+| `m7/m7_monthly_gap.json` | 3,841 |
 | `m7/m7_monthly_masked_integrity.json` | 4,245 |
 | `m7/m7_monthly_masked_recon.json` | 4,452 |
 | `m7/m7_monthly_pending.json` | 3,606 |
@@ -433,9 +542,9 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures
 | `m7/m7_rebalance_detail_band.json` | 3,206 |
 | `m7/m7_report_archive_18.json` | 3,610 |
 | `m7/m7_report_archive_empty.json` | 892 |
-| `m7/m7_withdrawal_general.json` | 2,050 |
-| `m7/m7_withdrawal_pension_penalty.json` | 2,651 |
-| `m7/m7_withdrawal_shortfall.json` | 2,161 |
+| `m7/m7_withdrawal_general.json` | 2,191 |
+| `m7/m7_withdrawal_pension_penalty.json` | 2,722 |
+| `m7/m7_withdrawal_shortfall.json` | 2,303 |
 | `m7/realized_alloc_S7.json` | 2,611 |
 
 ### m8 — 18개
@@ -461,10 +570,12 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures
 | `m8/watchdog_delayed.json` | 1,493 |
 | `m8/watchdog_holiday.json` | 1,481 |
 
-### m9 — 1개
+### m9 — 3개
 
 | 파일 | 바이트 |
 |---|---:|
+| `m9/contribution_setting_default.json` | 1,175 |
+| `m9/contribution_setting_no_limit_note.json` | 1,068 |
 | `m9/handover_states.json` | 5,203 |
 
-**합계 115개 · 492,657 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
+**합계 122개 · 519,226 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).

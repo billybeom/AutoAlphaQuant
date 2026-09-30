@@ -28,6 +28,9 @@ const Set<String> _linkKeys = <String>{
   'preview_route',
   'handoff_route',
   'resume_route',
+  // 🆕 v1.4(01 §14-9) — `MonthlyReport.goalDeepLink`(«목표 경로 보기» · `aaq://report/goal/<yyyy-MM>`).
+  //    `DepositPreviewResult.blockedAction.deep_link` 는 위 `deep_link` 로 이미 덮인다.
+  'goal_deep_link',
 };
 
 /// `route` 라는 키는 링크가 아닌 **열거값**으로도 쓰인다(`LedgerDiffRow.route` =

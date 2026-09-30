@@ -1,73 +1,110 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.3.0",
+    "contract_version": "1.4.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
     "seed": 20260906,
     "notice": "합성 데이터. 실계좌·실키 없음."
   },
-  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "계획 기준 2026-08-31 종가" },
-  "empty_kind": "NOT_APPLICABLE",
-  "empty_label": "계획이 만료되어 주문 초안을 쓸 수 없습니다.",
+  "as_of": { "observed_at": "2026-08-28T09:00:00Z", "trade_date": "2026-08-28", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "계획 기준 2026-08-28 종가" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
   "has_more": false,
   "rows": [
     {
-      "plan_id": "pl_20260829_10",
-      "computed_at": "2026-08-28T21:05:00Z",
-      "as_of_trade_date": "2026-08-28",
-      "expires_at": "2026-08-29T21:05:00Z",
-      "config_hash": "cfg_fake_0000000000000000",
-      "deposit_amount": "100000",
-      "allocations": [
-        { "sleeve": "A", "label": "A · 국내 지수 ETF", "amount": "20000", "amount_text": "2만원", "account_alias": "연금저축" },
-        { "sleeve": "B", "label": "B · 해외 지수·금 ETF", "amount": "42000", "amount_text": "4만 2천원", "account_alias": "연금저축" },
-        { "sleeve": "C", "label": "C · 방어 자산", "amount": "32000", "amount_text": "3만 2천원", "account_alias": "일반" }
-      ],
-      "pension_limit_consumed": "620000",
-      "residual_krw_cash": "6000",
-      "order_drafts": [
-        {
-          "symbol": "069500",
-          "symbol_label": "069500 KODEX 200",
-          "sleeve": "A",
-          "account_alias": "연금저축",
-          "side": "BUY",
-          "quantity": 1,
-          "limit_price": "38250",
-          "reasons": [
-            { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
-          ]
+      "plan": {
+        "plan_id": "pl_20260829_10",
+        "computed_at": "2026-08-28T21:05:00Z",
+        "as_of_trade_date": "2026-08-28",
+        "expires_at": "2026-08-29T21:05:00Z",
+        "config_hash": "cfg_fake_0000000000000000",
+        "as_of": { "observed_at": "2026-08-28T09:00:00Z", "trade_date": "2026-08-28", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "계획 기준 2026-08-28 종가" },
+        "deposit_amount": "100000",
+        "deposit_amount_text": "10만원",
+        "allocations": [
+          { "sleeve": "A", "label": "A · 국내 지수 ETF", "amount": "20000", "amount_text": "2만원", "account_alias": "연금저축" },
+          { "sleeve": "B", "label": "B · 해외 지수·금 ETF", "amount": "42000", "amount_text": "4만 2천원", "account_alias": "연금저축", "routing_reason_text": "해외 ETF 는 연금저축 계좌에서 삽니다(과세 이연)." },
+          { "sleeve": "C", "label": "C · 방어 자산", "amount": "32000", "amount_text": "3만 2천원", "account_alias": "일반" }
+        ],
+        "pension_limit_consumed": "620000",
+        "pension_limit": {
+          "annual_limit_text": "올해 연금 합산 납입한도 1,800만원 가운데 62만원을 썼습니다(이번 입금 포함).",
+          "tax_credit_text": "세액공제 대상 구간 900만원 가운데 62만원을 채웠습니다.",
+          "deadline_text": "올해 납입 마감(12월 31일)까지 125일 남았습니다."
         },
-        {
-          "symbol": "379810",
-          "symbol_label": "379810 KODEX 미국S&P500",
-          "sleeve": "B",
-          "account_alias": "연금저축",
-          "side": "BUY",
-          "quantity": 2,
-          "limit_price": "17420",
-          "reasons": [
-            { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
-          ]
-        },
-        {
-          "symbol": "0085P0",
-          "symbol_label": "0085P0 KODEX 국고채30년",
-          "sleeve": "C",
-          "account_alias": "일반",
-          "side": "BUY",
-          "quantity": 1,
-          "limit_price": "51380",
-          "reasons": [
-            { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
-          ]
-        }
-      ],
-      "costs": { "commission": "128", "tax": "0", "total": "128", "total_text": "약 128원", "source": "ESTIMATED", "source_label": "추정치", "basis_note": "수수료·세금은 접수 전 추정치이며 체결 후 브로커 원장으로 대체됩니다." },
-      "funding_steps": null,
-      "preview_notice": "이 계획 스냅샷은 만료되었습니다. 만료된 계획으로는 실입금을 등록할 수 없습니다."
+        "residual_krw_cash": "6000",
+        "residual_krw_cash_text": "6천원은 원화 현금으로 대기합니다(다음 리밸런싱 재원).",
+        "order_drafts_title": "주문 초안",
+        "order_drafts": [
+          {
+            "symbol": "069500",
+            "symbol_label": "069500 KODEX 200",
+            "sleeve": "A",
+            "account_alias": "연금저축",
+            "side": "BUY",
+            "side_label": "매수",
+            "quantity": 1,
+            "quantity_text": "1주",
+            "limit_price": "19150",
+            "limit_price_text": "19,150원",
+            "reasons": [
+              { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
+            ]
+          },
+          {
+            "symbol": "133690",
+            "symbol_label": "133690 TIGER 미국나스닥100",
+            "sleeve": "B",
+            "account_alias": "연금저축",
+            "side": "BUY",
+            "side_label": "매수",
+            "quantity": 2,
+            "quantity_text": "2주",
+            "limit_price": "16380",
+            "limit_price_text": "16,380원",
+            "reasons": [
+              { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
+            ]
+          },
+          {
+            "symbol": "411060",
+            "symbol_label": "411060 ACE KRX금현물",
+            "sleeve": "B",
+            "account_alias": "연금저축",
+            "side": "BUY",
+            "side_label": "매수",
+            "quantity": 1,
+            "quantity_text": "1주",
+            "limit_price": "8940",
+            "limit_price_text": "8,940원",
+            "reasons": [
+              { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
+            ]
+          },
+          {
+            "symbol": "0085P0",
+            "symbol_label": "0085P0 ACE 미국10년국채액티브",
+            "sleeve": "C",
+            "account_alias": "일반",
+            "side": "BUY",
+            "side_label": "매수",
+            "quantity": 3,
+            "quantity_text": "3주",
+            "limit_price": "10250",
+            "limit_price_text": "10,250원",
+            "reasons": [
+              { "code": "DEPOSIT_ROUTING", "label": "월 납입 배분", "tone": "NEUTRAL", "detail_deep_link": "handbook://plan/deposit" }
+            ]
+          }
+        ],
+        "costs": { "commission": "128", "tax": "0", "total": "128", "total_text": "약 128원", "source": "ESTIMATED", "source_label": "추정치", "basis_note": "수수료·세금은 접수 전 추정치이며 체결 후 브로커 원장으로 대체됩니다." },
+        "preview_notice": "미리보기입니다. 실제 입금이 확인되면 다시 계산합니다.",
+        "warning_lines": [],
+        "register_blocked_text": "이 계획은 만료되어 실입금을 등록할 수 없습니다. 다시 계산해 새 계획을 받아 주세요.",
+        "funding_steps": null
+      }
     }
   ]
 }
