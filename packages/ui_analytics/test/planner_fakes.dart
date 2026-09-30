@@ -14,21 +14,17 @@ import 'explore_fakes.dart' show FakeSafetyRepository;
 import 'golden/golden_support.dart';
 
 class FakeWhatIfApi extends UnimplementedWhatIfApi {
-  FakeWhatIfApi({
-    Future<DepositPreviewResult> Function(String amountInput)? answerFn,
-  }) : _answerFn = answerFn;
+  FakeWhatIfApi({this.answerFn});
 
-  final Future<DepositPreviewResult> Function(String amountInput)? _answerFn;
+  final Future<DepositPreviewResult> Function(String amountInput)? answerFn;
   final List<String> simulateCalls = [];
   final List<String> otherCalls = [];
 
   @override
-  Future<DepositPreviewResult> simulateDeposit({
-    required String amountInput,
-  }) {
+  Future<DepositPreviewResult> simulateDeposit({required String amountInput}) {
     simulateCalls.add(amountInput);
-    if (_answerFn != null) {
-      return _answerFn(amountInput);
+    if (answerFn != null) {
+      return answerFn!(amountInput);
     }
     return Future<DepositPreviewResult>.value(
       singleFixture(
@@ -64,18 +60,16 @@ class FakeWhatIfApi extends UnimplementedWhatIfApi {
 }
 
 class FakeConfigRepository extends UnimplementedConfigRepository {
-  FakeConfigRepository({
-    Stream<ContributionSetting> Function()? settingStreamFactory,
-  }) : _settingStreamFactory = settingStreamFactory;
+  FakeConfigRepository({this.settingStreamFactory});
 
-  final Stream<ContributionSetting> Function()? _settingStreamFactory;
+  final Stream<ContributionSetting> Function()? settingStreamFactory;
   int watchContributionSettingCalls = 0;
 
   @override
   Stream<ContributionSetting> watchContributionSetting() {
     watchContributionSettingCalls++;
-    if (_settingStreamFactory != null) {
-      return _settingStreamFactory();
+    if (settingStreamFactory != null) {
+      return settingStreamFactory!();
     }
     return Stream<ContributionSetting>.value(
       singleFixture(
@@ -87,16 +81,11 @@ class FakeConfigRepository extends UnimplementedConfigRepository {
 }
 
 class FakePlannerCommandApi extends UnimplementedCommandApi {
-  FakePlannerCommandApi({
-    Future<CommandReceipt> Function(DepositRegistration registration)?
-    registerFn,
-    Stream<CommandReceipt> Function(String commandId)? watchFn,
-  }) : _registerFn = registerFn,
-       _watchFn = watchFn;
+  FakePlannerCommandApi({this.registerFn, this.watchFn});
 
   final Future<CommandReceipt> Function(DepositRegistration registration)?
-  _registerFn;
-  final Stream<CommandReceipt> Function(String commandId)? _watchFn;
+  registerFn;
+  final Stream<CommandReceipt> Function(String commandId)? watchFn;
 
   final List<DepositRegistration> registrations = [];
   final List<String> watchedIds = [];
@@ -105,8 +94,8 @@ class FakePlannerCommandApi extends UnimplementedCommandApi {
   @override
   Future<CommandReceipt> registerDeposit(DepositRegistration registration) {
     registrations.add(registration);
-    if (_registerFn != null) {
-      return _registerFn(registration);
+    if (registerFn != null) {
+      return registerFn!(registration);
     }
     final receipt = listFixture(
       FixturePaths.m7M7DepositRegisterReceipts4,
@@ -119,8 +108,8 @@ class FakePlannerCommandApi extends UnimplementedCommandApi {
   @override
   Stream<CommandReceipt> watchCommand(String commandId) {
     watchedIds.add(commandId);
-    if (_watchFn != null) {
-      return _watchFn(commandId);
+    if (watchFn != null) {
+      return watchFn!(commandId);
     }
     final receipt =
         _lastReceipt ??
@@ -151,9 +140,7 @@ List<Override> plannerOverrides({
       opener ?? RecordingLinkOpener(),
     ),
     safetyRepositoryProvider.overrideWithValue(
-      FakeSafetyRepository(
-        safetyState ?? defaultSafety,
-      ),
+      FakeSafetyRepository(safetyState ?? defaultSafety),
     ),
     plannerWhatIfApiProvider.overrideWithValue(whatIf),
     plannerConfigRepositoryProvider.overrideWithValue(
@@ -191,11 +178,7 @@ Future<void> pumpPlanner(
         clock: clock,
         opener: opener,
       ),
-      child: const MaterialApp(
-        home: Scaffold(
-          body: DepositPlannerScreen(),
-        ),
-      ),
+      child: const MaterialApp(home: Scaffold(body: DepositPlannerScreen())),
     ),
   );
   await tester.pump();

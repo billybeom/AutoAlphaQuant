@@ -126,20 +126,22 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
         _submitting = false;
         _receipt = receipt;
       });
-      _subscription = api.watchCommand(receipt.commandId).listen(
-        (CommandReceipt next) {
-          if (mounted) setState(() => _receipt = next);
-        },
-        onError: (Object error, StackTrace stack) {
-          FlutterError.reportError(
-            FlutterErrorDetails(
-              exception: error,
-              stack: stack,
-              library: 'ui_analytics',
-            ),
+      _subscription = api
+          .watchCommand(receipt.commandId)
+          .listen(
+            (CommandReceipt next) {
+              if (mounted) setState(() => _receipt = next);
+            },
+            onError: (Object error, StackTrace stack) {
+              FlutterError.reportError(
+                FlutterErrorDetails(
+                  exception: error,
+                  stack: stack,
+                  library: 'ui_analytics',
+                ),
+              );
+            },
           );
-        },
-      );
     } catch (error, stack) {
       FlutterError.reportError(
         FlutterErrorDetails(
@@ -160,8 +162,7 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
     if (activeFlags.isEmpty) return const SizedBox.shrink();
     return SafetyBlockBanner(
       activeFlags: activeFlags,
-      onOpenLink:
-          (link) => ref.read(analyticsLinkOpenerProvider).open(link),
+      onOpenLink: (link) => ref.read(analyticsLinkOpenerProvider).open(link),
     );
   }
 
@@ -244,23 +245,16 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
                       setting.pensionLimitNoteText!,
                       key: const Key('s74-setting-limit-note'),
                     ),
-                  Text(
-                    setting.asOf.label,
-                    key: const Key('s74-setting-asof'),
-                  ),
+                  Text(setting.asOf.label, key: const Key('s74-setting-asof')),
                 ],
                 loading: () => const [
-                  AnalyticsSkeleton(
-                    key: Key('s74-setting-loading'),
-                    blocks: 2,
-                  ),
+                  AnalyticsSkeleton(key: Key('s74-setting-loading'), blocks: 2),
                 ],
                 error: (error, stack) => [
                   AnalyticsErrorView(
                     key: const Key('s74-setting-error'),
-                    onRetry: () => ref.invalidate(
-                      plannerContributionSettingProvider,
-                    ),
+                    onRetry: () =>
+                        ref.invalidate(plannerContributionSettingProvider),
                   ),
                 ],
               ),
@@ -341,11 +335,8 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            plan.previewNotice,
-            key: const Key('s74-preview-notice'),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(plan.previewNotice, key: const Key('s74-preview-notice')),
         ),
         StaleBanner(asOf: plan.asOf),
         _buildSafetyBanner(activeFlags),
@@ -362,10 +353,7 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
               Text(plan.asOf.label, key: const Key('s74-asof')),
               const SizedBox(height: 8),
               for (int i = 0; i < plan.warningLines.length; i++)
-                Text(
-                  plan.warningLines[i],
-                  key: Key('s74-warning-$i'),
-                ),
+                Text(plan.warningLines[i], key: Key('s74-warning-$i')),
               const SizedBox(height: 16),
               Text(
                 plan.depositAmountText,
@@ -400,10 +388,7 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
                 const SizedBox(height: 8),
               ],
               if (plan.residualKrwCashText != null) ...[
-                Text(
-                  plan.residualKrwCashText!,
-                  key: const Key('s74-residual'),
-                ),
+                Text(plan.residualKrwCashText!, key: const Key('s74-residual')),
                 const SizedBox(height: 8),
               ],
               if (plan.pensionLimit != null) ...[
@@ -414,9 +399,7 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text(
-                          AnalyticsLabels.plannerPensionLimitTitle,
-                        ),
+                        const Text(AnalyticsLabels.plannerPensionLimitTitle),
                         Text(plan.pensionLimit!.annualLimitText),
                         Text(plan.pensionLimit!.taxCreditText),
                         Text(plan.pensionLimit!.deadlineText),
@@ -468,11 +451,8 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            plan.previewNotice,
-            key: const Key('s74-preview-notice'),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(plan.previewNotice, key: const Key('s74-preview-notice')),
         ),
         StaleBanner(asOf: plan.asOf),
         _buildSafetyBanner(activeFlags),
@@ -489,10 +469,7 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
               Text(plan.asOf.label, key: const Key('s74-asof')),
               const SizedBox(height: 8),
               for (int i = 0; i < plan.warningLines.length; i++)
-                Text(
-                  plan.warningLines[i],
-                  key: Key('s74-warning-$i'),
-                ),
+                Text(plan.warningLines[i], key: Key('s74-warning-$i')),
               if (_pending != null) ...[
                 const SizedBox(height: 16),
                 const AnalyticsSkeleton(
@@ -501,10 +478,7 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
                 ),
               ] else ...[
                 const SizedBox(height: 16),
-                Text(
-                  plan.orderDraftsTitle,
-                  key: const Key('s74-orders-title'),
-                ),
+                Text(plan.orderDraftsTitle, key: const Key('s74-orders-title')),
                 const SizedBox(height: 8),
                 if (plan.ordersEmptyText != null)
                   Text(
@@ -614,10 +588,7 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
                 ],
                 if (_receipt != null) ...[
                   const SizedBox(height: 8),
-                  Text(
-                    _receipt!.stateLabel,
-                    key: const Key('s74-receipt'),
-                  ),
+                  Text(_receipt!.stateLabel, key: const Key('s74-receipt')),
                 ],
                 if (_receipt == null) ...[
                   const SizedBox(height: 8),
@@ -640,9 +611,8 @@ class _DepositPlannerScreenState extends ConsumerState<DepositPlannerScreen> {
                       key: const Key('s74-back'),
                       onPressed: _submitting
                           ? null
-                          : () => setState(
-                              () => _step = _PlannerStep.allocation,
-                            ),
+                          : () =>
+                                setState(() => _step = _PlannerStep.allocation),
                       child: const Text(AnalyticsLabels.plannerBackButton),
                     ),
                   ),

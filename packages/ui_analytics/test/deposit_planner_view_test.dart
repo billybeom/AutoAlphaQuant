@@ -8,8 +8,6 @@ import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_analytics/l10n/labels.dart';
-import 'package:ui_analytics/planner.dart';
-import 'package:ui_analytics/src/widgets/analytics_error_view.dart';
 import 'package:ui_analytics/src/widgets/analytics_skeleton.dart';
 import 'package:ui_analytics/src/widgets/safety_block_banner.dart';
 import 'package:ui_analytics/src/widgets/stale_banner.dart';
@@ -35,7 +33,10 @@ void main() {
 
     expect(find.text(AnalyticsLabels.plannerStepAmountTitle), findsOneWidget);
     expect(find.text(AnalyticsLabels.plannerIntroLine), findsOneWidget);
-    expect(find.text(AnalyticsLabels.plannerCurrentSettingHeader), findsOneWidget);
+    expect(
+      find.text(AnalyticsLabels.plannerCurrentSettingHeader),
+      findsOneWidget,
+    );
     expect(find.text(settingDefault.amountText), findsOneWidget);
     expect(find.text(settingDefault.equivalentNoteText), findsOneWidget);
     expect(find.text(settingDefault.appliesFromText), findsOneWidget);
@@ -63,7 +64,9 @@ void main() {
     expect(find.byKey(const Key('s74-setting-limit-note')), findsNothing);
   });
 
-  testWidgets('T74-02 input field initial value and seed protection', (tester) async {
+  testWidgets('T74-02 input field initial value and seed protection', (
+    tester,
+  ) async {
     final defaultSetting = singleFixture(
       FixturePaths.m9ContributionSettingDefault,
       ContributionSetting.fromJson,
@@ -92,7 +95,10 @@ void main() {
       await tester.pump();
 
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .controller!
+            .text,
         defaultSetting.amountInputText,
       );
 
@@ -107,7 +113,10 @@ void main() {
       await tester.pump();
 
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .controller!
+            .text,
         '${defaultSetting.amountInputText}0',
       );
       expect(find.byKey(const Key('s74-setting-limit-note')), findsNothing);
@@ -138,7 +147,10 @@ void main() {
       await tester.pump();
 
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .controller!
+            .text,
         defaultSetting.amountInputText,
       );
       expect(find.text(defaultSetting.amountText), findsOneWidget);
@@ -163,7 +175,10 @@ void main() {
       await tester.pump();
 
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .controller!
+            .text,
         defaultSetting.amountInputText,
       );
 
@@ -175,14 +190,19 @@ void main() {
       await tester.pump();
 
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .controller!
+            .text,
         defaultSetting.amountInputText,
       );
       expect(find.byKey(const Key('s74-setting-limit-note')), findsNothing);
     }
   });
 
-  testWidgets('T74-03 calculate argument is passed exactly as entered', (tester) async {
+  testWidgets('T74-03 calculate argument is passed exactly as entered', (
+    tester,
+  ) async {
     final setting = singleFixture(
       FixturePaths.m9ContributionSettingDefault,
       ContributionSetting.fromJson,
@@ -199,7 +219,9 @@ void main() {
     expect(whatIf.simulateCalls, [rawInput]);
   });
 
-  testWidgets('T74-04 pending calculation shows loading skeleton', (tester) async {
+  testWidgets('T74-04 pending calculation shows loading skeleton', (
+    tester,
+  ) async {
     final completer = Completer<DepositPreviewResult>();
     final whatIf = FakeWhatIfApi(answerFn: (_) => completer.future);
 
@@ -209,7 +231,9 @@ void main() {
     await tapAndSettle(tester, 's74-calculate');
 
     expect(find.byKey(const Key('s74-result-loading')), findsOneWidget);
-    final skeleton = tester.widget<AnalyticsSkeleton>(find.byKey(const Key('s74-result-loading')));
+    final skeleton = tester.widget<AnalyticsSkeleton>(
+      find.byKey(const Key('s74-result-loading')),
+    );
     expect(skeleton.blocks, 3);
 
     expect(find.text(AnalyticsLabels.plannerStepAmountTitle), findsOneWidget);
@@ -225,11 +249,16 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text(AnalyticsLabels.plannerStepAllocationTitle), findsOneWidget);
+    expect(
+      find.text(AnalyticsLabels.plannerStepAllocationTitle),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('s74-result-loading')), findsNothing);
   });
 
-  testWidgets('T74-05 calculation error displays error view and retry works', (tester) async {
+  testWidgets('T74-05 calculation error displays error view and retry works', (
+    tester,
+  ) async {
     final whatIf = FakeWhatIfApi(
       answerFn: (_) => Future.error(StateError('x')),
     );
@@ -248,7 +277,10 @@ void main() {
     expect(tester.takeException(), isNull);
 
     expect(
-      tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+      tester
+          .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+          .controller!
+          .text,
       initialText,
     );
 
@@ -264,7 +296,9 @@ void main() {
         FixturePaths.m7M7DepositPlanInputRejected,
         DepositPreviewResult.fromJson,
       );
-      final whatIf = FakeWhatIfApi(answerFn: (_) => Future.value(rejectedResult));
+      final whatIf = FakeWhatIfApi(
+        answerFn: (_) => Future.value(rejectedResult),
+      );
 
       await pumpPlanner(tester, whatIf: whatIf);
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
@@ -276,20 +310,26 @@ void main() {
 
       await tapAndSettle(tester, 's74-calculate');
 
-      expect(
-        find.text(rejectedResult.inputRejectedText!),
-        findsOneWidget,
-      );
+      expect(find.text(rejectedResult.inputRejectedText!), findsOneWidget);
       expect(find.text(AnalyticsLabels.plannerStepAmountTitle), findsOneWidget);
       expect(find.byKey(const Key('s74-blocked-card')), findsNothing);
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .controller!
+            .text,
         initialText,
       );
 
-      final fieldDy = tester.getTopLeft(find.byKey(const Key('s74-amount-field'))).dy;
-      final rejectedDy = tester.getTopLeft(find.byKey(const Key('s74-input-rejected'))).dy;
-      final calcDy = tester.getTopLeft(find.byKey(const Key('s74-calculate'))).dy;
+      final fieldDy = tester
+          .getTopLeft(find.byKey(const Key('s74-amount-field')))
+          .dy;
+      final rejectedDy = tester
+          .getTopLeft(find.byKey(const Key('s74-input-rejected')))
+          .dy;
+      final calcDy = tester
+          .getTopLeft(find.byKey(const Key('s74-calculate')))
+          .dy;
       expect(fieldDy, lessThan(rejectedDy));
       expect(rejectedDy, lessThan(calcDy));
     }
@@ -315,8 +355,12 @@ void main() {
       expect(find.text(row.blockedText!), findsOneWidget);
       expect(find.byKey(const Key('s74-input-rejected')), findsNothing);
 
-      final calcDy = tester.getTopLeft(find.byKey(const Key('s74-calculate'))).dy;
-      final cardDy = tester.getTopLeft(find.byKey(const Key('s74-blocked-card'))).dy;
+      final calcDy = tester
+          .getTopLeft(find.byKey(const Key('s74-calculate')))
+          .dy;
+      final cardDy = tester
+          .getTopLeft(find.byKey(const Key('s74-blocked-card')))
+          .dy;
       expect(calcDy, lessThan(cardDy));
 
       if (row.blockedAction != null) {
@@ -369,7 +413,10 @@ void main() {
         if (a.accountAlias != null) {
           expect(find.byKey(Key('s74-allocation-$i-account')), findsOneWidget);
           expect(
-            find.descendant(of: allocFinder, matching: find.text(a.accountAlias!)),
+            find.descendant(
+              of: allocFinder,
+              matching: find.text(a.accountAlias!),
+            ),
             findsOneWidget,
           );
         } else {
@@ -379,14 +426,20 @@ void main() {
         if (a.routingReasonText != null) {
           expect(find.byKey(Key('s74-allocation-$i-reason')), findsOneWidget);
           expect(
-            find.descendant(of: allocFinder, matching: find.text(a.routingReasonText!)),
+            find.descendant(
+              of: allocFinder,
+              matching: find.text(a.routingReasonText!),
+            ),
             findsOneWidget,
           );
         } else {
           expect(find.byKey(Key('s74-allocation-$i-reason')), findsNothing);
         }
       }
-      expect(find.byKey(Key('s74-allocation-${plan.allocations.length}')), findsNothing);
+      expect(
+        find.byKey(Key('s74-allocation-${plan.allocations.length}')),
+        findsNothing,
+      );
 
       if (plan.residualKrwCashText != null) {
         expect(find.byKey(const Key('s74-residual')), findsOneWidget);
@@ -397,7 +450,9 @@ void main() {
     }
   });
 
-  testWidgets('T74-08 pension limit card render and absent branches', (tester) async {
+  testWidgets('T74-08 pension limit card render and absent branches', (
+    tester,
+  ) async {
     final defaultResult = singleFixture(
       FixturePaths.m7M7DepositPlanDefault,
       DepositPreviewResult.fromJson,
@@ -413,7 +468,12 @@ void main() {
     final nullPensionPlan = defaultResult.plan!.copyWith(pensionLimit: null);
     final nullPensionResult = defaultResult.copyWith(plan: nullPensionPlan);
 
-    for (final res in [defaultResult, limitResult, fundingResult, nullPensionResult]) {
+    for (final res in [
+      defaultResult,
+      limitResult,
+      fundingResult,
+      nullPensionResult,
+    ]) {
       final plan = res.plan!;
       final whatIf = FakeWhatIfApi(answerFn: (_) => Future.value(res));
 
@@ -425,32 +485,49 @@ void main() {
       if (plan.pensionLimit != null) {
         final pl = plan.pensionLimit!;
         expect(find.byKey(const Key('s74-pension-limit')), findsOneWidget);
-        expect(find.text(AnalyticsLabels.plannerPensionLimitTitle), findsOneWidget);
+        expect(
+          find.text(AnalyticsLabels.plannerPensionLimitTitle),
+          findsOneWidget,
+        );
         expect(find.text(pl.annualLimitText), findsOneWidget);
         expect(find.text(pl.taxCreditText), findsOneWidget);
         expect(find.text(pl.deadlineText), findsOneWidget);
 
         if (pl.suggestionText != null) {
-          expect(find.byKey(const Key('s74-pension-suggestion')), findsOneWidget);
+          expect(
+            find.byKey(const Key('s74-pension-suggestion')),
+            findsOneWidget,
+          );
           expect(find.text(pl.suggestionText!), findsOneWidget);
         } else {
           expect(find.byKey(const Key('s74-pension-suggestion')), findsNothing);
         }
 
         if (pl.fundingNoteText != null) {
-          expect(find.byKey(const Key('s74-pension-funding-note')), findsOneWidget);
+          expect(
+            find.byKey(const Key('s74-pension-funding-note')),
+            findsOneWidget,
+          );
           expect(find.text(pl.fundingNoteText!), findsOneWidget);
         } else {
-          expect(find.byKey(const Key('s74-pension-funding-note')), findsNothing);
+          expect(
+            find.byKey(const Key('s74-pension-funding-note')),
+            findsNothing,
+          );
         }
       } else {
         expect(find.byKey(const Key('s74-pension-limit')), findsNothing);
-        expect(find.text(AnalyticsLabels.plannerPensionLimitTitle), findsNothing);
+        expect(
+          find.text(AnalyticsLabels.plannerPensionLimitTitle),
+          findsNothing,
+        );
       }
     }
   });
 
-  testWidgets('T74-09 preview notice fixed outside scroll in steps 2 and 3', (tester) async {
+  testWidgets('T74-09 preview notice fixed outside scroll in steps 2 and 3', (
+    tester,
+  ) async {
     final defaultResult = singleFixture(
       FixturePaths.m7M7DepositPlanDefault,
       DepositPreviewResult.fromJson,
@@ -459,7 +536,9 @@ void main() {
 
     // Step 2 test
     {
-      final whatIf = FakeWhatIfApi(answerFn: (_) => Future.value(defaultResult));
+      final whatIf = FakeWhatIfApi(
+        answerFn: (_) => Future.value(defaultResult),
+      );
       await pumpPlanner(tester, whatIf: whatIf, viewSize: const Size(390, 600));
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
@@ -481,18 +560,25 @@ void main() {
         findsOneWidget,
       );
 
-      final noticeDyBefore = tester.getTopLeft(find.byKey(const Key('s74-preview-notice'))).dy;
-      final asOfDyBefore = tester.getTopLeft(
-        find.byKey(const Key('s74-asof'), skipOffstage: false),
-      ).dy;
+      final noticeDyBefore = tester
+          .getTopLeft(find.byKey(const Key('s74-preview-notice')))
+          .dy;
+      final asOfDyBefore = tester
+          .getTopLeft(find.byKey(const Key('s74-asof'), skipOffstage: false))
+          .dy;
 
-      await tester.drag(find.byKey(const Key('s74-list-allocation')), const Offset(0, -40));
+      await tester.drag(
+        find.byKey(const Key('s74-list-allocation')),
+        const Offset(0, -40),
+      );
       await tester.pumpAndSettle();
 
-      final noticeDyAfter = tester.getTopLeft(find.byKey(const Key('s74-preview-notice'))).dy;
-      final asOfDyAfter = tester.getTopLeft(
-        find.byKey(const Key('s74-asof'), skipOffstage: false),
-      ).dy;
+      final noticeDyAfter = tester
+          .getTopLeft(find.byKey(const Key('s74-preview-notice')))
+          .dy;
+      final asOfDyAfter = tester
+          .getTopLeft(find.byKey(const Key('s74-asof'), skipOffstage: false))
+          .dy;
 
       expect(noticeDyAfter, noticeDyBefore);
       expect(asOfDyAfter, lessThan(asOfDyBefore));
@@ -500,13 +586,17 @@ void main() {
 
     // Step 3 test
     {
-      final whatIf = FakeWhatIfApi(answerFn: (_) => Future.value(defaultResult));
+      final whatIf = FakeWhatIfApi(
+        answerFn: (_) => Future.value(defaultResult),
+      );
       await pumpPlanner(tester, whatIf: whatIf, viewSize: const Size(390, 600));
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
       await tapAndSettle(tester, 's74-calculate');
 
-      await tester.ensureVisible(find.byKey(const Key('s74-next'), skipOffstage: false));
+      await tester.ensureVisible(
+        find.byKey(const Key('s74-next'), skipOffstage: false),
+      );
       await tester.pumpAndSettle();
       await tapAndSettle(tester, 's74-next');
 
@@ -539,18 +629,25 @@ void main() {
         findsOneWidget,
       );
 
-      final noticeDyBefore = tester.getTopLeft(find.byKey(const Key('s74-preview-notice'))).dy;
-      final asOfDyBefore = tester.getTopLeft(
-        find.byKey(const Key('s74-asof'), skipOffstage: false),
-      ).dy;
+      final noticeDyBefore = tester
+          .getTopLeft(find.byKey(const Key('s74-preview-notice')))
+          .dy;
+      final asOfDyBefore = tester
+          .getTopLeft(find.byKey(const Key('s74-asof'), skipOffstage: false))
+          .dy;
 
-      await tester.drag(find.byKey(const Key('s74-list-result')), const Offset(0, -40));
+      await tester.drag(
+        find.byKey(const Key('s74-list-result')),
+        const Offset(0, -40),
+      );
       await tester.pumpAndSettle();
 
-      final noticeDyAfter = tester.getTopLeft(find.byKey(const Key('s74-preview-notice'))).dy;
-      final asOfDyAfter = tester.getTopLeft(
-        find.byKey(const Key('s74-asof'), skipOffstage: false),
-      ).dy;
+      final noticeDyAfter = tester
+          .getTopLeft(find.byKey(const Key('s74-preview-notice')))
+          .dy;
+      final asOfDyAfter = tester
+          .getTopLeft(find.byKey(const Key('s74-asof'), skipOffstage: false))
+          .dy;
 
       expect(noticeDyAfter, noticeDyBefore);
       expect(asOfDyAfter, lessThan(asOfDyBefore));
@@ -586,7 +683,9 @@ void main() {
       FixturePaths.m7M7DepositPlanDefault,
       DepositPreviewResult.fromJson,
     );
-    final whatIfDefault = FakeWhatIfApi(answerFn: (_) => Future.value(defaultResult));
+    final whatIfDefault = FakeWhatIfApi(
+      answerFn: (_) => Future.value(defaultResult),
+    );
     await pumpPlanner(tester, whatIf: whatIfDefault);
     expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
@@ -667,7 +766,10 @@ void main() {
           );
         }
       }
-      expect(find.byKey(Key('s74-order-${plan.orderDrafts.length}')), findsNothing);
+      expect(
+        find.byKey(Key('s74-order-${plan.orderDrafts.length}')),
+        findsNothing,
+      );
       expect(find.byType(ActionChip), findsNothing);
 
       // Tap first chip
@@ -689,10 +791,14 @@ void main() {
         modifiedDraft,
         ...defaultResult.plan!.orderDrafts.skip(1),
       ];
-      final modifiedPlan = defaultResult.plan!.copyWith(orderDrafts: modifiedDrafts);
+      final modifiedPlan = defaultResult.plan!.copyWith(
+        orderDrafts: modifiedDrafts,
+      );
       final modifiedResult = defaultResult.copyWith(plan: modifiedPlan);
 
-      final whatIf = FakeWhatIfApi(answerFn: (_) => Future.value(modifiedResult));
+      final whatIf = FakeWhatIfApi(
+        answerFn: (_) => Future.value(modifiedResult),
+      );
       await pumpPlanner(tester, whatIf: whatIf);
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
@@ -700,10 +806,12 @@ void main() {
       await tapAndSettle(tester, 's74-next');
 
       final chipWidget = tester.widget<Chip>(
-        find.descendant(
-          of: find.byKey(const Key('s74-order-0')),
-          matching: find.byType(Chip),
-        ).first,
+        find
+            .descendant(
+              of: find.byKey(const Key('s74-order-0')),
+              matching: find.byType(Chip),
+            )
+            .first,
       );
 
       final ColorScheme scheme = Theme.of(
@@ -768,7 +876,9 @@ void main() {
       FixturePaths.m7M7DepositPlanDefault,
       DepositPreviewResult.fromJson,
     );
-    final whatIfDefault = FakeWhatIfApi(answerFn: (_) => Future.value(defaultResult));
+    final whatIfDefault = FakeWhatIfApi(
+      answerFn: (_) => Future.value(defaultResult),
+    );
     await pumpPlanner(tester, whatIf: whatIfDefault);
     expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
@@ -779,7 +889,9 @@ void main() {
     expect(find.text(AnalyticsLabels.plannerFundingHeader), findsNothing);
   });
 
-  testWidgets('T74-14 expired plan blocks registration and recalculate works', (tester) async {
+  testWidgets('T74-14 expired plan blocks registration and recalculate works', (
+    tester,
+  ) async {
     final expiredResult = singleFixture(
       FixturePaths.m7M7DepositPlanExpired,
       DepositPreviewResult.fromJson,
@@ -823,7 +935,9 @@ void main() {
     expect(whatIf.simulateCalls[1], whatIf.simulateCalls[0]);
   });
 
-  testWidgets('T74-15 registration slot branches across fixtures', (tester) async {
+  testWidgets('T74-15 registration slot branches across fixtures', (
+    tester,
+  ) async {
     final defaultResult = singleFixture(
       FixturePaths.m7M7DepositPlanDefault,
       DepositPreviewResult.fromJson,
@@ -862,7 +976,9 @@ void main() {
     }
   });
 
-  testWidgets('T74-16 single registration submission and arg verification', (tester) async {
+  testWidgets('T74-16 single registration submission and arg verification', (
+    tester,
+  ) async {
     final defaultResult = singleFixture(
       FixturePaths.m7M7DepositPlanDefault,
       DepositPreviewResult.fromJson,
@@ -882,11 +998,15 @@ void main() {
     await tapAndSettle(tester, 's74-register');
 
     expect(
-      tester.widget<FilledButton>(find.byKey(const Key('s74-register'))).onPressed,
+      tester
+          .widget<FilledButton>(find.byKey(const Key('s74-register')))
+          .onPressed,
       isNull,
     );
     expect(
-      tester.widget<OutlinedButton>(find.byKey(const Key('s74-recalculate'))).onPressed,
+      tester
+          .widget<OutlinedButton>(find.byKey(const Key('s74-recalculate')))
+          .onPressed,
       isNull,
     );
     expect(
@@ -966,7 +1086,9 @@ void main() {
     expect(find.text(receipts[2].stateLabel), findsOneWidget);
   });
 
-  testWidgets('T74-18 registration failure line and retry recovery', (tester) async {
+  testWidgets('T74-18 registration failure line and retry recovery', (
+    tester,
+  ) async {
     final defaultResult = singleFixture(
       FixturePaths.m7M7DepositPlanDefault,
       DepositPreviewResult.fromJson,
@@ -992,20 +1114,31 @@ void main() {
 
     expect(tester.takeException(), isNotNull);
     expect(find.byKey(const Key('s74-register-not-accepted')), findsOneWidget);
-    expect(find.text(AnalyticsLabels.plannerRegisterNotAccepted), findsOneWidget);
+    expect(
+      find.text(AnalyticsLabels.plannerRegisterNotAccepted),
+      findsOneWidget,
+    );
 
-    final errorTextWidget = tester.widget<Text>(find.byKey(const Key('s74-register-not-accepted')));
+    final errorTextWidget = tester.widget<Text>(
+      find.byKey(const Key('s74-register-not-accepted')),
+    );
     final ColorScheme scheme = Theme.of(
       tester.element(find.byKey(const Key('s74-register-not-accepted'))),
     ).colorScheme;
     expect(errorTextWidget.style?.color, scheme.error);
 
-    final notAcceptedDy = tester.getTopLeft(find.byKey(const Key('s74-register-not-accepted'))).dy;
-    final registerDy = tester.getTopLeft(find.byKey(const Key('s74-register'))).dy;
+    final notAcceptedDy = tester
+        .getTopLeft(find.byKey(const Key('s74-register-not-accepted')))
+        .dy;
+    final registerDy = tester
+        .getTopLeft(find.byKey(const Key('s74-register')))
+        .dy;
     expect(notAcceptedDy, lessThan(registerDy));
 
     expect(
-      tester.widget<FilledButton>(find.byKey(const Key('s74-register'))).onPressed,
+      tester
+          .widget<FilledButton>(find.byKey(const Key('s74-register')))
+          .onPressed,
       isNotNull,
     );
     expect(find.byKey(const Key('s74-receipt')), findsNothing);
@@ -1076,13 +1209,19 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text(AnalyticsLabels.plannerStepAllocationTitle), findsOneWidget);
+      expect(
+        find.text(AnalyticsLabels.plannerStepAllocationTitle),
+        findsOneWidget,
+      );
 
       completerA.complete(rejectedResult);
       await tester.pump();
       await tester.pump();
 
-      expect(find.text(AnalyticsLabels.plannerStepAllocationTitle), findsOneWidget);
+      expect(
+        find.text(AnalyticsLabels.plannerStepAllocationTitle),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('s74-input-rejected')), findsNothing);
       expect(whatIf.simulateCalls, hasLength(2));
     }
@@ -1137,15 +1276,31 @@ void main() {
     await pumpPlanner(tester, whatIf: whatIf, safetyState: safetyState);
     expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
-    final titleDy = tester.getTopLeft(find.byKey(const Key('s74-step-title'))).dy;
+    final titleDy = tester
+        .getTopLeft(find.byKey(const Key('s74-step-title')))
+        .dy;
     final introDy = tester.getTopLeft(find.byKey(const Key('s74-intro'))).dy;
-    final headerDy = tester.getTopLeft(find.byKey(const Key('s74-setting-header'))).dy;
-    final amountDy = tester.getTopLeft(find.byKey(const Key('s74-setting-amount'))).dy;
-    final equivDy = tester.getTopLeft(find.byKey(const Key('s74-setting-equivalent'))).dy;
-    final appliesDy = tester.getTopLeft(find.byKey(const Key('s74-setting-applies'))).dy;
-    final limitNoteDy = tester.getTopLeft(find.byKey(const Key('s74-setting-limit-note'))).dy;
-    final asOfDy = tester.getTopLeft(find.byKey(const Key('s74-setting-asof'))).dy;
-    final fieldDy = tester.getTopLeft(find.byKey(const Key('s74-amount-field'))).dy;
+    final headerDy = tester
+        .getTopLeft(find.byKey(const Key('s74-setting-header')))
+        .dy;
+    final amountDy = tester
+        .getTopLeft(find.byKey(const Key('s74-setting-amount')))
+        .dy;
+    final equivDy = tester
+        .getTopLeft(find.byKey(const Key('s74-setting-equivalent')))
+        .dy;
+    final appliesDy = tester
+        .getTopLeft(find.byKey(const Key('s74-setting-applies')))
+        .dy;
+    final limitNoteDy = tester
+        .getTopLeft(find.byKey(const Key('s74-setting-limit-note')))
+        .dy;
+    final asOfDy = tester
+        .getTopLeft(find.byKey(const Key('s74-setting-asof')))
+        .dy;
+    final fieldDy = tester
+        .getTopLeft(find.byKey(const Key('s74-amount-field')))
+        .dy;
     final calcDy = tester.getTopLeft(find.byKey(const Key('s74-calculate'))).dy;
 
     expect(titleDy, lessThan(introDy));
@@ -1179,31 +1334,43 @@ void main() {
 
       await tapAndSettle(tester, 's74-calculate');
 
-      final pNoticeDy = tester.getTopLeft(find.byKey(const Key('s74-preview-notice'))).dy;
-      final pTitleDy = tester.getTopLeft(find.byKey(const Key('s74-step-title'))).dy;
+      final pNoticeDy = tester
+          .getTopLeft(find.byKey(const Key('s74-preview-notice')))
+          .dy;
+      final pTitleDy = tester
+          .getTopLeft(find.byKey(const Key('s74-step-title')))
+          .dy;
       final pAsOfDy = tester.getTopLeft(find.byKey(const Key('s74-asof'))).dy;
       expect(pNoticeDy, lessThan(pTitleDy));
       expect(pTitleDy, lessThan(pAsOfDy));
 
       double currentDy = pAsOfDy;
       if (res.plan!.warningLines.isNotEmpty) {
-        final warnDy = tester.getTopLeft(find.byKey(const Key('s74-warning-0'))).dy;
+        final warnDy = tester
+            .getTopLeft(find.byKey(const Key('s74-warning-0')))
+            .dy;
         expect(currentDy, lessThan(warnDy));
         currentDy = warnDy;
       } else {
         expect(find.byKey(const Key('s74-warning-0')), findsNothing);
       }
 
-      final depAmtDy = tester.getTopLeft(find.byKey(const Key('s74-deposit-amount'))).dy;
+      final depAmtDy = tester
+          .getTopLeft(find.byKey(const Key('s74-deposit-amount')))
+          .dy;
       expect(currentDy, lessThan(depAmtDy));
       currentDy = depAmtDy;
 
-      final alloc0Dy = tester.getTopLeft(find.byKey(const Key('s74-allocation-0'))).dy;
+      final alloc0Dy = tester
+          .getTopLeft(find.byKey(const Key('s74-allocation-0')))
+          .dy;
       expect(currentDy, lessThan(alloc0Dy));
       currentDy = alloc0Dy;
 
       if (res.plan!.residualKrwCashText != null) {
-        final resDy = tester.getTopLeft(find.byKey(const Key('s74-residual'))).dy;
+        final resDy = tester
+            .getTopLeft(find.byKey(const Key('s74-residual')))
+            .dy;
         expect(currentDy, lessThan(resDy));
         currentDy = resDy;
       } else {
@@ -1211,7 +1378,9 @@ void main() {
       }
 
       if (res.plan!.pensionLimit != null) {
-        final plDy = tester.getTopLeft(find.byKey(const Key('s74-pension-limit'))).dy;
+        final plDy = tester
+            .getTopLeft(find.byKey(const Key('s74-pension-limit')))
+            .dy;
         expect(currentDy, lessThan(plDy));
         currentDy = plDy;
       } else {
@@ -1230,11 +1399,18 @@ void main() {
       FixturePaths.m7M7DepositPlanExpired,
       DepositPreviewResult.fromJson,
     );
-    final resultsForStep3 = [defaultResult, limitResult, expiredResult, fundingResult];
+    final resultsForStep3 = [
+      defaultResult,
+      limitResult,
+      expiredResult,
+      fundingResult,
+    ];
 
     int staleCount = 0;
     for (final res in resultsForStep3) {
-      final isStale = res.plan!.asOf.observedAt.add(res.plan!.asOf.staleAfter).isBefore(kGoldenNowUtc);
+      final isStale = res.plan!.asOf.observedAt
+          .add(res.plan!.asOf.staleAfter)
+          .isBefore(kGoldenNowUtc);
       if (isStale) staleCount++;
     }
     expect(staleCount, 1);
@@ -1247,13 +1423,19 @@ void main() {
       await tapAndSettle(tester, 's74-calculate');
       await tapAndSettle(tester, 's74-next');
 
-      final pNoticeDy = tester.getTopLeft(find.byKey(const Key('s74-preview-notice'))).dy;
+      final pNoticeDy = tester
+          .getTopLeft(find.byKey(const Key('s74-preview-notice')))
+          .dy;
       double currentDy = pNoticeDy;
 
-      final isStale = res.plan!.asOf.observedAt.add(res.plan!.asOf.staleAfter).isBefore(kGoldenNowUtc);
+      final isStale = res.plan!.asOf.observedAt
+          .add(res.plan!.asOf.staleAfter)
+          .isBefore(kGoldenNowUtc);
       if (isStale) {
         expect(find.text(AnalyticsLabels.staleBannerTitle), findsOneWidget);
-        final staleDy = tester.getTopLeft(find.text(AnalyticsLabels.staleBannerTitle)).dy;
+        final staleDy = tester
+            .getTopLeft(find.text(AnalyticsLabels.staleBannerTitle))
+            .dy;
         expect(currentDy, lessThan(staleDy));
         currentDy = staleDy;
       } else {
@@ -1265,7 +1447,9 @@ void main() {
       currentDy = asOfDy;
 
       if (res.plan!.warningLines.isNotEmpty) {
-        final warnDy = tester.getTopLeft(find.byKey(const Key('s74-warning-0'))).dy;
+        final warnDy = tester
+            .getTopLeft(find.byKey(const Key('s74-warning-0')))
+            .dy;
         expect(currentDy, lessThan(warnDy));
         currentDy = warnDy;
       } else {
@@ -1273,11 +1457,15 @@ void main() {
       }
 
       if (res.plan!.ordersEmptyText != null) {
-        final emptyDy = tester.getTopLeft(find.byKey(const Key('s74-orders-empty'))).dy;
+        final emptyDy = tester
+            .getTopLeft(find.byKey(const Key('s74-orders-empty')))
+            .dy;
         expect(currentDy, lessThan(emptyDy));
         currentDy = emptyDy;
       } else {
-        final order0Dy = tester.getTopLeft(find.byKey(const Key('s74-order-0'))).dy;
+        final order0Dy = tester
+            .getTopLeft(find.byKey(const Key('s74-order-0')))
+            .dy;
         expect(currentDy, lessThan(order0Dy));
         currentDy = order0Dy;
       }
@@ -1286,8 +1474,11 @@ void main() {
       expect(currentDy, lessThan(costsDy));
       currentDy = costsDy;
 
-      if (res.plan!.fundingSteps != null && res.plan!.fundingSteps!.isNotEmpty) {
-        final fundingDy = tester.getTopLeft(find.byKey(const Key('s74-funding'))).dy;
+      if (res.plan!.fundingSteps != null &&
+          res.plan!.fundingSteps!.isNotEmpty) {
+        final fundingDy = tester
+            .getTopLeft(find.byKey(const Key('s74-funding')))
+            .dy;
         expect(currentDy, lessThan(fundingDy));
         currentDy = fundingDy;
       } else {
@@ -1295,16 +1486,22 @@ void main() {
       }
 
       if (res.plan!.registerBlockedText != null) {
-        final regBlockedDy = tester.getTopLeft(find.byKey(const Key('s74-register-blocked'))).dy;
+        final regBlockedDy = tester
+            .getTopLeft(find.byKey(const Key('s74-register-blocked')))
+            .dy;
         expect(currentDy, lessThan(regBlockedDy));
         currentDy = regBlockedDy;
       } else {
-        final regDy = tester.getTopLeft(find.byKey(const Key('s74-register'))).dy;
+        final regDy = tester
+            .getTopLeft(find.byKey(const Key('s74-register')))
+            .dy;
         expect(currentDy, lessThan(regDy));
         currentDy = regDy;
       }
 
-      final recalcDy = tester.getTopLeft(find.byKey(const Key('s74-recalculate'))).dy;
+      final recalcDy = tester
+          .getTopLeft(find.byKey(const Key('s74-recalculate')))
+          .dy;
       expect(currentDy, lessThan(recalcDy));
 
       final backDy = tester.getTopLeft(find.byKey(const Key('s74-back'))).dy;
@@ -1336,12 +1533,20 @@ void main() {
     for (final path in checkDirs) {
       if (FileSystemEntity.isFileSync(path)) {
         final text = File(path).readAsStringSync();
-        expect(text.contains('planner'), isFalse, reason: 'File $path must not contain planner');
+        expect(
+          text.contains('planner'),
+          isFalse,
+          reason: 'File $path must not contain planner',
+        );
       } else if (FileSystemEntity.isDirectorySync(path)) {
         for (final file in Directory(path).listSync(recursive: true)) {
           if (file is File && file.path.endsWith('.dart')) {
             final text = file.readAsStringSync();
-            expect(text.contains('planner'), isFalse, reason: 'File ${file.path} must not contain planner');
+            expect(
+              text.contains('planner'),
+              isFalse,
+              reason: 'File ${file.path} must not contain planner',
+            );
           }
         }
       }
@@ -1358,7 +1563,12 @@ void main() {
       final whatIf = FakeWhatIfApi();
       final opener = RecordingLinkOpener();
 
-      await pumpPlanner(tester, whatIf: whatIf, safetyState: sState, opener: opener);
+      await pumpPlanner(
+        tester,
+        whatIf: whatIf,
+        safetyState: sState,
+        opener: opener,
+      );
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
       final expectedFlagsCount = identical(sState, row3) ? 2 : 1;
@@ -1369,15 +1579,21 @@ void main() {
       }
 
       final bannerDy = tester.getTopLeft(find.byType(SafetyBlockBanner)).dy;
-      final titleDy = tester.getTopLeft(find.byKey(const Key('s74-step-title'))).dy;
+      final titleDy = tester
+          .getTopLeft(find.byKey(const Key('s74-step-title')))
+          .dy;
       expect(bannerDy, lessThan(titleDy));
 
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).enabled,
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .enabled,
         isNot(false),
       );
       expect(
-        tester.widget<FilledButton>(find.byKey(const Key('s74-calculate'))).onPressed,
+        tester
+            .widget<FilledButton>(find.byKey(const Key('s74-calculate')))
+            .onPressed,
         isNotNull,
       );
 
@@ -1406,9 +1622,13 @@ void main() {
 
     await tapAndSettle(tester, 's74-calculate');
 
-    final noticeDy = tester.getTopLeft(find.byKey(const Key('s74-preview-notice'))).dy;
+    final noticeDy = tester
+        .getTopLeft(find.byKey(const Key('s74-preview-notice')))
+        .dy;
     final bannerDyStep2 = tester.getTopLeft(find.byType(SafetyBlockBanner)).dy;
-    final titleDyStep2 = tester.getTopLeft(find.byKey(const Key('s74-step-title'))).dy;
+    final titleDyStep2 = tester
+        .getTopLeft(find.byKey(const Key('s74-step-title')))
+        .dy;
 
     expect(noticeDy, lessThan(bannerDyStep2));
     expect(bannerDyStep2, lessThan(titleDyStep2));
@@ -1461,16 +1681,25 @@ void main() {
 
       expect(find.byKey(const Key('s74-setting-loading')), findsOneWidget);
       expect(
-        tester.widget<AnalyticsSkeleton>(find.byKey(const Key('s74-setting-loading'))).blocks,
+        tester
+            .widget<AnalyticsSkeleton>(
+              find.byKey(const Key('s74-setting-loading')),
+            )
+            .blocks,
         2,
       );
       expect(find.byKey(const Key('s74-setting-amount')), findsNothing);
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .controller!
+            .text,
         isEmpty,
       );
       expect(
-        tester.widget<FilledButton>(find.byKey(const Key('s74-calculate'))).onPressed,
+        tester
+            .widget<FilledButton>(find.byKey(const Key('s74-calculate')))
+            .onPressed,
         isNotNull,
       );
     }
@@ -1505,99 +1734,119 @@ void main() {
       expect(config.watchContributionSettingCalls, 2);
       expect(find.byKey(const Key('s74-setting-amount')), findsOneWidget);
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .controller!
+            .text,
         defaultSetting.amountInputText,
       );
     }
   });
 
-  testWidgets('T74-26 return to step 1 on recalculate rejection or back buttons', (tester) async {
-    final setting = singleFixture(
-      FixturePaths.m9ContributionSettingDefault,
-      ContributionSetting.fromJson,
-    );
-    final defaultResult = singleFixture(
-      FixturePaths.m7M7DepositPlanDefault,
-      DepositPreviewResult.fromJson,
-    );
-    final rejectedResult = singleFixture(
-      FixturePaths.m7M7DepositPlanInputRejected,
-      DepositPreviewResult.fromJson,
-    );
-    final blockedList = listFixture(
-      FixturePaths.m7M7DepositPlanBlocked,
-      DepositPreviewResult.fromJson,
-    );
-
-    // ⓐ Recalculate leads to rejected, blocked, error
-    final secondAnswers = [
-      rejectedResult,
-      blockedList.rows[0],
-      null, // error
-    ];
-
-    for (int i = 0; i < secondAnswers.length; i++) {
-      final answer = secondAnswers[i];
-      int callCount = 0;
-      final whatIf = FakeWhatIfApi(
-        answerFn: (_) {
-          callCount++;
-          if (callCount == 1) return Future.value(defaultResult);
-          if (answer != null) return Future.value(answer);
-          return Future.error(StateError('calc error'));
-        },
+  testWidgets(
+    'T74-26 return to step 1 on recalculate rejection or back buttons',
+    (tester) async {
+      final setting = singleFixture(
+        FixturePaths.m9ContributionSettingDefault,
+        ContributionSetting.fromJson,
+      );
+      final defaultResult = singleFixture(
+        FixturePaths.m7M7DepositPlanDefault,
+        DepositPreviewResult.fromJson,
+      );
+      final rejectedResult = singleFixture(
+        FixturePaths.m7M7DepositPlanInputRejected,
+        DepositPreviewResult.fromJson,
+      );
+      final blockedList = listFixture(
+        FixturePaths.m7M7DepositPlanBlocked,
+        DepositPreviewResult.fromJson,
       );
 
-      await pumpPlanner(tester, whatIf: whatIf);
+      // ⓐ Recalculate leads to rejected, blocked, error
+      final secondAnswers = [
+        rejectedResult,
+        blockedList.rows[0],
+        null, // error
+      ];
+
+      for (int i = 0; i < secondAnswers.length; i++) {
+        final answer = secondAnswers[i];
+        int callCount = 0;
+        final whatIf = FakeWhatIfApi(
+          answerFn: (_) {
+            callCount++;
+            if (callCount == 1) return Future.value(defaultResult);
+            if (answer != null) return Future.value(answer);
+            return Future.error(StateError('calc error'));
+          },
+        );
+
+        await pumpPlanner(tester, whatIf: whatIf);
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+
+        await tapAndSettle(tester, 's74-calculate');
+        await tapAndSettle(tester, 's74-next');
+        await tapAndSettle(tester, 's74-recalculate');
+
+        expect(
+          find.text(AnalyticsLabels.plannerStepAmountTitle),
+          findsOneWidget,
+        );
+        expect(find.byKey(const Key('s74-preview-notice')), findsNothing);
+        expect(
+          tester
+              .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+              .controller!
+              .text,
+          setting.amountInputText,
+        );
+
+        if (i == 0) {
+          expect(find.byKey(const Key('s74-input-rejected')), findsOneWidget);
+        } else if (i == 1) {
+          expect(find.byKey(const Key('s74-blocked-card')), findsOneWidget);
+        } else {
+          expect(find.byKey(const Key('s74-result-error')), findsOneWidget);
+          await tapAndSettle(tester, 's74-result-error');
+          expect(whatIf.simulateCalls, hasLength(3));
+          expect(whatIf.simulateCalls[0], whatIf.simulateCalls[1]);
+          expect(whatIf.simulateCalls[1], whatIf.simulateCalls[2]);
+        }
+      }
+
+      // ⓑ Back button navigation from step 3 to step 2 to step 1
+      final whatIfNav = FakeWhatIfApi(
+        answerFn: (_) => Future.value(defaultResult),
+      );
+      await pumpPlanner(tester, whatIf: whatIfNav);
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
       await tapAndSettle(tester, 's74-calculate');
       await tapAndSettle(tester, 's74-next');
-      await tapAndSettle(tester, 's74-recalculate');
 
-      expect(find.text(AnalyticsLabels.plannerStepAmountTitle), findsOneWidget);
-      expect(find.byKey(const Key('s74-preview-notice')), findsNothing);
+      // On step 3, tap back -> step 2
+      await tapAndSettle(tester, 's74-back');
       expect(
-        tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
+        find.text(AnalyticsLabels.plannerStepAllocationTitle),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('s74-next')), findsOneWidget);
+
+      // On step 2, tap back -> step 1
+      await tapAndSettle(tester, 's74-back');
+      expect(find.text(AnalyticsLabels.plannerStepAmountTitle), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('s74-amount-field')))
+            .controller!
+            .text,
         setting.amountInputText,
       );
+      expect(find.byKey(const Key('s74-preview-notice')), findsNothing);
 
-      if (i == 0) {
-        expect(find.byKey(const Key('s74-input-rejected')), findsOneWidget);
-      } else if (i == 1) {
-        expect(find.byKey(const Key('s74-blocked-card')), findsOneWidget);
-      } else {
-        expect(find.byKey(const Key('s74-result-error')), findsOneWidget);
-        await tapAndSettle(tester, 's74-result-error');
-        expect(whatIf.simulateCalls, hasLength(3));
-        expect(whatIf.simulateCalls[0], whatIf.simulateCalls[1]);
-        expect(whatIf.simulateCalls[1], whatIf.simulateCalls[2]);
-      }
-    }
-
-    // ⓑ Back button navigation from step 3 to step 2 to step 1
-    final whatIfNav = FakeWhatIfApi(answerFn: (_) => Future.value(defaultResult));
-    await pumpPlanner(tester, whatIf: whatIfNav);
-    expect(find.text(AnalyticsLabels.retryButton), findsNothing);
-
-    await tapAndSettle(tester, 's74-calculate');
-    await tapAndSettle(tester, 's74-next');
-
-    // On step 3, tap back -> step 2
-    await tapAndSettle(tester, 's74-back');
-    expect(find.text(AnalyticsLabels.plannerStepAllocationTitle), findsOneWidget);
-    expect(find.byKey(const Key('s74-next')), findsOneWidget);
-
-    // On step 2, tap back -> step 1
-    await tapAndSettle(tester, 's74-back');
-    expect(find.text(AnalyticsLabels.plannerStepAmountTitle), findsOneWidget);
-    expect(
-      tester.widget<TextField>(find.byKey(const Key('s74-amount-field'))).controller!.text,
-      setting.amountInputText,
-    );
-    expect(find.byKey(const Key('s74-preview-notice')), findsNothing);
-
-    await tapAndSettle(tester, 's74-calculate');
-    expect(whatIfNav.simulateCalls, hasLength(2));
-  });
+      await tapAndSettle(tester, 's74-calculate');
+      expect(whatIfNav.simulateCalls, hasLength(2));
+    },
+  );
 }
