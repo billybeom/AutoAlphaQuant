@@ -18,7 +18,7 @@
 | `trading_runtime` | Claude (M1·X2) | ● | **—** | **—** |
 | `data_sync` | Claude (M4·X1·X4·X5) | ● 읽기+쓰기 | ● **읽기 전용** | — |
 | `ui_journal` | 다른 AI (M6) | ● | ⚠️ **`J-3` 사전 저널 폼 제외**(T-3) · 🆕 v1.2 `J-3R` 읽기 뷰(`JournalReadView`)는 **포함** | — |
-| `ui_analytics` | 다른 AI (M7) | ● | ● | — |
+| `ui_analytics` | 다른 AI (M7) | ● | ⚠️ **`S7-4` 입금 플래너 제외**(T-4 · 🆕 v1.4) | — |
 | `ui_shell` | 다른 AI (M8·X3) | ● | ● | — |
 | `ui_settings` | 다른 AI (M9) | ● 전체 | ⚠️ 키 입력 화면 제외 | — |
 | `ui_safety` | **Claude (M5·X1·X2·X5)** | ● 전체 | ⚠️ **킬스위치 «발동»만** | — |
@@ -36,17 +36,18 @@
 | 킬스위치가 뷰어에서 «쉽게 해제»됨 | 해제 경로는 operator 전용. 뷰어는 «발동»만 — 끄기는 쉽게, 켜기는 어렵게(결정 6) |
 | 브로커 키가 뷰어 기기에 남음 | 키 입력·금고 경로가 viewer 타깃에 없음. 웹은 브라우저에 안전한 저장소가 없어 더 강한 제외 대상입니다 |
 
-## 3. ⚠️ 아직 «규칙»이고 «빌드»가 아닌 것 — 3건
+## 3. ⚠️ 아직 «규칙»이고 «빌드»가 아닌 것 — 4건
 
-이 세 줄은 **패키지 의존 수준에서는 막히지 않습니다.** 숨기지 않고 여기 적어 둡니다.
+이 네 줄은 **패키지 의존 수준에서는 막히지 않습니다.** 숨기지 않고 여기 적어 둡니다.
 
 | # | 항목 | 지금 상태 | 기계화하려면 |
 |---|---|---|---|
 | **T-1** | viewer의 `ui_safety` — 발동만, 해제 화면 제외 | 패키지 **전체**를 의존. "해제 화면을 라우팅에 넣지 않는다"는 규칙 | 🔴 **M5 요청**: 해제 화면을 전이 참조하지 않는 **발동 전용 진입점 라이브러리**(예: `package:ui_safety/kill_switch_trigger.dart`)를 내놓으면 viewer가 그것만 import해 진짜 빌드 제외가 됩니다 |
 | **T-2** | viewer의 `ui_settings` — 키 입력 화면 제외 | 패키지 전체를 의존. 라우팅에서 제외하는 규칙 | 🔴 **M9 계약 요청**: 키 입력 위젯을 별도 라이브러리로 분리하거나, 최소한 «operator 전용 라우트» 목록을 계약에 명시. 서버 측 방어는 RLS가 이미 담당(01 §6-4) |
 | **T-3** 🆕 | viewer(iOS)의 `ui_journal` — `J-3` 사전 저널 폼 제외(결정 9b «폰 전용») | 패키지 전체를 의존. ✅ 모양은 정했다(2026-09-23 · R2 준비): `J-3` 은 **배럴 밖** 라이브러리 `package:ui_journal/journal_draft.dart` 에 두고(`CommandApi` 주입 `journalCommandApiProvider` 도 그 안 · 🆕 v1.2 초안 포트 주입 `journalDraftStoreProvider` 도 그 안 — C-35 ⑥ 이 기계 검사) **operator 앱만 import** 한다 — iOS 는 배럴 `package:ui_journal/ui_journal.dart` 만 쓴다(T-1 이 `ui_safety` 에 요구한 모양과 같다). 웹은 `ui_journal` 자체가 없다 | 🔴 조립 앱 배선 때 `tool/check_boundaries.sh` 에 [6] «`apps/app_viewer_ios/lib` 에 `package:ui_journal/journal_draft.dart` import 0건» 을 더한다(M2/infra) |
+| **T-4** 🆕 | viewer의 `ui_analytics` — `S7-4` 입금 플래너 제외(계약 v1.4 · 01 §14-1 · `DEPOSIT_REGISTER` = operator 전용 · 뷰어 미리보기는 v1 제외 · 01 §8 미결 73) | 패키지 전체를 의존. 모양은 T-3 과 같다: `S7-4` 는 **배럴 밖** 라이브러리 `package:ui_analytics/planner.dart`(+ `lib/src/planner/**` · 주입 프로바이더 `plannerWhatIfApiProvider`·`plannerConfigRepositoryProvider`·`plannerCommandApiProvider` 도 그 안 — R11a 가 만든다)에 두고 **operator 앱만 import** 한다. viewer 셸은 `AppRoutes.planDeposit` 을 등록하되 목적지 = «폰에서만 쓸 수 있습니다» 부재 안내(셸 몫 · R13 · 미결 62 · 선례 = J-3 `journalDraft` 의 iOS 셸 가드) | ✅ **이미 기계 검사가 돈다**(v1.4): `tool/check_boundaries.sh` **[7]**(`apps/app_viewer_*/lib` 에 `package:ui_analytics/planner.dart` import 0건) + 계약 테스트 **C-35 ⑥ 확장**(`ui_analytics/lib` 안에서 planner 밖 파일이 planner 를 import·export 0 · viewer 앱 import 0). 빌드 제외(별도 패키지 분리)는 아니므로 이 표에 남긴다 |
 
-> T-1~T-3이 해소되기 전까지 이 세 항목은 **병합 검사(07 §9 ④)의 사람 판단 대상**입니다.
+> T-1~T-4가 해소되기 전까지 이 네 항목은 **병합 검사(07 §9 ④)의 사람 판단 대상**입니다(T-4 는 [7]·C-35 ⑥ 이 먼저 거른다).
 
 ## 4. 검사 방법 (지금도 돕니다 — SDK 불필요)
 
@@ -61,7 +62,7 @@ rg -n '^\s+(core_engine|broker_gateway|trading_runtime)\s*:' apps/app_viewer_ios
 # ② import 그래프 — 선언에는 없는데 코드가 부르는가 (0건이어야 정상)
 rg -n "package:(core_engine|broker_gateway|trading_runtime|decimal)" apps/app_viewer_*/lib
 
-# ③ ui_* 자체의 경계(C-3) — 저장소 루트 스크립트
+# ③ ui_* 자체의 경계(C-3) — 저장소 루트 스크립트 · 🆕 v1.4 [7] viewer 앱의 planner import 0(T-4)
 melos run check:boundaries
 ```
 
@@ -80,5 +81,5 @@ melos run check:boundaries
 
 - 앱 pubspec에 의존을 **추가·삭제**했을 때 → 같은 커밋에서 §1 표를 고칩니다.
 - Q-D가 확정됐을 때 → `app_viewer_web` 열 전체.
-- T-1~T-3이 기계화됐을 때 → §3에서 지우고 §1의 ⚠️를 ●/—로 바꿉니다.
+- T-1~T-4가 기계화됐을 때 → §3에서 지우고 §1의 ⚠️를 ●/—로 바꿉니다.
 - 새 타깃이 생겼을 때 → 열 추가. **열이 늘어나는 것은 결정 사항**입니다(임의 추가 금지).

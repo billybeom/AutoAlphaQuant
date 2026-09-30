@@ -19,6 +19,9 @@
 // 🔴 «선을 실제로 끊어 그렸는가»는 렌더 결과다 — `ui_analytics/test/golden/chart_probe.dart`.
 // 🔴 검사마다 **망가뜨린 사본**(메모리 안)으로 실패하는 것을 맨 끝 테스트가 고정한다 —
 //    검사가 «늘 참»이 되면 그 테스트가 먼저 깨진다.
+// 🆕 v1.4 — ⑦ 대상에 S7-9 목표 경로 파일(`lib/src/goal_path/**`·`lib/src/screens/goal_path_screen.dart`)을
+//    넣었다(01 §14-11 · C-39 ⑨ 와 정규식 공유). 점·눈금·구간 규칙 본문은 `support/perf_line_rules.dart`
+//    로 옮겼다(목표 경로 C-39 와 공용 · 위반 문장 무변경) — 이 파일은 «성과 시리즈 행에 무엇을 거는가»만 적는다.
 
 import 'dart:io';
 
@@ -26,21 +29,19 @@ import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
 import 'c00_support.dart';
+import 'support/perf_line_rules.dart';
 import 'support/perf_series_rows.dart';
 
-/// ⑨ 엔진 기본 구간의 점 수 상한(01 §13-1).
-const int _maxPoints = 60;
-
-/// ④ 눈금 수 상한.
-const int _maxTicks = 5;
+/// ⑨ 엔진 기본 구간의 점 수 상한(01 §13-1) — 정본은 `support/perf_line_rules.dart`.
+const int _maxPoints = maxPerfPoints;
 
 /// ⑦ `PerfPoint.value` 참조 — 괄호가 바로 오는 생성자(`Future<void>.value()`·`Stream.value(x)`)와
-/// `valueOrNull` 은 통과한다.
-final RegExp _valueRef = RegExp(r'\.value\b(?!OrNull)(?!\s*\()');
+/// `valueOrNull` 은 통과한다. 🆕 v1.4 — 정본은 `support/perf_line_rules.dart`(C-39 ⑨ 와 공유).
+final RegExp _valueRef = perfValueRef;
 
 /// ⑦ 둘째 — 패턴 분해로 읽는 `value`(`final PerfPoint(:value) = p;` · `case PerfPoint(value: final v):`).
-/// 점(`.`)이 없어 [_valueRef] 가 못 잡는다.
-final RegExp _valuePattern = RegExp(r'PerfPoint\s*\([^)]*\bvalue\b');
+/// 점(`.`)이 없어 [_valueRef] 가 못 잡는다. 🆕 v1.4 — 정본은 `support/perf_line_rules.dart`.
+final RegExp _valuePattern = perfValuePattern;
 
 /// ⑧ 숫자 → 글자 포맷.
 final RegExp _numberFormat = RegExp(
@@ -50,17 +51,21 @@ final RegExp _numberFormat = RegExp(
 /// ⑩ 가림 문장에 새면 안 되는 것.
 final RegExp _decimalNumber = RegExp(r'\d+\.\d+');
 
-/// ⑪ `value` 두 개를 같다고 보는 차(소수 넷째 자리 반올림의 절반).
-const double _sameValue = 0.00005;
+/// ⑪ `value` 두 개를 같다고 보는 차 — 정본은 `support/perf_line_rules.dart`.
+const double _sameValue = samePerfValue;
 
 /// ⑦ 의 대상 — `packages/ui_analytics` 기준 상대 경로.
 const List<String> _chartDirs = <String>[
   'lib/src/chart/',
   'lib/src/screens/explore/',
+  // 🆕 v1.4(01 §14-11 · 설계 D12) — S7-9 목표 경로 차트(본보기 diff 0 복사처).
+  'lib/src/goal_path/',
 ];
 const List<String> _chartFiles = <String>[
   'lib/src/screens/performance_explore_screen.dart',
   'lib/src/widgets/perf_chart.dart',
+  // 🆕 v1.4 — S7-9 공개 위젯 `GoalPathScreen`.
+  'lib/src/screens/goal_path_screen.dart',
 ];
 
 /// [_valueRef] 자체 검증 — 반드시 걸려야 하는 것.
@@ -199,6 +204,13 @@ void main() {
         isTrue,
       );
       expect(_isChartTarget('lib/src/widgets/perf_chart.dart'), isTrue);
+      // 🆕 v1.4 — S7-9 목표 경로 파일도 대상이다(플래너는 아니다).
+      expect(
+        _isChartTarget('lib/src/goal_path/goal_path_chart_painter.dart'),
+        isTrue,
+      );
+      expect(_isChartTarget('lib/src/screens/goal_path_screen.dart'), isTrue);
+      expect(_isChartTarget('lib/src/planner/planner_providers.dart'), isFalse);
       expect(
         _isChartTarget('lib/src/screens/contribution_screen.dart'),
         isFalse,
@@ -694,30 +706,10 @@ Map<String, List<PerfPoint>> _lines(PerformanceSeries s) =>
       if (s.benchmark != null) 'benchmark.points': s.benchmark!.points,
     };
 
-List<String> _xViolations(String where, PerformanceSeries s) {
-  final List<String> bad = <String>[];
-  for (final MapEntry<String, List<PerfPoint>> line in _lines(s).entries) {
-    final List<PerfPoint> points = line.value;
-    for (int i = 0; i < points.length; i++) {
-      final double x = points[i].xNormalized;
-      if (x < 0.0 || x > 1.0) {
-        bad.add('$where ${line.key}[$i] x=$x — 0.0~1.0 밖');
-      }
-      if (i > 0 && x <= points[i - 1].xNormalized) {
-        bad.add(
-          '$where ${line.key}[$i] x=$x — 앞 점(${points[i - 1].xNormalized})보다 '
-          '크지 않다',
-        );
-      }
-    }
-    if (points.length == 1 && points.single.xNormalized != 0.5) {
-      bad.add(
-        '$where ${line.key} — 점이 1개면 0.5 다(지금 ${points.single.xNormalized})',
-      );
-    }
-  }
-  return bad;
-}
+List<String> _xViolations(String where, PerformanceSeries s) => <String>[
+  for (final MapEntry<String, List<PerfPoint>> line in _lines(s).entries)
+    ...xLineViolations(where, line.key, line.value),
+];
 
 List<String> _benchmarkViolations(String where, PerformanceSeries s) {
   final BenchmarkSeries? b = s.benchmark;
@@ -754,56 +746,16 @@ List<String> _textViolations(String where, PerformanceSeries s) {
     bad.add('$where — period_label 이 비었다');
   }
   for (final MapEntry<String, List<PerfPoint>> line in _lines(s).entries) {
-    for (int i = 0; i < line.value.length; i++) {
-      final PerfPoint p = line.value[i];
-      if (p.dateText.trim().isEmpty) {
-        bad.add('$where ${line.key}[$i] — date_text 가 비었다');
-      }
-      if (p.valueText.trim().isEmpty) {
-        bad.add('$where ${line.key}[$i] — value_text 가 비었다(결측 점에도 글자가 온다)');
-      }
-    }
+    bad.addAll(pointTextViolations(where, line.key, line.value));
   }
   return bad;
 }
 
-List<String> _tickViolations(String where, PerformanceSeries s) {
-  final List<String> bad = <String>[];
-  final List<PerfAxisTick> ticks = s.yTicks;
-  if (ticks.length > _maxTicks) {
-    bad.add('$where — 눈금 ${ticks.length}개(많아야 $_maxTicks)');
-  }
-  if (ticks.where((PerfAxisTick t) => t.isBaseline).length > 1) {
-    bad.add('$where — 기준선 눈금이 둘 이상이다');
-  }
-  for (int i = 0; i < ticks.length; i++) {
-    if (ticks[i].label.trim().isEmpty) {
-      bad.add('$where y_ticks[$i] — label 이 비었다');
-    }
-    if (i > 0 && ticks[i].normalized <= ticks[i - 1].normalized) {
-      bad.add('$where y_ticks[$i] — 오름차순이 아니다');
-    }
-  }
-  return bad;
-}
+List<String> _tickViolations(String where, PerformanceSeries s) =>
+    tickViolations(where, s.yTicks);
 
-List<String> _segmentOrderViolations(String where, PerformanceSeries s) {
-  final List<String> bad = <String>[];
-  for (int i = 1; i < s.segments.length; i++) {
-    final PerfSegment prev = s.segments[i - 1];
-    final PerfSegment cur = s.segments[i];
-    if (cur.startNormalized < prev.startNormalized) {
-      bad.add('$where segments[$i] — start 가 앞 구간보다 작다(받은 순서가 아니다)');
-    }
-    if (prev.endNormalized > cur.startNormalized) {
-      bad.add(
-        '$where segments[$i] — 앞 구간 end ${prev.endNormalized} > '
-        'start ${cur.startNormalized}(겹친다)',
-      );
-    }
-  }
-  return bad;
-}
+List<String> _segmentOrderViolations(String where, PerformanceSeries s) =>
+    segmentOrderViolations(where, s.segments);
 
 List<String> _unavailableViolations(String where, PerformanceSeries s) {
   final List<String> bad = <String>[];
@@ -835,36 +787,13 @@ List<String> _unavailableViolations(String where, PerformanceSeries s) {
   return bad;
 }
 
-List<String> _segmentCoverViolations(String where, PerformanceSeries s) {
-  final List<String> bad = <String>[];
-  for (int i = 0; i < s.segments.length; i++) {
-    final PerfSegment seg = s.segments[i];
-    if (seg.startNormalized > seg.endNormalized) {
-      bad.add('$where segments[$i] — start > end');
-    }
-    final List<int> byDate = <int>[
-      for (int k = 0; k < s.points.length; k++)
-        if (inDateRange(seg, s.points[k])) k,
-    ];
-    final List<int> byBand = <int>[
-      for (int k = 0; k < s.points.length; k++)
-        if (inBand(seg, s.points[k])) k,
-    ];
-    if (byDate.join(',') != byBand.join(',')) {
-      bad.add('$where segments[$i] — 날짜로 덮는 점 $byDate ≠ 정규 자리로 덮는 점 $byBand');
-    }
-    if (seg.kind != SegmentKind.measured && seg.label.trim().isEmpty) {
-      bad.add('$where segments[$i] — 측정 아닌 구간의 label 이 비었다(캡션이 없다)');
-    }
-  }
-  return bad;
-}
+List<String> _segmentCoverViolations(String where, PerformanceSeries s) =>
+    segmentCoverViolations(where, s.segments, s.points);
 
 List<String> _pointCountViolations(String where, PerformanceSeries s) =>
     <String>[
       for (final MapEntry<String, List<PerfPoint>> line in _lines(s).entries)
-        if (line.value.length > _maxPoints)
-          '$where ${line.key} — 점 ${line.value.length}개(많아야 $_maxPoints)',
+        ...pointCountViolations(where, line.key, line.value),
     ];
 
 List<String> _maskedTextViolations(String where, PerformanceSeries s) {
@@ -885,62 +814,20 @@ List<String> _maskedTextViolations(String where, PerformanceSeries s) {
   return bad;
 }
 
-/// 값 있는 점 1개(⑪ — 어느 선의 몇 번째 점인지와 함께).
-typedef _Valued = ({String at, double value, double y});
+/// 값 있는 점 1개(⑪) — 정본은 `support/perf_line_rules.dart`.
+typedef _Valued = ValuedPerfPoint;
 
 /// 본선 + 벤치마크의 값 있는 점을 `value` 오름차순으로(같으면 받은 순서 그대로).
 ///
 /// 🔴 두 선은 **같은 축**을 쓴다(01 §13-1) — 그래서 한데 모아 견준다.
-List<_Valued> _valued(PerformanceSeries s) {
-  final List<_Valued> out = <_Valued>[
-    for (final MapEntry<String, List<PerfPoint>> line in _lines(s).entries)
-      for (int i = 0; i < line.value.length; i++)
-        if (line.value[i].value != null && line.value[i].yNormalized != null)
-          (
-            at: '${line.key}[$i]',
-            value: line.value[i].value!,
-            y: line.value[i].yNormalized!,
-          ),
-  ];
-  // 안정 정렬(삽입) — 실패 메시지의 순번이 실행마다 같다.
-  for (int i = 1; i < out.length; i++) {
-    final _Valued cur = out[i];
-    int k = i - 1;
-    while (k >= 0 && out[k].value > cur.value) {
-      out[k + 1] = out[k];
-      k--;
-    }
-    out[k + 1] = cur;
-  }
-  return out;
-}
+List<_Valued> _valued(PerformanceSeries s) => valuedPerfPoints(_lines(s));
 
 /// ⑪ `value` 로 줄 세웠을 때 `yNormalized` 가 내려가지 않는다 · `value` 가 같으면 자리도 같다.
 ///
 /// 🔴 산술을 다시 하지 않는다(축을 되짚어 계산하지 않는다) — 순서만 본다. 값 하나를 손으로 고쳐
 ///    세로 자리와 어긋나면 여기서 걸린다.
-List<String> _orderViolations(String where, PerformanceSeries s) {
-  final List<_Valued> sorted = _valued(s);
-  final List<String> bad = <String>[];
-  for (int i = 1; i < sorted.length; i++) {
-    final _Valued prev = sorted[i - 1];
-    final _Valued cur = sorted[i];
-    final bool same = (cur.value - prev.value).abs() < _sameValue;
-    if (same && cur.y != prev.y) {
-      bad.add(
-        '$where ${cur.at} — value 는 같은데(${cur.value}) 세로 자리가 다르다: '
-        '${cur.y} ≠ ${prev.at} 의 ${prev.y}',
-      );
-    }
-    if (!same && cur.y < prev.y) {
-      bad.add(
-        '$where ${cur.at} — value 는 더 큰데(${cur.value} > ${prev.at} 의 '
-        '${prev.value}) 세로 자리가 더 낮다: ${cur.y} < ${prev.y}',
-      );
-    }
-  }
-  return bad;
-}
+List<String> _orderViolations(String where, PerformanceSeries s) =>
+    valueOrderViolations(where, _lines(s));
 
 bool _isChartTarget(String rel) =>
     _chartFiles.contains(rel) || _chartDirs.any(rel.startsWith);
