@@ -2,7 +2,7 @@
 
 > **owner(사양·결정)**: Claude · **코드 담당**: Claude
 > **청사진 카드**: **M1** engine-runtime(계산부) · **M3** whatif-service
-> **정본**: 전략·규칙은 `06_시스템설계/00_SPEC.md` **v2.31 P0S**, 등가성 게이트는 `06_시스템설계/05_수용기준_골든벡터.md`
+> **정본**: 전략·규칙은 `06_시스템설계/00_SPEC.md` **v2.32 P0S**(🆕 v1.4 정정 — 구 «v2.31» · v2.32 = 연금 납입 조달 경로 `PENSION_FUNDING`), 등가성 게이트는 `06_시스템설계/05_수용기준_골든벡터.md` · 계약은 `domain_contracts` **v1.4.0**(`WhatIfApi` = 01 §4-1 · §14)
 
 ## 무엇을 담나
 
@@ -41,4 +41,4 @@
 
 `lib/src/`의 네 폴더는 **자리만 있고 비어 있다**. 배럴도 비어 있다.
 
-**⚠️ 이 PC에는 Flutter·Dart·melos가 없다**(2026-09-06) — 테스트·분석은 SDK 설치 후 처음 돈다.
+✅ SDK 는 설치돼 있다(2026-09-07 · Dart 3.13.2 · Flutter 3.47.2 · melos — `docs/toolchain_notes.md` §1). 이 패키지는 순수 Dart 라 `dart test` 로 돈다(🆕 v1.4 정정 — 구 «이 PC에는 Flutter·Dart·melos가 없다(2026-09-06)»). 계산 코드는 아직 없다 — v1.4 `WhatIfApi` 새 시그니처(`simulateDeposit({required String amountInput})` · `findPlan`)의 구현은 06 M3-1 몫이다(`lib/src/whatif/README.md`).

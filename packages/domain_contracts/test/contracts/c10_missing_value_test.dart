@@ -14,12 +14,16 @@
 //   ⑦ `SIM_EXCLUDED` 구간 안의 점은 전부 null 이고 사유가 `SIM_EXCLUDED` 다 ·
 //      `MANUAL_EXECUTED` 구간 안의 점은 전부 값이 있다 ·
 //      `UNAVAILABLE` 구간 안의 점(본선)은 전부 null 이다(빗금 띠 위로 선이 지나가지 않는다).
-// 🔴 ⑤⑥⑦ 은 **망가뜨린 사본**(메모리 안)으로 실패하는 것을 «자체 검증» 테스트가 고정한다.
+// 🆕 v1.4(01 §14-10 · 설계 Δ4 «C-10 goal path 편입») — 목표 경로(`GoalPathVm`)도 같은 결측 규약을 진다.
+//   ⑧ 목표 경로 행: ⑤ 는 계획선·실제선 모두 · ⑥⑦ 은 **실제선만**(계획선은 갭 띠 안에서도 값이 있다 — C-39 ②).
+// 🔴 ⑤⑥⑦⑧ 은 **망가뜨린 사본**(메모리 안)으로 실패하는 것을 «자체 검증» 테스트가 고정한다.
+//    규칙 본문은 `support/perf_line_rules.dart`(C-36·C-39 와 공용 · 위반 문장 무변경).
 
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
 import 'c00_support.dart';
+import 'support/perf_line_rules.dart';
 import 'support/perf_series_rows.dart';
 
 void main() {
@@ -173,6 +177,35 @@ void main() {
       );
     });
 
+    test('C-10 ⑧ 목표 경로의 결측도 같은 규약이다(⑤ 두 선 · ⑥⑦ 실제선)', () {
+      final List<GoalPathRow> rows = allGoalPathRows();
+      expect(
+        <String>{for (final GoalPathRow r in rows) r.path},
+        containsAll(knownGoalPathFixtures),
+        reason: '목표 경로 픽스처가 검사 입력에서 빠졌다 — 입력 없는 검사는 늘 통과한다.',
+      );
+      final List<String> bad = <String>[
+        for (final GoalPathRow r in rows) ..._goalPathViolations(r.where, r.vm),
+      ];
+      expect(bad, isEmpty, reason: bad.join('\n'));
+      // 입력 확인 — 실제선 결측이 갭 띠 안에 실제로 있다(없으면 ⑥⑦ 이 아무것도 보지 않는다).
+      final int gaps = rows
+          .expand((GoalPathRow r) => r.vm.actual)
+          .where((PerfPoint p) => p.yNormalized == null)
+          .length;
+      expect(gaps, greaterThanOrEqualTo(2), reason: '목표 경로 실제선 결측 표본이 줄었다.');
+      // 계획선은 갭 띠 안에서도 값이 있다 — ⑦ 을 계획선에 걸지 않는 까닭의 표본.
+      final GoalPathVm real = goalPathRow(FixturePaths.m7M7GoalPathRealworld)
+          .vm;
+      expect(
+        real.planned.where(
+          (PerfPoint p) =>
+              real.segments.any((PerfSegment seg) => inBand(seg, p)),
+        ),
+        isNotEmpty,
+      );
+    });
+
     test('C-10 자체 검증 — 망가뜨린 사본은 ⑤⑥⑦ 에 걸린다', () {
       final PerfSeriesRow daily = perfSeriesRow(FixturePaths.m7M7PerfDailyGap);
       final PerfSeriesRow monthly = perfSeriesRow(FixturePaths.performance24m);
@@ -323,6 +356,45 @@ void main() {
         covered.add(m.name.split(' ').first);
       }
       expect(covered, <String>{'⑤', '⑥', '⑦'});
+
+      // 🆕 v1.4 ⑧ — 목표 경로 사본.
+      final GoalPathRow real = goalPathRow(FixturePaths.m7M7GoalPathRealworld);
+      final GoalPathRow on = goalPathRow(FixturePaths.m7M7GoalPathOn);
+      final List<_GoalMutation> goal = <_GoalMutation>[
+        _GoalMutation('⑧ 계획선 점이 비었다(⑤)', 'planned[2] — value null', on, (
+          Map<String, Object?> j,
+        ) {
+          jsonObjects(j, 'planned')[2]['value'] = null;
+        }),
+        _GoalMutation(
+          '⑧ 갭 띠 안 실제선 점에 값이 실렸다(⑦)',
+          'actual[3] — 불가 구간 안인데 값이 있다',
+          real,
+          (Map<String, Object?> j) {
+            final Map<String, Object?> p = jsonObjects(j, 'actual')[3];
+            p['value'] = 22000000.0;
+            p['y_normalized'] = 0.3333;
+            p.remove('gap_reason_code');
+          },
+        ),
+        _GoalMutation('⑧ 실제선 결측을 덮는 띠가 없다(⑥)', 'actual[4] x=', real, (
+          Map<String, Object?> j,
+        ) {
+          jsonObjects(j, 'segments')[0]['end_normalized'] = 0.5;
+        }),
+      ];
+      for (final _GoalMutation g in goal) {
+        expect(
+          _goalPathViolations(g.row.where, g.row.vm),
+          isEmpty,
+          reason: '${g.name} — 고치기 전 원본이 이미 걸린다.',
+        );
+        expect(
+          _goalPathViolations(g.row.where, g.row.mutated(g.edit)),
+          contains(contains(g.hit)),
+          reason: '${g.name} — 망가뜨렸는데 검사가 통과한다(검사가 늘 참이다).',
+        );
+      }
     });
 
     test(
@@ -366,69 +438,43 @@ void _expectClean(_Rule rule) {
   expect(bad, isEmpty, reason: bad.join('\n'));
 }
 
-/// ⑤ `value == null ⇔ yNormalized == null`.
-List<String> _valuePairViolations(String where, PerformanceSeries s) {
-  final Map<String, List<PerfPoint>> lines = <String, List<PerfPoint>>{
-    'points': s.points,
-    if (s.benchmark != null) 'benchmark.points': s.benchmark!.points,
-  };
-  return <String>[
-    for (final MapEntry<String, List<PerfPoint>> line in lines.entries)
-      for (int i = 0; i < line.value.length; i++)
-        if ((line.value[i].value == null) !=
-            (line.value[i].yNormalized == null))
-          '$where ${line.key}[$i] — value ${line.value[i].value} · '
-              'y_normalized ${line.value[i].yNormalized}(둘은 함께 비거나 함께 온다)',
-  ];
-}
+/// ⑤ `value == null ⇔ yNormalized == null`(본선·벤치마크 — 규칙 본문은 `support/perf_line_rules.dart`).
+List<String> _valuePairViolations(String where, PerformanceSeries s) =>
+    valuePairViolations(where, <String, List<PerfPoint>>{
+      'points': s.points,
+      if (s.benchmark != null) 'benchmark.points': s.benchmark!.points,
+    });
 
 /// ⑥ 결측 점을 덮는 띠가 있다(본선 — 띠는 본선의 구간이다).
-List<String> _gapCoverViolations(String where, PerformanceSeries s) {
-  final List<PerfSegment> bands = s.segments
-      .where(
-        (PerfSegment seg) =>
-            seg.kind == SegmentKind.unavailable ||
-            seg.kind == SegmentKind.simExcluded,
-      )
-      .toList();
-  return <String>[
-    for (int i = 0; i < s.points.length; i++)
-      if (s.points[i].yNormalized == null &&
-          !bands.any((PerfSegment seg) => inBand(seg, s.points[i])))
-        '$where points[$i] x=${s.points[i].xNormalized} — 결측인데 덮는 '
-            'UNAVAILABLE·SIM_EXCLUDED 띠가 없다(선이 까닭 없이 끊긴다)',
-  ];
-}
+List<String> _gapCoverViolations(String where, PerformanceSeries s) =>
+    gapCoverViolations(where, s.segments, 'points', s.points);
 
 /// ⑦ 구간 종류와 그 안의 점.
-List<String> _segmentKindViolations(String where, PerformanceSeries s) {
-  final List<String> bad = <String>[];
-  for (final PerfSegment seg in s.segments) {
-    for (int i = 0; i < s.points.length; i++) {
-      final PerfPoint p = s.points[i];
-      if (!inBand(seg, p)) {
-        continue;
-      }
-      if (seg.kind == SegmentKind.simExcluded) {
-        if (p.value != null || p.yNormalized != null) {
-          bad.add('$where points[$i] — 모의 구간 안인데 값이 있다(합산 제외가 아니다)');
-        }
-        if (p.gapReasonCode != GapReasonCodes.simExcluded) {
-          bad.add('$where points[$i] — 모의 구간 안인데 사유가 ${p.gapReasonCode} 다');
-        }
-      }
-      if (seg.kind == SegmentKind.manualExecuted &&
-          (p.value == null || p.yNormalized == null)) {
-        bad.add('$where points[$i] — 수동 집행 구간 안인데 값이 없다(선이 끊긴다)');
-      }
-      if (seg.kind == SegmentKind.unavailable &&
-          (p.value != null || p.yNormalized != null)) {
-        bad.add('$where points[$i] — 불가 구간 안인데 값이 있다(빗금 띠 위로 선이 지나간다)');
-      }
-    }
-  }
-  return bad;
+List<String> _segmentKindViolations(String where, PerformanceSeries s) =>
+    segmentKindViolations(where, s.segments, 'points', s.points);
+
+/// 🆕 v1.4 — 목표 경로 변이 1건(⑧ 자체 검증용 — 픽스처 파일은 고치지 않는다).
+class _GoalMutation {
+  const _GoalMutation(this.name, this.hit, this.row, this.edit);
+
+  final String name;
+  final String hit;
+  final GoalPathRow row;
+  final void Function(Map<String, Object?> json) edit;
 }
+
+/// 🆕 v1.4 ⑧ — 목표 경로 1행에 ⑤⑥⑦ 을 건다.
+///
+/// 🔴 ⑤ 는 두 선 모두 · ⑥⑦ 은 **실제선(`actual`)에만** — 띠는 실제선의 구간이고, 계획선(`planned`)은
+///    갭 띠 안에서도 값이 있다(계획선 결측 없음 · C-39 ②). 계획선에 ⑦ 을 걸면 정상 픽스처가 걸린다.
+List<String> _goalPathViolations(String where, GoalPathVm vm) => <String>[
+  ...valuePairViolations(where, <String, List<PerfPoint>>{
+    'planned': vm.planned,
+    'actual': vm.actual,
+  }),
+  ...gapCoverViolations(where, vm.segments, 'actual', vm.actual),
+  ...segmentKindViolations(where, vm.segments, 'actual', vm.actual),
+];
 
 List<PerformanceSeries> _series(String path) =>
     decodeEnvelope(readFixture(path)).rows

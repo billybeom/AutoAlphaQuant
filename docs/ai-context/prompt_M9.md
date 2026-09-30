@@ -1,6 +1,7 @@
 > 이 파일은 `11_앱설계/07_AI어시스턴트_배포프롬프트.md`의 **조립본**입니다 — 원문(정본)은 07 §3 공통 머리 블록 + §7 프롬프트 «M9 관리자·설정 (렌더 부분)» 이며, 아래 본문은 치환값 외에 한 글자도 고치지 않았습니다.
 > 치환값: `{{REPO}}` = https://github.com/billybeom/AutoAlphaQuant (로컬 `C:/Work/Bob/AutoAlphaQuant`) · `{{DOCS}}` = `docs/ai-context/` · `{{BRANCH_BASE}}` = `main` · `{{SNAPSHOT_CMD}}` = `melos run test:contracts` · `{{범위}}` = `S01`
 > 조립일 2026-09-09 · 아래 코드블록 안쪽 전체를 그대로 붙여넣습니다.
+> 🔵 **정정 표식(2026-09-30 · 계약 v1.4 · 본문은 조립 규칙상 고치지 않는다 · 07 §7 뒤 표식과 같은 말)** — 본문의 «뷰어 쓰기 `CommandApi` **5종**이 아닙니다»의 개수는 v1.4 에서 **4종**이다(01 §14-2 — `registerDeposit` 은 폰 전용). 뜻은 그대로다.
 
 ```text
 당신은 Flutter 앱 «AutoAlphaQuant»의 화면 구현을 맡은 코딩 어시스턴트입니다. 이 앱은 1인 사용자의 감정 배제

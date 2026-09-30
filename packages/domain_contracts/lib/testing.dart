@@ -18,10 +18,15 @@
 //   🆕 계약 v1.2 R2b 선행(2026-09-25) — `UnimplementedDraftStore`(초안 포트 · 전부 `Future` 에러) ·
 //   `RecordingDraftStore`(메모리 + 호출 기록 · 픽스처 시드) ·
 //   `UnimplementedJournalRepository.watchDecisionJournal`.
+//   🆕 계약 v1.4 R11 선행(2026-09-30) — `UnimplementedWhatIfApi`(미리보기 5종 · 전부 `Future` 에러) ·
+//   `UnimplementedPerformanceRepository.goalPath` · `UnimplementedCommandApi.registerDeposit` 는
+//   새 인자(`DepositRegistration(planId:)` 하나)를 받는다(시그니처 무변경).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
 //    픽스처에서 읽어 override 로 준다(01 §5).
+
+import 'package:decimal/decimal.dart';
 
 import 'domain_contracts.dart';
 
@@ -114,6 +119,12 @@ class UnimplementedPerformanceRepository implements PerformanceRepository {
   @override
   Future<AnnualReviewVm> annualReview({required String year}) =>
       throw UnimplementedError('annualReview');
+
+  /// 🆕 v1.4 — S7-9 목표 경로. 🔵 이 클래스의 관행대로 **동기로 던진다**(아래
+  /// [UnimplementedWhatIfApi] 는 `Future` 에러 — 받침대마다 다르다는 것을 적어 둔다).
+  @override
+  Future<GoalPathVm> goalPath({required String yyyyMm}) =>
+      throw UnimplementedError('goalPath');
 }
 
 /// [ConfigRepository] 받침대.
@@ -162,6 +173,7 @@ class UnimplementedCommandApi implements CommandApi {
   Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event) =>
       throw UnimplementedError('recordDisclosureView');
 
+  /// 🆕 v1.4 — 인자는 `DepositRegistration(planId:)` 하나다(01 §14-7).
   @override
   Future<CommandReceipt> registerDeposit(DepositRegistration registration) =>
       throw UnimplementedError('registerDeposit');
@@ -197,6 +209,36 @@ class UnimplementedCommandApi implements CommandApi {
   @override
   Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack) =>
       throw UnimplementedError('confirmKillChecklist');
+}
+
+/// 🆕 계약 v1.4 R11 선행(2026-09-30) — [WhatIfApi] 받침대(미리보기 5종 · **전부 `Future` 에러**).
+///
+/// 🔴 다른 리포지토리 받침대(동기 throw)와 달리 **`Future` 에러**다([UnimplementedDraftStore]
+///    선례) — 플래너(S7-4)는 `simulateDeposit` 의 `Future` 에러를 «계산 실패»(공통 에러 뷰 +
+///    입력 유지 + 재시도)로 그리므로, override 하지 않은 메서드를 불러도 동기 예외로 위젯
+///    트리가 깨지지 않고 그 갈래로 드러난다.
+/// 🔴 결과는 지어내지 않는다 — `m7/m7_deposit_plan_*` 픽스처 행(`DepositPreviewResult`)을
+///    `listFixture(...)` 로 열어 override 로 돌려준다.
+class UnimplementedWhatIfApi implements WhatIfApi {
+  @override
+  Future<DepositPreviewResult> simulateDeposit({required String amountInput}) =>
+      Future<DepositPreviewResult>.error(UnimplementedError('simulateDeposit'));
+
+  @override
+  Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount}) =>
+      Future<WithdrawalPlan>.error(UnimplementedError('simulateWithdrawal'));
+
+  @override
+  Future<RebalancePreview> previewRebalance({TradeDate? plannedDate}) =>
+      Future<RebalancePreview>.error(UnimplementedError('previewRebalance'));
+
+  @override
+  Future<CostEstimate> estimateCosts(String planId) =>
+      Future<CostEstimate>.error(UnimplementedError('estimateCosts'));
+
+  @override
+  Future<DepositPlan?> findPlan(String planId) =>
+      Future<DepositPlan?>.error(UnimplementedError('findPlan'));
 }
 
 /// 🆕 계약 v1.1 R2 준비(2026-09-23) — [SafetyRepository] 받침대.

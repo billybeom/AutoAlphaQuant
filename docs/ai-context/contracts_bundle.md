@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 85개 · 계약 v1.3.0 · 조립일 2026-09-28(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 86개 · 계약 v1.4.0 · 조립일 2026-09-30(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -83,8 +83,8 @@ export 'commands/settings_actions.dart';
 //    바로 그 커밋이 이 값을 올리는 커밋이다(구 주석의 조건이 성립했다). 인벤토리 §10-1 의
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
-//    움직인다(1.0.0 상향 때 77개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개) — 한쪽만 올리면
-//    C-1·C-15 가 갈라진 채로 통과한다.
+//    움직인다(1.0.0 상향 때 77개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 · 1.4.0 상향 때
+//    122개) — 한쪽만 올리면 C-1·C-15 가 갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
 // 🆕 '1.3.0'(R10 선행 M2 보강 · 01 §13) — 성과 시리즈 표시 필드(`PerfPoint.xNormalized`·
@@ -93,12 +93,20 @@ export 'commands/settings_actions.dart';
 //    `ReportArchiveRow.sectionLabel` · `DisclosureViewEvent.durationSec` 기본값 0 ·
 //    `PerformanceRepository.series(range:)` nullable · 코드 `DisclosureSurfaceCodes`·
 //    `GapReasonCodes.simExcluded` · 동작 링크 `AppNavActions.back`.
+// 🆕 '1.4.0'(R11 선행 M2 보강 · 01 §14) — 입금 미리보기 `WhatIfApi.simulateDeposit({amountInput})` →
+//    `DepositPreviewResult`(plan | 입력 거부 | 차단) · `PensionLimitVm` · `DepositPlan`·`OrderDraft`·
+//    `SleeveAllocation` 표시 필드 · `ContributionSetting`/`MonthlyContributionVm.amountInputText` ·
+//    `DepositRegistration(planId:)` 하나 · `DEPOSIT_REGISTER` 폰 전용(뷰어 4종) · 목표 경로
+//    `PerformanceRepository.goalPath({yyyyMm})` · `GoalPathVm` 재설계(`GoalPathPoint` 폐기 ·
+//    `PerfPoint` 재사용 · C-4 동시 금지 폐기) · `MonthlyReport.goalDeepLink` · 라우트
+//    `reportGoalPath`(42) · 코드 `PlannerReasonCodes` · 받침대 `UnimplementedWhatIfApi`.
+//    ⏸ S7-5(`WithdrawalPlan`)는 '1.5.0'(01 §14-15 «예정»).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.3.0';
+const String contractVersion = '1.4.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -293,8 +301,10 @@ export 'repositories/what_if_api.dart';
 // 🔴 구현은 `command_queue` 에 UPDATE·DELETE 를 부르지 않는다(C-16).
 // 🔴 **킬스위치 «해제» 명령은 없다**(결정 6). 해제는 폰 M5 재개 게이트 전용이며
 //    `deactivate` 추가 제안은 **거절이 기본값**이다.
-// 🔴 **뷰어가 쓸 수 있는 것은 앞 5종이 전부다.** X7 7종은 전량 폰(operator) 전용이라
-//    뷰어 화이트리스트를 건드리지 않는다. ⏸ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이고
+// 🔴 **뷰어가 쓸 수 있는 것은 앞 4종이 전부다**(킬스위치·사전 저널·blind 리뷰·열람 기록).
+//    🆕 v1.4 정정(01 §14-2) — 구 «앞 5종»의 다섯째 `registerDeposit`(`DEPOSIT_REGISTER`)는
+//    **폰(operator) 전용**이다(RLS 01 §6-4 `command_insert_viewer` · DDL `batch_d_supabase.sql`
+//    과 일치). X7 7종도 전량 폰 전용이라 뷰어 화이트리스트를 건드리지 않는다. ⏸ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이고
 //    현행 4종 화이트리스트를 유지한다(J-3).
 // 🔴 화면은 `CommandReceipt.state` 를 스스로 낙관 갱신하지 않는다.
 // 🔴 **`OperatingMode` 전환은 여기 없다** — `SettingsActionId.runtimeOperatingModeSwitchRequest`
@@ -322,6 +332,8 @@ abstract interface class CommandApi {
   /// 열람 기록(결정 8).
   Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event);
 
+  /// 실입금 등록 — 🔴 폰(operator) 전용(01 §14-2). 🆕 v1.4 인자 = `planId` 하나.
+  /// 1회 호출 · 이후 상태는 [watchCommand] 의 `stateLabel` 로만 안다(01 §14 · D7).
   Future<CommandReceipt> registerDeposit(DepositRegistration registration);
 
   /// 명령 1건의 접수증 흐름 — 화면이 `state` 를 갱신하는 **유일한** 경로(낙관 갱신 금지).
@@ -811,26 +823,23 @@ abstract class SelfReportLineInput with _$SelfReportLineInput {
 //
 // 🔴 X7 8종은 `payloads_x7.dart` 에 있다(파일 크기 규약상 분리 · 계약상 같은 §5-4 표).
 
-import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-
-import '../primitives/money.dart';
 
 part 'payloads.freezed.dart';
 part 'payloads.g.dart';
 
 /// 실입금 등록(§2-6 · 플래너 계획 스냅샷 소비).
+/// 🆕 v1.4(01 §14-7) — 인자는 **`planId` 하나**다. 금액·기준일은 엔진이 계획 스냅샷에서 가져오고,
+///    실입금 대조는 원장이 한다(06 M3-2). 구 `amount`·`valueDate` 는 삭제됐다 — valueDate 의
+///    공급원이 없었고 amount 의 출처가 문서마다 달랐다.
+/// 🔴 `DEPOSIT_REGISTER` 는 폰(operator) 전용이다(01 §14-2 · RLS · `command_api.dart` 머리).
 @freezed
 abstract class DepositRegistration with _$DepositRegistration {
   const factory DepositRegistration({
-    /// 🔴 만료된 계획이면 엔진이 거부한다(§2-6) — 화면이 만료를 미리 판정하지 않는다.
+    /// 🔴 화면에 **그려진 계획의** `planId` 만 넣는다. 등록할 수 없는 계획(만료 등)은 엔진이
+    ///    `DepositPlan.registerBlockedText` 로 미리 말하고, 그래도 오면 엔진이 거부한다 —
+    ///    화면이 만료를 미리 판정하지 않는다.
     required String planId,
-
-    /// JSON 은 문자열이다.
-    /// 🔴 금액은 **엔진 설정값**(`ConfigRepository.watchContributionSetting`)에서 오며
-    ///    화면·계약이 상수로 적지 않는다(§2-6 · C-32).
-    @DecimalStringConverter() required Decimal amount,
-    @TradeDateConverter() required TradeDate valueDate,
   }) = _DepositRegistration;
 
   factory DepositRegistration.fromJson(Map<String, dynamic> json) =>
@@ -3440,6 +3449,11 @@ abstract class MonthlyReport with _$MonthlyReport {
     /// 🆕 v1.1(§8 미결 43) — 이 리포트를 만든 설정의 해시(모노스페이스 축약 표시용).
     /// 🔴 화면이 다른 해시와 비교하지 않는다(contract_version.dart 말미 조문). 미생성이면 null.
     String? configHash,
+
+    /// 🆕 v1.4(01 §14-9) — «목표 경로 보기» 버튼의 목적지(`AppRoutes.reportGoalPath` 꼴 · C-33).
+    /// null = **버튼 부재**(자리표시자 없음). 엔진은 과거 달·가림·미생성 달이면 null 로 둘 수 있다.
+    /// 🔴 화면은 이 문자열을 해석·조립하지 않고 `AppLinkOpener.open` 에 그대로 넘긴다.
+    String? goalDeepLink,
   }) = _MonthlyReport;
 
   factory MonthlyReport.fromJson(Map<String, dynamic> json) =>
@@ -3650,45 +3664,78 @@ abstract class AnnualReviewSection with _$AnnualReviewSection {
       _$AnnualReviewSectionFromJson(json);
 }
 
-/// 01 §2-6 · m2-8 F-15 · C-4 — 목표 경로(`S7-9`).
-/// 🔴 `basisText` 와 `backtestBasisText` 는 **두 필드**이며 화면이 둘을 동시에
-///    그리지 않는다(C-4 — 확장이 아니라 신설을 고른 이유가 이 조문의 검사
-///    가능성이다).
+/// 01 §2-6 · m2-8 F-15 · 🆕 v1.4 01 §14-10 — 목표 경로(`S7-9`).
+/// 🔴 **01 §14-10 «필드 → 자리» 대응표가 정본**이다. 화면은 필드마다 정해진 한 자리에만 그린다.
+/// 🔴 v1.4 — C-4 «`basisText`·`backtestBasisText` 를 동시에 그리지 않는다» 조문은 **폐기**됐다
+///    (03 §14 가정 카드가 두 줄을 요구한다). 대신 역할을 고정한다: `basisText` = 판정 근거 줄 ·
+///    `backtestBasisText` = 가정 카드 1줄 · `startingCapitalAssumptionText` = 가정 카드 2줄
+///    (03 §14·§17-17 의 `contributionAssumptionText` 를 대체 · 01 §14 결정 뒤집기 기록).
+/// 🔴 `honestExpectationText`·`honestExpectationWorstText` 는 세후 사다리 마지막 층을 인용하는
+///    **완성 문장**이지 스칼라가 아니다 — 01 §2-6 «`PerfDisclosure` = 기대치 문구의 유일한
+///    운반처(M7 한정)»의 **명시 예외**(01 §14 · 문자열 출처는 같은 엔진 상수 블록). 화면은 숫자를
+///    옮겨 적지 않는다.
+/// 🔴 `planned`·`actual` 은 `PerfPoint` 를 재사용한다(01 §13 세 식 준용 · C-39). 화면이 두 목록을
+///    합치거나 차액·달성률을 계산하지 않는다.
+/// 🔴 S7-9 는 `ConfigRepository` 를 읽지 않는다(03 §17-17 이 이긴다).
 @freezed
 abstract class GoalPathVm with _$GoalPathVm {
   const factory GoalPathVm({
-    required String startingCapitalAssumptionText,
+    /// 🆕 v1.4 — 이 경로의 달(`yyyy-MM`). Key 용 · 🔴 표시 금지.
+    required String yyyyMm,
+
+    /// 🆕 v1.4 — «유지»/«이탈»/«판정 유보» 문장 — 엔진 생성.
+    required String judgementText,
+
+    /// 역할 고정(v1.4): **판정 근거 줄**.
     required String basisText,
+
+    /// 🆕 v1.4 — 이탈 문장(구 봉투 `lag_notice` 승격) — null = 줄 부재.
+    String? deviationText,
+
+    /// 🆕 v1.4 — 이 경로가 덮는 기간 — 엔진 생성.
+    required String periodLabel,
+
+    /// 🆕 v1.4 — 범례: 계획선.
+    required String plannedLabel,
+
+    /// 🆕 v1.4 — 범례: 실제선.
+    required String actualLabel,
+
+    /// 🆕 v1.4 — 계획선. 🔴 `yNormalized` 결측 없음 · [actual] 과 같은 길이·date·xNormalized(C-39 ②).
+    required List<PerfPoint> planned,
+
+    /// 🆕 v1.4 — 실제선. 결측(`yNormalized == null`)은 선을 끊는다 — 보간 금지(C-10 준용).
+    required List<PerfPoint> actual,
+
+    /// 🆕 v1.4 — 세로축 눈금(아래 → 위) · 많아야 5개(C-39 ④).
+    required List<PerfAxisTick> yTicks,
+
+    /// 🆕 v1.4 — 갭·SIM 제외 띠 — 받은 순서 · 겹침 없음(C-39 ⑤).
+    required List<PerfSegment> segments,
+
+    /// 🆕 v1.4 — non-null ⇔ [planned]·[actual]·[yTicks]·[segments] 가 모두 빈 목록(C-39 ③).
+    /// 그때는 차트 대신 이 문장 카드 1장이고 [deviationText] 는 null 이다.
+    String? chartUnavailableLabel,
+
+    /// 역할 고정(v1.4): **가정 카드 1줄**(백테스트 기준 실행).
     required String backtestBasisText,
+
+    /// 역할 고정(v1.4): **가정 카드 2줄**(당신의 현재 원금·납입).
+    required String startingCapitalAssumptionText,
+
+    /// 🆕 v1.4 — 정직 기대 본값 **인용 문장**(위 예외 조문).
+    required String honestExpectationText,
+
+    /// 최악 가정 한 문장(인용 문장 · 위 예외 조문).
     required String honestExpectationWorstText,
-    required List<GoalPathPoint> points,
+
+    /// 🆕 v1.4 — «보증하지 않습니다» 엔진 고지.
+    required String disclaimerText,
     required AsOf asOf,
   }) = _GoalPathVm;
 
   factory GoalPathVm.fromJson(Map<String, dynamic> json) =>
       _$GoalPathVmFromJson(json);
-}
-
-/// ⚠️ **M2-8 미확정** — F-15 가 `List<GoalPathPoint>` 라는 **이름만** 확정했고
-/// 필드 축은 문서에 없다(03 §14 의 `PathPointVm` 도 필드가 비어 있다).
-/// 아래는 `PerfPoint`(§2-4)와 같은 모양으로 둔 **임시 최소 축**이다 —
-/// 🔴 계획선·실제선의 구분은 `seriesCode`(엔진 코드)로 오며 화면이 두 목록을
-///    합치거나 차액을 계산하지 않는다.
-@freezed
-abstract class GoalPathPoint with _$GoalPathPoint {
-  const factory GoalPathPoint({
-    @TradeDateConverter() required TradeDate date,
-
-    /// 엔진이 준 계열 코드(계획/실제) — 화면이 문자열을 짓지 않는다.
-    required String seriesCode,
-
-    /// 🔴 그래프 기하 전용. 표시는 `valueText` 다.
-    required double normalized,
-    required String valueText,
-  }) = _GoalPathPoint;
-
-  factory GoalPathPoint.fromJson(Map<String, dynamic> json) =>
-      _$GoalPathPointFromJson(json);
 }
 ```
 
@@ -3698,18 +3745,24 @@ abstract class GoalPathPoint with _$GoalPathPoint {
 
 ```dart
 // 01 §2-6 — 미리보기 계획 스냅샷(M3·M7 요구 4 · Q-F)와 그 값 객체들.
+// 🆕 v1.4(R11 선행 · 01 §14) — 입금 미리보기 결과 `DepositPreviewResult`(plan | 입력 거부 | 차단) ·
+//    한도 카드 `PensionLimitVm` · `DepositPlan`·`OrderDraft`·`SleeveAllocation` 표시 필드.
 //
-// 🔴 **월 추가 납입 운영값을 화면·계약·픽스처에 상수로 적지 않는다**(01 §2-6 ·
-//    C-32). 읽기 창구는 `ConfigRepository.watchContributionSetting()` 하나이고
-//    변경 창구는 `SettingsActions`(운영 등급)다.
+// 🔴 **월 추가 납입 운영값을 화면(`ui_*/lib` · `labels.dart` 포함)·계약 코드에 상수로 적지
+//    않는다**(01 §2-6 · C-32 · 🆕 v1.4 문구 통일 01 §14-13). 픽스처는 **폐기값만** 금지이고
+//    금액 예시값은 하나를 쓴다(`fixture_conventions_test.dart` 머리 주석). 읽기 창구는
+//    `ConfigRepository.watchContributionSetting()` 하나이고 변경 창구는 `SettingsActions`(운영 등급)다.
 // 🔴 `fundingSteps` 가 null·빈 목록이면 화면은 그 절을 **통째로 숨긴다** —
 //    0건을 「0원」으로 그리지 않는다(01 §2-6 v2.32 `PENSION_FUNDING`).
+// 🔴 🆕 v1.4 — «읽지 않는 필드»(`/// 🔴 ui 미참조(C-38 ⑩)` 표식)는 엔진·명령·골든 대조 쪽 원값이다.
+//    화면은 같은 뜻의 `*Text`·`*Label` 필드만 그린다(01 §14-4 · C-38 ⑩ 정규식과 **같은 목록**).
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/journal.dart';
 import '../enums/order.dart';
 import '../enums/sleeve.dart';
+import '../primitives/as_of.dart';
 import '../primitives/money.dart';
 import 'common.dart';
 import 'performance.dart';
@@ -3718,30 +3771,94 @@ import 'rebalance.dart';
 part 'plan.freezed.dart';
 part 'plan.g.dart';
 
+/// 🆕 v1.4 · 01 §14-3 — 입금 미리보기 결과(`WhatIfApi.simulateDeposit` 의 반환).
+/// 🔴 `plan` · `inputRejectedText` · `blockedText` 중 **정확히 하나** non-null(C-38 ①).
+/// 🔴 `blockedAction` 은 `blockedText` 가 있을 때만 non-null 일 수 있다(null = 버튼 부재).
+/// 🔴 화면은 셋 중 무엇이 non-null 인가로만 갈린다 — 문장을 해석하거나 flagId 로
+///    진입을 막지 않는다(D21 · 03 §1-4 플래너 열 v1.4 재해석).
+@freezed
+abstract class DepositPreviewResult with _$DepositPreviewResult {
+  const factory DepositPreviewResult({
+    DepositPlan? plan,
+
+    /// 빈칸·숫자 아님·0·범위 밖 — 엔진 판정. 화면 = 입력칸 바로 아래 1줄(스텝 ① 유지).
+    String? inputRejectedText,
+
+    /// 미리보기 차단(무결성·재개 미완·복구·계좌 매핑 미완) — 화면 = 문장 카드 1장(D21).
+    String? blockedText,
+
+    /// 차단 문장 카드의 이동 버튼 — 탭 = `AppLinkOpener.open(deepLink)` 그대로.
+    LinkAction? blockedAction,
+  }) = _DepositPreviewResult;
+
+  factory DepositPreviewResult.fromJson(Map<String, dynamic> json) =>
+      _$DepositPreviewResultFromJson(json);
+}
+
 /// 01 §2-6 — 입금 미리보기 계획.
-/// 🔴 `expiresAt` 이 지난 계획으로는 실입금 등록이 거부된다(`plan_snapshot`).
+/// 🔴 등록할 수 없는 계획(만료·정합 불일치·원장 정정 중·금액 범위 등)은 엔진이
+///    [registerBlockedText] 로 말한다 — 화면이 `expiresAt` 을 시계와 비교하지 않는다.
+/// 🆕 v1.4 — 표시 필드(01 §14-4 null 규칙 표). null 이면 **부재**, non-null 이면 그대로 그린다.
 @freezed
 abstract class DepositPlan with _$DepositPlan {
   const factory DepositPlan({
-    /// 🔴 실입금 등록 시 바인딩(계획 대비 실제 대조).
+    /// 🔴 실입금 등록 시 바인딩(계획 대비 실제 대조) — `DepositRegistration(planId:)` 하나.
     required String planId,
+
+    /// 🔴 ui 미참조(C-38 ⑩).
     required DateTime computedAt,
+
+    /// 🔴 ui 미참조(C-38 ⑩). 기준일 표시는 [asOf] 의 `label` 이다.
     @TradeDateConverter() required TradeDate asOfTradeDate,
+
+    /// 🔴 ui 미참조(C-38 ⑩) — 만료 판정은 엔진([registerBlockedText]).
     required DateTime expiresAt,
     required String configHash,
+
+    /// 🆕 v1.4 — 봉투 `as_of` 를 행으로(스텝 ②③ 기준일 줄 · `StaleBanner`).
+    required AsOf asOf,
+
+    /// 🔴 ui 미참조(C-38 ⑩). 표시는 [depositAmountText].
     @DecimalStringConverter() required Decimal depositAmount,
+
+    /// 🆕 v1.4 — 워터폴 머리(입금액) — 엔진 생성.
+    required String depositAmountText,
 
     /// 슬리브별 충당액 — m2-8 F-11.
     required List<SleeveAllocation> allocations,
+
+    /// 🆕 v1.4 조문(01 §14-6) — 올해 연금저축+IRP **합산 납입 누계**(이번 입금 반영 후).
+    /// 🔴 ui 미참조(C-38 ⑩). 한도 카드는 [pensionLimit] 이다.
     @DecimalStringConverter() required Decimal pensionLimitConsumed,
 
+    /// 🆕 v1.4 — 한도 카드(03 §9 스텝 ②). null = 카드 부재.
+    PensionLimitVm? pensionLimit,
+
     /// D2 = 원화 현금 대기(결정 7b). 🔴 유휴 자금이 아니다.
+    /// 🔴 ui 미참조(C-38 ⑩). 표시는 [residualKrwCashText].
     @DecimalStringConverter() required Decimal residualKrwCash,
+
+    /// 🆕 v1.4 — 잔여 행 문장. null ⇔ 잔여 0 → **행 부재**(C-38 ②).
+    String? residualKrwCashText,
+
+    /// 🆕 v1.4 — 주문 초안 표 제목(«주문 초안» / advisory 이름) — 엔진 생성.
+    required String orderDraftsTitle,
     required List<OrderDraft> orderDrafts,
+
+    /// 🆕 v1.4 — non-null ⇔ [orderDrafts] 빈 목록(C-38 ②). 그때 표 대신 이 한 줄.
+    String? ordersEmptyText,
     required CostEstimate costs,
 
-    /// "미리보기입니다" — 엔진 생성.
+    /// 🔴 v1.4 조문(01 §14-5) — «미리보기입니다…» 고지 **전용**. 경고·만료를 싣지 않는다.
     required String previewNotice,
+
+    /// 🆕 v1.4 — 현금 부족·한도 초과 등 경고 문장 — **받은 순서** 그대로.
+    @Default(<String>[]) List<String> warningLines,
+
+    /// 🆕 v1.4 — non-null = 이 계획으로 등록할 수 없다(만료·정합 불일치·원장 정정 중·금액
+    /// 범위 등 — 까닭은 엔진 문장). 화면 = 등록 섹션 자리에 이 1줄(등록 버튼 부재).
+    /// 🔴 `expiresAt` 을 시계와 비교하지 않는다.
+    String? registerBlockedText,
 
     /// 🆕 v2.32 연금 납입 조달 단계(§3-6 `PENSION_FUNDING`).
     /// 🔴 null·빈 목록 = 절을 통째로 숨긴다.
@@ -3752,7 +3869,33 @@ abstract class DepositPlan with _$DepositPlan {
       _$DepositPlanFromJson(json);
 }
 
+/// 🆕 v1.4 · 01 §14-4 — 한도 카드(03 §9 스텝 ② · 그림 M7-17 PANEL). 모든 줄이 **완성 문장**이다.
+/// 🔴 화면이 금액·비율·D-day 를 계산하지 않는다.
+@freezed
+abstract class PensionLimitVm with _$PensionLimitVm {
+  const factory PensionLimitVm({
+    /// 연 합산 납입한도 대비 사용·남은 금액 한 줄.
+    required String annualLimitText,
+
+    /// 세액공제 구간 소진 한 줄.
+    required String taxCreditText,
+
+    /// 12월 마감 D-day 한 줄.
+    required String deadlineText,
+
+    /// 라우팅 제안 — null = 줄 부재.
+    String? suggestionText,
+
+    /// 조달 순서 안내 한 줄(그림 M7-17 PANEL · 03 §9) — null = 줄 부재.
+    String? fundingNoteText,
+  }) = _PensionLimitVm;
+
+  factory PensionLimitVm.fromJson(Map<String, dynamic> json) =>
+      _$PensionLimitVmFromJson(json);
+}
+
 /// 01 §2-6 — 주문 초안 1행.
+/// 🆕 v1.4 — 표시 필드 4(`sideLabel`·`quantityText`·`limitPriceText`·`pendingNoteText`).
 @freezed
 abstract class OrderDraft with _$OrderDraft {
   const factory OrderDraft({
@@ -3762,10 +3905,31 @@ abstract class OrderDraft with _$OrderDraft {
 
     /// 🔴 계좌 전체번호 금지 — 별칭만.
     required String accountAlias,
+
+    /// 🔴 ui 미참조(C-38 ⑩). 표시는 [sideLabel].
     required OrderSide side,
+
+    /// 🆕 v1.4 — «매수»/«매도» — 엔진 생성.
+    required String sideLabel,
+
+    /// 🔴 ui 미참조(C-38 ⑩). 표시는 [quantityText].
     required int quantity,
+
+    /// 🆕 v1.4 — 수량 글자 — 엔진 생성.
+    required String quantityText,
+
+    /// 사유 칩. 🔴 플래너(S7-4)는 `label`·`tone` 만 그린다 — `detailDeepLink` 는 읽지 않는다(D20).
     required List<ReasonChip> reasons,
+
+    /// 🔴 ui 미참조(C-38 ⑩). 표시는 [limitPriceText].
     @DecimalStringConverter() Decimal? limitPrice,
+
+    /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ② · **`DepositPlan` 한정** —
+    /// 인출 초안(`WithdrawalPlan.orderDrafts`)은 v1.5 재생성 전까지 이 짝을 지키지 않는다 · 01 §14-4 · §14-15).
+    String? limitPriceText,
+
+    /// 🆕 v1.4 — «미확정 수량 있음»(UNKNOWN 표기) 한 줄 — null = 줄 부재.
+    String? pendingNoteText,
   }) = _OrderDraft;
 
   factory OrderDraft.fromJson(Map<String, dynamic> json) =>
@@ -3779,11 +3943,16 @@ abstract class SleeveAllocation with _$SleeveAllocation {
   const factory SleeveAllocation({
     required SleeveId sleeve,
     required String label,
+
+    /// 🔴 ui 미참조(C-38 ⑩). 표시는 [amountText].
     @DecimalStringConverter() required Decimal amount,
 
     /// 🔴 표시의 정본 — 화면이 금액을 포맷하지 않는다.
     required String amountText,
     String? accountAlias,
+
+    /// 🆕 v1.4 — 이 슬리브가 이 계좌로 간 까닭 한 줄 — null = 줄 부재.
+    String? routingReasonText,
   }) = _SleeveAllocation;
 
   factory SleeveAllocation.fromJson(Map<String, dynamic> json) =>
@@ -3795,8 +3964,13 @@ abstract class SleeveAllocation with _$SleeveAllocation {
 @freezed
 abstract class CostEstimate with _$CostEstimate {
   const factory CostEstimate({
+    /// 🔴 ui 미참조(C-38 ⑩) — 수수료·세금 따로 표시는 v1.4 범위 밖(01 §8 미결 70).
     @DecimalStringConverter() required Decimal commission,
+
+    /// 🔴 ui 미참조(C-38 ⑩).
     @DecimalStringConverter() required Decimal tax,
+
+    /// 🔴 ui 미참조(C-38 ⑩). 표시는 [totalText].
     @DecimalStringConverter() required Decimal total,
     required String totalText,
     required CostSource source,
@@ -3815,11 +3989,18 @@ abstract class FundingStep with _$FundingStep {
   const factory FundingStep({
     /// 🔴 실행 순서. 화면이 정렬 키를 만들지 않는다.
     required int order,
+
+    /// 🔴 ui 미참조(C-38 ⑩).
     required SleeveId sourceSleeve,
+
+    /// 🔴 ui 미참조(C-38 ⑩).
     required int quantity,
+
+    /// 🔴 ui 미참조(C-38 ⑩). 표시는 [label] 문장 안이다.
     @DecimalStringConverter() required Decimal expectedProceeds,
 
     /// 근거 규칙 코드 — 🔴 엔진 제공 목록의 값이며 자유 입력이 아니다.
+    /// 🔴 ui 미참조(C-38 ⑩) — 🆕 v1.4 조문: 화면에 표시하지 않는다.
     required String ruleCited,
 
     /// 엔진 생성 한 줄.
@@ -3833,6 +4014,8 @@ abstract class FundingStep with _$FundingStep {
 }
 
 /// 01 §2-6 · m2-8 F-13 — 인출 미리보기(`DepositPlan` 대칭).
+/// ⏸ v1.4 무변경 — S7-5 는 v1.5(01 §14-15 «예정» · 인출 규칙 발주자 결정 뒤)에서 바뀐다
+///    (`WithdrawalPreviewResult` · `steps` · orderDrafts·costs·afterTax 제거).
 @freezed
 abstract class WithdrawalPlan with _$WithdrawalPlan {
   const factory WithdrawalPlan({
@@ -4467,7 +4650,9 @@ abstract class EntryRampSleeveState with _$EntryRampSleeveState {
 ```dart
 // 01 §4-1(G-07) · §2-6 — M9 설정 뷰모델과 월 납입 운영값.
 //
-// 🔴 **월 추가 납입 운영값을 코드·라벨·픽스처에 상수로 적지 않는다**(C-32).
+// 🔴 **월 추가 납입 운영값을 화면(`ui_*/lib` · `labels.dart` 포함)·계약 코드에 상수로 적지
+//    않는다**(C-32 · 🆕 v1.4 문구 통일 01 §14-13). 픽스처는 **폐기값만** 금지이고 금액 예시값은
+//    하나를 쓴다(`fixture_conventions_test.dart` 머리 주석).
 //    읽기 창구는 `ConfigRepository.watchContributionSetting()` **하나**이고 변경
 //    창구는 `SettingsActions`(운영 등급 · `settingsContributionUpdate` ⏸)다.
 // 🔴 화면이 `금액 × 12` 를 계산하지 않는다 — 한도 판정은 엔진 단일 소스다.
@@ -4489,15 +4674,24 @@ part 'settings.g.dart';
 /// 🔴 `amount`·`amountText` 는 «지금 유효한 값»이다(N-S4-01) — 접수됐으나 아직
 ///    시작되지 않은 변경은 `appliesFromText` 가 **문장으로만** 알린다. 예정 금액을
 ///    `amount` 에 넣지 않는다.
-/// 🔴 `amount` 는 플래너 스텝 ①의 **초기값 전용**이고 화면이 이 값으로 어떤 계산도
-///    하지 않는다.
+/// 🔴 🆕 v1.4 — `amount` 는 엔진·명령 쪽 원값이다. 플래너 입력칸의 초기 글자는
+///    [amountInputText] 이다(01 §14 · D4).
+/// 🔴 설정 문장(`amountText`·`equivalentNoteText`·`appliesFromText`·`pensionLimitNoteText`)은
+///    **설정값 기준 설명**이지 플래너에 입력한 금액 기준 판정이 아니다.
 @freezed
 abstract class ContributionSetting with _$ContributionSetting {
   const factory ContributionSetting({
+    /// 🔴 ui 미참조(C-38 ⑩) — 엔진·명령 쪽 원값. 입력칸 초기 글자는 [amountInputText].
     @DecimalStringConverter() required Decimal amount,
 
     /// 표시 문자열 — 엔진 생성.
     required String amountText,
+
+    /// 🆕 v1.4 — 플래너 스텝 ① 입력칸의 **초기 글자 전용**(엔진이 만든 숫자 글자).
+    /// 🔴 입력칸은 스트림의 **첫 값만** 채운다 — 이후 값은 편집 중인 입력을 덮지 않는다.
+    /// 🔴 화면이 `amount.toString()` 으로 대신 만들지 않는다(표시 자릿수는 컨버터의 일이 아니다 ·
+    ///    `money.dart`).
+    required String amountInputText,
 
     /// 12%-등가 참고 + 「충족/부족」 한 줄 — 엔진 생성.
     required String equivalentNoteText,
@@ -4523,12 +4717,15 @@ abstract class ContributionSetting with _$ContributionSetting {
 ///    (`SettingsActions` 주입 여부 — 뷰어에서는 false 가 아니라 **카드 부재**).
 /// 🔴 **필드를 이어 붙여 문장을 만들지 않는다.** 투영을 늘리는 것은 허용된다
 ///    (엔진 문자열 필드가 늘면 여기도 **같은 이름으로** 는다 · N-S4-03).
-/// 🔴 03 §10 `S7-3b` 의 `ContributionVm`(슬리브 기여 분해)과 **다른 타입**이며
+/// 🔴 03 §8 `S7-3b` 의 `ContributionVm`(슬리브 기여 분해)과 **다른 타입**이며
 ///    이름을 재사용하지 않는다(N-01).
 @freezed
 abstract class MonthlyContributionVm with _$MonthlyContributionVm {
   const factory MonthlyContributionVm({
     required String amountText,
+
+    /// 🆕 v1.4 — `ContributionSetting.amountInputText` 의 투영(N-S4-03 · 같은 이름).
+    required String amountInputText,
     required String equivalentNoteText,
     required String appliesFromText,
     required String lastChangedText,
@@ -4894,7 +5091,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 ///    **둘 다 바꾸지 않는다**(`m2-8_naming.md` B-3). C-15 가 이 비대칭을 검사한다.
 /// 🔴 뒤 3종(`selfReportBalance`·`alertAck`·`killChecklistConfirm`)은 기계 변환과 일치한다 —
 ///    그래서 위 4종과 섞이면 더 위험하다(B-4).
-/// 🔴 X7 7종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트(앞 5종)를 건드리지 않는다.
+/// 🔴 X7 7종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트(앞 4종)를 건드리지 않는다.
+/// 🆕 v1.4 정정(01 §14-2) — `depositRegister` 도 폰 전용이다(구 «앞 5종» → 4종).
 /// 🔴 킬스위치 «해제» 명령은 없다(결정 6).
 enum CommandKind {
   @JsonValue('KILL_SWITCH_ACTIVATE')
@@ -6327,7 +6525,12 @@ const String fixtureRoot = 'packages/domain_contracts/fixtures';
 abstract final class FixturePaths {
   // ── 계약 코어 · 인벤토리 §8-2·§8-3 (`fixtures/` 바로 아래) ──
   static const String alerts12 = 'alerts_12.json';
+
+  /// 🔵 v1.4 — 코어 전용(행 = `DepositPlan`) · 화면 미사용. 화면 픽스처는 `m7M7DepositPlan…`
+  ///    (행 = `DepositPreviewResult` 래퍼)이다.
   static const String depositPlan1 = 'deposit_plan_1.json';
+
+  /// 🔵 v1.4 — 코어 전용 · 납입 조달 발동(C 방어 자산 매도 초안 + 조달 단계 1).
   static const String depositPlanFunding1 = 'deposit_plan_funding_1.json';
   static const String holdings6 = 'holdings_6.json';
   static const String journal30 = 'journal_30.json';
@@ -6441,11 +6644,35 @@ abstract final class FixturePaths {
   static const String m7M7ContribPartial = 'm7/m7_contrib_partial.json';
   static const String m7M7DdContextDeep = 'm7/m7_dd_context_deep.json';
   static const String m7M7DdContextNormal = 'm7/m7_dd_context_normal.json';
+  // 🆕 v1.4(R11 선행 · 01 §14) — 입금 미리보기(`S7-4`). 행 = `DepositPreviewResult` 래퍼
+  //    (plan | input_rejected_text | blocked_text 중 정확히 하나 · C-38 ①).
+  /// 차단 2행 — 0 `blocked_text` 만(버튼 부재) · 1 `blocked_text` + `blocked_action`(재개 리포트).
+  static const String m7M7DepositPlanBlocked =
+      'm7/m7_deposit_plan_blocked.json';
+
+  /// 정상 — 연금 라우팅 · 잔여 = 원화 현금 대기 · 한도 카드(제안·조달 안내 없음).
   static const String m7M7DepositPlanDefault =
       'm7/m7_deposit_plan_default.json';
+
+  /// 만료 — `register_blocked_text`(등록 부재) · 봉투·행 기준일 2026-08-28.
   static const String m7M7DepositPlanExpired =
       'm7/m7_deposit_plan_expired.json';
+
+  /// 납입 조달 발동 + `register_blocked_text`(브로커 대조 미완 — 등록만 불가) 동시 표본.
+  static const String m7M7DepositPlanFunding =
+      'm7/m7_deposit_plan_funding.json';
+
+  /// 입력 거부 — `input_rejected_text` 만.
+  static const String m7M7DepositPlanInputRejected =
+      'm7/m7_deposit_plan_input_rejected.json';
+
+  /// 연 합산 납입한도 소진 — B 행 없음 · 주문 초안 빈 목록 + `orders_empty_text` · 경고 1.
   static const String m7M7DepositPlanLimit = 'm7/m7_deposit_plan_limit.json';
+
+  /// 실입금 등록 `CommandReceipt` 4행 — 🔴 **한 명령의 갈래**(행 순서 = 뜻):
+  /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`.
+  static const String m7M7DepositRegisterReceipts4 =
+      'm7/m7_deposit_register_receipts_4.json';
   static const String m7M7DisclosureGate = 'm7/m7_disclosure_gate.json';
 
   // 🆕 v1.3(R10 선행 · 01 §13-5·§13-6) — `S7-2G` 게이트 3갈래 + 열람 기록 접수증.
@@ -6465,8 +6692,17 @@ abstract final class FixturePaths {
   /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`.
   static const String m7M7DisclosureViewReceipts4 =
       'm7/m7_disclosure_view_receipts_4.json';
+  // 🔵 v1.4 — 목표 경로(`S7-9` · `GoalPathVm`) 4갈래 · 생성 스크립트 `tool/gen_r11_fixtures.py`.
+  /// 판정 유보 — `chart_unavailable_label` + 네 목록 빈 목록.
   static const String m7M7GoalPathHold = 'm7/m7_goal_path_hold.json';
+
+  /// 🆕 v1.4 — 이탈 · `deviation_text` 있음.
+  static const String m7M7GoalPathOff = 'm7/m7_goal_path_off.json';
+
+  /// 유지.
   static const String m7M7GoalPathOn = 'm7/m7_goal_path_on.json';
+
+  /// 실전 조건 문장(금액 없이) · 갭 1(`UNAVAILABLE` 띠 · 실제선 결측 2점).
   static const String m7M7GoalPathRealworld = 'm7/m7_goal_path_realworld.json';
   static const String m7M7Monthly202608 = 'm7/m7_monthly_2026_08.json';
   static const String m7M7MonthlyGap = 'm7/m7_monthly_gap.json';
@@ -6537,6 +6773,14 @@ abstract final class FixturePaths {
   static const String m8WatchdogHoliday = 'm8/watchdog_holiday.json';
 
   // ── m9/ — 설정·운영 모드 전환 (05) ──
+  // 🆕 v1.4(R11 선행) — `ConfigRepository.watchContributionSetting()` 의 입력(폴더 규약상 `m9_` 접두 없음).
+  /// 월 납입 설정 — `pension_limit_note_text` 있음.
+  static const String m9ContributionSettingDefault =
+      'm9/contribution_setting_default.json';
+
+  /// 월 납입 설정 — `pension_limit_note_text` 없음(그 줄 부재).
+  static const String m9ContributionSettingNoLimitNote =
+      'm9/contribution_setting_no_limit_note.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
 
   /// 전량 목록 — C-14 시크릿 스캔·C-15 열거값 대조가 이 목록을 돈다.
@@ -6606,15 +6850,20 @@ abstract final class FixturePaths {
     m7M7ContribPartial,
     m7M7DdContextDeep,
     m7M7DdContextNormal,
+    m7M7DepositPlanBlocked,
     m7M7DepositPlanDefault,
     m7M7DepositPlanExpired,
+    m7M7DepositPlanFunding,
+    m7M7DepositPlanInputRejected,
     m7M7DepositPlanLimit,
+    m7M7DepositRegisterReceipts4,
     m7M7DisclosureGate,
     m7M7DisclosureGateClosed,
     m7M7DisclosureGateFirst,
     m7M7DisclosureGateFrequent,
     m7M7DisclosureViewReceipts4,
     m7M7GoalPathHold,
+    m7M7GoalPathOff,
     m7M7GoalPathOn,
     m7M7GoalPathRealworld,
     m7M7Monthly202608,
@@ -6655,6 +6904,8 @@ abstract final class FixturePaths {
     m8RestartLostPhone,
     m8WatchdogDelayed,
     m8WatchdogHoliday,
+    m9ContributionSettingDefault,
+    m9ContributionSettingNoLimitNote,
     m9HandoverStates,
   ];
 }
@@ -7420,6 +7671,7 @@ import 'flag_ids.dart';
 import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
 import 'origin_codes.dart';
+import 'plan_codes.dart';
 import 'saf_codes.dart';
 import 'verdict_codes.dart';
 
@@ -7432,6 +7684,7 @@ export 'flag_ids.dart';
 export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
 export 'origin_codes.dart';
+export 'plan_codes.dart';
 export 'saf_codes.dart';
 export 'verdict_codes.dart';
 
@@ -7562,6 +7815,8 @@ abstract final class ContractCodes {
     'journal_draft_reject': JournalDraftRejectCodes.values,
     // 🆕 v1.3(R10 선행) — 성과 열람 기록의 화면 코드(`DisclosureViewEvent.surfaceCode`)
     'disclosure_surface': DisclosureSurfaceCodes.values,
+    // 🆕 v1.4(R11 선행) — 플래너 주문 초안의 사유 칩(`OrderDraft.reasons[].code`)
+    'planner_reason': PlannerReasonCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -7789,6 +8044,35 @@ abstract final class OriginCodes {
     ...derived,
     ...x7,
   };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/plan_codes.dart`
+
+```dart
+// 🆕 계약 v1.4(2026-09-30 · R11 선행 M2 보강 · 01 §14) — 플래너(S7-4) 사유 칩 코드.
+//
+// 🔴 이 파일은 «어떤 **코드**가 오는가»의 목록이지 코드→문구 매핑이 아니다(labels.dart 머리 주석).
+//    칩의 글자는 `ReasonChip.label`(엔진 문장)이고, 화면은 이 상수를 보고 문구를 고르지 않는다.
+// 🔵 까닭: 입금 계획 픽스처(`deposit_plan_*`·`m7_deposit_plan_*`)와 `journal_30`·`advice_12` 가
+//    `DEPOSIT_ROUTING` 을 쓰는데 사전에 없었다(미등록 코드 조기 실패의 빈틈 · 설계 D9 ⑦).
+// ⏸ `DEPOSIT_REGISTER` 거부 코드 사전은 여기 없다(01 §8 미결 74).
+
+/// 플래너 주문 초안의 사유 칩 코드(`OrderDraft.reasons[].code` · 01 §2-6).
+///
+/// ⚠️ 플래너 초안 칩에는 `PENSION_FUNDING`(원장 이벤트 사전 · `ledger_event_codes.dart`)도 온다
+///    (`m7_deposit_plan_funding` 매도 초안 · C-38 ⑧ 은 그래서 전 도메인 isRegistered 로 본다).
+///    이 사전은 플래너 **전용** 코드만 싣는다.
+///
+/// 🔴 목록은 M2 가 늘린다.
+abstract final class PlannerReasonCodes {
+  /// 월 납입 배분(입금액을 슬리브·계좌로 나눈 결과의 초안).
+  static const String depositRouting = 'DEPOSIT_ROUTING';
+
+  /// 플래너 전용 코드 전량 1종(`PENSION_FUNDING` 은 원장 이벤트 사전 몫).
+  static const Set<String> values = <String>{depositRouting};
 }
 ```
 
@@ -8079,14 +8363,20 @@ abstract final class AppRoutes {
   /// `S7-1b` 리포트 아카이브.
   static const String reportArchive = 'aaq://report/archive';
 
-  /// `S7-7` 세후 사다리.
+  /// 세후 사다리 단독 보기 — 03 §12 `S7-7` 세후 카드와 같은 `AfterTaxLadder`(03 에 별도 화면 ID 없음).
+  /// 🆕 v1.4 주석 정정 — 구 «`S7-7` 세후 사다리»·«`S7-8` 연간 리뷰»는 오기였다
+  /// (`S7-7` = 12월 연간 리뷰 · `S7-8` = X2 재개 리포트 읽기 사본 · 03 §2).
   static const String reportAfterTax = 'aaq://report/aftertax';
 
-  /// `S7-8` 연간 리뷰.
+  /// `S7-7` 12월 연간 리뷰 패키지.
   static const String reportAnnual = 'aaq://report/annual';
 
   /// `S7-1` 월간 리포트(`yyyy-MM`).
   static const String reportMonthly = 'aaq://report/:yyyyMm';
+
+  /// 🆕 v1.4(01 §14-9) — `S7-9` 목표 경로(`yyyy-MM`) — `MonthlyReport.goalDeepLink` 가 완성해서 준다.
+  /// 세그먼트 수가 [reportMonthly] 와 달라 겹치지 않는다(고정 `goal` + 파라미터).
+  static const String reportGoalPath = 'aaq://report/goal/:yyyyMm';
 
   /// `S7-2` 성과 탐색(열람 게이트 뒤).
   static const String performanceExplore = 'aaq://performance/explore';
@@ -8099,6 +8389,10 @@ abstract final class AppRoutes {
       'aaq://performance/contribution';
 
   /// `S7-4` 납입 플래너.
+  /// 🆕 v1.4(01 §14-1) — **operator 전용 화면**(`package:ui_analytics/planner.dart` · 배럴 밖).
+  /// viewer 셸도 [all] 대로 등록하되 목적지는 «폰에서만 쓸 수 있습니다» 부재 안내다(셸 몫 · 01 §14 ·
+  /// 선례 = `journalDraft` 의 iOS 셸 가드).
+  /// ⏸ `planWithdrawal`(S7-5) 은 v1.5 에서 더한다(01 §14-15).
   static const String planDeposit = 'aaq://plan/deposit';
 
   /// `S7-6c` 리밸런싱 미리보기.
@@ -8135,7 +8429,7 @@ abstract final class AppRoutes {
   /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
 
-  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단.
+  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.4 = 42).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -8154,6 +8448,7 @@ abstract final class AppRoutes {
     reportAfterTax,
     reportAnnual,
     reportMonthly,
+    reportGoalPath,
     performanceExplore,
     performanceDrawdown,
     performanceContribution,
@@ -8652,8 +8947,10 @@ abstract interface class ConfigRepository {
   ///    만들지 않는다. 🔴 목록의 길이·순서도 엔진이 정한다.
   Stream<List<DateRange>> watchRangePresets();
 
-  /// 🆕 G-07 월 납입 운영값 — 🔴 「S05·S7-4·H-02 + S7-9 가정 카드가 **같은 값 하나**를
-  ///    읽는다」의 그 하나다. 값을 바꾸는 경로는 §4-3(운영 등급)이고 여기는 **읽기 전용**이다.
+  /// 🆕 G-07 월 납입 운영값 — 🔴 「S05·S7-4·H-02 가 **같은 값 하나**를 읽는다」의 그 하나다.
+  ///    값을 바꾸는 경로는 §4-3(운영 등급)이고 여기는 **읽기 전용**이다.
+  /// 🆕 v1.4 정정(01 §14-10 · 03 §17-17 이 이긴다) — **S7-9 는 이 창구를 읽지 않는다.** 목표 경로
+  ///    가정 카드 2줄은 `GoalPathVm.startingCapitalAssumptionText`(엔진 문장)가 준다.
   /// ✅ C-10 — 소속 리포지토리는 `ConfigRepository` 로 확정(별도 리포지토리를 만들지 않는다).
   /// 🔴 화면·계약·픽스처가 월 납입 금액을 상수로 적지 않는다(C-32).
   Stream<ContributionSetting> watchContributionSetting();
@@ -8904,7 +9201,8 @@ import '../dto/performance.dart';
 import '../enums/performance.dart';
 import '../primitives/date_range.dart';
 
-/// 성과 시리즈 · 월간 리포트 · 세후 사다리 + G-41 뷰모델 6종의 창구.
+/// 성과 시리즈 · 월간 리포트 · 세후 사다리 + G-41 뷰모델 창구 5종(+ 🆕 v1.4 목표 경로).
+/// 🆕 v1.4 주석 정정 — G-41 «6종» = 여기 5종 + `RebalanceRepository.watchNext` 1.
 abstract interface class PerformanceRepository {
   /// `S7-2` 성과 시리즈.
   /// 🆕 v1.3 — `range == null` = **엔진 기본 구간**(주기마다 엔진이 고른다).
@@ -8927,7 +9225,7 @@ abstract interface class PerformanceRepository {
   /// 🔴 보정판 산식 확정 전에는 `isReferenceOnly == true` 인 골든 참고 사다리만 돌아온다(§8-18).
   Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear});
 
-  // ───── 🆕 G-41 — M7 뷰모델 6종의 창구 ─────
+  // ───── 🆕 G-41 — M7 뷰모델 창구 5종(여섯째 = `RebalanceRepository.watchNext`) ─────
 
   /// `S7-1b` — 🔴 수치 필드가 없는 월 목록이다.
   /// 🆕 v1.3 — `rows` 는 엔진이 **최신 달부터** 정렬해서 준다. 화면은 재정렬·묶기를 하지 않는다.
@@ -8948,6 +9246,14 @@ abstract interface class PerformanceRepository {
 
   /// `S7-7` — 🔴 묶음이지 재집계가 아니다. 화면이 `windowState` 를 «달»로 판정하지 않는다.
   Future<AnnualReviewVm> annualReview({required String year});
+
+  // ───── 🆕 v1.4 — S7-9 목표 경로(01 §14-9) ─────
+
+  /// `S7-9` 목표 경로 — [yyyyMm] 은 `MonthlyReport.goalDeepLink`(`AppRoutes.reportGoalPath`)가
+  /// 준 그 달이다. 화면은 받은 달 그대로 넘긴다(달을 고르거나 바꾸지 않는다).
+  /// 🔴 null 링크(과거 달·가림·미생성)면 화면은 이 메서드에 닿지 않는다.
+  /// 🔴 숫자 가림(무결성 등)은 엔진 읽기 경로가 한다 — 화면은 배너만 그린다(03 §1-4).
+  Future<GoalPathVm> goalPath({required String yyyyMm});
 }
 ```
 
@@ -9017,9 +9323,14 @@ abstract interface class SafetyRepository {
 ```dart
 // 01 §4-1 — M3 미리보기.
 //
-// 🔴 리포지토리가 **아니라** 부작용 0의 로컬 재계산이다(결정 2 파생 · `core_engine/lib/whatif/`).
+// 🔴 리포지토리가 **아니라** 부작용 0의 로컬 재계산이다(결정 2 파생 · `core_engine/lib/src/whatif/`).
 //    03(M7 명세) §1-5 의 `WhatIfApi` 가 이것이며 이름은 **여기가 정본**이다
 //    (구 `PlannerRepository` 폐기). DB 를 건드리지 않는다.
+// 🆕 v1.4(01 §14-8) — «부작용 0» = 원장·명령 테이블 쓰기 0 이다. 계획 스냅샷(`plan_snapshot`)은
+//    등록 대조용 **엔진 로컬 캐시**라 이 조문과 모순되지 않는다(06 M3-1).
+// 🔴 v1.4 호출 표(01 §14-8) — 플래너(S7-4)는 `simulateDeposit` 만 부른다(«미리보기 계산» 탭 ·
+//    «다시 계산» 탭 · 에러 재시도). 늦게 온 이전 요청 결과는 버린다(마지막 요청만).
+//    `estimateCosts`·`findPlan`·`previewRebalance` 는 플래너가 부르지 않는다.
 
 import 'package:decimal/decimal.dart';
 
@@ -9028,18 +9339,24 @@ import '../primitives/money.dart';
 
 /// 입금·인출·리밸런싱 미리보기.
 abstract interface class WhatIfApi {
-  Future<DepositPlan> simulateDeposit({
-    required Decimal amount,
-    required String accountAlias,
-  });
+  /// 🆕 v1.4 — [amountInput] 은 **입력칸 글자 그대로**다(자르기·쉼표 제거·숫자 검사를 화면이
+  /// 하지 않는다). 파싱·빈칸·0·음수·범위·차단(재개 미완·복구·원장 무결성·계좌 매핑 미완)
+  /// 판정은 전부 구현체가 하고, 결과는 [DepositPreviewResult] 의 세 갈래(plan · 입력 거부 ·
+  /// 차단) 중 하나로 돌려준다. 계좌 라우팅도 엔진 몫이다(구 `accountAlias` 인자 삭제).
+  /// 🔴 `Future` 에러는 «계산을 못 했다»(인프라)만 뜻한다 — 화면은 공통 에러 뷰 + 입력 유지 +
+  ///    같은 글자로 재시도이며 에러 내용으로 분기하지 않는다.
+  Future<DepositPreviewResult> simulateDeposit({required String amountInput});
 
+  /// ⏸ v1.4 무변경 — v1.5(S7-5 · 01 §14-15 «예정»)에서
+  ///    `({required String amountInput}) → WithdrawalPreviewResult` 로 바뀐다.
   Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount});
 
   Future<RebalancePreview> previewRebalance({TradeDate? plannedDate});
 
   Future<CostEstimate> estimateCosts(String planId);
 
-  /// 🔴 만료 판정도 결과의 상태값으로 온다 — 화면이 `expiresAt` 을 시계와 비교하지 않는다.
+  /// 🆕 v1.4 — null = 그 planId 가 없다. 만료·등록 불가는 `DepositPlan.registerBlockedText` 로
+  /// 온다 — 화면이 `expiresAt` 을 시계와 비교하지 않는다.
   Future<DepositPlan?> findPlan(String planId);
 }
 ```

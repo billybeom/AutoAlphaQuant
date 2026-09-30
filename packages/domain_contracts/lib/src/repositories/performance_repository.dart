@@ -7,7 +7,8 @@ import '../dto/performance.dart';
 import '../enums/performance.dart';
 import '../primitives/date_range.dart';
 
-/// 성과 시리즈 · 월간 리포트 · 세후 사다리 + G-41 뷰모델 6종의 창구.
+/// 성과 시리즈 · 월간 리포트 · 세후 사다리 + G-41 뷰모델 창구 5종(+ 🆕 v1.4 목표 경로).
+/// 🆕 v1.4 주석 정정 — G-41 «6종» = 여기 5종 + `RebalanceRepository.watchNext` 1.
 abstract interface class PerformanceRepository {
   /// `S7-2` 성과 시리즈.
   /// 🆕 v1.3 — `range == null` = **엔진 기본 구간**(주기마다 엔진이 고른다).
@@ -30,7 +31,7 @@ abstract interface class PerformanceRepository {
   /// 🔴 보정판 산식 확정 전에는 `isReferenceOnly == true` 인 골든 참고 사다리만 돌아온다(§8-18).
   Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear});
 
-  // ───── 🆕 G-41 — M7 뷰모델 6종의 창구 ─────
+  // ───── 🆕 G-41 — M7 뷰모델 창구 5종(여섯째 = `RebalanceRepository.watchNext`) ─────
 
   /// `S7-1b` — 🔴 수치 필드가 없는 월 목록이다.
   /// 🆕 v1.3 — `rows` 는 엔진이 **최신 달부터** 정렬해서 준다. 화면은 재정렬·묶기를 하지 않는다.
@@ -51,4 +52,12 @@ abstract interface class PerformanceRepository {
 
   /// `S7-7` — 🔴 묶음이지 재집계가 아니다. 화면이 `windowState` 를 «달»로 판정하지 않는다.
   Future<AnnualReviewVm> annualReview({required String year});
+
+  // ───── 🆕 v1.4 — S7-9 목표 경로(01 §14-9) ─────
+
+  /// `S7-9` 목표 경로 — [yyyyMm] 은 `MonthlyReport.goalDeepLink`(`AppRoutes.reportGoalPath`)가
+  /// 준 그 달이다. 화면은 받은 달 그대로 넘긴다(달을 고르거나 바꾸지 않는다).
+  /// 🔴 null 링크(과거 달·가림·미생성)면 화면은 이 메서드에 닿지 않는다.
+  /// 🔴 숫자 가림(무결성 등)은 엔진 읽기 경로가 한다 — 화면은 배너만 그린다(03 §1-4).
+  Future<GoalPathVm> goalPath({required String yyyyMm});
 }

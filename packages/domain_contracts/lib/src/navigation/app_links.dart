@@ -104,14 +104,20 @@ abstract final class AppRoutes {
   /// `S7-1b` 리포트 아카이브.
   static const String reportArchive = 'aaq://report/archive';
 
-  /// `S7-7` 세후 사다리.
+  /// 세후 사다리 단독 보기 — 03 §12 `S7-7` 세후 카드와 같은 `AfterTaxLadder`(03 에 별도 화면 ID 없음).
+  /// 🆕 v1.4 주석 정정 — 구 «`S7-7` 세후 사다리»·«`S7-8` 연간 리뷰»는 오기였다
+  /// (`S7-7` = 12월 연간 리뷰 · `S7-8` = X2 재개 리포트 읽기 사본 · 03 §2).
   static const String reportAfterTax = 'aaq://report/aftertax';
 
-  /// `S7-8` 연간 리뷰.
+  /// `S7-7` 12월 연간 리뷰 패키지.
   static const String reportAnnual = 'aaq://report/annual';
 
   /// `S7-1` 월간 리포트(`yyyy-MM`).
   static const String reportMonthly = 'aaq://report/:yyyyMm';
+
+  /// 🆕 v1.4(01 §14-9) — `S7-9` 목표 경로(`yyyy-MM`) — `MonthlyReport.goalDeepLink` 가 완성해서 준다.
+  /// 세그먼트 수가 [reportMonthly] 와 달라 겹치지 않는다(고정 `goal` + 파라미터).
+  static const String reportGoalPath = 'aaq://report/goal/:yyyyMm';
 
   /// `S7-2` 성과 탐색(열람 게이트 뒤).
   static const String performanceExplore = 'aaq://performance/explore';
@@ -124,6 +130,10 @@ abstract final class AppRoutes {
       'aaq://performance/contribution';
 
   /// `S7-4` 납입 플래너.
+  /// 🆕 v1.4(01 §14-1) — **operator 전용 화면**(`package:ui_analytics/planner.dart` · 배럴 밖).
+  /// viewer 셸도 [all] 대로 등록하되 목적지는 «폰에서만 쓸 수 있습니다» 부재 안내다(셸 몫 · 01 §14 ·
+  /// 선례 = `journalDraft` 의 iOS 셸 가드).
+  /// ⏸ `planWithdrawal`(S7-5) 은 v1.5 에서 더한다(01 §14-15).
   static const String planDeposit = 'aaq://plan/deposit';
 
   /// `S7-6c` 리밸런싱 미리보기.
@@ -160,7 +170,7 @@ abstract final class AppRoutes {
   /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
 
-  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단.
+  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.4 = 42).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -179,6 +189,7 @@ abstract final class AppRoutes {
     reportAfterTax,
     reportAnnual,
     reportMonthly,
+    reportGoalPath,
     performanceExplore,
     performanceDrawdown,
     performanceContribution,

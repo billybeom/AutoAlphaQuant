@@ -8,6 +8,10 @@
 // 🔴 픽스처는 **합성 데이터**이고 실계좌·실키가 0건이어야 한다(01 §5 대원칙).
 // 🔴 봉투 필수 4값(as_of·empty_kind·empty_label·has_more)이 없으면 「없음」(NO_DATA)과
 //    「모름」(NOT_LOADED)이 화면에서 갈리지 않는다.
+// 🆕 v1.4(01 §14-12 · 설계 Δ4 «봉투 키 화이트리스트») — C-15 ⑥ 봉투 최상위 키는 필수 6키 +
+//    `fixtures/README.md` «봉투 형제 키 표»의 키뿐이다(`lag_notice` 류 고아 키 재발 방지 · 미결 40 과 같은 뿌리).
+
+import 'dart:io';
 
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
@@ -25,6 +29,56 @@ final List<RegExp> _retiredContributionValues = <RegExp>[
   RegExp(r'(?<![0-9])124000(?![0-9])'),
   RegExp(r'90_000|97_000|124_000'),
   RegExp('9만|9\\.7만|12\\.4만'),
+];
+
+/// 🆕 v1.4 C-15 ⑥ — 봉투 필수 6키(로더가 읽는 키 · 01 §5).
+const Set<String> _envelopeKeys = <String>{
+  'meta',
+  'as_of',
+  'empty_kind',
+  'empty_label',
+  'has_more',
+  'rows',
+};
+
+/// README «봉투 형제 키 표»의 머리(이 줄부터 다음 `---`·`#` 까지가 표 구역이다).
+const String _siblingTableHeading = '### 봉투 확장 — 부속 블록 (봉투 형제 키 표)';
+
+/// 표 한 행의 첫 열 백틱 키 — `| \`summary\` | … |`.
+final RegExp _siblingRow = RegExp(r'^\|\s*`([a-z][a-z0-9_]*)`\s*\|');
+
+/// README 원문에서 형제 키 표의 키를 읽는다(표 = 기계가 읽는 목록 · 한 행에 키 하나).
+Set<String> _siblingKeysFrom(String readme) {
+  final List<String> lines = readme.split('\n');
+  final int start = lines.indexWhere(
+    (String l) => l.trim() == _siblingTableHeading,
+  );
+  if (start < 0) {
+    return const <String>{};
+  }
+  final Set<String> keys = <String>{};
+  for (int i = start + 1; i < lines.length; i++) {
+    final String l = lines[i].trim();
+    if (l == '---' || l.startsWith('#')) {
+      break;
+    }
+    final RegExpMatch? m = _siblingRow.firstMatch(l);
+    if (m != null) {
+      keys.add(m.group(1)!);
+    }
+  }
+  return keys;
+}
+
+/// 봉투 1건의 최상위 키 가운데 화이트리스트 밖의 것.
+List<String> _strayEnvelopeKeys(
+  String path,
+  Map<String, Object?> envelope,
+  Set<String> siblings,
+) => <String>[
+  for (final String key in envelope.keys)
+    if (!_envelopeKeys.contains(key) && !siblings.contains(key))
+      '$path — 봉투 최상위 키 `$key` 가 README 형제 키 표에 없다',
 ];
 
 void main() {
@@ -105,6 +159,56 @@ void main() {
           reason: path,
         );
       }
+    });
+
+    test('C-15 ⑥ 봉투 최상위 키는 필수 6키 + README 형제 키 표뿐이다 (🆕 v1.4 · 01 §14-12)', () {
+      final String readme = File('${fixturesDir().path}/README.md')
+          .readAsStringSync();
+      final Set<String> siblings = _siblingKeysFrom(readme);
+      // 자체 검증 — 표를 실제로 읽었다(못 읽으면 «전부 표 밖»이 아니라 «표가 비었다»로 먼저 걸린다).
+      expect(
+        siblings,
+        containsAll(<String>['summary', 'advice_summary', 'active_flags']),
+        reason: 'README «봉투 형제 키 표»를 못 읽었다 — 머리 글자나 표 모양이 바뀌었다.',
+      );
+      expect(siblings.intersection(_envelopeKeys), isEmpty);
+      expect(
+        _siblingKeysFrom(
+          '$_siblingTableHeading\n\n| 키 | 타입 | 쓰는 파일 |\n|---|---|---|\n'
+          '| `summary` | T | f |\n| `lag_notice` | 문장 | g |\n\n---\n| `after` | x | y |\n',
+        ),
+        <String>{'summary', 'lag_notice'},
+      );
+      // 자체 검증 — 표 밖 키는 걸린다(v1.4 에서 지운 `lag_notice` 가 대표).
+      expect(
+        _strayEnvelopeKeys('fake', <String, Object?>{
+          'meta': 1,
+          'rows': <Object?>[],
+          'lag_notice': '문장',
+        }, siblings),
+        hasLength(1),
+      );
+
+      final List<String> stray = <String>[];
+      final Set<String> used = <String>{};
+      for (final String path in FixturePaths.all) {
+        final Map<String, Object?> envelope = fixtureJson(path);
+        stray.addAll(_strayEnvelopeKeys(path, envelope, siblings));
+        used.addAll(envelope.keys.where(siblings.contains));
+      }
+      expect(
+        stray,
+        isEmpty,
+        reason:
+            '봉투에 표 밖 최상위 키가 있다 — 행 필드로 옮기거나(DTO 가 읽는 자리) README «봉투 형제 키 표»에 '
+            '**먼저** 등재한다(01 §14-12).\n${stray.join('\n')}',
+      );
+      // 역방향 — 표의 키는 실제로 쓰인다(쓰이지 않는 키가 남으면 표가 낡아 화이트리스트가 넓어진다).
+      expect(
+        siblings.difference(used),
+        isEmpty,
+        reason: 'README 형제 키 표에 아무 픽스처도 쓰지 않는 키가 있다 — 표에서 지운다.',
+      );
     });
 
     test('C-14 ⑤ 픽스처에 실키·계좌 전체번호가 0건이다', () {

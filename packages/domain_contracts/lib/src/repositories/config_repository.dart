@@ -21,8 +21,10 @@ abstract interface class ConfigRepository {
   ///    만들지 않는다. 🔴 목록의 길이·순서도 엔진이 정한다.
   Stream<List<DateRange>> watchRangePresets();
 
-  /// 🆕 G-07 월 납입 운영값 — 🔴 「S05·S7-4·H-02 + S7-9 가정 카드가 **같은 값 하나**를
-  ///    읽는다」의 그 하나다. 값을 바꾸는 경로는 §4-3(운영 등급)이고 여기는 **읽기 전용**이다.
+  /// 🆕 G-07 월 납입 운영값 — 🔴 「S05·S7-4·H-02 가 **같은 값 하나**를 읽는다」의 그 하나다.
+  ///    값을 바꾸는 경로는 §4-3(운영 등급)이고 여기는 **읽기 전용**이다.
+  /// 🆕 v1.4 정정(01 §14-10 · 03 §17-17 이 이긴다) — **S7-9 는 이 창구를 읽지 않는다.** 목표 경로
+  ///    가정 카드 2줄은 `GoalPathVm.startingCapitalAssumptionText`(엔진 문장)가 준다.
   /// ✅ C-10 — 소속 리포지토리는 `ConfigRepository` 로 확정(별도 리포지토리를 만들지 않는다).
   /// 🔴 화면·계약·픽스처가 월 납입 금액을 상수로 적지 않는다(C-32).
   Stream<ContributionSetting> watchContributionSetting();

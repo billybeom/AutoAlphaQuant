@@ -8,6 +8,11 @@
 #   [3] 🔴 실패: domain_contracts 가 Flutter·엔진·DB를 의존하는가(순수 Dart 원칙)
 #   [4] 🟡 경고: ui_* 의 lib/l10n/labels.dart 밖에서 한국어 «문자열 리터럴»이
 #              발견되는가 (사유 문구 생성 후보 — 사람이 봐야 판정 가능)
+#   [5] 🔴 실패: ui_* 의 lib/ 코드 줄에 링크 리터럴(`aaq://`·`handbook://`)이 있는가 (01 §4-4 · 계약 v1.1)
+#   [6] (예약) viewer(iOS) 의 `package:ui_journal/journal_draft.dart` import 0건 — docs/TARGETS.md T-3
+#              (조립 앱 배선 때 더한다 · 번호만 잡아 둔다)
+#   [7] 🔴 실패: viewer 조립 앱(apps/app_viewer_*/lib)이 `package:ui_analytics/planner.dart` 를
+#              import 하는가 (🆕 계약 v1.4 · 01 §14-1 · docs/TARGETS.md T-4)
 #
 # 왜 있나: 위반이 「잘못된 화면」이 아니라 「빌드 실패」로 나타나야 리뷰가
 #   병목이 되지 않는다(청사진 §9-2 · 00_README §5 · 01 §7 C-3/C-5).
@@ -143,6 +148,27 @@ for pkg in $UI_PKGS; do
          || true)
   if [ -n "$hits" ]; then
     fail "[§4-4] $(basename "$pkg"): 화면 코드에 링크 리터럴이 있다 — 링크는 DTO 가 준 값을 AppLinkOpener 에 그대로 넘긴다:"
+    printf '     %s\n' "$hits" | head -20
+  fi
+done
+
+# ── [6] (예약) — docs/TARGETS.md T-3 · 조립 앱 배선 때 더한다 ─────────────────
+
+# ── [7] 플래너는 operator 전용 (🆕 계약 v1.4 · 01 §14-1 · docs/TARGETS.md T-4) ──
+# 🔴 S7-4 입금 플래너는 배럴 밖 라이브러리 `package:ui_analytics/planner.dart` 에 있고
+#    **operator 앱만** import 한다(`DEPOSIT_REGISTER` = operator 전용 · 뷰어 미리보기는 v1 제외).
+#    viewer 가 가져오면 throw 기본값 프로바이더가 들어와 플래너가 에러로만 뜬다 — 셸은 `planDeposit` 라우트를
+#    «폰에서만 쓸 수 있습니다» 부재 안내로 등록한다(01 §14 · 미결 62).
+#    같은 규칙을 `ui_analytics/lib` 안쪽 방향(planner 밖 파일이 planner 를 import 0)까지 C-35 ⑥ 이 본다.
+#    주석 줄은 건너뛴다(설명은 정상).
+PLANNER_RE="['\"]package:ui_analytics/planner\.dart['\"]"
+for app in apps/app_viewer_*; do
+  [ -d "$app/lib" ] || continue
+  hits=$(grep -rnE "$PLANNER_RE" "$app/lib" 2>/dev/null \
+         | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|///|\*)' \
+         || true)
+  if [ -n "$hits" ]; then
+    fail "[7] $(basename "$app"): viewer 앱이 플래너(package:ui_analytics/planner.dart)를 import 한다 — 플래너는 operator 전용이다(01 §14-1 · TARGETS T-4):"
     printf '     %s\n' "$hits" | head -20
   fi
 done

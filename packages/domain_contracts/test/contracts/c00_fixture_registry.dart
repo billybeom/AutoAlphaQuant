@@ -64,6 +64,18 @@ final DtoCodec<Object> _depositPlan = DtoCodec<DepositPlan>(
   DepositPlan.fromJson,
   (DepositPlan v) => v.toJson(),
 );
+// 🆕 계약 v1.4(R11 선행 · 01 §14-1) — 입금 미리보기 결과(plan | 입력 거부 | 차단).
+final DtoCodec<Object> _depositPreviewResult = DtoCodec<DepositPreviewResult>(
+  'DepositPreviewResult',
+  DepositPreviewResult.fromJson,
+  (DepositPreviewResult v) => v.toJson(),
+);
+// 🆕 계약 v1.4 — 월 납입 설정(`ConfigRepository.watchContributionSetting()` · M9 첫 픽스처).
+final DtoCodec<Object> _contributionSetting = DtoCodec<ContributionSetting>(
+  'ContributionSetting',
+  ContributionSetting.fromJson,
+  (ContributionSetting v) => v.toJson(),
+);
 final DtoCodec<Object> _onboardingStep = DtoCodec<OnboardingStep>(
   'OnboardingStep',
   OnboardingStep.fromJson,
@@ -368,9 +380,18 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m7M7ContribPartial: FixtureBinding(_contributionVm),
   FixturePaths.m7M7DdContextDeep: FixtureBinding(_drawdownContextVm),
   FixturePaths.m7M7DdContextNormal: FixtureBinding(_drawdownContextVm),
-  FixturePaths.m7M7DepositPlanDefault: FixtureBinding(_depositPlan),
-  FixturePaths.m7M7DepositPlanExpired: FixtureBinding(_depositPlan),
-  FixturePaths.m7M7DepositPlanLimit: FixtureBinding(_depositPlan),
+  // 🔵 v1.4 — 화면 픽스처 3건은 행 타입이 `DepositPlan` → `DepositPreviewResult` 래퍼로 바뀌었다
+  //    (재바인딩 · 코어 `depositPlan1`·`depositPlanFunding1` 은 `DepositPlan` 그대로).
+  FixturePaths.m7M7DepositPlanBlocked: FixtureBinding(_depositPreviewResult),
+  FixturePaths.m7M7DepositPlanDefault: FixtureBinding(_depositPreviewResult),
+  FixturePaths.m7M7DepositPlanExpired: FixtureBinding(_depositPreviewResult),
+  FixturePaths.m7M7DepositPlanFunding: FixtureBinding(_depositPreviewResult),
+  FixturePaths.m7M7DepositPlanInputRejected: FixtureBinding(
+    _depositPreviewResult,
+  ),
+  FixturePaths.m7M7DepositPlanLimit: FixtureBinding(_depositPreviewResult),
+  // 🆕 v1.4 — 실입금 등록 접수증 4상태(한 명령의 갈래 · 행 순서 = 뜻).
+  FixturePaths.m7M7DepositRegisterReceipts4: FixtureBinding(_commandReceipt),
   FixturePaths.m7M7DisclosureGate: FixtureBinding(_disclosureGateVm),
   // 🆕 v1.3 — `S7-2G` 게이트 3갈래(닫힘 · 첫 열람 · 잦은 열람) + 열람 기록 접수증 4상태.
   FixturePaths.m7M7DisclosureGateClosed: FixtureBinding(_disclosureGateVm),
@@ -378,6 +399,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m7M7DisclosureGateFrequent: FixtureBinding(_disclosureGateVm),
   FixturePaths.m7M7DisclosureViewReceipts4: FixtureBinding(_commandReceipt),
   FixturePaths.m7M7GoalPathHold: FixtureBinding(_goalPathVm),
+  // 🆕 v1.4 — 목표 경로 이탈(`deviation_text`).
+  FixturePaths.m7M7GoalPathOff: FixtureBinding(_goalPathVm),
   FixturePaths.m7M7GoalPathOn: FixtureBinding(_goalPathVm),
   FixturePaths.m7M7GoalPathRealworld: FixtureBinding(_goalPathVm),
   FixturePaths.m7M7Monthly202608: FixtureBinding(_monthlyReport),
@@ -459,6 +482,13 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8WatchdogHoliday: FixtureBinding(_watchdogCheck),
 
   // ── m9/ — 설정·운영 모드 전환 ────────────────────────────────────────────
+  // 🆕 v1.4 — 월 납입 설정 2갈래(`pension_limit_note_text` 있음 / 없음).
+  FixturePaths.m9ContributionSettingDefault: FixtureBinding(
+    _contributionSetting,
+  ),
+  FixturePaths.m9ContributionSettingNoLimitNote: FixtureBinding(
+    _contributionSetting,
+  ),
   FixturePaths.m9HandoverStates: FixtureBinding(
     DtoCodec<HandoverPlan>(
       'HandoverPlan',

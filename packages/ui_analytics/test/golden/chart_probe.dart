@@ -19,6 +19,13 @@
 //     expectBandsMatch(recording, series, scheme);
 //     expectTicksMatch(recording, series, scheme);
 //
+// 🆕 계약 v1.4(01 §14 · 설계 D12) — S7-9 목표 경로 차트(`Key('s79-chart')`)는 같은 층 표를 쓴다
+//   (계획선 = 벤치마크 자리 · 실제선 = 본선 자리). 단언은 한 함수다:
+//     final path = singleFixture(FixturePaths.m7M7GoalPathRealworld, GoalPathVm.fromJson);
+//     final scheme = chartSchemeOf(tester, key: kGoalPathChartProbeKey);
+//     final recording = recordChart(tester, key: kGoalPathChartProbeKey);
+//     expectGoalPathMatches(recording, path, scheme);
+//
 // 층을 가르는 열쇠 = (그리기 방식 · 색 · 굵기 · 방향). 표는 01 §13-2 와
 //   test/golden/reference/chart/perf_chart_painter.dart 머리 주석에 있다(고정).
 // 비교는 **비율**이다 — 가로 = x ÷ 그림 폭 · 세로 = 1 − y ÷ 그림 높이 · 허용 ±0.02.
@@ -40,6 +47,9 @@ const double kChartProbeTolerance = 0.02;
 
 /// 차트 그림의 기본 열쇠.
 const Key kChartProbeKey = Key('s72-chart');
+
+/// 🆕 v1.4 — S7-9 목표 경로 차트 그림의 열쇠(`recordChart`·`chartSchemeOf` 의 `key:` 로 넘긴다).
+const Key kGoalPathChartProbeKey = Key('s79-chart');
 
 /// `drawPath` 로 그린 윤곽 1개(획). 기록하는 순간 값으로 읽어 둔 것이다.
 class ProbeContour {
@@ -545,6 +555,78 @@ void expectTicksMatch(
       0.01,
       '$what stroke width',
     );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 🆕 v1.4 — 목표 경로(S7-9 · 01 §14 · 설계 D12)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// 목표 경로 차트 — 위 네 단언을 경로의 두 목록에 건다.
+///
+/// · 실제선(`actual`) = 본선 규칙: primary · 획 · 굵기 3 · 둥근 끝·이음 · 결측에서 끊김 · 직선만 · 맨 위 층
+/// · 계획선(`planned`) = 벤치마크 규칙: tertiary · 획 · 굵기 2 · 점선(6 그리고 4 띄움)
+/// · 띠(`segments`) · 눈금선(`yTicks`) = 같은 규칙
+/// · 층의 순서 = 띠 → 눈금선 → 계획선 → 실제선
+/// · `chartUnavailableLabel != null` 인 경로는 차트가 없어야 한다 — 부르면 실패한다
+///   (화면은 `find.byKey(kGoalPathChartProbeKey)` 가 0 임을 본다).
+/// 실패 메시지는 `goal path actual line ...` · `goal path planned line ...` 처럼 시작한다.
+void expectGoalPathMatches(
+  ChartRecording r,
+  GoalPathVm path,
+  ColorScheme scheme,
+) {
+  if (path.chartUnavailableLabel != null) {
+    fail(
+      'goal path: chartUnavailableLabel is set for ${path.yyyyMm} — the chart '
+      'must not be drawn (show the unavailable card instead)',
+    );
+  }
+  final PerformanceSeries s = _goalPathAsSeries(path);
+  _labelled(
+    'goal path actual line (main line layer)',
+    () => expectMainLineMatches(r, s, scheme),
+  );
+  _labelled(
+    'goal path planned line (benchmark layer)',
+    () => expectBenchmarkMatches(r, s, scheme),
+  );
+  _labelled('goal path bands', () => expectBandsMatch(r, s, scheme));
+  _labelled('goal path ticks', () => expectTicksMatch(r, s, scheme));
+}
+
+/// 경로를 위 네 단언이 읽는 모양으로 옮긴다. 🔴 하네스 안에서만 쓰는 운반 상자다.
+/// 네 단언이 읽는 것은 `points`·`benchmark.points`·`segments`·`yTicks` 뿐이다 —
+/// 나머지 칸(지표·주기·고지·이름)은 그 단언이 읽지 않아 빈 값으로 채운다.
+PerformanceSeries _goalPathAsSeries(GoalPathVm path) => PerformanceSeries(
+  metric: PerfMetric.twr,
+  granularity: PerfGranularity.monthly,
+  cumulative: true,
+  segments: path.segments,
+  points: path.actual,
+  disclosure: const PerfDisclosure(
+    sampleSizeLine: '',
+    interstitialText: '',
+    viewCountThisMonth: 0,
+    honestExpectationLine: '',
+  ),
+  asOf: path.asOf,
+  seriesLabel: path.actualLabel,
+  periodLabel: path.periodLabel,
+  yTicks: path.yTicks,
+  benchmark: BenchmarkSeries(
+    label: path.plannedLabel,
+    points: path.planned,
+    compositionNote: '',
+  ),
+);
+
+/// [check] 의 실패 메시지 앞에 [what] 을 붙인다(어느 선인지 말하도록).
+void _labelled(String what, void Function() check) {
+  try {
+    check();
+  } on TestFailure catch (e) {
+    fail('$what — ${e.message}');
   }
 }
 

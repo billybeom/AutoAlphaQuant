@@ -11,7 +11,7 @@
 - 판단 기준: 데이터가 바뀌어도 글자가 같으면 정적 라벨, **데이터·상태에 따라 달라지면 사유 문구**다. `if 상태 then A else B` 처럼 **분기로 고르는 것은 정적 라벨이 아니라 생성**이다.
 - 이 목록의 쓰임은 둘뿐이다: ① 픽스처·DDL 대조(**C-15**) ② 미등록 코드 조기 실패.
 
-## 파일 (12)
+## 파일 (13)
 
 | 파일 | 무엇 | 근거 |
 |---|---|---|
@@ -19,6 +19,7 @@
 | `saf_codes.dart` | `SafBandCodes` 8(대역 7행) · `Saf309Codes` 6 | §3-2 |
 | `verdict_codes.dart` | `VerdictCodes` 5 · `PlannedWorkKindCodes` 3 · `GapReasonCodes` 3(🆕 v1.3 `SIM_EXCLUDED`) | §3-3 · §6-3 · §2-4 · §13-3 |
 | 🆕 `disclosure_codes.dart` | **v1.3** `DisclosureSurfaceCodes` 1(`PERFORMANCE_EXPLORE` — 사전 키 `disclosure_surface`) | §13-6 |
+| 🆕 `plan_codes.dart` | **v1.4** `PlannerReasonCodes` 1(`DEPOSIT_ROUTING` — 사전 키 `planner_reason`) | §14 · §2-6 |
 | `origin_codes.dart` | `OriginCodes` 20(브로커 7 · 파생 7 · X7 6) | §3-4 |
 | `flag_ids.dart` | `FlagIds` 12 · `SafetyHoldCodes` 1 | §3-5 · §9-5 ③ |
 | `advice_codes.dart` | `AdviceRejectCodes` 15 · `AdviceTransitionCauseCodes` 9 · `DecisionReasonCodes` 3 · `SeasonalEntryGateCodes` 3(+픽스처값 1) | §3-8 · §6-6 · §3-7 |

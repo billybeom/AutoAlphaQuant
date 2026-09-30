@@ -40,6 +40,7 @@ import 'flag_ids.dart';
 import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
 import 'origin_codes.dart';
+import 'plan_codes.dart';
 import 'saf_codes.dart';
 import 'verdict_codes.dart';
 
@@ -52,6 +53,7 @@ export 'flag_ids.dart';
 export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
 export 'origin_codes.dart';
+export 'plan_codes.dart';
 export 'saf_codes.dart';
 export 'verdict_codes.dart';
 
@@ -182,6 +184,8 @@ abstract final class ContractCodes {
     'journal_draft_reject': JournalDraftRejectCodes.values,
     // 🆕 v1.3(R10 선행) — 성과 열람 기록의 화면 코드(`DisclosureViewEvent.surfaceCode`)
     'disclosure_surface': DisclosureSurfaceCodes.values,
+    // 🆕 v1.4(R11 선행) — 플래너 주문 초안의 사유 칩(`OrderDraft.reasons[].code`)
+    'planner_reason': PlannerReasonCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

@@ -9,6 +9,10 @@
 //   ⑤ 초안 픽스처 행에 모드·맥락·기기·시각 키가 없다.
 //   ⑥ 초안 포트는 화면 패키지의 operator 전용 라이브러리 안에서만 쓴다(방향 제한의 기계화) —
 //      포트·타입·주입 프로바이더 이름 전부 · viewer 조립 앱(iOS·웹)은 operator 라이브러리를 가져오지 않는다.
+//      🆕 v1.4(01 §14-1 · TARGETS T-4 · 설계 Δ4 «C-35 ⑥ 확장») — `ui_analytics` 의 플래너(S7-4)도 같은
+//      모양이다: `lib/planner.dart`·`lib/src/planner/**` 밖 파일이 planner 를 import·export 하면 실패 ·
+//      viewer 조립 앱은 `package:ui_analytics/planner.dart` 를 가져오지 않는다(파일이 없으면 공허 통과 ·
+//      viewer 쪽은 `tool/check_boundaries.sh` [7] 도 같은 것을 본다).
 //   ⑦ `RecordingDraftStore` 받침대 자체 검증(받침대가 틀리면 화면 테스트 전부가 거짓 초록) ·
 //      받침대 둘 다 **동기로 던지지 않는다**(에러는 Future).
 // 🔴 실물 암호화·영속·계열 분리는 여기서 보지 않는다 — 06 M4-9 검증 게이트의 일이다.
@@ -65,6 +69,8 @@ const Set<String> _forbiddenRowKeys = <String>{
 /// 화면 패키지의 operator 전용 경로(패키지 루트 기준) — `DraftStore` 를 말해도 되는 곳.
 const Map<String, List<String>> _operatorPaths = <String, List<String>>{
   'ui_journal': <String>['lib/journal_draft.dart', 'lib/src/journal_draft/'],
+  // 🆕 v1.4(01 §14-1 · TARGETS T-4) — S7-4 입금 플래너(배럴 밖 · operator 전용).
+  'ui_analytics': <String>['lib/planner.dart', 'lib/src/planner/'],
 };
 
 /// operator 조립 앱 — 초안 포트를 주입하는 유일한 곳(01 §12-1-8). 나머지 `appNames` = viewer.
@@ -82,6 +88,18 @@ final RegExp _mentionsPort = RegExp(
 final RegExp _importsOperator = RegExp(
   r'''(?:import|export)\s+['"][^'"]*journal_draft[/.][^'"]*['"]''',
 );
+
+/// 🆕 v1.4 — 플래너 operator 전용 라이브러리(`planner.dart`·`src/planner/**`)를 import·export 하는가.
+/// `planner_hint.dart` 처럼 이름 속에 든 것은 아니다(경로 조각이 `planner` 로 끝나고 `.dart` 나 `/` 가 와야 한다).
+final RegExp _importsPlanner = RegExp(
+  r'''(?:import|export)\s+['"](?:[^'"]*/)?planner(?:\.dart|/)[^'"]*['"]''',
+);
+
+/// 패키지별 «operator 전용 라이브러리 import» 정규식.
+final Map<String, RegExp> _operatorImportRes = <String, RegExp>{
+  'ui_journal': _importsOperator,
+  'ui_analytics': _importsPlanner,
+};
 
 /// [_mentionsPort] 자체 검증 — 반드시 잡혀야 하는 것.
 const List<String> _portMentionPositives = <String>[
@@ -399,6 +417,28 @@ void main() {
         ),
         isFalse,
       );
+      // 🆕 v1.4 — 플래너 import 정규식 자체 검증.
+      for (final String s in <String>[
+        "import 'package:ui_analytics/planner.dart';",
+        "export 'src/planner/deposit_wizard.dart';",
+        "import '../planner/planner_providers.dart';",
+        'import "planner.dart";',
+      ]) {
+        expect(_importsPlanner.hasMatch(s), isTrue, reason: '양성 스니펫: $s');
+      }
+      for (final String s in <String>[
+        "import 'package:ui_analytics/ui_analytics.dart';",
+        "import 'src/screens/planner_hint.dart';",
+        "import 'package:ui_journal/journal_draft.dart';",
+      ]) {
+        expect(_importsPlanner.hasMatch(s), isFalse, reason: '음성 스니펫: $s');
+      }
+      expect(_isOperatorPath('ui_analytics', 'lib/planner.dart'), isTrue);
+      expect(
+        _isOperatorPath('ui_analytics', 'lib/src/planner/deposit_wizard.dart'),
+        isTrue,
+      );
+      expect(_isOperatorPath('ui_analytics', 'lib/ui_analytics.dart'), isFalse);
       for (final String name in uiPackageNames) {
         for (final File f in dartSourcesIn(
           Directory('${repoRoot.path}/packages/$name/lib'),
@@ -411,8 +451,9 @@ void main() {
           if (_mentionsPort.hasMatch(stripCommentsAndStrings(source))) {
             outside.add('packages/$name/$rel');
           }
-          if (_operatorPaths.containsKey(name) &&
-              _importsOperator.hasMatch(stripComments(source))) {
+          final RegExp? importsOperator = _operatorImportRes[name];
+          if (importsOperator != null &&
+              importsOperator.hasMatch(stripComments(source))) {
             leaks.add('packages/$name/$rel');
           }
         }
@@ -431,6 +472,7 @@ void main() {
           viewerFiles++;
           final String source = f.readAsStringSync();
           if (_importsOperator.hasMatch(stripComments(source)) ||
+              _importsPlanner.hasMatch(stripComments(source)) ||
               _mentionsPort.hasMatch(stripCommentsAndStrings(source))) {
             viewerLeaks.add(shortPath(f));
           }
@@ -446,8 +488,9 @@ void main() {
         viewerLeaks,
         isEmpty,
         reason:
-            'viewer 조립 앱이 operator 전용 라이브러리(journal_draft)나 초안 포트를 가져온다 — '
-            'viewer 에는 초안 구현·주입이 없다(01 §12-1-5 · §12-1-8 · TARGETS T-3).',
+            'viewer 조립 앱이 operator 전용 라이브러리(journal_draft · 🆕 v1.4 planner)나 초안 포트를 '
+            '가져온다 — viewer 에는 초안 구현·주입도, 플래너도 없다(01 §12-1-5 · §12-1-8 · §14-1 · '
+            'TARGETS T-3·T-4).',
       );
       expect(
         outside,
@@ -460,8 +503,9 @@ void main() {
         leaks,
         isEmpty,
         reason:
-            'operator 전용 라이브러리 밖 파일이 journal_draft 를 import·export 한다 — '
-            '배럴에서 초안 포트에 도달할 수 있게 된다(방향 금지 · 01 §12-1).',
+            'operator 전용 라이브러리 밖 파일이 journal_draft·planner 를 import·export 한다 — '
+            '배럴에서 초안 포트·플래너에 도달할 수 있게 된다(방향 금지 · 01 §12-1 · 🆕 v1.4 §14-1). '
+            '방향은 planner → 배럴 쪽(공용 프로바이더·위젯)만 허용이다.',
       );
     });
 
