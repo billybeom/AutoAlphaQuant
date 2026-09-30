@@ -214,6 +214,27 @@ class _PerformanceExploreBodyState
                   final benchmark = series.benchmark;
                   final unavailableLabel = series.unavailableLabel;
 
+                  // 10 고지 카드
+                  final Widget disclosureCard = Card(
+                    key: const Key('s72-disclosure'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(series.disclosure.sampleSizeLine),
+                          const SizedBox(height: 4),
+                          Text(series.disclosure.honestExpectationLine),
+                          if (series.disclosure.drawdownCaveatLine !=
+                              null) ...<Widget>[
+                            const SizedBox(height: 4),
+                            Text(series.disclosure.drawdownCaveatLine!),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+
                   return <Widget>[
                     // 4 StaleBanner
                     StaleBanner(asOf: series.asOf),
@@ -226,6 +247,8 @@ class _PerformanceExploreBodyState
                     if (unavailableLabel != null) ...<Widget>[
                       // 불가 카드
                       Text(unavailableLabel, key: const Key('s72-unavailable')),
+                      const SizedBox(height: 16),
+                      disclosureCard,
                     ] else ...<Widget>[
                       // 6 PerfChart
                       PerfChart(series: series),
@@ -325,6 +348,8 @@ class _PerformanceExploreBodyState
                               key: ValueKey<String>('s72-segment-caption-$i'),
                             ),
                           ),
+                      const SizedBox(height: 16),
+                      disclosureCard,
 
                       // 11 (benchmark != null) Text(benchmark.compositionNote)
                       if (benchmark != null) ...<Widget>[
@@ -407,28 +432,6 @@ class _PerformanceExploreBodyState
                         ),
                       ],
                     ],
-                    const SizedBox(height: 16),
-
-                    // 10 고지 카드
-                    Card(
-                      key: const Key('s72-disclosure'),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(series.disclosure.sampleSizeLine),
-                            const SizedBox(height: 4),
-                            Text(series.disclosure.honestExpectationLine),
-                            if (series.disclosure.drawdownCaveatLine !=
-                                null) ...<Widget>[
-                              const SizedBox(height: 4),
-                              Text(series.disclosure.drawdownCaveatLine!),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 16),
 
                     // 13 이동 버튼 2개 (세로로 쌓음 · 각 전체 폭)

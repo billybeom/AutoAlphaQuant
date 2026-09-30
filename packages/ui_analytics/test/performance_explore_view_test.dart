@@ -40,6 +40,7 @@ void main() {
       expect(call.granularity, PerfGranularity.monthly);
       expect(call.cumulative, isTrue);
       expect(call.range, isNull);
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets('E2 switch to mwr records metric mwr', (tester) async {
@@ -61,6 +62,7 @@ void main() {
       expect(last.metric, PerfMetric.mwr);
       expect(last.granularity, PerfGranularity.monthly);
       expect(last.cumulative, isTrue);
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets('E3 switch to daily records granularity daily', (tester) async {
@@ -82,6 +84,7 @@ void main() {
       expect(last.metric, PerfMetric.twr);
       expect(last.granularity, PerfGranularity.daily);
       expect(last.cumulative, isTrue);
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets('E4 switch to yearly records granularity yearly', (
@@ -105,6 +108,7 @@ void main() {
       expect(last.metric, PerfMetric.twr);
       expect(last.granularity, PerfGranularity.yearly);
       expect(last.cumulative, isTrue);
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets('E5 switch to period records cumulative false', (tester) async {
@@ -126,6 +130,7 @@ void main() {
       expect(last.metric, PerfMetric.twr);
       expect(last.granularity, PerfGranularity.monthly);
       expect(last.cumulative, isFalse);
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets(
@@ -151,6 +156,7 @@ void main() {
         await tester.pump();
         expect(repo.seriesCalls.length, 3);
         expect(repo.seriesCalls.last.granularity, PerfGranularity.monthly);
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
       },
     );
 
@@ -177,9 +183,11 @@ void main() {
       expect(find.text(AnalyticsLabels.granularityMonthly), findsOneWidget);
       expect(find.text(AnalyticsLabels.granularityYearly), findsOneWidget);
 
+      expect(repo.seriesCalls, hasLength(1));
       for (final call in repo.seriesCalls) {
         expect(call.granularity, isNot(PerfGranularity.weekly));
       }
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
   });
 
@@ -214,6 +222,7 @@ void main() {
       expect(find.byKey(const Key('s72-link-drawdown')), findsNothing);
       expect(find.byKey(const Key('s72-link-contribution')), findsNothing);
 
+      expect(safety3.activeFlags, hasLength(2));
       for (final flag in safety3.activeFlags) {
         expect(find.text(flag.label), findsOneWidget);
       }
@@ -271,6 +280,7 @@ void main() {
       expect(find.byKey(const Key('s72-link-drawdown')), findsNothing);
       expect(find.byKey(const Key('s72-link-contribution')), findsNothing);
 
+      expect(safety3.activeFlags, hasLength(2));
       for (final flag in safety3.activeFlags) {
         expect(find.text(flag.label), findsOneWidget);
       }
@@ -342,6 +352,7 @@ void main() {
         expect(s.disclosure.drawdownCaveatLine, isNotNull);
         expect(find.text(s.disclosure.drawdownCaveatLine!), findsOneWidget);
         expect(find.text(s.disclosure.interstitialText), findsNothing);
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
       }
     });
 
@@ -362,6 +373,7 @@ void main() {
         final scheme = chartSchemeOf(tester);
         final recording = recordChart(tester);
         expectMainLineMatches(recording, s, scheme);
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
       }
     });
 
@@ -382,6 +394,7 @@ void main() {
         final scheme = chartSchemeOf(tester);
         final recording = recordChart(tester);
         expectBandsMatch(recording, s, scheme);
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
       }
     });
 
@@ -410,6 +423,7 @@ void main() {
           expect(find.byKey(const Key('s72-legend-benchmark')), findsNothing);
           expect(find.byKey(const Key('s72-benchmark-note')), findsNothing);
         }
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
       }
     });
 
@@ -438,6 +452,7 @@ void main() {
           final tickRect = tester.getRect(find.byKey(tickKey));
           expect(tickRect.right, lessThanOrEqualTo(chartRect.left));
         }
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
       }
     });
 
@@ -466,6 +481,7 @@ void main() {
             expect(find.text(seg.label), findsNothing);
           }
         }
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
       }
     });
 
@@ -504,6 +520,8 @@ void main() {
             find.byKey(const Key('s72-link-contribution')),
             findsOneWidget,
           );
+          expect(find.byKey(const Key('s72-tick-0')), findsNothing);
+          expect(find.text(AnalyticsLabels.retryButton), findsNothing);
         }
       },
     );
@@ -533,6 +551,7 @@ void main() {
         );
         final chartRect = tester.getRect(find.byKey(kChartProbeKey));
         expect(xFirstTopLeft.dx, equals(chartRect.left));
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
       }
     });
 
@@ -558,6 +577,7 @@ void main() {
         AppRoutes.performanceDrawdown,
         AppRoutes.performanceContribution,
       ]);
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets('E21 clock +3 days and safety states', (tester) async {
@@ -578,8 +598,88 @@ void main() {
       );
 
       expect(find.text(AnalyticsLabels.staleBannerTitle), findsOneWidget);
+      expect(safety3.activeFlags, hasLength(2));
       for (final flag in safety3.activeFlags) {
         expect(find.text(flag.label), findsOneWidget);
+      }
+    });
+
+    testWidgets('E22 layout order caption disclosure note values links', (
+      tester,
+    ) async {
+      double topOf(String k) => tester.getTopLeft(find.byKey(Key(k))).dy;
+
+      for (final s in normalFixtureList) {
+        await pumpExplore(
+          tester,
+          repo: FakePerformanceRepository(seriesResult: s),
+          commandApi: FakeCommandApi(),
+          bodyReceipt: receipt0(),
+        );
+
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+        expect(
+          topOf('s72-legend-main'),
+          lessThan(topOf('s72-disclosure')),
+        ); // 8 < 10
+
+        for (var i = 0; i < s.segments.length; i++) {
+          if (s.segments[i].kind != SegmentKind.measured) {
+            expect(
+              topOf('s72-segment-caption-$i'),
+              lessThan(topOf('s72-disclosure')),
+            ); // 9 < 10
+          } else {
+            expect(
+              find.byKey(ValueKey<String>('s72-segment-caption-$i')),
+              findsNothing,
+            );
+          }
+        }
+
+        if (s.benchmark != null) {
+          expect(
+            topOf('s72-disclosure'),
+            lessThan(topOf('s72-benchmark-note')),
+          ); // 10 < 11
+          expect(
+            topOf('s72-benchmark-note'),
+            lessThan(topOf('s72-values-toggle')),
+          ); // 11 < 12
+        } else {
+          expect(find.byKey(const Key('s72-benchmark-note')), findsNothing);
+          expect(
+            topOf('s72-disclosure'),
+            lessThan(topOf('s72-values-toggle')),
+          ); // 10 < 12
+        }
+
+        expect(
+          topOf('s72-values-toggle'),
+          lessThan(topOf('s72-link-drawdown')),
+        ); // 12 < 13
+      }
+
+      for (final s in <PerformanceSeries>[
+        singleFixture(
+          FixturePaths.m7M7PerfUnavailableGap,
+          PerformanceSeries.fromJson,
+        ),
+        singleFixture(
+          FixturePaths.m7M7PerfMaskedIntegrity,
+          PerformanceSeries.fromJson,
+        ),
+      ]) {
+        await pumpExplore(
+          tester,
+          repo: FakePerformanceRepository(seriesResult: s),
+          commandApi: FakeCommandApi(),
+          bodyReceipt: receipt0(),
+        );
+
+        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+        expect(topOf('s72-unavailable'), lessThan(topOf('s72-disclosure')));
+        expect(topOf('s72-disclosure'), lessThan(topOf('s72-link-drawdown')));
       }
     });
   });
@@ -602,6 +702,7 @@ void main() {
 
       expect(find.byKey(const Key('s72-value-row-0')), findsNothing);
       expect(find.text(AnalyticsLabels.valuesShowButton), findsOneWidget);
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets('V2 values table expanded with benchmark', (tester) async {
@@ -640,12 +741,9 @@ void main() {
           break;
         }
       }
+      expect(missingIdx, isNotNull); // 전제 — 두 픽스처 모두 결측 점이 있다
 
-      final checkIndices = <int>[
-        0,
-        if (missingIdx != null) missingIdx,
-        s.points.length - 1,
-      ];
+      final checkIndices = <int>[0, missingIdx!, s.points.length - 1];
 
       for (final idx in checkIndices) {
         final rowTexts = tester
@@ -665,6 +763,11 @@ void main() {
         ];
         expect(rowTexts, equals(expected));
       }
+      expect(
+        find.byKey(ValueKey<String>('s72-value-row-${s.points.length}')),
+        findsNothing,
+      );
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets('V2 without benchmark', (tester) async {
@@ -703,12 +806,9 @@ void main() {
           break;
         }
       }
+      expect(missingIdx, isNotNull); // 전제 — 두 픽스처 모두 결측 점이 있다
 
-      final checkIndices = <int>[
-        0,
-        if (missingIdx != null) missingIdx,
-        s.points.length - 1,
-      ];
+      final checkIndices = <int>[0, missingIdx!, s.points.length - 1];
 
       for (final idx in checkIndices) {
         final rowTexts = tester
@@ -727,6 +827,11 @@ void main() {
         ];
         expect(rowTexts, equals(expected));
       }
+      expect(
+        find.byKey(ValueKey<String>('s72-value-row-${s.points.length}')),
+        findsNothing,
+      );
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets('V3 switch toggle keeps table expanded and updates rows', (
@@ -778,6 +883,7 @@ void main() {
           .toList();
 
       expect(firstRowTexts[0], equals(dailyGap.points.first.dateText));
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
   });
 }
