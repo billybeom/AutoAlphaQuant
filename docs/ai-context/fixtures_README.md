@@ -344,7 +344,12 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures
 | `m7/m7_goal_path_on`·`_hold`·`_realworld` | `GoalPathVm` v1.4 — `planned`·`actual`(`PerfPoint` · 같은 길이·날짜·가로 자리 · 계획선 결측 없음) · `y_ticks` · `segments` · 역할 고정 문장(판정 근거 `basis_text` / 가정 카드 1줄 `backtest_basis_text` / 2줄 `starting_capital_assumption_text`) · `honest_expectation_text`·`_worst_text`(인용 문장) · `disclaimer_text`. `_hold` = `chart_unavailable_label` + 네 목록 빈 목록 · 봉투 **`lag_notice` 삭제**(문장은 `m7_goal_path_off` 의 `deviation_text` 로 올렸다). `_realworld` = 실전 조건 문장(금액 없이) + 갭 1(`UNAVAILABLE` 띠 · 실제선 결측 2점) |
 | `m7/m7_monthly_2026_08`·`_gap` | `goal_deep_link` = `aaq://report/goal/2026-08`(그 행의 `yyyy_mm`) 한 줄 |
 | `m7/m7_monthly_masked_integrity`·`_masked_recon`·`_pending` | `goal_deep_link` **키 없음**(가림·미생성 달 = 버튼 부재) — 버전 줄만 바뀌었다 |
-| `m7/m7_withdrawal_*` 3벌 | 초안 행에 `side_label`·`quantity_text` 두 줄만(기계적 · 내용은 v1.5 에서 다시 만든다) |
+| `m7/m7_withdrawal_*` 3벌 | 초안 행에 `side_label`·`quantity_text` 두 줄만(기계적 · 내용은 v1.5 에서 다시 만든다) — 🔴 그래서 `limit_price` 는 있는데 `limit_price_text` 가 없는 행이 있다(C-38 ② 짝은 `DepositPlan` 한정 · 01 §14-4) |
+
+⚠️ **종목 라벨 SPEC 정합은 입금 픽스처(`m7_deposit_plan_*`·`deposit_plan_*`) 한정이다.** `holdings_6`·`journal_30`·`m6/*`(18벌)·
+`m7/m7_withdrawal_*` 3벌·`m9/handover_states` 는 옛 라벨 그대로다 — 같은 티커가 두 뜻이다(`411060` = 입금 «ACE KRX금현물»(B) /
+나머지 «ACE 미국30년국채» · `0085P0` = 입금 «ACE 미국10년국채액티브» / 나머지 «KODEX 국고채30년» · `379810` 은 입금 밖에 남아 있다).
+R11a 골든(`s74_*`)과 M6 골든이 같은 티커를 다른 종목명으로 찍는 것은 이 때문이다. 정정은 별도 창(인출은 v1.5 · 나머지는 01 §8 미결 82).
 
 ### 신설 7건
 

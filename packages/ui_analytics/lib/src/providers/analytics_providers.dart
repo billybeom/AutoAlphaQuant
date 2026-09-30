@@ -66,7 +66,7 @@ final AutoDisposeFutureProvider<ReportArchiveVm> reportArchiveProvider =
 
 // ── 🆕 R10b — S7-2G ────────────────────────────────────────────────────────
 
-/// S7-2G 열람 게이트 — CommandApi 주입 창구(뷰어 허용 5종만 부르는 화면 · 01 §13-9)
+/// S7-2G 열람 게이트 — CommandApi 주입 창구(뷰어 허용 4종만 부르는 화면 · 01 §13-9 · 🆕 v1.4 §14-2 정정 5→4)
 final Provider<CommandApi> analyticsCommandApiProvider = Provider<CommandApi>((
   ref,
 ) {

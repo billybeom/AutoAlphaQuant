@@ -19,7 +19,8 @@
 //   ⑨ 입금 등록 접수증 픽스처의 전 행이 `DEPOSIT_REGISTER` 다.
 // ui 스캔(🔴 CI 계약 테스트 안에서 돈다 · 정규식 자체 검증 스니펫 포함):
 //   ⑩ 플래너 파일(`lib/planner.dart`·`lib/src/planner/**`)이 «읽지 않는 필드»(D5 목록 = DTO 의
-//      `/// 🔴 ui 미참조(C-38 ⑩)` 표식 + `ReasonChip.detailDeepLink`(D20 · 플래너 한정))를 참조하지 않는다.
+//      `/// 🔴 ui 미참조(C-38 ⑩)` 표식 + `ReasonChip.detailDeepLink`(D20 · 플래너 한정))를 참조하지 않는다
+//      (점 접근 + 패턴 분해 두 정규식 · 🆕 가드 = 플래너 DTO·창구를 말하는 파일은 이 대상 안에만).
 //   ⑪ 플래너 파일이 `estimateCosts`·`findPlan`·`previewRebalance` 를 부르지 않는다(D8 호출 표).
 //   ⑫ `ui_analytics/lib` 전체(`labels.dart`·주석 포함)에 세율·기대 수치 리터럴과 월 납입 금액 리터럴이
 //      없다(C-32 정의에 맞춘 판 · 01 §14-13).
@@ -59,10 +60,30 @@ const String _previewNoticeHead = '미리보기입니다';
 /// ⑩ «읽지 않는 필드» — D5 목록과 **같은 목록**(`plan.dart`·`settings.dart` 의 `ui 미참조(C-38 ⑩)` 표식 +
 /// `ReasonChip.detailDeepLink`). `\b` 때문에 `amountText`·`amountInputText`·`quantityText`·`sideLabel`·
 /// `totalText`·`depositAmountText`·`limitPriceText`·`residualKrwCashText` 는 걸리지 않는다.
+/// 🆕 검토 반영 — 수신자가 `…Labels` 인 라벨 상수(`AnalyticsLabels.total` · 선례 `JournalLabels.tax`)는
+/// 원값이 아니므로 뺀다(`(?<!Labels)`).
 final RegExp _unreadField = RegExp(
-  r'\.(expiresAt|computedAt|asOfTradeDate|depositAmount|residualKrwCash|'
+  r'(?<!Labels)\.(expiresAt|computedAt|asOfTradeDate|depositAmount|residualKrwCash|'
   r'pensionLimitConsumed|quantity|limitPrice|side|commission|tax|total|'
   r'expectedProceeds|sourceSleeve|ruleCited|amount|detailDeepLink)\b',
+);
+
+/// ⑩ 둘째 — 패턴 분해로 읽는 원값(`final DepositPlan(:depositAmount) = p;` ·
+/// `case OrderDraft(quantity: final q):`). 점(`.`)이 없어 [_unreadField] 가 못 잡는다
+/// (🆕 검토 반영 · 선례 = C-36 ⑦ `perfValuePattern`).
+final RegExp _unreadPattern = RegExp(
+  r'\b(DepositPreviewResult|DepositPlan|OrderDraft|SleeveAllocation|CostEstimate|'
+  r'FundingStep|ReasonChip|ContributionSetting|PensionLimitVm)\s*\([^)]*\b'
+  r'(expiresAt|computedAt|asOfTradeDate|depositAmount|residualKrwCash|'
+  r'pensionLimitConsumed|quantity|limitPrice|side|commission|tax|total|'
+  r'expectedProceeds|sourceSleeve|ruleCited|amount|detailDeepLink)\b',
+);
+
+/// ⑩ 가드 — 플래너 DTO·창구를 말하는 `ui_analytics/lib` 파일은 플래너 대상 안에만 있어야 한다
+/// (🆕 검토 반영 · 대상 밖 경로에 같은 화면 코드를 두면 ⑩⑪ 이 공허 통과하는 구멍을 막는다).
+final RegExp _plannerMention = RegExp(
+  r'\b(DepositPreviewResult|DepositPlan|OrderDraft|DepositRegistration|'
+  r'simulateDeposit|registerDeposit)\b',
 );
 
 /// ⑪ 플래너가 부르지 않는 창구(D8).
@@ -77,9 +98,12 @@ final RegExp _rateLiteral = RegExp(
 );
 
 /// ⑫ 월 납입 금액 리터럴(C-32 · 01:2733 — 100000·90000·97000·124000(+`_` 형)·'10만'·'9.7만' 을 넓힌 판).
+/// 🆕 검토 반영 — 쉼표 원 단위(`100,000원`·`97,000`) · 띄어 쓴 만(`10 만원`) · 쉼표 만 단위
+/// (`2,000만`·`1,800만` = 목표·연금 한도)도 잡는다.
 final List<RegExp> _amountLiterals = <RegExp>[
-  RegExp(r'(?<![0-9])(100|90|97|124)_?000(?![0-9])'),
-  RegExp(r'(?<![0-9.])(10|9|9\.7|12\.4)만'),
+  RegExp(r'(?<![0-9,])(100|90|97|124)[_,]?000(?![0-9]|[_,][0-9])'),
+  RegExp(r'(?<![0-9.])(10|9|9\.7|12\.4)\s*만'),
+  RegExp(r'(?<![0-9.,])[0-9]{1,3}(,[0-9]{3})+\s*만'),
   RegExp(r'[0-9,]+만\s*원'),
   RegExp(r'[0-9]+억'),
 ];
@@ -106,6 +130,21 @@ const List<String> _unreadPositives = <String>[
   'opener.open(chip.detailDeepLink!)',
 ];
 
+/// ⑩ 둘째 자체 검증 — 반드시 걸려야 하는 것(패턴 분해).
+const List<String> _unreadPatternPositives = <String>[
+  'final DepositPlan(:depositAmount) = p;',
+  'case OrderDraft(quantity: final q):',
+  'final DepositPlan(costs: CostEstimate(:total)) = p;',
+  'if (s case ContributionSetting(:amount)) {}',
+];
+
+/// ⑩ 둘째 자체 검증 — 통과해야 하는 것.
+const List<String> _unreadPatternNegatives = <String>[
+  'final DepositPlan(:depositAmountText) = p;',
+  'case OrderDraft(sideLabel: final s, quantityText: final q):',
+  'final ReasonChip(:label, :tone) = chip;',
+];
+
 /// ⑩ 자체 검증 — 통과해야 하는 것(같은 뜻의 표시 필드).
 const List<String> _unreadNegatives = <String>[
   'Text(plan.depositAmountText)',
@@ -120,6 +159,10 @@ const List<String> _unreadNegatives = <String>[
   'Text(chip.label)',
   'Text(step.label)',
   'Text(plan.asOf.label)',
+  // 🆕 검토 반영 — 라벨 상수(원값 아님 · 선례 ui_journal `JournalLabels.tax`·`.commission`).
+  'Text(AnalyticsLabels.total)',
+  'Text(AnalyticsLabels.tax)',
+  r"Text('${JournalLabels.commission}: ${o.commissionText}')",
 ];
 
 /// ⑫ 자체 검증.
@@ -134,6 +177,12 @@ const List<String> _literalPositives = <String>[
   "static const String e = '2,000만 원';",
   'final r = 0.165;',
   "static const String f = '12.55%';",
+  // 🆕 검토 반영 — 쉼표 원 단위 · 띄어 쓴 만 · 쉼표 만 단위.
+  "static const String h = '월 100,000원 납입';",
+  "static const String i = '97,000';",
+  "static const String j = '월 10 만원';",
+  "static const String k = '연 1,800만 한도';",
+  "static const String l = '목표 2,000만';",
 ];
 const List<String> _literalNegatives = <String>[
   'const SizedBox(height: 10)',
@@ -143,6 +192,8 @@ const List<String> _literalNegatives = <String>[
   'final double x = 110.2;',
   "static const String g = '만원 단위';",
   'final double y = 0.1650;',
+  "static const String z = '1,000,000';",
+  "static const String q = '2,100,000';",
 ];
 
 /// ⑩⑪ 의 대상 — `packages/ui_analytics` 기준 상대 경로.
@@ -274,6 +325,16 @@ void main() {
       for (final String s in _unreadNegatives) {
         expect(_unreadField.hasMatch(s), isFalse, reason: '음성 스니펫을 잘못 잡았다: $s');
       }
+      for (final String s in _unreadPatternPositives) {
+        expect(_unreadPattern.hasMatch(s), isTrue, reason: '양성 스니펫을 못 잡았다: $s');
+      }
+      for (final String s in _unreadPatternNegatives) {
+        expect(
+          _unreadPattern.hasMatch(s),
+          isFalse,
+          reason: '음성 스니펫을 잘못 잡았다: $s',
+        );
+      }
       expect(_isPlannerTarget(_plannerLib), isTrue);
       expect(_isPlannerTarget('lib/src/planner/deposit_step_two.dart'), isTrue);
       expect(
@@ -283,17 +344,38 @@ void main() {
       expect(_isPlannerTarget('lib/ui_analytics.dart'), isFalse);
       // 스캔 함수 자체 검증 — 주석 속 언급은 통과, 문자열 보간 안의 참조는 걸린다.
       expect(
-        _scan(<String, String>{
-          'a.dart': '// plan.expiresAt 를 시계와 비교하지 않는다\nText(plan.depositAmountText);\n',
-          'b.dart':
-              r"Text('${o.quantity}');"
-              '\n',
-        }, _unreadField),
-        <String>['b.dart'],
+        _scanAny(
+          <String, String>{
+            'a.dart': '// plan.expiresAt 를 시계와 비교하지 않는다\nText(plan.depositAmountText);\n',
+            'b.dart':
+                r"Text('${o.quantity}');"
+                '\n',
+            'c.dart': 'final DepositPlan(:depositAmount) = p;\n',
+          },
+          <RegExp>[_unreadField, _unreadPattern],
+        ),
+        <String>['b.dart', 'c.dart'],
+      );
+      // 🆕 가드 — 플래너 DTO·창구를 말하는 파일은 플래너 대상 안에만 있다(경로 밖 우회 차단).
+      expect(
+        _plannerMentionsOutside(<String, String>{
+          'lib/src/planner/a.dart': 'final DepositPlan p = r.plan!;\n',
+          'lib/src/planner_steps/b.dart': 'void f(DepositPlan plan) {}\n',
+          'lib/src/screens/c.dart': '// DepositPlan 은 플래너만 말한다\n',
+        }),
+        <String>['lib/src/planner_steps/b.dart'],
+      );
+      expect(
+        _plannerMentionsOutside(_uiAnalyticsLibSources()),
+        isEmpty,
+        reason:
+            '플래너 DTO·창구(`DepositPlan`·`DepositPreviewResult`·`OrderDraft`·`simulateDeposit`·'
+            '`registerDeposit`)를 말하는 파일은 `lib/planner.dart`·`lib/src/planner/**` 안에만 둔다 — '
+            '밖에 두면 ⑩⑪ 스캔이 그 파일을 보지 않는다(01 §14-17 · 03 §9 ⓑ).',
       );
       // 🔴 대상 파일이 아직 없으면(R11a 전) 통과한다.
       expect(
-        _scan(_plannerSources(), _unreadField),
+        _scanAny(_plannerSources(), <RegExp>[_unreadField, _unreadPattern]),
         isEmpty,
         reason:
             '플래너는 엔진이 만든 `*Text`·`*Label` 만 그린다 — 원값(금액·수량·지정가·시각·비용 내역)과 '
@@ -951,6 +1033,25 @@ List<String> _receiptViolations(String where, List<CommandReceipt> rows) =>
 bool _isPlannerTarget(String rel) =>
     rel == _plannerLib || rel.startsWith(_plannerDir);
 
+/// `ui_analytics/lib` 전 파일(`packages/ui_analytics` 기준 상대 경로 → 원문).
+Map<String, String> _uiAnalyticsLibSources() {
+  final Directory root = Directory('${repoRoot.path}/packages/ui_analytics');
+  final String base = root.path.replaceAll(r'\', '/');
+  return <String, String>{
+    for (final File f in dartSourcesIn(Directory('${root.path}/lib')))
+      f.path.replaceAll(r'\', '/').substring(base.length + 1): f
+          .readAsStringSync(),
+  };
+}
+
+/// ⑩ 가드 — 주석을 지운 소스가 플래너 DTO·창구를 말하는데 플래너 대상이 아닌 파일.
+List<String> _plannerMentionsOutside(Map<String, String> sources) => <String>[
+  for (final MapEntry<String, String> e in sources.entries)
+    if (!_isPlannerTarget(e.key) &&
+        _plannerMention.hasMatch(stripComments(e.value)))
+      e.key,
+];
+
 /// 플래너 파일(`packages/ui_analytics` 기준) — 없으면 빈 지도.
 Map<String, String> _plannerSources() {
   final Directory root = Directory('${repoRoot.path}/packages/ui_analytics');
@@ -967,10 +1068,15 @@ Map<String, String> _plannerSources() {
 /// 주석을 지운 소스에서 [re] 가 걸린 파일 이름.
 ///
 /// 🔴 문자열은 남긴다 — `'${o.quantity}'` 같은 보간 안의 참조가 가장 흔한 위반 꼴이다.
-List<String> _scan(Map<String, String> sources, RegExp re) => <String>[
-  for (final MapEntry<String, String> e in sources.entries)
-    if (re.hasMatch(stripComments(e.value))) e.key,
-];
+List<String> _scan(Map<String, String> sources, RegExp re) =>
+    _scanAny(sources, <RegExp>[re]);
+
+/// [_scan] 의 여러 정규식판 — 하나라도 걸리면 그 파일.
+List<String> _scanAny(Map<String, String> sources, List<RegExp> res) =>
+    <String>[
+      for (final MapEntry<String, String> e in sources.entries)
+        if (res.any((RegExp re) => re.hasMatch(stripComments(e.value)))) e.key,
+    ];
 
 /// ⑫ 원문(주석 포함) 한 줄씩 — `파일:줄: 글자`.
 List<String> _literalHits(String name, String source, List<RegExp> res) {

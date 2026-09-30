@@ -288,6 +288,8 @@ A(primitives·enums)
 | `PerfAxisTick` 🆕 v1.3 | `normalized` R double(세로 자리 0.0~1.0) · `label` R String(엔진 생성) · `isBaseline` bool(기본 false · 한 시리즈에 많아야 하나 — C-36 ④) |
 | `ReportArchiveRow` 🆕 v1.3 기재 | `yyyyMm` R String · `label` R String · `generated` R bool · `modeLabel` R String · `reasonLabel` ? String · `route` ? String · 🆕 **v1.3(01 §13-8)** `sectionLabel` ? String(non-null 이면 **이 행 위에** 머리글 1줄 · 묶음의 첫 행에만). `ReportArchiveVm.rows` 는 엔진이 최신 달부터 정렬(C-34 ⑩) |
 | `DisclosureGateVm` 🆕 v1.3 기재 | `gateOpen` R bool(🆕 뜻 확정 — 엔진이 지금 진입을 허용하는가) · `headline` R String · `viewCountText` R String · `asOf` R `AsOf` · `frictionLine` ? String(null = 그 줄이 없다) · `route` ? String(게이트 밖 진입점용 · `gateOpen == (route != null)` — C-37 ①). 필드 무변경(01 §13-5) |
+| `GoalPathVm` 🆕 v1.4 재설계 | `yyyyMm` R(Key 용 · 🔴 표시 금지) · `judgementText` R · `basisText` R · `deviationText` ? · `periodLabel` R · `plannedLabel` R · `actualLabel` R String · `planned` R · `actual` R `List<PerfPoint>`(🔴 같은 길이·`date`·`xNormalized` · `planned` 결측 0 — C-39 ②) · `yTicks` R `List<PerfAxisTick>`(많아야 5) · `segments` R `List<PerfSegment>` · `chartUnavailableLabel` ? String(non-null ⇔ 네 목록 빈 목록 — C-39 ③) · `backtestBasisText` R · `startingCapitalAssumptionText` R · `honestExpectationText` R · `honestExpectationWorstText` R · `disclaimerText` R String · `asOf` R `AsOf`(01 §14-10) — 🔴 ~~`GoalPathPoint`·`seriesCode`~~ 폐기(C-39 ⑧) · 🔴 S7-9 는 `ConfigRepository` 를 읽지 않는다 · 세후 사다리 없음(인용 문장 한 줄씩) |
+| `MonthlyReport` 🆕 v1.4 기재 | (기존 필드 무변경) + 🆕 **v1.4(01 §14-9)** `goalDeepLink` ? String(`AppRoutes.reportGoalPath` = `aaq://report/goal/:yyyyMm` · 그 행의 달 · null = 버튼 부재 · 과거 달·가림·미생성 달은 null 가능 — C-39 ⑦) |
 | `AfterTaxStep` | `stepCode` R String(`PRETAX`·`AFTER_POT`·`AFTER_POT_C`·`WD_5P5`·`WD_16P5`·`HONEST`) · `label` R String · `valueText` R String(🔴 **표시의 정본**) · `cagrPct` ? double(🔴 골든 대조 전용 · `ui_*` 참조 금지 — C-30) · `endMult` ? double(같음) · `noteLine` ? String |
 | `AfterTaxLadder` | `branch` R `TaxLadderBranch` · `branchLabel` R String · `steps` R `List<AfterTaxStep>`(순서 그대로 · 층을 합치거나 건너뛰지 않는다) · `honestExpectationLine` R String · `basisNote` R String · `isReferenceOnly` R bool(🔴 **§8-18 확정 전 항상 true**) · `configHash` R String · `asOf` R `AsOf` |
 
@@ -309,8 +311,11 @@ A(primitives·enums)
 
 | 타입 | 필드 |
 |---|---|
-| `DepositPlan` | `planId` R · `computedAt` R DateTime · `asOfTradeDate` R `TradeDate` · `expiresAt` R DateTime(🔴 만료 계획은 등록 거부) · `configHash` R String · `depositAmount` R `@D Decimal` · `allocations` R `List<SleeveAllocation>`(⚠️ M2-8) · `pensionLimitConsumed` R `@D Decimal` · `residualKrwCash` R `@D Decimal`(D2 원화 현금 대기) · `orderDrafts` R `List<OrderDraft>` · `costs` R `CostEstimate`(⚠️ M2-8) · `fundingSteps` ? `List<FundingStep>`(⚠️ M2-8 · v2.32 `PENSION_FUNDING`. **null·빈 목록 = 절을 통째로 숨긴다** — 0건을 「0원」으로 그리지 않는다) · `previewNotice` R String |
-| `OrderDraft` | `symbol` R · `symbolLabel` R · `sleeve` R `SleeveId` · `accountAlias` R String · `side` R `OrderSide` · `quantity` R int · `limitPrice` ? `@D Decimal` · `reasons` R `List<ReasonChip>` |
+| `DepositPlan` | `planId` R · `computedAt` R DateTime · `asOfTradeDate` R `TradeDate` · `expiresAt` R DateTime(🔴 만료 계획은 등록 거부) · `configHash` R String · `depositAmount` R `@D Decimal` · `allocations` R `List<SleeveAllocation>`(⚠️ M2-8) · `pensionLimitConsumed` R `@D Decimal` · `residualKrwCash` R `@D Decimal`(D2 원화 현금 대기) · `orderDrafts` R `List<OrderDraft>` · `costs` R `CostEstimate`(⚠️ M2-8) · `fundingSteps` ? `List<FundingStep>`(⚠️ M2-8 · v2.32 `PENSION_FUNDING`. **null·빈 목록 = 절을 통째로 숨긴다** — 0건을 「0원」으로 그리지 않는다) · `previewNotice` R String · 🆕 **v1.4(01 §14-4 · §14-5)** `asOf` R `AsOf` · `depositAmountText` R String · `pensionLimit` ? `PensionLimitVm`(null = 카드 부재) · `residualKrwCashText` ? String(null ⇔ 잔여 0 — C-38 ②) · `orderDraftsTitle` R String · `ordersEmptyText` ? String(non-null ⇔ `orderDrafts` 빈 목록) · `warningLines` `List<String>`(기본 빈 목록 · 받은 순서) · `registerBlockedText` ? String(non-null = 등록 불가 · 🔴 화면이 `expiresAt` 을 시계와 비교하지 않는다) · 🔴 `previewNotice` = «미리보기입니다…» 고지 **전용** · 🔴 ui 미참조(C-38 ⑩) = `computedAt`·`asOfTradeDate`·`expiresAt`·`depositAmount`·`pensionLimitConsumed`·`residualKrwCash` |
+| `OrderDraft` | `symbol` R · `symbolLabel` R · `sleeve` R `SleeveId` · `accountAlias` R String · `side` R `OrderSide` · `quantity` R int · `limitPrice` ? `@D Decimal` · `reasons` R `List<ReasonChip>` · 🆕 **v1.4(01 §14-4)** `sideLabel` R String · `quantityText` R String · `limitPriceText` ? String(non-null ⇔ `limitPrice != null` — C-38 ② · **`DepositPlan` 한정** · 인출 초안은 v1.5 전까지 이 짝을 지키지 않는다) · `pendingNoteText` ? String · 🔴 ui 미참조(C-38 ⑩) = `side`·`quantity`·`limitPrice` · 플래너의 사유 칩은 `label`·`tone` 만(D20) |
+| `DepositPreviewResult` 🆕 v1.4 | `plan` ? `DepositPlan` · `inputRejectedText` ? String · `blockedText` ? String · `blockedAction` ? `LinkAction`(01 §14-3) — 🔴 앞 셋 중 **정확히 하나** non-null · `blockedAction` 은 `blockedText` 가 있을 때만(C-38 ①) · 화면은 무엇이 non-null 인가로만 갈린다(D21) |
+| `PensionLimitVm` 🆕 v1.4 | `annualLimitText` R · `taxCreditText` R · `deadlineText` R String · `suggestionText` ? · `fundingNoteText` ? String(01 §14-4 · 한도 카드 · 전부 완성 문장) |
+| `SleeveAllocation` 🆕 v1.4 기재 | `sleeve` R `SleeveId` · `label` R String · `amount` R `@D Decimal`(🔴 ui 미참조 — C-38 ⑩) · `amountText` R String · `accountAlias` ? String · 🆕 **v1.4** `routingReasonText` ? String(null = 줄 부재) |
 
 - 🔴 **월 추가 납입 운영값(현행 10만원)을 화면·계약·픽스처에 상수로 적지 않는다.** 읽기 창구는 `ConfigRepository.watchContributionSetting()` 하나이고 변경 창구는 `SettingsActions`(운영 등급)다. **C-32** 가 `100000`·`90000`·`97000`·`124000`·`100_000`·`'10만'`·`'9.7만'` 리터럴을 탐지한다(🔴 `labels.dart` 도 예외 아님).
 
@@ -348,7 +353,7 @@ A(primitives·enums)
 
 | 타입 | 필드 |
 |---|---|
-| `ContributionSetting` | `amount` R `@D Decimal`(🔴 «지금 유효한 값» — 예정 금액을 넣지 않는다) · `amountText` R String · `equivalentNoteText` R String · `appliesFromText` R String · `lastChangedText` R String · `pensionLimitNoteText` ? String(G-102 · null 이면 줄을 그리지 않는다) · `asOf` R `AsOf` |
+| `ContributionSetting` | `amount` R `@D Decimal`(🔴 «지금 유효한 값» — 예정 금액을 넣지 않는다) · `amountText` R String · `equivalentNoteText` R String · `appliesFromText` R String · `lastChangedText` R String · `pensionLimitNoteText` ? String(G-102 · null 이면 줄을 그리지 않는다) · `asOf` R `AsOf` · 🆕 **v1.4(01 §14-3)** `amountInputText` R String(플래너 스텝 ① 입력칸 **초기 글자 전용** · 스트림의 첫 값만 채운다 · `MonthlyContributionVm` 도 같은 이름으로 투영) · 🔴 `amount` 는 ui 미참조(C-38 ⑩) |
 
 - 🔴 **최소·최대·0 허용 여부를 필드로 내려보내지 않는다** — 범위 판정은 저장 명령의 `ActionResult.headline`·`reasonCode` 로만 돌아온다.
 - 🔴 `MonthlyContributionVm`(⚠️ M2-8)은 이 타입의 **1:1 투영**이며 `editable` 하나만 런타임 값이다. 🔴 **`ContributionVm` 이라는 이름을 재사용하지 않는다**(03 §10 `S7-3b` 슬리브 기여 분해가 이미 그 이름을 쓴다).
@@ -378,7 +383,7 @@ A(primitives·enums)
 |---|---|
 | `journal_repository.dart` | `JournalRepository`<br>`Stream<ListResult<TradeJournalEntry>> watchTimeline({required DateRange range, SleeveId? sleeve, String? symbol, JournalStatus? status, FillOrigin? origin, String? rebalanceEventId, RunMode mode = RunMode.live, int limit = 100})`<br>`Future<TradeJournalEntry?> findByDecisionId(String decisionId)`<br>`Future<List<TradeJournalEntry>> chainOf(String decisionId)`<br>`Future<List<TradeJournalEntry>> fillChain(String entryId)` 🆕X7 — ORIGINAL→REVERSAL→RESTATEMENT |
 | `holdings_repository.dart` | `HoldingsRepository`<br>`Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false})` — 🔴 기본 false(결정 8) · `external_holding` 표시 UNION 은 **여기 한 곳**(C-23) |
-| `performance_repository.dart` | `PerformanceRepository`<br>~~`Future<PerformanceSeries> series({required PerfMetric metric, required PerfGranularity granularity, required bool cumulative, required DateRange range})`~~ 🆕 **v1.3(01 §13-4)** `Future<PerformanceSeries> series({required PerfMetric metric, required PerfGranularity granularity, required bool cumulative, DateRange? range})` — `range == null` = 엔진 기본 구간(무엇이 골라졌는지는 `periodLabel`) · 🔴 `weekly` 로는 화면이 부르지 않는다(01 §8 미결 54)<br>`Future<MonthlyReport> monthlyReport(String yyyyMm)`<br>`Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear})` — 🔴 **인자는 연도 하나** · 갈래는 계좌 매핑에서 파생<br>`Future<ReportArchiveVm> reportArchive()`<br>`Stream<DisclosureGateVm> watchDisclosureGate()`<br>`Future<DrawdownContextVm> drawdownContext({DateRange? range})`<br>`Future<ContributionVm> contribution({required DateRange range})`<br>`Future<AnnualReviewVm> annualReview({required String year})` |
+| `performance_repository.dart` | `PerformanceRepository`<br>~~`Future<PerformanceSeries> series({required PerfMetric metric, required PerfGranularity granularity, required bool cumulative, required DateRange range})`~~ 🆕 **v1.3(01 §13-4)** `Future<PerformanceSeries> series({required PerfMetric metric, required PerfGranularity granularity, required bool cumulative, DateRange? range})` — `range == null` = 엔진 기본 구간(무엇이 골라졌는지는 `periodLabel`) · 🔴 `weekly` 로는 화면이 부르지 않는다(01 §8 미결 54)<br>`Future<MonthlyReport> monthlyReport(String yyyyMm)`<br>`Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear})` — 🔴 **인자는 연도 하나** · 갈래는 계좌 매핑에서 파생<br>`Future<ReportArchiveVm> reportArchive()`<br>`Stream<DisclosureGateVm> watchDisclosureGate()`<br>`Future<DrawdownContextVm> drawdownContext({DateRange? range})`<br>`Future<ContributionVm> contribution({required DateRange range})`<br>`Future<AnnualReviewVm> annualReview({required String year})`<br>🆕 **v1.4(01 §14-9)** `Future<GoalPathVm> goalPath({required String yyyyMm})` — 받은 달 그대로(`MonthlyReport.goalDeepLink` 의 달) · 숫자 가림은 엔진 읽기 경로 |
 | `rebalance_repository.dart` | `RebalanceRepository`<br>`Stream<List<RebalanceEvent>> watchEvents(DateRange r)`<br>`Stream<NextRebalanceVm> watchNext()` — 🔴 **nullable 이 아니다**(N-4). 「예정 없음」도 값으로 오며 문구는 `emptyLabel` |
 | `safety_repository.dart` | `SafetyRepository` — `Stream<SafetyState> watchState()` |
 | `alert_repository.dart` | `AlertRepository` — `Stream<List<AlertItem>> watchInbox({AlertLevel? min})` |
@@ -391,7 +396,7 @@ A(primitives·enums)
 | `ledger_trust_repository.dart` 🆕X7 | `LedgerTrustRepository` — `Stream<LedgerTrustBadge> watchGrade()` |
 | `execution_gap_repository.dart` 🆕X7 | `ExecutionGapRepository` — `Future<ExecutionGapReport> monthly(String yyyyMm)` · `Stream<ExecutionGapReport> watchRolling()` |
 | `ops_repository.dart` 🆕G-29 | `OpsStatusRepository` — `Stream<ListResult<WatchdogCheck>> watchWatchdog()` · `Stream<ConnectionsVm> watchConnections()` · `Stream<DeviceAccessVm> watchDeviceAccess()` · `Stream<BackupVm> watchBackup()` · `Stream<DiagnosticsVm> watchDiagnostics()` · `Stream<AnnualReviewVm> watchAnnualReview()`<br>`OpsSummaryRepository` — `Stream<OpsDailySummary> watchToday()` |
-| `what_if_api.dart` | `WhatIfApi` — 🔴 **리포지토리가 아니라 부작용 0의 로컬 재계산**(구 `PlannerRepository` 폐기)<br>`Future<DepositPlan> simulateDeposit({required Decimal amount, required String accountAlias})`<br>`Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount})`<br>`Future<RebalancePreview> previewRebalance({TradeDate? plannedDate})`<br>`Future<CostEstimate> estimateCosts(String planId)`<br>`Future<DepositPlan?> findPlan(String planId)` |
+| `what_if_api.dart` | `WhatIfApi` — 🔴 **리포지토리가 아니라 부작용 0의 로컬 재계산**(구 `PlannerRepository` 폐기)<br>~~`Future<DepositPlan> simulateDeposit({required Decimal amount, required String accountAlias})`~~ 🆕 **v1.4(01 §14-3)** `Future<DepositPreviewResult> simulateDeposit({required String amountInput})` — 입력칸 글자 그대로 · 파싱·범위·차단·계좌 라우팅은 엔진 · `Future` 에러 = 인프라만<br>`Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount})`(⏸ v1.5 에서 바뀐다 · 01 §14-15)<br>`Future<RebalancePreview> previewRebalance({TradeDate? plannedDate})`<br>`Future<CostEstimate> estimateCosts(String planId)`<br>`Future<DepositPlan?> findPlan(String planId)` 🆕 v1.4 — null = 그 planId 가 없다 · 🔴 플래너(S7-4)는 `simulateDeposit` 만 부른다(`estimateCosts`·`findPlan`·`previewRebalance` 0 — C-38 ⑪ · 01 §14-8) |
 
 - 🔴 **정렬·페이징은 엔진 몫**이다. 페이징은 커서가 아니라 `limit` 증가 재구독 하나(1인 사용자·연 ~934건).
 - 🔴 **거르기도 판정이다** — `origin`·`rebalanceEventId` 필터를 화면이 `rows` 위에서 재현하면 반려.
@@ -408,7 +413,7 @@ Future<CommandReceipt> activateKillSwitch({required String reasonFreeText, requi
 Future<CommandReceipt> submitJournalDraft(JournalDraft draft)
 Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score)
 Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event)
-Future<CommandReceipt> registerDeposit(DepositRegistration registration)
+Future<CommandReceipt> registerDeposit(DepositRegistration registration)   // 🆕 v1.4(01 §14-2) — 폰(operator) 전용 · 뷰어 화이트리스트 밖
 Stream<CommandReceipt>  watchCommand(String commandId)
 // ── X7 7종 · 🔴 전량 폰(operator) 전용 ──
 Future<CommandReceipt> recordManualFill(ManualFillRecord record)
@@ -422,7 +427,7 @@ Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack)
 ```
 
 - 🔴 **킬스위치 «해제» 명령은 없다**(결정 6). `deactivate` 제안은 거절이 기본값.
-- 🔴 **뷰어가 쓸 수 있는 것은 앞 5종**이며 X7 7종은 뷰어 화이트리스트를 건드리지 않는다. ⚠️ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결.
+- 🔴 ~~**뷰어가 쓸 수 있는 것은 앞 5종**~~ 🆕 **v1.4(01 §14-2) — 뷰어가 쓸 수 있는 것은 앞 4종**(킬스위치 발동 · 저널 초안 · blind 리뷰 점수 · 열람 기록 · `registerDeposit` = `DEPOSIT_REGISTER` 는 폰 전용)이며 X7 7종은 뷰어 화이트리스트를 건드리지 않는다. ⚠️ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결.
 - 🔴 **화면이 `state` 를 낙관 갱신하지 않는다** — 「요청됨」과 「집행됨」의 구별이 이 계약의 목적이다.
 - 🔴 **인자가 2개를 넘는 명령은 전부 DTO 로 받는다**(`@DecimalStringConverter()` 는 필드 어노테이션이라 메서드 인자에서 무효).
 
@@ -461,7 +466,7 @@ requested/received ──┬──▶ staleContext        ┐
 
 | 타입 | 필드 |
 |---|---|
-| `DepositRegistration` | `planId` R String · `amount` R `@D Decimal`(🔴 **예시값** — 금액은 설정값에서 온다) · `valueDate` R `TradeDate` |
+| `DepositRegistration` | ~~`planId` R String · `amount` R `@D Decimal`(🔴 **예시값** — 금액은 설정값에서 온다) · `valueDate` R `TradeDate`~~ 🆕 **v1.4(01 §14-7)** `planId` R String **하나** — 금액·기준일은 엔진이 계획 스냅샷에서 가져온다(화면이 보내지 않는다 · 실입금 대조 = 원장 · 06 M3-2) |
 | `JournalDraft` ⚠️M2-8 | 최소 축 = `decisionId` · `rationaleBefore` · `expectedOutcome` · `ruleCited`(🔴 **엔진 제공 목록** · 자유 입력 금지) · `note` |
 | `BlindReviewScore` ⚠️M2-8 | 최소 축 = `decisionId` · 문항 id → 점수 `Map`(문항·선택지 문구도 엔진) |
 | `DisclosureViewEvent` ⚠️M2-8 | 최소 축 = `surfaceCode` · `viewedAt` · `durationSec`. ~~🔴 **집계 키 `yyyy_mm` 은 엔진이 `viewedAt` 에서 파생**한다(G-42)~~ · 🆕 **v1.3(01 §13-6)** — 🔴 집계 키 `yyyy_mm` 은 화면이 넣지 않는다(G-42 그대로) · `surfaceCode` R String(값의 정본 = `DisclosureSurfaceCodes`) · `viewedAt` R DateTime(「그래도 보기」를 누른 순간의 주입 시계 값 · 관측 시각 — 집계 월은 엔진이 접수·서버 시각으로 확정) · `durationSec` int(**기본 0** — required 에서 바뀜 · 화면은 적지 않는다 · C-37 ④) |
@@ -588,6 +593,8 @@ abstract interface class SettingsActions {
 `EQUITY_SNAPSHOT_MISSING`·`RESUME_GAP` / `SEASONAL_WINDOW`·`DEFER_COUNT`·`SPLIT_LEG` / `monthly_contribution`(🔴 화이트리스트 · `fx_overlay` 계열 키 금지).
 
 🆕 **v1.3(2026-09-28 · 01 §13-3·§13-6)** — `PerfPoint.gapReasonCode` = **3종**(+ `SIM_EXCLUDED` — `GapReasonCodes.simExcluded` · 모의 구간 안의 점) · 🆕 `DisclosureViewEvent.surfaceCode` = 1종 `PERFORMANCE_EXPLORE`(`DisclosureSurfaceCodes.performanceExplore` · 🆕 `labels/disclosure_codes.dart` · 사전 키 `disclosure_surface`) · 🆕 동작 링크 1종 `aaq://nav/back`(`AppNavActions.back` — `navigation/app_links.dart` · 🔴 코드 사전이 아니라 링크 상수이며 `AppRoutes.all` 밖 · DTO·픽스처에 실리지 않는다).
+
+🆕 **v1.4(2026-09-30 · 01 §14)** — 🆕 `PlannerReasonCodes`(`labels/plan_codes.dart`) = 1종 `DEPOSIT_ROUTING`(플래너 **전용** · 초안 칩에는 원장 이벤트 사전의 `PENSION_FUNDING` 도 온다) · 🆕 라우트 `AppRoutes.reportGoalPath` = `aaq://report/goal/:yyyyMm`(`AppRoutes.all` **42**) · ⏸ `DEPOSIT_REGISTER` 거부 코드 사전 없음(01 §8 미결 74).
 
 ---
 
@@ -735,16 +742,16 @@ abstract interface class SettingsActions {
 | `ledger_diffs_4.json` | 4 | canonBroker 1(blocking) · 파생 3(observational) |
 | `onboarding_fresh.json` | 14 | 처음 시작하기(verified/failed/expired 각 1) |
 | `onboarding_reconnect.json` | 9 | 재연결 갈래 |
-| `deposit_plan_1.json` | 1 | 월 납입 = 엔진 설정값 예시 · 잔여 = 원화 현금 대기(D2) · 주문 초안 3 · `funding_steps` **null** |
+| `deposit_plan_1.json` | 1 | 월 납입 = 엔진 설정값 예시 · 잔여 = 원화 현금 대기(D2) · 주문 초안 ~~3~~ 🆕 v1.4 4 · `funding_steps` **null** · 🆕 v1.4 코어 전용(화면 미사용) · 새 표시 필드 · 종목 라벨 SPEC 정합 |
 
 ### 8-3. P 회차 3건 · S 회차 3건
 
 | 파일 | 배치 | 내용 |
 |---|---|---|
 | `aftertax_ladder_1.json` | `m7/` | 정본 갈래(`SPEC_POT_TAX_FREE`) 5단 + 반사실 1(접힘) · `is_reference_only: true` · 층 값은 골든 4자리 |
-| `deposit_plan_funding_1.json` | `fixtures/`(코어 옆) | 납입 조달 발동 · `funding_steps` 2단. 🔵 정본 경로에서 **한 번도 발동하지 않으므로** 없으면 §3-6 표시 경로가 영영 미검증 |
+| `deposit_plan_funding_1.json` | `fixtures/`(코어 옆) | 납입 조달 발동 · `funding_steps` ~~2단~~ 🆕 v1.4 **1단계**(0원 조달 단계 삭제 · C 방어 자산 매도 초안 = `PENSION_FUNDING` 칩). 🔵 정본 경로에서 **한 번도 발동하지 않으므로** 없으면 §3-6 표시 경로가 영영 미검증 |
 | `entry_gate_nov_pass_1.json` | `m6/` | 계절 게이트 **11월 재판정 통과**(`enteredInNov`). 🔵 26시즌 실측 발동 0 — 실데이터로는 검증 불가한 유일한 경로 |
-| `m7_deposit_plan_default.json`·`_limit.json`·`_expired.json` | `m7/` | `S7-4` 3벌: 기본 / 연 한도 소진 / 계획 만료. 🔴 **파일명에 금액 금지** |
+| `m7_deposit_plan_default.json`·`_limit.json`·`_expired.json` | `m7/` | `S7-4` 3벌: 기본 / 연 한도 소진 / 계획 만료. 🔴 **파일명에 금액 금지** · 🆕 v1.4 — 행 타입 `DepositPlan` → **`DepositPreviewResult` 래퍼**(`{ "plan": { … } }` · 등록부 재바인딩) |
 | `realized_alloc_S7.json` | `m7/` | **C-31 의 입력** — 회계 열(`A_acct`·`C_acct`·`pot`) 대조 |
 
 ### 8-4. X7 22파일 — `m6/`·`m7/`·`m8/`·`m9/`
@@ -752,6 +759,8 @@ abstract interface class SettingsActions {
 `advice_12` · `advice_empty` · `advice_blocked` · `advice_expired_confirm` · `advice_no_action`(🔴 **C-26 의 입력** — 없으면 「억제된 날의 침묵」 검사가 입력 없이 자동 통과) · `advice_handover_cooling`(`handoverCoolingActive == true` + `openCount == 0` 조합) · `advice_detail_partial` · `advice_detail_onhold` · `advice_viewer_4`(🔴 **A6 마스킹판** — C-27 의 입력) · `fill_form_spec` · `fill_form_spec_stale`(A16 폼을 열지 않는 갈래) · `manual_fills_8`(original 5 · 상쇄+재기재 2쌍 · backdated 1) · `fill_rejected_price`(🔴 **입력값 보존** — C17) · `advice_skip_reasons` · `self_report_1` · `execution_gap_cant`·`_wont`·`_mixed`(🔴 **B21 3갈래** — `modeAdviceLine` 이 각각 달라야 한다) · `ledger_trust_4` · `handover_states` · `external_holdings_2` · `onboarding_fresh_advisory`.
 
 **총 40파일**(코어 11 + P 3 + S 3(+`realized_alloc_S7` 1) + X7 22).
+
+🆕 **v1.4(2026-09-30 · 01 §14-16)** — 이 절의 «총 40» 은 G3 착수 당시 목록이다(현재 = 등록부 `FixturePaths` 정본). v1.4 = **개정 16 · 신설 7 → 122**: `m7/m7_deposit_plan_blocked`·`_input_rejected`·`_funding` · `m7/m7_deposit_register_receipts_4` · `m7/m7_goal_path_off` · `m9/contribution_setting_default`·`_no_limit_note`(상세 = `fixtures/README.md` «계약 v1.4» 절).
 
 ### 8-5. 로더 — `lib/src/fixtures/fixture_loader.dart`
 

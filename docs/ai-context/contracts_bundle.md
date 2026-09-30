@@ -3771,7 +3771,7 @@ import 'rebalance.dart';
 part 'plan.freezed.dart';
 part 'plan.g.dart';
 
-/// 🆕 v1.4 · 01 §14-1 — 입금 미리보기 결과(`WhatIfApi.simulateDeposit` 의 반환).
+/// 🆕 v1.4 · 01 §14-3 — 입금 미리보기 결과(`WhatIfApi.simulateDeposit` 의 반환).
 /// 🔴 `plan` · `inputRejectedText` · `blockedText` 중 **정확히 하나** non-null(C-38 ①).
 /// 🔴 `blockedAction` 은 `blockedText` 가 있을 때만 non-null 일 수 있다(null = 버튼 부재).
 /// 🔴 화면은 셋 중 무엇이 non-null 인가로만 갈린다 — 문장을 해석하거나 flagId 로
@@ -3924,7 +3924,8 @@ abstract class OrderDraft with _$OrderDraft {
     /// 🔴 ui 미참조(C-38 ⑩). 표시는 [limitPriceText].
     @DecimalStringConverter() Decimal? limitPrice,
 
-    /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ②).
+    /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ② · **`DepositPlan` 한정** —
+    /// 인출 초안(`WithdrawalPlan.orderDrafts`)은 v1.5 재생성 전까지 이 짝을 지키지 않는다 · 01 §14-4 · §14-15).
     String? limitPriceText,
 
     /// 🆕 v1.4 — «미확정 수량 있음»(UNKNOWN 표기) 한 줄 — null = 줄 부재.
@@ -8061,12 +8062,16 @@ abstract final class OriginCodes {
 
 /// 플래너 주문 초안의 사유 칩 코드(`OrderDraft.reasons[].code` · 01 §2-6).
 ///
+/// ⚠️ 플래너 초안 칩에는 `PENSION_FUNDING`(원장 이벤트 사전 · `ledger_event_codes.dart`)도 온다
+///    (`m7_deposit_plan_funding` 매도 초안 · C-38 ⑧ 은 그래서 전 도메인 isRegistered 로 본다).
+///    이 사전은 플래너 **전용** 코드만 싣는다.
+///
 /// 🔴 목록은 M2 가 늘린다.
 abstract final class PlannerReasonCodes {
   /// 월 납입 배분(입금액을 슬리브·계좌로 나눈 결과의 초안).
   static const String depositRouting = 'DEPOSIT_ROUTING';
 
-  /// 전량 1종.
+  /// 플래너 전용 코드 전량 1종(`PENSION_FUNDING` 은 원장 이벤트 사전 몫).
   static const Set<String> values = <String>{depositRouting};
 }
 ```

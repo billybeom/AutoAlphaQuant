@@ -25,7 +25,7 @@ import 'rebalance.dart';
 part 'plan.freezed.dart';
 part 'plan.g.dart';
 
-/// 🆕 v1.4 · 01 §14-1 — 입금 미리보기 결과(`WhatIfApi.simulateDeposit` 의 반환).
+/// 🆕 v1.4 · 01 §14-3 — 입금 미리보기 결과(`WhatIfApi.simulateDeposit` 의 반환).
 /// 🔴 `plan` · `inputRejectedText` · `blockedText` 중 **정확히 하나** non-null(C-38 ①).
 /// 🔴 `blockedAction` 은 `blockedText` 가 있을 때만 non-null 일 수 있다(null = 버튼 부재).
 /// 🔴 화면은 셋 중 무엇이 non-null 인가로만 갈린다 — 문장을 해석하거나 flagId 로
@@ -178,7 +178,8 @@ abstract class OrderDraft with _$OrderDraft {
     /// 🔴 ui 미참조(C-38 ⑩). 표시는 [limitPriceText].
     @DecimalStringConverter() Decimal? limitPrice,
 
-    /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ②).
+    /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ② · **`DepositPlan` 한정** —
+    /// 인출 초안(`WithdrawalPlan.orderDrafts`)은 v1.5 재생성 전까지 이 짝을 지키지 않는다 · 01 §14-4 · §14-15).
     String? limitPriceText,
 
     /// 🆕 v1.4 — «미확정 수량 있음»(UNKNOWN 표기) 한 줄 — null = 줄 부재.

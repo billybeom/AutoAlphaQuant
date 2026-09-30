@@ -53,6 +53,18 @@ final RegExp _configRepo = RegExp('[Cc]onfigRepository');
 const String _goalPathDir = 'lib/src/goal_path/';
 const String _goalPathScreen = 'lib/src/screens/goal_path_screen.dart';
 
+/// 🆕 검토 반영 — 화면 본문을 R10 선례(`screens/explore/`)처럼 `screens/goal_path/` 에 나눠 두어도
+/// 스캔이 본다(03 §14 ⓐ 는 화면 = `goal_path_screen.dart` · 보조 = `src/goal_path/` 로 못박는다).
+const String _goalPathScreensDir = 'lib/src/screens/goal_path/';
+
+/// ⑨ 가드 — 목표 경로 DTO·창구를 말하는 `ui_analytics/lib` 파일은 S7-9 대상 + 이 프로바이더 파일뿐이다
+/// (대상 밖 경로에 같은 화면 코드를 두면 ⑨ 가 공허 통과하는 구멍을 막는다).
+const String _goalPathProvidersFile =
+    'lib/src/providers/analytics_providers.dart';
+final RegExp _goalPathMention = RegExp(
+  r'\b(GoalPathVm|goalPath|goalPathProvider)\b',
+);
+
 void main() {
   group('C-39 목표 경로 표시·기하 계약 (01 §14 · 계약 v1.4)', () {
     test('C-39 대상 — 목표 경로 픽스처 4건과 모양 4종을 빠짐없이 찾았다', () {
@@ -208,6 +220,10 @@ void main() {
       );
       expect(_isGoalPathTarget(_goalPathScreen), isTrue);
       expect(
+        _isGoalPathTarget('lib/src/screens/goal_path/goal_path_body.dart'),
+        isTrue,
+      );
+      expect(
         _isGoalPathTarget('lib/src/screens/monthly_report_screen.dart'),
         isFalse,
       );
@@ -251,6 +267,28 @@ void main() {
           sources['packages/ui_analytics/$rel'] = f.readAsStringSync();
         }
       }
+      // 🆕 가드 — 목표 경로 DTO·창구를 말하는 파일은 S7-9 대상 + 프로바이더 파일뿐.
+      expect(
+        _goalPathMentionsOutside(<String, String>{
+          'lib/src/goal_path/a.dart': 'void f(GoalPathVm vm) {}\n',
+          _goalPathProvidersFile: 'final goalPathProvider = x; // GoalPathVm\n',
+          'lib/src/widgets/goal_path_card.dart': 'void f(GoalPathVm vm) {}\n',
+          'lib/src/screens/c.dart': '// GoalPathVm 은 S7-9 만 말한다\n',
+        }),
+        <String>['lib/src/widgets/goal_path_card.dart'],
+      );
+      final Map<String, String> all = <String, String>{
+        for (final File f in dartSourcesIn(Directory('${root.path}/lib')))
+          _relativeTo(root, f): f.readAsStringSync(),
+      };
+      expect(
+        _goalPathMentionsOutside(all),
+        isEmpty,
+        reason:
+            '`GoalPathVm`·`goalPath`·`goalPathProvider` 를 말하는 파일은 `lib/src/goal_path/**`·'
+            '`lib/src/screens/goal_path_screen.dart`(·`screens/goal_path/**`)와 프로바이더 파일에만 둔다 — '
+            '밖에 두면 ⑨ 스캔이 그 파일을 보지 않는다(03 §14 ⓐ · 01 §14-9).',
+      );
       // 🔴 대상 파일이 아직 없으면(R11b 전) 통과한다 — 없는 파일로 실패시키지 않는다.
       expect(
         _scanGoalPath(sources),
@@ -662,7 +700,18 @@ List<String> _goalLinkViolations(
 }
 
 bool _isGoalPathTarget(String rel) =>
-    rel == _goalPathScreen || rel.startsWith(_goalPathDir);
+    rel == _goalPathScreen ||
+    rel.startsWith(_goalPathDir) ||
+    rel.startsWith(_goalPathScreensDir);
+
+/// ⑨ 가드 — 주석을 지운 소스가 목표 경로 DTO·창구를 말하는데 S7-9 대상도 프로바이더 파일도 아닌 파일.
+List<String> _goalPathMentionsOutside(Map<String, String> sources) => <String>[
+  for (final MapEntry<String, String> e in sources.entries)
+    if (!_isGoalPathTarget(e.key) &&
+        e.key != _goalPathProvidersFile &&
+        _goalPathMention.hasMatch(stripComments(e.value)))
+      e.key,
+];
 
 /// ⑨ 스캔 — `.value` 두 정규식(주석만 지운 소스 · 보간 안 참조까지) + `ConfigRepository`(주석 지운 소스).
 List<String> _scanGoalPath(Map<String, String> sources) => <String>[

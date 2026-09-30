@@ -318,7 +318,7 @@ AAQ_CHART_PREVIEW_DIR=/tmp/chart_preview flutter test test/golden/chart_probe_te
 
 | 카드 | 이름 | 장수 | 테스트 파일 | 입력 픽스처 |
 |---|---|---|---|---|
-| R11a | `s74_step1_default` · `s74_step2_normal` · `s74_step3_normal` · `s74_pension_limit_hit` · `s74_expired` · `s74_funding` · `s74_blocked` | 7 × light/dark = **14** | `s74_golden_test.dart` | `m7_deposit_plan_*` — ⬜ 03 §9 R11 블록 표 |
+| R11a | `s74_step1_default` · `s74_step2_normal` · `s74_step3_normal` · `s74_pension_limit_hit` · `s74_expired` · `s74_funding` · `s74_blocked` | 7 × light/dark = **14** | `s74_golden_test.dart` | ✅ 03 §9 ⓗ 표(입력 픽스처 · 안전 상태 `safety_states` 행 · 설정 픽스처 짝까지 — 🔧 2026-09-30 검토 반영: `s74_blocked` = `m7_deposit_plan_blocked` 행0 + safety 행4 · `s74_funding` = safety 행3 · 나머지 행0 · 설정 = `m9/contribution_setting_default`) |
 | R11b | `s79_on_track` · `s79_off_track` · `s79_hold` · `s79_realworld` | 4 × light/dark = **8** | `s79_golden_test.dart` | `m7M7GoalPathOn` · `m7M7GoalPathOff` · `m7M7GoalPathHold` · `m7M7GoalPathRealworld` |
 | R11b 부록 | `s71_*` **재생성** 10(S7-1 진입 버튼 · 값 열 정렬) | 10 | `s71_golden_test.dart`(기존) | 기존 그대로 · 🔴 재생성은 `golden:approved` 라벨로만 |
 

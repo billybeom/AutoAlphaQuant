@@ -60,6 +60,8 @@ const List<String> _chartDirs = <String>[
   'lib/src/screens/explore/',
   // 🆕 v1.4(01 §14-11 · 설계 D12) — S7-9 목표 경로 차트(본보기 diff 0 복사처).
   'lib/src/goal_path/',
+  // 🆕 검토 반영 — S7-9 화면 본문을 `screens/goal_path/` 에 나눠 두어도 본다(C-39 ⑨ 와 같은 대상).
+  'lib/src/screens/goal_path/',
 ];
 const List<String> _chartFiles = <String>[
   'lib/src/screens/performance_explore_screen.dart',
