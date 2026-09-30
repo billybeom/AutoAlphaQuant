@@ -5,8 +5,10 @@
 // 🔴 구현은 `command_queue` 에 UPDATE·DELETE 를 부르지 않는다(C-16).
 // 🔴 **킬스위치 «해제» 명령은 없다**(결정 6). 해제는 폰 M5 재개 게이트 전용이며
 //    `deactivate` 추가 제안은 **거절이 기본값**이다.
-// 🔴 **뷰어가 쓸 수 있는 것은 앞 5종이 전부다.** X7 7종은 전량 폰(operator) 전용이라
-//    뷰어 화이트리스트를 건드리지 않는다. ⏸ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이고
+// 🔴 **뷰어가 쓸 수 있는 것은 앞 4종이 전부다**(킬스위치·사전 저널·blind 리뷰·열람 기록).
+//    🆕 v1.4 정정(01 §14-2) — 구 «앞 5종»의 다섯째 `registerDeposit`(`DEPOSIT_REGISTER`)는
+//    **폰(operator) 전용**이다(RLS 01 §6-4 `command_insert_viewer` · DDL `batch_d_supabase.sql`
+//    과 일치). X7 7종도 전량 폰 전용이라 뷰어 화이트리스트를 건드리지 않는다. ⏸ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이고
 //    현행 4종 화이트리스트를 유지한다(J-3).
 // 🔴 화면은 `CommandReceipt.state` 를 스스로 낙관 갱신하지 않는다.
 // 🔴 **`OperatingMode` 전환은 여기 없다** — `SettingsActionId.runtimeOperatingModeSwitchRequest`
@@ -34,6 +36,8 @@ abstract interface class CommandApi {
   /// 열람 기록(결정 8).
   Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event);
 
+  /// 실입금 등록 — 🔴 폰(operator) 전용(01 §14-2). 🆕 v1.4 인자 = `planId` 하나.
+  /// 1회 호출 · 이후 상태는 [watchCommand] 의 `stateLabel` 로만 안다(01 §14 · D7).
   Future<CommandReceipt> registerDeposit(DepositRegistration registration);
 
   /// 명령 1건의 접수증 흐름 — 화면이 `state` 를 갱신하는 **유일한** 경로(낙관 갱신 금지).

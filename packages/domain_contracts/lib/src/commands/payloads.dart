@@ -11,26 +11,23 @@
 //
 // 🔴 X7 8종은 `payloads_x7.dart` 에 있다(파일 크기 규약상 분리 · 계약상 같은 §5-4 표).
 
-import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-
-import '../primitives/money.dart';
 
 part 'payloads.freezed.dart';
 part 'payloads.g.dart';
 
 /// 실입금 등록(§2-6 · 플래너 계획 스냅샷 소비).
+/// 🆕 v1.4(01 §14-7) — 인자는 **`planId` 하나**다. 금액·기준일은 엔진이 계획 스냅샷에서 가져오고,
+///    실입금 대조는 원장이 한다(06 M3-2). 구 `amount`·`valueDate` 는 삭제됐다 — valueDate 의
+///    공급원이 없었고 amount 의 출처가 문서마다 달랐다.
+/// 🔴 `DEPOSIT_REGISTER` 는 폰(operator) 전용이다(01 §14-2 · RLS · `command_api.dart` 머리).
 @freezed
 abstract class DepositRegistration with _$DepositRegistration {
   const factory DepositRegistration({
-    /// 🔴 만료된 계획이면 엔진이 거부한다(§2-6) — 화면이 만료를 미리 판정하지 않는다.
+    /// 🔴 화면에 **그려진 계획의** `planId` 만 넣는다. 등록할 수 없는 계획(만료 등)은 엔진이
+    ///    `DepositPlan.registerBlockedText` 로 미리 말하고, 그래도 오면 엔진이 거부한다 —
+    ///    화면이 만료를 미리 판정하지 않는다.
     required String planId,
-
-    /// JSON 은 문자열이다.
-    /// 🔴 금액은 **엔진 설정값**(`ConfigRepository.watchContributionSetting`)에서 오며
-    ///    화면·계약이 상수로 적지 않는다(§2-6 · C-32).
-    @DecimalStringConverter() required Decimal amount,
-    @TradeDateConverter() required TradeDate valueDate,
   }) = _DepositRegistration;
 
   factory DepositRegistration.fromJson(Map<String, dynamic> json) =>

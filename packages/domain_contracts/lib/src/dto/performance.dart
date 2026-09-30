@@ -266,6 +266,11 @@ abstract class MonthlyReport with _$MonthlyReport {
     /// 🆕 v1.1(§8 미결 43) — 이 리포트를 만든 설정의 해시(모노스페이스 축약 표시용).
     /// 🔴 화면이 다른 해시와 비교하지 않는다(contract_version.dart 말미 조문). 미생성이면 null.
     String? configHash,
+
+    /// 🆕 v1.4(01 §14-9) — «목표 경로 보기» 버튼의 목적지(`AppRoutes.reportGoalPath` 꼴 · C-33).
+    /// null = **버튼 부재**(자리표시자 없음). 엔진은 과거 달·가림·미생성 달이면 null 로 둘 수 있다.
+    /// 🔴 화면은 이 문자열을 해석·조립하지 않고 `AppLinkOpener.open` 에 그대로 넘긴다.
+    String? goalDeepLink,
   }) = _MonthlyReport;
 
   factory MonthlyReport.fromJson(Map<String, dynamic> json) =>
@@ -476,43 +481,76 @@ abstract class AnnualReviewSection with _$AnnualReviewSection {
       _$AnnualReviewSectionFromJson(json);
 }
 
-/// 01 §2-6 · m2-8 F-15 · C-4 — 목표 경로(`S7-9`).
-/// 🔴 `basisText` 와 `backtestBasisText` 는 **두 필드**이며 화면이 둘을 동시에
-///    그리지 않는다(C-4 — 확장이 아니라 신설을 고른 이유가 이 조문의 검사
-///    가능성이다).
+/// 01 §2-6 · m2-8 F-15 · 🆕 v1.4 01 §14-10 — 목표 경로(`S7-9`).
+/// 🔴 **01 §14-10 «필드 → 자리» 대응표가 정본**이다. 화면은 필드마다 정해진 한 자리에만 그린다.
+/// 🔴 v1.4 — C-4 «`basisText`·`backtestBasisText` 를 동시에 그리지 않는다» 조문은 **폐기**됐다
+///    (03 §14 가정 카드가 두 줄을 요구한다). 대신 역할을 고정한다: `basisText` = 판정 근거 줄 ·
+///    `backtestBasisText` = 가정 카드 1줄 · `startingCapitalAssumptionText` = 가정 카드 2줄
+///    (03 §14·§17-17 의 `contributionAssumptionText` 를 대체 · 01 §14 결정 뒤집기 기록).
+/// 🔴 `honestExpectationText`·`honestExpectationWorstText` 는 세후 사다리 마지막 층을 인용하는
+///    **완성 문장**이지 스칼라가 아니다 — 01 §2-6 «`PerfDisclosure` = 기대치 문구의 유일한
+///    운반처(M7 한정)»의 **명시 예외**(01 §14 · 문자열 출처는 같은 엔진 상수 블록). 화면은 숫자를
+///    옮겨 적지 않는다.
+/// 🔴 `planned`·`actual` 은 `PerfPoint` 를 재사용한다(01 §13 세 식 준용 · C-39). 화면이 두 목록을
+///    합치거나 차액·달성률을 계산하지 않는다.
+/// 🔴 S7-9 는 `ConfigRepository` 를 읽지 않는다(03 §17-17 이 이긴다).
 @freezed
 abstract class GoalPathVm with _$GoalPathVm {
   const factory GoalPathVm({
-    required String startingCapitalAssumptionText,
+    /// 🆕 v1.4 — 이 경로의 달(`yyyy-MM`). Key 용 · 🔴 표시 금지.
+    required String yyyyMm,
+
+    /// 🆕 v1.4 — «유지»/«이탈»/«판정 유보» 문장 — 엔진 생성.
+    required String judgementText,
+
+    /// 역할 고정(v1.4): **판정 근거 줄**.
     required String basisText,
+
+    /// 🆕 v1.4 — 이탈 문장(구 봉투 `lag_notice` 승격) — null = 줄 부재.
+    String? deviationText,
+
+    /// 🆕 v1.4 — 이 경로가 덮는 기간 — 엔진 생성.
+    required String periodLabel,
+
+    /// 🆕 v1.4 — 범례: 계획선.
+    required String plannedLabel,
+
+    /// 🆕 v1.4 — 범례: 실제선.
+    required String actualLabel,
+
+    /// 🆕 v1.4 — 계획선. 🔴 `yNormalized` 결측 없음 · [actual] 과 같은 길이·date·xNormalized(C-39 ②).
+    required List<PerfPoint> planned,
+
+    /// 🆕 v1.4 — 실제선. 결측(`yNormalized == null`)은 선을 끊는다 — 보간 금지(C-10 준용).
+    required List<PerfPoint> actual,
+
+    /// 🆕 v1.4 — 세로축 눈금(아래 → 위) · 많아야 5개(C-39 ④).
+    required List<PerfAxisTick> yTicks,
+
+    /// 🆕 v1.4 — 갭·SIM 제외 띠 — 받은 순서 · 겹침 없음(C-39 ⑤).
+    required List<PerfSegment> segments,
+
+    /// 🆕 v1.4 — non-null ⇔ [planned]·[actual]·[yTicks]·[segments] 가 모두 빈 목록(C-39 ③).
+    /// 그때는 차트 대신 이 문장 카드 1장이고 [deviationText] 는 null 이다.
+    String? chartUnavailableLabel,
+
+    /// 역할 고정(v1.4): **가정 카드 1줄**(백테스트 기준 실행).
     required String backtestBasisText,
+
+    /// 역할 고정(v1.4): **가정 카드 2줄**(당신의 현재 원금·납입).
+    required String startingCapitalAssumptionText,
+
+    /// 🆕 v1.4 — 정직 기대 본값 **인용 문장**(위 예외 조문).
+    required String honestExpectationText,
+
+    /// 최악 가정 한 문장(인용 문장 · 위 예외 조문).
     required String honestExpectationWorstText,
-    required List<GoalPathPoint> points,
+
+    /// 🆕 v1.4 — «보증하지 않습니다» 엔진 고지.
+    required String disclaimerText,
     required AsOf asOf,
   }) = _GoalPathVm;
 
   factory GoalPathVm.fromJson(Map<String, dynamic> json) =>
       _$GoalPathVmFromJson(json);
-}
-
-/// ⚠️ **M2-8 미확정** — F-15 가 `List<GoalPathPoint>` 라는 **이름만** 확정했고
-/// 필드 축은 문서에 없다(03 §14 의 `PathPointVm` 도 필드가 비어 있다).
-/// 아래는 `PerfPoint`(§2-4)와 같은 모양으로 둔 **임시 최소 축**이다 —
-/// 🔴 계획선·실제선의 구분은 `seriesCode`(엔진 코드)로 오며 화면이 두 목록을
-///    합치거나 차액을 계산하지 않는다.
-@freezed
-abstract class GoalPathPoint with _$GoalPathPoint {
-  const factory GoalPathPoint({
-    @TradeDateConverter() required TradeDate date,
-
-    /// 엔진이 준 계열 코드(계획/실제) — 화면이 문자열을 짓지 않는다.
-    required String seriesCode,
-
-    /// 🔴 그래프 기하 전용. 표시는 `valueText` 다.
-    required double normalized,
-    required String valueText,
-  }) = _GoalPathPoint;
-
-  factory GoalPathPoint.fromJson(Map<String, dynamic> json) =>
-      _$GoalPathPointFromJson(json);
 }

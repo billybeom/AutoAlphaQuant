@@ -12,7 +12,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 ///    **둘 다 바꾸지 않는다**(`m2-8_naming.md` B-3). C-15 가 이 비대칭을 검사한다.
 /// 🔴 뒤 3종(`selfReportBalance`·`alertAck`·`killChecklistConfirm`)은 기계 변환과 일치한다 —
 ///    그래서 위 4종과 섞이면 더 위험하다(B-4).
-/// 🔴 X7 7종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트(앞 5종)를 건드리지 않는다.
+/// 🔴 X7 7종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트(앞 4종)를 건드리지 않는다.
+/// 🆕 v1.4 정정(01 §14-2) — `depositRegister` 도 폰 전용이다(구 «앞 5종» → 4종).
 /// 🔴 킬스위치 «해제» 명령은 없다(결정 6).
 enum CommandKind {
   @JsonValue('KILL_SWITCH_ACTIVATE')

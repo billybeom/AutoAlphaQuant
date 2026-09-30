@@ -54,7 +54,8 @@ class PerfSeriesRow {
 /// 전 픽스처에서 성과 시리즈 행을 **모양으로** 찾는다.
 ///
 /// 모양 = `metric` · `granularity` · `points` · `segments` 키를 모두 가진 행.
-/// (`m7_goal_path_*` 도 `points` 를 갖지만 `metric`·`segments` 가 없다 — `GoalPathPoint`.)
+/// (`m7_goal_path_*`(`GoalPathVm`)은 🆕 v1.4 부터 `points` 대신 `planned`·`actual` 두 목록이고
+/// `metric` 이 없다 — 이 모양에 잡히지 않는다. 목표 경로 행 검사는 C-39 가 한다.)
 List<PerfSeriesRow> allPerfSeriesRows() {
   final List<PerfSeriesRow> out = <PerfSeriesRow>[];
   for (final String path in FixturePaths.all) {
