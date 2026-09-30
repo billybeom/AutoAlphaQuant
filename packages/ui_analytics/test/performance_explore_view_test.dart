@@ -602,6 +602,7 @@ void main() {
       for (final flag in safety3.activeFlags) {
         expect(find.text(flag.label), findsOneWidget);
       }
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
 
     testWidgets('E22 layout order caption disclosure note values links', (
