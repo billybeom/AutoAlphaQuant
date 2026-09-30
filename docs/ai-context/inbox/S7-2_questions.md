@@ -13,3 +13,9 @@
 | A4 | R10c-Bob-S72 | 추측 | 측정: s72_manual_segment dy 실측값 (light=944, dark=944 < 1400) | 골든 위치 전제 실측 | 1400 미만 확인 | ⬜ 미답 | |
 | A5 | R10c-Bob-S72 | 추측 | 측정: s72_monthly_period dy 실측값 (light=1040, dark=1040 < 1400) | 골든 위치 전제 실측 | 1400 미만 확인 | ⬜ 미답 | |
 | A6 | R10c-Bob-S72 | 추측 | 측정: s72_unavailable dy 실측값 (light=604, dark=604 < 1400) | 골든 위치 전제 실측 | 1400 미만 확인 | ⬜ 미답 | |
+| A7 | R10c-Bob-S72 | 추측 | 측정: s72_monthly_cum dy 재제출 실측값 (light=1040, dark=1040 < 1400) | 골든 위치 전제 실측 | 1400 미만 확인 | ⬜ 미답 | |
+| A8 | R10c-Bob-S72 | 추측 | 측정: s72_daily_gap dy 재제출 실측값 (light=944, dark=944 < 1400) | 골든 위치 전제 실측 | 1400 미만 확인 | ⬜ 미답 | |
+| A9 | R10c-Bob-S72 | 추측 | 측정: s72_sim_split dy 재제출 실측값 (light=944, dark=944 < 1400) | 골든 위치 전제 실측 | 1400 미만 확인 | ⬜ 미답 | |
+| A10 | R10c-Bob-S72 | 추측 | 측정: s72_manual_segment dy 재제출 실측값 (light=944, dark=944 < 1400) | 골든 위치 전제 실측 | 1400 미만 확인 | ⬜ 미답 | |
+| A11 | R10c-Bob-S72 | 추측 | 측정: s72_monthly_period dy 재제출 실측값 (light=1040, dark=1040 < 1400) | 골든 위치 전제 실측 | 1400 미만 확인 | ⬜ 미답 | |
+| A12 | R10c-Bob-S72 | 추측 | 측정: s72_unavailable dy 재제출 실측값 (light=604, dark=604 < 1400) | 골든 위치 전제 실측 | 1400 미만 확인 | ⬜ 미답 | |
