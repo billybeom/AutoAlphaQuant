@@ -309,22 +309,32 @@ AAQ_CHART_PREVIEW_DIR=/tmp/chart_preview flutter test test/golden/chart_probe_te
 본보기 `PerfChart` 를 성과 픽스처 7개(정상 6건 · `performance24m` 은 2행) × light/dark 로 찍어 그 폴더에 둔다. 변수가 없으면 아무것도 하지 않는다.
 🔴 `test/golden/goldens/` 를 가리키지 않는다.
 
-## 🆕 R11(계약 v1.4) — `S7-4` · `S7-9` (2026-09-30 · 뼈대 — 카드 조립 때 채운다)
+## 🆕 R11(계약 v1.4) — `S7-4` · `S7-9` (2026-09-30 · ~~뼈대 — 카드 조립 때 채운다~~ → ✅ 카드 조립 반영 · 누적 드라이런 실측 R11a `a8d8c7f` · R11b `b896ebb`)
 
 정본: 01 §14 · 03 §9·§14 의 «🆕 계약 v1.4 — R11 범위» 블록(골든↔픽스처 표는 거기가 이긴다). 이 절은 **골든과 차트 증명**만 말한다.
 카드는 나눠 간다: **R11a-Bob-S74**(플래너 · 폰 전용 · `package:ui_analytics/planner.dart`) → **R11b-Bob-S79**(목표 경로 + S7-1 진입 버튼 부록). S7-5(인출)는 **R11c · v1.5 로 보류**다 — 여기에 골든을 적지 않는다.
 
-### 1. 골든 이름 (⬜ 높이·입력 칸은 드라이런 실측으로 채운다)
+### 1. 골든 이름 (✅ 높이·입력 = 누적 드라이런 실측 · 2026-09-30 · 카드 «■ 골든» 절과 같은 말)
 
 | 카드 | 이름 | 장수 | 테스트 파일 | 입력 픽스처 |
 |---|---|---|---|---|
 | R11a | `s74_step1_default` · `s74_step2_normal` · `s74_step3_normal` · `s74_pension_limit_hit` · `s74_expired` · `s74_funding` · `s74_blocked` | 7 × light/dark = **14** | `s74_golden_test.dart` | ✅ 03 §9 ⓗ 표(입력 픽스처 · 안전 상태 `safety_states` 행 · 설정 픽스처 짝까지 — 🔧 2026-09-30 검토 반영: `s74_blocked` = `m7_deposit_plan_blocked` 행0 + safety 행4 · `s74_funding` = safety 행3 · 나머지 행0 · 설정 = `m9/contribution_setting_default`) |
-| R11b | `s79_on_track` · `s79_off_track` · `s79_hold` · `s79_realworld` | 4 × light/dark = **8** | `s79_golden_test.dart` | `m7M7GoalPathOn` · `m7M7GoalPathOff` · `m7M7GoalPathHold` · `m7M7GoalPathRealworld` |
-| R11b 부록 | `s71_*` **재생성** 10(S7-1 진입 버튼 · 값 열 정렬) | 10 | `s71_golden_test.dart`(기존) | 기존 그대로 · 🔴 재생성은 `golden:approved` 라벨로만 |
+| R11b | `s79_on_track` · `s79_off_track` · `s79_hold` · `s79_realworld` | 4 × light/dark = **8** | `s79_golden_test.dart` | `m7M7GoalPathOn` · `m7M7GoalPathOff` · `m7M7GoalPathHold` · `m7M7GoalPathRealworld`(`m7/m7_goal_path_on·_off·_hold·_realworld.json`) · 띄운다(게이트 없음) · 값 표 접힌 채 · 안전 행 0 · 시계 `kGoldenNowUtc` · 크기 390 × **900**(상수 `kS79GoldenSize` · 844 는 off 847 로 모자람) |
+| R11b 부록 | `s71_*` **재생성** 10(S7-1 진입 버튼 · 값 열 정렬) | 허용 10(드라이런 실제 M **6**) | `s71_golden_test.dart`(기존 · **무수정**) | 기존 그대로 · 위치 전제 없음 · 명령 = `flutter test --update-goldens test/golden/s71_golden_test.dart`(파일 하나) · 드라이런 실제 M 6 = normal · partial_gap · masked_recon × light/dark(버튼은 844 밖이라 PNG 에 없음 · masked_integrity · not_generated 불변) · 🔴 재생성은 `golden:approved` 라벨로만(Claude) |
 
 - 🔴 `s74_viewer` 는 **없다**(폰 전용 · 뷰어 셸은 `planDeposit` 에 부재 안내 — 01 §14).
 - 기존 PNG 불변 수: R11a 에게 **42장** · R11b 에게 **56장** 가운데 허용 목록 `s71_*` 10 을 뺀 **46장**.
 - 높이는 테스트 파일 안 상수 · 찍기 **전에** «맨 아래 위젯 dy < 높이»를 단언한다(R10 §2 와 같다).
+- **R11a**(`s74_golden_test.dart` · 드라이런 `a8d8c7f`) — 가는 길: `s74_step1_default` = 띄우기만 · `s74_step2_normal`·`s74_pension_limit_hit`·`s74_blocked` = «미리보기 계산» · `s74_step3_normal`·`s74_expired`·`s74_funding` = 계산 → «다음». 맨 아래 Key: `s74_step1_default` = `s74-calculate` · `s74_blocked` = `s74-blocked-card` · 나머지 = `s74-back`. 높이(390 ×) = step1_default **844** · step2_normal **844** · step3_normal **1100** · pension_limit_hit **844** · expired **1100** · funding **1300** · blocked **844**. 찍는 모양 = `pumpForGolden(…, logicalSize: Size(390, <높이 상수>))` → 탭(`tapAndSettle`) → 🔴 찍기 전 `await tester.pumpAndSettle()`(버튼 물결) → 위치 전제 → `expectGolden`. 파일 모양 = 밝기 루프 하나 × 이름마다 `testWidgets` 1(7개). 설정은 전부 `m9ContributionSettingDefault` · 입력칸에 포커스를 주지 않는다(커서 깜빡임). 명령 = `flutter test --update-goldens test/golden/s74_golden_test.dart`(기존 골든 테스트 5파일을 넣지 않는다).
+- **R11b**(`s79_golden_test.dart` · 드라이런 `b896ebb`) — 모양 = `s71_golden_test.dart` 처럼 (이름, 픽스처 경로) 목록 × `Brightness.values` 루프 · 위치 전제 **한 곳**. 명령 = `flutter test --update-goldens test/golden/s79_golden_test.dart`(부록 재생성은 부록 커밋에서 `s71_golden_test.dart` 하나만 따로).
+  ```dart
+  // s74_* — 맨 아래 Key 는 위 R11a 줄 · 높이는 이름마다 상수
+  expect(tester.getBottomLeft(find.byKey(const Key('s74-back'))).dy, lessThan(1100));   // 예: s74_step3_normal
+  // s79_* — 맨 아래 = 고지(판정 유보 hold 도 같다)
+  expect(tester.getBottomLeft(find.byKey(const Key('s79-disclaimer'))).dy, lessThan(kS79GoldenSize.height));
+  ```
+- 드라이런 실측 dy(light=dark · 이름·밝기마다 `lessThan(0)` 임시 수정으로 잼 · 참고값 — 병합본 실측 줄은 C4 기록 커밋에서): `s74_*` step1_default **379** · step2_normal **759** · step3_normal **964** · pension_limit_hit **814** · expired **992** · funding **1175** · blocked **532**(배분 행 `Wrap` 반영 전 값 — step2_normal · pension_limit_hit 는 더 작아질 수 있다) · `s79-disclaimer` on_track **803** · off_track **847** · hold **562** · realworld **827**(900 과 2000 두 높이에서 같은 값).
+- 기존 PNG 불변 실측: R11a 드라이런 42장 M 0(새 14) · R11b 드라이런 46장 불변(새 8 · `s71_*` M 6).
 
 ### 2. 목표 경로 차트의 주 증명 — `expectGoalPathMatches`
 
