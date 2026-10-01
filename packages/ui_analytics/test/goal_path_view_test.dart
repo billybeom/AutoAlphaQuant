@@ -33,7 +33,9 @@ void main() {
     GoalPathVm.fromJson,
   );
 
-  final FixtureEnvelope safetyEnvelope = fixtureEnvelope(FixturePaths.safetyStates);
+  final FixtureEnvelope safetyEnvelope = fixtureEnvelope(
+    FixturePaths.safetyStates,
+  );
 
   testWidgets('T79-01 goalPathCalls', (WidgetTester tester) async {
     final repo = FakeGoalPathRepository(vm: on);
@@ -45,21 +47,19 @@ void main() {
     expect(find.text(AnalyticsLabels.retryButton), findsNothing);
   });
 
-  for (final (String name, GoalPathVm vm, bool isStale, int safetyRow) in <(
-    String,
-    GoalPathVm,
-    bool,
-    int,
-  )>[
-    ('on', on, false, 0),
-    ('off', off, true, 4),
-    ('realworld', realworld, false, 3),
-  ]) {
+  for (final (String name, GoalPathVm vm, bool isStale, int safetyRow)
+      in <(String, GoalPathVm, bool, int)>[
+        ('on', on, false, 0),
+        ('off', off, true, 4),
+        ('realworld', realworld, false, 3),
+      ]) {
     testWidgets('T79-02 layout chain $name', (WidgetTester tester) async {
       final Clock clock = isStale
           ? FixedClock(kGoldenNowUtc.add(const Duration(days: 3)))
           : FixedClock(kGoldenNowUtc);
-      final SafetyState safety = SafetyState.fromJson(safetyEnvelope.rows[safetyRow]);
+      final SafetyState safety = SafetyState.fromJson(
+        safetyEnvelope.rows[safetyRow],
+      );
       final repo = FakeGoalPathRepository(vm: vm);
       await pumpGoalPath(
         tester,
@@ -121,7 +121,10 @@ void main() {
       // check segment captions: measured segments have no key
       for (int i = 0; i < vm.segments.length; i++) {
         if (vm.segments[i].kind == SegmentKind.measured) {
-          expect(find.byKey(ValueKey<String>('s79-segment-caption-$i')), findsNothing);
+          expect(
+            find.byKey(ValueKey<String>('s79-segment-caption-$i')),
+            findsNothing,
+          );
         }
       }
 
@@ -135,7 +138,9 @@ void main() {
     ('hold', hold),
     ('realworld', realworld),
   ]) {
-    testWidgets('T79-03 deviation line only when present $name', (WidgetTester tester) async {
+    testWidgets('T79-03 deviation line only when present $name', (
+      WidgetTester tester,
+    ) async {
       final repo = FakeGoalPathRepository(vm: vm);
       await pumpGoalPath(tester, repo: repo, yyyyMm: vm.yyyyMm);
 
@@ -154,7 +159,9 @@ void main() {
     await pumpGoalPath(tester, repo: repo, yyyyMm: hold.yyyyMm);
 
     expect(find.byKey(const Key('s79-unavailable')), findsOneWidget);
-    final Text unavailableText = tester.widget<Text>(find.byKey(const Key('s79-unavailable')));
+    final Text unavailableText = tester.widget<Text>(
+      find.byKey(const Key('s79-unavailable')),
+    );
     expect(unavailableText.data, hold.chartUnavailableLabel);
     expect(find.byKey(kGoalPathChartProbeKey), findsNothing);
     expect(find.byKey(const Key('s79-tick-0')), findsNothing);
@@ -204,8 +211,13 @@ void main() {
         expect(tickFinder, findsOneWidget);
         final Text tickText = tester.widget<Text>(tickFinder);
         expect(tickText.data, vm.yTicks[i].label);
-        final Rect chartRect = tester.getRect(find.byKey(kGoalPathChartProbeKey));
-        expect(tester.getTopRight(tickFinder).dx, lessThanOrEqualTo(chartRect.left));
+        final Rect chartRect = tester.getRect(
+          find.byKey(kGoalPathChartProbeKey),
+        );
+        expect(
+          tester.getTopRight(tickFinder).dx,
+          lessThanOrEqualTo(chartRect.left),
+        );
       }
       expect(find.byKey(ValueKey<String>('s79-tick-4')), findsNothing);
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
@@ -221,12 +233,19 @@ void main() {
       final repo = FakeGoalPathRepository(vm: vm);
       await pumpGoalPath(tester, repo: repo, yyyyMm: vm.yyyyMm);
 
-      final Text firstText = tester.widget<Text>(find.byKey(const Key('s79-x-first')));
+      final Text firstText = tester.widget<Text>(
+        find.byKey(const Key('s79-x-first')),
+      );
       expect(firstText.data, vm.actual.first.dateText);
-      final Text lastText = tester.widget<Text>(find.byKey(const Key('s79-x-last')));
+      final Text lastText = tester.widget<Text>(
+        find.byKey(const Key('s79-x-last')),
+      );
       expect(lastText.data, vm.actual.last.dateText);
       final Rect chartRect = tester.getRect(find.byKey(kGoalPathChartProbeKey));
-      expect(tester.getTopLeft(find.byKey(const Key('s79-x-first'))).dx, chartRect.left);
+      expect(
+        tester.getTopLeft(find.byKey(const Key('s79-x-first'))).dx,
+        chartRect.left,
+      );
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
     });
   }
@@ -328,7 +347,9 @@ void main() {
 
     expect(find.text(AnalyticsLabels.retryButton), findsOneWidget);
     expect(
-      tester.widget<AnalyticsErrorView>(find.byType(AnalyticsErrorView)).lastAsOfLabel,
+      tester
+          .widget<AnalyticsErrorView>(find.byType(AnalyticsErrorView))
+          .lastAsOfLabel,
       isNull,
     );
     for (final BlockFlag flag in safety.activeFlags) {
@@ -365,7 +386,9 @@ void main() {
     ('on', on),
     ('realworld', realworld),
   ]) {
-    testWidgets('T79-10 no fabricated strings $name', (WidgetTester tester) async {
+    testWidgets('T79-10 no fabricated strings $name', (
+      WidgetTester tester,
+    ) async {
       final repo = FakeGoalPathRepository(vm: vm);
       await pumpGoalPath(tester, repo: repo, yyyyMm: vm.yyyyMm);
 
@@ -432,7 +455,9 @@ void main() {
     });
   }
 
-  testWidgets('T79-12 no ConfigRepository or planner in files', (WidgetTester tester) async {
+  testWidgets('T79-12 no ConfigRepository or planner in files', (
+    WidgetTester tester,
+  ) async {
     final List<File> files = <File>[
       File('lib/src/screens/goal_path_screen.dart'),
       ...Directory('lib/src/goal_path')
@@ -447,15 +472,12 @@ void main() {
     }
   });
 
-  for (final (String name, GoalPathVm vm, int expectedLen) in <(
-    String,
-    GoalPathVm,
-    int,
-  )>[
-    ('on', on, 0),
-    ('off', off, 0),
-    ('realworld', realworld, 1),
-  ]) {
+  for (final (String name, GoalPathVm vm, int expectedLen)
+      in <(String, GoalPathVm, int)>[
+        ('on', on, 0),
+        ('off', off, 0),
+        ('realworld', realworld, 1),
+      ]) {
     testWidgets('T79-13 segment captions $name', (WidgetTester tester) async {
       final repo = FakeGoalPathRepository(vm: vm);
       await pumpGoalPath(tester, repo: repo, yyyyMm: vm.yyyyMm);
@@ -488,11 +510,10 @@ void main() {
 
   testWidgets('T79-14 barrel exports', (WidgetTester tester) async {
     final String content = File('lib/ui_analytics.dart').readAsStringSync();
-    final List<String> exports =
-        RegExp(r"^export '([^']+)';", multiLine: true)
-            .allMatches(content)
-            .map((RegExpMatch m) => m.group(1)!)
-            .toList();
+    final List<String> exports = RegExp(
+      r"^export '([^']+)';",
+      multiLine: true,
+    ).allMatches(content).map((RegExpMatch m) => m.group(1)!).toList();
     expect(exports, hasLength(8));
     expect(exports.toSet(), <String>{
       'l10n/labels.dart',
@@ -506,19 +527,21 @@ void main() {
     });
   });
 
-  for (final (String name, GoalPathVm vm, int flagCount, int blockIconCount) in <(
-    String,
-    GoalPathVm,
-    int,
-    int,
-  )>[
-    ('row0', on, 0, 0),
-    ('row3', on, 2, 2),
-    ('row4', on, 1, 1),
-  ]) {
+  for (final (String name, GoalPathVm vm, int flagCount, int blockIconCount)
+      in <(String, GoalPathVm, int, int)>[
+        ('row0', on, 0, 0),
+        ('row3', on, 2, 2),
+        ('row4', on, 1, 1),
+      ]) {
     testWidgets('T79-15 safety flags $name', (WidgetTester tester) async {
-      final int safetyRowIndex = name == 'row0' ? 0 : name == 'row3' ? 3 : 4;
-      final SafetyState safety = SafetyState.fromJson(safetyEnvelope.rows[safetyRowIndex]);
+      final int safetyRowIndex = name == 'row0'
+          ? 0
+          : name == 'row3'
+          ? 3
+          : 4;
+      final SafetyState safety = SafetyState.fromJson(
+        safetyEnvelope.rows[safetyRowIndex],
+      );
       final RecordingLinkOpener opener = RecordingLinkOpener();
       final repo = FakeGoalPathRepository(vm: vm);
       await pumpGoalPath(
@@ -545,10 +568,7 @@ void main() {
       if (name == 'row4') {
         await tester.tap(find.byIcon(Icons.chevron_right));
         await tester.pump();
-        expect(
-          opener.opened,
-          <String>[activeFlags.single.clearDeepLink!],
-        );
+        expect(opener.opened, <String>[activeFlags.single.clearDeepLink!]);
       } else {
         expect(opener.opened, isEmpty);
       }

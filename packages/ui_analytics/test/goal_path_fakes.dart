@@ -17,11 +17,7 @@ import 'explore_fakes.dart' show FakeSafetyRepository;
 import 'golden/golden_support.dart';
 
 class FakeGoalPathRepository extends UnimplementedPerformanceRepository {
-  FakeGoalPathRepository({
-    this.vm,
-    this.error,
-    this.completer,
-  });
+  FakeGoalPathRepository({this.vm, this.error, this.completer});
 
   final GoalPathVm? vm;
   final Object? error;

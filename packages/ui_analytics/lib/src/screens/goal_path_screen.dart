@@ -35,21 +35,19 @@ class _GoalPathScreenState extends ConsumerState<GoalPathScreen> {
         const <BlockFlag>[];
 
     return asyncValue.when(
-      loading:
-          () => ListView(
-            padding: const EdgeInsets.all(16),
-            children: const <Widget>[AnalyticsSkeleton()],
+      loading: () => ListView(
+        padding: const EdgeInsets.all(16),
+        children: const <Widget>[AnalyticsSkeleton()],
+      ),
+      error: (Object error, StackTrace stack) => ListView(
+        padding: const EdgeInsets.all(16),
+        children: <Widget>[
+          AnalyticsErrorView(
+            onRetry: () => ref.invalidate(goalPathProvider(widget.yyyyMm)),
+            lastAsOfLabel: asyncValue.valueOrNull?.asOf.label,
           ),
-      error:
-          (Object error, StackTrace stack) => ListView(
-            padding: const EdgeInsets.all(16),
-            children: <Widget>[
-              AnalyticsErrorView(
-                onRetry: () => ref.invalidate(goalPathProvider(widget.yyyyMm)),
-                lastAsOfLabel: asyncValue.valueOrNull?.asOf.label,
-              ),
-            ],
-          ),
+        ],
+      ),
       data: (GoalPathVm vm) => _buildContent(context, vm, activeFlags),
     );
   }
@@ -89,7 +87,9 @@ class _GoalPathScreenState extends ConsumerState<GoalPathScreen> {
                 GoalPathChart(path: vm),
                 const SizedBox(height: 4),
                 Padding(
-                  padding: const EdgeInsets.only(left: GoalPathChart.plotInsetLeft),
+                  padding: const EdgeInsets.only(
+                    left: GoalPathChart.plotInsetLeft,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
@@ -199,20 +199,14 @@ class _GoalPathScreenState extends ConsumerState<GoalPathScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                vm.honestExpectationText,
-                key: const Key('s79-honest'),
-              ),
+              Text(vm.honestExpectationText, key: const Key('s79-honest')),
               const SizedBox(height: 4),
               Text(
                 vm.honestExpectationWorstText,
                 key: const Key('s79-honest-worst'),
               ),
               const SizedBox(height: 4),
-              Text(
-                vm.disclaimerText,
-                key: const Key('s79-disclaimer'),
-              ),
+              Text(vm.disclaimerText, key: const Key('s79-disclaimer')),
             ],
           ),
         ),
@@ -246,22 +240,14 @@ class _GoalPathScreenState extends ConsumerState<GoalPathScreen> {
         Row(
           key: const Key('s79-values-header'),
           children: <Widget>[
-            Expanded(
-              child: Text(AnalyticsLabels.goalPathColumnDate),
+            Expanded(child: Text(AnalyticsLabels.goalPathColumnDate)),
+            SizedBox(
+              width: 104,
+              child: Text(vm.plannedLabel, textAlign: TextAlign.end),
             ),
             SizedBox(
               width: 104,
-              child: Text(
-                vm.plannedLabel,
-                textAlign: TextAlign.end,
-              ),
-            ),
-            SizedBox(
-              width: 104,
-              child: Text(
-                vm.actualLabel,
-                textAlign: TextAlign.end,
-              ),
+              child: Text(vm.actualLabel, textAlign: TextAlign.end),
             ),
           ],
         ),
@@ -272,17 +258,11 @@ class _GoalPathScreenState extends ConsumerState<GoalPathScreen> {
               Expanded(child: Text(vm.planned[i].dateText)),
               SizedBox(
                 width: 104,
-                child: Text(
-                  vm.planned[i].valueText,
-                  textAlign: TextAlign.end,
-                ),
+                child: Text(vm.planned[i].valueText, textAlign: TextAlign.end),
               ),
               SizedBox(
                 width: 104,
-                child: Text(
-                  vm.actual[i].valueText,
-                  textAlign: TextAlign.end,
-                ),
+                child: Text(vm.actual[i].valueText, textAlign: TextAlign.end),
               ),
             ],
           ),
