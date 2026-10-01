@@ -546,4 +546,147 @@ void main() {
 
     expect(opener.opened, <String>[AppRoutes.reportArchive]);
   });
+
+  testWidgets('TA-1 value column right edge', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(390, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final opener = RecordingLinkOpener();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+          analyticsLinkOpenerProvider.overrideWithValue(opener),
+          performanceRepositoryProvider.overrideWithValue(
+            _FakePerformanceRepository(report),
+          ),
+          safetyRepositoryProvider.overrideWithValue(
+            _FakeSafetyRepository(safetyRow0),
+          ),
+        ],
+        child: MaterialApp(
+          home: Scaffold(body: MonthlyReportScreen(yyyyMm: report.yyyyMm)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(report.items, hasLength(13));
+    for (final item in report.items) {
+      final Rect valueRect = tester.getRect(find.text(item.valueText));
+      final Finder cardFinder = find.ancestor(
+        of: find.text(item.valueText),
+        matching: find.byType(Card),
+      );
+      final Rect cardRect = tester.getRect(cardFinder);
+      expect(valueRect.right, closeTo(cardRect.right - 12, 0.5));
+    }
+    expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+  });
+
+  for (final (String name, String fixturePath) in <(String, String)>[
+    ('202608', FixturePaths.m7M7Monthly202608),
+    ('gap', FixturePaths.m7M7MonthlyGap),
+  ]) {
+    testWidgets('TA-2 goal link opens deep link $name', (
+      WidgetTester tester,
+    ) async {
+      final MonthlyReport taReport = singleFixture(
+        fixturePath,
+        MonthlyReport.fromJson,
+      );
+      tester.view.physicalSize = const Size(390, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final opener = RecordingLinkOpener();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+            analyticsLinkOpenerProvider.overrideWithValue(opener),
+            performanceRepositoryProvider.overrideWithValue(
+              _FakePerformanceRepository(taReport),
+            ),
+            safetyRepositoryProvider.overrideWithValue(
+              _FakeSafetyRepository(safetyRow0),
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(body: MonthlyReportScreen(yyyyMm: taReport.yyyyMm)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(taReport.goalDeepLink, isNotNull);
+      expect(find.byKey(const Key('s71-goal-link')), findsOneWidget);
+      expect(find.text(AnalyticsLabels.goalPathDetailButton), findsOneWidget);
+      expect(find.byType(Divider), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text(taReport.goalLine)).dy,
+        lessThan(tester.getTopLeft(find.byKey(const Key('s71-goal-link'))).dy),
+      );
+      expect(
+        tester.getTopLeft(find.byKey(const Key('s71-goal-link'))).dy,
+        lessThan(tester.getTopLeft(find.byType(Divider)).dy),
+      );
+      expect(
+        tester.getTopLeft(find.byType(Divider)).dy,
+        lessThan(
+          tester.getTopLeft(find.text(taReport.disclosureViewCountText)).dy,
+        ),
+      );
+      await tester.tap(find.byKey(const Key('s71-goal-link')));
+      await tester.pump();
+      expect(opener.opened, <String>[taReport.goalDeepLink!]);
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+    });
+  }
+
+  for (final (String name, String fixturePath) in <(String, String)>[
+    ('masked_integrity', FixturePaths.m7M7MonthlyMaskedIntegrity),
+    ('masked_recon', FixturePaths.m7M7MonthlyMaskedRecon),
+    ('pending', FixturePaths.m7M7MonthlyPending),
+  ]) {
+    testWidgets('TA-3 goal link absent $name', (WidgetTester tester) async {
+      final MonthlyReport taReport = singleFixture(
+        fixturePath,
+        MonthlyReport.fromJson,
+      );
+      tester.view.physicalSize = const Size(390, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            analyticsClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
+            analyticsLinkOpenerProvider.overrideWithValue(
+              RecordingLinkOpener(),
+            ),
+            performanceRepositoryProvider.overrideWithValue(
+              _FakePerformanceRepository(taReport),
+            ),
+            safetyRepositoryProvider.overrideWithValue(
+              _FakeSafetyRepository(safetyRow0),
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(body: MonthlyReportScreen(yyyyMm: taReport.yyyyMm)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(taReport.goalDeepLink, isNull);
+      expect(find.byKey(const Key('s71-goal-link')), findsNothing);
+      expect(find.text(AnalyticsLabels.goalPathDetailButton), findsNothing);
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+    });
+  }
 }

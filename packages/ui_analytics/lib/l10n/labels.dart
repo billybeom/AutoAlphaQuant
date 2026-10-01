@@ -44,4 +44,10 @@ abstract final class AnalyticsLabels {
   static const String plannerRegisterButton = '이 계획으로 입금 등록';
   static const String plannerRegisterNotAccepted =
       '등록 요청이 접수되지 않았습니다. 계획은 그대로 있습니다.';
+
+  // ── 🆕 R11b — S7-9 ──
+  static const String goalPathDetailButton = '목표 경로 보기';
+  static const String goalPathAssumptionHeader = '가정';
+  static const String goalPathValuesButton = '숫자로 보기';
+  static const String goalPathColumnDate = '날짜';
 }

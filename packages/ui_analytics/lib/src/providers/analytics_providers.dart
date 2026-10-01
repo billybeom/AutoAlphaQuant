@@ -98,3 +98,10 @@ performanceSeriesProvider = FutureProvider.autoDispose
             cumulative: query.cumulative,
           );
     });
+
+// ── 🆕 R11b — S7-9 ──
+/// S7-9 목표 경로 — 받은 달 그대로(01 §14-9)
+final AutoDisposeFutureProviderFamily<GoalPathVm, String> goalPathProvider =
+    FutureProvider.autoDispose.family<GoalPathVm, String>((ref, yyyyMm) {
+      return ref.watch(performanceRepositoryProvider).goalPath(yyyyMm: yyyyMm);
+    });
