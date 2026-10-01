@@ -26,6 +26,11 @@
 //     그대로 둔다. 새 값은 소음 최대 0.592% 의 1.69배이고, 위 구조 변화 가운데 전체 비율로도
 //     잡히던 것(칩 1.4% · 글자 줄 3.4% · 배너 15.8%)은 여전히 1.0% 위다(아이콘 누락은 처음부터
 //     창 기준 몫). 선례 = 비교기 3판 infra PR #3(d0f6035).
+//   · 🔵 2026-10-01 **P2**(같은 infra PR · 적대 검토 infra_review): 보조 기준만 1.0% 로 올리면
+//     «1px 선 → 3px»(테두리·차트 격자 전부 굵어짐 — S7-2 6장 전체 0.606~0.607% · 창 51/576 8.9%)를
+//     옛 판정은 잡고 새 판정은 놓친다. 전체 비율로는 소음(0.592%)과 겹쳐 못 가르고, 창이 가른다
+//     (소음 ≤5.2% vs 회귀 8.9%). 그래서 **전체 0.5% 를 넘으면 창 7% 이하일 때만** 통과로 본다.
+//     PR #19 CI 112장(창 ≤5.2%)은 모두 통과 · 검토가 찾은 «옛 판정만 잡던» 7건은 모두 실패.
 //   · **임계는 M2 가 한 곳에서** 정한다 — 화면 담당은 이 파일을 고치지 않는다
 //     (01 §7 「C-2 가 플랫폼·폰트 차이로 흔들리면 임계 조정은 M2 가 한다」).
 //
@@ -50,6 +55,18 @@ const double kGoldenSignificantDiffTolerance = 0.010;
 /// 실측 소음 최대 5.6%(32px) · 가장 작은 구조 변화(18px 아이콘 누락) 26.6%(153px). 🔴 M2 만 바꾼다.
 const double kGoldenMaxWindowDensity = 0.12;
 
+/// P2 «엄격 구간» 시작(전체 비율). 이 값을 넘는 «양»은 창 밀도가 [kGoldenThinWindowDensity]
+/// 이하일 때만 통과한다 — 옛 보조 기준 0.5%(PR #3) 를 그대로 쓴다.
+/// 근거(2026-10-01 · infra_review): «1px 선 → 3px» 회귀가 전체 0.606~0.607% 로 소음 최대
+/// 0.592% 와 겹친다 — 전체 비율만으로는 못 가르니 이 구간에서는 창을 본다. 🔴 M2 만 바꾼다.
+const double kGoldenStrictDiffTolerance = 0.005;
+
+/// P2 «얇게 흩어짐» 상한(창 밀도). 7% ≈ 40/576px.
+/// 근거(2026-10-01 · infra_review): PR #19 리눅스 CI 112장의 창 최대 5.2%(30px · 2026-09-17 은
+/// 5.6%) 와 검토가 찾은 가장 얇은 회귀(선 1→3px 창 8.9% · 51px) 사이 — 기하평균 ≈6.8% → 7%.
+/// 전체가 [kGoldenStrictDiffTolerance] 를 넘는 장에만 걸린다(112장 가운데 1장). 🔴 M2 만 바꾼다.
+const double kGoldenThinWindowDensity = 0.07;
+
 /// 같은 색으로 볼 채널 차(0~255). AA 회색 단계 차이는 이 안에 든다.
 const int kGoldenChannelDelta = 48;
 
@@ -66,6 +83,8 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
       current.basedir.resolve('_placeholder_test.dart'),
       tolerance: kGoldenSignificantDiffTolerance,
       maxWindowDensity: kGoldenMaxWindowDensity,
+      strictTolerance: kGoldenStrictDiffTolerance,
+      thinWindowDensity: kGoldenThinWindowDensity,
       channelDelta: kGoldenChannelDelta,
       radius: kGoldenShiftRadius,
     );
@@ -74,7 +93,8 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
 }
 
 /// 1px 이동·AA 차이는 무시하고 «유의 픽셀»의 전체 비율이 [tolerance] 이하 **그리고** 가장
-/// 빽빽한 창의 밀도가 [maxWindowDensity] 이하면 통과로 보는 비교기.
+/// 빽빽한 창의 밀도가 [maxWindowDensity] 이하 **그리고** 전체가 [strictTolerance] 를 넘으면 창이
+/// [thinWindowDensity] 이하일 때(P2) 통과로 보는 비교기 — 판정은 `acceptsSignificantDiff` 하나.
 ///
 /// 바이트가 완전히 같으면 디코드 없이 바로 통과한다(같은 PC 에서 찍은 경우).
 /// 실패하면 기본 비교기와 똑같이 `failures/` 폴더에 masked/isolated diff 이미지를 남긴다
@@ -84,6 +104,8 @@ class ShiftTolerantGoldenFileComparator extends LocalFileComparator {
     super.testFile, {
     required this.tolerance,
     required this.maxWindowDensity,
+    required this.strictTolerance,
+    required this.thinWindowDensity,
     required this.channelDelta,
     required this.radius,
   });
@@ -93,6 +115,12 @@ class ShiftTolerantGoldenFileComparator extends LocalFileComparator {
 
   /// 0.0 ~ 1.0 — 가장 빽빽한 창의 유의 픽셀 밀도 상한(주 판정).
   final double maxWindowDensity;
+
+  /// 0.0 ~ 1.0 — 이 전체 비율을 넘으면 창이 [thinWindowDensity] 이하여야 한다(P2).
+  final double strictTolerance;
+
+  /// 0.0 ~ 1.0 — P2 의 «얇게 흩어짐» 창 밀도 상한.
+  final double thinWindowDensity;
 
   /// 같은 색으로 볼 채널 차.
   final int channelDelta;
@@ -147,13 +175,17 @@ class ShiftTolerantGoldenFileComparator extends LocalFileComparator {
           'radius $radius, channelDelta $channelDelta) '
           'maxWindow ${stats.maxWindowCount}/${stats.windowSize * stats.windowSize} = '
           '${(stats.maxWindowDensity * 100).toStringAsFixed(1)}% '
-          '(limit ${(maxWindowDensity * 100).toStringAsFixed(0)}%)';
+          '(limit ${(maxWindowDensity * 100).toStringAsFixed(0)}%; '
+          'above ${(strictTolerance * 100).toStringAsFixed(2)}% total only if '
+          '<= ${(thinWindowDensity * 100).toStringAsFixed(0)}%)';
       if (acceptsSignificantDiff(
         stats,
         width: candidate.width,
         height: candidate.height,
         tolerance: tolerance,
         maxWindowDensity: maxWindowDensity,
+        strictTolerance: strictTolerance,
+        thinWindowDensity: thinWindowDensity,
       )) {
         debugPrint('$summary -> accepted');
         return true;
