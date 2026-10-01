@@ -70,6 +70,21 @@ class SignificantDiffStats {
   double get maxWindowDensity => maxWindowCount / (windowSize * windowSize);
 }
 
+/// 골든 판정 — 유의 픽셀 전체 비율이 [tolerance] 이하(보조) **그리고** 가장 빽빽한 창의
+/// 밀도가 [maxWindowDensity] 이하(주)면 통과.
+///
+/// flutter_test_config.dart 의 비교기와 comparator_test.dart 가 **같은 함수**로 판정한다 —
+/// 자체 검증이 실제 판정과 어긋나지 않게(2026-10-01 · 보조 기준 조정 때 분리).
+bool acceptsSignificantDiff(
+  SignificantDiffStats stats, {
+  required int width,
+  required int height,
+  required double tolerance,
+  required double maxWindowDensity,
+}) =>
+    stats.total / (width * height) <= tolerance &&
+    stats.maxWindowDensity <= maxWindowDensity;
+
 SignificantDiffStats analyzeSignificantDiffs(
   Uint8List candidate,
   Uint8List golden, {

@@ -17,7 +17,7 @@
 
 - 렌더 입력은 `packages/domain_contracts/fixtures/`의 픽스처다. **화면 담당은 픽스처를 수정하지 않는다** — 「테스트가 안 맞아서」 픽스처를 고치는 것은 반려 사유다.
 - light / dark 두 벌을 찍는다.
-- 플랫폼·폰트 차이로 스냅샷이 흔들리면 **임계 조정은 M2가 한다**. 스스로 임계를 풀지 않는다.
+- 플랫폼·폰트 차이로 스냅샷이 흔들리면 **임계 조정은 M2가 한다**. 스스로 임계를 풀지 않는다. 조정 기록: 비교기 3판 = infra PR #3(2026-09-17) · 보조 기준 0.5% → **1.0%** = 2026-10-01(R11a PR #19 리눅스 CI 실측 · 아래 표).
 - 대표 화면 9개가 C-2의 대상이다(01 §7). 어느 9개인지는 화면 명세 확정과 함께 정한다.
 
 ## 하네스 (M2 제공 · 2026-09-17 · C4 R1-Bob-J1 질문 Q1 의 답 · 비교기 3판 = 이동·AA 허용 · infra PR #3)
@@ -26,7 +26,7 @@
 
 | 파일 | 누가 | 무엇 |
 |---|---|---|
-| `test/flutter_test_config.dart` | 🔴 M2 | `flutter test` 가 자동으로 먼저 부른다. 골든 비교기를 **이동·AA 허용 비교기(3판)** 로 바꾼다 — 두 그림을 3×3 으로 살짝 흐린 뒤 **양방향**으로 «이웃 3×3 어디에도 비슷한 색이 없는 유의 픽셀»을 세고, **가장 빽빽한 24×24 창의 밀도 12% 이하(주 판정) 그리고 전체 0.5% 이하(보조)** 면 통과(`golden/shift_tolerant_compare.dart` · 자체 검증 `golden/comparator_test.dart` 11건). 🔵 2026-09-17 실측(리눅스 CI vs Windows 골든 14장): 플랫폼 소음은 전체 ≤0.18%·창 ≤5.6% 로 **얇게 흩어지고**, 구조 변화는 18px 아이콘 1개 누락도 창 27% 로 **뭉친다**(칩 47% · 글자 줄 83% · 배너 96%). 화면 담당은 고치지 않는다 |
+| `test/flutter_test_config.dart` | 🔴 M2 | `flutter test` 가 자동으로 먼저 부른다. 골든 비교기를 **이동·AA 허용 비교기(3판)** 로 바꾼다 — 두 그림을 3×3 으로 살짝 흐린 뒤 **양방향**으로 «이웃 3×3 어디에도 비슷한 색이 없는 유의 픽셀»을 세고, **가장 빽빽한 24×24 창의 밀도 12% 이하(주 판정) 그리고 전체 1.0% 이하(보조)** 면 통과(`golden/shift_tolerant_compare.dart` · 판정 함수 `acceptsSignificantDiff` · 자체 검증 `golden/comparator_test.dart` 20건 — 폰 크기 판정 9건 포함). 🔵 2026-09-17 실측(리눅스 CI vs Windows 골든 14장): 플랫폼 소음은 전체 ≤0.18%·창 ≤5.6% 로 **얇게 흩어지고**, 구조 변화는 18px 아이콘 1개 누락도 창 27% 로 **뭉친다**(칩 47% · 글자 줄 83% · 배너 96%). 🔵 **2026-10-01 보조 기준 0.5% → 1.0%**(R11a PR #19 리눅스 CI 실측 112장 = ui_analytics 56 + ui_journal 56): 글자가 빽빽한 S7-4 화면의 흩어진 소음이 전체 0.592%(`s74_pension_limit_hit` light · 창 5.2%)로 옛 보조 기준**만** 넘었다. 112장의 창 밀도는 모두 ≤5.2% 라 주 기준 12% 는 그대로다. 새 값은 소음 최대 0.592% 의 1.69배이고, 전체 비율로도 잡히던 구조 변화(칩 1.4% · 글자 줄 3.4% · 배너 15.8%)는 여전히 1.0% 위다(아이콘 누락 0.06% 는 처음부터 창 기준 몫). 화면 담당은 고치지 않는다 |
 | `test/golden/golden_support.dart` | 🔴 M2 | 픽스처 로더(`journalFixture`·`journalSlice`·`safetyFixtureRow` · v1.1 `listFixture`·`singleFixture`·`fixtureEnvelope`) · 고정 시계 `FixedClock`·`kGoldenNowUtc` · 폰 크기 `kGoldenPhoneSize`(390×844) · `pumpForGolden`(light/dark 테마 · 선택 인자 `logicalSize:`·`wrapApp:`) · `expectGolden(name, brightness)` |
 | `test/golden/<화면id>_golden_test.dart` | 화면 담당 | 아래 예시대로. 파일명은 `j1_golden_test.dart` 처럼 화면 ID 소문자 |
 | `test/golden/goldens/<name>_<light\|dark>.png` | 화면 담당(최초 1회) | `expectGolden` 이 만드는 경로. `.gitignore` 의 `!**/test/golden/**` 로 **커밋 대상**이다 |

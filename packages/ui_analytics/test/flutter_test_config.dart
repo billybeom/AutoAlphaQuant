@@ -20,6 +20,12 @@
 //     전체 비율만으로는 아이콘 누락(0.06%)이 소음(0.18%)보다 작아 못 가른다. 뭉침(창 밀도)은
 //     소음 최대 5.6% vs 신호 최소 27% 로 5배 벌어진다 → **창 12%** 를 주 판정으로, **전체 0.5%**
 //     를 넓게 퍼진 변화(색 전체 이동 등)의 보조 판정으로 둔다.
+//   · 🔵 2026-10-01 보조 기준 0.5% → **1.0%**(PR #19 R11a 리눅스 CI 실측 112장 = ui_analytics 56 +
+//     ui_journal 56): 글자가 빽빽한 S7-4 화면의 흩어진 소음이 전체 0.592%(s74_pension_limit_hit
+//     light · 창 5.2%)로 옛 보조 기준만 넘었다. 112장의 창 밀도는 모두 ≤5.2% — 주 기준(12%)은
+//     그대로 둔다. 새 값은 소음 최대 0.592% 의 1.69배이고, 위 구조 변화 가운데 전체 비율로도
+//     잡히던 것(칩 1.4% · 글자 줄 3.4% · 배너 15.8%)은 여전히 1.0% 위다(아이콘 누락은 처음부터
+//     창 기준 몫). 선례 = 비교기 3판 infra PR #3(d0f6035).
 //   · **임계는 M2 가 한 곳에서** 정한다 — 화면 담당은 이 파일을 고치지 않는다
 //     (01 §7 「C-2 가 플랫폼·폰트 차이로 흔들리면 임계 조정은 M2 가 한다」).
 //
@@ -34,9 +40,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'golden/shift_tolerant_compare.dart';
 
-/// 유의 픽셀 **전체 비율** 상한(보조 판정). 390×844 화면(329,160px)에서 0.5% ≈ 1,646px.
-/// 실측 소음 최대 0.177%. 🔴 M2 만 바꾼다.
-const double kGoldenSignificantDiffTolerance = 0.005;
+/// 유의 픽셀 **전체 비율** 상한(보조 판정). 390×844 화면(329,160px)에서 1.0% ≈ 3,292px.
+/// 실측 소음 최대 0.592%(2026-10-01 · PR #19 리눅스 CI · s74_pension_limit_hit light 1,950px ·
+/// 그다음 0.461%) — 2026-09-17 의 0.177% 에서 글자 빽빽한 화면이 늘며 올라왔다.
+/// 옛 값 0.005(PR #3) → 0.010. 🔴 M2 만 바꾼다.
+const double kGoldenSignificantDiffTolerance = 0.010;
 
 /// 가장 빽빽한 24×24 창의 유의 픽셀 **밀도** 상한(주 판정). 12% = 69px.
 /// 실측 소음 최대 5.6%(32px) · 가장 작은 구조 변화(18px 아이콘 누락) 26.6%(153px). 🔴 M2 만 바꾼다.
@@ -140,7 +148,13 @@ class ShiftTolerantGoldenFileComparator extends LocalFileComparator {
           'maxWindow ${stats.maxWindowCount}/${stats.windowSize * stats.windowSize} = '
           '${(stats.maxWindowDensity * 100).toStringAsFixed(1)}% '
           '(limit ${(maxWindowDensity * 100).toStringAsFixed(0)}%)';
-      if (ratio <= tolerance && stats.maxWindowDensity <= maxWindowDensity) {
+      if (acceptsSignificantDiff(
+        stats,
+        width: candidate.width,
+        height: candidate.height,
+        tolerance: tolerance,
+        maxWindowDensity: maxWindowDensity,
+      )) {
         debugPrint('$summary -> accepted');
         return true;
       }
