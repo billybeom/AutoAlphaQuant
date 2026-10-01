@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ✅ S7-1·S7-1b·S7-2G·S7-2·S7-3·S7-3b 42장 · 차트 하네스 2026-09-28 · 🆕 목표 경로 본보기 2026-09-30)
+# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ✅ S7-1·S7-1b·S7-2G·S7-2·S7-3·S7-3b·S7-4 56장 · 차트 하네스 2026-09-28 · 🆕 목표 경로 본보기 2026-09-30)
 
 정본: 01_M2_도메인계약 **§7**(C-1·C-2 + 골든 규칙) · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 
@@ -309,7 +309,7 @@ AAQ_CHART_PREVIEW_DIR=/tmp/chart_preview flutter test test/golden/chart_probe_te
 본보기 `PerfChart` 를 성과 픽스처 7개(정상 6건 · `performance24m` 은 2행) × light/dark 로 찍어 그 폴더에 둔다. 변수가 없으면 아무것도 하지 않는다.
 🔴 `test/golden/goldens/` 를 가리키지 않는다.
 
-## 🆕 R11(계약 v1.4) — `S7-4` · `S7-9` (2026-09-30 · ~~뼈대 — 카드 조립 때 채운다~~ → ✅ 카드 조립 반영 · 누적 드라이런 실측 R11a `a8d8c7f` · R11b `b896ebb`)
+## 🆕 R11(계약 v1.4) — `S7-4` · `S7-9` (2026-09-30 · ~~뼈대 — 카드 조립 때 채운다~~ → ✅ 카드 조립 반영 · 누적 드라이런 실측 R11a `a8d8c7f` · R11b `b896ebb` · ✅ R11a 병합 PR #19 `df42632` 2026-10-01)
 
 정본: 01 §14 · 03 §9·§14 의 «🆕 계약 v1.4 — R11 범위» 블록(골든↔픽스처 표는 거기가 이긴다). 이 절은 **골든과 차트 증명**만 말한다.
 카드는 나눠 간다: **R11a-Bob-S74**(플래너 · 폰 전용 · `package:ui_analytics/planner.dart`) → **R11b-Bob-S79**(목표 경로 + S7-1 진입 버튼 부록). S7-5(인출)는 **R11c · v1.5 로 보류**다 — 여기에 골든을 적지 않는다.
@@ -323,7 +323,7 @@ AAQ_CHART_PREVIEW_DIR=/tmp/chart_preview flutter test test/golden/chart_probe_te
 | R11b 부록 | `s71_*` **재생성** 10(S7-1 진입 버튼 · 값 열 정렬) | 허용 10(드라이런 실제 M **6**) | `s71_golden_test.dart`(기존 · **무수정**) | 기존 그대로 · 위치 전제 없음 · 명령 = `flutter test --update-goldens test/golden/s71_golden_test.dart`(파일 하나) · 드라이런 실제 M 6 = normal · partial_gap · masked_recon × light/dark(버튼은 844 밖이라 PNG 에 없음 · masked_integrity · not_generated 불변) · 🔴 재생성은 `golden:approved` 라벨로만(Claude) |
 
 - 🔴 `s74_viewer` 는 **없다**(폰 전용 · 뷰어 셸은 `planDeposit` 에 부재 안내 — 01 §14).
-- 기존 PNG 불변 수: R11a 에게 **42장** · R11b 에게 **56장** 가운데 허용 목록 `s71_*` 10 을 뺀 **46장**.
+- 기존 PNG 불변 수: R11a 에게 **42장** · R11b 에게 **56장** 가운데 허용 목록 `s71_*` 10 을 뺀 **46장**. ✅ R11a 병합 뒤 `ui_analytics` 기존 PNG 는 **56장**(42 + `s74_*` 14).
 - 높이는 테스트 파일 안 상수 · 찍기 **전에** «맨 아래 위젯 dy < 높이»를 단언한다(R10 §2 와 같다).
 - **R11a**(`s74_golden_test.dart` · 드라이런 `a8d8c7f`) — 가는 길: `s74_step1_default` = 띄우기만 · `s74_step2_normal`·`s74_pension_limit_hit`·`s74_blocked` = «미리보기 계산» · `s74_step3_normal`·`s74_expired`·`s74_funding` = 계산 → «다음». 맨 아래 Key: `s74_step1_default` = `s74-calculate` · `s74_blocked` = `s74-blocked-card` · 나머지 = `s74-back`. 높이(390 ×) = step1_default **844** · step2_normal **844** · step3_normal **1100** · pension_limit_hit **844** · expired **1100** · funding **1300** · blocked **844**. 찍는 모양 = `pumpForGolden(…, logicalSize: Size(390, <높이 상수>))` → 탭(`tapAndSettle`) → 🔴 찍기 전 `await tester.pumpAndSettle()`(버튼 물결) → 위치 전제 → `expectGolden`. 파일 모양 = 밝기 루프 하나 × 이름마다 `testWidgets` 1(7개). 설정은 전부 `m9ContributionSettingDefault` · 입력칸에 포커스를 주지 않는다(커서 깜빡임). 명령 = `flutter test --update-goldens test/golden/s74_golden_test.dart`(기존 골든 테스트 5파일을 넣지 않는다).
 - **R11b**(`s79_golden_test.dart` · 드라이런 `b896ebb`) — 모양 = `s71_golden_test.dart` 처럼 (이름, 픽스처 경로) 목록 × `Brightness.values` 루프 · 위치 전제 **한 곳**. 명령 = `flutter test --update-goldens test/golden/s79_golden_test.dart`(부록 재생성은 부록 커밋에서 `s71_golden_test.dart` 하나만 따로).
@@ -334,7 +334,9 @@ AAQ_CHART_PREVIEW_DIR=/tmp/chart_preview flutter test test/golden/chart_probe_te
   expect(tester.getBottomLeft(find.byKey(const Key('s79-disclaimer'))).dy, lessThan(kS79GoldenSize.height));
   ```
 - 드라이런 실측 dy(light=dark · 이름·밝기마다 `lessThan(0)` 임시 수정으로 잼 · 참고값 — 병합본 실측 줄은 C4 기록 커밋에서): `s74_*` step1_default **379** · step2_normal **759** · step3_normal **964** · pension_limit_hit **814** · expired **992** · funding **1175** · blocked **532**(배분 행 `Wrap` 반영 전 값 — step2_normal · pension_limit_hit 는 더 작아질 수 있다) · `s79-disclaimer` on_track **803** · off_track **847** · hold **562** · realworld **827**(900 과 2000 두 높이에서 같은 값).
-- 기존 PNG 불변 실측: R11a 드라이런 42장 M 0(새 14) · R11b 드라이런 46장 불변(새 8 · `s71_*` M 6).
+- 병합본 실측(R11a · PR #19 `df42632` · 2026-10-01 · 1회차 `92999a8` 와 재제출 `fe85f36` 이 같은 값 — 재제출은 lib·골든 테스트·PNG 0 · C4 1·2회차 재실측 일치): 맨 아래 위젯 아래 끝 = step1_default **384**(`s74-calculate` < 844) · step2_normal **716**(< 844) · step3_normal **960**(< 1100) · pension_limit_hit **828**(< 844 · 여유 16 — 가장 작다) · expired **988**(< 1100) · funding **1181**(< 1300) · blocked **541**(`s74-blocked-card` < 844)(모두 light=dark). 드라이런(379·759·964·814·992·1175·532)과의 차이는 글자 크기·여백 재량이다(결함 아님 — Bob 은 제목·as-of·보조 줄을 본문 크기로 그렸다).
+- CI 판정(R11a): PR #19 1회차 CI 에서 `s74_pension_limit_hit` light 가 리눅스 소음으로 유의 0.592%(창 5.2%)를 내 옛 보조 기준 0.5% 에 걸렸다 → 비교기 infra PR #20(`a0e1ae1`)의 «전체 ≤1.0% · 창 ≤12% · 전체 0.5% 초과면 창 ≤7%»(위 «하네스» 표 `flutter_test_config.dart` 행)로 통과 · R11b 의 새 `s79_*` 와 `s71_*` 재생성도 같은 판정을 받는다.
+- 기존 PNG 불변 실측: R11a 드라이런 42장 M 0(새 14) · ✅ R11a 병합본(PR #19) 42장 M 0(새 14 · 가지 56장) · R11b 드라이런 46장 불변(새 8 · `s71_*` M 6).
 
 ### 2. 목표 경로 차트의 주 증명 — `expectGoalPathMatches`
 
