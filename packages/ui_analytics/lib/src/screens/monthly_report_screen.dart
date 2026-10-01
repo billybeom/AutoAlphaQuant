@@ -100,7 +100,7 @@ class MonthlyReportScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               ..._buildReportItems(ref, report.items),
               const SizedBox(height: 20),
-              _buildFooter(context, report),
+              _buildFooter(context, ref, report),
               const SizedBox(height: 16),
               Center(
                 child: TextButton(
@@ -230,6 +230,7 @@ class MonthlyReportScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(12.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Column(
@@ -300,7 +301,11 @@ class MonthlyReportScreen extends ConsumerWidget {
     }).toList();
   }
 
-  Widget _buildFooter(BuildContext context, MonthlyReport report) {
+  Widget _buildFooter(
+    BuildContext context,
+    WidgetRef ref,
+    MonthlyReport report,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12.0),
@@ -316,6 +321,16 @@ class MonthlyReportScreen extends ConsumerWidget {
             report.goalLine,
             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
           ),
+          if (report.goalDeepLink != null)
+            TextButton(
+              key: const Key('s71-goal-link'),
+              onPressed: () {
+                ref
+                    .read(analyticsLinkOpenerProvider)
+                    .open(report.goalDeepLink!);
+              },
+              child: const Text(AnalyticsLabels.goalPathDetailButton),
+            ),
           const Divider(height: 16),
           Text(
             report.disclosureViewCountText,
