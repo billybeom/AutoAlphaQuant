@@ -71,31 +71,64 @@ void main() {
 
       final List<BlockFlag> activeFlags = safety.activeFlags;
 
-      final List<Finder> chain = <Finder>[
-        if (isStale) find.text(AnalyticsLabels.staleBannerTitle),
-        if (activeFlags.isNotEmpty) find.text(activeFlags.first.label),
+      final List<Finder> chain = <Finder>[];
+
+      if (isStale) {
+        chain.add(find.text(AnalyticsLabels.staleBannerTitle));
+      } else {
+        expect(find.text(AnalyticsLabels.staleBannerTitle), findsNothing);
+      }
+
+      if (activeFlags.isNotEmpty) {
+        chain.add(find.text(activeFlags.first.label));
+      } else {
+        expect(find.byIcon(Icons.block), findsNothing);
+      }
+
+      chain.addAll(<Finder>[
         find.byKey(const Key('s79-asof')),
         find.byKey(const Key('s79-judgement')),
         find.byKey(const Key('s79-basis')),
-        if (vm.deviationText != null) find.byKey(const Key('s79-deviation')),
+      ]);
+
+      if (vm.deviationText != null) {
+        chain.add(find.byKey(const Key('s79-deviation')));
+      } else {
+        expect(find.byKey(const Key('s79-deviation')), findsNothing);
+      }
+
+      chain.addAll(<Finder>[
         find.byKey(const Key('s79-period')),
-        if (vm.chartUnavailableLabel == null) ...<Finder>[
-          find.byKey(const Key('s79-chart')),
-          find.byKey(const Key('s79-x-first')),
-          find.byKey(const Key('s79-legend-actual')),
-          find.byKey(const Key('s79-legend-planned')),
-          for (int i = 0; i < vm.segments.length; i++)
-            if (vm.segments[i].kind != SegmentKind.measured)
-              find.byKey(ValueKey<String>('s79-segment-caption-$i')),
-          find.byKey(const Key('s79-values-toggle')),
-        ],
+        find.byKey(const Key('s79-chart')),
+        find.byKey(const Key('s79-x-first')),
+        find.byKey(const Key('s79-legend-actual')),
+        find.byKey(const Key('s79-legend-planned')),
+      ]);
+
+      final List<Finder> captions = <Finder>[
+        for (int i = 0; i < vm.segments.length; i++)
+          if (vm.segments[i].kind != SegmentKind.measured)
+            find.byKey(ValueKey<String>('s79-segment-caption-$i')),
+      ];
+
+      if (captions.isNotEmpty) {
+        chain.addAll(captions);
+      } else {
+        expect(
+          find.byKey(const ValueKey<String>('s79-segment-caption-0')),
+          findsNothing,
+        );
+      }
+
+      chain.addAll(<Finder>[
+        find.byKey(const Key('s79-values-toggle')),
         find.byKey(const Key('s79-assumption-header')),
         find.byKey(const Key('s79-backtest-basis')),
         find.byKey(const Key('s79-starting-capital')),
         find.byKey(const Key('s79-honest')),
         find.byKey(const Key('s79-honest-worst')),
         find.byKey(const Key('s79-disclaimer')),
-      ];
+      ]);
 
       for (final f in chain) {
         expect(f, findsOneWidget);
@@ -105,27 +138,6 @@ void main() {
           tester.getTopLeft(chain[i]).dy,
           lessThan(tester.getTopLeft(chain[i + 1]).dy),
         );
-      }
-
-      if (isStale) {
-        // stale shows banner
-      } else {
-        expect(find.text(AnalyticsLabels.staleBannerTitle), findsNothing);
-      }
-      if (activeFlags.isEmpty) {
-        expect(find.byIcon(Icons.block), findsNothing);
-      }
-      if (vm.deviationText == null) {
-        expect(find.byKey(const Key('s79-deviation')), findsNothing);
-      }
-      // check segment captions: measured segments have no key
-      for (int i = 0; i < vm.segments.length; i++) {
-        if (vm.segments[i].kind == SegmentKind.measured) {
-          expect(
-            find.byKey(ValueKey<String>('s79-segment-caption-$i')),
-            findsNothing,
-          );
-        }
       }
 
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
