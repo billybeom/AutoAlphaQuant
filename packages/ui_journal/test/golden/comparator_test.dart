@@ -368,6 +368,18 @@ void main() {
       expect(thin.accepts(st), isTrue);
       expect(thick.accepts(sk), isFalse);
     });
+
+    test('thin boundary pinned closer: window 42/576 (7.29%) above 0.5% '
+        'rejected', () {
+      final _Phone p = _Phone()
+        ..scatter(160)
+        ..cluster(3, pair: true, x0: 96, y0: 600); // window 42
+      final SignificantDiffStats s = p.stats();
+      expect(s.maxWindowCount, 42);
+      expect(s.total / _Phone.area, greaterThan(kGoldenStrictDiffTolerance));
+      expect(s.maxWindowDensity, lessThan(0.075));
+      expect(p.accepts(s), isFalse);
+    });
   });
 
   // The main window rule pinned from both sides by one cluster on a clean
@@ -387,6 +399,15 @@ void main() {
         expect(p.accepts(s), ok);
       });
     }
+
+    test('cluster 72/576 (12.5%) -> rejected', () {
+      final _Phone p = _Phone()..cluster(6, x0: 96, y0: 600);
+      final SignificantDiffStats s = p.stats();
+      expect(s.maxWindowCount, 72);
+      expect(s.total, 72, reason: 'one cluster, nothing else');
+      expect(s.maxWindowDensity, lessThan(0.13));
+      expect(p.accepts(s), isFalse);
+    });
   });
 
   // The wiring: testExecutable -> constants -> comparator -> compare() ->
