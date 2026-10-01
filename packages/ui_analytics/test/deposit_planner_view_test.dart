@@ -136,10 +136,8 @@ void main() {
       await pumpPlanner(tester, whatIf: whatIf, config: config);
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
 
-      await tester.enterText(
-        find.byKey(const Key('s74-amount-field')),
-        defaultSetting.amountInputText,
-      );
+      final edited = '${defaultSetting.amountInputText}0';
+      await tester.enterText(find.byKey(const Key('s74-amount-field')), edited);
       await tester.pump();
 
       streamController.add(defaultSetting);
@@ -151,9 +149,9 @@ void main() {
             .widget<TextField>(find.byKey(const Key('s74-amount-field')))
             .controller!
             .text,
-        defaultSetting.amountInputText,
+        edited,
       );
-      expect(find.text(defaultSetting.amountText), findsOneWidget);
+      expect(find.byKey(const Key('s74-setting-amount')), findsOneWidget);
     }
 
     // Scene C: no user edit -> first value arrives -> second value with different amountInputText arrives -> first value kept
@@ -273,7 +271,11 @@ void main() {
     await tapAndSettle(tester, 's74-calculate');
 
     expect(find.byKey(const Key('s74-result-error')), findsOneWidget);
-    expect(find.text(AnalyticsLabels.retryButton), findsOneWidget);
+    final retry = find.descendant(
+      of: find.byKey(const Key('s74-result-error')),
+      matching: find.text(AnalyticsLabels.retryButton),
+    );
+    expect(retry, findsOneWidget);
     expect(tester.takeException(), isNull);
 
     expect(
@@ -284,7 +286,9 @@ void main() {
       initialText,
     );
 
-    await tapAndSettle(tester, 's74-result-error');
+    await tester.tap(retry);
+    await tester.pump();
+    await tester.pump();
     expect(whatIf.simulateCalls, hasLength(2));
     expect(whatIf.simulateCalls[0], whatIf.simulateCalls[1]);
   });
@@ -764,6 +768,7 @@ void main() {
             find.descendant(of: orderFinder, matching: find.text(chip.label)),
             findsOneWidget,
           );
+          expect(find.text(chip.code), findsNothing);
         }
       }
       expect(
@@ -771,6 +776,16 @@ void main() {
         findsNothing,
       );
       expect(find.byType(ActionChip), findsNothing);
+
+      if (plan.fundingSteps != null) {
+        expect(find.byKey(const Key('s74-funding')), findsOneWidget);
+        expect(plan.fundingSteps!, hasLength(1));
+        for (final step in plan.fundingSteps!) {
+          expect(find.text(step.ruleCited), findsNothing);
+        }
+      } else {
+        expect(find.byKey(const Key('s74-funding')), findsNothing);
+      }
 
       // Tap first chip
       await tester.tap(find.byType(Chip).first);
@@ -869,6 +884,7 @@ void main() {
     expect(plan.fundingSteps!, hasLength(1));
     expect(find.byKey(const Key('s74-funding-0')), findsOneWidget);
     expect(find.text(plan.fundingSteps![0].label), findsOneWidget);
+    expect(find.text(plan.fundingSteps![0].ruleCited), findsNothing);
     expect(find.byKey(const Key('s74-funding-1')), findsNothing);
 
     // Default fixture has null fundingSteps
@@ -972,6 +988,8 @@ void main() {
 
       if (identical(res, fundingResult)) {
         expect(find.byKey(const Key('s74-funding')), findsOneWidget);
+      } else {
+        expect(find.byKey(const Key('s74-funding')), findsNothing);
       }
     }
   });
@@ -1509,7 +1527,7 @@ void main() {
     }
   });
 
-  testWidgets('T74-22 planner library export structure', (tester) async {
+  test('T74-22 planner library export structure', () {
     final plannerFile = File('lib/planner.dart');
     final content = plannerFile.readAsStringSync();
     final exportLines = content
@@ -1531,14 +1549,20 @@ void main() {
     ];
 
     for (final path in checkDirs) {
-      if (FileSystemEntity.isFileSync(path)) {
+      final type = FileSystemEntity.typeSync(path);
+      expect(
+        type,
+        isNot(FileSystemEntityType.notFound),
+        reason: 'Missing $path',
+      );
+      if (type == FileSystemEntityType.file) {
         final text = File(path).readAsStringSync();
         expect(
           text.contains('planner'),
           isFalse,
           reason: 'File $path must not contain planner',
         );
-      } else if (FileSystemEntity.isDirectorySync(path)) {
+      } else {
         for (final file in Directory(path).listSync(recursive: true)) {
           if (file is File && file.path.endsWith('.dart')) {
             final text = file.readAsStringSync();
@@ -1725,11 +1749,17 @@ void main() {
       await pumpPlanner(tester, whatIf: whatIf, config: config);
 
       expect(find.byKey(const Key('s74-setting-error')), findsOneWidget);
-      expect(find.text(AnalyticsLabels.retryButton), findsOneWidget);
+      final retry = find.descendant(
+        of: find.byKey(const Key('s74-setting-error')),
+        matching: find.text(AnalyticsLabels.retryButton),
+      );
+      expect(retry, findsOneWidget);
       expect(find.byKey(const Key('s74-amount-field')), findsOneWidget);
       expect(find.byKey(const Key('s74-calculate')), findsOneWidget);
 
-      await tapAndSettle(tester, 's74-setting-error');
+      await tester.tap(retry);
+      await tester.pump();
+      await tester.pump();
 
       expect(config.watchContributionSettingCalls, 2);
       expect(find.byKey(const Key('s74-setting-amount')), findsOneWidget);
@@ -1808,7 +1838,14 @@ void main() {
           expect(find.byKey(const Key('s74-blocked-card')), findsOneWidget);
         } else {
           expect(find.byKey(const Key('s74-result-error')), findsOneWidget);
-          await tapAndSettle(tester, 's74-result-error');
+          final retry = find.descendant(
+            of: find.byKey(const Key('s74-result-error')),
+            matching: find.text(AnalyticsLabels.retryButton),
+          );
+          expect(retry, findsOneWidget);
+          await tester.tap(retry);
+          await tester.pump();
+          await tester.pump();
           expect(whatIf.simulateCalls, hasLength(3));
           expect(whatIf.simulateCalls[0], whatIf.simulateCalls[1]);
           expect(whatIf.simulateCalls[1], whatIf.simulateCalls[2]);
