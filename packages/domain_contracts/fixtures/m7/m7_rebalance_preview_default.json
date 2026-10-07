@@ -20,18 +20,18 @@
         "planned_date_text": "2026년 9월 1일 회차",
         "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "초안 기준 2026-08-31 종가" },
         "before": [
-          { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.188, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A 18.8% (목표 20.0%, 편차 −1.2%p, 밴드 여유 3.8%p)" },
-          { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.437, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B 43.7% (목표 42.0%, 편차 +1.7%p, 밴드 여유 3.3%p)" },
-          { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.318, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C 31.8% (목표 32.0%, 편차 −0.2%p, 밴드 여유 4.8%p)" },
+          { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.176, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A 17.6% (목표 20.0%, 편차 −2.4%p, 밴드 여유 2.6%p)" },
+          { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.478, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B 47.8% (목표 42.0%, 편차 +5.8%p, 밴드 상단 0.8%p 초과)" },
+          { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.288, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C 28.8% (목표 32.0%, 편차 −3.2%p, 밴드 여유 1.8%p)" },
           { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.038, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT 3.8% (목표 4.0%, 편차 −0.2%p, 밴드 여유 4.8%p)" },
-          { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.019, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH 1.9% (목표 2.0%, 편차 −0.1%p, 밴드 여유 4.9%p)" }
+          { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH 2.0% (목표 2.0%, 편차 0.0%p, 밴드 여유 5.0%p)" }
         ],
         "after": [
-          { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.198, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A 19.8% (목표 20.0%, 편차 −0.2%p, 밴드 여유 4.8%p)" },
-          { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.424, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B 42.4% (목표 42.0%, 편차 +0.4%p, 밴드 여유 4.6%p)" },
-          { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.318, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C 31.8% (목표 32.0%, 편차 −0.2%p, 밴드 여유 4.8%p)" },
-          { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.04, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT 4.0% (목표 4.0%, 편차 0.0%p, 밴드 여유 5.0%p)" },
-          { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH 2.0% (목표 2.0%, 편차 0.0%p, 밴드 여유 5.0%p)" }
+          { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.205, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A 20.5% (목표 20.0%, 편차 +0.5%p, 밴드 여유 4.5%p)" },
+          { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.428, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B 42.8% (목표 42.0%, 편차 +0.8%p, 밴드 여유 4.2%p)" },
+          { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.288, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C 28.8% (목표 32.0%, 편차 −3.2%p, 밴드 여유 1.8%p)" },
+          { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.038, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT 3.8% (목표 4.0%, 편차 −0.2%p, 밴드 여유 4.8%p)" },
+          { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.041, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH 4.1% (목표 2.0%, 편차 +2.1%p, 밴드 여유 2.9%p)" }
         ],
         "order_drafts_title": "주문 초안",
         "order_drafts": [

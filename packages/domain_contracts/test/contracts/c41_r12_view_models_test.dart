@@ -3,9 +3,9 @@
 // 정의: 「R12 다섯 화면(`S7-6a/b/c` · `S7-7` · `S7-10`)이 **엔진이 완성한 글자와 null 여부만 보고** 그릴 수
 //   있게, v1.6 픽스처·DTO 가 스스로 완결되고 서로 맞는다」.
 //   ① `RebalancePreviewResult` — `preview`·`blockedText` 정확히 하나 · `blockedAction` ⇒ `blockedText` ·
-//      차단 표본에 버튼 있는 행과 없는 행이 둘 다 있다
+//      차단 표본 = 버튼 있는 행 1 + 없는 행 1 · 행0 = 버튼 없음(골든 입력)
 //   ② `RebalancePreview` — `asOf` == 봉투 · 머리 글자 · 고지 머리 · `ordersEmptyText != null ⇔ 빈 초안` ·
-//      지정가 짝 · 계좌 별칭
+//      지정가 짝 · 계좌 별칭 · 밴드 표본 정합(초안 표본 before 에 밴드 밖 슬리브 ≥1 · 밴드 안 표본 before 전부 안)
 //   ③ `NextRebalanceVm` — 카운트다운 = 두 글자 + 예고 링크 · 예정 없음 = 문장만 · 행 `asOf` == 봉투
 //   ④ `RebalanceEvent` — 대조 표 ⇔ 등록 임계 · 행 `asOf` == 봉투(관측 시각 · 라벨 포함) · 비중 라벨 `%` ·
 //      basis · 모드 배지 ⇔ 비 LIVE · 머리글 = SIM 단독 봉투의 첫 행 하나
@@ -180,15 +180,23 @@ void main() {
         blocked.every((RebalancePreviewResult r) => r.blockedText != null),
         isTrue,
       );
+      // 차단 표본 = 버튼 있음 정확히 1(위젯 테스트 입력) + 없음 정확히 1(골든 입력) — 보강안 §3-1·§4-1 ①.
       expect(
         blocked.where((RebalancePreviewResult r) => r.blockedAction != null),
-        isNotEmpty,
-        reason: '버튼 표본이 사라지면 차단 카드의 이동 버튼을 증명할 입력이 없다.',
+        hasLength(1),
+        reason: '버튼 표본은 정확히 1행이다 — 사라지면 차단 카드의 이동 버튼을 증명할 입력이 없다.',
       );
       expect(
         blocked.where((RebalancePreviewResult r) => r.blockedAction == null),
-        isNotEmpty,
-        reason: '버튼 부재 표본(골든 입력)이 사라지면 «null = 부재» 갈래를 증명할 입력이 없다.',
+        hasLength(1),
+        reason: '버튼 부재 표본은 정확히 1행이다 — 사라지면 «null = 부재» 갈래를 증명할 입력이 없다.',
+      );
+      expect(
+        blocked.first.blockedAction,
+        isNull,
+        reason:
+            '골든 `s76c_blocked` 입력 = 행0(버튼 없음 · 안전 `safety_states` rows[4] 짝 · 보강안 §3-5) — '
+            '행 순서가 바뀌면 골든이 «재개 미완 차단 + 플래그 0»을 굳힌다.',
       );
     });
 
@@ -221,8 +229,27 @@ void main() {
           }
         }
       }
-      expect(_previews(_pvDefault).single.preview!.orderDrafts, isNotEmpty);
-      expect(_previews(_pvInBand).single.preview!.orderDrafts, isEmpty);
+      final RebalancePreview withDrafts = _previews(_pvDefault).single.preview!;
+      final RebalancePreview inBand = _previews(_pvInBand).single.preview!;
+      expect(withDrafts.orderDrafts, isNotEmpty);
+      expect(inBand.orderDrafts, isEmpty);
+      // 두 표본이 «밴드 안 ⇒ 초안 0»(in_band 의 `ordersEmptyText`)을 같은 쪽으로 말한다 — 초안 표본의 before 에는
+      // 밴드 밖 슬리브가 있고(초안 칩 = 밴드 이탈 조정), 밴드 안 표본의 before 는 전부 밴드 안이다(테스트 쪽 비교 ·
+      // 화면은 원값을 읽지 않는다 = C-42).
+      bool outOfBand(SleeveWeight w) =>
+          w.weight > w.bandHigh || w.weight < w.bandLow;
+      expect(
+        withDrafts.before.where(outOfBand),
+        isNotEmpty,
+        reason:
+            '$_pvDefault — 초안이 있는데 before 가 전부 밴드 안이면 in_band 표본의 «모든 슬리브가 밴드 안이라 '
+            '초안이 없다»와 반대로 말한다.',
+      );
+      expect(
+        inBand.before.where(outOfBand),
+        isEmpty,
+        reason: '$_pvInBand — «모든 슬리브가 밴드 안» 문장과 before 원값이 어긋난다.',
+      );
     });
 
     test('C-41 ③ 다음 회차 — 카운트다운과 예정 없음이 섞이지 않고 행 asOf 가 봉투와 같다', () {

@@ -12,7 +12,8 @@
 //   ③ 역할별 원값 0 — S7-6c 초안·비용 원값 · `journalTimelineLink` = S7-6b 만 · `detailDeepLink` = S7-6a 만 ·
 //      S7-7 사다리 원값·창 코드·연도 · S7-10 int 9종·범위·신뢰 등급.
 //   ③' 패턴 분해로 읽는 원값 0(점이 없어 ②③ 이 못 잡는 길 · C-38 ⑩ 둘째 정규식 선례).
-//   ④ 호출 역할 표 — 창구마다 부르는 역할이 하나다 · providers R12 절은 `previewRebalance` 0 ·
+//   ④ 호출 역할 표 — 창구마다 부르는 역할이 하나다 · providers R12 절은 읽기 창구 5종만(계약 리포지토리·API
+//      의 다른 메서드 0 — 이름은 `domain_contracts/lib/src` 소스에서 읽는다) · `previewRebalance` 0 ·
 //      전 역할·절에서 비용·계획·입출금 시뮬·롤링·등급·사다리·운영 상태·명령·일지 범위 창구 0.
 //   ⑤ 분기·셸·포맷 낱말 0(운영 모드·플랫폼·시계·Scaffold·숫자 포맷·플래너 import).
 //   ⑥ 소수부가 0 이 아닌 소수 리터럴 0 + `%` 를 품은 문자열 0(구 C-30 ⓕ 의 R12 몫 · `N.0`·정수 레이아웃 상수 허용).
@@ -169,6 +170,25 @@ final RegExp _forbiddenCalls = RegExp(
 /// ④⑬ providers R12 절 — 미리보기 결과는 State 다(프로바이더로 두지 않는다 · 규칙 5).
 final RegExp _sectionPreview = RegExp(r'\bpreviewRebalance\b');
 
+/// ④⑬ providers R12 절이 부르는 읽기 창구 5종(01 §15-4 호출 표 — S7-6a·6b·6c·7·10 이 하나씩).
+const Set<String> _sectionReadWindows = <String>{
+  'watchEvents',
+  'watchEvent',
+  'watchNext',
+  'annualReview',
+  'monthly',
+};
+
+/// 계약 창구(리포지토리·API) 메서드 → 인터페이스 — `domain_contracts/lib/src` 소스에서 읽는다.
+final Map<String, String> _windowMethods = contractWindowMethods();
+
+/// ④ providers R12 절 — 읽기 창구 5종 **밖**의 계약 창구 메서드(점 접근 = 호출·tear-off 모두).
+/// 금지 목록이 아니라 허용 목록이다 — `monthlyReport`·`watchAnnualReview`·`series` 처럼 [_forbiddenCalls] 에
+/// 이름이 없는 창구도 걸린다(창구가 새로 생겨도 따라 걸린다).
+final RegExp _sectionOtherWindows = RegExp(
+  '(?<!Labels)\\.(${(_windowMethods.keys.where((String n) => !_sectionReadWindows.contains(n)).toList()..sort()).join('|')})\\b',
+);
+
 /// ⑤ 분기·셸·포맷 낱말.
 final RegExp _branchWords = RegExp(
   r'operatingMode|OperatingMode|RunMode|runMode|FeatureFlags|kIsWeb|Platform\.|'
@@ -266,6 +286,7 @@ final Map<R12Role, List<_Rule>> _roleRules = <R12Role, List<_Rule>>{
 final List<_Rule> _sectionRules = <_Rule>[
   for (final RegExp re in _rawCommon) _Rule('②', re),
   _Rule('④', _sectionPreview),
+  _Rule('④', _sectionOtherWindows),
   _Rule('④', _forbiddenCalls),
   _Rule('⑤', _branchWords),
   for (final RegExp re in _reshape) _Rule('⑨', re),
@@ -561,15 +582,24 @@ void main() {
     });
 
     test('C-42 ④ 호출 역할 표 — 창구마다 부르는 역할은 하나', () {
+      expect(
+        _windowMethods.keys,
+        containsAll(_sectionReadWindows),
+        reason: '계약 창구 이름을 못 읽었다 — 읽기가 낡으면 providers R12 절 허용 목록 검사가 공허 통과한다.',
+      );
+      _say(
+        'C-42 ④ 계약 창구 메서드 ${_windowMethods.length}개(…Repository·…Api) — '
+        'providers R12 절 허용 ${_sectionReadWindows.length}종(${_sectionReadWindows.join('·')})',
+      );
       final List<String> bad = _violations('④', section: true);
       expect(
         bad,
         isEmpty,
         reason:
             '`watchEvents` = S7-6a · `watchEvent` = S7-6b · `watchNext`·`previewRebalance` = S7-6c · '
-            '`annualReview` = S7-7 · `monthly` = S7-10 · providers R12 절은 `previewRebalance` 0 · '
-            '비용·계획·입출금 시뮬·롤링·등급·사다리·운영 상태·명령·일지 범위 창구는 아무도 부르지 '
-            '않는다(01 §15-4 호출 표).\n${bad.join('\n')}',
+            '`annualReview` = S7-7 · `monthly` = S7-10 · providers R12 절은 읽기 창구 5종만(리포지토리·API 의 '
+            '다른 메서드 0) · `previewRebalance` 0 · 비용·계획·입출금 시뮬·롤링·등급·사다리·운영 상태·명령·'
+            '일지 범위 창구는 아무도 부르지 않는다(01 §15-4 호출 표).\n${bad.join('\n')}',
       );
     });
 
@@ -704,6 +734,9 @@ void main() {
         ('final DateRange r = x;', '⑬'),
         ('final x = await api.previewRebalance();', '④'),
         ('ref.watch(analyticsCommandApiProvider)', '④'),
+        ('ref.watch(performanceRepositoryProvider).monthlyReport(m)', '④'),
+        ('ref.watch(opsStatusRepositoryProvider).watchAnnualReview()', '④'),
+        ('final f = ref.watch(performanceRepositoryProvider).series;', '④'),
         ('rows.where((e) => e.mode == m)', '⑨'),
         ('final now = DateTime.now();', '⑤'),
         ('page.hasMore', '②'),
@@ -716,6 +749,40 @@ void main() {
         _say(
           'C-42 ⑪ 양성 [providers R12 절] $body → '
           '${(got.toList()..sort()).join('')}',
+        );
+      }
+      // providers R12 절 음성 — 읽기 창구 5종을 정해진 꼴로 부르기 · 주입 프로바이더 선언.
+      for (final String body in <String>[
+        'ref.watch(rebalanceRepositoryProvider).watchEvent(rebalanceEventId)',
+        'ref.watch(rebalanceRepositoryProvider).watchNext()',
+        'ref.watch(performanceRepositoryProvider).annualReview()',
+        'ref.watch(executionGapRepositoryProvider).monthly(yyyyMm: yyyyMm)',
+        'final Provider<WhatIfApi?> analyticsWhatIfApiProvider = '
+            'Provider<WhatIfApi?>((ref) => throw UnimplementedError());',
+      ]) {
+        expect(
+          _scanSection('$_providersMarker$body\n'),
+          isEmpty,
+          reason: 'providers R12 절 음성을 잘못 잡았다: $body',
+        );
+      }
+      // ④ 창구 이름 읽기 — 허용 5종이 그 인터페이스에 있고, 밖의 창구가 함께 읽힌다(빈 목록 = 공허 통과).
+      expect(_windowMethods['watchEvents'], 'RebalanceRepository');
+      expect(_windowMethods['watchEvent'], 'RebalanceRepository');
+      expect(_windowMethods['watchNext'], 'RebalanceRepository');
+      expect(_windowMethods['annualReview'], 'PerformanceRepository');
+      expect(_windowMethods['monthly'], 'ExecutionGapRepository');
+      expect(_windowMethods['monthlyReport'], 'PerformanceRepository');
+      expect(_windowMethods['watchAnnualReview'], 'OpsStatusRepository');
+      expect(_windowMethods['watchRolling'], 'ExecutionGapRepository');
+      expect(_windowMethods['previewRebalance'], 'WhatIfApi');
+      expect(_windowMethods['submitJournalDraft'], 'CommandApi');
+      for (final String excluded in <String>['watch', 'run', 'load', 'open']) {
+        expect(
+          _windowMethods.containsKey(excluded),
+          isFalse,
+          reason:
+              '$excluded — 창구(리포지토리·API)가 아닌 인터페이스의 메서드는 읽지 않는다(ref.watch 등과 겹친다).',
         );
       }
       // 표식 위 본문의 R12 이름 = 실패 · 표식이 없는데 R12 이름 = 실패(⑩⑬).

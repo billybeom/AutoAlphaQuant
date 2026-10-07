@@ -524,7 +524,10 @@ void main() {
   // add their screen exports without editing this file. Each of the 8 R11b paths
   // must still appear exactly once, and nothing under an internal folder may be
   // exported. Exact set ownership: the R12d new test (v1.4 G13 precedent) — this
-  // is an ownership transfer, not a weaker assertion.
+  // is an ownership transfer, not a weaker assertion. The R12d card must assert
+  // barrel == 13 exactly (the 8 R11b paths + the 5 R12 public screens of 01
+  // §15-4). Until it lands, each R12 card's barrel additions are bounded by its
+  // own card assertions (barrel +N, additions only) and the C4 merge check.
   testWidgets('T79-14 barrel exports', (WidgetTester tester) async {
     final String content = File('lib/ui_analytics.dart').readAsStringSync();
     final List<String> exports = RegExp(

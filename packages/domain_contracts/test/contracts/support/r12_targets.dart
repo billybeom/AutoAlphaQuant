@@ -1,8 +1,8 @@
 // R12 화면 역할 표 — C-42 의 대상(🆕 계약 v1.6 · 01 §15-4 · 보강안 §2-5 · §4-2).
 //
 // 🔴 이 파일에는 **테스트가 없다**(`_test.dart` 접미가 없다). 여기 있는 것은 «어느 파일이 어느 화면
-//    역할인가»(역할 표) · 파일 읽기 · providers 파일의 R12 절 자르기뿐이다. 무엇을 금지하는가(정규식)와
-//    통과/실패 판정은 C-42(`c42_r12_screen_scan_test.dart`)에 있다.
+//    역할인가»(역할 표) · 파일 읽기 · providers 파일의 R12 절 자르기 · 계약 창구 메서드 이름 읽기뿐이다.
+//    무엇을 금지하는가(정규식)와 통과/실패 판정은 C-42(`c42_r12_screen_scan_test.dart`)에 있다.
 // 🔴 역할 표 = 01 §15-4 «공개 위젯 · 파일 자리» 표(보강안 §2-5)와 **같은 표**다 — 한쪽을 고치면 다른 쪽도
 //    같은 커밋에서 고친다(한쪽만 바꾸면 C-42 가 옛 경로를 보고 공허 통과한다).
 // 🔴 역할끼리 공유 위젯 파일을 두지 않는다(공유가 필요하면 역할 폴더마다 둔다 — 역할 표가 단순해야
@@ -175,6 +175,57 @@ Map<String, String> afterTaxGuardSources() {
     for (final Directory d in dirs)
       for (final File f in dartSourcesIn(d)) shortPath(f): f.readAsStringSync(),
   };
+}
+
+/// ④⑬ 계약 창구 메서드 — `domain_contracts/lib/src` 의 `abstract interface class …Repository`·`…Api` 가
+/// 선언한 메서드 이름 → 인터페이스 이름(소스에서 읽는다 · 창구가 늘면 따라 는다).
+///
+/// providers R12 절이 읽기 창구 5종 밖을 부르는지 볼 때 C-42 가 쓴다. `SettingsActions`·`DraftStore`·
+/// `AppLinkOpener`·`Clock` 은 창구(리포지토리·API)가 아니라 넣지 않는다(`watch`·`load` 같은 이름이
+/// `ref.watch` 와 겹친다).
+Map<String, String> contractWindowMethods() {
+  final RegExp head = RegExp(
+    r'abstract\s+interface\s+class\s+(\w+(?:Repository|Api))\b[^{]*\{',
+  );
+  final RegExp methodName = RegExp(r'\b([a-z]\w*)\s*(?:<[^()]*?>)?\s*\(');
+  final Map<String, String> out = <String, String>{};
+  for (final File f in dartSourcesIn(Directory('${libDir.path}/src'))) {
+    final String code = stripCommentsAndStrings(f.readAsStringSync());
+    for (final RegExpMatch m in head.allMatches(code)) {
+      for (final String statement in _topLevelStatements(code, m.end)) {
+        final RegExpMatch? name = methodName.firstMatch(statement);
+        if (name != null) {
+          out[name.group(1)!] = m.group(1)!;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/// [start](여는 `{` 바로 뒤)부터 짝 `}` 까지의 본문을 깊이 0 의 `;` 로 나눈 선언들.
+List<String> _topLevelStatements(String code, int start) {
+  final List<String> out = <String>[];
+  final StringBuffer current = StringBuffer();
+  int depth = 0;
+  for (int i = start; i < code.length; i++) {
+    final String c = code[i];
+    if (c == '}' && depth == 0) {
+      break;
+    }
+    if (c == '(' || c == '{' || c == '[') {
+      depth++;
+    } else if (c == ')' || c == '}' || c == ']') {
+      depth--;
+    }
+    if (c == ';' && depth == 0) {
+      out.add(current.toString());
+      current.clear();
+    } else {
+      current.write(c);
+    }
+  }
+  return out;
 }
 
 String _relativeTo(Directory root, File f) {

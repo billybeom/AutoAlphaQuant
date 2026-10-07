@@ -475,8 +475,11 @@ def costs(c, t, total, total_text):
 def preview_default_env():
     as_of = preview_as_of()
     p = preview_head(as_of)
-    p['before'] = weights([('A', 0.188), ('B', 0.437), ('C', 0.318), ('POT', 0.038), ('CASH', 0.019)])
-    p['after'] = weights([('A', 0.198), ('B', 0.424), ('C', 0.318), ('POT', 0.04), ('CASH', 0.02)])
+    # before = B 밴드 상단 이탈(초안 칩 «B 목표 대비 이탈 조정» · in_band 문장 «모든 슬리브가 밴드 안이라 …
+    # 초안이 없습니다»의 거울 — 두 표본이 «밴드 안 ⇒ 초안 0»을 같은 쪽으로 말한다 · C-41 ②).
+    # after = 초안 방향 그대로(B 매도 · A 매수 · 차액은 현금 · C·POT 불변) · 전부 밴드 안.
+    p['before'] = weights([('A', 0.176), ('B', 0.478), ('C', 0.288), ('POT', 0.038), ('CASH', 0.02)])
+    p['after'] = weights([('A', 0.205), ('B', 0.428), ('C', 0.288), ('POT', 0.038), ('CASH', 0.041)])
     p['order_drafts_title'] = '주문 초안'
     p['order_drafts'] = [
         draft('133690', '133690 TIGER 미국나스닥100', 'B', 'SELL', '매도', 2, '16380', '16,380원'),
@@ -824,6 +827,16 @@ def main():
     # 월간 ⑧ 링크가 없는 2벌은 그대로
     for rel in MONTHLY_UNLINKED:
         assert ROUTE_GAP not in out[rel], rel
+    # 미리보기 밴드 표본 정합(C-41 ②) — 초안 표본 before 에 밴드 밖 슬리브 ≥1 · 밴드 안 표본 before 전부 안 ·
+    # 두 벌 after 전부 안.
+    def out_of_band(w):
+        return w['weight'] > w['band_high'] or w['weight'] < w['band_low']
+    pv_def = envs[PV_DEFAULT]['rows'][0]['preview']
+    pv_inb = envs[PV_IN_BAND]['rows'][0]['preview']
+    assert pv_def['order_drafts'] and any(out_of_band(w) for w in pv_def['before']), PV_DEFAULT
+    assert not pv_inb['order_drafts'] and not any(out_of_band(w) for w in pv_inb['before']), PV_IN_BAND
+    for pv in (pv_def, pv_inb):
+        assert not any(out_of_band(w) for w in pv['after']), pv['plan_id']
 
     # ── 쓰기 ──
     for rel, s in sorted(out.items()):
