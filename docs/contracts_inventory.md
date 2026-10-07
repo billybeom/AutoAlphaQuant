@@ -748,7 +748,7 @@ abstract interface class SettingsActions {
 
 | 파일 | 배치 | 내용 |
 |---|---|---|
-| `aftertax_ladder_1.json` | `m7/` | 정본 갈래(`SPEC_POT_TAX_FREE`) 5단 + 반사실 1(접힘) · `is_reference_only: true` · 층 값은 골든 4자리 |
+| `aftertax_ladder_1.json` | `m7/` | 정본 갈래(`SPEC_POT_TAX_FREE`) ~~5단~~ **6단**(사전 6층 전부 · 01 §8 미결 77 정정 · §15-1) + 반사실 1(`CF_POT_TAXABLE_COMP38` 6단 · 접힘) · `is_reference_only: true` · 층 값은 골든 4자리(«정직 기대» 층만 없음) |
 | `deposit_plan_funding_1.json` | `fixtures/`(코어 옆) | 납입 조달 발동 · `funding_steps` ~~2단~~ 🆕 v1.4 **1단계**(0원 조달 단계 삭제 · C 방어 자산 매도 초안 = `PENSION_FUNDING` 칩). 🔵 정본 경로에서 **한 번도 발동하지 않으므로** 없으면 §3-6 표시 경로가 영영 미검증 |
 | `entry_gate_nov_pass_1.json` | `m6/` | 계절 게이트 **11월 재판정 통과**(`enteredInNov`). 🔵 26시즌 실측 발동 0 — 실데이터로는 검증 불가한 유일한 경로 |
 | `m7_deposit_plan_default.json`·`_limit.json`·`_expired.json` | `m7/` | `S7-4` 3벌: 기본 / 연 한도 소진 / 계획 만료. 🔴 **파일명에 금액 금지** · 🆕 v1.4 — 행 타입 `DepositPlan` → **`DepositPreviewResult` 래퍼**(`{ "plan": { … } }` · 등록부 재바인딩) |
@@ -810,7 +810,7 @@ X7 은 `TradeJournalEntry` 에 required 6, `HoldingRow` 에 required 2, `Feature
 | C-27 X7 | `advice_viewer_4.json` 으로 **`A-1`·`A-2` 2라우트만** 렌더 → 🔴 검사는 「**종목 코드 · 주(株) 단위 수량 · 원(₩) 단위 가격**」 **세 패턴 0건**(비율 %·건수는 허용 — 정규식으로 고정, 허용 목록을 넓히지 않는다) + `phoneOnlyLabel` 존재 | 🟡 |
 | C-28 X7 | `simInternal × advisory` 발행 명령을 `live × advisory` 런타임이 소비 → ⓐ `ledger.sqlite` 쓰기 0건 ⓑ 상태가 `rejected` 가 아니라 **`staleContext`** · 🔴 **뷰모델·화면 계층에서 `CommandContext` 를 생성하는 코드 0건** | 🟡(정적 스캔분은 🟢) |
 | C-29 X7 | 소급 amend 픽스처에서 `trade_date` 기준 재계산 후 `equity_snapshot` 시계열이 **정확히 정정분만큼** 다르고 대응 `ledger_repair` 행이 **정확히 1개** | 🟡 |
-| C-30 P | `aftertax_ladder_1.json` 렌더 → ⓐ `ui_*` 위젯트리에 `cagrPct`·`endMult` 등 **double 값 필드 참조 0건** ⓑ 숫자 리터럴 0건 ⓒ 본문 갈래가 **정확히 1개** ⓓ `steps` 층 수를 코드로 고정하지 않음 | 🟡 |
+| C-30 P | `aftertax_ladder_1.json` 렌더 → ⓐ `ui_*` 위젯트리에 `cagrPct`·`endMult` 등 **double 값 필드 참조 0건** ⓑ 숫자 리터럴 0건 ⓒ 본문 갈래가 **정확히 1개** ⓓ `steps` 층 수를 코드로 고정하지 않음 · 🆕 계약 면 ⓖ 사전 층 순서·빠짐 ⓗ 정본 갈래 «세금 전 = 파킹 과세 뒤»·반사실 내림 ⓘ 층 내림 순서·필드 짝·같은 «세금 전» ⓙ **골든 사본 대조**(`test/contracts/support/golden/aftertax_full_S7.json`) ⓚ `valueText` = 대조 값 반올림(01 §15-1 · 코드에 숫자 없음) | 🟡(계약 면 10 통과·ui 스캔 1 skip) |
 | C-31 P | ⓐ 한 위젯트리에서 서로 다른 `basis` 의 `SleeveWeight` 가 같은 합계·같은 목록에 들어가는지 ⓑ `ui_*` 에서 **A 와 POT 를 더하는 산술** — `realized_alloc_S7` 픽스처 | 🟡 |
 | C-32 G-89 | `ui_*` 소스에 월 납입 금액으로 읽힐 숫자 리터럴(`100000`·`90000`·`97000`·`124000`·`100_000`)과 `'10만'`·`'9.7만'` 문자열 → 실패. 🔴 **`labels.dart` 도 예외 아님** · 🔵 `fixtures/`·명세 산문은 대상 아님 | 🟡(정적 스캔) |
 

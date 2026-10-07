@@ -17,11 +17,12 @@
       "branch": "SPEC_POT_TAX_FREE",
       "branch_label": "연금저축 안에서 굴리는 갈래",
       "steps": [
-        { "step_code": "PRETAX", "label": "세금 전", "value_text": "연 11.13%", "cagr_pct": 11.13, "end_mult": 8.55, "note_line": "백테스트 점추정입니다. 앞으로의 약속이 아닙니다." },
-        { "step_code": "AFTER_POT", "label": "파킹 과세 뒤", "value_text": "연 10.96%", "cagr_pct": 10.96 },
-        { "step_code": "AFTER_POT_C", "label": "방어 자산 과세까지 뒤", "value_text": "연 10.85%", "cagr_pct": 10.85 },
-        { "step_code": "WD_5P5", "label": "연금 수령 5.5% 뒤", "value_text": "연 10.63%", "cagr_pct": 10.63 },
-        { "step_code": "HONEST", "label": "정직 기대", "value_text": "연 10.2% 안팎", "cagr_pct": 10.2, "note_line": "지연·비용·규칙 실패를 반영한 값입니다. 점추정보다 낮습니다." }
+        { "step_code": "PRETAX", "label": "세금 전", "value_text": "연 11.13%", "cagr_pct": 11.1331, "end_mult": 16.5951, "note_line": "백테스트 점추정입니다. 앞으로의 약속이 아닙니다." },
+        { "step_code": "AFTER_POT", "label": "파킹 과세 뒤", "value_text": "연 11.13%", "cagr_pct": 11.1331, "end_mult": 16.5951, "note_line": "이 갈래는 파킹을 절세계좌에 두어 세금 전과 같습니다." },
+        { "step_code": "AFTER_POT_C", "label": "방어 자산 과세까지 뒤", "value_text": "연 10.96%", "cagr_pct": 10.9629, "end_mult": 15.932 },
+        { "step_code": "WD_5P5", "label": "연금 수령 5.5% 뒤", "value_text": "연 10.85%", "cagr_pct": 10.8532, "end_mult": 15.5181, "note_line": "세액공제 환급을 합치면 연 10.87%, 환급을 다시 투자하면 연 11.00%입니다." },
+        { "step_code": "WD_16P5", "label": "연금 외 수령 16.5% 뒤", "value_text": "연 10.63%", "cagr_pct": 10.6251, "end_mult": 14.6904, "note_line": "세액공제 환급을 합치면 연 10.64%, 환급을 다시 투자하면 연 10.78%입니다." },
+        { "step_code": "HONEST", "label": "정직 기대", "value_text": "연 10.2% 안팎", "note_line": "지연·비용·규칙 실패를 반영한 값입니다. 점추정보다 낮습니다." }
       ],
       "honest_expectation_line": "정직 기대는 점추정보다 낮게 잡아 둔 값입니다.",
       "basis_note": "세율 가정과 계좌 배치는 엔진 설정에서 옵니다. 화면이 곱하지 않습니다.",
@@ -31,11 +32,15 @@
     }
   ],
   "counterfactual": {
-    "branch": "CF_POT_TAXABLE_FLAT",
-    "branch_label": "반사실 — 일반계좌에서 굴렸다면",
+    "branch": "CF_POT_TAXABLE_COMP38",
+    "branch_label": "반사실 — 파킹을 일반계좌에서 굴리고 종합과세 38.5% 구간이었다면",
     "steps": [
-      { "step_code": "PRETAX", "label": "세금 전", "value_text": "연 11.13%", "cagr_pct": 11.13 },
-      { "step_code": "WD_16P5", "label": "연금 외 수령 16.5% 뒤", "value_text": "연 9.7%", "cagr_pct": 9.7, "note_line": "접힌 갈래입니다. 화면은 본문 갈래를 하나만 폅니다." }
+      { "step_code": "PRETAX", "label": "세금 전", "value_text": "연 11.13%", "cagr_pct": 11.1331, "end_mult": 16.5951, "note_line": "백테스트 점추정입니다. 앞으로의 약속이 아닙니다." },
+      { "step_code": "AFTER_POT", "label": "파킹 과세 뒤", "value_text": "연 10.85%", "cagr_pct": 10.8548, "end_mult": 15.524 },
+      { "step_code": "AFTER_POT_C", "label": "방어 자산 과세까지 뒤", "value_text": "연 10.56%", "cagr_pct": 10.5616, "end_mult": 14.4676, "note_line": "연 실현이익이 종합과세 구간에 드는 몫의 세금도 이 층에서 뺍니다." },
+      { "step_code": "WD_5P5", "label": "연금 수령 5.5% 뒤", "value_text": "연 10.44%", "cagr_pct": 10.4411, "end_mult": 14.0537, "note_line": "세액공제 환급을 합치면 연 10.46%, 환급을 다시 투자하면 연 10.59%입니다." },
+      { "step_code": "WD_16P5", "label": "연금 외 수령 16.5% 뒤", "value_text": "연 10.19%", "cagr_pct": 10.1895, "end_mult": 13.226, "note_line": "세액공제 환급을 합치면 연 10.21%, 환급을 다시 투자하면 연 10.34%입니다." },
+      { "step_code": "HONEST", "label": "정직 기대", "value_text": "연 9.7% 안팎", "note_line": "지연·비용·규칙 실패를 반영한 값입니다. 점추정보다 낮습니다." }
     ],
     "honest_expectation_line": "반사실은 비교용이며 지금 계좌 배치의 결과가 아닙니다.",
     "basis_note": "계좌 배치가 갈래를 정합니다(SAF-309). 화면·인자로 고르지 않습니다.",
