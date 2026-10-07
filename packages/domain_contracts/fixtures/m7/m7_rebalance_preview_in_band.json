@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.6.0",
+    "generated_at": "2026-10-08T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261008,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "초안 기준 2026-08-31 종가" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "preview": {
+        "plan_id": "pv_re_20260901_01",
+        "planned_date": "2026-09-01",
+        "planned_date_text": "2026년 9월 1일 회차",
+        "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "초안 기준 2026-08-31 종가" },
+        "before": [
+          { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.199, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A 19.9% (목표 20.0%, 편차 −0.1%p, 밴드 여유 4.9%p)" },
+          { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.421, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B 42.1% (목표 42.0%, 편차 +0.1%p, 밴드 여유 4.9%p)" },
+          { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.32, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C 32.0% (목표 32.0%, 편차 0.0%p, 밴드 여유 5.0%p)" },
+          { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.04, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT 4.0% (목표 4.0%, 편차 0.0%p, 밴드 여유 5.0%p)" },
+          { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH 2.0% (목표 2.0%, 편차 0.0%p, 밴드 여유 5.0%p)" }
+        ],
+        "after": [
+          { "sleeve": "A", "basis": "ACCOUNTING", "weight": 0.199, "target_weight": 0.2, "band_low": 0.15, "band_high": 0.25, "label": "A 19.9% (목표 20.0%, 편차 −0.1%p, 밴드 여유 4.9%p)" },
+          { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.421, "target_weight": 0.42, "band_low": 0.37, "band_high": 0.47, "label": "B 42.1% (목표 42.0%, 편차 +0.1%p, 밴드 여유 4.9%p)" },
+          { "sleeve": "C", "basis": "ACCOUNTING", "weight": 0.32, "target_weight": 0.32, "band_low": 0.27, "band_high": 0.37, "label": "C 32.0% (목표 32.0%, 편차 0.0%p, 밴드 여유 5.0%p)" },
+          { "sleeve": "POT", "basis": "ACCOUNTING", "weight": 0.04, "target_weight": 0.04, "band_low": -0.01, "band_high": 0.09, "label": "POT 4.0% (목표 4.0%, 편차 0.0%p, 밴드 여유 5.0%p)" },
+          { "sleeve": "CASH", "basis": "ACCOUNTING", "weight": 0.02, "target_weight": 0.02, "band_low": -0.03, "band_high": 0.07, "label": "CASH 2.0% (목표 2.0%, 편차 0.0%p, 밴드 여유 5.0%p)" }
+        ],
+        "order_drafts_title": "주문 초안",
+        "order_drafts": [],
+        "orders_empty_text": "모든 슬리브가 밴드 안이라 이번 회차에 낼 초안이 없습니다.",
+        "costs": { "commission": "0", "tax": "0", "total": "0", "total_text": "예상 비용 없음", "source": "ESTIMATED", "source_label": "추정치", "basis_note": "수수료·세금은 가정 비율의 추정치이며 체결 뒤 실측으로 바뀝니다." },
+        "preview_notice": "미리보기입니다. 회차일 종가로 다시 계산하며 주문을 내지 않습니다.",
+        "warning_lines": ["예정일까지 가격이 움직이면 초안이 생길 수 있습니다."]
+      }
+    }
+  ]
+}

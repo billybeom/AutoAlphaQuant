@@ -332,7 +332,6 @@ const Map<String, String> _knownUncovered = <String, String>{
   'Money': '⚠️ 예약 타입 — 1차 릴리스 DTO 에서 쓰지 않는다(01 §1-2). 금액은 Decimal 하나로 흐른다.',
   'PlannedWorkSummary':
       'X2 planned_work 픽스처가 없다 — resume_report_1 은 재개 항목만 담는다.',
-  'RebalancePreview': '리밸런싱 미리보기 픽스처가 없다(플래너 픽스처는 납입·인출 갈래만 있다).',
   'SelfReportLine':
       'm6/self_report_1.json 이 미매핑이라 하위 행도 덮이지 않는다 — 등록부 unmappedFixtures 참조.',
   'TzInstant': '아직 어느 픽스처 필드도 TzInstant 를 싣지 않는다(01 §1-3 — 표시 시각 전용).',

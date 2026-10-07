@@ -1,7 +1,8 @@
 // packages/domain_contracts/lib/src/dto/common.dart
 //
 // 01 §2-1 «공통 값 객체» · 인벤토리 §3-1(영역 B).
-// 사유 칩 · 결정 체인 참조 · 게이트 배지 · 피처 플래그 · 슬리브 카탈로그.
+// 사유 칩 · 결정 체인 참조 · 게이트 배지 · 피처 플래그 · 슬리브 카탈로그 ·
+// 🆕 v1.6 임계값 대조 1행(`ThresholdCompare` — `journal.dart` 에서 이동 · 01 §15-4).
 //
 // 🔴 문구(`label`)는 전부 **엔진 생성**이다(01 §1-5) — 화면이 코드→문구 매핑을
 //    만들면 §7 C-5 가 빌드를 깨뜨린다.
@@ -142,4 +143,25 @@ abstract class SleeveCatalogEntry with _$SleeveCatalogEntry {
 
   factory SleeveCatalogEntry.fromJson(Map<String, dynamic> json) =>
       _$SleeveCatalogEntryFromJson(json);
+}
+
+/// 임계값 대조 1행(02 §8-1 · m2-8 E-2).
+///
+/// 🔴 수치는 전부 **엔진 포맷 문자열**이다 — 화면이 비교식을 만들지 않는다.
+/// 🆕 v1.6(01 §15-4) — `journal.dart` 에서 옮겼다(이름·필드·JSON·배럴 export 무변경). J-2
+///    `DecisionDetailVm.thresholds` 와 `S7-6b` `RebalanceEvent.thresholds` 가 같은 타입을 쓴다
+///    (`journal.dart` → `rebalance.dart` import 방향 때문에 순환을 피해 공통 파일에 둔다).
+@freezed
+abstract class ThresholdCompare with _$ThresholdCompare {
+  const factory ThresholdCompare({
+    required String metricKey,
+    required String metricLabel,
+    required String observedText,
+    required String thresholdText,
+    required bool passed,
+    required String verdictLabel,
+  }) = _ThresholdCompare;
+
+  factory ThresholdCompare.fromJson(Map<String, dynamic> json) =>
+      _$ThresholdCompareFromJson(json);
 }

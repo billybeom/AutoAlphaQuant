@@ -41,28 +41,61 @@ void main() {
     test('C-31 ⓐ 한 목록 안에서 basis 가 섞이지 않는다 — 슬리브 비중', () {
       // 🔴 `basis` 는 M2-2 배치 전까지 nullable 이며 null = 미표기다(§2-5) —
       //    섞이는 것이 금지이지 «null 이면 실패» 가 아니다.
-      for (final Map<String, Object?> row in fixtureRows(
+      // 🆕 v1.6(01 §15-4) — 대상 = `SleeveWeight` 를 싣는 R12 픽스처 전부(회차 4벌의 행 · 미리보기
+      //    2벌의 `preview`). 생성 규약상 이 픽스처들은 전부 `ACCOUNTING` 이다(gen_r12_v16_fixtures.py).
+      const List<String> eventFixtures = <String>[
         FixturePaths.rebalance6,
-      )) {
-        final RebalanceEvent event = RebalanceEvent.fromJson(row);
-        for (final List<SleeveWeight> list in <List<SleeveWeight>>[
-          event.before,
-          event.after,
-        ]) {
+        FixturePaths.m7M7RebalanceDetailBand,
+        FixturePaths.m7M7RebalanceDetailAdvisory,
+        FixturePaths.m7M7RebalanceSim,
+      ];
+      const List<String> previewFixtures = <String>[
+        FixturePaths.m7M7RebalancePreviewDefault,
+        FixturePaths.m7M7RebalancePreviewInBand,
+      ];
+      for (final String path in <String>[
+        ...eventFixtures,
+        ...previewFixtures,
+      ]) {
+        expect(fixtureRows(path), isNotEmpty, reason: '$path — 입력이 비었다.');
+      }
+      final List<(String, List<List<SleeveWeight>>)> lists =
+          <(String, List<List<SleeveWeight>>)>[
+            for (final String path in eventFixtures)
+              for (final Map<String, Object?> row in fixtureRows(path))
+                (
+                  '$path ${row['event_id']}',
+                  <List<SleeveWeight>>[
+                    RebalanceEvent.fromJson(row).before,
+                    RebalanceEvent.fromJson(row).after,
+                  ],
+                ),
+            for (final String path in previewFixtures)
+              for (final Map<String, Object?> row in fixtureRows(path))
+                (
+                  path,
+                  <List<SleeveWeight>>[
+                    RebalancePreviewResult.fromJson(row).preview!.before,
+                    RebalancePreviewResult.fromJson(row).preview!.after,
+                  ],
+                ),
+          ];
+      for (final (String where, List<List<SleeveWeight>> pair) in lists) {
+        for (final List<SleeveWeight> list in pair) {
+          expect(list, isNotEmpty, reason: where);
           final Set<AllocationBasis?> bases = list
               .map((SleeveWeight w) => w.basis)
               .toSet();
           expect(
             bases.length,
             1,
-            reason: '${event.eventId} — 한 목록에 서로 다른 basis 가 섞였다: $bases',
+            reason: '$where — 한 목록에 서로 다른 basis 가 섞였다: $bases',
           );
           for (final AllocationBasis? basis in bases) {
             expect(
               basis,
               anyOf(isNull, AllocationBasis.accounting),
-              reason:
-                  '${event.eventId} — SleeveWeight.basis 는 accounting 외 값을 갖지 않는다.',
+              reason: '$where — SleeveWeight.basis 는 accounting 외 값을 갖지 않는다.',
             );
           }
         }

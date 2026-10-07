@@ -165,8 +165,8 @@ done
 #    파라미터 라우트 상수를 참조할 이유가 없다(고정 목적지 상수는 규칙 ④ 대로 허용 — 여기서 보지 않는다).
 #    목록은 손으로 적지 않는다 — app_links.dart 에서 값에 `/:` 가 든 상수 이름을 뽑는다.
 #    선언이 두 줄로 나뉘어도(dart format 80열) 이어 읽는다. 뽑힌 목록에 두 줄 선언의 견본
-#    `rebalanceEvent`·`journalRebalance`(🆕 v1.5)가 없으면 추출이 낡은 것이다 — 일부만 뽑혀도 공허하게
-#    통과하지 않게 실패시킨다.
+#    `rebalanceEvent`·`journalRebalance`(🆕 v1.5)·`ledgerExecutionGapMonth`(🆕 v1.6 · 01 §15-4)가 없으면
+#    추출이 낡은 것이다 — 일부만 뽑혀도 공허하게 통과하지 않게 실패시킨다.
 #    같은 대상에서 `AppLinkSchemes` 참조도 실패: `'${AppLinkSchemes.app}://rebalance/event/$id'` 처럼 스킴을
 #    보간하면 [5](리터럴)·상수 검사를 둘 다 지난다. 화면은 링크를 파싱·조립하지 않으므로 스킴을 쓸 일이 없다.
 #    🔵 셸(ui_shell)은 대상이 아니다 — 라우트 테이블에 패턴을 등록하고 파라미터를 꺼내는 일이 셸 몫이다
@@ -182,7 +182,7 @@ else
   PARAM_ROUTES=''
 fi
 MISSING_SAMPLES=''
-for sample in rebalanceEvent journalRebalance; do
+for sample in rebalanceEvent journalRebalance ledgerExecutionGapMonth; do
   printf '%s\n' "$PARAM_ROUTES" | tr '|' '\n' | grep -qx "$sample" \
     || MISSING_SAMPLES="$MISSING_SAMPLES $sample"
 done

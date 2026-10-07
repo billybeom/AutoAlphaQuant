@@ -41,7 +41,7 @@ class FakeWhatIfApi extends UnimplementedWhatIfApi {
   }
 
   @override
-  Future<RebalancePreview> previewRebalance({plannedDate}) {
+  Future<RebalancePreviewResult> previewRebalance({plannedDate}) {
     otherCalls.add('previewRebalance');
     return super.previewRebalance(plannedDate: plannedDate);
   }

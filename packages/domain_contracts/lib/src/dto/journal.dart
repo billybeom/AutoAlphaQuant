@@ -210,23 +210,9 @@ abstract class DecisionSnapshot with _$DecisionSnapshot {
       _$DecisionSnapshotFromJson(json);
 }
 
-/// 임계값 대조 1행(02 §8-1 · m2-8 E-2).
-///
-/// 🔴 수치는 전부 **엔진 포맷 문자열**이다 — 화면이 비교식을 만들지 않는다.
-@freezed
-abstract class ThresholdCompare with _$ThresholdCompare {
-  const factory ThresholdCompare({
-    required String metricKey,
-    required String metricLabel,
-    required String observedText,
-    required String thresholdText,
-    required bool passed,
-    required String verdictLabel,
-  }) = _ThresholdCompare;
-
-  factory ThresholdCompare.fromJson(Map<String, dynamic> json) =>
-      _$ThresholdCompareFromJson(json);
-}
+// 🆕 v1.6(01 §15-4) — `ThresholdCompare`(임계값 대조 1행)는 `common.dart` 로 옮겼다(이름·필드·JSON·
+//    배럴 export 무변경). `rebalance.dart` 의 `RebalanceEvent.thresholds` 가 같은 타입을 쓰는데, 이 파일이
+//    이미 `rebalance.dart` 를 import 하므로 여기 두면 순환이 된다.
 
 /// 거부 추적 1행 — 어느 단계에서 왜 막혔나(02 §8-1 · m2-8 E-3).
 ///

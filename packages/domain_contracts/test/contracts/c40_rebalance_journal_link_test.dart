@@ -30,11 +30,13 @@ import 'c00_support.dart';
 import 'support/fixture_io_t2.dart';
 
 /// `RebalanceEvent` 를 싣는 픽스처 전부(코덱 `_rebalanceEvent` 와 같은 모집단).
+/// 🆕 v1.6(01 §15-4) — `m7_rebalance_sim`(모의투자 회차 · 행 링크 꼬리 == `event_id` · 버튼 부재).
 const List<String> _eventFixtures = <String>[
   FixturePaths.rebalance6,
   FixturePaths.m7M7RebalanceDetailBand,
   FixturePaths.m7M7RebalanceDetailAdvisory,
   FixturePaths.m7M7RebalanceEmpty,
+  FixturePaths.m7M7RebalanceSim,
 ];
 
 String _fill(String pattern, String value) {

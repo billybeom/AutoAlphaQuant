@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.5.0",
+    "contract_version": "1.6.0",
     "generated_at": "2026-09-17T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -80,7 +80,7 @@
           "section_code": "D",
           "title": "규칙 이행",
           "value_text": "규칙대로 21건 · 재량 1건 · 이행률 88%",
-          "detail_deep_link": "aaq://ledger/execution-gap"
+          "detail_deep_link": "aaq://ledger/execution-gap/2026-08"
         },
         {
           "code": "D4_DISCRETION_BUDGET",

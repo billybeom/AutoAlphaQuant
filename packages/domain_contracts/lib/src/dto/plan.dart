@@ -10,6 +10,9 @@
 //    0건을 「0원」으로 그리지 않는다(01 §2-6 v2.32 `PENSION_FUNDING`).
 // 🔴 🆕 v1.4 — «읽지 않는 필드»(`/// 🔴 ui 미참조(C-38 ⑩)` 표식)는 엔진·명령·골든 대조 쪽 원값이다.
 //    화면은 같은 뜻의 `*Text`·`*Label` 필드만 그린다(01 §14-4 · C-38 ⑩ 정규식과 **같은 목록**).
+// 🆕 v1.6(01 §15-4 · R12 선행 · 발주자 결정 ②) — 리밸런싱 미리보기 결과 `RebalancePreviewResult`
+//    (초안 | 차단) · `RebalancePreview` 표시 필드(`plannedDateText`·`asOf`·`orderDraftsTitle`·
+//    `ordersEmptyText`·`warningLines`). `S7-6c` 의 «읽지 않는 필드»는 `// 🔴 ui 미참조(C-42)` 표식이다.
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -47,6 +50,26 @@ abstract class DepositPreviewResult with _$DepositPreviewResult {
 
   factory DepositPreviewResult.fromJson(Map<String, dynamic> json) =>
       _$DepositPreviewResultFromJson(json);
+}
+
+/// 🆕 v1.6 · 01 §15-4 — 리밸런싱 미리보기 결과(`WhatIfApi.previewRebalance` 의 반환).
+/// 🔴 [preview] · [blockedText] 중 **정확히 하나** non-null(C-41 ①). 입력 거부 갈래는 없다(입력이 없다).
+/// 🔴 [blockedAction] 은 [blockedText] 가 있을 때만 non-null 일 수 있다(null = 버튼 부재 · C-38 ① 준용).
+/// 🔴 화면은 둘 중 무엇이 non-null 인가로만 갈린다 — 문장을 해석하지 않는다.
+@freezed
+abstract class RebalancePreviewResult with _$RebalancePreviewResult {
+  const factory RebalancePreviewResult({
+    RebalancePreview? preview,
+
+    /// 초안을 계산하지 않은 까닭(무결성·재개 미완·예정 없음 등) — 엔진 문장 · 화면 = 문장 카드 1장.
+    String? blockedText,
+
+    /// 차단 카드의 이동 버튼 — 탭 = `AppLinkOpener.open(deepLink)` 그대로.
+    LinkAction? blockedAction,
+  }) = _RebalancePreviewResult;
+
+  factory RebalancePreviewResult.fromJson(Map<String, dynamic> json) =>
+      _$RebalancePreviewResultFromJson(json);
 }
 
 /// 01 §2-6 — 입금 미리보기 계획.
@@ -172,13 +195,15 @@ abstract class OrderDraft with _$OrderDraft {
     /// 🆕 v1.4 — 수량 글자 — 엔진 생성.
     required String quantityText,
 
-    /// 사유 칩. 🔴 플래너(S7-4)는 `label`·`tone` 만 그린다 — `detailDeepLink` 는 읽지 않는다(D20).
+    /// 사유 칩. 🔴 플래너(S7-4)·`S7-6c` 는 `label`·`tone` 만 — `detailDeepLink` 는 읽지 않는다
+    /// (D20 · §8 미결 81).
     required List<ReasonChip> reasons,
 
     /// 🔴 ui 미참조(C-38 ⑩). 표시는 [limitPriceText].
     @DecimalStringConverter() Decimal? limitPrice,
 
-    /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ② · **`DepositPlan` 한정** —
+    /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ② · 🆕 v1.6 C-41 ② ·
+    /// `DepositPlan`·`RebalancePreview`(인출 초안 제외) —
     /// 인출 초안(`WithdrawalPlan.orderDrafts`)은 인출 규칙 결정 뒤 첫 minor 재생성 전까지 이 짝을 지키지 않는다 · 01 §14-4 · §14-15).
     String? limitPriceText,
 
@@ -290,20 +315,42 @@ abstract class WithdrawalPlan with _$WithdrawalPlan {
       _$WithdrawalPlanFromJson(json);
 }
 
-/// 01 §2-6 · m2-8 F-14 — 리밸런싱 미리보기.
+/// 01 §2-6 · m2-8 F-14 — 리밸런싱 미리보기. 🆕 v1.6 표시 필드(01 §15-4 필드 → 자리 표).
 /// 🔴 `DepositPlan` 과 **같은** `fundingSteps` 를 싣는다(v2.32).
 @freezed
 abstract class RebalancePreview with _$RebalancePreview {
   const factory RebalancePreview({
+    /// 🔴 ui 미참조(C-42).
     required String planId,
+
+    /// 🔴 ui 미참조(C-42) — 표시는 [plannedDateText].
     @TradeDateConverter() required TradeDate plannedDate,
+
+    /// 🆕 v1.6 — «2026년 9월 1일 회차» — 엔진 생성(초안 머리 1줄).
+    required String plannedDateText,
+
+    /// 🆕 v1.6 — 초안의 기준 시각(봉투 as_of 를 행으로 · `DepositPlan.asOf` 선례).
+    required AsOf asOf,
+
+    /// 🔴 ui 미참조 — R12 는 전후 비중을 그리지 않는다(§8 미결 92).
     required List<SleeveWeight> before,
     required List<SleeveWeight> after,
+
+    /// 🆕 v1.6 — 주문 초안 표 제목(«주문 초안» / advisory 이름) — 엔진 생성.
+    required String orderDraftsTitle,
     required List<OrderDraft> orderDrafts,
+
+    /// 🆕 v1.6 — non-null ⇔ [orderDrafts] 빈 목록(C-41 ②). 그때 표 대신 이 한 줄.
+    String? ordersEmptyText,
     required CostEstimate costs,
+
+    /// «미리보기입니다…» 고지 **전용**(v1.4 §14-5 준용).
     required String previewNotice,
 
-    /// 🔴 null·빈 목록 = 조달 절을 통째로 숨긴다.
+    /// 🆕 v1.6 — 경고 문장 — **받은 순서** 그대로.
+    @Default(<String>[]) List<String> warningLines,
+
+    /// 🔴 ui 미참조 — R12 는 조달 절을 그리지 않는다(§8 미결 92). null·빈 목록 규약은 그대로.
     List<FundingStep>? fundingSteps,
   }) = _RebalancePreview;
 

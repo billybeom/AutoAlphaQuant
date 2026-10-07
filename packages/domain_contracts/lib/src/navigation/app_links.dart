@@ -105,8 +105,15 @@ abstract final class AppRoutes {
   /// 원장 신뢰 등급 설명.
   static const String ledgerTrust = 'aaq://ledger/trust';
 
-  /// `S7-10` 이행 갭.
+  /// `S7-10` 이행 갭 — 🆕 v1.6 주석: `S7-10` 은 **M7(03 §14-b) 화면**이다 · 이 묶음 표기는 역사적(H63).
+  /// 인자 없는 진입(「계획」 탭 ⑤) = 엔진 기본 달 · 셸 본문 = `ExecutionGapScreen()`.
   static const String ledgerExecutionGap = 'aaq://ledger/execution-gap';
+
+  /// 🆕 v1.6(01 §15-4 · K1) — `S7-10` 의 **그 달**(`yyyy-MM`). `MonthlyReport` ⑧ `D3_EXECUTION.detailDeepLink`
+  /// 를 엔진이 완성해서 준다. 셸 본문 = `ExecutionGapScreen(key: ValueKey(m), yyyyMm: m)` — **두 라우트 · 한 위젯**
+  /// (v1.5 `journalRebalance` 다음 두 번째 사례). 세그먼트 수가 달라 [ledgerExecutionGap] 과 겹치지 않는다.
+  static const String ledgerExecutionGapMonth =
+      'aaq://ledger/execution-gap/:yyyyMm';
 
   // ── M7 성과·리밸런싱·플래너(03) ───────────────────────────────────────────
   /// `S7-1b` 리포트 아카이브.
@@ -115,9 +122,10 @@ abstract final class AppRoutes {
   /// 세후 사다리 단독 보기 — 03 §12 `S7-7` 세후 카드와 같은 `AfterTaxLadder`(03 에 별도 화면 ID 없음).
   /// 🆕 v1.4 주석 정정 — 구 «`S7-7` 세후 사다리»·«`S7-8` 연간 리뷰»는 오기였다
   /// (`S7-7` = 12월 연간 리뷰 · `S7-8` = X2 재개 리포트 읽기 사본 · 03 §2).
+  /// 🆕 v1.6 — 03 에 화면 없음 · R12 밖 · `S7-7` 세후는 VM `afterTax` 블록.
   static const String reportAfterTax = 'aaq://report/aftertax';
 
-  /// `S7-7` 12월 연간 리뷰 패키지.
+  /// `S7-7` 12월 연간 리뷰 패키지. 🆕 v1.6 — 셸 본문 = `AnnualReviewScreen()`.
   static const String reportAnnual = 'aaq://report/annual';
 
   /// `S7-1` 월간 리포트(`yyyy-MM`).
@@ -144,7 +152,11 @@ abstract final class AppRoutes {
   /// ⏸ `planWithdrawal`(S7-5) 은 인출 규칙 결정(01 §8 미결 79) 뒤 첫 minor 에서 더한다(01 §14-15 · §15-3).
   static const String planDeposit = 'aaq://plan/deposit';
 
-  /// `S7-6c` 리밸런싱 미리보기.
+  // M7 묶음 — `all` 에서도 rebalancePreview 앞
+  /// 🆕 v1.6(01 §15-4 · K5) — `S7-6a` 리밸런싱 회차 타임라인(`RebalanceTimelineScreen()`).
+  static const String rebalanceHistory = 'aaq://rebalance/history';
+
+  /// `S7-6c` 리밸런싱 미리보기. 🆕 v1.6 — 셸 본문 = `RebalancePreviewScreen()`.
   static const String rebalancePreview = 'aaq://rebalance/preview';
 
   /// `S7-6b` 리밸런싱 회차 상세 — `DecisionDetailVm.rebalanceLink` 등이 준다.
@@ -178,7 +190,8 @@ abstract final class AppRoutes {
   /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
 
-  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance`).
+  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance` ·
+  /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory`).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -194,6 +207,7 @@ abstract final class AppRoutes {
     ledgerSelfReport,
     ledgerTrust,
     ledgerExecutionGap,
+    ledgerExecutionGapMonth,
     reportArchive,
     reportAfterTax,
     reportAnnual,
@@ -203,6 +217,7 @@ abstract final class AppRoutes {
     performanceDrawdown,
     performanceContribution,
     planDeposit,
+    rebalanceHistory,
     rebalancePreview,
     rebalanceEvent,
     onboardingStep,

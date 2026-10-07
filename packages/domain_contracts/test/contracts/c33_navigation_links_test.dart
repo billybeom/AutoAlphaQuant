@@ -14,6 +14,10 @@
 //   🆕 v1.5(01 §15-3) — 라우트 **43**(`journalRebalance`) · `_linkKeys` 무변경(`journal_timeline_link` 는
 //   `LinkAction` 이라 안쪽 `deep_link` 로 덮인다 · `RebalanceEvent.detailDeepLink` 는 기존 `detail_deep_link`) ·
 //   ⑦ 선언 순서 = 첫 일치.
+//   🆕 v1.6(01 §15-4) — 라우트 **45**(`ledgerExecutionGapMonth` · `rebalanceHistory`) · `_linkKeys` 무변경
+//   (`RebalancePreviewResult.blockedAction` 은 `LinkAction` 이라 안쪽 `deep_link` 로 덮인다) · ④ 에
+//   `ledger/execution-gap/<yyyy-MM>`·`rebalance/history` 일치 예시 · ①② 가 새 링크(월간 ⑧ 그 달 ·
+//   미리보기 차단 버튼)를 검사한다.
 // 🔴 화면은 이 검사의 대상이 아니다 — 화면은 링크를 **만들지 않으므로** 검사할 것이 없고,
 //    만들었다면 `tool/check_boundaries.sh` 의 `aaq://` 리터럴 스캔이 잡는다.
 
@@ -109,13 +113,16 @@ void main() {
     test('C-33 ③ 라우트 목록에 중복이 없고 M5·X 소유 10종이 들어 있다', () {
       expect(AppRoutes.all.toSet().length, AppRoutes.all.length);
       // 🆕 v1.4 — 41 → 42(`reportGoalPath`). 🆕 v1.5 — 42 → 43(`journalRebalance` · 01 §15-3).
+      // 🆕 v1.6 — 43 → 45(`ledgerExecutionGapMonth` · `rebalanceHistory` · 01 §15-4).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(43),
-        reason: '라우트 수가 계약(01 §15-3 · v1.5 = 43)과 다르다.',
+        hasLength(45),
+        reason: '라우트 수가 계약(01 §15-4 · v1.6 = 45)과 다르다.',
       );
+      expect(AppRoutes.all, contains(AppRoutes.ledgerExecutionGapMonth));
+      expect(AppRoutes.all, contains(AppRoutes.rebalanceHistory));
       expect(AppRoutes.all, contains(AppRoutes.journalRebalance));
       expect(AppRoutes.all, contains(AppRoutes.reportGoalPath));
       expect(AppRoutes.all, contains(AppRoutes.planDeposit));
@@ -162,6 +169,18 @@ void main() {
         AppRoutes.isRegistered('aaq://journal/rebalance/re_1?x=1'),
         isFalse,
       );
+      // 🆕 v1.6 — `ledger/execution-gap/:yyyyMm` 은 세그먼트 수가 달라 `ledger/execution-gap` 과 겹치지 않는다 ·
+      //    `rebalance/history` 는 고정 2세그먼트(`rebalance/:x` 패턴은 없다).
+      expect(
+        AppRoutes.isRegistered('aaq://ledger/execution-gap/2026-08'),
+        isTrue,
+      );
+      expect(AppRoutes.isRegistered('aaq://ledger/execution-gap/'), isFalse);
+      expect(
+        AppRoutes.isRegistered('aaq://ledger/execution-gap/2026-08?x=1'),
+        isFalse,
+      );
+      expect(AppRoutes.isRegistered('aaq://rebalance/history'), isTrue);
       expect(AppRoutes.isRegistered('aaq://journal/timeline'), isTrue);
       expect(AppRoutes.isRegistered('aaq://nowhere'), isFalse);
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);

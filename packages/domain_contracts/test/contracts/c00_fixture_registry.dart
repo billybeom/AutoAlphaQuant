@@ -64,6 +64,18 @@ final DtoCodec<Object> _depositPlan = DtoCodec<DepositPlan>(
   DepositPlan.fromJson,
   (DepositPlan v) => v.toJson(),
 );
+// 🆕 계약 v1.6(R12 선행 · 01 §15-4) — 리밸런싱 미리보기 결과(초안 | 차단).
+final DtoCodec<Object> _rebalancePreviewResult =
+    DtoCodec<RebalancePreviewResult>(
+      'RebalancePreviewResult',
+      RebalancePreviewResult.fromJson,
+      (RebalancePreviewResult v) => v.toJson(),
+    );
+final DtoCodec<Object> _nextRebalanceVm = DtoCodec<NextRebalanceVm>(
+  'NextRebalanceVm',
+  NextRebalanceVm.fromJson,
+  (NextRebalanceVm v) => v.toJson(),
+);
 // 🆕 계약 v1.4(R11 선행 · 01 §14-1) — 입금 미리보기 결과(plan | 입력 거부 | 차단).
 final DtoCodec<Object> _depositPreviewResult = DtoCodec<DepositPreviewResult>(
   'DepositPreviewResult',
@@ -102,10 +114,12 @@ final DtoCodec<Object> _tradeJournalEntry = DtoCodec<TradeJournalEntry>(
   TradeJournalEntry.fromJson,
   (TradeJournalEntry v) => v.toJson(),
 );
-final DtoCodec<Object> _executionGapReport = DtoCodec<ExecutionGapReport>(
-  'ExecutionGapReport',
-  ExecutionGapReport.fromJson,
-  (ExecutionGapReport v) => v.toJson(),
+// 🆕 v1.6(01 §15-4) — 월간 이행 갭 결과(report | 빈·해당없음 문장). 기존 4벌도 래퍼로 재바인딩 —
+//    `ExecutionGapReport` 는 래퍼 안쪽으로 덮인다(C-8 폐포).
+final DtoCodec<Object> _executionGapResult = DtoCodec<ExecutionGapResult>(
+  'ExecutionGapResult',
+  ExecutionGapResult.fromJson,
+  (ExecutionGapResult v) => v.toJson(),
 );
 final DtoCodec<Object> _monthlyReport = DtoCodec<MonthlyReport>(
   'MonthlyReport',
@@ -372,10 +386,15 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (AfterTaxLadder v) => v.toJson(),
     ),
   ),
-  FixturePaths.m7ExecutionGap1: FixtureBinding(_executionGapReport),
-  FixturePaths.m7ExecutionGapCant: FixtureBinding(_executionGapReport),
-  FixturePaths.m7ExecutionGapMixed: FixtureBinding(_executionGapReport),
-  FixturePaths.m7ExecutionGapWont: FixtureBinding(_executionGapReport),
+  // 🔵 v1.6 — 4벌은 행 타입이 `ExecutionGapReport` → `ExecutionGapResult` 래퍼로 바뀌었다(재바인딩).
+  FixturePaths.m7ExecutionGap1: FixtureBinding(_executionGapResult),
+  FixturePaths.m7ExecutionGapCant: FixtureBinding(_executionGapResult),
+  // 🆕 v1.6 — 안내 0건 · RECON_MISMATCH 가림 · 자동 매매 구간.
+  FixturePaths.m7ExecutionGapEmpty: FixtureBinding(_executionGapResult),
+  FixturePaths.m7ExecutionGapMaskedRecon: FixtureBinding(_executionGapResult),
+  FixturePaths.m7ExecutionGapMixed: FixtureBinding(_executionGapResult),
+  FixturePaths.m7ExecutionGapNotApplicable: FixtureBinding(_executionGapResult),
+  FixturePaths.m7ExecutionGapWont: FixtureBinding(_executionGapResult),
   FixturePaths.m7LedgerTrust4: FixtureBinding(
     DtoCodec<LedgerTrustBadge>(
       'LedgerTrustBadge',
@@ -385,6 +404,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   ),
   FixturePaths.m7M7Annual2026: FixtureBinding(_annualReviewVm),
   FixturePaths.m7M7AnnualFirstYear: FixtureBinding(_annualReviewVm),
+  // 🆕 v1.6 — 창 밖(2025 · CLOSED · 기본 연도 규칙 표본).
+  FixturePaths.m7M7AnnualOffwindow: FixtureBinding(_annualReviewVm),
   FixturePaths.m7M7Contrib3sleeve: FixtureBinding(_contributionVm),
   FixturePaths.m7M7ContribPartial: FixtureBinding(_contributionVm),
   FixturePaths.m7M7DdContextDeep: FixtureBinding(_drawdownContextVm),
@@ -417,13 +438,9 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m7M7MonthlyMaskedIntegrity: FixtureBinding(_monthlyReport),
   FixturePaths.m7M7MonthlyMaskedRecon: FixtureBinding(_monthlyReport),
   FixturePaths.m7M7MonthlyPending: FixtureBinding(_monthlyReport),
-  FixturePaths.m7M7NextRebalanceD6: FixtureBinding(
-    DtoCodec<NextRebalanceVm>(
-      'NextRebalanceVm',
-      NextRebalanceVm.fromJson,
-      (NextRebalanceVm v) => v.toJson(),
-    ),
-  ),
+  // 🔵 v1.6 — 개명(구 `m7NextRebalanceD6` · «D-1») + 예정 없음 표본.
+  FixturePaths.m7M7NextRebalanceCountdown: FixtureBinding(_nextRebalanceVm),
+  FixturePaths.m7M7NextRebalanceNone: FixtureBinding(_nextRebalanceVm),
   FixturePaths.m7M7PerfDailyGap: FixtureBinding(_performanceSeries),
   // 🆕 v1.3 — `S7-2` 성과 시리즈 6갈래(수동 집행 · 가림 · 월별 · 모의 분리 · 불가 · 연간).
   FixturePaths.m7M7PerfDailyManual: FixtureBinding(_performanceSeries),
@@ -436,6 +453,17 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   // 🆕 v1.5(01 §15-3) — advisory 거울 · `S7-6a` 빈 타임라인.
   FixturePaths.m7M7RebalanceDetailAdvisory: FixtureBinding(_rebalanceEvent),
   FixturePaths.m7M7RebalanceEmpty: FixtureBinding(_rebalanceEvent),
+  // 🆕 v1.6(01 §15-4) — `S7-6c` 미리보기 결과 3벌 · `S7-6a` 모의투자 회차.
+  FixturePaths.m7M7RebalancePreviewBlocked: FixtureBinding(
+    _rebalancePreviewResult,
+  ),
+  FixturePaths.m7M7RebalancePreviewDefault: FixtureBinding(
+    _rebalancePreviewResult,
+  ),
+  FixturePaths.m7M7RebalancePreviewInBand: FixtureBinding(
+    _rebalancePreviewResult,
+  ),
+  FixturePaths.m7M7RebalanceSim: FixtureBinding(_rebalanceEvent),
   FixturePaths.m7M7ReportArchive18: FixtureBinding(_reportArchiveVm),
   // 🆕 v1.3 — `S7-1b` 빈 아카이브.
   FixturePaths.m7M7ReportArchiveEmpty: FixtureBinding(_reportArchiveVm),
