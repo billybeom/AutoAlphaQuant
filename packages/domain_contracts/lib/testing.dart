@@ -24,6 +24,8 @@
 //   🆕 계약 v1.5 R12 선행(01 §15-3) — `UnimplementedRebalanceRepository`(리밸런싱 읽기 창구 ·
 //   R12 `S7-6a/b/c` 가짜의 받침대 — 그전까지 이 받침대가 없어 `implements` 가 강요됐다) ·
 //   `watchEvents` 봉투(`ListResult`) · `watchEvent`(회차 1건) · `UnimplementedJournalRepository.watchRebalanceScope`.
+//   🆕 계약 v1.6 R12 선행(01 §15-4) — `UnimplementedExecutionGapRepository`(이행 갭 읽기 창구 ·
+//   R12 `S7-10` 가짜의 받침대 · 시그니처는 계약을 따라 같은 커밋에서 고친다).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -45,6 +47,20 @@ class UnimplementedRebalanceRepository implements RebalanceRepository {
 
   @override
   Stream<NextRebalanceVm> watchNext() => throw UnimplementedError('watchNext');
+}
+
+/// [ExecutionGapRepository] 받침대 — 필요한 메서드만 override 한다(🆕 계약 v1.6 · 01 §15-4).
+///
+/// 🔴 리포지토리 받침대 관행대로 **동기로 던진다**([UnimplementedWhatIfApi] 의 `Future` 에러와 다르다).
+/// 🔴 결과는 지어내지 않는다 — `m7/execution_gap_*` 픽스처 행을 열어 override 로 돌려준다.
+class UnimplementedExecutionGapRepository implements ExecutionGapRepository {
+  @override
+  Future<ExecutionGapReport> monthly(String yyyyMm) =>
+      throw UnimplementedError('monthly');
+
+  @override
+  Stream<ExecutionGapReport> watchRolling() =>
+      throw UnimplementedError('watchRolling');
 }
 
 /// [JournalRepository] 받침대 — 필요한 메서드만 override 한다.

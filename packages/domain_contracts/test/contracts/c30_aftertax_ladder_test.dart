@@ -161,7 +161,8 @@ void main() {
     });
 
     test(
-      'C-30 ⓕ ui_* 위젯트리에 cagrPct·endMult 참조 0건 · 숫자 리터럴 0건',
+      'C-30 ⓕ (R12 밖 `ui_analytics` 화면) cagrPct·endMult 참조 0건 · 숫자 리터럴 0건 — '
+      'R12 화면 = C-42 ③⑥ · `ui_analytics` 밖 세후 필드 = C-42 ⑫',
       () {},
       skip: 'ui_m7 소스 정적 스캔이 필요하다 — 패키지 선행(인벤토리 §9 C-30 = 🟡).',
     );
