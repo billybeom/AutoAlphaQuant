@@ -11,7 +11,8 @@
 #   [5] 🔴 실패: ui_* 의 lib/ 코드 줄에 링크 리터럴(`aaq://`·`handbook://`)이 있는가 (01 §4-4 · 계약 v1.1)
 #   [5b] 🔴 실패: ui_* 의 lib/ 코드 줄이 **파라미터 라우트 상수**(`AppRoutes.*` 중 값에 `/:` 가 든 것)를
 #              참조하는가 — 패턴에 값을 끼워 링크를 조립하는 길(규칙 ③). 목록은 app_links.dart 에서 뽑는다
-#              (🆕 계약 v1.5 · 01 §15-3) — 🔵 셸(ui_shell)은 제외: 라우트 테이블·파서가 그 상수를 쓰는 유일한 자리다
+#              (🆕 계약 v1.5 · 01 §15-3) — 🔵 셸(ui_shell)은 제외: 라우트 테이블·파서가 그 상수를 쓰는 유일한 자리다 ·
+#              같은 대상에서 `AppLinkSchemes` 참조도 실패(스킴 보간으로 링크를 조립하는 길)
 #   [5c] 🔴 실패: ui_* 의 test/ Dart 코드 줄에 링크 리터럴이 있는가 — 테스트도 링크를 픽스처 값으로
 #              비교한다(02 §3-1 ⓕ 의 기계화 · 🆕 계약 v1.5 · 01 §15-3) — 🔵 셸(ui_shell)은 제외: 라우트 표본은
 #              `AppRoutes.all` 패턴에서 만든다(C-17·C-18)
@@ -158,13 +159,16 @@ for pkg in $UI_PKGS; do
   fi
 done
 
-# ── [5b] 파라미터 라우트 상수 (🆕 계약 v1.5 · 01 §15-3 · 01 §4-4 규칙 ③) ─────────
+# ── [5b] 파라미터 라우트 상수 · 스킴 (🆕 계약 v1.5 · 01 §15-3 · 01 §4-4 규칙 ②③) ──
 # 🔴 [5] 는 리터럴만 잡는다 — `AppRoutes.journalDecision.replaceAll(':decisionId', id)` 처럼 **상수로**
 #    링크를 조립하면 [5] 를 지난다. 파라미터가 든 링크는 언제나 엔진이 완성해서 주므로 화면 코드가
 #    파라미터 라우트 상수를 참조할 이유가 없다(고정 목적지 상수는 규칙 ④ 대로 허용 — 여기서 보지 않는다).
 #    목록은 손으로 적지 않는다 — app_links.dart 에서 값에 `/:` 가 든 상수 이름을 뽑는다.
-#    선언이 두 줄로 나뉘어도(dart format 80열) 이어 읽는다. 뽑힌 목록에 `rebalanceEvent`(두 줄 선언의 견본)가
-#    없으면 추출이 낡은 것이다 — 일부만 뽑혀도 공허하게 통과하지 않게 실패시킨다.
+#    선언이 두 줄로 나뉘어도(dart format 80열) 이어 읽는다. 뽑힌 목록에 두 줄 선언의 견본
+#    `rebalanceEvent`·`journalRebalance`(🆕 v1.5)가 없으면 추출이 낡은 것이다 — 일부만 뽑혀도 공허하게
+#    통과하지 않게 실패시킨다.
+#    같은 대상에서 `AppLinkSchemes` 참조도 실패: `'${AppLinkSchemes.app}://rebalance/event/$id'` 처럼 스킴을
+#    보간하면 [5](리터럴)·상수 검사를 둘 다 지난다. 화면은 링크를 파싱·조립하지 않으므로 스킴을 쓸 일이 없다.
 #    🔵 셸(ui_shell)은 대상이 아니다 — 라우트 테이블에 패턴을 등록하고 파라미터를 꺼내는 일이 셸 몫이다
 #       (01 §4-4 · 04 §1-2). 화면 패키지만 본다.
 SCREEN_PKGS=$(ls -d packages/ui_* 2>/dev/null | grep -v '/ui_shell$' || true)
@@ -177,10 +181,13 @@ if [ -f "$ROUTES_FILE" ]; then
 else
   PARAM_ROUTES=''
 fi
-if ! printf '%s
-' "$PARAM_ROUTES" | tr '|' '
-' | grep -qx 'rebalanceEvent'; then
-  fail "[5b] $ROUTES_FILE 에서 파라미터 라우트 상수를 제대로 뽑지 못했다(rebalanceEvent 없음 · 뽑힌 것: ${PARAM_ROUTES:-없음}) — 경로나 선언 모양이 바뀌었다(검사가 공허해진다)."
+MISSING_SAMPLES=''
+for sample in rebalanceEvent journalRebalance; do
+  printf '%s\n' "$PARAM_ROUTES" | tr '|' '\n' | grep -qx "$sample" \
+    || MISSING_SAMPLES="$MISSING_SAMPLES $sample"
+done
+if [ -n "$MISSING_SAMPLES" ]; then
+  fail "[5b] $ROUTES_FILE 에서 파라미터 라우트 상수를 제대로 뽑지 못했다(없음:$MISSING_SAMPLES · 뽑힌 것: ${PARAM_ROUTES:-없음}) — 경로나 선언 모양이 바뀌었다(검사가 공허해진다)."
 else
   for pkg in $SCREEN_PKGS; do
     [ -d "$pkg/lib" ] || continue
@@ -193,6 +200,16 @@ else
     fi
   done
 fi
+for pkg in $SCREEN_PKGS; do
+  [ -d "$pkg/lib" ] || continue
+  hits=$(grep -rnE "AppLinkSchemes\." "$pkg/lib" 2>/dev/null \
+         | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|///|\*)' \
+         || true)
+  if [ -n "$hits" ]; then
+    fail "[5b] $(basename "$pkg"): 화면 코드가 AppLinkSchemes 를 참조한다 — 스킴 보간으로 링크를 조립하는 길이다(01 §4-4 규칙 ②③):"
+    printf '     %s\n' "$hits" | head -20
+  fi
+done
 
 # ── [5c] 테스트의 링크 리터럴 (🆕 계약 v1.5 · 01 §15-3 · 02 §3-1 ⓕ) ───────────────
 # 🔴 화면 테스트는 링크를 **픽스처 값**과 비교한다(`RecordingLinkOpener.opened` == 픽스처의 deep_link).

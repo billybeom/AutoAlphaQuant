@@ -13,6 +13,7 @@ import '../enums/rebalance.dart';
 import '../enums/sleeve.dart';
 import '../primitives/as_of.dart';
 import '../primitives/money.dart';
+import 'common.dart';
 
 part 'rebalance.freezed.dart';
 part 'rebalance.g.dart';
@@ -38,6 +39,20 @@ abstract class RebalanceEvent with _$RebalanceEvent {
 
     /// 실측 슬리피지 vs 가정치·미체결률 — m2-8 F-10.
     ExecutionQuality? quality,
+
+    /// 🆕 v1.5(01 §15-3 · §8 미결 49) — `S7-6b` 하단 «이 회차의 … N건» 버튼 **하나**
+    /// (목적지 = `J-1` 회차 조건 · `AppRoutes.journalRebalance` 를 엔진이 완성).
+    /// `label` = 엔진 완성 문장. N = 그 회차에 묶인 일지 행 **전체** 수(정정 행 포함 · 기간 무관) —
+    /// 링크가 처음 여는 목록의 행 수와 같다(씨앗 기간 = `JournalRebalanceScope.range`).
+    /// 낱말(자동 갈래 «주문» · advisory 갈래는 행을 가리키는 말 — 03 §11-d)도 이 글자 안에서 끝난다.
+    /// 🔴 null = 버튼 **부재**(비활성 아님) — 엔진은 그 회차에 묶인 일지 행이 0 이면 null 로 준다.
+    /// 🔴 화면이 `orderIntentIds.length` 로 N 을 세거나 `eventId` 로 링크를 조립하면 반려.
+    LinkAction? journalTimelineLink,
+
+    /// 🆕 v1.5(01 §15-3) — `S7-6a` 행 탭 → `S7-6b`(`AppRoutes.rebalanceEvent` 를 엔진이 완성).
+    /// 🔴 null 이면 행 탭에 반응이 없다. 화면이 `eventId` 로 링크를 조립하지 않는다.
+    /// `S7-6b` 안에서는 쓰지 않는다(자기 자신 — `TradeJournalEntry.detailDeepLink` 와 같은 규약).
+    String? detailDeepLink,
   }) = _RebalanceEvent;
 
   factory RebalanceEvent.fromJson(Map<String, dynamic> json) =>

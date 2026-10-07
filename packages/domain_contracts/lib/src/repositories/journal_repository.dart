@@ -18,6 +18,8 @@ abstract interface class JournalRepository {
   /// 🆕 G-39 `origin` — 「수기 기록만」·「브로커 체결만」 필터(02 §3-1 X7).
   ///    🔴 화면이 `rows` 를 받아 거르지 않는다 — **거르기도 판정이다**.
   /// 🆕 G-40 `rebalanceEventId` — `S7-6b` 「이 회차의 주문 N건」 딥링크의 **유일한 경로**.
+  ///    🆕 v1.5(01 §15-3) — 운반 = `AppRoutes.journalRebalance` → 셸 → `JournalTimeline(rebalanceEventId:)`
+  ///    → 이 인자. 씨앗 기간은 [watchRebalanceScope] 의 `range` 다.
   ///    🔴 화면이 `RebalanceEvent.orderIntentIds` 를 순회해 거르는 구현은 반려.
   Stream<ListResult<TradeJournalEntry>> watchTimeline({
     required DateRange range,
@@ -74,4 +76,15 @@ abstract interface class JournalRepository {
   /// 대기)과 같게 둔다. 50 ③ 이 확정되면 두 메서드를 함께 고친다(화면은 어느 쪽이든 공통 에러 상태).
   /// 🔴 화면은 `findByDecisionId`·`chainOf` 로 조립하지 않는다 — 이 스트림 하나만 구독한다.
   Stream<DecisionJournalVm> watchDecisionJournal(String decisionId);
+
+  // ── 🆕 계약 v1.5(R12 선행 M2 보강 · 01 §15-3 · §8 미결 49) ─────────────────────
+
+  /// 🆕 v1.5 — `J-1` 회차 조건의 범위 설명(회차 칩 글자 + 씨앗 기간). 키 = 셸이 라우트 파라미터에서
+  /// 꺼내 `JournalTimeline(rebalanceEventId:)` 로 준 값.
+  /// null = 엔진이 그 회차를 모른다 → 칩 **부재**. 🔴 엔진 규칙: null 이면 같은 id 의
+  /// [watchTimeline] 은 0행이고 «없음»의 문장은 그 봉투의 `emptyLabel` 이 말한다
+  /// (봉투 있는 목록 = 빈 상태 · 봉투 없는 VM(`J-2`)의 «스트림 에러» 잠정 규칙(§8 미결 50 ③)과 다른 축).
+  /// 🔴 `RebalanceEvent.journalTimelineLink` 가 non-null 인 회차에 대해서는 null 을 주지 않는다.
+  /// 🔴 화면이 `RebalanceRepository` 를 구독해 글자를 조립하지 않는다(그것이 조인이다).
+  Stream<JournalRebalanceScope?> watchRebalanceScope(String rebalanceEventId);
 }

@@ -73,6 +73,14 @@ abstract final class AppRoutes {
   /// 등록 = 전 플랫폼(`all`) · 본문 = Android·iOS `JournalReadView` · 웹 = Q-D 전 셸 «부재» 가드(01 §12-2 · 04 §1-2).
   static const String journalRead = 'aaq://journal/read/:decisionId';
 
+  /// 🆕 v1.5(01 §15-3 · §8 미결 49) — `J-1` 매매일지 타임라인을 **회차 조건으로** 연다.
+  /// `RebalanceEvent.journalTimelineLink` 가 완성해서 준다(`S7-6b` 하단 버튼).
+  /// 셸 본문 = `JournalTimeline(key: ValueKey(id), rebalanceEventId: id)` · 등록 = 전 플랫폼 ·
+  /// 웹 가드 = `journalTimeline` 과 같다. `journal/decision`·`draft`·`read` 와 세그먼트 수가 같고
+  /// 둘째 고정 세그먼트로 갈린다(v1.2 `journalRead` 선례) · `journalTimeline` 과는 세그먼트 수가 다르다.
+  static const String journalRebalance =
+      'aaq://journal/rebalance/:rebalanceEventId';
+
   /// `J-4` 사후 blind 리뷰.
   static const String journalBlindReview = 'aaq://journal/blind-review';
 
@@ -133,7 +141,7 @@ abstract final class AppRoutes {
   /// 🆕 v1.4(01 §14-1) — **operator 전용 화면**(`package:ui_analytics/planner.dart` · 배럴 밖).
   /// viewer 셸도 [all] 대로 등록하되 목적지는 «폰에서만 쓸 수 있습니다» 부재 안내다(셸 몫 · 01 §14 ·
   /// 선례 = `journalDraft` 의 iOS 셸 가드).
-  /// ⏸ `planWithdrawal`(S7-5) 은 v1.5 에서 더한다(01 §14-15).
+  /// ⏸ `planWithdrawal`(S7-5) 은 인출 규칙 결정(01 §8 미결 79) 뒤 첫 minor 에서 더한다(01 §14-15 · §15-3).
   static const String planDeposit = 'aaq://plan/deposit';
 
   /// `S7-6c` 리밸런싱 미리보기.
@@ -170,12 +178,13 @@ abstract final class AppRoutes {
   /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
 
-  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.4 = 42).
+  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance`).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
     journalDraft,
     journalRead,
+    journalRebalance,
     journalBlindReview,
     journalUnknownBoard,
     adviceInbox,

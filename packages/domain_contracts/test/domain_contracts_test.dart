@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 //    껍데기로 남는다 — C-1·C-15 는 봉투와 상수를 대조할 뿐 배럴 노출 여부를 보지 않는다.
 void main() {
   test('배럴이 계약 버전을 노출하고, 값이 확정판이다', () {
-    // 🔴 이 상수와 전 픽스처 봉투(v1.4 = 122건 — 기존 115 + R11 선행 7)의 `meta.contract_version` 은
+    // 🔴 이 상수와 전 픽스처 봉투(v1.5 = 126건 — 기존 122 + R12 선행 4)의 `meta.contract_version` 은
     //    같은 축이며 한쪽만 올리지 않는다(C-1 · C-15 ④ 가 전량 대조한다).
     // 🔵 '1.1.0'(2026-09-17 · M2 보강) — 내비게이션 계약·표시 문자열·J-2/J-3/J-5 읽기 창구.
     // 🔵 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore` · `watchDecisionJournal` ·
@@ -18,7 +18,10 @@ void main() {
     //    열람 이벤트 기본값 · `series(range:)` nullable.
     // 🔵 '1.4.0'(R11 선행 M2 보강 · 01 §14) — 입금 미리보기 `DepositPreviewResult` · 목표 경로
     //    `goalPath(yyyyMm)`·`GoalPathVm` 재설계 · `MonthlyReport.goalDeepLink` · `DepositRegistration(planId:)`.
-    expect(contractVersion, '1.4.0');
+    // 🔵 '1.5.0'(R12 선행 M2 보강 · 01 §15-3) — 라우트 `journalRebalance` · `RebalanceEvent` 버튼·행 링크 ·
+    //    `JournalRebalanceScope`·`watchRebalanceScope` · `watchEvent` · `watchEvents` 봉투.
+    //    S7-5 는 인출 규칙 결정 뒤 첫 minor(번호는 그때).
+    expect(contractVersion, '1.5.0');
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.
     expect(contractVersion, isNot(contains('draft')));
   });

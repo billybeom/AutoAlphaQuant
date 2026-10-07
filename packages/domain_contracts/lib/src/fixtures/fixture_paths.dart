@@ -103,6 +103,15 @@ abstract final class FixturePaths {
   static const String m6JournalMaskedIntegrity =
       'm6/journal_masked_integrity.json';
 
+  /// 🆕 v1.5(01 §15-3) — `J-1` 회차 조건의 범위 설명(`JournalRebalanceScope` · 회차 칩 글자 + 씨앗 기간).
+  ///    회차 = `journal_30` 에서 일지 행이 묶인 유일한 회차 · 기간은 그 행 전부를 덮는다(C-40 ⑨).
+  static const String m6JournalRebalanceScope1 =
+      'm6/journal_rebalance_scope_1.json';
+
+  /// 🆕 v1.5 — 모르는 회차로 연 `J-1` 봉투(0행 + 엔진 문장 · `journal_empty` 와 다른 문장 — C-40 ⑦).
+  static const String m6JournalRebalanceUnknown =
+      'm6/journal_rebalance_unknown.json';
+
   /// 🆕 v1.2(R2b 선행 · 01 §12-2) — `J-3R` 사전 저널 읽기(`DecisionJournalVm`) 3갈래:
   ///    작성됨 · 작성됨(메모·결정 링크 부재) · 미작성(`body` null — 2행: 0 = `b_27` · 1 = `a_31`,
   ///    작성됨과 같은 결정의 «미작성» = `J-3` executed 직후 전환 표본).
@@ -227,6 +236,14 @@ abstract final class FixturePaths {
   static const String m7M7PerfYearly = 'm7/m7_perf_yearly.json';
   static const String m7M7RebalanceDetailBand =
       'm7/m7_rebalance_detail_band.json';
+
+  /// 🆕 v1.5(01 §15-3) — band 의 거울(같은 회차) · 버튼 글자만 advisory 갈래 낱말(03 §11-d 치환 ·
+  ///    골든 `s76b_advisory`). 🔵 이 표본이 advisory 임을 말하는 것은 **라벨 글자뿐**이다.
+  static const String m7M7RebalanceDetailAdvisory =
+      'm7/m7_rebalance_detail_advisory.json';
+
+  /// 🆕 v1.5 — `S7-6a` 빈 타임라인(0행 + 엔진 문장 · 골든 `s76a_empty`).
+  static const String m7M7RebalanceEmpty = 'm7/m7_rebalance_empty.json';
   static const String m7M7ReportArchive18 = 'm7/m7_report_archive_18.json';
 
   /// 🆕 v1.3 — `S7-1b` 빈 아카이브(`rows` 0 + VM `empty_label`).
@@ -319,6 +336,8 @@ abstract final class FixturePaths {
     m6JournalDraftSpecReconClear,
     m6JournalFilterCatalog,
     m6JournalMaskedIntegrity,
+    m6JournalRebalanceScope1,
+    m6JournalRebalanceUnknown,
     m6JournalReadNoNote,
     m6JournalReadNotWritten,
     m6JournalReadWritten,
@@ -368,6 +387,8 @@ abstract final class FixturePaths {
     m7M7PerfUnavailableGap,
     m7M7PerfYearly,
     m7M7RebalanceDetailBand,
+    m7M7RebalanceDetailAdvisory,
+    m7M7RebalanceEmpty,
     m7M7ReportArchive18,
     m7M7ReportArchiveEmpty,
     m7M7WithdrawalGeneral,
