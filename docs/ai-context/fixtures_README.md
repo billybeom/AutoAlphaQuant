@@ -1,6 +1,6 @@
 > **사본 · 정본은 `packages/domain_contracts/fixtures/README.md`.** 부록의 파일 목록은 조립 시점 실측입니다.
 
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.5 · 126파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.6 · 135파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ⬜ 로컬 커밋 — PR 대기)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -14,7 +14,7 @@
   아래 «픽스처 계좌 별칭 표»가 정본이다.
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 126파일(🆕 2026-10-07 v1.5) 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 135파일(🆕 2026-10-08 v1.6) 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -34,7 +34,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.5.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.6.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -59,7 +59,11 @@
    (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
    자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
 2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
-   ✅ **지금 값은 `1.5.0`**(2026-10-07 R12 선행 M2 보강 · 01 §15-3 — 상수와 기존 122개 + 신규 4개 = **126개**를
+   ✅ **지금 값은 `1.6.0`**(2026-10-08 R12 선행 M2 보강 · 01 §15-4 · 브랜치 `m2/contract-v1.6-r12` · ⬜ 로컬 커밋 —
+   PR 대기 — 상수와 기존 126개 + 신규 9개 = **135개**를 **함께** 올렸다. 🔴 기존 126개 가운데 112개는
+   `"contract_version"` **한 줄만** 바뀌었고, 14개는 본문도 개정됐다(그중 1개는 개명 `m7_next_rebalance_d6` →
+   `m7_next_rebalance_countdown`) — 아래 «계약 v1.6» 절).
+   ~~`1.5.0`~~(2026-10-07 R12 선행 M2 보강 · 01 §15-3 — 상수와 기존 122개 + 신규 4개 = **126개**를
    **함께** 올렸다. 🔴 기존 122개 가운데 120개는 `"contract_version"` **한 줄만** 바뀌었고, 2개는 본문도
    개정됐다 — 아래 «계약 v1.5» 절).
    ~~`1.4.0`~~(2026-09-30 R11 선행 M2 보강 · 01 §14 — 상수와 기존 115개 + 신규 7개 = **122개**를
@@ -97,8 +101,8 @@
 |---|---|---|
 | `summary` | `AdviceInboxSummary` | `m6/advice_*.json` 9벌 |
 | `advice_summary` | `AdviceInboxSummary` | `m8/ops_home_advice_open.json` · `m8/ops_home_advice_zero.json` |
-| `counterfactual` | `AfterTaxLadder` | `m7/aftertax_ladder_1.json` |
-| `counterfactual_collapsed` | bool | `m7/aftertax_ladder_1.json` |
+| `counterfactual` | `AfterTaxLadder` | `m7/aftertax_ladder_1.json` — 🆕 v1.6 **C-30 골든 대조 전용**(화면 경로는 `AnnualReviewVm.afterTaxCounterfactual` · `m7_annual_*` 3벌이 이 블록의 사본을 싣는다) |
+| `counterfactual_collapsed` | bool | `m7/aftertax_ladder_1.json` — 🆕 v1.6 C-30 대조 전용(접힘 값은 DTO 에 두지 않는다 · `S7-7` 반사실 카드는 늘 기본 접힘) |
 | `trust` | `LedgerTrustBadge` | `m6/self_report_1.json` |
 | `index` | `HandbookIndex` | `m8/handbook_page_sleeve_b.json` |
 | `incident_alert` | `AlertItem` | `m8/incident_token_expired.json` |
@@ -120,7 +124,7 @@
 
 ---
 
-## 파일 목록 (126)
+## 파일 목록 (135)
 
 ### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
@@ -129,7 +133,7 @@
 | `journal_30.json` | 30 | 체결 22 · 부분 3 · 거부 2 · UNKNOWN 1 · prevented 1 · SIM 1 |
 | `holdings_6.json` | 6 | 069500(A) · 379810·132030(B) · 0085P0·411060(C) · POT 1종 — `pnl` 은 3건만 |
 | `performance_24m.json` | 2계열 | 월간 TWR·MWR 각 24점 + 결측 구간 1(`UNAVAILABLE`) + 벤치마크 · 🆕 v1.3 표시 필드(정규 자리·글자·눈금 — 값·구간·문장은 그대로) |
-| `rebalance_6.json` | 6 | monthlyRegular 3 · seasonal 1 · band 1 · deposit 1 · 🆕 v1.5 행 링크 `detail_deep_link` 6 · 버튼 `journal_timeline_link` 5(`re_20261030_01` 은 버튼 없음 = 부재 표본) |
+| `rebalance_6.json` | 6 | monthlyRegular 3 · seasonal 1 · band 1 · deposit 1 · 🆕 v1.5 행 링크 `detail_deep_link` 6 · 버튼 `journal_timeline_link` 5(`re_20261030_01` 은 버튼 없음 = 부재 표본) · 🆕 v1.6 행 순서 = **거래일 내림차순** · 행 `as_of` = 봉투(관측 시각) · `thresholds`(band·seasonal 1행씩 · 나머지 `[]`) · `SleeveWeight.label` 완성 문장 |
 | `resume_report_1.json` | 1 | 7거래일 갭 · `RECOVERY_DRY` · 4/3/2/1/2 |
 | `safety_states.json` | 5 | normal · alert · reduced · halted · stopped(자격 충족 1) |
 | `alerts_12.json` | 12 | P0 2 · P1 4 · P2 6(묶임 2) |
@@ -197,7 +201,17 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 `fill_rejected_price`(🔴 **입력값 보존** — C17) · `advice_skip_reasons` · `self_report_1` ·
 `external_holdings_2` · `entry_gate_nov_pass_1`(🔵 11월 재판정 통과 — 실데이터로는 검증 불가한 경로).
 
-### `m7/` 50 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+### `m7/` 59 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+
+🆕 **계약 v1.6(2026-10-08 · R12 선행 M2 보강 · 01 §15-4 · ⬜ 로컬 커밋 — PR 대기) 9건** —
+`m7_rebalance_preview_default`(`S7-6c` 초안 — `RebalancePreviewResult` `{preview}` · 2026년 9월 1일 회차 · 초안 2행 · 골든 `s76c_preview`) ·
+`m7_rebalance_preview_in_band`(빈 초안 — `order_drafts: []` + `orders_empty_text` · 경고 1줄 · 골든 `s76c_draft_empty`) ·
+`m7_rebalance_preview_blocked`(차단 2행 — 0 `blocked_text` 만(버튼 부재 · 골든 `s76c_blocked`) · 1 `blocked_text` + `blocked_action` → `aaq://x2/resume-report`(위젯 테스트 전용)) ·
+`m7_next_rebalance_none`(«예정 없음» — `empty_label` 만 · 골든 `s76c_none`) ·
+`m7_rebalance_sim`(SIM 회차 2행 — 봉투 `meta.mode` LIVE · 행 `mode` `SIM_INTERNAL` · `mode_label` 두 행 · `section_label` 행 0 만 · 골든 `s76a_sim`) ·
+`m7_annual_offwindow`(창 밖 연간 리뷰 — `year` 2025 · `CLOSED` · 골든 `s77_offwindow`) ·
+`execution_gap_empty`(`NO_DATA` 문장) · `execution_gap_not_applicable`(`NOT_APPLICABLE` 문장) · `execution_gap_masked_recon`(RECON_MISMATCH 가림 «?» · 게이지 키 없음) — 골든 `s710_empty`·`s710_not_applicable`·`s710_masked_recon`.
+🔵 같은 창에서 14건의 본문이 개정됐다(개명 `m7_next_rebalance_d6` → `m7_next_rebalance_countdown` 포함) — 아래 «계약 v1.6» 절.
 
 🆕 **계약 v1.5(2026-10-07 · R12 선행 M2 보강 · 01 §15-3) 2건** —
 `m7_rebalance_detail_advisory`(`m7_rebalance_detail_band` 의 **거울** — 같은 회차 `re_20260601_01` · 버튼 글자만 advisory 갈래 낱말 · 골든 `s76b_advisory` 의 입력 · C-40 ⑥) ·
@@ -229,14 +243,14 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 🆕 **계약 v1.1 3건** — `m7_monthly_masked_integrity`(13항목 전부 「숨김 — 원장 무결성 점검 중」 · 상세 링크 0 · 13칸 유지) · `m7_monthly_masked_recon`(⑦ 비중만 `?` 미확정 표기 — 02 §2-2 표) · `m7_contrib_partial`(§8 미결 45 — C 슬리브 「산출 불가」 · `normalized: 0.0` · `unavailable_label`).
 🔵 같은 창에서 `m7_monthly_2026_08`·`_gap` 에 `generated_at_text`·`config_hash`·항목 `detail_deep_link`(④⑤→`S7-3` · ⑧→`S7-10`)가, `m7_monthly_pending` 에 `pending_notice_text` 가 들어갔다(봉투 형제 키 `pending_d_day_text` 는 **폐기** — §8 미결 40·41·43).
 
-`aftertax_ladder_1`(정본 갈래 **6단**(사전 6층 전부) + 반사실 1(`CF_POT_TAXABLE_COMP38` 6단 · 접힘) · `is_reference_only: true` · 🆕 2026-10-06 01 §8 미결 77 정정 — 층 값은 골든 `aftertax_full_S7` 4자리 그대로(C-30 ⓙ 가 **골든 사본** `test/contracts/support/golden/aftertax_full_S7.json` 과 대조) · «정직 기대» 층만 `cagr_pct`·`end_mult` 없음) ·
+`aftertax_ladder_1`(정본 갈래 **6단**(사전 6층 전부) + 반사실 1(`CF_POT_TAXABLE_COMP38` 6단 · 접힘) · `is_reference_only: true` · 🆕 2026-10-06 01 §8 미결 77 정정 — 층 값은 골든 `aftertax_full_S7` 4자리 그대로(C-30 ⓙ 가 **골든 사본** `test/contracts/support/golden/aftertax_full_S7.json` 과 대조) · «정직 기대» 층만 `cagr_pct`·`end_mult` 없음 · 🆕 v1.6 두 블록에 `reference_only_label`) ·
 `realized_alloc_S7`(🔴 **C-31의 입력** — 회계 열 대조) · `ledger_trust_4` ·
-`execution_gap_cant`·`_wont`·`_mixed`(🔴 **B21 3갈래** — `mode_advice_line` 이 각각 다르다) · `execution_gap_1` ·
+`execution_gap_cant`·`_wont`·`_mixed`(🔴 **B21 3갈래** — ~~`mode_advice_line` 이 각각 다르다~~ 🆕 v1.6 cant·wont 문장이 서로 다르고 mixed 는 **키 없음**(null = 줄 부재 · 03 §14-b ⓒ) · 행 = `ExecutionGapResult` 래퍼 `{report, as_of}`) · `execution_gap_1`(🆕 v1.6 래퍼 · `mode_advice_line` 키 없음 = 정상 달) ·
 `m7_deposit_plan_default`·`_limit`·`_expired`(🔴 이름에 금액 금지 · 🆕 v1.4 행 = `DepositPreviewResult` 래퍼) ·
 `m7_withdrawal_general`·`_pension_penalty`·`_shortfall` ·
 `m7_monthly_2026_08`·`_gap`·`_pending`(13항목 고정 배열) · `m7_report_archive_18` · `m7_disclosure_gate` ·
 `m7_perf_daily_gap` · `m7_dd_context_normal`·`_deep` · `m7_contrib_3sleeve` ·
-`m7_next_rebalance_d6` · `m7_rebalance_detail_band`(🆕 v1.5 버튼·행 링크) · `m7_annual_2026`·`_first_year` ·
+~~`m7_next_rebalance_d6`~~ 🆕 v1.6 개명 `m7_next_rebalance_countdown`(«2026년 9월 1일 · D-1») · `m7_rebalance_detail_band`(🆕 v1.5 버튼·행 링크 · 🆕 v1.6 대조 행·관측 시각) · `m7_annual_2026`·`_first_year`(🆕 v1.6 `year_label` · 세후 사본 2블록) ·
 `m7_goal_path_on`·`_hold`·`_realworld`(🆕 v1.4 `GoalPathVm` 재설계 — 생성 스크립트).
 
 ### `m8/` 18 — 셸·운영 홈·알림·온보딩 (04 §10)
@@ -466,12 +480,90 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_fixtures
 - 봉투 한 줄 치환(122건)과 개정 2건은 기준 커밋(계약 1.4.0 · `dbbd3ae`)의 원문에서 다시 만든다 — git 과 그 커밋이 있어야 한다.
 - scope 회차의 N 과 씨앗 기간은 기준 `journal_30` 에서 계산한다(그 회차에 묶인 행 수 · 그 행들의 가장 이른~늦은 날짜) · 링크는 그 행 `event_id` 로 채운다.
 - 스크립트가 규약을 먼저 확인하고 어기면 쓰기 전에 멈춘다: 버전 줄 정확히 1 · 폐기 운영값 0(`meta` 블록 밖) · 신설 4건의 금액 꼴 0(`meta` 블록 밖) · scope 글자에 회차 id 없음 · 모르는 회차 문장 ≠ `journal_empty` 문장 · 쓴 파일 수 == 126 == 디스크.
+- 🆕 v1.6 — 이 스크립트는 **v1.5 재현용으로 그대로 둔다**(v1.6 은 아래 `gen_r12_v16_fixtures.py`).
 
-## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 🆕 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과)
+---
 
-🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 ~~3건~~ 5건 포함 — 🆕 v1.5 `m6/journal_rebalance_unknown`·`m7/m7_rebalance_empty`) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 126파일 `rows`)은 311 = 308 + 매핑 없는 3건 각 1행(v1.4 판은 122파일 309 = 306 + 3 · v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다 · v1.4 신규 7파일이 11행을 더했다 — 개정 16건은 행 수 불변 · 🆕 v1.5 신규 4파일이 2행을 더했다(0행 봉투 2 포함) — 개정 2건은 행 수 불변). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+## 계약 v1.6 (2026-10-08 · R12 선행 · 01 §15-4)
 
-126파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·🆕 `m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` 은 0행 봉투), 그중 **123파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + 🆕 v1.5 2026-10-07 +4)이 실제 DTO 의 `fromJson` 을 지나
+화면 카드 R12(`S7-6a`·`S7-6b` 회차 타임라인·상세 · `S7-6c` 다음 리밸런싱·지금 기준 초안 · `S7-7` 12월 연간 리뷰 · `S7-10` 안내 이행 리포트)를 보내기 전에 한 보강이다 — R12 다섯 화면은 **엔진이 완성한 글자와 null 여부만 보고 그린다**.
+상태 = ⬜ 로컬 커밋 — PR 대기(브랜치 `m2/contract-v1.6-r12` · `2612684` 검사·받침대 선행 · `f922002` 계약 코드·버전·픽스처 · `edde72b` 검증 반영 + 이 문서 커밋).
+카드 = 4장 · 권고 선반영(K3): `R12a-Bob-S76ab`(`S7-6a`+`S7-6b`) → `R12b-Bob-S76c` → `R12c-Bob-S77` → `R12d-Bob-S710` · 앞 카드 병합 뒤 다음 카드 · 전부 v1.6 PR 병합 뒤. `S7-8` 은 R12 밖(2026-10-07 결정).
+🔴 이 창의 결정 K1~K26 은 **권고 선반영**이다(발주자 2026-10-07 «권고하는 대로» 위임 · 00_README §8-4 관행). 되돌림 비용이 높은 8건(K1·K5·K6·K8·K10·K11·K22·K24)은 **권고 선반영 · 확인 대기(🔴)** — 「푸시해」 전에 발주자가 확인한다. 아래 표본 가운데 그 결정에 걸린 것(달 라우트 링크 = K1 · 제안 줄 null = K6 · 이행 갭 래퍼 = K8 · 행 `as_of` 뜻 = K10 · `SleeveWeight.label` 문장 = K11 · `year_label` = K24)은 확인 결과에 따라 스크립트를 고쳐 다시 만든다.
+🔴 `S7-5`(인출)는 이 번호도 쓰지 않는다 — 인출 규칙 결정(01 §8 미결 79) 뒤 첫 minor(v1.5 결정 ① 그대로).
+
+### 신설 9건
+
+| 파일(`FixturePaths` 상수) | 행 타입(등록부 코덱) · 행 수 | 내용 · 쓰는 곳 |
+|---|---|---|
+| `m7/m7_rebalance_preview_default.json`(`m7M7RebalancePreviewDefault`) | `RebalancePreviewResult` 1(🆕 코덱) · `{preview}` | `plan_id` `pv_re_20260901_01` · `planned_date_text` «2026년 9월 1일 회차» · 행 `as_of` = 봉투(«초안 기준 2026-08-31 종가») · `before` = B 밴드 상단 이탈(`m7_rebalance_detail_band` 와 같은 비중) · `after` = 초안 방향(B 매도 · A 매수 · 차액 현금 · C·POT 불변 · 전부 밴드 안) · `order_drafts_title` «주문 초안» · 초안 2행(133690 TIGER 미국나스닥100 · B · 매도 / 069500 KODEX 200 · A · 매수 — 둘 다 연금저축 · 지정가 글자 있음 · 칩 `REBALANCE_BAND`) · 비용 «약 128원»(추정치) · `warning_lines` `[]` · `orders_empty_text`·`funding_steps` **키 없음** — 골든 `s76c_preview` |
+| `m7/m7_rebalance_preview_in_band.json`(`m7M7RebalancePreviewInBand`) | 〃 · 1 `{preview}` | 같은 머리 · `before` 전부 밴드 안 · `order_drafts` `[]` + `orders_empty_text` «모든 슬리브가 밴드 안이라 이번 회차에 낼 초안이 없습니다.» · 비용 «예상 비용 없음» · `warning_lines` 1 — 골든 `s76c_draft_empty` |
+| `m7/m7_rebalance_preview_blocked.json`(`m7M7RebalancePreviewBlocked`) | 〃 · **2** | 🔴 **행 순서가 뜻**이다: 0 `blocked_text` 만(버튼 부재 · **골든 입력** — 안전 입력 `safety_states` 행 4 LEDGER_INTEGRITY 와 짝) · 1 `blocked_text` + `blocked_action` → `aaq://x2/resume-report`(버튼 표본 · **위젯 테스트 전용** — RESUME_INCOMPLETE 안전 표본이 없어 골든으로 찍지 않는다 · 01 §8 미결 87) · `m7_deposit_plan_blocked` 의 거울 — 골든 `s76c_blocked`(행 0) |
+| `m7/m7_next_rebalance_none.json`(`m7M7NextRebalanceNone`) | `NextRebalanceVm` 1 | `empty_label` «예정된 리밸런싱 회차가 아직 없습니다.» · 날짜·D-day·종류·예고 링크·고지 **키 없음** · 행 `as_of` = 봉투(«리밸런싱 예정 기준 2026-08-31») — 골든 `s76c_none` |
+| `m7/m7_rebalance_sim.json`(`m7M7RebalanceSim`) | `RebalanceEvent` 2 | 내림차순 `re_sim_20260803_01`·`re_sim_20260701_01` · 월간 정기 · 봉투 `meta.mode` **LIVE**(C-15 «봉투 전량 LIVE» · SIM 은 행 `mode` `SIM_INTERNAL` 로만 — `journal_30` 선례) · `mode_label` «모의»(두 행) · `section_label` «모의투자 회차»(**행 0 만**) · `detail_deep_link` 있음 · `journal_timeline_link` 키 없음(01 §8 미결 89) · `thresholds` `[]` — 골든 `s76a_sim` |
+| `m7/m7_annual_offwindow.json`(`m7M7AnnualOffwindow`) | `AnnualReviewVm` 1 | `year` **2025**(기본 연도 표본 — 2026-08-31 은 12월이 아니므로 마지막 완결 연도 · K24) · `year_label` «2025년 연간 리뷰» · `window_state_code` `CLOSED` · 섹션 4개 = `m7_annual_2026` 과 같은 구성(같은 route 규칙) · 세후 2블록 = 사다리 사본 — 골든 `s77_offwindow` |
+| `m7/execution_gap_empty.json`(`m7ExecutionGapEmpty`) | `ExecutionGapResult` 1(🆕 코덱) | `{empty_kind: NO_DATA, empty_label, as_of}` — 안내 0건 · 골든 `s710_empty` |
+| `m7/execution_gap_not_applicable.json`(`m7ExecutionGapNotApplicable`) | 〃 · 1 | `{empty_kind: NOT_APPLICABLE, empty_label, as_of}` — 자동 매매 구간 · 골든 `s710_not_applicable` |
+| `m7/execution_gap_masked_recon.json`(`m7ExecutionGapMaskedRecon`) | 〃 · 1 `{report, as_of}` | RECON_MISMATCH 가림 — `count_lines`·`correction_lines`·이행률·중앙값·가격 갭·정정 체인 글자 = «?» · `compliance_rate_normalized` **키 없음**(null = 게이지 부재) · 칩 `[]` · `mode_advice_line` 키 없음 · `trust` = `ledger_trust_4` 의 DRIFTING 행 사본 · `period_label` «2026년 8월» — 골든 `s710_masked_recon`(안전 입력 `safety_states` 행 3) |
+
+상수는 `FixturePaths.m7M7RebalancePreviewDefault`·`…InBand`·`…Blocked`·`m7M7NextRebalanceNone`·`m7M7RebalanceSim`·`m7M7AnnualOffwindow`·`m7ExecutionGapEmpty`·`m7ExecutionGapNotApplicable`·`m7ExecutionGapMaskedRecon` 9개다 · 등록부 코덱 +2(`RebalancePreviewResult`·`ExecutionGapResult` · `NextRebalanceVm` 코덱은 countdown 과 공유) · 바인딩 +9 · 재바인딩 4(이행 갭 4벌 → `ExecutionGapResult`).
+신설 9건의 `meta.generated_at`·`seed` 는 생성일(2026-10-08) 값이다.
+
+### 개정 14건 (개명 1 포함)
+
+| 파일 | 무엇이 바뀌었나 |
+|---|---|
+| `rebalance_6.json` | ① 행 순서 = **거래일 내림차순**(03 §11-a «시간 역순» — C-40 은 id 로 고르고 위치에 기대지 않는다) ② 행 `as_of` = 봉투 `as_of`(관측 시각 · 라벨 «자료 기준 2026-08-31» — 봉투 라벨도 같이 · K10) ③ `SleeveWeight.label` 완성 문장(아래 규칙) ④ `thresholds` — band `re_20260601_01` 1행(`band_breach_width` · «B 목표 대비 이탈폭» · «5.8%p» · «5.0%p 초과» · 발동) · seasonal `re_20261030_01` 1행(`trend_score_kr` · 진입 게이트 통과) · 나머지 4행 `[]` + `threshold_registered` 키 삭제 ⑤ `mode_label`·`section_label` 키 없음(LIVE) ⑥ 링크·`order_intent_ids` 무변경(C-40 불변) |
+| `m7/m7_rebalance_detail_band.json` | 봉투·행 `as_of` → 관측 시각(«자료 기준 2026-08-31») · 라벨 규칙 · `trigger.summary` 오기 정정(«슬리브 B 가 목표에서 5.8%p 벗어나 밴드 상단(47.0%)을 넘어 …» — 5.8%p 는 **목표 대비 이탈폭**, 밴드 상단 초과는 0.8%p) · 대조 행 · 🔴 `rebalance_6` 의 같은 id 행과 **JSON 동일**(C-41 ⑤) — 골든 `s76b_band` |
+| `m7/m7_rebalance_detail_advisory.json` | band 의 거울 — `journal_timeline_link.label` «이 회차의 기록 2건» 밖 JSON 동일(C-40 ⑥) — 골든 `s76b_advisory` |
+| `m7/m7_next_rebalance_d6.json` → **`m7/m7_next_rebalance_countdown.json`**(개명 · `FixturePaths.m7M7NextRebalanceD6` → `m7M7NextRebalanceCountdown`) | 행 `as_of` = 봉투 · `expected_date_text` «2026년 9월 1일» 유지 · `d_day_text` «D-6» → «**D-1**»(월간 정기 = 매월 첫 거래일 = 2026-09-01 · 2026-08-31 기준 달력일·거래일 모두 1일 — D-day 기준(K23)과 무관하게 맞는다) · `notice_text` → «예정일은 거래일 달력으로 정해집니다.»(개발자 메모 제거) · `preview_route` 유지 — `S7-6c` 골든 4이름(`s76c_countdown`·`_preview`·`_draft_empty`·`_blocked`)의 카운트다운 입력 |
+| `m7/m7_annual_2026.json` | `year_label` «2026년 연간 리뷰» · `after_tax` = `aftertax_ladder_1` 행 0 사본 · `after_tax_counterfactual` = 봉투 `counterfactual` 사본(스크립트가 복사 · 원천 하나) · `B_AFTERTAX`·`C_EXECUTION` 의 `route` **키 삭제**(갈 곳 없는 버튼 · S7-7 → S7-10 제3 진입을 만들지 않는다 — ㉟ 권고 선반영 · K16) · `B_AFTERTAX` 둘째 줄 → «월간 리포트에는 세후를 싣지 않습니다.» · 섹션 4개·`window_state_code`·`as_of` 무변경(01 §8 미결 94) — 골든 `s77_december`·`s77_aftertax_ladder_spec`·`s77_aftertax_ladder_cf` |
+| `m7/m7_annual_first_year.json` | `year_label` «2026년 연간 리뷰»(첫 해 = 그해) · 세후 사본 2블록 · 같은 route 규칙 · `FIRST_YEAR` 유지(축 분리 = 미결 94) — 골든 `s77_first_year` |
+| `m7/aftertax_ladder_1.json` | 행 0·`counterfactual` 에 `reference_only_label` «골든 참고치입니다. 실계좌로 산출한 값이 아닙니다.» · `basis_note` 의 개발자 메모 제거(본문 «세율 가정과 계좌 배치는 엔진 설정에서 옵니다.» · 반사실 «계좌 배치가 갈래를 정합니다.») · 층 값·`note_line`·형제 키 `counterfactual`·`counterfactual_collapsed` 의 대조 값 무변경(C-30 ⓖ~ⓚ 불변) |
+| `m7/execution_gap_1`·`_cant`·`_wont`·`_mixed`(4) | 행 = **`ExecutionGapResult` 래퍼** `{report: {…}, as_of}`(`as_of` = report 의 `as_of` · 등록부 재바인딩) · `count_lines` 3줄·`correction_lines`(둘 다 0 이면 `[]`)를 int 에서 생성 · `compliance_rate_label` 에 금액 가중 값(합성 · 스크립트 고정) · `price_gap_label` «권장가 대비 …» → «안내 대비 중앙값 +nbp(불리)»(권유로 읽히는 낱말 제거) · `mode_advice_line`: cant 유지 · wont → ⓑ 문장(이관을 제안하지 않고 사후 blind 리뷰·연간 반증 조건 점검을 **문장 안에서** 가리킨다) · mixed·`_1` → **키 삭제**(null = 줄 부재 · ⓒ·정상 달 · K6) · `trust`·칩 무변경 — 골든 `s710_cant`·`_wont`·`_mixed`(`_1` = 위젯 테스트 입력) |
+| `m7/m7_monthly_2026_08`·`_gap`·`_masked_recon`(3) | ⑧ `D3_EXECUTION.detail_deep_link` `aaq://ledger/execution-gap` → `aaq://ledger/execution-gap/2026-08`(그 리포트 달 · `AppRoutes.ledgerExecutionGapMonth` · K1) · `S7-1` 은 링크 글자를 그리지 않으므로 PNG 변화 0 |
+
+🔵 `m7_monthly_masked_integrity`·`_pending` 은 ⑧ 링크가 원래 없어 버전 줄만 바뀌었다. 나머지 112건(`m7_rebalance_empty`·`m7_withdrawal_*`·`ledger_trust_4`·`safety_states` 등)은 `"contract_version"` 한 줄만.
+
+### 🔴 개정·신설은 **생성 스크립트**가 만든다 (손 계산 금지)
+
+```
+# 저장소 루트에서 — 몇 번을 돌려도 결과가 같다. 돌린 뒤 `git status` 에 fixtures 변경이 없어야 한다
+PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_v16_fixtures.py
+```
+
+- 버전 줄 치환(112건)·개정 14건·개명은 기준 커밋(계약 1.5.0 · `542d13c`)의 원문에서 다시 만든다 — git 과 그 커밋이 있어야 한다. 개명은 옛 이름 파일을 지운다.
+- 스크립트가 규약을 먼저 확인하고 어기면 쓰기 전에 멈춘다: 버전 줄 정확히 1 · 봉투 `meta.mode` LIVE · 폐기 운영값 0(`meta` 블록 밖) · 봉투 최상위 키 = 기준과 같음(신설은 필수 6키뿐) · 새 파일 이름에 숫자 0 · 행이 있으면 `NO_DATA`/`null` · 금지어(추천·권유·자문·시그널) 0 · 사용자 문장 자리의 개발자 메모 0 · `preview_notice` «미리보기입니다» 시작 · 계좌 별칭 ∈ 별칭 표(슬리브 B = 연금 계좌) · 금액 = decimal 정규형 · 지정가 짝 · 래퍼에는 있는 키만 · `SleeveWeight` `basis` = `ACCOUNTING` 과 라벨 규칙 · 미리보기 2벌 밖 신설의 금액 꼴 0 · `rebalance_6` 내림차순·band 행 동일·행 `as_of` = 봉투 · 연간 3벌 세후 = 사다리 사본 · `year` ⊂ `year_label` · 미리보기 밴드 표본 정합(초안 표본 `before` 에 밴드 밖 ≥ 1 · 빈 초안 표본 `before` 전부 안 · 두 벌 `after` 전부 안) · 쓴 파일 수 == 135 == 디스크.
+- 실행하면 한 줄로 수를 찍는다 — 파일 135 · 버전 줄만 112 · 개정 14(개명 1 포함) · 신설 9 · `SleeveWeight` 라벨 120(커밋 `f922002`·`edde72b` 본문의 실측 · 두 번 돌려 diff 0).
+
+### 🔴 `SleeveWeight.label` 생성 규칙 (K11 · 권고 선반영 · 확인 대기 🔴)
+
+- 밴드 안 = «{슬리브} {현재%} (목표 {목표%}, 편차 {±n.n%p}, 밴드 여유 {n.n%p})» · 밴드 밖 = 여유 자리에 «밴드 {상단|하단} {n.n%p} 초과» — 예 «B 47.8% (목표 42.0%, 편차 +5.8%p, 밴드 상단 0.8%p 초과)». 밴드 여유 = 가까운 밴드 끝까지의 거리(스크립트 계산). 음수 편차의 빼기표는 `−`(U+2212).
+- 정본 = 코드 `dto/rebalance.dart` 의 `SleeveWeight` 머리 «목표 대비 편차·밴드 여유» + 기존 예시(«B 42.0% (목표 42.0%, 밴드 여유 1.8%p)»)의 요소 — 🔴 그 예시 주석은 **바꾸지 않았다**(홈 블록 4 가 같은 타입이다 · 그 문장을 홈이 통째로 쓸지는 R13 재검토).
+- 대상 = `SleeveWeight` 를 싣는 R12 픽스처 전부(`rebalance_6` · detail_band · detail_advisory · sim · preview default·in_band 의 `before`/`after` = 120개) · `basis` 전부 `ACCOUNTING`(C-31 ⓐ 확장).
+
+### 🔵 표본 사실 — 고치지 않고 적어 둔다
+
+- **as_of 뒤 회차** — `rebalance_6` 의 `re_20261030_01` 은 봉투 `as_of`(2026-08-31) 뒤 날짜인 채 남았다(내림차순이라 이제 첫 행이다 · 01 §8 미결 84).
+- **S7-1 ⑧ 과 S7-10 의 가림 범위가 다르다** — 같은 2026-08 · 같은 RECON_MISMATCH 에서 `m7_monthly_masked_recon` ⑧ 은 «이행률 88%»를 보이고 `execution_gap_masked_recon` 은 «?»로 가린다. 03 §14-b «수치 ? 가림»이 `S7-10` 정본이다 · `S7-1` 을 맞출지는 01 §8 미결 96.
+- **가림 표본의 원값** — `execution_gap_masked_recon` 은 글자가 «?»인데 int 9종은 `execution_gap_1` 의 실값을 그대로 싣는다(화면 미참조 · M6 가림 선례 `journal_masked_integrity` 도 «숨김» + 원값을 싣는다). 원값 운반 여부 = 미결 96.
+- **D-day 교차 불일치** — `S7-6c` 표본은 «2026년 9월 1일 · D-1» 인데 m8 `ops_home_*` 5벌(`normal`·`advice_open`·`advice_zero`·`blocked`·`resume_gap7`)·`ops_rhythm_rows` 는 «매월 첫 거래일 · D-6» 을 싣는다(`next_rebalance_d_day_text` · upcoming `MONTHLY_REBALANCE`·`MONTHLY_CONTRIBUTION` 행 · m8 쪽 모순 · 미결 84 · R13 전).
+- **사유 칩 `REBALANCE_BAND`** — `ContractCodes` 에 등재되지 않은 코드지만 기존 9파일(`journal_30`·`m6/advice_12` 등)이 이미 같은 코드를 쓴다 · 재사용했다 · 화면은 칩 `label`·`tone` 만(`detail_deep_link` 는 읽지 않는다 · 미결 81).
+- **참고치 표지 예외** — `m7_withdrawal_pension_penalty` 의 사다리는 `is_reference_only: true` 인데 `reference_only_label` 이 없다(인출 규칙 결정 뒤 재생성 · 미결 79) · C-41 ⑦ 의 고정 예외 목록 1벌.
+- **`detail_band` 의 «밴드 상단을 5.8%p 넘어» 는 오기였다** — 정정했다(위 개정 표). 5.8%p 는 목표 42.0% 대비 이탈폭이고 등록 임계 0.05(5.0%p)와 맞대는 값이다.
+- **날짜·건수·id·금액 가중 값은 합성 데이터**다(실계좌 아님).
+
+### 표기 — 래퍼·빈 키
+
+- `RebalancePreviewResult` 래퍼는 `preview`·`blocked_text` 가운데 **있는 키 하나만** 싣는다 · `blocked_action` 은 `blocked_text` 가 있는 행에만(C-41 ① · v1.4 `DepositPreviewResult` 와 같은 꼴).
+- `ExecutionGapResult` 래퍼는 `report` 또는 `empty_kind`+`empty_label` 가운데 한쪽만 싣고 `as_of` 는 늘 싣는다(C-41 ⑧).
+- 선택 표시 필드(`orders_empty_text`·`mode_label`·`section_label`·`reference_only_label`·`mode_advice_line`·`compliance_rate_normalized` · `m7_next_rebalance_none` 의 날짜·D-day·종류·예고·고지)는 없을 때 **키가 없다**(🔵 countdown 의 `"empty_label": null` 은 기준 원문 그대로 남은 것이다). `warning_lines`·`thresholds`·`correction_lines` 는 비어도 `[]` 로 싣는다. `funding_steps` 는 R12 미리보기 2벌에서 **키 없음**(R12 는 조달 절을 그리지 않는다 · 미결 92).
+
+## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 🆕 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과)
+
+🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 ~~3건~~ 5건 포함 — 🆕 v1.5 `m6/journal_rebalance_unknown`·`m7/m7_rebalance_empty`) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 135파일 `rows`)은 🆕 v1.6 322 = 319 + 매핑 없는 3건 각 1행(v1.5 판은 126파일 311 = 308 + 3 · 🆕 v1.6 신규 9파일이 11행을 더했다 — 개정 14건은 행 수 불변 · v1.4 판은 122파일 309 = 306 + 3 · v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다 · v1.4 신규 7파일이 11행을 더했다 — 개정 16건은 행 수 불변 · 🆕 v1.5 신규 4파일이 2행을 더했다(0행 봉투 2 포함) — 개정 2건은 행 수 불변). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+
+135파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·`m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` 은 0행 봉투 · 🆕 v1.6 신설 9건은 전부 행이 있다), 그중 **132파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + v1.5 2026-10-07 +4 + 🆕 v1.6 2026-10-08 +9)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
@@ -498,6 +590,11 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_fixtures
 
 픽스처의 링크 필드(`deep_link`·`detail_deep_link`·`action_deep_link`·`where_deep_link`·`clear_deep_link`·`route`·`preview_route`·`handoff_route`·`resume_route` · 🆕 v1.4 `goal_deep_link` — `blocked_action.deep_link` 는 `deep_link` 로 덮인다 · 🆕 v1.5 `journal_timeline_link`(`RebalanceEvent` 의 `LinkAction` — 안쪽 `deep_link` 로 C-33 이 검사한다 · 링크 키 추가 0) · `RebalanceEvent.detail_deep_link` 는 기존 `detail_deep_link` 키)에는 `aaq://…`(앱 화면)와 `handbook://…`(핸드북 앵커) **두 스킴만** 온다. `aaq://` 는 전부 `AppRoutes.all`(`lib/src/navigation/app_links.dart`)의 패턴과 일치해야 하며 **C-33** 이 전수 검사한다. 🔴 화면은 이 문자열을 만들지도 해석하지도 않는다 — `AppLinkOpener.open(link)` 에 그대로 넘긴다.
 
+🆕 **v1.6(01 §15-4 · `AppRoutes.all` 43 → 45 · 링크 키 추가 0)** — 새 라우트 2:
+- `AppRoutes.ledgerExecutionGapMonth` = `aaq://ledger/execution-gap/:yyyyMm`(`S7-10` 의 **그 달** · K1 · 권고 선반영 · 확인 대기 🔴) — 픽스처에서는 `m7_monthly_2026_08`·`_gap`·`_masked_recon` 의 ⑧ `D3_EXECUTION.detail_deep_link`(기존 키)가 `aaq://ledger/execution-gap/2026-08` 을 싣는다. 인자 없는 `aaq://ledger/execution-gap` = 엔진 기본 달(「계획」 탭 ⑤). 두 라우트 · 한 위젯(`ExecutionGapScreen`).
+- `AppRoutes.rebalanceHistory` = `aaq://rebalance/history`(`S7-6a` 회차 타임라인 · K5 · 권고 선반영 · 확인 대기 🔴) — **싣는 픽스처 없음**(셸·진입점이 쓰는 상수).
+- 그 밖에 새로 실린 링크 = `m7_rebalance_preview_blocked` 행 1 의 `blocked_action.deep_link` `aaq://x2/resume-report`(`deep_link` 로 덮인다) · `m7_rebalance_sim` 의 `detail_deep_link`(기존 `rebalanceEvent` 패턴). 🔴 `S7-6a` 빈 상태의 «다음 예상» 버튼만 고정 상수 `AppRoutes.rebalancePreview` 를 쓴다(화면 쪽 예외 1개 — 픽스처와 무관).
+
 ## 아직 없는 것
 
 - **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
@@ -505,10 +602,10 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_fixtures
   🔵 v1.4 의 `m9/contribution_setting_*` 2벌은 `S7-4` 스텝 ① 의 입력(`ContributionSetting`)이라 M2 가 먼저 만들었다 —
   05 화면(`MonthlyContributionVm` 카드 등)의 픽스처는 여전히 없다.
 - **`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다). 🆕 v1.2 — 본문 단위는 `DecisionJournalBody`(`journal_read_*` 가 그 모양)로 정했고 점수 축은 여전히 미결이다.
-- `test/` 의 계약 회귀 ~~C-1~C-37~~ C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
+- `test/` 의 계약 회귀 ~~C-1~C-37~~ ~~C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합)~~ C-1~C-42(🆕 v1.6 C-41 R12 표시 계약 — 이 절의 픽스처끼리 맞대는 불변식 · C-42 R12 화면 소스 스캔) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.
 
-## 부록 — 실제 픽스처 파일 목록 (126개, 2026-10-07 실측)
+## 부록 — 실제 픽스처 파일 목록 (135개, 2026-10-08 실측)
 
 경로 기준 `packages/domain_contracts/fixtures/`. 이 목록은 조립 시점의 실물이며, 명세가 부르는 파일명과 다르면 **실물이 맞습니다**.
 
@@ -526,7 +623,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_fixtures
 | `onboarding_reconnect.json` | 4,087 |
 | `performance_24m.json` | 19,092 |
 | `range_presets_4.json` | 1,197 |
-| `rebalance_6.json` | 16,329 |
+| `rebalance_6.json` | 18,960 |
 | `resume_report_1.json` | 2,808 |
 | `safety_states.json` | 5,515 |
 | `sleeve_catalog_4.json` | 971 |
@@ -577,18 +674,22 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_fixtures
 | `m6/unknown_board_2.json` | 8,716 |
 | `m6/unknown_board_empty.json` | 879 |
 
-### m7 — 50개
+### m7 — 59개
 
 | 파일 | 바이트 |
 |---|---:|
-| `m7/aftertax_ladder_1.json` | 4,526 |
-| `m7/execution_gap_1.json` | 1,801 |
-| `m7/execution_gap_cant.json` | 2,062 |
-| `m7/execution_gap_mixed.json` | 2,343 |
-| `m7/execution_gap_wont.json` | 2,125 |
+| `m7/aftertax_ladder_1.json` | 4,647 |
+| `m7/execution_gap_1.json` | 2,204 |
+| `m7/execution_gap_cant.json` | 2,623 |
+| `m7/execution_gap_empty.json` | 852 |
+| `m7/execution_gap_masked_recon.json` | 2,223 |
+| `m7/execution_gap_mixed.json` | 2,701 |
+| `m7/execution_gap_not_applicable.json` | 937 |
+| `m7/execution_gap_wont.json` | 2,665 |
 | `m7/ledger_trust_4.json` | 1,810 |
-| `m7/m7_annual_2026.json` | 1,767 |
-| `m7/m7_annual_first_year.json` | 1,639 |
+| `m7/m7_annual_2026.json` | 5,915 |
+| `m7/m7_annual_first_year.json` | 5,825 |
+| `m7/m7_annual_offwindow.json` | 5,949 |
 | `m7/m7_contrib_3sleeve.json` | 1,395 |
 | `m7/m7_contrib_partial.json` | 1,723 |
 | `m7/m7_dd_context_deep.json` | 1,171 |
@@ -609,12 +710,13 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_fixtures
 | `m7/m7_goal_path_off.json` | 4,734 |
 | `m7/m7_goal_path_on.json` | 4,620 |
 | `m7/m7_goal_path_realworld.json` | 4,859 |
-| `m7/m7_monthly_2026_08.json` | 3,470 |
-| `m7/m7_monthly_gap.json` | 3,841 |
+| `m7/m7_monthly_2026_08.json` | 3,478 |
+| `m7/m7_monthly_gap.json` | 3,849 |
 | `m7/m7_monthly_masked_integrity.json` | 4,245 |
-| `m7/m7_monthly_masked_recon.json` | 4,452 |
+| `m7/m7_monthly_masked_recon.json` | 4,460 |
 | `m7/m7_monthly_pending.json` | 3,606 |
-| `m7/m7_next_rebalance_d6.json` | 925 |
+| `m7/m7_next_rebalance_countdown.json` | 1,073 |
+| `m7/m7_next_rebalance_none.json` | 842 |
 | `m7/m7_perf_daily_gap.json` | 5,494 |
 | `m7/m7_perf_daily_manual.json` | 5,389 |
 | `m7/m7_perf_masked_integrity.json` | 1,680 |
@@ -622,9 +724,13 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_fixtures
 | `m7/m7_perf_monthly_sim_split.json` | 5,064 |
 | `m7/m7_perf_unavailable_gap.json` | 1,658 |
 | `m7/m7_perf_yearly.json` | 2,432 |
-| `m7/m7_rebalance_detail_advisory.json` | 3,400 |
-| `m7/m7_rebalance_detail_band.json` | 3,400 |
+| `m7/m7_rebalance_detail_advisory.json` | 4,021 |
+| `m7/m7_rebalance_detail_band.json` | 4,021 |
 | `m7/m7_rebalance_empty.json` | 598 |
+| `m7/m7_rebalance_preview_blocked.json` | 934 |
+| `m7/m7_rebalance_preview_default.json` | 4,668 |
+| `m7/m7_rebalance_preview_in_band.json` | 3,662 |
+| `m7/m7_rebalance_sim.json` | 6,377 |
 | `m7/m7_report_archive_18.json` | 3,610 |
 | `m7/m7_report_archive_empty.json` | 892 |
 | `m7/m7_withdrawal_general.json` | 2,191 |
@@ -663,4 +769,4 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_fixtures
 | `m9/contribution_setting_no_limit_note.json` | 1,068 |
 | `m9/handover_states.json` | 5,203 |
 
-**합계 126개 · 527,391 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
+**합계 135개 · 568,197 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).

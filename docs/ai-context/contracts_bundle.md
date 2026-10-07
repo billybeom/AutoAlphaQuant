@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 86개 · 계약 v1.5.0 · 조립일 2026-10-07(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 86개 · 계약 v1.6.0 · 조립일 2026-10-08(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -84,7 +84,8 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개) — 한쪽만 올리면 C-1·C-15 가 갈라진 채로 통과한다.
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개) — 한쪽만 올리면 C-1·C-15 가
+//    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
 // 🆕 '1.3.0'(R10 선행 M2 보강 · 01 §13) — 성과 시리즈 표시 필드(`PerfPoint.xNormalized`·
@@ -105,12 +106,23 @@ export 'commands/settings_actions.dart';
 //    `RebalanceEvent.journalTimelineLink`·`detailDeepLink` · `JournalRebalanceScope` +
 //    `JournalRepository.watchRebalanceScope` · `RebalanceRepository.watchEvent` · `watchEvents` 봉투
 //    (`ListResult`) · 받침대 `UnimplementedRebalanceRepository` · 픽스처 122 → 126.
+// 🆕 '1.6.0'(R12 선행 M2 보강 · 01 §15-4 · 발주자 결정 ①② 2026-10-07) — `S7-6a/b/c`·`S7-7`·`S7-10` 표시 계약:
+//    `RebalancePreviewResult`(초안 | 차단) + `WhatIfApi.previewRebalance` 반환 · `ExecutionGapResult`
+//    (리포트 | 빈·해당없음) + `ExecutionGapRepository.monthly({yyyyMm})` · `RebalanceRepository.watchEvents({range})`
+//    (null = 전체 기간) · `PerformanceRepository.annualReview({year})`(null = 엔진 기본 연도) ·
+//    `RebalanceEvent.thresholds`·`modeLabel`·`sectionLabel`(+ `asOf` = 관측 시각) · `RebalancePreview` 표시
+//    필드 5 · `NextRebalanceVm.asOf`(+ 두 글자 nullable) · `AnnualReviewVm.yearLabel`·`afterTax`·
+//    `afterTaxCounterfactual` · `AfterTaxLadder.referenceOnlyLabel` · `ExecutionGapReport.countLines`·
+//    `correctionLines`(+ `complianceRateNormalized`·`modeAdviceLine` nullable) · `ThresholdCompare` →
+//    `dto/common.dart`(이름·JSON 무변경) · 라우트 `ledgerExecutionGapMonth`·`rebalanceHistory`(45) ·
+//    받침대 `UnimplementedExecutionGapRepository` · 픽스처 126 → 135(신설 9 · 개정 14 · 개명 1) —
+//    🆕 tool/gen_r12_v16_fixtures.py(기준 542d13c 원문에서 멱등 생성).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.5.0';
+const String contractVersion = '1.6.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -1582,7 +1594,8 @@ abstract class CalendarSyncStatus with _$CalendarSyncStatus {
 // packages/domain_contracts/lib/src/dto/common.dart
 //
 // 01 §2-1 «공통 값 객체» · 인벤토리 §3-1(영역 B).
-// 사유 칩 · 결정 체인 참조 · 게이트 배지 · 피처 플래그 · 슬리브 카탈로그.
+// 사유 칩 · 결정 체인 참조 · 게이트 배지 · 피처 플래그 · 슬리브 카탈로그 ·
+// 🆕 v1.6 임계값 대조 1행(`ThresholdCompare` — `journal.dart` 에서 이동 · 01 §15-4).
 //
 // 🔴 문구(`label`)는 전부 **엔진 생성**이다(01 §1-5) — 화면이 코드→문구 매핑을
 //    만들면 §7 C-5 가 빌드를 깨뜨린다.
@@ -1723,6 +1736,27 @@ abstract class SleeveCatalogEntry with _$SleeveCatalogEntry {
 
   factory SleeveCatalogEntry.fromJson(Map<String, dynamic> json) =>
       _$SleeveCatalogEntryFromJson(json);
+}
+
+/// 임계값 대조 1행(02 §8-1 · m2-8 E-2).
+///
+/// 🔴 수치는 전부 **엔진 포맷 문자열**이다 — 화면이 비교식을 만들지 않는다.
+/// 🆕 v1.6(01 §15-4) — `journal.dart` 에서 옮겼다(이름·필드·JSON·배럴 export 무변경). J-2
+///    `DecisionDetailVm.thresholds` 와 `S7-6b` `RebalanceEvent.thresholds` 가 같은 타입을 쓴다
+///    (`journal.dart` → `rebalance.dart` import 방향 때문에 순환을 피해 공통 파일에 둔다).
+@freezed
+abstract class ThresholdCompare with _$ThresholdCompare {
+  const factory ThresholdCompare({
+    required String metricKey,
+    required String metricLabel,
+    required String observedText,
+    required String thresholdText,
+    required bool passed,
+    required String verdictLabel,
+  }) = _ThresholdCompare;
+
+  factory ThresholdCompare.fromJson(Map<String, dynamic> json) =>
+      _$ThresholdCompareFromJson(json);
 }
 ```
 
@@ -2313,23 +2347,9 @@ abstract class DecisionSnapshot with _$DecisionSnapshot {
       _$DecisionSnapshotFromJson(json);
 }
 
-/// 임계값 대조 1행(02 §8-1 · m2-8 E-2).
-///
-/// 🔴 수치는 전부 **엔진 포맷 문자열**이다 — 화면이 비교식을 만들지 않는다.
-@freezed
-abstract class ThresholdCompare with _$ThresholdCompare {
-  const factory ThresholdCompare({
-    required String metricKey,
-    required String metricLabel,
-    required String observedText,
-    required String thresholdText,
-    required bool passed,
-    required String verdictLabel,
-  }) = _ThresholdCompare;
-
-  factory ThresholdCompare.fromJson(Map<String, dynamic> json) =>
-      _$ThresholdCompareFromJson(json);
-}
+// 🆕 v1.6(01 §15-4) — `ThresholdCompare`(임계값 대조 1행)는 `common.dart` 로 옮겼다(이름·필드·JSON·
+//    배럴 export 무변경). `rebalance.dart` 의 `RebalanceEvent.thresholds` 가 같은 타입을 쓰는데, 이 파일이
+//    이미 `rebalance.dart` 를 import 하므로 여기 두면 순환이 된다.
 
 /// 거부 추적 1행 — 어느 단계에서 왜 막혔나(02 §8-1 · m2-8 E-3).
 ///
@@ -2826,6 +2846,9 @@ abstract class LedgerRepairRow with _$LedgerRepairRow {
 // 🔴 `LedgerTrustGrade.selfReported` 는 **실패가 아니라 정상 운영 상태**다.
 // 🔴 이행 갭에 원화 손익 필드가 없다 — 가격 갭은 **bp** 로만 온다(C-25).
 // 🔴 «추천·권유·자문·시그널» 금지어 규약이 `modeAdviceLine` 에도 적용된다(§10-1).
+// 🆕 v1.6(01 §15-4 · R12 선행) — 월간 결과 래퍼 `ExecutionGapResult`(리포트 | 빈·해당없음 문장) ·
+//    `ExecutionGapReport.countLines`·`correctionLines` · `complianceRateNormalized`·`modeAdviceLine` nullable.
+//    `S7-10` 의 «읽지 않는 필드»는 `// 🔴 ui 미참조(C-42)` 표식이다.
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
@@ -2861,14 +2884,34 @@ abstract class LedgerTrustBadge with _$LedgerTrustBadge {
       _$LedgerTrustBadgeFromJson(json);
 }
 
+/// 🆕 v1.6 · 01 §15-4 — 월간 이행 갭 결과(`ExecutionGapRepository.monthly` 의 반환).
+/// 🔴 [report] · [emptyLabel] 중 **정확히 하나** non-null · [emptyKind] ⇔ [emptyLabel](C-41 ⑧).
+/// 🔴 안내 0건 = `EmptyKind.noData` · autoTrade 구간 = `EmptyKind.notApplicable`(03 §14-b) —
+///    화면은 [emptyLabel] 문장 카드 하나만 그린다(`issued == 0`·`operatingMode` 로 고르지 않는다).
+@freezed
+abstract class ExecutionGapResult with _$ExecutionGapResult {
+  const factory ExecutionGapResult({
+    ExecutionGapReport? report,
+    EmptyKind? emptyKind,
+    String? emptyLabel,
+
+    /// [report] 가 있으면 `report.asOf` 와 같은 값(C-41 ⑧).
+    required AsOf asOf,
+  }) = _ExecutionGapResult;
+
+  factory ExecutionGapResult.fromJson(Map<String, dynamic> json) =>
+      _$ExecutionGapResultFromJson(json);
+}
+
 /// 01 §2-11 — 이행 갭. M7 이 그리는 유일한 X7 지표 묶음(`S7-10`).
 /// 🔴 `lateFilled`(지연 이행)는 분자에 **별도 계상**하고 라벨에 "(지연 이행 n건
 ///    포함)"을 엔진이 붙인다 — 지표는 정직하게, 벌점은 없다(A4).
 @freezed
 abstract class ExecutionGapReport with _$ExecutionGapReport {
   const factory ExecutionGapReport({
-    required DateRange range,
+    required DateRange range, // 🔴 ui 미참조(C-42) — 표시는 [periodLabel]
     required String periodLabel,
+    // 🔴 int 9종 전부 ui 미참조(C-42) — 표시는 [countLines]·[correctionLines].
     required int issued,
     required int filled,
     required int partial,
@@ -2877,10 +2920,11 @@ abstract class ExecutionGapReport with _$ExecutionGapReport {
     required int revoked,
     required int lateFilled,
 
-    /// 0.0~1.0 — 🔴 게이지 폭 계산용 정규값만. 표시는 `complianceRateLabel`.
-    required double complianceRateNormalized,
+    /// 🆕 v1.6 nullable — 0.0~1.0 · 게이지 **폭 전용**. null = 게이지 부재(가림 — RECON_MISMATCH 등).
+    /// 표시는 `complianceRateLabel`.
+    double? complianceRateNormalized,
 
-    /// "이행률 82%(건수) · 76%(금액 가중)" — 엔진 생성.
+    /// "이행률 82%(건수) · 76%(금액 가중)" — 엔진 생성. 가림이면 엔진이 «?» 로 가린 글자.
     required String complianceRateLabel,
 
     /// "기록까지 중앙값 1거래일" — 엔진 생성.
@@ -2895,14 +2939,21 @@ abstract class ExecutionGapReport with _$ExecutionGapReport {
 
     /// 진입/청산 이행률 비대칭 표식 — B2. 🔴 알림을 만들지 않는다.
     required List<ReasonChip> selectiveExecutionChips,
-    required int backdatedCount,
-    required int selfReportCorrectionCount,
+    required int backdatedCount, // 🔴 ui 미참조(C-42)
+    required int selfReportCorrectionCount, // 🔴 ui 미참조(C-42)
     required LedgerTrustBadge trust,
 
-    /// 🔴 B21 — **3갈래로 갈라 생성**된다: ⓐ「못 함」 우세 → 자동 이관 제안 /
-    ///    ⓑ「안 함」 우세 → 이관을 제안하지 않는다 / ⓒ 갈리지 않음 → 아무 제안도
-    ///    하지 않는다. 화면은 준 문장을 그대로 그린다.
-    required String modeAdviceLine,
+    /// 🆕 v1.6 — 건수 묶음. 줄마다 엔진 완성 문장(«안내 24건» · «이행 12건 · 부분 이행 2건 · 지연 이행 1건» ·
+    /// «건너뜀 6건 · 만료 4건 · 철회 0건») · 받은 순서 · 가림이면 줄 안 «?».
+    required List<String> countLines,
+
+    /// 🆕 v1.6 — 원장 교정·소급(«소급 기록 1건» · «자가 보고 정정 0건») · 둘 다 0 이면 **빈 목록** = 절 부재.
+    required List<String> correctionLines,
+
+    /// 🆕 v1.6 nullable — B21 3갈래: ⓐ «못 함» 우세 = 이관 제안 / ⓑ «안 함» 우세 = 이관을 제안하지 않고
+    /// `J-4` blind 리뷰·연간 반증 조건 점검을 **문장 안에서** 가리킨다(버튼·링크 0) /
+    /// ⓒ 갈리지 않음·정상 달 = **null = 줄 부재**(03 §14-b ⓒ «빈 줄을 자리표시자로 채우지 않는다»).
+    String? modeAdviceLine,
     required AsOf asOf,
   }) = _ExecutionGapReport;
 
@@ -3437,9 +3488,14 @@ abstract class AfterTaxLadder with _$AfterTaxLadder {
 
     /// 🔴 §8-18 확정 전에는 **항상 true**(골든 참고치이지 실계좌 산출이 아니다).
     /// 🔴 SIM 에서도 이 라벨을 유지한다(01 §9-4).
+    /// 🔴 화면 미참조(C-42) — 표지는 [referenceOnlyLabel] 이 말한다.
     required bool isReferenceOnly,
-    required String configHash,
-    required AsOf asOf,
+
+    /// 🆕 v1.6 — «골든 참고치입니다. 실계좌로 산출한 값이 아닙니다» — 엔진 문장.
+    /// 🔴 non-null ⇔ [isReferenceOnly](C-41 ⑦) · SIM 에서도 같다(01 §9-4) · 화면 = [basisNote] 다음 줄 그대로.
+    String? referenceOnlyLabel,
+    required String configHash, // S7-7 미표시
+    required AsOf asOf, // S7-7 미표시(하단은 `AnnualReviewVm.asOf` 하나)
   }) = _AfterTaxLadder;
 
   factory AfterTaxLadder.fromJson(Map<String, dynamic> json) =>
@@ -3669,14 +3725,27 @@ abstract class ContributionRow with _$ContributionRow {
 /// 01 §2-6 · m2-8 F-6 — 연간 리뷰(`S7-7`). 🔴 **묶음이지 재집계가 아니다** —
 /// 화면이 `windowState` 를 «달»로 판정하지 않는다.
 /// 🔴 세후는 `AfterTaxLadder` 를 그대로 실어 나르고 재계산하지 않는다(M1-20b).
+/// 🆕 v1.6(01 §15-4) — `yearLabel` · 세후 두 갈래 `afterTax`·`afterTaxCounterfactual`(VM 최상위).
 @freezed
 abstract class AnnualReviewVm with _$AnnualReviewVm {
   const factory AnnualReviewVm({
-    required String year,
-    required String windowStateCode,
-    required String windowStateLabel,
+    required String year, // 🔴 ui 미참조(C-42) — 표시는 [yearLabel]
+    /// 🆕 v1.6(K24 · 비평 #9) — «2026년 연간 리뷰» — 엔진 생성 · 상단 첫 줄. 기본 연도를 엔진이 고르므로
+    /// 어느 해인지 말하는 **유일한 글자**다(C-41 ⑥ — 비지 않음 ∧ [year] 를 품는다).
+    required String yearLabel,
+    required String windowStateCode, // 🔴 ui 미참조(C-42) — 표시는 [windowStateLabel]
+    required String windowStateLabel, // 상단 고정 1줄
     required List<AnnualReviewSection> sections,
     required AsOf asOf,
+
+    /// 🆕 v1.6 — 세후 사다리 본문 갈래(«묶음은 엔진» · `WithdrawalPlan.afterTax` 이름 선례). null = 블록 부재.
+    /// 🔴 같은 타입을 받는 M9 `S12`(`OpsStatusRepository.watchAnnualReview`) 창구는 이 필드와
+    ///    [afterTaxCounterfactual] 을 **null** 로 준다(K25 · 결정 8 · §8 미결 95 · 아래 ⑦-b).
+    AfterTaxLadder? afterTax,
+
+    /// 🆕 v1.6 — 반사실 갈래. 🔴 non-null ⇒ [afterTax] non-null(C-41 ⑥) · 화면 = **늘 기본 접힘** 카드
+    /// (접힘 값은 DTO 에 두지 않는다 — 봉투 형제 키 `counterfactual_collapsed` 는 C-30 대조 전용).
+    AfterTaxLadder? afterTaxCounterfactual,
   }) = _AnnualReviewVm;
 
   factory AnnualReviewVm.fromJson(Map<String, dynamic> json) =>
@@ -3687,7 +3756,7 @@ abstract class AnnualReviewVm with _$AnnualReviewVm {
 @freezed
 abstract class AnnualReviewSection with _$AnnualReviewSection {
   const factory AnnualReviewSection({
-    required String code,
+    required String code, // 🔴 ui 미참조(C-42)
     required String title,
     required List<String> lines,
     String? route,
@@ -3789,6 +3858,9 @@ abstract class GoalPathVm with _$GoalPathVm {
 //    0건을 「0원」으로 그리지 않는다(01 §2-6 v2.32 `PENSION_FUNDING`).
 // 🔴 🆕 v1.4 — «읽지 않는 필드»(`/// 🔴 ui 미참조(C-38 ⑩)` 표식)는 엔진·명령·골든 대조 쪽 원값이다.
 //    화면은 같은 뜻의 `*Text`·`*Label` 필드만 그린다(01 §14-4 · C-38 ⑩ 정규식과 **같은 목록**).
+// 🆕 v1.6(01 §15-4 · R12 선행 · 발주자 결정 ②) — 리밸런싱 미리보기 결과 `RebalancePreviewResult`
+//    (초안 | 차단) · `RebalancePreview` 표시 필드(`plannedDateText`·`asOf`·`orderDraftsTitle`·
+//    `ordersEmptyText`·`warningLines`). `S7-6c` 의 «읽지 않는 필드»는 `// 🔴 ui 미참조(C-42)` 표식이다.
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -3826,6 +3898,26 @@ abstract class DepositPreviewResult with _$DepositPreviewResult {
 
   factory DepositPreviewResult.fromJson(Map<String, dynamic> json) =>
       _$DepositPreviewResultFromJson(json);
+}
+
+/// 🆕 v1.6 · 01 §15-4 — 리밸런싱 미리보기 결과(`WhatIfApi.previewRebalance` 의 반환).
+/// 🔴 [preview] · [blockedText] 중 **정확히 하나** non-null(C-41 ①). 입력 거부 갈래는 없다(입력이 없다).
+/// 🔴 [blockedAction] 은 [blockedText] 가 있을 때만 non-null 일 수 있다(null = 버튼 부재 · C-38 ① 준용).
+/// 🔴 화면은 둘 중 무엇이 non-null 인가로만 갈린다 — 문장을 해석하지 않는다.
+@freezed
+abstract class RebalancePreviewResult with _$RebalancePreviewResult {
+  const factory RebalancePreviewResult({
+    RebalancePreview? preview,
+
+    /// 초안을 계산하지 않은 까닭(무결성·재개 미완·예정 없음 등) — 엔진 문장 · 화면 = 문장 카드 1장.
+    String? blockedText,
+
+    /// 차단 카드의 이동 버튼 — 탭 = `AppLinkOpener.open(deepLink)` 그대로.
+    LinkAction? blockedAction,
+  }) = _RebalancePreviewResult;
+
+  factory RebalancePreviewResult.fromJson(Map<String, dynamic> json) =>
+      _$RebalancePreviewResultFromJson(json);
 }
 
 /// 01 §2-6 — 입금 미리보기 계획.
@@ -3951,13 +4043,15 @@ abstract class OrderDraft with _$OrderDraft {
     /// 🆕 v1.4 — 수량 글자 — 엔진 생성.
     required String quantityText,
 
-    /// 사유 칩. 🔴 플래너(S7-4)는 `label`·`tone` 만 그린다 — `detailDeepLink` 는 읽지 않는다(D20).
+    /// 사유 칩. 🔴 플래너(S7-4)·`S7-6c` 는 `label`·`tone` 만 — `detailDeepLink` 는 읽지 않는다
+    /// (D20 · §8 미결 81).
     required List<ReasonChip> reasons,
 
     /// 🔴 ui 미참조(C-38 ⑩). 표시는 [limitPriceText].
     @DecimalStringConverter() Decimal? limitPrice,
 
-    /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ② · **`DepositPlan` 한정** —
+    /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ② · 🆕 v1.6 C-41 ② ·
+    /// `DepositPlan`·`RebalancePreview`(인출 초안 제외) —
     /// 인출 초안(`WithdrawalPlan.orderDrafts`)은 인출 규칙 결정 뒤 첫 minor 재생성 전까지 이 짝을 지키지 않는다 · 01 §14-4 · §14-15).
     String? limitPriceText,
 
@@ -4069,20 +4163,42 @@ abstract class WithdrawalPlan with _$WithdrawalPlan {
       _$WithdrawalPlanFromJson(json);
 }
 
-/// 01 §2-6 · m2-8 F-14 — 리밸런싱 미리보기.
+/// 01 §2-6 · m2-8 F-14 — 리밸런싱 미리보기. 🆕 v1.6 표시 필드(01 §15-4 필드 → 자리 표).
 /// 🔴 `DepositPlan` 과 **같은** `fundingSteps` 를 싣는다(v2.32).
 @freezed
 abstract class RebalancePreview with _$RebalancePreview {
   const factory RebalancePreview({
+    /// 🔴 ui 미참조(C-42).
     required String planId,
+
+    /// 🔴 ui 미참조(C-42) — 표시는 [plannedDateText].
     @TradeDateConverter() required TradeDate plannedDate,
+
+    /// 🆕 v1.6 — «2026년 9월 1일 회차» — 엔진 생성(초안 머리 1줄).
+    required String plannedDateText,
+
+    /// 🆕 v1.6 — 초안의 기준 시각(봉투 as_of 를 행으로 · `DepositPlan.asOf` 선례).
+    required AsOf asOf,
+
+    /// 🔴 ui 미참조 — R12 는 전후 비중을 그리지 않는다(§8 미결 92).
     required List<SleeveWeight> before,
     required List<SleeveWeight> after,
+
+    /// 🆕 v1.6 — 주문 초안 표 제목(«주문 초안» / advisory 이름) — 엔진 생성.
+    required String orderDraftsTitle,
     required List<OrderDraft> orderDrafts,
+
+    /// 🆕 v1.6 — non-null ⇔ [orderDrafts] 빈 목록(C-41 ②). 그때 표 대신 이 한 줄.
+    String? ordersEmptyText,
     required CostEstimate costs,
+
+    /// «미리보기입니다…» 고지 **전용**(v1.4 §14-5 준용).
     required String previewNotice,
 
-    /// 🔴 null·빈 목록 = 조달 절을 통째로 숨긴다.
+    /// 🆕 v1.6 — 경고 문장 — **받은 순서** 그대로.
+    @Default(<String>[]) List<String> warningLines,
+
+    /// 🔴 ui 미참조 — R12 는 조달 절을 그리지 않는다(§8 미결 92). null·빈 목록 규약은 그대로.
     List<FundingStep>? fundingSteps,
   }) = _RebalancePreview;
 
@@ -4103,6 +4219,9 @@ abstract class RebalancePreview with _$RebalancePreview {
 //    한 표에 섞어 합계 100% 를 만들지 않는다 — C-31 이 basis 혼합과 `A + POT`
 //    산술을 탐지한다.
 // 🔴 P 회차 실측 수치(엔진 열 vs 회계 열)를 코드·주석에 상수로 옮기지 않는다.
+// 🆕 v1.6(01 §15-4 · R12 선행) — `RebalanceEvent.thresholds`(J-2 `ThresholdCompare` 재사용 · `common.dart`)·
+//    `modeLabel`·`sectionLabel` · `asOf` = 읽기 모델 관측 시각 · `SleeveWeight.label` = 완성 문장 ·
+//    `NextRebalanceVm` 두 글자 nullable + `asOf`. 🔴 `// 🔴 ui 미참조(C-42)` 표식 = R12 화면이 읽지 않는 원값.
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -4117,14 +4236,15 @@ part 'rebalance.freezed.dart';
 part 'rebalance.g.dart';
 
 /// 01 §2-5 — 리밸런싱 1회차.
+/// 🆕 v1.6(01 §15-4) — `thresholds`·`modeLabel`·`sectionLabel` · `asOf` 뜻 고정(관측 시각).
 @freezed
 abstract class RebalanceEvent with _$RebalanceEvent {
   const factory RebalanceEvent({
-    required String eventId,
-    required RunMode mode,
+    required String eventId, // 🔴 표시 금지 · Key 전용
+    required RunMode mode, // 🔴 ui 미참조(C-42) — 배지는 [modeLabel]
+    // 표시 = `tradeDate.yyyyMmDd` 그대로(카드 예외 1개)
     @TradeDateConverter() required TradeDate tradeDate,
-    required RebalanceKind kind,
-
+    required RebalanceKind kind, // 🔴 ui 미참조(C-42) — 칩은 [kindLabel]
     /// 엔진 생성.
     required String kindLabel,
     required List<SleeveWeight> before,
@@ -4132,11 +4252,27 @@ abstract class RebalanceEvent with _$RebalanceEvent {
 
     /// 당시 국면·신호 원값·밴드 여유.
     required TriggerSnapshot trigger,
-    required List<String> orderIntentIds,
+    required List<String> orderIntentIds, // 🔴 ui 미참조(C-42 · C-40 ⑧)
+    /// 🆕 v1.6 뜻 고정(01 §15-4) — **읽기 모델의 관측 시각**(마지막 배치) = 목록 봉투 `as_of` 와
+    /// 같은 값. 회차 시각이 아니다(회차 일자 = [tradeDate]). `S7-6b` 하단·StaleBanner 의 원천.
     required AsOf asOf,
 
-    /// 실측 슬리피지 vs 가정치·미체결률 — m2-8 F-10.
+    /// 실측 슬리피지 vs 가정치·미체결률 — m2-8 F-10. null = 패널 부재.
     ExecutionQuality? quality,
+
+    /// 🆕 v1.6 — 사전 등록 임계 ↔ 실제값 대조(03 §11-b 수용 (a) · J-2 `DecisionDetailVm.thresholds`
+    /// 와 같은 타입) · 엔진 포맷 행 · 0건 = 표 부재.
+    /// 🔴 비어 있지 않음 ⇔ `trigger.thresholdRegistered != null`(C-41 ④).
+    required List<ThresholdCompare> thresholds,
+
+    /// 🆕 v1.6 — 「모의」 배지 글자. non-null ⇔ `mode != LIVE`(C-41 ④). 🔴 화면이 `mode` 로 고르지 않는다.
+    String? modeLabel,
+
+    /// 🆕 v1.6 — non-null 이면 **이 행 위에** 머리글 1줄(«모의투자 회차»). 같은 모드 묶음의 첫 행에만
+    /// 엔진이 싣는다 — 화면은 앞 행과 비교하지 않는다(`ReportArchiveRow.sectionLabel` 선례).
+    /// 🔴 LIVE·SIM 이 섞인 목록에서 «시간 역순»과 «모드 묶음의 첫 행»은 함께 성립하지 않는다 —
+    ///    섞인 목록의 정렬 키는 §8 미결 89 · 그때까지 표본은 SIM 단독 봉투(C-41 ④ 한정 · 비평 #23).
+    String? sectionLabel,
 
     /// 🆕 v1.5(01 §15-3 · §8 미결 49) — `S7-6b` 하단 «이 회차의 … N건» 버튼 **하나**
     /// (목적지 = `J-1` 회차 조건 · `AppRoutes.journalRebalance` 를 엔진이 완성).
@@ -4164,13 +4300,18 @@ abstract class RebalanceEvent with _$RebalanceEvent {
 @freezed
 abstract class SleeveWeight with _$SleeveWeight {
   const factory SleeveWeight({
-    required SleeveId sleeve,
-    required double weight,
-    required double targetWeight,
-    required double bandLow,
-    required double bandHigh,
-
+    required SleeveId sleeve, // 🔴 ui 미참조(C-42 ⑧)
+    required double weight, // 🔴 ui 미참조(C-42) — 표시는 [label]
+    required double targetWeight, // 〃
+    required double bandLow, // 〃
+    required double bandHigh, // 〃
     /// "B 42.0% (목표 42.0%, 밴드 여유 1.8%p)" — 엔진 생성.
+    ///
+    /// 🆕 v1.6 뜻 고정(정본 = 이 타입 머리 «목표 대비 편차·밴드 여유» + 기존 예시 «B 42.0% (목표 42.0%,
+    /// 밴드 여유 1.8%p)»의 요소) — 이 행의 **완성 문장**: 현재·목표·편차·밴드 여유를 엔진이 한 줄에 담고,
+    /// 밴드 밖이면 여유 자리에 초과폭을 말한다(«B 42.0% (목표 42.0%, 편차 0.0%p, 밴드 여유 5.0%p)» ·
+    /// «B 47.8% (목표 42.0%, 편차 +5.8%p, 밴드 상단 0.8%p 초과)»). 🔴 이름만 싣지 않는다(C-41 ④ `%`).
+    /// 🔴 기존 주석 예시(:75)는 바꾸지 않는다 — 홈 블록 4 가 같은 타입이다(K11 · 비평 #13).
     required String label,
 
     /// 🆕 P 회차 — 기준 축. 🔴 `accounting` 외 값을 갖지 않는다.
@@ -4188,13 +4329,17 @@ abstract class TriggerSnapshot with _$TriggerSnapshot {
     required String configHash,
 
     /// 지표명 → 엔진 포맷 문자열. 계절 게이트 키는 `trend_score_kr`.
+    /// 🔴 ui 미참조(C-42 · J-2 ⓒ).
     required Map<String, String> rawValues,
 
     /// 엔진 생성 한 줄.
     required String summary,
+
+    /// 🔴 ui 미참조(C-42 · J-2 ⓒ).
     @DecimalStringConverter() Decimal? triggerPrice,
 
     /// 🔴 사전 등록 임계값 — 사후 변경 감사용.
+    /// 🔴 ui 미참조(C-42 · J-2 ⓒ) — 표시는 `RebalanceEvent.thresholds`(v1.6).
     double? thresholdRegistered,
   }) = _TriggerSnapshot;
 
@@ -4261,13 +4406,19 @@ abstract class SleeveAllocationRow with _$SleeveAllocationRow {
 @freezed
 abstract class NextRebalanceVm with _$NextRebalanceVm {
   const factory NextRebalanceVm({
-    required String expectedDateText,
-    required String dDayText,
+    /// 🆕 v1.6 nullable — null ⇔ [emptyLabel] non-null(C-41 ③). 엔진 생성 · 화면이 날짜를 빼지 않는다.
+    String? expectedDateText,
+    String? dDayText,
+
+    /// non-null = «예정 없음» — 화면은 이 문장**만** 그린다(카운트다운·초안 버튼 부재).
     String? emptyLabel,
-    RebalanceKind? expectedKind,
-    String? kindLabel,
+    RebalanceKind? expectedKind, // 🔴 ui 미참조(C-42)
+    String? kindLabel, // null = 줄 부재
+    /// 🔴 `S7-6c` 안에서 쓰지 않는다(자기 자신 · `H-02`·알림 행 몫) · non-null 이면 `AppRoutes.rebalancePreview`.
     String? previewRoute,
-    String? noticeText,
+    String? noticeText, // null = 줄 부재
+    /// 🆕 v1.6 — 봉투 as_of 를 행으로(`DepositPlan.asOf` 선례 · `H-02` 도 같은 필드).
+    required AsOf asOf,
   }) = _NextRebalanceVm;
 
   factory NextRebalanceVm.fromJson(Map<String, dynamic> json) =>
@@ -6688,13 +6839,29 @@ abstract final class FixturePaths {
 
   // ── m7/ — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15) ──
   static const String m7AftertaxLadder1 = 'm7/aftertax_ladder_1.json';
+  // 🆕 v1.6(R12 선행 · 01 §15-4) — 행 = `ExecutionGapResult` 래퍼(report | 빈·해당없음 문장 ·
+  //    C-41 ⑧). 기존 4벌(`_1`·`cant`·`mixed`·`wont`)은 `{report, as_of}` 로 재생성.
   static const String m7ExecutionGap1 = 'm7/execution_gap_1.json';
   static const String m7ExecutionGapCant = 'm7/execution_gap_cant.json';
+
+  /// 🆕 v1.6 — 안내 0건(`NO_DATA` + 엔진 문장 · 골든 `s710_empty`).
+  static const String m7ExecutionGapEmpty = 'm7/execution_gap_empty.json';
+
+  /// 🆕 v1.6 — RECON_MISMATCH 가림(줄 안 «?» · 게이지 부재 · 골든 `s710_masked_recon`).
+  static const String m7ExecutionGapMaskedRecon =
+      'm7/execution_gap_masked_recon.json';
   static const String m7ExecutionGapMixed = 'm7/execution_gap_mixed.json';
+
+  /// 🆕 v1.6 — 자동 매매 구간(`NOT_APPLICABLE` + 엔진 문장 · 골든 `s710_not_applicable`).
+  static const String m7ExecutionGapNotApplicable =
+      'm7/execution_gap_not_applicable.json';
   static const String m7ExecutionGapWont = 'm7/execution_gap_wont.json';
   static const String m7LedgerTrust4 = 'm7/ledger_trust_4.json';
   static const String m7M7Annual2026 = 'm7/m7_annual_2026.json';
   static const String m7M7AnnualFirstYear = 'm7/m7_annual_first_year.json';
+
+  /// 🆕 v1.6 — 창 밖(2025 · CLOSED — 기본 연도 규칙 표본 · 골든 `s77_offwindow`).
+  static const String m7M7AnnualOffwindow = 'm7/m7_annual_offwindow.json';
   static const String m7M7Contrib3sleeve = 'm7/m7_contrib_3sleeve.json';
 
   /// 🆕 v1.1(§8 미결 45) — 산출 불가 슬리브 1행(`unavailable_label`).
@@ -6770,7 +6937,13 @@ abstract final class FixturePaths {
   static const String m7M7MonthlyMaskedRecon =
       'm7/m7_monthly_masked_recon.json';
   static const String m7M7MonthlyPending = 'm7/m7_monthly_pending.json';
-  static const String m7M7NextRebalanceD6 = 'm7/m7_next_rebalance_d6.json';
+
+  /// 🆕 v1.6 개명(구 `m7NextRebalanceD6`) — «2026년 9월 1일 · D-1» 카운트다운(골든 `s76c_countdown`).
+  static const String m7M7NextRebalanceCountdown =
+      'm7/m7_next_rebalance_countdown.json';
+
+  /// 🆕 v1.6 — 예정 없음(`empty_label` 만 · 골든 `s76c_none`).
+  static const String m7M7NextRebalanceNone = 'm7/m7_next_rebalance_none.json';
   static const String m7M7PerfDailyGap = 'm7/m7_perf_daily_gap.json';
 
   // 🆕 v1.3(R10 선행 · 01 §13-1·§13-3) — `S7-2` 성과 시리즈 6갈래.
@@ -6804,6 +6977,23 @@ abstract final class FixturePaths {
 
   /// 🆕 v1.5 — `S7-6a` 빈 타임라인(0행 + 엔진 문장 · 골든 `s76a_empty`).
   static const String m7M7RebalanceEmpty = 'm7/m7_rebalance_empty.json';
+  // 🆕 v1.6(R12 선행 · 01 §15-4) — 리밸런싱 미리보기(`S7-6c`). 행 = `RebalancePreviewResult` 래퍼
+  //    (preview | blocked_text 중 정확히 하나 · C-41 ①).
+  /// 차단 2행 — 0 `blocked_text` 만(버튼 부재 · 골든 입력) · 1 `blocked_text` + `blocked_action`
+  /// (재개 리포트 · 위젯 테스트 전용).
+  static const String m7M7RebalancePreviewBlocked =
+      'm7/m7_rebalance_preview_blocked.json';
+
+  /// 정상 — 초안 2행 · 비용 · 고지(골든 `s76c_preview`).
+  static const String m7M7RebalancePreviewDefault =
+      'm7/m7_rebalance_preview_default.json';
+
+  /// 빈 초안 — `order_drafts` 빈 목록 + `orders_empty_text` · 경고 1(골든 `s76c_draft_empty`).
+  static const String m7M7RebalancePreviewInBand =
+      'm7/m7_rebalance_preview_in_band.json';
+
+  /// 🆕 v1.6 — `S7-6a` 모의투자 회차 2행(행 `mode` SIM · 배지 2 · 머리글 1 · 봉투 LIVE · 골든 `s76a_sim`).
+  static const String m7M7RebalanceSim = 'm7/m7_rebalance_sim.json';
   static const String m7M7ReportArchive18 = 'm7/m7_report_archive_18.json';
 
   /// 🆕 v1.3 — `S7-1b` 빈 아카이브(`rows` 0 + VM `empty_label`).
@@ -6908,11 +7098,15 @@ abstract final class FixturePaths {
     m7AftertaxLadder1,
     m7ExecutionGap1,
     m7ExecutionGapCant,
+    m7ExecutionGapEmpty,
+    m7ExecutionGapMaskedRecon,
     m7ExecutionGapMixed,
+    m7ExecutionGapNotApplicable,
     m7ExecutionGapWont,
     m7LedgerTrust4,
     m7M7Annual2026,
     m7M7AnnualFirstYear,
+    m7M7AnnualOffwindow,
     m7M7Contrib3sleeve,
     m7M7ContribPartial,
     m7M7DdContextDeep,
@@ -6938,7 +7132,8 @@ abstract final class FixturePaths {
     m7M7MonthlyMaskedIntegrity,
     m7M7MonthlyMaskedRecon,
     m7M7MonthlyPending,
-    m7M7NextRebalanceD6,
+    m7M7NextRebalanceCountdown,
+    m7M7NextRebalanceNone,
     m7M7PerfDailyGap,
     m7M7PerfDailyManual,
     m7M7PerfMaskedIntegrity,
@@ -6949,6 +7144,10 @@ abstract final class FixturePaths {
     m7M7RebalanceDetailBand,
     m7M7RebalanceDetailAdvisory,
     m7M7RebalanceEmpty,
+    m7M7RebalancePreviewBlocked,
+    m7M7RebalancePreviewDefault,
+    m7M7RebalancePreviewInBand,
+    m7M7RebalanceSim,
     m7M7ReportArchive18,
     m7M7ReportArchiveEmpty,
     m7M7WithdrawalGeneral,
@@ -8433,8 +8632,15 @@ abstract final class AppRoutes {
   /// 원장 신뢰 등급 설명.
   static const String ledgerTrust = 'aaq://ledger/trust';
 
-  /// `S7-10` 이행 갭.
+  /// `S7-10` 이행 갭 — 🆕 v1.6 주석: `S7-10` 은 **M7(03 §14-b) 화면**이다 · 이 묶음 표기는 역사적(H63).
+  /// 인자 없는 진입(「계획」 탭 ⑤) = 엔진 기본 달 · 셸 본문 = `ExecutionGapScreen()`.
   static const String ledgerExecutionGap = 'aaq://ledger/execution-gap';
+
+  /// 🆕 v1.6(01 §15-4 · K1) — `S7-10` 의 **그 달**(`yyyy-MM`). `MonthlyReport` ⑧ `D3_EXECUTION.detailDeepLink`
+  /// 를 엔진이 완성해서 준다. 셸 본문 = `ExecutionGapScreen(key: ValueKey(m), yyyyMm: m)` — **두 라우트 · 한 위젯**
+  /// (v1.5 `journalRebalance` 다음 두 번째 사례). 세그먼트 수가 달라 [ledgerExecutionGap] 과 겹치지 않는다.
+  static const String ledgerExecutionGapMonth =
+      'aaq://ledger/execution-gap/:yyyyMm';
 
   // ── M7 성과·리밸런싱·플래너(03) ───────────────────────────────────────────
   /// `S7-1b` 리포트 아카이브.
@@ -8443,9 +8649,10 @@ abstract final class AppRoutes {
   /// 세후 사다리 단독 보기 — 03 §12 `S7-7` 세후 카드와 같은 `AfterTaxLadder`(03 에 별도 화면 ID 없음).
   /// 🆕 v1.4 주석 정정 — 구 «`S7-7` 세후 사다리»·«`S7-8` 연간 리뷰»는 오기였다
   /// (`S7-7` = 12월 연간 리뷰 · `S7-8` = X2 재개 리포트 읽기 사본 · 03 §2).
+  /// 🆕 v1.6 — 03 에 화면 없음 · R12 밖 · `S7-7` 세후는 VM `afterTax` 블록.
   static const String reportAfterTax = 'aaq://report/aftertax';
 
-  /// `S7-7` 12월 연간 리뷰 패키지.
+  /// `S7-7` 12월 연간 리뷰 패키지. 🆕 v1.6 — 셸 본문 = `AnnualReviewScreen()`.
   static const String reportAnnual = 'aaq://report/annual';
 
   /// `S7-1` 월간 리포트(`yyyy-MM`).
@@ -8472,7 +8679,11 @@ abstract final class AppRoutes {
   /// ⏸ `planWithdrawal`(S7-5) 은 인출 규칙 결정(01 §8 미결 79) 뒤 첫 minor 에서 더한다(01 §14-15 · §15-3).
   static const String planDeposit = 'aaq://plan/deposit';
 
-  /// `S7-6c` 리밸런싱 미리보기.
+  // M7 묶음 — `all` 에서도 rebalancePreview 앞
+  /// 🆕 v1.6(01 §15-4 · K5) — `S7-6a` 리밸런싱 회차 타임라인(`RebalanceTimelineScreen()`).
+  static const String rebalanceHistory = 'aaq://rebalance/history';
+
+  /// `S7-6c` 리밸런싱 미리보기. 🆕 v1.6 — 셸 본문 = `RebalancePreviewScreen()`.
   static const String rebalancePreview = 'aaq://rebalance/preview';
 
   /// `S7-6b` 리밸런싱 회차 상세 — `DecisionDetailVm.rebalanceLink` 등이 준다.
@@ -8506,7 +8717,8 @@ abstract final class AppRoutes {
   /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
 
-  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance`).
+  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance` ·
+  /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory`).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -8522,6 +8734,7 @@ abstract final class AppRoutes {
     ledgerSelfReport,
     ledgerTrust,
     ledgerExecutionGap,
+    ledgerExecutionGapMonth,
     reportArchive,
     reportAfterTax,
     reportAnnual,
@@ -8531,6 +8744,7 @@ abstract final class AppRoutes {
     performanceDrawdown,
     performanceContribution,
     planDeposit,
+    rebalanceHistory,
     rebalancePreview,
     rebalanceEvent,
     onboardingStep,
@@ -9041,14 +9255,19 @@ abstract interface class ConfigRepository {
 
 ```dart
 // 01 §4-1 · §10 — 🆕 X7 이행 갭 리포트 읽기 창구.
+// 🆕 v1.6(01 §15-4) — `monthly({String? yyyyMm})` → `ExecutionGapResult`(리포트 | 빈·해당없음 문장).
 
 import '../dto/ledger_trust.dart';
 
 /// 월간 이행 갭(`S7-10`) · 롤링 이행 갭.
 /// 🔴 `modeAdviceLine` 은 엔진이 **3갈래로 갈라 생성**한다(B21) — 화면이 조립하지 않는다.
 abstract interface class ExecutionGapRepository {
-  Future<ExecutionGapReport> monthly(String yyyyMm);
+  /// 🆕 v1.6 — [yyyyMm](`yyyy-MM`) == null = **엔진 기본 달**(06 X7-4 — 권고: 월간 리포트가 발행된
+  /// 가장 최근 달). 기간은 `report.periodLabel` 이 말한다. 「계획」 탭 ⑤ = null · `S7-1` ⑧ = 그 달
+  /// (`AppRoutes.ledgerExecutionGapMonth` → 셸 → `ExecutionGapScreen(yyyyMm:)` → 이 인자).
+  Future<ExecutionGapResult> monthly({String? yyyyMm});
 
+  /// 🔴 R12 화면 미사용 — 롤링 창 정의 = 06 X7-4(정의 전).
   Stream<ExecutionGapReport> watchRolling();
 }
 ```
@@ -9265,6 +9484,9 @@ abstract interface class OpsStatusRepository {
   Stream<DiagnosticsVm> watchDiagnostics();
 
   /// `S12` — 🔴 화면이 `windowState` 를 «달»로 판정하지 않는다.
+  /// 🆕 v1.6(01 §15-4 · K25 · 결정 8 · §8 미결 95) — 이 창구의 `AnnualReviewVm` 은 `afterTax`·
+  ///    `afterTaxCounterfactual` 을 **null** 로 준다(엔진 의무 · 06 M1-20b) — 세후 수치는 M7 `S7-7`
+  ///    (`PerformanceRepository.annualReview`) 한 자리에만 간다. `S12` 의 표시 범위는 미결 95.
   Stream<AnnualReviewVm> watchAnnualReview();
 }
 
@@ -9314,6 +9536,7 @@ abstract interface class PerformanceRepository {
   /// 🔴 인자는 **연도 하나**다. 임의 구간(`DateRange`)을 받지 않는다 — 세후는 연 1회
   ///    산출이고, 구간을 화면이 고르면 «어느 창의 세후가 진짜인가»를 화면이 판정하게 된다.
   /// 🔴 보정판 산식 확정 전에는 `isReferenceOnly == true` 인 골든 참고 사다리만 돌아온다(§8-18).
+  /// 🆕 v1.6 무변경 — R12 소비자 0(`S7-7` 세후는 `AnnualReviewVm.afterTax`).
   Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear});
 
   // ───── 🆕 G-41 — M7 뷰모델 창구 5종(여섯째 = `RebalanceRepository.watchNext`) ─────
@@ -9335,8 +9558,12 @@ abstract interface class PerformanceRepository {
   /// 🔴 월 납입 설정과 무관한 타입이다 — `MonthlyContributionVm` 과 이름을 공유하지 않는다(§2-6).
   Future<ContributionVm> contribution({required DateRange range});
 
-  /// `S7-7` — 🔴 묶음이지 재집계가 아니다. 화면이 `windowState` 를 «달»로 판정하지 않는다.
-  Future<AnnualReviewVm> annualReview({required String year});
+  /// `S7-7` — 🆕 v1.6 [year] == null = **엔진 기본 연도**(06 M1-20b · K24 — 권고: 12월 창 열림 = 그해 ·
+  /// 그 밖 = 마지막 완결 연도 · 완결 연도가 없으면(운용 첫 해) 그해). 고른 연도는 `vm.yearLabel` 이 말한다.
+  /// 🔴 `S7-7` 은 **이 창구 하나만** 쓴다 · `OpsStatusRepository.watchAnnualReview` 는 M9 `S12` 몫 —
+  ///    같은 타입이지만 **세후 두 필드는 null**(K25 · ⑦-b).
+  /// 🔴 세후는 VM 의 `afterTax`·`afterTaxCounterfactual` 이 싣는다 — `S7-7` 은 [afterTaxLadder] 를 부르지 않는다.
+  Future<AnnualReviewVm> annualReview({String? year});
 
   // ───── 🆕 v1.4 — S7-9 목표 경로(01 §14-9) ─────
 
@@ -9361,11 +9588,15 @@ import '../primitives/list_result.dart';
 
 /// 리밸런싱 회차 목록 · 회차 1건 · 다음 회차 예상.
 abstract interface class RebalanceRepository {
-  /// `S7-6a` 회차 타임라인.
-  /// 🆕 v1.5(01 §15-3 ★ⓒ) — 반환을 봉투(`ListResult`)로 바꿨다: 빈 상태 문장(«아직 리밸런싱 회차가
-  ///    없습니다» 류)을 봉투 `emptyLabel` 이 준다 — 화면이 빈 상태 문구를 쓰지 않는다(계약 3조 ③).
-  /// 🔴 `rows` 는 엔진이 정렬해서 준다 · 화면이 거르거나 다시 세지 않는다.
-  Stream<ListResult<RebalanceEvent>> watchEvents(DateRange r);
+  /// `S7-6a` 회차 타임라인 — 봉투(`ListResult`) · 빈 상태 문장 = 봉투 `emptyLabel`(v1.5).
+  /// 🆕 v1.6(01 §15-4 · 발주자 결정 ① · §8 미결 88 의 «범위 고르기» 몫 · K26) — [range] == null =
+  ///    **전체 기간**(첫 회차부터 · 기간으로 자르지 않는다). 이름 인자 꼴은 v1.3 `series(range:)` 선례지만
+  ///    뜻은 다르다 — `series` 의 null 은 «엔진이 고른 구간»이라 `periodLabel` 이 말하고, 여기의 null 은
+  ///    **고르지 않음**이라 말할 기간이 없다(그래서 봉투에 기간 글자를 두지 않는다 · 비평 #10).
+  ///    어느 모드(LIVE·SIM)의 행이 오는지는 §8 미결 89. 🔴 R12 화면은 **인자 없이** 부른다 — 화면이
+  ///    `DateRange` 를 만들지 않는다. `ListResult.hasMore` 는 전체 기간·`limit` 없음이라 늘 false — 화면 미사용.
+  /// 🔴 `rows` 는 엔진이 **시간 역순**으로 정렬해서 준다(03 §11-a) · 화면은 재정렬·거르기·세기 0.
+  Stream<ListResult<RebalanceEvent>> watchEvents({DateRange? range});
 
   /// 🆕 v1.5(01 §15-3 ★ⓐ) — `S7-6b` 회차 1건. `S7-6b`(`RebalanceEventScreen`)는 파라미터 라우트
   /// `rebalanceEvent` 의 `:rebalanceEventId`(셸 → 생성자 인자 → 키)로 **이 창구 하나만** 구독한다.
@@ -9375,6 +9606,7 @@ abstract interface class RebalanceRepository {
   Stream<RebalanceEvent> watchEvent(String rebalanceEventId);
 
   /// 🆕 G-41 — 다음 회차 예상(`S7-6c` · `H-02` D-7 예고 행).
+  /// 무변경 — 단 v1.6 에서 [NextRebalanceVm] 의 두 글자가 nullable 이 되고 `asOf` 가 생겼다.
   /// 🔴 `dDayText`·`expectedDateText` 는 엔진 생성 문자열이다 — 화면이 날짜를 빼지 않는다.
   /// 🔴 **nullable 이 아니다**(N-4) — 「예정 없음」도 **값으로** 오며 그 상태의 유일한
   ///    문구가 `emptyLabel` 이다. null 을 허용하면 화면이 「예정된 회차 없음」을 스스로
@@ -9434,6 +9666,9 @@ abstract interface class SafetyRepository {
 // 🔴 v1.4 호출 표(01 §14-8) — 플래너(S7-4)는 `simulateDeposit` 만 부른다(«미리보기 계산» 탭 ·
 //    «다시 계산» 탭 · 에러 재시도). 늦게 온 이전 요청 결과는 버린다(마지막 요청만).
 //    `estimateCosts`·`findPlan`·`previewRebalance` 는 플래너가 부르지 않는다.
+// 🆕 v1.6 호출 표(01 §15-4) — `S7-6c` 는 `previewRebalance` 만 부른다(«지금 기준 초안 보기» 탭 뒤 ·
+//    인자 없이 · 결과 캐시 0 · 마지막 요청만). `estimateCosts`·`findPlan`·`simulateDeposit` 은
+//    `S7-6c` 가 부르지 않는다. 자세한 표는 [WhatIfApi.previewRebalance] 머리.
 
 import 'package:decimal/decimal.dart';
 
@@ -9454,7 +9689,17 @@ abstract interface class WhatIfApi {
   ///    `({required String amountInput}) → WithdrawalPreviewResult` 로 바뀐다.
   Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount});
 
-  Future<RebalancePreview> previewRebalance({TradeDate? plannedDate});
+  /// 🆕 v1.6(01 §15-4 · 결정 ②) — `S7-6c` «지금 기준 초안 보기». 호출 표:
+  /// ① 그 버튼 **탭 뒤에만**, 인자 없이 부른다 — 진입·알림·`watchNext` 값만으로는 호출 0.
+  /// ② 결과 캐시 0 · 늦게 온 이전 요청 결과는 버린다(마지막 요청만).
+  /// ③ `Future` 에러 = «계산을 못 했다»(인프라)만 뜻한다 — 화면 = 초안 영역 에러 + 같은 버튼
+  ///    재시도 · 에러 내용으로 분기 0.
+  /// ④ [plannedDate] == null = 엔진이 `watchNext` 와 **같은 판정의 다음 예정 회차**를 지금 as-of
+  ///    데이터로 미리 본다 — 그날은 `RebalancePreview.plannedDateText` 가 말한다. 인자는 엔진·테스트용.
+  /// ⑤ 예정 회차가 없거나 계산이 막히면 `blockedText`(엔진 문장)로 온다 — 화면이 flagId 로 버튼을
+  ///    끄지 않는다(D21 준용).
+  /// 🔴 `estimateCosts`·`findPlan` 은 `S7-6c` 가 부르지 않는다.
+  Future<RebalancePreviewResult> previewRebalance({TradeDate? plannedDate});
 
   Future<CostEstimate> estimateCosts(String planId);
 
