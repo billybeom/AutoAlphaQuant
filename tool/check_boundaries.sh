@@ -11,9 +11,10 @@
 #   [5] 🔴 실패: ui_* 의 lib/ 코드 줄에 링크 리터럴(`aaq://`·`handbook://`)이 있는가 (01 §4-4 · 계약 v1.1)
 #   [5b] 🔴 실패: ui_* 의 lib/ 코드 줄이 **파라미터 라우트 상수**(`AppRoutes.*` 중 값에 `/:` 가 든 것)를
 #              참조하는가 — 패턴에 값을 끼워 링크를 조립하는 길(규칙 ③). 목록은 app_links.dart 에서 뽑는다
-#              (🆕 계약 v1.5 · 01 §15-3)
+#              (🆕 계약 v1.5 · 01 §15-3) — 🔵 셸(ui_shell)은 제외: 라우트 테이블·파서가 그 상수를 쓰는 유일한 자리다
 #   [5c] 🔴 실패: ui_* 의 test/ Dart 코드 줄에 링크 리터럴이 있는가 — 테스트도 링크를 픽스처 값으로
-#              비교한다(02 §3-1 ⓕ 의 기계화 · 🆕 계약 v1.5 · 01 §15-3)
+#              비교한다(02 §3-1 ⓕ 의 기계화 · 🆕 계약 v1.5 · 01 §15-3) — 🔵 셸(ui_shell)은 제외: 라우트 표본은
+#              `AppRoutes.all` 패턴에서 만든다(C-17·C-18)
 #   [6] (예약) viewer(iOS) 의 `package:ui_journal/journal_draft.dart` import 0건 — docs/TARGETS.md T-3
 #              (조립 앱 배선 때 더한다 · 번호만 잡아 둔다)
 #   [7] 🔴 실패: viewer 조립 앱(apps/app_viewer_*/lib)이 `package:ui_analytics/planner.dart` 를
@@ -162,7 +163,11 @@ done
 #    링크를 조립하면 [5] 를 지난다. 파라미터가 든 링크는 언제나 엔진이 완성해서 주므로 화면 코드가
 #    파라미터 라우트 상수를 참조할 이유가 없다(고정 목적지 상수는 규칙 ④ 대로 허용 — 여기서 보지 않는다).
 #    목록은 손으로 적지 않는다 — app_links.dart 에서 값에 `/:` 가 든 상수 이름을 뽑는다.
-#    뽑힌 이름이 0 이면 경로가 낡은 것이다(검사가 공허하게 통과하지 않게 실패시킨다).
+#    선언이 두 줄로 나뉘어도(dart format 80열) 이어 읽는다. 뽑힌 목록에 `rebalanceEvent`(두 줄 선언의 견본)가
+#    없으면 추출이 낡은 것이다 — 일부만 뽑혀도 공허하게 통과하지 않게 실패시킨다.
+#    🔵 셸(ui_shell)은 대상이 아니다 — 라우트 테이블에 패턴을 등록하고 파라미터를 꺼내는 일이 셸 몫이다
+#       (01 §4-4 · 04 §1-2). 화면 패키지만 본다.
+SCREEN_PKGS=$(ls -d packages/ui_* 2>/dev/null | grep -v '/ui_shell$' || true)
 ROUTES_FILE='packages/domain_contracts/lib/src/navigation/app_links.dart'
 if [ -f "$ROUTES_FILE" ]; then
   PARAM_ROUTES=$(tr '\n' ' ' < "$ROUTES_FILE" \
@@ -172,10 +177,12 @@ if [ -f "$ROUTES_FILE" ]; then
 else
   PARAM_ROUTES=''
 fi
-if [ -z "$PARAM_ROUTES" ]; then
-  fail "[5b] $ROUTES_FILE 에서 파라미터 라우트 상수를 하나도 뽑지 못했다 — 경로나 선언 모양이 바뀌었다(검사가 공허해진다)."
+if ! printf '%s
+' "$PARAM_ROUTES" | tr '|' '
+' | grep -qx 'rebalanceEvent'; then
+  fail "[5b] $ROUTES_FILE 에서 파라미터 라우트 상수를 제대로 뽑지 못했다(rebalanceEvent 없음 · 뽑힌 것: ${PARAM_ROUTES:-없음}) — 경로나 선언 모양이 바뀌었다(검사가 공허해진다)."
 else
-  for pkg in $UI_PKGS; do
+  for pkg in $SCREEN_PKGS; do
     [ -d "$pkg/lib" ] || continue
     hits=$(grep -rnE "AppRoutes\.($PARAM_ROUTES)\b" "$pkg/lib" 2>/dev/null \
            | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|///|\*)' \
@@ -191,7 +198,7 @@ fi
 # 🔴 화면 테스트는 링크를 **픽스처 값**과 비교한다(`RecordingLinkOpener.opened` == 픽스처의 deep_link).
 #    테스트에 `'aaq://…'` 를 적으면 계약(픽스처)과 갈라진 기대값이 생긴다. `.dart` 의 코드 줄만 본다
 #    (골든 README 같은 설명문·주석 줄은 건너뛴다).
-for pkg in $UI_PKGS; do
+for pkg in $SCREEN_PKGS; do
   [ -d "$pkg/test" ] || continue
   hits=$(grep -rnE --include='*.dart' "$LINK_RE" "$pkg/test" 2>/dev/null \
          | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|///|\*)' \
