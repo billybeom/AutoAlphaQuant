@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.4.0",
+    "contract_version": "1.5.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -40,6 +40,8 @@
         "summary": "월간 정기 판정으로 2026-04-03 리밸런싱을 실행했습니다."
       },
       "order_intent_ids": ["i_re_20260403_01_1", "i_re_20260403_01_2"],
+      "journal_timeline_link": { "label": "이 회차의 주문 2건", "deep_link": "aaq://journal/rebalance/re_20260403_01" },
+      "detail_deep_link": "aaq://rebalance/event/re_20260403_01",
       "as_of": { "observed_at": "2026-04-03T09:00:00Z", "trade_date": "2026-04-03", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-04-03 종가" }
     },
     {
@@ -69,6 +71,8 @@
         "summary": "월간 정기 판정으로 2026-05-04 리밸런싱을 실행했습니다."
       },
       "order_intent_ids": ["i_re_20260504_01_1", "i_re_20260504_01_2"],
+      "journal_timeline_link": { "label": "이 회차의 주문 2건", "deep_link": "aaq://journal/rebalance/re_20260504_01" },
+      "detail_deep_link": "aaq://rebalance/event/re_20260504_01",
       "as_of": { "observed_at": "2026-05-04T09:00:00Z", "trade_date": "2026-05-04", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-05-04 종가" }
     },
     {
@@ -99,6 +103,8 @@
         "trigger_price": "17420"
       },
       "order_intent_ids": ["i_re_20260601_01_1", "i_re_20260601_01_2"],
+      "journal_timeline_link": { "label": "이 회차의 주문 2건", "deep_link": "aaq://journal/rebalance/re_20260601_01" },
+      "detail_deep_link": "aaq://rebalance/event/re_20260601_01",
       "as_of": { "observed_at": "2026-06-01T09:00:00Z", "trade_date": "2026-06-01", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-06-01 종가" },
       "quality": { "slippage_text": "실측 슬리피지 6bp", "assumed_slippage_text": "가정치 10bp", "unfilled_rate_text": "미체결 0%", "summary": "실측이 가정치보다 낮았습니다." }
     },
@@ -129,6 +135,8 @@
         "summary": "월간 정기 판정으로 2026-07-01 리밸런싱을 실행했습니다."
       },
       "order_intent_ids": ["i_re_20260701_01_1", "i_re_20260701_01_2"],
+      "journal_timeline_link": { "label": "이 회차의 주문 2건", "deep_link": "aaq://journal/rebalance/re_20260701_01" },
+      "detail_deep_link": "aaq://rebalance/event/re_20260701_01",
       "as_of": { "observed_at": "2026-07-01T09:00:00Z", "trade_date": "2026-07-01", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-07-01 종가" }
     },
     {
@@ -158,6 +166,8 @@
         "summary": "월 납입 배분 판정으로 2026-08-03 리밸런싱을 실행했습니다."
       },
       "order_intent_ids": ["i_re_20260803_01_1", "i_re_20260803_01_2"],
+      "journal_timeline_link": { "label": "이 회차의 주문 3건", "deep_link": "aaq://journal/rebalance/re_20260803_01" },
+      "detail_deep_link": "aaq://rebalance/event/re_20260803_01",
       "as_of": { "observed_at": "2026-08-03T09:00:00Z", "trade_date": "2026-08-03", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-08-03 종가" }
     },
     {
@@ -187,6 +197,7 @@
         "summary": "계절 진입 게이트 판정으로 2026-10-30 리밸런싱을 실행했습니다."
       },
       "order_intent_ids": ["i_re_20261030_01_1", "i_re_20261030_01_2"],
+      "detail_deep_link": "aaq://rebalance/event/re_20261030_01",
       "as_of": { "observed_at": "2026-10-30T09:00:00Z", "trade_date": "2026-10-30", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리밸런싱 기준 2026-10-30 종가" }
     }
   ]

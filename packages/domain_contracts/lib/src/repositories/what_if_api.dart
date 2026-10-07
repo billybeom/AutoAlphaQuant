@@ -24,7 +24,7 @@ abstract interface class WhatIfApi {
   ///    같은 글자로 재시도이며 에러 내용으로 분기하지 않는다.
   Future<DepositPreviewResult> simulateDeposit({required String amountInput});
 
-  /// ⏸ v1.4 무변경 — v1.5(S7-5 · 01 §14-15 «예정»)에서
+  /// ⏸ v1.4 무변경 — 인출 규칙 결정 뒤 첫 minor(S7-5 · 01 §14-15 «예정»)에서
   ///    `({required String amountInput}) → WithdrawalPreviewResult` 로 바뀐다.
   Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount});
 

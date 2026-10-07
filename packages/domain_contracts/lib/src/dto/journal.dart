@@ -19,6 +19,7 @@ import '../enums/order.dart';
 import '../enums/sleeve.dart';
 import '../enums/ui.dart';
 import '../primitives/as_of.dart';
+import '../primitives/date_range.dart';
 import '../primitives/money.dart';
 import 'advice.dart';
 import 'common.dart';
@@ -122,7 +123,10 @@ abstract class TradeJournalEntry with _$TradeJournalEntry {
     /// "수기 기록" / "브로커 체결" — 엔진 생성
     required String originLabel,
 
-    /// 🆕 G-40 — 이 체결이 속한 리밸런싱 회차. null = 회차 밖(수기·입금 배분 등).
+    /// 🆕 G-40 — 이 체결이 속한 리밸런싱 회차. null = 회차 밖.
+    /// 🔵 v1.5(01 §15-3) — `RebalanceKind.deposit`(월 납입 배분) 회차의 체결은 그 회차에 묶인다
+    ///    (입금 배분 = 회차 안). advisory 회차에서 나온 수기 체결도 그 회차에 묶인다(발주자 결정 ④-2 ·
+    ///    엔진 숙제 06 X7-1) — 그래야 «이 회차의 … N건» 버튼이 빈 목록을 열지 않는다.
     /// 🔴 화면이 `RebalanceEvent.orderIntentIds` 배열로 목록을 거르지 않게 하는 필드다.
     String? rebalanceEventId,
 
@@ -379,6 +383,31 @@ abstract class JournalFilterCatalog with _$JournalFilterCatalog {
 
   factory JournalFilterCatalog.fromJson(Map<String, dynamic> json) =>
       _$JournalFilterCatalogFromJson(json);
+}
+
+/// 🆕 v1.5(01 §15-3 · §8 미결 49) — `J-1` 회차 조건의 **범위 설명**: 회차 칩 글자 + 씨앗 기간.
+/// 창구 = `JournalRepository.watchRebalanceScope`.
+/// 🔴 시트의 선택지가 아니다(회차 조건은 링크로만 들어온다 · 시트 상태 필드 신설 금지 — A14) —
+///    그래서 `JournalStatusOption`·`FillOriginOption` 의 `*Option` 꼴이 아니다.
+/// 🔴 화면이 `rebalanceEventId`·`RebalanceEvent.kindLabel`·`tradeDate` 로 글자를 만들거나
+///    날짜 산술로 기간을 만들지 않는다.
+@freezed
+abstract class JournalRebalanceScope with _$JournalRebalanceScope {
+  const factory JournalRebalanceScope({
+    /// 키 용 — 🔴 표시 금지.
+    required String rebalanceEventId,
+
+    /// "2026-08-03 월 납입 배분 회차" — 엔진 생성 · 🔴 식별자를 담지 않는다.
+    required String label,
+
+    /// 씨앗 기간 — 그 회차에 묶인 일지 행 **전부**를 덮는 구간(발주자 결정 ⑥ · 2026-10-07).
+    /// `label` 은 엔진 생성 · 프리셋이 아니다(`presetCode` null · `isDefault` false).
+    /// 🔴 화면은 이 값을 첫 쿼리의 `range` 로 그대로 쓴다(날짜 산술 0).
+    required DateRange range,
+  }) = _JournalRebalanceScope;
+
+  factory JournalRebalanceScope.fromJson(Map<String, dynamic> json) =>
+      _$JournalRebalanceScopeFromJson(json);
 }
 
 /// `J-1` 상단 배지 1건(§8 미결 38) — 창구는 `JournalRepository.watchTimelineBadges()`.

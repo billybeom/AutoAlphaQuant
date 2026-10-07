@@ -91,6 +91,12 @@ final DtoCodec<Object> _rebalanceEvent = DtoCodec<RebalanceEvent>(
   RebalanceEvent.fromJson,
   (RebalanceEvent v) => v.toJson(),
 );
+// 🆕 v1.5(01 §15-3) — `J-1` 회차 조건의 범위 설명.
+final DtoCodec<Object> _journalRebalanceScope = DtoCodec<JournalRebalanceScope>(
+  'JournalRebalanceScope',
+  JournalRebalanceScope.fromJson,
+  (JournalRebalanceScope v) => v.toJson(),
+);
 final DtoCodec<Object> _tradeJournalEntry = DtoCodec<TradeJournalEntry>(
   'TradeJournalEntry',
   TradeJournalEntry.fromJson,
@@ -353,6 +359,9 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m6UnknownBoardEmpty: FixtureBinding(_unknownBoardVm),
   // 🆕 2026-09-17 — 0행이지만 봉투 타입은 같다(C-1 은 빈 rows 도 등록부를 요구한다).
   FixturePaths.m6JournalEmpty: FixtureBinding(_tradeJournalEntry),
+  // 🆕 v1.5(01 §15-3) — 회차 범위 · 모르는 회차의 0행 봉투.
+  FixturePaths.m6JournalRebalanceScope1: FixtureBinding(_journalRebalanceScope),
+  FixturePaths.m6JournalRebalanceUnknown: FixtureBinding(_tradeJournalEntry),
   FixturePaths.m6ManualFills8: FixtureBinding(_tradeJournalEntry),
 
   // ── m7/ — 성과·플래너·이행 갭 ────────────────────────────────────────────
@@ -424,6 +433,9 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m7M7PerfUnavailableGap: FixtureBinding(_performanceSeries),
   FixturePaths.m7M7PerfYearly: FixtureBinding(_performanceSeries),
   FixturePaths.m7M7RebalanceDetailBand: FixtureBinding(_rebalanceEvent),
+  // 🆕 v1.5(01 §15-3) — advisory 거울 · `S7-6a` 빈 타임라인.
+  FixturePaths.m7M7RebalanceDetailAdvisory: FixtureBinding(_rebalanceEvent),
+  FixturePaths.m7M7RebalanceEmpty: FixtureBinding(_rebalanceEvent),
   FixturePaths.m7M7ReportArchive18: FixtureBinding(_reportArchiveVm),
   // 🆕 v1.3 — `S7-1b` 빈 아카이브.
   FixturePaths.m7M7ReportArchiveEmpty: FixtureBinding(_reportArchiveVm),

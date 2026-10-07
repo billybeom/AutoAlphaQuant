@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 86개 · 계약 v1.4.0 · 조립일 2026-09-30(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 86개 · 계약 v1.5.0 · 조립일 2026-10-07(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -83,8 +83,8 @@ export 'commands/settings_actions.dart';
 //    바로 그 커밋이 이 값을 올리는 커밋이다(구 주석의 조건이 성립했다). 인벤토리 §10-1 의
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
-//    움직인다(1.0.0 상향 때 77개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 · 1.4.0 상향 때
-//    122개) — 한쪽만 올리면 C-1·C-15 가 갈라진 채로 통과한다.
+//    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개) — 한쪽만 올리면 C-1·C-15 가 갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
 // 🆕 '1.3.0'(R10 선행 M2 보강 · 01 §13) — 성과 시리즈 표시 필드(`PerfPoint.xNormalized`·
@@ -100,13 +100,17 @@ export 'commands/settings_actions.dart';
 //    `PerformanceRepository.goalPath({yyyyMm})` · `GoalPathVm` 재설계(`GoalPathPoint` 폐기 ·
 //    `PerfPoint` 재사용 · C-4 동시 금지 폐기) · `MonthlyReport.goalDeepLink` · 라우트
 //    `reportGoalPath`(42) · 코드 `PlannerReasonCodes` · 받침대 `UnimplementedWhatIfApi`.
-//    ⏸ S7-5(`WithdrawalPlan`)는 '1.5.0'(01 §14-15 «예정»).
+//    ⏸ S7-5(`WithdrawalPlan`)는 인출 규칙 결정(01 §8 미결 79) 뒤 첫 minor(번호는 그때 · 01 §14-15 · §15-3).
+// 🆕 '1.5.0'(R12 선행 M2 보강 · 01 §15-3 · §8 미결 49) — 라우트 `journalRebalance`(43) ·
+//    `RebalanceEvent.journalTimelineLink`·`detailDeepLink` · `JournalRebalanceScope` +
+//    `JournalRepository.watchRebalanceScope` · `RebalanceRepository.watchEvent` · `watchEvents` 봉투
+//    (`ListResult`) · 받침대 `UnimplementedRebalanceRepository` · 픽스처 122 → 126.
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.4.0';
+const String contractVersion = '1.5.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -2118,6 +2122,7 @@ import '../enums/order.dart';
 import '../enums/sleeve.dart';
 import '../enums/ui.dart';
 import '../primitives/as_of.dart';
+import '../primitives/date_range.dart';
 import '../primitives/money.dart';
 import 'advice.dart';
 import 'common.dart';
@@ -2221,7 +2226,10 @@ abstract class TradeJournalEntry with _$TradeJournalEntry {
     /// "수기 기록" / "브로커 체결" — 엔진 생성
     required String originLabel,
 
-    /// 🆕 G-40 — 이 체결이 속한 리밸런싱 회차. null = 회차 밖(수기·입금 배분 등).
+    /// 🆕 G-40 — 이 체결이 속한 리밸런싱 회차. null = 회차 밖.
+    /// 🔵 v1.5(01 §15-3) — `RebalanceKind.deposit`(월 납입 배분) 회차의 체결은 그 회차에 묶인다
+    ///    (입금 배분 = 회차 안). advisory 회차에서 나온 수기 체결도 그 회차에 묶인다(발주자 결정 ④-2 ·
+    ///    엔진 숙제 06 X7-1) — 그래야 «이 회차의 … N건» 버튼이 빈 목록을 열지 않는다.
     /// 🔴 화면이 `RebalanceEvent.orderIntentIds` 배열로 목록을 거르지 않게 하는 필드다.
     String? rebalanceEventId,
 
@@ -2478,6 +2486,31 @@ abstract class JournalFilterCatalog with _$JournalFilterCatalog {
 
   factory JournalFilterCatalog.fromJson(Map<String, dynamic> json) =>
       _$JournalFilterCatalogFromJson(json);
+}
+
+/// 🆕 v1.5(01 §15-3 · §8 미결 49) — `J-1` 회차 조건의 **범위 설명**: 회차 칩 글자 + 씨앗 기간.
+/// 창구 = `JournalRepository.watchRebalanceScope`.
+/// 🔴 시트의 선택지가 아니다(회차 조건은 링크로만 들어온다 · 시트 상태 필드 신설 금지 — A14) —
+///    그래서 `JournalStatusOption`·`FillOriginOption` 의 `*Option` 꼴이 아니다.
+/// 🔴 화면이 `rebalanceEventId`·`RebalanceEvent.kindLabel`·`tradeDate` 로 글자를 만들거나
+///    날짜 산술로 기간을 만들지 않는다.
+@freezed
+abstract class JournalRebalanceScope with _$JournalRebalanceScope {
+  const factory JournalRebalanceScope({
+    /// 키 용 — 🔴 표시 금지.
+    required String rebalanceEventId,
+
+    /// "2026-08-03 월 납입 배분 회차" — 엔진 생성 · 🔴 식별자를 담지 않는다.
+    required String label,
+
+    /// 씨앗 기간 — 그 회차에 묶인 일지 행 **전부**를 덮는 구간(발주자 결정 ⑥ · 2026-10-07).
+    /// `label` 은 엔진 생성 · 프리셋이 아니다(`presetCode` null · `isDefault` false).
+    /// 🔴 화면은 이 값을 첫 쿼리의 `range` 로 그대로 쓴다(날짜 산술 0).
+    required DateRange range,
+  }) = _JournalRebalanceScope;
+
+  factory JournalRebalanceScope.fromJson(Map<String, dynamic> json) =>
+      _$JournalRebalanceScopeFromJson(json);
 }
 
 /// `J-1` 상단 배지 1건(§8 미결 38) — 창구는 `JournalRepository.watchTimelineBadges()`.
@@ -3925,7 +3958,7 @@ abstract class OrderDraft with _$OrderDraft {
     @DecimalStringConverter() Decimal? limitPrice,
 
     /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ② · **`DepositPlan` 한정** —
-    /// 인출 초안(`WithdrawalPlan.orderDrafts`)은 v1.5 재생성 전까지 이 짝을 지키지 않는다 · 01 §14-4 · §14-15).
+    /// 인출 초안(`WithdrawalPlan.orderDrafts`)은 인출 규칙 결정 뒤 첫 minor 재생성 전까지 이 짝을 지키지 않는다 · 01 §14-4 · §14-15).
     String? limitPriceText,
 
     /// 🆕 v1.4 — «미확정 수량 있음»(UNKNOWN 표기) 한 줄 — null = 줄 부재.
@@ -4014,7 +4047,7 @@ abstract class FundingStep with _$FundingStep {
 }
 
 /// 01 §2-6 · m2-8 F-13 — 인출 미리보기(`DepositPlan` 대칭).
-/// ⏸ v1.4 무변경 — S7-5 는 v1.5(01 §14-15 «예정» · 인출 규칙 발주자 결정 뒤)에서 바뀐다
+/// ⏸ v1.4 무변경 — S7-5 는 인출 규칙 결정 뒤 첫 minor(01 §14-15 «예정» · 인출 규칙 발주자 결정 뒤)에서 바뀐다
 ///    (`WithdrawalPreviewResult` · `steps` · orderDrafts·costs·afterTax 제거).
 @freezed
 abstract class WithdrawalPlan with _$WithdrawalPlan {
@@ -4078,6 +4111,7 @@ import '../enums/rebalance.dart';
 import '../enums/sleeve.dart';
 import '../primitives/as_of.dart';
 import '../primitives/money.dart';
+import 'common.dart';
 
 part 'rebalance.freezed.dart';
 part 'rebalance.g.dart';
@@ -4103,6 +4137,20 @@ abstract class RebalanceEvent with _$RebalanceEvent {
 
     /// 실측 슬리피지 vs 가정치·미체결률 — m2-8 F-10.
     ExecutionQuality? quality,
+
+    /// 🆕 v1.5(01 §15-3 · §8 미결 49) — `S7-6b` 하단 «이 회차의 … N건» 버튼 **하나**
+    /// (목적지 = `J-1` 회차 조건 · `AppRoutes.journalRebalance` 를 엔진이 완성).
+    /// `label` = 엔진 완성 문장. N = 그 회차에 묶인 일지 행 **전체** 수(정정 행 포함 · 기간 무관) —
+    /// 링크가 처음 여는 목록의 행 수와 같다(씨앗 기간 = `JournalRebalanceScope.range`).
+    /// 낱말(자동 갈래 «주문» · advisory 갈래는 행을 가리키는 말 — 03 §11-d)도 이 글자 안에서 끝난다.
+    /// 🔴 null = 버튼 **부재**(비활성 아님) — 엔진은 그 회차에 묶인 일지 행이 0 이면 null 로 준다.
+    /// 🔴 화면이 `orderIntentIds.length` 로 N 을 세거나 `eventId` 로 링크를 조립하면 반려.
+    LinkAction? journalTimelineLink,
+
+    /// 🆕 v1.5(01 §15-3) — `S7-6a` 행 탭 → `S7-6b`(`AppRoutes.rebalanceEvent` 를 엔진이 완성).
+    /// 🔴 null 이면 행 탭에 반응이 없다. 화면이 `eventId` 로 링크를 조립하지 않는다.
+    /// `S7-6b` 안에서는 쓰지 않는다(자기 자신 — `TradeJournalEntry.detailDeepLink` 와 같은 규약).
+    String? detailDeepLink,
   }) = _RebalanceEvent;
 
   factory RebalanceEvent.fromJson(Map<String, dynamic> json) =>
@@ -6615,6 +6663,15 @@ abstract final class FixturePaths {
   static const String m6JournalMaskedIntegrity =
       'm6/journal_masked_integrity.json';
 
+  /// 🆕 v1.5(01 §15-3) — `J-1` 회차 조건의 범위 설명(`JournalRebalanceScope` · 회차 칩 글자 + 씨앗 기간).
+  ///    회차 = `journal_30` 에서 일지 행이 묶인 유일한 회차 · 기간은 그 행 전부를 덮는다(C-40 ⑨).
+  static const String m6JournalRebalanceScope1 =
+      'm6/journal_rebalance_scope_1.json';
+
+  /// 🆕 v1.5 — 모르는 회차로 연 `J-1` 봉투(0행 + 엔진 문장 · `journal_empty` 와 다른 문장 — C-40 ⑦).
+  static const String m6JournalRebalanceUnknown =
+      'm6/journal_rebalance_unknown.json';
+
   /// 🆕 v1.2(R2b 선행 · 01 §12-2) — `J-3R` 사전 저널 읽기(`DecisionJournalVm`) 3갈래:
   ///    작성됨 · 작성됨(메모·결정 링크 부재) · 미작성(`body` null — 2행: 0 = `b_27` · 1 = `a_31`,
   ///    작성됨과 같은 결정의 «미작성» = `J-3` executed 직후 전환 표본).
@@ -6739,6 +6796,14 @@ abstract final class FixturePaths {
   static const String m7M7PerfYearly = 'm7/m7_perf_yearly.json';
   static const String m7M7RebalanceDetailBand =
       'm7/m7_rebalance_detail_band.json';
+
+  /// 🆕 v1.5(01 §15-3) — band 의 거울(같은 회차) · 버튼 글자만 advisory 갈래 낱말(03 §11-d 치환 ·
+  ///    골든 `s76b_advisory`). 🔵 이 표본이 advisory 임을 말하는 것은 **라벨 글자뿐**이다.
+  static const String m7M7RebalanceDetailAdvisory =
+      'm7/m7_rebalance_detail_advisory.json';
+
+  /// 🆕 v1.5 — `S7-6a` 빈 타임라인(0행 + 엔진 문장 · 골든 `s76a_empty`).
+  static const String m7M7RebalanceEmpty = 'm7/m7_rebalance_empty.json';
   static const String m7M7ReportArchive18 = 'm7/m7_report_archive_18.json';
 
   /// 🆕 v1.3 — `S7-1b` 빈 아카이브(`rows` 0 + VM `empty_label`).
@@ -6831,6 +6896,8 @@ abstract final class FixturePaths {
     m6JournalDraftSpecReconClear,
     m6JournalFilterCatalog,
     m6JournalMaskedIntegrity,
+    m6JournalRebalanceScope1,
+    m6JournalRebalanceUnknown,
     m6JournalReadNoNote,
     m6JournalReadNotWritten,
     m6JournalReadWritten,
@@ -6880,6 +6947,8 @@ abstract final class FixturePaths {
     m7M7PerfUnavailableGap,
     m7M7PerfYearly,
     m7M7RebalanceDetailBand,
+    m7M7RebalanceDetailAdvisory,
+    m7M7RebalanceEmpty,
     m7M7ReportArchive18,
     m7M7ReportArchiveEmpty,
     m7M7WithdrawalGeneral,
@@ -8332,6 +8401,14 @@ abstract final class AppRoutes {
   /// 등록 = 전 플랫폼(`all`) · 본문 = Android·iOS `JournalReadView` · 웹 = Q-D 전 셸 «부재» 가드(01 §12-2 · 04 §1-2).
   static const String journalRead = 'aaq://journal/read/:decisionId';
 
+  /// 🆕 v1.5(01 §15-3 · §8 미결 49) — `J-1` 매매일지 타임라인을 **회차 조건으로** 연다.
+  /// `RebalanceEvent.journalTimelineLink` 가 완성해서 준다(`S7-6b` 하단 버튼).
+  /// 셸 본문 = `JournalTimeline(key: ValueKey(id), rebalanceEventId: id)` · 등록 = 전 플랫폼 ·
+  /// 웹 가드 = `journalTimeline` 과 같다. `journal/decision`·`draft`·`read` 와 세그먼트 수가 같고
+  /// 둘째 고정 세그먼트로 갈린다(v1.2 `journalRead` 선례) · `journalTimeline` 과는 세그먼트 수가 다르다.
+  static const String journalRebalance =
+      'aaq://journal/rebalance/:rebalanceEventId';
+
   /// `J-4` 사후 blind 리뷰.
   static const String journalBlindReview = 'aaq://journal/blind-review';
 
@@ -8392,7 +8469,7 @@ abstract final class AppRoutes {
   /// 🆕 v1.4(01 §14-1) — **operator 전용 화면**(`package:ui_analytics/planner.dart` · 배럴 밖).
   /// viewer 셸도 [all] 대로 등록하되 목적지는 «폰에서만 쓸 수 있습니다» 부재 안내다(셸 몫 · 01 §14 ·
   /// 선례 = `journalDraft` 의 iOS 셸 가드).
-  /// ⏸ `planWithdrawal`(S7-5) 은 v1.5 에서 더한다(01 §14-15).
+  /// ⏸ `planWithdrawal`(S7-5) 은 인출 규칙 결정(01 §8 미결 79) 뒤 첫 minor 에서 더한다(01 §14-15 · §15-3).
   static const String planDeposit = 'aaq://plan/deposit';
 
   /// `S7-6c` 리밸런싱 미리보기.
@@ -8429,12 +8506,13 @@ abstract final class AppRoutes {
   /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
 
-  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.4 = 42).
+  /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance`).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
     journalDraft,
     journalRead,
+    journalRebalance,
     journalBlindReview,
     journalUnknownBoard,
     adviceInbox,
@@ -9020,6 +9098,8 @@ abstract interface class JournalRepository {
   /// 🆕 G-39 `origin` — 「수기 기록만」·「브로커 체결만」 필터(02 §3-1 X7).
   ///    🔴 화면이 `rows` 를 받아 거르지 않는다 — **거르기도 판정이다**.
   /// 🆕 G-40 `rebalanceEventId` — `S7-6b` 「이 회차의 주문 N건」 딥링크의 **유일한 경로**.
+  ///    🆕 v1.5(01 §15-3) — 운반 = `AppRoutes.journalRebalance` → 셸 → `JournalTimeline(rebalanceEventId:)`
+  ///    → 이 인자. 씨앗 기간은 [watchRebalanceScope] 의 `range` 다.
   ///    🔴 화면이 `RebalanceEvent.orderIntentIds` 를 순회해 거르는 구현은 반려.
   Stream<ListResult<TradeJournalEntry>> watchTimeline({
     required DateRange range,
@@ -9076,6 +9156,17 @@ abstract interface class JournalRepository {
   /// 대기)과 같게 둔다. 50 ③ 이 확정되면 두 메서드를 함께 고친다(화면은 어느 쪽이든 공통 에러 상태).
   /// 🔴 화면은 `findByDecisionId`·`chainOf` 로 조립하지 않는다 — 이 스트림 하나만 구독한다.
   Stream<DecisionJournalVm> watchDecisionJournal(String decisionId);
+
+  // ── 🆕 계약 v1.5(R12 선행 M2 보강 · 01 §15-3 · §8 미결 49) ─────────────────────
+
+  /// 🆕 v1.5 — `J-1` 회차 조건의 범위 설명(회차 칩 글자 + 씨앗 기간). 키 = 셸이 라우트 파라미터에서
+  /// 꺼내 `JournalTimeline(rebalanceEventId:)` 로 준 값.
+  /// null = 엔진이 그 회차를 모른다 → 칩 **부재**. 🔴 엔진 규칙: null 이면 같은 id 의
+  /// [watchTimeline] 은 0행이고 «없음»의 문장은 그 봉투의 `emptyLabel` 이 말한다
+  /// (봉투 있는 목록 = 빈 상태 · 봉투 없는 VM(`J-2`)의 «스트림 에러» 잠정 규칙(§8 미결 50 ③)과 다른 축).
+  /// 🔴 `RebalanceEvent.journalTimelineLink` 가 non-null 인 회차에 대해서는 null 을 주지 않는다.
+  /// 🔴 화면이 `RebalanceRepository` 를 구독해 글자를 조립하지 않는다(그것이 조인이다).
+  Stream<JournalRebalanceScope?> watchRebalanceScope(String rebalanceEventId);
 }
 ```
 
@@ -9266,10 +9357,22 @@ abstract interface class PerformanceRepository {
 
 import '../dto/rebalance.dart';
 import '../primitives/date_range.dart';
+import '../primitives/list_result.dart';
 
-/// 리밸런싱 회차 목록 · 다음 회차 예상.
+/// 리밸런싱 회차 목록 · 회차 1건 · 다음 회차 예상.
 abstract interface class RebalanceRepository {
-  Stream<List<RebalanceEvent>> watchEvents(DateRange r);
+  /// `S7-6a` 회차 타임라인.
+  /// 🆕 v1.5(01 §15-3 ★ⓒ) — 반환을 봉투(`ListResult`)로 바꿨다: 빈 상태 문장(«아직 리밸런싱 회차가
+  ///    없습니다» 류)을 봉투 `emptyLabel` 이 준다 — 화면이 빈 상태 문구를 쓰지 않는다(계약 3조 ③).
+  /// 🔴 `rows` 는 엔진이 정렬해서 준다 · 화면이 거르거나 다시 세지 않는다.
+  Stream<ListResult<RebalanceEvent>> watchEvents(DateRange r);
+
+  /// 🆕 v1.5(01 §15-3 ★ⓐ) — `S7-6b` 회차 1건. `S7-6b`(`RebalanceEventScreen`)는 파라미터 라우트
+  /// `rebalanceEvent` 의 `:rebalanceEventId`(셸 → 생성자 인자 → 키)로 **이 창구 하나만** 구독한다.
+  /// 🔴 [watchEvents] 행을 id 로 고르면 반려(거르기도 판정이다).
+  /// 모르는·지난 id = 스트림 에러(**잠정** — `JournalRepository.watchDecisionDetail` 과 같은 묶음 ·
+  /// §8 미결 50 ③ 확정 때 함께 고친다).
+  Stream<RebalanceEvent> watchEvent(String rebalanceEventId);
 
   /// 🆕 G-41 — 다음 회차 예상(`S7-6c` · `H-02` D-7 예고 행).
   /// 🔴 `dDayText`·`expectedDateText` 는 엔진 생성 문자열이다 — 화면이 날짜를 빼지 않는다.
@@ -9347,7 +9450,7 @@ abstract interface class WhatIfApi {
   ///    같은 글자로 재시도이며 에러 내용으로 분기하지 않는다.
   Future<DepositPreviewResult> simulateDeposit({required String amountInput});
 
-  /// ⏸ v1.4 무변경 — v1.5(S7-5 · 01 §14-15 «예정»)에서
+  /// ⏸ v1.4 무변경 — 인출 규칙 결정 뒤 첫 minor(S7-5 · 01 §14-15 «예정»)에서
   ///    `({required String amountInput}) → WithdrawalPreviewResult` 로 바뀐다.
   Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount});
 

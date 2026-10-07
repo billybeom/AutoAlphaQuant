@@ -302,7 +302,7 @@ R10-Bob-S7x(`S7-1b` 아카이브 · `S7-2G` 열람 게이트 · `S7-2` 수익률
 
 R11(`S7-4` 투자금 플래너 → 카드 R11a · `S7-9` 목표 금액 경로 → R11b · `S7-5` 인출 안내 → R11c ⏸ 보류) 발송 전에 계약 면을 닫았다.
 `contractVersion` = **`1.4.0`** · 픽스처 **122건**(115 + 신설 7 · 개정 16 — 전 봉투 `contract_version` 한 줄 포함) · 라우트 41 → **42** · 조문 = 01 §14.
-🔴 `S7-5`(`WithdrawalPlan`) 는 v1.4 범위 밖이다 — 인출 픽스처 3벌은 `OrderDraft` 새 required 키만 기계적으로 더했다(01 §14-15 · v1.5).
+🔴 `S7-5`(`WithdrawalPlan`) 는 v1.4 범위 밖이다 — 인출 픽스처 3벌은 `OrderDraft` 새 required 키만 기계적으로 더했다(01 §14-15 · 인출 규칙 결정 뒤 첫 minor).
 
 | # | 이름 | 뜻 · 위치 |
 |---|---|---|
@@ -316,7 +316,7 @@ R11(`S7-4` 투자금 플래너 → 카드 R11a · `S7-9` 목표 금액 경로 �
 | O-8 | `GoalPathVm` 재설계 · 🆕 `PerformanceRepository.goalPath({required String yyyyMm})` | 필드 = F-15 행 · `planned`·`actual` = `List<PerfPoint>`(같은 길이·`date`·`xNormalized` · 계획선 결측 0) · ❌ **`GoalPathPoint` 폐기**(`seriesCode` 도 없다 · C-39 ⑧) · 봉투 `lag_notice` → `deviationText` 승격 · `honestExpectationText`·`honestExpectationWorstText` = 세후 사다리 마지막 층을 인용하는 완성 문장(«`PerfDisclosure` 유일 운반처» 조문의 명시 예외 · 01 §14-10) · 🔴 `S7-9` 는 `ConfigRepository` 를 읽지 않는다(C-10 행) |
 | O-9 | C-4 **결정 뒤집기** | v1.0 «두 필드 · 화면이 동시에 그리지 않는다» → v1.4 **역할 고정**(`basisText` = 판정 근거 줄 · `backtestBasisText` = 가정 카드 1줄 · `startingCapitalAssumptionText` = 가정 카드 2줄) · 동시 금지 조문 **폐기**(03 §14 가정 카드 두 줄 요구가 이긴다 · 01 §14-10). 03 의 `contributionAssumptionText` 는 `startingCapitalAssumptionText` 로 읽는다(필드 신설 없음) |
 | O-10 | 🆕 `MonthlyReport.goalDeepLink`(`String?` · JSON `goal_deep_link`) · 🆕 `AppRoutes.reportGoalPath = 'aaq://report/goal/:yyyyMm'` | «목표 경로 보기» 버튼의 목적지 — null = 버튼 부재(과거 달·가림·미생성 달은 null 일 수 있다) · 화면은 해석·조립하지 않고 `AppLinkOpener.open` 에 그대로 · C-33 `_linkKeys` +`goal_deep_link` · `AppRoutes.all` **42**(01 §14-9) |
-| O-11 | `AppRoutes.planDeposit`(주석 개정) | operator 전용 화면(`package:ui_analytics/planner.dart` · 배럴 밖 · TARGETS T-4) — viewer 셸도 `all` 대로 등록하되 목적지 = «폰에서만 쓸 수 있습니다» 부재 안내(셸 몫 · 선례 J-3 `journalDraft` 의 iOS 셸 가드) · ⏸ `planWithdrawal` 은 v1.5 |
+| O-11 | `AppRoutes.planDeposit`(주석 개정) | operator 전용 화면(`package:ui_analytics/planner.dart` · 배럴 밖 · TARGETS T-4) — viewer 셸도 `all` 대로 등록하되 목적지 = «폰에서만 쓸 수 있습니다» 부재 안내(셸 몫 · 선례 J-3 `journalDraft` 의 iOS 셸 가드) · ⏸ `planWithdrawal` 은 인출 규칙 결정 뒤 첫 minor |
 | O-12 | 🆕 `PlannerReasonCodes.depositRouting`(`'DEPOSIT_ROUTING'`) · `.values` | 🆕 `labels/plan_codes.dart` · 사전 키 `planner_reason`(`ContractCodes.byDomain`) — 플래너 사유 칩 코드 · 거부 코드 사전은 01 §8 미결 74 · 🔴 플래너 사유 칩은 `label`·`tone` 만 · 탭 0(D20 · 미결 81) |
 | O-13 | 받침대(`lib/testing.dart`) | 🆕 `UnimplementedWhatIfApi`(5메서드 · 전부 `Future` 에러) · `UnimplementedPerformanceRepository.goalPath`(그 클래스 관행대로 동기 throw) · `UnimplementedCommandApi.registerDeposit`(시그니처 무변경 · 새 인자 주석) |
 | O-14 | 픽스처 7 · `FixturePaths` 상수 7 | `m7M7DepositPlanBlocked`·`m7M7DepositPlanInputRejected`·`m7M7DepositPlanFunding` · `m7M7DepositRegisterReceipts4` · `m7M7GoalPathOff` · `m9ContributionSettingDefault`·`m9ContributionSettingNoLimitNote` · `FixturePaths.all` **122** · 개정 16(입금 계획 3벌 행 타입 `DepositPlan` → `DepositPreviewResult` · `deposit_plan_1`·`deposit_plan_funding_1` · 목표 경로 3벌 · `m7_monthly_*` 5벌 · 인출 3벌 기계적) · 생성 = `packages/domain_contracts/tool/gen_r11_fixtures.py` · `m9/` 는 접두 없음 · 계좌 별칭 표 = `fixtures/README.md`(+ `test/contracts/support/fixture_accounts.dart`) |
@@ -324,9 +324,40 @@ R11(`S7-4` 투자금 플래너 → 카드 R11a · `S7-9` 목표 금액 경로 �
 | O-16 | 골든 하네스 | `chart_probe.dart` 에 `expectGoalPathMatches` **추가만**(기존 4종 불변) · 자체 검증 `test/golden/goal_path_probe_test.dart`(나쁜 painter 2종 — 보간 · 층 바꿈) · 본보기 `test/golden/reference/goal_path/`(`goal_path_chart_painter.dart`·`goal_path_chart.dart` — 화면 담당은 `lib/src/goal_path/` 로 diff 0 복사) · 함수 이름은 실물이 정본 |
 | O-17 | 권고(화면 쪽 · 카드가 확정) | 플래너 공개 위젯 `DepositPlannerScreen`(`planner.dart` export = 화면 · 프로바이더 파일) · 프로바이더 `plannerWhatIfApiProvider`·`plannerConfigRepositoryProvider`·`plannerCommandApiProvider`(throw 기본)·`plannerContributionSettingProvider` · 목표 경로 공개 위젯 `GoalPathScreen({required String yyyyMm})` · `S7-1` 버튼 `Key('s71-goal-link')` + 라벨 `goalPathDetailButton`(R11b 부록 커밋) · 키 접두 `s74-`·`s79-` · 골든 접두 `s74_`·`s79_` |
 
-🔴 **만들지 않은 이름**(재론 방지): `expiredText`(등록 차단은 `registerBlockedText` 하나) · `PlannerEntryVm`(플래너 진입 판정 창구 — D21 대안 기각 · 차단은 결과의 `blockedText`) · 입력 `DecimalStringConverter` 공인 · `GoalPathPoint`·`seriesCode` · `WithdrawalPreviewResult`·`WithdrawalStep`·`PensionPenaltyVm`·`AppRoutes.planWithdrawal`(v1.5 예정 모양 — 지금은 선언하지 않는다 · 01 §14-15) · 뷰어 골든 `s74_viewer`.
+🔴 **만들지 않은 이름**(재론 방지): `expiredText`(등록 차단은 `registerBlockedText` 하나) · `PlannerEntryVm`(플래너 진입 판정 창구 — D21 대안 기각 · 차단은 결과의 `blockedText`) · 입력 `DecimalStringConverter` 공인 · `GoalPathPoint`·`seriesCode` · `WithdrawalPreviewResult`·`WithdrawalStep`·`PensionPenaltyVm`·`AppRoutes.planWithdrawal`(인출 규칙 결정 뒤 첫 minor 예정 모양 — 지금은 선언하지 않는다 · 01 §14-15) · 뷰어 골든 `s74_viewer`.
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 🆕 미결 66(스텝 ④ 즉시/대기 비교) · 67(시나리오 로컬 저장) · 68(등록 뒤 M5 핸드오프) · 69(워터폴·배분비·슬리피지) ·
 70(비용 내역 문자열) · 71(advisory 표 제목 표본) · 72(M9 계좌 매핑 목적지) · 73(뷰어 플래너 미리보기) · 74(`DEPOSIT_REGISTER` 거부 코드 사전) ·
 75(금액이 든 실문장과 C-32 ⑥) · 76(핸드북 «기대치의 한계» 연결) · 77(`aftertax_ladder_1` 층 밀림 — R12 선행 → ✅ 2026-10-06 01 §15-1) · 78(C-32 ui 면·`check_labels` CI 편입) ·
-79(인출 규칙 정본 → v1.5) · 80(목표 금액 입력 설정 키) · 81(플래너 사유 칩의 핸드북 연결).
+79(인출 규칙 정본 → 인출 규칙 결정 뒤 첫 minor) · 80(목표 금액 입력 설정 키) · 81(플래너 사유 칩의 핸드북 연결).
+
+---
+
+## P. 🆕 계약 v1.5 (2026-10-07 · R12 선행 M2 보강) — 회차→일지 링크 · J-1 회차 범위
+
+R12-Bob-S76(`S7-6a` 회차 타임라인 · `S7-6b` 회차 상세 등) 발송 전에 01 §8 미결 49(회차→일지 링크 경로 · `J-1` 회차 칩)를 닫았다.
+`contractVersion` = **`1.5.0`** · 픽스처 **126건**(122 + 신설 4 · 개정 2 — 기존 122 가운데 120 은 봉투 `contract_version` 한 줄만) · 라우트 42 → **43** · 조문 = 01 §15-3 · 발주자 결정 ①~⑥(2026-10-07).
+🔴 `S7-5`(`WithdrawalPlan`) 는 이 번호를 쓰지 않는다 — 인출 규칙 결정(01 §8 미결 79) 뒤 첫 minor(번호는 그때 · 결정 ①).
+★ = 미결 49 밖이지만 R12 를 막는 공백이라 같은 v1.5 창에 넣은 것(결정 ② ⓐⓑⓒ).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| P-1 | 🆕 `AppRoutes.journalRebalance = 'aaq://journal/rebalance/:rebalanceEventId'` | `J-1` 을 **회차 조건으로** 여는 파라미터 라우트 · `navigation/app_links.dart` · `all` 에서 `journalRead` 다음(42 → **43**) · 이름 = 세그먼트 camelCase(`journalDecision`·`journalRead` 선례) · 파라미터 이름 = 역방향 `rebalanceEvent` 의 `:rebalanceEventId` 와 같다 · `journal/decision`·`draft`·`read` 와 세그먼트 수가 같고 둘째 고정 세그먼트로 갈린다 · 셸 본문 = `JournalTimeline(key: ValueKey(id), rebalanceEventId: id)`(`journalTimeline` 과 한 위젯) · 등록 = 전 플랫폼 · 웹 가드 = `journalTimeline` 과 같다 · 🔴 쿼리 운반(`…/timeline?re=…`) 없음(C-33 ④) |
+| P-2 | 🆕 `RebalanceEvent.journalTimelineLink`(`LinkAction?` · JSON `journal_timeline_link`) | `S7-6b` 하단 «이 회차의 … N건» 버튼 **하나** · `dto/rebalance.dart` · 이름 = «목적지 + Link»(`DecisionDetailVm.rebalanceLink`·`amendLink`·`parentLink` 선례) · `label` = 엔진 문장 · N = 그 회차에 묶인 일지 행 **전체** 수(정정 행 포함 · 기간 무관 — 결정 ④) · 낱말 = 자동 갈래 «주문» · advisory 갈래는 행을 가리키는 말(픽스처 «기록») · 🔴 null = 버튼 **부재**(묶인 일지 행 0) · 🔴 화면이 `orderIntentIds.length` 로 N 을 세거나 `eventId` 로 링크를 조립하면 반려 · `_linkKeys` 무변경(안쪽 `deep_link` 로 C-33) |
+| P-3 ★ⓑ | 🆕 `RebalanceEvent.detailDeepLink`(`String?` · JSON `detail_deep_link`) | `S7-6a` 행 탭 → `S7-6b`(`AppRoutes.rebalanceEvent` 를 엔진이 완성) · 이름·규약 = `TradeJournalEntry.detailDeepLink` 와 같다 · null = 행 탭 무반응 · `S7-6b` 안에서는 쓰지 않는다(자기 자신) · 기존 링크 키 |
+| P-4 | 🆕 타입 `JournalRebalanceScope`(`rebalanceEventId`·`label`·`range`) | `J-1` 회차 조건의 **범위 설명**(회차 칩 글자 + 씨앗 기간) · `dto/journal.dart`(`JournalFilterCatalog` 뒤) · 이름 = `Journal` 접두(`JournalFilterCatalog`·`JournalTimelineBadge`) + «범위» · 🔴 시트 선택지가 아니라 `*Option` 꼴이 아니다(회차 조건은 링크로만 들어온다 · 시트 상태 필드 신설 금지 — A14) · `label` 에 식별자 없음 · `range` = 그 회차에 묶인 일지 행 **전부**를 덮는 구간(프리셋 아님 — `presetCode` null · `isDefault` false · 결정 ⑥) · 화면은 첫 쿼리의 `range` 로 그대로 쓴다(날짜 산술 0) |
+| P-5 | 🆕 `JournalRepository.watchRebalanceScope(String rebalanceEventId)` → `Stream<JournalRebalanceScope?>` | 11번째 메서드 · 꼴 = 위치 인자 키드 읽기(`watchDecisionDetail(String)`) + «watch + 반환 타입»(`watchFilterCatalog`) · 키 = 셸이 라우트 파라미터에서 꺼내 `JournalTimeline(rebalanceEventId:)` 로 준 값 · null = 엔진이 그 회차를 모른다 → 칩 **부재** · 엔진 규칙 «null ⇒ 같은 id 의 `watchTimeline` 0행 + `emptyLabel`» · `journalTimelineLink` 가 non-null 인 회차에는 null 을 주지 않는다 · 인자에 `RunMode` 없음(키드 읽기 선례 · 회차 id 모드 간 유일성 = 미결 90) · 🔴 화면이 `RebalanceRepository` 를 구독해 글자를 조립하지 않는다(C-40 ⑧) |
+| P-6 ★ⓐ | 🆕 `RebalanceRepository.watchEvent(String rebalanceEventId)` → `Stream<RebalanceEvent>` | `S7-6b` 회차 1건 — `RebalanceEventScreen` 이 이 창구 **하나만** 구독(셸 → 생성자 인자 → 키) · 이름 = `watchEvents` 의 단수형 · 모르는·지난 id = 스트림 에러(**잠정** — `watchDecisionDetail` 과 같은 묶음 · 미결 50 ③) · 🔴 `watchEvents` 행을 id 로 고르면 반려(거르기도 판정) |
+| P-6b ★ⓒ | `RebalanceRepository.watchEvents(DateRange r)` **바뀐 반환형** → `Stream<ListResult<RebalanceEvent>>` | 이름 불변 · `S7-6a` 빈 상태 문장 = 봉투 `emptyLabel`(화면이 빈 상태 문구를 쓰지 않는다 · 계약 3조 ③) · 바꿀 때 `ui_*`·`apps` lib 의 소비자 0 · 유형 필터·`DateRange` 고르기는 R12 범위 밖(미결 88) |
+| P-7 | 받침대(`lib/testing.dart`) | 🆕 `UnimplementedRebalanceRepository`(`watchEvents`·`watchEvent`·`watchNext` · 동기 throw — 그전까지 이 받침대가 없어 R12 가짜에 `implements` 가 강요됐다) · `UnimplementedJournalRepository.watchRebalanceScope` |
+| P-8 | 픽스처 4 · `FixturePaths` 상수 4 | `m6JournalRebalanceScope1` · `m6JournalRebalanceUnknown` · `m7M7RebalanceDetailAdvisory` · `m7M7RebalanceEmpty` · `FixturePaths.all` **126** · 개정 2(`rebalance6` — 6행 `detail_deep_link` · as_of 이전 5행 `journal_timeline_link` · `re_20261030_01` 은 버튼 없음 / `m7M7RebalanceDetailBand` — 같은 두 필드) · 이름 선례 `m6JournalFilterCatalog`·`m7M7RebalanceDetailBand` · 등록부 코덱 +1(`JournalRebalanceScope`) · 생성 = `packages/domain_contracts/tool/gen_r12_fixtures.py`(기준 `dbbd3ae` 원문에서 멱등) · 상세 = `fixtures/README.md` «계약 v1.5» |
+| P-9 | C-33 ③④⑦ · 🆕 C-40 · 경계 검사 [5b][5c] | C-33 ③ `hasLength(43)` · ④ +4 예시 · ⑦ 선언 순서 = 첫 일치 / 회차↔일지 링크 정합 — `test/contracts/c40_rebalance_journal_link_test.dart`(①~⑩) / `tool/check_boundaries.sh` [5b] 화면 패키지(`ui_shell` 제외) lib 코드 줄의 파라미터 라우트 상수·`AppLinkSchemes` 참조 0(목록은 `app_links.dart` 에서 추출 · 견본 `rebalanceEvent`·`journalRebalance`) · [5c] 화면 패키지 test Dart 코드 줄의 링크 리터럴 0 |
+| P-10 | **M2 이름** `RebalanceEventScreen({required String rebalanceEventId})` | `S7-6b` 본문 위젯 — 셸(R13)이 `rebalanceEvent` 라우트에 `RebalanceEventScreen(key: ValueKey(id), rebalanceEventId: id)` 로 배선할 이름이라 M2 가 정한다(카드가 짓지 않는다) · 선례 = 01 §11-10 의 `MonthlyReportScreen(yyyyMm: …)` · `ui_analytics` 공개 위젯 `*Screen` 관례(`GoalPathScreen`·`ReportArchiveScreen`) |
+| P-11 | 권고(화면 쪽 · 카드가 확정) | `J-1` 생성자 `JournalTimeline({String? rebalanceEventId})`(null = 회차 조건 없음) · 회차 칩 `Key('j1-chip-rebalance')` · `S7-6b` 버튼 `Key('s76b-link-journalTimelineLink')` · 골든 `j1_rebalance_chip`·`j1_rebalance_unknown` |
+
+🔴 **만들지 않은 이름**(재론 방지): `JournalRebalanceOption`·`watchRebalanceOption`(시트 선택지 계열 이름 — 회차 조건은 시트에 없다) · `JournalTimelineScope`(non-null 범위 설명 안 — 미결 50 ③ 과 규약이 갈려 기각 · «범위» 낱말만 P-4 에 접목) · `RebalanceEvent.journalLink`(`DecisionDetailVm.journalLink` = 사전 저널 목적지와 동명이의) · `RebalanceEvent.ordersLink`(advisory 갈래에서 틀린 말) · `AppRoutes.journalTimelineRebalance`(6요소 라우트 — 5요소로 겹침 없이 갈린다) · `JournalFilterCatalog.rebalanceEventOptions`(카탈로그 «나머지 셋 · 같은 목록 두 벌 금지»를 구부린다) · `TradeJournalEntry.rebalanceEventLabel`(기본 기간 밖·빈 결과면 칩이 사라진다).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 🆕 미결 83(`S7-6a` «주문 건수» 글자 출처 — R12 는 자리 없음) · 84(픽스처 교차 정합 `journal_30`↔`rebalance_6`) · 85(`fixture_version` 조문) ·
+86(advisory 수기 체결 회차 태깅 — 엔진 숙제 06 X7-1) · 87(`S7-6b` 상태 3종 · 골든 `s76b_missing_snapshot` 입력) · 88(`S7-6a` 유형 필터 · `DateRange` 고르기) · 89(SIM 회차 링크) ·
+90(회차 id 모드 간 유일성) · 91([5b][5c] 셸 제외 범위 좁히기) · 이전부터의 50 ③(모르는 id = 스트림 에러 잠정 — `watchEvent` 도 같은 묶음).
+화면 몫 — `J-1` 생성자 인자·회차 칩 = 다음 ui_journal 카드(R12 뒤 · R13 앞 — 결정 ⑤) · `S7-6b` 버튼·`S7-6a` 행 탭·빈 상태 = R12 카드 · 두 라우트 → 한 위젯·`RebalanceEventScreen` 배선 = 셸 R13.

@@ -8,8 +8,12 @@
 //   ⑤ 동작 링크는 목적지가 아니다 — `AppRoutes.all` 과 겹치지 않고 등록된 목적지로 읽히지 않는다.
 //   ⑥ 엔진·픽스처는 동작 링크를 싣지 않는다(화면 명세가 버튼을 명시한 자리에서 화면이 상수로 연다).
 //   🆕 v1.4(01 §14-9 · 설계 Δ4 C-33) — 링크 키 +`goal_deep_link`(`MonthlyReport.goalDeepLink`) ·
-//   라우트 **42**(`reportGoalPath` · `planWithdrawal` 은 v1.5) · `DepositPreviewResult.blockedAction` 의
-//   `deep_link` 는 기존 `deep_link` 키로 이미 덮인다(③ 에 개수 · ④ 에 `report/goal/…` 일치 예시).
+//   라우트 **42**(`reportGoalPath` · `planWithdrawal` 은 인출 규칙 결정 뒤 첫 minor) ·
+//   `DepositPreviewResult.blockedAction` 의 `deep_link` 는 기존 `deep_link` 키로 이미 덮인다
+//   (③ 에 개수 · ④ 에 `report/goal/…` 일치 예시).
+//   🆕 v1.5(01 §15-3) — 라우트 **43**(`journalRebalance`) · `_linkKeys` 무변경(`journal_timeline_link` 는
+//   `LinkAction` 이라 안쪽 `deep_link` 로 덮인다 · `RebalanceEvent.detailDeepLink` 는 기존 `detail_deep_link`) ·
+//   ⑦ 선언 순서 = 첫 일치.
 // 🔴 화면은 이 검사의 대상이 아니다 — 화면은 링크를 **만들지 않으므로** 검사할 것이 없고,
 //    만들었다면 `tool/check_boundaries.sh` 의 `aaq://` 리터럴 스캔이 잡는다.
 
@@ -104,13 +108,15 @@ void main() {
 
     test('C-33 ③ 라우트 목록에 중복이 없고 M5·X 소유 10종이 들어 있다', () {
       expect(AppRoutes.all.toSet().length, AppRoutes.all.length);
-      // 🆕 v1.4 — 41 → 42(`reportGoalPath`). 🔴 개수가 바뀌면 01 §14 · 04 셸 라우트 표를 같은 PR 에서 고친다
+      // 🆕 v1.4 — 41 → 42(`reportGoalPath`). 🆕 v1.5 — 42 → 43(`journalRebalance` · 01 §15-3).
+      //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(42),
-        reason: '라우트 수가 계약(01 §14-9 · v1.4 = 42)과 다르다.',
+        hasLength(43),
+        reason: '라우트 수가 계약(01 §15-3 · v1.5 = 43)과 다르다.',
       );
+      expect(AppRoutes.all, contains(AppRoutes.journalRebalance));
       expect(AppRoutes.all, contains(AppRoutes.reportGoalPath));
       expect(AppRoutes.all, contains(AppRoutes.planDeposit));
       const List<String> ownedByClaude = <String>[
@@ -149,8 +155,90 @@ void main() {
       expect(AppRoutes.isRegistered('aaq://report/goal/2026-08'), isTrue);
       expect(AppRoutes.isRegistered('aaq://report/goal/'), isFalse);
       expect(AppRoutes.isRegistered('aaq://report/goal/2026-08/x'), isFalse);
+      // 🆕 v1.5 — `journal/rebalance/:rebalanceEventId` 는 경로 파라미터로만 회차를 싣는다(쿼리 거부).
+      expect(AppRoutes.isRegistered('aaq://journal/rebalance/re_1'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://journal/rebalance/'), isFalse);
+      expect(
+        AppRoutes.isRegistered('aaq://journal/rebalance/re_1?x=1'),
+        isFalse,
+      );
+      expect(AppRoutes.isRegistered('aaq://journal/timeline'), isTrue);
       expect(AppRoutes.isRegistered('aaq://nowhere'), isFalse);
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);
+    });
+
+    test('C-33 ⑦ 선언 순서 — 각 패턴의 표본이 처음 일치하는 패턴은 그 자신이다', () {
+      // 🆕 v1.5(01 §15-3) — «고정 세그먼트가 파라미터보다 먼저 일치한다»(app_links.dart `AppRoutes` 머리)는
+      //    `all` 의 **선언 순서**에만 기대고 있었다. 셸은 같은 순서로 디스패치하므로 순서가 틀리면
+      //    `aaq://report/archive` 가 `report/:yyyyMm` 화면으로 간다. 그 실수를 기계로 막는다.
+      // 🔴 «정확히 하나와 일치»가 아니다 — `report/archive`·`aftertax`·`annual` 표본은 `report/:yyyyMm`
+      //    에도 일치한다(설계대로). 첫 일치가 자기 자신이면 된다.
+      // `_matches` 는 private 이라 같은 규칙을 여기서 재현하고, 먼저 `isRegistered` 와 같은지 확인한다.
+      bool matches(String pattern, String link) {
+        final List<String> p = pattern.split('/');
+        final List<String> l = link.split('/');
+        if (p.length != l.length) {
+          return false;
+        }
+        for (int i = 0; i < p.length; i++) {
+          if (p[i].startsWith(':')) {
+            if (l[i].isEmpty || l[i].contains('?') || l[i].contains('#')) {
+              return false;
+            }
+          } else if (p[i] != l[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      // 고정 세그먼트로 쓰이지 않는 더미 값.
+      const String dummy = 'zz_sample_1';
+      String sampleOf(String pattern) => pattern
+          .split('/')
+          .map((String seg) => seg.startsWith(':') ? dummy : seg)
+          .join('/');
+
+      for (final String pattern in AppRoutes.all) {
+        final String sample = sampleOf(pattern);
+        expect(
+          AppRoutes.isRegistered(sample),
+          isTrue,
+          reason: '표본 $sample 이 등록되지 않았다 — 재현 규칙이 실물과 갈라졌다.',
+        );
+        expect(
+          AppRoutes.all.where((String p) => matches(p, sample)),
+          isNotEmpty,
+          reason: '재현 규칙이 $sample 을 놓친다.',
+        );
+        final String first = AppRoutes.all.firstWhere(
+          (String p) => matches(p, sample),
+        );
+        expect(
+          first,
+          pattern,
+          reason:
+              '$sample 이 먼저 $first 와 일치한다 — 고정 세그먼트 패턴을 `all` 에서 파라미터 패턴보다 '
+              '앞에 둔다(셸 디스패치 순서 · 01 §15-3).',
+        );
+      }
+      // 재현 규칙이 ④ 의 예시와도 같은 답을 내는지(거짓 일치·거짓 불일치 0).
+      const List<String> probes = <String>[
+        'aaq://journal/decision/d_1',
+        'aaq://journal/decision/',
+        'aaq://journal/decision/d_1?x=1',
+        'aaq://report/2026-08',
+        'aaq://report/archive',
+        'aaq://report/goal/2026-08/x',
+        'aaq://nowhere',
+      ];
+      for (final String probe in probes) {
+        expect(
+          AppRoutes.all.any((String p) => matches(p, probe)),
+          AppRoutes.isRegistered(probe),
+          reason: probe,
+        );
+      }
     });
 
     test('C-33 ⑤ 동작 링크는 목적지 목록과 겹치지 않는다', () {

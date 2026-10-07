@@ -6,7 +6,7 @@
 
 ```dart
 Future<DepositPreviewResult> simulateDeposit({required String amountInput}); // 🆕 v1.4
-Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount});         // ⏸ v1.5 에서 바뀐다
+Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount});         // ⏸ 인출 규칙 결정 뒤 첫 minor 에서 바뀐다
 Future<RebalancePreview> previewRebalance({TradeDate? plannedDate});
 Future<CostEstimate> estimateCosts(String planId);
 Future<DepositPlan?> findPlan(String planId);

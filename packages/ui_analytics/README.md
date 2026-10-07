@@ -42,7 +42,7 @@
 |---|---|
 | 도구 | Flutter·Dart·melos 설치돼 있다(`docs/toolchain_notes.md`). 테스트는 패키지 폴더에서 `flutter test`(🔴 중첩 `melos run test` 는 쓰지 않는다) |
 | 화면(13개 중) | ✅ 6개 — `S7-1` `MonthlyReportScreen` · `S7-1b` `ReportArchiveScreen` · `S7-2G`·`S7-2` `PerformanceExploreScreen` · `S7-3` `DrawdownContextScreen` · `S7-3b` `ContributionScreen` |
-| 다음 카드 R11 | ⬜ **R11a** `S7-4` 투자금 플래너(폰 전용 · 배럴 밖 `package:ui_analytics/planner.dart` · TARGETS T-4) → **R11b** `S7-9` 목표 경로(`GoalPathScreen` · 배럴 +1) + S7-1 진입 버튼 부록. `S7-5` 인출은 **R11c · v1.5 로 보류** |
+| 다음 카드 R11 | ⬜ **R11a** `S7-4` 투자금 플래너(폰 전용 · 배럴 밖 `package:ui_analytics/planner.dart` · TARGETS T-4) → **R11b** `S7-9` 목표 경로(`GoalPathScreen` · 배럴 +1) + S7-1 진입 버튼 부록. `S7-5` 인출은 **R11c · 인출 규칙 결정 뒤 첫 minor 로 보류** |
 | 그 밖 | ⬜ `S7-6`~`S7-8` · `S7-10` — 아직 없다 |
 | 공용 위젯 | `StaleBanner` · `SafetyBlockBanner` · `TrustBadgeView` · `PerfChart`(내부 — 배럴에 없다) |
 | 차트 | `lib/src/chart/`·`lib/src/widgets/perf_chart.dart` = R10 본보기의 diff 0 사본. 🆕 목표 경로 본보기 2파일은 아직 `test/golden/reference/goal_path/` 에만 있다(M2 소유 · R11b 가 `lib/src/goal_path/` 로 옮긴다) |
