@@ -220,9 +220,10 @@ A(primitives·enums)
 
 | 타입 | 필드 |
 |---|---|
-| `TradeJournalEntry` | `entryId` R String · `mode` R `RunMode` · `tradeDate` R `TradeDate` · `executedAt` ? DateTime(UTC · null = 미체결) · `symbol` R String · `symbolLabel` R String · `sleeve` R `SleeveId` · `side` R `OrderSide` · `quantity` R int · `price` R `@D Decimal` · `commission` R `@D Decimal` · `tax` R `@D Decimal` · `status` R `JournalStatus` · `statusLabel` R String · `statusTone` R `ChipTone` · `visibility` R `FillVisibility` · `visibilityLabel` R String · `reasons` R `List<ReasonChip>`(**최소 1개**) · `decision` R `DecisionRef` · `deviation` R `DeviationBadge` · `accountAlias` ? String(🔴 계좌 전체번호 금지) · **X7 신설 6** `fillOrigin` R `FillOrigin` · `fillKind` R `FillKind` · `adviceId` ? String · `backdate` R `BackdateStamp` · `costSource` R `CostSource` · `costSourceLabel` R String · `originLabel` R String · `rebalanceEventId` ? String(G-40) · `asOf` R `AsOf` |
+| `TradeJournalEntry` | `entryId` R String · `mode` R `RunMode` · `tradeDate` R `TradeDate` · `executedAt` ? DateTime(UTC · null = 미체결) · `symbol` R String · `symbolLabel` R String · `sleeve` R `SleeveId` · `side` R `OrderSide` · `quantity` R int · `price` R `@D Decimal` · `commission` R `@D Decimal` · `tax` R `@D Decimal` · `status` R `JournalStatus` · `statusLabel` R String · `statusTone` R `ChipTone` · `visibility` R `FillVisibility` · `visibilityLabel` R String · `reasons` R `List<ReasonChip>`(**최소 1개**) · `decision` R `DecisionRef` · `deviation` R `DeviationBadge` · `accountAlias` ? String(🔴 계좌 전체번호 금지) · **X7 신설 6** `fillOrigin` R `FillOrigin` · `fillKind` R `FillKind` · `adviceId` ? String · `backdate` R `BackdateStamp` · `costSource` R `CostSource` · `costSourceLabel` R String · `originLabel` R String · `rebalanceEventId` ? String(G-40 · null = 회차 밖 · 🆕 v1.5 주석(01 §15-3) — deposit 회차의 체결은 그 회차에 묶인다 · advisory 수기 체결도 그 회차에 묶인다(결정 ④-2 · 엔진 숙제 06 X7-1)) · `asOf` R `AsOf` |
 | `DeviationBadge` | `isDeviation` R bool · `kindCode` ? String · `label` R String · `journalId` ? String |
 | `BackdateStamp` 🆕X7 | `tradeDate` R `TradeDate` · `authoredAt` R DateTime · `backdateTradingDays` R int · `isBackdated` R bool · `label` R String · `priceRangeSourceDate` R `TradeDate`(B4 — 검증의 근거일) · `crossesClosedPeriod` R bool · `closedPeriodNote` ? String |
+| `JournalRebalanceScope` 🆕 v1.5 | `rebalanceEventId` R String(키 용 · 🔴 표시 금지) · `label` R String(회차 칩 글자 · 엔진 생성 · 🔴 식별자를 담지 않는다) · `range` R `DateRange`(씨앗 기간 = 그 회차에 묶인 일지 행 **전부**를 덮는 구간 · 프리셋이 아니다 — `presetCode` null · `isDefault` false · 🔴 화면은 첫 쿼리의 `range` 로 그대로 쓴다 · 날짜 산술 0)(01 §15-3 · 발주자 결정 ⑥) — `J-1` 회차 조건의 **범위 설명** · 창구 = `JournalRepository.watchRebalanceScope` · 🔴 시트 선택지가 아니다(그래서 `*Option` 꼴이 아니다 · 시트 상태 필드 신설 금지 — A14) · 🔴 화면이 `rebalanceEventId`·`RebalanceEvent.kindLabel`·`tradeDate` 로 글자를 만들지 않는다 |
 
 - `DeviationBadge.kindCode` 의 값 목록(**문자열 상수 · 영역 E 의 사전이 정본**): 기존 4 = `DISCRETION`·`MANUAL_ORDER`·`RECON_CLEAR`·`KILL_SWITCH_RESUME` / X7 9 = `ADVICE_LAPSE`·`ADVICE_SKIP`·`ADVICE_LATE_FILL`·`MANUAL_ENTRY`·`ADVICE_PRICE_DEVIATION`·`ADVICE_QTY_DEVIATION`·`ADVICE_EXIT_AVOIDED`·`FILL_AMENDED`·`BACKDATED_FILL`.
 - 🔴 **분할 집행 진도는 이 타입에 없다**(G-46 · §8 미결 29) — 「n일차」·「이월 n주」 필드를 만들지 않는다.
@@ -300,7 +301,7 @@ A(primitives·enums)
 
 | 타입 | 필드 |
 |---|---|
-| `RebalanceEvent` | `eventId` R · `mode` R `RunMode` · `tradeDate` R `TradeDate` · `kind` R `RebalanceKind` · `kindLabel` R String · `before` R `List<SleeveWeight>` · `after` R `List<SleeveWeight>` · `trigger` R `TriggerSnapshot` · `orderIntentIds` R `List<String>` · `quality` ? `ExecutionQuality`(⚠️ M2-8) · `asOf` R `AsOf` |
+| `RebalanceEvent` | `eventId` R · `mode` R `RunMode` · `tradeDate` R `TradeDate` · `kind` R `RebalanceKind` · `kindLabel` R String · `before` R `List<SleeveWeight>` · `after` R `List<SleeveWeight>` · `trigger` R `TriggerSnapshot` · `orderIntentIds` R `List<String>` · `quality` ? `ExecutionQuality`(⚠️ M2-8) · `asOf` R `AsOf` · 🆕 **v1.5(01 §15-3 · §8 미결 49)** `journalTimelineLink` ? `LinkAction`(JSON `journal_timeline_link` · `S7-6b` 하단 «이 회차의 … N건» 버튼 하나 · 목적지 `AppRoutes.journalRebalance` 를 엔진이 완성 · `label` = 엔진 문장 · N = 그 회차에 묶인 일지 행 **전체** 수(정정 행 포함 · 기간 무관 — 발주자 결정 ④) · 🔴 null = 버튼 **부재**(묶인 일지 행 0 이면 null) · 🔴 화면이 `orderIntentIds.length` 로 N 을 세거나 `eventId` 로 링크를 조립하면 반려) · `detailDeepLink` ? String(JSON `detail_deep_link` · `S7-6a` 행 탭 → `S7-6b` · `AppRoutes.rebalanceEvent` 를 엔진이 완성 · null = 행 탭 무반응 · `S7-6b` 안에서는 쓰지 않는다) |
 | `SleeveWeight` | `sleeve` R `SleeveId` · `basis` ? `AllocationBasis`(🔴 **M2-2 배치 전 nullable** · null = 미표기 → 목표·밴드 비교 금지 · 배치 후 required 승격) · `weight` R double · `targetWeight` R double · `bandLow` R double · `bandHigh` R double · `label` R String |
 | `TriggerSnapshot` | `configHash` R String · `rawValues` R `Map<String, String>`(지표명 → 엔진 포맷 문자열 · 계절 게이트 키는 **`trend_score_kr`**) · `triggerPrice` ? `@D Decimal` · `thresholdRegistered` ? double · `summary` R String |
 
@@ -381,10 +382,10 @@ A(primitives·enums)
 
 | 파일 | 인터페이스 · 시그니처 |
 |---|---|
-| `journal_repository.dart` | `JournalRepository`<br>`Stream<ListResult<TradeJournalEntry>> watchTimeline({required DateRange range, SleeveId? sleeve, String? symbol, JournalStatus? status, FillOrigin? origin, String? rebalanceEventId, RunMode mode = RunMode.live, int limit = 100})`<br>`Future<TradeJournalEntry?> findByDecisionId(String decisionId)`<br>`Future<List<TradeJournalEntry>> chainOf(String decisionId)`<br>`Future<List<TradeJournalEntry>> fillChain(String entryId)` 🆕X7 — ORIGINAL→REVERSAL→RESTATEMENT |
+| `journal_repository.dart` | `JournalRepository`<br>`Stream<ListResult<TradeJournalEntry>> watchTimeline({required DateRange range, SleeveId? sleeve, String? symbol, JournalStatus? status, FillOrigin? origin, String? rebalanceEventId, RunMode mode = RunMode.live, int limit = 100})`<br>`Future<TradeJournalEntry?> findByDecisionId(String decisionId)`<br>`Future<List<TradeJournalEntry>> chainOf(String decisionId)`<br>`Future<List<TradeJournalEntry>> fillChain(String entryId)` 🆕X7 — ORIGINAL→REVERSAL→RESTATEMENT<br>🆕 **v1.5(01 §15-3 · §8 미결 49 · 11번째 창구)** `Stream<JournalRebalanceScope?> watchRebalanceScope(String rebalanceEventId)` — 키 = 셸이 라우트 `journalRebalance` 의 파라미터에서 꺼내 `JournalTimeline(rebalanceEventId:)` 로 준 값 · null = 엔진이 그 회차를 모른다 → 칩 **부재** · 🔴 엔진 규칙: null 이면 같은 id 의 `watchTimeline` 은 0행이고 «없음»의 문장은 그 봉투의 `emptyLabel`(봉투 없는 VM 의 «스트림 에러» 잠정 규칙 — 미결 50 ③ — 과 다른 축) · 🔴 `journalTimelineLink` 가 non-null 인 회차에는 null 을 주지 않는다 · 🔴 화면이 `RebalanceRepository` 를 구독해 글자를 조립하지 않는다. `watchTimeline` 시그니처 무변경(회차 조건 = `rebalanceEventId` 인자 · 씨앗 기간 = 이 창구의 `range`) |
 | `holdings_repository.dart` | `HoldingsRepository`<br>`Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false})` — 🔴 기본 false(결정 8) · `external_holding` 표시 UNION 은 **여기 한 곳**(C-23) |
 | `performance_repository.dart` | `PerformanceRepository`<br>~~`Future<PerformanceSeries> series({required PerfMetric metric, required PerfGranularity granularity, required bool cumulative, required DateRange range})`~~ 🆕 **v1.3(01 §13-4)** `Future<PerformanceSeries> series({required PerfMetric metric, required PerfGranularity granularity, required bool cumulative, DateRange? range})` — `range == null` = 엔진 기본 구간(무엇이 골라졌는지는 `periodLabel`) · 🔴 `weekly` 로는 화면이 부르지 않는다(01 §8 미결 54)<br>`Future<MonthlyReport> monthlyReport(String yyyyMm)`<br>`Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear})` — 🔴 **인자는 연도 하나** · 갈래는 계좌 매핑에서 파생<br>`Future<ReportArchiveVm> reportArchive()`<br>`Stream<DisclosureGateVm> watchDisclosureGate()`<br>`Future<DrawdownContextVm> drawdownContext({DateRange? range})`<br>`Future<ContributionVm> contribution({required DateRange range})`<br>`Future<AnnualReviewVm> annualReview({required String year})`<br>🆕 **v1.4(01 §14-9)** `Future<GoalPathVm> goalPath({required String yyyyMm})` — 받은 달 그대로(`MonthlyReport.goalDeepLink` 의 달) · 숫자 가림은 엔진 읽기 경로 |
-| `rebalance_repository.dart` | `RebalanceRepository`<br>`Stream<List<RebalanceEvent>> watchEvents(DateRange r)`<br>`Stream<NextRebalanceVm> watchNext()` — 🔴 **nullable 이 아니다**(N-4). 「예정 없음」도 값으로 오며 문구는 `emptyLabel` |
+| `rebalance_repository.dart` | `RebalanceRepository`<br>~~`Stream<List<RebalanceEvent>> watchEvents(DateRange r)`~~ 🆕 **v1.5(01 §15-3 ★ⓒ)** `Stream<ListResult<RebalanceEvent>> watchEvents(DateRange r)` — `S7-6a` 회차 타임라인 · 빈 상태 문장은 봉투 `emptyLabel`(화면이 빈 상태 문구를 쓰지 않는다 · 계약 3조 ③) · `rows` 는 엔진이 정렬 · 화면이 거르거나 다시 세지 않는다<br>🆕 **v1.5(★ⓐ)** `Stream<RebalanceEvent> watchEvent(String rebalanceEventId)` — `S7-6b`(`RebalanceEventScreen`)가 파라미터 라우트 `rebalanceEvent` 의 `:rebalanceEventId`(셸 → 생성자 인자 → 키)로 **이 창구 하나만** 구독 · 🔴 `watchEvents` 행을 id 로 고르면 반려(거르기도 판정) · 모르는·지난 id = 스트림 에러(**잠정** — `watchDecisionDetail` 과 같은 묶음 · 미결 50 ③)<br>`Stream<NextRebalanceVm> watchNext()`(v1.5 무변경) — 🔴 **nullable 이 아니다**(N-4). 「예정 없음」도 값으로 오며 문구는 `emptyLabel` |
 | `safety_repository.dart` | `SafetyRepository` — `Stream<SafetyState> watchState()` |
 | `alert_repository.dart` | `AlertRepository` — `Stream<List<AlertItem>> watchInbox({AlertLevel? min})` |
 | `resume_repository.dart` | `ResumeRepository` — `Stream<ResumeReport?> watchLatest()` · `Stream<List<PlannedWorkSummary>> watchPlannedWork()` |
@@ -596,6 +597,8 @@ abstract interface class SettingsActions {
 
 🆕 **v1.4(2026-09-30 · 01 §14)** — 🆕 `PlannerReasonCodes`(`labels/plan_codes.dart`) = 1종 `DEPOSIT_ROUTING`(플래너 **전용** · 초안 칩에는 원장 이벤트 사전의 `PENSION_FUNDING` 도 온다) · 🆕 라우트 `AppRoutes.reportGoalPath` = `aaq://report/goal/:yyyyMm`(`AppRoutes.all` **42**) · ⏸ `DEPOSIT_REGISTER` 거부 코드 사전 없음(01 §8 미결 74).
 
+🆕 **v1.5(2026-10-07 · 01 §15-3 · §8 미결 49)** — 🆕 라우트 `AppRoutes.journalRebalance` = `aaq://journal/rebalance/:rebalanceEventId`(`AppRoutes.all` **43** · `all` 에서 `journalRead` 다음 · `J-1` 을 회차 조건으로 연다 · 링크는 `RebalanceEvent.journalTimelineLink` 가 완성해서 준다 · 셸 본문 = `JournalTimeline(key: ValueKey(id), rebalanceEventId: id)` · 웹 가드 = `journalTimeline` 과 같다) · 코드 사전·`labels/` 추가 0 · ⏸ `planWithdrawal`(S7-5)은 인출 규칙 결정(01 §8 미결 79) 뒤 첫 minor(번호는 그때).
+
 ---
 
 ## §7. ⑦ DDL 배치 A~F — 영역 **E** · `ddl/`
@@ -735,7 +738,7 @@ abstract interface class SettingsActions {
 | `journal_30.json` | 30 | 체결 22 · 부분 3 · 거부 2 · UNKNOWN 1 · prevented 1 · SIM 1 |
 | `holdings_6.json` | 6 | 069500(A) · 379810·132030(B) · 0085P0·411060(C) · POT 1종 — `pnl` 은 3건만 |
 | `performance_24m.json` | 24 | 월간 TWR/MWR + 결측 구간 1(`unavailable`) + 벤치마크 |
-| `rebalance_6.json` | 6 | monthlyRegular 3 · seasonal 1 · band 1 · deposit 1 |
+| `rebalance_6.json` | 6 | monthlyRegular 3 · seasonal 1 · band 1 · deposit 1 · 🆕 v1.5 행 링크 6 · 버튼 링크 5(01 §15-3) |
 | `resume_report_1.json` | 1 | 7거래일 갭 · `recoveryDry` · 4/3/2/1/2 |
 | `safety_states.json` | 5 | normal · alert · reduced · halted · stopped(자격 충족 1) |
 | `alerts_12.json` | 12 | P0 2 · P1 4 · P2 6(묶임 2) |
@@ -761,6 +764,8 @@ abstract interface class SettingsActions {
 **총 40파일**(코어 11 + P 3 + S 3(+`realized_alloc_S7` 1) + X7 22).
 
 🆕 **v1.4(2026-09-30 · 01 §14-16)** — 이 절의 «총 40» 은 G3 착수 당시 목록이다(현재 = 등록부 `FixturePaths` 정본). v1.4 = **개정 16 · 신설 7 → 122**: `m7/m7_deposit_plan_blocked`·`_input_rejected`·`_funding` · `m7/m7_deposit_register_receipts_4` · `m7/m7_goal_path_off` · `m9/contribution_setting_default`·`_no_limit_note`(상세 = `fixtures/README.md` «계약 v1.4» 절).
+
+🆕 **v1.5(2026-10-07 · 01 §15-3)** — **개정 2 · 신설 4 → 126**(기존 122 가운데 120 은 봉투 `contract_version` 한 줄만): 개정 `rebalance_6`(6행 `detail_deep_link` · as_of 이전 5행 `journal_timeline_link` · `re_20261030_01` 은 버튼 없음 = 부재 표본) · `m7/m7_rebalance_detail_band`(같은 두 필드) / 신설 `m6/journal_rebalance_scope_1`(`JournalRebalanceScope` 1행) · `m6/journal_rebalance_unknown`(모르는 회차의 `J-1` 0행 봉투) · `m7/m7_rebalance_detail_advisory`(band 의 거울 · 버튼 글자만 다르다) · `m7/m7_rebalance_empty`(`S7-6a` 0행 봉투) · `FixturePaths` 상수 +4 · 생성 = `packages/domain_contracts/tool/gen_r12_fixtures.py`(기준 `dbbd3ae` 원문에서 멱등) · 상세 = `fixtures/README.md` «계약 v1.5» 절.
 
 ### 8-5. 로더 — `lib/src/fixtures/fixture_loader.dart`
 
@@ -813,6 +818,12 @@ X7 은 `TradeJournalEntry` 에 required 6, `HoldingRow` 에 required 2, `Feature
 | C-30 P | `aftertax_ladder_1.json` 렌더 → ⓐ `ui_*` 위젯트리에 `cagrPct`·`endMult` 등 **double 값 필드 참조 0건** ⓑ 숫자 리터럴 0건 ⓒ 본문 갈래가 **정확히 1개** ⓓ `steps` 층 수를 코드로 고정하지 않음 · 🆕 계약 면 ⓖ 사전 층 순서·빠짐 ⓗ 정본 갈래 «세금 전 = 파킹 과세 뒤»·반사실 내림 ⓘ 층 내림 순서·필드 짝·같은 «세금 전» ⓙ **골든 사본 대조**(`test/contracts/support/golden/aftertax_full_S7.json`) ⓚ `valueText` = 대조 값 반올림(01 §15-1 · 코드에 숫자 없음) | 🟡(계약 면 10 통과·ui 스캔 1 skip) |
 | C-31 P | ⓐ 한 위젯트리에서 서로 다른 `basis` 의 `SleeveWeight` 가 같은 합계·같은 목록에 들어가는지 ⓑ `ui_*` 에서 **A 와 POT 를 더하는 산술** — `realized_alloc_S7` 픽스처 | 🟡 |
 | C-32 G-89 | `ui_*` 소스에 월 납입 금액으로 읽힐 숫자 리터럴(`100000`·`90000`·`97000`·`124000`·`100_000`)과 `'10만'`·`'9.7만'` 문자열 → 실패. 🔴 **`labels.dart` 도 예외 아님** · 🔵 `fixtures/`·명세 산문은 대상 아님 | 🟡(정적 스캔) |
+| C-33 v1.1 | 내비게이션 계약(01 §4-4) — ① 픽스처의 모든 `aaq://` 링크가 `AppRoutes.all` 패턴 하나와 일치 ② 링크 꼴 문자열이 링크 키 밖에 숨지 않는다 ③ 라우트 목록 건강(중복 0 · M5·X 소유 10종) ④ 일치 규칙(파라미터는 비지 않고 쿼리·조각 거부) ⑤⑥ 동작 링크(v1.3). 🆕 **v1.5(01 §15-3)** ③ `hasLength(43)` + `contains(AppRoutes.journalRebalance)` · ④ +4 예시(`aaq://journal/rebalance/re_1` 일치 · 빈 파라미터·`?x=1` 거부 · `aaq://journal/timeline` 불변) · 🆕 ⑦ **선언 순서 = 첫 일치**(각 패턴의 표본이 `all` 선언 순서로 처음 일치하는 패턴 = 그 자신 · 고정 세그먼트가 파라미터보다 먼저 — 셸 디스패치 순서) · `_linkKeys` 무변경(`journal_timeline_link` 는 `LinkAction` 이라 안쪽 `deep_link` 로 덮인다) — `test/contracts/c33_navigation_links_test.dart` | 🟢 |
+| C-40 🆕 v1.5 | 회차↔일지 링크 정합(01 §15-3 · §8 미결 49) — ① 버튼(`journal_timeline_link`)·행 링크(`detail_deep_link`) 꼬리 == 그 행 `event_id` ② 버튼 글자는 비어 있지 않고 링크·회차 id 를 담지 않는다 ③ scope 회차의 버튼 N == `journal_30` 에서 그 회차에 묶인 행 수 ④ scope 글자는 id·`kindLabel`·`tradeDate` 를 그대로 쓰지 않는다 ⑤ 버튼 있는 행·없는 행(부재 표본)이 둘 다 있다 ⑥ advisory 거울 = band 와 같은 회차 · 버튼 글자만 다르다 ⑦ 모르는 회차의 봉투 문장 ≠ `journal_empty` 문장 · `S7-6a` 빈 봉투도 문장이 있다 ⑧ `ui_journal/lib` 코드에 `orderIntentIds`·`RebalanceRepository` 0 ⑨ scope 씨앗 기간이 그 회차 행 전부를 덮고 프리셋이 아니다 ⑩ `journal_30` 의 회차 id ⊆ scope 픽스처 id — 🔴 숫자를 코드에 적지 않고 두 픽스처를 맞댄다 · `test/contracts/c40_rebalance_journal_link_test.dart` | 🟢(⑧ 은 소스 스캔) |
+
+🆕 **v1.5 주(2026-10-07)** — 이 표는 G3 착수 때의 C-1~C-32 에 **C-33·C-40 두 행만** 더했다(C-34~C-39 는 01 §7 표가 정본이고 이 표에 아직 없다).
+경계 검사 `tool/check_boundaries.sh`(계약 v1.5): 🆕 **[5b]** 화면 패키지(`ui_*` 중 `ui_shell` 제외) `lib` 코드 줄의 **파라미터 라우트 상수** 참조 0(목록은 `app_links.dart` 에서 두 줄 선언까지 이어 읽어 뽑는다 · 견본 `rebalanceEvent`·`journalRebalance` 가 뽑히지 않으면 실패) + `AppLinkSchemes` 참조 0 · 🆕 **[5c]** 화면 패키지 `test` 의 Dart 코드 줄 링크 리터럴 0. 셸을 빼는 까닭 = 라우트 테이블·파서가 그 상수를 쓰는 유일한 자리(남는 구멍 = 01 §8 미결 91).
+실측(2026-10-07): `domain_contracts` `dart test` **273 통과 · 30 skip · 0 실패**(`dbbd3ae` 기준 262 → +11) · 경계 검사 통과.
 
 **추가 검사 1건(번호 없음 · M2-3 소유)** — 🔴 `lib/l10n/labels.dart` 의 키·문자열 **전수**와 재개 리포트 템플릿에서 «램프»가 접두(«운영 램프»/«초기 진입») 없이 단독으로 쓰인 항목 **0건**. C-5 는 `labels.dart` 를 예외로 두므로 C-5 로는 잡히지 않는다. 🔴 C-5 전역 경고로 만들지 않는다(개발 쪽 경보 피로).
 
