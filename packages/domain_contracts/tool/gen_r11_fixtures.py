@@ -14,7 +14,7 @@
       - 목표 경로 3: m7_goal_path_on·_hold·_realworld(GoalPathVm v1.4 · 봉투 lag_notice 삭제).
       - 월간 리포트 5: m7_monthly_2026_08·_gap 에 goal_deep_link 한 줄 ·
         _masked_integrity·_masked_recon·_pending 은 키 없음(버전 줄만).
-      - 인출 3: m7_withdrawal_* 초안 행에 side_label·quantity_text 두 줄만(기계적 · 내용은 v1.5).
+      - 인출 3: m7_withdrawal_* 초안 행에 side_label·quantity_text 두 줄만(기계적 · 내용은 인출 규칙 결정 뒤 첫 minor).
   (c) 신설 7건
       m9/contribution_setting_default · m9/contribution_setting_no_limit_note ·
       m7/m7_deposit_plan_blocked · m7/m7_deposit_plan_input_rejected · m7/m7_deposit_plan_funding ·

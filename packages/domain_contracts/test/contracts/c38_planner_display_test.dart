@@ -9,7 +9,7 @@
 //      residual_krw_cash == 0` · `orders_empty_text != null ⇔ order_drafts == []` ·
 //      `limit_price_text == null ⇔ limit_price == null`.
 //   ③ DepositPlan 픽스처 전부의 `preview_notice` 가 «미리보기입니다»로 시작하고 **같은 문자열**이다
-//      (고지 전용 · 01 §14-5). 🔴 인출(`WithdrawalPlan`)은 v1.5 라 대상이 아니다.
+//      (고지 전용 · 01 §14-5). 🔴 인출(`WithdrawalPlan`)은 인출 규칙 결정 뒤 첫 minor 이라 대상이 아니다.
 //   ④ `funding_steps` 는 null 이거나 비지 않는다 · order 는 1부터 연속 · expected_proceeds > 0.
 //   ⑤ Σ allocations.amount + residual_krw_cash == deposit_amount.
 //   ⑥ 슬리브별 Σ(수량 × 지정가, BUY 초안) ≤ 그 슬리브 충당액.

@@ -179,7 +179,7 @@ abstract class OrderDraft with _$OrderDraft {
     @DecimalStringConverter() Decimal? limitPrice,
 
     /// 🆕 v1.4 — 지정가 글자. non-null ⇔ [limitPrice] != null(C-38 ② · **`DepositPlan` 한정** —
-    /// 인출 초안(`WithdrawalPlan.orderDrafts`)은 v1.5 재생성 전까지 이 짝을 지키지 않는다 · 01 §14-4 · §14-15).
+    /// 인출 초안(`WithdrawalPlan.orderDrafts`)은 인출 규칙 결정 뒤 첫 minor 재생성 전까지 이 짝을 지키지 않는다 · 01 §14-4 · §14-15).
     String? limitPriceText,
 
     /// 🆕 v1.4 — «미확정 수량 있음»(UNKNOWN 표기) 한 줄 — null = 줄 부재.
@@ -268,7 +268,7 @@ abstract class FundingStep with _$FundingStep {
 }
 
 /// 01 §2-6 · m2-8 F-13 — 인출 미리보기(`DepositPlan` 대칭).
-/// ⏸ v1.4 무변경 — S7-5 는 v1.5(01 §14-15 «예정» · 인출 규칙 발주자 결정 뒤)에서 바뀐다
+/// ⏸ v1.4 무변경 — S7-5 는 인출 규칙 결정 뒤 첫 minor(01 §14-15 «예정» · 인출 규칙 발주자 결정 뒤)에서 바뀐다
 ///    (`WithdrawalPreviewResult` · `steps` · orderDrafts·costs·afterTax 제거).
 @freezed
 abstract class WithdrawalPlan with _$WithdrawalPlan {

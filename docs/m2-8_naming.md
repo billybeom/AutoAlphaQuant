@@ -302,7 +302,7 @@ R10-Bob-S7x(`S7-1b` 아카이브 · `S7-2G` 열람 게이트 · `S7-2` 수익률
 
 R11(`S7-4` 투자금 플래너 → 카드 R11a · `S7-9` 목표 금액 경로 → R11b · `S7-5` 인출 안내 → R11c ⏸ 보류) 발송 전에 계약 면을 닫았다.
 `contractVersion` = **`1.4.0`** · 픽스처 **122건**(115 + 신설 7 · 개정 16 — 전 봉투 `contract_version` 한 줄 포함) · 라우트 41 → **42** · 조문 = 01 §14.
-🔴 `S7-5`(`WithdrawalPlan`) 는 v1.4 범위 밖이다 — 인출 픽스처 3벌은 `OrderDraft` 새 required 키만 기계적으로 더했다(01 §14-15 · v1.5).
+🔴 `S7-5`(`WithdrawalPlan`) 는 v1.4 범위 밖이다 — 인출 픽스처 3벌은 `OrderDraft` 새 required 키만 기계적으로 더했다(01 §14-15 · 인출 규칙 결정 뒤 첫 minor).
 
 | # | 이름 | 뜻 · 위치 |
 |---|---|---|
@@ -316,7 +316,7 @@ R11(`S7-4` 투자금 플래너 → 카드 R11a · `S7-9` 목표 금액 경로 �
 | O-8 | `GoalPathVm` 재설계 · 🆕 `PerformanceRepository.goalPath({required String yyyyMm})` | 필드 = F-15 행 · `planned`·`actual` = `List<PerfPoint>`(같은 길이·`date`·`xNormalized` · 계획선 결측 0) · ❌ **`GoalPathPoint` 폐기**(`seriesCode` 도 없다 · C-39 ⑧) · 봉투 `lag_notice` → `deviationText` 승격 · `honestExpectationText`·`honestExpectationWorstText` = 세후 사다리 마지막 층을 인용하는 완성 문장(«`PerfDisclosure` 유일 운반처» 조문의 명시 예외 · 01 §14-10) · 🔴 `S7-9` 는 `ConfigRepository` 를 읽지 않는다(C-10 행) |
 | O-9 | C-4 **결정 뒤집기** | v1.0 «두 필드 · 화면이 동시에 그리지 않는다» → v1.4 **역할 고정**(`basisText` = 판정 근거 줄 · `backtestBasisText` = 가정 카드 1줄 · `startingCapitalAssumptionText` = 가정 카드 2줄) · 동시 금지 조문 **폐기**(03 §14 가정 카드 두 줄 요구가 이긴다 · 01 §14-10). 03 의 `contributionAssumptionText` 는 `startingCapitalAssumptionText` 로 읽는다(필드 신설 없음) |
 | O-10 | 🆕 `MonthlyReport.goalDeepLink`(`String?` · JSON `goal_deep_link`) · 🆕 `AppRoutes.reportGoalPath = 'aaq://report/goal/:yyyyMm'` | «목표 경로 보기» 버튼의 목적지 — null = 버튼 부재(과거 달·가림·미생성 달은 null 일 수 있다) · 화면은 해석·조립하지 않고 `AppLinkOpener.open` 에 그대로 · C-33 `_linkKeys` +`goal_deep_link` · `AppRoutes.all` **42**(01 §14-9) |
-| O-11 | `AppRoutes.planDeposit`(주석 개정) | operator 전용 화면(`package:ui_analytics/planner.dart` · 배럴 밖 · TARGETS T-4) — viewer 셸도 `all` 대로 등록하되 목적지 = «폰에서만 쓸 수 있습니다» 부재 안내(셸 몫 · 선례 J-3 `journalDraft` 의 iOS 셸 가드) · ⏸ `planWithdrawal` 은 v1.5 |
+| O-11 | `AppRoutes.planDeposit`(주석 개정) | operator 전용 화면(`package:ui_analytics/planner.dart` · 배럴 밖 · TARGETS T-4) — viewer 셸도 `all` 대로 등록하되 목적지 = «폰에서만 쓸 수 있습니다» 부재 안내(셸 몫 · 선례 J-3 `journalDraft` 의 iOS 셸 가드) · ⏸ `planWithdrawal` 은 인출 규칙 결정 뒤 첫 minor |
 | O-12 | 🆕 `PlannerReasonCodes.depositRouting`(`'DEPOSIT_ROUTING'`) · `.values` | 🆕 `labels/plan_codes.dart` · 사전 키 `planner_reason`(`ContractCodes.byDomain`) — 플래너 사유 칩 코드 · 거부 코드 사전은 01 §8 미결 74 · 🔴 플래너 사유 칩은 `label`·`tone` 만 · 탭 0(D20 · 미결 81) |
 | O-13 | 받침대(`lib/testing.dart`) | 🆕 `UnimplementedWhatIfApi`(5메서드 · 전부 `Future` 에러) · `UnimplementedPerformanceRepository.goalPath`(그 클래스 관행대로 동기 throw) · `UnimplementedCommandApi.registerDeposit`(시그니처 무변경 · 새 인자 주석) |
 | O-14 | 픽스처 7 · `FixturePaths` 상수 7 | `m7M7DepositPlanBlocked`·`m7M7DepositPlanInputRejected`·`m7M7DepositPlanFunding` · `m7M7DepositRegisterReceipts4` · `m7M7GoalPathOff` · `m9ContributionSettingDefault`·`m9ContributionSettingNoLimitNote` · `FixturePaths.all` **122** · 개정 16(입금 계획 3벌 행 타입 `DepositPlan` → `DepositPreviewResult` · `deposit_plan_1`·`deposit_plan_funding_1` · 목표 경로 3벌 · `m7_monthly_*` 5벌 · 인출 3벌 기계적) · 생성 = `packages/domain_contracts/tool/gen_r11_fixtures.py` · `m9/` 는 접두 없음 · 계좌 별칭 표 = `fixtures/README.md`(+ `test/contracts/support/fixture_accounts.dart`) |
@@ -324,9 +324,9 @@ R11(`S7-4` 투자금 플래너 → 카드 R11a · `S7-9` 목표 금액 경로 �
 | O-16 | 골든 하네스 | `chart_probe.dart` 에 `expectGoalPathMatches` **추가만**(기존 4종 불변) · 자체 검증 `test/golden/goal_path_probe_test.dart`(나쁜 painter 2종 — 보간 · 층 바꿈) · 본보기 `test/golden/reference/goal_path/`(`goal_path_chart_painter.dart`·`goal_path_chart.dart` — 화면 담당은 `lib/src/goal_path/` 로 diff 0 복사) · 함수 이름은 실물이 정본 |
 | O-17 | 권고(화면 쪽 · 카드가 확정) | 플래너 공개 위젯 `DepositPlannerScreen`(`planner.dart` export = 화면 · 프로바이더 파일) · 프로바이더 `plannerWhatIfApiProvider`·`plannerConfigRepositoryProvider`·`plannerCommandApiProvider`(throw 기본)·`plannerContributionSettingProvider` · 목표 경로 공개 위젯 `GoalPathScreen({required String yyyyMm})` · `S7-1` 버튼 `Key('s71-goal-link')` + 라벨 `goalPathDetailButton`(R11b 부록 커밋) · 키 접두 `s74-`·`s79-` · 골든 접두 `s74_`·`s79_` |
 
-🔴 **만들지 않은 이름**(재론 방지): `expiredText`(등록 차단은 `registerBlockedText` 하나) · `PlannerEntryVm`(플래너 진입 판정 창구 — D21 대안 기각 · 차단은 결과의 `blockedText`) · 입력 `DecimalStringConverter` 공인 · `GoalPathPoint`·`seriesCode` · `WithdrawalPreviewResult`·`WithdrawalStep`·`PensionPenaltyVm`·`AppRoutes.planWithdrawal`(v1.5 예정 모양 — 지금은 선언하지 않는다 · 01 §14-15) · 뷰어 골든 `s74_viewer`.
+🔴 **만들지 않은 이름**(재론 방지): `expiredText`(등록 차단은 `registerBlockedText` 하나) · `PlannerEntryVm`(플래너 진입 판정 창구 — D21 대안 기각 · 차단은 결과의 `blockedText`) · 입력 `DecimalStringConverter` 공인 · `GoalPathPoint`·`seriesCode` · `WithdrawalPreviewResult`·`WithdrawalStep`·`PensionPenaltyVm`·`AppRoutes.planWithdrawal`(인출 규칙 결정 뒤 첫 minor 예정 모양 — 지금은 선언하지 않는다 · 01 §14-15) · 뷰어 골든 `s74_viewer`.
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 🆕 미결 66(스텝 ④ 즉시/대기 비교) · 67(시나리오 로컬 저장) · 68(등록 뒤 M5 핸드오프) · 69(워터폴·배분비·슬리피지) ·
 70(비용 내역 문자열) · 71(advisory 표 제목 표본) · 72(M9 계좌 매핑 목적지) · 73(뷰어 플래너 미리보기) · 74(`DEPOSIT_REGISTER` 거부 코드 사전) ·
 75(금액이 든 실문장과 C-32 ⑥) · 76(핸드북 «기대치의 한계» 연결) · 77(`aftertax_ladder_1` 층 밀림 — R12 선행 → ✅ 2026-10-06 01 §15-1) · 78(C-32 ui 면·`check_labels` CI 편입) ·
-79(인출 규칙 정본 → v1.5) · 80(목표 금액 입력 설정 키) · 81(플래너 사유 칩의 핸드북 연결).
+79(인출 규칙 정본 → 인출 규칙 결정 뒤 첫 minor) · 80(목표 금액 입력 설정 키) · 81(플래너 사유 칩의 핸드북 연결).
