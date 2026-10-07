@@ -81,8 +81,12 @@ final RegExp _unreadPattern = RegExp(
 
 /// ⑩ 가드 — 플래너 DTO·창구를 말하는 `ui_analytics/lib` 파일은 플래너 대상 안에만 있어야 한다
 /// (🆕 검토 반영 · 대상 밖 경로에 같은 화면 코드를 두면 ⑩⑪ 이 공허 통과하는 구멍을 막는다).
+///
+/// 🆕 2026-10-07(01 §15-2 · 리뷰 2차 F05) — `OrderDraft` 는 뺐다. `DepositPlan`·`WithdrawalPlan`·
+/// `RebalancePreview` 가 함께 쓰는 공유 타입이라 R12 `S7-6c`(리밸런싱 미리보기)가 플래너 밖 파일에서
+/// 이 이름을 쓰면 거짓 양성이 된다. 플래너 파일의 원값 스캔([_unreadPattern])에는 그대로 있다.
 final RegExp _plannerMention = RegExp(
-  r'\b(DepositPreviewResult|DepositPlan|OrderDraft|DepositRegistration|'
+  r'\b(DepositPreviewResult|DepositPlan|DepositRegistration|'
   r'simulateDeposit|registerDeposit)\b',
 );
 
@@ -362,6 +366,8 @@ void main() {
           'lib/src/planner/a.dart': 'final DepositPlan p = r.plan!;\n',
           'lib/src/planner_steps/b.dart': 'void f(DepositPlan plan) {}\n',
           'lib/src/screens/c.dart': '// DepositPlan 은 플래너만 말한다\n',
+          // 🆕 공유 타입 `OrderDraft` 는 플래너 밖에서도 쓴다(R12 S7-6c · 01 §15-2).
+          'lib/src/rebalance/d.dart': 'void f(OrderDraft d) {}\n',
         }),
         <String>['lib/src/planner_steps/b.dart'],
       );
@@ -369,9 +375,9 @@ void main() {
         _plannerMentionsOutside(_uiAnalyticsLibSources()),
         isEmpty,
         reason:
-            '플래너 DTO·창구(`DepositPlan`·`DepositPreviewResult`·`OrderDraft`·`simulateDeposit`·'
+            '플래너 DTO·창구(`DepositPlan`·`DepositPreviewResult`·`DepositRegistration`·`simulateDeposit`·'
             '`registerDeposit`)를 말하는 파일은 `lib/planner.dart`·`lib/src/planner/**` 안에만 둔다 — '
-            '밖에 두면 ⑩⑪ 스캔이 그 파일을 보지 않는다(01 §14-17 · 03 §9 ⓑ).',
+            '밖에 두면 ⑩⑪ 스캔이 그 파일을 보지 않는다(01 §14-1 · 03 §9 ⓑ).',
       );
       // 🔴 대상 파일이 아직 없으면(R11a 전) 통과한다.
       expect(

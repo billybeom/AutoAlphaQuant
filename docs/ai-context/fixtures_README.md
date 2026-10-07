@@ -216,7 +216,7 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 🆕 **계약 v1.1 3건** — `m7_monthly_masked_integrity`(13항목 전부 「숨김 — 원장 무결성 점검 중」 · 상세 링크 0 · 13칸 유지) · `m7_monthly_masked_recon`(⑦ 비중만 `?` 미확정 표기 — 02 §2-2 표) · `m7_contrib_partial`(§8 미결 45 — C 슬리브 「산출 불가」 · `normalized: 0.0` · `unavailable_label`).
 🔵 같은 창에서 `m7_monthly_2026_08`·`_gap` 에 `generated_at_text`·`config_hash`·항목 `detail_deep_link`(④⑤→`S7-3` · ⑧→`S7-10`)가, `m7_monthly_pending` 에 `pending_notice_text` 가 들어갔다(봉투 형제 키 `pending_d_day_text` 는 **폐기** — §8 미결 40·41·43).
 
-`aftertax_ladder_1`(정본 갈래 5단 + 반사실 1 접힘 · `is_reference_only: true`) ·
+`aftertax_ladder_1`(정본 갈래 **6단**(사전 6층 전부) + 반사실 1(`CF_POT_TAXABLE_COMP38` 6단 · 접힘) · `is_reference_only: true` · 🆕 2026-10-06 01 §8 미결 77 정정 — 층 값은 골든 `aftertax_full_S7` 4자리 그대로(C-30 ⓙ 가 **골든 사본** `test/contracts/support/golden/aftertax_full_S7.json` 과 대조) · «정직 기대» 층만 `cagr_pct`·`end_mult` 없음) ·
 `realized_alloc_S7`(🔴 **C-31의 입력** — 회계 열 대조) · `ledger_trust_4` ·
 `execution_gap_cant`·`_wont`·`_mixed`(🔴 **B21 3갈래** — `mode_advice_line` 이 각각 다르다) · `execution_gap_1` ·
 `m7_deposit_plan_default`·`_limit`·`_expired`(🔴 이름에 금액 금지 · 🆕 v1.4 행 = `DepositPreviewResult` 래퍼) ·
@@ -356,6 +356,14 @@ R11a 골든(`s74_*`)과 M6 골든이 같은 티커를 다른 종목명으로 찍
 위 «`m7/` 48» · «`m9/` 3» 절의 v1.4 목록. 상수는 `FixturePaths.m7M7DepositPlanBlocked`·`…InputRejected`·`…Funding`·
 `m7M7DepositRegisterReceipts4`·`m7M7GoalPathOff`·`m9ContributionSettingDefault`·`m9ContributionSettingNoLimitNote` 7개다.
 
+### 🆕 정정 1건 (2026-10-06 · 01 §8 미결 77 · §15-1 · 계약 1.4.0 유지)
+
+| 파일 | 무엇이 바뀌었나 |
+|---|---|
+| `m7/aftertax_ladder_1.json` | 본문 `SPEC_POT_TAX_FREE` 5층(한 칸 밀림 · `WD_16P5` 없음) → **6층**(골든 `aftertax_full_S7.spec_pot_taxfree` 그대로 · `cagr_pct`·`end_mult` 4자리 · «정직 기대» 층은 두 필드 없음) · 반사실 `CF_POT_TAXABLE_FLAT` 2층 → **`CF_POT_TAXABLE_COMP38` 6층**(02_전략 ㉒ 의 «최악») · 인출 층 `note_line` 에 환급(명목·재투자) 문장 · `meta` 불변(선례) |
+
+🔴 **골든 사본** `test/contracts/support/golden/aftertax_full_S7.json` 이 함께 들어왔다 — 설계 저장소 `09_백테스트/백테스트6/runs/N2_golden/golden_p0s.json` 의 같은 이름 블록을 글자 그대로 복사한 데이터 파일이고, C-30 ⓙ 가 픽스처의 대조 값을 이 사본과 맞댄다. 정본이 바뀌면 사본을 다시 복사한다(01 §15-1). 픽스처·골든 밖(코드·라벨·주석)에 4자리 수치를 옮기지 않는 규칙은 그대로다.
+
 ### 🔴 픽스처 계좌 별칭 표 (정본 · 설계 D9 ⑧)
 
 | 축 | 별칭 |
@@ -432,7 +440,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r11_fixtures
 - `test/` 의 계약 회귀 C-1~C-37 — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.
 
-## 부록 — 실제 픽스처 파일 목록 (122개, 2026-09-30 실측)
+## 부록 — 실제 픽스처 파일 목록 (122개, 2026-10-06 실측)
 
 경로 기준 `packages/domain_contracts/fixtures/`. 이 목록은 조립 시점의 실물이며, 명세가 부르는 파일명과 다르면 **실물이 맞습니다**.
 
@@ -503,7 +511,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r11_fixtures
 
 | 파일 | 바이트 |
 |---|---:|
-| `m7/aftertax_ladder_1.json` | 2,965 |
+| `m7/aftertax_ladder_1.json` | 4,526 |
 | `m7/execution_gap_1.json` | 1,801 |
 | `m7/execution_gap_cant.json` | 2,062 |
 | `m7/execution_gap_mixed.json` | 2,343 |
@@ -583,4 +591,4 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r11_fixtures
 | `m9/contribution_setting_no_limit_note.json` | 1,068 |
 | `m9/handover_states.json` | 5,203 |
 
-**합계 122개 · 519,226 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
+**합계 122개 · 520,787 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
