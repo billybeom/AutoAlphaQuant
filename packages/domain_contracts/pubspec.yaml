@@ -33,6 +33,11 @@ dependencies:
 # 🔴 알파벳 순서를 지킬 것 — 루트 analysis_options.yaml의 sort_pub_dependencies가
 #    켜져 있고 melos analyze는 --fatal-infos라 순서가 어긋나면 **분석이 실패**한다.
 dev_dependencies:
+  # 🔴 2026-10-07 CI 고장 — analyzer 14.5.0 이 `AnalysisOptionsImpl.contextFeatures` 세터를 없애
+  #    build_runner 2.16.1(최신)의 코드 생성이 컴파일 단계에서 죽는다(라이브러리 패키지는 lock 을
+  #    커밋하지 않아 CI 가 매번 최신을 받는다). build_runner 가 고쳐질 때까지 analyzer 를 14.5 미만으로
+  #    묶는다 — 고쳐진 판이 나오면 이 줄을 지운다(docs/toolchain_notes.md).
+  analyzer: '>=14.0.0 <14.5.0'
   # melos run build:gen이 dependsOn: build_runner로 이 패키지를 고른다.
   # ⚠️ 2.16.x에서 `--delete-conflicting-outputs`가 **제거**됐다(무시되고 경고만 뜬다).
   #    melos.yaml build:gen의 그 플래그는 지워도 된다 — docs/toolchain_notes.md §5.
