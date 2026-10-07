@@ -9,6 +9,11 @@
 #   [4] 🟡 경고: ui_* 의 lib/l10n/labels.dart 밖에서 한국어 «문자열 리터럴»이
 #              발견되는가 (사유 문구 생성 후보 — 사람이 봐야 판정 가능)
 #   [5] 🔴 실패: ui_* 의 lib/ 코드 줄에 링크 리터럴(`aaq://`·`handbook://`)이 있는가 (01 §4-4 · 계약 v1.1)
+#   [5b] 🔴 실패: ui_* 의 lib/ 코드 줄이 **파라미터 라우트 상수**(`AppRoutes.*` 중 값에 `/:` 가 든 것)를
+#              참조하는가 — 패턴에 값을 끼워 링크를 조립하는 길(규칙 ③). 목록은 app_links.dart 에서 뽑는다
+#              (🆕 계약 v1.5 · 01 §15-3)
+#   [5c] 🔴 실패: ui_* 의 test/ Dart 코드 줄에 링크 리터럴이 있는가 — 테스트도 링크를 픽스처 값으로
+#              비교한다(02 §3-1 ⓕ 의 기계화 · 🆕 계약 v1.5 · 01 §15-3)
 #   [6] (예약) viewer(iOS) 의 `package:ui_journal/journal_draft.dart` import 0건 — docs/TARGETS.md T-3
 #              (조립 앱 배선 때 더한다 · 번호만 잡아 둔다)
 #   [7] 🔴 실패: viewer 조립 앱(apps/app_viewer_*/lib)이 `package:ui_analytics/planner.dart` 를
@@ -148,6 +153,51 @@ for pkg in $UI_PKGS; do
          || true)
   if [ -n "$hits" ]; then
     fail "[§4-4] $(basename "$pkg"): 화면 코드에 링크 리터럴이 있다 — 링크는 DTO 가 준 값을 AppLinkOpener 에 그대로 넘긴다:"
+    printf '     %s\n' "$hits" | head -20
+  fi
+done
+
+# ── [5b] 파라미터 라우트 상수 (🆕 계약 v1.5 · 01 §15-3 · 01 §4-4 규칙 ③) ─────────
+# 🔴 [5] 는 리터럴만 잡는다 — `AppRoutes.journalDecision.replaceAll(':decisionId', id)` 처럼 **상수로**
+#    링크를 조립하면 [5] 를 지난다. 파라미터가 든 링크는 언제나 엔진이 완성해서 주므로 화면 코드가
+#    파라미터 라우트 상수를 참조할 이유가 없다(고정 목적지 상수는 규칙 ④ 대로 허용 — 여기서 보지 않는다).
+#    목록은 손으로 적지 않는다 — app_links.dart 에서 값에 `/:` 가 든 상수 이름을 뽑는다.
+#    뽑힌 이름이 0 이면 경로가 낡은 것이다(검사가 공허하게 통과하지 않게 실패시킨다).
+ROUTES_FILE='packages/domain_contracts/lib/src/navigation/app_links.dart'
+if [ -f "$ROUTES_FILE" ]; then
+  PARAM_ROUTES=$(tr '\n' ' ' < "$ROUTES_FILE" \
+                 | grep -oE "static const String [A-Za-z0-9_]+ =[[:space:]]*'aaq://[^']*/:[^']*'" \
+                 | sed -E 's/static const String ([A-Za-z0-9_]+).*/\1/' \
+                 | paste -sd'|' -)
+else
+  PARAM_ROUTES=''
+fi
+if [ -z "$PARAM_ROUTES" ]; then
+  fail "[5b] $ROUTES_FILE 에서 파라미터 라우트 상수를 하나도 뽑지 못했다 — 경로나 선언 모양이 바뀌었다(검사가 공허해진다)."
+else
+  for pkg in $UI_PKGS; do
+    [ -d "$pkg/lib" ] || continue
+    hits=$(grep -rnE "AppRoutes\.($PARAM_ROUTES)\b" "$pkg/lib" 2>/dev/null \
+           | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|///|\*)' \
+           || true)
+    if [ -n "$hits" ]; then
+      fail "[5b] $(basename "$pkg"): 화면 코드가 파라미터 라우트 상수를 참조한다 — 파라미터가 든 링크는 엔진이 완성해서 준다(01 §4-4 규칙 ③):"
+      printf '     %s\n' "$hits" | head -20
+    fi
+  done
+fi
+
+# ── [5c] 테스트의 링크 리터럴 (🆕 계약 v1.5 · 01 §15-3 · 02 §3-1 ⓕ) ───────────────
+# 🔴 화면 테스트는 링크를 **픽스처 값**과 비교한다(`RecordingLinkOpener.opened` == 픽스처의 deep_link).
+#    테스트에 `'aaq://…'` 를 적으면 계약(픽스처)과 갈라진 기대값이 생긴다. `.dart` 의 코드 줄만 본다
+#    (골든 README 같은 설명문·주석 줄은 건너뛴다).
+for pkg in $UI_PKGS; do
+  [ -d "$pkg/test" ] || continue
+  hits=$(grep -rnE --include='*.dart' "$LINK_RE" "$pkg/test" 2>/dev/null \
+         | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|///|\*)' \
+         || true)
+  if [ -n "$hits" ]; then
+    fail "[5c] $(basename "$pkg"): 테스트 코드에 링크 리터럴이 있다 — 링크는 픽스처 값으로 비교한다(02 §3-1 ⓕ):"
     printf '     %s\n' "$hits" | head -20
   fi
 done

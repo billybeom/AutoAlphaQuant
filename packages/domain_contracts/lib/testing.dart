@@ -21,6 +21,8 @@
 //   🆕 계약 v1.4 R11 선행(2026-09-30) — `UnimplementedWhatIfApi`(미리보기 5종 · 전부 `Future` 에러) ·
 //   `UnimplementedPerformanceRepository.goalPath` · `UnimplementedCommandApi.registerDeposit` 는
 //   새 인자(`DepositRegistration(planId:)` 하나)를 받는다(시그니처 무변경).
+//   🆕 계약 v1.5 R12 선행(01 §15-3) — `UnimplementedRebalanceRepository`(리밸런싱 읽기 창구 ·
+//   R12 `S7-6a/b/c` 가짜의 받침대 — 그전까지 이 받침대가 없어 `implements` 가 강요됐다).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -29,6 +31,16 @@
 import 'package:decimal/decimal.dart';
 
 import 'domain_contracts.dart';
+
+/// [RebalanceRepository] 받침대 — 필요한 메서드만 override 한다(🆕 계약 v1.5 · 01 §15-3).
+class UnimplementedRebalanceRepository implements RebalanceRepository {
+  @override
+  Stream<List<RebalanceEvent>> watchEvents(DateRange r) =>
+      throw UnimplementedError('watchEvents');
+
+  @override
+  Stream<NextRebalanceVm> watchNext() => throw UnimplementedError('watchNext');
+}
 
 /// [JournalRepository] 받침대 — 필요한 메서드만 override 한다.
 class UnimplementedJournalRepository implements JournalRepository {

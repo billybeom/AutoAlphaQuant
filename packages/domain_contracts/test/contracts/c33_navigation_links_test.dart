@@ -153,6 +153,80 @@ void main() {
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);
     });
 
+    test('C-33 ⑦ 선언 순서 — 각 패턴의 표본이 처음 일치하는 패턴은 그 자신이다', () {
+      // 🆕 v1.5(01 §15-3) — «고정 세그먼트가 파라미터보다 먼저 일치한다»(app_links.dart `AppRoutes` 머리)는
+      //    `all` 의 **선언 순서**에만 기대고 있었다. 셸은 같은 순서로 디스패치하므로 순서가 틀리면
+      //    `aaq://report/archive` 가 `report/:yyyyMm` 화면으로 간다. 그 실수를 기계로 막는다.
+      // 🔴 «정확히 하나와 일치»가 아니다 — `report/archive`·`aftertax`·`annual` 표본은 `report/:yyyyMm`
+      //    에도 일치한다(설계대로). 첫 일치가 자기 자신이면 된다.
+      // `_matches` 는 private 이라 같은 규칙을 여기서 재현하고, 먼저 `isRegistered` 와 같은지 확인한다.
+      bool matches(String pattern, String link) {
+        final List<String> p = pattern.split('/');
+        final List<String> l = link.split('/');
+        if (p.length != l.length) {
+          return false;
+        }
+        for (int i = 0; i < p.length; i++) {
+          if (p[i].startsWith(':')) {
+            if (l[i].isEmpty || l[i].contains('?') || l[i].contains('#')) {
+              return false;
+            }
+          } else if (p[i] != l[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      // 고정 세그먼트로 쓰이지 않는 더미 값.
+      const String dummy = 'zz_sample_1';
+      String sampleOf(String pattern) => pattern
+          .split('/')
+          .map((String seg) => seg.startsWith(':') ? dummy : seg)
+          .join('/');
+
+      for (final String pattern in AppRoutes.all) {
+        final String sample = sampleOf(pattern);
+        expect(
+          AppRoutes.isRegistered(sample),
+          isTrue,
+          reason: '표본 $sample 이 등록되지 않았다 — 재현 규칙이 실물과 갈라졌다.',
+        );
+        expect(
+          AppRoutes.all.where((String p) => matches(p, sample)),
+          isNotEmpty,
+          reason: '재현 규칙이 $sample 을 놓친다.',
+        );
+        final String first = AppRoutes.all.firstWhere(
+          (String p) => matches(p, sample),
+        );
+        expect(
+          first,
+          pattern,
+          reason:
+              '$sample 이 먼저 $first 와 일치한다 — 고정 세그먼트 패턴을 `all` 에서 파라미터 패턴보다 '
+              '앞에 둔다(셸 디스패치 순서 · 01 §15-3).',
+        );
+      }
+      // 재현 규칙이 ④ 의 예시와도 같은 답을 내는지(거짓 일치·거짓 불일치 0).
+      const List<String> probes = <String>[
+        'aaq://journal/decision/d_1',
+        'aaq://journal/decision/',
+        'aaq://journal/decision/d_1?x=1',
+        'aaq://report/2026-08',
+        'aaq://report/archive',
+        'aaq://report/goal/2026-08/x',
+        'aaq://nowhere',
+      ];
+      for (final String probe in probes) {
+        expect(
+          AppRoutes.all.any((String p) => matches(p, probe)),
+          AppRoutes.isRegistered(probe),
+          reason: probe,
+        );
+      }
+    });
+
     test('C-33 ⑤ 동작 링크는 목적지 목록과 겹치지 않는다', () {
       expect(AppNavActions.all, isNotEmpty);
       expect(AppNavActions.all, contains(AppNavActions.back));
