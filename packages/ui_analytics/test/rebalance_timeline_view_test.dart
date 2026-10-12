@@ -448,6 +448,7 @@ void main() {
       multiLine: true,
     ).allMatches(source).map((RegExpMatch m) => m.group(1)!).toList();
     for (final String path in <String>[
+      'src/screens/rebalance_event_screen.dart',
       'src/screens/rebalance_timeline_screen.dart',
     ]) {
       expect(exports.where((String e) => e == path), hasLength(1));
