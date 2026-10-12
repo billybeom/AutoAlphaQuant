@@ -368,3 +368,37 @@ expectGoalPathMatches(recording, path, scheme);
 
 R10 절 §4 표의 🆕 v1.4 두 행대로 `reference/goal_path/` → `lib/src/goal_path/` 로 **diff 0** 복사한다. `GoalPathChart` 의 짜임은 `PerfChart` 와 같다 — 상자 220 → 위아래 12 → [ 눈금 글자 열 56 · 빈칸 8 · 그림 ] · 눈금 글자 Key `'s79-tick-$i'` · 그림 왼쪽 변 = `GoalPathChart.plotInsetLeft`(64).
 🔵 M2 실측(2026-09-30): 두 파일을 `lib/src/goal_path/` 로 임시 복사해 `git diff --no-index --stat` 차이 0 · `flutter analyze lib` 0 · 계약 C-3·C-4·C-5·C-10·C-12·C-36·C-38·C-39 통과 · `check_labels.sh` 위반 없음 · `check_boundaries.sh` 실패 0 을 본 뒤 지웠다.
+
+## 🆕 R12(계약 v1.6) — `S7-6a` · `S7-6b` · `S7-6c` · `S7-7` · `S7-10` (2026-10-08 조립 · 2026-10-12 기록 · 누적 드라이런 실측 R12a `7f72538` · R12b `a62f783` · R12c `78189b0` · R12d `2edba9a`)
+
+정본: 01 §15-4(15-4-7 · 15-4-9 · 15-4-18) · 03 §11·§12·§14-b 의 «🆕 계약 v1.6 — R12 범위» 블록 · 설계 저장소 `10_리뷰/2026-10-08_R12선행_계약v1.6_설계서.md` §3-5(골든 ↔ 입력 — 22이름 × light/dark = **44 PNG**). 이 절은 **골든**만 말한다.
+카드는 나눠 간다(순서 고정 · 앞 카드 병합 뒤 다음 카드): **R12a-Bob-S76ab**(`S7-6a`·`S7-6b`) → **R12b-Bob-S76c**(`S7-6c`) → **R12c-Bob-S77**(`S7-7`) → **R12d-Bob-S710**(`S7-10`). `S7-8` 은 R12 밖이다 — 여기에 골든을 적지 않는다.
+
+### 1. 골든 이름 (✅ 높이·입력 = 누적 드라이런 실측 · 카드 «■ 골든» 절과 같은 말)
+
+| 카드 | 이름 | 장수 | 테스트 파일 | 입력 · 크기 |
+|---|---|---|---|---|
+| R12a | `s76a_list` · `s76a_empty` · `s76a_sim` · `s76b_band` · `s76b_seasonal` · `s76b_advisory` | 6 × light/dark = **12** | `s76ab_golden_test.dart` | `s76a_list` = `rebalance_6.json`(6행 내림차순) · `s76a_empty` = `m7/m7_rebalance_empty.json` · `s76a_sim` = `m7/m7_rebalance_sim.json` · `s76b_band` = `m7/m7_rebalance_detail_band.json` · `s76b_seasonal` = `rebalance_6.json` 의 `re_20261030_01`(`rebalance6Event(kSeasonalEventId)`) · `s76b_advisory` = `m7/m7_rebalance_detail_advisory.json` · 스냅샷 접힌 채 · 안전 행 0 · 시계 `FixedClock(kGoldenNowUtc)` · 크기 390 × **960**(상수 `kS76abGoldenSize = Size(390, 960)` · 기본 폰 높이 844 로는 모자란다 · `kGoldenPhoneSize` 불변) |
+| R12b | `s76c_countdown` · `s76c_none` · `s76c_preview` · `s76c_draft_empty` · `s76c_blocked` | 5 × light/dark = **10** | `s76c_golden_test.dart` | `s76c_countdown` = `m7/m7_next_rebalance_countdown.json`(탭 없음 · 버튼 있음) · `s76c_none` = `m7/m7_next_rebalance_none.json` · `s76c_preview` = countdown + 탭 → `m7/m7_rebalance_preview_default.json` · `s76c_draft_empty` = countdown + 탭 → `m7/m7_rebalance_preview_in_band.json` · `s76c_blocked` = countdown + 탭 → `m7/m7_rebalance_preview_blocked.json` 행 0 · 안전 행 0(`s76c_blocked` 만 `safety_states` 행 **4** = LEDGER_INTEGRITY) · 시계 `FixedClock(kGoldenNowUtc)` · 크기 390 × **844**(상수 `kS76cGoldenSize = Size(390, 844)`) |
+| R12c | `s77_december` · `s77_first_year` · `s77_offwindow` · `s77_aftertax_ladder_spec` · `s77_aftertax_ladder_cf` | 5 × light/dark = **10** | `s77_golden_test.dart` | `s77_december` = `m7M7Annual2026` · `s77_first_year` = `m7M7AnnualFirstYear` · `s77_offwindow` = `m7M7AnnualOffwindow`(화면 전체 · 반사실 접힘) · `s77_aftertax_ladder_spec` = `m7M7Annual2026` 세후 블록 영역(반사실 접힘) · `s77_aftertax_ladder_cf` = `m7M7Annual2026` 세후 블록 영역(`s77-cf-toggle` 1회 탭 = 반사실 펼침) · 게이트 없음 · 안전 행 0 · 시계 `kGoldenNowUtc` · 크기 390 × **1440**(상수 `kS77GoldenSize = Size(390, 1440)` · 다섯 이름이 같은 상수) · 🔵 **영역 2이름** = `matchesGoldenFile` 를 `Key('s77-aftertax')` Finder 에 건다(ListView 직접 자식 RepaintBoundary) · `m7/aftertax_ladder_1` 은 읽지 않는다(C-30 전용) |
+| R12d | `s710_cant` · `s710_wont` · `s710_mixed` · `s710_empty` · `s710_not_applicable` · `s710_masked_recon` | 6 × light/dark = **12** | `s710_golden_test.dart` | `m7/execution_gap_cant.json` · `_wont` · `_mixed`(제안 줄 부재) · `_empty`(문장 카드 하나) · `_not_applicable`(문장 카드 하나) · `_masked_recon`(배너 + «?» 글자 · 게이지 부재) · 모두 `const ExecutionGapScreen()`(`yyyyMm` 없이) · 안전 행 0(`s710_masked_recon` 만 `safety_states` 행 **3**) · 시계 `FixedClock(kGoldenNowUtc)` · 크기 390 × **844**(상수 `kS710GoldenSize = Size(390, 844)`) · `m7ExecutionGap1` 은 위젯 테스트 전용(골든 없음) |
+
+- 🔴 **만들지 않는 골든**(01 §8 미결 87): 입력 없는 골든 `s76b_missing_snapshot`(실을 필드가 없다) · `S7-6c` 차단 행 1(재개 미완 차단 + 버튼 표본 — `safety_states` 에 RESUME_INCOMPLETE 행이 없어 «재개 미완 차단 + 플래그 0» 이 굳는다 · 위젯 테스트 T76c-07·15·18 전용).
+- 기존 PNG 불변 수(카드가 받는 장수 · 전부 M 0): R12a 에게 **64장** → R12b 에게 **76장**(64 + `s76a_*`·`s76b_*` 12) → R12c 에게 **86장**(+ `s76c_*` 10) → R12d 에게 **96장**(+ `s77_*` 10) · R12d 병합 뒤 108장. 재생성 허용 목록 = 없음(R12 네 장 모두 `--update-goldens` 는 그 카드의 골든 테스트 파일 하나만).
+- 높이는 테스트 파일 안 상수 · 찍기 **전에** «맨 아래 위젯 dy < 높이»를 단언한다(R10 §2 와 같다). 모양 = `s79_golden_test.dart` 처럼 (이름, 입력) 목록 × `Brightness.values` 루프 · 테스트 이름 `'$name ${brightnessSuffix(b)}'`.
+- 맨 아래 위젯(위치 전제):
+  - R12a — `S7-6a` = 하단 기준일 `find.text(page.asOf.label)` · `S7-6b` = `Key('s76b-asof')`.
+  - R12b — `s76c_countdown` = `Key('s76c-preview-button')` · `s76c_none` = `Key('s76c-asof')` · `s76c_preview`·`s76c_draft_empty` = `Key('s76c-draft-asof')` · `s76c_blocked` = `Key('s76c-blocked')`.
+  - R12c — 화면 전체 3이름 = `Key('s77-asof')` · 영역 2이름 = `Key('s77-aftertax')`.
+  - R12d — 여섯 이름 모두 `Key('s710-asof')`(빈 갈래도 같다).
+  ```dart
+  expect(tester.getBottomLeft(find.text(page.asOf.label)).dy, lessThan(kS76abGoldenSize.height));               // S7-6a
+  expect(tester.getBottomLeft(find.byKey(const Key('s76b-asof'))).dy, lessThan(kS76abGoldenSize.height));     // S7-6b
+  expect(tester.getBottomLeft(find.byKey(Key(bottomKey))).dy, lessThan(kS76cGoldenSize.height));              // S7-6c — 위 표의 Key
+  expect(tester.getBottomLeft(find.byKey(const Key('s77-asof'))).dy, lessThan(kS77GoldenSize.height));        // S7-7 화면 전체
+  expect(tester.getBottomLeft(find.byKey(const Key('s77-aftertax'))).dy, lessThan(kS77GoldenSize.height));    // S7-7 영역
+  await expectLater(find.byKey(const Key('s77-aftertax')), matchesGoldenFile('goldens/s77_aftertax_ladder_spec_${brightnessSuffix(b)}.png'));
+  expect(tester.getBottomLeft(find.byKey(const Key('s710-asof'))).dy, lessThan(kS710GoldenSize.height));      // S7-10
+  ```
+- 드라이런 실측 dy(light=dark · 이름·밝기마다 `lessThan(0)` 임시 수정으로 잼 · 참고값 — 병합본 실측 줄은 C4 기록 커밋에서): `s76a_list` **848** · `s76a_empty` **120** · `s76a_sim` **324** · `s76b_band` **892** · `s76b_seasonal` **692** · `s76b_advisory` **892**(< 960) · `s76c_countdown` **224** · `s76c_none` **64** · `s76c_preview` **752** · `s76c_draft_empty` **596** · `s76c_blocked` **377**(< 844) · `s77_december` **1320** · `s77_first_year` **1252** · `s77_offwindow` **1340** · `s77_aftertax_ladder_spec` **812** · `s77_aftertax_ladder_cf` **1400**(< 1440 · 영역 PNG = spec 358×724 · cf 358×1312) · `s710_cant` **609** · `s710_wont` **623** · `s710_mixed` **685** · `s710_empty` **112** · `s710_not_applicable` **152** · `s710_masked_recon` **574**(< 844).
+- 명령(packages/ui_analytics 에서 · 카드마다 그 파일 하나): `flutter test --update-goldens test/golden/s76ab_golden_test.dart` · `… s76c_golden_test.dart` · `… s77_golden_test.dart` · `… s710_golden_test.dart` → 옵션 없이 `flutter test` 전부 통과 · 🔴 다른 골든 테스트 파일·폴더를 넣지 않는다.
