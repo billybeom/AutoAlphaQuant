@@ -221,9 +221,14 @@ abstract class AfterTaxLadder with _$AfterTaxLadder {
 
     /// 🔴 §8-18 확정 전에는 **항상 true**(골든 참고치이지 실계좌 산출이 아니다).
     /// 🔴 SIM 에서도 이 라벨을 유지한다(01 §9-4).
+    /// 🔴 화면 미참조(C-42) — 표지는 [referenceOnlyLabel] 이 말한다.
     required bool isReferenceOnly,
-    required String configHash,
-    required AsOf asOf,
+
+    /// 🆕 v1.6 — «골든 참고치입니다. 실계좌로 산출한 값이 아닙니다» — 엔진 문장.
+    /// 🔴 non-null ⇔ [isReferenceOnly](C-41 ⑦) · SIM 에서도 같다(01 §9-4) · 화면 = [basisNote] 다음 줄 그대로.
+    String? referenceOnlyLabel,
+    required String configHash, // S7-7 미표시
+    required AsOf asOf, // S7-7 미표시(하단은 `AnnualReviewVm.asOf` 하나)
   }) = _AfterTaxLadder;
 
   factory AfterTaxLadder.fromJson(Map<String, dynamic> json) =>
@@ -453,14 +458,27 @@ abstract class ContributionRow with _$ContributionRow {
 /// 01 §2-6 · m2-8 F-6 — 연간 리뷰(`S7-7`). 🔴 **묶음이지 재집계가 아니다** —
 /// 화면이 `windowState` 를 «달»로 판정하지 않는다.
 /// 🔴 세후는 `AfterTaxLadder` 를 그대로 실어 나르고 재계산하지 않는다(M1-20b).
+/// 🆕 v1.6(01 §15-4) — `yearLabel` · 세후 두 갈래 `afterTax`·`afterTaxCounterfactual`(VM 최상위).
 @freezed
 abstract class AnnualReviewVm with _$AnnualReviewVm {
   const factory AnnualReviewVm({
-    required String year,
-    required String windowStateCode,
-    required String windowStateLabel,
+    required String year, // 🔴 ui 미참조(C-42) — 표시는 [yearLabel]
+    /// 🆕 v1.6(K24 · 비평 #9) — «2026년 연간 리뷰» — 엔진 생성 · 상단 첫 줄. 기본 연도를 엔진이 고르므로
+    /// 어느 해인지 말하는 **유일한 글자**다(C-41 ⑥ — 비지 않음 ∧ [year] 를 품는다).
+    required String yearLabel,
+    required String windowStateCode, // 🔴 ui 미참조(C-42) — 표시는 [windowStateLabel]
+    required String windowStateLabel, // 상단 고정 1줄
     required List<AnnualReviewSection> sections,
     required AsOf asOf,
+
+    /// 🆕 v1.6 — 세후 사다리 본문 갈래(«묶음은 엔진» · `WithdrawalPlan.afterTax` 이름 선례). null = 블록 부재.
+    /// 🔴 같은 타입을 받는 M9 `S12`(`OpsStatusRepository.watchAnnualReview`) 창구는 이 필드와
+    ///    [afterTaxCounterfactual] 을 **null** 로 준다(K25 · 결정 8 · §8 미결 95 · 아래 ⑦-b).
+    AfterTaxLadder? afterTax,
+
+    /// 🆕 v1.6 — 반사실 갈래. 🔴 non-null ⇒ [afterTax] non-null(C-41 ⑥) · 화면 = **늘 기본 접힘** 카드
+    /// (접힘 값은 DTO 에 두지 않는다 — 봉투 형제 키 `counterfactual_collapsed` 는 C-30 대조 전용).
+    AfterTaxLadder? afterTaxCounterfactual,
   }) = _AnnualReviewVm;
 
   factory AnnualReviewVm.fromJson(Map<String, dynamic> json) =>
@@ -471,7 +489,7 @@ abstract class AnnualReviewVm with _$AnnualReviewVm {
 @freezed
 abstract class AnnualReviewSection with _$AnnualReviewSection {
   const factory AnnualReviewSection({
-    required String code,
+    required String code, // 🔴 ui 미참조(C-42)
     required String title,
     required List<String> lines,
     String? route,

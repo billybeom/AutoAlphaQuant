@@ -8,6 +8,10 @@
 // 🔴 「안내대로 했으면 얼마 벌었을 텐데」는 반사실이고, 그것을 금액으로 그리는 순간
 //    결정 8(홈에 손익을 두지 않는다)이 옆문으로 무너진다. 그래서 이행 갭은 **가격
 //    괴리 bp** 로만 말한다.
+// 🆕 v1.6(01 §15-4) — 행 = `ExecutionGapResult` 래퍼(report | 빈·해당없음 문장). ① 대상 4 → 7(빈·
+//    해당없음·가림 3벌 — 문자열 수집이라 래퍼 그대로) · ② 대상 = `report` 를 싣는 5벌(경로
+//    `report.price_gap_label`) · ③ B21 3갈래 = «못 함·안 함 문장은 있고 서로 다르다 · 섞임 = 줄 부재(null)»
+//    (03 §14-b ⓒ «빈 줄을 자리표시자로 채우지 않는다» · K6).
 
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
@@ -23,7 +27,23 @@ const List<String> _gapFixtures = <String>[
   FixturePaths.m7ExecutionGapCant,
   FixturePaths.m7ExecutionGapWont,
   FixturePaths.m7ExecutionGapMixed,
+  // 🆕 v1.6 — 빈·해당없음·가림.
+  FixturePaths.m7ExecutionGapEmpty,
+  FixturePaths.m7ExecutionGapNotApplicable,
+  FixturePaths.m7ExecutionGapMaskedRecon,
 ];
+
+/// 🆕 v1.6 — `report` 를 싣는 5벌(가격 괴리 문장이 있는 것).
+const List<String> _reportFixtures = <String>[
+  FixturePaths.m7ExecutionGap1,
+  FixturePaths.m7ExecutionGapCant,
+  FixturePaths.m7ExecutionGapWont,
+  FixturePaths.m7ExecutionGapMixed,
+  FixturePaths.m7ExecutionGapMaskedRecon,
+];
+
+Map<String, Object?> _report(String path) =>
+    fixtureRows(path).single['report']! as Map<String, Object?>;
 
 void main() {
   group('C-25 X7 이행 갭 손익 0 (01 §7 · 03 §3)', () {
@@ -43,24 +63,22 @@ void main() {
     });
 
     test('C-25 ② 가격 괴리는 bp 로 말한다', () {
-      for (final String path in _gapFixtures) {
-        final Map<String, Object?> row = fixtureRows(path).single;
+      for (final String path in _reportFixtures) {
         expect(
-          row['price_gap_label'],
+          _report(path)['price_gap_label'],
           contains('bp'),
           reason: '$path — 가격 괴리 단위가 bp 가 아니다.',
         );
       }
     });
 
-    test('C-25 ③ 세 갈래(못 함·안 함·섞임)의 문구가 서로 다르다 (B21)', () {
+    test('C-25 ③ 세 갈래 — 못 함·안 함은 문장이 있고 서로 다르며 섞임은 줄이 없다 (B21)', () {
       final List<String> lines =
           <String>[
             FixturePaths.m7ExecutionGapCant,
             FixturePaths.m7ExecutionGapWont,
-            FixturePaths.m7ExecutionGapMixed,
           ].map((String path) {
-            final Object? line = fixtureRows(path).single['mode_advice_line'];
+            final Object? line = _report(path)['mode_advice_line'];
             expect(line, isA<String>(), reason: '$path — modeAdviceLine 이 없다.');
             return line! as String;
           }).toList();
@@ -68,7 +86,13 @@ void main() {
       expect(
         lines.toSet().length,
         lines.length,
-        reason: '세 갈래가 같은 문장을 쓰면 「못 한 것」과 「안 한 것」이 구별되지 않는다.',
+        reason: '두 갈래가 같은 문장을 쓰면 「못 한 것」과 「안 한 것」이 구별되지 않는다.',
+      );
+      // ⓒ 갈리지 않음 = 줄 부재 — 빈 줄을 자리표시자로 채우지 않는다(03 §14-b · K6).
+      expect(
+        _report(FixturePaths.m7ExecutionGapMixed)['mode_advice_line'],
+        isNull,
+        reason: '섞인 달에 제안 줄이 있으면 화면이 «중립 서술»을 그리게 된다(03 §14-b ⓒ).',
       );
     });
 
@@ -91,7 +115,7 @@ void main() {
     });
 
     test(
-      'C-25 ⑤ S7-10 골든에 금액 리터럴 0건 · S7-1 13항목 골든 대조',
+      'C-25 ⑤ (R12 밖) S7-1 13항목 골든 대조 — S7-10 금액 리터럴은 C-42 ⑦',
       () {},
       skip: '골든 파일(`*.golden.json`)이 선행한다(인벤토리 §9 C-25 = 🔵).',
     );

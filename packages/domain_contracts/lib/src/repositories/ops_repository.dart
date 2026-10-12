@@ -28,6 +28,9 @@ abstract interface class OpsStatusRepository {
   Stream<DiagnosticsVm> watchDiagnostics();
 
   /// `S12` — 🔴 화면이 `windowState` 를 «달»로 판정하지 않는다.
+  /// 🆕 v1.6(01 §15-4 · K25 · 결정 8 · §8 미결 95) — 이 창구의 `AnnualReviewVm` 은 `afterTax`·
+  ///    `afterTaxCounterfactual` 을 **null** 로 준다(엔진 의무 · 06 M1-20b) — 세후 수치는 M7 `S7-7`
+  ///    (`PerformanceRepository.annualReview`) 한 자리에만 간다. `S12` 의 표시 범위는 미결 95.
   Stream<AnnualReviewVm> watchAnnualReview();
 }
 

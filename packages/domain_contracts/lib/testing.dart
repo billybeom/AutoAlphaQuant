@@ -24,6 +24,12 @@
 //   🆕 계약 v1.5 R12 선행(01 §15-3) — `UnimplementedRebalanceRepository`(리밸런싱 읽기 창구 ·
 //   R12 `S7-6a/b/c` 가짜의 받침대 — 그전까지 이 받침대가 없어 `implements` 가 강요됐다) ·
 //   `watchEvents` 봉투(`ListResult`) · `watchEvent`(회차 1건) · `UnimplementedJournalRepository.watchRebalanceScope`.
+//   🆕 계약 v1.6 R12 선행(01 §15-4) — `UnimplementedExecutionGapRepository`(이행 갭 읽기 창구 ·
+//   R12 `S7-10` 가짜의 받침대 · `monthly({String? yyyyMm})` → `ExecutionGapResult`) ·
+//   `UnimplementedRebalanceRepository.watchEvents({DateRange? range})` ·
+//   `UnimplementedWhatIfApi.previewRebalance` → `Future<RebalancePreviewResult>` 에러 ·
+//   `UnimplementedPerformanceRepository.annualReview({String? year})`. Ops 받침대는 만들지 않는다
+//   (`S7-7` = `PerformanceRepository` 하나).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -36,7 +42,7 @@ import 'domain_contracts.dart';
 /// [RebalanceRepository] 받침대 — 필요한 메서드만 override 한다(🆕 계약 v1.5 · 01 §15-3).
 class UnimplementedRebalanceRepository implements RebalanceRepository {
   @override
-  Stream<ListResult<RebalanceEvent>> watchEvents(DateRange r) =>
+  Stream<ListResult<RebalanceEvent>> watchEvents({DateRange? range}) =>
       throw UnimplementedError('watchEvents');
 
   @override
@@ -45,6 +51,20 @@ class UnimplementedRebalanceRepository implements RebalanceRepository {
 
   @override
   Stream<NextRebalanceVm> watchNext() => throw UnimplementedError('watchNext');
+}
+
+/// [ExecutionGapRepository] 받침대 — 필요한 메서드만 override 한다(🆕 계약 v1.6 · 01 §15-4).
+///
+/// 🔴 리포지토리 받침대 관행대로 **동기로 던진다**([UnimplementedWhatIfApi] 의 `Future` 에러와 다르다).
+/// 🔴 결과는 지어내지 않는다 — `m7/execution_gap_*` 픽스처 행을 열어 override 로 돌려준다.
+class UnimplementedExecutionGapRepository implements ExecutionGapRepository {
+  @override
+  Future<ExecutionGapResult> monthly({String? yyyyMm}) =>
+      throw UnimplementedError('monthly');
+
+  @override
+  Stream<ExecutionGapReport> watchRolling() =>
+      throw UnimplementedError('watchRolling');
 }
 
 /// [JournalRepository] 받침대 — 필요한 메서드만 override 한다.
@@ -138,7 +158,7 @@ class UnimplementedPerformanceRepository implements PerformanceRepository {
       throw UnimplementedError('contribution');
 
   @override
-  Future<AnnualReviewVm> annualReview({required String year}) =>
+  Future<AnnualReviewVm> annualReview({String? year}) =>
       throw UnimplementedError('annualReview');
 
   /// 🆕 v1.4 — S7-9 목표 경로. 🔵 이 클래스의 관행대로 **동기로 던진다**(아래
@@ -239,7 +259,8 @@ class UnimplementedCommandApi implements CommandApi {
 ///    입력 유지 + 재시도)로 그리므로, override 하지 않은 메서드를 불러도 동기 예외로 위젯
 ///    트리가 깨지지 않고 그 갈래로 드러난다.
 /// 🔴 결과는 지어내지 않는다 — `m7/m7_deposit_plan_*` 픽스처 행(`DepositPreviewResult`)을
-///    `listFixture(...)` 로 열어 override 로 돌려준다.
+///    `listFixture(...)` 로 열어 override 로 돌려준다. 🆕 v1.6 — `S7-6c` 는
+///    `m7/m7_rebalance_preview_*` 픽스처 행(`RebalancePreviewResult`)을 같은 방식으로 돌려준다.
 class UnimplementedWhatIfApi implements WhatIfApi {
   @override
   Future<DepositPreviewResult> simulateDeposit({required String amountInput}) =>
@@ -250,8 +271,10 @@ class UnimplementedWhatIfApi implements WhatIfApi {
       Future<WithdrawalPlan>.error(UnimplementedError('simulateWithdrawal'));
 
   @override
-  Future<RebalancePreview> previewRebalance({TradeDate? plannedDate}) =>
-      Future<RebalancePreview>.error(UnimplementedError('previewRebalance'));
+  Future<RebalancePreviewResult> previewRebalance({TradeDate? plannedDate}) =>
+      Future<RebalancePreviewResult>.error(
+        UnimplementedError('previewRebalance'),
+      );
 
   @override
   Future<CostEstimate> estimateCosts(String planId) =>

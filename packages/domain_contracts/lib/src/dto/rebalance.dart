@@ -5,6 +5,9 @@
 //    한 표에 섞어 합계 100% 를 만들지 않는다 — C-31 이 basis 혼합과 `A + POT`
 //    산술을 탐지한다.
 // 🔴 P 회차 실측 수치(엔진 열 vs 회계 열)를 코드·주석에 상수로 옮기지 않는다.
+// 🆕 v1.6(01 §15-4 · R12 선행) — `RebalanceEvent.thresholds`(J-2 `ThresholdCompare` 재사용 · `common.dart`)·
+//    `modeLabel`·`sectionLabel` · `asOf` = 읽기 모델 관측 시각 · `SleeveWeight.label` = 완성 문장 ·
+//    `NextRebalanceVm` 두 글자 nullable + `asOf`. 🔴 `// 🔴 ui 미참조(C-42)` 표식 = R12 화면이 읽지 않는 원값.
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -19,14 +22,15 @@ part 'rebalance.freezed.dart';
 part 'rebalance.g.dart';
 
 /// 01 §2-5 — 리밸런싱 1회차.
+/// 🆕 v1.6(01 §15-4) — `thresholds`·`modeLabel`·`sectionLabel` · `asOf` 뜻 고정(관측 시각).
 @freezed
 abstract class RebalanceEvent with _$RebalanceEvent {
   const factory RebalanceEvent({
-    required String eventId,
-    required RunMode mode,
+    required String eventId, // 🔴 표시 금지 · Key 전용
+    required RunMode mode, // 🔴 ui 미참조(C-42) — 배지는 [modeLabel]
+    // 표시 = `tradeDate.yyyyMmDd` 그대로(카드 예외 1개)
     @TradeDateConverter() required TradeDate tradeDate,
-    required RebalanceKind kind,
-
+    required RebalanceKind kind, // 🔴 ui 미참조(C-42) — 칩은 [kindLabel]
     /// 엔진 생성.
     required String kindLabel,
     required List<SleeveWeight> before,
@@ -34,11 +38,27 @@ abstract class RebalanceEvent with _$RebalanceEvent {
 
     /// 당시 국면·신호 원값·밴드 여유.
     required TriggerSnapshot trigger,
-    required List<String> orderIntentIds,
+    required List<String> orderIntentIds, // 🔴 ui 미참조(C-42 · C-40 ⑧)
+    /// 🆕 v1.6 뜻 고정(01 §15-4) — **읽기 모델의 관측 시각**(마지막 배치) = 목록 봉투 `as_of` 와
+    /// 같은 값. 회차 시각이 아니다(회차 일자 = [tradeDate]). `S7-6b` 하단·StaleBanner 의 원천.
     required AsOf asOf,
 
-    /// 실측 슬리피지 vs 가정치·미체결률 — m2-8 F-10.
+    /// 실측 슬리피지 vs 가정치·미체결률 — m2-8 F-10. null = 패널 부재.
     ExecutionQuality? quality,
+
+    /// 🆕 v1.6 — 사전 등록 임계 ↔ 실제값 대조(03 §11-b 수용 (a) · J-2 `DecisionDetailVm.thresholds`
+    /// 와 같은 타입) · 엔진 포맷 행 · 0건 = 표 부재.
+    /// 🔴 비어 있지 않음 ⇔ `trigger.thresholdRegistered != null`(C-41 ④).
+    required List<ThresholdCompare> thresholds,
+
+    /// 🆕 v1.6 — 「모의」 배지 글자. non-null ⇔ `mode != LIVE`(C-41 ④). 🔴 화면이 `mode` 로 고르지 않는다.
+    String? modeLabel,
+
+    /// 🆕 v1.6 — non-null 이면 **이 행 위에** 머리글 1줄(«모의투자 회차»). 같은 모드 묶음의 첫 행에만
+    /// 엔진이 싣는다 — 화면은 앞 행과 비교하지 않는다(`ReportArchiveRow.sectionLabel` 선례).
+    /// 🔴 LIVE·SIM 이 섞인 목록에서 «시간 역순»과 «모드 묶음의 첫 행»은 함께 성립하지 않는다 —
+    ///    섞인 목록의 정렬 키는 §8 미결 89 · 그때까지 표본은 SIM 단독 봉투(C-41 ④ 한정 · 비평 #23).
+    String? sectionLabel,
 
     /// 🆕 v1.5(01 §15-3 · §8 미결 49) — `S7-6b` 하단 «이 회차의 … N건» 버튼 **하나**
     /// (목적지 = `J-1` 회차 조건 · `AppRoutes.journalRebalance` 를 엔진이 완성).
@@ -66,13 +86,18 @@ abstract class RebalanceEvent with _$RebalanceEvent {
 @freezed
 abstract class SleeveWeight with _$SleeveWeight {
   const factory SleeveWeight({
-    required SleeveId sleeve,
-    required double weight,
-    required double targetWeight,
-    required double bandLow,
-    required double bandHigh,
-
+    required SleeveId sleeve, // 🔴 ui 미참조(C-42 ⑧)
+    required double weight, // 🔴 ui 미참조(C-42) — 표시는 [label]
+    required double targetWeight, // 〃
+    required double bandLow, // 〃
+    required double bandHigh, // 〃
     /// "B 42.0% (목표 42.0%, 밴드 여유 1.8%p)" — 엔진 생성.
+    ///
+    /// 🆕 v1.6 뜻 고정(정본 = 이 타입 머리 «목표 대비 편차·밴드 여유» + 기존 예시 «B 42.0% (목표 42.0%,
+    /// 밴드 여유 1.8%p)»의 요소) — 이 행의 **완성 문장**: 현재·목표·편차·밴드 여유를 엔진이 한 줄에 담고,
+    /// 밴드 밖이면 여유 자리에 초과폭을 말한다(«B 42.0% (목표 42.0%, 편차 0.0%p, 밴드 여유 5.0%p)» ·
+    /// «B 47.8% (목표 42.0%, 편차 +5.8%p, 밴드 상단 0.8%p 초과)»). 🔴 이름만 싣지 않는다(C-41 ④ `%`).
+    /// 🔴 기존 주석 예시(:75)는 바꾸지 않는다 — 홈 블록 4 가 같은 타입이다(K11 · 비평 #13).
     required String label,
 
     /// 🆕 P 회차 — 기준 축. 🔴 `accounting` 외 값을 갖지 않는다.
@@ -90,13 +115,17 @@ abstract class TriggerSnapshot with _$TriggerSnapshot {
     required String configHash,
 
     /// 지표명 → 엔진 포맷 문자열. 계절 게이트 키는 `trend_score_kr`.
+    /// 🔴 ui 미참조(C-42 · J-2 ⓒ).
     required Map<String, String> rawValues,
 
     /// 엔진 생성 한 줄.
     required String summary,
+
+    /// 🔴 ui 미참조(C-42 · J-2 ⓒ).
     @DecimalStringConverter() Decimal? triggerPrice,
 
     /// 🔴 사전 등록 임계값 — 사후 변경 감사용.
+    /// 🔴 ui 미참조(C-42 · J-2 ⓒ) — 표시는 `RebalanceEvent.thresholds`(v1.6).
     double? thresholdRegistered,
   }) = _TriggerSnapshot;
 
@@ -163,13 +192,19 @@ abstract class SleeveAllocationRow with _$SleeveAllocationRow {
 @freezed
 abstract class NextRebalanceVm with _$NextRebalanceVm {
   const factory NextRebalanceVm({
-    required String expectedDateText,
-    required String dDayText,
+    /// 🆕 v1.6 nullable — null ⇔ [emptyLabel] non-null(C-41 ③). 엔진 생성 · 화면이 날짜를 빼지 않는다.
+    String? expectedDateText,
+    String? dDayText,
+
+    /// non-null = «예정 없음» — 화면은 이 문장**만** 그린다(카운트다운·초안 버튼 부재).
     String? emptyLabel,
-    RebalanceKind? expectedKind,
-    String? kindLabel,
+    RebalanceKind? expectedKind, // 🔴 ui 미참조(C-42)
+    String? kindLabel, // null = 줄 부재
+    /// 🔴 `S7-6c` 안에서 쓰지 않는다(자기 자신 · `H-02`·알림 행 몫) · non-null 이면 `AppRoutes.rebalancePreview`.
     String? previewRoute,
-    String? noticeText,
+    String? noticeText, // null = 줄 부재
+    /// 🆕 v1.6 — 봉투 as_of 를 행으로(`DepositPlan.asOf` 선례 · `H-02` 도 같은 필드).
+    required AsOf asOf,
   }) = _NextRebalanceVm;
 
   factory NextRebalanceVm.fromJson(Map<String, dynamic> json) =>

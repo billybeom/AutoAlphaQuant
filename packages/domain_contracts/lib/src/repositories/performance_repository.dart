@@ -29,6 +29,7 @@ abstract interface class PerformanceRepository {
   /// 🔴 인자는 **연도 하나**다. 임의 구간(`DateRange`)을 받지 않는다 — 세후는 연 1회
   ///    산출이고, 구간을 화면이 고르면 «어느 창의 세후가 진짜인가»를 화면이 판정하게 된다.
   /// 🔴 보정판 산식 확정 전에는 `isReferenceOnly == true` 인 골든 참고 사다리만 돌아온다(§8-18).
+  /// 🆕 v1.6 무변경 — R12 소비자 0(`S7-7` 세후는 `AnnualReviewVm.afterTax`).
   Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear});
 
   // ───── 🆕 G-41 — M7 뷰모델 창구 5종(여섯째 = `RebalanceRepository.watchNext`) ─────
@@ -50,8 +51,12 @@ abstract interface class PerformanceRepository {
   /// 🔴 월 납입 설정과 무관한 타입이다 — `MonthlyContributionVm` 과 이름을 공유하지 않는다(§2-6).
   Future<ContributionVm> contribution({required DateRange range});
 
-  /// `S7-7` — 🔴 묶음이지 재집계가 아니다. 화면이 `windowState` 를 «달»로 판정하지 않는다.
-  Future<AnnualReviewVm> annualReview({required String year});
+  /// `S7-7` — 🆕 v1.6 [year] == null = **엔진 기본 연도**(06 M1-20b · K24 — 권고: 12월 창 열림 = 그해 ·
+  /// 그 밖 = 마지막 완결 연도 · 완결 연도가 없으면(운용 첫 해) 그해). 고른 연도는 `vm.yearLabel` 이 말한다.
+  /// 🔴 `S7-7` 은 **이 창구 하나만** 쓴다 · `OpsStatusRepository.watchAnnualReview` 는 M9 `S12` 몫 —
+  ///    같은 타입이지만 **세후 두 필드는 null**(K25 · ⑦-b).
+  /// 🔴 세후는 VM 의 `afterTax`·`afterTaxCounterfactual` 이 싣는다 — `S7-7` 은 [afterTaxLadder] 를 부르지 않는다.
+  Future<AnnualReviewVm> annualReview({String? year});
 
   // ───── 🆕 v1.4 — S7-9 목표 경로(01 §14-9) ─────
 

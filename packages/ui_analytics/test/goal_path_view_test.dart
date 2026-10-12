@@ -520,14 +520,21 @@ void main() {
     });
   }
 
+  // Contract v1.6 (M2 PR, 01 §15-4 · K19): relaxed so the R12 cards (R12a~d) can
+  // add their screen exports without editing this file. Each of the 8 R11b paths
+  // must still appear exactly once, and nothing under an internal folder may be
+  // exported. Exact set ownership: the R12d new test (v1.4 G13 precedent) — this
+  // is an ownership transfer, not a weaker assertion. The R12d card must assert
+  // barrel == 13 exactly (the 8 R11b paths + the 5 R12 public screens of 01
+  // §15-4). Until it lands, each R12 card's barrel additions are bounded by its
+  // own card assertions (barrel +N, additions only) and the C4 merge check.
   testWidgets('T79-14 barrel exports', (WidgetTester tester) async {
     final String content = File('lib/ui_analytics.dart').readAsStringSync();
     final List<String> exports = RegExp(
       r"^export '([^']+)';",
       multiLine: true,
     ).allMatches(content).map((RegExpMatch m) => m.group(1)!).toList();
-    expect(exports, hasLength(8));
-    expect(exports.toSet(), <String>{
+    for (final String path in const <String>[
       'l10n/labels.dart',
       'src/providers/analytics_providers.dart',
       'src/screens/contribution_screen.dart',
@@ -536,7 +543,28 @@ void main() {
       'src/screens/monthly_report_screen.dart',
       'src/screens/performance_explore_screen.dart',
       'src/screens/report_archive_screen.dart',
-    });
+    ]) {
+      expect(
+        exports.where((String e) => e == path),
+        hasLength(1),
+        reason: 'barrel must export $path exactly once',
+      );
+    }
+    for (final String internal in const <String>[
+      'src/planner',
+      'src/goal_path/',
+      'src/chart/',
+      'src/widgets/',
+      'src/rebalance/',
+      'src/annual_review/',
+      'src/execution_gap/',
+    ]) {
+      expect(
+        exports.where((String e) => e.startsWith(internal)),
+        isEmpty,
+        reason: 'barrel must not export anything under $internal',
+      );
+    }
   });
 
   for (final (String name, GoalPathVm vm, int flagCount, int blockIconCount)

@@ -735,7 +735,9 @@ void main() {
   // from the internal folders (planner, chart, explore, goal_path).
   // Contract v1.4 (design D15, M2 PR): the exact-set check moved out of this
   // file so the R11 cards can add exports without editing it. Exact set
-  // ownership: R11a T74-22 (planner.dart) and R11b T79-14 (barrel == 8).
+  // ownership: R11a T74-22 (planner.dart) and, for the barrel, R11b T79-14
+  // (== 8) until contract v1.6 relaxed T79-14 the same way (K19); from then
+  // the R12d new test owns it (== 13 = the 8 R11b paths + the 5 R12 screens).
   // This is an ownership transfer, not a weaker assertion.
   testWidgets('G13 barrel keeps the 7 paths and no internal folders', (
     WidgetTester tester,

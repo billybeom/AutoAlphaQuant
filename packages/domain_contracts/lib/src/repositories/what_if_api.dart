@@ -8,6 +8,9 @@
 // 🔴 v1.4 호출 표(01 §14-8) — 플래너(S7-4)는 `simulateDeposit` 만 부른다(«미리보기 계산» 탭 ·
 //    «다시 계산» 탭 · 에러 재시도). 늦게 온 이전 요청 결과는 버린다(마지막 요청만).
 //    `estimateCosts`·`findPlan`·`previewRebalance` 는 플래너가 부르지 않는다.
+// 🆕 v1.6 호출 표(01 §15-4) — `S7-6c` 는 `previewRebalance` 만 부른다(«지금 기준 초안 보기» 탭 뒤 ·
+//    인자 없이 · 결과 캐시 0 · 마지막 요청만). `estimateCosts`·`findPlan`·`simulateDeposit` 은
+//    `S7-6c` 가 부르지 않는다. 자세한 표는 [WhatIfApi.previewRebalance] 머리.
 
 import 'package:decimal/decimal.dart';
 
@@ -28,7 +31,17 @@ abstract interface class WhatIfApi {
   ///    `({required String amountInput}) → WithdrawalPreviewResult` 로 바뀐다.
   Future<WithdrawalPlan> simulateWithdrawal({required Decimal amount});
 
-  Future<RebalancePreview> previewRebalance({TradeDate? plannedDate});
+  /// 🆕 v1.6(01 §15-4 · 결정 ②) — `S7-6c` «지금 기준 초안 보기». 호출 표:
+  /// ① 그 버튼 **탭 뒤에만**, 인자 없이 부른다 — 진입·알림·`watchNext` 값만으로는 호출 0.
+  /// ② 결과 캐시 0 · 늦게 온 이전 요청 결과는 버린다(마지막 요청만).
+  /// ③ `Future` 에러 = «계산을 못 했다»(인프라)만 뜻한다 — 화면 = 초안 영역 에러 + 같은 버튼
+  ///    재시도 · 에러 내용으로 분기 0.
+  /// ④ [plannedDate] == null = 엔진이 `watchNext` 와 **같은 판정의 다음 예정 회차**를 지금 as-of
+  ///    데이터로 미리 본다 — 그날은 `RebalancePreview.plannedDateText` 가 말한다. 인자는 엔진·테스트용.
+  /// ⑤ 예정 회차가 없거나 계산이 막히면 `blockedText`(엔진 문장)로 온다 — 화면이 flagId 로 버튼을
+  ///    끄지 않는다(D21 준용).
+  /// 🔴 `estimateCosts`·`findPlan` 은 `S7-6c` 가 부르지 않는다.
+  Future<RebalancePreviewResult> previewRebalance({TradeDate? plannedDate});
 
   Future<CostEstimate> estimateCosts(String planId);
 

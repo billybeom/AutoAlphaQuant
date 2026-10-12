@@ -128,13 +128,29 @@ abstract final class FixturePaths {
 
   // ── m7/ — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15) ──
   static const String m7AftertaxLadder1 = 'm7/aftertax_ladder_1.json';
+  // 🆕 v1.6(R12 선행 · 01 §15-4) — 행 = `ExecutionGapResult` 래퍼(report | 빈·해당없음 문장 ·
+  //    C-41 ⑧). 기존 4벌(`_1`·`cant`·`mixed`·`wont`)은 `{report, as_of}` 로 재생성.
   static const String m7ExecutionGap1 = 'm7/execution_gap_1.json';
   static const String m7ExecutionGapCant = 'm7/execution_gap_cant.json';
+
+  /// 🆕 v1.6 — 안내 0건(`NO_DATA` + 엔진 문장 · 골든 `s710_empty`).
+  static const String m7ExecutionGapEmpty = 'm7/execution_gap_empty.json';
+
+  /// 🆕 v1.6 — RECON_MISMATCH 가림(줄 안 «?» · 게이지 부재 · 골든 `s710_masked_recon`).
+  static const String m7ExecutionGapMaskedRecon =
+      'm7/execution_gap_masked_recon.json';
   static const String m7ExecutionGapMixed = 'm7/execution_gap_mixed.json';
+
+  /// 🆕 v1.6 — 자동 매매 구간(`NOT_APPLICABLE` + 엔진 문장 · 골든 `s710_not_applicable`).
+  static const String m7ExecutionGapNotApplicable =
+      'm7/execution_gap_not_applicable.json';
   static const String m7ExecutionGapWont = 'm7/execution_gap_wont.json';
   static const String m7LedgerTrust4 = 'm7/ledger_trust_4.json';
   static const String m7M7Annual2026 = 'm7/m7_annual_2026.json';
   static const String m7M7AnnualFirstYear = 'm7/m7_annual_first_year.json';
+
+  /// 🆕 v1.6 — 창 밖(2025 · CLOSED — 기본 연도 규칙 표본 · 골든 `s77_offwindow`).
+  static const String m7M7AnnualOffwindow = 'm7/m7_annual_offwindow.json';
   static const String m7M7Contrib3sleeve = 'm7/m7_contrib_3sleeve.json';
 
   /// 🆕 v1.1(§8 미결 45) — 산출 불가 슬리브 1행(`unavailable_label`).
@@ -210,7 +226,13 @@ abstract final class FixturePaths {
   static const String m7M7MonthlyMaskedRecon =
       'm7/m7_monthly_masked_recon.json';
   static const String m7M7MonthlyPending = 'm7/m7_monthly_pending.json';
-  static const String m7M7NextRebalanceD6 = 'm7/m7_next_rebalance_d6.json';
+
+  /// 🆕 v1.6 개명(구 `m7NextRebalanceD6`) — «2026년 9월 1일 · D-1» 카운트다운(골든 `s76c_countdown`).
+  static const String m7M7NextRebalanceCountdown =
+      'm7/m7_next_rebalance_countdown.json';
+
+  /// 🆕 v1.6 — 예정 없음(`empty_label` 만 · 골든 `s76c_none`).
+  static const String m7M7NextRebalanceNone = 'm7/m7_next_rebalance_none.json';
   static const String m7M7PerfDailyGap = 'm7/m7_perf_daily_gap.json';
 
   // 🆕 v1.3(R10 선행 · 01 §13-1·§13-3) — `S7-2` 성과 시리즈 6갈래.
@@ -244,6 +266,23 @@ abstract final class FixturePaths {
 
   /// 🆕 v1.5 — `S7-6a` 빈 타임라인(0행 + 엔진 문장 · 골든 `s76a_empty`).
   static const String m7M7RebalanceEmpty = 'm7/m7_rebalance_empty.json';
+  // 🆕 v1.6(R12 선행 · 01 §15-4) — 리밸런싱 미리보기(`S7-6c`). 행 = `RebalancePreviewResult` 래퍼
+  //    (preview | blocked_text 중 정확히 하나 · C-41 ①).
+  /// 차단 2행 — 0 `blocked_text` 만(버튼 부재 · 골든 입력) · 1 `blocked_text` + `blocked_action`
+  /// (재개 리포트 · 위젯 테스트 전용).
+  static const String m7M7RebalancePreviewBlocked =
+      'm7/m7_rebalance_preview_blocked.json';
+
+  /// 정상 — 초안 2행 · 비용 · 고지(골든 `s76c_preview`).
+  static const String m7M7RebalancePreviewDefault =
+      'm7/m7_rebalance_preview_default.json';
+
+  /// 빈 초안 — `order_drafts` 빈 목록 + `orders_empty_text` · 경고 1(골든 `s76c_draft_empty`).
+  static const String m7M7RebalancePreviewInBand =
+      'm7/m7_rebalance_preview_in_band.json';
+
+  /// 🆕 v1.6 — `S7-6a` 모의투자 회차 2행(행 `mode` SIM · 배지 2 · 머리글 1 · 봉투 LIVE · 골든 `s76a_sim`).
+  static const String m7M7RebalanceSim = 'm7/m7_rebalance_sim.json';
   static const String m7M7ReportArchive18 = 'm7/m7_report_archive_18.json';
 
   /// 🆕 v1.3 — `S7-1b` 빈 아카이브(`rows` 0 + VM `empty_label`).
@@ -348,11 +387,15 @@ abstract final class FixturePaths {
     m7AftertaxLadder1,
     m7ExecutionGap1,
     m7ExecutionGapCant,
+    m7ExecutionGapEmpty,
+    m7ExecutionGapMaskedRecon,
     m7ExecutionGapMixed,
+    m7ExecutionGapNotApplicable,
     m7ExecutionGapWont,
     m7LedgerTrust4,
     m7M7Annual2026,
     m7M7AnnualFirstYear,
+    m7M7AnnualOffwindow,
     m7M7Contrib3sleeve,
     m7M7ContribPartial,
     m7M7DdContextDeep,
@@ -378,7 +421,8 @@ abstract final class FixturePaths {
     m7M7MonthlyMaskedIntegrity,
     m7M7MonthlyMaskedRecon,
     m7M7MonthlyPending,
-    m7M7NextRebalanceD6,
+    m7M7NextRebalanceCountdown,
+    m7M7NextRebalanceNone,
     m7M7PerfDailyGap,
     m7M7PerfDailyManual,
     m7M7PerfMaskedIntegrity,
@@ -389,6 +433,10 @@ abstract final class FixturePaths {
     m7M7RebalanceDetailBand,
     m7M7RebalanceDetailAdvisory,
     m7M7RebalanceEmpty,
+    m7M7RebalancePreviewBlocked,
+    m7M7RebalancePreviewDefault,
+    m7M7RebalancePreviewInBand,
+    m7M7RebalanceSim,
     m7M7ReportArchive18,
     m7M7ReportArchiveEmpty,
     m7M7WithdrawalGeneral,
