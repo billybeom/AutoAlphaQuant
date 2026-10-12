@@ -1,4 +1,4 @@
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.6 · 135파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ⬜ 로컬 커밋 — PR 대기)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.6 · 135파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ~~⬜ 로컬 커밋 — PR 대기~~ ✅ 병합 PR #25 squash `995c1f4`)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -57,8 +57,8 @@
    (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
    자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
 2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
-   ✅ **지금 값은 `1.6.0`**(2026-10-08 R12 선행 M2 보강 · 01 §15-4 · 브랜치 `m2/contract-v1.6-r12` · ⬜ 로컬 커밋 —
-   PR 대기 — 상수와 기존 126개 + 신규 9개 = **135개**를 **함께** 올렸다. 🔴 기존 126개 가운데 112개는
+   ✅ **지금 값은 `1.6.0`**(2026-10-08 R12 선행 M2 보강 · 01 §15-4 · 브랜치 `m2/contract-v1.6-r12` · ~~⬜ 로컬 커밋 —
+   PR 대기~~ ✅ 병합 PR #25 squash `995c1f4` — 상수와 기존 126개 + 신규 9개 = **135개**를 **함께** 올렸다. 🔴 기존 126개 가운데 112개는
    `"contract_version"` **한 줄만** 바뀌었고, 14개는 본문도 개정됐다(그중 1개는 개명 `m7_next_rebalance_d6` →
    `m7_next_rebalance_countdown`) — 아래 «계약 v1.6» 절).
    ~~`1.5.0`~~(2026-10-07 R12 선행 M2 보강 · 01 §15-3 — 상수와 기존 122개 + 신규 4개 = **126개**를
@@ -201,7 +201,7 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 
 ### `m7/` 59 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
 
-🆕 **계약 v1.6(2026-10-08 · R12 선행 M2 보강 · 01 §15-4 · ⬜ 로컬 커밋 — PR 대기) 9건** —
+🆕 **계약 v1.6(2026-10-08 · R12 선행 M2 보강 · 01 §15-4 · ~~⬜ 로컬 커밋 — PR 대기~~ ✅ 병합 PR #25 squash `995c1f4`) 9건** —
 `m7_rebalance_preview_default`(`S7-6c` 초안 — `RebalancePreviewResult` `{preview}` · 2026년 9월 1일 회차 · 초안 2행 · 골든 `s76c_preview`) ·
 `m7_rebalance_preview_in_band`(빈 초안 — `order_drafts: []` + `orders_empty_text` · 경고 1줄 · 골든 `s76c_draft_empty`) ·
 `m7_rebalance_preview_blocked`(차단 2행 — 0 `blocked_text` 만(버튼 부재 · 골든 `s76c_blocked`) · 1 `blocked_text` + `blocked_action` → `aaq://x2/resume-report`(위젯 테스트 전용)) ·
@@ -485,9 +485,9 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_fixtures
 ## 계약 v1.6 (2026-10-08 · R12 선행 · 01 §15-4)
 
 화면 카드 R12(`S7-6a`·`S7-6b` 회차 타임라인·상세 · `S7-6c` 다음 리밸런싱·지금 기준 초안 · `S7-7` 12월 연간 리뷰 · `S7-10` 안내 이행 리포트)를 보내기 전에 한 보강이다 — R12 다섯 화면은 **엔진이 완성한 글자와 null 여부만 보고 그린다**.
-상태 = ⬜ 로컬 커밋 — PR 대기(브랜치 `m2/contract-v1.6-r12` · `2612684` 검사·받침대 선행 · `f922002` 계약 코드·버전·픽스처 · `edde72b` 검증 반영 + 이 문서 커밋).
+상태 = ~~⬜ 로컬 커밋 — PR 대기~~ ✅ 병합 PR #25 squash `995c1f4`(브랜치 `m2/contract-v1.6-r12` · `2612684` 검사·받침대 선행 · `f922002` 계약 코드·버전·픽스처 · `edde72b` 검증 반영 + 이 문서 커밋).
 카드 = 4장 · 권고 선반영(K3): `R12a-Bob-S76ab`(`S7-6a`+`S7-6b`) → `R12b-Bob-S76c` → `R12c-Bob-S77` → `R12d-Bob-S710` · 앞 카드 병합 뒤 다음 카드 · 전부 v1.6 PR 병합 뒤. `S7-8` 은 R12 밖(2026-10-07 결정).
-🔴 이 창의 결정 K1~K26 은 **권고 선반영**이다(발주자 2026-10-07 «권고하는 대로» 위임 · 00_README §8-4 관행). 되돌림 비용이 높은 8건(K1·K5·K6·K8·K10·K11·K22·K24)은 **권고 선반영 · 확인 대기(🔴)** — 「푸시해」 전에 발주자가 확인한다. 아래 표본 가운데 그 결정에 걸린 것(달 라우트 링크 = K1 · 제안 줄 null = K6 · 이행 갭 래퍼 = K8 · 행 `as_of` 뜻 = K10 · `SleeveWeight.label` 문장 = K11 · `year_label` = K24)은 확인 결과에 따라 스크립트를 고쳐 다시 만든다.
+🔴 이 창의 결정 K1~K26 은 **권고 선반영**이다(발주자 2026-10-07 «권고하는 대로» 위임 · 00_README §8-4 관행). 되돌림 비용이 높은 8건(K1·K5·K6·K8·K10·K11·K22·K24)은 **권고 선반영 · ~~확인 대기(🔴)~~** — ~~「푸시해」 전에 발주자가 확인한다. 아래 표본 가운데 그 결정에 걸린 것(달 라우트 링크 = K1 · 제안 줄 null = K6 · 이행 갭 래퍼 = K8 · 행 `as_of` 뜻 = K10 · `SleeveWeight.label` 문장 = K11 · `year_label` = K24)은 확인 결과에 따라 스크립트를 고쳐 다시 만든다.~~ ✅ 2026-10-13 발주자 확정(K1~K26 전부 권고대로 · 01 §15-4-16) — 표본 재생성 0.
 🔴 `S7-5`(인출)는 이 번호도 쓰지 않는다 — 인출 규칙 결정(01 §8 미결 79) 뒤 첫 minor(v1.5 결정 ① 그대로).
 
 ### 신설 9건
@@ -534,7 +534,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_v16_fixt
 - 스크립트가 규약을 먼저 확인하고 어기면 쓰기 전에 멈춘다: 버전 줄 정확히 1 · 봉투 `meta.mode` LIVE · 폐기 운영값 0(`meta` 블록 밖) · 봉투 최상위 키 = 기준과 같음(신설은 필수 6키뿐) · 새 파일 이름에 숫자 0 · 행이 있으면 `NO_DATA`/`null` · 금지어(추천·권유·자문·시그널) 0 · 사용자 문장 자리의 개발자 메모 0 · `preview_notice` «미리보기입니다» 시작 · 계좌 별칭 ∈ 별칭 표(슬리브 B = 연금 계좌) · 금액 = decimal 정규형 · 지정가 짝 · 래퍼에는 있는 키만 · `SleeveWeight` `basis` = `ACCOUNTING` 과 라벨 규칙 · 미리보기 2벌 밖 신설의 금액 꼴 0 · `rebalance_6` 내림차순·band 행 동일·행 `as_of` = 봉투 · 연간 3벌 세후 = 사다리 사본 · `year` ⊂ `year_label` · 미리보기 밴드 표본 정합(초안 표본 `before` 에 밴드 밖 ≥ 1 · 빈 초안 표본 `before` 전부 안 · 두 벌 `after` 전부 안) · 쓴 파일 수 == 135 == 디스크.
 - 실행하면 한 줄로 수를 찍는다 — 파일 135 · 버전 줄만 112 · 개정 14(개명 1 포함) · 신설 9 · `SleeveWeight` 라벨 120(커밋 `f922002`·`edde72b` 본문의 실측 · 두 번 돌려 diff 0).
 
-### 🔴 `SleeveWeight.label` 생성 규칙 (K11 · 권고 선반영 · 확인 대기 🔴)
+### 🔴 `SleeveWeight.label` 생성 규칙 (K11 · 권고 선반영 · ~~확인 대기 🔴~~ ✅ 확정(2026-10-13))
 
 - 밴드 안 = «{슬리브} {현재%} (목표 {목표%}, 편차 {±n.n%p}, 밴드 여유 {n.n%p})» · 밴드 밖 = 여유 자리에 «밴드 {상단|하단} {n.n%p} 초과» — 예 «B 47.8% (목표 42.0%, 편차 +5.8%p, 밴드 상단 0.8%p 초과)». 밴드 여유 = 가까운 밴드 끝까지의 거리(스크립트 계산). 음수 편차의 빼기표는 `−`(U+2212).
 - 정본 = 코드 `dto/rebalance.dart` 의 `SleeveWeight` 머리 «목표 대비 편차·밴드 여유» + 기존 예시(«B 42.0% (목표 42.0%, 밴드 여유 1.8%p)»)의 요소 — 🔴 그 예시 주석은 **바꾸지 않았다**(홈 블록 4 가 같은 타입이다 · 그 문장을 홈이 통째로 쓸지는 R13 재검토).
@@ -589,8 +589,8 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_v16_fixt
 픽스처의 링크 필드(`deep_link`·`detail_deep_link`·`action_deep_link`·`where_deep_link`·`clear_deep_link`·`route`·`preview_route`·`handoff_route`·`resume_route` · 🆕 v1.4 `goal_deep_link` — `blocked_action.deep_link` 는 `deep_link` 로 덮인다 · 🆕 v1.5 `journal_timeline_link`(`RebalanceEvent` 의 `LinkAction` — 안쪽 `deep_link` 로 C-33 이 검사한다 · 링크 키 추가 0) · `RebalanceEvent.detail_deep_link` 는 기존 `detail_deep_link` 키)에는 `aaq://…`(앱 화면)와 `handbook://…`(핸드북 앵커) **두 스킴만** 온다. `aaq://` 는 전부 `AppRoutes.all`(`lib/src/navigation/app_links.dart`)의 패턴과 일치해야 하며 **C-33** 이 전수 검사한다. 🔴 화면은 이 문자열을 만들지도 해석하지도 않는다 — `AppLinkOpener.open(link)` 에 그대로 넘긴다.
 
 🆕 **v1.6(01 §15-4 · `AppRoutes.all` 43 → 45 · 링크 키 추가 0)** — 새 라우트 2:
-- `AppRoutes.ledgerExecutionGapMonth` = `aaq://ledger/execution-gap/:yyyyMm`(`S7-10` 의 **그 달** · K1 · 권고 선반영 · 확인 대기 🔴) — 픽스처에서는 `m7_monthly_2026_08`·`_gap`·`_masked_recon` 의 ⑧ `D3_EXECUTION.detail_deep_link`(기존 키)가 `aaq://ledger/execution-gap/2026-08` 을 싣는다. 인자 없는 `aaq://ledger/execution-gap` = 엔진 기본 달(「계획」 탭 ⑤). 두 라우트 · 한 위젯(`ExecutionGapScreen`).
-- `AppRoutes.rebalanceHistory` = `aaq://rebalance/history`(`S7-6a` 회차 타임라인 · K5 · 권고 선반영 · 확인 대기 🔴) — **싣는 픽스처 없음**(셸·진입점이 쓰는 상수).
+- `AppRoutes.ledgerExecutionGapMonth` = `aaq://ledger/execution-gap/:yyyyMm`(`S7-10` 의 **그 달** · K1 · 권고 선반영 · ~~확인 대기 🔴~~ ✅ 확정(2026-10-13)) — 픽스처에서는 `m7_monthly_2026_08`·`_gap`·`_masked_recon` 의 ⑧ `D3_EXECUTION.detail_deep_link`(기존 키)가 `aaq://ledger/execution-gap/2026-08` 을 싣는다. 인자 없는 `aaq://ledger/execution-gap` = 엔진 기본 달(「계획」 탭 ⑤). 두 라우트 · 한 위젯(`ExecutionGapScreen`).
+- `AppRoutes.rebalanceHistory` = `aaq://rebalance/history`(`S7-6a` 회차 타임라인 · K5 · 권고 선반영 · ~~확인 대기 🔴~~ ✅ 확정(2026-10-13)) — **싣는 픽스처 없음**(셸·진입점이 쓰는 상수).
 - 그 밖에 새로 실린 링크 = `m7_rebalance_preview_blocked` 행 1 의 `blocked_action.deep_link` `aaq://x2/resume-report`(`deep_link` 로 덮인다) · `m7_rebalance_sim` 의 `detail_deep_link`(기존 `rebalanceEvent` 패턴). 🔴 `S7-6a` 빈 상태의 «다음 예상» 버튼만 고정 상수 `AppRoutes.rebalancePreview` 를 쓴다(화면 쪽 예외 1개 — 픽스처와 무관).
 
 ## 아직 없는 것
