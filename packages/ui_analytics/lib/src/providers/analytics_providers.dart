@@ -105,3 +105,28 @@ final AutoDisposeFutureProviderFamily<GoalPathVm, String> goalPathProvider =
     FutureProvider.autoDispose.family<GoalPathVm, String>((ref, yyyyMm) {
       return ref.watch(performanceRepositoryProvider).goalPath(yyyyMm: yyyyMm);
     });
+
+// ── 🆕 R12a — S7-6a·S7-6b ──
+/// S7-6a·S7-6b 리밸런싱 읽기 창구 — 조립 앱이 주입한다(01 §15-4)
+final Provider<RebalanceRepository> rebalanceRepositoryProvider =
+    Provider<RebalanceRepository>((ref) {
+      throw UnimplementedError(
+        'rebalanceRepositoryProvider must be overridden',
+      );
+    });
+
+/// S7-6a 회차 타임라인 — 인자 없이 부른다(전체 기간 · 01 §15-4)
+final AutoDisposeStreamProvider<ListResult<RebalanceEvent>>
+rebalanceEventsProvider =
+    StreamProvider.autoDispose<ListResult<RebalanceEvent>>((ref) {
+      return ref.watch(rebalanceRepositoryProvider).watchEvents();
+    });
+
+/// S7-6b 회차 1건 — 받은 id 그대로(01 §15-4)
+final AutoDisposeStreamProviderFamily<RebalanceEvent, String>
+rebalanceEventProvider = StreamProvider.autoDispose
+    .family<RebalanceEvent, String>((ref, rebalanceEventId) {
+      return ref
+          .watch(rebalanceRepositoryProvider)
+          .watchEvent(rebalanceEventId);
+    });

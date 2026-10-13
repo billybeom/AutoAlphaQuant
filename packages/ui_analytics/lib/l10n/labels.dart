@@ -50,4 +50,12 @@ abstract final class AnalyticsLabels {
   static const String goalPathAssumptionHeader = '가정';
   static const String goalPathValuesButton = '숫자로 보기';
   static const String goalPathColumnDate = '날짜';
+
+  // ── 🆕 R12a — S7-6a·S7-6b ──
+  static const String rebalanceNextPreviewButton = '다음 예상';
+  static const String rebalanceBeforeHeader = '리밸런싱 전';
+  static const String rebalanceAfterHeader = '리밸런싱 후';
+  static const String rebalanceThresholdsHeader = '임계 대조';
+  static const String rebalanceSnapshotHeader = '당시 스냅샷';
+  static const String rebalanceQualityHeader = '실행 품질';
 }
