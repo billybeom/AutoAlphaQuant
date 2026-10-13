@@ -69,8 +69,9 @@ class _RebalancePreviewScreenState
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<NextRebalanceVm> asyncValue =
-        ref.watch(nextRebalanceProvider);
+    final AsyncValue<NextRebalanceVm> asyncValue = ref.watch(
+      nextRebalanceProvider,
+    );
     final List<BlockFlag> activeFlags =
         ref.watch(safetyStateStreamProvider).valueOrNull?.activeFlags ??
         const <BlockFlag>[];
@@ -119,10 +120,7 @@ class _RebalancePreviewScreenState
         if (preview != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              preview.previewNotice,
-              key: const Key('s76c-notice'),
-            ),
+            child: Text(preview.previewNotice, key: const Key('s76c-notice')),
           ),
         Expanded(
           child: ListView(
@@ -156,9 +154,7 @@ class _RebalancePreviewScreenState
                 if (_pending != null)
                   const AnalyticsSkeleton()
                 else if (_failed)
-                  AnalyticsErrorView(
-                    onRetry: () => _requestPreview(api),
-                  )
+                  AnalyticsErrorView(onRetry: () => _requestPreview(api))
                 else if (preview != null)
                   Column(
                     key: const Key('s76c-draft'),

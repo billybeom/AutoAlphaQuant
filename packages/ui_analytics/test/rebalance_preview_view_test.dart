@@ -39,13 +39,11 @@ void main() {
     expect(find.text(AnalyticsLabels.retryButton), findsNothing);
   });
 
-  for (final ({String name, bool stripped}) d in <({
-    String name,
-    bool stripped,
-  })>[
-    (name: 'default', stripped: false),
-    (name: 'stripped', stripped: true),
-  ]) {
+  for (final ({String name, bool stripped}) d
+      in <({String name, bool stripped})>[
+        (name: 'default', stripped: false),
+        (name: 'stripped', stripped: true),
+      ]) {
     testWidgets('T76c-02 countdown text chain ${d.name}', (
       WidgetTester tester,
     ) async {
@@ -53,8 +51,9 @@ void main() {
         FixturePaths.m7M7NextRebalanceCountdown,
         NextRebalanceVm.fromJson,
       );
-      final NextRebalanceVm vm =
-          d.stripped ? raw.copyWith(kindLabel: null, noticeText: null) : raw;
+      final NextRebalanceVm vm = d.stripped
+          ? raw.copyWith(kindLabel: null, noticeText: null)
+          : raw;
       expect(vm.kindLabel, d.stripped ? isNull : isNotNull);
 
       final FakeNextRebalanceRepository repo = FakeNextRebalanceRepository(
@@ -117,18 +116,15 @@ void main() {
     expect(find.text(AnalyticsLabels.retryButton), findsNothing);
   });
 
-  for (final ({String name, String path, bool isNone}) d in <({
-    String name,
-    String path,
-    bool isNone,
-  })>[
-    (
-      name: 'countdown',
-      path: FixturePaths.m7M7NextRebalanceCountdown,
-      isNone: false,
-    ),
-    (name: 'none', path: FixturePaths.m7M7NextRebalanceNone, isNone: true),
-  ]) {
+  for (final ({String name, String path, bool isNone}) d
+      in <({String name, String path, bool isNone})>[
+        (
+          name: 'countdown',
+          path: FixturePaths.m7M7NextRebalanceCountdown,
+          isNone: false,
+        ),
+        (name: 'none', path: FixturePaths.m7M7NextRebalanceNone, isNone: true),
+      ]) {
     testWidgets('T76c-04 viewer null whatif ${d.name}', (
       WidgetTester tester,
     ) async {
@@ -140,11 +136,7 @@ void main() {
         vm: vm,
       );
 
-      await pumpRebalancePreview(
-        tester,
-        repo: repo,
-        whatIf: null,
-      );
+      await pumpRebalancePreview(tester, repo: repo, whatIf: null);
 
       expect(find.byKey(const Key('s76c-preview-button')), findsNothing);
       expect(find.text(AnalyticsLabels.rebalanceDraftButton), findsNothing);
@@ -197,14 +189,12 @@ void main() {
     expect(find.byKey(const Key('s76c-draft')), findsOneWidget);
   });
 
-  for (final ({String name, int caseIndex}) d in <({
-    String name,
-    int caseIndex,
-  })>[
-    (name: 'default', caseIndex: 0),
-    (name: 'in_band', caseIndex: 1),
-    (name: 'in_band_two_warnings', caseIndex: 2),
-  ]) {
+  for (final ({String name, int caseIndex}) d
+      in <({String name, int caseIndex})>[
+        (name: 'default', caseIndex: 0),
+        (name: 'in_band', caseIndex: 1),
+        (name: 'in_band_two_warnings', caseIndex: 2),
+      ]) {
     testWidgets('T76c-06 draft text chain ${d.name}', (
       WidgetTester tester,
     ) async {
@@ -317,10 +307,7 @@ void main() {
     });
   }
 
-  for (final ({String name, int rowIndex}) d in <({
-    String name,
-    int rowIndex,
-  })>[
+  for (final ({String name, int rowIndex}) d in <({String name, int rowIndex})>[
     (name: 'row0', rowIndex: 0),
     (name: 'row1', rowIndex: 1),
   ]) {
@@ -436,13 +423,11 @@ void main() {
     expect(find.byType(AnalyticsSkeleton), findsNothing);
   });
 
-  for (final ({String name, bool useErrorViewRetry}) d in <({
-    String name,
-    bool useErrorViewRetry,
-  })>[
-    (name: 'retry_view', useErrorViewRetry: true),
-    (name: 'preview_button', useErrorViewRetry: false),
-  ]) {
+  for (final ({String name, bool useErrorViewRetry}) d
+      in <({String name, bool useErrorViewRetry})>[
+        (name: 'retry_view', useErrorViewRetry: true),
+        (name: 'preview_button', useErrorViewRetry: false),
+      ]) {
     testWidgets('T76c-09 error and retry ${d.name}', (
       WidgetTester tester,
     ) async {
@@ -633,21 +618,12 @@ void main() {
     expect(find.text(AnalyticsLabels.retryButton), findsNothing);
   });
 
-  for (final ({
-    String name,
-    bool isStale,
-    int safetyIndex,
-    int expectedFlags,
-  }) d in <({
-    String name,
-    bool isStale,
-    int safetyIndex,
-    int expectedFlags,
-  })>[
-    (name: 'stale_row3', isStale: true, safetyIndex: 3, expectedFlags: 2),
-    (name: 'fresh_row0', isStale: false, safetyIndex: 0, expectedFlags: 0),
-    (name: 'fresh_row4', isStale: false, safetyIndex: 4, expectedFlags: 1),
-  ]) {
+  for (final ({String name, bool isStale, int safetyIndex, int expectedFlags}) d
+      in <({String name, bool isStale, int safetyIndex, int expectedFlags})>[
+        (name: 'stale_row3', isStale: true, safetyIndex: 3, expectedFlags: 2),
+        (name: 'fresh_row0', isStale: false, safetyIndex: 0, expectedFlags: 0),
+        (name: 'fresh_row4', isStale: false, safetyIndex: 4, expectedFlags: 1),
+      ]) {
     testWidgets('T76c-12 banners ${d.name}', (WidgetTester tester) async {
       final NextRebalanceVm countdown = singleFixture(
         FixturePaths.m7M7NextRebalanceCountdown,
@@ -816,53 +792,57 @@ void main() {
   });
 
   for (final ({
-    String name,
-    String vmPath,
-    bool isNone,
-    int? previewIndex,
-    bool isStale,
-    int safetyIndex,
-  }) d in <({
-    String name,
-    String vmPath,
-    bool isNone,
-    int? previewIndex,
-    bool isStale,
-    int safetyIndex,
-  })>[
-    (
-      name: 'default',
-      vmPath: FixturePaths.m7M7NextRebalanceCountdown,
-      isNone: false,
-      previewIndex: 0,
-      isStale: false,
-      safetyIndex: 0,
-    ),
-    (
-      name: 'in_band_stale',
-      vmPath: FixturePaths.m7M7NextRebalanceCountdown,
-      isNone: false,
-      previewIndex: 1,
-      isStale: true,
-      safetyIndex: 3,
-    ),
-    (
-      name: 'blocked',
-      vmPath: FixturePaths.m7M7NextRebalanceCountdown,
-      isNone: false,
-      previewIndex: 2,
-      isStale: false,
-      safetyIndex: 4,
-    ),
-    (
-      name: 'none',
-      vmPath: FixturePaths.m7M7NextRebalanceNone,
-      isNone: true,
-      previewIndex: null,
-      isStale: false,
-      safetyIndex: 0,
-    ),
-  ]) {
+        String name,
+        String vmPath,
+        bool isNone,
+        int? previewIndex,
+        bool isStale,
+        int safetyIndex,
+      })
+      d
+      in <
+        ({
+          String name,
+          String vmPath,
+          bool isNone,
+          int? previewIndex,
+          bool isStale,
+          int safetyIndex,
+        })
+      >[
+        (
+          name: 'default',
+          vmPath: FixturePaths.m7M7NextRebalanceCountdown,
+          isNone: false,
+          previewIndex: 0,
+          isStale: false,
+          safetyIndex: 0,
+        ),
+        (
+          name: 'in_band_stale',
+          vmPath: FixturePaths.m7M7NextRebalanceCountdown,
+          isNone: false,
+          previewIndex: 1,
+          isStale: true,
+          safetyIndex: 3,
+        ),
+        (
+          name: 'blocked',
+          vmPath: FixturePaths.m7M7NextRebalanceCountdown,
+          isNone: false,
+          previewIndex: 2,
+          isStale: false,
+          safetyIndex: 4,
+        ),
+        (
+          name: 'none',
+          vmPath: FixturePaths.m7M7NextRebalanceNone,
+          isNone: true,
+          previewIndex: null,
+          isStale: false,
+          safetyIndex: 0,
+        ),
+      ]) {
     testWidgets('T76c-14 layout chain ${d.name}', (WidgetTester tester) async {
       final NextRebalanceVm vm = singleFixture(
         d.vmPath,
@@ -970,48 +950,39 @@ void main() {
     });
   }
 
-  for (final ({
-    String name,
-    String vmPath,
-    bool doTap,
-    int? resultType,
-  }) d in <({
-    String name,
-    String vmPath,
-    bool doTap,
-    int? resultType,
-  })>[
-    (
-      name: 'countdown_no_tap',
-      vmPath: FixturePaths.m7M7NextRebalanceCountdown,
-      doTap: false,
-      resultType: null,
-    ),
-    (
-      name: 'none',
-      vmPath: FixturePaths.m7M7NextRebalanceNone,
-      doTap: false,
-      resultType: null,
-    ),
-    (
-      name: 'default',
-      vmPath: FixturePaths.m7M7NextRebalanceCountdown,
-      doTap: true,
-      resultType: 0,
-    ),
-    (
-      name: 'in_band',
-      vmPath: FixturePaths.m7M7NextRebalanceCountdown,
-      doTap: true,
-      resultType: 1,
-    ),
-    (
-      name: 'blocked_row1',
-      vmPath: FixturePaths.m7M7NextRebalanceCountdown,
-      doTap: true,
-      resultType: 2,
-    ),
-  ]) {
+  for (final ({String name, String vmPath, bool doTap, int? resultType}) d
+      in <({String name, String vmPath, bool doTap, int? resultType})>[
+        (
+          name: 'countdown_no_tap',
+          vmPath: FixturePaths.m7M7NextRebalanceCountdown,
+          doTap: false,
+          resultType: null,
+        ),
+        (
+          name: 'none',
+          vmPath: FixturePaths.m7M7NextRebalanceNone,
+          doTap: false,
+          resultType: null,
+        ),
+        (
+          name: 'default',
+          vmPath: FixturePaths.m7M7NextRebalanceCountdown,
+          doTap: true,
+          resultType: 0,
+        ),
+        (
+          name: 'in_band',
+          vmPath: FixturePaths.m7M7NextRebalanceCountdown,
+          doTap: true,
+          resultType: 1,
+        ),
+        (
+          name: 'blocked_row1',
+          vmPath: FixturePaths.m7M7NextRebalanceCountdown,
+          doTap: true,
+          resultType: 2,
+        ),
+      ]) {
     testWidgets('T76c-15 no fabricated strings ${d.name}', (
       WidgetTester tester,
     ) async {
@@ -1061,17 +1032,14 @@ void main() {
         if (vm.noticeText != null) vm.noticeText!,
         if (vm.emptyLabel != null) vm.emptyLabel!,
         vm.asOf.label,
-        if (result?.preview != null) ...<String>{
-          result!.preview!.plannedDateText,
-          result!.preview!.orderDraftsTitle,
-          if (result!.preview!.ordersEmptyText != null)
-            result!.preview!.ordersEmptyText!,
-          result!.preview!.previewNotice,
-          ...result!.preview!.warningLines,
-          result!.preview!.asOf.label,
-          for (final OrderDraft draft in result!.preview!.orderDrafts) ...<
-            String
-          >[
+        if (result?.preview case final RebalancePreview preview) ...<String>{
+          preview.plannedDateText,
+          preview.orderDraftsTitle,
+          if (preview.ordersEmptyText != null) preview.ordersEmptyText!,
+          preview.previewNotice,
+          ...preview.warningLines,
+          preview.asOf.label,
+          for (final OrderDraft draft in preview.orderDrafts) ...<String>[
             draft.symbolLabel,
             draft.accountAlias,
             draft.sideLabel,
@@ -1081,9 +1049,9 @@ void main() {
             for (final ReasonChip chip in draft.reasons) chip.label,
           ],
           AnalyticsLabels.rebalanceDraftCostsHeader,
-          result!.preview!.costs.totalText,
-          result!.preview!.costs.sourceLabel,
-          result!.preview!.costs.basisNote,
+          preview.costs.totalText,
+          preview.costs.sourceLabel,
+          preview.costs.basisNote,
         },
         if (result?.blockedText != null) result!.blockedText!,
         if (result?.blockedAction != null) result!.blockedAction!.label,
@@ -1187,9 +1155,8 @@ void main() {
   }
 
   test('T76c-17 file inspect', () {
-    final String content = File(
-      'lib/src/screens/rebalance_preview_screen.dart',
-    ).readAsStringSync();
+    final String content = File('lib/src/screens/rebalance_preview_screen.dart')
+        .readAsStringSync();
     expect(content.contains('planner'), isFalse);
     expect(
       RegExp(r'Scaffold|AppBar|SafeArea|SnackBar').hasMatch(content),
@@ -1200,31 +1167,24 @@ void main() {
     expect(Directory('lib/src/rebalance/preview').existsSync(), isFalse);
   });
 
-  for (final ({
-    String name,
-    int resultType,
-    Key expectedAreaKey,
-  }) d in <({
-    String name,
-    int resultType,
-    Key expectedAreaKey,
-  })>[
-    (
-      name: 'default',
-      resultType: 0,
-      expectedAreaKey: const Key('s76c-draft'),
-    ),
-    (
-      name: 'in_band',
-      resultType: 1,
-      expectedAreaKey: const Key('s76c-draft'),
-    ),
-    (
-      name: 'blocked',
-      resultType: 2,
-      expectedAreaKey: const Key('s76c-blocked'),
-    ),
-  ]) {
+  for (final ({String name, int resultType, Key expectedAreaKey}) d
+      in <({String name, int resultType, Key expectedAreaKey})>[
+        (
+          name: 'default',
+          resultType: 0,
+          expectedAreaKey: const Key('s76c-draft'),
+        ),
+        (
+          name: 'in_band',
+          resultType: 1,
+          expectedAreaKey: const Key('s76c-draft'),
+        ),
+        (
+          name: 'blocked',
+          resultType: 2,
+          expectedAreaKey: const Key('s76c-blocked'),
+        ),
+      ]) {
     testWidgets('T76c-18 large font ${d.name}', (WidgetTester tester) async {
       final NextRebalanceVm countdown = singleFixture(
         FixturePaths.m7M7NextRebalanceCountdown,

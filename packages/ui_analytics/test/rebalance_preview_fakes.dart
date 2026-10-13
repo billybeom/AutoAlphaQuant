@@ -9,10 +9,7 @@ import 'explore_fakes.dart' show FakeSafetyRepository;
 import 'golden/golden_support.dart';
 
 class FakeNextRebalanceRepository extends UnimplementedRebalanceRepository {
-  FakeNextRebalanceRepository({
-    this.vm,
-    this.streamFactory,
-  });
+  FakeNextRebalanceRepository({this.vm, this.streamFactory});
 
   final NextRebalanceVm? vm;
   final Stream<NextRebalanceVm> Function(int call)? streamFactory;
@@ -43,10 +40,7 @@ class FakeNextRebalanceRepository extends UnimplementedRebalanceRepository {
 }
 
 class FakeRebalancePreviewApi extends UnimplementedWhatIfApi {
-  FakeRebalancePreviewApi({
-    this.result,
-    this.answerFn,
-  });
+  FakeRebalancePreviewApi({this.result, this.answerFn});
 
   final RebalancePreviewResult? result;
   final Future<RebalancePreviewResult> Function(int call)? answerFn;
@@ -76,7 +70,7 @@ class FakeRebalancePreviewApi extends UnimplementedWhatIfApi {
   }
 
   @override
-  Future<WithdrawalPlan> simulateWithdrawal({required dynamic amount}) {
+  Future<WithdrawalPlan> simulateWithdrawal({required amount}) {
     otherCalls.add('simulateWithdrawal');
     return super.simulateWithdrawal(amount: amount);
   }
@@ -148,9 +142,7 @@ Future<void> pumpRebalancePreview(
           data: MediaQuery.of(context).copyWith(textScaler: textScaler),
           child: child!,
         ),
-        home: const Scaffold(
-          body: RebalancePreviewScreen(),
-        ),
+        home: const Scaffold(body: RebalancePreviewScreen()),
       ),
     ),
   );
