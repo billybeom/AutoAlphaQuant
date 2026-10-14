@@ -652,16 +652,12 @@ void main() {
       );
 
       final List<BlockFlag> activeFlags = safety.activeFlags;
-      expect(
-        activeFlags,
-        hasLength(
-          caseName == 'row0'
-              ? 0
-              : caseName == 'row3'
-              ? 2
-              : 1,
-        ),
-      );
+      final int flagCount = caseName == 'row0'
+          ? 0
+          : caseName == 'row3'
+          ? 2
+          : 1;
+      expect(activeFlags, hasLength(flagCount));
 
       for (final BlockFlag flag in activeFlags) {
         expect(find.text(flag.label), findsOneWidget);
@@ -795,12 +791,16 @@ void main() {
 
     final String barrelContent = File('lib/ui_analytics.dart')
         .readAsStringSync();
-    final List<String> exports = RegExp(r"^export '([^']+)';", multiLine: true)
-        .allMatches(barrelContent)
-        .map((RegExpMatch m) => m.group(1)!)
-        .where((String e) => e == 'src/screens/annual_review_screen.dart')
-        .toList();
-    expect(exports, <String>['src/screens/annual_review_screen.dart']);
+    final List<String> exports = RegExp(
+      r"^export '([^']+)';",
+      multiLine: true,
+    ).allMatches(barrelContent).map((RegExpMatch m) => m.group(1)!).toList();
+    expect(
+      exports
+          .where((String e) => e == 'src/screens/annual_review_screen.dart')
+          .toList(),
+      <String>['src/screens/annual_review_screen.dart'],
+    );
 
     expect(exports.any((String e) => e.contains('annual_review/')), isFalse);
   });
