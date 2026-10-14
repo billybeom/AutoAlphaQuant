@@ -84,22 +84,18 @@ class _AnnualReviewScreenState extends ConsumerState<AnnualReviewScreen> {
     return Card(
       key: const Key('s77-aftertax'),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(ladder.branchLabel),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             for (final (int i, AfterTaxStep step) in ladder.steps.indexed)
               _buildStep(i, step),
-            const SizedBox(height: 4),
             Text(ladder.honestExpectationLine),
-            const SizedBox(height: 4),
             Text(ladder.basisNote),
-            if (ladder.referenceOnlyLabel != null) ...<Widget>[
-              const SizedBox(height: 4),
+            if (ladder.referenceOnlyLabel != null)
               Text(ladder.referenceOnlyLabel!),
-            ],
             if (vm.afterTaxCounterfactual != null)
               _buildCounterfactual(vm.afterTaxCounterfactual!),
           ],
@@ -116,7 +112,6 @@ class _AnnualReviewScreenState extends ConsumerState<AnnualReviewScreen> {
         Text(step.label),
         Text(step.valueText),
         if (step.noteLine != null) Text(step.noteLine!),
-        const SizedBox(height: 4),
       ],
     );
   }
@@ -144,19 +139,16 @@ class _AnnualReviewScreenState extends ConsumerState<AnnualReviewScreen> {
           ),
           if (_cfOpen)
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   for (final (int i, AfterTaxStep step) in cf.steps.indexed)
                     _buildStep(i, step),
                   Text(cf.honestExpectationLine),
-                  const SizedBox(height: 4),
                   Text(cf.basisNote),
-                  if (cf.referenceOnlyLabel != null) ...<Widget>[
-                    const SizedBox(height: 4),
+                  if (cf.referenceOnlyLabel != null)
                     Text(cf.referenceOnlyLabel!),
-                  ],
                 ],
               ),
             ),
