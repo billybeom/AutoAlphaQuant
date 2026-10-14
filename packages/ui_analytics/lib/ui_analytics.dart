@@ -9,6 +9,7 @@
 // 화면 위젯은 lib/src/ 아래에 두고 공개할 것만 여기에서 export 한다.
 export 'l10n/labels.dart';
 export 'src/providers/analytics_providers.dart';
+export 'src/screens/annual_review_screen.dart';
 export 'src/screens/contribution_screen.dart';
 export 'src/screens/drawdown_context_screen.dart';
 export 'src/screens/goal_path_screen.dart';
