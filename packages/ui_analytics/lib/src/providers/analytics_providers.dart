@@ -144,3 +144,10 @@ final AutoDisposeStreamProvider<NextRebalanceVm> nextRebalanceProvider =
     StreamProvider.autoDispose<NextRebalanceVm>((ref) {
       return ref.watch(rebalanceRepositoryProvider).watchNext();
     });
+
+// ── 🆕 R12c — S7-7 ──
+/// S7-7 연간 리뷰 — 연도 인자 없이(엔진 기본 연도 · 01 §15-4)
+final AutoDisposeFutureProvider<AnnualReviewVm> annualReviewProvider =
+    FutureProvider.autoDispose<AnnualReviewVm>((ref) {
+      return ref.watch(performanceRepositoryProvider).annualReview();
+    });
