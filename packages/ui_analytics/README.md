@@ -36,17 +36,17 @@
 - 증명: 그리기 기록 하네스 `test/golden/chart_probe.dart` 가 주 증명이고 골든은 보조다(같은 절). 🆕 v1.4 — 목표 경로는 같은 파일의 `expectGoalPathMatches`(«R11» 절).
 - 층·색·굵기 표는 01 §13-2 가 정본이다 — 고정이다.
 
-## 지금 상태 (~~2026-09-30 · 계약 v1.4 선행 M2 보강 시점~~ → ~~2026-10-12 · R11b 병합본 + 계약 v1.6 로컬 tip 위 R12 카드 조립 기록 시점~~ → 2026-10-14 · R12a 병합본 `708fde1` 기록 시점)
+## 지금 상태 (~~2026-09-30 · 계약 v1.4 선행 M2 보강 시점~~ → ~~2026-10-12 · R11b 병합본 + 계약 v1.6 로컬 tip 위 R12 카드 조립 기록 시점~~ → ~~2026-10-14 · R12a 병합본 `708fde1` 기록 시점~~ → 2026-10-14 · R12b 병합본 `f4f2f6c` 기록 시점)
 
 | 무엇 | 상태 |
 |---|---|
 | 도구 | Flutter·Dart·melos 설치돼 있다(`docs/toolchain_notes.md`). 테스트는 패키지 폴더에서 `flutter test`(🔴 중첩 `melos run test` 는 쓰지 않는다) |
-| 화면(13개 중) | ✅ ~~8개~~ → 10개 — `S7-1` `MonthlyReportScreen` · `S7-1b` `ReportArchiveScreen` · `S7-2G`·`S7-2` `PerformanceExploreScreen` · `S7-3` `DrawdownContextScreen` · `S7-3b` `ContributionScreen` · 🆕 `S7-4` `DepositPlannerScreen`(R11a · 배럴 밖 `package:ui_analytics/planner.dart`) · `S7-9` `GoalPathScreen`(R11b) · 🆕 `S7-6a` `RebalanceTimelineScreen` · `S7-6b` `RebalanceEventScreen`(R12a) |
-| 다음 카드 R12 | ~~R11a·R11b~~ ✅ 병합(PR #19 `df42632` · PR #21 `bce1a56`) · **R12 4장**(계약 v1.6 병합 ✅ · 순서 고정 · ✅ R12a 병합 PR #26 `708fde1` 2026-10-14 · ▶ 다음 카드 = R12b `send/R12b-Bob-S76c.md`): R12a `S7-6a`·`S7-6b`(배럴 +2) → R12b `S7-6c`(+1) → R12c `S7-7`(+1) → R12d `S7-10`(+1 · 배럴 export == 13 «정확히 N» 소유) — 패킷 = `docs/ai-context/send/` · `send/_대기/`. `S7-5` 인출은 **R11c · 인출 규칙 결정 뒤 첫 minor 로 보류** |
-| 그 밖 | ⬜ `S7-6c` · `S7-7` · `S7-8` · `S7-10` — 아직 없다(`S7-8` 은 R12 밖) |
+| 화면(13개 중) | ✅ ~~8개~~ → ~~10개~~ → 11개 — `S7-1` `MonthlyReportScreen` · `S7-1b` `ReportArchiveScreen` · `S7-2G`·`S7-2` `PerformanceExploreScreen` · `S7-3` `DrawdownContextScreen` · `S7-3b` `ContributionScreen` · 🆕 `S7-4` `DepositPlannerScreen`(R11a · 배럴 밖 `package:ui_analytics/planner.dart`) · `S7-9` `GoalPathScreen`(R11b) · 🆕 `S7-6a` `RebalanceTimelineScreen` · `S7-6b` `RebalanceEventScreen`(R12a) · 🆕 `S7-6c` `RebalancePreviewScreen`(R12b) |
+| 다음 카드 R12 | ~~R11a·R11b~~ ✅ 병합(PR #19 `df42632` · PR #21 `bce1a56`) · **R12 4장**(계약 v1.6 병합 ✅ · 순서 고정 · ✅ R12a 병합 PR #26 `708fde1` 2026-10-14 · ✅ R12b 병합 PR #27 `f4f2f6c` 2026-10-14 · ▶ 다음 카드 = R12c `send/R12c-Bob-S77.md`): R12a `S7-6a`·`S7-6b`(배럴 +2) → R12b `S7-6c`(+1) → R12c `S7-7`(+1) → R12d `S7-10`(+1 · 배럴 export == 13 «정확히 N» 소유) — 패킷 = `docs/ai-context/send/` · `send/_대기/`. `S7-5` 인출은 **R11c · 인출 규칙 결정 뒤 첫 minor 로 보류** |
+| 그 밖 | ⬜ `S7-7` · `S7-8` · `S7-10` — 아직 없다(`S7-8` 은 R12 밖) |
 | 공용 위젯 | `StaleBanner` · `SafetyBlockBanner` · `TrustBadgeView` · `PerfChart`(내부 — 배럴에 없다) |
 | 차트 | `lib/src/chart/`·`lib/src/widgets/perf_chart.dart` = R10 본보기의 diff 0 사본. 🆕 목표 경로 본보기 2파일 = R11b 가 `test/golden/reference/goal_path/` 에서 `lib/src/goal_path/` 로 diff 0 복사(본보기는 M2 소유로 남는다) |
 | 배럴 검사 | G13(`performance_explore_gate_test.dart`) = 7경로 각 1 + `src/planner`·`src/chart/`·`src/screens/explore/`·`src/goal_path/` export 0(🆕 v1.4 완화 · 집합 완전 일치는 R11a T74-22 · R11b T79-14 로 이관) |
-| 정적 라벨 | `lib/l10n/labels.dart` `AnalyticsLabels` ~~21개~~ → ~~40개~~ → 46개(R11a 15 · R11b 4 · R12a 6 포함 · 실측 2026-10-14) |
-| 테스트 | ~~196건~~ → ~~304건~~ → **354건** 통과(R12a 병합본 `708fde1` · 304 + 50 · 실측 2026-10-14 · R12b 시작 기준) |
-| 골든 PNG | ~~42장~~ → ~~64장~~ → **76장**(`s71_*` 10 · `s71b_*` 4 · `s72g_*` 8 · `s72_*` 12 · `s73_*` 4 · `s73b_*` 4 · `s74_*` 14 · `s79_*` 8 · `s76a_*` 6 · `s76b_*` 6) |
+| 정적 라벨 | `lib/l10n/labels.dart` `AnalyticsLabels` ~~21개~~ → ~~40개~~ → ~~46개~~ → 48개(R11a 15 · R11b 4 · R12a 6 · R12b 2 포함 · 실측 2026-10-14) |
+| 테스트 | ~~196건~~ → ~~304건~~ → ~~354건~~ → **405건** 통과(R12b 병합본 `f4f2f6c` · 354 + 51 · 실측 2026-10-14 · R12c 시작 기준) |
+| 골든 PNG | ~~42장~~ → ~~64장~~ → ~~76장~~ → **86장**(`s71_*` 10 · `s71b_*` 4 · `s72g_*` 8 · `s72_*` 12 · `s73_*` 4 · `s73b_*` 4 · `s74_*` 14 · `s79_*` 8 · `s76a_*` 6 · `s76b_*` 6 · `s76c_*` 10) |
