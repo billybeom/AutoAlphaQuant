@@ -15,5 +15,6 @@ export 'src/screens/goal_path_screen.dart';
 export 'src/screens/monthly_report_screen.dart';
 export 'src/screens/performance_explore_screen.dart';
 export 'src/screens/rebalance_event_screen.dart';
+export 'src/screens/rebalance_preview_screen.dart';
 export 'src/screens/rebalance_timeline_screen.dart';
 export 'src/screens/report_archive_screen.dart';

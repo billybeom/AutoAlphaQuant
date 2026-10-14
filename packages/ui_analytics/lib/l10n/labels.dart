@@ -58,4 +58,8 @@ abstract final class AnalyticsLabels {
   static const String rebalanceThresholdsHeader = '임계 대조';
   static const String rebalanceSnapshotHeader = '당시 스냅샷';
   static const String rebalanceQualityHeader = '실행 품질';
+
+  // ── 🆕 R12b — S7-6c ──
+  static const String rebalanceDraftButton = '지금 기준 초안 보기';
+  static const String rebalanceDraftCostsHeader = '예상 비용';
 }

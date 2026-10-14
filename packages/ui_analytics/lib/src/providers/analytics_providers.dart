@@ -130,3 +130,17 @@ rebalanceEventProvider = StreamProvider.autoDispose
           .watch(rebalanceRepositoryProvider)
           .watchEvent(rebalanceEventId);
     });
+
+// ── 🆕 R12b — S7-6c ──
+/// S7-6c 지금 기준 초안 — 미리보기 계산 주입 창구(뷰어 셸 = null = 카운트다운만 · 01 §15-4)
+final Provider<WhatIfApi?> analyticsWhatIfApiProvider = Provider<WhatIfApi?>((
+  ref,
+) {
+  throw UnimplementedError('analyticsWhatIfApiProvider must be overridden');
+});
+
+/// S7-6c 다음 리밸런싱 예고 — 인자 없이(01 §15-4)
+final AutoDisposeStreamProvider<NextRebalanceVm> nextRebalanceProvider =
+    StreamProvider.autoDispose<NextRebalanceVm>((ref) {
+      return ref.watch(rebalanceRepositoryProvider).watchNext();
+    });
