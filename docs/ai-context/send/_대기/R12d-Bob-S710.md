@@ -156,9 +156,23 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
    테스트는 package:ui_analytics/src/widgets/analytics_error_view.dart · analytics_skeleton.dart · trust_badge_view.dart 를 직접 import 한다(배럴이 export 하지 않는다) ·
    🆕 C4b-14 — Key 를 단 Text 마다 tester.widget<Text>(find.byKey(…)).data == 픽스처 필드(Key 가 있는지만 보지 않는다 — Key 자리 그대로 글자만 맞바꾼 변이를 잡는다) · if/else 양쪽 단언에서 else 쪽 findsNothing 이 없으면 반려 · 카드가 «<» 라 적은 곳을 «<=» 로 바꾸지 않는다 · 카드가 «N개» 라 적은 곳을 greaterThanOrEqualTo 로 바꾸지 않는다.
    ⓡ = 정상 상태 테스트마다 expect(find.text(AnalyticsLabels.retryButton), findsNothing); 를 **한 줄에 하나**(여러 경우를 도는 테스트는 본문에 한 줄) ·
-      ⓗ = 목록 단언 루프 **앞**의 expect(<목록>, hasLength(n)); 전제 한 줄. 둘 다 도우미로 감싸지 않는다 · dart format 뒤에도 한 줄이어야 한다(접히면 줄을 얕게) —
+      ⓗ = 목록 단언 루프 **앞**의 expect(<목록>, hasLength(n)); 전제 한 줄. 둘 다 도우미로 감싸지 않는다 · dart format 뒤에도 한 줄이어야 한다(접히면 기대 수를 final int 변수로 받아 줄을 짧게 — 아래 «ⓗ 한 줄 견본») —
       정적 묶음 S31·S32 가 git grep -c 로 센다 — 🔴 아래 최소 목록의 ⓡ·ⓗ 표시 수와 **정확히** 같아야 한다
       (execution_gap_view_test.dart ⓡ 15 · ⓗ 8 · 다르면 제출 전에 테스트를 고친다 · PR 본문의 까닭 한 줄로 갈음하지 못한다 · 다른 채 내면 반려).
+      🆕 ⓗ 한 줄 견본 — 코드 글자로(R12c 1회차 C12c-2 · 발주자 결정 2026-10-14 ② · 경우마다 기대 수가 다른 ⓗ(아래 최소 목록에서 «hasLength(<… · …>)» 꼴로 적은 자리)에 쓴다 · 변수·경우 이름은 재량 · 실제 목록·수는 그 테스트 항목이 정한다):
+        ㉠ 경우 목록(레코드)에 기대 수를 넣는 꼴(권장 — for 로 testWidgets 를 경우마다 만들 때):
+          for (final (String caseName, int row, int flagCount) in <(String, int, int)>[
+            ('row0', 0, 0),
+            ('row3', 3, 2),
+          ]) {
+            … (testWidgets 본문 — 목록 단언 루프 앞에)
+              expect(activeFlags, hasLength(flagCount));
+        ㉡ 본문에서 final int 변수로 받는 꼴(경우 목록을 바꾸지 않을 때):
+              final int flagCount = caseName == 'row0' ? 0 : 2;
+              expect(activeFlags, hasLength(flagCount));
+          (final int 줄은 값을 고르는 식 · 단언 0 · if 아님 — 규칙 11 의 금지 대상이 아니다 · 그 줄에는 hasLength 가 없어 S32 수가 그대로다.
+           dart format 이 이 변수 줄을 여러 줄로 접는 것은 괜찮다 — 한 줄이어야 하는 것은 expect(…, hasLength(…)); 줄이다.)
+        🔴 반려 꼴(dart format 뒤 여러 줄 — R12c 1회차 C12c-2 · 10줄로 접힘): expect(activeFlags, hasLength(caseName == 'row0' ? 0 : caseName == 'row3' ? 2 : 1)); 처럼 hasLength( 안에 중첩 삼항을 쓰기.
    🔴 ⓗ(hasLength)를 두는 곳은 아래 최소 목록에 ⓗ 로 표시한 자리뿐이다(8). 그 밖의 루프 — T710-03 의 사슬 Finder 목록 · T710-10·T710-11 의 플래그 루프 · T710-15 의 Text 루프 ·
       픽스처·경우 목록 — 에는 hasLength( 를 쓰지 않는다(쓰면 S32 가 기대 8 과 달라진다 — 제출 전에 고친다 · 다른 채 내면 반려).
    🔴 금지하는 if 는 «한쪽만 단언하는 if»(else 없는 if · 조용한 건너뛰기 · 빈 if 블록)와 firstWhere 다. 양쪽에 expect 가 있는 if/else(카드가 «양쪽 다»라 적은 곳)는 허용한다. T710-03 의 사슬 목록을 만드는 «있으면 사슬에 넣는다»는 «없으면 else 로 findsNothing»과 짝일 때만 허용한다(R11b 재제출 F1 — 있는 쪽 = chain.add(뒤의 사슬 루프가 findsOneWidget 으로 단언) · 없는 쪽 = else findsNothing).
@@ -375,7 +389,9 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
    기준일        Key('s710-asof')                          Text(result.asOf.label) — 맨 아래
    (periodLabel · complianceRateLabel · medianDelayLabel · priceGapLabel · amendChainMaxLabel · 머리글 · 칩 · TrustBadgeView 에는 Key 를 달지 않는다 — 테스트는 find.text · find.byType 로 찾는다)
 
-■ 할 일 — 이 순서로, 단계마다 커밋 · 테스트는 그 단계 커밋에 함께 · 🔴 커밋 순서·제목은 이대로(각 단계 끝 «커밋 «…»» 글자 그대로 · 5개)
+■ 할 일 — 이 순서로 · 🆕 커밋 나누기는 재량 — 커밋 제목이 그 커밋 내용과 맞기만 하면 된다(발주자 결정 2026-10-14 ④ · 설계 12 §3 R10~R16 공통 조문 «커밋 = 제목만 맞추기» · 근거 R11b C4b-1 · R12b C12b-10 · R12c C12c-5)
+   (각 단계 끝 «커밋 «…»» 는 단계마다 하나씩 나눌 때의 권장 제목이다(5개) · 단계를 합치거나 더 나누면 제목을 그 커밋에 실제로 든 내용에 맞게 쓴다 — 예 화면 파일이 든 커밋의 제목에 «화면» 이 없으면 안 된다 · 제목 ≠ 내용 = 위 보고 규칙 ① 표기(통합 담당이 PR 본문·기록에서 정정 · 반려 아님 · 12 §3 공통 조문 ④) ·
+    🔴 그대로인 것: amend·rebase·강제 푸시 금지 · 마지막 커밋 = format · 질문 파일(그 뒤 커밋 0 · 제출 단계의 format 0 changed — C4 보충: 결정 ④ 밖에서 이 카드의 기존 규칙을 그대로 둔 것 · CI 포맷 게이트·amend 금지 때문) · 아래 «이 커밋 전에» 의 정적 묶음 미리 돌리기)
  (1) 정적 라벨 1개(labels.dart 끝 R12d 절 · 기존 화면·위젯 무변경 — 0단계의 시작 기준 N 이 그대로 통과). 커밋 «[M7] R12d (1) 정적 라벨»
  (2) 주입·결과 프로바이더(analytics_providers.dart 끝 R12d 절 · 커밋 전에 dart format) + test/execution_gap_fakes.dart(FakeExecutionGapRepository · executionGapOverrides 둘만 — pumpExecutionGap 은 아직 없다) +
      test/execution_gap_view_test.dart(T710-17 하나로 시작 · import 는 dart:io · package:flutter_test/flutter_test.dart 둘만 — 나머지 import 는 (3) 에서 쓰기 시작할 때 더한다).
@@ -578,7 +594,10 @@ echo "## S33 s710 keys (7 names)"; git grep -noP "s710-[a-z]+" -- lib/src/screen
     flutter test --update-goldens test/golden/s710_golden_test.dart
     flutter test   ← 옵션 없이 전부 통과 · git status 에 새 PNG 12장만 ??
   🔴 다른 골든 테스트 파일을 --update-goldens 에 넣지 않는다(폴더 지정 금지).
-  위치 전제가 실패하면(본문이 높이를 넘으면) 높이를 늘리지 말고 멈춘 뒤 실제 dy 값을 질문 파일에 적는다.
+  위치 전제가 실패하면(본문이 높이를 넘으면) 높이(kS710GoldenSize — 카드 확정값)를 늘리지 않는다.
+  🆕 화면 여백(간격 — SizedBox 높이·Padding 의 정수)을 줄여 맞추는 것은 간격 재량으로 허용한다 — 단 줄였으면 «줄이기 전 dy» 와 «줄인 뒤 dy» 를 질문 파일에 «측정:» 사실 행으로 남긴다
+     (발주자 결정 2026-10-14 ③ · 설계 12 §3 R10~R16 공통 조문 «골든 높이 = 재량 + 기록» · 근거 R12c C12c-6 — 여백을 줄여 맞춘 사실이 기록에 없었다 · 행의 꼴은 아래 «질문 파일» 절).
+     여백을 줄여도 넘거나, 여백 말고 다른 것(글자·배치·요소 수)을 바꿔야 들어가면 멈춘 뒤 실제 dy 값을 질문 파일에 적는다(바꾸지 않는다).
   위치 전제의 dy 는 골든 이름·밝기마다 직접 잰다(한 값을 여러 행에 복사하지 않는다 — R10b 1회차 반려 사유):
     s710_golden_test.dart 의 위치 전제 lessThan(kS710GoldenSize.height) 한 곳을 잠시 lessThan(0) 으로 바꾸고 → flutter test test/golden/s710_golden_test.dart(--update-goldens 없이)
     → 테스트 이름('s710_cant light' … 12개)마다 실패 문구의 «Actual: <숫자>» 를 적는다(헷갈리면 --plain-name 으로 한 이름씩) → 되돌린다(git diff -- test/golden/s710_golden_test.dart 로 확인).
@@ -591,13 +610,15 @@ echo "## S33 s710 keys (7 names)"; git grep -noP "s710-[a-z]+" -- lib/src/screen
   권고와 다르게 지은 이름 · 1개 밖에 더 필요했던 정적 라벨(더하지 않고 질문으로) · 문서에 없어 정한 것 전부.
     | A1 | R12d-Bob-S710 | 추측 | 측정: s710_cant dy 실측값 (light=<값>, dark=<값> < <높이>) | 골든 위치 전제 실측 | <높이> 미만 확인 | ⬜ 미답 | |
     (A2 = s710_wont · A3 = s710_mixed · A4 = s710_empty · A5 = s710_not_applicable · A6 = s710_masked_recon · 같은 형식 · <높이> = kS710GoldenSize 의 높이 숫자 · <값> 자리에만 잰 숫자)
+  🆕 골든 높이를 맞추려고 여백을 줄였으면(위 «골든» 절 · 발주자 결정 2026-10-14 ③) A6 다음 번호부터 줄인 이름마다 한 행을 더한다(종류 «추측» · «측정:» 으로 시작 — ⑤ «추측한 것» 에는 세지 않는다 · 줄이지 않았으면 이 행 0):
+    | A7 | R12d-Bob-S710 | 추측 | 측정: <이름> 여백 줄이기 전 dy (light=<값>, dark=<값>) · 줄인 뒤 dy = 그 이름의 A 행 값 | 골든 높이 맞춤(간격 재량) | 줄인 여백 = <어느 SizedBox·Padding · 전 → 뒤 정수> | ⬜ 미답 | |
 · 적지 않을 것(카드가 정함 = 추측 아님): 위젯·프로바이더·Key·파일 이름 · 정적 라벨 1개 · 읽지 않는 필드 목록(규칙 5) · 게이지 모양·색 · 칩 색 갈래 · 정정 체인 줄을 늘 그리는 것 ·
-  하단·배너가 result.asOf 하나인 것 · 배치 순서 · 골든 이름·입력·안전 행 · 재량인 것(여백·글자 크기·모서리). 동작·상태·글자·Key 가 갈리는 것만 적는다.
+  하단·배너가 result.asOf 하나인 것 · 배치 순서 · 골든 이름·입력·안전 행 · 재량인 것(여백·글자 크기·모서리 — 단 골든 높이를 맞추려 여백을 줄였으면 위 «측정:» 행은 적는다). 동작·상태·글자·Key 가 갈리는 것만 적는다.
 · 🔴 행을 쓰기 전에 그 내용을 카드에서 찾는다(찾는 말 = 위젯·필드 이름) · «카드 지시대로»·«카드대로» 라는 말이 들어가는 행은 쓰지 않는다.
 · 🔴 질문 파일은 브랜치에 커밋한다(채팅 보고만으로는 제출이 아니다).
 
 ■ 제출
-  (할 일 (1)~(5) 커밋이 끝난 뒤 — (5) 가 마지막 커밋)
+  (할 일 (1)~(5) 커밋이 끝난 뒤 — 마지막 커밋 = format·질문 커밋(권장대로 나눴으면 (5)))
   cd packages/ui_analytics
   flutter test test/execution_gap_view_test.dart        ← 끝 줄을 그대로 적어 둔다(기대 «+54: All tests passed!»(드라이런 확인) · 손으로 세지 않는다)
   flutter test test/golden/s710_golden_test.dart        ← 끝 줄을 그대로 적어 둔다(기대 «+12: All tests passed!»)
@@ -619,7 +640,7 @@ echo "## S33 s710 keys (7 names)"; git grep -noP "s710-[a-z]+" -- lib/src/screen
         하나라도 있으면 푸시하지 말고 멈춘 뒤 출력을 채팅으로
   git push -u origin ui/m7-s710-gap
   git diff --name-status origin/main...HEAD   ← 아래 ① 에 그대로 붙일 출력(푸시한 그 커밋 위에서)
-  git log --oneline origin/main..HEAD         ← 아래 ① 에 그대로 붙일 출력(5줄 · 맨 위 = (5))
+  git log --oneline origin/main..HEAD         ← 아래 ① 에 그대로 붙일 출력(나눈 수만큼 · 권장대로면 5줄 · 맨 위 = format·질문 커밋)
   cd packages/ui_analytics → 위 «정적 묶음» 37줄 → cd ../..   ← 아래 ② 에 그대로 붙일 출력(푸시한 그 커밋 위에서 · git status 가 빈 채로)
   12항 줄 수 — 아래 ② 복사 상자를 괄호까지 채운 글을 저장소 밖 파일에 저장(예 PowerShell 에서 메모장으로 $env:TEMP\r12d_box2.txt)한 뒤
      PowerShell: (Get-Content $env:TEMP\r12d_box2.txt).Count      또는 Git Bash: grep -c "" "$TEMP/r12d_box2.txt"
@@ -639,7 +660,7 @@ echo "## S33 s710 keys (7 names)"; git grep -noP "s710-[a-z]+" -- lib/src/screen
       └── 섹션 머리 복사 끝(이 줄 앞까지)
       (이 다섯 줄은 R12 네 장(R12a~R12d)이 같은 글자다 — 무엇을 어느 섹션에 붙이는지는 아래 ①~⑤ 설명이 정한다)
    ① 아래 «① 머리 복사 상자» 두 줄 그대로 + «바뀐 파일:» + 위 git diff --name-status origin/main...HEAD 출력 그대로(코드 블록 하나 · 손으로 쓰지 않음 · A/M · PNG 포함) +
-      «커밋 목록:» + 위 git log --oneline origin/main..HEAD 출력 그대로(코드 블록 하나 · 맨 위 = (5))
+      «커밋 목록:» + 위 git log --oneline origin/main..HEAD 출력 그대로(코드 블록 하나 · 맨 위 = format·질문 커밋)
       ┌── ① 머리 복사 시작(다음 줄부터)
 화면 ID: S7-10 — 안내 이행 리포트(ExecutionGapScreen({String? yyyyMm}))
 R12 «정확히 N» 소유: 배럴 export 13(T710-16) · autoDispose 9(T710-17)
@@ -706,7 +727,7 @@ R12 «정확히 N» 소유: 배럴 export 13(T710-16) · autoDispose 9(T710-17)
    ④ 질문 목록 — 아래 명령 출력에서 «+|» 로 시작하는 줄 전부를 코드 블록 하나로 그대로(이 카드가 질문 파일에 더한 새 행 전부 — 측정 행 포함 · 앞의 + 와 줄 순서 그대로 · 줄을 고르거나 고쳐 쓰지 않는다 · 요지 표를 손으로 만들지 않는다 — R12a C12a-4 · R11b C4b-2):
       git -c core.quotePath=false diff origin/main...HEAD -- docs/ai-context/inbox/S7-10_questions.md   ← 저장소 뿌리에서 · 푸시한 그 커밋 위에서 · «+++ b/…» 줄은 넣지 않는다(표 행만)
       (셸에서 한글이 깨져 보이면 PowerShell 에서 [Console]::OutputEncoding = [Text.Encoding]::UTF8 를 한 번 돌린 뒤 다시 돌린다 — 출력을 손으로 고쳐 쓰지 않는다)
-   ⑤ 추측한 것 = S7-10_questions.md 의 새 A 행 중 «측정:» 이 아닌 행 전부 — 번호로(예 A7)(없으면 «없음» — 질문 파일과 ⑤ 가 다르면 반려)
+   ⑤ 추측한 것 = S7-10_questions.md 의 새 A 행 중 «측정:» 이 아닌 행 전부 — 번호로(예 A7 — 여백 측정 행이 없을 때 · 있으면 그 다음 번호부터)(없으면 «없음» — 질문 파일과 ⑤ 가 다르면 반려)
       ┌── 시작·끝 복사 시작(다음 줄부터 · 1줄 · <…> 자리에만 출력 그대로 · 아래 «(+ flutter test 한 줄 …)» 의 상자)
 flutter test: 시작 기준 <N> → 끝 <packages/ui_analytics 의 flutter test 끝 줄 그대로>
       └── 시작·끝 복사 끝(이 줄 앞까지 · 끝 자리 예 = R12a «끝 00:16 +354: All tests passed!» 꼴 — 시각·«+수»·«All tests passed!» 까지 출력 끝 줄 그대로 · «끝 354» 처럼 수만 쓰지 않는다 · R12a C12a-6)
@@ -717,7 +738,7 @@ flutter test: 시작 기준 <N> → 끝 <packages/ui_analytics 의 flutter test 
 
 ## 3-1. 받아야 하는 것
 
-- 브랜치 `ui/m7-s710-gap` 푸시 1건 · 커밋 5개(본문 (1)~(5) · **(5) 가 마지막** · amend·rebase·강제 푸시 0).
+- 브랜치 `ui/m7-s710-gap` 푸시 1건 · 커밋 권장 5개(본문 (1)~(5) · **마지막 = format·질문 커밋**(권장대로면 (5)) · amend·rebase·강제 푸시 0 · 🆕 나누기는 재량 — 수가 달라도 각 커밋 제목이 그 내용과 맞으면 된다 · 발주자 결정 2026-10-14 ④).
 - `lib/` 새 파일 **1**(`screens/execution_gap_screen.dart`) · 수정 3(`l10n/labels.dart` 끝 R12d 절 라벨 1 · `providers/analytics_providers.dart` 끝 R12d 절 프로바이더 2 · `ui_analytics.dart` export 1줄(정렬 자리)) — 삭제 0(S27). 그 밖의 `lib/`(R12a~c 화면·폴더 · 위젯 · 차트 · 플래너 · 목표 경로)는 바뀌지 않는 것이 정상 · `lib/src/execution_gap/` 없음.
 - `test/` 새 파일 3(`execution_gap_view_test.dart` · `execution_gap_fakes.dart` · `golden/s710_golden_test.dart`) + 새 PNG 12장(`s710_*`) · 기존 PNG M 0 · 기존 테스트·하네스·README 불변.
 - 질문 파일 `S7-10_questions.md`(새 행 A1~A6 «측정:» 은 반드시 · 그 밖은 있을 때만).
@@ -736,7 +757,7 @@ R12d-Bob-S710 결과: 브랜치 ui/m7-s710-gap 푸시됨 — PR 만들고 병합
 
 ## 5. 주의
 
-- **5분 눈 검사**(PR «Files changed»): ① 기존 PNG(`s71_*`~`s79_*` · R12a~c 의 `s76a_*`·`s76b_*`·`s76c_*`·`s77_*`)가 `M` ② `pubspec.yaml` 변경 ③ `test/golden/` 하네스·`reference/**`·README·기존 골든 테스트·기존 테스트(`goal_path_view_test.dart` 의 T79-14 포함)가 `M` · `trust_badge_view.dart` 등 위젯 `M` ④ 화면 코드의 `aaq://`·`Navigator`·`DateTime.now`·`Decimal`·`watchGrade`·`watchRolling`·`ScaffoldMessenger` ⑤ int 원값(`.issued`·`.filled` …)·`.emptyKind`·`trust.level` 을 읽거나 숫자를 글자로 만드는 코드 · `'%'` 문자열 · `elevation: 0.5` ⑥ (5) 가 마지막 커밋이 아님 · 공용 3파일에 삭제 줄 ⑦ ② 의 S04·S05·S13·S33 출력에 주석 줄·import 줄이 찍힘 · ⓡ·ⓗ 수(S31·S32)가 15·8 이 아님 — 하나라도 있으면 반려 신호(⑦ 의 S05 줄 표기만의 결함은 strict 나눔 ① = C4 정정).
+- **5분 눈 검사**(PR «Files changed»): ① 기존 PNG(`s71_*`~`s79_*` · R12a~c 의 `s76a_*`·`s76b_*`·`s76c_*`·`s77_*`)가 `M` ② `pubspec.yaml` 변경 ③ `test/golden/` 하네스·`reference/**`·README·기존 골든 테스트·기존 테스트(`goal_path_view_test.dart` 의 T79-14 포함)가 `M` · `trust_badge_view.dart` 등 위젯 `M` ④ 화면 코드의 `aaq://`·`Navigator`·`DateTime.now`·`Decimal`·`watchGrade`·`watchRolling`·`ScaffoldMessenger` ⑤ int 원값(`.issued`·`.filled` …)·`.emptyKind`·`trust.level` 을 읽거나 숫자를 글자로 만드는 코드 · `'%'` 문자열 · `elevation: 0.5` ⑥ 마지막 커밋이 format·질문 커밋이 아님 · 공용 3파일에 삭제 줄 ⑦ ② 의 S04·S05·S13·S33 출력에 주석 줄·import 줄이 찍힘 · ⓡ·ⓗ 수(S31·S32)가 15·8 이 아님 — 하나라도 있으면 반려 신호(⑦ 의 S05 줄 표기만의 결함은 strict 나눔 ① = C4 정정).
 - CI «골든 스냅샷» 잡은 이번 PR 이 **추가만** 하므로 초록이 정상입니다(빨간색이면 기존 PNG 를 건드린 것 · `golden:approved` 라벨은 필요 없다).
 - 계약 테스트 C-42 의 `S7-10` 역할(②③③'④⑤⑥⑦⑨)과 ⑬(providers R12 절 — 이 카드의 R12d 절 포함)은 이 브랜치에서 처음 `lib/src/screens/execution_gap_screen.dart` 를 실제로 본다 — 병합 검사 때 Claude 가 그 위에서 `dart test test/contracts/c42_r12_screen_scan_test.dart` 를 돌리고 «C-42 ①» 출력의 대상 수를 PR 본문 ② 와 대조한다.
 - 🔵 «정확히 N» 의 소유 — 이 카드 병합 뒤 배럴 export·`autoDispose` 줄을 바꾸는 카드(R13~)는 T710-16·T710-17 을 허용 diff 로 함께 고친다(그 카드가 정확 집합을 넘겨받는다 · v1.4 G13 · v1.6 T79-14 선례). 이 카드 안에서는 T79-14·G13 을 고치지 않는다.
