@@ -42,17 +42,13 @@ class FakeAnnualReviewRepository extends UnimplementedPerformanceRepository {
   @override
   Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear}) {
     afterTaxLadderCalls.add(fiscalYear);
-    return Future<AfterTaxLadder>.error(
-      UnimplementedError('afterTaxLadder'),
-    );
+    return Future<AfterTaxLadder>.error(UnimplementedError('afterTaxLadder'));
   }
 
   @override
   Future<MonthlyReport> monthlyReport(String yyyyMm) {
     monthlyReportCalls.add(yyyyMm);
-    return Future<MonthlyReport>.error(
-      UnimplementedError('monthlyReport'),
-    );
+    return Future<MonthlyReport>.error(UnimplementedError('monthlyReport'));
   }
 }
 

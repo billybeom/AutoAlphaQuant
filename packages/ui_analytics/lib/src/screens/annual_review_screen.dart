@@ -130,9 +130,7 @@ class _AnnualReviewScreenState extends ConsumerState<AnnualReviewScreen> {
               child: Row(
                 children: <Widget>[
                   Expanded(child: Text(cf.branchLabel)),
-                  Icon(
-                    _cfOpen ? Icons.expand_less : Icons.expand_more,
-                  ),
+                  Icon(_cfOpen ? Icons.expand_less : Icons.expand_more),
                 ],
               ),
             ),

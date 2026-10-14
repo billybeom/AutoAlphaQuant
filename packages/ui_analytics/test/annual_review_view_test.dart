@@ -55,23 +55,24 @@ void main() {
   });
 
   // ── T77-02 ────────────────────────────────────────────────────────────────
-  final List<(AnnualReviewVm, Clock, SafetyState)> t02Cases = <(
-    AnnualReviewVm,
-    Clock,
-    SafetyState,
-  )>[
-    (vm2026, FixedClock(kGoldenNowUtc), safety0),
-    (
-      vmFirstYear,
-      FixedClock(kGoldenNowUtc.add(const Duration(days: 3))),
-      safety4,
-    ),
-    (vmOffwindow, FixedClock(kGoldenNowUtc), safety3),
-  ];
+  final List<(AnnualReviewVm, Clock, SafetyState)> t02Cases =
+      <(AnnualReviewVm, Clock, SafetyState)>[
+        (vm2026, FixedClock(kGoldenNowUtc), safety0),
+        (
+          vmFirstYear,
+          FixedClock(kGoldenNowUtc.add(const Duration(days: 3))),
+          safety4,
+        ),
+        (vmOffwindow, FixedClock(kGoldenNowUtc), safety3),
+      ];
 
   for (final (AnnualReviewVm vm, Clock clk, SafetyState safety) in t02Cases) {
     testWidgets(
-      'T77-02 chain layout ${vm == vm2026 ? "2026" : vm == vmFirstYear ? "first_year" : "offwindow"}',
+      'T77-02 chain layout ${vm == vm2026
+          ? "2026"
+          : vm == vmFirstYear
+          ? "first_year"
+          : "offwindow"}',
       (WidgetTester tester) async {
         final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
           vm: vm,
@@ -103,10 +104,7 @@ void main() {
             findsNothing,
           );
         } else {
-          expect(
-            find.text(AnalyticsLabels.staleBannerTitle),
-            findsNothing,
-          );
+          expect(find.text(AnalyticsLabels.staleBannerTitle), findsNothing);
         }
 
         if (activeFlags.isNotEmpty) {
@@ -152,7 +150,11 @@ void main() {
     vmOffwindow,
   ]) {
     testWidgets(
-      'T77-03 key text == vm field ${vm == vm2026 ? "2026" : vm == vmFirstYear ? "first_year" : "offwindow"}',
+      'T77-03 key text == vm field ${vm == vm2026
+          ? "2026"
+          : vm == vmFirstYear
+          ? "first_year"
+          : "offwindow"}',
       (WidgetTester tester) async {
         final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
           vm: vm,
@@ -181,7 +183,9 @@ void main() {
             )
             .map((Text t) => t.data)
             .toList();
-        expect(cfToggleTexts, <String?>[vm.afterTaxCounterfactual!.branchLabel]);
+        expect(cfToggleTexts, <String?>[
+          vm.afterTaxCounterfactual!.branchLabel,
+        ]);
 
         expect(find.text(vm.yearLabel), findsOneWidget);
         expect(find.text(AnalyticsLabels.retryButton), findsNothing);
@@ -196,7 +200,11 @@ void main() {
     vmOffwindow,
   ]) {
     testWidgets(
-      'T77-04 main ladder steps ${vm == vm2026 ? "2026" : vm == vmFirstYear ? "first_year" : "offwindow"}',
+      'T77-04 main ladder steps ${vm == vm2026
+          ? "2026"
+          : vm == vmFirstYear
+          ? "first_year"
+          : "offwindow"}',
       (WidgetTester tester) async {
         final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
           vm: vm,
@@ -215,10 +223,7 @@ void main() {
 
           final List<String?> texts = tester
               .widgetList<Text>(
-                find.descendant(
-                  of: stepFinder,
-                  matching: find.byType(Text),
-                ),
+                find.descendant(of: stepFinder, matching: find.byType(Text)),
               )
               .map((Text t) => t.data)
               .toList();
@@ -235,9 +240,7 @@ void main() {
                 .getTopLeft(
                   find.descendant(
                     of: find.byKey(const Key('s77-aftertax')),
-                    matching: find.byKey(
-                      ValueKey<String>('s77-step-${i - 1}'),
-                    ),
+                    matching: find.byKey(ValueKey<String>('s77-step-${i - 1}')),
                   ),
                 )
                 .dy,
@@ -285,7 +288,11 @@ void main() {
     vmOffwindow,
   ]) {
     testWidgets(
-      'T77-05 aftertax block texts ${vm == vm2026 ? "2026" : vm == vmFirstYear ? "first_year" : "offwindow"}',
+      'T77-05 aftertax block texts ${vm == vm2026
+          ? "2026"
+          : vm == vmFirstYear
+          ? "first_year"
+          : "offwindow"}',
       (WidgetTester tester) async {
         final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
           vm: vm,
@@ -324,9 +331,7 @@ void main() {
   }
 
   // ── T77-06 ────────────────────────────────────────────────────────────────
-  testWidgets('T77-06 counterfactual toggle 2026', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('T77-06 counterfactual toggle 2026', (WidgetTester tester) async {
     final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
       vm: vm2026,
     );
@@ -438,7 +443,11 @@ void main() {
     vmOffwindow,
   ]) {
     testWidgets(
-      'T77-07 section cards in order ${vm == vm2026 ? "2026" : vm == vmFirstYear ? "first_year" : "offwindow"}',
+      'T77-07 section cards in order ${vm == vm2026
+          ? "2026"
+          : vm == vmFirstYear
+          ? "first_year"
+          : "offwindow"}',
       (WidgetTester tester) async {
         final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
           vm: vm,
@@ -447,7 +456,8 @@ void main() {
 
         expect(vm.sections, hasLength(4));
 
-        for (final (int i, AnnualReviewSection section) in vm.sections.indexed) {
+        for (final (int i, AnnualReviewSection section)
+            in vm.sections.indexed) {
           final Finder cardFinder = find.byKey(
             ValueKey<String>('s77-section-$i'),
           );
@@ -455,10 +465,7 @@ void main() {
 
           final List<String?> texts = tester
               .widgetList<Text>(
-                find.descendant(
-                  of: cardFinder,
-                  matching: find.byType(Text),
-                ),
+                find.descendant(of: cardFinder, matching: find.byType(Text)),
               )
               .map((Text t) => t.data)
               .toList();
@@ -478,22 +485,19 @@ void main() {
                 .dy,
             lessThan(
               tester
-                  .getTopLeft(
-                    find.byKey(ValueKey<String>('s77-section-$i')),
-                  )
+                  .getTopLeft(find.byKey(ValueKey<String>('s77-section-$i')))
                   .dy,
             ),
           );
         }
 
         expect(
-          find.byKey(
-            ValueKey<String>('s77-section-${vm.sections.length}'),
-          ),
+          find.byKey(ValueKey<String>('s77-section-${vm.sections.length}')),
           findsNothing,
         );
 
-        for (final (int i, AnnualReviewSection section) in vm.sections.indexed) {
+        for (final (int i, AnnualReviewSection section)
+            in vm.sections.indexed) {
           final Finder cardFinder = find.byKey(
             ValueKey<String>('s77-section-$i'),
           );
@@ -613,10 +617,7 @@ void main() {
           .isBefore(clk.nowUtc());
 
       if (isStale) {
-        expect(
-          find.text(AnalyticsLabels.staleBannerTitle),
-          findsOneWidget,
-        );
+        expect(find.text(AnalyticsLabels.staleBannerTitle), findsOneWidget);
         expect(
           find.ancestor(
             of: find.text(AnalyticsLabels.staleBannerTitle),
@@ -638,66 +639,62 @@ void main() {
     ('row3', safety3),
     ('row4', safety4),
   ]) {
-    testWidgets(
-      'T77-12 safety banner $caseName',
-      (WidgetTester tester) async {
-        final RecordingLinkOpener opener = RecordingLinkOpener();
-        final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
-          vm: vm2026,
-        );
-        await pumpAnnualReview(
-          tester,
-          repo: repo,
-          safetyState: safety,
-          opener: opener,
-        );
+    testWidgets('T77-12 safety banner $caseName', (WidgetTester tester) async {
+      final RecordingLinkOpener opener = RecordingLinkOpener();
+      final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
+        vm: vm2026,
+      );
+      await pumpAnnualReview(
+        tester,
+        repo: repo,
+        safetyState: safety,
+        opener: opener,
+      );
 
-        final List<BlockFlag> activeFlags = safety.activeFlags;
+      final List<BlockFlag> activeFlags = safety.activeFlags;
+      expect(
+        activeFlags,
+        hasLength(
+          caseName == 'row0'
+              ? 0
+              : caseName == 'row3'
+              ? 2
+              : 1,
+        ),
+      );
+
+      for (final BlockFlag flag in activeFlags) {
+        expect(find.text(flag.label), findsOneWidget);
         expect(
-          activeFlags,
-          hasLength(
-            caseName == 'row0'
-                ? 0
-                : caseName == 'row3'
-                ? 2
-                : 1,
+          find.ancestor(
+            of: find.text(flag.label),
+            matching: find.byType(Scrollable),
           ),
+          findsNothing,
         );
+      }
 
-        for (final BlockFlag flag in activeFlags) {
-          expect(find.text(flag.label), findsOneWidget);
-          expect(
-            find.ancestor(
-              of: find.text(flag.label),
-              matching: find.byType(Scrollable),
-            ),
-            findsNothing,
-          );
-        }
+      if (activeFlags.isEmpty) {
+        expect(find.byIcon(Icons.block), findsNothing);
+      } else {
+        expect(
+          find.byIcon(Icons.block),
+          findsNWidgets(caseName == 'row3' ? 2 : 1),
+        );
+      }
 
-        if (activeFlags.isEmpty) {
-          expect(find.byIcon(Icons.block), findsNothing);
-        } else {
-          expect(
-            find.byIcon(Icons.block),
-            findsNWidgets(caseName == 'row3' ? 2 : 1),
-          );
-        }
+      if (caseName == 'row4') {
+        await tester.tap(find.byIcon(Icons.chevron_right));
+        await tester.pump();
+        expect(opener.opened, <String>[
+          safety4.activeFlags.single.clearDeepLink!,
+        ]);
+      } else {
+        expect(opener.opened, isEmpty);
+      }
 
-        if (caseName == 'row4') {
-          await tester.tap(find.byIcon(Icons.chevron_right));
-          await tester.pump();
-          expect(
-            opener.opened,
-            <String>[safety4.activeFlags.single.clearDeepLink!],
-          );
-        } else {
-          expect(opener.opened, isEmpty);
-        }
-
-        expect(find.text(AnalyticsLabels.retryButton), findsNothing);
-      },
-    );
+      expect(find.text(AnalyticsLabels.retryButton), findsNothing);
+    });
   }
 
   // ── T77-13 ────────────────────────────────────────────────────────────────
@@ -707,7 +704,11 @@ void main() {
     vmOffwindow,
   ]) {
     testWidgets(
-      'T77-13 allowed text set ${vm == vm2026 ? "2026" : vm == vmFirstYear ? "first_year" : "offwindow"}',
+      'T77-13 allowed text set ${vm == vm2026
+          ? "2026"
+          : vm == vmFirstYear
+          ? "first_year"
+          : "offwindow"}',
       (WidgetTester tester) async {
         final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
           vm: vm,
@@ -758,8 +759,9 @@ void main() {
           '\u{C2DC}\u{ADF8}\u{B110}',
         ];
 
-        for (final Text textWidget
-            in tester.widgetList<Text>(find.byType(Text))) {
+        for (final Text textWidget in tester.widgetList<Text>(
+          find.byType(Text),
+        )) {
           final String? data = textWidget.data;
           expect(allowed.contains(data), isTrue, reason: 'Unexpected: $data');
           for (final String word in forbidden) {
@@ -791,24 +793,16 @@ void main() {
 
     expect(Directory('lib/src/annual_review').existsSync(), isFalse);
 
-    final String barrelContent = File('lib/ui_analytics.dart').readAsStringSync();
-    final List<String> exports = RegExp(
-      r"^export '([^']+)';",
-      multiLine: true,
-    )
+    final String barrelContent = File('lib/ui_analytics.dart')
+        .readAsStringSync();
+    final List<String> exports = RegExp(r"^export '([^']+)';", multiLine: true)
         .allMatches(barrelContent)
         .map((RegExpMatch m) => m.group(1)!)
         .where((String e) => e == 'src/screens/annual_review_screen.dart')
         .toList();
-    expect(
-      exports,
-      <String>['src/screens/annual_review_screen.dart'],
-    );
+    expect(exports, <String>['src/screens/annual_review_screen.dart']);
 
-    expect(
-      exports.any((String e) => e.contains('annual_review/')),
-      isFalse,
-    );
+    expect(exports.any((String e) => e.contains('annual_review/')), isFalse);
   });
 
   // ── T77-15 ────────────────────────────────────────────────────────────────
@@ -818,7 +812,11 @@ void main() {
     vmOffwindow,
   ]) {
     testWidgets(
-      'T77-15 no action widgets ${vm == vm2026 ? "2026" : vm == vmFirstYear ? "first_year" : "offwindow"}',
+      'T77-15 no action widgets ${vm == vm2026
+          ? "2026"
+          : vm == vmFirstYear
+          ? "first_year"
+          : "offwindow"}',
       (WidgetTester tester) async {
         final FakeAnnualReviewRepository repo = FakeAnnualReviewRepository(
           vm: vm,
