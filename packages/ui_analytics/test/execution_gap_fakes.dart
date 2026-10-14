@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:domain_contracts/testing.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_analytics/ui_analytics.dart';
 
 import 'explore_fakes.dart' show FakeSafetyRepository;
@@ -47,4 +49,33 @@ List<Override> executionGapOverrides({
     executionGapRepositoryProvider.overrideWithValue(repo),
     safetyRepositoryProvider.overrideWithValue(FakeSafetyRepository(safety)),
   ];
+}
+
+Future<void> pumpExecutionGap(
+  WidgetTester tester, {
+  required FakeExecutionGapRepository repo,
+  String? yyyyMm,
+  SafetyState? safetyState,
+  Clock? clock,
+  RecordingLinkOpener? opener,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: executionGapOverrides(
+        repo: repo,
+        safetyState: safetyState,
+        clock: clock,
+        opener: opener,
+      ),
+      child: MaterialApp(
+        home: Scaffold(body: ExecutionGapScreen(yyyyMm: yyyyMm)),
+      ),
+    ),
+  );
+  await tester.pump();
 }
