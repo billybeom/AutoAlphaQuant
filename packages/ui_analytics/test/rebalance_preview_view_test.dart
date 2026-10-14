@@ -186,6 +186,7 @@ void main() {
     await tester.pump();
 
     expect(whatIf.previewCalls.length, 2);
+    expect(whatIf.previewCalls[1], isNull);
     expect(find.byKey(const Key('s76c-draft')), findsOneWidget);
   });
 
@@ -479,10 +480,12 @@ void main() {
     });
   }
 
-  for (final ({String name, bool bFirst}) d in <({String name, bool bFirst})>[
-    (name: 'b_then_a', bFirst: true),
-    (name: 'a_then_b', bFirst: false),
-  ]) {
+  for (final ({String name, bool bFirst, bool aFails}) d
+      in <({String name, bool bFirst, bool aFails})>[
+        (name: 'b_then_a', bFirst: true, aFails: false),
+        (name: 'a_then_b', bFirst: false, aFails: false),
+        (name: 'b_then_a_error', bFirst: true, aFails: true),
+      ]) {
     testWidgets('T76c-10 last request only ${d.name}', (
       WidgetTester tester,
     ) async {
@@ -517,7 +520,9 @@ void main() {
       await pumpRebalancePreview(tester, repo: repo, whatIf: whatIf);
       await tester.tap(find.byKey(const Key('s76c-preview-button')));
       await tester.pump();
+      await tester.pump();
       await tester.tap(find.byKey(const Key('s76c-preview-button')));
+      await tester.pump();
       await tester.pump();
 
       if (d.bFirst) {
@@ -526,11 +531,16 @@ void main() {
         await tester.pump();
         expect(find.byKey(const Key('s76c-draft')), findsOneWidget);
 
-        completerA.complete(blockedResult);
+        if (d.aFails) {
+          completerA.completeError(StateError('x'));
+        } else {
+          completerA.complete(blockedResult);
+        }
         await tester.pump();
         await tester.pump();
         expect(find.byKey(const Key('s76c-draft')), findsOneWidget);
         expect(find.byKey(const Key('s76c-blocked')), findsNothing);
+        expect(find.byType(AnalyticsErrorView), findsNothing);
       } else {
         completerA.complete(defaultResult);
         await tester.pump();
@@ -926,13 +936,20 @@ void main() {
         );
       }
 
-      if (!d.isStale) {
+      if (d.isStale) {
+        expect(find.text(AnalyticsLabels.staleBannerTitle), findsOneWidget);
+      } else {
         expect(find.text(AnalyticsLabels.staleBannerTitle), findsNothing);
       }
-      if (activeFlags.isEmpty) {
+      if (activeFlags.isNotEmpty) {
+        expect(find.text(activeFlags.first.label), findsOneWidget);
+      } else {
         expect(find.byIcon(Icons.block), findsNothing);
       }
-      if (!hasPreview) {
+      if (hasPreview) {
+        expect(find.byKey(const Key('s76c-notice')), findsOneWidget);
+        expect(find.byKey(const Key('s76c-draft')), findsOneWidget);
+      } else {
         expect(find.byKey(const Key('s76c-notice')), findsNothing);
         expect(find.byKey(const Key('s76c-draft')), findsNothing);
       }
@@ -942,7 +959,9 @@ void main() {
       } else {
         expect(find.byKey(const Key('s76c-empty')), findsNothing);
       }
-      if (!isBlocked) {
+      if (isBlocked) {
+        expect(find.byKey(const Key('s76c-blocked')), findsOneWidget);
+      } else {
         expect(find.byKey(const Key('s76c-blocked')), findsNothing);
       }
 
