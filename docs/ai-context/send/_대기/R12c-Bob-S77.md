@@ -165,6 +165,14 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
       순서 단언은 따로 도는 루프 for (int i = 1; i < <목록>.length; i++) 안에서 i − 1 과 i 를 비교한다(if 0).
       기대 목록을 만드는 collection-if(«if (s.noteLine != null) s.noteLine» · «if (s.route != null) AnalyticsLabels.detailButton»)는 허용한다 — 그 목록 전체를 == 로 단언하므로 양쪽이 함께 증명된다.
       T77-02 의 사슬 목록을 채우는 if/else 는 «있는 쪽 = 사슬에 넣기(뒤의 사슬 루프가 findsOneWidget 으로 단언) · 없는 쪽(else) = 그 자리의 findsNothing 단언 하나» 모양만 허용한다(R11b 재제출 F1 꼴).
+      🆕 사슬의 «없는 쪽» 견본 — 코드 글자로(R12b 1회차 C12b-1 · 산문 «if/else 양쪽» 만으로는 같은 꼴이 두 번 나왔다 — R11b C4b-5 · R12b C12b-1 · 조건·변수 이름은 재량 · 실제 Finder·단언은 그 테스트 항목이 정한다):
+        ㉠ 사슬을 if/else 문으로 채우는 꼴(권장):
+          if (isStale) {
+            chain.add(find.text(AnalyticsLabels.staleBannerTitle));
+          } else {
+            expect(find.text(AnalyticsLabels.staleBannerTitle), findsNothing);
+          }
+        🔴 반려 꼴(else 없는 if — 있는 쪽 단언이 그 자리에 없다): if (!isStale) { expect(find.text(AnalyticsLabels.staleBannerTitle), findsNothing); }
 12 골든 = 새 PNG 10장(s77_*) · --update-goldens 는 테스트 파일 하나 지정(test/golden/s77_golden_test.dart · 폴더 지정 금지) · golden:approved 는 안 붙임(통합 담당) ·
    찍기 전 pumpAndSettle → 위치 전제(맨 아래 위젯의 dy < 높이) · 영역 골든 2이름은 아래 «골든» 의 matchesGoldenFile 한 줄로 찍는다(하네스 expectGolden 은 화면 전체용).
 13 도구 = format:fix → format·analyze(--fatal-infos)·test·test:contracts SUCCESS · Windows 의 melos 는 안쪽 실패를 SUCCESS 로 낼 수 있다 — 출력에 «Some tests failed»·«FAILED» 0건을 눈으로 확인 ·
@@ -189,6 +197,7 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
    그래도 원칙은 «출력 그대로 · 복사 상자 그대로» 다 — 채팅 보고에는 코드·파일·PNG 에 실제로 있는 것만 적습니다. 시도하지 않은 것을 «시도했다»고 쓰지 않고,
    골든 표는 PNG 를 열어 픽스처와 대조한 뒤 «배치·잘림»만 적습니다(글자는 테스트 글꼴이라 네모).
    🆕 배치·잘림 칸에는 PNG 에서 보이는 것만 쓴다 — 글자 내용·글자 길이의 차이는 테스트 글꼴 네모로 보이지 않으므로 쓰지 않는다(픽스처 설명을 PNG 서술로 옮기지 않는다 · R12a 1회차 반려 사유 C12a-1 = 보고 ≠ PNG = 거짓 주장 = 반려).
+   🆕 골든 표 «배치·잘림» 칸에는 «띠»(배경이 보이지 않는 글자 줄을 띠라 부르지 않는다 — 배경이 PNG 에 보일 때만) · «고정»·«스크롤 밖»(정지 PNG 로는 보이지 않는 스크롤 성질 — 그것은 테스트가 증명한다) · 색·테마 이름(primary · error · tertiaryContainer 같은 이름 — PNG 는 색을 보여 줄 뿐 이름은 보여 주지 않는다)처럼 PNG 에서 보이지 않는 말도 쓰지 않는다(보이는 것만 — 예 «고지 문장(맨 위 2줄)» · R12b 1회차 C12b-6 «고지 띠(상단 고정)» ↔ PNG 는 배경 없는 글자 2줄 · 이 금지는 골든 표 칸 몫 — 12항 괄호·③ 서술 등 복사 상자 글자는 상자 그대로 쓴다).
    🔴 PR 본문은 통합 담당이 바꾼다 — Bob 은 PR 을 만들지 않고 PR 본문을 GitHub 에서 직접 고치지 않는다(채팅으로만 낸다). 제출 글은 «■ 제출» 의 섹션 머리 ①~⑤ 글자를 그대로 쓴다.
    🔴 정적 묶음 S05 의 결과 줄마다 정확히 «<파일>:<줄> — 탭 콜백 안» 만 적습니다 — 괄호·위젯 이름·매개변수 이름·설명·백틱·앞머리 금지.
       정규식 ^[^ ]+:[0-9]+ — 탭 콜백 안$ 와 완전히 같아야 합니다 · <파일> = git grep 출력의 경로 그대로(예 lib/src/screens/annual_review_screen.dart:57 — 탭 콜백 안 · 줄 끝 빈칸 없음).
@@ -369,6 +378,7 @@ git stash list 의 옛 «WIP on ui/m6-…» 은 pop 하지 말고 그대로.
      🔴 커밋 순서·제목은 이대로(질문 파일은 (4) 에 · (4) 뒤에 «(4b)» 를 만들지 않는다 — R11b 1회차 C4b-1).
 
 ■ 테스트 최소 목록 (번호는 PR 본문 ② 에 인용 · ⓡ·ⓗ 표시는 정적 S29·S30 과 대조)
+ 🆕 사슬 테스트의 «없는 쪽» 은 위 규칙 11 의 «사슬의 «없는 쪽» 견본» 꼴(else 짝)로만 쓴다 — else 없는 if = 반려(R12b 1회차 C12b-1 · R11b C4b-5 — 같은 꼴 두 번).
 공통: ProviderScope 는 MaterialApp 위(띄우기 도우미) · 뷰포트 Size(390, 2400) + DPR 1.0 + addTearDown 2개 · 가짜 = 받침대 extends · 받은 인자 전부 기록 · 호출마다 새 Future ·
   시계 = FixedClock(kGoldenNowUtc)(둘 다 test/golden/golden_support.dart 에 있다 — testing.dart 가 아니다 · 오래됨은 FixedClock(kGoldenNowUtc.add(const Duration(days: 3)))) · 기대 글자는 픽스처에서 · 픽스처는 golden_support.dart 의 singleFixture/fixtureEnvelope 로만 읽는다 ·
   값 단언 전 pump() 한 번 더(Future·안전 스트림이 도착할 틈) · 탭 뒤에는 pumpAndSettle()(InkWell 물결).
@@ -645,7 +655,11 @@ echo "## S32 s77 key glyphs (annual)"; git grep -noE "s77-[a-z-]+" -- lib/src/sc
          세는 명령(붙일 12항 15줄만 저장소 밖 임시 파일에 붙여 넣고):
          PowerShell: (Get-Content "$env:TEMP\r12c_item12.txt" -Encoding UTF8).Count   ← 15
          bash:       wc -l < "$TEMP/r12c_item12.txt"                                  ← 15(끝 줄 뒤 줄바꿈이 있을 때)
-         (🔴 15 가 아니면 붙인 글을 고친다 · 이 명령의 출력 한 줄도 ② 에 붙인다)
+         (🔴 15 가 아니면 붙인 글을 고친다 · 이 명령의 출력 한 줄도 ② 에 붙인다 — 꼴은 아래 견본)
+         🆕 ② 에 붙이는 꼴 = 아래 견본처럼 명령의 **출력 한 줄만** 코드 블록 하나로(명령 줄은 붙이지 않는다 · «….Count = 15» 처럼 명령과 잇지 않는다 · R12b 1회차 C12b-7 · 수는 실제 출력 그대로):
+      ┌── 세는 줄 견본(출력 한 줄)
+15
+      └──
       항목을 더하거나 빼거나 합치거나 고쳐 쓰지 않는다(R10a · R10b 1회차에 틀린 곳).
       붙일 괄호(글자 그대로 · <N> 자리에만 정적 묶음 결과의 수):
         1번 = «정적 묶음 S19 — 허용 밖 import 0줄»
@@ -700,7 +714,8 @@ echo "## S32 s77 key glyphs (annual)"; git grep -noE "s77-[a-z-]+" -- lib/src/sc
         입력 픽스처 칸 = FixturePaths 상수가 가리키는 경로 그대로(예 m7/m7_annual_2026.json — 상수 이름과 섞지 않는다) ·
         크기 = 화면 전체 3이름은 390×<높이> · 영역 2이름은 «영역 s77-aftertax(390×<높이> 화면 안)» ·
         dy = 위 «골든» 절 끝의 방법으로 이름·밝기마다 잰 값(한 값을 여러 행에 복사하지 않는다 · 질문 파일 A1~A5 와 같은 숫자) ·
-        배치·잘림 = PNG 를 열어 본 것만(PNG 의 꽉 찬 네모는 전부 테스트 글꼴 글자 — 점·아이콘으로 읽지 않는다 · 글자 내용·글자 길이의 차이는 쓰지 않는다(위 보고 규칙 🆕 줄) · 못 본 것은 «미열람»).
+        배치·잘림 = PNG 를 열어 본 것만(PNG 의 꽉 찬 네모는 전부 테스트 글꼴 글자 — 점·아이콘으로 읽지 않는다 · 글자 내용·글자 길이의 차이는 쓰지 않는다(위 보고 규칙 🆕 줄) · 못 본 것은 «미열람») ·
+        🆕 «띠» · «고정» · «스크롤 밖» · 색·테마 이름처럼 정지 PNG 에서 보이지 않는 말 금지(위 보고 규칙 🆕 줄 · R12b C12b-6).
    ④ 질문 목록 — 머리 «S7-7 새 행:» 다음 줄에, 아래 명령 출력에서 «+|» 로 시작하는 줄 전부를 코드 블록 하나로 그대로(이 카드가 질문 파일에 더한 새 행 전부 — 측정 행 포함 · 앞의 + 와 줄 순서 그대로 · 줄을 고르거나 고쳐 쓰지 않는다 · 요지 표를 손으로 만들지 않는다 — R12a C12a-4 · R11b C4b-2):
       git -c core.quotePath=false diff origin/main...HEAD -- docs/ai-context/inbox/S7-7_questions.md   ← 저장소 뿌리에서 · 푸시한 그 커밋 위에서 · «+++ b/…» 줄은 넣지 않는다(표 행만)
       (셸에서 한글이 깨져 보이면 PowerShell 에서 [Console]::OutputEncoding = [Text.Encoding]::UTF8 를 한 번 돌린 뒤 다시 돌린다 — 출력을 손으로 고쳐 쓰지 않는다)
