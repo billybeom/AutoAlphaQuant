@@ -62,4 +62,7 @@ abstract final class AnalyticsLabels {
   // ── 🆕 R12b — S7-6c ──
   static const String rebalanceDraftButton = '지금 기준 초안 보기';
   static const String rebalanceDraftCostsHeader = '예상 비용';
+
+  // ── 🆕 R12d — S7-10 ──
+  static const String executionGapSkipReasonsHeader = '미이행 사유 분포';
 }
