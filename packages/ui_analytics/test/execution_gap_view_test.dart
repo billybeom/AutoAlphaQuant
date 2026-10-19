@@ -692,21 +692,20 @@ void main() {
       final ExecutionGapReport? report = result.report;
       final Set<String> allowed = <String>{
         result.asOf.label,
-        if (report != null) ...<String>[
-          report.periodLabel,
-          report.complianceRateLabel,
-          ...report.countLines,
-          report.medianDelayLabel,
-          report.priceGapLabel,
-          ...report.correctionLines,
-          report.amendChainMaxLabel,
-          if (report.modeAdviceLine != null) report.modeAdviceLine!,
-          for (final ReasonChip c in report.skipReasonBuckets) c.label,
-          for (final ReasonChip c in report.selectiveExecutionChips) c.label,
-          report.trust.label,
-          report.trust.consequenceLine,
-          if (report.trust.upgradeHint != null) report.trust.upgradeHint!,
-        ] else ...<String>[result.emptyLabel!],
+        ?report?.periodLabel,
+        ?report?.complianceRateLabel,
+        ...?report?.countLines,
+        ?report?.medianDelayLabel,
+        ?report?.priceGapLabel,
+        ...?report?.correctionLines,
+        ?report?.amendChainMaxLabel,
+        ?report?.modeAdviceLine,
+        ...?report?.skipReasonBuckets.map((ReasonChip c) => c.label),
+        ...?report?.selectiveExecutionChips.map((ReasonChip c) => c.label),
+        ?report?.trust.label,
+        ?report?.trust.consequenceLine,
+        ?report?.trust.upgradeHint,
+        ?result.emptyLabel,
         AnalyticsLabels.executionGapSkipReasonsHeader,
         AnalyticsLabels.actionViewButton,
       };
@@ -718,25 +717,23 @@ void main() {
         r'\uCD94\uCC9C|\uAD8C\uC720|\uC790\uBB38|\uC2DC\uADF8\uB110',
       );
 
-      for (final Text text in tester.widgetList<Text>(find.byType(Text))) {
-        final String? data = text.data;
-        if (data != null && data.isNotEmpty) {
-          expect(
-            allowed.contains(data),
-            isTrue,
-            reason: 'Text must be in allowed set',
-          );
-          expect(
-            moneyRegex.hasMatch(data),
-            isFalse,
-            reason: 'Text must not match money regex',
-          );
-          expect(
-            forbiddenRegex.hasMatch(data),
-            isFalse,
-            reason: 'Text must not match forbidden regex',
-          );
-        }
+      final List<String?> shown = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((Text t) => t.data)
+          .toList();
+      expect(shown, isNotEmpty);
+      for (final String? data in shown) {
+        expect(data, isIn(allowed), reason: 'Text must be in allowed set');
+        expect(
+          data,
+          isNot(matches(moneyRegex)),
+          reason: 'Text must not match money regex',
+        );
+        expect(
+          data,
+          isNot(matches(forbiddenRegex)),
+          reason: 'Text must not match forbidden regex',
+        );
       }
 
       expect(find.text(AnalyticsLabels.retryButton), findsNothing);
