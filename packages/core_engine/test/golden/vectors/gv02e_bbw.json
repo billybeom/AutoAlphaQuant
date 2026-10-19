@@ -1,0 +1,5 @@
+{
+  "input": { "close": [105, 108, 110, 106, 116], "period": 3, "num_std": 2.0 },
+  "expected": { "bbw": [null, null, 7.633949, 6.048123, 14.854010] },
+  "tolerance": 1e-5
+}

@@ -1,0 +1,4 @@
+{
+  "expected": { "chop": [null, null, 50.067375, 71.013092, 69.372977] },
+  "tolerance": 1e-4
+}

@@ -1,6 +1,6 @@
-# `lib/src/signals/` — 신호·국면·진입 게이트 (일부 — E1)
+# `lib/src/signals/` — 신호·국면·진입 게이트 (일부 — E1·E2a)
 
-> 들어온 것: `regime_states.dart`(`DirectionState`·`TrendState` — 히스테리시스를 **거친** 상태) · `exposure_gate.dart`(곱셈 구조 · UNKNOWN = 0 · GV-3·3c). 지표·히스테리시스 전이는 E2.
+> 들어온 것: `regime_states.dart`(`DirectionState`·`TrendState` — 히스테리시스를 **거친** 상태) · `exposure_gate.dart`(곱셈 구조 · UNKNOWN = 0 · GV-3·3c) · `indicators.dart`(SMA·TR·rma·ATR·ADX·CHOP·BBW · GV-2 — E2a). 국면 스코어·히스테리시스 전이는 E2b.
 
 정본: `06_시스템설계/03_알고리즘.md` · 전략 수치는 `00_SPEC.md` v2.31 P0S
 

@@ -1,0 +1,4 @@
+{
+  "input": { "prev_rma": 10.0, "new_value": 20.0, "period": 14 },
+  "expected": { "rma": 10.714286 }
+}

@@ -1,0 +1,4 @@
+{
+  "input": { "bars": 149, "period": 14 },
+  "expected": { "adx": null, "reason": "워밍업 150봉 미달" }
+}
