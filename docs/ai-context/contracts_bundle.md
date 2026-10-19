@@ -2507,7 +2507,7 @@ abstract class BlindReviewChoice with _$BlindReviewChoice {
 
 /// 🆕 v1.7 — blind 리뷰 결과(공개 섹션). 🔴 엔진은 채점 명령 집행 **뒤에만** 싣는다.
 /// 🔴 `LEDGER_INTEGRITY` 중에는 [outcomeText]·[detailLines] 가 엔진 쪽에서 가려져 온다(01 §2-10 «가림의 주체 = 엔진»).
-/// 🔴 (K6 — ✅ 확정 2026-10-20 발주자) 금액(원) 문자열 0 · 수익률·보유기간 문장만.
+/// 🔴 (K6 ✅ 확정 2026-10-20) 금액(원) 문자열 0 · 수익률·보유기간·방향 문장만(미이행 결정 = 반사실 금액 0 · 방향·bp 만).
 @freezed
 abstract class BlindReviewResult with _$BlindReviewResult {
   const factory BlindReviewResult({
@@ -6858,9 +6858,10 @@ abstract final class FixturePaths {
   static const String m6AdviceViewer4 = 'm6/advice_viewer_4.json';
 
   /// 🆕 v1.7(01 §16 · §8 미결 46) — `J-4` 사후 blind 리뷰. 대기 목록(`watchBlindReviewQueue` 봉투) 3행 =
-  ///    이탈 결정 중 저널이 작성된 셋 · 오래된 결정부터(K4): `d_20260811_c_28`(메모 있음) → `d_mf_0001`(메모 없음) →
-  ///    `d_mf_0002`(본문 == `journal_read_no_note`). 🔴 `JOURNAL_MISSING` 이 서 있는 결정(`d_20260810_b_27`)은
-  ///    큐에 없다(K3 ⓓ 확정 2026-10-20). 행 `result` 키 부재 · `journal_badges_2` «리뷰 대기 3건» == 행 수(C-43 ⑤).
+  ///    이탈 결정 중 저널이 작성된 셋 · 오래된 결정부터(K4): `d_20260811_c_28`(매수 · 메모 있음) → `d_mf_0002`(매수 ·
+  ///    본문 == `journal_read_no_note`) → `d_mf_0004`(매도 · 메모 있음). 🔴 `JOURNAL_MISSING` 이 서 있는 결정
+  ///    (`d_20260810_b_27`)은 큐에 없다(K3 ⓓ 확정 2026-10-20). 행 `result` 키 부재 · `journal_badges_2`
+  ///    «리뷰 대기 3건» == 행 수(C-43 ⑤).
   static const String m6BlindReviewQueue3 = 'm6/blind_review_queue_3.json';
 
   /// 🆕 v1.7 — 빈 큐(`NO_DATA` + «리뷰할 결정이 없습니다») — 골든 `j4_empty` · 모의투자(DRY_RUN) 기간의 장면도 이것(K24).
@@ -6871,12 +6872,12 @@ abstract final class FixturePaths {
   static const String m6BlindReviewCardBefore =
       'm6/blind_review_card_before.json';
 
-  /// 🆕 v1.7 — 같은 카드의 채점 집행 뒤 값 = before + `result`(청산 · 금액 0 · K6) — 골든 `j4_after_reveal`.
+  /// 🆕 v1.7 — 같은 카드의 채점 집행 뒤 값 = before + `result`(청산 · 수익률·보유기간·방향 · 금액 0 · K6) — 골든 `j4_after_reveal`.
   ///    `result` 밖 필드 == before(C-43 ④).
   static const String m6BlindReviewCardRevealed =
       'm6/blind_review_card_revealed.json';
 
-  /// 🆕 v1.7 — 큐 행 1 + `result`(«미청산 — 결과 미확정») — 골든 `j4_after_reveal_open`.
+  /// 🆕 v1.7 — 큐 행 1(`d_mf_0002`) + `result`(«미청산 — 결과 미확정») — 골든 `j4_after_reveal_open`.
   static const String m6BlindReviewCardRevealedOpen =
       'm6/blind_review_card_revealed_open.json';
 
