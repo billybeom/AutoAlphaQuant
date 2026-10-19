@@ -2429,7 +2429,7 @@ abstract class BlindReviewCard with _$BlindReviewCard {
     /// 키 — 🔴 표시 금지. 제출 `BlindReviewScore.decisionId` 에 그대로 넣는다.
     required String decisionId,
 
-    /// 🆕 v1.7 — "2026-08-10 · 132030 KODEX 골드선물 · 매도 결정" — 엔진 생성.
+    /// 🆕 v1.7 — "2026-08-11 · 0085P0 KODEX 국고채30년 · 매수 결정" — 엔진 생성.
     /// 🔴 금액·수량·가격·수익률·손익 없음(C-43 ③).
     required String titleText,
 
@@ -2475,7 +2475,7 @@ abstract class BlindReviewQuestion with _$BlindReviewQuestion {
     /// "결정 시점에 가용했던 정보만 썼는가" — 엔진 생성.
     required String text,
 
-    /// 🆕 v1.7 — 판단 근거 한 줄("입력 데이터 기준 2026-08-07 · 결정 2026-08-10 09:05") — 엔진 생성.
+    /// 🆕 v1.7 — 판단 근거 한 줄("입력 데이터 기준 2026-08-10 · 결정 2026-08-11 09:05") — 엔진 생성.
     /// null = 줄 부재. 🔴 결과·손익 없음.
     String? evidenceText,
 
