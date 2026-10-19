@@ -1,0 +1,11 @@
+{
+  "cases": [
+    { "direction_state": "BULL",    "trend_state": "HIGH", "expected_exposure": 1.00 },
+    { "direction_state": "BULL",    "trend_state": "LOW",  "expected_exposure": 0.50 },
+    { "direction_state": "NEUTRAL", "trend_state": "HIGH", "expected_exposure": 0.50 },
+    { "direction_state": "NEUTRAL", "trend_state": "LOW",  "expected_exposure": 0.25 },
+    { "direction_state": "BEAR",    "trend_state": "HIGH", "expected_exposure": 0.00 },
+    { "direction_state": "BEAR",    "trend_state": "LOW",  "expected_exposure": 0.00 }
+  ],
+  "tolerance": 1e-9
+}

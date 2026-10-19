@@ -1,0 +1,21 @@
+{
+  "common": { "account": "100000000", "risk_pct": 0.0035, "notional_cap_pct": 0.05, "lot_size": 1 },
+  "cases": [
+    { "id": "8a", "entry": "10000", "stop": "9300",
+      "expected": { "qty_by_risk": 500.0, "qty_by_notional": 500.0, "quantity": 500, "binding": "RISK" } },
+    { "id": "8b", "entry": "10000", "stop": "9700",
+      "expected": { "qty_by_risk": 1166.6666666666667, "qty_by_notional": 500.0, "quantity": 500, "binding": "NOTIONAL" } },
+    { "id": "8c", "entry": "10000", "stop": "8000",
+      "expected": { "qty_by_risk": 175.0, "qty_by_notional": 500.0, "quantity": 175, "binding": "RISK" } },
+    { "id": "8d", "entry": "33333", "stop": "31000", "lot_size": 10,
+      "expected": { "qty_by_risk": 150.02143163309044, "qty_by_notional": 150.00150001500015, "quantity": 150, "binding": "NOTIONAL" } }
+  ],
+  "exception_cases": [
+    { "id": "8e-1", "entry": "10000", "stop": "10000", "expect": "ValueError" },
+    { "id": "8e-2", "entry": "10000", "stop": "11000", "expect": "ValueError" },
+    { "id": "8e-3", "entry": "0", "stop": "-1", "expect": "ValueError" },
+    { "id": "8e-4", "entry": "10000", "stop": "9999",
+      "expected": { "quantity": 500, "binding": "NOTIONAL" } }
+  ],
+  "tolerance": 1e-6
+}

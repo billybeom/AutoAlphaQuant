@@ -37,8 +37,18 @@
 2. **골든벡터 전량 통과 전에는 DRY_RUN을 벗어나지 않는다**(결정 2). 이 패키지의 Dart 재현이 그 게이트다.
 3. **사유 문구는 여기서 만들어진다.** 화면은 만들지 않는다 — 엔진이 `label`·`actionLine` 필드에 실어 보낸다.
 
-## 지금 상태 — 🟡 스캐폴드
+## 지금 상태 — 🟢 E1(첫 PR) · 나머지는 🟡
 
-`lib/src/`의 네 폴더는 **자리만 있고 비어 있다**. 배럴도 비어 있다.
+실행 계획(블록 E1~E18)은 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` 가 정본이다.
 
-✅ SDK 는 설치돼 있다(2026-09-07 · Dart 3.13.2 · Flutter 3.47.2 · melos — `docs/toolchain_notes.md` §1). 이 패키지는 순수 Dart 라 `dart test` 로 돈다(🆕 v1.4 정정 — 구 «이 PC에는 Flutter·Dart·melos가 없다(2026-09-06)»). 계산 코드는 아직 없다 — v1.4 `WhatIfApi` 새 시그니처(`simulateDeposit({required String amountInput})` · `findPlan`)의 구현은 06 M3-1 몫이다(`lib/src/whatif/README.md`).
+| 들어온 것 | 06 항목 | 골든·검사 |
+|---|---|---|
+| `lib/src/decimal_rules.dart` — 규약 ①④⑤ 실행체 + 환원 규칙 | M1-1 | `test/decimal_rules_test.dart` |
+| `lib/src/risk/position_sizing.dart` — 이중 상한 사이징 | M1-1 게이트(GV-8 · 새틀 비활성이라 채점 외) | GV-8a~8e · 8f · `test/position_sizing_test.dart` |
+| `lib/src/signals/regime_states.dart` · `exposure_gate.dart` — 방향·추세성 상태와 익스포저 곱셈 | M1-2 일부 | GV-3(6) · GV-3c(2) |
+
+**환원 규칙(E1 에서 정함)** — 나눗셈·곱셈 결과는 파이썬 `decimal` 기본 문맥과 같은 **유효숫자 28 · ROUND_HALF_EVEN** 으로 끊는다(`divide` · `multiply` · `mulDiv`). Dart 의 `Rational.toDecimal(scaleOnInfinitePrecision:)` 은 **버림**이라 파이썬과 반대 방향으로 갈 수 있다 — 05 §GV-8f 의 «나눗셈 선행» 값 `500.0000000000000000000000002` 를 그대로 재현하는 것이 그 확인이다. 기대값은 파이썬 `decimal` 로 뽑았다.
+
+아직 없는 것: 국면 지표·히스테리시스(E2) · 위험 기여·한도(E3) · 거래일·멱등키(E4) · 슬리브·P0S(E5) · 전략 4자리 대조(E6) · What-if(E7).
+
+✅ SDK 는 설치돼 있다(2026-09-07 · Dart 3.13.2 · Flutter 3.47.2 · melos — `docs/toolchain_notes.md` §1). 이 패키지는 순수 Dart 라 `dart test` 로 돈다(🆕 v1.4 정정 — 구 «이 PC에는 Flutter·Dart·melos가 없다(2026-09-06)»). v1.4 `WhatIfApi` 새 시그니처(`simulateDeposit({required String amountInput})` · `findPlan`)의 구현은 06 M3-1 몫이다(`lib/src/whatif/README.md`).
