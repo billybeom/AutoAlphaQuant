@@ -7,13 +7,18 @@
 // A. 픽스처·DTO 불변식(①~⑨) — 숫자 리터럴을 코드에 적지 않고 픽스처끼리 맞댄다(C-40·C-41 선례).
 //   ① 문항 3~5 · `questionId` 유일 · 선택지 ≥ 2 · 한 문항 안 `score` 유일 · 글자 비지 않음 · `evidenceText` null|비지 않음.
 //   ② 허용 키 목록(카드·문항·선택지·결과 · 본문 = C-34 ⑧ 과 같은 5키) — 금지 목록이 아니다.
-//   ③ 채점 전(큐·before) = `result` 부재 · 전 문자열에 금액·백분율·«손익/수익/평가액» 0 · 머리 글자 비지 않음.
+//   ③ 채점 전(큐·before) = `result` 부재 · 전 문자열에 금액(만·억·천 원 · `₩` 포함 — ⑧ 과 같은 수준)·백분율·
+//      «손익/수익/평가액» 0 · 머리 글자 비지 않음.
 //   ④ before == 큐 행 0(JSON) · 공개 카드 − `result`·`as_of` == 짝 − `as_of`(revealed ↔ 행 0 · revealed_open ↔ 행 1).
 //   ⑤ 큐 행 수 == 배지 «리뷰 대기 n건» 의 n(n ≥ 1 · «0건» 금지) · `has_more` false · 행 `as_of` == 봉투 · 빈 큐 = 문장.
 //   ⑥ 링크 — 채점 전·결과 밖 `aaq://` 0(칩 = handbook|null · K8) · 결과 링크 = 그 카드의 `J-2`.
 //   ⑦ 저널·문맥 정합(K3 ⓓ 2026-10-20 확정 반영) — ⓐ `JOURNAL_MISSING` 이 서 있는 결정 = 큐에 없음 ⓑ 같은 결정의
-//      `journal_read_written`·`_no_note` 본문·상태 글자 ⓒ 일지 행(`journal_30`·`manual_fills_8`)의 이탈 배지·사유 칩
-//      ⓓ J-3 스펙의 문맥·이탈(v1.7 표본엔 해당 0 — 규칙만).
+//      `journal_read_written`·`_no_note` 본문·상태 글자 ⓒ 일지 행(`journal_30`·`manual_fills_8`)의 이탈 배지·사유 칩 —
+//      🔴 큐 행마다 일지 행이 **있어야** 한다(없는 결정 = 실패 · 검증 반영 2026-10-20) ⓓ J-3 스펙의 문맥·이탈(v1.7
+//      표본엔 해당 0 — 규칙만). 🔵 ⓑ 의 짝은 `J-3R` 픽스처가 있는 결정만이다(v1.7 = `d_mf_0002` 1행 · `c_28`·
+//      `d_mf_0004` 본문은 이 큐 픽스처가 처음 싣는 합성 본문이라 맞댈 독립 원천이 없다 — `J-3R` 픽스처는 `ui_journal`
+//      테스트가 `singleFixture` 로 읽어 행을 더할 수 없고, 같은 생성기로 짝을 새로 만들면 자기 자신과 맞대는 셈이다 ·
+//      설계서 §3-0). 그래서 «짝 ≥ 1» 은 의도된 1표본이다.
 //   ⑧ 결과 — 공개 2벌 `result` 있음 · 글자 비지 않음 · 금액 꼴 0(K6 확정) · 미청산 문장 ≠ 청산 문장.
 //   ⑨ 제출 꼴 견본 — 카드마다 `BlindReviewScore(answers: {questionId: choices.first.score})` 왕복 · 키 == 문항 id.
 //
@@ -22,10 +27,14 @@
 //    리터럴은 남긴다** — ⑯ 의 `%`·`원` 문자열 검사에 필요)를 거친 뒤 본다. 대상 0 = 공허 통과 + 대상 수 출력.
 //   ⑩ 대상 수 · 가드 — `packages/ui_*/lib`(셸 `ui_shell` 제외 — 배선 자리)에서 J-4 전용 이름을 말하는 파일 ⊆ 대상.
 //   ⑪ 호출 — 금지 목록(0 =)만 기계 검사 · `watchBlindReviewQueue` 는 인자 없이.
-//   ⑫ 점수 — `.score` 는 맵 값 자리에만(옮기기) · 표시·합산·비교·변환 0.
-//   ⑬ 원값·키 — `decisionId`·`questionId` 표시 0 · 이탈·저널 id·거부 코드·칩 코드 0 · `.result!` 0.
-//   ⑭ 분기·셸·포맷 낱말 0(운영 모드·플랫폼·시계·Scaffold·숫자 포맷 · operator 라이브러리 `journal_draft`).
-//   ⑮ 문자열 가공·정렬·거르기 0(C-42 ⑨ 목록 + `maxLines`·`TextOverflow.ellipsis`·`.trim(`).
+//   ⑫ 점수 — `.score` 는 맵 값 자리(인덱스 대입 `] =` · 맵 리터럴 `:`)에만(옮기기) · 표시·합산·비교·변환 0
+//      (지역 변수 대입 `final s = c.score;`·복합 대입 `+=` 은 옮기기가 아니다 — 검증 반영 2026-10-20).
+//   ⑬ 원값·키 — `decisionId`·`questionId` 표시 0(보간 · `Text(` · 문자열 연결 `+` · `.toString`) · 이탈·저널 id·
+//      거부 코드·칩 코드 0 · `.result!` 0.
+//   ⑭ 분기·셸·포맷 낱말 0(운영 모드·플랫폼·시계 직접(`DateTime.now`·`DateTime.timestamp`·`clock.now()` — 주입
+//      `Clock.nowUtc()` 는 허용)·Scaffold·숫자 포맷 · operator 라이브러리 `journal_draft`).
+//   ⑮ 문자열 가공·정렬·거르기·고르기 0(C-42 ⑨ 목록 + `maxLines`·`TextOverflow.ellipsis`·`.trim(` + 행 고르기·자르기
+//      `.last`·`.sublist`·`.getRange`·`.elementAt`·`removeWhere` 류 — 고정 카드 = `rows[0]`·`.first`).
 //   ⑯ 숫자 리터럴 — 소수부 ≠ 0 소수 리터럴 0 + `%`·`원` 을 품은 문자열 리터럴 0(C-42 ⑥ 정의).
 //   ⑰ 자체 검증 — 양성은 걸리고(걸린 조항 번호 출력) 음성은 통과한다.
 // 🔴 대상 파일이 아직 없으면(`R3-Bob-J4` 전) ⑪~⑯ 은 통과한다 — 없는 파일로 실패시키지 않는다. ⑩ 가드는 늘 실대상을 본다.
@@ -124,7 +133,7 @@ const Set<String> _bodyKeys = <String>{
 
 /// ③ 채점 전 blind 붕괴 거름망 — 금액 · 백분율 · 손익 낱말(설계서 §3-0).
 final List<RegExp> _beforeLeaks = <RegExp>[
-  RegExp(r'\d[\d,]*\s*원'),
+  RegExp(r'\d[\d,.]*\s*(억|만|천)?\s*원|₩'),
   RegExp(r'\d+(\.\d+)?\s*%'),
   RegExp('손익|수익|평가액'),
 ];
@@ -221,13 +230,18 @@ final RegExp _queueArgCall = RegExp(r'watchBlindReviewQueue\(\s*[^)\s]');
 final RegExp _scoreAny = RegExp(r'\.score\b');
 
 /// ⑫ 맵 값 자리(`answers[id] = c.score;` · `id: _picked[id]!.score}`) — 등장 수가 [_scoreAny] 와 같아야 한다.
-final RegExp _scoreMapValue = RegExp(r'[:=]\s*[\w.\]\[!?]*\.score\s*[,;})\]]');
+/// 🔴 `=` 는 인덱스 대입(`] =`)만 센다 — 지역 변수 대입(`final s = c.score;`)·복합 대입(`total += c.score;`)은
+/// 옮기기가 아니다(검증 반영 2026-10-20 · 별칭을 거쳐 표시·합산하는 길).
+final RegExp _scoreMapValue = RegExp(
+  r'(\]\s*=|:)\s*[\w.\]\[!?]*\.score\s*[,;})\]]',
+);
 
 /// ⑫ 표시·비교·산술·변환·집계.
 final List<RegExp> _scoreMath = <RegExp>[
   RegExp(r'''\$\{?[^}'"]*\.score'''),
   RegExp(r'\.score\s*[-+*/<>=!]'),
   RegExp(r'[-+*/<>]\s*[\w.]*\.score\b'),
+  RegExp(r'[-+*/]=\s*[\w.\]\[!?]*\.score'),
   RegExp(r'\.score\.toString'),
   RegExp(r'\b(fold|reduce|sum)\b'),
 ];
@@ -236,18 +250,25 @@ final List<RegExp> _scoreMath = <RegExp>[
 final List<RegExp> _rawKeys = <RegExp>[
   RegExp(r'\$\{?[\w.]*\.(decisionId|questionId)\b'),
   RegExp(r'Text\(\s*[\w.]*\.(decisionId|questionId)\b'),
+  RegExp(
+    r'[+]\s*[\w.]*\.(decisionId|questionId)\b|\.(decisionId|questionId)\s*[+]|'
+    r'\.(decisionId|questionId)\.toString',
+  ),
   RegExp(r'\.(isDeviation|kindCode|journalId|rejectReasonCode|code|wire)\b'),
   RegExp(r'\.result!'),
 ];
 
-/// ⑭ 분기·셸·포맷 낱말(C-42 ⑤ 목록 + operator 라이브러리 `journal_draft` · 플래너 import 는 무관해 뺀다).
+/// ⑭ 분기·셸·포맷 낱말(C-42 ⑤ 목록 + operator 라이브러리 `journal_draft` · 플래너 import 는 무관해 뺀다)
+/// + 🆕 시계 직접 우회 `DateTime.timestamp`·`clock.now()`(검증 반영 2026-10-20 · 주입 `Clock.nowUtc()` 는 허용 —
+/// `\bclock\.now\b` 라 `clock.nowUtc` 는 걸리지 않는다).
 final RegExp _branchWords = RegExp(
   r'operatingMode|OperatingMode|RunMode|runMode|FeatureFlags|kIsWeb|Platform\.|'
-  r'DateTime\.now|Scaffold|AppBar|SafeArea|AppLinkSchemes|toStringAsFixed|'
-  r'toStringAsPrecision|NumberFormat|journal_draft',
+  r'DateTime\.now|DateTime\.timestamp|\bclock\.now\b|Scaffold|AppBar|SafeArea|'
+  r'AppLinkSchemes|toStringAsFixed|toStringAsPrecision|NumberFormat|journal_draft',
 );
 
-/// ⑮ 문자열 가공 · 정렬·거르기 · 역순 목록(C-42 ⑨ 그대로) + 원문 자르기(01 §12-2 «자르기·trim·maxLines·말줄임 금지»).
+/// ⑮ 문자열 가공 · 정렬·거르기 · 역순 목록(C-42 ⑨ 그대로) + 원문 자르기(01 §12-2 «자르기·trim·maxLines·말줄임 금지»)
+/// + 🆕 행 고르기·자르기(`.last`·`.sublist` 류 — 고정 카드 = `rows[0]`·`.first` 뿐 · K4 · 검증 반영 2026-10-20).
 final List<RegExp> _reshape = <RegExp>[
   RegExp(
     r'(?<!Labels)\.(substring|split|replaceAll|replaceFirst|contains|startsWith|'
@@ -255,7 +276,9 @@ final List<RegExp> _reshape = <RegExp>[
   ),
   RegExp(
     r'(?<!Labels)\.(sort|sorted|reversed|where|whereType|firstWhere|lastWhere|'
-    r'singleWhere|fold|reduce|take|takeWhile|skip|skipWhile|compareTo|toSet)\b',
+    r'singleWhere|fold|reduce|take|takeWhile|skip|skipWhile|compareTo|toSet|'
+    r'last|lastOrNull|sublist|getRange|elementAt|removeAt|removeWhere|retainWhere|'
+    r'shuffle)\b',
   ),
   RegExp(r'\breverse:\s*true\b'),
   RegExp(r'\bmaxLines\b'),
@@ -386,6 +409,9 @@ void _say(String line) {
 const List<(String, String)> _positives = <(String, String)>[
   (r"Text('${c.score}점')", '⑫'),
   ('total += c.score', '⑫'),
+  ('total += c.score;', '⑫'),
+  ('s -= q.choices.first.score;', '⑫'),
+  ('final int s = c.score;', '⑫'),
   ('q.choices.first.score > 0', '⑫'),
   ('Text(c.score.toString())', '⑫'),
   ('final s = scores.fold(0, (a, b) => a + b);', '⑫'),
@@ -397,10 +423,14 @@ const List<(String, String)> _positives = <(String, String)>[
   ('api.recordDisclosureView(e)', '⑪'),
   ('Text(card.decisionId)', '⑬'),
   (r"Text('${q.questionId}')", '⑬'),
+  ("Text('ID ' + card.decisionId)", '⑬'),
+  ('final s = card.decisionId.toString();', '⑬'),
   ('card.result!.outcomeText', '⑬'),
   ('if (card.deviation.isDeviation) {}', '⑬'),
   ('if (r.rejectReasonCode == x) {}', '⑬'),
   ('DateTime.now()', '⑭'),
+  ('final t = DateTime.timestamp();', '⑭'),
+  ('final t = clock.now();', '⑭'),
   ('Scaffold(body: b)', '⑭'),
   ("import '../journal_draft.dart';", '⑭'),
   ("import 'package:ui_journal/journal_draft.dart';", '⑭'),
@@ -409,6 +439,9 @@ const List<(String, String)> _positives = <(String, String)>[
   ('Text(b.rationaleBefore, maxLines: 3)', '⑮'),
   ('Text(b.note, overflow: TextOverflow.ellipsis)', '⑮'),
   ('Text(b.expectedOutcome.trim())', '⑮'),
+  ('final c = rows.last;', '⑮'),
+  ('final d = rows.sublist(1);', '⑮'),
+  ('final e = rows.elementAt(1);', '⑮'),
   ('const double k = 0.42;', '⑯'),
   ("Text('80%')", '⑯'),
   ("Text('1,000원')", '⑯'),
@@ -436,6 +469,8 @@ const List<String> _negatives = <String>[
   'Text(q.text)',
   'Text(card.titleText)',
   'Text(JournalLabels.blindReviewNotice)',
+  'final bool stale = asOf.observedAt.isBefore(clock.nowUtc());',
+  '_answers[q.questionId] = choice.score;',
 ];
 
 void main() {
@@ -695,7 +730,6 @@ void main() {
       );
 
       int matchedRead = 0;
-      int matchedEntry = 0;
       for (final String path in _beforeFixtures) {
         for (final Map<String, Object?> row in _rawRows(path)) {
           final String id = row['decision_id']! as String;
@@ -707,6 +741,7 @@ void main() {
                 '$at — JOURNAL_MISSING 이 서 있는(J-3 작성 창이 열린) 결정은 큐에 넣지 않는다 — J-3 작성 뒤 '
                 '들어온다(K3 ⓓ 확정 2026-10-20 · 결과를 본 뒤 «사전» 저널을 쓰는 길).',
           );
+          // ⓑ 짝 = `J-3R` 픽스처가 있는 결정만(머리 주석 ⑦ — 의도된 1표본 · 설계서 §3-0).
           final Map<String, Object?>? vm = written[id];
           if (vm != null) {
             matchedRead++;
@@ -734,24 +769,30 @@ void main() {
               reason: '$at — J-3 스펙의 이탈 배지와 다르다.',
             );
           }
+          // ⓒ 큐 행마다 일지 행이 있다(else 없는 if 로 건너뛰지 않는다 — 검증 반영 2026-10-20).
           final Map<String, Object?>? entry = entries[id];
-          if (entry != null) {
-            matchedEntry++;
-            expect(
-              row['deviation'],
-              entry['deviation'],
-              reason: '$at — 일지 행(J-1·J-2)의 이탈 배지와 다르다.',
-            );
-            expect(
-              row['context_chips'],
-              entry['reasons'],
-              reason: '$at — 일지 행(J-1·J-2)의 사유 칩과 다르다.',
-            );
-          }
+          expect(
+            entry,
+            isNotNull,
+            reason: '$at — 일지 행(journal_30·manual_fills_8)이 없는 결정이 큐에 있다.',
+          );
+          expect(
+            row['deviation'],
+            entry!['deviation'],
+            reason: '$at — 일지 행(J-1·J-2)의 이탈 배지와 다르다.',
+          );
+          expect(
+            row['context_chips'],
+            entry['reasons'],
+            reason: '$at — 일지 행(J-1·J-2)의 사유 칩과 다르다.',
+          );
         }
       }
-      expect(matchedRead, greaterThan(0), reason: 'J-3R 와 맞대는 표본이 없다(공허 통과).');
-      expect(matchedEntry, greaterThan(0), reason: '일지 행과 맞대는 표본이 없다(공허 통과).');
+      expect(
+        matchedRead,
+        greaterThan(0),
+        reason: 'J-3R 와 맞대는 표본이 없다(공허 통과 — 의도된 짝 = d_mf_0002).',
+      );
     });
 
     test('C-43 ⑧ 결과 — 공개 표본 2벌 · 글자 · 금액 꼴 0(K6) · 미청산 ≠ 청산', () {

@@ -73,7 +73,8 @@ FORBIDDEN = re.compile(r'추천|권유|자문|시그널')
 # 사용자 문장 자리의 개발자 메모(H50).
 DEV_MEMO = re.compile(r'화면이|화면은|화면·')
 # 채점 전 카드의 blind 붕괴 거름망(설계서 §3-0 · C-43 ③) — 금액 · 백분율 · 손익 낱말.
-BEFORE_MONEY = re.compile(r'\d[\d,]*\s*원')
+# 금액 = 만·억·천 원 · ₩ 까지(결과 쪽 RESULT_MONEY 와 같은 수준 이상 · 검증 반영 2026-10-20).
+BEFORE_MONEY = re.compile(r'\d[\d,.]*\s*(억|만|천)?\s*원|₩')
 BEFORE_PCT = re.compile(r'\d+(\.\d+)?\s*%')
 BEFORE_WORDS = re.compile(r'손익|수익|평가액')
 # 결과의 금액 꼴(K6 — 금액 0).
