@@ -14,10 +14,11 @@
 
 🔴 발주자 결정(2026-10-20 · K1~K24 권고대로) 반영:
   - K3 ⓓ — `JOURNAL_MISSING` 이 서 있는(J-3 작성 창이 열린) 결정은 큐에 넣지 않는다 → 설계서 초안의 행0
-    `d_20260810_b_27`(safety_states `clear_deep_link` 대상)을 뺐다. 큐 = 이탈 결정 중 저널이 작성된 셋을
-    결정 시각 오름차순(K4)으로: c_28(2026-08-11 · journal_30) → d_mf_0001(2026-08-24 · manual_fills_8) →
-    d_mf_0002(2026-08-25 · manual_fills_8 · 본문 == journal_read_no_note).
-  - K6 — 결과 문장 = 엔진 문장 · 금액(원) 0 · 수익률·보유기간만(청산 표본) · 미청산 = «미청산 — 결과 미확정».
+    `d_20260810_b_27`(safety_states `clear_deep_link` 대상)을 뺐다. 큐 = 설계서 §3-0 확정 표본(2026-10-20)
+    결정 시각 오름차순(K4): c_28(2026-08-11 · journal_30 · 매수) → d_mf_0002(2026-08-25 · manual_fills_8 · 매수 ·
+    본문 == journal_read_no_note) → d_mf_0004(2026-08-27 · manual_fills_8 · 매도).
+  - K6 — 결과 문장 = 엔진 문장 · 금액(원) 0 · 수익률·보유기간·방향만(청산 표본 = 행0) · 미청산 = 행1
+    «미청산 — 결과 미확정»(글자 = 설계서 §3-1 ④⑤ 확정판).
   - K24 — v1.7 = LIVE 만 · 모의투자(DRY_RUN) 기간의 큐 = 빈 문장(`blind_review_queue_empty` 가 그 장면도 맡는다).
 
 멱등: 버전 치환은 언제나 **기준 커밋(BASE)의 원문**에서 다시 만든다(`git show BASE:경로`).
@@ -117,11 +118,11 @@ QUESTIONS = [
 
 # 큐 3행(결정 시각 오름차순 · K4) — (decision_id, 원천 일지 파일, 근거 줄 5(None = 줄 부재), 저널 본문 출처).
 C28 = 'd_20260811_c_28'
-MF1 = 'd_mf_0001'
 MF2 = 'd_mf_0002'
+MF4 = 'd_mf_0004'
 EXCLUDED_K3D = 'd_20260810_b_27'   # 설계서 초안 행0 — JOURNAL_MISSING 대상이라 큐 제외(K3 ⓓ)
 
-# 새 합성 본문 2벌(작성됨 · c_28 = 메모 있음 · d_mf_0001 = 메모 없음). d_mf_0002 = journal_read_no_note 본문 그대로.
+# 새 합성 본문 2벌(작성됨 · 메모 있음 — c_28 · d_mf_0004). d_mf_0002 = journal_read_no_note 본문 그대로(메모 없음).
 BODY_C28 = {
     'written_at_text': '2026-08-11 13:55 작성',
     'rule_cited_label': '재량 예산(롤링 12개월 4회) 안에서 조정',
@@ -132,14 +133,14 @@ BODY_C28 = {
                          '다음 거래일까지 체결이 확인되지 않으면 이 판단이 틀린 것으로 본다.'),
     'note': '[합성] 다음 정기 회차 전에 연결 끊김 원인을 운영 점검표에 적는다.',
 }
-BODY_MF1 = {
-    'written_at_text': '2026-08-24 13:40 작성',
+BODY_MF4 = {
+    'written_at_text': '2026-08-27 13:50 작성',
     'rule_cited_label': '재량 예산(롤링 12개월 4회) 안에서 조정',
-    'rationale_before': ('[합성] 안내 수량을 그대로 따르되 체결은 증권사 앱에서 직접 넣는다.\n'
-                         '[합성] 안내가 정한 수량을 늘리거나 줄이지 않는다.'),
-    'expected_outcome': ('[합성] 안내 유효 시간 안에 같은 수량으로 체결되고 이행 갭이 생기지 않는다. '
-                         '장 마감까지 체결되지 않으면 안내를 미이행으로 기록한다.'),
-    'note': None,
+    'rationale_before': ('[합성] 안내가 정한 매도 수량을 그대로 따르되 체결은 증권사 앱에서 직접 넣는다.\n'
+                         '[합성] 안내 수량을 늘리거나 줄이지 않고 남은 보유분은 그대로 둔다.'),
+    'expected_outcome': ('[합성] 안내 유효 시간 안에 같은 수량으로 매도가 체결되고 이행 갭이 생기지 않는다. '
+                         '장 마감까지 체결되지 않으면 이 판단이 틀린 것으로 본다.'),
+    'note': '[합성] 매도 뒤 현금은 다음 정기 회차의 배분에 맡긴다.',
 }
 ROWS = [
     (C28, JOURNAL_30, [
@@ -149,13 +150,6 @@ ROWS = [
         None,
         '저널 작성 2026-08-11 13:55 · 주문 2026-08-11 14:39',
     ], BODY_C28),
-    (MF1, MANUAL_FILLS, [
-        '입력 데이터 기준 2026-08-21 · 결정 2026-08-24 09:00',
-        '이탈 기록: 수기 기록 — 재량 예산 차감',
-        '입력 스냅샷 2026-08-21 장 마감 값 · 이후 수정 기록 없음',
-        None,
-        '저널 작성 2026-08-24 13:40 · 체결 2026-08-24 14:30',
-    ], BODY_MF1),
     (MF2, MANUAL_FILLS, [
         '입력 데이터 기준 2026-08-24 · 결정 2026-08-25 09:00',
         '이탈 기록: 수기 기록 — 재량 예산 차감',
@@ -163,16 +157,23 @@ ROWS = [
         None,
         '저널 작성 2026-08-25 20:10 · 체결 2026-08-25 14:30',
     ], 'm6/journal_read_no_note.json'),
+    (MF4, MANUAL_FILLS, [
+        '입력 데이터 기준 2026-08-26 · 결정 2026-08-27 09:00',
+        '이탈 기록: 수기 기록 — 재량 예산 차감',
+        '입력 스냅샷 2026-08-26 장 마감 값 · 이후 수정 기록 없음',
+        None,
+        '저널 작성 2026-08-27 13:50 · 체결 2026-08-27 14:30',
+    ], BODY_MF4),
 ]
 
-# 결과 2벌(K6 — 금액 0 · 수익률·보유기간 · 미청산).
+# 결과 2벌(K6 확정 — 금액 0 · 수익률·보유기간·방향 · 미청산 · 글자 = 설계서 §3-1 ④⑤).
 RESULT_CLOSED = {
     'process_score_text': '과정 점수 4점 — 좋은 결정(4점 이상)',
-    'outcome_text': '결과: 수익률 −0.6% · 보유 12거래일',
-    'detail_lines': ['결정 1건의 결과입니다 · 금액은 표시하지 않습니다'],
+    'outcome_text': '결과: 수익률 +0.6% · 보유 12거래일',
+    'detail_lines': ['방향: 저널의 기대와 같음'],
 }
 RESULT_OPEN = {
-    'process_score_text': '과정 점수 3점 — 개선이 필요한 결정(4점 미만)',
+    'process_score_text': '과정 점수 3점 — 좋은 결정 기준(4점) 미만',
     'outcome_text': '미청산 — 결과 미확정',   # 02:789
     'detail_lines': [],
 }
@@ -534,6 +535,13 @@ def main():
             for r in queue:
                 if r['decision_id'] == s['decision_id']:
                     assert (r['context_chips'], r['deviation']) == (s['context_chips'], s['deviation']), rel
+    # 일지 행 정합(C-43 ⑦ⓒ) — 문맥 칩 == 그 결정의 일지 행 reasons · 이탈 배지 == 그 행 deviation.
+    for decision_id, src, _ev, _b in ROWS:
+        e = entry_of(decision_id, src)
+        r = next(x for x in queue if x['decision_id'] == decision_id)
+        assert (r['context_chips'], r['deviation']) == (e['reasons'], e['deviation']), decision_id
+    # 큐 = 설계서 §3-0 확정 표본(행 순서까지).
+    assert [r['decision_id'] for r in queue] == [C28, MF2, MF4], [r['decision_id'] for r in queue]
     # 배지 «리뷰 대기 n건» == 큐 행 수(C-43 ⑤).
     badge = [b for b in base_env(BADGES)['rows'] if b['badge_code'] == 'BLIND_REVIEW_PENDING']
     assert len(badge) == 1 and badge[0]['label'] == '리뷰 대기 %d건' % len(queue), badge

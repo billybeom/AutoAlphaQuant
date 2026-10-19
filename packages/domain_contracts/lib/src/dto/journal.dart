@@ -361,7 +361,7 @@ abstract class BlindReviewChoice with _$BlindReviewChoice {
 
 /// 🆕 v1.7 — blind 리뷰 결과(공개 섹션). 🔴 엔진은 채점 명령 집행 **뒤에만** 싣는다.
 /// 🔴 `LEDGER_INTEGRITY` 중에는 [outcomeText]·[detailLines] 가 엔진 쪽에서 가려져 온다(01 §2-10 «가림의 주체 = 엔진»).
-/// 🔴 (K6 — ✅ 확정 2026-10-20 발주자) 금액(원) 문자열 0 · 수익률·보유기간 문장만.
+/// 🔴 (K6 ✅ 확정 2026-10-20) 금액(원) 문자열 0 · 수익률·보유기간·방향 문장만(미이행 결정 = 반사실 금액 0 · 방향·bp 만).
 @freezed
 abstract class BlindReviewResult with _$BlindReviewResult {
   const factory BlindReviewResult({

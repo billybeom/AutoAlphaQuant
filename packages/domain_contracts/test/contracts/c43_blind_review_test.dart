@@ -11,9 +11,9 @@
 //   ④ before == 큐 행 0(JSON) · 공개 카드 − `result`·`as_of` == 짝 − `as_of`(revealed ↔ 행 0 · revealed_open ↔ 행 1).
 //   ⑤ 큐 행 수 == 배지 «리뷰 대기 n건» 의 n(n ≥ 1 · «0건» 금지) · `has_more` false · 행 `as_of` == 봉투 · 빈 큐 = 문장.
 //   ⑥ 링크 — 채점 전·결과 밖 `aaq://` 0(칩 = handbook|null · K8) · 결과 링크 = 그 카드의 `J-2`.
-//   ⑦ 저널 정합 — 같은 결정의 `journal_read_*` 본문·상태 글자 · `journal == null ⇔ 미작성 픽스처에만 있음` ·
-//      J-3 스펙의 문맥·이탈 · 일지 행(`journal_30`·`manual_fills_8`)의 이탈 배지 · K3 ⓓ(2026-10-20 확정)
-//      `JOURNAL_MISSING` 이 서 있는 결정 = 큐에 없음.
+//   ⑦ 저널·문맥 정합(K3 ⓓ 2026-10-20 확정 반영) — ⓐ `JOURNAL_MISSING` 이 서 있는 결정 = 큐에 없음 ⓑ 같은 결정의
+//      `journal_read_written`·`_no_note` 본문·상태 글자 ⓒ 일지 행(`journal_30`·`manual_fills_8`)의 이탈 배지·사유 칩
+//      ⓓ J-3 스펙의 문맥·이탈(v1.7 표본엔 해당 0 — 규칙만).
 //   ⑧ 결과 — 공개 2벌 `result` 있음 · 글자 비지 않음 · 금액 꼴 0(K6 확정) · 미청산 문장 ≠ 청산 문장.
 //   ⑨ 제출 꼴 견본 — 카드마다 `BlindReviewScore(answers: {questionId: choices.first.score})` 왕복 · 키 == 문항 id.
 //
@@ -664,37 +664,29 @@ void main() {
       }
     });
 
-    test('C-43 ⑦ 저널 정합 — 본문·문맥·이탈은 다른 화면의 같은 결정과 같다 · K3 ⓓ', () {
+    test('C-43 ⑦ 저널·문맥 정합 — 본문·문맥·이탈은 다른 화면의 같은 결정과 같다 · K3 ⓓ', () {
+      // ⓑ 본문이 있는 J-3R 만 맞댄다(`journal_read_not_written` 의 `a_31` 은 작성됨 픽스처에도 있는 전환 표본이라
+      //    «미작성 ⇔ null» 은 규칙으로 성립하지 않는다 — 설계서 §4-1 ⑦).
       final Map<String, Map<String, Object?>> written =
-          <String, Map<String, Object?>>{};
-      final Set<String> notWritten = <String>{};
-      for (final String path in _readFixtures) {
-        for (final Map<String, Object?> row in _rawRows(path)) {
-          final String id = row['decision_id']! as String;
-          if (row['body'] == null) {
-            notWritten.add(id);
-          } else {
-            written[id] = row;
-          }
-        }
-      }
-      // 미작성 픽스처의 `a_31` 은 작성됨 픽스처에도 있다(J-3 executed 직후 전환 표본 · C-34 ⑧) — «미작성에만».
-      final Set<String> notWrittenOnly = notWritten.difference(
-        written.keys.toSet(),
-      );
+          <String, Map<String, Object?>>{
+            for (final String path in _readFixtures)
+              for (final Map<String, Object?> row in _rawRows(path))
+                if (row['body'] != null) row['decision_id']! as String: row,
+          };
       final Map<String, Map<String, Object?>> specs =
           <String, Map<String, Object?>>{
             for (final String path in _specFixtures)
               for (final Map<String, Object?> row in _rawRows(path))
                 row['decision_id']! as String: row,
           };
-      final Map<String, Object?> entryDeviation = <String, Object?>{
-        for (final String path in _entryFixtures)
-          for (final Map<String, Object?> row in _rawRows(path))
-            (row['decision']! as Map<String, Object?>)['decision_id']!
-                    as String:
-                row['deviation'],
-      };
+      final Map<String, Map<String, Object?>> entries =
+          <String, Map<String, Object?>>{
+            for (final String path in _entryFixtures)
+              for (final Map<String, Object?> row in _rawRows(path))
+                (row['decision']! as Map<String, Object?>)['decision_id']!
+                        as String:
+                    row,
+          };
       final Set<String> journalMissing = _journalMissingTargets();
       expect(
         journalMissing,
@@ -729,11 +721,6 @@ void main() {
               reason: at,
             );
           }
-          expect(
-            row['journal'] == null,
-            notWrittenOnly.contains(id),
-            reason: '$at — 본문 null ⇔ 그 결정이 미작성 픽스처에만 있다.',
-          );
           final Map<String, Object?>? spec = specs[id];
           if (spec != null) {
             expect(
@@ -747,12 +734,18 @@ void main() {
               reason: '$at — J-3 스펙의 이탈 배지와 다르다.',
             );
           }
-          if (entryDeviation.containsKey(id)) {
+          final Map<String, Object?>? entry = entries[id];
+          if (entry != null) {
             matchedEntry++;
             expect(
               row['deviation'],
-              entryDeviation[id],
+              entry['deviation'],
               reason: '$at — 일지 행(J-1·J-2)의 이탈 배지와 다르다.',
+            );
+            expect(
+              row['context_chips'],
+              entry['reasons'],
+              reason: '$at — 일지 행(J-1·J-2)의 사유 칩과 다르다.',
             );
           }
         }
