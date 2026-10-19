@@ -151,3 +151,19 @@ final AutoDisposeFutureProvider<AnnualReviewVm> annualReviewProvider =
     FutureProvider.autoDispose<AnnualReviewVm>((ref) {
       return ref.watch(performanceRepositoryProvider).annualReview();
     });
+
+// ── 🆕 R12d — S7-10 ──
+/// S7-10 이행 갭 — 주입 창구(조립 앱이 override · 01 §15-4-7)
+final Provider<ExecutionGapRepository> executionGapRepositoryProvider =
+    Provider<ExecutionGapRepository>((ref) {
+      throw UnimplementedError(
+        'executionGapRepositoryProvider must be overridden',
+      );
+    });
+
+/// S7-10 이행 갭 — 받은 달 그대로(null = 엔진 기본 달 · 01 §15-4-6)
+final AutoDisposeFutureProviderFamily<ExecutionGapResult, String?>
+executionGapProvider = FutureProvider.autoDispose
+    .family<ExecutionGapResult, String?>((ref, yyyyMm) {
+      return ref.watch(executionGapRepositoryProvider).monthly(yyyyMm: yyyyMm);
+    });

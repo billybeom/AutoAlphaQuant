@@ -12,6 +12,7 @@ export 'src/providers/analytics_providers.dart';
 export 'src/screens/annual_review_screen.dart';
 export 'src/screens/contribution_screen.dart';
 export 'src/screens/drawdown_context_screen.dart';
+export 'src/screens/execution_gap_screen.dart';
 export 'src/screens/goal_path_screen.dart';
 export 'src/screens/monthly_report_screen.dart';
 export 'src/screens/performance_explore_screen.dart';
