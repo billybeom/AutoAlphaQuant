@@ -221,12 +221,94 @@ void main() {
       );
     });
 
+    test(
+      'C-16 J-4 blind 리뷰 접수증 — 6행 5상태 · 거부 사유 2종은 blind_review_reject 사전',
+      () {
+        // 🆕 v1.7(01 §16 · 설계서 §3-1 ⑥ · K11) — `m6/blind_review_receipts_6.json`. J-3 5행 불변식과 같은 꼴 +
+        //    거부 2행(사유 2종 모두 — `j4_rejected` = ANSWERS_INVALID · «거부 뒤 결과 도착» = ALREADY_SCORED).
+        final List<CommandReceipt> receipts = decodeEnvelope(
+          readFixture(FixturePaths.m6BlindReviewReceipts6),
+        ).rows.map(CommandReceipt.fromJson).toList();
+        expect(receipts, hasLength(6));
+        expect(
+          receipts.map((CommandReceipt r) => r.state).toSet(),
+          <CommandState>{
+            CommandState.requested,
+            CommandState.heldForIntegrity,
+            CommandState.executed,
+            CommandState.expired,
+            CommandState.rejected,
+          },
+          reason:
+              '전송 대기·무결성 보류·집행·만료·거부 — J-4 제출 뒤 화면이 받는 갈래(02 §3-4 · 그 밖 상태는 '
+              'C-12 exhaustive switch 가 맡는다).',
+        );
+        expect(
+          <String?>{
+            for (final CommandReceipt r in receipts)
+              if (r.state == CommandState.rejected) r.rejectReasonCode,
+          },
+          BlindReviewRejectCodes.values,
+          reason: '거부 2행은 사유 2종을 하나씩 싣는다 — 재제출이 뜻 있는 장면 · 경합(먼저 집행된 채점이 이긴다).',
+        );
+        for (final CommandReceipt r in receipts) {
+          expect(
+            r.kind,
+            CommandKind.blindReviewScore,
+            reason: '${r.state} — J-4 접수증이다.',
+          );
+          expect(
+            r.stateLabel,
+            isNotEmpty,
+            reason:
+                '${r.state} — 표시 문구(거부 사유 포함)의 유일한 출처는 '
+                'stateLabel 이다(§1-5).',
+          );
+          if (CommandStateMachine.requiresRejectReasonCode(r.state)) {
+            expect(
+              ContractCodes.isRegisteredIn(
+                'blind_review_reject',
+                r.rejectReasonCode!,
+              ),
+              isTrue,
+              reason: 'J-4 거부 사유는 X7·J-3 사전이 아니라 blind_review_reject 에 있다.',
+            );
+          } else {
+            expect(
+              r.rejectReasonCode,
+              isNull,
+              reason: '${r.state} — 사유 코드는 rejected 행에만 실린다(§5-2).',
+            );
+          }
+          expect(
+            r.expiresAt.isAfter(r.requestedAt),
+            isTrue,
+            reason: '${r.state} — 만료 시각은 요청 시각 뒤다(TTL).',
+          );
+        }
+        expect(
+          receipts
+              .map(
+                (CommandReceipt r) =>
+                    (r.commandId, r.nonce, r.issuedByDeviceId),
+              )
+              .toSet(),
+          hasLength(1),
+          reason:
+              '6행은 한 명령(같은 command_id·nonce·기기)의 갈래다 — 테스트가 행을 골라 쓰는 전제'
+              '(fixtures/README · FixturePaths 주석 · copyWith(state:) 0).',
+        );
+      },
+    );
+
     test('C-16 거부 사유 코드의 사전은 명령 종류(kind)가 정한다 — 전 픽스처', () {
       // 🆕 v1.1 R2 준비(2026-09-23) — C-5 는 `reject_reason_code` 를 **전역**으로 조회한다
       //    (X7·J-3 두 사전이 같은 JSON 키). 그래서 «어느 사전인가»를 픽스처 이름 목록이 아니라
       //    **규칙**으로 여기서 고정한다 — 새 거부 픽스처가 들어와도 이 검사가 사전을 가린다.
       const Map<CommandKind, String> domainByKind = <CommandKind, String>{
         CommandKind.journalDraft: 'journal_draft_reject',
+        // 🆕 v1.7(01 §16) — J-4 blind 리뷰 점수 제출.
+        CommandKind.blindReviewScore: 'blind_review_reject',
         CommandKind.manualFillRecord: 'advice_reject',
         CommandKind.manualFillAmend: 'advice_reject',
         CommandKind.manualFillVoid: 'advice_reject',
@@ -271,6 +353,7 @@ void main() {
         containsAll(<String>[
           FixturePaths.m6FillRejectedPrice,
           FixturePaths.m6JournalDraftReceipts5,
+          FixturePaths.m6BlindReviewReceipts6,
         ]),
         reason: '거부 접수증 픽스처를 못 읽었다 — 이 검사가 아무것도 보지 않고 통과하면 안 된다.',
       );

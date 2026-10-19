@@ -30,6 +30,9 @@
 //   `UnimplementedWhatIfApi.previewRebalance` → `Future<RebalancePreviewResult>` 에러 ·
 //   `UnimplementedPerformanceRepository.annualReview({String? year})`. Ops 받침대는 만들지 않는다
 //   (`S7-7` = `PerformanceRepository` 하나).
+//   🆕 계약 v1.7 J-4 선행(01 §16 · §8 미결 46) — `UnimplementedJournalRepository.watchBlindReviewQueue`
+//   (대기 목록 봉투 · `{RunMode mode = RunMode.live}`) · `watchBlindReviewCard`(카드 1건). 명령 받침대는
+//   무변경(`UnimplementedCommandApi.submitBlindReviewScore` 는 v1.1 부터 있다 · `BlindReviewScore` 필드 무변경).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -121,6 +124,15 @@ class UnimplementedJournalRepository implements JournalRepository {
   @override
   Stream<JournalRebalanceScope?> watchRebalanceScope(String rebalanceEventId) =>
       throw UnimplementedError('watchRebalanceScope');
+
+  @override
+  Stream<ListResult<BlindReviewCard>> watchBlindReviewQueue({
+    RunMode mode = RunMode.live,
+  }) => throw UnimplementedError('watchBlindReviewQueue');
+
+  @override
+  Stream<BlindReviewCard> watchBlindReviewCard(String decisionId) =>
+      throw UnimplementedError('watchBlindReviewCard');
 }
 
 /// [PerformanceRepository] 받침대.

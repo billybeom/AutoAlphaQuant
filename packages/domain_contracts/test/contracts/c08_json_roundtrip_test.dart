@@ -269,7 +269,8 @@ const String _reasonM9Fixture =
     '🆕 v1.4 contribution_setting 2벌뿐 — `ContributionSetting` 은 덮였다). '
     '픽스처가 생기면 등록부에 올리고 여기서 지운다.';
 const String _reasonJournalDetail =
-    '`J-4` blind 리뷰·보유 상세 픽스처가 아직 없다 — v1.1 은 J-2·J-3·J-5 까지 덮었다(01 §8 미결 46).';
+    '보유 상세(손절선 정규값) 픽스처가 아직 없다 — v1.1 은 J-2·J-3·J-5 까지 · 🆕 v1.7 은 J-4 blind 리뷰까지 '
+    '덮었다(01 §16 · `BlindReviewCard`·`BlindReviewQuestion` 은 m6/blind_review_* 6벌이 덮는다).';
 const String _reasonCalendarUndecided =
     'X4 캘린더 채택이 미결이라 픽스처를 만들지 않았다(01 §8-5 · FeatureFlags.calendarEnabled).';
 const String _reasonHandbookDraft =
@@ -309,8 +310,6 @@ const Map<String, String> _knownUncovered = <String, String>{
   'ShellVm': _reasonM9Fixture,
 
   // ── M6 상세·기록 폼 ─────────────────────────────────────────────────────
-  'BlindReviewCard': _reasonJournalDetail,
-  'BlindReviewQuestion': _reasonJournalDetail,
   'StopLineNormalized': _reasonJournalDetail,
 
   // ── X4 캘린더 ───────────────────────────────────────────────────────────

@@ -186,6 +186,8 @@ abstract final class ContractCodes {
     'disclosure_surface': DisclosureSurfaceCodes.values,
     // 🆕 v1.4(R11 선행) — 플래너 주문 초안의 사유 칩(`OrderDraft.reasons[].code`)
     'planner_reason': PlannerReasonCodes.values,
+    // 🆕 v1.7(J-4 선행) — blind 리뷰 점수 제출의 거부 사유(`CommandReceipt.rejectReasonCode`)
+    'blind_review_reject': BlindReviewRejectCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

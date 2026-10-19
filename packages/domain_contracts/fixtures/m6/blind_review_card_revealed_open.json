@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.7.0",
+    "generated_at": "2026-10-20T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261020,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리뷰 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "decision_id": "d_mf_0001",
+      "title_text": "2026-08-24 · 069500 KODEX 200 · 매수 결정",
+      "prompt_text": "결과를 보기 전에 이 결정의 과정을 채점합니다",
+      "context_chips": [
+        { "code": "ADVISORY_FILL", "label": "안내 모드의 수기 체결", "tone": "NEUTRAL", "detail_deep_link": "handbook://advice/record" }
+      ],
+      "deviation": { "is_deviation": true, "label": "수기 기록 — 재량 예산 차감", "kind_code": "MANUAL_ENTRY" },
+      "journal_state_label": "저널 작성됨",
+      "journal": { "written_at_text": "2026-08-24 13:40 작성", "rule_cited_label": "재량 예산(롤링 12개월 4회) 안에서 조정", "rationale_before": "[합성] 안내 수량을 그대로 따르되 체결은 증권사 앱에서 직접 넣는다.\n[합성] 안내가 정한 수량을 늘리거나 줄이지 않는다.", "expected_outcome": "[합성] 안내 유효 시간 안에 같은 수량으로 체결되고 이행 갭이 생기지 않는다. 장 마감까지 체결되지 않으면 안내를 미이행으로 기록한다.", "note": null },
+      "questions": [
+        {
+          "question_id": "PIT_INFO_ONLY",
+          "text": "결정 시점에 가용했던 정보만 썼는가",
+          "evidence_text": "입력 데이터 기준 2026-08-21 · 결정 2026-08-24 09:00",
+          "choices": [
+            { "score": 1, "label": "예" },
+            { "score": 0, "label": "아니오" }
+          ]
+        },
+        {
+          "question_id": "RULE_FOLLOWED",
+          "text": "규칙이 지시한 대로 했는가",
+          "evidence_text": "이탈 기록: 수기 기록 — 재량 예산 차감",
+          "choices": [
+            { "score": 1, "label": "예" },
+            { "score": 0, "label": "아니오" }
+          ]
+        },
+        {
+          "question_id": "PIT_INPUT",
+          "text": "입력 데이터가 그때 알 수 있었던 값(PIT)이었는가",
+          "evidence_text": "입력 스냅샷 2026-08-21 장 마감 값 · 이후 수정 기록 없음",
+          "choices": [
+            { "score": 1, "label": "예" },
+            { "score": 0, "label": "아니오" }
+          ]
+        },
+        {
+          "question_id": "FALSIFIER_WRITTEN",
+          "text": "사전에 반증 조건(이러면 내가 틀린 것)을 적었는가",
+          "choices": [
+            { "score": 1, "label": "예" },
+            { "score": 0, "label": "아니오" }
+          ]
+        },
+        {
+          "question_id": "WRITTEN_AT_DECISION",
+          "text": "저널을 결정 시점에 작성했는가",
+          "evidence_text": "저널 작성 2026-08-24 13:40 · 체결 2026-08-24 14:30",
+          "choices": [
+            { "score": 1, "label": "예" },
+            { "score": 0, "label": "아니오" }
+          ]
+        }
+      ],
+      "result": {
+        "process_score_text": "과정 점수 3점 — 개선이 필요한 결정(4점 미만)",
+        "outcome_text": "미청산 — 결과 미확정",
+        "detail_lines": [],
+        "decision_link": { "label": "이 결정 보기", "deep_link": "aaq://journal/decision/d_mf_0001" }
+      },
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "리뷰 기준 2026-08-31" }
+    }
+  ]
+}
