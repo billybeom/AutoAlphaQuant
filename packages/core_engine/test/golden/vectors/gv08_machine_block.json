@@ -1,0 +1,24 @@
+{
+  "common": { "account_equity": 100000000, "risk_pct": 0.0035,
+              "notional_cap_pct": 0.05, "lot_size": 1 },
+  "cases": [
+    { "id": "8a", "entry": 10000, "stop": 9300,
+      "expected": { "quantity": 500, "binding": "RISK",
+                    "qty_by_risk": 500.0, "qty_by_notional": 500.0,
+                    "notional_value": 5000000 } },
+    { "id": "8b", "entry": 10000, "stop": 9700,
+      "expected": { "quantity": 500, "binding": "NOTIONAL",
+                    "qty_by_risk": 1166.666667, "qty_by_notional": 500.0,
+                    "notional_value": 5000000 } },
+    { "id": "8c", "entry": 10000, "stop": 8000,
+      "expected": { "quantity": 175, "binding": "RISK",
+                    "qty_by_risk": 175.0, "qty_by_notional": 500.0,
+                    "notional_value": 1750000 } },
+    { "id": "8d", "entry": 33333, "stop": 31000, "lot_size": 10,
+      "expected": { "quantity": 150, "binding": "NOTIONAL",
+                    "qty_by_risk": 150.021432, "qty_by_notional": 150.001500,
+                    "notional_value": 4999950 } }
+  ],
+  "tolerance": 1e-6,
+  "exact_fields": ["quantity", "binding", "notional_value"]
+}

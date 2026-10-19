@@ -1,0 +1,7 @@
+{
+  "cases": [
+    { "direction_state": "UNKNOWN", "trend_state": "HIGH", "expected_exposure": 0.00 },
+    { "direction_state": "UNKNOWN", "trend_state": "LOW",  "expected_exposure": 0.00 }
+  ],
+  "tolerance": 1e-9
+}

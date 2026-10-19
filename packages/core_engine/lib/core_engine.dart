@@ -5,5 +5,13 @@
 // 🔴 ui_*는 이 패키지를 의존하지 않는다(C-3). 화면이 여기 계산을 부르는 순간
 //    엔진과 다른 숫자가 화면에 뜬다.
 //
-// 아직 비어 있다. 계산 코드는 lib/src/ 아래(signals·portfolio·risk·whatif)로
-// 들어오고 공개할 것만 여기에서 export 한다.
+// 계산 코드는 lib/src/ 아래(signals·portfolio·risk·whatif)로 들어오고 공개할
+// 것만 여기에서 export 한다. 진척은 README «지금 상태»와 설계 저장소
+// `11_앱설계/13_엔진레인_착수계획.md` §2 를 본다.
+
+export 'src/decimal_rules.dart'
+    show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
+export 'src/risk/position_sizing.dart'
+    show SizingBinding, SizingResult, sizePosition;
+export 'src/signals/exposure_gate.dart' show exposureGate;
+export 'src/signals/regime_states.dart' show DirectionState, TrendState;
