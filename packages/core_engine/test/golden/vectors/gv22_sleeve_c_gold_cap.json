@@ -1,0 +1,26 @@
+{
+  "config": {
+    "usd_weights": { "BIL": 0.40, "IEI": 0.35, "IAU": 0.25 },
+    "krw_cash_ticker": "A214980",
+    "max_gold_pct_of_total": 0.08
+  },
+  "cases": [
+    { "id": "q1", "inflow": 30000000, "currency": "KRW", "total_equity": 100000000,
+      "expected": { "A214980": 30000000 },
+      "note": "🔴 원화 유입은 전액 원화 현금성. 달러 3종 배분을 거치지 않습니다" },
+
+    { "id": "q2", "sleeve_c_usd_total": 20000000, "total_equity": 100000000,
+      "expected": { "BIL": 8000000, "IEI": 7000000, "IAU": 5000000 },
+      "note": "금 5,000,000 = 총자산의 5.0% < 8% 상한 → 고정 비율 그대로" },
+
+    { "id": "q3", "sleeve_c_usd_total": 45000000, "total_equity": 100000000,
+      "expected": { "BIL": 21250000, "IEI": 15750000, "IAU": 8000000 },
+      "note": "🔴 고정 비율이면 금 11,250,000 = 총자산의 11.25%로 상한 초과. 초과분 3,250,000을 BIL로 보냅니다. IEI는 변하지 않습니다" },
+
+    { "id": "q4", "sleeve_c_usd_total": 45000000, "total_equity": 100000000,
+      "expected_not": { "BIL": 18000000, "IEI": 15750000, "IAU": 11250000 },
+      "note": "🔴 상한을 적용하지 않은 결과. 이것이 나오면 오답입니다" }
+  ],
+  "invariants": ["sum(expected.values()) == sleeve_c_usd_total  (절대오차 0.01)"],
+  "tolerance": { "amounts": 0.01 }
+}

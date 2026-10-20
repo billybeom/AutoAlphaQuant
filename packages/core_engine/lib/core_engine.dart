@@ -28,6 +28,15 @@ export 'src/orders/idempotency.dart'
     show DecisionIds, idempotencyKey, idempotencyRaw;
 export 'src/portfolio/allocation.dart'
     show AllocationTargets, kAllocationProfiles, resolveAllocation;
+export 'src/portfolio/funding.dart' show FundingPlan, FundingTake, fundingOrder;
+export 'src/portfolio/sleeve_c.dart'
+    show
+        InflowCurrency,
+        SleeveCInflow,
+        SleeveCTargets,
+        SleeveCWeights,
+        sleeveCAllocateInflow,
+        sleeveCUsdTargets;
 export 'src/risk/breaker.dart'
     show
         BreakerConfig,

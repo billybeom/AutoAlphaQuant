@@ -7,4 +7,5 @@
 - 🔴 슬리브 개수를 상수로 굳히지 않는다. 화면에 나가는 목록은 `SleeveCatalogEntry`이고 그 원천은 엔진 config(`satellite_enabled`)다.
 - 🔴 리밸런싱 회차는 **1급 엔터티**(`rebalance_event`)다 — 로그를 파싱해 재구성하지 않는다.
 - ✅ `allocation.dart` — `capital_allocation` 해석·검증(05 GV-42). 프로파일 표는 02 §5-7 의 세 프로파일(새틀 6% 시절)이고, 정본 P0S 는 새틀 0 을 주고 해제분을 잔여 C 가 받는다.
+- ✅ `sleeve_c.dart` · `funding.dart`(E5c) — 슬리브 C 달러 목표·금 상한(05 GV-22·35) · 원화 조달 상대(GV-36 · B 제외). 분모에 무엇을 넣을지(참조 엔진은 비예약 원화를 넣는다)는 E6 배선에서 정한다.
 - 금 상한 8%(C 한정)는 **경고이지 강제 매도가 아니다**(SAF-3xx).
