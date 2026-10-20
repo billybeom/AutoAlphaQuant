@@ -8,17 +8,19 @@
 //   ① 허용 키 목록(VM·카드·섹션·상세·배분 VM·게이지·보유 행·손익·배분 행·시스템 밖 행·손절선) + DTO 필드 집합 == 목록.
 //   ② 손익 격리 — 기본 표본에 손익 키 0 · 펼침 표본의 손익 글자 · «열람 기록» 0(발주자 결정 ⑤).
 //   ③ 표시 문자열·가림 — 글자 비지 않음 · INTEGRITY «숨김»(== journal_masked_integrity) · 시스템 밖 수량 그대로(K14) ·
-//      RECON 대상 행만 끝 «?»(그 밖 행 «?» 0 · 대상 행에서 «?» 를 떼면 정상판과 같다).
+//      RECON 대상 행만 끝 «?»(대상 = 상세 RECON 표본의 보유 · 그 슬리브 배분 행 — 픽스처끼리 · 그 밖 행 == 정상판 ·
+//      대상 행에서 대상 글자의 «?» 만 떼면 정상판과 같다) · INTEGRITY 손절선 수준·기준 글자 «숨김».
 //   ④ 정체성·일치 — holding_id 유일 · B·POT 같은 종목 표본 · holdings_6 == 펼침판 · 상세 holding == 목록 행 ·
 //      펼침판 − pnl == 정상판 · 뷰어판 − 토글·섹션 == 정상판 · 링크 = 그 행의 id.
 //   ⑤ 카드 구조 — 카탈로그 최상위 순·라벨 · POT 행 = A 카드 맨 끝 + sub_book_label(K17) · scope MANAGED · 빈 ⇔ 문장.
 //   ⑥ 배분 — 순서(A → POT → … → CASH) · 회계 기준 · 밴드 축 짝 · 밴드 행 = B 만(K27) · 게이지 순서 · 비율 짝 ·
+//      게이지 ⇔ 밴드 행 · 게이지 실측 위치 ↔ band_state(OUT_OF_BAND ⇔ 밴드 밖) ·
 //      INTEGRITY 기하 0 · RECON 기하 유지 · 카드 머리 == 배분 행 · 트랜치 글자 «잔여·남은·초기·진행률» 0.
 //   ⑦ 손절선 — 행 ⇔ 문장 · 등급 코드 ∈ StopTierCodes · ⑥ 수준 글자 == holdings_6 의 옛 절대 손절선.
-//   ⑧ 이력 — 원천 행 JSON 그대로 · 같은 보유 · 시간 역순 · 빈 ⇔ 문장.
+//   ⑧ 이력 — 원천 행 JSON 그대로 · 같은 보유 · 시간 역순 · 빈 ⇔ 문장 · 이력 표본(⑥ · ⑮) 행 ≥ 1(공허 통과 방지).
 //   ⑨ 미결 82(보유 몫) — 라벨 = 입금 정본 · 두 입금 픽스처 일치 · 옛 종목 0.
 //   ⑩ 트랜치·배지 — 트랜치 = B 행만 · 같은 VM 안 B 행 동일 · B·POT 금 상한 배지 0.
-//   ⑪ 링크 — 「비중 보기」 = holdingsAllocation · 상태 칩 = handbook|null · 시스템 밖 행 링크 키 0.
+//   ⑪ 링크 — 「비중 보기」 = holdingsAllocation(검사한 링크 ≥ 1) · 상태 칩 = handbook|null · 시스템 밖 행 링크 키 0.
 //
 // B. 화면 소스 스캔(⑫~⑳) — 대상 = `packages/ui_journal/lib/src/holdings_overview.dart` · `holding_detail.dart` ·
 //    `holdings_allocation.dart` + `lib/src/holdings/**`(01 §17-8 · 설계서 §2-5). 전처리 = ⑫⑬⑭⑮⑰⑱ 은 `stripComments`
@@ -494,6 +496,8 @@ final List<RegExp> _rawKeys = <RegExp>[
   ),
   RegExp(r'\$\{?[\w.]*\.holdingId\b'),
   RegExp(r'Text\(\s*[\w.]*\.holdingId'),
+  // 🆕 검증 반영 — 보간 없이 Key 생성자에 넣는 꼴(`ValueKey(r.holdingId)` · `ObjectKey(…)` · 형 인자 포함).
+  RegExp(r'Key\s*(<[^>]*>)?\s*\(\s*[\w.]*\.holdingId'),
   RegExp(r'\.(stopLine|momentum)!'),
 ];
 
@@ -501,6 +505,8 @@ final List<RegExp> _rawKeys = <RegExp>[
 final List<RegExp> _geometryMath = <RegExp>[
   RegExp(r'(Ratio|Normalized)\s*!?\s*[-+/]'),
   RegExp(r'[-+/]\s*[\w.!?]*(Ratio|Normalized)\b'),
+  // 🆕 검증 반영 — `width - width * r.deployedRatio!` 꼴(여집합·여유 폭 · 앞 정규식은 `width *` 를 못 넘는다).
+  RegExp(r'[-+/]\s*[\w.!?]+\s*\*\s*[\w.!?]*(Ratio|Normalized)\b'),
   RegExp(r'(?<![\w.$])1(\.0)?\s*-\s*'),
   RegExp(r'(Ratio|Normalized)\s*!?\s*\?\?'),
   RegExp(
@@ -666,11 +672,14 @@ const List<(String, String)> _positives = <(String, String)>[
   ('if (flags.satelliteEnabled) {}', '⑱'),
   ('Text(h.holdingId)', '⑮'),
   (r"ValueKey('h61-row-${r.holdingId}')", '⑮'),
+  ('final k = ValueKey(r.holdingId);', '⑮'),
   ('final double w100 = w.weight * 100;', '⑮'),
   ('final double x = r.sleeveWeight!.weight;', '⑮'),
   ('final double d = r.deployedRatio ?? 0;', '⑯'),
   ('final double z = g.actualNormalized * r.deployedRatio!;', '⑯'),
   ('final double gap = g.bandHighNormalized - g.actualNormalized;', '⑯'),
+  ('final double parkW = width - width * r.deployedRatio!;', '⑯'),
+  ('final double rest = width - width * g.actualNormalized;', '⑯'),
   ('cards.sort((a, b) => 0);', '⑰'),
   ("Text('80%')", '⑲'),
   ("Text('1,000원')", '⑲'),
@@ -693,6 +702,7 @@ const List<String> _negatives = <String>[
   'final double w0 = width * g.actualNormalized;',
   'final double w1 = g.bandLowNormalized * width;',
   'final double w2 = width * r.deployedRatio!;',
+  'final double w3 = (c.maxWidth - 32) * g.actualNormalized;',
   'if (r.parentSleeve != null) {}',
   r"ValueKey('h61-card-$i')",
   r"ValueKey('h61-row-$c-$r')",
@@ -717,7 +727,7 @@ const List<String> _negatives = <String>[
   '/* 1 - x 금지 */ const SizedBox(height: 12)',
   "Text(JournalLabels.holdingsStopLines) // '80%' 아님",
   'switch (r.bandState) { case SleeveBandState.inBand: break; }',
-  'opener.open(entry.detailDeepLink!)',
+  'if (entry.detailDeepLink case final String l?) { opener.open(l); }',
 ];
 
 void main() {
@@ -964,6 +974,11 @@ void main() {
         _vm(_dtIntegrity)['stop_lines'],
       )) {
         expect(s['level_text'], masked, reason: '$_dtIntegrity 손절선 수준 글자');
+        expect(
+          s['basis_label'],
+          masked,
+          reason: '$_dtIntegrity 손절선 기준 글자(매수가 대비 % — 평균 매수가가 샌다)',
+        );
       }
       for (final (String at, List<Map<String, Object?>> rows)
           in <(String, List<Map<String, Object?>>)>[
@@ -997,21 +1012,29 @@ void main() {
         );
       }
 
-      // RECON — 대상 행(정상판과 다른 행)만 글자 끝 «?» · «?» 를 떼면 정상판과 같다 · 그 밖 행 «?» 0.
+      // RECON — 대상 행만 글자 끝 «?»(대상 = 상세 RECON 표본의 보유 · 그 슬리브의 배분 행 — 픽스처끼리) ·
+      // 대상 행에서 대상 글자의 «?» 만 떼면 정상판과 같다 · 그 밖 행 == 정상판(«?» 0).
+      final Map<String, Object?> reconHolding = _map(_vm(_dtRecon)['holding'])!;
       void reconRows(
         String at,
         List<Map<String, Object?>> recon,
         List<Map<String, Object?>> normal,
         String idKey,
-        List<String> reconKeys,
+        List<String> reconPaths,
+        Set<Object?> expected,
       ) {
         expect(recon.length, normal.length, reason: at);
-        int targets = 0;
+        final Set<Object?> targets = <Object?>{};
         for (int i = 0; i < recon.length; i++) {
           final Map<String, Object?> a = recon[i];
           final Map<String, Object?> b = normal[i];
           expect(a[idKey], b[idKey], reason: '$at — 행 순서가 정상판과 다르다.');
-          if (_deepEquals(a, b)) {
+          if (!expected.contains(a[idKey])) {
+            expect(
+              a,
+              b,
+              reason: '$at ${a[idKey]} — RECON 대상이 아닌 행이 정상판과 다르다(가림 범위 혼동).',
+            );
             expect(
               _strings(a).where((String s) => s.contains('?')),
               isEmpty,
@@ -1019,58 +1042,66 @@ void main() {
             );
             continue;
           }
-          targets++;
-          for (final String k in reconKeys) {
-            if (a[k] == null) {
+          targets.add(a[idKey]);
+          for (final String k in reconPaths) {
+            final Object? v = _at(a, k);
+            if (v == null) {
+              expect(
+                _at(b, k),
+                isNull,
+                reason: '$at ${a[idKey]}.$k — 대상 글자가 사라졌다.',
+              );
               continue;
             }
             expect(
-              (a[k]! as String).endsWith('?'),
+              (v as String).endsWith('?'),
               isTrue,
               reason: '$at ${a[idKey]}.$k — RECON 대상 행의 글자 끝에 «?» 가 없다.',
             );
           }
           expect(
-            _stripQuestion(a),
+            _stripQuestionAt(a, reconPaths),
             b,
             reason:
-                '$at ${a[idKey]} — RECON 대상 행은 «?» 를 떼면 정상판과 같아야 한다(기하·글자 유지).',
+                '$at ${a[idKey]} — RECON 대상 행은 대상 글자의 «?» 를 떼면 정상판과 같아야 한다(기하·그 밖 글자 유지).',
           );
         }
-        expect(targets, greaterThan(0), reason: '$at — RECON 대상 행이 없다.');
+        expect(
+          targets,
+          expected,
+          reason: '$at — RECON 대상 행 집합이 상세 RECON 표본과 다르다(§3-1 ② «대상 1종목»).',
+        );
       }
 
+      const List<String> holdingReconPaths = <String>[
+        'quantity_text',
+        'weight_text',
+        'pending_text',
+      ];
       reconRows(
         _ovRecon,
         _holdingRows(_ovRecon),
         _holdingRows(_ovNormal),
         'holding_id',
-        <String>['quantity_text', 'weight_text', 'pending_text'],
+        holdingReconPaths,
+        <Object?>{reconHolding['holding_id']},
       );
       reconRows(
         _dtRecon,
         _holdingRows(_dtRecon),
         _holdingRows(_dtNoStop),
         'holding_id',
-        <String>['quantity_text', 'weight_text', 'pending_text'],
+        holdingReconPaths,
+        <Object?>{reconHolding['holding_id']},
       );
       reconRows(
         _alRecon,
         _allocationRows(_alRecon),
         _allocationRows(_alInBand),
         'sleeve',
-        _reconAllocationKeys,
+        <String>[..._reconAllocationKeys, 'sleeve_weight.label'],
+        <Object?>{reconHolding['sleeve']},
       );
-      for (final Map<String, Object?> r in _allocationRows(_alRecon)) {
-        final Map<String, Object?>? w = _map(r['sleeve_weight']);
-        if (w != null && !_deepEquals(r, _bySleeve(_alInBand)[r['sleeve']])) {
-          expect(
-            (w['label']! as String).endsWith('?'),
-            isTrue,
-            reason: '$_alRecon ${r['sleeve']} — 밴드 문장 끝에 «?» 가 없다.',
-          );
-        }
-      }
     });
 
     test(
@@ -1332,7 +1363,12 @@ void main() {
             r['band_state_label'] == null,
             reason: '$at — band_state ⇔ band_state_label',
           );
-          expect(g == null || w != null, isTrue, reason: '$at — 게이지는 밴드 행에만.');
+          expect(
+            g != null,
+            w != null,
+            reason:
+                '$at — 게이지 ⇔ 밴드 행(밴드 판정이 있으면 게이지도 온다 · null = 판정 없음·INTEGRITY 가림).',
+          );
           expect(
             w == null,
             r['band_note_text'] != null,
@@ -1371,6 +1407,13 @@ void main() {
               low <= target && target <= high,
               isTrue,
               reason: '$at — 게이지 순서',
+            );
+            final double actual = (g['actual_normalized']! as num).toDouble();
+            expect(
+              low <= actual && actual <= high,
+              r['band_state'] != 'OUT_OF_BAND',
+              reason:
+                  '$at — 게이지 실측 위치가 밴드 판정과 모순(OUT_OF_BAND ⇔ 밴드 밖 · IN_BAND·NEAR_EDGE ⇔ 밴드 안).',
             );
           }
           expect(
@@ -1479,8 +1522,10 @@ void main() {
       );
     });
 
-    test('C-44 ⑧ 이력 — 원천 일지 행 JSON 그대로 · 같은 보유 · 시간 역순 · 빈 ⇔ 문장', () {
+    test('C-44 ⑧ 이력 — 원천 일지 행 JSON 그대로 · 같은 보유 · 시간 역순 · 빈 ⇔ 문장 · 표본 하한', () {
+      final Map<String, int> compared = <String, int>{};
       for (final MapEntry<String, String> e in _historySource.entries) {
+        compared[e.key] = 0;
         final Map<String, Object?> vm = _vm(e.key);
         final Map<String, Object?> h = _map(vm['holding'])!;
         final List<Map<String, Object?>> entries = _list(vm['recent_entries']);
@@ -1507,6 +1552,7 @@ void main() {
             source[r['entry_id']],
             reason: '$at — 원천 일지 행과 JSON 이 다르다.',
           );
+          compared[e.key] = compared[e.key]! + 1;
           expect(r['symbol'], h['symbol'], reason: '$at — 다른 종목의 체결');
           expect(r['sleeve'], h['sleeve'], reason: '$at — 다른 보유(슬리브)의 체결');
           final String date = r['trade_date']! as String;
@@ -1519,6 +1565,14 @@ void main() {
           }
           previous = date;
         }
+      }
+      // 이력 있는 표본(⑥ = journal_30 의 069500 3행 · ⑮ = 가림 원천 2행 — 설계서 §3-1)이 비면 위 대조가 공허해진다.
+      for (final String p in <String>[_dtWithStops, _dtIntegrity]) {
+        expect(
+          compared[p],
+          greaterThan(0),
+          reason: '$p — 이력 표본이 비었다(⑧ 공허 통과 방지).',
+        );
       }
     });
 
@@ -1599,12 +1653,15 @@ void main() {
     });
 
     test('C-44 ⑪ 링크 — 「비중 보기」 = holdingsAllocation · 상태 칩 = handbook|null · 시스템 밖 행 링크 키 0', () {
+      int links = 0;
       for (final String p in _overviews) {
         final Map<String, Object?>? link = _map(_vm(p)['allocation_link']);
         if (link != null) {
+          links++;
           expect(link['deep_link'], AppRoutes.holdingsAllocation, reason: p);
         }
       }
+      expect(links, greaterThan(0), reason: '「비중 보기」 링크 표본이 없다(⑪ 공허 통과 방지).');
       final List<(String, List<Map<String, Object?>>)> allocs =
           <(String, List<Map<String, Object?>>)>[
             for (final String p in _allocations) (p, _allocationRows(p)),
@@ -1791,48 +1848,42 @@ void main() {
   });
 }
 
-/// JSON 깊은 비교(맵·목록·잎).
-bool _deepEquals(Object? a, Object? b) {
-  if (a is Map<String, Object?> && b is Map<String, Object?>) {
-    if (a.length != b.length) {
-      return false;
-    }
-    for (final MapEntry<String, Object?> e in a.entries) {
-      if (!b.containsKey(e.key) || !_deepEquals(e.value, b[e.key])) {
-        return false;
-      }
-    }
-    return true;
+/// [path] 의 값(점 경로 `a.b` = 한 단계 안쪽 맵).
+Object? _at(Map<String, Object?> row, String path) {
+  final List<String> parts = path.split('.');
+  Object? v = row;
+  for (final String k in parts) {
+    v = (v as Map<String, Object?>?)?[k];
   }
-  if (a is List<Object?> && b is List<Object?>) {
-    if (a.length != b.length) {
-      return false;
-    }
-    for (int i = 0; i < a.length; i++) {
-      if (!_deepEquals(a[i], b[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return a == b;
+  return v;
 }
 
-/// 문자열 잎의 끝 «?» 를 뗀 사본(RECON 대상 행 ↔ 정상판 대조).
-Object? _stripQuestion(Object? n) {
-  if (n is String) {
-    return n.endsWith('?') ? n.substring(0, n.length - 1) : n;
+/// RECON 대상 행에서 [paths] 글자의 끝 «?» 만 뗀 사본(그 밖 글자는 그대로 — 대상 밖 글자의 «?» 는 정상판 대조가 잡는다).
+Map<String, Object?> _stripQuestionAt(
+  Map<String, Object?> row,
+  List<String> paths,
+) {
+  Object? strip(Object? v) =>
+      v is String && v.endsWith('?') ? v.substring(0, v.length - 1) : v;
+  Map<String, Object?> walk(Map<String, Object?> m, List<String> parts) {
+    final Map<String, Object?> out = <String, Object?>{...m};
+    final String k = parts.first;
+    if (!out.containsKey(k)) {
+      return out;
+    }
+    if (parts.length == 1) {
+      out[k] = strip(out[k]);
+    } else if (out[k] case final Map<String, Object?> inner) {
+      out[k] = walk(inner, parts.sublist(1));
+    }
+    return out;
   }
-  if (n is Map<String, Object?>) {
-    return <String, Object?>{
-      for (final MapEntry<String, Object?> e in n.entries)
-        e.key: _stripQuestion(e.value),
-    };
+
+  Map<String, Object?> out = row;
+  for (final String p in paths) {
+    out = walk(out, p.split('.'));
   }
-  if (n is List<Object?>) {
-    return <Object?>[for (final Object? v in n) _stripQuestion(v)];
-  }
-  return n;
+  return out;
 }
 
 /// `as_of`(관측 시각) 키를 모든 깊이에서 뺀 사본 — ④ 의 «같은 행» 대조는 관측 시각을 맞대지 않는다.
