@@ -8,3 +8,12 @@
 
 | 번호 | 카드ID | 종류 | 질문·추측 | 막힌 곳 | 제안 | 상태 | 답 |
 |---|---|---|---|---|---|---|---|
+| A1 | R3-Bob-J4 | 추측 | 측정: j4_before_reveal dy 실측값 (light=1248, dark=1248) < 1600 | 골든 위치 전제 실측 | 1600 미만 확인 | ⬜ 미답 | |
+| A2 | R3-Bob-J4 | 추측 | 측정: j4_after_reveal dy 실측값 (light=1392, dark=1392) < 1600 | 골든 위치 전제 실측 | 1600 미만 확인 | ⬜ 미답 | |
+| A3 | R3-Bob-J4 | 추측 | 측정: j4_after_reveal_open dy 실측값 (light=1212, dark=1212) < 1600 | 골든 위치 전제 실측 | 1600 미만 확인 | ⬜ 미답 | |
+| A4 | R3-Bob-J4 | 추측 | 측정: j4_waiting dy 실측값 (light=1220, dark=1220) < 1600 | 골든 위치 전제 실측 | 1600 미만 확인 | ⬜ 미답 | |
+| A5 | R3-Bob-J4 | 추측 | 측정: j4_rejected dy 실측값 (light=1296, dark=1296) < 1600 | 골든 위치 전제 실측 | 1600 미만 확인 | ⬜ 미답 | |
+| A6 | R3-Bob-J4 | 추측 | 측정: j4_empty dy 실측값 (light=76, dark=76) < 1600 | 골든 위치 전제 실측 | 1600 미만 확인 | ⬜ 미답 | |
+| A7 | R3-Bob-J4 | 추측 | 측정: j1_rebalance_chip dy 실측값 (light=92, dark=92) < 844 | 골든 위치 전제 실측 | 844 미만 확인 | ⬜ 미답 | |
+| A8 | R3-Bob-J4 | 추측 | 측정: j1_rebalance_unknown dy 실측값 (light=480, dark=480) < 844 | 골든 위치 전제 실측 | 844 미만 확인 | ⬜ 미답 | |
+| A9 | R3-Bob-J4 | 추측 | 측정: 부록 S-1 시도 1 — 카드가 정한 모양(itemHeight 는 고른 것이 없을 때만 kMinInteractiveDimension · selectedItemBuilder 에 Padding(vertical 8) + Text(label)) → 새 테스트 S1 이 해법 없이는 실패 · 해법 뒤 통과 · 선택 label 이 밑줄 위에 놓임(재생성 PNG 1장을 열어 확인) | 부록 S-1 드롭다운 | 이 모양을 남김(되돌린 시도 없음) · 재생성 PNG 6장 | ⬜ 미답 | |
