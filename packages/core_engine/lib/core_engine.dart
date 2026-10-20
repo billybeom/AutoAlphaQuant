@@ -28,6 +28,10 @@ export 'src/orders/idempotency.dart'
     show DecisionIds, idempotencyKey, idempotencyRaw;
 export 'src/portfolio/allocation.dart'
     show AllocationTargets, kAllocationProfiles, resolveAllocation;
+export 'src/portfolio/core_band.dart'
+    show CoreBandDirection, CoreBandMove, coreBandMove;
+export 'src/portfolio/deposit.dart'
+    show DepositAllocation, DepositFill, allocateDeposit;
 export 'src/portfolio/funding.dart' show FundingPlan, FundingTake, fundingOrder;
 export 'src/portfolio/sleeve_c.dart'
     show
