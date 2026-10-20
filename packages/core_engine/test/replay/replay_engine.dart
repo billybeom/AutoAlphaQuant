@@ -8,8 +8,13 @@
 //    계절 A(F1 진입 게이트 · 마지막 3세션 3분할 · 이월 · 마지막 날 잔량 집행) · POT 서브북 · 원화 조달(E6d).
 // 🔴 원화 조달(`_take_krw` → `_raise_krw`)은 C 방어자산을 **필요한 만큼** 판다 — 잉여 상한 없음(설계 13 §8 R17 ① 결정).
 
+import 'package:core_engine/src/numeric/pandas_compat.dart';
+
 import 'replay_market.dart';
 import 'replay_regime.dart';
+
+// numpy 짝 합산은 lib 로 옮겼다(E7a1 — 세후 사다리가 같은 합을 쓴다). 하네스 시험은 이 파일에서 그대로 가져다 쓴다.
+export 'package:core_engine/src/numeric/pandas_compat.dart' show npSum;
 
 /// 참조 엔진 `Config(preset="P0S")` + `ramp_months = 6` 의 값(config.py · P0_PIECES · P0S_PIECES).
 abstract final class P0sConfig {
@@ -189,38 +194,6 @@ const Map<String, int> _levelOrder = <String, int>{
   'HALTED': 3,
   'STOPPED': 4,
 };
-
-/// numpy 짝 합산(`pairwise_sum`) — n < 8 은 0 부터 차례로 · n ≤ 128 은 누산기 8개 · 그보다 크면 반으로 나눠 재귀
-/// (반 = n/2 를 8 의 배수로 내림). `np.mean` · pandas `Series.sum`(bottleneck 없음)이 이 값이다.
-double npSum(List<double> a, [int start = 0, int? end]) {
-  final int stop = end ?? a.length;
-  final int n = stop - start;
-  if (n < 8) {
-    double res = 0.0;
-    for (int i = start; i < stop; i++) {
-      res += a[i];
-    }
-    return res;
-  }
-  if (n <= 128) {
-    final List<double> r = a.sublist(start, start + 8);
-    int i = 8;
-    for (; i < n - (n % 8); i += 8) {
-      for (int j = 0; j < 8; j++) {
-        r[j] += a[start + i + j];
-      }
-    }
-    double res =
-        ((r[0] + r[1]) + (r[2] + r[3])) + ((r[4] + r[5]) + (r[6] + r[7]));
-    for (; i < n; i++) {
-      res += a[start + i];
-    }
-    return res;
-  }
-  int n2 = n ~/ 2;
-  n2 -= n2 % 8;
-  return npSum(a, start, start + n2) + npSum(a, start + n2, stop);
-}
 
 /// numpy `np.mean` = [npSum] ÷ n. 20만 배열로 비트 일치 확인(2026-10-21).
 double npMean(List<double> a) => npSum(a) / a.length;
