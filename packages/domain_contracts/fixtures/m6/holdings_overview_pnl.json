@@ -1,0 +1,282 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.8.0",
+    "generated_at": "2026-10-21T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261021,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가 · 엔진은 일 1회 배치" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "cards": [
+        {
+          "sleeve": "A",
+          "title_text": "A · 국내 지수 ETF",
+          "allocation": {
+            "sleeve": "A",
+            "sleeve_label": "슬리브 A",
+            "basis": "ACCOUNTING",
+            "deployed_text": "830만원",
+            "parking_text": "20만원",
+            "deployed_ratio": 0.976,
+            "parking_ratio": 0.024,
+            "tranche_state_text": "해당 없음",
+            "deployed_pct_text": "16.6%",
+            "parking_pct_text": "0.4%",
+            "engine_column_note": "엔진 원장 열에서는 POT 가 C 쪽에 합산됩니다 — 여기 비중은 회계 기준입니다",
+            "band_note_text": "A 19.0% · 목표 20.0% — 계절 슬리브 · 밴드 판정 없음",
+            "state_chips": []
+          },
+          "rows": [
+            {
+              "holding_id": "h_0001",
+              "symbol": "069500",
+              "symbol_label": "069500 KODEX 200",
+              "sleeve": "A",
+              "account_alias": "연금저축",
+              "quantity": 212,
+              "quantity_text": "212주",
+              "avg_price": "38410",
+              "avg_price_text": "38,410원",
+              "entry_date": "2026-08-03",
+              "entry_decision": { "decision_id": "d_20260803_a_01", "intent_id": "i_h001", "config_hash": "cfg_fake_0000000000000000" },
+              "entry_reasons": [
+                { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+              ],
+              "sma_tranches": [],
+              "gates": [
+                { "code": "SAF-301", "label": "포트폴리오 한도 여유", "state": "PASS" }
+              ],
+              "weight_text": "비중 16.6%",
+              "scope": "MANAGED",
+              "scope_label": "시스템 관리",
+              "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+              "stop_line": { "absolute_stop": "34570", "high_water_mark": "39140", "label": "TIER 1B 절대 손절선" },
+              "detail_deep_link": "aaq://holdings/detail/h_0001",
+              "pnl": { "unrealized_pnl": "158420", "pnl_pct": 0.0193, "disclosure_note": "전일 종가 기준 · 평가 손익", "pnl_text": "+158,420원", "pnl_pct_text": "+1.93%" }
+            },
+            {
+              "holding_id": "h_0005",
+              "symbol": "133690",
+              "symbol_label": "133690 TIGER 미국나스닥100",
+              "sleeve": "POT",
+              "account_alias": "연금저축",
+              "quantity": 30,
+              "quantity_text": "30주",
+              "avg_price": "17800",
+              "avg_price_text": "17,800원",
+              "entry_date": "2026-08-10",
+              "entry_decision": { "decision_id": "d_20260810_pot_06", "intent_id": "i_h006", "config_hash": "cfg_fake_0000000000000000" },
+              "entry_reasons": [
+                { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+              ],
+              "sma_tranches": [],
+              "gates": [
+                { "code": "SAF-401", "label": "주문 게이트 통과", "state": "PASS" }
+              ],
+              "weight_text": "비중 1.1%",
+              "sub_book_label": "POT 서브북 · A 하위(연금저축)",
+              "scope": "MANAGED",
+              "scope_label": "시스템 관리",
+              "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+              "detail_deep_link": "aaq://holdings/detail/h_0005"
+            },
+            {
+              "holding_id": "h_0006",
+              "symbol": "411060",
+              "symbol_label": "411060 ACE KRX금현물",
+              "sleeve": "POT",
+              "account_alias": "연금저축",
+              "quantity": 21,
+              "quantity_text": "21주",
+              "avg_price": "22600",
+              "avg_price_text": "22,600원",
+              "entry_date": "2026-08-10",
+              "entry_decision": { "decision_id": "d_20260810_pot_07", "intent_id": "i_h007", "config_hash": "cfg_fake_0000000000000000" },
+              "entry_reasons": [
+                { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+              ],
+              "sma_tranches": [],
+              "gates": [
+                { "code": "SAF-401", "label": "주문 게이트 통과", "state": "PASS" }
+              ],
+              "weight_text": "비중 0.9%",
+              "sub_book_label": "POT 서브북 · A 하위(연금저축)",
+              "scope": "MANAGED",
+              "scope_label": "시스템 관리",
+              "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+              "detail_deep_link": "aaq://holdings/detail/h_0006"
+            }
+          ]
+        },
+        {
+          "sleeve": "B",
+          "title_text": "B · 해외 지수·금 ETF",
+          "allocation": {
+            "sleeve": "B",
+            "sleeve_label": "슬리브 B",
+            "basis": "ACCOUNTING",
+            "deployed_text": "1,415만원",
+            "parking_text": "715만원",
+            "deployed_ratio": 0.664,
+            "parking_ratio": 0.336,
+            "tranche_state_text": "B 트랜치 2/3 — SMA 신호 2개 점등",
+            "deployed_pct_text": "28.3%",
+            "parking_pct_text": "14.3%",
+            "parking_note_text": "신호가 켜지지 않은 몫은 파킹 ETF 에 둡니다.",
+            "sleeve_weight": { "sleeve": "B", "basis": "ACCOUNTING", "weight": 0.426, "target_weight": 0.42, "band_low": 0.39, "band_high": 0.45, "label": "B 42.6% (목표 42.0%, 편차 +0.6%p, 밴드 여유 2.4%p)" },
+            "band_state": "IN_BAND",
+            "band_state_label": "밴드 내",
+            "gauge": { "actual_normalized": 0.55, "target_normalized": 0.5, "band_low_normalized": 0.25, "band_high_normalized": 0.75 },
+            "state_chips": []
+          },
+          "rows": [
+            {
+              "holding_id": "h_0002",
+              "symbol": "133690",
+              "symbol_label": "133690 TIGER 미국나스닥100",
+              "sleeve": "B",
+              "account_alias": "연금저축",
+              "quantity": 636,
+              "quantity_text": "636주",
+              "pending_text": "반영 대기 +12주",
+              "avg_price": "17590",
+              "avg_price_text": "17,590원",
+              "entry_date": "2026-08-03",
+              "entry_decision": { "decision_id": "d_20260803_b_02", "intent_id": "i_h002", "config_hash": "cfg_fake_0000000000000000" },
+              "entry_reasons": [
+                { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+              ],
+              "sma_tranches": [
+                { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-03" },
+                { "step_no": 2, "filled": true, "label": "2/3 단계", "filled_on": "2026-08-17" },
+                { "step_no": 3, "filled": false, "label": "3/3 단계" }
+              ],
+              "gates": [
+                { "code": "SAF-201", "label": "슬리브 B 한도 여유", "state": "PASS" }
+              ],
+              "weight_text": "비중 22.7%",
+              "scope": "MANAGED",
+              "scope_label": "시스템 관리",
+              "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+              "detail_deep_link": "aaq://holdings/detail/h_0002",
+              "pnl": { "unrealized_pnl": "158860", "pnl_pct": 0.0142, "disclosure_note": "전일 종가 기준 · 평가 손익", "pnl_text": "+158,860원", "pnl_pct_text": "+1.42%" }
+            },
+            {
+              "holding_id": "h_0003",
+              "symbol": "411060",
+              "symbol_label": "411060 ACE KRX금현물",
+              "sleeve": "B",
+              "account_alias": "연금저축",
+              "quantity": 125,
+              "quantity_text": "125주",
+              "avg_price": "22400",
+              "avg_price_text": "22,400원",
+              "entry_date": "2026-08-05",
+              "entry_decision": { "decision_id": "d_20260805_b_03", "intent_id": "i_h003", "config_hash": "cfg_fake_0000000000000000" },
+              "entry_reasons": [
+                { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+              ],
+              "sma_tranches": [
+                { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-03" },
+                { "step_no": 2, "filled": true, "label": "2/3 단계", "filled_on": "2026-08-17" },
+                { "step_no": 3, "filled": false, "label": "3/3 단계" }
+              ],
+              "gates": [
+                { "code": "SAF-201", "label": "슬리브 B 한도 여유", "state": "PASS" }
+              ],
+              "weight_text": "비중 5.6%",
+              "scope": "MANAGED",
+              "scope_label": "시스템 관리",
+              "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+              "detail_deep_link": "aaq://holdings/detail/h_0003"
+            }
+          ]
+        },
+        {
+          "sleeve": "C",
+          "title_text": "C · 방어 자산",
+          "allocation": {
+            "sleeve": "C",
+            "sleeve_label": "슬리브 C",
+            "basis": "ACCOUNTING",
+            "deployed_text": "1,794만원",
+            "parking_text": "25만원",
+            "deployed_ratio": 0.986,
+            "parking_ratio": 0.014,
+            "tranche_state_text": "해당 없음",
+            "deployed_pct_text": "35.9%",
+            "parking_pct_text": "0.5%",
+            "band_note_text": "C 36.4% · 목표 잔여 — 게이지 없음",
+            "state_chips": []
+          },
+          "rows": [
+            {
+              "holding_id": "h_0004",
+              "symbol": "0085P0",
+              "symbol_label": "0085P0 ACE 미국10년국채액티브",
+              "sleeve": "C",
+              "account_alias": "일반",
+              "quantity": 352,
+              "quantity_text": "352주",
+              "avg_price": "51190",
+              "avg_price_text": "51,190원",
+              "entry_date": "2026-08-04",
+              "entry_decision": { "decision_id": "d_20260804_c_04", "intent_id": "i_h004", "config_hash": "cfg_fake_0000000000000000" },
+              "entry_reasons": [
+                { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+              ],
+              "sma_tranches": [],
+              "gates": [
+                { "code": "SAF-302", "label": "세금 게이트 통과", "state": "PASS" }
+              ],
+              "weight_text": "비중 35.9%",
+              "scope": "MANAGED",
+              "scope_label": "시스템 관리",
+              "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+              "detail_deep_link": "aaq://holdings/detail/h_0004",
+              "pnl": { "unrealized_pnl": "-81080", "pnl_pct": -0.0045, "disclosure_note": "전일 종가 기준 · 평가 손익", "pnl_text": "−81,080원", "pnl_pct_text": "−0.45%" }
+            }
+          ]
+        }
+      ],
+      "external": {
+        "title_text": "시스템 밖 자산(수동)",
+        "notice_text": "비중 계산에서 빠집니다",
+        "rows": [
+          {
+            "external_id": "ex_0001",
+            "symbol": "005930",
+            "symbol_label": "005930 (유니버스 밖 종목)",
+            "account_alias": "일반",
+            "quantity": 40,
+            "quantity_text": "40주",
+            "registered_on": "2026-08-20",
+            "scope_label": "시스템 밖 자산",
+            "decision": { "decision_id": "d_ex_0001", "config_hash": "cfg_fake_0000000000000000" }
+          },
+          {
+            "external_id": "ex_0002",
+            "symbol": "329200",
+            "symbol_label": "329200 (유니버스 밖 종목)",
+            "account_alias": "일반",
+            "quantity": 15,
+            "quantity_text": "15주",
+            "registered_on": "2026-08-24",
+            "scope_label": "시스템 밖 자산",
+            "decision": { "decision_id": "d_ex_0002", "config_hash": "cfg_fake_0000000000000000" }
+          }
+        ]
+      },
+      "allocation_link": { "label": "비중 보기", "deep_link": "aaq://holdings/allocation" },
+      "pnl_toggle_label": "종목 손익",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가 · 엔진은 일 1회 배치" }
+    }
+  ]
+}

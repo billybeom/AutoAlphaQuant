@@ -20,6 +20,9 @@ abstract final class FixturePaths {
 
   /// 🔵 v1.4 — 코어 전용 · 납입 조달 발동(C 방어 자산 매도 초안 + 조달 단계 1).
   static const String depositPlanFunding1 = 'deposit_plan_funding_1.json';
+
+  /// 🔵 v1.8(01 §17) — 평면 창구 `watchHoldings` 의 표본(6행 · pnl 3행 · C-6). 행 == `m6/holdings_overview_pnl`
+  ///    의 같은 `holding_id` 행(C-44 ④) · 종목 라벨 = 입금 픽스처 이름(미결 82 보유 몫 · K4).
   static const String holdings6 = 'holdings_6.json';
   static const String journal30 = 'journal_30.json';
   static const String ledgerDiffs4 = 'ledger_diffs_4.json';
@@ -48,6 +51,33 @@ abstract final class FixturePaths {
   static const String m6AdviceNoAction = 'm6/advice_no_action.json';
   static const String m6AdviceSkipReasons = 'm6/advice_skip_reasons.json';
   static const String m6AdviceViewer4 = 'm6/advice_viewer_4.json';
+
+  /// 🆕 v1.8(01 §17 · R4 선행) — `H6-3` 슬리브·비중(`HoldingsRepository.watchAllocation` · 행 1 = `SleeveAllocationVm`).
+  ///    행 = A → POT(A 하위) → B → C → 현금 대기 · 전부 회계 기준 · 🔴 밴드 행 = **B 만**(K27 — A·C·POT·CASH =
+  ///    `band_note_text`). 밴드 내 = 골든 `h63_in_band`·`h63_pot_under_a`(A 펼침 = `engine_column_note`).
+  static const String m6AllocationInBand = 'm6/allocation_in_band.json';
+
+  /// 🆕 v1.8 — `in_band` 에서 B 만 밴드 이탈(«밴드 이탈 — 다음 배치에서 리밸런싱 대상» · 게이지 실측 > 상단) — 골든 `h63_out_of_band`.
+  static const String m6AllocationOutOfBand = 'm6/allocation_out_of_band.json';
+
+  /// 🆕 v1.8 — B 경계 근접 + A 상태 칩 1(`F1_ENTRY_DEFER` · 핸드북 링크 · K13) — 골든 `h63_tranche_progress`.
+  static const String m6AllocationTrancheProgress =
+      'm6/allocation_tranche_progress.json';
+
+  /// 🆕 v1.8 — B 투자분 트랜치 1/3 · 파킹 큼(밴드 내 · «미달이 아닙니다» — 경고색 아님) — 테스트(골든 아님).
+  static const String m6AllocationParkingLarge =
+      'm6/allocation_parking_large.json';
+
+  /// 🆕 v1.8 — `LEDGER_INTEGRITY` 가림판: 전 행 금액·%·트랜치·밴드 글자 «숨김» · 기하·`sleeve_weight` 부재 —
+  ///    `holdings_overview_integrity` 카드 머리의 짝(C-44 ③⑥).
+  static const String m6AllocationIntegrity = 'm6/allocation_integrity.json';
+
+  /// 🆕 v1.8 — `RECON_MISMATCH` 판: B 행 금액·% 글자 끝 «?» · 기하·`band_state` 는 `in_band` 그대로 —
+  ///    `holdings_overview_recon` 카드 머리의 짝(C-44 ③⑥).
+  static const String m6AllocationRecon = 'm6/allocation_recon.json';
+
+  /// 🆕 v1.8 — 빈 배분(`rows: []` + 엔진 문장 · «없음» 전용 — K26) — 테스트.
+  static const String m6AllocationEmpty = 'm6/allocation_empty.json';
 
   /// 🆕 v1.7(01 §16 · §8 미결 46) — `J-4` 사후 blind 리뷰. 대기 목록(`watchBlindReviewQueue` 봉투) 3행 =
   ///    이탈 결정 중 저널이 작성된 셋 · 오래된 결정부터(K4): `d_20260811_c_28`(매수 · 메모 있음) → `d_mf_0002`(매수 ·
@@ -111,6 +141,53 @@ abstract final class FixturePaths {
   static const String m6FillFormSpec = 'm6/fill_form_spec.json';
   static const String m6FillFormSpecStale = 'm6/fill_form_spec_stale.json';
   static const String m6FillRejectedPrice = 'm6/fill_rejected_price.json';
+
+  /// 🆕 v1.8(01 §17 · R4 선행) — `H6-2` 종목 상세(`watchHoldingDetail(holdingId)` · 행 1 = `HoldingDetailVm`).
+  ///    `holding` == `holdings_overview_*` 의 같은 `holding_id` 행(C-44 ④). 손절선 행 = A `069500` 의 TIER_1B 1행 —
+  ///    🔴 **보존 경로 표본**(P0S 정상 장면 아님 · 골든 아님 · K16 ⓓ) · `recent_entries` = `journal_30` 행 JSON 그대로.
+  static const String m6HoldingDetailWithStops =
+      'm6/holding_detail_with_stops.json';
+
+  /// 🆕 v1.8 — B `133690` · 손절선 0행 + «개별 손절선을 쓰지 않습니다» · 최근 체결 0행 + 문장 — 골든 `h62_etf_no_stop`.
+  static const String m6HoldingDetailNoStop = 'm6/holding_detail_no_stop.json';
+
+  /// 🆕 v1.8 — `no_stop` + `holding.pnl`(`holdings_overview_pnl` 의 같은 행) — 골든 `h62_pnl_expanded`(K16 ⓑ).
+  static const String m6HoldingDetailPnl = 'm6/holding_detail_pnl.json';
+
+  /// 🆕 v1.8 — `no_stop` 의 가림판(`holding` == `holdings_overview_recon` 의 같은 행) — 골든 `h62_recon_mismatch`.
+  static const String m6HoldingDetailRecon = 'm6/holding_detail_recon.json';
+
+  /// 🆕 v1.8 — `with_stops` 의 가림판(`holding` == `holdings_overview_integrity` A 행 · 손절선 글자 «숨김» ·
+  ///    `recent_entries` = `journal_masked_integrity` 의 같은 보유 행) — 골든 `h62_integrity`(K16 ⓓ).
+  static const String m6HoldingDetailIntegrity =
+      'm6/holding_detail_integrity.json';
+
+  /// 🆕 v1.8(01 §17 · R4 선행) — `H6-1` 보유현황(`watchHoldingsOverview` · 행 1 = `HoldingsOverviewVm`).
+  ///    카드 3(A·B·C = `sleeve_catalog_4` 의 최상위 행 순) · POT 2행 = A 카드 맨 끝(`sub_book_label` · K17) ·
+  ///    B `133690` 행 «반영 대기 +12주» · 시스템 밖 섹션 = `external_holdings_2` 행 · 카드 머리 = `allocation_in_band`
+  ///    의 같은 슬리브 행 — 골든 `h61_normal`.
+  static const String m6HoldingsOverviewNormal =
+      'm6/holdings_overview_normal.json';
+
+  /// 🆕 v1.8 — `RECON_MISMATCH` 대상 1행(B `133690`) 글자 끝 «?» · B 카드 머리 = `allocation_recon` — 골든 `h61_recon_mismatch`.
+  static const String m6HoldingsOverviewRecon =
+      'm6/holdings_overview_recon.json';
+
+  /// 🆕 v1.8 — `LEDGER_INTEGRITY`: 관리 대상 행 수량·매수가·비중 «숨김» · 반영 대기 칩 부재 · 카드 머리 =
+  ///    `allocation_integrity` · 🔵 시스템 밖 수량은 그대로(사람 입력 · K14) — 골든 `h61_integrity`.
+  static const String m6HoldingsOverviewIntegrity =
+      'm6/holdings_overview_integrity.json';
+
+  /// 🆕 v1.8 — 카드 0(`cards: []` + 엔진 문장 · 섹션·토글·「비중 보기」 부재) — 골든 `h61_empty`.
+  static const String m6HoldingsOverviewEmpty =
+      'm6/holdings_overview_empty.json';
+
+  /// 🆕 v1.8 — `includePnl: true` 의 값: `normal` + 3행 `pnl`(`holdings_6` 의 pnl 3행과 같은 값 · C-44 ④) — 골든 `h61_pnl_expanded`.
+  static const String m6HoldingsOverviewPnl = 'm6/holdings_overview_pnl.json';
+
+  /// 🆕 v1.8 — 뷰어(iOS) 판: `normal` 에서 `pnl_toggle_label`·`external` 없음(K15 · K14 ⓑ) — 테스트.
+  static const String m6HoldingsOverviewViewer =
+      'm6/holdings_overview_viewer.json';
 
   /// 🆕 2026-09-17(C4 · R1-Bob-J1) — `J-1` 빈 상태 골든 `j1_empty` 의 입력.
   ///    `journal_30.json` 의 0행 슬라이스는 `empty_label` 이 null 이라 화면이 그릴 것이 없다 —
@@ -383,6 +460,13 @@ abstract final class FixturePaths {
     m6AdviceNoAction,
     m6AdviceSkipReasons,
     m6AdviceViewer4,
+    m6AllocationEmpty,
+    m6AllocationInBand,
+    m6AllocationIntegrity,
+    m6AllocationOutOfBand,
+    m6AllocationParkingLarge,
+    m6AllocationRecon,
+    m6AllocationTrancheProgress,
     m6BlindReviewCardBefore,
     m6BlindReviewCardRevealed,
     m6BlindReviewCardRevealedOpen,
@@ -404,6 +488,17 @@ abstract final class FixturePaths {
     m6FillFormSpec,
     m6FillFormSpecStale,
     m6FillRejectedPrice,
+    m6HoldingDetailIntegrity,
+    m6HoldingDetailNoStop,
+    m6HoldingDetailPnl,
+    m6HoldingDetailRecon,
+    m6HoldingDetailWithStops,
+    m6HoldingsOverviewEmpty,
+    m6HoldingsOverviewIntegrity,
+    m6HoldingsOverviewNormal,
+    m6HoldingsOverviewPnl,
+    m6HoldingsOverviewRecon,
+    m6HoldingsOverviewViewer,
     m6JournalEmpty,
     m6JournalBadges2,
     m6JournalDraftReceipts5,

@@ -77,6 +77,7 @@ void main() {
 
       // `external_holdings_2` 는 «등록 목록»(위저드 입력)이지 보유 파생이 아니다 —
       // 🔴 표시 UNION 은 `HoldingsRepository` 한 곳에서만 만든다.
+      // 🔵 v1.8(01 §17) — 표시 UNION 의 결과 = `HoldingsOverviewVm.external`(같은 행 타입 `ExternalHoldingRow`).
       final List<Map<String, Object?>> external = fixtureRows(
         FixturePaths.m6ExternalHoldings2,
       );

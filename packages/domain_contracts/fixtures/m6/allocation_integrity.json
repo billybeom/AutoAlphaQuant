@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.8.0",
+    "generated_at": "2026-10-21T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261021,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "배분 기준 2026-08-31 종가" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "rows": [
+        {
+          "sleeve": "A",
+          "sleeve_label": "슬리브 A",
+          "basis": "ACCOUNTING",
+          "deployed_text": "숨김",
+          "parking_text": "숨김",
+          "deployed_ratio": null,
+          "parking_ratio": null,
+          "tranche_state_text": "숨김",
+          "deployed_pct_text": "숨김",
+          "parking_pct_text": "숨김",
+          "engine_column_note": "엔진 원장 열에서는 POT 가 C 쪽에 합산됩니다 — 여기 비중은 회계 기준입니다",
+          "band_note_text": "숨김",
+          "state_chips": []
+        },
+        {
+          "sleeve": "POT",
+          "sleeve_label": "POT 서브북 (A 하위)",
+          "basis": "ACCOUNTING",
+          "deployed_text": "숨김",
+          "parking_text": "숨김",
+          "deployed_ratio": null,
+          "parking_ratio": null,
+          "tranche_state_text": "숨김",
+          "deployed_pct_text": "숨김",
+          "parking_pct_text": "숨김",
+          "parent_sleeve": "A",
+          "engine_column_note": "회계상 POT 는 A 로 올라갑니다(03 §2-9-3).",
+          "band_note_text": "숨김",
+          "state_chips": []
+        },
+        {
+          "sleeve": "B",
+          "sleeve_label": "슬리브 B",
+          "basis": "ACCOUNTING",
+          "deployed_text": "숨김",
+          "parking_text": "숨김",
+          "deployed_ratio": null,
+          "parking_ratio": null,
+          "tranche_state_text": "숨김",
+          "deployed_pct_text": "숨김",
+          "parking_pct_text": "숨김",
+          "parking_note_text": "신호가 켜지지 않은 몫은 파킹 ETF 에 둡니다.",
+          "band_note_text": "숨김",
+          "state_chips": []
+        },
+        {
+          "sleeve": "C",
+          "sleeve_label": "슬리브 C",
+          "basis": "ACCOUNTING",
+          "deployed_text": "숨김",
+          "parking_text": "숨김",
+          "deployed_ratio": null,
+          "parking_ratio": null,
+          "tranche_state_text": "숨김",
+          "deployed_pct_text": "숨김",
+          "parking_pct_text": "숨김",
+          "band_note_text": "숨김",
+          "state_chips": []
+        },
+        {
+          "sleeve": "CASH",
+          "sleeve_label": "원화 현금 대기",
+          "basis": "ACCOUNTING",
+          "deployed_text": "숨김",
+          "parking_text": "숨김",
+          "deployed_ratio": null,
+          "parking_ratio": null,
+          "tranche_state_text": "숨김",
+          "deployed_pct_text": "숨김",
+          "parking_pct_text": "숨김",
+          "band_note_text": "숨김",
+          "state_chips": []
+        }
+      ],
+      "notice_text": "회계 기준입니다 — POT 는 A 에 포함됩니다",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "배분 기준 2026-08-31 종가" }
+    }
+  ]
+}

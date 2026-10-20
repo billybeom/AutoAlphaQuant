@@ -88,6 +88,15 @@ abstract final class AppRoutes {
   /// `J-5` UNKNOWN 해소 보드 — `JournalTimelineBadge.deepLink` 가 준다.
   static const String journalUnknownBoard = 'aaq://journal/unknown-board';
 
+  /// 🆕 v1.8(01 §17) — `H6-1` 보유현황(`HoldingsOverview()`). 등록 = 전 플랫폼 · 본문 = Android·iOS · 웹 = Q-D 전 셸 «부재» 가드.
+  static const String holdingsOverview = 'aaq://holdings/overview';
+
+  /// 🆕 v1.8 — `H6-2` 종목 상세(`HoldingDetail(holdingId:)`) — `HoldingRow.detailDeepLink` 가 준다(엔진 완성).
+  static const String holdingsDetail = 'aaq://holdings/detail/:holdingId';
+
+  /// 🆕 v1.8 — `H6-3` 슬리브·비중(`HoldingsAllocation()`) — `HoldingsOverviewVm.allocationLink` · 홈 블록 4 탭(R13).
+  static const String holdingsAllocation = 'aaq://holdings/allocation';
+
   /// `A-1` 안내 인박스.
   static const String adviceInbox = 'aaq://advice/inbox';
 
@@ -192,7 +201,8 @@ abstract final class AppRoutes {
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
 
   /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance` ·
-  /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory`).
+  /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory` · 🆕 v1.8 = 48 · `holdingsOverview`·
+  /// `holdingsDetail`·`holdingsAllocation`).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -201,6 +211,9 @@ abstract final class AppRoutes {
     journalRebalance,
     journalBlindReview,
     journalUnknownBoard,
+    holdingsOverview,
+    holdingsDetail,
+    holdingsAllocation,
     adviceInbox,
     adviceDetail,
     adviceFill,

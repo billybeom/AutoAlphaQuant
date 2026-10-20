@@ -33,6 +33,8 @@
 //   🆕 계약 v1.7 J-4 선행(01 §16 · §8 미결 46) — `UnimplementedJournalRepository.watchBlindReviewQueue`
 //   (대기 목록 봉투 · `{RunMode mode = RunMode.live}`) · `watchBlindReviewCard`(카드 1건). 명령 받침대는
 //   무변경(`UnimplementedCommandApi.submitBlindReviewScore` 는 v1.1 부터 있다 · `BlindReviewScore` 필드 무변경).
+//   🆕 계약 v1.8 R4 선행(01 §17) — `UnimplementedHoldingsRepository`(보유 읽기 창구 4 · `H6-*` 가짜의 받침대 ·
+//   `watchHoldings` · `watchHoldingsOverview` · `watchHoldingDetail(holdingId)` · `watchAllocation`).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -68,6 +70,25 @@ class UnimplementedExecutionGapRepository implements ExecutionGapRepository {
   @override
   Stream<ExecutionGapReport> watchRolling() =>
       throw UnimplementedError('watchRolling');
+}
+
+/// 🆕 계약 v1.8(01 §17) — [HoldingsRepository] 받침대(`H6-*` 가짜의 받침대 · 그전까지 없어 `implements` 가 강요됐다).
+/// 🔴 동기로 던진다(리포지토리 받침대 관행). 값은 지어내지 않는다 — `m6/holdings_*`·`m6/holding_detail_*`·`m6/allocation_*` 픽스처를 override 로.
+class UnimplementedHoldingsRepository implements HoldingsRepository {
+  @override
+  Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false}) =>
+      throw UnimplementedError('watchHoldings');
+  @override
+  Stream<HoldingsOverviewVm> watchHoldingsOverview({bool includePnl = false}) =>
+      throw UnimplementedError('watchHoldingsOverview');
+  @override
+  Stream<HoldingDetailVm> watchHoldingDetail(
+    String holdingId, {
+    bool includePnl = false,
+  }) => throw UnimplementedError('watchHoldingDetail');
+  @override
+  Stream<SleeveAllocationVm> watchAllocation() =>
+      throw UnimplementedError('watchAllocation');
 }
 
 /// [JournalRepository] 받침대 — 필요한 메서드만 override 한다.
