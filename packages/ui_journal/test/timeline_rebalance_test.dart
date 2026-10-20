@@ -100,14 +100,15 @@ class _RebalanceSafety extends UnimplementedSafetyRepository {
 }
 
 class _RebalanceConfig extends UnimplementedConfigRepository {
-  _RebalanceConfig(this._presets, this._sleeves);
+  _RebalanceConfig(this._presets, this._sleeves, this._presetsStream);
 
   final List<DateRange> _presets;
   final List<SleeveCatalogEntry> _sleeves;
+  final Stream<List<DateRange>> Function()? _presetsStream;
 
   @override
   Stream<List<DateRange>> watchRangePresets() =>
-      Stream<List<DateRange>>.value(_presets);
+      _presetsStream?.call() ?? Stream<List<DateRange>>.value(_presets);
 
   @override
   Stream<List<SleeveCatalogEntry>> watchSleeves() =>
@@ -123,6 +124,7 @@ List<Override> _overrides(
   List<DateRange> presets,
   List<SleeveCatalogEntry> sleeves, {
   JournalTimelineQuery? query,
+  Stream<List<DateRange>> Function()? presetsStream,
 }) => <Override>[
   journalTimelineRepositoryProvider.overrideWithValue(repo),
   journalSafetyRepositoryProvider.overrideWithValue(
@@ -130,7 +132,7 @@ List<Override> _overrides(
   ),
   journalClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
   journalConfigRepositoryProvider.overrideWithValue(
-    _RebalanceConfig(presets, sleeves),
+    _RebalanceConfig(presets, sleeves, presetsStream),
   ),
   ?(query == null
       ? null
@@ -280,18 +282,27 @@ void main() {
   });
 
   testWidgets('T1-3g reset clears rebalance', (WidgetTester tester) async {
+    final StreamController<List<DateRange>> presetsCtrl =
+        StreamController<List<DateRange>>();
     final StreamController<JournalRebalanceScope?> scopeCtrl =
         StreamController<JournalRebalanceScope?>.broadcast();
     addTearDown(() {
+      unawaited(presetsCtrl.close());
       unawaited(scopeCtrl.close());
     });
     final _RebalanceRepo repo = repoWith((String id) => scopeCtrl.stream);
     await _pumpApp(
       tester,
-      _overrides(repo, presets, sleeves),
+      _overrides(
+        repo,
+        presets,
+        sleeves,
+        presetsStream: () => presetsCtrl.stream,
+      ),
       JournalTimeline(rebalanceEventId: reId),
     );
     expect(repo.calls, isEmpty);
+    presetsCtrl.add(presets);
     scopeCtrl.add(scope);
     await tester.pumpAndSettle();
     expect(repo.calls.first.rebalanceEventId, reId);
@@ -307,10 +318,10 @@ void main() {
     expect(repo.calls.last.range, defaultPreset);
     expect(find.byKey(_chipKey), findsNothing);
 
+    presetsCtrl.add(presets);
     scopeCtrl.add(scope);
     await tester.pumpAndSettle();
     await tester.pump(const Duration(seconds: 1));
-    expect(repo.calls.length, greaterThanOrEqualTo(afterReset));
     for (int i = afterReset - 1; i < repo.calls.length; i++) {
       expect(repo.calls[i].rebalanceEventId, isNull);
     }

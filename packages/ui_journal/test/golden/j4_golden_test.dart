@@ -16,28 +16,32 @@ import 'golden_support.dart';
 
 const Size _kTallPhone = Size(390, 1600);
 
-/// 골든 한 장의 흐름.
+/// 골든 한 장의 흐름 — 이름마다 조건 없는 한 덩어리(seed · steps).
 class _Flow {
   const _Flow({
     required this.name,
     required this.queue,
-    required this.card,
-    required this.receipt,
-    required this.reveal,
+    required this.commands,
+    required this.seed,
+    required this.steps,
     required this.bottomKey,
   });
 
   final String name;
   final ListResult<BlindReviewCard> queue;
 
-  /// 처음 내는 카드(null = 카드 없음 · 빈 큐).
-  final BlindReviewCard? card;
+  /// 명령 창구 가짜(제출하지 않는 흐름 = 끝나지 않는 Future).
+  final FakeBlindReviewCommandApi Function() commands;
 
-  /// null = 제출하지 않는다.
-  final CommandReceipt? receipt;
+  /// 띄우기 전에 카드 컨트롤러에 넣는 것.
+  final void Function(StreamController<BlindReviewCard> cardCtrl) seed;
 
-  /// 제출 뒤 카드 컨트롤러에 더하는 결과 카드(null = 더하지 않음).
-  final BlindReviewCard? reveal;
+  /// 띄운 뒤의 선택 · 제출 · 결과.
+  final Future<void> Function(
+    WidgetTester tester,
+    StreamController<BlindReviewCard> cardCtrl,
+  )
+  steps;
   final String bottomKey;
 }
 
@@ -70,53 +74,101 @@ void main() {
     rows: queue3.rows.sublist(1),
   );
 
+  FakeBlindReviewCommandApi commandsOf(CommandReceipt receipt) =>
+      FakeBlindReviewCommandApi(
+        submit: (BlindReviewScore score, int call) =>
+            Future<CommandReceipt>.value(receipt),
+        watch: (String commandId) => Stream<CommandReceipt>.value(receipt),
+      );
+
+  FakeBlindReviewCommandApi idleCommands() => FakeBlindReviewCommandApi(
+    submit: (BlindReviewScore score, int call) =>
+        Completer<CommandReceipt>().future,
+    watch: (String commandId) => const Stream<CommandReceipt>.empty(),
+  );
+
+  Future<void> submit(WidgetTester tester) async {
+    await tester.ensureVisible(find.byKey(const Key('j4-submit')));
+    await tester.tap(find.byKey(const Key('j4-submit')));
+    await tester.pump();
+    await tester.pump();
+  }
+
+  Future<void> reveal(
+    WidgetTester tester,
+    StreamController<BlindReviewCard> cardCtrl,
+    BlindReviewCard card,
+  ) async {
+    cardCtrl.add(card);
+    await tester.pump();
+    await tester.pump();
+  }
+
   final List<_Flow> flows = <_Flow>[
     _Flow(
       name: 'j4_before_reveal',
       queue: queue3,
-      card: before,
-      receipt: null,
-      reveal: null,
+      commands: idleCommands,
+      seed: (StreamController<BlindReviewCard> c) => c.add(before),
+      steps: (WidgetTester tester, StreamController<BlindReviewCard> c) =>
+          pickBlindReviewAnswers(tester, before, (int i) => 0),
       bottomKey: 'j4-submit',
     ),
     _Flow(
       name: 'j4_after_reveal',
       queue: queue3,
-      card: before,
-      receipt: receipts[2],
-      reveal: revealed,
+      commands: () => commandsOf(receipts[2]),
+      seed: (StreamController<BlindReviewCard> c) => c.add(before),
+      steps: (WidgetTester tester, StreamController<BlindReviewCard> c) async {
+        await pickBlindReviewAnswers(tester, before, (int i) => 0);
+        await submit(tester);
+        await reveal(tester, c, revealed);
+      },
       bottomKey: 'j4-next',
     ),
     _Flow(
       name: 'j4_after_reveal_open',
       queue: queueRow1,
-      card: queue3.rows[1],
-      receipt: receipts[2],
-      reveal: revealedOpen,
+      commands: () => commandsOf(receipts[2]),
+      seed: (StreamController<BlindReviewCard> c) => c.add(queue3.rows[1]),
+      steps: (WidgetTester tester, StreamController<BlindReviewCard> c) async {
+        await pickBlindReviewAnswers(tester, queue3.rows[1], (int i) => 0);
+        await submit(tester);
+        await reveal(tester, c, revealedOpen);
+      },
       bottomKey: 'j4-next',
     ),
     _Flow(
       name: 'j4_waiting',
       queue: queue3,
-      card: before,
-      receipt: receipts[0],
-      reveal: null,
+      commands: () => commandsOf(receipts[0]),
+      seed: (StreamController<BlindReviewCard> c) => c.add(before),
+      steps: (WidgetTester tester, StreamController<BlindReviewCard> c) async {
+        await pickBlindReviewAnswers(tester, before, (int i) => 0);
+        await submit(tester);
+      },
       bottomKey: 'j4-receipt',
     ),
     _Flow(
       name: 'j4_rejected',
       queue: queue3,
-      card: before,
-      receipt: receipts[4],
-      reveal: null,
+      commands: () => commandsOf(receipts[4]),
+      seed: (StreamController<BlindReviewCard> c) => c.add(before),
+      steps: (WidgetTester tester, StreamController<BlindReviewCard> c) async {
+        await pickBlindReviewAnswers(tester, before, (int i) => 0);
+        await submit(tester);
+      },
       bottomKey: 'j4-submit',
     ),
     _Flow(
       name: 'j4_empty',
       queue: queueEmpty,
-      card: null,
-      receipt: null,
-      reveal: null,
+      commands: idleCommands,
+      seed: (StreamController<BlindReviewCard> c) {},
+      steps: (
+        WidgetTester tester,
+        StreamController<BlindReviewCard> c,
+      ) async {},
       bottomKey: 'j4-empty',
     ),
   ];
@@ -131,15 +183,7 @@ void main() {
         addTearDown(() {
           unawaited(cardCtrl.close());
         });
-        for (final BlindReviewCard first in <BlindReviewCard>[?flow.card]) {
-          cardCtrl.add(first);
-        }
-        final CommandReceipt? receipt = flow.receipt;
-        final FakeBlindReviewCommandApi commands = FakeBlindReviewCommandApi(
-          submit: (BlindReviewScore score, int call) =>
-              Future<CommandReceipt>.value(receipt),
-          watch: (String commandId) => Stream<CommandReceipt>.value(receipt!),
-        );
+        flow.seed(cardCtrl);
         final FakeBlindReviewJournalRepository repo =
             FakeBlindReviewJournalRepository(
               queue: (int call) =>
@@ -152,7 +196,10 @@ void main() {
           brightness: b,
           logicalSize: _kTallPhone,
           wrapApp: (Widget app) => ProviderScope(
-            overrides: blindReviewOverrides(repo: repo, commands: commands),
+            overrides: blindReviewOverrides(
+              repo: repo,
+              commands: flow.commands(),
+            ),
             child: app,
           ),
         );
@@ -160,20 +207,7 @@ void main() {
         await tester.pump();
         await tester.pump();
 
-        for (final BlindReviewCard first in <BlindReviewCard>[?flow.card]) {
-          await pickBlindReviewAnswers(tester, first, (int i) => 0);
-        }
-        for (final CommandReceipt _ in <CommandReceipt>[?receipt]) {
-          await tester.ensureVisible(find.byKey(const Key('j4-submit')));
-          await tester.tap(find.byKey(const Key('j4-submit')));
-          await tester.pump();
-          await tester.pump();
-        }
-        for (final BlindReviewCard reveal in <BlindReviewCard>[?flow.reveal]) {
-          cardCtrl.add(reveal);
-          await tester.pump();
-          await tester.pump();
-        }
+        await flow.steps(tester, cardCtrl);
         await tester.pumpAndSettle();
 
         expect(

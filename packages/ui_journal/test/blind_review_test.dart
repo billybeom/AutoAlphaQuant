@@ -1070,7 +1070,12 @@ void main() {
                 ? cardThenFail(before)
                 : Stream<BlindReviewCard>.value(before),
           );
-      await pumpBlindReview(tester, repo: repo, commands: idleCommands());
+      await pumpBlindReview(
+        tester,
+        repo: repo,
+        commands: idleCommands(),
+        safety: blockedSafety,
+      );
       await pumpTimes(tester, 3);
 
       expect(k('j4-fail'), findsOneWidget);
@@ -1081,11 +1086,18 @@ void main() {
         wantLabel,
       );
       expect(k('j4-notice'), findsNothing);
+      expect(blockedSafety.activeFlags, isNotEmpty);
+      for (final BlockFlag f in blockedSafety.activeFlags) {
+        expect(find.text(f.label), findsNothing);
+      }
 
       await tester.tap(find.text(JournalLabels.retry));
       await pumpTimes(tester, 3);
 
       expect(tester.widget<Text>(k('j4-title')).data, before.titleText);
+      for (final BlockFlag f in blockedSafety.activeFlags) {
+        expect(find.text(f.label), findsOneWidget);
+      }
       if (kind == 0) {
         expect(repo.queueModes, <RunMode>[RunMode.live, RunMode.live]);
       } else {

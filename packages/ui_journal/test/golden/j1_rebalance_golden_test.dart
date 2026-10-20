@@ -149,9 +149,13 @@ void main() {
         await tester.pumpAndSettle();
 
         // Position precondition: bottom widget inside the phone frame.
+        final Finder rangeChip = find.text(
+          known == null ? defaultPreset.label! : scope.range.label!,
+        );
+        expect(rangeChip, findsOneWidget);
         expect(
-          find.text(known == null ? defaultPreset.label! : scope.range.label!),
-          findsOneWidget,
+          tester.getBottomLeft(rangeChip).dy,
+          lessThan(kGoldenPhoneSize.height),
         );
         expect(
           tester.getBottomRight(bottom).dx,
