@@ -1,6 +1,6 @@
 # `lib/src/signals/` — 신호·국면·진입 게이트 (일부 — E1·E2a·E2b)
 
-> 들어온 것: `regime_states.dart`(`DirectionState`·`TrendState` — 히스테리시스를 **거친** 상태) · `exposure_gate.dart`(곱셈 구조 · UNKNOWN = 0 · GV-3·3c) · `indicators.dart`(SMA·TR·rma·ATR·ADX·CHOP·BBW · GV-2 — E2a). `regime_score.dart`(카테고리 가중 평균·재정규화 · GV-1) · `hysteresis.dart`(방향·추세성 FSM 봉 하나씩 · GV-4 — E2b). `sleeve_b_tranche.dart`(B 3-트랜치 · P0S 하한·BEAR 차감 · GV-20 — E5b) · `seasonal_exit.dart`(4월 말 청산 비율 · GV-23·38 — E5b). 백분위 정규화·추세성 스코어 조립은 다음 블록.
+> 들어온 것: `regime_states.dart`(`DirectionState`·`TrendState` — 히스테리시스를 **거친** 상태) · `exposure_gate.dart`(곱셈 구조 · UNKNOWN = 0 · GV-3·3c) · `indicators.dart`(SMA·TR·rma·ATR·ADX·CHOP·BBW · GV-2 — E2a). `regime_score.dart`(카테고리 가중 평균·재정규화 · GV-1) · `hysteresis.dart`(방향·추세성 FSM 봉 하나씩 · GV-4 — E2b). `sleeve_b_tranche.dart`(B 3-트랜치 · P0S 하한·BEAR 차감 · GV-20 — E5b) · `seasonal_exit.dart`(4월 말 청산 비율 · GV-23·38 — E5b). `percentile.dart` · `regime_pipeline.dart`(백분위 정규화 · 조립 · FSM 봉 루프 · KOSDAQ 추세 점수 — E6b · 참조 엔진과 26년 비트 일치).
 
 정본: `06_시스템설계/03_알고리즘.md` · 전략 수치는 `00_SPEC.md` v2.31 P0S
 
