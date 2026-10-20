@@ -1,5 +1,6 @@
 // 🆕 계약 v1.1(2026-09-17) — 매매일지 상세(J-2)·UNKNOWN 보드(J-5)·타임라인 배지(J-1)의 코드 상수.
 // 🆕 계약 v1.1 R2 준비(2026-09-23) — 사전 저널(J-3) 제출의 거부 사유 코드.
+// 🆕 계약 v1.7(01 §16 · §8 미결 46) — 사후 blind 리뷰(J-4) 점수 제출의 거부 사유 코드.
 //
 // 🔴 이 파일은 «어떤 **코드**가 오는가»의 목록이지 코드→문구 매핑이 아니다(labels.dart 머리 주석).
 //    문구는 짝이 되는 `*Label` 필드가 준다 — 화면이 이 상수로 문구·아이콘·색을 고르지 않는다.
@@ -99,4 +100,18 @@ abstract final class JournalDraftRejectCodes {
 
   /// 전량(⏸ 1종).
   static const Set<String> values = <String>{journalAlreadyExists};
+}
+
+/// 🆕 v1.7(01 §16) — `J-4` blind 리뷰 점수 제출(`CommandKind.blindReviewScore`)의 거부 사유.
+/// `CommandReceipt.rejectReasonCode` 의 값(`state == rejected` 일 때) · `ContractCodes.byDomain` 키 `blind_review_reject`.
+/// 🔴 사유의 **문구**는 `CommandReceipt.stateLabel` 에 실려 온다 — 화면은 이 코드를 표시·분기하지 않는다.
+/// ⏸ 픽스처(`m6/blind_review_receipts_6`)가 두 사유를 다 싣는다. 엔진(M1)이 새 사유를 내면 **여기와 픽스처를 함께** 넓힌다.
+abstract final class BlindReviewRejectCodes {
+  /// 이 결정은 이미 채점됐다(먼저 집행된 채점이 이긴다 — K12).
+  static const String alreadyScored = 'BLIND_REVIEW_ALREADY_SCORED';
+
+  /// 답이 카드와 맞지 않는다(빠진 문항 · 모르는 문항 · 선택지에 없는 점수).
+  static const String answersInvalid = 'BLIND_REVIEW_ANSWERS_INVALID';
+
+  static const Set<String> values = <String>{alreadyScored, answersInvalid};
 }

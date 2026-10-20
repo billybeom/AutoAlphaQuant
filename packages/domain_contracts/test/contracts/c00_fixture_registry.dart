@@ -198,6 +198,12 @@ final DtoCodec<Object> _decisionJournalVm = DtoCodec<DecisionJournalVm>(
   DecisionJournalVm.fromJson,
   (DecisionJournalVm v) => v.toJson(),
 );
+// 🆕 계약 v1.7(J-4 선행 · 01 §16) — blind 리뷰 카드(대기 목록 · 1건 · 공개 뒤) 5벌이 같은 행 타입이다.
+final DtoCodec<Object> _blindReviewCard = DtoCodec<BlindReviewCard>(
+  'BlindReviewCard',
+  BlindReviewCard.fromJson,
+  (BlindReviewCard v) => v.toJson(),
+);
 // 🆕 계약 v1.3(R10 선행 · 01 §13) — 게이트·아카이브 픽스처가 여럿이 됐다.
 final DtoCodec<Object> _disclosureGateVm = DtoCodec<DisclosureGateVm>(
   'DisclosureGateVm',
@@ -312,6 +318,13 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (ReasonOption v) => v.toJson(),
     ),
   ),
+  // 🆕 v1.7(01 §16) — J-4 blind 리뷰: 대기 목록 · 빈 큐 · 카드 1건 3갈래(전 · 공개 · 공개 미청산) · 접수증 6행.
+  FixturePaths.m6BlindReviewQueue3: FixtureBinding(_blindReviewCard),
+  FixturePaths.m6BlindReviewQueueEmpty: FixtureBinding(_blindReviewCard),
+  FixturePaths.m6BlindReviewCardBefore: FixtureBinding(_blindReviewCard),
+  FixturePaths.m6BlindReviewCardRevealed: FixtureBinding(_blindReviewCard),
+  FixturePaths.m6BlindReviewCardRevealedOpen: FixtureBinding(_blindReviewCard),
+  FixturePaths.m6BlindReviewReceipts6: FixtureBinding(_commandReceipt),
   FixturePaths.m6ExternalHoldings2: FixtureBinding(
     DtoCodec<ExternalHoldingRow>(
       'ExternalHoldingRow',

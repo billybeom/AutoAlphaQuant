@@ -52,14 +52,16 @@ abstract class JournalDraft with _$JournalDraft {
       _$JournalDraftFromJson(json);
 }
 
-/// ✅ H-2 — 사후 blind 리뷰 점수(결정 9b).
+/// ✅ H-2 — 사후 blind 리뷰 점수(결정 9b). 🆕 v1.7 주석(01 §16) — 필드 무변경.
 @freezed
 abstract class BlindReviewScore with _$BlindReviewScore {
   const factory BlindReviewScore({
+    /// 그려진 카드의 `BlindReviewCard.decisionId` 그대로.
     required String decisionId,
 
-    /// 문항 id → 점수.
-    /// 🔴 문항·선택지 문구는 `BlindReviewCard`(E-5)가 준다 — 화면이 짓지 않는다.
+    /// 문항 id → **고른 `BlindReviewChoice.score` 를 그대로 옮긴 값**(v1.7 — 코드→점수 변환 0).
+    /// 🔴 카드의 **전 문항**을 싣는다(부분 제출 없음 — K10). 최종 판정은 엔진(거부 = `BlindReviewRejectCodes`).
+    /// 🔴 문항·선택지 문구와 점수는 `BlindReviewCard`(E-5)가 준다 — 화면이 짓지 않는다.
     required Map<String, int> answers,
   }) = _BlindReviewScore;
 

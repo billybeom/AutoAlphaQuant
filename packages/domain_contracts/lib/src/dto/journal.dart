@@ -266,32 +266,120 @@ abstract class JournalDraftFormSpec with _$JournalDraftFormSpec {
       _$JournalDraftFormSpecFromJson(json);
 }
 
-/// 블라인드 리뷰 카드(`J-4`)(02 §8-1 · m2-8 E-5).
+/// 블라인드 리뷰 카드(`J-4`)(02 §3-4 · m2-8 E-5). 🆕 v1.7(01 §16 · §8 미결 46).
+/// 창구 = `JournalRepository.watchBlindReviewQueue()`(대기 목록 · 봉투) · `watchBlindReviewCard(decisionId)`(1건).
 ///
-/// 🔴 문항·선택지 문구도 엔진이 준다.
+/// 🔴 [result] 가 null 인 동안 이 카드에는 결과·손익이 **없다** — 가리는 것이 아니라 없음(02 §3-4 금지 ③).
+///    엔진은 채점 명령(`BLIND_REVIEW_SCORE`)이 **집행된 뒤에만** [result] 를 채운다.
+/// 🔴 화면은 [result] 의 null 여부 **하나로만** 결과 섹션을 그린다 — 접수증 상태로 공개를 판정하지 않는다.
+/// 🔴 [result]·[asOf] 를 뺀 나머지 필드는 채점 전·후 **같다**(C-43 ④ — 골든 `j4_before_reveal` ↔ `j4_after_reveal` 의 근거).
+///    [asOf] 는 관측 시각이라 집행 뒤 새 값이 오면 바뀌는 것이 정상이다(v1.6 뜻 고정 — `rebalance.dart:9·25`).
+///    [journal]·[journalStateLabel] 도 같다 — 큐에 들어온 뒤에는 바뀌지 않는다(엔진 의무 · K3 ⓓ).
+/// 🔴 앱 안 이동 링크는 [result] 안에만 있다 — 채점 전 카드의 링크는 문맥 칩의 핸드북 앵커뿐이다(K8).
+/// 🔴 화면이 [questions] 의 점수를 합산·표시·비교하지 않는다 — 과정 점수는 [BlindReviewResult.processScoreText](엔진).
 @freezed
 abstract class BlindReviewCard with _$BlindReviewCard {
   const factory BlindReviewCard({
+    /// 키 — 🔴 표시 금지. 제출 `BlindReviewScore.decisionId` 에 그대로 넣는다.
     required String decisionId,
+
+    /// 🆕 v1.7 — "2026-08-11 · 0085P0 KODEX 국고채30년 · 매수 결정" — 엔진 생성.
+    /// 🔴 금액·수량·가격·수익률·손익 없음(C-43 ③).
+    required String titleText,
+
+    /// "결과를 보기 전에 이 결정의 과정을 채점합니다" 류 — 엔진 생성.
     required String promptText,
+
+    /// 🆕 v1.7 — 결정 문맥 칩(진입 사유 등) — `JournalDraftFormSpec.contextChips` 와 같은 사전.
+    /// 🔴 칩 `detailDeepLink` 는 `handbook://` 이거나 null(채점 전 앱 안 링크 0 — C-43 ⑥).
+    required List<ReasonChip> contextChips,
+
+    /// 🆕 v1.7 — 이탈 배지 — 표시만(🔴 화면이 이탈 여부를 판정하지 않는다 · `isDeviation` 미참조).
+    required DeviationBadge deviation,
+
+    /// 🆕 v1.7 — "저널 작성됨" · "저널 미작성" — `DecisionJournalVm.journalStateLabel` 과 같은 사전.
+    required String journalStateLabel,
+
+    /// 🆕 v1.7 — 사전 저널 본문(01 §12-2 · 결과·손익 없음 · 추가 금지 — C-34 ⑧).
+    /// null = 미작성 → 본문 블록 **부재**(자리표시자 금지).
+    DecisionJournalBody? journal,
+
+    /// 과정 채점 문항 — **받은 순서 그대로**(3~5문항 · 03_실행 §8-3).
     required List<BlindReviewQuestion> questions,
+
+    /// 🆕 v1.7 — 채점 결과. 🔴 null = 채점 전(대기 목록의 행은 **늘** null).
+    BlindReviewResult? result,
+
+    /// 🆕 v1.7 — 1건 창구(봉투 없는 값)의 머리·신선도 = 읽기 모델 **관측 시각**(v1.6 뜻).
+    /// 대기 목록의 행에서는 봉투 `as_of` 와 같다. 채점 집행 뒤 새 값에서는 바뀌어도 된다.
+    required AsOf asOf,
   }) = _BlindReviewCard;
 
   factory BlindReviewCard.fromJson(Map<String, dynamic> json) =>
       _$BlindReviewCardFromJson(json);
 }
 
-/// 블라인드 리뷰 문항 1건(m2-8 E-5).
+/// 블라인드 리뷰 문항 1건(m2-8 E-5). 🆕 v1.7 — 선택지 형 교체 · 근거 줄.
 @freezed
 abstract class BlindReviewQuestion with _$BlindReviewQuestion {
   const factory BlindReviewQuestion({
+    /// 키 — 🔴 표시 금지. `BlindReviewScore.answers` 의 키.
     required String questionId,
+
+    /// "결정 시점에 가용했던 정보만 썼는가" — 엔진 생성.
     required String text,
-    required List<ReasonOption> choices,
+
+    /// 🆕 v1.7 — 판단 근거 한 줄("입력 데이터 기준 2026-08-10 · 결정 2026-08-11 09:05") — 엔진 생성.
+    /// null = 줄 부재. 🔴 결과·손익 없음.
+    String? evidenceText,
+
+    /// 🆕 v1.7 — 구 `List<ReasonOption>`(코드) → 점수를 싣는 선택지(§8 미결 46 축 정렬) · 받은 순서 그대로.
+    required List<BlindReviewChoice> choices,
   }) = _BlindReviewQuestion;
 
   factory BlindReviewQuestion.fromJson(Map<String, dynamic> json) =>
       _$BlindReviewQuestionFromJson(json);
+}
+
+/// 🆕 v1.7 — blind 리뷰 선택지 1건(01 §16 · §8 미결 46).
+///
+/// 🔴 [score] 는 **엔진이 정한 값**이다. 화면은 고른 선택지의 [score] 를
+///    `BlindReviewScore.answers[questionId]` 에 **그대로 옮길 뿐**이다 — 표시·합산·비교·변환 0(C-43 ⑫ · 제출 견본 ⑨).
+/// 🔴 한 문항 안에서 [score] 는 서로 다르다(C-43 ① — 점수가 곧 선택의 식별자다).
+@freezed
+abstract class BlindReviewChoice with _$BlindReviewChoice {
+  const factory BlindReviewChoice({
+    required int score,
+
+    /// "예" · "아니오" — 엔진 생성.
+    required String label,
+  }) = _BlindReviewChoice;
+
+  factory BlindReviewChoice.fromJson(Map<String, dynamic> json) =>
+      _$BlindReviewChoiceFromJson(json);
+}
+
+/// 🆕 v1.7 — blind 리뷰 결과(공개 섹션). 🔴 엔진은 채점 명령 집행 **뒤에만** 싣는다.
+/// 🔴 `LEDGER_INTEGRITY` 중에는 [outcomeText]·[detailLines] 가 엔진 쪽에서 가려져 온다(01 §2-10 «가림의 주체 = 엔진»).
+/// 🔴 (K6 ✅ 확정 2026-10-20) 금액(원) 문자열 0 · 수익률·보유기간·방향 문장만(미이행 결정 = 반사실 금액 0 · 방향·bp 만).
+@freezed
+abstract class BlindReviewResult with _$BlindReviewResult {
+  const factory BlindReviewResult({
+    /// "과정 점수 4점 — 좋은 결정(4점 이상)" — 엔진이 제출된 답에서 셈(🔴 화면 집계 0 · 02 금지 ①).
+    required String processScoreText,
+
+    /// "결과: 수익률 +x.x% · 보유 n거래일" / "미청산 — 결과 미확정" — 엔진 생성.
+    required String outcomeText,
+
+    /// 보조 줄 — 받은 순서 그대로 · 0줄 = 블록 부재.
+    @Default(<String>[]) List<String> detailLines,
+
+    /// 「이 결정 보기」 → `J-2`(`aaq://journal/decision/<id>`). null = 부재.
+    LinkAction? decisionLink,
+  }) = _BlindReviewResult;
+
+  factory BlindReviewResult.fromJson(Map<String, dynamic> json) =>
+      _$BlindReviewResultFromJson(json);
 }
 
 /// UNKNOWN 해소 보드의 단계 1행(02 §8-1 · m2-8 D-10).
@@ -566,8 +654,8 @@ abstract class UnknownBoardVm with _$UnknownBoardVm {
 /// 창구는 `JournalRepository.watchDecisionJournal(decisionId)`.
 ///
 /// 🔴 결과·손익·수량·가격 필드가 **없고, 더하지 않는다** — `J-3` 안에 그려지므로 02 §3-3 금지 ③
-///    «작성 중 손익 노출 금지»를 물려받고, `J-4` blind 리뷰(미결 46)가 [DecisionJournalBody] 를
-///    재사용한다. C-34 ⑧ 이 허용 키 목록으로 막는다(필드 추가 = 01 개정이 먼저).
+///    «작성 중 손익 노출 금지»를 물려받고, ✅ v1.7 — `J-4` blind 리뷰의 `BlindReviewCard.journal` 이
+///    [DecisionJournalBody] 를 재사용한다(01 §16). C-34 ⑧ 이 허용 키 목록으로 막는다(필드 추가 = 01 개정이 먼저).
 @freezed
 abstract class DecisionJournalVm with _$DecisionJournalVm {
   const factory DecisionJournalVm({
@@ -588,7 +676,7 @@ abstract class DecisionJournalVm with _$DecisionJournalVm {
       _$DecisionJournalVmFromJson(json);
 }
 
-/// 🆕 v1.2 — 사전 저널 본문. ⏸ `J-4`(미결 46)의 `BlindReviewCard` 가 같은 타입을 싣는 것이 1순위 후보.
+/// 🆕 v1.2 — 사전 저널 본문. ✅ v1.7 — `BlindReviewCard.journal` 이 같은 타입을 싣는다(01 §16).
 @freezed
 abstract class DecisionJournalBody with _$DecisionJournalBody {
   const factory DecisionJournalBody({

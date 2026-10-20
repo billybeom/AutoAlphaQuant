@@ -99,7 +99,7 @@
 | E-2 | `ThresholdCompare` | ✅ 그대로 · `{ String metricKey; String metricLabel; String observedText; String thresholdText; bool passed; String verdictLabel }` — 🔴 **수치는 전부 엔진 포맷 문자열**(화면이 비교식을 만들지 않는다) | B ~~`dto/journal.dart`~~ 🆕 v1.6 `dto/common.dart`(이름·필드·JSON·배럴 무변경 · §Q Q-8) |
 | E-3 | `RejectTrace` | ✅ 그대로 · `{ String stageCode; String stageLabel; String reasonCode; String reasonLabel; DateTime occurredAt }` | B `dto/journal.dart` |
 | E-4 | `JournalDraftFormSpec` | ✅ 그대로 · `{ List<ReasonOption> ruleCitedOptions; int rationaleMinChars; String noticeLine; AsOf asOf }` — 🔴 `ruleCited` 선택지는 **엔진 제공 목록**(자유 입력 금지) | B `dto/journal.dart` |
-| E-5 | `BlindReviewCard` | ✅ 그대로 · `{ String decisionId; String promptText; List<BlindReviewQuestion> questions }` · `BlindReviewQuestion { String questionId; String text; List<ReasonOption> choices }` — 🔴 문항·선택지 문구도 엔진 | B `dto/journal.dart` |
+| E-5 | `BlindReviewCard` | ✅ 그대로 · ~~`{ String decisionId; String promptText; List<BlindReviewQuestion> questions }` · `BlindReviewQuestion { String questionId; String text; List<ReasonOption> choices }`~~ 🆕 **v1.7(01 §16 · §R)** `{ decisionId; titleText; promptText; contextChips; deviation; journalStateLabel; DecisionJournalBody? journal; questions; BlindReviewResult? result; asOf }` · `BlindReviewQuestion { questionId; text; String? evidenceText; List<BlindReviewChoice> choices }` · `BlindReviewChoice { int score; String label }` — 🔴 문항·선택지 문구와 점수도 엔진 | B `dto/journal.dart` |
 | E-6 | UNKNOWN 단계 | → **D-10 `UnknownResolutionStep`** | B |
 | E-7 | `SleeveAllocationRow` | → **C-7** | C `dto/rebalance.dart`(🔴 **M6 가 아니라 C 영역** — `SleeveWeight`·`AllocationBasis` 와 한 파일에 두어야 C-31 이 한 트리에서 검사된다) |
 | E-8 | «손절선 정규값» | ✅ `StopLineNormalized { String tierCode; String tierLabel; @D Decimal? level; String levelText; bool isActive; String basisLabel }` — 🔴 `StopLine`(§2-3)의 **표시 정규화판**이며 `StopLine` 을 대체하지 않는다 | B `dto/holdings.dart` |
@@ -157,7 +157,7 @@
 | # | 문서 위치 | 임시 이름 | **확정** | 근거 |
 |---|---|---|---|---|
 | H-1 | 01 §2-6 «M2-8 최우선» | `JournalDraft` | ✅ `{ String decisionId; String rationaleBefore; String expectedOutcome; String ruleCited; String? note }` — 🔴 `ruleCited` 는 **엔진 제공 목록의 코드**(자유 입력 금지) | 01 §2-6 «최소 축» 그대로 |
-| H-2 | 01 §2-6 | `BlindReviewScore` | ✅ `{ String decisionId; Map<String, int> answers }` — 문항 id → 점수. 🔴 문항·선택지 문구는 `BlindReviewCard`(E-5)가 준다 | 01 §2-6 |
+| H-2 | 01 §2-6 | `BlindReviewScore` | ✅ `{ String decisionId; Map<String, int> answers }` — 문항 id → 점수. 🔴 문항·선택지 문구는 `BlindReviewCard`(E-5)가 준다 · 🆕 v1.7(01 §16 · 필드 무변경) 점수 = 고른 `BlindReviewChoice.score` 를 **그대로 옮긴 값** · 전 문항(K10) | 01 §2-6 |
 | H-3 | 01 §2-6 · G-42 | `DisclosureViewEvent` | ✅ `{ String surfaceCode; DateTime viewedAt; int durationSec }` — 🔴 **집계 키 `yyyy_mm` 을 화면이 넣지 않는다**(엔진이 `viewedAt` 에서 파생) | 01 §2-6 |
 | H-4 | 01 §2-11 · §8-20 | `SymbolOption`·`AccountOption`·`ReasonOption` | ✅ `SymbolOption { String symbol; String label; SleeveId sleeve }` · `AccountOption { String alias; String label }` · `ReasonOption { String code; String label; bool requiresNote }` | 01 §2-11 «폼 선택지 3형제» |
 | H-5 | 01 §8-20 · D19 «🔴 선행 미결» | `ReasonOption` ↔ `J-3` `rule_cited` 통합 | ⏸ **통합한다** — `JournalDraftFormSpec.ruleCitedOptions` 의 타입도 `List<ReasonOption>` | 「사유를 고르는 목록이 두 벌이 되어 한쪽만 갱신되는 사고」를 막는 것이 미결의 이유다(06 §6 미결 15). ⏸ 사유 = **06 `X7-2` 착수 전에 발주자·엔진 확인**이 붙은 항목 |
@@ -229,7 +229,7 @@ K-4 가 말한 「창이 닫힌 뒤 발견된 이름은 다음 창」이 이것�
 | 🆕 L-15 | — (J-3 · R2 준비 2026-09-23 · 01 §11-10) | `JournalDraftRejectCodes`(1 — `journalAlreadyExists = 'JOURNAL_ALREADY_EXISTS'`) · 사전 키 `journal_draft_reject` · 받침대 `UnimplementedCommandApi`(13) · `UnimplementedSafetyRepository`(1) · 픽스처 `m6/journal_draft_receipts_5.json`(`FixturePaths.m6JournalDraftReceipts5`) | `labels/journal_codes.dart` · `lib/testing.dart` | 거부 사유 문구는 `CommandReceipt.stateLabel` 하나 — 코드는 표시·분기 대상이 아니다. 버전 불변(`1.1.0` · DTO 무변경 추가) · 계약 테스트 C-7 쓰기 이름 파일 허용 목록 +1(`lib/testing.dart` — 쓰기 이름 ⊆ `CommandApi` 거울 검사) · C-16 «사유 코드 사전은 `kind` 가 정한다» |
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 44(`S7-3` 초안 필드: 에피소드 표·백분위·회복 필요 수익률 — 엔진 분석 산출물 정의가 선행) ·
-🆕 미결 46(`J-4` blind 리뷰: 읽기 창구·픽스처 + `BlindReviewScore.answers: Map<String,int>` ↔ `BlindReviewQuestion.choices: List<ReasonOption>` 축 불일치).
+~~🆕 미결 46(`J-4` blind 리뷰: 읽기 창구·픽스처 + `BlindReviewScore.answers: Map<String,int>` ↔ `BlindReviewQuestion.choices: List<ReasonOption>` 축 불일치).~~ ✅ v1.7 해소(2026-10-20 · 01 §16 · 아래 §R — 축 = `BlindReviewChoice{score, label}`).
 
 ---
 
@@ -401,3 +401,31 @@ R12 화면 카드 발송 전에 «Bob 이 추측해야 하는 자리»(DTO 필�
 기존 미결 확장 — 50 ①(국면 배지·`rawValues` 라벨 필드 — S7-6b 까지) · 71(advisory 주문 초안 표 제목 — `RebalancePreview.orderDraftsTitle` 포함) · 73(뷰어 플래너 미리보기 — S7-6c 초안 포함 · 엔진 발행 읽기 모델) · 79(`m7_withdrawal_pension_penalty` 의 `referenceOnlyLabel` 예외) · 81(사유 칩 핸드북 연결 — S7-6c 칩 포함) · 84(`rebalance_6` 순서 ✅ v1.6 · 남은 것 = as_of 뒤 회차 · REGIME 표본 · 종류별 `raw_values` · m8 «D-6» ↔ S7-6c «D-1») · 87(S7-6b 상태 3종 + S7-6a 회차별 흐리게·「미확정」·배지 · RESUME_INCOMPLETE·RECOVERY·LEDGER_FIX 안전 표본 — K22) · 88(«범위 고르기» ✅ v1.6 결정 ① · 남은 것 = 유형 필터) · 89(SIM 회차 링크 · `watchEvents(null)` 의 모드 범위 · LIVE·SIM 섞인 목록의 정렬 키).
 엔진(06) 숙제(카드를 막지 않는다) — 차단 갈래표 · 다음 회차 예고 산출 · 정정 행 회차 승계 · advisory 실행 품질 뜻 · 기본 범위·연도·달 · `yearLabel` 생성 · `S12` 세후 null · D-day 기준(K23 — 권고: 달력일) · `rm_*` 운반.
 화면 몫 — R12 카드 4장(앞 카드 병합 뒤 다음 · 전부 v1.6 PR 병합 뒤) · 두 라우트 → 한 위젯·공개 위젯 5 배선·`analyticsWhatIfApiProvider` 주입(operator = 실구현 · viewer = null) = 셸 R13.
+
+---
+
+## R. 🆕 계약 v1.7 (2026-10-20 · J-4 선행 M2 보강) — 사후 blind 리뷰(01 §8 미결 46)
+
+`R3-Bob-J4` 카드 발송 전에 «Bob 이 추측해야 하는 자리»(점수 축·읽기 창구·결과 자리·픽스처)를 닫았다. `J-4` 는 **엔진이 고른 대기 카드 한 장을 고정해 그 카드 스트림만 보고 그린다**.
+`contractVersion` = **`1.7.0`** · 픽스처 **141건**(135 + 신설 6 · 개정 0 — 기존 135 는 봉투 `contract_version` 한 줄만) · 라우트 **45 그대로** · 조문 = 01 §16.
+상태 = ⬜ 로컬 커밋 — PR 대기(앱 브랜치 `m2/v17-blind-review` · 기준 origin/main `76c2404`).
+결정 = 발주자 2026-10-20 — **K1~K24 전부 권고대로**(🔴 7건 K3 ⓐ~ⓓ · K6 · K7 · K8 · K18 · K23 · K24 포함 · 정본 = 설계 `10_리뷰/2026-10-19_미결46_계약v1.7_설계서.md` §9).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| R-1 | 🆕 타입 `BlindReviewChoice{int score, String label}` | `dto/journal.dart` · K1 — 선택지가 점수를 싣는다(구 `BlindReviewQuestion.choices: List<ReasonOption>` 의 코드 축 폐기) · 문항 O/X × 0/1(03_실행 §8-3) · 1~5 매핑·«좋은 결정» 판정 = 엔진 · 🔴 한 문항 안 `score` 유일(C-43 ①) · 화면은 고른 `score` 를 `answers[questionId]` 에 **옮길 뿐**(표시·합산·비교 0 — C-43 ⑫) |
+| R-2 | 🆕 타입 `BlindReviewResult{processScoreText, outcomeText, detailLines, decisionLink?}` | `dto/journal.dart` · K5(전부 또는 없음 래퍼) · K6 확정(금액(원) 0 · 수익률·보유기간 문장 · `rm_blind_review` 결과 열은 채점 집행 뒤에만 push · 01 §6-4 5조 ⑤ 예외 1줄 · `S7-2G` 게이트·`recordDisclosureView` 없음 · X7 미이행 결정의 반사실 금액 0) · K8(앱 안 링크 = `decisionLink` 하나) |
+| R-3 | `BlindReviewCard` +7 — `titleText` · `contextChips` · `deviation` · `journalStateLabel` · `journal?`(`DecisionJournalBody`) · `result?` · `asOf` | E-5 개정 · K9 · 🔴 `result == null` = 채점 전(대기 행은 늘 null) · `result`·`asOf` 밖 필드는 채점 전·후 같다(C-43 ④ · K18) · `journal`·`journalStateLabel` 은 큐에 들어온 뒤 바뀌지 않는다(K3 ⓓ) · `DecisionRef` 는 싣지 않는다(id 표시 길) |
+| R-4 | `BlindReviewQuestion` +1 — `evidenceText?` · `choices` 형 교체 | E-5 개정 · 판단 근거 한 줄(03_실행 §8-3 «판정 근거» · null = 줄 부재) |
+| R-5 | `JournalRepository.watchBlindReviewQueue({RunMode mode = RunMode.live})` → `Stream<ListResult<BlindReviewCard>>` · `watchBlindReviewCard(String decisionId)` → `Stream<BlindReviewCard>` | K2 · K16 · 대기 목록(봉투 · 빈 상태 = `emptyLabel` · 오래된 결정부터 — K4 · 같은 갱신에서 큐 이탈 = 엔진 의무 · 행 수 = 배지 n) + 고정 카드 1건(채점 집행 뒤 같은 스트림에 결과) · `J-4` 는 인자 없이(K24 — v1.7 = LIVE 만 · DRY_RUN 기간 = 빈 문장 · SIM = 미결 99) |
+| R-6 | `BlindReviewScore` **주석만**(필드·JSON 무변경) | H-2 · «고른 `BlindReviewChoice.score` 를 그대로 옮긴 값» · 전 문항(K10 · 부분 제출 없음) |
+| R-7 | 🆕 코드 `BlindReviewRejectCodes{alreadyScored = 'BLIND_REVIEW_ALREADY_SCORED', answersInvalid = 'BLIND_REVIEW_ANSWERS_INVALID'}` · 사전 키 `blind_review_reject` | `labels/journal_codes.dart` · K11 · K12(먼저 집행된 채점이 이긴다) · C-16 `domainByKind` +`blindReviewScore` · 문구 = `CommandReceipt.stateLabel` 하나 |
+| R-8 | 받침대(`lib/testing.dart`) | `UnimplementedJournalRepository.watchBlindReviewQueue`·`watchBlindReviewCard`(동기 throw) — ui 테스트 0파일(가짜는 전부 `extends`) |
+| R-9 | 픽스처 6 · `FixturePaths` 상수 6 | `m6BlindReviewQueue3` · `m6BlindReviewQueueEmpty` · `m6BlindReviewCardBefore` · `m6BlindReviewCardRevealed` · `m6BlindReviewCardRevealedOpen` · `m6BlindReviewReceipts6` · `FixturePaths.all` **141** · 등록부 코덱 +1(`BlindReviewCard`) · 생성 = `packages/domain_contracts/tool/gen_j4_v17_fixtures.py`(기준 `76c2404` 원문에서 멱등) · 🔴 K3 ⓓ — `JOURNAL_MISSING` 대상 `d_20260810_b_27`(설계서 초안 행 0)은 큐에 없다 · 큐 = `d_20260811_c_28` → `d_mf_0002` → `d_mf_0004`(설계서 §3-0 확정 표본) · 상세 = `fixtures/README.md` «계약 v1.7» |
+| R-10 | 🆕 C-43 | `test/contracts/c43_blind_review_test.dart` — A 픽스처·DTO 불변식 ①~⑨ + B 화면 소스 스캔 ⑩~⑰(대상 = `packages/ui_journal/lib/src/blind_review.dart` + `lib/src/blind_review/**` · 대상 0 = 공허 통과) · C-16 «J-4 blind 리뷰 접수증» 1건 · C-8 `_knownUncovered` −2 |
+| R-11 | **M2 이름**(카드가 짓지 않는다 · 셸 R13 이 배선) | 공개 위젯 `JournalBlindReview({super.key})`(인자 없음 · 본문만) · 파일 `packages/ui_journal/lib/src/blind_review.dart`(배럴 export 1줄) · 내부 `lib/src/blind_review/**` · 🆕 명령 주입 `journalBlindReviewCommandApiProvider = Provider<CommandApi>`(**`blind_review.dart` 안** — 배럴 쪽 · K13 · operator `journalCommandApiProvider` 무변경 · override 자리 = 조립 앱 `apps/app_*/lib`) · 데이터 `journalBlindReviewQueueProvider`(StreamProvider) · `journalBlindReviewCardProvider`(StreamProvider.family) · 재사용 `journalTimelineRepositoryProvider`·`journalSafetyStateProvider`·`journalLinkOpenerProvider`·`journalClockProvider` · 공통 조각 `JournalSafetyBanners({required SafetyState? safety})`(`journal_common.dart` 추가 · K17) · 라우트 `journalBlindReview` 그대로(단건 라우트 0 — K14) |
+
+🔴 **만들지 않은 이름**(재론 방지): `answers: Map<String,String>`(선택지 코드 — H-2 페이로드 변경) · `BlindReviewQueueVm`(봉투 없는 큐 VM — «없음/모름» 구별 상실) · `BlindReviewRepository`(주입 1개 더 · 배지와 축이 갈린다) · `BlindReviewCard.decisionRef`·`tradeEntry`(id·가격·수량 글자가 따라온다) · `DecisionJournalBody` 의 결과 필드(C-34 ⑧) · `BlindReviewResult.answerLines`(경합 뒤 «기록된 답» — 미결 101) · `nextLink`(«다음 건» = 정적 라벨 · K15) · `noticeText`(고정 고지 = 정적 라벨) · 라우트 `aaq://journal/blind-review/:decisionId`(K14 · 재열람 = 미결 100) · outcome_score 입력 명령(K7 · 미결 98).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 🆕 미결 98(outcome_score 입력 · 2×2 배치 — 월간 F 의 기준 달 = 전월 리뷰분 · K3 ⓑ) · 99(SIM 결정의 blind 리뷰 — K24) · 100(공개 결과 재열람 · 미청산 카드의 뒤늦은 결과) · 101(경합 거부 뒤 선택 표시) · 102(X7 미이행 결정의 리뷰 표본 — K3 ⓒ 포함 확정 · v1.7 픽스처 0). 기존 확장 — 50 ③(`watchBlindReviewCard` 도 같은 잠정 규칙) · 59(`BLIND_REVIEW_SCORE` 는 사전을 먼저 만든 사례) · Q-D(웹 `J-4` = «부재» 가드).
+엔진(06) 숙제(카드를 막지 않는다) — `rm_blind_review` 산출·push · 대상·진입 시점(K3 ⓐ~ⓓ) · 정렬(K4) · `processScoreText` 매핑 · 거부 코드 판정 · `LEDGER_INTEGRITY` 가림·결과 금액 0 · 큐에 든 카드의 본문·문맥 불변 · P2 알림 목적지(K23 — 리뷰 대기 ≥ 1 이면 `journalBlindReview` · 0 이면 `S7-1` · 엔진이 `deep_link` 로 고른다).

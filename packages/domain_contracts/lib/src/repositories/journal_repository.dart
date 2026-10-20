@@ -87,4 +87,26 @@ abstract interface class JournalRepository {
   /// 🔴 `RebalanceEvent.journalTimelineLink` 가 non-null 인 회차에 대해서는 null 을 주지 않는다.
   /// 🔴 화면이 `RebalanceRepository` 를 구독해 글자를 조립하지 않는다(그것이 조인이다).
   Stream<JournalRebalanceScope?> watchRebalanceScope(String rebalanceEventId);
+
+  // ── 🆕 계약 v1.7(J-4 선행 M2 보강 · 01 §16 · §8 미결 46) ───────────────────────
+
+  /// 🆕 v1.7 — `J-4` 채점 **대기** 카드 목록. 봉투(`ListResult`) · 빈 상태 문장 = 봉투 `emptyLabel`.
+  /// 🔴 `rows` 의 [BlindReviewCard.result] 는 **늘 null** 이다(대기 = 채점 전).
+  /// 🔴 엔진이 정렬해서 준다(오래된 결정부터 — K4) — 화면은 재정렬·거르기·세기 0, `rows[0]` 을 고정 카드로 쓴다.
+  /// 🔴 엔진 의무: 채점이 집행돼 그 결정의 카드에 `result` 가 실리는 **같은 갱신에서** 그 결정은 이 목록에서 빠진다.
+  /// 🔴 행 수 = 같은 [mode] 의 `watchTimelineBadges` «리뷰 대기 n건»의 n — 화면이 세지 않는다(배지 문구가 말한다).
+  /// 🔴 큐가 비면 같은 [mode] 의 배지 목록에 `BLIND_REVIEW_PENDING` 행이 **없다**(«0건» 배지 금지 — 정상 = 무소식).
+  /// 대상·진입 시점 = 엔진 규칙(K3 · 06). `hasMore` 는 늘 false(목록 전체 · `limit` 없음) — 화면 미사용.
+  /// `J-4` 화면은 **인자 없이** 부른다(SIM 결정의 리뷰 = §8 미결 99).
+  /// 🔵 K24 확정(2026-10-20) — v1.7 = LIVE 만: 모의투자(DRY_RUN) 기간에는 LIVE 결정이 없어 큐가 비고 봉투의
+  /// `emptyLabel` 만 보인다(화면 무변경으로 뒤에 넓힐 수 있다 — X6 창).
+  Stream<ListResult<BlindReviewCard>> watchBlindReviewQueue({
+    RunMode mode = RunMode.live,
+  });
+
+  /// 🆕 v1.7 — `J-4` 카드 1건(고정 카드). 채점 전 = `result == null` · 채점 집행 뒤 = **같은 스트림에**
+  /// `result` 가 실린 값이 온다(02 그림 M6-13 «재조회» — 화면이 다시 부르거나 기다리지 않는다).
+  /// 모르는·리뷰 대상이 아닌 id = 스트림 에러(봉투 없는 VM 의 **잠정** 규칙 — §8 미결 50 ③ · `watchDecisionJournal` 과 같다).
+  /// 🔴 화면은 `watchDecisionDetail`·`watchDecisionJournal`·`watchTimeline` 으로 카드를 조립하지 않는다.
+  Stream<BlindReviewCard> watchBlindReviewCard(String decisionId);
 }

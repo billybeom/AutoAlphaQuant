@@ -82,6 +82,7 @@ abstract final class AppRoutes {
       'aaq://journal/rebalance/:rebalanceEventId';
 
   /// `J-4` 사후 blind 리뷰.
+  /// 🆕 v1.7 — 셸 본문 = `JournalBlindReview()`(대기 목록의 머리 카드 · 01 §16).
   static const String journalBlindReview = 'aaq://journal/blind-review';
 
   /// `J-5` UNKNOWN 해소 보드 — `JournalTimelineBadge.deepLink` 가 준다.

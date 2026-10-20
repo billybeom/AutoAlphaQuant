@@ -1,6 +1,6 @@
 > **사본 · 정본은 `packages/domain_contracts/fixtures/README.md`.** 부록의 파일 목록은 조립 시점 실측입니다.
 
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.6 · 135파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ~~⬜ 로컬 커밋 — PR 대기~~ ✅ 병합 PR #25 squash `995c1f4`)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.7 · 141파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ⬜ 로컬 커밋 — PR 대기)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -14,7 +14,7 @@
   아래 «픽스처 계좌 별칭 표»가 정본이다.
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 135파일(🆕 2026-10-08 v1.6) 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 141파일(🆕 2026-10-20 v1.7) 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -34,7 +34,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.6.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.7.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -559,11 +559,68 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_v16_fixt
 - `ExecutionGapResult` 래퍼는 `report` 또는 `empty_kind`+`empty_label` 가운데 한쪽만 싣고 `as_of` 는 늘 싣는다(C-41 ⑧).
 - 선택 표시 필드(`orders_empty_text`·`mode_label`·`section_label`·`reference_only_label`·`mode_advice_line`·`compliance_rate_normalized` · `m7_next_rebalance_none` 의 날짜·D-day·종류·예고·고지)는 없을 때 **키가 없다**(🔵 countdown 의 `"empty_label": null` 은 기준 원문 그대로 남은 것이다). `warning_lines`·`thresholds`·`correction_lines` 는 비어도 `[]` 로 싣는다. `funding_steps` 는 R12 미리보기 2벌에서 **키 없음**(R12 는 조달 절을 그리지 않는다 · 미결 92).
 
-## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 🆕 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과)
+## 계약 v1.7 (2026-10-20 · J-4 선행 · 01 §16 · §8 미결 46)
 
-🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 ~~3건~~ 5건 포함 — 🆕 v1.5 `m6/journal_rebalance_unknown`·`m7/m7_rebalance_empty`) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 135파일 `rows`)은 🆕 v1.6 322 = 319 + 매핑 없는 3건 각 1행(v1.5 판은 126파일 311 = 308 + 3 · 🆕 v1.6 신규 9파일이 11행을 더했다 — 개정 14건은 행 수 불변 · v1.4 판은 122파일 309 = 306 + 3 · v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다 · v1.4 신규 7파일이 11행을 더했다 — 개정 16건은 행 수 불변 · 🆕 v1.5 신규 4파일이 2행을 더했다(0행 봉투 2 포함) — 개정 2건은 행 수 불변). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+화면 카드 `R3-Bob-J4`(`J-4` 사후 blind 리뷰)를 보내기 전에 한 보강이다 — `J-4` 는 **엔진이 고른 대기 카드 한 장을 고정해 그 카드 스트림만 보고 그린다**. 채점 전 카드에는 결과가 «가려진» 것이 아니라 **없고**(02 §3-4 금지 ③), 화면은 고른 선택지의 `score` 를 `BlindReviewScore.answers` 에 **옮길 뿐**이며, 결과 섹션은 `result != null` 하나로만 연다.
+상태 = ⬜ 로컬 커밋 — PR 대기(앱 브랜치 `m2/v17-blind-review` · 기준 origin/main `76c2404`).
+결정 = 발주자 2026-10-20 **K1~K24 전부 권고대로**(🔴 7건 K3 ⓐ~ⓓ · K6 · K7 · K8 · K18 · K23 · K24 포함 · 정본 = 설계 `10_리뷰/2026-10-19_미결46_계약v1.7_설계서.md` §9 · 표본 확정판 = 같은 문서 §3-0·§3-1(설계 `0ce6416` — 검증 2회 반영본)). 이 절의 표본 가운데 그 결정에 걸린 것: 큐 행 고르기 = K3 ⓓ · 결과 문장 = K6 · 빈 큐 장면 = K24.
 
-135파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·`m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` 은 0행 봉투 · 🆕 v1.6 신설 9건은 전부 행이 있다), 그중 **132파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + v1.5 2026-10-07 +4 + 🆕 v1.6 2026-10-08 +9)이 실제 DTO 의 `fromJson` 을 지나
+### 신설 6건
+
+| 파일(`FixturePaths` 상수) | 행 타입(등록부 코덱) · 행 수 | 내용 · 쓰는 곳 |
+|---|---|---|
+| `m6/blind_review_queue_3.json`(`m6BlindReviewQueue3`) | `BlindReviewCard`(🆕 코덱) · **3** | `watchBlindReviewQueue()` 봉투 · 🔴 **행 순서가 뜻**(결정 시각 오름차순 · K4 — 화면은 `rows[0]` 을 고정 카드로 쓴다): 0 `d_20260811_c_28`(`journal_30` je_0028 · 0085P0 KODEX 국고채30년 **매수** · 저널 작성됨 · 메모 있음 · 새 합성 본문) → 1 `d_mf_0002`(`manual_fills_8` mf_0002 · 379810 KODEX 미국S&P500 **매수** · 본문 == `journal_read_no_note` · 메모 없음) → 2 `d_mf_0004`(mf_0004 · 411060 ACE 미국30년국채 **매도** · 작성됨 · 메모 있음 · 새 합성 본문) · 행 `result` **키 없음** · 행 `as_of` == 봉투(«리뷰 기준 2026-08-31») · `has_more` false — 골든 `j4_before_reveal`(머리 행) · «다음 건»(행 0 을 뺀 슬라이스) |
+| `m6/blind_review_queue_empty.json`(`m6BlindReviewQueueEmpty`) | 〃 · 0 | `rows` `[]` · `empty_kind` `NO_DATA` · `empty_label` «리뷰할 결정이 없습니다»(02:789) — 골든 `j4_empty` · 🔵 모의투자(DRY_RUN) 기간의 `J-4` 도 이 장면이다(K24 — v1.7 = LIVE 만) |
+| `m6/blind_review_card_before.json`(`m6BlindReviewCardBefore`) | 〃 · 1 | 큐 행 0(`c_28`) **JSON 그대로** — `watchBlindReviewCard` 첫 값(채점 전) |
+| `m6/blind_review_card_revealed.json`(`m6BlindReviewCardRevealed`) | 〃 · 1 | before + `result`(청산 · K6): «과정 점수 4점 — 좋은 결정(4점 이상)» · «결과: 수익률 +0.6% · 보유 12거래일» · 보조 1줄 «방향: 저널의 기대와 같음» · `decision_link` «이 결정 보기» → `aaq://journal/decision/d_20260811_c_28` · `result`·`as_of` 밖 필드 == before(`as_of` 도 같은 값 — 골든 동일성은 픽스처 선택이지 엔진 의무가 아니다) — 1건 스트림 둘째 값 · 골든 `j4_after_reveal` |
+| `m6/blind_review_card_revealed_open.json`(`m6BlindReviewCardRevealedOpen`) | 〃 · 1 | 큐 행 1(`d_mf_0002`) + `result`: «과정 점수 3점 — 좋은 결정 기준(4점) 미만» · «미청산 — 결과 미확정»(02:789) · `detail_lines` `[]` · `decision_link` → `aaq://journal/decision/d_mf_0002` — 골든 `j4_after_reveal_open` |
+| `m6/blind_review_receipts_6.json`(`m6BlindReviewReceipts6`) | `CommandReceipt` · **6** | `kind` `BLIND_REVIEW_SCORE` · 한 `command_id`(`cmd_20260831_0041`)·`nonce`·기기(`dev_operator_01`)의 갈래 · 행 순서 = `REQUESTED`(«전송 대기 — 연결되면 엔진에 보냅니다» · 02:789 오프라인 칩) · `HELD_FOR_INTEGRITY` · `EXECUTED` · `EXPIRED` · `REJECTED`(`BLIND_REVIEW_ANSWERS_INVALID` — 재제출이 뜻 있는 장면 · 골든 `j4_rejected`) · `REJECTED`(`BLIND_REVIEW_ALREADY_SCORED` — 경합 · 곧 결과가 흐르는 장면 · 테스트 «거부 뒤 결과 도착»의 입력) · 🔴 테스트 입력은 **이 6행만**(`copyWith(state:)`·생성자 0) — 그 밖 상태는 C-12 exhaustive switch 가 맡는다 |
+
+상수는 `FixturePaths.m6BlindReviewQueue3`·`…QueueEmpty`·`m6BlindReviewCardBefore`·`…Revealed`·`…RevealedOpen`·`m6BlindReviewReceipts6` 6개다 · 등록부 코덱 +1(`BlindReviewCard`) · 바인딩 +6(접수증 = 기존 `CommandReceipt` 코덱).
+신설 6건의 `meta.generated_at`·`seed` 는 생성일(2026-10-20) 값이다. 나머지 135건은 `"contract_version"` 한 줄만 바뀌었다(개정 0).
+
+### 🔴 K3 ⓓ — `JOURNAL_MISSING` 이 서 있는 결정은 큐에 없다 (2026-10-20 확정)
+
+- 설계서 초안의 행 0 `d_20260810_b_27` 은 `safety_states.json` `JOURNAL_MISSING` 의 `clear_deep_link`(`aaq://journal/draft/d_20260810_b_27`) 대상이다 — J-3 작성 창이 열린 결정을 큐에 넣으면 결과를 본 뒤 «사전» 저널을 쓸 수 있고, 채점 중 카드 `journal` 이 null → 본문으로 바뀌어 «`result` 밖 필드 동일»(C-43 ④)이 실엔진에서 깨진다. 그래서 **J-3 작성 뒤에** 큐로 들어온다(작성이 늦으면 엔진이 문항 ⑤ «결정 시점 기록»을 X 로 본다).
+- 표본 결과: 큐 3행 전부 저널 **작성됨**이다(`journal` null 표본 0 — 필드는 nullable 그대로 = 저널 의무가 없는 결정의 자리 · K3 ⓒ X7 «안 함» · 미결 102). 큐가 이탈 결정만 싣는 것(K3 ⓐ — 규칙대로 결정 제외)은 그대로라 `journal_30` 밖의 둘은 X7 수기 결정이다(`journal_30` 의 이탈 행은 `b_27`·`c_28` 둘뿐 · 02 «`journal_30` 체결 건과 연결» 문장과의 차이 = 설계서 알릴 것 4). `d_mf_0004` 는 매도 결정이라 큐에 매수·매도가 섞인다.
+- 🔵 셋째를 `journal_read_written` 의 `d_20260901_a_31` 로 하지 않았다 — 결정일(2026-09-01)이 봉투 관측 시각 `as_of`(2026-08-31) 뒤라 그 시점의 큐에 있을 수 없다(설계서 §3-0 · 검증 반영 2026-10-20 — 옛 사유 «K3 ⓑ 의 표본이 될 수 없다»는 틀렸다: 같은 논리면 8월 표본 셋도 성립하지 않는다).
+- 🔵 표본 `as_of`(2026-08-31)는 `ui_journal` 골든 시계 축(`FixedClock(kGoldenNowUtc)`)을 따른 합성값이다 — K3 ⓑ 의 진입 시각(그 달 월간 리포트 발행 뒤 · P2 알림과 같은 때)은 **재현하지 않는다**(진입 시점 = 엔진 06 M1-25 ② · C-43 은 날짜를 검사하지 않는다). 8월 결정 셋이 08-31 큐에 있는 것은 규칙 위반이 아니라 표본의 시계 선택이다.
+- 문맥 칩·이탈 배지 = 그 결정의 일지 행(`journal_30` · `manual_fills_8`)의 `reasons`·`deviation` 사본(C-43 ⑦ⓒ) · 제목 = «{거래일} · {종목} · {매수|매도} 결정»(일지 행 `trade_date`·`symbol_label`·`side_label` 과 같은 글자).
+
+### 문항·근거 (03_실행 §8-3)
+
+- 문항 5개 = `PIT_INFO_ONLY` · `RULE_FOLLOWED` · `PIT_INPUT` · `FALSIFIER_WRITTEN` · `WRITTEN_AT_DECISION`(키 전용 · 사전 등재 0) × 선택지 2(`{score: 1, label: «예»}` · `{score: 0, label: «아니오»}`) — 1~5 매핑·«좋은 결정» 판정은 엔진(`processScoreText`). 02:788 의 예시(«근거 충분·감정 개입»)는 쓰지 않았다.
+- 근거 줄(`evidence_text`)은 문항 ① ② ③ ⑤ 에 있고 ④ 는 **키 없음**(null = 줄 부재 표본 — 반증 조건은 저널 본문 «기대 결과»에 있다).
+
+### 🔴 개정·신설은 **생성 스크립트**가 만든다 (손 계산 금지)
+
+```
+# 저장소 루트에서 — 몇 번을 돌려도 결과가 같다. 돌린 뒤 `git status` 에 fixtures 변경이 없어야 한다
+PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_j4_v17_fixtures.py
+```
+
+- 버전 줄 치환(135건)은 기준 커밋(계약 1.6.0 · `76c2404`)의 원문에서 다시 만든다 — git 과 그 커밋이 있어야 한다.
+- 스크립트가 규약을 먼저 확인하고 어기면 쓰기 전에 멈춘다: 버전 줄 정확히 1 · 봉투 `meta.mode` LIVE · 폐기 운영값 0 · 봉투 최상위 키(신설은 필수 6키뿐) · 행이 있으면 `NO_DATA`/`null` · 금지어 0 · 사용자 문장 자리의 개발자 메모 0 · 행 `as_of` == 봉투 · 칩 코드 ⊂ 기존 픽스처의 칩 코드(C-5 는 칩 `code` 를 대조하지 않는다) · 칩 링크 ∈ {null, `handbook://…`} · 문항 3~5·id 유일·한 문항 안 점수 유일 · 채점 전 글자에 금액(만·억·천 원 · `₩` 포함 — 결과 쪽과 같은 수준)·백분율·«손익/수익/평가액» 0 · 결과에 금액 꼴 0(K6) · 결과 링크 = 그 결정의 `J-2` · 오름차순(K4) · K3 ⓓ(`JOURNAL_MISSING` 대상 0 · 큐 행 저널 전부 작성됨) · before == 큐 행 0 · 공개 2벌 − `result` == 짝 행 · 미청산 ≠ 청산 문장 · 저널 본문·상태 글자 == 같은 결정의 `journal_read_*`(짝이 있는 결정만 — v1.7 = `d_mf_0002`) · 문맥 칩·이탈 == 그 결정의 일지 행 · 큐 행 순서 == 설계서 §3-0 확정 표본 · 배지 «리뷰 대기 3건» == 큐 행 수 · 접수증 6행 한 명령 · 거부 사유 2종 모두 · 쓴 파일 수 == 141 == 디스크.
+- 실행하면 한 줄로 수를 찍는다 — 파일 141 · 버전 줄만 135 · 신설 6 · 큐 3행(행 순서) · 접수증 6행.
+
+### 🔵 표본 사실 — 고치지 않고 적어 둔다
+
+- **청산 표본(`c_28`)의 짝 매도는 일지 픽스처에 없다** — `journal_30` 에 0085P0 매도 행이 없다(«보유 12거래일» 문장은 결과 섹션 글자 표본일 뿐 · 일지와 맞대지 않는다 · 결과의 출처·뒤늦은 확정 = 01 §8 미결 100).
+- **미청산 표본(`d_mf_0002`)의 저널은 체결 뒤에 작성됐다**(«2026-08-25 20:10 작성» · 체결 14:30) — 근거 줄 ⑤ 가 그 차이를 말한다(문항 ⑤ X 표본 · 과정 점수 3점 글자와 맞는 쪽).
+- **`d_mf_0002` 는 정정 체인(`mf_0006` 역분개 · `mf_0007` 재기재)의 원 결정**이다 — `journal_read_no_note` 본문과 짝이라 골랐다(01 §8 미결 50 ② 가 정해지면 표본 교체 여부를 다시 본다).
+- **`c_28`·`d_mf_0004` 의 저널 본문은 `J-3R` 픽스처에 짝이 없다** — C-43 ⑦ⓑ «같은 결정의 `J-3R` 본문과 같다»의 짝은 `d_mf_0002`(`journal_read_no_note`) 하나다(의도된 1표본). `journal_read_*` 는 `ui_journal` 테스트가 `singleFixture` 로 읽어 행을 더할 수 없고, 같은 생성기로 짝 픽스처를 새로 만들면 자기 자신과 맞대는 셈이라 늘리지 않았다(설계서 §3-0 · 검증 반영 2026-10-20). 두 본문은 C-43 ②(허용 키)·③(금액·백분율·손익 낱말 0)·④(목록·1건·공개 카드 동일)가 지킨다.
+- **과정 점수 글자와 골든의 선택**은 맞대지 않는다 — 점수는 엔진이 제출된 답에서 세므로 픽스처 글자는 표본일 뿐이다(카드가 골든 장면의 선택을 정한다).
+- **날짜·건수·id·수익률 값은 합성 데이터**다(실계좌 아님).
+
+### 표기 — 키를 빼는 것과 `null`
+
+- 대기 카드(큐 3행 · before)는 `result` **키가 없다** · 공개 카드만 `result` 를 싣는다. `evidence_text` 는 없을 때 **키가 없다**. 저널 본문의 `note` 는 `journal_read_*` 와 JSON 이 같아야 하므로 메모 없음 = `"note": null`(기존 꼴 그대로).
+
+## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과 → 🆕 2026-10-20 v1.7 · 141파일(매핑 138파일 331행) · C-1·C-8 통과)
+
+🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 ~~3건~~ 5건 포함 — 🆕 v1.5 `m6/journal_rebalance_unknown`·`m7/m7_rebalance_empty`) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 141파일 `rows`)은 🆕 v1.7 334 = 331 + 매핑 없는 3건 각 1행(🆕 v1.7 신규 6파일이 12행을 더했다 — 0행 봉투 1 포함 · 개정 0 · v1.6 판은 135파일 322 = 319 + 3 · v1.5 판은 126파일 311 = 308 + 3 · 🆕 v1.6 신규 9파일이 11행을 더했다 — 개정 14건은 행 수 불변 · v1.4 판은 122파일 309 = 306 + 3 · v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다 · v1.4 신규 7파일이 11행을 더했다 — 개정 16건은 행 수 불변 · 🆕 v1.5 신규 4파일이 2행을 더했다(0행 봉투 2 포함) — 개정 2건은 행 수 불변). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+
+141파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·`m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` · 🆕 v1.7 `m6/blind_review_queue_empty.json` 은 0행 봉투 · v1.6 신설 9건은 전부 행이 있다), 그중 **138파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + v1.5 2026-10-07 +4 + v1.6 2026-10-08 +9 + 🆕 v1.7 2026-10-20 +6)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
@@ -595,17 +652,19 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_v16_fixt
 - `AppRoutes.rebalanceHistory` = `aaq://rebalance/history`(`S7-6a` 회차 타임라인 · K5 · 권고 선반영 · ~~확인 대기 🔴~~ ✅ 확정(2026-10-13)) — **싣는 픽스처 없음**(셸·진입점이 쓰는 상수).
 - 그 밖에 새로 실린 링크 = `m7_rebalance_preview_blocked` 행 1 의 `blocked_action.deep_link` `aaq://x2/resume-report`(`deep_link` 로 덮인다) · `m7_rebalance_sim` 의 `detail_deep_link`(기존 `rebalanceEvent` 패턴). 🔴 `S7-6a` 빈 상태의 «다음 예상» 버튼만 고정 상수 `AppRoutes.rebalancePreview` 를 쓴다(화면 쪽 예외 1개 — 픽스처와 무관).
 
+🆕 **v1.7(01 §16 · `AppRoutes.all` 45 그대로 · 링크 키 추가 0)** — 새로 실린 링크 = `m6/blind_review_card_revealed`(`d_20260811_c_28`)·`_revealed_open`(`d_mf_0002`) 의 `result.decision_link.deep_link`(`LinkAction` — 안쪽 `deep_link` 로 C-33 이 검사한다 · 기존 `journalDecision` 패턴) 2건뿐이다. 🔴 채점 전 카드(큐 3행 · before)와 공개 카드의 `result` 밖에는 `aaq://` 가 **0**이다(K8 — 문맥 칩 `detail_deep_link` 는 `handbook://` 앵커 · C-43 ⑥). 들어오는 링크 `aaq://journal/blind-review` 는 `journal_badges_2` 의 `BLIND_REVIEW_PENDING` 배지가 이미 싣는다(v1.1).
+
 ## 아직 없는 것
 
 - **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
   🔴 구현자가 이름을 지어내지 않는다(인벤토리 §0 규칙) — M2가 05 에 목록을 등재한 뒤 만든다.
   🔵 v1.4 의 `m9/contribution_setting_*` 2벌은 `S7-4` 스텝 ① 의 입력(`ContributionSetting`)이라 M2 가 먼저 만들었다 —
   05 화면(`MonthlyContributionVm` 카드 등)의 픽스처는 여전히 없다.
-- **`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다). 🆕 v1.2 — 본문 단위는 `DecisionJournalBody`(`journal_read_*` 가 그 모양)로 정했고 점수 축은 여전히 미결이다.
-- `test/` 의 계약 회귀 ~~C-1~C-37~~ ~~C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합)~~ C-1~C-42(🆕 v1.6 C-41 R12 표시 계약 — 이 절의 픽스처끼리 맞대는 불변식 · C-42 R12 화면 소스 스캔) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
+- ~~**`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다). 🆕 v1.2 — 본문 단위는 `DecisionJournalBody`(`journal_read_*` 가 그 모양)로 정했고 점수 축은 여전히 미결이다.~~ ✅ v1.7 — 6벌(위 «계약 v1.7» 절 · 점수 축 = `BlindReviewChoice{score, label}`).
+- `test/` 의 계약 회귀 ~~C-1~C-37~~ ~~C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합)~~ ~~C-1~C-42(🆕 v1.6 C-41 R12 표시 계약 — 이 절의 픽스처끼리 맞대는 불변식 · C-42 R12 화면 소스 스캔)~~ C-1~C-43(🆕 v1.7 C-43 J-4 blind 리뷰 — 픽스처 불변식 ①~⑨ + 화면 소스 스캔 ⑩~⑰) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.
 
-## 부록 — 실제 픽스처 파일 목록 (135개, 2026-10-13 실측)
+## 부록 — 실제 픽스처 파일 목록 (141개, 2026-10-20 실측)
 
 경로 기준 `packages/domain_contracts/fixtures/`. 이 목록은 조립 시점의 실물이며, 명세가 부르는 파일명과 다르면 **실물이 맞습니다**.
 
@@ -628,7 +687,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_v16_fixt
 | `safety_states.json` | 5,515 |
 | `sleeve_catalog_4.json` | 971 |
 
-### m6 — 41개
+### m6 — 47개
 
 | 파일 | 바이트 |
 |---|---:|
@@ -642,6 +701,12 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_v16_fixt
 | `m6/advice_no_action.json` | 2,655 |
 | `m6/advice_skip_reasons.json` | 1,146 |
 | `m6/advice_viewer_4.json` | 7,731 |
+| `m6/blind_review_card_before.json` | 3,818 |
+| `m6/blind_review_card_revealed.json` | 4,178 |
+| `m6/blind_review_card_revealed_open.json` | 3,707 |
+| `m6/blind_review_queue_3.json` | 9,821 |
+| `m6/blind_review_queue_empty.json` | 575 |
+| `m6/blind_review_receipts_6.json` | 3,087 |
 | `m6/decision_detail_amended.json` | 12,014 |
 | `m6/decision_detail_full.json` | 8,824 |
 | `m6/decision_detail_journal_draft_link.json` | 12,104 |
@@ -769,4 +834,4 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r12_v16_fixt
 | `m9/contribution_setting_no_limit_note.json` | 1,068 |
 | `m9/handover_states.json` | 5,203 |
 
-**합계 135개 · 568,197 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
+**합계 141개 · 593,383 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
