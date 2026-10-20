@@ -8,4 +8,5 @@
 - 🔴 리밸런싱 회차는 **1급 엔터티**(`rebalance_event`)다 — 로그를 파싱해 재구성하지 않는다.
 - ✅ `allocation.dart` — `capital_allocation` 해석·검증(05 GV-42). 프로파일 표는 02 §5-7 의 세 프로파일(새틀 6% 시절)이고, 정본 P0S 는 새틀 0 을 주고 해제분을 잔여 C 가 받는다.
 - ✅ `sleeve_c.dart` · `funding.dart`(E5c) — 슬리브 C 달러 목표·금 상한(05 GV-22·35) · 원화 조달 상대(GV-36 · B 제외). 분모에 무엇을 넣을지(참조 엔진은 비예약 원화를 넣는다)는 E6 배선에서 정한다.
+- ✅ `core_band.dart` · `deposit.dart`(E5d) — 코어 밴드 전액 자동·연금 한도 두 다리(05 GV-37) · 납입 배분(GV-28d). v2.32 조달은 `prefundNeeded` 만큼 `fundingOrder` 로 먼저 마련한다(배선은 E6).
 - 금 상한 8%(C 한정)는 **경고이지 강제 매도가 아니다**(SAF-3xx).

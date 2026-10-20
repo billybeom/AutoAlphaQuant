@@ -1,0 +1,277 @@
+{
+ "GV-28d": [
+  {
+   "id": "d1 ⓐ 부족분 큰 순 — SAT(50) 먼저, C(30) 나중. B 는 잉여라 목록에 없다",
+   "input": {
+    "amount": 60000000.0,
+    "quota": 0.0,
+    "sleeves": {
+     "sleeve_b": {
+      "current": 105000000.0,
+      "target": 100000000.0
+     },
+     "sleeve_c": {
+      "current": 50000000.0,
+      "target": 80000000.0
+     },
+     "satellite": {
+      "current": 0.0,
+      "target": 50000000.0
+     }
+    }
+   },
+   "expected": {
+    "filled": [
+     [
+      "satellite",
+      50000000.0
+     ],
+     [
+      "sleeve_c",
+      10000000.0
+     ]
+    ],
+    "residual": 0.0
+   }
+  },
+  {
+   "id": "d1b ⓐ' 역순 배치 — C(40) 먼저, SAT(20) 나중 (순서 하드코딩 검출)",
+   "input": {
+    "amount": 50000000.0,
+    "quota": 0.0,
+    "sleeves": {
+     "sleeve_b": {
+      "current": 100000000.0,
+      "target": 100000000.0
+     },
+     "sleeve_c": {
+      "current": 40000000.0,
+      "target": 80000000.0
+     },
+     "satellite": {
+      "current": 30000000.0,
+      "target": 50000000.0
+     }
+    }
+   },
+   "expected": {
+    "filled": [
+     [
+      "sleeve_c",
+      40000000.0
+     ],
+     [
+      "satellite",
+      10000000.0
+     ]
+    ],
+    "residual": 0.0
+   }
+  },
+  {
+   "id": "d2 ⓑ B promote 가 quota 로 캡 — B gap 40 이지만 15 만",
+   "input": {
+    "amount": 50000000.0,
+    "quota": 15000000.0,
+    "sleeves": {
+     "sleeve_b": {
+      "current": 60000000.0,
+      "target": 100000000.0
+     },
+     "sleeve_c": {
+      "current": 70000000.0,
+      "target": 80000000.0
+     },
+     "satellite": {
+      "current": 20000000.0,
+      "target": 50000000.0
+     }
+    }
+   },
+   "expected": {
+    "filled": [
+     [
+      "sleeve_b",
+      15000000.0
+     ],
+     [
+      "satellite",
+      30000000.0
+     ],
+     [
+      "sleeve_c",
+      5000000.0
+     ]
+    ],
+    "residual": 0.0
+   }
+  },
+  {
+   "id": "d2b ⓑ' promote 재정렬 — SAT gap(50)>B gap(20)인데도 B 먼저 (cap 비구속)",
+   "input": {
+    "amount": 30000000.0,
+    "quota": 100000000.0,
+    "sleeves": {
+     "sleeve_b": {
+      "current": 80000000.0,
+      "target": 100000000.0
+     },
+     "sleeve_c": {
+      "current": 80000000.0,
+      "target": 80000000.0
+     },
+     "satellite": {
+      "current": 0.0,
+      "target": 50000000.0
+     }
+    }
+   },
+   "expected": {
+    "filled": [
+     [
+      "sleeve_b",
+      20000000.0
+     ],
+     [
+      "satellite",
+      10000000.0
+     ]
+    ],
+    "residual": 0.0
+   }
+  },
+  {
+   "id": "d3 ⓒ quota=0 → promote 없음 + 🔴 B gap 이 최대여도 B 충당 0 (D1)",
+   "input": {
+    "amount": 35000000.0,
+    "quota": 0.0,
+    "sleeves": {
+     "sleeve_b": {
+      "current": 60000000.0,
+      "target": 100000000.0
+     },
+     "sleeve_c": {
+      "current": 70000000.0,
+      "target": 80000000.0
+     },
+     "satellite": {
+      "current": 20000000.0,
+      "target": 50000000.0
+     }
+    }
+   },
+   "expected": {
+    "filled": [
+     [
+      "satellite",
+      30000000.0
+     ],
+     [
+      "sleeve_c",
+      5000000.0
+     ]
+    ],
+    "residual": 0.0
+   }
+  },
+  {
+   "id": "d4 ⓓ 납입액(50) > 부족분 합계(30) → 잔여 20 (목적지 D2 발주자 대기)",
+   "input": {
+    "amount": 50000000.0,
+    "quota": 30000000.0,
+    "sleeves": {
+     "sleeve_b": {
+      "current": 90000000.0,
+      "target": 100000000.0
+     },
+     "sleeve_c": {
+      "current": 60000000.0,
+      "target": 80000000.0
+     },
+     "satellite": {
+      "current": 55000000.0,
+      "target": 50000000.0
+     }
+    }
+   },
+   "expected": {
+    "filled": [
+     [
+      "sleeve_b",
+      10000000.0
+     ],
+     [
+      "sleeve_c",
+      20000000.0
+     ]
+    ],
+    "residual": 20000000.0
+   }
+  },
+  {
+   "id": "d5 ⓔ B 부족분 없음 + quota>0 → promote 대상 부재 = no-op (D3)",
+   "input": {
+    "amount": 15000000.0,
+    "quota": 10000000.0,
+    "sleeves": {
+     "sleeve_b": {
+      "current": 110000000.0,
+      "target": 100000000.0
+     },
+     "sleeve_c": {
+      "current": 60000000.0,
+      "target": 80000000.0
+     },
+     "satellite": {
+      "current": 48000000.0,
+      "target": 50000000.0
+     }
+    }
+   },
+   "expected": {
+    "filled": [
+     [
+      "sleeve_c",
+      15000000.0
+     ]
+    ],
+    "residual": 0.0
+   }
+  },
+  {
+   "id": "d6 ⓕ 전 슬리브 잉여 → filled=[], 전액 잔여 (밴드 리밸런싱 금지 확인)",
+   "input": {
+    "amount": 20000000.0,
+    "quota": 5000000.0,
+    "sleeves": {
+     "sleeve_b": {
+      "current": 110000000.0,
+      "target": 100000000.0
+     },
+     "sleeve_c": {
+      "current": 90000000.0,
+      "target": 80000000.0
+     },
+     "satellite": {
+      "current": 60000000.0,
+      "target": 50000000.0
+     }
+    }
+   },
+   "expected": {
+    "filled": [],
+    "residual": 20000000.0
+   }
+  }
+ ],
+ "_meta": {
+  "source": "03_알고리즘 §5-5b DEPOSIT (v2.9) — gv28d_gen_vectors.py 실행 산출물. 손편집 금지",
+  "fixed_decisions": {
+   "D1": "quota=0 이면 B 미충당 (연금 한도는 법적 제약, §2-7-1·엔진 일치) — 이번에 고정",
+   "D2": "residual 목적지 미고정 — 발주자 대기. 벡터는 금액만 채점한다",
+   "D3": "promote 는 재정렬+캡. B 가 gaps 에 없으면 no-op — 이번에 고정",
+   "D4": "gap 동률 = (gap 내림차순, 이름 오름차순) — 이번에 고정(케이스에는 동률 없음)"
+  },
+  "tolerance": 1e-09
+ }
+}
