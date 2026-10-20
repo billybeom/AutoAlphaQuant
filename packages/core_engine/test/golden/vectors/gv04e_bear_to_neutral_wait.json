@@ -1,0 +1,11 @@
+{
+  "input": {
+    "direction_series": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
+    "up": 60.0, "down": 40.0, "confirm_bars": 3, "min_hold_bars": 10,
+    "initial_state": "BEAR", "initial_bars_in_state": 2
+  },
+  "expected": {
+    "states": ["BEAR","BEAR","BEAR","BEAR","BEAR","BEAR","BEAR","NEUTRAL","NEUTRAL","NEUTRAL"],
+    "bars_in_state": [3, 4, 5, 6, 7, 8, 9, 0, 1, 2]
+  }
+}

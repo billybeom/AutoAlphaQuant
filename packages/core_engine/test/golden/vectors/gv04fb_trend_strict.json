@@ -1,0 +1,9 @@
+{
+  "trend_in": 35.0, "trend_out": 45.0, "confirm_bars": 3,
+  "cases": [
+    { "id": "b1", "trendiness_series": [35, 35, 35, 45, 45, 45], "initial_trend": "LOW",
+      "expected": { "trend_states": ["LOW","LOW","LOW","LOW","LOW","LOW"] } },
+    { "id": "b2", "trendiness_series": [35, 35, 35], "initial_trend": "HIGH",
+      "expected": { "trend_states": ["HIGH","HIGH","HIGH"] } }
+  ]
+}

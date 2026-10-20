@@ -1,0 +1,15 @@
+{
+  "cases": [
+    { "id": "e1",
+      "input": { "category_scores": { "TREND": 0.0, "BREADTH": 0.0, "VOLATILITY": 0.0,
+                                      "CREDIT": 80.0, "MACRO": 80.0 } },
+      "expected": { "status": "OK", "direction": 32.0 } },
+    { "id": "e2",
+      "input": { "category_scores": { "TREND": 0.0, "BREADTH": null } },
+      "expected": { "status": "OK", "direction": 0.0 } },
+    { "id": "e3",
+      "input": { "category_scores": { "TREND": 0.0, "BREADTH": 0.0 } },
+      "expected": { "status": "OK", "direction": 0.0 } }
+  ],
+  "tolerance": 1e-4
+}

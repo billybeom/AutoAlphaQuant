@@ -1,0 +1,9 @@
+{
+  "input": {
+    "category_scores": {
+      "TREND": 80.0, "BREADTH": 60.0, "VOLATILITY": 40.0,
+      "CREDIT": null, "MACRO": null
+    }
+  },
+  "expected": { "direction": 60.0 }
+}

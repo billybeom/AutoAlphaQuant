@@ -1,0 +1,11 @@
+{
+  "input": {
+    "category_definitions": { "TREND": 4, "BREADTH": 3, "VOLATILITY": 3 },
+    "available_indicators": { "TREND": 4, "BREADTH": 1, "VOLATILITY": 3 },
+    "indicator_means": { "TREND": 80.0, "BREADTH": 90.0, "VOLATILITY": 40.0 }
+  },
+  "expected": {
+    "excluded_categories": ["BREADTH"],
+    "direction": 60.0
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "cases": [
+    { "id": "n1",
+      "direction_series": [35, 35, null],
+      "initial_state": "BULL", "initial_bars_in_state": 99,
+      "expected": { "states": ["BULL","BULL","BULL"],
+                    "bars_in_state": [100, 101, 102] } },
+
+    { "id": "n2",
+      "direction_series": [null, null, null],
+      "initial_state": "NEUTRAL", "initial_bars_in_state": 99,
+      "expected": { "states": ["NEUTRAL","NEUTRAL","NEUTRAL"],
+                    "bars_in_state": [100, 101, 102] } },
+
+    { "id": "n3",
+      "direction_series": [70, 70, null, 70, 70, 70],
+      "initial_state": "BEAR", "initial_bars_in_state": 99,
+      "expected": { "states": ["BEAR","BEAR","BEAR","BEAR","BEAR","BULL"],
+                    "bars_in_state": [100, 101, 102, 103, 104, 0] } }
+  ]
+}

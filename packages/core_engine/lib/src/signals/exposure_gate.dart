@@ -11,16 +11,18 @@ import 'regime_states.dart';
 
 /// 익스포저 = f(방향) × g(추세성). 비율이라 double 이다(01 §0 «비율·스코어 = float»).
 double exposureGate(DirectionState direction, TrendState trend) =>
-    _directionFactor(direction) * _trendFactor(trend);
+    directionFactor(direction) * trendFactor(trend);
 
-double _directionFactor(DirectionState direction) => switch (direction) {
+/// f(방향) — BULL 1.0 · NEUTRAL 0.5 · BEAR 0.0 · UNKNOWN 0.0(fail-closed).
+double directionFactor(DirectionState direction) => switch (direction) {
   DirectionState.bull => 1.0,
   DirectionState.neutral => 0.5,
   DirectionState.bear => 0.0,
   DirectionState.unknown => 0.0,
 };
 
-double _trendFactor(TrendState trend) => switch (trend) {
+/// g(추세성) — HIGH 1.0 · LOW 0.5(GV-4f 의 `g` 열).
+double trendFactor(TrendState trend) => switch (trend) {
   TrendState.high => 1.0,
   TrendState.low => 0.5,
 };

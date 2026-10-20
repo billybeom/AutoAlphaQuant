@@ -1,0 +1,11 @@
+{
+  "input": {
+    "direction_series": [35, 35, 35],
+    "up": 60.0, "down": 40.0, "confirm_bars": 3, "min_hold_bars": 10,
+    "initial_state": "BULL", "initial_bars_in_state": 2
+  },
+  "expected": {
+    "states": ["BULL", "BULL", "BEAR"],
+    "bars_in_state": [3, 4, 0]
+  }
+}
