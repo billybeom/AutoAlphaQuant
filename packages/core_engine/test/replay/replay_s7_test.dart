@@ -26,6 +26,11 @@ void main() {
   ];
   final Map<String, Object?> wd = want['daily']! as Map<String, Object?>;
   final List<Object?> wDates = wd['date']! as List<Object?>;
+  // 정답지의 수 열 11개 — 금 평가액(`gold_b` · `gold_pot`)은 replay_golden_p0s_test 가 해시로 본다.
+  final List<String> numCols = <String>[
+    for (final String c in wd.keys)
+      if (c != 'date' && c != 'breaker' && c != 'dir_state') c,
+  ];
 
   final ReplayEngine e = ReplayEngine(
     ReplayMarket.build(),
@@ -71,7 +76,7 @@ void main() {
     for (int k = 0; k < wDates.length; k++) {
       final DailyRow g = e.daily[k];
       if (g.date != wDates[k]) return '일별 [$k] 날짜 ${g.date} ↔ ${wDates[k]}';
-      for (final String col in g.values.keys) {
+      for (final String col in numCols) {
         final Object? w = (wd[col]! as List<Object?>)[k];
         final double v = g.values[col]!;
         final bool same = w == null ? v.isNaN : v == (w as num).toDouble();
@@ -101,6 +106,7 @@ void main() {
   });
 
   test('일별 6,900행 — 11열 · 브레이커 · 방향 비트 일치(첫 갈림 없음)', () {
+    expect(numCols, hasLength(11));
     expect(firstDailyDiff(), isNull);
   });
 }

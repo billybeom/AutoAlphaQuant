@@ -8,6 +8,7 @@
 
 | 파일 | 원본 | 원본 판 | 복사일 |
 |---|---|---|---|
+| `golden_p0s.json` | `09_백테스트/백테스트6/runs/N2_golden/golden_p0s.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `b86a47f74cc0a56eaa979b130c05175de94e4cd1438831dbd467984cdfb6555f` · 원본도 끝 줄바꿈 없음) · 05 §GV-P0S 가 지목하는 v2.32 정본 정답지. E6e 는 설계 13 §7 P-2 결정 범위만 판정한다 — `stack` 의 S6·S7 · `stress_S7` · `aftertax_S7` · `gold_share_S7` · `realized_alloc_S7`. `S5_P0`(새틀 6% 경로) · `bootstrap_S7`(numpy 난수) 는 Dart 범위 밖 · `aftertax_full_S7` 은 E7a 몫 | 파일 커밋 `d479e19` | 2026-10-21 |
 | `gv28d_deposit.json` | `08_파일럿/파일럿5/vectors/gv28d_vectors.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `8c9142342141226bea15dcc97486b815a7c178d4745624ca8929cb378834c95f`) · 03 §5-5b 가 지목(AC-B21 의 d1~d8) · `_meta.fixed_decisions` D1~D4 — D2(잔여 목적지)는 발주자 대기라 금액만 채점 · D4(동률 = 이름순)는 정답지에 동률이 없어 엔진은 입력 순서를 쓴다 | 파일 커밋 `b1c85de` | 2026-10-20 |
 | `gv22_sleeve_c_gold_cap.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-22 코드 블록(2406~2431행) — 비중 0.40/0.35/0.25 는 v1.7 값이지만 블록 안 `config` 에 적혀 있어 자기완결이다 | 05 **v1.22** | 2026-10-20 |
 | `gv20_sleeve_b_tranche.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-20 코드 블록(2292~2306행) | 05 **v1.22** | 2026-10-20 |
@@ -58,6 +59,7 @@
 sha256(복사본 — `sha256sum *.json`):
 
 ```
+573f027dbdb5bea992d7d0d8eb298136e7b83d924830bdda0aa80d13d9450850  golden_p0s.json
 9798993f3be911bc9d86954b61f4b4243786218d947cdf15e5ac08d7561e1f3e  gv28d_deposit.json
 61692a7df88697bf5b7b08a05b70af703f72eadbf45e38f7f416c65e3c8fecc7  gv22_sleeve_c_gold_cap.json
 2deb53d95e7839559d14fce69702206ca0d2ea0d8e8889aab574119a3fc3058f  gv20_sleeve_b_tranche.json
