@@ -38,7 +38,7 @@
 2. **골든벡터 전량 통과 전에는 DRY_RUN을 벗어나지 않는다**(결정 2). 이 패키지의 Dart 재현이 그 게이트다.
 3. **사유 문구는 여기서 만들어진다.** 화면은 만들지 않는다 — 엔진이 `label`·`actionLine` 필드에 실어 보낸다.
 
-## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a · E6b · 나머지는 🟡
+## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a~E6e · E7a1 · 나머지는 🟡
 
 실행 계획(블록 E1~E18)은 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` 가 정본이다.
 
@@ -63,6 +63,8 @@
 | `lib/src/portfolio/deposit.dart` — 납입 배분(부족분 큰 순 · 연금 한도가 남으면 B 먼저·한도까지만 · 한도 0 이면 B 제외 · 잔여 반환(목적지 D2 대기)) | M1-4 일부(E5d) | GV-28d(8) · 동률·부족분 0·입력 거부 |
 | `lib/src/signals/percentile.dart` — PIT 백분위(확장 윈저화 1%·99% → 확장 평균 순위 · 그 시점 경계로 한 번만 자름) · 이동 백분위(창 전부 있을 때만) | M1-2(E6b) | 26년 재현 비트 일치(test/replay) · `test/regime_pipeline_test.dart` |
 | `lib/src/signals/regime_pipeline.dart` — 지표 설정 표(13개 · 02 §4 기본값) · TREND 4지표 · 분산일 · 12-1 모멘텀 · 정규화 · 날마다 방향 스코어 · 추세성 세 부분 · FSM 봉 루프(🔴 03 방식 — 데이터 부족일 UNKNOWN 저장 · 나이·추세성 유지 · R9) · KOSDAQ 추세 점수 | M1-2 · 03 §5-3-2(E6b) | 26년 재현: 정규화 13 · 방향 · 추세성 · tskr **비트 일치** · FSM 1985-11-27 이후 상태·나이 일치 |
+| `lib/src/numeric/pandas_compat.dart` — numpy 짝 합산 · pandas 무리 합(카한) · 파이썬 `round`(이진수 정확값 · 동률 짝수) | 골든 대조의 수치 받침(E7a1 — 하네스에서 옮김) | 26년 재현 비트 일치(E6c · E6e · E7a1) · `test/after_tax_test.dart` |
+| `lib/src/whatif/after_tax.dart` — 세후 산식(정본 `exp/tax_lib.py::aftertax_full` 을 같은 연산 순서의 double 로 · 갈래 4 × 층 9 · 🔴 무납입 전용 — 외부 현금흐름이 있으면 거부 · §8 미결 18) · `after_tax_ladder.dart` — `AfterTaxLadder` 조립(엔진 문장 · 늘 골든 참고치) | M3-5(무납입) · M2-9 ⓒⓓⓔ(E7a1) | `aftertax_full_S7` **글자까지 일치**(test/replay — 26년 S7 원장) · 픽스처 `aftertax_ladder_1.json` 과 DTO 일치 · C-30 · C-41 ⑦ |
 
 **STOPPED 실재개**는 `releaseStoppedToHalted` 하나뿐이다 — 부르는 자리는 M5-3(`decision_id` 등록 뒤)과 재현 하네스다. 참조 엔진의 `stopped_release_enabled`(자격 = 재개 근사)는 앱 코드에 두지 않는다.
 

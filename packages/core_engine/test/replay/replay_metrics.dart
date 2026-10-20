@@ -8,7 +8,11 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:core_engine/src/numeric/pandas_compat.dart';
+
 import 'replay_engine.dart';
+
+export 'package:core_engine/src/numeric/pandas_compat.dart' show pyRound;
 
 /// `harness.stats` 의 판정 항목.
 class PerfStats {
@@ -93,19 +97,9 @@ List<(String, double)> potTax(List<LedgerRow> ledger) {
   return taxes;
 }
 
-/// pandas `groupby(...).sum()` — 무리별 카한 합산(`_libs/groupby.pyx::group_sum`) · 키 오름차순.
-List<(String, double)> groupSumByDate(List<(String, double)> rows) {
-  final Map<String, (double, double)> acc = <String, (double, double)>{};
-  for (final (String d, double v) in rows) {
-    final (double sumx, double comp) = acc[d] ?? (0.0, 0.0);
-    final double y = v - comp;
-    final double t = sumx + y;
-    final double c = t - sumx - y;
-    acc[d] = (t, c.isNaN ? 0.0 : c);
-  }
-  final List<String> keys = acc.keys.toList()..sort();
-  return <(String, double)>[for (final String k in keys) (k, acc[k]!.$1)];
-}
+/// pandas `groupby("date").sum()` — lib [kahanGroupSum](날짜 문자열 키).
+List<(String, double)> groupSumByDate(List<(String, double)> rows) =>
+    kahanGroupSum<String>(rows);
 
 /// N2 `aftertax` — 세금 낸 날의 수익률에서 «세금 ÷ 전날 자산»을 빼고 다시 쌓아 `stats`(유출입 없이).
 (PerfStats, List<double>) afterTax(
@@ -178,30 +172,6 @@ Map<String, double> realizedAlloc(List<DailyRow> daily) {
     'C_acct_excl_pot': mean((DailyRow d) => d.values['C']! - d.values['pot']!),
     'pot': mean(col('pot')),
   };
-}
-
-/// 파이썬 `round(x, nd)` — 이진수 정확값을 소수 nd 자리로 반올림(동률은 짝수)한 뒤 가장 가까운 double.
-double pyRound(double x, int nd) {
-  if (x.isNaN || x.isInfinite || x == 0) return x;
-  final ByteData bd = ByteData(8)..setFloat64(0, x);
-  final int bits = bd.getInt64(0);
-  final bool neg = bits < 0;
-  final int ex = (bits >> 52) & 0x7ff;
-  final int frac = bits & 0xfffffffffffff;
-  final BigInt mant = BigInt.from(ex == 0 ? frac : frac | (1 << 52));
-  final int e2 = (ex == 0 ? 1 : ex) - 1075; // |x| = mant × 2^e2
-  BigInt num = mant * BigInt.from(10).pow(nd);
-  BigInt den = BigInt.one;
-  if (e2 >= 0) {
-    num <<= e2;
-  } else {
-    den <<= -e2;
-  }
-  BigInt q = num ~/ den;
-  final BigInt rem2 = (num - q * den) * BigInt.two;
-  if (rem2 > den || (rem2 == den && q.isOdd)) q += BigInt.one;
-  final double out = double.parse('${q}e-$nd');
-  return neg ? -out : out;
 }
 
 /// N2 `pct4` — `round(x × 100, 4)`.

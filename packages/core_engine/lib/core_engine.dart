@@ -107,3 +107,25 @@ export 'src/signals/regime_states.dart' show DirectionState, TrendState;
 export 'src/signals/seasonal_exit.dart' show seasonalExitFraction;
 export 'src/signals/sleeve_b_tranche.dart'
     show SleeveBAssist, sleeveBTargetRatioP0, sleeveBTargetWeight;
+export 'src/whatif/after_tax.dart'
+    show
+        AfterTaxBranch,
+        AfterTaxFull,
+        AfterTaxFullInputs,
+        AfterTaxInputs,
+        AfterTaxPoint,
+        TaxLedgerRow,
+        afterTaxFull,
+        applyDailyTax,
+        comprehensiveExtra,
+        kAfterTaxPointKeys,
+        kDividendTaxRate,
+        kFinancialIncomeThreshold,
+        kPensionCreditCap,
+        kPensionCreditRate,
+        kPensionWithdrawalTaxes,
+        kTaxLadderBranchRates,
+        kTaxLadderGoldenKeys,
+        realizedGains;
+export 'src/whatif/after_tax_ladder.dart'
+    show buildAfterTaxLadder, kHonestHaircutPctPoints;

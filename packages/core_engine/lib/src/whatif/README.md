@@ -1,4 +1,6 @@
-# `lib/src/whatif/` — M3 What-if 시뮬레이션 (예정)
+# `lib/src/whatif/` — M3 What-if 시뮬레이션
+
+> 🟢 **들어온 것(E7a1)** — `after_tax.dart`(세후 산식 · 정본 `09_백테스트/백테스트6/exp/tax_lib.py` · 무납입 전용) · `after_tax_ladder.dart`(`AfterTaxLadder` 조립 · §8 미결 18 확정 전에는 늘 골든 참고치). 🟡 `WhatIfApi` 구현(아래)은 E7a2(입금 미리보기) · E7a3(리밸런싱 미리보기) 몫이다.
 
 정본: 01_M2_도메인계약 **§4-1 `WhatIfApi`** · **§2-6 `DepositPlan`** · 🆕 **§14 계약 v1.4**(R11 선행) · 전략 `06_시스템설계/00_SPEC.md` **v2.32**
 
