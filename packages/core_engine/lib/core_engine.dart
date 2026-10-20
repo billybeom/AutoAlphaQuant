@@ -14,4 +14,6 @@ export 'src/decimal_rules.dart'
 export 'src/risk/position_sizing.dart'
     show SizingBinding, SizingResult, sizePosition;
 export 'src/signals/exposure_gate.dart' show exposureGate;
+export 'src/signals/indicators.dart'
+    show adx, atr, bbw, chop, rma, rmaStep, sma, trueRange;
 export 'src/signals/regime_states.dart' show DirectionState, TrendState;

@@ -1,0 +1,15 @@
+{
+  "input": {
+    "generator": "base[i] = 100.0 + 0.10*i + 6.0*abs(((i % 40)/20.0) - 1.0),  i = 0..199",
+    "high": "base + 1.5", "low": "base - 1.5", "close": "base + 0.5",
+    "period": 14, "warmup": 150
+  },
+  "expected": {
+    "adx[148]": null,
+    "adx[149]": 29.593279,
+    "adx[150]": 31.179541,
+    "adx[175]": 32.964382,
+    "adx[199]": 49.822905
+  },
+  "tolerance": 1e-5
+}

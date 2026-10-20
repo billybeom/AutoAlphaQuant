@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
+import 'package:test/test.dart';
 
 /// 정답지 폴더(패키지 루트 기준).
 const String kVectorsDir = 'test/golden/vectors';
@@ -54,6 +55,33 @@ int asInt(Object? value) {
     return value.toInt();
   }
   throw StateError('정답지에서 정수를 기대했다: $value');
+}
+
+/// 수 목록으로 읽는다 — JSON `null` 은 결측(null)으로 둔다(지표 워밍업 구간).
+List<double?> asNumList(Object? value) {
+  if (value is List<Object?>) {
+    return <double?>[
+      for (final Object? v in value) v == null ? null : asDouble(v),
+    ];
+  }
+  throw StateError('정답지에서 수 목록을 기대했다: $value');
+}
+
+/// 시리즈를 칸마다 대조한다 — 기대가 null 이면 결측이어야 하고, 아니면 허용오차 안.
+void expectSeries(
+  List<double?> actual,
+  List<double?> expected,
+  double tolerance,
+) {
+  expect(actual, hasLength(expected.length));
+  for (int i = 0; i < expected.length; i++) {
+    final double? want = expected[i];
+    if (want == null) {
+      expect(actual[i], isNull, reason: '[$i] 워밍업·결측 자리');
+    } else {
+      expect(actual[i], closeTo(want, tolerance), reason: '[$i]');
+    }
+  }
 }
 
 /// 금액·가격으로 읽는다. 문자열이든 수든 **문자열을 거쳐** Decimal 로.
