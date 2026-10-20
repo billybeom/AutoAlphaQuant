@@ -1,0 +1,81 @@
+{
+ "meta": {
+  "purpose": "참조 엔진 백테스트6 S6·S7·스트레스 3종 실행 해시 — E6d 대조",
+  "absorb": [
+   "pension_funding"
+  ],
+  "generator": "packages/core_engine/tool/export_replay_variants.py"
+ },
+ "variants": {
+  "S7_P0S": {
+   "n_ledger": 934,
+   "cost_krw_sum": 24289863.1207356,
+   "ledger_text_sha256": "2eb3a12dd7ce1a51c14b9f326e4a55f36a2bc207493f2a2dc769751f31d91916",
+   "ledger_num_sha256": {
+    "qty": "f77fe7825b3e4c970fd0c7f11e2fc93850b4be5fe59fed28ba72f33862240f35",
+    "price": "55e3e572dbfc7c5d45bf0f04be16a4006ba7645ffe9dcdc452b3d76d487986b6",
+    "gross_krw": "780f34e2bd3aa25bbd814807ebb0afa85365e77f7c2482cdf2fe7eb8e0c37f4e",
+    "cost_krw": "2a9de50b9884ebfa498149fb0ad9a8cd13bdaeef523a178aa38c173cc12a654f"
+   },
+   "n_daily": 6900,
+   "equity_sha256": "91bcf1dcc40d1c3ec7a72329ab5d6bdaf2e41e9c8179ce00d51e2062ee657728",
+   "equity_last": 1659513333.7637625
+  },
+  "S6_P0S_residual": {
+   "n_ledger": 934,
+   "cost_krw_sum": 24289863.1207356,
+   "ledger_text_sha256": "2eb3a12dd7ce1a51c14b9f326e4a55f36a2bc207493f2a2dc769751f31d91916",
+   "ledger_num_sha256": {
+    "qty": "f77fe7825b3e4c970fd0c7f11e2fc93850b4be5fe59fed28ba72f33862240f35",
+    "price": "55e3e572dbfc7c5d45bf0f04be16a4006ba7645ffe9dcdc452b3d76d487986b6",
+    "gross_krw": "780f34e2bd3aa25bbd814807ebb0afa85365e77f7c2482cdf2fe7eb8e0c37f4e",
+    "cost_krw": "2a9de50b9884ebfa498149fb0ad9a8cd13bdaeef523a178aa38c173cc12a654f"
+   },
+   "n_daily": 6900,
+   "equity_sha256": "91bcf1dcc40d1c3ec7a72329ab5d6bdaf2e41e9c8179ce00d51e2062ee657728",
+   "equity_last": 1659513333.7637625
+  },
+  "delay1": {
+   "n_ledger": 932,
+   "cost_krw_sum": 23272636.495037563,
+   "ledger_text_sha256": "983563b1d9297b82d20aa5ffb92efdeb79dc91bfaf452dd7a90f143a980c58c2",
+   "ledger_num_sha256": {
+    "qty": "19b51e2d6db330af2865655951c5d8202807159e77116be184b129088ddee8fe",
+    "price": "89b8b5f4bf3dce519747d8161c875c87bcd7a50d826fbe71b59985032fbfc511",
+    "gross_krw": "43806d64cdc318e334180b0446dc75b1973640d319c970b476fbf057b93a7c97",
+    "cost_krw": "54105ae4ef723beaddee05c69cd162fab71ffea787c9f9eaa5afed2d8f54f875"
+   },
+   "n_daily": 6900,
+   "equity_sha256": "c8cfa1e02ac1adaad082d4255dd81630fdb5cfb21310d0c59b0db1d82379669e",
+   "equity_last": 1584353141.355822
+  },
+  "nogate": {
+   "n_ledger": 906,
+   "cost_krw_sum": 21702135.79684931,
+   "ledger_text_sha256": "7b1e3c6039d155a46ee89a2a88d34f1b811ff359e12a0beecaf06407ddaf442d",
+   "ledger_num_sha256": {
+    "qty": "6053787387785108b92caa1469700fdb7f8784863ba4ac8b9db7922e736a2a38",
+    "price": "cff8d99cb93b27329be7d82c22b486a16d4f6daa4731a76c6985f5164a866118",
+    "gross_krw": "c4dc439de34223f8e830a93aeeba3d05683e384414a9e36fdf89b1214985d3c4",
+    "cost_krw": "8bce445b2a77918d524f26e0d78eda2ed3415716797c29bfb1d5e6ad69b684aa"
+   },
+   "n_daily": 6900,
+   "equity_sha256": "c35c0ca04993fc743b1c8a723354c406402a48355cddfcd1acbb08ea88bc05fe",
+   "equity_last": 1447784033.2904832
+  },
+  "nocut": {
+   "n_ledger": 924,
+   "cost_krw_sum": 22826464.90617842,
+   "ledger_text_sha256": "28c71b558d33f23b69c87dd2a5766e4edfc525cb3af1846d494fc3a96b3dcf41",
+   "ledger_num_sha256": {
+    "qty": "7c4051500a99448319de5a9a173b9e590d2c8593e2a1e34f9c44e66300ca47ba",
+    "price": "25fe3dbd42c0fbeaa705ea3ac0cfd9abe2cd4f4e46d8071b5f4b973451c70cef",
+    "gross_krw": "d2aa1739a2b300458278986f5a1360b7d9620390c9613d10238d600338d23eec",
+    "cost_krw": "a6b672a1102812e859374d6993b281f8222a4bd67c3d58ba535d176d46bf7d44"
+   },
+   "n_daily": 6900,
+   "equity_sha256": "2c6e86fe858fc329d0c8a10dafd14f1f53b0f296a21db13cea4a04be5dedc9af",
+   "equity_last": 1816663465.4894977
+  }
+ }
+}
