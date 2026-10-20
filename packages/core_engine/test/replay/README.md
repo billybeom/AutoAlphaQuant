@@ -14,7 +14,8 @@
 | `replay_market.dart` | 시장 번들 — 환율(FRED 우선) · 세션 = **데이터 날짜**(US 6,694 · KR 6,561 · 합집합 6,900) · 월말 320/320 · 월 끝 3세션 · 슬리브 B 원화 지수(133690 = QQQ ← ^NDX 소급 · 411060 = 금 선물 · 한국 세션 = 엄격히 앞선 미국 종가) · 원화 현금 지수 · UST10 · 금 USD · 가격 패널 · 월봉 |
 | `replay_regime.dart` | 국면 재현 — 외부 시리즈 발표 지연(ofr_fsi 1 · nfci 7 · cfnai 55 · t10y3m 1 · sahm 40 달력일) 정렬만 여기서, 계산은 `lib/src/signals/` 를 그대로 |
 | `fixtures/regime_parity.json` | 참조 엔진 `regime.py` 산출의 해시·표본(`tool/export_replay_regime.py`) — 정규화 이후 비트 일치 · FSM 은 03 방식이라 1985-11-14~26 9봉만 다름 |
-| `replay_engine.dart` | 장부 재현 — 참조 엔진 `backtest.py` P0S 일별 루프를 **같은 연산 순서의 double** 로: 보유비용(세션마다 수량 × (1 − ER×1.15/252)) · 평가 · 브레이커 · 체결(B·C — 매수 슬리피지는 체결가에 · 원장 비용은 «보고») · 램프 · 코어 밴드(재분류 · 환원 · 납입 · B 조달 매도) · B 트랜치(numpy 짝 합산 평균) · C 리밸런싱 · 스냅숏. E6d 몫(계절 A · POT · 조달 `_take_krw`)에 닿으면 멈춘다 |
+| `replay_engine.dart` | 장부 재현 — 참조 엔진 `backtest.py` P0S 일별 루프를 **같은 연산 순서의 double** 로: 보유비용(세션마다 수량 × (1 − ER×1.15/252)) · 평가 · 브레이커 · 체결(B·C — 매수 슬리피지는 체결가에 · 원장 비용은 «보고») · 램프 · 코어 밴드(재분류 · 환원 · 납입 · B 조달 매도) · B 트랜치(numpy 짝 합산 평균) · C 리밸런싱 · 스냅숏. + 🆕 E6d: 계절 A(F1 진입 게이트 · 마지막 3세션 3분할 · 이월 · 마지막 날 잔량 집행) · POT 서브북(입금 · 청산 — 🔴 1원 문턱 없음 · 리밸런싱) · 원화 조달(`_take_krw` → `_raise_krw` — C 방어자산 필요한 만큼 · 설계 13 §8 R17 ①) · 실행 변형 `ReplayVariant`(S7 · S6 · delay1 · nogate · nocut) · numpy 짝 합산 `npSum` |
+| `fixtures/variants_parity.json` | S7 · S6 · 스트레스 3종 실행의 원장(문자·수 칸)·비용·일별 자산 해시(`tool/export_replay_variants.py`) — **다섯 실행 모두 비트 일치** |
 | `fixtures/s7_engine.json.gz` | 참조 엔진 S7(P0S 정본) 실행의 원장 934행 · 일별 6,900행(`tool/export_replay_engine.py` — 골든 생성기와 같은 설정 · 캐시 번들 읽기만) |
 | `fixtures/market_parity.json` | 참조 엔진 `market.build` 본문 + `apply_p0_market` + `Backtest._prep` 산출의 해시·표본 값(`tool/export_replay_market.py`) — 전부 비트 일치 |
 

@@ -4,8 +4,9 @@
 //    쌓인 순서(매도 먼저로 정렬하지 않는다)를 그대로 둔다 — 골든(원장 934행 · 비용 24,289,863원)이 그 동작의 실측이다.
 // 🔴 앱(lib)의 Decimal 함수는 쓰지 않는다 — 재현은 파이썬 float 연산 순서가 기준이다(지도 §9 권고).
 //    규칙 판정(B 트랜치 하한·BEAR 차감)은 lib 와 같은 식이지만 평균은 numpy 짝 합산이라 여기서 따로 계산한다.
-// 🔵 E6c 범위: 보유비용 · 평가 · 브레이커 · 체결(B·C) · 램프 · B 트랜치 · C 리밸런싱 · 스냅숏.
-//    E6d 몫(계절 A · POT · 코어 밴드 · 조달)에 닿으면 [UnimplementedError] — [ReplayEngine.run] 의 `until` 로 구간을 끊는다.
+// 🔵 이식 범위: 보유비용 · 평가 · 브레이커 · 체결(B·C) · 램프 · 코어 밴드 · B 트랜치 · C 리밸런싱 · 스냅숏(E6c) ·
+//    계절 A(F1 진입 게이트 · 마지막 3세션 3분할 · 이월 · 마지막 날 잔량 집행) · POT 서브북 · 원화 조달(E6d).
+// 🔴 원화 조달(`_take_krw` → `_raise_krw`)은 C 방어자산을 **필요한 만큼** 판다 — 잉여 상한 없음(설계 13 §8 R17 ① 결정).
 
 import 'replay_market.dart';
 import 'replay_regime.dart';
@@ -26,8 +27,6 @@ abstract final class P0sConfig {
       ];
   static const List<int> lookbacks = <int>[8, 10, 12];
   static const double parkingEr = 0.00115;
-  static const double bSmaFloor = 1.0 / 3;
-  static const double bAssistCut = 2.0 / 3;
   static const String bAssistCutState = 'BEAR';
   static const double cIeiW = 0.65;
   static const double cIauW = 0.35;
@@ -44,8 +43,12 @@ abstract final class P0sConfig {
   static const double erMarkup = 1.15;
   static const int tradingDaysPerYear = 252;
   static const double pensionAnnualLimit = 18000000.0;
-  static const bool pensionFunding = true;
   static const double coreBand = 0.03;
+  // 계절(config.py Seasonality · P0_PIECES)
+  static const int entryMonth = 10;
+  static const int exitMonth = 4;
+  static const int f1EntryDeferMax = 2;
+  static const double aEtfSlip = 0.0010;
   static const double satBandHi = 21.0 / 18.0;
   // 브레이커(config.py Breaker)
   static const double ddAlert = -0.15;
@@ -57,6 +60,86 @@ abstract final class P0sConfig {
   static const double reduceReleaseDd = -0.12;
   static const double haltReleaseDd = -0.15;
   static const int haltReleaseBullStreak = 3;
+}
+
+/// 골든 생성기(`exp/N2_golden_p0s.py`)의 실행 변형 — 바뀌는 설정만.
+class ReplayVariant {
+  const ReplayVariant({
+    required this.name,
+    required this.bSmaFloor,
+    required this.assistCut,
+    required this.assistDelay,
+    required this.f1EntryGateScore,
+    required this.pensionFunding,
+  });
+
+  /// 이름(정답지 키).
+  final String name;
+
+  /// B 트랜치 상시 하한(`b_sma_floor`).
+  final double bSmaFloor;
+
+  /// BEAR 차감량 — null = assist 없음(`b_sma_regime_assist = None`).
+  final double? assistCut;
+
+  /// assist 지연(직전 월말 상태로 판정).
+  final int assistDelay;
+
+  /// F1 진입 게이트 점수(0 = 게이트 없음).
+  final double f1EntryGateScore;
+
+  /// v2.32 연금 납입 조달 경로.
+  final bool pensionFunding;
+
+  /// S7 = P0S 정본(v2.32).
+  static const ReplayVariant s7 = ReplayVariant(
+    name: 'S7_P0S',
+    bSmaFloor: 1.0 / 3,
+    assistCut: 2.0 / 3,
+    assistDelay: 0,
+    f1EntryGateScore: 60.0,
+    pensionFunding: true,
+  );
+
+  /// S6 = 흡수처 조각(연금 조달)만 끈 것 — S7 과 같아야 한다.
+  static const ReplayVariant s6 = ReplayVariant(
+    name: 'S6_P0S_residual',
+    bSmaFloor: 1.0 / 3,
+    assistCut: 2.0 / 3,
+    assistDelay: 0,
+    f1EntryGateScore: 60.0,
+    pensionFunding: false,
+  );
+
+  /// delay1 — BEAR 차감을 직전 KR 월말 상태로.
+  static const ReplayVariant delay1 = ReplayVariant(
+    name: 'delay1',
+    bSmaFloor: 1.0 / 3,
+    assistCut: 2.0 / 3,
+    assistDelay: 1,
+    f1EntryGateScore: 60.0,
+    pensionFunding: true,
+  );
+
+  /// nogate — 진입 게이트 제거.
+  static const ReplayVariant nogate = ReplayVariant(
+    name: 'nogate',
+    bSmaFloor: 1.0 / 3,
+    assistCut: 2.0 / 3,
+    assistDelay: 0,
+    f1EntryGateScore: 0.0,
+    pensionFunding: true,
+  );
+
+  /// nocut — 하한·BEAR 차감 모두 제거(순수 3-트랜치).
+  static const ReplayVariant nocut = ReplayVariant(
+    name: 'nocut',
+    bSmaFloor: 0.0,
+    assistCut: null,
+    assistDelay: 0,
+    f1EntryGateScore: 60.0,
+    pensionFunding: true,
+  );
 }
 
 /// 원장 한 행(`_rec`).
@@ -92,6 +175,13 @@ class _Order {
   final double amount;
 }
 
+class _Plan {
+  _Plan(this.side, this.amount, this.event, this.carryTo);
+  final String side, event;
+  final double amount;
+  final String? carryTo;
+}
+
 const Map<String, int> _levelOrder = <String, int>{
   'NORMAL': 0,
   'ALERT': 1,
@@ -100,36 +190,44 @@ const Map<String, int> _levelOrder = <String, int>{
   'STOPPED': 4,
 };
 
-/// numpy `np.mean` — 짝 합산(n ≤ 128: 누산기 8개) ÷ n. 20만 배열로 비트 일치 확인(2026-10-21).
-double npMean(List<double> a) {
-  final int n = a.length;
-  double sum;
+/// numpy 짝 합산(`pairwise_sum`) — n < 8 은 0 부터 차례로 · n ≤ 128 은 누산기 8개 · 그보다 크면 반으로 나눠 재귀
+/// (반 = n/2 를 8 의 배수로 내림). `np.mean` · pandas `Series.sum`(bottleneck 없음)이 이 값이다.
+double npSum(List<double> a, [int start = 0, int? end]) {
+  final int stop = end ?? a.length;
+  final int n = stop - start;
   if (n < 8) {
-    sum = 0.0;
-    for (final double x in a) {
-      sum += x;
+    double res = 0.0;
+    for (int i = start; i < stop; i++) {
+      res += a[i];
     }
-  } else if (n <= 128) {
-    final List<double> r = a.sublist(0, 8);
+    return res;
+  }
+  if (n <= 128) {
+    final List<double> r = a.sublist(start, start + 8);
     int i = 8;
     for (; i < n - (n % 8); i += 8) {
       for (int j = 0; j < 8; j++) {
-        r[j] += a[i + j];
+        r[j] += a[start + i + j];
       }
     }
-    sum = ((r[0] + r[1]) + (r[2] + r[3])) + ((r[4] + r[5]) + (r[6] + r[7]));
+    double res =
+        ((r[0] + r[1]) + (r[2] + r[3])) + ((r[4] + r[5]) + (r[6] + r[7]));
     for (; i < n; i++) {
-      sum += a[i];
+      res += a[start + i];
     }
-  } else {
-    throw UnimplementedError('np.mean 짝 합산 n > 128 은 쓰지 않는다');
+    return res;
   }
-  return sum / n;
+  int n2 = n ~/ 2;
+  n2 -= n2 % 8;
+  return npSum(a, start, start + n2) + npSum(a, start + n2, stop);
 }
+
+/// numpy `np.mean` = [npSum] ÷ n. 20만 배열로 비트 일치 확인(2026-10-21).
+double npMean(List<double> a) => npSum(a) / a.length;
 
 /// 참조 엔진 P0S 일별 루프.
 class ReplayEngine {
-  ReplayEngine(this.m, ReplayRegime regime) {
+  ReplayEngine(this.m, ReplayRegime regime, {this.variant = ReplayVariant.s7}) {
     final DatedSeries code = DatedSeries(regime.calendar, <double>[
       for (int i = 0; i < regime.fsm.length; i++) i.toDouble(),
     ]);
@@ -142,6 +240,13 @@ class ReplayEngine {
       final int q = score.lastAtOrBefore(d);
       _regScore.add(q < 0 ? double.nan : score.values[q]);
     }
+    final DatedSeries tk = DatedSeries(regime.kosdaqCalendar, <double>[
+      for (final double? x in regime.tskr) x ?? double.nan,
+    ]).dropNa();
+    for (final String d in m.allDays) {
+      final int q = tk.lastAtOrBefore(d);
+      _tskr.add(q < 0 ? double.nan : tk.values[q]);
+    }
     _krSet = m.kr.toSet();
     _usSet = m.us.toSet();
     for (int i = 0; i < m.allDays.length; i++) {
@@ -150,6 +255,10 @@ class ReplayEngine {
   }
 
   final ReplayMarket m;
+
+  /// 실행 변형(S7 정본 · S6 · 스트레스 3종).
+  final ReplayVariant variant;
+  (double, String)? _bAssistPrev;
   final List<String> _regState = <String>[];
   final List<double> _regScore = <double>[];
   late final Set<String> _krSet, _usSet;
@@ -182,6 +291,9 @@ class ReplayEngine {
   double dd = 0.0;
   double? prevEq;
   final Map<int, double> pensionUsed = <int, double>{};
+  int f1WaitEntry = 0;
+  final Map<String, List<_Plan>> _seasonalPlan = <String, List<_Plan>>{};
+  final List<double> _tskr = <double>[];
 
   double _p(int i, String key) => m.px[key]!.values[i];
   bool _fin(double x) => !x.isNaN && x.isFinite;
@@ -420,12 +532,328 @@ class ReplayEngine {
     );
   }
 
-  // ── 계절(E6d) ─────────────────────────────────────────────────────────
+  // ── 계절 A(E6d) ────────────────────────────────────────────────────
   void _seasonal(int i, String d, String state) {
-    // E6c: A 진입·청산 · POT 는 E6d 몫. 2000-12-21 첫 A 진입 전에는 F1 보류 이벤트만 생긴다(원장 행 없음).
-    if (aUnits != 0.0 || potCashUnits != 0.0) {
-      throw UnimplementedError('계절 A · POT — E6d ($d)');
+    _seasonalCheck(i, d, state);
+    _seasonalExecute(i, d, state);
+  }
+
+  double _ratioA() {
+    final double x = monthCount / P0sConfig.rampMonths;
+    final double f = P0sConfig.rampMonths <= 0 ? 1.0 : (x < 1.0 ? x : 1.0);
+    return P0sConfig.allocA * f;
+  }
+
+  void _seasonalCheck(int i, String d, String state) {
+    final (int, int)? tail = m.krTail[d];
+    if (tail == null || tail.$1 != 0) return; // 마지막 N 세션의 첫날에만 계획한다
+    final int start = m.kr.indexOf(d);
+    final int stop = start + tail.$2 > m.kr.length
+        ? m.kr.length
+        : start + tail.$2;
+    final List<String> days = m.kr.sublist(start, stop);
+    final int prevI = i > 0 ? i - 1 : 0;
+    final double eq = _equity(prevI); // 🔴 현재 수량 × 직전 세션 가격(same-bar 제거)
+    final double rA = _ratioA();
+    double cur = aUnits * _p(i, 'A');
+    final int mo = int.parse(d.substring(5, 7));
+    final double sc = _tskr[prevI]; // 🔴 직전 세션 KOSDAQ 추세 점수
+    double pendingSell() {
+      double sum = 0.0;
+      for (final _Plan pl in _seasonalPlan[d] ?? const <_Plan>[]) {
+        if (pl.side == 'SELL') sum += pl.amount;
+      }
+      return sum;
     }
+
+    if (f1WaitEntry > 0 && mo != P0sConfig.entryMonth) {
+      if (level == 'HALTED' || level == 'STOPPED') return;
+      final bool ok = _fin(sc) && sc >= variant.f1EntryGateScore;
+      if (!(ok || f1WaitEntry >= P0sConfig.f1EntryDeferMax)) {
+        f1WaitEntry += 1; // 보류(F1_ENTRY_DEFER)
+        return;
+      }
+      f1WaitEntry = 0; // 지연 진입(F1_ENTRY_LATE)
+      _potLiquidate(i, d, state);
+      cReservedKrw = 0.0;
+      final double c0 = cur - pendingSell();
+      cur = c0 > 0.0 ? c0 : 0.0;
+      final double delta = eq * rA - cur;
+      if (delta > eq * 0.001) _split(days, 'BUY', delta, 'SEASONAL_ENTRY');
+      return;
+    }
+    if (mo == P0sConfig.entryMonth) {
+      if (variant.f1EntryGateScore > 0 &&
+          level != 'HALTED' &&
+          level != 'STOPPED' &&
+          _fin(sc) &&
+          sc < variant.f1EntryGateScore) {
+        f1WaitEntry = 1; // 🔴 점수가 NaN 이면 보류하지 않고 진입한다(참조 엔진)
+        return;
+      }
+      _potLiquidate(i, d, state);
+      cReservedKrw = 0.0;
+      final double c0 = cur - pendingSell();
+      cur = c0 > 0.0 ? c0 : 0.0;
+      if (level == 'HALTED' || level == 'STOPPED') return;
+      final double delta = eq * rA - cur;
+      if (delta > eq * 0.001) _split(days, 'BUY', delta, 'SEASONAL_ENTRY');
+    } else if (mo == P0sConfig.exitMonth && cur > 0) {
+      // v2.19 기본 = 전량(partial.enabled false · GV-38) — 3분할 금액은 첫날 가격 기준 원화로 고정.
+      _split(days, 'SELL', cur * 1.0, 'SEASONAL_EXIT');
+    }
+  }
+
+  /// 마지막 3세션 분할 — 미체결은 다음 날로 이월 · 마지막 날 잔량 전량(§5-3-1).
+  void _split(List<String> days, String side, double total, String event) {
+    double remain = total;
+    for (int k = 0; k < days.length; k++) {
+      final int left = days.length - k;
+      final double amt = left == 1 ? remain : remain / left;
+      final String? nxt = k + 1 < days.length ? days[k + 1] : null;
+      _seasonalPlan
+          .putIfAbsent(days[k], () => <_Plan>[])
+          .add(_Plan(side, amt, event, nxt));
+      remain -= amt;
+    }
+  }
+
+  void _seasonalExecute(int i, String d, String state) {
+    final List<_Plan>? plans = _seasonalPlan.remove(d);
+    if (plans == null || plans.isEmpty) return;
+    const double comm = P0sConfig.krCommission;
+    const double slip = P0sConfig.aEtfSlip;
+    const double tax = P0sConfig.krTaxSellEtf;
+    final double pa = _p(i, 'A');
+    final double pc = _p(i, 'CKRW');
+    for (final _Plan plan in plans) {
+      double amt = plan.amount;
+      if (amt <= 0) continue;
+      if (plan.side == 'BUY') {
+        final double want = amt;
+        double cash = cKrwUnits * pc;
+        if (want * (1 + comm) > cash && plan.carryTo == null) {
+          // 🔴 마지막 날 — 잔량 전량 집행. 재원 = C 방어자산을 필요한 만큼(R17 ①).
+          _takeKrw(i, d, want * (1 + comm) - cash, state);
+          cash = cKrwUnits * pc;
+        }
+        final double capRaw = cash / (1 + comm);
+        final double cap = capRaw > 0.0 ? capRaw : 0.0;
+        amt = want < cap ? want : cap;
+        if (amt <= 1.0 && plan.carryTo != null) {
+          _seasonalPlan
+              .putIfAbsent(plan.carryTo!, () => <_Plan>[])
+              .add(_Plan(plan.side, want, plan.event, null));
+          continue;
+        }
+        if (amt <= 1.0) continue;
+        if (plan.carryTo != null && want - amt > 1.0) {
+          _seasonalPlan
+              .putIfAbsent(plan.carryTo!, () => <_Plan>[])
+              .add(_Plan(plan.side, want - amt, plan.event, null));
+        }
+        final double cost = amt * (comm + slip); // 보고용(슬리피지는 체결가에)
+        aUnits += amt / (pa * (1 + slip));
+        cKrwUnits -= (amt * (1 + comm)) / pc;
+        final double res = cReservedKrw - amt * (1 + comm);
+        cReservedKrw = res > 0.0 ? res : 0.0;
+        _rec(
+          d,
+          'A',
+          'KOSDAQ_PROXY',
+          'BUY',
+          amt / pa,
+          pa,
+          amt,
+          cost,
+          plan.event,
+          state,
+        );
+      } else {
+        final double have = aUnits * pa;
+        amt = amt < have ? amt : have;
+        if (amt <= 1.0) continue;
+        final double cost = amt * (comm + tax + slip);
+        aUnits -= amt / pa;
+        cKrwUnits += (amt - cost) / pc;
+        _potDeposit(i, d, amt - cost, state); // POT 입금 행이 A 매도 행보다 먼저
+        _rec(
+          d,
+          'A',
+          'KOSDAQ_PROXY',
+          'SELL',
+          amt / pa,
+          pa,
+          amt,
+          cost,
+          plan.event,
+          state,
+        );
+      }
+    }
+  }
+
+  // ── POT 서브북(E6d) ──────────────────────────────────────────────────
+  void _potDeposit(int i, String d, double amt0, String state) {
+    if (amt0 <= 1.0) return;
+    final double pc = _p(i, 'CKRW');
+    final double have = cKrwUnits * pc;
+    final double haveCap = have > 0.0 ? have : 0.0;
+    final double amt = amt0 < haveCap ? amt0 : haveCap;
+    if (amt <= 1.0) return;
+    cKrwUnits -= amt / pc;
+    potCashUnits += amt / pc;
+    _rec(d, 'POT', 'CASH', 'IN', amt, 1.0, amt, 0.0, 'D2_POT_IN', state);
+  }
+
+  void _potLiquidate(int i, String d, String state) {
+    final double pc = _p(i, 'CKRW');
+    double proceeds = potCashUnits * pc;
+    potCashUnits = 0.0;
+    const double rKr = P0sConfig.krCommission + P0sConfig.krSlipEtf;
+    for (final (String t, double _, double _) in P0sConfig.bAssets) {
+      final double px = _p(i, t);
+      // 🔴 1원 문턱 없음 — 전량 매도 뒤 +ULP 가 남으면 여기서 «먼지 행»이 생긴다(R17 ⑥).
+      if (!_fin(px) || potBUnits[t]! <= 0) continue;
+      final double v = potBUnits[t]! * px;
+      potBUnits[t] = 0.0;
+      proceeds += v * (1.0 - rKr);
+      _rec(d, 'POT', t, 'SELL', v / px, px, v, v * rKr, 'D2_POT_OUT', state);
+    }
+    if (proceeds > 0) {
+      cKrwUnits += proceeds / pc;
+      cReservedKrw += proceeds;
+      _rec(
+        d,
+        'POT',
+        'CASH',
+        'OUT',
+        proceeds,
+        1.0,
+        proceeds,
+        0.0,
+        'D2_POT_OUT',
+        state,
+      );
+    }
+  }
+
+  void _potRebalance(int i, String d, String state) {
+    final double base = _potValue(i);
+    if (base <= 1.0) return;
+    final double pc = _p(i, 'CKRW');
+    const double rKr = P0sConfig.krCommission + P0sConfig.krSlipEtf;
+    final String monthKey = d.substring(0, 7);
+    for (final (String t, double w, double _) in P0sConfig.bAssets) {
+      final double px = _p(i, t);
+      if (!_fin(px) || px <= 0) continue;
+      final DatedSeries me = m.bMonthly[t]!;
+      final List<double> mc = <double>[
+        for (int k = 0; k < me.length; k++)
+          if (me.dates[k].compareTo(monthKey) <= 0) me.values[k],
+      ];
+      // 🔵 POT 은 기본 3-트랜치만(하한·BEAR 차감 미적용 — d2_pot_assist 꺼짐).
+      double ratio = 0.0;
+      if (mc.length >= 12) {
+        int held = 0;
+        for (final int n in P0sConfig.lookbacks) {
+          if (mc.last > npMean(mc.sublist(mc.length - n))) held++;
+        }
+        ratio = held / P0sConfig.lookbacks.length;
+      }
+      final double tgt = base * w * ratio;
+      final double cur = potBUnits[t]! * px;
+      final double delta = tgt - cur;
+      if (delta.abs() <= base * 0.005) continue;
+      if (delta > 0) {
+        final double cash = potCashUnits * pc;
+        final double capRaw = cash / (1.0 + rKr);
+        final double cap = capRaw > 0.0 ? capRaw : 0.0;
+        final double buy = delta < cap ? delta : cap;
+        if (buy <= 1.0) continue;
+        potBUnits[t] = potBUnits[t]! + buy / px;
+        potCashUnits -= buy * (1.0 + rKr) / pc;
+        _rec(
+          d,
+          'POT',
+          t,
+          'BUY',
+          buy / px,
+          px,
+          buy,
+          buy * rKr,
+          'D2_POT_SMA',
+          state,
+        );
+      } else {
+        final double sell = -delta < cur ? -delta : cur;
+        if (sell <= 1.0) continue;
+        potBUnits[t] = potBUnits[t]! - sell / px;
+        potCashUnits += sell * (1.0 - rKr) / pc;
+        _rec(
+          d,
+          'POT',
+          t,
+          'SELL',
+          sell / px,
+          px,
+          sell,
+          sell * rKr,
+          'D2_POT_SMA',
+          state,
+        );
+      }
+    }
+  }
+
+  // ── 원화 조달(E6d) ────────────────────────────────────────────────────
+  double _takeKrw(int i, String d, double need, String state) {
+    if (need <= 0) return 0.0;
+    // ① 새틀라이트 잉여 — P0S 새틀 0 · 현금 0 → 언제나 0(행 없음).
+    return need > 1.0 ? _raiseKrw(i, d, need, state) : 0.0;
+  }
+
+  /// 슬리브 C 방어자산(금 → 채권)을 팔아 원화를 채운다 — 🔴 필요한 만큼(잉여 상한 없음 · R17 ①).
+  double _raiseKrw(int i, String d, double need0, String state) {
+    double need = need0;
+    final double fx = _p(i, 'fx');
+    final double pc = _p(i, 'CKRW');
+    const double fxs = P0sConfig.fxSpreadRoundtrip / 2.0;
+    double raised = 0.0;
+    for (final String sym in <String>['IAU', 'IEI']) {
+      if (need <= 0) return raised;
+      final double px = _p(i, sym);
+      if (!_fin(px) || px <= 0) continue;
+      final double units = sym == 'IAU' ? cIauUnits : cIeiUnits;
+      final double val = units * px * fx;
+      final double gross =
+          need / (1 - P0sConfig.usCommission - P0sConfig.usSlippage - fxs);
+      final double take = gross < val ? gross : val;
+      if (take <= 1.0) continue;
+      final double cost =
+          take * (P0sConfig.usCommission + P0sConfig.usSlippage + fxs);
+      if (sym == 'IAU') {
+        cIauUnits = units - take / (px * fx);
+      } else {
+        cIeiUnits = units - take / (px * fx);
+      }
+      cKrwUnits += (take - cost) / pc;
+      _rec(
+        d,
+        'C',
+        sym,
+        'SELL',
+        take / (px * fx),
+        px * fx,
+        take,
+        cost,
+        'RAISE_KRW',
+        state,
+      );
+      need -= take - cost;
+      raised += take - cost;
+    }
+    return raised;
   }
 
   // ── 월말 ──────────────────────────────────────────────────────────────
@@ -442,7 +870,7 @@ class ReplayEngine {
     _coreBand(i, d, eq, f, state);
     _sleeveBSignal(i, d, eq, state);
     _sleeveCRebalance(i, d, eq, state);
-    if (_potValue(i) > 1.0) throw UnimplementedError('POT 리밸런싱 — E6d ($d)');
+    _potRebalance(i, d, state);
   }
 
   void _sleeveBTopup(
@@ -475,14 +903,14 @@ class ReplayEngine {
   int _year(String d) => int.parse(d.substring(0, 4));
 
   void _pensionPrefund(int i, String d, double need, double avail) {
-    if (!P0sConfig.pensionFunding) return;
+    if (!variant.pensionFunding) return;
     final double left =
         P0sConfig.pensionAnnualLimit - (pensionUsed[_year(d)] ?? 0.0);
     final double quota = left > 0.0 ? left : 0.0;
     final double want = need < quota ? need : quota;
     final double short = want - (avail > 0.0 ? avail : 0.0);
     if (short <= 1.0) return;
-    throw UnimplementedError('연금 납입 조달(_take_krw) — E6d ($d)');
+    _takeKrw(i, d, short, _regState[i]);
   }
 
   double _pensionContribute(
@@ -624,7 +1052,20 @@ class ReplayEngine {
     }
   }
 
-  void _sleeveBSignal(int i, String d, double eq, String state) {
+  void _sleeveBSignal(int i, String d, double eq, String state0) {
+    // 국면 보조(assist) — delay ≥ 1 이면 직전 호출의 (점수, 상태)를 쓰고 지금 값을 저장한다(첫 호출은 assist 없음).
+    double score = _regScore[i];
+    String state = state0;
+    bool assistOn = variant.assistCut != null;
+    if (assistOn && variant.assistDelay >= 1) {
+      final (double, String)? prev = _bAssistPrev;
+      _bAssistPrev = (score, state0);
+      if (prev == null) {
+        assistOn = false;
+      } else {
+        (score, state) = prev;
+      }
+    }
     double base = bParkUnits * _p(i, 'PARK');
     final Map<String, double> cur = <String, double>{};
     for (final (String t, double _, double _) in P0sConfig.bAssets) {
@@ -654,12 +1095,12 @@ class ReplayEngine {
         ratio = held / P0sConfig.lookbacks.length;
       }
       if (mc.length >= need) {
-        if (P0sConfig.bSmaFloor > 0) {
-          ratio = ratio > P0sConfig.bSmaFloor ? ratio : P0sConfig.bSmaFloor;
+        if (variant.bSmaFloor > 0) {
+          ratio = ratio > variant.bSmaFloor ? ratio : variant.bSmaFloor;
         }
         // 참조 엔진: assist 블록은 방향 스코어가 유한할 때만(`if assist and np.isfinite(score)`).
-        if (_fin(_regScore[i]) && state == P0sConfig.bAssistCutState) {
-          final double x = ratio - P0sConfig.bAssistCut;
+        if (assistOn && _fin(score) && state == P0sConfig.bAssistCutState) {
+          final double x = ratio - variant.assistCut!;
           ratio = x > 0.0 ? x : 0.0;
         }
       }
