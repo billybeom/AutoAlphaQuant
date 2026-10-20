@@ -11,6 +11,8 @@
 | `data/*.csv.gz` · `data/MANIFEST.json` | 참조 엔진 `engine/data.py::load_all` 이 읽는 원천 CSV 24개 — 바이트 그대로 gzip(`tool/freeze_replay_data.py` · 발주자 결정 2026-10-20 · 설계 13 §8 R3). 원본 sha256 은 MANIFEST |
 | `fixtures/parse_parity.json` | pandas 3.0.6 이 읽은 열별 float64 해시(`tool/export_replay_parity.py`) |
 | `replay_csv.dart` | 번들 읽개 — 🔴 pandas `precise_xstrtod` 와 같은 수 변환(정확 반올림 `double.parse` 와 최대 2 ULP 다르다) |
+| `replay_market.dart` | 시장 번들 — 환율(FRED 우선) · 세션 = **데이터 날짜**(US 6,694 · KR 6,561 · 합집합 6,900) · 월말 320/320 · 월 끝 3세션 · 슬리브 B 원화 지수(133690 = QQQ ← ^NDX 소급 · 411060 = 금 선물 · 한국 세션 = 엄격히 앞선 미국 종가) · 원화 현금 지수 · UST10 · 금 USD · 가격 패널 · 월봉 |
+| `fixtures/market_parity.json` | 참조 엔진 `market.build` 본문 + `apply_p0_market` + `Backtest._prep` 산출의 해시·표본 값(`tool/export_replay_market.py`) — 전부 비트 일치 |
 
 🔴 데이터·정답지를 손으로 고치지 않는다 — 원본이 바뀌면 두 도구를 다시 돌리고 해시를 갱신한다.
 🔴 저장소는 비공개여야 한다(원천 = Yahoo·FRED·FDR 공개 시세의 재현용 사본).
