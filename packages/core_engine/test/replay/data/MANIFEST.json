@@ -1,0 +1,178 @@
+{
+ "meta": {
+  "purpose": "E6 엔진 재현 입력 — 참조 엔진 백테스트6 engine/data.py::load_all 의 24개",
+  "decision": "발주자 2026-10-20 (설계 13 §8 R3)",
+  "as_of": "2026-08-14",
+  "generator": "packages/core_engine/tool/freeze_replay_data.py"
+ },
+ "files": {
+  "gspc": {
+   "source": "09_백테스트/data/gspc.csv",
+   "bytes": 1145773,
+   "sha256": "46cee39640b08a4606bef823fdf0c2f5b839be1b49fa23743aa4114e1ba5b7f8",
+   "crlf": true,
+   "gz_sha256": "e2d9f7a766e2cbe855176a3cce6324c496f859ef0f87e9b961c4f94fe09205f7"
+  },
+  "spy": {
+   "source": "09_백테스트/data/spy.csv",
+   "bytes": 856823,
+   "sha256": "f968a789a1dbd583d97f7926a7f28dea4fbea222c1d0a3fae58404723decca7c",
+   "crlf": true,
+   "gz_sha256": "7d325b5f2aff5b949e5ca26cce006401fb63e7141b5f92e2579f8aba2b2d3b3d"
+  },
+  "qqq": {
+   "source": "09_백테스트/data/qqq.csv",
+   "bytes": 741949,
+   "sha256": "dad58de64fec558b7d384a4bb9aa6a9f048029c310226adaa113495a3da462f9",
+   "crlf": true,
+   "gz_sha256": "9e0620141bb69147e2b7d396d095d8fc6152e94ffb7d1ca207a628430e914eaa"
+  },
+  "ndx": {
+   "source": "09_백테스트/data/ndx.csv",
+   "bytes": 1108593,
+   "sha256": "5201d6cdad17ee456aa0acc94c01b55e994030de2c410250b33239cf5a476a69",
+   "crlf": true,
+   "gz_sha256": "993a32afd2072b2d0d1be5dc19f120a3129750c29f774783f95ff38f1f0fa2da"
+  },
+  "vix": {
+   "source": "09_백테스트/data/vix.csv",
+   "bytes": 964867,
+   "sha256": "f9c15cfb739b6cacab6bbf2aaa12765c04697caa58f16cc0cba6c4a0d03fa1b5",
+   "crlf": true,
+   "gz_sha256": "84619cc04a570acbcdca50f4184e2081954c8bba540bbd042fe56280a6b6f255"
+  },
+  "vix3m": {
+   "source": "09_백테스트/data/vix3m.csv",
+   "bytes": 527544,
+   "sha256": "2676cbaaec843eb34d6858867000b097c7f14e2477e229307f5207c9b3730905",
+   "crlf": true,
+   "gz_sha256": "bd0e0ffedd0e00818b0eb2a8036015d308841dcf8c6d398718f757767f10f848"
+  },
+  "rsp": {
+   "source": "09_백테스트/data/rsp.csv",
+   "bytes": 635938,
+   "sha256": "a015bc7b5e511d37866e83640301d6b418e22ce821f91f2540e0b9f85e16d1e9",
+   "crlf": true,
+   "gz_sha256": "e5147d08573012d71277f16078a33bb8a76023cc5760d9e00163e76405bf0ad3"
+  },
+  "gold_fut": {
+   "source": "09_백테스트/data/gold_fut.csv",
+   "bytes": 596416,
+   "sha256": "0e93e1518d154a971e16041b48735b4a0c66a411b4f9463d80d3b7f675366d21",
+   "crlf": true,
+   "gz_sha256": "e150fb8910cca621106c1764c211eaa0d544e79775a8fb322638f8f160995a9b"
+  },
+  "gld": {
+   "source": "09_백테스트/data/gld.csv",
+   "bytes": 601929,
+   "sha256": "091721111e63e068b5c9e5d3d83c49416bb52818d567a7797bd3f1a1960376c4",
+   "crlf": true,
+   "gz_sha256": "506b792623e934c1c1c02d5f663d04ec28535a20f505b826925f5eeb2685d11a"
+  },
+  "iau": {
+   "source": "09_백테스트/data/iau.csv",
+   "bytes": 597181,
+   "sha256": "68823c1d9903ffcc081cb4cc4ee7844f6deeb5011965cfebfa1e09dae2e15664",
+   "crlf": true,
+   "gz_sha256": "29fa5a8523fafaaaa0701dd07eca5b76e33081146f28d20953396502dd669e1c"
+  },
+  "bil": {
+   "source": "09_백테스트/data/bil.csv",
+   "bytes": 515456,
+   "sha256": "28c19b197102e8be6e8569a3ffb89f44dd9d423790c8dfcc1aa25008de41d78d",
+   "crlf": true,
+   "gz_sha256": "70dfa5a04f1847145d9902a9d69b8622bc948718905d3f4f5837cd3d35a17a23"
+  },
+  "iei": {
+   "source": "09_백테스트/data/iei.csv",
+   "bytes": 543928,
+   "sha256": "9af2ea62749bb2413b859fa706702d98bb9c075ee32a3d51a346bf0afb4f59f7",
+   "crlf": true,
+   "gz_sha256": "ed3330a363e8011ce408fb03cd44cec0c581eede6a84b7977dea00bf53a65c89"
+  },
+  "usdkrw_fred": {
+   "source": "09_백테스트/data/usdkrw_fred.csv",
+   "bytes": 220904,
+   "sha256": "a5fb1e4b84fd964895d7ffdd67822a56d8ffa53ad42ae8e2315c3833d2359d93",
+   "crlf": true,
+   "gz_sha256": "eb594749ab78a82fe878c5f24f9a19f3f4ba396b7f5088149a640fd08fbbcd59"
+  },
+  "nfci": {
+   "source": "09_백테스트/data/nfci.csv",
+   "bytes": 53975,
+   "sha256": "c4582a068b962aecfe0115ba05b4593fe22057685f2538f11d8c16d2f347d8d9",
+   "crlf": true,
+   "gz_sha256": "de71ae185113e3880ebc8ec75712fabdc47a6a8975e7c54a566c3f78d5320ab6"
+  },
+  "t10y3m": {
+   "source": "09_백테스트/data/t10y3m.csv",
+   "bytes": 196124,
+   "sha256": "c429990ef6dd92e360581ed8eac67df2f1cf50c5db3df7c8044e030960d38d7c",
+   "crlf": true,
+   "gz_sha256": "a99c1afd80117d4610e7e72fd5a5611cd47b613c1bc8ceb5434cc8a0632965cf"
+  },
+  "cfnai_ma3": {
+   "source": "09_백테스트/data/cfnai_ma3.csv",
+   "bytes": 12332,
+   "sha256": "86dd769df126a945c68d2e88bc3c12cf25f4487f7ef3466d36c332fe394bab27",
+   "crlf": true,
+   "gz_sha256": "5c97fe536db43b5a38bc03999f5033dfdd9807ec7991141453642ed2710191af"
+  },
+  "sahm": {
+   "source": "09_백테스트/data/sahm.csv",
+   "bytes": 13593,
+   "sha256": "19cbe792d7a1d05a96c388dbbaf32410e145a34b9aa4ed0b47e2c08800b12f46",
+   "crlf": true,
+   "gz_sha256": "16b124be01aacf3108804df3f00eb872e027f91763c747282c1aad9e4d165e09"
+  },
+  "dgs3mo": {
+   "source": "09_백테스트/data/dgs3mo.csv",
+   "bytes": 196851,
+   "sha256": "fe54231b5a4481f053ecaa93c310f86a8f157be2dc5b1d32769596309b4de64b",
+   "crlf": true,
+   "gz_sha256": "1df2d45032351ccc45e5c990f1dd17c6e0beab799b76d77da963c3828b535c8d"
+  },
+  "dgs5": {
+   "source": "09_백테스트/data/dgs5.csv",
+   "bytes": 283390,
+   "sha256": "773e815c8c1b4a290b87219e98976c50a3fb4b534c98a0e20bfa5b542a294f6c",
+   "crlf": true,
+   "gz_sha256": "36a681dff78378e7bea5bc4cf38899848fe66248e91d6fcd09fdf49220a825a5"
+  },
+  "kr_3m": {
+   "source": "09_백테스트/data/kr_3m.csv",
+   "bytes": 7311,
+   "sha256": "5768f426459cc1b9fcb116dc8ffad272b0915b6f50b15013983ff689a8737410",
+   "crlf": true,
+   "gz_sha256": "8f1e8031567375a006f21ade7523d1cb1e199e95ddefb9b7ce3bb894a003d253"
+  },
+  "ofr_fsi": {
+   "source": "09_백테스트/data/ofr_fsi.csv",
+   "bytes": 520070,
+   "sha256": "f812d2593bf530d1d9b2d4e74cb44500bb2b3990633ff27e727edd804bf801cf",
+   "crlf": true,
+   "gz_sha256": "6bfd530be8a8942bc059dbb4d11e9c77c417a1aa24ceb8382ec8e93de9f8108a"
+  },
+  "kq11": {
+   "source": "09_백테스트/data/kq11.csv",
+   "bytes": 735685,
+   "sha256": "f5ad9689521dfc0d2650b9e25c53df1f66a2fd085d06352485b9ee5fd8cade4c",
+   "crlf": true,
+   "gz_sha256": "ac3878fe757b648e1b1659f5eec2de583a52046c57a4191e72fab3ca1870458d"
+  },
+  "ks11": {
+   "source": "09_백테스트/data/ks11.csv",
+   "bytes": 769255,
+   "sha256": "a90c397d6d6d2574955003af70652d8f7d646417e0d3776524e054aedae01de2",
+   "crlf": true,
+   "gz_sha256": "27e9a8b83ba55d47972f1acc5973c846b032ce2972d34de0741047233570ce6b"
+  },
+  "usdkrw_fdr": {
+   "source": "09_백테스트/data/usdkrw_fdr.csv",
+   "bytes": 590943,
+   "sha256": "bb87c74c2439a22b26ace73aaf5347ffedf5ee05f2504de9bf0ce2428a663a1e",
+   "crlf": true,
+   "gz_sha256": "12e6daf4c96205b0a96604fb74c6eaba1c0a9a2d167db9433370a3f7bb408e95"
+  }
+ }
+}

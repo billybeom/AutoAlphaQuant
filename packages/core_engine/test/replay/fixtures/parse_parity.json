@@ -1,0 +1,729 @@
+{
+ "meta": {
+  "purpose": "pandas read_csv(index_col=0) + to_numeric(coerce) 가 읽은 float64 비트의 열별 해시",
+  "pandas": "3.0.6",
+  "float_precision": "None (precise_xstrtod)",
+  "generator": "packages/core_engine/tool/export_replay_parity.py"
+ },
+ "files": {
+  "gspc": {
+   "index_first": "1985-01-02",
+   "index_last": "2026-08-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 10486,
+     "nan": 1,
+     "sha256": "c3aa9699ca53a9148485a1c93d0fb99ccfd77670517957b31005a3bf6aa569d8"
+    },
+    "Close": {
+     "rows": 10486,
+     "nan": 1,
+     "sha256": "c3aa9699ca53a9148485a1c93d0fb99ccfd77670517957b31005a3bf6aa569d8"
+    },
+    "High": {
+     "rows": 10486,
+     "nan": 0,
+     "sha256": "45be9e257cbc9f54800e4f60847bbc37b5088be5de4137e5ac39f36daf9248af"
+    },
+    "Low": {
+     "rows": 10486,
+     "nan": 0,
+     "sha256": "17a899e0a9f1d0eb0429dd0b9731ccf22c8e401cf51c74c04d8a64e048ce18be"
+    },
+    "Open": {
+     "rows": 10486,
+     "nan": 0,
+     "sha256": "e4c81b5b4d41f2e755bf461ae065dd912f11288498a174a6e420b33123141566"
+    },
+    "Volume": {
+     "rows": 10486,
+     "nan": 0,
+     "sha256": "4a5f4067e2b8819db52b551267f6335abeda62a7093c23ea9f409b222b49edb3"
+    }
+   }
+  },
+  "spy": {
+   "index_first": "1993-01-29",
+   "index_last": "2026-08-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 8444,
+     "nan": 1,
+     "sha256": "cc72a7694a68592158fbcd73601fb6c7acba8351e898fcb0f119fbcaa7467a63"
+    },
+    "Close": {
+     "rows": 8444,
+     "nan": 1,
+     "sha256": "4962f3a7ae0baa434aa6fa2204850efc69bea9107ac2aa4f3e51b79fbc6985ca"
+    },
+    "High": {
+     "rows": 8444,
+     "nan": 0,
+     "sha256": "61db3b22b46cb4390a7752e21ce872bbf33451ef1fac9153395dc50bd697dacd"
+    },
+    "Low": {
+     "rows": 8444,
+     "nan": 0,
+     "sha256": "995ed207b9cc53c488a676db14b0ee5a293ba814bb080ce9fdddc49eac9c6c3e"
+    },
+    "Open": {
+     "rows": 8444,
+     "nan": 0,
+     "sha256": "f5cc1c7fcdaeb1a4ecbdc5ee1d29ea47f145b47180d53e14164ff393ffeebcdf"
+    },
+    "Volume": {
+     "rows": 8444,
+     "nan": 0,
+     "sha256": "105bc4e5b4e4da3babade79a0c352a10fd56532407b42fbf90b7373c2c21c00e"
+    }
+   }
+  },
+  "qqq": {
+   "index_first": "1999-03-10",
+   "index_last": "2026-08-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 6902,
+     "nan": 1,
+     "sha256": "542923df35b89c8446db4935928ebf4156ba66bc89742b10ae34372ea7263c2e"
+    },
+    "Close": {
+     "rows": 6902,
+     "nan": 1,
+     "sha256": "06d68f09bbda1e5aab2282b35d813d9d21f231f0115411c7ebabdd476838cb2c"
+    },
+    "High": {
+     "rows": 6902,
+     "nan": 0,
+     "sha256": "530bf15be7c7271f906fc17a70beff09b75afb1a16a1385103664b7716748a98"
+    },
+    "Low": {
+     "rows": 6902,
+     "nan": 0,
+     "sha256": "dcabe18a47864cb2044d64266519b539a136cbc6e182be4836c821b73a863787"
+    },
+    "Open": {
+     "rows": 6902,
+     "nan": 0,
+     "sha256": "a46a7535488a14e071c4cd851e648f55525c673a6150388e9f5f4c0cba122ce4"
+    },
+    "Volume": {
+     "rows": 6902,
+     "nan": 0,
+     "sha256": "ca6c66590ad7429acc52d3f9914748adc6ef50d708ecb6505788c1688e018654"
+    }
+   }
+  },
+  "ndx": {
+   "index_first": "1985-10-01",
+   "index_last": "2026-08-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 10298,
+     "nan": 1,
+     "sha256": "bef7f5d99fe2491bbaa12f054476ede7afda1fe27848c17120d91a88006721a1"
+    },
+    "Close": {
+     "rows": 10298,
+     "nan": 1,
+     "sha256": "bef7f5d99fe2491bbaa12f054476ede7afda1fe27848c17120d91a88006721a1"
+    },
+    "High": {
+     "rows": 10298,
+     "nan": 0,
+     "sha256": "f52f3310b6db6d8f2000f95ab3c4256a879898a65a72c1319abd5eaedeea71ee"
+    },
+    "Low": {
+     "rows": 10298,
+     "nan": 0,
+     "sha256": "a7f61b8411b87fc48a278899fc3b241d8744b643477b07317652fa5cbaf1d929"
+    },
+    "Open": {
+     "rows": 10298,
+     "nan": 0,
+     "sha256": "a28c713ddc89a13d537814b238423437af5bf8a262f4d39aaaa04ec1ea5ef083"
+    },
+    "Volume": {
+     "rows": 10298,
+     "nan": 0,
+     "sha256": "788a4ba169d4d581ba461eecc117a0235e106c7753e6be69bae18461b2ac9b68"
+    }
+   }
+  },
+  "vix": {
+   "index_first": "1990-01-02",
+   "index_last": "2026-08-14",
+   "columns": {
+    "Adj Close": {
+     "rows": 9223,
+     "nan": 0,
+     "sha256": "5ff9f31b1f344e647349622af32c430244307f4dd5f13def0c6733d0cb0d1fe7"
+    },
+    "Close": {
+     "rows": 9223,
+     "nan": 0,
+     "sha256": "5ff9f31b1f344e647349622af32c430244307f4dd5f13def0c6733d0cb0d1fe7"
+    },
+    "High": {
+     "rows": 9223,
+     "nan": 0,
+     "sha256": "1340d50f5e805b59a5256379a69135d6644ae3d901bef755b59144de5122ffa6"
+    },
+    "Low": {
+     "rows": 9223,
+     "nan": 0,
+     "sha256": "75fd007057410f99e338a37a4d92854022e6befc0ef338baa0941d6017ffbb85"
+    },
+    "Open": {
+     "rows": 9223,
+     "nan": 0,
+     "sha256": "462e10ceb8f6d537edb41bf2870f6af40bed5ea1ac92a6a0518efe0958bc3d32"
+    },
+    "Volume": {
+     "rows": 9223,
+     "nan": 0,
+     "sha256": "fc7ea769031d9fa300480fba7fec0038a67d6704ca1a09a45ca1fbe7bbdd9b9c"
+    }
+   }
+  },
+  "vix3m": {
+   "index_first": "2006-07-17",
+   "index_last": "2026-07-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 5032,
+     "nan": 0,
+     "sha256": "3c8dd491e541c890483ffb81accd5f60994c5418ab7f4b8c8117aebccf249771"
+    },
+    "Close": {
+     "rows": 5032,
+     "nan": 0,
+     "sha256": "3c8dd491e541c890483ffb81accd5f60994c5418ab7f4b8c8117aebccf249771"
+    },
+    "High": {
+     "rows": 5032,
+     "nan": 0,
+     "sha256": "99ce53ebc9bc727835b3e1e35f2a6a1fbad4d379fdd59ef466868d2b80fd7c9b"
+    },
+    "Low": {
+     "rows": 5032,
+     "nan": 0,
+     "sha256": "6fab1137e970583b76d0f0ade99e5b03f6da89adc7b6bc964df183164b7aa551"
+    },
+    "Open": {
+     "rows": 5032,
+     "nan": 0,
+     "sha256": "9081273cdb9c8a72da06788b243410260c580b9bf5ca3549d3b6208e34d24ad7"
+    },
+    "Volume": {
+     "rows": 5032,
+     "nan": 0,
+     "sha256": "d28932fb7dcb3c446f1b58b28c9394767fad6c51605a87dd183f5be99db35deb"
+    }
+   }
+  },
+  "rsp": {
+   "index_first": "2003-05-01",
+   "index_last": "2026-08-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 5861,
+     "nan": 1,
+     "sha256": "dea91f08532e16cf4ec5d44f36504faf00a515ec72c9d48a2306aa62fc3c16f7"
+    },
+    "Close": {
+     "rows": 5861,
+     "nan": 1,
+     "sha256": "f80852c19b10667634896df16a168bca61881fb0c5134261be9ac744d06d095a"
+    },
+    "High": {
+     "rows": 5861,
+     "nan": 0,
+     "sha256": "b105fc5d874e8cba64cc50f25961b738f385269e54c949b40a9d04f4473bfa7d"
+    },
+    "Low": {
+     "rows": 5861,
+     "nan": 0,
+     "sha256": "bb8c5bd09a669b6610f63c83f76d8bb48755cf014d1bae95fc2f10bfe5076b6d"
+    },
+    "Open": {
+     "rows": 5861,
+     "nan": 0,
+     "sha256": "30524ad7aa7b923a9a0d766a70b2ef291156ecf711402fe0c48ae76f8cbec6f0"
+    },
+    "Volume": {
+     "rows": 5861,
+     "nan": 0,
+     "sha256": "47870d2c376ab933a17c214305c43986da8692aec0398c9bb9fe5501b6bdd81c"
+    }
+   }
+  },
+  "gold_fut": {
+   "index_first": "2000-08-30",
+   "index_last": "2026-08-18",
+   "columns": {
+    "Adj Close": {
+     "rows": 6515,
+     "nan": 0,
+     "sha256": "f67939dc3d895340ead7c63a9b96c8eca7bf40e425937f1a6de975a35b1a071c"
+    },
+    "Close": {
+     "rows": 6515,
+     "nan": 0,
+     "sha256": "f67939dc3d895340ead7c63a9b96c8eca7bf40e425937f1a6de975a35b1a071c"
+    },
+    "High": {
+     "rows": 6515,
+     "nan": 0,
+     "sha256": "9f80228713d04ac48de115eb957a04923338f8fdb700a69dd82185593d147ac6"
+    },
+    "Low": {
+     "rows": 6515,
+     "nan": 0,
+     "sha256": "c85dccca0b6d4f246ac65f760a37d21d4d85bef00902ea328a286e94bb18f67a"
+    },
+    "Open": {
+     "rows": 6515,
+     "nan": 0,
+     "sha256": "f194b5a32df2e4a7d5b43fbe18241924e62afd8f33495ce02cfa84df954b4c20"
+    },
+    "Volume": {
+     "rows": 6515,
+     "nan": 0,
+     "sha256": "f0dc24030f4ea18e06081978b343decb3a336c59165b05be71526595d2211f7f"
+    }
+   }
+  },
+  "gld": {
+   "index_first": "2004-11-18",
+   "index_last": "2026-08-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 5469,
+     "nan": 1,
+     "sha256": "dc12def2efa64b810e56c5b3c282b6722dacb804f09a38d2126d59946bf15c88"
+    },
+    "Close": {
+     "rows": 5469,
+     "nan": 1,
+     "sha256": "dc12def2efa64b810e56c5b3c282b6722dacb804f09a38d2126d59946bf15c88"
+    },
+    "High": {
+     "rows": 5469,
+     "nan": 0,
+     "sha256": "d4e9257a6d2fb045d1601bb62e10b5eb3d15a65c5f70d7210e5da022670f3b0d"
+    },
+    "Low": {
+     "rows": 5469,
+     "nan": 0,
+     "sha256": "f1cf368de0869c23c7e8497f358fbc7c8c5d50e75a5c65a3c59304a5037e6bbc"
+    },
+    "Open": {
+     "rows": 5469,
+     "nan": 0,
+     "sha256": "03db5fff4e62e7f939bd6e837f5110dc8dde12cb5a957e374bd8835ba81e2de8"
+    },
+    "Volume": {
+     "rows": 5469,
+     "nan": 0,
+     "sha256": "e61cb26e47db96a1dfc064b89435693d1c555d81f64a03f1691f4909c649b92f"
+    }
+   }
+  },
+  "iau": {
+   "index_first": "2005-01-28",
+   "index_last": "2026-08-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 5421,
+     "nan": 1,
+     "sha256": "0c001811cdc4e27935f50f8790abce40d9add00c4c0dd6a87d5ac7f0c1917345"
+    },
+    "Close": {
+     "rows": 5421,
+     "nan": 1,
+     "sha256": "0c001811cdc4e27935f50f8790abce40d9add00c4c0dd6a87d5ac7f0c1917345"
+    },
+    "High": {
+     "rows": 5421,
+     "nan": 0,
+     "sha256": "7d81f10e2c543a39a0a94acaac18dbf4d732e7a16e54181f3200a898121c2e0e"
+    },
+    "Low": {
+     "rows": 5421,
+     "nan": 0,
+     "sha256": "9861f5c82a0b0f5635d726a2a8f07a7664938fd2c13f7ce705aca0a2dad01684"
+    },
+    "Open": {
+     "rows": 5421,
+     "nan": 0,
+     "sha256": "00661cc8fea4f7444460848ee3ed1a23d659cd2a6929e34178c0bd5693d4a9ee"
+    },
+    "Volume": {
+     "rows": 5421,
+     "nan": 0,
+     "sha256": "811b73cfe7dd702fcf5a2464a87a4762548e108c172c3879a5858b24ea8d3feb"
+    }
+   }
+  },
+  "bil": {
+   "index_first": "2007-05-30",
+   "index_last": "2026-08-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 4835,
+     "nan": 1,
+     "sha256": "590818cf6cbb5136bb8c4b437862698c1b6470275e1c362deef73cbc96eeef75"
+    },
+    "Close": {
+     "rows": 4835,
+     "nan": 1,
+     "sha256": "d249eecbaaa2023664ab73d4a5be74b1144fd06306e06d67ae5040948744f9e9"
+    },
+    "High": {
+     "rows": 4835,
+     "nan": 0,
+     "sha256": "5a8716d632318022616fd9dec604c47a4e2a38f0c80d0378e9c1cb59ef3c1fe8"
+    },
+    "Low": {
+     "rows": 4835,
+     "nan": 0,
+     "sha256": "29e1c7f0c344cd75bd06b0e8f29599bc0c258b6bfd65faf7c1d125a6339bdc60"
+    },
+    "Open": {
+     "rows": 4835,
+     "nan": 0,
+     "sha256": "340a9c2d63a66b0768577a70b3b9f31bd69d45e43b00d2dd1b901922781e7eb7"
+    },
+    "Volume": {
+     "rows": 4835,
+     "nan": 0,
+     "sha256": "da8da96b6a71d88b7cbef6246f5bcf054f65463de7cfc87059055f65bfcc41bd"
+    }
+   }
+  },
+  "iei": {
+   "index_first": "2007-01-11",
+   "index_last": "2026-08-17",
+   "columns": {
+    "Adj Close": {
+     "rows": 4930,
+     "nan": 1,
+     "sha256": "dca050dee1aaa1d49d31afa556d628c6a9f39deeb224435f99af5b730f7efde9"
+    },
+    "Close": {
+     "rows": 4930,
+     "nan": 1,
+     "sha256": "6520c067b4bfd29dfc94cac5c059115d3ea45a9345a253bd033fa5219ddda4f7"
+    },
+    "High": {
+     "rows": 4930,
+     "nan": 0,
+     "sha256": "d3468b217af6cfe658f59cdb78d0738fa6e6c006c88f91f98f0b874021490385"
+    },
+    "Low": {
+     "rows": 4930,
+     "nan": 0,
+     "sha256": "fa26f2d685656fb5fe0c08d00c43e0fa413cfc6d2b99364137d39ebe734c2681"
+    },
+    "Open": {
+     "rows": 4930,
+     "nan": 0,
+     "sha256": "fb5f827b1d1abb06d8fdca0e3ee62f7a176d0230da92127b4ebe945f751b3591"
+    },
+    "Volume": {
+     "rows": 4930,
+     "nan": 0,
+     "sha256": "14ce19e863b753f7d7394fd54078e82290422d07486efcbd2435d3a47473cc09"
+    }
+   }
+  },
+  "usdkrw_fred": {
+   "index_first": "1981-04-13",
+   "index_last": "2026-08-14",
+   "columns": {
+    "DEXKOUS": {
+     "rows": 11830,
+     "nan": 497,
+     "sha256": "30dd1d5de0fbca489737043d4a753590759f8521614ab37a2a38e16ebd399ceb"
+    }
+   }
+  },
+  "nfci": {
+   "index_first": "1971-01-08",
+   "index_last": "2026-08-07",
+   "columns": {
+    "NFCI": {
+     "rows": 2901,
+     "nan": 0,
+     "sha256": "d75f0307668a0dd60e79de8506ebdc22b56a5750deecff5fec92e505810217bd"
+    }
+   }
+  },
+  "t10y3m": {
+   "index_first": "1982-01-04",
+   "index_last": "2026-08-17",
+   "columns": {
+    "T10Y3M": {
+     "rows": 11641,
+     "nan": 483,
+     "sha256": "786cdc970072c2344252df5525fc5aa6c3ab7595f861066e6246e769ec1557cb"
+    }
+   }
+  },
+  "cfnai_ma3": {
+   "index_first": "1967-05-01",
+   "index_last": "2026-06-01",
+   "columns": {
+    "CFNAIMA3": {
+     "rows": 710,
+     "nan": 0,
+     "sha256": "0f6a97f1103cd7c20baee8581a7afbb47fd7990748caa4cd5d6e7135d7d73b5e"
+    }
+   }
+  },
+  "sahm": {
+   "index_first": "1959-12-01",
+   "index_last": "2026-07-01",
+   "columns": {
+    "SAHMREALTIME": {
+     "rows": 800,
+     "nan": 1,
+     "sha256": "a8b34a9c34c28675493bfb6c32385c3cc41ce7250daafc572b9f669201208ed9"
+    }
+   }
+  },
+  "dgs3mo": {
+   "index_first": "1981-09-01",
+   "index_last": "2026-08-14",
+   "columns": {
+    "DGS3MO": {
+     "rows": 11729,
+     "nan": 491,
+     "sha256": "21a647c4b85c2e944e2ad6a176985b10ef30704764e7c637cea6db93525980b3"
+    }
+   }
+  },
+  "dgs5": {
+   "index_first": "1962-01-02",
+   "index_last": "2026-08-14",
+   "columns": {
+    "DGS5": {
+     "rows": 16859,
+     "nan": 719,
+     "sha256": "74ae74ab8560a50b308ea7a4dd51eb194e06edf9f2201aee82a6689e9500af21"
+    }
+   }
+  },
+  "kr_3m": {
+   "index_first": "1991-01-01",
+   "index_last": "2026-06-01",
+   "columns": {
+    "IR3TIB01KRM156N": {
+     "rows": 426,
+     "nan": 0,
+     "sha256": "1bac848993d7741c807934fd8914b8e6ee9fafc99655f79cc4f1fdac18fec0ea"
+    }
+   }
+  },
+  "ofr_fsi": {
+   "index_first": "2000-01-03",
+   "index_last": "2026-08-13",
+   "columns": {
+    "OFR FSI": {
+     "rows": 6736,
+     "nan": 0,
+     "sha256": "2f0764544dca8c8a31455fe87e7d24e3935ca098f271b1f23e684d9d7a4e6983"
+    },
+    "Credit": {
+     "rows": 6736,
+     "nan": 0,
+     "sha256": "666dbcb18c3b30470bc5acecac2816a547fcc8b4287da5a4d423a26e9e1fac9b"
+    },
+    "Equity valuation": {
+     "rows": 6736,
+     "nan": 0,
+     "sha256": "c0d61ea8d81b1c4be73c5976d40f4f55d961ae3ae0a7737e94292edee1fd5342"
+    },
+    "Safe assets": {
+     "rows": 6736,
+     "nan": 0,
+     "sha256": "7294f65ea30b1f7aaf31d18a3201cd4aeb1f40911e0980b530ab35053efa2587"
+    },
+    "Funding": {
+     "rows": 6736,
+     "nan": 0,
+     "sha256": "c3800f86ad591237ede21c310274ccdebd2304f8ee3948279908262d2b6fcf4e"
+    },
+    "Volatility": {
+     "rows": 6736,
+     "nan": 0,
+     "sha256": "dc73c86a2fd56531064e8912449c1b16752f023c2b6c65ce6ede8d2384769a4f"
+    },
+    "United States": {
+     "rows": 6736,
+     "nan": 0,
+     "sha256": "ef13afc8dffa50e6bd0a9aa92afacca64225ea6164ec4b9f1e287dc7e6ea4f65"
+    },
+    "Other advanced economies": {
+     "rows": 6736,
+     "nan": 0,
+     "sha256": "67d9de0a9948b59ac5cd2f602896c402f15ef18796487739d0793a230c77619c"
+    },
+    "Emerging markets": {
+     "rows": 6736,
+     "nan": 0,
+     "sha256": "034b43117df15818cd8ba8c1d03b87e7d1ae8e46f0e32b3413025881aadd2524"
+    }
+   }
+  },
+  "kq11": {
+   "index_first": "1996-07-01",
+   "index_last": "2026-08-18",
+   "columns": {
+    "Close": {
+     "rows": 7542,
+     "nan": 0,
+     "sha256": "0de567e261ac9c5285db5f3f794db24b9016eff96d00f2a7db5a334d1598afc9"
+    },
+    "UpDown": {
+     "rows": 7542,
+     "nan": 147,
+     "sha256": "c69cd50f66c2cc8c37b639b828f1daabc628ba7cba6b8f8958fd017dbc4f2085"
+    },
+    "Comp": {
+     "rows": 7542,
+     "nan": 147,
+     "sha256": "b33d9fa814b7d342ad8f7b70dec0e596bbcc70cea36105ecddbe315386c3be4c"
+    },
+    "Change": {
+     "rows": 7542,
+     "nan": 147,
+     "sha256": "b15e5f932dba8a258016706cdeed3f5ebfd4c42b44f5aae0d371805d3ce94b44"
+    },
+    "Open": {
+     "rows": 7542,
+     "nan": 0,
+     "sha256": "f35d4a570a766e9a3120bb39d149a4fcd8819f90a887f38395e7964d85440993"
+    },
+    "High": {
+     "rows": 7542,
+     "nan": 0,
+     "sha256": "97ea603089dfbe5f4171ba44fd7214c57d2e81daae6f53978983cb8ac32d58f3"
+    },
+    "Low": {
+     "rows": 7542,
+     "nan": 0,
+     "sha256": "73075e98d10661ed1190c4f0fd0f5cc022e76df14765764e6b5c25a19a28a83e"
+    },
+    "Volume": {
+     "rows": 7542,
+     "nan": 0,
+     "sha256": "766c0d2f1020e3e2a6442a51621ef2bac1feaf9c45a649d51e4afc56c7aab2a6"
+    },
+    "Amount": {
+     "rows": 7542,
+     "nan": 0,
+     "sha256": "776166e877dff204f447559492922047c0bb7b4a953609eec5f70bb8e432ae29"
+    },
+    "MarCap": {
+     "rows": 7542,
+     "nan": 147,
+     "sha256": "f6a471586bf18fab826c586c4829c4705ded947f7a3b8b83c1b94de1e537a9dd"
+    }
+   }
+  },
+  "ks11": {
+   "index_first": "1995-05-02",
+   "index_last": "2026-08-18",
+   "columns": {
+    "Close": {
+     "rows": 7885,
+     "nan": 0,
+     "sha256": "262cb10c66ed18c292dffb677a7eb6bc1f71b260c3e60722b7b480f6268bf7f1"
+    },
+    "UpDown": {
+     "rows": 7885,
+     "nan": 0,
+     "sha256": "da8b6475d6b74aebb166789fe6e48b9daa03e730dcebf7a13db593c5eb0c7dcc"
+    },
+    "Comp": {
+     "rows": 7885,
+     "nan": 0,
+     "sha256": "0e155d75915e7191d95235edb302a84a94b6f4700374cbf86836c1337d69a5df"
+    },
+    "Change": {
+     "rows": 7885,
+     "nan": 0,
+     "sha256": "8e62c99fdcec5e36ba955529d9f625a7d53126f35a12fc22a8cdc15bad8d0ad2"
+    },
+    "Open": {
+     "rows": 7885,
+     "nan": 0,
+     "sha256": "031a6e92afbf64db84f15d819b3dadc20de5998af13021f490cf68a4cb5d00af"
+    },
+    "High": {
+     "rows": 7885,
+     "nan": 0,
+     "sha256": "3af67e405edecdefdb794dbdc5ca4406be8685868ef4787db7abf3e066caedc4"
+    },
+    "Low": {
+     "rows": 7885,
+     "nan": 0,
+     "sha256": "c08ef23cb020af9b3a6ede58f65a03bc1f09ba723dab01682ce22c2d1736e6c1"
+    },
+    "Volume": {
+     "rows": 7885,
+     "nan": 0,
+     "sha256": "8baa713dbfac7bcf0fbb5ea58fccaa2da01a6cc0f7f46360cdcc5965a555c796"
+    },
+    "Amount": {
+     "rows": 7885,
+     "nan": 0,
+     "sha256": "0aa5f052e56c72a4c6b57a59490304d2892d66e433f27ecc8225cc5b97e603d6"
+    },
+    "MarCap": {
+     "rows": 7885,
+     "nan": 1671,
+     "sha256": "3b329e7cd71185597e10170021fbfac4a2044b8710e62398abea435ef96cd23b"
+    }
+   }
+  },
+  "usdkrw_fdr": {
+   "index_first": "2003-12-01",
+   "index_last": "2026-08-18",
+   "columns": {
+    "Open": {
+     "rows": 5928,
+     "nan": 36,
+     "sha256": "0c8d63dbf659a15b3c50145787d4fdc13ef8320b5b44e6a3a1ef90f7547fb3f0"
+    },
+    "High": {
+     "rows": 5928,
+     "nan": 36,
+     "sha256": "332a158cb94dcc16e94c891366e5eefac9cc705f9a3f3e9392406f9081dff190"
+    },
+    "Low": {
+     "rows": 5928,
+     "nan": 36,
+     "sha256": "5cd6d9b853e4fccd74d8916fd30bc2bc1d1b6a1621b75ac1a17b5a05776f6573"
+    },
+    "Close": {
+     "rows": 5928,
+     "nan": 37,
+     "sha256": "1fd4787bd260ab001d656a5d6d9b7c0e0feff479e1f756758b9a8571957b19cb"
+    },
+    "Volume": {
+     "rows": 5928,
+     "nan": 36,
+     "sha256": "bd2c4b2e31d2066d46ee770fdaf197f9f8fde2b57bc8ff2577f250cbc5e2026a"
+    },
+    "Adj Close": {
+     "rows": 5928,
+     "nan": 37,
+     "sha256": "1fd4787bd260ab001d656a5d6d9b7c0e0feff479e1f756758b9a8571957b19cb"
+    }
+   }
+  }
+ }
+}
