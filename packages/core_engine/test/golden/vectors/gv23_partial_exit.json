@@ -1,0 +1,21 @@
+{
+  "config": { "partial": { "enabled": true, "index": "KOSDAQ", "min_score": 40.0 } },
+  "sleeve_a_value": 24500000,
+  "cases": [
+    { "id":"r1", "trend_score_kr": null,  "expected_exit_fraction": 1.0,  "expected_sell_value": 24500000,
+      "note": "🔴 워밍업 미달·데이터 없음 → 전량 청산 (fail-closed, P3)" },
+    { "id":"r2", "trend_score_kr": 30.0,  "expected_exit_fraction": 1.0,  "expected_sell_value": 24500000 },
+    { "id":"r3", "trend_score_kr": 39.9,  "expected_exit_fraction": 1.0,  "expected_sell_value": 24500000,
+      "note": "🔴 경계 바로 아래. 40 미만은 전량" },
+    { "id":"r4", "trend_score_kr": 40.0,  "expected_exit_fraction": 0.60, "expected_sell_value": 14700000,
+      "note": "🔴 경계. 39.9 → 40.0 에서 매도가 100% → 60% 로 뛴다 (의도된 불연속)" },
+    { "id":"r5", "trend_score_kr": 55.0,  "expected_exit_fraction": 0.45, "expected_sell_value": 11025000 },
+    { "id":"r6", "trend_score_kr": 70.0,  "expected_exit_fraction": 0.30, "expected_sell_value":  7350000 },
+    { "id":"r7", "trend_score_kr": 100.0, "expected_exit_fraction": 0.0,  "expected_sell_value":        0,
+      "note": "🔴 방향 역전 구현은 여기서 1.0(전량 매도)을 낸다" },
+    { "id":"r8", "trend_score_kr": 70.0, "config_override": { "partial": { "enabled": false } },
+      "expected_exit_fraction": 1.0, "expected_sell_value": 24500000,
+      "note": "partial.enabled=false 면 스코어와 무관하게 전량 청산 (A13 비교용 경로)" }
+  ],
+  "tolerance": { "fraction": 1e-12, "amounts": 0.01 }
+}

@@ -4,10 +4,13 @@
 > 원본이 바뀌면 다시 복사하고 이 표의 sha256·복사일을 갱신한다 — 손으로 고친 정답지는 위조다.
 > 🔴 줄 끝은 저장소 규칙(`.gitattributes` `eol=lf`)대로 LF 다 — 원본이 CRLF 면 줄 끝만 바꾸고 원본 sha256 을 함께 적는다.
 > 🔴 파일 이름을 `*.golden.json` 꼴로 짓지 않는다 — CI «골든 스냅샷» 잡이 그 꼴을 화면 스냅샷으로 보고 수정·삭제를 막는다(`.github/workflows/ci.yml`).
-> 원본 경로는 설계 저장소(`C:\Work\클로드-백그라운드-작업\투자`, E1 = 커밋 `ba91cc3` · E2a·E2b·E3a·E3b·E4 = 커밋 `d3aaabb` · E5a = 커밋 `f11d2b5` 기준 — 05 는 그 사이 바뀌지 않았다) 상대 경로다.
+> 원본 경로는 설계 저장소(`C:\Work\클로드-백그라운드-작업\투자`, E1 = 커밋 `ba91cc3` · E2a·E2b·E3a·E3b·E4 = 커밋 `d3aaabb` · E5a = 커밋 `f11d2b5` · E5b = 커밋 `a64d4e1` 기준 — 05 는 그 사이 바뀌지 않았다) 상대 경로다.
 
 | 파일 | 원본 | 원본 판 | 복사일 |
 |---|---|---|---|
+| `gv20_sleeve_b_tranche.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-20 코드 블록(2292~2306행) | 05 **v1.22** | 2026-10-20 |
+| `gv23_partial_exit.json` | 같은 문서 §GV-23 코드 블록(2449~2469행) — enabled 경로 전용(P0S 는 꺼짐). GV-38-4 가 같은 함수를 묻는다 | 05 **v1.22** | 2026-10-20 |
+| `gv35_38_decisions.json` | `08_파일럿/파일럿5/vectors/gv35_38.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `f85337e698cda0ac8262a20dc853c797db22d8210c9af9ab85018488d14d47ae`) · 05 §GV-35~38 이 지목(AC-B26). E5b 는 GV-38 만 시험한다. ⚠️ GV-35·37 은 생성기(`gen_v220_vectors.py`)가 슬리브 C 가중치 0.40/0.35/0.25 · B 목표 0.287 을 **기본 인자로 숨겨** 계산했다 — 현행 P0S(C 0/0.65/0.35 · B 0.42)와 다르다(설계 13 §8 R14) | 파일 커밋 `b1c85de` | 2026-10-20 |
 | `gv11_trade_cost.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-11 코드 블록(1876~1891행) — 설정은 산문이라 `../kr_costs_fixture.dart` 가 02 §4 `costs.kr` 를 옮겨 적는다 | 05 **v1.22** | 2026-10-20 |
 | `gv11e_tier_boundary_us.json` | 같은 문서 §GV-11e 코드 블록(1897~1919행) | 05 **v1.22** | 2026-10-20 |
 | `gv11d_participation.json` | 같은 문서 §GV-11d 코드 블록(1931~1934행) | 05 **v1.22** | 2026-10-20 |
@@ -53,6 +56,9 @@
 sha256(복사본 — `sha256sum *.json`):
 
 ```
+2deb53d95e7839559d14fce69702206ca0d2ea0d8e8889aab574119a3fc3058f  gv20_sleeve_b_tranche.json
+b5327db1e701fdc505502ce2ab5dabeb51b198a00e70f703f9646f3904d24567  gv23_partial_exit.json
+4934e65af8227945f2b095b64afa428e8822113cfac01845f795634ffeacb8c4  gv35_38_decisions.json
 38cecab31bac0101e10c8b19f86f8f19831252b114032fc3de92471c27deb405  gv11_trade_cost.json
 4296b284a5bc3adfefba0abe83423330a1dd84cbe0eaa4d252a7d6e9c056898f  gv11d_participation.json
 1252d7b91e7a95bf9b3710ea2d4fa84312c45c59999d507961d1ab467b38c4b6  gv11e_tier_boundary_us.json
