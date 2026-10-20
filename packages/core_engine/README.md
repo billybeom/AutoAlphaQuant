@@ -17,7 +17,7 @@
 
 ## 의존 — 허용 (01 §1-1)
 
-`domain_contracts` · `decimal`. **순수 Dart**다.
+`domain_contracts` · `decimal` · 🆕 `crypto`(SHA-256 — 멱등키 · 발주자 결정 2026-10-20 · 01 §1-1 개정은 다음 M2 창). **순수 Dart**다.
 
 ## 의존 — 🔴 금지
 
@@ -37,7 +37,7 @@
 2. **골든벡터 전량 통과 전에는 DRY_RUN을 벗어나지 않는다**(결정 2). 이 패키지의 Dart 재현이 그 게이트다.
 3. **사유 문구는 여기서 만들어진다.** 화면은 만들지 않는다 — 엔진이 `label`·`actionLine` 필드에 실어 보낸다.
 
-## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · 나머지는 🟡
+## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · 나머지는 🟡
 
 실행 계획(블록 E1~E18)은 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` 가 정본이다.
 
@@ -50,6 +50,8 @@
 | `lib/src/signals/regime_score.dart` · `hysteresis.dart` — 카테고리 가중 평균·재정규화 · 방향/추세성 히스테리시스(봉 하나씩) | M1-2 일부(E2b) | GV-1(7) · GV-4 계열(13) · `test/regime_test.dart`(UNKNOWN 직전 · 경계 strict · 설정 거부) |
 | `lib/src/risk/breaker.dart` — 드로다운 서킷브레이커(악화 즉시 · 유지 20봉 · 한 단계씩 · STOPPED 자동 해제 없음) · v2.29 재개 «자격» 이벤트 · 슬리브별 승수 | M1-3 일부 · M5-3·M5-4 계산부(E3a) | GV-31(29 · AC-S16) · s_h5_1(off/on) · GV-18(5) · `test/breaker_test.dart` |
 | `lib/src/risk/limits.dart` — 한도 판정 `checkAllLimits`(L4→L3→L2→L1 전수 · P1~P6 · `trace` 관측면 · fail-closed `RiskCheckUnavailable`) | M1-3 일부(E3b) | GV-32(63 · AC-S17) · GV-39(15) · GV-17(6 · AC-S14) · `test/limits_test.dart`(ALERT 표시) |
+| `lib/src/calendar/exchange_calendar.dart` — 거래소 캘린더(세션 데이터를 받아 판정 · 범위 밖 = 모름) · `Market`(KR/XKRX · US/XNYS) | M1-6(E4) | GV-12(5) · GV-12c(9) · `test/calendar_test.dart`(범위·입력 거부·n번째 세션) |
+| `lib/src/orders/idempotency.dart` — decision_id 6종 형식(시각·TIER 인자 없음 · strategy_id 포함) · 멱등키 원문·SHA-256 | M1-5(E4) | GV-9(2 + 불변식) · GV-13 형식 부분(v1~v4) |
 
 **STOPPED 실재개**는 `releaseStoppedToHalted` 하나뿐이다 — 부르는 자리는 M5-3(`decision_id` 등록 뒤)과 재현 하네스다. 참조 엔진의 `stopped_release_enabled`(자격 = 재개 근사)는 앱 코드에 두지 않는다.
 

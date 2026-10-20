@@ -1,0 +1,15 @@
+{
+  "cases": [
+    { "date": "2026-08-31", "calendar": "XKRX",
+      "expected": { "is_session": true, "is_last_session_of_month": true } },
+    { "date": "2026-08-29", "calendar": "XKRX",
+      "expected": { "is_session": false, "reason": "토요일" } },
+    { "date": "2026-04-30", "calendar": "XKRX",
+      "expected": { "is_session": true, "is_last_session_of_month": true } },
+    { "date": "2026-01-01", "calendar": "XKRX",
+      "expected": { "is_session": false, "reason": "신정" } },
+    { "date": "2026-12-25", "calendar": "XNYS",
+      "expected": { "is_session": false, "reason": "크리스마스" } }
+  ],
+  "note": "실제 값은 exchange_calendars 라이브러리 기준으로 검증한다. 하드코딩 금지."
+}

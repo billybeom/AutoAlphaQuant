@@ -9,8 +9,11 @@
 // 것만 여기에서 export 한다. 진척은 README «지금 상태»와 설계 저장소
 // `11_앱설계/13_엔진레인_착수계획.md` §2 를 본다.
 
+export 'src/calendar/exchange_calendar.dart' show ExchangeCalendar, Market;
 export 'src/decimal_rules.dart'
     show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
+export 'src/orders/idempotency.dart'
+    show DecisionIds, idempotencyKey, idempotencyRaw;
 export 'src/risk/breaker.dart'
     show
         BreakerConfig,

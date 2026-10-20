@@ -1,0 +1,44 @@
+{
+  "setup": {
+    "market": "KR", "account": "12345678", "symbol": "005930",
+    "strategy_id": "satellite_kr", "trade_date": "2026-09-10",
+    "side": "SELL", "dry_run": false,
+    "broker": "mock — submit_order 호출 횟수를 센다"
+  },
+  "cases": [
+    { "id": "v1",
+      "trigger": "TIER 1B 손절. intraday_stop_watch를 09:35 / 09:40 / 10:15 / 14:55 에 4회 호출",
+      "expected": {
+        "decision_id": "EXIT-satellite_kr-005930-2026-09-10",
+        "distinct_decision_ids": 1,
+        "distinct_idempotency_keys": 1,
+        "reserve_intent_returns": [true, false, false, false],
+        "broker.submit_order_call_count": 1,
+        "order_intents_row_count": 1
+      } },
+
+    { "id": "v2",
+      "trigger": "09:35 종가 9,360 → TIER 1.5 발동(주문 미체결) / 09:40 종가 9,350 → TIER 1B 발동",
+      "expected": {
+        "distinct_decision_ids": 1,
+        "broker.submit_order_call_count": 1
+      } },
+
+    { "id": "v3",
+      "trigger": "두 전략(satellite_kr / sleeve_a_kr)이 같은 날 같은 종목 005930을 각각 청산",
+      "expected": {
+        "distinct_decision_ids": 2,
+        "distinct_idempotency_keys": 2,
+        "broker.submit_order_call_count": 2
+      } },
+
+    { "id": "v4",
+      "trigger": "월간 새틀라이트 교체 배치를 같은 날 2회 실행",
+      "expected": {
+        "decision_id": "S-ROT-2026-09-10",
+        "broker.submit_order_call_count": 1
+      } }
+  ],
+  "exact_fields": ["decision_id", "distinct_decision_ids",
+                   "distinct_idempotency_keys", "broker.submit_order_call_count"]
+}

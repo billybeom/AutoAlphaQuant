@@ -4,10 +4,15 @@
 > 원본이 바뀌면 다시 복사하고 이 표의 sha256·복사일을 갱신한다 — 손으로 고친 정답지는 위조다.
 > 🔴 줄 끝은 저장소 규칙(`.gitattributes` `eol=lf`)대로 LF 다 — 원본이 CRLF 면 줄 끝만 바꾸고 원본 sha256 을 함께 적는다.
 > 🔴 파일 이름을 `*.golden.json` 꼴로 짓지 않는다 — CI «골든 스냅샷» 잡이 그 꼴을 화면 스냅샷으로 보고 수정·삭제를 막는다(`.github/workflows/ci.yml`).
-> 원본 경로는 설계 저장소(`C:\Work\클로드-백그라운드-작업\투자`, E1 = 커밋 `ba91cc3` · E2a·E2b·E3a·E3b = 커밋 `d3aaabb` 기준 — 05 는 그 사이 바뀌지 않았다) 상대 경로다.
+> 원본 경로는 설계 저장소(`C:\Work\클로드-백그라운드-작업\투자`, E1 = 커밋 `ba91cc3` · E2a·E2b·E3a·E3b·E4 = 커밋 `d3aaabb` 기준 — 05 는 그 사이 바뀌지 않았다) 상대 경로다.
 
 | 파일 | 원본 | 원본 판 | 복사일 |
 |---|---|---|---|
+| `gv09_idempotency_key.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-9 코드 블록(1138~1160행) | 05 **v1.22** | 2026-10-20 |
+| `gv12_trading_day.json` | 같은 문서 §GV-12 코드 블록(1943~1957행) | 05 **v1.22** | 2026-10-20 |
+| `gv12c_last_session_negative.json` | 같은 문서 §GV-12c 코드 블록(1967~1981행) | 05 **v1.22** | 2026-10-20 |
+| `gv13_decision_id.json` | 같은 문서 §GV-13 코드 블록(2040~2083행) — 형식 부분만 시험(발주 횟수는 E10) | 05 **v1.22** | 2026-10-20 |
+| `sessions_xkrx.json` · `sessions_xnys.json` | 🔵 **정답지가 아니라 입력 데이터** — `tool/gen_exchange_sessions.py` 가 exchange_calendars **4.13.2**(pandas 3.0.6 · Python 3.14.6)로 1999-12-01~2027-12-31 세션을 동결한 것(발주자 결정 2026-10-20). 05 GV-12 가 지정한 판(4.13.2)과 같다. 🔴 손으로 고치지 않는다 — 판을 올리면 생성기를 다시 돌린다 | 생성 2026-10-20 | 2026-10-20 |
 | `gv32_saf_vectors.json` | `08_파일럿/파일럿4/vectors/saf_vectors.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `6549049dc5711f26d95f90b451902b492e53b6a4eac7f2f968f4b2fede4b57a0`) · 05 §GV-32 가 정본으로 지목 · 63케이스. `_meta.cfg_risk` 의 `circuit_breaker.dd_stop: -0.3` 은 v2.16 이전 값이지만 한도 판정에는 쓰이지 않는다 | 파일 커밋 `b1c85de` | 2026-10-20 |
 | `gv39_trace_vectors.json` | `08_파일럿/파일럿5/vectors/gv39_vectors.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `cd0702d5101cf85d04261d61abf0f727f8673eb7e2ab9fd5692e031ecea5378d`) · 15케이스 | 파일 커밋 `b1c85de` | 2026-10-20 |
 | `gv17_fail_closed.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-17 코드 블록(2209~2225행) — v1.6 상태 모델이라 테스트가 GV-32 이름으로 옮겨 읽는다. x3(`usd_exposure_pct`)은 v2.30 SAF-307 재정의로 판정 입력이 아니게 돼 시험하지 않는다 | 05 **v1.22** | 2026-10-20 |
@@ -54,12 +59,18 @@ eed6928eaa1bd91e36c42cc1dc8b0a9ea7d1e0b1b4ce44bcda911968d30f32d2  gv02b_chop.jso
 667c5a6873e339c122891e67543384d8eaaeec90365007b1f9115808b4c7c0f9  gv02d_wilder_rma.json
 b2c3bb1d25dae278fe8e0fb390bac11e1fd93bffe151268cfdc94259694e4409  gv02e_bbw.json
 6e7249a9d35788570415a45fb1eed80e84168c5f6704faf145c15b3e53632d1e  gv02f_adx_values.json
+e129f3e5c64aeea318c1c1569f46ff99fde2669ff02cf63e984569b99d513ee0  gv09_idempotency_key.json
+31b3638927c3322cd0099be7ecce480af78b553125f9b4c0ef8ceb6d989e271a  gv12_trading_day.json
+75bb7bae52c08254637de59b1f9443ef1610abe0544a97beb46ca96d0bf7fb02  gv12c_last_session_negative.json
+bd9716f1e6ce14525e659bafc64d6dd52c429b48517cae8e5b7d8fd85b69f797  gv13_decision_id.json
 8b3546977f2280f11a48f20313abd8d0419701ca1432404038d015d9cf632caa  gv17_fail_closed.json
 00ec726fe83e363ab2c79e678c90114310e217737987a58cff4c21e7d01b193a  gv18_exposure_multiplier.json
 ba67b95e245664103a67ff8bd3de7ddacf0bb9f8fc0a7fa52e98e260512a4ebd  gv31_breaker_vectors.json
 e804a744586588a36d1cb6f79e3fb2a1e7f020208a03ccf5b5d5d4ea422b0b22  gv31_s_h5_1_J1_stopped.json
 6747c17f86950cbd0b8db5e3a2d5d845bfd4bad37d744312f3500b8504ed610e  gv32_saf_vectors.json
 9bb3e433ec1e90495a6fe852a4a39e35defdb2d874714a08157b7a35e83aaa9a  gv39_trace_vectors.json
+ee99f7d4b4d807b4485eba8a1d8e976086207045b588a948b96b37ca5dae34a5  sessions_xkrx.json
+1a0e57e11146393ffb30a2361757b0293d5400722951356889878c8201254f81  sessions_xnys.json
 a0a15d8697ef6b32d6689990750ecd27a711e6b97dfd74e2bc62b5e8f5ebed5b  gv03_exposure_gate.json
 d156edff943a329a7702362466528291e852d5dbc664f70f07d6e2503121e1e1  gv03c_unknown_fail_closed.json
 89635795b2eb36293e6922638a070a4eaab75716d56af0b46b8a4e7396dc62c2  gv04_hysteresis.json

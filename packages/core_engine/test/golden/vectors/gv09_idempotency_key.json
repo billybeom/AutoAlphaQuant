@@ -1,0 +1,23 @@
+{
+  "cases": [
+    {
+      "input": {"market":"KR","account":"12345678","symbol":"005930",
+                "side":"BUY","decision_id":"A-REBAL-2026-08-04"},
+      "expected_raw": "v1|KR|12345678|005930|BUY|A-REBAL-2026-08-04",
+      "expected_key": "446e00a0b3539537e698251fdaad77bd24f2d540cfc2c63bf403fd8130a02a4e"
+    },
+    {
+      "input": {"market":"US","account":"12345678","symbol":"SPY",
+                "side":"SELL","decision_id":"EXIT-sleeve_b_us-SPY-2026-08-04"},
+      "expected_raw": "v1|US|12345678|SPY|SELL|EXIT-sleeve_b_us-SPY-2026-08-04",
+      "expected_key": "103db96aa8c5acab72de23deb97c580bac5089dbf294ccf4da109d309a7224d9"
+    }
+  ],
+  "invariants": [
+    "동일 입력 → 동일 해시 (결정론)",
+    "side만 달라도 다른 해시",
+    "decision_id만 달라도 다른 해시",
+    "길이 = 64 (hex)"
+  ],
+  "exact_fields": ["expected_raw", "expected_key"]
+}
