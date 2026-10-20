@@ -161,7 +161,7 @@ class LedgerRow {
   final double qty, price, gross, cost;
 }
 
-/// 일별 기록 한 행(`_snapshot` 중 대조하는 열).
+/// 일별 기록 한 행(`_snapshot` 중 대조하는 열 + N2 골든 생성기가 더하는 금 평가액 `gold_b` · `gold_pot`).
 class DailyRow {
   DailyRow(this.date, this.values, this.breaker, this.dirState);
   final String date;
@@ -1184,6 +1184,8 @@ class ReplayEngine {
     final double eq = a + b + c + s;
     final double fx = _p(i, 'fx');
     final double iauPx = _p(i, 'IAU');
+    // N2 `GoldTrackBacktest._snapshot` — B · POT 의 금(411060) 평가액(E6e 금 비중).
+    final double goldPx = _p(i, '411060');
     daily.add(
       DailyRow(
         d,
@@ -1199,6 +1201,8 @@ class ReplayEngine {
           'b_park': bParkUnits * _p(i, 'PARK'),
           'pot': _potValue(i),
           'dd': dd,
+          'gold_b': _fin(goldPx) ? bUnits['411060']! * goldPx : 0.0,
+          'gold_pot': _fin(goldPx) ? potBUnits['411060']! * goldPx : 0.0,
         },
         level,
         state,

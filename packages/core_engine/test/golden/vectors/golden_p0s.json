@@ -1,0 +1,300 @@
+{
+ "meta": {
+  "version": "v2.32",
+  "preset": "P0S",
+  "date": "2026-09-06",
+  "pieces_added": [
+   "alloc.satellite_target",
+   "alloc.satellite_band_low",
+   "alloc.satellite_band_high",
+   "alloc.sleeve_c",
+   "satellite.max_positions",
+   "pension_funding"
+  ],
+  "absorb": {
+   "pension_funding": true
+  },
+  "span": "2000-01-03~2026-08-14",
+  "profile": "balanced 배분에서 새틀 0% (A20/B42/잔여 C)",
+  "engine": "백테스트6/engine",
+  "reproduce": "PYTHONIOENCODING=utf-8 python exp/N2_golden_p0s.py",
+  "note": "P0 골든(runs/G2_golden/golden_p0.json) 수치는 불변 — 이 파일은 v2.31 정본 P0S 의 정답지"
+ },
+ "stack": {
+  "S5_P0": {
+   "cagr_pct": 11.1711,
+   "mdd_pct": -12.7667,
+   "vol_pct": 8.2373,
+   "n_orders": 4170,
+   "cost_krw": 36117295.0
+  },
+  "S6_P0S_residual": {
+   "cagr_pct": 11.1331,
+   "mdd_pct": -12.5952,
+   "vol_pct": 8.2746,
+   "n_orders": 934,
+   "cost_krw": 24289863.0
+  },
+  "S7_P0S": {
+   "cagr_pct": 11.1331,
+   "mdd_pct": -12.5952,
+   "vol_pct": 8.2746,
+   "n_orders": 934,
+   "cost_krw": 24289863.0
+  }
+ },
+ "stress_S7": {
+  "delay1": {
+   "cagr_pct": 10.9397,
+   "mdd_pct": -14.2186,
+   "vol_pct": 8.4396
+  },
+  "nogate": {
+   "cagr_pct": 10.5646,
+   "mdd_pct": -12.5749,
+   "vol_pct": 8.1713
+  },
+  "nocut": {
+   "cagr_pct": 11.5116,
+   "mdd_pct": -14.3391,
+   "vol_pct": 8.889
+  },
+  "worst_of_mdd_pct": -14.3391
+ },
+ "aftertax_S7": {
+  "cagr_pct": 10.8548,
+  "mdd_pct": -12.6012,
+  "vol_pct": 8.275,
+  "assumption": "POT 서브북 일반계좌 15.4% 만 반영 — 연금계좌 인출세(5.5~16.5%)·A 국내주식 양도세 미포함(«POT 일반계좌 가정 세후»). 인출세까지 넣은 정직 기대치는 D4(F회차) 세후 10.4% 안팎으로 별도 계산"
+ },
+ "bootstrap_S7": {
+  "n": 5000,
+  "block": 63,
+  "pretax": {
+   "42": {
+    "p5_pct": -18.3351,
+    "p_mdd_le_15": 0.2432,
+    "p_mdd_le_20": 0.0226
+   },
+   "7": {
+    "p5_pct": -18.3844,
+    "p_mdd_le_15": 0.2304,
+    "p_mdd_le_20": 0.02
+   },
+   "101": {
+    "p5_pct": -18.2983,
+    "p_mdd_le_15": 0.2414,
+    "p_mdd_le_20": 0.0224
+   }
+  },
+  "aftertax": {
+   "42": {
+    "p5_pct": -18.5262,
+    "p_mdd_le_15": 0.2578,
+    "p_mdd_le_20": 0.0234
+   },
+   "7": {
+    "p5_pct": -18.5626,
+    "p_mdd_le_15": 0.245,
+    "p_mdd_le_20": 0.0232
+   },
+   "101": {
+    "p5_pct": -18.5791,
+    "p_mdd_le_15": 0.2532,
+    "p_mdd_le_20": 0.0242
+   }
+  }
+ },
+ "gold_share_S7": {
+  "mean_pct": 14.3022,
+  "max_pct": 24.5823,
+  "c_mean_pct": 7.7457,
+  "b_pot_mean_pct": 6.5565,
+  "gt20_days_pct": 18.3913,
+  "series": "runs/N2_golden/gold_share_p0s.csv"
+ },
+ "realized_alloc_S7": {
+  "A_pct": 8.0648,
+  "B_pct": 40.3827,
+  "C_incl_pot_pct": 51.5525,
+  "krw_cash_pct": 8.8859,
+  "c_bond_pct": 22.7464,
+  "c_gold_pct": 7.7457,
+  "A_acct_incl_pot_pct": 20.2392,
+  "C_acct_excl_pot_pct": 39.378,
+  "pot_pct": 12.1744
+ },
+ "aftertax_full_S7": {
+  "spec_pot_taxfree": {
+   "pretax": {
+    "cagr_pct": 11.1331,
+    "end_mult": 16.5951
+   },
+   "after_pot": {
+    "cagr_pct": 11.1331,
+    "end_mult": 16.5951
+   },
+   "after_pot_c": {
+    "cagr_pct": 10.9629,
+    "end_mult": 15.932
+   },
+   "wd_5p5": {
+    "cagr_pct": 10.8532,
+    "end_mult": 15.5181
+   },
+   "wd_5p5_refund_nominal": {
+    "cagr_pct": 10.8677,
+    "end_mult": 15.5722
+   },
+   "wd_5p5_refund_reinvested": {
+    "cagr_pct": 10.9973,
+    "end_mult": 16.0639
+   },
+   "wd_16p5": {
+    "cagr_pct": 10.6251,
+    "end_mult": 14.6904
+   },
+   "wd_16p5_refund_nominal": {
+    "cagr_pct": 10.6404,
+    "end_mult": 14.7445
+   },
+   "wd_16p5_refund_reinvested": {
+    "cagr_pct": 10.7769,
+    "end_mult": 15.2362
+   },
+   "refund_reinvested_krw": 54574244
+  },
+  "cf_pot_taxable_comp26": {
+   "pretax": {
+    "cagr_pct": 11.1331,
+    "end_mult": 16.5951
+   },
+   "after_pot": {
+    "cagr_pct": 10.8548,
+    "end_mult": 15.524
+   },
+   "after_pot_c": {
+    "cagr_pct": 10.625,
+    "end_mult": 14.6898
+   },
+   "wd_5p5": {
+    "cagr_pct": 10.5062,
+    "end_mult": 14.276
+   },
+   "wd_5p5_refund_nominal": {
+    "cagr_pct": 10.5219,
+    "end_mult": 14.33
+   },
+   "wd_5p5_refund_reinvested": {
+    "cagr_pct": 10.6505,
+    "end_mult": 14.7804
+   },
+   "wd_16p5": {
+    "cagr_pct": 10.2585,
+    "end_mult": 13.4482
+   },
+   "wd_16p5_refund_nominal": {
+    "cagr_pct": 10.2751,
+    "end_mult": 13.5023
+   },
+   "wd_16p5_refund_reinvested": {
+    "cagr_pct": 10.4112,
+    "end_mult": 13.9527
+   },
+   "refund_reinvested_krw": 50447271
+  },
+  "cf_pot_taxable_comp38": {
+   "pretax": {
+    "cagr_pct": 11.1331,
+    "end_mult": 16.5951
+   },
+   "after_pot": {
+    "cagr_pct": 10.8548,
+    "end_mult": 15.524
+   },
+   "after_pot_c": {
+    "cagr_pct": 10.5616,
+    "end_mult": 14.4676
+   },
+   "wd_5p5": {
+    "cagr_pct": 10.4411,
+    "end_mult": 14.0537
+   },
+   "wd_5p5_refund_nominal": {
+    "cagr_pct": 10.457,
+    "end_mult": 14.1078
+   },
+   "wd_5p5_refund_reinvested": {
+    "cagr_pct": 10.5854,
+    "end_mult": 14.5506
+   },
+   "wd_16p5": {
+    "cagr_pct": 10.1895,
+    "end_mult": 13.226
+   },
+   "wd_16p5_refund_nominal": {
+    "cagr_pct": 10.2064,
+    "end_mult": 13.2801
+   },
+   "wd_16p5_refund_reinvested": {
+    "cagr_pct": 10.3423,
+    "end_mult": 13.7229
+   },
+   "refund_reinvested_krw": 49692846
+  },
+  "cf_pot_taxable_flat": {
+   "pretax": {
+    "cagr_pct": 11.1331,
+    "end_mult": 16.5951
+   },
+   "after_pot": {
+    "cagr_pct": 10.8548,
+    "end_mult": 15.524
+   },
+   "after_pot_c": {
+    "cagr_pct": 10.6824,
+    "end_mult": 14.894
+   },
+   "wd_5p5": {
+    "cagr_pct": 10.5652,
+    "end_mult": 14.4801
+   },
+   "wd_5p5_refund_nominal": {
+    "cagr_pct": 10.5807,
+    "end_mult": 14.5342
+   },
+   "wd_5p5_refund_reinvested": {
+    "cagr_pct": 10.7095,
+    "end_mult": 14.9915
+   },
+   "wd_16p5": {
+    "cagr_pct": 10.3209,
+    "end_mult": 13.6524
+   },
+   "wd_16p5_refund_nominal": {
+    "cagr_pct": 10.3373,
+    "end_mult": 13.7065
+   },
+   "wd_16p5_refund_reinvested": {
+    "cagr_pct": 10.4735,
+    "end_mult": 14.1638
+   },
+   "refund_reinvested_krw": 51140205
+  },
+  "inputs": {
+   "pension_end_krw": 786402793,
+   "pension_end_B_only_krw": 739500103,
+   "pension_share_pct": 47.39,
+   "contrib_total_krw": 74913873,
+   "credited_krw": 40974409,
+   "non_credited_krw": 33939464,
+   "refund_nominal_krw": 5408622,
+   "taxable_pension_krw": 752463329,
+   "pot_gains_krw": 282319696,
+   "c_gains_krw": 99189969,
+   "years_over_2000man": 6,
+   "max_year_gain_krw": 81422188
+  },
+  "assumption": "(가) 정본 = POT 절세계좌(매매차익세 0) · C 국내상장 해외 ETF 일반계좌 15.4%(건별 이익, 손실 통산 없음) · A 국내 ETF 비과세 · B 연금계좌 종료 시점 인출세 5.5%(연금 수령) / 16.5%(분리과세), 과세 대상 = 잔고(B + 재분류 파킹) − 세액공제 미수령 원금(명목) · 환급 = 공제대상 납입 × 13.2% (명목 합산 하한 / 다음 해 5월부터 재투자 상한). (나) 반사실 = POT 일반계좌 15.4% + 연 실현이익 2,000만 초과분 종합과세(26.4%/38.5%). «정직 기대»(F회차)는 여기에 낙관 감액 0.47%p(계절 게이트 ×0.5 0.26 + KOSDAQ150 프록시 0.21)를 더 뺀 값이며 인출세를 포함하지 않는 옛 라벨을 대체한다."
+ }
+}
