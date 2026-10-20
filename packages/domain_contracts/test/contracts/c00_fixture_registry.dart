@@ -204,6 +204,22 @@ final DtoCodec<Object> _blindReviewCard = DtoCodec<BlindReviewCard>(
   BlindReviewCard.fromJson,
   (BlindReviewCard v) => v.toJson(),
 );
+// 🆕 계약 v1.8(R4 선행 · 01 §17) — 보유 화면 셋의 VM(행 1 · `unknown_board_2` 선례).
+final DtoCodec<Object> _holdingsOverviewVm = DtoCodec<HoldingsOverviewVm>(
+  'HoldingsOverviewVm',
+  HoldingsOverviewVm.fromJson,
+  (HoldingsOverviewVm v) => v.toJson(),
+);
+final DtoCodec<Object> _holdingDetailVm = DtoCodec<HoldingDetailVm>(
+  'HoldingDetailVm',
+  HoldingDetailVm.fromJson,
+  (HoldingDetailVm v) => v.toJson(),
+);
+final DtoCodec<Object> _sleeveAllocationVm = DtoCodec<SleeveAllocationVm>(
+  'SleeveAllocationVm',
+  SleeveAllocationVm.fromJson,
+  (SleeveAllocationVm v) => v.toJson(),
+);
 // 🆕 계약 v1.3(R10 선행 · 01 §13) — 게이트·아카이브 픽스처가 여럿이 됐다.
 final DtoCodec<Object> _disclosureGateVm = DtoCodec<DisclosureGateVm>(
   'DisclosureGateVm',
@@ -311,6 +327,14 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     _adviceItem,
     extras: <String, DtoCodec<Object>>{adviceSummaryKey: _adviceInboxSummary},
   ),
+  // 🆕 v1.8(01 §17) — `H6-3` 배분 7갈래(밴드 내 · 이탈 · 근접+보류 칩 · 파킹 큼 · INTEGRITY · RECON · 빈).
+  FixturePaths.m6AllocationEmpty: FixtureBinding(_sleeveAllocationVm),
+  FixturePaths.m6AllocationInBand: FixtureBinding(_sleeveAllocationVm),
+  FixturePaths.m6AllocationIntegrity: FixtureBinding(_sleeveAllocationVm),
+  FixturePaths.m6AllocationOutOfBand: FixtureBinding(_sleeveAllocationVm),
+  FixturePaths.m6AllocationParkingLarge: FixtureBinding(_sleeveAllocationVm),
+  FixturePaths.m6AllocationRecon: FixtureBinding(_sleeveAllocationVm),
+  FixturePaths.m6AllocationTrancheProgress: FixtureBinding(_sleeveAllocationVm),
   FixturePaths.m6AdviceSkipReasons: FixtureBinding(
     DtoCodec<ReasonOption>(
       'ReasonOption',
@@ -335,6 +359,18 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m6FillFormSpec: FixtureBinding(_manualFillFormSpec),
   FixturePaths.m6FillFormSpecStale: FixtureBinding(_manualFillFormSpec),
   FixturePaths.m6FillRejectedPrice: FixtureBinding(_commandReceipt),
+  // 🆕 v1.8(01 §17) — `H6-2` 종목 상세 5갈래 · `H6-1` 보유현황 6갈래.
+  FixturePaths.m6HoldingDetailIntegrity: FixtureBinding(_holdingDetailVm),
+  FixturePaths.m6HoldingDetailNoStop: FixtureBinding(_holdingDetailVm),
+  FixturePaths.m6HoldingDetailPnl: FixtureBinding(_holdingDetailVm),
+  FixturePaths.m6HoldingDetailRecon: FixtureBinding(_holdingDetailVm),
+  FixturePaths.m6HoldingDetailWithStops: FixtureBinding(_holdingDetailVm),
+  FixturePaths.m6HoldingsOverviewEmpty: FixtureBinding(_holdingsOverviewVm),
+  FixturePaths.m6HoldingsOverviewIntegrity: FixtureBinding(_holdingsOverviewVm),
+  FixturePaths.m6HoldingsOverviewNormal: FixtureBinding(_holdingsOverviewVm),
+  FixturePaths.m6HoldingsOverviewPnl: FixtureBinding(_holdingsOverviewVm),
+  FixturePaths.m6HoldingsOverviewRecon: FixtureBinding(_holdingsOverviewVm),
+  FixturePaths.m6HoldingsOverviewViewer: FixtureBinding(_holdingsOverviewVm),
   // 🆕 v1.1 — J-2 거래 상세 6갈래 · J-1 배지·필터·가림 · J-3 폼 스펙 · J-5 보드.
   FixturePaths.m6DecisionDetailAmended: FixtureBinding(_decisionDetailVm),
   FixturePaths.m6DecisionDetailFull: FixtureBinding(_decisionDetailVm),
@@ -558,7 +594,9 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
 const Map<String, String> unmappedFixtures = <String, String>{
   'm6/entry_gate_nov_pass_1.json':
       '계절 진입 게이트 뷰모델이 계약에 없다. 01 §3-7 은 상태 5값·사유 코드 3종만 정하고 '
-      '화면 타입(state·gates·history·trigger 묶음)은 §2 에 등재되지 않았다 — 이름 확정 대기.',
+      '화면 타입(state·gates·history·trigger 묶음)은 §2 에 등재되지 않았다 — 이름 확정 대기. '
+      'v1.8 — `H6-3` 은 `SleeveAllocationRow.stateChips` 로 보류를 말한다 · `enteredInNov` 골든 의무는 '
+      '`A-2` `ReasonChip`(`F1_ENTRY_LATE`) 몫(01 §17 · K13).',
   'm6/self_report_1.json':
       'L-3 실사 «세션» 뷰모델이 계약에 없다. 01 §4-2 의 SelfReportBalance 는 명령 인자라 '
       'CommandContext 가 required 이고, 그 봉투는 CommandApi 구현이 채운다(C-28 G-19) — '

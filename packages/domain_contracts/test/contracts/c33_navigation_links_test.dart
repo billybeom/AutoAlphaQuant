@@ -18,6 +18,9 @@
 //   (`RebalancePreviewResult.blockedAction` 은 `LinkAction` 이라 안쪽 `deep_link` 로 덮인다) · ④ 에
 //   `ledger/execution-gap/<yyyy-MM>`·`rebalance/history` 일치 예시 · ①② 가 새 링크(월간 ⑧ 그 달 ·
 //   미리보기 차단 버튼)를 검사한다.
+//   🆕 v1.8(01 §17) — 라우트 **48**(`holdingsOverview` · `holdingsDetail` · `holdingsAllocation`) · `_linkKeys` 무변경
+//   (`HoldingRow.detailDeepLink` = 기존 `detail_deep_link` · `allocationLink`·`entryDecisionLink` 는 `LinkAction` 이라
+//   안쪽 `deep_link`) · ④ 에 `holdings/detail/<id>`·`holdings/overview`·`holdings/allocation` 일치 예시.
 // 🔴 화면은 이 검사의 대상이 아니다 — 화면은 링크를 **만들지 않으므로** 검사할 것이 없고,
 //    만들었다면 `tool/check_boundaries.sh` 의 `aaq://` 리터럴 스캔이 잡는다.
 
@@ -114,13 +117,17 @@ void main() {
       expect(AppRoutes.all.toSet().length, AppRoutes.all.length);
       // 🆕 v1.4 — 41 → 42(`reportGoalPath`). 🆕 v1.5 — 42 → 43(`journalRebalance` · 01 §15-3).
       // 🆕 v1.6 — 43 → 45(`ledgerExecutionGapMonth` · `rebalanceHistory` · 01 §15-4).
+      // 🆕 v1.8 — 45 → 48(`holdingsOverview` · `holdingsDetail` · `holdingsAllocation` · 01 §17).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(45),
-        reason: '라우트 수가 계약(01 §15-4 · v1.6 = 45)과 다르다.',
+        hasLength(48),
+        reason: '라우트 수가 계약(01 §17 · v1.8 = 48)과 다르다.',
       );
+      expect(AppRoutes.all, contains(AppRoutes.holdingsOverview));
+      expect(AppRoutes.all, contains(AppRoutes.holdingsDetail));
+      expect(AppRoutes.all, contains(AppRoutes.holdingsAllocation));
       expect(AppRoutes.all, contains(AppRoutes.ledgerExecutionGapMonth));
       expect(AppRoutes.all, contains(AppRoutes.rebalanceHistory));
       expect(AppRoutes.all, contains(AppRoutes.journalRebalance));
@@ -181,6 +188,12 @@ void main() {
         isFalse,
       );
       expect(AppRoutes.isRegistered('aaq://rebalance/history'), isTrue);
+      // 🆕 v1.8 — `holdings/detail/:holdingId` 는 세그먼트 수가 달라 `holdings/overview`·`allocation` 과 겹치지 않는다.
+      expect(AppRoutes.isRegistered('aaq://holdings/detail/h_1'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://holdings/detail/'), isFalse);
+      expect(AppRoutes.isRegistered('aaq://holdings/detail/h_1?x=1'), isFalse);
+      expect(AppRoutes.isRegistered('aaq://holdings/overview'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://holdings/allocation'), isTrue);
       expect(AppRoutes.isRegistered('aaq://journal/timeline'), isTrue);
       expect(AppRoutes.isRegistered('aaq://nowhere'), isFalse);
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);

@@ -116,9 +116,11 @@ void main() {
       expect(step.valueText, isNotEmpty, reason: '표시의 정본은 valueText 다(C-30).');
 
       // 🔴 여집합을 화면이 만들지 않도록 두 값을 모두 준다(01 §2-6 SleeveAllocationRow).
+      // 🔵 v1.8(01 §17) — 두 비율은 nullable(가림이면 둘 다 null) · `sleeve_label` required.
       final SleeveAllocationRow row = SleeveAllocationRow.fromJson(
         <String, dynamic>{
           'sleeve': 'A',
+          'sleeve_label': '슬리브 A',
           'basis': 'ACCOUNTING',
           'deployed_text': '1,340만원',
           'parking_text': '660만원',
@@ -129,7 +131,7 @@ void main() {
           'parking_pct_text': '6.6%',
         },
       );
-      expect(row.deployedRatio + row.parkingRatio, closeTo(1.0, 1e-9));
+      expect(row.deployedRatio! + row.parkingRatio!, closeTo(1.0, 1e-9));
       expect(row.parkingPctText, isNotEmpty);
     });
 

@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.7.0",
+    "contract_version": "1.8.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -19,6 +19,7 @@
       "symbol_label": "005930 (유니버스 밖 종목)",
       "account_alias": "일반",
       "quantity": 40,
+      "quantity_text": "40주",
       "registered_on": "2026-08-20",
       "scope_label": "시스템 밖 자산",
       "decision": { "decision_id": "d_ex_0001", "config_hash": "cfg_fake_0000000000000000" }
@@ -29,6 +30,7 @@
       "symbol_label": "329200 (유니버스 밖 종목)",
       "account_alias": "일반",
       "quantity": 15,
+      "quantity_text": "15주",
       "registered_on": "2026-08-24",
       "scope_label": "시스템 밖 자산",
       "decision": { "decision_id": "d_ex_0002", "config_hash": "cfg_fake_0000000000000000" }

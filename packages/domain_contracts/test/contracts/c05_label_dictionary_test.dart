@@ -46,6 +46,8 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   //    같은 JSON 키를 쓰므로 전역 조회다(두 도메인 어느 쪽이든 등재돼 있으면 된다).
   'stage_code': '',
   'badge_code': 'journal_badge',
+  // 🆕 v1.8(01 §17) — `StopLineNormalized.tierCode`(손절선 등급 · `StopTierCodes` · C-44 ⑦ 도 같은 사전을 맞댄다).
+  'tier_code': 'stop_tier',
 };
 
 /// 🔴 **사전에 없는 코드 축** — 01 §3 이 열거하지 않은 값이라 검사 대상이 아니다.

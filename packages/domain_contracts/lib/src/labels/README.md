@@ -15,7 +15,7 @@
 
 | 파일 | 무엇 | 근거 |
 |---|---|---|
-| `exit_kind.dart` | `ExitKindCodes` 6 | §3-1 |
+| `exit_kind.dart` | `ExitKindCodes` 6 · 🆕 **v1.8** `StopTierCodes` 3(`TIER_1A`·`TIER_1B`·`TIER_2` — 사전 키 `stop_tier` · `StopLineNormalized.tierCode`) | §3-1 · §17 |
 | `saf_codes.dart` | `SafBandCodes` 8(대역 7행) · `Saf309Codes` 6 | §3-2 |
 | `verdict_codes.dart` | `VerdictCodes` 5 · `PlannedWorkKindCodes` 3 · `GapReasonCodes` 3(🆕 v1.3 `SIM_EXCLUDED`) | §3-3 · §6-3 · §2-4 · §13-3 |
 | 🆕 `disclosure_codes.dart` | **v1.3** `DisclosureSurfaceCodes` 1(`PERFORMANCE_EXPLORE` — 사전 키 `disclosure_surface`) | §13-6 |

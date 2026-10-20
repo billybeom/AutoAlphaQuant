@@ -15,6 +15,50 @@ import 'package:test/test.dart';
 
 import 'support/fixture_io_t2.dart';
 
+/// 🆕 v1.8(01 §17) — `H6-3` 배분 VM 픽스처(행 1 = `SleeveAllocationVm` · 그 `rows` 가 배분 행이다).
+const List<String> _allocationVmFixtures = <String>[
+  FixturePaths.m6AllocationInBand,
+  FixturePaths.m6AllocationOutOfBand,
+  FixturePaths.m6AllocationTrancheProgress,
+  FixturePaths.m6AllocationParkingLarge,
+  FixturePaths.m6AllocationIntegrity,
+  FixturePaths.m6AllocationRecon,
+  FixturePaths.m6AllocationEmpty,
+];
+
+/// 🆕 v1.8 — `H6-1` 보유현황 VM 픽스처(카드 머리 `allocation` = 배분 행).
+const List<String> _overviewVmFixtures = <String>[
+  FixturePaths.m6HoldingsOverviewNormal,
+  FixturePaths.m6HoldingsOverviewRecon,
+  FixturePaths.m6HoldingsOverviewIntegrity,
+  FixturePaths.m6HoldingsOverviewEmpty,
+  FixturePaths.m6HoldingsOverviewPnl,
+  FixturePaths.m6HoldingsOverviewViewer,
+];
+
+/// 배분 행 목록 전부 — (어디, 행 목록). 🔴 VM 픽스처는 행 꼴 디코드로 읽을 수 없어 VM 을 펼친다.
+List<(String, List<SleeveAllocationRow>)> _allocationLists() =>
+    <(String, List<SleeveAllocationRow>)>[
+      (
+        FixturePaths.m7RealizedAllocS7,
+        fixtureRows(FixturePaths.m7RealizedAllocS7)
+            .map(SleeveAllocationRow.fromJson)
+            .toList(),
+      ),
+      for (final String path in _allocationVmFixtures)
+        (path, SleeveAllocationVm.fromJson(fixtureRows(path).single).rows),
+      for (final String path in _overviewVmFixtures)
+        (
+          '$path cards[].allocation',
+          <SleeveAllocationRow>[
+            for (final HoldingsSleeveCard c in HoldingsOverviewVm.fromJson(
+              fixtureRows(path).single,
+            ).cards)
+              c.allocation,
+          ],
+        ),
+    ];
+
 void main() {
   group('C-31 P 비중 기준 축 (01 §7 · §2-5)', () {
     test('C-31 ① AllocationBasis 는 2값이고 표기가 고정이다', () {
@@ -25,17 +69,29 @@ void main() {
     });
 
     test('C-31 ⓐ 한 목록 안에서 basis 가 섞이지 않는다 — 배분 현황', () {
-      final List<SleeveAllocationRow> rows = fixtureRows(
-        FixturePaths.m7RealizedAllocS7,
-      ).map(SleeveAllocationRow.fromJson).toList();
-
-      expect(rows, isNotEmpty);
-      final Set<AllocationBasis> bases = rows
-          .map((SleeveAllocationRow r) => r.basis)
-          .toSet();
-      expect(bases, <AllocationBasis>{
-        AllocationBasis.accounting,
-      }, reason: '목표·밴드와 비교할 수 있는 기준은 accounting 하나뿐이다.');
+      // 🆕 v1.8(01 §17) — 대상 = `realized_alloc_S7` + `H6-3` 배분 VM 7벌(빈 1벌 제외 6벌에 행) +
+      //    `H6-1` 카드 머리(`HoldingsSleeveCard.allocation`) · 행 안의 `sleeveWeight.basis` 도 같은 축.
+      int nonEmpty = 0;
+      for (final (String where, List<SleeveAllocationRow> rows)
+          in _allocationLists()) {
+        if (rows.isEmpty) {
+          continue;
+        }
+        nonEmpty++;
+        final Set<AllocationBasis?> bases = <AllocationBasis?>{
+          for (final SleeveAllocationRow r in rows) r.basis,
+          for (final SleeveAllocationRow r in rows)
+            if (r.sleeveWeight case final SleeveWeight w) w.basis,
+        };
+        expect(bases, <AllocationBasis>{
+          AllocationBasis.accounting,
+        }, reason: '$where — 목표·밴드와 비교할 수 있는 기준은 accounting 하나뿐이다.');
+      }
+      expect(
+        nonEmpty,
+        _allocationLists().length - 2,
+        reason: '배분 행 목록을 못 읽었다(빈 배분·빈 보유현황 각 1벌 외 전부 행이 있다).',
+      );
     });
 
     test('C-31 ⓐ 한 목록 안에서 basis 가 섞이지 않는다 — 슬리브 비중', () {
@@ -105,28 +161,41 @@ void main() {
     test('C-31 ⓑ POT 는 A 의 하위 행으로 오고 A 에 미리 합산되지 않는다', () {
       // 🔴 화면이 A 와 POT 를 더하는 산술을 하지 않아도 되도록 «회계 소속»은
       //    `parentSleeve` 로 온다 — 더하기는 엔진이 이미 끝냈거나 하지 않은 것이다.
-      final List<SleeveAllocationRow> rows = fixtureRows(
+      // 🆕 v1.8(01 §17) — 대상 = `realized_alloc_S7` + 행이 있는 `H6-3` 배분 VM 6벌(INTEGRITY 가림판 포함 —
+      //    원장 열 주석은 문장이라 가리지 않는다). 카드 머리는 POT 행이 없다(POT 는 A 카드 안의 보유 행 · K17).
+      final List<String> paths = <String>[
         FixturePaths.m7RealizedAllocS7,
-      ).map(SleeveAllocationRow.fromJson).toList();
+        ..._allocationVmFixtures,
+      ];
+      int checked = 0;
+      for (final (String where, List<SleeveAllocationRow> rows)
+          in _allocationLists()) {
+        if (!paths.contains(where) || rows.isEmpty) {
+          continue;
+        }
+        checked++;
+        final SleeveAllocationRow pot = rows.firstWhere(
+          (SleeveAllocationRow r) => r.sleeve == SleeveId.pot,
+        );
+        expect(pot.parentSleeve, SleeveId.a, reason: where);
+        expect(
+          pot.engineColumnNote,
+          isNotNull,
+          reason: '$where — 엔진 원장 열 값의 유일한 출구는 이 문자열이다 — 비교·합산하지 않는다.',
+        );
 
-      final SleeveAllocationRow pot = rows.firstWhere(
-        (SleeveAllocationRow r) => r.sleeve == SleeveId.pot,
-      );
-      expect(pot.parentSleeve, SleeveId.a);
-      expect(
-        pot.engineColumnNote,
-        isNotNull,
-        reason: '엔진 원장 열 값의 유일한 출구는 이 문자열이다 — 비교·합산하지 않는다.',
-      );
-
-      // A 행은 자기 행으로 따로 온다(합산본이 아니다).
-      expect(
-        rows.where((SleeveAllocationRow r) => r.sleeve == SleeveId.a).length,
-        1,
-      );
+        // A 행은 자기 행으로 따로 온다(합산본이 아니다).
+        expect(
+          rows.where((SleeveAllocationRow r) => r.sleeve == SleeveId.a).length,
+          1,
+          reason: where,
+        );
+      }
+      expect(checked, paths.length - 1, reason: '빈 배분 1벌 외 전부 POT 행을 싣는다.');
     });
 
     test('C-31 ⓒ 여집합을 화면이 계산하지 않도록 두 비율을 모두 준다', () {
+      // 🔵 v1.8 — 두 비율 nullable(가림이면 둘 다 null)의 짝 검사는 C-44 ⑥ 이 한다.
       for (final SleeveAllocationRow row in fixtureRows(
         FixturePaths.m7RealizedAllocS7,
       ).map(SleeveAllocationRow.fromJson)) {
@@ -139,7 +208,7 @@ void main() {
     });
 
     test(
-      'C-31 ⓓ (R12 밖) ui_* 에서 A 와 POT 값을 더하는 산술 탐지 — R12 화면 = C-42 ⑧',
+      'C-31 ⓓ (홈 = R13 · `H6-*` = C-44 ⑯) ui_* 에서 A 와 POT 값을 더하는 산술 탐지 — R12 화면 = C-42 ⑧',
       () {},
       skip: 'ui_* 소스 정적 스캔이 필요하다 — 패키지 선행(인벤토리 §9 C-31 = 🟡).',
     );

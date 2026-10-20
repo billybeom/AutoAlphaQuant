@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.8.0",
+    "generated_at": "2026-10-21T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261021,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가 · 엔진은 일 1회 배치" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "holding": {
+        "holding_id": "h_0002",
+        "symbol": "133690",
+        "symbol_label": "133690 TIGER 미국나스닥100",
+        "sleeve": "B",
+        "account_alias": "연금저축",
+        "quantity": 636,
+        "quantity_text": "636주",
+        "pending_text": "반영 대기 +12주",
+        "avg_price": "17590",
+        "avg_price_text": "17,590원",
+        "entry_date": "2026-08-03",
+        "entry_decision": { "decision_id": "d_20260803_b_02", "intent_id": "i_h002", "config_hash": "cfg_fake_0000000000000000" },
+        "entry_reasons": [
+          { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
+        ],
+        "sma_tranches": [
+          { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-03" },
+          { "step_no": 2, "filled": true, "label": "2/3 단계", "filled_on": "2026-08-17" },
+          { "step_no": 3, "filled": false, "label": "3/3 단계" }
+        ],
+        "gates": [
+          { "code": "SAF-201", "label": "슬리브 B 한도 여유", "state": "PASS" }
+        ],
+        "weight_text": "비중 22.7%",
+        "scope": "MANAGED",
+        "scope_label": "시스템 관리",
+        "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가" },
+        "detail_deep_link": "aaq://holdings/detail/h_0002"
+      },
+      "sleeve_label": "B · 해외 지수·금 ETF",
+      "entry_decision_link": { "label": "매수 결정 보기", "deep_link": "aaq://journal/decision/d_20260803_b_02" },
+      "stop_lines": [],
+      "no_stop_line_text": "이 슬리브는 개별 손절선을 쓰지 않습니다 — 리밸런싱 규칙으로 관리",
+      "recent_entries": [],
+      "recent_empty_label": "이 보유의 최근 체결이 없습니다",
+      "pnl_toggle_label": "종목 손익",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "잔고 기준 2026-08-31 종가 · 엔진은 일 1회 배치" }
+    }
+  ]
+}

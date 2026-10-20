@@ -136,6 +136,10 @@ abstract class ExternalHoldingRow with _$ExternalHoldingRow {
 
     /// 🔴 등록도 결정이다.
     required DecisionRef decision,
+
+    /// 🆕 v1.8 — "40주" — 엔진 완성. 🔵 사람이 등록한 값이라 `LEDGER_INTEGRITY` 가림 대상이 아니다
+    ///    (02 §2-2 X7 B18 ① · K14 ✅). 🔴 화면이 관리 대상 수량과 더하지 않는다.
+    required String quantityText,
   }) = _ExternalHoldingRow;
 
   factory ExternalHoldingRow.fromJson(Map<String, dynamic> json) =>

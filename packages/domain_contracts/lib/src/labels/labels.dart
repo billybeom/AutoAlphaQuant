@@ -188,6 +188,8 @@ abstract final class ContractCodes {
     'planner_reason': PlannerReasonCodes.values,
     // 🆕 v1.7(J-4 선행) — blind 리뷰 점수 제출의 거부 사유(`CommandReceipt.rejectReasonCode`)
     'blind_review_reject': BlindReviewRejectCodes.values,
+    // 🆕 v1.8(R4 선행) — 손절선 등급(`StopLineNormalized.tierCode` · C-44 ⑦ 이 픽스처와 맞댄다)
+    'stop_tier': StopTierCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

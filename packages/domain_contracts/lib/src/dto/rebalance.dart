@@ -8,6 +8,8 @@
 // 🆕 v1.6(01 §15-4 · R12 선행) — `RebalanceEvent.thresholds`(J-2 `ThresholdCompare` 재사용 · `common.dart`)·
 //    `modeLabel`·`sectionLabel` · `asOf` = 읽기 모델 관측 시각 · `SleeveWeight.label` = 완성 문장 ·
 //    `NextRebalanceVm` 두 글자 nullable + `asOf`. 🔴 `// 🔴 ui 미참조(C-42)` 표식 = R12 화면이 읽지 않는 원값.
+// 🆕 v1.8(01 §17 · R4 선행) — `SleeveAllocationRow` 밴드 축 +7(비율 2 nullable) · `SleeveBandGauge` ·
+//    `SleeveAllocationVm`(`H6-3`). 🔴 `// 🔴 ui 미참조(C-44)` 표식 = `H6-*` 화면이 읽지 않는 원값.
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -147,40 +149,104 @@ abstract class ExecutionQuality with _$ExecutionQuality {
       _$ExecutionQualityFromJson(json);
 }
 
-/// 01 §2-6 · m2-8 C-7 · E-7 — 배분 현황 1행(`H-1`·`H-3`).
-/// 🔴 `SleeveWeight`·`AllocationBasis` 와 **같은 파일**에 둔다 — C-31 이 한
-///    트리에서 basis 혼합을 검사할 수 있어야 한다(E-7).
+/// 01 §2-6 · m2-8 C-7 · E-7 — 배분 현황 1행(`H6-1` 카드 머리 · `H6-3` 행). 🆕 v1.8(01 §17) — 밴드 축.
+/// 🔴 `SleeveWeight`·`AllocationBasis` 와 **같은 파일**에 둔다 — C-31 이 한 트리에서 basis 혼합을 검사할 수 있어야 한다(E-7).
 /// 🔴 `SleeveAllocation`(플래너 충당액 · `plan.dart`)과 **다른 타입**이다.
+/// 🔴 홈 블록 4(M8 `H-01`)가 재사용할 때는 [sleeveWeight] · [deployedPctText] · [parkingPctText] 만(금액 문자열 금지 — 04 §2-6).
 @freezed
 abstract class SleeveAllocationRow with _$SleeveAllocationRow {
   const factory SleeveAllocationRow({
-    required SleeveId sleeve,
-    required AllocationBasis basis,
-
-    /// 투입분 금액 문자열 — 🔴 홈으로 새면 04 §2-6 금지에 걸린다.
+    required SleeveId sleeve, // 🔴 ui 미참조(C-44 · C-42 ⑧ 와 같은 뜻)
+    required AllocationBasis basis, // 🔴 ui 미참조
+    /// 투입분 금액 문자열 — 🔴 홈으로 새면 04 §2-6 금지에 걸린다 · INTEGRITY "숨김".
     required String deployedText,
     required String parkingText,
 
-    /// 🔴 막대 세그먼트 **기하 전용**. 여집합 `1 − x` 를 화면이 계산하지 않도록
-    ///    두 값을 모두 준다.
-    required double deployedRatio,
-    required double parkingRatio,
+    /// 🔴 막대 세그먼트 **기하 전용**(× 폭만). 여집합 `1 − x` 를 화면이 계산하지 않도록 두 값을 모두 준다.
+    /// 🆕 v1.8 nullable — 둘 다 null ⇔ 막대 **부재**(`LEDGER_INTEGRITY` 가림 · C-44 ⑥ · RECON 은 유지).
+    /// 🔴 [gauge] 와 **다른 막대**다(계좌 잔고 막대 · 합 1 · 파킹 = 회색 세그먼트 — 02:1349) — 두 값을 한 식에서 곱하지 않는다(C-44 ⑯).
+    double? deployedRatio,
+    double? parkingRatio,
     required String trancheStateText,
 
     /// 🔴 홈 재사용은 **비중(%) 전용 필드**로만 한다(금액 문자열 금지).
     required String deployedPctText,
     required String parkingPctText,
 
-    /// POT → A 의 하위 행(회계 소속 · 03 §2-9-3).
+    /// POT → A 의 하위 행(회계 소속 · 03 §2-9-3). 🔴 화면은 null 여부(들여쓰기)만 본다.
     SleeveId? parentSleeve,
 
     /// 엔진 원장 열 값의 유일한 출구 — 🔴 문자열이며 비교·합산하지 않는다.
     String? engineColumnNote,
     String? parkingNoteText,
+
+    // ── 🆕 계약 v1.8(01 §17 · R4 선행) ─────────────────────────────────────
+    /// "슬리브 A" · "POT 서브북 (A 하위)" · "원화 현금 대기" — 엔진 생성.
+    required String sleeveLabel,
+
+    /// 목표·밴드 대비 — `label` = v1.6 완성 문장(현재·목표·편차·밴드 여유 · 밖이면 초과폭). 원값 4 는 ui 미참조.
+    /// 🔴 이름 = `sleeveWeight` — `weight` 로 두면 `SleeveWeight.weight` 원값 금지(C-44 ⑮ `\.weight\b`)가 표시 경로까지 막는다.
+    /// 🔴 `basis` 는 행과 같은 `accounting` 만(C-44 ⑥ · 02 `H6-3` 수용 (a)).
+    /// null = 밴드 판정 없음 — 밴드가 없는 슬리브(K27 권고 = A·C) · POT · CASH · INTEGRITY 가림 → [bandNoteText].
+    SleeveWeight? sleeveWeight,
+
+    /// 🔴 색의 **유일한** 원천 — 화면 임계값·편차 부호로 색을 고르지 않는다(02 §4-3 수용 (b) · 04 §4-3). non-null ⇔ [sleeveWeight] non-null.
+    SleeveBandState? bandState,
+
+    /// "밴드 내" · "경계 근접" · "밴드 이탈 — 다음 배치에서 리밸런싱 대상"(🔴 실행 예고 아님). non-null ⇔ [bandState] non-null.
+    String? bandStateLabel,
+
+    /// 목표 막대 기하 — null = 게이지 부재(밴드 판정 없음 · INTEGRITY 가림). non-null ⇒ [sleeveWeight] non-null. RECON = 기하 유지·글자만 «?».
+    SleeveBandGauge? gauge,
+
+    /// non-null ⇔ [sleeveWeight] == null — 🔴 그 행의 현재 비중 글자의 **유일한 출구**(INTEGRITY 가림 외에는 `%` 를 품는다 · C-44 ⑥ · 04:464)
+    /// — "C ‹n›% · 목표 잔여 — 게이지 없음" · "A ‹n›% · 목표 20.0% — 계절 슬리브 · 밴드 판정 없음"(K27) · "POT ‹n›% — A 에 포함(회계 기준)" ·
+    ///   "원화 현금 대기 ‹n›% — 유휴가 아닙니다"(‹n› = 엔진 값 · 픽스처는 합성 둥근 값 · 🔴 골든 4자리 수치를 주석에 옮기지 않는다).
+    String? bandNoteText,
+
+    /// 상태 칩(계절 진입 게이트 보류 등 · 칩 탭 = `detailDeepLink` 의 핸드북) — 0개 = 칩 줄 부재(K13).
+    @Default(<ReasonChip>[]) List<ReasonChip> stateChips,
   }) = _SleeveAllocationRow;
 
   factory SleeveAllocationRow.fromJson(Map<String, dynamic> json) =>
       _$SleeveAllocationRowFromJson(json);
+}
+
+/// 🆕 v1.8 — 목표 막대 위 실제 마커·밴드 음영의 **정규 위치**(0.0~1.0 · 엔진이 고른 눈금).
+/// 🔴 화면 산술 = `값 × 폭` 하나(02 §2-4 금지 ① 의 «레이아웃 계산» · 01 §13-2 세 식 준용) — 차·여유 폭 계산 0.
+/// 🔴 `bandLowNormalized ≤ targetNormalized ≤ bandHighNormalized`(C-44 ⑥) · 이름 = `*Normalized`(계약 관례 `xNormalized`·`complianceRateNormalized` —
+///    [0,1] 범위는 C-34 ④ 가 키 끝 `normalized` 로 자동 검사) · 🔴 계좌 잔고 막대(`deployedRatio`·`parkingRatio`)와 다른 막대 — 둘을 곱하지 않는다.
+@freezed
+abstract class SleeveBandGauge with _$SleeveBandGauge {
+  const factory SleeveBandGauge({
+    required double actualNormalized,
+    required double targetNormalized,
+    required double bandLowNormalized,
+    required double bandHighNormalized,
+  }) = _SleeveBandGauge;
+
+  factory SleeveBandGauge.fromJson(Map<String, dynamic> json) =>
+      _$SleeveBandGaugeFromJson(json);
+}
+
+/// 🆕 v1.8 — `H6-3` 슬리브·비중 한 화면(01 §17). 창구 = `HoldingsRepository.watchAllocation()`.
+/// 🔴 행 = 받은 순서(A → POT(A 하위) → B → C → 현금 대기) · 전부 `basis == accounting`(C-31) ·
+///    POT 는 독립 항이 아니다(02 §4-3 수용 (e)) — 화면은 합계 행을 만들지 않는다.
+@freezed
+abstract class SleeveAllocationVm with _$SleeveAllocationVm {
+  const factory SleeveAllocationVm({
+    required List<SleeveAllocationRow> rows,
+
+    /// "회계 기준입니다 — POT 는 A 에 포함됩니다" — null = 줄 부재.
+    String? noticeText,
+
+    /// non-null ⇔ [rows] 가 빈 목록.
+    String? emptyLabel,
+    required AsOf asOf,
+  }) = _SleeveAllocationVm;
+
+  factory SleeveAllocationVm.fromJson(Map<String, dynamic> json) =>
+      _$SleeveAllocationVmFromJson(json);
 }
 
 /// 01 §4-1 · m2-8 F-5 — 다음 회차 예고(`S7-6c`·`H-02`).
@@ -200,7 +266,7 @@ abstract class NextRebalanceVm with _$NextRebalanceVm {
     String? emptyLabel,
     RebalanceKind? expectedKind, // 🔴 ui 미참조(C-42)
     String? kindLabel, // null = 줄 부재
-    /// 🔴 `S7-6c` 안에서 쓰지 않는다(자기 자신 · `H-02`·알림 행 몫) · non-null 이면 `AppRoutes.rebalancePreview`.
+    /// 🔴 `S7-6c` 안에서 쓰지 않는다(자기 자신 · `H-02`·알림 행·M6 `H6-3` 하단 몫) · non-null 이면 `AppRoutes.rebalancePreview`.
     String? previewRoute,
     String? noticeText, // null = 줄 부재
     /// 🆕 v1.6 — 봉투 as_of 를 행으로(`DepositPlan.asOf` 선례 · `H-02` 도 같은 필드).
