@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -2805,6 +2806,53 @@ void main() {
       expect(find.byType(JournalStaleBanner), findsOneWidget);
     },
   );
+
+  // ── S1: 긴 선택 label 의 둘째 줄이 밑줄 위에 있다 ─────────────────────────────
+
+  testWidgets('S1 long selected rule label wraps above the underline', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row1 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[1];
+    expect(row1.key.targetId, spec.decisionId);
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[row1],
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      store: store,
+      decisionId: spec.decisionId,
+    );
+
+    final Finder dropdown = find.byType(DropdownButton<ReasonOption>);
+    final ReasonOption? picked = tester
+        .widget<DropdownButton<ReasonOption>>(dropdown)
+        .value;
+    expect(picked, isNotNull);
+    final Finder labelText = find
+        .descendant(of: dropdown, matching: find.text(picked!.label))
+        .first;
+    final RenderParagraph paragraph = tester.renderObject<RenderParagraph>(
+      labelText,
+    );
+    expect(paragraph.maxLines, isNull);
+    expect(paragraph.softWrap, isTrue);
+    expect(
+      tester.getBottomLeft(labelText).dy,
+      lessThan(tester.getBottomLeft(dropdown).dy - 1),
+    );
+    expect(find.text(JournalLabels.retry), findsNothing);
+  });
 }
 
 // Helper class for error test
