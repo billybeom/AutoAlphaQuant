@@ -82,7 +82,7 @@ class _FakeCommandApi extends UnimplementedCommandApi {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-Future<void> _pump(
+Future<_FakeJournalRepo> _pump(
   WidgetTester tester, {
   required JournalDraftFormSpec? spec,
   required SafetyState safety,
@@ -98,10 +98,12 @@ Future<void> _pump(
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
+  final _FakeJournalRepo repo = _FakeJournalRepo(
+    spec: spec,
+    journalStream: journal,
+  );
   final List<Override> overrides = <Override>[
-    journalTimelineRepositoryProvider.overrideWithValue(
-      _FakeJournalRepo(spec: spec, journalStream: journal),
-    ),
+    journalTimelineRepositoryProvider.overrideWithValue(repo),
     journalSafetyRepositoryProvider.overrideWithValue(
       _FakeSafetyRepository(safety),
     ),
@@ -124,6 +126,26 @@ Future<void> _pump(
   await tester.pump();
   // 복원은 한 마이크로태스크 뒤 끝난다
   await tester.pump();
+  return repo;
+}
+
+/// S-10 (T8): the two text inputs keep what [_fillToReady] typed and report
+/// the expected enabled state.
+void _expectFilledInputs(
+  WidgetTester tester,
+  JournalDraftFormSpec spec, {
+  required bool enabled,
+}) {
+  final TextField rationale = tester.widget<TextField>(
+    find.byType(TextField).first,
+  );
+  final TextField expected = tester.widget<TextField>(
+    find.byType(TextField).at(1),
+  );
+  expect(rationale.controller!.text, 'a' * spec.rationaleMinChars);
+  expect(expected.controller!.text, 'some outcome');
+  expect(rationale.enabled, enabled);
+  expect(expected.enabled, enabled);
 }
 
 // ── Receipts from fixture ──────────────────────────────────────────────────────
@@ -344,6 +366,7 @@ void main() {
     // R-4: positive anchor — noticeLine always visible
     expect(find.text(spec.noticeLine), findsOneWidget);
     expect(find.byKey(const Key('j3-pledge-block')), findsNothing);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── G5: trim test ───────────────────────────────────────────────────────────
@@ -1229,6 +1252,7 @@ void main() {
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
       isNull,
     );
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── T2: 행 1 복원 — 규칙 있음, 드롭다운 value, 제출 활성 ─────────────────────
@@ -1270,6 +1294,7 @@ void main() {
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
       isNotNull,
     );
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── T3: 화면층 재시작 생존 ────────────────────────────────────────────────────
@@ -1352,6 +1377,7 @@ void main() {
           ?.code,
       noNoteRule.code,
     );
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── T4: 입력마다 저장 — trim 없는 원문 ──────────────────────────────────────
@@ -1392,6 +1418,7 @@ void main() {
     }
     // 제출 전 saved.last.lastCommandId == null
     expect(store.saved.last.lastCommandId, isNull);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── T5: 행 1 복원만 → saved 비어 있음 ────────────────────────────────────────
@@ -1427,6 +1454,7 @@ void main() {
     await tester.tap(find.byType(TextField).first);
     await tester.pump();
     expect(store.saved, isEmpty);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── T6: 제출 성공(REQUESTED) → lastCommandId 저장 + watchedIds ──────────────
@@ -1470,6 +1498,7 @@ void main() {
       expect(api.watchedIds, equals(<String>[requested.commandId]));
       // key 일치
       expect(store.saved.last.key, key);
+      expect(find.text(JournalLabels.retry), findsNothing);
     },
   );
 
@@ -1494,7 +1523,7 @@ void main() {
       targetId: spec.decisionId,
     );
 
-    await _pump(
+    final _FakeJournalRepo repo = await _pump(
       tester,
       spec: spec,
       safety: safetyFixtureRow(0),
@@ -1516,6 +1545,9 @@ void main() {
     expect(find.byType(JournalReadContent), findsOneWidget);
     // spec.noticeLine 1
     expect(find.text(spec.noticeLine), findsOneWidget);
+    // S-8: the embedded read view received the spec decisionId
+    expect(repo.receivedIds, <String>[spec.decisionId]);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── T8: rejected·expired·heldForIntegrity — cleared 비어 있음 ──────────────
@@ -1556,6 +1588,9 @@ void main() {
       isNotNull,
     );
     expect(find.text(JournalLabels.draftSubmit), findsOneWidget);
+    // S-10: typed input kept and editable
+    _expectFilledInputs(tester, spec, enabled: true);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   testWidgets('T8-expired: cleared empty, submit active', (
@@ -1592,6 +1627,9 @@ void main() {
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
       isNotNull,
     );
+    // S-10: typed input kept and editable
+    _expectFilledInputs(tester, spec, enabled: true);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   testWidgets('T8-heldForIntegrity: cleared empty, locked', (
@@ -1627,6 +1665,9 @@ void main() {
     // 잠금 상태 — 제출 라벨 0
     expect(find.text(JournalLabels.draftSubmit), findsNothing);
     expect(find.text(held.stateLabel), findsOneWidget);
+    // S-10: typed input kept but locked
+    _expectFilledInputs(tester, spec, enabled: false);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── T9: 행 2 복원 → 재구독 잠금 ──────────────────────────────────────────────
@@ -1692,6 +1733,7 @@ void main() {
     expect(find.text(requested.stateLabel), findsOneWidget);
     // 여전히 잠금 (REQUESTED 는 locked)
     expect(find.text(JournalLabels.draftSubmit), findsNothing);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── T10: 행 2 + REJECTED → 복원 원문 + 재제출 가능 ─────────────────────────
@@ -1740,6 +1782,7 @@ void main() {
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
       isNotNull,
     );
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── T11: 행 2 + EXECUTED → cleared, JournalReadContent ──────────────────────
@@ -1782,6 +1825,7 @@ void main() {
 
     expect(store.cleared, equals(<DraftKey>[key]));
     expect(find.byKey(const Key('j3r-body')), findsOneWidget);
+    expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // ── R2b C4: executed clear 는 1회(01 §12-1-4) ───────────────────────────────
@@ -2467,6 +2511,7 @@ void main() {
       )) {
         expect(f.controller!.text, isEmpty);
       }
+      expect(find.text(JournalLabels.retry), findsNothing);
     },
   );
 
@@ -2555,8 +2600,7 @@ void main() {
       decisionId: spec.decisionId,
     );
 
-    // load 동기 throw 처리 후 에러 소비
-    // (SyncThrowStore.load 는 Future.error 이지만 save 는 동기 throw)
+    // 행 1 복원은 정상 (load 는 정상, save 만 동기 throw)
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -2566,7 +2610,8 @@ void main() {
     expect(api.watchedIds, equals(<String>[requested.commandId]));
     // REQUESTED stateLabel 1
     expect(find.text(requested.stateLabel), findsOneWidget);
-    // 입력 잠금
+    // 입력 잠금 — 입력란 3개가 실제로 있다
+    expect(find.byType(TextField), findsNWidgets(3));
     for (final TextField f in tester.widgetList<TextField>(
       find.byType(TextField),
     )) {
@@ -2593,16 +2638,9 @@ void main() {
       ).rows[2];
       expect(row2.key.targetId, spec.decisionId);
 
-      int watchCount = 0;
       final _FakeCommandApi api = _FakeCommandApi(
         onSubmit: () => Completer<CommandReceipt>().future,
-        onWatch: () {
-          watchCount++;
-          if (watchCount == 1) {
-            return const Stream<CommandReceipt>.empty();
-          }
-          return const Stream<CommandReceipt>.empty();
-        },
+        onWatch: () => const Stream<CommandReceipt>.empty(),
       );
       final RecordingDraftStore store = RecordingDraftStore(
         seed: <DraftRecord>[row2],
@@ -2735,6 +2773,8 @@ void main() {
       );
       expect(dd.value?.code, row4.journal!.ruleCited);
       expect(dd.value?.requiresNote, isTrue);
+      // 선택된 규칙 label 이 화면에 보인다
+      expect(find.text(dd.value!.label), findsWidgets);
       // 제출 활성
       expect(
         tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
@@ -2787,6 +2827,8 @@ void main() {
       );
 
       expect(find.byType(JournalAsOfHeader), findsOneWidget);
+      // 데이터 기준점 — 머리 글자 1
+      expect(find.text(spec.asOf.label), findsOneWidget);
 
       // 스테일 시계로 같은 화면
       await _pump(
@@ -2806,6 +2848,66 @@ void main() {
       expect(find.byType(JournalStaleBanner), findsOneWidget);
     },
   );
+
+  // ── S11: executed 끼워 넣은 읽기 본문의 값 → 에러 ──────────────────────────────
+
+  testWidgets('S11 J-3 executed read value then error keeps lastAsOfLabel', (
+    WidgetTester tester,
+  ) async {
+    final JournalDraftFormSpec spec = singleFixture(
+      FixturePaths.m6JournalDraftSpecDiscretion,
+      JournalDraftFormSpec.fromJson,
+    );
+    final DraftRecord row2 = listFixture(
+      FixturePaths.m6DraftRecordsJ3,
+      DraftRecord.fromJson,
+    ).rows[2];
+    expect(row2.key.targetId, spec.decisionId);
+    final DecisionJournalVm written = singleFixture(
+      FixturePaths.m6JournalReadWritten,
+      DecisionJournalVm.fromJson,
+    );
+
+    final StreamController<DecisionJournalVm> journalCtrl =
+        StreamController<DecisionJournalVm>();
+    addTearDown(() {
+      unawaited(journalCtrl.close());
+    });
+
+    final CommandReceipt executed = _receiptIn(CommandState.executed);
+    final _FakeCommandApi api = _FakeCommandApi(
+      onSubmit: () => Completer<CommandReceipt>().future,
+      onWatch: () => Stream<CommandReceipt>.value(executed),
+    );
+
+    await _pump(
+      tester,
+      spec: spec,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+      commandApi: api,
+      store: RecordingDraftStore(seed: <DraftRecord>[row2]),
+      journal: () => journalCtrl.stream,
+      decisionId: spec.decisionId,
+    );
+
+    journalCtrl.add(written);
+    await tester.pump(Duration.zero);
+    await tester.pump(Duration.zero);
+    expect(find.byKey(const Key('j3r-body')), findsOneWidget);
+    expect(find.byType(JournalErrorView), findsNothing);
+
+    journalCtrl.addError(Exception('after value'));
+    await tester.pump(Duration.zero);
+    await tester.pump(Duration.zero);
+    expect(find.byType(JournalErrorView), findsOneWidget);
+    expect(
+      tester
+          .widget<JournalErrorView>(find.byType(JournalErrorView))
+          .lastAsOfLabel,
+      written.asOf.label,
+    );
+  });
 
   // ── S1: 긴 선택 label 의 둘째 줄이 밑줄 위에 있다 ─────────────────────────────
 

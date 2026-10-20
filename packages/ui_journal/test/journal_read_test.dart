@@ -76,14 +76,26 @@ void main() {
   testWidgets(
     'T19: loading state shown; error triggers retry; value→error keeps lastAsOfLabel',
     (WidgetTester tester) async {
-      // Part 1: loading state — StreamController with no add yet
+      // Part 1: loading state — first call = controller with no add yet,
+      // second call (after retry) = a fresh stream carrying a value.
+      final DecisionJournalVm written = singleFixture(
+        FixturePaths.m6JournalReadWritten,
+        DecisionJournalVm.fromJson,
+      );
       final StreamController<DecisionJournalVm> ctrl =
           StreamController<DecisionJournalVm>();
       addTearDown(ctrl.close);
+      int streamCalls = 0;
 
       final _FakeJournalRepo repo = await _pump(
         tester,
-        journalStream: () => ctrl.stream,
+        journalStream: () {
+          final int call = streamCalls;
+          streamCalls++;
+          return call == 0
+              ? ctrl.stream
+              : Stream<DecisionJournalVm>.value(written);
+        },
         decisionId: 'd_read_test',
       );
 
@@ -100,6 +112,12 @@ void main() {
       await tester.tap(find.text(JournalLabels.retry));
       await tester.pump();
       expect(repo.receivedIds.length, greaterThan(callsBefore));
+
+      // Part 3: the second call delivered a value — state label 1, retry 0
+      await tester.pump(Duration.zero);
+      await tester.pump(Duration.zero);
+      expect(find.text(written.journalStateLabel), findsOneWidget);
+      expect(find.text(JournalLabels.retry), findsNothing);
     },
   );
 
@@ -162,6 +180,17 @@ void main() {
       expect(find.text(vm.body!.expectedOutcome), findsOneWidget);
       expect(find.text(vm.body!.note!), findsOneWidget);
 
+      // all three raw texts: Text.maxLines == null, Text.overflow == null
+      for (final String raw in <String>[
+        vm.body!.rationaleBefore,
+        vm.body!.expectedOutcome,
+        vm.body!.note!,
+      ]) {
+        final Text rawText = tester.widget<Text>(find.text(raw));
+        expect(rawText.maxLines, isNull);
+        expect(rawText.overflow, isNull);
+      }
+
       // rationaleBefore Text widget: maxLines == null, overflow == null (no truncation)
       final RenderParagraph para = tester.renderObject<RenderParagraph>(
         find.text(vm.body!.rationaleBefore),
@@ -177,6 +206,8 @@ void main() {
 
       // repo received correct decisionId
       expect(repo.receivedIds, equals(<String>[vm.decisionId]));
+      // healthy state: no retry
+      expect(find.text(JournalLabels.retry), findsNothing);
     },
   );
 
@@ -225,6 +256,10 @@ void main() {
 
       // journalStateLabel shown
       expect(find.text(vm.journalStateLabel), findsOneWidget);
+      // retry absent (healthy state)
+      expect(find.text(JournalLabels.retry), findsNothing);
+      // body column headers absent (no keyless placeholder)
+      expect(find.text(JournalLabels.draftRationale), findsNothing);
       // body absent
       expect(find.byKey(const Key('j3r-body')), findsNothing);
       // link absent
@@ -249,6 +284,7 @@ void main() {
         decisionId: vm.decisionId,
         clock: FixedClock(kGoldenNowUtc),
       );
+      expect(find.text(vm.journalStateLabel), findsOneWidget);
       expect(find.text(JournalLabels.staleBannerTitle), findsNothing);
 
       // Stale clock (+2 days) → banner shown
@@ -258,6 +294,7 @@ void main() {
         decisionId: vm.decisionId,
         clock: FixedClock(kGoldenNowUtc.add(const Duration(days: 2))),
       );
+      expect(find.text(vm.journalStateLabel), findsOneWidget);
       expect(find.text(JournalLabels.staleBannerTitle), findsOneWidget);
     },
   );

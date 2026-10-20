@@ -4,6 +4,8 @@
 // 🔴 No raw values (no toString() of Decimal/int/DateTime).
 // 🔴 No self-injected-value tests.
 
+import 'dart:async';
+
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:domain_contracts/testing.dart';
 import 'package:flutter/material.dart';
@@ -505,6 +507,10 @@ void main() {
     }
     // entry price as raw string must not appear (only *Text fields allowed)
     expect(find.text(vm.entry.price.toString()), findsNothing);
+    // thresholdRegistered is one field of TriggerSnapshot (not a row)
+    expect(vm.thresholds, isNotEmpty);
+    expect(trigger.thresholdRegistered, isNotNull);
+    expect(find.text(trigger.thresholdRegistered!.toString()), findsNothing);
 
     // entry symbolLabel tap should NOT open a link
     final RecordingLinkOpener opener = RecordingLinkOpener();
@@ -1044,4 +1050,41 @@ void main() {
       expect(opener.opened, equals(<String>[vm.journalLink!.deepLink]));
     });
   }
+
+  testWidgets('S11 J-2 value then error keeps lastAsOfLabel', (
+    WidgetTester tester,
+  ) async {
+    final DecisionDetailVm vm = singleFixture(
+      FixturePaths.m6DecisionDetailFull,
+      DecisionDetailVm.fromJson,
+    );
+    final StreamController<DecisionDetailVm> ctrl =
+        StreamController<DecisionDetailVm>();
+    addTearDown(() {
+      unawaited(ctrl.close());
+    });
+    await _pump(
+      tester,
+      detailStream: (_) => ctrl.stream,
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+    );
+    expect(find.byType(JournalSkeleton), findsOneWidget);
+
+    ctrl.add(vm);
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(JournalErrorView), findsNothing);
+
+    ctrl.addError(Exception('after value'));
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(JournalErrorView), findsOneWidget);
+    expect(
+      tester
+          .widget<JournalErrorView>(find.byType(JournalErrorView))
+          .lastAsOfLabel,
+      vm.asOf.label,
+    );
+  });
 }

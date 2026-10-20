@@ -529,10 +529,63 @@ void main() {
     expect(vm.emptyLabel, isNull);
     // No card-0 (empty board)
     expect(find.byKey(const ValueKey<String>('j5-card-0')), findsNothing);
-    // No text that would match a null emptyLabel (was 'unwrap' accident)
-    if (base.emptyLabel != null) {
-      expect(find.text(base.emptyLabel!), findsNothing);
-    }
+    // The base fixture has a label; with emptyLabel null it must not appear
+    expect(base.emptyLabel, isNotNull);
+    expect(find.text(base.emptyLabel!), findsNothing);
+    // Positive anchor: the header is still drawn
+    expect(find.text(vm.asOf.label), findsOneWidget);
+    expect(find.text(JournalLabels.retry), findsNothing);
+  });
+
+  // ── S11: UNKNOWN and NOT_APPLICABLE gate icons differ ────────────────────────
+
+  testWidgets('S11 gate unknown and notApplicable icons differ', (
+    WidgetTester tester,
+  ) async {
+    final UnknownBoardVm vm = singleFixture(
+      FixturePaths.m6UnknownBoard2,
+      UnknownBoardVm.fromJson,
+    );
+    final UnknownResolutionItem item = vm.items[0];
+    final UnknownResolutionStep unknownStep = item.steps[1];
+    final UnknownResolutionStep naStep = item.steps[2];
+    expect(unknownStep.state, GateState.unknown);
+    expect(naStep.state, GateState.notApplicable);
+
+    await _pump(
+      tester,
+      boardStreamFn: () => Stream<UnknownBoardVm>.value(vm),
+      safety: safetyFixtureRow(0),
+      opener: RecordingLinkOpener(),
+    );
+
+    final Finder card = find.byKey(const ValueKey<String>('j5-card-0'));
+    final Finder unknownRow = find
+        .ancestor(
+          of: find.descendant(of: card, matching: find.text(unknownStep.title)),
+          matching: find.byType(Row),
+        )
+        .first;
+    final Finder naRow = find
+        .ancestor(
+          of: find.descendant(of: card, matching: find.text(naStep.title)),
+          matching: find.byType(Row),
+        )
+        .first;
+    final Finder unknownIcon = find.descendant(
+      of: unknownRow,
+      matching: find.byType(Icon),
+    );
+    final Finder naIcon = find.descendant(
+      of: naRow,
+      matching: find.byType(Icon),
+    );
+    expect(unknownIcon, findsOneWidget);
+    expect(naIcon, findsOneWidget);
+    expect(
+      tester.widget<Icon>(unknownIcon).icon,
+      isNot(tester.widget<Icon>(naIcon).icon),
+    );
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 }
