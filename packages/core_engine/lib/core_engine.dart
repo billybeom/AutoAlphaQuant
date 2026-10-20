@@ -76,6 +76,23 @@ export 'src/signals/hysteresis.dart'
         applyTrendHysteresis;
 export 'src/signals/indicators.dart'
     show adx, atr, bbw, chop, rma, rmaStep, sma, trueRange;
+export 'src/signals/percentile.dart' show pitPercentile, rollingPercentile;
+export 'src/signals/regime_pipeline.dart'
+    show
+        IndicatorSign,
+        RegimeDay,
+        RegimeIndicatorMeta,
+        directionScores,
+        distributionDays,
+        kRegimeCategories,
+        kRegimeIndicatorMeta,
+        meanOfAvailable,
+        momentum12Minus1,
+        normalizeIndicators,
+        runRegimeFsm,
+        trendIndicators,
+        trendScoreKr,
+        trendinessParts;
 export 'src/signals/regime_score.dart'
     show
         CategoryInput,
