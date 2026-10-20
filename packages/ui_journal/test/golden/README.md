@@ -221,7 +221,7 @@ await expectGolden('j1_filter_open', b);
 | `j3r_written` | `JournalReadView` + `m6JournalReadWritten` |
 | `j3r_not_written` | `JournalReadView` + `m6JournalReadNotWritten` **행 0**(`d_20260810_b_27` — 행 1 은 전환 표본) |
 | (선택) `j3r_no_note` · `j2_journal_written` | `m6JournalReadNoNote` · `m6DecisionDetailJournalWritten`(+ 안전 행 0) |
-| 기존 `j3_*` 4종 | + `journalDraftStoreProvider.overrideWithValue(RecordingDraftStore())` → 🔴 **픽셀 불변 · 재생성 금지**(바뀌면 복원 전 상태가 찍힌 것 = 결함) |
+| 기존 `j3_*` 4종 | + `journalDraftStoreProvider.overrideWithValue(RecordingDraftStore())` → 🔴 **픽셀 불변 · 재생성 금지**(바뀌면 복원 전 상태가 찍힌 것 = 결함) · 🆕 (예외 = R-6b 해소 카드 `R3-Bob-J4` 부록 S-1 의 재생성 목록 — 아래 «🆕 R3» 절 · `golden:approved`) |
 
 ### 초안 시드하는 법
 
@@ -257,3 +257,39 @@ final RecordingDraftStore store = RecordingDraftStore(
 🔵 `executed` 직후 «미작성 → 본문» 전환은 `m6JournalReadNotWritten` **행 1**(`d_20260901_a_31` 미작성) → `m6JournalReadWritten` 순으로 흘린다(`StreamController` · 같은 결정). `m6JournalReadWritten` 의 본문은 읽기 레이아웃 표본이라 행 2 원문과 다르다 — 초안 원문 ↔ 읽기 본문을 대조하지 않는다.
 🔴 `watchDecisionJournal` 을 쓰는 화면(`executed` 뒤 `J-3` · `JournalReadView`)의 가짜 저장소는 `extends UnimplementedJournalRepository` 에서
 `watchDecisionJournal` 을 override 한다 — 빠뜨리면 받침대가 던져 읽기 본문이 에러 상태(«다시 시도»)가 된다.
+
+## 🆕 R3(계약 v1.7) — `J-4` 사후 blind 리뷰 + 부록 S-1 · S-12 (2026-10-20 조립 · ✅ 같은 날 누적 드라이런 실측 반영 — 높이·dy·S-1 목록)
+
+정본: 01 §16(16-6 · 16-8 · 16-10 · 16-16) · 02 §3-4 의 «🆕 계약 v1.7 — `J-4` R3 범위» 블록 ⓗ(수용 (c) = K18 (가) 위젯 트리 대조) · 02 §3-1 ⓗ(S-12) · 설계 저장소 `10_리뷰/2026-10-19_미결46_계약v1.7_설계서.md` §3-4(골든 ↔ 입력). 카드 = `docs/ai-context/send/R3-Bob-J4.md`(«■ 골든» 절과 같은 말). 이 절은 **골든**만 말한다.
+
+### 1. 골든 이름 — 신규 6이름 × light/dark = 12장(`j4_*`) + 부록 S-12 신규 2이름 × 2 = 4장(`j1_rebalance_*`) · 새 PNG 합 16(재분할 임계 «> 16» 의 경계)
+
+| 이름 | 장수 | 테스트 파일 | 입력(흐름) · 크기 · 맨 아래 위젯(위치 전제) |
+|---|---|---|---|
+| `j4_before_reveal` | 2 | `j4_golden_test.dart` | 큐 `m6/blind_review_queue_3` · 카드 `m6/blind_review_card_before`(= 큐 행 0) · 접수증 없음 · 전 문항 0번 선택지(«예») 선택 · 제출 전 · 맨 아래 `Key('j4-submit')` |
+| `j4_after_reveal` | 2 | 〃 | 위 흐름 → 제출(`m6/blind_review_receipts_6` 행 2 `EXECUTED`) → 카드 스트림에 `m6/blind_review_card_revealed` · 같은 선택·잠금 + 결과 섹션 + «다음 건» · `Key('j4-next')` |
+| `j4_after_reveal_open` | 2 | 〃 | 큐 = 행 1 이 머리인 슬라이스(`rows.sublist(1)`) · 카드 = 큐 행 1(`d_mf_0002`) → 전 문항 0번 → 제출(행 2 `EXECUTED`) → `m6/blind_review_card_revealed_open`(«미청산 — 결과 미확정» · 보조 줄 0) · `Key('j4-next')` |
+| `j4_waiting` | 2 | 〃 | before · 전 문항 0번 → 제출(행 0 `REQUESTED`) · 잠금 + «전송 대기» `stateLabel` · `Key('j4-receipt')` |
+| `j4_rejected` | 2 | 〃 | before · 전 문항 0번 → 제출(행 4 `REJECTED` · `BLIND_REVIEW_ANSWERS_INVALID`) · 편집 복귀 + 재제출 + `stateLabel` · 🔴 행 5(`ALREADY_SCORED`)로 그리지 않는다(곧 결과가 흐르는 장면 — 위젯 테스트 T4-09 몫) · `Key('j4-submit')` |
+| `j4_empty` | 2 | 〃 | 큐 `m6/blind_review_queue_empty`(«리뷰할 결정이 없습니다») · 고지·제출 없음 · `Key('j4-empty')` |
+| `j1_rebalance_chip` | 2 | `j1_rebalance_golden_test.dart`(부록 S-12) | `JournalTimeline(rebalanceEventId: <scope id>)` + `m6/journal_rebalance_scope_1` + `journal_30` 의 그 회차 행 · 회차 칩 + 씨앗 기간 칩 · 크기 = 기본 `kGoldenPhoneSize` 390 × 844 · 🆕 찍기 전 필터 줄을 회차 칩까지 가로 끝 정렬 스크롤(`Scrollable.ensureVisible(tester.element(bottom), alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd)` — 390 폭에서 칩은 x 460.5~816.6 이라 스크롤 없이는 안 보인다 · 세로 스크롤 0) · 위치 전제 `getBottomRight(칩).dx <= 390` + dy < 844 · `Key('j1-chip-rebalance')` |
+| `j1_rebalance_unknown` | 2 | 〃 | 모르는 회차(scope null) + `m6/journal_rebalance_unknown`(0행 · `emptyLabel`) · 칩 부재 + 빈 문장 · 390 × 844 · 같은 끝 정렬(이미 보여 스크롤 0) · 맨 아래 = 빈 문장 |
+
+- 공통: 안전 행 0(`safetyFixtureRow(0)`) · 시계 `FixedClock(kGoldenNowUtc)` · `const JournalBlindReview()`(인자 없음) · 탭·제출은 `test/blind_review_fakes.dart` 의 도우미(`pickBlindReviewAnswers` 등) · 찍기 전 `pumpAndSettle()`.
+- `j4_*` 크기 = 테스트 파일 안 상수 `const Size _kTallPhone = Size(390, 1600)`(드라이런 확정 — 최대 dy 1480 · 여백 줄이기 0 · 이 파일의 «🆕 R2» 절 2번 «세로가 긴 화면» 꼴 · `kGoldenPhoneSize` 불변).
+- 위치 전제(찍기 전 · 이름마다 맨 아래 위젯 하나): `expect(tester.getBottomLeft(find.byKey(Key(bottomKey))).dy, lessThan(_kTallPhone.height));` — `bottomKey` 는 위 표 마지막 칸.
+- 🔴 `j4_before_reveal` ↔ `j4_after_reveal` 의 «차이가 결과 섹션뿐»(02 수용 (c))은 **골든 픽셀 비교로 증명하지 않는다** — 위젯 테스트 T4-16(K18 (가) 위젯 트리 대조: 하단 영역 밖 Text 목록 동일 · 고른 선택지 Key 동일 · 차이 허용 = 잠금 표현 + 하단)이 증명하고, PNG 눈 대조는 C4 보조다.
+- 드라이런 실측 dy(light/dark · `dry/r3-j4` `390f218`): `j4_before_reveal` 1320.0/1320.0 · `j4_after_reveal` 1480.0/1480.0 · `j4_after_reveal_open` 1300.0/1300.0 · `j4_waiting` 1288.0/1288.0 · `j4_rejected` 1368.0/1368.0 · `j4_empty` 76.0/76.0(< 1600) · `j1_rebalance_chip` 92.0/92.0(dx 390.0) · `j1_rebalance_unknown` 480.0/480.0(dx 316.125)(< 844).
+- 🔵 선택과 점수: 흐름의 선택(전 문항 0번 = «예»)과 결과 픽스처의 과정 점수 글자(`revealed` «4점» · `revealed_open` «3점»)는 **합성 — 서로 무관**(화면은 점수를 셈하지 않는다 · PNG 글자는 테스트 글꼴 네모라 읽히지 않는다).
+
+### 2. 부록 S-1 — 기존 `j3_*` 재생성 허용 목록(R-6b · R2b C4 B03)
+
+- 재생성 = **6장**(드라이런 확정) = `j3_rejected_*` · `j3_restored_rejected_*` · `j3_submit_not_accepted_*`(인용 규칙 드롭다운의 선택 label 둘째 줄 밑줄 겹침이 들어 있는 장면) · 해법 = `itemHeight: <고른 것 없음> ? kMinInteractiveDimension : null` + `selectedItemBuilder`(`Padding(vertical: 8)` + `Text(o.label)` 전문 — 카드 «부록 S-1») · 메뉴 열린 `j3_rule_menu_open_*` 는 불변.
+- 그 밖의 PNG(`j3_discretion` · `j3_recon_clear` · `j3_executed_read` · `j3_rule_menu_open` · `j3r_*` · `j1_*` · `j2_*` · `j5_*`) = **M 0**(고른 것이 없을 때의 드롭다운 모양은 그대로여야 한다 — 조건 없는 `itemHeight: null` 은 이 PNG 들까지 바꾼다 · 드라이런 시도 2).
+- 명령 = 이름마다 `--plain-name` 한 줄(예 `flutter test --update-goldens test/golden/j3_golden_test.dart --plain-name "j3_rejected"`) — 🔴 파일 통째·폴더 지정 금지(같은 파일의 다른 PNG 까지 다시 찍힌다).
+- 이 PR 은 기존 PNG 를 바꾸므로 CI «골든 스냅샷» 잡이 빨갛다 — 통합 담당이 목록과 PNG 를 대조한 뒤 `golden:approved` 를 붙인다(목록 밖 M = 반려).
+
+### 3. 장수(카드가 받는 장수 · 기존 PNG 56장 = R3 시작 기준)
+
+- R3 시작 56장(`j1_*` 16 · `j2_*` · `j3_*` · `j3r_*` · `j5_*`) → R3 병합 뒤 **72장**(+ `j4_*` 12 · `j1_rebalance_*` 4 · 부록 S-1 은 M 이라 장수 불변).
+- 명령(packages/ui_journal 에서): `flutter test --update-goldens test/golden/j4_golden_test.dart` · `flutter test --update-goldens test/golden/j1_rebalance_golden_test.dart` → 옵션 없이 `flutter test` 전부 통과.
