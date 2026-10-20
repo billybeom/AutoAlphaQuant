@@ -9,7 +9,8 @@
 //   ② 손익 격리 — 기본 표본에 손익 키 0 · 펼침 표본의 손익 글자 · «열람 기록» 0(발주자 결정 ⑤).
 //   ③ 표시 문자열·가림 — 글자 비지 않음 · INTEGRITY «숨김»(== journal_masked_integrity) · 시스템 밖 수량 그대로(K14) ·
 //      RECON 대상 행만 끝 «?»(대상 = 상세 RECON 표본의 보유 · 그 슬리브 배분 행 — 픽스처끼리 · 그 밖 행 == 정상판 ·
-//      대상 행에서 대상 글자의 «?» 만 떼면 정상판과 같다) · INTEGRITY 손절선 수준·기준 글자 «숨김».
+//      대상 행에서 대상 글자의 «?» 만 떼면 정상판과 같다) · INTEGRITY 손절선 수준·기준 글자 «숨김» ·
+//      INTEGRITY·L-3 가림판 보유 행 트랜치 칩 = 빈 목록(✅ K29 칩 빼기) + 정상판에는 칩이 있다.
 //   ④ 정체성·일치 — holding_id 유일 · B·POT 같은 종목 표본 · holdings_6 == 펼침판 · 상세 holding == 목록 행 ·
 //      펼침판 − pnl == 정상판 · 뷰어판 − 토글·섹션 == 정상판 · 링크 = 그 행의 id.
 //   ⑤ 카드 구조 — 카탈로그 최상위 순·라벨 · POT 행 = A 카드 맨 끝 + sub_book_label(K17) · scope MANAGED · 빈 ⇔ 문장.
@@ -968,8 +969,22 @@ void main() {
             isNull,
             reason: '$p ${r['holding_id']} — INTEGRITY 에서 반영 대기 칩으로 수량이 샌다.',
           );
+          expect(
+            r['sma_tranches'],
+            <Object?>[],
+            reason:
+                '$p ${r['holding_id']} — INTEGRITY·L-3 가림판의 트랜치 칩은 빈 목록이어야 한다(✅ K29 · 단계·채운 날이 진행을 드러낸다).',
+          );
         }
       }
+      // K29 짝 — 정상판에는 칩이 있다(가림판의 빈 목록이 «원래 없음» 이 아니라 «뺌» 임을 픽스처끼리 보인다).
+      expect(
+        _holdingRows(_ovNormal).where(
+          (Map<String, Object?> r) => _list(r['sma_tranches']).isNotEmpty,
+        ),
+        isNotEmpty,
+        reason: '$_ovNormal — 트랜치 칩이 있는 행이 없다(K29 대조가 공허하다).',
+      );
       for (final Map<String, Object?> s in _list(
         _vm(_dtIntegrity)['stop_lines'],
       )) {

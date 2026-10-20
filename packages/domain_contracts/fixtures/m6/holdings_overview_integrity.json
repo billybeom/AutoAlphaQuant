@@ -148,11 +148,7 @@
               "entry_reasons": [
                 { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
               ],
-              "sma_tranches": [
-                { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-03" },
-                { "step_no": 2, "filled": true, "label": "2/3 단계", "filled_on": "2026-08-17" },
-                { "step_no": 3, "filled": false, "label": "3/3 단계" }
-              ],
+              "sma_tranches": [],
               "gates": [
                 { "code": "SAF-201", "label": "슬리브 B 한도 여유", "state": "PASS" }
               ],
@@ -177,11 +173,7 @@
               "entry_reasons": [
                 { "code": "MONTHLY_REGULAR", "label": "월간 정기 리밸런싱", "tone": "NEUTRAL", "detail_deep_link": "handbook://rebalance/monthly" }
               ],
-              "sma_tranches": [
-                { "step_no": 1, "filled": true, "label": "1/3 단계", "filled_on": "2026-08-03" },
-                { "step_no": 2, "filled": true, "label": "2/3 단계", "filled_on": "2026-08-17" },
-                { "step_no": 3, "filled": false, "label": "3/3 단계" }
-              ],
+              "sma_tranches": [],
               "gates": [
                 { "code": "SAF-201", "label": "슬리브 B 한도 여유", "state": "PASS" }
               ],

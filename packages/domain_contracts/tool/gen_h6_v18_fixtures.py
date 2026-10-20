@@ -15,7 +15,7 @@
       m6/allocation_{in_band, out_of_band, tranche_progress, parking_large, integrity, recon, empty}.
   (d) §3-0 규약을 쓰기 전에 먼저 확인한다(어기면 멈춘다) — 아래 `self_check_*`.
 
-🔴 발주자 결정(2026-10-20 K1~K5 · 2026-10-21 K14·K15·K16·K17·K27 — 전부 권고대로) 반영:
+🔴 발주자 결정(2026-10-20 K1~K5 · 2026-10-21 K14·K15·K16·K17·K27·K29 — 전부 권고대로) 반영:
   - K4 — 미결 82(보유 몫): 종목 라벨 = 입금 픽스처(deposit_plan_1) 이름 · `379810`·`132030`·`357870` 0 ·
     C 금 행 없음(C 금 종목 미확정 — 지어내지 않는다) · POT = B 와 같은 종목 2행(`holdingId` 의 존재 이유 표본).
   - K5 — 손익 펼침 열람 기록 없음 → `disclosure_note` = «전일 종가 기준 · 평가 손익»(«열람 기록» 글자 0).
@@ -28,6 +28,7 @@
     표본 날짜 2026-08-31 = 계절 캘린더 미반영 합성(SPEC 시점 정합 = 미결 108).
     🔵 설계서 §3-0 은 이 표식을 meta `notice` 에 두라 했으나 C-1 이 `meta.notice` 를 01 §5 문장 하나로 고정한다
        («합성 데이터. 실계좌·실키 없음.») — 표식은 fixtures/README «계약 v1.8» 절과 이 주석에 둔다(⑥ 의 «보존 경로» 도 같다).
+  - K29(2026-10-21 · 칩 빼기 = 권고 ⓑ′) — INTEGRITY·L-3 가림판의 보유 행 `sma_tranches` = [](칩 부재).
 
 멱등: 버전 치환·개정은 언제나 **기준 커밋(BASE)의 원문**에서 다시 만든다(`git show BASE:경로`).
 몇 번을 돌려도 결과가 같다 — 돌린 뒤 `git status` 에 fixtures 변경이 없어야 한다.
@@ -380,11 +381,14 @@ def recon_row(row):
 
 
 def integrity_row(row):
-    """LEDGER_INTEGRITY — 수량·매수가·비중 «숨김» · 반영 대기 칩 부재(설계서 §3-1 ③)."""
+    """LEDGER_INTEGRITY(·L-3 실사 세션) — 수량·매수가·비중 «숨김» · 반영 대기 칩 부재(설계서 §3-1 ③) ·
+    SMA 트랜치 칩 부재(✅ K29 2026-10-21 발주자 «칩 빼기» = 권고 ⓑ′ — `sma_tranches: []` · 기하 null 과 같은 꼴 ·
+    카드 머리 `tranche_state_text` «숨김» 과 맞춘다)."""
     r = copy.deepcopy(row)
     for k in ('quantity_text', 'avg_price_text', 'weight_text'):
         r[k] = MASKED
     r.pop('pending_text', None)
+    r['sma_tranches'] = []
     return r
 
 
@@ -727,7 +731,10 @@ def main():
             assert r['symbol'] not in ('379810', '132030', '357870'), rel
             assert r['scope'] == 'MANAGED', rel
             assert r['detail_deep_link'] == ROUTE_DETAIL + r['holding_id'], rel
-            assert (r['sma_tranches'] != []) == (r['sleeve'] == 'B'), (rel, r['holding_id'])   # K18
+            if rel in (OV_INTEGRITY, DT_INTEGRITY):
+                assert r['sma_tranches'] == [], (rel, r['holding_id'])                            # K29
+            else:
+                assert (r['sma_tranches'] != []) == (r['sleeve'] == 'B'), (rel, r['holding_id'])   # K18
             if r['sleeve'] in ('B', 'POT'):
                 assert not {g['code'] for g in r['gates']} & {'SAF-208', 'SAF-209'}, rel        # E14
             assert (r['sleeve'] == 'POT') == ('sub_book_label' in r), rel                        # K17
