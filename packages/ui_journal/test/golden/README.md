@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ✅ `J-1` 16장(R1b 병합 PR #7) · 🆕 `J-2`·`J-3`·`J-5` 는 R2 PR 에서 최초 생성)
+# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ✅ `J-1` 16장(R1b 병합 PR #7) · 🆕 `J-2`·`J-3`·`J-5` 는 R2 PR 에서 최초 생성 · ✅ R3 병합 뒤 **72장**(56 + `j4_*` 12 · `j1_rebalance_*` 4 · 부록 S-1 6장 = M · PR #41 `be1b46f`))
 
 정본: 01_M2_도메인계약 **§7**(C-1·C-2 + 골든 규칙) · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 
@@ -258,7 +258,7 @@ final RecordingDraftStore store = RecordingDraftStore(
 🔴 `watchDecisionJournal` 을 쓰는 화면(`executed` 뒤 `J-3` · `JournalReadView`)의 가짜 저장소는 `extends UnimplementedJournalRepository` 에서
 `watchDecisionJournal` 을 override 한다 — 빠뜨리면 받침대가 던져 읽기 본문이 에러 상태(«다시 시도»)가 된다.
 
-## 🆕 R3(계약 v1.7) — `J-4` 사후 blind 리뷰 + 부록 S-1 · S-12 (2026-10-20 조립 · ✅ 같은 날 누적 드라이런 실측 반영 — 높이·dy·S-1 목록)
+## 🆕 R3(계약 v1.7) — `J-4` 사후 blind 리뷰 + 부록 S-1 · S-12 (2026-10-20 조립 · ✅ 같은 날 누적 드라이런 실측 반영 — 높이·dy·S-1 목록 · ✅ 병합 PR #41 `be1b46f` 2026-10-20)
 
 정본: 01 §16(16-6 · 16-8 · 16-10 · 16-16) · 02 §3-4 의 «🆕 계약 v1.7 — `J-4` R3 범위» 블록 ⓗ(수용 (c) = K18 (가) 위젯 트리 대조) · 02 §3-1 ⓗ(S-12) · 설계 저장소 `10_리뷰/2026-10-19_미결46_계약v1.7_설계서.md` §3-4(골든 ↔ 입력). 카드 = `docs/ai-context/send/R3-Bob-J4.md`(«■ 골든» 절과 같은 말). 이 절은 **골든**만 말한다.
 
@@ -280,6 +280,7 @@ final RecordingDraftStore store = RecordingDraftStore(
 - 위치 전제(찍기 전 · 이름마다 맨 아래 위젯 하나): `expect(tester.getBottomLeft(find.byKey(Key(bottomKey))).dy, lessThan(_kTallPhone.height));` — `bottomKey` 는 위 표 마지막 칸.
 - 🔴 `j4_before_reveal` ↔ `j4_after_reveal` 의 «차이가 결과 섹션뿐»(02 수용 (c))은 **골든 픽셀 비교로 증명하지 않는다** — 위젯 테스트 T4-16(K18 (가) 위젯 트리 대조: 하단 영역 밖 Text 목록 동일 · 고른 선택지 Key 동일 · 차이 허용 = 잠금 표현 + 하단)이 증명하고, PNG 눈 대조는 C4 보조다.
 - 드라이런 실측 dy(light/dark · `dry/r3-j4` `390f218`): `j4_before_reveal` 1320.0/1320.0 · `j4_after_reveal` 1480.0/1480.0 · `j4_after_reveal_open` 1300.0/1300.0 · `j4_waiting` 1288.0/1288.0 · `j4_rejected` 1368.0/1368.0 · `j4_empty` 76.0/76.0(< 1600) · `j1_rebalance_chip` 92.0/92.0(dx 390.0) · `j1_rebalance_unknown` 480.0/480.0(dx 316.125)(< 844).
+- 🆕 병합본 실측(R3 · PR #41 `be1b46f` · 2026-10-20 · Bob `47e87ce`(+ 재제출 `48a06a1` — 테스트 4파일 · lib·PNG 불변) · C4 재실측 일치 · light=dark): `j4_before_reveal` **1248** · `j4_after_reveal` **1392** · `j4_after_reveal_open` **1212** · `j4_waiting` **1220** · `j4_rejected` **1296** · `j4_empty` **76**(< 1600) · `j1_rebalance_chip` **92**(dx 390) · `j1_rebalance_unknown` **480**(< 844). 드라이런과의 차(68~88)는 간격 재량(결함 아님 · 여백 줄이기 0 · 질문 파일 여백 행 0 = 정상). «배치·잘림» 칸 = Bob 이 이미지 한도로 쓰지 못해 C4 가 PNG 를 열어 채움(발주자 예외 · 2026-10-20). 새 PNG 16장 blob 중복 0 · S-1 재생성 6장 = 드라이런 PNG 와 블롭 같음 · 기존 50장 M 0 → **72장**(`be1b46f` 트리 `git ls-tree` 실측).
 - 🔵 선택과 점수: 흐름의 선택(전 문항 0번 = «예»)과 결과 픽스처의 과정 점수 글자(`revealed` «4점» · `revealed_open` «3점»)는 **합성 — 서로 무관**(화면은 점수를 셈하지 않는다 · PNG 글자는 테스트 글꼴 네모라 읽히지 않는다).
 
 ### 2. 부록 S-1 — 기존 `j3_*` 재생성 허용 목록(R-6b · R2b C4 B03)
