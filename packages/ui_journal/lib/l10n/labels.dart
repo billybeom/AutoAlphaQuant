@@ -94,4 +94,12 @@ abstract final class JournalLabels {
 
   /// 명령 Future 에러 때 제출 버튼 바로 위 1줄(01 §12-3 · 문구 5원칙).
   static const String submitNotAccepted = '제출이 접수되지 않았습니다. 입력은 그대로 있습니다.';
+
+  // ── 🆕 R3 — J-4 사후 blind 리뷰 ──────────────────────────────────────────
+
+  /// 카드 갈래 상단 고정 고지(02 §3-4).
+  static const String blindReviewNotice = '결과는 채점 후 공개됩니다';
+
+  /// 결과 갈래 하단 «다음 건» 버튼.
+  static const String blindReviewNext = '다음 건';
 }
