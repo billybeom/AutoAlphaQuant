@@ -17,12 +17,13 @@
 | `broker_gateway` | Claude (M1) | ○ | **—** | **—** |
 | `trading_runtime` | Claude (M1·X2) | ● | **—** | **—** |
 | `data_sync` | Claude (M4·X1·X4·X5) | ● 읽기+쓰기 | ● **읽기 전용** | — |
-| `ui_journal` | 다른 AI (M6) | ● | ⚠️ **`J-3` 사전 저널 폼 제외**(T-3) · 🆕 v1.2 `J-3R` 읽기 뷰(`JournalReadView`)는 **포함** · 🆕 v1.7 `J-4` blind 리뷰(`JournalBlindReview` · **배럴 쪽** — 명령 주입 `journalBlindReviewCommandApiProvider` 는 `blind_review.dart` 안 · 뷰어 허용 4종의 `BLIND_REVIEW_SCORE` · 01 §16)는 **포함** | — |
+| `ui_journal` | 다른 AI (M6) | ● | ⚠️ **`J-3` 사전 저널 폼 제외**(T-3) · 🆕 v1.2 `J-3R` 읽기 뷰(`JournalReadView`)는 **포함** · 🆕 v1.7 `J-4` blind 리뷰(`JournalBlindReview` · **배럴 쪽** — 명령 주입 `journalBlindReviewCommandApiProvider` 는 `blind_review.dart` 안 · 뷰어 허용 4종의 `BLIND_REVIEW_SCORE` · 01 §16)는 **포함** · 🆕 v1.8 보유현황 `H6-1`~`H6-3`(`HoldingsOverview`·`HoldingDetail`·`HoldingsAllocation` · **배럴 쪽** · 01 §17)은 **포함**(본문 = Android·iOS · 뷰어 = 종목 손익 토글·시스템 밖 섹션 부재 — K15·K14 ⓑ · 엔진 데이터) | — |
 | `ui_analytics` | 다른 AI (M7) | ● | ⚠️ **`S7-4` 입금 플래너 제외**(T-4 · 🆕 v1.4) · 🆕 `S7-6c` 초안 = 주입 null(T-4 · v1.6) | — |
 | `ui_shell` | 다른 AI (M8·X3) | ● | ● | — |
 | `ui_settings` | 다른 AI (M9) | ● 전체 | ⚠️ 키 입력 화면 제외 | — |
 | `ui_safety` | **Claude (M5·X1·X2·X5)** | ● 전체 | ⚠️ **킬스위치 «발동»만** | — |
 
+- 🆕 v1.8 — 보유 화면 셋(`H6-*`)은 `ui_journal` 안이라 웹 타깃에는 없다: 셸은 라우트 3(`holdingsOverview`·`holdingsDetail`·`holdingsAllocation`)을 전 플랫폼 등록하되 웹 목적지 = Q-D 전 «부재» 가드(`journalRead` 조문과 같은 꼴 · 04 §1-2 · R13).
 - `app_viewer_web` 열이 전부 «—»인 것은 **스텁이기 때문**입니다. 발주자 결정 **Q-D**(v1에서 웹·데스크탑을 뺄 것인가, 00_README §8-2)가 「포함」으로 나면 **`app_viewer_ios` 열과 같은 집합**이 됩니다.
 - `core_engine`·`broker_gateway`가 operator에서 «○»인 것은 `trading_runtime`을 통해 들어오기 때문입니다. **viewer에는 그 통로 자체가 없습니다.**
 - `domain_contracts`가 «○»인 것은 앱 조립 코드가 아직 계약 타입을 직접 참조하지 않아서입니다. 리포지토리 주입을 시작하면 각 앱 pubspec에 직접 의존으로 올라갑니다(`depend_on_referenced_packages` 린트).

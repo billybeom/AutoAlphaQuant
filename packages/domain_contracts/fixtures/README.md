@@ -1,4 +1,4 @@
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.7 · 141파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ⬜ 로컬 커밋 — PR 대기)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.8 · 159파일** — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ⬜ 로컬 커밋 — PR 대기)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -12,7 +12,7 @@
   아래 «픽스처 계좌 별칭 표»가 정본이다.
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 141파일(🆕 2026-10-20 v1.7) 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 159파일(🆕 2026-10-21 v1.8) 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -32,7 +32,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.7.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.8.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -122,14 +122,14 @@
 
 ---
 
-## 파일 목록 (135)
+## 파일 목록 (159)
 
 ### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
 | 파일 | 건수 | 내용 |
 |---|---|---|
 | `journal_30.json` | 30 | 체결 22 · 부분 3 · 거부 2 · UNKNOWN 1 · prevented 1 · SIM 1 |
-| `holdings_6.json` | 6 | 069500(A) · 379810·132030(B) · 0085P0·411060(C) · POT 1종 — `pnl` 은 3건만 |
+| `holdings_6.json` | 6 | ~~069500(A) · 379810·132030(B) · 0085P0·411060(C) · POT 1종~~ 🆕 v1.8(미결 82 보유 몫 · K4) = 069500(A) · 133690·411060(B) · 0085P0(C) · 133690·411060(POT — B 와 같은 종목 · `holding_id` 로 갈린다) — `pnl` 은 3건만(A · B `133690` · C) · 행 == `m6/holdings_overview_pnl` 의 같은 `holding_id` 행(C-44 ④) · 아래 «계약 v1.8» 절 |
 | `performance_24m.json` | 2계열 | 월간 TWR·MWR 각 24점 + 결측 구간 1(`UNAVAILABLE`) + 벤치마크 · 🆕 v1.3 표시 필드(정규 자리·글자·눈금 — 값·구간·문장은 그대로) |
 | `rebalance_6.json` | 6 | monthlyRegular 3 · seasonal 1 · band 1 · deposit 1 · 🆕 v1.5 행 링크 `detail_deep_link` 6 · 버튼 `journal_timeline_link` 5(`re_20261030_01` 은 버튼 없음 = 부재 표본) · 🆕 v1.6 행 순서 = **거래일 내림차순** · 행 `as_of` = 봉투(관측 시각) · `thresholds`(band·seasonal 1행씩 · 나머지 `[]`) · `SleeveWeight.label` 완성 문장 |
 | `resume_report_1.json` | 1 | 7거래일 갭 · `RECOVERY_DRY` · 4/3/2/1/2 |
@@ -143,7 +143,13 @@
 | 🆕 `range_presets_4.json` | 4 | **v1.1** `ConfigRepository.watchRangePresets()` — 최근 30일(**`is_default`**)·이번 달·올해·전체 기간. 🔴 `is_default` 는 정확히 1건(C-34 ①) |
 | 🆕 `sleeve_catalog_4.json` | 4 | **v1.1** `ConfigRepository.watchSleeves()` — A·B·C·POT(`rolls_up_to: A`). P0S 라 새틀라이트 행 없음 |
 
-### `m6/` 41 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
+### `m6/` 65 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
+
+🆕 **계약 v1.8(2026-10-21 · R4 선행 M2 보강 · 01 §17) 18건** — 보유 화면 셋의 VM(행 1):
+`holdings_overview_{normal, recon, integrity, empty, pnl, viewer}`(`H6-1` · `HoldingsOverviewVm` — 카드 3 · POT 2행 = A 카드 맨 끝 · 시스템 밖 섹션 · 가림 2 · 빈 · 손익 펼침 · 뷰어판) ·
+`holding_detail_{with_stops, no_stop, pnl, recon, integrity}`(`H6-2` · `HoldingDetailVm` — 손절선 글자 행(보존 경로 표본 · K16 ⓓ) · 손절선 없음 · 손익 · 가림 2) ·
+`allocation_{in_band, out_of_band, tranche_progress, parking_large, integrity, recon, empty}`(`H6-3` · `SleeveAllocationVm` — 밴드 행 = B 만 · K27).
+🔵 같은 창에서 `holdings_6`(행 교체 · 미결 82 보유 몫) · `external_holdings_2`(+`quantity_text`) · `m7/realized_alloc_S7`(+`sleeve_label`)이 개정됐다. 자세한 것은 아래 «계약 v1.8» 절.
 
 🆕 **계약 v1.5(2026-10-07 · R12 선행 M2 보강 · 01 §15-3) 2건** —
 `journal_rebalance_scope_1`(`J-1` 회차 조건의 범위 설명 `JournalRebalanceScope` 1행 — `re_20260803_01` · 칩 글자 «2026-08-03 월 납입 배분 회차»(식별자 없음 · C-40 ④) · 씨앗 기간 2026-08-03 ~ 2026-08-17(`preset_code` null · `is_default` false) = `journal_30` 에서 그 회차에 묶인 3행을 덮는다(C-40 ⑨)) ·
@@ -197,7 +203,7 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 `fill_form_spec` · `fill_form_spec_stale`(A16 — 폼을 열지 않는 갈래) ·
 `manual_fills_8`(original 5 · 상쇄+재기재 한 쌍 · backdated 1) ·
 `fill_rejected_price`(🔴 **입력값 보존** — C17) · `advice_skip_reasons` · `self_report_1` ·
-`external_holdings_2` · `entry_gate_nov_pass_1`(🔵 11월 재판정 통과 — 실데이터로는 검증 불가한 경로).
+`external_holdings_2`(🆕 v1.8 +`quantity_text` — `holdings_overview_*` 시스템 밖 섹션 행의 원천) · `entry_gate_nov_pass_1`(🔵 11월 재판정 통과 — 실데이터로는 검증 불가한 경로 · 🆕 v1.8 — 여전히 미매핑 · `H6-3` 은 배분 행 `state_chips` 로 보류를 말한다 · K13).
 
 ### `m7/` 59 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
 
@@ -242,7 +248,7 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 🔵 같은 창에서 `m7_monthly_2026_08`·`_gap` 에 `generated_at_text`·`config_hash`·항목 `detail_deep_link`(④⑤→`S7-3` · ⑧→`S7-10`)가, `m7_monthly_pending` 에 `pending_notice_text` 가 들어갔다(봉투 형제 키 `pending_d_day_text` 는 **폐기** — §8 미결 40·41·43).
 
 `aftertax_ladder_1`(정본 갈래 **6단**(사전 6층 전부) + 반사실 1(`CF_POT_TAXABLE_COMP38` 6단 · 접힘) · `is_reference_only: true` · 🆕 2026-10-06 01 §8 미결 77 정정 — 층 값은 골든 `aftertax_full_S7` 4자리 그대로(C-30 ⓙ 가 **골든 사본** `test/contracts/support/golden/aftertax_full_S7.json` 과 대조) · «정직 기대» 층만 `cagr_pct`·`end_mult` 없음 · 🆕 v1.6 두 블록에 `reference_only_label`) ·
-`realized_alloc_S7`(🔴 **C-31의 입력** — 회계 열 대조) · `ledger_trust_4` ·
+`realized_alloc_S7`(🔴 **C-31의 입력** — 회계 열 대조 · 🆕 v1.8 +`sleeve_label` 만 · 미결 109) · `ledger_trust_4` ·
 `execution_gap_cant`·`_wont`·`_mixed`(🔴 **B21 3갈래** — ~~`mode_advice_line` 이 각각 다르다~~ 🆕 v1.6 cant·wont 문장이 서로 다르고 mixed 는 **키 없음**(null = 줄 부재 · 03 §14-b ⓒ) · 행 = `ExecutionGapResult` 래퍼 `{report, as_of}`) · `execution_gap_1`(🆕 v1.6 래퍼 · `mode_advice_line` 키 없음 = 정상 달) ·
 `m7_deposit_plan_default`·`_limit`·`_expired`(🔴 이름에 금액 금지 · 🆕 v1.4 행 = `DepositPreviewResult` 래퍼) ·
 `m7_withdrawal_general`·`_pension_penalty`·`_shortfall` ·
@@ -285,6 +291,8 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
   맞지 않지만 **실전 종목 확정 전까지 고치지 않는다** — 화면은 티커를 슬리브의 정의로 읽지 않는다
   (A/B/C 라벨은 `SleeveCatalogEntry.label`). 🔴 POT 자리의 `357870` 은 03 §15 가 열거한 5종 밖이라
   **이 회차가 새로 고른 자리표시자**이며, 실전 종목이 확정되면 함께 교체된다.
+  🆕 v1.8(미결 82 보유 몫) — 보유 픽스처는 `357870` 을 싣지 않는다(POT = `133690`·`411060` · 03_알고리즘 :1342) ·
+  `357870` 은 `journal_30` 등 옛 픽스처에만 남는다(01 §8 미결 108).
 - **월 납입 예시값은 `100000`**(01 §5 · 04 §10) **하나**다. 🔴 **파일명에 금액을 넣지 않는다**
   (`_default`·`_limit`·`_expired`). 값은 파일 **안**에만 있고 운영값의 창구는
   `ConfigRepository.watchContributionSetting()` 하나다. C-32는 `ui_*` 소스만 보며 `fixtures/` 는 대상이 아니다.
@@ -371,7 +379,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_r10_fixtures
 | `m7/m7_monthly_masked_integrity`·`_masked_recon`·`_pending` | `goal_deep_link` **키 없음**(가림·미생성 달 = 버튼 부재) — 버전 줄만 바뀌었다 |
 | `m7/m7_withdrawal_*` 3벌 | 초안 행에 `side_label`·`quantity_text` 두 줄만(기계적 · 내용은 인출 규칙 결정 뒤 첫 minor 에서 다시 만든다) — 🔴 그래서 `limit_price` 는 있는데 `limit_price_text` 가 없는 행이 있다(C-38 ② 짝은 `DepositPlan` 한정 · 01 §14-4) |
 
-⚠️ **종목 라벨 SPEC 정합은 입금 픽스처(`m7_deposit_plan_*`·`deposit_plan_*`) 한정이다.** `holdings_6`·`journal_30`·`m6/*`(18벌)·
+⚠️ ~~**종목 라벨 SPEC 정합은 입금 픽스처(`m7_deposit_plan_*`·`deposit_plan_*`) 한정이다.**~~ ✅ 🆕 v1.8(2026-10-21 · 01 §8 미결 82 **보유 몫** · K4) — 보유 픽스처(`holdings_6` + 신설 보유 표본 11 · 배분 7)는 입금 픽스처 이름으로 바뀌었다(아래 «계약 v1.8» 대응표 · C-44 ⑨) · **나머지 = 01 §8 미결 108**. 아래는 v1.4 판 기록이다 — `holdings_6`·`journal_30`·`m6/*`(18벌)·
 `m7/m7_withdrawal_*` 3벌·`m9/handover_states` 는 옛 라벨 그대로다 — 같은 티커가 두 뜻이다(`411060` = 입금 «ACE KRX금현물»(B) /
 나머지 «ACE 미국30년국채» · `0085P0` = 입금 «ACE 미국10년국채액티브» / 나머지 «KODEX 국고채30년» · `379810` 은 입금 밖에 남아 있다).
 R11a 골든(`s74_*`)과 M6 골든이 같은 티커를 다른 종목명으로 찍는 것은 이 때문이다. 정정은 별도 창(인출은 인출 규칙 결정 뒤 첫 minor · 나머지는 01 §8 미결 82).
@@ -614,11 +622,90 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_j4_v17_fixtu
 
 - 대기 카드(큐 3행 · before)는 `result` **키가 없다** · 공개 카드만 `result` 를 싣는다. `evidence_text` 는 없을 때 **키가 없다**. 저널 본문의 `note` 는 `journal_read_*` 와 JSON 이 같아야 하므로 메모 없음 = `"note": null`(기존 꼴 그대로).
 
-## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과 → 🆕 2026-10-20 v1.7 · 141파일(매핑 138파일 331행) · C-1·C-8 통과)
+## 계약 v1.8 (2026-10-21 · R4 선행 · 01 §17 · 화면 ID `H6-1`~`H6-3`)
 
-🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 ~~3건~~ 5건 포함 — 🆕 v1.5 `m6/journal_rebalance_unknown`·`m7/m7_rebalance_empty`) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 141파일 `rows`)은 🆕 v1.7 334 = 331 + 매핑 없는 3건 각 1행(🆕 v1.7 신규 6파일이 12행을 더했다 — 0행 봉투 1 포함 · 개정 0 · v1.6 판은 135파일 322 = 319 + 3 · v1.5 판은 126파일 311 = 308 + 3 · 🆕 v1.6 신규 9파일이 11행을 더했다 — 개정 14건은 행 수 불변 · v1.4 판은 122파일 309 = 306 + 3 · v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다 · v1.4 신규 7파일이 11행을 더했다 — 개정 16건은 행 수 불변 · 🆕 v1.5 신규 4파일이 2행을 더했다(0행 봉투 2 포함) — 개정 2건은 행 수 불변). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+화면 카드 `R4a-Bob-H61`(`H6-1` 보유현황) · `R4b-Bob-H62H63`(`H6-2` 종목 상세 · `H6-3` 슬리브·비중)을 보내기 전에 한 보강이다 — 보유 화면 셋은 **엔진이 묶어 준 VM 하나씩**만 그린다(카드 수 = 목록 길이 · 가림 = 문자열 «?»·«숨김» + 기하 null · 손익은 펼칠 때만 · 화면은 묶지도 거르지도 더하지도 가리지도 않는다). 화면 ID 는 이 창에서 M6 만 `H6-1`~`H6-3` 으로 바뀌었다(M8 `H-01~` · m2-8 결정 id 는 그대로 — 01 §17-3).
+상태 = ⬜ 로컬 커밋 — PR 대기(앱 가지 `m2/v18-holdings` · 기준 origin/main `f46e72f`).
+결정 = 발주자 2026-10-20 **K1~K5** · 2026-10-21 **🔴 5건 K14·K15·K16·K17·K27 전부 권고대로**(나머지 기술 권고 18건도 권고대로 · 정본 = 설계 `10_리뷰/2026-10-20_R4선행_계약v1.8_설계서.md` §9 · 표본 = 같은 문서 §3). 이 절의 표본 가운데 그 결정에 걸린 것: 종목 라벨 = K4(미결 82 보유 몫) · 손익 고지 = K5 · 시스템 밖 섹션 = K14 · 뷰어판 = K15·K14 ⓑ · 손절선 표본 = K16 ⓓ · POT 자리 = K17 · 밴드 행·표본 시점 = K27.
 
-141파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·`m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` · 🆕 v1.7 `m6/blind_review_queue_empty.json` 은 0행 봉투 · v1.6 신설 9건은 전부 행이 있다), 그중 **138파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + v1.5 2026-10-07 +4 + v1.6 2026-10-08 +9 + 🆕 v1.7 2026-10-20 +6)이 실제 DTO 의 `fromJson` 을 지나
+### 신설 18건 (전부 `m6/` · 행 1 = 화면 VM — `unknown_board_2` 선례)
+
+| 파일(`FixturePaths` 상수) | 행 타입(등록부 코덱) | 내용 · 쓰는 곳 |
+|---|---|---|
+| `m6/holdings_overview_normal.json`(`m6HoldingsOverviewNormal`) | `HoldingsOverviewVm`(🆕) | 카드 3(A·B·C = `sleeve_catalog_4` 의 최상위 행 `order` 순 · 제목 = 그 `label`) · A 카드 = `069500` + **POT 2행 맨 끝**(`133690`·`411060` · `sub_book_label` «POT 서브북 · A 하위(연금저축)» · K17) · B = `133690`(«반영 대기 +12주» 칩) · `411060`(B 트랜치 2/3) · C = `0085P0` · 카드 머리 `allocation` = `allocation_in_band` 의 같은 슬리브 행(A·C = `band_note_text` · B = 밴드 문장 · K27) · 시스템 밖 섹션 = `external_holdings_2` 2행(+`quantity_text` · 배너 없음) · 「비중 보기」 → `aaq://holdings/allocation` · 토글 «종목 손익» — 골든 `h61_normal` |
+| `m6/holdings_overview_recon.json`(`…Recon`) | 〃 | normal + RECON 대상 1행(B `133690` · `h_0002`)의 `quantity_text`·`weight_text`·`pending_text` 끝 «?» · B 카드 머리 = `allocation_recon` 의 B 행 — 골든 `h61_recon_mismatch`(+ `safety_states` 행 3) |
+| `m6/holdings_overview_integrity.json`(`…Integrity`) | 〃 | 관리 대상 6행 `quantity_text`·`avg_price_text`·`weight_text` «숨김»(== `journal_masked_integrity` 의 글자) · 반영 대기 칩 **키 없음** · 카드 머리 = `allocation_integrity` · 🔵 시스템 밖 섹션 수량은 **그대로**(사람이 등록한 값 · K14) — 골든 `h61_integrity`(+ `safety_states` 행 4) |
+| `m6/holdings_overview_empty.json`(`…Empty`) | 〃 | `cards: []` + `empty_label` «보유 종목이 없습니다 · 다음 트랜치 판정 2026-09-30(SMA 신호)»(«초기»·«진행률» 각색 없음 · 02 §4-1 P 회차) · 섹션·「비중 보기」·토글 **키 없음** — 골든 `h61_empty` |
+| `m6/holdings_overview_pnl.json`(`…Pnl`) | 〃 | normal + 3행 `pnl`(A `069500` · B `133690` · C `0085P0` — `holdings_6` 의 pnl 3행과 같은 값 · `disclosure_note` «전일 종가 기준 · 평가 손익» · K5) · 🔴 `pnl` 을 빼면 normal 과 JSON 이 같다(C-44 ④) — 골든 `h61_pnl_expanded` · 재구독 테스트 둘째 값 |
+| `m6/holdings_overview_viewer.json`(`…Viewer`) | 〃 | normal 에서 `pnl_toggle_label`·`external` **키 없음**(뷰어 = 토글·섹션 부재 · K15 · K14 ⓑ) — 테스트(카드 있는 부재 갈래) |
+| `m6/holding_detail_with_stops.json`(`m6HoldingDetailWithStops`) | `HoldingDetailVm`(🆕) | A `069500`(`h_0001`) · `holding` == normal 의 같은 행 · 손절선 **1행**(`TIER_1B` · «34,570원» = `holdings_6` A 행 `stop_line.absolute_stop` 그대로 · «매수가 대비 −10.0%») · 최근 체결 = `journal_30` 의 같은 보유 행 `je_0020`·`je_0015`·`je_0011`(시간 역순 · **JSON 그대로**) · 「매수 결정 보기」 → `aaq://journal/decision/d_20260803_a_01` · 🔴 **보존 경로 표본**(P0S 정상 장면 아님 · 골든 아님 — K16 ⓓ) — 테스트(손절선 행 갈래) |
+| `m6/holding_detail_no_stop.json`(`…NoStop`) | 〃 | B `133690`(`h_0002`) · 손절선 0행 + «이 슬리브는 개별 손절선을 쓰지 않습니다 — 리밸런싱 규칙으로 관리» · 최근 체결 0행 + «이 보유의 최근 체결이 없습니다»(`journal_30` 에 그 종목 행 없음 — 짓지 않는다) · 「매수 결정 보기」 → `d_20260803_b_02` — 골든 `h62_etf_no_stop` |
+| `m6/holding_detail_pnl.json`(`…Pnl`) | 〃 | no_stop + `holding.pnl`(holdings_overview_pnl 의 같은 행) — 골든 `h62_pnl_expanded`(K16 ⓑ) |
+| `m6/holding_detail_recon.json`(`…Recon`) | 〃 | no_stop 의 가림판(`holding` == holdings_overview_recon 의 같은 행) — 골든 `h62_recon_mismatch`(K16 ⓑ) |
+| `m6/holding_detail_integrity.json`(`…Integrity`) | 〃 | with_stops 의 가림판(`holding` == holdings_overview_integrity 의 A 행 · 손절선 `level_text`·`basis_label` «숨김» · 최근 체결 = `journal_masked_integrity` 의 같은 보유 행 `je_0006`·`je_0001`) — 골든 `h62_integrity`(K16 ⓓ · + `safety_states` 행 4) |
+| `m6/allocation_in_band.json`(`m6AllocationInBand`) | `SleeveAllocationVm`(🆕) | 5행 A → POT(`parent_sleeve` A) → B → C → CASH · 전부 `ACCOUNTING` · 🔴 **밴드 행 = B 만**(K27 — `sleeve_weight` «B 42.6% (목표 42.0%, 편차 +0.6%p, 밴드 여유 2.4%p)» · `IN_BAND` «밴드 내» · 게이지 4값) · A «A 19.0% · 목표 20.0% — 계절 슬리브 · 밴드 판정 없음» + 원장 열 주석 · POT «POT 2.0% — A 에 포함(회계 기준)» + `realized_alloc_S7` POT 행 주석 그대로 · C «C 36.4% · 목표 잔여 — 게이지 없음» · CASH «원화 현금 대기 2.0% — 유휴가 아닙니다» · B 트랜치 «B 트랜치 2/3 — SMA 신호 2개 점등» · 그 밖 «해당 없음» · 고지 «회계 기준입니다 — POT 는 A 에 포함됩니다» — 골든 `h63_in_band` · `h63_pot_under_a`(A 펼침) |
+| `m6/allocation_out_of_band.json`(`…OutOfBand`) | 〃 | in_band 에서 B 만 `OUT_OF_BAND` «밴드 이탈 — 다음 배치에서 리밸런싱 대상»(실행 예고 아님) · 밴드 문장 «… 밴드 상단 1.2%p 초과» · 게이지 실측 > 상단 · C 비중 맞춤 — 골든 `h63_out_of_band` |
+| `m6/allocation_tranche_progress.json`(`…TrancheProgress`) | 〃 | B `NEAR_EDGE` «경계 근접» · B 트랜치 3/3 · A 상태 칩 1(`F1_ENTRY_DEFER` «10월 진입 보류 — 11월 재판정» · `handbook://sleeve-a/entry-gate` · K13) — 골든 `h63_tranche_progress` |
+| `m6/allocation_parking_large.json`(`…ParkingLarge`) | 〃 | B 밴드 내 · 투자분 트랜치 1/3 · 파킹 큼(`parking_ratio` 0.667) · «… 미달이 아닙니다» — 🔴 경고색 아님 — 테스트(골든 아님) |
+| `m6/allocation_integrity.json`(`…Integrity`) | 〃 | 전 행 금액·%·트랜치·`band_note_text` «숨김»(숫자 0) · 두 비율 `null` · 밴드 축·게이지 키 없음 · 원장 열 주석·파킹 문장은 그대로(문장 · 수치 아님) — 테스트 · holdings_overview_integrity 카드 머리의 짝 |
+| `m6/allocation_recon.json`(`…Recon`) | 〃 | in_band 의 B 행 `sleeve_weight.label`·금액·% 글자 끝 «?» · 🔴 기하(게이지·두 비율)·`band_state` 는 **그대로**(RECON = 글자만 · INTEGRITY = 기하 null — K10) — 테스트 · holdings_overview_recon 카드 머리의 짝 |
+| `m6/allocation_empty.json`(`…Empty`) | 〃 | `rows: []` + «배분 현황이 없습니다 · 첫 입금이 반영되면 엔진이 채웁니다»(«없음» 전용 · K26) · 고지 키 없음 — 테스트 |
+
+상수는 `FixturePaths.m6HoldingsOverview{Normal,Recon,Integrity,Empty,Pnl,Viewer}` · `m6HoldingDetail{WithStops,NoStop,Pnl,Recon,Integrity}` · `m6Allocation{InBand,OutOfBand,TrancheProgress,ParkingLarge,Integrity,Recon,Empty}` 18개다 · 등록부 코덱 +3(`HoldingsOverviewVm`·`HoldingDetailVm`·`SleeveAllocationVm`) · 바인딩 +18.
+신설 18건의 `meta.generated_at`·`seed` 는 생성일(2026-10-21) 값이다. 나머지 138건은 `"contract_version"` 한 줄만 바뀌었다(개정 3 제외).
+
+### 개정 3건 (파일 이름·`FixturePaths` 상수 그대로)
+
+| 파일 | 무엇이 바뀌었나 |
+|---|---|
+| `holdings_6.json` | 행 = 아래 미결 82 대응표 6행(A 1 · B 2 · C 1 · POT 2 — 이름 그대로 **6행** · `pnl` 3행 · C-6 무변경) · 새 키 `holding_id`(`h_0001`~`h_0006` · 불투명)·`quantity_text`·`avg_price_text`·`weight_text`(+`pending_text`·`sub_book_label`·`detail_deep_link`) · pnl 3행 `pnl_text`·`pnl_pct_text` · `disclosure_note` «전일 종가 기준 · 평가 손익»(옛 «열람 기록이 남는 화면에서만…» 삭제 · K5) · SMA 트랜치 = **B 행만**(A·C·POT `[]` · K18) · 배지 대응(아래) · 🔵 행 JSON == `holdings_overview_pnl` 의 같은 `holding_id` 행(평면 창구와 묶인 창구가 같은 행을 준다 · C-44 ④) |
+| `m6/external_holdings_2.json` | 2행에 `quantity_text`(«40주»·«15주») 한 줄씩 — 그 밖 무변경 |
+| `m7/realized_alloc_S7.json` | 5행에 `sleeve_label` 한 줄씩(«슬리브 A»·«슬리브 B»·«슬리브 C»·«POT 서브북 (A 하위)»·«원화 현금 대기») — 새 nullable 키는 싣지 않는다(키 없음 = null) · 🔵 A 트랜치 문장·POT 파킹 100%·A 원장 열 주석은 그대로(M7 몫 · 01 §8 미결 109) |
+
+### ✅ 미결 82 — 보유 픽스처 종목 대응표 (K4 · 기준 = 입금 픽스처 `deposit_plan_1`)
+
+| 슬리브 · 계좌 | 옛(`holdings_6`) | v1.8 |
+|---|---|---|
+| A · 연금저축 | `069500 KODEX 200` | 그대로 |
+| B · 연금저축 | `379810 KODEX 미국S&P500` | `133690 TIGER 미국나스닥100` |
+| B · 연금저축 | `132030 KODEX 골드선물` | `411060 ACE KRX금현물` |
+| C · 일반 | `0085P0 KODEX 국고채30년` | `0085P0 ACE 미국10년국채액티브` |
+| C · 일반 | `411060 ACE 미국30년국채` | **행 삭제**(C 금 종목 미확정 — 지어내지 않는다) |
+| POT · 연금저축 | `357870 파킹 ETF` | `133690 TIGER 미국나스닥100` + `411060 ACE KRX금현물` 2행(B 와 같은 종목 둘 = `holdingId` 의 존재 이유 표본) |
+
+- 🔴 **배지 대응**(옛 행의 배지 글자 그대로 옮기되 SPEC 과 어긋나는 것은 뺀다 · E14): A = `SAF-301` · B 두 행 = `SAF-201` «슬리브 B 한도 여유»(옛 `379810` 행 글자) · 🔴 옛 `132030` 행의 `SAF-208` «금 상한 8% 근접»·`SAF-209` BLOCK 은 **삭제**(금 8% 상한은 C 리밸런싱 한정) · C = `SAF-302` · POT 두 행 = `SAF-401`(옛 `357870` 행). BLOCK 배지 표본은 없다(지어내지 않음).
+- 정정 범위는 **보유 픽스처까지**다 — `journal_30`·`m6/*`(일지·안내 18벌)·`m9/handover_states`·`m7_withdrawal_*` 는 옛 라벨 그대로다(01 §8 미결 108 · 그 창 전까지 같은 티커가 `J-*` 옛 이름 · `H6-*`·`S7-4` 새 이름 두 이름으로 찍힌다). C-44 ⑨ 가 보유 몫의 회귀를 막는다.
+
+### 🔴 개정·신설은 **생성 스크립트**가 만든다 (손 계산 금지)
+
+```
+# 저장소 루트에서 — 몇 번을 돌려도 결과가 같다. 돌린 뒤 `git status` 에 fixtures 변경이 없어야 한다
+PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtures.py
+```
+
+- 버전 줄 치환(138건)·개정 3건은 기준 커밋(계약 1.7.0 · `f46e72f`)의 원문에서 다시 만든다 — git 과 그 커밋이 있어야 한다. `external_holdings_2`·`realized_alloc_S7` 은 **줄 삽입**이라 원문 꼴이 그대로다.
+- 스크립트가 규약을 먼저 확인하고 어기면 쓰기 전에 멈춘다: 버전 줄 정확히 1 · 봉투 `meta.mode` LIVE · `meta.notice` = 01 §5 문장 · 폐기 운영값 0 · 봉투 최상위 키(신설은 필수 6키 · 행 1 · 행 `as_of` == 봉투) · 금지어 0 · 사용자 문장 자리의 개발자 메모 0(H50) · «열람 기록» 0 · 가림 글자 == `journal_masked_integrity` · 라벨 == 입금 정본 · 옛 종목 0 · `scope` MANAGED · 상세 링크 == 그 행의 id · 트랜치 = B 행만 · B·POT 금 상한 배지 0 · POT ⇔ `sub_book_label` · holdings_6 == pnl 판 · B·POT 같은 종목 · pnl 판 − pnl == normal · viewer == normal − 토글·섹션 · 카드 머리 == 배분 표본(normal·pnl·viewer ↔ in_band · recon ↔ recon · integrity ↔ integrity) · 배분 순서 · 밴드 행 = B(integrity 0) · 밴드 문장 ⇔ `band_note_text` · 비율 짝(합 1) · 게이지 순서 · 트랜치 글자 «잔여·남은·초기·진행률» 0 · INTEGRITY 글자 숫자 0 · RECON 기하 유지·대상만 «?» · 시스템 밖 수량 그대로 · 상세 holding == 목록 행 · 이력 = 같은 보유·역순 · 손절선 코드 · ⑥ 수준 글자 == 옛 절대 손절선 · 쓴 파일 수 == 159 == 디스크.
+- 실행하면 한 줄로 수를 찍는다 — 파일 159 · 버전 줄만 138 · 개정 3 · 신설 18 · holdings_6 6행(pnl 3) · 배분 7벌.
+
+### 🔵 표본 사실 — 고치지 않고 적어 둔다
+
+- **표본 날짜(2026-08-31)는 계절 캘린더 미반영 합성이다**(K27 ⓒ) — SPEC 상 8월은 A 휴지기(5~10월 보유 0)인데 표본은 A `069500` 을 보유하고 A 비중 19.0% 를 싣는다. 날짜 축은 `ui_journal` 골든 시계(`FixedClock(kGoldenNowUtc)`)이고 6행은 K4 확정 수다. SPEC 시점 정합은 01 §8 미결 108. 🔵 설계서 §3-0 은 이 표식을 meta `notice` 에 두라 했으나 C-1 이 `meta.notice` 를 01 §5 문장 하나로 고정하므로 **이 절에 적는다**(`holding_detail_with_stops` 의 «보존 경로 — P0S 정상 장면 아님» 표식도 같다).
+- **손절선 표본은 보존 경로다**(K16 ⓓ) — P0S 의 ETF 슬리브에 개별 손절선 근거가 없다(02:1269 · SPEC v2.31 FR-504/508 비활성 보존). `holding_detail_with_stops` 의 `TIER_1B` 1행은 옛 `holdings_6` A 행 `stop_line` 값 그대로이고(TIER 2 원천 없음) 골든은 `h62_integrity` 가 맡는다.
+- **`holdings_6` 의 `entry_decision` 6건 중 `journal_30` 에 있는 것은 `d_20260803_a_01` 1건**이다 — `H6-2` 「매수 결정 보기」 목적지(`J-2`) 표본 정합은 01 §8 미결 108 의 창에서 본다.
+- **`m7/realized_alloc_S7` 은 다른 그림이다** — A 트랜치 2/3(트랜치 = B 규칙과 어긋남) · POT 파킹 100% · A 원장 열 주석 «POT 를 A 에 합산»(02 «엔진 열 = C 에 POT 합산» 과 반대) · M7 v1.6 픽스처 밴드 ±5%p(SPEC = B ±3%p 하나) — 01 §8 미결 109(이 창은 `sleeve_label` 만 더했다).
+- **A 원장 열 주석 글자** — 설계서 §3-1 ⑩ 의 «… — 이 화면은 회계 기준입니다» 는 사용자 문장 자리의 개발자 메모 거름망(H50 «화면은»)에 걸려 «… — 여기 비중은 회계 기준입니다» 로 적었다(뜻 같음).
+- **숫자는 합성 둥근 값**이다(총자산 5,000만원 가정 · 실계좌 아님) — 🔴 세후 사다리·골든 4자리 수치를 옮기지 않았다. 게이지 눈금 = 목표 ±6%p(36%~48%) · 밴드 = B ±3%p(39%~45%).
+
+### 표기 — 키를 빼는 것과 `null`
+
+- VM 의 선택 키(`external`·`allocation_link`·`pnl_toggle_label`·`empty_label`·`rows_empty_text`·`banner_text`·`no_stop_line_text`·`recent_empty_label`·`notice_text`)와 보유 행의 `pending_text`·`sub_book_label`·`stop_line`·`pnl`, 배분 행의 `parent_sleeve`·`engine_column_note`·`parking_note_text`·`sleeve_weight`·`band_state`·`band_state_label`·`gauge`·`band_note_text` 는 없을 때 **키가 없다**. `state_chips`·`sma_tranches`·`stop_lines`·`recent_entries`·`cards`·`rows` 는 비어도 `[]` 로 싣는다.
+- 🔴 INTEGRITY 가림판(`allocation_integrity` · `holdings_overview_integrity` 카드 머리)의 두 비율은 `"deployed_ratio": null`·`"parking_ratio": null` 로 **적는다** — 가림이라는 사실을 표본이 말한다(키 없음과 같은 뜻 · C-44 ⑥ «둘 다 null 이거나 둘 다 값»).
+
+## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과 → 2026-10-20 v1.7 · 141파일(매핑 138파일 331행) · C-1·C-8 통과 → 🆕 2026-10-21 v1.8 · 159파일(매핑 156파일 349행) · C-1·C-8 통과)
+
+🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 ~~3건~~ 5건 포함 — 🆕 v1.5 `m6/journal_rebalance_unknown`·`m7/m7_rebalance_empty`) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 159파일 `rows`)은 🆕 v1.8 352 = 349 + 매핑 없는 3건 각 1행(🆕 v1.8 신규 18파일이 18행(VM 1행씩)을 더했다 — 개정 3건은 행 수 불변 · `holdings_6` 6행 그대로 · v1.7 판은 141파일 334 = 331 + 3(🆕 v1.7 신규 6파일이 12행을 더했다 — 0행 봉투 1 포함 · 개정 0) · v1.6 판은 135파일 322 = 319 + 3 · v1.5 판은 126파일 311 = 308 + 3 · 🆕 v1.6 신규 9파일이 11행을 더했다 — 개정 14건은 행 수 불변 · v1.4 판은 122파일 309 = 306 + 3 · v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다 · v1.4 신규 7파일이 11행을 더했다 — 개정 16건은 행 수 불변 · 🆕 v1.5 신규 4파일이 2행을 더했다(0행 봉투 2 포함) — 개정 2건은 행 수 불변). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
+
+159파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·`m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` · v1.7 `m6/blind_review_queue_empty.json` 은 0행 봉투 · v1.6 신설 9건은 전부 행이 있다 · 🆕 v1.8 신설 18건은 전부 VM 1행 — `holdings_overview_empty`·`allocation_empty` 도 «빈 VM» 1행이다), 그중 **156파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + v1.5 2026-10-07 +4 + v1.6 2026-10-08 +9 + v1.7 2026-10-20 +6 + 🆕 v1.8 2026-10-21 +18)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
@@ -652,6 +739,8 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_j4_v17_fixtu
 
 🆕 **v1.7(01 §16 · `AppRoutes.all` 45 그대로 · 링크 키 추가 0)** — 새로 실린 링크 = `m6/blind_review_card_revealed`(`d_20260811_c_28`)·`_revealed_open`(`d_mf_0002`) 의 `result.decision_link.deep_link`(`LinkAction` — 안쪽 `deep_link` 로 C-33 이 검사한다 · 기존 `journalDecision` 패턴) 2건뿐이다. 🔴 채점 전 카드(큐 3행 · before)와 공개 카드의 `result` 밖에는 `aaq://` 가 **0**이다(K8 — 문맥 칩 `detail_deep_link` 는 `handbook://` 앵커 · C-43 ⑥). 들어오는 링크 `aaq://journal/blind-review` 는 `journal_badges_2` 의 `BLIND_REVIEW_PENDING` 배지가 이미 싣는다(v1.1).
 
+🆕 **v1.8(01 §17 · `AppRoutes.all` 45 → 48 · 링크 키 추가 0)** — 새 라우트 3: `AppRoutes.holdingsOverview` = `aaq://holdings/overview`(`H6-1` · 싣는 픽스처 없음 — 셸 하단 탭·알림) · `AppRoutes.holdingsDetail` = `aaq://holdings/detail/:holdingId`(`H6-2` · 보유 행 `detail_deep_link` — `holdings_6`·`holdings_overview_*`·`holding_detail_*` 의 전 보유 행 · 🔴 `holdingId` 는 불투명 id 다(종목 코드 아님 — B·POT 가 같은 종목)) · `AppRoutes.holdingsAllocation` = `aaq://holdings/allocation`(`H6-3` · `holdings_overview_*` 의 `allocation_link.deep_link` — `LinkAction` 이라 안쪽 `deep_link` 로 C-33 이 검사한다). 그 밖에 새로 실린 링크 = `holding_detail_*` 의 `entry_decision_link.deep_link`(기존 `journalDecision` 패턴) · `recent_entries[].detail_deep_link`(`journal_30`·`journal_masked_integrity` 행 그대로). 🔴 배분 행 `state_chips[].detail_deep_link` 는 `handbook://` 앵커뿐이다(C-44 ⑪) · 시스템 밖 행에는 링크가 없다.
+
 ## 아직 없는 것
 
 - **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
@@ -659,5 +748,5 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_j4_v17_fixtu
   🔵 v1.4 의 `m9/contribution_setting_*` 2벌은 `S7-4` 스텝 ① 의 입력(`ContributionSetting`)이라 M2 가 먼저 만들었다 —
   05 화면(`MonthlyContributionVm` 카드 등)의 픽스처는 여전히 없다.
 - ~~**`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다). 🆕 v1.2 — 본문 단위는 `DecisionJournalBody`(`journal_read_*` 가 그 모양)로 정했고 점수 축은 여전히 미결이다.~~ ✅ v1.7 — 6벌(위 «계약 v1.7» 절 · 점수 축 = `BlindReviewChoice{score, label}`).
-- `test/` 의 계약 회귀 ~~C-1~C-37~~ ~~C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합)~~ ~~C-1~C-42(🆕 v1.6 C-41 R12 표시 계약 — 이 절의 픽스처끼리 맞대는 불변식 · C-42 R12 화면 소스 스캔)~~ C-1~C-43(🆕 v1.7 C-43 J-4 blind 리뷰 — 픽스처 불변식 ①~⑨ + 화면 소스 스캔 ⑩~⑰) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
+- `test/` 의 계약 회귀 ~~C-1~C-37~~ ~~C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합)~~ ~~C-1~C-42(🆕 v1.6 C-41 R12 표시 계약 — 이 절의 픽스처끼리 맞대는 불변식 · C-42 R12 화면 소스 스캔)~~ ~~C-1~C-43(🆕 v1.7 C-43 J-4 blind 리뷰 — 픽스처 불변식 ①~⑨ + 화면 소스 스캔 ⑩~⑰)~~ C-1~C-44(🆕 v1.8 C-44 보유현황 `H6-*` — 픽스처 불변식 ①~⑪ + 화면 소스 스캔 ⑫~⑳) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.

@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 86개 · 계약 v1.7.0 · 조립일 2026-10-20(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 86개 · 계약 v1.8.0 · 조립일 2026-10-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -84,7 +84,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -124,12 +124,21 @@ export 'commands/settings_actions.dart';
 //    `JournalRepository.watchBlindReviewQueue({mode})`(봉투) · `watchBlindReviewCard(decisionId)` · 거부 코드
 //    `BlindReviewRejectCodes`(`blind_review_reject`) · 받침대 2줄 · 라우트 45 그대로 · 픽스처 135 → 141(신설 6) —
 //    🆕 tool/gen_j4_v17_fixtures.py(기준 76c2404 원문에서 멱등 생성).
+// 🆕 '1.8.0'(R4 선행 · 01 §17 · 화면 ID `H6-*` · 발주자 결정 2026-10-20 K1~K5 · 2026-10-21 K14·K15·K16·K17·K27 권고대로) —
+//    보유현황 `H6-1`~`H6-3` 표시 계약: `HoldingsRepository.watchHoldingsOverview({includePnl})` → `HoldingsOverviewVm`
+//    (`HoldingsSleeveCard` · `HoldingsExternalSection` — 시스템 밖 행 = `ExternalHoldingRow` · K14) ·
+//    `watchHoldingDetail(holdingId, {includePnl})` → `HoldingDetailVm`(손절선 = 기존 `StopLineNormalized` 글자 행 · K3) ·
+//    `watchAllocation()` → `SleeveAllocationVm` · `HoldingRow` +7(`holdingId` · 표시 문자열 · 칩 · 링크) · `HoldingPnl` +2 ·
+//    `SleeveAllocationRow` +7(밴드 축 `sleeveWeight`·`bandState`·`gauge` — 밴드 행 = B 만 · K27 · 비율 2 nullable) ·
+//    🆕 `SleeveBandState` · `SleeveBandGauge` · `ExternalHoldingRow.quantityText` · 코드 `StopTierCodes`(`stop_tier`) ·
+//    라우트 `holdingsOverview`·`holdingsDetail`·`holdingsAllocation`(48) · 받침대 `UnimplementedHoldingsRepository` ·
+//    픽스처 141 → 159(신설 18 · 개정 3) — 🆕 tool/gen_h6_v18_fixtures.py(기준 f46e72f 원문에서 멱등 생성).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.7.0';
+const String contractVersion = '1.8.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -1980,6 +1989,8 @@ abstract class AdoptionPreviewRow with _$AdoptionPreviewRow {
 //    홈·알림·위젯·일지 타임라인에 이 타입을 렌더하면 §7 C-6 실패.
 // 🔴 X7 D7 — 파생은 `positions` 만 읽는다. `external_holding`(= `scope == external`)의
 //    표시 UNION 은 `HoldingsRepository` **한 곳**에서만 만든다(C-23).
+// 🆕 v1.8(01 §17 · R4 선행) — `HoldingRow` +7 · `HoldingPnl` +2 · 화면 VM 4(`HoldingsOverviewVm`·
+//    `HoldingsSleeveCard`·`HoldingsExternalSection` = `H6-1` · `HoldingDetailVm` = `H6-2`).
 
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -1989,55 +2000,81 @@ import '../enums/sleeve.dart';
 import '../primitives/as_of.dart';
 import '../primitives/money.dart';
 import 'common.dart';
+import 'journal.dart';
+import 'ledger_trust.dart';
+import 'rebalance.dart';
 
 part 'holdings.freezed.dart';
 part 'holdings.g.dart';
 
-/// 보유현황 1행(01 §2-3).
+/// 보유현황 1행(01 §2-3). 🆕 v1.8(01 §17) — 키 1 · 표시 문자열 4 · 칩 2 · 링크 1.
 ///
-/// 🔵 슬리브 목록은 A / B / C 3칸이다(v2.31 P0S) — 목록의 정본은 `SleeveCatalogEntry` 다.
+/// 🔴 v1.8 부터 `H6-1`·`H6-2` 가 그리는 것은 `*Text`·`*Label`·칩·배지뿐이다 — 원값
+///    (`quantity`·`avgPrice`·`stopLine`·`pnl.unrealizedPnl`·`pnl.pnlPct`)과 키(`symbol`·`sleeve`·
+///    `entryDecision`·`scope`)는 **ui 미참조**(C-44 ⑮). 가림(`RECON_MISMATCH` «?» · `LEDGER_INTEGRITY` «숨김»)은
+///    엔진이 문자열 안에서 끝낸다(01 §11-2) — 화면은 `activeFlags` 로 값을 바꾸지 않는다.
+/// 🔴 `H6-1` 목록(`HoldingsOverviewVm`)의 행은 늘 `scope == managed` 다 — 시스템 밖 자산은
+///    `HoldingsExternalSection.rows`(`ExternalHoldingRow`)로 온다(K14).
 @freezed
 abstract class HoldingRow with _$HoldingRow {
   const factory HoldingRow({
-    required String symbol,
+    required String symbol, // 🔴 ui 미참조(C-44) — 표시는 [symbolLabel]
     required String symbolLabel,
-    required SleeveId sleeve,
-
+    required SleeveId sleeve, // 🔴 ui 미참조 — 카드 자리는 엔진이 정한다
     /// "연금저축" — 🔴 계좌 전체번호 금지
     required String accountAlias,
-    required int quantity,
-
-    /// 매수가
+    required int quantity, // 🔴 ui 미참조 — 표시는 [quantityText]
+    /// 매수가 — 🔴 ui 미참조 — 표시는 [avgPriceText]
     @DecimalStringConverter() required Decimal avgPrice,
+
+    /// 표시 = `entryDate.yyyyMmDd` 그대로(예외 1개 — `RebalanceEvent.tradeDate` 선례 · 날짜는 가림 대상 아님).
     @TradeDateConverter() required TradeDate entryDate,
 
-    /// `positions.entry_decision_id`
+    /// `positions.entry_decision_id` — 🔴 ui 미참조 — 이동은 `HoldingDetailVm.entryDecisionLink`
     required DecisionRef entryDecision,
-
-    /// 매수 사유
     required List<ReasonChip> entryReasons,
 
-    /// SMA 트랜치 진행
+    /// SMA 트랜치 진행 — 🆕 v1.8 표본 규칙: 슬리브 B 행에만 온다(P 회차 · 그 밖 = 빈 목록).
     required List<TrancheStep> smaTranches,
-
-    /// 국면·진입 게이트 배지
     required List<GateBadge> gates,
 
-    /// 손절선(트레일링·절대)
+    /// 🔴 ui 미참조(v1.8) — 표시는 `HoldingDetailVm.stopLines`(글자 행 · 01 §17 · K3).
     StopLine? stopLine,
 
-    /// 🔵 v2.31: 개별주 소멸 — 거의 항상 null
+    /// 🔵 v2.31: 개별주 소멸 — 거의 항상 null · null 이면 모멘텀 패널 **부재**
     MomentumPanel? momentum,
 
-    /// 🔴 기본 접힘(결정 8)
+    /// 🔴 기본 접힘(결정 8) · `includePnl: true` 일 때만 · 뷰어는 늘 null(K15)
     @Default(null) HoldingPnl? pnl,
-
-    /// 🆕 X7 — managed / external
-    required HoldingScope scope,
-
-    /// "시스템 밖 자산(수동) — 비중 계산에서 빠집니다" — 엔진 생성
-    required String scopeLabel,
+    required HoldingScope scope, // 🔴 ui 미참조(H6)
+    required String scopeLabel, // 🔴 ui 미참조(H6) — 시스템 밖 섹션 고지는 `HoldingsExternalSection.noticeText`
     required AsOf asOf,
+
+    // ── 🆕 계약 v1.8(01 §17 · R4 선행) ─────────────────────────────────────
+    /// 보유 1건의 키 — 엔진이 `positions (market, symbol, strategy_id)` 를 묶은 불투명 id.
+    /// 🔴 표시 금지 · Key 문자열에도 넣지 않는다(Key = 순번 — C-44 ⑮ · §6) · 라우트 파라미터·family 키 전용. 같은 종목이 B 와 POT 에 함께 있을 수 있다 —
+    ///    화면이 종목 코드로 행을 찾지 않는다.
+    required String holdingId,
+
+    /// "212주" · RECON 대상 "212주?" · INTEGRITY "숨김" — 천 단위·단위까지 엔진 완성.
+    required String quantityText,
+
+    /// "38,410원" · 가림 같은 규칙.
+    required String avgPriceText,
+
+    /// "비중 4.1%" — 회계 기준 총자산 대비(엔진 생성) · 가림 같은 규칙 · 🔴 화면이 비중을 계산·합산하지 않는다.
+    required String weightText,
+
+    /// "반영 대기 +12주"(02 §2-1 갈래 C — `H6-*` 의 칩 원천 · E15) — null = 칩 부재. 🔴 화면이 수량에 더하지 않는다.
+    /// 가림 = 엔진: `LEDGER_INTEGRITY`(·`L-3` 세션) = null(칩 부재) · `RECON_MISMATCH` 대상 행 = 끝 «?»(C-44 ③).
+    String? pendingText,
+
+    /// "POT 서브북 · A 하위(연금저축)" — null = 칩 부재. POT 행을 A 카드에 넣는 것은 엔진이다(K17 ✅).
+    String? subBookLabel,
+
+    /// → `H6-2`(`aaq://holdings/detail/<holdingId>` — 엔진 완성). null = 행 탭 반응 없음.
+    /// 🔴 `H6-2` 안에서는 쓰지 않는다(자기 자신 — `TradeJournalEntry.detailDeepLink` 규약).
+    String? detailDeepLink,
   }) = _HoldingRow;
 
   factory HoldingRow.fromJson(Map<String, dynamic> json) =>
@@ -2082,15 +2119,21 @@ abstract class StopLine with _$StopLine {
       _$StopLineFromJson(json);
 }
 
-/// 🔴 결정 8 — 종목 손익은 **별도 optional 필드**다. 기본 접힘, 손익 정렬 미제공.
+/// 🔴 결정 8 — 종목 손익은 **별도 optional 필드**다. 기본 접힘, 손익 정렬·합계 미제공.
+/// 🆕 v1.8 — 표시 문자열 2(원값 2 는 ui 미참조 · C-44 ⑮).
 @freezed
 abstract class HoldingPnl with _$HoldingPnl {
   const factory HoldingPnl({
-    @DecimalStringConverter() required Decimal unrealizedPnl,
-    required double pnlPct,
-
-    /// "전일 종가 기준" — 엔진 생성
+    @DecimalStringConverter() required Decimal unrealizedPnl, // 🔴 ui 미참조
+    required double pnlPct, // 🔴 ui 미참조
+    /// "전일 종가 기준 · 평가 손익" — 엔진 생성 · 🔴 늘 함께 그린다(02 §2-3) · 열람 기록 문구 금지(결정 ⑤).
     required String disclosureNote,
+
+    /// 🆕 v1.8 — "+158,420원" · INTEGRITY "숨김".
+    required String pnlText,
+
+    /// 🆕 v1.8 — "+1.93%" · INTEGRITY "숨김".
+    required String pnlPctText,
   }) = _HoldingPnl;
 
   factory HoldingPnl.fromJson(Map<String, dynamic> json) =>
@@ -2136,6 +2179,122 @@ abstract class StopLineNormalized with _$StopLineNormalized {
 
   factory StopLineNormalized.fromJson(Map<String, dynamic> json) =>
       _$StopLineNormalizedFromJson(json);
+}
+
+/// 🆕 v1.8 — `H6-1` 보유현황 한 화면의 전부(01 §17). 창구 = `HoldingsRepository.watchHoldingsOverview`.
+///
+/// 🔴 카드 수 = [cards] 의 길이다 — 화면이 3 을 적지 않는다. 위성 플래그가 켜지면 엔진이 카드를 싣는다
+///    (화면은 `FeatureFlags` 를 읽지 않는다 · C-44 ⑱).
+/// 🔴 화면은 카드·행·섹션을 **받은 순서 그대로** 그린다 — 정렬(슬리브 → 비중 내림차순)·묶기·떼기는 엔진.
+/// 🔴 합계(수량·비중·평가액·손익) 줄은 없다 — 만들지 않는다(02 §4-1 금지 ①③).
+@freezed
+abstract class HoldingsOverviewVm with _$HoldingsOverviewVm {
+  const factory HoldingsOverviewVm({
+    required List<HoldingsSleeveCard> cards,
+
+    /// 시스템 밖 자산 섹션 — null = 섹션 **부재**(빈 섹션 금지).
+    HoldingsExternalSection? external,
+
+    /// 「비중 보기」 → `H6-3`(`aaq://holdings/allocation`). null = 버튼 부재.
+    LinkAction? allocationLink,
+
+    /// 종목 손익 펼침 토글 글자 — null = 토글 **부재**(뷰어 · K15). 펼침 = `includePnl: true` 재구독(02 §2-3).
+    String? pnlToggleLabel,
+
+    /// non-null ⇔ [cards] 가 빈 목록 — 화면은 이 문장**만** 그린다(다음 트랜치 안내도 이 안에 · 02 §4-1 P 회차).
+    /// 🔴 «없음» 전용 — «모름»(첫 동기화 전·로컬 DB 미도착)에는 엔진이 값을 내지 않거나 스트림 에러로 준다(01 §11-10 · K26).
+    String? emptyLabel,
+
+    /// 헤더 기준일 고지 = `asOf.label` 그대로("잔고 기준 2026-08-31 종가 · 엔진은 일 1회 배치" — 02 §2-1 갈래 B).
+    required AsOf asOf,
+  }) = _HoldingsOverviewVm;
+
+  factory HoldingsOverviewVm.fromJson(Map<String, dynamic> json) =>
+      _$HoldingsOverviewVmFromJson(json);
+}
+
+/// 🆕 v1.8 — `H6-1` 슬리브 카드 1장.
+@freezed
+abstract class HoldingsSleeveCard with _$HoldingsSleeveCard {
+  const factory HoldingsSleeveCard({
+    required SleeveId sleeve, // 🔴 ui 미참조(C-44) — Key 는 카드 순번
+    /// "A · 국내 지수 ETF" — 엔진 생성(`SleeveCatalogEntry.label` 과 같은 사전).
+    required String titleText,
+
+    /// 카드 머리 — 같은 화면의 `H6-3` 행과 **같은 값**(C-44 ⑥). 머리 큰 글자 = `allocation.sleeveWeight?.label`,
+    /// 상태 = `bandStateLabel`(색 = `bandState`) · `sleeveWeight == null` 이면 `bandNoteText` 만(K27 권고상 A·C 카드가 이 갈래).
+    required SleeveAllocationRow allocation,
+
+    /// 펼침 = 종목 행 — 받은 순서(엔진 = 비중 내림차순 · POT 행은 A 카드 펼침 안 맨 끝 · `subBookLabel` 상시 동반 — K17 ✅).
+    required List<HoldingRow> rows,
+
+    /// non-null ⇔ [rows] 가 빈 목록 — "이 슬리브에 보유 종목이 없습니다".
+    String? rowsEmptyText,
+  }) = _HoldingsSleeveCard;
+
+  factory HoldingsSleeveCard.fromJson(Map<String, dynamic> json) =>
+      _$HoldingsSleeveCardFromJson(json);
+}
+
+/// 🆕 v1.8 — `H6-1` 시스템 밖 자산(수동) 섹션(02 §4-1 X7 · §8 행 15 — v1 = 접힘 섹션 + 고지 상시).
+/// 🔴 관리 대상과 합계를 합치지 않는다(D7 · C-23) — 이 섹션에는 비중이 없다.
+@freezed
+abstract class HoldingsExternalSection with _$HoldingsExternalSection {
+  const factory HoldingsExternalSection({
+    /// "시스템 밖 자산(수동)" — 엔진 생성.
+    required String titleText,
+
+    /// "비중 계산에서 빠집니다" — 🔴 접혀 있어도 늘 그린다.
+    required String noticeText,
+
+    /// "대사 미확인" 배너 — null = 배너 부재(조건 = 엔진).
+    String? bannerText,
+
+    /// 받은 순서 · 비지 않는다(빈 섹션이면 [HoldingsOverviewVm.external] 이 null).
+    required List<ExternalHoldingRow> rows,
+  }) = _HoldingsExternalSection;
+
+  factory HoldingsExternalSection.fromJson(Map<String, dynamic> json) =>
+      _$HoldingsExternalSectionFromJson(json);
+}
+
+/// 🆕 v1.8 — `H6-2` 종목 상세 한 화면의 전부(01 §17). 창구 = `watchHoldingDetail(holdingId)`.
+///
+/// 🔴 손절까지 남은 폭·%를 화면이 계산하지 않는다 — v1 은 [stopLines] 글자 행만(K3 · 게이지 = 미결 104).
+/// 🔴 화면은 `watchTimeline` 으로 이력을 조립하지 않는다 — 이력은 [recentEntries] 로 온다(K19).
+@freezed
+abstract class HoldingDetailVm with _$HoldingDetailVm {
+  const factory HoldingDetailVm({
+    /// 같은 `holdingId` 의 `H6-1` 행과 같은 값(손익 제외 — C-44 ④).
+    required HoldingRow holding,
+
+    /// "B · 해외 지수·금 ETF" — 엔진 생성.
+    required String sleeveLabel,
+
+    /// 「매수 결정 보기」 → `J-2`(`aaq://journal/decision/<id>` — 엔진 완성). 🔴 **늘 있다**(02 `H6-2` 수용 (c)
+    /// «`entryDecision` 링크가 항상 동작» · K16 ⓔ) — `HoldingRow.entryDecision` 이 required 라 원천이 늘 있다.
+    required LinkAction entryDecisionLink,
+
+    /// 손절선 글자 행 — 받은 순서 · `levelText`·`tierLabel`·`basisLabel` 만 그린다(`level`·`tierCode` ui 미참조).
+    /// 🔴 비었으면 [noStopLineText] 하나(0행 ⇔ non-null).
+    required List<StopLineNormalized> stopLines,
+
+    /// "이 슬리브는 개별 손절선을 쓰지 않습니다 — 리밸런싱 규칙으로 관리"(02 §4-2 «문구 M2»).
+    String? noStopLineText,
+
+    /// 이 보유의 최근 체결 — 엔진이 고르고 자른다(시간 역순 · 같은 `holdingId`) · 행 탭 = 행의 `detailDeepLink`(J-2).
+    required List<TradeJournalEntry> recentEntries,
+
+    /// non-null ⇔ [recentEntries] 가 빈 목록.
+    String? recentEmptyLabel,
+
+    /// [HoldingsOverviewVm.pnlToggleLabel] 과 같은 규칙(null = 토글 부재 · K15).
+    String? pnlToggleLabel,
+    required AsOf asOf,
+  }) = _HoldingDetailVm;
+
+  factory HoldingDetailVm.fromJson(Map<String, dynamic> json) =>
+      _$HoldingDetailVmFromJson(json);
 }
 ```
 
@@ -3076,6 +3235,10 @@ abstract class ExternalHoldingRow with _$ExternalHoldingRow {
 
     /// 🔴 등록도 결정이다.
     required DecisionRef decision,
+
+    /// 🆕 v1.8 — "40주" — 엔진 완성. 🔵 사람이 등록한 값이라 `LEDGER_INTEGRITY` 가림 대상이 아니다
+    ///    (02 §2-2 X7 B18 ① · K14 ✅). 🔴 화면이 관리 대상 수량과 더하지 않는다.
+    required String quantityText,
   }) = _ExternalHoldingRow;
 
   factory ExternalHoldingRow.fromJson(Map<String, dynamic> json) =>
@@ -4319,6 +4482,8 @@ abstract class RebalancePreview with _$RebalancePreview {
 // 🆕 v1.6(01 §15-4 · R12 선행) — `RebalanceEvent.thresholds`(J-2 `ThresholdCompare` 재사용 · `common.dart`)·
 //    `modeLabel`·`sectionLabel` · `asOf` = 읽기 모델 관측 시각 · `SleeveWeight.label` = 완성 문장 ·
 //    `NextRebalanceVm` 두 글자 nullable + `asOf`. 🔴 `// 🔴 ui 미참조(C-42)` 표식 = R12 화면이 읽지 않는 원값.
+// 🆕 v1.8(01 §17 · R4 선행) — `SleeveAllocationRow` 밴드 축 +7(비율 2 nullable) · `SleeveBandGauge` ·
+//    `SleeveAllocationVm`(`H6-3`). 🔴 `// 🔴 ui 미참조(C-44)` 표식 = `H6-*` 화면이 읽지 않는 원값.
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -4458,40 +4623,104 @@ abstract class ExecutionQuality with _$ExecutionQuality {
       _$ExecutionQualityFromJson(json);
 }
 
-/// 01 §2-6 · m2-8 C-7 · E-7 — 배분 현황 1행(`H-1`·`H-3`).
-/// 🔴 `SleeveWeight`·`AllocationBasis` 와 **같은 파일**에 둔다 — C-31 이 한
-///    트리에서 basis 혼합을 검사할 수 있어야 한다(E-7).
+/// 01 §2-6 · m2-8 C-7 · E-7 — 배분 현황 1행(`H6-1` 카드 머리 · `H6-3` 행). 🆕 v1.8(01 §17) — 밴드 축.
+/// 🔴 `SleeveWeight`·`AllocationBasis` 와 **같은 파일**에 둔다 — C-31 이 한 트리에서 basis 혼합을 검사할 수 있어야 한다(E-7).
 /// 🔴 `SleeveAllocation`(플래너 충당액 · `plan.dart`)과 **다른 타입**이다.
+/// 🔴 홈 블록 4(M8 `H-01`)가 재사용할 때는 [sleeveWeight] · [deployedPctText] · [parkingPctText] 만(금액 문자열 금지 — 04 §2-6).
 @freezed
 abstract class SleeveAllocationRow with _$SleeveAllocationRow {
   const factory SleeveAllocationRow({
-    required SleeveId sleeve,
-    required AllocationBasis basis,
-
-    /// 투입분 금액 문자열 — 🔴 홈으로 새면 04 §2-6 금지에 걸린다.
+    required SleeveId sleeve, // 🔴 ui 미참조(C-44 · C-42 ⑧ 와 같은 뜻)
+    required AllocationBasis basis, // 🔴 ui 미참조
+    /// 투입분 금액 문자열 — 🔴 홈으로 새면 04 §2-6 금지에 걸린다 · INTEGRITY "숨김".
     required String deployedText,
     required String parkingText,
 
-    /// 🔴 막대 세그먼트 **기하 전용**. 여집합 `1 − x` 를 화면이 계산하지 않도록
-    ///    두 값을 모두 준다.
-    required double deployedRatio,
-    required double parkingRatio,
+    /// 🔴 막대 세그먼트 **기하 전용**(× 폭만). 여집합 `1 − x` 를 화면이 계산하지 않도록 두 값을 모두 준다.
+    /// 🆕 v1.8 nullable — 둘 다 null ⇔ 막대 **부재**(`LEDGER_INTEGRITY` 가림 · C-44 ⑥ · RECON 은 유지).
+    /// 🔴 [gauge] 와 **다른 막대**다(계좌 잔고 막대 · 합 1 · 파킹 = 회색 세그먼트 — 02:1349) — 두 값을 한 식에서 곱하지 않는다(C-44 ⑯).
+    double? deployedRatio,
+    double? parkingRatio,
     required String trancheStateText,
 
     /// 🔴 홈 재사용은 **비중(%) 전용 필드**로만 한다(금액 문자열 금지).
     required String deployedPctText,
     required String parkingPctText,
 
-    /// POT → A 의 하위 행(회계 소속 · 03 §2-9-3).
+    /// POT → A 의 하위 행(회계 소속 · 03 §2-9-3). 🔴 화면은 null 여부(들여쓰기)만 본다.
     SleeveId? parentSleeve,
 
     /// 엔진 원장 열 값의 유일한 출구 — 🔴 문자열이며 비교·합산하지 않는다.
     String? engineColumnNote,
     String? parkingNoteText,
+
+    // ── 🆕 계약 v1.8(01 §17 · R4 선행) ─────────────────────────────────────
+    /// "슬리브 A" · "POT 서브북 (A 하위)" · "원화 현금 대기" — 엔진 생성.
+    required String sleeveLabel,
+
+    /// 목표·밴드 대비 — `label` = v1.6 완성 문장(현재·목표·편차·밴드 여유 · 밖이면 초과폭). 원값 4 는 ui 미참조.
+    /// 🔴 이름 = `sleeveWeight` — `weight` 로 두면 `SleeveWeight.weight` 원값 금지(C-44 ⑮ `\.weight\b`)가 표시 경로까지 막는다.
+    /// 🔴 `basis` 는 행과 같은 `accounting` 만(C-44 ⑥ · 02 `H6-3` 수용 (a)).
+    /// null = 밴드 판정 없음 — 밴드가 없는 슬리브(K27 권고 = A·C) · POT · CASH · INTEGRITY 가림 → [bandNoteText].
+    SleeveWeight? sleeveWeight,
+
+    /// 🔴 색의 **유일한** 원천 — 화면 임계값·편차 부호로 색을 고르지 않는다(02 §4-3 수용 (b) · 04 §4-3). non-null ⇔ [sleeveWeight] non-null.
+    SleeveBandState? bandState,
+
+    /// "밴드 내" · "경계 근접" · "밴드 이탈 — 다음 배치에서 리밸런싱 대상"(🔴 실행 예고 아님). non-null ⇔ [bandState] non-null.
+    String? bandStateLabel,
+
+    /// 목표 막대 기하 — null = 게이지 부재(밴드 판정 없음 · INTEGRITY 가림). non-null ⇒ [sleeveWeight] non-null. RECON = 기하 유지·글자만 «?».
+    SleeveBandGauge? gauge,
+
+    /// non-null ⇔ [sleeveWeight] == null — 🔴 그 행의 현재 비중 글자의 **유일한 출구**(INTEGRITY 가림 외에는 `%` 를 품는다 · C-44 ⑥ · 04:464)
+    /// — "C ‹n›% · 목표 잔여 — 게이지 없음" · "A ‹n›% · 목표 20.0% — 계절 슬리브 · 밴드 판정 없음"(K27) · "POT ‹n›% — A 에 포함(회계 기준)" ·
+    ///   "원화 현금 대기 ‹n›% — 유휴가 아닙니다"(‹n› = 엔진 값 · 픽스처는 합성 둥근 값 · 🔴 골든 4자리 수치를 주석에 옮기지 않는다).
+    String? bandNoteText,
+
+    /// 상태 칩(계절 진입 게이트 보류 등 · 칩 탭 = `detailDeepLink` 의 핸드북) — 0개 = 칩 줄 부재(K13).
+    @Default(<ReasonChip>[]) List<ReasonChip> stateChips,
   }) = _SleeveAllocationRow;
 
   factory SleeveAllocationRow.fromJson(Map<String, dynamic> json) =>
       _$SleeveAllocationRowFromJson(json);
+}
+
+/// 🆕 v1.8 — 목표 막대 위 실제 마커·밴드 음영의 **정규 위치**(0.0~1.0 · 엔진이 고른 눈금).
+/// 🔴 화면 산술 = `값 × 폭` 하나(02 §2-4 금지 ① 의 «레이아웃 계산» · 01 §13-2 세 식 준용) — 차·여유 폭 계산 0.
+/// 🔴 `bandLowNormalized ≤ targetNormalized ≤ bandHighNormalized`(C-44 ⑥) · 이름 = `*Normalized`(계약 관례 `xNormalized`·`complianceRateNormalized` —
+///    [0,1] 범위는 C-34 ④ 가 키 끝 `normalized` 로 자동 검사) · 🔴 계좌 잔고 막대(`deployedRatio`·`parkingRatio`)와 다른 막대 — 둘을 곱하지 않는다.
+@freezed
+abstract class SleeveBandGauge with _$SleeveBandGauge {
+  const factory SleeveBandGauge({
+    required double actualNormalized,
+    required double targetNormalized,
+    required double bandLowNormalized,
+    required double bandHighNormalized,
+  }) = _SleeveBandGauge;
+
+  factory SleeveBandGauge.fromJson(Map<String, dynamic> json) =>
+      _$SleeveBandGaugeFromJson(json);
+}
+
+/// 🆕 v1.8 — `H6-3` 슬리브·비중 한 화면(01 §17). 창구 = `HoldingsRepository.watchAllocation()`.
+/// 🔴 행 = 받은 순서(A → POT(A 하위) → B → C → 현금 대기) · 전부 `basis == accounting`(C-31) ·
+///    POT 는 독립 항이 아니다(02 §4-3 수용 (e)) — 화면은 합계 행을 만들지 않는다.
+@freezed
+abstract class SleeveAllocationVm with _$SleeveAllocationVm {
+  const factory SleeveAllocationVm({
+    required List<SleeveAllocationRow> rows,
+
+    /// "회계 기준입니다 — POT 는 A 에 포함됩니다" — null = 줄 부재.
+    String? noticeText,
+
+    /// non-null ⇔ [rows] 가 빈 목록.
+    String? emptyLabel,
+    required AsOf asOf,
+  }) = _SleeveAllocationVm;
+
+  factory SleeveAllocationVm.fromJson(Map<String, dynamic> json) =>
+      _$SleeveAllocationVmFromJson(json);
 }
 
 /// 01 §4-1 · m2-8 F-5 — 다음 회차 예고(`S7-6c`·`H-02`).
@@ -4511,7 +4740,7 @@ abstract class NextRebalanceVm with _$NextRebalanceVm {
     String? emptyLabel,
     RebalanceKind? expectedKind, // 🔴 ui 미참조(C-42)
     String? kindLabel, // null = 줄 부재
-    /// 🔴 `S7-6c` 안에서 쓰지 않는다(자기 자신 · `H-02`·알림 행 몫) · non-null 이면 `AppRoutes.rebalancePreview`.
+    /// 🔴 `S7-6c` 안에서 쓰지 않는다(자기 자신 · `H-02`·알림 행·M6 `H6-3` 하단 몫) · non-null 이면 `AppRoutes.rebalancePreview`.
     String? previewRoute,
     String? noticeText, // null = 줄 부재
     /// 🆕 v1.6 — 봉투 as_of 를 행으로(`DepositPlan.asOf` 선례 · `H-02` 도 같은 필드).
@@ -6100,6 +6329,7 @@ enum TaxLadderBranch {
 
 ```dart
 // 01 §2-5 — 리밸런싱 회차의 갈래(인벤토리 §2-6 · `rebalance_event.kind` CHECK).
+// 🆕 v1.8(01 §17) — `SleeveBandState`(밴드 내 · 경계 근접 · 이탈 — `H6-1` 카드 머리 · `H6-3` 행 색의 원천).
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 enum RebalanceKind {
@@ -6117,6 +6347,21 @@ enum RebalanceKind {
   const RebalanceKind(this.wire);
 
   /// JSON·DDL 표기(01 §1-2).
+  final String wire;
+}
+
+/// 🆕 v1.8(01 §17) — 슬리브 밴드 상태. 🔴 판정은 엔진 · 화면은 색만(C-12 exhaustive switch · `default:` 금지).
+/// 🔴 파킹은 상태가 아니다 — 신호 미점등 파킹분으로 `outOfBand`·경고색을 만들지 않는다(02 §4-3 «파킹 상태»).
+enum SleeveBandState {
+  @JsonValue('IN_BAND')
+  inBand('IN_BAND'),
+  @JsonValue('NEAR_EDGE')
+  nearEdge('NEAR_EDGE'),
+  @JsonValue('OUT_OF_BAND')
+  outOfBand('OUT_OF_BAND');
+
+  const SleeveBandState(this.wire);
+
   final String wire;
 }
 ```
@@ -6828,6 +7073,9 @@ abstract final class FixturePaths {
 
   /// 🔵 v1.4 — 코어 전용 · 납입 조달 발동(C 방어 자산 매도 초안 + 조달 단계 1).
   static const String depositPlanFunding1 = 'deposit_plan_funding_1.json';
+
+  /// 🔵 v1.8(01 §17) — 평면 창구 `watchHoldings` 의 표본(6행 · pnl 3행 · C-6). 행 == `m6/holdings_overview_pnl`
+  ///    의 같은 `holding_id` 행(C-44 ④) · 종목 라벨 = 입금 픽스처 이름(미결 82 보유 몫 · K4).
   static const String holdings6 = 'holdings_6.json';
   static const String journal30 = 'journal_30.json';
   static const String ledgerDiffs4 = 'ledger_diffs_4.json';
@@ -6856,6 +7104,33 @@ abstract final class FixturePaths {
   static const String m6AdviceNoAction = 'm6/advice_no_action.json';
   static const String m6AdviceSkipReasons = 'm6/advice_skip_reasons.json';
   static const String m6AdviceViewer4 = 'm6/advice_viewer_4.json';
+
+  /// 🆕 v1.8(01 §17 · R4 선행) — `H6-3` 슬리브·비중(`HoldingsRepository.watchAllocation` · 행 1 = `SleeveAllocationVm`).
+  ///    행 = A → POT(A 하위) → B → C → 현금 대기 · 전부 회계 기준 · 🔴 밴드 행 = **B 만**(K27 — A·C·POT·CASH =
+  ///    `band_note_text`). 밴드 내 = 골든 `h63_in_band`·`h63_pot_under_a`(A 펼침 = `engine_column_note`).
+  static const String m6AllocationInBand = 'm6/allocation_in_band.json';
+
+  /// 🆕 v1.8 — `in_band` 에서 B 만 밴드 이탈(«밴드 이탈 — 다음 배치에서 리밸런싱 대상» · 게이지 실측 > 상단) — 골든 `h63_out_of_band`.
+  static const String m6AllocationOutOfBand = 'm6/allocation_out_of_band.json';
+
+  /// 🆕 v1.8 — B 경계 근접 + A 상태 칩 1(`F1_ENTRY_DEFER` · 핸드북 링크 · K13) — 골든 `h63_tranche_progress`.
+  static const String m6AllocationTrancheProgress =
+      'm6/allocation_tranche_progress.json';
+
+  /// 🆕 v1.8 — B 투자분 트랜치 1/3 · 파킹 큼(밴드 내 · «미달이 아닙니다» — 경고색 아님) — 테스트(골든 아님).
+  static const String m6AllocationParkingLarge =
+      'm6/allocation_parking_large.json';
+
+  /// 🆕 v1.8 — `LEDGER_INTEGRITY` 가림판: 전 행 금액·%·트랜치·밴드 글자 «숨김» · 기하·`sleeve_weight` 부재 —
+  ///    `holdings_overview_integrity` 카드 머리의 짝(C-44 ③⑥).
+  static const String m6AllocationIntegrity = 'm6/allocation_integrity.json';
+
+  /// 🆕 v1.8 — `RECON_MISMATCH` 판: B 행 금액·% 글자 끝 «?» · 기하·`band_state` 는 `in_band` 그대로 —
+  ///    `holdings_overview_recon` 카드 머리의 짝(C-44 ③⑥).
+  static const String m6AllocationRecon = 'm6/allocation_recon.json';
+
+  /// 🆕 v1.8 — 빈 배분(`rows: []` + 엔진 문장 · «없음» 전용 — K26) — 테스트.
+  static const String m6AllocationEmpty = 'm6/allocation_empty.json';
 
   /// 🆕 v1.7(01 §16 · §8 미결 46) — `J-4` 사후 blind 리뷰. 대기 목록(`watchBlindReviewQueue` 봉투) 3행 =
   ///    이탈 결정 중 저널이 작성된 셋 · 오래된 결정부터(K4): `d_20260811_c_28`(매수 · 메모 있음) → `d_mf_0002`(매수 ·
@@ -6919,6 +7194,53 @@ abstract final class FixturePaths {
   static const String m6FillFormSpec = 'm6/fill_form_spec.json';
   static const String m6FillFormSpecStale = 'm6/fill_form_spec_stale.json';
   static const String m6FillRejectedPrice = 'm6/fill_rejected_price.json';
+
+  /// 🆕 v1.8(01 §17 · R4 선행) — `H6-2` 종목 상세(`watchHoldingDetail(holdingId)` · 행 1 = `HoldingDetailVm`).
+  ///    `holding` == `holdings_overview_*` 의 같은 `holding_id` 행(C-44 ④). 손절선 행 = A `069500` 의 TIER_1B 1행 —
+  ///    🔴 **보존 경로 표본**(P0S 정상 장면 아님 · 골든 아님 · K16 ⓓ) · `recent_entries` = `journal_30` 행 JSON 그대로.
+  static const String m6HoldingDetailWithStops =
+      'm6/holding_detail_with_stops.json';
+
+  /// 🆕 v1.8 — B `133690` · 손절선 0행 + «개별 손절선을 쓰지 않습니다» · 최근 체결 0행 + 문장 — 골든 `h62_etf_no_stop`.
+  static const String m6HoldingDetailNoStop = 'm6/holding_detail_no_stop.json';
+
+  /// 🆕 v1.8 — `no_stop` + `holding.pnl`(`holdings_overview_pnl` 의 같은 행) — 골든 `h62_pnl_expanded`(K16 ⓑ).
+  static const String m6HoldingDetailPnl = 'm6/holding_detail_pnl.json';
+
+  /// 🆕 v1.8 — `no_stop` 의 가림판(`holding` == `holdings_overview_recon` 의 같은 행) — 골든 `h62_recon_mismatch`.
+  static const String m6HoldingDetailRecon = 'm6/holding_detail_recon.json';
+
+  /// 🆕 v1.8 — `with_stops` 의 가림판(`holding` == `holdings_overview_integrity` A 행 · 손절선 글자 «숨김» ·
+  ///    `recent_entries` = `journal_masked_integrity` 의 같은 보유 행) — 골든 `h62_integrity`(K16 ⓓ).
+  static const String m6HoldingDetailIntegrity =
+      'm6/holding_detail_integrity.json';
+
+  /// 🆕 v1.8(01 §17 · R4 선행) — `H6-1` 보유현황(`watchHoldingsOverview` · 행 1 = `HoldingsOverviewVm`).
+  ///    카드 3(A·B·C = `sleeve_catalog_4` 의 최상위 행 순) · POT 2행 = A 카드 맨 끝(`sub_book_label` · K17) ·
+  ///    B `133690` 행 «반영 대기 +12주» · 시스템 밖 섹션 = `external_holdings_2` 행 · 카드 머리 = `allocation_in_band`
+  ///    의 같은 슬리브 행 — 골든 `h61_normal`.
+  static const String m6HoldingsOverviewNormal =
+      'm6/holdings_overview_normal.json';
+
+  /// 🆕 v1.8 — `RECON_MISMATCH` 대상 1행(B `133690`) 글자 끝 «?» · B 카드 머리 = `allocation_recon` — 골든 `h61_recon_mismatch`.
+  static const String m6HoldingsOverviewRecon =
+      'm6/holdings_overview_recon.json';
+
+  /// 🆕 v1.8 — `LEDGER_INTEGRITY`: 관리 대상 행 수량·매수가·비중 «숨김» · 반영 대기 칩 부재 · 카드 머리 =
+  ///    `allocation_integrity` · 🔵 시스템 밖 수량은 그대로(사람 입력 · K14) — 골든 `h61_integrity`.
+  static const String m6HoldingsOverviewIntegrity =
+      'm6/holdings_overview_integrity.json';
+
+  /// 🆕 v1.8 — 카드 0(`cards: []` + 엔진 문장 · 섹션·토글·「비중 보기」 부재) — 골든 `h61_empty`.
+  static const String m6HoldingsOverviewEmpty =
+      'm6/holdings_overview_empty.json';
+
+  /// 🆕 v1.8 — `includePnl: true` 의 값: `normal` + 3행 `pnl`(`holdings_6` 의 pnl 3행과 같은 값 · C-44 ④) — 골든 `h61_pnl_expanded`.
+  static const String m6HoldingsOverviewPnl = 'm6/holdings_overview_pnl.json';
+
+  /// 🆕 v1.8 — 뷰어(iOS) 판: `normal` 에서 `pnl_toggle_label`·`external` 없음(K15 · K14 ⓑ) — 테스트.
+  static const String m6HoldingsOverviewViewer =
+      'm6/holdings_overview_viewer.json';
 
   /// 🆕 2026-09-17(C4 · R1-Bob-J1) — `J-1` 빈 상태 골든 `j1_empty` 의 입력.
   ///    `journal_30.json` 의 0행 슬라이스는 `empty_label` 이 null 이라 화면이 그릴 것이 없다 —
@@ -7191,6 +7513,13 @@ abstract final class FixturePaths {
     m6AdviceNoAction,
     m6AdviceSkipReasons,
     m6AdviceViewer4,
+    m6AllocationEmpty,
+    m6AllocationInBand,
+    m6AllocationIntegrity,
+    m6AllocationOutOfBand,
+    m6AllocationParkingLarge,
+    m6AllocationRecon,
+    m6AllocationTrancheProgress,
     m6BlindReviewCardBefore,
     m6BlindReviewCardRevealed,
     m6BlindReviewCardRevealedOpen,
@@ -7212,6 +7541,17 @@ abstract final class FixturePaths {
     m6FillFormSpec,
     m6FillFormSpecStale,
     m6FillRejectedPrice,
+    m6HoldingDetailIntegrity,
+    m6HoldingDetailNoStop,
+    m6HoldingDetailPnl,
+    m6HoldingDetailRecon,
+    m6HoldingDetailWithStops,
+    m6HoldingsOverviewEmpty,
+    m6HoldingsOverviewIntegrity,
+    m6HoldingsOverviewNormal,
+    m6HoldingsOverviewPnl,
+    m6HoldingsOverviewRecon,
+    m6HoldingsOverviewViewer,
     m6JournalEmpty,
     m6JournalBadges2,
     m6JournalDraftReceipts5,
@@ -7771,6 +8111,7 @@ abstract final class DisclosureSurfaceCodes {
 // 🔴 이 파일은 «어떤 코드가 오는가»의 목록이다. 문구(«TIER 1B 절대손절 −7.0% 도달»)는
 //    엔진이 만들어 DTO 의 label·reason 필드에 실어 준다 — 화면이 코드로 문구를 고르면 C-5 위반이다.
 // 🔵 v2.31 P0S 에서는 대부분 비집행이지만 코드는 보존한다(01 §3-1 표제).
+// 🆕 v1.8(01 §17) — 파일 끝 `StopTierCodes`(손절선 등급 · `byDomain 'stop_tier'`) — 배럴 import·export 무변경.
 
 /// `exit_kind` — 청산 사유의 갈래(01 §3-1 · `decision_log.exit_kind` CHECK).
 abstract final class ExitKindCodes {
@@ -7801,6 +8142,15 @@ abstract final class ExitKindCodes {
     rebalance,
     risk,
   };
+}
+
+/// 🆕 v1.8(01 §17) — `StopLineNormalized.tierCode` 의 값(m2-8 E-8 «코드 목록은 영역 E 의 사전»의 실물).
+/// 🔴 키 전용 — 화면은 표시·분기하지 않는다(문구 = `tierLabel`).
+abstract final class StopTierCodes {
+  static const String tier1a = 'TIER_1A';
+  static const String tier1b = 'TIER_1B';
+  static const String tier2 = 'TIER_2';
+  static const Set<String> values = <String>{tier1a, tier1b, tier2};
 }
 ```
 
@@ -8235,6 +8585,8 @@ abstract final class ContractCodes {
     'planner_reason': PlannerReasonCodes.values,
     // 🆕 v1.7(J-4 선행) — blind 리뷰 점수 제출의 거부 사유(`CommandReceipt.rejectReasonCode`)
     'blind_review_reject': BlindReviewRejectCodes.values,
+    // 🆕 v1.8(R4 선행) — 손절선 등급(`StopLineNormalized.tierCode` · C-44 ⑦ 이 픽스처와 맞댄다)
+    'stop_tier': StopTierCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -8765,6 +9117,15 @@ abstract final class AppRoutes {
   /// `J-5` UNKNOWN 해소 보드 — `JournalTimelineBadge.deepLink` 가 준다.
   static const String journalUnknownBoard = 'aaq://journal/unknown-board';
 
+  /// 🆕 v1.8(01 §17) — `H6-1` 보유현황(`HoldingsOverview()`). 등록 = 전 플랫폼 · 본문 = Android·iOS · 웹 = Q-D 전 셸 «부재» 가드.
+  static const String holdingsOverview = 'aaq://holdings/overview';
+
+  /// 🆕 v1.8 — `H6-2` 종목 상세(`HoldingDetail(holdingId:)`) — `HoldingRow.detailDeepLink` 가 준다(엔진 완성).
+  static const String holdingsDetail = 'aaq://holdings/detail/:holdingId';
+
+  /// 🆕 v1.8 — `H6-3` 슬리브·비중(`HoldingsAllocation()`) — `HoldingsOverviewVm.allocationLink` · 홈 블록 4 탭(R13).
+  static const String holdingsAllocation = 'aaq://holdings/allocation';
+
   /// `A-1` 안내 인박스.
   static const String adviceInbox = 'aaq://advice/inbox';
 
@@ -8869,7 +9230,8 @@ abstract final class AppRoutes {
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
 
   /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance` ·
-  /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory`).
+  /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory` · 🆕 v1.8 = 48 · `holdingsOverview`·
+  /// `holdingsDetail`·`holdingsAllocation`).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -8878,6 +9240,9 @@ abstract final class AppRoutes {
     journalRebalance,
     journalBlindReview,
     journalUnknownBoard,
+    holdingsOverview,
+    holdingsDetail,
+    holdingsAllocation,
     adviceInbox,
     adviceDetail,
     adviceFill,
@@ -9429,8 +9794,11 @@ abstract interface class ExecutionGapRepository {
 
 ```dart
 // 01 §4-1 — 보유현황(M6) 읽기 창구.
+// 🆕 v1.8(01 §17 · R4 선행) — `H6-1`~`H6-3` 화면 창구 3(`watchHoldingsOverview` · `watchHoldingDetail` ·
+//    `watchAllocation`) · 받침대 `UnimplementedHoldingsRepository`(`lib/testing.dart`).
 
 import '../dto/holdings.dart';
+import '../dto/rebalance.dart';
 import '../primitives/list_result.dart';
 
 /// 보유 종목 목록.
@@ -9440,6 +9808,24 @@ abstract interface class HoldingsRepository {
   /// 🔴 X7 D7 — `external_holding`(= `scope == external`)의 표시 UNION 은
   ///    **이 리포지토리 한 곳에서만** 만든다(C-23). 파생 계산 경로는 `positions` 만 읽는다.
   Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false});
+
+  // ── 🆕 계약 v1.8(R4 선행 M2 보강 · 01 §17) ───────────────────────────────
+  // 🔵 [watchHoldings] 는 남는다(시그니처 무변경) — `H6-*` 화면은 부르지 않는다(C-44 ⑬).
+
+  /// 🆕 v1.8 — `H6-1` 한 화면(카드·종목 행·시스템 밖 섹션). 🔴 `includePnl` 기본 false(결정 8) —
+  /// 펼침 조작 1회 = `true` 재구독 · 화면 이탈 = 상태 소멸(저장 0). 뷰어 구현은 `true` 여도 `pnl` 을 싣지 않는다(K15).
+  /// 🔴 X7 D7 — 시스템 밖 자산의 표시 UNION 은 여기서 만든다(`external`) · 파생 경로는 `positions` 만.
+  Stream<HoldingsOverviewVm> watchHoldingsOverview({bool includePnl = false});
+
+  /// 🆕 v1.8 — `H6-2` 보유 1건. [holdingId] = `HoldingRow.holdingId`(셸이 라우트에서 꺼내 생성자로 준다).
+  /// 모르는 id = 스트림 에러(봉투 없는 VM 의 **잠정** 규칙 — §8 미결 50 ③). `includePnl` 규칙은 위와 같다.
+  Stream<HoldingDetailVm> watchHoldingDetail(
+    String holdingId, {
+    bool includePnl = false,
+  });
+
+  /// 🆕 v1.8 — `H6-3` 배분 행 전부(회계 기준). 홈 블록 4(R13)도 이 창구의 `sleeveWeight`·`*PctText` 만 쓴다.
+  Stream<SleeveAllocationVm> watchAllocation();
 }
 ```
 

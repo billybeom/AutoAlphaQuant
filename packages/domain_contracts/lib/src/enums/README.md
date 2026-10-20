@@ -10,7 +10,7 @@
 | `ui.dart` | `ChipTone` · `GateState` · `UiLevel` · `EmptyKind` |
 | `journal.dart` | `JournalStatus` · `FillVisibility` · `FillOrigin` · `FillKind` · `CostSource` |
 | `performance.dart` | `PerfMetric` · `PerfGranularity` · `SegmentKind` · `TaxLadderBranch` |
-| `rebalance.dart` | `RebalanceKind` |
+| `rebalance.dart` | `RebalanceKind` · 🆕 v1.8 `SleeveBandState`(01 §17) |
 | `resume.dart` | `PlannedWorkState` · `ResumeMode` · `ResumePhase` |
 | `calendar.dart` | `CalendarOrigin` · `CalendarEventKind` |
 | `ledger.dart` | `LedgerPair` · `LedgerAxis` · `DiffSeverity` · `DiffStatus` · `RepairRoute` · `LedgerTrustGrade`(+ ⏸ `LedgerEventKind` 주석) |

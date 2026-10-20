@@ -6,9 +6,9 @@
 |---|---|---|
 | `common.dart` | `DateRange` · `ListResult<T>` · `ReasonChip` · `DecisionRef` · `GateBadge` · `FeatureFlags` · `SleeveCatalogEntry` | §2-1 |
 | `journal.dart` | `TradeJournalEntry` · `DeviationBadge` | §2-2 |
-| `holdings.dart` | `HoldingRow` · `TrancheStep` · `StopLine` · `HoldingPnl` | §2-3 |
+| `holdings.dart` | `HoldingRow` · `TrancheStep` · `StopLine` · `HoldingPnl` · 🆕 v1.8 `HoldingsOverviewVm` · `HoldingsSleeveCard` · `HoldingsExternalSection` · `HoldingDetailVm` | §2-3 · §17 |
 | `performance.dart` | `PerformanceSeries` · `PerfPoint` · `PerfSegment` | §2-4 |
-| `rebalance.dart` | `RebalanceEvent` · `SleeveWeight` · `TriggerSnapshot` | §2-5 |
+| `rebalance.dart` | `RebalanceEvent` · `SleeveWeight` · `TriggerSnapshot` · 🆕 v1.8 `SleeveAllocationRow` 밴드 축 · `SleeveBandGauge` · `SleeveAllocationVm` | §2-5 · §2-6 · §17 |
 | `plan.dart` | `DepositPlan` · `OrderDraft` | §2-6 |
 | `resume.dart` | `PlannedWorkSummary` · `ResumeReport` | §2-7 |
 | `calendar.dart` | `CalendarEventDto` | §2-8 |
