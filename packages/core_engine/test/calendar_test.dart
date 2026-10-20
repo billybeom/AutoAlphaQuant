@@ -5,6 +5,7 @@ import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
 import 'golden/calendar_fixture.dart';
+import 'golden/golden_vectors.dart';
 
 ExchangeCalendar _tiny() => ExchangeCalendar(
   market: Market.kr,
@@ -99,6 +100,31 @@ void main() {
         () => DecisionIds.exit('', '005930', const TradeDate('2026-09-10')),
         throwsArgumentError,
       );
+    });
+  });
+
+  group('동결 표의 임시휴장 덮어쓰기(설계 13 §8 R15)', () {
+    final ExchangeCalendar krx = frozenCalendar(Market.kr);
+    test('2026-06-03 지방선거일 · 07-17 제헌절은 휴장(거래소 2026-05-20 공지)', () {
+      expect(krx.isSession(const TradeDate('2026-06-03')), isFalse);
+      expect(krx.isSession(const TradeDate('2026-07-17')), isFalse);
+      expect(
+        krx.nextSession(const TradeDate('2026-06-02')),
+        const TradeDate('2026-06-04'),
+      );
+      expect(
+        krx.nextSession(const TradeDate('2026-07-16')),
+        const TradeDate('2026-07-20'),
+      );
+    });
+    test('덮어쓰기 근거가 표 머리에 남아 있다', () {
+      final Map<String, Object?> meta = asObject(
+        loadVector('sessions_xkrx.json')['meta'],
+      );
+      expect(asObject(meta['closed_overrides']).keys, <String>[
+        '2026-06-03',
+        '2026-07-17',
+      ]);
     });
   });
 

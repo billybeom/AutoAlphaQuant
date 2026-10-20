@@ -11,7 +11,8 @@
   "first_session": "1999-12-01",
   "last_session": "2027-12-31",
   "count": 7063,
-  "generator": "packages/core_engine/tool/gen_exchange_sessions.py"
+  "generator": "packages/core_engine/tool/gen_exchange_sessions.py",
+  "closed_overrides": {}
  },
  "sessions": [
   "1999-12-01",
