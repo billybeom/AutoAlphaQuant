@@ -1,0 +1,199 @@
+{
+ "GV-42": [
+  {
+   "id": "42-1 profile=balanced (정본)",
+   "input": {
+    "profile": "balanced"
+   },
+   "expected": {
+    "accepted": true,
+    "satellite_band_high": 0.07,
+    "satellite_band_low": 0.05,
+    "satellite_target": 0.06,
+    "sleeve_a": 0.2,
+    "sleeve_b": 0.42,
+    "sleeve_c": 0.32
+   }
+  },
+  {
+   "id": "42-2 profile=defensive",
+   "input": {
+    "profile": "defensive"
+   },
+   "expected": {
+    "accepted": true,
+    "satellite_band_high": 0.07,
+    "satellite_band_low": 0.05,
+    "satellite_target": 0.06,
+    "sleeve_a": 0.1,
+    "sleeve_b": 0.42,
+    "sleeve_c": 0.42
+   }
+  },
+  {
+   "id": "42-3 profile=aggressive",
+   "input": {
+    "profile": "aggressive"
+   },
+   "expected": {
+    "accepted": true,
+    "satellite_band_high": 0.07,
+    "satellite_band_low": 0.05,
+    "satellite_target": 0.06,
+    "sleeve_a": 0.2,
+    "sleeve_b": 0.58,
+    "sleeve_c": 0.16
+   }
+  },
+  {
+   "id": "42-4 custom 4개 전부 지정 — 합 1.0",
+   "input": {
+    "profile": "custom",
+    "custom": {
+     "sleeve_a": 0.18,
+     "sleeve_b": 0.48,
+     "sleeve_c": 0.26,
+     "satellite_target": 0.08
+    }
+   },
+   "expected": {
+    "accepted": true,
+    "satellite_band_high": 0.0933333333,
+    "satellite_band_low": 0.0666666667,
+    "satellite_target": 0.08,
+    "sleeve_a": 0.18,
+    "sleeve_b": 0.48,
+    "sleeve_c": 0.26
+   }
+  },
+  {
+   "id": "42-5 custom 3개만 — 잔여(sleeve_c) 자동 충당",
+   "input": {
+    "profile": "custom",
+    "custom": {
+     "sleeve_a": 0.18,
+     "sleeve_b": 0.48,
+     "satellite_target": 0.08
+    }
+   },
+   "expected": {
+    "accepted": true,
+    "satellite_band_high": 0.0933333333,
+    "satellite_band_low": 0.0666666667,
+    "satellite_target": 0.08,
+    "sleeve_a": 0.18,
+    "sleeve_b": 0.48,
+    "sleeve_c": 0.26
+   }
+  },
+  {
+   "id": "42-6 🔴 합 1.05 — 거부해야 한다(자동 정규화 금지)",
+   "input": {
+    "profile": "custom",
+    "custom": {
+     "sleeve_a": 0.25,
+     "sleeve_b": 0.5,
+     "sleeve_c": 0.24,
+     "satellite_target": 0.06
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "error": "ValueError",
+    "reason_contains": "배분 합이 1.0500 입니다 — 1.0 이어야 합니다 (A 0.250 "
+   }
+  },
+  {
+   "id": "42-7 🔴 합 0.95 — 거부",
+   "input": {
+    "profile": "custom",
+    "custom": {
+     "sleeve_a": 0.2,
+     "sleeve_b": 0.42,
+     "sleeve_c": 0.27,
+     "satellite_target": 0.06
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "error": "ValueError",
+    "reason_contains": "배분 합이 0.9500 입니다 — 1.0 이어야 합니다 (A 0.200 "
+   }
+  },
+  {
+   "id": "42-8 새틀 0 — 허용(v2.31 정본 P0S: 밴드 0.0 · 밴드 검증 생략, 02 §4-2 6b 단서)",
+   "input": {
+    "profile": "custom",
+    "custom": {
+     "sleeve_a": 0.2,
+     "sleeve_b": 0.48,
+     "sleeve_c": 0.32,
+     "satellite_target": 0.0
+    }
+   },
+   "expected": {
+    "accepted": true,
+    "satellite_band_high": 0.0,
+    "satellite_band_low": 0.0,
+    "satellite_target": 0.0,
+    "sleeve_a": 0.2,
+    "sleeve_b": 0.48,
+    "sleeve_c": 0.32
+   }
+  },
+  {
+   "id": "42-9 🔴 음수 비중 — 거부",
+   "input": {
+    "profile": "custom",
+    "custom": {
+     "sleeve_a": -0.05,
+     "sleeve_b": 0.6,
+     "sleeve_c": 0.39,
+     "satellite_target": 0.06
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "error": "ValueError",
+    "reason_contains": "sleeve_a=-0.05 가 0~1 범위를 벗어납니다"
+   }
+  },
+  {
+   "id": "42-10 🔴 모르는 프로파일 — 거부",
+   "input": {
+    "profile": "moderate"
+   },
+   "expected": {
+    "accepted": false,
+    "error": "ValueError",
+    "reason_contains": "모르는 프로파일 'moderate'. 가능: ['aggressive', "
+   }
+  },
+  {
+   "id": "42-11 🔴 custom 인데 배분 미제공 — 거부",
+   "input": {
+    "profile": "custom"
+   },
+   "expected": {
+    "accepted": false,
+    "error": "ValueError",
+    "reason_contains": "profile='custom' 이면 custom 배분을 함께 주어야 합니"
+   }
+  },
+  {
+   "id": "42-12 custom 2개만 — 거부(최소 3개 필요)",
+   "input": {
+    "profile": "custom",
+    "custom": {
+     "sleeve_a": 0.2,
+     "sleeve_b": 0.42
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "error": "ValueError",
+    "reason_contains": "배분이 부족합니다 — 최소 3개가 필요한데 ['sleeve_a', 'sl"
+   }
+  }
+ ]
+}

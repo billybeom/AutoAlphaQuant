@@ -1,0 +1,4 @@
+{
+  "input": { "desired_value": 50000000, "adv20": 500000000, "participation_rate": 0.03 },
+  "expected": { "allowed_value": 15000000, "deferred_value": 35000000 }
+}

@@ -1,4 +1,4 @@
-# `lib/src/portfolio/` — 목표비중·밴드·리밸런싱 (예정)
+# `lib/src/portfolio/` — 목표비중·밴드·리밸런싱 (일부 — E5a `allocation.dart`)
 
 정본: `06_시스템설계/00_SPEC.md` v2.31 P0S · `03_알고리즘.md`
 
@@ -6,4 +6,5 @@
 
 - 🔴 슬리브 개수를 상수로 굳히지 않는다. 화면에 나가는 목록은 `SleeveCatalogEntry`이고 그 원천은 엔진 config(`satellite_enabled`)다.
 - 🔴 리밸런싱 회차는 **1급 엔터티**(`rebalance_event`)다 — 로그를 파싱해 재구성하지 않는다.
+- ✅ `allocation.dart` — `capital_allocation` 해석·검증(05 GV-42). 프로파일 표는 02 §5-7 의 세 프로파일(새틀 6% 시절)이고, 정본 P0S 는 새틀 0 을 주고 해제분을 잔여 C 가 받는다.
 - 금 상한 8%(C 한정)는 **경고이지 강제 매도가 아니다**(SAF-3xx).

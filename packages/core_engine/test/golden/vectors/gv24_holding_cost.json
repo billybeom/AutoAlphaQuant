@@ -1,0 +1,25 @@
+{
+  "config": { "expense_ratio_markup": 1.15 },
+  "cases": [
+    { "id":"e1", "position_value":10000000, "expense_ratio":0.00115, "trading_days":252,
+      "expected_value": 9988506.583756, "expected_cost": 11493.416244,
+      "note": "국내상장 S&P500. 조사 평균 0.100% × 1.15" },
+    { "id":"e2", "position_value":10000000, "expense_ratio":0.00460, "trading_days":252,
+      "expected_value": 9954105.220040, "expected_cost": 45894.779960,
+      "note": "🔴 KRX금현물. 주식형의 4배. 비중 20%로 슬리브 B 총보수의 절반을 만든다" },
+    { "id":"e3", "position_value":10000000, "expense_ratio":0.00115, "trading_days":21,
+      "expected_value": 9999041.710399,
+      "note": "1개월 보유. 🔴 보유 기간에 비례해야 한다" },
+    { "id":"e4", "position_value":10000000, "expense_ratio":0.0, "trading_days":252,
+      "expected_value": 10000000.0 },
+    { "id":"e5", "position_value":10000000, "expense_ratio":0.00115, "trading_days":0,
+      "expected_value": 10000000.0,
+      "note": "🔴 진입 당일 청산 → 보유비용 0. 거래비용만 발생" }
+  ],
+  "_note_v2_4": "🔴 v2.4 정정 — expected_weighted_er 0.001920 → 0.0019205. 0.45×0.00115 + 0.35×0.00138 + 0.20×0.00460 = 0.0019205 인데 반올림한 값을 적어, 허용오차 ratios 1e-9 에서 **정확한 구현이 탈락**했습니다 (오차 5.0e-7).",
+  "sleeve_b_weighted": {
+    "assets": [ {"er":0.00115,"w":0.45}, {"er":0.00138,"w":0.35}, {"er":0.00460,"w":0.20} ],
+    "expected_weighted_er": 0.0019205
+  },
+  "tolerance": { "amounts": 1e-6, "ratios": 1e-9 }
+}

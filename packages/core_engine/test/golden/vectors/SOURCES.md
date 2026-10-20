@@ -4,10 +4,16 @@
 > 원본이 바뀌면 다시 복사하고 이 표의 sha256·복사일을 갱신한다 — 손으로 고친 정답지는 위조다.
 > 🔴 줄 끝은 저장소 규칙(`.gitattributes` `eol=lf`)대로 LF 다 — 원본이 CRLF 면 줄 끝만 바꾸고 원본 sha256 을 함께 적는다.
 > 🔴 파일 이름을 `*.golden.json` 꼴로 짓지 않는다 — CI «골든 스냅샷» 잡이 그 꼴을 화면 스냅샷으로 보고 수정·삭제를 막는다(`.github/workflows/ci.yml`).
-> 원본 경로는 설계 저장소(`C:\Work\클로드-백그라운드-작업\투자`, E1 = 커밋 `ba91cc3` · E2a·E2b·E3a·E3b·E4 = 커밋 `d3aaabb` 기준 — 05 는 그 사이 바뀌지 않았다) 상대 경로다.
+> 원본 경로는 설계 저장소(`C:\Work\클로드-백그라운드-작업\투자`, E1 = 커밋 `ba91cc3` · E2a·E2b·E3a·E3b·E4 = 커밋 `d3aaabb` · E5a = 커밋 `f11d2b5` 기준 — 05 는 그 사이 바뀌지 않았다) 상대 경로다.
 
 | 파일 | 원본 | 원본 판 | 복사일 |
 |---|---|---|---|
+| `gv11_trade_cost.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-11 코드 블록(1876~1891행) — 설정은 산문이라 `../kr_costs_fixture.dart` 가 02 §4 `costs.kr` 를 옮겨 적는다 | 05 **v1.22** | 2026-10-20 |
+| `gv11e_tier_boundary_us.json` | 같은 문서 §GV-11e 코드 블록(1897~1919행) | 05 **v1.22** | 2026-10-20 |
+| `gv11d_participation.json` | 같은 문서 §GV-11d 코드 블록(1931~1934행) | 05 **v1.22** | 2026-10-20 |
+| `gv19_cost_in_pnl.json` | 같은 문서 §GV-19 코드 블록(2261~2277행) — ⚠️ 기대값은 증권거래세 **0.18%**(02 v2.10 이전) 시절 값이다(05 검산 «18,000»). 고치지 않고, 테스트가 옛 세율로 통합 경로를 맞춘 뒤 현행 0.20% 로 GV-11b 와 같은지를 따로 본다(설계 13 §8 R13) | 05 **v1.22** | 2026-10-20 |
+| `gv24_holding_cost.json` | 같은 문서 §GV-24 코드 블록(2494~2518행) | 05 **v1.22** | 2026-10-20 |
+| `gv42_allocation.json` | `08_파일럿/파일럿5/vectors/gv42.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `d8c34a23dbf9b8637170bfec55f67ddee9790de2c9658d004539e7cd9cda9c8f`) · 05 §GV-42 가 지목(AC-B30 · v2.31 재생성판 = 허용 6 · 거부 6) | 파일 커밋 `000347b` | 2026-10-20 |
 | `gv09_idempotency_key.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-9 코드 블록(1138~1160행) | 05 **v1.22** | 2026-10-20 |
 | `gv12_trading_day.json` | 같은 문서 §GV-12 코드 블록(1943~1957행) | 05 **v1.22** | 2026-10-20 |
 | `gv12c_last_session_negative.json` | 같은 문서 §GV-12c 코드 블록(1967~1981행) | 05 **v1.22** | 2026-10-20 |
@@ -47,6 +53,12 @@
 sha256(복사본 — `sha256sum *.json`):
 
 ```
+38cecab31bac0101e10c8b19f86f8f19831252b114032fc3de92471c27deb405  gv11_trade_cost.json
+4296b284a5bc3adfefba0abe83423330a1dd84cbe0eaa4d252a7d6e9c056898f  gv11d_participation.json
+1252d7b91e7a95bf9b3710ea2d4fa84312c45c59999d507961d1ab467b38c4b6  gv11e_tier_boundary_us.json
+a15de897a6c54f0beecab13e05922bd63115605bf35191b905d0c3d6e69a5981  gv19_cost_in_pnl.json
+3e58ac36b3be37759b83d5c22ae650f0ce4ff3b2b2aa0502658411cdaa837536  gv24_holding_cost.json
+fab43cf169e63d3b2e3be5cb549fce054d25e23efdd3d94cf36228a352e8dbbf  gv42_allocation.json
 a41ab978523027bc99c7664bf2d27e624ca697c6daeeba7266aa2eceaf3fdea6  gv01a_all_valid.json
 a19805864e839ee6667c04a6b29cfe5831cf93750ac2358945022ddb6aff43fe  gv01b_two_missing.json
 b35bc2f185cc6e2202b9cbc624f9299ccb99959af8551c5608208f7fe2d80ebb  gv01c_category_exclusion.json

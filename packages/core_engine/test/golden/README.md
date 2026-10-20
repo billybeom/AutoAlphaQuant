@@ -2,7 +2,7 @@
 
 정본: `06_시스템설계/05_수용기준_골든벡터.md`
 입력 JSON: `vectors/`(원본 그대로 옮긴 사본 — 출처·sha256 은 `vectors/SOURCES.md`) · 원본 위치 `08_파일럿/파일럿1·3·4·5/…` 와 05 본문 JSON 블록 · 전략 수치 정본 `09_백테스트/백테스트6/runs/N2_golden/golden_p0s.json`
-진척: E1 = GV-8(8a~8f) · GV-3(6) · GV-3c(2) · E2a = GV-2a~2f(10) · E2b = GV-1(7) · GV-4 계열(13) · E3a = GV-31(29) · s_h5_1 · GV-18(5) · E3b = GV-32(63) · GV-39(15) · GV-17(6) · E4 = GV-9(2) · GV-12(5) · GV-12c(9) · GV-13 형식(4). 세션 데이터 = `vectors/sessions_x*.json`(exchange_calendars 4.13.2 동결 · `tool/gen_exchange_sessions.py`). 블록별 범위는 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` §2.
+진척: E1 = GV-8(8a~8f) · GV-3(6) · GV-3c(2) · E2a = GV-2a~2f(10) · E2b = GV-1(7) · GV-4 계열(13) · E3a = GV-31(29) · s_h5_1 · GV-18(5) · E3b = GV-32(63) · GV-39(15) · GV-17(6) · E4 = GV-9(2) · GV-12(5) · GV-12c(9) · GV-13 형식(4) · E5a = GV-11(3 + 왕복) · GV-11e(6) · GV-11d(1) · GV-19(옛 세율 원문 + 현행 세율) · GV-24(5 + 가중 총보수) · GV-42(12). 세션 데이터 = `vectors/sessions_x*.json`(exchange_calendars 4.13.2 동결 · `tool/gen_exchange_sessions.py`). 블록별 범위는 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` §2.
 
 ## 무엇을 하나
 

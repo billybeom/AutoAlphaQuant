@@ -1,0 +1,17 @@
+{
+  "input": {
+    "trades": [
+      { "symbol": "005930", "entry_price": 10000, "exit_price": 10000, "quantity": 1000,
+        "market": "KR", "adv20": 800000000, "sigma_daily": 0.0 }
+    ],
+    "costs": "GV-11 설정과 동일"
+  },
+  "expected": {
+    "gross_pnl": 0,
+    "buy_cost": 61500,
+    "sell_cost": 79500,
+    "total_cost": 141000,
+    "net_pnl": -141000
+  },
+  "tolerance": { "amounts": 0.01 }
+}

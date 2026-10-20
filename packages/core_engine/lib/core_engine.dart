@@ -10,10 +10,24 @@
 // `11_앱설계/13_엔진레인_착수계획.md` §2 를 본다.
 
 export 'src/calendar/exchange_calendar.dart' show ExchangeCalendar, Market;
+export 'src/costs/trade_costs.dart'
+    show
+        KrCostConfig,
+        ParticipationCut,
+        RoundTripPnl,
+        SlippageTier,
+        TradeCost,
+        applyHoldingCost,
+        participationCut,
+        roundTripPnl,
+        tradeCost,
+        weightedExpenseRatio;
 export 'src/decimal_rules.dart'
     show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
 export 'src/orders/idempotency.dart'
     show DecisionIds, idempotencyKey, idempotencyRaw;
+export 'src/portfolio/allocation.dart'
+    show AllocationTargets, kAllocationProfiles, resolveAllocation;
 export 'src/risk/breaker.dart'
     show
         BreakerConfig,
