@@ -74,3 +74,6 @@ export 'src/signals/regime_score.dart'
         categoryScore,
         directionFromCategoryScores;
 export 'src/signals/regime_states.dart' show DirectionState, TrendState;
+export 'src/signals/seasonal_exit.dart' show seasonalExitFraction;
+export 'src/signals/sleeve_b_tranche.dart'
+    show SleeveBAssist, sleeveBTargetRatioP0, sleeveBTargetWeight;

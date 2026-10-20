@@ -1,0 +1,15 @@
+{
+  "common": {
+    "lookback_months": [8, 10, 12],
+    "monthly_closes_head": [120, 118, 116, 110, 100, 90, 85, 88, 92, 96, 100]
+  },
+  "cases": [
+    { "id": "b1", "last_close": 105, "expected_ratio": 1.0 },
+    { "id": "b2", "last_close":  99, "expected_ratio": 0.6666666666666666 },
+    { "id": "b3", "last_close":  95, "expected_ratio": 0.3333333333333333 },
+    { "id": "b4", "last_close":  85, "expected_ratio": 0.0 },
+    { "id": "b5", "monthly_closes": "head only (11개월)", "expected_ratio": 0.0,
+      "note": "🔴 워밍업 미달은 None이 아니라 0.0 (fail-closed)" }
+  ],
+  "tolerance": 1e-12
+}
