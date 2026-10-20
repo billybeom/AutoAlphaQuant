@@ -1,0 +1,562 @@
+{
+ "_meta": {
+  "vector": "GV-39 P2 검사 순서 trace (04 §1-5 P2 · NFR-202 로그 순서 결정론)",
+  "generated_by": "vectors/gv39_gen_vectors.py — 04 §1-5 직역 참조 구현 실행 (GV-32 63케이스 동치 증명 후 생성)",
+  "cfg": "qtrade.common.config.load_config({}) 기본값 (파일럿4 와 동일)",
+  "base_intent": {
+   "intent_id": "gv32",
+   "trade_date": "2026-08-14",
+   "market": "KR",
+   "account": "01",
+   "strategy_id": "satellite",
+   "decision_id": "d1",
+   "symbol": "005930",
+   "side": "BUY",
+   "order_type": "LIMIT",
+   "quantity": 100,
+   "limit_price": 10000.0,
+   "entry_price": 10000.0,
+   "stop_price": 9500.0,
+   "sleeve": "satellite"
+  },
+  "base_state": {
+   "total_equity": 200000000.0,
+   "orders_today": 10,
+   "risk_exposure_after": 0.5,
+   "leverage_after": 0.9,
+   "positions_after": 10,
+   "satellite_positions_after": 5,
+   "satellite_sector_count_after": 2,
+   "satellite_allocation": 36000000.0,
+   "satellite_exposure": 1.0,
+   "satellite_deployed_before": 20000000.0,
+   "daily_pnl_pct": -0.01,
+   "fx_rate_usdkrw": 1300.0,
+   "strategy_registered": true,
+   "trading_blocked": false,
+   "journal_missing": false,
+   "tier_b_unjudged": false
+  },
+  "surface": "check_all_limits(intent, state, cfg, trace=None) — 호출자 제공 리스트에 평가 시작한 SAF ID 를 순서대로 append. LimitCheckResult 계약 불변. RiskCheckUnavailable 시에도 부분 trace 가 리스트에 남는다",
+  "canonical_order": {
+   "4": [
+    "SAF-401",
+    "SAF-402",
+    "SAF-403",
+    "SAF-404",
+    "SAF-406",
+    "SAF-407",
+    "SAF-408",
+    "SAF-410"
+   ],
+   "3": [
+    "SAF-301",
+    "SAF-303",
+    "SAF-304"
+   ],
+   "2": [
+    "SAF-203",
+    "SAF-206",
+    "SAF-207"
+   ],
+   "1": [
+    "SAF-101",
+    "SAF-103",
+    "SAF-102",
+    "SAF-104"
+   ]
+  },
+  "compare": "GV-32 의 5필드(status·allowed·violated·adjusted_qty·raises) + trace(순서 포함 완전 일치)",
+  "n_cases": 15
+ },
+ "cases": [
+  {
+   "id": "g00_full_scan_baseline",
+   "note": "기준선 새틀라이트 BUY 통과 — 전 18검사 trace = L4→L3→L2→L1, 레벨 내부 오름차순(L1 은 101·103·102·104)",
+   "intent": {},
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-203",
+     "SAF-206",
+     "SAF-207",
+     "SAF-101",
+     "SAF-103",
+     "SAF-102",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g01_multi_level_4_3_2_1",
+   "note": "🔴 4레벨 동시 위반(401·301·206·103) — 거부가 섞여도 전수 스캔이라 trace 는 18개 그대로가 아니라 103 위반으로 102 만 미평가(17개). violated 는 정렬, trace 는 평가순",
+   "intent": {
+    "stop_price": 10000.0
+   },
+   "state": {
+    "orders_today": 60,
+    "risk_exposure_after": 0.86,
+    "satellite_sector_count_after": 4
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-103",
+     "SAF-206",
+     "SAF-301",
+     "SAF-401"
+    ],
+    "adjusted_qty": null,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-203",
+     "SAF-206",
+     "SAF-207",
+     "SAF-101",
+     "SAF-103",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g02_reject_plus_reduce_full_scan",
+   "note": "거부(402)+축소(101) 혼합 — P1 이 스캔을 중단시키지 않음: L4 의 402 거부 후에도 L1 의 101 까지 평가 (전수 확인)",
+   "intent": {
+    "quantity": 2100,
+    "stop_price": 9700.0
+   },
+   "state": {
+    "satellite_deployed_before": 10000000.0
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-101",
+     "SAF-402"
+    ],
+    "adjusted_qty": null,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-203",
+     "SAF-206",
+     "SAF-207",
+     "SAF-101",
+     "SAF-103",
+     "SAF-102",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g03_sell_scope_skips",
+   "note": "SELL — 미적용 검사는 trace 에서 빠진다: [401 402 404 406 407 303 104] (403·408·410·301·304·2xx·101·103·102 스킵)",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-303",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g04_sell_none_inputs_ok",
+   "note": "SELL + 미적용 검사의 입력이 전부 None — trace 동일·통과 (P6 '필요한 것만' 의 trace 면)",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "risk_exposure_after": null,
+    "daily_pnl_pct": null,
+    "journal_missing": null,
+    "tier_b_unjudged": null,
+    "positions_after": null,
+    "satellite_positions_after": null,
+    "satellite_sector_count_after": null,
+    "satellite_allocation": null,
+    "satellite_exposure": null,
+    "satellite_deployed_before": null
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-303",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g05_nonsatellite_sleeve_skips_l2",
+   "note": "슬리브 B BUY — L2(203·206·207) 만 trace 에서 빠진다 (15개)",
+   "intent": {
+    "sleeve": "sleeve_b"
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-101",
+     "SAF-103",
+     "SAF-102",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g06_p6_midscan_pnl_none",
+   "note": "🔴 P6 조기 예외 — daily_pnl None: trace 는 [401 402 403] 에서 끊기고 마지막 원소가 결핍 검사(403)",
+   "intent": {},
+   "state": {
+    "daily_pnl_pct": null
+   },
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable",
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403"
+    ]
+   }
+  },
+  {
+   "id": "g07_p6_midscan_alloc_none",
+   "note": "P6 조기 예외 — alloc None: L4·L3 전부와 203·206 을 지나 207 에서 끊긴다 (14개)",
+   "intent": {},
+   "state": {
+    "satellite_allocation": null
+   },
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable",
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-203",
+     "SAF-206",
+     "SAF-207"
+    ]
+   }
+  },
+  {
+   "id": "g08_p6_prelude_equity_none",
+   "note": "P6 프렐류드 — total_equity None 은 스캔 전 해석이라 trace = [] (파일럿4 구조 고정)",
+   "intent": {},
+   "state": {
+    "total_equity": null
+   },
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable",
+    "trace": []
+   }
+  },
+  {
+   "id": "g09_p6_prelude_fx_none_us",
+   "note": "P6 프렐류드 — US 주문 fx None → trace = []",
+   "intent": {
+    "market": "US",
+    "limit_price": 100.0,
+    "entry_price": 100.0,
+    "stop_price": 95.0,
+    "quantity": 50
+   },
+   "state": {
+    "fx_rate_usdkrw": null
+   },
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable",
+    "trace": []
+   }
+  },
+  {
+   "id": "g10_p6_stop_none_ends_at_103",
+   "note": "P6 스캔 중 — stop None 은 SAF-103 평가에서 예외: trace 마지막 원소 = SAF-103 (101 은 이미 등재)",
+   "intent": {
+    "stop_price": null
+   },
+   "state": {},
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable",
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-203",
+     "SAF-206",
+     "SAF-207",
+     "SAF-101",
+     "SAF-103"
+    ]
+   }
+  },
+  {
+   "id": "g11_103_reject_skips_102",
+   "note": "103 위반 → 102 미평가: trace 는 …101·103·104 로 끝난다 (GV-32 m_103_101 의 trace 면)",
+   "intent": {
+    "quantity": 1200,
+    "stop_price": 10000.0
+   },
+   "state": {},
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-101",
+     "SAF-103"
+    ],
+    "adjusted_qty": null,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-203",
+     "SAF-206",
+     "SAF-207",
+     "SAF-101",
+     "SAF-103",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g12_reduce_to_zero_skipped",
+   "note": "P5 — 207 축소 0 → SKIPPED 여도 스캔은 전수: trace 18개",
+   "intent": {},
+   "state": {
+    "satellite_deployed_before": 35995000.0
+   },
+   "expected": {
+    "status": "SKIPPED",
+    "allowed": false,
+    "violated": [
+     "SAF-104",
+     "SAF-207"
+    ],
+    "adjusted_qty": 0,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-203",
+     "SAF-206",
+     "SAF-207",
+     "SAF-101",
+     "SAF-103",
+     "SAF-102",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g13_gate_closed_bear_rejected",
+   "note": "2-b — BEAR 게이트 닫힘(207 REJECTED+ALERT)여도 L1 까지 전수 스캔: trace 18개",
+   "intent": {},
+   "state": {
+    "satellite_exposure": 0.0,
+    "satellite_deployed_before": 0.0
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-207"
+    ],
+    "adjusted_qty": null,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-203",
+     "SAF-206",
+     "SAF-207",
+     "SAF-101",
+     "SAF-103",
+     "SAF-102",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g14_multi_l4_intra_order",
+   "note": "L4 내부 다중 위반(401·404·407·408) — 레벨 내부 오름차순 고정을 재는 케이스",
+   "intent": {
+    "order_type": "STOP"
+   },
+   "state": {
+    "orders_today": 60,
+    "trading_blocked": true,
+    "journal_missing": true
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-401",
+     "SAF-404",
+     "SAF-407",
+     "SAF-408"
+    ],
+    "adjusted_qty": null,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
+     "SAF-203",
+     "SAF-206",
+     "SAF-207",
+     "SAF-101",
+     "SAF-103",
+     "SAF-102",
+     "SAF-104"
+    ]
+   }
+  }
+ ]
+}

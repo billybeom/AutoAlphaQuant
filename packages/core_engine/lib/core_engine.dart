@@ -24,6 +24,16 @@ export 'src/risk/breaker.dart'
         levelFromDrawdown,
         releaseStoppedToHalted,
         stepBreaker;
+export 'src/risk/limits.dart'
+    show
+        LimitCheckResult,
+        LimitConfig,
+        LimitIntent,
+        LimitSide,
+        LimitState,
+        LimitStatus,
+        RiskCheckUnavailable,
+        checkAllLimits;
 export 'src/risk/position_sizing.dart'
     show SizingBinding, SizingResult, sizePosition;
 export 'src/signals/exposure_gate.dart'

@@ -1,0 +1,17 @@
+{
+  "base_state": { "orders_today": 3, "daily_pnl_pct": -0.01, "usd_exposure_pct": 0.20,
+                  "fx_rate_usdkrw": 1350.0, "reconcile_blocked": false,
+                  "breaker_level": "NORMAL", "positions_by_sector": {} },
+  "base_cfg":   { "max_orders_per_day": 20 },
+  "cases": [
+    { "id": "x1", "override": { "orders_today": null },      "expected": { "raises": "RiskCheckUnavailable" } },
+    { "id": "x2", "override": { "daily_pnl_pct": null },     "expected": { "raises": "RiskCheckUnavailable" } },
+    { "id": "x3", "override": { "usd_exposure_pct": null },  "intent": { "market": "US" },
+                                                             "expected": { "raises": "RiskCheckUnavailable" } },
+    { "id": "x4", "override": { "fx_rate_usdkrw": null },    "intent": { "market": "US" },
+                                                             "expected": { "raises": "RiskCheckUnavailable" } },
+    { "id": "x5", "override": { "reconcile_blocked": true }, "expected": { "allowed": false, "violated": ["SAF-407"] } },
+    { "id": "x6", "override": { "orders_today": 20 },        "expected": { "allowed": false, "violated": ["SAF-401"] } },
+    { "id": "x7", "override": {},                            "expected": { "allowed": true,  "violated": [] } }
+  ]
+}
