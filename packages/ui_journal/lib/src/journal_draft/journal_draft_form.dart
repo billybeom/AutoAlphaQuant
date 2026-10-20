@@ -498,6 +498,18 @@ class _JournalDraftFormState extends ConsumerState<JournalDraftForm> {
                   isExpanded: true,
                   value: _effectiveRule(spec),
                   hint: const Text(JournalLabels.draftRuleCited),
+                  itemHeight: _effectiveRule(spec) == null
+                      ? kMinInteractiveDimension
+                      : null,
+                  selectedItemBuilder: (BuildContext context) => spec
+                      .ruleCitedOptions
+                      .map(
+                        (ReasonOption o) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(o.label),
+                        ),
+                      )
+                      .toList(growable: false),
                   items: spec.ruleCitedOptions
                       .map(
                         (ReasonOption o) => DropdownMenuItem<ReasonOption>(

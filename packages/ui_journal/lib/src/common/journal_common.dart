@@ -346,3 +346,31 @@ class JournalErrorView extends StatelessWidget {
     );
   }
 }
+
+// ── 🆕 R3 — 공통 배너 조각(J-4 · 01 §16-8 K17) ─────────────────────────────
+
+/// 차단 카드(최대 2 + 넘침 수)와 표식 칩 — 받은 순서 그대로. 차단/표식 분리는 여기 한 곳.
+class JournalSafetyBanners extends StatelessWidget {
+  const JournalSafetyBanners({super.key, required this.safety});
+
+  final SafetyState? safety;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<BlockFlag> flags = safety?.activeFlags ?? <BlockFlag>[];
+    final List<BlockFlag> blockingFlags = flags
+        .where((BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId))
+        .toList();
+    final List<BlockFlag> markerFlags = flags
+        .where((BlockFlag f) => FlagIds.markerOnly.contains(f.flagId))
+        .toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        if (blockingFlags.isNotEmpty)
+          JournalBlockingFlags(flags: blockingFlags),
+        if (markerFlags.isNotEmpty) JournalMarkerChips(flags: markerFlags),
+      ],
+    );
+  }
+}

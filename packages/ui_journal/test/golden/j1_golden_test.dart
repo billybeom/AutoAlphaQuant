@@ -52,6 +52,10 @@ class _FakeJournalRepository extends UnimplementedJournalRepository {
   Stream<List<JournalTimelineBadge>> watchTimelineBadges({
     RunMode mode = RunMode.live,
   }) => Stream<List<JournalTimelineBadge>>.value(badges);
+
+  @override
+  Stream<JournalRebalanceScope?> watchRebalanceScope(String rebalanceEventId) =>
+      Stream<JournalRebalanceScope?>.value(null);
 }
 
 class _FakeSafetyRepository implements SafetyRepository {
