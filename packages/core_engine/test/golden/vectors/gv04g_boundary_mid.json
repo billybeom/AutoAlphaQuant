@@ -1,0 +1,11 @@
+{
+  "input": {
+    "direction_series": [65, 65, 65, 60, 60, 60, 40, 40, 40],
+    "up": 60.0, "down": 40.0, "confirm_bars": 3, "min_hold_bars": 10,
+    "initial_state": "NEUTRAL", "initial_bars_in_state": 99
+  },
+  "expected": {
+    "states": ["NEUTRAL","NEUTRAL","BULL","BULL","BULL","NEUTRAL","NEUTRAL","NEUTRAL","NEUTRAL"],
+    "bars_in_state": [100, 101, 0, 1, 2, 0, 1, 2, 3]
+  }
+}

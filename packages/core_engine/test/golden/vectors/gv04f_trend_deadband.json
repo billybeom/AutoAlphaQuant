@@ -1,0 +1,12 @@
+{
+  "input": {
+    "trendiness_series": [50, 50, 50, 40, 40, 40, 30, 30, 30, 46, 46, 47],
+    "trend_in": 35.0, "trend_out": 45.0, "confirm_bars": 3,
+    "initial_trend": "LOW"
+  },
+  "expected": {
+    "trend_states": ["LOW","LOW","HIGH","HIGH","HIGH","HIGH","HIGH","HIGH",
+                     "LOW","LOW","LOW","HIGH"],
+    "g": [0.5, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0]
+  }
+}

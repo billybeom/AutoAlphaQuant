@@ -1,0 +1,7 @@
+{
+  "trend_in": 35.0, "trend_out": 45.0, "confirm_bars": 3,
+  "cases": [
+    { "id": "tn1", "trendiness_series": [30, 30, null, 30, 30, 30], "initial_trend": "HIGH",
+      "expected": { "trend_states": ["HIGH","HIGH","HIGH","HIGH","HIGH","LOW"] } }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "input": { "category_scores": {} },
+  "expected": { "status": "INSUFFICIENT_DATA", "direction": null }
+}

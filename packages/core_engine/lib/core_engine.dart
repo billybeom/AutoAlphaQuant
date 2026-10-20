@@ -13,7 +13,24 @@ export 'src/decimal_rules.dart'
     show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
 export 'src/risk/position_sizing.dart'
     show SizingBinding, SizingResult, sizePosition;
-export 'src/signals/exposure_gate.dart' show exposureGate;
+export 'src/signals/exposure_gate.dart'
+    show directionFactor, exposureGate, trendFactor;
+export 'src/signals/hysteresis.dart'
+    show
+        DirectionHysteresis,
+        TrendHysteresis,
+        applyHysteresis,
+        applyTrendHysteresis;
 export 'src/signals/indicators.dart'
     show adx, atr, bbw, chop, rma, rmaStep, sma, trueRange;
+export 'src/signals/regime_score.dart'
+    show
+        CategoryInput,
+        DirectionScore,
+        IndicatorScore,
+        RegimeCategory,
+        RegimeStatus,
+        aggregateDirection,
+        categoryScore,
+        directionFromCategoryScores;
 export 'src/signals/regime_states.dart' show DirectionState, TrendState;

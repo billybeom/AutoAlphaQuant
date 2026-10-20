@@ -1,0 +1,13 @@
+{
+  "input": {
+    "direction_series": [65,66,67,62,62,62,62,62,62,62,62,62,35,35,35,70,70,70,70,70,70,70,70,70,70],
+    "up": 60.0, "down": 40.0, "confirm_bars": 3, "min_hold_bars": 10,
+    "initial_state": "NEUTRAL", "initial_bars_in_state": 99
+  },
+  "expected": {
+    "states": ["NEUTRAL","NEUTRAL","BULL","BULL","BULL","BULL","BULL","BULL",
+               "BULL","BULL","BULL","BULL","BULL","BULL","BEAR","BEAR","BEAR",
+               "BEAR","BEAR","BEAR","BEAR","BEAR","BEAR","BEAR","BULL"],
+    "bars_in_state": [100,101,0,1,2,3,4,5,6,7,8,9,10,11,0,1,2,3,4,5,6,7,8,9,0]
+  }
+}
