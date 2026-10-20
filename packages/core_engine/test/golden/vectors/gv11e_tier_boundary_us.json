@@ -1,0 +1,23 @@
+{
+  "cases": [
+    { "id": "c1", "market":"KR", "side":"BUY", "order_value":10000000,
+      "adv20":10000000000, "sigma_daily":0.0,
+      "expected": { "slippage": 10000, "commission": 1500, "total": 11500 } },
+    { "id": "c2", "market":"KR", "side":"BUY", "order_value":10000000,
+      "adv20":9999999999, "sigma_daily":0.0,
+      "expected": { "slippage": 30000, "commission": 1500, "total": 31500 } },
+    { "id": "c3", "market":"KR", "side":"BUY", "order_value":10000000,
+      "adv20":1000000000, "sigma_daily":0.0,
+      "expected": { "slippage": 30000, "commission": 1500, "total": 31500 } },
+    { "id": "c4", "market":"KR", "side":"BUY", "order_value":10000000,
+      "adv20":999999999, "sigma_daily":0.0,
+      "expected": { "slippage": 60000, "commission": 1500, "total": 61500 } },
+    { "id": "c5", "market":"KR", "side":"BUY", "order_value":10000000,
+      "adv20":0, "sigma_daily":0.0,
+      "expected": { "slippage": 60000, "commission": 1500, "total": 61500 } },
+    { "id": "c6", "market":"US", "side":"BUY", "order_value":10000000,
+      "adv20":10000000000, "sigma_daily":0.0,
+      "expected": { "raises": "NotImplementedError" } }
+  ],
+  "tolerance": { "amounts": 0.01 }
+}

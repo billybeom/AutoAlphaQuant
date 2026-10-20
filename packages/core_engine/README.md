@@ -11,6 +11,7 @@
 | `lib/src/signals/` | 국면 판정·진입 게이트·추세/모멘텀 신호 |
 | `lib/src/portfolio/` | 슬리브 목표비중·밴드·리밸런싱 수량 산출 |
 | `lib/src/risk/` | 청산 티어(TIER 0~3)·손절선·SAF 한도 게이트 |
+| `lib/src/costs/` | 거래비용(수수료·세금·슬리피지·시장충격)·참여율 절단·보유비용(백테스트 전용) |
 | `lib/src/whatif/` | M3 — 부작용 0의 입금·인출·리밸런싱 미리보기(`WhatIfApi` 구현) |
 
 > ⚠️ 01 §4-1의 주석은 `core_engine/lib/whatif/`로 적혀 있으나 여기서는 `lib/src/whatif/`를 쓴다. 공개 API는 배럴 `lib/core_engine.dart`로만 노출한다 — 경로 차이일 뿐 소유·성격은 같다.
@@ -37,7 +38,7 @@
 2. **골든벡터 전량 통과 전에는 DRY_RUN을 벗어나지 않는다**(결정 2). 이 패키지의 Dart 재현이 그 게이트다.
 3. **사유 문구는 여기서 만들어진다.** 화면은 만들지 않는다 — 엔진이 `label`·`actionLine` 필드에 실어 보낸다.
 
-## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · 나머지는 🟡
+## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a · 나머지는 🟡
 
 실행 계획(블록 E1~E18)은 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` 가 정본이다.
 
@@ -52,6 +53,8 @@
 | `lib/src/risk/limits.dart` — 한도 판정 `checkAllLimits`(L4→L3→L2→L1 전수 · P1~P6 · `trace` 관측면 · fail-closed `RiskCheckUnavailable`) | M1-3 일부(E3b) | GV-32(63 · AC-S17) · GV-39(15) · GV-17(6 · AC-S14) · `test/limits_test.dart`(ALERT 표시) |
 | `lib/src/calendar/exchange_calendar.dart` — 거래소 캘린더(세션 데이터를 받아 판정 · 범위 밖 = 모름) · `Market`(KR/XKRX · US/XNYS) | M1-6(E4) | GV-12(5) · GV-12c(9) · `test/calendar_test.dart`(범위·입력 거부·n번째 세션) |
 | `lib/src/orders/idempotency.dart` — decision_id 6종 형식(시각·TIER 인자 없음 · strategy_id 포함) · 멱등키 원문·SHA-256 | M1-5(E4) | GV-9(2 + 불변식) · GV-13 형식 부분(v1~v4) |
+| `lib/src/costs/trade_costs.dart` — 거래비용(`total` 에 시장충격 포함 · 구간 `>=` · ETF 매도세 0 · 미국 = `UnimplementedError`) · 참여율 절단 · 왕복 손익 · 보유비용 `(1 − er/연거래일)^일수`(🔴 백테스트 전용) · 가중 총보수 | M1-4 일부 · M3-1 `estimate_costs` 계산부(E5a) | GV-11(3) · GV-11e(6) · GV-11d · GV-19 · GV-24(5 + 가중) · `test/costs_test.dart`(ETF 면제 · 구간표 정렬·0 구간 · 입력 거부) |
+| `lib/src/portfolio/allocation.dart` — 자본 배분 해석·검증(합 1.0 아니면 거부 · 하나 빠지면 잔여 · 새틀 밴드 = 목표 × 15/18 · 21/18 · 새틀 0 허용 · 오류 문구 = 참조 구현) | M1-4 일부(E5a) | GV-42(12 · AC-B30) · `test/allocation_test.dart`(문구 전체 · 키 순서 · 잔여 반올림) |
 
 **STOPPED 실재개**는 `releaseStoppedToHalted` 하나뿐이다 — 부르는 자리는 M5-3(`decision_id` 등록 뒤)과 재현 하네스다. 참조 엔진의 `stopped_release_enabled`(자격 = 재개 근사)는 앱 코드에 두지 않는다.
 
@@ -59,6 +62,6 @@
 
 **지표의 기준 구현**은 `09_백테스트/백테스트6/engine/indicators.py`(전략 골든을 만든 엔진)다. 합·평균은 창마다 왼쪽부터 더하므로 pandas·numpy 와 마지막 자리가 다를 수 있다 — 26년 경로의 경계 판정 영향은 E6 에서 잰다.
 
-아직 없는 것: 지표 원값 → 백분위(`pit_percentile`)·부호 정렬·추세성 스코어 조립 · 팩터·월중 전이(E2c) · 일간·월간 경고 한도(GV-40 — E3c 후보, 대상 상당수가 새틀·개별주라 P0S 미사용 판정부터). ⚠️ **한도 판정의 적용 범위**(설계 13 §8 R10) — 정답지는 SAF-101·102·103 을 슬리브 구분 없이 모든 매수에 건다. P0S 의 ETF 주문(손절가 없음)에 그대로 쓰면 매수가 막히므로 주문 경로(E10) 전에 정한다. 🔵 P0S 에서 실행되지 않아 보류한 것(설계 13 §7 P-2): GV-5·6·41(E2c) · GV-7·15(위험 기여도·N_eff) · 위험 기여·한도(E3) · 거래일·멱등키(E4) · 슬리브·P0S(E5) · 전략 4자리 대조(E6) · What-if(E7).
+아직 없는 것: E5 나머지 = 슬리브 B 3-트랜치 SMA · C 재구성 · 밴드 · 현금흐름(GV-20·22·28·33·35~38 — GV-23 부분 청산 · GV-25 동적 ETF 는 P0S 사용 판정부터) · 지표 원값 → 백분위(`pit_percentile`)·부호 정렬·추세성 스코어 조립 · 팩터·월중 전이(E2c) · 일간·월간 경고 한도(GV-40 — E3c 후보, 대상 상당수가 새틀·개별주라 P0S 미사용 판정부터). ⚠️ **한도 판정의 적용 범위**(설계 13 §8 R10) — 정답지는 SAF-101·102·103 을 슬리브 구분 없이 모든 매수에 건다. P0S 의 ETF 주문(손절가 없음)에 그대로 쓰면 매수가 막히므로 주문 경로(E10) 전에 정한다. 🔵 P0S 에서 실행되지 않아 보류한 것(설계 13 §7 P-2): GV-5·6·41(E2c) · GV-7·15(위험 기여도·N_eff) · 위험 기여·한도(E3) · 거래일·멱등키(E4) · 슬리브·P0S(E5) · 전략 4자리 대조(E6) · What-if(E7).
 
 ✅ SDK 는 설치돼 있다(2026-09-07 · Dart 3.13.2 · Flutter 3.47.2 · melos — `docs/toolchain_notes.md` §1). 이 패키지는 순수 Dart 라 `dart test` 로 돈다(🆕 v1.4 정정 — 구 «이 PC에는 Flutter·Dart·melos가 없다(2026-09-06)»). v1.4 `WhatIfApi` 새 시그니처(`simulateDeposit({required String amountInput})` · `findPlan`)의 구현은 06 M3-1 몫이다(`lib/src/whatif/README.md`).

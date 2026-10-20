@@ -1,0 +1,16 @@
+{
+  "market": "KR",
+  "cases": [
+    { "side":"BUY",  "order_value":10000000, "adv20":800000000, "sigma_daily":0.0,
+      "expected": { "commission":1500, "tax":0, "slippage":60000,
+                    "market_impact":0, "total":61500 } },
+    { "side":"SELL", "order_value":10000000, "adv20":800000000, "sigma_daily":0.0,
+      "expected": { "commission":1500, "tax":20000, "slippage":60000,
+                    "market_impact":0, "total":81500 } },
+    { "side":"BUY",  "order_value":10000000, "adv20":500000000, "sigma_daily":0.025,
+      "expected": { "impact_pct":0.00353553, "market_impact":35355.34,
+                    "commission":1500, "tax":0, "slippage":60000, "total":96855.34 } }
+  ],
+  "tolerance": { "amounts": 0.01, "ratios": 1e-8 },
+  "note": "🔴 v1.5 — 스칼라 tolerance 0.01을 금액과 비율에 일괄 적용하던 것을 필드별로 분리했습니다. impact_pct(0.00353553)에 0.01을 적용하면 허용 구간이 [-0.0065, +0.0135]가 되어 **시장충격을 통째로 빼먹고 0.0을 반환해도 그 필드는 통과**합니다(상대 오차 283%). 금액 필드(commission/tax/slippage/market_impact/total)는 절대 0.01, 비율 필드(impact_pct/total_pct)는 절대 1e-8입니다."
+}
