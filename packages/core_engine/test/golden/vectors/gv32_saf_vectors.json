@@ -1,0 +1,1186 @@
+{
+ "_meta": {
+  "vector": "GV-32 SAF 리스크 한도 + 동시 발동 우선순위 (04 §1 · 신설 §1-5 P1~P6)",
+  "generated_by": "vectors/gen_saf_vectors.py — impl/qtrade/risk/limits.py check_all_limits 실행",
+  "cfg": "qtrade.common.config.load_config({}) 기본값",
+  "cfg_risk": {
+   "position": {
+    "max_notional_pct": 0.05,
+    "risk_budget_pct": 0.0035
+   },
+   "sleeve": {
+    "satellite_max_positions": 8,
+    "satellite_max_per_sector": 3
+   },
+   "portfolio": {
+    "max_risk_exposure": 0.85,
+    "max_leverage": 1.0,
+    "max_positions": 30
+   },
+   "system": {
+    "max_orders_per_day": 60,
+    "max_order_value_krw": 20000000,
+    "max_daily_loss_pct": 0.03,
+    "order_type_whitelist": [
+     "LIMIT",
+     "MARKET"
+    ]
+   },
+   "circuit_breaker": {
+    "dd_alert": -0.15,
+    "dd_reduce": -0.2,
+    "dd_halt": -0.25,
+    "dd_stop": -0.3,
+    "recover_hold_bars": 20,
+    "alert_release_dd": -0.13,
+    "reduce_release_dd": -0.12,
+    "halt_release_dd": -0.15,
+    "halt_release_bull_streak": 3
+   }
+  },
+  "base_intent": {
+   "intent_id": "gv32",
+   "trade_date": "2026-08-14",
+   "market": "KR",
+   "account": "01",
+   "strategy_id": "satellite",
+   "decision_id": "d1",
+   "symbol": "005930",
+   "side": "BUY",
+   "order_type": "LIMIT",
+   "quantity": 100,
+   "limit_price": 10000.0,
+   "entry_price": 10000.0,
+   "stop_price": 9500.0,
+   "sleeve": "satellite"
+  },
+  "base_state": {
+   "total_equity": 200000000.0,
+   "orders_today": 10,
+   "risk_exposure_after": 0.5,
+   "leverage_after": 0.9,
+   "positions_after": 10,
+   "satellite_positions_after": 5,
+   "satellite_sector_count_after": 2,
+   "satellite_allocation": 36000000.0,
+   "satellite_exposure": 1.0,
+   "satellite_deployed_before": 20000000.0,
+   "daily_pnl_pct": -0.01,
+   "fx_rate_usdkrw": 1300.0,
+   "strategy_registered": true,
+   "trading_blocked": false,
+   "journal_missing": false,
+   "tier_b_unjudged": false
+  },
+  "compare": "status·allowed·violated(sorted)·adjusted_qty·raises 5필드 전부 일치해야 통과",
+  "n_cases": 63
+ },
+ "cases": [
+  {
+   "id": "s00_pass_kr",
+   "note": "기준선 KR BUY — 전 한도 통과, adjusted_qty == 요청 수량",
+   "intent": {},
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "s00_pass_us",
+   "note": "기준선 US BUY — fx 환산 후 통과 (100USD×50×1300 = 650만)",
+   "intent": {
+    "market": "US",
+    "limit_price": 100.0,
+    "entry_price": 100.0,
+    "stop_price": 95.0,
+    "quantity": 50
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 50,
+    "raises": null
+   }
+  },
+  {
+   "id": "s101",
+   "note": "SAF-101 명목 5% 초과(1,200만 > 1,000만) → 축소 floor(1,000만/1만)=1000",
+   "intent": {
+    "quantity": 1200,
+    "stop_price": 9700.0
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-101"
+    ],
+    "adjusted_qty": 1000,
+    "raises": null
+   }
+  },
+  {
+   "id": "s101_us",
+   "note": "SAF-101 US — 축소 수량은 fx 환산 분모: floor(1,000만/(100×1300))=76",
+   "intent": {
+    "market": "US",
+    "limit_price": 100.0,
+    "entry_price": 100.0,
+    "stop_price": 95.0,
+    "quantity": 100
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-101"
+    ],
+    "adjusted_qty": 76,
+    "raises": null
+   }
+  },
+  {
+   "id": "s101_edge_eq",
+   "note": "SAF-101 경계: 주문금액 == 5%(정확히 1,000만) → 통과",
+   "intent": {
+    "quantity": 1000,
+    "stop_price": 9700.0
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 1000,
+    "raises": null
+   }
+  },
+  {
+   "id": "s102",
+   "note": "SAF-102 리스크 예산 초과: 100×(10000−2000)=80만 > 70만 → floor(70만/8000)=87",
+   "intent": {
+    "stop_price": 2000.0
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-102"
+    ],
+    "adjusted_qty": 87,
+    "raises": null
+   }
+  },
+  {
+   "id": "s102_edge_eq",
+   "note": "SAF-102 경계: 700×1000 = 정확히 70만 → 통과",
+   "intent": {
+    "quantity": 700,
+    "stop_price": 9000.0
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 700,
+    "raises": null
+   }
+  },
+  {
+   "id": "s102_edge_plus",
+   "note": "SAF-102 경계: 701×1000 = 70만1천 → 축소 700",
+   "intent": {
+    "quantity": 701,
+    "stop_price": 9000.0
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-102"
+    ],
+    "adjusted_qty": 700,
+    "raises": null
+   }
+  },
+  {
+   "id": "s103",
+   "note": "SAF-103 stop >= entry → 거부",
+   "intent": {
+    "stop_price": 10000.0
+   },
+   "state": {},
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-103"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s103_neg",
+   "note": "SAF-103 stop <= 0 → 거부",
+   "intent": {
+    "stop_price": 0.0
+   },
+   "state": {},
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-103"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s104",
+   "note": "SAF-104 qty 0 → SKIPPED (REJECTED 아님)",
+   "intent": {
+    "quantity": 0
+   },
+   "state": {},
+   "expected": {
+    "status": "SKIPPED",
+    "allowed": false,
+    "violated": [
+     "SAF-104"
+    ],
+    "adjusted_qty": 0,
+    "raises": null
+   }
+  },
+  {
+   "id": "s203",
+   "note": "SAF-203 새틀라이트 9종목 → 거부",
+   "intent": {},
+   "state": {
+    "satellite_positions_after": 9
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-203"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s203_edge_eq",
+   "note": "SAF-203 경계: 정확히 8 → 통과",
+   "intent": {},
+   "state": {
+    "satellite_positions_after": 8
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "s206",
+   "note": "SAF-206 섹터 4종목 → 거부",
+   "intent": {},
+   "state": {
+    "satellite_sector_count_after": 4
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-206"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s207",
+   "note": "SAF-207 room 50만 < 주문 100만 → 축소 floor(50만/1만)=50",
+   "intent": {},
+   "state": {
+    "satellite_deployed_before": 35500000.0
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-207"
+    ],
+    "adjusted_qty": 50,
+    "raises": null
+   }
+  },
+  {
+   "id": "s207_edge_eq",
+   "note": "SAF-207 경계: room == 주문금액(100만) → 통과",
+   "intent": {},
+   "state": {
+    "satellite_deployed_before": 35000000.0
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "s207_bear",
+   "note": "SAF-207 BEAR(exposure 0) → room 0 → 축소 0 → SKIPPED (하락장 신규 매수 불가)",
+   "intent": {},
+   "state": {
+    "satellite_exposure": 0.0,
+    "satellite_deployed_before": 0.0
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-207"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s207_neutral",
+   "note": "SAF-207 NEUTRAL(exposure 0.5): room = 36M×0.5 − 17.5M = 50만 → 축소 50",
+   "intent": {},
+   "state": {
+    "satellite_exposure": 0.5,
+    "satellite_deployed_before": 17500000.0
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-207"
+    ],
+    "adjusted_qty": 50,
+    "raises": null
+   }
+  },
+  {
+   "id": "s301",
+   "note": "SAF-301 위험자산 익스포저 86% → 거부",
+   "intent": {},
+   "state": {
+    "risk_exposure_after": 0.86
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-301"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s303",
+   "note": "SAF-303 레버리지 1.01 → 거부",
+   "intent": {},
+   "state": {
+    "leverage_after": 1.01
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-303"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s304",
+   "note": "SAF-304 동시 보유 31 → 거부",
+   "intent": {},
+   "state": {
+    "positions_after": 31
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-304"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s401",
+   "note": "SAF-401 orders_today 60 → 61번째 → 거부",
+   "intent": {},
+   "state": {
+    "orders_today": 60
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-401"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s401_edge_eq",
+   "note": "SAF-401 경계: orders_today 59 → 60번째 → 통과",
+   "intent": {},
+   "state": {
+    "orders_today": 59
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "s402",
+   "note": "SAF-402 1회 2,001만 (equity 10억이라 101 미발동) → 거부",
+   "intent": {
+    "quantity": 2001
+   },
+   "state": {
+    "total_equity": 1000000000.0,
+    "satellite_allocation": 180000000.0,
+    "satellite_deployed_before": 100000000.0
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-402"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s402_edge_eq",
+   "note": "(g) SAF-402 경계: 정확히 2,000만원 → 통과",
+   "intent": {
+    "quantity": 1,
+    "limit_price": 20000000.0,
+    "entry_price": 20000000.0,
+    "stop_price": 19000000.0
+   },
+   "state": {
+    "total_equity": 1000000000.0,
+    "satellite_allocation": 180000000.0,
+    "satellite_deployed_before": 100000000.0
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 1,
+    "raises": null
+   }
+  },
+  {
+   "id": "s402_edge_plus1",
+   "note": "(g) SAF-402 경계: 2,000만원 + 1원 → 거부",
+   "intent": {
+    "quantity": 1,
+    "limit_price": 20000001.0,
+    "entry_price": 20000001.0,
+    "stop_price": 19000000.0
+   },
+   "state": {
+    "total_equity": 1000000000.0,
+    "satellite_allocation": 180000000.0,
+    "satellite_deployed_before": 100000000.0
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-402"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s403",
+   "note": "SAF-403 일일 손실 −3% (경계 <=) → 신규 매수 거부",
+   "intent": {},
+   "state": {
+    "daily_pnl_pct": -0.03
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-403"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s403_edge",
+   "note": "SAF-403 경계: −2.99% → 통과",
+   "intent": {},
+   "state": {
+    "daily_pnl_pct": -0.0299
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "s404",
+   "note": "SAF-404 주문유형 STOP (화이트리스트 밖) → 거부",
+   "intent": {
+    "order_type": "STOP"
+   },
+   "state": {},
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-404"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s406",
+   "note": "SAF-406 전략 미등록 → 거부",
+   "intent": {},
+   "state": {
+    "strategy_registered": false
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-406"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s407",
+   "note": "SAF-407 대사 불일치 플래그 → 거부",
+   "intent": {},
+   "state": {
+    "trading_blocked": true
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-407"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s408",
+   "note": "SAF-408 이탈 저널 미작성 → 신규 진입 거부",
+   "intent": {},
+   "state": {
+    "journal_missing": true
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-408"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "s410",
+   "note": "SAF-410 계층 B 판정 누락 → 신규 진입 거부",
+   "intent": {},
+   "state": {
+    "tier_b_unjudged": true
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-410"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_a_101_102_min102",
+   "note": "(a) 101(→1000)+102(→700) 둘 다 축소 → min=700 (P4)",
+   "intent": {
+    "quantity": 1200,
+    "stop_price": 9000.0
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-101",
+     "SAF-102"
+    ],
+    "adjusted_qty": 700,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_a2_101_102_min101",
+   "note": "(a′) 101(→1000)+102(→1166) → min=1000 — 반대 방향도 min",
+   "intent": {
+    "quantity": 1200,
+    "stop_price": 9400.0
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-101",
+     "SAF-102"
+    ],
+    "adjusted_qty": 1000,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_b_101_402_reject",
+   "note": "(b) 축소(101)+거부(402) 동시 → REJECTED, violated 둘 다 (P1·P3). 축소 후 1,000만이면 402 통과지만 원 요청 2,100만 기준 거부",
+   "intent": {
+    "quantity": 2100,
+    "stop_price": 9700.0
+   },
+   "state": {
+    "satellite_deployed_before": 10000000.0
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-101",
+     "SAF-402"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_b2_207_402_reject",
+   "note": "(b′) 축소(207→1500)+거부(402) — equity 10억, 원 요청 2,500만 → REJECTED",
+   "intent": {
+    "quantity": 2500
+   },
+   "state": {
+    "total_equity": 1000000000.0,
+    "satellite_allocation": 180000000.0,
+    "satellite_deployed_before": 165000000.0
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-207",
+     "SAF-402"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_c_207_101_min",
+   "note": "(c) 207(room 600만→600)+101(→1000) → min=600",
+   "intent": {
+    "quantity": 1200
+   },
+   "state": {
+    "satellite_deployed_before": 30000000.0
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-101",
+     "SAF-207"
+    ],
+    "adjusted_qty": 600,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_d_reduce_to_zero",
+   "note": "(d) 207 room 5천원 → 축소 0 → SKIPPED, violated 에 SAF-104 추가 (P5)",
+   "intent": {},
+   "state": {
+    "satellite_deployed_before": 35995000.0
+   },
+   "expected": {
+    "status": "SKIPPED",
+    "allowed": false,
+    "violated": [
+     "SAF-104",
+     "SAF-207"
+    ],
+    "adjusted_qty": 0,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_d2_room_negative",
+   "note": "(d′) 이미 초과 전개(room < 0) → 축소 0 → SKIPPED",
+   "intent": {},
+   "state": {
+    "satellite_deployed_before": 40000000.0
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-207"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_reject_reject",
+   "note": "거부 2건(401+407) → violated 둘 다 (P1 감사용 전수)",
+   "intent": {},
+   "state": {
+    "orders_today": 60,
+    "trading_blocked": true
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-401",
+     "SAF-407"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_103_101",
+   "note": "103(거부)+101(축소) → REJECTED, violated [101,103] — 103 이면 102 는 미평가",
+   "intent": {
+    "quantity": 1200,
+    "stop_price": 10000.0
+   },
+   "state": {},
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-101",
+     "SAF-103"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "m_all_reduce_three",
+   "note": "101+102+207 세 축소 → min (207:600, 101:1000, 102:700 → 600)",
+   "intent": {
+    "quantity": 1200,
+    "stop_price": 9000.0
+   },
+   "state": {
+    "satellite_deployed_before": 30000000.0
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [
+     "SAF-101",
+     "SAF-102",
+     "SAF-207"
+    ],
+    "adjusted_qty": 600,
+    "raises": null
+   }
+  },
+  {
+   "id": "n_equity_none",
+   "note": "(e) total_equity None → RiskCheckUnavailable",
+   "intent": {},
+   "state": {
+    "total_equity": null
+   },
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable"
+   }
+  },
+  {
+   "id": "n_fx_none_us",
+   "note": "(e) US 주문에 fx None → RiskCheckUnavailable",
+   "intent": {
+    "market": "US",
+    "limit_price": 100.0,
+    "entry_price": 100.0,
+    "stop_price": 95.0,
+    "quantity": 50
+   },
+   "state": {
+    "fx_rate_usdkrw": null
+   },
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable"
+   }
+  },
+  {
+   "id": "n_fx_none_kr_ok",
+   "note": "KR 주문은 fx 불필요 → fx None 이어도 통과 (판정에 필요한 입력만 요구)",
+   "intent": {},
+   "state": {
+    "fx_rate_usdkrw": null
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "n_alloc_none",
+   "note": "(e) 새틀라이트 BUY 에 satellite_allocation None → RiskCheckUnavailable",
+   "intent": {},
+   "state": {
+    "satellite_allocation": null
+   },
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable"
+   }
+  },
+  {
+   "id": "n_pnl_none",
+   "note": "(e) daily_pnl_pct None → RiskCheckUnavailable",
+   "intent": {},
+   "state": {
+    "daily_pnl_pct": null
+   },
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable"
+   }
+  },
+  {
+   "id": "n_stop_none",
+   "note": "(e) BUY 에 stop_price None → RiskCheckUnavailable (SAF-103 판정 불가)",
+   "intent": {
+    "stop_price": null
+   },
+   "state": {},
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable"
+   }
+  },
+  {
+   "id": "n_price_none",
+   "note": "(e) 가격 없음(limit·entry 둘 다 None) → RiskCheckUnavailable",
+   "intent": {
+    "limit_price": null,
+    "entry_price": null
+   },
+   "state": {},
+   "expected": {
+    "status": null,
+    "allowed": null,
+    "violated": null,
+    "adjusted_qty": null,
+    "raises": "RiskCheckUnavailable"
+   }
+  },
+  {
+   "id": "n_sell_exposure_none_ok",
+   "note": "SELL 은 301 미적용 → risk_exposure_after None 이어도 통과 (P6 범위 확인용)",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "risk_exposure_after": null
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_101",
+   "note": "(f) SELL 1,200만(5% 초과) → 101 미적용, 그대로 통과",
+   "intent": {
+    "side": "SELL",
+    "quantity": 1200
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 1200,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_102",
+   "note": "(f) SELL stop 2000(리스크 초과) → 102 미적용",
+   "intent": {
+    "side": "SELL",
+    "stop_price": 2000.0
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_103",
+   "note": "(f) SELL stop >= entry → 103 미적용 (청산 주문은 손절가 무관)",
+   "intent": {
+    "side": "SELL",
+    "stop_price": 10000.0
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_301",
+   "note": "(f) SELL 익스포저 90% → 301 미적용",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "risk_exposure_after": 0.9
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_304",
+   "note": "(f) SELL 보유 31 → 304 미적용",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "positions_after": 31
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_408",
+   "note": "(f) SELL 저널 미작성 → 408 미적용 (신규 진입만 차단)",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "journal_missing": true
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_410",
+   "note": "(f) SELL 계층B 미판정 → 410 미적용",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "tier_b_unjudged": true
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_403",
+   "note": "(f) SELL 일일 −5% → 403 미적용 (신규 매수 정지일 뿐)",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "daily_pnl_pct": -0.05
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_203_207",
+   "note": "(f) SELL 새틀라이트 9종목·room 0 → 203/207 미적용",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "satellite_positions_after": 9,
+    "satellite_deployed_before": 36000000.0
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_402_applies",
+   "note": "(f 대조) SELL 도 402 는 적용 — 2,001만 매도 → 거부",
+   "intent": {
+    "side": "SELL",
+    "quantity": 2001
+   },
+   "state": {
+    "total_equity": 1000000000.0
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-402"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_407_applies",
+   "note": "(f 대조) SELL 도 407 대사 불일치는 적용 → 거부",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "trading_blocked": true
+   },
+   "expected": {
+    "status": "REJECTED",
+    "allowed": false,
+    "violated": [
+     "SAF-407"
+    ],
+    "adjusted_qty": null,
+    "raises": null
+   }
+  },
+  {
+   "id": "f_sell_104_applies",
+   "note": "(f 대조) SELL qty 0 → 104 SKIPPED",
+   "intent": {
+    "side": "SELL",
+    "quantity": 0
+   },
+   "state": {},
+   "expected": {
+    "status": "SKIPPED",
+    "allowed": false,
+    "violated": [
+     "SAF-104"
+    ],
+    "adjusted_qty": 0,
+    "raises": null
+   }
+  }
+ ]
+}
