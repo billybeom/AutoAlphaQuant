@@ -1,0 +1,1085 @@
+{
+ "meta": {
+  "id": "J1",
+  "date": "2026-09-02",
+  "version": "v2.29",
+  "engine": "백테스트6/engine (정본 — v2.29 STOPPED 자격판정 이식본)",
+  "rule": "자격: STOPPED 유지≥20봉 ∧ dd≥−25% ∧ BULL 연속≥5일 → STOPPED_RELEASE_ELIGIBLE 1회(enabled 무관). 레벨 HALTED 하강은 stopped_release_enabled=True(백테스트·스트레스 전용, 기본 False)만",
+  "spec_delta_vs_sbx": "_sbx_H5 는 enabled=True 일 때만 조건 평가·자격 이벤트 없음 — v2.29 사양(항상 기록, 레벨만 게이트)으로 정밀화하여 이식",
+  "reproduce": "PYTHONIOENCODING=utf-8 python exp/J1_stopped_vector.py"
+ },
+ "identity_check": {
+  "v224_default": {
+   "bit_equal": true,
+   "stopped_transitions_26y": 0,
+   "eligible_events_26y": 0,
+   "off_run": {
+    "cagr_pct": 8.3961,
+    "mdd_pct": -14.7803,
+    "vol_pct": 6.6767
+   },
+   "golden": {
+    "cagr_pct": 8.3961,
+    "mdd_pct": -14.7803,
+    "vol_pct": 6.6767
+   },
+   "parity_vs_golden": true,
+   "ok": true
+  },
+  "preset_P0": {
+   "bit_equal": true,
+   "stopped_transitions_26y": 0,
+   "eligible_events_26y": 0,
+   "off_run": {
+    "cagr_pct": 11.1711,
+    "mdd_pct": -12.7667,
+    "vol_pct": 8.2373
+   },
+   "golden": {
+    "cagr_pct": 11.1711,
+    "mdd_pct": -12.7667,
+    "vol_pct": 8.2373
+   },
+   "parity_vs_golden": true,
+   "ok": true
+  }
+ },
+ "stressA_amplified": {
+  "multiplier": 3.5,
+  "amplified_mdd_pct": -39.5998,
+  "off": {
+   "final_level": "STOPPED",
+   "n_transitions": 74,
+   "days_in_stopped": 1661,
+   "eligible_events": [
+    {
+     "date": "2020-11-20",
+     "detail": "held=176 dd=-0.2358 bull=7",
+     "dd_pct": -23.5835
+    }
+   ],
+   "stopped_episodes": [
+    {
+     "enter": "2020-03-19",
+     "release": null,
+     "held_bars": 1660,
+     "dd_at_release_pct": null
+    }
+   ],
+   "transitions": [
+    {
+     "date": "2000-05-05",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.0054
+    },
+    {
+     "date": "2000-06-02",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -7.1299
+    },
+    {
+     "date": "2002-04-24",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.3862
+    },
+    {
+     "date": "2002-04-29",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -21.2822
+    },
+    {
+     "date": "2002-05-31",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.1499
+    },
+    {
+     "date": "2003-05-19",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -6.0815
+    },
+    {
+     "date": "2003-06-16",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -5.0497
+    },
+    {
+     "date": "2003-07-14",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -4.1942
+    },
+    {
+     "date": "2003-08-11",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.4216
+    },
+    {
+     "date": "2003-09-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -2.134
+    },
+    {
+     "date": "2004-02-05",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.5762
+    },
+    {
+     "date": "2004-03-05",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -10.9138
+    },
+    {
+     "date": "2004-03-11",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.7061
+    },
+    {
+     "date": "2004-03-24",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.0107
+    },
+    {
+     "date": "2004-04-23",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.649
+    },
+    {
+     "date": "2004-05-07",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.1885
+    },
+    {
+     "date": "2004-07-27",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -26.2343
+    },
+    {
+     "date": "2005-02-14",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -13.6801
+    },
+    {
+     "date": "2005-03-22",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.1168
+    },
+    {
+     "date": "2005-11-22",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2005-12-20",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.0428
+    },
+    {
+     "date": "2006-01-17",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -3.1949
+    },
+    {
+     "date": "2006-01-23",
+     "move": "NORMAL -> REDUCED",
+     "dd_pct": -22.5364
+    },
+    {
+     "date": "2006-06-14",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -26.1244
+    },
+    {
+     "date": "2006-11-09",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -14.8417
+    },
+    {
+     "date": "2007-01-11",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.5714
+    },
+    {
+     "date": "2007-02-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -9.765
+    },
+    {
+     "date": "2008-07-10",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.3234
+    },
+    {
+     "date": "2008-08-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.9374
+    },
+    {
+     "date": "2008-09-10",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.031
+    },
+    {
+     "date": "2008-10-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2008-10-13",
+     "move": "NORMAL -> REDUCED",
+     "dd_pct": -24.755
+    },
+    {
+     "date": "2008-10-14",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -27.4168
+    },
+    {
+     "date": "2009-12-17",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2010-01-18",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -3.633
+    },
+    {
+     "date": "2010-02-16",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -10.7406
+    },
+    {
+     "date": "2010-10-04",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.2442
+    },
+    {
+     "date": "2010-11-01",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -6.1222
+    },
+    {
+     "date": "2012-10-22",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -16.2377
+    },
+    {
+     "date": "2012-11-01",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.3506
+    },
+    {
+     "date": "2012-12-11",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.0171
+    },
+    {
+     "date": "2013-03-13",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -14.3282
+    },
+    {
+     "date": "2013-04-10",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -8.5236
+    },
+    {
+     "date": "2013-05-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -9.4469
+    },
+    {
+     "date": "2014-04-14",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.0929
+    },
+    {
+     "date": "2014-05-22",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.4424
+    },
+    {
+     "date": "2015-08-25",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -17.1987
+    },
+    {
+     "date": "2015-09-22",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -10.2843
+    },
+    {
+     "date": "2015-10-07",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.2941
+    },
+    {
+     "date": "2015-11-19",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.9416
+    },
+    {
+     "date": "2015-11-25",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.9997
+    },
+    {
+     "date": "2015-12-29",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.9585
+    },
+    {
+     "date": "2016-01-20",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.2201
+    },
+    {
+     "date": "2016-02-17",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -11.7392
+    },
+    {
+     "date": "2016-03-21",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.031
+    },
+    {
+     "date": "2016-05-04",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.5245
+    },
+    {
+     "date": "2016-06-08",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.6847
+    },
+    {
+     "date": "2016-06-23",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.5234
+    },
+    {
+     "date": "2016-11-10",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.852
+    },
+    {
+     "date": "2016-12-12",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.3197
+    },
+    {
+     "date": "2018-02-09",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -16.6495
+    },
+    {
+     "date": "2018-03-09",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -8.0377
+    },
+    {
+     "date": "2018-03-28",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -16.4916
+    },
+    {
+     "date": "2018-04-27",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.7806
+    },
+    {
+     "date": "2018-10-25",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -17.2031
+    },
+    {
+     "date": "2018-11-20",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.2569
+    },
+    {
+     "date": "2018-12-21",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.094
+    },
+    {
+     "date": "2019-11-07",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -8.2739
+    },
+    {
+     "date": "2019-12-05",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2020-01-06",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -0.7964
+    },
+    {
+     "date": "2020-02-28",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -17.0717
+    },
+    {
+     "date": "2020-03-12",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -23.6803
+    },
+    {
+     "date": "2020-03-13",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -30.112
+    },
+    {
+     "date": "2020-03-19",
+     "move": "HALTED -> STOPPED",
+     "dd_pct": -35.5339
+    }
+   ]
+  },
+  "on": {
+   "final_level": "STOPPED",
+   "n_transitions": 103,
+   "days_in_stopped": 189,
+   "eligible_events": [
+    {
+     "date": "2020-11-20",
+     "detail": "held=176 dd=-0.2358 bull=7",
+     "dd_pct": -23.5835
+    }
+   ],
+   "stopped_episodes": [
+    {
+     "enter": "2020-03-19",
+     "release": "2020-11-20",
+     "held_bars": 176,
+     "dd_at_release_pct": -23.5835
+    },
+    {
+     "enter": "2026-07-29",
+     "release": null,
+     "held_bars": 12,
+     "dd_at_release_pct": null
+    }
+   ],
+   "transitions": [
+    {
+     "date": "2000-05-05",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.0054
+    },
+    {
+     "date": "2000-06-02",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -7.1299
+    },
+    {
+     "date": "2002-04-24",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.3862
+    },
+    {
+     "date": "2002-04-29",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -21.2822
+    },
+    {
+     "date": "2002-05-31",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.1499
+    },
+    {
+     "date": "2003-05-19",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -6.0815
+    },
+    {
+     "date": "2003-06-16",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -5.0497
+    },
+    {
+     "date": "2003-07-14",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -4.1942
+    },
+    {
+     "date": "2003-08-11",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.4216
+    },
+    {
+     "date": "2003-09-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -2.134
+    },
+    {
+     "date": "2004-02-05",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.5762
+    },
+    {
+     "date": "2004-03-05",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -10.9138
+    },
+    {
+     "date": "2004-03-11",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.7061
+    },
+    {
+     "date": "2004-03-24",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.0107
+    },
+    {
+     "date": "2004-04-23",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.649
+    },
+    {
+     "date": "2004-05-07",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.1885
+    },
+    {
+     "date": "2004-07-27",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -26.2343
+    },
+    {
+     "date": "2005-02-14",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -13.6801
+    },
+    {
+     "date": "2005-03-22",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.1168
+    },
+    {
+     "date": "2005-11-22",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2005-12-20",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.0428
+    },
+    {
+     "date": "2006-01-17",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -3.1949
+    },
+    {
+     "date": "2006-01-23",
+     "move": "NORMAL -> REDUCED",
+     "dd_pct": -22.5364
+    },
+    {
+     "date": "2006-06-14",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -26.1244
+    },
+    {
+     "date": "2006-11-09",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -14.8417
+    },
+    {
+     "date": "2007-01-11",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.5714
+    },
+    {
+     "date": "2007-02-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -9.765
+    },
+    {
+     "date": "2008-07-10",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.3234
+    },
+    {
+     "date": "2008-08-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.9374
+    },
+    {
+     "date": "2008-09-10",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.031
+    },
+    {
+     "date": "2008-10-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2008-10-13",
+     "move": "NORMAL -> REDUCED",
+     "dd_pct": -24.755
+    },
+    {
+     "date": "2008-10-14",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -27.4168
+    },
+    {
+     "date": "2009-12-17",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2010-01-18",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -3.633
+    },
+    {
+     "date": "2010-02-16",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -10.7406
+    },
+    {
+     "date": "2010-10-04",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.2442
+    },
+    {
+     "date": "2010-11-01",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -6.1222
+    },
+    {
+     "date": "2012-10-22",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -16.2377
+    },
+    {
+     "date": "2012-11-01",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.3506
+    },
+    {
+     "date": "2012-12-11",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.0171
+    },
+    {
+     "date": "2013-03-13",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -14.3282
+    },
+    {
+     "date": "2013-04-10",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -8.5236
+    },
+    {
+     "date": "2013-05-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -9.4469
+    },
+    {
+     "date": "2014-04-14",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.0929
+    },
+    {
+     "date": "2014-05-22",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.4424
+    },
+    {
+     "date": "2015-08-25",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -17.1987
+    },
+    {
+     "date": "2015-09-22",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -10.2843
+    },
+    {
+     "date": "2015-10-07",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.2941
+    },
+    {
+     "date": "2015-11-19",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.9416
+    },
+    {
+     "date": "2015-11-25",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.9997
+    },
+    {
+     "date": "2015-12-29",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.9585
+    },
+    {
+     "date": "2016-01-20",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.2201
+    },
+    {
+     "date": "2016-02-17",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -11.7392
+    },
+    {
+     "date": "2016-03-21",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.031
+    },
+    {
+     "date": "2016-05-04",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.5245
+    },
+    {
+     "date": "2016-06-08",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.6847
+    },
+    {
+     "date": "2016-06-23",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.5234
+    },
+    {
+     "date": "2016-11-10",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.852
+    },
+    {
+     "date": "2016-12-12",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.3197
+    },
+    {
+     "date": "2018-02-09",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -16.6495
+    },
+    {
+     "date": "2018-03-09",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -8.0377
+    },
+    {
+     "date": "2018-03-28",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -16.4916
+    },
+    {
+     "date": "2018-04-27",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.7806
+    },
+    {
+     "date": "2018-10-25",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -17.2031
+    },
+    {
+     "date": "2018-11-20",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.2569
+    },
+    {
+     "date": "2018-12-21",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.094
+    },
+    {
+     "date": "2019-11-07",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -8.2739
+    },
+    {
+     "date": "2019-12-05",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2020-01-06",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -0.7964
+    },
+    {
+     "date": "2020-02-28",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -17.0717
+    },
+    {
+     "date": "2020-03-12",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -23.6803
+    },
+    {
+     "date": "2020-03-13",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -30.112
+    },
+    {
+     "date": "2020-03-19",
+     "move": "HALTED -> STOPPED",
+     "dd_pct": -35.5339
+    },
+    {
+     "date": "2020-11-20",
+     "move": "STOPPED -> HALTED",
+     "dd_pct": -23.5835
+    },
+    {
+     "date": "2020-12-21",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -14.5387
+    },
+    {
+     "date": "2021-01-20",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.5113
+    },
+    {
+     "date": "2021-02-17",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -7.3289
+    },
+    {
+     "date": "2021-02-24",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.7031
+    },
+    {
+     "date": "2021-03-05",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -20.669
+    },
+    {
+     "date": "2021-04-02",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -10.564
+    },
+    {
+     "date": "2021-04-30",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -6.5332
+    },
+    {
+     "date": "2022-01-18",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.0257
+    },
+    {
+     "date": "2022-01-24",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -22.0425
+    },
+    {
+     "date": "2022-01-27",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -27.1421
+    },
+    {
+     "date": "2023-12-12",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2024-01-11",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2024-02-08",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2024-07-25",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.0432
+    },
+    {
+     "date": "2024-08-05",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -21.0085
+    },
+    {
+     "date": "2024-09-20",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -11.4044
+    },
+    {
+     "date": "2024-10-18",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2025-03-11",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -16.2596
+    },
+    {
+     "date": "2025-04-07",
+     "move": "ALERT -> HALTED",
+     "dd_pct": -25.8584
+    },
+    {
+     "date": "2025-12-17",
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -4.039
+    },
+    {
+     "date": "2026-01-16",
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -0.5971
+    },
+    {
+     "date": "2026-02-13",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -12.2116
+    },
+    {
+     "date": "2026-03-30",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -15.419
+    },
+    {
+     "date": "2026-04-27",
+     "move": "ALERT -> NORMAL",
+     "dd_pct": 0.0
+    },
+    {
+     "date": "2026-06-11",
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -19.3949
+    },
+    {
+     "date": "2026-07-14",
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -22.588
+    },
+    {
+     "date": "2026-07-20",
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -27.1422
+    },
+    {
+     "date": "2026-07-29",
+     "move": "HALTED -> STOPPED",
+     "dd_pct": -35.9026
+    }
+   ]
+  },
+  "release_conditions_at_event": {
+   "dd_pct": -23.5835,
+   "bull_streak": 7,
+   "held_bars": 176,
+   "ok": true
+  },
+  "parity_vs_H5b": true
+ },
+ "vectorB_deterministic": {
+  "vector_id": "s_h5_1",
+  "design": "dd 0→−36%(d20)→−24%(d40)→−10%(d70)→−5% · BULL d50~ · score 60",
+  "off": {
+   "final_level": "STOPPED",
+   "transitions": [
+    {
+     "day": 9,
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -16.2
+    },
+    {
+     "day": 12,
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -21.6
+    },
+    {
+     "day": 14,
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.2
+    },
+    {
+     "day": 20,
+     "move": "HALTED -> STOPPED",
+     "dd_pct": -36.0
+    }
+   ],
+   "eligible_events": [
+    {
+     "day": 54,
+     "detail": "held=34 dd=-0.1772 bull=5",
+     "dd_pct": -17.7241
+    }
+   ]
+  },
+  "on": {
+   "final_level": "NORMAL",
+   "transitions": [
+    {
+     "day": 9,
+     "move": "NORMAL -> ALERT",
+     "dd_pct": -16.2
+    },
+    {
+     "day": 12,
+     "move": "ALERT -> REDUCED",
+     "dd_pct": -21.6
+    },
+    {
+     "day": 14,
+     "move": "REDUCED -> HALTED",
+     "dd_pct": -25.2
+    },
+    {
+     "day": 20,
+     "move": "HALTED -> STOPPED",
+     "dd_pct": -36.0
+    },
+    {
+     "day": 54,
+     "move": "STOPPED -> HALTED",
+     "dd_pct": -17.7241
+    },
+    {
+     "day": 74,
+     "move": "HALTED -> REDUCED",
+     "dd_pct": -5.0
+    },
+    {
+     "day": 94,
+     "move": "REDUCED -> ALERT",
+     "dd_pct": -5.0
+    },
+    {
+     "day": 114,
+     "move": "ALERT -> NORMAL",
+     "dd_pct": -5.0
+    }
+   ],
+   "eligible_events": [
+    {
+     "day": 54,
+     "detail": "held=34 dd=-0.1772 bull=5",
+     "dd_pct": -17.7241
+    }
+   ]
+  },
+  "ok": true
+ },
+ "verdict": {
+  "all_ok": true
+ }
+}

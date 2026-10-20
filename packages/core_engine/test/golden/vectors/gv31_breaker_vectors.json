@@ -1,0 +1,1460 @@
+{
+  "_meta": {
+    "id": "GV-31",
+    "source": "04_안전장치 §2 의사코드 전사(impl/qtrade/risk/breaker.py)를 실행해 생성",
+    "generator": "08_파일럿/파일럿4/vectors/gen_breaker_vectors.py",
+    "config": {
+      "alert_dd": -0.15,
+      "reduce_dd": -0.2,
+      "halt_dd": -0.25,
+      "stopped_dd": -0.35,
+      "alert_release_dd": -0.13,
+      "reduce_release_dd": -0.12,
+      "halt_release_dd": -0.15,
+      "recover_hold_bars": 20,
+      "halt_release_bull_streak": 3
+    },
+    "stopped_dd_status": "✅ -0.35 확정 — 발주자 결정 2026-08-18 (02_전략설계 §12-①, 00 Part 16-①). 사다리 -15/-20/-25/-35",
+    "accounting": "bars_since_change는 매 봉 처음 +1 후 판정, 전환 봉에서 0으로 리셋 (GV-4 '증가 후 판정'과 동일 규약)"
+  },
+  "step_cases": [
+    {
+      "id": "s01",
+      "dd": -0.1499,
+      "prev": "NORMAL",
+      "bars_since_change": 5,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "NORMAL",
+      "note": "ALERT 경계 직전 — NORMAL 유지"
+    },
+    {
+      "id": "s02",
+      "dd": -0.15,
+      "prev": "NORMAL",
+      "bars_since_change": 5,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "ALERT",
+      "note": "경계는 <= — 정확히 -15%면 ALERT"
+    },
+    {
+      "id": "s03",
+      "dd": -0.2,
+      "prev": "NORMAL",
+      "bars_since_change": 1,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "REDUCED",
+      "note": "악화는 즉시 — 유지기간 무관 REDUCED"
+    },
+    {
+      "id": "s04",
+      "dd": -0.26,
+      "prev": "NORMAL",
+      "bars_since_change": 1,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "HALTED",
+      "note": "레벨 건너뛰는 악화 — 한 번에 HALTED"
+    },
+    {
+      "id": "s05",
+      "dd": -0.35,
+      "prev": "REDUCED",
+      "bars_since_change": 3,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "STOPPED",
+      "note": "목표 MDD(−35%) 도달 — STOPPED"
+    },
+    {
+      "id": "s05b",
+      "dd": -0.3,
+      "prev": "REDUCED",
+      "bars_since_change": 3,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "HALTED",
+      "note": "🔴 −30%는 더 이상 STOPPED가 아니다 — HALTED (구 잠정값 잔존 구현 판별)"
+    },
+    {
+      "id": "s05c",
+      "dd": -0.3499,
+      "prev": "HALTED",
+      "bars_since_change": 30,
+      "direction_score": 80.0,
+      "bull_streak": 5,
+      "expected": "HALTED",
+      "note": "STOPPED 경계 직전 — HALTED 유지(해제 조건 미충족)"
+    },
+    {
+      "id": "s05d",
+      "dd": -0.35,
+      "prev": "HALTED",
+      "bars_since_change": 1,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "STOPPED",
+      "note": "경계는 <= — 정확히 −35%면 STOPPED, 유지기간 무관"
+    },
+    {
+      "id": "s06",
+      "dd": -0.1,
+      "prev": "ALERT",
+      "bars_since_change": 19,
+      "direction_score": 80.0,
+      "bull_streak": 5,
+      "expected": "ALERT",
+      "note": "유지기간 미경과(19<20) — 어떤 해제도 불가"
+    },
+    {
+      "id": "s07",
+      "dd": -0.1,
+      "prev": "ALERT",
+      "bars_since_change": 20,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "NORMAL",
+      "note": "ALERT 해제: dd > -13% — NORMAL"
+    },
+    {
+      "id": "s08",
+      "dd": -0.13,
+      "prev": "ALERT",
+      "bars_since_change": 20,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "ALERT",
+      "note": "ALERT 해제는 strict — 정확히 -13%면 유지"
+    },
+    {
+      "id": "s09",
+      "dd": -0.11,
+      "prev": "REDUCED",
+      "bars_since_change": 20,
+      "direction_score": 50.0,
+      "bull_streak": 0,
+      "expected": "ALERT",
+      "note": "REDUCED 해제: dd>=-12% AND ds>=50 — ALERT"
+    },
+    {
+      "id": "s10",
+      "dd": -0.12,
+      "prev": "REDUCED",
+      "bars_since_change": 20,
+      "direction_score": 50.0,
+      "bull_streak": 0,
+      "expected": "ALERT",
+      "note": "REDUCED 해제 dd 경계는 >= — 정확히 -12%도 해제"
+    },
+    {
+      "id": "s11",
+      "dd": -0.11,
+      "prev": "REDUCED",
+      "bars_since_change": 20,
+      "direction_score": 49.9,
+      "bull_streak": 0,
+      "expected": "REDUCED",
+      "note": "direction_score 미달 — 유지"
+    },
+    {
+      "id": "s12",
+      "dd": -0.11,
+      "prev": "REDUCED",
+      "bars_since_change": 20,
+      "direction_score": null,
+      "bull_streak": 0,
+      "expected": "REDUCED",
+      "note": "direction_score None(fail-closed) — 유지"
+    },
+    {
+      "id": "s13",
+      "dd": -0.121,
+      "prev": "REDUCED",
+      "bars_since_change": 20,
+      "direction_score": 80.0,
+      "bull_streak": 0,
+      "expected": "REDUCED",
+      "note": "dd 미달 — 유지"
+    },
+    {
+      "id": "s14",
+      "dd": -0.14,
+      "prev": "HALTED",
+      "bars_since_change": 20,
+      "direction_score": 80.0,
+      "bull_streak": 3,
+      "expected": "REDUCED",
+      "note": "HALTED 해제: dd>=-15% AND streak>=3 — REDUCED"
+    },
+    {
+      "id": "s15",
+      "dd": -0.15,
+      "prev": "HALTED",
+      "bars_since_change": 20,
+      "direction_score": 80.0,
+      "bull_streak": 3,
+      "expected": "REDUCED",
+      "note": "HALTED 해제 dd 경계는 >= — 정확히 -15%도 해제"
+    },
+    {
+      "id": "s16",
+      "dd": -0.14,
+      "prev": "HALTED",
+      "bars_since_change": 20,
+      "direction_score": 80.0,
+      "bull_streak": 2,
+      "expected": "HALTED",
+      "note": "bull_streak 미달 — 유지"
+    },
+    {
+      "id": "s17",
+      "dd": -0.05,
+      "prev": "HALTED",
+      "bars_since_change": 40,
+      "direction_score": 90.0,
+      "bull_streak": 9,
+      "expected": "REDUCED",
+      "note": "🔴 한 단계씩만 — 조건이 넘쳐도 REDUCED까지"
+    },
+    {
+      "id": "s18",
+      "dd": 0.0,
+      "prev": "STOPPED",
+      "bars_since_change": 500,
+      "direction_score": 100.0,
+      "bull_streak": 99,
+      "expected": "STOPPED",
+      "note": "🔴 STOPPED는 자동 해제 없음 — 완전 회복해도 유지"
+    },
+    {
+      "id": "s19",
+      "dd": -0.155,
+      "prev": "REDUCED",
+      "bars_since_change": 25,
+      "direction_score": 80.0,
+      "bull_streak": 0,
+      "expected": "REDUCED",
+      "note": "이미 REDUCED인 dd 구간(-15.5%) — 해제 조건 미달, 유지"
+    },
+    {
+      "id": "s20",
+      "dd": -0.05,
+      "prev": "REDUCED",
+      "bars_since_change": 20,
+      "direction_score": 80.0,
+      "bull_streak": 0,
+      "expected": "ALERT",
+      "note": "REDUCED 해제 — 조건 충족이어도 ALERT까지만(“NORMAL 직행 금지”)"
+    }
+  ],
+  "sequence_cases": {
+    "q1_full_descent": {
+      "note": "NORMAL→ALERT→REDUCED→HALTED→STOPPED(−36%), 각 1봉 만에(악화 즉시)",
+      "initial": "NORMAL",
+      "initial_bars_since_change": 99,
+      "bars": [
+        {
+          "dd": -0.05,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.16,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.21,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.26,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.36,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.05,
+          "direction_score": 90.0,
+          "bull_streak": 9
+        }
+      ],
+      "expected_levels": [
+        "NORMAL",
+        "ALERT",
+        "REDUCED",
+        "HALTED",
+        "STOPPED",
+        "STOPPED"
+      ]
+    },
+    "q2_hysteresis_hold": {
+      "note": "REDUCED 진입 후 곧바로 회복 — 그래도 20봉 전에는 유지",
+      "initial": "ALERT",
+      "initial_bars_since_change": 99,
+      "bars": [
+        {
+          "dd": -0.21,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        }
+      ],
+      "expected_levels": [
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "ALERT"
+      ]
+    },
+    "q3_stepwise_release": {
+      "note": "HALTED→REDUCED→ALERT→NORMAL, 각 20봉 — 명세의 '최소 60거래일'",
+      "initial": "NORMAL",
+      "initial_bars_since_change": 99,
+      "bars": [
+        {
+          "dd": -0.26,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        }
+      ],
+      "expected_levels": [
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "ALERT",
+        "NORMAL",
+        "NORMAL"
+      ]
+    },
+    "q4_stopped_forever": {
+      "note": "STOPPED 후 완전 회복 — 영원히 STOPPED",
+      "initial": "NORMAL",
+      "initial_bars_since_change": 99,
+      "bars": [
+        {
+          "dd": -0.36,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        },
+        {
+          "dd": 0.0,
+          "direction_score": 100.0,
+          "bull_streak": 99
+        }
+      ],
+      "expected_levels": [
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED",
+        "STOPPED"
+      ]
+    },
+    "q5_worsen_resets_clock": {
+      "note": "REDUCED 15봉째 HALTED로 악화 — 회복 시계가 리셋되는가",
+      "initial": "ALERT",
+      "initial_bars_since_change": 99,
+      "bars": [
+        {
+          "dd": -0.21,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.16,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.26,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 80.0,
+          "bull_streak": 5
+        }
+      ],
+      "expected_levels": [
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "HALTED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED"
+      ]
+    },
+    "q6_release_condition_gate": {
+      "note": "REDUCED, dd는 회복했지만 direction_score<50 — 무기한 유지",
+      "initial": "ALERT",
+      "initial_bars_since_change": 99,
+      "bars": [
+        {
+          "dd": -0.21,
+          "direction_score": null,
+          "bull_streak": 0
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        },
+        {
+          "dd": -0.1,
+          "direction_score": 40.0,
+          "bull_streak": 5
+        }
+      ],
+      "expected_levels": [
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED",
+        "REDUCED"
+      ]
+    }
+  }
+}

@@ -3,10 +3,13 @@
 > 🔴 여기 파일은 **원본을 그대로 옮긴 것**이다. 값을 고치지 않는다(`../README.md` 규칙 1·3).
 > 원본이 바뀌면 다시 복사하고 이 표의 sha256·복사일을 갱신한다 — 손으로 고친 정답지는 위조다.
 > 🔴 파일 이름을 `*.golden.json` 꼴로 짓지 않는다 — CI «골든 스냅샷» 잡이 그 꼴을 화면 스냅샷으로 보고 수정·삭제를 막는다(`.github/workflows/ci.yml`).
-> 원본 경로는 설계 저장소(`C:\Work\클로드-백그라운드-작업\투자`, E1 = 커밋 `ba91cc3` · E2a·E2b = 커밋 `d3aaabb` 기준 — 05 는 그 사이 바뀌지 않았다) 상대 경로다.
+> 원본 경로는 설계 저장소(`C:\Work\클로드-백그라운드-작업\투자`, E1 = 커밋 `ba91cc3` · E2a·E2b·E3a = 커밋 `d3aaabb` 기준 — 05 는 그 사이 바뀌지 않았다) 상대 경로다.
 
 | 파일 | 원본 | 원본 판 | 복사일 |
 |---|---|---|---|
+| `gv31_breaker_vectors.json` | `08_파일럿/파일럿4/vectors/breaker_vectors.json` — 파일 통째(sha256 원본과 같음 · 05 §GV-31 이 정본으로 지목 · v1.13 재생성판 = 단발 23 + 시퀀스 6 · dd_stop −0.35) | 파일 커밋 `2a699f9` | 2026-10-20 |
+| `gv31_s_h5_1_J1_stopped.json` | `09_백테스트/백테스트6/runs/J1_stopped/J1_stopped.json` — 파일 통째, **줄 끝만 CRLF → LF**(저장소 `.gitattributes` `eol=lf` — 내용 바이트는 그 밖에 같다 · 원본 sha256 `30e050b3bd88dcf9160eb0bf568410982d1208bd3f6a721d497759d8e175845b`) · 테스트는 `vectorB_deterministic` 만 쓴다(05 §GV-31 계열 s_h5_1 정본 실측). 입력 시퀀스는 05 본문 · `exp/J1_stopped_vector.py` 271~277행대로 테스트가 만든다 | 파일 커밋 `2a699f9` | 2026-10-20 |
+| `gv18_exposure_multiplier.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-18 코드 블록(2240~2250행) | 05 **v1.22** | 2026-10-20 |
 | `gv01a_all_valid.json` | 같은 문서 §GV-1a 코드 블록(255~263행) | 05 **v1.22** | 2026-10-20 |
 | `gv01b_two_missing.json` | 같은 문서 §GV-1b 코드 블록(269~277행) | 05 **v1.22** | 2026-10-20 |
 | `gv01c_category_exclusion.json` | 같은 문서 §GV-1c 코드 블록(284~294행) | 05 **v1.22** | 2026-10-20 |
@@ -47,6 +50,9 @@ eed6928eaa1bd91e36c42cc1dc8b0a9ea7d1e0b1b4ce44bcda911968d30f32d2  gv02b_chop.jso
 667c5a6873e339c122891e67543384d8eaaeec90365007b1f9115808b4c7c0f9  gv02d_wilder_rma.json
 b2c3bb1d25dae278fe8e0fb390bac11e1fd93bffe151268cfdc94259694e4409  gv02e_bbw.json
 6e7249a9d35788570415a45fb1eed80e84168c5f6704faf145c15b3e53632d1e  gv02f_adx_values.json
+00ec726fe83e363ab2c79e678c90114310e217737987a58cff4c21e7d01b193a  gv18_exposure_multiplier.json
+ba67b95e245664103a67ff8bd3de7ddacf0bb9f8fc0a7fa52e98e260512a4ebd  gv31_breaker_vectors.json
+e804a744586588a36d1cb6f79e3fb2a1e7f020208a03ccf5b5d5d4ea422b0b22  gv31_s_h5_1_J1_stopped.json
 a0a15d8697ef6b32d6689990750ecd27a711e6b97dfd74e2bc62b5e8f5ebed5b  gv03_exposure_gate.json
 d156edff943a329a7702362466528291e852d5dbc664f70f07d6e2503121e1e1  gv03c_unknown_fail_closed.json
 89635795b2eb36293e6922638a070a4eaab75716d56af0b46b8a4e7396dc62c2  gv04_hysteresis.json

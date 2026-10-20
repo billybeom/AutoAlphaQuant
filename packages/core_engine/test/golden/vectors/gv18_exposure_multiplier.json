@@ -1,0 +1,11 @@
+{
+  "cases": [
+    { "level": "NORMAL",  "expected": { "sleeve_a":1.0, "sleeve_b":1.0, "satellite":1.0, "sleeve_c":1.0 } },
+    { "level": "ALERT",   "expected": { "sleeve_a":1.0, "sleeve_b":1.0, "satellite":1.0, "sleeve_c":1.0 } },
+    { "level": "REDUCED", "expected": { "sleeve_a":1.0, "sleeve_b":1.0, "satellite":0.5, "sleeve_c":1.0 } },
+    { "level": "HALTED",  "expected": { "sleeve_a":0.0, "sleeve_b":1.0, "satellite":0.0, "sleeve_c":1.0 } },
+    { "level": "STOPPED", "expected": { "sleeve_a":0.0, "sleeve_b":0.0, "satellite":0.0, "sleeve_c":0.0 } }
+  ],
+  "tolerance": 1e-9,
+  "note": "🔴 HALTED의 sleeve_a = 0.0 이 이 벡터의 핵심입니다. ALERT는 '알림만'이므로 전부 1.0이 맞습니다."
+}
