@@ -1,4 +1,4 @@
-﻿// test/golden/j4_golden_test.dart — J-4 사후 blind 리뷰 골든 (6이름 × light/dark = 12장)
+// test/golden/j4_golden_test.dart — J-4 사후 blind 리뷰 골든 (6이름 × light/dark = 12장)
 //
 // 🔴 --update-goldens 는 이 파일만 지정한다:
 //      flutter test --update-goldens test/golden/j4_golden_test.dart
@@ -131,8 +131,7 @@ void main() {
         addTearDown(() {
           unawaited(cardCtrl.close());
         });
-        final BlindReviewCard? first = flow.card;
-        if (first != null) {
+        for (final BlindReviewCard first in <BlindReviewCard>[?flow.card]) {
           cardCtrl.add(first);
         }
         final CommandReceipt? receipt = flow.receipt;
@@ -161,17 +160,16 @@ void main() {
         await tester.pump();
         await tester.pump();
 
-        if (first != null) {
+        for (final BlindReviewCard first in <BlindReviewCard>[?flow.card]) {
           await pickBlindReviewAnswers(tester, first, (int i) => 0);
         }
-        if (receipt != null) {
+        for (final CommandReceipt _ in <CommandReceipt>[?receipt]) {
           await tester.ensureVisible(find.byKey(const Key('j4-submit')));
           await tester.tap(find.byKey(const Key('j4-submit')));
           await tester.pump();
           await tester.pump();
         }
-        final BlindReviewCard? reveal = flow.reveal;
-        if (reveal != null) {
+        for (final BlindReviewCard reveal in <BlindReviewCard>[?flow.reveal]) {
           cardCtrl.add(reveal);
           await tester.pump();
           await tester.pump();
