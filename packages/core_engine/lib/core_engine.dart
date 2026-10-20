@@ -11,6 +11,19 @@
 
 export 'src/decimal_rules.dart'
     show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
+export 'src/risk/breaker.dart'
+    show
+        BreakerConfig,
+        BreakerLevel,
+        BreakerState,
+        BreakerStep,
+        SleeveMultipliers,
+        evaluateBreaker,
+        exposureMultiplier,
+        isStoppedReleaseEligible,
+        levelFromDrawdown,
+        releaseStoppedToHalted,
+        stepBreaker;
 export 'src/risk/position_sizing.dart'
     show SizingBinding, SizingResult, sizePosition;
 export 'src/signals/exposure_gate.dart'
