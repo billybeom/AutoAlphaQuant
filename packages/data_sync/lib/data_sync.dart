@@ -7,6 +7,7 @@
 //    구현체는 앱(apps/*)에서 주입된다.
 //
 // 구현은 lib/src/ 아래로 들어오고 공개할 것만 여기에서 export 한다.
-// 🔵 E9-0 — 로컬 정본 SQLite 연결(`package:sqlite3`). 스키마·마이그레이션은 E9 (c1).
+// 🔵 E9-0 — 로컬 정본 SQLite 연결(`package:sqlite3`) · 🆕 E9c — 스키마 v1 · 두 파일 열기.
 
 export 'src/local/ledger_database.dart';
+export 'src/local/ledger_schema.dart';
