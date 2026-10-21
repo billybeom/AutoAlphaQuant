@@ -58,9 +58,9 @@ class _Store extends InMemoryPlanSnapshotStore {
   int sequences = 0;
 
   @override
-  Future<void> save(DepositPlan plan) {
+  Future<void> save(DepositPlan plan, {required PlanInputs inputs}) {
     saves++;
-    return super.save(plan);
+    return super.save(plan, inputs: inputs);
   }
 
   @override

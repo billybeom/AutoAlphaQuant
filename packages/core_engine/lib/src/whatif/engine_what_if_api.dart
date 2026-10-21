@@ -1,6 +1,7 @@
 // M3-1 · M3-2 — 엔진의 `WhatIfApi` 구현(01 §4-1 · §14-3 · §14-5 · §14-8 · 06 M3-1 · M3-2).
 //
-// 🔴 부작용 0 = 원장·명령 테이블 쓰기 0 — 이 구현이 쓰는 곳은 계획 스냅샷 저장소([PlanSnapshotStore]) 하나다.
+// 🔴 부작용 0 = 원장·명령 테이블 쓰기 0 — 이 구현이 쓰는 곳은 계획 스냅샷 저장소([PlanSnapshotStore]) 하나다
+//    (계획 + 계산 입력 원값 [PlanInputs] · E7b1).
 //    상태는 [WhatIfStateSource] 에서 읽기만 한다.
 // 🔴 `Future` 에러는 «계산을 못 했다»(인프라 — 상태 읽기 실패 · 가격 없음 등)만 뜻한다. 입력 거부·차단은 결과 갈래다.
 // 🔵 호출마다 새 planId(06 M3-1 ⓓ) — 계획이 생길 때만 순번을 쓴다(차단·거부는 순번을 먹지 않는다).
@@ -13,6 +14,7 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
 import 'deposit_plan.dart';
+import 'plan_inputs.dart';
 import 'plan_store.dart';
 import 'rebalance_preview.dart';
 import 'what_if_config.dart';
@@ -52,7 +54,7 @@ class EngineWhatIfApi implements WhatIfApi {
       planId: depositPlanId(now, seq),
       computedAt: now,
     );
-    await store.save(plan);
+    await store.save(plan, inputs: PlanInputs.of(s));
     return DepositPreviewResult(plan: plan);
   }
 
