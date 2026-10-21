@@ -1,6 +1,6 @@
 # `lib/src/whatif/` — M3 What-if 시뮬레이션
 
-> 🟢 **들어온 것(E7a1)** — `after_tax.dart`(세후 산식 · 정본 `09_백테스트/백테스트6/exp/tax_lib.py` · 무납입 전용) · `after_tax_ladder.dart`(`AfterTaxLadder` 조립 · §8 미결 18 확정 전에는 늘 골든 참고치). 🟢 **E7a2-1** — 입력 포트(`what_if_state.dart` · `WhatIfStateSource`) · 설정(`what_if_config.dart`) · 표시 글자(`what_if_text.dart`) · 금액 입력 판정(`amount_input.dart`) · 차단 표(`what_if_gates.dart` · D21 · H64 — 설계 13 §8 R18). 🟡 `WhatIfApi` 계산(아래)은 E7a2-2(입금) · E7a2-3(스냅샷·조회·비용) · E7a3(리밸런싱) 몫이다.
+> 🟢 **들어온 것(E7a1)** — `after_tax.dart`(세후 산식 · 정본 `09_백테스트/백테스트6/exp/tax_lib.py` · 무납입 전용) · `after_tax_ladder.dart`(`AfterTaxLadder` 조립 · §8 미결 18 확정 전에는 늘 골든 참고치). 🟢 **E7a2-1** — 입력 포트(`what_if_state.dart` · `WhatIfStateSource`) · 설정(`what_if_config.dart`) · 표시 글자(`what_if_text.dart`) · 금액 입력 판정(`amount_input.dart`) · 차단 표(`what_if_gates.dart` · D21 · H64 — 설계 13 §8 R18). 🟢 **E7a2-2** — 입금 미리보기 계산(`deposit_plan.dart` · D-1 «대기 자리» 초안). 🟢 **E7a2-3** — `EngineWhatIfApi`(`engine_what_if_api.dart` · `simulateDeposit` · `findPlan`(등록 불가·만료 다시 판정) · `estimateCosts`) · 계획 스냅샷 저장소(`plan_store.dart` · 메모리 · planId `pl_<한국 날짜>_<순번>`). 🟡 `previewRebalance` 는 E7a3 · `simulateWithdrawal` 은 인출 규칙 결정 뒤 · SQLite 스냅샷은 E7b.
 
 정본: 01_M2_도메인계약 **§4-1 `WhatIfApi`** · **§2-6 `DepositPlan`** · 🆕 **§14 계약 v1.4**(R11 선행) · 전략 `06_시스템설계/00_SPEC.md` **v2.32**
 
