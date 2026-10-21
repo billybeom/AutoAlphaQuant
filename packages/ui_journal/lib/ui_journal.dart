@@ -12,6 +12,8 @@
 export 'l10n/labels.dart';
 export 'src/blind_review.dart';
 export 'src/decision_detail.dart';
+export 'src/holding_detail.dart';
+export 'src/holdings_allocation.dart';
 export 'src/holdings_overview.dart';
 export 'src/journal_read.dart';
 export 'src/timeline.dart';
