@@ -20,3 +20,31 @@ abstract final class PlannerReasonCodes {
   /// 플래너 전용 코드 전량 1종(`PENSION_FUNDING` 은 원장 이벤트 사전 몫).
   static const Set<String> values = <String>{depositRouting};
 }
+
+/// 🆕 E7a3-2(2026-10-21 · 설계 13 §8 R18 D-11 · 계약 버전 불변 — 코드 사전 추가만) — 리밸런싱 미리보기
+/// 초안의 사유 칩 코드(`RebalancePreview.orderDrafts[].reasons[].code` · 01 §15-4).
+///
+/// 🔵 까닭: 픽스처 `m7_rebalance_preview_default` 가 `REBALANCE_BAND` 를 쓰는데 사전에 없었다 · 엔진 월말 계획기
+///    (`core_engine` `planMonthEnd`)의 매매 갈래마다 하나씩 둔다. 원화 조달 매도는 `PENSION_FUNDING`(원장 이벤트 사전).
+/// 🔴 목록은 M2 가 늘린다.
+abstract final class RebalanceReasonCodes {
+  /// 코어 밴드 — B 지분 목표 ± band 이탈(재원 매도 포함).
+  static const String rebalanceBand = 'REBALANCE_BAND';
+
+  /// 슬리브 B 3-트랜치 신호(하한 · BEAR 차감 포함).
+  static const String sleeveBSignal = 'SLEEVE_B_SIGNAL';
+
+  /// 슬리브 C 채권 · 금 비중 조정.
+  static const String sleeveCRebalance = 'SLEEVE_C_REBALANCE';
+
+  /// POT 서브북 3-트랜치 신호.
+  static const String potSignal = 'POT_SIGNAL';
+
+  /// 전량 4종.
+  static const Set<String> values = <String>{
+    rebalanceBand,
+    sleeveBSignal,
+    sleeveCRebalance,
+    potSignal,
+  };
+}

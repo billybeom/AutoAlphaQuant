@@ -38,7 +38,7 @@
 2. **골든벡터 전량 통과 전에는 DRY_RUN을 벗어나지 않는다**(결정 2). 이 패키지의 Dart 재현이 그 게이트다.
 3. **사유 문구는 여기서 만들어진다.** 화면은 만들지 않는다 — 엔진이 `label`·`actionLine` 필드에 실어 보낸다.
 
-## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a~E6e · E7a1 · E7a2 · E7a3-1 · 나머지는 🟡
+## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a~E6e · E7a(E7a0~E7a3-2) · 나머지는 🟡
 
 실행 계획(블록 E1~E18)은 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` 가 정본이다.
 
@@ -69,6 +69,7 @@
 | `lib/src/whatif/deposit_plan.dart` — 입금 미리보기 계산(배분 03 §5-5b · 초안 = B 파킹 ETF 매수만 · A·C·잔여 원화 대기 — 설계 13 §8 R18 D-1) | M3-1(E7a2-2) | 시나리오 14 × C-38 ①~⑧ · `test/what_if_deposit_test.dart` |
 | `lib/src/whatif/engine_what_if_api.dart` · `plan_store.dart` — `EngineWhatIfApi`(`simulateDeposit` · `findPlan` 등록 불가·만료 다시 판정 · `estimateCosts`) · 계획 스냅샷(메모리 · planId `pl_<한국 날짜>_<순번>`) | M3-1 · M3-2(E7a2-3) | 부작용 0(쓰기 = 스냅샷뿐) · `test/what_if_api_test.dart` |
 | `lib/src/portfolio/month_end_plan.dart` — 월말 계획기(램프 납입 → 코어 밴드(B 비례 매도 재원 · 재분류 · 환원 · 납입 · v2.32 조달) → B 3-트랜치 주문 → C 리밸런싱 주문 → POT 당일 매매 · Decimal · 값만) | M1-4 실행 경로(E7a3-1 · D-14) | 26년 재현 5실행 × 월말 320 — 하네스와 **순서·종류·종목·방향 일치 · 금액 차이 1.2e-7원 이하** · `test/month_end_plan_test.dart`(경계) |
+| `lib/src/whatif/rebalance_preview.dart` · `lib/src/calendar/next_rebalance.dart` — 리밸런싱 미리보기(월말 계획기 그대로 → 정수 주 초안 · H64 관문 · 사유 칩 `RebalanceReasonCodes` · 회계 기준 전후 비중 A·B·C · 납입 경고 줄 · 원화 조달 `fundingSteps` · 결과 캐시 0) · 다음 정기 회차(월말 판정 다음 세션 — `watchNext` 와 같은 함수) | M3-1 v1.6(E7a3-2) | 26년 재현 2실행 × 월말 320 — C-41 ①② · 초안 = 계획 매매의 정수 주 · `test/what_if_rebalance_test.dart` |
 
 **STOPPED 실재개**는 `releaseStoppedToHalted` 하나뿐이다 — 부르는 자리는 M5-3(`decision_id` 등록 뒤)과 재현 하네스다. 참조 엔진의 `stopped_release_enabled`(자격 = 재개 근사)는 앱 코드에 두지 않는다.
 

@@ -6,53 +6,12 @@
 // 🔵 하네스는 double · lib 는 Decimal 이다 — 금액 차이는 반올림 자리(원 미만 한참 아래)뿐이어야 한다.
 
 import 'package:core_engine/core_engine.dart';
-import 'package:decimal/decimal.dart';
 import 'package:test/test.dart';
 
 import 'replay_engine.dart';
 import 'replay_market.dart';
+import 'replay_month_end_config.dart';
 import 'replay_regime.dart';
-
-Decimal _dec(double x) => Decimal.parse(x.toString());
-
-/// 하네스 변형 → lib 설정(P0sConfig 값 그대로).
-MonthEndConfig _config(ReplayVariant v) => MonthEndConfig(
-  allocB: _dec(P0sConfig.allocB),
-  coreBand: _dec(P0sConfig.coreBand),
-  rampMonths: P0sConfig.rampMonths,
-  bAssets: <(String, Decimal)>[
-    for (final (String t, double w, double _) in P0sConfig.bAssets)
-      (t, _dec(w)),
-  ],
-  lookbackMonths: P0sConfig.lookbacks,
-  assist: SleeveBAssist(
-    floor: v.bSmaFloor,
-    cutState: v.assistCut == null ? null : DirectionState.bear,
-    cut: v.assistCut ?? 0.0,
-  ),
-  cBondSymbol: 'IEI',
-  cGoldSymbol: 'IAU',
-  cBondWeight: _dec(P0sConfig.cIeiW),
-  cGoldWeight: _dec(P0sConfig.cIauW),
-  maxGoldPctOfTotal: _dec(P0sConfig.maxGoldPctOfTotal),
-  cRelativeBand: _dec(P0sConfig.satBandHi - 1.0),
-  bOrderThreshold: Decimal.parse('0.005'),
-  cOrderThreshold: Decimal.parse('0.002'),
-  potOrderThreshold: Decimal.parse('0.005'),
-  topupMinFraction: Decimal.parse('0.001'),
-  krwUsableFraction: Decimal.parse('0.98'),
-  pensionAnnualLimit: _dec(P0sConfig.pensionAnnualLimit),
-  pensionFunding: v.pensionFunding,
-  bSellCostRate: _dec(
-    P0sConfig.krCommission + P0sConfig.krSlipEtf + P0sConfig.krTaxSellEtf,
-  ),
-  cSellCostRate: _dec(
-    P0sConfig.usCommission +
-        P0sConfig.usSlippage +
-        P0sConfig.fxSpreadRoundtrip / 2.0,
-  ),
-  potCostRate: _dec(P0sConfig.krCommission + P0sConfig.krSlipEtf),
-);
 
 /// 하네스 한 행 → (종류, 종목, 매수?, 금액, 비용).
 (MonthEndActionKind, String?, bool?, double, double) _fromLedger(LedgerRow r) {
@@ -90,7 +49,7 @@ void main() {
     ReplayVariant.nocut,
   ]) {
     test('${v.name} — 모든 KR 월말에서 lib 계획 = 하네스 조정(순서·종류·종목·방향 · 금액·비용 1원 안)', () {
-      final MonthEndConfig cfg = _config(v);
+      final MonthEndConfig cfg = harnessMonthEndConfig(v);
       final ReplayEngine e = ReplayEngine(market, regime, variant: v);
       final List<String> bad = <String>[];
       final Map<MonthEndActionKind, int> seen = <MonthEndActionKind, int>{};

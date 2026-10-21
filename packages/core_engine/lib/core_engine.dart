@@ -10,6 +10,8 @@
 // `11_앱설계/13_엔진레인_착수계획.md` §2 를 본다.
 
 export 'src/calendar/exchange_calendar.dart' show ExchangeCalendar, Market;
+export 'src/calendar/next_rebalance.dart'
+    show NextRebalance, nextRegularRebalance;
 export 'src/costs/trade_costs.dart'
     show
         KrCostConfig,
@@ -149,7 +151,9 @@ export 'src/whatif/deposit_plan.dart'
 export 'src/whatif/engine_what_if_api.dart' show EngineWhatIfApi;
 export 'src/whatif/plan_store.dart'
     show InMemoryPlanSnapshotStore, PlanSnapshotStore, depositPlanId, kstDay;
-export 'src/whatif/what_if_config.dart' show WhatIfConfig;
+export 'src/whatif/rebalance_preview.dart'
+    show RebalancePreviewTexts, plannedRebalanceDate, previewRebalancePlan;
+export 'src/whatif/what_if_config.dart' show WhatIfConfig, p0sMonthEndConfig;
 export 'src/whatif/what_if_gates.dart'
     show
         DepositGateTexts,

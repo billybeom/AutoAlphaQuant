@@ -221,15 +221,14 @@ void main() {
       await expectLater(api.estimateCosts('pl_none'), throwsStateError);
     });
 
-    test(
-      'simulateWithdrawal(인출 규칙 결정 뒤) · previewRebalance(E7a3) 는 아직 에러',
-      () async {
-        await expectLater(
-          api.simulateWithdrawal(amount: Decimal.one),
-          throwsUnimplementedError,
-        );
-        await expectLater(api.previewRebalance(), throwsUnimplementedError);
-      },
-    );
+    test('simulateWithdrawal(인출 규칙 결정 뒤)은 아직 에러 · previewRebalance 는 달력이 없으면 «예정 없음» 차단 · 저장 0', () async {
+      await expectLater(
+        api.simulateWithdrawal(amount: Decimal.one),
+        throwsUnimplementedError,
+      );
+      final RebalancePreviewResult r = await api.previewRebalance();
+      expect(r.blockedText, RebalanceGateTexts.noPlannedDate);
+      expect(store.saves, 0);
+    });
   });
 }
