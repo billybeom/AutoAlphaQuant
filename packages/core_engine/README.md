@@ -38,7 +38,7 @@
 2. **골든벡터 전량 통과 전에는 DRY_RUN을 벗어나지 않는다**(결정 2). 이 패키지의 Dart 재현이 그 게이트다.
 3. **사유 문구는 여기서 만들어진다.** 화면은 만들지 않는다 — 엔진이 `label`·`actionLine` 필드에 실어 보낸다.
 
-## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a~E6e · E7a1 · 나머지는 🟡
+## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a~E6e · E7a1 · E7a2 · E7a3-1 · 나머지는 🟡
 
 실행 계획(블록 E1~E18)은 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` 가 정본이다.
 
@@ -65,6 +65,10 @@
 | `lib/src/signals/regime_pipeline.dart` — 지표 설정 표(13개 · 02 §4 기본값) · TREND 4지표 · 분산일 · 12-1 모멘텀 · 정규화 · 날마다 방향 스코어 · 추세성 세 부분 · FSM 봉 루프(🔴 03 방식 — 데이터 부족일 UNKNOWN 저장 · 나이·추세성 유지 · R9) · KOSDAQ 추세 점수 | M1-2 · 03 §5-3-2(E6b) | 26년 재현: 정규화 13 · 방향 · 추세성 · tskr **비트 일치** · FSM 1985-11-27 이후 상태·나이 일치 |
 | `lib/src/numeric/pandas_compat.dart` — numpy 짝 합산 · pandas 무리 합(카한) · 파이썬 `round`(이진수 정확값 · 동률 짝수) | 골든 대조의 수치 받침(E7a1 — 하네스에서 옮김) | 26년 재현 비트 일치(E6c · E6e · E7a1) · `test/after_tax_test.dart` |
 | `lib/src/whatif/after_tax.dart` — 세후 산식(정본 `exp/tax_lib.py::aftertax_full` 을 같은 연산 순서의 double 로 · 갈래 4 × 층 9 · 🔴 무납입 전용 — 외부 현금흐름이 있으면 거부 · §8 미결 18) · `after_tax_ladder.dart` — `AfterTaxLadder` 조립(엔진 문장 · 늘 골든 참고치) | M3-5(무납입) · M2-9 ⓒⓓⓔ(E7a1) | `aftertax_full_S7` **글자까지 일치**(test/replay — 26년 S7 원장) · 픽스처 `aftertax_ladder_1.json` 과 DTO 일치 · C-30 · C-41 ⑦ |
+| `lib/src/whatif/` 앞단 — 입력 포트 `WhatIfState` · `WhatIfConfig` · 표시 글자(«4만 2천원» 꼴) · 금액 입력 판정 · 차단 표(D21 · H64) | M3-1 ⓐⓑ(E7a2-1) | 계약 픽스처 글자 일치 · 차단·거부 = C-38 ① · C-41 ① 한 갈래 · `test/what_if_inputs_test.dart` |
+| `lib/src/whatif/deposit_plan.dart` — 입금 미리보기 계산(배분 03 §5-5b · 초안 = B 파킹 ETF 매수만 · A·C·잔여 원화 대기 — 설계 13 §8 R18 D-1) | M3-1(E7a2-2) | 시나리오 14 × C-38 ①~⑧ · `test/what_if_deposit_test.dart` |
+| `lib/src/whatif/engine_what_if_api.dart` · `plan_store.dart` — `EngineWhatIfApi`(`simulateDeposit` · `findPlan` 등록 불가·만료 다시 판정 · `estimateCosts`) · 계획 스냅샷(메모리 · planId `pl_<한국 날짜>_<순번>`) | M3-1 · M3-2(E7a2-3) | 부작용 0(쓰기 = 스냅샷뿐) · `test/what_if_api_test.dart` |
+| `lib/src/portfolio/month_end_plan.dart` — 월말 계획기(램프 납입 → 코어 밴드(B 비례 매도 재원 · 재분류 · 환원 · 납입 · v2.32 조달) → B 3-트랜치 주문 → C 리밸런싱 주문 → POT 당일 매매 · Decimal · 값만) | M1-4 실행 경로(E7a3-1 · D-14) | 26년 재현 5실행 × 월말 320 — 하네스와 **순서·종류·종목·방향 일치 · 금액 차이 1.2e-7원 이하** · `test/month_end_plan_test.dart`(경계) |
 
 **STOPPED 실재개**는 `releaseStoppedToHalted` 하나뿐이다 — 부르는 자리는 M5-3(`decision_id` 등록 뒤)과 재현 하네스다. 참조 엔진의 `stopped_release_enabled`(자격 = 재개 근사)는 앱 코드에 두지 않는다.
 

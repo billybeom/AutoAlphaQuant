@@ -33,6 +33,14 @@ export 'src/portfolio/core_band.dart'
 export 'src/portfolio/deposit.dart'
     show DepositAllocation, DepositFill, allocateDeposit;
 export 'src/portfolio/funding.dart' show FundingPlan, FundingTake, fundingOrder;
+export 'src/portfolio/month_end_plan.dart'
+    show
+        MonthEndAction,
+        MonthEndActionKind,
+        MonthEndConfig,
+        MonthEndPlan,
+        MonthEndState,
+        planMonthEnd;
 export 'src/portfolio/sleeve_c.dart'
     show
         InflowCurrency,
