@@ -592,66 +592,51 @@ void main() {
   }
 
   // T63-10: all Text in allowed set
-  testWidgets('T63-10 all screen texts in allowed set closed',
-      (WidgetTester tester) async {
-    final FakeAllocationRepository holdings = FakeAllocationRepository(
-      allocation: (_) => Stream<SleeveAllocationVm>.value(inBand),
-    );
-    final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
-      next: (_) => Stream<NextRebalanceVm>.value(countdown),
-    );
-    await pumpHoldingsAllocation(
-      tester,
-      overrides: holdingsAllocationOverrides(
-        holdings: holdings,
-        rebalance: rebalance,
-      ),
-    );
+  final List<(String, Future<void> Function(WidgetTester))> t63Cases10 =
+      <(String, Future<void> Function(WidgetTester))>[
+    ('closed', (_) async {}),
+    (
+      'note_open',
+      (WidgetTester t) async {
+        await openAllocationNote(t, 0);
+        await openAllocationNote(t, 1);
+      },
+    ),
+  ];
 
-    final Set<String> allowedSet = allocationAllowed(inBand, countdown);
-    final List<String?> shown = tester
-        .widgetList<Text>(find.byType(Text))
-        .map((Text t) => t.data)
-        .toList();
-    expect(shown, isNotEmpty);
-    for (final String? data in shown) {
-      expect(data, isIn(allowedSet));
-    }
+  for (final (String caseName, Future<void> Function(WidgetTester) steps)
+      in t63Cases10) {
+    testWidgets('T63-10 all screen texts in allowed set $caseName',
+        (WidgetTester tester) async {
+      final FakeAllocationRepository holdings = FakeAllocationRepository(
+        allocation: (_) => Stream<SleeveAllocationVm>.value(inBand),
+      );
+      final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
+        next: (_) => Stream<NextRebalanceVm>.value(countdown),
+      );
+      await pumpHoldingsAllocation(
+        tester,
+        overrides: holdingsAllocationOverrides(
+          holdings: holdings,
+          rebalance: rebalance,
+        ),
+      );
 
-    expect(find.text(JournalLabels.retry), findsNothing);
-  });
+      await steps(tester);
 
-  testWidgets('T63-10 all screen texts in allowed set note_open',
-      (WidgetTester tester) async {
-    final FakeAllocationRepository holdings = FakeAllocationRepository(
-      allocation: (_) => Stream<SleeveAllocationVm>.value(inBand),
-    );
-    final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
-      next: (_) => Stream<NextRebalanceVm>.value(countdown),
-    );
-    await pumpHoldingsAllocation(
-      tester,
-      overrides: holdingsAllocationOverrides(
-        holdings: holdings,
-        rebalance: rebalance,
-      ),
-    );
+      final Set<String> allowedSet = allocationAllowed(inBand, countdown);
+      final List<String?> shown = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((Text t) => t.data)
+          .toList();
+      expect(shown, isNotEmpty);
+      for (final String? data in shown) {
+        expect(data, isIn(allowedSet));
+      }
 
-    await openAllocationNote(tester, 0);
-    await openAllocationNote(tester, 1);
-
-    final Set<String> allowedSet = allocationAllowed(inBand, countdown);
-    final List<String?> shown = tester
-        .widgetList<Text>(find.byType(Text))
-        .map((Text t) => t.data)
-        .toList();
-    expect(shown, isNotEmpty);
-    for (final String? data in shown) {
-      expect(data, isIn(allowedSet));
-    }
-
-    expect(find.text(JournalLabels.retry), findsNothing);
-  });
+      expect(find.text(JournalLabels.retry), findsNothing);
+    });
+  }
 
   // T63-11: branch x banner
   final List<(
@@ -864,144 +849,156 @@ void main() {
   }
 
   // T63-12: error and retry
-  testWidgets('T63-12 error and retry alloc_fail',
-      (WidgetTester tester) async {
-    final SafetyState safety = safetyFixtureRow(3);
-    int holdingsCalls = 0;
-    final FakeAllocationRepository holdings = FakeAllocationRepository(
-      allocation: (_) {
-        holdingsCalls++;
-        if (holdingsCalls == 1) {
-          return Stream<SleeveAllocationVm>.error(StateError('fail'));
-        }
-        return Stream<SleeveAllocationVm>.value(inBand);
+  final List<(
+    String,
+    FakeAllocationRepository Function(),
+    String? Function(),
+  )> t63Cases12 = <(
+    String,
+    FakeAllocationRepository Function(),
+    String? Function(),
+  )>[
+    (
+      'alloc_fail',
+      () {
+        int holdingsCalls = 0;
+        return FakeAllocationRepository(
+          allocation: (_) {
+            holdingsCalls++;
+            if (holdingsCalls == 1) {
+              return Stream<SleeveAllocationVm>.error(StateError('fail'));
+            }
+            return Stream<SleeveAllocationVm>.value(inBand);
+          },
+        );
       },
-    );
-    final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
-      next: (_) => Stream<NextRebalanceVm>.value(countdown),
-    );
-    await pumpHoldingsAllocation(
-      tester,
-      overrides: holdingsAllocationOverrides(
-        holdings: holdings,
-        rebalance: rebalance,
-        safety: safety,
+      () => null,
+    ),
+    (
+      'value_then_fail',
+      () => FakeAllocationRepository(
+        allocation: (int call) {
+          if (call == 0) {
+            return valueThenFail(inBand);
+          }
+          return Stream<SleeveAllocationVm>.value(inBand);
+        },
       ),
-    );
+      () => inBand.asOf.label,
+    ),
+  ];
 
-    expect(find.byKey(const Key('h63-fail')), findsOneWidget);
-    final JournalErrorView errorView =
-        tester.widget<JournalErrorView>(find.byKey(const Key('h63-fail')));
-    expect(errorView.lastAsOfLabel, isNull);
-    for (final BlockFlag f in safety.activeFlags) {
-      expect(find.text(f.label), findsNothing);
-    }
-    expect(find.byKey(const Key('h63-next')), findsNothing);
+  for (final (
+    String caseName,
+    FakeAllocationRepository Function() holdingsFactory,
+    String? Function() wantLastAsOfFn,
+  ) in t63Cases12) {
+    testWidgets('T63-12 error and retry $caseName',
+        (WidgetTester tester) async {
+      final SafetyState safety = safetyFixtureRow(3);
+      final FakeAllocationRepository holdings = holdingsFactory();
+      final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
+        next: (_) => Stream<NextRebalanceVm>.value(countdown),
+      );
+      await pumpHoldingsAllocation(
+        tester,
+        overrides: holdingsAllocationOverrides(
+          holdings: holdings,
+          rebalance: rebalance,
+          safety: safety,
+        ),
+      );
 
-    await tester.ensureVisible(find.text(JournalLabels.retry));
-    await tester.tap(find.text(JournalLabels.retry));
-    await tester.pump();
-    await tester.pump();
+      expect(
+        find.byKey(const Key('h63-fail')),
+        findsOneWidget,
+        reason: caseName,
+      );
+      final JournalErrorView errorView =
+          tester.widget<JournalErrorView>(find.byKey(const Key('h63-fail')));
+      expect(errorView.lastAsOfLabel, wantLastAsOfFn(), reason: caseName);
+      for (final BlockFlag f in safety.activeFlags) {
+        expect(find.text(f.label), findsNothing, reason: caseName);
+      }
+      expect(
+        find.byKey(const Key('h63-next')),
+        findsNothing,
+        reason: caseName,
+      );
 
-    expect(find.byKey(const Key('h63-fail')), findsNothing);
-    expect(find.byKey(const Key('h63-asof')), findsOneWidget);
-    expect(holdings.calls, 2);
+      await tester.ensureVisible(find.text(JournalLabels.retry));
+      await tester.tap(find.text(JournalLabels.retry));
+      await tester.pump();
+      await tester.pump();
 
-    expect(find.text(JournalLabels.retry), findsNothing);
-  });
+      expect(
+        find.byKey(const Key('h63-fail')),
+        findsNothing,
+        reason: caseName,
+      );
+      expect(
+        find.byKey(const Key('h63-asof')),
+        findsOneWidget,
+        reason: caseName,
+      );
+      expect(holdings.calls, 2, reason: caseName);
 
-  testWidgets('T63-12 error and retry value_then_fail',
-      (WidgetTester tester) async {
-    final SafetyState safety = safetyFixtureRow(3);
-    final FakeAllocationRepository holdings = FakeAllocationRepository(
-      allocation: (int call) {
-        if (call == 0) {
-          return valueThenFail(inBand);
-        }
-        return Stream<SleeveAllocationVm>.value(inBand);
-      },
-    );
-    final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
-      next: (_) => Stream<NextRebalanceVm>.value(countdown),
-    );
-    await pumpHoldingsAllocation(
-      tester,
-      overrides: holdingsAllocationOverrides(
-        holdings: holdings,
-        rebalance: rebalance,
-        safety: safety,
-      ),
-    );
-
-    expect(find.byKey(const Key('h63-fail')), findsOneWidget);
-    final JournalErrorView errorView =
-        tester.widget<JournalErrorView>(find.byKey(const Key('h63-fail')));
-    expect(errorView.lastAsOfLabel, inBand.asOf.label);
-    for (final BlockFlag f in safety.activeFlags) {
-      expect(find.text(f.label), findsNothing);
-    }
-
-    await tester.ensureVisible(find.text(JournalLabels.retry));
-    await tester.tap(find.text(JournalLabels.retry));
-    await tester.pump();
-    await tester.pump();
-
-    expect(find.byKey(const Key('h63-fail')), findsNothing);
-    expect(find.byKey(const Key('h63-asof')), findsOneWidget);
-    expect(holdings.calls, 2);
-
-    expect(find.text(JournalLabels.retry), findsNothing);
-  });
+      expect(find.text(JournalLabels.retry), findsNothing);
+    });
+  }
 
   // T63-13: large font
-  testWidgets('T63-13 large font in_band', (WidgetTester tester) async {
-    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
-    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  final List<(
+    String,
+    SleeveAllocationVm Function(),
+    Future<void> Function(WidgetTester),
+  )> t63Cases13 = <(
+    String,
+    SleeveAllocationVm Function(),
+    Future<void> Function(WidgetTester),
+  )>[
+    (
+      'in_band',
+      () => inBand,
+      (WidgetTester t) async { await openAllocationNote(t, 0); },
+    ),
+    ('out_of_band', () => outOfBand, (_) async {}),
+  ];
 
-    final FakeAllocationRepository holdings = FakeAllocationRepository(
-      allocation: (_) => Stream<SleeveAllocationVm>.value(inBand),
-    );
-    final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
-      next: (_) => Stream<NextRebalanceVm>.value(countdown),
-    );
-    await pumpHoldingsAllocation(
-      tester,
-      overrides: holdingsAllocationOverrides(
-        holdings: holdings,
-        rebalance: rebalance,
-      ),
-    );
-    await openAllocationNote(tester, 0);
+  for (final (
+    String caseName,
+    SleeveAllocationVm Function() vmFn,
+    Future<void> Function(WidgetTester) steps,
+  ) in t63Cases13) {
+    testWidgets('T63-13 large font $caseName', (WidgetTester tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    expect(tester.takeException(), isNull);
-    expect(find.byKey(const Key('h63-asof')), findsOneWidget);
+      final FakeAllocationRepository holdings = FakeAllocationRepository(
+        allocation: (_) => Stream<SleeveAllocationVm>.value(vmFn()),
+      );
+      final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
+        next: (_) => Stream<NextRebalanceVm>.value(countdown),
+      );
+      await pumpHoldingsAllocation(
+        tester,
+        overrides: holdingsAllocationOverrides(
+          holdings: holdings,
+          rebalance: rebalance,
+        ),
+      );
+      await steps(tester);
 
-    expect(find.text(JournalLabels.retry), findsNothing);
-  });
+      expect(tester.takeException(), isNull, reason: caseName);
+      expect(
+        find.byKey(const Key('h63-asof')),
+        findsOneWidget,
+        reason: caseName,
+      );
 
-  testWidgets('T63-13 large font out_of_band', (WidgetTester tester) async {
-    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
-    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-
-    final FakeAllocationRepository holdings = FakeAllocationRepository(
-      allocation: (_) => Stream<SleeveAllocationVm>.value(outOfBand),
-    );
-    final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
-      next: (_) => Stream<NextRebalanceVm>.value(countdown),
-    );
-    await pumpHoldingsAllocation(
-      tester,
-      overrides: holdingsAllocationOverrides(
-        holdings: holdings,
-        rebalance: rebalance,
-      ),
-    );
-
-    expect(tester.takeException(), isNull);
-    expect(find.byKey(const Key('h63-asof')), findsOneWidget);
-
-    expect(find.text(JournalLabels.retry), findsNothing);
-  });
+      expect(find.text(JournalLabels.retry), findsNothing);
+    });
+  }
 
   // T63-14: bar segment ratio x width
   testWidgets('T63-14 bar segment ratio x width', (WidgetTester tester) async {
