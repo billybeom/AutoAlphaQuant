@@ -129,3 +129,27 @@ export 'src/whatif/after_tax.dart'
         realizedGains;
 export 'src/whatif/after_tax_ladder.dart'
     show buildAfterTaxLadder, kHonestHaircutPctPoints;
+export 'src/whatif/amount_input.dart'
+    show
+        AmountInput,
+        kAmountBlankText,
+        kAmountNotNumberText,
+        kAmountNotPositiveText,
+        parseAmountInput;
+export 'src/whatif/what_if_config.dart' show WhatIfConfig;
+export 'src/whatif/what_if_gates.dart'
+    show
+        DepositGateTexts,
+        DepositPreflight,
+        RebalanceGateTexts,
+        WhatIfGate,
+        depositGate,
+        depositPreflight,
+        depositRegisterBlockedText,
+        kGateButtonLabels,
+        rebalanceGate,
+        rebalancePreflight;
+export 'src/whatif/what_if_state.dart'
+    show WhatIfAccounts, WhatIfState, WhatIfStateSource;
+export 'src/whatif/what_if_text.dart'
+    show commaWonText, daysToYearEnd, koreanDateText, sharesText, wonText;
