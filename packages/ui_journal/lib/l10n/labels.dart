@@ -102,4 +102,15 @@ abstract final class JournalLabels {
 
   /// 결과 갈래 하단 «다음 건» 버튼.
   static const String blindReviewNext = '다음 건';
+
+  // ── 🆕 R4a — H6-1 보유현황 ────────────────────────────────────────────────
+
+  /// 종목 행 — 평균 단가 값 앞 머리(펼친 행에서만).
+  static const String holdingsAvgPrice = '매수가';
+
+  /// 종목 행 — 진입일 값 앞 머리(펼친 행에서만).
+  static const String holdingsEntryDate = '진입일';
+
+  /// 시스템 밖 행 — 등록일 값 앞 머리(섹션 펼침에서만).
+  static const String holdingsRegisteredOn = '등록일';
 }
