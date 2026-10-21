@@ -9,6 +9,9 @@
 // 🔴 원화 조달(`_take_krw` → `_raise_krw`)은 C 방어자산을 **필요한 만큼** 판다 — 잉여 상한 없음(설계 13 §8 R17 ① 결정).
 
 import 'package:core_engine/src/numeric/pandas_compat.dart';
+import 'package:core_engine/src/portfolio/month_end_plan.dart';
+import 'package:core_engine/src/signals/regime_states.dart';
+import 'package:decimal/decimal.dart';
 
 import 'replay_market.dart';
 import 'replay_regime.dart';
@@ -268,6 +271,82 @@ class ReplayEngine {
   final Map<String, List<_Plan>> _seasonalPlan = <String, List<_Plan>>{};
   final List<double> _tskr = <double>[];
 
+  /// 시험 고리 — 월말 조정 바로 앞 · 바로 뒤(E7a3-1 lib 월말 계획기 대조).
+  void Function(int i, String d)? onBeforeMonthEnd, onAfterMonthEnd;
+
+  /// [date] 세션에 쌓인 주문(쌓인 순서) — (슬리브, 종목, 매수/매도, 금액, 사건).
+  List<(String, String, String, double, String)> pendingOn(String date) =>
+      <(String, String, String, double, String)>[
+        for (final _Order o in _pending[date] ?? const <_Order>[])
+          (o.sleeve, o.symbol, o.side, o.amount, o.event),
+      ];
+
+  /// [d] 다음 KR · US 세션(없으면 null).
+  String? nextKrSession(String d) => _nextAfter(m.kr, d);
+  String? nextUsSession(String d) => _nextAfter(m.us, d);
+
+  /// 지금 상태를 lib 월말 계획기 입력으로 옮긴다 — **`_krMonthEnd` 바로 앞**에서 부른다(상태를 바꾸지 않는다).
+  MonthEndState monthEndInput(int i, String d) {
+    Decimal dec(double x) => Decimal.parse(x.toString());
+    final double fx = _p(i, 'fx');
+    final double iauPx = _p(i, 'IAU');
+    final double ieiPx = _p(i, 'IEI');
+    // B 차감에 쓸 방향 상태 — assist 꺼짐 · 지연 첫 호출 · 스코어 없음이면 null(`_sleeveBSignal` 과 같은 판단).
+    DirectionState? regime;
+    if (variant.assistCut != null) {
+      double score = _regScore[i];
+      String st = _regState[i];
+      bool on = true;
+      if (variant.assistDelay >= 1) {
+        final (double, String)? prev = _bAssistPrev;
+        if (prev == null) {
+          on = false;
+        } else {
+          (score, st) = prev;
+        }
+      }
+      if (on && _fin(score)) {
+        regime = DirectionState.values.firstWhere(
+          (DirectionState x) => x.code == st,
+        );
+      }
+    }
+    final String monthKey = d.substring(0, 7);
+    return MonthEndState(
+      totalEquity: dec(_equity(i)),
+      bAssets: <String, Decimal?>{
+        for (final (String t, double _, double _) in P0sConfig.bAssets)
+          t: _fin(_p(i, t)) ? dec(bUnits[t]! * _p(i, t)) : null,
+      },
+      bParking: dec(bParkUnits * _p(i, 'PARK')),
+      bParkingReclassified: dec(bParkCUnits * _p(i, 'PARK')),
+      krwCash: dec(cKrwUnits * _p(i, 'CKRW')),
+      reservedKrw: dec(cReservedKrw),
+      cBond: dec(cIeiUnits * ieiPx * fx),
+      cGold: _fin(iauPx) && iauPx > 0 ? dec(cIauUnits * iauPx * fx) : null,
+      potCash: dec(potCashUnits * _p(i, 'CKRW')),
+      potAssets: <String, Decimal?>{
+        for (final (String t, double _, double _) in P0sConfig.bAssets)
+          t: _fin(_p(i, t)) && _p(i, t) > 0
+              ? dec(potBUnits[t]! * _p(i, t))
+              : null,
+      },
+      pensionUsedThisYear: dec(pensionUsed[_year(d)] ?? 0.0),
+      monthIndex: monthCount + 1,
+      regimeState: regime,
+      monthlyCloses: <String, List<double>>{
+        for (final (String t, double _, double _) in P0sConfig.bAssets)
+          t: <double>[
+            for (int k = 0; k < m.bMonthly[t]!.length; k++)
+              if (m.bMonthly[t]!.dates[k].compareTo(monthKey) <= 0)
+                m.bMonthly[t]!.values[k],
+          ],
+      },
+      hasNextKrSession: _nextAfter(m.kr, d) != null,
+      hasNextUsSession: _nextAfter(m.us, d) != null,
+    );
+  }
+
   double _p(int i, String key) => m.px[key]!.values[i];
   bool _fin(double x) => !x.isNaN && x.isFinite;
 
@@ -296,7 +375,11 @@ class ReplayEngine {
       if (_krSet.contains(d)) {
         _seasonal(i, d, state);
       }
-      if (m.krMonthEnds.contains(d)) _krMonthEnd(i, d, state);
+      if (m.krMonthEnds.contains(d)) {
+        onBeforeMonthEnd?.call(i, d);
+        _krMonthEnd(i, d, state);
+        onAfterMonthEnd?.call(i, d);
+      }
       prevEq = _snapshot(i, d, state);
     }
   }
