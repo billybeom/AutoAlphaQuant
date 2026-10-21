@@ -18,7 +18,7 @@
 
 ## 의존 — 허용 (01 §1-1)
 
-`domain_contracts` · `core_engine` · (구현 착수 시) `sqflite` · `supabase_flutter`.
+`domain_contracts` · `core_engine` · `sqlite3`(로컬 정본 · 순수 Dart FFI — 설계 13 §8 R19 E9-12, ⚠️ 01 §1-1 은 E9 계약 PR 에서 `sqflite` → `sqlite3` 정정) · (E11) `supabase_flutter`.
 
 ## 의존 — 🔴 금지
 
@@ -42,6 +42,7 @@
 - `role` 클레임 발급 위치 — 명령 INSERT 정책이 읽는 `app_metadata.role`을 QR 페어링 RPC가 세팅하는지 Auth 훅이 세팅하는지(01 §8-13). 확정 전에는 정책 2개 분리 상태를 유지한다.
 - `SleeveCatalogEntry`·`FeatureFlags`의 원천 표 — 엔진 config 직독 vs 읽기 모델 push(01 §8-14). viewer도 같은 값을 봐야 한다(계약 3조 ①).
 
-## 지금 상태 — 🟡 스캐폴드
+## 지금 상태 — 🟡 로컬 정본 연결만 (E9-0)
 
-배럴만 있다. **⚠️ 이 PC에는 Flutter·Dart·melos가 없다**(2026-09-06).
+- ✅ `openLedgerDatabase` — 02 §1 PRAGMA 5개(WAL · NORMAL · FK ON · busy 5000 · cache 64MB)를 연결마다 걸고 되읽는다. 하나라도 다르면 연결을 닫고 거부한다(`:memory:` 도 거부 — 원장은 파일이다).
+- ⬜ 스키마 v1(02 기본 + 배치 A·B·C·F)·마이그레이션 러너·두 파일(`ledger.sqlite`·`ledger_sim.sqlite`) = E9 (c1) · 리포지토리 구현체 = 그 뒤.
