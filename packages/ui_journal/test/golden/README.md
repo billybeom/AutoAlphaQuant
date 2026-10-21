@@ -294,3 +294,55 @@ final RecordingDraftStore store = RecordingDraftStore(
 
 - R3 시작 56장(`j1_*` 16 · `j2_*` · `j3_*` · `j3r_*` · `j5_*`) → R3 병합 뒤 **72장**(+ `j4_*` 12 · `j1_rebalance_*` 4 · 부록 S-1 은 M 이라 장수 불변).
 - 명령(packages/ui_journal 에서): `flutter test --update-goldens test/golden/j4_golden_test.dart` · `flutter test --update-goldens test/golden/j1_rebalance_golden_test.dart` → 옵션 없이 `flutter test` 전부 통과.
+
+## 🆕 R4(계약 v1.8) — `H6-1` 보유현황(R4a) · `H6-2` 종목 상세 · `H6-3` 슬리브·비중(R4b) (2026-10-21 조립 · ✅ 누적 드라이런 실측 — R4a `dry/r4a` · R4b `dry/r4b`)
+
+정본: 01 §17(17-6 · 17-7 · 17-8 · 17-10 · 17-16) · 02 §4 끝 «🆕 계약 v1.8 — `H6-*` R4 범위» 블록 · 설계 저장소 `10_리뷰/2026-10-20_R4선행_계약v1.8_설계서.md` §3-4(골든 ↔ 입력 · ✅ K16 이름 확정). 카드 = `docs/ai-context/send/R4a-Bob-H61.md`(R4a) · `docs/ai-context/send/_대기/R4b-Bob-H62H63.md`(R4b — R4a 병합 기록 때 `send/` 로)(«■ 골든» 절과 같은 말). 이 절은 **골든**만 말한다.
+
+### 1. 골든 이름 — R4a 신규 5이름 × light/dark = 10장(`h61_*`) · R4b 신규 8이름 × 2 = 16장(`h62_*` 8 · `h63_*` 8) · 재생성 0
+
+| 이름 | 장수 | 테스트 파일 | 입력(흐름) · 맨 아래 위젯(위치 전제) |
+|---|---|---|---|
+| `h61_normal` | 2 | `h61_golden_test.dart`(R4a) | `m6/holdings_overview_normal` · `safety_states` 행 0 · 흐름 = B 카드(순번 1) 펼침 — 카드 3(처음 전부 접힘) · B 종목 행 2 + 반영 대기 칩 · 시스템 밖 섹션 접힘(고지 상시) · 「비중 보기」 = 머리·배너 바로 아래(02 §4-3 «상단») · 맨 아래 `Key('h61-ext')` |
+| `h61_recon_mismatch` | 2 | 〃 | `m6/holdings_overview_recon` · 행 3 · 흐름 = B 카드 펼침(«?» 행) · 배너 2 · `Key('h61-ext')` |
+| `h61_integrity` | 2 | 〃 | `m6/holdings_overview_integrity` · 행 4 · 흐름 없음(카드 전부 접힘 — 머리 `bandNoteText` «숨김» · ✅ K29 칩은 화면에 안 나온다) · 배너 1 · `Key('h61-ext')` |
+| `h61_empty` | 2 | 〃 | `m6/holdings_overview_empty` · 행 0 · 흐름 없음(머리 + 빈 문장) · `Key('h61-empty')` |
+| `h61_pnl_expanded` | 2 | 〃 | `m6/holdings_overview_normal`(접힘) / `m6/holdings_overview_pnl`(펼침) · 행 0 · 흐름 = 손익 토글 탭 → 카드 0·1·2 펼침 — 손익 줄 3 + `disclosureNote` · `Key('h61-ext')` |
+| `h62_etf_no_stop` | 2 | `h62_golden_test.dart`(R4b) | `m6/holding_detail_no_stop` · 행 0 · 흐름 없음(손절선 문장 · 최근 체결 문장) · `Key('h62-recent-empty')` |
+| `h62_pnl_expanded` | 2 | 〃 | `m6/holding_detail_no_stop`(접힘) / `m6/holding_detail_pnl`(펼침) · 행 0 · 흐름 = 손익 토글 탭 · `Key('h62-recent-empty')` |
+| `h62_recon_mismatch` | 2 | 〃 | `m6/holding_detail_recon` · 행 3 · 흐름 없음 · `Key('h62-recent-empty')` |
+| `h62_integrity` | 2 | 〃 | `m6/holding_detail_integrity` · 행 4 · 흐름 없음(요약·손절선 글자 «숨김» · 최근 체결 2) · `ValueKey<String>('h62-entry-1')` |
+| `h63_in_band` | 2 | `h63_golden_test.dart`(R4b) | `m6/allocation_in_band` + 하단 `m7/m7_next_rebalance_countdown` · 행 0 · 흐름 없음(5행 · B 밴드 내 · POT 들여쓰기) · `Key('h63-next')` |
+| `h63_out_of_band` | 2 | 〃 | `m6/allocation_out_of_band` + countdown · 행 0 · B 밴드 이탈 · `Key('h63-next')` |
+| `h63_tranche_progress` | 2 | 〃 | `m6/allocation_tranche_progress` + countdown · 행 0 · B 경계 근접 · A 보류 칩 1 · `Key('h63-next')` |
+| `h63_pot_under_a` | 2 | 〃 | `m6/allocation_in_band` + countdown · 행 0 · 흐름 = A 행(순번 0) 엔진 열 안내 펼침 · `Key('h63-next')` |
+
+- 공통: 시계 `FixedClock(kGoldenNowUtc)` · 화면 위젯 = `const HoldingsOverview()` · `HoldingDetail(holdingId: <그 VM 의 holding.holdingId>)` · `const HoldingsAllocation()` · 흐름 = (이름, 흐름) 목록의 **클로저 칸**(C4r3-4 — 흐름 없음 = `(WidgetTester t) async {}` · bool 칸 + if 금지) · 차례 = `pumpForGolden` → `pump()` 한 번 더(값 도착) → 흐름 → `pumpAndSettle()` → 위치 전제 둘 → `expectGolden`.
+- 크기 = 테스트 파일마다 안 상수 `const Size _kTallPhone` — h61 = `Size(390, 2480)` · h62 = `Size(390, 1400)` · h63 = `Size(390, 1100)`(드라이런이 정했다 · `kGoldenPhoneSize` 불변 · 이 파일의 «🆕 R2» 절 2번 «세로가 긴 화면» 꼴).
+- 위치 전제(찍기 전 · 이름마다 둘 · C4r3-5 코드 꼴): `expect(tester.getBottomLeft(find.byKey(<맨 아래 Key>)).dy, lessThan(_kTallPhone.height));` + `expect(tester.getTopLeft(find.byKey(const Key('h6N-asof'))).dy, 0.0);`(스크롤 0 — 펼침 탭(h61 = `scrollUntilVisible(finder, 300)` · h62·h63 = `ensureVisible`)이 머리를 밀어 올리지 않았다 · N = 1·2·3 · 🔴 그래서 `ListView` 에 padding 0 — 실패하면 고치지 말고 실측 dy 를 질문 파일에).
+- 🆕 보고 «배치·잘림» 칸 — Bob 은 이름마다 **light PNG 한 장만** 연다(R4a 5장 · R4b 8장 — 한 대화 이미지 20장 한도) · dark 행은 같은 이름 light 행의 칸 글자 그대로(위치 전제 dy 가 light 와 같을 때만 · 다르면 그 dark PNG 도 연다).
+- 드라이런 실측 dy(맨 아래 Key 의 아래 끝 · light = dark 전부 · 머리 dy = 0.0 전부 · R4a `dry/r4a` `06668f0` · R4b `dry/r4b` `cf28087` — R4b 값은 R4a 병합본 흉내 위라 R4a 가 통합 수정으로 바뀌면 R4a 병합 기록 때 다시 잰다):
+
+  | 이름 | dy | 높이 |
+  |---|---|---|
+  | `h61_normal` | 1292.0 | 2480 |
+  | `h61_recon_mismatch` | 1512.0 | 2480 |
+  | `h61_integrity` | 608.0 | 2480 |
+  | `h61_empty` | 116.0 | 2480 |
+  | `h61_pnl_expanded` | 2436.0 | 2480 |
+  | `h62_etf_no_stop` | 700.0 | 1400 |
+  | `h62_pnl_expanded` | 768.0 | 1400 |
+  | `h62_recon_mismatch` | 920.0 | 1400 |
+  | `h62_integrity` | 1368.0 | 1400 |
+  | `h63_in_band` | 1012.0 | 1100 |
+  | `h63_out_of_band` | 1036.0 | 1100 |
+  | `h63_tranche_progress` | 1040.0 | 1100 |
+  | `h63_pot_under_a` | 1052.0 | 1100 |
+
+- 🔵 골든은 아이콘 차이를 못 본다(테스트 글꼴에서 아이콘 = 같은 네모) — 아이콘 매핑은 화면 테스트(T61-03 · T61-06 · T62-01 · T62-04)가 본다.
+- 🔴 재생성 0 — 이 두 카드는 기존 PNG(72장)를 바꾸지 않는다(`golden:approved` 불필요 · 기존 PNG `M` = 반려 신호).
+
+### 2. 장수
+
+- R4 시작 72장(`dcac7ec` = R3 병합본 72 · 계약 v1.8 은 ui PNG 0) → R4a 병합 뒤 **82장**(+ `h61_*` 10) → R4b 병합 뒤 **98장**(+ `h62_*` 8 · `h63_*` 8).
+- 명령(packages/ui_journal 에서 · 🔴 파일마다 · 폴더 지정 금지): `flutter test --update-goldens test/golden/h61_golden_test.dart`(R4a) · `flutter test --update-goldens test/golden/h62_golden_test.dart` · `flutter test --update-goldens test/golden/h63_golden_test.dart`(R4b) → 옵션 없이 `flutter test` 전부 통과.
