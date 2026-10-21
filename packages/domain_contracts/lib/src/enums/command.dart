@@ -41,10 +41,11 @@ enum CommandKind {
   @JsonValue('ALERT_ACK')
   alertAck('ALERT_ACK'),
   @JsonValue('KILL_CHECKLIST_CONFIRM')
-  killChecklistConfirm('KILL_CHECKLIST_CONFIRM');
+  killChecklistConfirm('KILL_CHECKLIST_CONFIRM'),
 
-  // ⏸ `ledgerEventRecord` → 'LEDGER_EVENT_RECORD' — 결정 ㊲ 채택 시에만 8번째로 신설한다
-  //    (01 §4-2 ⏸ 원문 · `m2-8_naming.md` J-6). 지금은 만들지 않는다.
+  // ── 🆕 v1.10 · X7 ㊲ 원장 사건(8번째) · 🔴 operator 전용 · 기록 계열 TTL(㊵) ──
+  @JsonValue('LEDGER_EVENT_RECORD')
+  ledgerEventRecord('LEDGER_EVENT_RECORD');
 
   const CommandKind(this.wire);
 

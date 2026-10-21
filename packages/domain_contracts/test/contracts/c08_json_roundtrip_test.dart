@@ -285,6 +285,7 @@ const Map<String, String> _knownUncovered = <String, String>{
   'DisclosureViewEvent': _reasonCommandPayload,
   'JournalDraft': _reasonCommandPayload,
   'KillChecklistAck': _reasonCommandPayload,
+  'LedgerEventRecord': _reasonCommandPayload,
   'ManualFillAmendment': _reasonCommandPayload,
   'ManualFillPatchable': _reasonCommandPayload,
   'ManualFillRecord': _reasonCommandPayload,

@@ -65,7 +65,9 @@ create table if not exists command_queue (
                       --    (`manualFillRecord` ↔ 'RECORD_MANUAL_FILL' · m2-8_naming B-3)
                       'RECORD_MANUAL_FILL','AMEND_MANUAL_FILL','VOID_MANUAL_FILL',
                       'SKIP_ADVICE','SELF_REPORT_BALANCE','ALERT_ACK',
-                      'KILL_CHECKLIST_CONFIRM')),
+                      'KILL_CHECKLIST_CONFIRM',
+                      -- 🆕 v1.10 ㊲ 원장 사건(X7 8번째 · operator 전용 · 설계 13 §8 R21)
+                      'LEDGER_EVENT_RECORD')),
   payload           jsonb not null,               -- 🔴 시크릿·계좌 전체번호 금지(CI 스캔 대상)
   issued_by_device  text not null references app_device(device_id),
   nonce             text not null,
@@ -81,7 +83,7 @@ alter table command_queue enable row level security;
 -- 🔴 RLS 는 **소유자가 아니라 `role` 클레임 기준**이다(청사진 X3 보강). owner_uid 만 보면 뷰어가
 --    승인된 4종(Q-C: 킬스위치·저널 초안·blind 리뷰·열람 이벤트) 밖인 DEPOSIT_REGISTER 까지 넣을 수 있다.
 --    🔴 DEPOSIT_REGISTER 는 **폰(operator) 전용**이다 — 입금 등록은 계획 스냅샷 바인딩이라 뷰어 경로가 없다.
--- 🔴 신규 X7 7종은 **`command_insert_operator` 정책에만** 들어간다.
+-- 🔴 신규 X7 7종 + 🆕 v1.10 `LEDGER_EVENT_RECORD`(㉕ 폰 전용)는 **`command_insert_operator` 정책에만** 들어간다.
 --    `command_insert_viewer` 의 4종 화이트리스트는 **그대로 둔다**
 --    (⚠️ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이며 m2-8_naming J-3 은 «허용하지 않는다» ⏸ 권고).
 create policy command_insert_viewer on command_queue for insert to authenticated
@@ -233,7 +235,8 @@ create policy calendar_sync_status_select on calendar_sync_status for select to 
 -- alter table command_queue add  constraint command_queue_kind_check check (kind in
 --   ('KILL_SWITCH_ACTIVATE','JOURNAL_DRAFT','BLIND_REVIEW_SCORE','DISCLOSURE_VIEW',
 --    'DEPOSIT_REGISTER','RECORD_MANUAL_FILL','AMEND_MANUAL_FILL','VOID_MANUAL_FILL',
---    'SKIP_ADVICE','SELF_REPORT_BALANCE','ALERT_ACK','KILL_CHECKLIST_CONFIRM'));
+--    'SKIP_ADVICE','SELF_REPORT_BALANCE','ALERT_ACK','KILL_CHECKLIST_CONFIRM',
+--    'LEDGER_EVENT_RECORD'));
 -- alter table command_queue add column if not exists run_mode       text;
 -- alter table command_queue add column if not exists operating_mode text;
 -- alter table command_queue add column if not exists lease_epoch    bigint;

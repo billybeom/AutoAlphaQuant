@@ -32,7 +32,9 @@ void main() {
     //    `StopTierCodes` · 라우트 48.
     // 🔵 '1.9.0'(E9a · 단계 1b) — 스키마 v1 결정 반영(`mode` 3값 + 파일별 CHECK · 명령 state 8값 ·
     //    `CORPORATE_ACTION` 통합) · `schemaVersion`·`hashFormatVersion` = 1 · `LedgerFile`·`ledgerDdlFor`.
-    expect(contractVersion, '1.9.0');
+    // 🔵 '1.10.0'(E9a2 · ㊲) — 원장 사건 `recordLedgerEvent` · `LedgerEventKind` · `CashFlowKind.isExternal` ·
+    //    `ledger_event` 표 · `cash_flow` 5값.
+    expect(contractVersion, '1.10.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.

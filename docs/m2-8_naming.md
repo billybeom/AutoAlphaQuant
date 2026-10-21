@@ -33,7 +33,7 @@
 | A-12 | 01 §4-3 G-01 «⚠️ M2-8» | `SettingsActionId.onboardingOperatingModeSelect` | ✅ 그대로 | 01 §4-3 원문. 🔴 05 §7 표에 없는 것이 **설계상 정상**이다(온보딩 `O-00b` 전용) |
 | A-13 | 01 §2-6 G-45 «⚠️ 열거값 이름 M2-8 확정 대기(후보 `settingsContributionUpdate`)» | 월 납입 운영값 변경 동작 | ⏸ `SettingsActionId.settingsContributionUpdate` | 01 §2-6 후보 그대로. 🔴 **«운영 등급»이며 `settingsGeneralUpdate` 로 태우지 않는다** — 일반 등급이면 «즉시 반영»이 되어 「다음 납입 주기부터 적용」이 깨지고 생체 재인증도 건너뛴다. ⏸ 사유 = 05 §1 등급표에 «운영 등급» 행이 신설되어야 성립 |
 | A-14 | 01 §4-3 «⚠️ 미등재 — 캘린더 재연결(G-64)» | 캘린더 재연결 동작 | ⏸ `SettingsActionId.calendarReconnect` | `calendarSyncNow`·`calendarRebackfill` 과 같은 `calendar*` 접두 관례. ⏸ 사유 = X4 채택 자체가 미결(§8-5 OAuth 동의화면 7일 만료 스모크) |
-| A-15 | 01 §2-1 · X7 ③ 3-1 | `LedgerEventKind` | ⏸ `LedgerEventKind { withdrawal, distribution, corporateAction, taxWithheld }` | 🔴 **결정 ㊲ 채택 시에만 신설.** 지금은 `enums/ledger.dart` 에 **주석으로만** 남기고 코드로 만들지 않는다 |
+| A-15 | 01 §2-1 · X7 ③ 3-1 | `LedgerEventKind` | ✅ **신설(계약 v1.10 · 2026-10-21 · 설계 13 §8 R21)** — 4값 그대로 + `CorporateActionType`·`CashFlowKind` 동반 · 구 ⏸ `LedgerEventKind { withdrawal, distribution, corporateAction, taxWithheld }` | 🔴 **결정 ㊲ 채택 시에만 신설.** 지금은 `enums/ledger.dart` 에 **주석으로만** 남기고 코드로 만들지 않는다 |
 | A-16 | 01 §8-30 «`deferAvailable` 의 자리 — 필드 vs `actions` 흡수» | 만료 확인 「내일 다시」 | ✅ **필드 유지** `AdviceItem.deferAvailable`(bool) · `AdviceActionId` 는 `{record, skip, detail}` **3값 그대로** | `AdviceActionId` 에 흡수하면 「버튼의 유일한 근거는 `actions`」(A8)와 「미룸 횟수는 엔진 판정」(G-86)이 한 목록에서 섞인다. 🔴 어느 쪽이든 **저장 정본은 `advice_transition(cause_code='DEFER_CONFIRM')` 행의 존재 자체**다 |
 | A-17 | 01 §9-5 ③ «`SafetyState` hold 사유 코드(⚠️ M2-8)» | 키 검증 전 보류 사유 | ✅ 문자열 상수 `LIVE_AWAITING_KEYS`(`labels/flag_ids.dart` 등재) | §9-5 ③ 원문 그대로. 🔴 **`operatingMode == autoTrade` 에서만 배치를 중단**한다(C9) — advisory 는 키가 없는 것이 정상 상태다 |
 
@@ -191,7 +191,7 @@
 | J-3 | 01 §8-10 · C2 기각 | `ALERT_ACK` 의 뷰어 허용 | ⏸ **허용하지 않는다**(현행 `command_insert_viewer` 4종 화이트리스트 유지) | X7 이 대신 답하지 않는 미결이다. ack 가 2종으로 갈린 뒤에는 **효력이 0인 명령**이고, 48h 개시가 폰을 요구하는 것은 결함이 아니라 결정 6 의 계약이다 |
 | J-4 | 01 §6-4 · 10 §3-2 | `rm_ops_summary` 표 존폐(홈 블록 5·7 소유) | ⏸ **표를 만든다**(홈을 전 플랫폼으로 유지) | 🔴 **정하지 않은 상태가 가장 나쁘다** — 뷰어가 값을 지어낸다. 대안(홈 블록 5·7 을 폰 전용으로 명시)도 유효하며 발주자 택일 |
 | J-5 | 01 §8-5 | X4 캘린더 계열 전체 | ⏸ **이름·타입은 등재하되 구현하지 않는다** | OAuth 동의화면 «테스트» 상태 7일 만료가 사실이면 X4 계열 문안(§2-8 `chainHash`·이벤트↔원천 표 · `calendar_link.mode` · `calendar_sync_status.mode` · §9-2 캘린더 행)이 **통째로 사문화**되고 `canonCalendar` 축이 대조에서 빠진다 |
-| J-6 | 01 §8-6 · X7 ㊲ | `LedgerEventKind`·`recordLedgerEvent`·`LedgerEventRecord` | ⏸ 이름 확정(A-15) · **코드 미생성** | 결정 ㊲ 채택 시에만 신설. 🔴 채택되지 않으면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 **현금 추정이 단조적으로 어긋나고 그 위에서 안내 수량이 계산된다** |
+| J-6 | 01 §8-6 · X7 ㊲ | `LedgerEventKind`·`recordLedgerEvent`·`LedgerEventRecord` | ✅ **신설(계약 v1.10 · R21)** — `CommandKind.ledgerEventRecord`('LEDGER_EVENT_RECORD') · `CommandApi.recordLedgerEvent` · `LedgerEventRecord` · 거부 `LedgerEventRejectCodes` 8 · 구 ⏸ 이름 확정(A-15) · **코드 미생성** | 결정 ㊲ 채택 시에만 신설. 🔴 채택되지 않으면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 **현금 추정이 단조적으로 어긋나고 그 위에서 안내 수량이 계산된다** |
 
 ---
 
