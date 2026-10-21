@@ -38,6 +38,8 @@
 //   🆕 E7a0(2026-10-21 · 설계 13 §8 R18 D-12 · 계약 버전 불변) — What-if 표시 계약 **판정 함수**
 //   (`src/testing/what_if_rules.dart` · C-38 ①~⑧ · C-41 ①②) — 픽스처(계약 테스트)와 실엔진 출력(core_engine 시험)에
 //   같은 판정을 건다. 받침대가 아니라 «위반 문장 목록»을 돌려주는 순수 함수다.
+//   🆕 계약 v1.11 E7b0(01 §20 · 설계 13 §8 R22 D14) — 실입금 등록 접수증 판정 `depositReceiptViolations`
+//   (`src/testing/deposit_register_rules.dart` · C-38 ⑨) — 픽스처와 실엔진 접수증(E7b2)에 같은 판정을 건다.
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -47,6 +49,7 @@ import 'package:decimal/decimal.dart';
 
 import 'domain_contracts.dart';
 
+export 'src/testing/deposit_register_rules.dart';
 export 'src/testing/what_if_rules.dart';
 
 /// [RebalanceRepository] 받침대 — 필요한 메서드만 override 한다(🆕 계약 v1.5 · 01 §15-3).

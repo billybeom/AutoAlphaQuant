@@ -286,6 +286,36 @@ void main() {
       );
     });
 
+    test('cash_flow.account_alias — 입금은 계좌별 행(계약 v1.11 · 설계 13 §8 R22 D6)', () {
+      final Database db = open(RunMode.live);
+      expect(
+        db
+            .select('PRAGMA table_info(cash_flow)')
+            .map((Row r) => r['name'] as String),
+        containsAll(<String>[
+          'account_alias',
+          'source_event_id',
+          'recorded_at',
+        ]),
+        reason: '배치 F 재작성(5값) 뒤에도 계좌 칸이 남는다.',
+      );
+      db.execute(
+        'INSERT INTO cash_flow (flow_id, trade_date, amount, kind, account_alias) VALUES '
+        "('f_p', '2026-10-22', 400000, 'DEPOSIT', '연금저축'), "
+        "('f_g', '2026-10-22', 600000, 'DEPOSIT', '일반')",
+      );
+      expect(
+        db
+            .select(
+              "SELECT account_alias, SUM(amount) AS s FROM cash_flow WHERE kind = 'DEPOSIT' "
+              'GROUP BY account_alias ORDER BY account_alias',
+            )
+            .map((Row r) => '${r['account_alias']}=${r['s']}'),
+        <String>['연금저축=400000.0', '일반=600000.0'],
+        reason: '계좌별 합 = 연금 납입 누계(R22 D7)·계좌별 현금 대사의 원천.',
+      );
+    });
+
     test('수기 체결 — MANUAL ⇔ broker_order_no NULL(R20 Q2)', () {
       final Database db = open(RunMode.live);
       const String fill =

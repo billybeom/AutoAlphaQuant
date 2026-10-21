@@ -98,7 +98,7 @@ class FakePlannerCommandApi extends UnimplementedCommandApi {
       return registerFn!(registration);
     }
     final receipt = listFixture(
-      FixturePaths.m7M7DepositRegisterReceipts4,
+      FixturePaths.m7M7DepositRegisterReceipts5,
       CommandReceipt.fromJson,
     ).rows[0];
     _lastReceipt = receipt;
@@ -114,7 +114,7 @@ class FakePlannerCommandApi extends UnimplementedCommandApi {
     final receipt =
         _lastReceipt ??
         listFixture(
-          FixturePaths.m7M7DepositRegisterReceipts4,
+          FixturePaths.m7M7DepositRegisterReceipts5,
           CommandReceipt.fromJson,
         ).rows[0];
     return Stream<CommandReceipt>.value(receipt);

@@ -152,7 +152,7 @@ void main() {
       expect(samples[0].toJson()['kind'], 'WITHDRAWAL');
     });
 
-    test('C-45 ⑤ DDL — ledger_event 는 역분개 짝을 CHECK 로 묶고 mode 칸이 없다 · cash_flow 는 5값', () {
+    test('C-45 ⑤ DDL — ledger_event 는 역분개 짝을 CHECK 로 묶고 mode 칸이 없다 · cash_flow 는 5값 · 계좌 칸', () {
       final String f = File('${ddlDir.path}/batch_f_x7_advisory.sql')
           .readAsStringSync();
       expect(
@@ -180,6 +180,16 @@ void main() {
         f,
         contains('source_event_id TEXT'),
         reason: '투영 행이 원 사건을 가리킨다(R21 L1).',
+      );
+      // 🆕 v1.11(E7b0 · 설계 13 §8 R22 D6) — 현금 행의 계좌 축.
+      final String cash = f.substring(
+        f.indexOf('CREATE TABLE IF NOT EXISTS cash_flow__new'),
+        f.indexOf('INSERT INTO cash_flow__new'),
+      );
+      expect(
+        RegExp(r'^\s+account_alias\s+TEXT\b', multiLine: true).hasMatch(cash),
+        isTrue,
+        reason: '입금은 계좌별 행이다(B 몫 → 연금 · 나머지 → 일반) — 계좌별 현금 대사·연금 납입 누계의 원천.',
       );
     });
   });

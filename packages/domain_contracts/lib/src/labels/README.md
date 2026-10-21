@@ -19,10 +19,10 @@
 | `saf_codes.dart` | `SafBandCodes` 8(대역 7행) · `Saf309Codes` 6 | §3-2 |
 | `verdict_codes.dart` | `VerdictCodes` 5 · `PlannedWorkKindCodes` 3 · `GapReasonCodes` 3(🆕 v1.3 `SIM_EXCLUDED`) | §3-3 · §6-3 · §2-4 · §13-3 |
 | 🆕 `disclosure_codes.dart` | **v1.3** `DisclosureSurfaceCodes` 1(`PERFORMANCE_EXPLORE` — 사전 키 `disclosure_surface`) | §13-6 |
-| 🆕 `plan_codes.dart` | **v1.4** `PlannerReasonCodes` 1(`DEPOSIT_ROUTING` — 사전 키 `planner_reason`) | §14 · §2-6 |
+| 🆕 `plan_codes.dart` | **v1.4** `PlannerReasonCodes` 1(`DEPOSIT_ROUTING` — 사전 키 `planner_reason`) · E7a3-2 `RebalanceReasonCodes` 4(`rebalance_reason`) · 🆕 **v1.11** `DepositRegisterRejectCodes` 6(`deposit_register_reject` · 판정 순서 `precedence`) | §14 · §2-6 · §15-4 · §20 |
 | `origin_codes.dart` | `OriginCodes` 20(브로커 7 · 파생 7 · X7 6) | §3-4 |
 | `flag_ids.dart` | `FlagIds` 12 · `SafetyHoldCodes` 1 | §3-5 · §9-5 ③ |
-| `advice_codes.dart` | `AdviceRejectCodes` 15 · `AdviceTransitionCauseCodes` 9 · `DecisionReasonCodes` 3 · `SeasonalEntryGateCodes` 3(+픽스처값 1) | §3-8 · §6-6 · §3-7 |
+| `advice_codes.dart` | `AdviceRejectCodes` 15 · `AdviceTransitionCauseCodes` 9 · `DecisionReasonCodes` 9(🆕 v1.10 ㊲ +5 · v1.11 `DEPOSIT_REGISTERED`) · `SeasonalEntryGateCodes` 3(+픽스처값 1) | §3-8 · §6-6 · §3-7 |
 | `alert_codes.dart` | `AlertCodes` 24 | 04 §5-1b·§5-1c·§5-1d |
 | `deviation_kind_codes.dart` | `DeviationKindCodes` 13 | §2-2 |
 | `ledger_event_codes.dart` | `LedgerEventCodes` 1 · `OperatingParamKeys` 1 | §3-6 · §6-2 |

@@ -34,7 +34,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.10.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.11.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -228,7 +228,7 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 `m7_deposit_plan_blocked`(`S7-4` 미리보기 차단 2행 — 0 `blocked_text` 만(버튼 부재) · 1 `blocked_text` + `blocked_action` → `aaq://x2/resume-report`) ·
 `m7_deposit_plan_input_rejected`(입력 거부 — `input_rejected_text` 만) ·
 `m7_deposit_plan_funding`(`deposit_plan_funding_1` 과 같은 계획을 감싼 래퍼 + `register_blocked_text`(브로커 대조 미완 — 등록만 불가) 동시 표본) ·
-`m7_deposit_register_receipts_4`(실입금 등록 `CommandReceipt` 4행 · kind `DEPOSIT_REGISTER` — **한 명령(같은 `command_id`)의 갈래**이고 🔴 **행 순서가 뜻**이다: 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`. 거부(`REJECTED`) 행은 없다 — 거부 코드 사전이 아직 없다(01 §8 미결 74)) ·
+`m7_deposit_register_receipts_5`(🆕 v1.11 — 구 `_4` 개명 · 실입금 등록 `CommandReceipt` 5행 · kind `DEPOSIT_REGISTER` — **한 명령(같은 `command_id`)의 갈래**이고 🔴 **행 순서가 뜻**이다: 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY` · 4 `REJECTED`(`DEPOSIT_PLAN_EXPIRED` — 사전 `deposit_register_reject` · 01 §20 · §8 미결 74 ✅)) ·
 `m7_goal_path_off`(`S7-9` 이탈 — `deviation_text` 있음).
 🔵 같은 창에서 16건의 본문이 개정됐다 — 아래 «계약 v1.4» 절.
 
@@ -389,7 +389,7 @@ R11a 골든(`s74_*`)과 M6 골든이 같은 티커를 다른 종목명으로 찍
 ### 신설 7건
 
 위 «`m7/` 48» · «`m9/` 3» 절의 v1.4 목록. 상수는 `FixturePaths.m7M7DepositPlanBlocked`·`…InputRejected`·`…Funding`·
-`m7M7DepositRegisterReceipts4`·`m7M7GoalPathOff`·`m9ContributionSettingDefault`·`m9ContributionSettingNoLimitNote` 7개다.
+`m7M7DepositRegisterReceipts4`(🆕 v1.11 → `m7M7DepositRegisterReceipts5`)·`m7M7GoalPathOff`·`m9ContributionSettingDefault`·`m9ContributionSettingNoLimitNote` 7개다.
 
 ### 🆕 정정 1건 (2026-10-06 · 01 §8 미결 77 · §15-1 · 계약 1.4.0 유지)
 
@@ -753,7 +753,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 - `test/` 의 계약 회귀 ~~C-1~C-37~~ ~~C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합)~~ ~~C-1~C-42(🆕 v1.6 C-41 R12 표시 계약 — 이 절의 픽스처끼리 맞대는 불변식 · C-42 R12 화면 소스 스캔)~~ ~~C-1~C-43(🆕 v1.7 C-43 J-4 blind 리뷰 — 픽스처 불변식 ①~⑨ + 화면 소스 스캔 ⑩~⑰)~~ C-1~C-44(🆕 v1.8 C-44 보유현황 `H6-*` — 픽스처 불변식 ①~⑪ + 화면 소스 스캔 ⑫~⑳) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.
 
-## 부록 — 실제 픽스처 파일 목록 (159개, 2026-10-21 실측)
+## 부록 — 실제 픽스처 파일 목록 (159개, 2026-10-22 실측)
 
 경로 기준 `packages/domain_contracts/fixtures/`. 이 목록은 조립 시점의 실물이며, 명세가 부르는 파일명과 다르면 **실물이 맞습니다**.
 
@@ -872,7 +872,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 | `m7/m7_deposit_plan_funding.json` | 5,538 |
 | `m7/m7_deposit_plan_input_rejected.json` | 650 |
 | `m7/m7_deposit_plan_limit.json` | 3,192 |
-| `m7/m7_deposit_register_receipts_4.json` | 2,020 |
+| `m7/m7_deposit_register_receipts_5.json` | 2,512 |
 | `m7/m7_disclosure_gate.json` | 1,033 |
 | `m7/m7_disclosure_gate_closed.json` | 935 |
 | `m7/m7_disclosure_gate_first.json` | 970 |
@@ -941,4 +941,4 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 | `m9/contribution_setting_no_limit_note.json` | 1,069 |
 | `m9/handover_states.json` | 5,204 |
 
-**합계 159개 · 710,208 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
+**합계 159개 · 710,700 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).

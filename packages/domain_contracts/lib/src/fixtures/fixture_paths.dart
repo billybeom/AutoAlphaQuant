@@ -289,10 +289,11 @@ abstract final class FixturePaths {
   /// 연 합산 납입한도 소진 — B 행 없음 · 주문 초안 빈 목록 + `orders_empty_text` · 경고 1.
   static const String m7M7DepositPlanLimit = 'm7/m7_deposit_plan_limit.json';
 
-  /// 실입금 등록 `CommandReceipt` 4행 — 🔴 **한 명령의 갈래**(행 순서 = 뜻):
-  /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`.
-  static const String m7M7DepositRegisterReceipts4 =
-      'm7/m7_deposit_register_receipts_4.json';
+  /// 실입금 등록 `CommandReceipt` 5행 — 🔴 **한 명령의 갈래**(행 순서 = 뜻):
+  /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY` ·
+  /// 4 `REJECTED`(`DEPOSIT_PLAN_EXPIRED`). 🆕 v1.11 — 구 `_4` 에 거부 행을 더해 개명(01 §20).
+  static const String m7M7DepositRegisterReceipts5 =
+      'm7/m7_deposit_register_receipts_5.json';
   static const String m7M7DisclosureGate = 'm7/m7_disclosure_gate.json';
 
   // 🆕 v1.3(R10 선행 · 01 §13-5·§13-6) — `S7-2G` 게이트 3갈래 + 열람 기록 접수증.
@@ -537,7 +538,7 @@ abstract final class FixturePaths {
     m7M7DepositPlanFunding,
     m7M7DepositPlanInputRejected,
     m7M7DepositPlanLimit,
-    m7M7DepositRegisterReceipts4,
+    m7M7DepositRegisterReceipts5,
     m7M7DisclosureGate,
     m7M7DisclosureGateClosed,
     m7M7DisclosureGateFirst,

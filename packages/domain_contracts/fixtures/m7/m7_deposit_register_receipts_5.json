@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.10.0",
+    "contract_version": "1.11.0",
     "generated_at": "2026-09-30T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -52,6 +52,17 @@
       "expires_at": "2026-09-01T10:30:00Z",
       "nonce": "n_7c3e1a9f2b64",
       "issued_by_device_id": "dev_operator_01"
+    },
+    {
+      "command_id": "cmd_20260901_0051",
+      "kind": "DEPOSIT_REGISTER",
+      "state": "REJECTED",
+      "state_label": "거부됨 — 이 계획은 만료되어 실입금을 등록할 수 없습니다. 다시 계산해 새 계획을 받아 주세요.",
+      "requested_at": "2026-09-01T10:00:00Z",
+      "expires_at": "2026-09-01T10:30:00Z",
+      "nonce": "n_7c3e1a9f2b64",
+      "issued_by_device_id": "dev_operator_01",
+      "reject_reason_code": "DEPOSIT_PLAN_EXPIRED"
     }
   ]
 }

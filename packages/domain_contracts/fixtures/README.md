@@ -32,7 +32,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.10.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.11.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -226,7 +226,7 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 `m7_deposit_plan_blocked`(`S7-4` 미리보기 차단 2행 — 0 `blocked_text` 만(버튼 부재) · 1 `blocked_text` + `blocked_action` → `aaq://x2/resume-report`) ·
 `m7_deposit_plan_input_rejected`(입력 거부 — `input_rejected_text` 만) ·
 `m7_deposit_plan_funding`(`deposit_plan_funding_1` 과 같은 계획을 감싼 래퍼 + `register_blocked_text`(브로커 대조 미완 — 등록만 불가) 동시 표본) ·
-`m7_deposit_register_receipts_4`(실입금 등록 `CommandReceipt` 4행 · kind `DEPOSIT_REGISTER` — **한 명령(같은 `command_id`)의 갈래**이고 🔴 **행 순서가 뜻**이다: 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`. 거부(`REJECTED`) 행은 없다 — 거부 코드 사전이 아직 없다(01 §8 미결 74)) ·
+`m7_deposit_register_receipts_5`(🆕 v1.11 — 구 `_4` 개명 · 실입금 등록 `CommandReceipt` 5행 · kind `DEPOSIT_REGISTER` — **한 명령(같은 `command_id`)의 갈래**이고 🔴 **행 순서가 뜻**이다: 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY` · 4 `REJECTED`(`DEPOSIT_PLAN_EXPIRED` — 사전 `deposit_register_reject` · 01 §20 · §8 미결 74 ✅)) ·
 `m7_goal_path_off`(`S7-9` 이탈 — `deviation_text` 있음).
 🔵 같은 창에서 16건의 본문이 개정됐다 — 아래 «계약 v1.4» 절.
 
@@ -387,7 +387,7 @@ R11a 골든(`s74_*`)과 M6 골든이 같은 티커를 다른 종목명으로 찍
 ### 신설 7건
 
 위 «`m7/` 48» · «`m9/` 3» 절의 v1.4 목록. 상수는 `FixturePaths.m7M7DepositPlanBlocked`·`…InputRejected`·`…Funding`·
-`m7M7DepositRegisterReceipts4`·`m7M7GoalPathOff`·`m9ContributionSettingDefault`·`m9ContributionSettingNoLimitNote` 7개다.
+`m7M7DepositRegisterReceipts4`(🆕 v1.11 → `m7M7DepositRegisterReceipts5`)·`m7M7GoalPathOff`·`m9ContributionSettingDefault`·`m9ContributionSettingNoLimitNote` 7개다.
 
 ### 🆕 정정 1건 (2026-10-06 · 01 §8 미결 77 · §15-1 · 계약 1.4.0 유지)
 

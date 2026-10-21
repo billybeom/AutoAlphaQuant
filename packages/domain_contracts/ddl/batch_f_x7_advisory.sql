@@ -278,7 +278,8 @@ CREATE INDEX IF NOT EXISTS ix_ledger_event_date ON ledger_event(effective_date, 
 -- ── 🆕 v1.10 `cash_flow.kind` CHECK 재작성 (02 §2-5 2값 → 5값 · `CashFlowKind`) ───────────────────
 -- 🔴 SQLite 의 CHECK 는 ALTER 로 못 바꾸므로 **새 테이블 → 복사 → RENAME**(위 ledger_diff 와 같은 방식).
 -- 🔴 02 기본 표는 그대로 두고 이 배치가 넓힌다(«기존 표 불변» 그대로 — 새 설치에서는 빈 표의 재작성이다).
--- 🔴 컬럼 = 02 기본 6 + 배치 C `recorded_at` + 🆕 `source_event_id`(ledger_event 에서 투영된 행이면 그 id).
+-- 🔴 컬럼 = 02 기본 6 + 배치 C `recorded_at` + 🆕 `source_event_id`(ledger_event 에서 투영된 행이면 그 id)
+--    + 🆕 v1.11 `account_alias`(계좌 축 · 설계 13 §8 R22 D6 — 입금은 **계좌별 행**: B 몫 → 연금 계좌 · 나머지 → 일반 계좌).
 CREATE TABLE IF NOT EXISTS cash_flow__new (
     flow_id         TEXT    NOT NULL PRIMARY KEY,
     trade_date      TEXT    NOT NULL,
@@ -288,7 +289,8 @@ CREATE TABLE IF NOT EXISTS cash_flow__new (
                      ('DEPOSIT','WITHDRAWAL','DISTRIBUTION','TAX_WITHHELD','CASH_IN_LIEU')),
     note            TEXT,
     recorded_at     TEXT,                                -- 배치 C(X4·X5 authored 축)
-    source_event_id TEXT                                 -- 🆕 ㊲ 투영 행의 원 사건
+    source_event_id TEXT,                                -- 🆕 ㊲ 투영 행의 원 사건
+    account_alias   TEXT                                 -- 🆕 v1.11 계좌 별칭(계좌별 현금 대사 · 연금 납입 누계의 원천 · R22 D6·D7)
 );
 INSERT INTO cash_flow__new (flow_id, trade_date, amount, currency, kind, note, recorded_at)
 SELECT flow_id, trade_date, amount, currency, kind, note, recorded_at

@@ -127,7 +127,7 @@ abstract final class AdviceTransitionCauseCodes {
   };
 }
 
-/// `decision_log.reason_code` 의 특수값 3종(인벤토리 §6-12) + 🆕 v1.10 ㊲ 원장 사건 5종.
+/// `decision_log.reason_code` 의 특수값 3종(인벤토리 §6-12) + 🆕 v1.10 ㊲ 원장 사건 5종 + 🆕 v1.11 실입금 등록 1종.
 ///
 /// 🔴 `decision_log.kind='MANUAL'` 인 **세 갈래**(정정 · `external_holding` 등록 · 경로 b 귀속)는
 ///    재량 예산·이탈 집계의 **모집단이 아니다**(C7).
@@ -157,7 +157,11 @@ abstract final class DecisionReasonCodes {
   /// 🆕 v1.10 ㊲ — 원장 사건의 무효(상쇄만 · `kind='MANUAL'`).
   static const String ledgerEventVoid = 'LEDGER_EVENT_VOID';
 
-  /// 전량 8종.
+  /// 🆕 v1.11(E7b0 · 설계 13 §8 R22 D5) — 실입금 등록(`decision_log.kind='DEPOSIT'` · 계획 바인딩과 한 트랜잭션).
+  /// 칩 코드 `DEPOSIT_ROUTING`(플래너 사전)과 다른 도메인이다 — 결정 사유는 이 사전만 쓴다.
+  static const String depositRegistered = 'DEPOSIT_REGISTERED';
+
+  /// 전량 9종.
   static const Set<String> values = <String>{
     openingBalance,
     simOpeningBalance,
@@ -167,6 +171,7 @@ abstract final class DecisionReasonCodes {
     ledgerEventTaxWithheld,
     ledgerEventCorporateAction,
     ledgerEventVoid,
+    depositRegistered,
   };
 }
 

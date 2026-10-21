@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 88개 · 계약 v1.10.0 · 조립일 2026-10-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 89개 · 계약 v1.11.0 · 조립일 2026-10-22(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -147,12 +147,17 @@ export 'commands/settings_actions.dart';
 //    거부 코드 `LedgerEventRejectCodes`(`ledger_event_reject` 8) · 사유 코드 +5(`LEDGER_EVENT_*`) ·
 //    `ddl/batch_f` = `ledger_event` 신설 + `cash_flow` 5값 재작성(+`source_event_id`) · `batch_d` 명령 kind +1 ·
 //    받침대 1메서드 · 🆕 C-45 · 픽스처 159(봉투 버전만).
+// 🆕 '1.11.0'(E7b0 · M3-2·M3-4 · 설계 13 §8 R22 D4·D5·D6·D14 · 발주자 결정 2026-10-21 추천안) — 실입금 등록:
+//    거부 코드 `DepositRegisterRejectCodes`(`deposit_register_reject` 6 + 판정 순서 `precedence`) ·
+//    사유 코드 `DEPOSIT_REGISTERED` · `ddl/batch_f` `cash_flow.account_alias`(계좌별 입금 행) ·
+//    픽스처 `m7_deposit_register_receipts_4` → `_5`(`REJECTED` 1행 · 01 §8 미결 74 ✅) ·
+//    판정 `depositReceiptViolations` → `testing.dart`(C-38 ⑨) · 픽스처 159(개명 1 · 봉투 버전).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.10.0';
+const String contractVersion = '1.11.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -7483,10 +7488,11 @@ abstract final class FixturePaths {
   /// 연 합산 납입한도 소진 — B 행 없음 · 주문 초안 빈 목록 + `orders_empty_text` · 경고 1.
   static const String m7M7DepositPlanLimit = 'm7/m7_deposit_plan_limit.json';
 
-  /// 실입금 등록 `CommandReceipt` 4행 — 🔴 **한 명령의 갈래**(행 순서 = 뜻):
-  /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY`.
-  static const String m7M7DepositRegisterReceipts4 =
-      'm7/m7_deposit_register_receipts_4.json';
+  /// 실입금 등록 `CommandReceipt` 5행 — 🔴 **한 명령의 갈래**(행 순서 = 뜻):
+  /// 0 `REQUESTED` · 1 `EXECUTED` · 2 `EXPIRED` · 3 `HELD_FOR_INTEGRITY` ·
+  /// 4 `REJECTED`(`DEPOSIT_PLAN_EXPIRED`). 🆕 v1.11 — 구 `_4` 에 거부 행을 더해 개명(01 §20).
+  static const String m7M7DepositRegisterReceipts5 =
+      'm7/m7_deposit_register_receipts_5.json';
   static const String m7M7DisclosureGate = 'm7/m7_disclosure_gate.json';
 
   // 🆕 v1.3(R10 선행 · 01 §13-5·§13-6) — `S7-2G` 게이트 3갈래 + 열람 기록 접수증.
@@ -7731,7 +7737,7 @@ abstract final class FixturePaths {
     m7M7DepositPlanFunding,
     m7M7DepositPlanInputRejected,
     m7M7DepositPlanLimit,
-    m7M7DepositRegisterReceipts4,
+    m7M7DepositRegisterReceipts5,
     m7M7DisclosureGate,
     m7M7DisclosureGateClosed,
     m7M7DisclosureGateFirst,
@@ -7927,7 +7933,7 @@ abstract final class AdviceTransitionCauseCodes {
   };
 }
 
-/// `decision_log.reason_code` 의 특수값 3종(인벤토리 §6-12) + 🆕 v1.10 ㊲ 원장 사건 5종.
+/// `decision_log.reason_code` 의 특수값 3종(인벤토리 §6-12) + 🆕 v1.10 ㊲ 원장 사건 5종 + 🆕 v1.11 실입금 등록 1종.
 ///
 /// 🔴 `decision_log.kind='MANUAL'` 인 **세 갈래**(정정 · `external_holding` 등록 · 경로 b 귀속)는
 ///    재량 예산·이탈 집계의 **모집단이 아니다**(C7).
@@ -7957,7 +7963,11 @@ abstract final class DecisionReasonCodes {
   /// 🆕 v1.10 ㊲ — 원장 사건의 무효(상쇄만 · `kind='MANUAL'`).
   static const String ledgerEventVoid = 'LEDGER_EVENT_VOID';
 
-  /// 전량 8종.
+  /// 🆕 v1.11(E7b0 · 설계 13 §8 R22 D5) — 실입금 등록(`decision_log.kind='DEPOSIT'` · 계획 바인딩과 한 트랜잭션).
+  /// 칩 코드 `DEPOSIT_ROUTING`(플래너 사전)과 다른 도메인이다 — 결정 사유는 이 사전만 쓴다.
+  static const String depositRegistered = 'DEPOSIT_REGISTERED';
+
+  /// 전량 9종.
   static const Set<String> values = <String>{
     openingBalance,
     simOpeningBalance,
@@ -7967,6 +7977,7 @@ abstract final class DecisionReasonCodes {
     ledgerEventTaxWithheld,
     ledgerEventCorporateAction,
     ledgerEventVoid,
+    depositRegistered,
   };
 }
 
@@ -8753,6 +8764,8 @@ abstract final class ContractCodes {
     'stop_tier': StopTierCodes.values,
     // 🆕 v1.10(E9a2 · ㊲) — 원장 사건 기록의 거부 사유(`CommandReceipt.rejectReasonCode`)
     'ledger_event_reject': LedgerEventRejectCodes.values,
+    // 🆕 v1.11(E7b0) — 실입금 등록의 거부 사유(`CommandReceipt.rejectReasonCode`)
+    'deposit_register_reject': DepositRegisterRejectCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -9043,7 +9056,7 @@ abstract final class OriginCodes {
 //    칩의 글자는 `ReasonChip.label`(엔진 문장)이고, 화면은 이 상수를 보고 문구를 고르지 않는다.
 // 🔵 까닭: 입금 계획 픽스처(`deposit_plan_*`·`m7_deposit_plan_*`)와 `journal_30`·`advice_12` 가
 //    `DEPOSIT_ROUTING` 을 쓰는데 사전에 없었다(미등록 코드 조기 실패의 빈틈 · 설계 D9 ⑦).
-// ⏸ `DEPOSIT_REGISTER` 거부 코드 사전은 여기 없다(01 §8 미결 74).
+// 🆕 v1.11(E7b0 · 설계 13 §8 R22 D4 · 01 §8 미결 74 ✅) — `DEPOSIT_REGISTER` 거부 코드 사전([DepositRegisterRejectCodes]).
 
 /// 플래너 주문 초안의 사유 칩 코드(`OrderDraft.reasons[].code` · 01 §2-6).
 ///
@@ -9085,6 +9098,54 @@ abstract final class RebalanceReasonCodes {
     sleeveBSignal,
     sleeveCRebalance,
     potSignal,
+  };
+}
+
+/// 🆕 v1.11(E7b0 · 설계 13 §8 R22 D4·D13 · 01 §20) — 실입금 등록(`CommandKind.depositRegister`)의 거부 사유.
+/// `CommandReceipt.rejectReasonCode` 의 값(`state == rejected` 일 때) · `ContractCodes.byDomain` 키 `deposit_register_reject`.
+///
+/// 🔴 사유의 **문구**는 `CommandReceipt.stateLabel` 에 실려 온다 — 화면은 이 코드를 표시·분기하지 않는다(01 §14-7).
+/// 🔴 거부는 **계획 바인딩의 거부**이지 입금 사실의 거부가 아니다 — 돈은 계좌에 남고, 새 계획(planId)으로 다시 등록한다.
+/// 🔴 원장 무결성 점검 중(`LEDGER_INTEGRITY` 플래그)이면 거부가 아니라 **보류**다(`CommandState.heldForIntegrity` · 사유 코드 없음).
+/// 🔴 판정 순서 = [precedence](구조 → 보류 → 대조·정정·만료 → 한도) — `DepositPlan.registerBlockedText` 와 같은 순서라
+///    화면 문장과 거부 코드가 엇갈리지 않는다. 만료는 명령의 서버 `requested_at` 으로 잰다(R22 D9).
+abstract final class DepositRegisterRejectCodes {
+  /// 그런 계획이 없다(저장된 적 없는 planId · 다른 파일(모의/실계좌)의 planId).
+  static const String planNotFound = 'DEPOSIT_PLAN_NOT_FOUND';
+
+  /// 이 계획은 이미 등록됐다 — 계획 하나에 등록 하나(`plan_snapshot.consumed_by_decision_id`).
+  static const String planAlreadyRegistered = 'DEPOSIT_PLAN_ALREADY_REGISTERED';
+
+  /// 브로커 잔고 대조가 끝나지 않았다(`RECON_MISMATCH` 플래그).
+  static const String reconPending = 'DEPOSIT_RECON_PENDING';
+
+  /// 원장 정정이 끝나지 않았다(`LEDGER_FIX` 플래그).
+  static const String ledgerFixPending = 'DEPOSIT_LEDGER_FIX_PENDING';
+
+  /// 계획이 만료됐다(명령 `requested_at` ≥ `expiresAt`).
+  static const String planExpired = 'DEPOSIT_PLAN_EXPIRED';
+
+  /// 지금 남은 연금 납입 한도 < 계획의 B 몫(해 넘김 포함 · R22 D13) — 세금 사고를 막는다.
+  static const String pensionQuotaChanged = 'DEPOSIT_PENSION_QUOTA_CHANGED';
+
+  /// 판정 순서(앞이 먼저 · 보류 `heldForIntegrity` 는 «이미 등록» 다음 · «대조» 앞에 끼인다).
+  static const List<String> precedence = <String>[
+    planNotFound,
+    planAlreadyRegistered,
+    reconPending,
+    ledgerFixPending,
+    planExpired,
+    pensionQuotaChanged,
+  ];
+
+  /// 전량 6종.
+  static const Set<String> values = <String>{
+    planNotFound,
+    planAlreadyRegistered,
+    reconPending,
+    ledgerFixPending,
+    planExpired,
+    pensionQuotaChanged,
   };
 }
 ```
@@ -10648,6 +10709,44 @@ String ledgerDdlFor(LedgerFile file, String liveSql) {
 
 ---
 
+## `packages/domain_contracts/lib/src/testing/deposit_register_rules.dart`
+
+```dart
+// 실입금 등록 접수증 판정 — C-38 ⑨. 01 §7 표 · §14-7 · §20.
+//
+// 왜 여기 있는가(설계 13 §8 R22 D14 · E7b0): 같은 판정을 **픽스처**(계약 테스트 c38)와 **실엔진 접수증**
+//   (core_engine 등록 처리 시험 · E7b2)에 똑같이 건다 — `what_if_rules.dart` 와 같은 이유다.
+// 🔴 `lib/` 의 화면 코드에서 import 하지 않는다(`testing.dart` 머리).
+// 🔴 함수는 판정만 한다 — 위반 문장 목록을 돌려주고 빈 목록 = 통과.
+// 🔴 픽스처 전용 단언(행 순서 · 상태 집합)은 계약 테스트에 남는다 — 실엔진 접수증 한 건은 한 상태다.
+
+import '../../domain_contracts.dart';
+
+/// C-38 ⑨ — 행이 있다 · 전 행 kind = `DEPOSIT_REGISTER` · 사유 코드가 필요한 상태(`rejected`)는
+/// `deposit_register_reject` 사전의 코드를 싣고, 그 밖의 상태는 사유 코드를 싣지 않는다.
+List<String> depositReceiptViolations(
+  String where,
+  List<CommandReceipt> rows,
+) => <String>[
+  if (rows.isEmpty) '$where — 행이 없다',
+  for (final (int i, CommandReceipt r) in rows.indexed) ...<String>[
+    if (r.kind != CommandKind.depositRegister)
+      '$where rows[$i] — kind ${r.kind.wire} ≠ DEPOSIT_REGISTER',
+    if (CommandStateMachine.requiresRejectReasonCode(r.state) &&
+        !ContractCodes.isRegisteredIn(
+          'deposit_register_reject',
+          r.rejectReasonCode ?? '',
+        ))
+      '$where rows[$i] — 거부 사유 ${r.rejectReasonCode} 가 deposit_register_reject 사전에 없다',
+    if (!CommandStateMachine.requiresRejectReasonCode(r.state) &&
+        r.rejectReasonCode != null)
+      '$where rows[$i] — ${r.state.wire} 인데 거부 사유 ${r.rejectReasonCode} 가 실렸다',
+  ],
+];
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/testing/what_if_rules.dart`
 
 ```dart
@@ -10658,8 +10757,9 @@ String ledgerDdlFor(LedgerFile file, String liveSql) {
 //   엔진 쪽이 사본을 만들게 되고 두 판이 갈라진다 — 그래서 테스트 전용 배럴(`testing.dart`)로 낸다.
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다(받침대와 같은 규칙 · `testing.dart` 머리).
 // 🔴 함수는 판정만 한다 — 위반 문장 목록을 돌려주고 빈 목록 = 통과. 값을 고치거나 지어내지 않는다.
-// 🔴 픽스처 전용 단언(갈래 표본 수 · 행 순서 · 밴드 표본 정합 · 접수증 ⑨)은 계약 테스트에 남는다 —
+// 🔴 픽스처 전용 단언(갈래 표본 수 · 행 순서 · 밴드 표본 정합)은 계약 테스트에 남는다 —
 //    실엔진 출력에는 참이 아닐 수 있다(예: B 신호·C·POT 는 밴드 안에서도 초안을 만든다).
+// 🆕 v1.11 — 접수증 ⑨ 의 판정은 `deposit_register_rules.dart`(행 순서·상태 집합만 계약 테스트에 남는다).
 
 import 'dart:convert';
 
