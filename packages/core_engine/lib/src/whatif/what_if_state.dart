@@ -12,6 +12,9 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show AsOfSource, BlockFlag, SleeveId, TradeDate;
 
+import '../calendar/exchange_calendar.dart';
+import '../portfolio/month_end_plan.dart';
+
 /// 계좌 매핑 — 별칭만 싣는다(계좌 번호는 엔진 밖으로 내지 않는다 · 01 §5).
 class WhatIfAccounts {
   const WhatIfAccounts({
@@ -40,6 +43,8 @@ class WhatIfState {
     required this.sleeveValues,
     required this.prices,
     this.unknownSymbols = const <String>{},
+    this.monthEnd,
+    this.krCalendar,
   });
 
   /// 입력 기준 거래일(그날 종가로 계산한다).
@@ -72,6 +77,12 @@ class WhatIfState {
 
   /// 체결 확인 중(UNKNOWN)인 직전 주문이 남은 종목 — 초안의 `pendingNoteText`.
   final Set<String> unknownSymbols;
+
+  /// 🆕 E7a3-2 — 리밸런싱 미리보기 입력: 월말 계획기가 읽는 회계 상태(어댑터가 만든다 · null = 계산할 수 없다).
+  final MonthEndState? monthEnd;
+
+  /// 🆕 E7a3-2 — KR 거래소 달력(다음 정기 회차 판정 · null = 예정 없음).
+  final ExchangeCalendar? krCalendar;
 
   /// [flagId] 플래그가 켜져 있으면 그 플래그.
   BlockFlag? flag(String flagId) {

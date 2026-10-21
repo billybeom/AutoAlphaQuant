@@ -7,6 +7,10 @@
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart' show SleeveId;
 
+import '../portfolio/month_end_plan.dart';
+import '../signals/regime_states.dart';
+import '../signals/sleeve_b_tranche.dart';
+
 /// What-if 미리보기 설정.
 class WhatIfConfig {
   WhatIfConfig({
@@ -21,7 +25,9 @@ class WhatIfConfig {
     Map<String, String>? symbolLabels,
     Map<SleeveId, String>? sleeveLabels,
     this.asOfStaleAfter = const Duration(seconds: 93600),
-  }) : targetWeights = Map<SleeveId, Decimal>.unmodifiable(
+    MonthEndConfig? monthEnd,
+  }) : monthEnd = monthEnd ?? p0sMonthEndConfig(),
+       targetWeights = Map<SleeveId, Decimal>.unmodifiable(
          targetWeights ?? _p0sWeights,
        ),
        commissionRate = commissionRate ?? Decimal.parse('0.00015'),
@@ -70,6 +76,9 @@ class WhatIfConfig {
   /// 기준일 고지의 신선도 한계(픽스처 `stale_after_seconds` 93600 = 26시간).
   final Duration asOfStaleAfter;
 
+  /// 🆕 E7a3-2 — 리밸런싱 미리보기의 월말 계획기 설정(실전 값 — C 는 국내상장 ETF · R17 ⑤).
+  final MonthEndConfig monthEnd;
+
   /// 문서 값 기본판(D-5).
   static final WhatIfConfig defaults = WhatIfConfig(
     planTtl: const Duration(hours: 24),
@@ -91,7 +100,42 @@ const Map<String, String> _symbolLabels = <String, String>{
   '214980': '214980 KODEX 단기채권PLUS',
   '133690': '133690 TIGER 미국나스닥100',
   '411060': '411060 ACE KRX금현물',
+  '0085P0': '0085P0 ACE 미국10년국채액티브',
 };
+
+/// P0S 정본 월말 계획기 설정(02 §4 · 실전 비용 — 국내상장 ETF 수수료 0.015% + 슬리피지 0.10% · 거래세 0).
+/// ⬜ 슬리브 C 의 국내상장 종목은 확정 대기다(02 §4 는 미국 상장 UST10·IAU) — 채권 0085P0(픽스처) · 금 411060 을 기본으로 둔다.
+MonthEndConfig p0sMonthEndConfig() => MonthEndConfig(
+  allocB: Decimal.parse('0.42'),
+  coreBand: Decimal.parse('0.03'),
+  rampMonths: 6,
+  bAssets: <(String, Decimal)>[
+    ('133690', Decimal.parse('0.8')),
+    ('411060', Decimal.parse('0.2')),
+  ],
+  lookbackMonths: const <int>[8, 10, 12],
+  assist: SleeveBAssist(
+    floor: 1 / 3,
+    cutState: DirectionState.bear,
+    cut: 2 / 3,
+  ),
+  cBondSymbol: '0085P0',
+  cGoldSymbol: '411060',
+  cBondWeight: Decimal.parse('0.65'),
+  cGoldWeight: Decimal.parse('0.35'),
+  maxGoldPctOfTotal: Decimal.parse('0.08'),
+  cRelativeBand: Decimal.parse('0.1666666666666667'),
+  bOrderThreshold: Decimal.parse('0.005'),
+  cOrderThreshold: Decimal.parse('0.002'),
+  potOrderThreshold: Decimal.parse('0.005'),
+  topupMinFraction: Decimal.parse('0.001'),
+  krwUsableFraction: Decimal.parse('0.98'),
+  pensionAnnualLimit: Decimal.parse('18000000'),
+  pensionFunding: true,
+  bSellCostRate: Decimal.parse('0.00115'),
+  cSellCostRate: Decimal.parse('0.00115'),
+  potCostRate: Decimal.parse('0.00115'),
+);
 
 /// 픽스처 꼴(`fixtures/m7/m7_deposit_plan_default.json`).
 const Map<SleeveId, String> _sleeveLabels = <SleeveId, String>{

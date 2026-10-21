@@ -7,13 +7,14 @@
 // 🔵 `findPlan` 은 저장본에 **지금** 상태와 신뢰 시각으로 등록 불가 문장을 다시 판정해 싣는다 — RECON > LEDGER_FIX > 만료
 //    (D-3 · 화면은 `expiresAt` 을 시계와 비교하지 않는다 · 만료 = 신뢰 시각 ≥ 만료 시각).
 // ⏸ `simulateWithdrawal` 은 인출 규칙 결정 뒤 첫 minor 에서 시그니처가 바뀐다(01 §14-15) — 지금은 에러.
-// 🟡 `previewRebalance` 는 E7a3 몫이다 — 지금은 에러.
+// 🟢 `previewRebalance`(E7a3-2) — 월말 계획기 + H64 관문 · 결과 캐시 0.
 
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
 import 'deposit_plan.dart';
 import 'plan_store.dart';
+import 'rebalance_preview.dart';
 import 'what_if_config.dart';
 import 'what_if_gates.dart';
 import 'what_if_state.dart';
@@ -82,9 +83,25 @@ class EngineWhatIfApi implements WhatIfApi {
         UnimplementedError('simulateWithdrawal — 인출 규칙 결정 뒤(01 §14-15)'),
       );
 
+  /// 🔴 결과 캐시 0(01 §15-4 ②) — 저장하지 않는다 · 계획 id 는 순번만(`pv_re_<회차 yyyyMMdd>_<순번 두 자리>` · 픽스처 꼴).
   @override
-  Future<RebalancePreviewResult> previewRebalance({TradeDate? plannedDate}) =>
-      Future<RebalancePreviewResult>.error(
-        UnimplementedError('previewRebalance — E7a3'),
-      );
+  Future<RebalancePreviewResult> previewRebalance({
+    TradeDate? plannedDate,
+  }) async {
+    final WhatIfState s = await source.load();
+    final TradeDate? planned = plannedRebalanceDate(s, plannedDate);
+    final RebalancePreviewResult? stop = rebalancePreflight(
+      s,
+      hasPlannedDate: planned != null,
+    );
+    if (stop != null) return stop;
+    final String day = planned!.yyyyMmDd.replaceAll('-', '');
+    final int seq = await store.nextSequence('re_$day');
+    return previewRebalancePlan(
+      s,
+      config,
+      planned: planned,
+      planId: 'pv_re_${day}_${seq.toString().padLeft(2, '0')}',
+    );
+  }
 }

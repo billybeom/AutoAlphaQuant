@@ -186,6 +186,8 @@ abstract final class ContractCodes {
     'disclosure_surface': DisclosureSurfaceCodes.values,
     // 🆕 v1.4(R11 선행) — 플래너 주문 초안의 사유 칩(`OrderDraft.reasons[].code`)
     'planner_reason': PlannerReasonCodes.values,
+    // 🆕 E7a3-2(설계 13 §8 R18 D-11 · 계약 버전 불변) — 리밸런싱 미리보기 초안의 사유 칩
+    'rebalance_reason': RebalanceReasonCodes.values,
     // 🆕 v1.7(J-4 선행) — blind 리뷰 점수 제출의 거부 사유(`CommandReceipt.rejectReasonCode`)
     'blind_review_reject': BlindReviewRejectCodes.values,
     // 🆕 v1.8(R4 선행) — 손절선 등급(`StopLineNormalized.tierCode` · C-44 ⑦ 이 픽스처와 맞댄다)
