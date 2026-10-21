@@ -6,11 +6,11 @@
 //    `recovery` = 열린 재개가 복구 모드(`ResumeMode.recoveryDry` · `recoveryFull`)인가 ·
 //    `accounts.pensionAlias == null` = «계좌 매핑 미완»(슬리브 B 의 연금저축 계좌 미지정) ·
 //    `pensionUsedThisYear` = 올해 연금 합산 납입 누계(원장 C→B 납입 + 시스템 밖 납입 신고값).
-// 🔵 보유·가격·슬리브 평가(배분 계산의 입력)는 E7a2-2 가 이 상태에 더한다.
+// 🔵 E7a2-2 — 배분 계산 입력: 슬리브 평가액(회계 기준 — POT 는 A 소속 · 03 §2-9) · as-of 종가 · 기준일 고지 원천.
 
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
-    show BlockFlag, TradeDate;
+    show AsOfSource, BlockFlag, SleeveId, TradeDate;
 
 /// 계좌 매핑 — 별칭만 싣는다(계좌 번호는 엔진 밖으로 내지 않는다 · 01 §5).
 class WhatIfAccounts {
@@ -35,6 +35,10 @@ class WhatIfState {
     required this.recovery,
     required this.accounts,
     required this.pensionUsedThisYear,
+    required this.observedAt,
+    required this.source,
+    required this.sleeveValues,
+    required this.prices,
     this.unknownSymbols = const <String>{},
   });
 
@@ -54,7 +58,19 @@ class WhatIfState {
   /// 올해 연금 합산 납입 누계(원 · 이번 입금 전).
   final Decimal pensionUsedThisYear;
 
-  /// 체결 확인 중(UNKNOWN)인 직전 주문이 남은 종목 — 초안의 `pendingNoteText`(E7a2-2).
+  /// 기준 데이터가 만들어진 시각(UTC · `AsOf.observedAt`).
+  final DateTime observedAt;
+
+  /// 기준 데이터의 출처(`AsOf.source`).
+  final AsOfSource source;
+
+  /// 슬리브 평가액(원 · 회계 기준 — POT 는 A 소속 · 03 §2-9). 목표 비중과 같은 슬리브 집합.
+  final Map<SleeveId, Decimal> sleeveValues;
+
+  /// as-of 종가(원 · 종목 코드 → 가격) — 지정가의 기준(D-8).
+  final Map<String, Decimal> prices;
+
+  /// 체결 확인 중(UNKNOWN)인 직전 주문이 남은 종목 — 초안의 `pendingNoteText`.
   final Set<String> unknownSymbols;
 
   /// [flagId] 플래그가 켜져 있으면 그 플래그.
