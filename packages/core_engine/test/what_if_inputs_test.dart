@@ -46,6 +46,14 @@ WhatIfState _state({
   recovery: recovery,
   accounts: WhatIfAccounts(pensionAlias: pension, generalAlias: '일반'),
   pensionUsedThisYear: Decimal.zero,
+  observedAt: DateTime.utc(2026, 8, 31, 9),
+  source: AsOfSource.localSqlite,
+  sleeveValues: <SleeveId, Decimal>{
+    SleeveId.a: Decimal.zero,
+    SleeveId.b: Decimal.zero,
+    SleeveId.c: Decimal.zero,
+  },
+  prices: const <String, Decimal>{},
 );
 
 void main() {

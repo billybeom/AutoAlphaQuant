@@ -136,6 +136,8 @@ export 'src/whatif/amount_input.dart'
         kAmountNotNumberText,
         kAmountNotPositiveText,
         parseAmountInput;
+export 'src/whatif/deposit_plan.dart'
+    show DepositPlanTexts, buildDepositPlan, simulateDepositPreview;
 export 'src/whatif/what_if_config.dart' show WhatIfConfig;
 export 'src/whatif/what_if_gates.dart'
     show
