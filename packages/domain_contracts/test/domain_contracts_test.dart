@@ -34,7 +34,9 @@ void main() {
     //    `CORPORATE_ACTION` 통합) · `schemaVersion`·`hashFormatVersion` = 1 · `LedgerFile`·`ledgerDdlFor`.
     // 🔵 '1.10.0'(E9a2 · ㊲) — 원장 사건 `recordLedgerEvent` · `LedgerEventKind` · `CashFlowKind.isExternal` ·
     //    `ledger_event` 표 · `cash_flow` 5값.
-    expect(contractVersion, '1.10.0');
+    // 🔵 '1.11.0'(E7b0 · M3-2·M3-4) — `DepositRegisterRejectCodes` · `DEPOSIT_REGISTERED` ·
+    //    `cash_flow.account_alias` · 접수증 `_5`(거부 행) · `depositReceiptViolations`.
+    expect(contractVersion, '1.11.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.

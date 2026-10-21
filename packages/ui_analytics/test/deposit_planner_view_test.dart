@@ -1036,7 +1036,7 @@ void main() {
     expect(commandApi.registrations, hasLength(1));
 
     final receipt0 = listFixture(
-      FixturePaths.m7M7DepositRegisterReceipts4,
+      FixturePaths.m7M7DepositRegisterReceipts5,
       CommandReceipt.fromJson,
     ).rows[0];
     completer.complete(receipt0);
@@ -1056,7 +1056,7 @@ void main() {
       DepositPreviewResult.fromJson,
     );
     final receipts = listFixture(
-      FixturePaths.m7M7DepositRegisterReceipts4,
+      FixturePaths.m7M7DepositRegisterReceipts5,
       CommandReceipt.fromJson,
     ).rows;
 

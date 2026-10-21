@@ -470,7 +470,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   ),
   FixturePaths.m7M7DepositPlanLimit: FixtureBinding(_depositPreviewResult),
   // 🆕 v1.4 — 실입금 등록 접수증 4상태(한 명령의 갈래 · 행 순서 = 뜻).
-  FixturePaths.m7M7DepositRegisterReceipts4: FixtureBinding(_commandReceipt),
+  FixturePaths.m7M7DepositRegisterReceipts5: FixtureBinding(_commandReceipt),
   FixturePaths.m7M7DisclosureGate: FixtureBinding(_disclosureGateVm),
   // 🆕 v1.3 — `S7-2G` 게이트 3갈래(닫힘 · 첫 열람 · 잦은 열람) + 열람 기록 접수증 4상태.
   FixturePaths.m7M7DisclosureGateClosed: FixtureBinding(_disclosureGateVm),

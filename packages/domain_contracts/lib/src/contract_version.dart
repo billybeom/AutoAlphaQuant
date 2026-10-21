@@ -69,12 +69,17 @@
 //    거부 코드 `LedgerEventRejectCodes`(`ledger_event_reject` 8) · 사유 코드 +5(`LEDGER_EVENT_*`) ·
 //    `ddl/batch_f` = `ledger_event` 신설 + `cash_flow` 5값 재작성(+`source_event_id`) · `batch_d` 명령 kind +1 ·
 //    받침대 1메서드 · 🆕 C-45 · 픽스처 159(봉투 버전만).
+// 🆕 '1.11.0'(E7b0 · M3-2·M3-4 · 설계 13 §8 R22 D4·D5·D6·D14 · 발주자 결정 2026-10-21 추천안) — 실입금 등록:
+//    거부 코드 `DepositRegisterRejectCodes`(`deposit_register_reject` 6 + 판정 순서 `precedence`) ·
+//    사유 코드 `DEPOSIT_REGISTERED` · `ddl/batch_f` `cash_flow.account_alias`(계좌별 입금 행) ·
+//    픽스처 `m7_deposit_register_receipts_4` → `_5`(`REJECTED` 1행 · 01 §8 미결 74 ✅) ·
+//    판정 `depositReceiptViolations` → `testing.dart`(C-38 ⑨) · 픽스처 159(개명 1 · 봉투 버전).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.10.0';
+const String contractVersion = '1.11.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

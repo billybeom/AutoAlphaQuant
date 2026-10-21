@@ -318,6 +318,8 @@ void main() {
         CommandKind.killChecklistConfirm: 'advice_reject',
         // 🆕 v1.10 ㊲ — 원장 사건 기록은 자기 사전을 쓴다(설계 13 §8 R21 L6).
         CommandKind.ledgerEventRecord: 'ledger_event_reject',
+        // 🆕 v1.11(E7b0 · 01 §20) — 실입금 등록(`m7_deposit_register_receipts_5` 거부 행).
+        CommandKind.depositRegister: 'deposit_register_reject',
       };
       final Set<String> seen = <String>{};
       for (final String path in FixturePaths.all) {
@@ -356,6 +358,7 @@ void main() {
           FixturePaths.m6FillRejectedPrice,
           FixturePaths.m6JournalDraftReceipts5,
           FixturePaths.m6BlindReviewReceipts6,
+          FixturePaths.m7M7DepositRegisterReceipts5,
         ]),
         reason: '거부 접수증 픽스처를 못 읽었다 — 이 검사가 아무것도 보지 않고 통과하면 안 된다.',
       );

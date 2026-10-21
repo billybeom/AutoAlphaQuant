@@ -194,6 +194,8 @@ abstract final class ContractCodes {
     'stop_tier': StopTierCodes.values,
     // 🆕 v1.10(E9a2 · ㊲) — 원장 사건 기록의 거부 사유(`CommandReceipt.rejectReasonCode`)
     'ledger_event_reject': LedgerEventRejectCodes.values,
+    // 🆕 v1.11(E7b0) — 실입금 등록의 거부 사유(`CommandReceipt.rejectReasonCode`)
+    'deposit_register_reject': DepositRegisterRejectCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

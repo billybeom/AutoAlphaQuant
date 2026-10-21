@@ -16,7 +16,8 @@
 //   ⑦ 슬리브 B 행(충당·초안)의 `account_alias` ∈ `kFixturePensionAccountAliases` · 계획의 모든
 //      `account_alias` ∈ `kFixtureAccountAliases`(정본 = `fixtures/README.md` «픽스처 계좌 별칭 표» · D9 ⑧).
 //   ⑧ 사유 칩 코드 ∈ `ContractCodes`.
-//   ⑨ 입금 등록 접수증 픽스처의 전 행이 `DEPOSIT_REGISTER` 다.
+//   ⑨ 입금 등록 접수증 픽스처의 전 행이 `DEPOSIT_REGISTER` 다 · 🆕 v1.11 거부 행의 사유 코드는
+//      `deposit_register_reject` 사전 안이고 그 밖의 행은 사유 코드가 없다.
 // ui 스캔(🔴 CI 계약 테스트 안에서 돈다 · 정규식 자체 검증 스니펫 포함):
 //   ⑩ 플래너 파일(`lib/planner.dart`·`lib/src/planner/**`)이 «읽지 않는 필드»(D5 목록 = DTO 의
 //      `/// 🔴 ui 미참조(C-38 ⑩)` 표식 + `ReasonChip.detailDeepLink`(D20 · 플래너 한정))를 참조하지 않는다
@@ -29,7 +30,9 @@
 // 🔴 검사마다 **망가뜨린 사본**(메모리 안)으로 실패하는 것을 맨 끝 테스트가 고정한다.
 // 🆕 E7a0(2026-10-21 · 설계 13 §8 R18 D-12) — ①~⑧ 의 판정 함수는 `package:domain_contracts/testing.dart`
 //    (`src/testing/what_if_rules.dart`)로 옮겼다 — 실엔진 출력(core_engine What-if 시험)에 같은 판정을 걸기 위해서다.
-//    이 파일은 대상 고르기 · 픽스처 표본 · ⑨ · ui 스캔 · 자체 검증(망가뜨린 사본)을 그대로 갖는다.
+//    이 파일은 대상 고르기 · 픽스처 표본 · ui 스캔 · 자체 검증(망가뜨린 사본)을 그대로 갖는다.
+// 🆕 v1.11 E7b0(설계 13 §8 R22 D14 · 01 §20) — ⑨ 판정도 `testing.dart`(`depositReceiptViolations`)로 옮겼다 —
+//    실엔진 접수증(E7b2)에 같은 판정을 건다. 행 순서·상태 집합 단언은 여기 남는다.
 
 import 'dart:convert';
 import 'dart:io';
@@ -310,18 +313,65 @@ void main() {
       _expectCleanPlans(depositReasonCodeViolations);
     });
 
-    test('C-38 ⑨ 입금 등록 접수증 픽스처는 전 행 DEPOSIT_REGISTER 다', () {
+    test('C-38 ⑨ 입금 등록 접수증 픽스처는 전 행 DEPOSIT_REGISTER 다 · 거부 사유는 deposit_register_reject', () {
       final List<CommandReceipt> rows = _receipts(
-        FixturePaths.m7M7DepositRegisterReceipts4,
+        FixturePaths.m7M7DepositRegisterReceipts5,
       );
-      expect(_receiptViolations('receipts', rows), isEmpty);
-      // 입력 확인 — 행 순서가 뜻인 네 상태(요청 → 기록 / 만료 / 무결성 보류).
-      expect(rows.map((CommandReceipt r) => r.state).toSet(), <CommandState>{
+      expect(depositReceiptViolations('receipts', rows), isEmpty);
+      // 입력 확인 — 행 순서가 뜻인 다섯 상태(요청 → 기록 / 만료 / 무결성 보류 / 🆕 v1.11 거부).
+      expect(rows.map((CommandReceipt r) => r.state).toList(), <CommandState>[
         CommandState.requested,
         CommandState.executed,
         CommandState.expired,
         CommandState.heldForIntegrity,
-      });
+        CommandState.rejected,
+      ]);
+      expect(
+        rows.last.rejectReasonCode,
+        DepositRegisterRejectCodes.planExpired,
+        reason:
+            'M3-2 «만료 거부»의 장면 — 계획 TTL(24h)과 명령 TTL(30분)은 다른 시계다(01 §14-7).',
+      );
+    });
+
+    test('C-38 ⑨ 거부 사전 6종 · 판정 순서 · 결정 사유 DEPOSIT_REGISTERED', () {
+      // 🆕 v1.11(01 §20 · 설계 13 §8 R22 D4·D5·D13).
+      expect(DepositRegisterRejectCodes.values, hasLength(6));
+      expect(
+        ContractCodes.byDomain['deposit_register_reject'],
+        DepositRegisterRejectCodes.values,
+      );
+      expect(
+        DepositRegisterRejectCodes.precedence.toSet(),
+        DepositRegisterRejectCodes.values,
+        reason: '판정 순서는 사전 전량을 한 번씩 담는다.',
+      );
+      expect(DepositRegisterRejectCodes.precedence, hasLength(6));
+      expect(
+        DepositRegisterRejectCodes.precedence.sublist(2, 5),
+        <String>[
+          DepositRegisterRejectCodes.reconPending,
+          DepositRegisterRejectCodes.ledgerFixPending,
+          DepositRegisterRejectCodes.planExpired,
+        ],
+        reason: 'registerBlockedText 와 같은 순서(대조 > 정정 > 만료) — 화면 문장과 거부 코드가 엇갈리지 않는다.',
+      );
+      expect(
+        DepositRegisterRejectCodes.values.where(
+          (String c) => c.contains('INTEGRITY'),
+        ),
+        isEmpty,
+        reason: '무결성 점검은 거부가 아니라 보류(heldForIntegrity)다.',
+      );
+      expect(
+        DecisionReasonCodes.values,
+        contains(DecisionReasonCodes.depositRegistered),
+      );
+      expect(
+        PlannerReasonCodes.values,
+        isNot(contains(DecisionReasonCodes.depositRegistered)),
+        reason: '결정 사유와 칩 코드는 다른 도메인이다.',
+      );
     });
 
     test('C-38 ⑩ 플래너 파일이 «읽지 않는 필드»를 참조하지 않는다', () {
@@ -741,14 +791,43 @@ void main() {
 
       // ⑨ — 접수증.
       final List<CommandReceipt> receipts = _receipts(
-        FixturePaths.m7M7DepositRegisterReceipts4,
+        FixturePaths.m7M7DepositRegisterReceipts5,
       );
       expect(
-        _receiptViolations('mut', <CommandReceipt>[
+        depositReceiptViolations('mut', <CommandReceipt>[
           ...receipts,
           receipts.first.copyWith(kind: CommandKind.alertAck),
         ]),
         contains(contains('DEPOSIT_REGISTER')),
+      );
+      expect(
+        depositReceiptViolations('mut', const <CommandReceipt>[]),
+        contains(contains('행이 없다')),
+      );
+      expect(
+        depositReceiptViolations('mut', <CommandReceipt>[
+          receipts.last.copyWith(
+            rejectReasonCode: BlindReviewRejectCodes.alreadyScored,
+          ),
+        ]),
+        contains(contains('deposit_register_reject')),
+        reason: '다른 명령의 사전 코드',
+      );
+      expect(
+        depositReceiptViolations('mut', <CommandReceipt>[
+          receipts.last.copyWith(rejectReasonCode: null),
+        ]),
+        contains(contains('deposit_register_reject')),
+        reason: '거부인데 사유 코드 없음',
+      );
+      expect(
+        depositReceiptViolations('mut', <CommandReceipt>[
+          receipts.first.copyWith(
+            rejectReasonCode: DepositRegisterRejectCodes.planExpired,
+          ),
+        ]),
+        contains(contains('거부 사유')),
+        reason: '거부가 아닌데 사유 코드',
       );
       covered.add('⑨');
 
@@ -885,15 +964,6 @@ List<String> _accountViolations(String where, DepositPlan p) =>
       pensionAliases: kFixturePensionAccountAliases,
       allAliases: kFixtureAccountAliases,
     );
-
-/// ⑨ 접수증.
-List<String> _receiptViolations(String where, List<CommandReceipt> rows) =>
-    <String>[
-      if (rows.isEmpty) '$where — 행이 없다',
-      for (final (int i, CommandReceipt r) in rows.indexed)
-        if (r.kind != CommandKind.depositRegister)
-          '$where rows[$i] — kind ${r.kind.wire} ≠ DEPOSIT_REGISTER',
-    ];
 
 // ─── ui 스캔 ──────────────────────────────────────────────────────────────────
 

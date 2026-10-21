@@ -1,13 +1,13 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `366b3e21a612bd4ea3e10937c22d58d1864b3ffefafc7d05d9c1ebd0c80d700c`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `91c7c87792ca42859c0d389afd549843a4aeac02cfaff4ea59cee442c13e6c98`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
 //    batch_b_plan_command.sql sha256 `f05a26c489df40de92c693b221696fb7fa7ce4c5657659e11bbc38a121009df3`
 //    batch_c_x2_x5_local.sql sha256 `d1fa34f9fceeec8d38af28fa2916bf6bf84f6617543b3aaf4b95de202241b71b`
-//    batch_f_x7_advisory.sql sha256 `3ab68933625debc423be580f0dec81bebd82470797d69b517bfdc2646ff26f18`
+//    batch_f_x7_advisory.sql sha256 `e6298ab4bb4f5b03dcd7a19f416ae4626ab1242d51db6b16cfd9ef68e207fac9`
 // 🔴 배치 사본은 data_sync 시험이 `domain_contracts/ddl` 과 바이트 대조한다.
 
 /// 02 기본 DDL(32표 · `schema_version` 포함) — 블록 2~9.
@@ -1168,7 +1168,8 @@ CREATE INDEX IF NOT EXISTS ix_ledger_event_date ON ledger_event(effective_date, 
 -- ── 🆕 v1.10 `cash_flow.kind` CHECK 재작성 (02 §2-5 2값 → 5값 · `CashFlowKind`) ───────────────────
 -- 🔴 SQLite 의 CHECK 는 ALTER 로 못 바꾸므로 **새 테이블 → 복사 → RENAME**(위 ledger_diff 와 같은 방식).
 -- 🔴 02 기본 표는 그대로 두고 이 배치가 넓힌다(«기존 표 불변» 그대로 — 새 설치에서는 빈 표의 재작성이다).
--- 🔴 컬럼 = 02 기본 6 + 배치 C `recorded_at` + 🆕 `source_event_id`(ledger_event 에서 투영된 행이면 그 id).
+-- 🔴 컬럼 = 02 기본 6 + 배치 C `recorded_at` + 🆕 `source_event_id`(ledger_event 에서 투영된 행이면 그 id)
+--    + 🆕 v1.11 `account_alias`(계좌 축 · 설계 13 §8 R22 D6 — 입금은 **계좌별 행**: B 몫 → 연금 계좌 · 나머지 → 일반 계좌).
 CREATE TABLE IF NOT EXISTS cash_flow__new (
     flow_id         TEXT    NOT NULL PRIMARY KEY,
     trade_date      TEXT    NOT NULL,
@@ -1178,7 +1179,8 @@ CREATE TABLE IF NOT EXISTS cash_flow__new (
                      ('DEPOSIT','WITHDRAWAL','DISTRIBUTION','TAX_WITHHELD','CASH_IN_LIEU')),
     note            TEXT,
     recorded_at     TEXT,                                -- 배치 C(X4·X5 authored 축)
-    source_event_id TEXT                                 -- 🆕 ㊲ 투영 행의 원 사건
+    source_event_id TEXT,                                -- 🆕 ㊲ 투영 행의 원 사건
+    account_alias   TEXT                                 -- 🆕 v1.11 계좌 별칭(계좌별 현금 대사 · 연금 납입 누계의 원천 · R22 D6·D7)
 );
 INSERT INTO cash_flow__new (flow_id, trade_date, amount, currency, kind, note, recorded_at)
 SELECT flow_id, trade_date, amount, currency, kind, note, recorded_at

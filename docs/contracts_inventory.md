@@ -609,9 +609,11 @@ abstract interface class SettingsActions {
 
 `RECORD` · `SKIP` · `LAPSE` · `SUPERSEDE` · `REVOKE` · `AMEND` · `LATE_FILL`(🔴 상태 불변 · `EXPIRED→EXPIRED` 1행) · `HANDOVER_CLOSE`(🔴 사람의 미이행이 아니다 — 예산 미차감·분모 제외) · `DEFER_CONFIRM`(🔴 **행의 존재 자체가 「이미 한 번 미뤘다」의 정본**).
 
-### 6-12. `decision_log.reason_code` 특수값 — 3종
+### 6-12. `decision_log.reason_code` 특수값 — ~~3종~~ 🆕 9종(v1.10 ㊲ +5 · v1.11 +1)
 
 `OPENING_BALANCE`(G-04 실전 개시 원장 · `kind='MANUAL'` 1행 공유) · `SIM_OPENING_BALANCE`(N-2 모의 개시 원장) · `HANDOVER_CLOSED`(G-20 `advice.close_reason_code`).
+🆕 v1.10(01 §19 · ㊲) `LEDGER_EVENT_WITHDRAWAL`(`kind='WITHDRAWAL'`) · `LEDGER_EVENT_DISTRIBUTION` · `LEDGER_EVENT_TAX_WITHHELD` · `LEDGER_EVENT_CORPORATE_ACTION` · `LEDGER_EVENT_VOID`(이상 `kind='MANUAL'`).
+🆕 v1.11(01 §20 · E7b0) `DEPOSIT_REGISTERED`(`kind='DEPOSIT'` · 실입금 등록 — 계획 바인딩과 한 트랜잭션). 거부 사유는 따로 `DepositRegisterRejectCodes`(`deposit_register_reject` 6 · `CommandReceipt.rejectReasonCode`).
 🔴 `decision_log.kind='MANUAL'` 인 **세 갈래**(정정 · `external_holding` 등록 · 경로 b 귀속)는 **재량 예산·이탈 집계의 모집단이 아니다**(C7).
 
 ### 6-13. 기타 코드 상수 — 7종
