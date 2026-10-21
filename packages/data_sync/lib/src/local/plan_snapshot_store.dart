@@ -10,7 +10,7 @@
 import 'dart:convert';
 
 import 'package:core_engine/core_engine.dart'
-    show PlanInputs, PlanSnapshotStore;
+    show DepositPlanSnapshot, PlanInputs, PlanSnapshotStore;
 import 'package:domain_contracts/domain_contracts.dart' show DepositPlan;
 import 'package:sqlite3/sqlite3.dart';
 
@@ -79,6 +79,27 @@ final class SqlitePlanSnapshotStore implements PlanSnapshotStore {
   }
 
   /// 저장된 계산 입력 원값(없으면 null) — «계획 대비 실제»(E7b3)의 앵커.
+  /// 🆕 E7b2 — 계획 · 입력 원값 · 바인딩을 한 번에(동기 — 등록 트랜잭션 안에서 await 없이 읽는다).
+  DepositPlanSnapshot? readSnapshot(String planId) {
+    final ResultSet rows = _db.select(
+      'SELECT outputs, inputs, consumed_by_decision_id FROM plan_snapshot '
+      "WHERE plan_id = ? AND kind = 'DEPOSIT'",
+      <Object>[planId],
+    );
+    if (rows.isEmpty) return null;
+    final Row r = rows.single;
+    return DepositPlanSnapshot(
+      plan: DepositPlan.fromJson(
+        (jsonDecode(r['outputs'] as String) as Map<String, Object?>)
+            .cast<String, dynamic>(),
+      ),
+      inputs: PlanInputs.fromJson(
+        jsonDecode(r['inputs'] as String) as Map<String, Object?>,
+      ),
+      consumedByDecisionId: r['consumed_by_decision_id'] as String?,
+    );
+  }
+
   Future<PlanInputs?> findInputs(String planId) async {
     final ResultSet rows = _db.select(
       "SELECT inputs FROM plan_snapshot WHERE plan_id = ? AND kind = 'DEPOSIT'",

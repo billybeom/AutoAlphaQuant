@@ -51,4 +51,6 @@
   - SIM 판 CHECK 는 `ledgerDdlFor`(계약) · 배치 파일의 `BEGIN`·`COMMIT`·`PRAGMA foreign_keys` 는 `stripControlStatements` 가 거른다 · `ATTACH` 0.
 - 🔴 스키마 자산 `lib/src/local/schema_v1_sql.dart` 는 **생성 파일**이다 — 02(설계 저장소)·`domain_contracts/ddl` 이 바뀌면 `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다(배치 사본은 시험이 바이트 대조 · 02 는 sha256 머리 · R20 Q2 정정 1줄).
 - 🔴 v1 은 첫 실기기 설치 때 얼린다(설계 13 §8 R20 Q0) — 그 전의 수정은 번호 1 그대로, 그 뒤 변경은 v2 마이그레이션.
-- ⬜ 리포지토리 구현체(`LocalSqliteReader`) · 명령 인입 · Supabase(E11) = 그 뒤.
+- ✅ `SqlitePlanSnapshotStore`(E7b1) — 계획 스냅샷 `plan_snapshot`(outputs = `DepositPlan.toJson()` · inputs = `PlanInputs` JSON v1 · 순번 = 저장본 파생) · 🆕 `readSnapshot`(계획 · 입력 원값 · 바인딩 — 동기).
+- ✅ `SqliteDepositRegistrar`(E7b2) — 실입금 등록 **한 트랜잭션**(`BEGIN IMMEDIATE`): `decision_log`(DEPOSIT · `DEPOSIT_REGISTERED`) + 계좌별 `cash_flow` + 바인딩 UPDATE(`… IS NULL`) + `command_inbox`. 거부 = 감사 1행만 · 원장 무결성 = 보류(쓰기 0) · 같은 명령 재전달 = 감사 기록의 결과 · 중간 실패 = 행 0. 판정은 core_engine `judgeDepositRegistration`.
+- ⬜ 리포지토리 구현체(`LocalSqliteReader`) · 명령 인입(수송 · 명령 TTL) · Supabase(E11) = 그 뒤.
