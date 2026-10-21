@@ -138,6 +138,9 @@ export 'src/whatif/amount_input.dart'
         parseAmountInput;
 export 'src/whatif/deposit_plan.dart'
     show DepositPlanTexts, buildDepositPlan, simulateDepositPreview;
+export 'src/whatif/engine_what_if_api.dart' show EngineWhatIfApi;
+export 'src/whatif/plan_store.dart'
+    show InMemoryPlanSnapshotStore, PlanSnapshotStore, depositPlanId, kstDay;
 export 'src/whatif/what_if_config.dart' show WhatIfConfig;
 export 'src/whatif/what_if_gates.dart'
     show
