@@ -113,4 +113,21 @@ abstract final class JournalLabels {
 
   /// 시스템 밖 행 — 등록일 값 앞 머리(섹션 펼침에서만).
   static const String holdingsRegisteredOn = '등록일';
+
+  // ── 🆕 R4b — H6-2 종목 상세 · H6-3 슬리브·비중 ──────────────────────────────
+
+  /// 종목 상세 — 손절선 절 머리.
+  static const String holdingsStopLines = '손절선';
+
+  /// 종목 상세 — 최근 체결 절 머리.
+  static const String holdingsRecentEntries = '최근 체결';
+
+  /// 슬리브·비중 — 투자분 값 앞 머리.
+  static const String holdingsDeployed = '투자분';
+
+  /// 슬리브·비중 — 파킹 값 앞 머리.
+  static const String holdingsParking = '파킹';
+
+  /// 슬리브·비중 — 하단 다음 리밸런싱 날짜 앞 머리.
+  static const String holdingsNextRebalance = '다음 리밸런싱';
 }
