@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ✅ `J-1` 16장(R1b 병합 PR #7) · 🆕 `J-2`·`J-3`·`J-5` 는 R2 PR 에서 최초 생성 · ✅ R3 병합 뒤 **72장**(56 + `j4_*` 12 · `j1_rebalance_*` 4 · 부록 S-1 6장 = M · PR #41 `be1b46f`))
+# `test/golden/` — 위젯 골든 스냅샷 (C-2 · 하네스 ✅ 2026-09-17 · PNG ✅ `J-1` 16장(R1b 병합 PR #7) · 🆕 `J-2`·`J-3`·`J-5` 는 R2 PR 에서 최초 생성 · ✅ R3 병합 뒤 **72장**(56 + `j4_*` 12 · `j1_rebalance_*` 4 · 부록 S-1 6장 = M · PR #41 `be1b46f`) · ✅ R4a 병합 뒤 **82장**(72 + `h61_*` 10 · PR #57 `faeb458`))
 
 정본: 01_M2_도메인계약 **§7**(C-1·C-2 + 골든 규칙) · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 
@@ -295,9 +295,9 @@ final RecordingDraftStore store = RecordingDraftStore(
 - R3 시작 56장(`j1_*` 16 · `j2_*` · `j3_*` · `j3r_*` · `j5_*`) → R3 병합 뒤 **72장**(+ `j4_*` 12 · `j1_rebalance_*` 4 · 부록 S-1 은 M 이라 장수 불변).
 - 명령(packages/ui_journal 에서): `flutter test --update-goldens test/golden/j4_golden_test.dart` · `flutter test --update-goldens test/golden/j1_rebalance_golden_test.dart` → 옵션 없이 `flutter test` 전부 통과.
 
-## 🆕 R4(계약 v1.8) — `H6-1` 보유현황(R4a) · `H6-2` 종목 상세 · `H6-3` 슬리브·비중(R4b) (2026-10-21 조립 · ✅ 누적 드라이런 실측 — R4a `dry/r4a` · R4b `dry/r4b`)
+## 🆕 R4(계약 v1.8) — `H6-1` 보유현황(R4a) · `H6-2` 종목 상세 · `H6-3` 슬리브·비중(R4b) (2026-10-21 조립 · ✅ 누적 드라이런 실측 — R4a `dry/r4a` · R4b `dry/r4b` · ✅ R4a 병합 PR #57 `faeb458` 2026-10-21)
 
-정본: 01 §17(17-6 · 17-7 · 17-8 · 17-10 · 17-16) · 02 §4 끝 «🆕 계약 v1.8 — `H6-*` R4 범위» 블록 · 설계 저장소 `10_리뷰/2026-10-20_R4선행_계약v1.8_설계서.md` §3-4(골든 ↔ 입력 · ✅ K16 이름 확정). 카드 = `docs/ai-context/send/R4a-Bob-H61.md`(R4a) · `docs/ai-context/send/_대기/R4b-Bob-H62H63.md`(R4b — R4a 병합 기록 때 `send/` 로)(«■ 골든» 절과 같은 말). 이 절은 **골든**만 말한다.
+정본: 01 §17(17-6 · 17-7 · 17-8 · 17-10 · 17-16) · 02 §4 끝 «🆕 계약 v1.8 — `H6-*` R4 범위» 블록 · 설계 저장소 `10_리뷰/2026-10-20_R4선행_계약v1.8_설계서.md` §3-4(골든 ↔ 입력 · ✅ K16 이름 확정). 카드 = ~~`docs/ai-context/send/R4a-Bob-H61.md`~~ `docs/ai-context/send/_완료/R4a-Bob-H61.md`(R4a · 2026-10-21 병합) · ~~`docs/ai-context/send/_대기/R4b-Bob-H62H63.md`~~ `docs/ai-context/send/R4b-Bob-H62H63.md`(R4b — 2026-10-21 R4a 병합 기록 때 `send/` 로)(«■ 골든» 절과 같은 말). 이 절은 **골든**만 말한다.
 
 ### 1. 골든 이름 — R4a 신규 5이름 × light/dark = 10장(`h61_*`) · R4b 신규 8이름 × 2 = 16장(`h62_*` 8 · `h63_*` 8) · 재생성 0
 
@@ -321,7 +321,7 @@ final RecordingDraftStore store = RecordingDraftStore(
 - 크기 = 테스트 파일마다 안 상수 `const Size _kTallPhone` — h61 = `Size(390, 2480)` · h62 = `Size(390, 1400)` · h63 = `Size(390, 1100)`(드라이런이 정했다 · `kGoldenPhoneSize` 불변 · 이 파일의 «🆕 R2» 절 2번 «세로가 긴 화면» 꼴).
 - 위치 전제(찍기 전 · 이름마다 둘 · C4r3-5 코드 꼴): `expect(tester.getBottomLeft(find.byKey(<맨 아래 Key>)).dy, lessThan(_kTallPhone.height));` + `expect(tester.getTopLeft(find.byKey(const Key('h6N-asof'))).dy, 0.0);`(스크롤 0 — 펼침 탭(h61 = `scrollUntilVisible(finder, 300)` · h62·h63 = `ensureVisible`)이 머리를 밀어 올리지 않았다 · N = 1·2·3 · 🔴 그래서 `ListView` 에 padding 0 — 실패하면 고치지 말고 실측 dy 를 질문 파일에).
 - 🆕 보고 «배치·잘림» 칸 — Bob 은 이름마다 **light PNG 한 장만** 연다(R4a 5장 · R4b 8장 — 한 대화 이미지 20장 한도) · dark 행은 같은 이름 light 행의 칸 글자 그대로(위치 전제 dy 가 light 와 같을 때만 · 다르면 그 dark PNG 도 연다).
-- 드라이런 실측 dy(맨 아래 Key 의 아래 끝 · light = dark 전부 · 머리 dy = 0.0 전부 · R4a `dry/r4a` `06668f0` · R4b `dry/r4b` `cf28087` — R4b 값은 R4a 병합본 흉내 위라 R4a 가 통합 수정으로 바뀌면 R4a 병합 기록 때 다시 잰다):
+- 드라이런 실측 dy(맨 아래 Key 의 아래 끝 · light = dark 전부 · 머리 dy = 0.0 전부 · R4a `dry/r4a` `06668f0` · R4b ~~`dry/r4b` `cf28087` — R4b 값은 R4a 병합본 흉내 위라 R4a 가 통합 수정으로 바뀌면 R4a 병합 기록 때 다시 잰다~~ → 🆕 재드라이런 `dry/r4b2` `c5ae7f4`(실제 R4a 병합본 `faeb458` + 병합 기록 위 · 2026-10-21 · 옛 값 = 취소선 · 차 h62 −28 · h63 +4 = 간격 재량 · 🔵 h63 여유 44 · Bob 실측이 달라도 높이 안이면 된다)):
 
   | 이름 | dy | 높이 |
   |---|---|---|
@@ -330,19 +330,20 @@ final RecordingDraftStore store = RecordingDraftStore(
   | `h61_integrity` | 608.0 | 2480 |
   | `h61_empty` | 116.0 | 2480 |
   | `h61_pnl_expanded` | 2436.0 | 2480 |
-  | `h62_etf_no_stop` | 700.0 | 1400 |
-  | `h62_pnl_expanded` | 768.0 | 1400 |
-  | `h62_recon_mismatch` | 920.0 | 1400 |
-  | `h62_integrity` | 1368.0 | 1400 |
-  | `h63_in_band` | 1012.0 | 1100 |
-  | `h63_out_of_band` | 1036.0 | 1100 |
-  | `h63_tranche_progress` | 1040.0 | 1100 |
-  | `h63_pot_under_a` | 1052.0 | 1100 |
+  | `h62_etf_no_stop` | ~~700.0~~ 672.0 | 1400 |
+  | `h62_pnl_expanded` | ~~768.0~~ 740.0 | 1400 |
+  | `h62_recon_mismatch` | ~~920.0~~ 892.0 | 1400 |
+  | `h62_integrity` | ~~1368.0~~ 1340.0 | 1400 |
+  | `h63_in_band` | ~~1012.0~~ 1016.0 | 1100 |
+  | `h63_out_of_band` | ~~1036.0~~ 1040.0 | 1100 |
+  | `h63_tranche_progress` | ~~1040.0~~ 1044.0 | 1100 |
+  | `h63_pot_under_a` | ~~1052.0~~ 1056.0 | 1100 |
 
+- 🆕 R4a 병합본 실측(PR #57 `faeb458` · 2026-10-21 · Bob `3bcd5ca` · C4 재실측 일치 · light=dark · 머리 dy 0.0): `h61_normal` **1268** · `h61_recon_mismatch` **1488** · `h61_integrity` **584** · `h61_empty` **116** · `h61_pnl_expanded` **2412**(< 2480). 드라이런과의 차 −24(빈 갈래 0)는 간격 재량(결함 아님 · 여백 줄이기 0 · 질문 파일 여백 행 0 = 정상). 새 10장 블롭 중복 0 · 기존 72장 M 0 → **82장**(`git ls-tree` 실측). «배치·잘림» 칸 = Bob 제출 글이 비워 두어 C4 가 PNG 10장을 열어 채움(발주자 예외 · PR #57 본문 «C4 정정»). ~~R4b 행 dy 는 드라이런 값 그대로(R4a 통합 수정 0 · R4b 화면은 R4a 배치에 기대지 않는다)~~ → R4b 행 dy 는 재드라이런(실제 병합본 위) 실측으로 바꿈(위 표 · R4b 병합 기록 때 Bob 실측으로 다시 바꾼다).
 - 🔵 골든은 아이콘 차이를 못 본다(테스트 글꼴에서 아이콘 = 같은 네모) — 아이콘 매핑은 화면 테스트(T61-03 · T61-06 · T62-01 · T62-04)가 본다.
 - 🔴 재생성 0 — 이 두 카드는 기존 PNG(72장)를 바꾸지 않는다(`golden:approved` 불필요 · 기존 PNG `M` = 반려 신호).
 
 ### 2. 장수
 
-- R4 시작 72장(`dcac7ec` = R3 병합본 72 · 계약 v1.8 은 ui PNG 0) → R4a 병합 뒤 **82장**(+ `h61_*` 10) → R4b 병합 뒤 **98장**(+ `h62_*` 8 · `h63_*` 8).
+- R4 시작 72장(`dcac7ec` = R3 병합본 72 · 계약 v1.8 은 ui PNG 0) → R4a 병합 뒤 **82장**(+ `h61_*` 10 · ✅ PR #57 `faeb458` · `git ls-tree` 실측 82) → R4b 병합 뒤 **98장**(+ `h62_*` 8 · `h63_*` 8).
 - 명령(packages/ui_journal 에서 · 🔴 파일마다 · 폴더 지정 금지): `flutter test --update-goldens test/golden/h61_golden_test.dart`(R4a) · `flutter test --update-goldens test/golden/h62_golden_test.dart` · `flutter test --update-goldens test/golden/h63_golden_test.dart`(R4b) → 옵션 없이 `flutter test` 전부 통과.
