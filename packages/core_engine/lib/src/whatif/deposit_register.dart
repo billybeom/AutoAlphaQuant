@@ -10,7 +10,7 @@
 // 🔴 계좌는 스냅샷의 계좌 매핑(`PlanInputs`)에서 — B 몫 → 연금 · 나머지(A · C · 원화 대기) → 일반(D6).
 // 🔴 등록은 기록만 한다(D11) — 파킹 매수·안내·`rebalance_event` 는 E10·E18.
 // 🔵 명령 TTL(30분) 만료와 «보류는 TTL 을 쓰지 않는다»는 수송(E11 · M4-3)의 몫이다 — 여기는 받은 명령의 판정만.
-// ⏸ 잠정 형식(설계 13 §8 R12 의 DEPOSIT 행 확정 전 · 이 파일 한 곳): decision_id = `DEP-{plan_id}`(계획 하나에
+// ✅ 형식(설계 13 §8 R12 DEPOSIT 행 · 발주자 확정 2026-10-22 · 이 파일 한 곳): decision_id = `DEP-{plan_id}`(계획 하나에
 //    결정 하나 — 시각·난수 없음 · 다시 돌려도 같은 값) · strategy_id = `P0S` · flow_id = `{decision_id}-PENSION|GENERAL`.
 
 import 'dart:convert';
@@ -80,10 +80,10 @@ abstract final class DepositRegisterTexts {
       '이 계획은 이미 등록되었습니다. 같은 입금을 두 번 기록하지 않습니다.';
 }
 
-/// ⏸ 잠정(13 §8 R12) — 입금 결정의 전략 id.
+/// 입금 결정의 전략 id(13 §8 R12 확정 · 입금은 슬리브를 가로지르는 포트폴리오 단위).
 const String kDepositStrategyId = 'P0S';
 
-/// ⏸ 잠정(13 §8 R12) — 입금 결정 id = `DEP-{plan_id}`.
+/// 입금 결정 id = `DEP-{plan_id}`(13 §8 R12 확정 — `DEP-{trade_date}` 는 하루 두 입금이면 겹친다).
 String depositDecisionId(String planId) => 'DEP-$planId';
 
 /// 등록 판정.
