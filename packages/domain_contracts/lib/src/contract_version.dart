@@ -57,12 +57,18 @@
 //    🆕 `SleeveBandState` · `SleeveBandGauge` · `ExternalHoldingRow.quantityText` · 코드 `StopTierCodes`(`stop_tier`) ·
 //    라우트 `holdingsOverview`·`holdingsDetail`·`holdingsAllocation`(48) · 받침대 `UnimplementedHoldingsRepository` ·
 //    픽스처 141 → 159(신설 18 · 개정 3) — 🆕 tool/gen_h6_v18_fixtures.py(기준 f46e72f 원문에서 멱등 생성).
+// 🆕 '1.9.0'(E9a · 단계 1b 마이그레이션 창 · 설계 13 §8 R19 · R20 · 발주자 결정 2026-10-21 추천안) —
+//    스키마 v1 결정 반영: `ddl/*` = `mode` 3값 + 파일별 CHECK(`-- @sim` 태그 · `DEFAULT 'SIM'` 삭제) ·
+//    명령 state 2표 8값(`NO_OPERATOR` 포함) · `CORPORATE_ACTION` 통합 · `dry_run` ⇔ `ExecPolicy` 파생 규칙 ·
+//    수기 체결 `broker_order_no` NULL(+ CHECK) · `batch_e` 보관 · 🆕 [schemaVersion] = 1 · [hashFormatVersion] = 1 ·
+//    `LedgerFile`(두 파일 · `application_id`) · `LedgerModeCheck` · `ledgerDdlFor`(SIM 판 파생) ·
+//    C-15 열린 물음 2검사 → 등식 검사 · 픽스처 159(봉투 버전만 · 값 무변경).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.8.0';
+const String contractVersion = '1.9.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -74,14 +80,19 @@ const String contractVersion = '1.8.0';
 // 🔴 이 행을 못 읽는 경우(표 부재·RLS 거부)는 `ok` 가 아니라 **`incompatible`** 이다 —
 //    잘못 그리는 것보다 안 그리는 것이 안전하다.
 //
-// ⛔ **`schemaVersion`·`hashFormatVersion` 상수를 여기 두지 않는다 — 아직 값이 없다.**
-//    ⓐ `schema_version` 번호는 «배치 A~F 마이그레이션 창 전체에 하나만» 배정되며(01 §6-0·§6-5)
-//       그 번호가 아직 배정되지 않았다. §6-0 은 「`00_SPEC §9` 최신값 +1 을 쓰되 v2.31(P0S)
-//       소비 여부를 먼저 확인」이라고만 정했다.
-//    ⓑ `hash_format_version` 은 배치 F 가 `executions` 에 11컬럼을 더하면서 **올리고 골든벡터를
-//       다시 고정**해야 하는 값이다(01 §6-6 말미). 새 값도 골든도 아직 없다.
-//    🔴 둘 중 어느 것이든 임의의 숫자를 상수로 박으면 뷰어의 버전 게이트가 **틀린 판정을
-//       조용히 통과시킨다**(없는 것보다 나쁘다). 값이 배정되는 커밋에서 함께 넣는다.
+// ✅ **값이 배정됐다(계약 v1.9.0 · 2026-10-21 · 설계 13 §8 R19 E9-10·E9-11).**
+//    ⓐ `schema_version` = 02 기본 + 배치 A·B·C·F 를 한 판으로 만든 첫 스키마(01 §6-0). SPEC 개정 번호
+//       (v2.33)와는 다른 축이다. 🔴 v1 은 첫 실기기 설치 때 얼리고, 그 전의 v1 수정은 번호를 바꾸지
+//       않는다(R20 Q0) — 그 뒤 변경은 2.
+//    ⓑ `hash_format_version` = 배치 F 의 `executions` 11컬럼을 포함한 정규 직렬화의 첫 판. 해시 체인
+//       구현·해시 든 골든이 아직 없어 올릴 옛 값도 다시 고정할 것도 없다.
+//    🔴 이 두 값을 바꾸는 커밋은 `ddl/README` 규약 3·6 과 뷰어 게이트(G-36)를 함께 움직인다.
+
+/// 로컬 SQLite 스키마 번호(`schema_version` 표의 행 · `rm_config_view.schema_version`).
+const int schemaVersion = 1;
+
+/// X5-1 정규 직렬화 규약 번호(`ledger_daily_hash.hash_format_version` · `rm_config_view`).
+const int hashFormatVersion = 1;
 
 // ════════════════════════════════════════════════════════════════════════════
 // `config_hash` 의 자리 — 🔴 여기 상수로 두지 않는다

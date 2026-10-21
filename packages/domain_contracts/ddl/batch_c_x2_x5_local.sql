@@ -109,20 +109,20 @@ CREATE TABLE IF NOT EXISTS credential_registry (
 -- X4 ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS calendar_link (
     -- ~~id INTEGER PRIMARY KEY CHECK (id = 1)~~ 🆕 G-32 — 단일 행이면 모의 캘린더를 표현할 수 없다
-    mode            TEXT    NOT NULL PRIMARY KEY CHECK (mode IN ('LIVE','SIM')),
+    mode            TEXT    NOT NULL PRIMARY KEY CHECK (mode = 'LIVE'),   -- @sim calendar
     google_calendar_id TEXT NOT NULL,
     created_at      TEXT    NOT NULL,
     account_label   TEXT,                                -- 🔴 이메일 전체 저장 금지 — 마스킹 라벨
     scope           TEXT    NOT NULL DEFAULT 'calendar.app.created'
 );
 -- 🔴 **캘린더 앵커의 축은 «계열» 2값이다**(G-32) — `simInternal`·`simBroker` 는 모의 캘린더 1개를
---    공유한다. `RunMode` 3값 → 계열 2값 매핑은 §9-2 의 **단일 매핑 함수**를 쓰며(G-31)
+--    공유한다. ✅ 파일별 CHECK(설계 13 §8 R20 Q1): `ledger.sqlite` = `'LIVE'` · `ledger_sim.sqlite` = `'SIM'`. `RunMode` 3값 → 계열 2값 매핑은 §9-2 의 **단일 매핑 함수**를 쓰며(G-31)
 --    화면·매퍼가 각자 분기하지 않는다.
 -- 🔵 **v1 에서는 `mode='LIVE'` 행 하나만 만든다**(06 X4-5). 컬럼은 later 확장을 위한 자리이고
 --    **행이 없는 모드는 «미설정»으로 읽는다**(빈 상태를 오류로 그리지 않는다).
 
 CREATE TABLE IF NOT EXISTS calendar_sync_state (
-    mode            TEXT    NOT NULL PRIMARY KEY CHECK (mode IN ('LIVE','SIM')),
+    mode            TEXT    NOT NULL PRIMARY KEY CHECK (mode = 'LIVE'),   -- @sim calendar
     last_ok_date    TEXT,                                -- 🔴 단조 전진 확정선
     recheck_days    INTEGER NOT NULL DEFAULT 7,          -- last_ok_date−7 재스캔 창
     cursor          TEXT,
@@ -160,8 +160,7 @@ ALTER TABLE trades     ADD COLUMN authored_at TEXT;
 --      executions·trades            → authored_at      (이번 배치 신설)
 --      cash_flow                    → recorded_at      (위 X4 절에서 신설 — 이름이 다를 뿐 같은 축)
 --      decision_log·rebalance_event → created_at       (배치 A 컬럼 재사용)
---      decision_journal·order_intents → 기존 생성 시각 컬럼
---        ⚠️ **실제 컬럼명 미확정** — 02_데이터모델 확인 후 확정한다(인벤토리 §7-3 말미).
+--      decision_journal·order_intents → created_at   (02 기본 표의 생성 시각 — 실측 확인 2026-10-21)
 --    🔴 equity_snapshot 은 **제외**(횡단면 재계산 산출물). positions·ramp 도 제외.
 -- 🔴 해시 체인 모집단 = 아카이브 대상(§6-7)이어야 한다. 어긋나면 canonGithub·canonCalendar 대조가
 --    «불일치 아님»을 증명하지 못한다.
@@ -170,7 +169,7 @@ CREATE TABLE IF NOT EXISTS ledger_daily_hash (
     authored_date   TEXT    NOT NULL PRIMARY KEY,        -- 🔴 trade_date 가 아니라 authored_date
     day_hash        TEXT    NOT NULL,
     chain_hash      TEXT    NOT NULL,                    -- H(chain(D−1) ‖ day_hash(D))
-    hash_format_version INTEGER NOT NULL,                -- 🔴 직렬화 규약 버전. 골든벡터로 고정
+    hash_format_version INTEGER NOT NULL,                -- 🔴 직렬화 규약 버전(✅ 1 에서 시작 · R19 E9-11)
     row_counts      TEXT    NOT NULL,                    -- JSON 테이블별 행 수
     created_at      TEXT    NOT NULL
 );

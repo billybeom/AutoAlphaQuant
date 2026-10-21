@@ -12,8 +12,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 /// 🔴 화면은 세 값을 개별 분기하지 말고 뷰모델이 준 라벨·배지를 그린다. 「모의냐」 판정이 꼭
 ///    필요하면 [RunModeIsSim.isSim] 만 쓴다(01 §2-1 주석 원문).
 /// 🔴 화면은 이 값으로 타이틀 접두를 만들지 않는다 — 셸이 주입하고 C-17 이 강제한다.
-/// ⚠️ 배치 A·B 의 기존 `CHECK (mode IN ('SIM','LIVE'))` 를 3값으로 넓히는 것은
-///    **열린 물음**이다(인벤토리 §10-2 ② · `m2-8_naming.md` I-3 ⏸ = 3값 + 파일별 CHECK 권고).
+/// ✅ 로컬 DDL = **3값 + 파일별 CHECK**(계약 v1.9.0 · 설계 13 §8 R19 E9-2 · R20 Q1 · 인벤토리 §10-2 ②
+///    해소) — `ledger.sqlite` 는 `LIVE` 만, `ledger_sim.sqlite` 는 SIM 계열만 받는다. 파일은
+///    `LedgerFile.of` 가 정하고 SIM 판 CHECK 는 `ledgerDdlFor` 가 만든다.
 enum RunMode {
   @JsonValue('SIM_INTERNAL')
   simInternal('SIM_INTERNAL'),
@@ -45,8 +46,9 @@ extension RunModeIsSim on RunMode {
 /// 🔴 **3값으로 넓히지 않는다**(§10-1) — 넓히면 골든벡터 재검증 실패의 `dryRun` 강등이
 ///    발주자가 고른 운영 방식을 덮어써 지우고, 복구 시 원래 값을 알 수 없어 그림자 필드가
 ///    필요해지며, 그것이 §8-7 이 닫은 이중 정본의 부활이다.
-/// ⚠️ 구 `order_intents.dry_run` 의 «이름만 바꾼 것»이며 **컬럼은 그대로 둔다**
-///    (인벤토리 §10-2 ④ · `m2-8_naming.md` I-5 ⏸).
+/// ✅ 구 `order_intents.dry_run` 의 «이름만 바꾼 것»이며 **컬럼은 그대로 둔다**(계약 v1.9.0 ·
+///    설계 13 §8 R19 E9-5 · 인벤토리 §10-2 ④ 해소). 파생 규칙: `dry_run = 1` ⇔ [ExecPolicy.dryRun] ·
+///    `dry_run = 0` ⇔ [ExecPolicy.execute]. 🔴 [RunMode] 와 독립이다 — 강등은 이 값만 바꾼다.
 enum ExecPolicy {
   @JsonValue('DRY_RUN')
   dryRun('DRY_RUN'),

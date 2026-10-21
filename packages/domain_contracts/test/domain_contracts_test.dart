@@ -30,7 +30,11 @@ void main() {
     // 🔵 '1.8.0'(R4 선행 M2 보강 · 01 §17 · 화면 ID `H6-*`) — `watchHoldingsOverview`·`watchHoldingDetail`·
     //    `watchAllocation` · 보유 VM 4 · `SleeveAllocationRow` 밴드 축(`SleeveBandState`·`SleeveBandGauge`) ·
     //    `StopTierCodes` · 라우트 48.
-    expect(contractVersion, '1.8.0');
+    // 🔵 '1.9.0'(E9a · 단계 1b) — 스키마 v1 결정 반영(`mode` 3값 + 파일별 CHECK · 명령 state 8값 ·
+    //    `CORPORATE_ACTION` 통합) · `schemaVersion`·`hashFormatVersion` = 1 · `LedgerFile`·`ledgerDdlFor`.
+    expect(contractVersion, '1.9.0');
+    expect(schemaVersion, 1);
+    expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.
     expect(contractVersion, isNot(contains('draft')));
   });

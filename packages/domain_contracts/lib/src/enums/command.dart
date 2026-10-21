@@ -69,10 +69,9 @@ enum CommandKind {
 /// 🔴 화면이 `state` 를 낙관 갱신하지 않는다 — 「요청됨」과 「집행됨」의 구별이 이 계약의 목적이다.
 /// 🔴 `noOperator` 는 「요청됨」이 «껐다»로 읽히는 것을 막는 유일한 값이며, 표시 문구는
 ///    M2 가 사전 공급한 **고정 카탈로그**에서 고른다(앱이 상태를 조합해 문장을 만들지 않는다).
-/// ⚠️ **열린 물음** — `NO_OPERATOR` 는 현행 `command_inbox.state`·`command_ack.state`
-///    CHECK 어디에도 없다. 「셋 중 어디까지 넓히는가」는 이름 문제가 아니라 스키마 결정이며
-///    영역 E(DDL)가 확정 전까지 이 값을 실은 픽스처를 만들면 CHECK 위반이 된다
-///    (인벤토리 §10-2 ① · `m2-8_naming.md` K-1 · A-11 은 **이름만** 확정했다).
+/// ✅ DDL 자리 = `command_inbox.state` = `command_ack.state` = **[requested] 를 뺀 8값**
+///    (계약 v1.9.0 · 설계 13 §8 R19 E9-6 · R20 · 인벤토리 §10-2 ① 해소 · G-30). `command_queue` 에는
+///    state 칸이 없다 — [requested] 는 기기 쪽 내구 큐의 상태라 엔진 표에 오지 않는다.
 enum CommandState {
   @JsonValue('REQUESTED')
   requested('REQUESTED'),

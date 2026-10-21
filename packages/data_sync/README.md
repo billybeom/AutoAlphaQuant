@@ -18,7 +18,7 @@
 
 ## 의존 — 허용 (01 §1-1)
 
-`domain_contracts` · `core_engine` · `sqlite3`(로컬 정본 · 순수 Dart FFI — 설계 13 §8 R19 E9-12, ⚠️ 01 §1-1 은 E9 계약 PR 에서 `sqflite` → `sqlite3` 정정) · (E11) `supabase_flutter`.
+`domain_contracts` · `core_engine` · `sqlite3`(로컬 정본 · 순수 Dart FFI — 설계 13 §8 R19 E9-12 · ✅ 01 §1-1 v1.9) · (E11) `supabase_flutter`.
 
 ## 의존 — 🔴 금지
 

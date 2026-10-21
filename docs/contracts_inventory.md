@@ -899,14 +899,14 @@ ui 테스트 0파일 · ui lib 0 · 골든 PNG 0(`HoldingRow`·`HoldingsReposito
 
 ### 10-2. 🔴 열린 물음 — 임의 확정 금지 (구현 중 부딪히면 멈추고 보고한다)
 
-1. **`CommandState.noOperator` 의 DDL 자리** — `command_inbox.state`·`command_ack.state` CHECK 어디에도 `NO_OPERATOR` 가 없다. G-30 은 「`command_inbox` 의 state 집합 = `command_queue` 의 state 집합」을 요구하는데 `command_ack.state` CHECK 는 여전히 4값이다. 셋 중 어디까지 넓히는가?
-2. **`RunMode` 2값 vs 3값** — 배치 A·B 의 `CHECK (mode IN ('SIM','LIVE'))` 와 §9-5 ④ 의 3값 권고가 문서에 함께 남아 있다. 3값으로 넓히면 배치 A·B 도 재작성 대상이 된다(§9-1 은 «확정 전에는 DDL 을 고치지 않는다»).
+1. ✅ **해소(계약 v1.9.0 · 2026-10-21 · 설계 13 §8 R19 E9-6 · R20)** — `command_inbox.state` = `command_ack.state` = `CommandState` − `REQUESTED` 8값 · `command_queue` 에는 state 칸 없음 · C-15 등식 검사. ~~**`CommandState.noOperator` 의 DDL 자리** — `command_inbox.state`·`command_ack.state` CHECK 어디에도 `NO_OPERATOR` 가 없다. G-30 은 「`command_inbox` 의 state 집합 = `command_queue` 의 state 집합」을 요구하는데 `command_ack.state` CHECK 는 여전히 4값이다. 셋 중 어디까지 넓히는가?~~
+2. ✅ **해소(계약 v1.9.0 · R19 E9-2 · R20 Q1)** — 3값 + 파일별 CHECK(`ddl/*` `-- @sim` 태그 · `LedgerFile` · `ledgerDdlFor`) · `DEFAULT 'SIM'` 삭제 · `mode` 칸은 결정 사슬 9표(+ 이름만 같은 `resume_run`)에만 · 나머지는 `PRAGMA application_id` 파일 식별 · `journal_30` je_0030(`SIM_INTERNAL`)은 SIM 파일에 저장된다(값 무변경). ~~**`RunMode` 2값 vs 3값** — 배치 A·B 의 `CHECK (mode IN ('SIM','LIVE'))` 와 §9-5 ④ 의 3값 권고가 문서에 함께 남아 있다. 3값으로 넓히면 배치 A·B 도 재작성 대상이 된다(§9-1 은 «확정 전에는 DDL 을 고치지 않는다»).~~
    - 🔴 **G3 통합 실측(2026-09-08) — 이 물음은 «장차»가 아니라 «이미» 충돌한다.** 두 가지를 정정한다.
      - ⓐ 「픽스처 `meta.mode` 는 `"LIVE"` 다」는 **봉투에 한해서만** 참이다(77 픽스처 전량 `LIVE`). 그러나 **행 필드**는 다르다 — `fixtures/journal_30.json` 의 `je_0030` 이 `"mode": "SIM_INTERNAL"` 을 싣는다(X6 모의투자 갈래 시연 행). 봉투만 보고 «정합» 이라고 판정하면 안 된다.
      - ⓑ 더 중요한 것: **`'SIM'` 은 `RunMode` 의 `@JsonValue` 가 아니다.** `RunMode` 는 `SIM_INTERNAL`·`SIM_BROKER`·`LIVE` 3값이라 2값 CHECK 와 겹치는 값은 **`LIVE` 하나뿐**이다. 즉 2값 CHECK 는 「SIM 계열을 좁게 받는다」가 아니라 **SIM 계열 행을 하나도 표현하지 못한다**. 「2값 유지 = 보수적 선택」이 아니라는 뜻이다.
    - 🔴 그럼에도 **이번 통합에서 DDL·열거형·픽스처 중 무엇도 고치지 않았다** — §9-1·§9-5 ④ 가 «확정 전 DDL 불변» 이고 `m2-8_naming` I-3 이 ⏸ 이며, 위 ⓑ 는 어느 쪽으로 닫을지의 **근거**이지 결정이 아니다. 확정이 오면 `ddl/batch_a`·`batch_b`·`batch_f` + `fixtures/journal_30.json` + C-15 를 **한 커밋에서** 움직인다.
-3. **`CORPORATE_ACTION` vs `CORP_ACTION`** — 중복 후보(§8-6). 통합 전까지 **둘 다 상수로 두되** 픽스처에는 `CORPORATE_ACTION` 만 쓴다(X2 계열이 먼저 등재됐다).
-4. **`order_intents.dry_run` ↔ `ExecPolicy` 이중 정본**(§8-7) — `ExecPolicy` 를 열거형으로 만들되 `dry_run` 컬럼은 **그대로 둔다**(§9-5 ①). 파생 규칙 명문화는 M2-1 창.
+3. ✅ **해소(계약 v1.9.0 · R19 E9-4)** — `CORPORATE_ACTION` 으로 통합 · `CORP_ACTION` 은 옛 기록용 상수만. ~~**`CORPORATE_ACTION` vs `CORP_ACTION`** — 중복 후보(§8-6). 통합 전까지 **둘 다 상수로 두되** 픽스처에는 `CORPORATE_ACTION` 만 쓴다(X2 계열이 먼저 등재됐다).~~
+4. ✅ **해소(계약 v1.9.0 · R19 E9-5)** — 컬럼 유지 + 이름만 승격 · `dry_run = 1` ⇔ `ExecPolicy.dryRun` · `RunMode` 와 독립(batch_a 주석 · `ExecPolicy` doc). ~~**`order_intents.dry_run` ↔ `ExecPolicy` 이중 정본**(§8-7) — `ExecPolicy` 를 열거형으로 만들되 `dry_run` 컬럼은 **그대로 둔다**(§9-5 ①). 파생 규칙 명문화는 M2-1 창.~~
 5. **`rm_ops_summary` 표 존폐** — 만들거나, 홈 블록 5·7 을 폰 전용으로 명시하거나 **둘 중 하나**다. 정하지 않은 상태가 가장 나쁘다(뷰어가 값을 지어낸다).
 6. **`ReasonOption` ↔ `J-3` `rule_cited` 통합**(§8-20 · D19) — 🔴 **선행 미결**. 닫히기 전에는 `A-4`·`M5-12` 폼 계약이 확정되지 않는다.
 7. **`FeatureFlags.operatingMode` 의 `@Default`**(§8-19) — 주면 «기본이 자동»이 조용한 전제가 되고, 안 주면 `rm_config_view` 미갱신 상태에서 뷰어가 죽는다.

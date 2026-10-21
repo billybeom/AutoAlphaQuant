@@ -26,8 +26,8 @@ abstract final class OriginCodes {
   /// 기업행위. 🔴 X2 계열이 먼저 등재된 이름이며 **픽스처·신규 코드는 이 이름만 쓴다**.
   static const String corporateAction = 'CORPORATE_ACTION';
 
-  /// 기업행위(X5 계열의 옛 표기). ⚠️ **중복 후보**(01 §8-6 · 인벤토리 §10-2 ③) —
-  /// 통합 전까지 **상수로는 남기되** 픽스처·신규 코드에 쓰지 않는다.
+  /// 기업행위(X5 계열의 옛 표기). ✅ **`corporateAction` 으로 통합됐다**(계약 v1.9.0 · 01 §8-6 ·
+  /// 인벤토리 §10-2 ③ 해소) — 옛 기록을 읽기 위한 **상수로만** 남고 픽스처·신규 코드에 쓰지 않는다.
   static const String corpActionLegacy = 'CORP_ACTION';
 
   // ── 파생 계열 7 (X5 신설) ─────────────────────────────────────────────────
@@ -109,9 +109,9 @@ abstract final class OriginCodes {
   /// 전량 20종.
   static const Set<String> values = <String>{...broker, ...derived, ...x7};
 
-  /// 픽스처·신규 코드가 쓸 수 있는 것 — `CORP_ACTION`(중복 후보)을 뺀 19종.
+  /// 픽스처·신규 코드가 쓸 수 있는 것 — 옛 표기 `CORP_ACTION` 을 뺀 19종.
   ///
-  /// 🔴 인벤토리 §10-2 ③ — 통합 전까지 둘 다 상수로 두되 **픽스처에는 `CORPORATE_ACTION` 만** 쓴다.
+  /// ✅ 인벤토리 §10-2 ③ 해소(계약 v1.9.0) — 쓰는 이름은 `CORPORATE_ACTION` 하나다.
   static const Set<String> writable = <String>{
     fillLag,
     manualOrder,

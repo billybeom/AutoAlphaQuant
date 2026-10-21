@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS command_inbox (
     kind            TEXT    NOT NULL,
     ingested_at     TEXT    NOT NULL,
     state           TEXT    NOT NULL CHECK (state IN ('RECEIVED','EXECUTED','REJECTED','EXPIRED',
-                     'STALE_CONTEXT','HELD_FOR_INTEGRITY','PENDING_LEASE_CONFIRM')),
+                     'STALE_CONTEXT','HELD_FOR_INTEGRITY','PENDING_LEASE_CONFIRM','NO_OPERATOR')),
     state_label     TEXT    NOT NULL,                    -- 엔진 생성 문구
     reject_reason_code TEXT,
     decision_id     TEXT,                                -- 집행이 결정을 만들었으면 연결
@@ -40,14 +40,11 @@ CREATE TABLE IF NOT EXISTS command_inbox (
     lease_epoch     INTEGER,                             --    없으면 `staleContext` 판정을 사후에 증명 못 한다
     payload_digest  TEXT    NOT NULL                     -- 🔴 원문 재저장 금지 — digest 만
 );
--- ⚠️🔴 **열린 물음 — `NO_OPERATOR` 의 DDL 자리**(인벤토리 §10-2 ① · m2-8_naming K-1. 임의 확정 금지)
---    · `CommandState.noOperator` 는 M2-8 A-11 이 **이름을 확정**했다(`NO_OPERATOR`).
---      「요청됨」이 «껐다»로 읽히는 것을 막는 유일한 값이다(§10-8 ⓑ).
---    · 그런데 `command_inbox.state`·`command_ack.state`·`command_queue.state` **어느 CHECK 에도
---      `NO_OPERATOR` 가 없다**. G-30 은 「`command_inbox` state 집합 = `command_queue` state 집합」을
---      요구하는데 `command_ack.state` CHECK 는 여전히 4값이다.
---    · 🔴 **세 표 중 어디까지 넓히는가는 이름 문제가 아니라 스키마 결정**이므로 여기서 정하지 않는다.
---      확정되면 이 CHECK · batch_d 의 `command_queue`·`command_ack` · C-15 를 같은 커밋에서 고친다.
+-- ✅ **state 집합 = `CommandState` − `REQUESTED` 8값**(설계 13 §8 R19 E9-6 · R20 · 인벤토리 §10-2 ① 해소).
+--    · 이 표와 batch_d 의 `command_ack.state` 가 **같은 8값**이다(G-30). `command_queue` 에는 state 칸이
+--      없다(append-only 명령 행 — 상태는 ack 이 증언한다).
+--    · `REQUESTED` 는 기기 쪽 내구 큐의 상태라 엔진 표에 오지 않는다. `NO_OPERATOR` 는 RPC 판정값이라
+--      실제로 쓰일 일은 드물지만 «집합이 같다»가 G-30 의 요구다(§10-8 ⓑ).
 
 -- 🆕 G-06 운영 파라미터(전략 config_hash **밖**) — 🔴 정정은 새 행, UPDATE 금지
 CREATE TABLE IF NOT EXISTS operating_param_log (
