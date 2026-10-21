@@ -13,6 +13,9 @@
 //   ⑦ 모르는 회차의 봉투 문장은 일반 빈 일지 문장과 다르다(화면이 일반 문구로 때우면 골든이 가른다)
 //   ⑧ ui 스캔 — `ui_journal/lib` 코드가 `orderIntentIds`·`RebalanceRepository` 를 말하지 않는다
 //      (회차 조건은 서버측 인자 · 글자 조립·rows 거르기 금지 — 02 §7 검수 19 의 기계화)
+//      🆕 2026-10-21 — `RebalanceRepository` 만 H6 대상(C-44 ⑫ 와 같은 집합: `holdings_overview.dart` ·
+//      `holding_detail.dart` · `holdings_allocation.dart` + `lib/src/holdings/**`)을 뺀다(01 §17-8 — `H6-3` 이
+//      기존 `watchNext()` 로 다음 회차를 읽는다). `orderIntentIds` 는 H6 대상까지 어디서나 금지 · 양성 자기 검사 동봉.
 //   ⑨ scope 의 씨앗 기간이 그 회차에 묶인 행 전부를 덮고 프리셋이 아니다(발주자 결정 ⑥ 2026-10-07)
 //   ⑩ `journal_30` 에 나오는 회차 id 는 전부 scope 픽스처가 안다(엔진 규칙 «scope null ⇒ 그 id 의 목록 0행»의
 //      픽스처 쪽 짝 — 행은 있는데 칩이 조용히 부재하는 길을 막는다)
@@ -61,6 +64,38 @@ int _countIn(String label) {
   final List<RegExpMatch> m = RegExp(r'[0-9]+').allMatches(label).toList();
   expect(m, hasLength(1), reason: '버튼 글자에 정수가 하나여야 한다: «$label»');
   return int.parse(m.single.group(0)!);
+}
+
+// ─── ⑧ ui 스캔 — 금지 이름과 H6 예외 ─────────────────────────────────────────
+
+/// ⑧ `ui_journal/lib` 어디서나(H6 대상 포함) 금지.
+final RegExp _bannedEverywhere = RegExp(r'\borderIntentIds\b');
+
+/// ⑧ H6 대상 밖에서만 금지 — 🆕 2026-10-21 발주자 결정: `H6-3` 은 01 §17-8 대로 기존
+/// `RebalanceRepository.watchNext()` 로 다음 회차를 읽는다(일지 `J-1` 의 «회차 조건은 서버측 인자» 규칙은 그대로).
+final RegExp _bannedOutsideH6 = RegExp(r'\bRebalanceRepository\b');
+
+/// H6 대상 공개 파일 3(`ui_journal` 기준) — C-44 ⑫ 의 `_h6PublicFiles` 와 같은 집합(아래 ⑧ 이 맞댄다).
+const List<String> _h6PublicFiles = <String>[
+  'lib/src/holdings_overview.dart',
+  'lib/src/holding_detail.dart',
+  'lib/src/holdings_allocation.dart',
+];
+
+/// H6 내부 조각 폴더(`/` 로 끝난다 · 아래 전부) — C-44 ⑫ 의 `_h6InternalDir` 와 같다.
+const String _h6InternalDir = 'lib/src/holdings/';
+
+bool _isH6Target(String rel) =>
+    _h6PublicFiles.contains(rel) || rel.startsWith(_h6InternalDir);
+
+/// [rel](`ui_journal` 기준 경로) 의 [source] 가 ⑧ 에서 걸리는 이름(주석 속 언급은 통과).
+List<String> _c40Hits(String rel, String source) {
+  final String code = stripComments(source);
+  return <String>[
+    if (_bannedEverywhere.hasMatch(code)) 'orderIntentIds',
+    if (!_isH6Target(rel) && _bannedOutsideH6.hasMatch(code))
+      'RebalanceRepository',
+  ];
 }
 
 void main() {
@@ -188,32 +223,90 @@ void main() {
       expect(s76a['empty_label'], isA<String>());
     });
 
-    test('C-40 ⑧ ui_journal 코드는 orderIntentIds·RebalanceRepository 를 말하지 않는다', () {
-      final Directory lib = Directory(
-        '${repoRoot.path}/packages/ui_journal/lib',
-      );
+    test('C-40 ⑧ ui_journal 코드는 orderIntentIds 를 말하지 않고 RebalanceRepository 는 H6 대상만 말한다', () {
+      const String pkg = 'packages/ui_journal';
+      final Directory lib = Directory('${repoRoot.path}/$pkg/lib');
       expect(lib.existsSync(), isTrue, reason: lib.path);
-      final RegExp banned = RegExp(r'\b(orderIntentIds|RebalanceRepository)\b');
       final List<String> hits = <String>[
         for (final File f in dartSourcesIn(lib))
-          if (banned.hasMatch(stripComments(f.readAsStringSync())))
-            shortPath(f),
+          for (final String name in _c40Hits(
+            shortPath(f).substring(pkg.length + 1),
+            f.readAsStringSync(),
+          ))
+            '${shortPath(f)}: $name',
       ];
       expect(
         hits,
         isEmpty,
         reason:
             '회차 조건은 watchTimeline 의 서버측 인자이고 칩 글자는 watchRebalanceScope 가 준다 — '
-            '`J-1` 이 회차 리포지토리를 끌어와 글자를 조립하거나 rows 를 거르면 반려(02 §7 검수 19).',
+            '`J-1` 이 회차 리포지토리를 끌어와 글자를 조립하거나 rows 를 거르면 반려(02 §7 검수 19). '
+            'RebalanceRepository 는 H6 대상(01 §17-8 — H6-3 의 watchNext)만 · orderIntentIds 는 어디서나 금지.',
       );
-      // 자체 검증 — 망가뜨린 사본은 걸린다.
+      // H6 대상 집합 == C-44 ⑫ 의 대상(한쪽만 바뀌면 걸린다).
+      final String c44 = File(
+        '${repoRoot.path}/packages/domain_contracts/test/contracts/c44_holdings_test.dart',
+      ).readAsStringSync();
+      for (final String rel in <String>[..._h6PublicFiles, _h6InternalDir]) {
+        expect(c44, contains("'$rel'"), reason: 'C-44 ⑫ 대상에 $rel 이 없다');
+      }
+      // 자체 검증 — 음성(통과해야 한다).
       expect(
-        banned.hasMatch(stripComments('final x = e.orderIntentIds.length;')),
-        isTrue,
+        _c40Hits('lib/src/journal_timeline.dart', '// orderIntentIds 는 쓰지 않는다'),
+        isEmpty,
       );
       expect(
-        banned.hasMatch(stripComments('// orderIntentIds 는 쓰지 않는다')),
-        isFalse,
+        _c40Hits(
+          'lib/src/holdings_overview.dart',
+          'final RebalanceRepository r;',
+        ),
+        isEmpty,
+      );
+      expect(
+        _c40Hits(
+          'lib/src/holdings/next_rebalance.dart',
+          'final RebalanceRepository r;',
+        ),
+        isEmpty,
+      );
+      // 자체 검증 — 양성(반드시 걸린다).
+      expect(
+        _c40Hits(
+          'lib/src/journal_timeline.dart',
+          'final x = e.orderIntentIds.length;',
+        ),
+        <String>['orderIntentIds'],
+      );
+      expect(
+        _c40Hits(
+          'lib/src/journal_timeline.dart',
+          'final RebalanceRepository r;',
+        ),
+        <String>['RebalanceRepository'],
+        reason: 'H6 대상 밖 ui_journal 파일의 RebalanceRepository 는 여전히 걸린다',
+      );
+      expect(
+        _c40Hits(
+          'lib/src/holdings_overview_extra.dart',
+          'final RebalanceRepository r;',
+        ),
+        <String>['RebalanceRepository'],
+        reason: '대상 파일 이름을 앞부분만 닮은 파일은 대상이 아니다',
+      );
+      expect(
+        _c40Hits(
+          'lib/src/holding_detail.dart',
+          'final x = e.orderIntentIds.length;',
+        ),
+        <String>['orderIntentIds'],
+        reason: 'H6 대상 파일이어도 orderIntentIds 는 걸린다',
+      );
+      expect(
+        _c40Hits(
+          'lib/src/holdings/next_rebalance.dart',
+          'e.orderIntentIds; RebalanceRepository r;',
+        ),
+        <String>['orderIntentIds'],
       );
     });
 
