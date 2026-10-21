@@ -58,7 +58,7 @@
 | # | 문서 위치 | 임시 이름 | **확정 이름·타입** | 근거 |
 |---|---|---|---|---|
 | C-1 | 01 §2-11 «⚠️ 이름 M2-8 확정 대기»(N-1) | 전환 냉각 배너 | ✅ `AdviceInboxSummary.handoverCoolingActive`(R bool) · `handoverCoolingLabel`(? String) | `Label` 접미 관례. 🔴 화면이 위저드 상태·`handover_session` 을 직접 읽어 배너를 만들지 않는다 |
-| C-2 | 01 §2-1 «⚠️ 하위호환 기본값 부여 여부는 M2-8(§8-19)» | `FeatureFlags.operatingMode` 의 `@Default` | ⏸ **기본값을 주지 않는다**(`required OperatingMode operatingMode`) | 🔴 «기본이 자동»이 조용한 전제가 되는 쪽이, 뷰어가 명시적으로 죽는 쪽보다 나쁘다 — «온보딩 미완»은 «자동 매매»가 아니다(G-02). ⏸ 사유 = `rm_config_view.operating_mode` 컬럼이 **같은 창에서** 들어가야 성립(§8-14 와 한 사안) |
+| C-2 | 01 §2-1 «⚠️ 하위호환 기본값 부여 여부는 M2-8(§8-19)» | `FeatureFlags.operatingMode` 의 `@Default` | ✅ **기본값을 주지 않는다**(`required OperatingMode operatingMode` · 2026-10-22 발주자 확정 — 01 §8-19) | 🔴 «기본이 자동»이 조용한 전제가 되는 쪽이, 뷰어가 명시적으로 죽는 쪽보다 나쁘다 — «온보딩 미완»은 «자동 매매»가 아니다(G-02). ~~⏸ 사유 = `rm_config_view.operating_mode` 컬럼이 **같은 창에서** 들어가야 성립(§8-14 와 한 사안)~~ ✅ 컬럼 = NOT NULL · 엔진 M4-1 이 월 납입 5컬럼과 같은 창에 넣는다 · 뷰어가 못 읽으면 «모름» 없이 `incompatible`(01 §6-4 G-36) |
 | C-3 | 01 §2-6 «⚠️ `FundingStep` 필드는 상세 설계 확정» | 납입 조달 단계 | ✅ `FundingStep { int order; SleeveId sourceSleeve; String? symbol; String? symbolLabel; int quantity; @D Decimal expectedProceeds; String ruleCited; String label }` | 01 §2-6 «최소 축: 순서·매도 대상 슬리브/티커·수량·예상 조달액·근거 규칙 `03 §5-5b`» + 라벨 규약(§1-5) |
 | C-4 | 01 §2-6 «⚠️ `basisText` 확장 vs 신설 = M2-8 택일» | `GoalPathVm` 백테스트 근거 줄 | ✅ **신설** `GoalPathVm.backtestBasisText`(기존 `basisText` 는 그대로 둔다) | 확장하면 한 필드가 두 뜻을 갖는다. 🆕 **v1.4 — 역할 고정 · 동시 금지 폐기(01 §14-10 · §O O-9)**: `basisText` = 판정 근거 줄 · `backtestBasisText` = 가정 카드 1줄(«백테스트 기준 실행») · `startingCapitalAssumptionText` = 가정 카드 2줄 — 03 §14 가정 카드가 **두 줄**을 요구하므로 v1.0 의 «화면이 두 필드를 동시에 그리지 않는다» 조문(과 그것을 검사하려던 까닭)은 **폐기**됐다. 두 필드를 둔다는 이름 결정은 그대로다 |
 | C-5 | 01 §2-6 «🆕 요청 후보 — 확정 아님, M2-8» | 초기 진입 램프 진행 | ✅ `EntryRampProgress { List<EntryRampSleeveState> sleeves }` · `EntryRampSleeveState { SleeveId sleeve; String stateCode; String stepLabel }` · `stateCode ∈ {MONTHLY_SPLIT, COMPLETED_IMMEDIATELY, AWAITING_SEASONAL_GATE}` | 01 §2-6 «최소 축: `sleeve`·`stateCode`·`stepLabel`». 🔴 **«n/6» 단일 게이지가 아니라 슬리브별 상태 목록**이다 — A·C 에 n/6 을 그리면 거짓 진행률 |
@@ -178,7 +178,7 @@
 | I-3 | 01 §9-1 · §9-5 ④ | 로컬 `mode` CHECK 의 값 도메인 | ✅ **확정(계약 v1.9.0 · R19 E9-2 · R20 Q1)** — 3값 + 파일별 CHECK(`-- @sim` 태그 · `ledgerDdlFor`) · 구 ⏸ **3값 + 파일별 CHECK**(`ledger.sqlite` = `CHECK (mode = 'LIVE')` · `ledger_sim.sqlite` = `CHECK (mode IN ('SIM_INTERNAL','SIM_BROKER'))`, 배치 F 판은 `= 'SIM_INTERNAL'` 로 좁힌다) | §9-5 ④ 권고(첫 거래 전이라 테이블 재생성 비용 0). ⏸ 사유 = 01 §9-1 이 «확정 전에는 DDL 을 고치지 않는다»를 명시했고, 넓히면 배치 A·B 가 재작성 대상이 된다 |
 | I-4 | 01 §8-6 | `CORPORATE_ACTION` vs `CORP_ACTION` | ✅ **확정(계약 v1.9.0 · R19 E9-4)** · 구 ⏸ **`CORPORATE_ACTION` 으로 통합**(`CORP_ACTION` 은 상수로만 남기고 픽스처·신규 코드에 쓰지 않는다) | X2 계열이 먼저 등재됐고 `CalendarEventKind`·`LedgerEventKind` 도 `corporateAction` 을 쓴다. ⏸ 사유 = **마이그레이션 창 안에서만** 고칠 수 있다(06 M2-1 착수 전 정리 2건) |
 | I-5 | 01 §8-7 · §9-5 ① | `mode` ↔ `order_intents.dry_run` 이중 정본 | ✅ **확정(계약 v1.9.0 · R19 E9-5)** — 파생 규칙 `dry_run = 1` ⇔ `ExecPolicy.dryRun` · 구 ⏸ **`dry_run` 컬럼 유지 + `ExecPolicy` 로 이름만 승격**(폐지하지 않는다) | §9-5 ① 채택 계약. ⏸ 사유 = 파생 규칙 명문화가 M2-1 창 |
-| I-6 | 01 §8-23 G-01 | `onboarding_choice.committed_at` 을 무엇이 채우는가 | ⏸ **`O-04` 완료가 채운다**(첫 배치 성공이 아니다) | 「선택 후 되돌리기」의 경계가 사용자가 보는 단계와 일치해야 한다. 첫 배치 성공을 기준으로 하면 배치가 실패하는 동안 선택이 무한히 열려 있다. ⏸ 사유 = 발주자 확인 |
+| I-6 | 01 §8-23 G-01 | `onboarding_choice.committed_at` 을 무엇이 채우는가 | ✅ **`O-04` 완료가 채운다**(첫 배치 성공이 아니다 · 2026-10-22 발주자 확정 — 6단계 «DRY_RUN 시작» 명령과 같은 트랜잭션) | 「선택 후 되돌리기」의 경계가 사용자가 보는 단계와 일치해야 한다. 첫 배치 성공을 기준으로 하면 배치가 실패하는 동안 선택이 무한히 열려 있다. ~~⏸ 사유 = 발주자 확인~~ ✅ 확인됨(01 §8-23) · 🔵 `ddl/batch_c_x2_x5_local.sql` 주석의 «I-6 ⏸» 는 DDL sha256 고정이라 다음 DDL 개정 때 정리 |
 
 ---
 
@@ -186,7 +186,7 @@
 
 | # | 문서 위치 | 무엇 | **권고 확정** | 왜 ⏸ 인가 |
 |---|---|---|---|---|
-| J-1 | 01 §8-19 · §8-14 | `FeatureFlags.operatingMode` 하위호환 | → **C-2**(기본값 없음) | `rm_config_view.operating_mode` 컬럼이 같은 창에 들어가야 성립 |
+| J-1 | 01 §8-19 · §8-14 | `FeatureFlags.operatingMode` 하위호환 | → **C-2**(기본값 없음) | ✅ 2026-10-22 확정(01 §8-19) — 컬럼 NOT NULL · M4-1 같은 창 · 못 읽으면 `incompatible` |
 | J-2 | 01 §8-28 G-43 | `live × dryRun` 관찰 기간 · 승격 확인 DTO | ⏸ `LiveDryRunObservationVm { int observedTradingDays; int requiredTradingDays; String progressText; bool promotionAvailable; String stateLabel }` · 관찰 거래일 수 = **잠정 2** | 🔴 관찰 일수는 **발주자 확정 대기**이며 엔진 config 신설 키다. 🔴 **승격에 새 화면·새 라우트를 만들지 않는다** — `S05` 엔진 상태 칩 + 기존 M5 게이트 다이얼로그(생체 1회) |
 | J-3 | 01 §8-10 · C2 기각 | `ALERT_ACK` 의 뷰어 허용 | ⏸ **허용하지 않는다**(현행 `command_insert_viewer` 4종 화이트리스트 유지) | X7 이 대신 답하지 않는 미결이다. ack 가 2종으로 갈린 뒤에는 **효력이 0인 명령**이고, 48h 개시가 폰을 요구하는 것은 결함이 아니라 결정 6 의 계약이다 |
 | J-4 | 01 §6-4 · 10 §3-2 | `rm_ops_summary` 표 존폐(홈 블록 5·7 소유) | ⏸ **표를 만든다**(홈을 전 플랫폼으로 유지) | 🔴 **정하지 않은 상태가 가장 나쁘다** — 뷰어가 값을 지어낸다. 대안(홈 블록 5·7 을 폰 전용으로 명시)도 유효하며 발주자 택일 |

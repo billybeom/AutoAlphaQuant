@@ -911,7 +911,7 @@ ui 테스트 0파일 · ui lib 0 · 골든 PNG 0(`HoldingRow`·`HoldingsReposito
 4. ✅ **해소(계약 v1.9.0 · R19 E9-5)** — 컬럼 유지 + 이름만 승격 · `dry_run = 1` ⇔ `ExecPolicy.dryRun` · `RunMode` 와 독립(batch_a 주석 · `ExecPolicy` doc). ~~**`order_intents.dry_run` ↔ `ExecPolicy` 이중 정본**(§8-7) — `ExecPolicy` 를 열거형으로 만들되 `dry_run` 컬럼은 **그대로 둔다**(§9-5 ①). 파생 규칙 명문화는 M2-1 창.~~
 5. **`rm_ops_summary` 표 존폐** — 만들거나, 홈 블록 5·7 을 폰 전용으로 명시하거나 **둘 중 하나**다. 정하지 않은 상태가 가장 나쁘다(뷰어가 값을 지어낸다).
 6. **`ReasonOption` ↔ `J-3` `rule_cited` 통합**(§8-20 · D19) — 🔴 **선행 미결**. 닫히기 전에는 `A-4`·`M5-12` 폼 계약이 확정되지 않는다.
-7. **`FeatureFlags.operatingMode` 의 `@Default`**(§8-19) — 주면 «기본이 자동»이 조용한 전제가 되고, 안 주면 `rm_config_view` 미갱신 상태에서 뷰어가 죽는다.
+7. ~~**`FeatureFlags.operatingMode` 의 `@Default`**(§8-19) — 주면 «기본이 자동»이 조용한 전제가 되고, 안 주면 `rm_config_view` 미갱신 상태에서 뷰어가 죽는다.~~ ✅ **닫힘(2026-10-22 · 01 §8-19)** — 기본값 없음(required) · `rm_config_view.operating_mode` NOT NULL(엔진 M4-1) · 뷰어가 못 읽으면 `incompatible`.
 8. **`AlertItem.ack` 의 쓰기 경로**(§8-10) — `alertAck` 명령은 생겼으나 **뷰어 허용 여부**는 여전히 열려 있다(X7 이 대신 답하지 않는다).
 9. **픽스처 티커** — `069500` 은 **KOSPI200** ETF 라 P0S 의 슬리브 A(KOSDAQ 지수 ETF)와 맞지 않는다. 실전 종목 확정 전까지 **문법 예시**이며, 화면은 티커를 슬리브의 정의로 읽지 않는다(A/B/C 라벨은 `SleeveCatalogEntry.label`).
 10. **`SettingsActionId` 신설 2종의 이름** — `settingsContributionUpdate`(G-45 · 🔴 «운영 등급») · `calendarReconnect`(G-64). `m2-8_naming.md` 가 권고 이름으로 확정했으나 **발주자 몫 표시(⏸)** 가 붙어 있다.
