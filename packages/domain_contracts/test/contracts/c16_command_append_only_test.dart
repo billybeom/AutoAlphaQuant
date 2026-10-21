@@ -316,6 +316,8 @@ void main() {
         CommandKind.selfReportBalance: 'advice_reject',
         CommandKind.alertAck: 'advice_reject',
         CommandKind.killChecklistConfirm: 'advice_reject',
+        // 🆕 v1.10 ㊲ — 원장 사건 기록은 자기 사전을 쓴다(설계 13 §8 R21 L6).
+        CommandKind.ledgerEventRecord: 'ledger_event_reject',
       };
       final Set<String> seen = <String>{};
       for (final String path in FixturePaths.all) {

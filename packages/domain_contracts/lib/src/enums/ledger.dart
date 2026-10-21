@@ -109,16 +109,81 @@ enum LedgerTrustGrade {
   final String wire;
 }
 
-// ⏸ `LedgerEventKind { withdrawal, distribution, corporateAction, taxWithheld }`
-//    → 'WITHDRAWAL'·'DISTRIBUTION'·'CORPORATE_ACTION'·'TAX_WITHHELD'
-//
-// 🔴 **결정 ㊲ 채택 시에만 신설한다.** 지금은 주석으로만 남기고 코드로 만들지 않는다
-//    (01 §2-1 ⏸ 원문 · `m2-8_naming.md` A-15 · J-6 · 인벤토리 §2-9).
-//    이름은 확정됐고 기능만 대기다 — 함께 대기 중인 것이 `CommandKind.ledgerEventRecord`·
-//    `CommandApi.recordLedgerEvent(LedgerEventRecord)` 다.
-// ⚠️ 채택되지 않으면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 현금 추정이 단조적으로
-//    어긋나고 그 위에서 안내 수량이 계산된다(J-6 조문).
-// ✅ 결정 ㊲ 은 **채택**됐다(설계 13 §8 R19 E9-7). 다만 저장 자리·DTO 필드·거부 코드가 아직 없어
-//    이 열거형과 명령은 **E9a2**(설계안 → 발주자 확인 · v1 동결 전 · R20 Q3)에서 함께 만든다.
+/// 01 §2-1 · X7 ㊲ — **매매가 아닌데 원장을 바꾸는 사실**(계약 v1.10 · 설계 13 §8 R21 · `m2-8_naming.md`
+/// A-15 · J-6 이름 그대로).
+///
+/// 🔴 네 값의 효과가 다르다 — 인출 = 현금 − · TWR 외부 흐름 / 분배금 = 현금 + · 수익 /
+///    원천징수 = 현금 − · 비용 / 기업행위 = 수량 × 비율(현금 없음 · 병합 단주 대금만).
+///    현금 효과는 엔진이 같은 트랜잭션에서 `cash_flow` 로 투영한다([CashFlowKind] · R21 L1).
+/// 🔴 채택되지 않았다면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 현금 추정이 단조적으로
+///    어긋나고 그 위에서 안내 수량이 계산된다(J-6 조문).
+enum LedgerEventKind {
+  @JsonValue('WITHDRAWAL')
+  withdrawal('WITHDRAWAL'),
+  @JsonValue('DISTRIBUTION')
+  distribution('DISTRIBUTION'),
+  @JsonValue('CORPORATE_ACTION')
+  corporateAction('CORPORATE_ACTION'),
+  @JsonValue('TAX_WITHHELD')
+  taxWithheld('TAX_WITHHELD');
+
+  const LedgerEventKind(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// ㊲ 기업행위의 v1 범위 — **분할·병합만**(설계 13 §8 R21 L5).
+///
+/// 🔴 합병·상장폐지·권리는 종목 자체가 바뀌므로 `CORPORATE_ACTION_UNSUPPORTED` 로 거부하고
+///    `L-3` 실사로 원장을 다시 세운다.
+enum CorporateActionType {
+  @JsonValue('SPLIT')
+  split('SPLIT'),
+  @JsonValue('REVERSE_SPLIT')
+  reverseSplit('REVERSE_SPLIT');
+
+  const CorporateActionType(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// `cash_flow.kind` — 매매가 아닌 현금 이동 전부(설계 13 §8 R21 L1 · 계약 v1.10).
+///
+/// 🔴 **현금 = `Σ cash_flow + Σ executions`** 두 갈래로 순진한 SUM 이 옳다 — 원장 사건의 현금 효과를
+///    별도 표에 두지 않는 이유다(현금이 틀리면 안내 수량이 조용히 줄어든다).
+/// 🔴 대가: TWR·MWR 의 **외부 흐름**은 이 중 일부뿐이다 — 판정은 [CashFlowKindIsExternal.isExternal]
+///    **하나로만** 한다(분배금·원천징수·단주 대금은 수익·비용이지 외부 흐름이 아니다).
+enum CashFlowKind {
+  @JsonValue('DEPOSIT')
+  deposit('DEPOSIT'),
+  @JsonValue('WITHDRAWAL')
+  withdrawal('WITHDRAWAL'),
+  @JsonValue('DISTRIBUTION')
+  distribution('DISTRIBUTION'),
+  @JsonValue('TAX_WITHHELD')
+  taxWithheld('TAX_WITHHELD'),
+  @JsonValue('CASH_IN_LIEU')
+  cashInLieu('CASH_IN_LIEU');
+
+  const CashFlowKind(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// TWR·MWR 의 «외부 현금흐름» 판정의 **유일한** 창구(설계 13 §8 R21 L1).
+///
+/// 🔴 `default:` 없는 망라 switch 다 — 값이 늘면 컴파일이 깨져 판정을 다시 하게 만든다(C-12).
+extension CashFlowKindIsExternal on CashFlowKind {
+  bool get isExternal => switch (this) {
+    CashFlowKind.deposit || CashFlowKind.withdrawal => true,
+    CashFlowKind.distribution ||
+    CashFlowKind.taxWithheld ||
+    CashFlowKind.cashInLieu => false,
+  };
+}
+
 // ✅ `CORPORATE_ACTION` vs `CORP_ACTION` = **`CORPORATE_ACTION` 으로 통합**(계약 v1.9.0 · R19 E9-4 ·
 //    인벤토리 §10-2 ③ 해소). 픽스처·신규 코드는 `CORPORATE_ACTION` 만 쓴다.

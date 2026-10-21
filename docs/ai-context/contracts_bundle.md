@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 88개 · 계약 v1.9.0 · 조립일 2026-10-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 88개 · 계약 v1.10.0 · 조립일 2026-10-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -141,12 +141,18 @@ export 'commands/settings_actions.dart';
 //    수기 체결 `broker_order_no` NULL(+ CHECK) · `batch_e` 보관 · 🆕 [schemaVersion] = 1 · [hashFormatVersion] = 1 ·
 //    `LedgerFile`(두 파일 · `application_id`) · `LedgerModeCheck` · `ledgerDdlFor`(SIM 판 파생) ·
 //    C-15 열린 물음 2검사 → 등식 검사 · 픽스처 159(봉투 버전만 · 값 무변경).
+// 🆕 '1.10.0'(E9a2 · X7 ㊲ · 설계 13 §8 R21 L1~L6 · 발주자 결정 2026-10-21 추천안) — 원장 사건:
+//    `LedgerEventKind`(4) · `CorporateActionType`(분할·병합) · `CashFlowKind`(5) + `isExternal`(TWR 외부 흐름 =
+//    입금·출금만) · `CommandKind.ledgerEventRecord` · `CommandApi.recordLedgerEvent(LedgerEventRecord)` ·
+//    거부 코드 `LedgerEventRejectCodes`(`ledger_event_reject` 8) · 사유 코드 +5(`LEDGER_EVENT_*`) ·
+//    `ddl/batch_f` = `ledger_event` 신설 + `cash_flow` 5값 재작성(+`source_event_id`) · `batch_d` 명령 kind +1 ·
+//    받침대 1메서드 · 🆕 C-45 · 픽스처 159(봉투 버전만).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.9.0';
+const String contractVersion = '1.10.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -415,7 +421,9 @@ abstract interface class CommandApi {
   /// 🔴 48h 해제 카운트다운 개시의 유일한 방아쇠.
   Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack);
 
-  // ⏸ `recordLedgerEvent(LedgerEventRecord)` — 🔴 **결정 ㊲ 채택 시에만** 8번째로 신설(J-6).
+  /// 🆕 v1.10 · ㊲ — 매매가 아닌데 원장을 바꾸는 사실(인출 · 분배금 · 기업행위 · 원천징수) 1건 ·
+  /// `voidsEventId` 가 있으면 무효(상쇄만). 🔴 폰(operator) 전용 · 자동·안내 둘 다(설계 13 §8 R21 L3).
+  Future<CommandReceipt> recordLedgerEvent(LedgerEventRecord record);
 }
 ```
 
@@ -952,7 +960,7 @@ abstract class DisclosureViewEvent with _$DisclosureViewEvent {
 ## `packages/domain_contracts/lib/src/commands/payloads_x7.dart`
 
 ```dart
-// 01 §4-2 · §5-4 · §10 — 🆕 X7 명령 인자 DTO 8종.
+// 01 §4-2 · §5-4 · §10 — 🆕 X7 명령 인자 DTO 8종 + 🆕 v1.10 ㊲ `LedgerEventRecord`.
 //
 // 🔴 각 DTO 의 `deviceId` 는 `CommandContext` 로 **옮겨졌다** — payload 가 기기를 다시
 //    말하지 않는다. 🔴 payload 에 `idempotencyKey` 를 두지 않는다(A9).
@@ -966,6 +974,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../dto/ledger_trust.dart';
 import '../enums/advice.dart';
+import '../enums/ledger.dart';
 import '../enums/order.dart';
 import '../primitives/money.dart';
 import 'command_context.dart';
@@ -1164,6 +1173,57 @@ abstract class KillChecklistAck with _$KillChecklistAck {
 //    이름은 확정됐고 **코드는 만들지 않는다**. 채택되지 않으면 인출·분배금·기업행위·
 //    원천징수가 원장 밖에 남아 현금 추정이 단조적으로 어긋나고 그 위에서 안내 수량이
 //    계산된다 — 그 사실을 여기 주석으로 남겨 둔다.
+
+/// 🆕 v1.10 · X7 ㊲ — **매매가 아닌데 원장을 바꾸는 사실** 1건(인출 · 분배금 · 기업행위 · 원천징수).
+///
+/// 🔴 명령 1종이다(설계 13 §8 R21 L2) — [voidsEventId] 가 있으면 그 사건의 **무효(상쇄만)**이고 값 칸은
+///    전부 null 이어야 한다. 정정 = 무효 + 새 기록 **2명령**(수기 체결의 종목·방향 변경 A13 과 같은 규칙).
+/// 🔴 **사실은 거부하지 않는다**(R21 L6) — 인출 > 추정 현금 · 원장에 없는 종목의 분배금도 접수하고 엔진이
+///    원장 신뢰 등급을 `drifting` 으로 내린다. 거부(`LedgerEventRejectCodes`)는 형식 오류·재해석만이다.
+/// 🔴 `sleeve` 를 보내지 않는다(엔진이 판정) · 기기는 `context` 안 · `idempotencyKey` 없음(A9).
+/// 🔴 kind 별 칸(엔진이 `LEDGER_EVENT_FIELDS_MISMATCH` 로 강제 — 화면은 kind 가 고른 칸만 그린다):
+///    · withdrawal — amountKrw 필수 · symbol·taxWithheldKrw·actionType·ratio·cashInLieuKrw null
+///    · distribution — symbol·amountKrw(세전) 필수 · taxWithheldKrw 선택(R21 L4)
+///    · taxWithheld — amountKrw 필수 · symbol 선택(분배금에 묶이지 않는 원천징수)
+///    · corporateAction — symbol·actionType·ratioFrom·ratioTo 필수 · cashInLieuKrw 선택(병합 단주 대금)
+@freezed
+abstract class LedgerEventRecord with _$LedgerEventRecord {
+  const factory LedgerEventRecord({
+    required LedgerEventKind kind,
+
+    /// 효력일(입출금일 · 지급일 · 권리락일). 🔴 거래일·개시일 판정은 엔진(`LEDGER_EVENT_DATE_INVALID`).
+    @TradeDateConverter() required TradeDate effectiveDate,
+    required String accountAlias,
+    String? symbol,
+
+    /// 양수. 부호는 [kind] 가 정한다.
+    @DecimalStringConverter() Decimal? amountKrw,
+
+    /// distribution 만 — 원천징수 금액. null = 미입력(0 과 다르다 — 「없음」과 「모름」).
+    @DecimalStringConverter() Decimal? taxWithheldKrw,
+
+    /// corporateAction 만.
+    CorporateActionType? actionType,
+
+    /// corporateAction 만 — 1주 → 2주 분할 = from 1 · to 2.
+    int? ratioFrom,
+    int? ratioTo,
+
+    /// corporateAction(병합) 만 — 단주 대금.
+    @DecimalStringConverter() Decimal? cashInLieuKrw,
+
+    /// non-null = 그 사건의 무효(상쇄만).
+    String? voidsEventId,
+
+    /// 🆕 A9 꼴 — `LEDGER_EVENT_DUPLICATE_SUSPECTED` 재제출 시 true(평시 false).
+    required bool duplicateAck,
+    String? note,
+    required CommandContext context,
+  }) = _LedgerEventRecord;
+
+  factory LedgerEventRecord.fromJson(Map<String, dynamic> json) =>
+      _$LedgerEventRecordFromJson(json);
+}
 ```
 
 ---
@@ -5658,10 +5718,11 @@ enum CommandKind {
   @JsonValue('ALERT_ACK')
   alertAck('ALERT_ACK'),
   @JsonValue('KILL_CHECKLIST_CONFIRM')
-  killChecklistConfirm('KILL_CHECKLIST_CONFIRM');
+  killChecklistConfirm('KILL_CHECKLIST_CONFIRM'),
 
-  // ⏸ `ledgerEventRecord` → 'LEDGER_EVENT_RECORD' — 결정 ㊲ 채택 시에만 8번째로 신설한다
-  //    (01 §4-2 ⏸ 원문 · `m2-8_naming.md` J-6). 지금은 만들지 않는다.
+  // ── 🆕 v1.10 · X7 ㊲ 원장 사건(8번째) · 🔴 operator 전용 · 기록 계열 TTL(㊵) ──
+  @JsonValue('LEDGER_EVENT_RECORD')
+  ledgerEventRecord('LEDGER_EVENT_RECORD');
 
   const CommandKind(this.wire);
 
@@ -6067,17 +6128,82 @@ enum LedgerTrustGrade {
   final String wire;
 }
 
-// ⏸ `LedgerEventKind { withdrawal, distribution, corporateAction, taxWithheld }`
-//    → 'WITHDRAWAL'·'DISTRIBUTION'·'CORPORATE_ACTION'·'TAX_WITHHELD'
-//
-// 🔴 **결정 ㊲ 채택 시에만 신설한다.** 지금은 주석으로만 남기고 코드로 만들지 않는다
-//    (01 §2-1 ⏸ 원문 · `m2-8_naming.md` A-15 · J-6 · 인벤토리 §2-9).
-//    이름은 확정됐고 기능만 대기다 — 함께 대기 중인 것이 `CommandKind.ledgerEventRecord`·
-//    `CommandApi.recordLedgerEvent(LedgerEventRecord)` 다.
-// ⚠️ 채택되지 않으면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 현금 추정이 단조적으로
-//    어긋나고 그 위에서 안내 수량이 계산된다(J-6 조문).
-// ✅ 결정 ㊲ 은 **채택**됐다(설계 13 §8 R19 E9-7). 다만 저장 자리·DTO 필드·거부 코드가 아직 없어
-//    이 열거형과 명령은 **E9a2**(설계안 → 발주자 확인 · v1 동결 전 · R20 Q3)에서 함께 만든다.
+/// 01 §2-1 · X7 ㊲ — **매매가 아닌데 원장을 바꾸는 사실**(계약 v1.10 · 설계 13 §8 R21 · `m2-8_naming.md`
+/// A-15 · J-6 이름 그대로).
+///
+/// 🔴 네 값의 효과가 다르다 — 인출 = 현금 − · TWR 외부 흐름 / 분배금 = 현금 + · 수익 /
+///    원천징수 = 현금 − · 비용 / 기업행위 = 수량 × 비율(현금 없음 · 병합 단주 대금만).
+///    현금 효과는 엔진이 같은 트랜잭션에서 `cash_flow` 로 투영한다([CashFlowKind] · R21 L1).
+/// 🔴 채택되지 않았다면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 현금 추정이 단조적으로
+///    어긋나고 그 위에서 안내 수량이 계산된다(J-6 조문).
+enum LedgerEventKind {
+  @JsonValue('WITHDRAWAL')
+  withdrawal('WITHDRAWAL'),
+  @JsonValue('DISTRIBUTION')
+  distribution('DISTRIBUTION'),
+  @JsonValue('CORPORATE_ACTION')
+  corporateAction('CORPORATE_ACTION'),
+  @JsonValue('TAX_WITHHELD')
+  taxWithheld('TAX_WITHHELD');
+
+  const LedgerEventKind(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// ㊲ 기업행위의 v1 범위 — **분할·병합만**(설계 13 §8 R21 L5).
+///
+/// 🔴 합병·상장폐지·권리는 종목 자체가 바뀌므로 `CORPORATE_ACTION_UNSUPPORTED` 로 거부하고
+///    `L-3` 실사로 원장을 다시 세운다.
+enum CorporateActionType {
+  @JsonValue('SPLIT')
+  split('SPLIT'),
+  @JsonValue('REVERSE_SPLIT')
+  reverseSplit('REVERSE_SPLIT');
+
+  const CorporateActionType(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// `cash_flow.kind` — 매매가 아닌 현금 이동 전부(설계 13 §8 R21 L1 · 계약 v1.10).
+///
+/// 🔴 **현금 = `Σ cash_flow + Σ executions`** 두 갈래로 순진한 SUM 이 옳다 — 원장 사건의 현금 효과를
+///    별도 표에 두지 않는 이유다(현금이 틀리면 안내 수량이 조용히 줄어든다).
+/// 🔴 대가: TWR·MWR 의 **외부 흐름**은 이 중 일부뿐이다 — 판정은 [CashFlowKindIsExternal.isExternal]
+///    **하나로만** 한다(분배금·원천징수·단주 대금은 수익·비용이지 외부 흐름이 아니다).
+enum CashFlowKind {
+  @JsonValue('DEPOSIT')
+  deposit('DEPOSIT'),
+  @JsonValue('WITHDRAWAL')
+  withdrawal('WITHDRAWAL'),
+  @JsonValue('DISTRIBUTION')
+  distribution('DISTRIBUTION'),
+  @JsonValue('TAX_WITHHELD')
+  taxWithheld('TAX_WITHHELD'),
+  @JsonValue('CASH_IN_LIEU')
+  cashInLieu('CASH_IN_LIEU');
+
+  const CashFlowKind(this.wire);
+
+  /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// TWR·MWR 의 «외부 현금흐름» 판정의 **유일한** 창구(설계 13 §8 R21 L1).
+///
+/// 🔴 `default:` 없는 망라 switch 다 — 값이 늘면 컴파일이 깨져 판정을 다시 하게 만든다(C-12).
+extension CashFlowKindIsExternal on CashFlowKind {
+  bool get isExternal => switch (this) {
+    CashFlowKind.deposit || CashFlowKind.withdrawal => true,
+    CashFlowKind.distribution ||
+    CashFlowKind.taxWithheld ||
+    CashFlowKind.cashInLieu => false,
+  };
+}
+
 // ✅ `CORPORATE_ACTION` vs `CORP_ACTION` = **`CORPORATE_ACTION` 으로 통합**(계약 v1.9.0 · R19 E9-4 ·
 //    인벤토리 §10-2 ③ 해소). 픽스처·신규 코드는 `CORPORATE_ACTION` 만 쓴다.
 ```
@@ -7801,7 +7927,7 @@ abstract final class AdviceTransitionCauseCodes {
   };
 }
 
-/// `decision_log.reason_code` 의 특수값 3종(인벤토리 §6-12).
+/// `decision_log.reason_code` 의 특수값 3종(인벤토리 §6-12) + 🆕 v1.10 ㊲ 원장 사건 5종.
 ///
 /// 🔴 `decision_log.kind='MANUAL'` 인 **세 갈래**(정정 · `external_holding` 등록 · 경로 b 귀속)는
 ///    재량 예산·이탈 집계의 **모집단이 아니다**(C7).
@@ -7815,11 +7941,31 @@ abstract final class DecisionReasonCodes {
   /// G-20 — `advice.close_reason_code` 에 실리는 전환 커밋 회수 사유.
   static const String handoverClosed = 'HANDOVER_CLOSED';
 
-  /// 전량 3종.
+  /// 🆕 v1.10 ㊲ — 인출(`decision_log.kind='WITHDRAWAL'`).
+  static const String ledgerEventWithdrawal = 'LEDGER_EVENT_WITHDRAWAL';
+
+  /// 🆕 v1.10 ㊲ — 분배금(`kind='MANUAL'` — 재량 예산·이탈 모집단 아님).
+  static const String ledgerEventDistribution = 'LEDGER_EVENT_DISTRIBUTION';
+
+  /// 🆕 v1.10 ㊲ — 원천징수(`kind='MANUAL'`).
+  static const String ledgerEventTaxWithheld = 'LEDGER_EVENT_TAX_WITHHELD';
+
+  /// 🆕 v1.10 ㊲ — 분할·병합(`kind='MANUAL'`).
+  static const String ledgerEventCorporateAction = 'LEDGER_EVENT_CORPORATE_ACTION';
+
+  /// 🆕 v1.10 ㊲ — 원장 사건의 무효(상쇄만 · `kind='MANUAL'`).
+  static const String ledgerEventVoid = 'LEDGER_EVENT_VOID';
+
+  /// 전량 8종.
   static const Set<String> values = <String>{
     openingBalance,
     simOpeningBalance,
     handoverClosed,
+    ledgerEventWithdrawal,
+    ledgerEventDistribution,
+    ledgerEventTaxWithheld,
+    ledgerEventCorporateAction,
+    ledgerEventVoid,
   };
 }
 
@@ -8604,6 +8750,8 @@ abstract final class ContractCodes {
     'blind_review_reject': BlindReviewRejectCodes.values,
     // 🆕 v1.8(R4 선행) — 손절선 등급(`StopLineNormalized.tierCode` · C-44 ⑦ 이 픽스처와 맞댄다)
     'stop_tier': StopTierCodes.values,
+    // 🆕 v1.10(E9a2 · ㊲) — 원장 사건 기록의 거부 사유(`CommandReceipt.rejectReasonCode`)
+    'ledger_event_reject': LedgerEventRejectCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -8660,7 +8808,8 @@ abstract final class ContractCodes {
 ## `packages/domain_contracts/lib/src/labels/ledger_event_codes.dart`
 
 ```dart
-// 01 §3-6 — 원장 이벤트 코드 1종(납입 조달) · §6-2 `operating_param_log.param_key` 1종.
+// 01 §3-6 — 원장 이벤트 코드 1종(납입 조달) · §6-2 `operating_param_log.param_key` 1종 ·
+// 🆕 v1.10 ㊲ `recordLedgerEvent` 거부 사유 8종(01 §19).
 //
 // 🔴 **조달은 계산이지 화면의 판단이 아니다.** 무엇을 얼마나 파는지는 엔진이
 //    `00_SPEC §5-5b` 순서로 정하고, 화면은 `DepositPlan`·`RebalancePreview` 가 실어 주는
@@ -8700,6 +8849,54 @@ abstract final class OperatingParamKeys {
 //    열거형 자체의 자리는 영역 A 의 `enums/ledger.dart` 주석이고, 여기 상수로 앞질러 두지 않는다.
 //    채택되지 않으면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 현금 추정이 단조적으로
 //    어긋나고 그 위에서 안내 수량이 계산된다(J-6).
+
+/// 🆕 v1.10 · ㊲ `recordLedgerEvent` 의 거부 사유 8종(`CommandReceipt.rejectReasonCode` · 설계 13 §8 R21 L6).
+///
+/// 🔴 **형식 오류·재해석만 거부한다.** 인출 > 추정 현금 · 원장에 없는 종목의 분배금은 거부가 아니라
+///    접수 + 원장 신뢰 등급 `drifting` 이다 — 사실을 거부하면 원장이 거짓이 된다(01 §10-4).
+/// 🔴 새 기록에 리스가 없으면 거부가 아니라 `pendingLeaseConfirm` 강등 접수 · 무효(재해석)는
+///    `AdviceRejectCodes.leaseExpired` 를 쓴다(B19) · 무결성 차단 중은 `heldForIntegrity` 보관(B18).
+abstract final class LedgerEventRejectCodes {
+  /// kind 와 칸 조합 위반(인출에 종목 · 기업행위에 비율 없음 · 무효에 값 칸 등).
+  static const String fieldsMismatch = 'LEDGER_EVENT_FIELDS_MISMATCH';
+
+  /// 미래일 · 원장 개시일 이전 · 휴장일. 🔴 판정은 거래소 캘린더를 아는 엔진만.
+  static const String dateInvalid = 'LEDGER_EVENT_DATE_INVALID';
+
+  /// 0 이하 · 설정 상한 초과 · 원천징수 > 세전 분배금.
+  static const String amountInvalid = 'LEDGER_EVENT_AMOUNT_INVALID';
+
+  /// 분할·병합 밖(합병·상장폐지·권리) → `L-3` 실사 경로를 함께 제시한다(R21 L5).
+  static const String corporateActionUnsupported =
+      'CORPORATE_ACTION_UNSUPPORTED';
+
+  /// 비율 ≤ 0 · from = to · 분할인데 to < from(병합은 그 반대).
+  static const String corporateActionRatioInvalid =
+      'CORPORATE_ACTION_RATIO_INVALID';
+
+  /// 효력일에 원장 보유 0 인 종목의 분할·병합 — 바꿀 수량이 없다(실사 유도).
+  static const String corporateActionSymbolNotHeld =
+      'CORPORATE_ACTION_SYMBOL_NOT_HELD';
+
+  /// 이미 상쇄된 사건 · 없는 사건의 무효.
+  static const String voidTargetNotActive =
+      'LEDGER_EVENT_VOID_TARGET_NOT_ACTIVE';
+
+  /// 24h 안 같은 kind·효력일·금액 → `duplicateAck = true` 로 재제출.
+  static const String duplicateSuspected = 'LEDGER_EVENT_DUPLICATE_SUSPECTED';
+
+  /// 전량 8종.
+  static const Set<String> values = <String>{
+    fieldsMismatch,
+    dateInvalid,
+    amountInvalid,
+    corporateActionUnsupported,
+    corporateActionRatioInvalid,
+    corporateActionSymbolNotHeld,
+    voidTargetNotActive,
+    duplicateSuspected,
+  };
+}
 ```
 
 ---

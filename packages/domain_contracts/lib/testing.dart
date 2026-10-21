@@ -288,6 +288,10 @@ class UnimplementedCommandApi implements CommandApi {
   @override
   Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack) =>
       throw UnimplementedError('confirmKillChecklist');
+
+  @override
+  Future<CommandReceipt> recordLedgerEvent(LedgerEventRecord record) =>
+      throw UnimplementedError('recordLedgerEvent');
 }
 
 /// 🆕 계약 v1.4 R11 선행(2026-09-30) — [WhatIfApi] 받침대(미리보기 5종 · **전부 `Future` 에러**).

@@ -192,6 +192,8 @@ abstract final class ContractCodes {
     'blind_review_reject': BlindReviewRejectCodes.values,
     // 🆕 v1.8(R4 선행) — 손절선 등급(`StopLineNormalized.tierCode` · C-44 ⑦ 이 픽스처와 맞댄다)
     'stop_tier': StopTierCodes.values,
+    // 🆕 v1.10(E9a2 · ㊲) — 원장 사건 기록의 거부 사유(`CommandReceipt.rejectReasonCode`)
+    'ledger_event_reject': LedgerEventRejectCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

@@ -74,5 +74,7 @@ abstract interface class CommandApi {
   /// 🔴 48h 해제 카운트다운 개시의 유일한 방아쇠.
   Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack);
 
-  // ⏸ `recordLedgerEvent(LedgerEventRecord)` — 🔴 **결정 ㊲ 채택 시에만** 8번째로 신설(J-6).
+  /// 🆕 v1.10 · ㊲ — 매매가 아닌데 원장을 바꾸는 사실(인출 · 분배금 · 기업행위 · 원천징수) 1건 ·
+  /// `voidsEventId` 가 있으면 무효(상쇄만). 🔴 폰(operator) 전용 · 자동·안내 둘 다(설계 13 §8 R21 L3).
+  Future<CommandReceipt> recordLedgerEvent(LedgerEventRecord record);
 }

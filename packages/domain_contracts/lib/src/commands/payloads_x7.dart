@@ -1,4 +1,4 @@
-// 01 §4-2 · §5-4 · §10 — 🆕 X7 명령 인자 DTO 8종.
+// 01 §4-2 · §5-4 · §10 — 🆕 X7 명령 인자 DTO 8종 + 🆕 v1.10 ㊲ `LedgerEventRecord`.
 //
 // 🔴 각 DTO 의 `deviceId` 는 `CommandContext` 로 **옮겨졌다** — payload 가 기기를 다시
 //    말하지 않는다. 🔴 payload 에 `idempotencyKey` 를 두지 않는다(A9).
@@ -12,6 +12,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../dto/ledger_trust.dart';
 import '../enums/advice.dart';
+import '../enums/ledger.dart';
 import '../enums/order.dart';
 import '../primitives/money.dart';
 import 'command_context.dart';
@@ -210,3 +211,54 @@ abstract class KillChecklistAck with _$KillChecklistAck {
 //    이름은 확정됐고 **코드는 만들지 않는다**. 채택되지 않으면 인출·분배금·기업행위·
 //    원천징수가 원장 밖에 남아 현금 추정이 단조적으로 어긋나고 그 위에서 안내 수량이
 //    계산된다 — 그 사실을 여기 주석으로 남겨 둔다.
+
+/// 🆕 v1.10 · X7 ㊲ — **매매가 아닌데 원장을 바꾸는 사실** 1건(인출 · 분배금 · 기업행위 · 원천징수).
+///
+/// 🔴 명령 1종이다(설계 13 §8 R21 L2) — [voidsEventId] 가 있으면 그 사건의 **무효(상쇄만)**이고 값 칸은
+///    전부 null 이어야 한다. 정정 = 무효 + 새 기록 **2명령**(수기 체결의 종목·방향 변경 A13 과 같은 규칙).
+/// 🔴 **사실은 거부하지 않는다**(R21 L6) — 인출 > 추정 현금 · 원장에 없는 종목의 분배금도 접수하고 엔진이
+///    원장 신뢰 등급을 `drifting` 으로 내린다. 거부(`LedgerEventRejectCodes`)는 형식 오류·재해석만이다.
+/// 🔴 `sleeve` 를 보내지 않는다(엔진이 판정) · 기기는 `context` 안 · `idempotencyKey` 없음(A9).
+/// 🔴 kind 별 칸(엔진이 `LEDGER_EVENT_FIELDS_MISMATCH` 로 강제 — 화면은 kind 가 고른 칸만 그린다):
+///    · withdrawal — amountKrw 필수 · symbol·taxWithheldKrw·actionType·ratio·cashInLieuKrw null
+///    · distribution — symbol·amountKrw(세전) 필수 · taxWithheldKrw 선택(R21 L4)
+///    · taxWithheld — amountKrw 필수 · symbol 선택(분배금에 묶이지 않는 원천징수)
+///    · corporateAction — symbol·actionType·ratioFrom·ratioTo 필수 · cashInLieuKrw 선택(병합 단주 대금)
+@freezed
+abstract class LedgerEventRecord with _$LedgerEventRecord {
+  const factory LedgerEventRecord({
+    required LedgerEventKind kind,
+
+    /// 효력일(입출금일 · 지급일 · 권리락일). 🔴 거래일·개시일 판정은 엔진(`LEDGER_EVENT_DATE_INVALID`).
+    @TradeDateConverter() required TradeDate effectiveDate,
+    required String accountAlias,
+    String? symbol,
+
+    /// 양수. 부호는 [kind] 가 정한다.
+    @DecimalStringConverter() Decimal? amountKrw,
+
+    /// distribution 만 — 원천징수 금액. null = 미입력(0 과 다르다 — 「없음」과 「모름」).
+    @DecimalStringConverter() Decimal? taxWithheldKrw,
+
+    /// corporateAction 만.
+    CorporateActionType? actionType,
+
+    /// corporateAction 만 — 1주 → 2주 분할 = from 1 · to 2.
+    int? ratioFrom,
+    int? ratioTo,
+
+    /// corporateAction(병합) 만 — 단주 대금.
+    @DecimalStringConverter() Decimal? cashInLieuKrw,
+
+    /// non-null = 그 사건의 무효(상쇄만).
+    String? voidsEventId,
+
+    /// 🆕 A9 꼴 — `LEDGER_EVENT_DUPLICATE_SUSPECTED` 재제출 시 true(평시 false).
+    required bool duplicateAck,
+    String? note,
+    required CommandContext context,
+  }) = _LedgerEventRecord;
+
+  factory LedgerEventRecord.fromJson(Map<String, dynamic> json) =>
+      _$LedgerEventRecordFromJson(json);
+}

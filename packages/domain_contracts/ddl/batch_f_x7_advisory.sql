@@ -237,6 +237,67 @@ ALTER TABLE ledger_diff ADD COLUMN applicable INTEGER NOT NULL DEFAULT 1 CHECK (
 --    자동 모드에서 `CANON_SELF_REPORT` 행은 `applicable=0` 으로 **행 자체는 생성한다** —
 --    행이 없으면 화면이 칸 수를 상수로 알아야 하고, 그것이 05 §3 S10 이 금지한 구현이다.
 
+-- ── 🆕 v1.10 ㊲ 원장 사건 — 매매가 아닌데 원장을 바꾸는 사실 (§6-6 · 설계 13 §8 R21) ────────────
+-- 🔴 사실 표 1개 + 현금 효과는 `cash_flow` 로 **투영**한다(같은 트랜잭션 · R21 L1). 현금 = Σ cash_flow +
+--    Σ executions 두 갈래 — 이 표를 현금 합산에 UNION 하지 않는다.
+-- 🔴 append-only · 정정 = `REVERSAL` 1행(+ 새 기록) · 되돌리기 없음(X5). `mode` 칸 없음 — 파일이 경계.
+CREATE TABLE IF NOT EXISTS ledger_event (
+    event_id        TEXT    NOT NULL PRIMARY KEY,
+    kind            TEXT    NOT NULL CHECK (kind IN
+                     ('WITHDRAWAL','DISTRIBUTION','CORPORATE_ACTION','TAX_WITHHELD')),
+    entry_kind      TEXT    NOT NULL CHECK (entry_kind IN ('ORIGINAL','REVERSAL')
+                            AND ((entry_kind = 'REVERSAL') = (reverses_event_id IS NOT NULL))),
+    reverses_event_id TEXT,
+    effective_date  TEXT    NOT NULL,                    -- 거래일(입출금일 · 지급일 · 권리락일)
+    account_alias   TEXT    NOT NULL,
+    symbol          TEXT,
+    amount_krw      REAL    CHECK (amount_krw IS NULL OR amount_krw > 0),   -- 부호는 kind 가 정한다
+    tax_withheld_krw REAL   CHECK (tax_withheld_krw IS NULL OR tax_withheld_krw >= 0),  -- DISTRIBUTION 만
+    action_type     TEXT    CHECK (action_type IN ('SPLIT','REVERSE_SPLIT')),            -- CORPORATE_ACTION 만
+    ratio_from      INTEGER CHECK (ratio_from IS NULL OR ratio_from > 0),
+    ratio_to        INTEGER CHECK (ratio_to IS NULL OR ratio_to > 0),
+    cash_in_lieu_krw REAL   CHECK (cash_in_lieu_krw IS NULL OR cash_in_lieu_krw > 0),  -- 병합 단주 대금
+    decision_id     TEXT    NOT NULL,                    -- 🔴 사유 정본: 인출 = kind 'WITHDRAWAL' ·
+                                                         --    그 밖 = kind 'MANUAL'(재량 예산 모집단 아님)
+    command_id      TEXT    NOT NULL,
+    authored_by_device_id TEXT NOT NULL,
+    authored_at     TEXT    NOT NULL,                    -- 🔴 X5 authored 축 · day_hash · 아카이브 모집단
+    note            TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_ledger_event_date ON ledger_event(effective_date, kind);
+-- 🔴 kind 별 칸 조합(인출에 종목 없음 · 기업행위에 비율 필수 …)은 **엔진 선행 가드**가 강제한다
+--    (`LEDGER_EVENT_FIELDS_MISMATCH`) — 조건부 NOT NULL 을 CHECK 로 쓰면 CHECK 가 사양서가 된다(G-08 과 같은 판단).
+-- 🔴 투영(엔진 · 한 트랜잭션): 인출 → cash_flow(WITHDRAWAL, −) · 분배금 → (DISTRIBUTION, +세전) +
+--    (TAX_WITHHELD, −세금) · 단독 원천징수 → (TAX_WITHHELD, −) · 병합 단주 → (CASH_IN_LIEU, +) ·
+--    기업행위 → positions 수량 × (to/from) · 평단 × (from/to) · 무효 → 원 행의 **상쇄 행**(부호 반대 · 역비율).
+-- 🔴 positions 투영기는 executions 와 이 표의 CORPORATE_ACTION 을 **한 곳에서만** 합친다 —
+--    DERIVED_RESYNC 가 같은 투영기를 다시 돈다. 그 밖의 파생은 positions 만 읽는다(D7).
+-- 🔴 효력일이 오늘보다 앞이면 같은 트랜잭션에서 ledger_repair(DERIVED_RESYNC · origin_code =
+--    EXTERNAL_CASHFLOW 또는 CORPORATE_ACTION · recomputed_from = 효력일) 1행(C-29 와 같은 경로).
+
+-- ── 🆕 v1.10 `cash_flow.kind` CHECK 재작성 (02 §2-5 2값 → 5값 · `CashFlowKind`) ───────────────────
+-- 🔴 SQLite 의 CHECK 는 ALTER 로 못 바꾸므로 **새 테이블 → 복사 → RENAME**(위 ledger_diff 와 같은 방식).
+-- 🔴 02 기본 표는 그대로 두고 이 배치가 넓힌다(«기존 표 불변» 그대로 — 새 설치에서는 빈 표의 재작성이다).
+-- 🔴 컬럼 = 02 기본 6 + 배치 C `recorded_at` + 🆕 `source_event_id`(ledger_event 에서 투영된 행이면 그 id).
+CREATE TABLE IF NOT EXISTS cash_flow__new (
+    flow_id         TEXT    NOT NULL PRIMARY KEY,
+    trade_date      TEXT    NOT NULL,
+    amount          REAL    NOT NULL,                    -- 들어오면 + · 나가면 − · 상쇄 행은 원 행의 반대 부호
+    currency        TEXT    NOT NULL DEFAULT 'KRW',
+    kind            TEXT    NOT NULL CHECK (kind IN
+                     ('DEPOSIT','WITHDRAWAL','DISTRIBUTION','TAX_WITHHELD','CASH_IN_LIEU')),
+    note            TEXT,
+    recorded_at     TEXT,                                -- 배치 C(X4·X5 authored 축)
+    source_event_id TEXT                                 -- 🆕 ㊲ 투영 행의 원 사건
+);
+INSERT INTO cash_flow__new (flow_id, trade_date, amount, currency, kind, note, recorded_at)
+SELECT flow_id, trade_date, amount, currency, kind, note, recorded_at
+  FROM cash_flow;
+DROP TABLE cash_flow;
+ALTER TABLE cash_flow__new RENAME TO cash_flow;
+-- 🔴 **TWR·MWR 의 외부 흐름은 `DEPOSIT`·`WITHDRAWAL` 뿐이다** — 판정은 `CashFlowKind.isExternal` 하나로만
+--    한다(분배금·원천징수·단주 대금은 수익·비용). 이 술어를 빠뜨린 쿼리는 수익률을 틀리게 낸다.
+
 COMMIT;
 PRAGMA foreign_keys = ON;
 

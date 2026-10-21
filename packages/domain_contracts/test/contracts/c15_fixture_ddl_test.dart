@@ -176,6 +176,25 @@ final List<_Axis> _axes = <_Axis>[
     'pair',
     _wires(LedgerPair.values),
   ),
+  // 🆕 v1.10 ㊲ — 원장 사건 · 현금 흐름 5값(설계 13 §8 R21).
+  _Axis(
+    'batch_f_x7_advisory.sql',
+    'ledger_event',
+    'kind',
+    _wires(LedgerEventKind.values),
+  ),
+  _Axis(
+    'batch_f_x7_advisory.sql',
+    'ledger_event',
+    'action_type',
+    _wires(CorporateActionType.values),
+  ),
+  _Axis(
+    'batch_f_x7_advisory.sql',
+    'cash_flow__new',
+    'kind',
+    _wires(CashFlowKind.values),
+  ),
 ];
 
 /// 픽스처의 열거값이 **DDL CHECK 안에** 있어야 하는 자리.
@@ -576,6 +595,9 @@ String _wireOf(Object v) => switch (v) {
   final HandoverPath p => p.wire,
   final LedgerPair p => p.wire,
   final CommandState st => st.wire,
+  final LedgerEventKind k => k.wire,
+  final CorporateActionType t => t.wire,
+  final CashFlowKind k => k.wire,
   final RunMode m => m.wire,
   _ => throw ArgumentError('C-15 에 등록되지 않은 열거형: ${v.runtimeType}'),
 };

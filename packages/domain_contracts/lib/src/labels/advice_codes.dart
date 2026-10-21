@@ -127,7 +127,7 @@ abstract final class AdviceTransitionCauseCodes {
   };
 }
 
-/// `decision_log.reason_code` 의 특수값 3종(인벤토리 §6-12).
+/// `decision_log.reason_code` 의 특수값 3종(인벤토리 §6-12) + 🆕 v1.10 ㊲ 원장 사건 5종.
 ///
 /// 🔴 `decision_log.kind='MANUAL'` 인 **세 갈래**(정정 · `external_holding` 등록 · 경로 b 귀속)는
 ///    재량 예산·이탈 집계의 **모집단이 아니다**(C7).
@@ -141,11 +141,32 @@ abstract final class DecisionReasonCodes {
   /// G-20 — `advice.close_reason_code` 에 실리는 전환 커밋 회수 사유.
   static const String handoverClosed = 'HANDOVER_CLOSED';
 
-  /// 전량 3종.
+  /// 🆕 v1.10 ㊲ — 인출(`decision_log.kind='WITHDRAWAL'`).
+  static const String ledgerEventWithdrawal = 'LEDGER_EVENT_WITHDRAWAL';
+
+  /// 🆕 v1.10 ㊲ — 분배금(`kind='MANUAL'` — 재량 예산·이탈 모집단 아님).
+  static const String ledgerEventDistribution = 'LEDGER_EVENT_DISTRIBUTION';
+
+  /// 🆕 v1.10 ㊲ — 원천징수(`kind='MANUAL'`).
+  static const String ledgerEventTaxWithheld = 'LEDGER_EVENT_TAX_WITHHELD';
+
+  /// 🆕 v1.10 ㊲ — 분할·병합(`kind='MANUAL'`).
+  static const String ledgerEventCorporateAction =
+      'LEDGER_EVENT_CORPORATE_ACTION';
+
+  /// 🆕 v1.10 ㊲ — 원장 사건의 무효(상쇄만 · `kind='MANUAL'`).
+  static const String ledgerEventVoid = 'LEDGER_EVENT_VOID';
+
+  /// 전량 8종.
   static const Set<String> values = <String>{
     openingBalance,
     simOpeningBalance,
     handoverClosed,
+    ledgerEventWithdrawal,
+    ledgerEventDistribution,
+    ledgerEventTaxWithheld,
+    ledgerEventCorporateAction,
+    ledgerEventVoid,
   };
 }
 

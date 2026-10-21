@@ -63,12 +63,18 @@
 //    수기 체결 `broker_order_no` NULL(+ CHECK) · `batch_e` 보관 · 🆕 [schemaVersion] = 1 · [hashFormatVersion] = 1 ·
 //    `LedgerFile`(두 파일 · `application_id`) · `LedgerModeCheck` · `ledgerDdlFor`(SIM 판 파생) ·
 //    C-15 열린 물음 2검사 → 등식 검사 · 픽스처 159(봉투 버전만 · 값 무변경).
+// 🆕 '1.10.0'(E9a2 · X7 ㊲ · 설계 13 §8 R21 L1~L6 · 발주자 결정 2026-10-21 추천안) — 원장 사건:
+//    `LedgerEventKind`(4) · `CorporateActionType`(분할·병합) · `CashFlowKind`(5) + `isExternal`(TWR 외부 흐름 =
+//    입금·출금만) · `CommandKind.ledgerEventRecord` · `CommandApi.recordLedgerEvent(LedgerEventRecord)` ·
+//    거부 코드 `LedgerEventRejectCodes`(`ledger_event_reject` 8) · 사유 코드 +5(`LEDGER_EVENT_*`) ·
+//    `ddl/batch_f` = `ledger_event` 신설 + `cash_flow` 5값 재작성(+`source_event_id`) · `batch_d` 명령 kind +1 ·
+//    받침대 1메서드 · 🆕 C-45 · 픽스처 159(봉투 버전만).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.9.0';
+const String contractVersion = '1.10.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

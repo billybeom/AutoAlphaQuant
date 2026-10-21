@@ -1,6 +1,6 @@
 > **사본 · 정본은 `packages/domain_contracts/fixtures/README.md`.** 부록의 파일 목록은 조립 시점 실측입니다.
 
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.9 · 159파일**(🆕 v1.9 = 봉투 버전 줄만 · 값 무변경) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ⬜ 로컬 커밋 — PR 대기)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.10 · 159파일**(🆕 v1.9·v1.10 = 봉투 버전 줄만 · 값 무변경) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ⬜ 로컬 커밋 — PR 대기)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -34,7 +34,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.9.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.10.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -761,184 +761,184 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 
 | 파일 | 바이트 |
 |---|---:|
-| `alerts_12.json` | 5,713 |
-| `deposit_plan_1.json` | 4,817 |
-| `deposit_plan_funding_1.json` | 5,197 |
-| `holdings_6.json` | 8,679 |
-| `journal_30.json` | 54,406 |
-| `ledger_diffs_4.json` | 2,200 |
-| `onboarding_fresh.json` | 6,028 |
-| `onboarding_reconnect.json` | 4,087 |
-| `performance_24m.json` | 19,092 |
-| `range_presets_4.json` | 1,197 |
-| `rebalance_6.json` | 18,960 |
-| `resume_report_1.json` | 2,808 |
-| `safety_states.json` | 5,515 |
-| `sleeve_catalog_4.json` | 971 |
+| `alerts_12.json` | 5,714 |
+| `deposit_plan_1.json` | 4,818 |
+| `deposit_plan_funding_1.json` | 5,198 |
+| `holdings_6.json` | 8,680 |
+| `journal_30.json` | 54,407 |
+| `ledger_diffs_4.json` | 2,201 |
+| `onboarding_fresh.json` | 6,029 |
+| `onboarding_reconnect.json` | 4,088 |
+| `performance_24m.json` | 19,093 |
+| `range_presets_4.json` | 1,198 |
+| `rebalance_6.json` | 18,961 |
+| `resume_report_1.json` | 2,809 |
+| `safety_states.json` | 5,516 |
+| `sleeve_catalog_4.json` | 972 |
 
 ### m6 — 65개
 
 | 파일 | 바이트 |
 |---|---:|
-| `m6/advice_12.json` | 22,338 |
-| `m6/advice_blocked.json` | 3,487 |
-| `m6/advice_detail_onhold.json` | 3,163 |
-| `m6/advice_detail_partial.json` | 3,141 |
-| `m6/advice_empty.json` | 1,284 |
-| `m6/advice_expired_confirm.json` | 4,955 |
-| `m6/advice_handover_cooling.json` | 1,408 |
-| `m6/advice_no_action.json` | 2,655 |
-| `m6/advice_skip_reasons.json` | 1,146 |
-| `m6/advice_viewer_4.json` | 7,731 |
-| `m6/allocation_empty.json` | 877 |
-| `m6/allocation_in_band.json` | 4,128 |
-| `m6/allocation_integrity.json` | 3,482 |
-| `m6/allocation_out_of_band.json` | 4,184 |
-| `m6/allocation_parking_large.json` | 4,182 |
-| `m6/allocation_recon.json` | 4,133 |
-| `m6/allocation_tranche_progress.json` | 4,312 |
-| `m6/blind_review_card_before.json` | 3,818 |
-| `m6/blind_review_card_revealed.json` | 4,178 |
-| `m6/blind_review_card_revealed_open.json` | 3,707 |
-| `m6/blind_review_queue_3.json` | 9,821 |
-| `m6/blind_review_queue_empty.json` | 575 |
-| `m6/blind_review_receipts_6.json` | 3,087 |
-| `m6/decision_detail_amended.json` | 12,014 |
-| `m6/decision_detail_full.json` | 8,824 |
-| `m6/decision_detail_journal_draft_link.json` | 12,104 |
-| `m6/decision_detail_journal_written.json` | 12,103 |
-| `m6/decision_detail_partial.json` | 13,029 |
-| `m6/decision_detail_reevaluated_child.json` | 8,402 |
-| `m6/decision_detail_rejected_saf309.json` | 6,014 |
-| `m6/decision_detail_unknown.json` | 5,743 |
-| `m6/draft_records_j3.json` | 3,107 |
-| `m6/draft_records_x7.json` | 1,740 |
-| `m6/entry_gate_nov_pass_1.json` | 1,832 |
-| `m6/external_holdings_2.json` | 1,329 |
-| `m6/fill_form_spec.json` | 2,463 |
-| `m6/fill_form_spec_stale.json` | 2,843 |
-| `m6/fill_rejected_price.json` | 1,564 |
-| `m6/holding_detail_integrity.json` | 6,488 |
-| `m6/holding_detail_no_stop.json` | 2,787 |
-| `m6/holding_detail_pnl.json` | 2,966 |
-| `m6/holding_detail_recon.json` | 2,790 |
-| `m6/holding_detail_with_stops.json` | 8,451 |
-| `m6/holdings_overview_empty.json` | 933 |
-| `m6/holdings_overview_integrity.json` | 12,357 |
-| `m6/holdings_overview_normal.json` | 13,604 |
-| `m6/holdings_overview_pnl.json` | 14,163 |
-| `m6/holdings_overview_recon.json` | 13,612 |
-| `m6/holdings_overview_viewer.json` | 12,478 |
-| `m6/journal_badges_2.json` | 893 |
-| `m6/journal_draft_receipts_5.json` | 2,590 |
-| `m6/journal_draft_spec_discretion.json` | 2,148 |
-| `m6/journal_draft_spec_recon_clear.json` | 2,074 |
-| `m6/journal_empty.json` | 665 |
-| `m6/journal_filter_catalog.json` | 2,520 |
-| `m6/journal_masked_integrity.json` | 12,720 |
-| `m6/journal_read_no_note.json` | 1,336 |
-| `m6/journal_read_not_written.json` | 1,424 |
-| `m6/journal_read_written.json` | 1,956 |
-| `m6/journal_rebalance_scope_1.json` | 783 |
-| `m6/journal_rebalance_unknown.json` | 593 |
-| `m6/manual_fills_8.json` | 15,189 |
-| `m6/self_report_1.json` | 1,459 |
-| `m6/unknown_board_2.json` | 8,716 |
-| `m6/unknown_board_empty.json` | 879 |
+| `m6/advice_12.json` | 22,339 |
+| `m6/advice_blocked.json` | 3,488 |
+| `m6/advice_detail_onhold.json` | 3,164 |
+| `m6/advice_detail_partial.json` | 3,142 |
+| `m6/advice_empty.json` | 1,285 |
+| `m6/advice_expired_confirm.json` | 4,956 |
+| `m6/advice_handover_cooling.json` | 1,409 |
+| `m6/advice_no_action.json` | 2,656 |
+| `m6/advice_skip_reasons.json` | 1,147 |
+| `m6/advice_viewer_4.json` | 7,732 |
+| `m6/allocation_empty.json` | 878 |
+| `m6/allocation_in_band.json` | 4,129 |
+| `m6/allocation_integrity.json` | 3,483 |
+| `m6/allocation_out_of_band.json` | 4,185 |
+| `m6/allocation_parking_large.json` | 4,183 |
+| `m6/allocation_recon.json` | 4,134 |
+| `m6/allocation_tranche_progress.json` | 4,313 |
+| `m6/blind_review_card_before.json` | 3,819 |
+| `m6/blind_review_card_revealed.json` | 4,179 |
+| `m6/blind_review_card_revealed_open.json` | 3,708 |
+| `m6/blind_review_queue_3.json` | 9,822 |
+| `m6/blind_review_queue_empty.json` | 576 |
+| `m6/blind_review_receipts_6.json` | 3,088 |
+| `m6/decision_detail_amended.json` | 12,015 |
+| `m6/decision_detail_full.json` | 8,825 |
+| `m6/decision_detail_journal_draft_link.json` | 12,105 |
+| `m6/decision_detail_journal_written.json` | 12,104 |
+| `m6/decision_detail_partial.json` | 13,030 |
+| `m6/decision_detail_reevaluated_child.json` | 8,403 |
+| `m6/decision_detail_rejected_saf309.json` | 6,015 |
+| `m6/decision_detail_unknown.json` | 5,744 |
+| `m6/draft_records_j3.json` | 3,108 |
+| `m6/draft_records_x7.json` | 1,741 |
+| `m6/entry_gate_nov_pass_1.json` | 1,833 |
+| `m6/external_holdings_2.json` | 1,330 |
+| `m6/fill_form_spec.json` | 2,464 |
+| `m6/fill_form_spec_stale.json` | 2,844 |
+| `m6/fill_rejected_price.json` | 1,565 |
+| `m6/holding_detail_integrity.json` | 6,489 |
+| `m6/holding_detail_no_stop.json` | 2,788 |
+| `m6/holding_detail_pnl.json` | 2,967 |
+| `m6/holding_detail_recon.json` | 2,791 |
+| `m6/holding_detail_with_stops.json` | 8,452 |
+| `m6/holdings_overview_empty.json` | 934 |
+| `m6/holdings_overview_integrity.json` | 12,358 |
+| `m6/holdings_overview_normal.json` | 13,605 |
+| `m6/holdings_overview_pnl.json` | 14,164 |
+| `m6/holdings_overview_recon.json` | 13,613 |
+| `m6/holdings_overview_viewer.json` | 12,479 |
+| `m6/journal_badges_2.json` | 894 |
+| `m6/journal_draft_receipts_5.json` | 2,591 |
+| `m6/journal_draft_spec_discretion.json` | 2,149 |
+| `m6/journal_draft_spec_recon_clear.json` | 2,075 |
+| `m6/journal_empty.json` | 666 |
+| `m6/journal_filter_catalog.json` | 2,521 |
+| `m6/journal_masked_integrity.json` | 12,721 |
+| `m6/journal_read_no_note.json` | 1,337 |
+| `m6/journal_read_not_written.json` | 1,425 |
+| `m6/journal_read_written.json` | 1,957 |
+| `m6/journal_rebalance_scope_1.json` | 784 |
+| `m6/journal_rebalance_unknown.json` | 594 |
+| `m6/manual_fills_8.json` | 15,190 |
+| `m6/self_report_1.json` | 1,460 |
+| `m6/unknown_board_2.json` | 8,717 |
+| `m6/unknown_board_empty.json` | 880 |
 
 ### m7 — 59개
 
 | 파일 | 바이트 |
 |---|---:|
-| `m7/aftertax_ladder_1.json` | 4,647 |
-| `m7/execution_gap_1.json` | 2,204 |
-| `m7/execution_gap_cant.json` | 2,623 |
-| `m7/execution_gap_empty.json` | 852 |
-| `m7/execution_gap_masked_recon.json` | 2,223 |
-| `m7/execution_gap_mixed.json` | 2,701 |
-| `m7/execution_gap_not_applicable.json` | 937 |
-| `m7/execution_gap_wont.json` | 2,665 |
-| `m7/ledger_trust_4.json` | 1,810 |
-| `m7/m7_annual_2026.json` | 5,915 |
-| `m7/m7_annual_first_year.json` | 5,825 |
-| `m7/m7_annual_offwindow.json` | 5,949 |
-| `m7/m7_contrib_3sleeve.json` | 1,395 |
-| `m7/m7_contrib_partial.json` | 1,723 |
-| `m7/m7_dd_context_deep.json` | 1,171 |
-| `m7/m7_dd_context_normal.json` | 1,053 |
-| `m7/m7_deposit_plan_blocked.json` | 932 |
-| `m7/m7_deposit_plan_default.json` | 5,017 |
-| `m7/m7_deposit_plan_expired.json` | 5,170 |
-| `m7/m7_deposit_plan_funding.json` | 5,537 |
-| `m7/m7_deposit_plan_input_rejected.json` | 649 |
-| `m7/m7_deposit_plan_limit.json` | 3,191 |
-| `m7/m7_deposit_register_receipts_4.json` | 2,019 |
-| `m7/m7_disclosure_gate.json` | 1,032 |
-| `m7/m7_disclosure_gate_closed.json` | 934 |
-| `m7/m7_disclosure_gate_first.json` | 969 |
-| `m7/m7_disclosure_gate_frequent.json` | 1,083 |
-| `m7/m7_disclosure_view_receipts_4.json` | 2,005 |
-| `m7/m7_goal_path_hold.json` | 1,888 |
-| `m7/m7_goal_path_off.json` | 4,734 |
-| `m7/m7_goal_path_on.json` | 4,620 |
-| `m7/m7_goal_path_realworld.json` | 4,859 |
-| `m7/m7_monthly_2026_08.json` | 3,478 |
-| `m7/m7_monthly_gap.json` | 3,849 |
-| `m7/m7_monthly_masked_integrity.json` | 4,245 |
-| `m7/m7_monthly_masked_recon.json` | 4,460 |
-| `m7/m7_monthly_pending.json` | 3,606 |
-| `m7/m7_next_rebalance_countdown.json` | 1,073 |
-| `m7/m7_next_rebalance_none.json` | 842 |
-| `m7/m7_perf_daily_gap.json` | 5,494 |
-| `m7/m7_perf_daily_manual.json` | 5,389 |
-| `m7/m7_perf_masked_integrity.json` | 1,680 |
-| `m7/m7_perf_monthly_period.json` | 9,944 |
-| `m7/m7_perf_monthly_sim_split.json` | 5,064 |
-| `m7/m7_perf_unavailable_gap.json` | 1,658 |
-| `m7/m7_perf_yearly.json` | 2,432 |
-| `m7/m7_rebalance_detail_advisory.json` | 4,021 |
-| `m7/m7_rebalance_detail_band.json` | 4,021 |
-| `m7/m7_rebalance_empty.json` | 598 |
-| `m7/m7_rebalance_preview_blocked.json` | 934 |
-| `m7/m7_rebalance_preview_default.json` | 4,668 |
-| `m7/m7_rebalance_preview_in_band.json` | 3,662 |
-| `m7/m7_rebalance_sim.json` | 6,377 |
-| `m7/m7_report_archive_18.json` | 3,610 |
-| `m7/m7_report_archive_empty.json` | 892 |
-| `m7/m7_withdrawal_general.json` | 2,191 |
-| `m7/m7_withdrawal_pension_penalty.json` | 2,722 |
-| `m7/m7_withdrawal_shortfall.json` | 2,303 |
-| `m7/realized_alloc_S7.json` | 2,818 |
+| `m7/aftertax_ladder_1.json` | 4,648 |
+| `m7/execution_gap_1.json` | 2,205 |
+| `m7/execution_gap_cant.json` | 2,624 |
+| `m7/execution_gap_empty.json` | 853 |
+| `m7/execution_gap_masked_recon.json` | 2,224 |
+| `m7/execution_gap_mixed.json` | 2,702 |
+| `m7/execution_gap_not_applicable.json` | 938 |
+| `m7/execution_gap_wont.json` | 2,666 |
+| `m7/ledger_trust_4.json` | 1,811 |
+| `m7/m7_annual_2026.json` | 5,916 |
+| `m7/m7_annual_first_year.json` | 5,826 |
+| `m7/m7_annual_offwindow.json` | 5,950 |
+| `m7/m7_contrib_3sleeve.json` | 1,396 |
+| `m7/m7_contrib_partial.json` | 1,724 |
+| `m7/m7_dd_context_deep.json` | 1,172 |
+| `m7/m7_dd_context_normal.json` | 1,054 |
+| `m7/m7_deposit_plan_blocked.json` | 933 |
+| `m7/m7_deposit_plan_default.json` | 5,018 |
+| `m7/m7_deposit_plan_expired.json` | 5,171 |
+| `m7/m7_deposit_plan_funding.json` | 5,538 |
+| `m7/m7_deposit_plan_input_rejected.json` | 650 |
+| `m7/m7_deposit_plan_limit.json` | 3,192 |
+| `m7/m7_deposit_register_receipts_4.json` | 2,020 |
+| `m7/m7_disclosure_gate.json` | 1,033 |
+| `m7/m7_disclosure_gate_closed.json` | 935 |
+| `m7/m7_disclosure_gate_first.json` | 970 |
+| `m7/m7_disclosure_gate_frequent.json` | 1,084 |
+| `m7/m7_disclosure_view_receipts_4.json` | 2,006 |
+| `m7/m7_goal_path_hold.json` | 1,889 |
+| `m7/m7_goal_path_off.json` | 4,735 |
+| `m7/m7_goal_path_on.json` | 4,621 |
+| `m7/m7_goal_path_realworld.json` | 4,860 |
+| `m7/m7_monthly_2026_08.json` | 3,479 |
+| `m7/m7_monthly_gap.json` | 3,850 |
+| `m7/m7_monthly_masked_integrity.json` | 4,246 |
+| `m7/m7_monthly_masked_recon.json` | 4,461 |
+| `m7/m7_monthly_pending.json` | 3,607 |
+| `m7/m7_next_rebalance_countdown.json` | 1,074 |
+| `m7/m7_next_rebalance_none.json` | 843 |
+| `m7/m7_perf_daily_gap.json` | 5,495 |
+| `m7/m7_perf_daily_manual.json` | 5,390 |
+| `m7/m7_perf_masked_integrity.json` | 1,681 |
+| `m7/m7_perf_monthly_period.json` | 9,945 |
+| `m7/m7_perf_monthly_sim_split.json` | 5,065 |
+| `m7/m7_perf_unavailable_gap.json` | 1,659 |
+| `m7/m7_perf_yearly.json` | 2,433 |
+| `m7/m7_rebalance_detail_advisory.json` | 4,022 |
+| `m7/m7_rebalance_detail_band.json` | 4,022 |
+| `m7/m7_rebalance_empty.json` | 599 |
+| `m7/m7_rebalance_preview_blocked.json` | 935 |
+| `m7/m7_rebalance_preview_default.json` | 4,669 |
+| `m7/m7_rebalance_preview_in_band.json` | 3,663 |
+| `m7/m7_rebalance_sim.json` | 6,378 |
+| `m7/m7_report_archive_18.json` | 3,611 |
+| `m7/m7_report_archive_empty.json` | 893 |
+| `m7/m7_withdrawal_general.json` | 2,192 |
+| `m7/m7_withdrawal_pension_penalty.json` | 2,723 |
+| `m7/m7_withdrawal_shortfall.json` | 2,304 |
+| `m7/realized_alloc_S7.json` | 2,819 |
 
 ### m8 — 18개
 
 | 파일 | 바이트 |
 |---|---:|
-| `m8/alerts_advice_9codes.json` | 4,364 |
-| `m8/alerts_digest.json` | 1,755 |
-| `m8/alerts_p0_ack.json` | 2,075 |
-| `m8/handbook_page_sleeve_b.json` | 1,828 |
-| `m8/incident_token_expired.json` | 2,140 |
-| `m8/onboarding_finish.json` | 3,847 |
-| `m8/onboarding_fresh_advisory.json` | 4,197 |
-| `m8/onboarding_mode_pick.json` | 1,862 |
-| `m8/ops_home_advice_open.json` | 2,347 |
-| `m8/ops_home_advice_zero.json` | 2,297 |
-| `m8/ops_home_blocked.json` | 1,947 |
-| `m8/ops_home_normal.json` | 1,580 |
-| `m8/ops_home_resume_gap7.json` | 1,980 |
-| `m8/ops_rhythm_rows.json` | 1,334 |
-| `m8/recon_board_diff.json` | 1,609 |
-| `m8/restart_lost_phone.json` | 2,957 |
-| `m8/watchdog_delayed.json` | 1,493 |
-| `m8/watchdog_holiday.json` | 1,481 |
+| `m8/alerts_advice_9codes.json` | 4,365 |
+| `m8/alerts_digest.json` | 1,756 |
+| `m8/alerts_p0_ack.json` | 2,076 |
+| `m8/handbook_page_sleeve_b.json` | 1,829 |
+| `m8/incident_token_expired.json` | 2,141 |
+| `m8/onboarding_finish.json` | 3,848 |
+| `m8/onboarding_fresh_advisory.json` | 4,198 |
+| `m8/onboarding_mode_pick.json` | 1,863 |
+| `m8/ops_home_advice_open.json` | 2,348 |
+| `m8/ops_home_advice_zero.json` | 2,298 |
+| `m8/ops_home_blocked.json` | 1,948 |
+| `m8/ops_home_normal.json` | 1,581 |
+| `m8/ops_home_resume_gap7.json` | 1,981 |
+| `m8/ops_rhythm_rows.json` | 1,335 |
+| `m8/recon_board_diff.json` | 1,610 |
+| `m8/restart_lost_phone.json` | 2,958 |
+| `m8/watchdog_delayed.json` | 1,494 |
+| `m8/watchdog_holiday.json` | 1,482 |
 
 ### m9 — 3개
 
 | 파일 | 바이트 |
 |---|---:|
-| `m9/contribution_setting_default.json` | 1,175 |
-| `m9/contribution_setting_no_limit_note.json` | 1,068 |
-| `m9/handover_states.json` | 5,203 |
+| `m9/contribution_setting_default.json` | 1,176 |
+| `m9/contribution_setting_no_limit_note.json` | 1,069 |
+| `m9/handover_states.json` | 5,204 |
 
-**합계 159개 · 710,049 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
+**합계 159개 · 710,208 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
