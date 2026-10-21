@@ -42,7 +42,13 @@
 - `role` 클레임 발급 위치 — 명령 INSERT 정책이 읽는 `app_metadata.role`을 QR 페어링 RPC가 세팅하는지 Auth 훅이 세팅하는지(01 §8-13). 확정 전에는 정책 2개 분리 상태를 유지한다.
 - `SleeveCatalogEntry`·`FeatureFlags`의 원천 표 — 엔진 config 직독 vs 읽기 모델 push(01 §8-14). viewer도 같은 값을 봐야 한다(계약 3조 ①).
 
-## 지금 상태 — 🟡 로컬 정본 연결만 (E9-0)
+## 지금 상태 — 🟡 로컬 정본 연결 + 스키마 v1 (E9-0 · E9c)
 
 - ✅ `openLedgerDatabase` — 02 §1 PRAGMA 5개(WAL · NORMAL · FK ON · busy 5000 · cache 64MB)를 연결마다 걸고 되읽는다. 하나라도 다르면 연결을 닫고 거부한다(`:memory:` 도 거부 — 원장은 파일이다).
-- ⬜ 스키마 v1(02 기본 + 배치 A·B·C·F)·마이그레이션 러너·두 파일(`ledger.sqlite`·`ledger_sim.sqlite`) = E9 (c1) · 리포지토리 구현체 = 그 뒤.
+- ✅ `openLocalLedger(directory, runMode)` — `LedgerFile.of` 가 고른 파일(`ledger.sqlite` · `ledger_sim.sqlite`)을 열고 **스키마 v1**(02 기본 + 배치 A·B·C·F 한 판 · 62표)을 보장한다.
+  - 새 파일 = 전 문장 + `application_id` + `schema_version` 행을 **한 트랜잭션**으로(중간 실패 = 표 0).
+  - 이미 있는 파일 = 다시 적용하지 않고 **파일 식별·번호만 대조** — 다른 계열 · 식별 없음 · 더 새 판 · 번호 없음은 열지 않는다.
+  - SIM 판 CHECK 는 `ledgerDdlFor`(계약) · 배치 파일의 `BEGIN`·`COMMIT`·`PRAGMA foreign_keys` 는 `stripControlStatements` 가 거른다 · `ATTACH` 0.
+- 🔴 스키마 자산 `lib/src/local/schema_v1_sql.dart` 는 **생성 파일**이다 — 02(설계 저장소)·`domain_contracts/ddl` 이 바뀌면 `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다(배치 사본은 시험이 바이트 대조 · 02 는 sha256 머리 · R20 Q2 정정 1줄).
+- 🔴 v1 은 첫 실기기 설치 때 얼린다(설계 13 §8 R20 Q0) — 그 전의 수정은 번호 1 그대로, 그 뒤 변경은 v2 마이그레이션.
+- ⬜ 리포지토리 구현체(`LocalSqliteReader`) · 명령 인입 · Supabase(E11) = 그 뒤.
