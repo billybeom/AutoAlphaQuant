@@ -1,8 +1,8 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `f4b6b1cba7cbb70ec5e3018e19e396850776e1d56f744cd6b763d1856b3bceb9`
-//    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase`) · 정정 1(R20 Q2 `executions.broker_order_no` NULL 허용)
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `366b3e21a612bd4ea3e10937c22d58d1864b3ffefafc7d05d9c1ebd0c80d700c`
+//    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
 //    batch_b_plan_command.sql sha256 `f05a26c489df40de92c693b221696fb7fa7ce4c5657659e11bbc38a121009df3`
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
     description TEXT    NOT NULL
 );
 
--- ── 02_데이터모델.md L35-121 ──
+-- ── 02_데이터모델.md L40-126 ──
 -- 일별 시세
 CREATE TABLE IF NOT EXISTS daily_prices (
     trade_date   TEXT    NOT NULL,          -- 'YYYY-MM-DD', 해당 시장 현지 거래일
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS corporate_actions (
     PRIMARY KEY (symbol, ex_date, action_type)
 );
 
--- ── 02_데이터모델.md L127-172 ──
+-- ── 02_데이터모델.md L132-177 ──
 -- 🔴 DART 공시 접수 원장 — 소급 복원 불가. 매일 저장 필수
 CREATE TABLE IF NOT EXISTS dart_filings (
     rcept_no    TEXT NOT NULL PRIMARY KEY,   -- 접수번호
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS factor_panel (
     PRIMARY KEY (trade_date, symbol)
 );
 
--- ── 02_데이터모델.md L178-207 ──
+-- ── 02_데이터모델.md L183-212 ──
 CREATE TABLE IF NOT EXISTS regime_score_daily (
     trade_date        TEXT NOT NULL PRIMARY KEY,
     status            TEXT NOT NULL CHECK (status IN ('OK','INSUFFICIENT_DATA')),
@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS signals (
     PRIMARY KEY (trade_date, strategy_id, symbol)
 );
 
--- ── 02_데이터모델.md L213-263 ──
+-- ── 02_데이터모델.md L218-270 ──
 -- 주문 의도 원장. 🔴 브로커 호출 전에 먼저 INSERT (NR-1)
 CREATE TABLE IF NOT EXISTS order_intents (
     intent_id       TEXT NOT NULL PRIMARY KEY,        -- UUID
@@ -209,7 +209,8 @@ CREATE TABLE IF NOT EXISTS order_intents (
                       'CANCELLED','REJECTED','UNKNOWN','SKIPPED')),
     sizing_binding  TEXT CHECK (sizing_binding IN ('RISK','NOTIONAL')),
     config_hash     TEXT NOT NULL,
-    dry_run         INTEGER NOT NULL DEFAULT 1,
+    dry_run         INTEGER NOT NULL DEFAULT 1,       -- 🆕 v2.33 = `ExecPolicy`(1 ⇔ DRY_RUN · 0 ⇔ EXECUTE) ·
+                                                      --    `mode`(배치 A — 어느 계좌)와 독립 · 강등은 이 값만 바꾼다
     error_message   TEXT,
     updated_at      TEXT NOT NULL
 );
@@ -232,7 +233,8 @@ CREATE TABLE IF NOT EXISTS broker_orders (
 -- 체결
 CREATE TABLE IF NOT EXISTS executions (
     execution_id    TEXT NOT NULL PRIMARY KEY,
-    broker_order_no TEXT,                             -- 🔴 v1(R20 Q2) — 수기 체결은 NULL(배치 F CHECK)
+    broker_order_no TEXT,                             -- 🆕 v2.33 NULL 허용 — 수기 체결(X7 `MANUAL`)은 브로커 주문이 없다.
+                                                      --    배치 F 의 `fill_origin` CHECK 가 «MANUAL ⇔ NULL» 을 강제한다(R20 Q2)
     executed_at     TEXT NOT NULL,
     quantity        INTEGER NOT NULL CHECK (quantity > 0),
     price           REAL NOT NULL CHECK (price > 0),
@@ -241,7 +243,7 @@ CREATE TABLE IF NOT EXISTS executions (
     FOREIGN KEY (broker_order_no) REFERENCES broker_orders(broker_order_no)
 );
 
--- ── 02_데이터모델.md L269-287 ──
+-- ── 02_데이터모델.md L276-294 ──
 CREATE TABLE IF NOT EXISTS positions (
     market          TEXT NOT NULL,
     symbol          TEXT NOT NULL,
@@ -262,7 +264,7 @@ CREATE TABLE IF NOT EXISTS positions (
     PRIMARY KEY (market, symbol, strategy_id)
 );
 
--- ── 02_데이터모델.md L308-352 ──
+-- ── 02_데이터모델.md L315-361 ──
 -- (positions 계속)
 
 -- 🔴 매일 저장. 소급 복원 불가
@@ -285,6 +287,8 @@ CREATE TABLE IF NOT EXISTS cash_flow (
     amount      REAL NOT NULL,                        -- 입금 +, 출금 −
     currency    TEXT NOT NULL DEFAULT 'KRW',
     kind        TEXT NOT NULL CHECK (kind IN ('DEPOSIT','WITHDRAWAL')),
+                                                      -- 🆕 v2.33 배치 F 가 5값으로 재작성한다(§2-11 ㊲ ·
+                                                      --    DISTRIBUTION·TAX_WITHHELD·CASH_IN_LIEU · source_event_id)
     note        TEXT
 );
 
@@ -309,7 +313,7 @@ CREATE TABLE IF NOT EXISTS trades (
     holding_days    INTEGER NOT NULL
 );
 
--- ── 02_데이터모델.md L358-509 ──
+-- ── 02_데이터모델.md L367-522 ──
 CREATE TABLE IF NOT EXISTS strategy_state_log (
     log_id               TEXT NOT NULL PRIMARY KEY,
     strategy_id          TEXT NOT NULL,
@@ -392,11 +396,15 @@ CREATE TABLE IF NOT EXISTS trading_block (
     -- 🔴 v2.15 추가: 'DST_WEEK' (04 §4-3 v2.14 가 쓰는데 열거형에 없었다 — S-3).
     --    ⚠️ DST_WEEK 는 **주문을 차단하지 않는 상태 표식**이다 (04 §4-3 v2.15). 판정 SQL 로 주문을 막는 것은
     --       RECON_MISMATCH(전 주문) · JOURNAL_MISSING · TIER_B_UNJUDGED(신규 매수) 셋뿐.
+    -- 🆕 v2.33 추가: 'RESUME_INCOMPLETE' · 'LEDGER_FIX' · 'LEDGER_INTEGRITY' + X7 5종 — 열거 정본 = 앱 계약 `FlagIds`.
+    --    🔴 CHECK 가 없으므로 테이블 재생성 대상이 아니다(열거 주석 + 04 §3-1 판정 SQL 이 정본).
     flag_id     TEXT NOT NULL PRIMARY KEY,
     set_at      TEXT NOT NULL,
     reason      TEXT NOT NULL,
     origin_code TEXT,                        -- 🔴 v2.11 RECON_MISMATCH 전용:
                                              --    FILL_LAG|MANUAL_ORDER|DB_ERROR|BROKER_ERROR
+                                             -- 🆕 v2.33 += EXTERNAL_CASHFLOW · CORPORATE_ACTION(X5 의 옛 CORP_ACTION 과 통합 · R19 E9-4)
+                                             --    + 파생 7 + X7 6 — 열거 정본 = 앱 계약 `OriginCodes.writable`(19)
     cleared_at  TEXT,                        -- NULL이면 현재 차단 중
     cleared_by  TEXT,
     decision_id TEXT                         -- 🔴 v2.11 해제 시 저널 연결 필수

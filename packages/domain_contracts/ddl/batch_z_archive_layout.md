@@ -15,7 +15,7 @@
 | 경로(실전) | `archive/{yyyy}/{yyyy-mm-dd}/{table}.jsonl` |
 | 경로(모의) | `sim/{yyyy}/{yyyy-mm-dd}/{table}.jsonl` — §9-2 격리(실전 아카이브에 모의 체결이 섞이면 해시 체인의 의미가 사라진다) |
 | 한 줄 | **한 원장 행**. 컬럼 순·수치 표기·NULL 규칙은 🔴 **X5-1 정규 직렬화와 같은 골든벡터**를 쓴다 — 둘이 다르면 `canonGithub` 이 매일 불일치한다 |
-| 대상 표 | `ledger_daily_hash` day_hash 대상 스트림 **전량** + 배치 F 신설 6표(`advice`·`advice_transition`·`external_holding`·`self_report_balance`·`self_report_line`·`handover_session`·`operating_mode_transition`) + `operating_param_log`(§6-2) |
+| 대상 표 | `ledger_daily_hash` day_hash 대상 스트림 **전량** + 배치 F 신설 6표(`advice`·`advice_transition`·`external_holding`·`self_report_balance`·`self_report_line`·`handover_session`·`operating_mode_transition`) + `operating_param_log`(§6-2) + 🆕 v1.10 `ledger_event`(㊲ · 01 §19 · day_hash 모집단과 같아야 한다 · SPEC 02 §2-13 v2.33) |
 | 체크포인트 | `archive/checkpoint.json` = `{ schema_version, hash_format_version, authored_date, chain_hash, operator_epoch, writer_device_id, committed_at }` **단일 객체**이며 매 커밋마다 덮어쓴다(이력은 git 이 갖는다) |
 | 금지 | 🔴 **force push 금지**. 커밋 실패는 **매매를 막지 않고** 24h 적체 시 P1(06 M4-5) |
 

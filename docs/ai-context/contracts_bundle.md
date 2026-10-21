@@ -7951,7 +7951,8 @@ abstract final class DecisionReasonCodes {
   static const String ledgerEventTaxWithheld = 'LEDGER_EVENT_TAX_WITHHELD';
 
   /// 🆕 v1.10 ㊲ — 분할·병합(`kind='MANUAL'`).
-  static const String ledgerEventCorporateAction = 'LEDGER_EVENT_CORPORATE_ACTION';
+  static const String ledgerEventCorporateAction =
+      'LEDGER_EVENT_CORPORATE_ACTION';
 
   /// 🆕 v1.10 ㊲ — 원장 사건의 무효(상쇄만 · `kind='MANUAL'`).
   static const String ledgerEventVoid = 'LEDGER_EVENT_VOID';
