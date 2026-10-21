@@ -16,10 +16,12 @@ dependencies:
     path: ../core_engine
   domain_contracts:
     path: ../domain_contracts
-  # ⚠️ 01 §1-1이 이 패키지에 허용한 sqflite·supabase_flutter는 아직 선언하지
-  #    않았다. 둘 다 Flutter 플러그인이라 추가하는 순간 이 패키지가 순수 Dart를
-  #    벗어나고 melos의 test:dart → test:flutter로 옮겨간다.
-  #    구현 착수 시 한 번에 결정하고, 그때 이 주석을 지울 것.
+  # 로컬 정본 SQLite 드라이버 — 순수 Dart FFI(설계 13 §8 R19 E9-12 · 발주자 결정 2026-10-21).
+  #    빌드 훅이 SQLite 실행 파일을 받아 패키지에 고정된 sha256 으로 검증한다(Android 포함).
+  #    Flutter 플러그인이 아니라서 이 패키지는 순수 Dart(test:dart)에 남는다.
+  # ⚠️ 01 §1-1 의 data_sync 허용 목록은 아직 `sqflite` 다 — E9 계약 PR(v1.9.0)에서 1칸 정정.
+  #    그 전까지 이 주석이 근거다. `supabase_flutter` 는 E11(배치 D 실적용) 때 넣는다.
+  sqlite3: ^3.7.1
 
 # 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
 dev_dependencies:

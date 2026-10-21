@@ -48,7 +48,7 @@ FORBIDDEN_UI='core_engine|decimal|broker_gateway|trading_runtime|data_sync|sqfli
 # domain_contracts 는 순수 Dart. decimal 은 허용(금액 타입의 근거),
 # flutter_lints 도 허용(규칙 YAML만 담은 순수 Dart 패키지 — analysis_options 주석 참조).
 # 그래서 flutter 계열은 접두 일치로 뭉뚱그리지 않고 아래 [3]에서 따로 본다.
-FORBIDDEN_CONTRACTS='core_engine|broker_gateway|trading_runtime|data_sync|sqflite|supabase'
+FORBIDDEN_CONTRACTS='core_engine|broker_gateway|trading_runtime|data_sync|sqflite|sqlite3|supabase'
 FLUTTER_DEP_RE='^[[:space:]]+flutter(_test|_localizations)?[[:space:]]*:'
 
 say()  { printf '%s\n' "$*"; }
