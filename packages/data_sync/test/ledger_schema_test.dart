@@ -324,9 +324,14 @@ void main() {
       }
     });
 
-    test('02 기본 — 01번 PRAGMA 블록은 빠지고 정정 1(R20 Q2)만 있다', () {
+    test('02 기본 — PRAGMA 블록·§2-7 이후 배치 블록은 빠지고 executions.broker_order_no 는 NULL 허용(R20 Q2)', () {
       expect(kBase02Sql, isNot(contains('PRAGMA journal_mode')));
       expect(kBase02Sql, contains('CREATE TABLE IF NOT EXISTS schema_version'));
+      // 🔴 SPEC v2.33 부터 02 에 배치 블록이 같이 실린다 — 기본 자산에 두 번 담기면 ALTER 가 중복으로 실패한다.
+      expect(
+        kBase02Sql,
+        isNot(contains('CREATE TABLE IF NOT EXISTS decision_log')),
+      );
       final int at = kBase02Sql.indexOf(
         'CREATE TABLE IF NOT EXISTS executions',
       );

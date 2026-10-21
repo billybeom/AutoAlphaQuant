@@ -38,9 +38,13 @@ Q2_NEW = '    broker_order_no TEXT,                             -- 🔴 v1(R20 Q
 
 
 def sql_blocks(md):
+    """02 의 기본 DDL 블록만 — §1 과 §2-1~§2-6. 🔴 v2.33 부터 02 에 배치 블록(§2-8~§2-12)이 같이 실리므로
+    «### 2-7.» 머리에서 멈춘다(배치는 `domain_contracts/ddl` 사본이 정본 — 두 번 담지 않는다)."""
     blocks, cur, start = [], None, None
     for i, ln in enumerate(md.split('\n'), 1):
         s = ln.strip()
+        if cur is None and ln.startswith('### 2-7.'):
+            break
         if cur is None and s.startswith('```sql'):
             cur, start = [], i + 1
         elif cur is not None and s.startswith('```'):
@@ -88,7 +92,9 @@ def main():
     out.append('//')
     out.append('// 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).')
     out.append('// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `%s`' % hashlib.sha256(raw).hexdigest())
-    out.append('//    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase`) · 정정 %d(R20 Q2 `executions.broker_order_no` NULL 허용)' % fixes)
+    note = ('정정 1(R20 Q2 `executions.broker_order_no` NULL 허용 — 02 본문 개정 전)' if fixes
+            else '정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)')
+    out.append('//    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · %s' % note)
     out.append('// ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):')
     for name, _text, sha in batches:
         out.append('//    %s sha256 `%s`' % (name, sha))
