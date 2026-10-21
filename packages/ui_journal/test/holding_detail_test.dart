@@ -344,6 +344,7 @@ void main() {
       holdingId: recon.holding.holdingId,
     );
 
+    expect(safety.activeFlags, isNotEmpty);
     for (final BlockFlag f in safety.activeFlags) {
       expect(find.text(f.label), findsOneWidget);
     }

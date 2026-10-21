@@ -811,9 +811,9 @@ void main() {
       );
 
       // empty label check
+      expect(allocEmpty.emptyLabel, isNotNull);
       final String? emptyLabelWant = wantEmpty ? allocEmpty.emptyLabel : null;
       if (emptyLabelWant != null) {
-        expect(allocEmpty.emptyLabel, isNotNull);
         expect(
           tester.widget<Text>(find.byKey(const Key('h63-empty'))).data,
           emptyLabelWant,
