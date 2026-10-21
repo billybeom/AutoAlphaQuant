@@ -118,6 +118,7 @@ enum LedgerTrustGrade {
 //    `CommandApi.recordLedgerEvent(LedgerEventRecord)` 다.
 // ⚠️ 채택되지 않으면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 현금 추정이 단조적으로
 //    어긋나고 그 위에서 안내 수량이 계산된다(J-6 조문).
-// ⚠️ `CORPORATE_ACTION` vs `CORP_ACTION` 은 **열린 물음**이다(인벤토리 §10-2 ③ ·
-//    `m2-8_naming.md` I-4 ⏸ = `CORPORATE_ACTION` 으로 통합 권고). 픽스처에는
-//    `CORPORATE_ACTION` 만 쓴다.
+// ✅ 결정 ㊲ 은 **채택**됐다(설계 13 §8 R19 E9-7). 다만 저장 자리·DTO 필드·거부 코드가 아직 없어
+//    이 열거형과 명령은 **E9a2**(설계안 → 발주자 확인 · v1 동결 전 · R20 Q3)에서 함께 만든다.
+// ✅ `CORPORATE_ACTION` vs `CORP_ACTION` = **`CORPORATE_ACTION` 으로 통합**(계약 v1.9.0 · R19 E9-4 ·
+//    인벤토리 §10-2 ③ 해소). 픽스처·신규 코드는 `CORPORATE_ACTION` 만 쓴다.

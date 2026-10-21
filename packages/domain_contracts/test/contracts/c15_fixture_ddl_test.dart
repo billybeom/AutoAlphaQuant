@@ -5,10 +5,10 @@
 // 🔴 인벤토리 §9 — 이 검사의 요점은 `SAT`·`REQUIRED`·`RECORD_MANUAL_FILL` 같은
 //    **비기계적 매핑**을 잡는 것이다(이름이 기계적으로 유도되지 않는 자리).
 //
-// 🔴 **아직 닫히지 않은 물음은 «통과»로 덮지 않는다.** 인벤토리 §10-2 의 열린 물음
-//    1·2(명령 상태 4/7/9 · `mode` 축 2값 vs 3값)는 확정 전까지 DDL 을 고칠 수 없으므로
-//    (§9-1 «확정 전 DDL 불변») 여기서는 **현재 상태를 못 박는다** — 어느 쪽으로든
-//    결정이 오면 이 검사가 실패해서 「DDL·열거형·픽스처를 한 커밋에서」 움직이게 만든다.
+// ✅ 인벤토리 §10-2 열린 물음 1·2(명령 상태 · `mode` 축)는 계약 v1.9.0 에서 닫혔다(설계 13 §8 R19 E9-2·
+//    E9-6 · R20 Q1). 그 «현재 상태 고정» 검사 2개를 **결정된 모양의 등식 검사**로 바꿨다:
+//    명령 state 2표 = `CommandState` − `REQUESTED` · `mode` = 두 파일(`LedgerFile`)마다 다른 CHECK
+//    (`-- @sim` 태그 → `ledgerDdlFor`).
 
 import 'dart:convert';
 import 'dart:io';
@@ -106,6 +106,19 @@ final List<_Axis> _axes = <_Axis>[
     'command_queue',
     'kind',
     _wires(CommandKind.values),
+  ),
+  // 🆕 v1.9 — 인벤토리 §10-2 ① 해소: 두 표 = `CommandState` − `REQUESTED`(G-30).
+  _Axis(
+    'batch_b_plan_command.sql',
+    'command_inbox',
+    'state',
+    _wires(CommandState.values).difference(<String>{'REQUESTED'}),
+  ),
+  _Axis(
+    'batch_d_supabase.sql',
+    'command_ack',
+    'state',
+    _wires(CommandState.values).difference(<String>{'REQUESTED'}),
   ),
   _Axis('batch_f_x7_advisory.sql', 'advice', 'kind', _wires(AdviceKind.values)),
   _Axis('batch_f_x7_advisory.sql', 'advice', 'sleeve', _wires(SleeveId.values)),
@@ -378,12 +391,8 @@ void main() {
       );
     });
 
-    test('C-15 🔴 열린 물음 1 — 명령 상태 집합이 세 곳에서 다르다(현재 상태 고정)', () {
-      // 인벤토리 §10-2 ①. G-30 은 「command_inbox 의 state 집합 = command_queue 의
-      // state 집합」을 요구하는데 지금은 셋이 다르다. 확정 전에는 DDL 을 고치지 않는다.
-      final Set<String> contract = CommandState.values
-          .map((CommandState s) => s.wire)
-          .toSet();
+    test('C-15 명령 state — command_inbox 와 command_ack 가 같은 집합이다(G-30)', () {
+      // 인벤토리 §10-2 ① 해소(R19 E9-6 · R20). `command_queue` 에는 state 칸이 없다.
       final Set<String> inbox = _checkValues(
         'batch_b_plan_command.sql',
         'command_inbox',
@@ -394,62 +403,82 @@ void main() {
         'command_ack',
         'state',
       );
-
-      expect(
-        contract.difference(inbox),
-        <String>{'REQUESTED', 'NO_OPERATOR'},
-        reason:
-            '🔴 열린 물음 1 — command_inbox 에 없는 계약 상태가 바뀌었다. '
-            '결정이 왔다면 DDL·열거형·픽스처를 한 커밋에서 움직이고 이 기대값을 고친다.',
-      );
-      expect(contract.difference(ack), <String>{
+      expect(inbox, ack, reason: '한쪽만 넓히면 보류된 명령이 한쪽 증언에서 사라진다(G-30).');
+      expect(_wires(CommandState.values).difference(inbox), <String>{
         'REQUESTED',
-        'STALE_CONTEXT',
-        'HELD_FOR_INTEGRITY',
-        'PENDING_LEASE_CONFIRM',
-        'NO_OPERATOR',
-      }, reason: '🔴 command_ack 는 여전히 4값이다 — 보류 상태를 ack 이 표현하지 못한다.');
+      }, reason: 'REQUESTED 는 기기 쪽 내구 큐의 상태라 엔진 표에 오지 않는다 — 그 밖의 차이는 없다.');
+      expect(inbox, contains('NO_OPERATOR'));
+      expect(
+        _checkValues('batch_d_supabase.sql', 'command_queue', 'state'),
+        isEmpty,
+        reason: 'command_queue 는 append-only 명령 행이다 — state 칸을 두지 않는다.',
+      );
     });
 
-    test('C-15 🔴 열린 물음 2 — mode 축이 로컬 2값·미러 3값으로 갈려 있다(현재 상태 고정)', () {
-      // 인벤토리 §10-2 ②-ⓑ — 🔴 'SIM' 은 RunMode 의 @JsonValue 가 **아니다**.
-      // 로컬 2값 CHECK 는 「SIM 계열을 좁게 받는다」가 아니라 **SIM 계열 행을 하나도
-      // 표현하지 못한다**.
-      final Set<String> runMode = RunMode.values
-          .map((RunMode m) => m.wire)
-          .toSet();
+    test('C-15 mode 축 — 두 파일의 CHECK 가 LedgerModeCheck 대로 갈린다', () {
+      // 인벤토리 §10-2 ② 해소(R19 E9-2 · R20 Q1). 🔴 'SIM' 은 RunMode 값이 아니다.
+      final Set<String> runMode = _wires(RunMode.values);
       expect(runMode, <String>{'SIM_INTERNAL', 'SIM_BROKER', 'LIVE'});
 
-      final Set<String> local = _checkValues(
-        'batch_a_decision_mode.sql',
-        'trades',
-        'mode',
-      );
+      const Map<String, LedgerModeCheck> tables = <String, LedgerModeCheck>{
+        'decision_log': LedgerModeCheck.ledger,
+        'order_intents': LedgerModeCheck.ledger,
+        'trades': LedgerModeCheck.ledger,
+        'equity_snapshot': LedgerModeCheck.ledger,
+        'rebalance_event': LedgerModeCheck.ledger,
+        'advice_batch': LedgerModeCheck.advice,
+        'advice': LedgerModeCheck.advice,
+        'calendar_link': LedgerModeCheck.calendar,
+        'calendar_sync_state': LedgerModeCheck.calendar,
+      };
+      const Map<LedgerModeCheck, (Set<String>, Set<String>)> want =
+          <LedgerModeCheck, (Set<String>, Set<String>)>{
+            LedgerModeCheck.ledger: (
+              <String>{'LIVE'},
+              <String>{'SIM_INTERNAL', 'SIM_BROKER'},
+            ),
+            LedgerModeCheck.advice: (
+              <String>{'LIVE'},
+              <String>{'SIM_INTERNAL'},
+            ),
+            LedgerModeCheck.calendar: (<String>{'LIVE'}, <String>{'SIM'}),
+          };
+      for (final MapEntry<String, LedgerModeCheck> e in tables.entries) {
+        final (Set<String> live, Set<String> sim) = want[e.value]!;
+        expect(
+          _localModeValues(LedgerFile.live, e.key),
+          live,
+          reason: '${e.key}.mode — ledger.sqlite 판',
+        );
+        expect(
+          _localModeValues(LedgerFile.sim, e.key),
+          sim,
+          reason: '${e.key}.mode — ledger_sim.sqlite 판(@sim ${e.value.tag})',
+        );
+      }
+      // 결정 사슬은 두 파일을 합치면 RunMode 3값이다 — 어느 값도 저장할 자리가 빠지지 않는다.
       expect(
-        local,
-        <String>{'SIM', 'LIVE'},
-        reason:
-            '🔴 로컬 SQLite 의 mode CHECK 가 바뀌었다 — 결정이 왔다면 batch_a·b·f 와 '
-            'journal_30.json 과 이 검사를 한 커밋에서 움직인다.',
-      );
-      expect(runMode.intersection(local), <String>{
-        'LIVE',
-      }, reason: '겹치는 값은 LIVE 하나뿐이다 — 2값 유지는 «보수적 선택»이 아니다.');
-
-      final Set<String> mirror = _checkValues(
-        'batch_d_supabase.sql',
-        'ledger_stamp',
-        'mode',
-      );
-      expect(
-        mirror,
+        _localModeValues(
+          LedgerFile.live,
+          'trades',
+        ).union(_localModeValues(LedgerFile.sim, 'trades')),
         runMode,
-        reason:
-            'Supabase 미러는 이미 RunMode 3값이다 — 로컬과 미러가 같은 축을 다르게 '
-            '적고 있다(열린 물음 2 의 실측 근거).',
       );
 
-      // 🔴 픽스처는 이미 SIM 계열 행을 싣는다 — 봉투만 보고 «정합» 이라 하면 안 된다.
+      // 🔴 `mode` 칸은 이 9표(+ 이름만 같은 resume_run)에만 있다 — 나머지는 파일 식별이 덮는다(R20 Q1).
+      final Set<String> withMode = <String>{
+        for (final CheckConstraint c in _localChecks(LedgerFile.live))
+          if (c.column == 'mode') c.table,
+      };
+      expect(withMode, <String>{...tables.keys, 'resume_run'});
+
+      // Supabase 미러는 한 곳에 두 계열을 담으므로 3값 그대로다.
+      expect(
+        _checkValues('batch_d_supabase.sql', 'ledger_stamp', 'mode'),
+        runMode,
+      );
+
+      // 🔴 픽스처의 SIM 행도 저장할 자리가 있다(je_0030 = SIM_INTERNAL → ledger_sim.sqlite).
       final Set<String> rowModes = <String>{};
       walkJson(jsonDecode(readFixture(FixturePaths.journal30)), (
         String path,
@@ -460,18 +489,49 @@ void main() {
           rowModes.add(value);
         }
       });
+      expect(rowModes, containsAll(<String>['LIVE', 'SIM_INTERNAL']));
+      expect(rowModes.difference(runMode), isEmpty);
+    });
+
+    test('C-15 mode 축 — 태그 없는 LIVE 고정 CHECK · DEFAULT \'SIM\' 이 남아 있지 않다', () {
+      // 🔴 태그가 빠진 `CHECK (mode = 'LIVE')` 는 SIM 파일에서도 LIVE 만 받아 모의 행을 전부 거부한다.
+      for (final String name in _localBatchFiles) {
+        final String live = _localDdl(LedgerFile.live, name);
+        final String sim = _localDdl(LedgerFile.sim, name);
+        for (final CheckConstraint c in parseCheckConstraintsText(live, name)) {
+          if (c.column != 'mode' || c.table == 'resume_run') continue;
+          final Set<String> simValues = <String>{
+            for (final CheckConstraint d in parseCheckConstraintsText(
+              sim,
+              name,
+            ))
+              if (d.table == c.table && d.column == 'mode') ...d.values,
+          };
+          expect(
+            simValues,
+            isNot(c.values.toSet()),
+            reason: '$name:${c.table}.mode — @sim 태그가 없어 두 파일이 같은 값을 받는다.',
+          );
+        }
+        final String code = live
+            .split('\n')
+            .map((String l) => l.replaceAll(RegExp('--.*'), ''))
+            .join('\n');
+        expect(
+          code,
+          isNot(contains("DEFAULT 'SIM'")),
+          reason: "$name — 'SIM' 은 어느 파일의 CHECK 도 통과하지 못한다(명시 필수).",
+        );
+      }
+    });
+
+    test('C-15 수기 체결 — fill_origin CHECK 가 «MANUAL ⇔ 브로커 주문 없음» 을 묶는다', () {
+      // R20 Q2 — 02 `executions.broker_order_no` 는 v1 에서 NULL 허용(02 개정 = E9b).
+      final String f = File('${ddlDir.path}/batch_f_x7_advisory.sql')
+          .readAsStringSync();
       expect(
-        rowModes,
-        contains('SIM_INTERNAL'),
-        reason:
-            'journal_30.json 의 je_0030 이 SIM_INTERNAL 을 싣는다(인벤토리 §10-2 ②-ⓐ).',
-      );
-      expect(
-        rowModes.difference(local),
-        isNotEmpty,
-        reason:
-            '🔴 이 차집합이 비면 충돌이 해소된 것이다 — 그때 이 검사를 지우고 '
-            'mode 축을 _axes 의 1:1 대조로 옮긴다.',
+        f,
+        contains("AND ((fill_origin = 'MANUAL') = (broker_order_no IS NULL))"),
       );
     });
 
@@ -515,6 +575,8 @@ String _wireOf(Object v) => switch (v) {
   final CredentialUse u => u.wire,
   final HandoverPath p => p.wire,
   final LedgerPair p => p.wire,
+  final CommandState st => st.wire,
+  final RunMode m => m.wire,
   _ => throw ArgumentError('C-15 에 등록되지 않은 열거형: ${v.runtimeType}'),
 };
 
@@ -524,6 +586,28 @@ List<CheckConstraint> _allChecks() => _cache ??= <CheckConstraint>[
   for (final String name in _batchFiles)
     ...parseCheckConstraints(File('${ddlDir.path}/$name')),
 ];
+
+/// 로컬 SQLite 배치(새 설치 v1 · batch_e 보관 · batch_d 는 Supabase).
+const List<String> _localBatchFiles = <String>[
+  'batch_a_decision_mode.sql',
+  'batch_b_plan_command.sql',
+  'batch_c_x2_x5_local.sql',
+  'batch_f_x7_advisory.sql',
+];
+
+/// [file] 판의 배치 SQL — `ddl/*.sql` 은 LIVE 판이고 SIM 판은 `ledgerDdlFor` 가 만든다.
+String _localDdl(LedgerFile file, String name) =>
+    ledgerDdlFor(file, File('${ddlDir.path}/$name').readAsStringSync());
+
+List<CheckConstraint> _localChecks(LedgerFile file) => <CheckConstraint>[
+  for (final String name in _localBatchFiles)
+    ...parseCheckConstraintsText(_localDdl(file, name), name),
+];
+
+Set<String> _localModeValues(LedgerFile file, String table) => <String>{
+  for (final CheckConstraint c in _localChecks(file))
+    if (c.table == table && c.column == 'mode') ...c.values,
+};
 
 Set<String> _checkValues(String file, String table, String column) => <String>{
   for (final CheckConstraint c in _allChecks())

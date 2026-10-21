@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 86개 · 계약 v1.8.0 · 조립일 2026-10-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 88개 · 계약 v1.9.0 · 조립일 2026-10-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -22,8 +22,9 @@
 // 🔴 **이 파일은 통합 담당만 편집한다.** 영역 구현자는 자기 폴더에 파일을
 //    더하고, 그 폴더의 재수출 창구(`src/<영역>.dart`)에 통합 단계가 줄을 넣는다.
 //
-// 창구 9개 — 영역 A(primitives·enums) · B·C(dto) · D(repositories·commands) ·
-// E(labels·contract_version) · F(fixtures) · G(navigation — 🆕 v1.1). 어느 창구에 무엇이 있는지는
+// 창구 10개 — 영역 A(primitives·enums) · B·C(dto) · D(repositories·commands) ·
+// E(labels·contract_version) · F(fixtures) · G(navigation — 🆕 v1.1) ·
+// H(schema — 🆕 v1.9 로컬 원장 두 파일 · SIM 판 파생). 어느 창구에 무엇이 있는지는
 // 각 `src/<영역>.dart` 머리 주석과 `docs/contracts_inventory.md` 가 정본이다.
 //
 // ⚠️ 아직 여기에 없는 것(= 계약에 아직 존재하지 않는 것)은 각 영역의 인계
@@ -42,6 +43,7 @@ export 'src/labels/labels.dart';
 export 'src/navigation.dart';
 export 'src/primitives.dart';
 export 'src/repositories.dart';
+export 'src/schema/ledger_file.dart';
 ```
 
 ---
@@ -133,12 +135,18 @@ export 'commands/settings_actions.dart';
 //    🆕 `SleeveBandState` · `SleeveBandGauge` · `ExternalHoldingRow.quantityText` · 코드 `StopTierCodes`(`stop_tier`) ·
 //    라우트 `holdingsOverview`·`holdingsDetail`·`holdingsAllocation`(48) · 받침대 `UnimplementedHoldingsRepository` ·
 //    픽스처 141 → 159(신설 18 · 개정 3) — 🆕 tool/gen_h6_v18_fixtures.py(기준 f46e72f 원문에서 멱등 생성).
+// 🆕 '1.9.0'(E9a · 단계 1b 마이그레이션 창 · 설계 13 §8 R19 · R20 · 발주자 결정 2026-10-21 추천안) —
+//    스키마 v1 결정 반영: `ddl/*` = `mode` 3값 + 파일별 CHECK(`-- @sim` 태그 · `DEFAULT 'SIM'` 삭제) ·
+//    명령 state 2표 8값(`NO_OPERATOR` 포함) · `CORPORATE_ACTION` 통합 · `dry_run` ⇔ `ExecPolicy` 파생 규칙 ·
+//    수기 체결 `broker_order_no` NULL(+ CHECK) · `batch_e` 보관 · 🆕 [schemaVersion] = 1 · [hashFormatVersion] = 1 ·
+//    `LedgerFile`(두 파일 · `application_id`) · `LedgerModeCheck` · `ledgerDdlFor`(SIM 판 파생) ·
+//    C-15 열린 물음 2검사 → 등식 검사 · 픽스처 159(봉투 버전만 · 값 무변경).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.8.0';
+const String contractVersion = '1.9.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -150,14 +158,19 @@ const String contractVersion = '1.8.0';
 // 🔴 이 행을 못 읽는 경우(표 부재·RLS 거부)는 `ok` 가 아니라 **`incompatible`** 이다 —
 //    잘못 그리는 것보다 안 그리는 것이 안전하다.
 //
-// ⛔ **`schemaVersion`·`hashFormatVersion` 상수를 여기 두지 않는다 — 아직 값이 없다.**
-//    ⓐ `schema_version` 번호는 «배치 A~F 마이그레이션 창 전체에 하나만» 배정되며(01 §6-0·§6-5)
-//       그 번호가 아직 배정되지 않았다. §6-0 은 「`00_SPEC §9` 최신값 +1 을 쓰되 v2.31(P0S)
-//       소비 여부를 먼저 확인」이라고만 정했다.
-//    ⓑ `hash_format_version` 은 배치 F 가 `executions` 에 11컬럼을 더하면서 **올리고 골든벡터를
-//       다시 고정**해야 하는 값이다(01 §6-6 말미). 새 값도 골든도 아직 없다.
-//    🔴 둘 중 어느 것이든 임의의 숫자를 상수로 박으면 뷰어의 버전 게이트가 **틀린 판정을
-//       조용히 통과시킨다**(없는 것보다 나쁘다). 값이 배정되는 커밋에서 함께 넣는다.
+// ✅ **값이 배정됐다(계약 v1.9.0 · 2026-10-21 · 설계 13 §8 R19 E9-10·E9-11).**
+//    ⓐ `schema_version` = 02 기본 + 배치 A·B·C·F 를 한 판으로 만든 첫 스키마(01 §6-0). SPEC 개정 번호
+//       (v2.33)와는 다른 축이다. 🔴 v1 은 첫 실기기 설치 때 얼리고, 그 전의 v1 수정은 번호를 바꾸지
+//       않는다(R20 Q0) — 그 뒤 변경은 2.
+//    ⓑ `hash_format_version` = 배치 F 의 `executions` 11컬럼을 포함한 정규 직렬화의 첫 판. 해시 체인
+//       구현·해시 든 골든이 아직 없어 올릴 옛 값도 다시 고정할 것도 없다.
+//    🔴 이 두 값을 바꾸는 커밋은 `ddl/README` 규약 3·6 과 뷰어 게이트(G-36)를 함께 움직인다.
+
+/// 로컬 SQLite 스키마 번호(`schema_version` 표의 행 · `rm_config_view.schema_version`).
+const int schemaVersion = 1;
+
+/// X5-1 정규 직렬화 규약 번호(`ledger_daily_hash.hash_format_version` · `rm_config_view`).
+const int hashFormatVersion = 1;
 
 // ════════════════════════════════════════════════════════════════════════════
 // `config_hash` 의 자리 — 🔴 여기 상수로 두지 않는다
@@ -5673,10 +5686,9 @@ enum CommandKind {
 /// 🔴 화면이 `state` 를 낙관 갱신하지 않는다 — 「요청됨」과 「집행됨」의 구별이 이 계약의 목적이다.
 /// 🔴 `noOperator` 는 「요청됨」이 «껐다»로 읽히는 것을 막는 유일한 값이며, 표시 문구는
 ///    M2 가 사전 공급한 **고정 카탈로그**에서 고른다(앱이 상태를 조합해 문장을 만들지 않는다).
-/// ⚠️ **열린 물음** — `NO_OPERATOR` 는 현행 `command_inbox.state`·`command_ack.state`
-///    CHECK 어디에도 없다. 「셋 중 어디까지 넓히는가」는 이름 문제가 아니라 스키마 결정이며
-///    영역 E(DDL)가 확정 전까지 이 값을 실은 픽스처를 만들면 CHECK 위반이 된다
-///    (인벤토리 §10-2 ① · `m2-8_naming.md` K-1 · A-11 은 **이름만** 확정했다).
+/// ✅ DDL 자리 = `command_inbox.state` = `command_ack.state` = **[requested] 를 뺀 8값**
+///    (계약 v1.9.0 · 설계 13 §8 R19 E9-6 · R20 · 인벤토리 §10-2 ① 해소 · G-30). `command_queue` 에는
+///    state 칸이 없다 — [requested] 는 기기 쪽 내구 큐의 상태라 엔진 표에 오지 않는다.
 enum CommandState {
   @JsonValue('REQUESTED')
   requested('REQUESTED'),
@@ -6064,9 +6076,10 @@ enum LedgerTrustGrade {
 //    `CommandApi.recordLedgerEvent(LedgerEventRecord)` 다.
 // ⚠️ 채택되지 않으면 인출·분배금·기업행위·원천징수가 원장 밖에 남아 현금 추정이 단조적으로
 //    어긋나고 그 위에서 안내 수량이 계산된다(J-6 조문).
-// ⚠️ `CORPORATE_ACTION` vs `CORP_ACTION` 은 **열린 물음**이다(인벤토리 §10-2 ③ ·
-//    `m2-8_naming.md` I-4 ⏸ = `CORPORATE_ACTION` 으로 통합 권고). 픽스처에는
-//    `CORPORATE_ACTION` 만 쓴다.
+// ✅ 결정 ㊲ 은 **채택**됐다(설계 13 §8 R19 E9-7). 다만 저장 자리·DTO 필드·거부 코드가 아직 없어
+//    이 열거형과 명령은 **E9a2**(설계안 → 발주자 확인 · v1 동결 전 · R20 Q3)에서 함께 만든다.
+// ✅ `CORPORATE_ACTION` vs `CORP_ACTION` = **`CORPORATE_ACTION` 으로 통합**(계약 v1.9.0 · R19 E9-4 ·
+//    인벤토리 §10-2 ③ 해소). 픽스처·신규 코드는 `CORPORATE_ACTION` 만 쓴다.
 ```
 
 ---
@@ -6088,8 +6101,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 /// 🔴 화면은 세 값을 개별 분기하지 말고 뷰모델이 준 라벨·배지를 그린다. 「모의냐」 판정이 꼭
 ///    필요하면 [RunModeIsSim.isSim] 만 쓴다(01 §2-1 주석 원문).
 /// 🔴 화면은 이 값으로 타이틀 접두를 만들지 않는다 — 셸이 주입하고 C-17 이 강제한다.
-/// ⚠️ 배치 A·B 의 기존 `CHECK (mode IN ('SIM','LIVE'))` 를 3값으로 넓히는 것은
-///    **열린 물음**이다(인벤토리 §10-2 ② · `m2-8_naming.md` I-3 ⏸ = 3값 + 파일별 CHECK 권고).
+/// ✅ 로컬 DDL = **3값 + 파일별 CHECK**(계약 v1.9.0 · 설계 13 §8 R19 E9-2 · R20 Q1 · 인벤토리 §10-2 ②
+///    해소) — `ledger.sqlite` 는 `LIVE` 만, `ledger_sim.sqlite` 는 SIM 계열만 받는다. 파일은
+///    `LedgerFile.of` 가 정하고 SIM 판 CHECK 는 `ledgerDdlFor` 가 만든다.
 enum RunMode {
   @JsonValue('SIM_INTERNAL')
   simInternal('SIM_INTERNAL'),
@@ -6121,8 +6135,9 @@ extension RunModeIsSim on RunMode {
 /// 🔴 **3값으로 넓히지 않는다**(§10-1) — 넓히면 골든벡터 재검증 실패의 `dryRun` 강등이
 ///    발주자가 고른 운영 방식을 덮어써 지우고, 복구 시 원래 값을 알 수 없어 그림자 필드가
 ///    필요해지며, 그것이 §8-7 이 닫은 이중 정본의 부활이다.
-/// ⚠️ 구 `order_intents.dry_run` 의 «이름만 바꾼 것»이며 **컬럼은 그대로 둔다**
-///    (인벤토리 §10-2 ④ · `m2-8_naming.md` I-5 ⏸).
+/// ✅ 구 `order_intents.dry_run` 의 «이름만 바꾼 것»이며 **컬럼은 그대로 둔다**(계약 v1.9.0 ·
+///    설계 13 §8 R19 E9-5 · 인벤토리 §10-2 ④ 해소). 파생 규칙: `dry_run = 1` ⇔ [ExecPolicy.dryRun] ·
+///    `dry_run = 0` ⇔ [ExecPolicy.execute]. 🔴 [RunMode] 와 독립이다 — 강등은 이 값만 바꾼다.
 enum ExecPolicy {
   @JsonValue('DRY_RUN')
   dryRun('DRY_RUN'),
@@ -8583,6 +8598,8 @@ abstract final class ContractCodes {
     'disclosure_surface': DisclosureSurfaceCodes.values,
     // 🆕 v1.4(R11 선행) — 플래너 주문 초안의 사유 칩(`OrderDraft.reasons[].code`)
     'planner_reason': PlannerReasonCodes.values,
+    // 🆕 E7a3-2(설계 13 §8 R18 D-11 · 계약 버전 불변) — 리밸런싱 미리보기 초안의 사유 칩
+    'rebalance_reason': RebalanceReasonCodes.values,
     // 🆕 v1.7(J-4 선행) — blind 리뷰 점수 제출의 거부 사유(`CommandReceipt.rejectReasonCode`)
     'blind_review_reject': BlindReviewRejectCodes.values,
     // 🆕 v1.8(R4 선행) — 손절선 등급(`StopLineNormalized.tierCode` · C-44 ⑦ 이 픽스처와 맞댄다)
@@ -8718,8 +8735,8 @@ abstract final class OriginCodes {
   /// 기업행위. 🔴 X2 계열이 먼저 등재된 이름이며 **픽스처·신규 코드는 이 이름만 쓴다**.
   static const String corporateAction = 'CORPORATE_ACTION';
 
-  /// 기업행위(X5 계열의 옛 표기). ⚠️ **중복 후보**(01 §8-6 · 인벤토리 §10-2 ③) —
-  /// 통합 전까지 **상수로는 남기되** 픽스처·신규 코드에 쓰지 않는다.
+  /// 기업행위(X5 계열의 옛 표기). ✅ **`corporateAction` 으로 통합됐다**(계약 v1.9.0 · 01 §8-6 ·
+  /// 인벤토리 §10-2 ③ 해소) — 옛 기록을 읽기 위한 **상수로만** 남고 픽스처·신규 코드에 쓰지 않는다.
   static const String corpActionLegacy = 'CORP_ACTION';
 
   // ── 파생 계열 7 (X5 신설) ─────────────────────────────────────────────────
@@ -8801,9 +8818,9 @@ abstract final class OriginCodes {
   /// 전량 20종.
   static const Set<String> values = <String>{...broker, ...derived, ...x7};
 
-  /// 픽스처·신규 코드가 쓸 수 있는 것 — `CORP_ACTION`(중복 후보)을 뺀 19종.
+  /// 픽스처·신규 코드가 쓸 수 있는 것 — 옛 표기 `CORP_ACTION` 을 뺀 19종.
   ///
-  /// 🔴 인벤토리 §10-2 ③ — 통합 전까지 둘 다 상수로 두되 **픽스처에는 `CORPORATE_ACTION` 만** 쓴다.
+  /// ✅ 인벤토리 §10-2 ③ 해소(계약 v1.9.0) — 쓰는 이름은 `CORPORATE_ACTION` 하나다.
   static const Set<String> writable = <String>{
     fillLag,
     manualOrder,
@@ -8843,6 +8860,34 @@ abstract final class PlannerReasonCodes {
 
   /// 플래너 전용 코드 전량 1종(`PENSION_FUNDING` 은 원장 이벤트 사전 몫).
   static const Set<String> values = <String>{depositRouting};
+}
+
+/// 🆕 E7a3-2(2026-10-21 · 설계 13 §8 R18 D-11 · 계약 버전 불변 — 코드 사전 추가만) — 리밸런싱 미리보기
+/// 초안의 사유 칩 코드(`RebalancePreview.orderDrafts[].reasons[].code` · 01 §15-4).
+///
+/// 🔵 까닭: 픽스처 `m7_rebalance_preview_default` 가 `REBALANCE_BAND` 를 쓰는데 사전에 없었다 · 엔진 월말 계획기
+///    (`core_engine` `planMonthEnd`)의 매매 갈래마다 하나씩 둔다. 원화 조달 매도는 `PENSION_FUNDING`(원장 이벤트 사전).
+/// 🔴 목록은 M2 가 늘린다.
+abstract final class RebalanceReasonCodes {
+  /// 코어 밴드 — B 지분 목표 ± band 이탈(재원 매도 포함).
+  static const String rebalanceBand = 'REBALANCE_BAND';
+
+  /// 슬리브 B 3-트랜치 신호(하한 · BEAR 차감 포함).
+  static const String sleeveBSignal = 'SLEEVE_B_SIGNAL';
+
+  /// 슬리브 C 채권 · 금 비중 조정.
+  static const String sleeveCRebalance = 'SLEEVE_C_REBALANCE';
+
+  /// POT 서브북 3-트랜치 신호.
+  static const String potSignal = 'POT_SIGNAL';
+
+  /// 전량 4종.
+  static const Set<String> values = <String>{
+    rebalanceBand,
+    sleeveBSignal,
+    sleeveCRebalance,
+    potSignal,
+  };
 }
 ```
 
@@ -10265,5 +10310,496 @@ abstract interface class WhatIfApi {
   /// 🆕 v1.4 — null = 그 planId 가 없다. 만료·등록 불가는 `DepositPlan.registerBlockedText` 로
   /// 온다 — 화면이 `expiresAt` 을 시계와 비교하지 않는다.
   Future<DepositPlan?> findPlan(String planId);
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/schema/ledger_file.dart`
+
+```dart
+// 로컬 원장 두 파일과 SIM 판 파생 규칙 — 01 §6-0 · §9-2 · 설계 13 §8 R19 E9-2 · R20 Q1.
+//
+// 🔴 **파일이 경계다.** `ledger.sqlite`(LIVE)와 `ledger_sim.sqlite`(SIM 계열)는 같은 전체 스키마를 갖고,
+//    다른 것은 `ddl/*.sql` 에서 줄 끝에 `-- @sim <종류>` 가 붙은 CHECK 뿐이다. 이 파일이 그 치환의
+//    **코드 정본**이다(ddl/README «두 파일» 표와 같은 값 · C-15 가 대조한다).
+// 🔴 열 때는 `PRAGMA application_id` 를 [LedgerFile.applicationId] 와 대조한다 — `mode` 칸이 없는
+//    표까지 한 번에 덮는 파일 식별이다(R20 Q1). 대조는 로컬 러너(data_sync · E9c) 몫이다.
+// 🔴 SQL 을 실행하지 않는다 — 문자열만 바꾼다(이 패키지는 DB 를 의존하지 않는다 · 01 §1-1).
+// 🔵 열거형(enum)이 아니라 상수 클래스다 — 이 값들은 JSON 으로 오가지 않으므로 `@JsonValue`·`wire`
+//    규약(C-12 · 01 §1-2)의 대상이 아니다.
+
+import '../enums/mode.dart';
+
+/// 로컬 원장 파일 — 01 §9-2(파일 분리 = 경계).
+final class LedgerFile {
+  const LedgerFile._(this.fileName, this.applicationId);
+
+  /// 실계좌(`RunMode.live`). `application_id` = 'AAQL'.
+  static const LedgerFile live = LedgerFile._('ledger.sqlite', 0x4141514C);
+
+  /// 모의 계열(`RunMode.simInternal`·`RunMode.simBroker`). `application_id` = 'AAQS'.
+  static const LedgerFile sim = LedgerFile._('ledger_sim.sqlite', 0x41415153);
+
+  /// 두 파일 전부.
+  static const List<LedgerFile> values = <LedgerFile>[live, sim];
+
+  /// 기기 안 파일 이름.
+  final String fileName;
+
+  /// `PRAGMA application_id` 값 — 열 때 대조한다.
+  final int applicationId;
+
+  /// [mode] 가 쓰는 파일. 🔴 판정은 [RunModeIsSim.isSim] 하나로만 한다.
+  static LedgerFile of(RunMode mode) => mode.isSim ? sim : live;
+
+  @override
+  String toString() => 'LedgerFile($fileName)';
+}
+
+/// `-- @sim <종류>` 태그의 종류 — LIVE 판 식과 SIM 판 식(ddl/README «두 파일»).
+final class LedgerModeCheck {
+  const LedgerModeCheck._(this.tag, this.liveExpr, this.simExpr);
+
+  /// 결정 → 주문 → 체결 → 성과 사슬(`decision_log`·`order_intents`·`trades`·`equity_snapshot`·`rebalance_event`).
+  static const LedgerModeCheck ledger = LedgerModeCheck._(
+    'ledger',
+    "mode = 'LIVE'",
+    "mode IN ('SIM_INTERNAL','SIM_BROKER')",
+  );
+
+  /// 안내(`advice_batch`·`advice`) — `simBroker × advisory` 는 정의 모순이라 SIM 판도 `SIM_INTERNAL` 만.
+  static const LedgerModeCheck advice = LedgerModeCheck._(
+    'advice',
+    "mode = 'LIVE'",
+    "mode = 'SIM_INTERNAL'",
+  );
+
+  /// 캘린더 앵커(`calendar_link`·`calendar_sync_state`) — 계열 2값(G-32).
+  static const LedgerModeCheck calendar = LedgerModeCheck._(
+    'calendar',
+    "mode = 'LIVE'",
+    "mode = 'SIM'",
+  );
+
+  /// `order_intents.operating_mode` — SIM 판에서 `simBroker × advisory` 를 막는다(C8).
+  static const LedgerModeCheck intentOperatingMode = LedgerModeCheck._(
+    'intent-operating-mode',
+    "operating_mode IN ('AUTO_TRADE','ADVISORY')",
+    "operating_mode IN ('AUTO_TRADE','ADVISORY') AND "
+        "(operating_mode = 'AUTO_TRADE' OR mode = 'SIM_INTERNAL')",
+  );
+
+  /// 네 종류 전부.
+  static const List<LedgerModeCheck> values = <LedgerModeCheck>[
+    ledger,
+    advice,
+    calendar,
+    intentOperatingMode,
+  ];
+
+  /// `-- @sim` 뒤에 오는 이름.
+  final String tag;
+
+  /// LIVE 판(`ddl/*.sql` 에 적힌 그대로)의 식.
+  final String liveExpr;
+
+  /// SIM 판의 식.
+  final String simExpr;
+
+  /// [file] 판의 식.
+  String exprFor(LedgerFile file) =>
+      identical(file, LedgerFile.sim) ? simExpr : liveExpr;
+
+  @override
+  String toString() => 'LedgerModeCheck($tag)';
+}
+
+/// 코드가 있는 줄의 **끝**에 붙은 태그만 태그다 — 설명 주석의 `@sim` 낱말을 태그로 읽지 않는다.
+final RegExp _tagAtEnd = RegExp(r'^(.*\S.*?)\s*--\s*@sim\s+([A-Za-z-]+)\s*$');
+
+/// LIVE 판 SQL [liveSql] 에서 [file] 판을 만든다.
+///
+/// 태그가 붙은 줄은 그 종류의 LIVE 식을 **정확히 한 번** 담아야 하고, SIM 판에서는 그것을 SIM 식으로
+/// 바꾼다. 모르는 종류 · 식이 없거나 두 번 이상인 줄은 [FormatException] — 치환이 조용히 빠지면
+/// 모의 파일이 LIVE 행만 받거나(전부 거부) 반대로 실계좌 파일이 SIM 행을 받는다.
+String ledgerDdlFor(LedgerFile file, String liveSql) {
+  final List<String> lines = liveSql.split('\n');
+  for (int i = 0; i < lines.length; i++) {
+    final RegExpMatch? m = _tagAtEnd.firstMatch(lines[i]);
+    if (m == null || m.group(1)!.trimLeft().startsWith('--')) continue;
+    final String name = m.group(2)!;
+    final LedgerModeCheck kind = LedgerModeCheck.values.firstWhere(
+      (LedgerModeCheck k) => k.tag == name,
+      orElse: () =>
+          throw FormatException('모르는 @sim 종류 «$name»', lines[i], i + 1),
+    );
+    final int n = kind.liveExpr.allMatches(lines[i]).length;
+    if (n != 1) {
+      throw FormatException(
+        '@sim ${kind.tag} 줄에 «${kind.liveExpr}» 가 $n번 있다(정확히 1번이어야 한다)',
+        lines[i],
+        i + 1,
+      );
+    }
+    lines[i] = lines[i].replaceFirst(kind.liveExpr, kind.exprFor(file));
+  }
+  return lines.join('\n');
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/testing/what_if_rules.dart`
+
+```dart
+// What-if 미리보기 표시 계약의 판정 함수 — C-38 ①~⑧(입금) · C-41 ①②(리밸런싱). 01 §7 표 · §14 · §15-4-12.
+//
+// 왜 여기 있는가(설계 13 §8 R18 D-12 · E7a0): 같은 판정을 **픽스처**(계약 테스트 c38 · c41)와 **실엔진 출력**
+//   (core_engine 의 What-if 구현 시험)에 똑같이 걸어야 한다. 판정이 `test/` 안의 비공개 함수로만 있으면
+//   엔진 쪽이 사본을 만들게 되고 두 판이 갈라진다 — 그래서 테스트 전용 배럴(`testing.dart`)로 낸다.
+// 🔴 `lib/` 의 화면 코드에서 import 하지 않는다(받침대와 같은 규칙 · `testing.dart` 머리).
+// 🔴 함수는 판정만 한다 — 위반 문장 목록을 돌려주고 빈 목록 = 통과. 값을 고치거나 지어내지 않는다.
+// 🔴 픽스처 전용 단언(갈래 표본 수 · 행 순서 · 밴드 표본 정합 · 접수증 ⑨)은 계약 테스트에 남는다 —
+//    실엔진 출력에는 참이 아닐 수 있다(예: B 신호·C·POT 는 밴드 안에서도 초안을 만든다).
+
+import 'dart:convert';
+
+import 'package:decimal/decimal.dart';
+
+import '../../domain_contracts.dart';
+
+/// C-38 ③ · C-41 ② — 미리보기 고지 문장의 머리.
+const String kPreviewNoticeHead = '미리보기입니다';
+
+/// C-38 ① — 래퍼는 `plan` · `inputRejectedText` · `blockedText` 가운데 **정확히 하나** non-null ·
+/// `blockedAction` 은 `blockedText` 가 있을 때만 · 실린 글자는 비지 않는다.
+List<String> depositPreviewResultViolations(
+  String where,
+  DepositPreviewResult r,
+) {
+  final List<String> bad = <String>[];
+  final int n = <Object?>[
+    r.plan,
+    r.inputRejectedText,
+    r.blockedText,
+  ].where((Object? x) => x != null).length;
+  if (n != 1) {
+    bad.add(
+      '$where — plan·input_rejected_text·blocked_text 가 $n개 non-null(정확히 하나여야 한다)',
+    );
+  }
+  if (r.blockedAction != null && r.blockedText == null) {
+    bad.add('$where — blocked_text 없이 blocked_action 이 있다');
+  }
+  for (final (String key, String? text) in <(String, String?)>[
+    ('input_rejected_text', r.inputRejectedText),
+    ('blocked_text', r.blockedText),
+    ('blocked_action.label', r.blockedAction?.label),
+  ]) {
+    if (text != null && text.trim().isEmpty) {
+      bad.add('$where — $key 가 빈 글자다');
+    }
+  }
+  return bad;
+}
+
+/// C-38 ② — 표시 글자(`label` · `*_label` · `*_text` · 제목 · 고지 · 근거)가 비지 않는다 ·
+/// `residualKrwCashText == null ⇔ residualKrwCash == 0` · `ordersEmptyText != null ⇔ 빈 초안` ·
+/// `limitPriceText == null ⇔ limitPrice == null`.
+List<String> depositPlanTextViolations(String where, DepositPlan p) {
+  final List<String> bad = <String>[];
+  _walkJson(jsonDecode(jsonEncode(p.toJson())), (
+    String jsonPath,
+    String key,
+    Object? value,
+  ) {
+    final bool textKey =
+        key == 'label' ||
+        key.endsWith('_label') ||
+        key.endsWith('_text') ||
+        key == 'order_drafts_title' ||
+        key == 'preview_notice' ||
+        key == 'basis_note';
+    if (textKey && value is String && value.trim().isEmpty) {
+      bad.add('$where $jsonPath — 빈 글자다');
+    }
+  });
+  for (int i = 0; i < p.warningLines.length; i++) {
+    if (p.warningLines[i].trim().isEmpty) {
+      bad.add('$where warning_lines[$i] — 빈 글자다');
+    }
+  }
+  final bool zeroResidual = p.residualKrwCash == Decimal.zero;
+  if ((p.residualKrwCashText == null) != zeroResidual) {
+    bad.add(
+      '$where — residual_krw_cash ${p.residualKrwCash} · residual_krw_cash_text '
+      '${p.residualKrwCashText == null ? '없음' : '있음'}(null ⇔ 잔여 0)',
+    );
+  }
+  bad.addAll(_draftListViolations(where, p.orderDrafts, p.ordersEmptyText));
+  return bad;
+}
+
+/// C-38 ③ — 계획 **여럿**에 걸친다: 모든 `previewNotice` 가 «미리보기입니다»로 시작하고 같은 문자열이다
+/// (고지 전용 — 경고·만료를 싣지 않는다 · 01 §14-5). 엔진 시험은 시나리오 출력 전부를 한 목록으로 넘긴다.
+List<String> depositPreviewNoticeViolations(List<(String, DepositPlan)> plans) {
+  final List<String> bad = <String>[];
+  final Set<String> distinct = <String>{};
+  for (final (String where, DepositPlan p) in plans) {
+    distinct.add(p.previewNotice);
+    if (!p.previewNotice.startsWith(kPreviewNoticeHead)) {
+      bad.add(
+        '$where — preview_notice 가 «$kPreviewNoticeHead»로 시작하지 않는다: ${p.previewNotice}',
+      );
+    }
+  }
+  if (distinct.length > 1) {
+    bad.add('preview_notice 가 같은 문자열이 아니다(고지 전용 — 경고·만료를 싣지 않는다): $distinct');
+  }
+  return bad;
+}
+
+/// C-38 ④ — `fundingSteps` 는 null 이거나 비지 않는다 · `order` 1부터 연속 · `expectedProceeds > 0`.
+List<String> depositFundingViolations(String where, DepositPlan p) {
+  final List<FundingStep>? steps = p.fundingSteps;
+  if (steps == null) {
+    return const <String>[];
+  }
+  if (steps.isEmpty) {
+    return <String>['$where — funding_steps 가 빈 목록이다(null 이거나 비지 않아야 한다)'];
+  }
+  final List<String> bad = <String>[];
+  for (int i = 0; i < steps.length; i++) {
+    if (steps[i].order != i + 1) {
+      bad.add(
+        '$where funding_steps[$i] — order ${steps[i].order} ≠ ${i + 1}(1부터 연속)',
+      );
+    }
+    if (steps[i].expectedProceeds <= Decimal.zero) {
+      bad.add(
+        '$where funding_steps[$i] — expected_proceeds ${steps[i].expectedProceeds} ≤ 0(0원 단계 금지)',
+      );
+    }
+  }
+  return bad;
+}
+
+/// C-38 ⑤ — Σ `allocations.amount` + `residualKrwCash` == `depositAmount`(Decimal 정확히).
+List<String> depositSumViolations(String where, DepositPlan p) {
+  final Decimal sum = p.allocations.fold(
+    p.residualKrwCash,
+    (Decimal acc, SleeveAllocation a) => acc + a.amount,
+  );
+  return <String>[
+    if (sum != p.depositAmount)
+      '$where — 충당 합 + 잔여 $sum ≠ 입금액 ${p.depositAmount}',
+  ];
+}
+
+/// C-38 ⑥ — 슬리브별 Σ(지정가 × 수량, 매수 초안) ≤ 그 슬리브 충당액 · 지정가 없는 매수 초안 = 위반.
+List<String> depositBuyWithinAllocationViolations(String where, DepositPlan p) {
+  final List<String> bad = <String>[];
+  final Map<SleeveId, Decimal> buys = <SleeveId, Decimal>{};
+  for (int i = 0; i < p.orderDrafts.length; i++) {
+    final OrderDraft o = p.orderDrafts[i];
+    if (o.side != OrderSide.buy) {
+      continue;
+    }
+    if (o.limitPrice == null) {
+      bad.add(
+        '$where order_drafts[$i] — 매수 초안에 지정가가 없다(슬리브 ${o.sleeve.wire} 합을 볼 수 없다)',
+      );
+      continue;
+    }
+    buys[o.sleeve] =
+        (buys[o.sleeve] ?? Decimal.zero) +
+        o.limitPrice! * Decimal.fromInt(o.quantity);
+  }
+  for (final MapEntry<SleeveId, Decimal> e in buys.entries) {
+    final Decimal allocated = p.allocations
+        .where((SleeveAllocation a) => a.sleeve == e.key)
+        .fold(
+          Decimal.zero,
+          (Decimal acc, SleeveAllocation a) => acc + a.amount,
+        );
+    if (e.value > allocated) {
+      bad.add('$where — 슬리브 ${e.key.wire} 매수 초안 합 ${e.value} > 충당액 $allocated');
+    }
+  }
+  return bad;
+}
+
+/// C-38 ⑦ — 슬리브 B 행(충당·초안)의 별칭 ∈ [pensionAliases] · 모든 별칭 ∈ [allAliases].
+/// 계약 테스트는 픽스처 별칭 표(`fixtures/README.md`)를, 엔진 시험은 계좌 매핑을 넘긴다.
+List<String> depositAccountViolations(
+  String where,
+  DepositPlan p, {
+  required Set<String> pensionAliases,
+  required Set<String> allAliases,
+}) {
+  final List<String> bad = <String>[];
+  final List<(String, SleeveId, String?)> aliases =
+      <(String, SleeveId, String?)>[
+        for (final (int i, SleeveAllocation a) in p.allocations.indexed)
+          ('allocations[$i]', a.sleeve, a.accountAlias),
+        for (final (int i, OrderDraft o) in p.orderDrafts.indexed)
+          ('order_drafts[$i]', o.sleeve, o.accountAlias),
+      ];
+  for (final (String at, SleeveId sleeve, String? alias) in aliases) {
+    if (sleeve == SleeveId.b && !pensionAliases.contains(alias)) {
+      bad.add('$where $at — 슬리브 B 가 연금 계좌가 아니다: $alias(SPEC v2.23 가드)');
+    }
+    if (alias != null && !allAliases.contains(alias)) {
+      bad.add('$where $at — 계좌 별칭 표 밖 별칭: $alias');
+    }
+  }
+  return bad;
+}
+
+/// C-38 ⑧ — 사유 칩 코드 ∈ `ContractCodes`.
+List<String> depositReasonCodeViolations(String where, DepositPlan p) =>
+    <String>[
+      for (final (int i, OrderDraft o) in p.orderDrafts.indexed)
+        for (final ReasonChip c in o.reasons)
+          if (!ContractCodes.isRegistered(c.code))
+            '$where order_drafts[$i] — 사유 코드 ${c.code} 가 ContractCodes 에 없다',
+    ];
+
+/// C-38 ②④⑤⑥⑦⑧ 를 한 계획에 한꺼번에(③ 은 여럿에 걸쳐 [depositPreviewNoticeViolations] 로 따로).
+List<String> depositPlanViolations(
+  String where,
+  DepositPlan p, {
+  required Set<String> pensionAliases,
+  required Set<String> allAliases,
+}) => <String>[
+  ...depositPlanTextViolations(where, p),
+  ...depositFundingViolations(where, p),
+  ...depositSumViolations(where, p),
+  ...depositBuyWithinAllocationViolations(where, p),
+  ...depositAccountViolations(
+    where,
+    p,
+    pensionAliases: pensionAliases,
+    allAliases: allAliases,
+  ),
+  ...depositReasonCodeViolations(where, p),
+];
+
+/// C-41 ① — `preview` · `blockedText` 정확히 하나 · `blockedAction` ⇒ `blockedText` · 실린 글자는 비지 않는다.
+List<String> rebalancePreviewResultViolations(
+  String where,
+  RebalancePreviewResult r,
+) {
+  final List<String> bad = <String>[];
+  if ((r.preview != null) == (r.blockedText != null)) {
+    bad.add('$where — preview·blocked_text 가 둘 다 있거나 둘 다 없다(화면이 갈래를 고르게 된다)');
+  }
+  if (r.blockedAction != null && r.blockedText == null) {
+    bad.add('$where — blocked_text 없이 blocked_action 이 있다(문장 없는 버튼)');
+  }
+  for (final (String key, String? text) in <(String, String?)>[
+    ('blocked_text', r.blockedText),
+    ('blocked_action.label', r.blockedAction?.label),
+  ]) {
+    if (text != null && text.trim().isEmpty) {
+      bad.add('$where — $key 가 빈 글자다');
+    }
+  }
+  return bad;
+}
+
+/// C-41 ② — 초안이 스스로 갖출 것: `asOf` == [asOf](계약 테스트 = 봉투 · 엔진 = 계산에 쓴 as-of) ·
+/// `plannedDateText`·`orderDraftsTitle` 비지 않음 · 고지 머리 · `ordersEmptyText != null ⇔ 빈 초안` ·
+/// 지정가 짝 · `sideLabel`·`quantityText` 비지 않음 · 별칭 ∈ [allAliases] · 슬리브 B ∈ [pensionAliases].
+/// 🔴 «초안이 있으면 before 에 밴드 밖 슬리브가 있다»는 픽스처 표본 정합이지 엔진 불변식이 아니다 — 넣지 않는다.
+List<String> rebalancePreviewViolations(
+  String where,
+  RebalancePreview p, {
+  required AsOf asOf,
+  required Set<String> pensionAliases,
+  required Set<String> allAliases,
+}) {
+  final List<String> bad = <String>[];
+  if (p.asOf != asOf) {
+    bad.add('$where — 초안 기준 시각(as_of)이 ${p.asOf.label} — 기대 ${asOf.label}');
+  }
+  for (final (String key, String text) in <(String, String)>[
+    ('planned_date_text', p.plannedDateText),
+    ('order_drafts_title', p.orderDraftsTitle),
+  ]) {
+    if (text.trim().isEmpty) {
+      bad.add('$where — $key 가 빈 글자다');
+    }
+  }
+  if (!p.previewNotice.startsWith(kPreviewNoticeHead)) {
+    bad.add(
+      '$where — preview_notice 가 «$kPreviewNoticeHead»로 시작하지 않는다: ${p.previewNotice}',
+    );
+  }
+  bad.addAll(_draftListViolations(where, p.orderDrafts, p.ordersEmptyText));
+  for (final (int i, OrderDraft d) in p.orderDrafts.indexed) {
+    for (final (String key, String text) in <(String, String)>[
+      ('side_label', d.sideLabel),
+      ('quantity_text', d.quantityText),
+    ]) {
+      if (text.trim().isEmpty) {
+        bad.add('$where order_drafts[$i] — $key 가 빈 글자다');
+      }
+    }
+    if (!allAliases.contains(d.accountAlias)) {
+      bad.add('$where order_drafts[$i] — 계좌 별칭 표 밖 별칭: ${d.accountAlias}');
+    }
+    if (d.sleeve == SleeveId.b && !pensionAliases.contains(d.accountAlias)) {
+      bad.add(
+        '$where order_drafts[$i] — 슬리브 B 가 연금 계좌가 아니다: ${d.accountAlias}',
+      );
+    }
+  }
+  return bad;
+}
+
+/// 빈 초안 문장 ⇔ 빈 목록 · 지정가 글자 ⇔ 지정가(입금·리밸런싱 공통 — 인출 초안은 대상 아님).
+List<String> _draftListViolations(
+  String where,
+  List<OrderDraft> drafts,
+  String? ordersEmptyText,
+) {
+  final List<String> bad = <String>[];
+  if ((ordersEmptyText != null) != drafts.isEmpty) {
+    bad.add(
+      '$where — order_drafts ${drafts.length}건 · orders_empty_text '
+      '${ordersEmptyText == null ? '없음' : '있음'}(non-null ⇔ 빈 목록)',
+    );
+  }
+  for (int i = 0; i < drafts.length; i++) {
+    final OrderDraft o = drafts[i];
+    if ((o.limitPriceText == null) != (o.limitPrice == null)) {
+      bad.add(
+        '$where order_drafts[$i] — limit_price ${o.limitPrice} · limit_price_text '
+        '${o.limitPriceText}(둘은 함께 비거나 함께 온다)',
+      );
+    }
+  }
+  return bad;
+}
+
+/// JSON 트리를 훑으며 `(키 경로, 키, 값)` 을 넘긴다 — 계약 테스트 `c00_support.walkJson` 과 같은 순서.
+void _walkJson(
+  Object? node,
+  void Function(String path, String key, Object? value) visit, {
+  String path = '',
+}) {
+  if (node is Map<String, Object?>) {
+    for (final MapEntry<String, Object?> e in node.entries) {
+      final String childPath = path.isEmpty ? e.key : '$path.${e.key}';
+      visit(childPath, e.key, e.value);
+      _walkJson(e.value, visit, path: childPath);
+    }
+  } else if (node is List<Object?>) {
+    for (int i = 0; i < node.length; i++) {
+      _walkJson(node[i], visit, path: '$path[$i]');
+    }
+  }
 }
 ```

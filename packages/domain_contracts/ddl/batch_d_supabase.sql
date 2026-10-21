@@ -104,19 +104,17 @@ create policy command_select_own on command_queue for select to authenticated
 create table if not exists command_ack (           -- 엔진(operator)만 INSERT
   ack_id            uuid primary key,
   command_id        uuid not null references command_queue(command_id),
-  state             text not null check (state in ('RECEIVED','EXECUTED','REJECTED','EXPIRED')),
+  state             text not null check (state in ('RECEIVED','EXECUTED','REJECTED','EXPIRED',
+                    'STALE_CONTEXT','HELD_FOR_INTEGRITY','PENDING_LEASE_CONFIRM','NO_OPERATOR')),
   state_label       text not null,                -- 엔진 생성 문구
   reject_reason_code text,
   decision_id       text,
   lease_epoch       bigint not null,              -- 🔴 낮은 epoch 의 ack 거부
   acked_at          timestamptz not null default now()
 );
--- ⚠️🔴 **열린 물음 — `command_ack.state` 는 여전히 4값이다**(인벤토리 §10-2 ①).
---    G-30 은 「`command_inbox` state 집합 = `command_queue` state 집합」을 요구하는데
---    `command_queue` 에는 state 컬럼이 없고 `command_ack` 만 4값을 갖는다.
---    보류 3상태(`STALE_CONTEXT`·`HELD_FOR_INTEGRITY`·`PENDING_LEASE_CONFIRM`)와
---    M2-8 A-11 이 이름을 확정한 `NO_OPERATOR` 를 **여기까지 넓히는가**는 스키마 결정이다.
---    🔴 임의로 넓히지 않는다 — 확정되면 batch_b 의 `command_inbox.state` 와 같은 커밋에서 고친다.
+-- ✅ **`command_ack.state` = batch_b `command_inbox.state` 와 같은 8값**(`CommandState` − `REQUESTED` ·
+--    설계 13 §8 R19 E9-6 · R20 · 인벤토리 §10-2 ① 해소 · G-30). `command_queue` 에는 state 칸이 없다.
+-- 🔵 이 배치의 실적용은 **E11**(Supabase 첫 부트스트랩 · 같은 `schema_version` — R19 E9-13).
 -- 🆕 G-10 — 🔴 `command_ack` 위조는 「집행됨」을 조작한다. RLS 없이 부트스트랩 SQL 을 붙여넣으면
 --    그 구멍이 그대로 운영 DB 가 된다.
 alter table command_ack enable row level security;
@@ -240,5 +238,8 @@ create policy calendar_sync_status_select on calendar_sync_status for select to 
 -- alter table command_queue add column if not exists operating_mode text;
 -- alter table command_queue add column if not exists lease_epoch    bigint;
 --
--- 🔴 `state` CHECK += 보류 3값은 **`command_ack` 에 걸린 열린 물음**이므로 여기서 실행하지 않는다
---    (위 `command_ack` 절의 ⚠️ 참조). 확정 뒤 같은 커밋에서 batch_b 와 함께 넣는다.
+-- alter table command_ack drop constraint command_ack_state_check;
+-- alter table command_ack add  constraint command_ack_state_check check (state in
+--   ('RECEIVED','EXECUTED','REJECTED','EXPIRED',
+--    'STALE_CONTEXT','HELD_FOR_INTEGRITY','PENDING_LEASE_CONFIRM','NO_OPERATOR'));
+-- 🔵 기존 설치가 없으므로(설계 13 §8 R19 E9-10 전제) 이 절은 **기록용**이다.

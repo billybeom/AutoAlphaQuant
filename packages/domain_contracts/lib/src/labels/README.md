@@ -48,7 +48,7 @@ ContractCodes.byDomain['origin_code'];              // 도메인별 집합(픽�
 
 | 무엇 | 지금 상태 |
 |---|---|
-| `CORPORATE_ACTION`(X2) vs `CORP_ACTION`(X5) 중복 | **둘 다 상수로 둔다**. 픽스처·신규 코드는 `OriginCodes.writable`(19종)만 쓴다 — `CORP_ACTION` 제외 |
+| `CORPORATE_ACTION`(X2) vs `CORP_ACTION`(X5) 중복 | ✅ **`CORPORATE_ACTION` 으로 통합**(계약 v1.9.0). `CORP_ACTION` 은 옛 기록용 상수로만 남고 픽스처·신규 코드는 `OriginCodes.writable`(19종)만 쓴다 |
 | `AsOf.staleReasonCode` 값 목록 | ⏸ `StaleReasonCodes` 4값은 **역산**이며 엔진(M1) 확정 대기(M2-8 A-2) |
 | 계절 게이트 «통과» 코드명 | ⏸ `F1_ENTRY_OK` 는 M2-3 등재 대기. 🔴 등재 전에는 픽스처의 `ENTRY_GATE_OCT` 를 **고치지 않는다** |
 | 알림 24종의 **등급** | 🔴 코드만 등재했고 등급 사전은 만들지 않았다. 런타임 정본은 `AlertItem.level`, 최종 정본은 엔진 notify 등급이며 «대조 1회»(06 §4 ③) 전에는 유효하지 않다 |

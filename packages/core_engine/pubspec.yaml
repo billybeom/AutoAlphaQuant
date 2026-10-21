@@ -13,8 +13,7 @@ environment:
 dependencies:
   # 01 §1-1 허용 목록. 🔴 ui_*를 의존하지 않는다 — 계산이 화면을 알면 안 된다.
   # SHA-256 — 멱등키(04 §3-2 · GV-9). dart-lang 이 관리하는 순수 Dart 패키지(발주자 결정 2026-10-20).
-  # ⚠️ 01 §1-1 의 core_engine 허용 목록(domain_contracts · decimal)에 아직 없다 — 다음 M2 창에서
-  #    1줄 개정(설계 13 §7 P-9). 그 전까지 이 주석이 근거다.
+  # ✅ 01 §1-1 의 core_engine 허용 목록에 등재됐다(계약 v1.9 · 설계 13 §7 P-9).
   crypto: ^3.0.7
   decimal: ^3.0.0 # ⚠️ 규약 5조(곱셈 선행·Decimal.one 뺄셈)의 실행 주체가 이 패키지다
   domain_contracts:

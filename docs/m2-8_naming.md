@@ -173,11 +173,11 @@
 
 | # | 문서 위치 | 임시 이름 | **확정** | 근거 |
 |---|---|---|---|---|
-| I-1 | 01 §2-6 · §8-22 | 납입 주기 config 키 | ⏸ `contribution_day`(기본 = **매월 첫 거래일** · 당일 접수는 다음 달 적용) | 01 §2-6 후보 그대로. 🔴 **엔진 config 신설 키**이므로 06 §4 SPEC 개정 배치 계획 ④ 에 1행으로 등재되어야 값이 존재한다. ⏸ 사유 = 발주자가 자동이체 실행일에 맞추기를 원하면 **날짜만** 바뀐다 |
+| I-1 | 01 §2-6 · §8-22 | 납입 주기 config 키 | ✅ **확정(계약 v1.9.0 · 2026-10-21 · 설계 13 §8 R19 E9-8)** = 매월 첫 거래일(휴장이면 다음 거래일 · 당일 접수는 다음 달) — 값은 SPEC 02 §4 config 키(E9b) · 구 ⏸ `contribution_day`(기본 = **매월 첫 거래일** · 당일 접수는 다음 달 적용) | 01 §2-6 후보 그대로. 🔴 **엔진 config 신설 키**이므로 06 §4 SPEC 개정 배치 계획 ④ 에 1행으로 등재되어야 값이 존재한다. ⏸ 사유 = 발주자가 자동이체 실행일에 맞추기를 원하면 **날짜만** 바뀐다 |
 | I-2 | 01 §2-6 · §6-2 | 운영 파라미터 키 | ✅ `operating_param_log.param_key = 'monthly_contribution'`(화이트리스트 1값) | §6-2 주석 그대로. 🔴 `fx_overlay` 계열 키를 넣지 않는다 |
-| I-3 | 01 §9-1 · §9-5 ④ | 로컬 `mode` CHECK 의 값 도메인 | ⏸ **3값 + 파일별 CHECK**(`ledger.sqlite` = `CHECK (mode = 'LIVE')` · `ledger_sim.sqlite` = `CHECK (mode IN ('SIM_INTERNAL','SIM_BROKER'))`, 배치 F 판은 `= 'SIM_INTERNAL'` 로 좁힌다) | §9-5 ④ 권고(첫 거래 전이라 테이블 재생성 비용 0). ⏸ 사유 = 01 §9-1 이 «확정 전에는 DDL 을 고치지 않는다»를 명시했고, 넓히면 배치 A·B 가 재작성 대상이 된다 |
-| I-4 | 01 §8-6 | `CORPORATE_ACTION` vs `CORP_ACTION` | ⏸ **`CORPORATE_ACTION` 으로 통합**(`CORP_ACTION` 은 상수로만 남기고 픽스처·신규 코드에 쓰지 않는다) | X2 계열이 먼저 등재됐고 `CalendarEventKind`·`LedgerEventKind` 도 `corporateAction` 을 쓴다. ⏸ 사유 = **마이그레이션 창 안에서만** 고칠 수 있다(06 M2-1 착수 전 정리 2건) |
-| I-5 | 01 §8-7 · §9-5 ① | `mode` ↔ `order_intents.dry_run` 이중 정본 | ⏸ **`dry_run` 컬럼 유지 + `ExecPolicy` 로 이름만 승격**(폐지하지 않는다) | §9-5 ① 채택 계약. ⏸ 사유 = 파생 규칙 명문화가 M2-1 창 |
+| I-3 | 01 §9-1 · §9-5 ④ | 로컬 `mode` CHECK 의 값 도메인 | ✅ **확정(계약 v1.9.0 · R19 E9-2 · R20 Q1)** — 3값 + 파일별 CHECK(`-- @sim` 태그 · `ledgerDdlFor`) · 구 ⏸ **3값 + 파일별 CHECK**(`ledger.sqlite` = `CHECK (mode = 'LIVE')` · `ledger_sim.sqlite` = `CHECK (mode IN ('SIM_INTERNAL','SIM_BROKER'))`, 배치 F 판은 `= 'SIM_INTERNAL'` 로 좁힌다) | §9-5 ④ 권고(첫 거래 전이라 테이블 재생성 비용 0). ⏸ 사유 = 01 §9-1 이 «확정 전에는 DDL 을 고치지 않는다»를 명시했고, 넓히면 배치 A·B 가 재작성 대상이 된다 |
+| I-4 | 01 §8-6 | `CORPORATE_ACTION` vs `CORP_ACTION` | ✅ **확정(계약 v1.9.0 · R19 E9-4)** · 구 ⏸ **`CORPORATE_ACTION` 으로 통합**(`CORP_ACTION` 은 상수로만 남기고 픽스처·신규 코드에 쓰지 않는다) | X2 계열이 먼저 등재됐고 `CalendarEventKind`·`LedgerEventKind` 도 `corporateAction` 을 쓴다. ⏸ 사유 = **마이그레이션 창 안에서만** 고칠 수 있다(06 M2-1 착수 전 정리 2건) |
+| I-5 | 01 §8-7 · §9-5 ① | `mode` ↔ `order_intents.dry_run` 이중 정본 | ✅ **확정(계약 v1.9.0 · R19 E9-5)** — 파생 규칙 `dry_run = 1` ⇔ `ExecPolicy.dryRun` · 구 ⏸ **`dry_run` 컬럼 유지 + `ExecPolicy` 로 이름만 승격**(폐지하지 않는다) | §9-5 ① 채택 계약. ⏸ 사유 = 파생 규칙 명문화가 M2-1 창 |
 | I-6 | 01 §8-23 G-01 | `onboarding_choice.committed_at` 을 무엇이 채우는가 | ⏸ **`O-04` 완료가 채운다**(첫 배치 성공이 아니다) | 「선택 후 되돌리기」의 경계가 사용자가 보는 단계와 일치해야 한다. 첫 배치 성공을 기준으로 하면 배치가 실패하는 동안 선택이 무한히 열려 있다. ⏸ 사유 = 발주자 확인 |
 
 ---

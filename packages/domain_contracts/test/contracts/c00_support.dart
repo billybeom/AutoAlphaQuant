@@ -251,37 +251,58 @@ Map<String, List<String>> pubspecDependencyNames(File pubspec) {
 ///
 /// 같은 컬럼 이름이 여러 표에 나오면 **목록에 여러 항목**으로 남긴다 —
 /// 「어느 표의 CHECK 인가」가 C-15 의 판정에 필요하기 때문이다.
-List<CheckConstraint> parseCheckConstraints(File sql) {
+List<CheckConstraint> parseCheckConstraints(File sql) =>
+    parseCheckConstraintsText(
+      sql.readAsStringSync(),
+      sql.uri.pathSegments.last,
+    );
+
+/// [parseCheckConstraints] 의 문자열판 — `ledgerDdlFor` 로 만든 SIM 판을 읽을 때 쓴다.
+///
+/// 🆕 v1.9 — `CHECK (col = 'A')`(1값 꼴 · 파일별 `mode` CHECK)도 읽는다.
+List<CheckConstraint> parseCheckConstraintsText(String sql, String file) {
   // 🔴 SQL 줄주석을 먼저 지운다 — 주석 안의 따옴표·괄호가 값 목록을 끊는다
   //    (batch_d 의 `check (kind in (…  -- (`manualFillRecord` ↔ 'RECORD_MANUAL_FILL')`).
   final String text = sql
-      .readAsLinesSync()
+      .split('\n')
       .map((String line) => line.replaceAll(RegExp('--.*'), ''))
       .join('\n');
   final List<CheckConstraint> out = <CheckConstraint>[];
-  final RegExp re = RegExp(
+  final RegExp inList = RegExp(
     r'CHECK\s*\(\s*([A-Za-z_0-9]+)\s+IN\s*\(([^)]*)\)',
     caseSensitive: false,
   );
-  for (final RegExpMatch m in re.allMatches(text)) {
-    final String column = m.group(1)!;
-    final List<String> values = RegExp("'([^']*)'")
-        .allMatches(m.group(2)!)
-        .map((RegExpMatch v) => v.group(1)!)
-        .toList();
+  final RegExp equals = RegExp(
+    r"CHECK\s*\(\s*([A-Za-z_0-9]+)\s*=\s*'([^']*)'",
+    caseSensitive: false,
+  );
+  for (final RegExpMatch m in inList.allMatches(text)) {
     out.add(
       CheckConstraint(
-        file: sql.uri.pathSegments.last,
+        file: file,
         table: _enclosingTable(text, m.start),
-        column: column,
-        values: values,
+        column: m.group(1)!,
+        values: RegExp("'([^']*)'")
+            .allMatches(m.group(2)!)
+            .map((RegExpMatch v) => v.group(1)!)
+            .toList(),
+      ),
+    );
+  }
+  for (final RegExpMatch m in equals.allMatches(text)) {
+    out.add(
+      CheckConstraint(
+        file: file,
+        table: _enclosingTable(text, m.start),
+        column: m.group(1)!,
+        values: <String>[m.group(2)!],
       ),
     );
   }
   return out;
 }
 
-/// `CHECK (col IN (...))` 하나.
+/// `CHECK (col IN (...))` 또는 `CHECK (col = '…')` 하나.
 class CheckConstraint {
   const CheckConstraint({
     required this.file,

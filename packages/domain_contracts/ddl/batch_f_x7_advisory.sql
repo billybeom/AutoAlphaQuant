@@ -6,8 +6,9 @@
 --    (실계좌·실돈). 온보딩 첫날에 «투자 안내»를 고를 수 있으므로 X7 스키마를 나중 창으로 미루면
 --    「사유가 DB 어디에도 안 남는 첫날」이 그대로 재현된다.
 --    **마이그레이션 창은 여전히 1회이고, 배치 F 는 그 창의 여섯 번째 묶음이다.**
--- 🔴 아래는 `ledger.sqlite` 판이다. `ledger_sim.sqlite` 판은 파일 맨 아래 «SIM 판 차이» 참조.
--- 🔴 새 컬럼이 직렬화 규약에 들어가므로 **`hash_format_version` 을 올리고 골든벡터를 다시 고정**한다.
+-- 🔴 아래는 `ledger.sqlite` 판이다. `-- @sim <종류>` 줄은 `ledger_sim.sqlite` 판에서 바뀐다(맨 아래 참조).
+-- ✅ `hash_format_version` = **1 에서 시작**(이 배치의 컬럼을 포함한 판 — 올릴 옛 값도, 다시 고정할
+--    해시 골든도 없다 · 설계 13 §8 R19 E9-11).
 -- 🔴 이 배치의 Supabase 몫(«배치 D 추가분»)은 `batch_d_supabase.sql` 에 있다.
 
 PRAGMA foreign_keys = OFF;
@@ -16,7 +17,7 @@ BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS advice_batch (
     batch_id        TEXT    NOT NULL PRIMARY KEY,
     trade_date      TEXT    NOT NULL,
-    mode            TEXT    NOT NULL CHECK (mode = 'LIVE'),
+    mode            TEXT    NOT NULL CHECK (mode = 'LIVE'),   -- @sim advice
     operating_mode  TEXT    NOT NULL CHECK (operating_mode = 'ADVISORY'),  -- 🔴 자동 모드엔 안내가 없다
                                                          -- 🔴 금지 조합은 CHECK 로도 막는다(§10-2 #7·#8)
     intent_batch_id TEXT    NOT NULL,                    -- 🆕 A11 — 🔴 `exec_policy` 컬럼을 두지 않는다.
@@ -36,7 +37,7 @@ CREATE TABLE IF NOT EXISTS advice (
     intent_id       TEXT,                                -- 🔴 §10-4. order_intents 의 자식
                                                          --    🆕 G-08 — `NO_ACTION` 은 intent 가 없다
     decision_id     TEXT    NOT NULL,                    -- 🔴 사유의 정본은 decision_log(자동과 동일)
-    mode            TEXT    NOT NULL CHECK (mode = 'LIVE'),
+    mode            TEXT    NOT NULL CHECK (mode = 'LIVE'),   -- @sim advice
     trade_date      TEXT    NOT NULL,
     valid_until_date TEXT   NOT NULL,                    -- 🔴 거래일 달력(달력일 아님)
     kind            TEXT    NOT NULL CHECK (kind IN
@@ -105,7 +106,14 @@ CREATE INDEX IF NOT EXISTS ix_advice_transition ON advice_transition(advice_id, 
 
 -- ── 수기 체결 = 기존 원장에 provenance 만 붙인다 (🔴 별도 표를 만들지 않는다 · §10-3) ──
 ALTER TABLE executions ADD COLUMN fill_origin TEXT NOT NULL DEFAULT 'BROKER'
-                        CHECK (fill_origin IN ('BROKER','MANUAL','SIMULATED','BROKER_RECOVERED'));
+                        CHECK (fill_origin IN ('BROKER','MANUAL','SIMULATED','BROKER_RECOVERED')
+                               AND ((fill_origin = 'MANUAL') = (broker_order_no IS NULL)));
+-- ✅ 설계 13 §8 R20 Q2 — **수기 체결만 브로커 주문이 없다.** 02 §2-4 `executions.broker_order_no` 는
+--    v1 에서 **NULL 허용**이다(02 기본 표의 예외 1 · 새 설치라 재생성 비용 0 · 02 개정 = E9b).
+--    · `MANUAL` ⇔ `broker_order_no IS NULL` — 위 CHECK 가 양방향으로 강제한다.
+--    · 수기 체결의 출처는 `advice_id`(안내 밖 수기 매매면 NULL) · 모의(`SIMULATED`)는 모의 브로커가
+--      `broker_orders` 행을 만든다(`intent_id` 실재 — FK 그대로).
+--    · 수기 `execution_id` 형식은 01 §10-3 이 정한다(브로커 `주문번호#순번` 과 접두가 겹치지 않는다).
 ALTER TABLE executions ADD COLUMN fill_kind   TEXT NOT NULL DEFAULT 'ORIGINAL'
                         CHECK (fill_kind IN ('ORIGINAL','REVERSAL','RESTATEMENT'));
 ALTER TABLE executions ADD COLUMN advice_id             TEXT;
@@ -125,7 +133,7 @@ ALTER TABLE executions ADD COLUMN price_range_source_date TEXT;   -- 🆕 B4 —
 ALTER TABLE trades     ADD COLUMN fill_origin TEXT NOT NULL DEFAULT 'BROKER';
 ALTER TABLE trades     ADD COLUMN fill_kind   TEXT NOT NULL DEFAULT 'ORIGINAL';
 ALTER TABLE order_intents ADD COLUMN operating_mode TEXT NOT NULL DEFAULT 'AUTO_TRADE'
-                        CHECK (operating_mode IN ('AUTO_TRADE','ADVISORY'));
+                        CHECK (operating_mode IN ('AUTO_TRADE','ADVISORY'));   -- @sim intent-operating-mode
 -- 🔴 X5 authored 축 매핑에 변화 없음(executions·trades = authored_at).
 
 -- ── 시스템 밖 자산(대사 화이트리스트) ──────────────────────────────────────────
@@ -235,12 +243,10 @@ PRAGMA foreign_keys = ON;
 -- ════════════════════════════════════════════════════════════════════════════
 -- `ledger_sim.sqlite` 판 차이 (§6-6 머리 조문 · §9-5 ④ · C8)
 -- ════════════════════════════════════════════════════════════════════════════
--- 🔴 위 SQL 은 `ledger.sqlite` 판이다. 모의 원장 파일에 적용할 때 달라지는 것:
---   · `advice_batch.mode` · `advice.mode` → `CHECK (mode = 'SIM_INTERNAL')` 로 좁힌다.
+-- ✅ 위 SQL 은 `ledger.sqlite` 판이다. 모의 원장 파일 판은 `-- @sim <종류>` 줄만 바뀐다
+--    (`LedgerModeCheck` · ddl/README «두 파일» · 설계 13 §8 R19 E9-2 · R20 Q1):
+--   · `@sim advice` — `advice_batch.mode` · `advice.mode` → `CHECK (mode = 'SIM_INTERNAL')`.
 --     🔴 `simBroker × advisory`(§10-2 #7·#8)는 **정의 모순으로 금지**이므로 DB 도 그 행을 받지 않는다.
---   · `order_intents` 판 권고: `CHECK (operating_mode = 'AUTO_TRADE' OR mode = 'SIM_INTERNAL')` (C8)
--- ⚠️🔴 그러나 배치 A·B 의 `mode` CHECK 는 아직 `('SIM','LIVE')` 2값이다
---    (인벤토리 §10-2 ② 열린 물음 · 01 §9-1 «확정 전에는 DDL 을 고치지 않는다»).
---    🔴 즉 **`SIM_INTERNAL` 이라는 값이 쓰일 수 있으려면 그 물음이 먼저 닫혀야 한다** —
---    두 곳을 따로 고치면 배치 A 표에는 못 넣는 값을 배치 F 표만 받게 되어 파일 안에서 축이 갈린다.
---    확정될 때 batch_a·batch_b·이 파일·픽스처 `meta.mode`·C-15 를 **한 커밋에서** 고친다.
+--   · `@sim intent-operating-mode` — `order_intents.operating_mode` 에
+--     `AND (operating_mode = 'AUTO_TRADE' OR mode = 'SIM_INTERNAL')` 가 붙는다(C8).
+--   · 배치 A 의 `@sim ledger` 줄(`mode IN ('SIM_INTERNAL','SIM_BROKER')`)과 한 파일 안에서 축이 맞는다.
