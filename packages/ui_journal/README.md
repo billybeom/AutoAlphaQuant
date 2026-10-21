@@ -9,6 +9,8 @@
 
 매매일지 타임라인(첫 과제 **J-1**) · 일지 상세(결정 체인) · 보유현황 목록 · 종목 상세 · 차단 배너.
 
+`H6-1` 보유현황 = `lib/src/holdings_overview.dart`(`HoldingsOverview()` · 주입 `journalHoldingsRepositoryProvider` — 조립 앱 3종이 override · R4b 가 import 해 재사용).
+
 ## 의존 — 허용 (01 §1-1)
 
 `domain_contracts` · Flutter · `flutter_riverpod`. **이 셋이 전부다.**
@@ -40,6 +42,6 @@
 3. **`prevented`는 실패가 아니라 성공이다** — 이중 발주 차단이 작동한 것이며 그렇게 렌더한다. `unknown`은 «실패»로 단정하지 말고 해소 보드로 딥링크한다.
 4. **v2.31 P0S 정합**: 슬리브 칸은 **A/B/C 3칸**이되 그 3을 상수로 알지 않는다 — `SleeveCatalogEntry` 목록에서 온다. 새틀라이트는 «비활성»이 아니라 **숨김**이다.
 
-## 지금 상태 — 🟡 스캐폴드
+## 지금 상태 — ✅ J-1~J-5 · H6-1 병합(2026-10-21 · R4a PR #57 `faeb458`)
 
-배럴과 빈 `labels.dart`만 있다. **⚠️ 이 PC에는 Flutter·Dart·melos가 없다**(2026-09-06).
+`flutter test` **322**(R4a 병합본 `faeb458` 실측 · 2026-10-21) · 골든 PNG **82장**(`test/golden/README.md`) · 다음 = R4b(`H6-2` 종목 상세 · `H6-3` 슬리브·비중 — `docs/ai-context/send/R4b-Bob-H62H63.md`).
