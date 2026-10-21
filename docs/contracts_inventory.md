@@ -686,7 +686,7 @@ abstract interface class SettingsActions {
 - 🔴 **명령 표의 모드 축은 `run_mode` 하나**다(N-02) — `command_queue`·`command_ack` 에는 `mode` 컬럼을 **붙이지 않는다**. `command_ack` 는 `command_id` 참조로 축을 따라온다.
 - 🔴 **읽기 모델 컬럼 목록은 DTO 필수 필드의 상위집합**이어야 한다(G-22). 아니면 viewer 구현자가 축약 타입을 만들어 계약 3조 ① 을 우회한다.
 - 🔴 `rm_advice` 는 **A6 마스킹** — `symbol`·`quantity`·`price_low/high/ref`·`recorded_quantity`·`actions` 를 **싣지 않는다**.
-- 🔵 **v1 필수 신설 4표** = `rm_monthly_report`·`rm_report_archive`·`rm_ledger_diff`·`rm_advice_summary`. `rm_sleeve_allocation`·`rm_perf_context` 는 조건부, `rm_ops_summary` 는 홈 블록 5·7 소유 결정에 종속(⬜ 택일 — 정하지 않은 상태가 가장 나쁘다).
+- 🔵 **v1 필수 신설 4표** = `rm_monthly_report`·`rm_report_archive`·`rm_ledger_diff`·`rm_advice_summary`. `rm_sleeve_allocation`·`rm_perf_context` 는 조건부, ~~`rm_ops_summary` 는 홈 블록 5·7 소유 결정에 종속(⬜ 택일 — 정하지 않은 상태가 가장 나쁘다).~~ ✅ `rm_ops_summary` = **v1 필수**(2026-10-22 · 발주자 · 권고대로 · 설계 10 N-07 · 컬럼 = 01 §6-4 · v1.8 `rm_sleeve_allocation` 승격과 합쳐 v1 필수 6표).
 
 ### 7-5. 배치 E — 열거형 확장(기존 CHECK 재작성 = 테이블 재생성)
 
@@ -911,7 +911,7 @@ ui 테스트 0파일 · ui lib 0 · 골든 PNG 0(`HoldingRow`·`HoldingsReposito
    - 🔴 그럼에도 **이번 통합에서 DDL·열거형·픽스처 중 무엇도 고치지 않았다** — §9-1·§9-5 ④ 가 «확정 전 DDL 불변» 이고 `m2-8_naming` I-3 이 ⏸ 이며, 위 ⓑ 는 어느 쪽으로 닫을지의 **근거**이지 결정이 아니다. 확정이 오면 `ddl/batch_a`·`batch_b`·`batch_f` + `fixtures/journal_30.json` + C-15 를 **한 커밋에서** 움직인다.
 3. ✅ **해소(계약 v1.9.0 · R19 E9-4)** — `CORPORATE_ACTION` 으로 통합 · `CORP_ACTION` 은 옛 기록용 상수만. ~~**`CORPORATE_ACTION` vs `CORP_ACTION`** — 중복 후보(§8-6). 통합 전까지 **둘 다 상수로 두되** 픽스처에는 `CORPORATE_ACTION` 만 쓴다(X2 계열이 먼저 등재됐다).~~
 4. ✅ **해소(계약 v1.9.0 · R19 E9-5)** — 컬럼 유지 + 이름만 승격 · `dry_run = 1` ⇔ `ExecPolicy.dryRun` · `RunMode` 와 독립(batch_a 주석 · `ExecPolicy` doc). ~~**`order_intents.dry_run` ↔ `ExecPolicy` 이중 정본**(§8-7) — `ExecPolicy` 를 열거형으로 만들되 `dry_run` 컬럼은 **그대로 둔다**(§9-5 ①). 파생 규칙 명문화는 M2-1 창.~~
-5. **`rm_ops_summary` 표 존폐** — 만들거나, 홈 블록 5·7 을 폰 전용으로 명시하거나 **둘 중 하나**다. 정하지 않은 상태가 가장 나쁘다(뷰어가 값을 지어낸다).
+5. ✅ **해소(2026-10-22 · 발주자 · 권고대로 · 설계 10 N-07) = 표를 만든다** — v1 필수 · `H-01` 전 플랫폼 · 컬럼 = 01 §6-4 · ⬜ DDL 실물·주석 = 다음 계약 PR(`ddl/batch_d_supabase.sql` · `ddl/README.md` ⑤ · `ops_repository.dart`). ~~**`rm_ops_summary` 표 존폐** — 만들거나, 홈 블록 5·7 을 폰 전용으로 명시하거나 **둘 중 하나**다. 정하지 않은 상태가 가장 나쁘다(뷰어가 값을 지어낸다).~~
 6. **`ReasonOption` ↔ `J-3` `rule_cited` 통합**(§8-20 · D19) — 🔴 **선행 미결**. 닫히기 전에는 `A-4`·`M5-12` 폼 계약이 확정되지 않는다.
 7. ~~**`FeatureFlags.operatingMode` 의 `@Default`**(§8-19) — 주면 «기본이 자동»이 조용한 전제가 되고, 안 주면 `rm_config_view` 미갱신 상태에서 뷰어가 죽는다.~~ ✅ **닫힘(2026-10-22 · 01 §8-19)** — 기본값 없음(required) · `rm_config_view.operating_mode` NOT NULL(엔진 M4-1) · 뷰어가 못 읽으면 `incompatible`.
 8. **`AlertItem.ack` 의 쓰기 경로**(§8-10) — `alertAck` 명령은 생겼으나 **뷰어 허용 여부**는 여전히 열려 있다(X7 이 대신 답하지 않는다).
