@@ -17,10 +17,16 @@
 //      asOf 정합 · 게이지 폭 범위 · 가림 표본 · int ↔ 문장 정합
 //   ⑨ 정상·섞인 달 제안 줄 부재 · R12 픽스처 전 문자열 금지어 0
 //   ⑩ 월간 ⑧ 링크 = 그 달의 `S7-10`(`ledgerExecutionGapMonth`) · 가림·미생성 = 링크 없음
+// 🆕 E7a0(2026-10-21 · 설계 13 §8 R18 D-12) — ①② 의 판정은 `package:domain_contracts/testing.dart` 의
+//    `rebalancePreviewResultViolations` · `rebalancePreviewViolations` 로 옮겼다(실엔진 출력에도 같은 판정).
+//    표본 수 · 행 순서 · 밴드 표본 정합은 픽스처 전용이라 여기에 남는다.
 // 🔴 숫자를 이 파일에 적지 않는다 — 픽스처끼리 맞댄다(C-40 선례). «패턴에 값을 끼운 기대값»·«n건» 토큰
 //    분해는 **테스트 쪽 조립**이다(화면 lib 규칙 ③ 은 화면의 규칙 · C-33 ⑦ 선례).
 
+import 'dart:convert';
+
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/testing.dart';
 import 'package:test/test.dart';
 
 import 'support/fixture_accounts.dart';
@@ -155,17 +161,11 @@ void main() {
       for (final String path in <String>[_pvDefault, _pvInBand, _pvBlocked]) {
         final List<RebalancePreviewResult> rows = _previews(path);
         expect(rows, isNotEmpty, reason: path);
-        for (final RebalancePreviewResult r in rows) {
-          expect(
-            (r.preview != null) != (r.blockedText != null),
-            isTrue,
-            reason:
-                '$path — preview·blockedText 가 둘 다 있거나 둘 다 없다(화면이 갈래를 고르게 된다).',
-          );
-          if (r.blockedAction != null) {
-            expect(r.blockedText, isNotNull, reason: '$path — 문장 없는 버튼.');
-          }
-        }
+        final List<String> bad = <String>[
+          for (final (int i, RebalancePreviewResult r) in rows.indexed)
+            ...rebalancePreviewResultViolations('$path rows[$i]', r),
+        ];
+        expect(bad, isEmpty, reason: bad.join('\n'));
       }
       for (final String path in <String>[_pvDefault, _pvInBand]) {
         expect(
@@ -203,31 +203,19 @@ void main() {
     test('C-41 ② 초안은 봉투 기준 시각·머리 글자·고지·빈 초안 문장·지정가 짝을 스스로 갖춘다', () {
       for (final String path in <String>[_pvDefault, _pvInBand]) {
         final AsOf envelope = _envelopeAsOf(path);
-        for (final RebalancePreviewResult r in _previews(path)) {
-          final RebalancePreview p = r.preview!;
-          expect(p.asOf, envelope, reason: '$path — 초안 기준 시각이 봉투와 다르다.');
-          expect(p.plannedDateText.trim(), isNotEmpty, reason: path);
-          expect(p.orderDraftsTitle.trim(), isNotEmpty, reason: path);
-          expect(p.previewNotice, startsWith('미리보기입니다'), reason: path);
-          expect(
-            p.ordersEmptyText != null,
-            p.orderDrafts.isEmpty,
-            reason: '$path — ordersEmptyText 는 빈 초안일 때만(그때는 반드시) 있다.',
-          );
-          for (final OrderDraft d in p.orderDrafts) {
-            expect(
-              d.limitPriceText != null,
-              d.limitPrice != null,
-              reason: '$path ${d.symbol} — 지정가 글자와 원값의 짝이 깨졌다.',
-            );
-            expect(d.sideLabel.trim(), isNotEmpty, reason: d.symbol);
-            expect(d.quantityText.trim(), isNotEmpty, reason: d.symbol);
-            expect(kFixtureAccountAliases, contains(d.accountAlias));
-            if (d.sleeve == SleeveId.b) {
-              expect(kFixturePensionAccountAliases, contains(d.accountAlias));
-            }
-          }
-        }
+        final List<String> bad = <String>[
+          for (final (int i, RebalancePreviewResult r) in _previews(
+            path,
+          ).indexed)
+            ...rebalancePreviewViolations(
+              '$path rows[$i]',
+              r.preview!,
+              asOf: envelope,
+              pensionAliases: kFixturePensionAccountAliases,
+              allAliases: kFixtureAccountAliases,
+            ),
+        ];
+        expect(bad, isEmpty, reason: bad.join('\n'));
       }
       final RebalancePreview withDrafts = _previews(_pvDefault).single.preview!;
       final RebalancePreview inBand = _previews(_pvInBand).single.preview!;
@@ -250,6 +238,173 @@ void main() {
         isEmpty,
         reason: '$_pvInBand — «모든 슬리브가 밴드 안» 문장과 before 원값이 어긋난다.',
       );
+    });
+
+    test('C-41 ①② 자체 검증 — 망가뜨린 사본은 판정 함수에 걸린다(E7a0)', () {
+      Map<String, Object?> copyOf(Map<String, Object?> j) =>
+          jsonDecode(jsonEncode(j)) as Map<String, Object?>;
+      final Map<String, Object?> def = fixtureRows(_pvDefault).first;
+      final Map<String, Object?> blockedWithButton = fixtureRows(_pvBlocked)
+          .firstWhere((Map<String, Object?> r) => r['blocked_action'] != null);
+      final AsOf envelope = _envelopeAsOf(_pvDefault);
+
+      // ①
+      final List<
+        (
+          String,
+          String,
+          Map<String, Object?>,
+          void Function(Map<String, Object?>),
+        )
+      >
+      wrapper =
+          <
+            (
+              String,
+              String,
+              Map<String, Object?>,
+              void Function(Map<String, Object?>),
+            )
+          >[
+            (
+              '초안과 차단이 함께',
+              '둘 다',
+              def,
+              (Map<String, Object?> j) {
+                j['blocked_text'] = '초안을 계산하지 않습니다.';
+              },
+            ),
+            (
+              '차단 없이 버튼',
+              'blocked_action',
+              def,
+              (Map<String, Object?> j) {
+                j['blocked_action'] = blockedWithButton['blocked_action'];
+              },
+            ),
+            (
+              '빈 차단 문장',
+              'blocked_text 가 빈',
+              blockedWithButton,
+              (Map<String, Object?> j) {
+                j['blocked_text'] = ' ';
+              },
+            ),
+          ];
+      for (final (
+            String name,
+            String hit,
+            Map<String, Object?> row,
+            void Function(Map<String, Object?>) edit,
+          )
+          in wrapper) {
+        expect(
+          rebalancePreviewResultViolations(
+            name,
+            RebalancePreviewResult.fromJson(row),
+          ),
+          isEmpty,
+        );
+        final Map<String, Object?> m = copyOf(row);
+        edit(m);
+        expect(
+          rebalancePreviewResultViolations(
+            name,
+            RebalancePreviewResult.fromJson(m),
+          ),
+          contains(contains(hit)),
+          reason: '$name — 망가뜨렸는데 검사가 통과한다.',
+        );
+      }
+
+      // ②
+      List<String> rule(Map<String, Object?> preview, {AsOf? asOf}) =>
+          rebalancePreviewViolations(
+            'mut',
+            RebalancePreview.fromJson(preview),
+            asOf: asOf ?? envelope,
+            pensionAliases: kFixturePensionAccountAliases,
+            allAliases: kFixtureAccountAliases,
+          );
+      List<Map<String, Object?>> drafts(Map<String, Object?> p) =>
+          (p['order_drafts']! as List<Object?>).cast<Map<String, Object?>>();
+      final Map<String, Object?> preview =
+          def['preview']! as Map<String, Object?>;
+      expect(rule(preview), isEmpty);
+      final int b = drafts(preview)
+          .indexWhere((Map<String, Object?> d) => d['sleeve'] == 'B');
+      expect(b, isNonNegative, reason: '슬리브 B 초안 표본');
+      final List<(String, String, void Function(Map<String, Object?>))> cases =
+          <(String, String, void Function(Map<String, Object?>))>[
+            (
+              '빈 회차 글자',
+              'planned_date_text',
+              (Map<String, Object?> p) {
+                p['planned_date_text'] = '';
+              },
+            ),
+            (
+              '고지 머리',
+              'preview_notice',
+              (Map<String, Object?> p) {
+                p['preview_notice'] = '초안입니다.';
+              },
+            ),
+            (
+              '초안이 있는데 빈 초안 문장',
+              'orders_empty_text',
+              (Map<String, Object?> p) {
+                p['orders_empty_text'] = '낼 초안이 없습니다.';
+              },
+            ),
+            (
+              '지정가만 있고 글자 없음',
+              'limit_price_text',
+              (Map<String, Object?> p) {
+                drafts(p)[0].remove('limit_price_text');
+              },
+            ),
+            (
+              '빈 수량 글자',
+              'quantity_text',
+              (Map<String, Object?> p) {
+                drafts(p)[0]['quantity_text'] = ' ';
+              },
+            ),
+            (
+              '슬리브 B 가 일반 계좌',
+              '연금 계좌',
+              (Map<String, Object?> p) {
+                drafts(p)[b]['account_alias'] = '일반';
+              },
+            ),
+            (
+              '표 밖 별칭',
+              '표 밖',
+              (Map<String, Object?> p) {
+                drafts(p)[0]['account_alias'] = 'ISA';
+              },
+            ),
+          ];
+      for (final (
+            String name,
+            String hit,
+            void Function(Map<String, Object?>) edit,
+          )
+          in cases) {
+        final Map<String, Object?> m = copyOf(preview);
+        edit(m);
+        expect(
+          rule(m),
+          contains(contains(hit)),
+          reason: '$name — 망가뜨렸는데 검사가 통과한다.',
+        );
+      }
+      final AsOf other = AsOf.fromJson(<String, Object?>{
+        ...envelope.toJson(),
+        'label': '다른 기준',
+      });
+      expect(rule(preview, asOf: other), contains(contains('as_of')));
     });
 
     test('C-41 ③ 다음 회차 — 카운트다운과 예정 없음이 섞이지 않고 행 asOf 가 봉투와 같다', () {
