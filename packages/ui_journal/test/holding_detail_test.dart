@@ -64,10 +64,9 @@ void main() {
 
     expect(repo.calls, <(String, bool)>[(id, false)]);
 
-    expect(
-      holdingsShownTexts(tester, const Key('h62-asof')),
-      <String>[noStop.asOf.label],
-    );
+    expect(holdingsShownTexts(tester, const Key('h62-asof')), <String>[
+      noStop.asOf.label,
+    ]);
 
     expect(
       tester.widget<Text>(find.byKey(const Key('h62-sleeve'))).data,
@@ -143,13 +142,27 @@ void main() {
       findsOneWidget,
     );
 
-    final double dyAsof = tester.getTopLeft(find.byKey(const Key('h62-asof'))).dy;
-    final double dySleeve = tester.getTopLeft(find.byKey(const Key('h62-sleeve'))).dy;
-    final double dySummary = tester.getTopLeft(find.byKey(const Key('h62-summary'))).dy;
-    final double dyToggle = tester.getTopLeft(find.byKey(const Key('h62-pnl-toggle'))).dy;
-    final double dyLink = tester.getTopLeft(find.byKey(const Key('h62-entry-link'))).dy;
-    final double dyNoStop = tester.getTopLeft(find.byKey(const Key('h62-no-stop'))).dy;
-    final double dyRecentEmpty = tester.getTopLeft(find.byKey(const Key('h62-recent-empty'))).dy;
+    final double dyAsof = tester
+        .getTopLeft(find.byKey(const Key('h62-asof')))
+        .dy;
+    final double dySleeve = tester
+        .getTopLeft(find.byKey(const Key('h62-sleeve')))
+        .dy;
+    final double dySummary = tester
+        .getTopLeft(find.byKey(const Key('h62-summary')))
+        .dy;
+    final double dyToggle = tester
+        .getTopLeft(find.byKey(const Key('h62-pnl-toggle')))
+        .dy;
+    final double dyLink = tester
+        .getTopLeft(find.byKey(const Key('h62-entry-link')))
+        .dy;
+    final double dyNoStop = tester
+        .getTopLeft(find.byKey(const Key('h62-no-stop')))
+        .dy;
+    final double dyRecentEmpty = tester
+        .getTopLeft(find.byKey(const Key('h62-recent-empty')))
+        .dy;
     expect(dyAsof, lessThan(dySleeve));
     expect(dySleeve, lessThan(dySummary));
     expect(dySummary, lessThan(dyToggle));
@@ -219,9 +232,15 @@ void main() {
       );
     }
 
-    final double dy0 = tester.getTopLeft(find.byKey(const ValueKey<String>('h62-entry-0'))).dy;
-    final double dy1 = tester.getTopLeft(find.byKey(const ValueKey<String>('h62-entry-1'))).dy;
-    final double dy2 = tester.getTopLeft(find.byKey(const ValueKey<String>('h62-entry-2'))).dy;
+    final double dy0 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('h62-entry-0')))
+        .dy;
+    final double dy1 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('h62-entry-1')))
+        .dy;
+    final double dy2 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('h62-entry-2')))
+        .dy;
     expect(dy0, lessThan(dy1));
     expect(dy1, lessThan(dy2));
 
@@ -240,25 +259,25 @@ void main() {
       await tester.pump();
     }
 
-    expect(
-      opener.opened,
-      <String>[
-        for (final TradeJournalEntry e in withStops.recentEntries)
-          e.detailDeepLink!,
-      ],
-    );
+    expect(opener.opened, <String>[
+      for (final TradeJournalEntry e in withStops.recentEntries)
+        e.detailDeepLink!,
+    ]);
 
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
   // T62-04: pnl expand = resubscribe, collapse, re-entry
-  testWidgets('T62-04 pnl expand resubscribe collapse reentry',
-      (WidgetTester tester) async {
+  testWidgets('T62-04 pnl expand resubscribe collapse reentry', (
+    WidgetTester tester,
+  ) async {
     final RecordingLinkOpener opener = RecordingLinkOpener();
     final FakeHoldingDetailRepository repo = fakeHoldingDetail(noStop, pnl);
     final String id = noStop.holding.holdingId;
-    final List<Override> overrides =
-        holdingDetailOverrides(repo: repo, opener: opener);
+    final List<Override> overrides = holdingDetailOverrides(
+      repo: repo,
+      opener: opener,
+    );
     await pumpHoldingDetail(tester, overrides: overrides, holdingId: id);
 
     expect(repo.calls, <(String, bool)>[(id, false)]);
@@ -269,10 +288,11 @@ void main() {
     expect(pnl.holding.pnl, isNotNull);
 
     final HoldingPnl p = pnl.holding.pnl!;
-    expect(
-      holdingsShownTexts(tester, const Key('h62-pnl')),
-      <String?>[p.pnlText, p.pnlPctText, p.disclosureNote],
-    );
+    expect(holdingsShownTexts(tester, const Key('h62-pnl')), <String?>[
+      p.pnlText,
+      p.pnlPctText,
+      p.disclosureNote,
+    ]);
     expect(
       holdingsShownTexts(tester, const Key('h62-summary')),
       holdingDetailSummaryTexts(pnl.holding),
@@ -313,8 +333,9 @@ void main() {
   });
 
   // T62-05: RECON = text only, no warning icon
-  testWidgets('T62-05 RECON text only no warning icon',
-      (WidgetTester tester) async {
+  testWidgets('T62-05 RECON text only no warning icon', (
+    WidgetTester tester,
+  ) async {
     final SafetyState safety = safetyFixtureRow(3);
     final FakeHoldingDetailRepository repo = fakeHoldingDetail(recon, pnl);
     await pumpHoldingDetail(
@@ -349,8 +370,9 @@ void main() {
   });
 
   // T62-06: INTEGRITY = masked text, chips absent
-  testWidgets('T62-06 INTEGRITY masked text chips absent',
-      (WidgetTester tester) async {
+  testWidgets('T62-06 INTEGRITY masked text chips absent', (
+    WidgetTester tester,
+  ) async {
     final SafetyState safety = safetyFixtureRow(4);
     final FakeHoldingDetailRepository repo = fakeHoldingDetail(integrity, pnl);
     await pumpHoldingDetail(
@@ -386,7 +408,8 @@ void main() {
     }
 
     expect(integrity.recentEntries.length, 2);
-    for (final (int k, TradeJournalEntry _) in integrity.recentEntries.indexed) {
+    for (final (int k, TradeJournalEntry _)
+        in integrity.recentEntries.indexed) {
       expect(find.byKey(ValueKey<String>('h62-entry-$k')), findsOneWidget);
     }
 
@@ -396,13 +419,20 @@ void main() {
   // T62-07: all Text widgets in allowed set (two cases, for-loop testWidgets)
   final List<(String, Future<void> Function(WidgetTester))> t62Cases07 =
       <(String, Future<void> Function(WidgetTester))>[
-    ('closed', (_) async {}),
-    ('expanded', (WidgetTester t) async { await tapHoldingDetailPnlToggle(t); }),
-  ];
+        ('closed', (_) async {}),
+        (
+          'expanded',
+          (WidgetTester t) async {
+            await tapHoldingDetailPnlToggle(t);
+          },
+        ),
+      ];
 
-  for (final (String caseName, Future<void> Function(WidgetTester) steps) in t62Cases07) {
-    testWidgets('T62-07 all screen texts in allowed set $caseName',
-        (WidgetTester tester) async {
+  for (final (String caseName, Future<void> Function(WidgetTester) steps)
+      in t62Cases07) {
+    testWidgets('T62-07 all screen texts in allowed set $caseName', (
+      WidgetTester tester,
+    ) async {
       final FakeHoldingDetailRepository repo = fakeHoldingDetail(noStop, pnl);
       await pumpHoldingDetail(
         tester,
@@ -431,111 +461,146 @@ void main() {
   final DateTime t62StaleNow = kGoldenNowUtc.add(const Duration(days: 2));
 
   for (final (
-    String caseName,
-    FakeHoldingDetailRepository Function() repoFactory,
-    Clock clock,
-    Future<void> Function(WidgetTester) steps,
-    bool wantSkeleton,
-    bool wantError,
-    bool wantHead,
-    bool wantBanner,
-    bool wantStale,
-  ) in <(
-    String,
-    FakeHoldingDetailRepository Function(),
-    Clock,
-    Future<void> Function(WidgetTester),
-    bool,
-    bool,
-    bool,
-    bool,
-    bool,
-  )>[
-    (
-      'loading',
-      () {
-        final StreamController<HoldingDetailVm> ctrl =
-            StreamController<HoldingDetailVm>();
-        return FakeHoldingDetailRepository(
-          detail: (String id, bool inc, int c) {
-            addTearDown(() {
-              unawaited(ctrl.close());
-            });
-            return inc ? Stream<HoldingDetailVm>.value(pnl) : ctrl.stream;
+        String caseName,
+        FakeHoldingDetailRepository Function() repoFactory,
+        Clock clock,
+        Future<void> Function(WidgetTester) steps,
+        bool wantSkeleton,
+        bool wantError,
+        bool wantHead,
+        bool wantBanner,
+        bool wantStale,
+      )
+      in <
+        (
+          String,
+          FakeHoldingDetailRepository Function(),
+          Clock,
+          Future<void> Function(WidgetTester),
+          bool,
+          bool,
+          bool,
+          bool,
+          bool,
+        )
+      >[
+        (
+          'loading',
+          () {
+            final StreamController<HoldingDetailVm> ctrl =
+                StreamController<HoldingDetailVm>();
+            return FakeHoldingDetailRepository(
+              detail: (String id, bool inc, int c) {
+                addTearDown(() {
+                  unawaited(ctrl.close());
+                });
+                return inc ? Stream<HoldingDetailVm>.value(pnl) : ctrl.stream;
+              },
+            );
           },
-        );
-      },
-      FixedClock(kGoldenNowUtc),
-      (_) async {},
-      true, false, false, false, false,
-    ),
-    (
-      'fail',
-      () => FakeHoldingDetailRepository(
-        detail: (String id, bool inc, int c) => inc
-            ? Stream<HoldingDetailVm>.value(pnl)
-            : Stream<HoldingDetailVm>.error(StateError('fail')),
-      ),
-      FixedClock(kGoldenNowUtc),
-      (_) async {},
-      false, true, false, false, false,
-    ),
-    (
-      'normal',
-      () => fakeHoldingDetail(noStop, pnl),
-      FixedClock(kGoldenNowUtc),
-      (_) async {},
-      false, false, true, true, false,
-    ),
-    (
-      'normal_stale',
-      () => fakeHoldingDetail(noStop, pnl),
-      FixedClock(t62StaleNow),
-      (_) async {},
-      false, false, true, true, true,
-    ),
-    (
-      'integrity',
-      () => fakeHoldingDetail(integrity, pnl),
-      FixedClock(kGoldenNowUtc),
-      (_) async {},
-      false, false, true, true, false,
-    ),
-    (
-      'pnl_loading',
-      () {
-        final StreamController<HoldingDetailVm> ctrl =
-            StreamController<HoldingDetailVm>();
-        return FakeHoldingDetailRepository(
-          detail: (String id, bool inc, int c) {
-            addTearDown(() {
-              unawaited(ctrl.close());
-            });
-            return inc ? ctrl.stream : Stream<HoldingDetailVm>.value(noStop);
+          FixedClock(kGoldenNowUtc),
+          (_) async {},
+          true,
+          false,
+          false,
+          false,
+          false,
+        ),
+        (
+          'fail',
+          () => FakeHoldingDetailRepository(
+            detail: (String id, bool inc, int c) => inc
+                ? Stream<HoldingDetailVm>.value(pnl)
+                : Stream<HoldingDetailVm>.error(StateError('fail')),
+          ),
+          FixedClock(kGoldenNowUtc),
+          (_) async {},
+          false,
+          true,
+          false,
+          false,
+          false,
+        ),
+        (
+          'normal',
+          () => fakeHoldingDetail(noStop, pnl),
+          FixedClock(kGoldenNowUtc),
+          (_) async {},
+          false,
+          false,
+          true,
+          true,
+          false,
+        ),
+        (
+          'normal_stale',
+          () => fakeHoldingDetail(noStop, pnl),
+          FixedClock(t62StaleNow),
+          (_) async {},
+          false,
+          false,
+          true,
+          true,
+          true,
+        ),
+        (
+          'integrity',
+          () => fakeHoldingDetail(integrity, pnl),
+          FixedClock(kGoldenNowUtc),
+          (_) async {},
+          false,
+          false,
+          true,
+          true,
+          false,
+        ),
+        (
+          'pnl_loading',
+          () {
+            final StreamController<HoldingDetailVm> ctrl =
+                StreamController<HoldingDetailVm>();
+            return FakeHoldingDetailRepository(
+              detail: (String id, bool inc, int c) {
+                addTearDown(() {
+                  unawaited(ctrl.close());
+                });
+                return inc
+                    ? ctrl.stream
+                    : Stream<HoldingDetailVm>.value(noStop);
+              },
+            );
           },
-        );
-      },
-      FixedClock(kGoldenNowUtc),
-      (WidgetTester t) async {
-        await tapHoldingDetailPnlToggle(t);
-      },
-      true, false, false, false, false,
-    ),
-    (
-      'pnl_fail',
-      () => FakeHoldingDetailRepository(
-        detail: (String id, bool inc, int c) => inc
-            ? Stream<HoldingDetailVm>.error(StateError('fail'))
-            : Stream<HoldingDetailVm>.value(noStop),
-      ),
-      FixedClock(kGoldenNowUtc),
-      (WidgetTester t) async {
-        await tapHoldingDetailPnlToggle(t);
-      },
-      false, true, false, false, false,
-    ),
-  ]) {
-    testWidgets('T62-08 branch x banner $caseName', (WidgetTester tester) async {
+          FixedClock(kGoldenNowUtc),
+          (WidgetTester t) async {
+            await tapHoldingDetailPnlToggle(t);
+          },
+          true,
+          false,
+          false,
+          false,
+          false,
+        ),
+        (
+          'pnl_fail',
+          () => FakeHoldingDetailRepository(
+            detail: (String id, bool inc, int c) => inc
+                ? Stream<HoldingDetailVm>.error(StateError('fail'))
+                : Stream<HoldingDetailVm>.value(noStop),
+          ),
+          FixedClock(kGoldenNowUtc),
+          (WidgetTester t) async {
+            await tapHoldingDetailPnlToggle(t);
+          },
+          false,
+          true,
+          false,
+          false,
+          false,
+        ),
+      ]) {
+    testWidgets('T62-08 branch x banner $caseName', (
+      WidgetTester tester,
+    ) async {
       final SafetyState safety = safetyFixtureRow(3);
       final FakeHoldingDetailRepository repo = repoFactory();
 
@@ -585,82 +650,95 @@ void main() {
         );
       }
 
-      expect(find.byType(CircularProgressIndicator), findsNothing, reason: caseName);
-      expect(find.byType(LinearProgressIndicator), findsNothing, reason: caseName);
+      expect(
+        find.byType(CircularProgressIndicator),
+        findsNothing,
+        reason: caseName,
+      );
+      expect(
+        find.byType(LinearProgressIndicator),
+        findsNothing,
+        reason: caseName,
+      );
     });
   }
 
   // T62-09: error and retry — for-loop testWidgets per case
   for (final (
-    String caseName,
-    FakeHoldingDetailRepository Function() repoFactory,
-    String? Function() wantLastAsOfFn,
-    List<(String, bool)> Function(String) wantCalls,
-    Future<void> Function(WidgetTester) steps,
-  ) in <(
-    String,
-    FakeHoldingDetailRepository Function(),
-    String? Function(),
-    List<(String, bool)> Function(String),
-    Future<void> Function(WidgetTester),
-  )>[
-    (
-      'detail_fail',
-      () {
-        int callCount = 0;
-        return FakeHoldingDetailRepository(
-          detail: (String id, bool inc, int c) {
-            callCount++;
-            if (callCount == 1) {
-              return Stream<HoldingDetailVm>.error(StateError('fail'));
-            }
-            return Stream<HoldingDetailVm>.value(noStop);
+        String caseName,
+        FakeHoldingDetailRepository Function() repoFactory,
+        String? Function() wantLastAsOfFn,
+        List<(String, bool)> Function(String) wantCalls,
+        Future<void> Function(WidgetTester) steps,
+      )
+      in <
+        (
+          String,
+          FakeHoldingDetailRepository Function(),
+          String? Function(),
+          List<(String, bool)> Function(String),
+          Future<void> Function(WidgetTester),
+        )
+      >[
+        (
+          'detail_fail',
+          () {
+            int callCount = 0;
+            return FakeHoldingDetailRepository(
+              detail: (String id, bool inc, int c) {
+                callCount++;
+                if (callCount == 1) {
+                  return Stream<HoldingDetailVm>.error(StateError('fail'));
+                }
+                return Stream<HoldingDetailVm>.value(noStop);
+              },
+            );
           },
-        );
-      },
-      () => null,
-      (String id) => <(String, bool)>[(id, false), (id, false)],
-      (_) async {},
-    ),
-    (
-      'pnl_fail',
-      () {
-        int pnlCallCount = 0;
-        return FakeHoldingDetailRepository(
-          detail: (String id, bool inc, int c) {
-            if (!inc) {
+          () => null,
+          (String id) => <(String, bool)>[(id, false), (id, false)],
+          (_) async {},
+        ),
+        (
+          'pnl_fail',
+          () {
+            int pnlCallCount = 0;
+            return FakeHoldingDetailRepository(
+              detail: (String id, bool inc, int c) {
+                if (!inc) {
+                  return Stream<HoldingDetailVm>.value(noStop);
+                }
+                pnlCallCount++;
+                if (pnlCallCount == 1) {
+                  return Stream<HoldingDetailVm>.error(StateError('fail'));
+                }
+                return Stream<HoldingDetailVm>.value(pnl);
+              },
+            );
+          },
+          () => null,
+          (String id) => <(String, bool)>[(id, false), (id, true), (id, true)],
+          (WidgetTester t) async {
+            await tapHoldingDetailPnlToggle(t);
+          },
+        ),
+        (
+          'value_then_fail',
+          () => FakeHoldingDetailRepository(
+            detail: (String id, bool inc, int call) {
+              if (call == 0) {
+                return valueThenFail(noStop);
+              }
               return Stream<HoldingDetailVm>.value(noStop);
-            }
-            pnlCallCount++;
-            if (pnlCallCount == 1) {
-              return Stream<HoldingDetailVm>.error(StateError('fail'));
-            }
-            return Stream<HoldingDetailVm>.value(pnl);
-          },
-        );
-      },
-      () => null,
-      (String id) => <(String, bool)>[(id, false), (id, true), (id, true)],
-      (WidgetTester t) async {
-        await tapHoldingDetailPnlToggle(t);
-      },
-    ),
-    (
-      'value_then_fail',
-      () => FakeHoldingDetailRepository(
-        detail: (String id, bool inc, int call) {
-          if (call == 0) {
-            return valueThenFail(noStop);
-          }
-          return Stream<HoldingDetailVm>.value(noStop);
-        },
-      ),
-      () => noStop.asOf.label,
-      (String id) => <(String, bool)>[(id, false), (id, false)],
-      (_) async {},
-    ),
-  ]) {
-    testWidgets('T62-09 error and retry $caseName', (WidgetTester tester) async {
+            },
+          ),
+          () => noStop.asOf.label,
+          (String id) => <(String, bool)>[(id, false), (id, false)],
+          (_) async {},
+        ),
+      ]) {
+    testWidgets('T62-09 error and retry $caseName', (
+      WidgetTester tester,
+    ) async {
       final SafetyState safety = safetyFixtureRow(3);
       final FakeHoldingDetailRepository repo = repoFactory();
       final String id = noStop.holding.holdingId;
@@ -672,9 +750,14 @@ void main() {
 
       await steps(tester);
 
-      expect(find.byKey(const Key('h62-fail')), findsOneWidget, reason: caseName);
-      final JournalErrorView errorView =
-          tester.widget<JournalErrorView>(find.byKey(const Key('h62-fail')));
+      expect(
+        find.byKey(const Key('h62-fail')),
+        findsOneWidget,
+        reason: caseName,
+      );
+      final JournalErrorView errorView = tester.widget<JournalErrorView>(
+        find.byKey(const Key('h62-fail')),
+      );
       expect(errorView.lastAsOfLabel, wantLastAsOfFn(), reason: caseName);
       for (final BlockFlag f in safety.activeFlags) {
         expect(find.text(f.label), findsNothing, reason: caseName);
@@ -686,7 +769,11 @@ void main() {
       await tester.pump();
 
       expect(find.byKey(const Key('h62-fail')), findsNothing, reason: caseName);
-      expect(find.byKey(const Key('h62-asof')), findsOneWidget, reason: caseName);
+      expect(
+        find.byKey(const Key('h62-asof')),
+        findsOneWidget,
+        reason: caseName,
+      );
       expect(repo.calls, wantCalls(id), reason: caseName);
 
       expect(find.text(JournalLabels.retry), findsNothing);
@@ -695,26 +782,29 @@ void main() {
 
   // T62-10: large font — for-loop testWidgets per case
   for (final (
-    String caseName,
-    HoldingDetailVm Function() closedFn,
-    HoldingDetailVm Function() openFn,
-    Future<void> Function(WidgetTester) steps,
-  ) in <(
-    String,
-    HoldingDetailVm Function(),
-    HoldingDetailVm Function(),
-    Future<void> Function(WidgetTester),
-  )>[
-    ('with_stops', () => withStops, () => pnl, (_) async {}),
-    (
-      'expanded',
-      () => noStop,
-      () => pnl,
-      (WidgetTester t) async {
-        await tapHoldingDetailPnlToggle(t);
-      },
-    ),
-  ]) {
+        String caseName,
+        HoldingDetailVm Function() closedFn,
+        HoldingDetailVm Function() openFn,
+        Future<void> Function(WidgetTester) steps,
+      )
+      in <
+        (
+          String,
+          HoldingDetailVm Function(),
+          HoldingDetailVm Function(),
+          Future<void> Function(WidgetTester),
+        )
+      >[
+        ('with_stops', () => withStops, () => pnl, (_) async {}),
+        (
+          'expanded',
+          () => noStop,
+          () => pnl,
+          (WidgetTester t) async {
+            await tapHoldingDetailPnlToggle(t);
+          },
+        ),
+      ]) {
     testWidgets('T62-10 large font $caseName', (WidgetTester tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
@@ -730,14 +820,19 @@ void main() {
       await steps(tester);
 
       expect(tester.takeException(), isNull, reason: caseName);
-      expect(find.byKey(const Key('h62-asof')), findsOneWidget, reason: caseName);
+      expect(
+        find.byKey(const Key('h62-asof')),
+        findsOneWidget,
+        reason: caseName,
+      );
       expect(find.text(JournalLabels.retry), findsNothing);
     });
   }
 
   // T62-11: pnl row = data (not _pnlOpen)
-  testWidgets('T62-11 pnl row from data not pnlOpen',
-      (WidgetTester tester) async {
+  testWidgets('T62-11 pnl row from data not pnlOpen', (
+    WidgetTester tester,
+  ) async {
     final FakeHoldingDetailRepository repo = fakeHoldingDetail(pnl, noStop);
     final String id = pnl.holding.holdingId;
     await pumpHoldingDetail(

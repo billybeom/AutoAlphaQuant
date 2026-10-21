@@ -20,7 +20,8 @@ class FakeHoldingDetailRepository extends UnimplementedHoldingsRepository {
     String holdingId,
     bool includePnl,
     int call,
-  ) detail;
+  )
+  detail;
 
   final List<(String, bool)> calls = <(String, bool)>[];
 

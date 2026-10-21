@@ -68,9 +68,7 @@ Future<void> pumpHoldingsAllocation(
   await tester.pumpWidget(
     ProviderScope(
       overrides: overrides,
-      child: const MaterialApp(
-        home: Scaffold(body: HoldingsAllocation()),
-      ),
+      child: const MaterialApp(home: Scaffold(body: HoldingsAllocation())),
     ),
   );
   await tester.pump();
@@ -106,13 +104,14 @@ List<String> nextRebalanceTexts(NextRebalanceVm n) => <String>[
   ?n.emptyLabel,
 ];
 
-Set<String> allocationAllowed(SleeveAllocationVm v, NextRebalanceVm n) => <String>{
-  v.asOf.label,
-  ?v.noticeText,
-  ?v.emptyLabel,
-  for (final SleeveAllocationRow r in v.rows) ...<String>[
-    ...allocationRowTexts(r),
-    ?r.engineColumnNote,
-  ],
-  ...nextRebalanceTexts(n),
-};
+Set<String> allocationAllowed(SleeveAllocationVm v, NextRebalanceVm n) =>
+    <String>{
+      v.asOf.label,
+      ?v.noticeText,
+      ?v.emptyLabel,
+      for (final SleeveAllocationRow r in v.rows) ...<String>[
+        ...allocationRowTexts(r),
+        ?r.engineColumnNote,
+      ],
+      ...nextRebalanceTexts(n),
+    };

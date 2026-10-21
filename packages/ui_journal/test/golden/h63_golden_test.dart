@@ -85,8 +85,8 @@ void main() {
         );
         final FakeNextRebalanceRepository rebalance =
             FakeNextRebalanceRepository(
-          next: (_) => Stream<NextRebalanceVm>.value(countdown),
-        );
+              next: (_) => Stream<NextRebalanceVm>.value(countdown),
+            );
         await pumpForGolden(
           tester,
           const HoldingsAllocation(),
@@ -110,10 +110,7 @@ void main() {
           tester.getBottomLeft(find.byKey(const Key('h63-next'))).dy,
           lessThan(_kTallPhone.height),
         );
-        expect(
-          tester.getTopLeft(find.byKey(const Key('h63-asof'))).dy,
-          0.0,
-        );
+        expect(tester.getTopLeft(find.byKey(const Key('h63-asof'))).dy, 0.0);
         await expectGolden(flow.name, b);
       });
     }

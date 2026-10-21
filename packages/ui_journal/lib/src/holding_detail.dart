@@ -8,11 +8,12 @@ import 'holdings_overview.dart';
 import 'timeline.dart';
 
 /// H6-2 보유 1건 — 열쇠 = (보유 id, 손익 펼침 여부).
-final _holdingDetailProvider = StreamProvider.family<HoldingDetailVm, (String, bool)>(
-  (Ref ref, (String, bool) key) => ref
-      .watch(journalHoldingsRepositoryProvider)
-      .watchHoldingDetail(key.$1, includePnl: key.$2),
-);
+final _holdingDetailProvider =
+    StreamProvider.family<HoldingDetailVm, (String, bool)>(
+      (Ref ref, (String, bool) key) => ref
+          .watch(journalHoldingsRepositoryProvider)
+          .watchHoldingDetail(key.$1, includePnl: key.$2),
+    );
 
 /// H6-2 종목 상세.
 class HoldingDetail extends ConsumerStatefulWidget {
@@ -52,11 +53,7 @@ class _HoldingDetailState extends ConsumerState<HoldingDetail> {
   bool _isStale(HoldingDetailVm vm, Clock clock) =>
       vm.asOf.observedAt.add(vm.asOf.staleAfter).isBefore(clock.nowUtc());
 
-  Widget _buildBody(
-    HoldingDetailVm vm,
-    Clock clock,
-    SafetyState? safety,
-  ) {
+  Widget _buildBody(HoldingDetailVm vm, Clock clock, SafetyState? safety) {
     final HoldingRow h = vm.holding;
     final String? pending = h.pendingText;
     final String? subBook = h.subBookLabel;
@@ -86,15 +83,9 @@ class _HoldingDetailState extends ConsumerState<HoldingDetail> {
                 children: <Widget>[
                   Text(h.quantityText),
                   if (pending != null)
-                    Chip(
-                      key: const Key('h62-pending'),
-                      label: Text(pending),
-                    ),
+                    Chip(key: const Key('h62-pending'), label: Text(pending)),
                   if (subBook != null)
-                    Chip(
-                      key: const Key('h62-subbook'),
-                      label: Text(subBook),
-                    ),
+                    Chip(key: const Key('h62-subbook'), label: Text(subBook)),
                 ],
               ),
               Row(
@@ -203,8 +194,9 @@ class _HoldingDetailState extends ConsumerState<HoldingDetail> {
                 Text(
                   s.tierLabel,
                   style: TextStyle(
-                    fontWeight:
-                        s.isActive ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: s.isActive
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
                 Text(s.levelText),

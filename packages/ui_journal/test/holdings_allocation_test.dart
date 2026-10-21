@@ -71,8 +71,9 @@ void main() {
   });
 
   // T63-01: entry, row order, indentation, bar presence
-  testWidgets('T63-01 entry row order indentation bar',
-      (WidgetTester tester) async {
+  testWidgets('T63-01 entry row order indentation bar', (
+    WidgetTester tester,
+  ) async {
     final FakeAllocationRepository holdings = FakeAllocationRepository(
       allocation: (_) => Stream<SleeveAllocationVm>.value(inBand),
     );
@@ -90,10 +91,9 @@ void main() {
     expect(holdings.calls, 1);
     expect(rebalance.calls, 1);
 
-    expect(
-      holdingsShownTexts(tester, const Key('h63-asof')),
-      <String>[inBand.asOf.label],
-    );
+    expect(holdingsShownTexts(tester, const Key('h63-asof')), <String>[
+      inBand.asOf.label,
+    ]);
     expect(inBand.noticeText, isNotNull);
     expect(
       tester.widget<Text>(find.byKey(const Key('h63-notice'))).data,
@@ -115,10 +115,7 @@ void main() {
           r.sleeveWeight!.label,
         );
       } else {
-        expect(
-          find.byKey(ValueKey<String>('h63-weight-$i')),
-          findsNothing,
-        );
+        expect(find.byKey(ValueKey<String>('h63-weight-$i')), findsNothing);
       }
 
       if (r.bandNoteText != null) {
@@ -129,10 +126,7 @@ void main() {
           r.bandNoteText,
         );
       } else {
-        expect(
-          find.byKey(ValueKey<String>('h63-band-note-$i')),
-          findsNothing,
-        );
+        expect(find.byKey(ValueKey<String>('h63-band-note-$i')), findsNothing);
       }
 
       if (r.bandStateLabel != null) {
@@ -147,10 +141,7 @@ void main() {
       }
 
       if (r.gauge != null) {
-        expect(
-          find.byKey(ValueKey<String>('h63-gauge-$i')),
-          findsOneWidget,
-        );
+        expect(find.byKey(ValueKey<String>('h63-gauge-$i')), findsOneWidget);
       } else {
         expect(find.byKey(ValueKey<String>('h63-gauge-$i')), findsNothing);
       }
@@ -178,11 +169,13 @@ void main() {
 
     // indentation
     expect(inBand.rows[0].parentSleeve, isNull);
-    final double baseDx =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('h63-label-0'))).dx;
+    final double baseDx = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('h63-label-0')))
+        .dx;
     for (final (int i, SleeveAllocationRow r) in inBand.rows.indexed.skip(1)) {
-      final double dx =
-          tester.getTopLeft(find.byKey(ValueKey<String>('h63-label-$i'))).dx;
+      final double dx = tester
+          .getTopLeft(find.byKey(ValueKey<String>('h63-label-$i')))
+          .dx;
       if (r.parentSleeve != null) {
         expect(dx, greaterThan(baseDx), reason: 'row $i should be indented');
       } else {
@@ -192,16 +185,20 @@ void main() {
 
     // chain dy
     for (int i = 0; i < 4; i++) {
-      final double dy0 =
-          tester.getTopLeft(find.byKey(ValueKey<String>('h63-row-$i'))).dy;
-      final double dy1 =
-          tester.getTopLeft(find.byKey(ValueKey<String>('h63-row-${i + 1}'))).dy;
+      final double dy0 = tester
+          .getTopLeft(find.byKey(ValueKey<String>('h63-row-$i')))
+          .dy;
+      final double dy1 = tester
+          .getTopLeft(find.byKey(ValueKey<String>('h63-row-${i + 1}')))
+          .dy;
       expect(dy0, lessThan(dy1));
     }
-    final double dyLast =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('h63-row-4'))).dy;
-    final double dyNext =
-        tester.getTopLeft(find.byKey(const Key('h63-next'))).dy;
+    final double dyLast = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('h63-row-4')))
+        .dy;
+    final double dyNext = tester
+        .getTopLeft(find.byKey(const Key('h63-next')))
+        .dy;
     expect(dyLast, lessThan(dyNext));
 
     expect(find.text(JournalLabels.retry), findsNothing);
@@ -210,16 +207,15 @@ void main() {
   // T63-02: band state color 3 values
   final List<(String, SleeveBandState)> t63Cases02 =
       <(String, SleeveBandState)>[
-    ('in_band', SleeveBandState.inBand),
-    ('out_of_band', SleeveBandState.outOfBand),
-    ('tranche_progress', SleeveBandState.nearEdge),
-  ];
+        ('in_band', SleeveBandState.inBand),
+        ('out_of_band', SleeveBandState.outOfBand),
+        ('tranche_progress', SleeveBandState.nearEdge),
+      ];
 
-  for (final (
-    String caseName,
-    SleeveBandState want,
-  ) in t63Cases02) {
-    testWidgets('T63-02 band state color $caseName', (WidgetTester tester) async {
+  for (final (String caseName, SleeveBandState want) in t63Cases02) {
+    testWidgets('T63-02 band state color $caseName', (
+      WidgetTester tester,
+    ) async {
       // rows are lazily initialized in setUpAll; access them here
       final SleeveAllocationVm fixtureVm;
       if (caseName == 'in_band') {
@@ -260,8 +256,9 @@ void main() {
         b.sleeveWeight!.label,
       );
 
-      final ColorScheme cs =
-          Theme.of(tester.element(find.byKey(const ValueKey<String>('h63-row-2')))).colorScheme;
+      final ColorScheme cs = Theme.of(
+        tester.element(find.byKey(const ValueKey<String>('h63-row-2'))),
+      ).colorScheme;
       final Color wantColor = switch (want) {
         SleeveBandState.inBand => cs.primary,
         SleeveBandState.nearEdge => cs.tertiary,
@@ -332,8 +329,9 @@ void main() {
   });
 
   // T63-04: large parking = not warning color
-  testWidgets('T63-04 large parking not warning color',
-      (WidgetTester tester) async {
+  testWidgets('T63-04 large parking not warning color', (
+    WidgetTester tester,
+  ) async {
     final FakeAllocationRepository holdings = FakeAllocationRepository(
       allocation: (_) => Stream<SleeveAllocationVm>.value(parking),
     );
@@ -351,8 +349,9 @@ void main() {
     final SleeveAllocationRow b = parking.rows[2];
     expect(b.bandState, SleeveBandState.inBand);
 
-    final ColorScheme cs =
-        Theme.of(tester.element(find.byKey(const ValueKey<String>('h63-row-2')))).colorScheme;
+    final ColorScheme cs = Theme.of(
+      tester.element(find.byKey(const ValueKey<String>('h63-row-2'))),
+    ).colorScheme;
     final Icon stateIcon = tester.widget<Icon>(
       find.descendant(
         of: find.byKey(const ValueKey<String>('h63-row-2')),
@@ -383,8 +382,9 @@ void main() {
   });
 
   // T63-05: INTEGRITY = geometry absent, masked text
-  testWidgets('T63-05 INTEGRITY geometry absent masked text',
-      (WidgetTester tester) async {
+  testWidgets('T63-05 INTEGRITY geometry absent masked text', (
+    WidgetTester tester,
+  ) async {
     final SafetyState safety = safetyFixtureRow(4);
     final FakeAllocationRepository holdings = FakeAllocationRepository(
       allocation: (_) => Stream<SleeveAllocationVm>.value(allocInteg),
@@ -425,8 +425,9 @@ void main() {
   });
 
   // T63-06: RECON = geometry kept, text only
-  testWidgets('T63-06 RECON geometry kept text only',
-      (WidgetTester tester) async {
+  testWidgets('T63-06 RECON geometry kept text only', (
+    WidgetTester tester,
+  ) async {
     final SafetyState safety = safetyFixtureRow(3);
     final FakeAllocationRepository holdings = FakeAllocationRepository(
       allocation: (_) => Stream<SleeveAllocationVm>.value(allocRecon),
@@ -594,20 +595,21 @@ void main() {
   // T63-10: all Text in allowed set
   final List<(String, Future<void> Function(WidgetTester))> t63Cases10 =
       <(String, Future<void> Function(WidgetTester))>[
-    ('closed', (_) async {}),
-    (
-      'note_open',
-      (WidgetTester t) async {
-        await openAllocationNote(t, 0);
-        await openAllocationNote(t, 1);
-      },
-    ),
-  ];
+        ('closed', (_) async {}),
+        (
+          'note_open',
+          (WidgetTester t) async {
+            await openAllocationNote(t, 0);
+            await openAllocationNote(t, 1);
+          },
+        ),
+      ];
 
   for (final (String caseName, Future<void> Function(WidgetTester) steps)
       in t63Cases10) {
-    testWidgets('T63-10 all screen texts in allowed set $caseName',
-        (WidgetTester tester) async {
+    testWidgets('T63-10 all screen texts in allowed set $caseName', (
+      WidgetTester tester,
+    ) async {
       final FakeAllocationRepository holdings = FakeAllocationRepository(
         allocation: (_) => Stream<SleeveAllocationVm>.value(inBand),
       );
@@ -639,27 +641,8 @@ void main() {
   }
 
   // T63-11: branch x banner
-  final List<(
-    String,
-    bool,
-    bool,
-    bool,
-    bool,
-    bool,
-    bool,
-    bool,
-    bool,
-  )> t63Cases11 = <(
-    String,
-    bool,
-    bool,
-    bool,
-    bool,
-    bool,
-    bool,
-    bool,
-    bool,
-  )>[
+  final List<(String, bool, bool, bool, bool, bool, bool, bool, bool)>
+  t63Cases11 = <(String, bool, bool, bool, bool, bool, bool, bool, bool)>[
     // (name, wantSkeleton, wantError, wantHead, wantBanner, wantStale, wantEmpty, wantRow, wantNext)
     ('alloc_loading', true, false, false, false, false, false, false, false),
     ('alloc_fail', false, true, false, false, false, false, false, false),
@@ -674,17 +657,20 @@ void main() {
   ];
 
   for (final (
-    String caseName,
-    bool wantSkeleton,
-    bool wantError,
-    bool wantHead,
-    bool wantBanner,
-    bool wantStale,
-    bool wantEmpty,
-    bool wantRow,
-    bool wantNext,
-  ) in t63Cases11) {
-    testWidgets('T63-11 branch x banner $caseName', (WidgetTester tester) async {
+        String caseName,
+        bool wantSkeleton,
+        bool wantError,
+        bool wantHead,
+        bool wantBanner,
+        bool wantStale,
+        bool wantEmpty,
+        bool wantRow,
+        bool wantNext,
+      )
+      in t63Cases11) {
+    testWidgets('T63-11 branch x banner $caseName', (
+      WidgetTester tester,
+    ) async {
       final SafetyState safety = safetyFixtureRow(3);
       final DateTime staleNow = kGoldenNowUtc.add(const Duration(days: 2));
 
@@ -694,10 +680,10 @@ void main() {
       if (caseName == 'alloc_loading') {
         final StreamController<SleeveAllocationVm> ctrl =
             StreamController<SleeveAllocationVm>();
-        addTearDown(() { unawaited(ctrl.close()); });
-        holdings = FakeAllocationRepository(
-          allocation: (_) => ctrl.stream,
-        );
+        addTearDown(() {
+          unawaited(ctrl.close());
+        });
+        holdings = FakeAllocationRepository(allocation: (_) => ctrl.stream);
         rebalance = FakeNextRebalanceRepository(
           next: (_) => Stream<NextRebalanceVm>.value(countdown),
         );
@@ -743,7 +729,9 @@ void main() {
         );
         final StreamController<NextRebalanceVm> ctrl =
             StreamController<NextRebalanceVm>();
-        addTearDown(() { unawaited(ctrl.close()); });
+        addTearDown(() {
+          unawaited(ctrl.close());
+        });
         rebalance = FakeNextRebalanceRepository(next: (_) => ctrl.stream);
       } else if (caseName == 'next_fail') {
         holdings = FakeAllocationRepository(
@@ -758,7 +746,9 @@ void main() {
         );
         final StreamController<NextRebalanceVm> ctrl =
             StreamController<NextRebalanceVm>();
-        addTearDown(() { unawaited(ctrl.close()); });
+        addTearDown(() {
+          unawaited(ctrl.close());
+        });
         rebalance = FakeNextRebalanceRepository(next: (_) => ctrl.stream);
       } else {
         // empty_next_fail
@@ -830,7 +820,11 @@ void main() {
           reason: caseName,
         );
       } else {
-        expect(find.byKey(const Key('h63-empty')), findsNothing, reason: caseName);
+        expect(
+          find.byKey(const Key('h63-empty')),
+          findsNothing,
+          reason: caseName,
+        );
       }
 
       // banner flags
@@ -843,58 +837,62 @@ void main() {
         );
       }
 
-      expect(find.byType(CircularProgressIndicator), findsNothing, reason: caseName);
-      expect(find.byType(LinearProgressIndicator), findsNothing, reason: caseName);
+      expect(
+        find.byType(CircularProgressIndicator),
+        findsNothing,
+        reason: caseName,
+      );
+      expect(
+        find.byType(LinearProgressIndicator),
+        findsNothing,
+        reason: caseName,
+      );
     });
   }
 
   // T63-12: error and retry
-  final List<(
-    String,
-    FakeAllocationRepository Function(),
-    String? Function(),
-  )> t63Cases12 = <(
-    String,
-    FakeAllocationRepository Function(),
-    String? Function(),
-  )>[
-    (
-      'alloc_fail',
-      () {
-        int holdingsCalls = 0;
-        return FakeAllocationRepository(
-          allocation: (_) {
-            holdingsCalls++;
-            if (holdingsCalls == 1) {
-              return Stream<SleeveAllocationVm>.error(StateError('fail'));
-            }
-            return Stream<SleeveAllocationVm>.value(inBand);
+  final List<(String, FakeAllocationRepository Function(), String? Function())>
+  t63Cases12 =
+      <(String, FakeAllocationRepository Function(), String? Function())>[
+        (
+          'alloc_fail',
+          () {
+            int holdingsCalls = 0;
+            return FakeAllocationRepository(
+              allocation: (_) {
+                holdingsCalls++;
+                if (holdingsCalls == 1) {
+                  return Stream<SleeveAllocationVm>.error(StateError('fail'));
+                }
+                return Stream<SleeveAllocationVm>.value(inBand);
+              },
+            );
           },
-        );
-      },
-      () => null,
-    ),
-    (
-      'value_then_fail',
-      () => FakeAllocationRepository(
-        allocation: (int call) {
-          if (call == 0) {
-            return valueThenFail(inBand);
-          }
-          return Stream<SleeveAllocationVm>.value(inBand);
-        },
-      ),
-      () => inBand.asOf.label,
-    ),
-  ];
+          () => null,
+        ),
+        (
+          'value_then_fail',
+          () => FakeAllocationRepository(
+            allocation: (int call) {
+              if (call == 0) {
+                return valueThenFail(inBand);
+              }
+              return Stream<SleeveAllocationVm>.value(inBand);
+            },
+          ),
+          () => inBand.asOf.label,
+        ),
+      ];
 
   for (final (
-    String caseName,
-    FakeAllocationRepository Function() holdingsFactory,
-    String? Function() wantLastAsOfFn,
-  ) in t63Cases12) {
-    testWidgets('T63-12 error and retry $caseName',
-        (WidgetTester tester) async {
+        String caseName,
+        FakeAllocationRepository Function() holdingsFactory,
+        String? Function() wantLastAsOfFn,
+      )
+      in t63Cases12) {
+    testWidgets('T63-12 error and retry $caseName', (
+      WidgetTester tester,
+    ) async {
       final SafetyState safety = safetyFixtureRow(3);
       final FakeAllocationRepository holdings = holdingsFactory();
       final FakeNextRebalanceRepository rebalance = FakeNextRebalanceRepository(
@@ -914,28 +912,21 @@ void main() {
         findsOneWidget,
         reason: caseName,
       );
-      final JournalErrorView errorView =
-          tester.widget<JournalErrorView>(find.byKey(const Key('h63-fail')));
+      final JournalErrorView errorView = tester.widget<JournalErrorView>(
+        find.byKey(const Key('h63-fail')),
+      );
       expect(errorView.lastAsOfLabel, wantLastAsOfFn(), reason: caseName);
       for (final BlockFlag f in safety.activeFlags) {
         expect(find.text(f.label), findsNothing, reason: caseName);
       }
-      expect(
-        find.byKey(const Key('h63-next')),
-        findsNothing,
-        reason: caseName,
-      );
+      expect(find.byKey(const Key('h63-next')), findsNothing, reason: caseName);
 
       await tester.ensureVisible(find.text(JournalLabels.retry));
       await tester.tap(find.text(JournalLabels.retry));
       await tester.pump();
       await tester.pump();
 
-      expect(
-        find.byKey(const Key('h63-fail')),
-        findsNothing,
-        reason: caseName,
-      );
+      expect(find.byKey(const Key('h63-fail')), findsNothing, reason: caseName);
       expect(
         find.byKey(const Key('h63-asof')),
         findsOneWidget,
@@ -948,28 +939,33 @@ void main() {
   }
 
   // T63-13: large font
-  final List<(
-    String,
-    SleeveAllocationVm Function(),
-    Future<void> Function(WidgetTester),
-  )> t63Cases13 = <(
-    String,
-    SleeveAllocationVm Function(),
-    Future<void> Function(WidgetTester),
-  )>[
-    (
-      'in_band',
-      () => inBand,
-      (WidgetTester t) async { await openAllocationNote(t, 0); },
-    ),
-    ('out_of_band', () => outOfBand, (_) async {}),
-  ];
+  final List<
+    (String, SleeveAllocationVm Function(), Future<void> Function(WidgetTester))
+  >
+  t63Cases13 =
+      <
+        (
+          String,
+          SleeveAllocationVm Function(),
+          Future<void> Function(WidgetTester),
+        )
+      >[
+        (
+          'in_band',
+          () => inBand,
+          (WidgetTester t) async {
+            await openAllocationNote(t, 0);
+          },
+        ),
+        ('out_of_band', () => outOfBand, (_) async {}),
+      ];
 
   for (final (
-    String caseName,
-    SleeveAllocationVm Function() vmFn,
-    Future<void> Function(WidgetTester) steps,
-  ) in t63Cases13) {
+        String caseName,
+        SleeveAllocationVm Function() vmFn,
+        Future<void> Function(WidgetTester) steps,
+      )
+      in t63Cases13) {
     testWidgets('T63-13 large font $caseName', (WidgetTester tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

@@ -118,10 +118,7 @@ void main() {
           tester.getBottomLeft(find.byKey(flow.bottomKey)).dy,
           lessThan(_kTallPhone.height),
         );
-        expect(
-          tester.getTopLeft(find.byKey(const Key('h62-asof'))).dy,
-          0.0,
-        );
+        expect(tester.getTopLeft(find.byKey(const Key('h62-asof'))).dy, 0.0);
         await expectGolden(flow.name, b);
       });
     }

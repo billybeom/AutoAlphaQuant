@@ -16,14 +16,12 @@ final journalRebalanceRepositoryProvider = Provider<RebalanceRepository>(
 
 /// H6-3 배분 행 전부(회계 기준) — 인자 없이.
 final _allocationProvider = StreamProvider<SleeveAllocationVm>(
-  (Ref ref) =>
-      ref.watch(journalHoldingsRepositoryProvider).watchAllocation(),
+  (Ref ref) => ref.watch(journalHoldingsRepositoryProvider).watchAllocation(),
 );
 
 /// H6-3 하단 — 다음 회차(D-day · 예정 없음).
 final _nextRebalanceProvider = StreamProvider<NextRebalanceVm>(
-  (Ref ref) =>
-      ref.watch(journalRebalanceRepositoryProvider).watchNext(),
+  (Ref ref) => ref.watch(journalRebalanceRepositoryProvider).watchNext(),
 );
 
 /// H6-3 슬리브·비중.
@@ -31,8 +29,7 @@ class HoldingsAllocation extends ConsumerStatefulWidget {
   const HoldingsAllocation({super.key});
 
   @override
-  ConsumerState<HoldingsAllocation> createState() =>
-      _HoldingsAllocationState();
+  ConsumerState<HoldingsAllocation> createState() => _HoldingsAllocationState();
 }
 
 class _HoldingsAllocationState extends ConsumerState<HoldingsAllocation> {
@@ -44,8 +41,7 @@ class _HoldingsAllocationState extends ConsumerState<HoldingsAllocation> {
     final SafetyState? safety = ref
         .watch(journalSafetyStateProvider)
         .valueOrNull;
-    final AsyncValue<SleeveAllocationVm> alloc =
-        ref.watch(_allocationProvider);
+    final AsyncValue<SleeveAllocationVm> alloc = ref.watch(_allocationProvider);
     final AsyncValue<NextRebalanceVm> next = ref.watch(_nextRebalanceProvider);
     return alloc.when(
       loading: () => const JournalSkeleton(key: Key('h63-loading')),
@@ -129,12 +125,7 @@ class _HoldingsAllocationState extends ConsumerState<HoldingsAllocation> {
     final ColorScheme cs = Theme.of(context).colorScheme;
     return Padding(
       key: ValueKey<String>('h63-row-$i'),
-      padding: EdgeInsets.fromLTRB(
-        r.parentSleeve == null ? 16 : 40,
-        8,
-        16,
-        8,
-      ),
+      padding: EdgeInsets.fromLTRB(r.parentSleeve == null ? 16 : 40, 8, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -154,9 +145,7 @@ class _HoldingsAllocationState extends ConsumerState<HoldingsAllocation> {
                       _noteOpen[i] = !open;
                     });
                   },
-                  icon: Icon(
-                    open ? Icons.expand_less : Icons.expand_more,
-                  ),
+                  icon: Icon(open ? Icons.expand_less : Icons.expand_more),
                 ),
             ],
           ),
@@ -171,11 +160,7 @@ class _HoldingsAllocationState extends ConsumerState<HoldingsAllocation> {
           if (state != null && stateLabel != null)
             Row(
               children: <Widget>[
-                Icon(
-                  Icons.circle,
-                  size: 12,
-                  color: _bandColor(context, state),
-                ),
+                Icon(Icons.circle, size: 12, color: _bandColor(context, state)),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -278,7 +263,8 @@ class _HoldingsAllocationState extends ConsumerState<HoldingsAllocation> {
               spacing: 8,
               runSpacing: 4,
               children: <Widget>[
-                if (dDay != null) const Text(JournalLabels.holdingsNextRebalance),
+                if (dDay != null)
+                  const Text(JournalLabels.holdingsNextRebalance),
                 if (date != null) Text(date),
                 if (dDay != null) Text(dDay),
                 if (empty != null) Text(empty),
