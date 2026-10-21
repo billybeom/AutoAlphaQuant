@@ -27,12 +27,15 @@
 // 🔴 플래너 파일이 아직 없으면(R11a 전) ⑩⑪ 은 통과한다 — 없는 파일로 실패시키지 않는다.
 // 🔴 테스트 쪽 산술(⑤⑥ 의 Decimal 합)은 여기(domain_contracts/test)에서만 한다 — 화면은 하지 않는다.
 // 🔴 검사마다 **망가뜨린 사본**(메모리 안)으로 실패하는 것을 맨 끝 테스트가 고정한다.
+// 🆕 E7a0(2026-10-21 · 설계 13 §8 R18 D-12) — ①~⑧ 의 판정 함수는 `package:domain_contracts/testing.dart`
+//    (`src/testing/what_if_rules.dart`)로 옮겼다 — 실엔진 출력(core_engine What-if 시험)에 같은 판정을 걸기 위해서다.
+//    이 파일은 대상 고르기 · 픽스처 표본 · ⑨ · ui 스캔 · 자체 검증(망가뜨린 사본)을 그대로 갖는다.
 
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/testing.dart';
 import 'package:test/test.dart';
 
 import 'c00_fixture_registry.dart';
@@ -53,9 +56,6 @@ const List<String> _knownCorePlanFixtures = <String>[
   FixturePaths.depositPlan1,
   FixturePaths.depositPlanFunding1,
 ];
-
-/// ③ 고지 문장의 머리.
-const String _previewNoticeHead = '미리보기입니다';
 
 /// ⑩ «읽지 않는 필드» — D5 목록과 **같은 목록**(`plan.dart`·`settings.dart` 의 `ui 미참조(C-38 ⑩)` 표식 +
 /// `ReasonChip.detailDeepLink`). `\b` 때문에 `amountText`·`amountInputText`·`quantityText`·`sideLabel`·
@@ -272,32 +272,34 @@ void main() {
     test('C-38 ① 래퍼는 plan·입력 거부·차단 가운데 정확히 하나다', () {
       final List<String> bad = <String>[
         for (final _WrapperRow r in _wrapperRows())
-          ..._wrapperViolations(r.where, r.result),
+          ...depositPreviewResultViolations(r.where, r.result),
       ];
       expect(bad, isEmpty, reason: bad.join('\n'));
     });
 
     test('C-38 ② 글자가 비지 않고 null 짝(잔여·빈 초안·지정가)이 맞다', () {
-      _expectCleanPlans(_textViolations);
+      _expectCleanPlans(depositPlanTextViolations);
     });
 
     test('C-38 ③ DepositPlan 의 preview_notice 는 «미리보기입니다…» 한 문장이다', () {
-      final List<String> bad = _noticeViolations(<(String, DepositPlan)>[
-        for (final _PlanRow r in _planRows()) (r.where, r.plan),
-      ]);
+      final List<String> bad = depositPreviewNoticeViolations(
+        <(String, DepositPlan)>[
+          for (final _PlanRow r in _planRows()) (r.where, r.plan),
+        ],
+      );
       expect(bad, isEmpty, reason: bad.join('\n'));
     });
 
     test('C-38 ④ 조달 단계는 null 이거나 1부터 연속이고 매각 대금이 0 보다 크다', () {
-      _expectCleanPlans(_fundingViolations);
+      _expectCleanPlans(depositFundingViolations);
     });
 
     test('C-38 ⑤ 충당액 합 + 잔여 == 입금액', () {
-      _expectCleanPlans(_sumViolations);
+      _expectCleanPlans(depositSumViolations);
     });
 
     test('C-38 ⑥ 슬리브별 매수 초안 합 ≤ 그 슬리브 충당액', () {
-      _expectCleanPlans(_buyWithinAllocationViolations);
+      _expectCleanPlans(depositBuyWithinAllocationViolations);
     });
 
     test('C-38 ⑦ 슬리브 B 는 연금 계좌 · 모든 별칭은 픽스처 별칭 표 안', () {
@@ -305,7 +307,7 @@ void main() {
     });
 
     test('C-38 ⑧ 사유 칩 코드는 계약 코드 사전에 있다', () {
-      _expectCleanPlans(_reasonCodeViolations);
+      _expectCleanPlans(depositReasonCodeViolations);
     });
 
     test('C-38 ⑨ 입금 등록 접수증 픽스처는 전 행 DEPOSIT_REGISTER 다', () {
@@ -509,34 +511,41 @@ void main() {
           )
           in wrapperCases) {
         expect(
-          _wrapperViolations(row.where, row.result),
+          depositPreviewResultViolations(row.where, row.result),
           isEmpty,
           reason: name,
         );
         expect(
-          _wrapperViolations(row.where, row.mutated(edit)),
+          depositPreviewResultViolations(row.where, row.mutated(edit)),
           contains(contains(hit)),
           reason: '$name — 망가뜨렸는데 검사가 통과한다.',
         );
       }
-      expect(_wrapperViolations(blocked.where, blocked.result), isEmpty);
+      expect(
+        depositPreviewResultViolations(blocked.where, blocked.result),
+        isEmpty,
+      );
 
       final List<_Mutation> mutations = <_Mutation>[
         // ②
-        _Mutation('② 빈 초안 글자', 'quantity_text', _textViolations, dp, (
+        _Mutation('② 빈 초안 글자', 'quantity_text', depositPlanTextViolations, dp, (
           Map<String, Object?> j,
         ) {
           _objs(j, 'order_drafts')[0]['quantity_text'] = ' ';
         }),
-        _Mutation('② 빈 경고 줄', 'warning_lines[0]', _textViolations, limit, (
-          Map<String, Object?> j,
-        ) {
-          (j['warning_lines']! as List<Object?>)[0] = '';
-        }),
+        _Mutation(
+          '② 빈 경고 줄',
+          'warning_lines[0]',
+          depositPlanTextViolations,
+          limit,
+          (Map<String, Object?> j) {
+            (j['warning_lines']! as List<Object?>)[0] = '';
+          },
+        ),
         _Mutation(
           '② 잔여가 있는데 잔여 글자 없음',
           'residual_krw_cash_text',
-          _textViolations,
+          depositPlanTextViolations,
           dp,
           (Map<String, Object?> j) {
             j.remove('residual_krw_cash_text');
@@ -545,7 +554,7 @@ void main() {
         _Mutation(
           '② 잔여 0 인데 잔여 글자',
           'residual_krw_cash_text',
-          _textViolations,
+          depositPlanTextViolations,
           funding,
           (Map<String, Object?> j) {
             j['residual_krw_cash_text'] = '원화 현금으로 대기합니다.';
@@ -554,7 +563,7 @@ void main() {
         _Mutation(
           '② 초안이 있는데 빈 초안 문장',
           'orders_empty_text',
-          _textViolations,
+          depositPlanTextViolations,
           dp,
           (Map<String, Object?> j) {
             j['orders_empty_text'] = '주문 초안이 없습니다.';
@@ -563,7 +572,7 @@ void main() {
         _Mutation(
           '② 초안이 없는데 빈 초안 문장 없음',
           'orders_empty_text',
-          _textViolations,
+          depositPlanTextViolations,
           limit,
           (Map<String, Object?> j) {
             j.remove('orders_empty_text');
@@ -572,35 +581,43 @@ void main() {
         _Mutation(
           '② 지정가 글자만 있다',
           'limit_price_text',
-          _textViolations,
+          depositPlanTextViolations,
           funding,
           (Map<String, Object?> j) {
             _objs(j, 'order_drafts')[3]['limit_price_text'] = '10,250원';
           },
         ),
-        _Mutation('② 지정가만 있고 글자 없음', 'limit_price_text', _textViolations, dp, (
-          Map<String, Object?> j,
-        ) {
-          _objs(j, 'order_drafts')[1].remove('limit_price_text');
-        }),
+        _Mutation(
+          '② 지정가만 있고 글자 없음',
+          'limit_price_text',
+          depositPlanTextViolations,
+          dp,
+          (Map<String, Object?> j) {
+            _objs(j, 'order_drafts')[1].remove('limit_price_text');
+          },
+        ),
         // ④
-        _Mutation('④ 조달 단계 빈 목록', '빈 목록', _fundingViolations, funding, (
+        _Mutation('④ 조달 단계 빈 목록', '빈 목록', depositFundingViolations, funding, (
           Map<String, Object?> j,
         ) {
           j['funding_steps'] = <Object?>[];
         }),
-        _Mutation('④ 조달 순서가 2부터', 'order', _fundingViolations, funding, (
+        _Mutation('④ 조달 순서가 2부터', 'order', depositFundingViolations, funding, (
           Map<String, Object?> j,
         ) {
           _objs(j, 'funding_steps')[0]['order'] = 2;
         }),
-        _Mutation('④ 0원 조달', 'expected_proceeds', _fundingViolations, funding, (
-          Map<String, Object?> j,
-        ) {
-          _objs(j, 'funding_steps')[0]['expected_proceeds'] = '0';
-        }),
+        _Mutation(
+          '④ 0원 조달',
+          'expected_proceeds',
+          depositFundingViolations,
+          funding,
+          (Map<String, Object?> j) {
+            _objs(j, 'funding_steps')[0]['expected_proceeds'] = '0';
+          },
+        ),
         // ⑤
-        _Mutation('⑤ 충당 합이 모자란다', '≠ 입금액', _sumViolations, dp, (
+        _Mutation('⑤ 충당 합이 모자란다', '≠ 입금액', depositSumViolations, dp, (
           Map<String, Object?> j,
         ) {
           _objs(j, 'allocations')[2]['amount'] = '31000';
@@ -609,7 +626,7 @@ void main() {
         _Mutation(
           '⑥ 매수 초안이 충당을 넘는다',
           '슬리브 B',
-          _buyWithinAllocationViolations,
+          depositBuyWithinAllocationViolations,
           dp,
           (Map<String, Object?> j) {
             _objs(j, 'order_drafts')[1]['quantity'] = 3;
@@ -618,13 +635,35 @@ void main() {
         _Mutation(
           '⑥ 충당 없는 슬리브의 매수 초안',
           '슬리브 B',
-          _buyWithinAllocationViolations,
+          depositBuyWithinAllocationViolations,
           limit,
           (Map<String, Object?> j) {
             (j['order_drafts']! as List<Object?>).add(
               _deepCopy(_objs(dp.json, 'order_drafts')[1]),
             );
             j.remove('orders_empty_text');
+          },
+        ),
+        // 🆕 E7a0 — 판정 함수를 옮기며 변이로 찾은 빈자리 둘(지정가 없는 매수 · 1원 경계).
+        _Mutation(
+          '⑥ 지정가 없는 매수 초안',
+          '지정가가 없다',
+          depositBuyWithinAllocationViolations,
+          dp,
+          (Map<String, Object?> j) {
+            _objs(j, 'order_drafts')[0]
+              ..remove('limit_price')
+              ..remove('limit_price_text');
+          },
+        ),
+        _Mutation(
+          '⑥ 매수 초안이 충당을 1원 넘는다',
+          '슬리브 B',
+          depositBuyWithinAllocationViolations,
+          dp,
+          (Map<String, Object?> j) {
+            // 슬리브 B 매수 초안 합 = 2주 × 16,380 + 1주 × 8,940 = 41,700 — 충당을 그보다 1원 적게.
+            _objs(j, 'allocations')[1]['amount'] = '41699';
           },
         ),
         // ⑦
@@ -639,12 +678,22 @@ void main() {
           _objs(j, 'order_drafts')[3]['account_alias'] = 'ISA';
         }),
         // ⑧
-        _Mutation('⑧ 사전 밖 사유 코드', 'MADE_UP', _reasonCodeViolations, dp, (
+        _Mutation('⑧ 사전 밖 사유 코드', 'MADE_UP', depositReasonCodeViolations, dp, (
           Map<String, Object?> j,
         ) {
           _objs(_objs(j, 'order_drafts')[0], 'reasons')[0]['code'] = 'MADE_UP';
         }),
       ];
+      // ⑥ 은 «≤» 다 — 매수 초안 합과 충당이 같으면 통과한다.
+      expect(
+        depositBuyWithinAllocationViolations(
+          'eq',
+          dp.mutated((Map<String, Object?> j) {
+            _objs(j, 'allocations')[1]['amount'] = '41700';
+          }),
+        ),
+        isEmpty,
+      );
       final Set<String> covered = <String>{'①'};
       for (final _Mutation m in mutations) {
         expect(
@@ -664,9 +713,9 @@ void main() {
       final List<(String, DepositPlan)> notices = <(String, DepositPlan)>[
         for (final _PlanRow r in _planRows()) (r.where, r.plan),
       ];
-      expect(_noticeViolations(notices), isEmpty);
+      expect(depositPreviewNoticeViolations(notices), isEmpty);
       expect(
-        _noticeViolations(<(String, DepositPlan)>[
+        depositPreviewNoticeViolations(<(String, DepositPlan)>[
           ...notices,
           (
             'mut',
@@ -678,7 +727,7 @@ void main() {
         contains(contains('같은 문자열')),
       );
       expect(
-        _noticeViolations(<(String, DepositPlan)>[
+        depositPreviewNoticeViolations(<(String, DepositPlan)>[
           (
             'mut',
             dp.mutated((Map<String, Object?> j) {
@@ -686,7 +735,7 @@ void main() {
             }),
           ),
         ]),
-        contains(contains(_previewNoticeHead)),
+        contains(contains(kPreviewNoticeHead)),
       );
       covered.add('③');
 
@@ -828,202 +877,14 @@ void _expectCleanPlans(_PlanRule rule) {
   expect(bad, isEmpty, reason: bad.join('\n'));
 }
 
-/// ① 래퍼.
-List<String> _wrapperViolations(String where, DepositPreviewResult r) {
-  final List<String> bad = <String>[];
-  final int n = <Object?>[
-    r.plan,
-    r.inputRejectedText,
-    r.blockedText,
-  ].where((Object? x) => x != null).length;
-  if (n != 1) {
-    bad.add(
-      '$where — plan·input_rejected_text·blocked_text 가 $n개 non-null(정확히 하나여야 한다)',
+/// ⑦ — 판정은 `depositAccountViolations`(testing.dart) · 별칭 집합 = 픽스처 별칭 표(`fixtures/README.md`).
+List<String> _accountViolations(String where, DepositPlan p) =>
+    depositAccountViolations(
+      where,
+      p,
+      pensionAliases: kFixturePensionAccountAliases,
+      allAliases: kFixtureAccountAliases,
     );
-  }
-  if (r.blockedAction != null && r.blockedText == null) {
-    bad.add('$where — blocked_text 없이 blocked_action 이 있다');
-  }
-  for (final (String key, String? text) in <(String, String?)>[
-    ('input_rejected_text', r.inputRejectedText),
-    ('blocked_text', r.blockedText),
-    ('blocked_action.label', r.blockedAction?.label),
-  ]) {
-    if (text != null && text.trim().isEmpty) {
-      bad.add('$where — $key 가 빈 글자다');
-    }
-  }
-  return bad;
-}
-
-/// ② 글자 · null 짝.
-List<String> _textViolations(String where, DepositPlan p) {
-  final List<String> bad = <String>[];
-  walkJson(jsonDecode(jsonEncode(p.toJson())), (
-    String jsonPath,
-    String key,
-    Object? value,
-  ) {
-    final bool textKey =
-        key == 'label' ||
-        key.endsWith('_label') ||
-        key.endsWith('_text') ||
-        key == 'order_drafts_title' ||
-        key == 'preview_notice' ||
-        key == 'basis_note';
-    if (textKey && value is String && value.trim().isEmpty) {
-      bad.add('$where $jsonPath — 빈 글자다');
-    }
-  });
-  for (int i = 0; i < p.warningLines.length; i++) {
-    if (p.warningLines[i].trim().isEmpty) {
-      bad.add('$where warning_lines[$i] — 빈 글자다');
-    }
-  }
-  final bool zeroResidual = p.residualKrwCash == Decimal.zero;
-  if ((p.residualKrwCashText == null) != zeroResidual) {
-    bad.add(
-      '$where — residual_krw_cash ${p.residualKrwCash} · residual_krw_cash_text '
-      '${p.residualKrwCashText == null ? '없음' : '있음'}(null ⇔ 잔여 0)',
-    );
-  }
-  if ((p.ordersEmptyText != null) != p.orderDrafts.isEmpty) {
-    bad.add(
-      '$where — order_drafts ${p.orderDrafts.length}건 · orders_empty_text '
-      '${p.ordersEmptyText == null ? '없음' : '있음'}(non-null ⇔ 빈 목록)',
-    );
-  }
-  for (int i = 0; i < p.orderDrafts.length; i++) {
-    final OrderDraft o = p.orderDrafts[i];
-    if ((o.limitPriceText == null) != (o.limitPrice == null)) {
-      bad.add(
-        '$where order_drafts[$i] — limit_price ${o.limitPrice} · limit_price_text '
-        '${o.limitPriceText}(둘은 함께 비거나 함께 온다)',
-      );
-    }
-  }
-  return bad;
-}
-
-/// ③ 고지 전용 · 같은 문자열(계획 여럿에 걸친다).
-List<String> _noticeViolations(List<(String, DepositPlan)> plans) {
-  final List<String> bad = <String>[];
-  final Set<String> distinct = <String>{};
-  for (final (String where, DepositPlan p) in plans) {
-    distinct.add(p.previewNotice);
-    if (!p.previewNotice.startsWith(_previewNoticeHead)) {
-      bad.add(
-        '$where — preview_notice 가 «$_previewNoticeHead»로 시작하지 않는다: ${p.previewNotice}',
-      );
-    }
-  }
-  if (distinct.length > 1) {
-    bad.add('preview_notice 가 같은 문자열이 아니다(고지 전용 — 경고·만료를 싣지 않는다): $distinct');
-  }
-  return bad;
-}
-
-/// ④ 조달 단계.
-List<String> _fundingViolations(String where, DepositPlan p) {
-  final List<FundingStep>? steps = p.fundingSteps;
-  if (steps == null) {
-    return const <String>[];
-  }
-  if (steps.isEmpty) {
-    return <String>['$where — funding_steps 가 빈 목록이다(null 이거나 비지 않아야 한다)'];
-  }
-  final List<String> bad = <String>[];
-  for (int i = 0; i < steps.length; i++) {
-    if (steps[i].order != i + 1) {
-      bad.add(
-        '$where funding_steps[$i] — order ${steps[i].order} ≠ ${i + 1}(1부터 연속)',
-      );
-    }
-    if (steps[i].expectedProceeds <= Decimal.zero) {
-      bad.add(
-        '$where funding_steps[$i] — expected_proceeds ${steps[i].expectedProceeds} ≤ 0(0원 단계 금지)',
-      );
-    }
-  }
-  return bad;
-}
-
-/// ⑤ 충당 합 + 잔여 == 입금액.
-List<String> _sumViolations(String where, DepositPlan p) {
-  final Decimal sum = p.allocations.fold(
-    p.residualKrwCash,
-    (Decimal acc, SleeveAllocation a) => acc + a.amount,
-  );
-  return <String>[
-    if (sum != p.depositAmount)
-      '$where — 충당 합 + 잔여 $sum ≠ 입금액 ${p.depositAmount}',
-  ];
-}
-
-/// ⑥ 슬리브별 매수 초안 합 ≤ 충당액.
-List<String> _buyWithinAllocationViolations(String where, DepositPlan p) {
-  final List<String> bad = <String>[];
-  final Map<SleeveId, Decimal> buys = <SleeveId, Decimal>{};
-  for (int i = 0; i < p.orderDrafts.length; i++) {
-    final OrderDraft o = p.orderDrafts[i];
-    if (o.side != OrderSide.buy) {
-      continue;
-    }
-    if (o.limitPrice == null) {
-      bad.add(
-        '$where order_drafts[$i] — 매수 초안에 지정가가 없다(슬리브 ${o.sleeve.wire} 합을 볼 수 없다)',
-      );
-      continue;
-    }
-    buys[o.sleeve] =
-        (buys[o.sleeve] ?? Decimal.zero) +
-        o.limitPrice! * Decimal.fromInt(o.quantity);
-  }
-  for (final MapEntry<SleeveId, Decimal> e in buys.entries) {
-    final Decimal allocated = p.allocations
-        .where((SleeveAllocation a) => a.sleeve == e.key)
-        .fold(
-          Decimal.zero,
-          (Decimal acc, SleeveAllocation a) => acc + a.amount,
-        );
-    if (e.value > allocated) {
-      bad.add('$where — 슬리브 ${e.key.wire} 매수 초안 합 ${e.value} > 충당액 $allocated');
-    }
-  }
-  return bad;
-}
-
-/// ⑦ 계좌 별칭.
-List<String> _accountViolations(String where, DepositPlan p) {
-  final List<String> bad = <String>[];
-  final List<(String, SleeveId, String?)> aliases =
-      <(String, SleeveId, String?)>[
-        for (final (int i, SleeveAllocation a) in p.allocations.indexed)
-          ('allocations[$i]', a.sleeve, a.accountAlias),
-        for (final (int i, OrderDraft o) in p.orderDrafts.indexed)
-          ('order_drafts[$i]', o.sleeve, o.accountAlias),
-      ];
-  for (final (String at, SleeveId sleeve, String? alias) in aliases) {
-    if (sleeve == SleeveId.b &&
-        !kFixturePensionAccountAliases.contains(alias)) {
-      bad.add('$where $at — 슬리브 B 가 연금 계좌가 아니다: $alias(SPEC v2.23 가드)');
-    }
-    if (alias != null && !kFixtureAccountAliases.contains(alias)) {
-      bad.add(
-        '$where $at — 픽스처 별칭 표 밖 별칭: $alias(fixtures/README.md «픽스처 계좌 별칭 표»)',
-      );
-    }
-  }
-  return bad;
-}
-
-/// ⑧ 사유 칩 코드.
-List<String> _reasonCodeViolations(String where, DepositPlan p) => <String>[
-  for (final (int i, OrderDraft o) in p.orderDrafts.indexed)
-    for (final ReasonChip c in o.reasons)
-      if (!ContractCodes.isRegistered(c.code))
-        '$where order_drafts[$i] — 사유 코드 ${c.code} 가 ContractCodes 에 없다',
-];
 
 /// ⑨ 접수증.
 List<String> _receiptViolations(String where, List<CommandReceipt> rows) =>
