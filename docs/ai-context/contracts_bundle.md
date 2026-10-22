@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 89개 · 계약 v1.11.0 · 조립일 2026-10-22(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 89개 · 계약 v1.12.0 · 조립일 2026-10-22(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -86,7 +86,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -152,12 +152,23 @@ export 'commands/settings_actions.dart';
 //    사유 코드 `DEPOSIT_REGISTERED` · `ddl/batch_f` `cash_flow.account_alias`(계좌별 입금 행) ·
 //    픽스처 `m7_deposit_register_receipts_4` → `_5`(`REJECTED` 1행 · 01 §8 미결 74 ✅) ·
 //    판정 `depositReceiptViolations` → `testing.dart`(C-38 ⑨) · 픽스처 159(개명 1 · 봉투 버전).
+// 🆕 '1.12.0'(R5·R13 선행 · 01 §21 · 발주자 확정 2026-10-22 — 🔴 8건 K9·K14·K18·K30·K35·K36·K46·K47 권고대로) —
+//    X7 `A-1`~`A-4`·`L-3` + X5 `L-1`·`L-2` + `H-02` 리듬: 라우트 48 → 52(교체 2 `adviceFill`·`ledgerSelfReport` ·
+//    신설 4 `adviceSkip`·`ledgerDiffs`·`ledgerRepairs`·`opsRhythm`) · `CommandApi` X7 3 인자 = 제출 DTO
+//    (`ManualFillSubmission`·`AdviceSkipSubmission`·`SelfReportSubmission` — 파싱·맥락 = 구현 · K4) + `deferAdviceConfirm`
+//    (`AdviceDeferConfirm` · `DEFER_ADVICE_CONFIRM` · K14 ⓐ) · `watchCommand` 구현 의무 ④(K42) · `CommandReceipt.retryCode`·
+//    `retryLabel` · `SelfReportSession`·`SelfReportResult` + `watchSelfReportSession(yyyyMm, accountAlias)` · `SettingsActionId`
+//    세션 2값(K9) · `AdviceItem` +7 · `AdviceAction.deepLink` · `AdviceInboxSummary` +4 · `ManualFillFormSpec` +5 ·
+//    `SideOption`·`TradeDateOption` · `ReasonOption.deepLink` · `LedgerDiffRow` +8 · `LedgerRepairRow` +7 ·
+//    `watchRepairs` · `OpsSummaryRepository.watchRhythm` · `OpsDailySummary.resumeLine` · 코드 `AdviceRejectCodes` 18 ·
+//    `AdviceRetryCodes` · `ManualFillPrefillFields` · 받침대 +5 · 🆕 C-46·C-47 · 픽스처 159 → 174(신설 15 · 개정 23 ·
+//    알림 등급 5행 — 미결 114) — 🆕 tool/gen_r5r13_v112_fixtures.py(기준 f54f602 원문에서 멱등 생성).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.11.0';
+const String contractVersion = '1.12.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -360,11 +371,14 @@ export 'repositories/what_if_api.dart';
 // 🔴 **뷰어가 쓸 수 있는 것은 앞 4종이 전부다**(킬스위치·사전 저널·blind 리뷰·열람 기록).
 //    🆕 v1.4 정정(01 §14-2) — 구 «앞 5종»의 다섯째 `registerDeposit`(`DEPOSIT_REGISTER`)는
 //    **폰(operator) 전용**이다(RLS 01 §6-4 `command_insert_viewer` · DDL `batch_d_supabase.sql`
-//    과 일치). X7 7종도 전량 폰 전용이라 뷰어 화이트리스트를 건드리지 않는다. ⏸ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이고
+//    과 일치). X7 8종(+ `LEDGER_EVENT_RECORD`)도 전량 폰 전용이라 뷰어 화이트리스트를 건드리지 않는다. ⏸ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이고
 //    현행 4종 화이트리스트를 유지한다(J-3).
 // 🔴 화면은 `CommandReceipt.state` 를 스스로 낙관 갱신하지 않는다.
 // 🔴 **`OperatingMode` 전환은 여기 없다** — `SettingsActionId.runtimeOperatingModeSwitchRequest`
 //    1종이며 반환 `ActionResult.handoffRoute` 로 위저드에 넘긴다(§4-3).
+// 🆕 v1.12(01 §21 · K4) — X7 기록 3종(`recordManualFill`·`skipAdvice`·`submitSelfReportBalance`)의 인자 = «화면 제출»
+//    DTO(원문 · `payloads_x7.dart`). 화면은 와이어 DTO·`CommandContext` 를 만들지 않는다 — 파싱·맥락 부착·세션 시각은
+//    이 인터페이스의 구현이 한다(실패 = 큐 적재 없는 `rejected` 접수증 `INPUT_INVALID`).
 
 import 'command_receipt.dart';
 import 'payloads.dart';
@@ -399,14 +413,17 @@ abstract interface class CommandApi {
   ///    ① 로컬 내구 큐 ⓐ 에만 있는 명령도 첫 값(`requested` — «전송 대기»)을 **곧바로** 낸다.
   ///    ② 종단 상태(`executed`·`rejected`·`expired`) 전에는 **완료하지 않는다**(값 없이 끝나지 않는다).
   ///    ③ 모르는 [commandId] 는 스트림 **에러**로 알린다(침묵·빈 완료 금지).
+  ///    🆕 v1.12 ④(01 §21 · K42) — 이 구현이 큐 적재 없이 낸 **로컬 거부 접수증**(`INPUT_INVALID`·
+  ///    `SELF_REPORT_OUTSIDE_SESSION`)의 id 도 종단 `rejected` 1값을 곧바로 다시 낸다(기기 로컬 보관 — ③ 의
+  ///    «모르는 id» 가 아니다 · 복원 재구독이 잠금에 갇히지 않게).
   /// 화면: 스트림 에러 = 마지막 접수증 유지(01 §8 미결 51 ③) · 복원 재구독의 첫 접수증 전 에러·완료 =
   /// 잠금 유지 + 정적 «다시 시도»(01 §12-4). 명령 메서드 `Future` 의 에러는 «접수 실패»다(01 §4-2).
   Stream<CommandReceipt> watchCommand(String commandId);
 
-  // ───── 🆕 X7(§10) 7종 — 🔴 전량 폰(operator) 전용 ─────
+  // ───── 🆕 X7(§10) 7종 + 🆕 v1.12 `deferAdviceConfirm` — 🔴 전량 폰(operator) 전용 ─────
 
-  /// 사실 추가.
-  Future<CommandReceipt> recordManualFill(ManualFillRecord record);
+  /// 사실 추가. 🆕 v1.12 인자 교체(구 `ManualFillRecord` — 와이어는 구현이 만든다 · K4).
+  Future<CommandReceipt> recordManualFill(ManualFillSubmission submission);
 
   /// 정정 = 상쇄 + 재기재.
   Future<CommandReceipt> amendManualFill(ManualFillAmendment amendment);
@@ -414,11 +431,14 @@ abstract interface class CommandApi {
   /// 무효 = 상쇄만.
   Future<CommandReceipt> voidManualFill(ManualFillVoid v);
 
-  /// 미이행 + 사유 코드.
-  Future<CommandReceipt> skipAdvice(AdviceSkip skip);
+  /// 미이행 + 사유 코드. 🆕 v1.12 인자 교체(구 `AdviceSkip`).
+  Future<CommandReceipt> skipAdvice(AdviceSkipSubmission submission);
 
-  /// 원장 실사.
-  Future<CommandReceipt> submitSelfReportBalance(SelfReportBalance b);
+  /// 원장 실사. 🆕 v1.12 인자 교체(구 `SelfReportBalance` — 세션 시각·기준일은 구현이 붙인다 · 세션 밖 =
+  /// `SELF_REPORT_OUTSIDE_SESSION` · K9).
+  Future<CommandReceipt> submitSelfReportBalance(
+    SelfReportSubmission submission,
+  );
 
   /// 🔴 효력 없는 «수신 확인».
   Future<CommandReceipt> acknowledgeAlert(AlertAck ack);
@@ -429,6 +449,11 @@ abstract interface class CommandApi {
   /// 🆕 v1.10 · ㊲ — 매매가 아닌데 원장을 바꾸는 사실(인출 · 분배금 · 기업행위 · 원천징수) 1건 ·
   /// `voidsEventId` 가 있으면 무효(상쇄만). 🔴 폰(operator) 전용 · 자동·안내 둘 다(설계 13 §8 R21 L3).
   Future<CommandReceipt> recordLedgerEvent(LedgerEventRecord record);
+
+  /// 🆕 v1.12(01 §21 · K14 ⓐ) — 만료 확인 카드 「내일 다시」(폰 전용 · `AdviceItem.deferAvailable` 이 true 일 때만
+  /// 버튼이 있다 · 02:947 «버튼은 명령을 직접 부르지 않는다» 의 예외 1건). 와이어 = [AdviceDeferConfirm](구현이 맥락을
+  /// 붙인다) · 거부 = `DEFER_ALREADY_USED`.
+  Future<CommandReceipt> deferAdviceConfirm(String adviceId);
 }
 ```
 
@@ -528,6 +553,14 @@ abstract class CommandReceipt with _$CommandReceipt {
     ///    `CommandStateMachine.requiresRejectReasonCode`).
     ///    🔴 **거부는 초안을 지우지 않는다**(C17) — 초안 삭제는 `executed` 수신 시에만.
     String? rejectReasonCode,
+
+    /// 🆕 v1.12(01 §21 · K20) — 거부 뒤 엔진이 실은 «재제출 선택지» 1개(B5 시간외·단주 · A9 중복 확인).
+    /// `state == rejected` 일 때만 · [retryLabel] 과 짝 · 값 = `AdviceRetryCodes`. 🔴 X7 기록 명령 전용(01 §21).
+    /// 🔴 화면은 [retryCode] 를 해석하지 않는다 — [retryLabel] 버튼 → 제출 DTO `retryCodes` 에 더한다.
+    String? retryCode,
+
+    /// "시간외·단주 신고로 다시 제출" — 엔진.
+    String? retryLabel,
   }) = _CommandReceipt;
 
   factory CommandReceipt.fromJson(Map<String, dynamic> json) =>
@@ -721,7 +754,9 @@ part 'drafts.g.dart';
 ///
 /// 🔴 화면은 [targetId] 를 **위젯 생성자 인자 그대로** 넣는다(셸이 라우트 파라미터에서 꺼낸 값 —
 ///    01 §11-10). 링크 조립이 아니다. 대상 id 표(01 §12-1): `journalDraft` = `decisionId` ·
-///    `manualFillRecord`·`adviceSkip` = `adviceId` · `selfReportBalance` = `SelfReportPurpose.wire`.
+///    `manualFillRecord`·`adviceSkip` = `adviceId`(라우트) · 🆕 v1.12 `selfReportBalance` = `L-3` 라우트 `:yyyyMm` 과
+///    `:accountAlias` 를 `/` 로 이은 글자(`2026-08/연금저축` — «생성자 인자 그대로»의 2인자 판 · K7 · K36 ⓐ) ·
+///    `O-04` = `SelfReportPurpose.simOpening.wire`(R15). 지난 달·다른 계좌의 초안은 복원 경로가 0 이다.
 /// 🔴 모드(계열)는 키에 **없다** — 구현이 계열별로 저장 공간을 가른다(화면은 모드를 모른다 · A7).
 @freezed
 abstract class DraftKey with _$DraftKey {
@@ -831,11 +866,17 @@ abstract class AdviceSkipInput with _$AdviceSkipInput {
 
   factory AdviceSkipInput.fromJson(Map<String, dynamic> json) =>
       _$AdviceSkipInputFromJson(json);
+
+  /// 🆕 v1.12(01 §21 · K12) — `A-4` 1탭: 고른 `ReasonOption.code` 를 그대로 해독한다(모르는 코드 = `reason: null`
+  /// 미선택 · 머리 ⑤ · 필드 무변경 — 계산 getter 가 아니라 [AdviceSkipInput.fromJson] 과 같은 해독).
+  /// 🔴 화면은 `AdviceSkipReason` 을 고르지 않는다(C-46 ⑱).
+  factory AdviceSkipInput.fromReasonCode(String code) =>
+      AdviceSkipInput.fromJson(<String, dynamic>{'reason': code});
 }
 
 /// `L-3` 원장 실사 초안 — [SelfReportBalance] 에서 `purpose`(키)·`sessionStartedAt`(세션값)·
-/// `declaredComplete`(확인값)·`context` 를 뺐다. ⏸ `asOfTradeDate` 는 실사 세션 VM 이 정해지는
-/// X7 창에서 «사람이 고르는 값»이면 추가형으로 더한다(01 §8 미결 52).
+/// `declaredComplete`(확인값)·`context` 를 뺐다. ✅ v1.12 — `asOfTradeDate` 는 엔진이 정한다(사람이 고르지 않는다 ·
+/// 세션 시작 때 · `SelfReportSession.asOfTradeDateText`) — 초안에 넣지 않는다(K8 · 01 §8 미결 52 ④).
 /// 🔴 복원값 = 사람이 전에 적은 값뿐(원장 현재값 프리필 금지 — 앵커링 · 02 §3-10).
 @freezed
 abstract class SelfReportInput with _$SelfReportInput {
@@ -965,7 +1006,8 @@ abstract class DisclosureViewEvent with _$DisclosureViewEvent {
 ## `packages/domain_contracts/lib/src/commands/payloads_x7.dart`
 
 ```dart
-// 01 §4-2 · §5-4 · §10 — 🆕 X7 명령 인자 DTO 8종 + 🆕 v1.10 ㊲ `LedgerEventRecord`.
+// 01 §4-2 · §5-4 · §10 — 🆕 X7 명령 인자 DTO 8종 + 🆕 v1.10 ㊲ `LedgerEventRecord`
+// + 🆕 v1.12(01 §21 · K4 · K14 ⓐ) «화면 제출» DTO 3 + 와이어 1(`AdviceDeferConfirm`).
 //
 // 🔴 각 DTO 의 `deviceId` 는 `CommandContext` 로 **옮겨졌다** — payload 가 기기를 다시
 //    말하지 않는다. 🔴 payload 에 `idempotencyKey` 를 두지 않는다(A9).
@@ -983,6 +1025,7 @@ import '../enums/ledger.dart';
 import '../enums/order.dart';
 import '../primitives/money.dart';
 import 'command_context.dart';
+import 'drafts.dart';
 
 part 'payloads_x7.freezed.dart';
 part 'payloads_x7.g.dart';
@@ -1174,6 +1217,83 @@ abstract class KillChecklistAck with _$KillChecklistAck {
       _$KillChecklistAckFromJson(json);
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// 🆕 v1.12(01 §21 · K4) — «화면 제출» DTO 3. 기존 와이어 8종(`ManualFillRecord`…)은 **무변경** —
+//   엔진이 읽는 `command_queue.payload` 모양이다. 🔴 화면은 와이어를 만들지 않는다(C-46 ⑳): `CommandApi` 구현이
+//   제출 DTO 의 원문을 파싱(`int`·`Decimal`)하고 `CommandContext`(G-19)·`sessionStartedAt`(B15)·`asOfTradeDate`(K8)를
+//   붙인다. 파싱·빈칸·상한 실패 = 큐 적재 없이 `rejected` 접수증(`rejectReasonCode = AdviceRejectCodes.inputInvalid` ·
+//   `stateLabel` 이 어느 칸인지 말한다) · 그 id 도 `watchCommand` 가 종단 접수증으로 다시 낸다(구현 의무 ④ · K42).
+//   🔴 셋 다 `fromJson` 을 둔다(관행 · C-8 모집단 — `_knownUncovered` 에 `_reasonCommandPayload` 로 등재).
+// ════════════════════════════════════════════════════════════════════════════
+
+/// `A-3` 제출(→ 와이어 [ManualFillRecord]) — 🆕 v1.12.
+@freezed
+abstract class ManualFillSubmission with _$ManualFillSubmission {
+  const factory ManualFillSubmission({
+    /// `A-3` = 라우트 값 그대로(필수). null = 안내 밖 수기 신규(`MANUAL_ENTRY` · `M5-6` 만 · 06:229·238).
+    String? adviceId,
+
+    /// 초안 본문 그대로(01 §12-1 · 사람이 친 원문 · 방향 = `SideOption.side` · 거래일 = `TradeDateOption.date`).
+    required ManualFillInput input,
+
+    /// 사람이 누른 재제출 선택지의 `CommandReceipt.retryCode` **누적**(K20 · 폼 수명 동안만 · 초안 밖 — 확인값).
+    /// 구현이 `offHourTrade`·`duplicateAck` 로 옮긴다(`AdviceRetryCodes`).
+    @Default(<String>[]) List<String> retryCodes,
+  }) = _ManualFillSubmission;
+
+  factory ManualFillSubmission.fromJson(Map<String, dynamic> json) =>
+      _$ManualFillSubmissionFromJson(json);
+}
+
+/// `A-4` 제출(→ 와이어 [AdviceSkip]) — 🆕 v1.12.
+@freezed
+abstract class AdviceSkipSubmission with _$AdviceSkipSubmission {
+  const factory AdviceSkipSubmission({
+    required String adviceId,
+
+    /// `reason == null` = 구현 거부(`inputInvalid`). 예산 코드 2종은 제출하지 않는다(`ReasonOption.deepLink` push · K12).
+    required AdviceSkipInput input,
+  }) = _AdviceSkipSubmission;
+
+  factory AdviceSkipSubmission.fromJson(Map<String, dynamic> json) =>
+      _$AdviceSkipSubmissionFromJson(json);
+}
+
+/// `L-3`·`O-04` 제출(→ 와이어 [SelfReportBalance]) — 🆕 v1.12.
+@freezed
+abstract class SelfReportSubmission with _$SelfReportSubmission {
+  const factory SelfReportSubmission({
+    /// 🔴 기본값 없음(A-10 · 01 §4-2) — `L-3` = periodicAudit · `O-04` = simOpening(R15 · 01 §8 미결 120).
+    required SelfReportPurpose purpose,
+
+    /// periodicAudit = 라우트 `:yyyyMm` 그대로(필수 — 없으면 구현 거부). simOpening = null.
+    String? yyyyMm,
+
+    /// 초안 본문 그대로 — 🔴 periodicAudit 의 `input.accountAlias` = 라우트 `:accountAlias`(폼이 처음 만들 때 넣는다 ·
+    ///    K36 ⓐ) · 구현이 세션 계좌와 대조(다르면 `INPUT_INVALID`).
+    required SelfReportInput input,
+
+    /// «이것이 전부입니다» — 확인값(초안에 없다 · 매 제출 새로 누른다 · 01 §12-1-3 ③).
+    required bool declaredComplete,
+  }) = _SelfReportSubmission;
+
+  factory SelfReportSubmission.fromJson(Map<String, dynamic> json) =>
+      _$SelfReportSubmissionFromJson(json);
+}
+
+/// 🆕 v1.12 와이어 — 만료 확인 카드 「내일 다시」(G-86 · K14 ⓐ). 엔진 = `advice_transition(cause_code='DEFER_CONFIRM')` 1행.
+/// 🔴 이미 한 번 미룬 안내(두 기기·두 번 탭) = 거부 `DEFER_ALREADY_USED`. 🔴 폰(operator) 전용 · 초안 영구 제외.
+@freezed
+abstract class AdviceDeferConfirm with _$AdviceDeferConfirm {
+  const factory AdviceDeferConfirm({
+    required String adviceId,
+    required CommandContext context,
+  }) = _AdviceDeferConfirm;
+
+  factory AdviceDeferConfirm.fromJson(Map<String, dynamic> json) =>
+      _$AdviceDeferConfirmFromJson(json);
+}
+
 // ⏸ `LedgerEventRecord` — 🔴 **결정 ㊲ 채택 시에만** 신설한다(J-6 · A-15).
 //    이름은 확정됐고 **코드는 만들지 않는다**. 채택되지 않으면 인출·분배금·기업행위·
 //    원천징수가 원장 밖에 남아 현금 추정이 단조적으로 어긋나고 그 위에서 안내 수량이
@@ -1270,6 +1390,13 @@ part 'settings_actions.g.dart';
 ///    `handover_session` 이다(G-02). 🔴 세 동작 모두 `decision_log(kind='MANUAL')` 1행을
 ///    **엔진이** 낳으며, 그 세 갈래는 재량 예산·이탈 집계의 모집단이 **아니다**(§10-3).
 ///
+///    🆕 v1.12(01 §21 · K9) — `L-3` 실사 세션(폰 로컬 · 뷰어 경로 0):
+///    · `selfReportSessionStart` = `{yyyy_mm, account_alias}`(라우트 두 값 그대로 · 🔴 계좌 전체번호 금지)
+///    · `selfReportSessionStop`  = `{yyyy_mm, account_alias}`
+///    🔴 가림 범위 = **그 폰 한 대**(뷰어 iOS·웹은 가리지 않는다 · ✅ 발주자 2026-10-22). 화면은 [ActionResult] 를
+///    읽지 않는다(갈래 = `SelfReportSession.sessionClosedText` 하나) · `dispose` 의 stop 은 `initState` 에서 잡아 둔
+///    인스턴스로 부른다(`dispose` 안 `ref` 0 · C-46 ㉔).
+///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
 ///
@@ -1327,6 +1454,10 @@ abstract class ActionResult with _$ActionResult {
 // 🔴 A7 — `AdviceItem` 에 `mode`·`operatingMode` 필드를 두지 않는다. 모드가 표시에
 //    영향을 주는 자리는 셸의 띠 하나뿐이고 그것은 `FeatureFlags` 가 담당한다.
 // 🔴 §10-7 — viewer 판은 종목·수량·가격이 **오지 않는다**(A6 마스킹 · C-27).
+// 🆕 계약 v1.12(01 §21 · R5 선행) — 버튼·카드의 목적지는 데이터로 온다(`AdviceAction.deepLink` ·
+//    `AdviceItem.detailDeepLink` · K5) · 만료 확인 카드·수량 채우기·회수 문장·방향 글자 · 요약의 현금 고지·
+//    «미확인 만료 n건»·안내 밖 기록 링크 · 폼 사양의 방향·거래일 선택지·`A-4` 문구·제출 차단 문장(K13~K22 · K37 ·
+//    K39) · 🆕 `SideOption`·`TradeDateOption`. 🔴 새 이름은 쓰기 동사 접두를 피한다(C-7 `_writeVerb` · G57).
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -1345,6 +1476,10 @@ part 'advice.g.dart';
 /// 01 §2-11 — 안내 1건.
 /// 🔴 `kind == noAction` 이면 폰 판에서도 `symbol`·`quantity`·`side` 가 null 이고
 ///    `suppressed == true` · `suppressedLabel` 필수 · `actions` 는 빈 목록이다(G-08).
+/// 🆕 v1.12(01 §21) — 🔴 `status`(저장값)·`closeReasonCode` = ui 미참조 · `effectiveStatus` 는 02 §8-14 의
+///    «배지·정렬» 몫이지만 v1.12 는 배지 = `statusLabel`·`statusTone` · 정렬 = 엔진(K13 — 확인 카드 → `isUrgent`
+///    → 나머지)이라 화면 분기 0(C-18 (d) · C-46 ⑱) · `onHold`·`suppressed` = 짝 글자(`holdReasonLabel`·
+///    `suppressedLabel`)의 null 여부로만.
 @freezed
 abstract class AdviceItem with _$AdviceItem {
   const factory AdviceItem({
@@ -1387,6 +1522,8 @@ abstract class AdviceItem with _$AdviceItem {
     required ChipTone statusTone,
 
     /// 🔴 A8 — 버튼의 유일한 근거. 상태를 조합해 버튼을 판정하지 않는다.
+    /// 🆕 v1.12(K5) — 엔진은 RECORD·SKIP 만 싣는다(DETAIL 0 — 상세 = [detailDeepLink]) · viewer 판 = **빈 목록**
+    ///    (K6 · 01 §6-4 rm_advice) · 배치 결측(`AdviceInboxSummary.staleLabel` non-null) = RECORD 만(K41).
     required List<AdviceAction> actions,
 
     /// 🔴 A1 — «안내와 다름»은 명령 집행 후 엔진이 **사후** 재발행으로 싣는다.
@@ -1438,6 +1575,34 @@ abstract class AdviceItem with _$AdviceItem {
 
     /// "골든벡터 재검증 실패 — 오늘은 아무것도 하지 마십시오" 계열.
     String? suppressedLabel,
+
+    // ── 🆕 계약 v1.12(01 §21 · R5 선행) ──────────────────────────────────────────
+    /// 카드 탭 → `A-2`(`aaq://advice/detail/<adviceId>` — 엔진 완성 · K5). 🔴 전 플랫폼(뷰어 포함).
+    required String detailDeepLink,
+
+    /// "매수" — 🔴 viewer 판·`kind == noAction` 은 null([side] 와 같이 비운다 · §10-7 · K16).
+    String? sideLabel,
+
+    /// non-null ⇔ `A-1` 상단 **만료 확인 카드**로 그린다("혹시 이미 매매하셨나요?" — 엔진 · K13).
+    /// 🔴 엔진이 고른다: `effectiveStatus == expired` · 미분류 · X2 일괄 만료 아님 · **최대 3장** · 목록 **맨 앞**(02 §3-6 C16).
+    /// 🔴 확인 카드 밖의 미분류 만료는 `watchInbox` 행에 **오지 않는다** — `AdviceInboxSummary.overdueUnrecordedLink` 1줄과
+    ///    `watchHistory` 에만 있다. 확인 카드의 [actions] == [RECORD, SKIP](순서까지).
+    String? expiredConfirmLabel,
+
+    /// → `J-2`(`aaq://journal/decision/<decision.decisionId>` — 엔진 완성 · K18). `A-2` 「결정 당시 스냅샷」 = 이 링크 1개 ·
+    /// 뷰어 non-null(`journalDecision` = 전 플랫폼 목적지 · K6).
+    LinkAction? decisionLink,
+
+    /// `A-3` 「안내 수량 채우기」 — 입력칸에 넣을 원문("200"). 🔴 [prefillQuantityLabel] 과 둘 다 null 이거나 둘 다 non-null ·
+    ///    폰 판 · `effectiveStatus ∈ {open, partial}` 만(엔진 · K19). 누르면 `ManualFillInput.prefilledFields` 에
+    ///    `ManualFillPrefillFields.quantity` 를 더한다(A1 · 02 §3-8).
+    String? prefillQuantityText,
+
+    /// "안내 수량(200주) 채우기" — 엔진.
+    String? prefillQuantityLabel,
+
+    /// non-null ⇔ [closeReasonCode] non-null — 닫힌 사유의 엔진 문장(회수 = «사람 잘못이 아닙니다» 계열 · B8 · K39).
+    String? closeReasonLabel,
   }) = _AdviceItem;
 
   factory AdviceItem.fromJson(Map<String, dynamic> json) =>
@@ -1447,9 +1612,12 @@ abstract class AdviceItem with _$AdviceItem {
 /// 01 §2-11 A8 — 화면은 이 목록을 «순서대로 그리기»만 한다. 없으면 버튼을
 /// 만들지 않는다. 🔴 `status`·`effectiveStatus`·`onHold`·`suppressed` 를 조합해
 /// 버튼을 판정하지 않는다(조합이 7×2×2×4다).
+/// 🆕 v1.12(01 §21 · K5) — 버튼의 목적지는 데이터로 온다(01 §11-1 규칙 ③). 🔴 엔진은 RECORD·SKIP 만 싣는다
+///    (DETAIL 0 — 상세 = [AdviceItem.detailDeepLink]) · viewer 판 `actions` = 빈 목록(01 §6-4 · K6).
 @freezed
 abstract class AdviceAction with _$AdviceAction {
   const factory AdviceAction({
+    /// 🔴 ui 미참조(v1.12) — 버튼 = [label] + [deepLink].
     required AdviceActionId actionId,
 
     /// 엔진 생성.
@@ -1458,6 +1626,10 @@ abstract class AdviceAction with _$AdviceAction {
 
     /// 엔진 생성 — `enabled == false` 일 때만.
     String? disabledReasonLabel,
+
+    /// 🆕 v1.12 — RECORD → `aaq://advice/fill/<adviceId>` · SKIP → `aaq://advice/skip/<adviceId>`(엔진 완성).
+    /// `enabled == false` 여도 있다(누르면 열지 않을 뿐).
+    required String deepLink,
   }) = _AdviceAction;
 
   factory AdviceAction.fromJson(Map<String, dynamic> json) =>
@@ -1515,9 +1687,25 @@ abstract class AdviceInboxSummary with _$AdviceInboxSummary {
     String? dueSoonLabel,
 
     /// 🔴 A4 — 엔진이 멈추면 안내의 유효성을 보증하지 않는다.
+    /// 🆕 v1.12(K41) — [staleLabel] non-null ⇒ 전 행 `actions` ⊆ {RECORD}(엔진 의무 · 02 §3-6 «`A-3` 기록 경로는
+    ///    살아 있다») · 킬스위치 = [headline] 에 «신규 안내 중단» 문장 + 행 `statusTone`(엔진 · 화면은 킬스위치를 읽지 않는다).
     String? staleReasonCode,
     String? staleLabel,
     String? handoverCoolingLabel,
+
+    // ── 🆕 계약 v1.12(01 §21) ────────────────────────────────────────────────────
+    /// `A-1` 상단 ② 현금 추정 고지(02 §3-6 · K15). null = 부재.
+    CashEstimateNotice? cashNotice,
+
+    /// «미확인 만료 n건» 1줄(라벨 = 엔진 · → `aaq://advice/history` · K13 · K38).
+    /// null ⇔ 확인 카드 밖 미분류 만료 0(= [overdueUnrecordedCount] 가 확인 카드 수를 넘지 않는다).
+    LinkAction? overdueUnrecordedLink,
+
+    /// 하단 「안내에 없는 매매를 기록합니다」(→ `aaq://m5/intervention` · `M5-6` · K17). 뷰어·autoTrade = null.
+    LinkAction? manualEntryLink,
+
+    /// 그 링크 앞 엔진 문구("이 기록은 안내 밖 매매로 남고 재량 예산 4회 중 1회를 씁니다"). [manualEntryLink] 와 짝.
+    String? manualEntryNoticeText,
   }) = _AdviceInboxSummary;
 
   factory AdviceInboxSummary.fromJson(Map<String, dynamic> json) =>
@@ -1527,7 +1715,10 @@ abstract class AdviceInboxSummary with _$AdviceInboxSummary {
 /// 01 §2-11 — 수기 체결 기록 폼 규격(`A-3`).
 /// 🔴 A16 — 창구는 **Stream** 이며 신선도 초과면 화면이 폼을 열지 않는다.
 /// 🔴 A3 — `amendReasons`·`voidReasons` 는 여기 **없다**(정정·무효는 `M5-12` 소유).
-/// 🔴 B5 — 시간외·단주 힌트도 **없다**(검증 강도를 사람이 고르지 않는다).
+/// 🔴 B5 — 시간외·단주 힌트도 **없다**(검증 강도를 사람이 고르지 않는다 — 재제출 선택지는
+///    `CommandReceipt.retryCode`·`retryLabel` 로 거부 뒤에만 온다 · 🆕 v1.12 K20).
+/// 🆕 v1.12(01 §21 · K37) — 🔴 [minTradeDate]·[maxTradeDate]·[nonTradingDates]·[quantityMax] = ui 미참조(엔진·구현
+///    검증용 · 수량 상한 초과 = 구현 `INPUT_INVALID`) · 화면은 [sides]·[tradeDateOptions] 를 그대로 고르게 한다.
 @freezed
 abstract class ManualFillFormSpec with _$ManualFillFormSpec {
   const factory ManualFillFormSpec({
@@ -1552,6 +1743,23 @@ abstract class ManualFillFormSpec with _$ManualFillFormSpec {
     /// "원본은 지워지지 않습니다" — 엔진 생성.
     required String appendOnlyNotice,
     required AsOf asOf,
+
+    // ── 🆕 계약 v1.12(01 §21 · K37 · K21) ─────────────────────────────────────────
+    /// `A-3` 방향 선택지("매수"·"매도"). 선택 = `option.side` 그대로(화면이 `OrderSide.*` 를 적지 않는다).
+    required List<SideOption> sides,
+
+    /// 고를 수 있는 거래일(엔진이 [minTradeDate]~[maxTradeDate] 에서 휴장일을 뺀다 · 받은 순서). 선택 = `option.date` 그대로.
+    required List<TradeDateOption> tradeDateOptions,
+
+    /// `A-4` 제출 전 엔진 문구 1줄("이 안내는 오늘로 닫히고, 다음 배치는 지금 보유 상태로 다시 계산합니다" · 02 §3-9).
+    required String skipNoticeText,
+
+    /// non-null = 제출 **부재** + 이 문장(`LEDGER_FIX` 등 · K21). 🔴 화면이 `SafetyState` 로 끄지 않는다.
+    String? blockedText,
+
+    /// 폼 고유 배너 1(킬스위치·HALT 중 «시스템 정지 중의 개입으로 남습니다»(B9) · `LEDGER_INTEGRITY` 격리 고지(B18)).
+    /// 🔴 §2-2 안전 배너(`BlockFlag`)와 겹치지 않는다 — 그것은 `journalSafetyStateProvider` + `JournalSafetyBanners` 가 그린다.
+    String? bannerText,
   }) = _ManualFillFormSpec;
 
   factory ManualFillFormSpec.fromJson(Map<String, dynamic> json) =>
@@ -1581,6 +1789,30 @@ abstract class AccountOption with _$AccountOption {
       _$AccountOptionFromJson(json);
 }
 
+/// 🆕 v1.12(01 §21 · K37) — `A-3` 방향 선택지. 선례 `SymbolOption{symbol, label}`·`AccountOption{alias, label}`
+/// («선택지 = 값 + 글자»).
+@freezed
+abstract class SideOption with _$SideOption {
+  const factory SideOption({required OrderSide side, required String label}) =
+      _SideOption;
+
+  factory SideOption.fromJson(Map<String, dynamic> json) =>
+      _$SideOptionFromJson(json);
+}
+
+/// 🆕 v1.12(01 §21 · K37) — 거래일 선택지("8/28(금)" — 엔진). 🔴 화면은 날짜를 만들거나 비교하지 않는다
+/// (`DateTime.parse`·서식·`showDatePicker` 0 · C-46 ⑲).
+@freezed
+abstract class TradeDateOption with _$TradeDateOption {
+  const factory TradeDateOption({
+    @TradeDateConverter() required TradeDate date,
+    required String label,
+  }) = _TradeDateOption;
+
+  factory TradeDateOption.fromJson(Map<String, dynamic> json) =>
+      _$TradeDateOptionFromJson(json);
+}
+
 /// 01 §2-11 · m2-8 H-4 — 폼 선택지 3형제 ③.
 /// ⏸ m2-8 H-5 — `J-3` 의 `rule_cited` 목록과 **통합한다**(같은 타입을 쓴다).
 ///    통합 여부 자체는 §8-20 · D19 의 선행 미결이며, 통합 전까지 사유 목록이 두
@@ -1591,8 +1823,13 @@ abstract class ReasonOption with _$ReasonOption {
     required String code,
     required String label,
 
-    /// 🔴 `other` 계열·예산 코드 2종은 1줄 메모가 필수다(§3-8 `SKIP_NOTE_REQUIRED`).
+    /// 🔴 예산 코드 2종은 1줄 메모가 필수다(§3-8 `SKIP_NOTE_REQUIRED`).
+    /// 🆕 v1.12(K22) — 정본 = 02 §3-9 표(예산 2종만 true · 나머지 1탭) — 옛 주석 «`other` 계열·» 삭제.
     required bool requiresNote,
+
+    /// 🆕 v1.12(01 §21 · K12) — non-null = 명령 없이 이 링크로 push(`A-4` 예산 코드 2종 → `aaq://m5/intervention`).
+    /// null = 1탭 제출(`skipAdvice`). 🔵 `J-3` `ruleCitedOptions` 는 늘 null.
+    String? deepLink,
   }) = _ReasonOption;
 
   factory ReasonOption.fromJson(Map<String, dynamic> json) =>
@@ -3096,16 +3333,25 @@ abstract class DecisionJournalBody with _$DecisionJournalBody {
 //    주문을 막지 않는다** — 화면이 «매매 중단»으로 읽히는 문구를 만들지 않는다.
 // 🔴 대조 보드의 칸 수는 모드와 무관하게 **5 고정**이고 `applicable == false` 인 칸은
 //    «점검 안 함»으로 그린다(빈칸·통과로 그리지 않는다).
+// 🆕 계약 v1.12(01 §21 · R5 선행 · K25 · K26) — `L-1`·`L-2` 표시 계약: 짝 라벨·원인 후보 칩·표시 시각·조치 링크 ·
+//    정정 행의 방향 색·대상 글자·체인 스탬프·결정 링크. 원값은 색·아이콘 exhaustive switch(C-12)와 들여쓰기
+//    (`supersedes != null`)에만 쓰고 표시는 `*Label`·`*Text`·칩·링크뿐이다(C-47 ⑦).
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
+import '../enums/ui.dart';
 import '../primitives/money.dart';
+import 'common.dart';
 
 part 'ledger.freezed.dart';
 part 'ledger.g.dart';
 
 /// 정합 검사 1행(01 §2-9).
+/// 🆕 v1.12 — `L-1` 이 그리는 것은 `*Label`·`*Text`·칩·링크뿐 · 원값(`pair`·`axis`·`severity`·`status`·`route`)은
+///    색·아이콘 exhaustive switch 에만(C-12) · 원값 표시 허용 = `evidenceHash`(그대로)·`authoredDate.yyyyMmDd`(날짜 예외 —
+///    v1.8 E4) · `candidateOriginCodes`·`diffId` = 🔴 ui 미참조(C-47 ⑦) · 🔵 폰 «브로커 근거 원문» = v1 부재(해시만 ·
+///    두 플랫폼 같음 · K26).
 @freezed
 abstract class LedgerDiffRow with _$LedgerDiffRow {
   const factory LedgerDiffRow({
@@ -3119,6 +3365,7 @@ abstract class LedgerDiffRow with _$LedgerDiffRow {
     required DiffSeverity severity,
 
     /// 원인 코드 후보(01 §3-4) — 문자열 상수의 정본은 영역 E 의 `labels/origin_codes.dart`
+    /// 🔴 ui 미참조(v1.12) — 표시는 [candidateOrigins].
     required List<String> candidateOriginCodes,
     required DiffStatus status,
     required RepairRoute route,
@@ -3129,6 +3376,34 @@ abstract class LedgerDiffRow with _$LedgerDiffRow {
     /// 🆕 X7(C15 · G-27) — 🔴 «해당 없음»과 «일치»를 가르는 값.
     /// 저장 컬럼은 01 §6-6 배치 F 의 `ledger_diff.applicable` 이다.
     required bool applicable,
+
+    // ── 🆕 계약 v1.12(01 §21 · K26) ─────────────────────────────────────────────
+    /// "브로커 대조" — `DiagnosticCell.label`(`m8/recon_board_diff`) 과 같은 사전(C-47 ②).
+    required String pairLabel,
+
+    /// "수량" · "체결 건" · "현금" · "체인 해시".
+    required String axisLabel,
+
+    /// "주문 차단" · "관측 항목 — 주문을 막지 않습니다"(02 §5-1 상태).
+    required String severityLabel,
+
+    /// "열림" · "해소됨 · 2026-08-29" · "받아들임 · 2026-08-30"(🔴 accepted = resolved 와 같은 비중 · 02 §5-1).
+    required String statusLabel,
+
+    /// "자동 재동기화" · "승인 필요" · "X1 비상".
+    required String routeLabel,
+
+    /// 원인 후보 — 열람만(선택 UI·자유 서술 금지) · 칩 탭 = `detailDeepLink`(핸드북) · 받은 순서
+    /// (== [candidateOriginCodes] 순서 · C-47 ②).
+    required List<ReasonChip> candidateOrigins,
+
+    /// 근거 카드 "탐지 2026-08-28 09:00" — 엔진.
+    required String detectedAtText,
+
+    /// 조치 1개(엔진이 고른다): `route == approval` ∧ 폰 = «정정하기» → `aaq://x5/repair-wizard` ·
+    /// `pair == canonSelfReport` ∧ 폰 = «다시 실사하기» → `aaq://ledger/self-report/<yyyy-MM>/<별칭>`(02 §5-1 X7 추가 · K26) ·
+    /// `SelfReportResult.diffs` 안 = null · 그 밖·뷰어 = null(부재). 해소(`M5-13`) = `SelfReportResult.resolveLink`.
+    LinkAction? actionLink,
   }) = _LedgerDiffRow;
 
   factory LedgerDiffRow.fromJson(Map<String, dynamic> json) =>
@@ -3141,6 +3416,10 @@ abstract class LedgerDiffRow with _$LedgerDiffRow {
 ///    이 값이 있으면 «그 날짜부터 다시 계산됐다»가 보여야 한다.
 /// 🔴 `directionCode` 는 `ledger_repair.direction` CHECK 2값
 ///    (`DERIVED_RESYNC`·`CANON_CORRECT`)이며 화면이 문구를 고르지 않는다.
+/// 🆕 v1.12(01 §21 · K24 · K25) — `L-2` 1행. 🔴 순서 = 엔진(시간 역순 묶음 · 정정의 정정은 그 원본 **바로 뒤** ·
+///    02 §5-2 «원본 아래 계단식») · 들여쓰기 = `supersedes != null` 여부만(화면이 묶지 않는다) · 기존 [label](재계산
+///    고지 · C-29)·[directionLabel] 은 그린다 · 원값(`appliedAt`·`directionCode`·`originCode`·`decisionId`·
+///    `recomputedFrom`·`diffId`·`repairId`)은 ui 미참조.
 @freezed
 abstract class LedgerRepairRow with _$LedgerRepairRow {
   const factory LedgerRepairRow({
@@ -3163,6 +3442,28 @@ abstract class LedgerRepairRow with _$LedgerRepairRow {
 
     /// "브로커 기준으로 수량 정정 · 2026-08-24부터 재계산" — 엔진 생성
     required String label,
+
+    // ── 🆕 계약 v1.12(01 §21 · K25) ─────────────────────────────────────────────
+    /// "2026-08-24 11:02 적용" — 엔진.
+    required String appliedAtText,
+
+    /// 방향 배지 색(파생 재생성 = 자동 / 정본 정정 = 승인) — 🔴 화면이 `directionCode` 를 비교하지 않는다.
+    required ChipTone directionTone,
+
+    /// 원인 코드의 글자(01 §3-4) — 🔴 해설 생성 금지(02 §5-2).
+    required String originLabel,
+
+    /// "069500 수량 120 → 123주" · `LEDGER_INTEGRITY` = "숨김"(엔진 · 02 §5-2 상태).
+    required String targetText,
+
+    /// → `J-2`(`aaq://journal/decision/<decisionId>`) · null = 결정 없음. 저널(`J-3R`) 링크 = v1 부재(01 §8 미결 121).
+    LinkAction? decisionLink,
+
+    /// "이후 정정됨" — non-null ⇔ 뒤 행 하나가 이 행을 `supersedes` 한다(엔진).
+    String? supersededLabel,
+
+    /// 체인 스탬프 축약("chn_7f3a…c2" — `chain_hash` 의 축약 · 🔴 `evidenceHash` 와 다른 값 · 엔진) — 표시·복사.
+    required String chainStampText,
   }) = _LedgerRepairRow;
 
   factory LedgerRepairRow.fromJson(Map<String, dynamic> json) =>
@@ -3183,6 +3484,8 @@ abstract class LedgerRepairRow with _$LedgerRepairRow {
 // 🆕 v1.6(01 §15-4 · R12 선행) — 월간 결과 래퍼 `ExecutionGapResult`(리포트 | 빈·해당없음 문장) ·
 //    `ExecutionGapReport.countLines`·`correctionLines` · `complianceRateNormalized`·`modeAdviceLine` nullable.
 //    `S7-10` 의 «읽지 않는 필드»는 `// 🔴 ui 미참조(C-42)` 표식이다.
+// 🆕 v1.12(01 §21 · K8 · K9 · K36 ⓐ) — `L-3` 원장 실사 세션 VM `SelfReportSession`(+ 결과 `SelfReportResult`) ·
+//    창구 `LedgerTrustRepository.watchSelfReportSession(yyyyMm, accountAlias)` · 세션 열기·닫기 = `SettingsActions`.
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
@@ -3190,7 +3493,9 @@ import '../enums/ui.dart';
 import '../primitives/as_of.dart';
 import '../primitives/date_range.dart';
 import '../primitives/money.dart';
+import 'advice.dart';
 import 'common.dart';
+import 'ledger.dart';
 
 part 'ledger_trust.freezed.dart';
 part 'ledger_trust.g.dart';
@@ -3338,6 +3643,74 @@ abstract class CashEstimateNotice with _$CashEstimateNotice {
       _$CashEstimateNoticeFromJson(json);
 }
 
+/// 🆕 v1.12(01 §21 · K8 · K36 ⓐ) — `L-3` 원장 실사 세션 1개 = 그 달 · 그 계좌.
+/// 창구 = `LedgerTrustRepository.watchSelfReportSession(yyyyMm, accountAlias)`.
+/// 🔴 원장 현재값이 **없다**(앵커링 금지 · 02 §3-10) — 결과(엔진이 연 차이)는 제출 집행 뒤 [result] 로만 온다.
+/// 🔴 세션은 `SettingsActions.run(selfReportSessionStart, {yyyy_mm, account_alias})` 로 열고 `selfReportSessionStop` 으로 닫는다
+///    (K9) — 열린 동안 **그 폰의** 원장 파생 표시(H6·J-1·L-1…)는 `LEDGER_INTEGRITY` 와 같은 글자로 온다(엔진 · 화면은
+///    모른다 · 가림 목록 필드 0). 🔴 `asOfTradeDate` 원값은 VM 에 두지 않는다(구현이 세션 기록에서 붙인다 · 초안 밖).
+@freezed
+abstract class SelfReportSession with _$SelfReportSession {
+  const factory SelfReportSession({
+    /// "8월 정기 실사" — 엔진.
+    required String titleText,
+
+    /// "실사 중에는 이 폰의 화면에서 보유 수량·금액이 가려집니다 · 원장 값은 제출 뒤에 보입니다" — 엔진(B15).
+    required String noticeText,
+
+    /// "2026-08-31 종가 기준으로 적으십시오" — 기준일은 엔진이 세션 시작 때 정한다(K8). 🔴 원값은 VM 에 없다.
+    required String asOfTradeDateText,
+
+    /// 유니버스 전 종목 — 받은 순서 = 행 순서 · 🔴 0 포함 필수 입력(B14) · 빈칸을 0 으로 바꾸지 않는다(`SelfReportLineInput`).
+    required List<SymbolOption> symbols,
+
+    /// "연금저축 계좌" — 이 세션의 계좌(라우트 `:accountAlias` 의 글자 · 🔴 계좌 전체번호 금지).
+    required String accountLabel,
+
+    /// "원화 현금 — 원 단위까지 적으십시오"(`SELF_AUDIT_PATTERN_UNVERIFIED` 뒤 · 02 §3-10) — 엔진.
+    required String cashHintLabel,
+
+    /// "이것이 전부입니다" 확인 글자 — 엔진.
+    required String declareCompleteLabel,
+
+    /// non-null = 세션이 열려 있지 않다(시작 거부·만료) → 폼 **부재** · 이 문장만.
+    String? sessionClosedText,
+
+    /// non-null = 제출 부재 + 문장(K21).
+    String? blockedText,
+
+    /// 제출 집행 뒤 결과 — non-null 이면 폼 부재 · 결과만(02 §3-10 «제출 후 = 엔진이 준 차이 목록만»).
+    SelfReportResult? result,
+    required LedgerTrustBadge trust,
+    required AsOf asOf,
+  }) = _SelfReportSession;
+
+  factory SelfReportSession.fromJson(Map<String, dynamic> json) =>
+      _$SelfReportSessionFromJson(json);
+}
+
+/// 🆕 v1.12(01 §21) — 실사 결과(골든 `l3_diff_result`).
+@freezed
+abstract class SelfReportResult with _$SelfReportResult {
+  const factory SelfReportResult({
+    /// 엔진이 연 `ledger_diff(pair == canonSelfReport)` — 받은 순서 · 🔴 화면이 차이를 계산하지 않는다 ·
+    /// 각 행 `actionLink` = null(자기 자신으로 가는 고리 방지).
+    required List<LedgerDiffRow> diffs,
+
+    /// non-null ⇔ [diffs] 빈 목록 — "실사 결과가 원장과 맞습니다".
+    String? emptyLabel,
+
+    /// → `M5-13`(`aaq://m5/self-audit-resolve`) · null = 해소할 것 없음.
+    LinkAction? resolveLink,
+
+    /// 🆕(K36 ⓐ) "다음 계좌 실사 — 일반 계좌" → `aaq://ledger/self-report/<yyyy-MM>/<다음 별칭>` · null = 이 달 실사 끝.
+    LinkAction? nextAccountLink,
+  }) = _SelfReportResult;
+
+  factory SelfReportResult.fromJson(Map<String, dynamic> json) =>
+      _$SelfReportResultFromJson(json);
+}
+
 /// 01 §2-11 — 자가 실사 1행(`SelfReportBalance.lines` 의 원소).
 @freezed
 abstract class SelfReportLine with _$SelfReportLine {
@@ -3368,6 +3741,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
 import '../primitives/as_of.dart';
+import 'common.dart';
 
 part 'ops.freezed.dart';
 part 'ops.g.dart';
@@ -3412,6 +3786,9 @@ abstract class ShellChip with _$ShellChip {
 
 /// m2-8 G-2 — 운영 리듬 1행(04 §4-7 `H-02`).
 /// 🔴 `dDayText` 는 엔진 생성 문자열이다 — 화면이 날짜를 빼지 않는다.
+/// 🆕 v1.12(01 §21 · K29 · K30) — 전체 목록 = `OpsSummaryRepository.watchRhythm()` · 행 탭 = [route](null = 반응 없음) ·
+///    `H-02` «조치» 열 = 없음(2026-10-22 삭제 — 할 일은 [title] 이 말한다).
+///    필드 5개가 전부다 — 등급·선행·조치 칸 0(04 §4-7 · 2026-10-22 결정).
 @freezed
 abstract class OpsRhythmRow with _$OpsRhythmRow {
   const factory OpsRhythmRow({
@@ -3457,7 +3834,13 @@ abstract class OpsDailySummary with _$OpsDailySummary {
     required String streakText,
     required String discretionBudgetText,
     required String nextRebalanceDDayText,
+
+    /// 🔴 `watchRhythm()` 목록의 **앞 ≤3 과 같은 값**이다(엔진 의무 · 🆕 v1.12 · C-47 ⑤).
     required List<OpsRhythmRow> upcoming,
+
+    /// 🆕 v1.12(01 §21 · K44) — `H-01` 블록 2 «X2 한 줄»(엔진 한 문장 · → `aaq://x2/resume-report`). null = 블록 2 부재
+    /// (평시 문장을 엔진이 늘 싣는지 = 01 §8 미결 122).
+    LinkAction? resumeLine,
   }) = _OpsDailySummary;
 
   factory OpsDailySummary.fromJson(Map<String, dynamic> json) =>
@@ -5694,7 +6077,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 ///    **둘 다 바꾸지 않는다**(`m2-8_naming.md` B-3). C-15 가 이 비대칭을 검사한다.
 /// 🔴 뒤 3종(`selfReportBalance`·`alertAck`·`killChecklistConfirm`)은 기계 변환과 일치한다 —
 ///    그래서 위 4종과 섞이면 더 위험하다(B-4).
-/// 🔴 X7 7종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트(앞 4종)를 건드리지 않는다.
+/// 🔴 X7 8종(+ `LEDGER_EVENT_RECORD`)은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트(앞 4종)를 건드리지 않는다.
+///    🆕 v1.12(01 §21 · K14 ⓐ) — 8번째 = `DEFER_ADVICE_CONFIRM`(만료 확인 카드 「내일 다시」).
 /// 🆕 v1.4 정정(01 §14-2) — `depositRegister` 도 폰 전용이다(구 «앞 5종» → 4종).
 /// 🔴 킬스위치 «해제» 명령은 없다(결정 6).
 enum CommandKind {
@@ -5727,7 +6111,12 @@ enum CommandKind {
 
   // ── 🆕 v1.10 · X7 ㊲ 원장 사건(8번째) · 🔴 operator 전용 · 기록 계열 TTL(㊵) ──
   @JsonValue('LEDGER_EVENT_RECORD')
-  ledgerEventRecord('LEDGER_EVENT_RECORD');
+  ledgerEventRecord('LEDGER_EVENT_RECORD'),
+
+  // ── 🆕 v1.12(01 §21 · K14 ⓐ) — 만료 확인 카드 「내일 다시」 · 🔴 폰 전용 · 초안 영구 제외(C-35 ②) ──
+  //    엔진 = `advice_transition(cause_code='DEFER_CONFIRM')` 1행 · 거부 = `DEFER_ALREADY_USED`.
+  @JsonValue('DEFER_ADVICE_CONFIRM')
+  adviceDeferConfirm('DEFER_ADVICE_CONFIRM');
 
   const CommandKind(this.wire);
 
@@ -5832,6 +6221,15 @@ enum SettingsActionId {
   runtimeEngineStart('RUNTIME_ENGINE_START'),
   @JsonValue('RUNTIME_ENGINE_STOP')
   runtimeEngineStop('RUNTIME_ENGINE_STOP'),
+
+  /// 🆕 v1.12(01 §21 · K9) — `L-3` 실사 세션 열기(폰 로컬 · `args` = {yyyy_mm, account_alias} ·
+  /// 그 폰의 원장 파생 표시를 가린다 — 뷰어는 가리지 않는다). `L-3` 이 `initState` 에서 부른다.
+  @JsonValue('SELF_REPORT_SESSION_START')
+  selfReportSessionStart('SELF_REPORT_SESSION_START'),
+
+  /// 🆕 v1.12 — 닫기(`L-3` `dispose` · `initState` 에서 잡아 둔 인스턴스로 · 세션 만료는 엔진이 스스로 닫는다).
+  @JsonValue('SELF_REPORT_SESSION_STOP')
+  selfReportSessionStop('SELF_REPORT_SESSION_STOP'),
   @JsonValue('DEVICE_PAIRING_TICKET_CREATE')
   devicePairingTicketCreate('DEVICE_PAIRING_TICKET_CREATE'),
   @JsonValue('DEVICE_TOKEN_REVOKE')
@@ -5886,9 +6284,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 ///
 /// 🔴 **Dart 이름과 JSON 표기가 [CommandKind] 의 같은 이름 값과 똑같다**(C-35 ②) — 초안은 그 명령의
 ///    전 단계다. X7 4종의 어순 비대칭(`manualFillRecord` ↔ `'RECORD_MANUAL_FILL'`)도 그대로 물려받는다.
-/// 🔴 **영구 제외 6종** — `BLIND_REVIEW_SCORE`(`J-4` 는 «제출 전 뒤로가기 = 점수 미저장»이 수용 기준 ·
+/// 🔴 **영구 제외 7종** — `BLIND_REVIEW_SCORE`(`J-4` 는 «제출 전 뒤로가기 = 점수 미저장»이 수용 기준 ·
 ///    02 §3-4 (b)) · `KILL_SWITCH_ACTIVATE` · `DISCLOSURE_VIEW` · `DEPOSIT_REGISTER` · `ALERT_ACK` ·
-///    `KILL_CHECKLIST_CONFIRM`(확인·즉시성 명령). C-35 ② 가 막는다.
+///    `KILL_CHECKLIST_CONFIRM` · 🆕 v1.12 `DEFER_ADVICE_CONFIRM`(확인·즉시성 명령 · K14 ⓐ). C-35 ② 가 막는다.
 /// ⏸ `M5-12` 정정·무효(`manualFillAmend`·`manualFillVoid`)는 M5 창이 본문 DTO 와 함께 더한다.
 enum DraftKind {
   @JsonValue('JOURNAL_DRAFT')
@@ -7251,6 +7649,23 @@ abstract final class FixturePaths {
   static const String m6AdviceSkipReasons = 'm6/advice_skip_reasons.json';
   static const String m6AdviceViewer4 = 'm6/advice_viewer_4.json';
 
+  /// 🆕 v1.12(01 §21 · K41) — 배치 결측(요약 `stale_reason_code`·`stale_label`) — `advice_12` 의 OPEN 2행 · 행 `actions` =
+  ///    RECORD 만(엔진이 줄여 보낸다 · `A-3` 기록 경로는 살아 있다) · 요약 = `summary` 형제 키 — 위젯 테스트(골든 아님).
+  static const String m6AdviceStale = 'm6/advice_stale.json';
+
+  /// 🆕 v1.12(K40) — `A-2` 「기록된 체결」(`fillsOfAdvice('ad_0005')`) 1행 · ORIGINAL 8주 — `advice_detail_partial` ad_0005 와
+  ///    짝(그 행 글자 그대로 · K23 예외) · 뷰어 판 = 빈 목록(엔진) — 골든 `a2_partial`.
+  static const String m6AdviceFillsAd0005 = 'm6/advice_fills_ad0005.json';
+
+  /// 🆕 v1.12(K14 ⓐ) — `DEFER_ADVICE_CONFIRM` 접수증 3행(REQUESTED · EXECUTED · REJECTED `DEFER_ALREADY_USED`) ·
+  ///    한 명령의 갈래(행을 `state` 로 골라 쓴다) — 만료 확인 카드 「내일 다시」 위젯 테스트.
+  static const String m6AdviceDeferReceipts3 =
+      'm6/advice_defer_receipts_3.json';
+
+  /// 🆕 v1.12 — `SKIP_ADVICE` 접수증 5행(REQUESTED · EXECUTED · REJECTED `LEASE_EXPIRED` · REJECTED `ADVICE_NOT_OPEN` ·
+  ///    HELD_FOR_INTEGRITY) — `A-4` 위젯 테스트.
+  static const String m6AdviceSkipReceipts5 = 'm6/advice_skip_receipts_5.json';
+
   /// 🆕 v1.8(01 §17 · R4 선행) — `H6-3` 슬리브·비중(`HoldingsRepository.watchAllocation` · 행 1 = `SleeveAllocationVm`).
   ///    행 = A → POT(A 하위) → B → C → 현금 대기 · 전부 회계 기준 · 🔴 밴드 행 = **B 만**(K27 — A·C·POT·CASH =
   ///    `band_note_text`). 밴드 내 = 골든 `h63_in_band`·`h63_pot_under_a`(A 펼침 = `engine_column_note`).
@@ -7341,6 +7756,27 @@ abstract final class FixturePaths {
   static const String m6FillFormSpecStale = 'm6/fill_form_spec_stale.json';
   static const String m6FillRejectedPrice = 'm6/fill_rejected_price.json';
 
+  /// 🆕 v1.12(K21) — `fill_form_spec` + `blocked_text`(제출 **부재** + 문장) + `banner_text`(`LEDGER_INTEGRITY` 격리 고지) —
+  ///    `A-3`·`A-4` 위젯 테스트(골든 아님).
+  static const String m6FillFormSpecBlocked = 'm6/fill_form_spec_blocked.json';
+
+  /// 🆕 v1.12(K25 · 02 §5-2 모의 데이터) — `L-2` 정정 이력 4행(자동 재동기화 2 + 정본 정정 1 + 그 정정의 정정 1 ·
+  ///    순서 = 엔진 · 정정의 정정은 원본 **바로 뒤** · 원본 `superseded_label`) — 골든 `l2_chain_two_repairs`.
+  static const String m6LedgerRepairs4 = 'm6/ledger_repairs_4.json';
+
+  /// 🆕 v1.12 — `L-2` 빈 이력(«정정 이력이 없습니다» · 정상) — 골든 `l2_empty`.
+  static const String m6LedgerRepairsEmpty = 'm6/ledger_repairs_empty.json';
+
+  /// 🆕 v1.12(K26) — `L-1` 현금 축 관측 1행(`CANON_BROKER`·`CASH`·`OBSERVATIONAL` · 조치 링크 null · 허용 오차 값 0) —
+  ///    골든 `l1_cash_observe`(`ledger_diffs_4` 에 현금 축 행이 없다).
+  static const String m6LedgerDiffsCashObserve =
+      'm6/ledger_diffs_cash_observe.json';
+
+  /// 🆕 v1.12(K4 · K20) — `RECORD_MANUAL_FILL` 접수증 7행(REQUESTED · EXECUTED · REJECTED `DUPLICATE_SUSPECTED` +
+  ///    `retry_code` DUPLICATE_ACK · REJECTED `INPUT_INVALID` · HELD_FOR_INTEGRITY · PENDING_LEASE_CONFIRM · STALE_CONTEXT) ·
+  ///    🔴 `LEASE_EXPIRED` 0(사실 추가는 강등 접수) — `A-3` 위젯 테스트.
+  static const String m6ManualFillReceipts7 = 'm6/manual_fill_receipts_7.json';
+
   /// 🆕 v1.8(01 §17 · R4 선행) — `H6-2` 종목 상세(`watchHoldingDetail(holdingId)` · 행 1 = `HoldingDetailVm`).
   ///    `holding` == `holdings_overview_*` 의 같은 `holding_id` 행(C-44 ④). 손절선 행 = A `069500` 의 TIER_1B 1행 —
   ///    🔴 **보존 경로 표본**(P0S 정상 장면 아님 · 골든 아님 · K16 ⓓ) · `recent_entries` = `journal_30` 행 JSON 그대로.
@@ -7426,7 +7862,26 @@ abstract final class FixturePaths {
       'm6/journal_read_not_written.json';
   static const String m6JournalReadWritten = 'm6/journal_read_written.json';
   static const String m6ManualFills8 = 'm6/manual_fills_8.json';
+
+  /// 🔵 v1.12(01 §21 · K8) — **꼴 교체**: `L-3` 열린 실사 세션(`SelfReportSession` 12키 · 2026-08 · 연금저축 ·
+  ///    SPEC 유니버스 4) — 옛 «`SelfReportBalance` 모양 + 형제 키 `trust`» 는 지웠다(등록부 미매핑 → 바인딩) — 골든 `l3_session`.
   static const String m6SelfReport1 = 'm6/self_report_1.json';
+
+  /// 🆕 v1.12 — `L-3` 결과(`result.diffs` 1 = `CANON_SELF_REPORT` · `resolve_link` · `next_account_link`) — 골든 `l3_diff_result`.
+  static const String m6SelfReportDiffResult =
+      'm6/self_report_diff_result.json';
+
+  /// 🆕 v1.12(K9) — `L-3` 세션 닫힘(`session_closed_text` · 폼 부재) — 위젯 테스트.
+  static const String m6SelfReportSessionClosed =
+      'm6/self_report_session_closed.json';
+
+  /// 🆕 v1.12 — `SELF_REPORT_BALANCE` 접수증 5행(REQUESTED · EXECUTED · REJECTED `SELF_REPORT_OUTSIDE_SESSION` ·
+  ///    REJECTED `INPUT_INVALID` · HELD_FOR_INTEGRITY) — `L-3` 위젯 테스트.
+  static const String m6SelfReportReceipts5 = 'm6/self_report_receipts_5.json';
+
+  /// 🆕 v1.12(N12) — `a1_blocked` 의 안전 배너 입력(`journalSafetyStateProvider`) — `safety_states` rows[1] 꼴(ALERT) +
+  ///    `active_flags` = `advice_blocked` 의 형제 키 블록 그대로(`ADVICE_LEDGER_UNVERIFIED`).
+  static const String m6SafetyAdviceBlocked = 'm6/safety_advice_blocked.json';
 
   // 🆕 v1.1 — `J-5` UNKNOWN 해소 보드.
   static const String m6UnknownBoard2 = 'm6/unknown_board_2.json';
@@ -7452,6 +7907,11 @@ abstract final class FixturePaths {
       'm7/execution_gap_not_applicable.json';
   static const String m7ExecutionGapWont = 'm7/execution_gap_wont.json';
   static const String m7LedgerTrust4 = 'm7/ledger_trust_4.json';
+
+  /// 🆕 v1.12(K45) — `SELF_AUDIT_DUE` 시기의 신뢰 배지 1행(차단색 아님 · `action_deep_link` = `L-3` 그 달·그 계좌) —
+  ///    R13b `h01_self_audit_due`(`safety_states` rows[1] 와 짝).
+  static const String m7LedgerTrustSelfAuditDue =
+      'm7/ledger_trust_self_audit_due.json';
   static const String m7M7Annual2026 = 'm7/m7_annual_2026.json';
   static const String m7M7AnnualFirstYear = 'm7/m7_annual_first_year.json';
 
@@ -7618,6 +8078,9 @@ abstract final class FixturePaths {
   static const String m8OpsHomeNormal = 'm8/ops_home_normal.json';
   static const String m8OpsHomeResumeGap7 = 'm8/ops_home_resume_gap7.json';
   static const String m8OpsRhythmRows = 'm8/ops_rhythm_rows.json';
+
+  /// 🆕 v1.12(K29) — `H-02` 리듬을 아직 받지 못함(`NOT_LOADED` · «모름» ≠ «없음») — R13a 위젯 테스트.
+  static const String m8OpsRhythmEmpty = 'm8/ops_rhythm_empty.json';
   static const String m8ReconBoardDiff = 'm8/recon_board_diff.json';
   static const String m8RestartLostPhone = 'm8/restart_lost_phone.json';
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
@@ -7660,6 +8123,10 @@ abstract final class FixturePaths {
     m6AdviceNoAction,
     m6AdviceSkipReasons,
     m6AdviceViewer4,
+    m6AdviceStale,
+    m6AdviceFillsAd0005,
+    m6AdviceDeferReceipts3,
+    m6AdviceSkipReceipts5,
     m6AllocationEmpty,
     m6AllocationInBand,
     m6AllocationIntegrity,
@@ -7688,6 +8155,11 @@ abstract final class FixturePaths {
     m6FillFormSpec,
     m6FillFormSpecStale,
     m6FillRejectedPrice,
+    m6FillFormSpecBlocked,
+    m6LedgerRepairs4,
+    m6LedgerRepairsEmpty,
+    m6LedgerDiffsCashObserve,
+    m6ManualFillReceipts7,
     m6HoldingDetailIntegrity,
     m6HoldingDetailNoStop,
     m6HoldingDetailPnl,
@@ -7713,6 +8185,10 @@ abstract final class FixturePaths {
     m6JournalReadWritten,
     m6ManualFills8,
     m6SelfReport1,
+    m6SelfReportDiffResult,
+    m6SelfReportSessionClosed,
+    m6SelfReportReceipts5,
+    m6SafetyAdviceBlocked,
     m6UnknownBoard2,
     m6UnknownBoardEmpty,
     m7AftertaxLadder1,
@@ -7724,6 +8200,7 @@ abstract final class FixturePaths {
     m7ExecutionGapNotApplicable,
     m7ExecutionGapWont,
     m7LedgerTrust4,
+    m7LedgerTrustSelfAuditDue,
     m7M7Annual2026,
     m7M7AnnualFirstYear,
     m7M7AnnualOffwindow,
@@ -7788,6 +8265,7 @@ abstract final class FixturePaths {
     m8OpsHomeNormal,
     m8OpsHomeResumeGap7,
     m8OpsRhythmRows,
+    m8OpsRhythmEmpty,
     m8ReconBoardDiff,
     m8RestartLostPhone,
     m8WatchdogDelayed,
@@ -7804,15 +8282,17 @@ abstract final class FixturePaths {
 ## `packages/domain_contracts/lib/src/labels/advice_codes.dart`
 
 ```dart
-// 01 §3-8 X7 명령 거부 사유 15종 · §6-6 `advice_transition.cause_code` 9종
-// · `decision_log.reason_code` 특수값 3종 · §3-7 슬리브 A 계절 진입 게이트 사유 3종.
+// 01 §3-8 X7 명령 거부 사유 18종(🆕 v1.12 +3) · §6-6 `advice_transition.cause_code` 9종
+// · `decision_log.reason_code` 특수값 3종 · §3-7 슬리브 A 계절 진입 게이트 사유 3종
+// · 🆕 v1.12(01 §21) 재제출 선택지 2종(`AdviceRetryCodes`) · 수량 채우기 필드 1종(`ManualFillPrefillFields`).
 //
 // 🔴 전부 «어떤 코드가 오는가»의 목록이다. 거부 사유의 문구는 `ActionResult.headline`·
 //    `CommandReceipt.stateLabel` 에, 게이트 사유의 문구는 `ReasonChip.label` 에 실려 온다.
 // 🔴 **거부는 초안을 지우지 않는다**(C17) — 어떤 거부 코드로 돌아와도 화면은 값을 채운 채
 //    사유와 재제출 버튼을 보인다. 초안 삭제는 `CommandReceipt.state == executed` 수신 시에만.
 
-/// X7 명령 거부 사유 코드 15종(01 §3-8).
+/// X7 명령 거부 사유 코드 18종(01 §3-8 · 🆕 v1.12 +3 — `INPUT_INVALID`·`SELF_REPORT_OUTSIDE_SESSION`·
+/// `DEFER_ALREADY_USED`).
 ///
 /// 🔴 **폐기** — `LEDGER_INTEGRITY_BLOCKED`(B18). 무결성 차단 중에도 기록 명령은 거부하지 않고
 ///    `CommandState.heldForIntegrity` 로 **보관**한다. 이 상수를 되살리지 않는다.
@@ -7868,7 +8348,20 @@ abstract final class AdviceRejectCodes {
   /// 재제출은 `duplicateAck = true`.
   static const String duplicateSuspected = 'DUPLICATE_SUSPECTED';
 
-  /// 전량 15종.
+  /// 🆕 v1.12(01 §21 · K4) — 원문 파싱·필수 칸·상한 실패(수량·가격·현금·사유·계좌 · 어느 칸인지는
+  /// `CommandReceipt.stateLabel`). 🔴 `CommandApi` 구현이 **큐 적재 없이** 낸 로컬 거부다(그 id 도
+  /// `watchCommand` 가 다시 낸다 — 구현 의무 ④ · K42).
+  static const String inputInvalid = 'INPUT_INVALID';
+
+  /// 🆕 v1.12(K9 · 01 §4-2 «세션 밖 제출 거부») — 열린 실사 세션이 없다(`SettingsActionId.selfReportSessionStart`
+  /// 뒤가 아니다). 🔴 큐 적재 0(로컬 거부 · 구현 의무 ④).
+  static const String selfReportOutsideSession = 'SELF_REPORT_OUTSIDE_SESSION';
+
+  /// 🆕 v1.12(K14 ⓐ) — 「내일 다시」를 이미 쓴 안내(G-86 «안내 1건당 1회» · 두 기기·두 번 탭 경합).
+  /// 🔴 `ADVICE_NOT_OPEN` 은 `EXPIRED` 를 제외하는 코드라 재사용하지 않는다.
+  static const String deferAlreadyUsed = 'DEFER_ALREADY_USED';
+
+  /// 전량 18종.
   static const Set<String> values = <String>{
     modeCombinationDenied,
     operatingModeMismatch,
@@ -7885,7 +8378,36 @@ abstract final class AdviceRejectCodes {
     skipNoteRequired,
     leaseExpired,
     duplicateSuspected,
+    inputInvalid,
+    selfReportOutsideSession,
+    deferAlreadyUsed,
   };
+}
+
+/// 🆕 v1.12(01 §21 · K20) — 재제출 선택지 코드(`CommandReceipt.retryCode` · X7 기록 명령 전용).
+///
+/// 🔴 화면은 이 코드로 분기하지 않는다 — `CommandReceipt.retryLabel` 버튼을 누르면 그 `retryCode` 를 제출 DTO
+///    `retryCodes` 에 **더할** 뿐이다(누적 · B5 → A9 연쇄 거부 뒤 셋째 제출은 둘 다 싣는다). 와이어
+///    `ManualFillRecord.offHourTrade`·`duplicateAck` 로 옮기는 것은 `CommandApi` 구현이다.
+abstract final class AdviceRetryCodes {
+  /// B5 — `PRICE_OUT_OF_RANGE` 뒤 «시간외·단주 신고로 다시 제출»(엔진이 실을지 판정한다).
+  static const String offHourTrade = 'OFF_HOUR_TRADE';
+
+  /// A9 — `DUPLICATE_SUSPECTED` 뒤 «같은 체결이 아닙니다 — 다시 제출».
+  static const String duplicateAck = 'DUPLICATE_ACK';
+
+  /// 전량 2종.
+  static const Set<String> values = <String>{offHourTrade, duplicateAck};
+}
+
+/// 🆕 v1.12(01 §21 · K19) — `ManualFillInput.prefilledFields` 의 값(A1 — `A-3` 의 「채우기」 버튼은 수량 1개뿐 ·
+/// 가격·거래일 버튼 없음 · 02 §3-8).
+abstract final class ManualFillPrefillFields {
+  /// 「안내 수량 채우기」(`AdviceItem.prefillQuantityText` 를 입력칸에 넣었다).
+  static const String quantity = 'quantity';
+
+  /// 전량 1종.
+  static const Set<String> values = <String>{quantity};
 }
 
 /// `advice_transition.cause_code` 9종(01 §6-6 CHECK).
@@ -8766,6 +9288,10 @@ abstract final class ContractCodes {
     'ledger_event_reject': LedgerEventRejectCodes.values,
     // 🆕 v1.11(E7b0) — 실입금 등록의 거부 사유(`CommandReceipt.rejectReasonCode`)
     'deposit_register_reject': DepositRegisterRejectCodes.values,
+    // 🆕 v1.12(01 §21 · K20) — X7 기록 명령의 재제출 선택지(`CommandReceipt.retryCode`)
+    'advice_retry': AdviceRetryCodes.values,
+    // 🆕 v1.12(K19) — 수기 체결 초안의 «채우기» 필드(`ManualFillInput.prefilledFields` · C-5 «values 집합 = 등재»)
+    'manual_fill_prefill': ManualFillPrefillFields.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -9436,17 +9962,39 @@ abstract final class AppRoutes {
   /// `A-2` 안내 상세.
   static const String adviceDetail = 'aaq://advice/detail/:adviceId';
 
-  /// `A-3` 수기 체결 기록(폰 전용).
-  static const String adviceFill = 'aaq://advice/fill';
+  /// `A-3` 수기 체결 기록(폰 전용). 🆕 v1.12(01 §21 · §8 미결 52 ①) — `:adviceId` · `AdviceAction.deepLink`(RECORD)가
+  /// 완성해서 준다. 등록 = 전 플랫폼 · 본문 = Android `ManualFillForm(adviceId:)`(operator 라이브러리) · iOS 뷰어 셸 =
+  /// «폰에서만» 부재 안내 · 웹 = `ui_journal` 없음(TARGETS T-3) — 셸 가드(선례 `journalDraft`).
+  /// 🔵 v1.12 교체(구 `aaq://advice/fill` — 파라미터 없는 `A-3` 은 02 에 없다 · 안내 밖 매매 = `M5-6`).
+  static const String adviceFill = 'aaq://advice/fill/:adviceId';
+
+  /// 🆕 v1.12(01 §21 · 미결 52 ②) — `A-4` 미이행 사유 1탭(폰 전용) · `AdviceAction.deepLink`(SKIP) ·
+  /// 본문 `AdviceSkipForm(adviceId:)` · 가드 = [adviceFill] 과 같다. `advice/fill`·`detail` 과 세그먼트 수가 같고
+  /// **둘째 고정 세그먼트**로 갈린다(v1.2 `journalRead` 선례).
+  static const String adviceSkip = 'aaq://advice/skip/:adviceId';
 
   /// 안내 이력.
   static const String adviceHistory = 'aaq://advice/history';
 
-  /// `L-3` 원장 실사(폰 전용).
-  static const String ledgerSelfReport = 'aaq://ledger/self-report';
+  /// `L-3` 원장 실사(폰 전용). 🆕 v1.12(01 §21 · 미결 52 ⑧ · K7 · K36 ⓐ) — 그 달(`yyyy-MM`) · 그 계좌 별칭
+  /// (🔴 계좌 전체번호 아님)의 정기 실사. 엔진이 완성해서 준다(`LedgerTrustBadge.actionDeepLink` · `SELF_AUDIT_DUE`
+  /// 알림·플래그 `clearDeepLink` · `H-02` 리듬 행 · `LedgerDiffRow.actionLink`(canonSelfReport) ·
+  /// `SelfReportResult.nextAccountLink`). 본문 = `SelfReportForm(yyyyMm:, accountAlias:)` · 가드 = [adviceFill] 과 같다.
+  /// `'/'` 로 쪼갠 조각 수(6)가 `ledger/*` 다른 라우트와 달라 겹치지 않는다. 🔵 v1.12 교체(구 `aaq://ledger/self-report`).
+  /// 🔴 별칭에 `/`·`?`·`#` 가 없게 하는 것은 엔진 의무다(C-46 ⑮).
+  static const String ledgerSelfReport =
+      'aaq://ledger/self-report/:yyyyMm/:accountAlias';
 
   /// 원장 신뢰 등급 설명.
   static const String ledgerTrust = 'aaq://ledger/trust';
+
+  /// 🆕 v1.12(01 §21 · K27) — `L-1` 차이 상세(읽기 · `LedgerDiffs()`). 홈 블록 6 탭 = 이 상수(04 §4-5 · 규칙 ④).
+  /// 등록 = 전 플랫폼 · 본문 = Android·iOS(`rm_ledger_diff` v1 필수) · 웹 = Q-D 전 셸 «부재» 가드.
+  static const String ledgerDiffs = 'aaq://ledger/diffs';
+
+  /// 🆕 v1.12(01 §21 · K27) — `L-2` 정정 이력·감사(읽기 · `LedgerRepairs()`). `L-1` 하단 = 이 상수(02 §5-2 · 규칙 ④).
+  /// 등록 = 전 플랫폼 · 본문 = **Android 만** · iOS·웹 = 셸 «폰에서만» 부재 안내(`rm_ledger_repair` 없음 · 01 §8 미결 117).
+  static const String ledgerRepairs = 'aaq://ledger/repairs';
 
   /// `S7-10` 이행 갭 — 🆕 v1.6 주석: `S7-10` 은 **M7(03 §14-b) 화면**이다 · 이 묶음 표기는 역사적(H63).
   /// 인자 없는 진입(「계획」 탭 ⑤) = 엔진 기본 달 · 셸 본문 = `ExecutionGapScreen()`.
@@ -9512,6 +10060,10 @@ abstract final class AppRoutes {
   static const String opsArchive = 'aaq://ops/archive';
   static const String opsMaintenance = 'aaq://ops/maintenance';
   static const String opsWatchdog = 'aaq://ops/watchdog';
+
+  /// 🆕 v1.12(01 §21 · K43) — `H-02` 운영 리듬 표(`OpsRhythm()` · `ui_shell`). 홈 블록 7·8 탭·«더 보기» = 이 상수
+  /// (04 §4-6 · 규칙 ④). 등록 = 전 플랫폼 · 본문 = 전 플랫폼(`rm_ops_summary` v1 필수 · N-07).
+  static const String opsRhythm = 'aaq://ops/rhythm';
   static const String settingsContribution = 'aaq://settings/contribution';
   static const String settingsCredentials = 'aaq://settings/credentials';
   static const String handoverStatus = 'aaq://handover/status';
@@ -9535,7 +10087,9 @@ abstract final class AppRoutes {
 
   /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance` ·
   /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory` · 🆕 v1.8 = 48 · `holdingsOverview`·
-  /// `holdingsDetail`·`holdingsAllocation`).
+  /// `holdingsDetail`·`holdingsAllocation` · 🆕 v1.12 = **52** · `adviceSkip`·`ledgerDiffs`·`ledgerRepairs`·`opsRhythm`
+  /// + 교체 2 `adviceFill`·`ledgerSelfReport`). 순서 = 첫 일치(C-33 ⑦ · 겹침 0) — `adviceSkip` 은 `adviceFill` 뒤 ·
+  /// `ledgerDiffs`·`ledgerRepairs` 는 `ledgerTrust` 뒤 · `opsRhythm` 은 `opsWatchdog` 뒤.
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -9550,9 +10104,12 @@ abstract final class AppRoutes {
     adviceInbox,
     adviceDetail,
     adviceFill,
+    adviceSkip,
     adviceHistory,
     ledgerSelfReport,
     ledgerTrust,
+    ledgerDiffs,
+    ledgerRepairs,
     ledgerExecutionGap,
     ledgerExecutionGapMonth,
     reportArchive,
@@ -9571,6 +10128,7 @@ abstract final class AppRoutes {
     opsArchive,
     opsMaintenance,
     opsWatchdog,
+    opsRhythm,
     settingsContribution,
     settingsCredentials,
     handoverStatus,
@@ -9963,6 +10521,8 @@ import '../primitives/list_result.dart';
 /// 안내함 · 요약 · 상세 · 이력 · 수기 기록 폼 사양.
 abstract interface class AdviceRepository {
   /// `A-1` 안내함.
+  /// 🆕 v1.12(01 §21 · K13) — 🔴 `A-1` 은 **인자 없이** 부른다(`status` 인자 금지) · 순서 = 엔진(확인 카드 → `isUrgent`
+  ///    → 나머지) · 확인 카드 밖 미분류 만료는 이 목록에 오지 않는다(요약 `overdueUnrecordedLink` · [watchHistory]).
   Stream<ListResult<AdviceItem>> watchInbox({
     AdviceStatus? status,
     int limit = 50,
@@ -9975,6 +10535,8 @@ abstract interface class AdviceRepository {
   /// `A-2` 상세.
   Future<AdviceItem?> findById(String adviceId);
 
+  /// 🆕 v1.12(K38) — 「지난 안내」(`AdviceHistory()`)의 원천 · 범위 = `ConfigRepository.watchRangePresets()` 의
+  /// `isDefault` 1건(화면이 날짜를 만들지 않는다 · 01 §1-3).
   Stream<ListResult<AdviceItem>> watchHistory({required DateRange range});
 
   /// `A-3` 수기 기록 폼 사양.
@@ -9988,8 +10550,10 @@ abstract interface class AdviceRepository {
   /// 🔴 `JournalRepository.fillChain(entryId)` 와 **다른 것이다** — `fillChain` 은 «한 체결의
   ///    정정 체인», 이것은 «한 안내의 체결들»이다. 02 §3-7 의 `fillChain(adviceId)` 인용은
   ///    오기이며 정본 우선순위상 01 이 이긴다.
-  /// 🔴 정정된 행도 전부 온다 — 화면이 `fillKind` 로 접어 묶는다.
+  /// 🔴 정정된 행도 전부 온다 — 🆕 v1.12(01 §21 · K18) **받은 순서 그대로 그린다**(옛 «화면이 `fillKind` 로 접어
+  ///    묶는다» 삭제 — 묶기도 판정이다 · 접기 = 01 §8 미결 115) · 행 탭 = `TradeJournalEntry.detailDeepLink`(→ `J-2`).
   /// 🔴 지연 이행(`LATE_FILL`)으로 참조만 걸린 체결도 포함한다.
+  /// 🆕 v1.12(K40) — viewer 판은 **빈 목록**(rm_advice A6 마스킹의 연장 · `recorded_quantity` 도 싣지 않는다).
   Future<List<TradeJournalEntry>> fillsOfAdvice(String adviceId);
 }
 ```
@@ -10263,17 +10827,23 @@ import '../dto/ledger.dart';
 import '../dto/ledger_trust.dart';
 import '../primitives/list_result.dart';
 
-/// 열린 불일치 목록 · 시스템 밖 자산 목록.
+/// 열린 불일치 목록 · 시스템 밖 자산 목록 · 🆕 v1.12 정정 이력.
 abstract interface class LedgerRepository {
   /// 🔴 파생 불일치(`canonSupabase`·`canonGithub`·`canonCalendar`)는 **어떤 심각도에서도
   ///    주문을 막지 않는다**(01 §2-9).
   /// 🔴 `applicable == false` 인 칸은 «점검 안 함»으로 그린다 — 보드 칸 수는 모드와
   ///    무관하게 **5 고정**이다.
+  /// 🆕 v1.12 주석(01 §21 · G32) — 이름은 «열린» 이지만 **최근의 해소·수용된 차이도 온다**(`L-1` 이 resolved·
+  ///    accepted 를 그린다 · 최근 차이 = 열린 것 + 해소·수용된 것). 이름 바꾸기는 파괴라 별도 창(W9).
   Stream<ListResult<LedgerDiffRow>> watchOpenDiffs();
 
   /// 🆕 X7 — 시스템 밖 자산(`external_holding`).
   /// 🔴 이 목록은 표시 전용이며 파생 계산 경로가 읽지 않는다(C-23).
   Stream<ListResult<ExternalHoldingRow>> watchExternalHoldings();
+
+  /// 🆕 v1.12(01 §21 · K24) — `L-2` 정정 이력(append-only 표시판 · 순서 = 엔진(계단식 · K25) · 빈 = `emptyLabel`
+  /// «정정 이력이 없습니다» · 뷰어 원천 0 = 01 §8 미결 117 — iOS·웹 = 셸 «폰에서만»).
+  Stream<ListResult<LedgerRepairRow>> watchRepairs({int limit = 50});
 }
 ```
 
@@ -10290,6 +10860,13 @@ import '../dto/ledger_trust.dart';
 /// 🔴 `LedgerTrustGrade.selfReported` 는 **실패가 아니라 정상 운영 상태**다(01 §2-1 X7).
 abstract interface class LedgerTrustRepository {
   Stream<LedgerTrustBadge> watchGrade();
+
+  /// 🆕 v1.12(01 §21 · K8 · K36 ⓐ) — `L-3` 세션(키 = 라우트 두 값 그대로 — 그 달 `yyyy-MM` · 그 계좌 별칭).
+  /// 🔴 세션을 여닫지 않는다(K9 — `SettingsActions` `selfReportSessionStart`·`Stop`) · 부작용 0(01 §1-4 «읽기»).
+  Stream<SelfReportSession> watchSelfReportSession(
+    String yyyyMm,
+    String accountAlias,
+  );
 }
 ```
 
@@ -10356,10 +10933,15 @@ abstract interface class OpsStatusRepository {
 /// 홈 블록 5·7 의 오늘 요약.
 /// 🔴 «세는 수»는 전부 엔진이 세어 **문자열로** 준다 — 화면이 목록 길이로 만들지 않는다
 ///    (double·int 산술이라 C-4 가 잡지 못한다 — 그래서 조문이 필요하다).
-/// ⬜ 열린 물음 §10-2 ⑤ — viewer 경로의 원천 표 `rm_ops_summary` 존폐가 미결이다
-///    (표를 만들거나, 홈 블록 5·7 을 폰 전용으로 명시하거나 둘 중 하나).
+/// ✅ N-07(2026-10-22 · 발주자 결정) — 뷰어 원천 = `rm_ops_summary` v1 필수(01 §6-4 · 옛 열린 물음 §10-2 ⑤).
+///    🆕 계약 v1.12 — 같은 표가 [watchRhythm] 의 전체 목록 열을 싣는다(열 이름 = 엔진 배치).
 abstract interface class OpsSummaryRepository {
   Stream<OpsDailySummary> watchToday();
+
+  /// 🆕 v1.12(01 §21 · §8 미결 113 · K29) — `H-02` 운영 리듬 표 전체(받은 순서 = 표 순서 · 화면이 거르거나 채우지 않는다).
+  /// 🔴 [watchToday] 의 `upcoming` 은 이 목록의 **앞 ≤3 과 같은 값**이다(엔진 의무 · C-47 ⑤) · 뷰어 = `rm_ops_summary`
+  ///    전체 목록 열(열 이름 = 엔진 배치).
+  Stream<ListResult<OpsRhythmRow>> watchRhythm();
 }
 ```
 
