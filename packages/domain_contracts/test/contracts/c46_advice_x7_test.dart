@@ -16,8 +16,13 @@
 //    `advice_detail.dart` · `lib/src/advice/**`(읽기 화면) · `lib/src/journal_draft/manual_fill_form.dart` ·
 //    `advice_skip_form.dart` · `self_report_form.dart`(폼 3 — operator 라이브러리). 전처리 = `stripComments`(문자열 보간 안
 //    코드까지 본다) · ⑲ 만 `stripCommentsAndStrings`. 대상 0(R5b 전) = ⑰~㉖ 공허 통과 + 대상 수 출력(C-44 ⑫ 선례).
-//   🔵 설계서 ⑰ 의 읽기 화면 `.adviceId` 금지는 예외 2를 둔다 — `widget.adviceId`(`A-2` `findById`·`fillsOfAdvice` 인자)
-//      · `deferAdviceConfirm(…adviceId)` 인자(K14 ⓐ). 표시·Key 에 쓰는 `.adviceId` 는 그대로 금지다(행 Key = 순번).
+//   🔵 설계서 ⑰ 의 읽기 화면 `.adviceId` 금지는 **인자 자리**만 예외로 둔다 — `findById(…)`·`fillsOfAdvice(…)`(`A-2`)·
+//      `deferAdviceConfirm(…)`(K14 ⓐ) · 이름이 `Provider` 로 끝나는 family 호출의 첫 인자(H6-3 `holding_detail.dart:39` 선례).
+//      표시·보간·Key·대입에 쓰는 `.adviceId` 는 그대로 금지다(행 Key = 순번).
+//   🆕 검증 반영(2026-10-22 · 변이 R1~R8 생존 · 정합 갈래) — ⑰ 객체 패턴 구조 분해(`AdviceItem(:final quantity)`)·열거
+//      `.name` · ⑱ 점 축약(`== .expired` · 이름 = 열거 `.values`) · ⑲ `BigInt.parse`·`floor`·`ceil`·`truncate`·`~/` ·
+//      ㉓ 갈래 판정(else·`!=`·블록 밖 · [_clearGuarded]) · ㉔ dispose 본문 = 메서드 끝까지 · ㉕ `firstWhere` 류 ·
+//      ⑰ `.adviceId` 예외 = 인자 자리만 — 양성 +29 · 음성 +12(㉗).
 // 🔴 픽스처 값(수량·가격·날짜)을 이 파일에 적지 않는다 — 픽스처끼리 맞댄다. 자체 검증 스니펫의 값은 자리표시자다.
 
 import 'dart:convert';
@@ -215,18 +220,71 @@ final RegExp _x7Name = RegExp(
 
 // ─── B. 정규식 ────────────────────────────────────────────────────────────────
 
-/// ⑰ 공통(읽기 + 폼) — 원값·키. 🔴 `\b` 는 그룹 **밖**(`.statusLabel`·`.quantityText` 를 막지 않는다).
-final RegExp _rawCommon = RegExp(
-  r'\.(?:status|onHold|suppressed|actionId|quantity|recordedQuantity|quantityMax|'
-  r'minTradeDate|maxTradeDate|nonTradingDates|low|high|reference|sleeve|wire|'
-  r'closeReasonCode|asOfTradeDate|decision)\b',
-);
+/// ⑰ 공통(읽기 + 폼) 원값 필드 — `.필드` 접근과 객체 패턴 구조 분해(`AdviceItem(:final quantity)`)를 같은 목록으로 막는다.
+/// 🆕 검증 반영(2026-10-22) — `name`(열거 `.name` = 원 코드 표시 · C-47 `_raw` 와 맞춤) 추가.
+const List<String> _rawCommonFields = <String>[
+  'status',
+  'onHold',
+  'suppressed',
+  'actionId',
+  'quantity',
+  'recordedQuantity',
+  'quantityMax',
+  'minTradeDate',
+  'maxTradeDate',
+  'nonTradingDates',
+  'low',
+  'high',
+  'reference',
+  'sleeve',
+  'wire',
+  'name',
+  'closeReasonCode',
+  'asOfTradeDate',
+  'decision',
+];
 
 /// ⑰ 읽기 화면만 — 종목·방향·코드·체결 종류 원값.
-final RegExp _rawRead = RegExp(r'\.(?:symbol|side|code|fillKind)\b');
+const List<String> _rawReadFields = <String>[
+  'symbol',
+  'side',
+  'code',
+  'fillKind',
+];
 
-/// ⑰ 읽기 화면 `.adviceId` — 예외 2(`widget.adviceId` · `deferAdviceConfirm(…adviceId)`)는 [_scan] 이 거른다.
+/// `.필드` 접근. 🔴 `\b` 는 그룹 **밖**(`.statusLabel`·`.quantityText` 를 막지 않는다).
+RegExp _dotField(List<String> fields) =>
+    RegExp('\\.(?:${fields.join('|')})\\b');
+
+/// 🆕 검증 반영 — 객체 패턴 구조 분해: `:final quantity` · `:var status` · `:int quantity` · `:quantity` ·
+/// `quantity: final q` · `quantity: var q` · `quantity: int q`(이름 붙인 형 패턴 — 호출 인자로는 쓸 수 없는 꼴).
+RegExp _patternField(List<String> fields) {
+  final String f = fields.join('|');
+  return RegExp(
+    ':(?:final\\s+|var\\s+)?(?:[\\w<>?]+\\s+)?(?:$f)\\b'
+    '|\\b(?:$f)\\s*:\\s*(?:(?:final|var)\\b'
+    '|(?!await\\b|const\\b|new\\b)[A-Za-z_]\\w*(?:<[^>]*>)?\\??\\s+[a-z_]\\w*\\s*[,)])',
+  );
+}
+
+final RegExp _rawCommon = _dotField(_rawCommonFields);
+final RegExp _rawCommonPattern = _patternField(_rawCommonFields);
+final RegExp _rawRead = _dotField(_rawReadFields);
+final RegExp _rawReadPattern = _patternField(<String>[
+  ..._rawReadFields,
+  'adviceId',
+]);
+
+/// ⑰ 읽기 화면 `.adviceId` — 예외 = **인자 자리**만([_adviceIdArg]) · 표시·보간·Key·대입은 그대로 금지.
 final RegExp _adviceIdAny = RegExp(r'\.adviceId\b');
+
+/// 🆕 검증 반영 — 예외를 인자 자리로 좁힌다(첫 판 = «앞 글자가 widget» 이면 통과 → `Text(widget.adviceId)` 가 샜다):
+/// `findById(…)`·`fillsOfAdvice(…)`·`deferAdviceConfirm(…)`(K14 ⓐ) 의 첫 인자 · 이름이 `Provider` 로 끝나는 family
+/// 호출의 첫 인자(`_adviceDetailProvider(widget.adviceId)` · 레코드 `((widget.adviceId, x))` — H6-3
+/// `holding_detail.dart:39` 선례). 받는 쪽 이름(`widget`·`item`·…)은 묻지 않는다.
+final RegExp _adviceIdArg = RegExp(
+  r'(?:\bfindById|\bfillsOfAdvice|\bdeferAdviceConfirm|\w*Provider)\(\s*\(?\s*\w+$',
+);
 
 /// ⑰ Key 에 `.adviceId`(행 Key = 순번 · v1.8 C-44 ⑮ 선례).
 final RegExp _adviceIdKey = RegExp(r'Key\s*(<[^>]*>)?\s*\(\s*[^)]*\.adviceId');
@@ -237,10 +295,27 @@ final RegExp _branch = RegExp(
   r'SelfReportPurpose\.(?!periodicAudit\b)',
 );
 
-/// ⑲ 파싱·산술(`stripCommentsAndStrings` 뒤 — K4 · K37).
+/// 🆕 검증 반영 — ⑱ 의 점 축약(dot shorthand · 이 저장소 SDK ^3.13.0 에서 켜져 있다) 꼴: `== .expired` · `case .record:` ·
+/// `side: .buy` · `{ .open => … }`. 값 이름은 손으로 적지 않고 열거 `.values` 의 `.name` 에서 만든다(`periodicAudit` 제외).
+final RegExp _branchShorthand = () {
+  final List<String> names = <String>[
+    for (final AdviceStatus v in AdviceStatus.values) v.name,
+    for (final AdviceActionId v in AdviceActionId.values) v.name,
+    for (final AdviceSkipReason v in AdviceSkipReason.values) v.name,
+    for (final OrderSide v in OrderSide.values) v.name,
+    for (final SelfReportPurpose v in SelfReportPurpose.values)
+      if (v != SelfReportPurpose.periodicAudit) v.name,
+  ];
+  // 삼항 `? .x` 는 `?` 뒤 공백으로 가린다 — 널 인지 접근 `a?.open(…)` 은 점 축약이 아니다.
+  return RegExp(
+    '(?:\\bcase|\\bwhen|\\breturn|=>|\\?\\s|[(,:{\\[=|&])\\s*\\.(?:${names.join('|')})\\b',
+  );
+}();
+
+/// ⑲ 파싱·산술(`stripCommentsAndStrings` 뒤 — K4 · K37 · 🆕 검증 반영 = `BigInt.parse`·`floor`·`ceil`·`truncate`·`~/`).
 final RegExp _parse = RegExp(
-  r'int\.parse|double\.parse|num\.parse|tryParse|\bDecimal\b|DateTime\.parse|'
-  r'showDatePicker|\.toInt\(|\.round\(',
+  r'int\.parse|double\.parse|num\.parse|BigInt\.parse|tryParse|\bDecimal\b|DateTime\.parse|'
+  r'showDatePicker|\.toInt\(|\.round\(|\.floor\(|\.ceil\(|\.truncate\(|~/',
 );
 
 /// ⑳ 와이어·맥락(= C-28 ⑨ 의 실물).
@@ -259,20 +334,95 @@ final RegExp _safetyDirect = RegExp(
 final RegExp _routeConst = RegExp(r'AppRoutes\.(?!adviceHistory\b)');
 final RegExp _linkLiteral = RegExp(r'aaq://');
 
-/// ㉓ 초안 지우기 — 앞 300자 안에 `CommandState.executed` 가 있어야 한다.
+/// ㉓ 초안 지우기 — 앞 300자 안의 **마지막** `CommandState.executed` 가 그 `.clear(` 를 지키는 갈래여야 한다([_clearGuarded]).
 final RegExp _clearCall = RegExp(r'\.clear\(');
 const int _clearWindow = 300;
+const String _executed = 'CommandState.executed';
 
-/// ㉔ `dispose` 의 `ref`.
-final RegExp _disposeBody = RegExp(
-  r'void\s+dispose\s*\(\s*\)(.*?)super\.dispose\(\)',
-  dotAll: true,
+final RegExp _clearOtherArm = RegExp(
+  r'\belse\b|\bcase\b|\bdefault\b|\breturn\b|\bbreak\b|\bcontinue\b|\|\|',
 );
+
+/// 🆕 검증 반영 — 첫 판은 «앞 300자에 `CommandState.executed` 글자가 있으면 통과»라 else 갈래에서 지워도 샜다.
+/// 지금은 마지막 `CommandState.executed`(= e)에서 `.clear(` 까지의 사이 글자(= seg)를 본다:
+///   · 공통 금지 — seg 에 `else`·`case`·`default`·`return`·`break`·`continue`·`||`(다른 갈래 · 조건 넓힘).
+///   · `case e:`(switch 문 갈래) — 앞이 `case`.
+///   · `e =>`(switch 식 갈래) — 앞이 `{`·`,` · seg 에 `,`·`;` 0(다음 갈래로 넘어가지 않음).
+///   · if 조건(`== e` · `e ==` · `case e)`) — `if (` 부터 e 까지 `!(`(부정) 0 · seg 가 열린 블록 안(`{` 깊이 ≥ 1 ·
+///     한 번도 0 아래로 내려가지 않음)이거나 중괄호·`;`·`:` 없는 한 문장(`if (… == e) s.clear(k);` · 삼항 참 갈래).
+bool _clearGuarded(String code, int at) {
+  final int from = at - _clearWindow < 0 ? 0 : at - _clearWindow;
+  final String window = code.substring(from, at);
+  final int i = window.lastIndexOf(_executed);
+  if (i < 0) {
+    return false;
+  }
+  final String head = window.substring(0, i);
+  final String seg = window.substring(i + _executed.length);
+  if (_clearOtherArm.hasMatch(seg)) {
+    return false;
+  }
+  if (RegExp(r'^\s*:').hasMatch(seg)) {
+    return RegExp(r'\bcase\s+$').hasMatch(head);
+  }
+  if (RegExp(r'^\s*=>').hasMatch(seg)) {
+    return RegExp(r'[{,]\s*$').hasMatch(head) && !RegExp(r'[,;]').hasMatch(seg);
+  }
+  final bool guardedHead =
+      RegExp(r'(?:==|\bcase)\s*$').hasMatch(head) ||
+      RegExp(r'^\s*==').hasMatch(seg);
+  if (!guardedHead) {
+    return false;
+  }
+  final List<RegExpMatch> ifs = RegExp(r'\bif\s*\(').allMatches(head).toList();
+  if (ifs.isNotEmpty &&
+      RegExp(r'!\s*\(').hasMatch(head.substring(ifs.last.end))) {
+    return false;
+  }
+  if (!RegExp(r'[{};:]').hasMatch(seg)) {
+    return true;
+  }
+  int depth = 0;
+  for (final int c in seg.codeUnits) {
+    if (c == 0x7B) {
+      depth++;
+    } else if (c == 0x7D) {
+      depth--;
+      if (depth < 0) {
+        return false;
+      }
+    }
+  }
+  return depth >= 1;
+}
+
+/// ㉔ `dispose` 의 `ref` — 🆕 검증 반영: 본문을 `super.dispose()` 에서 끊지 않고 **메서드 끝까지**(중괄호 짝) 본다
+/// (첫 판은 `super.dispose()` 뒤의 `ref.` 를 보지 못했다 — 해제 뒤 ref 도 StateError).
+final RegExp _disposeHead = RegExp(r'void\s+dispose\s*\(\s*\)\s*\{');
 final RegExp _refUse = RegExp(r'\bref\.');
 
-/// ㉕ 묶기·고르기(읽기 화면).
+/// [open] = 여는 `{` 바로 뒤 위치 → 짝 `}` 앞까지의 본문(짝이 없으면 끝까지).
+String _braceBody(String code, int open) {
+  int depth = 1;
+  for (int k = open; k < code.length; k++) {
+    final int c = code.codeUnitAt(k);
+    if (c == 0x7B) {
+      depth++;
+    } else if (c == 0x7D) {
+      depth--;
+      if (depth == 0) {
+        return code.substring(open, k);
+      }
+    }
+  }
+  return code.substring(open);
+}
+
+/// ㉕ 묶기·고르기(읽기 화면) — 🆕 검증 반영: `firstWhere`·`lastWhere`·`singleWhere`·`indexWhere`·`whereType`·
+/// `takeWhile`·`skipWhile` 도(첫 판 `\.where\(` 는 앞이 단어 글자인 이 꼴을 못 잡았다) · `.sorted` 도(`\.sort` 접두).
 final RegExp _reshape = RegExp(
-  r'groupBy|\.fold\(|\.reduce\(|\.where\(|\.sort\(',
+  r'groupBy|\.fold\(|\.reduce\(|\.sort|'
+  r'\.(?:where|firstWhere|lastWhere|singleWhere|indexWhere|whereType|takeWhile|skipWhile)\b',
 );
 
 /// ㉖ 명령 범위(읽기 화면) — 부르는 명령은 `deferAdviceConfirm` 하나(K14 ⓐ).
@@ -297,7 +447,11 @@ List<_Hit> _scan(String source, {required bool read}) {
   final List<_Hit> out = <_Hit>[
     for (final RegExpMatch m in _rawCommon.allMatches(code))
       _Hit('⑰', m.group(0)!),
+    for (final RegExpMatch m in _rawCommonPattern.allMatches(code))
+      _Hit('⑰', m.group(0)!),
     for (final RegExpMatch m in _branch.allMatches(code))
+      _Hit('⑱', m.group(0)!),
+    for (final RegExpMatch m in _branchShorthand.allMatches(code))
       _Hit('⑱', m.group(0)!),
     for (final RegExpMatch m in _parse.allMatches(bare)) _Hit('⑲', m.group(0)!),
     for (final RegExpMatch m in _wire.allMatches(code)) _Hit('⑳', m.group(0)!),
@@ -309,13 +463,12 @@ List<_Hit> _scan(String source, {required bool read}) {
       _Hit('㉒', m.group(0)!),
   ];
   for (final RegExpMatch m in _clearCall.allMatches(code)) {
-    final int from = m.start - _clearWindow < 0 ? 0 : m.start - _clearWindow;
-    if (!code.substring(from, m.start).contains('CommandState.executed')) {
+    if (!_clearGuarded(code, m.start)) {
       out.add(_Hit('㉓', m.group(0)!));
     }
   }
-  for (final RegExpMatch m in _disposeBody.allMatches(code)) {
-    if (_refUse.hasMatch(m.group(1)!)) {
+  for (final RegExpMatch m in _disposeHead.allMatches(code)) {
+    if (_refUse.hasMatch(_braceBody(code, m.end))) {
       out.add(const _Hit('㉔', 'dispose 안 ref.'));
     }
   }
@@ -323,13 +476,12 @@ List<_Hit> _scan(String source, {required bool read}) {
     for (final RegExpMatch m in _rawRead.allMatches(code)) {
       out.add(_Hit('⑰', m.group(0)!));
     }
+    for (final RegExpMatch m in _rawReadPattern.allMatches(code)) {
+      out.add(_Hit('⑰', m.group(0)!));
+    }
     for (final RegExpMatch m in _adviceIdAny.allMatches(code)) {
-      final int from = m.start - 40 < 0 ? 0 : m.start - 40;
-      final String before = code.substring(from, m.start);
-      final bool widgetArg = before.endsWith('widget');
-      final bool deferArg = RegExp(r'deferAdviceConfirm\(\s*[\w.]*$')
-          .hasMatch(before);
-      if (!widgetArg && !deferArg) {
+      final int from = m.start - 80 < 0 ? 0 : m.start - 80;
+      if (!_adviceIdArg.hasMatch(code.substring(from, m.start))) {
         out.add(_Hit('⑰', m.group(0)!));
       }
     }
@@ -415,6 +567,62 @@ const List<(String, bool, String)> _positives = <(String, bool, String)>[
   ('Text(item.decision.decisionId)', true, '⑰'),
   ('ref.watch(p).watchDecisionDetail(id);', true, '㉑'),
   ('final x = Decimal.parse(t);', false, '⑲'),
+  // 🆕 검증 반영(2026-10-22 · 변이 R1~R8 · 정합 갈래) — 새로 막은 꼴.
+  ('Text(widget.adviceId)', true, '⑰'),
+  ("Text('\${widget.adviceId}')", true, '⑰'),
+  ('final String id = widget.adviceId;', true, '⑰'),
+  (
+    'void _on(CommandReceipt r) { if (r.state == CommandState.executed) { _done = true; } '
+        'else { _store.clear(_key); } }',
+    false,
+    '㉓',
+  ),
+  ('if (r.state != CommandState.executed) { s.clear(k); }', false, '㉓'),
+  (
+    'if (r.state == CommandState.executed) { _done = true; } s.clear(k);',
+    false,
+    '㉓',
+  ),
+  (
+    'switch (r.state) { case CommandState.executed: _done = true; '
+        'case CommandState.rejected: s.clear(k); }',
+    false,
+    '㉓',
+  ),
+  ('if (!(r.state == CommandState.executed)) { s.clear(k); }', false, '㉓'),
+  (
+    'final x = r.state == CommandState.executed ? null : s.clear(k);',
+    false,
+    '㉓',
+  ),
+  (
+    'if (r.state == CommandState.executed || r.state == CommandState.rejected) { s.clear(k); }',
+    false,
+    '㉓',
+  ),
+  ('void dispose() { super.dispose(); ref.read(p); }', false, '㉔'),
+  ("if (item case AdviceItem(:final quantity)) Text('\$quantity'),", true, '⑰'),
+  ('if (item case AdviceItem(status: final s)) {}', false, '⑰'),
+  ('final AdviceItem(:int quantity) = item;', false, '⑰'),
+  ('if (item case AdviceItem(quantity: int q)) {}', true, '⑰'),
+  ('if (item case AdviceItem(:final symbol)) {}', true, '⑰'),
+  ('if (a.effectiveStatus == .expired) {}', true, '⑱'),
+  ('switch (x) { case .record: break; }', true, '⑱'),
+  ('final s = _input.copyWith(side: .buy);', false, '⑱'),
+  ('final t = switch (s) { .open => 1, _ => 0 };', true, '⑱'),
+  ('final p = SelfReportSubmission(purpose: .simOpening);', false, '⑱'),
+  ('Text(item.effectiveStatus.name)', true, '⑰'),
+  ('Text(rows.firstWhere((r) => r.isUrgent).symbolLabel!)', true, '㉕'),
+  (
+    'final List<AdviceItem> a = rows.whereType<AdviceItem>().toList();',
+    true,
+    '㉕',
+  ),
+  ('final int i = rows.indexWhere((r) => r.isUrgent);', true, '㉕'),
+  ('final s = rows.sorted((a, b) => 0);', true, '㉕'),
+  ('BigInt get _n => BigInt.parse(_qty.text);', false, '⑲'),
+  ('final int n = q ~/ 10;', false, '⑲'),
+  ('final int n = v.floor();', false, '⑲'),
 ];
 
 /// 음성 — (스니펫, 읽기 화면인가). 어느 조항에도 걸리지 않아야 한다.
@@ -467,6 +675,29 @@ const List<(String, bool)> _negatives = <(String, bool)>[
   ('Text(item.sideLabel ?? \'\')', true),
   ('Text(r.retryLabel!)', false),
   ('_retry = <String>[..._retry, r.retryCode!];', false),
+  // 🆕 검증 반영 — 좁힌 예외·새 정규식이 정상 꼴을 막지 않는다.
+  ('final d = ref.watch(_adviceDetailProvider(widget.adviceId));', true),
+  ('ref.invalidate(_fillsProvider((widget.adviceId, pnl)));', true),
+  ('opener?.open(action.deepLink);', true),
+  ('mainAxisAlignment: .start,', true),
+  ('final t = item.isUrgent ? .bold : .normal;', true),
+  ('if (r.state == CommandState.executed) _store.clear(_key);', false),
+  ('if (r.state case CommandState.executed) { s.clear(k); }', false),
+  (
+    'final v = switch (r.state) { CommandState.executed => s.clear(k), _ => null };',
+    false,
+  ),
+  (
+    'switch (r.state) { case CommandState.executed: _done = true; s.clear(k); default: }',
+    false,
+  ),
+  (
+    'void dispose() { _qty.dispose(); unawaited(_actions.run(SettingsActionId.selfReportSessionStop)); '
+        'super.dispose(); }',
+    false,
+  ),
+  ('Text(item.statusLabel, maxLines: 2)', true),
+  ('_qty.text = item.prefillQuantityText!;', false),
 ];
 
 void main() {

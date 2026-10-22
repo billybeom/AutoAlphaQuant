@@ -255,7 +255,7 @@ abstract class AdviceInboxSummary with _$AdviceInboxSummary {
     /// 하단 「안내에 없는 매매를 기록합니다」(→ `aaq://m5/intervention` · `M5-6` · K17). 뷰어·autoTrade = null.
     LinkAction? manualEntryLink,
 
-    /// 그 링크 앞 엔진 문구("이 기록은 안내 밖 매매로 남고 재량 예산 4회 중 1회를 씁니다"). [manualEntryLink] 와 짝.
+    /// 그 링크 앞 엔진 문구("이 기록은 안내 밖 매매로 남고 이번 달 재량 예산 2회 중 1회를 씁니다"). [manualEntryLink] 와 짝.
     String? manualEntryNoticeText,
   }) = _AdviceInboxSummary;
 

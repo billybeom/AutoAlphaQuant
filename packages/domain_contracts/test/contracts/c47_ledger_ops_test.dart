@@ -9,6 +9,8 @@
 //   등록부 미매핑 포함 · 정본 06_시스템설계/04_안전장치.md §5-3 v2.33)   ⑦ `L-1`·`L-2` 화면 소스 스캔(대상 0 = 공허 통과)
 //   ⑧ 자체 검증   ⑨ R13 진입 링크 표본(9b 실사 카드 · 리듬 분기 실사 · 블록 2 X2 한 줄).
 // 🔵 `H-01`·`H-02` 화면 스캔은 R13 카드(`ui_shell`)의 몫 — `ui_shell` 은 v1.8 C-44 ⑫ 에서도 제외였다.
+// 🆕 검증 반영(2026-10-22 · 변이 R7 · 정합 갈래) — ⑦ 에 `firstWhere` 류 · 객체 패턴 구조 분해 · 라우트 상수(예외
+//   `AppRoutes.ledgerRepairs`)·플랫폼 분기(`kIsWeb`·`defaultTargetPlatform`·`Platform.`) 를 더했다 — ⑧ 양성 +9 · 음성 +3.
 
 import 'dart:convert';
 import 'dart:io';
@@ -116,21 +118,45 @@ const String _ledgerDir = 'lib/src/ledger/';
 
 /// 원값·키 0(🔵 `.severity`·`.route`·`.pair`·`.status` = exhaustive switch 색·아이콘 · `.applicable` · `.supersedes != null` ·
 /// `.label`·`.directionLabel`·`.evidenceHash` 허용).
-final RegExp _raw = RegExp(
-  r'\.(?:candidateOriginCodes|originCode|directionCode|decisionId|appliedAt|'
-  r'recomputedFrom|diffId|repairId|wire|name)\b',
+const String _rawFields =
+    'candidateOriginCodes|originCode|directionCode|decisionId|appliedAt|'
+    'recomputedFrom|diffId|repairId|wire|name';
+final RegExp _raw = RegExp('\\.(?:$_rawFields)\\b');
+
+/// 🆕 검증 반영(2026-10-22) — 같은 원값을 객체 패턴 구조 분해로 꺼내는 꼴(`LedgerDiffRow(:final diffId)` ·
+/// `originCode: final o`) — C-46 ⑰ 과 같은 꼴.
+final RegExp _rawPattern = RegExp(
+  ':(?:final\\s+|var\\s+)?(?:[\\w<>?]+\\s+)?(?:$_rawFields)\\b'
+  '|\\b(?:$_rawFields)\\s*:\\s*(?:final|var)\\b',
 );
 
-/// 묶기·거르기·재정렬 0.
-final RegExp _reshape = RegExp(r'\.where\b|groupBy|\.sort|\.fold|\.reduce');
+/// 묶기·거르기·재정렬 0 — 🆕 검증 반영: `firstWhere`·`lastWhere`·`singleWhere`·`indexWhere`·`whereType`·`takeWhile`·
+/// `skipWhile` 도(첫 판 `\.where\b` 는 앞이 단어 글자인 이 꼴을 못 잡았다 · C-46 ㉕ 와 같은 목록).
+final RegExp _reshape = RegExp(
+  r'\.(?:where|firstWhere|lastWhere|singleWhere|indexWhere|whereType|takeWhile|skipWhile)\b|'
+  r'groupBy|\.sort|\.fold|\.reduce',
+);
 
 /// 쓰기·초안·안전 상태 직접 0(배너 = `journalSafetyStateProvider` + 공용 `JournalSafetyBanners`).
 final RegExp _write = RegExp(r'CommandApi|DraftStore|\.watchState\(');
 
+/// 🆕 검증 반영(설계서 §8-3 `L-1` «폰/웹 분기로 정정 버튼» ↔ C-47 ②③⑦) — 라우트 상수(예외 = `L-1` 하단
+/// `AppRoutes.ledgerRepairs` · 규칙 ④)와 플랫폼 분기 0. 조치 = 엔진이 실은 `actionLink` 하나(③) · 폰/웹 차이 = 엔진이 null 로.
+final RegExp _routeOrPlatform = RegExp(
+  r'AppRoutes\.(?!ledgerRepairs\b)|defaultTargetPlatform|\bkIsWeb\b|\bPlatform\.|'
+  r'TargetPlatform\.|\.platform\b',
+);
+
 List<String> _scan(String source) {
   final String code = stripComments(source);
   return <String>[
-    for (final RegExp re in <RegExp>[_raw, _reshape, _write])
+    for (final RegExp re in <RegExp>[
+      _raw,
+      _rawPattern,
+      _reshape,
+      _write,
+      _routeOrPlatform,
+    ])
       for (final RegExpMatch m in re.allMatches(code)) m.group(0)!,
   ];
 }
@@ -160,6 +186,16 @@ const List<String> _positives = <String>[
   'final DraftStore s = ref.read(p);',
   'rows.sort((a, b) => 0);',
   'Text(r.severity.name)',
+  // 🆕 검증 반영(2026-10-22 · 변이 R7 · 정합 갈래).
+  'Text(rows.firstWhere((r) => r.supersedes == id).label)',
+  'final List<LedgerRepairRow> a = rows.whereType<LedgerRepairRow>().toList();',
+  'final int i = rows.indexWhere((r) => r.applicable);',
+  'opener.open(AppRoutes.x5RepairWizard);',
+  'if (kIsWeb) {}',
+  'if (defaultTargetPlatform == TargetPlatform.android) {}',
+  'if (Platform.isAndroid) {}',
+  'if (r case LedgerDiffRow(:final diffId)) {}',
+  'if (r case LedgerRepairRow(originCode: final o)) {}',
 ];
 
 const List<String> _negatives = <String>[
@@ -174,6 +210,10 @@ const List<String> _negatives = <String>[
   'JournalSafetyBanners(safety: s)',
   'for (final (i, c) in r.candidateOrigins.indexed) {}',
   'Text(r.authoredDate.yyyyMmDd)',
+  // 🆕 검증 반영 — 정상 꼴.
+  'for (final (int i, LedgerRepairRow r) in rows.indexed) {}',
+  'Text(r.originLabel, maxLines: 2)',
+  'opener.open(AppNavActions.back);',
 ];
 
 void _say(String line) {
@@ -512,7 +552,7 @@ void main() {
       }
     });
 
-    test('C-47 ⑦ L-1·L-2 화면 소스 스캔 — 원값·묶기·쓰기 0', () {
+    test('C-47 ⑦ L-1·L-2 화면 소스 스캔 — 원값·묶기·쓰기·라우트 상수·플랫폼 분기 0', () {
       final List<String> files = _targets.keys.toList()..sort();
       _say(
         'C-47 ⑦ 대상 ${files.length}파일 — $_journalPackage/{${_ledgerFiles.join(', ')}} + $_ledgerDir**'

@@ -83,7 +83,7 @@
 //    세션 2값(K9) · `AdviceItem` +7 · `AdviceAction.deepLink` · `AdviceInboxSummary` +4 · `ManualFillFormSpec` +5 ·
 //    `SideOption`·`TradeDateOption` · `ReasonOption.deepLink` · `LedgerDiffRow` +8 · `LedgerRepairRow` +7 ·
 //    `watchRepairs` · `OpsSummaryRepository.watchRhythm` · `OpsDailySummary.resumeLine` · 코드 `AdviceRejectCodes` 18 ·
-//    `AdviceRetryCodes` · `ManualFillPrefillFields` · 받침대 +5 · 🆕 C-46·C-47 · 픽스처 159 → 174(신설 15 · 개정 23 ·
+//    `AdviceRetryCodes` · `ManualFillPrefillFields` · 받침대 +5 · 🆕 C-46·C-47 · 픽스처 159 → 174(신설 15 · 개정 22 ·
 //    알림 등급 5행 — 미결 114) — 🆕 tool/gen_r5r13_v112_fixtures.py(기준 f54f602 원문에서 멱등 생성).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다

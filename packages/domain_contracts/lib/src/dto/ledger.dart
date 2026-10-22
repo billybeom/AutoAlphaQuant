@@ -127,7 +127,7 @@ abstract class LedgerRepairRow with _$LedgerRepairRow {
     /// 원인 코드의 글자(01 §3-4) — 🔴 해설 생성 금지(02 §5-2).
     required String originLabel,
 
-    /// "069500 수량 120 → 123주" · `LEDGER_INTEGRITY` = "숨김"(엔진 · 02 §5-2 상태).
+    /// "069500 수량 120 → 132주" · `LEDGER_INTEGRITY` = "숨김"(엔진 · 02 §5-2 상태).
     required String targetText,
 
     /// → `J-2`(`aaq://journal/decision/<decisionId>`) · null = 결정 없음. 저널(`J-3R`) 링크 = v1 부재(01 §8 미결 121).

@@ -6,9 +6,13 @@
 픽스처는 이 스크립트 옆 폴더(../fixtures)에서 찾는다 — 어느 폴더에서 불러도 같다.
 관례는 gen_h6_v18_fixtures.py(계약 v1.8 · 그 스크립트는 v1.8 재현용으로 그대로 둔다)를 본떴다.
 
-하는 일(설계서 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §5 · 159 → 174 = 신설 15 · 개정 23 · 버전 줄만 136)
-  (a) 전 봉투의 "contract_version": "1.11.0" → "1.12.0" 한 줄 치환(다른 글자 불변 · 136건).
-  (b) 개정 23 — R1 ledger_diffs_4(+8 표시 키) · R2~R8 m6/advice_* 인박스 7벌(DETAIL 삭제 · deep_link · detail_deep_link ·
+하는 일(설계서 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §5 · 159 → 174 = 신설 15 · 개정 22 · 버전 줄만 137)
+  🆕 검증 반영(2026-10-22) — 건수는 **바이트 결과**로 센다: 설계서 §5 의 «개정 23 · 버전 줄만 136» 은 목록 크기였고,
+     목록의 R8 `m6/advice_handover_cooling` 은 행 0 · 요약 새 필드 전부 부재(냉각 창 = 수기 기록 링크 null)라 결과가
+     버전 줄 한 줄뿐이다 → 실측 = 개정 22 · 버전 줄만 137(목록 23 은 그대로 두고 둘을 함께 찍는다 · 아래 `main` 단언).
+  (a) 전 봉투의 "contract_version": "1.11.0" → "1.12.0" 한 줄 치환(다른 글자 불변 · 136건 + 목록상 개정이지만 결과가
+      같은 cooling 1건 = 137).
+  (b) 개정 22(목록 23) — R1 ledger_diffs_4(+8 표시 키) · R2~R8 m6/advice_* 인박스 7벌(DETAIL 삭제 · deep_link · detail_deep_link ·
       side_label · expired_confirm_label · decision_link · prefill_* · close_reason_label · 요약 링크·현금 고지) ·
       R9~R10 advice_detail_* · R11 advice_skip_reasons(requires_note K22 · 예산 2종 deep_link) · R12~R13 fill_form_spec(_stale)
       (+sides · trade_date_options · skip_notice_text) · R14 fill_rejected_price(retry_code · prefilled_fields) ·
@@ -1041,7 +1045,7 @@ def main():
     AUDIT_LINK = self_report_link('2026-08', ACCOUNTS[0]['alias'])
 
     out = {}
-    # ── 개정 23 ──
+    # ── 개정 목록 23(결과 = 개정 22 + 버전 줄만 1 · 아래 VERSION_ONLY_REVISED 단언) ──
     out[LEDGER_DIFFS4] = revise_ledger_diffs4()
     for rel in INBOX:
         out[rel] = revise_inbox(rel)
@@ -1195,6 +1199,13 @@ def main():
     # 진입 링크 표본 — 9b 실사 카드 · 리듬 분기 실사.
     assert envs[N_TRUST_DUE]['rows'][0]['action_deep_link'] == AUDIT_LINK
 
+    # ── 건수(바이트 결과 기준 · 🆕 검증 반영) — 목록상 개정인데 결과가 버전 줄만인 파일 = cooling 하나 ──
+    version_only_revised = sorted(rel for rel in REVISED if out[rel] == bump(base_text(rel), rel))
+    assert version_only_revised == [ADVICE_COOLING], version_only_revised
+    n_version_only = len(rels) - len(REVISED) + len(version_only_revised)
+    n_revised = len(REVISED) - len(version_only_revised)
+    assert (n_version_only, n_revised) == (137, 22), (n_version_only, n_revised)
+
     # ── 쓰기 ──
     for rel, s in sorted(out.items()):
         path = FX + '/' + rel
@@ -1202,9 +1213,9 @@ def main():
         io.open(path, 'w', encoding='utf-8', newline='').write(s)
     on_disk = sum(1 for _b, _d, ns in os.walk(FX) for n in ns if n.endswith('.json'))
     assert len(out) == WANT_FILES == on_disk, (len(out), on_disk)
-    print('gen_r5r13_v112_fixtures: %d files (기준 %d · 버전 줄만 %d · 개정 %d · 신설 %d) · 등급 대상 %d · '
-          'contract 1.12.0' % (len(out), BASE_FILES, len(rels) - len(REVISED), len(REVISED), len(NEW_FILES),
-                               len(graded)))
+    print('gen_r5r13_v112_fixtures: %d files (기준 %d · 버전 줄만 %d · 개정 %d(목록 %d — 결과 버전 줄만 %s) · 신설 %d) · '
+          '등급 대상 %d · contract 1.12.0' % (len(out), BASE_FILES, n_version_only, n_revised, len(REVISED),
+                                             ', '.join(version_only_revised), len(NEW_FILES), len(graded)))
 
 
 if __name__ == '__main__':

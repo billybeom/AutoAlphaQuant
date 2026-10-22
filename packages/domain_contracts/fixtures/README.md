@@ -717,7 +717,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 ## 계약 v1.12 (2026-10-22 · R5·R13 선행 M2 보강 · 01 §21 · ⬜ 로컬 커밋 — PR 대기)
 
 정본: 설계 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §5 · 발주자 확정 2026-10-22(🔴 8건 권고대로).
-**159 → 174** = 신설 15 · 개정 23 · 버전 줄만 136. 신설 15건의 `meta.generated_at`·`seed` 는 생성일(2026-10-22) 값이다.
+**159 → 174** = 신설 15 · 개정 22 · 버전 줄만 137(🆕 검증 반영 — 설계서 §5 의 «개정 23 · 버전 줄만 136» 은 목록 크기였다. 목록의 `m6/advice_handover_cooling` 은 행 0 · 요약 새 필드 전부 부재(냉각 창 = 수기 기록 링크 null)라 결과가 버전 줄 한 줄뿐이다 → 바이트 결과 = **개정 22 · 버전 줄만 137**(생성기가 둘을 함께 찍고 단언한다).). 신설 15건의 `meta.generated_at`·`seed` 는 생성일(2026-10-22) 값이다.
 
 ### 신설 15건
 
@@ -739,12 +739,12 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 | `m7/ledger_trust_self_audit_due` | `LedgerTrustBadge` | `SELF_AUDIT_DUE` 시기 배지 · `action_deep_link` = `L-3` 그 달·그 계좌 · R13b `h01_self_audit_due` |
 | `m8/ops_rhythm_empty` | `OpsRhythmRow` | 0행 + `NOT_LOADED`(«모름» ≠ «없음») · R13a 위젯 테스트 |
 
-### 개정 23건 (파일 이름·`FixturePaths` 상수 그대로)
+### 개정 22건 + 목록상 1건 (파일 이름·`FixturePaths` 상수 그대로 · `_handover_cooling` = 결과 버전 줄만)
 
 | 파일 | 바뀐 것 |
 |---|---|
 | `ledger_diffs_4` | 4행 +8 표시 키(`pair_label` == `m8/recon_board_diff` 같은 쌍 · 후보 칩 = 코드 순서 · `ld_0001` APPROVAL → «정정하기» `x5/repair-wizard` · 그 밖 `action_link` null) |
-| `m6/advice_12`·`_empty`·`_blocked`·`_expired_confirm`·`_viewer_4`·`_no_action`·`_handover_cooling` | DETAIL 액션 삭제 · `actions[].deep_link` · `detail_deep_link` · `side_label` · `decision_link` · `prefill_*`(열린 안내) · `close_reason_label` · 확인 카드 `expired_confirm_label`(≤3 · 맨 앞 · [RECORD, SKIP]) · 요약 `cash_notice`(`advice_12`) · `manual_entry_*`(폰 판) · `overdue_unrecorded_link`(`advice_expired_confirm` — +`ad_0203` · overdue 4) · 🔴 `advice_12` 행 순서 = 확인 카드 → `is_urgent` → 나머지 · 뷰어 `actions` = [] |
+| `m6/advice_12`·`_empty`·`_blocked`·`_expired_confirm`·`_viewer_4`·`_no_action`(+ 목록상 `_handover_cooling` — 행 0 · 요약 새 필드 부재 = 결과 버전 줄만) | DETAIL 액션 삭제 · `actions[].deep_link` · `detail_deep_link` · `side_label` · `decision_link` · `prefill_*`(열린 안내) · `close_reason_label` · 확인 카드 `expired_confirm_label`(≤3 · 맨 앞 · [RECORD, SKIP]) · 요약 `cash_notice`(`advice_12`) · `manual_entry_*`(폰 판) · `overdue_unrecorded_link`(`advice_expired_confirm` — +`ad_0203` · overdue 4) · 🔴 `advice_12` 행 순서 = 확인 카드 → `is_urgent` → 나머지 · 뷰어 `actions` = [] |
 | `m6/advice_detail_partial`·`_onhold` | 같은 행 키 |
 | `m6/advice_skip_reasons` · `fill_form_spec` · `fill_form_spec_stale` | `requires_note` = 예산 2종만 true · 그 둘만 `deep_link` `m5/intervention`(K22 · K12) · 폼 사양 +`sides`·`trade_date_options`(8/24~8/31 − 8/29·8/30)·`skip_notice_text` |
 | `m6/fill_rejected_price` | `retry_code` OFF_HOUR_TRADE · `retry_label` · 형제 키 `preserved_input.prefilled_fields` → `["quantity"]` |

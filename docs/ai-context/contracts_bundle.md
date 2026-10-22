@@ -161,7 +161,7 @@ export 'commands/settings_actions.dart';
 //    세션 2값(K9) · `AdviceItem` +7 · `AdviceAction.deepLink` · `AdviceInboxSummary` +4 · `ManualFillFormSpec` +5 ·
 //    `SideOption`·`TradeDateOption` · `ReasonOption.deepLink` · `LedgerDiffRow` +8 · `LedgerRepairRow` +7 ·
 //    `watchRepairs` · `OpsSummaryRepository.watchRhythm` · `OpsDailySummary.resumeLine` · 코드 `AdviceRejectCodes` 18 ·
-//    `AdviceRetryCodes` · `ManualFillPrefillFields` · 받침대 +5 · 🆕 C-46·C-47 · 픽스처 159 → 174(신설 15 · 개정 23 ·
+//    `AdviceRetryCodes` · `ManualFillPrefillFields` · 받침대 +5 · 🆕 C-46·C-47 · 픽스처 159 → 174(신설 15 · 개정 22 ·
 //    알림 등급 5행 — 미결 114) — 🆕 tool/gen_r5r13_v112_fixtures.py(기준 f54f602 원문에서 멱등 생성).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
@@ -1704,7 +1704,7 @@ abstract class AdviceInboxSummary with _$AdviceInboxSummary {
     /// 하단 「안내에 없는 매매를 기록합니다」(→ `aaq://m5/intervention` · `M5-6` · K17). 뷰어·autoTrade = null.
     LinkAction? manualEntryLink,
 
-    /// 그 링크 앞 엔진 문구("이 기록은 안내 밖 매매로 남고 재량 예산 4회 중 1회를 씁니다"). [manualEntryLink] 와 짝.
+    /// 그 링크 앞 엔진 문구("이 기록은 안내 밖 매매로 남고 이번 달 재량 예산 2회 중 1회를 씁니다"). [manualEntryLink] 와 짝.
     String? manualEntryNoticeText,
   }) = _AdviceInboxSummary;
 
@@ -3453,7 +3453,7 @@ abstract class LedgerRepairRow with _$LedgerRepairRow {
     /// 원인 코드의 글자(01 §3-4) — 🔴 해설 생성 금지(02 §5-2).
     required String originLabel,
 
-    /// "069500 수량 120 → 123주" · `LEDGER_INTEGRITY` = "숨김"(엔진 · 02 §5-2 상태).
+    /// "069500 수량 120 → 132주" · `LEDGER_INTEGRITY` = "숨김"(엔진 · 02 §5-2 상태).
     required String targetText,
 
     /// → `J-2`(`aaq://journal/decision/<decisionId>`) · null = 결정 없음. 저널(`J-3R`) 링크 = v1 부재(01 §8 미결 121).
