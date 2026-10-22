@@ -32,7 +32,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.11.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.12.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -97,25 +97,25 @@
 
 | 키 | 타입 | 쓰는 파일 |
 |---|---|---|
-| `summary` | `AdviceInboxSummary` | `m6/advice_*.json` 9벌 |
+| `summary` | `AdviceInboxSummary` | `m6/advice_*.json` 10벌(🆕 v1.12 `advice_stale`) |
 | `advice_summary` | `AdviceInboxSummary` | `m8/ops_home_advice_open.json` · `m8/ops_home_advice_zero.json` |
 | `counterfactual` | `AfterTaxLadder` | `m7/aftertax_ladder_1.json` — 🆕 v1.6 **C-30 골든 대조 전용**(화면 경로는 `AnnualReviewVm.afterTaxCounterfactual` · `m7_annual_*` 3벌이 이 블록의 사본을 싣는다) |
 | `counterfactual_collapsed` | bool | `m7/aftertax_ladder_1.json` — 🆕 v1.6 C-30 대조 전용(접힘 값은 DTO 에 두지 않는다 · `S7-7` 반사실 카드는 늘 기본 접힘) |
-| `trust` | `LedgerTrustBadge` | `m6/self_report_1.json` |
 | `index` | `HandbookIndex` | `m8/handbook_page_sleeve_b.json` |
 | `incident_alert` | `AlertItem` | `m8/incident_token_expired.json` |
 | `preserved_input` | 원시(`ManualFillRecord` 모양 · `context` 없음) | `m6/fill_rejected_price.json` |
 | `reject_reason` | `ReasonChip` | `m6/fill_rejected_price.json` |
 | `price_range_source_date` | `TradeDate` | `m6/fill_rejected_price.json` |
 | `active_flags` | `BlockFlag` 목록 | `m6/advice_blocked.json` · `m8/ops_home_blocked.json` · `m8/ops_home_resume_gap7.json` |
-| `resume_headline` | 문장 | `m8/ops_home_resume_gap7.json` |
-| `resume_route` | 링크 | `m8/ops_home_resume_gap7.json` |
 | `credential_use` | 원시 | `m8/onboarding_fresh_advisory.json` |
 | `operating_mode` | 원시 | `m8/onboarding_fresh_advisory.json` |
 | `finish_headline` | 문장 | `m8/onboarding_finish.json` |
 | `holiday_notice` | 문장 | `m8/watchdog_holiday.json` |
 | `lease_notice` | 문장 | `m8/restart_lost_phone.json` |
 
+🔵 v1.12 정정(01 §21) — `trust`(`m6/self_report_1` — 꼴 교체로 행 필드 `SelfReportSession.trust` 가 됐다 · K8) ·
+`resume_headline`·`resume_route`(`m8/ops_home_resume_gap7` — 행 필드 `OpsDailySummary.resumeLine` 으로 올렸다 · K44)
+3키를 표에서 지웠다.
 🔵 v1.4 정정 — 옛 표의 «`pending_notice` 계열 · `m7/m7_monthly_pending.json`»은 지웠다(그 파일의 형제 키
 `pending_d_day_text` 는 v1.1 에서 폐기됐고 지금 형제 키가 없다). `credential_use`·`operating_mode`·
 `finish_headline`·`holiday_notice`·`lease_notice` 5키는 실물에 있었는데 옛 표에 빠져 있던 것을 실측으로 더했다.

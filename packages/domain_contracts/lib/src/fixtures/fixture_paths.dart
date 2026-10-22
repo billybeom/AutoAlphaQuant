@@ -52,6 +52,23 @@ abstract final class FixturePaths {
   static const String m6AdviceSkipReasons = 'm6/advice_skip_reasons.json';
   static const String m6AdviceViewer4 = 'm6/advice_viewer_4.json';
 
+  /// 🆕 v1.12(01 §21 · K41) — 배치 결측(요약 `stale_reason_code`·`stale_label`) — `advice_12` 의 OPEN 2행 · 행 `actions` =
+  ///    RECORD 만(엔진이 줄여 보낸다 · `A-3` 기록 경로는 살아 있다) · 요약 = `summary` 형제 키 — 위젯 테스트(골든 아님).
+  static const String m6AdviceStale = 'm6/advice_stale.json';
+
+  /// 🆕 v1.12(K40) — `A-2` 「기록된 체결」(`fillsOfAdvice('ad_0005')`) 1행 · ORIGINAL 8주 — `advice_detail_partial` ad_0005 와
+  ///    짝(그 행 글자 그대로 · K23 예외) · 뷰어 판 = 빈 목록(엔진) — 골든 `a2_partial`.
+  static const String m6AdviceFillsAd0005 = 'm6/advice_fills_ad0005.json';
+
+  /// 🆕 v1.12(K14 ⓐ) — `DEFER_ADVICE_CONFIRM` 접수증 3행(REQUESTED · EXECUTED · REJECTED `DEFER_ALREADY_USED`) ·
+  ///    한 명령의 갈래(행을 `state` 로 골라 쓴다) — 만료 확인 카드 「내일 다시」 위젯 테스트.
+  static const String m6AdviceDeferReceipts3 =
+      'm6/advice_defer_receipts_3.json';
+
+  /// 🆕 v1.12 — `SKIP_ADVICE` 접수증 5행(REQUESTED · EXECUTED · REJECTED `LEASE_EXPIRED` · REJECTED `ADVICE_NOT_OPEN` ·
+  ///    HELD_FOR_INTEGRITY) — `A-4` 위젯 테스트.
+  static const String m6AdviceSkipReceipts5 = 'm6/advice_skip_receipts_5.json';
+
   /// 🆕 v1.8(01 §17 · R4 선행) — `H6-3` 슬리브·비중(`HoldingsRepository.watchAllocation` · 행 1 = `SleeveAllocationVm`).
   ///    행 = A → POT(A 하위) → B → C → 현금 대기 · 전부 회계 기준 · 🔴 밴드 행 = **B 만**(K27 — A·C·POT·CASH =
   ///    `band_note_text`). 밴드 내 = 골든 `h63_in_band`·`h63_pot_under_a`(A 펼침 = `engine_column_note`).
@@ -142,6 +159,27 @@ abstract final class FixturePaths {
   static const String m6FillFormSpecStale = 'm6/fill_form_spec_stale.json';
   static const String m6FillRejectedPrice = 'm6/fill_rejected_price.json';
 
+  /// 🆕 v1.12(K21) — `fill_form_spec` + `blocked_text`(제출 **부재** + 문장) + `banner_text`(`LEDGER_INTEGRITY` 격리 고지) —
+  ///    `A-3`·`A-4` 위젯 테스트(골든 아님).
+  static const String m6FillFormSpecBlocked = 'm6/fill_form_spec_blocked.json';
+
+  /// 🆕 v1.12(K25 · 02 §5-2 모의 데이터) — `L-2` 정정 이력 4행(자동 재동기화 2 + 정본 정정 1 + 그 정정의 정정 1 ·
+  ///    순서 = 엔진 · 정정의 정정은 원본 **바로 뒤** · 원본 `superseded_label`) — 골든 `l2_chain_two_repairs`.
+  static const String m6LedgerRepairs4 = 'm6/ledger_repairs_4.json';
+
+  /// 🆕 v1.12 — `L-2` 빈 이력(«정정 이력이 없습니다» · 정상) — 골든 `l2_empty`.
+  static const String m6LedgerRepairsEmpty = 'm6/ledger_repairs_empty.json';
+
+  /// 🆕 v1.12(K26) — `L-1` 현금 축 관측 1행(`CANON_BROKER`·`CASH`·`OBSERVATIONAL` · 조치 링크 null · 허용 오차 값 0) —
+  ///    골든 `l1_cash_observe`(`ledger_diffs_4` 에 현금 축 행이 없다).
+  static const String m6LedgerDiffsCashObserve =
+      'm6/ledger_diffs_cash_observe.json';
+
+  /// 🆕 v1.12(K4 · K20) — `RECORD_MANUAL_FILL` 접수증 7행(REQUESTED · EXECUTED · REJECTED `DUPLICATE_SUSPECTED` +
+  ///    `retry_code` DUPLICATE_ACK · REJECTED `INPUT_INVALID` · HELD_FOR_INTEGRITY · PENDING_LEASE_CONFIRM · STALE_CONTEXT) ·
+  ///    🔴 `LEASE_EXPIRED` 0(사실 추가는 강등 접수) — `A-3` 위젯 테스트.
+  static const String m6ManualFillReceipts7 = 'm6/manual_fill_receipts_7.json';
+
   /// 🆕 v1.8(01 §17 · R4 선행) — `H6-2` 종목 상세(`watchHoldingDetail(holdingId)` · 행 1 = `HoldingDetailVm`).
   ///    `holding` == `holdings_overview_*` 의 같은 `holding_id` 행(C-44 ④). 손절선 행 = A `069500` 의 TIER_1B 1행 —
   ///    🔴 **보존 경로 표본**(P0S 정상 장면 아님 · 골든 아님 · K16 ⓓ) · `recent_entries` = `journal_30` 행 JSON 그대로.
@@ -227,7 +265,26 @@ abstract final class FixturePaths {
       'm6/journal_read_not_written.json';
   static const String m6JournalReadWritten = 'm6/journal_read_written.json';
   static const String m6ManualFills8 = 'm6/manual_fills_8.json';
+
+  /// 🔵 v1.12(01 §21 · K8) — **꼴 교체**: `L-3` 열린 실사 세션(`SelfReportSession` 12키 · 2026-08 · 연금저축 ·
+  ///    SPEC 유니버스 4) — 옛 «`SelfReportBalance` 모양 + 형제 키 `trust`» 는 지웠다(등록부 미매핑 → 바인딩) — 골든 `l3_session`.
   static const String m6SelfReport1 = 'm6/self_report_1.json';
+
+  /// 🆕 v1.12 — `L-3` 결과(`result.diffs` 1 = `CANON_SELF_REPORT` · `resolve_link` · `next_account_link`) — 골든 `l3_diff_result`.
+  static const String m6SelfReportDiffResult =
+      'm6/self_report_diff_result.json';
+
+  /// 🆕 v1.12(K9) — `L-3` 세션 닫힘(`session_closed_text` · 폼 부재) — 위젯 테스트.
+  static const String m6SelfReportSessionClosed =
+      'm6/self_report_session_closed.json';
+
+  /// 🆕 v1.12 — `SELF_REPORT_BALANCE` 접수증 5행(REQUESTED · EXECUTED · REJECTED `SELF_REPORT_OUTSIDE_SESSION` ·
+  ///    REJECTED `INPUT_INVALID` · HELD_FOR_INTEGRITY) — `L-3` 위젯 테스트.
+  static const String m6SelfReportReceipts5 = 'm6/self_report_receipts_5.json';
+
+  /// 🆕 v1.12(N12) — `a1_blocked` 의 안전 배너 입력(`journalSafetyStateProvider`) — `safety_states` rows[1] 꼴(ALERT) +
+  ///    `active_flags` = `advice_blocked` 의 형제 키 블록 그대로(`ADVICE_LEDGER_UNVERIFIED`).
+  static const String m6SafetyAdviceBlocked = 'm6/safety_advice_blocked.json';
 
   // 🆕 v1.1 — `J-5` UNKNOWN 해소 보드.
   static const String m6UnknownBoard2 = 'm6/unknown_board_2.json';
@@ -253,6 +310,11 @@ abstract final class FixturePaths {
       'm7/execution_gap_not_applicable.json';
   static const String m7ExecutionGapWont = 'm7/execution_gap_wont.json';
   static const String m7LedgerTrust4 = 'm7/ledger_trust_4.json';
+
+  /// 🆕 v1.12(K45) — `SELF_AUDIT_DUE` 시기의 신뢰 배지 1행(차단색 아님 · `action_deep_link` = `L-3` 그 달·그 계좌) —
+  ///    R13b `h01_self_audit_due`(`safety_states` rows[1] 와 짝).
+  static const String m7LedgerTrustSelfAuditDue =
+      'm7/ledger_trust_self_audit_due.json';
   static const String m7M7Annual2026 = 'm7/m7_annual_2026.json';
   static const String m7M7AnnualFirstYear = 'm7/m7_annual_first_year.json';
 
@@ -419,6 +481,9 @@ abstract final class FixturePaths {
   static const String m8OpsHomeNormal = 'm8/ops_home_normal.json';
   static const String m8OpsHomeResumeGap7 = 'm8/ops_home_resume_gap7.json';
   static const String m8OpsRhythmRows = 'm8/ops_rhythm_rows.json';
+
+  /// 🆕 v1.12(K29) — `H-02` 리듬을 아직 받지 못함(`NOT_LOADED` · «모름» ≠ «없음») — R13a 위젯 테스트.
+  static const String m8OpsRhythmEmpty = 'm8/ops_rhythm_empty.json';
   static const String m8ReconBoardDiff = 'm8/recon_board_diff.json';
   static const String m8RestartLostPhone = 'm8/restart_lost_phone.json';
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
@@ -461,6 +526,10 @@ abstract final class FixturePaths {
     m6AdviceNoAction,
     m6AdviceSkipReasons,
     m6AdviceViewer4,
+    m6AdviceStale,
+    m6AdviceFillsAd0005,
+    m6AdviceDeferReceipts3,
+    m6AdviceSkipReceipts5,
     m6AllocationEmpty,
     m6AllocationInBand,
     m6AllocationIntegrity,
@@ -489,6 +558,11 @@ abstract final class FixturePaths {
     m6FillFormSpec,
     m6FillFormSpecStale,
     m6FillRejectedPrice,
+    m6FillFormSpecBlocked,
+    m6LedgerRepairs4,
+    m6LedgerRepairsEmpty,
+    m6LedgerDiffsCashObserve,
+    m6ManualFillReceipts7,
     m6HoldingDetailIntegrity,
     m6HoldingDetailNoStop,
     m6HoldingDetailPnl,
@@ -514,6 +588,10 @@ abstract final class FixturePaths {
     m6JournalReadWritten,
     m6ManualFills8,
     m6SelfReport1,
+    m6SelfReportDiffResult,
+    m6SelfReportSessionClosed,
+    m6SelfReportReceipts5,
+    m6SafetyAdviceBlocked,
     m6UnknownBoard2,
     m6UnknownBoardEmpty,
     m7AftertaxLadder1,
@@ -525,6 +603,7 @@ abstract final class FixturePaths {
     m7ExecutionGapNotApplicable,
     m7ExecutionGapWont,
     m7LedgerTrust4,
+    m7LedgerTrustSelfAuditDue,
     m7M7Annual2026,
     m7M7AnnualFirstYear,
     m7M7AnnualOffwindow,
@@ -589,6 +668,7 @@ abstract final class FixturePaths {
     m8OpsHomeNormal,
     m8OpsHomeResumeGap7,
     m8OpsRhythmRows,
+    m8OpsRhythmEmpty,
     m8ReconBoardDiff,
     m8RestartLostPhone,
     m8WatchdogDelayed,

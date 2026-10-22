@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -25,11 +25,10 @@
         { "code": "MONTHLY_REBALANCE", "title": "월간 정기 리밸런싱", "when_text": "매월 첫 거래일", "d_day_text": "D-6", "route": "aaq://rebalance/preview" },
         { "code": "MONTHLY_CONTRIBUTION", "title": "월 납입", "when_text": "매월 첫 거래일", "d_day_text": "D-6", "route": "aaq://plan/deposit" },
         { "code": "MONTHLY_REPORT", "title": "월간 리포트 발행", "when_text": "매월 5일", "d_day_text": "D-10", "route": "aaq://report/archive" }
-      ]
+      ],
+      "resume_line": { "label": "7거래일 공백을 재판정했습니다. 발주는 하지 않았습니다.", "deep_link": "aaq://x2/resume-report" }
     }
   ],
-  "resume_headline": "7거래일 공백을 재판정했습니다. 발주는 하지 않았습니다.",
-  "resume_route": "aaq://x2/resume-report",
   "active_flags": [
     { "flag_id": "RESUME_INCOMPLETE", "label": "재개가 끝나지 않았습니다", "set_at": "2026-08-31T00:12:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "재개가 끝나면 자동으로 풀립니다." }
   ]

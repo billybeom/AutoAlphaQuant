@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -101,7 +101,7 @@
       "body_text": "이번 분기 실사가 아직 남아 있습니다.",
       "action_line": "실사 화면에서 잔고를 보고하십시오.",
       "grouped_count": 1,
-      "deep_link": "aaq://ledger/self-report"
+      "deep_link": "aaq://ledger/self-report/2026-08/연금저축"
     },
     {
       "alert_id": "al_x7_09",
@@ -112,7 +112,7 @@
       "body_text": "입력한 가격이 그날 범위 밖입니다.",
       "action_line": "입력값을 확인하고 다시 제출하십시오.",
       "grouped_count": 1,
-      "deep_link": "aaq://advice/fill"
+      "deep_link": "aaq://advice/fill/ad_0002"
     }
   ]
 }

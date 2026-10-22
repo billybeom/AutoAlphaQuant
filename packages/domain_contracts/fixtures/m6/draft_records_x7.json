@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-25T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -54,7 +54,7 @@
     {
       "key": {
         "kind": "SELF_REPORT_BALANCE",
-        "target_id": "PERIODIC_AUDIT"
+        "target_id": "2026-08/연금저축"
       },
       "self_report": {
         "lines": [
@@ -63,7 +63,7 @@
             "quantity_text": "3"
           },
           {
-            "symbol": "379810",
+            "symbol": "133690",
             "quantity_text": ""
           }
         ],

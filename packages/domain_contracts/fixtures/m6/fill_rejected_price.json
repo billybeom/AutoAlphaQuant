@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -22,7 +22,9 @@
       "expires_at": "2026-08-31T12:12:00Z",
       "nonce": "n_8f21c0a4b7d3",
       "issued_by_device_id": "dev_operator_01",
-      "reject_reason_code": "PRICE_OUT_OF_RANGE"
+      "reject_reason_code": "PRICE_OUT_OF_RANGE",
+      "retry_code": "OFF_HOUR_TRADE",
+      "retry_label": "시간외·단주 신고로 다시 제출"
     }
   ],
   "preserved_input": {
@@ -37,7 +39,7 @@
     "account_alias": "연금저축",
     "off_hour_trade": false,
     "duplicate_ack": false,
-    "prefilled_fields": ["symbol", "side", "quantity"]
+    "prefilled_fields": ["quantity"]
   },
   "reject_reason": { "code": "PRICE_OUT_OF_RANGE", "label": "입력한 가격이 그날의 가격 범위 밖입니다", "tone": "BLOCKED", "detail_deep_link": "handbook://advice/price-range" },
   "price_range_source_date": "2026-08-31"

@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -16,7 +16,7 @@
     { "code": "MONTHLY_REBALANCE", "title": "월간 정기 리밸런싱", "when_text": "매월 첫 거래일", "d_day_text": "D-6", "route": "aaq://rebalance/preview" },
     { "code": "MONTHLY_CONTRIBUTION", "title": "월 납입", "when_text": "매월 첫 거래일", "d_day_text": "D-6", "route": "aaq://plan/deposit" },
     { "code": "MONTHLY_REPORT", "title": "월간 리포트 발행", "when_text": "매월 5일", "d_day_text": "D-10", "route": "aaq://report/archive" },
-    { "code": "QUARTERLY_SELF_AUDIT", "title": "분기 실사", "when_text": "분기 마지막 달", "d_day_text": "D-31", "route": "aaq://ledger/self-report" },
+    { "code": "QUARTERLY_SELF_AUDIT", "title": "분기 실사", "when_text": "분기 마지막 달", "d_day_text": "D-31", "route": "aaq://ledger/self-report/2026-09/연금저축" },
     { "code": "ANNUAL_REVIEW", "title": "연간 점검", "when_text": "매년 12월", "d_day_text": "D-122", "route": "aaq://report/annual" }
   ]
 }
