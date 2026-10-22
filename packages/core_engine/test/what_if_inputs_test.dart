@@ -360,14 +360,17 @@ void main() {
       );
       expect(depositGate(_state()).registerBlockedText, isNull);
       expect(
-        depositRegisterBlockedText(_state(), expired: true),
+        depositRegisterBlockedText(_state(), expired: true, quotaShort: false),
         DepositGateTexts.registerExpired,
       );
       expect(
-        depositRegisterBlockedText(fix, expired: true),
+        depositRegisterBlockedText(fix, expired: true, quotaShort: false),
         DepositGateTexts.registerLedgerFix,
       );
-      expect(depositRegisterBlockedText(_state(), expired: false), isNull);
+      expect(
+        depositRegisterBlockedText(_state(), expired: false, quotaShort: false),
+        isNull,
+      );
     });
 
     test('픽스처에 있는 문장은 글자 그대로 — 차단 2 · 등록 불가 2', () async {

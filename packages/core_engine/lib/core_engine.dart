@@ -150,6 +150,9 @@ export 'src/whatif/deposit_plan.dart'
     show DepositPlanTexts, buildDepositPlan, simulateDepositPreview;
 export 'src/whatif/deposit_register.dart'
     show
+        DepositAccountAmount,
+        DepositAccountGap,
+        DepositAccountRole,
         DepositCashRow,
         DepositLedgerEntry,
         DepositPlanSnapshot,
@@ -159,12 +162,20 @@ export 'src/whatif/deposit_register.dart'
         DepositRegisterOutcome,
         DepositRegisterRejected,
         DepositRegisterTexts,
+        LedgerCashRow,
+        NoPensionDeclaration,
+        PensionDeclarationSource,
+        depositAccountSplit,
         depositDecisionId,
         depositLedgerEntry,
+        depositPensionShare,
+        depositPlanVsActual,
         depositReceipt,
         depositTradeDate,
         judgeDepositRegistration,
-        kDepositStrategyId;
+        kDepositStrategyId,
+        kstYear,
+        pensionUsedInYear;
 export 'src/whatif/engine_what_if_api.dart' show EngineWhatIfApi;
 export 'src/whatif/plan_inputs.dart' show PlanInputs;
 export 'src/whatif/plan_store.dart'

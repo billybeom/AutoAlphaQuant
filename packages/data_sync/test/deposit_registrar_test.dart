@@ -1,9 +1,11 @@
-// E7b2 — 실입금 등록 한 트랜잭션 기록기(설계 13 §8 R22 D5·D6·D9·D10·D11 · 01 §20-3 · 06 M3-2·M3-4).
+// E7b2 · E7b3 — 실입금 등록 한 트랜잭션 기록기(설계 13 §8 R22 D5·D6·D7·D8·D9·D10·D11·D13 · 01 §20-3 · 06 M3-2·M3-4).
 //
 // 🔵 잡는 것(실 SQLite 파일): ① 기록 = decision_log 1 + 계좌별 cash_flow + 바인딩 + command_inbox 1 — 그 밖의 표 0
 //    (주문 행 0 · D2 잔여 = 원화 대기) ② 두 번째 등록 거부 · 같은 명령 재전달 = 같은 결과 · 새 행 0 ③ 만료 거부는
 //    requested_at 으로(엔진 시각이 늦어도 만료 전 등록은 기록) ④ RECON·LEDGER_FIX 거부 = 감사 1행만 · 무결성 = 쓰기 0
-//    ⑤ planId 만으로 금액·기준일 · 휴장 → 다음 거래일 ⑥ 중간 실패 = 행 0 ⑦ 모드·파일 경계 ⑧ 실엔진 접수증에 C-38 ⑨.
+//    ⑤ planId 만으로 금액·기준일 · 휴장 → 다음 거래일 ⑥ 중간 실패 = 행 0 ⑦ 모드·파일 경계 ⑧ 실엔진 접수증에 C-38 ⑨
+//    ⑨ 🆕 E7b3 — 한도 재검사(먼저 등록한 계획이 한도를 쓰면 다음 계획은 거부 · 06 M3-4 «소진 인식») · 해 넘김(처리 시점
+//    KST 연도 · 연말 휴장에 넣은 돈은 그해 납입) · 계획 ↔ 결정 ↔ 현금 행 조인 앵커와 «계획 대비 실제».
 
 import 'dart:io';
 
@@ -43,13 +45,34 @@ final ExchangeCalendar _kr = ExchangeCalendar(
   coverageEnd: const TradeDate('2026-09-08'),
 );
 
-WhatIfState _state({List<String> flags = const <String>[]}) => WhatIfState(
+/// 연말 — 2026-12-31(목)·2027-01-01(금) 휴장 · 01-02·03 주말.
+final ExchangeCalendar _yearEnd = ExchangeCalendar(
+  market: Market.kr,
+  sessions: <TradeDate>[
+    for (final String d in <String>[
+      '2026-12-28',
+      '2026-12-29',
+      '2026-12-30',
+      '2027-01-04',
+      '2027-01-05',
+    ])
+      TradeDate(d),
+  ],
+  coverageStart: const TradeDate('2026-12-28'),
+  coverageEnd: const TradeDate('2027-01-05'),
+);
+
+WhatIfState _state({
+  List<String> flags = const <String>[],
+  Decimal? used,
+  ExchangeCalendar? calendar,
+}) => WhatIfState(
   asOfTradeDate: const TradeDate('2026-08-31'),
   configHash: 'cfg_test',
   activeFlags: flags.map(_flag).toList(),
   recovery: false,
   accounts: const WhatIfAccounts(pensionAlias: '연금저축', generalAlias: '일반'),
-  pensionUsedThisYear: _d('4200000'),
+  pensionUsedThisYear: used ?? _d('4200000'),
   observedAt: DateTime.utc(2026, 8, 31, 9),
   source: AsOfSource.localSqlite,
   sleeveValues: <SleeveId, Decimal>{
@@ -58,8 +81,17 @@ WhatIfState _state({List<String> flags = const <String>[]}) => WhatIfState(
     SleeveId.c: _d('7600000'),
   },
   prices: <String, Decimal>{'214980': _d('104235')},
-  krCalendar: _kr,
+  krCalendar: calendar ?? _kr,
 );
+
+/// 시스템 밖 연금 납입 신고값(연도별).
+class _Declared implements PensionDeclarationSource {
+  _Declared(this.byYear);
+  final Map<int, Decimal> byYear;
+  @override
+  Future<Decimal> declaredOutside(int year) async =>
+      byYear[year] ?? Decimal.zero;
+}
 
 class _Source implements WhatIfStateSource {
   _Source(this.s);
@@ -94,9 +126,9 @@ void main() {
     return db;
   }
 
-  Future<DepositPlan> plan(Database db, {DateTime? at}) async =>
+  Future<DepositPlan> plan(Database db, {DateTime? at, Decimal? used}) async =>
       (await EngineWhatIfApi(
-        source: _Source(_state()),
+        source: _Source(_state(used: used)),
         store: SqlitePlanSnapshotStore(db),
         clock: _Clock(at ?? _t0),
       ).simulateDeposit(amountInput: '1000000')).plan!;
@@ -122,11 +154,14 @@ void main() {
     RunMode mode = RunMode.live,
     List<String> flags = const <String>[],
     DateTime? now,
+    Map<int, Decimal> declared = const <int, Decimal>{},
+    ExchangeCalendar? calendar,
   }) => SqliteDepositRegistrar(
     db,
     mode: mode,
-    state: _Source(_state(flags: flags)),
+    state: _Source(_state(flags: flags, calendar: calendar)),
     clock: _Clock(now ?? DateTime.utc(2026, 9, 1, 1, 0, 5)),
+    declarations: _Declared(declared),
   );
 
   Map<String, int> counts(Database db) => <String, int>{
@@ -377,4 +412,154 @@ void main() {
       );
     },
   );
+
+  test(
+    '한도 재검사 — 같은 누계에서 만든 두 계획 · 먼저 등록한 쪽이 한도를 쓰면 다음은 거부(D13 · 06 M3-4)',
+    () async {
+      final Database db = open(RunMode.live);
+      final Decimal outside = _d('17600000'); // 남은 한도 400,000원
+      final DepositPlan first = await plan(db, used: outside);
+      final DepositPlan second = await plan(db, used: outside);
+      final Decimal bShare = depositPensionShare(first);
+      expect(bShare, _d('400000'), reason: '입력 확인 — B 몫이 남은 한도로 잘린다');
+      final Map<int, Decimal> declared = <int, Decimal>{2026: outside};
+
+      final CommandReceipt a = await registrar(
+        db,
+        declared: declared,
+      ).register(command(first.planId, id: 'cmd_1'));
+      expect(a.state, CommandState.executed);
+      final Map<String, int> afterFirst = counts(db);
+
+      final CommandReceipt b = await registrar(
+        db,
+        declared: declared,
+      ).register(command(second.planId, id: 'cmd_2'));
+      expect(
+        b.rejectReasonCode,
+        DepositRegisterRejectCodes.pensionQuotaChanged,
+      );
+      expect(b.stateLabel, contains(DepositGateTexts.registerPensionQuota));
+      expect(delta(afterFirst, counts(db)), <String, int>{'command_inbox': 1});
+      expect(
+        pensionUsedInYear(
+          SqliteDepositLedger(db).cashRows('연금저축'),
+          pensionAlias: '연금저축',
+          year: 2026,
+          declaredOutside: outside,
+        ),
+        _d('18000000'),
+        reason: '누계 = 신고값 + 원장 연금 입금 — 연 한도에 꽉 찼다',
+      );
+      expect(
+        depositReceiptViolations('engine', <CommandReceipt>[a, b]),
+        isEmpty,
+      );
+    },
+  );
+
+  test('해 넘김 — 12-31(휴장) 밤에 넣은 돈은 그해 납입 · 1월 1일에 넣은 돈은 새해 한도', () async {
+    final Database db = open(RunMode.live);
+    final Decimal outside = _d('17600000');
+    final DateTime computed = DateTime.utc(
+      2026,
+      12,
+      31,
+      11,
+    ); // KST 12-31 20:00 · 만료 01-01 20:00
+    final DepositPlan dec = await plan(db, at: computed, used: outside);
+    final DepositPlan jan = await plan(db, at: computed, used: outside);
+    final Map<int, Decimal> declared = <int, Decimal>{2026: outside};
+
+    final CommandReceipt a =
+        await registrar(
+          db,
+          declared: declared,
+          calendar: _yearEnd,
+          now: DateTime.utc(2026, 12, 31, 12, 0, 5),
+        ).register(
+          command(dec.planId, id: 'cmd_d', at: DateTime.utc(2026, 12, 31, 12)),
+        );
+    expect(a.state, CommandState.executed);
+
+    // 같은 연금 한도(2026)는 이제 꽉 찼지만, 해가 바뀐 뒤 처리하면 2027 한도에서 센다.
+    final CommandReceipt b =
+        await registrar(
+          db,
+          declared: declared,
+          calendar: _yearEnd,
+          now: DateTime.utc(2027, 1, 1, 1, 0, 5),
+        ).register(
+          command(jan.planId, id: 'cmd_j', at: DateTime.utc(2027, 1, 1, 1)),
+        );
+    expect(b.state, CommandState.executed);
+
+    expect(
+      db
+          .select('SELECT trade_date FROM decision_log ORDER BY decision_id')
+          .map((Row r) => r['trade_date']),
+      <String>['2027-01-04', '2027-01-04'],
+      reason: '기준일은 휴장 보정 — 둘 다 다음 거래일',
+    );
+    final List<LedgerCashRow> rows = SqliteDepositLedger(db).cashRows('연금저축');
+    expect(
+      pensionUsedInYear(
+        rows,
+        pensionAlias: '연금저축',
+        year: 2026,
+        declaredOutside: outside,
+      ),
+      _d('18000000'),
+      reason: '12-31 처리분은 기준일이 2027 이어도 2026 납입이다',
+    );
+    expect(
+      pensionUsedInYear(
+        rows,
+        pensionAlias: '연금저축',
+        year: 2027,
+        declaredOutside: Decimal.zero,
+      ),
+      depositPensionShare(jan),
+    );
+  });
+
+  test('앵커 — 계획 ↔ 결정 ↔ 현금 행 조인 = 기록 값 · 계획 대비 실제는 «실제» 공급분과 맞댄다(D8)', () async {
+    final Database db = open(RunMode.live);
+    final DepositPlan p = await plan(db);
+    final DepositPlan other = await plan(db);
+    final SqliteDepositLedger ledger = SqliteDepositLedger(db);
+    expect(ledger.registeredCash(p.planId), isEmpty, reason: '등록 전');
+
+    await registrar(db).register(command(p.planId));
+    final DepositPlanSnapshot snap = SqlitePlanSnapshotStore(db)
+        .readSnapshot(p.planId)!;
+    final List<DepositCashRow> registered = ledger.registeredCash(p.planId);
+    expect(
+      registered.map(
+        (DepositCashRow r) => '${r.flowId}|${r.accountAlias}|${r.amount}',
+      ),
+      unorderedEquals(
+        depositLedgerEntry(snap, const TradeDate('2026-09-01')).cash.map(
+          (DepositCashRow r) => '${r.flowId}|${r.accountAlias}|${r.amount}',
+        ),
+      ),
+    );
+    expect(
+      ledger.registeredCash(other.planId),
+      isEmpty,
+      reason: '다른 계획의 행은 섞이지 않는다',
+    );
+    expect(
+      depositPlanVsActual(snap, <String?, Decimal>{
+        for (final DepositCashRow r in registered) r.accountAlias: r.amount,
+      }),
+      isEmpty,
+      reason: '기록 = 계획(그래서 «실제»는 브로커 잔고·수기 기록이 공급한다 — E10·E18)',
+    );
+    final List<DepositAccountGap> gaps = depositPlanVsActual(
+      snap,
+      <String?, Decimal>{'연금저축': depositPensionShare(p), '일반': Decimal.zero},
+    );
+    expect(gaps.map((DepositAccountGap g) => g.accountAlias), <String>['일반']);
+  });
 }

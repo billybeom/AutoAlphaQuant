@@ -6,7 +6,8 @@
 // 🔴 `Future` 에러는 «계산을 못 했다»(인프라 — 상태 읽기 실패 · 가격 없음 등)만 뜻한다. 입력 거부·차단은 결과 갈래다.
 // 🔵 호출마다 새 planId(06 M3-1 ⓓ) — 계획이 생길 때만 순번을 쓴다(차단·거부는 순번을 먹지 않는다).
 // 🔵 `findPlan` 은 저장본에 **지금** 상태와 신뢰 시각으로 등록 불가 문장을 다시 판정해 싣는다 — RECON > LEDGER_FIX > 만료
-//    (D-3 · 화면은 `expiresAt` 을 시계와 비교하지 않는다 · 만료 = 신뢰 시각 ≥ 만료 시각).
+//    > 연금 한도(D-3 · 🆕 E7b3 R22 D13 «금액 범위» = 지금 남은 한도 < 계획의 B 몫 · 화면은 `expiresAt` 을 시계와 비교하지
+//    않는다 · 만료 = 신뢰 시각 ≥ 만료 시각).
 // ⏸ `simulateWithdrawal` 은 인출 규칙 결정 뒤 첫 minor 에서 시그니처가 바뀐다(01 §14-15) — 지금은 에러.
 // 🟢 `previewRebalance`(E7a3-2) — 월말 계획기 + H64 관문 · 결과 캐시 0.
 
@@ -14,6 +15,7 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
 import 'deposit_plan.dart';
+import 'deposit_register.dart' show depositPensionShare;
 import 'plan_inputs.dart';
 import 'plan_store.dart';
 import 'rebalance_preview.dart';
@@ -64,8 +66,15 @@ class EngineWhatIfApi implements WhatIfApi {
     if (saved == null) return null;
     final WhatIfState s = await source.load();
     final bool expired = !clock.nowUtc().toUtc().isBefore(saved.expiresAt);
+    final bool quotaShort =
+        config.pensionAnnualLimit - s.pensionUsedThisYear <
+        depositPensionShare(saved);
     return saved.copyWith(
-      registerBlockedText: depositRegisterBlockedText(s, expired: expired),
+      registerBlockedText: depositRegisterBlockedText(
+        s,
+        expired: expired,
+        quotaShort: quotaShort,
+      ),
     );
   }
 
