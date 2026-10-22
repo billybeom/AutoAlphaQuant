@@ -32,6 +32,13 @@ part 'settings_actions.g.dart';
 ///    `handover_session` 이다(G-02). 🔴 세 동작 모두 `decision_log(kind='MANUAL')` 1행을
 ///    **엔진이** 낳으며, 그 세 갈래는 재량 예산·이탈 집계의 모집단이 **아니다**(§10-3).
 ///
+///    🆕 v1.12(01 §21 · K9) — `L-3` 실사 세션(폰 로컬 · 뷰어 경로 0):
+///    · `selfReportSessionStart` = `{yyyy_mm, account_alias}`(라우트 두 값 그대로 · 🔴 계좌 전체번호 금지)
+///    · `selfReportSessionStop`  = `{yyyy_mm, account_alias}`
+///    🔴 가림 범위 = **그 폰 한 대**(뷰어 iOS·웹은 가리지 않는다 · ✅ 발주자 2026-10-22). 화면은 [ActionResult] 를
+///    읽지 않는다(갈래 = `SelfReportSession.sessionClosedText` 하나) · `dispose` 의 stop 은 `initState` 에서 잡아 둔
+///    인스턴스로 부른다(`dispose` 안 `ref` 0 · C-46 ㉔).
+///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
 ///

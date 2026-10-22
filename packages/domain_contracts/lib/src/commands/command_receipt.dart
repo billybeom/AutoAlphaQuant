@@ -38,6 +38,14 @@ abstract class CommandReceipt with _$CommandReceipt {
     ///    `CommandStateMachine.requiresRejectReasonCode`).
     ///    🔴 **거부는 초안을 지우지 않는다**(C17) — 초안 삭제는 `executed` 수신 시에만.
     String? rejectReasonCode,
+
+    /// 🆕 v1.12(01 §21 · K20) — 거부 뒤 엔진이 실은 «재제출 선택지» 1개(B5 시간외·단주 · A9 중복 확인).
+    /// `state == rejected` 일 때만 · [retryLabel] 과 짝 · 값 = `AdviceRetryCodes`. 🔴 X7 기록 명령 전용(01 §21).
+    /// 🔴 화면은 [retryCode] 를 해석하지 않는다 — [retryLabel] 버튼 → 제출 DTO `retryCodes` 에 더한다.
+    String? retryCode,
+
+    /// "시간외·단주 신고로 다시 제출" — 엔진.
+    String? retryLabel,
   }) = _CommandReceipt;
 
   factory CommandReceipt.fromJson(Map<String, dynamic> json) =>

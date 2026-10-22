@@ -11,6 +11,8 @@ import '../primitives/list_result.dart';
 /// 안내함 · 요약 · 상세 · 이력 · 수기 기록 폼 사양.
 abstract interface class AdviceRepository {
   /// `A-1` 안내함.
+  /// 🆕 v1.12(01 §21 · K13) — 🔴 `A-1` 은 **인자 없이** 부른다(`status` 인자 금지) · 순서 = 엔진(확인 카드 → `isUrgent`
+  ///    → 나머지) · 확인 카드 밖 미분류 만료는 이 목록에 오지 않는다(요약 `overdueUnrecordedLink` · [watchHistory]).
   Stream<ListResult<AdviceItem>> watchInbox({
     AdviceStatus? status,
     int limit = 50,
@@ -23,6 +25,8 @@ abstract interface class AdviceRepository {
   /// `A-2` 상세.
   Future<AdviceItem?> findById(String adviceId);
 
+  /// 🆕 v1.12(K38) — 「지난 안내」(`AdviceHistory()`)의 원천 · 범위 = `ConfigRepository.watchRangePresets()` 의
+  /// `isDefault` 1건(화면이 날짜를 만들지 않는다 · 01 §1-3).
   Stream<ListResult<AdviceItem>> watchHistory({required DateRange range});
 
   /// `A-3` 수기 기록 폼 사양.
@@ -36,7 +40,9 @@ abstract interface class AdviceRepository {
   /// 🔴 `JournalRepository.fillChain(entryId)` 와 **다른 것이다** — `fillChain` 은 «한 체결의
   ///    정정 체인», 이것은 «한 안내의 체결들»이다. 02 §3-7 의 `fillChain(adviceId)` 인용은
   ///    오기이며 정본 우선순위상 01 이 이긴다.
-  /// 🔴 정정된 행도 전부 온다 — 화면이 `fillKind` 로 접어 묶는다.
+  /// 🔴 정정된 행도 전부 온다 — 🆕 v1.12(01 §21 · K18) **받은 순서 그대로 그린다**(옛 «화면이 `fillKind` 로 접어
+  ///    묶는다» 삭제 — 묶기도 판정이다 · 접기 = 01 §8 미결 115) · 행 탭 = `TradeJournalEntry.detailDeepLink`(→ `J-2`).
   /// 🔴 지연 이행(`LATE_FILL`)으로 참조만 걸린 체결도 포함한다.
+  /// 🆕 v1.12(K40) — viewer 판은 **빈 목록**(rm_advice A6 마스킹의 연장 · `recorded_quantity` 도 싣지 않는다).
   Future<List<TradeJournalEntry>> fillsOfAdvice(String adviceId);
 }

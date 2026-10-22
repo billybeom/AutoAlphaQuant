@@ -1,4 +1,5 @@
-// 01 §4-2 · §5-4 · §10 — 🆕 X7 명령 인자 DTO 8종 + 🆕 v1.10 ㊲ `LedgerEventRecord`.
+// 01 §4-2 · §5-4 · §10 — 🆕 X7 명령 인자 DTO 8종 + 🆕 v1.10 ㊲ `LedgerEventRecord`
+// + 🆕 v1.12(01 §21 · K4 · K14 ⓐ) «화면 제출» DTO 3 + 와이어 1(`AdviceDeferConfirm`).
 //
 // 🔴 각 DTO 의 `deviceId` 는 `CommandContext` 로 **옮겨졌다** — payload 가 기기를 다시
 //    말하지 않는다. 🔴 payload 에 `idempotencyKey` 를 두지 않는다(A9).
@@ -16,6 +17,7 @@ import '../enums/ledger.dart';
 import '../enums/order.dart';
 import '../primitives/money.dart';
 import 'command_context.dart';
+import 'drafts.dart';
 
 part 'payloads_x7.freezed.dart';
 part 'payloads_x7.g.dart';
@@ -205,6 +207,83 @@ abstract class KillChecklistAck with _$KillChecklistAck {
 
   factory KillChecklistAck.fromJson(Map<String, dynamic> json) =>
       _$KillChecklistAckFromJson(json);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 🆕 v1.12(01 §21 · K4) — «화면 제출» DTO 3. 기존 와이어 8종(`ManualFillRecord`…)은 **무변경** —
+//   엔진이 읽는 `command_queue.payload` 모양이다. 🔴 화면은 와이어를 만들지 않는다(C-46 ⑳): `CommandApi` 구현이
+//   제출 DTO 의 원문을 파싱(`int`·`Decimal`)하고 `CommandContext`(G-19)·`sessionStartedAt`(B15)·`asOfTradeDate`(K8)를
+//   붙인다. 파싱·빈칸·상한 실패 = 큐 적재 없이 `rejected` 접수증(`rejectReasonCode = AdviceRejectCodes.inputInvalid` ·
+//   `stateLabel` 이 어느 칸인지 말한다) · 그 id 도 `watchCommand` 가 종단 접수증으로 다시 낸다(구현 의무 ④ · K42).
+//   🔴 셋 다 `fromJson` 을 둔다(관행 · C-8 모집단 — `_knownUncovered` 에 `_reasonCommandPayload` 로 등재).
+// ════════════════════════════════════════════════════════════════════════════
+
+/// `A-3` 제출(→ 와이어 [ManualFillRecord]) — 🆕 v1.12.
+@freezed
+abstract class ManualFillSubmission with _$ManualFillSubmission {
+  const factory ManualFillSubmission({
+    /// `A-3` = 라우트 값 그대로(필수). null = 안내 밖 수기 신규(`MANUAL_ENTRY` · `M5-6` 만 · 06:229·238).
+    String? adviceId,
+
+    /// 초안 본문 그대로(01 §12-1 · 사람이 친 원문 · 방향 = `SideOption.side` · 거래일 = `TradeDateOption.date`).
+    required ManualFillInput input,
+
+    /// 사람이 누른 재제출 선택지의 `CommandReceipt.retryCode` **누적**(K20 · 폼 수명 동안만 · 초안 밖 — 확인값).
+    /// 구현이 `offHourTrade`·`duplicateAck` 로 옮긴다(`AdviceRetryCodes`).
+    @Default(<String>[]) List<String> retryCodes,
+  }) = _ManualFillSubmission;
+
+  factory ManualFillSubmission.fromJson(Map<String, dynamic> json) =>
+      _$ManualFillSubmissionFromJson(json);
+}
+
+/// `A-4` 제출(→ 와이어 [AdviceSkip]) — 🆕 v1.12.
+@freezed
+abstract class AdviceSkipSubmission with _$AdviceSkipSubmission {
+  const factory AdviceSkipSubmission({
+    required String adviceId,
+
+    /// `reason == null` = 구현 거부(`inputInvalid`). 예산 코드 2종은 제출하지 않는다(`ReasonOption.deepLink` push · K12).
+    required AdviceSkipInput input,
+  }) = _AdviceSkipSubmission;
+
+  factory AdviceSkipSubmission.fromJson(Map<String, dynamic> json) =>
+      _$AdviceSkipSubmissionFromJson(json);
+}
+
+/// `L-3`·`O-04` 제출(→ 와이어 [SelfReportBalance]) — 🆕 v1.12.
+@freezed
+abstract class SelfReportSubmission with _$SelfReportSubmission {
+  const factory SelfReportSubmission({
+    /// 🔴 기본값 없음(A-10 · 01 §4-2) — `L-3` = periodicAudit · `O-04` = simOpening(R15 · 01 §8 미결 120).
+    required SelfReportPurpose purpose,
+
+    /// periodicAudit = 라우트 `:yyyyMm` 그대로(필수 — 없으면 구현 거부). simOpening = null.
+    String? yyyyMm,
+
+    /// 초안 본문 그대로 — 🔴 periodicAudit 의 `input.accountAlias` = 라우트 `:accountAlias`(폼이 처음 만들 때 넣는다 ·
+    ///    K36 ⓐ) · 구현이 세션 계좌와 대조(다르면 `INPUT_INVALID`).
+    required SelfReportInput input,
+
+    /// «이것이 전부입니다» — 확인값(초안에 없다 · 매 제출 새로 누른다 · 01 §12-1-3 ③).
+    required bool declaredComplete,
+  }) = _SelfReportSubmission;
+
+  factory SelfReportSubmission.fromJson(Map<String, dynamic> json) =>
+      _$SelfReportSubmissionFromJson(json);
+}
+
+/// 🆕 v1.12 와이어 — 만료 확인 카드 「내일 다시」(G-86 · K14 ⓐ). 엔진 = `advice_transition(cause_code='DEFER_CONFIRM')` 1행.
+/// 🔴 이미 한 번 미룬 안내(두 기기·두 번 탭) = 거부 `DEFER_ALREADY_USED`. 🔴 폰(operator) 전용 · 초안 영구 제외.
+@freezed
+abstract class AdviceDeferConfirm with _$AdviceDeferConfirm {
+  const factory AdviceDeferConfirm({
+    required String adviceId,
+    required CommandContext context,
+  }) = _AdviceDeferConfirm;
+
+  factory AdviceDeferConfirm.fromJson(Map<String, dynamic> json) =>
+      _$AdviceDeferConfirmFromJson(json);
 }
 
 // ⏸ `LedgerEventRecord` — 🔴 **결정 ㊲ 채택 시에만** 신설한다(J-6 · A-15).

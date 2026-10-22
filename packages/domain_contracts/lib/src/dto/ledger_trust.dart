@@ -6,6 +6,8 @@
 // 🆕 v1.6(01 §15-4 · R12 선행) — 월간 결과 래퍼 `ExecutionGapResult`(리포트 | 빈·해당없음 문장) ·
 //    `ExecutionGapReport.countLines`·`correctionLines` · `complianceRateNormalized`·`modeAdviceLine` nullable.
 //    `S7-10` 의 «읽지 않는 필드»는 `// 🔴 ui 미참조(C-42)` 표식이다.
+// 🆕 v1.12(01 §21 · K8 · K9 · K36 ⓐ) — `L-3` 원장 실사 세션 VM `SelfReportSession`(+ 결과 `SelfReportResult`) ·
+//    창구 `LedgerTrustRepository.watchSelfReportSession(yyyyMm, accountAlias)` · 세션 열기·닫기 = `SettingsActions`.
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
@@ -13,7 +15,9 @@ import '../enums/ui.dart';
 import '../primitives/as_of.dart';
 import '../primitives/date_range.dart';
 import '../primitives/money.dart';
+import 'advice.dart';
 import 'common.dart';
+import 'ledger.dart';
 
 part 'ledger_trust.freezed.dart';
 part 'ledger_trust.g.dart';
@@ -159,6 +163,74 @@ abstract class CashEstimateNotice with _$CashEstimateNotice {
 
   factory CashEstimateNotice.fromJson(Map<String, dynamic> json) =>
       _$CashEstimateNoticeFromJson(json);
+}
+
+/// 🆕 v1.12(01 §21 · K8 · K36 ⓐ) — `L-3` 원장 실사 세션 1개 = 그 달 · 그 계좌.
+/// 창구 = `LedgerTrustRepository.watchSelfReportSession(yyyyMm, accountAlias)`.
+/// 🔴 원장 현재값이 **없다**(앵커링 금지 · 02 §3-10) — 결과(엔진이 연 차이)는 제출 집행 뒤 [result] 로만 온다.
+/// 🔴 세션은 `SettingsActions.run(selfReportSessionStart, {yyyy_mm, account_alias})` 로 열고 `selfReportSessionStop` 으로 닫는다
+///    (K9) — 열린 동안 **그 폰의** 원장 파생 표시(H6·J-1·L-1…)는 `LEDGER_INTEGRITY` 와 같은 글자로 온다(엔진 · 화면은
+///    모른다 · 가림 목록 필드 0). 🔴 `asOfTradeDate` 원값은 VM 에 두지 않는다(구현이 세션 기록에서 붙인다 · 초안 밖).
+@freezed
+abstract class SelfReportSession with _$SelfReportSession {
+  const factory SelfReportSession({
+    /// "8월 정기 실사" — 엔진.
+    required String titleText,
+
+    /// "실사 중에는 이 폰의 화면에서 보유 수량·금액이 가려집니다 · 원장 값은 제출 뒤에 보입니다" — 엔진(B15).
+    required String noticeText,
+
+    /// "2026-08-31 종가 기준으로 적으십시오" — 기준일은 엔진이 세션 시작 때 정한다(K8). 🔴 원값은 VM 에 없다.
+    required String asOfTradeDateText,
+
+    /// 유니버스 전 종목 — 받은 순서 = 행 순서 · 🔴 0 포함 필수 입력(B14) · 빈칸을 0 으로 바꾸지 않는다(`SelfReportLineInput`).
+    required List<SymbolOption> symbols,
+
+    /// "연금저축 계좌" — 이 세션의 계좌(라우트 `:accountAlias` 의 글자 · 🔴 계좌 전체번호 금지).
+    required String accountLabel,
+
+    /// "원화 현금 — 원 단위까지 적으십시오"(`SELF_AUDIT_PATTERN_UNVERIFIED` 뒤 · 02 §3-10) — 엔진.
+    required String cashHintLabel,
+
+    /// "이것이 전부입니다" 확인 글자 — 엔진.
+    required String declareCompleteLabel,
+
+    /// non-null = 세션이 열려 있지 않다(시작 거부·만료) → 폼 **부재** · 이 문장만.
+    String? sessionClosedText,
+
+    /// non-null = 제출 부재 + 문장(K21).
+    String? blockedText,
+
+    /// 제출 집행 뒤 결과 — non-null 이면 폼 부재 · 결과만(02 §3-10 «제출 후 = 엔진이 준 차이 목록만»).
+    SelfReportResult? result,
+    required LedgerTrustBadge trust,
+    required AsOf asOf,
+  }) = _SelfReportSession;
+
+  factory SelfReportSession.fromJson(Map<String, dynamic> json) =>
+      _$SelfReportSessionFromJson(json);
+}
+
+/// 🆕 v1.12(01 §21) — 실사 결과(골든 `l3_diff_result`).
+@freezed
+abstract class SelfReportResult with _$SelfReportResult {
+  const factory SelfReportResult({
+    /// 엔진이 연 `ledger_diff(pair == canonSelfReport)` — 받은 순서 · 🔴 화면이 차이를 계산하지 않는다 ·
+    /// 각 행 `actionLink` = null(자기 자신으로 가는 고리 방지).
+    required List<LedgerDiffRow> diffs,
+
+    /// non-null ⇔ [diffs] 빈 목록 — "실사 결과가 원장과 맞습니다".
+    String? emptyLabel,
+
+    /// → `M5-13`(`aaq://m5/self-audit-resolve`) · null = 해소할 것 없음.
+    LinkAction? resolveLink,
+
+    /// 🆕(K36 ⓐ) "다음 계좌 실사 — 일반 계좌" → `aaq://ledger/self-report/<yyyy-MM>/<다음 별칭>` · null = 이 달 실사 끝.
+    LinkAction? nextAccountLink,
+  }) = _SelfReportResult;
+
+  factory SelfReportResult.fromJson(Map<String, dynamic> json) =>
+      _$SelfReportResultFromJson(json);
 }
 
 /// 01 §2-11 — 자가 실사 1행(`SelfReportBalance.lines` 의 원소).
