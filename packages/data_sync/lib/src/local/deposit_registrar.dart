@@ -7,6 +7,9 @@
 // 🔴 같은 `command_id` 를 다시 받으면(수송 재전달) 새로 판정하지 않고 감사 기록의 결과를 돌려준다 — 같은 명령이
 //    두 번 기록되지 않는다.
 // 🔴 판정은 core_engine `judgeDepositRegistration`(순수) — 이 파일은 읽기·쓰기만 한다.
+// 🔴 🆕 E7b3 한도 재검사(R22 D13) — 남은 한도 = 연 한도 − 연금 납입 누계(D7 · 같은 트랜잭션 안에서 원장을 읽는다 ·
+//    처리 시점 KST 연도 · 시스템 밖 신고값은 트랜잭션 전에 포트에서). 상태 공급자의 `pensionUsedThisYear` 는 쓰지 않는다
+//    — 등록 순간의 정본은 원장이다(두 등록이 같은 한도를 두 번 쓰지 못한다).
 // 🔴 `decision_log.mode` = 연 파일의 [RunMode] — 잘못 연 파일이면 CHECK 가 즉시 실패한다(fail-closed).
 // 🔵 수송 맥락(`run_mode`·`operating_mode`·`lease_epoch`)은 X7 명령에만 실린다 — 입금 등록은 NULL(01 §4-2).
 // 🔵 주문(파킹 매수)·안내·`rebalance_event` 는 쓰지 않는다(R22 D11 — E10·E18).
@@ -21,14 +24,20 @@ import 'package:core_engine/core_engine.dart'
         DepositRegisterHeld,
         DepositRegisterOutcome,
         DepositRegisterRejected,
+        NoPensionDeclaration,
+        PensionDeclarationSource,
+        WhatIfConfig,
         WhatIfState,
         WhatIfStateSource,
         depositReceipt,
-        judgeDepositRegistration;
+        judgeDepositRegistration,
+        kstYear,
+        pensionUsedInYear;
 import 'package:domain_contracts/domain_contracts.dart'
     show Clock, CommandKind, CommandReceipt, CommandState, RunMode;
 import 'package:sqlite3/sqlite3.dart';
 
+import 'deposit_ledger.dart';
 import 'plan_snapshot_store.dart';
 
 /// 로컬 원장 파일 하나에 실입금 등록을 기록한다.
@@ -38,10 +47,21 @@ final class SqliteDepositRegistrar {
     required this.mode,
     required this.state,
     required this.clock,
-  }) : _plans = SqlitePlanSnapshotStore(_db);
+    WhatIfConfig? config,
+    this.declarations = const NoPensionDeclaration(),
+  }) : config = config ?? WhatIfConfig.defaults,
+       _plans = SqlitePlanSnapshotStore(_db),
+       _ledger = SqliteDepositLedger(_db);
 
   final Database _db;
   final SqlitePlanSnapshotStore _plans;
+  final SqliteDepositLedger _ledger;
+
+  /// 연금 연 납입한도(`pensionAnnualLimit`).
+  final WhatIfConfig config;
+
+  /// 시스템 밖 연금 납입 신고값(D7 · 기본 0 — §8 미결 112).
+  final PensionDeclarationSource declarations;
 
   /// 이 파일의 실행 모드(`decision_log.mode`).
   final RunMode mode;
@@ -55,7 +75,11 @@ final class SqliteDepositRegistrar {
   /// [command] 를 판정하고 기록한다 — 접수증을 돌려준다. 인프라 실패(달력 없음 · DB 오류)는 `Future` 에러.
   Future<CommandReceipt> register(DepositRegisterCommand command) async {
     final WhatIfState s = await state.load();
-    final String now = clock.nowUtc().toUtc().toIso8601String();
+    final DateTime nowUtc = clock.nowUtc().toUtc();
+    final String now = nowUtc.toIso8601String();
+    final int year = kstYear(nowUtc);
+    // 신고값(원) — 트랜잭션 전에 포트에서 읽는다(트랜잭션 안에서는 await 하지 않는다 · 금액 타입은 core 의 것).
+    final declared = await declarations.declaredOutside(year);
     _db.execute('BEGIN IMMEDIATE');
     try {
       final CommandReceipt? replay = _replay(command);
@@ -64,10 +88,20 @@ final class SqliteDepositRegistrar {
         return replay;
       }
       final DepositPlanSnapshot? snapshot = _plans.readSnapshot(command.planId);
+      final String? pensionAlias = snapshot?.inputs.pensionAlias;
       final DepositRegisterOutcome outcome = judgeDepositRegistration(
         command: command,
         snapshot: snapshot,
         state: s,
+        pensionRemaining: pensionAlias == null
+            ? config.pensionAnnualLimit
+            : config.pensionAnnualLimit -
+                  pensionUsedInYear(
+                    _ledger.cashRows(pensionAlias),
+                    pensionAlias: pensionAlias,
+                    year: year,
+                    declaredOutside: declared,
+                  ),
       );
       switch (outcome) {
         case DepositRegisterHeld():

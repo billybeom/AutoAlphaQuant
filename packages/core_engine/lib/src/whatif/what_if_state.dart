@@ -5,7 +5,8 @@
 // 🔵 원천은 아직 정하지 않고 필드로만 받는다 — 실데이터 어댑터는 E8(데이터) · E11(런타임) 몫이다(D-4):
 //    `recovery` = 열린 재개가 복구 모드(`ResumeMode.recoveryDry` · `recoveryFull`)인가 ·
 //    `accounts.pensionAlias == null` = «계좌 매핑 미완»(슬리브 B 의 연금저축 계좌 미지정) ·
-//    `pensionUsedThisYear` = 올해 연금 합산 납입 누계(원장 C→B 납입 + 시스템 밖 납입 신고값).
+//    `pensionUsedThisYear` = 올해 연금 합산 납입 누계(🆕 E7b3 R22 D7 — `pensionUsedInYear`: 원장 연금 계좌 입금 합 +
+//    시스템 밖 납입 신고값 · ⏸ 월말 C→B 납입은 E10).
 // 🔵 E7a2-2 — 배분 계산 입력: 슬리브 평가액(회계 기준 — POT 는 A 소속 · 03 §2-9) · as-of 종가 · 기준일 고지 원천.
 
 import 'package:decimal/decimal.dart';

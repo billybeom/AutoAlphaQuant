@@ -32,6 +32,10 @@ abstract final class DepositGateTexts {
       '원장 정정이 끝나지 않아 이 계획으로는 입금을 등록할 수 없습니다.';
   static const String registerExpired =
       '이 계획은 만료되어 실입금을 등록할 수 없습니다. 다시 계산해 새 계획을 받아 주세요.';
+
+  /// 🆕 E7b3(R22 D13 · 06 M3-2 ⓒ «금액 범위») — 그사이 남은 연금 납입 한도가 계획의 B 몫보다 작아졌다.
+  static const String registerPensionQuota =
+      '연금 납입 한도가 그사이 줄어 이 계획의 연금 몫을 넣을 수 없습니다. 다시 계산해 새 계획을 받아 주세요.';
 }
 
 /// 리밸런싱 미리보기 차단·경고 문장.
@@ -101,20 +105,31 @@ WhatIfGate depositGate(WhatIfState s) {
   if (s.accounts.pensionAlias == null) {
     return const WhatIfGate(blockedText: DepositGateTexts.mapping);
   }
+  // 새 계획은 B 몫을 남은 한도로 자르므로 한도 부족이 생기지 않는다(deposit_plan.dart).
   return WhatIfGate(
-    registerBlockedText: depositRegisterBlockedText(s, expired: false),
+    registerBlockedText: depositRegisterBlockedText(
+      s,
+      expired: false,
+      quotaShort: false,
+    ),
   );
 }
 
-/// 입금 계획 등록 불가 문장 — RECON_MISMATCH > LEDGER_FIX > 만료(D-3) · 없으면 null(등록 버튼).
-String? depositRegisterBlockedText(WhatIfState s, {required bool expired}) {
+/// 입금 계획 등록 불가 문장 — RECON_MISMATCH > LEDGER_FIX > 만료 > 연금 한도(D-3 · 🆕 E7b3 R22 D13) · 없으면 null(등록 버튼).
+/// [quotaShort] = 지금 남은 연금 납입 한도 < 계획의 B 몫.
+String? depositRegisterBlockedText(
+  WhatIfState s, {
+  required bool expired,
+  required bool quotaShort,
+}) {
   if (s.flag(FlagIds.reconMismatch) != null) {
     return DepositGateTexts.registerRecon;
   }
   if (s.flag(FlagIds.ledgerFix) != null) {
     return DepositGateTexts.registerLedgerFix;
   }
-  return expired ? DepositGateTexts.registerExpired : null;
+  if (expired) return DepositGateTexts.registerExpired;
+  return quotaShort ? DepositGateTexts.registerPensionQuota : null;
 }
 
 /// 리밸런싱 미리보기 관문(H64) — [hasPlannedDate] = 다음 정기 회차가 있는가.
