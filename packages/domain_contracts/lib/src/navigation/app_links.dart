@@ -103,17 +103,39 @@ abstract final class AppRoutes {
   /// `A-2` 안내 상세.
   static const String adviceDetail = 'aaq://advice/detail/:adviceId';
 
-  /// `A-3` 수기 체결 기록(폰 전용).
-  static const String adviceFill = 'aaq://advice/fill';
+  /// `A-3` 수기 체결 기록(폰 전용). 🆕 v1.12(01 §21 · §8 미결 52 ①) — `:adviceId` · `AdviceAction.deepLink`(RECORD)가
+  /// 완성해서 준다. 등록 = 전 플랫폼 · 본문 = Android `ManualFillForm(adviceId:)`(operator 라이브러리) · iOS 뷰어 셸 =
+  /// «폰에서만» 부재 안내 · 웹 = `ui_journal` 없음(TARGETS T-3) — 셸 가드(선례 `journalDraft`).
+  /// 🔵 v1.12 교체(구 `aaq://advice/fill` — 파라미터 없는 `A-3` 은 02 에 없다 · 안내 밖 매매 = `M5-6`).
+  static const String adviceFill = 'aaq://advice/fill/:adviceId';
+
+  /// 🆕 v1.12(01 §21 · 미결 52 ②) — `A-4` 미이행 사유 1탭(폰 전용) · `AdviceAction.deepLink`(SKIP) ·
+  /// 본문 `AdviceSkipForm(adviceId:)` · 가드 = [adviceFill] 과 같다. `advice/fill`·`detail` 과 세그먼트 수가 같고
+  /// **둘째 고정 세그먼트**로 갈린다(v1.2 `journalRead` 선례).
+  static const String adviceSkip = 'aaq://advice/skip/:adviceId';
 
   /// 안내 이력.
   static const String adviceHistory = 'aaq://advice/history';
 
-  /// `L-3` 원장 실사(폰 전용).
-  static const String ledgerSelfReport = 'aaq://ledger/self-report';
+  /// `L-3` 원장 실사(폰 전용). 🆕 v1.12(01 §21 · 미결 52 ⑧ · K7 · K36 ⓐ) — 그 달(`yyyy-MM`) · 그 계좌 별칭
+  /// (🔴 계좌 전체번호 아님)의 정기 실사. 엔진이 완성해서 준다(`LedgerTrustBadge.actionDeepLink` · `SELF_AUDIT_DUE`
+  /// 알림·플래그 `clearDeepLink` · `H-02` 리듬 행 · `LedgerDiffRow.actionLink`(canonSelfReport) ·
+  /// `SelfReportResult.nextAccountLink`). 본문 = `SelfReportForm(yyyyMm:, accountAlias:)` · 가드 = [adviceFill] 과 같다.
+  /// `'/'` 로 쪼갠 조각 수(6)가 `ledger/*` 다른 라우트와 달라 겹치지 않는다. 🔵 v1.12 교체(구 `aaq://ledger/self-report`).
+  /// 🔴 별칭에 `/`·`?`·`#` 가 없게 하는 것은 엔진 의무다(C-46 ⑮).
+  static const String ledgerSelfReport =
+      'aaq://ledger/self-report/:yyyyMm/:accountAlias';
 
   /// 원장 신뢰 등급 설명.
   static const String ledgerTrust = 'aaq://ledger/trust';
+
+  /// 🆕 v1.12(01 §21 · K27) — `L-1` 차이 상세(읽기 · `LedgerDiffs()`). 홈 블록 6 탭 = 이 상수(04 §4-5 · 규칙 ④).
+  /// 등록 = 전 플랫폼 · 본문 = Android·iOS(`rm_ledger_diff` v1 필수) · 웹 = Q-D 전 셸 «부재» 가드.
+  static const String ledgerDiffs = 'aaq://ledger/diffs';
+
+  /// 🆕 v1.12(01 §21 · K27) — `L-2` 정정 이력·감사(읽기 · `LedgerRepairs()`). `L-1` 하단 = 이 상수(02 §5-2 · 규칙 ④).
+  /// 등록 = 전 플랫폼 · 본문 = **Android 만** · iOS·웹 = 셸 «폰에서만» 부재 안내(`rm_ledger_repair` 없음 · 01 §8 미결 117).
+  static const String ledgerRepairs = 'aaq://ledger/repairs';
 
   /// `S7-10` 이행 갭 — 🆕 v1.6 주석: `S7-10` 은 **M7(03 §14-b) 화면**이다 · 이 묶음 표기는 역사적(H63).
   /// 인자 없는 진입(「계획」 탭 ⑤) = 엔진 기본 달 · 셸 본문 = `ExecutionGapScreen()`.
@@ -179,6 +201,10 @@ abstract final class AppRoutes {
   static const String opsArchive = 'aaq://ops/archive';
   static const String opsMaintenance = 'aaq://ops/maintenance';
   static const String opsWatchdog = 'aaq://ops/watchdog';
+
+  /// 🆕 v1.12(01 §21 · K43) — `H-02` 운영 리듬 표(`OpsRhythm()` · `ui_shell`). 홈 블록 7·8 탭·«더 보기» = 이 상수
+  /// (04 §4-6 · 규칙 ④). 등록 = 전 플랫폼 · 본문 = 전 플랫폼(`rm_ops_summary` v1 필수 · N-07).
+  static const String opsRhythm = 'aaq://ops/rhythm';
   static const String settingsContribution = 'aaq://settings/contribution';
   static const String settingsCredentials = 'aaq://settings/credentials';
   static const String handoverStatus = 'aaq://handover/status';
@@ -202,7 +228,9 @@ abstract final class AppRoutes {
 
   /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance` ·
   /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory` · 🆕 v1.8 = 48 · `holdingsOverview`·
-  /// `holdingsDetail`·`holdingsAllocation`).
+  /// `holdingsDetail`·`holdingsAllocation` · 🆕 v1.12 = **52** · `adviceSkip`·`ledgerDiffs`·`ledgerRepairs`·`opsRhythm`
+  /// + 교체 2 `adviceFill`·`ledgerSelfReport`). 순서 = 첫 일치(C-33 ⑦ · 겹침 0) — `adviceSkip` 은 `adviceFill` 뒤 ·
+  /// `ledgerDiffs`·`ledgerRepairs` 는 `ledgerTrust` 뒤 · `opsRhythm` 은 `opsWatchdog` 뒤.
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -217,9 +245,12 @@ abstract final class AppRoutes {
     adviceInbox,
     adviceDetail,
     adviceFill,
+    adviceSkip,
     adviceHistory,
     ledgerSelfReport,
     ledgerTrust,
+    ledgerDiffs,
+    ledgerRepairs,
     ledgerExecutionGap,
     ledgerExecutionGapMonth,
     reportArchive,
@@ -238,6 +269,7 @@ abstract final class AppRoutes {
     opsArchive,
     opsMaintenance,
     opsWatchdog,
+    opsRhythm,
     settingsContribution,
     settingsCredentials,
     handoverStatus,

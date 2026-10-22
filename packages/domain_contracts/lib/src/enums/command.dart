@@ -12,7 +12,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 ///    **둘 다 바꾸지 않는다**(`m2-8_naming.md` B-3). C-15 가 이 비대칭을 검사한다.
 /// 🔴 뒤 3종(`selfReportBalance`·`alertAck`·`killChecklistConfirm`)은 기계 변환과 일치한다 —
 ///    그래서 위 4종과 섞이면 더 위험하다(B-4).
-/// 🔴 X7 7종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트(앞 4종)를 건드리지 않는다.
+/// 🔴 X7 8종(+ `LEDGER_EVENT_RECORD`)은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트(앞 4종)를 건드리지 않는다.
+///    🆕 v1.12(01 §21 · K14 ⓐ) — 8번째 = `DEFER_ADVICE_CONFIRM`(만료 확인 카드 「내일 다시」).
 /// 🆕 v1.4 정정(01 §14-2) — `depositRegister` 도 폰 전용이다(구 «앞 5종» → 4종).
 /// 🔴 킬스위치 «해제» 명령은 없다(결정 6).
 enum CommandKind {
@@ -45,7 +46,12 @@ enum CommandKind {
 
   // ── 🆕 v1.10 · X7 ㊲ 원장 사건(8번째) · 🔴 operator 전용 · 기록 계열 TTL(㊵) ──
   @JsonValue('LEDGER_EVENT_RECORD')
-  ledgerEventRecord('LEDGER_EVENT_RECORD');
+  ledgerEventRecord('LEDGER_EVENT_RECORD'),
+
+  // ── 🆕 v1.12(01 §21 · K14 ⓐ) — 만료 확인 카드 「내일 다시」 · 🔴 폰 전용 · 초안 영구 제외(C-35 ②) ──
+  //    엔진 = `advice_transition(cause_code='DEFER_CONFIRM')` 1행 · 거부 = `DEFER_ALREADY_USED`.
+  @JsonValue('DEFER_ADVICE_CONFIRM')
+  adviceDeferConfirm('DEFER_ADVICE_CONFIRM');
 
   const CommandKind(this.wire);
 
@@ -150,6 +156,15 @@ enum SettingsActionId {
   runtimeEngineStart('RUNTIME_ENGINE_START'),
   @JsonValue('RUNTIME_ENGINE_STOP')
   runtimeEngineStop('RUNTIME_ENGINE_STOP'),
+
+  /// 🆕 v1.12(01 §21 · K9) — `L-3` 실사 세션 열기(폰 로컬 · `args` = {yyyy_mm, account_alias} ·
+  /// 그 폰의 원장 파생 표시를 가린다 — 뷰어는 가리지 않는다). `L-3` 이 `initState` 에서 부른다.
+  @JsonValue('SELF_REPORT_SESSION_START')
+  selfReportSessionStart('SELF_REPORT_SESSION_START'),
+
+  /// 🆕 v1.12 — 닫기(`L-3` `dispose` · `initState` 에서 잡아 둔 인스턴스로 · 세션 만료는 엔진이 스스로 닫는다).
+  @JsonValue('SELF_REPORT_SESSION_STOP')
+  selfReportSessionStop('SELF_REPORT_SESSION_STOP'),
   @JsonValue('DEVICE_PAIRING_TICKET_CREATE')
   devicePairingTicketCreate('DEVICE_PAIRING_TICKET_CREATE'),
   @JsonValue('DEVICE_TOKEN_REVOKE')

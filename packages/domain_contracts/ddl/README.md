@@ -75,7 +75,7 @@
 | ② | `mode` CHECK 2값 vs 3값 | ✅ **3값 + 파일별 CHECK**(위 «두 파일» · R19 E9-2 · R20 Q1) |
 | ③ | `CORPORATE_ACTION` vs `CORP_ACTION` | ✅ **`CORPORATE_ACTION` 으로 통합**(R19 E9-4) — `CORP_ACTION` 은 `OriginCodes.corpActionLegacy` 상수로만 남고 픽스처·신규 코드에 쓰지 않는다 |
 | ④ | `order_intents.dry_run` ↔ `ExecPolicy` | ✅ 컬럼 유지 + 이름만 승격 · `dry_run = 1` ⇔ `ExecPolicy.dryRun`(R19 E9-5 · batch_a 주석) |
-| ⑤ | `rm_ops_summary` 표 존폐 | ⬜ **E11 전**(배치 D 실적용과 함께 · 설계 13 §5-4) — `batch_d` 에 ⬜ 표기 |
+| ⑤ | `rm_ops_summary` 표 존폐 | ✅ **v1 필수**(발주자 결정 N-07 · 2026-10-22 · m2-8_naming J-4 · 01 §6-4) — 🆕 계약 v1.12 = 홈 블록 5·7 + `H-02` 전체 리듬 목록(`watchRhythm`)·`resume_line` 의 뷰어 원천 · 실적용은 배치 D 와 함께(E11 · 설계 13 §5-4) |
 | — | `decision_journal`·`order_intents` 의 authored 축 컬럼명 | ✅ 둘 다 `created_at`(02 기본 표 실측) |
 | 🆕 | 수기 체결의 `broker_orders` FK | ✅ 02 `executions.broker_order_no` NULL 허용 + `fill_origin` CHECK «`MANUAL` ⇔ NULL»(R20 Q2 · batch_f) — 02 본문 개정은 E9b |
 | 🆕 | ㊲ `recordLedgerEvent` 의 저장 자리 | ⬜ **E9a2**(설계안 → 발주자 확인 · v1 동결 전 · R20 Q3) |

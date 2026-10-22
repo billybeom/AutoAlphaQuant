@@ -39,6 +39,8 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   //    사전을 정해 전 픽스처에(X7 7종 = advice_reject · JOURNAL_DRAFT = journal_draft_reject ·
   //    BLIND_REVIEW_SCORE = blind_review_reject · 정해지지 않은 kind = 실패).
   'reject_reason_code': '',
+  // 🆕 v1.12(01 §21 · K20) — `CommandReceipt.retryCode`(재제출 선택지 · X7 기록 명령 전용 · C-46 ⑧ 이 짝을 맞댄다).
+  'retry_code': 'advice_retry',
   'close_reason_code': 'decision_reason',
   'cause_code': 'advice_transition_cause',
   'reason_code': '',

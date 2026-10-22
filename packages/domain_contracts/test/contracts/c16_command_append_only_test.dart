@@ -320,6 +320,9 @@ void main() {
         CommandKind.ledgerEventRecord: 'ledger_event_reject',
         // 🆕 v1.11(E7b0 · 01 §20) — 실입금 등록(`m7_deposit_register_receipts_5` 거부 행).
         CommandKind.depositRegister: 'deposit_register_reject',
+        // 🆕 v1.12(01 §21 · K14 ⓐ) — 만료 확인 카드 「내일 다시」(`m6/advice_defer_receipts_3` 거부 행 ·
+        //    `DEFER_ALREADY_USED`).
+        CommandKind.adviceDeferConfirm: 'advice_reject',
       };
       final Set<String> seen = <String>{};
       for (final String path in FixturePaths.all) {

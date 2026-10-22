@@ -2,7 +2,7 @@
 //
 // 정의: 「기기 로컬 입력 초안(`DraftStore`)이 원장·명령의 모양을 흉내 내거나 화면 밖으로 새지 않는다」.
 //   ① 초안 픽스처의 본문 칸은 `key.kind` 의 칸 하나다.
-//   ② `DraftKind` 는 `CommandKind` 의 부분집합이고 영구 제외 6종이 없다.
+//   ② `DraftKind` 는 `CommandKind` 의 부분집합이고 영구 제외 7종이 없다(🆕 v1.12 +`DEFER_ADVICE_CONFIRM`).
 //   ③ `last_command_id` 는 같은 종류의 접수증 픽스처에 있다(재구독이 답을 받는다).
 //   ④ 본문 DTO 는 명령 인자 이름을 쓰고 **추가형으로만** 진화한다(`fromJson({})` 성공 · 행 DTO
 //      `SelfReportLineInput` 은 유일한 required `symbol` 만으로 성공 · 열거형 선택값의 모르는 값 = null).
@@ -32,7 +32,7 @@ const List<String> _draftFixtures = <String>[
   FixturePaths.m6DraftRecordsX7,
 ];
 
-/// 초안이 **영구히** 둘 수 없는 명령 6종(01 §12-1 · `DraftKind` 머리 주석).
+/// 초안이 **영구히** 둘 수 없는 명령 7종(01 §12-1 · `DraftKind` 머리 주석).
 const Set<String> _permanentlyExcluded = <String>{
   'BLIND_REVIEW_SCORE',
   'KILL_SWITCH_ACTIVATE',
@@ -40,6 +40,8 @@ const Set<String> _permanentlyExcluded = <String>{
   'DEPOSIT_REGISTER',
   'ALERT_ACK',
   'KILL_CHECKLIST_CONFIRM',
+  // 🆕 v1.12(01 §21 · K14 ⓐ) — 「내일 다시」 1탭(확인·즉시성 — 복원되면 확인이 아니다).
+  'DEFER_ADVICE_CONFIRM',
 };
 
 /// 본문 DTO 에 영구히 없어야 하는 키 — 맥락·확인값·세션값·대상 id(키에 있다).
@@ -205,7 +207,7 @@ void main() {
       );
     });
 
-    test('C-35 ② DraftKind 는 CommandKind 의 부분집합이고 영구 제외 6종이 없다', () {
+    test('C-35 ② DraftKind 는 CommandKind 의 부분집합이고 영구 제외 7종이 없다', () {
       final Set<String> commandWires = <String>{
         for (final CommandKind k in CommandKind.values) k.wire,
       };

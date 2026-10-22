@@ -21,6 +21,12 @@
 //   🆕 v1.8(01 §17) — 라우트 **48**(`holdingsOverview` · `holdingsDetail` · `holdingsAllocation`) · `_linkKeys` 무변경
 //   (`HoldingRow.detailDeepLink` = 기존 `detail_deep_link` · `allocationLink`·`entryDecisionLink` 는 `LinkAction` 이라
 //   안쪽 `deep_link`) · ④ 에 `holdings/detail/<id>`·`holdings/overview`·`holdings/allocation` 일치 예시.
+//   🆕 v1.12(01 §21) — 라우트 **52**(신설 4 `adviceSkip`·`ledgerDiffs`·`ledgerRepairs`·`opsRhythm` · 교체 2
+//   `adviceFill` → `advice/fill/:adviceId` · `ledgerSelfReport` → `ledger/self-report/:yyyyMm/:accountAlias`) ·
+//   `_linkKeys` 무변경(`AdviceAction.deepLink`·`ReasonOption.deepLink` = `deep_link` · `AdviceItem.detailDeepLink` =
+//   `detail_deep_link` · `decisionLink`·`actionLink`·`resumeLine`·`resolveLink`·`nextAccountLink`·요약 링크 2 =
+//   `LinkAction` 안쪽 `deep_link`) · 옛 꼴 링크 7곳(알림·다이제스트·리듬·안전 상태 `clear_deep_link`)은 픽스처에서
+//   고쳤다 — 옛 꼴은 이제 미등록이다(④ 의 ✗ 예시).
 // 🔴 화면은 이 검사의 대상이 아니다 — 화면은 링크를 **만들지 않으므로** 검사할 것이 없고,
 //    만들었다면 `tool/check_boundaries.sh` 의 `aaq://` 리터럴 스캔이 잡는다.
 
@@ -118,13 +124,18 @@ void main() {
       // 🆕 v1.4 — 41 → 42(`reportGoalPath`). 🆕 v1.5 — 42 → 43(`journalRebalance` · 01 §15-3).
       // 🆕 v1.6 — 43 → 45(`ledgerExecutionGapMonth` · `rebalanceHistory` · 01 §15-4).
       // 🆕 v1.8 — 45 → 48(`holdingsOverview` · `holdingsDetail` · `holdingsAllocation` · 01 §17).
+      // 🆕 v1.12 — 48 → 52(`adviceSkip` · `ledgerDiffs` · `ledgerRepairs` · `opsRhythm` · 01 §21 · 교체 2 는 수 불변).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(48),
-        reason: '라우트 수가 계약(01 §17 · v1.8 = 48)과 다르다.',
+        hasLength(52),
+        reason: '라우트 수가 계약(01 §21 · v1.12 = 52)과 다르다.',
       );
+      expect(AppRoutes.all, contains(AppRoutes.adviceSkip));
+      expect(AppRoutes.all, contains(AppRoutes.ledgerDiffs));
+      expect(AppRoutes.all, contains(AppRoutes.ledgerRepairs));
+      expect(AppRoutes.all, contains(AppRoutes.opsRhythm));
       expect(AppRoutes.all, contains(AppRoutes.holdingsOverview));
       expect(AppRoutes.all, contains(AppRoutes.holdingsDetail));
       expect(AppRoutes.all, contains(AppRoutes.holdingsAllocation));
@@ -194,6 +205,27 @@ void main() {
       expect(AppRoutes.isRegistered('aaq://holdings/detail/h_1?x=1'), isFalse);
       expect(AppRoutes.isRegistered('aaq://holdings/overview'), isTrue);
       expect(AppRoutes.isRegistered('aaq://holdings/allocation'), isTrue);
+      // 🆕 v1.12 — `advice/fill`·`skip` 은 `:adviceId` 를 강제한다(파라미터 없는 옛 꼴 = 미등록) ·
+      //    `ledger/self-report` 는 그 달 + 그 계좌 두 조각(K7 · K36 ⓐ) — 하나라도 빠지면 미등록 · 쿼리 거부.
+      expect(AppRoutes.isRegistered('aaq://advice/fill/ad_0002'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://advice/fill'), isFalse);
+      expect(AppRoutes.isRegistered('aaq://advice/skip/ad_0001'), isTrue);
+      expect(
+        AppRoutes.isRegistered('aaq://ledger/self-report/2026-08/연금저축'),
+        isTrue,
+      );
+      expect(
+        AppRoutes.isRegistered('aaq://ledger/self-report/2026-08'),
+        isFalse,
+      );
+      expect(AppRoutes.isRegistered('aaq://ledger/self-report'), isFalse);
+      expect(
+        AppRoutes.isRegistered('aaq://ledger/self-report/2026-08/연금저축?x=1'),
+        isFalse,
+      );
+      expect(AppRoutes.isRegistered('aaq://ledger/diffs'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://ledger/repairs'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://ops/rhythm'), isTrue);
       expect(AppRoutes.isRegistered('aaq://journal/timeline'), isTrue);
       expect(AppRoutes.isRegistered('aaq://nowhere'), isFalse);
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);
@@ -263,6 +295,10 @@ void main() {
         'aaq://report/archive',
         'aaq://report/goal/2026-08/x',
         'aaq://nowhere',
+        // 🆕 v1.12 — 2인자 라우트 · 옛 꼴 미등록.
+        'aaq://ledger/self-report/2026-08/연금저축',
+        'aaq://ledger/self-report/2026-08',
+        'aaq://advice/fill',
       ];
       for (final String probe in probes) {
         expect(
