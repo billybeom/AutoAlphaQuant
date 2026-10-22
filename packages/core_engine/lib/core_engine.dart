@@ -148,6 +148,23 @@ export 'src/whatif/amount_input.dart'
         parseAmountInput;
 export 'src/whatif/deposit_plan.dart'
     show DepositPlanTexts, buildDepositPlan, simulateDepositPreview;
+export 'src/whatif/deposit_register.dart'
+    show
+        DepositCashRow,
+        DepositLedgerEntry,
+        DepositPlanSnapshot,
+        DepositRegisterCommand,
+        DepositRegisterExecuted,
+        DepositRegisterHeld,
+        DepositRegisterOutcome,
+        DepositRegisterRejected,
+        DepositRegisterTexts,
+        depositDecisionId,
+        depositLedgerEntry,
+        depositReceipt,
+        depositTradeDate,
+        judgeDepositRegistration,
+        kDepositStrategyId;
 export 'src/whatif/engine_what_if_api.dart' show EngineWhatIfApi;
 export 'src/whatif/plan_inputs.dart' show PlanInputs;
 export 'src/whatif/plan_store.dart'
