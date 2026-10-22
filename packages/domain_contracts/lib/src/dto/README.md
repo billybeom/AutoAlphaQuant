@@ -12,7 +12,10 @@
 | `plan.dart` | `DepositPlan` · `OrderDraft` | §2-6 |
 | `resume.dart` | `PlannedWorkSummary` · `ResumeReport` | §2-7 |
 | `calendar.dart` | `CalendarEventDto` | §2-8 |
-| `ledger.dart` | `LedgerDiffRow` | §2-9 |
+| `ledger.dart` | `LedgerDiffRow` · `LedgerRepairRow` · 🆕 v1.12 표시 필드(+8 · +7 — `L-1`·`L-2`) | §2-9 · §21 |
+| `advice.dart` | `AdviceItem` · `AdviceAction` · `AdviceInboxSummary` · `ManualFillFormSpec` · 선택지 `SymbolOption`·`AccountOption`·`ReasonOption` · 🆕 v1.12 `SideOption`·`TradeDateOption` + 표시·링크 필드(X7 `A-1`~`A-4`) | §2-11 · §21 |
+| `ledger_trust.dart` | `LedgerTrustBadge` · `ExecutionGapResult`·`ExecutionGapReport` · `ExternalHoldingRow` · `CashEstimateNotice` · `SelfReportLine` · 🆕 v1.12 `SelfReportSession`·`SelfReportResult`(`L-3`) | §2-11 · §15-4 · §21 |
+| `ops.dart` | `ShellVm` · `OpsRhythmRow` · `OpsDailySummary`(🆕 v1.12 `resumeLine`) · M9 VM | §2-6 · §4-1 · §21 |
 | `safety.dart` | `AlertItem` · `SafetyState` · `BlockFlag` · `OnboardingStep` | §2-10 |
 
 ## ⚠️ 아직 이름만 있고 필드가 없는 타입

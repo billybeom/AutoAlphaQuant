@@ -278,6 +278,11 @@ const Map<String, String> _knownUncovered = <String, String>{
   // ── 명령 인자·봉투(01 §4-2) ─────────────────────────────────────────────
   'ActionResult': _reasonCommandPayload,
   'AdviceSkip': _reasonCommandPayload,
+  // 🆕 v1.12(01 §21 · K4 · K14 ⓐ) — «화면 제출» DTO 3(셋 다 fromJson — 관행 · 이 모집단에 든다) + 와이어 1.
+  'AdviceSkipSubmission': _reasonCommandPayload,
+  'AdviceDeferConfirm': _reasonCommandPayload,
+  'ManualFillSubmission': _reasonCommandPayload,
+  'SelfReportSubmission': _reasonCommandPayload,
   'AlertAck': _reasonCommandPayload,
   'BlindReviewScore': _reasonCommandPayload,
   'CommandContext': _reasonCommandPayload,
@@ -291,6 +296,9 @@ const Map<String, String> _knownUncovered = <String, String>{
   'ManualFillRecord': _reasonCommandPayload,
   'ManualFillVoid': _reasonCommandPayload,
   'SelfReportBalance': _reasonCommandPayload,
+  // 🔵 v1.12 — 사유 교체(옛 «self_report_1 미매핑») · `SelfReportBalance.lines` 의 원소 = 와이어 하위 행이다
+  //    (`L-3` 화면 VM `SelfReportSession` 은 `SymbolOption` 을 싣고 이 행을 싣지 않는다).
+  'SelfReportLine': _reasonCommandPayload,
 
   // ── M9 설정·기기·연결·백업·셸(05) ────────────────────────────────────────
   'BackupVm': _reasonM9Fixture,
@@ -307,7 +315,8 @@ const Map<String, String> _knownUncovered = <String, String>{
   'ShellChip': _reasonM9Fixture,
   'ShellVm': _reasonM9Fixture,
 
-  // ── M6 상세·기록 폼 — 🆕 v1.8(01 §17) 0건: `StopLineNormalized` 는 m6/holding_detail_* 가 덮는다 ──
+  // ── M6 상세·기록 폼 — 🆕 v1.8(01 §17) 0건: `StopLineNormalized` 는 m6/holding_detail_* 가 덮는다 ·
+  //    🆕 v1.12 `LedgerRepairRow`(m6/ledger_repairs_4)·`CashEstimateNotice`(advice_12 요약) 도 이제 덮인다 ──
 
   // ── X4 캘린더 ───────────────────────────────────────────────────────────
   'CalendarEventDto': _reasonCalendarUndecided,
@@ -318,17 +327,11 @@ const Map<String, String> _knownUncovered = <String, String>{
   'HandbookIndex': _reasonHandbookDraft,
 
   // ── 낱건 ────────────────────────────────────────────────────────────────
-  'CashEstimateNotice':
-      '현금 추정 고지 픽스처가 없다(01 §2-11 · C-24 가 배지 존재를 볼 때 함께 만든다).',
   'EntryRampProgress': '진입 램프 픽스처가 없다 — safety_states 는 브레이커·플래그 축만 담는다.',
   'EntryRampSleeveState': '진입 램프 픽스처가 없다(위와 같은 사유).',
   'FeatureFlags': '봉투에 실리는 값이 아니라 **셸이 주입**하는 값이다(01 §2-1 · C-17·C-18 의 입력).',
-  'LedgerRepairRow':
-      '정정 행 픽스처가 없다 — ledger_diffs_4 는 diff 만 담는다(C-29 가 만들 입력).',
   'Money': '⚠️ 예약 타입 — 1차 릴리스 DTO 에서 쓰지 않는다(01 §1-2). 금액은 Decimal 하나로 흐른다.',
   'PlannedWorkSummary':
       'X2 planned_work 픽스처가 없다 — resume_report_1 은 재개 항목만 담는다.',
-  'SelfReportLine':
-      'm6/self_report_1.json 이 미매핑이라 하위 행도 덮이지 않는다 — 등록부 unmappedFixtures 참조.',
   'TzInstant': '아직 어느 픽스처 필드도 TzInstant 를 싣지 않는다(01 §1-3 — 표시 시각 전용).',
 };

@@ -8,7 +8,7 @@
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -74,12 +74,23 @@
 //    사유 코드 `DEPOSIT_REGISTERED` · `ddl/batch_f` `cash_flow.account_alias`(계좌별 입금 행) ·
 //    픽스처 `m7_deposit_register_receipts_4` → `_5`(`REJECTED` 1행 · 01 §8 미결 74 ✅) ·
 //    판정 `depositReceiptViolations` → `testing.dart`(C-38 ⑨) · 픽스처 159(개명 1 · 봉투 버전).
+// 🆕 '1.12.0'(R5·R13 선행 · 01 §21 · 발주자 확정 2026-10-22 — 🔴 8건 K9·K14·K18·K30·K35·K36·K46·K47 권고대로) —
+//    X7 `A-1`~`A-4`·`L-3` + X5 `L-1`·`L-2` + `H-02` 리듬: 라우트 48 → 52(교체 2 `adviceFill`·`ledgerSelfReport` ·
+//    신설 4 `adviceSkip`·`ledgerDiffs`·`ledgerRepairs`·`opsRhythm`) · `CommandApi` X7 3 인자 = 제출 DTO
+//    (`ManualFillSubmission`·`AdviceSkipSubmission`·`SelfReportSubmission` — 파싱·맥락 = 구현 · K4) + `deferAdviceConfirm`
+//    (`AdviceDeferConfirm` · `DEFER_ADVICE_CONFIRM` · K14 ⓐ) · `watchCommand` 구현 의무 ④(K42) · `CommandReceipt.retryCode`·
+//    `retryLabel` · `SelfReportSession`·`SelfReportResult` + `watchSelfReportSession(yyyyMm, accountAlias)` · `SettingsActionId`
+//    세션 2값(K9) · `AdviceItem` +7 · `AdviceAction.deepLink` · `AdviceInboxSummary` +4 · `ManualFillFormSpec` +5 ·
+//    `SideOption`·`TradeDateOption` · `ReasonOption.deepLink` · `LedgerDiffRow` +8 · `LedgerRepairRow` +7 ·
+//    `watchRepairs` · `OpsSummaryRepository.watchRhythm` · `OpsDailySummary.resumeLine` · 코드 `AdviceRejectCodes` 18 ·
+//    `AdviceRetryCodes` · `ManualFillPrefillFields` · 받침대 +5 · 🆕 C-46·C-47 · 픽스처 159 → 174(신설 15 · 개정 22 ·
+//    알림 등급 5행 — 미결 114) — 🆕 tool/gen_r5r13_v112_fixtures.py(기준 f54f602 원문에서 멱등 생성).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.11.0';
+const String contractVersion = '1.12.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

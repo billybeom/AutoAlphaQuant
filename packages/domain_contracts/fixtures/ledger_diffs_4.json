@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -24,7 +24,18 @@
       "status": "OPEN",
       "route": "APPROVAL",
       "evidence_hash": "ev_8f21c0a4b7d3",
-      "applicable": true
+      "applicable": true,
+      "pair_label": "브로커 대조",
+      "axis_label": "수량",
+      "severity_label": "주문 차단",
+      "status_label": "열림",
+      "route_label": "승인 필요",
+      "candidate_origins": [
+        { "code": "FILL_LAG", "label": "체결 반영 지연", "tone": "NEUTRAL", "detail_deep_link": "handbook://unknown/resolve" },
+        { "code": "MANUAL_ORDER", "label": "수동 주문", "tone": "NEUTRAL" }
+      ],
+      "detected_at_text": "탐지 2026-08-28 09:00",
+      "action_link": { "label": "정정하기", "deep_link": "aaq://x5/repair-wizard" }
     },
     {
       "diff_id": "ld_0002",
@@ -37,7 +48,17 @@
       "status": "OPEN",
       "route": "AUTO",
       "evidence_hash": "ev_2b90d5e14c6f",
-      "applicable": true
+      "applicable": true,
+      "pair_label": "미러 대조",
+      "axis_label": "체결 건",
+      "severity_label": "관측 항목 — 주문을 막지 않습니다",
+      "status_label": "열림",
+      "route_label": "자동 재동기화",
+      "candidate_origins": [
+        { "code": "PUSH_LAG", "label": "미러 전송 지연", "tone": "NEUTRAL" }
+      ],
+      "detected_at_text": "탐지 2026-08-30 09:00",
+      "action_link": null
     },
     {
       "diff_id": "ld_0003",
@@ -50,7 +71,17 @@
       "status": "ACCEPTED",
       "route": "AUTO",
       "evidence_hash": "ev_71ac3d9e05b2",
-      "applicable": true
+      "applicable": true,
+      "pair_label": "아카이브 대조",
+      "axis_label": "체인 해시",
+      "severity_label": "관측 항목 — 주문을 막지 않습니다",
+      "status_label": "받아들임 · 2026-08-30",
+      "route_label": "자동 재동기화",
+      "candidate_origins": [
+        { "code": "ARCHIVE_LAG", "label": "아카이브 적체", "tone": "NEUTRAL" }
+      ],
+      "detected_at_text": "탐지 2026-08-29 09:00",
+      "action_link": null
     },
     {
       "diff_id": "ld_0004",
@@ -63,7 +94,17 @@
       "status": "RESOLVED",
       "route": "AUTO",
       "evidence_hash": "ev_5d64bf0a37e1",
-      "applicable": true
+      "applicable": true,
+      "pair_label": "캘린더 대조",
+      "axis_label": "체결 건",
+      "severity_label": "관측 항목 — 주문을 막지 않습니다",
+      "status_label": "해소됨 · 2026-08-29",
+      "route_label": "자동 재동기화",
+      "candidate_origins": [
+        { "code": "CAL_WRITE_FAILED", "label": "캘린더 쓰기 실패", "tone": "NEUTRAL" }
+      ],
+      "detected_at_text": "탐지 2026-08-27 09:00",
+      "action_link": null
     }
   ]
 }

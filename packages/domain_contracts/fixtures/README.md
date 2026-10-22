@@ -1,4 +1,4 @@
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.10 · 159파일**(🆕 v1.9·v1.10 = 봉투 버전 줄만 · 값 무변경) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ⬜ 로컬 커밋 — PR 대기)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.12 · 174파일**(🆕 v1.12 R5·R13 선행 15 · 2026-10-22 · ⬜ 로컬 커밋 — PR 대기 · v1.9~v1.11 = 봉투 버전 줄만) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ✅ 병합 PR #48 squash `dcac7ec` + 🆕 v1.12 R5·R13 선행 15(X7 `A-*`·`L-3` · X5 `L-1`·`L-2` · 리듬) · 2026-10-22)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -12,7 +12,7 @@
   아래 «픽스처 계좌 별칭 표»가 정본이다.
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 159파일(🆕 2026-10-21 v1.8) 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 174파일(🆕 2026-10-22 v1.12) 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -32,7 +32,7 @@
 
 ```json
 {
-  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.11.0",
+  "meta": { "fixture_version": "0.1.0-draft", "contract_version": "1.12.0",
             "generated_at": "2026-09-06T09:00:00Z", "mode": "LIVE",
             "config_hash": "cfg_fake_0000000000000000", "seed": 20260906,
             "notice": "합성 데이터. 실계좌·실키 없음." },
@@ -57,7 +57,10 @@
    (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
    자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
 2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
-   ✅ **지금 값은 `1.6.0`**(2026-10-08 R12 선행 M2 보강 · 01 §15-4 · 브랜치 `m2/contract-v1.6-r12` · ~~⬜ 로컬 커밋 —
+   🆕 **지금 값은 `1.12.0`**(2026-10-22 R5·R13 선행 M2 보강 · 01 §21 · 브랜치 `m2/v112-r5r13` · ⬜ 로컬 커밋 — PR 대기) — 상수와
+   기존 159개 + 신규 15개 = **174개**를 **함께** 올렸다. 🔴 기존 159개 가운데 136개는 `"contract_version"` **한 줄만** 바뀌었고 23개는
+   본문도 개정됐다 — 아래 «계약 v1.12» 절(1.7·1.8 = 각 절 · 1.9~1.11 = 봉투 버전 줄만).
+   ~~`1.6.0`~~(2026-10-08 R12 선행 M2 보강 · 01 §15-4 · 브랜치 `m2/contract-v1.6-r12` · ~~⬜ 로컬 커밋 —
    PR 대기~~ ✅ 병합 PR #25 squash `995c1f4` — 상수와 기존 126개 + 신규 9개 = **135개**를 **함께** 올렸다. 🔴 기존 126개 가운데 112개는
    `"contract_version"` **한 줄만** 바뀌었고, 14개는 본문도 개정됐다(그중 1개는 개명 `m7_next_rebalance_d6` →
    `m7_next_rebalance_countdown`) — 아래 «계약 v1.6» 절).
@@ -97,32 +100,32 @@
 
 | 키 | 타입 | 쓰는 파일 |
 |---|---|---|
-| `summary` | `AdviceInboxSummary` | `m6/advice_*.json` 9벌 |
+| `summary` | `AdviceInboxSummary` | `m6/advice_*.json` 10벌(🆕 v1.12 `advice_stale`) |
 | `advice_summary` | `AdviceInboxSummary` | `m8/ops_home_advice_open.json` · `m8/ops_home_advice_zero.json` |
 | `counterfactual` | `AfterTaxLadder` | `m7/aftertax_ladder_1.json` — 🆕 v1.6 **C-30 골든 대조 전용**(화면 경로는 `AnnualReviewVm.afterTaxCounterfactual` · `m7_annual_*` 3벌이 이 블록의 사본을 싣는다) |
 | `counterfactual_collapsed` | bool | `m7/aftertax_ladder_1.json` — 🆕 v1.6 C-30 대조 전용(접힘 값은 DTO 에 두지 않는다 · `S7-7` 반사실 카드는 늘 기본 접힘) |
-| `trust` | `LedgerTrustBadge` | `m6/self_report_1.json` |
 | `index` | `HandbookIndex` | `m8/handbook_page_sleeve_b.json` |
 | `incident_alert` | `AlertItem` | `m8/incident_token_expired.json` |
 | `preserved_input` | 원시(`ManualFillRecord` 모양 · `context` 없음) | `m6/fill_rejected_price.json` |
 | `reject_reason` | `ReasonChip` | `m6/fill_rejected_price.json` |
 | `price_range_source_date` | `TradeDate` | `m6/fill_rejected_price.json` |
 | `active_flags` | `BlockFlag` 목록 | `m6/advice_blocked.json` · `m8/ops_home_blocked.json` · `m8/ops_home_resume_gap7.json` |
-| `resume_headline` | 문장 | `m8/ops_home_resume_gap7.json` |
-| `resume_route` | 링크 | `m8/ops_home_resume_gap7.json` |
 | `credential_use` | 원시 | `m8/onboarding_fresh_advisory.json` |
 | `operating_mode` | 원시 | `m8/onboarding_fresh_advisory.json` |
 | `finish_headline` | 문장 | `m8/onboarding_finish.json` |
 | `holiday_notice` | 문장 | `m8/watchdog_holiday.json` |
 | `lease_notice` | 문장 | `m8/restart_lost_phone.json` |
 
+🔵 v1.12 정정(01 §21) — `trust`(`m6/self_report_1` — 꼴 교체로 행 필드 `SelfReportSession.trust` 가 됐다 · K8) ·
+`resume_headline`·`resume_route`(`m8/ops_home_resume_gap7` — 행 필드 `OpsDailySummary.resumeLine` 으로 올렸다 · K44)
+3키를 표에서 지웠다.
 🔵 v1.4 정정 — 옛 표의 «`pending_notice` 계열 · `m7/m7_monthly_pending.json`»은 지웠다(그 파일의 형제 키
 `pending_d_day_text` 는 v1.1 에서 폐기됐고 지금 형제 키가 없다). `credential_use`·`operating_mode`·
 `finish_headline`·`holiday_notice`·`lease_notice` 5키는 실물에 있었는데 옛 표에 빠져 있던 것을 실측으로 더했다.
 
 ---
 
-## 파일 목록 (159)
+## 파일 목록 (174)
 
 ### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
@@ -134,8 +137,8 @@
 | `rebalance_6.json` | 6 | monthlyRegular 3 · seasonal 1 · band 1 · deposit 1 · 🆕 v1.5 행 링크 `detail_deep_link` 6 · 버튼 `journal_timeline_link` 5(`re_20261030_01` 은 버튼 없음 = 부재 표본) · 🆕 v1.6 행 순서 = **거래일 내림차순** · 행 `as_of` = 봉투(관측 시각) · `thresholds`(band·seasonal 1행씩 · 나머지 `[]`) · `SleeveWeight.label` 완성 문장 |
 | `resume_report_1.json` | 1 | 7거래일 갭 · `RECOVERY_DRY` · 4/3/2/1/2 |
 | `safety_states.json` | 5 | normal · alert · reduced · halted · stopped(자격 충족 1) |
-| `alerts_12.json` | 12 | P0 2 · P1 4 · P2 6(묶임 2) |
-| `ledger_diffs_4.json` | 4 | `CANON_BROKER` 1(blocking) · 파생 3(observational) |
+| `alerts_12.json` | 12 | ~~P0 2 · P1 4 · P2 6(묶임 2)~~ 🆕 v1.12(01 §8 미결 114) **P0 2 · P1 7 · P2 3(묶임 2)** — 등급 = 엔진 정본(`06_시스템설계/04_안전장치.md` §5-3 · C-47 ⑥) |
+| `ledger_diffs_4.json` | 4 | `CANON_BROKER` 1(blocking) · 파생 3(observational) · 🆕 v1.12 +8 표시 키(짝 라벨 · 후보 칩 · 탐지 시각 · `action_link` — `ld_0001` 만) |
 | `onboarding_fresh.json` | 14 | 처음 시작하기(verified/failed/expired 각 1) |
 | `onboarding_reconnect.json` | 9 | 재연결 갈래 |
 | `deposit_plan_1.json` | 1 | 🔵 v1.4 **코어 전용(행 = `DepositPlan` · 화면 미사용)** · 월 납입 = 엔진 설정값 예시 · 잔여 = 원화 현금 대기(D2) · 주문 초안 4 · `funding_steps` **null** |
@@ -143,7 +146,12 @@
 | 🆕 `range_presets_4.json` | 4 | **v1.1** `ConfigRepository.watchRangePresets()` — 최근 30일(**`is_default`**)·이번 달·올해·전체 기간. 🔴 `is_default` 는 정확히 1건(C-34 ①) |
 | 🆕 `sleeve_catalog_4.json` | 4 | **v1.1** `ConfigRepository.watchSleeves()` — A·B·C·POT(`rolls_up_to: A`). P0S 라 새틀라이트 행 없음 |
 
-### `m6/` 65 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
+### `m6/` 78 — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터»)
+
+🆕 **계약 v1.12(2026-10-22 · R5 선행 M2 보강 · 01 §21) 13건** — `ledger_repairs_4`·`ledger_repairs_empty`(`L-2`) · `ledger_diffs_cash_observe`(`L-1`) ·
+`self_report_diff_result`·`self_report_session_closed`(`L-3` · `SelfReportSession`) · `self_report_receipts_5`·`manual_fill_receipts_7`·`advice_skip_receipts_5`·`advice_defer_receipts_3`(접수증 4) ·
+`fill_form_spec_blocked` · `safety_advice_blocked` · `advice_stale` · `advice_fills_ad0005`.
+🔵 같은 창에서 advice 9벌 · `advice_skip_reasons` · `fill_form_spec(_stale)` · `fill_rejected_price` · `self_report_1`(꼴 교체) · `draft_records_x7` 이 개정됐다 — 아래 «계약 v1.12» 절.
 
 🆕 **계약 v1.8(2026-10-21 · R4 선행 M2 보강 · 01 §17) 18건** — 보유 화면 셋의 VM(행 1):
 `holdings_overview_{normal, recon, integrity, empty, pnl, viewer}`(`H6-1` · `HoldingsOverviewVm` — 카드 3 · POT 2행 = A 카드 맨 끝 · 시스템 밖 섹션 · 가림 2 · 빈 · 손익 펼침 · 뷰어판) ·
@@ -205,7 +213,9 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 `fill_rejected_price`(🔴 **입력값 보존** — C17) · `advice_skip_reasons` · `self_report_1` ·
 `external_holdings_2`(🆕 v1.8 +`quantity_text` — `holdings_overview_*` 시스템 밖 섹션 행의 원천) · `entry_gate_nov_pass_1`(🔵 11월 재판정 통과 — 실데이터로는 검증 불가한 경로 · 🆕 v1.8 — 여전히 미매핑 · `H6-3` 은 배분 행 `state_chips` 로 보류를 말한다 · K13).
 
-### `m7/` 59 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+### `m7/` 60 — 성과·리밸런싱·플래너·세후·이행 갭 (03 §15)
+
+🆕 **계약 v1.12 1건** — `ledger_trust_self_audit_due`(`SELF_AUDIT_DUE` 시기 배지 · `action_deep_link` = `L-3` · R13b 9b 실사 카드).
 
 🆕 **계약 v1.6(2026-10-08 · R12 선행 M2 보강 · 01 §15-4 · ~~⬜ 로컬 커밋 — PR 대기~~ ✅ 병합 PR #25 squash `995c1f4`) 9건** —
 `m7_rebalance_preview_default`(`S7-6c` 초안 — `RebalancePreviewResult` `{preview}` · 2026년 9월 1일 회차 · 초안 2행 · 골든 `s76c_preview`) ·
@@ -257,7 +267,10 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 ~~`m7_next_rebalance_d6`~~ 🆕 v1.6 개명 `m7_next_rebalance_countdown`(«2026년 9월 1일 · D-1») · `m7_rebalance_detail_band`(🆕 v1.5 버튼·행 링크 · 🆕 v1.6 대조 행·관측 시각) · `m7_annual_2026`·`_first_year`(🆕 v1.6 `year_label` · 세후 사본 2블록) ·
 `m7_goal_path_on`·`_hold`·`_realworld`(🆕 v1.4 `GoalPathVm` 재설계 — 생성 스크립트).
 
-### `m8/` 18 — 셸·운영 홈·알림·온보딩 (04 §10)
+### `m8/` 19 — 셸·운영 홈·알림·온보딩 (04 §10)
+
+🆕 **계약 v1.12 1건** — `ops_rhythm_empty`(`H-02` 리듬 «모름» · `NOT_LOADED`) · 🔵 같은 창에서 `alerts_digest`·`alerts_advice_9codes`·`ops_rhythm_rows`·
+`incident_token_expired`·`ops_home_resume_gap7` 이 개정됐다(링크·등급·`resume_line`).
 
 `ops_home_normal`·`_blocked`·`_resume_gap7`·`_advice_open`·`_advice_zero` · `ops_rhythm_rows` ·
 `recon_board_diff`(🔴 칸 수 **5 고정** · `CANON_SELF_REPORT` 는 `applicable: false` = 「점검 안 함」) ·
@@ -701,20 +714,83 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 - VM 의 선택 키(`external`·`allocation_link`·`pnl_toggle_label`·`empty_label`·`rows_empty_text`·`banner_text`·`no_stop_line_text`·`recent_empty_label`·`notice_text`)와 보유 행의 `pending_text`·`sub_book_label`·`stop_line`·`pnl`, 배분 행의 `parent_sleeve`·`engine_column_note`·`parking_note_text`·`sleeve_weight`·`band_state`·`band_state_label`·`gauge`·`band_note_text` 는 없을 때 **키가 없다**. `state_chips`·`sma_tranches`·`stop_lines`·`recent_entries`·`cards`·`rows` 는 비어도 `[]` 로 싣는다.
 - 🔴 INTEGRITY 가림판(`allocation_integrity` · `holdings_overview_integrity` 카드 머리)의 두 비율은 `"deployed_ratio": null`·`"parking_ratio": null` 로 **적는다** — 가림이라는 사실을 표본이 말한다(키 없음과 같은 뜻 · C-44 ⑥ «둘 다 null 이거나 둘 다 값»).
 
-## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과 → 2026-10-20 v1.7 · 141파일(매핑 138파일 331행) · C-1·C-8 통과 → 🆕 2026-10-21 v1.8 · 159파일(매핑 156파일 349행) · C-1·C-8 통과)
+## 계약 v1.12 (2026-10-22 · R5·R13 선행 M2 보강 · 01 §21 · ⬜ 로컬 커밋 — PR 대기)
+
+정본: 설계 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §5 · 발주자 확정 2026-10-22(🔴 8건 권고대로).
+**159 → 174** = 신설 15 · 개정 22 · 버전 줄만 137(🆕 검증 반영 — 설계서 §5 의 «개정 23 · 버전 줄만 136» 은 목록 크기였다. 목록의 `m6/advice_handover_cooling` 은 행 0 · 요약 새 필드 전부 부재(냉각 창 = 수기 기록 링크 null)라 결과가 버전 줄 한 줄뿐이다 → 바이트 결과 = **개정 22 · 버전 줄만 137**(생성기가 둘을 함께 찍고 단언한다).). 신설 15건의 `meta.generated_at`·`seed` 는 생성일(2026-10-22) 값이다.
+
+### 신설 15건
+
+| 파일 | 행 타입 | 내용 · 쓰는 곳 |
+|---|---|---|
+| `m6/ledger_repairs_4` | `LedgerRepairRow` | `L-2` 4행 — 자동 재동기화 2(`ld_0002` PUSH_LAG · `ld_0004` CAL_WRITE_FAILED) + 정본 정정 1(`ld_0001`) + **그 정정의 정정** 1(`supersedes` = 바로 앞 행 · 원본 `superseded_label` «이후 정정됨») · 결정 링크 = 정본 정정 2행 · 골든 `l2_chain_two_repairs` |
+| `m6/ledger_repairs_empty` | 〃 | 0행 + «정정 이력이 없습니다»(정상) · `l2_empty` |
+| `m6/ledger_diffs_cash_observe` | `LedgerDiffRow` | `CANON_BROKER`·`CASH`·`OBSERVATIONAL` 1행 · 조치 링크 null · 허용 오차 값 0(02 §8-5) · `l1_cash_observe` |
+| `m6/self_report_diff_result` | `SelfReportSession` | `self_report_1` + `result`(차이 1 = `CANON_SELF_REPORT` · `resolve_link` → `M5-13` · `next_account_link` → 둘째 계좌 `일반`) · `l3_diff_result` |
+| `m6/self_report_session_closed` | 〃 | `session_closed_text` · `result` null · 위젯 테스트(세션 닫힘) |
+| `m6/self_report_receipts_5` | `CommandReceipt` | `SELF_REPORT_BALANCE` 5상태(REQUESTED · EXECUTED · REJECTED `SELF_REPORT_OUTSIDE_SESSION` · REJECTED `INPUT_INVALID` · HELD_FOR_INTEGRITY) |
+| `m6/manual_fill_receipts_7` | 〃 | `RECORD_MANUAL_FILL` 7행(+ `DUPLICATE_SUSPECTED` 거부의 `retry_code` DUPLICATE_ACK · `INPUT_INVALID` · 보류 3) · 🔴 `LEASE_EXPIRED` 0 |
+| `m6/advice_skip_receipts_5` | 〃 | `SKIP_ADVICE` 5행(`LEASE_EXPIRED` · `ADVICE_NOT_OPEN` 거부 포함) |
+| `m6/advice_defer_receipts_3` | 〃 | `DEFER_ADVICE_CONFIRM` 3행(거부 = `DEFER_ALREADY_USED` · K14 ⓐ) |
+| `m6/fill_form_spec_blocked` | `ManualFillFormSpec` | `fill_form_spec` + `blocked_text`(제출 **부재**) + `banner_text`(`LEDGER_INTEGRITY` 격리 고지) |
+| `m6/safety_advice_blocked` | `SafetyState` | `safety_states` rows[1] 꼴 + `active_flags` = `advice_blocked` 형제 키 블록 그대로 · `a1_blocked` 배너 입력 |
+| `m6/advice_stale` | `AdviceItem` + `summary` | `advice_12` OPEN 2행 · 요약 `stale_reason_code` BATCH_MISSING · 행 `actions` = RECORD 만(K41) |
+| `m6/advice_fills_ad0005` | `TradeJournalEntry` | `A-2` 「기록된 체결」 1행(ORIGINAL 8주 · `advice_detail_partial` ad_0005 의 글자 그대로 — 짝 표본) |
+| `m7/ledger_trust_self_audit_due` | `LedgerTrustBadge` | `SELF_AUDIT_DUE` 시기 배지 · `action_deep_link` = `L-3` 그 달·그 계좌 · R13b `h01_self_audit_due` |
+| `m8/ops_rhythm_empty` | `OpsRhythmRow` | 0행 + `NOT_LOADED`(«모름» ≠ «없음») · R13a 위젯 테스트 |
+
+### 개정 22건 + 목록상 1건 (파일 이름·`FixturePaths` 상수 그대로 · `_handover_cooling` = 결과 버전 줄만)
+
+| 파일 | 바뀐 것 |
+|---|---|
+| `ledger_diffs_4` | 4행 +8 표시 키(`pair_label` == `m8/recon_board_diff` 같은 쌍 · 후보 칩 = 코드 순서 · `ld_0001` APPROVAL → «정정하기» `x5/repair-wizard` · 그 밖 `action_link` null) |
+| `m6/advice_12`·`_empty`·`_blocked`·`_expired_confirm`·`_viewer_4`·`_no_action`(+ 목록상 `_handover_cooling` — 행 0 · 요약 새 필드 부재 = 결과 버전 줄만) | DETAIL 액션 삭제 · `actions[].deep_link` · `detail_deep_link` · `side_label` · `decision_link` · `prefill_*`(열린 안내) · `close_reason_label` · 확인 카드 `expired_confirm_label`(≤3 · 맨 앞 · [RECORD, SKIP]) · 요약 `cash_notice`(`advice_12`) · `manual_entry_*`(폰 판) · `overdue_unrecorded_link`(`advice_expired_confirm` — +`ad_0203` · overdue 4) · 🔴 `advice_12` 행 순서 = 확인 카드 → `is_urgent` → 나머지 · 뷰어 `actions` = [] |
+| `m6/advice_detail_partial`·`_onhold` | 같은 행 키 |
+| `m6/advice_skip_reasons` · `fill_form_spec` · `fill_form_spec_stale` | `requires_note` = 예산 2종만 true · 그 둘만 `deep_link` `m5/intervention`(K22 · K12) · 폼 사양 +`sides`·`trade_date_options`(8/24~8/31 − 8/29·8/30)·`skip_notice_text` |
+| `m6/fill_rejected_price` | `retry_code` OFF_HOUR_TRADE · `retry_label` · 형제 키 `preserved_input.prefilled_fields` → `["quantity"]` |
+| `m6/self_report_1` | **꼴 교체** → `SelfReportSession`(열린 세션 · 2026-08 · 연금저축 · SPEC 유니버스 4) · 형제 키 `trust` → 행 필드 |
+| `m6/draft_records_x7` | 3행 `target_id` `PERIODIC_AUDIT` → `2026-08/연금저축` · `lines[1]` 379810 → 133690(세션 종목) |
+| `alerts_12` · `m8/alerts_digest` · `m8/alerts_advice_9codes` · `m8/ops_rhythm_rows` · `safety_states` | 옛 꼴 링크 7곳 → `advice/fill/ad_0002` · `ledger/self-report/2026-08/연금저축`(리듬 = `2026-09`) |
+| `alerts_12` · `m8/alerts_digest` · `m8/incident_token_expired` | 등급 5행(미결 114 · K32) — `al_0010`·`al_0011`·`al_0012` P2 → P1 · `al_d_03` = `CONTRIBUTION_CHANGED` 글자(P2 · 딥링크 null · 묶임 3 유지) · `incident_alert` P1 → P0 · `al_0009` 딥링크 null |
+| `m8/ops_home_resume_gap7` | 형제 키 `resume_headline`·`resume_route` → 행 `resume_line{label, deep_link}`(K44) |
+
+### 🔴 개정·신설은 **생성 스크립트**가 만든다 (손 계산 금지)
+
+`packages/domain_contracts/tool/gen_r5r13_v112_fixtures.py` — 기준 커밋 `f54f602`(계약 1.11.0 · 159건)의 원문에서 매번 다시 만든다(멱등 ·
+두 번 돌려 174건 md5 동일). 원문 꼴을 지키려고 렌더러 왕복이 원문과 같은 파일만 다시 그리고 나머지(`advice_blocked` 요약 `trust` 블록 ·
+`advice_skip_reasons`·폼 사양 사유 줄 · `draft_records_x7` · 리듬·안전 상태·인시던트 링크·등급)는 줄 단위로 고친다. 쓰기 전 자가 검사 —
+옛 꼴 링크 7 → 0 · DETAIL 0 · 링크 = 그 행 id · 확인 카드 규칙 · 사유 네 벌 같음 · 거래일 = min~max − 휴장 · 정정 계단 · 홈 upcoming ==
+리듬 앞 행 · 등급 대상 28 · `alerts_12` P0 2 · P1 7 · P2 3 · 세션 기호 = 입금 정본 라벨 · 접수증 = 한 명령의 갈래 · 금지어·폐기 운영값 0.
+
+### 🔵 표본 사실 — 고치지 않고 적어 둔다
+
+- **옛 라벨(K23 · 01 §8 미결 119)** — 필드만 더한 개정은 종목 라벨을 바꾸지 않았다(`advice_*`·`fill_form_spec*`·`manual_fills_8` 의 379810·132030·357870 등 · 미결 108 과 한 창). 새로 쓴 표본(`self_report_*` 세션 기호 · `ledger_repairs_*`)만 SPEC 이름(069500 KODEX 200 · 133690 TIGER 미국나스닥100 · 411060 ACE KRX금현물 · 0085P0 ACE 미국10년국채액티브). 짝 표본 `advice_fills_ad0005` 는 짝(`advice_detail_partial`)의 옛 라벨 그대로다.
+- **확인 카드의 RECORD 는 누를 수 있다** — 02 §3-6 «기록한다(→ `A-3`)» · 만료 뒤 기록 = 지연 이행으로 받는다(A4). 옛 행의 «유효기한이 지나 기록할 수 없습니다»(비활성)는 확인 카드에서 지웠고 버튼 글자 = 02 «기록한다»·«안 했다».
+- **`ad_0009`(SKIPPED)** 는 원래 `close_reason_code` 가 없어 `close_reason_label` 도 없다(짝 규칙 ⇔ · 코드를 지어내지 않는다) — 닫힌 사유 표본 = `ad_0012`(REVOKED · HANDOVER_CLOSED).
+- **정정 적용 ≠ 차이 해소** — `ledger_repairs_4` 의 `ld_0001`·`ld_0002` 는 `ledger_diffs_4` 에서 아직 `OPEN` 이다(정정 적용 뒤 재대사 전 표본 · C-47 ④ 는 소속만 맞댄다).
+- **`alerts_digest` 의 코드 1개가 바뀌었다** — `al_d_03` = `CONTRIBUTION_CHANGED`(P2) · `n01_digest` «P2 3건 ▾ 접힘» 뜻 보존 · `incident_token_expired` 코드를 제목에 맞춰 `BROKER_AUTH_FAILED` 로 바꿀지는 R16 조립 때(둘 다 P0).
+- **`advice_blocked` 형제 키 `active_flags`** 는 등록부 밖(화면 입력 아님) — `A-1` 배너 입력은 `m6/safety_advice_blocked`.
+- **재량 예산 문구** — 안내 밖 기록 고지의 «2회 중 1회» 는 `m8/ops_home_*` `discretion_budget_text`(«2회 중») 와 맞댄 값이다(설계서 예시 «4회» 대신 픽스처끼리).
+- `ledger_repairs_4` 의 표시 시각(`applied_at_text`)은 한국 시각(엔진 완성) · 원값 `applied_at` 은 UTC.
+
+### 표기 — 키를 빼는 것과 `null`
+
+새 선택 키(`side_label`·`expired_confirm_label`·`prefill_*`·`close_reason_label`·요약 `cash_notice`·`overdue_unrecorded_link`·`manual_entry_*`)는 **값이 없으면 키를 뺀다**(뷰어 판 포함 — 키 없음 = null). `L-3` 세션의 `session_closed_text`·`blocked_text`·`result`, 정정 행·차이 행의 `decision_link`·`action_link`, `alerts_12` `al_0009`·`alerts_digest` `al_d_03` 의 `deep_link` 는 **`null` 로 적는다**(12키·짝 표본이 «없다»를 말한다).
+
+## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과 → 2026-10-20 v1.7 · 141파일(매핑 138파일 331행) · C-1·C-8 통과 → 2026-10-21 v1.8 · 159파일(매핑 156파일 349행) · C-1·C-8 통과 → 🆕 2026-10-22 v1.12 · 174파일(매핑 172파일 385행 · 원시 387) · C-1·C-8 통과)
 
 🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 ~~3건~~ 5건 포함 — 🆕 v1.5 `m6/journal_rebalance_unknown`·`m7/m7_rebalance_empty`) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 159파일 `rows`)은 🆕 v1.8 352 = 349 + 매핑 없는 3건 각 1행(🆕 v1.8 신규 18파일이 18행(VM 1행씩)을 더했다 — 개정 3건은 행 수 불변 · `holdings_6` 6행 그대로 · v1.7 판은 141파일 334 = 331 + 3(🆕 v1.7 신규 6파일이 12행을 더했다 — 0행 봉투 1 포함 · 개정 0) · v1.6 판은 135파일 322 = 319 + 3 · v1.5 판은 126파일 311 = 308 + 3 · 🆕 v1.6 신규 9파일이 11행을 더했다 — 개정 14건은 행 수 불변 · v1.4 판은 122파일 309 = 306 + 3 · v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다 · v1.4 신규 7파일이 11행을 더했다 — 개정 16건은 행 수 불변 · 🆕 v1.5 신규 4파일이 2행을 더했다(0행 봉투 2 포함) — 개정 2건은 행 수 불변). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
 
-159파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·`m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` · v1.7 `m6/blind_review_queue_empty.json` 은 0행 봉투 · v1.6 신설 9건은 전부 행이 있다 · 🆕 v1.8 신설 18건은 전부 VM 1행 — `holdings_overview_empty`·`allocation_empty` 도 «빈 VM» 1행이다), 그중 **156파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + v1.5 2026-10-07 +4 + v1.6 2026-10-08 +9 + v1.7 2026-10-20 +6 + 🆕 v1.8 2026-10-21 +18)이 실제 DTO 의 `fromJson` 을 지나
+174파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·`m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` · v1.7 `m6/blind_review_queue_empty.json` · 🆕 v1.12 `m6/ledger_repairs_empty.json`·`m8/ops_rhythm_empty.json` 은 0행 봉투 · v1.6 신설 9건은 전부 행이 있다 · v1.8 신설 18건은 전부 VM 1행 — `holdings_overview_empty`·`allocation_empty` 도 «빈 VM» 1행이다), 그중 **172파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + v1.5 2026-10-07 +4 + v1.6 2026-10-08 +9 + v1.7 2026-10-20 +6 + v1.8 2026-10-21 +18 + 🆕 v1.12 2026-10-22 +16 — 신설 15 + `self_report_1` 이동)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
 
-### 🔴 DTO 로 열리지 **않는** 픽스처 2건 — 설계이지 결함이 아니다
+### 🔴 DTO 로 열리지 **않는** 픽스처 ~~2건~~ 🆕 v1.12 1건(+ 인시던트 1 — 등록부 `unmappedFixtures`) — 설계이지 결함이 아니다
 
 | 파일 | 왜 DTO 가 없나 | 화면이 할 일 |
 |---|---|---|
-| `m6/self_report_1.json` | 행 모양은 `SelfReportBalance`(§5-4)이되 **`context` 가 없다**. `CommandContext` 를 채우는 것은 화면이 아니라 `CommandApi` 구현이고(G-19) 화면 계층이 그것을 만드는 코드는 **C-28** 이 0건으로 검사한다 — 픽스처가 `context` 를 실으면 그 규약을 픽스처가 먼저 어긴다 | 폼 값으로만 읽고 `SelfReportBalance.fromJson` 을 **부르지 않는다**. 봉투 형제 키 `trust` 는 `LedgerTrustBadge` 로 연다 |
+| ~~`m6/self_report_1.json`~~ | ~~행 모양은 `SelfReportBalance`(§5-4)이되 `context` 가 없다~~ 🆕 v1.12(01 §21 · K8) — **꼴 교체 = `SelfReportSession` 으로 열린다**(등록부 바인딩 · 형제 키 `trust` → 행 필드) | ~~폼 값으로만 읽는다~~ `L-3` 세션 VM 으로 그린다(원장 현재값 0 · 앵커링) — 제출은 `SelfReportSubmission`(원문 · 와이어·`context` 는 구현) |
 | `m6/entry_gate_nov_pass_1.json` | 계절 진입 게이트에 **이름 붙은 DTO 가 문서에 없다**(01 §3-7 은 상태 5·코드 3 만 정한다) | 🔴 타입을 지어내지 않는다. `SeasonalEntryGateState`·`ReasonChip`·`GateBadge`·`TriggerSnapshot` 은 있으니 그 부분만 연다 |
 
 > 같은 이유로 `m6/fill_rejected_price.json` 의 형제 키 `preserved_input`(= `ManualFillRecord` 모양)도
@@ -741,6 +817,8 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 
 🆕 **v1.8(01 §17 · `AppRoutes.all` 45 → 48 · 링크 키 추가 0)** — 새 라우트 3: `AppRoutes.holdingsOverview` = `aaq://holdings/overview`(`H6-1` · 싣는 픽스처 없음 — 셸 하단 탭·알림) · `AppRoutes.holdingsDetail` = `aaq://holdings/detail/:holdingId`(`H6-2` · 보유 행 `detail_deep_link` — `holdings_6`·`holdings_overview_*`·`holding_detail_*` 의 전 보유 행 · 🔴 `holdingId` 는 불투명 id 다(종목 코드 아님 — B·POT 가 같은 종목)) · `AppRoutes.holdingsAllocation` = `aaq://holdings/allocation`(`H6-3` · `holdings_overview_*` 의 `allocation_link.deep_link` — `LinkAction` 이라 안쪽 `deep_link` 로 C-33 이 검사한다). 그 밖에 새로 실린 링크 = `holding_detail_*` 의 `entry_decision_link.deep_link`(기존 `journalDecision` 패턴) · `recent_entries[].detail_deep_link`(`journal_30`·`journal_masked_integrity` 행 그대로). 🔴 배분 행 `state_chips[].detail_deep_link` 는 `handbook://` 앵커뿐이다(C-44 ⑪) · 시스템 밖 행에는 링크가 없다.
 
+🆕 **v1.12(01 §21 · `AppRoutes.all` 48 → 52 · 링크 키 추가 0)** — 새 라우트 4: `adviceSkip` = `aaq://advice/skip/:adviceId`(`AdviceAction.deepLink` SKIP) · `ledgerDiffs` = `aaq://ledger/diffs`(`L-1` · 싣는 픽스처 없음 — 홈 블록 6 상수) · `ledgerRepairs` = `aaq://ledger/repairs`(`L-2` · `L-1` 하단 상수) · `opsRhythm` = `aaq://ops/rhythm`(`H-02` · 홈 블록 7·8 상수) · 교체 2: `adviceFill` = `aaq://advice/fill/:adviceId` · `ledgerSelfReport` = `aaq://ledger/self-report/:yyyyMm/:accountAlias`(그 달 + 그 계좌 별칭 · K7 · K36 ⓐ) — 🔴 옛 꼴 `aaq://advice/fill`·`aaq://ledger/self-report` 는 **미등록**이라 실렸던 7곳(`alerts_12` 2 · `alerts_advice_9codes` 2 · `alerts_digest` 1 · `ops_rhythm_rows` 1 · `safety_states` `clear_deep_link` 1)을 고쳤다. 새로 실린 링크 = 안내 행 `actions[].deep_link`·`detail_deep_link`·`decision_link.deep_link` · 사유 `deep_link`(`m5/intervention`) · 요약 `overdue_unrecorded_link`·`manual_entry_link` · 차이 행 `action_link` · 정정 행 `decision_link` · `L-3` `resolve_link`·`next_account_link` · `ops_home_resume_gap7` `resume_line`(전부 `deep_link` 또는 `LinkAction` 안쪽 `deep_link` 로 덮인다 · 형제 키 `resume_route` 는 사라졌다).
+
 ## 아직 없는 것
 
 - **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
@@ -748,5 +826,5 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
   🔵 v1.4 의 `m9/contribution_setting_*` 2벌은 `S7-4` 스텝 ① 의 입력(`ContributionSetting`)이라 M2 가 먼저 만들었다 —
   05 화면(`MonthlyContributionVm` 카드 등)의 픽스처는 여전히 없다.
 - ~~**`J-4` blind 리뷰 픽스처** — `BlindReviewCard`·`BlindReviewQuestion` 은 타입만 있고 읽기 창구·픽스처가 없다(01 §8 미결 46 — `BlindReviewScore.answers` 가 `Map<String,int>` 인데 선택지가 `ReasonOption{code}` 라 축이 어긋나 있다). 🆕 v1.2 — 본문 단위는 `DecisionJournalBody`(`journal_read_*` 가 그 모양)로 정했고 점수 축은 여전히 미결이다.~~ ✅ v1.7 — 6벌(위 «계약 v1.7» 절 · 점수 축 = `BlindReviewChoice{score, label}`).
-- `test/` 의 계약 회귀 ~~C-1~C-37~~ ~~C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합)~~ ~~C-1~C-42(🆕 v1.6 C-41 R12 표시 계약 — 이 절의 픽스처끼리 맞대는 불변식 · C-42 R12 화면 소스 스캔)~~ ~~C-1~C-43(🆕 v1.7 C-43 J-4 blind 리뷰 — 픽스처 불변식 ①~⑨ + 화면 소스 스캔 ⑩~⑰)~~ C-1~C-44(🆕 v1.8 C-44 보유현황 `H6-*` — 픽스처 불변식 ①~⑪ + 화면 소스 스캔 ⑫~⑳) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
+- `test/` 의 계약 회귀 ~~C-1~C-37~~ ~~C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합)~~ ~~C-1~C-42(🆕 v1.6 C-41 R12 표시 계약 — 이 절의 픽스처끼리 맞대는 불변식 · C-42 R12 화면 소스 스캔)~~ ~~C-1~C-43(🆕 v1.7 C-43 J-4 blind 리뷰 — 픽스처 불변식 ①~⑨ + 화면 소스 스캔 ⑩~⑰)~~ ~~C-1~C-44(🆕 v1.8 C-44 보유현황 `H6-*` — 픽스처 불변식 ①~⑪ + 화면 소스 스캔 ⑫~⑳)~~ C-1~C-47(🆕 v1.12 C-46 X7 안내·기록·실사 · C-47 원장 차이·정정·리듬·알림 등급) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.

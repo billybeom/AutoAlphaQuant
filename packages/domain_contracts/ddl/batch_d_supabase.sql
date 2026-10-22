@@ -67,7 +67,9 @@ create table if not exists command_queue (
                       'SKIP_ADVICE','SELF_REPORT_BALANCE','ALERT_ACK',
                       'KILL_CHECKLIST_CONFIRM',
                       -- 🆕 v1.10 ㊲ 원장 사건(X7 8번째 · operator 전용 · 설계 13 §8 R21)
-                      'LEDGER_EVENT_RECORD')),
+                      'LEDGER_EVENT_RECORD',
+                      -- 🆕 계약 v1.12(01 §21 · K14 ⓐ) 만료 확인 카드 「내일 다시」(operator 전용 · 초안 영구 제외)
+                      'DEFER_ADVICE_CONFIRM')),
   payload           jsonb not null,               -- 🔴 시크릿·계좌 전체번호 금지(CI 스캔 대상)
   issued_by_device  text not null references app_device(device_id),
   nonce             text not null,
@@ -83,7 +85,8 @@ alter table command_queue enable row level security;
 -- 🔴 RLS 는 **소유자가 아니라 `role` 클레임 기준**이다(청사진 X3 보강). owner_uid 만 보면 뷰어가
 --    승인된 4종(Q-C: 킬스위치·저널 초안·blind 리뷰·열람 이벤트) 밖인 DEPOSIT_REGISTER 까지 넣을 수 있다.
 --    🔴 DEPOSIT_REGISTER 는 **폰(operator) 전용**이다 — 입금 등록은 계획 스냅샷 바인딩이라 뷰어 경로가 없다.
--- 🔴 신규 X7 7종 + 🆕 v1.10 `LEDGER_EVENT_RECORD`(㉕ 폰 전용)는 **`command_insert_operator` 정책에만** 들어간다.
+-- 🔴 신규 X7 7종 + 🆕 v1.10 `LEDGER_EVENT_RECORD`(㉕ 폰 전용) + 🆕 v1.12 `DEFER_ADVICE_CONFIRM`(K14 ⓐ 폰 전용)은
+--    **`command_insert_operator` 정책에만** 들어간다.
 --    `command_insert_viewer` 의 4종 화이트리스트는 **그대로 둔다**
 --    (⚠️ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이며 m2-8_naming J-3 은 «허용하지 않는다» ⏸ 권고).
 create policy command_insert_viewer on command_queue for insert to authenticated
@@ -193,8 +196,8 @@ create policy calendar_sync_status_select on calendar_sync_status for select to 
 --        rm_disclosure_view · rm_ops_summary · rm_ledger_trust · rm_execution_gap
 -- 🔵 v1 필수 4표 = rm_monthly_report · rm_report_archive · rm_ledger_diff · rm_advice_summary.
 --    rm_sleeve_allocation·rm_perf_context 는 조건부.
---    ⬜ rm_ops_summary 는 **택일 미결**(홈 블록 5·7 의 소유) — 정하지 않은 상태가 가장 나쁘다
---       (뷰어가 값을 지어낸다). m2-8_naming J-4 는 «표를 만든다» ⏸ 권고.
+--    ✅ rm_ops_summary = **v1 필수**(발주자 결정 N-07 · 2026-10-22 · m2-8_naming J-4 ✅ · 01 §6-4) — 홈 블록 5·7 과
+--       🆕 계약 v1.12 `H-02` 전체 리듬 목록(`OpsSummaryRepository.watchRhythm` · K29)·`resume_line`(K44)의 뷰어 원천.
 --
 -- **규칙 5조(+⑥)** — 파생 생성기가 표마다 반드시 지키는 것:
 --   ① 전 `rm_*` 에 `row_version bigint` · `lease_epoch bigint` · `pushed_at timestamptz`
@@ -236,7 +239,7 @@ create policy calendar_sync_status_select on calendar_sync_status for select to 
 --   ('KILL_SWITCH_ACTIVATE','JOURNAL_DRAFT','BLIND_REVIEW_SCORE','DISCLOSURE_VIEW',
 --    'DEPOSIT_REGISTER','RECORD_MANUAL_FILL','AMEND_MANUAL_FILL','VOID_MANUAL_FILL',
 --    'SKIP_ADVICE','SELF_REPORT_BALANCE','ALERT_ACK','KILL_CHECKLIST_CONFIRM',
---    'LEDGER_EVENT_RECORD'));
+--    'LEDGER_EVENT_RECORD','DEFER_ADVICE_CONFIRM'));
 -- alter table command_queue add column if not exists run_mode       text;
 -- alter table command_queue add column if not exists operating_mode text;
 -- alter table command_queue add column if not exists lease_epoch    bigint;

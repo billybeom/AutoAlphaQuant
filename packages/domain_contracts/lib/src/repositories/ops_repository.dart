@@ -37,8 +37,13 @@ abstract interface class OpsStatusRepository {
 /// 홈 블록 5·7 의 오늘 요약.
 /// 🔴 «세는 수»는 전부 엔진이 세어 **문자열로** 준다 — 화면이 목록 길이로 만들지 않는다
 ///    (double·int 산술이라 C-4 가 잡지 못한다 — 그래서 조문이 필요하다).
-/// ⬜ 열린 물음 §10-2 ⑤ — viewer 경로의 원천 표 `rm_ops_summary` 존폐가 미결이다
-///    (표를 만들거나, 홈 블록 5·7 을 폰 전용으로 명시하거나 둘 중 하나).
+/// ✅ N-07(2026-10-22 · 발주자 결정) — 뷰어 원천 = `rm_ops_summary` v1 필수(01 §6-4 · 옛 열린 물음 §10-2 ⑤).
+///    🆕 계약 v1.12 — 같은 표가 [watchRhythm] 의 전체 목록 열을 싣는다(열 이름 = 엔진 배치).
 abstract interface class OpsSummaryRepository {
   Stream<OpsDailySummary> watchToday();
+
+  /// 🆕 v1.12(01 §21 · §8 미결 113 · K29) — `H-02` 운영 리듬 표 전체(받은 순서 = 표 순서 · 화면이 거르거나 채우지 않는다).
+  /// 🔴 [watchToday] 의 `upcoming` 은 이 목록의 **앞 ≤3 과 같은 값**이다(엔진 의무 · C-47 ⑤) · 뷰어 = `rm_ops_summary`
+  ///    전체 목록 열(열 이름 = 엔진 배치).
+  Stream<ListResult<OpsRhythmRow>> watchRhythm();
 }

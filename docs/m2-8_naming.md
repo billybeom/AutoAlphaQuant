@@ -259,7 +259,8 @@ R2b-Bob-J3(사전 저널 영속화·읽기 뷰) 발송 전에 계약 면을 닫�
 대상 타입 불문으로 금지한다(정규식 5 · 자체 검증 · 문서화 예외 맵 = 빈 맵 · 양방향). C-3 금지 의존 +7(저장 패키지).
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 44(`S7-3` 초안 필드) · 46(`J-4` 점수 축·읽기 창구·픽스처 — 본문 단위만 `DecisionJournalBody` 로 정함) ·
-🆕 52(X7 초안 소비 경로 — `adviceFill` 파라미터 · `A-4` 라우트 · 원문→인자 변환 주체 · `L-3` 세션 VM · operator 공용 주입 파일 · `M5-12`) ·
+~~🆕 52(X7 초안 소비 경로 — `adviceFill` 파라미터 · `A-4` 라우트 · 원문→인자 변환 주체 · `L-3` 세션 VM · operator 공용 주입 파일 · `M5-12`)~~
+✅ 52 = 계약 v1.12(⬜ 로컬 커밋 — PR 대기 · 아래 «S» 절 · ⑥ `M5-12` 만 M5 창) ·
 🆕 53(기기 로컬 암호화 저장소 구현 06 M4-9 · X1 «초안 불이동» 게이트 · 모드 전환 때 초안 처리).
 
 ---
@@ -429,3 +430,40 @@ R12 화면 카드 발송 전에 «Bob 이 추측해야 하는 자리»(DTO 필�
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 🆕 미결 98(outcome_score 입력 · 2×2 배치 — 월간 F 의 기준 달 = 전월 리뷰분 · K3 ⓑ) · 99(SIM 결정의 blind 리뷰 — K24) · 100(공개 결과 재열람 · 미청산 카드의 뒤늦은 결과) · 101(경합 거부 뒤 선택 표시) · 102(X7 미이행 결정의 리뷰 표본 — K3 ⓒ 포함 확정 · v1.7 픽스처 0). 기존 확장 — 50 ③(`watchBlindReviewCard` 도 같은 잠정 규칙) · 59(`BLIND_REVIEW_SCORE` 는 사전을 먼저 만든 사례) · Q-D(웹 `J-4` = «부재» 가드).
 엔진(06) 숙제(카드를 막지 않는다) — `rm_blind_review` 산출·push · 대상·진입 시점(K3 ⓐ~ⓓ) · 정렬(K4) · `processScoreText` 매핑 · 거부 코드 판정 · `LEDGER_INTEGRITY` 가림·결과 금액 0 · 큐에 든 카드의 본문·문맥 불변 · P2 알림 목적지(K23 — 리뷰 대기 ≥ 1 이면 `journalBlindReview` · 0 이면 `S7-1` · 엔진이 `deep_link` 로 고른다).
+
+---
+
+## S. 🆕 계약 v1.12 (2026-10-22 · R5·R13 선행 M2 보강) — X7 제출·세션 · X5 읽기 · 운영 리듬 · 알림 등급(01 §8 미결 52·113·114)
+
+`R5a`~`R5e`(`L-1`·`L-2` · `A-1`·「지난 안내」 · `A-2`·`A-4` · `A-3` · `L-3`)·`R13a/b`(`S-01`·`S-02`·`H-02` · `H-01`) 카드 조립 전에 «Bob 이 추측해야
+하는 자리»를 닫았다. `contractVersion` = **`1.12.0`** · 픽스처 **174건**(159 + 신설 15 · 개정 22 · 버전 줄만 137 — 🆕 검증 반영 · 설계서 목록 23 중 cooling 1 = 결과 버전 줄만) · 라우트 **48 → 52** · 조문 = 01 §21.
+상태 = ⬜ 로컬 커밋 — PR 대기(앱 브랜치 `m2/v112-r5r13` · 기준 origin/main `f54f602`).
+결정 = 발주자 2026-10-22 — 🔴 8건 K9·K14·K18·K30·K35·K36·K46·K47 **권고대로** · 나머지 K 40건 권고대로(정본 = 설계 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §3).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| S-1 | 라우트 교체 2 — `adviceFill = 'aaq://advice/fill/:adviceId'` · `ledgerSelfReport = 'aaq://ledger/self-report/:yyyyMm/:accountAlias'` | K2 · K7 · K36 ⓐ(한 실사 = 그 달 · 그 계좌 · 와이어 무변경) · 옛 꼴 = 미등록(픽스처 7곳 정정) |
+| S-2 | 라우트 신설 4 — `adviceSkip`(`advice/skip/:adviceId`) · `ledgerDiffs`(`ledger/diffs`) · `ledgerRepairs`(`ledger/repairs` · 본문 Android 만) · `opsRhythm`(`ops/rhythm`) | K3 · K27 · K43 · `AppRoutes.all` **52** |
+| S-3 | «화면 제출» DTO 3 — `ManualFillSubmission{adviceId?, input, retryCodes}` · `AdviceSkipSubmission{adviceId, input}` · `SelfReportSubmission{purpose, yyyyMm?, input, declaredComplete}` | `commands/payloads_x7.dart` · K4 · 셋 다 `fromJson` · 파싱·맥락·세션 시각 = `CommandApi` 구현 · 실패 = `INPUT_INVALID` 로컬 접수증 |
+| S-4 | 와이어 `AdviceDeferConfirm{adviceId, context}` · `CommandKind.adviceDeferConfirm`(`DEFER_ADVICE_CONFIRM`) · `CommandApi.deferAdviceConfirm(String adviceId)` | K14 ⓐ · 만료 확인 카드 「내일 다시」 · 02:947 예외 1건 · 초안 영구 제외 7종 |
+| S-5 | `CommandReceipt.retryCode`·`retryLabel` · 코드 `AdviceRetryCodes{offHourTrade, duplicateAck}`(`advice_retry`) | K20 · 재제출 선택지 · 제출 DTO `retryCodes` 누적 |
+| S-6 | `AdviceRejectCodes` +3 — `inputInvalid`(`INPUT_INVALID`) · `selfReportOutsideSession`(`SELF_REPORT_OUTSIDE_SESSION`) · `deferAlreadyUsed`(`DEFER_ALREADY_USED`) = **18종** | K4 · K9 · K14 |
+| S-7 | `watchCommand` 구현 의무 ④(서명 무변경) | K42 · 로컬 거부 id 도 종단 `rejected` 1값 |
+| S-8 | `SettingsActionId.selfReportSessionStart`·`selfReportSessionStop`(`SELF_REPORT_SESSION_START`·`_STOP`) | K9 · `args` = `{yyyy_mm, account_alias}` · 가림 = 그 폰 한 대 · `L-3` `initState` start / `dispose` stop(잡아 둔 인스턴스) |
+| S-9 | `SelfReportSession`(12키) · `SelfReportResult`(4키) · `LedgerTrustRepository.watchSelfReportSession(yyyyMm, accountAlias)` | `dto/ledger_trust.dart` · K8 · 🔴 `asOfTradeDate` 원값 VM 0 · 원장 현재값 0(앵커링) |
+| S-10 | `AdviceItem` +7 — `detailDeepLink` · `sideLabel` · `expiredConfirmLabel` · `decisionLink` · `prefillQuantityText`·`prefillQuantityLabel` · `closeReasonLabel` | K5 · K13 · K16 · K18 · K19 · K39 |
+| S-11 | `AdviceAction.deepLink` · `AdviceInboxSummary` +4(`cashNotice` · `overdueUnrecordedLink` · `manualEntryLink` · `manualEntryNoticeText`) | K5 · K13 · K15 · K17 · 🔴 엔진 액션 = RECORD·SKIP 만 · 뷰어 `actions` = [] |
+| S-12 | `ManualFillFormSpec` +5(`sides` · `tradeDateOptions` · `skipNoticeText` · `blockedText` · `bannerText`) · 🆕 `SideOption{side, label}` · `TradeDateOption{date, label}` · `ReasonOption.deepLink` | K12 · K21 · K22 · K37 · 🔴 새 이름 쓰기 동사 접두 0(C-7 · G57 — `submitBlockedText` 아님) |
+| S-13 | `ManualFillPrefillFields{quantity}`(`manual_fill_prefill`) · `AdviceSkipInput.fromReasonCode(String code)` | K19 · K12(이름 붙은 팩토리 = `fromJson` 과 같은 해독) |
+| S-14 | `LedgerDiffRow` +8(`pairLabel` · `axisLabel` · `severityLabel` · `statusLabel` · `routeLabel` · `candidateOrigins` · `detectedAtText` · `actionLink`) · `LedgerRepairRow` +7(`appliedAtText` · `directionTone` · `originLabel` · `targetText` · `decisionLink` · `supersededLabel` · `chainStampText`) · `LedgerRepository.watchRepairs({limit})` | K24 · K25 · K26 · `watchOpenDiffs` 이름 유지 + 뜻 주석 |
+| S-15 | `OpsSummaryRepository.watchRhythm()` · `OpsDailySummary.resumeLine` | K29 · K44 · 미결 113 ✅ · `H-02` «조치» 열 없음(K30) |
+| S-16 | 받침대 +5 — `UnimplementedLedgerRepository` · `UnimplementedAdviceRepository` · `UnimplementedLedgerTrustRepository` · `UnimplementedOpsSummaryRepository` · `UnimplementedSettingsActions` | K28 · `testing.dart` |
+| S-17 | 픽스처 신설 15 · `FixturePaths` +15 | `m6LedgerRepairs4`·`Empty` · `m6LedgerDiffsCashObserve` · `m6SelfReportDiffResult`·`SessionClosed`·`Receipts5` · `m6ManualFillReceipts7` · `m6AdviceSkipReceipts5`·`DeferReceipts3` · `m6FillFormSpecBlocked` · `m6SafetyAdviceBlocked` · `m6AdviceStale` · `m6AdviceFillsAd0005` · `m7LedgerTrustSelfAuditDue` · `m8OpsRhythmEmpty` · 생성 = `tool/gen_r5r13_v112_fixtures.py` |
+| S-18 | 🆕 C-46 · C-47 | `test/contracts/c46_advice_x7_test.dart`(27) · `c47_ledger_ops_test.dart`(9) — 픽스처 불변식 + 화면 소스 스캔(대상 0 = 공허 통과) · 알림 등급 표(test-only · 정본 04_안전장치 §5-3) |
+| S-19 | 골든 도우미(K48) | `ui_journal/test/golden/golden_support.dart` `extraFixture(relPath, key, fromJson)` · 🆕 `ui_shell/test/golden/golden_support.dart`(ui_journal 판 복사) |
+| S-20 | **M2 이름 권고**(카드가 글자 그대로 싣고 Bob 이 만든다 · 설계서 §8-2) | 위젯 `LedgerDiffs()`·`LedgerDiffTile(row:)`·`LedgerRepairs()`·`AdviceInbox()`·`AdviceCard(item:)`·`AdviceHistory()`·`AdviceDetail(adviceId:)`·`ManualFillForm(adviceId:)`·`AdviceSkipForm(adviceId:)`·`SelfReportForm(yyyyMm:, accountAlias:)`·`OpsRhythm()` · 주입 `journalLedgerRepositoryProvider`·`journalLedgerTrustRepositoryProvider`·`journalAdviceRepositoryProvider`·`journalAdviceCommandApiProvider`(배럴 쪽)·`journalSettingsActionsProvider`(`self_report_form.dart`) · Key 접두 `l1-`·`l2-`·`a1-`·`ah-`·`a2-`·`a3-`·`a4-`·`l3-`·`s01-`·`h01-`·`h02-` |
+
+🔴 **만들지 않은 이름**(재론 방지): `submitBlockedText`(C-7 쓰기 동사 접두) · `SelfReportSession.asOfTradeDate`(쓰지 않는 원값 = 미끼) · `accounts`(세션 계좌 = 라우트 고정 → `accountLabel`) · `OpsRhythmRow.actionText`(K30 열 삭제) · `Provider<CommandApi?>`(«주입 null 여부»로 버튼 판정 = 둘째 판정) · `rm_ops_rhythm`(19번째 표 — `rm_ops_summary` 확장) · `ledgerSelfReport` 의 `:purpose`(값 1개 · 계좌 축 미해소).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 🆕 미결 115(`A-2` 정정 체인 접기·행 「정정」) · 116(`M5-6` 진입 맥락) · 117(`L-2` 필터 · 뷰어 원천 `rm_ledger_repair`) · 118(실사 주기 월/분기) · 119(X7 옛 라벨 · 미결 108 확장) · 120(`O-04` 의 `L-3` 폼 재사용) · 121(`J-2` 배지 → `L-2` · 저널 링크) · 122(`H-01` 블록 2 «항상») · 123(블록 9 물리 리스크) · 124(`L-1` 착지 단위) · 미결 52 ⑥(`M5-12` — M5 창).
+엔진(06) 숙제(카드를 막지 않는다 · 설계서 §9-3 ①~⑩) — X7 제출 파싱·맥락·`INPUT_INVALID` · `watchCommand` ④ · 세션 start/stop·그 폰 가림 · 안내 VM(확인 카드 ≤3 · 엔진 정렬 · RECORD·SKIP · 뷰어 [] · 배치 결측 RECORD 만 · 링크·문장) · 폼 사양 선택지 · `ledger_diff`·`ledger_repair` 표시 필드 · `watchRhythm`·`resumeLine` · `SELF_AUDIT_*` 배지 링크 · 알림 등급 = 04_안전장치 §5-3 · 뷰어 `fillsOfAdvice` = [].

@@ -9,6 +9,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
 import '../primitives/as_of.dart';
+import 'common.dart';
 
 part 'ops.freezed.dart';
 part 'ops.g.dart';
@@ -53,6 +54,9 @@ abstract class ShellChip with _$ShellChip {
 
 /// m2-8 G-2 — 운영 리듬 1행(04 §4-7 `H-02`).
 /// 🔴 `dDayText` 는 엔진 생성 문자열이다 — 화면이 날짜를 빼지 않는다.
+/// 🆕 v1.12(01 §21 · K29 · K30) — 전체 목록 = `OpsSummaryRepository.watchRhythm()` · 행 탭 = [route](null = 반응 없음) ·
+///    `H-02` «조치» 열 = 없음(2026-10-22 삭제 — 할 일은 [title] 이 말한다).
+///    필드 5개가 전부다 — 등급·선행·조치 칸 0(04 §4-7 · 2026-10-22 결정).
 @freezed
 abstract class OpsRhythmRow with _$OpsRhythmRow {
   const factory OpsRhythmRow({
@@ -98,7 +102,13 @@ abstract class OpsDailySummary with _$OpsDailySummary {
     required String streakText,
     required String discretionBudgetText,
     required String nextRebalanceDDayText,
+
+    /// 🔴 `watchRhythm()` 목록의 **앞 ≤3 과 같은 값**이다(엔진 의무 · 🆕 v1.12 · C-47 ⑤).
     required List<OpsRhythmRow> upcoming,
+
+    /// 🆕 v1.12(01 §21 · K44) — `H-01` 블록 2 «X2 한 줄»(엔진 한 문장 · → `aaq://x2/resume-report`). null = 블록 2 부재
+    /// (평시 문장을 엔진이 늘 싣는지 = 01 §8 미결 122).
+    LinkAction? resumeLine,
   }) = _OpsDailySummary;
 
   factory OpsDailySummary.fromJson(Map<String, dynamic> json) =>

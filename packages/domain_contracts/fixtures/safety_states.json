@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -31,7 +31,7 @@
       "breaker_label": "경보",
       "drawdown": -0.062,
       "active_flags": [
-        { "flag_id": "SELF_AUDIT_DUE", "label": "분기 실사 기한이 다가옵니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "실사를 마치면 자동으로 풀립니다.", "clear_deep_link": "aaq://ledger/self-report" }
+        { "flag_id": "SELF_AUDIT_DUE", "label": "분기 실사 기한이 다가옵니다", "set_at": "2026-08-28T01:00:00Z", "clear_route": "AUTOMATIC", "clear_instruction": "실사를 마치면 자동으로 풀립니다.", "clear_deep_link": "aaq://ledger/self-report/2026-08/연금저축" }
       ],
       "kill_switch": { "active": false, "state_label": "꺼짐" },
       "stopped_release_eligible": false,

@@ -141,6 +141,37 @@ final DtoCodec<Object> _watchdogCheck = DtoCodec<WatchdogCheck>(
   WatchdogCheck.fromJson,
   (WatchdogCheck v) => v.toJson(),
 );
+// 🆕 계약 v1.12(R5·R13 선행 · 01 §21) — `L-3` 세션 · `L-2` 정정 이력 · 공용(차이 행·신뢰 배지·안전 상태·리듬 행).
+final DtoCodec<Object> _selfReportSession = DtoCodec<SelfReportSession>(
+  'SelfReportSession',
+  SelfReportSession.fromJson,
+  (SelfReportSession v) => v.toJson(),
+);
+final DtoCodec<Object> _ledgerRepairRow = DtoCodec<LedgerRepairRow>(
+  'LedgerRepairRow',
+  LedgerRepairRow.fromJson,
+  (LedgerRepairRow v) => v.toJson(),
+);
+final DtoCodec<Object> _ledgerDiffRow = DtoCodec<LedgerDiffRow>(
+  'LedgerDiffRow',
+  LedgerDiffRow.fromJson,
+  (LedgerDiffRow v) => v.toJson(),
+);
+final DtoCodec<Object> _ledgerTrustBadge = DtoCodec<LedgerTrustBadge>(
+  'LedgerTrustBadge',
+  LedgerTrustBadge.fromJson,
+  (LedgerTrustBadge v) => v.toJson(),
+);
+final DtoCodec<Object> _safetyState = DtoCodec<SafetyState>(
+  'SafetyState',
+  SafetyState.fromJson,
+  (SafetyState v) => v.toJson(),
+);
+final DtoCodec<Object> _opsRhythmRow = DtoCodec<OpsRhythmRow>(
+  'OpsRhythmRow',
+  OpsRhythmRow.fromJson,
+  (OpsRhythmRow v) => v.toJson(),
+);
 final DtoCodec<Object> _manualFillFormSpec = DtoCodec<ManualFillFormSpec>(
   'ManualFillFormSpec',
   ManualFillFormSpec.fromJson,
@@ -248,13 +279,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     ),
   ),
   FixturePaths.journal30: FixtureBinding(_tradeJournalEntry),
-  FixturePaths.ledgerDiffs4: FixtureBinding(
-    DtoCodec<LedgerDiffRow>(
-      'LedgerDiffRow',
-      LedgerDiffRow.fromJson,
-      (LedgerDiffRow v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.ledgerDiffs4: FixtureBinding(_ledgerDiffRow),
   FixturePaths.onboardingFresh: FixtureBinding(_onboardingStep),
   FixturePaths.onboardingReconnect: FixtureBinding(_onboardingStep),
   FixturePaths.performance24m: FixtureBinding(_performanceSeries),
@@ -274,13 +299,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (ResumeReport v) => v.toJson(),
     ),
   ),
-  FixturePaths.safetyStates: FixtureBinding(
-    DtoCodec<SafetyState>(
-      'SafetyState',
-      SafetyState.fromJson,
-      (SafetyState v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.safetyStates: FixtureBinding(_safetyState),
   // 🆕 v1.1 — 슬리브 카탈로그(01 §2-1 — 목록의 유일한 창구).
   FixturePaths.sleeveCatalog4: FixtureBinding(
     DtoCodec<SleeveCatalogEntry>(
@@ -327,6 +346,14 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     _adviceItem,
     extras: <String, DtoCodec<Object>>{adviceSummaryKey: _adviceInboxSummary},
   ),
+  // 🆕 v1.12(01 §21) — 배치 결측 · `A-2` 체결 · 「내일 다시」·`A-4` 접수증.
+  FixturePaths.m6AdviceStale: FixtureBinding(
+    _adviceItem,
+    extras: <String, DtoCodec<Object>>{adviceSummaryKey: _adviceInboxSummary},
+  ),
+  FixturePaths.m6AdviceFillsAd0005: FixtureBinding(_tradeJournalEntry),
+  FixturePaths.m6AdviceDeferReceipts3: FixtureBinding(_commandReceipt),
+  FixturePaths.m6AdviceSkipReceipts5: FixtureBinding(_commandReceipt),
   // 🆕 v1.8(01 §17) — `H6-3` 배분 7갈래(밴드 내 · 이탈 · 근접+보류 칩 · 파킹 큼 · INTEGRITY · RECON · 빈).
   FixturePaths.m6AllocationEmpty: FixtureBinding(_sleeveAllocationVm),
   FixturePaths.m6AllocationInBand: FixtureBinding(_sleeveAllocationVm),
@@ -359,6 +386,17 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m6FillFormSpec: FixtureBinding(_manualFillFormSpec),
   FixturePaths.m6FillFormSpecStale: FixtureBinding(_manualFillFormSpec),
   FixturePaths.m6FillRejectedPrice: FixtureBinding(_commandReceipt),
+  // 🆕 v1.12(01 §21) — 제출 차단 폼 · `L-2` 이력 2 · `L-1` 현금 관측 · `A-3` 접수증 · `L-3` 세션 4 · 안내 배너 안전 상태.
+  FixturePaths.m6FillFormSpecBlocked: FixtureBinding(_manualFillFormSpec),
+  FixturePaths.m6LedgerRepairs4: FixtureBinding(_ledgerRepairRow),
+  FixturePaths.m6LedgerRepairsEmpty: FixtureBinding(_ledgerRepairRow),
+  FixturePaths.m6LedgerDiffsCashObserve: FixtureBinding(_ledgerDiffRow),
+  FixturePaths.m6ManualFillReceipts7: FixtureBinding(_commandReceipt),
+  FixturePaths.m6SelfReport1: FixtureBinding(_selfReportSession),
+  FixturePaths.m6SelfReportDiffResult: FixtureBinding(_selfReportSession),
+  FixturePaths.m6SelfReportSessionClosed: FixtureBinding(_selfReportSession),
+  FixturePaths.m6SelfReportReceipts5: FixtureBinding(_commandReceipt),
+  FixturePaths.m6SafetyAdviceBlocked: FixtureBinding(_safetyState),
   // 🆕 v1.8(01 §17) — `H6-2` 종목 상세 5갈래 · `H6-1` 보유현황 6갈래.
   FixturePaths.m6HoldingDetailIntegrity: FixtureBinding(_holdingDetailVm),
   FixturePaths.m6HoldingDetailNoStop: FixtureBinding(_holdingDetailVm),
@@ -444,13 +482,9 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m7ExecutionGapMixed: FixtureBinding(_executionGapResult),
   FixturePaths.m7ExecutionGapNotApplicable: FixtureBinding(_executionGapResult),
   FixturePaths.m7ExecutionGapWont: FixtureBinding(_executionGapResult),
-  FixturePaths.m7LedgerTrust4: FixtureBinding(
-    DtoCodec<LedgerTrustBadge>(
-      'LedgerTrustBadge',
-      LedgerTrustBadge.fromJson,
-      (LedgerTrustBadge v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.m7LedgerTrust4: FixtureBinding(_ledgerTrustBadge),
+  // 🆕 v1.12(K45) — 9b 실사 카드 배지(`action_deep_link` = `L-3`).
+  FixturePaths.m7LedgerTrustSelfAuditDue: FixtureBinding(_ledgerTrustBadge),
   FixturePaths.m7M7Annual2026: FixtureBinding(_annualReviewVm),
   FixturePaths.m7M7AnnualFirstYear: FixtureBinding(_annualReviewVm),
   // 🆕 v1.6 — 창 밖(2025 · CLOSED · 기본 연도 규칙 표본).
@@ -552,13 +586,9 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8OpsHomeBlocked: FixtureBinding(_opsDailySummary),
   FixturePaths.m8OpsHomeNormal: FixtureBinding(_opsDailySummary),
   FixturePaths.m8OpsHomeResumeGap7: FixtureBinding(_opsDailySummary),
-  FixturePaths.m8OpsRhythmRows: FixtureBinding(
-    DtoCodec<OpsRhythmRow>(
-      'OpsRhythmRow',
-      OpsRhythmRow.fromJson,
-      (OpsRhythmRow v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.m8OpsRhythmRows: FixtureBinding(_opsRhythmRow),
+  // 🆕 v1.12(K29) — `H-02` 리듬 모름(NOT_LOADED).
+  FixturePaths.m8OpsRhythmEmpty: FixtureBinding(_opsRhythmRow),
   FixturePaths.m8ReconBoardDiff: FixtureBinding(
     DtoCodec<DiagnosticsVm>(
       'DiagnosticsVm',
@@ -589,7 +619,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
 
 /// 🔴 **뷰모델이 아직 계약에 없는 픽스처** — 지우지 않고 사유와 함께 남긴다.
 ///
-/// 이 셋은 봉투(`as_of`·`empty_kind`·`empty_label`·`has_more`)까지만 검사한다.
+/// 이 둘은 봉투(`as_of`·`empty_kind`·`empty_label`·`has_more`)까지만 검사한다.
+/// 🆕 v1.12 — `m6/self_report_1.json` 은 `L-3` 세션 VM(`SelfReportSession`)이 생겨 바인딩으로 옮겼다(01 §21 · K8).
 /// 이름이 확정되어 DTO 가 들어오면 [fixtureBindings] 로 옮기고 여기서 지운다.
 const Map<String, String> unmappedFixtures = <String, String>{
   'm6/entry_gate_nov_pass_1.json':
@@ -597,10 +628,8 @@ const Map<String, String> unmappedFixtures = <String, String>{
       '화면 타입(state·gates·history·trigger 묶음)은 §2 에 등재되지 않았다 — 이름 확정 대기. '
       'v1.8 — `H6-3` 은 `SleeveAllocationRow.stateChips` 로 보류를 말한다 · `enteredInNov` 골든 의무는 '
       '`A-2` `ReasonChip`(`F1_ENTRY_LATE`) 몫(01 §17 · K13).',
-  'm6/self_report_1.json':
-      'L-3 실사 «세션» 뷰모델이 계약에 없다. 01 §4-2 의 SelfReportBalance 는 명령 인자라 '
-      'CommandContext 가 required 이고, 그 봉투는 CommandApi 구현이 채운다(C-28 G-19) — '
-      '화면 픽스처가 실을 값이 아니다.',
   'm8/incident_token_expired.json':
-      'IncidentBanner·Runbook 이름 미확정(배럴 머리 주석 · M2-8 §G 표 미등재).',
+      'IncidentBanner·Runbook 이름 미확정(배럴 머리 주석 · M2-8 §G 표 미등재). '
+      'v1.12 — 형제 키 incident_alert 등급 P1 → P0(MAINTENANCE_RESUME_FAILED 정본 · 01 §8 미결 114 · C-47 ⑥ 이 '
+      '전 픽스처 walk 로 본다).',
 };

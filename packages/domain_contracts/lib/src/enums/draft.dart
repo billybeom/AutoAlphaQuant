@@ -7,9 +7,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 ///
 /// 🔴 **Dart 이름과 JSON 표기가 [CommandKind] 의 같은 이름 값과 똑같다**(C-35 ②) — 초안은 그 명령의
 ///    전 단계다. X7 4종의 어순 비대칭(`manualFillRecord` ↔ `'RECORD_MANUAL_FILL'`)도 그대로 물려받는다.
-/// 🔴 **영구 제외 6종** — `BLIND_REVIEW_SCORE`(`J-4` 는 «제출 전 뒤로가기 = 점수 미저장»이 수용 기준 ·
+/// 🔴 **영구 제외 7종** — `BLIND_REVIEW_SCORE`(`J-4` 는 «제출 전 뒤로가기 = 점수 미저장»이 수용 기준 ·
 ///    02 §3-4 (b)) · `KILL_SWITCH_ACTIVATE` · `DISCLOSURE_VIEW` · `DEPOSIT_REGISTER` · `ALERT_ACK` ·
-///    `KILL_CHECKLIST_CONFIRM`(확인·즉시성 명령). C-35 ② 가 막는다.
+///    `KILL_CHECKLIST_CONFIRM` · 🆕 v1.12 `DEFER_ADVICE_CONFIRM`(확인·즉시성 명령 · K14 ⓐ). C-35 ② 가 막는다.
 /// ⏸ `M5-12` 정정·무효(`manualFillAmend`·`manualFillVoid`)는 M5 창이 본문 DTO 와 함께 더한다.
 enum DraftKind {
   @JsonValue('JOURNAL_DRAFT')

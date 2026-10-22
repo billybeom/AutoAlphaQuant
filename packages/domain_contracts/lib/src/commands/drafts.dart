@@ -32,7 +32,9 @@ part 'drafts.g.dart';
 ///
 /// 🔴 화면은 [targetId] 를 **위젯 생성자 인자 그대로** 넣는다(셸이 라우트 파라미터에서 꺼낸 값 —
 ///    01 §11-10). 링크 조립이 아니다. 대상 id 표(01 §12-1): `journalDraft` = `decisionId` ·
-///    `manualFillRecord`·`adviceSkip` = `adviceId` · `selfReportBalance` = `SelfReportPurpose.wire`.
+///    `manualFillRecord`·`adviceSkip` = `adviceId`(라우트) · 🆕 v1.12 `selfReportBalance` = `L-3` 라우트 `:yyyyMm` 과
+///    `:accountAlias` 를 `/` 로 이은 글자(`2026-08/연금저축` — «생성자 인자 그대로»의 2인자 판 · K7 · K36 ⓐ) ·
+///    `O-04` = `SelfReportPurpose.simOpening.wire`(R15). 지난 달·다른 계좌의 초안은 복원 경로가 0 이다.
 /// 🔴 모드(계열)는 키에 **없다** — 구현이 계열별로 저장 공간을 가른다(화면은 모드를 모른다 · A7).
 @freezed
 abstract class DraftKey with _$DraftKey {
@@ -142,11 +144,17 @@ abstract class AdviceSkipInput with _$AdviceSkipInput {
 
   factory AdviceSkipInput.fromJson(Map<String, dynamic> json) =>
       _$AdviceSkipInputFromJson(json);
+
+  /// 🆕 v1.12(01 §21 · K12) — `A-4` 1탭: 고른 `ReasonOption.code` 를 그대로 해독한다(모르는 코드 = `reason: null`
+  /// 미선택 · 머리 ⑤ · 필드 무변경 — 계산 getter 가 아니라 [AdviceSkipInput.fromJson] 과 같은 해독).
+  /// 🔴 화면은 `AdviceSkipReason` 을 고르지 않는다(C-46 ⑱).
+  factory AdviceSkipInput.fromReasonCode(String code) =>
+      AdviceSkipInput.fromJson(<String, dynamic>{'reason': code});
 }
 
 /// `L-3` 원장 실사 초안 — [SelfReportBalance] 에서 `purpose`(키)·`sessionStartedAt`(세션값)·
-/// `declaredComplete`(확인값)·`context` 를 뺐다. ⏸ `asOfTradeDate` 는 실사 세션 VM 이 정해지는
-/// X7 창에서 «사람이 고르는 값»이면 추가형으로 더한다(01 §8 미결 52).
+/// `declaredComplete`(확인값)·`context` 를 뺐다. ✅ v1.12 — `asOfTradeDate` 는 엔진이 정한다(사람이 고르지 않는다 ·
+/// 세션 시작 때 · `SelfReportSession.asOfTradeDateText`) — 초안에 넣지 않는다(K8 · 01 §8 미결 52 ④).
 /// 🔴 복원값 = 사람이 전에 적은 값뿐(원장 현재값 프리필 금지 — 앵커링 · 02 §3-10).
 @freezed
 abstract class SelfReportInput with _$SelfReportInput {

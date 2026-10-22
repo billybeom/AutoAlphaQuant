@@ -12,6 +12,7 @@
 //
 // 쓰는 법은 test/golden/README.md 「하네스」 절의 j1_golden_test.dart 예시를 따른다.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:domain_contracts/domain_contracts.dart';
@@ -44,6 +45,28 @@ ListResult<T> listFixture<T>(
 /// 🔴 행이 정확히 1개가 아니면 던진다 — 「첫 행을 쓴다」는 조용한 판정이다.
 T singleFixture<T>(String relPath, T Function(Map<String, dynamic>) fromJson) =>
     decodeSingle<T>(fixtureText(relPath), fromJson);
+
+/// 🆕 계약 v1.12(01 §21 · K48) — 봉투 **밖** 추가 블록(README «봉투 형제 키 표» · 예 `A-1` 안내함의 `summary`) →
+/// 그 DTO. `FixtureEnvelope` 는 봉투 6키만 읽으므로 형제 키는 이 도우미로 연다.
+/// 예: `extraFixture(FixturePaths.m6Advice12, 'summary', AdviceInboxSummary.fromJson)`.
+/// 🔴 키가 없거나 객체가 아니면 던진다 — 「없으면 기본값」은 조용한 판정이다.
+T extraFixture<T>(
+  String relPath,
+  String key,
+  T Function(Map<String, dynamic>) fromJson,
+) {
+  final Object? root = jsonDecode(fixtureText(relPath));
+  if (root is! Map<String, dynamic>) {
+    throw FormatException('fixture root is not an object: $relPath');
+  }
+  final Object? block = root[key];
+  if (block is! Map<String, dynamic>) {
+    throw FormatException(
+      'envelope sibling key "$key" missing or not an object: $relPath',
+    );
+  }
+  return fromJson(block);
+}
 
 /// 매매일지 봉투 픽스처 → `ListResult<TradeJournalEntry>`.
 ///

@@ -1,12 +1,14 @@
-// 01 §3-8 X7 명령 거부 사유 15종 · §6-6 `advice_transition.cause_code` 9종
-// · `decision_log.reason_code` 특수값 3종 · §3-7 슬리브 A 계절 진입 게이트 사유 3종.
+// 01 §3-8 X7 명령 거부 사유 18종(🆕 v1.12 +3) · §6-6 `advice_transition.cause_code` 9종
+// · `decision_log.reason_code` 특수값 3종 · §3-7 슬리브 A 계절 진입 게이트 사유 3종
+// · 🆕 v1.12(01 §21) 재제출 선택지 2종(`AdviceRetryCodes`) · 수량 채우기 필드 1종(`ManualFillPrefillFields`).
 //
 // 🔴 전부 «어떤 코드가 오는가»의 목록이다. 거부 사유의 문구는 `ActionResult.headline`·
 //    `CommandReceipt.stateLabel` 에, 게이트 사유의 문구는 `ReasonChip.label` 에 실려 온다.
 // 🔴 **거부는 초안을 지우지 않는다**(C17) — 어떤 거부 코드로 돌아와도 화면은 값을 채운 채
 //    사유와 재제출 버튼을 보인다. 초안 삭제는 `CommandReceipt.state == executed` 수신 시에만.
 
-/// X7 명령 거부 사유 코드 15종(01 §3-8).
+/// X7 명령 거부 사유 코드 18종(01 §3-8 · 🆕 v1.12 +3 — `INPUT_INVALID`·`SELF_REPORT_OUTSIDE_SESSION`·
+/// `DEFER_ALREADY_USED`).
 ///
 /// 🔴 **폐기** — `LEDGER_INTEGRITY_BLOCKED`(B18). 무결성 차단 중에도 기록 명령은 거부하지 않고
 ///    `CommandState.heldForIntegrity` 로 **보관**한다. 이 상수를 되살리지 않는다.
@@ -62,7 +64,20 @@ abstract final class AdviceRejectCodes {
   /// 재제출은 `duplicateAck = true`.
   static const String duplicateSuspected = 'DUPLICATE_SUSPECTED';
 
-  /// 전량 15종.
+  /// 🆕 v1.12(01 §21 · K4) — 원문 파싱·필수 칸·상한 실패(수량·가격·현금·사유·계좌 · 어느 칸인지는
+  /// `CommandReceipt.stateLabel`). 🔴 `CommandApi` 구현이 **큐 적재 없이** 낸 로컬 거부다(그 id 도
+  /// `watchCommand` 가 다시 낸다 — 구현 의무 ④ · K42).
+  static const String inputInvalid = 'INPUT_INVALID';
+
+  /// 🆕 v1.12(K9 · 01 §4-2 «세션 밖 제출 거부») — 열린 실사 세션이 없다(`SettingsActionId.selfReportSessionStart`
+  /// 뒤가 아니다). 🔴 큐 적재 0(로컬 거부 · 구현 의무 ④).
+  static const String selfReportOutsideSession = 'SELF_REPORT_OUTSIDE_SESSION';
+
+  /// 🆕 v1.12(K14 ⓐ) — 「내일 다시」를 이미 쓴 안내(G-86 «안내 1건당 1회» · 두 기기·두 번 탭 경합).
+  /// 🔴 `ADVICE_NOT_OPEN` 은 `EXPIRED` 를 제외하는 코드라 재사용하지 않는다.
+  static const String deferAlreadyUsed = 'DEFER_ALREADY_USED';
+
+  /// 전량 18종.
   static const Set<String> values = <String>{
     modeCombinationDenied,
     operatingModeMismatch,
@@ -79,7 +94,36 @@ abstract final class AdviceRejectCodes {
     skipNoteRequired,
     leaseExpired,
     duplicateSuspected,
+    inputInvalid,
+    selfReportOutsideSession,
+    deferAlreadyUsed,
   };
+}
+
+/// 🆕 v1.12(01 §21 · K20) — 재제출 선택지 코드(`CommandReceipt.retryCode` · X7 기록 명령 전용).
+///
+/// 🔴 화면은 이 코드로 분기하지 않는다 — `CommandReceipt.retryLabel` 버튼을 누르면 그 `retryCode` 를 제출 DTO
+///    `retryCodes` 에 **더할** 뿐이다(누적 · B5 → A9 연쇄 거부 뒤 셋째 제출은 둘 다 싣는다). 와이어
+///    `ManualFillRecord.offHourTrade`·`duplicateAck` 로 옮기는 것은 `CommandApi` 구현이다.
+abstract final class AdviceRetryCodes {
+  /// B5 — `PRICE_OUT_OF_RANGE` 뒤 «시간외·단주 신고로 다시 제출»(엔진이 실을지 판정한다).
+  static const String offHourTrade = 'OFF_HOUR_TRADE';
+
+  /// A9 — `DUPLICATE_SUSPECTED` 뒤 «같은 체결이 아닙니다 — 다시 제출».
+  static const String duplicateAck = 'DUPLICATE_ACK';
+
+  /// 전량 2종.
+  static const Set<String> values = <String>{offHourTrade, duplicateAck};
+}
+
+/// 🆕 v1.12(01 §21 · K19) — `ManualFillInput.prefilledFields` 의 값(A1 — `A-3` 의 「채우기」 버튼은 수량 1개뿐 ·
+/// 가격·거래일 버튼 없음 · 02 §3-8).
+abstract final class ManualFillPrefillFields {
+  /// 「안내 수량 채우기」(`AdviceItem.prefillQuantityText` 를 입력칸에 넣었다).
+  static const String quantity = 'quantity';
+
+  /// 전량 1종.
+  static const Set<String> values = <String>{quantity};
 }
 
 /// `advice_transition.cause_code` 9종(01 §6-6 CHECK).

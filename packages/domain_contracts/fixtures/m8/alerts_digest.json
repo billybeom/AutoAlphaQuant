@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -33,18 +33,18 @@
       "body_text": "이번 분기 실사가 아직 남아 있습니다.",
       "action_line": "실사 화면에서 잔고를 보고하십시오.",
       "grouped_count": 1,
-      "deep_link": "aaq://ledger/self-report"
+      "deep_link": "aaq://ledger/self-report/2026-08/연금저축"
     },
     {
       "alert_id": "al_d_03",
       "level": "P2",
       "raised_at": "2026-08-31T09:00:00Z",
-      "code": "MAINTENANCE_WINDOW_OVERDUE",
-      "title": "유지보수 창을 넘겼습니다",
-      "body_text": "예정된 유지보수가 3일째 지연되고 있습니다.",
-      "action_line": "유지보수 창을 다시 잡으십시오.",
+      "code": "CONTRIBUTION_CHANGED",
+      "title": "월 납입 설정이 바뀌었습니다",
+      "body_text": "설정에서 월 납입 금액이 변경되었습니다.",
+      "action_line": "다음 납입 주기부터 적용됩니다.",
       "grouped_count": 3,
-      "deep_link": "aaq://ops/maintenance"
+      "deep_link": null
     }
   ]
 }

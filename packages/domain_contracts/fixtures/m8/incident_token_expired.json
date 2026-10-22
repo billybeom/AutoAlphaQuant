@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -33,7 +33,7 @@
   ],
   "incident_alert": {
     "alert_id": "al_inc_01",
-    "level": "P1",
+    "level": "P0",
     "raised_at": "2026-08-31T00:05:00Z",
     "code": "MAINTENANCE_RESUME_FAILED",
     "title": "증권사 토큰이 만료되었습니다",

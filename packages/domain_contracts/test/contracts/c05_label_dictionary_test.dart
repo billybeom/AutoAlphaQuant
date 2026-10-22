@@ -36,9 +36,11 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   // 🆕 v1.1 R2 준비(2026-09-23) — `CommandReceipt.rejectReasonCode` 는 X7 명령(`advice_reject`)과
   //    J-3 사전 저널(`journal_draft_reject`) · 🆕 v1.7 J-4 blind 리뷰(`blind_review_reject`) **세 사전**의
   //    값을 같은 JSON 키로 싣는다 → 전역 조회(`stage_code` 선례). 사전별 대조는 C-16 이 한다 — 행의 `kind` 로
-  //    사전을 정해 전 픽스처에(X7 7종 = advice_reject · JOURNAL_DRAFT = journal_draft_reject ·
+  //    사전을 정해 전 픽스처에(X7 8종 = advice_reject(🆕 v1.12 +DEFER_ADVICE_CONFIRM · 18종) · JOURNAL_DRAFT = journal_draft_reject ·
   //    BLIND_REVIEW_SCORE = blind_review_reject · 정해지지 않은 kind = 실패).
   'reject_reason_code': '',
+  // 🆕 v1.12(01 §21 · K20) — `CommandReceipt.retryCode`(재제출 선택지 · X7 기록 명령 전용 · C-46 ⑧ 이 짝을 맞댄다).
+  'retry_code': 'advice_retry',
   'close_reason_code': 'decision_reason',
   'cause_code': 'advice_transition_cause',
   'reason_code': '',

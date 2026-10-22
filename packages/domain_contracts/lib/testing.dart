@@ -40,6 +40,10 @@
 //   같은 판정을 건다. 받침대가 아니라 «위반 문장 목록»을 돌려주는 순수 함수다.
 //   🆕 계약 v1.11 E7b0(01 §20 · 설계 13 §8 R22 D14) — 실입금 등록 접수증 판정 `depositReceiptViolations`
 //   (`src/testing/deposit_register_rules.dart` · C-38 ⑨) — 픽스처와 실엔진 접수증(E7b2)에 같은 판정을 건다.
+//   🆕 계약 v1.12 R5·R13 선행(01 §21 · K28) — `UnimplementedLedgerRepository`(3) · `UnimplementedAdviceRepository`(6) ·
+//   `UnimplementedLedgerTrustRepository`(2) · `UnimplementedOpsSummaryRepository`(2 — 🔵 v1.6 «Ops 받침대는 만들지
+//   않는다»는 `S7-7` 한정이었다 · R13 이 필요로 한다) · `UnimplementedSettingsActions`(2 · **`Future` 에러 / 에러 스트림** —
+//   `L-3` `dispose` 경로에서도 동기 throw 0) · `UnimplementedCommandApi` X7 3 인자 교체(제출 DTO) + `deferAdviceConfirm`.
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -97,6 +101,86 @@ class UnimplementedHoldingsRepository implements HoldingsRepository {
   @override
   Stream<SleeveAllocationVm> watchAllocation() =>
       throw UnimplementedError('watchAllocation');
+}
+
+/// 🆕 계약 v1.12(01 §21 · K28) — [LedgerRepository] 받침대(`L-1`·`L-2` 가짜의 받침대).
+/// 🔴 동기로 던진다(리포지토리 받침대 관행). 값은 지어내지 않는다 — `ledger_diffs_4`·`m6/ledger_repairs_*` 픽스처를 override 로.
+class UnimplementedLedgerRepository implements LedgerRepository {
+  @override
+  Stream<ListResult<LedgerDiffRow>> watchOpenDiffs() =>
+      throw UnimplementedError('watchOpenDiffs');
+  @override
+  Stream<ListResult<ExternalHoldingRow>> watchExternalHoldings() =>
+      throw UnimplementedError('watchExternalHoldings');
+  @override
+  Stream<ListResult<LedgerRepairRow>> watchRepairs({int limit = 50}) =>
+      throw UnimplementedError('watchRepairs');
+}
+
+/// 🆕 계약 v1.12(01 §21 · K28) — [AdviceRepository] 받침대(`A-1`~`A-4`·「지난 안내」 가짜의 받침대).
+/// 🔴 동기로 던진다. 값은 지어내지 않는다 — `m6/advice_*`·`m6/fill_form_spec*`·`m6/advice_fills_ad0005` 픽스처를 override 로.
+class UnimplementedAdviceRepository implements AdviceRepository {
+  @override
+  Stream<ListResult<AdviceItem>> watchInbox({
+    AdviceStatus? status,
+    int limit = 50,
+  }) => throw UnimplementedError('watchInbox');
+  @override
+  Stream<AdviceInboxSummary> watchSummary() =>
+      throw UnimplementedError('watchSummary');
+  @override
+  Future<AdviceItem?> findById(String adviceId) =>
+      throw UnimplementedError('findById');
+  @override
+  Stream<ListResult<AdviceItem>> watchHistory({required DateRange range}) =>
+      throw UnimplementedError('watchHistory');
+  @override
+  Stream<ManualFillFormSpec> watchManualFillFormSpec() =>
+      throw UnimplementedError('watchManualFillFormSpec');
+  @override
+  Future<List<TradeJournalEntry>> fillsOfAdvice(String adviceId) =>
+      throw UnimplementedError('fillsOfAdvice');
+}
+
+/// 🆕 계약 v1.12(01 §21 · K28) — [LedgerTrustRepository] 받침대(`L-3`·홈 블록 9b 가짜의 받침대).
+/// 🔴 동기로 던진다. 값은 지어내지 않는다 — `m7/ledger_trust_*`·`m6/self_report_*` 픽스처를 override 로.
+class UnimplementedLedgerTrustRepository implements LedgerTrustRepository {
+  @override
+  Stream<LedgerTrustBadge> watchGrade() =>
+      throw UnimplementedError('watchGrade');
+  @override
+  Stream<SelfReportSession> watchSelfReportSession(
+    String yyyyMm,
+    String accountAlias,
+  ) => throw UnimplementedError('watchSelfReportSession');
+}
+
+/// 🆕 계약 v1.12(01 §21 · K28) — [OpsSummaryRepository] 받침대(`H-01`·`H-02` 가짜의 받침대 · R13).
+/// 🔴 동기로 던진다. 값은 지어내지 않는다 — `m8/ops_home_*`·`m8/ops_rhythm_*` 픽스처를 override 로.
+class UnimplementedOpsSummaryRepository implements OpsSummaryRepository {
+  @override
+  Stream<OpsDailySummary> watchToday() =>
+      throw UnimplementedError('watchToday');
+  @override
+  Stream<ListResult<OpsRhythmRow>> watchRhythm() =>
+      throw UnimplementedError('watchRhythm');
+}
+
+/// 🆕 계약 v1.12(01 §21 · K9 · K28) — [SettingsActions] 받침대(`L-3` 세션 start·stop 가짜의 받침대).
+///
+/// 🔴 리포지토리 받침대와 달리 **동기로 던지지 않는다**([UnimplementedWhatIfApi] 선례) — `run` = `Future` 에러 ·
+///    `watch` = 에러 스트림. `L-3` 은 `dispose` 에서 `initState` 에 잡아 둔 인스턴스로 stop 을 부르고 그 결과를
+///    삼키므로(`.then((_) {}, onError: …)`), override 하지 않은 받침대를 주입해도 위젯 트리가 깨지지 않는다.
+/// 🔴 결과(`ActionResult`)는 지어내지 않는다 — 화면은 결과를 읽지 않는다(갈래 = `SelfReportSession.sessionClosedText`).
+class UnimplementedSettingsActions implements SettingsActions {
+  @override
+  Future<ActionResult> run(
+    SettingsActionId id, {
+    Map<String, String> args = const <String, String>{},
+  }) => Future<ActionResult>.error(UnimplementedError('run'));
+  @override
+  Stream<ActionResult> watch(String actionRunId) =>
+      Stream<ActionResult>.error(UnimplementedError('watch'));
 }
 
 /// [JournalRepository] 받침대 — 필요한 메서드만 override 한다.
@@ -227,8 +311,11 @@ class UnimplementedConfigRepository implements ConfigRepository {
       throw UnimplementedError('watchContributionSetting');
 }
 
-/// 🆕 계약 v1.1 R2 준비(2026-09-23) — [CommandApi] 받침대(명령 13종 전부).
+/// 🆕 계약 v1.1 R2 준비(2026-09-23) — [CommandApi] 받침대(명령 13종 전부 · 🆕 v1.10 +1 · 🆕 v1.12 +1 = 15).
 /// 필요한 명령만 override 한다.
+/// 🆕 v1.12(01 §21 · K4) — X7 기록 3종의 인자 = 제출 DTO(`ManualFillSubmission`·`AdviceSkipSubmission`·
+///    `SelfReportSubmission`) · 🆕 `deferAdviceConfirm(adviceId)`. 접수증은 `m6/manual_fill_receipts_7`·
+///    `m6/advice_skip_receipts_5`·`m6/self_report_receipts_5`·`m6/advice_defer_receipts_3` 의 행을 `state` 로 골라 준다.
 ///
 /// 🔴 override 하지 않은 명령을 부르면 곧바로 던진다. 탭·제출 **핸들러**에서 부른 것은
 ///    잡히지 않은 오류로 테스트가 실패한다(예: `J-3` 은 `submitJournalDraft`·`watchCommand`
@@ -265,7 +352,7 @@ class UnimplementedCommandApi implements CommandApi {
       throw UnimplementedError('watchCommand');
 
   @override
-  Future<CommandReceipt> recordManualFill(ManualFillRecord record) =>
+  Future<CommandReceipt> recordManualFill(ManualFillSubmission submission) =>
       throw UnimplementedError('recordManualFill');
 
   @override
@@ -277,12 +364,13 @@ class UnimplementedCommandApi implements CommandApi {
       throw UnimplementedError('voidManualFill');
 
   @override
-  Future<CommandReceipt> skipAdvice(AdviceSkip skip) =>
+  Future<CommandReceipt> skipAdvice(AdviceSkipSubmission submission) =>
       throw UnimplementedError('skipAdvice');
 
   @override
-  Future<CommandReceipt> submitSelfReportBalance(SelfReportBalance b) =>
-      throw UnimplementedError('submitSelfReportBalance');
+  Future<CommandReceipt> submitSelfReportBalance(
+    SelfReportSubmission submission,
+  ) => throw UnimplementedError('submitSelfReportBalance');
 
   @override
   Future<CommandReceipt> acknowledgeAlert(AlertAck ack) =>
@@ -295,6 +383,11 @@ class UnimplementedCommandApi implements CommandApi {
   @override
   Future<CommandReceipt> recordLedgerEvent(LedgerEventRecord record) =>
       throw UnimplementedError('recordLedgerEvent');
+
+  /// 🆕 v1.12(01 §21 · K14 ⓐ) — 만료 확인 카드 「내일 다시」.
+  @override
+  Future<CommandReceipt> deferAdviceConfirm(String adviceId) =>
+      throw UnimplementedError('deferAdviceConfirm');
 }
 
 /// 🆕 계약 v1.4 R11 선행(2026-09-30) — [WhatIfApi] 받침대(미리보기 5종 · **전부 `Future` 에러**).

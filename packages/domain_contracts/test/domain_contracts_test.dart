@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 //    껍데기로 남는다 — C-1·C-15 는 봉투와 상수를 대조할 뿐 배럴 노출 여부를 보지 않는다.
 void main() {
   test('배럴이 계약 버전을 노출하고, 값이 확정판이다', () {
-    // 🔴 이 상수와 전 픽스처 봉투(v1.8 = 159건 — 기존 141 + R4 선행 v1.8 신설 18)의 `meta.contract_version` 은
+    // 🔴 이 상수와 전 픽스처 봉투(v1.12 = 174건 — 기존 159 + R5·R13 선행 v1.12 신설 15)의 `meta.contract_version` 은
     //    같은 축이며 한쪽만 올리지 않는다(C-1 · C-15 ④ 가 전량 대조한다).
     // 🔵 '1.1.0'(2026-09-17 · M2 보강) — 내비게이션 계약·표시 문자열·J-2/J-3/J-5 읽기 창구.
     // 🔵 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore` · `watchDecisionJournal` ·
@@ -36,7 +36,9 @@ void main() {
     //    `ledger_event` 표 · `cash_flow` 5값.
     // 🔵 '1.11.0'(E7b0 · M3-2·M3-4) — `DepositRegisterRejectCodes` · `DEPOSIT_REGISTERED` ·
     //    `cash_flow.account_alias` · 접수증 `_5`(거부 행) · `depositReceiptViolations`.
-    expect(contractVersion, '1.11.0');
+    // 🔵 '1.12.0'(R5·R13 선행 M2 보강 · 01 §21) — X7 제출 DTO 3 · `deferAdviceConfirm` · `L-3` 세션 VM·창구 ·
+    //    `L-1`·`L-2` 표시 필드 · `watchRepairs` · `watchRhythm` · 라우트 52 · 픽스처 174 · C-46·C-47.
+    expect(contractVersion, '1.12.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.

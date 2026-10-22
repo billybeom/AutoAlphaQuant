@@ -196,6 +196,10 @@ abstract final class ContractCodes {
     'ledger_event_reject': LedgerEventRejectCodes.values,
     // 🆕 v1.11(E7b0) — 실입금 등록의 거부 사유(`CommandReceipt.rejectReasonCode`)
     'deposit_register_reject': DepositRegisterRejectCodes.values,
+    // 🆕 v1.12(01 §21 · K20) — X7 기록 명령의 재제출 선택지(`CommandReceipt.retryCode`)
+    'advice_retry': AdviceRetryCodes.values,
+    // 🆕 v1.12(K19) — 수기 체결 초안의 «채우기» 필드(`ManualFillInput.prefilledFields` · C-5 «values 집합 = 등재»)
+    'manual_fill_prefill': ManualFillPrefillFields.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.11.0",
+    "contract_version": "1.12.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -27,12 +27,12 @@
         { "alias": "일반", "label": "일반 위탁 계좌" }
       ],
       "skip_reasons": [
-        { "code": "PRICE_UNACCEPTABLE", "label": "가격이 받아들일 수 없었습니다", "requires_note": false },
-        { "code": "CASH_SHORT", "label": "현금이 모자랐습니다", "requires_note": true },
-        { "code": "INTENTIONAL_PAUSE", "label": "의도적으로 쉬었습니다", "requires_note": true },
+        { "code": "PRICE_UNACCEPTABLE", "label": "가격이 받아들일 수 없었습니다", "requires_note": true, "deep_link": "aaq://m5/intervention" },
+        { "code": "CASH_SHORT", "label": "현금이 모자랐습니다", "requires_note": false },
+        { "code": "INTENTIONAL_PAUSE", "label": "의도적으로 쉬었습니다", "requires_note": true, "deep_link": "aaq://m5/intervention" },
         { "code": "BROKER_ISSUE", "label": "증권사 쪽 문제였습니다", "requires_note": false },
         { "code": "MISISSUED", "label": "안내가 잘못 나왔습니다", "requires_note": false },
-        { "code": "OTHER", "label": "그 밖의 사유", "requires_note": true }
+        { "code": "OTHER", "label": "그 밖의 사유", "requires_note": false }
       ],
       "min_trade_date": "2026-08-24",
       "max_trade_date": "2026-08-31",
@@ -40,6 +40,19 @@
       "price_hint_label": "그날의 가격 범위 안에서만 입력할 수 있습니다",
       "quantity_max": 9999,
       "append_only_notice": "기록은 지워지지 않습니다. 잘못 넣으면 정정으로 두 줄이 더 남습니다.",
+      "sides": [
+        { "side": "BUY", "label": "매수" },
+        { "side": "SELL", "label": "매도" }
+      ],
+      "trade_date_options": [
+        { "date": "2026-08-24", "label": "8/24(월)" },
+        { "date": "2026-08-25", "label": "8/25(화)" },
+        { "date": "2026-08-26", "label": "8/26(수)" },
+        { "date": "2026-08-27", "label": "8/27(목)" },
+        { "date": "2026-08-28", "label": "8/28(금)" },
+        { "date": "2026-08-31", "label": "8/31(월)" }
+      ],
+      "skip_notice_text": "이 안내는 오늘로 닫히고, 다음 배치는 지금 보유 상태로 다시 계산합니다",
       "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "폼 기준 2026-08-31 종가" }
     }
   ]
