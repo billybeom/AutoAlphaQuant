@@ -220,7 +220,8 @@ final RegExp _forbiddenCalls = RegExp(
   r'PerformanceRepository|DraftStore|journalDraftStoreProvider|journalCommandApiProvider|'
   r'activateKillSwitch|submitJournalDraft|recordDisclosureView|registerDeposit|'
   r'recordManualFill|amendManualFill|voidManualFill|skipAdvice|submitSelfReportBalance|'
-  r'acknowledgeAlert|confirmKillChecklist',
+  // 🆕 v1.12(01 §21) — J-4 밖 명령 전부: `recordLedgerEvent`(v1.10 부터 빠져 있던 것) · `deferAdviceConfirm`(K14 ⓐ).
+  r'acknowledgeAlert|confirmKillChecklist|recordLedgerEvent|deferAdviceConfirm',
 );
 
 /// ⑪ 큐는 인자 없이 부른다(SIM 결정의 리뷰 = §8 미결 99 · K24 — v1.7 = LIVE 만).

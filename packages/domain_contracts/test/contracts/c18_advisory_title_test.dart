@@ -112,7 +112,9 @@ void main() {
     test(
       'C-18 ⑥ A-1 위젯 트리에 AdviceStatus·onHold·suppressed 조건 분기 0건 (A8)',
       () {},
-      skip: 'ui_m6 소스 정적 스캔이 필요하다 — 패키지 선행(인벤토리 §9 C-18).',
+      skip:
+          '🆕 v1.12(01 §21) — C-46 ⑰⑱ 가 맡는다(`A-1` 대상 파일 `ui_journal/lib/src/advice_inbox.dart`·'
+          '`lib/src/advice/**` 소스 스캔). 여기는 이름만 남긴다.',
     );
 
     test(

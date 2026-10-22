@@ -135,7 +135,7 @@ void main() {
       expect(CommandReceipt.fromJson(receipt.toJson()), receipt);
     });
 
-    test('C-28 ⑥ X7 명령 인자 8종이 전량 봉투 맥락을 싣는다 (A10 · §5-3)', () {
+    test('C-28 ⑥ X7 명령 인자 9종이 전량 봉투 맥락을 싣는다 (A10 · §5-3 · 🆕 v1.12 +AdviceDeferConfirm)', () {
       final List<Map<String, dynamic>> payloads = <Map<String, dynamic>>[
         ManualFillRecord(
           tradeDate: const TradeDate('2026-08-31'),
@@ -193,6 +193,11 @@ void main() {
           note: '전량 취소 확인',
           context: _context,
         ).toJson(),
+        // 🆕 v1.12(01 §21 · K14 ⓐ) — 만료 확인 카드 「내일 다시」 와이어(맥락은 구현이 붙인다).
+        const AdviceDeferConfirm(
+          adviceId: 'ad_0010',
+          context: _context,
+        ).toJson(),
       ];
 
       for (final Map<String, dynamic> payload in payloads) {
@@ -228,7 +233,9 @@ void main() {
     test(
       'C-28 ⑨ 뷰모델·화면 계층에서 CommandContext 를 생성하는 코드 0건 (G-19)',
       () {},
-      skip: 'ui_* 소스 정적 스캔이 필요하다 — 패키지 선행.',
+      skip:
+          '🆕 v1.12(01 §21) — C-46 ⑳ 가 맡는다(X7 폼 3·읽기 화면 소스 스캔 `CommandContext`·와이어 생성자 0). '
+          '화면은 제출 DTO 만 만든다(K4).',
     );
   });
 }
