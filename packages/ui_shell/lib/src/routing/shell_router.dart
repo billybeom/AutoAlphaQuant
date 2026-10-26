@@ -3,7 +3,7 @@
 // ShellRouteMatch · matchShellRoute() · ShellGuard · shellGuardFor() ·
 // ShellLinkOpener · shellLinkOpenerProvider · ShellRouteBody · ShellLinkPage.
 //
-// 🔴 lib 에 'aaq://' · 'handbook://' 리터럴 0 — AppLinkSchemes.* · AppRoutes.* 사용.
+// 🔴 lib 에 scheme 리터럴 0 — AppLinkSchemes.* · AppRoutes.* 사용.
 // 🔴 AppRoutes.isRegistered 0 — matchShellRoute 가 같은 규칙으로 직접 맞춘다.
 
 import 'dart:async';
