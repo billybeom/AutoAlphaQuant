@@ -218,7 +218,8 @@ abstract class DiagnosticsVm with _$DiagnosticsVm {
 ///    그대로 그린다 · 빈칸·통과로 그리지 않는다(C15 · G-27).
 /// 🆕 v1.13(01 §23 · K2 · K3) — [level] = 신호등 색·아이콘의 유일한 근거(04 §2-3 «색+아이콘+텍스트 3중») ·
 ///    [stateCode] 로 색을 고르지 않는다(ui 미참조) · 엔진 의무: `applicable == false` ⇒ `info` ·
-///    `blocked` 는 `canonBroker`·`canonSelfReport` 만(파생 불일치는 주문을 막지 않는다) — C-47 ⑩.
+///    `blocked` 는 `canonBroker`·`canonSelfReport` 만(파생 불일치는 주문을 막지 않는다) · 점검한 칸
+///    (`applicable == true`)은 `stateCode == 'OK'` ⇔ `level == ok`(«어긋납니다» 를 초록으로 그리지 않는다 · K3 ⓒ) — C-47 ⑩.
 @freezed
 abstract class DiagnosticCell with _$DiagnosticCell {
   const factory DiagnosticCell({

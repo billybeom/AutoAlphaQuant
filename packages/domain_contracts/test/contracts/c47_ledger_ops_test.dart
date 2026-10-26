@@ -11,6 +11,9 @@
 // 🆕 계약 v1.13(R13b 선행 · 01 §23 · 발주자 확정 2026-10-26) — ⑩ 대조 보드(칸 5 · 칸 레벨 원천 · 해당 없음 = info ·
 //   파생 blocked 0 · headline 늘 엔진 문장 · 전부 일치 표본 · 쌍 글자 사전 한 벌)   ⑪ R13b 홈 참고 표본(억제 + 기한 라벨 ·
 //   배분 notice 두 갈래).
+// 🆕 v1.13 검증 반영(2026-10-26 · 변이 R2c·R2d·R2e·R4b·R4c·R4e) — ⑩ 칸 레벨 표본째 고정(diff BLOCKED·WATCH·OK·OK·INFO ·
+//   ok OK×4·INFO) · 점검 칸 state_code OK ⇔ level OK(K3 ⓒ) · ledger_diffs_4 대응(K6)   ⑪ dueTodayCount > 0 ∧ ≤ openCount ·
+//   headline 표본 글자 고정 ≠ zero(K8).
 // 🔵 `H-01`·`H-02` 화면 스캔은 R13 카드(`ui_shell`)의 몫 — `ui_shell` 은 v1.8 C-44 ⑫ 에서도 제외였다.
 // 🆕 검증 반영(2026-10-22 · 변이 R7 · 정합 갈래) — ⑦ 에 `firstWhere` 류 · 객체 패턴 구조 분해 · 라우트 상수(예외
 //   `AppRoutes.ledgerRepairs`)·플랫폼 분기(`kIsWeb`·`defaultTargetPlatform`·`Platform.`) 를 더했다 — ⑧ 양성 +9 · 음성 +3.
@@ -712,6 +715,69 @@ void main() {
           },
           reason: '두 표본의 쌍 글자 사전은 한 벌이다',
         );
+        // 🆕 검증 반영(2026-10-26 · 변이 R2c·R2d·R2e·R4e) — 칸 색의 유일한 근거(K2)를 표본째 못박고,
+        //   점검한 칸의 글자와 색이 말을 맞추며(K3 ⓒ) · 같은 날 차이 표본과도 말을 맞춘다(K6).
+        expect(
+          <LedgerPair, UiLevel>{
+            for (final DiagnosticCell c in diff.cells) c.pair: c.level,
+          },
+          <LedgerPair, UiLevel>{
+            LedgerPair.canonBroker: UiLevel.blocked,
+            LedgerPair.canonSupabase: UiLevel.watch,
+            LedgerPair.canonGithub: UiLevel.ok,
+            LedgerPair.canonCalendar: UiLevel.ok,
+            LedgerPair.canonSelfReport: UiLevel.info,
+          },
+          reason: 'diff — 칸 레벨 = BLOCKED·WATCH·OK·OK·INFO(K6)',
+        );
+        expect(
+          <LedgerPair, UiLevel>{
+            for (final DiagnosticCell c in ok.cells) c.pair: c.level,
+          },
+          <LedgerPair, UiLevel>{
+            LedgerPair.canonBroker: UiLevel.ok,
+            LedgerPair.canonSupabase: UiLevel.ok,
+            LedgerPair.canonGithub: UiLevel.ok,
+            LedgerPair.canonCalendar: UiLevel.ok,
+            LedgerPair.canonSelfReport: UiLevel.info,
+          },
+          reason: 'ok — 점검 4칸 OK · 자가보고 해당 없음 INFO(K5)',
+        );
+        for (final (String name, DiagnosticsVm vm) in <(String, DiagnosticsVm)>[
+          ('diff', diff),
+          ('ok', ok),
+        ]) {
+          for (final DiagnosticCell c in vm.cells) {
+            if (!c.applicable) continue;
+            expect(
+              c.stateCode == 'OK',
+              c.level == UiLevel.ok,
+              reason:
+                  '$name ${c.pair} — 점검한 칸: state_code OK ⇔ level OK '
+                  '(«어긋납니다» 를 초록으로 그리지 않는다 · K3 ⓒ)',
+            );
+          }
+        }
+        final Map<LedgerPair, UiLevel> fromDiffs = <LedgerPair, UiLevel>{
+          for (final LedgerDiffRow d in _rows(
+            FixturePaths.ledgerDiffs4,
+          ).map(LedgerDiffRow.fromJson))
+            d.pair: switch ((d.status, d.severity)) {
+              (DiffStatus.open, DiffSeverity.blocking) => UiLevel.blocked,
+              (DiffStatus.open, DiffSeverity.observational) => UiLevel.watch,
+              (DiffStatus.resolved || DiffStatus.accepted, _) => UiLevel.ok,
+            },
+        };
+        expect(fromDiffs, hasLength(4), reason: 'ledger_diffs_4 = 4쌍 한 행씩');
+        for (final MapEntry<LedgerPair, UiLevel> e in fromDiffs.entries) {
+          expect(
+            diff.cells.singleWhere((DiagnosticCell c) => c.pair == e.key).level,
+            e.value,
+            reason:
+                '${e.key} — 칸 = 같은 날 차이 표본 ledger_diffs_4 의 대응(열림 ∧ BLOCKING → '
+                'BLOCKED · 열림 ∧ 관측 → WATCH · 해소·수용 → OK · K6)',
+          );
+        }
       },
     );
 
@@ -729,6 +795,28 @@ void main() {
       );
       expect(s.headline.trim(), isNotEmpty);
       expect(s.headline, isNot(s.dueSoonLabel));
+      // 🆕 검증 반영(2026-10-26 · 변이 R4b·R4c) — 표본이 보이려는 뜻(K8: 억제 날에도 기한의 뜻은
+      //   headline 에)과 셈(기한 라벨의 «오늘까지» 건 = 처리 중 건의 일부)을 못박는다.
+      expect(s.dueTodayCount, greaterThan(0), reason: '기한 라벨이 실렸으면 오늘까지 건이 있다');
+      expect(
+        s.dueTodayCount <= s.openCount,
+        isTrue,
+        reason: '오늘까지 건은 처리 중 건의 일부다',
+      );
+      final AdviceInboxSummary zero = AdviceInboxSummary.fromJson(
+        _env(FixturePaths.m8OpsHomeAdviceZero)['advice_summary']!
+            as Map<String, Object?>,
+      );
+      expect(
+        s.headline,
+        isNot(zero.headline),
+        reason: 'K8 — 처리 중 건이 있는 억제 날은 «아무것도 하지 마십시오» 날이 아니다',
+      );
+      expect(
+        s.headline,
+        '오늘은 새 매매 안내를 내지 않았습니다. 처리 중인 안내 1건이 오늘까지입니다.',
+        reason: 'K8 — 홈 3b 는 이 한 줄만 그린다 → 기한의 뜻은 headline 에 실린다(표본 글자 고정)',
+      );
       final SleeveAllocationVm empty = SleeveAllocationVm.fromJson(
         _rows(FixturePaths.m6AllocationEmpty).single,
       );

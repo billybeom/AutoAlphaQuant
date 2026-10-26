@@ -661,3 +661,54 @@ const Map<String, String> unmappedFixtures = <String, String>{
       'v1.12 — 형제 키 incident_alert 등급 P1 → P0(MAINTENANCE_RESUME_FAILED 정본 · 01 §8 미결 114 · C-47 ⑥ 이 '
       '전 픽스처 walk 로 본다).',
 };
+
+/// 봉투 필수 6키 — 이 밖의 최상위 키가 «형제 키»다(fixtures/README «봉투 형제 키 표»).
+const Set<String> envelopeKeys = <String>{
+  'meta',
+  'as_of',
+  'empty_kind',
+  'empty_label',
+  'has_more',
+  'rows',
+};
+
+/// 🆕 v1.13 검증 반영(2026-10-26 · 01 §23 K9 · 변이 R5·V23C) — **extras 로 묶지 않는 형제 키**와 그 사유.
+///
+/// 🔴 C-1 은 등록된 픽스처의 형제 키가 [FixtureBinding.extras] 에 있거나 여기 있어야 통과시킨다 —
+///    `summary`·`advice_summary` 는 여기 **없다**(extras 를 빼면 C-1 이 실패한다 · 조용히 열지 않게 되는 일을 막는다).
+/// 키를 늘리면 README 표와 이 목록을 함께 고친다.
+const Map<String, String> unboundSiblingKeys = <String, String>{
+  'active_flags': '`BlockFlag` 목록 — Map 블록이 아니라 extras 상자(Map → DTO)로 열 수 없다 · C-15 ⑥ 이 형제 키 표로 본다.',
+  'counterfactual':
+      '`AfterTaxLadder` — C-30 골든 대조 전용(C-30 ⓒ 가 직접 연다 · 화면 경로 = '
+      '`AnnualReviewVm.afterTaxCounterfactual`).',
+  'counterfactual_collapsed': 'bool 원시 — C-30 ⓒ 대조 전용 · DTO 아님.',
+  'credential_use': '원시 글자 — DTO 아님.',
+  'finish_headline': '문장(원시) — DTO 아님.',
+  'holiday_notice': '문장(원시) — DTO 아님.',
+  'incident_alert': '`AlertItem` — 이 픽스처 자체가 미매핑([unmappedFixtures]) · 등급은 C-47 ⑥ 전 픽스처 walk 가 본다.',
+  'index':
+      '`HandbookIndex` — 핸드북 원고 선행(C-13 🔵 · C-8 `_knownUncovered`) · 묶으면 C-8 인구조사가 바뀐다 — '
+      'v1.13 K9 밖.',
+  'lease_notice': '문장(원시) — DTO 아님.',
+  'operating_mode': '원시 글자 — DTO 아님(C-18 ② 가 값을 본다).',
+  'preserved_input': '원시(`ManualFillRecord` 모양 · `context` 없음) — DTO 아님.',
+  'price_range_source_date':
+      'TradeDate 글자(원시) — Map 블록이 아니라 extras 상자로 열 수 없다.',
+  'reject_reason':
+      '`ReasonChip` — 거부 영수증 표본의 곁 블록 · 행(`CommandReceipt`)의 사유 코드는 C-16 이 본다 · '
+      'extras 묶음은 v1.13 K9 밖.',
+};
+
+/// 한 픽스처에서 extras 로도 사유 목록으로도 덮이지 않은 형제 키(C-1 · 자체 검증용으로 공개).
+List<String> unboundSiblingsOf(
+  String path,
+  Map<String, Object?> envelope,
+  Set<String> extrasKeys,
+) => <String>[
+  for (final String key in envelope.keys)
+    if (!envelopeKeys.contains(key) &&
+        !extrasKeys.contains(key) &&
+        !unboundSiblingKeys.containsKey(key))
+      '$path.$key',
+];
