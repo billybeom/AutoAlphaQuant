@@ -479,8 +479,8 @@ R13b(`H-01` 운영 홈) 카드의 선행 2 를 닫았다. `contractVersion` = **
 | T-1 | `DiagnosticCell.level`(`required UiLevel` · JSON `level` · 마지막 필드) | K2 · 칸 신호등 색·아이콘의 유일한 근거 · 새 열거 0(`AdviceInboxSummary.level`·`LedgerTrustBadge.level` 선례) · 엔진 의무 K3(해당 없음 ⇒ `info` · `blocked` = `canonBroker`·`canonSelfReport` 만) |
 | T-2 | `DiagnosticsVm.headline` 규약 «늘 엔진 문장»(꼴 무변경 · 주석) | K4 · 전부 일치 날 = 일치를 말하는 문장 · 화면은 늘 그린다 |
 | T-3 | `FixturePaths.m8ReconBoardOk`(`m8/recon_board_ok.json` · 한 줄 상수) · `FixturePaths.m8OpsHomeAdviceSuppressedDue`(`m8/ops_home_advice_suppressed_due.json`) | K5 · K7 ⓑ · R13b 카드 `__RECON_OK__` = `m8ReconBoardOk` · `__RECON_OK_GREP__` = `static const String m8ReconBoardOk =` |
-| T-4 | 등록부 `opsHomeAdviceSummaryKey = 'advice_summary'`(test) | K9 · m8 `ops_home_advice_*` 3벌 extras — C-1·C-8 이 요약을 연다 |
-| T-5 | C-47 ⑩ · ⑪ | K10 · 대조 보드(칸 키 6 · 레벨 원천 · `headline` 늘 · 전부 일치) · R13b 홈 참고 표본(억제 + 기한 · 배분 notice 두 갈래) |
+| T-4 | 등록부 `opsHomeAdviceSummaryKey = 'advice_summary'`(test) · 🆕 `envelopeKeys` · `unboundSiblingKeys` · `unboundSiblingsOf`(test · 검증 반영) | K9 · m8 `ops_home_advice_*` 3벌 extras — C-1·C-8 이 요약을 연다 · C-1 형제 키 완전성(extras ∨ 사유 13키) |
+| T-5 | C-47 ⑩ · ⑪ | K10 · 대조 보드(칸 키 6 · 레벨 원천 · `headline` 늘 · 전부 일치 · 🆕 칸 레벨 표본째 · state ⇔ level K3 ⓒ · `ledger_diffs_4` 대응) · R13b 홈 참고 표본(억제 + 기한 · 배분 notice 두 갈래 · 🆕 `dueTodayCount` 셈 · `headline` 고정 K8) |
 | T-6 | 생성기 `tool/gen_r13b_v113_fixtures.py` | K11 · 기준 `fc25f77` 원문에서 멱등 |
 
 🔴 **만들지 않은 이름**(재론 방지): `DiagnosticLevel`(새 열거 — `UiLevel` 재사용) · `String? headline`(nullable — 존재 판정이 화면으로 온다 · K4 대안 기각) · `m6/allocation_no_pot`(재사용 `m6/allocation_empty` 로 충분 · K7 ⓐ' 기각) · C-48(새 번호 — C-47 확장 · 같은 번호는 엔진 레인 E8a 가 쓴다).

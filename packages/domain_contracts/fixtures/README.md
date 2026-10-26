@@ -119,6 +119,8 @@
 | `holiday_notice` | 문장 | `m8/watchdog_holiday.json` |
 | `lease_notice` | 문장 | `m8/restart_lost_phone.json` |
 
+🆕 v1.13 검증 반영(01 §23 K9) — C-1 «형제 키는 extras 로 묶이거나 사유와 함께 남는다»: 등록된 픽스처의 형제 키는 등록부 바인딩 extras 이거나 등록부 `unboundSiblingKeys`(사유 13키)에 있어야 한다 · `summary`·`advice_summary` 는 extras 만(사유 목록에 없다 — extras 를 빼면 C-1 이 실패) · 이 표에 키를 늘리면 등록부도 함께 고친다.
+
 🔵 v1.12 정정(01 §21) — `trust`(`m6/self_report_1` — 꼴 교체로 행 필드 `SelfReportSession.trust` 가 됐다 · K8) ·
 `resume_headline`·`resume_route`(`m8/ops_home_resume_gap7` — 행 필드 `OpsDailySummary.resumeLine` 으로 올렸다 · K44)
 3키를 표에서 지웠다.
@@ -822,6 +824,12 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 ### 표기 — 칸 `level`
 
 `level` 은 칸 객체의 **마지막 키**(`state_label` 뒤)이며 늘 적는다(`required` · 와이어 `OK`·`INFO`·`WATCH`·`ACT`·`BLOCKED`). 형제 키 `advice_summary` 의 `due_soon_label` 자리 = `level` 다음(`ops_home_advice_open` 꼴).
+
+### 🆕 검증 반영 (2026-10-26 · 수정 회차 · 픽스처 바이트 무변경)
+
+- C-47 ⑩ — 칸 레벨을 표본째 고정(쌍 → 레벨: `recon_board_diff` BLOCKED·WATCH·OK·OK·INFO · `recon_board_ok` OK×4·INFO) · 점검 칸 `state_code` `OK` ⇔ `level` `OK`(K3 ⓒ — «어긋납니다» 를 초록으로 그리지 않는다) · `ledger_diffs_4` 대응(열림 ∧ BLOCKING → BLOCKED · 열림 ∧ 관측 → WATCH · 해소·수용 → OK · K6).
+- C-47 ⑪ — `ops_home_advice_suppressed_due` 의 `due_today_count` > 0 ∧ ≤ `open_count` · `headline` ≠ zero 문장 · 표본 글자 고정(K8).
+- C-1 — 형제 키 완전성(위 «봉투 형제 키 표» 아래 줄 · K9).
 
 ## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과 → 2026-10-20 v1.7 · 141파일(매핑 138파일 331행) · C-1·C-8 통과 → 2026-10-21 v1.8 · 159파일(매핑 156파일 349행) · C-1·C-8 통과 → 2026-10-22 v1.12 · 174파일(매핑 172파일 385행 · 원시 387) · C-1·C-8 통과 → 🆕 2026-10-26 v1.13 · 176파일(매핑 174파일 387행 · 원시 389 · 봉투 형제 키 +3 = m8 `advice_summary`) · C-1·C-8 통과)
 
