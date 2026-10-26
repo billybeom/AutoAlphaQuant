@@ -33,6 +33,10 @@ abstract final class RebalancePreviewTexts {
   static const String costBasis = '수수료·세금은 가정 비율의 추정치이며 체결 뒤 실측으로 바뀝니다.';
   static const String pending = '직전 주문 1건이 체결 확인 중이라 수량이 바뀔 수 있습니다.';
   static const String fundingRule = '03 §5-5b';
+
+  /// 🆕 E8b2(R23 D5) — 국면 UNKNOWN 월말.
+  static const String warnRegimeUnknown =
+      '시장 국면을 판정할 수 없어 이번 회차의 슬리브 B 추세 조정은 보류합니다(지난달 비율 유지).';
 }
 
 const Map<MonthEndActionKind, (String, String, String?)> _reasons =
@@ -205,6 +209,7 @@ RebalancePreviewResult previewRebalancePlan(
         ...gate.warningLines,
         if (contribution >= Decimal.one)
           '이번 회차에는 연금저축으로 ${wonText(contribution.floor())} 납입이 함께 필요합니다.',
+        if (plan.sleeveBHeld) RebalancePreviewTexts.warnRegimeUnknown,
         if (drafts.isEmpty) RebalancePreviewTexts.warnEmpty,
       ],
       fundingSteps: funding.isEmpty ? null : funding,

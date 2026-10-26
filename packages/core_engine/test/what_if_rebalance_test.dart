@@ -49,6 +49,7 @@ MonthEndState _me({
   String? gold = '8000000',
   bool rising = true,
   String parkC = '0',
+  DirectionState? regime = DirectionState.neutral,
 }) => MonthEndState(
   totalEquity: _d('100000000'),
   bAssets: <String, Decimal?>{'133690': Decimal.zero, '411060': Decimal.zero},
@@ -62,7 +63,7 @@ MonthEndState _me({
   potAssets: const <String, Decimal?>{'133690': null, '411060': null},
   pensionUsedThisYear: Decimal.zero,
   monthIndex: month,
-  regimeState: DirectionState.neutral,
+  regimeState: regime,
   monthlyCloses: <String, List<double>>{
     for (final String t in <String>['133690', '411060'])
       t: <double>[for (int k = 1; k <= 12; k++) rising ? 100.0 + k : 100.0],
@@ -233,6 +234,26 @@ void main() {
           allAliases: const <String>{'연금저축', '일반'},
         ),
         isEmpty,
+      );
+    });
+
+    test('🆕 E8b2(R23 D5) — 국면 UNKNOWN 월말: B 추세 조정 초안 0 · 보류 경고 줄', () {
+      final RebalancePreview p = _run(
+        _s(me: _me(regime: DirectionState.unknown)),
+      ).preview!;
+      expect(
+        p.orderDrafts.where(
+          (OrderDraft o) => o.reasons.any(
+            (ReasonChip c) => c.code == RebalanceReasonCodes.sleeveBSignal,
+          ),
+        ),
+        isEmpty,
+      );
+      expect(p.warningLines, contains(RebalancePreviewTexts.warnRegimeUnknown));
+      final RebalancePreview normal = _run(_s()).preview!;
+      expect(
+        normal.warningLines,
+        isNot(contains(RebalancePreviewTexts.warnRegimeUnknown)),
       );
     });
 

@@ -144,6 +144,9 @@ class MonthEndState {
   final int monthIndex;
 
   /// BEAR 차감에 쓰는 방향 상태 — 방향 스코어가 없으면 null(차감하지 않는다 · 참조 엔진 `np.isfinite(score)`).
+  /// 🆕 E8b2(설계 13 §8 R23 D5 · 03 §2-7 v2.35) — [DirectionState.unknown](판정 불가)이면 국면 보조가 켜진 설정에서
+  /// **B 트랜치 주문을 보류**한다(전월 비율 유지 — 모르면 깎지도 늘리지도 않는다). null 은 «보조를 쓰지 않음»(보조 꺼짐 ·
+  /// 지연 첫 달 · 재현 경로의 스코어 없음)이라 보류하지 않는다.
   final DirectionState? regimeState;
 
   /// 자산별 월봉 종가(오래된 것부터 · 이번 달 포함).
@@ -210,9 +213,12 @@ class MonthEndAction {
 
 /// 계획 결과 — 행동(실행 순서) + 당일 이동을 반영한 뒤의 상태.
 class MonthEndPlan {
-  const MonthEndPlan(this.actions, this.after);
+  const MonthEndPlan(this.actions, this.after, {this.sleeveBHeld = false});
   final List<MonthEndAction> actions;
   final MonthEndState after;
+
+  /// 🆕 E8b2(R23 D5) — 국면을 판정할 수 없어 이번 달 B 트랜치 주문을 보류했다.
+  final bool sleeveBHeld;
 }
 
 /// 월말 계획 한 벌을 만든다(값만 — 부작용 0).
@@ -236,6 +242,7 @@ class _Planner {
   final MonthEndState s;
   final MonthEndConfig cfg;
   final List<MonthEndAction> out = <MonthEndAction>[];
+  bool bHeld = false;
 
   final Map<String, Decimal?> bAssets;
   Decimal bParking, bParkC, krw, cBond, potCash, used;
@@ -259,6 +266,7 @@ class _Planner {
     _sleeveC(eq);
     _pot();
     return MonthEndPlan(
+      sleeveBHeld: bHeld,
       List<MonthEndAction>.unmodifiable(out),
       MonthEndState(
         totalEquity: s.totalEquity,
@@ -418,6 +426,12 @@ class _Planner {
   void _sleeveB() {
     final Decimal base = _bValue;
     if (base <= Decimal.zero || !s.hasNextKrSession) return;
+    // 🆕 R23 D5 — 국면 UNKNOWN 이면 보류(fail-closed · 차감 없음 = fail-open 을 폐기).
+    if (cfg.assist.cutState != null &&
+        s.regimeState == DirectionState.unknown) {
+      bHeld = true;
+      return;
+    }
     for (final (String t, Decimal w) in cfg.bAssets) {
       final List<double> mc = s.monthlyCloses[t] ?? const <double>[];
       final double ratio = sleeveBTargetRatioP0(
