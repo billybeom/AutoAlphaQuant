@@ -11,6 +11,7 @@
 // export 한다.
 
 export 'l10n/labels.dart';
+export 'src/ops_rhythm.dart';
 export 'src/routing/shell_router.dart';
 export 'src/shell_providers.dart';
 export 'src/shell_scaffold.dart';

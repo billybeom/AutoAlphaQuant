@@ -236,3 +236,45 @@ List<String?> shownTexts(WidgetTester tester, Finder of) =>
         .widgetList<Text>(find.descendant(of: of, matching: find.byType(Text)))
         .map((Text t) => t.data)
         .toList();
+
+// ── H-02 helpers ───────────────────────────────────────────────────────────────
+
+List<Override> opsRhythmOverrides({
+  required FakeShellOpsSummaryRepository ops,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  shellOpsSummaryRepositoryProvider.overrideWithValue(ops),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+  shellClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpOpsRhythm(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: OpsRhythm())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String> rhythmRowTexts(OpsRhythmRow r) =>
+    <String>[r.title, r.whenText, ?r.dDayText];
+
+Set<String> rhythmAllowed(ListResult<OpsRhythmRow> v) => <String>{
+  v.asOf.label,
+  ?v.emptyLabel,
+  ShellLabels.rhythmColumnItem,
+  ShellLabels.rhythmColumnNext,
+  for (final OpsRhythmRow r in v.rows) ...rhythmRowTexts(r),
+};
