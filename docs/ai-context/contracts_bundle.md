@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 89개 · 계약 v1.12.0 · 조립일 2026-10-22(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 89개 · 계약 v1.13.0 · 조립일 2026-10-26(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -86,7 +86,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -163,12 +163,17 @@ export 'commands/settings_actions.dart';
 //    `watchRepairs` · `OpsSummaryRepository.watchRhythm` · `OpsDailySummary.resumeLine` · 코드 `AdviceRejectCodes` 18 ·
 //    `AdviceRetryCodes` · `ManualFillPrefillFields` · 받침대 +5 · 🆕 C-46·C-47 · 픽스처 159 → 174(신설 15 · 개정 22 ·
 //    알림 등급 5행 — 미결 114) — 🆕 tool/gen_r5r13_v112_fixtures.py(기준 f54f602 원문에서 멱등 생성).
+// 🆕 '1.13.0'(R13b 선행 · 01 §23 · 발주자 확정 2026-10-26 — 🔴 K1·K2·K7 권고대로) — `DiagnosticCell.level`
+//    (`UiLevel` · 칸 색·아이콘 원천 · 해당 없음 = info · 파생 3쌍 blocked 0) · `DiagnosticsVm.headline` «늘 엔진 문장»
+//    규약(주석) · 픽스처 174 → 176(신설 `m8/recon_board_ok`·`m8/ops_home_advice_suppressed_due` · 개정
+//    `m8/recon_board_diff` · 등록부 m8 `advice_summary` extras 3) · C-47 ⑩⑪ — 🆕 tool/gen_r13b_v113_fixtures.py
+//    (기준 fc25f77 원문에서 멱등 생성). 🔵 13 §8 R25 G7 의 E8a «1.13.0» 은 1.14.0 으로 민다(K1).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.12.0';
+const String contractVersion = '1.13.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -3740,6 +3745,7 @@ abstract class SelfReportLine with _$SelfReportLine {
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
+import '../enums/ui.dart'; // 🆕 v1.13 — DiagnosticCell.level
 import '../primitives/as_of.dart';
 import 'common.dart';
 
@@ -3928,8 +3934,10 @@ abstract class BackupVm with _$BackupVm {
       _$BackupVmFromJson(json);
 }
 
-/// m2-8 G-10 — 진단 보드(05 `S10`).
+/// m2-8 G-10 — 진단 보드(05 `S10`) · 🆕 v1.13 `H-01` 블록 6(R13b)도 이 VM 을 그린다(01 §23).
 /// 🔴 **칸 수 5 고정은 엔진이 준다** — 모드와 무관하며 화면이 세지 않는다(§2-9).
+/// 🆕 v1.13(01 §23 · K4) — [headline] 은 **늘 엔진 문장**이다(전부 일치 날 = 일치를 말하는 문장 · 빈 글자 0) ·
+///    화면은 늘 그린다 — 칸 상태로 문장을 고르거나 숨기지 않는다.
 @freezed
 abstract class DiagnosticsVm with _$DiagnosticsVm {
   const factory DiagnosticsVm({
@@ -3943,8 +3951,11 @@ abstract class DiagnosticsVm with _$DiagnosticsVm {
 }
 
 /// m2-8 G-10 — 진단 1칸.
-/// 🔴 `applicable == false` 는 «점검 안 함»으로 그린다 — 빈칸·통과로 그리지
-///    않는다(C15 · G-27).
+/// 🔴 `applicable == false` 칸도 빼지 않는다 — 엔진의 [stateLabel](«해당 없음»·«점검하지 않음» 등)을
+///    그대로 그린다 · 빈칸·통과로 그리지 않는다(C15 · G-27).
+/// 🆕 v1.13(01 §23 · K2 · K3) — [level] = 신호등 색·아이콘의 유일한 근거(04 §2-3 «색+아이콘+텍스트 3중») ·
+///    [stateCode] 로 색을 고르지 않는다(ui 미참조) · 엔진 의무: `applicable == false` ⇒ `info` ·
+///    `blocked` 는 `canonBroker`·`canonSelfReport` 만(파생 불일치는 주문을 막지 않는다) — C-47 ⑩.
 @freezed
 abstract class DiagnosticCell with _$DiagnosticCell {
   const factory DiagnosticCell({
@@ -3953,6 +3964,7 @@ abstract class DiagnosticCell with _$DiagnosticCell {
     required bool applicable,
     required String stateCode,
     required String stateLabel,
+    required UiLevel level,
   }) = _DiagnosticCell;
 
   factory DiagnosticCell.fromJson(Map<String, dynamic> json) =>
@@ -8073,6 +8085,10 @@ abstract final class FixturePaths {
       'm8/onboarding_fresh_advisory.json';
   static const String m8OnboardingModePick = 'm8/onboarding_mode_pick.json';
   static const String m8OpsHomeAdviceOpen = 'm8/ops_home_advice_open.json';
+
+  /// 🆕 v1.13(01 §23 · K7 ⓑ) — 억제 + 기한 라벨(`H-01` 3b 억제 갈래 = `headline` 한 줄만 · R13b 참고 변이 표본).
+  static const String m8OpsHomeAdviceSuppressedDue =
+      'm8/ops_home_advice_suppressed_due.json';
   static const String m8OpsHomeAdviceZero = 'm8/ops_home_advice_zero.json';
   static const String m8OpsHomeBlocked = 'm8/ops_home_blocked.json';
   static const String m8OpsHomeNormal = 'm8/ops_home_normal.json';
@@ -8082,6 +8098,9 @@ abstract final class FixturePaths {
   /// 🆕 v1.12(K29) — `H-02` 리듬을 아직 받지 못함(`NOT_LOADED` · «모름» ≠ «없음») — R13a 위젯 테스트.
   static const String m8OpsRhythmEmpty = 'm8/ops_rhythm_empty.json';
   static const String m8ReconBoardDiff = 'm8/recon_board_diff.json';
+
+  /// 🆕 v1.13(01 §23 · K5) — 대조 보드 전부 일치(칸 5 · 자가보고 해당 없음 · `headline` = 엔진 일치 문장) — R13b `h01_normal` 계열.
+  static const String m8ReconBoardOk = 'm8/recon_board_ok.json';
   static const String m8RestartLostPhone = 'm8/restart_lost_phone.json';
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
   static const String m8WatchdogHoliday = 'm8/watchdog_holiday.json';
@@ -8260,6 +8279,7 @@ abstract final class FixturePaths {
     m8OnboardingFreshAdvisory,
     m8OnboardingModePick,
     m8OpsHomeAdviceOpen,
+    m8OpsHomeAdviceSuppressedDue,
     m8OpsHomeAdviceZero,
     m8OpsHomeBlocked,
     m8OpsHomeNormal,
@@ -8267,6 +8287,7 @@ abstract final class FixturePaths {
     m8OpsRhythmRows,
     m8OpsRhythmEmpty,
     m8ReconBoardDiff,
+    m8ReconBoardOk,
     m8RestartLostPhone,
     m8WatchdogDelayed,
     m8WatchdogHoliday,
@@ -10921,6 +10942,8 @@ abstract interface class OpsStatusRepository {
   Stream<BackupVm> watchBackup();
 
   /// `S10` — 🔴 칸 수 5 고정은 엔진이 준다(§2-9 `applicable`).
+  /// 🆕 v1.13(01 §23) — `H-01` 블록 6(R13b)의 원천도 이 창구다(칸 색 = `DiagnosticCell.level` · `headline` 늘) ·
+  ///    뷰어 원천 = 01 §8 미결 128.
   Stream<DiagnosticsVm> watchDiagnostics();
 
   /// `S12` — 🔴 화면이 `windowState` 를 «달»로 판정하지 않는다.
