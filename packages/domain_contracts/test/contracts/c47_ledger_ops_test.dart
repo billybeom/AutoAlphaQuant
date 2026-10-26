@@ -8,6 +8,9 @@
 //   방향 색 · 원인 사전 · 재계산 고지)   ⑤ 리듬(홈 upcoming == 표 앞 ≤3 · 모름 ≠ 없음)   ⑥ 알림 등급(전 픽스처 walk —
 //   등록부 미매핑 포함 · 정본 06_시스템설계/04_안전장치.md §5-3 v2.33)   ⑦ `L-1`·`L-2` 화면 소스 스캔(대상 0 = 공허 통과)
 //   ⑧ 자체 검증   ⑨ R13 진입 링크 표본(9b 실사 카드 · 리듬 분기 실사 · 블록 2 X2 한 줄).
+// 🆕 계약 v1.13(R13b 선행 · 01 §23 · 발주자 확정 2026-10-26) — ⑩ 대조 보드(칸 5 · 칸 레벨 원천 · 해당 없음 = info ·
+//   파생 blocked 0 · headline 늘 엔진 문장 · 전부 일치 표본 · 쌍 글자 사전 한 벌)   ⑪ R13b 홈 참고 표본(억제 + 기한 라벨 ·
+//   배분 notice 두 갈래).
 // 🔵 `H-01`·`H-02` 화면 스캔은 R13 카드(`ui_shell`)의 몫 — `ui_shell` 은 v1.8 C-44 ⑫ 에서도 제외였다.
 // 🆕 검증 반영(2026-10-22 · 변이 R7 · 정합 갈래) — ⑦ 에 `firstWhere` 류 · 객체 패턴 구조 분해 · 라우트 상수(예외
 //   `AppRoutes.ledgerRepairs`)·플랫폼 분기(`kIsWeb`·`defaultTargetPlatform`·`Platform.`) 를 더했다 — ⑧ 양성 +9 · 음성 +3.
@@ -46,6 +49,7 @@ const List<String> _opsHomes = <String>[
   FixturePaths.m8OpsHomeNormal,
   FixturePaths.m8OpsHomeBlocked,
   FixturePaths.m8OpsHomeAdviceOpen,
+  FixturePaths.m8OpsHomeAdviceSuppressedDue,
   FixturePaths.m8OpsHomeAdviceZero,
   FixturePaths.m8OpsHomeResumeGap7,
 ];
@@ -222,7 +226,7 @@ void _say(String line) {
 }
 
 void main() {
-  group('C-47 원장 차이·정정 · 운영 리듬 · 알림 등급 (01 §21 · 계약 v1.12)', () {
+  group('C-47 원장 차이·정정 · 운영 리듬 · 알림 등급 (01 §21 · §23 · 계약 v1.12 · v1.13)', () {
     test('C-47 ① 허용 키 · DTO 필드 집합 == 목록', () {
       const Set<String> diffKeys = <String>{
         'diff_id',
@@ -609,6 +613,132 @@ void main() {
         AppRoutes.x2ResumeReport,
         reason: 'K44',
       );
+    });
+
+    test(
+      'C-47 ⑩ 대조 보드 — 칸 5 · 레벨 원천 · headline 늘 · 전부 일치 표본 (01 §23 · 계약 v1.13)',
+      () {
+        const Set<String> cellKeys = <String>{
+          'pair',
+          'label',
+          'applicable',
+          'state_code',
+          'state_label',
+          'level',
+        };
+        for (final String path in <String>[
+          FixturePaths.m8ReconBoardDiff,
+          FixturePaths.m8ReconBoardOk,
+        ]) {
+          for (final Object? c
+              in _rows(path).single['cells']! as List<Object?>) {
+            expect(
+              (c! as Map<String, Object?>).keys.toSet(),
+              cellKeys,
+              reason: '$path — 칸 키 = 6(🆕 level · K2)',
+            );
+          }
+        }
+        final DiagnosticsVm diff = DiagnosticsVm.fromJson(
+          _rows(FixturePaths.m8ReconBoardDiff).single,
+        );
+        final DiagnosticsVm ok = DiagnosticsVm.fromJson(
+          _rows(FixturePaths.m8ReconBoardOk).single,
+        );
+        expect(diff.cells.first.toJson().keys.toSet(), cellKeys);
+        for (final (String name, DiagnosticsVm vm) in <(String, DiagnosticsVm)>[
+          ('diff', diff),
+          ('ok', ok),
+        ]) {
+          expect(vm.cells, hasLength(5), reason: '$name — 칸 수 5 고정(§2-9)');
+          expect(
+            vm.cells.map((DiagnosticCell c) => c.pair).toSet(),
+            LedgerPair.values.toSet(),
+            reason: '$name — 칸 = 쌍 5값 전수',
+          );
+          for (final DiagnosticCell c in vm.cells) {
+            if (!c.applicable) {
+              expect(
+                c.level,
+                UiLevel.info,
+                reason:
+                    '$name ${c.pair} — 해당 없음 = info(통과·차단으로 그리지 않는다 · K3 ⓐ)',
+              );
+            }
+            if (c.level == UiLevel.blocked) {
+              expect(
+                <LedgerPair>{
+                  LedgerPair.canonBroker,
+                  LedgerPair.canonSelfReport,
+                },
+                contains(c.pair),
+                reason: '$name ${c.pair} — 파생 불일치는 주문을 막지 않는다(K3 ⓑ · X5 ①)',
+              );
+            }
+            expect(c.stateLabel.trim(), isNotEmpty, reason: '$name ${c.pair}');
+          }
+          expect(
+            vm.headline.trim(),
+            isNotEmpty,
+            reason: '$name — headline = 늘 엔진 문장(K4)',
+          );
+        }
+        expect(
+          ok.headline,
+          isNot(diff.headline),
+          reason: '전부 일치 날의 문장은 따로 온다(K4)',
+        );
+        expect(
+          ok.cells
+              .where((DiagnosticCell c) => c.applicable)
+              .every((DiagnosticCell c) => c.level == UiLevel.ok),
+          isTrue,
+          reason: 'ok — 점검한 칸 전부 일치(K5)',
+        );
+        expect(ok.cells.any((DiagnosticCell c) => !c.applicable), isTrue);
+        expect(
+          diff.cells.any(
+            (DiagnosticCell c) => c.applicable && c.level != UiLevel.ok,
+          ),
+          isTrue,
+          reason: 'diff — 어긋난 칸이 있다(K6)',
+        );
+        expect(
+          <LedgerPair, String>{
+            for (final DiagnosticCell c in ok.cells) c.pair: c.label,
+          },
+          <LedgerPair, String>{
+            for (final DiagnosticCell c in diff.cells) c.pair: c.label,
+          },
+          reason: '두 표본의 쌍 글자 사전은 한 벌이다',
+        );
+      },
+    );
+
+    test('C-47 ⑪ R13b 홈 참고 표본 — 억제 + 기한 · 배분 notice 두 갈래 (01 §23 · ⑭)', () {
+      final AdviceInboxSummary s = AdviceInboxSummary.fromJson(
+        _env(FixturePaths.m8OpsHomeAdviceSuppressedDue)['advice_summary']!
+            as Map<String, Object?>,
+      );
+      expect(s.hasSuppressedNotice, isTrue);
+      expect(s.openCount, isNot(0));
+      expect(
+        s.dueSoonLabel?.trim(),
+        isNotEmpty,
+        reason: '억제인데 기한 라벨이 실렸다 — 홈 3b 는 headline 한 줄만 그린다(K8)',
+      );
+      expect(s.headline.trim(), isNotEmpty);
+      expect(s.headline, isNot(s.dueSoonLabel));
+      final SleeveAllocationVm empty = SleeveAllocationVm.fromJson(
+        _rows(FixturePaths.m6AllocationEmpty).single,
+      );
+      final SleeveAllocationVm band = SleeveAllocationVm.fromJson(
+        _rows(FixturePaths.m6AllocationInBand).single,
+      );
+      expect(empty.noticeText, isNull, reason: 'K7 ⓐ — notice 없음 갈래');
+      expect(empty.rows, isEmpty);
+      expect(empty.emptyLabel, isNotNull);
+      expect(band.noticeText, isNotNull, reason: 'notice 있음 갈래');
     });
   });
 }
