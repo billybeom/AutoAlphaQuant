@@ -17,4 +17,45 @@
 /// ui_shell의 정적 UI 라벨 모음. 인스턴스를 만들지 않는다.
 abstract final class ShellLabels {
   // 예: static const String close = '닫기';
+
+  // ── 🆕 R13a — S-01·S-02 셸 · H-02 운영 리듬 ──────────────────────────────
+
+  // 탭 이름
+  static const String tabHome = '홈';
+  static const String tabJournal = '일지';
+  static const String tabHoldings = '보유';
+  static const String tabPlan = '계획';
+  static const String tabMore = '더보기';
+
+  // 접두·띠
+  static const String simPrefix = '모의투자';
+  static const String advisoryPrefix = '투자 안내';
+  static const String prefixSeparator = ' · ';
+
+  // 일지 탭 세그먼트
+  static const String segmentAdvice = '안내';
+  static const String segmentRecord = '기록';
+
+  // 웹 사이드바
+  static const String viewOnly = '조회 전용';
+  static const String sideHome = '운영 홈';
+  static const String sideJournal = '매매일지';
+  static const String sideHoldings = '보유현황';
+  static const String sideReports = '리포트·분석';
+  static const String sideHandbook = '핸드북';
+
+  // 가드 안내
+  static const String phoneOnly = '폰에서만 쓸 수 있습니다';
+  static const String journalDraftPhoneOnly = '사전 저널은 Android 운영 기기에서만 작성합니다';
+  static const String webAbsent = '웹에서는 아직 열 수 없습니다';
+  static const String advisoryOnly = '투자 안내 모드에서만 열 수 있습니다';
+  static const String unknownLink = '등록되지 않은 링크입니다';
+
+  // 공통
+  static const String staleBannerTitle = '오래된 데이터';
+  static const String retry = '다시 시도';
+
+  // H-02 운영 리듬 열 머리
+  static const String rhythmColumnItem = '항목';
+  static const String rhythmColumnNext = '다음 발생';
 }
