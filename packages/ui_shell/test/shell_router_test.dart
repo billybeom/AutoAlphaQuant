@@ -118,17 +118,13 @@ void main() {
         );
         final ShellGuard wantAndroid = advisoryWrite.contains(p)
             ? (mode == OperatingMode.advisory
-                ? ShellGuard.open
-                : ShellGuard.advisoryOnly)
+                  ? ShellGuard.open
+                  : ShellGuard.advisoryOnly)
             : ShellGuard.open;
         expect(android, wantAndroid);
 
         // iosViewer
-        final ShellGuard ios = shellGuardFor(
-          p,
-          ShellPlatform.iosViewer,
-          mode,
-        );
+        final ShellGuard ios = shellGuardFor(p, ShellPlatform.iosViewer, mode);
         final ShellGuard wantIos = p == AppRoutes.journalDraft
             ? ShellGuard.draftReadOnly
             : iosPhoneOnly.contains(p)
@@ -156,22 +152,11 @@ void main() {
   ];
 
   group('TR-05 android advisory guard', () {
-    const List<({
-      String name,
-      FeatureFlags flags,
-      bool wantGuard,
-    })> cases = <({String name, FeatureFlags flags, bool wantGuard})>[
-      (
-        name: 'auto',
-        flags: kFlagsLiveAuto,
-        wantGuard: true,
-      ),
-      (
-        name: 'advisory',
-        flags: kFlagsLiveAdvisory,
-        wantGuard: false,
-      ),
-    ];
+    const List<({String name, FeatureFlags flags, bool wantGuard})> cases =
+        <({String name, FeatureFlags flags, bool wantGuard})>[
+          (name: 'auto', flags: kFlagsLiveAuto, wantGuard: true),
+          (name: 'advisory', flags: kFlagsLiveAdvisory, wantGuard: false),
+        ];
 
     for (final c in cases) {
       testWidgets('TR-05 ${c.name}', (WidgetTester tester) async {
@@ -236,9 +221,7 @@ void main() {
     // journalDraft => draftReadOnly
     await openLink(tester, dummyLink(AppRoutes.journalDraft));
     expect(
-      tester
-          .widget<Text>(find.byKey(const Key('s01-guard')))
-          .data,
+      tester.widget<Text>(find.byKey(const Key('s01-guard'))).data,
       ShellLabels.journalDraftPhoneOnly,
     );
     expect(dummyOf(AppRoutes.journalRead), findsOneWidget);
@@ -260,9 +243,7 @@ void main() {
     for (final String p in iosPhoneOnlyPatterns) {
       await openLink(tester, dummyLink(p));
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('s01-guard')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('s01-guard'))).data,
         ShellLabels.phoneOnly,
       );
       expect(dummyOf(p), findsNothing);
@@ -289,10 +270,9 @@ void main() {
       size: const Size(1280, 800),
     );
     // 조회 전용 = 실전·자동에서도
-    expect(
-      shownTexts(tester, find.byKey(const Key('s02-view-only'))),
-      <String>[ShellLabels.viewOnly],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('s02-view-only'))), <String>[
+      ShellLabels.viewOnly,
+    ]);
 
     // webAbsent
     await openLink(tester, dummyLink(AppRoutes.adviceInbox));
@@ -346,13 +326,11 @@ void main() {
 
   // ── TR-08 back 동작 링크 ───────────────────────────────────────────────────
   group('TR-08 back action link', () {
-    const List<({
-      String name,
-      bool pushed,
-    })> cases = <({String name, bool pushed})>[
-      (name: 'pushed', pushed: true),
-      (name: 'root', pushed: false),
-    ];
+    const List<({String name, bool pushed})> cases =
+        <({String name, bool pushed})>[
+          (name: 'pushed', pushed: true),
+          (name: 'root', pushed: false),
+        ];
 
     for (final c in cases) {
       testWidgets('TR-08 ${c.name}', (WidgetTester tester) async {
@@ -403,46 +381,52 @@ void main() {
 
   // ── TR-09 미등록 · 핸드북 · 본문 없음 ─────────────────────────────────────
   group('TR-09 unknown handbook no-body', () {
-    final List<({
-      String name,
-      List<String> Function(List<String> log) bodiesFactory,
-      String link,
-      bool unknown,
-      bool handbook,
-      bool placeholder,
-    })> cases = <({
-      String name,
-      List<String> Function(List<String> log) bodiesFactory,
-      String link,
-      bool unknown,
-      bool handbook,
-      bool placeholder,
-    })>[
-      (
-        name: 'unknown',
-        bodiesFactory: (List<String> log) => AppRoutes.all,
-        link: 'aaq://nope/x',
-        unknown: true,
-        handbook: false,
-        placeholder: false,
-      ),
-      (
-        name: 'handbook',
-        bodiesFactory: (List<String> log) => AppRoutes.all,
-        link: 'handbook://sleeve-b',
-        unknown: false,
-        handbook: true,
-        placeholder: false,
-      ),
-      (
-        name: 'no_body',
-        bodiesFactory: (List<String> log) => const <String>[],
-        link: AppRoutes.reportArchive,
-        unknown: false,
-        handbook: false,
-        placeholder: true,
-      ),
-    ];
+    final List<
+      ({
+        String name,
+        List<String> Function(List<String> log) bodiesFactory,
+        String link,
+        bool unknown,
+        bool handbook,
+        bool placeholder,
+      })
+    >
+    cases =
+        <
+          ({
+            String name,
+            List<String> Function(List<String> log) bodiesFactory,
+            String link,
+            bool unknown,
+            bool handbook,
+            bool placeholder,
+          })
+        >[
+          (
+            name: 'unknown',
+            bodiesFactory: (List<String> log) => AppRoutes.all,
+            link: 'aaq://nope/x',
+            unknown: true,
+            handbook: false,
+            placeholder: false,
+          ),
+          (
+            name: 'handbook',
+            bodiesFactory: (List<String> log) => AppRoutes.all,
+            link: 'handbook://sleeve-b',
+            unknown: false,
+            handbook: true,
+            placeholder: false,
+          ),
+          (
+            name: 'no_body',
+            bodiesFactory: (List<String> log) => const <String>[],
+            link: AppRoutes.reportArchive,
+            unknown: false,
+            handbook: false,
+            placeholder: true,
+          ),
+        ];
 
     for (final c in cases) {
       testWidgets('TR-09 ${c.name}', (WidgetTester tester) async {
@@ -493,46 +477,29 @@ void main() {
         platform: ShellPlatform.androidOperator,
         config: flagsOf(kFlagsLiveAuto),
         alerts: alertsOf(const <AlertItem>[]),
-        bodies: dummyBodies(
-          <String>[AppRoutes.performanceExplore],
-          log,
-        ),
+        bodies: dummyBodies(<String>[AppRoutes.performanceExplore], log),
       ),
     );
     await openLink(tester, AppRoutes.performanceExplore);
     await openLink(tester, AppNavActions.back);
     await openLink(tester, AppRoutes.performanceExplore);
-    expect(
-      log,
-      <String>[
-        AppRoutes.performanceExplore,
-        AppRoutes.performanceExplore,
-      ],
-    );
+    expect(log, <String>[
+      AppRoutes.performanceExplore,
+      AppRoutes.performanceExplore,
+    ]);
   });
 
   // ── TR-11 전 라우트 모의투자·안내 접두 ────────────────────────────────────
-  const List<({
-    String name,
-    ShellPlatform platform,
-    Size size,
-  })> platformCases = <({String name, ShellPlatform platform, Size size})>[
-    (
-      name: 'android',
-      platform: ShellPlatform.androidOperator,
-      size: Size(390, 844),
-    ),
-    (
-      name: 'ios',
-      platform: ShellPlatform.iosViewer,
-      size: Size(390, 844),
-    ),
-    (
-      name: 'web',
-      platform: ShellPlatform.web,
-      size: Size(1280, 800),
-    ),
-  ];
+  const List<({String name, ShellPlatform platform, Size size})> platformCases =
+      <({String name, ShellPlatform platform, Size size})>[
+        (
+          name: 'android',
+          platform: ShellPlatform.androidOperator,
+          size: Size(390, 844),
+        ),
+        (name: 'ios', platform: ShellPlatform.iosViewer, size: Size(390, 844)),
+        (name: 'web', platform: ShellPlatform.web, size: Size(1280, 800)),
+      ];
 
   for (final pc in platformCases) {
     testWidgets('TR-11 all routes band ${pc.name}', (
@@ -551,14 +518,12 @@ void main() {
       );
       for (final String p in AppRoutes.all) {
         await openLink(tester, dummyLink(p));
+        expect(shownTexts(tester, find.byKey(const Key('s01-band'))), <String>[
+          ShellLabels.simPrefix,
+          ShellLabels.advisoryPrefix,
+        ]);
         expect(
-          shownTexts(tester, find.byKey(const Key('s01-band'))),
-          <String>[ShellLabels.simPrefix, ShellLabels.advisoryPrefix],
-        );
-        expect(
-          tester
-              .widget<Text>(find.byKey(const Key('s01-title')))
-              .data,
+          tester.widget<Text>(find.byKey(const Key('s01-title'))).data,
           shellTitle(kFlagsSimAdvisory, null),
         );
         await openLink(tester, AppNavActions.back);

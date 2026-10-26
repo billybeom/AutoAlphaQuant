@@ -106,10 +106,9 @@ class FakeShellOpsSummaryRepository extends UnimplementedOpsSummaryRepository {
 
 // ── Factory helpers ────────────────────────────────────────────────────────────
 
-FakeShellConfigRepository flagsOf(FeatureFlags f) =>
-    FakeShellConfigRepository(
-      flags: (int call) => Stream<FeatureFlags>.value(f),
-    );
+FakeShellConfigRepository flagsOf(FeatureFlags f) => FakeShellConfigRepository(
+  flags: (int call) => Stream<FeatureFlags>.value(f),
+);
 
 FakeShellAlertRepository alertsOf(List<AlertItem> items) =>
     FakeShellAlertRepository(
@@ -153,18 +152,16 @@ Finder dummyOf(String pattern) =>
     find.byKey(ValueKey<String>('dummy $pattern'));
 
 ShellRouteBodies dummyBodies(List<String> patterns, List<String> log) =>
-    ShellRouteBodies(
-      <String, ShellBodyBuilder>{
-        for (final String p in patterns)
-          p: (Map<String, String> params) =>
-              DummyBody(tag: p, params: params, log: log),
-      },
-    );
+    ShellRouteBodies(<String, ShellBodyBuilder>{
+      for (final String p in patterns)
+        p: (Map<String, String> params) =>
+            DummyBody(tag: p, params: params, log: log),
+    });
 
 String dummyLink(String pattern) => <String>[
-      for (final (int i, String s) in pattern.split('/').indexed)
-        s.startsWith(':') ? 'p$i' : s,
-    ].join('/');
+  for (final (int i, String s) in pattern.split('/').indexed)
+    s.startsWith(':') ? 'p$i' : s,
+].join('/');
 
 Map<String, String> dummyParams(String pattern) =>
     Map<String, String>.fromEntries(
@@ -191,8 +188,9 @@ List<Override> shellOverrides({
   shellAlertRepositoryProvider.overrideWithValue(alerts),
   shellRouteBodiesProvider.overrideWithValue(bodies),
   shellClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-  shellOpsSummaryRepositoryProvider
-      .overrideWithValue(UnimplementedOpsSummaryRepository()),
+  shellOpsSummaryRepositoryProvider.overrideWithValue(
+    UnimplementedOpsSummaryRepository(),
+  ),
 ];
 
 Future<void> pumpShell(
@@ -208,10 +206,7 @@ Future<void> pumpShell(
   await tester.pumpWidget(
     ProviderScope(
       overrides: overrides,
-      child: const MaterialApp(
-        builder: _bandBuilder,
-        home: ShellRoot(),
-      ),
+      child: const MaterialApp(builder: _bandBuilder, home: ShellRoot()),
     ),
   );
   await tester.pump();
@@ -222,20 +217,18 @@ Widget _bandBuilder(BuildContext context, Widget? child) =>
     ShellBandOverlay(child: child ?? const SizedBox.shrink());
 
 AppLinkOpener shellOpener(WidgetTester tester) =>
-    ProviderScope.containerOf(
-      tester.element(find.byType(ShellRoot)),
-    ).read(shellLinkOpenerProvider);
+    ProviderScope.containerOf(tester.element(find.byType(ShellRoot)))
+        .read(shellLinkOpenerProvider);
 
 Future<void> openLink(WidgetTester tester, String link) async {
   shellOpener(tester).open(link);
   await tester.pumpAndSettle();
 }
 
-List<String?> shownTexts(WidgetTester tester, Finder of) =>
-    tester
-        .widgetList<Text>(find.descendant(of: of, matching: find.byType(Text)))
-        .map((Text t) => t.data)
-        .toList();
+List<String?> shownTexts(WidgetTester tester, Finder of) => tester
+    .widgetList<Text>(find.descendant(of: of, matching: find.byType(Text)))
+    .map((Text t) => t.data)
+    .toList();
 
 // ── H-02 helpers ───────────────────────────────────────────────────────────────
 
@@ -268,8 +261,11 @@ Future<void> pumpOpsRhythm(
   await tester.pump();
 }
 
-List<String> rhythmRowTexts(OpsRhythmRow r) =>
-    <String>[r.title, r.whenText, ?r.dDayText];
+List<String> rhythmRowTexts(OpsRhythmRow r) => <String>[
+  r.title,
+  r.whenText,
+  ?r.dDayText,
+];
 
 Set<String> rhythmAllowed(ListResult<OpsRhythmRow> v) => <String>{
   v.asOf.label,

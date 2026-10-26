@@ -46,8 +46,7 @@ abstract final class ShellLabels {
 
   // 가드 안내
   static const String phoneOnly = '폰에서만 쓸 수 있습니다';
-  static const String journalDraftPhoneOnly =
-      '사전 저널은 Android 운영 기기에서만 작성합니다';
+  static const String journalDraftPhoneOnly = '사전 저널은 Android 운영 기기에서만 작성합니다';
   static const String webAbsent = '웹에서는 아직 열 수 없습니다';
   static const String advisoryOnly = '투자 안내 모드에서만 열 수 있습니다';
   static const String unknownLink = '등록되지 않은 링크입니다';

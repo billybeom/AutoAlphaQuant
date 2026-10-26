@@ -74,11 +74,7 @@ class ShellSkeleton extends StatelessWidget {
 
 /// 에러 상태 — 재시도 버튼 + 선택적 기준일 레이블.
 class ShellErrorView extends StatelessWidget {
-  const ShellErrorView({
-    super.key,
-    required this.onRetry,
-    this.lastAsOfLabel,
-  });
+  const ShellErrorView({super.key, required this.onRetry, this.lastAsOfLabel});
 
   final VoidCallback onRetry;
   final String? lastAsOfLabel;

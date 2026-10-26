@@ -155,10 +155,7 @@ ShellGuard _webGuard(String pattern) {
 
 /// AppLinkOpener 구현 — Navigator push/pop + 홈 복귀.
 class ShellLinkOpener implements AppLinkOpener {
-  const ShellLinkOpener({
-    required this.navigatorKey,
-    required this.onHome,
-  });
+  const ShellLinkOpener({required this.navigatorKey, required this.onHome});
 
   final GlobalKey<NavigatorState> navigatorKey;
   final VoidCallback onHome;
@@ -189,16 +186,17 @@ class ShellLinkOpener implements AppLinkOpener {
   }
 }
 
-final Provider<AppLinkOpener> shellLinkOpenerProvider =
-    Provider<AppLinkOpener>((Ref ref) {
-  final GlobalKey<NavigatorState> key = ref.watch(shellNavigatorKeyProvider);
-  return ShellLinkOpener(
-    navigatorKey: key,
-    onHome: () {
-      ref.read(shellTabIndexProvider.notifier).state = 0;
-    },
-  );
-});
+final Provider<AppLinkOpener> shellLinkOpenerProvider = Provider<AppLinkOpener>(
+  (Ref ref) {
+    final GlobalKey<NavigatorState> key = ref.watch(shellNavigatorKeyProvider);
+    return ShellLinkOpener(
+      navigatorKey: key,
+      onHome: () {
+        ref.read(shellTabIndexProvider.notifier).state = 0;
+      },
+    );
+  },
+);
 
 // ── ShellRouteBody ─────────────────────────────────────────────────────────────
 
@@ -242,10 +240,7 @@ class ShellRouteBody extends ConsumerWidget {
       if (b == null) {
         return const ShellPlaceholder(key: Key('s01-placeholder'));
       }
-      return KeyedSubtree(
-        key: ValueKey<String>(link),
-        child: b(m.params),
-      );
+      return KeyedSubtree(key: ValueKey<String>(link), child: b(m.params));
     }
 
     return switch (g) {
@@ -302,9 +297,7 @@ class ShellLinkPage extends ConsumerWidget {
     );
     return Scaffold(
       appBar: AppBar(
-        title: title.isEmpty
-            ? null
-            : Text(title, key: const Key('s01-title')),
+        title: title.isEmpty ? null : Text(title, key: const Key('s01-title')),
       ),
       body: ShellRouteBody(link: link),
     );

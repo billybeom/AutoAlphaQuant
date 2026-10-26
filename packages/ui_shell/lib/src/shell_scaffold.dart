@@ -81,9 +81,8 @@ class _ShellNavigator extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Navigator(
       key: ref.watch(shellNavigatorKeyProvider),
-      onGenerateRoute: (RouteSettings s) => MaterialPageRoute<void>(
-        builder: (BuildContext c) => home,
-      ),
+      onGenerateRoute: (RouteSettings s) =>
+          MaterialPageRoute<void>(builder: (BuildContext c) => home),
     );
   }
 }
@@ -97,12 +96,12 @@ class _PhoneHome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final int index = ref.watch(shellTabIndexProvider);
     final FeatureFlags? flags = ref.watch(shellFlagsProvider).valueOrNull;
-    final bool p0 = ref
+    final bool p0 =
+        ref
             .watch(_shellAlertsProvider)
             .valueOrNull
             ?.any(
-              (AlertItem a) =>
-                  a.level == AlertLevel.p0 && a.ack?.acked != true,
+              (AlertItem a) => a.level == AlertLevel.p0 && a.ack?.acked != true,
             ) ??
         false;
     final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
@@ -244,8 +243,9 @@ class _WebFrame extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final int index = ref.watch(shellTabIndexProvider);
     final FeatureFlags? flags = ref.watch(shellFlagsProvider).valueOrNull;
-    final List<String> modes =
-        flags == null ? const <String>[] : shellModeLabels(flags);
+    final List<String> modes = flags == null
+        ? const <String>[]
+        : shellModeLabels(flags);
 
     return Material(
       child: Row(
@@ -364,8 +364,9 @@ class ShellBandOverlay extends ConsumerWidget {
       return child;
     }
     final ColorScheme cs = Theme.of(context).colorScheme;
-    final Color tone =
-        flags.runMode.isSim ? cs.tertiaryContainer : cs.primaryContainer;
+    final Color tone = flags.runMode.isSim
+        ? cs.tertiaryContainer
+        : cs.primaryContainer;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

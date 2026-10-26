@@ -39,9 +39,7 @@ void main() {
     );
     expect(
       tester
-          .widgetList<NavigationDestination>(
-            find.byType(NavigationDestination),
-          )
+          .widgetList<NavigationDestination>(find.byType(NavigationDestination))
           .map((NavigationDestination d) => d.label)
           .toList(),
       <String>[
@@ -97,54 +95,50 @@ void main() {
       AlertItem.fromJson,
     );
 
-    final List<({
-      String name,
-      FeatureFlags flags,
-      List<AlertItem> alerts,
-      bool want,
-    })> cases = <({
-      String name,
-      FeatureFlags flags,
-      List<AlertItem> alerts,
-      bool want,
-    })>[
-      (
-        name: 'p0_unacked',
-        flags: kFlagsLiveAuto,
-        alerts: alerts12.rows,
-        want: true,
-      ),
-      (
-        name: 'p0_unacked_advisory',
-        flags: kFlagsLiveAdvisory,
-        alerts: alerts12.rows,
-        want: true,
-      ),
-      (
-        name: 'p0_mixed',
-        flags: kFlagsLiveAuto,
-        alerts: p0Ack.rows,
-        want: true,
-      ),
-      (
-        name: 'p0_acked_only',
-        flags: kFlagsLiveAuto,
-        alerts: <AlertItem>[p0Ack.rows[1]],
-        want: false,
-      ),
-      (
-        name: 'p1_only',
-        flags: kFlagsLiveAuto,
-        alerts: <AlertItem>[alerts12.rows[3]],
-        want: false,
-      ),
-      (
-        name: 'p2_digest',
-        flags: kFlagsLiveAuto,
-        alerts: digest.rows,
-        want: false,
-      ),
-    ];
+    final List<
+      ({String name, FeatureFlags flags, List<AlertItem> alerts, bool want})
+    >
+    cases =
+        <
+          ({String name, FeatureFlags flags, List<AlertItem> alerts, bool want})
+        >[
+          (
+            name: 'p0_unacked',
+            flags: kFlagsLiveAuto,
+            alerts: alerts12.rows,
+            want: true,
+          ),
+          (
+            name: 'p0_unacked_advisory',
+            flags: kFlagsLiveAdvisory,
+            alerts: alerts12.rows,
+            want: true,
+          ),
+          (
+            name: 'p0_mixed',
+            flags: kFlagsLiveAuto,
+            alerts: p0Ack.rows,
+            want: true,
+          ),
+          (
+            name: 'p0_acked_only',
+            flags: kFlagsLiveAuto,
+            alerts: <AlertItem>[p0Ack.rows[1]],
+            want: false,
+          ),
+          (
+            name: 'p1_only',
+            flags: kFlagsLiveAuto,
+            alerts: <AlertItem>[alerts12.rows[3]],
+            want: false,
+          ),
+          (
+            name: 'p2_digest',
+            flags: kFlagsLiveAuto,
+            alerts: digest.rows,
+            want: false,
+          ),
+        ];
 
     for (final c in cases) {
       testWidgets('TS-02 ${c.name}', (WidgetTester tester) async {
@@ -166,10 +160,7 @@ void main() {
           find.byKey(const Key('s01-p0-dot')),
           c.want ? findsOneWidget : findsNothing,
         );
-        expect(
-          find.byType(Badge),
-          c.want ? findsOneWidget : findsNothing,
-        );
+        expect(find.byType(Badge), c.want ? findsOneWidget : findsNothing);
         expect(find.text(ShellLabels.retry), findsNothing);
       });
     }
@@ -177,52 +168,55 @@ void main() {
 
   // ── TS-03 탭 전환 = 상태 보존 + 홈 칸 ────────────────────────────────────
   group('TS-03 tab switch state preservation', () {
-    final List<({
-      String name,
-      FeatureFlags flags,
-      List<String> first,
-    })> cases = <({String name, FeatureFlags flags, List<String> first})>[
-      (
-        name: 'auto',
-        flags: kFlagsLiveAuto,
-        first: <String>[
-          kHomeTag,
-          AppRoutes.journalTimeline,
-          AppRoutes.holdingsOverview,
-        ],
-      ),
-      (
-        name: 'advisory',
-        flags: kFlagsLiveAdvisory,
-        first: <String>[
-          kHomeTag,
-          AppRoutes.adviceInbox,
-          AppRoutes.journalTimeline,
-          AppRoutes.holdingsOverview,
-        ],
-      ),
-    ];
+    final List<({String name, FeatureFlags flags, List<String> first})> cases =
+        <({String name, FeatureFlags flags, List<String> first})>[
+          (
+            name: 'auto',
+            flags: kFlagsLiveAuto,
+            first: <String>[
+              kHomeTag,
+              AppRoutes.journalTimeline,
+              AppRoutes.holdingsOverview,
+            ],
+          ),
+          (
+            name: 'advisory',
+            flags: kFlagsLiveAdvisory,
+            first: <String>[
+              kHomeTag,
+              AppRoutes.adviceInbox,
+              AppRoutes.journalTimeline,
+              AppRoutes.holdingsOverview,
+            ],
+          ),
+        ];
 
     for (final c in cases) {
       testWidgets('TS-03 ${c.name}', (WidgetTester tester) async {
         final List<String> log = <String>[];
         final ShellRouteBodies bodies = ShellRouteBodies(
           dummyBodies(AppRoutes.all, log).byPattern,
-          home: (BuildContext ctx) =>
-              DummyBody(tag: kHomeTag, params: const <String, String>{}, log: log),
+          home: (BuildContext ctx) => DummyBody(
+            tag: kHomeTag,
+            params: const <String, String>{},
+            log: log,
+          ),
         );
         await pumpShell(
           tester,
           overrides: <Override>[
-            shellPlatformProvider
-                .overrideWithValue(ShellPlatform.androidOperator),
+            shellPlatformProvider.overrideWithValue(
+              ShellPlatform.androidOperator,
+            ),
             shellConfigRepositoryProvider.overrideWithValue(flagsOf(c.flags)),
-            shellAlertRepositoryProvider
-                .overrideWithValue(alertsOf(const <AlertItem>[])),
+            shellAlertRepositoryProvider.overrideWithValue(
+              alertsOf(const <AlertItem>[]),
+            ),
             shellRouteBodiesProvider.overrideWithValue(bodies),
             shellClockProvider.overrideWithValue(FixedClock(kGoldenNowUtc)),
-            shellOpsSummaryRepositoryProvider
-                .overrideWithValue(UnimplementedOpsSummaryRepository()),
+            shellOpsSummaryRepositoryProvider.overrideWithValue(
+              UnimplementedOpsSummaryRepository(),
+            ),
           ],
         );
         expect(log, c.first);
@@ -255,14 +249,11 @@ void main() {
 
   // ── TS-04 일지 세그먼트 ────────────────────────────────────────────────────
   group('TS-04 journal segment', () {
-    final List<({
-      String name,
-      FeatureFlags flags,
-      bool advisory,
-    })> cases = <({String name, FeatureFlags flags, bool advisory})>[
-      (name: 'advisory', flags: kFlagsLiveAdvisory, advisory: true),
-      (name: 'auto', flags: kFlagsLiveAuto, advisory: false),
-    ];
+    final List<({String name, FeatureFlags flags, bool advisory})> cases =
+        <({String name, FeatureFlags flags, bool advisory})>[
+          (name: 'advisory', flags: kFlagsLiveAdvisory, advisory: true),
+          (name: 'auto', flags: kFlagsLiveAuto, advisory: false),
+        ];
 
     for (final c in cases) {
       testWidgets('TS-04 ${c.name}', (WidgetTester tester) async {
@@ -313,36 +304,33 @@ void main() {
 
   // ── TS-05 띠·접두 4조합 + 증권사 모의 ───────────────────────────────────
   group('TS-05 band prefix combos', () {
-    final List<({
-      String name,
-      FeatureFlags flags,
-      List<String> want,
-    })> cases = <({String name, FeatureFlags flags, List<String> want})>[
-      (name: 'live_auto', flags: kFlagsLiveAuto, want: const <String>[]),
-      (
-        name: 'sim_auto',
-        flags: kFlagsSimAuto,
-        want: const <String>[ShellLabels.simPrefix],
-      ),
-      (
-        name: 'sim_broker_auto',
-        flags: kFlagsBrokerAuto,
-        want: const <String>[ShellLabels.simPrefix],
-      ),
-      (
-        name: 'live_advisory',
-        flags: kFlagsLiveAdvisory,
-        want: const <String>[ShellLabels.advisoryPrefix],
-      ),
-      (
-        name: 'sim_advisory',
-        flags: kFlagsSimAdvisory,
-        want: const <String>[
-          ShellLabels.simPrefix,
-          ShellLabels.advisoryPrefix,
-        ],
-      ),
-    ];
+    final List<({String name, FeatureFlags flags, List<String> want})> cases =
+        <({String name, FeatureFlags flags, List<String> want})>[
+          (name: 'live_auto', flags: kFlagsLiveAuto, want: const <String>[]),
+          (
+            name: 'sim_auto',
+            flags: kFlagsSimAuto,
+            want: const <String>[ShellLabels.simPrefix],
+          ),
+          (
+            name: 'sim_broker_auto',
+            flags: kFlagsBrokerAuto,
+            want: const <String>[ShellLabels.simPrefix],
+          ),
+          (
+            name: 'live_advisory',
+            flags: kFlagsLiveAdvisory,
+            want: const <String>[ShellLabels.advisoryPrefix],
+          ),
+          (
+            name: 'sim_advisory',
+            flags: kFlagsSimAdvisory,
+            want: const <String>[
+              ShellLabels.simPrefix,
+              ShellLabels.advisoryPrefix,
+            ],
+          ),
+        ];
 
     for (final c in cases) {
       testWidgets('TS-05 ${c.name}', (WidgetTester tester) async {
@@ -359,15 +347,13 @@ void main() {
           find.byKey(const Key('s01-band')),
           c.want.isEmpty ? findsNothing : findsOneWidget,
         );
-        expect(
-          shownTexts(tester, find.byKey(const Key('s01-band'))),
-          c.want,
-        );
+        expect(shownTexts(tester, find.byKey(const Key('s01-band'))), c.want);
         expect(
           tester.widget<Text>(find.byKey(const Key('s01-title'))).data,
-          <String>[...c.want, ShellLabels.tabHome].join(
-            ShellLabels.prefixSeparator,
-          ),
+          <String>[
+            ...c.want,
+            ShellLabels.tabHome,
+          ].join(ShellLabels.prefixSeparator),
         );
         expect(find.text(ShellLabels.retry), findsNothing);
       });
@@ -376,63 +362,68 @@ void main() {
 
   // ── TS-06 플래그 갈래 ──────────────────────────────────────────────────────
   group('TS-06 flags branches', () {
-    final List<({
-      String name,
-      FakeShellConfigRepository Function() configFactory,
-      bool skeleton,
-      bool error,
-      bool shell,
-      bool checkDy,
-    })> cases = <({
-      String name,
-      FakeShellConfigRepository Function() configFactory,
-      bool skeleton,
-      bool error,
-      bool shell,
-      bool checkDy,
-    })>[
-      (
-        name: 'loading',
-        configFactory: () => FakeShellConfigRepository(
-          flags: (int call) => StreamController<FeatureFlags>().stream,
-        ),
-        skeleton: true,
-        error: false,
-        shell: false,
-        checkDy: true,
-      ),
-      (
-        name: 'fail',
-        configFactory: () => FakeShellConfigRepository(
-          flags: (int call) =>
-              call == 0
+    final List<
+      ({
+        String name,
+        FakeShellConfigRepository Function() configFactory,
+        bool skeleton,
+        bool error,
+        bool shell,
+        bool checkDy,
+      })
+    >
+    cases =
+        <
+          ({
+            String name,
+            FakeShellConfigRepository Function() configFactory,
+            bool skeleton,
+            bool error,
+            bool shell,
+            bool checkDy,
+          })
+        >[
+          (
+            name: 'loading',
+            configFactory: () => FakeShellConfigRepository(
+              flags: (int call) => StreamController<FeatureFlags>().stream,
+            ),
+            skeleton: true,
+            error: false,
+            shell: false,
+            checkDy: true,
+          ),
+          (
+            name: 'fail',
+            configFactory: () => FakeShellConfigRepository(
+              flags: (int call) => call == 0
                   ? Stream<FeatureFlags>.error(StateError('fail'))
                   : Stream<FeatureFlags>.value(kFlagsLiveAuto),
-        ),
-        skeleton: false,
-        error: true,
-        shell: false,
-        checkDy: true,
-      ),
-      (
-        name: 'normal',
-        configFactory: () => flagsOf(kFlagsLiveAuto),
-        skeleton: false,
-        error: false,
-        shell: true,
-        checkDy: true,
-      ),
-      (
-        name: 'value_then_fail',
-        configFactory: () => FakeShellConfigRepository(
-          flags: (int call) => valueThenFail(kFlagsSimAuto),
-        ),
-        skeleton: false,
-        error: false,
-        shell: true,
-        checkDy: false,
-      ),
-    ];
+            ),
+            skeleton: false,
+            error: true,
+            shell: false,
+            checkDy: true,
+          ),
+          (
+            name: 'normal',
+            configFactory: () => flagsOf(kFlagsLiveAuto),
+            skeleton: false,
+            error: false,
+            shell: true,
+            checkDy: true,
+          ),
+          (
+            name: 'value_then_fail',
+            configFactory: () => FakeShellConfigRepository(
+              flags: (int call) => valueThenFail(kFlagsSimAuto),
+            ),
+            skeleton: false,
+            error: false,
+            shell: true,
+            checkDy: false,
+          ),
+        ];
 
     for (final c in cases) {
       testWidgets('TS-06 ${c.name}', (WidgetTester tester) async {
@@ -476,14 +467,8 @@ void main() {
         if (c.name == 'value_then_fail') {
           // 셸 유지 + 띠 칩 simPrefix
           expect(find.text(ShellLabels.simPrefix), findsOneWidget);
-          expect(
-            find.byType(CircularProgressIndicator),
-            findsNothing,
-          );
-          expect(
-            find.byType(LinearProgressIndicator),
-            findsNothing,
-          );
+          expect(find.byType(CircularProgressIndicator), findsNothing);
+          expect(find.byType(LinearProgressIndicator), findsNothing);
         }
       });
     }
@@ -502,24 +487,20 @@ void main() {
       ),
       size: const Size(1280, 800),
     );
-    expect(
-      shownTexts(tester, find.byKey(const Key('s02-sidebar'))),
-      <String>[
-        ShellLabels.viewOnly,
-        ShellLabels.simPrefix,
-        ShellLabels.advisoryPrefix,
-        ShellLabels.sideHome,
-        ShellLabels.sideJournal,
-        ShellLabels.sideHoldings,
-        ShellLabels.sideReports,
-        ShellLabels.sideHandbook,
-      ],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('s02-sidebar'))), <String>[
+      ShellLabels.viewOnly,
+      ShellLabels.simPrefix,
+      ShellLabels.advisoryPrefix,
+      ShellLabels.sideHome,
+      ShellLabels.sideJournal,
+      ShellLabels.sideHoldings,
+      ShellLabels.sideReports,
+      ShellLabels.sideHandbook,
+    ]);
     expect(find.byKey(const ValueKey<String>('s02-item-5')), findsNothing);
-    expect(
-      shownTexts(tester, find.byKey(const Key('s02-view-only'))),
-      <String>[ShellLabels.viewOnly],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('s02-view-only'))), <String>[
+      ShellLabels.viewOnly,
+    ]);
     expect(
       shownTexts(tester, find.byKey(const Key('s02-mode-chips'))),
       <String>[ShellLabels.simPrefix, ShellLabels.advisoryPrefix],
@@ -554,22 +535,11 @@ void main() {
       AlertItem.fromJson,
     );
 
-    final List<({
-      String name,
-      FeatureFlags flags,
-      Size size,
-    })> cases = <({String name, FeatureFlags flags, Size size})>[
-      (
-        name: 'phone',
-        flags: kFlagsSimAdvisory,
-        size: const Size(390, 844),
-      ),
-      (
-        name: 'web',
-        flags: kFlagsSimAdvisory,
-        size: const Size(1280, 800),
-      ),
-    ];
+    final List<({String name, FeatureFlags flags, Size size})> cases =
+        <({String name, FeatureFlags flags, Size size})>[
+          (name: 'phone', flags: kFlagsSimAdvisory, size: const Size(390, 844)),
+          (name: 'web', flags: kFlagsSimAdvisory, size: const Size(1280, 800)),
+        ];
 
     for (final c in cases) {
       testWidgets('TS-08 large font ${c.name}', (WidgetTester tester) async {

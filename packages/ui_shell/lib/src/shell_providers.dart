@@ -34,35 +34,43 @@ class ShellRouteBodies {
 
 // ── Injection providers ────────────────────────────────────────────────────────
 
-final Provider<ShellPlatform> shellPlatformProvider =
-    Provider<ShellPlatform>(
-      (Ref ref) => throw UnimplementedError('shellPlatformProvider must be overridden'),
-    );
+final Provider<ShellPlatform> shellPlatformProvider = Provider<ShellPlatform>(
+  (Ref ref) =>
+      throw UnimplementedError('shellPlatformProvider must be overridden'),
+);
 
 final Provider<ShellRouteBodies> shellRouteBodiesProvider =
     Provider<ShellRouteBodies>(
-      (Ref ref) => throw UnimplementedError('shellRouteBodiesProvider must be overridden'),
+      (Ref ref) => throw UnimplementedError(
+        'shellRouteBodiesProvider must be overridden',
+      ),
     );
 
 final Provider<ConfigRepository> shellConfigRepositoryProvider =
     Provider<ConfigRepository>(
-      (Ref ref) => throw UnimplementedError('shellConfigRepositoryProvider must be overridden'),
+      (Ref ref) => throw UnimplementedError(
+        'shellConfigRepositoryProvider must be overridden',
+      ),
     );
 
 final Provider<AlertRepository> shellAlertRepositoryProvider =
     Provider<AlertRepository>(
-      (Ref ref) => throw UnimplementedError('shellAlertRepositoryProvider must be overridden'),
+      (Ref ref) => throw UnimplementedError(
+        'shellAlertRepositoryProvider must be overridden',
+      ),
     );
 
 final Provider<OpsSummaryRepository> shellOpsSummaryRepositoryProvider =
     Provider<OpsSummaryRepository>(
-      (Ref ref) => throw UnimplementedError('shellOpsSummaryRepositoryProvider must be overridden'),
+      (Ref ref) => throw UnimplementedError(
+        'shellOpsSummaryRepositoryProvider must be overridden',
+      ),
     );
 
-final Provider<Clock> shellClockProvider =
-    Provider<Clock>(
-      (Ref ref) => throw UnimplementedError('shellClockProvider must be overridden'),
-    );
+final Provider<Clock> shellClockProvider = Provider<Clock>(
+  (Ref ref) =>
+      throw UnimplementedError('shellClockProvider must be overridden'),
+);
 
 // ── Shell state providers ──────────────────────────────────────────────────────
 
@@ -71,8 +79,9 @@ final Provider<GlobalKey<NavigatorState>> shellNavigatorKeyProvider =
       (Ref ref) => GlobalKey<NavigatorState>(),
     );
 
-final StateProvider<int> shellTabIndexProvider =
-    StateProvider<int>((Ref ref) => 0);
+final StateProvider<int> shellTabIndexProvider = StateProvider<int>(
+  (Ref ref) => 0,
+);
 
 // ── Data provider ──────────────────────────────────────────────────────────────
 
@@ -94,8 +103,7 @@ List<String> shellModeLabels(FeatureFlags flags) {
 }
 
 /// 앱바 제목 = 접두들 + 제목(없으면 접두만) — 이음 = ShellLabels.prefixSeparator.
-String shellTitle(FeatureFlags? flags, String? title) =>
-    <String>[
-      ...?(flags == null ? null : shellModeLabels(flags)),
-      ?title,
-    ].join(ShellLabels.prefixSeparator);
+String shellTitle(FeatureFlags? flags, String? title) => <String>[
+  ...?(flags == null ? null : shellModeLabels(flags)),
+  ?title,
+].join(ShellLabels.prefixSeparator);

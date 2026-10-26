@@ -43,16 +43,15 @@ void main() {
       overrides: opsRhythmOverrides(ops: ops, opener: opener, clock: clock),
     );
     expect(ops.rhythmCalls, 1);
-    expect(
-      shownTexts(tester, find.byKey(const Key('h02-asof'))),
-      <String>[rows.asOf.label],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('h02-asof'))), <String>[
+      rows.asOf.label,
+    ]);
     expect(rows.emptyLabel, isNull); // pre
     expect(find.byKey(const Key('h02-empty')), findsNothing);
-    expect(
-      shownTexts(tester, find.byKey(const Key('h02-head'))),
-      <String>[ShellLabels.rhythmColumnItem, ShellLabels.rhythmColumnNext],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('h02-head'))), <String>[
+      ShellLabels.rhythmColumnItem,
+      ShellLabels.rhythmColumnNext,
+    ]);
     expect(rows.rows, hasLength(5)); // ⓗ
     for (final (int i, OpsRhythmRow r) in rows.rows.indexed) {
       expect(
@@ -60,23 +59,17 @@ void main() {
         rhythmRowTexts(r),
       );
       expect(
-        tester
-            .widget<Text>(find.byKey(ValueKey<String>('h02-title-$i')))
-            .data,
+        tester.widget<Text>(find.byKey(ValueKey<String>('h02-title-$i'))).data,
         r.title,
       );
       expect(
-        tester
-            .widget<Text>(find.byKey(ValueKey<String>('h02-when-$i')))
-            .data,
+        tester.widget<Text>(find.byKey(ValueKey<String>('h02-when-$i'))).data,
         r.whenText,
       );
       final String? dDay = r.dDayText;
       if (dDay != null) {
         expect(
-          tester
-              .widget<Text>(find.byKey(ValueKey<String>('h02-dday-$i')))
-              .data,
+          tester.widget<Text>(find.byKey(ValueKey<String>('h02-dday-$i'))).data,
           dDay,
         );
       } else {
@@ -125,10 +118,9 @@ void main() {
       await tester.tap(find.byKey(ValueKey<String>('h02-title-$i')));
       await tester.pump();
     }
-    expect(
-      opener.opened,
-      <String>[for (final OpsRhythmRow r in rows.rows) r.route!],
-    );
+    expect(opener.opened, <String>[
+      for (final OpsRhythmRow r in rows.rows) r.route!,
+    ]);
     expect(find.text(ShellLabels.retry), findsNothing);
   });
 
@@ -144,29 +136,20 @@ void main() {
       tester,
       overrides: opsRhythmOverrides(
         ops: FakeShellOpsSummaryRepository(
-          rhythm: (int call) =>
-              Stream<ListResult<OpsRhythmRow>>.value(noRoute),
+          rhythm: (int call) => Stream<ListResult<OpsRhythmRow>>.value(noRoute),
         ),
         opener: opener,
         clock: FixedClock(kGoldenNowUtc),
       ),
     );
-    expect(
-      find.byKey(const ValueKey<String>('h02-row-0')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey<String>('h02-dday-0')),
-      findsNothing,
-    );
+    expect(find.byKey(const ValueKey<String>('h02-row-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('h02-dday-0')), findsNothing);
     await tester.tap(find.byKey(const ValueKey<String>('h02-title-0')));
     await tester.pump();
     expect(opener.opened, <String>[]);
     expect(
       tester
-          .widget<InkWell>(
-            find.byKey(const ValueKey<String>('h02-row-0')),
-          )
+          .widget<InkWell>(find.byKey(const ValueKey<String>('h02-row-0')))
           .onTap,
       isNull,
     );
@@ -200,106 +183,114 @@ void main() {
     );
     expect(find.byKey(const Key('h02-head')), findsNothing);
     expect(find.byKey(const ValueKey<String>('h02-row-0')), findsNothing);
-    expect(
-      shownTexts(tester, find.byKey(const Key('h02-asof'))),
-      <String>[empty.asOf.label],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('h02-asof'))), <String>[
+      empty.asOf.label,
+    ]);
     expect(find.text(ShellLabels.retry), findsNothing);
   });
 
   // ── T02-05 갈래 × 상태 ────────────────────────────────────────────────────
   group('T02-05 state branches', () {
-    final List<({
-      String name,
-      FakeShellOpsSummaryRepository Function() opsFactory,
-      Clock clock,
-      bool skeleton,
-      bool error,
-      bool header,
-      bool stale,
-      bool row0,
-      String? wantEmpty,
-    })> cases = <({
-      String name,
-      FakeShellOpsSummaryRepository Function() opsFactory,
-      Clock clock,
-      bool skeleton,
-      bool error,
-      bool header,
-      bool stale,
-      bool row0,
-      String? wantEmpty,
-    })>[
-      (
-        name: 'loading',
-        opsFactory: () => FakeShellOpsSummaryRepository(
-          rhythm: (int call) =>
-              StreamController<ListResult<OpsRhythmRow>>().stream,
-        ),
-        clock: FixedClock(kGoldenNowUtc),
-        skeleton: true,
-        error: false,
-        header: false,
-        stale: false,
-        row0: false,
-        wantEmpty: null,
-      ),
-      (
-        name: 'fail',
-        opsFactory: () => FakeShellOpsSummaryRepository(
-          rhythm: (int call) =>
-              Stream<ListResult<OpsRhythmRow>>.error(StateError('fail')),
-        ),
-        clock: FixedClock(kGoldenNowUtc),
-        skeleton: false,
-        error: true,
-        header: false,
-        stale: false,
-        row0: false,
-        wantEmpty: null,
-      ),
-      (
-        name: 'normal',
-        opsFactory: () => FakeShellOpsSummaryRepository(
-          rhythm: (int call) => Stream<ListResult<OpsRhythmRow>>.value(rows),
-        ),
-        clock: FixedClock(kGoldenNowUtc),
-        skeleton: false,
-        error: false,
-        header: true,
-        stale: false,
-        row0: true,
-        wantEmpty: null,
-      ),
-      (
-        name: 'normal_stale',
-        opsFactory: () => FakeShellOpsSummaryRepository(
-          rhythm: (int call) => Stream<ListResult<OpsRhythmRow>>.value(rows),
-        ),
-        clock: FixedClock(
-          DateTime.utc(2026, 9, 3, 10), // kGoldenNowUtc + 3 days
-        ),
-        skeleton: false,
-        error: false,
-        header: true,
-        stale: true,
-        row0: true,
-        wantEmpty: null,
-      ),
-      (
-        name: 'not_loaded',
-        opsFactory: () => FakeShellOpsSummaryRepository(
-          rhythm: (int call) => Stream<ListResult<OpsRhythmRow>>.value(empty),
-        ),
-        clock: FixedClock(kGoldenNowUtc),
-        skeleton: false,
-        error: false,
-        header: true,
-        stale: false,
-        row0: false,
-        wantEmpty: empty.emptyLabel,
-      ),
-    ];
+    final List<
+      ({
+        String name,
+        FakeShellOpsSummaryRepository Function() opsFactory,
+        Clock clock,
+        bool skeleton,
+        bool error,
+        bool header,
+        bool stale,
+        bool row0,
+        String? wantEmpty,
+      })
+    >
+    cases =
+        <
+          ({
+            String name,
+            FakeShellOpsSummaryRepository Function() opsFactory,
+            Clock clock,
+            bool skeleton,
+            bool error,
+            bool header,
+            bool stale,
+            bool row0,
+            String? wantEmpty,
+          })
+        >[
+          (
+            name: 'loading',
+            opsFactory: () => FakeShellOpsSummaryRepository(
+              rhythm: (int call) =>
+                  StreamController<ListResult<OpsRhythmRow>>().stream,
+            ),
+            clock: FixedClock(kGoldenNowUtc),
+            skeleton: true,
+            error: false,
+            header: false,
+            stale: false,
+            row0: false,
+            wantEmpty: null,
+          ),
+          (
+            name: 'fail',
+            opsFactory: () => FakeShellOpsSummaryRepository(
+              rhythm: (int call) =>
+                  Stream<ListResult<OpsRhythmRow>>.error(StateError('fail')),
+            ),
+            clock: FixedClock(kGoldenNowUtc),
+            skeleton: false,
+            error: true,
+            header: false,
+            stale: false,
+            row0: false,
+            wantEmpty: null,
+          ),
+          (
+            name: 'normal',
+            opsFactory: () => FakeShellOpsSummaryRepository(
+              rhythm: (int call) =>
+                  Stream<ListResult<OpsRhythmRow>>.value(rows),
+            ),
+            clock: FixedClock(kGoldenNowUtc),
+            skeleton: false,
+            error: false,
+            header: true,
+            stale: false,
+            row0: true,
+            wantEmpty: null,
+          ),
+          (
+            name: 'normal_stale',
+            opsFactory: () => FakeShellOpsSummaryRepository(
+              rhythm: (int call) =>
+                  Stream<ListResult<OpsRhythmRow>>.value(rows),
+            ),
+            clock: FixedClock(
+              DateTime.utc(2026, 9, 3, 10), // kGoldenNowUtc + 3 days
+            ),
+            skeleton: false,
+            error: false,
+            header: true,
+            stale: true,
+            row0: true,
+            wantEmpty: null,
+          ),
+          (
+            name: 'not_loaded',
+            opsFactory: () => FakeShellOpsSummaryRepository(
+              rhythm: (int call) =>
+                  Stream<ListResult<OpsRhythmRow>>.value(empty),
+            ),
+            clock: FixedClock(kGoldenNowUtc),
+            skeleton: false,
+            error: false,
+            header: true,
+            stale: false,
+            row0: false,
+            wantEmpty: empty.emptyLabel,
+          ),
+        ];
 
     for (final c in cases) {
       testWidgets('T02-05 ${c.name}', (WidgetTester tester) async {
@@ -350,36 +341,40 @@ void main() {
 
   // ── T02-06 에러와 재시도 ──────────────────────────────────────────────────
   group('T02-06 error and retry', () {
-    final List<({
-      String name,
-      FakeShellOpsSummaryRepository Function() opsFactory,
-      String? wantLastAsOf,
-    })> cases = <({
-      String name,
-      FakeShellOpsSummaryRepository Function() opsFactory,
-      String? wantLastAsOf,
-    })>[
-      (
-        name: 'fail_then_rows',
-        opsFactory: () => FakeShellOpsSummaryRepository(
-          rhythm: (int call) =>
-              call == 0
+    final List<
+      ({
+        String name,
+        FakeShellOpsSummaryRepository Function() opsFactory,
+        String? wantLastAsOf,
+      })
+    >
+    cases =
+        <
+          ({
+            String name,
+            FakeShellOpsSummaryRepository Function() opsFactory,
+            String? wantLastAsOf,
+          })
+        >[
+          (
+            name: 'fail_then_rows',
+            opsFactory: () => FakeShellOpsSummaryRepository(
+              rhythm: (int call) => call == 0
                   ? Stream<ListResult<OpsRhythmRow>>.error(StateError('fail'))
                   : Stream<ListResult<OpsRhythmRow>>.value(rows),
-        ),
-        wantLastAsOf: null,
-      ),
-      (
-        name: 'value_then_fail',
-        opsFactory: () => FakeShellOpsSummaryRepository(
-          rhythm: (int call) =>
-              call == 0
+            ),
+            wantLastAsOf: null,
+          ),
+          (
+            name: 'value_then_fail',
+            opsFactory: () => FakeShellOpsSummaryRepository(
+              rhythm: (int call) => call == 0
                   ? valueThenFail(rows)
                   : Stream<ListResult<OpsRhythmRow>>.value(rows),
-        ),
-        wantLastAsOf: rows.asOf.label,
-      ),
-    ];
+            ),
+            wantLastAsOf: rows.asOf.label,
+          ),
+        ];
 
     for (final c in cases) {
       testWidgets('T02-06 ${c.name}', (WidgetTester tester) async {
@@ -412,13 +407,11 @@ void main() {
 
   // ── T02-07 화면 Text 전부 ─────────────────────────────────────────────────
   group('T02-07 all texts shown', () {
-    final List<({
-      String name,
-      ListResult<OpsRhythmRow> fixture,
-    })> cases = <({String name, ListResult<OpsRhythmRow> fixture})>[
-      (name: 'rows', fixture: rows),
-      (name: 'not_loaded', fixture: empty),
-    ];
+    final List<({String name, ListResult<OpsRhythmRow> fixture})> cases =
+        <({String name, ListResult<OpsRhythmRow> fixture})>[
+          (name: 'rows', fixture: rows),
+          (name: 'not_loaded', fixture: empty),
+        ];
 
     for (final c in cases) {
       testWidgets('T02-07 ${c.name}', (WidgetTester tester) async {

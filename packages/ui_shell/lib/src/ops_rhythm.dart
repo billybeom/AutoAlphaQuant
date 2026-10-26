@@ -18,8 +18,7 @@ import 'shell_providers.dart';
 
 final StreamProvider<ListResult<OpsRhythmRow>> _rhythmProvider =
     StreamProvider<ListResult<OpsRhythmRow>>(
-      (Ref ref) =>
-          ref.watch(shellOpsSummaryRepositoryProvider).watchRhythm(),
+      (Ref ref) => ref.watch(shellOpsSummaryRepositoryProvider).watchRhythm(),
     );
 
 // ── OpsRhythm ──────────────────────────────────────────────────────────────────
@@ -30,8 +29,9 @@ class OpsRhythm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<ListResult<OpsRhythmRow>> rhythm =
-        ref.watch(_rhythmProvider);
+    final AsyncValue<ListResult<OpsRhythmRow>> rhythm = ref.watch(
+      _rhythmProvider,
+    );
 
     if (rhythm.hasError) {
       return ShellErrorView(
