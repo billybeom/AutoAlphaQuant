@@ -79,17 +79,18 @@ void main() {
     expect(find.byKey(const ValueKey<String>('h02-row-5')), findsNothing);
 
     // 사슬 dy
-    final double dyAsof = tester
-        .getBottomLeft(find.byKey(const Key('h02-asof')))
-        .dy;
-    final double dyHead = tester
-        .getTopLeft(find.byKey(const Key('h02-head')))
-        .dy;
-    final double dyRow0 = tester
-        .getTopLeft(find.byKey(const ValueKey<String>('h02-row-0')))
-        .dy;
-    expect(dyHead, greaterThanOrEqualTo(dyAsof));
-    expect(dyRow0, greaterThanOrEqualTo(dyHead));
+    final List<Finder> chain = <Finder>[
+      find.byKey(const Key('h02-asof')),
+      find.byKey(const Key('h02-head')),
+      for (final (int i, OpsRhythmRow _) in rows.rows.indexed)
+        find.byKey(ValueKey<String>('h02-row-$i')),
+    ];
+    for (int i = 1; i < chain.length; i++) {
+      expect(
+        tester.getTopLeft(chain[i - 1]).dy,
+        lessThan(tester.getTopLeft(chain[i]).dy),
+      );
+    }
 
     // 승인·확인 버튼 0
     expect(find.byType(FilledButton), findsNothing);
@@ -220,10 +221,16 @@ void main() {
         >[
           (
             name: 'loading',
-            opsFactory: () => FakeShellOpsSummaryRepository(
-              rhythm: (int call) =>
-                  StreamController<ListResult<OpsRhythmRow>>().stream,
-            ),
+            opsFactory: () {
+              final StreamController<ListResult<OpsRhythmRow>> ctrl =
+                  StreamController<ListResult<OpsRhythmRow>>();
+              addTearDown(() {
+                unawaited(ctrl.close());
+              });
+              return FakeShellOpsSummaryRepository(
+                rhythm: (int call) => ctrl.stream,
+              );
+            },
             clock: FixedClock(kGoldenNowUtc),
             skeleton: true,
             error: false,
@@ -290,6 +297,20 @@ void main() {
             row0: false,
             wantEmpty: empty.emptyLabel,
           ),
+          (
+            name: 'not_loaded_stale',
+            opsFactory: () => FakeShellOpsSummaryRepository(
+              rhythm: (int call) =>
+                  Stream<ListResult<OpsRhythmRow>>.value(empty),
+            ),
+            clock: FixedClock(kGoldenNowUtc.add(const Duration(days: 2))),
+            skeleton: false,
+            error: false,
+            header: true,
+            stale: true,
+            row0: false,
+            wantEmpty: empty.emptyLabel,
+          ),
         ];
 
     for (final c in cases) {
@@ -321,6 +342,10 @@ void main() {
         expect(
           find.byKey(const ValueKey<String>('h02-row-0')),
           c.row0 ? findsOneWidget : findsNothing,
+        );
+        expect(
+          find.text(ShellLabels.retry),
+          c.error ? findsOneWidget : findsNothing,
         );
         // 빈 문장 (전제는 if 밖)
         expect(empty.emptyLabel, isNotNull); // pre

@@ -249,10 +249,53 @@ void main() {
 
   // ── TS-04 일지 세그먼트 ────────────────────────────────────────────────────
   group('TS-04 journal segment', () {
-    final List<({String name, FeatureFlags flags, bool advisory})> cases =
-        <({String name, FeatureFlags flags, bool advisory})>[
-          (name: 'advisory', flags: kFlagsLiveAdvisory, advisory: true),
-          (name: 'auto', flags: kFlagsLiveAuto, advisory: false),
+    final List<
+      ({
+        String name,
+        FeatureFlags flags,
+        bool advisory,
+        Future<void> Function(WidgetTester t) steps,
+      })
+    >
+    cases =
+        <
+          ({
+            String name,
+            FeatureFlags flags,
+            bool advisory,
+            Future<void> Function(WidgetTester t) steps,
+          })
+        >[
+          (
+            name: 'advisory',
+            flags: kFlagsLiveAdvisory,
+            advisory: true,
+            steps: (WidgetTester t) async {
+              expect(
+                t
+                    .widget<SegmentedButton<int>>(
+                      find.byKey(const Key('s01-segment')),
+                    )
+                    .selected,
+                <int>{0},
+              );
+              expect(dummyOf(AppRoutes.adviceInbox), findsOneWidget);
+              expect(dummyOf(AppRoutes.journalTimeline), findsNothing);
+              await t.tap(find.text(ShellLabels.segmentRecord));
+              await t.pump();
+              expect(dummyOf(AppRoutes.journalTimeline), findsOneWidget);
+            },
+          ),
+          (
+            name: 'auto',
+            flags: kFlagsLiveAuto,
+            advisory: false,
+            steps: (WidgetTester t) async {
+              expect(dummyOf(AppRoutes.journalTimeline), findsOneWidget);
+              expect(dummyOf(AppRoutes.adviceInbox), findsNothing);
+              expect(find.text(ShellLabels.segmentAdvice), findsNothing);
+            },
+          ),
         ];
 
     for (final c in cases) {
@@ -278,26 +321,8 @@ void main() {
           find.byKey(const Key('s01-segment')),
           c.advisory ? findsOneWidget : findsNothing,
         );
-        if (c.advisory) {
-          expect(
-            tester
-                .widget<SegmentedButton<int>>(
-                  find.byKey(const Key('s01-segment')),
-                )
-                .selected,
-            <int>{0},
-          );
-          expect(dummyOf(AppRoutes.adviceInbox), findsOneWidget);
-          expect(dummyOf(AppRoutes.journalTimeline), findsNothing);
-          await tester.tap(find.text(ShellLabels.segmentRecord));
-          await tester.pump();
-          expect(dummyOf(AppRoutes.journalTimeline), findsOneWidget);
-        } else {
-          expect(dummyOf(AppRoutes.journalTimeline), findsOneWidget);
-          expect(dummyOf(AppRoutes.adviceInbox), findsNothing);
-          expect(find.text(ShellLabels.segmentAdvice), findsNothing);
-          expect(find.text(ShellLabels.retry), findsNothing);
-        }
+        await c.steps(tester);
+        expect(find.text(ShellLabels.retry), findsNothing);
       });
     }
   });
@@ -385,9 +410,16 @@ void main() {
         >[
           (
             name: 'loading',
-            configFactory: () => FakeShellConfigRepository(
-              flags: (int call) => StreamController<FeatureFlags>().stream,
-            ),
+            configFactory: () {
+              final StreamController<FeatureFlags> ctrl =
+                  StreamController<FeatureFlags>();
+              addTearDown(() {
+                unawaited(ctrl.close());
+              });
+              return FakeShellConfigRepository(
+                flags: (int call) => ctrl.stream,
+              );
+            },
             skeleton: true,
             error: false,
             shell: false,
@@ -504,6 +536,7 @@ void main() {
     );
     expect(find.byKey(const Key('s02-kill-slot')), findsOneWidget);
     expect(find.byKey(const Key('s01-tabs')), findsNothing);
+    expect(find.byType(NavigationBar), findsNothing);
 
     // 사이드바 탭 1 => webAbsent
     await tester.tap(find.byKey(const ValueKey<String>('s02-item-1')));
@@ -532,10 +565,25 @@ void main() {
       AlertItem.fromJson,
     );
 
-    final List<({String name, FeatureFlags flags, Size size})> cases =
-        <({String name, FeatureFlags flags, Size size})>[
-          (name: 'phone', flags: kFlagsSimAdvisory, size: const Size(390, 844)),
-          (name: 'web', flags: kFlagsSimAdvisory, size: const Size(1280, 800)),
+    final List<
+      ({String name, ShellPlatform platform, FeatureFlags flags, Size size})
+    >
+    cases =
+        <
+          ({String name, ShellPlatform platform, FeatureFlags flags, Size size})
+        >[
+          (
+            name: 'phone',
+            platform: ShellPlatform.androidOperator,
+            flags: kFlagsSimAdvisory,
+            size: const Size(390, 844),
+          ),
+          (
+            name: 'web',
+            platform: ShellPlatform.web,
+            flags: kFlagsSimAdvisory,
+            size: const Size(1280, 800),
+          ),
         ];
 
     for (final c in cases) {
@@ -547,9 +595,7 @@ void main() {
         await pumpShell(
           tester,
           overrides: shellOverrides(
-            platform: c.name == 'web'
-                ? ShellPlatform.web
-                : ShellPlatform.androidOperator,
+            platform: c.platform,
             config: flagsOf(c.flags),
             alerts: alertsOf(alerts12.rows),
             bodies: dummyBodies(AppRoutes.all, <String>[]),

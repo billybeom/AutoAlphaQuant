@@ -51,13 +51,13 @@ void main() {
     expect(rows.rows, hasLength(5)); // ⓗ
     for (final OpsRhythmRow r in rows.rows) {
       expect(r.route, isNotNull); // pre
-      expect(AppRoutes.isRegistered(r.route!), isTrue); // pre
-      expect(matchShellRoute(r.route!)?.pattern, isNotNull); // pre
+      expect(AppRoutes.isRegistered(r.route!), isTrue);
+      expect(matchShellRoute(r.route!)?.pattern, isNotNull);
     }
     final OpsRhythmRow audit = rows.rows[3];
-    expect(audit.code, 'QUARTERLY_SELF_AUDIT');
+    expect(audit.code, 'QUARTERLY_SELF_AUDIT'); // pre
     final List<String> segs = audit.route!.split('/');
-    expect(segs.last.runes.any((int c) => c > 0x7F), isTrue);
+    expect(segs.last.runes.any((int c) => c > 0x7F), isTrue); // pre
     final ShellRouteMatch? m = matchShellRoute(audit.route!);
     expect(m?.pattern, AppRoutes.ledgerSelfReport);
     expect(m?.params, <String, String>{
@@ -288,6 +288,7 @@ void main() {
       tester.widget<Text>(find.byKey(const Key('s01-guard'))).data,
       ShellLabels.webAbsent,
     );
+    expect(find.byType(DummyBody), findsNothing);
     await openLink(tester, AppNavActions.back);
 
     // phoneOnly
@@ -326,11 +327,46 @@ void main() {
 
   // ── TR-08 back 동작 링크 ───────────────────────────────────────────────────
   group('TR-08 back action link', () {
-    const List<({String name, bool pushed})> cases =
-        <({String name, bool pushed})>[
-          (name: 'pushed', pushed: true),
-          (name: 'root', pushed: false),
-        ];
+    final List<({String name, Future<void> Function(WidgetTester t) steps})>
+    cases = <({String name, Future<void> Function(WidgetTester t) steps})>[
+      (
+        name: 'pushed',
+        steps: (WidgetTester t) async {
+          await openLink(t, dummyLink(AppRoutes.holdingsDetail));
+          expect(dummyOf(AppRoutes.holdingsDetail), findsOneWidget);
+          await openLink(t, AppNavActions.back);
+          expect(dummyOf(AppRoutes.holdingsDetail), findsNothing);
+          expect(
+            t.widget<Text>(find.byKey(const Key('s01-title'))).data,
+            ShellLabels.tabHome,
+          );
+        },
+      ),
+      (
+        name: 'root',
+        steps: (WidgetTester t) async {
+          // 탭 3으로 이동 후 back => 홈(탭 0)
+          await t.tap(
+            find.descendant(
+              of: find.byKey(const Key('s01-tabs')),
+              matching: find.text(ShellLabels.tabPlan),
+            ),
+          );
+          await t.pump();
+          await openLink(t, AppNavActions.back);
+          expect(
+            t.widget<Text>(find.byKey(const Key('s01-title'))).data,
+            ShellLabels.tabHome,
+          );
+          expect(
+            t
+                .widget<NavigationBar>(find.byKey(const Key('s01-tabs')))
+                .selectedIndex,
+            0,
+          );
+        },
+      ),
+    ];
 
     for (final c in cases) {
       testWidgets('TR-08 ${c.name}', (WidgetTester tester) async {
@@ -345,36 +381,7 @@ void main() {
           ),
         );
 
-        if (c.pushed) {
-          await openLink(tester, dummyLink(AppRoutes.holdingsDetail));
-          expect(dummyOf(AppRoutes.holdingsDetail), findsOneWidget);
-          await openLink(tester, AppNavActions.back);
-          expect(dummyOf(AppRoutes.holdingsDetail), findsNothing);
-          expect(
-            tester.widget<Text>(find.byKey(const Key('s01-title'))).data,
-            ShellLabels.tabHome,
-          );
-        } else {
-          // 탭 3으로 이동 후 back => 홈(탭 0)
-          await tester.tap(
-            find.descendant(
-              of: find.byKey(const Key('s01-tabs')),
-              matching: find.text(ShellLabels.tabPlan),
-            ),
-          );
-          await tester.pump();
-          await openLink(tester, AppNavActions.back);
-          expect(
-            tester.widget<Text>(find.byKey(const Key('s01-title'))).data,
-            ShellLabels.tabHome,
-          );
-          expect(
-            tester
-                .widget<NavigationBar>(find.byKey(const Key('s01-tabs')))
-                .selectedIndex,
-            0,
-          );
-        }
+        await c.steps(tester);
       });
     }
   });

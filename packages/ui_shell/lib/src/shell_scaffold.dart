@@ -270,11 +270,7 @@ class _WebFrame extends ConsumerWidget {
                       key: const Key('s02-mode-chips'),
                       spacing: 8,
                       children: <Widget>[
-                        for (final (int i, String m) in modes.indexed)
-                          Chip(
-                            key: ValueKey<String>('s01-band-chip-$i'),
-                            label: Text(m),
-                          ),
+                        for (final String m in modes) Chip(label: Text(m)),
                       ],
                     ),
                   ),

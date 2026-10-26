@@ -17,12 +17,14 @@ class _Flow {
     required this.name,
     required this.flags,
     required this.alerts,
+    required this.top,
     required this.steps,
   });
 
   final String name;
   final FeatureFlags flags;
   final List<AlertItem> alerts;
+  final Finder top;
   final Future<void> Function(WidgetTester tester) steps;
 }
 
@@ -41,12 +43,14 @@ void main() {
       name: 's01_tabs_p0',
       flags: kFlagsSimAdvisory,
       alerts: alerts12.rows,
+      top: find.byKey(const Key('s01-band')),
       steps: (_) async {},
     ),
     _Flow(
       name: 's01_tabs_clean',
       flags: kFlagsLiveAuto,
       alerts: digest.rows,
+      top: find.byType(AppBar),
       steps: (_) async {},
     ),
   ];
@@ -80,10 +84,7 @@ void main() {
           tester.getBottomLeft(find.byKey(const Key('s01-tabs'))).dy,
           kGoldenPhoneSize.height,
         );
-        final Finder topFinder = flow.name == 's01_tabs_p0'
-            ? find.byKey(const Key('s01-band'))
-            : find.byType(AppBar);
-        expect(tester.getTopLeft(topFinder).dy, 0.0);
+        expect(tester.getTopLeft(flow.top).dy, 0.0);
 
         await expectGolden(flow.name, b);
       });
