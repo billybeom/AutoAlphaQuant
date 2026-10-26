@@ -8,8 +8,8 @@
 > ✅ **K 결정 표식** — K43(`opsRhythm` 상수 진입) · K44(`resumeLine` · 다른 4벌 = 부재) · K45(9b 조건 = `FlagIds` · 글자 = `trust.label`·`consequenceLine` · 버튼 = `actionDeepLink`) · K46(R13b 16장) · K48(`ui_shell` 골든 도우미) = **✅ 발주자 확정(2026-10-22 · 01 §21-14)**.
 > ✅ **발주자 확인 — ✅ 확정(2026-10-26 · 발주자 · 권고대로 · ①~⑭ 전부)** — 확정 값 = 아래 «판독 원문» 각 항의 권고 글자(권고가 따로 없는 항 = 카드 기본값): ① ✅ R13b 선행 2 = M2 보강 1벌 `m8/recon_board_ok`(칸 5 · 전부 일치 + 자가보고 «해당 없음» · `headline` = 엔진 문장) · 같은 보강에서 ⓐ `DiagnosticCell` 레벨 원천 ⓑ 전부 일치 `headline` 규약을 함께 정한다 · 이 카드는 `headline` 을 늘 그린다 ② ✅ 블록 6 원천 = `watchDiagnostics()` · 뷰어 홈의 블록 6 원천 = 설계 01 §8 미결 128 ③ ✅ 블록 4 = 위 행만 · 비중 글자만 · POT 펼침 0 · 게이지 0 · 투자분·파킹 줄 = ⓒ 현행(받은 글자 그대로 · 위 행 4개 전부) + 설계 01 §8 미결 129 ④ ✅ 블록 1 = `breakerLabel` 한 줄 · 탭 = `AppRoutes.m5BlockBoard` · «엔진 생존 · 마지막 대사 시각» 원천 = 설계 01 §8 미결 130 ⑤ ✅ 블록 1·3 탭 = `AppRoutes.m5BlockBoard` · 3b = `AppRoutes.adviceInbox` · 4 = `AppRoutes.holdingsAllocation` = **발주자 확정 예외**(설계 01 §21-9 «상수 진입 허용» 에 반영 2026-10-26) ⑥ ✅ 블록 3 = 차단 플래그만 ⑦ ✅ `h01_advice_zero` = copyWith 예외 ⑧ ✅ 「항상」 블록(1·4·6) 스트림 에러 = 그 자리 재시도 한 줄 · 조건 블록(3·3b·9b) 로딩·에러 = 부재 · `watchToday` 만 홈 전체 갈래 ⑨ ✅ 9b 카드 색 = `trust.level`(`UiLevel`) 전수 switch ⑩ ✅ 포그라운드 복귀 1회 갱신 = 이 카드(`WidgetsBindingObserver` · `resumed` 한 번에 6 구독 `invalidate`) ⑪ ✅ 정적 라벨 6 ⑫ ✅ `h01_*` 크기 = `_kTallPhone` = `Size(390, 1120)` ⑬ ✅ 홈 신선도 = `today.asOf` 대표(현행) + 설계 01 §8 미결 131 «홈 신선도 대표 원천» ⑭ ✅ 선행 2 M2 보강 때 두 표본(배분 `noticeText` null 1벌 · 억제 + `dueSoonLabel` 1벌)을 함께 더할지 정한다.
 > 🔵 **판독 원문(권고·대안 — ✅ 위 확정 = 각 항의 권고 · 대안은 쓰지 않는다)** ~~발주자 확인 대기(카드 기본값 = 판독 권고 — 이의 없으면 그대로 · 🔴 확인 전에는 ▶ 를 달지 않는다)~~: ① 🔴 **`h01_normal` 의 블록 6 입력** — `DiagnosticsVm` 픽스처가 `m8/recon_board_diff`(어긋남 1칸) 한 벌뿐이라 «전부 일치» 표본이 없다 → 권고 = **R13b 선행 2 = M2 보강 1벌 `m8/recon_board_ok`**(칸 5 · 전부 일치 + 자가보고 «해당 없음» · `headline` = 엔진 문장 · 등록부·`FixturePaths.m8ReconBoardOk`·README 표 · 계약 버전 = 패치 판단은 M2 · 드라이런 흉내 = 4파일 보강(`fixtures/m8/recon_board_ok.json` · `fixture_paths.dart` 상수 + `all` · `c00_fixture_registry.dart` `DtoCodec<DiagnosticsVm>` · `fixtures/README.md` m8 줄) · `domain_contracts` «+386 ~30» 그대로) · 🆕 같은 M2 보강에 두 줄을 함께 정한다: ⓐ `DiagnosticCell` 의 레벨 원천(04 §2-3 «신호등은 색+아이콘+텍스트 3중» — 지금 `stateCode` 문자열뿐 · `UiLevel` 필드 또는 «v1 = 글자만» 확정) ⓑ 전부 일치일 때 `headline` 의 뜻(04 §4-5 «요약 문구만 이상 시 표시» ↔ `headline` required — 빈 문장 불가 → «엔진 문장 규약» 확정 · 이 카드는 `headline` 을 늘 그린다) · 대안 = `h01_normal` 도 `recon_board_diff` 를 그림(`h01_recon_diff` 와 블록 6 이 같아짐 — 두 이름의 차이는 블록 3 뿐) ② 블록 6 원천 = `watchDiagnostics()`(위 ⓓ · 대안 = `LedgerRepository.watchOpenDiffs()` + 화면이 쌍으로 묶기 = 판정이라 비권고) · 🔴 `S10` 진단은 05 에서 «폰 전용» — iOS 뷰어 홈의 블록 6 원천(읽기 모델)은 미정 → 01 §8 미결 신설 후보 ③ 블록 4 = 위 행만 · 비중 글자만 · POT 펼침 0 · 게이지 0(대안 = A 행 펼침 안 POT 하위 줄 + B 게이지 — 펼침 State·`H6-3` 조각 복제) · 🔴 **투자분·파킹 줄을 어느 행에** — 카드 기본값 = 위 행 4개 전부(받은 `deployedPctText`·`parkingPctText` 그대로 · 라벨 «투자분»·«파킹») · 04 §4-3 그림은 **B 행에만** «└ 중 투자분 28.0% · 신호 대기 파킹 14.0%» 를 그린다 · 표본 `allocation_in_band` 로는 A «A 19.0%(`bandNoteText`)» 옆에 «투자분 16.6% · 파킹 0.4%» · 원화 현금 대기 «투자분 0.0% · 파킹 2.0%» 가 붙는다(POT 2.0%p 를 숨긴 합 어긋남 · 오독 위험) → 행 필드에 «홈에 이 줄을 그릴지» 원천이 없다 · 권고 = ⓒ M2 가 홈용 줄 원천(예 B 만 non-null 인 nullable 필드)을 줄 때까지 R13b 는 **현행**(데이터 그대로) + 01 §8 미결 신설 · 대안 ⓐ 줄 0(`sleeveWeight.label`·`bandNoteText` 만 · 라벨 «투자분»·«파킹» 삭제 → 정적 라벨 4 · `h01_*` 16장 다시 찍기) ⓑ 라벨만 «신호 대기 파킹»(04 글자) ④ 블록 1 = `breakerLabel` 한 줄(04 의 «엔진 생존 · 마지막 대사 시각» 은 원천 필드 0 → 부재 · 01 §8 미결 신설 후보) · 탭 = `AppRoutes.m5BlockBoard` ⑤ 🔴 블록 1·3 탭 = `AppRoutes.m5BlockBoard` · 블록 3b 탭 = `AppRoutes.adviceInbox` · 블록 4 탭 = `AppRoutes.holdingsAllocation`(04 §4-3 v1.8) — **01 §21-9 «상수 진입 허용 = 홈 블록 6 = `ledgerDiffs` · 블록 7·8·«더 보기» = `opsRhythm` · 그 밖 이동은 전부 데이터 링크» · K12 «고정 라우트도 상수 미사용» 과 충돌**(01 §11-1 규칙 ④ 목록에도 없다 · 04 «탭 → M5 플래그 보드» · «탭 → `A-1`» · «카드 탭 → `holdingsAllocation`» 를 상수로 읽음) — 🔴 이 카드의 우선순위 줄 «이 카드 > 01» 로 01 을 덮는 유일한 자리 · 확정 전 ▶ 금지 → 권고 = 이 세 상수 = «발주자 확정 예외»로 01 §21-9 · §11-1 ④ 목록에 더한다(M2 후속 보강 · 웹 홈의 3b·4 탭은 셸 `webAbsent` 안내로 이어짐) · 대안 = M2 가 세 자리의 데이터 링크(`SafetyState`·`AdviceInboxSummary`·`SleeveAllocationVm` 의 `*Link`)를 먼저 주고 홈은 그것을 연다(선행 3 — 카드 재조립) ⑥ 블록 3 = 차단 플래그만(위 ⓕ · 04 §4-1 #3 의 글자 «activeFlags 비어있지 않을 때» 와 다르다 — `JournalSafetyBanners`·`FlagIds.markerOnly` 선례로 표식을 거름) ⑦ `h01_advice_zero` = copyWith 예외(위 ⓘ · 대안 = 선행 2 보강에 `m8/ops_home_advice_none` 1벌 더함) ⑧ 「항상」 블록(1·4·6)의 스트림 에러 = 그 자리 재시도 한 줄 · 조건 블록(3·3b·9b)의 로딩·에러 = 부재 · `watchToday` 만 홈 전체 갈래(스켈레톤·에러) ⑨ 9b 카드 색 = `trust.level`(`UiLevel`) 전수 switch(`SELF_AUDIT_DUE` = INFO 표본 → 차단색 아님) ⑩ 포그라운드 복귀 1회 갱신 = 이 카드(`WidgetsBindingObserver` · `resumed` 한 번에 6 구독 `invalidate`) ⑪ 정적 라벨 6(아래 «정적 라벨») ⑫ `h01_*` 크기 = 테스트 파일 안 `_kTallPhone` = `Size(390, 1120)`(폭 390 · 높이 = 드라이런 실측 — 맨 아래 dy 최대 1108.0 = `h01_self_audit_due`) · 🆕 ⑬ 🔴 **홈 신선도 = `today.asOf` 하나**(규칙 5 ⓐ) — 안전·배분·진단·신뢰 스트림이 멈춰도(값 뒤 에러 = 마지막 값) 블록 1·3·4·6·9b 는 고지 없이 그 글자를 그린다 · 04 §4-2 «viewer 의 "엔진 정지" 판정은 `AsOf` 신선도에서 파생» · §2-3 «모든 조회 화면 … AsOf … 초과 시 «오래된 데이터» 배너» 와 비교하면 덜 덮는다 → 권고 = 이 카드 = `today.asOf` 대표(현행) + 01 §8 미결 신설 «홈 신선도 대표 원천» · 대안 = 블록 1 자리에 `safety.asOf` 의 같은 한 식 + `ShellStaleBanner`(허용 식 ⓐ 를 «구독마다 1식» 으로 넓힘 · T01-09 에 safety 오래됨 경우 +1) ⑭ 참고 변이(예고 목록 밖 · 반려 사유 아님) 중 표본이 없어 못 잡는 둘 — «블록 4 를 `noticeText` 없을 때 숨김»(배분 표본 = `noticeText` 있는 한 벌) · «억제 갈래에 `dueSoon` 줄»(억제 표본 두 벌 모두 `dueSoonLabel` 0) → 권고 = 선행 2 M2 보강 때 두 표본(배분 `noticeText` null 1벌 · 억제 + `dueSoonLabel` 1벌)을 함께 더할지 정한다(⑦ 대안과 같은 창 · 더하면 T01-04·T01-05 경우 +1) · 대안 = 그대로(참고만 · copyWith 예외를 늘리지 않는다).
-> 드라이런: ✅ 2026-10-26 · worktree `C:/Work/AAQ-claude-r13dryB` · 가지 `dry/r13b`(`dry/r13a` 끝 `8ea11c9` = R13a 병합본 흉내(지적 반영판) → 선행 2 흉내 `1dcbea3`(`m8/recon_board_ok` · dry 가지 전용 · `domain_contracts` «+386 ~30» 그대로) → 권장 4커밋 `311a162`·`0e8926b`·`56f1dfd`·`1926f8e` → 지적 반영 1커밋 · HEAD `d469af0` · 기준 = `1dcbea3`) — 0단계 확인 줄 13개 «:1»(`__RECON_OK_GREP__` = 흉내 글자) · `ls` 7개 · 반대 3줄 = 없음 · 시작 «+65: All tests passed!»(= `dry/r13a` 끝) → 끝 «00:08 +114: All tests passed!»(N + 뷰 33 + 골든 16) · 파일별 «+33»(ops_home_test) · «+16»(h01_golden) · 사전검사 ① 🔴 0 · 🟡 0 · ② `h01_` 16 🔴 0 · 🟡 0 · 정적 묶음 31줄 = 본문 기대 그대로(H03 1·12 · S05 10 · H06 6 · H08 8 · H09 6 · H10 10 · H11 31 · H12 6 · H13 9 + 5 · H18 11 · H19 3 · H20 21이름 · H26 4줄 · H27 2 · H28 3 · H30 16 A · H31 13) · check_boundaries 실패 0(🟡 기존 1) · format 0 changed · analyze No issues · 골든 `_kTallPhone` = `Size(390, 1120)` · dy 936~1108(light = dark · golden README «🆕 R13») · 새 testWidgets·test 줄 13 · lib +558/-0 · 새 PNG 16(경계 안 → 재분할 없음) · 변이 66꼴(컴파일 실패 꼴 2 = 무효) 중 유효 64 · KILLED 61 · 통과 3 = 참고 변이(목록 밖) «블록 6 전부 일치면 숨김»(ok 표본의 칸 상태 글자가 둘 — 데이터상 같은 변이) · «블록 4 notice 없으면 숨김» · «억제에 dueSoon»(표본 0 — ⑭) · 예고 목록은 전부 KILLED · 지적 반영(카드 → 드라이런 가지): 블록 7 탭 · T01-01 «전체» 경우(3↔3b) · T01-11 inactive · T01-09 오래됨 경우·위치 · ⓗ 리터럴 · 안내 기본 입력 = 값 none · 값 없는 스트림 도우미 삭제 · `// pre` · 🔵 R13a 병합 뒤 실제 병합본 위 재드라이런 = R13a 병합 기록 때.
-> 프롬프트 = `docs/ai-context/prompt_M8.md`(2026-09-09 판 그대로 — 2행 `{{범위}}` = `S-01` · 108행 «이번 과제 범위: S-01» 은 이 카드가 덮는다 · 117행 PR 제목 «[M8] H-01 운영 홈» = 이 카드의 제목 그대로 · 본문 «프롬프트보다 이 카드가 이긴다» ①⑰). 🔴 Bob **새 대화** 전제 — R13a 대화를 기억하지 못합니다. 0단계·규칙 요약·본받지 않는 것·스케치·테스트 목록은 본문에 담았습니다.
+> 드라이런: ✅ 2026-10-26 · worktree `C:/Work/AAQ-claude-r13dryB` · 가지 `dry/r13b`(`dry/r13a` 끝 `8ea11c9` = R13a 병합본 흉내(지적 반영판) → 선행 2 흉내 `1dcbea3`(`m8/recon_board_ok` · dry 가지 전용 · `domain_contracts` «+386 ~30» 그대로) → 권장 4커밋 `311a162`·`0e8926b`·`56f1dfd`·`1926f8e` → 지적 반영 1커밋 · HEAD `d469af0` · 기준 = `1dcbea3`) — 0단계 확인 줄 13개 «:1»(🔵 2026-10-26 검증 반영 = 14번째 `판 v2` 줄을 드라이런 뒤에 더했다 — R13a 병합본 위 재드라이런 때 «:1» 확인)(`__RECON_OK_GREP__` = 흉내 글자) · `ls` 7개 · 반대 3줄 = 없음 · 시작 «+65: All tests passed!»(= `dry/r13a` 끝) → 끝 «00:08 +114: All tests passed!»(N + 뷰 33 + 골든 16) · 파일별 «+33»(ops_home_test) · «+16»(h01_golden) · 사전검사 ① 🔴 0 · 🟡 0 · ② `h01_` 16 🔴 0 · 🟡 0 · 정적 묶음 31줄 = 본문 기대 그대로(H03 1·12 · S05 10 · H06 6 · H08 8 · H09 6 · H10 10 · H11 31 · H12 6 · H13 9 + 5 · H18 11 · H19 3 · H20 21이름 · H26 4줄 · H27 2 · H28 3 · H30 16 A · H31 13) · check_boundaries 실패 0(🟡 기존 1) · format 0 changed · analyze No issues · 골든 `_kTallPhone` = `Size(390, 1120)` · dy 936~1108(light = dark · golden README «🆕 R13») · 새 testWidgets·test 줄 13 · lib +558/-0 · 새 PNG 16(경계 안 → 재분할 없음) · 변이 66꼴(컴파일 실패 꼴 2 = 무효) 중 유효 64 · KILLED 61 · 통과 3 = 참고 변이(목록 밖) «블록 6 전부 일치면 숨김»(ok 표본의 칸 상태 글자가 둘 — 데이터상 같은 변이) · «블록 4 notice 없으면 숨김» · «억제에 dueSoon»(표본 0 — ⑭) · 예고 목록은 전부 KILLED · 지적 반영(카드 → 드라이런 가지): 블록 7 탭 · T01-01 «전체» 경우(3↔3b) · T01-11 inactive · T01-09 오래됨 경우·위치 · ⓗ 리터럴 · 안내 기본 입력 = 값 none · 값 없는 스트림 도우미 삭제 · `// pre` · 🔵 R13a 병합 뒤 실제 병합본 위 재드라이런 = R13a 병합 기록 때.
+> 프롬프트 = `docs/ai-context/prompt_M8.md`(🆕 **v2 판 183줄** — 2026-10-26 재조립(설계 07 v2 · 앱 `rec/prompt-x7`) · 2행 `{{범위}}` = `S-01` · 119행 «이번 과제 범위: S-01» 은 이 카드가 덮는다 · 128행 PR 제목 = 형식 «[M8] <화면 ID> <이름>»(글자는 카드) → 이 카드의 제목 «[M8] H-01 운영 홈»(«■ 제출») · 본문 «프롬프트보다 이 카드가 이긴다» ①⑰ · ~~2026-09-09 판 172줄(108행 범위 · 117행 PR 제목 리터럴)~~ = R13a 가 인용하는 옛 판). 🔴 **발송 조건 +1** — 이 v2 판이 `origin/main` 에 있어야 한다(푸시 = R13a 병합 뒤 · 옛 172줄 판으로 보내면 아래 줄 번호가 어긋난다 · 확인 = `git grep -c "판 v2" origin/main -- docs/ai-context/prompt_M8.md` ← «origin/main:docs/ai-context/prompt_M8.md:1» · 작업 트리 확인은 Bob 의 0단계 줄이 한다 · 🔵 2026-10-26 검증 반영 = 정적 묶음 H16 머리의 프롬프트 인용 «48-54» → v2 «68-74»). 🔴 Bob **새 대화** 전제 — R13a 대화를 기억하지 못합니다. 0단계·규칙 요약·본받지 않는 것·스케치·테스트 목록은 본문에 담았습니다.
 > R4b·R13a 교훈 반영: PNG 열람 = 이름마다 light 1장(8장 — 이미지 20장 한도) · dark 행 = 같은 이름 light 행 칸 글자 그대로(dy 가 같을 때만) · 구독마다 «로딩·에러 × 갈래»(C4r3-1) · 골든 흐름 = 클로저(C4r3-4) · 위치 전제 = `expect` 코드 견본(C4r3-5) · 공통 교훈 7(C4r4b-1 전제는 if 밖(testWidgets 본문 첫머리) · -2 «(전제 …)» 문장 끝 `// pre` 를 정적 H31 이 센다 · -3 골든 칸 = PNG 를 열어 · G1 출력 옮김 금지 · -4 커밋마다 `git add <파일>` · -5 «10항 줄 수» 상자 · -6 픽스처 = `main()` 머리 `final` · -7 가짜 공장 = `call` 삼항) · 🔴 이 카드가 «정확히 N» 을 **소유**한다(R13 마지막 — 공용 파일의 최종 수를 정적 묶음이 정확히 센다).
 
 ## 0. 한 줄 목적
@@ -62,6 +62,7 @@ R13b-Bob-H01 — 범위: H-01 운영 홈(OpsHome() — 머리 · 오래됨 · �
   git grep -c "final WidgetBuilder? home;" -- packages/ui_shell/lib/src/shell_providers.dart                                  ← «…shell_providers.dart:1»(R13a 병합)
   git grep -c "final shellLinkOpenerProvider" -- packages/ui_shell/lib/src/routing/shell_router.dart                         ← «…shell_router.dart:1»(R13a 병합)
   git grep -c "class ShellErrorView" -- packages/ui_shell/lib/src/common/shell_common.dart                                   ← «…shell_common.dart:1»(R13a 병합)
+  git grep -c "판 v2" -- docs/ai-context/prompt_M8.md                                                                     ← «…prompt_M8.md:1»(프롬프트 v2 — 아래 줄 번호가 이 판 기준 · 없으면 멈춤)
   ls docs/ai-context/send/R13b-Bob-H01.md                                            ← 보여야 올바른 기준(이 카드가 main 의 send/ 에 있다)
   ls docs/ai-context/inbox/H01_questions.md                                          ← 보여야 함(빈 표가 이미 있다)
   ls packages/ui_shell/test/shell_fakes.dart                                         ← 보여야 함(R13a 병합 · 끝 절에 더한다)
@@ -145,30 +146,30 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    배치·잘림 칸 = PNG 에서 보이는 것만(글자 내용·길이 · 색·테마 이름(«밝은»·«어두운» 포함) · 코드 이름 · 픽스처 낱말 금지 · 버튼 = «버튼 글자») · 칸 끝 = «— 잘림 없음» 또는 «— 잘림: <어디가 어떻게>» ·
    셈 단위 — «글자 줄 n» = PNG 의 글자 **행** 수 · «상자» = 테두리·모서리가 보이는 덩어리 · «배경 덩어리» = 폭 전체 배경 · «막대» = 가로로 긴 덩어리 · «점» = 작은 둥근 표식.
    🔴 PR 본문은 통합 담당이 바꾼다(Bob 은 PR 을 만들지 않는다 · 채팅으로만) · S05 결과 줄 = 줄마다 정확히 «<파일>:<줄> — 탭 콜백 안»(사전검사 R4) · 수는 손으로 세지 않고 명령 출력을 붙인다 ·
-   자체 점검 ② = «■ 제출» ② 의 복사 상자(= prompt_M8.md 162~171행 10항) 그대로 + [x] 와 괄호만([—] 금지) · ③ = 위젯·Key 이름 나열(요약어 금지) · 질문 파일에 추측 행으로 카드 이행 내역을 적지 않는다(dy «측정:» 행은 예외).
+   자체 점검 ② = «■ 제출» ② 의 복사 상자(= prompt_M8.md 173~182행 10항) 그대로 + [x] 와 괄호만([—] 금지) · ③ = 위젯·Key 이름 나열(요약어 금지) · 질문 파일에 추측 행으로 카드 이행 내역을 적지 않는다(dy «측정:» 행은 예외).
 
-■ 프롬프트보다 이 카드가 이긴다 — 21항 (prompt_M8.md 172줄 판 · 조립 2026-09-09)
- ① 2행 {{범위}} = S-01 · 108행 «이번 과제 범위: S-01» → 이 카드의 범위 = H-01(위 첫 줄)
- ② 102~107행 역할·범위(M8 전 화면 나열) → 이 카드 = H-01 · S-01·S-02·H-02 = R13a(병합됨) · N-01·N-02 = R14 · H-03·W-01·O-* = R15~R16(12 §6)
- ③ 10~11행 «의존 셋뿐 · 추가하려면 먼저 질문» → 추가 0 · pubspec 무변경
- ④ 12~13행 «라우트 상수로 딥링크만 · 라우터를 직접 구성하지 않습니다» → 그대로 유효(홈은 open 만 · 라우터 = R13a 셸) · 상수 진입 = 규칙 4 의 다섯(01 §11-1 ④ + 카드 기본값)
- ⑤ 14~16행 DateTime.now 금지 → 그대로 유효(shellClockProvider · 신선도 한 식만 · D+n·D-day 는 엔진 문자열)
- ⑥ 18~23행 «산술·건수 집계 금지» → 그대로 유효 · 예외 = 규칙 5 의 여섯(신선도 · 차단/표식 분리 · 3b 존재 1식 · 억제 갈래 · 위 행 · 9b 조건)
- ⑦ 24~27행 «한국어 리터럴 = labels.dart 한 파일» → 그대로 유효(ShellLabels R13b 절 6개)
- ⑧ 28~30행 «아무 일 없음 문장 금지 · 오지 않으면 그리지 않는다» → 그대로 유효(3b 0건 = 미렌더 · 억제 = headline 한 줄 · 블록 9 부재)
- ⑨ 31~32행 손익 0(C-6) → 그대로 유효 + 금액 0(deployedText·parkingText 0 · 04 §2-6 · §4-3) · HoldingPnl·PerformanceSeries·afterTax 0
- ⑩ 33~41행 안전 화면 금지 · 딥링크 목록 → 그대로 유효 — 블록 1·3 탭 = AppRoutes.m5BlockBoard(목록 안 목적지 m5/block-board) · 블록 2 = resumeLine.deepLink(x2/resume-report · 데이터) · 킬스위치 0
- ⑪ 42~46행 «띠가 차지할 높이를 비워 두는 것» → 홈은 띠를 모른다(셸이 바깥에 쌓는다 · 고정 높이 예약 0 · 01 §9-4)
- ⑫ 62~79행 X7 → 홈 몫 = 3b 한 줄(건수 글자 0 · headline · dueSoonLabel · trust.label) · 9b 카드(버튼 = 데이터 링크 · 뷰어 null = 부재) · 모드 플래그로 존재 여부 0
- ⑬ 80~85행 데이터 규칙 → 그대로 유효 · 🔵 copyWith 2(규칙 10 예외)
- ⑭ 86~95행 제출물 → «■ 제출»(PR 만들지 않음 · 스크린샷 = ③ 서술 + 골든 표 · melos run test:contracts)
- ⑮ 96~100행 TODO(question-3) 자리표시자 → 넣지 않는다 · 질문 파일로
- ⑯ 109~115행 읽을 문서 5 → 아래 «먼저 읽을 것»(docs/ai-context// 이중 슬래시 = docs/ai-context/)
- ⑰ 116~117행 브랜치 ui/m8-<화면ID소문자> · PR 제목 «[M8] H-01 운영 홈» → 그대로(브랜치 ui/m8-h01-home · 제목 = 117행 글자)
- ⑱ 119~122행 «홈 숫자 ①②③ · 손익 0개» → 그대로 유효 — ① = 블록 4(비중 글자 · 편차·밴드 여유는 sleeveWeight.label 안) ② = 블록 5 ③ = 블록 6·7·8 · 전부 엔진 문자열
- ⑲ 123~151행 알림·워치독·온보딩·핸드북·검증 실패 → 그대로 유효하나 이 카드 범위 밖
- ⑳ 152~160행 X7 홈 블록 3b · 대조 보드 배열 · «블록 구성·순서 = §4-1 표 정본 · 데이터 없으면 그리지 않는다» → 그대로 유효(칸 = cells 배열 그대로 · 5 를 코드에 두지 않는다 · 블록 9 = 부재 · 미결 123)
- ㉑ 161~171행 자체 점검 10항 → «■ 제출» ② 복사 상자(5·6·7·8·9 = [x] + 괄호 «이 카드 범위 밖(…)»)
+■ 프롬프트보다 이 카드가 이긴다 — 21항 (prompt_M8.md 183줄 판 · v2 재조립 2026-10-26)
+ ① 2행 {{범위}} = S-01 · 119행 «이번 과제 범위: S-01» → 이 카드의 범위 = H-01(위 첫 줄)
+ ② 113~118행 역할·범위(M8 전 화면 나열) → 이 카드 = H-01 · S-01·S-02·H-02 = R13a(병합됨) · N-01·N-02 = R14 · H-03·W-01·O-* = R15~R16(12 §6)
+ ③ 12~13행 «의존 셋뿐 · 추가하려면 먼저 질문» → 추가 0 · pubspec 무변경
+ ④ 15~19행 «링크는 데이터 · 고정 상수 = 명세·카드가 이름을 든 것만 · null = 부재 · 라우터·플랫폼 가드 = 셸» → 그대로 유효(홈은 open 만 · 라우터 = R13a 셸) · 상수 진입 = 규칙 4 의 다섯(01 §11-1 ④ + 카드 기본값)
+ ⑤ 20~23행 DateTime.now 금지 · 신선도 = 주입 Clock + asOf → 그대로 유효(shellClockProvider · 신선도 한 식만 · D+n·D-day 는 엔진 문자열)
+ ⑥ 25~31행 «산술·건수 집계 · 거르기·묶기·재정렬 금지» → 그대로 유효 · 예외 = 규칙 5 의 여섯(신선도 · 차단/표식 분리 · 3b 존재 1식 · 억제 갈래 · 위 행 · 9b 조건)
+ ⑦ 32~35행 «한국어 리터럴 = labels.dart 한 파일» → 그대로 유효(ShellLabels R13b 절 6개)
+ ⑧ 36~38행 «아무 일 없음 문장 금지 · 오지 않으면 그리지 않는다» → 그대로 유효(3b 0건 = 미렌더 · 억제 = headline 한 줄 · 블록 9 부재)
+ ⑨ 39~40행 손익 0(C-6) → 그대로 유효 + 금액 0(deployedText·parkingText 0 · 04 §2-6 · §4-3) · HoldingPnl·PerformanceSeries·afterTax 0
+ ⑩ 41~47행 안전 화면 금지 · 목적지 이름 정본 = AppRoutes.all → 그대로 유효 — 블록 1·3 탭 = AppRoutes.m5BlockBoard(m5/block-board · 01 §21-9 발주자 확정 예외) · 블록 2 = resumeLine.deepLink(x2/resume-report · 데이터) · 킬스위치 0
+ ⑪ 48~57행 «■ 모드 — 접두·띠는 셸 한 곳 · 띠 높이를 예약하지 마십시오(유연 높이)» → 그대로 유효(홈은 띠를 모른다 · 셸이 바깥에 쌓는다 · 01 §9-4)
+ ⑫ 58~66행 X7(actions 순서 · 프리필·비교 금지 · 계획/사실 · 뷰어 값) → 홈 몫 = 3b 한 줄(건수 글자 0 · headline · dueSoonLabel · trust.label) · 9b 카드(버튼 = 데이터 링크 · 뷰어 null = 부재) · 모드 플래그로 존재 여부 0
+ ⑬ 82~86행 데이터 규칙 → 그대로 유효 · 🔵 copyWith 2(규칙 10 예외)
+ ⑭ 87~105행 «■ 제출 — 브랜치 푸시까지»(PR·라벨 0 · 5섹션 채팅 · 복사 상자) → 그대로 유효 · 글자·명령·사전검사 인자 = 아래 «■ 제출»(스크린샷 = ③ 서술 + 골든 표 · melos run test:contracts)
+ ⑮ 106~111행 «모르는 것 = 질문 파일 · TODO 자리표시자 0» → 그대로 유효(질문 파일 = inbox/H01_questions.md)
+ ⑯ 120~126행 읽을 문서 5 → 아래 «먼저 읽을 것»(v2 = 이중 슬래시 해소)
+ ⑰ 127~128행 브랜치 ui/m8-<화면ID소문자>… · PR 제목 형식 «[M8] <화면 ID> <이름>»(글자는 카드) → 브랜치 ui/m8-h01-home · 제목 «[M8] H-01 운영 홈»(«■ 제출» · 옛 172줄 판 117행 리터럴과 같은 글자)
+ ⑱ 130~133행 «홈 숫자 ①②③ · 손익 0개» → 그대로 유효 — ① = 블록 4(비중 글자 · 편차·밴드 여유는 sleeveWeight.label 안) ② = 블록 5 ③ = 블록 6·7·8 · 전부 엔진 문자열
+ ⑲ 134~162행 알림·워치독·온보딩·핸드북·검증 실패 → 그대로 유효하나 이 카드 범위 밖
+ ⑳ 163~171행 X7 홈 블록 3b · 대조 보드 배열 · «블록 구성·순서 = §4-1 표 정본 · 데이터 없으면 그리지 않는다» → 그대로 유효(칸 = cells 배열 그대로 · 5 를 코드에 두지 않는다 · 블록 9 = 부재 · 미결 123)
+ ㉑ 172~182행 자체 점검 10항 → «■ 제출» ② 복사 상자(5·6·7·8·9 = [x] + 괄호 «이 카드 범위 밖(…)»)
 
 ■ 먼저 읽을 것 (🔴 02·03·05 명세는 읽지 않음 — 모듈 명세 1부 규칙)
  ① prompt_M8.md 전문 ② 04 §2-6 · §4-1(표 · 블록 3b · 9b 문단 · 그림 5) · §4-2 · §4-3(v1.8 줄 · 그림 6 의 v1.8 머리) · §4-4 · §4-5(그림 7) · §4-6
@@ -371,7 +372,7 @@ echo "## H12 barrel exports (6)"; git grep -n "^export " -- lib/ui_shell.dart; e
 echo "## H13 shell providers"; git grep -n "^final shell" -- lib/src/shell_providers.dart; echo "EXIT:$?"
 echo "## H14 imports outside the three packages 0"; git grep -nP "^import 'package:(?!domain_contracts/|flutter/|flutter_riverpod/|ui_shell/)" -- lib; echo "EXIT:$?"
 echo "## H15 hangul literals in lib except labels 0"; git grep -nP "'[^'\n]*[\x{AC00}-\x{D7A3}]" -- lib ":!lib/l10n/labels.dart"; echo "EXIT:$?"
-echo "## H16 figures 0 (prompt 48-54)"; git grep -nP "(?<![0-9.])(16\.5|0\.165|9\.7|10\.2|10\.4|10\.63|10\.85|10\.91|10\.96|11\.13|12\.5[0-9]|12\.60|8\.38|35\.05)(?![0-9])" -- lib; echo "EXIT:$?"
+echo "## H16 figures 0 (prompt 68-74)"; git grep -nP "(?<![0-9.])(16\.5|0\.165|9\.7|10\.2|10\.4|10\.63|10\.85|10\.91|10\.96|11\.13|12\.5[0-9]|12\.60|8\.38|35\.05)(?![0-9])" -- lib; echo "EXIT:$?"
 echo "## H17 decimal and percent literals 0"; git grep -nP "(?<![\w.])\d+\.\d*[1-9]\d*(?![\d])|'[^'\n]*%" -- lib/src; echo "EXIT:$?"
 echo "## H18 R lines (retry findsNothing)"; git grep -c "retry), findsNothing" -- test/ops_home_test.dart; echo "EXIT:$?"
 echo "## H19 H lines (hasLength)"; git grep -c "hasLength(" -- test/ops_home_test.dart; echo "EXIT:$?"
@@ -490,7 +491,7 @@ echo "## H31 precondition marks (pre)"; git grep -c "// pre$" -- test/ops_home_t
  8. 시크릿 입력을 `SecretField` 삽입으로만 처리했는가 / 자체 입력 위젯·임시 저장·확인 필드가 없는가 [x] ( )
  9. 온보딩에 «건너뛰기» 경로나 «해외주식» 항목이 없는가 / 검증 실패 문구를 의역하지 않았는가 [x] ( )
 10. 🔒 삽입 자리(킬스위치·게이트·마법사)를 직접 구현하지 않았는가 / 앱 잠금 중에도 킬스위치 진입이 살아 있는가 [x] ( )
-      └── 복사 끝(이 줄 앞까지 — « [x] ( )» 를 뺀 글자는 prompt_M8.md 162~171행과 같습니다)
+      └── 복사 끝(이 줄 앞까지 — « [x] ( )» 를 뺀 글자는 prompt_M8.md 173~182행과 같습니다)
       10항 줄 수 — ② 복사 상자를 괄호까지 채운 글을 저장소 밖 파일($env:TEMP\r13b_box2.txt)에 저장 → (Get-Content $env:TEMP\r13b_box2.txt).Count 또는 grep -c "" "$TEMP/r13b_box2.txt" →
         출력 한 줄을 아래 «10항 줄 수» 상자 글자 틀 그대로(C4r4b-5 · 코드 블록 하나 · 명령 줄은 붙이지 않는다 · 기대 10):
       ┌── 10항 줄 수 복사 시작(다음 줄부터 · 4줄)
