@@ -169,6 +169,17 @@ void main() {
     });
   });
 
+  test(
+    '결측 사유 글자 = 계약 사전 GapReasonCodes(data_gap.reason_code · v1.14 · R25 G4)',
+    () {
+      expect(
+        DataGapCause.values.map((DataGapCause c) => c.wire).toSet(),
+        everyElement(isIn(GapReasonCodes.values)),
+      );
+      expect(DataGapCause.values, hasLength(5));
+    },
+  );
+
   test('D13 월말 판정 시점 — 미국 그날 세션 종가가 들어온 뒤에만 · 미국 휴장이면 바로', () {
     final ExchangeCalendar us = _cal(Market.us);
     expect(monthEndRegimeReady('2026-08-31', '2026-08-28', us), isFalse);

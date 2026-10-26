@@ -6,15 +6,15 @@
 // 🔴 전 종목이 같은 날 함께 비면 «캘린더 의심»(R15 꼴) — 그래도 결측으로 처리하고 알린다. 표를 자동으로 고치지 않는다.
 // 🔴 미국·매크로(D4 후반) — 카테고리 안 결측은 재정규화가 이어받는다(03 §1-1 · `directionScores`) · 낡은 값은
 //    신선도 상한([applyFreshnessCaps])이 결측으로 바꾼다. 여기서는 KR 만 판정한다.
-// ⏸ 결측 사유 코드([DataGapCause])는 **엔진 열거로만** 이름 짓는다 — `data_gap.reason_code` 에 쓰려면 계약 사전
-//    등재가 먼저다(C-5 전역 조회 · R24 B5 → E8a).
+// ✅ 결측 사유 코드([DataGapCause])의 글자는 계약 사전 `GapReasonCodes`(`data_gap.reason_code`)에 등재됐다(계약 v1.14 ·
+//    R24 B5 · R25 G4) — 시험이 두 목록을 맞댄다.
 
 import 'package:domain_contracts/domain_contracts.dart' show TradeDate;
 
 import '../calendar/exchange_calendar.dart';
 import 'dated_series.dart';
 
-/// 결측 사유(엔진 열거 · ⏸ 계약 등재 = E8a).
+/// 결측 사유(엔진 열거 · 글자 = 계약 `GapReasonCodes` · v1.14).
 enum DataGapCause {
   /// 세션인데 행이 없다.
   missingRow('MISSING_ROW'),
@@ -33,7 +33,7 @@ enum DataGapCause {
 
   const DataGapCause(this.wire);
 
-  /// 기록 값(⏸ E8a 계약 사전).
+  /// 기록 값(`data_gap.reason_code` · 계약 `GapReasonCodes`).
   final String wire;
 }
 

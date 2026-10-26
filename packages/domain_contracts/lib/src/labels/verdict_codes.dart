@@ -67,10 +67,31 @@ abstract final class GapReasonCodes {
   /// 🆕 v1.3 — 모의 구간(`SegmentKind.simExcluded`) 안의 점. 합산하지 않아 값이 없다.
   static const String simExcluded = 'SIM_EXCLUDED';
 
-  /// 전량 3종.
+  /// 🆕 v1.14(E8a · 설계 13 §8 R23 D4 · R25 G4) — `data_gap.reason_code` 의 시세 결측 5종(엔진 `DataGapCause` 와 같은
+  /// 글자 · core 시험이 맞댄다). 세션인데 행이 없다.
+  static const String missingRow = 'MISSING_ROW';
+
+  /// 🆕 v1.14 — 종가 ≤ 0.
+  static const String nonPositivePrice = 'NON_POSITIVE_PRICE';
+
+  /// 🆕 v1.14 — 거래량 < 0.
+  static const String negativeVolume = 'NEGATIVE_VOLUME';
+
+  /// 🆕 v1.14 — 전 세션 대비 |변동| ≥ 60%(FR-112).
+  static const String priceJump = 'PRICE_JUMP';
+
+  /// 🆕 v1.14 — 전 종목이 같은 날 함께 비었다(캘린더 의심 · 표 자동 수정 금지).
+  static const String calendarSuspect = 'CALENDAR_SUSPECT';
+
+  /// 전량 8종.
   static const Set<String> values = <String>{
     equitySnapshotMissing,
     resumeGap,
     simExcluded,
+    missingRow,
+    nonPositivePrice,
+    negativeVolume,
+    priceJump,
+    calendarSuspect,
   };
 }

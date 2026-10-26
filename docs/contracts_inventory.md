@@ -159,6 +159,7 @@ A(primitives·enums)
 | `LedgerTrustGrade` | `reconciled, selfReported, drifting, unverifiable` | `RECONCILED`·`SELF_REPORTED`·`DRIFTING`·`UNVERIFIABLE` | 01 §2-1 X7. 🔴 `selfReported` 는 **실패가 아니라 정상 운영 상태**다 |
 | `LedgerEventKind` ✅ v1.10(설계 13 §8 R21 · 구 ⏸) | `withdrawal, distribution, corporateAction, taxWithheld` | `WITHDRAWAL`·`DISTRIBUTION`·`CORPORATE_ACTION`·`TAX_WITHHELD` | 01 §2-1 · X7 ③ 3-1. ⏸ 🔴 **결정 ㊲ 채택 시에만 신설** — 지금은 파일에 **주석으로만** 남기고 코드로 만들지 않는다 |
 | 🆕 `CorporateActionType` | `split, reverseSplit` | `SPLIT`·`REVERSE_SPLIT` | 01 §19 · `ledger_event.action_type` CHECK(v1 = 분할·병합만 · R21 L5) |
+| 🆕 `MarketDataSource` v1.14 | `seedBundle, kis, fred, fredCsv, ofr, manual` | `SEED_BUNDLE`·`KIS`·`FRED`·`FRED_CSV`·`OFR`·`MANUAL` | 01 §22 · 배치 G `market_series`·`fetch_log`·`daily_prices` `source` CHECK(C-15) · 화면 미사용 |
 | 🆕 `CashFlowKind` | `deposit, withdrawal, distribution, taxWithheld, cashInLieu` | `DEPOSIT`·`WITHDRAWAL`·`DISTRIBUTION`·`TAX_WITHHELD`·`CASH_IN_LIEU` | 01 §19 · `cash_flow.kind` CHECK(배치 F 재작성) · 🔴 TWR 외부 흐름 = `isExternal`(입금·출금만) |
 
 ### 2-10. `safety.dart` — 알림·브레이커
@@ -635,6 +636,8 @@ abstract interface class SettingsActions {
 ### 6-14. `PerfPoint.gapReasonCode` — 2종 · `planned_work.kind` — 3종 · `operating_param_log.param_key` — 1종
 
 `EQUITY_SNAPSHOT_MISSING`·`RESUME_GAP` / `SEASONAL_WINDOW`·`DEFER_COUNT`·`SPLIT_LEG` / `monthly_contribution`(🔴 화이트리스트 · `fx_overlay` 계열 키 금지).
+
+🆕 **v1.14(2026-10-26 · 01 §22 · E8a)** — 같은 사전 `GapReasonCodes`(`gap_reason_code`) 에 `data_gap.reason_code` 시세 결측 5종 = `MISSING_ROW`·`NON_POSITIVE_PRICE`·`NEGATIVE_VOLUME`·`PRICE_JUMP`·`CALENDAR_SUSPECT`(전량 8 · 성과 점에는 오지 않는다 · 엔진 `DataGapCause` 와 같은 글자).
 
 🆕 **v1.3(2026-09-28 · 01 §13-3·§13-6)** — `PerfPoint.gapReasonCode` = **3종**(+ `SIM_EXCLUDED` — `GapReasonCodes.simExcluded` · 모의 구간 안의 점) · 🆕 `DisclosureViewEvent.surfaceCode` = 1종 `PERFORMANCE_EXPLORE`(`DisclosureSurfaceCodes.performanceExplore` · 🆕 `labels/disclosure_codes.dart` · 사전 키 `disclosure_surface`) · 🆕 동작 링크 1종 `aaq://nav/back`(`AppNavActions.back` — `navigation/app_links.dart` · 🔴 코드 사전이 아니라 링크 상수이며 `AppRoutes.all` 밖 · DTO·픽스처에 실리지 않는다).
 
