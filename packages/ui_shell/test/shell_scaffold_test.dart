@@ -369,7 +369,7 @@ void main() {
         bool skeleton,
         bool error,
         bool shell,
-        bool checkDy,
+        Future<void> Function(WidgetTester, FakeShellConfigRepository) flow,
       })
     >
     cases =
@@ -380,7 +380,7 @@ void main() {
             bool skeleton,
             bool error,
             bool shell,
-            bool checkDy,
+            Future<void> Function(WidgetTester, FakeShellConfigRepository) flow,
           })
         >[
           (
@@ -391,7 +391,9 @@ void main() {
             skeleton: true,
             error: false,
             shell: false,
-            checkDy: true,
+            flow: (WidgetTester t, FakeShellConfigRepository cfg) async {
+              expect(t.getTopLeft(find.byType(ShellRoot)).dy, 0.0);
+            },
           ),
           (
             name: 'fail',
@@ -403,7 +405,14 @@ void main() {
             skeleton: false,
             error: true,
             shell: false,
-            checkDy: true,
+            flow: (WidgetTester t, FakeShellConfigRepository cfg) async {
+              expect(t.getTopLeft(find.byType(ShellRoot)).dy, 0.0);
+              await t.tap(find.text(ShellLabels.retry));
+              await t.pump();
+              await t.pump();
+              expect(find.byKey(const Key('s01-tabs')), findsOneWidget);
+              expect(cfg.calls, 2);
+            },
           ),
           (
             name: 'normal',
@@ -411,7 +420,9 @@ void main() {
             skeleton: false,
             error: false,
             shell: true,
-            checkDy: true,
+            flow: (WidgetTester t, FakeShellConfigRepository cfg) async {
+              expect(t.getTopLeft(find.byType(ShellRoot)).dy, 0.0);
+            },
           ),
           (
             name: 'value_then_fail',
@@ -421,13 +432,16 @@ void main() {
             skeleton: false,
             error: false,
             shell: true,
-            checkDy: false,
+            flow: (WidgetTester t, FakeShellConfigRepository cfg) async {
+              expect(find.text(ShellLabels.simPrefix), findsOneWidget);
+              expect(find.byType(CircularProgressIndicator), findsNothing);
+              expect(find.byType(LinearProgressIndicator), findsNothing);
+            },
           ),
         ];
 
     for (final c in cases) {
       testWidgets('TS-06 ${c.name}', (WidgetTester tester) async {
-        // 띠 높이 예약 0 — loading·fail·normal 에서만(띠 없을 때)
         final FakeShellConfigRepository config = c.configFactory();
         await pumpShell(
           tester,
@@ -438,9 +452,6 @@ void main() {
             bodies: dummyBodies(AppRoutes.all, <String>[]),
           ),
         );
-        if (c.checkDy) {
-          expect(tester.getTopLeft(find.byType(ShellRoot)).dy, 0.0);
-        }
 
         expect(
           find.byKey(const Key('s01-loading')),
@@ -455,21 +466,7 @@ void main() {
           c.shell ? findsOneWidget : findsNothing,
         );
 
-        if (c.name == 'fail') {
-          // retry => 셸
-          await tester.tap(find.text(ShellLabels.retry));
-          await tester.pump();
-          await tester.pump();
-          expect(find.byKey(const Key('s01-tabs')), findsOneWidget);
-          expect(config.calls, 2);
-        }
-
-        if (c.name == 'value_then_fail') {
-          // 셸 유지 + 띠 칩 simPrefix
-          expect(find.text(ShellLabels.simPrefix), findsOneWidget);
-          expect(find.byType(CircularProgressIndicator), findsNothing);
-          expect(find.byType(LinearProgressIndicator), findsNothing);
-        }
+        await c.flow(tester, config);
       });
     }
   });
