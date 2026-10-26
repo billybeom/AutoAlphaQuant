@@ -476,6 +476,10 @@ abstract final class FixturePaths {
       'm8/onboarding_fresh_advisory.json';
   static const String m8OnboardingModePick = 'm8/onboarding_mode_pick.json';
   static const String m8OpsHomeAdviceOpen = 'm8/ops_home_advice_open.json';
+
+  /// 🆕 v1.13(01 §23 · K7 ⓑ) — 억제 + 기한 라벨(`H-01` 3b 억제 갈래 = `headline` 한 줄만 · R13b 참고 변이 표본).
+  static const String m8OpsHomeAdviceSuppressedDue =
+      'm8/ops_home_advice_suppressed_due.json';
   static const String m8OpsHomeAdviceZero = 'm8/ops_home_advice_zero.json';
   static const String m8OpsHomeBlocked = 'm8/ops_home_blocked.json';
   static const String m8OpsHomeNormal = 'm8/ops_home_normal.json';
@@ -485,6 +489,9 @@ abstract final class FixturePaths {
   /// 🆕 v1.12(K29) — `H-02` 리듬을 아직 받지 못함(`NOT_LOADED` · «모름» ≠ «없음») — R13a 위젯 테스트.
   static const String m8OpsRhythmEmpty = 'm8/ops_rhythm_empty.json';
   static const String m8ReconBoardDiff = 'm8/recon_board_diff.json';
+
+  /// 🆕 v1.13(01 §23 · K5) — 대조 보드 전부 일치(칸 5 · 자가보고 해당 없음 · `headline` = 엔진 일치 문장) — R13b `h01_normal` 계열.
+  static const String m8ReconBoardOk = 'm8/recon_board_ok.json';
   static const String m8RestartLostPhone = 'm8/restart_lost_phone.json';
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
   static const String m8WatchdogHoliday = 'm8/watchdog_holiday.json';
@@ -663,6 +670,7 @@ abstract final class FixturePaths {
     m8OnboardingFreshAdvisory,
     m8OnboardingModePick,
     m8OpsHomeAdviceOpen,
+    m8OpsHomeAdviceSuppressedDue,
     m8OpsHomeAdviceZero,
     m8OpsHomeBlocked,
     m8OpsHomeNormal,
@@ -670,6 +678,7 @@ abstract final class FixturePaths {
     m8OpsRhythmRows,
     m8OpsRhythmEmpty,
     m8ReconBoardDiff,
+    m8ReconBoardOk,
     m8RestartLostPhone,
     m8WatchdogDelayed,
     m8WatchdogHoliday,

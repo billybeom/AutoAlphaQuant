@@ -44,6 +44,9 @@ class FixtureBinding {
 /// 봉투 밖 추가 블록의 표준 이름 — 안내 목록의 요약(01 §2-11 `AdviceInboxSummary`).
 const String adviceSummaryKey = 'summary';
 
+/// 봉투 밖 추가 블록 — 운영 홈의 안내 요약(🆕 v1.13 · 01 §23 K9 · `m8/ops_home_advice_*`).
+const String opsHomeAdviceSummaryKey = 'advice_summary';
+
 final DtoCodec<Object> _adviceItem = DtoCodec<AdviceItem>(
   'AdviceItem',
   AdviceItem.fromJson,
@@ -581,8 +584,25 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (OperatingModeView v) => v.toJson(),
     ),
   ),
-  FixturePaths.m8OpsHomeAdviceOpen: FixtureBinding(_opsDailySummary),
-  FixturePaths.m8OpsHomeAdviceZero: FixtureBinding(_opsDailySummary),
+  // 🆕 v1.13(01 §23 K9) — 형제 키 `advice_summary` 를 C-1·C-8 이 연다(3벌 · 옛 2벌은 행만 묶었다).
+  FixturePaths.m8OpsHomeAdviceOpen: FixtureBinding(
+    _opsDailySummary,
+    extras: <String, DtoCodec<Object>>{
+      opsHomeAdviceSummaryKey: _adviceInboxSummary,
+    },
+  ),
+  FixturePaths.m8OpsHomeAdviceSuppressedDue: FixtureBinding(
+    _opsDailySummary,
+    extras: <String, DtoCodec<Object>>{
+      opsHomeAdviceSummaryKey: _adviceInboxSummary,
+    },
+  ),
+  FixturePaths.m8OpsHomeAdviceZero: FixtureBinding(
+    _opsDailySummary,
+    extras: <String, DtoCodec<Object>>{
+      opsHomeAdviceSummaryKey: _adviceInboxSummary,
+    },
+  ),
   FixturePaths.m8OpsHomeBlocked: FixtureBinding(_opsDailySummary),
   FixturePaths.m8OpsHomeNormal: FixtureBinding(_opsDailySummary),
   FixturePaths.m8OpsHomeResumeGap7: FixtureBinding(_opsDailySummary),
@@ -590,6 +610,14 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   // 🆕 v1.12(K29) — `H-02` 리듬 모름(NOT_LOADED).
   FixturePaths.m8OpsRhythmEmpty: FixtureBinding(_opsRhythmRow),
   FixturePaths.m8ReconBoardDiff: FixtureBinding(
+    DtoCodec<DiagnosticsVm>(
+      'DiagnosticsVm',
+      DiagnosticsVm.fromJson,
+      (DiagnosticsVm v) => v.toJson(),
+    ),
+  ),
+  // 🆕 v1.13(01 §23 K5) — 대조 보드 전부 일치.
+  FixturePaths.m8ReconBoardOk: FixtureBinding(
     DtoCodec<DiagnosticsVm>(
       'DiagnosticsVm',
       DiagnosticsVm.fromJson,
