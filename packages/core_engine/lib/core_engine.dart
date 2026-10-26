@@ -10,6 +10,8 @@
 // `11_앱설계/13_엔진레인_착수계획.md` §2 를 본다.
 
 export 'src/calendar/exchange_calendar.dart' show ExchangeCalendar, Market;
+export 'src/calendar/frozen_calendar.dart'
+    show FrozenCalendarInfo, frozenCalendarInfo, frozenExchangeCalendar;
 export 'src/calendar/next_rebalance.dart'
     show NextRebalance, nextRegularRebalance;
 export 'src/costs/trade_costs.dart'
@@ -24,6 +26,10 @@ export 'src/costs/trade_costs.dart'
         roundTripPnl,
         tradeCost,
         weightedExpenseRatio;
+export 'src/data/dated_series.dart'
+    show DatedSeries, daysBetween, minusOneDay, plusDays, unionSorted;
+export 'src/data/pit_align.dart'
+    show alignAsOfInclusive, alignWithLag, kPublishLagDays, toKrCalendar;
 export 'src/decimal_rules.dart'
     show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
 export 'src/orders/idempotency.dart'

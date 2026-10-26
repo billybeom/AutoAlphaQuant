@@ -7,115 +7,19 @@
 // 🔴 pandas 의 ffill·as-of·cumprod·나눗셈 순서를 그대로 따른다 — 정답지(`fixtures/market_parity.json`)가 비트로 본다.
 // 🔵 시험 전용 — 합성 시세는 백테스트 입력이다. 실전 시세는 KIS 에서 온다(M1-7).
 
+import 'package:core_engine/core_engine.dart'
+    show DatedSeries, daysBetween, toKrCalendar, unionSorted;
+
 import 'replay_csv.dart';
 
-/// 날짜(YYYY-MM-DD · 오름차순 · 중복 없음)와 값(NaN = 결측).
-class DatedSeries {
-  /// 시리즈를 만든다. 길이가 다르면 [ArgumentError].
-  DatedSeries(this.dates, this.values) {
-    if (dates.length != values.length) {
-      throw ArgumentError('날짜 ${dates.length} · 값 ${values.length}');
-    }
-  }
-
-  /// 날짜.
-  final List<String> dates;
-
-  /// 값.
-  final List<double> values;
-
-  /// 길이.
-  int get length => dates.length;
-
-  /// pandas `dropna()`.
-  DatedSeries dropNa() {
-    final List<String> d = <String>[];
-    final List<double> v = <double>[];
-    for (int i = 0; i < length; i++) {
-      if (!values[i].isNaN) {
-        d.add(dates[i]);
-        v.add(values[i]);
-      }
-    }
-    return DatedSeries(d, v);
-  }
-
-  /// [date] 이하 마지막 위치(없으면 −1) — `searchsorted(date, side="right") − 1`.
-  int lastAtOrBefore(String date) {
-    int lo = 0;
-    int hi = length;
-    while (lo < hi) {
-      final int mid = (lo + hi) >> 1;
-      if (dates[mid].compareTo(date) <= 0) {
-        lo = mid + 1;
-      } else {
-        hi = mid;
-      }
-    }
-    return lo - 1;
-  }
-
-  /// `reindex(idx ∪ target).sort_index().ffill().reindex(target)` — 결측 없는 시리즈에서 «그날 이하 마지막 값».
-  /// 🔴 호출자는 [dropNa] 한 시리즈에만 쓴다(참조 엔진의 모든 as-of 호출이 그렇다).
-  DatedSeries asOf(List<String> target) => DatedSeries(target, <double>[
-    for (final String t in target)
-      () {
-        final int p = lastAtOrBefore(t);
-        return p >= 0 ? values[p] : double.nan;
-      }(),
-  ]);
-
-  /// `reindex(target).ffill()` — 날짜가 정확히 같은 값만 옮기고 그 뒤 앞으로 채운다.
-  DatedSeries reindexFfill(List<String> target) {
-    final Map<String, double> at = <String, double>{
-      for (int i = 0; i < length; i++) dates[i]: values[i],
-    };
-    double last = double.nan;
-    return DatedSeries(target, <double>[
-      for (final String t in target)
-        () {
-          final double? v = at[t];
-          if (v != null && !v.isNaN) last = v;
-          return last;
-        }(),
-    ]);
-  }
-
-  /// `ffill()`.
-  DatedSeries ffill() {
-    double last = double.nan;
-    return DatedSeries(dates, <double>[
-      for (final double v in values)
-        () {
-          if (!v.isNaN) last = v;
-          return last;
-        }(),
-    ]);
-  }
-
-  /// [date] 의 값(없으면 null).
-  double? at(String date) {
-    final int p = lastAtOrBefore(date);
-    return p >= 0 && dates[p] == date ? values[p] : null;
-  }
-}
+// 🔵 E8b1(설계 13 §8 R24 B2) — `DatedSeries` · 날짜 도우미 · `toKrCalendar` 는 lib(`src/data/`)로 옮겼다. 하네스는 그것을
+//    부르고 그대로 내보낸다(이 파일을 import 하는 시험이 바뀌지 않게) — 26년 재현 비트 일치가 lib 의 회귀 시험이다.
+export 'package:core_engine/core_engine.dart'
+    show DatedSeries, daysBetween, minusOneDay, toKrCalendar, unionSorted;
 
 /// 한 CSV 열을 날짜 시리즈로(`_num` — 못 읽은 칸은 NaN).
 DatedSeries frameColumn(ReplayFrame f, String column) =>
     DatedSeries(f.index, f.column(column));
-
-DateTime _utc(String d) => DateTime.parse('${d}T00:00:00Z');
-String _ymd(DateTime t) => t.toIso8601String().substring(0, 10);
-
-/// 두 날짜 사이 달력일(b − a).
-int daysBetween(String a, String b) => _utc(b).difference(_utc(a)).inDays;
-
-/// 하루 전 날짜.
-String minusOneDay(String d) => _ymd(_utc(d).subtract(const Duration(days: 1)));
-
-/// 정렬된 두 날짜 목록의 합집합(오름차순).
-List<String> unionSorted(List<String> a, List<String> b) =>
-    (<String>{...a, ...b}.toList()..sort());
 
 /// 원천 CSV 24개 — 참조 엔진 `load_all`.
 class ReplayRaw {
@@ -214,16 +118,6 @@ Map<String, DatedSeries> sleeveBAssets(ReplayRaw raw, DatedSeries fx) {
     '411060': toKrwIndex(gold, fx),
   };
 }
-
-/// `_to_kr_calendar` + `ffill` — 한국 세션 d 마다 «d − 1 달력일 이하» 마지막 미국 값(엄격히 앞선 날).
-DatedSeries toKrCalendar(DatedSeries us, List<String> krSessions) =>
-    DatedSeries(krSessions, <double>[
-      for (final String d in krSessions)
-        () {
-          final int p = us.lastAtOrBefore(minusOneDay(d));
-          return p >= 0 ? us.values[p] : double.nan;
-        }(),
-    ]).ffill();
 
 /// `_rate_to_index` — 연율 % → 실제 경과일 일할 복리 지수(첫 값 = 100). 🔴 bfill 금지 · 선행 결측 = 이자 0.
 DatedSeries rateToIndex(

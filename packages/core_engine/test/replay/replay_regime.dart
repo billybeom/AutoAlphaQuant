@@ -3,39 +3,12 @@
 //
 // 🔴 달력 = 전체 US 세션(1985-01-02 ~) — 확장 백분위와 FSM 이 1985 년부터 누적된다(이식 지도 §2).
 // 🔴 발표 지연(`PUBLISH_LAG` — 달력일): ofr_fsi 1 · nfci 7 · cfnai_ma3 55 · yield_curve 1 · sahm 40.
-// 🔵 시험 전용 — 실전의 PIT 정렬은 데이터 수집(M1-7) 몫이다.
+// 🔵 E8b1(설계 13 §8 R24 B2) — 발표 지연 표(`kPublishLagDays`)와 `alignWithLag` 는 lib(`src/data/pit_align.dart`)로
+//    옮겼다. 이 하네스가 lib 를 부르므로 26년 재현 비트 일치가 실전 PIT 정렬의 회귀 시험이다.
 
 import 'package:core_engine/core_engine.dart';
 
 import 'replay_market.dart';
-
-/// 참조 엔진 `PUBLISH_LAG`.
-const Map<String, int> kPublishLagDays = <String, int>{
-  'nfci': 7,
-  'ofr_fsi': 1,
-  'yield_curve': 1,
-  'cfnai_ma3': 55,
-  'sahm': 40,
-};
-
-String _plusDays(String d, int n) =>
-    DateTime.parse('${d}T00:00:00Z')
-        .add(Duration(days: n))
-        .toIso8601String()
-        .substring(0, 10);
-
-/// 참조 엔진 `_align(s, cal, lag)` — 결측 제거 → 날짜 + 지연 → 중복은 뒤쪽 → as-of 로 달력에.
-DatedSeries alignWithLag(DatedSeries s, List<String> calendar, {int lag = 0}) {
-  final DatedSeries x = s.dropNa();
-  final Map<String, double> byDate = <String, double>{};
-  for (int i = 0; i < x.length; i++) {
-    byDate[lag == 0 ? x.dates[i] : _plusDays(x.dates[i], lag)] = x.values[i];
-  }
-  final List<String> dates = byDate.keys.toList()..sort();
-  return DatedSeries(dates, <double>[
-    for (final String d in dates) byDate[d]!,
-  ]).asOf(calendar);
-}
 
 List<double?> _nullable(List<double> v) => <double?>[
   for (final double x in v) x.isNaN ? null : x,

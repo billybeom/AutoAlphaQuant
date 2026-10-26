@@ -8,6 +8,7 @@
 //    계절 A(F1 진입 게이트 · 마지막 3세션 3분할 · 이월 · 마지막 날 잔량 집행) · POT 서브북 · 원화 조달(E6d).
 // 🔴 원화 조달(`_take_krw` → `_raise_krw`)은 C 방어자산을 **필요한 만큼** 판다 — 잉여 상한 없음(설계 13 §8 R17 ① 결정).
 
+import 'package:core_engine/core_engine.dart' show alignAsOfInclusive;
 import 'package:core_engine/src/numeric/pandas_compat.dart';
 import 'package:core_engine/src/portfolio/month_end_plan.dart';
 import 'package:core_engine/src/signals/regime_states.dart';
@@ -209,20 +210,22 @@ class ReplayEngine {
     ]);
     final DatedSeries score = DatedSeries(regime.calendar, <double>[
       for (final d in regime.direction) d.direction ?? double.nan,
-    ]).dropNa();
-    for (final String d in m.allDays) {
-      final int p = code.lastAtOrBefore(d);
-      _regState.add(p < 0 ? 'UNKNOWN' : regime.fsm[p].directionState.code);
-      final int q = score.lastAtOrBefore(d);
-      _regScore.add(q < 0 ? double.nan : score.values[q]);
+    ]);
+    // 🔵 E8b1 — 같은 날짜 포함 as-of(국면 정렬 = lib `alignAsOfInclusive` · 설계 13 §8 R23 D13 ②).
+    final List<double> codeAt = alignAsOfInclusive(code, m.allDays).values;
+    final List<double> scoreAt = alignAsOfInclusive(score, m.allDays).values;
+    for (int i = 0; i < m.allDays.length; i++) {
+      _regState.add(
+        codeAt[i].isNaN
+            ? 'UNKNOWN'
+            : regime.fsm[codeAt[i].toInt()].directionState.code,
+      );
+      _regScore.add(scoreAt[i]);
     }
     final DatedSeries tk = DatedSeries(regime.kosdaqCalendar, <double>[
       for (final double? x in regime.tskr) x ?? double.nan,
-    ]).dropNa();
-    for (final String d in m.allDays) {
-      final int q = tk.lastAtOrBefore(d);
-      _tskr.add(q < 0 ? double.nan : tk.values[q]);
-    }
+    ]);
+    _tskr.addAll(alignAsOfInclusive(tk, m.allDays).values);
     _krSet = m.kr.toSet();
     _usSet = m.us.toSet();
     for (int i = 0; i < m.allDays.length; i++) {
