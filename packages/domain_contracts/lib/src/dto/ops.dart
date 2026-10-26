@@ -8,6 +8,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
+import '../enums/ui.dart'; // 🆕 v1.13 — DiagnosticCell.level
 import '../primitives/as_of.dart';
 import 'common.dart';
 
@@ -196,8 +197,10 @@ abstract class BackupVm with _$BackupVm {
       _$BackupVmFromJson(json);
 }
 
-/// m2-8 G-10 — 진단 보드(05 `S10`).
+/// m2-8 G-10 — 진단 보드(05 `S10`) · 🆕 v1.13 `H-01` 블록 6(R13b)도 이 VM 을 그린다(01 §23).
 /// 🔴 **칸 수 5 고정은 엔진이 준다** — 모드와 무관하며 화면이 세지 않는다(§2-9).
+/// 🆕 v1.13(01 §23 · K4) — [headline] 은 **늘 엔진 문장**이다(전부 일치 날 = 일치를 말하는 문장 · 빈 글자 0) ·
+///    화면은 늘 그린다 — 칸 상태로 문장을 고르거나 숨기지 않는다.
 @freezed
 abstract class DiagnosticsVm with _$DiagnosticsVm {
   const factory DiagnosticsVm({
@@ -211,8 +214,12 @@ abstract class DiagnosticsVm with _$DiagnosticsVm {
 }
 
 /// m2-8 G-10 — 진단 1칸.
-/// 🔴 `applicable == false` 는 «점검 안 함»으로 그린다 — 빈칸·통과로 그리지
-///    않는다(C15 · G-27).
+/// 🔴 `applicable == false` 칸도 빼지 않는다 — 엔진의 [stateLabel](«해당 없음»·«점검하지 않음» 등)을
+///    그대로 그린다 · 빈칸·통과로 그리지 않는다(C15 · G-27).
+/// 🆕 v1.13(01 §23 · K2 · K3) — [level] = 신호등 색·아이콘의 유일한 근거(04 §2-3 «색+아이콘+텍스트 3중») ·
+///    [stateCode] 로 색을 고르지 않는다(ui 미참조) · 엔진 의무: `applicable == false` ⇒ `info` ·
+///    `blocked` 는 `canonBroker`·`canonSelfReport` 만(파생 불일치는 주문을 막지 않는다) · 점검한 칸
+///    (`applicable == true`)은 `stateCode == 'OK'` ⇔ `level == ok`(«어긋납니다» 를 초록으로 그리지 않는다 · K3 ⓒ) — C-47 ⑩.
 @freezed
 abstract class DiagnosticCell with _$DiagnosticCell {
   const factory DiagnosticCell({
@@ -221,6 +228,7 @@ abstract class DiagnosticCell with _$DiagnosticCell {
     required bool applicable,
     required String stateCode,
     required String stateLabel,
+    required UiLevel level,
   }) = _DiagnosticCell;
 
   factory DiagnosticCell.fromJson(Map<String, dynamic> json) =>

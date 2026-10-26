@@ -145,7 +145,7 @@
 | G-7 | `ConnectionsVm` | ✅ `{ List<ConnectionRow> rows; AsOf asOf }` · `ConnectionRow { String target; String label; String statusCode; String statusLabel; String lastOkText; bool actionAvailable; String? route }` | 05 `S07` · G-29 |
 | G-8 | `DeviceAccessVm` | ✅ `{ List<DeviceRow> devices; String leaseHolderLabel; String leaseStateLabel; String? leaseEtaText; AsOf asOf }` · `DeviceRow { String deviceId; String label; String roleLabel; String statusLabel; String lastSeenText }` — 🔴 **리스는 읽기 전용** | 05 `S06` |
 | G-9 | `BackupVm` | ✅ `{ String lastOkText; String statusCode; String statusLabel; String? sizeText; bool actionAvailable; String? route; AsOf asOf }` | 05 `S09` |
-| G-10 | `DiagnosticsVm` | ✅ `{ List<DiagnosticCell> cells; String headline; AsOf asOf }` · `DiagnosticCell { LedgerPair pair; String label; bool applicable; String stateCode; String stateLabel }` — 🔴 **칸 수 5 고정은 엔진이 준다** · `applicable == false` 는 «점검 안 함» | 05 `S10` · §2-9 · C15 |
+| G-10 | `DiagnosticsVm` | ✅ `{ List<DiagnosticCell> cells; String headline; AsOf asOf }` · `DiagnosticCell { LedgerPair pair; String label; bool applicable; String stateCode; String stateLabel; UiLevel level }`(🆕 v1.13 `level` · 01 §23 K2) — 🔴 **칸 수 5 고정은 엔진이 준다** · `applicable == false` 는 ~~«점검 안 함»~~ 🔵 엔진 `stateLabel` 그대로(«해당 없음»·«점검하지 않음» 등 · 그 칸 `level` = `info`) · 🆕 v1.13 칸 색·아이콘 = `level` 하나(`stateCode` ui 미참조) · `headline` = 늘 엔진 문장(K4) | 05 `S10` · 🆕 `H-01` 블록 6(R13b) · §2-9 · C15 |
 | G-11 | `MonthlyContributionVm` | ✅ `{ String amountText; String equivalentNoteText; String appliesFromText; String lastChangedText; String? pensionLimitNoteText; bool editable }` — 🔴 `ContributionSetting` 의 **1:1 투영** · `editable` 만 런타임 값(`SettingsActions` 주입 여부) · 🔴 **필드를 이어 붙여 문장을 만들지 않는다**(투영을 늘리는 것은 허용) | 01 §2-6 · §8-31 · N-S4-03 |
 | G-12 | `OperatingModeView`·`OperatingModeOption` | ✅ 01 §2-11 원문 그대로 | 01 §2-11 |
 | G-13 | `HandoverPlan`·`HandoverStep`·`AdoptionPreviewRow` | ✅ 01 §2-11 원문 그대로 (`adoptionId`·`disposition`·`dispositionLabel` 포함 — G-03) | 01 §2-11 |
@@ -467,3 +467,22 @@ R12 화면 카드 발송 전에 «Bob 이 추측해야 하는 자리»(DTO 필�
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 🆕 미결 115(`A-2` 정정 체인 접기·행 「정정」) · 116(`M5-6` 진입 맥락) · 117(`L-2` 필터 · 뷰어 원천 `rm_ledger_repair`) · 118(실사 주기 월/분기) · 119(X7 옛 라벨 · 미결 108 확장) · 120(`O-04` 의 `L-3` 폼 재사용) · 121(`J-2` 배지 → `L-2` · 저널 링크) · 122(`H-01` 블록 2 «항상») · 123(블록 9 물리 리스크) · 124(`L-1` 착지 단위) · 미결 52 ⑥(`M5-12` — M5 창).
 엔진(06) 숙제(카드를 막지 않는다 · 설계서 §9-3 ①~⑩) — X7 제출 파싱·맥락·`INPUT_INVALID` · `watchCommand` ④ · 세션 start/stop·그 폰 가림 · 안내 VM(확인 카드 ≤3 · 엔진 정렬 · RECORD·SKIP · 뷰어 [] · 배치 결측 RECORD 만 · 링크·문장) · 폼 사양 선택지 · `ledger_diff`·`ledger_repair` 표시 필드 · `watchRhythm`·`resumeLine` · `SELF_AUDIT_*` 배지 링크 · 알림 등급 = 04_안전장치 §5-3 · 뷰어 `fillsOfAdvice` = [].
+
+## T. 🆕 계약 v1.13 (2026-10-26 · R13b 선행 2 M2 보강) — 대조 보드 칸 레벨 · 전부 일치 표본 · 홈 참고 표본
+
+R13b(`H-01` 운영 홈) 카드의 선행 2 를 닫았다. `contractVersion` = **`1.13.0`**(🔴 K1 — 이 보강이 먼저 병합 · 엔진 레인 E8a 는 1.14.0) · 픽스처 **176건**(174 + 신설 2 · 개정 1 · 버전 줄만 173) · 조문 = 01 §23.
+상태 = ⬜ 로컬 커밋 — PR 대기(앱 브랜치 `m2/r13b-recon-ok` · 기준 origin/main `fc25f77` · 병합 = R13a 병합 뒤).
+결정 = 발주자 2026-10-26 — R13b 확인 ①·⑭ · 🔴 K1·K2·K7 **권고대로** · 나머지 K 권고대로(정본 = 설계 `10_리뷰/2026-10-26_R13b선행_M2보강_설계메모.md` §3).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| T-1 | `DiagnosticCell.level`(`required UiLevel` · JSON `level` · 마지막 필드) | K2 · 칸 신호등 색·아이콘의 유일한 근거 · 새 열거 0(`AdviceInboxSummary.level`·`LedgerTrustBadge.level` 선례) · 엔진 의무 K3(해당 없음 ⇒ `info` · `blocked` = `canonBroker`·`canonSelfReport` 만) |
+| T-2 | `DiagnosticsVm.headline` 규약 «늘 엔진 문장»(꼴 무변경 · 주석) | K4 · 전부 일치 날 = 일치를 말하는 문장 · 화면은 늘 그린다 |
+| T-3 | `FixturePaths.m8ReconBoardOk`(`m8/recon_board_ok.json` · 한 줄 상수) · `FixturePaths.m8OpsHomeAdviceSuppressedDue`(`m8/ops_home_advice_suppressed_due.json`) | K5 · K7 ⓑ · R13b 카드 `__RECON_OK__` = `m8ReconBoardOk` · `__RECON_OK_GREP__` = `static const String m8ReconBoardOk =` |
+| T-4 | 등록부 `opsHomeAdviceSummaryKey = 'advice_summary'`(test) · 🆕 `envelopeKeys` · `unboundSiblingKeys` · `unboundSiblingsOf`(test · 검증 반영) | K9 · m8 `ops_home_advice_*` 3벌 extras — C-1·C-8 이 요약을 연다 · C-1 형제 키 완전성(extras ∨ 사유 13키) |
+| T-5 | C-47 ⑩ · ⑪ | K10 · 대조 보드(칸 키 6 · 레벨 원천 · `headline` 늘 · 전부 일치 · 🆕 칸 레벨 표본째 · state ⇔ level K3 ⓒ · `ledger_diffs_4` 대응) · R13b 홈 참고 표본(억제 + 기한 · 배분 notice 두 갈래 · 🆕 `dueTodayCount` 셈 · `headline` 고정 K8) |
+| T-6 | 생성기 `tool/gen_r13b_v113_fixtures.py` | K11 · 기준 `fc25f77` 원문에서 멱등 |
+
+🔴 **만들지 않은 이름**(재론 방지): `DiagnosticLevel`(새 열거 — `UiLevel` 재사용) · `String? headline`(nullable — 존재 판정이 화면으로 온다 · K4 대안 기각) · `m6/allocation_no_pot`(재사용 `m6/allocation_empty` 로 충분 · K7 ⓐ' 기각) · C-48(새 번호 — C-47 확장 · 같은 번호는 엔진 레인 E8a 가 쓴다).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 128(뷰어 홈 블록 6 원천 · 열린 채 · 05 `S10` VM 꼴 어긋남 함께) · 125·129·130·131 · 억제 + 기한 공존의 엔진 빈도(X7) · `UiLevel` → 아이콘 공용 사전(R13b 밖).

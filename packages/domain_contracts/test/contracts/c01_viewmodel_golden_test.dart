@@ -62,6 +62,66 @@ void main() {
       expect(both, isEmpty, reason: '한 픽스처가 매핑과 미매핑 양쪽에 있다.');
     });
 
+    test('C-1 형제 키는 extras 로 묶이거나 사유와 함께 남는다 (🆕 v1.13 · 01 §23 K9)', () {
+      // 자체 검증 — 묶지 않은 `advice_summary` 는 걸리고, 묶었거나 사유가 있는 키는 통과한다.
+      final Map<String, Object?> fake = <String, Object?>{
+        'meta': 1,
+        'rows': <Object?>[],
+        'advice_summary': <String, Object?>{},
+        'lease_notice': '문장',
+      };
+      expect(unboundSiblingsOf('fake', fake, <String>{}), <String>[
+        'fake.advice_summary',
+      ]);
+      expect(
+        unboundSiblingsOf('fake', fake, <String>{opsHomeAdviceSummaryKey}),
+        isEmpty,
+      );
+
+      final Set<String> boundKeys = <String>{
+        for (final FixtureBinding b in fixtureBindings.values) ...b.extras.keys,
+      };
+      expect(
+        boundKeys,
+        containsAll(<String>[adviceSummaryKey, opsHomeAdviceSummaryKey]),
+      );
+      expect(
+        boundKeys.intersection(unboundSiblingKeys.keys.toSet()),
+        isEmpty,
+        reason: '묶는 키를 사유 목록에도 적으면 extras 를 빼도 통과한다.',
+      );
+      expect(
+        unboundSiblingKeys.keys.toSet().intersection(envelopeKeys),
+        isEmpty,
+      );
+
+      final List<String> unbound = <String>[];
+      final Set<String> used = <String>{};
+      for (final String path in FixturePaths.all) {
+        final Map<String, Object?> envelope =
+            jsonDecode(readFixture(path)) as Map<String, Object?>;
+        final Set<String> extrasKeys =
+            fixtureBindings[path]?.extras.keys.toSet() ?? <String>{};
+        unbound.addAll(unboundSiblingsOf(path, envelope, extrasKeys));
+        used.addAll(envelope.keys.where(unboundSiblingKeys.containsKey));
+      }
+      expect(
+        unbound,
+        isEmpty,
+        reason:
+            '형제 키가 extras 로 묶이지 않았고 사유도 없다 — C-1·C-8 이 그 블록을 조용히 열지 않는다. '
+            'c00_fixture_registry.dart 의 바인딩 extras 에 넣거나 unboundSiblingKeys 에 사유와 함께 적는다.',
+      );
+      expect(
+        unboundSiblingKeys.keys.toSet().difference(used),
+        isEmpty,
+        reason: '사유 목록에 쓰이지 않는 키가 남았다(지운 형제 키는 목록에서도 지운다).',
+      );
+      for (final MapEntry<String, String> e in unboundSiblingKeys.entries) {
+        expect(e.value.trim(), isNotEmpty, reason: '${e.key} — 사유가 비었다.');
+      }
+    });
+
     test('C-1 봉투 필수값 — as_of·empty_kind·empty_label·has_more·meta 7값', () {
       for (final String path in FixturePaths.all) {
         expect(fixtureExists(path), isTrue, reason: '픽스처 파일이 없다: $path');

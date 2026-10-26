@@ -25,6 +25,8 @@ abstract interface class OpsStatusRepository {
   Stream<BackupVm> watchBackup();
 
   /// `S10` — 🔴 칸 수 5 고정은 엔진이 준다(§2-9 `applicable`).
+  /// 🆕 v1.13(01 §23) — `H-01` 블록 6(R13b)의 원천도 이 창구다(칸 색 = `DiagnosticCell.level` · `headline` 늘) ·
+  ///    뷰어 원천 = 01 §8 미결 128.
   Stream<DiagnosticsVm> watchDiagnostics();
 
   /// `S12` — 🔴 화면이 `windowState` 를 «달»로 판정하지 않는다.

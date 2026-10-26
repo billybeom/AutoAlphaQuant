@@ -60,6 +60,7 @@ void main() {
         FixturePaths.m8OpsHomeNormal,
         FixturePaths.m8OpsHomeBlocked,
         FixturePaths.m8OpsHomeAdviceOpen,
+        FixturePaths.m8OpsHomeAdviceSuppressedDue,
         FixturePaths.m8OpsHomeAdviceZero,
         FixturePaths.m8OpsHomeResumeGap7,
         FixturePaths.alerts12,
