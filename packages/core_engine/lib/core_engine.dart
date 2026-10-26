@@ -26,10 +26,32 @@ export 'src/costs/trade_costs.dart'
         roundTripPnl,
         tradeCost,
         weightedExpenseRatio;
+export 'src/data/data_checks.dart'
+    show
+        DataGapCause,
+        DataIssue,
+        KrBar,
+        KrDayVerdict,
+        judgeKrPlanDay,
+        monthEndRegimeReady;
 export 'src/data/dated_series.dart'
     show DatedSeries, daysBetween, minusOneDay, plusDays, unionSorted;
 export 'src/data/pit_align.dart'
     show alignAsOfInclusive, alignWithLag, kPublishLagDays, toKrCalendar;
+export 'src/data/regime_inputs.dart'
+    show
+        RegimeComputation,
+        RegimeFreshnessCaps,
+        RegimeSources,
+        SeriesCadence,
+        applyFreshnessCaps,
+        computeRegime,
+        kP0sDirectionHysteresis,
+        kP0sTrendHysteresis,
+        kRegimeSourceCadence,
+        regimeRawIndicators,
+        regimeStaleDays,
+        usCalendarLagSessions;
 export 'src/decimal_rules.dart'
     show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
 export 'src/orders/idempotency.dart'

@@ -14,6 +14,28 @@ List<double?> _nullable(List<double> v) => <double?>[
   for (final double x in v) x.isNaN ? null : x,
 ];
 
+/// 동결 번들 CSV → 국면 원천 한 벌(참조 엔진 `load_all` 의 열 이름 그대로).
+RegimeSources regimeSourcesFromBundle(ReplayRaw r) {
+  final Ohlcv us = Ohlcv.fromFrame(r['gspc']);
+  DatedSeries col(String file, String column) => frameColumn(r[file], column);
+  return RegimeSources(
+    usDates: us.dates,
+    usClose: _nullable(us.close),
+    usHigh: _nullable(us.high),
+    usLow: _nullable(us.low),
+    usVolume: _nullable(us.volume),
+    spyAdjClose: col('spy', 'Adj Close'),
+    rspAdjClose: col('rsp', 'Adj Close'),
+    vix: col('vix', 'Close'),
+    vix3m: col('vix3m', 'Close'),
+    ofrFsi: col('ofr_fsi', 'OFR FSI'),
+    nfci: col('nfci', 'NFCI'),
+    cfnaiMa3: col('cfnai_ma3', 'CFNAIMA3'),
+    t10y3m: col('t10y3m', 'T10Y3M'),
+    sahm: col('sahm', 'SAHMREALTIME'),
+  );
+}
+
 /// 국면 재현 결과.
 class ReplayRegime {
   ReplayRegime._({
@@ -32,105 +54,9 @@ class ReplayRegime {
   /// 만든다.
   factory ReplayRegime.build() {
     final ReplayRaw r = ReplayRaw.load();
-    final Ohlcv us = Ohlcv.fromFrame(r['gspc']);
-    final List<String> cal = us.dates;
-    final List<double?> close = _nullable(us.close);
-
-    final Map<String, List<double?>> raw = <String, List<double?>>{
-      ...trendIndicators(close),
-      'dist_days': distributionDays(close, _nullable(us.volume)),
-    };
-
-    final DatedSeries spy = frameColumn(r['spy'], 'Adj Close').dropNa();
-    final DatedSeries rsp = frameColumn(r['rsp'], 'Adj Close').dropNa();
-    final DatedSeries ratio = DatedSeries(rsp.dates, <double>[
-      for (int i = 0; i < rsp.length; i++)
-        rsp.values[i] / (spy.at(rsp.dates[i]) ?? double.nan),
-    ]).dropNa();
-    final List<double?> ratioSma = sma(_nullable(ratio.values), 50);
-    raw['rsp_spy_ratio'] = _nullable(
-      alignWithLag(
-        DatedSeries(ratio.dates, <double>[
-          for (int i = 0; i < ratio.length; i++)
-            ratio.values[i] / (ratioSma[i] ?? double.nan) - 1.0,
-        ]),
-        cal,
-      ).values,
-    );
-
-    final DatedSeries vix = frameColumn(r['vix'], 'Close').dropNa();
-    raw['vix_level'] = _nullable(alignWithLag(vix, cal).values);
-    final DatedSeries v3 = frameColumn(r['vix3m'], 'Close').dropNa();
-    raw['vix_term'] = _nullable(
-      alignWithLag(
-        DatedSeries(v3.dates, <double>[
-          for (int i = 0; i < v3.length; i++)
-            (vix.at(v3.dates[i]) ?? double.nan) / v3.values[i],
-        ]).dropNa(),
-        cal,
-      ).values,
-    );
-
-    DatedSeries col(String file, String column) => frameColumn(r[file], column);
-    raw['ofr_fsi'] = _nullable(
-      alignWithLag(
-        col('ofr_fsi', 'OFR FSI'),
-        cal,
-        lag: kPublishLagDays['ofr_fsi']!,
-      ).values,
-    );
-    raw['nfci'] = _nullable(
-      alignWithLag(
-        col('nfci', 'NFCI'),
-        cal,
-        lag: kPublishLagDays['nfci']!,
-      ).values,
-    );
-    raw['cfnai_ma3'] = _nullable(
-      alignWithLag(
-        col('cfnai_ma3', 'CFNAIMA3'),
-        cal,
-        lag: kPublishLagDays['cfnai_ma3']!,
-      ).values,
-    );
-    raw['yield_curve'] = _nullable(
-      alignWithLag(
-        col('t10y3m', 'T10Y3M'),
-        cal,
-        lag: kPublishLagDays['yield_curve']!,
-      ).values,
-    );
-    raw['sahm'] = _nullable(
-      alignWithLag(
-        col('sahm', 'SAHMREALTIME'),
-        cal,
-        lag: kPublishLagDays['sahm']!,
-      ).values,
-    );
-
-    final Map<String, List<double?>> norm = normalizeIndicators(raw);
-    final List<DirectionScore> dir = directionScores(norm);
-    final Map<String, List<double?>> tParts = trendinessParts(
-      high: _nullable(us.high),
-      low: _nullable(us.low),
-      close: close,
-    );
-    final List<double?> trend = meanOfAvailable(<List<double?>>[
-      tParts['chop']!,
-      tParts['adx']!,
-      tParts['bbw']!,
-    ], minValid: 1);
-    final List<RegimeDay> fsm = runRegimeFsm(
-      <double?>[for (final DirectionScore d in dir) d.direction],
-      trend,
-      directionConfig: DirectionHysteresis(
-        up: 60,
-        down: 40,
-        confirmBars: 3,
-        minHoldBars: 10,
-      ),
-      trendConfig: TrendHysteresis(trendIn: 35, trendOut: 45, confirmBars: 3),
-    );
+    // 🔵 E8b2(설계 13 §8 R24 B2) — 원지표 조립 → 정규화 → 방향 → 추세성 → FSM 은 lib(`src/data/regime_inputs.dart`)다.
+    final RegimeComputation comp = computeRegime(regimeSourcesFromBundle(r));
+    final List<String> cal = comp.calendar;
 
     final Ohlcv kq = Ohlcv.fromFrame(r['kq11']);
     final List<double?> kClose = _nullable(kq.close);
@@ -139,12 +65,12 @@ class ReplayRegime {
     );
     return ReplayRegime._(
       calendar: cal,
-      raw: raw,
-      normalized: norm,
-      direction: dir,
-      trendinessPartScores: tParts,
-      trendiness: trend,
-      fsm: fsm,
+      raw: comp.raw,
+      normalized: comp.normalized,
+      direction: comp.direction,
+      trendinessPartScores: comp.trendinessParts,
+      trendiness: comp.trendiness,
+      fsm: comp.fsm,
       kosdaqCalendar: kq.dates,
       tskrParts: kParts,
       tskr: trendScoreKr(kClose),
