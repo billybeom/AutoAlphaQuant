@@ -3,7 +3,7 @@
 // 주입 프로바이더 6 + 셸 상태 3 + 데이터 1(shellFlagsProvider) +
 // ShellPlatform · ShellBodyBuilder · ShellRouteBodies · shellModeLabels · shellTitle.
 //
-// 🔴 autoDispose 0 · 기본값 = throw UnimplementedError.
+// 🔴 프로바이더 기본값 = throw UnimplementedError(조립 앱이 주입).
 
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/material.dart';
