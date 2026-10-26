@@ -36,6 +36,7 @@ export 'src/data/data_checks.dart'
         monthEndRegimeReady;
 export 'src/data/dated_series.dart'
     show DatedSeries, daysBetween, minusOneDay, plusDays, unionSorted;
+export 'src/data/pandas_number.dart' show pandasPreciseXstrtod;
 export 'src/data/pit_align.dart'
     show alignAsOfInclusive, alignWithLag, kPublishLagDays, toKrCalendar;
 export 'src/data/regime_inputs.dart'
