@@ -28,7 +28,7 @@ class ShellRouteMatch {
 
 /// AppRoutes.all 순서대로 첫 일치를 찾는다.
 ///
-/// 🔴 세그먼트 수가 다르면 다음 · ':' 로 시작하는 조각 = 파라미터(비어 있거나 '?'·'#' 포함 시 불일치) ·
+/// 🔴 세그먼트 수가 다르면 다음. 조각이 콜론으로 시작하면 파라미터(빈 값이나 물음표·샵 포함 시 불일치).
 ///    고정 조각 = 같아야. 첫 일치 반환.
 ShellRouteMatch? matchShellRoute(String link) {
   final List<String> l = link.split('/');
