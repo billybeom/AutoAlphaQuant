@@ -234,7 +234,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 
 ■ 본받지 않는 것
  · R4·R5a·R5b 카드와 같다 — 배너 관용구 · .take(3)+«+n»(🔵 JournalEntryCard 안의 것은 공용 조각이라 그대로 쓴다 — 이 카드 파일에 새로 쓰지 않는다) · lib nullable 에 ! · 읽기 화면(A-2)의 FlutterError.reportError · implements 가짜 · 한국어 테스트 이름 · 조건부 단언
- · journal_draft_form.dart(J-3)의 화면 검증(.trim().length · rationaleMinChars · requiresNote 검사 — X7 = 검증 0 · K4) · activeFlags·FlagIds 로 배너 짓기(J-3 의 옛 꼴 — X7 = JournalSafetyBanners) · .where(…).firstOrNull · _receipt! 꼴(lib ! 0)
+ · journal_draft_form.dart(J-3)의 화면 검증(.trim().length · rationaleMinChars · requiresNote 검사 — X7 = 검증 0 · K4) · activeFlags·FlagIds 로 배너 짓기(J-3 의 옛 꼴 — X7 = JournalSafetyBanners) · .where(…).firstOrNull · _receipt! · _commandId! 꼴(lib ! 0)
    🔵 본받는 것 = J-3 의 _report(FlutterError.reportError · 입력값 싣지 않음) · _port(Future.sync 감싸기) · _restore · _applyReceipt(clear 한 곳 · _draftCleared) · _subscribe(onError·onDone = 재구독) · 순서 «연결 저장 → 반영 → 구독» — 폼은 J-3 꼴 그대로(01 §12-1-6 ③)
  · test/journal_draft_test.dart 의 공장 안 if … return · _receiptIn(CommandState) 처럼 접수증을 지어 내는 꼴(X7 = 픽스처 접수증) · test/golden/j3_golden_test.dart 의 collection-if(옛 꼴)
  · R13b 1회차 반려 꼴(C4h-2~4) — 탭·링크 단언이 if 안 · bool 칸 + if · opened[0] · name ==·which == · if 를 단언 안 || 로 감춤
@@ -304,7 +304,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  State 필드(🔴 이 이름·타입 · 입력 칸 0): late final DraftKey _draftKey = DraftKey(kind: DraftKind.adviceSkip, targetId: widget.adviceId); · CommandReceipt? _receipt; · StreamSubscription<CommandReceipt>? _cmdSub; ·
    String? _commandId; · bool _restoreDone = false; · bool _awaitingReceipt = false; · bool _resubscribeFailed = false; · bool _submitting = false; · bool _submitNotAccepted = false; · bool _draftCleared = false; · bool _issuedHere = false;
  initState = super.initState(); unawaited(_restore()); · dispose = _cmdSub?.cancel(); super.dispose();(🔴 dispose 안 ref. 0)
- J-3 에서 그대로 옮기는 것(이름 같게 · 본문은 이 화면 몫으로): _report · _port · _subscribe · _resubscribe — 🔵 _restore 는 lastCommandId 만(발주자 확인 ⑧):
+ J-3 에서 그대로 옮기는 것(이름 같게 · 본문은 이 화면 몫으로): _report · _port · _subscribe · _resubscribe(🔴 J-3 의 _subscribe(_commandId!) 는 옮기지 않는다 — final String? id = _commandId; if (id != null) { setState(() { _resubscribeFailed = false; }); _subscribe(id); } · lib ! 0) — 🔵 _restore 는 lastCommandId 만(발주자 확인 ⑧):
      Future<void> _restore() async {
        DraftRecord? r;
        try { r = await ref.read(journalDraftStoreProvider).load(_draftKey); } catch (e, st) { _report(e, st); }
