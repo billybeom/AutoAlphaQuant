@@ -483,7 +483,6 @@ Set<String> homeAllowed({
     diag.headline,
     trust.label,
     trust.consequenceLine,
-    ?trust.actionDeepLink,
     ShellLabels.homeReconTitle,
     ShellLabels.homeUpcomingTitle,
     ShellLabels.homeMore,

@@ -83,6 +83,31 @@ final StateProvider<int> shellTabIndexProvider = StateProvider<int>(
   (Ref ref) => 0,
 );
 
+// ── Data provider ──────────────────────────────────────────────────────────────
+
+final StreamProvider<FeatureFlags> shellFlagsProvider =
+    StreamProvider<FeatureFlags>(
+      (Ref ref) => ref.watch(shellConfigRepositoryProvider).watchFlags(),
+    );
+
+// ── Label helpers ──────────────────────────────────────────────────────────────
+
+/// 접두·띠 칩 — 순서 고정(모의 → 안내).
+List<String> shellModeLabels(FeatureFlags flags) {
+  final String? run = flags.runMode.isSim ? ShellLabels.simPrefix : null;
+  final String? op = switch (flags.operatingMode) {
+    OperatingMode.autoTrade => null,
+    OperatingMode.advisory => ShellLabels.advisoryPrefix,
+  };
+  return <String>[?run, ?op];
+}
+
+/// 앱바 제목 = 접두들 + 제목(없으면 접두만) — 이음 = ShellLabels.prefixSeparator.
+String shellTitle(FeatureFlags? flags, String? title) => <String>[
+  ...?(flags == null ? null : shellModeLabels(flags)),
+  ?title,
+].join(ShellLabels.prefixSeparator);
+
 // ── R13b — H-01 injection providers ──────────────────────────────────────────
 
 final Provider<SafetyRepository> shellSafetyRepositoryProvider =
@@ -119,28 +144,3 @@ final Provider<LedgerTrustRepository> shellLedgerTrustRepositoryProvider =
         'shellLedgerTrustRepositoryProvider must be overridden',
       ),
     );
-
-// ── Data provider ──────────────────────────────────────────────────────────────
-
-final StreamProvider<FeatureFlags> shellFlagsProvider =
-    StreamProvider<FeatureFlags>(
-      (Ref ref) => ref.watch(shellConfigRepositoryProvider).watchFlags(),
-    );
-
-// ── Label helpers ──────────────────────────────────────────────────────────────
-
-/// 접두·띠 칩 — 순서 고정(모의 → 안내).
-List<String> shellModeLabels(FeatureFlags flags) {
-  final String? run = flags.runMode.isSim ? ShellLabels.simPrefix : null;
-  final String? op = switch (flags.operatingMode) {
-    OperatingMode.autoTrade => null,
-    OperatingMode.advisory => ShellLabels.advisoryPrefix,
-  };
-  return <String>[?run, ?op];
-}
-
-/// 앱바 제목 = 접두들 + 제목(없으면 접두만) — 이음 = ShellLabels.prefixSeparator.
-String shellTitle(FeatureFlags? flags, String? title) => <String>[
-  ...?(flags == null ? null : shellModeLabels(flags)),
-  ?title,
-].join(ShellLabels.prefixSeparator);

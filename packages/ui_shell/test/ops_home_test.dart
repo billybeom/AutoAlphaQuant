@@ -238,18 +238,49 @@ void main() {
 
   // ── T01-02 block 2 resume ───────────────────────────────────────────────────
 
-  final List<(String, OpsDailySummary)> cases02 = <(String, OpsDailySummary)>[
-    ('resume_gap7', resume),
-    ('normal', normal),
-  ];
+  final List<
+    (
+      String,
+      OpsDailySummary,
+      String?,
+      Future<void> Function(WidgetTester),
+      List<String>,
+    )
+  >
+  cases02 =
+      <
+        (
+          String,
+          OpsDailySummary,
+          String?,
+          Future<void> Function(WidgetTester),
+          List<String>,
+        )
+      >[
+        (
+          'resume_gap7',
+          resume,
+          resume.resumeLine!.label,
+          (WidgetTester t) async {
+            await t.tap(find.byKey(const Key('h01-resume')));
+            await t.pump();
+          },
+          <String>[resume.resumeLine!.deepLink],
+        ),
+        ('normal', normal, null, (WidgetTester t) async {}, <String>[]),
+      ];
 
-  for (final (String name, OpsDailySummary todayF) in cases02) {
+  for (final (
+        String name,
+        OpsDailySummary todayF,
+        String? want,
+        Future<void> Function(WidgetTester) steps,
+        List<String> opened,
+      )
+      in cases02) {
     testWidgets('T01-02 block 2 resume\n$name', (WidgetTester tester) async {
       expect(resume.resumeLine, isNotNull); // pre
       expect(normal.resumeLine, isNull); // pre
-      final String? want = name == 'resume_gap7'
-          ? resume.resumeLine!.label
-          : null;
       final RecordingLinkOpener opener = RecordingLinkOpener();
       await pumpOpsHome(
         tester,
@@ -275,12 +306,11 @@ void main() {
           shownTexts(tester, find.byKey(const Key('h01-resume'))),
           <String>[want],
         );
-        await tester.tap(find.byKey(const Key('h01-resume')));
-        await tester.pump();
-        expect(opener.opened, <String>[resume.resumeLine!.deepLink]);
       } else {
         expect(find.byKey(const Key('h01-resume')), findsNothing);
       }
+      await steps(tester);
+      expect(opener.opened, opened);
       expect(find.text(ShellLabels.retry), findsNothing); // ⓡ
     });
   }
@@ -292,19 +322,54 @@ void main() {
       .map((BlockFlag f) => f.label)
       .toList();
 
-  final List<(String, SafetyState)> cases03 = <(String, SafetyState)>[
-    ('halted', safe3),
-    ('marker_only', safe1),
-    ('none', safe0),
-  ];
+  final List<
+    (
+      String,
+      SafetyState,
+      List<String>?,
+      Future<void> Function(WidgetTester),
+      List<String>,
+    )
+  >
+  cases03 =
+      <
+        (
+          String,
+          SafetyState,
+          List<String>?,
+          Future<void> Function(WidgetTester),
+          List<String>,
+        )
+      >[
+        (
+          'halted',
+          safe3,
+          wantHalted,
+          (WidgetTester t) async {
+            await t.tap(find.byKey(const Key('h01-blocked')));
+            await t.pump();
+            await t.tap(find.byKey(const Key('h01-status')));
+            await t.pump();
+          },
+          <String>[AppRoutes.m5BlockBoard, AppRoutes.m5BlockBoard],
+        ),
+        ('marker_only', safe1, null, (WidgetTester t) async {}, <String>[]),
+        ('none', safe0, null, (WidgetTester t) async {}, <String>[]),
+      ];
 
-  for (final (String name, SafetyState safetyF) in cases03) {
+  for (final (
+        String name,
+        SafetyState safetyF,
+        List<String>? want,
+        Future<void> Function(WidgetTester) steps,
+        List<String> opened,
+      )
+      in cases03) {
     testWidgets('T01-03 block 3 blocking only\n$name', (
       WidgetTester tester,
     ) async {
       expect(wantHalted, isNotEmpty); // pre
       expect(safe1.activeFlags, isNotEmpty); // pre
-      final List<String>? want = name == 'halted' ? wantHalted : null;
       final RecordingLinkOpener opener = RecordingLinkOpener();
       await pumpOpsHome(
         tester,
@@ -327,34 +392,76 @@ void main() {
       );
       if (want != null) {
         expect(shownTexts(tester, find.byKey(const Key('h01-blocked'))), want);
-        await tester.tap(find.byKey(const Key('h01-blocked')));
-        await tester.pump();
-        expect(opener.opened[0], AppRoutes.m5BlockBoard);
-        await tester.tap(find.byKey(const Key('h01-status')));
-        await tester.pump();
-        expect(opener.opened[1], AppRoutes.m5BlockBoard);
       } else {
         expect(find.byKey(const Key('h01-blocked')), findsNothing);
       }
+      await steps(tester);
+      expect(opener.opened, opened);
       expect(find.text(ShellLabels.retry), findsNothing); // ⓡ
     });
   }
 
   // ── T01-04 block 3b ─────────────────────────────────────────────────────────
 
-  final List<(String, AdviceInboxSummary, List<String>?)> cases04 =
-      <(String, AdviceInboxSummary, List<String>?)>[
+  final List<
+    (
+      String,
+      OpsDailySummary,
+      AdviceInboxSummary,
+      List<String>?,
+      Future<void> Function(WidgetTester),
+      List<String>,
+    )
+  >
+  cases04 =
+      <
+        (
+          String,
+          OpsDailySummary,
+          AdviceInboxSummary,
+          List<String>?,
+          Future<void> Function(WidgetTester),
+          List<String>,
+        )
+      >[
         (
           'open',
+          adviceT,
           open,
           <String>[open.headline, open.dueSoonLabel!, open.trust.label],
+          (WidgetTester t) async {
+            await t.tap(find.byKey(const Key('h01-advice')));
+            await t.pump();
+          },
+          <String>[AppRoutes.adviceInbox],
         ),
-        ('zero_none', none, null),
-        ('suppressed', suppressed, <String>[suppressed.headline]),
-        ('suppressed_due', sdue, <String>[sdue.headline]),
+        ('zero_none', zeroT, none, null, (WidgetTester t) async {}, <String>[]),
+        (
+          'suppressed',
+          zeroT,
+          suppressed,
+          <String>[suppressed.headline],
+          (WidgetTester t) async {},
+          <String>[],
+        ),
+        (
+          'suppressed_due',
+          zeroT,
+          sdue,
+          <String>[sdue.headline],
+          (WidgetTester t) async {},
+          <String>[],
+        ),
       ];
 
-  for (final (String name, AdviceInboxSummary adviceF, List<String>? want)
+  for (final (
+        String name,
+        OpsDailySummary todayF,
+        AdviceInboxSummary adviceF,
+        List<String>? want,
+        Future<void> Function(WidgetTester) steps,
+        List<String> opened,
+      )
       in cases04) {
     testWidgets('T01-04 block 3b\n$name', (WidgetTester tester) async {
       expect(open.openCount, isNot(0)); // pre
@@ -369,9 +476,7 @@ void main() {
         tester,
         overrides: homeOverrides(
           safety: FakeShellSafetyRepository(state: (int call) => one(safe0)),
-          today: FakeShellOpsTodayRepository(
-            today: (int call) => one(name == 'open' ? adviceT : zeroT),
-          ),
+          today: FakeShellOpsTodayRepository(today: (int call) => one(todayF)),
           advice: FakeShellAdviceRepository(
             summary: (int call) => one(adviceF),
           ),
@@ -394,16 +499,11 @@ void main() {
           want,
           reason: name,
         );
-        if (name == 'open') {
-          await tester.tap(find.byKey(const Key('h01-advice')));
-          await tester.pump();
-          expect(opener.opened, <String>[AppRoutes.adviceInbox]);
-        } else {
-          expect(opener.opened, isEmpty, reason: name);
-        }
       } else {
         expect(find.byKey(const Key('h01-advice')), findsNothing, reason: name);
       }
+      await steps(tester);
+      expect(opener.opened, opened, reason: name);
       expect(find.text(ShellLabels.retry), findsNothing); // ⓡ
     });
   }
@@ -624,19 +724,69 @@ void main() {
 
   // ── T01-08 block 9b self audit ──────────────────────────────────────────────
 
-  final List<(String, SafetyState, LedgerTrustBadge, bool, bool)> cases08 =
-      <(String, SafetyState, LedgerTrustBadge, bool, bool)>[
-        ('due', safe1, trustDue, true, true),
-        ('viewer', safe1, viewer, true, false),
-        ('none', safe0, trustDue, false, false),
+  final List<
+    (
+      String,
+      SafetyState,
+      LedgerTrustBadge,
+      List<String>?,
+      bool,
+      Future<void> Function(WidgetTester),
+      List<String>,
+    )
+  >
+  cases08 =
+      <
+        (
+          String,
+          SafetyState,
+          LedgerTrustBadge,
+          List<String>?,
+          bool,
+          Future<void> Function(WidgetTester),
+          List<String>,
+        )
+      >[
+        (
+          'due',
+          safe1,
+          trustDue,
+          <String>[trustDue.label, trustDue.consequenceLine],
+          true,
+          (WidgetTester t) async {
+            await t.tap(find.byKey(const Key('h01-audit-action')));
+            await t.pump();
+          },
+          <String>[trustDue.actionDeepLink!],
+        ),
+        (
+          'viewer',
+          safe1,
+          viewer,
+          <String>[viewer.label, viewer.consequenceLine],
+          false,
+          (WidgetTester t) async {},
+          <String>[],
+        ),
+        (
+          'none',
+          safe0,
+          trustDue,
+          null,
+          false,
+          (WidgetTester t) async {},
+          <String>[],
+        ),
       ];
 
   for (final (
         String name,
         SafetyState safetyF,
         LedgerTrustBadge trustF,
-        bool wantCard,
-        bool wantButton,
+        List<String>? want,
+        bool button,
+        Future<void> Function(WidgetTester) steps,
+        List<String> opened,
       )
       in cases08) {
     testWidgets('T01-08 block 9b audit\n$name', (WidgetTester tester) async {
@@ -662,44 +812,31 @@ void main() {
           clock: clock,
         ),
       );
-      expect(
-        find.byKey(const Key('h01-audit')),
-        wantCard ? findsOneWidget : findsNothing,
-        reason: name,
-      );
-      if (wantCard) {
-        final List<String?> texts = shownTexts(
-          tester,
-          find.byKey(const Key('h01-audit')),
-        );
-        expect(texts[0], trustF.label, reason: name);
-        expect(texts[1], trustF.consequenceLine, reason: name);
-        expect(
-          find.byKey(const Key('h01-audit-action')),
-          wantButton ? findsOneWidget : findsNothing,
-          reason: name,
-        );
+      final Finder card = find.byKey(const Key('h01-audit'));
+      if (want != null) {
+        expect(shownTexts(tester, card).take(2).toList(), want, reason: name);
         final ColorScheme cs = Theme.of(tester.element(find.byType(OpsHome)))
             .colorScheme;
-        if (name == 'due') {
-          await tester.tap(find.byKey(const Key('h01-audit-action')));
-          await tester.pump();
-          expect(opener.opened, <String>[trustDue.actionDeepLink!]);
-          final Card card = tester.widget<Card>(
-            find.byKey(const Key('h01-audit')),
-          );
-          expect(card.color, cs.surfaceContainerHighest, reason: 'info color');
-          expect(card.color, isNot(cs.errorContainer), reason: 'not error');
-        } else {
-          expect(opener.opened, isEmpty, reason: name);
-        }
-      } else {
         expect(
-          find.byKey(const Key('h01-audit-action')),
-          findsNothing,
-          reason: name,
+          tester.widget<Card>(card).color,
+          cs.surfaceContainerHighest,
+          reason: 'info color',
         );
+        expect(
+          tester.widget<Card>(card).color,
+          isNot(cs.errorContainer),
+          reason: 'not error',
+        );
+      } else {
+        expect(card, findsNothing, reason: name);
       }
+      expect(
+        find.byKey(const Key('h01-audit-action')),
+        button ? findsOneWidget : findsNothing,
+        reason: name,
+      );
+      await steps(tester);
+      expect(opener.opened, opened, reason: name);
       expect(find.text(ShellLabels.retry), findsNothing); // ⓡ
     });
   }
@@ -995,44 +1132,104 @@ void main() {
 
   // ── T01-10 retry ────────────────────────────────────────────────────────────
 
-  final List<(String, String, String)> cases10 = <(String, String, String)>[
-    ('today', 'h01-fail', 'h01-asof'),
-    ('safety', 'h01-status-fail', 'h01-status'),
-    ('alloc', 'h01-alloc-fail', 'h01-alloc'),
-    ('diag', 'h01-recon-fail', 'h01-recon'),
-  ];
+  final List<
+    (
+      String,
+      Stream<SafetyState> Function(int),
+      Stream<OpsDailySummary> Function(int),
+      Stream<SleeveAllocationVm> Function(int),
+      Stream<DiagnosticsVm> Function(int),
+      String,
+      String,
+      int,
+    )
+  >
+  cases10 =
+      <
+        (
+          String,
+          Stream<SafetyState> Function(int),
+          Stream<OpsDailySummary> Function(int),
+          Stream<SleeveAllocationVm> Function(int),
+          Stream<DiagnosticsVm> Function(int),
+          String,
+          String,
+          int,
+        )
+      >[
+        (
+          'today',
+          (int call) => one(safe0),
+          (int call) => call == 0
+              ? Stream<OpsDailySummary>.error(StateError('fail'))
+              : one(normal),
+          (int call) => one(alloc),
+          (int call) => one(ok),
+          'h01-fail',
+          'h01-asof',
+          1,
+        ),
+        (
+          'safety',
+          (int call) => call == 0
+              ? Stream<SafetyState>.error(StateError('fail'))
+              : one(safe0),
+          (int call) => one(normal),
+          (int call) => one(alloc),
+          (int call) => one(ok),
+          'h01-status-fail',
+          'h01-status',
+          0,
+        ),
+        (
+          'alloc',
+          (int call) => one(safe0),
+          (int call) => one(normal),
+          (int call) => call == 0
+              ? Stream<SleeveAllocationVm>.error(StateError('fail'))
+              : one(alloc),
+          (int call) => one(ok),
+          'h01-alloc-fail',
+          'h01-alloc',
+          2,
+        ),
+        (
+          'diag',
+          (int call) => one(safe0),
+          (int call) => one(normal),
+          (int call) => one(alloc),
+          (int call) => call == 0
+              ? Stream<DiagnosticsVm>.error(StateError('fail'))
+              : one(ok),
+          'h01-recon-fail',
+          'h01-recon',
+          3,
+        ),
+      ];
 
-  for (final (String which, String failKey, String successKey) in cases10) {
+  for (final (
+        String which,
+        Stream<SafetyState> Function(int) safetyF,
+        Stream<OpsDailySummary> Function(int) todayF,
+        Stream<SleeveAllocationVm> Function(int) allocF,
+        Stream<DiagnosticsVm> Function(int) diagF,
+        String failKey,
+        String successKey,
+        int failIndex,
+      )
+      in cases10) {
     testWidgets('T01-10 retry\n$which', (WidgetTester tester) async {
       final FakeShellSafetyRepository safetyRepo = FakeShellSafetyRepository(
-        state: (int call) => which == 'safety'
-            ? (call == 0
-                  ? Stream<SafetyState>.error(StateError('fail'))
-                  : one(safe0))
-            : one(safe0),
+        state: safetyF,
       );
       final FakeShellOpsTodayRepository todayRepo = FakeShellOpsTodayRepository(
-        today: (int call) => which == 'today'
-            ? (call == 0
-                  ? Stream<OpsDailySummary>.error(StateError('fail'))
-                  : one(normal))
-            : one(normal),
+        today: todayF,
       );
       final FakeShellHoldingsRepository allocRepo = FakeShellHoldingsRepository(
-        allocation: (int call) => which == 'alloc'
-            ? (call == 0
-                  ? Stream<SleeveAllocationVm>.error(StateError('fail'))
-                  : one(alloc))
-            : one(alloc),
+        allocation: allocF,
       );
       final FakeShellOpsStatusRepository diagRepo =
-          FakeShellOpsStatusRepository(
-            diagnostics: (int call) => which == 'diag'
-                ? (call == 0
-                      ? Stream<DiagnosticsVm>.error(StateError('fail'))
-                      : one(ok))
-                : one(ok),
-          );
+          FakeShellOpsStatusRepository(diagnostics: diagF);
       await pumpOpsHome(
         tester,
         overrides: homeOverrides(
@@ -1054,14 +1251,13 @@ void main() {
       await tester.pump();
       expect(find.byKey(ValueKey<String>(failKey)), findsNothing);
       expect(find.byKey(ValueKey<String>(successKey)), findsOneWidget);
-      final int calls = which == 'today'
-          ? todayRepo.calls
-          : which == 'safety'
-          ? safetyRepo.calls
-          : which == 'alloc'
-          ? allocRepo.calls
-          : diagRepo.calls;
-      expect(calls, 2, reason: '$which calls');
+      final List<int> calls = <int>[
+        safetyRepo.calls,
+        todayRepo.calls,
+        allocRepo.calls,
+        diagRepo.calls,
+      ];
+      expect(calls[failIndex], 2, reason: '$which calls');
       expect(find.text(ShellLabels.retry), findsNothing); // ⓡ
     });
   }
@@ -1130,51 +1326,59 @@ void main() {
 
   // ── T01-12 all texts on screen + large font ──────────────────────────────────
 
-  final List<(String, Set<String>)> cases12 = <(String, Set<String>)>[
-    (
-      'advice_open',
-      homeAllowed(
-        today: adviceT,
-        safety: safe0,
-        advice: open,
-        alloc: alloc,
-        diag: ok,
-        trust: trustDue,
-      ),
-    ),
-    (
-      'self_audit_due',
-      homeAllowed(
-        today: normal,
-        safety: safe1,
-        advice: none,
-        alloc: alloc,
-        diag: ok,
-        trust: trustDue,
-      ),
-    ),
-  ];
+  final List<
+    (String, SafetyState, OpsDailySummary, AdviceInboxSummary, Set<String>)
+  >
+  cases12 =
+      <(String, SafetyState, OpsDailySummary, AdviceInboxSummary, Set<String>)>[
+        (
+          'advice_open',
+          safe0,
+          adviceT,
+          open,
+          homeAllowed(
+            today: adviceT,
+            safety: safe0,
+            advice: open,
+            alloc: alloc,
+            diag: ok,
+            trust: trustDue,
+          ),
+        ),
+        (
+          'self_audit_due',
+          safe1,
+          normal,
+          none,
+          homeAllowed(
+            today: normal,
+            safety: safe1,
+            advice: none,
+            alloc: alloc,
+            diag: ok,
+            trust: trustDue,
+          ),
+        ),
+      ];
 
-  for (final (String name, Set<String> allowed) in cases12) {
+  for (final (
+        String name,
+        SafetyState safetyF,
+        OpsDailySummary todayF,
+        AdviceInboxSummary adviceF,
+        Set<String> allowed,
+      )
+      in cases12) {
     testWidgets('T01-12 all texts large font\n$name', (
       WidgetTester tester,
     ) async {
-      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await pumpOpsHome(
         tester,
         overrides: homeOverrides(
-          safety: FakeShellSafetyRepository(
-            state: (int call) =>
-                name == 'self_audit_due' ? one(safe1) : one(safe0),
-          ),
-          today: FakeShellOpsTodayRepository(
-            today: (int call) =>
-                name == 'advice_open' ? one(adviceT) : one(normal),
-          ),
+          safety: FakeShellSafetyRepository(state: (int call) => one(safetyF)),
+          today: FakeShellOpsTodayRepository(today: (int call) => one(todayF)),
           advice: FakeShellAdviceRepository(
-            summary: (int call) =>
-                name == 'advice_open' ? one(open) : one(none),
+            summary: (int call) => one(adviceF),
           ),
           alloc: FakeShellHoldingsRepository(
             allocation: (int call) => one(alloc),
@@ -1189,18 +1393,17 @@ void main() {
           clock: clock,
         ),
       );
-      final List<Text> allTexts = tester
+      final List<String?> shown = tester
           .widgetList<Text>(find.byType(Text))
+          .map((Text t) => t.data)
           .toList();
-      expect(allTexts, isNotEmpty, reason: name);
-      for (final Text t in allTexts) {
-        final String data = t.data ?? '';
-        expect(
-          data.isEmpty || allowed.contains(data),
-          isTrue,
-          reason: '$name unexpected text: $data',
-        );
+      expect(shown, isNotEmpty, reason: name);
+      for (final String? data in shown) {
+        expect(data, isIn(allowed), reason: name);
       }
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pump();
       expect(tester.takeException(), isNull, reason: name);
       expect(find.text(ShellLabels.retry), findsNothing); // ⓡ
     });

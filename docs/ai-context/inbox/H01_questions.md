@@ -8,12 +8,12 @@
 
 | 번호 | 카드ID | 종류 | 질문·추측 | 막힌 곳 | 제안 | 상태 | 답 |
 |---|---|---|---|---|---|---|---|
-| A1 | R13b-Bob-H01 | 추측 | 측정: h01_normal dy 실측값 (light=1096.0, dark=1096.0) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
-| A2 | R13b-Bob-H01 | 추측 | 측정: h01_blocked dy 실측값 (light=1180.0, dark=1180.0) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
-| A3 | R13b-Bob-H01 | 추측 | 측정: h01_resume_gap7 dy 실측값 (light=1160.0, dark=1160.0) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
-| A4 | R13b-Bob-H01 | 추측 | 측정: h01_recon_diff dy 실측값 (light=1116.0, dark=1116.0) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
-| A5 | R13b-Bob-H01 | 추측 | 측정: h01_advice_open dy 실측값 (light=1180.0, dark=1180.0) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
-| A6 | R13b-Bob-H01 | 추측 | 측정: h01_advice_zero dy 실측값 (light=1096.0, dark=1096.0) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
-| A7 | R13b-Bob-H01 | 추측 | 측정: h01_advice_suppressed dy 실측값 (light=1140.0, dark=1140.0) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
-| A8 | R13b-Bob-H01 | 추측 | 측정: h01_self_audit_due dy 실측값 (light=1256.0, dark=1256.0) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
-| A9 | R13b-Bob-H01 | 추측 | 측정: 카드 계획 _kTallPhone 높이 1120 이었으나 max dy=1256.0 초과 → 1300 으로 변경 | 골든 높이 재량 변경 | 높이 1300 사용 | ⬜ 미답 | |
+| A1 | R13b-Bob-H01 | 추측 | 측정: h01_normal dy 실측값 (light=952.0, dark=952.0) < 1120 | 골든 위치 전제 실측 | 1120 미만 확인 | ⬜ 미답 | |
+| A2 | R13b-Bob-H01 | 추측 | 측정: h01_blocked dy 실측값 (light=1020.0, dark=1020.0) < 1120 | 골든 위치 전제 실측 | 1120 미만 확인 | ⬜ 미답 | |
+| A3 | R13b-Bob-H01 | 추측 | 측정: h01_resume_gap7 dy 실측값 (light=1000.0, dark=1000.0) < 1120 | 골든 위치 전제 실측 | 1120 미만 확인 | ⬜ 미답 | |
+| A4 | R13b-Bob-H01 | 추측 | 측정: h01_recon_diff dy 실측값 (light=972.0, dark=972.0) < 1120 | 골든 위치 전제 실측 | 1120 미만 확인 | ⬜ 미답 | |
+| A5 | R13b-Bob-H01 | 추측 | 측정: h01_advice_open dy 실측값 (light=1020.0, dark=1020.0) < 1120 | 골든 위치 전제 실측 | 1120 미만 확인 | ⬜ 미답 | |
+| A6 | R13b-Bob-H01 | 추측 | 측정: h01_advice_zero dy 실측값 (light=952.0, dark=952.0) < 1120 | 골든 위치 전제 실측 | 1120 미만 확인 | ⬜ 미답 | |
+| A7 | R13b-Bob-H01 | 추측 | 측정: h01_advice_suppressed dy 실측값 (light=980.0, dark=980.0) < 1120 | 골든 위치 전제 실측 | 1120 미만 확인 | ⬜ 미답 | |
+| A8 | R13b-Bob-H01 | 추측 | 측정: h01_self_audit_due dy 실측값 (light=1104.0, dark=1104.0) < 1120 | 골든 위치 전제 실측 | 1120 미만 확인 | ⬜ 미답 | |
+| A9 | R13b-Bob-H01 | 추측 | 측정: 여백 축소(12 §3 골든 높이 조문 · 높이 1120 그대로) — 자리 = lib/src/ops_home.dart 블록 Padding vertical 12 → 4(9곳) · _AllocRow Padding vertical 4 → 0 · _UpcomingRow Padding vertical 4 → 0 · 줄이기 전 dy(light=dark) h01_normal 1096.0 · h01_blocked 1180.0 · h01_resume_gap7 1160.0 · h01_recon_diff 1116.0 · h01_advice_open 1180.0 · h01_advice_zero 1096.0 · h01_advice_suppressed 1140.0 · h01_self_audit_due 1256.0 → 줄인 뒤 952.0 · 1020.0 · 1000.0 · 972.0 · 1020.0 · 952.0 · 980.0 · 1104.0 | 골든 위치 전제가 1120 을 넘음 | 여백만 줄여 1120 안에 맞춤 | ⬜ 미답 | |

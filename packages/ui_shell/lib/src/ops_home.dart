@@ -207,7 +207,7 @@ class _Block1Status extends ConsumerWidget {
         ref.read(shellLinkOpenerProvider).open(AppRoutes.m5BlockBoard);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Text(safety.breakerLabel),
       ),
     );
@@ -233,7 +233,7 @@ class _Block2Resume extends ConsumerWidget {
         ref.read(shellLinkOpenerProvider).open(line.deepLink);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Text(line.label),
       ),
     );
@@ -261,7 +261,7 @@ class _Block3Blocked extends ConsumerWidget {
         ref.read(shellLinkOpenerProvider).open(AppRoutes.m5BlockBoard);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[for (final BlockFlag f in blocking) Text(f.label)],
@@ -281,6 +281,7 @@ class _Block3bAdvice extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AdviceInboxSummary s = summary;
+    final String? dueSoon = s.dueSoonLabel;
     if (s.openCount == 0 && !s.hasSuppressedNotice) {
       return const SizedBox.shrink();
     }
@@ -290,13 +291,13 @@ class _Block3bAdvice extends ConsumerWidget {
         ref.read(shellLinkOpenerProvider).open(AppRoutes.adviceInbox);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(s.headline),
             if (!s.hasSuppressedNotice) ...<Widget>[
-              if (s.dueSoonLabel != null) Text(s.dueSoonLabel!),
+              if (dueSoon != null) Text(dueSoon),
               Text(s.trust.label),
             ],
           ],
@@ -318,20 +319,22 @@ class _Block4Alloc extends ConsumerWidget {
     final List<SleeveAllocationRow> top = vm.rows
         .where((SleeveAllocationRow r) => r.parentSleeve == null)
         .toList();
+    final String? notice = vm.noticeText;
+    final String? empty = vm.emptyLabel;
     return InkWell(
       key: const Key('h01-alloc'),
       onTap: () {
         ref.read(shellLinkOpenerProvider).open(AppRoutes.holdingsAllocation);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             for (final (int i, SleeveAllocationRow row) in top.indexed)
               _AllocRow(index: i, row: row),
-            if (vm.noticeText != null) Text(vm.noticeText!),
-            if (vm.emptyLabel != null) Text(vm.emptyLabel!),
+            if (notice != null) Text(notice),
+            if (empty != null) Text(empty),
           ],
         ),
       ),
@@ -348,16 +351,18 @@ class _AllocRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SleeveWeight? w = row.sleeveWeight;
+    final String? band = row.bandStateLabel;
+    final String? note = row.bandNoteText;
     return Padding(
       key: ValueKey<String>('h01-sleeve-$index'),
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(row.sleeveLabel),
           if (w != null) Text(w.label),
-          if (row.bandStateLabel != null) Text(row.bandStateLabel!),
-          if (row.bandNoteText != null) Text(row.bandNoteText!),
+          if (band != null) Text(band),
+          if (note != null) Text(note),
           Row(
             children: <Widget>[
               Text(ShellLabels.homeDeployed),
@@ -383,7 +388,7 @@ class _Block5Process extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       key: const Key('h01-process'),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: <Widget>[
           Expanded(child: Text(today.streakText)),
@@ -411,7 +416,7 @@ class _Block6Recon extends ConsumerWidget {
         ref.read(shellLinkOpenerProvider).open(AppRoutes.ledgerDiffs);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -465,7 +470,7 @@ class _Block7Today extends ConsumerWidget {
         ref.read(shellLinkOpenerProvider).open(AppRoutes.opsRhythm);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Wrap(
           spacing: 12,
           children: <Widget>[
@@ -490,7 +495,7 @@ class _Block8Upcoming extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       key: const Key('h01-upcoming'),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -525,7 +530,7 @@ class _UpcomingRow extends ConsumerWidget {
         ref.read(shellLinkOpenerProvider).open(AppRoutes.opsRhythm);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[

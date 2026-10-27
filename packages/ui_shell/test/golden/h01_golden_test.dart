@@ -13,7 +13,7 @@ import 'package:ui_shell/ui_shell.dart';
 import '../shell_fakes.dart';
 import 'golden_support.dart';
 
-const Size _kTallPhone = Size(390, 1300);
+const Size _kTallPhone = Size(390, 1120);
 
 class _Flow {
   const _Flow({
@@ -25,6 +25,7 @@ class _Flow {
     required this.diag,
     required this.trust,
     required this.bottomKey,
+    required this.steps,
   });
 
   final String name;
@@ -35,6 +36,7 @@ class _Flow {
   final DiagnosticsVm diag;
   final LedgerTrustBadge trust;
   final Key bottomKey;
+  final Future<void> Function(WidgetTester tester) steps;
 }
 
 void main() {
@@ -104,6 +106,7 @@ void main() {
       diag: ok,
       trust: trustDue,
       bottomKey: const Key('h01-more'),
+      steps: (WidgetTester t) async {},
     ),
     _Flow(
       name: 'h01_blocked',
@@ -114,6 +117,7 @@ void main() {
       diag: diff,
       trust: trustDue,
       bottomKey: const Key('h01-more'),
+      steps: (WidgetTester t) async {},
     ),
     _Flow(
       name: 'h01_resume_gap7',
@@ -124,6 +128,7 @@ void main() {
       diag: ok,
       trust: trustDue,
       bottomKey: const Key('h01-more'),
+      steps: (WidgetTester t) async {},
     ),
     _Flow(
       name: 'h01_recon_diff',
@@ -134,6 +139,7 @@ void main() {
       diag: diff,
       trust: trustDue,
       bottomKey: const Key('h01-more'),
+      steps: (WidgetTester t) async {},
     ),
     _Flow(
       name: 'h01_advice_open',
@@ -144,6 +150,7 @@ void main() {
       diag: ok,
       trust: trustDue,
       bottomKey: const Key('h01-more'),
+      steps: (WidgetTester t) async {},
     ),
     _Flow(
       name: 'h01_advice_zero',
@@ -154,6 +161,7 @@ void main() {
       diag: ok,
       trust: trustDue,
       bottomKey: const Key('h01-more'),
+      steps: (WidgetTester t) async {},
     ),
     _Flow(
       name: 'h01_advice_suppressed',
@@ -164,6 +172,7 @@ void main() {
       diag: ok,
       trust: trustDue,
       bottomKey: const Key('h01-more'),
+      steps: (WidgetTester t) async {},
     ),
     _Flow(
       name: 'h01_self_audit_due',
@@ -174,6 +183,7 @@ void main() {
       diag: ok,
       trust: trustDue,
       bottomKey: const Key('h01-audit'),
+      steps: (WidgetTester t) async {},
     ),
   ];
 
@@ -214,6 +224,7 @@ void main() {
           ),
         );
         await tester.pump();
+        await flow.steps(tester);
         await tester.pumpAndSettle();
 
         // 위치 전제 둘
