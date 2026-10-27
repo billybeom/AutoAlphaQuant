@@ -58,8 +58,7 @@ class OpsHome extends ConsumerStatefulWidget {
   ConsumerState<OpsHome> createState() => _OpsHomeState();
 }
 
-class _OpsHomeState extends ConsumerState<OpsHome>
-    with WidgetsBindingObserver {
+class _OpsHomeState extends ConsumerState<OpsHome> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -111,11 +110,15 @@ class _OpsHomeState extends ConsumerState<OpsHome>
         .isBefore(clock.nowUtc());
 
     final AsyncValue<SafetyState> safetyAv = ref.watch(_homeSafetyProvider);
-    final AsyncValue<AdviceInboxSummary> adviceAv =
-        ref.watch(_homeAdviceProvider);
-    final AsyncValue<SleeveAllocationVm> allocAv =
-        ref.watch(_homeAllocationProvider);
-    final AsyncValue<DiagnosticsVm> diagAv = ref.watch(_homeDiagnosticsProvider);
+    final AsyncValue<AdviceInboxSummary> adviceAv = ref.watch(
+      _homeAdviceProvider,
+    );
+    final AsyncValue<SleeveAllocationVm> allocAv = ref.watch(
+      _homeAllocationProvider,
+    );
+    final AsyncValue<DiagnosticsVm> diagAv = ref.watch(
+      _homeDiagnosticsProvider,
+    );
     final AsyncValue<LedgerTrustBadge> trustAv = ref.watch(_homeTrustProvider);
 
     final SafetyState? safety = safetyAv.valueOrNull;
@@ -261,9 +264,7 @@ class _Block3Blocked extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            for (final BlockFlag f in blocking) Text(f.label),
-          ],
+          children: <Widget>[for (final BlockFlag f in blocking) Text(f.label)],
         ),
       ),
     );

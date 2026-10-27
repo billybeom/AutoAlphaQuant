@@ -366,7 +366,8 @@ class FakeShellOpsStatusRepository implements OpsStatusRepository {
       throw UnimplementedError('watchAnnualReview');
 }
 
-class FakeShellLedgerTrustRepository extends UnimplementedLedgerTrustRepository {
+class FakeShellLedgerTrustRepository
+    extends UnimplementedLedgerTrustRepository {
   FakeShellLedgerTrustRepository({required this.grade});
 
   final Stream<LedgerTrustBadge> Function(int call) grade;
@@ -431,13 +432,15 @@ Set<String> homeAllowed({
 }) {
   final AdviceInboxSummary? a =
       advice != null && (advice.openCount != 0 || advice.hasSuppressedNotice)
-          ? advice
-          : null;
+      ? advice
+      : null;
   final String? adviceHeadline = a?.headline;
-  final String? adviceDueSoon =
-      a != null && !a.hasSuppressedNotice ? a.dueSoonLabel : null;
-  final String? adviceTrustLabel =
-      a != null && !a.hasSuppressedNotice ? a.trust.label : null;
+  final String? adviceDueSoon = a != null && !a.hasSuppressedNotice
+      ? a.dueSoonLabel
+      : null;
+  final String? adviceTrustLabel = a != null && !a.hasSuppressedNotice
+      ? a.trust.label
+      : null;
   final List<SleeveAllocationRow> top = alloc.rows
       .where((SleeveAllocationRow r) => r.parentSleeve == null)
       .toList();
@@ -455,22 +458,22 @@ Set<String> homeAllowed({
       ?r.dDayText,
     ],
     safety.breakerLabel,
-    for (final BlockFlag f
-        in safety.activeFlags.where(
-          (BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId),
-        ))
+    for (final BlockFlag f in safety.activeFlags.where(
+      (BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId),
+    ))
       f.label,
     ?adviceHeadline,
     ?adviceDueSoon,
     ?adviceTrustLabel,
-    for (final SleeveAllocationRow r in top) ...<String?>[
-      r.sleeveLabel,
-      r.sleeveWeight?.label,
-      r.bandStateLabel,
-      r.bandNoteText,
-      r.deployedPctText,
-      r.parkingPctText,
-    ].nonNulls,
+    for (final SleeveAllocationRow r in top)
+      ...<String?>[
+        r.sleeveLabel,
+        r.sleeveWeight?.label,
+        r.bandStateLabel,
+        r.bandNoteText,
+        r.deployedPctText,
+        r.parkingPctText,
+      ].nonNulls,
     ?alloc.noticeText,
     ?alloc.emptyLabel,
     for (final DiagnosticCell c in diag.cells) ...<String>[
