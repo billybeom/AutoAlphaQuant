@@ -83,6 +83,43 @@ final StateProvider<int> shellTabIndexProvider = StateProvider<int>(
   (Ref ref) => 0,
 );
 
+// ── R13b — H-01 injection providers ──────────────────────────────────────────
+
+final Provider<SafetyRepository> shellSafetyRepositoryProvider =
+    Provider<SafetyRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellSafetyRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<AdviceRepository> shellAdviceRepositoryProvider =
+    Provider<AdviceRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellAdviceRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<HoldingsRepository> shellHoldingsRepositoryProvider =
+    Provider<HoldingsRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellHoldingsRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<OpsStatusRepository> shellOpsStatusRepositoryProvider =
+    Provider<OpsStatusRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellOpsStatusRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<LedgerTrustRepository> shellLedgerTrustRepositoryProvider =
+    Provider<LedgerTrustRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellLedgerTrustRepositoryProvider must be overridden',
+      ),
+    );
+
 // ── Data provider ──────────────────────────────────────────────────────────────
 
 final StreamProvider<FeatureFlags> shellFlagsProvider =

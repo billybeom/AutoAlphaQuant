@@ -58,4 +58,12 @@ abstract final class ShellLabels {
   // H-02 운영 리듬 열 머리
   static const String rhythmColumnItem = '항목';
   static const String rhythmColumnNext = '다음 발생';
+
+  // ── 🆕 R13b — H-01 운영 홈 ──────────────────────────────────────────────────
+  static const String homeReconTitle = '기록 대조';
+  static const String homeUpcomingTitle = '다음 예정';
+  static const String homeMore = '더 보기';
+  static const String homeSelfAuditAction = '실사하기';
+  static const String homeDeployed = '투자분';
+  static const String homeParking = '파킹';
 }
