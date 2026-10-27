@@ -398,6 +398,8 @@ void main() {
           await tester.tap(find.byKey(const Key('h01-advice')));
           await tester.pump();
           expect(opener.opened, <String>[AppRoutes.adviceInbox]);
+        } else {
+          expect(opener.opened, isEmpty, reason: name);
         }
       } else {
         expect(find.byKey(const Key('h01-advice')), findsNothing, reason: name);
@@ -688,7 +690,15 @@ void main() {
           );
           expect(card.color, cs.surfaceContainerHighest, reason: 'info color');
           expect(card.color, isNot(cs.errorContainer), reason: 'not error');
+        } else {
+          expect(opener.opened, isEmpty, reason: name);
         }
+      } else {
+        expect(
+          find.byKey(const Key('h01-audit-action')),
+          findsNothing,
+          reason: name,
+        );
       }
       expect(find.text(ShellLabels.retry), findsNothing); // ⓡ
     });
@@ -1179,15 +1189,16 @@ void main() {
           clock: clock,
         ),
       );
-      for (final Text t in tester.widgetList<Text>(find.byType(Text))) {
-        final String? data = t.data;
-        if (data != null && data.isNotEmpty) {
-          expect(
-            allowed.contains(data),
-            isTrue,
-            reason: '$name unexpected text: $data',
-          );
-        }
+      final List<Text> allTexts =
+          tester.widgetList<Text>(find.byType(Text)).toList();
+      expect(allTexts, isNotEmpty, reason: name);
+      for (final Text t in allTexts) {
+        final String data = t.data ?? '';
+        expect(
+          data.isEmpty || allowed.contains(data),
+          isTrue,
+          reason: '$name unexpected text: $data',
+        );
       }
       expect(tester.takeException(), isNull, reason: name);
       expect(find.text(ShellLabels.retry), findsNothing); // ⓡ
