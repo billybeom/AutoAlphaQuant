@@ -107,3 +107,40 @@ String shellTitle(FeatureFlags? flags, String? title) => <String>[
   ...?(flags == null ? null : shellModeLabels(flags)),
   ?title,
 ].join(ShellLabels.prefixSeparator);
+
+// ── R13b — H-01 injection providers ──────────────────────────────────────────
+
+final Provider<SafetyRepository> shellSafetyRepositoryProvider =
+    Provider<SafetyRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellSafetyRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<AdviceRepository> shellAdviceRepositoryProvider =
+    Provider<AdviceRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellAdviceRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<HoldingsRepository> shellHoldingsRepositoryProvider =
+    Provider<HoldingsRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellHoldingsRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<OpsStatusRepository> shellOpsStatusRepositoryProvider =
+    Provider<OpsStatusRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellOpsStatusRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<LedgerTrustRepository> shellLedgerTrustRepositoryProvider =
+    Provider<LedgerTrustRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellLedgerTrustRepositoryProvider must be overridden',
+      ),
+    );
