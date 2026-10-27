@@ -1,0 +1,8 @@
+# data_sync 시험 설정(설계 13 §8 R23 D11 · E8c).
+#
+# 🔴 `network` 태그 = 실제 원천(FRED·OFR)을 부르는 시험 — CI·평소 `dart test` 에서는 건너뛴다.
+#    돌리는 법(발주자 승인 뒤 · 키는 저장소 밖 파일 — 13 §5-2):
+#      AAQ_NETWORK=1 [AAQ_FRED_KEY_FILE=<키 파일 경로>] dart test -t network --run-skipped
+tags:
+  network:
+    skip: '실호출 — 발주자 승인 뒤 AAQ_NETWORK=1 dart test -t network --run-skipped'

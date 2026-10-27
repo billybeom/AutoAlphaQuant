@@ -6,99 +6,14 @@
 //    만들어졌으므로 여기서도 같은 알고리즘([pandasPreciseXstrtod])을 쓴다 — `double.parse` 를 쓰면 첫날부터 갈린다.
 //    재구성은 파이썬으로 pandas 3.0.6 과 807,854 셀 전부 비트 일치를 확인했고, Dart 판은
 //    `fixtures/parse_parity.json`(열별 float64 해시)으로 본다.
-// 🔵 시험 전용 — 백테스트 입력이라 앱(lib)에 넣지 않는다. 실전 시세는 KIS 에서 온다(M1-7).
+// 🔵 읽개(파일 → 표)는 시험 전용이다. 수 변환 [pandasPreciseXstrtod] 는 lib 로 올렸다(E8c — 시드·실전 수집이 같은
+//    변환을 쓴다 · `lib/src/data/pandas_number.dart`).
 
 import 'dart:io';
 
-/// pandas `tokenizer.c::precise_xstrtod`(최대 17자리 누적 · 10 거듭제곱 표로 한 번 곱/나눔 · 부정규수 두 단계)
-/// 의 Dart 판. 숫자가 아니면 null(= `to_numeric(errors="coerce")` 의 NaN).
-double? pandasPreciseXstrtod(String s) {
-  const int maxDigits = 17;
-  int p = 0;
-  final int n = s.length;
-  bool space(int i) => i < n && ' \t\r\n\f\v'.contains(s[i]);
-  bool digit(int i) =>
-      i < n && s.codeUnitAt(i) >= 0x30 && s.codeUnitAt(i) <= 0x39;
-  while (space(p)) {
-    p++;
-  }
-  bool negative = false;
-  if (p < n && (s[p] == '+' || s[p] == '-')) {
-    negative = s[p] == '-';
-    p++;
-  }
-  double number = 0.0;
-  int exponent = 0;
-  int numDigits = 0;
-  int numDecimals = 0;
-  while (digit(p)) {
-    if (numDigits < maxDigits) {
-      number = number * 10.0 + (s.codeUnitAt(p) - 0x30);
-      numDigits++;
-    } else {
-      exponent++;
-    }
-    p++;
-  }
-  if (p < n && s[p] == '.') {
-    p++;
-    while (numDigits < maxDigits && digit(p)) {
-      number = number * 10.0 + (s.codeUnitAt(p) - 0x30);
-      p++;
-      numDigits++;
-      numDecimals++;
-    }
-    if (numDigits >= maxDigits) {
-      while (digit(p)) {
-        p++;
-      }
-    }
-    exponent -= numDecimals;
-  }
-  if (numDigits == 0) return null;
-  if (negative) number = -number;
-  if (p < n && (s[p] == 'e' || s[p] == 'E')) {
-    p++;
-    bool expNegative = false;
-    if (p < n && (s[p] == '+' || s[p] == '-')) {
-      expNegative = s[p] == '-';
-      p++;
-    }
-    if (!digit(p)) return null;
-    int e = 0;
-    while (digit(p)) {
-      e = e * 10 + (s.codeUnitAt(p) - 0x30);
-      p++;
-    }
-    exponent += expNegative ? -e : e;
-  }
-  while (space(p)) {
-    p++;
-  }
-  if (p != n) return null;
-  if (exponent > 308) {
-    return negative ? double.negativeInfinity : double.infinity;
-  } else if (exponent > 0) {
-    number *= _pow10[exponent];
-  } else if (exponent < -308) {
-    if (exponent < -616) {
-      number = 0.0;
-    } else {
-      number /= _pow10[-308 - exponent];
-      number /= _pow10[308];
-    }
-  } else {
-    number /= _pow10[-exponent];
-  }
-  return number;
-}
+import 'package:core_engine/core_engine.dart' show pandasPreciseXstrtod;
 
-/// C 리터럴 `1e0`~`1e308` 과 같은 값(정확 반올림 상수).
-final List<double> _pow10 = List<double>.generate(
-  309,
-  (int k) => double.parse('1e$k'),
-  growable: false,
-);
+export 'package:core_engine/core_engine.dart' show pandasPreciseXstrtod;
 
 /// 동결 CSV 하나 — 첫 열이 날짜(`index_col=0`), 나머지는 수(못 읽으면 NaN).
 class ReplayFrame {

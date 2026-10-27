@@ -14,8 +14,12 @@ dependencies:
   # 🔴 ui_*를 의존하지 않는다.
   core_engine:
     path: ../core_engine
+  # 수집 응답 본문 sha256(`fetch_log.body_sha256`) · 시드 무결성(설계 13 §8 R23 D7·D9 · E8c) — 01 §1-1 허용.
+  crypto: ^3.0.7
   domain_contracts:
     path: ../domain_contracts
+  # 🆕 FRED·OFR 클라이언트(E8c · 설계 13 §8 R25 G5 — 01 §1-1 v1.14 허용 · `dio` 아님) — 시험은 `MockClient`.
+  http: ^1.6.0
   # 로컬 정본 SQLite 드라이버 — 순수 Dart FFI(설계 13 §8 R19 E9-12 · 발주자 결정 2026-10-21).
   #    빌드 훅이 SQLite 실행 파일을 받아 패키지에 고정된 sha256 으로 검증한다(Android 포함).
   #    Flutter 플러그인이 아니라서 이 패키지는 순수 Dart(test:dart)에 남는다.
