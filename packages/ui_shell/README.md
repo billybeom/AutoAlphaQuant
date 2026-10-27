@@ -34,13 +34,14 @@
 
 온보딩이 키를 다루더라도 **입력 위젯 자체가 이 패키지에 있어서는 안 된다**(뷰어 빌드에 경로가 생긴다). 검증·저장은 `SettingsActions` 주입 콜백이고, 구현체가 없으면 **컨트롤을 렌더하지 않는다** — «비활성»이 아니라 **부재**다.
 
-## 지금 상태 — ✅ S-01·S-02 셸 · H-02 운영 리듬 병합(2026-10-27 · R13a PR #71 `315bbbd`)
+## 지금 상태 — ✅ S-01·S-02 셸 · H-02 운영 리듬 · H-01 운영 홈 병합(2026-10-27 · R13a PR #71 `315bbbd` · R13b PR #74 `49e4329`)
 
-`flutter test` **66**(R13a 병합본 실측 · `origin/main` `638fca4` · 2026-10-27) · 골든 PNG **8장**(`test/golden/README.md` «🆕 R13») · 다음 화면 카드 = `R13b-Bob-H01`(`H-01` 운영 홈 · `docs/ai-context/send/R13b-Bob-H01.md` · ✅ 재드라이런 2026-10-27 · ▶ 「푸시해」 뒤 보냄).
+`flutter test` **117**(R13b 병합본 · `origin/main` `49e4329` · 66 + 51 — 패키지 트리 = C4 수정안 · C4·드라이런 실측) · 골든 PNG **24장**(`test/golden/README.md` «🆕 R13») · 🏁 R13 2장 완료 · 다음 셸 카드 = R14(알림 · 설계 12 §6 · 조립 전).
 
 - `ShellRoot` · `ShellBandOverlay` = `lib/src/shell_scaffold.dart`(폰 5탭 · 웹 사이드바 · 띠).
 - 라우터 = `lib/src/routing/shell_router.dart`(`AppRoutes.all` 52 정적 등록 · 가드 · `ShellLinkOpener` · `shellLinkOpenerProvider`).
 - `OpsRhythm` = `lib/src/ops_rhythm.dart`(`H-02` · `watchRhythm()` 1구독).
+- `OpsHome` = `lib/src/ops_home.dart`(`H-01` · 블록 1~9b · 구독 6 · 홈 탭 연결 = 레지스트리 `home` 칸 · 조립 앱 몫).
 - 공통 조각 = `lib/src/common/shell_common.dart`(`ShellAsOfHeader` · `ShellStaleBanner` · `ShellSkeleton` · `ShellErrorView` · `ShellPlaceholder`).
-- 주입 = `lib/src/shell_providers.dart`(조립 앱 3종이 override · 본문 레지스트리 `ShellRouteBodies` 의 52 패턴·`home` 칸 = 조립 앱 몫).
-- 정적 라벨 = `lib/l10n/labels.dart`(`ShellLabels` 25).
+- 주입 = `lib/src/shell_providers.dart`(🆕 R13b 주입 5 = 파일 끝 절 · 조립 앱 3종이 override · 본문 레지스트리 `ShellRouteBodies` 의 52 패턴·`home` 칸 = 조립 앱 몫).
+- 정적 라벨 = `lib/l10n/labels.dart`(`ShellLabels` 31 = R13a 25 + R13b 6).

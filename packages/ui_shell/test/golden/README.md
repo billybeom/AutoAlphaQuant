@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (~~**아직 비어 있다**~~ → **8장** · 2026-10-27 R13a 병합 PR #71 `315bbbd`)
+# `test/golden/` — 위젯 골든 스냅샷 (~~**아직 비어 있다**~~ → ~~**8장** · 2026-10-27 R13a 병합 PR #71 `315bbbd`~~ → **24장** · 2026-10-27 R13b 병합 PR #74 `49e4329`)
 
 정본: 01_M2_도메인계약 **§7** · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 
@@ -18,9 +18,9 @@
 - 임계 조정은 M2가 한다.
 - 🔴 홈 골든은 **손익 숫자가 한 개도 없다는 것**을 눈으로 확인하는 프레임이기도 하다(결정 8 · C-6).
 
-## 🆕 R13(계약 v1.12) — `S-01`·`S-02`·`H-02`(R13a) · `H-01`(R13b) (2026-10-26 조립 · ✅ 누적 드라이런 실측(`dry/r13a` `8ea11c9` · `dry/r13b` `d469af0`) · ~~⬜ 병합 전~~ ✅ R13a 병합 PR #71 `315bbbd` 2026-10-27 · R13b ~~⬜ 재드라이런 대기~~ ✅ 재드라이런 2026-10-27(계약 v1.13 PR #72 `638fca4` 위 · `dry/r13b2` · 16장 · dy 그대로) · ▶ 「푸시해」 뒤 보냄)
+## 🆕 R13(계약 v1.12) — `S-01`·`S-02`·`H-02`(R13a) · `H-01`(R13b) (2026-10-26 조립 · ✅ 누적 드라이런 실측(`dry/r13a` `8ea11c9` · `dry/r13b` `d469af0`) · ~~⬜ 병합 전~~ ✅ R13a 병합 PR #71 `315bbbd` 2026-10-27 · R13b ~~⬜ 재드라이런 대기~~ ✅ 재드라이런 2026-10-27(계약 v1.13 PR #72 `638fca4` 위 · `dry/r13b2` · 16장 · dy 그대로) · ~~▶ 「푸시해」 뒤 보냄~~ → 🔴 1회차 반려(PR #74 `81d9ace` · C4h-1 골든 높이 1300 외) → 재제출 `deb37d7` → ✅ R13b 병합 PR #74 `49e4329` 2026-10-27)
 
-정본: 01 §21-16(21-16-1b R13 분할 · 21-16-4 범위) · 04 §3-1 수용 (d) · §4-6 수용 (f) · 설계 저장소 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §8-1b(✅ K46 · R13a 8장 → R13b 16장). 카드 = ~~`docs/ai-context/send/R13a-Bob-S01H02.md`~~ `docs/ai-context/send/_완료/R13a-Bob-S01H02.md`(R13a · 재제출 `_완료/R13a-Bob-S01H02-재제출.md`) · ~~`docs/ai-context/send/_대기/R13b-Bob-H01.md`~~ `docs/ai-context/send/R13b-Bob-H01.md`(R13b · 2026-10-27 R13a 병합 기록 때 `send/` 로). 🔴 화면 담당(Bob)은 이 README 를 고치지 않는다 — 병합 기록 커밋(통합 담당)이 실측을 적는다.
+정본: 01 §21-16(21-16-1b R13 분할 · 21-16-4 범위) · 04 §3-1 수용 (d) · §4-6 수용 (f) · 설계 저장소 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §8-1b(✅ K46 · R13a 8장 → R13b 16장). 카드 = ~~`docs/ai-context/send/R13a-Bob-S01H02.md`~~ `docs/ai-context/send/_완료/R13a-Bob-S01H02.md`(R13a · 재제출 `_완료/R13a-Bob-S01H02-재제출.md`) · ~~`docs/ai-context/send/_대기/R13b-Bob-H01.md`~~ ~~`docs/ai-context/send/R13b-Bob-H01.md`~~ `docs/ai-context/send/_완료/R13b-Bob-H01.md`(R13b · 2026-10-27 R13a 병합 기록 때 `send/` 로 · 1회차 반려 기록 때 `_완료/` · 재제출 `_완료/R13b-Bob-H01-재제출.md`). 🔴 화면 담당(Bob)은 이 README 를 고치지 않는다 — 병합 기록 커밋(통합 담당)이 실측을 적는다.
 
 ### 0. 하네스 — `ui_shell` 첫 골든(R13a)이 비교기를 옮긴다
 
@@ -46,7 +46,7 @@
 | `h01_self_audit_due` | 2 | 〃 | `m8/ops_home_normal` · `safety_states` 행 1(`SELF_AUDIT_DUE`) · `m7/ledger_trust_self_audit_due`(블록 9b · 버튼 있음) · 진단 ok · `Key('h01-audit')` < 높이 |
 
 - 공통: 시계 `FixedClock(kGoldenNowUtc)` · 흐름 = (이름, 입력, 흐름) 목록의 **클로저 칸**(흐름 없음 = `(WidgetTester t) async {}` · bool 칸 + if 금지) · 차례 = `pumpForGolden` → `pump()` 한 번 더(값 도착) → 흐름 → `pumpAndSettle()` → 위치 전제 둘 → `expectGolden`.
-- 크기 = `s01_*` = `kGoldenPhoneSize`(390 × 844 · 셸은 화면을 꽉 채운다 — 늘리지 않는다) · `h02_*` = `kGoldenPhoneSize`(드라이런 — `_kTallPhone` 없음) · `h01_*` = 테스트 파일 안 `const Size _kTallPhone = Size(390, 1120)`(드라이런) · 🔵 `S-02` 웹 사이드바는 골든 0(위젯 테스트만 · 1280 × 800 · ✅ K46 8장 유지).
+- 크기 = `s01_*` = `kGoldenPhoneSize`(390 × 844 · 셸은 화면을 꽉 채운다 — 늘리지 않는다) · `h02_*` = `kGoldenPhoneSize`(드라이런 — `_kTallPhone` 없음) · `h01_*` = 테스트 파일 안 `const Size _kTallPhone = Size(390, 1120)`(드라이런 · ✅ 병합본 그대로 — 1회차 `1300` 은 C4h-1 반려 · 재제출이 1120 으로 되돌리고 여백만 줄임) · 🔵 `S-02` 웹 사이드바는 골든 0(위젯 테스트만 · 1280 × 800 · ✅ K46 8장 유지).
 - 위치 전제(찍기 전 · 이름마다 둘 · 코드 꼴 = 카드 «골든»): 맨 아래 Key 의 `getBottomLeft(…).dy` · 머리 Key 의 `getTopLeft(…).dy == 0.0`(🔴 실패하면 고치지 말고 실측 dy 를 질문 파일에).
 - 보고 «배치·잘림» 칸 — Bob 은 이름마다 **light PNG 한 장만** 연다(R13a 4장 · R13b 8장 — 한 대화 이미지 20장 한도) · dark 행은 같은 이름 light 행 칸 글자 그대로(dy 가 light 와 같을 때만).
 - 🔵 셸 골든은 본문을 찍지 않는다 — 레지스트리가 빈 채(본문 = 글자 0 자리)라 R13b 병합 뒤에도 `s01_*` 재생성 0(홈 탭 연결 = 레지스트리 `home` 칸 · 조립 앱 몫).
@@ -68,7 +68,8 @@
 | `h01_self_audit_due` | `Key('h01-audit')` | 1108.0 | 1120 |
 
 - 🆕 **R13a 병합본 실측**(PR #71 `315bbbd` · 2026-10-27 · Bob `1195787`(+ 재제출 `38cafd7` — PNG 0) · C4 재실측 일치 · light=dark · 머리 dy 0.0): `s01_tabs_p0` **844** · `s01_tabs_clean` **844**(= 844) · `h02_rows` **292** · `h02_not_loaded` **76**(< 844) — 드라이런과 같음 · 새 8장 = 드라이런 8장과 바이트 같음 · `git ls-tree` 실측 = `goldens/` **8장**(`s01_*` 4 · `h02_*` 4 · 전부 A · blob 중복 0) · 질문 `S01H02` A1~A4 ✅ · `flutter test` 병합본 **66**(`638fca4` 위 · 1 + 65).
+- 🆕 **R13b 병합본 실측**(PR #74 squash `49e4329` · 2026-10-27 · Bob `81d9ace` + 재제출 `deb37d7`(PNG 16 재촬영 · 높이 1120 그대로 · 여백 축소 = 질문 A9) · C4 재실측 일치 · light=dark · 머리 `h01-asof` dy 0.0): `h01_normal` **952** · `h01_blocked` **1020** · `h01_resume_gap7` **1000** · `h01_recon_diff` **972** · `h01_advice_open` **1020** · `h01_advice_zero` **952** · `h01_advice_suppressed` **980**(여기까지 `Key('h01-more')`) · `h01_self_audit_due` **1104**(`Key('h01-audit')`) — 전부 < 1120 · 드라이런(위 표 936 ~ 1108)과 다른 까닭 = Bob 판 배치(예정 행 Column 3줄 · 재량 — 줄이기 전 1096 ~ 1256) + 여백 축소(블록 Padding vertical 12 → 4 아홉 곳 · `_AllocRow`·`_UpcomingRow` 4 → 0) · 새 16장 = C4 수정안(`24d8984`) 16장과 바이트 같음(트리 `2e65131`) · 크기 16/16 = 390×1120(PNG 머리 실측) · `git ls-tree` 실측 = `goldens/` **24장**(`s01_*` 4 · `h02_*` 4 · `h01_*` 16 · 전부 A · blob 중복 0) · 질문 `H01` A1~A9 ✅ · `flutter test` 병합본 **117**(66 + 51 · 파일별 +35 · +16 — 패키지 트리 = `deb37d7` = C4 수정안 · C4·드라이런 실측 · 기록 단계 재실행 0).
 
 ### 2. 장수
 
-- R13 시작 **0장**(`ui_shell` 첫 골든) → R13a 병합 뒤 **8장**(+ `s01_*` 4 · `h02_*` 4 · ✅ 2026-10-27 PR #71 `315bbbd` · `git ls-tree` 8) → R13b 병합 뒤 **24장**(+ `h01_*` 16). 질문 파일 = `docs/ai-context/inbox/S01H02_questions.md`(R13a) · `H01_questions.md`(R13b).
+- R13 시작 **0장**(`ui_shell` 첫 골든) → R13a 병합 뒤 **8장**(+ `s01_*` 4 · `h02_*` 4 · ✅ 2026-10-27 PR #71 `315bbbd` · `git ls-tree` 8) → R13b 병합 뒤 **24장**(+ `h01_*` 16 · ✅ 2026-10-27 PR #74 `49e4329` · `git ls-tree` 24). 질문 파일 = `docs/ai-context/inbox/S01H02_questions.md`(R13a) · `H01_questions.md`(R13b).
