@@ -274,3 +274,221 @@ Set<String> rhythmAllowed(ListResult<OpsRhythmRow> v) => <String>{
   ShellLabels.rhythmColumnNext,
   for (final OpsRhythmRow r in v.rows) ...rhythmRowTexts(r),
 };
+
+// ── R13b — H-01 fakes ─────────────────────────────────────────────────────────
+
+class FakeShellSafetyRepository extends UnimplementedSafetyRepository {
+  FakeShellSafetyRepository({required this.state});
+
+  final Stream<SafetyState> Function(int call) state;
+  int calls = 0;
+
+  @override
+  Stream<SafetyState> watchState() {
+    final int call = calls;
+    calls = calls + 1;
+    return state(call);
+  }
+}
+
+class FakeShellOpsTodayRepository extends UnimplementedOpsSummaryRepository {
+  FakeShellOpsTodayRepository({required this.today});
+
+  final Stream<OpsDailySummary> Function(int call) today;
+  int calls = 0;
+
+  @override
+  Stream<OpsDailySummary> watchToday() {
+    final int call = calls;
+    calls = calls + 1;
+    return today(call);
+  }
+}
+
+class FakeShellAdviceRepository extends UnimplementedAdviceRepository {
+  FakeShellAdviceRepository({required this.summary});
+
+  final Stream<AdviceInboxSummary> Function(int call) summary;
+  int calls = 0;
+
+  @override
+  Stream<AdviceInboxSummary> watchSummary() {
+    final int call = calls;
+    calls = calls + 1;
+    return summary(call);
+  }
+}
+
+class FakeShellHoldingsRepository extends UnimplementedHoldingsRepository {
+  FakeShellHoldingsRepository({required this.allocation});
+
+  final Stream<SleeveAllocationVm> Function(int call) allocation;
+  int calls = 0;
+
+  @override
+  Stream<SleeveAllocationVm> watchAllocation() {
+    final int call = calls;
+    calls = calls + 1;
+    return allocation(call);
+  }
+}
+
+class FakeShellOpsStatusRepository implements OpsStatusRepository {
+  FakeShellOpsStatusRepository({required this.diagnostics});
+
+  final Stream<DiagnosticsVm> Function(int call) diagnostics;
+  int calls = 0;
+
+  @override
+  Stream<DiagnosticsVm> watchDiagnostics() {
+    final int call = calls;
+    calls = calls + 1;
+    return diagnostics(call);
+  }
+
+  @override
+  Stream<ListResult<WatchdogCheck>> watchWatchdog() =>
+      throw UnimplementedError('watchWatchdog');
+
+  @override
+  Stream<ConnectionsVm> watchConnections() =>
+      throw UnimplementedError('watchConnections');
+
+  @override
+  Stream<DeviceAccessVm> watchDeviceAccess() =>
+      throw UnimplementedError('watchDeviceAccess');
+
+  @override
+  Stream<BackupVm> watchBackup() => throw UnimplementedError('watchBackup');
+
+  @override
+  Stream<AnnualReviewVm> watchAnnualReview() =>
+      throw UnimplementedError('watchAnnualReview');
+}
+
+class FakeShellLedgerTrustRepository
+    extends UnimplementedLedgerTrustRepository {
+  FakeShellLedgerTrustRepository({required this.grade});
+
+  final Stream<LedgerTrustBadge> Function(int call) grade;
+  int calls = 0;
+
+  @override
+  Stream<LedgerTrustBadge> watchGrade() {
+    final int call = calls;
+    calls = calls + 1;
+    return grade(call);
+  }
+}
+
+Stream<T> one<T>(T v) => Stream<T>.value(v);
+
+List<Override> homeOverrides({
+  required FakeShellSafetyRepository safety,
+  required FakeShellOpsTodayRepository today,
+  required FakeShellAdviceRepository advice,
+  required FakeShellHoldingsRepository alloc,
+  required FakeShellOpsStatusRepository diag,
+  required FakeShellLedgerTrustRepository trust,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  shellSafetyRepositoryProvider.overrideWithValue(safety),
+  shellOpsSummaryRepositoryProvider.overrideWithValue(today),
+  shellAdviceRepositoryProvider.overrideWithValue(advice),
+  shellHoldingsRepositoryProvider.overrideWithValue(alloc),
+  shellOpsStatusRepositoryProvider.overrideWithValue(diag),
+  shellLedgerTrustRepositoryProvider.overrideWithValue(trust),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+  shellClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpOpsHome(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: OpsHome())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+Set<String> homeAllowed({
+  required OpsDailySummary today,
+  required SafetyState safety,
+  required AdviceInboxSummary? advice,
+  required SleeveAllocationVm alloc,
+  required DiagnosticsVm diag,
+  required LedgerTrustBadge trust,
+}) {
+  final AdviceInboxSummary? a =
+      advice != null && (advice.openCount != 0 || advice.hasSuppressedNotice)
+      ? advice
+      : null;
+  final String? adviceHeadline = a?.headline;
+  final String? adviceDueSoon = a != null && !a.hasSuppressedNotice
+      ? a.dueSoonLabel
+      : null;
+  final String? adviceTrustLabel = a != null && !a.hasSuppressedNotice
+      ? a.trust.label
+      : null;
+  final List<SleeveAllocationRow> top = alloc.rows
+      .where((SleeveAllocationRow r) => r.parentSleeve == null)
+      .toList();
+  return <String>{
+    today.asOf.label,
+    today.todayOrdersText,
+    today.todayErrorsText,
+    today.signalMatchText,
+    today.streakText,
+    today.discretionBudgetText,
+    today.nextRebalanceDDayText,
+    for (final OpsRhythmRow r in today.upcoming) ...<String>[
+      r.title,
+      r.whenText,
+      ?r.dDayText,
+    ],
+    safety.breakerLabel,
+    for (final BlockFlag f in safety.activeFlags.where(
+      (BlockFlag f) => !FlagIds.markerOnly.contains(f.flagId),
+    ))
+      f.label,
+    ?adviceHeadline,
+    ?adviceDueSoon,
+    ?adviceTrustLabel,
+    for (final SleeveAllocationRow r in top)
+      ...<String?>[
+        r.sleeveLabel,
+        r.sleeveWeight?.label,
+        r.bandStateLabel,
+        r.bandNoteText,
+        r.deployedPctText,
+        r.parkingPctText,
+      ].nonNulls,
+    ?alloc.noticeText,
+    ?alloc.emptyLabel,
+    for (final DiagnosticCell c in diag.cells) ...<String>[
+      c.label,
+      c.stateLabel,
+    ],
+    diag.headline,
+    trust.label,
+    trust.consequenceLine,
+    ShellLabels.homeReconTitle,
+    ShellLabels.homeUpcomingTitle,
+    ShellLabels.homeMore,
+    ShellLabels.homeSelfAuditAction,
+    ShellLabels.homeDeployed,
+    ShellLabels.homeParking,
+    ShellLabels.staleBannerTitle,
+  };
+}
