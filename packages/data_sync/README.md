@@ -45,7 +45,7 @@
 ## 지금 상태 — 🟡 로컬 정본 연결 + 스키마 v1 (E9-0 · E9c)
 
 - ✅ `openLedgerDatabase` — 02 §1 PRAGMA 5개(WAL · NORMAL · FK ON · busy 5000 · cache 64MB)를 연결마다 걸고 되읽는다. 하나라도 다르면 연결을 닫고 거부한다(`:memory:` 도 거부 — 원장은 파일이다).
-- ✅ `openLocalLedger(directory, runMode)` — `LedgerFile.of` 가 고른 파일(`ledger.sqlite` · `ledger_sim.sqlite`)을 열고 **스키마 v1**(02 기본 + 배치 A·B·C·F 한 판 · 62표)을 보장한다.
+- ✅ `openLocalLedger(directory, runMode)` — `LedgerFile.of` 가 고른 파일(`ledger.sqlite` · `ledger_sim.sqlite`)을 열고 **스키마 v1**(02 기본 + 배치 A·B·C·F·G 한 판 · 64표 — 🆕 G = 시세·지표 · 계약 v1.14)을 보장한다.
   - 새 파일 = 전 문장 + `application_id` + `schema_version` 행을 **한 트랜잭션**으로(중간 실패 = 표 0).
   - 이미 있는 파일 = 다시 적용하지 않고 **파일 식별·번호만 대조** — 다른 계열 · 식별 없음 · 더 새 판 · 번호 없음은 열지 않는다.
   - SIM 판 CHECK 는 `ledgerDdlFor`(계약) · 배치 파일의 `BEGIN`·`COMMIT`·`PRAGMA foreign_keys` 는 `stripControlStatements` 가 거른다 · `ATTACH` 0.

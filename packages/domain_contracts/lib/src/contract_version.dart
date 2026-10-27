@@ -8,7 +8,7 @@
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -90,12 +90,18 @@
 //    규약(주석) · 픽스처 174 → 176(신설 `m8/recon_board_ok`·`m8/ops_home_advice_suppressed_due` · 개정
 //    `m8/recon_board_diff` · 등록부 m8 `advice_summary` extras 3) · C-47 ⑩⑪ — 🆕 tool/gen_r13b_v113_fixtures.py
 //    (기준 fc25f77 원문에서 멱등 생성). 🔵 13 §8 R25 G7 의 E8a «1.13.0» 은 1.14.0 으로 민다(K1).
+// 🆕 '1.14.0'(E8a · M1-7 데이터 어댑터 · 설계 13 §8 R23 D7·D8 · R24 B4·B5 · R25 G1~G8 — 발주자 «권고안대로» ·
+//    '1.13.0'(R13b 선행 2 · PR #72 `638fca4`) 위로 다시 올렸다 — 13 §8 R25 G7·G8) —
+//    `MarketDataSource`(시세·지표 원천 6값) · `GapReasonCodes` +5(`MISSING_ROW`·`NON_POSITIVE_PRICE`·`NEGATIVE_VOLUME`·
+//    `PRICE_JUMP`·`CALENDAR_SUSPECT` — `data_gap.reason_code`) · 🆕 `ddl/batch_g_market_data.sql`(`market_series`·`fetch_log`
+//    신설 · `daily_prices` += `source`·`fetched_at` · `regime_score_daily` += `source` · 스키마 v1 한 판) · `data_gap.dataset`
+//    주석 += macro·regime·calendar · 🆕 C-48 · C-15 축 +3 · 픽스처 176(봉투 버전만).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.13.0';
+const String contractVersion = '1.14.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

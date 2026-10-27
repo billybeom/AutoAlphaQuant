@@ -3,7 +3,7 @@
 """packages/data_sync/lib/src/local/schema_v1_sql.dart(로컬 원장 스키마 v1 자산)를 다시 만든다.
 
 자산 = ① 설계 저장소 `06_시스템설계/02_데이터모델.md` 의 ```sql 블록(1번 PRAGMA 블록 제외 — 연결 설정은
-`openLedgerDatabase` 몫) + ② `packages/domain_contracts/ddl/` 의 배치 A·B·C·F(LIVE 판 원문 그대로).
+`openLedgerDatabase` 몫) + ② `packages/domain_contracts/ddl/` 의 배치 A·B·C·F·G(LIVE 판 원문 그대로 · G = v1.14).
 설계 13 §8 R19 E9-10(`schema_version` = 1 · 02 기본 + A·B·C·F 한 판) · R20 Q0(첫 실기기 설치 때 동결).
 
 🔴 CI 는 설계 저장소를 보지 못한다 — 그래서 02 는 이 도구로 옮겨 sha256 을 머리에 남기고, 배치 사본은
@@ -32,6 +32,7 @@ BATCHES = [
     'batch_b_plan_command.sql',
     'batch_c_x2_x5_local.sql',
     'batch_f_x7_advisory.sql',
+    'batch_g_market_data.sql',  # 🆕 v1.14(E8a · 설계 13 §8 R25 G1)
 ]
 Q2_OLD = '    broker_order_no TEXT NOT NULL,'
 Q2_NEW = '    broker_order_no TEXT,                             -- 🔴 v1(R20 Q2) — 수기 체결은 NULL(배치 F CHECK)'

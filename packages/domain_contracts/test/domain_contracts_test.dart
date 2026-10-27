@@ -40,7 +40,8 @@ void main() {
     //    `L-1`·`L-2` 표시 필드 · `watchRepairs` · `watchRhythm` · 라우트 52 · 픽스처 174 · C-46·C-47.
     // 🔵 '1.13.0'(R13b 선행 M2 보강 · 01 §23) — `DiagnosticCell.level` · `headline` «늘 엔진 문장» ·
     //    `m8/recon_board_ok`·`m8/ops_home_advice_suppressed_due` · 픽스처 176 · C-47 ⑩⑪.
-    expect(contractVersion, '1.13.0');
+    // 🔵 '1.14.0'(E8a · M1-7) — `MarketDataSource` · `GapReasonCodes` +5 · 배치 G(`market_series`·`fetch_log`) · C-48.
+    expect(contractVersion, '1.14.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.

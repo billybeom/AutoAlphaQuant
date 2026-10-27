@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS resume_run (
 
 CREATE TABLE IF NOT EXISTS data_gap (
     gap_id          TEXT    NOT NULL PRIMARY KEY,
-    dataset         TEXT    NOT NULL,                    -- equity_snapshot|dart|etf_universe|prices|fx
+    dataset         TEXT    NOT NULL,                    -- equity_snapshot|dart|etf_universe|prices|fx · 🆕 v1.14 macro|regime|calendar
     from_date       TEXT    NOT NULL,
     to_date         TEXT    NOT NULL,
     recoverable     INTEGER NOT NULL CHECK (recoverable IN (0,1)),

@@ -17,6 +17,7 @@
 | `safety.dart` | `AlertLevel` · `BreakerLevel` · `ClearRoute` |
 | `onboarding.dart` | `OnboardingTrack` · `StepRequirement` · `StepState` |
 | `advice.dart` | `AdviceStatus` · `AdviceKind` · `AdviceSkipReason` · `AdviceActionId` · `HoldingScope` · `HandoverPath` · `CredentialUse` · `SelfReportPurpose` · `SeasonalEntryGateState` |
+| 🆕 `market_data.dart` | **v1.14** `MarketDataSource`(시세·지표 원천 6값 — 배치 G `source` CHECK · C-15 · 01 §22 · 화면 미사용) |
 | `command.dart` | `CommandKind` · `CommandState` · `SettingsActionId` — 🔴 **A가 소유하고 `commands/`(D)는 import만** |
 
 > 🔵 `RampLevel`(OpsRamp L0~L5)은 이 폴더가 아니라 **영역 B `dto/safety.dart`** 소유다(인벤토리 §3-14). 전략 §12-⑫의 `EntryRamp`(초기 진입 6개월 분할)와 **다른 것**이며 하나의 위젯으로 합치지 않는다.

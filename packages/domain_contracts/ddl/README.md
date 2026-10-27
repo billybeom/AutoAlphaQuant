@@ -14,6 +14,7 @@
 | `batch_d_supabase.sql` | 기기·리스·복구·명령·미러·스탬프 + RLS + `rm_*` 18표 **계약**(개별 DDL 은 파생 생성기 몫) — 🔵 실적용 **E11**(Supabase 첫 부트스트랩 · 같은 번호 · R19 E9-13) | Supabase(Postgres) |
 | `batch_e_enum_widen.sql` | 기존 CHECK 재작성 = **테이블 재생성** (기존 설치 전용 경로) — ⛔ **보관 · 구현하지 않는다**(설치 0 · 설계 13 §8 R19 E9-10) | 로컬 SQLite |
 | `batch_f_x7_advisory.sql` | X7 투자 안내 — `advice*` 신설 · `executions` 11컬럼 · `ledger_diff` 5값 재작성 + `applicable` | 로컬 SQLite |
+| 🆕 `batch_g_market_data.sql` | **v1.14** 시세·지표(M1-7) — `market_series`·`fetch_log` 신설 · `daily_prices` += `source`·`fetched_at` · `regime_score_daily` += `source`(LIVE·BACKFILL) — 스키마 v1 한 판(설계 13 §8 R25 G1) | 로컬 SQLite |
 | `batch_z_archive_layout.md` | GitHub 아카이브 레이아웃 — 🔴 **스키마가 아니라 출력 포맷 계약** | GitHub |
 
 ## 마이그레이션 규약 (§6-0 · §6-5 말미)

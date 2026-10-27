@@ -25,6 +25,7 @@ const List<String> _batchFiles = <String>[
   'batch_d_supabase.sql',
   'batch_e_enum_widen.sql',
   'batch_f_x7_advisory.sql',
+  'batch_g_market_data.sql',
 ];
 
 /// 계약 열거형 ↔ DDL CHECK 가 **정확히 같아야** 하는 축.
@@ -194,6 +195,25 @@ final List<_Axis> _axes = <_Axis>[
     'cash_flow__new',
     'kind',
     _wires(CashFlowKind.values),
+  ),
+  // 🆕 v1.14(E8a · R25 G3) — 시세·지표 원천.
+  _Axis(
+    'batch_g_market_data.sql',
+    'market_series',
+    'source',
+    _wires(MarketDataSource.values),
+  ),
+  _Axis(
+    'batch_g_market_data.sql',
+    'fetch_log',
+    'source',
+    _wires(MarketDataSource.values),
+  ),
+  _Axis(
+    'batch_g_market_data.sql',
+    'daily_prices',
+    'source',
+    _wires(MarketDataSource.values),
   ),
 ];
 
@@ -599,6 +619,7 @@ String _wireOf(Object v) => switch (v) {
   final CorporateActionType t => t.wire,
   final CashFlowKind k => k.wire,
   final RunMode m => m.wire,
+  final MarketDataSource s => s.wire,
   _ => throw ArgumentError('C-15 에 등록되지 않은 열거형: ${v.runtimeType}'),
 };
 
@@ -615,6 +636,7 @@ const List<String> _localBatchFiles = <String>[
   'batch_b_plan_command.sql',
   'batch_c_x2_x5_local.sql',
   'batch_f_x7_advisory.sql',
+  'batch_g_market_data.sql',
 ];
 
 /// [file] 판의 배치 SQL — `ddl/*.sql` 은 LIVE 판이고 SIM 판은 `ledgerDdlFor` 가 만든다.

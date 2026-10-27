@@ -56,12 +56,12 @@ void main() {
       (RunMode.simInternal, LedgerFile.sim),
     ]) {
       test(
-        '${file.fileName} — 62표 · schema_version 1행 · application_id · 무결성',
+        '${file.fileName} — 64표 · schema_version 1행 · application_id · 무결성',
         () {
           final Database db = open(mode);
           expect(
             _tableCount(db),
-            62,
+            64,
             reason: '02 기본 32 + 배치 신설 30(ledger_event 포함)',
           );
           final ResultSet v = db.select(
@@ -91,7 +91,7 @@ void main() {
     open(RunMode.live).close();
     final Database again = open(RunMode.live);
     expect(again.select('SELECT * FROM schema_version'), hasLength(1));
-    expect(_tableCount(again), 62);
+    expect(_tableCount(again), 64);
     expect(_pragma(again, 'foreign_keys'), 1, reason: 'FK 는 연결마다 다시 켠다');
   });
 
@@ -286,6 +286,98 @@ void main() {
       );
     });
 
+    test('배치 G(계약 v1.14 · 설계 13 §8 R25) — market_series · fetch_log · 원천 CHECK · 국면 행 source', () {
+      final Database db = open(RunMode.live);
+      db.execute(
+        'INSERT INTO market_series (series_id, obs_date, value, source, fetched_at) '
+        "VALUES ('NFCI', '2026-10-16', -0.52, 'FRED', 't')",
+      );
+      expect(
+        accepts(
+          db,
+          'INSERT INTO market_series (series_id, obs_date, value, source, fetched_at) '
+          "VALUES ('NFCI', '2026-10-16', -0.5, 'FRED', 't')",
+        ),
+        isFalse,
+        reason: 'PK(series_id, obs_date)',
+      );
+      expect(
+        accepts(
+          db,
+          'INSERT INTO market_series (series_id, obs_date, value, source, fetched_at) '
+          "VALUES ('NFCI', '2026-10-23', NULL, 'FRED', 't')",
+        ),
+        isFalse,
+        reason: '결측은 행 없음 — 값 NULL 금지',
+      );
+      expect(
+        accepts(
+          db,
+          'INSERT INTO market_series (series_id, obs_date, value, source, fetched_at) '
+          "VALUES ('VIX', '2026-10-23', 15, 'YAHOO', 't')",
+        ),
+        isFalse,
+        reason: '원천은 MarketDataSource 6값만',
+      );
+      for (final MarketDataSource src in MarketDataSource.values) {
+        expect(
+          accepts(
+            db,
+            'INSERT INTO fetch_log (fetch_id, source, request_kind, row_count, fetched_at, outcome) '
+            "VALUES (?, ?, 'SERIES', 0, 't', 'EMPTY')",
+            <Object?>['f_${src.wire}', src.wire],
+          ),
+          isTrue,
+          reason: src.wire,
+        );
+      }
+      expect(
+        accepts(
+          db,
+          'INSERT INTO fetch_log (fetch_id, source, request_kind, row_count, fetched_at, outcome) '
+          "VALUES ('f_x', 'KIS', 'KR_DAILY', 1, 't', 'PARTIAL')",
+        ),
+        isFalse,
+        reason: '결과는 OK · EMPTY · FAILED',
+      );
+      final List<String> priceCols = <String>[
+        for (final Row r in db.select('PRAGMA table_info(daily_prices)'))
+          r['name'] as String,
+      ];
+      expect(priceCols, containsAll(<String>['source', 'fetched_at']));
+      expect(
+        accepts(
+          db,
+          'INSERT INTO daily_prices (trade_date, market, symbol, open, high, low, close, volume, source) '
+          "VALUES ('2026-10-23', 'KR', '133690', 1, 1, 1, 1, 0, 'KIS')",
+        ),
+        isTrue,
+      );
+      expect(
+        accepts(
+          db,
+          'INSERT INTO daily_prices (trade_date, market, symbol, open, high, low, close, volume, source) '
+          "VALUES ('2026-10-24', 'KR', '133690', 1, 1, 1, 1, 0, 'YAHOO')",
+        ),
+        isFalse,
+      );
+      db.execute(
+        "INSERT INTO regime_score_daily (trade_date, status, config_hash) VALUES ('2026-10-23', 'OK', 'cfg')",
+      );
+      expect(
+        db.select('SELECT source FROM regime_score_daily').single['source'],
+        'LIVE',
+        reason: '기본 LIVE · 갭일 재계산 행만 BACKFILL(X2-4)',
+      );
+      expect(
+        accepts(
+          db,
+          "INSERT INTO regime_score_daily (trade_date, status, config_hash, source) VALUES ('2026-10-24', 'OK', 'cfg', 'GUESS')",
+        ),
+        isFalse,
+      );
+    });
+
     test('cash_flow.account_alias — 입금은 계좌별 행(계약 v1.11 · 설계 13 §8 R22 D6)', () {
       final Database db = open(RunMode.live);
       expect(
@@ -344,6 +436,7 @@ void main() {
         'batch_b_plan_command.sql',
         'batch_c_x2_x5_local.sql',
         'batch_f_x7_advisory.sql',
+        'batch_g_market_data.sql',
       ]);
       for (final (String name, String sql) in kLocalBatchSql) {
         expect(
