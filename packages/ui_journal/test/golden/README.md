@@ -351,9 +351,9 @@ final RecordingDraftStore store = RecordingDraftStore(
 
 ## 🆕 R5(계약 v1.12 · v1.14 위) — X5 읽기 `L-1`·`L-2`(R5a) · X7 `A-1`·「지난 안내」(R5b) · `A-2`·`A-4`(R5c) · `A-3`(R5d) · `L-3`(R5e) (2026-10-27 조립 · ⬜ 누적 드라이런 대기 — 값의 ⟦실측⟧ 표식은 드라이런이 바꾼다)
 
-정본: 01 §21(21-8 · 21-10-4 · 21-16-1) · 02 §5-2 끝 «계약 v1.12 — R5 범위(X5 읽기 `L-1`·`L-2`)» 블록 · 02 §3-10 끝 «계약 v1.12 — R5 범위(X7 …)» 블록 · 설계 저장소 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §5-4(골든 ↔ 입력 · ✅ K35 · K38). 카드 = `docs/ai-context/send/R5a-Bob-L1L2.md`(R5a · ⬜ 드라이런 대기) · `docs/ai-context/send/_대기/R5b-Bob-A1.md`(R5b · 선행 = R5a 병합 — R5a 병합 기록 때 `send/` 로) · R5c~R5e = 카드 조립 작성자 2 가 이 절에 행을 더한다(«■ 골든» 절과 같은 말). 이 절은 **골든**만 말한다.
+정본: 01 §21(21-8 · 21-10-4 · 21-16-1) · 02 §5-2 끝 «계약 v1.12 — R5 범위(X5 읽기 `L-1`·`L-2`)» 블록 · 02 §3-10 끝 «계약 v1.12 — R5 범위(X7 …)» 블록 · 설계 저장소 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §5-4(골든 ↔ 입력 · ✅ K35 · K38). 카드 = `docs/ai-context/send/R5a-Bob-L1L2.md`(R5a · ⬜ 드라이런 대기) · `docs/ai-context/send/_대기/R5b-Bob-A1.md`(R5b · 선행 = R5a 병합 — R5a 병합 기록 때 `send/` 로) · `docs/ai-context/send/_대기/R5c-Bob-A2A4.md`(R5c · 선행 = R5b 병합) · `…/_대기/R5d-Bob-A3.md`(R5d · 선행 = R5c 병합 + C-46 ⑰ 예외 M2 보강) · `…/_대기/R5e-Bob-L3.md`(R5e · 선행 = R5d 병합) — 행 = 아래 표(2026-10-27 카드 조립 작성자 2 · 카드 «■ 골든» 절과 같은 말). 이 절은 **골든**만 말한다.
 
-### 1. 골든 이름 — R5a 6이름 × light/dark = 12장(`l1_*` 8 · `l2_*` 4) · R5b 8이름 × 2 = 16장(`a1_*` 14 · `a1_history` 2) · 재생성 0
+### 1. 골든 이름 — R5a 6이름 × light/dark = 12장(`l1_*` 8 · `l2_*` 4) · R5b 8이름 × 2 = 16장(`a1_*` 14 · `a1_history` 2) · R5c 5이름 × 2 = 10장(`a2_*` 6 · `a4_*` 4) · R5d 4이름 × 2 = 8장(`a3_*`) · R5e 2이름 × 2 = 4장(`l3_*`) · 합 25이름 50장 · 재생성 0
 
 | 이름 | 장수 | 테스트 파일 | 입력(구독 → 픽스처) · 흐름 · 맨 아래 위젯(위치 전제) |
 |---|---|---|---|
@@ -371,12 +371,23 @@ final RecordingDraftStore store = RecordingDraftStore(
 | `a1_no_action` | 2 | 〃 | `m6/advice_no_action`(NO_ACTION 1행 · 억제 몸) + `summary` · 행 0 · `Key('a1-history-link')` |
 | `a1_handover_cooling` | 2 | 〃 | `m6/advice_handover_cooling`(0행 + `emptyLabel`) + `summary`(냉각 한 줄) · 행 0 · `Key('a1-history-link')` |
 | `a1_history` | 2 | `a1_history_golden_test.dart`(R5b) | 위젯 `const AdviceHistory()` · 범위 = `range_presets_4`(`is_default` = rows[0] «최근 30일») · `watchHistory` = `m6/advice_12` 의 닫힌 행 슬라이스 rows[7..11](FILLED 3 · SKIPPED 1 · REVOKED 1 — 확인 카드 EXPIRED 2 제외) · 행 0 · `ValueKey<String>('ah-row-4')` · 🔵 Key 접두 `ah-` ≠ 이름 접두 `a1_`(01 §21-8 표 그대로) |
+| `a2_partial` | 2 | `a2_golden_test.dart`(R5c) | 위젯 `AdviceDetail(adviceId: …)` · `findById` = `m6/advice_detail_partial` ad_0005(PARTIAL · 기록 편차 칩 1 · 결정 링크) · `fillsOfAdvice` = `m6/advice_fills_ad0005` 의 `rows`(1행 · 공용 `JournalEntryCard`) · 행 0 · 흐름 없음 · `ValueKey<String>('a2-fill-0')` |
+| `a2_onhold` | 2 | 〃 | `m6/advice_detail_onhold` ad_0006b(보류 문장) · 체결 = 빈 목록(블록 부재) · 행 0 · `Key('a2-decision')` |
+| `a2_viewer` | 2 | 〃 | `m6/advice_viewer_4` rows[2] ad_0005(뷰어 판 · 버튼 0 · 폰 전용 고지) · 체결 = 빈 목록(K40) · 행 0 · `Key('a2-decision')` |
+| `a4_reasons` | 2 | `a4_golden_test.dart`(R5c) | 위젯 `AdviceSkipForm(adviceId: …)`(operator · `import 'package:ui_journal/journal_draft.dart'`) · `findById` = `m6/advice_12` rows[3] ad_0001 · 사양 = `m6/fill_form_spec`(사유 6 · 제출 전 문구) · 초안 = 빈 `RecordingDraftStore` · 명령 = 받침대(부르지 않는다) · 흐름 없음 · `ValueKey<String>('a4-reason-5')` |
+| `a4_budget_push` | 2 | 〃 | `a4_reasons` 와 같은 입력 · 흐름 = 예산 코드 `a4-reason-0` 탭(명령 0 · 초안 0) → `RecordingLinkOpener.opened` == [`skipReasons[0].deepLink`] 단언 뒤 찍는다 · `ValueKey<String>('a4-reason-5')` |
+| `a3_empty` | 2 | `a3_golden_test.dart`(R5d) | 위젯 `ManualFillForm(adviceId: …)`(operator) · `findById` = `m6/advice_12` rows[3] ad_0001 · 사양 = `m6/fill_form_spec` · 초안 = 빈 `RecordingDraftStore` · 흐름 없음(빈 입력란 · 수량 채우기 버튼 보임) · `Key('a3-submit')` |
+| `a3_advice_linked` | 2 | 〃 | `m6/advice_detail_partial` ad_0005(진행 글자) · 흐름 = `a3-prefill` 탭(칸 = `prefill_quantity_text` «20») · `Key('a3-submit')` |
+| `a3_rejected_price` | 2 | 〃 | `m6/advice_12` rows[4] ad_0002 · 초안 = `RecordingDraftStore(seed: [draft_records_x7 rows[0]])`(R2b 시드 법 · `targetId` ad_0002) · 명령 = `recordManualFill`·`watchCommand` → `m6/fill_rejected_price` rows[0](`retry_label` 버튼 보임 · 형제 키 읽지 않음) · 흐름 = `a3-submit` 탭 · `Key('a3-submit')` |
+| `a3_form_spec_stale` | 2 | 〃 | ad_0001 · 사양 = `m6/fill_form_spec_stale`(오래됨 · 폼 열지 않음 = 머리 + 오래됨 배너 + 안전 배너만) · 흐름 없음 · `Key('a3-asof')`(Key 달린 것이 머리뿐) |
+| `l3_session` | 2 | `l3_golden_test.dart`(R5e) | 위젯 `SelfReportForm(yyyyMm: '2026-08', accountAlias: <draft_records_x7 rows[2] 의 별칭>)`(operator) · `watchSelfReportSession` = `m6/self_report_1`(열린 세션 · 종목 4 · 빈 칸) · 세션 여닫기 = 기록 가짜 · 초안 = 빈 `RecordingDraftStore` · 흐름 없음 · `Key('l3-submit')` |
+| `l3_diff_result` | 2 | 〃 | `m6/self_report_diff_result`(결과 = `LedgerDiffTile` 1 · 해소 · 다음 계좌 링크 · 폼 0) · 흐름 없음 · `Key('l3-next-account')` |
 
-- 공통: 시계 `FixedClock(kGoldenNowUtc)` · 화면 위젯 = `const LedgerDiffs()` · `const LedgerRepairs()` · `const AdviceInbox()` · `const AdviceHistory()` · 흐름 = (이름, 입력, 흐름) 목록의 **클로저 칸**(R5a·R5b 는 전부 흐름 없음 = `(WidgetTester t) async {}`) · 차례 = `pumpForGolden` → `pump()` 한 번 더(값 도착) → 흐름 → `pumpAndSettle()` → 위치 전제 둘 → `expectGolden` · 슬라이스 = 테스트 쪽 입력 준비(`ListResult.copyWith(rows: …, hasMore: false)` 한 곳 — `journalSlice` 꼴 · 화면 판정 아님).
-- 크기 = 테스트 파일마다 안 상수 `const Size _kTallPhone` — l1 = `Size(390, ⟦실측⟧)`(권고 844 = `kGoldenPhoneSize` 와 같은 높이) · l2 = `Size(390, ⟦실측⟧)`(권고 1200) · a1 = `Size(390, ⟦실측⟧)`(권고 3800 — `a1_open4` 12행 기준 · 파일 하나 = 높이 하나) · a1_history = `Size(390, ⟦실측⟧)`(권고 1700) — 🔴 드라이런이 맨 아래 dy 최대 + 여유로 확정한 뒤 카드 확정값(높이는 늘리지 않는다 · 여백만 재량 + 기록 — 12 §3 공통 조문).
-- 위치 전제(찍기 전 · 이름마다 둘 · C4r3-5 코드 꼴): `expect(tester.getBottomLeft(find.byKey(<맨 아래 Key>)).dy, lessThan(_kTallPhone.height));` + `expect(tester.getTopLeft(find.byKey(const Key('<l1|l2|a1|ah>-asof'))).dy, 0.0);`(🔴 그래서 `ListView` 에 padding 0 — 실패하면 고치지 말고 실측 dy 를 질문 파일에).
-- 보고 «배치·잘림» 칸 — Bob 은 이름마다 **light PNG 한 장만** 연다(R5a 6장 · R5b 8장 — 한 대화 이미지 20장 한도) · dark 행은 같은 이름 light 행의 칸 글자 그대로(위치 전제 dy 가 light 와 같을 때만 · 다르면 그 dark PNG 도 연다).
-- 드라이런 실측 dy(맨 아래 Key 의 아래 끝 · ⟦실측⟧ — R5a `dry/r5a` · R5b `dry/r5b` 가 채운다):
+- 공통: 시계 `FixedClock(kGoldenNowUtc)` · 화면 위젯 = `const LedgerDiffs()` · `const LedgerRepairs()` · `const AdviceInbox()` · `const AdviceHistory()` · `AdviceDetail(adviceId:)` · operator `AdviceSkipForm(adviceId:)` · `ManualFillForm(adviceId:)` · `SelfReportForm(yyyyMm:, accountAlias:)` · 흐름 = (이름, 입력, 맨 아래 Key, 흐름) 목록의 **클로저 칸**(R5a·R5b 는 전부 흐름 없음 = `(WidgetTester t) async {}` · 흐름 있음 = `a4_budget_push` · `a3_advice_linked` · `a3_rejected_price`) · 차례 = `pumpForGolden` → `pump()` 한 번 더(값 도착) → 흐름 → `pumpAndSettle()` → 위치 전제 둘 → `expectGolden` · 슬라이스 = 테스트 쪽 입력 준비(`ListResult.copyWith(rows: …, hasMore: false)` 한 곳 — `journalSlice` 꼴 · 화면 판정 아님).
+- 크기 = 테스트 파일마다 안 상수 `const Size _kTallPhone` — l1 = `Size(390, ⟦실측⟧)`(권고 844 = `kGoldenPhoneSize` 와 같은 높이) · l2 = `Size(390, ⟦실측⟧)`(권고 1200) · a1 = `Size(390, ⟦실측⟧)`(권고 3800 — `a1_open4` 12행 기준 · 파일 하나 = 높이 하나) · a1_history = `Size(390, ⟦실측⟧)`(권고 1700) · a2 = `Size(390, ⟦실측⟧)`(권고 1400 · `a2_partial` 체결 1행) · a4 = `Size(390, ⟦실측⟧)`(권고 1000) · a3 = `Size(390, ⟦실측⟧)`(권고 1700 · 칸 9 + 버튼) · l3 = `Size(390, ⟦실측⟧)`(권고 1300) — 🔴 드라이런이 맨 아래 dy 최대 + 여유로 확정한 뒤 카드 확정값(높이는 늘리지 않는다 · 여백만 재량 + 기록 — 12 §3 공통 조문).
+- 위치 전제(찍기 전 · 이름마다 둘 · C4r3-5 코드 꼴): `expect(tester.getBottomLeft(find.byKey(<맨 아래 Key>)).dy, lessThan(_kTallPhone.height));` + `expect(tester.getTopLeft(find.byKey(const Key('<l1|l2|a1|ah|a2|a4|a3|l3>-asof'))).dy, 0.0);`(🔵 R5c~R5e 는 이름마다 맨 아래 Key 가 달라 `_Flow` 에 `bottom` 칸)(🔴 그래서 `ListView` 에 padding 0 — 실패하면 고치지 말고 실측 dy 를 질문 파일에).
+- 보고 «배치·잘림» 칸 — Bob 은 이름마다 **light PNG 한 장만** 연다(R5a 6장 · R5b 8장 · R5c 5장 · R5d 4장 · R5e 2장 — 한 대화 이미지 20장 한도) · dark 행은 같은 이름 light 행의 칸 글자 그대로(위치 전제 dy 가 light 와 같을 때만 · 다르면 그 dark PNG 도 연다).
+- 드라이런 실측 dy(맨 아래 Key 의 아래 끝 · ⟦실측⟧ — R5a `dry/r5a` · R5b `dry/r5b` · R5c `dry/r5c` · R5d `dry/r5d` · R5e `dry/r5e` 가 채운다):
 
   | 이름 | dy | 높이 |
   |---|---|---|
@@ -394,12 +405,23 @@ final RecordingDraftStore store = RecordingDraftStore(
   | `a1_no_action` | ⟦실측⟧ | ⟦실측⟧ |
   | `a1_handover_cooling` | ⟦실측⟧ | ⟦실측⟧ |
   | `a1_history` | ⟦실측⟧ | ⟦실측⟧ |
+  | `a2_partial` | ⟦실측⟧ | ⟦실측⟧ |
+  | `a2_onhold` | ⟦실측⟧ | ⟦실측⟧ |
+  | `a2_viewer` | ⟦실측⟧ | ⟦실측⟧ |
+  | `a4_reasons` | ⟦실측⟧ | ⟦실측⟧ |
+  | `a4_budget_push` | ⟦실측⟧ | ⟦실측⟧ |
+  | `a3_empty` | ⟦실측⟧ | ⟦실측⟧ |
+  | `a3_advice_linked` | ⟦실측⟧ | ⟦실측⟧ |
+  | `a3_rejected_price` | ⟦실측⟧ | ⟦실측⟧ |
+  | `a3_form_spec_stale` | ⟦실측⟧ | ⟦실측⟧ |
+  | `l3_session` | ⟦실측⟧ | ⟦실측⟧ |
+  | `l3_diff_result` | ⟦실측⟧ | ⟦실측⟧ |
 
-- (R5c `a2_*`·`a4_*` · R5d `a3_*` · R5e `l3_*` 행은 이 표들 아래에 이어 붙인다 — 카드 조립 작성자 2.)
+- 🔵 폼 골든(R5c `a4_*` · R5d `a3_*` · R5e `l3_*`) = 주입에 `journalDraftStoreProvider`(`RecordingDraftStore` — 시드는 `a3_rejected_price` 하나 · R2b 시드 법) · `journalCommandApiProvider`(받침대 또는 기록 가짜 — 경우 칸 · collection-if 0) · `l3_*` 는 `journalSettingsActionsProvider`(기록 가짜) 를 더한다 · 사전검사 ② 접두 = `a2` · `a4`(R5c 는 두 번) · `a3` · `l3`.
 - 🔵 골든은 아이콘 차이를 못 본다(테스트 글꼴에서 아이콘 = 같은 네모) — `L-1` 심각도 아이콘·색 · `A-1` 급함 아이콘 · 상태 칩 색은 화면 테스트(L1-02 · A1-12)가 본다.
 - 🔴 재생성 0 — R5 카드는 기존 PNG(98장)를 바꾸지 않는다(`golden:approved` 불필요 · 기존 PNG `M` = 반려 신호).
 
 ### 2. 장수
 
-- R5 시작 98장(`origin/main` `4bb7067` = R4b 병합본 98 · 계약 v1.12~v1.14 는 ui PNG 0 · `git ls-tree` 실측 98) → R5a 병합 뒤 **110장**(+ `l1_*` 8 · `l2_*` 4) → R5b 병합 뒤 **126장**(+ `a1_*` 14 · `a1_history` 2) → R5c~R5e(작성자 2).
-- 명령(packages/ui_journal 에서 · 🔴 파일마다 · 폴더 지정 금지): `flutter test --update-goldens test/golden/l1_golden_test.dart` · `flutter test --update-goldens test/golden/l2_golden_test.dart`(R5a) · `flutter test --update-goldens test/golden/a1_golden_test.dart` · `flutter test --update-goldens test/golden/a1_history_golden_test.dart`(R5b) → 옵션 없이 `flutter test` 전부 통과.
+- R5 시작 98장(`origin/main` `4bb7067` = R4b 병합본 98 · 계약 v1.12~v1.14 는 ui PNG 0 · `git ls-tree` 실측 98) → R5a 병합 뒤 **110장**(+ `l1_*` 8 · `l2_*` 4) → R5b 병합 뒤 **126장**(+ `a1_*` 14 · `a1_history` 2) → R5c 병합 뒤 **136장**(+ `a2_*` 6 · `a4_*` 4) → R5d 병합 뒤 **144장**(+ `a3_*` 8) → R5e 병합 뒤 **148장**(+ `l3_*` 4 · R5 합 +50 = 01 §21-16-1).
+- 명령(packages/ui_journal 에서 · 🔴 파일마다 · 폴더 지정 금지): `flutter test --update-goldens test/golden/l1_golden_test.dart` · `flutter test --update-goldens test/golden/l2_golden_test.dart`(R5a) · `flutter test --update-goldens test/golden/a1_golden_test.dart` · `flutter test --update-goldens test/golden/a1_history_golden_test.dart`(R5b) · `flutter test --update-goldens test/golden/a2_golden_test.dart` · `flutter test --update-goldens test/golden/a4_golden_test.dart`(R5c) · `flutter test --update-goldens test/golden/a3_golden_test.dart`(R5d) · `flutter test --update-goldens test/golden/l3_golden_test.dart`(R5e) → 옵션 없이 `flutter test` 전부 통과.
