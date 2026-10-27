@@ -1,13 +1,13 @@
 # 발송 패킷 R5e-Bob-L3 — L-3 원장 실사 (계약 v1.12~v1.14 · prompt_M6 v2 · R5 5장 중 5번째(마지막) · M6 X7 기록 · operator · 세션 start/stop)
 
-> ⬜ **_대기 — R5d 병합 기록 때 `send/` 로**(2026-10-27 조립 · 앱 기록 가지 `rec/r5`) — 남은 것: ① R5d 병합(`R5d-Bob-A3` · squash = `__R5D_SQ__` — R5d 병합 기록 커밋이 이 파일의 자리표시자를 채우고 `send/` 로 옮긴다) ② 누적 드라이런(worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5e` = `dry/r5d` 끝(R5d 병합본 흉내)에서 · 권장 5커밋 · ⟦실측⟧ 표식을 실측으로 — `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R5e-Bob-L3.md` 로 센다 · 🔴 보내기 전 0 · `__R5D_SQ__` 0) ③ 실제 병합본 위 재드라이런(앞 카드가 통합 수정으로 바뀌면) ④ 드라이런 브랜치 사전검사 ① 🔴 0 · ② `l3` 4 🔴 0 ⑤ 발주자 확인(아래 ①~⑫ — 카드 기본값 = 권고) ⑥ 재분할 판정(임계 = 새 `testWidgets(`·`test(` 줄 > 33 · lib > +900 · 새 PNG > 16 — 계획 = 줄 15 · PNG 4) → 「푸시해」 → 머리 첫 줄 ▶.
+> ⬜ **_대기 — R5d 병합 기록 때 `send/` 로 · 누적 드라이런 ✅ · 발주자 확인 대기**(2026-10-27 조립 · 2026-10-28 드라이런 지적 반영 · 앱 기록 가지 `rec/r5`) — 남은 것: ① R5d 병합(`R5d-Bob-A3` · squash = `__R5D_SQ__` — R5d 병합 기록 커밋이 이 파일의 자리표시자와 실측 표식(U+27E6 · 앞 카드 병합본에서만 아는 값)을 채우고 `send/` 로 옮긴다 · `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R5e-Bob-L3.md` = 0 · `__R5D_SQ__` 0 이어야 보냄) ~~② 누적 드라이런~~ ✅(아래 «드라이런» 줄 · `_afterExecuted` 글자 1줄 보강 · 정적 E08·E10·E24·E37 고침) ③ 실제 병합본 위 재드라이런(앞 카드가 통합 수정으로 바뀌면) ~~④ 사전검사~~ ✅(① 🔴 0 · ② `l3` 4 🔴 0) ⑤ **발주자 확인 14건**(아래 ①~⑭ — 카드 기본값 = 권고 · 🔴 ⑬ = 셸 배선 확인) ~~⑥ 재분할 판정~~ ✅(새 `testWidgets(`·`test(` 줄 19 · lib +543 · 새 PNG 4 → 재분할 없음) → 「푸시해」 → 머리 첫 줄 ▶.
 > 만든 날 2026-10-27 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 `R5e-Bob-L3` 행 + §3-0 사전검사 블록 + §3 공통 조문(strict 나눔 · PR 본문은 통합 담당 · 재제출 = 전체판 + 상자 · 골든 높이 = 카드 확정값 + 여백 재량 · 커밋 = 제목만) + R4a·R4b·R13a·R13b C4 이월 부록의 **공통 교훈만**(R5e 의 이월 = R5a~R5d C4 결과 — 병합 기록 때 ⟦실측⟧) · 화면 몫 원본 = 설계 저장소 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §8-1~§8-3 · K4 · K7 · K8 · **K9**(🔴 세션 = `SettingsActions` · 가림 = 그 폰 한 대) · K10 · K11 · K21 · K35 · **K36**(🔴 한 실사 = 한 계좌) · K41(✅ 발주자 확정 2026-10-22) · 조문 = `01_…` §21-3 · **§21-4**(세션 · G58 dispose 꼴) · §21-6 `L-3` 행 · §21-7 · §21-8 · §21-10-4 · §21-12-1(C-46 ⑰~㉔) · §21-16-1 · §21-17-2 미결 120 · §12-1(초안) · §12-4(접수증 잠금) · `02_…` §3-A · §3-10 · §3-10 끝 «계약 v1.12» 블록 ⓐⓘⓙⓚ · 코드 = `packages/domain_contracts`(`SelfReportSession` · `SelfReportResult` · `SymbolOption` · `LedgerDiffRow` · `SelfReportSubmission` · `SelfReportInput` · `SelfReportLineInput` · `SelfReportPurpose.periodicAudit` · `SettingsActions.run` · `SettingsActionId.selfReportSessionStart`·`selfReportSessionStop` · `DraftKey` · `DraftRecord` · `CommandReceipt` · `CommandState` · `LedgerTrustRepository.watchSelfReportSession` · `CommandApi.submitSelfReportBalance`·`watchCommand` · 받침대 `UnimplementedLedgerTrustRepository` · `UnimplementedSettingsActions`(🔴 `Future` 에러 · 동기 throw 0) · `UnimplementedCommandApi` · `RecordingDraftStore` · `RecordingLinkOpener` · C-46).
-> 사전 조건 — ✅ 계약 v1.12(PR #68 `fb67caf`) · ✅ v1.13 · ✅ v1.14(`contractVersion = '1.14.0'` — ⟦실측⟧ 앞 보강·엔진 카드가 버전을 올리면 0단계 버전 줄을 병합 기록이 고친다) · ✅ `prompt_M6` v2 · ⬜ R5a~R5c 병합(`__R5A_SQ__` · `__R5B_SQ__` · `__R5C_SQ__`) · ⬜ **R5d 병합(`__R5D_SQ__`)** — 이 카드는 R5a 의 `LedgerDiffTile`·`journalLedgerTrustRepositoryProvider`·`test/ledger_fakes.dart` 도우미를 **import 만** 하고 R5c·R5d 의 operator 제출·초안·잠금 꼴을 본뜬다. 시작 기준 = R5d 병합본의 `flutter test`(packages/ui_journal) = **⟦실측⟧**(카드 계획 = 529 + R5d 36 = 565) · 이 카드 끝 기대 = 시작 기준 N + **뷰 25 + 골든 4 = N + 29**(카드 계획 · 드라이런 ⟦실측⟧) · `domain_contracts` «+⟦실측⟧ ~30»(이 카드 몫 0).
-> 카드 기본값(카드 권한 — 🔵 아래 «발주자 확인» ①~⑫ 이 권고대로면 그대로): ⓐ 위젯 = `SelfReportForm({super.key, required this.yyyyMm, required this.accountAlias})`(`lib/src/journal_draft/self_report_form.dart` · **operator** · ConsumerStatefulWidget) ⓑ 🆕 주입 1 = `journalSettingsActionsProvider = Provider<SettingsActions>`(이 파일 머리 · throw 기본값 · operator 앱만 override · K10 · 01 §21-8) + 재사용 `journalLedgerTrustRepositoryProvider`·`LedgerDiffTile`(R5a `ledger_diffs.dart` — `import '../ledger_diffs.dart'`) · `journalCommandApiProvider`·`journalDraftStoreProvider`(J-3) · 안전·링크·시계 · 데이터 1 = 이 파일 안 private `StreamProvider.family<SelfReportSession, (String, String)>` ⓒ 세션 = `initState` 에서 `_actions = ref.read(journalSettingsActionsProvider)` 를 잡아 `run(selfReportSessionStart, args: {yyyy_mm, account_alias})` · `dispose` 에서 **같은 인스턴스로** `run(selfReportSessionStop, …)`(🔴 `dispose` 안 `ref.` 0 · 결과는 읽지 않고 삼킨다 · ✅ K9 G58) ⓓ 폼 = 유니버스 전 종목 행(받은 순서 · 0 포함 필수 · 빈칸 ≠ 0) + 원화현금 1칸 + «이것이 전부입니다» 확인 1단계 · 원장 현재값 프리필 0(앵커링) ⓔ 제출 = `submitSelfReportBalance(SelfReportSubmission(purpose: SelfReportPurpose.periodicAudit, yyyyMm: widget.yyyyMm, input:, declaredComplete:))` · 접수증 = R5c·R5d 꼴(잠금 · `clear` = `executed` 한 곳 · 복원 id = 빈 폼) · 🔴 **pop 0**(결과 = 세션 재발행의 `result` — ①) ⓕ 갈래 = `sessionClosedText`(폼 부재 + 문장) · `result`(결과만 — `LedgerDiffTile` 목록 · `emptyLabel` · `resolveLink` · `nextAccountLink`) · `blockedText`(제출 부재 + 문장) ⓖ 정적 라벨 0(⑧ — 글자는 전부 세션 VM · 제출 = 기존 `draftSubmit`) ⓗ Key 접두 `l3-`(순번만) ⓘ 테스트 = `test/self_report_fakes.dart`(새 · 자기 파일) · `test/self_report_form_test.dart` · 골든 2이름 4장(`l3_golden_test.dart`) ⓙ 공용 파일 1(operator 배럴 export 1줄 — 끝) = **더하기만** · `labels.dart` 무변경.
+> 사전 조건 — ✅ 계약 v1.12(PR #68 `fb67caf`) · ✅ v1.13 · ✅ v1.14(`contractVersion = '1.14.0'` — ⟦실측⟧ 앞 보강·엔진 카드가 버전을 올리면 0단계 버전 줄을 병합 기록이 고친다) · ✅ `prompt_M6` v2 · ⬜ R5a~R5c 병합(`__R5A_SQ__` · `__R5B_SQ__` · `__R5C_SQ__`) · ⬜ **R5d 병합(`__R5D_SQ__`)** — 이 카드는 R5a 의 `LedgerDiffTile`·`journalLedgerTrustRepositoryProvider`·`test/ledger_fakes.dart` 도우미를 **import 만** 하고 R5c·R5d 의 operator 제출·초안·잠금 꼴을 본뜬다. 시작 기준 = R5d 병합본의 `flutter test`(packages/ui_journal) = **⟦실측⟧**(R5d 병합 기록 때 채움 · 드라이런 기대 579 = 538 + R5d 41) · 이 카드 끝 기대 = 시작 기준 N + **뷰 31 + 골든 4 = N + 35**(드라이런 실측 2026-10-28 — 579 → 614 · 조립 판 29 + L3-10 result_stale · L3-12 둘째 경우 · L3-15~L3-18) · `domain_contracts` «+⟦실측⟧ ~30»(R5d 병합 기록 때 채움 · 드라이런 기대 392 · 이 카드 몫 0).
+> 카드 기본값(카드 권한 — 🔵 아래 «발주자 확인» ①~⑭ 이 권고대로면 그대로): ⓐ 위젯 = `SelfReportForm({super.key, required this.yyyyMm, required this.accountAlias})`(`lib/src/journal_draft/self_report_form.dart` · **operator** · ConsumerStatefulWidget) ⓑ 🆕 주입 1 = `journalSettingsActionsProvider = Provider<SettingsActions>`(이 파일 머리 · throw 기본값 · operator 앱만 override · K10 · 01 §21-8) + 재사용 `journalLedgerTrustRepositoryProvider`·`LedgerDiffTile`(R5a `ledger_diffs.dart` — `import '../ledger_diffs.dart'`) · `journalCommandApiProvider`·`journalDraftStoreProvider`(J-3) · 안전·링크·시계 · 데이터 1 = 이 파일 안 private `StreamProvider.family<SelfReportSession, (String, String)>` ⓒ 세션 = `initState` 에서 `_actions = ref.read(journalSettingsActionsProvider)` 를 잡아 `run(selfReportSessionStart, args: {yyyy_mm, account_alias})` · `dispose` 에서 **같은 인스턴스로** `run(selfReportSessionStop, …)`(🔴 `dispose` 안 `ref.` 0 · 결과는 읽지 않고 삼킨다 · ✅ K9 G58) ⓓ 폼 = 유니버스 전 종목 행(받은 순서 · 0 포함 필수 · 빈칸 ≠ 0) + 원화현금 1칸 + «이것이 전부입니다» 확인 1단계 · 원장 현재값 프리필 0(앵커링) ⓔ 제출 = `submitSelfReportBalance(SelfReportSubmission(purpose: SelfReportPurpose.periodicAudit, yyyyMm: widget.yyyyMm, input:, declaredComplete:))` · 접수증 = R5c·R5d 꼴(잠금 · `clear` = `executed` 한 곳 · 복원 id = 빈 폼) · 🔴 **pop 0**(결과 = 세션 재발행의 `result` — ①) ⓕ 갈래 = `sessionClosedText`(폼 부재 + 문장) · `result`(결과만 — `LedgerDiffTile` 목록 · `emptyLabel` · `resolveLink` · `nextAccountLink`) · `blockedText`(제출 부재 + 문장) ⓖ 정적 라벨 0(⑧ — 글자는 전부 세션 VM · 제출 = 기존 `draftSubmit`) ⓗ Key 접두 `l3-`(순번만) ⓘ 테스트 = `test/self_report_fakes.dart`(새 · 자기 파일) · `test/self_report_form_test.dart` · 골든 2이름 4장(`l3_golden_test.dart`) ⓙ 공용 파일 1(operator 배럴 export 1줄 — 끝) = **더하기만** · `labels.dart` 무변경.
 > 🔴 **카드 덮개 필수 문장(02 §3-10 · §3-10 끝 v1.12 블록 ⓘ · 01 §21-4 · §21-6 · §21-7 · §21-8)** — «`L-3` 은 **그 달 · 그 계좌 · 그 폰**의 세션이다(✅ K9 · ✅ K36) — 진입이 세션을 열고(`selfReportSessionStart`) 이탈이 닫는다(`dispose` 에서 `initState` 에 잡은 인스턴스로 `selfReportSessionStop` · `dispose` 안 `ref.` 0) · `ActionResult` 를 읽지 않는다(갈래 = `sessionClosedText` 하나)» · «앵커링 금지 — 원장 현재값을 미리 채우지 않는다 · 원장·보유 창구(`watchHoldings`·`watchOpenDiffs`·`watchRepairs` …)를 부르지 않는다 · 유니버스 전 종목 행 + 현금 = 사람이 적는 원문(빈칸 `''` ≠ 0 · «0» 은 사람이 적은 0) · 「전부 일치」 일괄 버튼 0» · «가림은 엔진 몫 — 세션 중 그 폰의 원장 파생 표시는 엔진이 값 자체를 가려 보낸다 · 화면은 가림 대상을 판정하지 않고 다른 화면에 세션을 알리지 않는다 · 안내 수량은 가리지 않는다» · «결과 = 엔진이 준 차이 목록만(차이 계산 0) · 해소 = `resolveLink`(→ `M5-13`) · 다음 계좌 = `nextAccountLink`» · «원문 → 명령 — `int.parse`·`Decimal`·빈칸 검사·`CommandContext`·`SelfReportBalance(` 0 · 낙관 갱신 0». 본문 머리 · 규칙 요약 · «프롬프트보다 이 카드가 이긴다» 에 있습니다.
 > ✅ **K 결정 표식** — K4(원문 DTO) · K7(라우트 `:yyyyMm/:accountAlias` · 초안 키 = 두 값을 `/` 로 이은 글자) · K8(`asOfTradeDate` = 엔진 · VM = `asOfTradeDateText` 만 · 초안 밖) · **K9**(세션 = `SettingsActions` start/stop · `dispose` 안 `ref` 0 · 가림 = 그 폰 한 대 · 가림 목록 필드 0) · K10(`journalSettingsActionsProvider` 이 파일) · K11(복원 id `executed` = 빈 폼) · K21(`blockedText`) · K35(R5e 4장) · **K36**(한 실사 = 한 계좌 · `nextAccountLink`) = **✅ 발주자 확정(2026-10-22 · 01 §21-14)** · 🔵 `O-04`(SIM_OPENING · 금액 1칸 · `simOpening`) = 이 카드 밖(01 §8 미결 120 · R15).
-> 🔵 **발주자 확인 대기(카드 기본값 = 권고 · 🔴 확인 전 ▶ 금지)**: ① **`executed` 뒤 pop 0**(prompt 191~193행 «쓰기 화면 공통 — executed = clear + pop» 을 이 카드가 덮는다) — 01 §21-7 `L-3` 행 «`result` non-null = 결과만» · 01 §21-8 `L-3` 호출 표에 `AppNavActions.back` 없음 · 02 §3-10 «제출 후 = 엔진이 준 차이 목록만 표시» → 권고 = 이 화면이 낸 명령의 `executed` = `clear` 만(접수증 줄은 남긴다 · 결과 화면은 세션 재발행이 바꾼다) · 복원 id 의 `executed` = `clear` + 빈 폼(K11) · 대안 = pop(결과를 못 본다) ② **«이것이 전부입니다» = 확인 전 제출 비활성**(02 §3-10 «확인 1단계» · `declaredComplete` = 초안 밖 · 복원 뒤 다시 누른다) · 대안 = 늘 활성 + `declaredComplete` 그대로 싣기(구현이 거부) ③ **세션 VM 의 `trust`(`LedgerTrustBadge`) 를 읽지 않는다**(01 §21-6 `L-3` 행에 없음 · 홈 9b 몫) ④ **결과 화면 배치** = 머리 → 배너 → 제목 → `LedgerDiffTile` 행(받은 순서 · 행 `actionLink` = null 이라 조치 버튼 0) → 빈 문장 → 해소 링크 → 다음 계좌 링크(폼·확인·제출 0) ⑤ **세션 닫힘** = 머리 + 배너 + 문장만(start 실패도 이 갈래 — 화면은 `ActionResult` 를 읽지 않는다) · 갈래 차례 = 닫힘 → 결과 → 신선도 초과 → 폼 ⑥ 🔴 **`blockedText` 표본 0**(`m6/self_report_*` 3벌 전부 null) → 권고 = 테스트가 `fill_form_spec_blocked` 의 `blockedText` 글자를 `copyWith` 로 실은 세션을 쓴다(fakes 한 곳 · 정적 E28 2줄의 하나) · 대안 = 픽스처 `m6/self_report_blocked` 신설(M2 보강 · 이 카드 전) ⑦ **입력 모양** = 종목 행 = `TextField`(라벨 = `SymbolOption.label` · 받은 순서) · 현금 = `TextField`(라벨 = `cashHintLabel`) · 확인 = `CheckboxListTile`(제목 = `declareCompleteLabel`) · `inputFormatters` 0 ⑧ **정적 라벨 0** — 제목·고지·계좌·기준일·행 라벨·현금 라벨·확인 글자 = 세션 VM · 제출 = 기존 `draftSubmit` «제출» · 재시도 = `retry` · 접수 실패 = `submitNotAccepted` ⑨ **세션 신선도 초과 = 폼 열지 않음**(prompt 194행 «쓰기 화면 공통» · R5c·R5d 와 같이 — 머리 + `JournalStaleBanner` + 배너만) ⑩ 골든 크기 `l3` = `Size(390, ⟦실측⟧)`(권고 1300 · 행 4 + 현금 + 확인 + 버튼 · 결과 = `LedgerDiffTile` 1 + 링크 2) ⑪ **세션 키** = `(widget.yyyyMm, widget.accountAlias)` 레코드 family(R4b `holding_detail.dart` `(String, bool)` 선례) · 초안 키 `targetId` = `'${widget.yyyyMm}/${widget.accountAlias}'`(K7 — 링크 조립이 아니라 생성자 인자 두 개를 잇는 키 글자 · 01 §12-1-2) ⑫ **행 컨트롤러** = 종목 글자(`symbol`)마다 하나를 세션 첫 값 때 만든다(받은 순서 = 지도에 넣은 순서 · 초안 복원 글자를 그때 넣는다 · 세션에 없는 종목의 복원 글자는 버린다).
-> 드라이런: ⬜ ⟦실측⟧(worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5e`(`dry/r5d` 끝에서) · 시작 ⟦실측⟧ → 끝 ⟦실측⟧ · 파일별 ⟦실측⟧ · 사전검사 ⟦실측⟧ · 정적 묶음 ⟦실측⟧ · 변이 ⟦실측⟧).
+> 🔵 **발주자 확인 대기 14건(카드 기본값 = 권고 · 🔴 확인 전 ▶ 금지)**: ① **`executed` 뒤 pop 0**(prompt 193~194행 «쓰기 화면 공통 — executed = clear + pop» 을 이 카드가 덮는다) — 01 §21-7 `L-3` 행 «`result` non-null = 결과만» · 01 §21-8 `L-3` 호출 표에 `AppNavActions.back` 없음 · 02 §3-10 «제출 후 = 엔진이 준 차이 목록만 표시» → 권고 = 이 화면이 낸 명령의 `executed` = `clear` 만(접수증 줄은 남긴다 · 결과 화면은 세션 재발행이 바꾼다) · 복원 id 의 `executed` = `clear` + 빈 폼(K11) · 대안 = pop(결과를 못 본다) ② **«이것이 전부입니다» = 확인 전 제출 비활성**(02 §3-10 «확인 1단계» · `declaredComplete` = 초안 밖 · 복원 뒤 다시 누른다) · 대안 = 늘 활성 + `declaredComplete` 그대로 싣기(구현이 거부) ③ **세션 VM 의 `trust`(`LedgerTrustBadge`) 를 읽지 않는다**(01 §21-6 `L-3` 행에 없음 · 홈 9b 몫) ④ **결과 화면 배치** = 머리 → 배너 → 제목 → `LedgerDiffTile` 행(받은 순서 · 행 `actionLink` = null 이라 조치 버튼 0) → 빈 문장 → 해소 링크 → 다음 계좌 링크(폼·확인·제출 0) ⑤ **세션 닫힘** = 머리 + 배너 + 문장만(start 실패도 이 갈래 — 화면은 `ActionResult` 를 읽지 않는다) · 갈래 차례 = 닫힘 → 결과 → 신선도 초과 → 폼 ⑥ 🔴 **`blockedText` 표본 0**(`m6/self_report_*` 3벌 전부 null) → 권고 = 테스트가 `fill_form_spec_blocked` 의 `blockedText` 글자를 `copyWith` 로 실은 세션을 쓴다(fakes 한 곳 · 정적 E28 3줄의 하나) · 대안 = 픽스처 `m6/self_report_blocked` 신설(M2 보강 · 이 카드 전) ⑦ **입력 모양** = 종목 행 = `TextField`(라벨 = `SymbolOption.label` · 받은 순서) · 현금 = `TextField`(라벨 = `cashHintLabel`) · 확인 = `CheckboxListTile`(제목 = `declareCompleteLabel`) · `inputFormatters` 0 ⑧ **정적 라벨 0** — 제목·고지·계좌·기준일·행 라벨·현금 라벨·확인 글자 = 세션 VM · 제출 = 기존 `draftSubmit` «제출» · 재시도 = `retry` · 접수 실패 = `submitNotAccepted` ⑨ **세션 신선도 초과 = 폼 열지 않음**(prompt 196행 «쓰기 화면 공통» · R5c·R5d 와 같이 — 머리 + `JournalStaleBanner` + 배너만) ⑩ 골든 크기 `l3` = `Size(390, 1300)`(행 4 + 현금 + 확인 + 버튼 · 결과 = `LedgerDiffTile` 1 + 링크 2 · 드라이런 맨 아래 dy 최대 628.0 = `l3_session` · light = dark · 여백 약 670 — 줄이려면 700~760 = PNG 다시 찍기) ⑪ **세션 키** = `(widget.yyyyMm, widget.accountAlias)` 레코드 family(R4b `holding_detail.dart` `(String, bool)` 선례) · 초안 키 `targetId` = `'${widget.yyyyMm}/${widget.accountAlias}'`(K7 — 링크 조립이 아니라 생성자 인자 두 개를 잇는 키 글자 · 01 §12-1-2) ⑫ **행 컨트롤러** = 종목 글자(`symbol`)마다 하나를 세션 첫 값 때 만든다(받은 순서 = 지도에 넣은 순서 · 초안 복원 글자를 그때 넣는다 · 세션에 없는 종목의 복원 글자는 버린다) ⑬ 🔴 🆕 **«다음 계좌 실사» 와 세션 겹침**(세션은 dispose 때만 닫힌다 — K9 · G58 · 다음 계좌 탭 = `opener.open(next.deepLink)` · 01:4456 «open 의 뜻 = 셸») → 권고 = 셸이 같은 라우트 꼴을 **교체(go)** 로 연다(앞 폼 dispose → stop → 다음 계좌 start · 화면 코드 0)를 전제로 하고 R13a 셸 배선 확인 1줄을 병합 기록 후보로 · 대안 = 탭 콜백에서 open 전에 `_actions.run(selfReportSessionStop …)` 한 번(dispose 의 stop 과 중복 — 구현 멱등 전제) + L3-08 흐름에 `actions.ids` 차례 단언(→ 카드 수정 + 재드라이런) ⑭ 🆕 M2 후보·동치 기록(이 카드 판정 밖 · ▶ 를 막지 않음): ⓐ `self_report_diff_result` 차이 1행뿐(결과 행 뒤집기 = 동치) ⓑ `result.emptyLabel` non-null 표본 0(결과 빈 문장 갈래 = 표본 0) ⓒ C-46 ㉔ 가 `ref\n  .read(` 처럼 줄 나뉜 체인을 못 본다(`\bref\s*\.` + 음성 스니펫 — M2 창 후보 · 위젯 테스트는 잡음).
+> 드라이런: ✅ 2026-10-28 · worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5e`(`dry/r5d` 끝 `5c2b4c5` = R5d 병합본 흉내(지적 반영판) → 권장 5커밋 `2d9cbc8`·`09d2f19`·`46a546a`·`ca6e008`·`08e82e1` → 지적 반영 2커밋(테스트 보강 · `L3-12` `Stream.multi` — close_sinks 0) · 기준 = `5c2b4c5`) — 🔴 카드 글자대로 친 `_afterExecuted` 가 L3-13 restored_executed 를 깨뜨림(복원 id 의 접수증이 세션 첫 값보다 먼저 와서 행 칸이 아직 없다 → 그 뒤 build 가 `_restoredLines` 로 칸을 다시 채움) → `_restoredLines = <String, String>{};` 1줄을 카드 글자에 더함 · 0단계 확인 줄 전부 «:1»(labels «:47» · README `l3_diff_result` «:2») · `ls` 9 있음 · 시작 «+579» → 끝 «00:32 +614: All tests passed!»(N + 뷰 31 + 골든 4) · 파일별 «+31»(self_report_form_test) · «+4»(l3_golden) · `domain_contracts` «+392 ~30» · C-46 «+27» · C-46 ⑯ 8줄 = 기대 그대로 · `onError: (Object _, StackTrace _) {}` = analyze 통과(밑줄 둘 그대로) · check_boundaries 실패 0(🟡 기존 1) · format 0 changed · analyze No issues · 사전검사 ① 🔴 0 · 🟡 0 · ② `l3` 4 = 🔴 0 · 🟡 3(G1 셈 단위 — N3) · 정적 묶음 37줄 → 출력 133줄(bash · E10 = `-nP` 로 고친 판) = 아래 «줄의 뜻과 기대» 그대로 · import 차례 = «주입 구조» 글자 그대로 · 골든 `l3` 1300 · 맨 아래 dy(light = dark) `l3_session` 628.0 · `l3_diff_result` 524.0 · 머리 dy 0.0 · 열어 본 PNG 2(light) · 새 testWidgets·test 줄 19 · lib +543/-0 · 새 PNG 4 · 변이 71꼴 중 KILLED 48 → 지적 반영 뒤 + 17(공백 다듬기 둘 · 구독 에러·값 없는 끝 · 재시도 · 에러 마지막 asOf · 복원 executed 행·현금 · 제출 중 잠금 · 잠금 중 확인 칸·현금 칸 · 결과 신선도 차례 · 입력 저장 · 현금 리스너 · 현금 복원 · 복원 거르기 · 배너) · 남은 SURVIVED 6 = 전부 «참고»(결과 1행 동치 · 결과 빈 문장 표본 0 · 빈 상태 누락 = 같은 갈래 · accountAlias 복원·declaredComplete = 동치 · 복원 executed 의 `_declared` = 잠금 중이라 동치) · 질문 A3(`_restoredLines`) → 이 카드 글자에 반영함.
 > 프롬프트 = `docs/ai-context/prompt_M6.md`(**v2 판 275줄** · 2행 `{{범위}}` · 121행 «이번 과제 범위» → 이 카드가 덮는다(R5e = `L-3`) · 130행 PR 제목 = 형식만 → «[M6] L-3 원장 실사» · X7 기록 공통 = 189~199행 · `L-3` = 210~217행 · 자체 점검 23항 = 252~274행 · 수치·금액 = 68~74행). 🔴 Bob **새 대화** 전제 — 앞 카드 대화를 기억하지 못합니다.
 > R4·R13·R5a~R5d 교훈 반영(공통 교훈만): PNG 열람 = 이름마다 light 1장(2장) · dark 행 = light 행 칸 글자 그대로(dy 같을 때만) · 구독마다 «로딩·에러 × 갈래» · 흐름 = 클로저 칸 · 기대 링크·명령·초안·세션 호출 = 목록 칸 · 🔴 bool 칸 + if · `name ==`·`which ==` · `opened[0]` · `expect(a || b, isTrue)` = 반려 꼴 · 전제 if 밖 + `// pre` · 픽스처 = `main()` 머리 `final` · 가짜 공장 = `call` 삼항 · 커밋마다 `git add <파일>` · «23항 줄 수» 상자 · 골든 높이 = 카드 확정값(늘리지 않는다 · 여백만 + 측정 행) · lib 의 nullable `!` 0 · 주입 절 = 파일 머리 · 허용 집합에 링크 문자열 0 · `TextEditingController.clear(`·`Map.clear(` 금지(C-46 ㉓) · ⟦실측⟧ R5a~R5d C4 이월(병합 기록 때 이 줄에 더한다).
 
@@ -54,6 +54,8 @@ R5e-Bob-L3 — 범위: L-3 원장 실사(SelfReportForm(yyyyMm:, accountAlias:) 
   git grep -c "class LedgerDiffTile extends ConsumerWidget" -- packages/ui_journal/lib/src/ledger_diffs.dart                   ← «…ledger_diffs.dart:1»(R5a · import 해서 쓴다 · ⟦실측⟧ 꼴)
   git grep -c "final journalLedgerTrustRepositoryProvider = Provider<LedgerTrustRepository>(" -- packages/ui_journal/lib/src/ledger_diffs.dart   ← «…ledger_diffs.dart:1»(R5a · ⟦실측⟧ 꼴)
   git grep -c "List<String> ledgerDiffTexts(LedgerDiffRow r)" -- packages/ui_journal/test/ledger_fakes.dart                   ← «…ledger_fakes.dart:1»(R5a 도우미 — import 해서 쓴다 · ⟦실측⟧ 꼴)
+  git grep -c -e "List<String?> ledgerShownTexts(WidgetTester tester, Finder scope)" -e "Clock ledgerStaleClock()" -e "Stream<T> ledgerValueThenFail<T>(T v)" -- packages/ui_journal/test/ledger_fakes.dart   ← «…ledger_fakes.dart:3»(R5a 도우미 셋 · ⟦실측⟧ 꼴)
+  git grep -c "^export " -- packages/ui_journal/lib/journal_draft.dart                                                       ← «…journal_draft.dart:3»(R5d 병합본 기준 셈 · ⟦실측⟧ · 🔴 다르면 멈춤 — E12 «4줄» 이 이 수 + 1)
   git grep -cE "^\s*static const String " -- packages/ui_journal/lib/l10n/labels.dart                                          ← «…labels.dart:47»(R5d 병합본 · 이 카드는 labels.dart 를 고치지 않는다 · ⟦실측⟧)
   git grep -c "contractVersion = '1.14.0'" -- packages/domain_contracts/lib/src/contract_version.dart                         ← «…contract_version.dart:1»(⟦실측⟧)
   git grep -c "Stream<SelfReportSession> watchSelfReportSession(" -- packages/domain_contracts/lib/src/repositories/ledger_trust_repository.dart   ← «…ledger_trust_repository.dart:1»
@@ -83,7 +85,7 @@ R5e-Bob-L3 — 범위: L-3 원장 실사(SelfReportForm(yyyyMm:, accountAlias:) 
   melos.bat bootstrap
   melos.bat run build:gen   ← 🔴 필수(계약 생성물은 git 에 없다 · 브랜치를 바꾼 뒤마다) · «Can't load Kernel binary: Invalid SDK hash.» 경고는 SUCCESS 면 무시.
   cd packages/ui_journal
-  flutter test   ← 시작 기준: R5d 병합본 전부 통과 · 0 실패 · 기대 «+⟦실측⟧: All tests passed!»(앞 시각은 달라도 된다)(끝 줄의 수를 «시작 기준 N» 으로 적어 둔다 · 다르면 멈추지 말고 PR 본문에 까닭 한 줄 —
+  flutter test   ← 시작 기준: R5d 병합본 전부 통과 · 0 실패 · 기대 «+⟦실측⟧: All tests passed!»(R5d 병합 기록 때 채움 · 드라이런 기대 579 · 앞 시각은 달라도 된다)(끝 줄의 수를 «시작 기준 N» 으로 적어 둔다 · 다르면 멈추지 말고 PR 본문에 까닭 한 줄 —
                    그 뒤 기대는 전부 «N + …» 로 읽는다). 실패가 있으면 아무것도 고치지 말고 멈춘 뒤 출력 끝 20줄을 채팅으로.
   cd ../..
 git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
@@ -123,15 +125,15 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    픽스처 = main() 머리에서 final 로 한 번(setUpAll + late 금지) · 위젯 인자 = yyyyMm 은 ASCII 리터럴 '2026-08' · accountAlias 는 픽스처 글자(drafts.rows[2].selfReport?.accountAlias — 한국어라 리터럴 금지) ·
    🔴 전제는 expect 로 · 경우를 가르기 전(if 밖)에 · testWidgets 본문 첫머리 · 문장마다 끝에 `// pre`(정적 E31) · 동작은 UI 를 실제로 눌러서(ensureVisible 뒤 tap · 칸 = enterText) · 🔴 자기가 주입한 값을 그대로 확인하는 테스트 금지 · 늘 참인 단언 금지 ·
    정상 상태 테스트는 expect(find.text(JournalLabels.retry), findsNothing) + 양성 기준점 1 · DTO 를 지어 넣지 않는다(SelfReportSession(…) · CommandReceipt(…) · DraftKey(…) · DraftRecord(…) · SelfReportSubmission(…) · SelfReportInput(…) 0 ·
-     기대 초안 키 = draft_records_x7 rows[2].key) · 🔵 예외 2 = self_report_fakes.dart 의 selfReportSeedWithCommand · selfReportSessionBlocked 두 곳만 copyWith(정적 E28 2줄 · 발주자 확인 ⑥) ·
+     기대 초안 키 = draft_records_x7 rows[2].key) · 🔵 예외 3 = self_report_fakes.dart 의 selfReportSeedWithCommand · selfReportSeedWithCash · selfReportSessionBlocked 세 곳만 copyWith(정적 E28 3줄 · 발주자 확인 ⑥ · 현금 시드 = 드라이런 지적 — 표본 drafts.rows[2] 의 현금이 '' 라 복원·비움 변이를 못 잡는다) ·
    세션 호출 기록 = 두 목록(actions.ids == <SettingsActionId>[…] · actions.runArgs == <Map<String, String>>[…] — 🔴 레코드 안 Map 은 == 가 같지 않다 · 목록 두 개로) ·
    링크·명령·초안 기록 = 목록 == 목록(🔴 원소 비교 [0] 금지) · 🔴 흐름은 경우 칸의 클로저(steps)에 · bool 칸 + if · c.name == · which == · expect(a || b, isTrue) = 반려(정적 E32) ·
    경우마다 갈리는 단언은 «없는 쪽» 견본(if/else 양쪽) 또는 expect(finder, c.<Matcher 칸>) 한 꼴 · 테스트 이름 = 번호 + ASCII · 새 테스트 파일의 문자열 리터럴은 전부 ASCII ·
    «있으면 넣는다» 목록 = null-aware 원소(?x) — 🔴 collection-if 0 · else 없는 if 0(사전검사 T1·T2) · 단언은 따로 · 스켈레톤 1 = expect(find.byKey(const Key('l3-loading')), findsOneWidget) 꼴 ·
-   operator 화면 = import 'package:ui_journal/journal_draft.dart'; · 차이 행 글자 = ledgerShownTexts(tester, <Finder>) == ledgerDiffTexts(<행>)(R5a ledger_fakes.dart) · 칸 글자 = tester.widget<TextField>(find.byKey(…)).controller?.text ·
+   operator 화면을 짓는 파일(test/self_report_fakes.dart · test/golden/l3_golden_test.dart) = import 'package:ui_journal/journal_draft.dart'; · self_report_form_test.dart 는 ui_journal.dart 만(띄우기가 fakes 안 — 쓰지 않으면 unused_import = --fatal-infos 실패) · 차이 행 글자 = ledgerShownTexts(tester, <Finder>) == ledgerDiffTexts(<행>)(R5a ledger_fakes.dart) · 칸 글자 = tester.widget<TextField>(find.byKey(…)).controller?.text ·
    트리 내리기 = await tester.pumpWidget(const SizedBox()); · 폼의 Future 에러·스트림 에러 테스트는 끝에 expect(tester.takeException(), isNotNull);(폼은 _report 로 보고한다 — R5c·R5d 꼴).
    ⓡ = 정상 상태 테스트마다 expect(find.text(JournalLabels.retry), findsNothing); 한 줄 · ⓗ = 목록 단언 루프 **앞**의 expect(<목록>, hasLength(n)); 한 줄 — 🔴 n = 정수 리터럴(종목 행 4 · 차이 1) · 끝 Key 도 리터럴(l3-line-4 · l3-diff-1) ·
-      🔴 hasLength( 는 ⓗ 줄에만 · 정적 E18·E19 가 git grep -c 로 센다 — 🔴 아래 최소 목록의 표시 수와 정확히 같아야 한다(self_report_form_test.dart ⓡ 12 · ⓗ 2 · 다르면 제출 전에 고친다 · 다른 채 내면 반려).
+      🔴 hasLength( 는 ⓗ 줄에만 · 정적 E18·E19 가 git grep -c 로 센다 — 🔴 아래 최소 목록의 표시 수와 정확히 같아야 한다(self_report_form_test.dart ⓡ 16 · ⓗ 3 · 다르면 제출 전에 고친다 · 다른 채 내면 반려).
    «없는 쪽» 견본(코드 글자 · 이름은 재량 · L3-07 · L3-09):
         final String? want = c.closed;                     // 경우 칸 = 기대 글자 String?(closed = closedSession.sessionClosedText · open = null)
         if (want != null) {
@@ -186,7 +188,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  ⑱ 135~137행 플랫폼 → 폰 전용(iOS «폰에서만» = 셸 가드 · 웹 = ui_journal 부재 · R13a) · 화면 코드 0 · 🔴 가림 = 그 폰 한 대(K9 — 엔진 · 화면 코드 0)
  ⑲ 143~145행 «무한 스크롤 = limit += 100 재구독» → 해당 없음(목록 = 세션 symbols · result.diffs — ListResult 0)
  ⑳ 146~150행 «차단 표기 = 공용 배너 · X7 화면 .watchState(·activeFlags·FlagIds 0(C-46 ㉑)» → 그대로 유효
- ㉑ 189~199행 «쓰기 화면 공통» → 그대로 유효 · 🔴 191~193행 «executed = clear + pop» 중 pop 은 덮는다(L-3 = pop 0 · 발주자 확인 ①) + 확인 1단계(②) · 신선도 초과(⑨)
+ ㉑ 189~199행 «쓰기 화면 공통» → 그대로 유효 · 🔴 193~194행 «executed = clear + pop» 중 pop 은 덮는다(L-3 = pop 0 · 발주자 확인 ①) + 확인 1단계(②) · 신선도 초과(⑨)
  ㉒ 210~217행 «L-3» → 그대로 유효 + 카드가 정한 것 — trust 0(③) · 결과 배치(④) · 닫힘(⑤) · 입력 모양(⑦) · 세션 키(⑪) · 행 컨트롤러(⑫) · 159~209행 X7 열람·A-3·A-4 · 218~230행 X5 = 이 카드 범위 밖
  ㉓ 231~250행 타입 지위 표 → L-3 행만(SettingsActions start/stop · watchSelfReportSession · DraftStore · watchCommand · submitSelfReportBalance(SelfReportSubmission) · LedgerDiffTile → SelfReportSession · SelfReportResult) · 249행 «부르지 않는 것» = 아래 «호출 표»
  ㉔ 251~274행 자체 점검 23항 → «■ 제출» ② 복사 상자(3 · 4 · 12 · 13 · 14 = [x] + 괄호 «이 카드 범위 밖(…)»)
@@ -216,7 +218,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 · 재사용: ledger_diffs.dart 의 journalLedgerTrustRepositoryProvider · LedgerDiffTile(R5a) / journal_draft_form.dart 의 journalCommandApiProvider · journalDraftStoreProvider / timeline.dart 의 journalSafetyStateProvider · journalClockProvider · journalLinkOpenerProvider ·
   journalSafetyRepositoryProvider(테스트 override 용) / journal_common.dart: JournalAsOfHeader · JournalStaleBanner · JournalSafetyBanners · JournalSkeleton · JournalErrorView(🔴 무수정) / labels.dart: retry · staleBannerTitle · submitNotAccepted · draftSubmit(기존 · 고치지 않는다).
 · 🆕 lib 파일 1개 — lib/src/journal_draft/self_report_form.dart(이것 말고 새 lib 파일 0 · 그 밖 조각은 이 파일 안 private).
-  import(directives_ordering · 차례 = 드라이런 analyze 로 확정 ⟦실측⟧): dart:async → package:domain_contracts/domain_contracts.dart → package:flutter/material.dart → package:flutter_riverpod/flutter_riverpod.dart → ../../l10n/labels.dart →
+  import(directives_ordering · 차례 = 드라이런 analyze «No issues found!» 로 확정 2026-10-28 — 아래 글자 그대로): dart:async → package:domain_contracts/domain_contracts.dart → package:flutter/material.dart → package:flutter_riverpod/flutter_riverpod.dart → ../../l10n/labels.dart →
      ../common/journal_common.dart → ../ledger_diffs.dart → ../timeline.dart → journal_draft_form.dart
   🆕 주입 1 — 이 파일 머리(🔴 import 바로 뒤 · 데이터 프로바이더보다 앞 · 이름·타입·throw 문구 고정 · 줄 나눔은 dart format 그대로):
     /// L-3 실사 세션 여닫기 — operator 앱이 override 한다(01 §21-4 · K9 · K10 · initState 에서 한 번 읽어 State 필드에 둔다).
@@ -241,7 +243,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  receipt   R5c·R5d 꼴 — lastCommandId 복원 non-null = 첫 접수증 전 잠금 + 구독 · 구독 에러·첫 값 없이 끝남 = l3-resubscribe · 제출 Future 에러 = l3-submit-not-accepted · 접수증 = l3-receipt(stateLabel) ·
            requested·received·staleContext·heldForIntegrity·pendingLeaseConfirm·noOperator = 잠금(칸·확인·버튼 전부) · rejected·expired = 잠금 풀림 + 입력 보존 · executed = clear 한 곳 → 🔴 이 화면이 낸 명령 = 그대로(pop 0 · 접수증 줄 남김 · 결과 = 세션 재발행) ·
            복원 id = 빈 폼(칸 '' · 확인 false · 접수증 줄 0 · 잠금 풀림 · K11)
- session start/stop   결과·에러를 화면이 보지 않는다(then<void>((_) {}, onError: (Object _, StackTrace _) {}) 로 삼킨다 · 🔵 analyze 가 밑줄 둘을 거르면 그 판 글자 — ⟦실측⟧) · start 실패 = 엔진이 세션을 닫힌 채 보낸다 → ① 갈래
+ session start/stop   결과·에러를 화면이 보지 않는다(then<void>((_) {}, onError: (Object _, StackTrace _) {}) 로 삼킨다 · 🔵 analyze 가 밑줄 둘을 받는다 — 드라이런 확인 2026-10-28) · start 실패 = 엔진이 세션을 닫힌 채 보낸다 → ① 갈래
  safety    첫 값 전·에러 → 배너 부재 · 값 → JournalSafetyBanners(본문 영향 0)
  🔴 l3-loading · l3-fail 은 파일 안 한 곳에서만 짓는다(private const 위젯 하나 · private 함수 하나 — 정적 E20 = 이름마다 1줄).
  🔴 갈래를 고르는 것은 AsyncValue · null 여부 · 잠금 switch · State bool 뿐 — 글자 비교·거부 코드·세션 결과·플래그·플랫폼으로 고르지 않는다.
@@ -276,8 +278,8 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
      initial = await ref.read(journalCommandApiProvider).submitSelfReportBalance(SelfReportSubmission(purpose: SelfReportPurpose.periodicAudit, yyyyMm: widget.yyyyMm, input: _input(), declaredComplete: _declared));
  _applyReceipt · _locked = R5d 꼴 그대로 · _afterExecuted — 🔴 이 꼴(발주자 확인 ① · pop 0):
      if (!_issuedHere) {
-       setState(() { _applyingRestore = true; for (final TextEditingController c in _lineCtrls.values) { c.text = ''; } _cashCtrl.text = ''; _applyingRestore = false; _declared = false;
-         _lastPersisted = DraftRecord(key: _draftKey, selfReport: SelfReportInput(accountAlias: widget.accountAlias)); _receipt = null; _commandId = null; _draftCleared = false; });   ← 복원 id — 빈 폼(K11 · 🔴 .clear( 0)
+       setState(() { _applyingRestore = true; for (final TextEditingController c in _lineCtrls.values) { c.text = ''; } _cashCtrl.text = ''; _restoredLines = <String, String>{}; _applyingRestore = false; _declared = false;
+         _lastPersisted = DraftRecord(key: _draftKey, selfReport: SelfReportInput(accountAlias: widget.accountAlias)); _receipt = null; _commandId = null; _draftCleared = false; });   ← 복원 id — 빈 폼(K11 · 🔴 .clear( 0 · 🔴 `_restoredLines = <String, String>{};` 를 빼지 않는다 — 복원 id 의 접수증이 세션 첫 값보다 먼저 오면 행 칸이 아직 없어 비울 것이 없고, 그 뒤 build 가 복원 지도로 칸을 다시 채운다 · 드라이런 지적)
      }
  배치(세션 값 · 닫힘·결과 0 · 신선도 안 · 위 → 아래 · 🔴 이 순서 · final bool locked = _locked(); · final String? blocked = session.blockedText;):
    ListView(padding: EdgeInsets.zero)[
@@ -340,7 +342,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 공통: 띄우기 = pumpSelfReport(tester, overrides:, yyyyMm:, accountAlias:)(Size(390, 3000) · DPR 1.0 · teardown 2 · ProviderScope(overrides) > MaterialApp > Scaffold(body: SelfReportForm(yyyyMm: …, accountAlias: …)) · pump 두 번) ·
   overrides = selfReportOverrides(repo:, actions:, cmd:, store:, safety:, clock:, opener:)(7줄) · 시계 = FixedClock(kGoldenNowUtc) · 오래됨 = ledgerStaleClock()(R5a ledger_fakes.dart · +2일) · 값 뒤 에러 = ledgerValueThenFail(…)(R5a) ·
   경우가 여럿인 테스트 = for 로 testWidgets 를 경우마다(이름 '<번호> <설명> ${c.name}') · 경우 = private class _Case(bool 칸 0 · Matcher 칸 허용) · 탭 앞에 ensureVisible · 띄우기는 한 테스트에 한 번 ·
-  계획 = self_report_form_test testWidgets 줄 14(테스트 25) · 골든 1 · testWidgets·test 줄 합 15(≤ 33) · import = 드라이런 analyze «No issues found!» 차례(⟦실측⟧).
+  계획 = self_report_form_test testWidgets 줄 18(테스트 31) · 골든 1 · testWidgets·test 줄 합 19(≤ 33) · import = directives_ordering 차례(analyze «No issues found!» 가 판정 · 쓰지 않는 import 0).
   🆕 test/self_report_fakes.dart(새 · 공개 이름 · 한국어 리터럴 0 · if 0 · collection-if 0 · 🔴 다른 fakes 파일 무수정 — ledger_fakes.dart · holdings_overview_fakes.dart 는 import 만):
     class FakeSelfReportRepository extends UnimplementedLedgerTrustRepository { FakeSelfReportRepository({required this.session}); final Stream<SelfReportSession> Function(int call) session; final List<(String, String)> args = <(String, String)>[];
       @override watchSelfReportSession(String yyyyMm, String accountAlias) → final int call = args.length; args.add((yyyyMm, accountAlias)); return session(call); }(watchGrade 는 넘기지 않는다 — 받침대가 던진다 = «부르지 않는 것» 증명)
@@ -352,6 +354,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
       ← journalLedgerTrustRepositoryProvider · journalSettingsActionsProvider · journalCommandApiProvider · journalDraftStoreProvider · 안전 · 시계 · 열기 — 7줄
     Future<void> pumpSelfReport(WidgetTester tester, {required List<Override> overrides, required String yyyyMm, required String accountAlias})
     DraftRecord selfReportSeedWithCommand(DraftRecord r, String commandId) => r.copyWith(lastCommandId: commandId);                    ← 🔵 copyWith ①
+    DraftRecord selfReportSeedWithCash(DraftRecord r, String cash) => r.copyWith(selfReport: r.selfReport?.copyWith(cashKrwText: cash));   ← 🔵 copyWith ③(현금 시드 · 드라이런 지적 · 한 줄 = E28 1줄)
     SelfReportSession selfReportSessionBlocked(SelfReportSession s, String text) => s.copyWith(blockedText: text);                     ← 🔵 copyWith ②(발주자 확인 ⑥)
     Set<String> selfReportAllowed(SelfReportSession s) => <String>{s.asOf.label, s.titleText, s.noticeText, s.accountLabel, s.asOfTradeDateText, for (final SymbolOption x in s.symbols) x.label, s.cashHintLabel, s.declareCompleteLabel,
       JournalLabels.draftSubmit, ?s.blockedText};   (🔴 허용 집합에 링크 문자열 0)
@@ -363,17 +366,18 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
         expect(repo.args, <(String, String)>[(yyyyMm, alias)]) · expect(store.loaded, <DraftKey>[drafts.rows[2].key]) · expect(store.saved, <DraftRecord>[]) · ⓡ.
  L3-02 이탈 = 같은 인스턴스로 stop · dispose 안 ref 0(K9 · G58 · C-46 ㉔) — session1 → ⓡ → await tester.pumpWidget(const SizedBox()); →
         expect(actions.ids, <SettingsActionId>[SettingsActionId.selfReportSessionStart, SettingsActionId.selfReportSessionStop]) · expect(actions.runArgs, <Map<String, String>>[<그 args>, <그 args>]) · expect(tester.takeException(), isNull).
- L3-03 빈칸 ≠ 0 · 제출 원문(B14 · K4 · K36) — session1 · submit = Future.value(receipts.rows[0]) · watch = Stream.value(receipts.rows[0]) → 흐름 = l3-line-0 에 '3' · l3-line-1 에 '0' 입력(2·3 은 그대로) · l3-cash 에 '1000' · l3-declare 탭 · l3-submit 탭 →
+ L3-03 빈칸 ≠ 0 · 제출 원문(B14 · K4 · K36) — session1 · submit = Future.value(receipts.rows[0]) · watch = Stream.value(receipts.rows[0]) → 흐름 = l3-line-0 에 ' 3 '(앞뒤 공백 — 다듬기 변이를 잡게) · l3-line-1 에 '0' 입력(2·3 은 그대로) · l3-cash 에 ' 1000' · pump · 🆕 expect(store.saved.last.selfReport?.cashKrwText, ' 1000')(입력마다 저장 — 제출 전) · l3-declare 탭 · l3-submit 탭 →
         final SelfReportSubmission s = cmd.submitted.single; · expect(s.purpose, SelfReportPurpose.periodicAudit) · expect(s.yyyyMm, yyyyMm) · expect(s.declaredComplete, isTrue) · expect(s.input.accountAlias, alias) ·
-        expect(<(String, String)>[for (final SelfReportLineInput l in s.input.lines) (l.symbol, l.quantityText)], <(String, String)>[(session1.symbols[0].symbol, '3'), (session1.symbols[1].symbol, '0'), (session1.symbols[2].symbol, ''), (session1.symbols[3].symbol, '')]) ·
-        expect(s.input.cashKrwText, '1000') · expect(store.saved.last.selfReport, s.input) · expect(store.saved.last.lastCommandId, receipts.rows[0].commandId) · expect(opener.opened, <String>[]) · ⓡ.
+        expect(<(String, String)>[for (final SelfReportLineInput l in s.input.lines) (l.symbol, l.quantityText)], <(String, String)>[(session1.symbols[0].symbol, ' 3 '), (session1.symbols[1].symbol, '0'), (session1.symbols[2].symbol, ''), (session1.symbols[3].symbol, '')]) ·
+        expect(s.input.cashKrwText, ' 1000') · expect(store.saved.last.selfReport, s.input) · expect(store.saved.last.lastCommandId, receipts.rows[0].commandId) · expect(opener.opened, <String>[]) · ⓡ.
  L3-04 확인 1단계(발주자 확인 ②) — session1 → l3-submit onPressed isNull → l3-declare 탭 → isNotNull → l3-declare 탭 → isNull · expect(cmd.submitted, <SelfReportSubmission>[]) · ⓡ.
- L3-05 초안 복원 · 확인은 복원 0(01 §12-1) — session1 + RecordingDraftStore(seed: <DraftRecord>[drafts.rows[2]]) · 전제: expect(drafts.rows[2].selfReport?.lines.first.symbol, session1.symbols.first.symbol); // pre →
-        l3-line-0 글자 == drafts.rows[2].selfReport?.lines.first.quantityText · l3-line-1 글자 == '' · l3-cash 글자 == drafts.rows[2].selfReport?.cashKrwText · l3-declare value isFalse · ⓡ.
- L3-06 접수증 갈래(01 §21-7 · §12-4) — 다섯 경우(칸 = 이름 · watch 접수증 · enabled Matcher · cleared 목록):
-        (requested · rows[0] · isNull · []) · (executed · rows[1] · isNull · [drafts.rows[2].key]) · (rejected_outside · rows[2] · isNotNull · []) · (rejected_invalid · rows[3] · isNotNull · []) · (held · rows[4] · isNull · [])마다 —
+ L3-05 초안 복원 · 확인은 복원 0(01 §12-1) — session1 + RecordingDraftStore(seed: <DraftRecord>[selfReportSeedWithCash(drafts.rows[2], '500')]) · 전제: expect(drafts.rows[2].selfReport?.lines.first.symbol, session1.symbols.first.symbol); // pre →
+        l3-line-0 글자 == drafts.rows[2].selfReport?.lines.first.quantityText · l3-line-1 글자 == '' · 🆕 ⓗ expect(session1.symbols, hasLength(4)); → l3-line-3 findsOneWidget(복원 종목만 남기는 거르기 0) · l3-cash 글자 == '500'(현금 복원) · l3-declare value isFalse · ⓡ.
+ L3-06 접수증 갈래(01 §21-7 · §12-4) — 다섯 경우(칸 = 이름 · watch 접수증 · enabled Matcher · 🆕 fieldEnabled Matcher · declared Matcher · cleared 목록):
+        (requested · rows[0] · isNull · isFalse · isTrue · []) · (executed · rows[1] · isNull · isFalse · isTrue · [drafts.rows[2].key]) · (rejected_outside · rows[2] · isNotNull · isTrue · isTrue · []) ·
+        (rejected_invalid · rows[3] · isNotNull · isTrue · isTrue · []) · (held · rows[4] · isNull · isFalse · isTrue · [])마다 —
         시드 = drafts.rows[2] · submit = rows[0] · 전제: expect(receipts.rows[1].state, CommandState.executed); // pre → steps = l3-declare 탭 · l3-submit 탭 · pump → l3-receipt 글자 == c.watch.stateLabel ·
-        l3-submit onPressed == c.enabled(Matcher 칸) · l3-line-0 글자 == drafts.rows[2].selfReport?.lines.first.quantityText(보존) · expect(store.cleared, c.cleared) · expect(opener.opened, <String>[])(🔴 L-3 = pop 0 · 다섯 경우 모두) · ⓡ.
+        l3-submit onPressed == c.enabled(Matcher 칸) · 🆕 잠금(드라이런 지적): tester.widget<TextField>(l3-cash).enabled == c.fieldEnabled · tester.widget<CheckboxListTile>(l3-declare).onChanged == c.enabled · .value == c.declared(이 화면 executed = 칸·확인 그대로) · l3-line-0 글자 == drafts.rows[2].selfReport?.lines.first.quantityText(보존) · expect(store.cleared, c.cleared) · expect(opener.opened, <String>[])(🔴 L-3 = pop 0 · 다섯 경우 모두) · ⓡ.
  L3-07 세션 닫힘(01 §21-7 · 발주자 확인 ⑤) — 두 경우 (closed · closedSession · closed = closedSession.sessionClosedText · form findsNothing) · (open · session1 · null · findsOneWidget)마다 — 전제: expect(closedSession.sessionClosedText, isNotNull); // pre →
         «없는 쪽» 견본 그대로(l3-closed) · expect(find.byKey(const ValueKey<String>('l3-line-0')), c.form) · expect(find.byKey(const Key('l3-submit')), c.form) · l3-asof findsOneWidget · ⓡ.
  L3-08 결과 — LedgerDiffTile · 해소 · 다음 계좌(K36 · 02 §3-10) — diffResult · final SelfReportResult? res = diffResult.result; · 전제 둘: expect(res, isNotNull); // pre · expect(res?.diffs.first.actionLink, isNull); // pre →
@@ -384,28 +388,44 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  L3-10 상태 × 갈래(구독 + 초안 · 01 §21-7) — 다섯 경우(칸 = 이름 · session 공장 · store · 시계 · 있음 · 없음 · stale Matcher):
         (draft_pending · session1 · load 가 끝나지 않는 저장소(extends RecordingDraftStore · 테스트 파일 안 private class) · 기본 · [l3-loading] · [l3-asof, l3-line-0] · findsNothing) ·
         (session_loading · Stream.fromFuture(Completer().future) · 기본 · 기본 · [l3-loading] · [l3-asof] · findsNothing) · (session_fail · Stream.error · 기본 · 기본 · [l3-fail] · [l3-loading, l3-asof] · findsNothing) ·
-        (value_then_fail · ledgerValueThenFail(session1) · 기본 · 기본 · [l3-fail] · [l3-line-0] · findsNothing) · (stale · session1 · 기본 · ledgerStaleClock() · [l3-asof] · [l3-title, l3-line-0, l3-submit] · findsOneWidget)마다 —
-        Key 목록마다 findsOneWidget / findsNothing · expect(find.text(JournalLabels.staleBannerTitle), c.stale) · CircularProgressIndicator findsNothing(ⓡ·ⓗ 없음).
+        (value_then_fail · ledgerValueThenFail(session1) · 기본 · 기본 · [l3-fail] · [l3-line-0] · findsNothing) · (stale · session1 · 기본 · ledgerStaleClock() · [l3-asof] · [l3-title, l3-line-0, l3-submit] · findsOneWidget) ·
+        🆕 (result_stale · diffResult · 기본 · ledgerStaleClock() · [l3-diff-0, l3-resolve] · [l3-line-0, l3-submit] · findsNothing — 갈래 차례 = 닫힘 → 결과 → 신선도)마다 —
+        Key 목록마다 findsOneWidget / findsNothing · expect(find.text(JournalLabels.staleBannerTitle), c.stale) · 🆕 expect(find.text(session1.asOf.label), c.asOfText)(asOfText Matcher 칸 = value_then_fail · stale · result_stale 만 findsOneWidget — 에러 뒤 lastAsOfLabel 포함) ·
+        CircularProgressIndicator findsNothing(ⓡ·ⓗ 없음).
  L3-11 제출 Future 에러 = 접수 실패 1줄 — submit = Future.error → l3-declare 탭 · l3-submit 탭 → l3-submit-not-accepted 글자 == JournalLabels.submitNotAccepted · l3-submit onPressed isNotNull · expect(cmd.watched, <String>[]) · ⓡ · expect(tester.takeException(), isNotNull).
- L3-12 재구독 — 복원 id 시드 · watch = (int call) => call == 0 ? Stream<CommandReceipt>.error(StateError('fail')) : Stream<CommandReceipt>.value(receipts.rows[0]) → l3-resubscribe findsOneWidget · l3-line-0 의 enabled isFalse → l3-resubscribe 탭 →
-        l3-receipt 글자 == receipts.rows[0].stateLabel · expect(cmd.watched, <String>[receipts.rows[0].commandId, receipts.rows[0].commandId]) · expect(tester.takeException(), isNotNull).
- L3-13 복원 id — 잠금 · executed = 빈 폼(K11) — 두 경우 (restored_requested · watch = rows[0] · receipt = rows[0].stateLabel · line0 = drafts.rows[2] 첫 행 글자 · cleared []) · (restored_executed · watch = rows[1] · receipt = null · line0 = '' · cleared [drafts.rows[2].key])마다 —
-        시드 = selfReportSeedWithCommand(drafts.rows[2], receipts.rows[0].commandId) · 전제: expect(drafts.rows[2].lastCommandId, isNull); // pre → expect(cmd.watched, <String>[receipts.rows[0].commandId]) · «없는 쪽» 견본 꼴(l3-receipt) ·
-        l3-line-0 글자 == c.line0 · expect(store.cleared, c.cleared) · expect(opener.opened, <String>[]) · expect(cmd.submitted, <SelfReportSubmission>[]) · ⓡ.
+ L3-12 재구독 — 두 경우(칸 = 이름 · first = 첫 구독 스트림 공장 · exception Matcher · 드라이런 지적 — onError·onDone 을 따로 본다):
+        (error_open · () => Stream<CommandReceipt>.multi((MultiStreamController<CommandReceipt> c) => c.addError(StateError('fail'))) — 에러 뒤 끝나지 않음(🔴 StreamController 로 짓지 않는다 — close_sinks) · isNotNull) ·
+        (done_empty · () => const Stream<CommandReceipt>.empty() — 값 없이 끝남 · isNull)마다 — 복원 id 시드 · watch = (int call) => call == 0 ? c.first() : Stream<CommandReceipt>.value(receipts.rows[0]) →
+        l3-resubscribe findsOneWidget · l3-line-0 의 enabled isFalse → l3-resubscribe 탭 → l3-receipt 글자 == receipts.rows[0].stateLabel · expect(cmd.watched, <String>[receipts.rows[0].commandId, receipts.rows[0].commandId]) · expect(tester.takeException(), c.exception).
+ L3-13 복원 id — 잠금 · executed = 빈 폼(K11) — 두 경우 (restored_requested · watch = rows[0] · receipt = rows[0].stateLabel · line0 = drafts.rows[2] 첫 행 글자 · cash = '500' · cleared []) ·
+        (restored_executed · watch = rows[1] · receipt = null · line0 = '' · cash = '' · cleared [drafts.rows[2].key])마다 —
+        시드 = selfReportSeedWithCash(selfReportSeedWithCommand(drafts.rows[2], receipts.rows[0].commandId), '500') · 전제: expect(drafts.rows[2].lastCommandId, isNull); // pre → expect(cmd.watched, <String>[receipts.rows[0].commandId]) · «없는 쪽» 견본 꼴(l3-receipt) ·
+        l3-line-0 글자 == c.line0 · 🆕 l3-cash 글자 == c.cash · expect(store.cleared, c.cleared) · expect(opener.opened, <String>[]) · expect(cmd.submitted, <SelfReportSubmission>[]) · ⓡ.
  L3-14 화면 Text 전부 · 큰 글꼴 — session1 · allowed = selfReportAllowed(session1) → 규칙 10 «화면의 Text 전부» 견본 그대로 → textScaleFactorTestValue = 2.0(+ teardown clear) → pump → expect(tester.takeException(), isNull) · ⓡ.
- ⓡ 기대 = self_report_form_test.dart 12줄(L3-01~L3-09 · L3-11 · L3-13 · L3-14 — 경우 for 안의 한 줄) · ⓗ 기대 = 2줄(L3-01 · L3-08) — 🔴 정확히 · (전제) = 8(L3-01 1 · 05 1 · 06 1 · 07 1 · 08 2 · 09 1 · 13 1).
+ L3-15 🆕 재시도(드라이런 지적) — session = (int call) => call == 0 ? Stream<SelfReportSession>.error(StateError('fail')) : Stream<…>.value(session1) → find.descendant(of: l3-fail, matching: find.text(JournalLabels.retry)) 탭 → pump 두 번 →
+        l3-title findsOneWidget · expect(repo.args, <(String, String)>[(yyyyMm, alias), (yyyyMm, alias)]) · ⓡ.
+ L3-16 🆕 제출 중 잠금(드라이런 지적) — submit = (int call) => Completer<CommandReceipt>().future(끝나지 않음) → l3-declare 탭 · l3-submit 탭 → pump → l3-submit onPressed isNull · expect(cmd.watched, <String>[]) · ⓡ.
+ L3-17 🆕 복원 id executed 가 세션 뒤에 올 때(드라이런 지적 — L3-13 의 반대 차례) — 테스트 안 final StreamController<CommandReceipt> late = StreamController<CommandReceipt>(); · addTearDown(late.close); · watch = (int call) => late.stream ·
+        시드 = selfReportSeedWithCash(selfReportSeedWithCommand(drafts.rows[2], receipts.rows[0].commandId), '500') → l3-line-0 글자 == 시드 첫 행 글자 → late.add(receipts.rows[1]); → pump 두 번 →
+        l3-line-0 글자 == '' · l3-cash 글자 == '' · expect(store.cleared, <DraftKey>[drafts.rows[2].key]) · ⓡ.
+ L3-18 🆕 안전 배너 = 공용 조각(드라이런 지적) — session1 · safety = safetyFixtureRow(3) · 전제: expect(safetyFixtureRow(3).activeFlags, isNotEmpty); // pre → 첫 플래그 label findsOneWidget · 그 dy 가 l3-asof 보다 크고 l3-title 보다 작다 · ⓡ.
+ ⓡ 기대 = self_report_form_test.dart 16줄(L3-01~L3-09 · L3-11 · L3-13~L3-18 — 경우 for 안의 한 줄) · ⓗ 기대 = 3줄(L3-01 · L3-05 · L3-08) — 🔴 정확히 · (전제) = 9(L3-01 1 · 05 1 · 06 1 · 07 1 · 08 2 · 09 1 · 13 1 · 18 1).
 
 🔴 병합 검사 때 통합 담당이 넣어 볼 변이(하나라도 테스트가 그대로 통과하면 반려 · 갈래마다 — 열림 · 닫힘 · 결과 · 차단 · 오래됨 · 에러 · 잠금):
    (세션) start 0 · start 두 번 · stop 0 · dispose 에서 ref.read 로 stop(㉔ · 해제 뒤 StateError) · stop 을 다른 인스턴스로 · args 키 바꾸기 · args 에 다른 값 · start 결과를 읽어 갈래 · start 실패에 화면 에러.
    (앵커링) 종목 행에 원장 값 · 빈칸을 '0' 으로 · 현금 칸에 값 · 「전부 일치」 버튼 · 행 순서 뒤집기 · 행 하나 빼기 · trust 그리기.
-   (원문) 수량 글자를 다듬어 넣기 · purpose 를 simOpening · yyyyMm 을 다른 글자 · accountAlias 를 복원값으로 · declaredComplete 를 늘 true · 확인을 초안에 담기 · 확인을 복원.
-   (접수증) executed 에 pop · executed 에 clear 0 · executed 밖 clear · 보류 3상태에 잠금 풀기 · rejected 에 칸 비우기 · 복원 id executed 에 칸 남기기 · 첫 접수증 전 잠금 0 · 구독 에러에 재구독 버튼 0 · Future 에러에 글자 0.
-   (갈래) 닫힘에 폼 · 결과에 폼 · 결과에 조치 버튼 · 결과 행 뒤집기 · 해소 링크 숨김 · 다음 계좌 숨김 · 링크를 서로 바꿈 · 차단에 제출 · 차단 문장 숨김 · 신선도 초과에 폼 · 재시도에 invalidate 0 · 벽시계로 신선도 ·
+   (원문) 수량·현금 글자를 다듬어 넣기(L3-03 공백) · purpose 를 simOpening · yyyyMm 을 다른 글자 · 확인을 초안에 담기 · 확인을 복원 · 입력에 save 0 · 현금 칸 리스너 0 · 현금 복원 0 · 복원 종목만 남기기(L3-05).
+   (접수증) executed 에 pop · executed 에 clear 0 · executed 밖 clear · 보류 3상태에 잠금 풀기 · rejected 에 칸 비우기 · 복원 id executed 에 행·현금 칸 남기기(L3-13 · L3-17 — 두 차례) · 첫 접수증 전 잠금 0 · 제출 중 잠금 0(L3-16) ·
+     잠금 중 현금 칸·확인 칸 활성(L3-06) · 구독 에러에 재구독 버튼 0 · 값 없이 끝남에 재구독 버튼 0(L3-12 두 경우) · Future 에러에 글자 0.
+   (갈래) 닫힘에 폼 · 결과에 폼 · 결과에 조치 버튼 · 해소 링크 숨김 · 다음 계좌 숨김 · 링크를 서로 바꿈 · 차단에 제출 · 차단 문장 숨김 · 신선도 초과에 폼 · 결과를 신선도 초과에 감춤(L3-10 result_stale) ·
+     재시도에 invalidate 0(L3-15) · 에러의 마지막 asOf 빼기(L3-10) · 벽시계로 신선도 · 배너 빼기(L3-18) ·
      정적 글자 하나 더하기 · 링크 글자를 화면에 그리기(탐침 — C4r13b-6).
-   🔵 판정 = 변이마다 ui_journal 의 flutter test 전부(골든 포함) + C-46 ⑯~㉔ · 드라이런 = ⟦실측⟧(목록 KILLED 수 · 참고 변이 통과 목록).
+   (참고 — 반려 근거 아님 · 동치·표본 0) 결과 행 뒤집기(차이 1행 — 동치 · ⑭ⓐ) · 결과 빈 문장 숨김·빈 상태 누락(result.emptyLabel 표본 0 · ⑭ⓑ) · accountAlias 를 복원값으로(초안 키 = yyyyMm/alias — 동치) ·
+     declaredComplete 를 늘 true(확인 전 제출 비활성 — 동치) · 복원 id executed 에 확인 남기기(_declared · 확인 칸이 잠금 중이라 참이 될 수 없다 — 동치).
+   🔵 판정 = 변이마다 ui_journal 의 flutter test 전부(골든 포함) + C-46 ⑯~㉔ · 드라이런 2026-10-28 = 위 (세션)~(갈래) 목록 전부 KILLED · «참고» 6 SURVIVED.
 
 ■ 정적 묶음 — packages/ui_journal 에서 아래 37줄을 한 번에 붙여 넣어 돌리고, 나온 출력 전부를 PR 본문 ② 에 코드 블록 하나로 그대로 붙인다
-  (대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 출력 줄 수(EXIT 줄 포함) = ⟦실측⟧ 줄 — 붙이기 전에 세어 같은지 본다 ·
+  (대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 출력 줄 수(EXIT 줄 포함) = 133줄(드라이런 기대 · bash 기준 · PowerShell 은 EXIT 표기만 다르다) — 붙이기 전에 세어 같은지 본다 ·
    flutter test·dart test 출력은 파일로 떠서 붙인다 · «EXIT:1»/«EXIT:False» = 출력 없음 · 블록 뒤 S05 결과 줄마다 정확히 «<파일>:<줄> — 탭 콜백 안»)
 echo "## E01 new test files hangul 0 (comment lines only)"; git grep -nP "'[^'\n]*[\x{AC00}-\x{D7A3}]" -- test/self_report_fakes.dart test/self_report_form_test.dart test/golden/l3_golden_test.dart; echo "EXIT:$?"
 echo "## E02 test names ASCII"; git grep -nP "(testWidgets|test|group)\('[^']*[^\x00-\x7F]" -- test/self_report_form_test.dart test/golden/l3_golden_test.dart; echo "EXIT:$?"
@@ -414,9 +434,9 @@ echo "## E04 link literals in lib 0"; git grep -nE "'aaq://|'handbook://" -- lib
 echo "## S05 opener lines (each must be inside a tap callback)"; git grep -n "journalLinkOpenerProvider" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
 echo "## E06 session action lines (2)"; git grep -nE "selfReportSessionStart|selfReportSessionStop" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
 echo "## E07 read and command lines (3)"; git grep -nE "watchSelfReportSession\(|submitSelfReportBalance\(|watchCommand\(" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
-echo "## E08 forbidden words in L-3 0"; git grep -nP "DateTime\.|DateRange|kIsWeb|Platform\.|dart:io|FeatureFlags|RunMode|operatingMode|watchState|activeFlags|FlagIds|markerOnly|killSwitch|watchHoldings|watchOpenDiffs|watchRepairs|watchExternalHoldings|watchGrade|journalLedgerRepositoryProvider|journalAdviceRepositoryProvider|HoldingsRepository|JournalRepository|recordManualFill|skipAdvice|deferAdviceConfirm|watchDecisionDetail|CommandContext|SelfReportBalance\(|simOpening|ActionResult|actionRunId|AppNavActions|AppRoutes|\.trust\b|\.sleeve\b|\.status\b|\.quantity\b|\.name\b|\.wire\b|\.decision\b|AdviceStatus\.|OrderSide\.|rejectReasonCode|retryCode|retryLabel|\.level\b|\.length\b|\.trim\(|\.isEmpty|int\.parse|double\.parse|tryParse|Decimal|inputFormatters|NumberFormat|toString\(|Navigator|ScaffoldMessenger|SnackBar|FloatingActionButton|\.where|[fF]irstWhere|\.sort|\.fold\(|\.reduce\(|groupBy" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
+echo "## E08 forbidden words in L-3 0"; git grep -nP "DateTime\.|DateRange|kIsWeb|Platform\.|dart:io|FeatureFlags|RunMode|operatingMode|watchState|activeFlags|FlagIds|markerOnly|killSwitch|watchHoldings|watchOpenDiffs|watchRepairs|watchExternalHoldings|watchGrade|journalLedgerRepositoryProvider|journalAdviceRepositoryProvider|HoldingsRepository|JournalRepository|recordManualFill|skipAdvice|deferAdviceConfirm|watchDecisionDetail|CommandContext|(?<![\w.])SelfReportBalance\(|simOpening|ActionResult|actionRunId|AppNavActions|AppRoutes|\.trust\b|\.sleeve\b|\.status\b|\.quantity\b|\.name\b|\.wire\b|\.decision\b|AdviceStatus\.|OrderSide\.|rejectReasonCode|retryCode|retryLabel|\.level\b|\.length\b|\.trim\(|\.isEmpty|int\.parse|double\.parse|tryParse|Decimal|inputFormatters|NumberFormat|toString\(|Navigator|ScaffoldMessenger|SnackBar|FloatingActionButton|\.where|[fF]irstWhere|\.sort|\.fold\(|\.reduce\(|groupBy" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
 echo "## E09 settings provider line (1)"; git grep -n "^final journalSettingsActionsProvider = Provider<SettingsActions>(" -- lib; echo "EXIT:$?"
-echo "## E10 enum names other than CommandState and SettingsActionId 0"; git grep -nE "AdviceStatus\.|AdviceActionId\.|AdviceKind\.|AdviceSkipReason\.|OrderSide\.|ChipTone\.|UiLevel\.|DiffSeverity\.|DraftKind\.(journalDraft|manualFillRecord|adviceSkip)|SelfReportPurpose\.(?!periodicAudit)" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
+echo "## E10 enum names other than CommandState and SettingsActionId 0"; git grep -nP "AdviceStatus\.|AdviceActionId\.|AdviceKind\.|AdviceSkipReason\.|OrderSide\.|ChipTone\.|UiLevel\.|DiffSeverity\.|DraftKind\.(journalDraft|manualFillRecord|adviceSkip)|SelfReportPurpose\.(?!periodicAudit)" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
 echo "## E11 journal labels unchanged (47)"; git grep -cE "^\s*static const String " -- lib/l10n/labels.dart; echo "EXIT:$?"
 echo "## E12 operator barrel exports (4)"; git grep -n "^export " -- lib/journal_draft.dart; echo "EXIT:$?"
 echo "## E13 providers in new lib (2)"; git grep -nP "^final \w+Provider\b" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
@@ -430,11 +450,11 @@ echo "## E20 key names (one line each)"; git grep -noP "'l3-[a-z]+(-[a-z]+)*" --
 echo "## E21 banned vocabulary 0"; git grep -nE "추천|권유|자문|시그널" -- lib; echo "EXIT:$?"
 echo "## E22 Colors files 0"; git grep -lw Colors -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
 echo "## E23 rich text trimming 0"; git grep -nE "RichText|SelectableText|Text\.rich|maxLines|TextOverflow|softWrap|FittedBox|\.take\(" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
-echo "## E24 autoDispose 0"; git grep -n "autoDispose" -- lib; echo "EXIT:$?"
+echo "## E24 autoDispose 0"; git grep -n "autoDispose" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
 echo "## E25 Scaffold AppBar SafeArea 0"; git grep -nE "Scaffold|AppBar|SafeArea" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
 echo "## E26 shared files add-only and frozen files (numstat)"; git diff --numstat origin/main...HEAD -- lib/l10n/labels.dart lib/ui_journal.dart lib/journal_draft.dart lib/src/common lib/src/timeline.dart lib/src/ledger_diffs.dart lib/src/ledger_repairs.dart lib/src/advice lib/src/advice_inbox.dart lib/src/advice_history.dart lib/src/advice_detail.dart lib/src/journal_draft/journal_draft_form.dart lib/src/journal_draft/advice_skip_form.dart lib/src/journal_draft/manual_fill_form.dart pubspec.yaml analysis_options.yaml README.md test/golden/golden_support.dart test/golden/README.md test/flutter_test_config.dart test/holdings_overview_fakes.dart test/ledger_fakes.dart test/advice_fakes.dart test/advice_skip_fakes.dart test/manual_fill_fakes.dart; echo "EXIT:$?"
 echo "## E27 implements in new tests 0"; git grep -n " implements " -- test/self_report_fakes.dart test/self_report_form_test.dart test/golden/l3_golden_test.dart; echo "EXIT:$?"
-echo "## E28 copyWith in tests (2)"; git grep -n "copyWith(" -- test/self_report_fakes.dart test/self_report_form_test.dart test/golden/l3_golden_test.dart; echo "EXIT:$?"
+echo "## E28 copyWith in tests (3)"; git grep -n "copyWith(" -- test/self_report_fakes.dart test/self_report_form_test.dart test/golden/l3_golden_test.dart; echo "EXIT:$?"
 echo "## E29 collection-if in tests 0"; git grep -nE "^\s*if \(.*\) [^{]*,$|\[\s*if \(|<[A-Za-z]+>\[[^]]*\bif \(" -- test/self_report_fakes.dart test/self_report_form_test.dart test/golden/l3_golden_test.dart; echo "EXIT:$?"
 echo "## E30 golden files"; git diff --name-status origin/main...HEAD -- test/golden/goldens; echo "EXIT:$?"
 echo "## E31 precondition marks (pre)"; git grep -c "// pre$" -- test/self_report_form_test.dart; echo "EXIT:$?"
@@ -443,18 +463,18 @@ echo "## E33 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
 echo "## E34 clear calls (1)"; git grep -n "\.clear(" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
 echo "## E35 ref lines (no ref in dispose — list for reading)"; git grep -n "ref\." -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
 echo "## E36 draft key line (1)"; git grep -n "yyyyMm}/" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
-echo "## E37 error report lines (1)"; git grep -n "FlutterError" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
-  (줄의 뜻과 기대(카드 계획 · 드라이런 ⟦실측⟧) — E01 = 주석 줄 말고 출력 없음 · E02 = 출력 없음 · E03 = 2줄(l3_golden 1 · self_report_form_test 14) · E04 = 0 ·
+echo "## E37 error report lines (1)"; git grep -n "FlutterError\.reportError" -- lib/src/journal_draft/self_report_form.dart; echo "EXIT:$?"
+  (줄의 뜻과 기대(카드 계획 = 드라이런 2026-10-28 기대) — E01 = 주석 줄 말고 출력 없음 · E02 = 출력 없음 · E03 = 2줄(l3_golden 1 · self_report_form_test 18) · E04 = 0 ·
    S05 = 2줄(결과 화면 해소 · 다음 계좌 — 줄마다 탭 콜백 안) · E06 = 2줄(initState start · dispose stop) · E07 = 3줄 · E08 = 0 · E09 = 1줄 · E10 = 0 · E11 = «lib/l10n/labels.dart:47»(🔴 R5d 병합본 그대로 · ⟦실측⟧) ·
-   E12 = 4줄(advice_skip_form · journal_draft_form · manual_fill_form · 🆕 self_report_form 차례 · 🔴 정확히) · E13 = 2줄(주입 1 · 세션 family 1) · E14~E17 = 0 · E18 = «test/self_report_form_test.dart:12» · E19 = «test/self_report_form_test.dart:2»(🔴 정확히) ·
-   E20 = 20줄 = 위 «Key 표» 이름마다 정확히 1줄 · E21~E25 = 0 · E26 = 한 줄(journal_draft.dart — 1 · 0) · 그 밖 파일 줄 없음(🔴 labels.dart 줄 0) · E27 = 0 · E28 = 2줄(selfReportSeedWithCommand · selfReportSessionBlocked) · E29 = 0 ·
-   E30 = 4줄 전부 «A» · E31 = «test/self_report_form_test.dart:8»(🔴 정확히) · E32 = 0 · E33 = 0 · E34 = 1줄(s.clear(_draftKey) — 🔴 컨트롤러·지도의 .clear( 0) ·
-   E35 = ref. 줄 목록(⟦실측⟧ 줄 · 🔴 dispose 본문 줄 번호 범위 안의 줄 0 — 눈으로 대조 · C-46 ㉔ 가 기계로 본다) · E36 = 1줄(_draftKey) · E37 = 1줄(_report))
+   E12 = 4줄(advice_skip_form · journal_draft_form · manual_fill_form · 🆕 self_report_form 차례 · 🔴 정확히) · E13 = 2줄(주입 1 · 세션 family 1) · E14~E17 = 0 · E18 = «test/self_report_form_test.dart:16» · E19 = «test/self_report_form_test.dart:3»(🔴 정확히) ·
+   E20 = 20줄 = 위 «Key 표» 이름마다 정확히 1줄 · E21~E25 = 0 · E26 = 한 줄(journal_draft.dart — 1 · 0) · 그 밖 파일 줄 없음(🔴 labels.dart 줄 0) · E27 = 0 · E28 = 3줄(selfReportSeedWithCommand · selfReportSeedWithCash · selfReportSessionBlocked) · E29 = 0 ·
+   E30 = 4줄 전부 «A» · E31 = «test/self_report_form_test.dart:9»(🔴 정확히) · E32 = 0 · E33 = 0 · E34 = 1줄(s.clear(_draftKey) — 🔴 컨트롤러·지도의 .clear( 0) ·
+   E35 = ref. 줄 목록(드라이런 기대 8줄 · 🔴 dispose 본문 줄 번호 범위 안의 줄 0 — 눈으로 대조 · C-46 ㉔ 가 기계로 본다) · E36 = 1줄(_draftKey) · E37 = 1줄(_report 첫 줄 «FlutterError.reportError(» — dart format 이 FlutterErrorDetails( 를 다음 줄로 나눠도 셈 밖))
   (🔵 git grep -c 가 0 인 파일은 줄로 나오지 않는다 — 출력 그대로 붙이고 «:0» 을 손으로 더하지 않는다 · E08 · E23 은 주석 줄도 센다(규칙 15))
 
 ■ 골든 — 2이름 × light/dark = 4장(전부 신규 · ✅ K35 · 이름 = 02 §3-10 (d) 글자 그대로 · golden README «🆕 R5» 절 표 그대로)
-  l3 — test/golden/l3_golden_test.dart · const Size _kTallPhone = Size(390, ⟦실측⟧)(폭 390 고정 · 드라이런 맨 아래 dy 최대 ⟦실측⟧) · 위젯 = SelfReportForm(yyyyMm: '2026-08', accountAlias: alias) · import 'package:ui_journal/journal_draft.dart'; ·
-    세션 여닫기 = FakeSelfReportActions() · 명령 = UnimplementedCommandApi()(흐름이 부르지 않는다) · 초안 = RecordingDraftStore():
+  l3 — test/golden/l3_golden_test.dart · const Size _kTallPhone = Size(390, 1300)(폭 390 고정 · 드라이런 맨 아래 dy 최대 628.0 = l3_session) · 위젯 = SelfReportForm(yyyyMm: '2026-08', accountAlias: alias) · import 'package:ui_journal/journal_draft.dart'; ·
+    세션 여닫기 = FakeSelfReportActions() · 명령 = UnimplementedCommandApi()(흐름이 부르지 않는다) · 초안 = RecordingDraftStore()(🔴 가짜·저장소는 testWidgets 안에서 새로 — _Flow 칸에 인스턴스 0 · light·dark 공유 금지):
     이름              watchSelfReportSession    안전    흐름    맨 아래 Key
     l3_session        session1                  행 0    없음    Key('l3-submit')
     l3_diff_result    diffResult                행 0    없음    Key('l3-next-account')
@@ -473,8 +493,8 @@ echo "## E37 error report lines (1)"; git grep -n "FlutterError" -- lib/src/jour
 · L3_questions.md — 머리말의 «다음 번호»(Q1·A1)에서 이어 붙인다 · 다른 질문 파일 수정 0 · 표 끝에 새 행만 · 새 행 상태 «⬜ 미답» · 답 칸 비움 · 칸 안 세로 막대 금지 · 행 앞에 «L-3:» 접두(🔵 예외 = 골든 dy «측정:» 행).
 · 꼭 적을 것: 골든 dy — 이름마다 한 행(A1~A2 = 위 골든 표 차례 · 종류 «추측» · 첫머리 «측정:») — 이 복사 상자 2줄을 그대로 붙이고 <값> 자리에만 잰 수를 넣는다(높이 = 리터럴):
       ┌── 측정 행 복사 시작(다음 줄부터 · 2줄)
-| A1 | R5e-Bob-L3 | 추측 | 측정: l3_session dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A2 | R5e-Bob-L3 | 추측 | 측정: l3_diff_result dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
+| A1 | R5e-Bob-L3 | 추측 | 측정: l3_session dy 실측값 (light=<값>, dark=<값>) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
+| A2 | R5e-Bob-L3 | 추측 | 측정: l3_diff_result dy 실측값 (light=<값>, dark=<값>) < 1300 | 골든 위치 전제 실측 | 1300 미만 확인 | ⬜ 미답 | |
       └── 측정 행 복사 끝(이 줄 앞까지 · 괄호는 light·dark 두 값만 감싸고 «< 높이» 는 괄호 밖)
   여백을 줄였으면 A3 부터 «측정:» 전·후 행 · 더 필요해 보인 정적 라벨(🔴 만들지 말고 행으로) · 문서에 없어 정한 것 전부.
 · 적지 않을 것(카드가 정함): 위젯·프로바이더·Key·파일 이름 · 정적 라벨 0 · 읽지 않는 필드 · 배치 순서 · 갈래 차례 · 세션 여닫기 꼴 · 확인 1단계 · pop 0 · 결과 배치 · 차단 표본 · 행 컨트롤러 · 골든 이름·입력 · 재량(여백·크기·모서리).
@@ -483,16 +503,16 @@ echo "## E37 error report lines (1)"; git grep -n "FlutterError" -- lib/src/jour
 ■ 제출
   (할 일 (1)~(5) 커밋이 끝난 뒤 — 마지막 커밋 = format·질문 커밋)
   cd packages/ui_journal
-  flutter test test/self_report_form_test.dart          ← 끝 줄 그대로(기대 «+25: All tests passed!»)
+  flutter test test/self_report_form_test.dart          ← 끝 줄 그대로(기대 «+31: All tests passed!»)
   flutter test test/golden/l3_golden_test.dart          ← 끝 줄 그대로(기대 «+4: All tests passed!»)
-  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 29 — ⟦실측⟧ → «+⟦실측⟧: All tests passed!»)
+  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 35 — ⟦실측⟧ → «+⟦실측⟧: All tests passed!»(R5d 병합 기록 때 채움 · 드라이런 기대 579 → 614))
   cd ../domain_contracts
   dart test test/contracts/c46_advice_x7_test.dart -r expanded   ← 전부 통과 · «C-46 ⑯ 대상» 줄과 그 아래 들여쓴 경로 줄을 그대로 적어 둔다
      (기대 8줄: «C-46 ⑯ 대상 7파일 — …» + 공백 4칸 들여쓴 경로 7줄(…/advice/advice_card.dart · advice_detail.dart · advice_history.dart · advice_inbox.dart · journal_draft/advice_skip_form.dart · journal_draft/manual_fill_form.dart ·
       🆕 journal_draft/self_report_form.dart — 정렬 순) · 🔴 «6파일» 이면 파일 이름이 카드와 다르다 — 멈춤 · ㉔ 가 실패하면 dispose 안에 ref 가 있다 — 고친다)
   cd ../..
   bash tool/check_boundaries.sh   ← 실패 0 · 🔵 main 에 원래 있는 ui_journal 🟡 1건(«packages/ui_journal/lib/src/timeline.dart:109»)은 이 카드와 무관 — 그대로 둔다 · 그 밖 🟡 [C-5] 0
-  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · test:contracts 의 domain_contracts 끝 줄 «+⟦실측⟧ ~30: All tests passed!» · «Some tests failed»·«FAILED» 0건 · format 0 changed(&& 가 안 되면 한 줄씩 · 🔴 백그라운드·파이프 금지)
+  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · test:contracts 의 domain_contracts 끝 줄 «+⟦실측⟧ ~30: All tests passed!»(R5d 병합 기록 때 채움 · 드라이런 기대 392) · «Some tests failed»·«FAILED» 0건 · format 0 changed(&& 가 안 되면 한 줄씩 · 🔴 백그라운드·파이프 금지)
   git status --short   ← 🔴 비어 있어야 다음으로
   git diff --name-status origin/main...HEAD
      ← 기대(이 줄들만 · 앞머리 packages/ui_journal/): M lib/journal_draft.dart · A lib/src/journal_draft/self_report_form.dart · A test/golden/goldens/l3_*.png 4장 · A test/golden/l3_golden_test.dart · A test/self_report_fakes.dart · A test/self_report_form_test.dart ·
@@ -517,7 +537,7 @@ echo "## E37 error report lines (1)"; git grep -n "FlutterError" -- lib/src/jour
       🔴 N1 — 채팅 글 첫 줄 = «## ① 구현한 화면 ID · 바뀐 파일 · 커밋» — 그 위에 아무 글도 두지 않는다(머리말·구분선 금지).
       🔴 N3 — 내기 전 사전검사 ② — 제출 글 전체(①~⑤ + flutter test 한 줄)를 저장소 밖 파일(notepad $env:TEMP\R5e-Bob-L3_submit.md · «UTF-8» 저장 · 커밋 0)에 저장한 뒤 저장소 뿌리에서:
      dart tool/precheck.dart --base origin/main --collection-if 0 --report $env:TEMP\R5e-Bob-L3_submit.md --golden-prefix l3 --goldens 4
-        ← 🔴 출력 끝 줄 «── 결과: 🔴 0 · …» 를 눈으로 확인한 뒤에만 채팅에 낸다(🔴 1 이상이면 글을 고쳐 다시 돌린다) · 출력은 채팅에 붙이지 않는다 · 🔵 🟡 [G1] 은 멈춤이 아니다(셈 단위 견본 = 아래 ③ · ⟦실측⟧).
+        ← 🔴 출력 끝 줄 «── 결과: 🔴 0 · …» 를 눈으로 확인한 뒤에만 채팅에 낸다(🔴 1 이상이면 글을 고쳐 다시 돌린다) · 출력은 채팅에 붙이지 않는다 · 🔵 🟡 [G1] 은 멈춤이 아니다(셈 단위 견본 = 아래 ③ · 드라이런 🟡 3 — G1 은 입력 칸·확인 칸 덩어리를 셀 수 없다 · 🔴 칸을 고치지 않는다).
    ① 아래 «① 머리 복사 상자» 한 줄 그대로 + «바뀐 파일:» + name-status 출력 그대로(코드 블록 하나) + «커밋 목록:» + log 출력 그대로(코드 블록 하나)
       ┌── ① 머리 복사 시작(다음 줄부터)
 화면 ID: L-3 — 원장 실사(SelfReportForm(yyyyMm:, accountAlias:) · operator · journalSettingsActionsProvider)
@@ -598,13 +618,15 @@ echo "## E37 error report lines (1)"; git grep -n "FlutterError" -- lib/src/jour
       골든 표 4행(한 표 · 한 행 한 줄): «| 이름 | 입력 픽스처 | 안전 행 | 크기 | 위치 전제 dy | 배치·잘림 |» · 이름 칸 = «l3_session light» 꼴 · 입력 = 경로 그대로(self_report_1.json · self_report_diff_result.json) · 크기 = 390×<높이 리터럴> ·
         dy = 이름·밝기마다 잰 값 · 배치·잘림 = 이름마다 light PNG 한 장만 연다(2장) · dark 행 = 같은 이름 light 행 칸 글자 그대로(dy 가 같을 때만) ·
         칸 꼴 = «<덩어리 → 로 — 글자 n줄 · 상자 · 입력 칸 · 확인 칸 · 버튼 글자> — 잘림 없음» 또는 «… — 잘림: <어디가 어떻게>»(4행 모두 꼬리 · 코드 이름·픽스처 낱말·영문 0 · 🔴 사전검사 G1 출력을 옮기지 않는다) ·
-        셈 단위 견본 2행(드라이런이 PNG 를 열어 쓴 칸 · 꼴만 본뜬다): ⟦실측⟧ · ⟦실측⟧.
+        셈 단위 견본 2행(드라이런이 PNG 를 열어 쓴 칸 · 꼴만 본뜬다 · 🔵 «글자 n줄» 꼴이 G1 과 가깝다):
+         «| l3_session light | self_report_1.json | 0 | 390×1300 | 628.0 | 글자 1줄 → 글자 1줄 → 글자 3줄 → 글자 1줄 → 글자 1줄 → 입력 칸 5 → 글자 1줄 · 확인 칸 → 버튼 글자 — 잘림 없음 |»
+         «| l3_diff_result light | self_report_diff_result.json | 0 | 390×1300 | 524.0 | 글자 1줄 → 글자 1줄 → 상자(안 글자 10줄 · 칩 2개) → 버튼 글자 → 버튼 글자 — 잘림 없음 |».
    ④ 질문 목록 — git -c core.quotePath=false diff origin/main...HEAD -- docs/ai-context/inbox/L3_questions.md 출력에서 «+|» 로 시작하는 줄 전부(코드 블록 하나 · 순서 그대로 · 손으로 만들지 않는다)
    ⑤ 추측한 것 = L3_questions.md 새 A 행 중 «측정:» 이 아닌 행 전부 — 번호로(🔴 없으면 정확히 «없음» 한 낱말)
       ┌── 시작·끝 복사 시작(다음 줄부터 · 1줄)
 flutter test: 시작 기준 <N> → 끝 <packages/ui_journal 의 flutter test 끝 줄 그대로>
       └── 시작·끝 복사 끝(이 줄 앞까지 · 끝 자리 = 시각·«+수»·«All tests passed!» 까지 끝 줄 그대로 · 사전검사 R5)
-   (+ flutter test 한 줄 — 위 상자의 글자 틀 그대로(기대 M = N + 29 · 다르면 그 위 한 줄에 «까닭:» + 테스트 파일별 끝 줄))
+   (+ flutter test 한 줄 — 위 상자의 글자 틀 그대로(기대 M = N + 35 · 다르면 그 위 한 줄에 «까닭:» + 테스트 파일별 끝 줄))
 ````
 
 ---
@@ -616,9 +638,9 @@ flutter test: 시작 기준 <N> → 끝 <packages/ui_journal 의 flutter test �
 - `test/` 새 파일 3(`self_report_fakes.dart` · `self_report_form_test.dart` · `golden/l3_golden_test.dart`) + 새 PNG 4장 · 재생성 0 · 기존 fakes 무수정.
 - 질문 파일 `L3_questions.md`(새 행 A1~A2 «측정:» 반드시).
 - 채팅: PR 본문 5섹션 + flutter test 한 줄 · 사전검사 ① 한 번 · ② 한 번(`l3` · 4) 🔴 0.
-- `flutter test` = 시작 기준 N(⟦실측⟧ = R5d 병합본) + 29(뷰 25 + 골든 4 · 드라이런 ⟦실측⟧) · 정적 E11 = 47(무변경) · E12 = 4줄 · E13 = 2 · E18 = 12 · E19 = 2 · E20 = 20 · E28 = 2 · E30 = 4 A · E31 = 8(🔴 정확히) · S05 = 2 · E06 = 2 · E07 = 3 · E09 = 1 · E34 = 1 · E36 = 1 · E37 = 1 · C-46 ⑯ = 7파일.
-- 재분할 임계(카드 계획): 새 `testWidgets(`·`test(` 줄 15 · lib +⟦실측⟧/-0 · 새 PNG 4 → 재분할 없음 예상.
-- 🔴 C4 가 넣어 볼 예고 변이 중 드라이런이 확인한 것: ⟦실측⟧.
+- `flutter test` = 시작 기준 N(⟦실측⟧ = R5d 병합본 · 드라이런 기대 579) + 35(뷰 31 + 골든 4 · 드라이런 «+614») · 정적 E11 = 47(무변경) · E12 = 4줄 · E13 = 2 · E18 = 16 · E19 = 3 · E20 = 20 · E28 = 3 · E30 = 4 A · E31 = 9(🔴 정확히) · 출력 133줄 · S05 = 2 · E06 = 2 · E07 = 3 · E09 = 1 · E34 = 1 · E36 = 1 · E37 = 1 · C-46 ⑯ = 7파일.
+- 재분할 임계(카드 계획): 새 `testWidgets(`·`test(` 줄 19 · lib +543/-0(드라이런) · 새 PNG 4 → 재분할 없음.
+- 🔴 C4 가 넣어 볼 예고 변이 중 드라이런이 확인한 것(2026-10-28): (세션)~(갈래) 목록 전부 KILLED(지적 반영 뒤 + 17 · `_restoredLines` 빼기 = L3-13 이 잡음) · «참고» 6 SURVIVED · 결과 = 스크래치 `r5/mut_r5e/` + `r5/mut2/e/`.
 
 ## 4. 받은 뒤 Claude에게 보낼 문장(한 줄)
 
@@ -634,5 +656,5 @@ R5e-Bob-L3 결과: 브랜치 ui/m6-l3-audit 푸시됨 — PR 만들고 병합 �
 - 🔵 `golden:approved` 는 **이 카드에 필요 없다**(새 PNG 만).
 - 🔵 C-46 ⑯~㉔ 의 화면 스캔은 파일 이름으로 대상을 고른다(`lib/src/journal_draft/self_report_form.dart`) — 다른 이름이면 «공허 통과» → 제출 ② 의 «C-46 ⑯ 출력» 8줄로 확인한다. ㉔ 는 `dispose` 본문을 끝 중괄호까지 본다(`super.dispose()` 뒤 포함).
 - 🔵 R5 마지막 카드 — 병합 기록이 R5 5장 완료(🏁)를 적는다 · 다음 = 12 §6 큐(R14 …) · `O-04`(SIM_OPENING) 재사용 = R15 창(01 §8 미결 120).
-- 🔵 ⟦실측⟧ R5d 병합 기록 때 채울 것(이 파일의 자리표시자): `__R5A_SQ__`~`__R5D_SQ__` · 시작 기준 N(R5d 병합본 실측) · 0단계 R5a·R5d 확인 줄 4개 · labels 셈(47 예상) · 계약 버전 줄 · 기존 PNG 수(144 예상) · `domain_contracts` 끝 줄 · R5a~R5d C4 이월 · 드라이런 값 전부.
-- 범위 고지: 01 §8 미결 118(실사 주기 — 엔진) · 120(`O-04` 재사용 — R15) · 53 ⑥ 확장(지난 달·다른 계좌 `L-3` 초안 «버리기» — UI 0)은 이 카드가 닫지 않는다 · 🆕 기록 후보 = `m6/self_report_blocked` 표본(발주자 확인 ⑥ 대안) · prompt 191~193행 pop 조문의 `L-3` 예외(①).
+- 🔵 실측 표식 — R5d 병합 기록 때 채울 것(이 파일의 자리표시자 · `grep -cP '\x{27E6}'` 로 센다 · 🆕 0단계 R5a 도우미 셋 · operator 배럴 기준 셈 포함): `__R5A_SQ__`~`__R5D_SQ__` · 시작 기준 N(R5d 병합본 실측) · 0단계 R5a·R5d 확인 줄 4개 · labels 셈(47 예상) · 계약 버전 줄 · 기존 PNG 수(144 예상) · `domain_contracts` 끝 줄 · R5a~R5d C4 이월 · (드라이런 값은 «드라이런 기대» 로 채워 둠 — 실제 병합본이 계획과 다르면 그 수만 고친다).
+- 범위 고지: 01 §8 미결 118(실사 주기 — 엔진) · 120(`O-04` 재사용 — R15) · 53 ⑥ 확장(지난 달·다른 계좌 `L-3` 초안 «버리기» — UI 0)은 이 카드가 닫지 않는다 · 🆕 기록 후보 = `m6/self_report_blocked` 표본(발주자 확인 ⑥ 대안) · prompt 193~194행 pop 조문의 `L-3` 예외(①) · ⑬ 셸 «다음 계좌» 교체 확인 · ⑭ 의 M2 후보.

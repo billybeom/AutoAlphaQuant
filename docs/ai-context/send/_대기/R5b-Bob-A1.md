@@ -1,15 +1,15 @@
 # 발송 패킷 R5b-Bob-A1 — A-1 오늘의 매매 안내 · 「지난 안내」 (계약 v1.12~v1.14 · prompt_M6 v2 · R5 5장 중 2번째 · M6 X7 열람)
 
-> ⬜ **_대기 — R5a 병합 기록 때 `send/` 로**(2026-10-27 조립 · 앱 기록 가지 `rec/r5`) — 남은 것: ① R5a 병합(`R5a-Bob-L1L2` · squash = `__R5A_SQ__` — R5a 병합 기록 커밋이 이 파일의 자리표시자를 채우고 `send/` 로 옮긴다) ② 누적 드라이런(worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5b` = `dry/r5a` 끝(R5a 병합본 흉내)에서 · 권장 5커밋 · ⟦실측⟧ 표식을 실측으로 — `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R5b-Bob-A1.md` 로 센다 · 🔴 보내기 전 0 · `__R5A_SQ__` 0) ③ 실제 병합본 위 재드라이런(R5a 가 통합 수정으로 바뀌면) ④ 드라이런 브랜치 사전검사 ① 🔴 0 · ② `a1` 16 🔴 0 ⑤ 발주자 확인(아래 ①~⑩ — 카드 기본값 = 권고) ⑥ 재분할 판정(임계 = 새 `testWidgets(`·`test(` 줄 > 33 · lib > +900 · 새 PNG > 16 — 계획 = 줄 24 · PNG 16(경계 안)) → 「푸시해」 → 머리 첫 줄 ▶.
+> ⬜ **_대기 — R5a 병합 기록 때 `send/` 로 · 누적 드라이런 ✅ · 발주자 확인 대기**(2026-10-27 조립 · 2026-10-28 드라이런 지적 반영 · 앱 기록 가지 `rec/r5`) — 남은 것: ① R5a 병합(`R5a-Bob-L1L2` · squash = `__R5A_SQ__` — R5a 병합 기록 커밋이 이 파일의 자리표시자와 실측 표식(U+27E6 · R5a 병합본에서만 아는 값 — 시작 기준 N · 계약 버전 · 기존 PNG 수 · 라벨·export 기준 셈 · `domain_contracts` 끝 줄 · R5a C4 이월)을 채우고 `send/` 로 옮긴다 · `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R5b-Bob-A1.md` = 0 · `__R5A_SQ__` 0 이어야 보냄) ~~② 누적 드라이런~~ ✅(아래 «드라이런» 줄 · 이 카드의 값은 «드라이런 기대» 로 채움) ③ 실제 병합본 위 재드라이런(R5a 가 통합 수정으로 바뀌면 · 기대 = 아래 수) ~~④ 사전검사~~ ✅(드라이런 가지 ① 🔴 0 · 🟡 0 · ② `a1` 16 🔴 0) ⑤ **발주자 확인 11건**(아래 ①~⑪ — 카드 기본값 = 권고 · 🔴 ② = 실패 줄 글자 선택 포함) ~~⑥ 재분할 판정~~ ✅(새 `testWidgets(`·`test(` 줄 26 · lib +500 · 새 PNG 16(경계 안) → 재분할 없음) → 「푸시해」 → 머리 첫 줄 ▶.
 > 만든 날 2026-10-27 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 `R5b-Bob-A1` 행 + §3-0 사전검사 블록 + §3 공통 조문(strict 나눔 · PR 본문은 통합 담당 · 재제출 = 전체판 + 상자 · 골든 높이 = 카드 확정값 + 여백 재량 · 커밋 = 제목만) + R4a·R4b·R13a·R13b C4 이월 부록의 **공통 교훈만**(🔴 부록 블록 자체는 ✅ K47 대로 R5a 카드 «6» 에 있다 · R5b 의 이월 = R5a C4 결과로 다시 — 12 §3 «R5a C4 이월 부록» 자리 · 병합 기록 때 ⟦실측⟧) · 화면 몫 원본 = 설계 저장소 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §8-1~§8-3 · K5 · K6 · K13 · K14 · K15 · K17 · K35 · K38 · K41 · K48(✅ 발주자 확정 2026-10-22) · 조문 = `01_…` §21-6 `A-1`·「지난 안내」 행 · §21-7 · §21-8 · §21-9(상수 진입 `adviceHistory`) · §21-10-4 · §21-11 · §21-12-1(C-46 ⑯~㉖) · §21-16-1 · `02_…` §3-A · §3-6 · §3-10 끝 «계약 v1.12» 블록 ⓐⓑⓒⓓⓔⓙⓚ · 코드 = `packages/domain_contracts`(`AdviceItem` · `AdviceAction` · `AdvicePriceBand` · `AdviceInboxSummary` · `CashEstimateNotice` · `LedgerTrustBadge` · `ReasonChip` · `LinkAction` · `ListResult` · `DateRange` · `CommandReceipt` · `AdviceRepository` · `ConfigRepository.watchRangePresets` · `CommandApi.deferAdviceConfirm` · `AppRoutes.adviceHistory` · `AdviceRejectCodes.deferAlreadyUsed` · 받침대 `UnimplementedAdviceRepository` · `UnimplementedConfigRepository` · `UnimplementedCommandApi` · `RecordingLinkOpener` · C-46).
-> 사전 조건 — ✅ 계약 v1.12(PR #68 `fb67caf`) · ✅ v1.13 · ✅ v1.14(ui_journal 영향 0 · `contractVersion = '1.14.0'` — ⟦실측⟧ 엔진 카드가 먼저 병합되면 0단계 버전 줄을 병합 기록이 고친다) · ✅ `prompt_M6` v2 · ⬜ **R5a 병합(`__R5A_SQ__`)** — 이 카드는 R5a 의 파일을 import 하지 않지만 공용 파일(`labels.dart` 절 차례 · 배럴 export 자리 · golden README)과 시작 기준이 R5a 병합본 위다. 시작 기준 = R5a 병합본의 `flutter test`(packages/ui_journal) = **⟦실측⟧**(카드 계획 = 388 + R5a 41 = 429) · 이 카드 끝 기대 = 시작 기준 N + **뷰 36(A-1 25 + 「지난 안내」 11) + 골든 16 = N + 52**(카드 계획 · 드라이런 ⟦실측⟧) · `domain_contracts` «+392 ~30»(⟦실측⟧ · 이 카드 몫 0).
-> 카드 기본값(카드 권한 — 🔵 아래 «발주자 확인» ①~⑩ 이 권고대로면 그대로): ⓐ 위젯 = `AdviceInbox({super.key})`(`lib/src/advice_inbox.dart` · ConsumerStatefulWidget — 「내일 다시」 진행 상태 때문에 State 1) · `AdviceHistory({super.key})`(`lib/src/advice_history.dart` · ConsumerWidget) · 공개 조각 `AdviceCard({super.key, required AdviceItem item})`(`lib/src/advice/advice_card.dart` · ConsumerWidget · `A-2`(R5c) 머리가 재사용) ⓑ 주입 2 = `journalAdviceRepositoryProvider` · `journalAdviceCommandApiProvider`(둘 다 `advice_inbox.dart` 머리 · 배럴 쪽 · 01 §21-8 · K14 ⓐ) · 데이터 4 = 각 파일 안 private StreamProvider(인박스 · 요약 · 범위 프리셋 · 지난 안내 family) ⓒ 구독 = `watchInbox()`(🔴 인자 없이) · `watchSummary()` · `watchRangePresets()` → `isDefault` 1건으로 `watchHistory(range:)` + 기존 `journalSafetyStateProvider` · 쓰기 1 = 확인 카드 「내일 다시」 탭 → `deferAdviceConfirm(item.adviceId)`(02:947 예외 1) · 🔴 재구독 0 · `hasMore` 무시(①) ⓓ 「지난 안내」 = `A-1` 하단 `AppRoutes.adviceHistory` 상수 진입(C-46 ㉒ 예외 1) ⓔ 카드 버튼 = `actions` 의 `deepLink`(RECORD·SKIP · 받은 순서 · `enabled` false = 비활성 + `disabledReasonLabel`) · 카드 탭 = `detailDeepLink`(AdviceCard **밖** — ⑥) ⓕ 상태 색 = 공용 `journalToneColor(context, item.statusTone)`(새 switch 0) · 급함 = `isUrgent` 면 아이콘 1개 ⓖ 억제 몸 = `suppressedLabel` non-null 이면 그 문장 · `validityLabel` · `reasons` 만(⑤) ⓗ 정적 라벨 2(⑧) ⓘ Key 접두 `a1-` · 「지난 안내」 `ah-`(01 §21-8 — 골든 이름은 `a1_history` · 접두와 이름이 다른 첫 사례) · 순번만 · AdviceCard 안 Key 0 ⓙ 테스트 = `test/advice_fakes.dart`(새 · 자기 파일) · `test/advice_inbox_test.dart` · `test/advice_history_test.dart` · 골든 8이름 16장(`a1_golden_test.dart` 7 · `a1_history_golden_test.dart` 1 · 크기 ⟦실측⟧ — ⑨) ⓚ 공용 파일 2(`labels.dart` R5b 절 · 배럴 export 3줄 — 정렬 자리) = **더하기만**.
+> 사전 조건 — ✅ 계약 v1.12(PR #68 `fb67caf`) · ✅ v1.13 · ✅ v1.14(ui_journal 영향 0 · `contractVersion = '1.14.0'` — ⟦실측⟧ 엔진 카드가 먼저 병합되면 0단계 버전 줄을 병합 기록이 고친다) · ✅ `prompt_M6` v2 · ⬜ **R5a 병합(`__R5A_SQ__`)** — 이 카드는 R5a 의 파일을 import 하지 않지만 공용 파일(`labels.dart` 절 차례 · 배럴 export 자리 · golden README)과 시작 기준이 R5a 병합본 위다. 시작 기준 = R5a 병합본의 `flutter test`(packages/ui_journal) = **⟦실측⟧**(R5a 병합 기록 때 채움 · 드라이런 기대 430 = 388 + R5a 42) · 이 카드 끝 기대 = 시작 기준 N + **뷰 39(A-1 26 + 「지난 안내」 13) + 골든 16 = N + 55**(드라이런 실측 2026-10-28 — 430 → 485 · 조립 판 52 + A1-16 · AH-06 둘째 경우 · AH-08) · `domain_contracts` «+392 ~30»(⟦실측⟧ R5a 병합 기록 때 채움 · 드라이런 기대 그대로 · 이 카드 몫 0).
+> 카드 기본값(카드 권한 — 🔵 아래 «발주자 확인» ①~⑪ 이 권고대로면 그대로): ⓐ 위젯 = `AdviceInbox({super.key})`(`lib/src/advice_inbox.dart` · ConsumerStatefulWidget — 「내일 다시」 진행 상태 때문에 State 1) · `AdviceHistory({super.key})`(`lib/src/advice_history.dart` · ConsumerWidget) · 공개 조각 `AdviceCard({super.key, required AdviceItem item})`(`lib/src/advice/advice_card.dart` · ConsumerWidget · `A-2`(R5c) 머리가 재사용) ⓑ 주입 2 = `journalAdviceRepositoryProvider` · `journalAdviceCommandApiProvider`(둘 다 `advice_inbox.dart` 머리 · 배럴 쪽 · 01 §21-8 · K14 ⓐ) · 데이터 4 = 각 파일 안 private StreamProvider(인박스 · 요약 · 범위 프리셋 · 지난 안내 family) ⓒ 구독 = `watchInbox()`(🔴 인자 없이) · `watchSummary()` · `watchRangePresets()` → `isDefault` 1건으로 `watchHistory(range:)` + 기존 `journalSafetyStateProvider` · 쓰기 1 = 확인 카드 「내일 다시」 탭 → `deferAdviceConfirm(item.adviceId)`(02:947 예외 1) · 🔴 재구독 0 · `hasMore` 무시(①) ⓓ 「지난 안내」 = `A-1` 하단 `AppRoutes.adviceHistory` 상수 진입(C-46 ㉒ 예외 1) ⓔ 카드 버튼 = `actions` 의 `deepLink`(RECORD·SKIP · 받은 순서 · `enabled` false = 비활성 + `disabledReasonLabel`) · 카드 탭 = `detailDeepLink`(AdviceCard **밖** — ⑥) ⓕ 상태 색 = 공용 `journalToneColor(context, item.statusTone)`(새 switch 0) · 급함 = `isUrgent` 면 아이콘 1개 ⓖ 억제 몸 = `suppressedLabel` non-null 이면 그 문장 · `validityLabel` · `reasons` 만(⑤) ⓗ 정적 라벨 2(⑧) ⓘ Key 접두 `a1-` · 「지난 안내」 `ah-`(01 §21-8 — 골든 이름은 `a1_history` · 접두와 이름이 다른 첫 사례) · 순번만 · AdviceCard 안 Key 0 ⓙ 테스트 = `test/advice_fakes.dart`(새 · 자기 파일) · `test/advice_inbox_test.dart` · `test/advice_history_test.dart` · 골든 8이름 16장(`a1_golden_test.dart` 7 · `a1_history_golden_test.dart` 1 · 크기 `a1` = `Size(390, 3800)` · `a1_history` = `Size(390, 1700)` — ⑨) ⓚ 공용 파일 2(`labels.dart` R5b 절 · 배럴 export 3줄 — 정렬 자리) = **더하기만**.
 > 🔴 **카드 덮개 필수 문장(02 §3-6 · §3-10 끝 v1.12 블록 · 01 §21-6 · §21-7 · §21-8)** — «`A-1` 은 주문 화면이 아니라 인박스다 — 버튼 = `actions` 를 받은 순서대로 그린 것뿐(목적지 = `deepLink`) · 명령은 확인 카드 「내일 다시」 하나(`deferAvailable` 일 때만) · 주문 실행·FAB·증권사 딥링크 0» · «원값으로 그리거나 분기하지 않는다 — `.status`·`.effectiveStatus`·`.onHold`·`.suppressed`·`.actionId`·`.quantity`·`.symbol`·`.side`·`.code`·`.kind`·`.name` 0 · `AdviceStatus.`·`AdviceActionId.`·`OrderSide.` 0 · 짝 글자(`symbolLabel`·`sideLabel`·`sizingLabel`·`priceBand.label`·`statusLabel`)만» · «받은 순서 그대로 — 확인 카드가 맨 앞에 오는 것도 엔진 · 거르기·묶기·재정렬·세기 0 · `openCount` 를 글자로 그리지 않는다 · «안내 0건»(`emptyLabel`)과 «오늘은 아무것도 하지 마십시오»(`suppressedLabel` 안내 1건)는 다른 상태» · «화면은 안전 상태를 읽지 않는다 — `.watchState(`·`activeFlags`·`FlagIds`·`killSwitch` 0 · 배너 = 공용 조각». 본문 머리 · 규칙 요약 · «프롬프트보다 이 카드가 이긴다» 에 있습니다.
 > ✅ **K 결정 표식** — K5(버튼 = `actions` `deepLink` · DETAIL 0) · K6(뷰어 `actions` 빈 목록 · `detailDeepLink`·`decisionLink` non-null) · K13(확인 카드 = `expiredConfirmLabel` 행 · 엔진 정렬 · 밖 = `overdueUnrecordedLink`) · K14 ⓐ(「내일 다시」 = `deferAdviceConfirm` 직접 · 주입 `journalAdviceCommandApiProvider`) · K15(현금 고지 = `summary.cashNotice`) · K17(안내 밖 매매 = `manualEntryLink` + `manualEntryNoticeText`) · K35(R5b 16장) · K38(「지난 안내」 = 단독 화면 · `isDefault` 범위) · K41(배치 결측 = 엔진이 `actions` 를 줄여 보냄) · K48(`extraFixture` 로 `summary`) = **✅ 발주자 확정(2026-10-22 · 01 §21-14)**.
-> 🔵 **발주자 확인 대기(카드 기본값 = 권고 · 🔴 확인 전 ▶ 금지)**: ① 🔴 **`hasMore`·무한 스크롤** — prompt_M6 v2 144행 «`limit += 100` 재구독» ↔ 01 §21-8 «`watchInbox()`(**인자 없이**)» · `watchHistory` 에는 `limit` 인자 자체가 없다 → 권고 = **v1 재구독 0 · `hasMore` 를 읽지 않는다**(인박스 = 기본 50행 · 표본 `has_more` 전부 false · R5a ① 과 같은 결정 · 01 §8 미결 신설 «X5·X7 목록의 `hasMore`») · 대안 = 인박스 끝에서 `watchInbox(limit: …)` 재구독(01 §21-8 «인자 없이» 와 충돌 — 01 고침 필요) ② 🔴 **「내일 다시」 결과 갈래**(prompt 172행 «카드가 정한다») → 권고 = `watchCommand` 0(01 §21-8 호출 표에 없다) · 탭 = `deferAdviceConfirm` 의 **Future 가 준 접수증 하나**의 `stateLabel` 을 그 카드 아래 한 줄(`a1-defer-receipt-$i`) · Future 에러 = `JournalLabels.submitNotAccepted` 한 줄(`a1-defer-fail-$i`) · 진행 중 = 버튼 비활성 · 끝나면 다시 활성(두 번째 탭의 거부 `DEFER_ALREADY_USED` 도 엔진 접수증 `stateLabel` 그대로 — 코드 분기 0) · 대안 ⓑ = `watchCommand(id)` 구독(01 §21-8 호출 표 고침 · 표본 3상태 순서) ⓒ = 결과 표시 0(탭만 · 인박스 재발행이 말함) ③ **`isDefault` 1건 고르는 꼴**(prompt 182행 · C-46 ㉕ 가 `.where`·`.firstWhere` 를 막음) → 권고 = `for` 루프 첫 일치(`if (picked == null && r.isDefault)`) · 없으면 = 스켈레톤(`watchHistory` 부르지 않음) ④ **확인 카드 자리** — 02 §3-6 «상단 ① 확인 카드 ② 현금 ③ 신뢰 · 본문 = 카드 목록» ↔ 확인 카드는 `watchInbox` 의 앞 행(K13) → 권고 = 머리 묶음(headline · 현금 · 신뢰) 다음에 행을 **받은 순서 그대로**(확인 카드가 맨 앞 행) — 화면이 확인 카드만 위로 끌어올리면 거르기(C-46 ㉕) ⑤ **억제 몸** — 02 §3-6 «`kind == noAction` 카드 = `suppressedLabel`(전면) · `validityLabel` · `reasons` 뿐» → 권고 = 판정 기준 = `suppressedLabel` 의 null 여부 하나(prompt 166행 «보류·억제 = 짝 글자의 null 여부만» · `.kind` 0) · non-null 이면 그 셋 + `actions`(엔진이 빈 목록으로) · `sizingLabel`·`progressLabel`·`statusLabel` 을 그리지 않는다 ⑥ **AdviceCard 경계** → 권고 = 카드 탭(`detailDeepLink`)은 AdviceCard **밖**(인박스·지난 안내 행의 InkWell — A-2 머리 재사용 때 자기 자신 링크 방지) · `closeReasonLabel`·`decisionLink`·`recordedDeviationChips` 는 AdviceCard 밖(A-2 몫 · 01 §21-6 A-2 행) · 「내일 다시」 버튼도 밖(인박스 행) ⑦ **신뢰 배지** — 02 §3-6 ③ «`label`·`consequenceLine`·`upgradeHint?`» → 권고 = 그 셋만(색·`level`·`actionDeepLink` 읽지 않음 — 9b 카드 = 홈 몫) ⑧ 정적 라벨 2(`adviceDeferConfirm` «내일 다시» · `adviceHistoryLink` «지난 안내») ⑨ 골든 크기 — `a1` = `Size(390, ⟦실측⟧)`(권고 3800 — `a1_open4` 12행 · 파일 하나 = 높이 하나) · `a1_history` = `Size(390, ⟦실측⟧)`(권고 1700) — 드라이런 확정값 = 카드 확정값 ⑩ `a1_history` 입력 = `advice_12` 닫힌 행 슬라이스 **rows[7..11]**(FILLED 3 · SKIPPED 1 · REVOKED 1 — EXPIRED 2 는 확인 카드라 넣지 않음 · 01 §21-10-4 «닫힌 행 슬라이스» · 전용 픽스처 없음) · 대안 = EXPIRED 2 포함 7행.
-> 드라이런: ⬜ ⟦실측⟧(worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5b`(`dry/r5a` 끝에서) · 시작 ⟦실측⟧ → 끝 ⟦실측⟧ · 파일별 ⟦실측⟧ · 사전검사 ⟦실측⟧ · 정적 묶음 ⟦실측⟧ · 변이 ⟦실측⟧).
+> 🔵 **발주자 확인 대기 11건(카드 기본값 = 권고 · 🔴 확인 전 ▶ 금지)**: ① 🔴 **`hasMore`·무한 스크롤** — prompt_M6 v2 144행 «`limit += 100` 재구독» ↔ 01 §21-8 «`watchInbox()`(**인자 없이**)» · `watchHistory` 에는 `limit` 인자 자체가 없다 → 권고 = **v1 재구독 0 · `hasMore` 를 읽지 않는다**(인박스 = 기본 50행 · 표본 `has_more` 전부 false · R5a ① 과 같은 결정 · 01 §8 미결 신설 «X5·X7 목록의 `hasMore`») · 대안 = 인박스 끝에서 `watchInbox(limit: …)` 재구독(01 §21-8 «인자 없이» 와 충돌 — 01 고침 필요) ② 🔴 **「내일 다시」 결과 갈래**(prompt 172행 «카드가 정한다») → 권고 = `watchCommand` 0(01 §21-8 호출 표에 없다) · 탭 = `deferAdviceConfirm` 의 **Future 가 준 접수증 하나**의 `stateLabel` 을 그 카드 아래 한 줄(`a1-defer-receipt-$i`) · 🆕 진행·접수증·실패 상태의 열쇠 = **그 `AdviceItem` 값**(순번 0 — 재발행으로 행이 빠지거나 순서가 바뀌면 그 안내의 줄이 함께 사라진다 · 드라이런 지적 반영 · A1-16) · Future 에러 = 실패 줄 한 줄(`a1-defer-fail-$i`) — 🔴 글자 선택: 권고 = 기존 `JournalLabels.submitNotAccepted` 그대로(라벨 셈 39 유지 · 뒷문장 «입력은 그대로 있습니다» 가 A-1 에는 맞지 않음을 기록) · 대안 = R5b 절에 새 정적 라벨 하나(예 `adviceDeferNotAccepted` «요청이 접수되지 않았습니다» — 라벨 39→40 · R5c~R5e 기준 셈 +1 · 정적 A10·A19·A25 와 R5c~e 0단계 고침) · 진행 중 = 버튼 비활성 · 끝나면 다시 활성(두 번째 탭의 거부 `DEFER_ALREADY_USED` 도 엔진 접수증 `stateLabel` 그대로 — 코드 분기 0) · 대안 ⓑ = `watchCommand(id)` 구독(01 §21-8 호출 표 고침 · 표본 3상태 순서) ⓒ = 결과 표시 0(탭만 · 인박스 재발행이 말함) ③ **`isDefault` 1건 고르는 꼴**(prompt 182행 · C-46 ㉕ 가 `.where`·`.firstWhere` 를 막음) → 권고 = `for` 루프 첫 일치(`if (picked == null && r.isDefault)`) · 없으면 = 스켈레톤(`watchHistory` 부르지 않음) ④ **확인 카드 자리** — 02 §3-6 «상단 ① 확인 카드 ② 현금 ③ 신뢰 · 본문 = 카드 목록» ↔ 확인 카드는 `watchInbox` 의 앞 행(K13) → 권고 = 머리 묶음(headline · 현금 · 신뢰) 다음에 행을 **받은 순서 그대로**(확인 카드가 맨 앞 행) — 화면이 확인 카드만 위로 끌어올리면 거르기(C-46 ㉕) ⑤ **억제 몸** — 02 §3-6 «`kind == noAction` 카드 = `suppressedLabel`(전면) · `validityLabel` · `reasons` 뿐» → 권고 = 판정 기준 = `suppressedLabel` 의 null 여부 하나(prompt 166행 «보류·억제 = 짝 글자의 null 여부만» · `.kind` 0) · non-null 이면 그 셋 + `actions`(엔진이 빈 목록으로) · `sizingLabel`·`progressLabel`·`statusLabel` 을 그리지 않는다 ⑥ **AdviceCard 경계** → 권고 = 카드 탭(`detailDeepLink`)은 AdviceCard **밖**(인박스·지난 안내 행의 InkWell — A-2 머리 재사용 때 자기 자신 링크 방지) · `closeReasonLabel`·`decisionLink`·`recordedDeviationChips` 는 AdviceCard 밖(A-2 몫 · 01 §21-6 A-2 행) · 「내일 다시」 버튼도 밖(인박스 행) ⑦ **신뢰 배지** — 02 §3-6 ③ «`label`·`consequenceLine`·`upgradeHint?`» → 권고 = 그 셋만(색·`level`·`actionDeepLink` 읽지 않음 — 9b 카드 = 홈 몫) ⑧ 정적 라벨 2(`adviceDeferConfirm` «내일 다시» · `adviceHistoryLink` «지난 안내») ⑨ 골든 크기 — `a1` = `Size(390, 3800)`(`a1_open4` 12행 · 파일 하나 = 높이 하나 · 드라이런 맨 아래 dy 최대 3784.0) · `a1_history` = `Size(390, 1700)`(드라이런 맨 아래 dy 1328.0) — 드라이런 확정값 = 카드 확정값(권고 그대로 · 여백 무수정 · light = dark) ⑩ `a1_history` 입력 = `advice_12` 닫힌 행 슬라이스 **rows[7..11]**(FILLED 3 · SKIPPED 1 · REVOKED 1 — EXPIRED 2 는 확인 카드라 넣지 않음 · 01 §21-10-4 «닫힌 행 슬라이스» · 전용 픽스처 없음) · 대안 = EXPIRED 2 포함 7행 ⑪ 🆕 M2 후보 2건(이 카드 판정 밖 · ▶ 를 막지 않음 · 기록만): ⓐ 인박스 `actions[].enabled == false` + `disabledReasonLabel` 표본(변이 «enabled false 버튼을 활성으로»·«사유 숨김» = 표본 0 으로 생존 → 예고 변이에서 «참고») ⓑ 인박스 `holdReasonLabel` 행(보류 문장 변이 = A-2 표본 `advice_detail_onhold` 에만 — R5c 가 확인).
+> 드라이런: ✅ 2026-10-28 · worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5b`(`dry/r5a` 끝 `1790c94` = R5a 병합본 흉내(지적 반영판) → 권장 5커밋 `198a706`·`2016546`·`6f0b185`·`bec5cc6`·`7923dc3` → 지적 반영 1커밋 `43a9180` · 기준 = `1790c94`) — 0단계 확인 줄 전부 «:1»(README `a1_history` «:6») · `ls` 15 있음 · 없어야 할 6 없음 · 시작 «+430» → 끝 «00:25 +485: All tests passed!»(N + 뷰 39 + 골든 16) · 파일별 «+26»(advice_inbox_test) · «+13»(advice_history_test) · «+14»(a1_golden) · «+2»(a1_history_golden) · `domain_contracts` «+392 ~30» · C-46 «+27» · C-46 ⑯ 4줄 = 기대 그대로 · check_boundaries 실패 0(🟡 기존 1) · format 0 changed · analyze No issues · 사전검사 ① 🔴 0 · 🟡 0 · ② `a1` 16 = 🔴 0 · 🟡 10(G1 — N3) · 정적 묶음 32줄 → 출력 145줄 = 아래 «줄의 뜻과 기대» 그대로 · import 차례 = «주입 구조» 글자 그대로 · 골든 `a1` 3800 · `a1_history` 1700 · 맨 아래 dy(light = dark) `a1_open4` 3784.0 · `a1_empty` 316.0 · `a1_blocked` 684.0 · `a1_expired_confirm` 1352.0 · `a1_viewer` 1028.0 · `a1_no_action` 412.0 · `a1_handover_cooling` 276.0 · `a1_history`(ah-row-4) 1328.0 · 머리 dy 전부 0.0 · 열어 본 PNG 6(light) · 새 testWidgets·test 줄 26 · lib +500/-0 · 새 PNG 16 · 변이 = 예고·참고 79꼴 중 KILLED 70 → 지적 반영 뒤 + 4(«emptyLabel null 에도 빈 자리» · 「지난 안내」 history 재시도 · 「지난 안내」 배너 · 🆕 «재발행 뒤 접수증이 다른 행에 붙음») · 남은 SURVIVED 5 = 전부 «참고»(enabled false·사유 = 표본 0 · 미확인 만료 상수 = 표본상 동치 · 억제 kind = 정적 A07 몫 · 보류 문장 = 인박스 표본 0 · 지난 안내 「내일 다시」 = 표본상 동치) · 질문 Q1(「지난 안내」 pump 두 번)·Q2(matchRoot) → 이 카드 글자에 반영함.
 > 프롬프트 = `docs/ai-context/prompt_M6.md`(**v2 판 275줄** · 2행 `{{범위}}` · 121행 «이번 과제 범위» → 이 카드가 덮는다(R5b = `A-1` · 「지난 안내」) · 130행 PR 제목 = 형식만 → «[M6] A-1 오늘의 매매 안내·지난 안내» · X7 열람 = 159~182행(183~187 `A-2` = R5c) · 자체 점검 23항 = 252~274행 · 수치·금액 = 68~74행). 🔴 Bob **새 대화** 전제 — R5a 대화를 기억하지 못합니다.
-> R4·R13·R5a 교훈 반영(공통 교훈만): PNG 열람 = 이름마다 light 1장(8장 — 이미지 20장 한도) · dark 행 = light 행 칸 글자 그대로(dy 같을 때만) · 구독마다 «로딩·에러 × 갈래» · 흐름 = 클로저 칸 · 기대 링크 = 목록 칸 · 🔴 bool 칸 + if · `name ==`·`which ==` · `opened[0]` · `expect(a || b, isTrue)` = 반려 꼴 · 전제 if 밖 + `// pre` · 픽스처 = `main()` 머리 `final` · 가짜 공장 = `call` 삼항 · 커밋마다 `git add <파일>` · «23항 줄 수» 상자 · 골든 높이 = 카드 확정값(늘리지 않는다 · 여백만 + 측정 행) · lib 의 nullable `!` 0 · 주입 절 = 파일 머리 · 허용 집합에 링크 문자열 0 · 뷰어 갈래에도 «화면 Text 전부»(C4r4a-2) · ⟦실측⟧ R5a C4 이월(병합 기록 때 이 줄에 더한다).
+> R4·R13·R5a 교훈 반영(공통 교훈만): PNG 열람 = 이름마다 light 1장(8장 — 이미지 20장 한도) · dark 행 = light 행 칸 글자 그대로(dy 같을 때만) · 구독마다 «로딩·에러 × 갈래» · 흐름 = 클로저 칸 · 기대 링크 = 목록 칸 · 🔴 bool 칸 + if · `name ==`·`which ==` · `opened[0]` · `expect(a || b, isTrue)` = 반려 꼴 · 전제 if 밖 + `// pre` · 픽스처 = `main()` 머리 `final` · 가짜 공장 = `call` 삼항 · 커밋마다 `git add <파일>` · «23항 줄 수» 상자 · 골든 높이 = 카드 확정값(늘리지 않는다 · 여백만 + 측정 행) · lib 의 nullable `!` 0 · 주입 절 = 파일 머리 · 허용 집합에 링크 문자열 0 · 뷰어 갈래에도 «화면 Text 전부»(C4r4a-2) · R5a C4 이월 = ⟦실측⟧(R5a 병합 기록 때 이 줄에 더한다).
 
 ## 0. 한 줄 목적
 
@@ -52,6 +52,8 @@ R5b-Bob-A1 — 범위: A-1 오늘의 매매 안내(AdviceInbox() + 공개 조각
   git grep -c "class LedgerDiffTile extends ConsumerWidget" -- packages/ui_journal/lib/src/ledger_diffs.dart                   ← «…ledger_diffs.dart:1»(R5a 병합본 · ⟦실측⟧ 꼴)
   git grep -c "static const String ledgerEvidence = " -- packages/ui_journal/lib/l10n/labels.dart                              ← «…labels.dart:1»(R5a 절의 마지막 상수 — R5b 절은 그 뒤 · ⟦실측⟧)
   git grep -c "contractVersion = '1.14.0'" -- packages/domain_contracts/lib/src/contract_version.dart                         ← «…contract_version.dart:1»(⟦실측⟧)
+  git grep -cE "^\s*static const String " -- packages/ui_journal/lib/l10n/labels.dart                                     ← «…labels.dart:37»(R5a 병합본 기준 셈 · ⟦실측⟧ · 🔴 다르면 멈춤 — 정적 A10 «39» 가 이 수 + 2)
+  git grep -c "^export " -- packages/ui_journal/lib/ui_journal.dart                                                          ← «…ui_journal.dart:11»(R5a 병합본 기준 셈 · ⟦실측⟧ · 🔴 다르면 멈춤 — 정적 A11 «14줄» 이 이 수 + 3)
   git grep -c "Stream<ListResult<AdviceItem>> watchInbox({" -- packages/domain_contracts/lib/src/repositories/advice_repository.dart   ← «…advice_repository.dart:1»
   git grep -c "Stream<ListResult<AdviceItem>> watchHistory({required DateRange range});" -- packages/domain_contracts/lib/src/repositories/advice_repository.dart   ← «…advice_repository.dart:1»
   git grep -c "Future<CommandReceipt> deferAdviceConfirm(String adviceId);" -- packages/domain_contracts/lib/src/commands/command_api.dart   ← «…command_api.dart:1»
@@ -93,7 +95,7 @@ R5b-Bob-A1 — 범위: A-1 오늘의 매매 안내(AdviceInbox() + 공개 조각
   melos.bat bootstrap
   melos.bat run build:gen   ← 🔴 필수(계약 생성물은 git 에 없다 · 브랜치를 바꾼 뒤마다) · «Can't load Kernel binary: Invalid SDK hash.» 경고는 SUCCESS 면 무시.
   cd packages/ui_journal
-  flutter test   ← 시작 기준: R5a 병합본 전부 통과 · 0 실패 · 기대 «+⟦실측⟧: All tests passed!»(앞 시각은 달라도 된다)(끝 줄의 수를 «시작 기준 N» 으로 적어 둔다 · 다르면 멈추지 말고 PR 본문에 까닭 한 줄 —
+  flutter test   ← 시작 기준: R5a 병합본 전부 통과 · 0 실패 · 기대 «+⟦실측⟧: All tests passed!»(R5a 병합 기록 때 채움 · 드라이런 기대 430 · 앞 시각은 달라도 된다)(끝 줄의 수를 «시작 기준 N» 으로 적어 둔다 · 다르면 멈추지 말고 PR 본문에 까닭 한 줄 —
                    그 뒤 기대는 전부 «N + …» 로 읽는다). 실패가 있으면 아무것도 고치지 말고 멈춘 뒤 출력 끝 20줄을 채팅으로.
   cd ../..
 git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
@@ -246,7 +248,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 · 재사용: timeline.dart 의 journalSafetyStateProvider · journalClockProvider · journalLinkOpenerProvider · journalConfigRepositoryProvider · journalSafetyRepositoryProvider(테스트 override 용) /
   journal_common.dart: JournalAsOfHeader · JournalStaleBanner · JournalSafetyBanners · JournalReasonChip · JournalSkeleton · JournalErrorView · journalToneColor(🔴 무수정) / labels.dart: retry · staleBannerTitle · submitNotAccepted(기존 · 고치지 않는다).
 · 🆕 lib 파일 3개 — lib/src/advice/advice_card.dart(AdviceCard) · lib/src/advice_inbox.dart(A-1) · lib/src/advice_history.dart(「지난 안내」)(이것 말고 새 lib 파일 0 · 그 밖 조각은 각 파일 안 private).
-  import(directives_ordering · 쓰지 않는 import = analyze 실패 · 차례 = 드라이런 analyze 로 확정 ⟦실측⟧):
+  import(directives_ordering · 쓰지 않는 import = analyze 실패 · 차례 = 드라이런 analyze «No issues found!» 로 확정 2026-10-28 — 아래 글자 그대로):
      advice/advice_card.dart = package:domain_contracts/domain_contracts.dart → package:flutter/material.dart → package:flutter_riverpod/flutter_riverpod.dart → ../common/journal_common.dart → ../timeline.dart
      advice_inbox.dart       = dart:async → package:domain_contracts/domain_contracts.dart → package:flutter/material.dart → package:flutter_riverpod/flutter_riverpod.dart → ../l10n/labels.dart → advice/advice_card.dart → common/journal_common.dart → timeline.dart
      advice_history.dart     = package:domain_contracts/domain_contracts.dart → package:flutter/material.dart → package:flutter_riverpod/flutter_riverpod.dart → advice/advice_card.dart → advice_inbox.dart → common/journal_common.dart → timeline.dart
@@ -299,7 +301,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
      (band != null) Text(band.label)                                   ← final AdvicePriceBand? band = item.priceBand;
      Text(item.validityLabel)
      Text(item.progressLabel)
-     Row[ (item.isUrgent) Icon(Icons.priority_high, size: 20) · SizedBox(width: 6) · Chip(label: Text(item.statusLabel), backgroundColor: journalToneColor(context, item.statusTone)) ]   ← 행 안 아이콘 = 급함 하나뿐
+     Row[ (item.isUrgent) Icon(Icons.priority_high, size: 20) · (늘 — 아이콘이 없어도) SizedBox(width: 6) · Chip(label: Text(item.statusLabel), backgroundColor: journalToneColor(context, item.statusTone)) ]   ← 행 안 아이콘 = 급함 하나뿐
      (hold != null) Text(hold)                                         ← final String? hold = item.holdReasonLabel;
      Wrap(spacing: 6, runSpacing: 4)[ for (final ReasonChip c in item.reasons) JournalReasonChip(chip: c) ]
    두 몸 공통 끝 — Wrap(spacing: 8, runSpacing: 4)[ for (final AdviceAction a in item.actions) _AdviceActionButton(action: a) ]   ← 받은 순서 · 빈 목록 = 버튼 0(뷰어·noAction · 부재)
@@ -311,7 +313,8 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  🔴 이 조각 안 Key 0 · 열거 switch 0 · .actionId · .status · .effectiveStatus · .kind · .symbol · .side · .quantity · priceBand 의 low·high·reference 0.
 
 ■ 화면 2 — A-1 AdviceInbox (lib/src/advice_inbox.dart · ConsumerStatefulWidget · 02 §3-6 · 01 §21-6·§21-7 A-1 행)
- State 필드 3(순번 i 열쇠 · 위젯 State · 전역 프로바이더 금지): final Map<int, String> _deferLabel = <int, String>{}; · final Map<int, bool> _deferBusy = <int, bool>{}; · final Map<int, bool> _deferFailed = <int, bool>{};
+ State 필드 3(열쇠 = 그 AdviceItem 값 · 위젯 State · 전역 프로바이더 금지): final Map<AdviceItem, String> _deferLabel = <AdviceItem, String>{}; · final Map<AdviceItem, bool> _deferBusy = <AdviceItem, bool>{}; ·
+   final Map<AdviceItem, bool> _deferFailed = <AdviceItem, bool>{};   ← 🔴 순번(int) 열쇠 금지 — 인박스는 Stream 이라 「내일 다시」 집행 뒤 재발행이 오면 행이 빠지거나 순서가 바뀐다(K13 · 01 §21-7) · 값 열쇠면 바뀐 안내의 줄은 저절로 사라진다(엔진 글자가 말함 · 발주자 확인 ② · A1-16) · adviceId 를 열쇠로 쓰지 않는다(C-46 ⑰)
  배치(inbox 값 갈래 · 위 → 아래 · 🔴 이 순서):
    ListView(padding: EdgeInsets.zero)[
     1 JournalAsOfHeader(key: const Key('a1-asof'), asOf: list.asOf)
@@ -333,21 +336,21 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  _buildRow(int i, AdviceItem item) — State 메서드(지역 변수 자리):
    Column(key: ValueKey<String>('a1-row-$i'), crossAxisAlignment: start)[
      InkWell(onTap: () { ref.read(journalLinkOpenerProvider).open(item.detailDeepLink); }, child: AdviceCard(item: item))              ← 카드 탭 = detailDeepLink(→ A-2)
-     (item.deferAvailable) Padding(TextButton(key: ValueKey<String>('a1-defer-$i'), onPressed: busy ? null : () { unawaited(_defer(i, item)); }, child: const Text(JournalLabels.adviceDeferConfirm)))
+     (item.deferAvailable) Padding(TextButton(key: ValueKey<String>('a1-defer-$i'), onPressed: busy ? null : () { unawaited(_defer(item)); }, child: const Text(JournalLabels.adviceDeferConfirm)))
      (label != null) Padding(Text(label, key: ValueKey<String>('a1-defer-receipt-$i')))
      (failed) Padding(Text(JournalLabels.submitNotAccepted, key: ValueKey<String>('a1-defer-fail-$i')))
-   ]   ← final String? label = _deferLabel[i]; final bool busy = _deferBusy[i] ?? false; final bool failed = _deferFailed[i] ?? false;
- _defer(int i, AdviceItem item) — 이 꼴(🔴 watchCommand 0 · 보고 0 · 코드 분기 0 · 발주자 확인 ②):
-     Future<void> _defer(int i, AdviceItem item) async {
-       setState(() { _deferBusy[i] = true; });
+   ]   ← final String? label = _deferLabel[item]; final bool busy = _deferBusy[item] ?? false; final bool failed = _deferFailed[item] ?? false;(Key 의 $i 만 순번)
+ _defer(AdviceItem item) — 이 꼴(🔴 watchCommand 0 · 보고 0 · 코드 분기 0 · 발주자 확인 ②):
+     Future<void> _defer(AdviceItem item) async {
+       setState(() { _deferBusy[item] = true; });
        final CommandApi api = ref.read(journalAdviceCommandApiProvider);
        try {
          final CommandReceipt receipt = await api.deferAdviceConfirm(item.adviceId);
          if (!mounted) return;
-         setState(() { _deferBusy[i] = false; _deferFailed[i] = false; _deferLabel[i] = receipt.stateLabel; });
+         setState(() { _deferBusy[item] = false; _deferFailed[item] = false; _deferLabel[item] = receipt.stateLabel; });
        } catch (_) {
          if (!mounted) return;
-         setState(() { _deferBusy[i] = false; _deferFailed[i] = true; _deferLabel.remove(i); });
+         setState(() { _deferBusy[item] = false; _deferFailed[item] = true; _deferLabel.remove(item); });
        }
      }
    (🔵 item.adviceId 는 deferAdviceConfirm( 의 첫 인자 자리에만 — C-46 ⑰ 예외 · Text·Key·보간·대입 0 · 줄 나눔은 dart format 그대로)
@@ -426,10 +429,11 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    라벨 글자에 숫자·금액 0(C-32) · «추천·권유·자문·시그널» 0 · 기존 라벨은 그대로(R4b 34 + R5a 3 = 37 · ⟦실측⟧ → 합 39 — 정적 A10 이 정확히 센다).
 
 ■ 테스트 최소 목록 (번호는 PR 본문 ② 에 인용 · ⓡ·ⓗ 는 정적 A17·A18 · (전제) 는 A30 과 대조)
-공통: 띄우기 = pumpAdviceInbox(tester, overrides:) · pumpAdviceHistory(tester, overrides:)(Size(390, 4000) · DPR 1.0 · teardown 2 · ProviderScope(overrides) > MaterialApp > Scaffold(body: const AdviceInbox()/AdviceHistory()) · pump 한 번) ·
+공통: 띄우기 = pumpAdviceInbox(tester, overrides:) · pumpAdviceHistory(tester, overrides:)(Size(390, 4000) · DPR 1.0 · teardown 2 · ProviderScope(overrides) > MaterialApp > Scaffold(body: const AdviceInbox()/AdviceHistory()) ·
+    끝 pump = pumpAdviceInbox 한 번 · 🔴 pumpAdviceHistory 두 번(프리셋 값 → 그 다음에야 watchHistory(range:) 를 구독 — 한 번이면 본문이 아직 없다 · 드라이런 지적)) ·
   overrides = adviceInboxOverrides(repo:, cmd:, safety:, clock:, opener:)(5줄) · adviceHistoryOverrides(repo:, config:, safety:, clock:, opener:)(5줄) · 시계 = FixedClock(kGoldenNowUtc) · 오래됨 = adviceStaleClock()(+2일) ·
   경우가 여럿인 테스트 = for 로 testWidgets 를 경우마다(이름 '<번호> <설명> ${c.name}') · 경우 = 테스트 파일 안 private class _Case(칸은 테스트마다 재량 · bool 칸 0 · Matcher 칸 허용) · 탭 앞에 ensureVisible · 띄우기는 한 테스트에 한 번 ·
-  계획 = advice_inbox_test testWidgets 줄 15(테스트 25) · advice_history_test 줄 7(테스트 11) · 골든 1 + 1 · testWidgets·test 줄 합 24(≤ 33) · import = 드라이런 analyze «No issues found!» 차례(⟦실측⟧).
+  계획 = advice_inbox_test testWidgets 줄 16(테스트 26) · advice_history_test 줄 8(테스트 13) · 골든 1 + 1 · testWidgets·test 줄 합 26(≤ 33) · import = directives_ordering 차례(analyze «No issues found!» 가 판정 · 쓰지 않는 import 0).
   🆕 test/advice_fakes.dart(새 · 공개 이름 · 한국어 리터럴 0 · if 0 · collection-if 0 · 🔴 다른 fakes 파일 무수정 — holdings_overview_fakes.dart 는 import 만 · ledger_fakes.dart 는 import 하지 않는다):
     class FakeAdviceRepository extends UnimplementedAdviceRepository { FakeAdviceRepository({required this.inbox, required this.summary}); final Stream<ListResult<AdviceItem>> Function(int call) inbox;
       final Stream<AdviceInboxSummary> Function(int call) summary; final List<(AdviceStatus?, int)> inboxArgs = <(AdviceStatus?, int)>[]; int summaryCalls = 0;
@@ -448,7 +452,8 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
     Future<void> pumpAdviceInbox(…) · Future<void> pumpAdviceHistory(…)(같은 꼴)
     ListResult<AdviceItem> adviceSlice(ListResult<AdviceItem> source, List<int> pick) => source.copyWith(rows: <AdviceItem>[for (final int i in pick) source.rows[i]], hasMore: false);   ← 🔵 copyWith 1곳(규칙 10 예외)
     Stream<T> adviceValueThenFail<T>(T v) async* { yield v; throw StateError('fail'); } · Clock adviceStaleClock() => FixedClock(kGoldenNowUtc.add(const Duration(days: 2)));
-    List<String?> adviceShownTexts(WidgetTester tester, Finder scope)(scope 아래 Text 의 data · 위 → 아래)
+    List<String?> adviceShownTexts(WidgetTester tester, Finder scope) => tester.widgetList<Text>(find.descendant(of: scope, matching: find.byType(Text), matchRoot: true)).map((Text t) => t.data).toList();
+      (scope 아래 Text 의 data · 위 → 아래 · 🔴 matchRoot: true — ah-range·a1-manual-notice 처럼 Key 가 Text 자신에 달린 자리도 센다 · R5a 의 ledgerShownTexts 를 그대로 옮기면 빈 목록)
     List<String> adviceCardTexts(AdviceItem v) — 🔴 화면 1 의 Text 순서 그대로: 억제(final String? s = v.suppressedLabel; s != null) = <String>[s, v.validityLabel, for (… c in v.reasons) c.label, ...actionTexts] ·
       보통 = <String>[?v.expiredConfirmLabel, ?v.symbolLabel, ?v.sideLabel, ?v.phoneOnlyLabel, v.sizingLabel, ?v.priceBand?.label, v.validityLabel, v.progressLabel, v.statusLabel, ?v.holdReasonLabel, for (… c in v.reasons) c.label, ...actionTexts]
       (actionTexts = for (final AdviceAction a in v.actions) ...<String>[a.label, ?a.disabledReasonLabel] · 갈래 = 삼항 한 식 — if 문 0)
@@ -458,6 +463,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
       ?s.overdueUnrecordedLink?.label, ?s.manualEntryNoticeText, ?s.manualEntryLink?.label, JournalLabels.adviceHistoryLink};
     Set<String> adviceHistoryAllowed(ListResult<AdviceItem> v, DateRange range) => <String>{v.asOf.label, ?range.label, ?v.emptyLabel, for (…r in v.rows) ...adviceCardTexts(r)};
       (🔴 허용 집합에 deepLink·링크·경로 문자열 0)
+    🔵 R5c·R5d 가 import 하는 이름 = adviceCardTexts · adviceShownTexts · adviceStaleClock · adviceValueThenFail(+ lib 의 AdviceCard · journalAdviceRepositoryProvider · journalAdviceCommandApiProvider) — 이름·서명 고정(R5c·R5d 0단계가 grep 으로 확인).
   파일 머리(main() 안)에서 위 «픽스처» 를 한 번 final 로 읽는다.
 A-1 — test/advice_inbox_test.dart
  A1-01 전체 목록 · 받은 순서 · 글자 · 인자 없이(02 §3-6 · K13) — open4 + s12 · pumpAdviceInbox → ⓗ expect(open4.rows, hasLength(12)); → i 마다 adviceShownTexts(tester, find.byKey(ValueKey<String>('a1-row-$i'))) == adviceRowTexts(open4.rows[i]) ·
@@ -474,17 +480,22 @@ A-1 — test/advice_inbox_test.dart
         deferred = <String>[<그 id>, <그 id>]) · (future_error · defer = (int call) => Future<CommandReceipt>.error(StateError('fail')) · steps = 탭 한 번 · receipt = null · fail = JournalLabels.submitNotAccepted · deferred = <String>[<그 id>])마다 —
         전제 둘: expect(receipts.rows[2].rejectReasonCode, AdviceRejectCodes.deferAlreadyUsed); // pre · expect(confirm.rows[0].deferAvailable, isTrue); // pre →
         규칙 10 «없는 쪽» 견본 그대로(a1-defer-receipt-0) + 같은 꼴 한 번 더(a1-defer-fail-0 · want = c.fail) · expect(cmd.deferred, c.deferred) · expect(opener.opened, <String>[]) · ⓡ.
+ A1-16 🆕 재발행 뒤 접수증은 그 안내와 함께 떠난다(발주자 확인 ② · 드라이런 지적) — 전제: expect(confirm.rows[0].deferAvailable, isTrue); // pre · 테스트 안 final StreamController<ListResult<AdviceItem>> inbox = StreamController<ListResult<AdviceItem>>(); · addTearDown(inbox.close); · inbox.add(confirm);(띄우기 전) ·
+        repo = FakeAdviceRepository(inbox: (int call) => inbox.stream, summary: (int call) => Stream<AdviceInboxSummary>.value(sConfirm)) · defer = (int call) => Future<CommandReceipt>.value(receipts.rows[0]) →
+        a1-defer-0 탭 → pump → a1-defer-receipt-0 글자 == receipts.rows[0].stateLabel → inbox.add(adviceSlice(confirm, <int>[1, 2])); → pump → a1-defer-receipt-0 findsNothing · a1-row-0 findsOneWidget ·
+        expect(cmd.deferred, <String>[confirm.rows[0].adviceId]) · ⓡ.
  A1-05 「내일 다시」 진행 중 = 비활성 — confirm · 테스트 안 final Completer<CommandReceipt> done = Completer<CommandReceipt>(); · defer = (int call) => done.future →
         tap(a1-defer-0) → pump → expect(tester.widget<TextButton>(find.byKey(const ValueKey<String>('a1-defer-0'))).onPressed, isNull) → done.complete(receipts.rows[0]) → pump →
         onPressed isNotNull · a1-defer-receipt-0 글자 == receipts.rows[0].stateLabel · ⓡ.
- A1-06 뷰어 — 버튼 0 · 온 글자만 · 화면 Text 전부(K6 · C4r4a-2) — viewer + sViewer · 전제: expect(viewer.rows[0].phoneOnlyLabel, isNotNull); // pre → ⓗ expect(viewer.rows, hasLength(4)); →
+ A1-06 뷰어 — 버튼 0 · 온 글자만 · 화면 Text 전부(K6 · C4r4a-2 · 02 §3-6 수용 (e)) — viewer + sViewer · 전제 넷: expect(viewer.rows[0].phoneOnlyLabel, isNotNull); // pre ·
+        expect(open4.rows[3].adviceId, viewer.rows[0].adviceId); // pre · expect(open4.rows[3].symbolLabel, isNotNull); // pre · expect(open4.rows[3].priceBand, isNotNull); // pre(같은 안내의 operator 판) → ⓗ expect(viewer.rows, hasLength(4)); →
         i 마다 find.descendant(of: 행 i, matching: find.byType(OutlinedButton)) findsNothing · find.descendant(of: 행 i, matching: find.byType(TextButton)) findsNothing · adviceShownTexts(행 i) == adviceRowTexts(viewer.rows[i]) ·
-        find.text(viewer.rows[0].phoneOnlyLabel!) findsNWidgets(4) · 규칙 10 «화면의 Text 전부» 견본(allowed = adviceInboxAllowed(viewer, sViewer)) · 행 0 의 sizingLabel 탭 → expect(opener.opened, <String>[viewer.rows[0].detailDeepLink]) · ⓡ.
+        find.text(viewer.rows[0].phoneOnlyLabel!) findsNWidgets(4) · 🆕 음성: find.text(open4.rows[3].symbolLabel!) findsNothing · find.text(open4.rows[3].priceBand!.label) findsNothing(종목·가격 글자 0 — C-27) · 규칙 10 «화면의 Text 전부» 견본(allowed = adviceInboxAllowed(viewer, sViewer)) · 행 0 의 sizingLabel 탭 → expect(opener.opened, <String>[viewer.rows[0].detailDeepLink]) · ⓡ.
  A1-07 억제 몸 ≠ 빈 상태(02 §3-6 noAction · 발주자 확인 ⑤) — noAction + sNoAction · 전제: expect(noAction.rows.single.suppressedLabel, isNotNull); // pre →
         adviceShownTexts(행 0) == <String?>[r.suppressedLabel, r.validityLabel, for (final ReasonChip c in r.reasons) c.label] · find.text(r.sizingLabel) findsNothing · find.text(r.progressLabel) findsNothing ·
         find.text(r.statusLabel) findsNothing · a1-summary 아래 Text == adviceSummaryTexts(sNoAction) · a1-empty findsNothing · ⓡ.
- A1-08 빈 문장 · 냉각(C14 예외) — 세 경우 (empty · advEmpty · sEmpty · wantEmpty = advEmpty.emptyLabel) · (cooling · cooling · sCooling · wantEmpty = cooling.emptyLabel) · (open4 · open4 · s12 · wantEmpty = null)마다 —
-        전제 둘: expect(advEmpty.rows, isEmpty); // pre · expect(sCooling.handoverCoolingLabel, isNotNull); // pre → 규칙 10 «빈 문장» 견본 그대로 · a1-summary 아래 Text == adviceSummaryTexts(c.summary) · a1-history-link findsOneWidget · ⓡ.
+ A1-08 빈 문장 · 냉각(C14 예외) — 세 경우 (empty · advEmpty · sEmpty · wantEmpty = advEmpty.emptyLabel) · (cooling · cooling · sCooling · wantEmpty = cooling.emptyLabel) · (slice_empty · adviceSlice(open4, <int>[]) · s12 · wantEmpty = null — 행 0 ∧ emptyLabel null = 빈 자리 0)마다 —
+        전제 셋: expect(advEmpty.rows, isEmpty); // pre · expect(sCooling.handoverCoolingLabel, isNotNull); // pre · expect(open4.emptyLabel, isNull); // pre → 규칙 10 «빈 문장» 견본 그대로 · a1-summary 아래 Text == adviceSummaryTexts(c.summary) · a1-history-link findsOneWidget · ⓡ.
  A1-09 차단 배너 = 공용 조각 · 신뢰 글자 셋(발주자 확인 ⑦) — blocked + sBlocked · safety = safetyBlocked · 전제 둘: expect(safetyBlocked.activeFlags, isNotEmpty); // pre · expect(sBlocked.trust.upgradeHint, isNotNull); // pre →
         find.text(safetyBlocked.activeFlags.first.label) findsOneWidget · 그 dy 가 a1-asof 보다 크고 a1-summary 보다 작다 · a1-summary 아래 Text == adviceSummaryTexts(sBlocked) · find.text(sBlocked.trust.actionDeepLink!) findsNothing · ⓡ.
  A1-10 배치 결측 — 엔진이 줄인 actions 그대로(K41) — stale + sStale · 전제: expect(sStale.staleLabel, isNotNull); // pre → a1-summary 아래 Text == adviceSummaryTexts(sStale) ·
@@ -507,7 +518,7 @@ A-1 — test/advice_inbox_test.dart
  A1-14 재시도 — inbox = (int call) => call == 0 ? Stream<…>.error(StateError('fail')) : Stream<…>.value(open4) · summary = s12 → tap(find.text(JournalLabels.retry)) → pump 두 번 → a1-fail findsNothing · a1-row-0 findsOneWidget ·
         expect(repo.inboxArgs, <(AdviceStatus?, int)>[(null, 50), (null, 50)]) · ⓡ.
  A1-15 화면 Text 전부 · 큰 글꼴(C4d-1) — open4 + s12 · allowed = adviceInboxAllowed(open4, s12) → 규칙 10 «화면의 Text 전부» 견본 그대로 → textScaleFactorTestValue = 2.0(+ teardown clear) → pump → expect(tester.takeException(), isNull) · ⓡ.
- ⓡ 기대 = advice_inbox_test.dart 14줄(A1-01~A1-12 · A1-14 · A1-15 — 경우 for 안의 한 줄) · ⓗ 기대 = 3줄(A1-01 · A1-03 · A1-06) — 🔴 정확히 · (전제) = 16(A1-02 1 · 03 3 · 04 2 · 06 1 · 07 1 · 08 2 · 09 2 · 10 1 · 11 2 · 12 1).
+ ⓡ 기대 = advice_inbox_test.dart 15줄(A1-01~A1-12 · A1-14 · A1-15 · A1-16 — 경우 for 안의 한 줄) · ⓗ 기대 = 3줄(A1-01 · A1-03 · A1-06) — 🔴 정확히 · (전제) = 21(A1-02 1 · 03 3 · 04 2 · 06 4 · 07 1 · 08 3 · 09 2 · 10 1 · 11 2 · 12 1 · 16 1).
 「지난 안내」 — test/advice_history_test.dart
  AH-01 기본 범위 1건 · 받은 순서 · 행 탭(K38) — presets4 + closed · 전제 둘: expect(presets4[0].isDefault, isTrue); // pre · expect(presets4[0].label, isNotNull); // pre →
         expect(hist.ranges, <DateRange>[presets4[0]]) · expect(config.calls, 1) · ah-range 아래 Text == [presets4[0].label] · ⓗ expect(closed.rows, hasLength(5)); → i 마다 adviceShownTexts(find.byKey(ValueKey<String>('ah-row-$i'))) == adviceCardTexts(closed.rows[i]) ·
@@ -522,24 +533,32 @@ A-1 — test/advice_inbox_test.dart
         (history_value_then_fail · presets4 · adviceValueThenFail(closed) · 기본 · 있음 [ah-fail] · 없음 [ah-asof, ah-row-0] · findsNothing · findsOneWidget(lastAsOfLabel) · <DateRange>[presets4[0]]) ·
         (stale · presets4 · closed · adviceStaleClock() · 있음 [ah-asof, ah-row-0] · 없음 [ah-loading, ah-fail] · findsOneWidget · findsOneWidget · <DateRange>[presets4[0]])마다 —
         Key 목록마다 findsOneWidget / findsNothing · expect(find.text(JournalLabels.staleBannerTitle), c.stale) · expect(find.text(closed.asOf.label), c.asOfText) · expect(hist.ranges, c.ranges)(ⓡ·ⓗ 없음).
- AH-06 재시도 — presets = (int call) => call == 0 ? Stream<…>.error(StateError('fail')) : Stream<…>.value(presets4) → tap(find.text(JournalLabels.retry)) → pump 두 번 → ah-row-0 findsOneWidget · expect(config.calls, 2) · ⓡ.
+ AH-06 재시도 — 두 경우(칸 = 이름 · presets 공장 · history 공장 · presetCalls · ranges 기대 목록 · 드라이런 지적 — history 재시도도 본다):
+        (presets_fail · (int call) => call == 0 ? Stream<…>.error(StateError('fail')) : Stream<…>.value(presets4) · closed · 2 · <DateRange>[presets4[0]]) ·
+        (history_fail · presets4 · (int call) => call == 0 ? Stream<…>.error(StateError('fail')) : Stream<…>.value(closed) · 1 · <DateRange>[presets4[0], presets4[0]])마다 —
+        tap(find.text(JournalLabels.retry)) → 🔴 pump 세 번(재시도 → 프리셋 → 지난 안내) → ah-row-0 findsOneWidget · expect(config.calls, c.presetCalls) · expect(hist.ranges, c.ranges) · ⓡ.
  AH-07 화면 Text 전부 · 큰 글꼴 — presets4 + closed · allowed = adviceHistoryAllowed(closed, presets4[0]) → A1-15 와 같은 꼴 · ⓡ.
- ⓡ 기대 = advice_history_test.dart 4줄(AH-01 · 04 · 06 · 07) · ⓗ 기대 = 1줄(AH-01) — 🔴 정확히 · (전제) = 4(AH-01 2 · AH-03 1 · AH-04 1).
+ AH-08 🆕 안전 배너 = 공용 조각(드라이런 지적) — presets4 + closed · safety = safetyFixtureRow(3) · 전제: expect(safetyFixtureRow(3).activeFlags, isNotEmpty); // pre → 첫 플래그 label findsOneWidget ·
+        그 dy 가 ah-asof 보다 크고 ah-range 보다 작다 · ⓡ.
+ ⓡ 기대 = advice_history_test.dart 5줄(AH-01 · 04 · 06 · 07 · 08) · ⓗ 기대 = 1줄(AH-01) — 🔴 정확히 · (전제) = 5(AH-01 2 · AH-03 1 · AH-04 1 · AH-08 1).
 
 🔴 병합 검사 때 통합 담당이 넣어 볼 변이(하나라도 테스트가 그대로 통과하면 반려 · 갈래마다 — 행 있을 때 · 빈 갈래 · 억제 · 뷰어 · 오래됨 · 에러):
    (순서) 인박스 행 순서 뒤집기 · 확인 카드를 목록 끝으로 · 요약 묶음을 행 아래로 · 배너를 요약 아래로 · 「지난 안내」 링크를 머리 위로 · 지난 안내 행 뒤집기 · 카드 안 symbolLabel·sizingLabel 자리 바꾸기.
-   (존재) actions 를 status 로 고르기(FILLED 행에 버튼) · enabled false 버튼을 활성으로 · 「내일 다시」 를 expiredConfirmLabel 만으로(deferAvailable 무시) · 「내일 다시」 를 모든 확인 카드에 · 억제 행에 sizing·progress·status 그리기 ·
+   (존재) actions 를 status 로 고르기(FILLED 행에 버튼) · 「내일 다시」 를 expiredConfirmLabel 만으로(deferAvailable 무시) · 「내일 다시」 를 모든 확인 카드에 · 억제 행에 sizing·progress·status 그리기 ·
      억제를 kind 로 고르기(표본 = suppressed 행 하나 — 참고) · 빈 문장 글자 바꾸기 · emptyLabel null 에도 빈 자리 · 냉각 줄 숨김 · 결측 줄 숨김 · 현금 줄 숨김 · upgradeHint 숨김 · trust.actionDeepLink 버튼 더하기 ·
      안내 밖 매매 링크를 링크 null 에도 · 미확인 만료 링크를 늘 · 뷰어에 «숨김» 덧붙이기(C4r4a-2) · 정적 글자 하나 더하기 · 링크 글자를 화면에 그리기(탐침 — C4r13b-6).
    (값) 상태 칩 색 하나로 고정 · 급함 아이콘 늘 · 급함 아이콘 0 · priceBand.label 대신 다른 글자 · 버튼 글자 = 정적 라벨 · 접수증 글자 = 정적 라벨 · 접수증 글자를 첫 접수증 대신 마지막 고정 · headline 빼기 · 범위 글자 빼기.
-   (링크) 카드 탭 0 · 카드 탭 = 첫 action · 버튼 = 조립 링크 · 하단 = 다른 상수 · 탭 한 번에 두 번 열기 · 지난 안내 행 탭 0 · 미확인 만료 = 상수.
-   (명령) 「내일 다시」 가 링크를 열기 · 탭 한 번에 명령 두 번 · 진행 중에도 버튼 활성 · Future 에러에 글자 0 · 거부(DEFER_ALREADY_USED)에 화면 글자 · watchCommand 구독 더하기 · adviceId 대신 다른 글자.
+   (링크) 카드 탭 0 · 카드 탭 = 첫 action · 버튼 = 조립 링크 · 하단 = 다른 상수 · 탭 한 번에 두 번 열기 · 지난 안내 행 탭 0.
+   (명령) 「내일 다시」 가 링크를 열기 · 탭 한 번에 명령 두 번 · 진행 중에도 버튼 활성 · Future 에러에 글자 0 · 거부(DEFER_ALREADY_USED)에 화면 글자 · watchCommand 구독 더하기 · adviceId 대신 다른 글자 ·
+     🆕 상태 열쇠를 순번으로(재발행 뒤 접수증이 다른 행에 붙음 — A1-16).
    (상태) 인박스 에러를 스켈레톤으로 · 인박스 에러에 요약 숨김 · 요약 에러에 목록 숨김 · 재시도에 invalidate 0 · 오래됨 배너 빼기 · 신선도 비교 뒤집기 · 벽시계로 신선도 · watchInbox(limit: 100) · watchInbox(status: …) ·
-     프리셋 첫 값 전에 watchHistory · isDefault 대신 첫 프리셋 · 기본 범위 없을 때 첫 프리셋.
-   🔵 판정 = 변이마다 ui_journal 의 flutter test 전부(골든 포함) + C-46 ⑯~㉖ · 골든은 아이콘·색 차이를 못 본다(A1-12 몫) · 드라이런 = ⟦실측⟧(목록 KILLED 수 · 참고 변이 통과 목록).
+     프리셋 첫 값 전에 watchHistory · isDefault 대신 첫 프리셋 · 기본 범위 없을 때 첫 프리셋 · 「지난 안내」 history 재시도에 invalidate 0(AH-06) · 「지난 안내」 안전 배너 빼기(AH-08).
+   (참고 — 반려 근거 아님) enabled false 버튼을 활성으로 · disabledReasonLabel 숨김(인박스 표본 8벌 전부 enabled true — 표본 0 · 발주자 확인 ⑪) · 미확인 만료 = 상수(표본 링크 = AppRoutes.adviceHistory 와 같은 값 — 동치 · 정적 A08 «1줄» 이 잡는다) ·
+     억제를 kind 로 고르기(정적 A07 «\.kind\b» 몫) · holdReasonLabel 숨김(인박스 표본 0 — A-2 R5c 에서 확인) · 지난 안내 행에 「내일 다시」(닫힌 슬라이스에 deferAvailable 0 — 동치).
+   🔵 판정 = 변이마다 ui_journal 의 flutter test 전부(골든 포함) + C-46 ⑯~㉖ · 골든은 아이콘·색 차이를 못 본다(A1-12 몫) · 드라이런 2026-10-28 = 위 (순서)~(상태) 목록 전부 KILLED · «참고» 6 SURVIVED(위 글자 그대로).
 
 ■ 정적 묶음 — packages/ui_journal 에서 아래 32줄을 한 번에 붙여 넣어 돌리고, 나온 출력 전부를 PR 본문 ② 에 코드 블록 하나로 그대로 붙인다
-  (대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 출력 줄 수(EXIT 줄 포함) = ⟦실측⟧ 줄 — 붙이기 전에 세어 같은지 본다 ·
+  (대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 출력 줄 수(EXIT 줄 포함) = 145줄(드라이런 기대 · bash = PowerShell 5.1) — 붙이기 전에 세어 같은지 본다 ·
    flutter test·dart test 출력은 파일로 떠서 붙인다 · «EXIT:1»/«EXIT:False» = 출력 없음 · 블록 뒤 S05 결과 줄마다 정확히 «<파일>:<줄> — 탭 콜백 안»)
 echo "## A01 new test files hangul 0 (comment lines only)"; git grep -nP "'[^'\n]*[\x{AC00}-\x{D7A3}]" -- test/advice_fakes.dart test/advice_inbox_test.dart test/advice_history_test.dart test/golden/a1_golden_test.dart test/golden/a1_history_golden_test.dart; echo "EXIT:$?"
 echo "## A02 test names ASCII"; git grep -nP "(testWidgets|test|group)\('[^']*[^\x00-\x7F]" -- test/advice_inbox_test.dart test/advice_history_test.dart test/golden/a1_golden_test.dart test/golden/a1_history_golden_test.dart; echo "EXIT:$?"
@@ -563,7 +582,7 @@ echo "## A19 key names (one line each)"; git grep -noP "'(a1|ah)-[a-z]+(-[a-z]+)
 echo "## A20 banned vocabulary 0"; git grep -nE "추천|권유|자문|시그널" -- lib; echo "EXIT:$?"
 echo "## A21 Colors files 0"; git grep -lw Colors -- lib/src/advice lib/src/advice_inbox.dart lib/src/advice_history.dart; echo "EXIT:$?"
 echo "## A22 rich text trimming reshaping 0"; git grep -nE "RichText|SelectableText|Text\.rich|maxLines|TextOverflow|softWrap|\.trim\(|FittedBox|\.take\(|\.where|[fF]irstWhere|\.sort|\.fold\(|\.reduce\(|groupBy" -- lib/src/advice lib/src/advice_inbox.dart lib/src/advice_history.dart; echo "EXIT:$?"
-echo "## A23 autoDispose 0"; git grep -n "autoDispose" -- lib; echo "EXIT:$?"
+echo "## A23 autoDispose 0"; git grep -n "autoDispose" -- lib/src/advice lib/src/advice_inbox.dart lib/src/advice_history.dart; echo "EXIT:$?"
 echo "## A24 Scaffold AppBar SafeArea 0"; git grep -nE "Scaffold|AppBar|SafeArea" -- lib/src/advice lib/src/advice_inbox.dart lib/src/advice_history.dart; echo "EXIT:$?"
 echo "## A25 shared files add-only and frozen files (numstat)"; git diff --numstat origin/main...HEAD -- lib/l10n/labels.dart lib/ui_journal.dart lib/journal_draft.dart lib/src/common lib/src/timeline.dart lib/src/ledger_diffs.dart lib/src/ledger_repairs.dart lib/src/holdings_overview.dart pubspec.yaml analysis_options.yaml README.md test/golden/golden_support.dart test/golden/README.md test/flutter_test_config.dart test/holdings_overview_fakes.dart test/ledger_fakes.dart; echo "EXIT:$?"
 echo "## A26 implements in new tests 0"; git grep -n " implements " -- test/advice_fakes.dart test/advice_inbox_test.dart test/advice_history_test.dart test/golden/a1_golden_test.dart test/golden/a1_history_golden_test.dart; echo "EXIT:$?"
@@ -573,17 +592,17 @@ echo "## A29 golden files"; git diff --name-status origin/main...HEAD -- test/go
 echo "## A30 precondition marks (pre)"; git grep -c "// pre$" -- test/advice_inbox_test.dart test/advice_history_test.dart; echo "EXIT:$?"
 echo "## A31 name compares element picks and hidden ifs in tests 0"; git grep -nP "\b(name|which)\s*==|opened\[\d\]|deferred\[\d\]|\|\|[^;]*isTrue\)" -- test/advice_fakes.dart test/advice_inbox_test.dart test/advice_history_test.dart test/golden/a1_golden_test.dart test/golden/a1_history_golden_test.dart; echo "EXIT:$?"
 echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -- lib/src/advice lib/src/advice_inbox.dart lib/src/advice_history.dart; echo "EXIT:$?"
-  (줄의 뜻과 기대(카드 계획 · 드라이런 ⟦실측⟧) — A01 = 주석 줄 말고 출력 없음 · A02 = 출력 없음 · A03 = 4줄(a1_golden 1 · a1_history_golden 1 · advice_history_test 7 · advice_inbox_test 15) · A04 = 0 ·
+  (줄의 뜻과 기대(카드 계획 = 드라이런 2026-10-28 기대) — A01 = 주석 줄 말고 출력 없음 · A02 = 출력 없음 · A03 = 4줄(a1_golden 1 · a1_history_golden 1 · advice_history_test 8 · advice_inbox_test 16) · A04 = 0 ·
    S05 = 6줄(advice_card.dart 버튼 1 · advice_history.dart 행 탭 1 · advice_inbox.dart 카드 탭 · 미확인 만료 · 안내 밖 매매 · 지난 안내 4 — 파일 줄 차례 · 줄마다 탭 콜백 안) ·
    A06 = 5줄(watchInbox · watchSummary · watchRangePresets · watchHistory · deferAdviceConfirm) · A07 = 0 · A08 = 1줄(adviceHistory) · A09 = 0 · A10 = «lib/l10n/labels.dart:39»(🔴 정확히 — R5a 병합본 37(⟦실측⟧) + R5b 2) ·
    A11 = 14줄(l10n/labels · 🆕 src/advice/advice_card · 🆕 src/advice_history · 🆕 src/advice_inbox · src/blind_review · src/decision_detail · src/holding_detail · src/holdings_allocation · src/holdings_overview · src/journal_read · src/ledger_diffs · src/ledger_repairs · src/timeline · src/unknown_board 차례 · 🔴 정확히 · ⟦실측⟧ R5a 병합본 11줄 위) · A12 = 6줄(advice_inbox.dart 4 = 주입 2 + 인박스·요약 · advice_history.dart 2) ·
-   A13~A16 = 0 · A17 = «test/advice_history_test.dart:4» · «test/advice_inbox_test.dart:14» · A18 = «test/advice_history_test.dart:1» · «test/advice_inbox_test.dart:3»(🔴 정확히 — 다르면 반려) ·
-   A19 = 19줄 = 위 «Key 표» 이름마다 정확히 1줄 · A20~A24 = 0 · A25 = 두 줄(labels.dart · ui_journal.dart — 둘째 수 0 · ui_journal.dart 첫째 수 3 · labels.dart 첫째 수 = ⟦실측⟧(수는 재량 · 삭제 0 만 본다)) · 그 밖 파일 줄 없음 ·
-   A26 = 0 · A27 = 1줄(test/advice_fakes.dart 의 adviceSlice) · A28 = 0 · A29 = 16줄 전부 «A»(a1_* 14 · a1_history 2) · A30 = «test/advice_history_test.dart:4» · «test/advice_inbox_test.dart:16»(🔴 정확히) · A31 = 0 · A32 = 0)
+   A13~A16 = 0 · A17 = «test/advice_history_test.dart:5» · «test/advice_inbox_test.dart:15» · A18 = «test/advice_history_test.dart:1» · «test/advice_inbox_test.dart:3»(🔴 정확히 — 다르면 반려) ·
+   A19 = 19줄 = 위 «Key 표» 이름마다 정확히 1줄 · A20~A24 = 0 · A25 = 두 줄(labels.dart · ui_journal.dart — 둘째 수 0 · ui_journal.dart 첫째 수 3 · labels.dart 첫째 수 = 재량(드라이런 8 · 수는 재량 · 삭제 0 만 본다)) · 그 밖 파일 줄 없음 ·
+   A26 = 0 · A27 = 1줄(test/advice_fakes.dart 의 adviceSlice) · A28 = 0 · A29 = 16줄 전부 «A»(a1_* 14 · a1_history 2) · A30 = «test/advice_history_test.dart:5» · «test/advice_inbox_test.dart:21»(🔴 정확히) · A31 = 0 · A32 = 0)
   (🔵 git grep -c 가 0 인 파일은 줄로 나오지 않는다 — 출력 그대로 붙이고 «:0» 을 손으로 더하지 않는다 · A07 · A22 는 주석 줄도 센다(규칙 15))
 
 ■ 골든 — 8이름 × light/dark = 16장(전부 신규 · ✅ K35 · K38 · 이름 = 02 §3-6 (g) 글자 그대로 · golden README «🆕 R5» 절 표 그대로)
-  a1 — test/golden/a1_golden_test.dart · const Size _kTallPhone = Size(390, ⟦실측⟧)(폭 390 고정 · 드라이런 맨 아래 dy 최대 ⟦실측⟧ = a1_open4) · 위젯 = const AdviceInbox():
+  a1 — test/golden/a1_golden_test.dart · const Size _kTallPhone = Size(390, 3800)(폭 390 고정 · 드라이런 맨 아래 dy 최대 3784.0 = a1_open4) · 위젯 = const AdviceInbox():
     이름                  inbox(rows)            summary         safety          흐름
     a1_open4              open4                  s12             행 0            없음
     a1_empty              advEmpty               sEmpty          행 0            없음
@@ -592,7 +611,7 @@ echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
     a1_viewer             viewer                 sViewer         행 0            없음
     a1_no_action          noAction               sNoAction       행 0            없음
     a1_handover_cooling   cooling                sCooling        행 0            없음
-  a1_history — test/golden/a1_history_golden_test.dart · const Size _kTallPhone = Size(390, ⟦실측⟧) · 위젯 = const AdviceHistory() · 프리셋 = presets4 · history = closed · 안전 행 0 · 흐름 없음.
+  a1_history — test/golden/a1_history_golden_test.dart · const Size _kTallPhone = Size(390, 1700)(드라이런 맨 아래 dy 1328.0) · 위젯 = const AdviceHistory() · 프리셋 = presets4 · history = closed · 안전 행 0 · 흐름 없음.
   모양 = h63_golden_test.dart(R4b)와 같은 (이름, 입력, 흐름) 목록(private class _Flow) × Brightness.values 루프 · 흐름 = 클로저 칸(전부 (WidgetTester t) async {}) · 테스트 이름 '${flow.name} ${brightnessSuffix(b)}' ·
   주입 = pumpForGolden(tester, const AdviceInbox(), brightness: b, logicalSize: _kTallPhone, wrapApp: (Widget app) => ProviderScope(overrides: adviceInboxOverrides(repo: FakeAdviceRepository(inbox: (int call) => Stream<…>.value(flow.inbox),
     summary: (int call) => Stream<…>.value(flow.summary)), safety: flow.safety), child: app)) → await tester.pump(); → await flow.steps(tester); → await tester.pumpAndSettle(); → 위치 전제 둘 → expectGolden(flow.name, b).
@@ -608,14 +627,14 @@ echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
 · A1_questions.md — 머리말의 «다음 번호»(Q1·A1)에서 이어 붙인다 · 다른 질문 파일 수정 0 · 표 끝에 새 행만 · 새 행 상태 «⬜ 미답» · 답 칸 비움 · 칸 안 세로 막대 금지 · 행 앞에 «A-1:» 또는 «지난 안내:» 접두(🔵 예외 = 골든 dy «측정:» 행).
 · 꼭 적을 것: 골든 dy — 이름마다 한 행(A1~A8 = 위 골든 표 차례 + a1_history · 종류 «추측» · 첫머리 «측정:») — 이 복사 상자 8줄을 그대로 붙이고 <값> 자리에만 잰 수를 넣는다(높이 = 리터럴):
       ┌── 측정 행 복사 시작(다음 줄부터 · 8줄)
-| A1 | R5b-Bob-A1 | 추측 | 측정: a1_open4 dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A2 | R5b-Bob-A1 | 추측 | 측정: a1_empty dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A3 | R5b-Bob-A1 | 추측 | 측정: a1_blocked dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A4 | R5b-Bob-A1 | 추측 | 측정: a1_expired_confirm dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A5 | R5b-Bob-A1 | 추측 | 측정: a1_viewer dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A6 | R5b-Bob-A1 | 추측 | 측정: a1_no_action dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A7 | R5b-Bob-A1 | 추측 | 측정: a1_handover_cooling dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A8 | R5b-Bob-A1 | 추측 | 측정: a1_history dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
+| A1 | R5b-Bob-A1 | 추측 | 측정: a1_open4 dy 실측값 (light=<값>, dark=<값>) < 3800 | 골든 위치 전제 실측 | 3800 미만 확인 | ⬜ 미답 | |
+| A2 | R5b-Bob-A1 | 추측 | 측정: a1_empty dy 실측값 (light=<값>, dark=<값>) < 3800 | 골든 위치 전제 실측 | 3800 미만 확인 | ⬜ 미답 | |
+| A3 | R5b-Bob-A1 | 추측 | 측정: a1_blocked dy 실측값 (light=<값>, dark=<값>) < 3800 | 골든 위치 전제 실측 | 3800 미만 확인 | ⬜ 미답 | |
+| A4 | R5b-Bob-A1 | 추측 | 측정: a1_expired_confirm dy 실측값 (light=<값>, dark=<값>) < 3800 | 골든 위치 전제 실측 | 3800 미만 확인 | ⬜ 미답 | |
+| A5 | R5b-Bob-A1 | 추측 | 측정: a1_viewer dy 실측값 (light=<값>, dark=<값>) < 3800 | 골든 위치 전제 실측 | 3800 미만 확인 | ⬜ 미답 | |
+| A6 | R5b-Bob-A1 | 추측 | 측정: a1_no_action dy 실측값 (light=<값>, dark=<값>) < 3800 | 골든 위치 전제 실측 | 3800 미만 확인 | ⬜ 미답 | |
+| A7 | R5b-Bob-A1 | 추측 | 측정: a1_handover_cooling dy 실측값 (light=<값>, dark=<값>) < 3800 | 골든 위치 전제 실측 | 3800 미만 확인 | ⬜ 미답 | |
+| A8 | R5b-Bob-A1 | 추측 | 측정: a1_history dy 실측값 (light=<값>, dark=<값>) < 1700 | 골든 위치 전제 실측 | 1700 미만 확인 | ⬜ 미답 | |
       └── 측정 행 복사 끝(이 줄 앞까지 · 괄호는 light·dark 두 값만 감싸고 «< 높이» 는 괄호 밖)
   여백을 줄였으면 A9 부터 «측정:» 전·후 행 · 2개 밖에 더 필요했던 정적 라벨 · 문서에 없어 정한 것 전부.
 · 적지 않을 것(카드가 정함): 위젯·프로바이더·Key·파일 이름 · 정적 라벨 2 · 읽지 않는 필드 · 배치 순서 · Text 순서 · 억제 몸 · 「내일 다시」 갈래 · isDefault 고르기 · 버튼 꼴 · 아이콘 · 칩 색 · 골든 이름·입력 · 재량(여백·크기·모서리).
@@ -624,18 +643,18 @@ echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
 ■ 제출
   (할 일 (1)~(5) 커밋이 끝난 뒤 — 마지막 커밋 = format·질문 커밋)
   cd packages/ui_journal
-  flutter test test/advice_inbox_test.dart              ← 끝 줄 그대로(기대 «+25: All tests passed!»)
-  flutter test test/advice_history_test.dart            ← 끝 줄 그대로(기대 «+11: All tests passed!»)
+  flutter test test/advice_inbox_test.dart              ← 끝 줄 그대로(기대 «+26: All tests passed!»)
+  flutter test test/advice_history_test.dart            ← 끝 줄 그대로(기대 «+13: All tests passed!»)
   flutter test test/golden/a1_golden_test.dart          ← 끝 줄 그대로(기대 «+14: All tests passed!»)
   flutter test test/golden/a1_history_golden_test.dart  ← 끝 줄 그대로(기대 «+2: All tests passed!»)
-  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 52 — ⟦실측⟧ → «+⟦실측⟧: All tests passed!»)
+  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 55 — ⟦실측⟧ → «+⟦실측⟧: All tests passed!»(R5a 병합 기록 때 채움 · 드라이런 기대 430 → 485))
   cd ../domain_contracts
   dart test test/contracts/c46_advice_x7_test.dart -r expanded   ← 전부 통과 · «C-46 ⑯ 대상» 줄과 그 아래 들여쓴 경로 줄을 그대로 적어 둔다
      (기대 4줄: «C-46 ⑯ 대상 3파일 — 읽기 {lib/src/advice_inbox.dart, lib/src/advice_history.dart, lib/src/advice_detail.dart} + lib/src/advice/** · 폼 {…}» + 공백 4칸 들여쓴
       «packages/ui_journal/lib/src/advice/advice_card.dart» · «packages/ui_journal/lib/src/advice_history.dart» · «packages/ui_journal/lib/src/advice_inbox.dart»(정렬 순) · 🔴 «공허 통과» 가 보이면 파일 이름이 카드와 다르다 — 멈춤)
   cd ../..
   bash tool/check_boundaries.sh   ← 실패 0 · 🔵 main 에 원래 있는 ui_journal 🟡 1건(«packages/ui_journal/lib/src/timeline.dart:109»)은 이 카드와 무관 — 그대로 둔다 · 그 밖 🟡 [C-5] 0
-  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · test:contracts 의 domain_contracts 끝 줄 «+⟦실측⟧ ~30: All tests passed!»(이 카드 몫 0) · «Some tests failed»·«FAILED» 0건 · format 0 changed(&& 가 안 되면 한 줄씩 · 🔴 백그라운드·파이프 금지)
+  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · test:contracts 의 domain_contracts 끝 줄 «+⟦실측⟧ ~30: All tests passed!»(R5a 병합 기록 때 채움 · 드라이런 기대 392 · 이 카드 몫 0) · «Some tests failed»·«FAILED» 0건 · format 0 changed(&& 가 안 되면 한 줄씩 · 🔴 백그라운드·파이프 금지)
   git status --short   ← 🔴 비어 있어야 다음으로
   git diff --name-status origin/main...HEAD
      ← 기대(이 줄들만 · 앞머리 packages/ui_journal/): M lib/l10n/labels.dart · A lib/src/advice/advice_card.dart · A lib/src/advice_history.dart · A lib/src/advice_inbox.dart · M lib/ui_journal.dart ·
@@ -662,7 +681,7 @@ echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
       🔴 N3 — 내기 전 사전검사 ② — 제출 글 전체(①~⑤ + flutter test 한 줄)를 저장소 밖 파일(notepad $env:TEMP\R5b-Bob-A1_submit.md · «UTF-8» 저장 · 커밋 0)에 저장한 뒤 저장소 뿌리에서:
      dart tool/precheck.dart --base origin/main --collection-if 0 --report $env:TEMP\R5b-Bob-A1_submit.md --golden-prefix a1 --goldens 16
         ← 🔴 출력 끝 줄 «── 결과: 🔴 0 · …» 를 눈으로 확인한 뒤에만 채팅에 낸다(🔴 1 이상이면 글을 고쳐 다시 돌린다) · 출력은 채팅에 붙이지 않는다 ·
-          🔵 접두 «a1» 은 a1_history 행도 센다 — 골든 표 행은 정확히 16 · 🔵 🟡 [G1] 은 멈춤이 아니다 — 표는 이 카드의 셈 단위대로(셈 단위 견본 = 아래 ③ · ⟦실측⟧).
+          🔵 접두 «a1» 은 a1_history 행도 센다 — 골든 표 행은 정확히 16 · 🔵 🟡 [G1] 은 멈춤이 아니다 — 표는 이 카드의 셈 단위대로(셈 단위 견본 = 아래 ③ · 드라이런 = 🟡 10 · 🔴 칸을 고치지 않는다).
    ① 아래 «① 머리 복사 상자» 두 줄 그대로 + «바뀐 파일:» + name-status 출력 그대로(코드 블록 하나) + «커밋 목록:» + log 출력 그대로(코드 블록 하나)
       ┌── ① 머리 복사 시작(다음 줄부터)
 화면 ID: A-1 — 오늘의 매매 안내(AdviceInbox() · AdviceCard(item:))
@@ -747,13 +766,16 @@ echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
       골든 표 16행(a1_* 14 · a1_history 2 · 한 표 · 한 행 한 줄): «| 이름 | 입력 픽스처 | 안전 행 | 크기 | 위치 전제 dy | 배치·잘림 |» · 이름 칸 = «a1_open4 light» 꼴 · 입력 = 경로 그대로(a1_history = «range_presets_4.json + advice_12.json 행 7~11») ·
         크기 = 390×<높이 리터럴> · dy = 이름·밝기마다 잰 값 · 배치·잘림 = 이름마다 light PNG 한 장만 연다(8장) · dark 행 = 같은 이름 light 행 칸 글자 그대로(dy 가 같을 때만) ·
         칸 꼴 = «<덩어리 → 로 — 글자 n줄 · 상자 · 배경 덩어리 · 칩 n개 · 막대 · 점 · 버튼 글자> — 잘림 없음» 또는 «… — 잘림: <어디가 어떻게>»(16행 모두 꼬리 · 코드 이름·픽스처 낱말·영문 0 · 🔴 사전검사 G1 출력을 옮기지 않는다 ·
-        급함 아이콘 = 글자 줄 덩어리 괄호 안 «작은 네모 표식» · «상자» 낱말 0) · 셈 단위 견본 2행(드라이런이 PNG 를 열어 쓴 칸 · 꼴만 본뜬다): ⟦실측⟧ · ⟦실측⟧.
+        급함 아이콘 = 글자 줄 덩어리 괄호 안 «작은 네모 표식») · 🔴 카드(Card) 하나 = 상자 하나 — 상자는 하나씩 → 로 잇는다(«상자 n개» 꼴 금지 · 사전검사 G1 이 상자를 하나씩 읽는다) · 버튼 글자 = 글자 줄로 센다 ·
+        셈 단위 견본 2행(드라이런이 PNG 를 열어 쓴 칸 · 꼴만 본뜬다 · 이 꼴이면 G1 무경고):
+         «| a1_no_action light | m6/advice_no_action.json | 0 | 390×3800 | 412.0 | 글자 4줄 → 상자(안 글자 4줄 · 칩 1개) → 글자 4줄 — 잘림 없음 |»
+         «| a1_history light | range_presets_4.json + advice_12.json 행 7~11 | 0 | 390×1700 | 1328.0 | 글자 2줄 → 상자(안 글자 7줄 · 칩 2개) → 상자(안 글자 7줄 · 칩 2개) → 상자(안 글자 6줄 · 칩 2개) → 상자(안 글자 7줄 · 칩 2개) → 상자(안 글자 7줄 · 칩 2개) — 잘림 없음 |».
    ④ 질문 목록 — git -c core.quotePath=false diff origin/main...HEAD -- docs/ai-context/inbox/A1_questions.md 출력에서 «+|» 로 시작하는 줄 전부(코드 블록 하나 · 순서 그대로 · 손으로 만들지 않는다)
    ⑤ 추측한 것 = A1_questions.md 새 A 행 중 «측정:» 이 아닌 행 전부 — 번호로(🔴 없으면 정확히 «없음» 한 낱말)
       ┌── 시작·끝 복사 시작(다음 줄부터 · 1줄)
 flutter test: 시작 기준 <N> → 끝 <packages/ui_journal 의 flutter test 끝 줄 그대로>
       └── 시작·끝 복사 끝(이 줄 앞까지 · 끝 자리 = 시각·«+수»·«All tests passed!» 까지 끝 줄 그대로 · 사전검사 R5)
-   (+ flutter test 한 줄 — 위 상자의 글자 틀 그대로(기대 M = N + 52 · 다르면 그 위 한 줄에 «까닭:» + 테스트 파일별 끝 줄))
+   (+ flutter test 한 줄 — 위 상자의 글자 틀 그대로(기대 M = N + 55 · 다르면 그 위 한 줄에 «까닭:» + 테스트 파일별 끝 줄))
 ````
 
 ---
@@ -765,9 +787,9 @@ flutter test: 시작 기준 <N> → 끝 <packages/ui_journal 의 flutter test �
 - `test/` 새 파일 5(`advice_fakes.dart` · `advice_inbox_test.dart` · `advice_history_test.dart` · `golden/a1_golden_test.dart` · `golden/a1_history_golden_test.dart`) + 새 PNG 16장(`a1_*` 14 · `a1_history` 2) · 재생성 0 · 기존 fakes 무수정.
 - 질문 파일 `A1_questions.md`(새 행 A1~A8 «측정:» 반드시).
 - 채팅: PR 본문 5섹션 + flutter test 한 줄 · 사전검사 ① 한 번 · ② 한 번(`a1` · 16) 🔴 0.
-- `flutter test` = 시작 기준 N(⟦실측⟧ = R5a 병합본) + 52(뷰 36 + 골든 16 · 드라이런 ⟦실측⟧) · 정적 A10 = 39 · A11 = 14줄 · A12 = 6 · A17 = 4·14 · A18 = 1·3 · A19 = 19 · A27 = 1 · A29 = 16 A · A30 = 4·16(🔴 정확히) · S05 = 6 · A06 = 5 · A08 = 1 · A09 = 0 · C-46 ⑯ = 3파일 · `domain_contracts` «+⟦실측⟧ ~30».
-- 재분할 임계(카드 계획): 새 `testWidgets(`·`test(` 줄 24(임계 «> 33» 안) · lib +⟦실측⟧/-0(임계 «> +900» 안 예상) · 새 PNG 16(임계 «> 16» 의 경계 — 안) → 재분할 없음 예상.
-- 🔴 C4 가 넣어 볼 예고 변이 중 드라이런이 확인한 것: ⟦실측⟧.
+- `flutter test` = 시작 기준 N(⟦실측⟧ = R5a 병합본 · 드라이런 기대 430) + 55(뷰 39 + 골든 16 · 드라이런 «+485») · 정적 A10 = 39 · A11 = 14줄 · A12 = 6 · A17 = 5·15 · A18 = 1·3 · A19 = 19 · A27 = 1 · A29 = 16 A · A30 = 5·21(🔴 정확히) · 출력 145줄 · S05 = 6 · A06 = 5 · A08 = 1 · A09 = 0 · C-46 ⑯ = 3파일 · `domain_contracts` «+⟦실측⟧ ~30»(드라이런 기대 392).
+- 재분할 임계(카드 계획): 새 `testWidgets(`·`test(` 줄 26(임계 «> 33» 안) · lib +500/-0(드라이런 · 임계 «> +900» 안) · 새 PNG 16(임계 «> 16» 의 경계 — 안) → 재분할 없음 예상.
+- 🔴 C4 가 넣어 볼 예고 변이 중 드라이런이 확인한 것(2026-10-28): (순서)~(상태) 목록 전부 KILLED(지적 반영 뒤 «emptyLabel null 에도 빈 자리» = A1-08 slice_empty · history 재시도 = AH-06 · 배너 = AH-08 · 순번 열쇠 = A1-16) · «참고» 6 SURVIVED · 결과 = 스크래치 `r5/mut_r5b/` + `r5/mut2/b/`.
 
 ## 4. 받은 뒤 Claude에게 보낼 문장(한 줄)
 
@@ -783,5 +805,5 @@ R5b-Bob-A1 결과: 브랜치 ui/m6-a1-inbox 푸시됨 — PR 만들고 병합 �
 - 🔵 `golden:approved` 는 **이 카드에 필요 없다**(새 PNG 만).
 - 🔵 C-46 ⑯~㉖ 의 화면 스캔은 파일 이름으로 대상을 고른다(`lib/src/advice_inbox.dart`·`advice_history.dart`·`advice_detail.dart`·`lib/src/advice/**` · 폼 3) — 다른 이름이면 «공허 통과» → 제출 ② 의 «C-46 ⑯ 출력» 4줄로 확인한다. ⑯ 의 가드는 대상 **밖** 파일(ui_shell 제외)에 X7 타입 이름(`AdviceItem`·`AdviceInboxSummary`·`deferAdviceConfirm` 등)이 나오면 실패한다 — 배럴·labels 의 주석은 벗기고 보므로 무관하지만 코드에 쓰면 안 된다.
 - 🔵 R5c(`A-2`·`A-4`)는 이 카드 병합 뒤 — `AdviceCard`·`journalAdviceRepositoryProvider` 를 import 한다(이 두 이름·서명은 R5c 조립의 전제 · 바꾸면 반려 신호).
-- 🔵 ⟦실측⟧ R5a 병합 기록 때 채울 것(이 파일의 자리표시자): `__R5A_SQ__`(R5a squash) · 시작 기준 N(R5a 병합본 실측) · 0단계 R5a 확인 줄 2개(`LedgerDiffTile` 꼴 · R5a 절 끝 상수 이름) · 계약 버전 줄 · 기존 PNG 수(110 예상) · `domain_contracts` 끝 줄 · R5a C4 이월(머리 «교훈 반영» 줄) · 드라이런 값 전부.
-- 범위 고지: 01 §8 미결 116(`M5-6` 진입 맥락 — 안내 밖 매매 링크 목적지) · 119(옛 라벨 · 골든 50장)는 이 카드가 닫지 않는다 · 🆕 신설 후보 = «X5·X7 목록의 `hasMore`»(발주자 확인 ① · R5a 와 같은 행) · «「내일 다시」 결과 표시 원천(첫 접수증 vs `watchCommand`)»(②).
+- 🔵 실측 표식 — R5a 병합 기록 때 채울 것(이 파일의 자리표시자 · `grep -cP '\x{27E6}'` 로 센다): `__R5A_SQ__`(R5a squash) · 시작 기준 N(R5a 병합본 실측) · 0단계 R5a 확인 줄 2개(`LedgerDiffTile` 꼴 · R5a 절 끝 상수 이름) · 계약 버전 줄 · 기존 PNG 수(110 예상) · `domain_contracts` 끝 줄 · 🆕 0단계 라벨·export 기준 셈 2줄 · R5a C4 이월(머리 «교훈 반영» 줄) · (드라이런 값은 «드라이런 기대» 로 채워 둠 — 실제 병합본이 계획과 다르면 그 수만 고친다).
+- 범위 고지: 01 §8 미결 116(`M5-6` 진입 맥락 — 안내 밖 매매 링크 목적지) · 119(옛 라벨 · 골든 50장)는 이 카드가 닫지 않는다 · 🆕 신설 후보 = «X5·X7 목록의 `hasMore`»(발주자 확인 ① · R5a 와 같은 행) · «「내일 다시」 결과 표시 원천(첫 접수증 vs `watchCommand`)»(②) · ⑪ 의 M2 후보 2건.

@@ -1,13 +1,13 @@
 # 발송 패킷 R5a-Bob-L1L2 — L-1 원장 차이 상세 · L-2 정정 이력·감사 (계약 v1.12~v1.14 · prompt_M6 v2 · R5 5장 중 1번째 · M6 X5 읽기)
 
-> ⬜ **조립됨 — 드라이런 대기**(2026-10-27 조립 · 앱 기록 가지 `rec/r5`) — 남은 것: ① 드라이런(worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5a` = `origin/main` + 이 기록 커밋 · 권장 5커밋 · ⟦실측⟧ 표식을 실측으로 바꾼다 — `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R5a-Bob-L1L2.md` 로 센다 · 🔴 보내기 전 0) ② 드라이런 브랜치 사전검사 ① 🔴 0 · ② `l` 12 🔴 0 ③ 발주자 확인(아래 «발주자 확인» ①~⑧ — 카드 기본값 = 권고) ④ 재분할 판정(임계 = 새 `testWidgets(`·`test(` 줄 > 33 · lib > +900 · 새 PNG > 16 — 계획 = 줄 22 · PNG 12) → 「푸시해」 → 머리 첫 줄 ▶ «보낼 수 있음».
+> ⬜ **조립됨 — 드라이런 ✅ · 발주자 확인 대기**(2026-10-27 조립 · 2026-10-28 드라이런 지적 반영 · 앱 기록 가지 `rec/r5`) — 남은 것: ~~① 드라이런~~ ✅(아래 «드라이런» 줄 · 실측 표식 0 — `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R5a-Bob-L1L2.md` = 0 · 🔴 보내기 전에도 0) ~~② 사전검사~~ ✅(드라이런 가지 ① 🔴 0 · 🟡 0 · ② `l` 12 🔴 0 · 🟡 2 = 아래 N3 의 G1 예상분) ③ **발주자 확인 10건**(아래 «발주자 확인» ①~⑩ — 카드 기본값 = 권고 · 🔴 ②·⑨ = 확정 K26 꼬리를 덮는 권고라 발주자가 고른다) ~~④ 재분할 판정~~ ✅(새 `testWidgets(`·`test(` 줄 22 · lib +298 · 새 PNG 12 → 재분할 없음) → 「푸시해」 → 머리 첫 줄 ▶ «보낼 수 있음».
 > 만든 날 2026-10-27 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 `R5a-Bob-L1L2` 행 + §3-0 사전검사 블록 + §3 공통 조문(strict 나눔 · PR 본문은 통합 담당이 바꾼다 · 재제출 = 전체판 + 상자 · 골든 높이 = 재량 + 기록(🔴 높이는 늘리지 않는다 · 여백만) · 커밋 = 제목만 맞추기) + 🔵 ✅ **K47 — «R4a C4 이월 부록»·«R4b C4 이월 부록» 두 블록을 이 카드에 옮김**(맨 아래 «6. 이월 부록» · 반영 자리 표) + «R13a C4 이월 부록»·«R13b C4 이월 부록» 의 M6 에 맞는 항목(같은 절) · 화면 몫 원본 = 설계 저장소 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §8-1~§8-3 · K24 · K25 · K26 · K27 · K35 · K47 · K48(✅ 발주자 확정 2026-10-22) · 조문 = `01_…` §21-6 `L-1`·`L-2` 행 · §21-7 · §21-8(위젯·파일·주입·호출 표) · §21-9(상수 진입 `ledgerRepairs`) · §21-10-4 · §21-11 · §21-16-1 · §21-17-2(미결 117 · 121 · 124) · `02_…` §5-1 · §5-2 · §5-2 끝 «계약 v1.12» 블록 ⓐ~ⓔ · 코드 = `packages/domain_contracts`(`LedgerDiffRow` · `LedgerRepairRow` · `LedgerRepository` · `ReasonChip` · `LinkAction` · `ListResult` · `DiffSeverity` · `ChipTone` · `AppRoutes.ledgerRepairs` · 받침대 `UnimplementedLedgerRepository` · `RecordingLinkOpener` · C-47 ⑦).
-> 사전 조건 — ✅ 계약 v1.12(PR #68 squash `fb67caf` · 2026-10-22 · `L-1`·`L-2` 표시 필드 · `watchRepairs` · 라우트 `ledgerRepairs` · C-47) · ✅ v1.13(PR #72 `638fca4` · `DiagnosticCell.level` — ui_journal 영향 0) · ✅ v1.14(엔진 E8a PR #73 `ab78a15` · 시세·지표 — ui_journal 영향 0 · `contractVersion = '1.14.0'`) · ✅ `prompt_M6` v2(앱 `34bf60a` · 275줄 · 머리 3행 «판 v2») · `origin/main` = `4bb7067`(E8c PR #75 · ui_journal·domain_contracts lib 무변경). 시작 기준 = `origin/main` `4bb7067` 의 `flutter test`(packages/ui_journal) = **388**(2026-10-27 실측 · README 388 과 같음) · 이 카드 끝 기대 = 시작 기준 N + **뷰 29(L-1 15 + L-2 14) + 골든 12 = 429**(카드 계획 · 드라이런 ⟦실측⟧) · `domain_contracts` «+392 ~30»(E8c 병합 커밋 실측 · 이 카드 몫 0).
-> 카드 기본값(카드 권한 — 🔵 아래 «발주자 확인» ①~⑧ 이 권고대로면 그대로): ⓐ 위젯 = `LedgerDiffs({super.key})`(`lib/src/ledger_diffs.dart` · ConsumerWidget) + 공개 조각 `LedgerDiffTile({super.key, required LedgerDiffRow row})`(같은 파일 · ConsumerWidget · `L-3`(R5e) 결과가 재사용) · `LedgerRepairs({super.key})`(`lib/src/ledger_repairs.dart` · ConsumerWidget) ⓑ 주입 2 = `journalLedgerRepositoryProvider` · `journalLedgerTrustRepositoryProvider`(둘 다 `ledger_diffs.dart` 머리 · 배럴 쪽 · 01 §21-8 글자 그대로 · 신뢰 창구는 선언만 — R5e 가 import) · 데이터 2 = 각 파일 안 private StreamProvider ⓒ 구독 = `watchOpenDiffs()`(L-1) · `watchRepairs()`(L-2 · 🔴 인자 없이 = 기본 50) + 기존 `journalSafetyStateProvider`(배너) · 🔴 **재구독 0 · `hasMore` 무시**(①) ⓓ `L-1` 하단 = `AppRoutes.ledgerRepairs` 상수 진입(01 §21-9 규칙 ④) · 행 조치 = `actionLink`(null = 부재) ⓔ 색 = `DiffSeverity` 전수 switch 하나(아이콘 + 색 · `L-1`) + `L-2` 방향 배지 = 공용 `journalToneColor(context, row.directionTone)`(새 switch 0) · `statusLabel` 은 style 없는 Text(accepted = resolved 같은 비중 — ④) ⓕ `applicable` 읽지 않음(②) ⓖ 체인 스탬프 = Text + 복사 `IconButton`(`Clipboard.setData` · SnackBar 0 — ③) ⓗ 정적 라벨 3(⑤) ⓘ Key 접두 `l1-`·`l2-`(순번만 · `LedgerDiffTile`·L-2 행 안 Key 0) ⓙ 테스트 = `test/ledger_fakes.dart`(새 · 자기 파일) · `test/ledger_diffs_test.dart` · `test/ledger_repairs_test.dart` · 골든 6이름 12장(`l1_golden_test.dart` 4 · `l2_golden_test.dart` 2 · 크기 ⟦실측⟧ — ⑥) ⓚ 공용 파일 2(`labels.dart` R5a 절 · 배럴 export 2줄 — 정렬 자리) = **더하기만**.
+> 사전 조건 — ✅ 계약 v1.12(PR #68 squash `fb67caf` · 2026-10-22 · `L-1`·`L-2` 표시 필드 · `watchRepairs` · 라우트 `ledgerRepairs` · C-47) · ✅ v1.13(PR #72 `638fca4` · `DiagnosticCell.level` — ui_journal 영향 0) · ✅ v1.14(엔진 E8a PR #73 `ab78a15` · 시세·지표 — ui_journal 영향 0 · `contractVersion = '1.14.0'`) · ✅ `prompt_M6` v2(앱 `34bf60a` · 275줄 · 머리 3행 «판 v2») · `origin/main` = `4bb7067`(E8c PR #75 · ui_journal·domain_contracts lib 무변경). 시작 기준 = `origin/main` `4bb7067` 의 `flutter test`(packages/ui_journal) = **388**(2026-10-27 실측 · README 388 과 같음) · 이 카드 끝 기대 = 시작 기준 N + **뷰 30(L-1 15 + L-2 15) + 골든 12 = 430**(드라이런 실측 2026-10-28 — 조립 판 29 + L2-05 셋째 경우 `slice_empty` 1) · `domain_contracts` «+392 ~30»(E8c 병합 커밋 실측 · 이 카드 몫 0).
+> 카드 기본값(카드 권한 — 🔵 아래 «발주자 확인» ①~⑩ 이 권고대로면 그대로): ⓐ 위젯 = `LedgerDiffs({super.key})`(`lib/src/ledger_diffs.dart` · ConsumerWidget) + 공개 조각 `LedgerDiffTile({super.key, required LedgerDiffRow row})`(같은 파일 · ConsumerWidget · `L-3`(R5e) 결과가 재사용) · `LedgerRepairs({super.key})`(`lib/src/ledger_repairs.dart` · ConsumerWidget) ⓑ 주입 2 = `journalLedgerRepositoryProvider` · `journalLedgerTrustRepositoryProvider`(둘 다 `ledger_diffs.dart` 머리 · 배럴 쪽 · 01 §21-8 글자 그대로 · 신뢰 창구는 선언만 — R5e 가 import) · 데이터 2 = 각 파일 안 private StreamProvider ⓒ 구독 = `watchOpenDiffs()`(L-1) · `watchRepairs()`(L-2 · 🔴 인자 없이 = 기본 50) + 기존 `journalSafetyStateProvider`(배너) · 🔴 **재구독 0 · `hasMore` 무시**(①) ⓓ `L-1` 하단 = `AppRoutes.ledgerRepairs` 상수 진입(01 §21-9 규칙 ④) · 행 조치 = `actionLink`(null = 부재) ⓔ 색 = `DiffSeverity` 전수 switch 하나(아이콘 + 색 · `L-1`) + `L-2` 방향 배지 = 공용 `journalToneColor(context, row.directionTone)`(새 switch 0) · `statusLabel` 은 style 없는 Text(accepted = resolved 같은 비중 — ④) ⓕ `applicable` 읽지 않음(②) ⓖ 체인 스탬프 = Text + 복사 `IconButton`(`Clipboard.setData` · SnackBar 0 — ③) ⓗ 정적 라벨 3(⑤) ⓘ Key 접두 `l1-`·`l2-`(순번만 · `LedgerDiffTile`·L-2 행 안 Key 0) ⓙ 테스트 = `test/ledger_fakes.dart`(새 · 자기 파일) · `test/ledger_diffs_test.dart` · `test/ledger_repairs_test.dart` · 골든 6이름 12장(`l1_golden_test.dart` 4 · `l2_golden_test.dart` 2 · 크기 `l1` = `Size(390, 844)` · `l2` = `Size(390, 1200)` — ⑥) ⓚ 공용 파일 2(`labels.dart` R5a 절 · 배럴 export 2줄 — 정렬 자리) = **더하기만**.
 > 🔴 **카드 덮개 필수 문장(02 §5-1 · §5-2 · §5-2 끝 v1.12 블록 · 01 §21-6 · §21-7 · §21-8)** — «`L-1`·`L-2` 는 받은 글자·칩·링크만 그린다 — 받은 순서 그대로 · 거르기·묶기·재정렬·세기 0 · 원값(`candidateOriginCodes`·`originCode`·`directionCode`·`decisionId`·`appliedAt`·`recomputedFrom`·`diffId`·`repairId`·`.name`·`.wire`)은 표시·분기 0 · 색 = 열거 switch 만» · «정정 UI 를 만들지 않는다 — 정정 진입 = 행 `actionLink`(엔진이 고른 조치 1개 · null = 부재) · 되돌리기·삭제·수정 버튼 0 · 원본을 숨기지 않는다 · 들여쓰기 = `supersedes != null` 하나» · «화면은 플랫폼을 모른다 — `L-2` 본문 Android 만 = 셸 가드(R13a 완료)». 본문 머리 · 규칙 요약 · «프롬프트보다 이 카드가 이긴다» 에 있습니다.
 > ✅ **K 결정 표식** — K24(`watchRepairs` 창구) · K25(L-2 자리 · 계단 = 엔진 순서) · K26(L-1 자리 · 근거 = 해시만 · 조치 = `actionLink`) · K27(라우트 `ledgerDiffs`·`ledgerRepairs` · L-2 본문 Android 만) · K35(R5 5분할 · R5a 12장) · K47(R4a·R4b 이월 부록 → R5a) · K48(`extraFixture` — R5a 는 쓰지 않음) = **✅ 발주자 확정(2026-10-22 · 01 §21-14)**.
-> 🔵 **발주자 확인 대기(카드 기본값 = 권고 · 🔴 확인 전 ▶ 금지)**: ① 🔴 **`hasMore`·무한 스크롤** — prompt_M6 v2 144행 «무한 스크롤은 `limit += 100` 재구독 하나뿐» ↔ 01 §21-8 호출 표 «`watchOpenDiffs()` · `watchRepairs()`»(인자 없음 · `watchOpenDiffs` 에는 `limit` 인자 자체가 없다) → 권고 = **v1 재구독 0 · `hasMore` 를 읽지 않는다**(`L-1` = 전체 목록 1화면 · `L-2` = 기본 50행 · 표본 `has_more` 전부 false) + 01 §8 미결 신설 «X5·X7 목록의 `hasMore`(L-2 `watchRepairs(limit:)` · A-1 `watchInbox(limit:)`)» · 대안 = `L-2` 만 끝에서 `limit += 100` 재구독(엔진 표본 0 · 테스트 경우 +2) ② `applicable == false` — prompt 220행 «`deltaLabel` 문장만(0·`-` 로 채우지 않고 «일치»·«통과»로 그리지 않음)» → 권고 = **화면이 `applicable` 을 읽지 않는다**(엔진이 «해당 없음» 문장을 `deltaLabel` 로 싣고 화면은 같은 자리를 그대로 그림 · L-1 입력 표본 4벌 전부 `applicable: true` · `self_report_diff_result` 도 true — 갈래를 만들어도 잡을 표본 0) · 대안 = false 면 `pairLabel`·`deltaLabel` 만(판정 1식 · 표본 0 이라 예고 변이 불가) ③ `chainStampText` «표시·복사»(02 §5-2 ⓒ) → 권고 = Text + 복사 `IconButton(Icons.copy)` → `Clipboard.setData`(피드백 SnackBar 0 — 본문 위젯은 ScaffoldMessenger 를 쓰지 않는다) · 대안 = `J-2` 꼴 길게 누르기 + `JournalLabels.copied` SnackBar ④ «accepted = resolved 같은 비중»(02 §5-1 (b)) → 권고 = `statusLabel` 은 style·Opacity 없는 Text 하나(세 상태가 같은 꼴 — 색·아이콘은 심각도 switch 만) ⑤ 정적 라벨 3(`ledgerRepairsLink` «정정 이력» · `ledgerCandidateOrigins` «원인 후보» · `ledgerEvidence` «근거») ⑥ 골든 크기 — `l1` = `Size(390, ⟦실측⟧)`(권고 844 = `kGoldenPhoneSize` 와 같은 높이 · 행 1개) · `l2` = `Size(390, ⟦실측⟧)`(권고 1200 · 행 4) — 드라이런이 맨 아래 dy 최대 + 여유로 정한 값 = 카드 확정값 ⑦ `L-2` 의 iOS·웹 = 셸 «폰에서만»(R13a 배선 완료 · 화면 코드 0 · 테스트 0) ⑧ K47 부록의 후보 항목(C4r4a-2~7 · C4r4b-1~7)은 이 카드 규칙·테스트 지시에 반영했다(맨 아래 «6» 표) · C4r4b-8(계약 PR 후보)은 부록 그대로.
-> 드라이런: ⬜ ⟦실측⟧(worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5a` · 시작 «+388» → 끝 ⟦실측⟧ · 파일별 ⟦실측⟧ · 사전검사 ⟦실측⟧ · 정적 묶음 ⟦실측⟧ · 변이 ⟦실측⟧).
+> 🔵 **발주자 확인 대기 10건(카드 기본값 = 권고 · 🔴 확인 전 ▶ 금지)**: ① 🔴 **`hasMore`·무한 스크롤** — prompt_M6 v2 144행 «무한 스크롤은 `limit += 100` 재구독 하나뿐» ↔ 01 §21-8 호출 표 «`watchOpenDiffs()` · `watchRepairs()`»(인자 없음 · `watchOpenDiffs` 에는 `limit` 인자 자체가 없다) → 권고 = **v1 재구독 0 · `hasMore` 를 읽지 않는다**(`L-1` = 전체 목록 1화면 · `L-2` = 기본 50행 · 표본 `has_more` 전부 false) + 01 §8 미결 신설 «X5·X7 목록의 `hasMore`(L-2 `watchRepairs(limit:)` · A-1 `watchInbox(limit:)`)» · 대안 = `L-2` 만 끝에서 `limit += 100` 재구독(엔진 표본 0 · 테스트 경우 +2) ② 🔴 **`applicable == false` — 이 권고는 확정 조문을 덮는다**: 01 §21-14 K26 꼬리 «`applicable == false` = `deltaLabel` 문장만(04:523)» · 02 §5-2 끝 v1.12 ⓑ · 02 §5-1 «「해당 없음」 문구만 렌더하고 0·`-` 로 채우지 않는다» · C15(자동 모드 canonSelfReport 칸) · prompt 220행 → 권고 = **화면이 `applicable` 을 읽지 않는다**(엔진이 «해당 없음» 문장을 `deltaLabel` 로 싣고 화면은 같은 자리를 그대로 그림 · 나머지 자리(심각도·상태·경로·근거 해시)도 그대로 그려진다 · L-1 입력 표본 4벌 전부 `applicable: true` · `self_report_diff_result` 도 true — 갈래를 만들어도 잡을 표본 0 · 정적 L07 `\.applicable\b` 금지) + 01 §21-6 L-1 행 정정 후보·01 §8 미결 신설 «L-1 `applicable == false` 표본(canonSelfReport · autoTrade)» · 대안 ⓐ = **K26 대로** — `LedgerDiffTile` 에서 `row.applicable` 이 false 면 `Text(row.deltaLabel)` 하나만(엔진 불 값 읽기 — `isUrgent`·`deferAvailable` 꼴 · L07 에서 `\.applicable\b` 를 뺌) + 표본(M2 `m6/ledger_diffs_not_applicable` 선행 PR 또는 copyWith 예외 1 — R13b `h01_advice_zero` 선례) + L-1 테스트 1·예고 변이 1(→ 카드 수정 + 재드라이런 1회) ③ `chainStampText` «표시·복사»(02 §5-2 ⓒ) → 권고 = Text + 복사 `IconButton(Icons.copy)` → `Clipboard.setData`(피드백 SnackBar 0 — 본문 위젯은 ScaffoldMessenger 를 쓰지 않는다) · 대안 = `J-2` 꼴 길게 누르기 + `JournalLabels.copied` SnackBar ④ «accepted = resolved 같은 비중»(02 §5-1 (b)) → 권고 = `statusLabel` 은 style·Opacity 없는 Text 하나(세 상태가 같은 꼴 — 색·아이콘은 심각도 switch 만) ⑤ 정적 라벨 3(`ledgerRepairsLink` «정정 이력» · `ledgerCandidateOrigins` «원인 후보» · `ledgerEvidence` «근거») ⑥ 골든 크기 — `l1` = `Size(390, 844)`(= `kGoldenPhoneSize` 와 같은 높이 · 행 1개 · 드라이런 맨 아래 dy 최대 412.0) · `l2` = `Size(390, 1200)`(행 4 · 드라이런 맨 아래 dy 최대 964.0 · light = dark) = 카드 확정값(권고 그대로 · 여백 무수정) ⑦ `L-2` 의 iOS·웹 = 셸 «폰에서만»(R13a 배선 완료 · 화면 코드 0 · 테스트 0) ⑧ K47 부록의 후보 항목(C4r4a-2~7 · C4r4b-1~7)은 이 카드 규칙·테스트 지시에 반영했다(맨 아래 «6» 표) · C4r4b-8(계약 PR 후보)은 부록 그대로 ⑨ 🔴 🆕 **`RepairRoute` 색 — 이 권고도 확정 조문을 덮는다**: K26 꼬리 «색 = `DiffSeverity`·`RepairRoute` exhaustive switch(C-12)» · 02 §5-1 «경로 배지 3종(auto · approval · x1Emergency)» ↔ 카드 = `routeLabel` 은 style 없는 Text(RepairRoute switch 0 · 정적 L09 = DiffSeverity 2줄) → 권고 = v1 경로 색 생략(경로 글자 = 엔진 `routeLabel` 그대로 · 01 §21-6 L-1 행 정정 후보로 기록) · 대안 = `_routeLook(ColorScheme, RepairRoute)` 전수 switch 하나(3값 · default 0) + `routeLabel` 을 Chip(backgroundColor) 으로 + L1-02 경로 색 단언 + 예고 변이 «경로 색 하나로 고정» + L09 기대 5줄(→ 카드 수정 + 재드라이런 1회) ⑩ 🆕 M2 후보 3건(이 카드 판정 밖 · ▶ 를 막지 않음 · 01 §8 미결 신설 후보로 기록만): ⓐ L-1 `emptyLabel` non-null 표본(드라이런 변이 «L-1 빈 문장 글자 바꾸기» = 표본 0 으로 생존 → 예고 변이에서 L-1 몫은 «참고») ⓑ L-1 칩 0 표본(변이 «칩 Wrap 을 칩 0 이면 숨김» 생존) ⓒ C-47 ⑦ 에 `'aaq://` 리터럴 검사(변이 «하단 링크를 같은 값 리터럴로» = 테스트·C-47 통과 · 정적 L04 만 잡음) → 권고 = 기록만.
+> 드라이런: ✅ 2026-10-28 · worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5a`(`origin/main` `4bb7067` + 이 기록 커밋 `31ac3e3` → 권장 5커밋 `92f83f2`·`298f396`·`26c7372`·`28cfa06`·`053a483` → 지적 반영 1커밋 `1790c94`(L2-05 `slice_empty` · `ledgerRepairSlice` · 전제 1) · 기준 = `31ac3e3`) — 0단계 확인 줄 전부 기대대로(`git grep` 12줄 «:1» · README `l2_chain_two_repairs` «:2» · `ls` 8 있음 · 없어야 할 5 없음) · 시작 «00:24 +388» → 끝 «00:24 +430: All tests passed!»(N + 뷰 30 + 골든 12) · 파일별 «+15»(ledger_diffs_test) · «+15»(ledger_repairs_test) · «+8»(l1_golden) · «+4»(l2_golden) · `domain_contracts` «+392 ~30» · C-47 ⑦ 3줄 = 기대 그대로 · check_boundaries 실패 0(🟡 기존 timeline.dart:109 1) · format 0 changed · analyze No issues · 사전검사 ① 🔴 0 · 🟡 0 · ② `l` 12 = 🔴 0 · 🟡 2(G1 `l2_chain_two_repairs` light·dark — N3) · 정적 묶음 32줄 → 출력 125줄(bash = PowerShell 5.1) = 아래 «줄의 뜻과 기대» 그대로 · import 차례 = 아래 «주입 구조» 글자 그대로(analyze 확정) · 골든 `l1` 844 · `l2` 1200 · 맨 아래 dy(light = dark) `l1_broker_qty` 412.0 · `l1_cash_observe` 404.0 · `l1_accepted` 364.0 · `l1_push_lag` 364.0 · `l2_chain_two_repairs` 964.0 · `l2_empty` 76.0 · 머리 dy 전부 0.0 · 열어 본 PNG 6(light) · 새 testWidgets·test 줄 22 · lib +298/-0 · 새 PNG 12 · 변이 = 예고 55꼴 중 KILLED 52(지적 반영 뒤 «L-2 emptyLabel null 에도 빈 자리» 포함) · 참고로 내린 3 SURVIVED(L-1 빈 문장 = 표본 0 · 칩 0 = 표본 0 · applicable = 정적 L07 몫) · 참고 변이 8 중 KILLED 6 · SURVIVED 2(링크 리터럴 = 정적 L04 몫 · Key 없는 빈 자리 = 잡는 검사 0) · 테스트 쪽 변이 2(else 지움 · 늘 참 단언) = 사전검사 ① T1·T3 🔴 · 질문 파일 A1~A6 «측정:» + A7(L1-03 행 0 좁히기) · A8(L2-06 Key 목록) → 이 카드 글자에 반영함.
 > 프롬프트 = `docs/ai-context/prompt_M6.md`(🆕 **v2 판 275줄** · 2026-10-26 재조립(설계 07 v2) · 2행 `{{범위}}` = «R5a~R5e 중 붙여넣은 카드 한 장의 범위» · 121행 «이번 과제 범위» → 이 카드가 덮는다(R5a = `L-1` · `L-2`) · 130행 PR 제목 = 형식만 → 이 카드의 제목 «[M6] L-1·L-2 원장 차이·정정 이력»(«■ 제출») · 자체 점검 23항 = 252~274행 · 수치·금액 조문 = 68~74행). 🔴 Bob **새 대화** 전제 — R4b·R13 대화를 기억하지 못합니다. 0단계·규칙 요약·본받지 않는 것·스케치·테스트 목록은 본문에 담았습니다.
 > R4·R13 교훈 반영(맨 아래 «6» 표): PNG 열람 = 이름마다 light 1장(6장 — 이미지 20장 한도) · dark 행 = 같은 이름 light 행 칸 글자 그대로(dy 가 같을 때만) · 구독마다 «로딩·에러 × 갈래» · 골든·테스트 흐름 = 클로저 칸 · 기대 링크 = 목록 칸(`opener.opened == <String>[…]`) · 🔴 bool 칸 + if · `name ==`·`which ==` 경우 비교 · `opened[0]` 원소 비교 · if 를 단언 안으로 감추기(`expect(a || b, isTrue)`) = 반려 꼴 · 전제는 if 밖 + `// pre` · 픽스처 = `main()` 머리 `final` · 가짜 공장 = `call` 삼항 · 커밋마다 `git add <파일>` · «23항 줄 수» 상자 · 골든 높이 = 카드 확정값(늘리지 않는다 · 여백만 + 측정 행) · lib 의 nullable `!` 0 · 주입 절 = 파일 머리(import 바로 뒤) · «화면 Text 전부» 허용 집합에 링크·경로 문자열 0.
 
@@ -117,7 +117,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    픽스처 = main() 머리에서 final 로 한 번 읽는다(setUpAll + late 금지 · C4r4b-6) · 🔴 전제는 expect 로 · 경우를 가르기 전(if 밖)에 둔다(C4r4b-1) — 자리 = testWidgets 본문 첫머리
      (main() 바로 아래의 expect 는 테스트 밖이라 파일 적재가 OutsideTestException 으로 실패한다) · 전제 문장마다 끝에 `// pre`(ASCII · 정적 L30 이 센다 = 최소 목록의 «(전제)» 수 · C4r4b-2) · 동작은 UI 를 실제로 눌러서 ·
    🔴 자기가 주입한 값을 그대로 확인하는 테스트 금지 · 늘 참인 단언 금지 · 정상 상태 테스트는 expect(find.text(JournalLabels.retry), findsNothing) + 양성 기준점 1 ·
-   DTO 를 지어 넣지 않는다(픽스처에서 — LedgerDiffRow(…) · LedgerRepairRow(…) · ListResult(…) 생성자 0) · 🔵 예외 1 = 행 슬라이스(테스트의 입력 준비 · golden_support 의 journalSlice 꼴): ledger_fakes.dart 의 ledgerDiffSlice 한 곳만 copyWith(정적 L27 1줄) ·
+   DTO 를 지어 넣지 않는다(픽스처에서 — LedgerDiffRow(…) · LedgerRepairRow(…) · ListResult(…) 생성자 0) · 🔵 예외 1 = 행 슬라이스(테스트의 입력 준비 · golden_support 의 journalSlice 꼴): ledger_fakes.dart 의 ledgerDiffSlice · ledgerRepairSlice 두 곳만 copyWith(정적 L27 2줄) ·
    링크는 RecordingLinkOpener 를 픽스처 값·상수와 비교 · 기대 링크 = 경우 칸의 목록(expect(opener.opened, c.opened) — 🔴 opener.opened[0] 류 원소 비교 금지 · 탭 한 번에 두 번 여는 변이를 못 본다) ·
    🔴 흐름(탭·링크 단언)은 경우 칸의 클로저(Future<void> Function(WidgetTester) steps)에 · bool 칸 + if 로 흐름을 가르는 꼴 · c.name == · which == 같은 이름 비교 · if 를 단언 안으로 감추는 꼴(expect(a.isEmpty || …, isTrue)) = 반려(정적 L31) ·
    경우마다 갈리는 단언은 «없는 쪽» 견본(if/else 양쪽 단언) 또는 expect(finder, c.<Matcher 칸>) 한 꼴 · 테스트 이름 = 번호 + ASCII · 새 테스트 파일의 문자열 리터럴은 전부 ASCII ·
@@ -192,7 +192,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  ⑰ 135~137행 플랫폼 → L-2 본문 Android 만 = 셸 가드(R13a 배선 완료 · 01 §21-9) · L-1 웹 = 셸 «부재» · 화면 코드 0 · 뷰어 판의 조치 = 엔진이 actionLink null 로
  ⑱ 143~145행 «ListResult 봉투 · 무한 스크롤 = limit += 100 재구독» → 🔴 재구독 0 · hasMore 무시(L-1 = 전체 목록 1화면 · L-2 = watchRepairs() 기본 50 · 발주자 확인 ①) · 빈 = emptyLabel 그대로
  ⑲ 146~150행 «차단 표기 = 공용 JournalSafetyBanners · X5 화면 .watchState( 0(C-47)» → 그대로 유효(배너 = journalSafetyStateProvider 의 valueOrNull)
- ⑳ 218~230행 «X5 읽기 L-1·L-2» → 그대로 유효 · 자리·순서·Key = 아래 «화면» 글자 · 🔵 «applicable == false = deltaLabel 문장만» = 화면이 applicable 을 읽지 않고 엔진 글자를 같은 자리에 그대로(발주자 확인 ②) ·
+ ⑳ 218~230행 «X5 읽기 L-1·L-2» → 그대로 유효 · 자리·순서·Key = 아래 «화면» 글자 · 🔵 «applicable == false = deltaLabel 문장만» = 화면이 applicable 을 읽지 않고 엔진 글자를 같은 자리에 그대로(🔴 K26 꼬리를 덮는 권고 — 발주자 확인 ②) ·
     «chainStampText(표시·복사)» = Text + 복사 IconButton(발주자 확인 ③) · «accepted = resolved 같은 비중» = statusLabel style 0(발주자 확인 ④) · «필터 = v1 부재 · J-3R 링크·J-2 배지 진입 = v1 부재» 그대로
  ㉑ 231~250행 타입 지위 표 → L-1 · L-2 행만(watchOpenDiffs → LedgerDiffRow · LedgerDiffTile · watchRepairs → LedgerRepairRow · 안전 배너) · 249행 «부르지 않는 것» = 아래 «호출 표»
  ㉒ 251~274행 자체 점검 23항 → «■ 제출» ② 복사 상자(3 · 4 · 12 · 13 · 14 · 15 · 16 · 22 · 23 = [x] + 괄호 «이 카드 범위 밖(…)»)
@@ -220,7 +220,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 · 재사용: timeline.dart 의 journalSafetyStateProvider · journalClockProvider · journalLinkOpenerProvider · journalSafetyRepositoryProvider(테스트 override 용) /
   journal_common.dart: JournalAsOfHeader · JournalStaleBanner · JournalSafetyBanners · JournalReasonChip · JournalSkeleton · JournalErrorView · journalToneColor(🔴 무수정) / labels.dart: retry · staleBannerTitle(기존 · 고치지 않는다).
 · 🆕 lib 파일 2개 — lib/src/ledger_diffs.dart(L-1 + LedgerDiffTile) · lib/src/ledger_repairs.dart(L-2)(이것 말고 새 lib 파일 0 · lib/src/ledger/ 폴더 0 · 그 밖 조각은 각 파일 안 private).
-  import(directives_ordering · 쓰지 않는 import = analyze 실패 · 차례 = 드라이런 analyze 로 확정 ⟦실측⟧):
+  import(directives_ordering · 쓰지 않는 import = analyze 실패 · 차례 = 드라이런 analyze «No issues found!» 로 확정 2026-10-28 — 아래 글자 그대로):
      ledger_diffs.dart  = package:domain_contracts/domain_contracts.dart → package:flutter/material.dart → package:flutter_riverpod/flutter_riverpod.dart → ../l10n/labels.dart → common/journal_common.dart → timeline.dart
      ledger_repairs.dart = dart:async → package:domain_contracts/domain_contracts.dart → package:flutter/material.dart → package:flutter/services.dart → package:flutter_riverpod/flutter_riverpod.dart →
                            common/journal_common.dart → ledger_diffs.dart → timeline.dart(🔵 L-2 는 정적 라벨을 쓰지 않는다 — labels.dart import 0)
@@ -300,6 +300,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
      (link != null) Align(alignment: Alignment.centerLeft, child: TextButton(onPressed: () { ref.read(journalLinkOpenerProvider).open(link.deepLink); }, child: Text(link.label)))     ← final LinkAction? link = row.decisionLink;
    ]
  🔴 되돌리기·삭제·수정·정정 버튼 0 · 행을 옮기거나 묶지 않는다(계단 = 엔진 순서 · 정정의 정정은 원본 바로 뒤로 온다) · evidenceHash 를 그리지 않는다(L-2 자리 = chainStampText).
+ 🔵 02 §5-2 상태 «LEDGER_FIX 진행 중 = 상단 배너 + 목록 갱신 지연 고지» = 그 BlockFlag.label(엔진 글자 · JournalSafetyBanners 조각이 그림 — 화면 글자 0) · «LEDGER_INTEGRITY = 대상 수량·금액 숨김» = 엔진 targetText 그대로 · 표본에 LEDGER_FIX 행 0 — 엔진 몫(L2-08 = safetyFixtureRow(3) 그대로).
 
 ■ 픽스처 (FixturePaths.… · listFixture(<경로>, LedgerDiffRow.fromJson / LedgerRepairRow.fromJson) · safetyFixtureRow(n) · 🔴 테스트는 이 표를 믿지 말고 전제 expect 로 다시 확인한다)
  full      listFixture(FixturePaths.ledgerDiffs4, LedgerDiffRow.fromJson) — 4행: [0] ld_0001 브로커 대조·수량 · BLOCKING · OPEN «열림» · actionLink «정정하기» · 칩 2(첫 칩만 detailDeepLink) ·
@@ -341,7 +342,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
   overrides = ledgerOverrides(repo:, safety:, clock:, opener:)(4줄 · 아래 fakes) · 시계 = FixedClock(kGoldenNowUtc) · 오래됨 = ledgerStaleClock()(+2일) ·
   경우가 여럿인 테스트 = for 로 testWidgets 를 경우마다(이름 '<번호> <설명> ${c.name}') · 경우 = 테스트 파일 안 private class _Case(이름 · 입력 · 기대 · steps · opened — 칸은 테스트마다 재량 · bool 칸 0) ·
   기대 글자는 픽스처·JournalLabels 에서 · 띄우기는 한 테스트에 한 번 ·
-  계획 = ledger_diffs_test testWidgets 줄 11(테스트 15 — 경우 for 안의 한 줄 포함) · ledger_repairs_test 줄 9(테스트 14) · 골든 1 + 1 · testWidgets·test 줄 합 22(≤ 33) · import = 드라이런 analyze «No issues found!» 차례(⟦실측⟧).
+  계획 = ledger_diffs_test testWidgets 줄 11(테스트 15 — 경우 for 안의 한 줄 포함) · ledger_repairs_test 줄 9(테스트 15) · 골든 1 + 1 · testWidgets·test 줄 합 22(≤ 33) · import = directives_ordering 차례(analyze «No issues found!» 가 판정 · 쓰지 않는 import 0).
   🆕 test/ledger_fakes.dart(새 · 공개 이름 · 한국어 리터럴 0 · if 0 · collection-if 0 · 🔴 다른 fakes 파일 무수정 — holdings_overview_fakes.dart 는 import 만):
     class FakeLedgerDiffsRepository extends UnimplementedLedgerRepository { FakeLedgerDiffsRepository({required this.diffs}); final Stream<ListResult<LedgerDiffRow>> Function(int call) diffs; int calls = 0;
       @override watchOpenDiffs() → final int call = calls; calls = calls + 1; return diffs(call); }(watchRepairs·watchExternalHoldings 는 넘기지 않는다 — 받침대가 던진다 = «부르지 않는 것» 증명)
@@ -351,7 +352,8 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
       ← journalLedgerRepositoryProvider.overrideWithValue(repo) · journalSafetyRepositoryProvider.overrideWithValue(FakeHoldingsSafetyRepository(safety ?? safetyFixtureRow(0))) ·
         journalClockProvider.overrideWithValue(clock ?? FixedClock(kGoldenNowUtc)) · journalLinkOpenerProvider.overrideWithValue(opener ?? RecordingLinkOpener()) — 4줄
     Future<void> pumpLedgerDiffs(WidgetTester tester, {required List<Override> overrides}) · Future<void> pumpLedgerRepairs(…)(같은 꼴)
-    ListResult<LedgerDiffRow> ledgerDiffSlice(ListResult<LedgerDiffRow> source, List<int> pick) => source.copyWith(rows: <LedgerDiffRow>[for (final int i in pick) source.rows[i]], hasMore: false);   ← 🔵 copyWith 1곳(규칙 10 예외)
+    ListResult<LedgerDiffRow> ledgerDiffSlice(ListResult<LedgerDiffRow> source, List<int> pick) => source.copyWith(rows: <LedgerDiffRow>[for (final int i in pick) source.rows[i]], hasMore: false);   ← 🔵 copyWith 예외 1
+    ListResult<LedgerRepairRow> ledgerRepairSlice(ListResult<LedgerRepairRow> source, List<int> pick) => (같은 꼴 · LedgerRepairRow)   ← 🔵 copyWith 예외 2(L2-05 slice_empty · 드라이런 지적 반영)
     Stream<T> ledgerValueThenFail<T>(T v) async* { yield v; throw StateError('fail'); } · Clock ledgerStaleClock() => FixedClock(kGoldenNowUtc.add(const Duration(days: 2)));
     List<String?> ledgerShownTexts(WidgetTester tester, Finder scope)(scope 아래 Text 의 data · 위 → 아래 — holdingsShownTexts 꼴 · 인자 = Finder)
     List<String> ledgerDiffTexts(LedgerDiffRow r) => <String>[r.pairLabel, r.axisLabel, r.severityLabel, r.deltaLabel, r.statusLabel, r.routeLabel, JournalLabels.ledgerCandidateOrigins,
@@ -360,6 +362,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
     Set<String> ledgerDiffsAllowed(ListResult<LedgerDiffRow> v) => <String>{v.asOf.label, ?v.emptyLabel, for (…r in v.rows) ...ledgerDiffTexts(r), JournalLabels.ledgerRepairsLink};
     Set<String> ledgerRepairsAllowed(ListResult<LedgerRepairRow> v) => <String>{v.asOf.label, ?v.emptyLabel, for (…r in v.rows) ...ledgerRepairTexts(r)};
       (🔴 허용 집합에 deepLink·링크·경로 문자열 0 — 링크를 글자로 그리는 변이를 잡게 · C4r13b-6)
+    🔵 R5e(L-3)가 import 하는 이름 = ledgerDiffTexts · ledgerShownTexts · ledgerStaleClock · ledgerValueThenFail(+ lib 의 LedgerDiffTile · journalLedgerTrustRepositoryProvider) — 이름·서명 고정(R5e 0단계가 grep 으로 확인).
   파일 머리(main() 안)에서 위 «픽스처» 를 한 번 final 로 읽는다 · 기대 아이콘·색 = 테스트 파일 안 private switch 둘(_wantIcon · _wantColor — 기대 원천 = 이 카드 «화면 1» 의 _severityLook 글자).
 L-1 — test/ledger_diffs_test.dart
  L1-01 전체 목록 · 받은 순서 · 글자(02 §5-1 · K26) — full · pumpLedgerDiffs → ⓗ expect(full.rows, hasLength(4)); → i 마다 ledgerShownTexts(tester, find.byKey(ValueKey<String>('l1-row-$i'))) == ledgerDiffTexts(full.rows[i]) ·
@@ -370,6 +373,7 @@ L-1 — test/ledger_diffs_test.dart
         cs = Theme.of(tester.element(find.byType(LedgerDiffs))).colorScheme · ⓡ.
  L1-03 accepted = resolved 같은 비중(02 §5-1 (b)) — full · 전제 둘: expect(full.rows[2].status, DiffStatus.accepted); // pre · expect(full.rows[3].status, DiffStatus.resolved); // pre →
         tester.widget<Text>(find.text(full.rows[2].statusLabel)).style == tester.widget<Text>(find.text(full.rows[3].statusLabel)).style == 행 0 의 statusLabel Text style ·
+        (🔴 행 0·1 의 statusLabel 이 같은 글자 «열림» — 행 0 은 tester.widget<Text>(find.descendant(of: find.byKey(const ValueKey<String>('l1-row-0')), matching: find.text(full.rows[0].statusLabel))).style 로 좁힌다 · find.text 만 쓰면 «Too many elements») ·
         find.ancestor(of: find.text(full.rows[2].statusLabel), matching: find.byType(Opacity)) findsNothing · ⓡ.
  L1-04 조치 링크 = actionLink · null = 부재(K26 · 수용 18) — 두 경우 (broker_qty · ledgerDiffSlice(full, <int>[0]) · want = full.rows[0].actionLink!.label · steps = 행 0 의 FilledButton 탭 · opened = <String>[full.rows[0].actionLink!.deepLink]) ·
         (push_lag · ledgerDiffSlice(full, <int>[1]) · want = null · steps = 없음 · opened = <String>[])마다 — 전제 둘: expect(full.rows[0].actionLink, isNotNull); // pre · expect(full.rows[1].actionLink, isNull); // pre →
@@ -406,25 +410,30 @@ L-2 — test/ledger_repairs_test.dart
         → tap(find.descendant(of: 행 1, matching: find.byType(IconButton))) → pump →
           expect(calls.where((MethodCall c) => c.method == 'Clipboard.setData').map((MethodCall c) => (c.arguments as Map<Object?, Object?>)['text']).toList(), <Object?>[four.rows[1].chainStampText]) ·
         i 마다 find.descendant(of: 행 i, matching: find.byType(Icon)) findsOneWidget(행 안 아이콘 = 복사 하나) · opener.opened == <String>[](복사는 링크가 아니다) · ⓡ.
- L2-05 빈 문장(K25 · 01 §21-7) — 두 경우 (empty · empty · wantEmpty = empty.emptyLabel · firstRow findsNothing) · (four · four · wantEmpty = null · firstRow findsOneWidget)마다 —
-        전제 둘: expect(empty.rows, isEmpty); // pre · expect(empty.emptyLabel, isNotNull); // pre → 규칙 10 «빈 문장» 견본 그대로 · expect(find.byKey(const ValueKey<String>('l2-row-0')), c.firstRow) · l2-asof findsOneWidget · ⓡ.
- L2-06 상태 × 갈래 — L1-07 과 같은 네 경우(l2- Key · 입력 four · 오래됨 = ledgerStaleClock())(ⓡ·ⓗ 없음).
+ L2-05 빈 문장(K25 · 01 §21-7) — 세 경우 (empty · empty · wantEmpty = empty.emptyLabel · firstRow findsNothing) · (four · four · wantEmpty = null · firstRow findsOneWidget) ·
+        (slice_empty · ledgerRepairSlice(four, <int>[]) · wantEmpty = null · firstRow findsNothing — 행 0 ∧ emptyLabel null = 빈 자리 0)마다 —
+        전제 셋: expect(empty.rows, isEmpty); // pre · expect(empty.emptyLabel, isNotNull); // pre · expect(four.emptyLabel, isNull); // pre → 규칙 10 «빈 문장» 견본 그대로 · expect(find.byKey(const ValueKey<String>('l2-row-0')), c.firstRow) · l2-asof findsOneWidget · ⓡ.
+ L2-06 상태 × 갈래 — L1-07 과 같은 꼴 네 경우(입력 four · 오래됨 = ledgerStaleClock() · ⓡ·ⓗ 없음) · Key 목록 = 이 글자 그대로(L-2 에는 하단 링크가 없다):
+        (loading · 있음 [l2-loading] · 없음 [l2-asof, l2-fail]) · (fail · 있음 [l2-fail] · 없음 [l2-loading, l2-asof]) ·
+        (value_then_fail · 있음 [l2-fail] · 없음 [l2-asof, l2-row-0] · asOfText findsOneWidget) · (stale · 있음 [l2-asof, l2-row-0] · 없음 [l2-loading, l2-fail] · stale findsOneWidget).
  L2-07 재시도 — L1-08 과 같은 꼴(l2-fail → l2-row-0 · repo.limits == <int>[50, 50]) · ⓡ.
  L2-08 안전 배너 — four · safetyFixtureRow(3) · 전제: expect(safetyFixtureRow(3).activeFlags, isNotEmpty); // pre → 첫 플래그 label findsOneWidget · dy 가 l2-asof 보다 크고 l2-row-0 보다 작다 · ⓡ.
  L2-09 화면 Text 전부 · 큰 글꼴 — four · allowed = ledgerRepairsAllowed(four) → L1-11 과 같은 꼴 · ⓡ.
- ⓡ 기대 = ledger_repairs_test.dart 8줄(L2-01·02·03·04·05·07·08·09) · ⓗ 기대 = 1줄(L2-01) — 🔴 정확히 · (전제) = 8(L2-01 2 · L2-02 1 · L2-03 2 · L2-05 2 · L2-08 1).
+ ⓡ 기대 = ledger_repairs_test.dart 8줄(L2-01·02·03·04·05·07·08·09) · ⓗ 기대 = 1줄(L2-01) — 🔴 정확히 · (전제) = 9(L2-01 2 · L2-02 1 · L2-03 2 · L2-05 3 · L2-08 1).
 
 🔴 병합 검사 때 통합 담당이 넣어 볼 변이(하나라도 테스트가 그대로 통과하면 반려 · 갈래마다 — 행 있을 때 · 빈 갈래 · 오래됨 · 에러):
    (순서) L-1 행 순서 뒤집기 · L-2 행 순서 뒤집기 · L-2 정정의 정정을 맨 끝으로 · 배너를 행 아래로 · 하단 링크를 머리 위로.
-   (존재) actionLink null 에도 비활성 버튼 · decisionLink null 에도 비활성 버튼 · supersededLabel 숨김 · 원본 행(superseded) 숨김 · 빈 문장 글자 바꾸기 · emptyLabel null 에도 빈 자리 · 칩 Wrap 을 칩 0 이면 숨김(표본 0 — 참고) ·
+   (존재) actionLink null 에도 비활성 버튼 · decisionLink null 에도 비활성 버튼 · supersededLabel 숨김 · 원본 행(superseded) 숨김 · 빈 문장 글자 바꾸기(L-2 만 · L-1 은 emptyLabel 표본 0 — 참고) ·
+     emptyLabel null 에도 빈 자리(L-1 = L1-10 · L-2 = L2-05 slice_empty) · 칩 Wrap 을 칩 0 이면 숨김(표본 0 — 참고) ·
      applicable 로 deltaLabel 숨김(표본 0 — 참고) · 근거 해시 빼기 · 원인 후보 머리 라벨 빼기 · 정적 글자 하나 더하기 · 링크 글자를 화면에 그리기(탐침 — C4r13b-6).
    (값) 심각도 아이콘 하나로 고정 · 심각도 색 하나로 고정 · accepted 를 회색·작게 · 방향 배지 색 하나로 고정 · 들여쓰기 0 · 들여쓰기 전 행 · 체인 스탬프 대신 evidenceHash · 복사 글자 = 다른 필드 · 칩 순서 뒤집기 · 칩 하나만.
    (링크) 하단 = 다른 상수 · 행 조치 탭 0 · 행 조치 = 조립 링크 · 결정 링크 탭 0 · 탭 한 번에 두 번 열기 · 칩 탭을 화면이 직접.
    (상태) 에러를 스켈레톤으로 · 재시도에 invalidate 0 · 값 뒤 에러에 lastAsOfLabel 0 · 오래됨 배너 빼기 · 신선도 비교 뒤집기 · 벽시계로 신선도 · 로딩 중 하단 링크 · watchRepairs(limit: 100).
-   🔵 판정 = 변이마다 ui_journal 의 flutter test 전부(골든 포함) + C-47 ⑦ · 골든은 아이콘·색 차이를 못 본다(L1-02 · L2-02 몫) · 드라이런 = ⟦실측⟧(목록 KILLED 수 · 참고 변이 통과 목록).
+   🔵 판정 = 변이마다 ui_journal 의 flutter test 전부(골든 포함) + C-47 ⑦ · 골든은 아이콘·색 차이를 못 본다(L1-02 · L2-02 몫) · 드라이런 2026-10-28 = 목록 55꼴 중 «참고» 3(L-1 빈 문장 · 칩 0 · applicable) 말고 전부 KILLED ·
+     «참고» = 반려 근거 아님 — applicable = 정적 L07 몫 · 표본 0 = M2 후보(발주자 확인 ⑩) · 하단 링크를 같은 값 리터럴로 = 정적 L04 몫(C-47 ⑦ 은 리터럴을 보지 않는다) · Key 없는 빈 자리 = 잡는 검사 0.
 
 ■ 정적 묶음 — packages/ui_journal 에서 아래 32줄을 한 번에 붙여 넣어 돌리고, 나온 출력 전부를 PR 본문 ② 에 코드 블록 하나로 그대로 붙인다
-  (대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 출력 줄 수(EXIT 줄 포함) = ⟦실측⟧ 줄 — 붙이기 전에 세어 같은지 본다(C4r4a-6 ㄴ) ·
+  (대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 출력 줄 수(EXIT 줄 포함) = 125줄(드라이런 실측 · bash = PowerShell 5.1) — 붙이기 전에 세어 같은지 본다(C4r4a-6 ㄴ) ·
    flutter test·dart test 출력은 파일로 떠서 붙인다 · «EXIT:1»/«EXIT:False» = 출력 없음 · 블록 뒤 S05 결과 줄마다 정확히 «<파일>:<줄> — 탭 콜백 안»)
 echo "## L01 new test files hangul 0 (comment lines only)"; git grep -nP "'[^'\n]*[\x{AC00}-\x{D7A3}]" -- test/ledger_fakes.dart test/ledger_diffs_test.dart test/ledger_repairs_test.dart test/golden/l1_golden_test.dart test/golden/l2_golden_test.dart; echo "EXIT:$?"
 echo "## L02 test names ASCII"; git grep -nP "(testWidgets|test|group)\('[^']*[^\x00-\x7F]" -- test/ledger_diffs_test.dart test/ledger_repairs_test.dart test/golden/l1_golden_test.dart test/golden/l2_golden_test.dart; echo "EXIT:$?"
@@ -448,32 +457,32 @@ echo "## L19 key names (one line each)"; git grep -noP "'l[12]-[a-z]+(-[a-z]+)*"
 echo "## L20 banned vocabulary 0"; git grep -nE "추천|권유|자문|시그널" -- lib; echo "EXIT:$?"
 echo "## L21 Colors files 0"; git grep -lw Colors -- lib/src/ledger_diffs.dart lib/src/ledger_repairs.dart; echo "EXIT:$?"
 echo "## L22 rich text trimming taking 0"; git grep -nE "RichText|SelectableText|Text\.rich|maxLines|TextOverflow|softWrap|\.trim\(|FittedBox|\.take\(|\.where|\.sort" -- lib/src/ledger_diffs.dart lib/src/ledger_repairs.dart; echo "EXIT:$?"
-echo "## L23 autoDispose 0"; git grep -n "autoDispose" -- lib; echo "EXIT:$?"
+echo "## L23 autoDispose 0"; git grep -n "autoDispose" -- lib/src/ledger_diffs.dart lib/src/ledger_repairs.dart; echo "EXIT:$?"
 echo "## L24 Scaffold AppBar SafeArea 0"; git grep -nE "Scaffold|AppBar|SafeArea" -- lib/src/ledger_diffs.dart lib/src/ledger_repairs.dart; echo "EXIT:$?"
 echo "## L25 shared files add-only and frozen files (numstat)"; git diff --numstat origin/main...HEAD -- lib/l10n/labels.dart lib/ui_journal.dart lib/journal_draft.dart lib/src/common lib/src/timeline.dart lib/src/holdings_overview.dart lib/src/holding_detail.dart pubspec.yaml analysis_options.yaml README.md test/golden/golden_support.dart test/golden/README.md test/flutter_test_config.dart test/holdings_overview_fakes.dart test/holdings_allocation_fakes.dart; echo "EXIT:$?"
 echo "## L26 implements in new tests 0"; git grep -n " implements " -- test/ledger_fakes.dart test/ledger_diffs_test.dart test/ledger_repairs_test.dart test/golden/l1_golden_test.dart test/golden/l2_golden_test.dart; echo "EXIT:$?"
-echo "## L27 copyWith in tests (slice 1)"; git grep -n "copyWith(" -- test/ledger_fakes.dart test/ledger_diffs_test.dart test/ledger_repairs_test.dart test/golden/l1_golden_test.dart test/golden/l2_golden_test.dart; echo "EXIT:$?"
+echo "## L27 copyWith in tests (slice 2)"; git grep -n "copyWith(" -- test/ledger_fakes.dart test/ledger_diffs_test.dart test/ledger_repairs_test.dart test/golden/l1_golden_test.dart test/golden/l2_golden_test.dart; echo "EXIT:$?"
 echo "## L28 collection-if in tests 0"; git grep -nE "^\s*if \(.*\) [^{]*,$|\[\s*if \(|<[A-Za-z]+>\[[^]]*\bif \(" -- test/ledger_fakes.dart test/ledger_diffs_test.dart test/ledger_repairs_test.dart test/golden/l1_golden_test.dart test/golden/l2_golden_test.dart; echo "EXIT:$?"
 echo "## L29 golden files"; git diff --name-status origin/main...HEAD -- test/golden/goldens; echo "EXIT:$?"
 echo "## L30 precondition marks (pre)"; git grep -c "// pre$" -- test/ledger_diffs_test.dart test/ledger_repairs_test.dart; echo "EXIT:$?"
 echo "## L31 name compares element picks and hidden ifs in tests 0"; git grep -nP "\b(name|which)\s*==|opened\[\d\]|\|\|[^;]*isTrue\)" -- test/ledger_fakes.dart test/ledger_diffs_test.dart test/ledger_repairs_test.dart test/golden/l1_golden_test.dart test/golden/l2_golden_test.dart; echo "EXIT:$?"
 echo "## L32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -- lib/src/ledger_diffs.dart lib/src/ledger_repairs.dart; echo "EXIT:$?"
-  (줄의 뜻과 기대(카드 계획 · 드라이런 ⟦실측⟧) — L01 = 주석 줄 말고 출력 없음 · L02 = 출력 없음 · L03 = 4줄(l1_golden 1 · l2_golden 1 · ledger_diffs_test 11 · ledger_repairs_test 9) · L04 = 0 ·
+  (줄의 뜻과 기대(카드 계획 = 드라이런 2026-10-28 실측) — L01 = 주석 줄 말고 출력 없음 · L02 = 출력 없음 · L03 = 4줄(l1_golden 1 · l2_golden 1 · ledger_diffs_test 11 · ledger_repairs_test 9) · L04 = 0 ·
    S05 = 3줄(ledger_diffs.dart 행 조치 · 하단 · ledger_repairs.dart 결정 링크 — 파일 줄 차례 · 줄마다 탭 콜백 안) · L06 = 2줄 · L07 = 0 · L08 = 1줄(ledgerRepairs) · L09 = 2줄(DiffSeverity.blocking · .observational) ·
    L10 = «lib/l10n/labels.dart:37»(🔴 정확히 — R4b 까지 34 + R5a 3 · 줄머리 셈이라 예시 주석은 셈 밖) · L11 = 11줄(l10n/labels · src/blind_review · src/decision_detail · src/holding_detail · src/holdings_allocation · src/holdings_overview · src/journal_read · 🆕 src/ledger_diffs · 🆕 src/ledger_repairs · src/timeline · src/unknown_board 차례 · 🔴 정확히) · L12 = 4줄(ledger_diffs.dart 3 = 주입 2 + _ledgerDiffsProvider · ledger_repairs.dart 1) ·
    L13~L16 = 0 · L17 = «test/ledger_diffs_test.dart:10» · «test/ledger_repairs_test.dart:8» · L18 = «test/ledger_diffs_test.dart:2» · «test/ledger_repairs_test.dart:1»(🔴 정확히 — 다르면 반려) ·
-   L19 = 11줄 = 위 «Key 표» 이름마다 정확히 1줄(같은 이름 두 줄 = 두 자리에 단 것 = 반려) · L20~L24 = 0 · L25 = 두 줄(labels.dart · ui_journal.dart — 둘째 수 0 · ui_journal.dart 첫째 수 2 · labels.dart 첫째 수 = ⟦실측⟧(절 주석·doc 주석·빈 줄 포함 — 수는 재량 · 삭제 0 만 본다 · C4r13a-8)) · 그 밖 파일 줄 없음 ·
-   L26 = 0 · L27 = 1줄(test/ledger_fakes.dart 의 ledgerDiffSlice) · L28 = 0 · L29 = 12줄 전부 «A»(l1_* 8 · l2_* 4) · L30 = «test/ledger_diffs_test.dart:8» · «test/ledger_repairs_test.dart:8»(= 최소 목록의 (전제) 수 · 🔴 정확히) · L31 = 0 · L32 = 0)
+   L19 = 11줄 = 위 «Key 표» 이름마다 정확히 1줄(같은 이름 두 줄 = 두 자리에 단 것 = 반려) · L20~L24 = 0 · L25 = 두 줄(labels.dart · ui_journal.dart — 둘째 수 0 · ui_journal.dart 첫째 수 2 · labels.dart 첫째 수 = 재량(드라이런 11 · 절 주석·doc 주석·빈 줄 포함 — 수는 재량 · 삭제 0 만 본다 · C4r13a-8)) · 그 밖 파일 줄 없음 ·
+   L26 = 0 · L27 = 2줄(test/ledger_fakes.dart 의 ledgerDiffSlice · ledgerRepairSlice) · L28 = 0 · L29 = 12줄 전부 «A»(l1_* 8 · l2_* 4) · L30 = «test/ledger_diffs_test.dart:8» · «test/ledger_repairs_test.dart:9»(= 최소 목록의 (전제) 수 · 🔴 정확히) · L31 = 0 · L32 = 0)
   (🔵 git grep -c 가 0 인 파일은 줄로 나오지 않는다 — 출력 그대로 붙이고 «:0» 을 손으로 더하지 않는다 · L07 · L22 는 주석 줄도 센다(규칙 15))
 
 ■ 골든 — 6이름 × light/dark = 12장(전부 신규 · ✅ K35 · 이름 = 02 §5-1 (d) · §5-2 (c) 글자 그대로 · golden README «🆕 R5» 절 표 그대로)
-  l1 — test/golden/l1_golden_test.dart · const Size _kTallPhone = Size(390, ⟦실측⟧)(폭 390 고정 · kGoldenPhoneSize 불변 · 드라이런 맨 아래 dy 최대 ⟦실측⟧) · 위젯 = const LedgerDiffs() · 안전 = safetyFixtureRow(0):
+  l1 — test/golden/l1_golden_test.dart · const Size _kTallPhone = Size(390, 844)(폭 390 고정 · kGoldenPhoneSize 불변 · 드라이런 맨 아래 dy 최대 412.0) · 위젯 = const LedgerDiffs() · 안전 = safetyFixtureRow(0):
     이름               watchOpenDiffs 입력                          흐름
     l1_broker_qty      ledgerDiffSlice(full, <int>[0])               없음
     l1_cash_observe    cash(m6/ledger_diffs_cash_observe 그대로)      없음
     l1_accepted        ledgerDiffSlice(full, <int>[2])               없음
     l1_push_lag        ledgerDiffSlice(full, <int>[1])               없음
-  l2 — test/golden/l2_golden_test.dart · const Size _kTallPhone = Size(390, ⟦실측⟧)(드라이런 맨 아래 dy 최대 ⟦실측⟧) · 위젯 = const LedgerRepairs() · 안전 = safetyFixtureRow(0):
+  l2 — test/golden/l2_golden_test.dart · const Size _kTallPhone = Size(390, 1200)(드라이런 맨 아래 dy 최대 964.0) · 위젯 = const LedgerRepairs() · 안전 = safetyFixtureRow(0):
     l2_chain_two_repairs   four(m6/ledger_repairs_4)     없음
     l2_empty               empty(m6/ledger_repairs_empty) 없음
   모양 = h63_golden_test.dart(R4b)와 같은 (이름, 입력, 흐름) 목록(private class _Flow) × Brightness.values 루프 · 흐름 = 클로저 칸(전부 (WidgetTester t) async {}) · 테스트 이름 '${flow.name} ${brightnessSuffix(b)}' ·
@@ -491,12 +500,12 @@ echo "## L32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
 · L1L2_questions.md — 머리말의 «다음 번호»(Q1·A1)에서 이어 붙인다 · 다른 질문 파일 수정 0 · 표 끝에 새 행만 · 새 행 상태 «⬜ 미답» · 답 칸 비움 · 칸 안 세로 막대 금지 · 행 앞에 «L-1:» 또는 «L-2:» 접두(🔵 예외 = 골든 dy «측정:» 행 — 접두 없이 «측정:» 으로 시작 · 이름 l1_·l2_ 가 화면을 가른다).
 · 꼭 적을 것: 골든 dy — 이름마다 한 행(A1~A6 = 위 골든 표 차례 · 종류 «추측» · 첫머리 «측정:») — 이 복사 상자 6줄을 그대로 붙이고 <값> 자리에만 잰 수를 넣는다(C4r4a-6 ㄷ · 높이 = 리터럴 · C4r13b-1):
       ┌── 측정 행 복사 시작(다음 줄부터 · 6줄)
-| A1 | R5a-Bob-L1L2 | 추측 | 측정: l1_broker_qty dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A2 | R5a-Bob-L1L2 | 추측 | 측정: l1_cash_observe dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A3 | R5a-Bob-L1L2 | 추측 | 측정: l1_accepted dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A4 | R5a-Bob-L1L2 | 추측 | 측정: l1_push_lag dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A5 | R5a-Bob-L1L2 | 추측 | 측정: l2_chain_two_repairs dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
-| A6 | R5a-Bob-L1L2 | 추측 | 측정: l2_empty dy 실측값 (light=<값>, dark=<값>) < ⟦실측⟧ | 골든 위치 전제 실측 | ⟦실측⟧ 미만 확인 | ⬜ 미답 | |
+| A1 | R5a-Bob-L1L2 | 추측 | 측정: l1_broker_qty dy 실측값 (light=<값>, dark=<값>) < 844 | 골든 위치 전제 실측 | 844 미만 확인 | ⬜ 미답 | |
+| A2 | R5a-Bob-L1L2 | 추측 | 측정: l1_cash_observe dy 실측값 (light=<값>, dark=<값>) < 844 | 골든 위치 전제 실측 | 844 미만 확인 | ⬜ 미답 | |
+| A3 | R5a-Bob-L1L2 | 추측 | 측정: l1_accepted dy 실측값 (light=<값>, dark=<값>) < 844 | 골든 위치 전제 실측 | 844 미만 확인 | ⬜ 미답 | |
+| A4 | R5a-Bob-L1L2 | 추측 | 측정: l1_push_lag dy 실측값 (light=<값>, dark=<값>) < 844 | 골든 위치 전제 실측 | 844 미만 확인 | ⬜ 미답 | |
+| A5 | R5a-Bob-L1L2 | 추측 | 측정: l2_chain_two_repairs dy 실측값 (light=<값>, dark=<값>) < 1200 | 골든 위치 전제 실측 | 1200 미만 확인 | ⬜ 미답 | |
+| A6 | R5a-Bob-L1L2 | 추측 | 측정: l2_empty dy 실측값 (light=<값>, dark=<값>) < 1200 | 골든 위치 전제 실측 | 1200 미만 확인 | ⬜ 미답 | |
       └── 측정 행 복사 끝(이 줄 앞까지 · 괄호는 light·dark 두 값만 감싸고 «< 높이» 는 괄호 밖)
   여백을 줄였으면 A7 부터 «측정:» 전·후 행 · 3개 밖에 더 필요했던 정적 라벨 · 문서에 없어 정한 것 전부.
 · 적지 않을 것(카드가 정함): 위젯·프로바이더·Key·파일 이름 · 정적 라벨 3 · 읽지 않는 필드 · 배치 순서 · Text 순서 · 심각도 아이콘·색 · 방향 배지 색 · 복사 꼴 · 들여쓰기 폭 · 골든 이름·입력 · 재량(여백·크기·모서리).
@@ -506,10 +515,10 @@ echo "## L32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
   (할 일 (1)~(5) 커밋이 끝난 뒤 — 마지막 커밋 = format·질문 커밋)
   cd packages/ui_journal
   flutter test test/ledger_diffs_test.dart              ← 끝 줄 그대로(기대 «+15: All tests passed!»)
-  flutter test test/ledger_repairs_test.dart            ← 끝 줄 그대로(기대 «+14: All tests passed!»)
+  flutter test test/ledger_repairs_test.dart            ← 끝 줄 그대로(기대 «+15: All tests passed!»)
   flutter test test/golden/l1_golden_test.dart          ← 끝 줄 그대로(기대 «+8: All tests passed!»)
   flutter test test/golden/l2_golden_test.dart          ← 끝 줄 그대로(기대 «+4: All tests passed!»)
-  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 41 — 388 → «+429: All tests passed!»)
+  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 42 — 388 → «+430: All tests passed!»)
   cd ../domain_contracts
   dart test test/contracts/c47_ledger_ops_test.dart -r expanded   ← 전부 통과 · «C-47 ⑦ 대상» 줄과 그 아래 들여쓴 경로 줄을 그대로 적어 둔다
      (기대 3줄: «C-47 ⑦ 대상 2파일 — packages/ui_journal/{lib/src/ledger_diffs.dart, lib/src/ledger_repairs.dart} + lib/src/ledger/**» + 공백 4칸 들여쓴
@@ -543,7 +552,8 @@ echo "## L32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
       🔴 N3 — 내기 전 사전검사 ② — 제출 글 전체(①~⑤ + flutter test 한 줄)를 저장소 밖 파일(notepad $env:TEMP\R5a-Bob-L1L2_submit.md · «UTF-8» 저장 · 커밋 0)에 저장한 뒤 저장소 뿌리에서:
      dart tool/precheck.dart --base origin/main --collection-if 0 --report $env:TEMP\R5a-Bob-L1L2_submit.md --golden-prefix l --goldens 12
         ← 🔴 출력 끝 줄 «── 결과: 🔴 0 · …» 를 눈으로 확인한 뒤에만 채팅에 낸다(🔴 1 이상이면 글을 고쳐 다시 돌린다 · C4r13b-3) · 출력은 채팅에 붙이지 않는다 ·
-          🔵 접두 «l» 은 l1_·l2_ 행을 함께 센다 — 골든 표 행은 정확히 12 · 🔵 🟡 [G1] 은 멈춤이 아니다 — 표는 이 카드의 셈 단위대로(재드라이런 칸 견본 = 아래 ③ · ⟦실측⟧).
+          🔵 접두 «l» 은 l1_·l2_ 행을 함께 센다 — 골든 표 행은 정확히 12 · 🔵 🟡 [G1] 은 멈춤이 아니다 — 표는 이 카드의 셈 단위대로(칸 견본 = 아래 ③) ·
+          🔵 G1 🟡 2 예상 = l2_chain_two_repairs light·dark(기계가 체인 스탬프 + 복사 아이콘 줄·버튼 글자를 다르게 센다 · 드라이런 같음) — 🔴 칸을 고치지 않는다(C4r4b-3).
    ① 아래 «① 머리 복사 상자» 두 줄 그대로 + «바뀐 파일:» + name-status 출력 그대로(코드 블록 하나) + «커밋 목록:» + log 출력 그대로(코드 블록 하나)
       ┌── ① 머리 복사 시작(다음 줄부터)
 화면 ID: L-1 — 원장 차이 상세(LedgerDiffs() · LedgerDiffTile(row:))
@@ -626,13 +636,15 @@ echo "## L32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
       골든 표 12행(l1_* 8 · l2_* 4 · 한 표 · 한 행 한 줄): «| 이름 | 입력 픽스처 | 안전 행 | 크기 | 위치 전제 dy | 배치·잘림 |» · 이름 칸 = «l1_broker_qty light» 꼴 · 입력 = 경로 그대로(슬라이스는 «ledger_diffs_4.json 행 0» 꼴) ·
         크기 = 390×<높이 리터럴> · dy = 이름·밝기마다 잰 값 · 배치·잘림 = 이름마다 light PNG 한 장만 연다(6장) · dark 행 = 같은 이름 light 행 칸 글자 그대로(dy 가 같을 때만) ·
         칸 꼴 = «<덩어리 → 로 — 글자 n줄 · 상자 · 배경 덩어리 · 칩 n개 · 막대 · 점 · 버튼 글자> — 잘림 없음» 또는 «… — 잘림: <어디가 어떻게>»(12행 모두 꼬리 · 코드 이름·픽스처 낱말·영문 0 · 🔴 사전검사 G1 출력을 옮기지 않는다 ·
-        행 앞 심각도 아이콘·복사 아이콘 = 글자 줄 덩어리 괄호 안 «작은 네모 표식»(보고 규칙 셈 단위 — «상자» 낱말 0)) · 셈 단위 견본 2행(드라이런이 PNG 를 열어 쓴 칸 · 꼴만 본뜬다): ⟦실측⟧ · ⟦실측⟧.
+        행 앞 심각도 아이콘·복사 아이콘 = 글자 줄 덩어리 괄호 안 «작은 네모 표식»(보고 규칙 셈 단위 — «상자» 낱말 0)) · 셈 단위 견본 2행(드라이런이 PNG 를 열어 쓴 칸 · 꼴만 본뜬다):
+         «| l1_broker_qty light | ledger_diffs_4.json 행 0 | 0 | 390×844 | 412.0 | 글자 줄 1 → 상자(안 글자 줄 7 · 칩 2개 · 글자 줄 2 · 버튼 글자 1 · 첫 줄 앞에 작은 네모 표식 하나) → 버튼 글자 1 — 잘림 없음 |»
+         «| l2_chain_two_repairs light | m6/ledger_repairs_4.json | 0 | 390×1200 | 964.0 | 글자 줄 1 → 칩 1개 → 글자 줄 5(끝 줄 뒤에 작은 네모 표식 하나) → 칩 1개 → 글자 줄 7(끝 줄 뒤에 작은 네모 표식 하나) → 버튼 글자 1 → 칩 1개 → 글자 줄 6(끝 줄 뒤에 작은 네모 표식 하나) → 버튼 글자 1 → 칩 1개 → 글자 줄 5(끝 줄 뒤에 작은 네모 표식 하나) — 잘림 없음 |»(이 행은 G1 🟡 가 난다 — N3).
    ④ 질문 목록 — git -c core.quotePath=false diff origin/main...HEAD -- docs/ai-context/inbox/L1L2_questions.md 출력에서 «+|» 로 시작하는 줄 전부(코드 블록 하나 · 순서 그대로 · 손으로 만들지 않는다)
    ⑤ 추측한 것 = L1L2_questions.md 새 A 행 중 «측정:» 이 아닌 행 전부 — 번호로(🔴 없으면 정확히 «없음» 한 낱말)
       ┌── 시작·끝 복사 시작(다음 줄부터 · 1줄)
 flutter test: 시작 기준 <N> → 끝 <packages/ui_journal 의 flutter test 끝 줄 그대로>
       └── 시작·끝 복사 끝(이 줄 앞까지 · 끝 자리 = 시각·«+수»·«All tests passed!» 까지 끝 줄 그대로 · 사전검사 R5)
-   (+ flutter test 한 줄 — 위 상자의 글자 틀 그대로(기대 M = N + 41 · 다르면 그 위 한 줄에 «까닭:» + 테스트 파일별 끝 줄))
+   (+ flutter test 한 줄 — 위 상자의 글자 틀 그대로(기대 M = N + 42 · 다르면 그 위 한 줄에 «까닭:» + 테스트 파일별 끝 줄))
 ````
 
 ---
@@ -644,9 +656,9 @@ flutter test: 시작 기준 <N> → 끝 <packages/ui_journal 의 flutter test �
 - `test/` 새 파일 5(`ledger_fakes.dart` · `ledger_diffs_test.dart` · `ledger_repairs_test.dart` · `golden/l1_golden_test.dart` · `golden/l2_golden_test.dart`) + 새 PNG 12장(`l1_*` 8 · `l2_*` 4) · 재생성 0(`golden:approved` 불필요) · 기존 fakes 무수정.
 - 질문 파일 `L1L2_questions.md`(새 행 A1~A6 «측정:» 반드시).
 - 채팅: PR 본문 5섹션 + flutter test 한 줄 · 사전검사 ① 한 번 · ② 한 번(`l` · 12) 🔴 0.
-- `flutter test` = 시작 기준 N(388 = `origin/main` `4bb7067` 실측 2026-10-27) + 41(뷰 29 + 골든 12 · 드라이런 ⟦실측⟧) · 정적 L10 = 37 · L11 = 11줄 · L12 = 4 · L17 = 10·8 · L18 = 2·1 · L19 = 11 · L27 = 1 · L29 = 12 A · L30 = 8·8(🔴 정확히) · S05 = 3 · L06 = 2 · L08 = 1 · L09 = 2 · C-47 ⑦ = 2파일 · `domain_contracts` «+392 ~30».
-- 재분할 임계(카드 계획): 새 `testWidgets(`·`test(` 줄 22(임계 «> 33» 안) · lib +⟦실측⟧/-0(임계 «> +900» 안 예상) · 새 PNG 12(임계 «> 16» 안) → 재분할 없음 예상.
-- 🔴 C4 가 넣어 볼 예고 변이 중 드라이런이 확인한 것: ⟦실측⟧.
+- `flutter test` = 시작 기준 N(388 = `origin/main` `4bb7067` 실측 2026-10-27) + 42(뷰 30 + 골든 12 · 드라이런 실측 «+430») · 정적 L10 = 37 · L11 = 11줄 · L12 = 4 · L17 = 10·8 · L18 = 2·1 · L19 = 11 · L27 = 2 · L29 = 12 A · L30 = 8·9(🔴 정확히) · 출력 125줄 · S05 = 3 · L06 = 2 · L08 = 1 · L09 = 2 · C-47 ⑦ = 2파일 · `domain_contracts` «+392 ~30».
+- 재분할 임계(카드 계획): 새 `testWidgets(`·`test(` 줄 22(임계 «> 33» 안) · lib +298/-0(드라이런 · 임계 «> +900» 안) · 새 PNG 12(임계 «> 16» 안) → 재분할 없음 예상.
+- 🔴 C4 가 넣어 볼 예고 변이 중 드라이런이 확인한 것(2026-10-28): 목록 55꼴 — «참고» 3 말고 전부 KILLED(순서 6 · 존재 13 · 값 11 · 링크 8 · 상태 14 · 지적 반영 뒤 «L-2 emptyLabel null 에도 빈 자리» = L2-05 `slice_empty` 가 잡음) · 결과 표 = 스크래치 `r5/mut_r5a/mutations.md` + `r5/mut2/a/`.
 
 ## 4. 받은 뒤 Claude에게 보낼 문장(한 줄)
 
@@ -661,8 +673,8 @@ R5a-Bob-L1L2 결과: 브랜치 ui/m6-l1l2-recon 푸시됨 — PR 만들고 병�
 - **5분 눈 검사**: ① `lib/src/common/**`·`timeline.dart`·`holdings_overview.dart`·기존 테스트·기존 PNG 가 `M` ② `apps/**`·`packages/domain_contracts/**`·다른 `ui_*`·`lib/journal_draft.dart` 가 `M` ③ 두 화면 파일에 `candidateOriginCodes`·`originCode`·`directionCode`·`decisionId`·`.appliedAt`·`.name`·`.where`·`.sort`·`CommandApi`·`watchState`·`kIsWeb`·`'aaq://`·`DateTime.now`·`SnackBar` ④ 배치 순서가 «화면» 과 다름 · 정정·되돌리기 버튼 ⑤ actionLink·decisionLink null 에 비활성 버튼 ⑥ accepted 행만 다른 style ⑦ 들여쓰기를 `supersedes` 밖의 값으로 · 행을 옮김 ⑧ 공용 2파일에 삭제 줄 · 배럴 export 가 끝에 ⑨ L10 ≠ 37 · L11 ≠ 11 · L17·L18·L30 이 카드와 다름 ⑩ 테스트에 `name ==`·`opened[0]`·`|| … isTrue`·bool 칸 + if — 하나라도 있으면 반려 신호.
 - 🔵 `golden:approved` 는 **이 카드에 필요 없다**(새 PNG 만) — 기존 PNG 를 고친 제출은 그 자체로 반려 신호다.
 - 🔵 C-47 ⑦ 의 화면 스캔은 파일 이름으로 대상을 고른다(`lib/src/ledger_diffs.dart`·`ledger_repairs.dart`·`lib/src/ledger/**`) — 다른 이름이면 «공허 통과»(검사 0) → 제출 ② 의 «C-47 ⑦ 출력» 3줄로 확인한다.
-- 🔵 R5b(`send/_대기/R5b-Bob-A1.md`)는 이 카드 병합 뒤 — 병합 기록 커밋이 R5b 의 `__R5A_SQ__`·⟦실측⟧(시작 기준 N · R5a 라벨 절 끝 상수 · 골든 장수)을 채우고 `send/` 로 옮긴다 · R5b~R5e 이월 부록 = 이 카드 C4 결과로 다시 만든다(K47 · 12 §3 «R5a C4 이월 부록» 신설 자리).
-- 범위 고지: 01 §8 미결 117(L-2 필터 · 뷰어 원천) · 121(J-3R 링크 · J-2 배지 진입) · 124(L-1 착지 단위)는 이 카드가 닫지 않는다 · 🆕 신설 후보 = «X5·X7 목록의 `hasMore`»(발주자 확인 ①) · «`applicable == false` 표본(L-1 입력)»(②).
+- 🔵 R5b(`send/_대기/R5b-Bob-A1.md`)는 이 카드 병합 뒤 — 병합 기록 커밋이 R5b 의 `__R5A_SQ__`·실측 표식(시작 기준 N · R5a 라벨 절 끝 상수 · 골든 장수)을 채우고 `send/` 로 옮긴다 · R5b~R5e 이월 부록 = 이 카드 C4 결과로 다시 만든다(K47 · 12 §3 «R5a C4 이월 부록» 신설 자리).
+- 범위 고지: 01 §8 미결 117(L-2 필터 · 뷰어 원천) · 121(J-3R 링크 · J-2 배지 진입) · 124(L-1 착지 단위)는 이 카드가 닫지 않는다 · 🆕 신설 후보 = «X5·X7 목록의 `hasMore`»(발주자 확인 ①) · ⑩ 의 M2 후보 3건 · «`applicable == false` 표본(L-1 입력)»(②).
 
 ## 6. 이월 부록 — ✅ K47(R4a·R4b C4 이월 두 블록 · 이 카드에 옮김) + R13a·R13b 이월의 M6 몫
 
@@ -719,11 +731,11 @@ C4r4b-8 ⬜ 후보(계약 PR) — 뷰어(K15 · pnlToggleLabel null) 표본 · G
 | C4r4a-3 | L1-02 · L2-04 «행 안 Icon 수 == 1» | A-1 급함 아이콘 · 배지 |
 | C4r4a-4 | L1-01 `ledgerCandidateOrigins`·`ledgerEvidence` `findsNWidgets(4)` · 규칙 10 | 겹치는 정적 라벨 전부 |
 | C4r4a-5 | 규칙 5 끝 «칩 목록이 비어도 Wrap 그대로 · 갈래 0» · 예고 변이(참고) | `reasons`·`recordedDeviationChips` |
-| C4r4a-6 (ㄱ)(ㄴ)(ㄷ) | ■ 제출 ② «코드 블록으로 감싸지 않는다» · 정적 묶음 «출력 줄 수 ⟦실측⟧ 자기 확인» · ■ 질문 파일 측정 행 복사 상자 6줄 | 같은 꼴 |
+| C4r4a-6 (ㄱ)(ㄴ)(ㄷ) | ■ 제출 ② «코드 블록으로 감싸지 않는다» · 정적 묶음 «출력 줄 수 125 자기 확인» · ■ 질문 파일 측정 행 복사 상자 6줄 | 같은 꼴 |
 | C4r4a-7 | ■ 제출 «채팅 답 = ①~⑤ 전문» · N3 «끝 줄 🔴 0 확인 뒤» | 같은 꼴 |
 | C4r4b-1 | 규칙 10 «전제는 if 밖 · 자리 = testWidgets 본문 첫머리» + 반려 꼴 | 같은 꼴 |
-| C4r4b-2 | 정적 L30 `// pre$` 셈 = 최소 목록 (전제) 수(8 · 8) | 같은 꼴 |
-| C4r4b-3 | 보고 규칙 «G1 출력 옮기지 않음 · 🟡 지우려 고치지 않음» 🔴 · ③ «셈 단위 견본 2행»(⟦실측⟧ — 드라이런이 채움) | 같은 꼴 |
+| C4r4b-2 | 정적 L30 `// pre$` 셈 = 최소 목록 (전제) 수(8 · 9) | 같은 꼴 |
+| C4r4b-3 | 보고 규칙 «G1 출력 옮기지 않음 · 🟡 지우려 고치지 않음» 🔴 · ③ «셈 단위 견본 2행»(드라이런 2026-10-28 이 채움) · N3 «G1 🟡 2 예상 — 칸 고치지 않음» | 같은 꼴 |
 | C4r4b-4 | ■ 할 일 «커밋마다 git add <파일>» · (2) = L-1 파일만 · (3) = L-2 파일만 | 같은 꼴 |
 | C4r4b-5 | ■ 제출 «23항 줄 수» 복사 상자(바깥 울타리 백틱 네 개) | 같은 꼴 |
 | C4r4b-6 | 규칙 10 «픽스처 = main() 머리 final · 경우 칸에 직접 · 이름 비교 if 사슬 0» | 같은 꼴 |
@@ -736,7 +748,7 @@ C4r4b-8 ⬜ 후보(계약 PR) — 뷰어(K15 · pnlToggleLabel null) 표본 · G
 | C4r13a-6 | ③ «채운 견본» 서술 · ⑤ «없음» 🔴 | 같은 꼴 |
 | C4r13a-7 · C4r13b-7 | ■ 할 일 «(5) 뒤 커밋 0 · 사전검사 ① 수정·주석 고침 = (6) 하나 · 금지 낱말 미리 돌리기» | 같은 꼴 |
 | C4r13a-8 | 정적 묶음 설명 «L07·L22 는 주석도 센다 · L25 labels.dart 첫째 수 = 재량 · 삭제 0 만» | 같은 꼴 |
-| C4r13b-1 | 규칙 11 · ■ 골든 «🔴 높이는 늘리지 않는다(카드 확정값)» · 측정 행 «< ⟦실측⟧» = 높이 리터럴(드라이런이 채움) | 같은 꼴 |
+| C4r13b-1 | 규칙 11 · ■ 골든 «🔴 높이는 늘리지 않는다(카드 확정값)» · 측정 행 «< 844»·«< 1200» = 높이 리터럴(드라이런이 채움) | 같은 꼴 |
 | C4r13b-3 | ■ 제출 N3 «출력 끝 줄 🔴 0 확인 뒤에만» · S05 결과 «출력 줄 수만큼» | 같은 꼴 |
 | C4r13b-6 | 규칙 10 «화면 Text 전부» 허용 집합 «링크·경로 문자열 0» · 예고 변이 «링크 글자를 화면에 그리기(탐침)» | 같은 꼴 |
 | C4r13a-3 · C4r13a-9 · C4r13b-4 · C4r13b-5 | 해당 없음(셸·홈·M2 몫 — 그 부록 그대로) | — |
