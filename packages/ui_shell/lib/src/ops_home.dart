@@ -2,7 +2,7 @@
 //
 // OpsHome — H-01 운영 홈(04 §4-1 · K44 · K45).
 //
-// 🔴 Scaffold·AppBar·SafeArea 없음(화면 규칙 · 부모 높이 안 ListView).
+// 🔴 래퍼 없음(화면 규칙 · 부모 높이 안 ListView).
 // 🔴 구독 6: watchState · watchToday · watchSummary · watchAllocation · watchDiagnostics · watchGrade.
 // 🔴 블록 순서 고정(1→2→3→3b→4→5→6→7→8→9b) · 블록 9 부재.
 

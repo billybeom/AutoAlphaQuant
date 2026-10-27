@@ -1189,8 +1189,9 @@ void main() {
           clock: clock,
         ),
       );
-      final List<Text> allTexts =
-          tester.widgetList<Text>(find.byType(Text)).toList();
+      final List<Text> allTexts = tester
+          .widgetList<Text>(find.byType(Text))
+          .toList();
       expect(allTexts, isNotEmpty, reason: name);
       for (final Text t in allTexts) {
         final String data = t.data ?? '';
