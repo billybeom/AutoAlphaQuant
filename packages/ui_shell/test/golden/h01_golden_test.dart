@@ -25,7 +25,6 @@ class _Flow {
     required this.diag,
     required this.trust,
     required this.bottomKey,
-    this.steps = _noSteps,
   });
 
   final String name;
@@ -36,9 +35,6 @@ class _Flow {
   final DiagnosticsVm diag;
   final LedgerTrustBadge trust;
   final Key bottomKey;
-  final Future<void> Function(WidgetTester tester) steps;
-
-  static Future<void> _noSteps(WidgetTester _) async {}
 }
 
 void main() {
@@ -218,7 +214,6 @@ void main() {
           ),
         );
         await tester.pump();
-        await flow.steps(tester);
         await tester.pumpAndSettle();
 
         // 위치 전제 둘
