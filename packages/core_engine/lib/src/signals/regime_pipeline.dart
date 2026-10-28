@@ -138,6 +138,29 @@ List<double> distributionDays(
   return out;
 }
 
+/// 🆕 E8d1(설계 13 §8 R28 K3) — [dist] 의 t 번째 값이 읽는 거래량 [volume]`[max(0, t−window) .. t]` 가운데 하나라도
+/// 결측(null · NaN)이면 그날을 결측(null)으로 바꾼다. [distributionDays] 는 거래량이 없으면 분산일을 «0개»로 세므로
+/// (NaN 비교는 거짓), 그대로 두면 결측이 **조용히 0** 이 된다(R27 I6). 동결 번들 ^GSPC 거래량은 1985~ 결측 0 이라
+/// 골든은 그대로다(E8-0b 실측).
+List<double?> maskVolumeGaps(
+  List<double> dist,
+  List<double?> volume, {
+  int window = 25,
+}) {
+  if (dist.length != volume.length) {
+    throw ArgumentError('분산일 ${dist.length} · 거래량 ${volume.length}');
+  }
+  int lastGap = -1;
+  return <double?>[
+    for (int t = 0; t < dist.length; t++)
+      () {
+        final double? v = volume[t];
+        if (v == null || v.isNaN) lastGap = t;
+        return lastGap >= 0 && lastGap >= t - window ? null : dist[t];
+      }(),
+  ];
+}
+
 /// 03 §1-2 TREND 카테고리 4지표(원값 — 이진은 1.0/0.0).
 Map<String, List<double?>> trendIndicators(List<double?> close) {
   final List<double?> s50 = sma(close, 50);

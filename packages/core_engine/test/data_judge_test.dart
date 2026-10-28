@@ -209,6 +209,7 @@ void main() {
       usLow: <double?>[for (final String _ in cal) 99],
       usVolume: <double?>[for (final String _ in cal) 1],
       spyAdjClose: dated(cal),
+      spyVolume: dated(cal),
       rspAdjClose: dated(cal),
       vix: vix ?? dated(cal),
       vix3m: dated(cal),
@@ -217,6 +218,7 @@ void main() {
       cfnaiMa3: dated(cal),
       t10y3m: dated(cal),
       sahm: sahm ?? dated(cal),
+      distVolume: kP0sDistVolume,
     );
 
     test('일간 = 세션 수(5 까지 괜찮다) · 관측 전은 «아직 없음»', () {
@@ -267,6 +269,128 @@ void main() {
       ];
       expect(usCalendarLagSessions('2026-09-02', '2026-09-08', xnys), 3);
       expect(usCalendarLagSessions('2026-09-08', '2026-09-08', xnys), 0);
+    });
+  });
+
+  group('R28 dist_days 거래량(E8d1 · R27 I1 V6a · I6)', () {
+    // 60세션 · 사흘마다 −1% 하락(그 앞 이틀 +0.5%) — 하락일에 거래량이 늘면 분산일이다.
+    final List<String> cal = <String>[
+      for (int i = 0; i < 60; i++)
+        DateTime.utc(
+          2026,
+          1,
+          1,
+        ).add(Duration(days: i)).toIso8601String().substring(0, 10),
+    ];
+    final List<double?> close = <double?>[];
+    double c = 100;
+    for (int i = 0; i < cal.length; i++) {
+      c *= i % 3 == 2 ? 0.99 : 1.005;
+      close.add(c);
+    }
+    List<double?> rising(double step) => <double?>[
+      for (int i = 0; i < cal.length; i++) 1000 + step * i,
+    ];
+    DatedSeries onCal(List<double?> v) =>
+        DatedSeries(cal, <double>[for (final double? x in v) x ?? double.nan]);
+    final DatedSeries one = DatedSeries(cal, <double>[
+      for (final String _ in cal) 1,
+    ]);
+    RegimeSources src({
+      required List<double?> usVolume,
+      required DatedSeries spyVolume,
+      required DistVolumeSource dv,
+    }) => RegimeSources(
+      usDates: cal,
+      usClose: close,
+      usHigh: close,
+      usLow: close,
+      usVolume: usVolume,
+      spyAdjClose: one,
+      spyVolume: spyVolume,
+      rspAdjClose: one,
+      vix: one,
+      vix3m: one,
+      ofrFsi: one,
+      nfci: one,
+      cfnaiMa3: one,
+      t10y3m: one,
+      sahm: one,
+      distVolume: dv,
+    );
+    List<double?> dd(RegimeSources s) => regimeRawIndicators(s)['dist_days']!;
+
+    test('maskVolumeGaps — 결측 거래량을 읽는 창(그날 + 뒤 25봉)만 null', () {
+      final List<double> d = <double>[
+        for (int i = 0; i < 40; i++) i.toDouble(),
+      ];
+      final List<double?> v = <double?>[for (int i = 0; i < 40; i++) 1];
+      v[5] = null;
+      final List<double?> m = maskVolumeGaps(d, v);
+      expect(m.sublist(0, 5), <double?>[0, 1, 2, 3, 4]);
+      expect(m.sublist(5, 31).every((double? x) => x == null), isTrue);
+      expect(m[31], 31);
+      v[5] = double.nan;
+      expect(maskVolumeGaps(d, v)[30], isNull, reason: 'NaN 도 결측');
+      expect(() => maskVolumeGaps(d, v.sublist(1)), throwsArgumentError);
+    });
+
+    test('🔴 I6 — spyEtf 는 ^GSPC 거래량을 읽지 않는다(KIS 지수 거래량 0 이 들어와도 같다)', () {
+      final DatedSeries spy = onCal(rising(10));
+      final List<double?> zeros = <double?>[for (final String _ in cal) 0];
+      final List<double?> a = dd(
+        src(usVolume: zeros, spyVolume: spy, dv: DistVolumeSource.spyEtf),
+      );
+      final List<double?> b = dd(
+        src(usVolume: rising(-5), spyVolume: spy, dv: DistVolumeSource.spyEtf),
+      );
+      expect(a, b);
+      expect(
+        a.whereType<double>().any((double x) => x > 0),
+        isTrue,
+        reason: '분산일이 실제로 생긴다',
+      );
+      final List<double?> g = dd(
+        src(usVolume: zeros, spyVolume: spy, dv: DistVolumeSource.gspcIndex),
+      );
+      expect(
+        g.every((double? x) => x == 0),
+        isTrue,
+        reason: '골든 경로에 거래량 0 이면 늘 0 — 그래서 실전은 spyEtf',
+      );
+    });
+
+    test('SPY 거래량은 같은 날짜만 — 빠진 날은 채우지 않고 그 창을 null', () {
+      final List<double?> v = rising(10);
+      final DatedSeries gap = DatedSeries(
+        <String>[
+          for (int i = 0; i < cal.length; i++)
+            if (i != 30) cal[i],
+        ],
+        <double>[
+          for (int i = 0; i < cal.length; i++)
+            if (i != 30) v[i]!,
+        ],
+      );
+      final List<double?> full = dd(
+        src(usVolume: v, spyVolume: onCal(v), dv: DistVolumeSource.spyEtf),
+      );
+      final List<double?> got = dd(
+        src(usVolume: v, spyVolume: gap, dv: DistVolumeSource.spyEtf),
+      );
+      expect(got.sublist(0, 30), full.sublist(0, 30));
+      expect(got.sublist(30, 56).every((double? x) => x == null), isTrue);
+      expect(got.sublist(56), full.sublist(56));
+      expect(
+        distVolumeOnCalendar(
+          src(usVolume: v, spyVolume: gap, dv: DistVolumeSource.spyEtf),
+        )[30],
+        isNull,
+      );
+    });
+
+    test('실전 P0S 기본값 = SPY 거래량', () {
+      expect(kP0sDistVolume, DistVolumeSource.spyEtf);
     });
   });
 

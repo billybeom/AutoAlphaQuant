@@ -7,7 +7,7 @@
 // 🔴 트랜잭션은 호출자가 연다([inLedgerTransaction]) — 시드·수집이 «쓰기 + 수집 기록»을 한 번에 커밋한다.
 
 import 'package:core_engine/core_engine.dart'
-    show DatedSeries, KrBar, RegimeSources;
+    show DatedSeries, DistVolumeSource, KrBar, RegimeSources, kP0sDistVolume;
 import 'package:domain_contracts/domain_contracts.dart' show MarketDataSource;
 import 'package:sqlite3/sqlite3.dart';
 
@@ -257,8 +257,11 @@ final class SqliteMarketStore {
   ];
 
   /// 국면 원천 한 벌(달력 = 저장된 ^GSPC 세션) — 재현 하네스의 `regimeSourcesFromBundle` 과 같은 꼴.
-  RegimeSources regimeSources() {
+  /// 🆕 [distVolume] = `dist_days` 거래량(기본 = 실전 P0S [kP0sDistVolume] — SPY · 설계 13 §8 R27 I1 · R28 K2).
+  /// 골든 재현을 볼 때만 [DistVolumeSource.gspcIndex] 를 준다.
+  RegimeSources regimeSources({DistVolumeSource distVolume = kP0sDistVolume}) {
     final List<PriceBar> us = readBars('US', MarketSymbols.gspc);
+    final List<PriceBar> spy = readBars('US', MarketSymbols.spy);
     return RegimeSources(
       usDates: <String>[for (final PriceBar b in us) b.tradeDate],
       usClose: <double?>[for (final PriceBar b in us) b.close],
@@ -266,6 +269,10 @@ final class SqliteMarketStore {
       usLow: <double?>[for (final PriceBar b in us) b.low],
       usVolume: <double?>[for (final PriceBar b in us) b.volume.toDouble()],
       spyAdjClose: readSeries(MarketSeriesIds.spyAdjClose),
+      spyVolume: DatedSeries(
+        <String>[for (final PriceBar b in spy) b.tradeDate],
+        <double>[for (final PriceBar b in spy) b.volume.toDouble()],
+      ),
       rspAdjClose: readSeries(MarketSeriesIds.rspAdjClose),
       vix: readSeries(MarketSeriesIds.vix),
       vix3m: readSeries(MarketSeriesIds.vix3m),
@@ -274,6 +281,7 @@ final class SqliteMarketStore {
       cfnaiMa3: readSeries(MarketSeriesIds.cfnaiMa3),
       t10y3m: readSeries(MarketSeriesIds.t10y3m),
       sahm: readSeries(MarketSeriesIds.sahm),
+      distVolume: distVolume,
     );
   }
 

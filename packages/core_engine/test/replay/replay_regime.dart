@@ -15,7 +15,11 @@ List<double?> _nullable(List<double> v) => <double?>[
 ];
 
 /// 동결 번들 CSV → 국면 원천 한 벌(참조 엔진 `load_all` 의 열 이름 그대로).
-RegimeSources regimeSourcesFromBundle(ReplayRaw r) {
+/// [distVolume] 기본 = 골든(^GSPC 거래량) · 🆕 E8d1 V6a(SPY 거래량 · 설계 13 §8 R28) = `regime_parity_v6a.json`.
+RegimeSources regimeSourcesFromBundle(
+  ReplayRaw r, {
+  DistVolumeSource distVolume = DistVolumeSource.gspcIndex,
+}) {
   final Ohlcv us = Ohlcv.fromFrame(r['gspc']);
   DatedSeries col(String file, String column) => frameColumn(r[file], column);
   return RegimeSources(
@@ -25,6 +29,7 @@ RegimeSources regimeSourcesFromBundle(ReplayRaw r) {
     usLow: _nullable(us.low),
     usVolume: _nullable(us.volume),
     spyAdjClose: col('spy', 'Adj Close'),
+    spyVolume: col('spy', 'Volume'),
     rspAdjClose: col('rsp', 'Adj Close'),
     vix: col('vix', 'Close'),
     vix3m: col('vix3m', 'Close'),
@@ -33,6 +38,7 @@ RegimeSources regimeSourcesFromBundle(ReplayRaw r) {
     cfnaiMa3: col('cfnai_ma3', 'CFNAIMA3'),
     t10y3m: col('t10y3m', 'T10Y3M'),
     sahm: col('sahm', 'SAHMREALTIME'),
+    distVolume: distVolume,
   );
 }
 
@@ -51,11 +57,15 @@ class ReplayRegime {
     required this.tskr,
   });
 
-  /// 만든다.
-  factory ReplayRegime.build() {
+  /// 만든다([distVolume] = `dist_days` 거래량 — 기본 골든).
+  factory ReplayRegime.build({
+    DistVolumeSource distVolume = DistVolumeSource.gspcIndex,
+  }) {
     final ReplayRaw r = ReplayRaw.load();
     // 🔵 E8b2(설계 13 §8 R24 B2) — 원지표 조립 → 정규화 → 방향 → 추세성 → FSM 은 lib(`src/data/regime_inputs.dart`)다.
-    final RegimeComputation comp = computeRegime(regimeSourcesFromBundle(r));
+    final RegimeComputation comp = computeRegime(
+      regimeSourcesFromBundle(r, distVolume: distVolume),
+    );
     final List<String> cal = comp.calendar;
 
     final Ohlcv kq = Ohlcv.fromFrame(r['kq11']);
