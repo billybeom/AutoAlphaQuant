@@ -6,6 +6,8 @@
 // 🔴 기준일([kSeedAsOf]) **이하** 행만 넣는다 — 그 뒤(2026-08-15~)는 실전 원천이 `source` 를 남기며 채운다(백필).
 // 🔴 fail-closed — 파일 하나라도 없거나 sha256 이 다르면 아무것도 쓰지 않고 [StateError]. 쓰기는 한 트랜잭션(전부 또는 0).
 // 🔵 멱등 — 이미 적재했으면(수집 기록 11행) 읽지도 않고 돌아온다 · 다시 돌려도 행은 늘지 않는다(덧붙이기만).
+// 🆕 E8d1(R28 K6) — 파일 하나가 행선지 여럿일 수 있다: `spy` = `SPY_ADJ` 계열 + `daily_prices` US `SPY` 일봉
+//    (`dist_days` 거래량 · R27 I1 V6a). 수집 기록은 여전히 파일마다 1행(11행)이다.
 // 🔵 자산을 앱에 싣는 일(Flutter 자산 선언 · 첫 실행 배선)은 E11 — 여기는 «바이트 → 원장»만 한다.
 
 import 'dart:convert';
@@ -48,12 +50,23 @@ final class SeedSeries extends SeedTarget {
   final String seriesId, column;
 }
 
-/// 시드 파일(`{name}.csv.gz`) · 번들 MANIFEST 의 `gz_sha256` · 행선지.
+/// 시드 파일(`{name}.csv.gz`) · 번들 MANIFEST 의 `gz_sha256` · 행선지([target] + [also]).
 class SeedFile {
-  const SeedFile(this.name, this.gzSha256, this.target);
+  const SeedFile(
+    this.name,
+    this.gzSha256,
+    this.target, {
+    this.also = const <SeedTarget>[],
+  });
 
   final String name, gzSha256;
   final SeedTarget target;
+
+  /// 같은 파일의 다른 행선지.
+  final List<SeedTarget> also;
+
+  /// 행선지 전부.
+  List<SeedTarget> get targets => <SeedTarget>[target, ...also];
 
   /// 자산 파일 이름.
   String get fileName => '$name.csv.gz';
@@ -80,6 +93,7 @@ const List<SeedFile> kSeedFiles = <SeedFile>[
     'spy',
     '7d325b5f2aff5b949e5ca26cce006401fb63e7141b5f92e2579f8aba2b2d3b3d',
     SeedSeries(MarketSeriesIds.spyAdjClose, 'Adj Close'),
+    also: <SeedTarget>[SeedBars('US', MarketSymbols.spy)],
   ),
   SeedFile(
     'rsp',
@@ -130,9 +144,15 @@ class SeedImportReport {
   /// 이미 적재돼 있어 아무것도 하지 않았다.
   final bool alreadyImported;
 
-  /// 파일 이름 → 새로 쓴 행 수.
+  /// 행선지([seedTargetKey]) → 새로 쓴 행 수.
   final Map<String, int> rows;
 }
+
+/// 행선지 이름 — `daily_prices` = `{market}/{symbol}` · `market_series` = `series_id`.
+String seedTargetKey(SeedTarget t) => switch (t) {
+  final SeedBars s => '${s.market}/${s.symbol}',
+  final SeedSeries s => s.seriesId,
+};
 
 /// 수집 기록의 시드 `fetch_id`.
 String seedFetchId(SeedFile f) =>
@@ -169,36 +189,43 @@ SeedImportReport importSeedBundle(
       final CsvTable t = CsvTable.parse(
         utf8.decode(gzip.decode(gzBytes[f.fileName]!)),
       );
-      final WriteCount w = switch (f.target) {
-        final SeedBars s => store.insertBars(
-          s.market,
-          s.symbol,
-          _bars(t, s),
-          source: MarketDataSource.seedBundle,
-          fetchedAt: importedAt,
-        ),
-        final SeedSeries s => store.insertSeries(
-          s.seriesId,
-          _series(t, s.column),
-          source: MarketDataSource.seedBundle,
-          fetchedAt: importedAt,
-        ),
-      };
-      if (w.rejected.isNotEmpty) {
-        throw StateError('시드 ${f.fileName} — CHECK 위반 ${w.rejected.take(5)}');
+      int inserted = 0;
+      for (final SeedTarget target in f.targets) {
+        final WriteCount w = switch (target) {
+          final SeedBars s => store.insertBars(
+            s.market,
+            s.symbol,
+            _bars(t, s),
+            source: MarketDataSource.seedBundle,
+            fetchedAt: importedAt,
+          ),
+          final SeedSeries s => store.insertSeries(
+            s.seriesId,
+            _series(t, s.column),
+            source: MarketDataSource.seedBundle,
+            fetchedAt: importedAt,
+          ),
+        };
+        if (w.rejected.isNotEmpty) {
+          throw StateError(
+            '시드 ${f.fileName} → ${_where(target)} — CHECK 위반 ${w.rejected.take(5)}',
+          );
+        }
+        rows[seedTargetKey(target)] = w.inserted;
+        inserted += w.inserted;
       }
-      rows[f.fileName] = w.inserted;
       log.record(
         FetchRecord(
           fetchId: seedFetchId(f),
           source: MarketDataSource.seedBundle,
           requestKind: kSeedRequestKind,
           asOf: kSeedAsOf,
-          rowCount: w.inserted,
+          rowCount: inserted,
           bodySha256: f.gzSha256,
           fetchedAt: importedAt,
-          outcome: w.inserted > 0 ? FetchOutcome.ok : FetchOutcome.empty,
-          detail: '시드 ${f.fileName} → ${_where(f.target)} · 기준일 $kSeedAsOf 이하',
+          outcome: inserted > 0 ? FetchOutcome.ok : FetchOutcome.empty,
+          detail:
+              '시드 ${f.fileName} → ${f.targets.map(_where).join(' · ')} · 기준일 $kSeedAsOf 이하',
         ),
       );
     }

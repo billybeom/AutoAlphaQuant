@@ -5,6 +5,8 @@
 //    정답지**(`core_engine/test/replay/fixtures/regime_parity.json` — 정규화 13 · 카테고리 5 · 방향 · 추세성 · FSM ·
 //    KOSDAQ 추세 점수) — 시드 → SQLite → 엔진이 골든 경로를 비트로 지킨다 ⑤ 국면 행 저장 ⑥ «번들 vs 실전 원천» 겹친 날
 //    대조(D9 — 픽스처의 기준일 이하 값은 번들 값이다).
+// 🆕 E8d1(설계 13 §8 R28 K6·K7) — `spy` 파일이 `SPY_ADJ` 계열과 `daily_prices` US `SPY` 일봉 둘로 간다 · 원장의 기본
+//    국면 원천(`regimeSources()`) = 실전 P0S(`dist_days` = SPY 거래량) = 참조 엔진 V6a 정답지(`regime_parity_v6a.json`).
 
 import 'dart:convert';
 import 'dart:io';
@@ -19,6 +21,8 @@ import 'package:test/test.dart';
 
 const String _bundle = '../core_engine/test/replay/data';
 const String _parity = '../core_engine/test/replay/fixtures/regime_parity.json';
+const String _parityV6a =
+    '../core_engine/test/replay/fixtures/regime_parity_v6a.json';
 const String _at = '2026-10-27T00:00:00.000Z';
 
 Map<String, List<int>> _assets() => <String, List<int>>{
@@ -48,20 +52,24 @@ String _lineHash(Iterable<Object> lines) => sha256
 int _nans(List<double?> v) =>
     v.where((double? x) => x == null || x.isNaN).length;
 
-/// 파일 → 기준일 이하·결측 제외 행 수(참조 엔진 CSV 를 파이썬으로 센 값).
+/// 행선지 → 기준일 이하·결측 제외 행 수(참조 엔진 CSV 를 파이썬으로 센 값).
 const Map<String, int> _rows = <String, int>{
-  'gspc.csv.gz': 10485,
-  'kq11.csv.gz': 7541,
-  'spy.csv.gz': 8443,
-  'rsp.csv.gz': 5860,
-  'vix.csv.gz': 9223,
-  'vix3m.csv.gz': 5032,
-  'ofr_fsi.csv.gz': 6736,
-  'nfci.csv.gz': 2901,
-  'cfnai_ma3.csv.gz': 710,
-  't10y3m.csv.gz': 11157,
-  'sahm.csv.gz': 799,
+  'US/^GSPC': 10485,
+  'KR/KQ11': 7541,
+  'SPY_ADJ': 8443,
+  'US/SPY': 8443,
+  'RSP_ADJ': 5860,
+  'VIXCLS': 9223,
+  'VXVCLS': 5032,
+  'OFR_FSI': 6736,
+  'NFCI': 2901,
+  'CFNAIMA3': 710,
+  'T10Y3M': 11157,
+  'SAHMREALTIME': 799,
 };
+
+/// `daily_prices` 시드 행(^GSPC · KQ11 · 🆕 SPY).
+const int _bars = 10485 + 7541 + 8443;
 
 void main() {
   Database openIn(Directory dir) {
@@ -122,7 +130,7 @@ void main() {
       );
       expect(r.alreadyImported, isFalse);
       expect(r.rows, _rows);
-      expect(count(db, 'daily_prices'), 10485 + 7541);
+      expect(count(db, 'daily_prices'), _bars);
       expect(count(db, 'market_series'), 68887 - 10485 - 7541);
       expect(
         db.select(
@@ -130,7 +138,7 @@ void main() {
           'AND fetched_at = ? AND trade_date <= ?',
           <Object>[_at, kSeedAsOf],
         ).first['n'],
-        10485 + 7541,
+        _bars,
       );
       expect(
         db
@@ -147,6 +155,9 @@ void main() {
         expect(l.requestKind, kSeedRequestKind);
         expect(l.asOf, kSeedAsOf);
         expect(l.outcome, FetchOutcome.ok);
+        if (l.fetchId == 'SEED_BUNDLE:SEED:spy') {
+          expect(l.rowCount, 8443 * 2, reason: '파일 하나 → 행선지 둘');
+        }
         expect(
           l.bodySha256,
           kSeedFiles
@@ -159,6 +170,11 @@ void main() {
       expect(s.lastSeriesDate(MarketSeriesIds.t10y3m), kSeedAsOf);
       expect(s.lastBarDate('KR', MarketSymbols.kosdaq), kSeedAsOf);
       expect(s.lastSeriesDate(MarketSeriesIds.vix3m), '2026-07-17');
+      expect(s.lastBarDate('US', MarketSymbols.spy), kSeedAsOf);
+      final PriceBar spy0 = s.readBars('US', MarketSymbols.spy).first;
+      expect(spy0.tradeDate, '1993-01-29');
+      expect(spy0.close, 43.9375, reason: 'SPY 일봉 = 원종가(수정종가는 SPY_ADJ)');
+      expect(spy0.volume, 1003200);
 
       final SeedImportReport again = importSeedBundle(
         db,
@@ -167,7 +183,7 @@ void main() {
       );
       expect(again.alreadyImported, isTrue);
       expect(count(db, 'fetch_log'), 11);
-      expect(count(db, 'daily_prices'), 10485 + 7541);
+      expect(count(db, 'daily_prices'), _bars);
     });
 
     test('🔴 sha256 이 하나라도 다르면 아무것도 쓰지 않는다', () {
@@ -207,7 +223,10 @@ void main() {
       dir = Directory.systemTemp.createTempSync('aaq_seed_regime_');
       db = openLocalLedger(dir.path, RunMode.live);
       importSeedBundle(db, _assets(), importedAt: _at);
-      g = computeRegime(SqliteMarketStore(db).regimeSources());
+      g = computeRegime(
+        SqliteMarketStore(db)
+            .regimeSources(distVolume: DistVolumeSource.gspcIndex),
+      );
     });
     tearDownAll(() {
       db.close();
@@ -375,6 +394,105 @@ void main() {
       );
     });
   });
+
+  group(
+    '🆕 원장 기본 국면(실전 P0S · dist_days = SPY 거래량) = 참조 엔진 V6a 정답지(R28 K7)',
+    () {
+      late Directory dir;
+      late Database db;
+      late RegimeComputation v;
+      final Map<String, Object?> want = jsonDecode(
+        File(_parityV6a).readAsStringSync(),
+      ) as Map<String, Object?>;
+      final Map<String, Object?> gold =
+          jsonDecode(File(_parity).readAsStringSync()) as Map<String, Object?>;
+      Map<String, Object?> obj(Object? o) => o! as Map<String, Object?>;
+
+      setUpAll(() {
+        dir = Directory.systemTemp.createTempSync('aaq_seed_v6a_');
+        db = openLocalLedger(dir.path, RunMode.live);
+        importSeedBundle(db, _assets(), importedAt: _at);
+        v = computeRegime(SqliteMarketStore(db).regimeSources());
+      });
+      tearDownAll(() {
+        db.close();
+        dir.deleteSync(recursive: true);
+      });
+
+      test('정규화 13 · 카테고리 5 · 방향 · FSM 상태 — 비트 일치', () {
+        for (final MapEntry<String, Object?> e in obj(
+          want['normalized'],
+        ).entries) {
+          expect(
+            _nans(v.normalized[e.key]!),
+            obj(e.value)['nan'],
+            reason: e.key,
+          );
+          expect(
+            _floatHash(v.normalized[e.key]!),
+            obj(e.value)['sha256'],
+            reason: e.key,
+          );
+        }
+        for (final MapEntry<String, Object?> e in obj(
+          want['categories'],
+        ).entries) {
+          final RegimeCategory c = RegimeCategory.values.firstWhere(
+            (RegimeCategory x) => x.name == e.key,
+          );
+          expect(
+            _floatHash(<double?>[
+              for (final DirectionScore d in v.direction) d.categories[c],
+            ]),
+            e.value,
+            reason: e.key,
+          );
+        }
+        expect(
+          _floatHash(<double?>[
+            for (final DirectionScore d in v.direction) d.direction,
+          ]),
+          obj(want['direction'])['sha256'],
+        );
+        final Map<String, Object?> f = obj(want['fsm']);
+        expect(
+          _lineHash(
+            v.fsm
+                .sublist(v.calendar.indexOf(f['compare_from']! as String))
+                .map((RegimeDay d) => d.directionState.code),
+          ),
+          f['state_from_sha256'],
+        );
+      });
+
+      test('골든과 다른 것은 dist_days 와 그 뒤뿐이다(TREND · VOLATILITY 등은 같다)', () {
+        expect(
+          obj(obj(want['normalized'])['dist_days'])['sha256'],
+          isNot(obj(obj(gold['normalized'])['dist_days'])['sha256']),
+        );
+        for (final String k in <String>[
+          'ma200_gap',
+          'rsp_spy_ratio',
+          'vix_term',
+          'sahm',
+        ]) {
+          expect(
+            obj(obj(want['normalized'])[k])['sha256'],
+            obj(obj(gold['normalized'])[k])['sha256'],
+            reason: k,
+          );
+        }
+        expect(
+          obj(want['categories'])['trend'],
+          obj(gold['categories'])['trend'],
+        );
+        expect(
+          obj(want['categories'])['breadth'],
+          isNot(obj(gold['categories'])['breadth']),
+        );
+      });
+    },
+  );
 
   group('«번들 vs 실전 원천» 겹친 날 대조(D9)', () {
     late Directory dir;

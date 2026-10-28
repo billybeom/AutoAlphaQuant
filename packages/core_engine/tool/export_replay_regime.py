@@ -7,6 +7,9 @@
 실행(저장소 밖 가상환경 · 설계 13 §8 R8):
     <venv>/Scripts/python.exe -I packages/core_engine/tool/export_replay_regime.py <설계 저장소>/09_백테스트/백테스트6
 산출: packages/core_engine/test/replay/fixtures/regime_parity.json
+🆕 E8d1(설계 13 §8 R28 K7) — `--dist-volume spy` 를 붙이면 `dist_days` 를 ^GSPC 종가 + **SPY 거래량**(같은 날짜만)으로
+   만들고 창 결측 규칙(분산일 창의 거래량에 결측이 있으면 그날 NaN — 참조 엔진 E8-0b V6a_w 와 같다)을 건다 →
+   fixtures/regime_parity_v6a.json. 그 밖의 계산은 그대로다.
 
 🔵 원지표(백분위 전)는 이동평균 합산 순서(pandas 온라인 합 ↔ Dart 왼쪽 합)에 따라 끝자리가 다를 수 있어
    표본 값만 싣는다(허용오차 비교). 정규화 이후는 순위 기반이라 비트 해시로 본다(이식 지도 §0-3 실측).
@@ -21,7 +24,8 @@ import struct
 import sys
 
 sys.dont_write_bytecode = True
-OUT = pathlib.Path(__file__).resolve().parents[1] / "test" / "replay" / "fixtures" / "regime_parity.json"
+FIX = pathlib.Path(__file__).resolve().parents[1] / "test" / "replay" / "fixtures"
+OUT = {"gspc": FIX / "regime_parity.json", "spy": FIX / "regime_parity_v6a.json"}
 NAN = struct.pack("<Q", 0x7FF8000000000000)
 
 
@@ -37,7 +41,17 @@ def shash(values) -> str:
     return hashlib.sha256("".join(f"{v}\n" for v in values).encode()).hexdigest()
 
 
-def main(bt6: str) -> None:
+def mask_window_gaps(dd, v, window=25):
+    """dd[t] 가 읽는 거래량 v[max(0, t−window) .. t] 가운데 하나라도 결측이면 NaN(앱 `maskVolumeGaps` · E8-0b)."""
+    miss = v.isna().to_numpy()
+    out = dd.copy()
+    for t in range(len(out)):
+        if miss[max(0, t - window): t + 1].any():
+            out.iloc[t] = float("nan")
+    return out
+
+
+def main(bt6: str, dist_volume: str = "gspc") -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     sys.path.insert(0, bt6)
     import numpy as np
@@ -48,6 +62,9 @@ def main(bt6: str) -> None:
     idx = D.us_index(raw)
     cal = idx.index
     raws = R.build_raw_indicators(raw, idx)
+    if dist_volume == "spy":
+        v = D._num(raw["spy"], "Volume").reindex(cal)
+        raws["dist_days"] = mask_window_gaps(I.distribution_days(idx["close"], v), v)
     norm = R.normalize(raws)
     ds = R.direction_score(norm, cal)
     h, l, c = idx["high"], idx["low"], idx["close"]
@@ -90,7 +107,9 @@ def main(bt6: str) -> None:
 
     doc = {
         "meta": {"purpose": "참조 엔진 백테스트6 국면 파이프라인 산출 — E6b 대조", "pandas": pd.__version__,
-                 "generator": "packages/core_engine/tool/export_replay_regime.py"},
+                 "generator": "packages/core_engine/tool/export_replay_regime.py",
+                 **({"dist_volume": "spy (^GSPC 종가 + SPY 거래량 · 창 결측 규칙 · 설계 13 §8 R28)"}
+                    if dist_volume == "spy" else {})},
         "calendar": {"n": int(len(cal)), "first": cal[0].strftime("%Y-%m-%d"), "last": cal[-1].strftime("%Y-%m-%d")},
         "raw": {k: {"nan": int(v.reindex(cal).isna().sum()), "samples": samples(v)} for k, v in raws.items()},
         "normalized": {k: {"nan": int(v.reindex(cal).isna().sum()), "sha256": fhash(v.reindex(cal).to_numpy(dtype=float))}
@@ -120,12 +139,18 @@ def main(bt6: str) -> None:
             "samples": {d.strftime("%Y-%m-%d"): repr(float(tskr.loc[d])) for d in kq.index[::300]},
         },
     }
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
-    print("US", len(cal), "· 첫 OK", first_ok.date(), "· KR 월말 상태", me_counts, "→", OUT.name)
+    out = OUT[dist_volume]
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
+    print("US", len(cal), "· 첫 OK", first_ok.date(), "· KR 월말 상태", me_counts, "→", out.name)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        raise SystemExit("사용: export_replay_regime.py <설계 저장소>/09_백테스트/백테스트6")
-    main(sys.argv[1])
+    args = sys.argv[1:]
+    dv = "gspc"
+    if len(args) == 3 and args[1] == "--dist-volume" and args[2] in OUT:
+        dv = args[2]
+        args = args[:1]
+    if len(args) != 1:
+        raise SystemExit("사용: export_replay_regime.py <설계 저장소>/09_백테스트/백테스트6 [--dist-volume spy]")
+    main(args[0], dv)

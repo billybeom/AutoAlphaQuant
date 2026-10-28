@@ -43,6 +43,10 @@ abstract final class MarketSymbols {
 
   /// KOSDAQ 종합지수(`trend_score_kr` 진입 게이트 ③) — market = KR.
   static const String kosdaq = 'KQ11';
+
+  /// 🆕 SPY 일봉(원 OHLCV) — market = US. `dist_days` 거래량(설계 13 §8 R27 I1 V6a · R28 K6) · 수정종가는 따로
+  /// `market_series` `SPY_ADJ`.
+  static const String spy = 'SPY';
 }
 
 /// 원천 하나 — 수집기가 부르는 원천 계열 이름(FRED `series_id` · OFR 칸 이름).

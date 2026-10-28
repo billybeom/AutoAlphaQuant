@@ -17,6 +17,19 @@ import '../signals/regime_score.dart';
 import 'dated_series.dart';
 import 'pit_align.dart';
 
+/// 🆕 E8d1(설계 13 §8 R27 I1 · R28 K2) — `dist_days` 가 읽는 거래량.
+enum DistVolumeSource {
+  /// ^GSPC 거래량 — 참조 엔진 골든(재현 하네스 · 정답지 `regime_parity.json`).
+  gspcIndex,
+
+  /// SPY 거래량(같은 날짜만) — 실전 P0S. KIS 는 ^GSPC 거래량을 0 으로만 준다(실험 5 · 07 §6-2).
+  /// 참조 엔진 V6a_w(E8-0b) = 골든과 CAGR +0.0004 · MDD +0.0130%p · 정답지 `regime_parity_v6a.json`.
+  spyEtf,
+}
+
+/// 실전 P0S 의 `dist_days` 거래량(R27 I1 — 발주자 2026-10-29 «V6a 로 정해»).
+const DistVolumeSource kP0sDistVolume = DistVolumeSource.spyEtf;
+
 /// 국면 원천 시리즈 한 벌 — 수집(E8c)이 저장소에서 채우고, 재현 하네스는 동결 번들 CSV 에서 채운다.
 class RegimeSources {
   const RegimeSources({
@@ -26,6 +39,7 @@ class RegimeSources {
     required this.usLow,
     required this.usVolume,
     required this.spyAdjClose,
+    required this.spyVolume,
     required this.rspAdjClose,
     required this.vix,
     required this.vix3m,
@@ -34,6 +48,7 @@ class RegimeSources {
     required this.cfnaiMa3,
     required this.t10y3m,
     required this.sahm,
+    required this.distVolume,
   });
 
   /// ^GSPC 세션(= 국면 달력) · 종가 · 고가 · 저가 · 거래량(null = 결측).
@@ -43,7 +58,27 @@ class RegimeSources {
   /// SPY · RSP 수정종가 · ^VIX · ^VIX3M 종가 · OFR FSI · NFCI · CFNAIMA3 · T10Y3M · SAHMREALTIME(NaN = 결측).
   final DatedSeries spyAdjClose, rspAdjClose, vix, vix3m;
   final DatedSeries ofrFsi, nfci, cfnaiMa3, t10y3m, sahm;
+
+  /// 🆕 SPY 거래량(NaN = 결측) — [DistVolumeSource.spyEtf] 일 때 `dist_days` 가 읽는다(달력 위 **같은 날짜만** ·
+  /// as-of 채움 없음 — 그날 없으면 결측이고 [maskVolumeGaps] 가 창 26봉을 결측으로 만든다 · R28 K3·K4).
+  final DatedSeries spyVolume;
+
+  /// 🆕 `dist_days` 거래량을 어디서 읽나 — 만드는 쪽이 고른다(골든 재현 = [DistVolumeSource.gspcIndex] ·
+  /// 실전 = [kP0sDistVolume]).
+  final DistVolumeSource distVolume;
 }
+
+/// [s] 의 `dist_days` 거래량을 국면 달력 위에 놓는다(R28 K2 — SPY 는 같은 날짜만).
+List<double?> distVolumeOnCalendar(RegimeSources s) => switch (s.distVolume) {
+  DistVolumeSource.gspcIndex => s.usVolume,
+  DistVolumeSource.spyEtf => <double?>[
+    for (final String d in s.usDates)
+      () {
+        final double? v = s.spyVolume.at(d);
+        return v == null || v.isNaN ? null : v;
+      }(),
+  ],
+};
 
 /// P0S 방향 히스테리시스(02 §4 기본값 · 03 §1-7).
 final DirectionHysteresis kP0sDirectionHysteresis = DirectionHysteresis(
@@ -96,9 +131,10 @@ List<double?> _nullable(List<double> v) => <double?>[
 /// 원지표 13개(참조 엔진 `build_raw_indicators` — 같은 연산 순서).
 Map<String, List<double?>> regimeRawIndicators(RegimeSources s) {
   final List<String> cal = s.usDates;
+  final List<double?> vol = distVolumeOnCalendar(s);
   final Map<String, List<double?>> raw = <String, List<double?>>{
     ...trendIndicators(s.usClose),
-    'dist_days': distributionDays(s.usClose, s.usVolume),
+    'dist_days': maskVolumeGaps(distributionDays(s.usClose, vol), vol),
   };
 
   final DatedSeries spy = s.spyAdjClose.dropNa();
@@ -214,7 +250,9 @@ class RegimeFreshnessCaps {
 }
 
 /// 원지표 → (원천 · 주기). 🔴 ^GSPC 에서 나오는 지표(TREND 4 · dist_days)는 달력 자체라 여기 없다 —
-/// 달력이 늦는지는 미국 세션 표로 따로 본다([usCalendarLagSessions]).
+/// 달력이 늦는지는 미국 세션 표로 따로 본다([usCalendarLagSessions]). 🆕 `dist_days` 가 SPY 거래량을 읽을 때
+/// ([DistVolumeSource.spyEtf])도 상한이 따로 없다 — 같은 날짜만 읽으므로 SPY 가 늦거나 빠진 날은 결측이고
+/// [maskVolumeGaps] 가 그 창을 결측으로 만든다(R28 K4).
 const Map<String, SeriesCadence> kRegimeSourceCadence = <String, SeriesCadence>{
   'rsp_spy_ratio': SeriesCadence.daily,
   'vix_level': SeriesCadence.daily,

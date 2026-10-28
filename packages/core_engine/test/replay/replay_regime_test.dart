@@ -1,6 +1,8 @@
 // E6b 재현 국면 — 앱 코드의 국면 파이프라인이 참조 엔진(백테스트6)과 같은 값을 내는가.
 //
 // 정답지 = `fixtures/regime_parity.json`(tool/export_replay_regime.py — 참조 엔진 regime.py 를 그대로 돌린 산출).
+// 🆕 E8d1(설계 13 §8 R28 K7) — 같은 검사를 V6a(`dist_days` = ^GSPC 종가 + SPY 거래량 · 창 결측 규칙)로 한 번 더 —
+//    정답지 `fixtures/regime_parity_v6a.json`(같은 도구 `--dist-volume spy`).
 // 🔵 원지표(백분위 전)는 이동평균 합산 순서가 달라 끝자리가 다를 수 있다 → 표본 값을 상대 1e-12 로 본다.
 //    정규화 이후(순위 기반)는 비트 해시로 본다.
 // 🔴 FSM 은 03 방식(R9)이라 첫 유효 봉 뒤 9봉(1985-11-14~26)만 참조 엔진과 다르다 — 그 뒤는 상태·나이·추세성
@@ -17,15 +19,31 @@ import 'replay_market.dart';
 import 'replay_regime.dart';
 
 void main() {
-  final Map<String, Object?> want = jsonDecode(
-    File('test/replay/fixtures/regime_parity.json').readAsStringSync(),
-  ) as Map<String, Object?>;
+  group(
+    '골든 — ^GSPC 거래량',
+    () => _parity(
+      'test/replay/fixtures/regime_parity.json',
+      DistVolumeSource.gspcIndex,
+    ),
+  );
+  group(
+    '🆕 V6a — SPY 거래량(R28)',
+    () => _parity(
+      'test/replay/fixtures/regime_parity_v6a.json',
+      DistVolumeSource.spyEtf,
+    ),
+  );
+}
+
+void _parity(String path, DistVolumeSource dv) {
+  final Map<String, Object?> want =
+      jsonDecode(File(path).readAsStringSync()) as Map<String, Object?>;
   Map<String, Object?> obj(Object? o) => o! as Map<String, Object?>;
   int nans(List<double?> v) =>
       v.where((double? x) => x == null || x.isNaN).length;
   double? py(String s) => s == 'nan' ? null : double.parse(s);
 
-  final ReplayRegime g = ReplayRegime.build();
+  final ReplayRegime g = ReplayRegime.build(distVolume: dv);
   final Map<String, int> pos = <String, int>{
     for (int i = 0; i < g.calendar.length; i++) g.calendar[i]: i,
   };
@@ -168,7 +186,7 @@ void main() {
       expect(got['NEUTRAL'], (counts['NEUTRAL']! as int) - 9);
       expect(got['UNKNOWN'], (counts['UNKNOWN']! as int) + 9);
     });
-    test('2000~2026 KR 월말 상태 — BEAR 89 · BULL 113 · NEUTRAL 118', () {
+    test('2000~2026 KR 월말 상태 = 정답지', () {
       final ReplayMarket m = ReplayMarket.build();
       final DatedSeries code = DatedSeries(g.calendar, <double>[
         for (final RegimeDay d in g.fsm) d.directionState.index.toDouble(),

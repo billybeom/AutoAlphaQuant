@@ -41,13 +41,16 @@ export 'src/data/pit_align.dart'
     show alignAsOfInclusive, alignWithLag, kPublishLagDays, toKrCalendar;
 export 'src/data/regime_inputs.dart'
     show
+        DistVolumeSource,
         RegimeComputation,
         RegimeFreshnessCaps,
         RegimeSources,
         SeriesCadence,
         applyFreshnessCaps,
         computeRegime,
+        distVolumeOnCalendar,
         kP0sDirectionHysteresis,
+        kP0sDistVolume,
         kP0sTrendHysteresis,
         kRegimeSourceCadence,
         regimeRawIndicators,
@@ -125,6 +128,7 @@ export 'src/signals/regime_pipeline.dart'
         distributionDays,
         kRegimeCategories,
         kRegimeIndicatorMeta,
+        maskVolumeGaps,
         meanOfAvailable,
         momentum12Minus1,
         normalizeIndicators,
