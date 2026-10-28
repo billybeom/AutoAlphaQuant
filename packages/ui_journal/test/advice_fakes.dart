@@ -186,3 +186,81 @@ Set<String> adviceInboxAllowed(
   ?s.manualEntryLink?.label,
   JournalLabels.adviceHistoryLink,
 };
+
+/// 지난 안내 읽기 창구 가짜 — 받은 range 를 호출마다 기록한다.
+class FakeAdviceHistoryRepository extends UnimplementedAdviceRepository {
+  FakeAdviceHistoryRepository({required this.history});
+
+  final Stream<ListResult<AdviceItem>> Function(int call) history;
+
+  /// watchHistory 의 range — 호출마다.
+  final List<DateRange> ranges = <DateRange>[];
+
+  @override
+  Stream<ListResult<AdviceItem>> watchHistory({required DateRange range}) {
+    final int call = ranges.length;
+    ranges.add(range);
+    return history(call);
+  }
+}
+
+/// 범위 프리셋 가짜 — 호출 수를 센다.
+class FakeAdviceRangeConfig extends UnimplementedConfigRepository {
+  FakeAdviceRangeConfig({required this.presets});
+
+  final Stream<List<DateRange>> Function(int call) presets;
+
+  int calls = 0;
+
+  @override
+  Stream<List<DateRange>> watchRangePresets() {
+    final int call = calls;
+    calls = calls + 1;
+    return presets(call);
+  }
+}
+
+/// 지난 안내 주입 5개.
+List<Override> adviceHistoryOverrides({
+  required FakeAdviceHistoryRepository repo,
+  required FakeAdviceRangeConfig config,
+  SafetyState? safety,
+  Clock? clock,
+  RecordingLinkOpener? opener,
+}) => <Override>[
+  journalAdviceRepositoryProvider.overrideWithValue(repo),
+  journalConfigRepositoryProvider.overrideWithValue(config),
+  journalSafetyRepositoryProvider.overrideWithValue(
+    FakeHoldingsSafetyRepository(safety ?? safetyFixtureRow(0)),
+  ),
+  journalClockProvider.overrideWithValue(clock ?? FixedClock(kGoldenNowUtc)),
+  journalLinkOpenerProvider.overrideWithValue(opener ?? RecordingLinkOpener()),
+];
+
+/// 390×4000 · DPR 1.0 으로 지난 안내를 띄운다(프리셋 → 지난 안내 순서라 pump 두 번).
+Future<void> pumpAdviceHistory(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 4000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: AdviceHistory())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+/// 지난 안내 화면에 나올 수 있는 Text 글자 전부.
+Set<String> adviceHistoryAllowed(ListResult<AdviceItem> v, DateRange range) =>
+    <String>{
+      v.asOf.label,
+      ?range.label,
+      ?v.emptyLabel,
+      for (final AdviceItem r in v.rows) ...adviceCardTexts(r),
+    };

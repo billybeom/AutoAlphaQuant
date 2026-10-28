@@ -11,6 +11,7 @@
 
 export 'l10n/labels.dart';
 export 'src/advice/advice_card.dart';
+export 'src/advice_history.dart';
 export 'src/advice_inbox.dart';
 export 'src/blind_review.dart';
 export 'src/decision_detail.dart';
