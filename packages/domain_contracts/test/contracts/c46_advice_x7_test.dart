@@ -254,8 +254,10 @@ const List<String> _rawReadFields = <String>[
 
 /// `.필드` 접근. 🔴 `\b` 는 그룹 **밖**(`.statusLabel`·`.quantityText` 를 막지 않는다).
 /// 🆕 M2 보강(R5d 선행 · 2026-10-28) — `ManualFillPrefillFields.quantity`(02 §3-8 · K19 상수)는 원값 접근이 아니다(앞보기 예외 1).
-RegExp _dotField(List<String> fields) =>
-    RegExp('(?<!ManualFillPrefillFields)\\.(?:${fields.join('|')})\\b');
+///    예외 앞 앵커 = `(?<![\w$])`(`\b` 는 Dart 식별자 글자 `$` 를 단어 글자로 보지 않는다) — 이름이 그 글자로 **끝나는** 다른 식별자(`itemManualFillPrefillFields.quantity` · `$` 앞붙이)는 그대로 잡는다.
+RegExp _dotField(List<String> fields) => RegExp(
+  '(?<!(?<![\\w\$])ManualFillPrefillFields)\\.(?:${fields.join('|')})\\b',
+);
 
 /// 🆕 검증 반영 — 객체 패턴 구조 분해: `:final quantity` · `:var status` · `:int quantity` · `:quantity` ·
 /// `quantity: final q` · `quantity: var q` · `quantity: int q`(이름 붙인 형 패턴 — 호출 인자로는 쓸 수 없는 꼴).
@@ -624,6 +626,9 @@ const List<(String, bool, String)> _positives = <(String, bool, String)>[
   ('BigInt get _n => BigInt.parse(_qty.text);', false, '⑲'),
   ('final int n = q ~/ 10;', false, '⑲'),
   ('final int n = v.floor();', false, '⑲'),
+  // 🆕 M2 보강(R5d 선행) — ⑰ 앞보기 예외는 그 상수 이름 하나만(끝 글자가 같은 다른 이름은 막는다).
+  ('Text(itemManualFillPrefillFields.quantity.toString())', false, '⑰'),
+  (r'Text($ManualFillPrefillFields.quantity.toString())', false, '⑰'),
 ];
 
 /// 음성 — (스니펫, 읽기 화면인가). 어느 조항에도 걸리지 않아야 한다.
