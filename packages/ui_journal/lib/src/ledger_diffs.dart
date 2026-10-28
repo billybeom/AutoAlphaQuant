@@ -21,15 +21,17 @@ final journalLedgerTrustRepositoryProvider = Provider<LedgerTrustRepository>(
 // ── Data provider ─────────────────────────────────────────────────────────────
 
 final _ledgerDiffsProvider = StreamProvider<ListResult<LedgerDiffRow>>(
-  (Ref ref) =>
-      ref.watch(journalLedgerRepositoryProvider).watchOpenDiffs(),
+  (Ref ref) => ref.watch(journalLedgerRepositoryProvider).watchOpenDiffs(),
 );
 
 // ── Severity icon/color helper ────────────────────────────────────────────────
 
 (IconData, Color) _severityLook(ColorScheme cs, DiffSeverity s) => switch (s) {
   DiffSeverity.blocking => (Icons.block, cs.error),
-  DiffSeverity.observational => (Icons.visibility_outlined, cs.onSurfaceVariant),
+  DiffSeverity.observational => (
+    Icons.visibility_outlined,
+    cs.onSurfaceVariant,
+  ),
 };
 
 // ── Public tile ───────────────────────────────────────────────────────────────
@@ -88,9 +90,7 @@ class LedgerDiffTile extends ConsumerWidget {
                 alignment: Alignment.centerLeft,
                 child: FilledButton(
                   onPressed: () {
-                    ref
-                        .read(journalLinkOpenerProvider)
-                        .open(action.deepLink);
+                    ref.read(journalLinkOpenerProvider).open(action.deepLink);
                   },
                   child: Text(action.label),
                 ),
@@ -111,9 +111,12 @@ class LedgerDiffs extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final Clock clock = ref.watch(journalClockProvider);
-    final SafetyState? safety = ref.watch(journalSafetyStateProvider).valueOrNull;
-    final AsyncValue<ListResult<LedgerDiffRow>> list =
-        ref.watch(_ledgerDiffsProvider);
+    final SafetyState? safety = ref
+        .watch(journalSafetyStateProvider)
+        .valueOrNull;
+    final AsyncValue<ListResult<LedgerDiffRow>> list = ref.watch(
+      _ledgerDiffsProvider,
+    );
     return list.when(
       loading: () => const JournalSkeleton(key: Key('l1-loading')),
       error: (Object e, StackTrace s) => JournalErrorView(

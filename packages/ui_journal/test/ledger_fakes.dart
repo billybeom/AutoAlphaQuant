@@ -128,9 +128,7 @@ Clock ledgerStaleClock() =>
 // ── Text helpers ──────────────────────────────────────────────────────────────
 
 List<String?> ledgerShownTexts(WidgetTester tester, Finder scope) => tester
-    .widgetList<Text>(
-      find.descendant(of: scope, matching: find.byType(Text)),
-    )
+    .widgetList<Text>(find.descendant(of: scope, matching: find.byType(Text)))
     .map((Text t) => t.data)
     .toList();
 

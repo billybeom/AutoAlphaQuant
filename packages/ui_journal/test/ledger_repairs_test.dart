@@ -71,10 +71,12 @@ class _L206Case {
 
 double _dx(WidgetTester tester, int i) => tester
     .getTopLeft(
-      find.descendant(
-        of: find.byKey(ValueKey<String>('l2-row-$i')),
-        matching: find.byType(Text),
-      ).first,
+      find
+          .descendant(
+            of: find.byKey(ValueKey<String>('l2-row-$i')),
+            matching: find.byType(Text),
+          )
+          .first,
     )
     .dx;
 
@@ -167,22 +169,15 @@ void main() {
       repairs: (int call) => ledgerValueThenFail(four),
       clock: null,
       present: <Key>[const Key('l2-fail')],
-      absent: <Key>[
-        const Key('l2-asof'),
-        const ValueKey<String>('l2-row-0'),
-      ],
+      absent: <Key>[const Key('l2-asof'), const ValueKey<String>('l2-row-0')],
       stale: findsNothing,
       asOfText: findsOneWidget,
     ),
     _L206Case(
       name: 'stale',
-      repairs: (int call) =>
-          Stream<ListResult<LedgerRepairRow>>.value(four),
+      repairs: (int call) => Stream<ListResult<LedgerRepairRow>>.value(four),
       clock: ledgerStaleClock(),
-      present: <Key>[
-        const Key('l2-asof'),
-        const ValueKey<String>('l2-row-0'),
-      ],
+      present: <Key>[const Key('l2-asof'), const ValueKey<String>('l2-row-0')],
       absent: <Key>[const Key('l2-loading'), const Key('l2-fail')],
       stale: findsOneWidget,
       asOfText: findsOneWidget,
@@ -196,13 +191,9 @@ void main() {
     expect(four.rows[0].supersedes, isNull); // pre
     expect(four.rows[2].supersedes, isNotNull); // pre
     final FakeLedgerRepairsRepository repo = FakeLedgerRepairsRepository(
-      repairs: (int call) =>
-          Stream<ListResult<LedgerRepairRow>>.value(four),
+      repairs: (int call) => Stream<ListResult<LedgerRepairRow>>.value(four),
     );
-    await pumpLedgerRepairs(
-      tester,
-      overrides: ledgerOverrides(repo: repo),
-    );
+    await pumpLedgerRepairs(tester, overrides: ledgerOverrides(repo: repo));
     expect(four.rows, hasLength(4));
     for (final (int i, LedgerRepairRow r) in four.rows.indexed) {
       expect(
@@ -211,16 +202,21 @@ void main() {
       );
     }
     expect(find.byKey(const ValueKey<String>('l2-row-4')), findsNothing);
-    final double dyAsOf =
-        tester.getTopLeft(find.byKey(const Key('l2-asof'))).dy;
-    final double dyRow0 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l2-row-0'))).dy;
-    final double dyRow1 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l2-row-1'))).dy;
-    final double dyRow2 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l2-row-2'))).dy;
-    final double dyRow3 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l2-row-3'))).dy;
+    final double dyAsOf = tester
+        .getTopLeft(find.byKey(const Key('l2-asof')))
+        .dy;
+    final double dyRow0 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l2-row-0')))
+        .dy;
+    final double dyRow1 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l2-row-1')))
+        .dy;
+    final double dyRow2 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l2-row-2')))
+        .dy;
+    final double dyRow3 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l2-row-3')))
+        .dy;
     expect(dyAsOf, lessThan(dyRow0));
     expect(dyRow0, lessThan(dyRow1));
     expect(dyRow1, lessThan(dyRow2));
@@ -259,9 +255,11 @@ void main() {
         findsOneWidget,
       );
       expect(
-        tester.widget<Chip>(
-          find.descendant(of: rowFinder, matching: find.byType(Chip)),
-        ).backgroundColor,
+        tester
+            .widget<Chip>(
+              find.descendant(of: rowFinder, matching: find.byType(Chip)),
+            )
+            .backgroundColor,
         journalToneColor(
           tester.element(find.byType(LedgerRepairs)),
           r.directionTone,
@@ -288,8 +286,9 @@ void main() {
         ),
       );
       final String? want = c.want;
-      final Finder rowFinder =
-          find.byKey(ValueKey<String>('l2-row-${c.rowIndex}'));
+      final Finder rowFinder = find.byKey(
+        ValueKey<String>('l2-row-${c.rowIndex}'),
+      );
       if (want != null) {
         expect(
           ledgerShownTexts(
@@ -347,14 +346,11 @@ void main() {
     expect(
       calls
           .where((MethodCall c) => c.method == 'Clipboard.setData')
-          .map(
-            (MethodCall c) =>
-                (c.arguments as Map<Object?, Object?>)['text'],
-          )
+          .map((MethodCall c) => (c.arguments as Map<Object?, Object?>)['text'])
           .toList(),
       <Object?>[four.rows[1].chainStampText],
     );
-    for (final (int i, LedgerRepairRow r) in four.rows.indexed) {
+    for (final (int i, _) in four.rows.indexed) {
       expect(
         find.descendant(
           of: find.byKey(ValueKey<String>('l2-row-$i')),
@@ -391,10 +387,7 @@ void main() {
       } else {
         expect(find.byKey(const Key('l2-empty')), findsNothing);
       }
-      expect(
-        find.byKey(const ValueKey<String>('l2-row-0')),
-        c.firstRow,
-      );
+      expect(find.byKey(const ValueKey<String>('l2-row-0')), c.firstRow);
       expect(find.byKey(const Key('l2-asof')), findsOneWidget);
       expect(find.text(JournalLabels.retry), findsNothing);
     });
@@ -427,15 +420,11 @@ void main() {
     WidgetTester tester,
   ) async {
     final FakeLedgerRepairsRepository repo = FakeLedgerRepairsRepository(
-      repairs: (int call) =>
-          call == 0
-              ? Stream<ListResult<LedgerRepairRow>>.error(StateError('fail'))
-              : Stream<ListResult<LedgerRepairRow>>.value(four),
+      repairs: (int call) => call == 0
+          ? Stream<ListResult<LedgerRepairRow>>.error(StateError('fail'))
+          : Stream<ListResult<LedgerRepairRow>>.value(four),
     );
-    await pumpLedgerRepairs(
-      tester,
-      overrides: ledgerOverrides(repo: repo),
-    );
+    await pumpLedgerRepairs(tester, overrides: ledgerOverrides(repo: repo));
     await tester.tap(find.text(JournalLabels.retry));
     await tester.pump();
     await tester.pump();
@@ -463,12 +452,13 @@ void main() {
     );
     final String firstFlagLabel = safety3.activeFlags.first.label;
     expect(find.text(firstFlagLabel), findsOneWidget);
-    final double dyBanner =
-        tester.getTopLeft(find.text(firstFlagLabel)).dy;
-    final double dyAsOf =
-        tester.getTopLeft(find.byKey(const Key('l2-asof'))).dy;
-    final double dyRow0 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l2-row-0'))).dy;
+    final double dyBanner = tester.getTopLeft(find.text(firstFlagLabel)).dy;
+    final double dyAsOf = tester
+        .getTopLeft(find.byKey(const Key('l2-asof')))
+        .dy;
+    final double dyRow0 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l2-row-0')))
+        .dy;
     expect(dyBanner, greaterThan(dyAsOf));
     expect(dyBanner, lessThan(dyRow0));
     expect(find.text(JournalLabels.retry), findsNothing);

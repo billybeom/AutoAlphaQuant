@@ -159,7 +159,9 @@ void main() {
   ];
 
   // L1-01 full list, received order, texts
-  testWidgets('L1-01 full list received order texts', (WidgetTester tester) async {
+  testWidgets('L1-01 full list received order texts', (
+    WidgetTester tester,
+  ) async {
     final RecordingLinkOpener opener = RecordingLinkOpener();
     final FakeLedgerDiffsRepository repo = FakeLedgerDiffsRepository(
       diffs: (int call) => Stream<ListResult<LedgerDiffRow>>.value(full),
@@ -176,22 +178,27 @@ void main() {
       );
     }
     expect(find.byKey(const ValueKey<String>('l1-row-4')), findsNothing);
-    expect(
-      ledgerShownTexts(tester, find.byKey(const Key('l1-asof'))),
-      <String>[full.asOf.label],
-    );
-    final double dyAsOf =
-        tester.getTopLeft(find.byKey(const Key('l1-asof'))).dy;
-    final double dyRow0 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l1-row-0'))).dy;
-    final double dyRow1 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l1-row-1'))).dy;
-    final double dyRow2 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l1-row-2'))).dy;
-    final double dyRow3 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l1-row-3'))).dy;
-    final double dyRepairs =
-        tester.getTopLeft(find.byKey(const Key('l1-repairs-link'))).dy;
+    expect(ledgerShownTexts(tester, find.byKey(const Key('l1-asof'))), <String>[
+      full.asOf.label,
+    ]);
+    final double dyAsOf = tester
+        .getTopLeft(find.byKey(const Key('l1-asof')))
+        .dy;
+    final double dyRow0 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l1-row-0')))
+        .dy;
+    final double dyRow1 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l1-row-1')))
+        .dy;
+    final double dyRow2 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l1-row-2')))
+        .dy;
+    final double dyRow3 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l1-row-3')))
+        .dy;
+    final double dyRepairs = tester
+        .getTopLeft(find.byKey(const Key('l1-repairs-link')))
+        .dy;
     expect(dyAsOf, lessThan(dyRow0));
     expect(dyRow0, lessThan(dyRow1));
     expect(dyRow1, lessThan(dyRow2));
@@ -220,8 +227,8 @@ void main() {
         ),
       ),
     );
-    final ColorScheme cs =
-        Theme.of(tester.element(find.byType(LedgerDiffs))).colorScheme;
+    final ColorScheme cs = Theme.of(tester.element(find.byType(LedgerDiffs)))
+        .colorScheme;
     for (final (int i, LedgerDiffRow r) in full.rows.indexed) {
       final Finder rowFinder = find.byKey(ValueKey<String>('l1-row-$i'));
       expect(
@@ -251,10 +258,12 @@ void main() {
         ),
       ),
     );
-    final TextStyle? styleAccepted =
-        tester.widget<Text>(find.text(full.rows[2].statusLabel)).style;
-    final TextStyle? styleResolved =
-        tester.widget<Text>(find.text(full.rows[3].statusLabel)).style;
+    final TextStyle? styleAccepted = tester
+        .widget<Text>(find.text(full.rows[2].statusLabel))
+        .style;
+    final TextStyle? styleResolved = tester
+        .widget<Text>(find.text(full.rows[3].statusLabel))
+        .style;
     final TextStyle? styleRow0 = tester
         .widget<Text>(
           find.descendant(
@@ -286,8 +295,7 @@ void main() {
         tester,
         overrides: ledgerOverrides(
           repo: FakeLedgerDiffsRepository(
-            diffs: (int call) =>
-                Stream<ListResult<LedgerDiffRow>>.value(input),
+            diffs: (int call) => Stream<ListResult<LedgerDiffRow>>.value(input),
           ),
           opener: opener,
         ),
@@ -353,10 +361,9 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(
-      opener.opened,
-      <String>[full.rows[0].candidateOrigins[0].detailDeepLink!],
-    );
+    expect(opener.opened, <String>[
+      full.rows[0].candidateOrigins[0].detailDeepLink!,
+    ]);
     expect(find.byType(TextField), findsNothing);
     expect(find.byType(Checkbox), findsNothing);
     expect(find.byType(Radio), findsNothing);
@@ -364,7 +371,9 @@ void main() {
   });
 
   // L1-06 bottom repairs link = constant
-  testWidgets('L1-06 bottom repairs link constant', (WidgetTester tester) async {
+  testWidgets('L1-06 bottom repairs link constant', (
+    WidgetTester tester,
+  ) async {
     final RecordingLinkOpener opener = RecordingLinkOpener();
     await pumpLedgerDiffs(
       tester,
@@ -408,15 +417,11 @@ void main() {
     WidgetTester tester,
   ) async {
     final FakeLedgerDiffsRepository repo = FakeLedgerDiffsRepository(
-      diffs: (int call) =>
-          call == 0
-              ? Stream<ListResult<LedgerDiffRow>>.error(StateError('fail'))
-              : Stream<ListResult<LedgerDiffRow>>.value(full),
+      diffs: (int call) => call == 0
+          ? Stream<ListResult<LedgerDiffRow>>.error(StateError('fail'))
+          : Stream<ListResult<LedgerDiffRow>>.value(full),
     );
-    await pumpLedgerDiffs(
-      tester,
-      overrides: ledgerOverrides(repo: repo),
-    );
+    await pumpLedgerDiffs(tester, overrides: ledgerOverrides(repo: repo));
     await tester.tap(find.text(JournalLabels.retry));
     await tester.pump();
     await tester.pump();
@@ -443,12 +448,13 @@ void main() {
     );
     final String firstFlagLabel = safety3.activeFlags.first.label;
     expect(find.text(firstFlagLabel), findsOneWidget);
-    final double dyBanner =
-        tester.getTopLeft(find.text(firstFlagLabel)).dy;
-    final double dyAsOf =
-        tester.getTopLeft(find.byKey(const Key('l1-asof'))).dy;
-    final double dyRow0 =
-        tester.getTopLeft(find.byKey(const ValueKey<String>('l1-row-0'))).dy;
+    final double dyBanner = tester.getTopLeft(find.text(firstFlagLabel)).dy;
+    final double dyAsOf = tester
+        .getTopLeft(find.byKey(const Key('l1-asof')))
+        .dy;
+    final double dyRow0 = tester
+        .getTopLeft(find.byKey(const ValueKey<String>('l1-row-0')))
+        .dy;
     expect(dyBanner, greaterThan(dyAsOf));
     expect(dyBanner, lessThan(dyRow0));
     expect(find.text(JournalLabels.retry), findsNothing);

@@ -15,11 +15,7 @@ import 'golden_support.dart';
 const Size _kTallPhone = Size(390, 844);
 
 class _Flow {
-  const _Flow({
-    required this.name,
-    required this.input,
-    required this.steps,
-  });
+  const _Flow({required this.name, required this.input, required this.steps});
   final String name;
   final ListResult<LedgerDiffRow> input;
   final Future<void> Function(WidgetTester) steps;
@@ -85,10 +81,7 @@ void main() {
           tester.getBottomLeft(find.byKey(const Key('l1-repairs-link'))).dy,
           lessThan(_kTallPhone.height),
         );
-        expect(
-          tester.getTopLeft(find.byKey(const Key('l1-asof'))).dy,
-          0.0,
-        );
+        expect(tester.getTopLeft(find.byKey(const Key('l1-asof'))).dy, 0.0);
         await expectGolden(flow.name, b);
       });
     }

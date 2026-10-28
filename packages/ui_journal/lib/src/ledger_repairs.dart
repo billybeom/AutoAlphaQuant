@@ -12,8 +12,7 @@ import 'timeline.dart';
 // ── Data provider ─────────────────────────────────────────────────────────────
 
 final _ledgerRepairsProvider = StreamProvider<ListResult<LedgerRepairRow>>(
-  (Ref ref) =>
-      ref.watch(journalLedgerRepositoryProvider).watchRepairs(),
+  (Ref ref) => ref.watch(journalLedgerRepositoryProvider).watchRepairs(),
 );
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -25,10 +24,12 @@ class LedgerRepairs extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final Clock clock = ref.watch(journalClockProvider);
-    final SafetyState? safety =
-        ref.watch(journalSafetyStateProvider).valueOrNull;
-    final AsyncValue<ListResult<LedgerRepairRow>> list =
-        ref.watch(_ledgerRepairsProvider);
+    final SafetyState? safety = ref
+        .watch(journalSafetyStateProvider)
+        .valueOrNull;
+    final AsyncValue<ListResult<LedgerRepairRow>> list = ref.watch(
+      _ledgerRepairsProvider,
+    );
     return list.when(
       loading: () => const JournalSkeleton(key: Key('l2-loading')),
       error: (Object e, StackTrace s) => JournalErrorView(
@@ -82,12 +83,7 @@ class _RepairRow extends ConsumerWidget {
     final String? superseded = row.supersededLabel;
     final LinkAction? link = row.decisionLink;
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        row.supersedes == null ? 16 : 40,
-        8,
-        16,
-        8,
-      ),
+      padding: EdgeInsets.fromLTRB(row.supersedes == null ? 16 : 40, 8, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -107,9 +103,7 @@ class _RepairRow extends ConsumerWidget {
                 icon: const Icon(Icons.copy),
                 onPressed: () {
                   unawaited(
-                    Clipboard.setData(
-                      ClipboardData(text: row.chainStampText),
-                    ),
+                    Clipboard.setData(ClipboardData(text: row.chainStampText)),
                   );
                 },
               ),
@@ -120,9 +114,7 @@ class _RepairRow extends ConsumerWidget {
               alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: () {
-                  ref
-                      .read(journalLinkOpenerProvider)
-                      .open(link.deepLink);
+                  ref.read(journalLinkOpenerProvider).open(link.deepLink);
                 },
                 child: Text(link.label),
               ),
