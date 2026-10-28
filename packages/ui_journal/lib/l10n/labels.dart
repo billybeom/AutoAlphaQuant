@@ -130,4 +130,15 @@ abstract final class JournalLabels {
 
   /// 슬리브·비중 — 하단 다음 리밸런싱 날짜 앞 머리.
   static const String holdingsNextRebalance = '다음 리밸런싱';
+
+  // ── 🆕 R5a — L-1 차이 상세 · L-2 정정 이력 ──────────────────────────────────
+
+  /// L-1 하단 정정 이력 화면 이동 버튼.
+  static const String ledgerRepairsLink = '정정 이력';
+
+  /// L-1 원인 후보 칩 묶음 머리.
+  static const String ledgerCandidateOrigins = '원인 후보';
+
+  /// L-1 근거 해시 앞 머리.
+  static const String ledgerEvidence = '근거';
 }
