@@ -16,9 +16,8 @@ dependencies:
     path: ../core_engine
   domain_contracts:
     path: ../domain_contracts
-  # ⚠️ HTTP 클라이언트(KIS REST)는 아직 선언하지 않는다 — 구현 착수 시
-  #    `http` 또는 `dio` 중 하나를 고르고 여기에 한 번만 추가한다.
-  #    지금 넣으면 쓰지 않는 의존이 lock 파일에 먼저 박힌다.
+  # 🆕 E8d2a(설계 13 §8 R29 L10 · 01 §1-1 v1.14 허용) — KIS REST. data_sync(FRED·OFR)와 같은 `http` 하나만 쓴다(`dio` 아님).
+  http: ^1.6.0
 
 # 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
 dev_dependencies:

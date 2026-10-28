@@ -1,0 +1,525 @@
+{
+  "output1": {
+    "bstp_nmix_prdy_vrss": "27.45",
+    "prdy_vrss_sign": "2",
+    "bstp_nmix_prdy_ctrt": "3.69",
+    "prdy_nmix": "743.83",
+    "acml_vol": "560627",
+    "acml_tr_pbmn": "7051239",
+    "hts_kor_isnm": "KOSDAQ",
+    "bstp_nmix_prpr": "771.28",
+    "bstp_cls_code": "1001",
+    "prdy_vol": "539957",
+    "bstp_nmix_oprc": "756.90",
+    "bstp_nmix_hgpr": "773.28",
+    "bstp_nmix_lwpr": "756.57",
+    "futs_prdy_oprc": "743.09",
+    "futs_prdy_hgpr": "760.59",
+    "futs_prdy_lwpr": "740.17"
+  },
+  "output2": [
+    {
+      "stck_bsop_date": "20261028",
+      "bstp_nmix_prpr": "771.28",
+      "bstp_nmix_oprc": "756.90",
+      "bstp_nmix_hgpr": "773.28",
+      "bstp_nmix_lwpr": "756.57",
+      "acml_vol": "560627",
+      "acml_tr_pbmn": "7051239",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261027",
+      "bstp_nmix_prpr": "743.83",
+      "bstp_nmix_oprc": "743.09",
+      "bstp_nmix_hgpr": "760.59",
+      "bstp_nmix_lwpr": "740.17",
+      "acml_vol": "539957",
+      "acml_tr_pbmn": "6031177",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261026",
+      "bstp_nmix_prpr": "727.21",
+      "bstp_nmix_oprc": "742.17",
+      "bstp_nmix_hgpr": "745.95",
+      "bstp_nmix_lwpr": "727.20",
+      "acml_vol": "476231",
+      "acml_tr_pbmn": "4781135",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261023",
+      "bstp_nmix_prpr": "751.69",
+      "bstp_nmix_oprc": "748.32",
+      "bstp_nmix_hgpr": "753.02",
+      "bstp_nmix_lwpr": "732.87",
+      "acml_vol": "505474",
+      "acml_tr_pbmn": "5807985",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261022",
+      "bstp_nmix_prpr": "764.10",
+      "bstp_nmix_oprc": "789.84",
+      "bstp_nmix_hgpr": "791.24",
+      "bstp_nmix_lwpr": "761.56",
+      "acml_vol": "544951",
+      "acml_tr_pbmn": "6908569",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261021",
+      "bstp_nmix_prpr": "792.76",
+      "bstp_nmix_oprc": "793.40",
+      "bstp_nmix_hgpr": "803.68",
+      "bstp_nmix_lwpr": "785.53",
+      "acml_vol": "575819",
+      "acml_tr_pbmn": "5282050",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261020",
+      "bstp_nmix_prpr": "781.97",
+      "bstp_nmix_oprc": "805.37",
+      "bstp_nmix_hgpr": "807.22",
+      "bstp_nmix_lwpr": "773.32",
+      "acml_vol": "494533",
+      "acml_tr_pbmn": "5381245",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261019",
+      "bstp_nmix_prpr": "808.89",
+      "bstp_nmix_oprc": "773.06",
+      "bstp_nmix_hgpr": "808.92",
+      "bstp_nmix_lwpr": "773.06",
+      "acml_vol": "448135",
+      "acml_tr_pbmn": "5031564",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261016",
+      "bstp_nmix_prpr": "794.78",
+      "bstp_nmix_oprc": "772.17",
+      "bstp_nmix_hgpr": "807.54",
+      "bstp_nmix_lwpr": "764.97",
+      "acml_vol": "466392",
+      "acml_tr_pbmn": "6025907",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261015",
+      "bstp_nmix_prpr": "760.82",
+      "bstp_nmix_oprc": "784.45",
+      "bstp_nmix_hgpr": "788.69",
+      "bstp_nmix_lwpr": "745.43",
+      "acml_vol": "501402",
+      "acml_tr_pbmn": "7032944",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261014",
+      "bstp_nmix_prpr": "823.88",
+      "bstp_nmix_oprc": "835.90",
+      "bstp_nmix_hgpr": "846.95",
+      "bstp_nmix_lwpr": "813.49",
+      "acml_vol": "468143",
+      "acml_tr_pbmn": "6165148",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261013",
+      "bstp_nmix_prpr": "837.03",
+      "bstp_nmix_oprc": "823.69",
+      "bstp_nmix_hgpr": "839.94",
+      "bstp_nmix_lwpr": "802.91",
+      "acml_vol": "545498",
+      "acml_tr_pbmn": "7241090",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261012",
+      "bstp_nmix_prpr": "849.19",
+      "bstp_nmix_oprc": "885.53",
+      "bstp_nmix_hgpr": "891.79",
+      "bstp_nmix_lwpr": "849.07",
+      "acml_vol": "528398",
+      "acml_tr_pbmn": "6811395",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261008",
+      "bstp_nmix_prpr": "892.27",
+      "bstp_nmix_oprc": "898.19",
+      "bstp_nmix_hgpr": "903.12",
+      "bstp_nmix_lwpr": "883.85",
+      "acml_vol": "588666",
+      "acml_tr_pbmn": "8060445",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261007",
+      "bstp_nmix_prpr": "898.43",
+      "bstp_nmix_oprc": "917.45",
+      "bstp_nmix_hgpr": "921.73",
+      "bstp_nmix_lwpr": "898.25",
+      "acml_vol": "602855",
+      "acml_tr_pbmn": "8334829",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261006",
+      "bstp_nmix_prpr": "919.92",
+      "bstp_nmix_oprc": "902.16",
+      "bstp_nmix_hgpr": "919.92",
+      "bstp_nmix_lwpr": "901.46",
+      "acml_vol": "613730",
+      "acml_tr_pbmn": "9344938",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261002",
+      "bstp_nmix_prpr": "893.29",
+      "bstp_nmix_oprc": "893.22",
+      "bstp_nmix_hgpr": "903.88",
+      "bstp_nmix_lwpr": "885.65",
+      "acml_vol": "556961",
+      "acml_tr_pbmn": "8846913",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20261001",
+      "bstp_nmix_prpr": "894.29",
+      "bstp_nmix_oprc": "853.96",
+      "bstp_nmix_hgpr": "894.29",
+      "bstp_nmix_lwpr": "851.92",
+      "acml_vol": "530399",
+      "acml_tr_pbmn": "8884481",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260930",
+      "bstp_nmix_prpr": "855.91",
+      "bstp_nmix_oprc": "854.78",
+      "bstp_nmix_hgpr": "862.50",
+      "bstp_nmix_lwpr": "852.10",
+      "acml_vol": "573996",
+      "acml_tr_pbmn": "7771793",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260929",
+      "bstp_nmix_prpr": "849.80",
+      "bstp_nmix_oprc": "843.87",
+      "bstp_nmix_hgpr": "849.82",
+      "bstp_nmix_lwpr": "833.62",
+      "acml_vol": "604269",
+      "acml_tr_pbmn": "8035983",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260928",
+      "bstp_nmix_prpr": "846.58",
+      "bstp_nmix_oprc": "845.48",
+      "bstp_nmix_hgpr": "861.15",
+      "bstp_nmix_lwpr": "841.23",
+      "acml_vol": "579986",
+      "acml_tr_pbmn": "6334789",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260923",
+      "bstp_nmix_prpr": "844.48",
+      "bstp_nmix_oprc": "841.73",
+      "bstp_nmix_hgpr": "847.35",
+      "bstp_nmix_lwpr": "835.46",
+      "acml_vol": "645879",
+      "acml_tr_pbmn": "8086910",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260922",
+      "bstp_nmix_prpr": "834.38",
+      "bstp_nmix_oprc": "846.14",
+      "bstp_nmix_hgpr": "847.10",
+      "bstp_nmix_lwpr": "831.13",
+      "acml_vol": "865705",
+      "acml_tr_pbmn": "8500047",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260921",
+      "bstp_nmix_prpr": "836.27",
+      "bstp_nmix_oprc": "830.71",
+      "bstp_nmix_hgpr": "838.32",
+      "bstp_nmix_lwpr": "822.41",
+      "acml_vol": "582422",
+      "acml_tr_pbmn": "8133397",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260918",
+      "bstp_nmix_prpr": "827.12",
+      "bstp_nmix_oprc": "832.72",
+      "bstp_nmix_hgpr": "833.57",
+      "bstp_nmix_lwpr": "824.73",
+      "acml_vol": "707914",
+      "acml_tr_pbmn": "7590852",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260917",
+      "bstp_nmix_prpr": "822.18",
+      "bstp_nmix_oprc": "820.16",
+      "bstp_nmix_hgpr": "826.22",
+      "bstp_nmix_lwpr": "814.98",
+      "acml_vol": "660062",
+      "acml_tr_pbmn": "6080481",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260916",
+      "bstp_nmix_prpr": "815.98",
+      "bstp_nmix_oprc": "808.37",
+      "bstp_nmix_hgpr": "815.98",
+      "bstp_nmix_lwpr": "801.12",
+      "acml_vol": "735930",
+      "acml_tr_pbmn": "6573258",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260915",
+      "bstp_nmix_prpr": "812.41",
+      "bstp_nmix_oprc": "806.49",
+      "bstp_nmix_hgpr": "824.37",
+      "bstp_nmix_lwpr": "801.97",
+      "acml_vol": "680922",
+      "acml_tr_pbmn": "6524335",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260914",
+      "bstp_nmix_prpr": "806.79",
+      "bstp_nmix_oprc": "806.27",
+      "bstp_nmix_hgpr": "815.30",
+      "bstp_nmix_lwpr": "799.77",
+      "acml_vol": "674677",
+      "acml_tr_pbmn": "6041071",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260911",
+      "bstp_nmix_prpr": "820.64",
+      "bstp_nmix_oprc": "816.91",
+      "bstp_nmix_hgpr": "826.53",
+      "bstp_nmix_lwpr": "816.91",
+      "acml_vol": "597677",
+      "acml_tr_pbmn": "6414353",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260910",
+      "bstp_nmix_prpr": "836.92",
+      "bstp_nmix_oprc": "825.06",
+      "bstp_nmix_hgpr": "839.05",
+      "bstp_nmix_lwpr": "813.66",
+      "acml_vol": "906214",
+      "acml_tr_pbmn": "11423707",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260909",
+      "bstp_nmix_prpr": "830.37",
+      "bstp_nmix_oprc": "815.06",
+      "bstp_nmix_hgpr": "830.87",
+      "bstp_nmix_lwpr": "814.79",
+      "acml_vol": "697733",
+      "acml_tr_pbmn": "7668398",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260908",
+      "bstp_nmix_prpr": "811.88",
+      "bstp_nmix_oprc": "825.03",
+      "bstp_nmix_hgpr": "830.21",
+      "bstp_nmix_lwpr": "811.88",
+      "acml_vol": "767972",
+      "acml_tr_pbmn": "8152341",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260907",
+      "bstp_nmix_prpr": "822.19",
+      "bstp_nmix_oprc": "822.91",
+      "bstp_nmix_hgpr": "828.85",
+      "bstp_nmix_lwpr": "819.78",
+      "acml_vol": "592709",
+      "acml_tr_pbmn": "6325477",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260904",
+      "bstp_nmix_prpr": "813.50",
+      "bstp_nmix_oprc": "802.32",
+      "bstp_nmix_hgpr": "816.54",
+      "bstp_nmix_lwpr": "798.97",
+      "acml_vol": "535161",
+      "acml_tr_pbmn": "6695499",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260903",
+      "bstp_nmix_prpr": "790.21",
+      "bstp_nmix_oprc": "814.31",
+      "bstp_nmix_hgpr": "815.79",
+      "bstp_nmix_lwpr": "782.87",
+      "acml_vol": "559301",
+      "acml_tr_pbmn": "4928732",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260902",
+      "bstp_nmix_prpr": "803.98",
+      "bstp_nmix_oprc": "802.80",
+      "bstp_nmix_hgpr": "819.62",
+      "bstp_nmix_lwpr": "796.34",
+      "acml_vol": "533474",
+      "acml_tr_pbmn": "5455798",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260901",
+      "bstp_nmix_prpr": "821.25",
+      "bstp_nmix_oprc": "831.96",
+      "bstp_nmix_hgpr": "833.52",
+      "bstp_nmix_lwpr": "815.52",
+      "acml_vol": "567024",
+      "acml_tr_pbmn": "4657940",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260831",
+      "bstp_nmix_prpr": "834.29",
+      "bstp_nmix_oprc": "821.67",
+      "bstp_nmix_hgpr": "835.50",
+      "bstp_nmix_lwpr": "805.14",
+      "acml_vol": "482680",
+      "acml_tr_pbmn": "5383438",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260828",
+      "bstp_nmix_prpr": "838.41",
+      "bstp_nmix_oprc": "835.23",
+      "bstp_nmix_hgpr": "840.85",
+      "bstp_nmix_lwpr": "829.59",
+      "acml_vol": "475373",
+      "acml_tr_pbmn": "4977396",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260827",
+      "bstp_nmix_prpr": "837.65",
+      "bstp_nmix_oprc": "828.42",
+      "bstp_nmix_hgpr": "839.57",
+      "bstp_nmix_lwpr": "824.22",
+      "acml_vol": "510912",
+      "acml_tr_pbmn": "5471983",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260826",
+      "bstp_nmix_prpr": "826.87",
+      "bstp_nmix_oprc": "824.77",
+      "bstp_nmix_hgpr": "832.21",
+      "bstp_nmix_lwpr": "815.53",
+      "acml_vol": "429557",
+      "acml_tr_pbmn": "4461310",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260825",
+      "bstp_nmix_prpr": "827.15",
+      "bstp_nmix_oprc": "806.93",
+      "bstp_nmix_hgpr": "827.15",
+      "bstp_nmix_lwpr": "781.89",
+      "acml_vol": "482112",
+      "acml_tr_pbmn": "4722226",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260824",
+      "bstp_nmix_prpr": "813.33",
+      "bstp_nmix_oprc": "804.27",
+      "bstp_nmix_hgpr": "821.96",
+      "bstp_nmix_lwpr": "804.27",
+      "acml_vol": "524746",
+      "acml_tr_pbmn": "4486487",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260821",
+      "bstp_nmix_prpr": "801.94",
+      "bstp_nmix_oprc": "824.05",
+      "bstp_nmix_hgpr": "824.05",
+      "bstp_nmix_lwpr": "795.57",
+      "acml_vol": "573177",
+      "acml_tr_pbmn": "5451775",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260820",
+      "bstp_nmix_prpr": "840.89",
+      "bstp_nmix_oprc": "843.99",
+      "bstp_nmix_hgpr": "850.77",
+      "bstp_nmix_lwpr": "834.69",
+      "acml_vol": "550495",
+      "acml_tr_pbmn": "5718051",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260819",
+      "bstp_nmix_prpr": "824.46",
+      "bstp_nmix_oprc": "810.08",
+      "bstp_nmix_hgpr": "840.50",
+      "bstp_nmix_lwpr": "804.02",
+      "acml_vol": "609681",
+      "acml_tr_pbmn": "6190329",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260818",
+      "bstp_nmix_prpr": "834.20",
+      "bstp_nmix_oprc": "866.59",
+      "bstp_nmix_hgpr": "872.59",
+      "bstp_nmix_lwpr": "827.97",
+      "acml_vol": "694658",
+      "acml_tr_pbmn": "8117589",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260814",
+      "bstp_nmix_prpr": "864.65",
+      "bstp_nmix_oprc": "868.07",
+      "bstp_nmix_hgpr": "879.29",
+      "bstp_nmix_lwpr": "845.41",
+      "acml_vol": "698635",
+      "acml_tr_pbmn": "7558695",
+      "mod_yn": "N"
+    },
+    {
+      "stck_bsop_date": "20260813",
+      "bstp_nmix_prpr": "861.37",
+      "bstp_nmix_oprc": "863.15",
+      "bstp_nmix_hgpr": "870.96",
+      "bstp_nmix_lwpr": "853.09",
+      "acml_vol": "685614",
+      "acml_tr_pbmn": "7591627",
+      "mod_yn": "N"
+    }
+  ],
+  "rt_cd": "0",
+  "msg_cd": "MCA00000",
+  "msg1": "정상처리 되었습니다."
+}
