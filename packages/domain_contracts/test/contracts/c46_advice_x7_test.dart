@@ -253,8 +253,9 @@ const List<String> _rawReadFields = <String>[
 ];
 
 /// `.필드` 접근. 🔴 `\b` 는 그룹 **밖**(`.statusLabel`·`.quantityText` 를 막지 않는다).
+/// 🆕 M2 보강(R5d 선행 · 2026-10-28) — `ManualFillPrefillFields.quantity`(02 §3-8 · K19 상수)는 원값 접근이 아니다(앞보기 예외 1).
 RegExp _dotField(List<String> fields) =>
-    RegExp('\\.(?:${fields.join('|')})\\b');
+    RegExp('(?<!ManualFillPrefillFields)\\.(?:${fields.join('|')})\\b');
 
 /// 🆕 검증 반영 — 객체 패턴 구조 분해: `:final quantity` · `:var status` · `:int quantity` · `:quantity` ·
 /// `quantity: final q` · `quantity: var q` · `quantity: int q`(이름 붙인 형 패턴 — 호출 인자로는 쓸 수 없는 꼴).
@@ -634,6 +635,10 @@ const List<(String, bool)> _negatives = <(String, bool)>[
   ('if (item.suppressedLabel case final String l?) { Text(l); }', true),
   ('Text(s.asOfTradeDateText)', false),
   ('_qty.text = r.quantityText;', false),
+  (
+    'prefilledFields: <String>[if (_p) ManualFillPrefillFields.quantity],',
+    false,
+  ),
   ('if (item.expiredConfirmLabel case final String l?) { Text(l); }', true),
   ('if (item.deferAvailable) {}', true),
   ('api.deferAdviceConfirm(item.adviceId);', true),
