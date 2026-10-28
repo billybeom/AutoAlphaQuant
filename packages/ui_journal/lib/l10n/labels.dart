@@ -141,4 +141,12 @@ abstract final class JournalLabels {
 
   /// L-1 근거 해시 앞 머리.
   static const String ledgerEvidence = '근거';
+
+  // ── 🆕 R5b — A-1 오늘의 매매 안내 · 지난 안내 ──────────────────────────────
+
+  /// A-1 확인 카드 «내일 다시» 버튼.
+  static const String adviceDeferConfirm = '내일 다시';
+
+  /// A-1 하단 «지난 안내» 화면 이동 버튼.
+  static const String adviceHistoryLink = '지난 안내';
 }
