@@ -366,7 +366,10 @@ void main() {
     ]);
     expect(find.byType(TextField), findsNothing);
     expect(find.byType(Checkbox), findsNothing);
-    expect(find.byType(Radio), findsNothing);
+    expect(
+      find.byWidgetPredicate((Widget w) => w is Radio<Object?>),
+      findsNothing,
+    );
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
