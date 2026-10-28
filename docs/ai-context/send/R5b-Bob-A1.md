@@ -1,15 +1,15 @@
 # 발송 패킷 R5b-Bob-A1 — A-1 오늘의 매매 안내 · 「지난 안내」 (계약 v1.12~v1.14 · prompt_M6 v2 · R5 5장 중 2번째 · M6 X7 열람)
 
-> ⬜ **_대기 — R5a 병합 기록 때 `send/` 로 · 누적 드라이런 ✅ · ✅ 발주자 확인 11건 = 전부 권고대로(2026-10-28)**(2026-10-27 조립 · 2026-10-28 드라이런 지적 반영 · 앱 기록 가지 `rec/r5`) — 남은 것: ① R5a 병합(`R5a-Bob-L1L2` · squash = `__R5A_SQ__` — R5a 병합 기록 커밋이 이 파일의 자리표시자와 실측 표식(U+27E6 · R5a 병합본에서만 아는 값 — 시작 기준 N · 계약 버전 · 기존 PNG 수 · 라벨·export 기준 셈 · `domain_contracts` 끝 줄 · R5a C4 이월)을 채우고 `send/` 로 옮긴다 · `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R5b-Bob-A1.md` = 0 · `__R5A_SQ__` 0 이어야 보냄) ~~② 누적 드라이런~~ ✅(아래 «드라이런» 줄 · 이 카드의 값은 «드라이런 기대» 로 채움) ③ 실제 병합본 위 재드라이런(R5a 가 통합 수정으로 바뀌면 · 기대 = 아래 수) ~~④ 사전검사~~ ✅(드라이런 가지 ① 🔴 0 · 🟡 0 · ② `a1` 16 🔴 0) ~~⑤ 발주자 확인 11건~~ ✅ 발주자 확인 11건 = 전부 권고대로(2026-10-28 · 발주자 · 🔴 ② 실패 줄 글자 = 권고 그대로) ~~⑥ 재분할 판정~~ ✅(새 `testWidgets(`·`test(` 줄 26 · lib +500 · 새 PNG 16(경계 안) → 재분할 없음) → 「푸시해」 → 머리 첫 줄 ▶.
-> 만든 날 2026-10-27 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 `R5b-Bob-A1` 행 + §3-0 사전검사 블록 + §3 공통 조문(strict 나눔 · PR 본문은 통합 담당 · 재제출 = 전체판 + 상자 · 골든 높이 = 카드 확정값 + 여백 재량 · 커밋 = 제목만) + R4a·R4b·R13a·R13b C4 이월 부록의 **공통 교훈만**(🔴 부록 블록 자체는 ✅ K47 대로 R5a 카드 «6» 에 있다 · R5b 의 이월 = R5a C4 결과로 다시 — 12 §3 «R5a C4 이월 부록» 자리 · 병합 기록 때 ⟦실측⟧) · 화면 몫 원본 = 설계 저장소 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §8-1~§8-3 · K5 · K6 · K13 · K14 · K15 · K17 · K35 · K38 · K41 · K48(✅ 발주자 확정 2026-10-22) · 조문 = `01_…` §21-6 `A-1`·「지난 안내」 행 · §21-7 · §21-8 · §21-9(상수 진입 `adviceHistory`) · §21-10-4 · §21-11 · §21-12-1(C-46 ⑯~㉖) · §21-16-1 · `02_…` §3-A · §3-6 · §3-10 끝 «계약 v1.12» 블록 ⓐⓑⓒⓓⓔⓙⓚ · 코드 = `packages/domain_contracts`(`AdviceItem` · `AdviceAction` · `AdvicePriceBand` · `AdviceInboxSummary` · `CashEstimateNotice` · `LedgerTrustBadge` · `ReasonChip` · `LinkAction` · `ListResult` · `DateRange` · `CommandReceipt` · `AdviceRepository` · `ConfigRepository.watchRangePresets` · `CommandApi.deferAdviceConfirm` · `AppRoutes.adviceHistory` · `AdviceRejectCodes.deferAlreadyUsed` · 받침대 `UnimplementedAdviceRepository` · `UnimplementedConfigRepository` · `UnimplementedCommandApi` · `RecordingLinkOpener` · C-46).
-> 사전 조건 — ✅ 계약 v1.12(PR #68 `fb67caf`) · ✅ v1.13 · ✅ v1.14(ui_journal 영향 0 · `contractVersion = '1.14.0'` — ⟦실측⟧ 엔진 카드가 먼저 병합되면 0단계 버전 줄을 병합 기록이 고친다) · ✅ `prompt_M6` v2 · ⬜ **R5a 병합(`__R5A_SQ__`)** — 이 카드는 R5a 의 파일을 import 하지 않지만 공용 파일(`labels.dart` 절 차례 · 배럴 export 자리 · golden README)과 시작 기준이 R5a 병합본 위다. 시작 기준 = R5a 병합본의 `flutter test`(packages/ui_journal) = **⟦실측⟧**(R5a 병합 기록 때 채움 · 드라이런 기대 430 = 388 + R5a 42) · 이 카드 끝 기대 = 시작 기준 N + **뷰 39(A-1 26 + 「지난 안내」 13) + 골든 16 = N + 55**(드라이런 실측 2026-10-28 — 430 → 485 · 조립 판 52 + A1-16 · AH-06 둘째 경우 · AH-08) · `domain_contracts` «+392 ~30»(⟦실측⟧ R5a 병합 기록 때 채움 · 드라이런 기대 그대로 · 이 카드 몫 0).
+> ▶ **보낼 수 있음(「푸시해」 뒤)**(2026-10-28 · R5a 병합 기록 · 이 파일이 GitHub `main` 의 `send/` 에 있으면 보낸다 · Bob **새 대화**) — ~~⬜ **_대기 — R5a 병합 기록 때 `send/` 로 · 누적 드라이런 ✅ · ✅ 발주자 확인 11건 = 전부 권고대로(2026-10-28)**~~(2026-10-27 조립 · 2026-10-28 드라이런 지적 반영 · 앱 기록 가지 `rec/r5` · 2026-10-28 R5a 병합 기록 커밋이 `_대기/` 에서 `send/` 로 옮기고 자리표시자·실측 표식을 병합본 실측으로 채움) — ~~① R5a 병합~~ ✅(2026-10-28 · PR #77 squash `a28db65` · 1회차 `3643646` 반려(C4L-1) → 재제출 `d41b237` = 2회차 merge · 자리표시자 4 = `a28db65` · 실측 표식 23 = 병합본 `a28db65` 실측(시작 기준 N 430 · 계약 `'1.14.0'` · 기존 PNG 110 · 라벨 37 · export 11 · `domain_contracts` «+392 ~30» — 전부 드라이런 기대와 같음 · R5a C4 이월 = 아래 «6») · `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R5b-Bob-A1.md` = 0 · 자리표시자 0) ~~② 누적 드라이런~~ ✅(아래 «드라이런» 줄 · 이 카드의 값 = 드라이런 기대 = 병합본 실측) ~~③ 실제 병합본 위 재드라이런(R5a 가 통합 수정으로 바뀌면 · 기대 = 아래 수)~~ 🔵 하지 않음(발주자 결정 2026-10-28 «R5b 는 R5a 병합 기록 때 숫자·자리표시만 채움 · 전면 재드라이런 없음» — R5a 는 통합 수정 없이 병합 · 병합본 PNG 12 = 드라이런 밑판 `dry/r5a` 와 바이트 같음 · 재제출 1줄은 `ledger_diffs_test.dart` 만(R5b 셈 영향 0) · 대신 0단계 확인 42줄(브랜치 1 · grep 21 · ls 14 · 반대 6)을 병합본 `a28db65` 에서 실제로 돌림 = 기대 그대로(grep «:1» 18 · 라벨 «:37» · export «:11» · README `a1_history` «:6» · ls 13 있음 · `send/R5b-Bob-A1.md` 는 병합본엔 아직 없음 = 이 기록 커밋이 넣는다 · 반대 6 없음) — 아래 «병합본 실측» 줄) ~~④ 사전검사~~ ✅(드라이런 가지 ① 🔴 0 · 🟡 0 · ② `a1` 16 🔴 0) ~~⑤ 발주자 확인 11건~~ ✅ 발주자 확인 11건 = 전부 권고대로(2026-10-28 · 발주자 · 🔴 ② 실패 줄 글자 = 권고 그대로) ~~⑥ 재분할 판정~~ ✅(새 `testWidgets(`·`test(` 줄 26 · lib +500 · 새 PNG 16(경계 안) → 재분할 없음) → ✅ 머리 첫 줄 ▶(「푸시해」 뒤 보냄).
+> 만든 날 2026-10-27 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 `R5b-Bob-A1` 행 + §3-0 사전검사 블록 + §3 공통 조문(strict 나눔 · PR 본문은 통합 담당 · 재제출 = 전체판 + 상자 · 골든 높이 = 카드 확정값 + 여백 재량 · 커밋 = 제목만) + R4a·R4b·R13a·R13b C4 이월 부록의 **공통 교훈만**(🔴 부록 블록 자체는 ✅ K47 대로 R5a 카드 «6» 에 있다 · R5b 의 이월 = R5a C4 결과로 다시 — 12 §3 «R5a C4 이월 부록» 자리 · ✅ 2026-10-28 R5a 병합 기록이 반영 = 아래 «6» «R5a C4 이월 반영» 표) · 화면 몫 원본 = 설계 저장소 `10_리뷰/2026-10-22_R5R13선행_계약v1.12_설계서.md` §8-1~§8-3 · K5 · K6 · K13 · K14 · K15 · K17 · K35 · K38 · K41 · K48(✅ 발주자 확정 2026-10-22) · 조문 = `01_…` §21-6 `A-1`·「지난 안내」 행 · §21-7 · §21-8 · §21-9(상수 진입 `adviceHistory`) · §21-10-4 · §21-11 · §21-12-1(C-46 ⑯~㉖) · §21-16-1 · `02_…` §3-A · §3-6 · §3-10 끝 «계약 v1.12» 블록 ⓐⓑⓒⓓⓔⓙⓚ · 코드 = `packages/domain_contracts`(`AdviceItem` · `AdviceAction` · `AdvicePriceBand` · `AdviceInboxSummary` · `CashEstimateNotice` · `LedgerTrustBadge` · `ReasonChip` · `LinkAction` · `ListResult` · `DateRange` · `CommandReceipt` · `AdviceRepository` · `ConfigRepository.watchRangePresets` · `CommandApi.deferAdviceConfirm` · `AppRoutes.adviceHistory` · `AdviceRejectCodes.deferAlreadyUsed` · 받침대 `UnimplementedAdviceRepository` · `UnimplementedConfigRepository` · `UnimplementedCommandApi` · `RecordingLinkOpener` · C-46).
+> 사전 조건 — ✅ 계약 v1.12(PR #68 `fb67caf`) · ✅ v1.13 · ✅ v1.14(ui_journal 영향 0 · `contractVersion = '1.14.0'` — ✅ 병합본 `a28db65` 실측 «:1» · 엔진 카드가 먼저 병합되면 0단계 버전 줄을 고친다) · ✅ `prompt_M6` v2 · ✅ **R5a 병합(PR #77 squash `a28db65` · 2026-10-28)** — 이 카드는 R5a 의 파일을 import 하지 않지만 공용 파일(`labels.dart` 절 차례 · 배럴 export 자리 · golden README)과 시작 기준이 R5a 병합본 위다. 시작 기준 = R5a 병합본의 `flutter test`(packages/ui_journal) = **430**(R5a 병합본 `a28db65` 실측 «00:24 +430: All tests passed!» · 드라이런 기대 430 = 388 + R5a 42 와 같음) · 이 카드 끝 기대 = 시작 기준 N + **뷰 39(A-1 26 + 「지난 안내」 13) + 골든 16 = N + 55**(드라이런 실측 2026-10-28 — 430 → 485 · 조립 판 52 + A1-16 · AH-06 둘째 경우 · AH-08) · `domain_contracts` «+392 ~30»(병합본 `a28db65` 실측 «00:09 +392 ~30: All tests passed!» · 드라이런 기대 그대로 · 이 카드 몫 0).
 > 카드 기본값(카드 권한 — ✅ 아래 «발주자 확인» ①~⑪ = 권고대로 확정(2026-10-28 · 발주자)): ⓐ 위젯 = `AdviceInbox({super.key})`(`lib/src/advice_inbox.dart` · ConsumerStatefulWidget — 「내일 다시」 진행 상태 때문에 State 1) · `AdviceHistory({super.key})`(`lib/src/advice_history.dart` · ConsumerWidget) · 공개 조각 `AdviceCard({super.key, required AdviceItem item})`(`lib/src/advice/advice_card.dart` · ConsumerWidget · `A-2`(R5c) 머리가 재사용) ⓑ 주입 2 = `journalAdviceRepositoryProvider` · `journalAdviceCommandApiProvider`(둘 다 `advice_inbox.dart` 머리 · 배럴 쪽 · 01 §21-8 · K14 ⓐ) · 데이터 4 = 각 파일 안 private StreamProvider(인박스 · 요약 · 범위 프리셋 · 지난 안내 family) ⓒ 구독 = `watchInbox()`(🔴 인자 없이) · `watchSummary()` · `watchRangePresets()` → `isDefault` 1건으로 `watchHistory(range:)` + 기존 `journalSafetyStateProvider` · 쓰기 1 = 확인 카드 「내일 다시」 탭 → `deferAdviceConfirm(item.adviceId)`(02:947 예외 1) · 🔴 재구독 0 · `hasMore` 무시(①) ⓓ 「지난 안내」 = `A-1` 하단 `AppRoutes.adviceHistory` 상수 진입(C-46 ㉒ 예외 1) ⓔ 카드 버튼 = `actions` 의 `deepLink`(RECORD·SKIP · 받은 순서 · `enabled` false = 비활성 + `disabledReasonLabel`) · 카드 탭 = `detailDeepLink`(AdviceCard **밖** — ⑥) ⓕ 상태 색 = 공용 `journalToneColor(context, item.statusTone)`(새 switch 0) · 급함 = `isUrgent` 면 아이콘 1개 ⓖ 억제 몸 = `suppressedLabel` non-null 이면 그 문장 · `validityLabel` · `reasons` 만(⑤) ⓗ 정적 라벨 2(⑧) ⓘ Key 접두 `a1-` · 「지난 안내」 `ah-`(01 §21-8 — 골든 이름은 `a1_history` · 접두와 이름이 다른 첫 사례) · 순번만 · AdviceCard 안 Key 0 ⓙ 테스트 = `test/advice_fakes.dart`(새 · 자기 파일) · `test/advice_inbox_test.dart` · `test/advice_history_test.dart` · 골든 8이름 16장(`a1_golden_test.dart` 7 · `a1_history_golden_test.dart` 1 · 크기 `a1` = `Size(390, 3800)` · `a1_history` = `Size(390, 1700)` — ⑨) ⓚ 공용 파일 2(`labels.dart` R5b 절 · 배럴 export 3줄 — 정렬 자리) = **더하기만**.
 > 🔴 **카드 덮개 필수 문장(02 §3-6 · §3-10 끝 v1.12 블록 · 01 §21-6 · §21-7 · §21-8)** — «`A-1` 은 주문 화면이 아니라 인박스다 — 버튼 = `actions` 를 받은 순서대로 그린 것뿐(목적지 = `deepLink`) · 명령은 확인 카드 「내일 다시」 하나(`deferAvailable` 일 때만) · 주문 실행·FAB·증권사 딥링크 0» · «원값으로 그리거나 분기하지 않는다 — `.status`·`.effectiveStatus`·`.onHold`·`.suppressed`·`.actionId`·`.quantity`·`.symbol`·`.side`·`.code`·`.kind`·`.name` 0 · `AdviceStatus.`·`AdviceActionId.`·`OrderSide.` 0 · 짝 글자(`symbolLabel`·`sideLabel`·`sizingLabel`·`priceBand.label`·`statusLabel`)만» · «받은 순서 그대로 — 확인 카드가 맨 앞에 오는 것도 엔진 · 거르기·묶기·재정렬·세기 0 · `openCount` 를 글자로 그리지 않는다 · «안내 0건»(`emptyLabel`)과 «오늘은 아무것도 하지 마십시오»(`suppressedLabel` 안내 1건)는 다른 상태» · «화면은 안전 상태를 읽지 않는다 — `.watchState(`·`activeFlags`·`FlagIds`·`killSwitch` 0 · 배너 = 공용 조각». 본문 머리 · 규칙 요약 · «프롬프트보다 이 카드가 이긴다» 에 있습니다.
 > ✅ **K 결정 표식** — K5(버튼 = `actions` `deepLink` · DETAIL 0) · K6(뷰어 `actions` 빈 목록 · `detailDeepLink`·`decisionLink` non-null) · K13(확인 카드 = `expiredConfirmLabel` 행 · 엔진 정렬 · 밖 = `overdueUnrecordedLink`) · K14 ⓐ(「내일 다시」 = `deferAdviceConfirm` 직접 · 주입 `journalAdviceCommandApiProvider`) · K15(현금 고지 = `summary.cashNotice`) · K17(안내 밖 매매 = `manualEntryLink` + `manualEntryNoticeText`) · K35(R5b 16장) · K38(「지난 안내」 = 단독 화면 · `isDefault` 범위) · K41(배치 결측 = 엔진이 `actions` 를 줄여 보냄) · K48(`extraFixture` 로 `summary`) = **✅ 발주자 확정(2026-10-22 · 01 §21-14)**.
 > ✅ **발주자 확인 11건 = 전부 권고대로(2026-10-28 · 발주자)** — 확정 값 = 각 항의 권고 글자(권고가 따로 없는 항 = 카드 기본값 · 대안은 쓰지 않는다 · 항목 글자는 판독 원문 그대로) · ~~🔵 발주자 확인 대기 11건(카드 기본값 = 권고 · 🔴 확인 전 ▶ 금지)~~: ① 🔴 **`hasMore`·무한 스크롤** — prompt_M6 v2 144행 «`limit += 100` 재구독» ↔ 01 §21-8 «`watchInbox()`(**인자 없이**)» · `watchHistory` 에는 `limit` 인자 자체가 없다 → 권고 = **v1 재구독 0 · `hasMore` 를 읽지 않는다**(인박스 = 기본 50행 · 표본 `has_more` 전부 false · R5a ① 과 같은 결정 · 01 §8 미결 신설 «X5·X7 목록의 `hasMore`») · 대안 = 인박스 끝에서 `watchInbox(limit: …)` 재구독(01 §21-8 «인자 없이» 와 충돌 — 01 고침 필요) ② 🔴 **「내일 다시」 결과 갈래**(prompt 172행 «카드가 정한다») → 권고 = `watchCommand` 0(01 §21-8 호출 표에 없다) · 탭 = `deferAdviceConfirm` 의 **Future 가 준 접수증 하나**의 `stateLabel` 을 그 카드 아래 한 줄(`a1-defer-receipt-$i`) · 🆕 진행·접수증·실패 상태의 열쇠 = **그 `AdviceItem` 값**(순번 0 — 재발행으로 행이 빠지거나 순서가 바뀌면 그 안내의 줄이 함께 사라진다 · 드라이런 지적 반영 · A1-16) · Future 에러 = 실패 줄 한 줄(`a1-defer-fail-$i`) — 🔴 글자 선택: 권고 = 기존 `JournalLabels.submitNotAccepted` 그대로(라벨 셈 39 유지 · 뒷문장 «입력은 그대로 있습니다» 가 A-1 에는 맞지 않음을 기록) · 대안 = R5b 절에 새 정적 라벨 하나(예 `adviceDeferNotAccepted` «요청이 접수되지 않았습니다» — 라벨 39→40 · R5c~R5e 기준 셈 +1 · 정적 A10·A19·A25 와 R5c~e 0단계 고침) · 진행 중 = 버튼 비활성 · 끝나면 다시 활성(두 번째 탭의 거부 `DEFER_ALREADY_USED` 도 엔진 접수증 `stateLabel` 그대로 — 코드 분기 0) · 대안 ⓑ = `watchCommand(id)` 구독(01 §21-8 호출 표 고침 · 표본 3상태 순서) ⓒ = 결과 표시 0(탭만 · 인박스 재발행이 말함) ③ **`isDefault` 1건 고르는 꼴**(prompt 182행 · C-46 ㉕ 가 `.where`·`.firstWhere` 를 막음) → 권고 = `for` 루프 첫 일치(`if (picked == null && r.isDefault)`) · 없으면 = 스켈레톤(`watchHistory` 부르지 않음) ④ **확인 카드 자리** — 02 §3-6 «상단 ① 확인 카드 ② 현금 ③ 신뢰 · 본문 = 카드 목록» ↔ 확인 카드는 `watchInbox` 의 앞 행(K13) → 권고 = 머리 묶음(headline · 현금 · 신뢰) 다음에 행을 **받은 순서 그대로**(확인 카드가 맨 앞 행) — 화면이 확인 카드만 위로 끌어올리면 거르기(C-46 ㉕) ⑤ **억제 몸** — 02 §3-6 «`kind == noAction` 카드 = `suppressedLabel`(전면) · `validityLabel` · `reasons` 뿐» → 권고 = 판정 기준 = `suppressedLabel` 의 null 여부 하나(prompt 166행 «보류·억제 = 짝 글자의 null 여부만» · `.kind` 0) · non-null 이면 그 셋 + `actions`(엔진이 빈 목록으로) · `sizingLabel`·`progressLabel`·`statusLabel` 을 그리지 않는다 ⑥ **AdviceCard 경계** → 권고 = 카드 탭(`detailDeepLink`)은 AdviceCard **밖**(인박스·지난 안내 행의 InkWell — A-2 머리 재사용 때 자기 자신 링크 방지) · `closeReasonLabel`·`decisionLink`·`recordedDeviationChips` 는 AdviceCard 밖(A-2 몫 · 01 §21-6 A-2 행) · 「내일 다시」 버튼도 밖(인박스 행) ⑦ **신뢰 배지** — 02 §3-6 ③ «`label`·`consequenceLine`·`upgradeHint?`» → 권고 = 그 셋만(색·`level`·`actionDeepLink` 읽지 않음 — 9b 카드 = 홈 몫) ⑧ 정적 라벨 2(`adviceDeferConfirm` «내일 다시» · `adviceHistoryLink` «지난 안내») ⑨ 골든 크기 — `a1` = `Size(390, 3800)`(`a1_open4` 12행 · 파일 하나 = 높이 하나 · 드라이런 맨 아래 dy 최대 3784.0) · `a1_history` = `Size(390, 1700)`(드라이런 맨 아래 dy 1328.0) — 드라이런 확정값 = 카드 확정값(권고 그대로 · 여백 무수정 · light = dark) ⑩ `a1_history` 입력 = `advice_12` 닫힌 행 슬라이스 **rows[7..11]**(FILLED 3 · SKIPPED 1 · REVOKED 1 — EXPIRED 2 는 확인 카드라 넣지 않음 · 01 §21-10-4 «닫힌 행 슬라이스» · 전용 픽스처 없음) · 대안 = EXPIRED 2 포함 7행 ⑪ 🆕 M2 후보 2건(이 카드 판정 밖 · ▶ 를 막지 않음 · 기록만): ⓐ 인박스 `actions[].enabled == false` + `disabledReasonLabel` 표본(변이 «enabled false 버튼을 활성으로»·«사유 숨김» = 표본 0 으로 생존 → 예고 변이에서 «참고») ⓑ 인박스 `holdReasonLabel` 행(보류 문장 변이 = A-2 표본 `advice_detail_onhold` 에만 — R5c 가 확인).
 > 드라이런: ✅ 2026-10-28 · worktree `C:/Work/AAQ-claude-r5dry` · 가지 `dry/r5b`(`dry/r5a` 끝 `1790c94` = R5a 병합본 흉내(지적 반영판) → 권장 5커밋 `198a706`·`2016546`·`6f0b185`·`bec5cc6`·`7923dc3` → 지적 반영 1커밋 `43a9180` · 기준 = `1790c94`) — 0단계 확인 줄 전부 «:1»(README `a1_history` «:6») · `ls` 15 있음 · 없어야 할 6 없음 · 시작 «+430» → 끝 «00:25 +485: All tests passed!»(N + 뷰 39 + 골든 16) · 파일별 «+26»(advice_inbox_test) · «+13»(advice_history_test) · «+14»(a1_golden) · «+2»(a1_history_golden) · `domain_contracts` «+392 ~30» · C-46 «+27» · C-46 ⑯ 4줄 = 기대 그대로 · check_boundaries 실패 0(🟡 기존 1) · format 0 changed · analyze No issues · 사전검사 ① 🔴 0 · 🟡 0 · ② `a1` 16 = 🔴 0 · 🟡 10(G1 — N3) · 정적 묶음 32줄 → 출력 145줄 = 아래 «줄의 뜻과 기대» 그대로 · import 차례 = «주입 구조» 글자 그대로 · 골든 `a1` 3800 · `a1_history` 1700 · 맨 아래 dy(light = dark) `a1_open4` 3784.0 · `a1_empty` 316.0 · `a1_blocked` 684.0 · `a1_expired_confirm` 1352.0 · `a1_viewer` 1028.0 · `a1_no_action` 412.0 · `a1_handover_cooling` 276.0 · `a1_history`(ah-row-4) 1328.0 · 머리 dy 전부 0.0 · 열어 본 PNG 6(light) · 새 testWidgets·test 줄 26 · lib +500/-0 · 새 PNG 16 · 변이 = 예고·참고 79꼴 중 KILLED 70 → 지적 반영 뒤 + 4(«emptyLabel null 에도 빈 자리» · 「지난 안내」 history 재시도 · 「지난 안내」 배너 · 🆕 «재발행 뒤 접수증이 다른 행에 붙음») · 남은 SURVIVED 5 = 전부 «참고»(enabled false·사유 = 표본 0 · 미확인 만료 상수 = 표본상 동치 · 억제 kind = 정적 A07 몫 · 보류 문장 = 인박스 표본 0 · 지난 안내 「내일 다시」 = 표본상 동치) · 질문 Q1(「지난 안내」 pump 두 번)·Q2(matchRoot) → 이 카드 글자에 반영함.
 > 프롬프트 = `docs/ai-context/prompt_M6.md`(**v2 판 275줄** · 2행 `{{범위}}` · 121행 «이번 과제 범위» → 이 카드가 덮는다(R5b = `A-1` · 「지난 안내」) · 130행 PR 제목 = 형식만 → «[M6] A-1 오늘의 매매 안내·지난 안내» · X7 열람 = 159~182행(183~187 `A-2` = R5c) · 자체 점검 23항 = 252~274행 · 수치·금액 = 68~74행). 🔴 Bob **새 대화** 전제 — R5a 대화를 기억하지 못합니다.
-> R4·R13·R5a 교훈 반영(공통 교훈만): PNG 열람 = 이름마다 light 1장(8장 — 이미지 20장 한도) · dark 행 = light 행 칸 글자 그대로(dy 같을 때만) · 구독마다 «로딩·에러 × 갈래» · 흐름 = 클로저 칸 · 기대 링크 = 목록 칸 · 🔴 bool 칸 + if · `name ==`·`which ==` · `opened[0]` · `expect(a || b, isTrue)` = 반려 꼴 · 전제 if 밖 + `// pre` · 픽스처 = `main()` 머리 `final` · 가짜 공장 = `call` 삼항 · 커밋마다 `git add <파일>` · «23항 줄 수» 상자 · 골든 높이 = 카드 확정값(늘리지 않는다 · 여백만 + 측정 행) · lib 의 nullable `!` 0 · 주입 절 = 파일 머리 · 허용 집합에 링크 문자열 0 · 뷰어 갈래에도 «화면 Text 전부»(C4r4a-2) · R5a C4 이월 = ⟦실측⟧(R5a 병합 기록 때 이 줄에 더한다).
+> R4·R13·R5a 교훈 반영(공통 교훈만): PNG 열람 = 이름마다 light 1장(8장 — 이미지 20장 한도) · dark 행 = light 행 칸 글자 그대로(dy 같을 때만) · 구독마다 «로딩·에러 × 갈래» · 흐름 = 클로저 칸 · 기대 링크 = 목록 칸 · 🔴 bool 칸 + if · `name ==`·`which ==` · `opened[0]` · `expect(a || b, isTrue)` = 반려 꼴 · 전제 if 밖 + `// pre` · 픽스처 = `main()` 머리 `final` · 가짜 공장 = `call` 삼항 · 커밋마다 `git add <파일>` · «23항 줄 수» 상자 · 골든 높이 = 카드 확정값(늘리지 않는다 · 여백만 + 측정 행) · lib 의 nullable `!` 0 · 주입 절 = 파일 머리 · 허용 집합에 링크 문자열 0 · 뷰어 갈래에도 «화면 Text 전부»(C4r4a-2) · 🆕 R5a C4 이월(✅ 2026-10-28 R5a 병합 기록 — 자리·바뀐 줄 = 아래 «6» 표): 제출 글 = 저장 파일 `$env:TEMP\R5b-Bob-A1_submit.md` · 채팅 답 두 줄(C4r5a-1) · 정적 묶음 = 카드 `main` 판에서 파일로 꺼내 Git Bash 전체 경로로 · EXIT 0/1 밖이면 다시 · 두 번째에도 나오면 멈춤(C4r5a-2 · `bash` 라고만 치면 이 PC 에서는 WSL) · 커밋마다 `git show --stat HEAD`(C4r5a-3) · 제네릭 위젯(`Radio`·`DropdownButton`·`PopupMenuButton`·`SegmentedButton` …)의 «없음» = `find.byWidgetPredicate((Widget w) => w is Radio<Object?>)` 꼴 — `find.byType(Radio)` 는 늘 참(C4r5a-4 · 이 카드 최소 목록엔 제네릭 0) · 23항 괄호 근거 = 그 사실을 단언하는 테스트 번호(9번 AH-01 → AH-05 · C4r5a-6) · 사전검사 ② 출력 = 파일로 뜨고 끝 줄만(C4r5a-9 ②) · Bob 이전 창 닫기(C4r5a-9 ⑥).
 
 ## 0. 한 줄 목적
 
@@ -21,11 +21,13 @@
 
 ## 2. 보내기 전에 발주자가 할 것 🔴
 
-1. **이 파일이 `send/` 바로 아래에 있고 머리 첫 줄이 ▶ 일 때만 보냅니다** — 지금은 `send/_대기/` 에 있습니다(R5a 병합 기록이 옮긴다).
+1. **이 파일이 `send/` 바로 아래에 있고 머리 첫 줄이 ▶ 일 때만 보냅니다** — ✅ 2026-10-28 R5a 병합 기록이 `send/` 로 옮겼습니다(「푸시해」 뒤 `main` 에 올라가면 보냅니다).
 2. Bob 에 R5a 를 한 대화가 있으면 이어 쓰지 않고 **새 대화(new task)** 로 시작합니다(멈춘 대화는 **강제 중지**).
 3. 패킷은 **GitHub `main`** 에서 엽니다 — <https://github.com/billybeom/AutoAlphaQuant/blob/main/docs/ai-context/send/R5b-Bob-A1.md> (🔴 `C:\Work\AAQ-claude\` 와 Bob 폴더의 사본은 최신이 아닐 수 있습니다 · `send/_대기/` 판은 보내지 않습니다).
 4. 붙여넣을 것은 «3» 본문 **전부** — ````text 다음 줄(«R5b-Bob-A1 — 범위»)부터 닫는 ```` 직전 줄(«(+ flutter test 한 줄 …)»)까지 · 바깥 울타리 = 백틱 네 개(안의 «23항 줄 수» 상자 때문) · 고치지 않습니다.
 5. 🔴 **파일 이름 주의** — 끝난 `_완료/R5a-Bob-L1L2*.md` 를 붙여넣지 않습니다.
+6. 🔴 **받는 법(🆕 C4r5a-1 · R5a 재제출과 같은 꼴)** — Bob 은 보고 글 전문을 채팅에 내지 않고 `$env:TEMP\R5b-Bob-A1_submit.md`(UTF-8)에 저장한 뒤 사전검사 ② 를 돌리고, 채팅에는 두 줄(«…저장했음: <경로>» · 사전검사 ② 끝 줄)만 냅니다. 받은 뒤에는 아래 «4» 대로 **그 파일을 열어** 통째로 붙여 넣습니다 — Bob 채팅 화면의 글을 복사하지 않습니다(C4L-5 · C4L-9).
+7. 🔵 Bob 의 이전 창(R5a 재제출 대화)은 닫은 뒤 새 대화를 엽니다 — 그 창이 띄운 `flutter_tester` 는 창과 함께 끝납니다. 작업 관리자 등에서 `flutter_tester` 를 직접 끝내지 마세요: 이 PC 에는 다른 세션(엔진 등)이 돌리는 것도 있습니다(🆕 C4r5a-9 ⑥ · Claude 도 남의 프로세스를 끝내지 않습니다).
 
 ## 3. 붙여넣을 본문 — ````text 다음 줄(«R5b-Bob-A1 — 범위»)부터 닫는 ```` 직전 줄(«(+ flutter test 한 줄 …)»)까지 그대로
 
@@ -48,12 +50,12 @@ R5b-Bob-A1 — 범위: A-1 오늘의 매매 안내(AdviceInbox() + 공개 조각
   git status --short            ← 비어 있어야 합니다. 아니면 멈추고 출력을 채팅으로(커밋·stash·reset 금지)
   git fetch origin --prune
   git checkout --no-track -b ui/m6-a1-inbox origin/main      ← 🔴 git checkout main 금지(다른 worktree 에 체크아웃돼 있어 거부)
-  git branch -r --contains __R5A_SQ__                                                                                         ← «  origin/main» 이 보여야 함(R5a 병합)
-  git grep -c "class LedgerDiffTile extends ConsumerWidget" -- packages/ui_journal/lib/src/ledger_diffs.dart                   ← «…ledger_diffs.dart:1»(R5a 병합본 · ⟦실측⟧ 꼴)
-  git grep -c "static const String ledgerEvidence = " -- packages/ui_journal/lib/l10n/labels.dart                              ← «…labels.dart:1»(R5a 절의 마지막 상수 — R5b 절은 그 뒤 · ⟦실측⟧)
-  git grep -c "contractVersion = '1.14.0'" -- packages/domain_contracts/lib/src/contract_version.dart                         ← «…contract_version.dart:1»(⟦실측⟧)
-  git grep -cE "^\s*static const String " -- packages/ui_journal/lib/l10n/labels.dart                                     ← «…labels.dart:37»(R5a 병합본 기준 셈 · ⟦실측⟧ · 🔴 다르면 멈춤 — 정적 A10 «39» 가 이 수 + 2)
-  git grep -c "^export " -- packages/ui_journal/lib/ui_journal.dart                                                          ← «…ui_journal.dart:11»(R5a 병합본 기준 셈 · ⟦실측⟧ · 🔴 다르면 멈춤 — 정적 A11 «14줄» 이 이 수 + 3)
+  git branch -r --contains a28db65                                                                                            ← «  origin/main» 이 보여야 함(R5a 병합)
+  git grep -c "class LedgerDiffTile extends ConsumerWidget" -- packages/ui_journal/lib/src/ledger_diffs.dart                   ← «…ledger_diffs.dart:1»(R5a 병합본 `a28db65` 실측 «:1»)
+  git grep -c "static const String ledgerEvidence = " -- packages/ui_journal/lib/l10n/labels.dart                              ← «…labels.dart:1»(R5a 절의 마지막 상수 — R5b 절은 그 뒤 · 병합본 실측 «:1»)
+  git grep -c "contractVersion = '1.14.0'" -- packages/domain_contracts/lib/src/contract_version.dart                         ← «…contract_version.dart:1»(병합본 실측 «:1»)
+  git grep -cE "^\s*static const String " -- packages/ui_journal/lib/l10n/labels.dart                                     ← «…labels.dart:37»(R5a 병합본 기준 셈 · 병합본 실측 37 · 🔴 다르면 멈춤 — 정적 A10 «39» 가 이 수 + 2)
+  git grep -c "^export " -- packages/ui_journal/lib/ui_journal.dart                                                          ← «…ui_journal.dart:11»(R5a 병합본 기준 셈 · 병합본 실측 11 · 🔴 다르면 멈춤 — 정적 A11 «14줄» 이 이 수 + 3)
   git grep -c "Stream<ListResult<AdviceItem>> watchInbox({" -- packages/domain_contracts/lib/src/repositories/advice_repository.dart   ← «…advice_repository.dart:1»
   git grep -c "Stream<ListResult<AdviceItem>> watchHistory({required DateRange range});" -- packages/domain_contracts/lib/src/repositories/advice_repository.dart   ← «…advice_repository.dart:1»
   git grep -c "Future<CommandReceipt> deferAdviceConfirm(String adviceId);" -- packages/domain_contracts/lib/src/commands/command_api.dart   ← «…command_api.dart:1»
@@ -95,7 +97,7 @@ R5b-Bob-A1 — 범위: A-1 오늘의 매매 안내(AdviceInbox() + 공개 조각
   melos.bat bootstrap
   melos.bat run build:gen   ← 🔴 필수(계약 생성물은 git 에 없다 · 브랜치를 바꾼 뒤마다) · «Can't load Kernel binary: Invalid SDK hash.» 경고는 SUCCESS 면 무시.
   cd packages/ui_journal
-  flutter test   ← 시작 기준: R5a 병합본 전부 통과 · 0 실패 · 기대 «+⟦실측⟧: All tests passed!»(R5a 병합 기록 때 채움 · 드라이런 기대 430 · 앞 시각은 달라도 된다)(끝 줄의 수를 «시작 기준 N» 으로 적어 둔다 · 다르면 멈추지 말고 PR 본문에 까닭 한 줄 —
+  flutter test   ← 시작 기준: R5a 병합본 전부 통과 · 0 실패 · 기대 «+430: All tests passed!»(R5a 병합본 `a28db65` 실측 · 드라이런 기대 430 과 같음 · 앞 시각은 달라도 된다)(끝 줄의 수를 «시작 기준 N» 으로 적어 둔다 · 다르면 멈추지 말고 PR 본문에 까닭 한 줄 —
                    그 뒤 기대는 전부 «N + …» 로 읽는다). 실패가 있으면 아무것도 고치지 말고 멈춘 뒤 출력 끝 20줄을 채팅으로.
   cd ../..
 git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
@@ -104,11 +106,11 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    카드는 코드와 다를 수 없습니다 — 다르게 보이면 멈추고 질문 파일에 적은 뒤 채팅으로 · «규칙 N» = 바로 아래의 N 번 · 정본 = 이 카드의 글자)
  1 고치는 곳 = packages/ui_journal + docs/ai-context/inbox/A1_questions.md 만. 새 파일 = lib/src/advice/advice_card.dart · lib/src/advice_inbox.dart · lib/src/advice_history.dart · test/advice_fakes.dart ·
    test/advice_inbox_test.dart · test/advice_history_test.dart · test/golden/a1_golden_test.dart · test/golden/a1_history_golden_test.dart · 새 PNG 16.
-   공용 2파일은 **더하기만**(기존 줄 한 글자도 바꾸지 않는다 · 정적 A25 의 삭제 수 0): lib/l10n/labels.dart = JournalLabels 안 R5a 절의 마지막 상수(ledgerEvidence · ⟦실측⟧) 뒤 · 닫는 } 앞에 R5b 절 ·
+   공용 2파일은 **더하기만**(기존 줄 한 글자도 바꾸지 않는다 · 정적 A25 의 삭제 수 0): lib/l10n/labels.dart = JournalLabels 안 R5a 절의 마지막 상수(ledgerEvidence · 병합본 실측) 뒤 · 닫는 } 앞에 R5b 절 ·
      lib/ui_journal.dart = export 세 줄(🔴 끝이 아니라 정렬 자리 — export 'src/advice/advice_card.dart'; · export 'src/advice_history.dart'; · export 'src/advice_inbox.dart'; 를 export 'l10n/labels.dart'; 와 export 'src/blind_review.dart'; **사이**에 이 차례로 ·
      «/» 가 «_» 보다 앞이라 advice/advice_card 가 먼저 · 끝에 두면 directives_ordering 실패).
    고치면 반려: 그 밖의 ui_journal 파일 전부(lib/journal_draft.dart · lib/src/common/** · lib/src/timeline.dart · lib/src/ledger_diffs.dart · lib/src/ledger_repairs.dart(R5a) · 그 밖 lib · 기존 테스트 파일 전부(🔴 test/ledger_fakes.dart(R5a) · test/holdings_overview_fakes.dart 도 import 만 · 이 카드는 ledger_fakes 를 import 하지 않는다) ·
-     golden_support.dart · golden README · flutter_test_config.dart · goldens/ 의 기존 PNG(⟦실측⟧ 110장) · pubspec.yaml · analysis_options.yaml · README.md) · domain_contracts/** · apps/** · 다른 ui_*.
+     golden_support.dart · golden README · flutter_test_config.dart · goldens/ 의 기존 PNG(110장 · 병합본 `a28db65` ls-tree 실측) · pubspec.yaml · analysis_options.yaml · README.md) · domain_contracts/** · apps/** · 다른 ui_*.
  2 두 화면은 받은 글자와 null 여부만 본다 — 값 = DTO 의 *Label·*Text·label·headline·consequenceLine·upgradeHint 원문 그대로 · 원값·.wire·.name·코드 표시 금지 · 폴백 문구 금지(null 자리에 «해당 없음»·«0주» 0) ·
    색 = Theme.of(context).colorScheme(Colors.* 금지) · 한국어 리터럴 = labels.dart 의 JournalLabels 에만(테스트에도 금지) · 🔴 lib 주석에서 Key·글자를 인용할 때 작은따옴표 금지(백틱만).
  3 읽지 않는 필드(카드가 정함 — 질문 아님): ListResult 의 hasMore · emptyKind(🔴 빈 갈래 = rows.isEmpty ∧ emptyLabel non-null 하나) ·
@@ -179,7 +181,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
           }
         (allowed = advice_fakes.dart 의 adviceInboxAllowed · adviceHistoryAllowed — null-aware 원소로 만든 Set<String> · 🔴 링크·경로 문자열(deepLink · aaq:// · handbook://) 0 ·
          RichText · SelectableText · Text.rich 는 세 화면 파일에 쓰지 않는다 = 정적 A22)
-11 골든 = 새 PNG a1_* 14장 + a1_history 2장 · --update-goldens 는 그 두 골든 테스트 파일만 · 기존 PNG(⟦실측⟧ 110장) 재생성 0 · golden:approved 안 붙임 · 찍기 전 위치 전제 둘 · 🔴 높이(_kTallPhone)는 늘리지 않는다(카드 확정값).
+11 골든 = 새 PNG a1_* 14장 + a1_history 2장 · --update-goldens 는 그 두 골든 테스트 파일만 · 기존 PNG(110장 · 병합본 `a28db65` ls-tree 실측) 재생성 0 · golden:approved 안 붙임 · 찍기 전 위치 전제 둘 · 🔴 높이(_kTallPhone)는 늘리지 않는다(카드 확정값).
 12 도구 = format:fix → format·analyze(--fatal-infos)·test·test:contracts SUCCESS(«Some tests failed»·«FAILED» 0건을 눈으로) · 🔴 melos.bat run test 를 백그라운드·파이프로 돌리지 않는다 ·
    패키지 테스트는 packages/ui_journal 에서 flutter test 직접 · unawaited_futures · directives_ordering · strict-raw-types·strict-inference · prefer_final_locals · unnecessary_lambdas · use_build_context_synchronously(await 뒤 setState 는 mounted 검사 뒤).
 13 C-4 이름 함정 — 식별자 이름에 amount·price·pnl·commission·tax·cash·pct·ratio·cagr 가 (부분 문자열로도) 들고 바로 옆에 + * / 가 오면 계약 테스트가 실패한다(이 카드에는 산술이 없다 — 지역 변수 cash·band 옆에 연산자 0 · 글자 잇기 0).
@@ -194,7 +196,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    배치·잘림 칸 = PNG 에서 보이는 것만(글자 내용·길이 · 색·테마 이름(«밝은»·«어두운» 포함) · 코드 이름 · 픽스처 낱말 금지 · 버튼 = «버튼 글자») · 칸 끝 = «— 잘림 없음» 또는 «— 잘림: <어디가 어떻게>» ·
    셈 단위 — «글자 줄 n» = PNG 의 글자 **행** 수 · «상자» = 테두리·모서리가 보이는 덩어리 · «배경 덩어리» = 폭 전체 배경 · «칩 n개» = 한 무리의 칩 개수 · «막대» = 가로로 긴 덩어리 · «점» = 작은 둥근 표식 ·
    «아이콘» = 글자 줄 안의 작은 표식 — 상자로 세지 않는다(급함 아이콘 = 글자 줄 덩어리 괄호 안 «작은 네모 표식» · 모양 차이는 골든이 못 본다 = A1-12 몫) · 🔴 글자 줄 덩어리의 괄호 안에도 «상자» 낱말을 쓰지 않는다.
-   🔴 PR 본문은 통합 담당이 바꾼다(Bob 은 PR 을 만들지 않는다 · 채팅으로만) · S05 결과 줄 = 줄마다 정확히 «<파일>:<줄> — 탭 콜백 안»(사전검사 R4 · S05 출력 줄 수만큼) · 수는 손으로 세지 않고 명령 출력을 붙인다 ·
+   🔴 PR 본문은 통합 담당이 바꾼다(Bob 은 PR 을 만들지 않는다 · 🆕 저장 파일로만 — 채팅 답은 두 줄 · C4r5a-1) · S05 결과 줄 = 줄마다 정확히 «<파일>:<줄> — 탭 콜백 안»(사전검사 R4 · S05 출력 줄 수만큼) · 수는 손으로 세지 않고 명령 출력을 붙인다 ·
    자체 점검 ② = «■ 제출» ② 의 복사 상자(= prompt_M6.md 252~274행 23항) 그대로 + [x] 와 괄호만([—] 금지 · 🔴 23항을 코드 블록으로 감싸지 않는다) · ③ = 위젯·Key 이름 나열(요약어 금지) ·
    질문 파일에 추측 행으로 카드 이행 내역을 적지 않는다(dy «측정:» 행은 예외) · ⑤ 추측이 없으면 정확히 «없음» 한 낱말.
 
@@ -210,7 +212,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  ⑨ 48~66행 «■ 모드 — 축은 화면이 모른다 · actions 순서대로 · 프리필·비교 금지 · 계획/사실 · viewer 는 온 것을 그린다» → 그대로 유효(이 카드 = 기록 폼 0 · 비교 0 · viewer = phoneOnlyLabel 그대로)
  ⑩ 68~74행 수치·금액 리터럴 금지 → 그대로 유효(정적 A15 · A16 · priceBand.label 안 숫자는 엔진 글자)
  ⑪ 87~93행 «melos run test · check_boundaries · precheck(인자는 카드)» → 패키지 테스트 = packages/ui_journal 에서 flutter test 직접(🔴 백그라운드·파이프 금지) · 사전검사 인자 = «■ 제출»
- ⑫ 94~99행 «PR 만들지 않음 · 5섹션 채팅 · 섹션 머리·복사 상자 = 카드 글자» → 그대로 유효 · 글자 = «■ 제출»(② 머리의 «12항» 그대로 — 사전검사 R1)
+ ⑫ 94~99행 «PR 만들지 않음 · 5섹션 채팅 · 섹션 머리·복사 상자 = 카드 글자» → 그대로 유효(🆕 단 5섹션은 채팅이 아니라 저장 파일 — «■ 제출» · C4r5a-1) · 글자 = «■ 제출»(② 머리의 «12항» 그대로 — 사전검사 R1)
  ⑬ 100~105행 골든 두 갈래 → *.golden.json 0 · 새 PNG 16 = 최초 베이스라인(두 골든 파일만 --update-goldens) · 기존 PNG 재생성 0
  ⑭ 106~111행 «모르는 것 = 질문 파일» → 그대로 유효(inbox/A1_questions.md — 이미 있다)
  ⑮ 122~128행 읽을 문서 5 → 아래 «먼저 읽을 것»(02 는 §3-A · §3-6 · §3-10 끝 v1.12 블록 ⓐⓑⓒⓓⓔⓙⓚ 만)
@@ -413,7 +415,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    ah-loading · ah-fail · ah-asof · ah-range(Text 범위 글자) · ah-row-$i(InkWell · ValueKey<String>) · ah-empty — 같은 자리 꼴
    (AdviceCard 안 · _AdviceActionButton · 칩 · 아이콘 · 배너에는 Key 를 달지 않는다 — 테스트는 행 Key 의 descendant 로 찾는다)
 
-■ 할 일 — 이 순서로 · 커밋 나누기는 재량(제목 = 그 커밋 내용 · 🔴 커밋마다 git add <파일> 로 지정 — git add . 금지 · amend·rebase·강제 푸시 금지 · 마지막 커밋 = format · 질문 파일)
+■ 할 일 — 이 순서로 · 커밋 나누기는 재량(제목 = 그 커밋 내용 · 🔴 커밋마다 git add <파일> 로 지정 — git add . 금지 · amend·rebase·강제 푸시 금지 · 마지막 커밋 = format · 질문 파일 · 🆕 커밋마다 바로 git show --stat HEAD — 파일 목록이 그 항목의 파일과 같은지 본다(C4r5a-3))
  (1) 정적 라벨 2(labels.dart R5b 절). 커밋 «[M6] R5b (1) 정적 라벨 2»
  (2) lib/src/advice/advice_card.dart + lib/src/advice_inbox.dart + 배럴 두 줄(advice/advice_card · advice_inbox) + test/advice_fakes.dart(A-1 몫) + test/advice_inbox_test.dart(A1-01~A1-15).
      🔴 커밋 전에 git add <그 파일들> 뒤 «정적 묶음» 미리 돌리기(규칙 15 금지 낱말 포함). 커밋 «[M6] R5b (2) A-1 오늘의 매매 안내 + AdviceCard + 테스트»
@@ -422,11 +424,11 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  (5) melos.bat run format:fix · 질문 파일(A1_questions.md — dy 측정 행 A1~A8 · 그 밖의 질문). 커밋 «[M6] R5b (5) format · 질문».
      🔴 (5) 뒤 커밋 0 — 예외 = 사전검사 ① 🔴 수정 커밋 (6) **하나**(주석 고침 · 금지 낱말 고침도 (6) 하나에 · format:fix 먼저).
 
-■ 정적 라벨 — JournalLabels 안 R5a 절의 마지막 상수(ledgerEvidence · ⟦실측⟧) 뒤 · 닫는 } 앞에 절 주석(// ── 🆕 R5b — A-1 오늘의 매매 안내 · 지난 안내 ──…)과 함께 2개(이름·글자 고정 · static const String · doc 주석 짧게):
+■ 정적 라벨 — JournalLabels 안 R5a 절의 마지막 상수(ledgerEvidence · 병합본 실측) 뒤 · 닫는 } 앞에 절 주석(// ── 🆕 R5b — A-1 오늘의 매매 안내 · 지난 안내 ──…)과 함께 2개(이름·글자 고정 · static const String · doc 주석 짧게):
    adviceDeferConfirm = '내일 다시' · adviceHistoryLink = '지난 안내'
    🔴 만들지 않는 글자(엔진 몫): 안내 headline · 기한 · 결측 · 냉각 · 현금 고지 · 신뢰 등급 글자 · 종목·방향·수량 문장 · 지정가 밴드 · 유효기한 · 진행 · 상태 칩 · 보류·억제 문장 · «혹시 이미 매매하셨나요?» ·
       버튼 글자(기록하기·건너뛰기·기록한다·안 했다) · 비활성 사유 · 접수증 글자 · «미확인 만료 n건» · 안내 밖 매매 문구·링크 · 범위 글자 · 빈 문장 · «오늘은 아무것도 하지 마십시오» · «해당 없음» · «0주» · «n건».
-   라벨 글자에 숫자·금액 0(C-32) · «추천·권유·자문·시그널» 0 · 기존 라벨은 그대로(R4b 34 + R5a 3 = 37 · ⟦실측⟧ → 합 39 — 정적 A10 이 정확히 센다).
+   라벨 글자에 숫자·금액 0(C-32) · «추천·권유·자문·시그널» 0 · 기존 라벨은 그대로(R4b 34 + R5a 3 = 37 · 병합본 실측 37 → 합 39 — 정적 A10 이 정확히 센다).
 
 ■ 테스트 최소 목록 (번호는 PR 본문 ② 에 인용 · ⓡ·ⓗ 는 정적 A17·A18 · (전제) 는 A30 과 대조)
 공통: 띄우기 = pumpAdviceInbox(tester, overrides:) · pumpAdviceHistory(tester, overrides:)(Size(390, 4000) · DPR 1.0 · teardown 2 · ProviderScope(overrides) > MaterialApp > Scaffold(body: const AdviceInbox()/AdviceHistory()) ·
@@ -557,9 +559,17 @@ A-1 — test/advice_inbox_test.dart
      억제를 kind 로 고르기(정적 A07 «\.kind\b» 몫) · holdReasonLabel 숨김(인박스 표본 0 — A-2 R5c 에서 확인) · 지난 안내 행에 「내일 다시」(닫힌 슬라이스에 deferAvailable 0 — 동치).
    🔵 판정 = 변이마다 ui_journal 의 flutter test 전부(골든 포함) + C-46 ⑯~㉖ · 골든은 아이콘·색 차이를 못 본다(A1-12 몫) · 드라이런 2026-10-28 = 위 (순서)~(상태) 목록 전부 KILLED · «참고» 6 SURVIVED(위 글자 그대로).
 
-■ 정적 묶음 — packages/ui_journal 에서 아래 32줄을 한 번에 붙여 넣어 돌리고, 나온 출력 전부를 PR 본문 ② 에 코드 블록 하나로 그대로 붙인다
+■ 정적 묶음 — 아래 32줄을 🆕 파일로 꺼내 Git Bash 로 돌리고(C4r5a-2 · 🔴 터미널에 붙여 넣어 돌리지 않는다 — 대화형 bash 는 ! 든 줄(A32)을 건너뛴다 · bash 라고만 치면 이 PC 에서는 WSL), 나온 출력 전부를 PR 본문 ② 에 코드 블록 하나로 그대로 붙인다
   (대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 출력 줄 수(EXIT 줄 포함) = 145줄(드라이런 기대 · bash = PowerShell 5.1) — 붙이기 전에 세어 같은지 본다 ·
    flutter test·dart test 출력은 파일로 떠서 붙인다 · «EXIT:1»/«EXIT:False» = 출력 없음 · 블록 뒤 S05 결과 줄마다 정확히 «<파일>:<줄> — 탭 콜백 안»)
+  🆕 실행 꼴(C4r5a-2 · R5a 재제출과 같은 꼴 · packages/ui_journal 에서 · PowerShell · 🔴 손으로 옮겨 쓰지 않는다 — 꺼내기 줄이 이 카드 main 판 573~604행의 32줄을 그대로 꺼낸다):
+  & "C:\Program Files\Git\bin\bash.exe" -c "mkdir -p ../../build && git show 'origin/main:docs/ai-context/send/R5b-Bob-A1.md' | sed -n '573,604p' > ../../build/r5b_static.sh"
+  git hash-object ../../build/r5b_static.sh   ← 4962b068c993781da4088500198c5f57d66338ef(= 아래 32줄 · 다르면 멈추고 채팅으로)
+  & "C:\Program Files\Git\bin\bash.exe" -c "LC_ALL=C.UTF-8 bash ../../build/r5b_static.sh > ../../build/r5b_static_out.txt"
+  Select-String -Path ..\..\build\r5b_static_out.txt -Pattern '^EXIT:(?![01]$)'
+     ← 출력 없음이어야 한다 · 🔴 EXIT 가 0·1 밖(128 · 2 …)인 줄이 하나라도 나오면 그 검사가 돌지 않은 것 — 바로 위 줄을 한 번 더 돌린다 · 두 번째에도 나오면 멈추고 출력 파일 전부를 채팅으로(C4L-4)
+  (Get-Content ..\..\build\r5b_static_out.txt).Count   ← 145(EXIT 줄 32 포함) · (Select-String -Path ..\..\build\r5b_static_out.txt -Pattern '^EXIT:1$').Count ← 18 · -Pattern '^EXIT:0$' ← 14(드라이런 파일 실행 · 다르면 아래 «줄의 뜻과 기대» 와 다른 검사가 있다)
+  ② 에 붙일 출력 = Get-Content -Encoding UTF8 ..\..\build\r5b_static_out.txt 전부(build/ 는 .gitignore 대상 — git status 는 빈 채 · 커밋 0 · 할 일 (2)(3) 의 «미리 돌리기» 도 이 꼴)
 echo "## A01 new test files hangul 0 (comment lines only)"; git grep -nP "'[^'\n]*[\x{AC00}-\x{D7A3}]" -- test/advice_fakes.dart test/advice_inbox_test.dart test/advice_history_test.dart test/golden/a1_golden_test.dart test/golden/a1_history_golden_test.dart; echo "EXIT:$?"
 echo "## A02 test names ASCII"; git grep -nP "(testWidgets|test|group)\('[^']*[^\x00-\x7F]" -- test/advice_inbox_test.dart test/advice_history_test.dart test/golden/a1_golden_test.dart test/golden/a1_history_golden_test.dart; echo "EXIT:$?"
 echo "## A03 testWidgets and test lines"; git grep -cE "^\s*(testWidgets|test)\(" -- test/advice_inbox_test.dart test/advice_history_test.dart test/golden/a1_golden_test.dart test/golden/a1_history_golden_test.dart; echo "EXIT:$?"
@@ -594,8 +604,8 @@ echo "## A31 name compares element picks and hidden ifs in tests 0"; git grep -n
 echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -- lib/src/advice lib/src/advice_inbox.dart lib/src/advice_history.dart; echo "EXIT:$?"
   (줄의 뜻과 기대(카드 계획 = 드라이런 2026-10-28 기대) — A01 = 주석 줄 말고 출력 없음 · A02 = 출력 없음 · A03 = 4줄(a1_golden 1 · a1_history_golden 1 · advice_history_test 8 · advice_inbox_test 16) · A04 = 0 ·
    S05 = 6줄(advice_card.dart 버튼 1 · advice_history.dart 행 탭 1 · advice_inbox.dart 카드 탭 · 미확인 만료 · 안내 밖 매매 · 지난 안내 4 — 파일 줄 차례 · 줄마다 탭 콜백 안) ·
-   A06 = 5줄(watchInbox · watchSummary · watchRangePresets · watchHistory · deferAdviceConfirm) · A07 = 0 · A08 = 1줄(adviceHistory) · A09 = 0 · A10 = «lib/l10n/labels.dart:39»(🔴 정확히 — R5a 병합본 37(⟦실측⟧) + R5b 2) ·
-   A11 = 14줄(l10n/labels · 🆕 src/advice/advice_card · 🆕 src/advice_history · 🆕 src/advice_inbox · src/blind_review · src/decision_detail · src/holding_detail · src/holdings_allocation · src/holdings_overview · src/journal_read · src/ledger_diffs · src/ledger_repairs · src/timeline · src/unknown_board 차례 · 🔴 정확히 · ⟦실측⟧ R5a 병합본 11줄 위) · A12 = 6줄(advice_inbox.dart 4 = 주입 2 + 인박스·요약 · advice_history.dart 2) ·
+   A06 = 5줄(watchInbox · watchSummary · watchRangePresets · watchHistory · deferAdviceConfirm) · A07 = 0 · A08 = 1줄(adviceHistory) · A09 = 0 · A10 = «lib/l10n/labels.dart:39»(🔴 정확히 — R5a 병합본 37(실측) + R5b 2) ·
+   A11 = 14줄(l10n/labels · 🆕 src/advice/advice_card · 🆕 src/advice_history · 🆕 src/advice_inbox · src/blind_review · src/decision_detail · src/holding_detail · src/holdings_allocation · src/holdings_overview · src/journal_read · src/ledger_diffs · src/ledger_repairs · src/timeline · src/unknown_board 차례 · 🔴 정확히 · R5a 병합본 11줄(실측) 위) · A12 = 6줄(advice_inbox.dart 4 = 주입 2 + 인박스·요약 · advice_history.dart 2) ·
    A13~A16 = 0 · A17 = «test/advice_history_test.dart:5» · «test/advice_inbox_test.dart:15» · A18 = «test/advice_history_test.dart:1» · «test/advice_inbox_test.dart:3»(🔴 정확히 — 다르면 반려) ·
    A19 = 19줄 = 위 «Key 표» 이름마다 정확히 1줄 · A20~A24 = 0 · A25 = 두 줄(labels.dart · ui_journal.dart — 둘째 수 0 · ui_journal.dart 첫째 수 3 · labels.dart 첫째 수 = 재량(드라이런 8 · 수는 재량 · 삭제 0 만 본다)) · 그 밖 파일 줄 없음 ·
    A26 = 0 · A27 = 1줄(test/advice_fakes.dart 의 adviceSlice) · A28 = 0 · A29 = 16줄 전부 «A»(a1_* 14 · a1_history 2) · A30 = «test/advice_history_test.dart:5» · «test/advice_inbox_test.dart:21»(🔴 정확히) · A31 = 0 · A32 = 0)
@@ -647,14 +657,14 @@ echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
   flutter test test/advice_history_test.dart            ← 끝 줄 그대로(기대 «+13: All tests passed!»)
   flutter test test/golden/a1_golden_test.dart          ← 끝 줄 그대로(기대 «+14: All tests passed!»)
   flutter test test/golden/a1_history_golden_test.dart  ← 끝 줄 그대로(기대 «+2: All tests passed!»)
-  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 55 — ⟦실측⟧ → «+⟦실측⟧: All tests passed!»(R5a 병합 기록 때 채움 · 드라이런 기대 430 → 485))
+  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 55 — 430 → «+485: All tests passed!»(시작 기준 = R5a 병합본 실측 430 · 드라이런 기대 430 → 485 와 같음))
   cd ../domain_contracts
   dart test test/contracts/c46_advice_x7_test.dart -r expanded   ← 전부 통과 · «C-46 ⑯ 대상» 줄과 그 아래 들여쓴 경로 줄을 그대로 적어 둔다
      (기대 4줄: «C-46 ⑯ 대상 3파일 — 읽기 {lib/src/advice_inbox.dart, lib/src/advice_history.dart, lib/src/advice_detail.dart} + lib/src/advice/** · 폼 {…}» + 공백 4칸 들여쓴
       «packages/ui_journal/lib/src/advice/advice_card.dart» · «packages/ui_journal/lib/src/advice_history.dart» · «packages/ui_journal/lib/src/advice_inbox.dart»(정렬 순) · 🔴 «공허 통과» 가 보이면 파일 이름이 카드와 다르다 — 멈춤)
   cd ../..
-  bash tool/check_boundaries.sh   ← 실패 0 · 🔵 main 에 원래 있는 ui_journal 🟡 1건(«packages/ui_journal/lib/src/timeline.dart:109»)은 이 카드와 무관 — 그대로 둔다 · 그 밖 🟡 [C-5] 0
-  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · test:contracts 의 domain_contracts 끝 줄 «+⟦실측⟧ ~30: All tests passed!»(R5a 병합 기록 때 채움 · 드라이런 기대 392 · 이 카드 몫 0) · «Some tests failed»·«FAILED» 0건 · format 0 changed(&& 가 안 되면 한 줄씩 · 🔴 백그라운드·파이프 금지)
+  & "C:\Program Files\Git\bin\bash.exe" tool/check_boundaries.sh   ← 🆕 Git Bash 전체 경로(C4r5a-2) · 실패 0 · 🔵 main 에 원래 있는 ui_journal 🟡 1건(«packages/ui_journal/lib/src/timeline.dart:109»)은 이 카드와 무관 — 그대로 둔다 · 그 밖 🟡 [C-5] 0
+  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · test:contracts 의 domain_contracts 끝 줄 «+392 ~30: All tests passed!»(R5a 병합본 실측 · 드라이런 기대 392 와 같음 · 이 카드 몫 0) · «Some tests failed»·«FAILED» 0건 · format 0 changed(&& 가 안 되면 한 줄씩 · 🔴 백그라운드·파이프 금지)
   git status --short   ← 🔴 비어 있어야 다음으로
   git diff --name-status origin/main...HEAD
      ← 기대(이 줄들만 · 앞머리 packages/ui_journal/): M lib/l10n/labels.dart · A lib/src/advice/advice_card.dart · A lib/src/advice_history.dart · A lib/src/advice_inbox.dart · M lib/ui_journal.dart ·
@@ -666,10 +676,10 @@ echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
      ← 🔴 가 하나라도 있으면 푸시하지 않는다 — 고친다(테스트만 · if 를 다른 꼴로 감추지 않는다) → 새 커밋 하나(«[M6] R5b (6) 사전검사 지적 수정» · amend 금지 · format:fix 먼저) → 다시 돌려 🔴 0 · 🟡 는 멈춤 아님.
   git push -u origin ui/m6-a1-inbox
   git diff --name-status origin/main...HEAD · git log --oneline origin/main..HEAD   ← ① 에 그대로 붙일 출력(푸시한 그 커밋 위에서 · 권장대로면 커밋 5줄)
-  cd packages/ui_journal → 위 «정적 묶음» 32줄 → cd ../..   ← ② 에 그대로 붙일 출력
+  cd packages/ui_journal → 위 «정적 묶음» 의 🆕 실행 꼴(파일로 꺼내 Git Bash · EXIT 확인) → cd ../..   ← ② 에 그대로 붙일 출력(r5b_static_out.txt 전부)
   PR 은 만들지 않습니다 · 라벨도 붙이지 않습니다. PR 제목: [M6] A-1 오늘의 매매 안내·지난 안내
-  🔴 채팅 답 = 아래 제출 글 ①~⑤ 의 **전문**(재료·요약·«출력은 위와 같음» 이 아님) + 끝 flutter test 한 줄.
-  PR 본문 5섹션을 채팅으로 — 🔴 아래 섹션 머리 다섯 줄을 글자 그대로(사전검사 R1 · ② 머리의 «12항» 은 그대로):
+  🔴 제출 글 = 아래 ①~⑤ 의 **전문**(재료·요약·«출력은 위와 같음» 이 아님) + 끝 flutter test 한 줄 — 🆕 채팅에 내지 않고 저장 파일 $env:TEMP\R5b-Bob-A1_submit.md 로(아래 N3 · C4r5a-1) · 🔴 채팅 답 = 두 줄뿐: «R5b-Bob-A1 제출 글 저장했음: <(Resolve-Path $env:TEMP\R5b-Bob-A1_submit.md).Path 출력>» · 사전검사 ② 끝 줄(N3 의 Get-Content 출력 한 줄 복사) · 대화 요약(Previous conversation summary)을 내지 않는다.
+  PR 본문 5섹션을 저장 파일로 — 🔴 아래 섹션 머리 다섯 줄을 글자 그대로(사전검사 R1 · ② 머리의 «12항» 은 그대로):
       ┌── 섹션 머리 복사 시작(다음 줄부터 · 5줄)
 ## ① 구현한 화면 ID · 바뀐 파일 · 커밋
 ## ② 자체 점검 12항 · 정적 묶음 · 명령 출력
@@ -677,10 +687,10 @@ echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
 ## ④ 질문 목록
 ## ⑤ 추측한 것 목록
       └── 섹션 머리 복사 끝(이 줄 앞까지)
-      🔴 N1 — 채팅 글 첫 줄 = «## ① 구현한 화면 ID · 바뀐 파일 · 커밋» — 그 위에 아무 글도 두지 않는다(머리말·구분선 금지).
+      🔴 N1 — 저장 파일 첫 줄 = «## ① 구현한 화면 ID · 바뀐 파일 · 커밋» — 그 위에 아무 글도 두지 않는다(머리말·구분선 금지).
       🔴 N3 — 내기 전 사전검사 ② — 제출 글 전체(①~⑤ + flutter test 한 줄)를 저장소 밖 파일(notepad $env:TEMP\R5b-Bob-A1_submit.md · «UTF-8» 저장 · 커밋 0)에 저장한 뒤 저장소 뿌리에서:
-     dart tool/precheck.dart --base origin/main --collection-if 0 --report $env:TEMP\R5b-Bob-A1_submit.md --golden-prefix a1 --goldens 16
-        ← 🔴 출력 끝 줄 «── 결과: 🔴 0 · …» 를 눈으로 확인한 뒤에만 채팅에 낸다(🔴 1 이상이면 글을 고쳐 다시 돌린다) · 출력은 채팅에 붙이지 않는다 ·
+     dart tool/precheck.dart --base origin/main --collection-if 0 --report $env:TEMP\R5b-Bob-A1_submit.md --golden-prefix a1 --goldens 16 | Out-File -Encoding utf8 $env:TEMP\r5b_pre2.txt; Get-Content -Encoding UTF8 $env:TEMP\r5b_pre2.txt | Select-Object -Last 1
+        ← 🔴 출력 끝 줄 «── 결과: 🔴 0 · …» 를 눈으로 확인한 뒤에만 낸다(🔴 1 이상이면 글을 고쳐 다시 돌린다) · 출력은 채팅에 붙이지 않는다(🆕 C4r5a-9 ② — 출력 전부 = $env:TEMP\r5b_pre2.txt · 화면엔 끝 줄 한 줄 · 그 줄을 복사해 채팅 답 둘째 줄로) ·
           🔵 접두 «a1» 은 a1_history 행도 센다 — 골든 표 행은 정확히 16 · 🔵 🟡 [G1] 은 멈춤이 아니다 — 표는 이 카드의 셈 단위대로(셈 단위 견본 = 아래 ③ · 드라이런 = 🟡 10 · 🔴 칸을 고치지 않는다).
    ① 아래 «① 머리 복사 상자» 두 줄 그대로 + «바뀐 파일:» + name-status 출력 그대로(코드 블록 하나) + «커밋 목록:» + log 출력 그대로(코드 블록 하나)
       ┌── ① 머리 복사 시작(다음 줄부터)
@@ -697,7 +707,7 @@ echo "## A32 non-null assertion in new lib 0"; git grep -nP "[\w\)\]]!(?![=])" -
         6번 = «정적 묶음 A13 — 허용 밖 import 0줄 · pubspec·analysis_options 무변경(A25)»
         7번 = «이 카드 = 배럴 쪽 3파일만(operator 0 · A25 journal_draft.dart 줄 없음) · 근거 원문 필드 0»
         8번 = «배너 = JournalSafetyBanners 그대로(A1-09) · 화면이 지은 배너 문구 0»
-        9번 = «두 화면 머리 = list.asOf.label(a1-asof · ah-asof · A1-01 · AH-01) · 로딩·빈·에러·오래됨·차단 = A1-13·A1-08·A1-09·AH-02·AH-05»
+        9번 = «두 화면 머리 = list.asOf.label(a1-asof · ah-asof · A1-01 · AH-05) · 로딩·빈·에러·오래됨·차단 = A1-13·A1-08·A1-09·AH-02·AH-05»
         10번 = «타입·필드 이름 짓기 0 · 픽스처 변경 0 · 새 PNG = a1_* 14장 + a1_history 2장 · 재생성 <N>장(A29)»
         11번 = «모드 필드 0(A07) · 접두·띠 0 · 존재 = 데이터(actions · null 여부 · deferAvailable)»
         12번 = «버튼 = actions 순서 그대로(A1-02) · status·onHold·suppressed 분기 0(C-46 ⑰⑱ · A07) · 억제 몸 = suppressedLabel null 여부 하나(A1-07)»
@@ -786,8 +796,8 @@ flutter test: 시작 기준 <N> → 끝 <packages/ui_journal 의 flutter test �
 - `lib/` 새 파일 **3**(`src/advice/advice_card.dart` · `src/advice_inbox.dart` · `src/advice_history.dart`) · 수정 2(더하기만 — `labels.dart` R5b 절 라벨 2 · `ui_journal.dart` export 3줄 정렬 자리) · R5a 파일·그 밖 lib·`apps/`·`domain_contracts`·pubspec 변경 0.
 - `test/` 새 파일 5(`advice_fakes.dart` · `advice_inbox_test.dart` · `advice_history_test.dart` · `golden/a1_golden_test.dart` · `golden/a1_history_golden_test.dart`) + 새 PNG 16장(`a1_*` 14 · `a1_history` 2) · 재생성 0 · 기존 fakes 무수정.
 - 질문 파일 `A1_questions.md`(새 행 A1~A8 «측정:» 반드시).
-- 채팅: PR 본문 5섹션 + flutter test 한 줄 · 사전검사 ① 한 번 · ② 한 번(`a1` · 16) 🔴 0.
-- `flutter test` = 시작 기준 N(⟦실측⟧ = R5a 병합본 · 드라이런 기대 430) + 55(뷰 39 + 골든 16 · 드라이런 «+485») · 정적 A10 = 39 · A11 = 14줄 · A12 = 6 · A17 = 5·15 · A18 = 1·3 · A19 = 19 · A27 = 1 · A29 = 16 A · A30 = 5·21(🔴 정확히) · 출력 145줄 · S05 = 6 · A06 = 5 · A08 = 1 · A09 = 0 · C-46 ⑯ = 3파일 · `domain_contracts` «+⟦실측⟧ ~30»(드라이런 기대 392).
+- 🆕 저장 파일 `$env:TEMP\R5b-Bob-A1_submit.md`(PR 본문 5섹션 + flutter test 한 줄) + 채팅 두 줄(«…저장했음: <경로>» · 사전검사 ② 끝 줄 · C4r5a-1) · 사전검사 ① 한 번 · ② 한 번(`a1` · 16) 🔴 0.
+- `flutter test` = 시작 기준 N(430 = R5a 병합본 `a28db65` 실측 · 드라이런 기대와 같음) + 55(뷰 39 + 골든 16 · 드라이런 «+485») · 정적 A10 = 39 · A11 = 14줄 · A12 = 6 · A17 = 5·15 · A18 = 1·3 · A19 = 19 · A27 = 1 · A29 = 16 A · A30 = 5·21(🔴 정확히) · 출력 145줄 · S05 = 6 · A06 = 5 · A08 = 1 · A09 = 0 · C-46 ⑯ = 3파일 · `domain_contracts` «+392 ~30»(병합본 실측 · 드라이런 기대와 같음).
 - 재분할 임계(카드 계획): 새 `testWidgets(`·`test(` 줄 26(임계 «> 33» 안) · lib +500/-0(드라이런 · 임계 «> +900» 안) · 새 PNG 16(임계 «> 16» 의 경계 — 안) → 재분할 없음 예상.
 - 🔴 C4 가 넣어 볼 예고 변이 중 드라이런이 확인한 것(2026-10-28): (순서)~(상태) 목록 전부 KILLED(지적 반영 뒤 «emptyLabel null 에도 빈 자리» = A1-08 slice_empty · history 재시도 = AH-06 · 배너 = AH-08 · 순번 열쇠 = A1-16) · «참고» 6 SURVIVED · 결과 = 스크래치 `r5/mut_r5b/` + `r5/mut2/b/`.
 
@@ -797,7 +807,7 @@ flutter test: 시작 기준 <N> → 끝 <packages/ui_journal 의 flutter test �
 R5b-Bob-A1 결과: 브랜치 ui/m6-a1-inbox 푸시됨 — PR 만들고 병합 검사하고 질문 반영해줘
 ```
 
-그 아래에 Bob 이 준 PR 본문 5섹션을 붙여넣습니다. 0단계에서 멈췄다면 `R5b-Bob-A1 0단계에서 멈춤 — 확인해줘` + Bob 이 보여 준 출력.
+그 아래에 **Bob 이 저장한 파일의 글 전부**를 붙여넣습니다(🆕 C4r5a-1 — Bob 채팅 화면의 글을 복사하지 않습니다 · 여는 법: PowerShell 에서 `notepad $env:TEMP\R5b-Bob-A1_submit.md`(또는 Bob 채팅 답 첫 줄의 경로를 메모장으로) → Ctrl+A → Ctrl+C → 붙여넣기 · 첫 줄이 `## ① 구현한 화면 ID · 바뀐 파일 · 커밋` 이고 끝 줄이 `flutter test: 시작 기준 430 → 끝 …` 이면 맞게 연 것). 0단계에서 멈췄다면 `R5b-Bob-A1 0단계에서 멈춤 — 확인해줘` + Bob 이 보여 준 출력.
 
 ## 5. 주의
 
@@ -805,5 +815,23 @@ R5b-Bob-A1 결과: 브랜치 ui/m6-a1-inbox 푸시됨 — PR 만들고 병합 �
 - 🔵 `golden:approved` 는 **이 카드에 필요 없다**(새 PNG 만).
 - 🔵 C-46 ⑯~㉖ 의 화면 스캔은 파일 이름으로 대상을 고른다(`lib/src/advice_inbox.dart`·`advice_history.dart`·`advice_detail.dart`·`lib/src/advice/**` · 폼 3) — 다른 이름이면 «공허 통과» → 제출 ② 의 «C-46 ⑯ 출력» 4줄로 확인한다. ⑯ 의 가드는 대상 **밖** 파일(ui_shell 제외)에 X7 타입 이름(`AdviceItem`·`AdviceInboxSummary`·`deferAdviceConfirm` 등)이 나오면 실패한다 — 배럴·labels 의 주석은 벗기고 보므로 무관하지만 코드에 쓰면 안 된다.
 - 🔵 R5c(`A-2`·`A-4`)는 이 카드 병합 뒤 — `AdviceCard`·`journalAdviceRepositoryProvider` 를 import 한다(이 두 이름·서명은 R5c 조립의 전제 · 바꾸면 반려 신호).
-- 🔵 실측 표식 — R5a 병합 기록 때 채울 것(이 파일의 자리표시자 · `grep -cP '\x{27E6}'` 로 센다): `__R5A_SQ__`(R5a squash) · 시작 기준 N(R5a 병합본 실측) · 0단계 R5a 확인 줄 2개(`LedgerDiffTile` 꼴 · R5a 절 끝 상수 이름) · 계약 버전 줄 · 기존 PNG 수(110 예상) · `domain_contracts` 끝 줄 · 🆕 0단계 라벨·export 기준 셈 2줄 · R5a C4 이월(머리 «교훈 반영» 줄) · (드라이런 값은 «드라이런 기대» 로 채워 둠 — 실제 병합본이 계획과 다르면 그 수만 고친다).
+- ✅ 실측 표식 = 채움(2026-10-28 · R5a 병합 기록 · 병합본 `a28db65` · `grep -cP '\x{27E6}'` = 0 · 자리표시자 0) — ~~R5a 병합 기록 때 채울 것~~: 자리표시자(R5a squash) → `a28db65` · 시작 기준 N(R5a 병합본 실측) · 0단계 R5a 확인 줄 2개(`LedgerDiffTile` 꼴 · R5a 절 끝 상수 이름) · 계약 버전 줄 · 기존 PNG 수(110 예상) · `domain_contracts` 끝 줄 · 🆕 0단계 라벨·export 기준 셈 2줄 · R5a C4 이월(머리 «교훈 반영» 줄) · (드라이런 값은 «드라이런 기대» 로 채워 둠 — 실제 병합본이 계획과 다르면 그 수만 고친다).
 - 범위 고지: 01 §8 미결 116(`M5-6` 진입 맥락 — 안내 밖 매매 링크 목적지) · 119(옛 라벨 · 골든 50장)는 이 카드가 닫지 않는다 · 🆕 신설 후보 = «X5·X7 목록의 `hasMore`»(발주자 확인 ① · R5a 와 같은 행) · «「내일 다시」 결과 표시 원천(첫 접수증 vs `watchCommand`)»(②) · ⑪ 의 M2 후보 2건.
+
+## 6. R5a C4 이월 반영 — C4r5a-1~9(2026-10-28 · R5a 병합 기록 · 숫자·자리표시 채움과 함께 · 전면 재드라이런 없음 — 발주자 결정)
+
+원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 «R5a C4 이월 부록»(`10_리뷰/2026-10-28_R5a_C4_보고.md` §8 · C4r5a-9 = R5a 재제출 드라이런·감사). 카드 구조(본문 절 차례 · 최소 목록 · 정적 32줄 · 예고 변이 · 골든 · Key 표)는 바꾸지 않았다 — 받는 법·실행 꼴·괄호 글자만.
+
+| 항목 | 이 카드에 반영한 자리(바뀐 줄) | 반영 안 함 · 남은 몫 |
+|---|---|---|
+| C4r5a-1 제출 글 = 저장 파일 | «2» 6번(새 줄) · ■ 규칙 요약 «PR 본문은 통합 담당» 줄 · «이긴다» ⑫ · ■ 제출 «제출 글 = … 저장 파일 · 채팅 답 두 줄» · 5섹션 «저장 파일로» · N1 «저장 파일 첫 줄» · «3-1» 저장 파일 줄 · «4» 붙여넣기 문장 | — |
+| C4r5a-2 정적 묶음 = 파일 실행 · Git Bash 전체 경로 · EXIT 0/1 | ■ 정적 묶음 머리 줄 · 🆕 «실행 꼴» 8줄(꺼내기 = 이 카드 `main` 판 32줄 · 해시 대조 · EXIT 밖 0줄 · 145줄 · EXIT:1 18 · EXIT:0 14 = 드라이런 파일 실행 실측) · ■ 제출 «정적 묶음 실행 꼴» 줄 · check_boundaries 줄 = Git Bash 전체 경로 | infra(사전검사가 ② 정적 출력의 EXIT 값 검사) = 12 §3 부록 그대로 |
+| C4r5a-3 커밋마다 add · 확인 | ■ 할 일 머리 «커밋마다 바로 git show --stat HEAD» | (2)(3) 의 파일 목록은 이미 항목 글자에 있다 — 그대로 |
+| C4r5a-4 제네릭 위젯 술어 꼴 | 머리 «교훈 반영» 줄(술어 꼴 글자 · `find.byType(Radio)` 늘 참) | 이 카드 최소 목록의 `byType` = `OutlinedButton`·`TextButton`·`Icon`·`Chip`·`Text`·`AdviceInbox` — 제네릭 0(바꿀 줄 없음) · infra(T3 날 제네릭 감지) = 부록 그대로 |
+| C4r5a-5 예고 변이 «선택 UI 더하기» · «rows 있을 때도 빈 문장» | — | 재드라이런 없이 예고 변이를 늘리지 않는다(발주자 결정) · C4 가 «참고» 꼴로 넣어 본다 · 01 §8 한 줄 = 부록 그대로 |
+| C4r5a-6 괄호 근거 = 단언하는 테스트 | ■ 제출 ② 9번 괄호 «A1-01 · AH-01» → «A1-01 · AH-05»(AH-01 은 `ah-asof` 글자를 단언하지 않는다 · AH-05 `asOfText` Matcher 칸이 단언) | 나머지 22개 괄호는 조립 때 대조됨 — 그대로 |
+| C4r5a-7 «없는 쪽» 양성 기준점 | — | 견본 줄을 늘리면 드라이런 밖 — R5c~e 조립 손질 몫(부록 그대로) |
+| C4r5a-8 G1 «상자(안 n)» · 같은 기하 같은 셈 | — | infra · 이 카드의 셈 단위 견본(③)이 이미 «아이콘»·«글자 줄 덩어리» 로 정함 — 부록 그대로 |
+| C4r5a-9 실행 꼴 ①~⑥ | ② = N3 사전검사 ② 출력 `Out-File` + 끝 줄만 · ⑥ = «2» 7번(새 줄 · Bob 창이 띄운 것만 — 남의 `flutter_tester` 는 끝내지 않음) | ① 이어 쓰는 `$L` 묶음 · ④ 견본 부록 = 이 카드엔 견본 꺼내기 없음(해당 없음) · ③ 저장 파일 이름 = 카드 꼬리 `R5b-Bob-A1_submit.md`(옛 같은 이름 파일 없음) · ⑤ PR 본문 대행 고지 = 통합 담당 몫 |
+
+병합본 실측(2026-10-28 · `origin/main` `a28db65` · worktree `C:/Work/AAQ-claude-r5bchk` · build_runner 76 outputs · 끝에 삭제): `packages/ui_journal` `flutter test` → «00:24 +430: All tests passed!» · `packages/domain_contracts` `dart test` → «00:09 +392 ~30: All tests passed!» · PNG `ui_journal` 110(`git ls-tree` · `l1_*`·`l2_*` 12 포함) · 0단계 42줄 = 기대 그대로(위 머리 줄).
