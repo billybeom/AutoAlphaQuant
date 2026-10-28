@@ -170,7 +170,7 @@ void main() {
       tester,
       overrides: ledgerOverrides(repo: repo, opener: opener),
     );
-    expect(full.rows, hasLength(4)); // pre
+    expect(full.rows, hasLength(4));
     for (final (int i, LedgerDiffRow r) in full.rows.indexed) {
       expect(
         ledgerShownTexts(tester, find.byKey(ValueKey<String>('l1-row-$i'))),
