@@ -157,4 +157,24 @@ abstract final class JournalLabels {
 
   /// A-2 체결 블록 머리.
   static const String adviceRecordedFills = '기록된 체결';
+
+  // ── 🆕 R5d — A-3 수기 체결 기록 ──────────────────────────────────────────
+
+  /// A-3 거래일 필드 이름.
+  static const String manualFillTradeDate = '거래일';
+
+  /// A-3 종목 필드 이름.
+  static const String manualFillSymbol = '종목';
+
+  /// A-3 방향 필드 이름.
+  static const String manualFillSide = '방향';
+
+  /// A-3 수량 필드 이름.
+  static const String manualFillQuantity = '수량';
+
+  /// A-3 가격 필드 이름.
+  static const String manualFillPrice = '가격';
+
+  /// A-3 계좌 필드 이름.
+  static const String manualFillAccount = '계좌';
 }
