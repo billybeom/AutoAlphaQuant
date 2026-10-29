@@ -36,7 +36,8 @@ KIS 접근토큰 수명 관리 · 유량(rate) 제어 · **멱등 주문 발주*
 - `KisRestClient.get` — 조회만 1 → 2 → 4초 최대 3회(유량 코드 · 429 · 502~504 · 비JSON 500 · 시간 초과 · 연결 실패) · 업무 거절은 그대로 · 토큰 무효면 새 토큰으로 1회 · 다 쓰면 `KisUnavailable` · 오류에 주소·키·계좌·토큰 없음
 - `KisQuotes` — 시세 6종(실험 5 확정 TR · 07 §6-2): 국내 일봉(수정/원) · 현재가 · 국내 지수 일봉(50행) · 해외 일봉(MODP 원/수정) · 해외 지수 일봉(🔴 거래량 0) · 휴장일(모의 미지원) · 범위 조회 = 창 밀기(`pageBack`) · 수 = `pandasPreciseXstrtod`
 - 시험 픽스처 `test/fixtures/kis/` = 실험 5 **실응답 본문**(헤더·키·계좌 없음) · 실호출 = `network` 태그(`AAQ_NETWORK=1` · `AAQ_KIS_MOCK_KEY_FILE`)
-- ⬜ 받은 값을 원장에 넣는 수집기(`fetch_log` · `data_gap` · 확정 세션만) = E8d2b · 주문 = E10
+- 🆕 `KisQuoteFeed`(E8d2b · 설계 13 §8 R30) — core_engine 일봉 원천 포트 구현: 저장 이름 → KIS 코드(`^GSPC` → SPX · `KQ11` → 1001 · `SPY`·`RSP` → AMS · 표 밖 = `ArgumentError`) · 실패 3종 → `QuoteFeedDown` · 쪽 본문·시도 수(`KisQuotes.onPage` · `KisResponse.text`). 원장에 넣는 것은 data_sync `QuoteCollector`(이 패키지는 SQLite 를 모른다)
+- ⬜ 주문 = E10
 
 ## 지금 상태 — 🟡 주문 경로는 스캐폴드
 

@@ -98,12 +98,16 @@ const int kKisMaxPages = 500;
 
 /// 시세 조회.
 class KisQuotes {
-  const KisQuotes(this._c);
+  const KisQuotes(this._c, {this.onPage});
 
   final KisRestClient _c;
 
+  /// 🆕 받은 응답마다(거절 포함 · 받은 순서) — 수집기가 쪽 본문·시도 수를 모은다(설계 13 §8 R30 N6).
+  final void Function(KisResponse page)? onPage;
+
   Future<KisResponse> _ok(String path, String tr, Map<String, String> q) async {
     final KisResponse r = await _c.get(path, tr, q);
+    onPage?.call(r);
     if (!r.ok) throw KisRejected(tr, r.status, r.msgCd, r.msg1);
     return r;
   }
