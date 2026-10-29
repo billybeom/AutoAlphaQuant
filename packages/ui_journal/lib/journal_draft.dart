@@ -5,4 +5,5 @@
 //    이 파일 또는 src/journal_draft/ 를 import 하지 않는다.
 //    방향은 journal_draft → 배럴 쪽 파일만 허용(전이로 iOS 빌드에 들어가지 않게).
 
+export 'src/journal_draft/advice_skip_form.dart';
 export 'src/journal_draft/journal_draft_form.dart';
