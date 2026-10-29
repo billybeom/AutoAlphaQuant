@@ -65,7 +65,7 @@ const String kKisTokenRateCode = 'EGW00133';
 
 /// 응답 하나.
 class KisResponse {
-  const KisResponse(this.status, this.body, this.attempts);
+  const KisResponse(this.status, this.body, this.attempts, [this.text]);
 
   /// HTTP 상태.
   final int status;
@@ -75,6 +75,9 @@ class KisResponse {
 
   /// 보낸 횟수(재시도 포함).
   final int attempts;
+
+  /// 🆕 본문 원문(받지 못했으면 null) — 수집 기록의 sha256 재료(설계 13 §8 R30 N6). 기록에 원문을 남기지 않는다.
+  final String? text;
 
   String? _s(String k) => body?[k] is String ? body![k]! as String : null;
 
@@ -232,6 +235,7 @@ class KisRestClient {
       calls++;
       int? status;
       Map<String, Object?>? body;
+      String? text;
       try {
         final http.Response r = await _http
             .get(
@@ -249,6 +253,7 @@ class KisRestClient {
             .timeout(timeout);
         status = r.statusCode;
         body = _json(r.bodyBytes);
+        text = utf8.decode(r.bodyBytes, allowMalformed: true);
       } on TimeoutException {
         failure = '시간 초과';
       } on http.ClientException {
@@ -256,7 +261,7 @@ class KisRestClient {
       } on SocketException {
         failure = '연결 실패';
       }
-      final KisResponse res = KisResponse(status ?? 0, body, attempts);
+      final KisResponse res = KisResponse(status ?? 0, body, attempts, text);
       if (status != null &&
           !refreshed &&
           kKisTokenInvalidCodes.contains(res.msgCd)) {

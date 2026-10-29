@@ -39,6 +39,18 @@ export 'src/data/dated_series.dart'
 export 'src/data/pandas_number.dart' show pandasPreciseXstrtod;
 export 'src/data/pit_align.dart'
     show alignAsOfInclusive, alignWithLag, kPublishLagDays, toKrCalendar;
+export 'src/data/quote_feed.dart'
+    show
+        DailyQuoteFeed,
+        PriceAdjust,
+        QuoteBar,
+        QuoteFeedDown,
+        QuoteFetch,
+        QuoteKind,
+        kKrSessionFinalHourKst,
+        kUsSessionFinalHourKst,
+        lastFinishedSession,
+        lastSessionAtOrBefore;
 export 'src/data/regime_inputs.dart'
     show
         DistVolumeSource,

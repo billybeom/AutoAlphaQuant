@@ -7,6 +7,7 @@
 // 🔴 끝내 실패 = `fetch_log` FAILED + `data_gap(macro, MISSING_ROW, recoverable 1)` — P1 `DATA_SOURCE_DOWN` 알림은
 //    잡(E11)이 [SeriesCollectResult.failed] 를 보고 낸다. 미국·매크로 결측은 그날 계획을 멈추지 않는다(재정규화 · D4).
 // 🔵 KIS 가 평소 원천인 4계열(SPY·RSP·VIX·VIX3M)과 ^GSPC·KOSDAQ 일봉은 E8d — 여기서 받지 않는다.
+//    🆕 단 VIX·VIX3M 은 KIS 지수 코드를 아직 재지 않아 FRED 가 대신 받는다([standIns] · 설계 13 §8 R30 N5).
 
 import 'package:core_engine/core_engine.dart' show DataGapCause, plusDays;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -76,11 +77,31 @@ class MacroCollector {
         p,
   ];
 
+  /// 🆕 KIS 가 평소 원천인데 KIS 지수 코드를 아직 재지 않은 계열(VIX · VIX3M) — FRED 길만 남긴 원천 순서
+  /// (FR-111 폴백 순서의 둘째 길을 당분간 평소 길로 · 설계 13 §8 R30 N5). 행 `source` = 실제 받은 길.
+  /// KIS 실호출 확인(network 시험 · 발주자 승인) 뒤 비운다.
+  static final List<SeriesPlan> standIns = <SeriesPlan>[
+    for (final SeriesPlan p in kRegimeSeriesPlans)
+      if (p.seriesId == MarketSeriesIds.vix ||
+          p.seriesId == MarketSeriesIds.vix3m)
+        SeriesPlan(p.seriesId, <SeriesFeed>[
+          for (final SeriesFeed f in p.feeds)
+            if (f.source == MarketDataSource.fred) f,
+        ]),
+  ];
+
   /// 전부 받는다 — [asOf] = 이번 실행의 기준일(실패 결측의 끝날짜 · 기록의 `as_of`).
-  Future<List<SeriesCollectResult>> collect({required String asOf}) async =>
-      <SeriesCollectResult>[
-        for (final SeriesPlan p in plans) await collectOne(p, asOf: asOf),
-      ];
+  /// 🆕 [withStandIns] = [standIns] 도 받는다(잡 배선 E11 은 참으로 부른다 — 시드에 VIX·VIX3M 이 있어야 한다).
+  Future<List<SeriesCollectResult>> collect({
+    required String asOf,
+    bool withStandIns = false,
+  }) async => <SeriesCollectResult>[
+    for (final SeriesPlan p in <SeriesPlan>[
+      ...plans,
+      if (withStandIns) ...standIns,
+    ])
+      await collectOne(p, asOf: asOf),
+  ];
 
   /// 계열 하나.
   Future<SeriesCollectResult> collectOne(

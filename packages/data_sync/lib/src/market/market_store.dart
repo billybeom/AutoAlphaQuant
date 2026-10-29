@@ -222,6 +222,35 @@ final class SqliteMarketStore {
           ).first['d']
           as String?;
 
+  /// 🆕 [market]·[symbol] 의 저장된 거래일([from]~[to] 포함) — 빠진 세션 찾기(설계 13 §8 R30 N8).
+  Set<String> barDates(
+    String market,
+    String symbol, {
+    required String from,
+    required String to,
+  }) => <String>{
+    for (final Row r in _db.select(
+      'SELECT trade_date FROM daily_prices '
+      'WHERE market = ? AND symbol = ? AND trade_date BETWEEN ? AND ?',
+      <Object>[market, symbol, from, to],
+    ))
+      r['trade_date'] as String,
+  };
+
+  /// 🆕 계열 [seriesId] 의 저장된 관측일([from]~[to] 포함).
+  Set<String> seriesDates(
+    String seriesId, {
+    required String from,
+    required String to,
+  }) => <String>{
+    for (final Row r in _db.select(
+      'SELECT obs_date FROM market_series '
+      'WHERE series_id = ? AND obs_date BETWEEN ? AND ?',
+      <Object>[seriesId, from, to],
+    ))
+      r['obs_date'] as String,
+  };
+
   /// 계열 [seriesId] 전부(날짜 오름차순 · 결측 = 행 없음).
   DatedSeries readSeries(String seriesId) {
     final List<String> d = <String>[];

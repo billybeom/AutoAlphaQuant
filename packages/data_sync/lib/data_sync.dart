@@ -9,6 +9,7 @@
 // 구현은 lib/src/ 아래로 들어오고 공개할 것만 여기에서 export 한다.
 // 🔵 E9-0 — 로컬 정본 SQLite 연결(`package:sqlite3`) · 🆕 E9c — 스키마 v1 · 두 파일 열기 · 🆕 E7b1 — 계획 스냅샷 저장소.
 // 🆕 E8c — 시세·지표 저장(`daily_prices`·`market_series`) · 국면 행 · 결측 · 수집 기록 · 동결 번들 시드 · FRED·OFR 수집.
+// 🆕 E8d2b — 일봉 시세 수집(`QuoteCollector` — core_engine 포트만 안다 · KIS 구현은 잡이 넣는다 · 끝난 세션만).
 
 export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
@@ -22,6 +23,7 @@ export 'src/market/http_fetch.dart';
 export 'src/market/macro_collector.dart';
 export 'src/market/market_ids.dart';
 export 'src/market/market_store.dart';
+export 'src/market/quote_collector.dart';
 export 'src/market/regime_store.dart';
 export 'src/market/seed_bundle.dart';
 export 'src/market/series_clients.dart';
