@@ -443,10 +443,9 @@ class _ManualFillFormState extends ConsumerState<ManualFillForm> {
           key: const Key('a3-symbol'),
           isExpanded: true,
           hint: const Text(JournalLabels.manualFillSymbol),
-          value: _known(
-            _symbol,
-            <String>[for (final SymbolOption s in spec.symbols) s.symbol],
-          ),
+          value: _known(_symbol, <String>[
+            for (final SymbolOption s in spec.symbols) s.symbol,
+          ]),
           items: <DropdownMenuItem<String>>[
             for (final SymbolOption s in spec.symbols)
               DropdownMenuItem<String>(value: s.symbol, child: Text(s.label)),
@@ -537,10 +536,9 @@ class _ManualFillFormState extends ConsumerState<ManualFillForm> {
           key: const Key('a3-account'),
           isExpanded: true,
           hint: const Text(JournalLabels.manualFillAccount),
-          value: _known(
-            _account,
-            <String>[for (final AccountOption a in spec.accounts) a.alias],
-          ),
+          value: _known(_account, <String>[
+            for (final AccountOption a in spec.accounts) a.alias,
+          ]),
           items: <DropdownMenuItem<String>>[
             for (final AccountOption a in spec.accounts)
               DropdownMenuItem<String>(value: a.alias, child: Text(a.label)),

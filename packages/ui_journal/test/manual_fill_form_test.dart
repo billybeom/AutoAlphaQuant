@@ -130,11 +130,10 @@ void main() {
     FixturePaths.m6FillFormSpec,
     ManualFillFormSpec.fromJson,
   );
-  final ManualFillFormSpec blockedSpec =
-      singleFixture<ManualFillFormSpec>(
-        FixturePaths.m6FillFormSpecBlocked,
-        ManualFillFormSpec.fromJson,
-      );
+  final ManualFillFormSpec blockedSpec = singleFixture<ManualFillFormSpec>(
+    FixturePaths.m6FillFormSpecBlocked,
+    ManualFillFormSpec.fromJson,
+  );
   final ManualFillFormSpec staleSpec = singleFixture<ManualFillFormSpec>(
     FixturePaths.m6FillFormSpecStale,
     ManualFillFormSpec.fromJson,
@@ -172,10 +171,9 @@ void main() {
       adviceId: ad0002.adviceId,
     );
 
-    expect(
-      adviceShownTexts(tester, find.byKey(const Key('a3-asof'))),
-      <String>[spec.asOf.label],
-    );
+    expect(adviceShownTexts(tester, find.byKey(const Key('a3-asof'))), <String>[
+      spec.asOf.label,
+    ]);
     expect(
       adviceShownTexts(tester, find.byKey(const Key('a3-ref'))),
       adviceFormRefTexts(ad0002),
@@ -188,7 +186,10 @@ void main() {
       '',
     );
     expect(
-      tester.widget<TextField>(find.byKey(const Key('a3-price'))).controller?.text,
+      tester
+          .widget<TextField>(find.byKey(const Key('a3-price')))
+          .controller
+          ?.text,
       '',
     );
     expect(
@@ -199,7 +200,10 @@ void main() {
       '',
     );
     expect(
-      tester.widget<TextField>(find.byKey(const Key('a3-tax'))).controller?.text,
+      tester
+          .widget<TextField>(find.byKey(const Key('a3-tax')))
+          .controller
+          ?.text,
       '',
     );
     expect(spec.tradeDateOptions, hasLength(6));
@@ -303,7 +307,10 @@ void main() {
       ManualFillPrefillFields.quantity,
     ]);
     expect(
-      tester.widget<TextField>(find.byKey(const Key('a3-price'))).controller?.text,
+      tester
+          .widget<TextField>(find.byKey(const Key('a3-price')))
+          .controller
+          ?.text,
       '',
     );
 
@@ -316,11 +323,7 @@ void main() {
   });
 
   final List<_A303Case> a303Cases = <_A303Case>[
-    _A303Case(
-      name: 'open',
-      item: ad0002,
-      prefill: ad0002.prefillQuantityLabel,
-    ),
+    _A303Case(name: 'open', item: ad0002, prefill: ad0002.prefillQuantityLabel),
     _A303Case(name: 'filled', item: filled, prefill: null),
   ];
   for (final _A303Case c in a303Cases) {
@@ -382,9 +385,7 @@ void main() {
       adviceId: ad0002.adviceId,
     );
 
-    await tester.ensureVisible(
-      find.byKey(const ValueKey<String>('a3-date-5')),
-    );
+    await tester.ensureVisible(find.byKey(const ValueKey<String>('a3-date-5')));
     await tester.tap(find.byKey(const ValueKey<String>('a3-date-5')));
     expect(
       store.saved.last.manualFill?.tradeDate,
@@ -394,9 +395,7 @@ void main() {
     await manualFillPick(tester, const Key('a3-symbol'), spec.symbols[1].label);
     expect(store.saved.last.manualFill?.symbol, spec.symbols[1].symbol);
 
-    await tester.ensureVisible(
-      find.byKey(const ValueKey<String>('a3-side-1')),
-    );
+    await tester.ensureVisible(find.byKey(const ValueKey<String>('a3-side-1')));
     await tester.tap(find.byKey(const ValueKey<String>('a3-side-1')));
 
     await tester.enterText(find.byKey(const Key('a3-quantity')), ' 8 ');
@@ -531,7 +530,9 @@ void main() {
         c.watch.stateLabel,
       );
       expect(
-        tester.widget<FilledButton>(find.byKey(const Key('a3-submit'))).onPressed,
+        tester
+            .widget<FilledButton>(find.byKey(const Key('a3-submit')))
+            .onPressed,
         c.enabled,
       );
       expect(
@@ -542,9 +543,7 @@ void main() {
       );
       expect(
         tester
-            .widget<ChoiceChip>(
-              find.byKey(const ValueKey<String>('a3-date-0')),
-            )
+            .widget<ChoiceChip>(find.byKey(const ValueKey<String>('a3-date-0')))
             .onSelected,
         c.enabled,
       );
@@ -555,9 +554,7 @@ void main() {
         c.enabled,
       );
       expect(
-        tester
-            .widget<TextField>(find.byKey(const Key('a3-quantity')))
-            .enabled,
+        tester.widget<TextField>(find.byKey(const Key('a3-quantity'))).enabled,
         c.fieldEnabled,
       );
 
@@ -651,13 +648,16 @@ void main() {
     await tester.tap(find.byKey(const Key('a3-retry')));
     await tester.pump();
 
-    expect(<List<String>>[
-      for (final ManualFillSubmission s in cmd.recorded) s.retryCodes,
-    ], <List<String>>[
-      <String>[],
-      <String>[rejectedPrice.retryCode!],
-      <String>[rejectedPrice.retryCode!, receipts.rows[2].retryCode!],
-    ]);
+    expect(
+      <List<String>>[
+        for (final ManualFillSubmission s in cmd.recorded) s.retryCodes,
+      ],
+      <List<String>>[
+        <String>[],
+        <String>[rejectedPrice.retryCode!],
+        <String>[rejectedPrice.retryCode!, receipts.rows[2].retryCode!],
+      ],
+    );
     expect(store.saved.last.manualFill, cmd.recorded.last.input);
     expect(find.text(JournalLabels.retry), findsNothing);
   });
@@ -691,7 +691,10 @@ void main() {
       drafts.rows[0].manualFill?.quantityText,
     );
     expect(
-      tester.widget<TextField>(find.byKey(const Key('a3-price'))).controller?.text,
+      tester
+          .widget<TextField>(find.byKey(const Key('a3-price')))
+          .controller
+          ?.text,
       drafts.rows[0].manualFill?.priceText,
     );
     expect(
@@ -702,7 +705,10 @@ void main() {
       drafts.rows[0].manualFill?.commissionText,
     );
     expect(
-      tester.widget<TextField>(find.byKey(const Key('a3-tax'))).controller?.text,
+      tester
+          .widget<TextField>(find.byKey(const Key('a3-tax')))
+          .controller
+          ?.text,
       drafts.rows[0].manualFill?.taxText,
     );
     for (int i = 0; i < spec.tradeDateOptions.length; i++) {
@@ -803,7 +809,9 @@ void main() {
         expect(find.byKey(const Key('a3-receipt')), findsNothing);
       }
       expect(
-        tester.widget<FilledButton>(find.byKey(const Key('a3-submit'))).onPressed,
+        tester
+            .widget<FilledButton>(find.byKey(const Key('a3-submit')))
+            .onPressed,
         c.enabled,
       );
       expect(
@@ -902,10 +910,9 @@ void main() {
       adviceId: ad0002.adviceId,
     );
 
-    expect(
-      adviceShownTexts(tester, find.byKey(const Key('a3-asof'))),
-      <String>[staleSpec.asOf.label],
-    );
+    expect(adviceShownTexts(tester, find.byKey(const Key('a3-asof'))), <String>[
+      staleSpec.asOf.label,
+    ]);
     expect(find.text(staleSpec.asOf.staleLabel!), findsOneWidget);
     expect(find.text(JournalLabels.staleBannerTitle), findsOneWidget);
     expect(find.byKey(const Key('a3-ref')), findsNothing);
@@ -1189,22 +1196,24 @@ void main() {
           .value,
       isNull,
     );
-    expect(<bool>[
-      for (int i = 0; i < spec.tradeDateOptions.length; i++)
-        tester
-            .widget<ChoiceChip>(find.byKey(ValueKey<String>('a3-date-$i')))
-            .selected,
-    ], <bool>[
-      for (int i = 0; i < spec.tradeDateOptions.length; i++) false,
-    ]);
-    expect(<bool>[
-      for (int i = 0; i < spec.sides.length; i++)
-        tester
-            .widget<ChoiceChip>(find.byKey(ValueKey<String>('a3-side-$i')))
-            .selected,
-    ], <bool>[
-      for (int i = 0; i < spec.sides.length; i++) false,
-    ]);
+    expect(
+      <bool>[
+        for (int i = 0; i < spec.tradeDateOptions.length; i++)
+          tester
+              .widget<ChoiceChip>(find.byKey(ValueKey<String>('a3-date-$i')))
+              .selected,
+      ],
+      <bool>[for (int i = 0; i < spec.tradeDateOptions.length; i++) false],
+    );
+    expect(
+      <bool>[
+        for (int i = 0; i < spec.sides.length; i++)
+          tester
+              .widget<ChoiceChip>(find.byKey(ValueKey<String>('a3-side-$i')))
+              .selected,
+      ],
+      <bool>[for (int i = 0; i < spec.sides.length; i++) false],
+    );
 
     await tester.ensureVisible(find.byKey(const Key('a3-submit')));
     await tester.tap(find.byKey(const Key('a3-submit')));
