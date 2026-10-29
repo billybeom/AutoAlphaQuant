@@ -319,6 +319,34 @@ void main() {
       fail: JournalLabels.submitNotAccepted,
       deferred: <String>[confirm.rows[0].adviceId],
     ),
+    // 에러 뒤 값 — 접수증 한 줄만 남고 실패 줄은 지워진다(C4r5b-1).
+    _DeferCase(
+      name: 'error_then_value',
+      defer: (int call) => call == 0
+          ? Future<CommandReceipt>.error(StateError('fail'))
+          : Future<CommandReceipt>.value(receipts.rows[0]),
+      steps: (WidgetTester t) async {
+        await _tap(t, find.byKey(const ValueKey<String>('a1-defer-0')));
+        await _tap(t, find.byKey(const ValueKey<String>('a1-defer-0')));
+      },
+      receipt: receipts.rows[0].stateLabel,
+      fail: null,
+      deferred: <String>[confirm.rows[0].adviceId, confirm.rows[0].adviceId],
+    ),
+    // 값 뒤 에러 — 실패 줄만 남고 접수증 줄은 지워진다(C4r5b-1).
+    _DeferCase(
+      name: 'value_then_error',
+      defer: (int call) => call == 0
+          ? Future<CommandReceipt>.value(receipts.rows[0])
+          : Future<CommandReceipt>.error(StateError('fail')),
+      steps: (WidgetTester t) async {
+        await _tap(t, find.byKey(const ValueKey<String>('a1-defer-0')));
+        await _tap(t, find.byKey(const ValueKey<String>('a1-defer-0')));
+      },
+      receipt: null,
+      fail: JournalLabels.submitNotAccepted,
+      deferred: <String>[confirm.rows[0].adviceId, confirm.rows[0].adviceId],
+    ),
   ];
 
   for (final _DeferCase c in deferCases) {
@@ -871,6 +899,22 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await tester.pump();
     expect(tester.takeException(), isNull);
+    expect(find.text(JournalLabels.retry), findsNothing);
+  });
+
+  // 요약은 왔지만 미확인 만료 링크가 null 이면 a1-overdue 는 없다(C4r5b-2).
+  testWidgets('A1-11b overdue link absent when the summary has none', (
+    WidgetTester tester,
+  ) async {
+    expect(sViewer.overdueUnrecordedLink, isNull); // pre
+    await pumpAdviceInbox(
+      tester,
+      overrides: adviceInboxOverrides(repo: _repo(viewer, sViewer)),
+    );
+
+    expect(find.byKey(const Key('a1-summary')), findsOneWidget);
+    expect(find.byKey(const Key('a1-history-link')), findsOneWidget);
+    expect(find.byKey(const Key('a1-overdue')), findsNothing);
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 }

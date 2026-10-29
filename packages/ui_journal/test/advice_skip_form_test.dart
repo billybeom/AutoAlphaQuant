@@ -793,4 +793,186 @@ void main() {
     expect(cmd.watched, <String>[]);
     expect(find.text(JournalLabels.retry), findsNothing);
   });
+
+  // R5 test-only(C4r5c-1) — onError·onDone 두 길을 따로 잡는다.
+  // error_open = 에러 뒤 닫히지 않는 스트림(onError 길만) · done_empty = 값 없이 끝남(onDone 길만).
+  final List<(String, Stream<CommandReceipt> Function(), Matcher)> endCases =
+      <(String, Stream<CommandReceipt> Function(), Matcher)>[
+        (
+          'error_open',
+          () => Stream<CommandReceipt>.multi(
+            (MultiStreamController<CommandReceipt> c) =>
+                c.addError(StateError('fail')),
+          ),
+          isNotNull,
+        ),
+        ('done_empty', () => const Stream<CommandReceipt>.empty(), isNull),
+      ];
+  for (final (
+        String name,
+        Stream<CommandReceipt> Function() first,
+        Matcher exception,
+      )
+      in endCases) {
+    testWidgets('A4-07b resubscribe after a stream $name', (
+      WidgetTester tester,
+    ) async {
+      final RecordingDraftStore store = RecordingDraftStore(
+        seed: <DraftRecord>[
+          adviceSkipSeedWithCommand(drafts.rows[1], receipts.rows[0].commandId),
+        ],
+      );
+      final FakeAdviceSkipCommandApi cmd = FakeAdviceSkipCommandApi(
+        skip: skipOf(receipts.rows[0]),
+        watch: (int call) => call == 0
+            ? first()
+            : Stream<CommandReceipt>.value(receipts.rows[0]),
+      );
+      await pumpAdviceSkip(
+        tester,
+        overrides: adviceSkipOverrides(repo: repoOf(), cmd: cmd, store: store),
+        adviceId: ad0001.adviceId,
+      );
+      await tester.pump();
+
+      expect(find.byKey(const Key('a4-resubscribe')), findsOneWidget);
+      expect(pressedOf(tester, 1), isNull);
+      expect(tester.takeException(), exception);
+      await tapKey(tester, find.byKey(const Key('a4-resubscribe')));
+
+      expect(find.byKey(const Key('a4-resubscribe')), findsNothing);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('a4-receipt'))).data,
+        receipts.rows[0].stateLabel,
+      );
+      expect(cmd.watched, <String>[
+        receipts.rows[0].commandId,
+        receipts.rows[0].commandId,
+      ]);
+    });
+  }
+
+  // R5 test-only(C4r5c-1 선택 · X04·X05) — 열린 구독은 재구독과 dispose 에서 끊긴다.
+  testWidgets('A4-07c watch subscriptions cancel on resubscribe and dispose', (
+    WidgetTester tester,
+  ) async {
+    final List<int> cancelled = <int>[];
+    Stream<CommandReceipt> openStream(
+      int call,
+      void Function(MultiStreamController<CommandReceipt> c) emit,
+    ) =>
+        Stream<CommandReceipt>.multi((MultiStreamController<CommandReceipt> c) {
+          c.onCancel = () => cancelled.add(call);
+          emit(c);
+        });
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[
+        adviceSkipSeedWithCommand(drafts.rows[1], receipts.rows[0].commandId),
+      ],
+    );
+    final FakeAdviceSkipCommandApi cmd = FakeAdviceSkipCommandApi(
+      skip: skipOf(receipts.rows[0]),
+      watch: (int call) => call == 0
+          ? openStream(
+              call,
+              (MultiStreamController<CommandReceipt> c) =>
+                  c.addError(StateError('fail')),
+            )
+          : openStream(
+              call,
+              (MultiStreamController<CommandReceipt> c) =>
+                  c.add(receipts.rows[0]),
+            ),
+    );
+    await pumpAdviceSkip(
+      tester,
+      overrides: adviceSkipOverrides(repo: repoOf(), cmd: cmd, store: store),
+      adviceId: ad0001.adviceId,
+    );
+    await tester.pump();
+
+    expect(cancelled, <int>[]);
+    await tapKey(tester, find.byKey(const Key('a4-resubscribe')));
+
+    expect(cancelled, <int>[0]);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('a4-receipt'))).data,
+      receipts.rows[0].stateLabel,
+    );
+    await tester.pumpWidget(const SizedBox());
+
+    expect(cancelled, <int>[0, 1]);
+    expect(tester.takeException(), isNotNull);
+  });
+
+  // R5 test-only(C4r5c-1 · X06) — executed 접수증이 두 번 와도 비우기·뒤로는 한 번.
+  testWidgets('A4-04b executed receipt twice clears and pops once', (
+    WidgetTester tester,
+  ) async {
+    expect(receipts.rows[1].state, CommandState.executed); // pre
+    final RecordingDraftStore store = RecordingDraftStore();
+    final FakeAdviceSkipCommandApi cmd = FakeAdviceSkipCommandApi(
+      skip: skipOf(receipts.rows[0]),
+      watch: (int call) => Stream<CommandReceipt>.fromIterable(<CommandReceipt>[
+        receipts.rows[1],
+        receipts.rows[1],
+      ]),
+    );
+    final RecordingLinkOpener opener = RecordingLinkOpener();
+    await pumpAdviceSkip(
+      tester,
+      overrides: adviceSkipOverrides(
+        repo: repoOf(),
+        cmd: cmd,
+        store: store,
+        opener: opener,
+      ),
+      adviceId: ad0001.adviceId,
+    );
+
+    await tapReason(tester, 1);
+    await tester.pump();
+
+    expect(
+      tester.widget<Text>(find.byKey(const Key('a4-receipt'))).data,
+      receipts.rows[1].stateLabel,
+    );
+    expect(store.cleared, <DraftKey>[drafts.rows[1].key]);
+    expect(opener.opened, <String>[AppNavActions.back]);
+    expect(cmd.watched, <String>[receipts.rows[0].commandId]);
+  });
+
+  // R5 test-only(C4r5c-1 · X08) — 미접수 뒤 재제출이 받아지면 미접수 줄은 사라진다.
+  testWidgets('A4-05b resubmit after not accepted clears the line', (
+    WidgetTester tester,
+  ) async {
+    final RecordingDraftStore store = RecordingDraftStore();
+    final FakeAdviceSkipCommandApi cmd = FakeAdviceSkipCommandApi(
+      skip: (int call) => call == 0
+          ? Future<CommandReceipt>.error(StateError('fail'))
+          : Future<CommandReceipt>.value(receipts.rows[0]),
+      watch: watchOf(receipts.rows[0]),
+    );
+    await pumpAdviceSkip(
+      tester,
+      overrides: adviceSkipOverrides(repo: repoOf(), cmd: cmd, store: store),
+      adviceId: ad0001.adviceId,
+    );
+
+    await tapReason(tester, 1);
+    expect(
+      find.byKey(const Key('a4-submit-not-accepted')),
+      findsOneWidget,
+    ); // pre
+    await tapReason(tester, 1);
+
+    expect(find.byKey(const Key('a4-submit-not-accepted')), findsNothing);
+    expect(cmd.skipped, hasLength(2));
+    expect(store.saved.single.lastCommandId, receipts.rows[0].commandId);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('a4-receipt'))).data,
+      receipts.rows[0].stateLabel,
+    );
+    expect(tester.takeException(), isNotNull);
+  });
 }
