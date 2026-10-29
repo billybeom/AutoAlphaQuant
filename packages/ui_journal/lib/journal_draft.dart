@@ -7,3 +7,4 @@
 
 export 'src/journal_draft/advice_skip_form.dart';
 export 'src/journal_draft/journal_draft_form.dart';
+export 'src/journal_draft/manual_fill_form.dart';
