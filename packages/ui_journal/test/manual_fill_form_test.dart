@@ -428,6 +428,56 @@ void main() {
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
+  // R5 test-only(C4r5d-7 · C4E-7): 선택마다 직후 store.saved.last 확인
+  // — 방향 칩(R8d) · 계좌 드롭다운(R8f) 저장 누락을 잡는다.
+  testWidgets('A3-04b each selection saves right after it', (
+    WidgetTester tester,
+  ) async {
+    expect(spec.sides, hasLength(2)); // pre
+    expect(spec.accounts.length, greaterThan(1)); // pre
+    final RecordingDraftStore store = RecordingDraftStore();
+    final FakeAdviceFormRepository repo = FakeAdviceFormRepository(
+      item: (int call) => Future<AdviceItem?>.value(ad0002),
+      spec: (int call) => Stream<ManualFillFormSpec>.value(spec),
+    );
+    final FakeManualFillCommandApi cmd = FakeManualFillCommandApi(
+      record: (int call) => throw UnimplementedError(),
+      watch: (int call) => throw UnimplementedError(),
+    );
+    await pumpManualFill(
+      tester,
+      overrides: manualFillOverrides(repo: repo, cmd: cmd, store: store),
+      adviceId: ad0002.adviceId,
+    );
+    expect(store.saved, <DraftRecord>[]); // pre
+
+    await tester.ensureVisible(find.byKey(const ValueKey<String>('a3-date-5')));
+    await tester.tap(find.byKey(const ValueKey<String>('a3-date-5')));
+    expect(store.saved, hasLength(1));
+    expect(
+      store.saved.last.manualFill?.tradeDate,
+      spec.tradeDateOptions[5].date,
+    );
+    expect(store.saved.last.manualFill?.side, isNull);
+
+    await tester.ensureVisible(find.byKey(const ValueKey<String>('a3-side-1')));
+    await tester.tap(find.byKey(const ValueKey<String>('a3-side-1')));
+    expect(store.saved, hasLength(2));
+    expect(store.saved.last.manualFill?.side, spec.sides[1].side);
+    expect(store.saved.last.manualFill?.accountAlias, isNull);
+
+    await manualFillPick(
+      tester,
+      const Key('a3-account'),
+      spec.accounts[1].label,
+    );
+    expect(store.saved, hasLength(3));
+    expect(store.saved.last.manualFill?.accountAlias, spec.accounts[1].alias);
+    expect(store.saved.last.manualFill?.side, spec.sides[1].side);
+    expect(cmd.recorded, <ManualFillSubmission>[]);
+    expect(find.text(JournalLabels.retry), findsNothing);
+  });
+
   final List<_A305Case> a305Cases = <_A305Case>[
     _A305Case(
       name: 'requested',
@@ -585,6 +635,106 @@ void main() {
       expect(find.text(JournalLabels.retry), findsNothing);
     });
   }
+
+  // R5 test-only(C4r5d-7 · C4E-6): 잠금 «전부» — 칸 4 · 칩 두 무리 ·
+  // 드롭다운 2 · 버튼(X4b · X4c · X4d · X5b · X6b 를 잡는다).
+  // 제출 전 = 전부 열림 · requested 접수증 뒤 = 전부 잠김.
+  testWidgets('A3-05b lock covers every control after requested receipt', (
+    WidgetTester tester,
+  ) async {
+    expect(receipts.rows[0].state, CommandState.requested); // pre
+    expect(receipts.rows[0].retryLabel, isNull); // pre
+    final List<Key> fields = <Key>[
+      const Key('a3-quantity'),
+      const Key('a3-price'),
+      const Key('a3-commission'),
+      const Key('a3-tax'),
+    ];
+    final List<Key> chips = <Key>[
+      for (int i = 0; i < spec.tradeDateOptions.length; i++)
+        ValueKey<String>('a3-date-$i'),
+      for (int i = 0; i < spec.sides.length; i++)
+        ValueKey<String>('a3-side-$i'),
+    ];
+    final List<Key> dropdowns = <Key>[
+      const Key('a3-symbol'),
+      const Key('a3-account'),
+    ];
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[drafts.rows[0]],
+    );
+    final FakeAdviceFormRepository repo = FakeAdviceFormRepository(
+      item: (int call) => Future<AdviceItem?>.value(ad0002),
+      spec: (int call) => Stream<ManualFillFormSpec>.value(spec),
+    );
+    final FakeManualFillCommandApi cmd = FakeManualFillCommandApi(
+      record: (int call) => Future<CommandReceipt>.value(receipts.rows[0]),
+      watch: (int call) => Stream<CommandReceipt>.value(receipts.rows[0]),
+    );
+    await pumpManualFill(
+      tester,
+      overrides: manualFillOverrides(repo: repo, cmd: cmd, store: store),
+      adviceId: ad0002.adviceId,
+    );
+
+    // 제출 전: 전부 열림
+    for (final Key k in fields) {
+      expect(tester.widget<TextField>(find.byKey(k)).enabled, isTrue);
+    }
+    for (final Key k in chips) {
+      expect(tester.widget<ChoiceChip>(find.byKey(k)).onSelected, isNotNull);
+    }
+    for (final Key k in dropdowns) {
+      expect(
+        tester.widget<DropdownButton<String>>(find.byKey(k)).onChanged,
+        isNotNull,
+      );
+    }
+    expect(
+      tester
+          .widget<OutlinedButton>(find.byKey(const Key('a3-prefill')))
+          .onPressed,
+      isNotNull,
+    );
+    expect(
+      tester.widget<FilledButton>(find.byKey(const Key('a3-submit'))).onPressed,
+      isNotNull,
+    );
+
+    await tester.ensureVisible(find.byKey(const Key('a3-submit')));
+    await tester.tap(find.byKey(const Key('a3-submit')));
+    await tester.pump();
+
+    expect(
+      tester.widget<Text>(find.byKey(const Key('a3-receipt'))).data,
+      receipts.rows[0].stateLabel,
+    );
+    // 접수증 뒤: 전부 잠김
+    for (final Key k in fields) {
+      expect(tester.widget<TextField>(find.byKey(k)).enabled, isFalse);
+    }
+    for (final Key k in chips) {
+      expect(tester.widget<ChoiceChip>(find.byKey(k)).onSelected, isNull);
+    }
+    for (final Key k in dropdowns) {
+      expect(
+        tester.widget<DropdownButton<String>>(find.byKey(k)).onChanged,
+        isNull,
+      );
+    }
+    expect(
+      tester
+          .widget<OutlinedButton>(find.byKey(const Key('a3-prefill')))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester.widget<FilledButton>(find.byKey(const Key('a3-submit'))).onPressed,
+      isNull,
+    );
+    expect(find.byKey(const Key('a3-retry')), findsNothing);
+    expect(find.text(JournalLabels.retry), findsNothing);
+  });
 
   testWidgets('A3-06 retry code accumulation on resubmit', (
     WidgetTester tester,
@@ -994,6 +1144,62 @@ void main() {
       tester.widget<Text>(find.byKey(const Key('a3-receipt'))).data,
       receipts.rows[0].stateLabel,
     );
+    expect(cmd.watched, <String>[
+      receipts.rows[0].commandId,
+      receipts.rows[0].commandId,
+    ]);
+    expect(tester.takeException(), isNotNull);
+  });
+
+  // R5 test-only(C4r5d-7 · C4E-15): 에러 뒤 열린 채인 스트림(close 0)
+  // — onDone 이 오지 않으므로 onError 갈래만으로 재구독 버튼이 떠야 한다(C13).
+  testWidgets('A3-12b resubscribe after an error on an open stream', (
+    WidgetTester tester,
+  ) async {
+    final DraftRecord seed = manualFillSeedWithCommand(
+      drafts.rows[0],
+      receipts.rows[0].commandId,
+    );
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[seed],
+    );
+    final FakeAdviceFormRepository repo = FakeAdviceFormRepository(
+      item: (int call) => Future<AdviceItem?>.value(ad0002),
+      spec: (int call) => Stream<ManualFillFormSpec>.value(spec),
+    );
+    final FakeManualFillCommandApi cmd = FakeManualFillCommandApi(
+      record: (int call) => throw UnimplementedError(),
+      watch: (int call) => call == 0
+          ? Stream<CommandReceipt>.multi(
+              (MultiStreamController<CommandReceipt> c) =>
+                  c.addError(StateError('fail')),
+            )
+          : Stream<CommandReceipt>.value(receipts.rows[0]),
+    );
+    await pumpManualFill(
+      tester,
+      overrides: manualFillOverrides(repo: repo, cmd: cmd, store: store),
+      adviceId: ad0002.adviceId,
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byKey(const Key('a3-resubscribe')), findsOneWidget);
+    expect(
+      tester.widget<FilledButton>(find.byKey(const Key('a3-submit'))).onPressed,
+      isNull,
+    );
+    expect(cmd.watched, <String>[receipts.rows[0].commandId]);
+
+    await tester.ensureVisible(find.byKey(const Key('a3-resubscribe')));
+    await tester.tap(find.byKey(const Key('a3-resubscribe')));
+    await tester.pump();
+
+    expect(
+      tester.widget<Text>(find.byKey(const Key('a3-receipt'))).data,
+      receipts.rows[0].stateLabel,
+    );
+    expect(find.byKey(const Key('a3-resubscribe')), findsNothing);
     expect(cmd.watched, <String>[
       receipts.rows[0].commandId,
       receipts.rows[0].commandId,
