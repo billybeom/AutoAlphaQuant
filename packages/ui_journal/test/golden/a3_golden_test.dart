@@ -8,7 +8,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_journal/journal_draft.dart';
 
 import '../advice_skip_fakes.dart';
-import '../holdings_overview_fakes.dart';
 import '../manual_fill_fakes.dart';
 import 'golden_support.dart';
 

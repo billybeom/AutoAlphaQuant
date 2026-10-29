@@ -9,7 +9,6 @@ import 'package:ui_journal/ui_journal.dart';
 import 'advice_fakes.dart';
 import 'advice_skip_fakes.dart';
 import 'golden/golden_support.dart';
-import 'holdings_overview_fakes.dart';
 import 'manual_fill_fakes.dart';
 
 class _NeverDraftStore extends RecordingDraftStore {
