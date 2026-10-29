@@ -21,6 +21,8 @@
 
 `A-3` 수기 체결 기록 = `lib/src/journal_draft/manual_fill_form.dart`(`ManualFillForm(adviceId:)` · operator 배럴 `journal_draft.dart` · 새 주입 0 — `journalAdviceRepositoryProvider`·`journalCommandApiProvider`·`journalDraftStoreProvider` 재사용 · 데이터 2 = 이 파일 안 private · R5c `A-4` 꼴(`_restore`·`_subscribe`·`_applyReceipt`·`_afterExecuted`·`_locked`)을 본뜸 · R5e `L-3` 가 이 꼴을 본뜬다) — R5d(PR #83 `a5de817`).
 
+`L-3` 원장 실사 = `lib/src/journal_draft/self_report_form.dart`(`SelfReportForm(yyyyMm:, accountAlias:)` · operator 배럴 `journal_draft.dart` · 새 주입 1 `journalSettingsActionsProvider`(이 파일 머리 — 조립 앱이 override) · 세션 start/stop = `SettingsActions`(`initState` 에서 잡은 인스턴스로 start · `dispose` 에서 같은 인스턴스로 stop · `dispose` 안 `ref` 0 · K9) · 데이터 1 = 이 파일 안 private · R5c·R5d 접수증 꼴(`_restore`·`_subscribe`·`_applyReceipt`·`_afterExecuted`·`_locked`)을 본뜸 · 🔵 «다음 계좌»(L-3 → L-3) 링크는 지금 셸 `ShellLinkOpener` 가 늘 push — L-3 몸통을 배선하는 카드가 «교체(pushReplacement)» 로 정한다(01 §8 미결 · C4F-16)) — R5e(PR #84 `4fcadf9`).
+
 ## 의존 — 허용 (01 §1-1)
 
 `domain_contracts` · Flutter · `flutter_riverpod`. **이 셋이 전부다.**
@@ -52,9 +54,11 @@
 3. **`prevented`는 실패가 아니라 성공이다** — 이중 발주 차단이 작동한 것이며 그렇게 렌더한다. `unknown`은 «실패»로 단정하지 말고 해소 보드로 딥링크한다.
 4. **v2.31 P0S 정합**: 슬리브 칸은 **A/B/C 3칸**이되 그 3을 상수로 알지 않는다 — `SleeveCatalogEntry` 목록에서 온다. 새틀라이트는 «비활성»이 아니라 **숨김**이다.
 
-## 지금 상태 — ✅ J-1~J-5 · H6-1~H6-3 · L-1·L-2 · A-1·「지난 안내」 · A-2·A-4 · A-3 병합(2026-10-29 · R5d PR #83 squash `a5de817`)
+## 지금 상태 — ✅ J-1~J-5 · H6-1~H6-3 · L-1·L-2 · A-1·「지난 안내」 · A-2·A-4 · A-3 · L-3 병합(2026-10-29 · R5e PR #84 squash `4fcadf9` · 🏁 R5 다섯 장)
 
-`flutter test` **579**(R5d 병합본 `a5de817` 실측 · 2026-10-29 · 538 + R5d 41 — `manual_fill_form_test` +33 · `a3_golden` +8) · 골든 PNG **144장**(`git ls-tree` 실측 · 136 + `a3_*` 8 · `test/golden/README.md` «🆕 R5») · R5 5장 중 4장 완료 — 다음 화면 카드 = 설계 12 §6 큐 7e R5e-Bob-L3(`L-3` · ▶ `docs/ai-context/send/R5e-Bob-L3.md` 「푸시해」 뒤 · 끝 기대 614 · 골든 +4 · R5 마지막) · 그 뒤 통합 담당 test-only PR(`advice_inbox_test` A1-04 두 경우 + `a1-overdue` 부재 1줄 · C4r5b-1·2 + `advice_skip_form_test` A4-07 «에러 뒤 열린 채인 스트림» · executed 접수증 두 번 · 미접수 뒤 재제출 성공 · C4r5c-1 + `manual_fill_form_test` A3-12 «에러 뒤 열린 채인 스트림» · A3-05 잠금 전부 · A3-04 선택마다 저장 · C4r5d-7).
+`flutter test` **614**(R5e 병합본 `4fcadf9` 실측 · 2026-10-29 · 579 + R5e 35 — `self_report_form_test` +31 · `l3_golden` +4) · 골든 PNG **148장**(`git ls-tree` 실측 · 144 + `l3_*` 4 · `test/golden/README.md` «🆕 R5») · 🏁 R5(M6 X5 읽기·X7 기록) 5장 완료 — R5a `L-1`·`L-2` · R5b `A-1`·「지난 안내」 · R5c `A-2`·`A-4` · R5d `A-3` · R5e `L-3` · 다음 = 통합 담당 test-only PR(`advice_inbox_test` A1-04 두 경우 + `a1-overdue` 부재 1줄 · C4r5b-1·2 + `advice_skip_form_test` A4-07 «에러 뒤 열린 채인 스트림» · executed 접수증 두 번 · 미접수 뒤 재제출 성공 · C4r5c-1 + `manual_fill_form_test` A3-12 «에러 뒤 열린 채인 스트림» · A3-05 잠금 전부 · A3-04 선택마다 저장 · C4r5d-7 + `self_report_form_test` L3-06 보류 두 상태(`staleContext` · `pendingLeaseConfirm` copyWith 시드) · L3-07 closed · L3-08 · L3-10 stale 갈래 배너 단언 · L3-05 복원 뒤 새 종목 입력 → 제출 `lines` 전부 · C4r5e-1 — 설계 12 §3 «R5 test-only PR 묶음») → 다음 화면 카드 = R14(조립 전).
+
+~~`flutter test` **579**(R5d 병합본 `a5de817` 실측 · 2026-10-29 · 538 + R5d 41 — `manual_fill_form_test` +33 · `a3_golden` +8) · 골든 PNG **144장**(`git ls-tree` 실측 · 136 + `a3_*` 8 · `test/golden/README.md` «🆕 R5») · R5 5장 중 4장 완료 — 다음 화면 카드 = 설계 12 §6 큐 7e R5e-Bob-L3(`L-3` · ▶ `docs/ai-context/send/R5e-Bob-L3.md` 「푸시해」 뒤 · 끝 기대 614 · 골든 +4 · R5 마지막) · 그 뒤 통합 담당 test-only PR(`advice_inbox_test` A1-04 두 경우 + `a1-overdue` 부재 1줄 · C4r5b-1·2 + `advice_skip_form_test` A4-07 «에러 뒤 열린 채인 스트림» · executed 접수증 두 번 · 미접수 뒤 재제출 성공 · C4r5c-1 + `manual_fill_form_test` A3-12 «에러 뒤 열린 채인 스트림» · A3-05 잠금 전부 · A3-04 선택마다 저장 · C4r5d-7).~~(2026-10-29 R5d 판)
 
 ~~`flutter test` **538**(R5c 병합본 실측 · 2026-10-29 · `origin/main` `a1aa807` = `df4a4d4` + 엔진 E8d2b(ui 변경 0) · 485 + R5c 53 — `advice_detail_test` +16 · `advice_skip_form_test` +27 · `a2_golden` +6 · `a4_golden` +4) · 골든 PNG **136장**(`git ls-tree` 실측 · 126 + `a2_*` 6 + `a4_*` 4 · `test/golden/README.md` «🆕 R5») · R5 5장 중 3장 완료 — 다음 화면 카드 = 설계 12 §6 큐 7d R5d-Bob-A3(`A-3` · ▶ `docs/ai-context/send/R5d-Bob-A3.md` 「푸시해」 뒤 · 끝 기대 579 · 골든 +8) → R5e(`L-3`) · 그 뒤 통합 담당 test-only PR(`advice_inbox_test` A1-04 두 경우 + `a1-overdue` 부재 1줄 · C4r5b-1·2 + `advice_skip_form_test` A4-07 «에러 뒤 열린 채인 스트림» · executed 접수증 두 번 · 미접수 뒤 재제출 성공 · C4r5c-1).~~(2026-10-29 R5c 판)
 
