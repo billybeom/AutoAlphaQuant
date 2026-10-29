@@ -70,10 +70,7 @@ void main() {
 
         await pumpForGolden(
           tester,
-          SelfReportForm(
-            yyyyMm: '2026-08',
-            accountAlias: alias,
-          ),
+          SelfReportForm(yyyyMm: '2026-08', accountAlias: alias),
           brightness: b,
           logicalSize: _kTallPhone,
           wrapApp: (Widget app) => ProviderScope(
@@ -96,10 +93,7 @@ void main() {
           tester.getBottomLeft(find.byKey(flow.bottom)).dy,
           lessThan(_kTallPhone.height),
         );
-        expect(
-          tester.getTopLeft(find.byKey(const Key('l3-asof'))).dy,
-          0.0,
-        );
+        expect(tester.getTopLeft(find.byKey(const Key('l3-asof'))).dy, 0.0);
         await expectGolden(flow.name, b);
       });
     }

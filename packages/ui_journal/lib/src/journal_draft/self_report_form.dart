@@ -15,14 +15,12 @@ final journalSettingsActionsProvider = Provider<SettingsActions>(
   (Ref ref) => throw UnimplementedError('journalSettingsActionsProvider'),
 );
 
-final _selfReportSessionProvider = StreamProvider.family<
-  SelfReportSession,
-  (String, String)
->(
-  (Ref ref, (String, String) key) => ref
-      .watch(journalLedgerTrustRepositoryProvider)
-      .watchSelfReportSession(key.$1, key.$2),
-);
+final _selfReportSessionProvider =
+    StreamProvider.family<SelfReportSession, (String, String)>(
+      (Ref ref, (String, String) key) => ref
+          .watch(journalLedgerTrustRepositoryProvider)
+          .watchSelfReportSession(key.$1, key.$2),
+    );
 
 const Widget _selfReportLoading = JournalSkeleton(key: Key('l3-loading'));
 
@@ -125,7 +123,8 @@ class _SelfReportFormState extends ConsumerState<SelfReportForm> {
 
   SelfReportInput _input() => SelfReportInput(
     lines: <SelfReportLineInput>[
-      for (final MapEntry<String, TextEditingController> e in _lineCtrls.entries)
+      for (final MapEntry<String, TextEditingController> e
+          in _lineCtrls.entries)
         SelfReportLineInput(symbol: e.key, quantityText: e.value.text),
     ],
     cashKrwText: _cashCtrl.text,
@@ -142,9 +141,8 @@ class _SelfReportFormState extends ConsumerState<SelfReportForm> {
   );
 
   void _port(Future<void> Function(DraftStore s) call) => unawaited(
-    Future<void>.sync(
-      () => call(ref.read(journalDraftStoreProvider)),
-    ).then<void>((_) {}, onError: _report),
+    Future<void>.sync(() => call(ref.read(journalDraftStoreProvider)))
+        .then<void>((_) {}, onError: _report),
   );
 
   void _persist() {

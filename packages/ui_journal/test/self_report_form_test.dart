@@ -143,99 +143,102 @@ void main() {
   final String alias = drafts.rows[2].selfReport?.accountAlias ?? '';
   final String key2 = '$yyyyMm/$alias';
 
-  testWidgets('L3-01 open session texts, blank inputs, start call, draft load', (
-    WidgetTester tester,
-  ) async {
-    expect(drafts.rows[2].key.targetId, key2); // pre
-    final FakeSelfReportRepository repo = FakeSelfReportRepository(
-      session: (_) => Stream<SelfReportSession>.value(session1),
-    );
-    final FakeSelfReportActions actions = FakeSelfReportActions();
-    final FakeSelfReportCommandApi cmd = FakeSelfReportCommandApi(
-      submit: (_) => Future<CommandReceipt>.value(receipts.rows[0]),
-      watch: (_) => Stream<CommandReceipt>.value(receipts.rows[0]),
-    );
-    final RecordingDraftStore store = RecordingDraftStore();
-    await pumpSelfReport(
-      tester,
-      overrides: selfReportOverrides(
-        repo: repo,
-        actions: actions,
-        cmd: cmd,
-        store: store,
-      ),
-      yyyyMm: yyyyMm,
-      accountAlias: alias,
-    );
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('l3-asof')),
-        matching: find.text(session1.asOf.label),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      tester.widget<Text>(find.byKey(const Key('l3-title'))).data,
-      session1.titleText,
-    );
-    expect(
-      tester.widget<Text>(find.byKey(const Key('l3-notice'))).data,
-      session1.noticeText,
-    );
-    expect(
-      tester.widget<Text>(find.byKey(const Key('l3-account'))).data,
-      session1.accountLabel,
-    );
-    expect(
-      tester.widget<Text>(find.byKey(const Key('l3-trade-date'))).data,
-      session1.asOfTradeDateText,
-    );
-    expect(session1.symbols, hasLength(4));
-    for (int i = 0; i < session1.symbols.length; i++) {
+  testWidgets(
+    'L3-01 open session texts, blank inputs, start call, draft load',
+    (WidgetTester tester) async {
+      expect(drafts.rows[2].key.targetId, key2); // pre
+      final FakeSelfReportRepository repo = FakeSelfReportRepository(
+        session: (_) => Stream<SelfReportSession>.value(session1),
+      );
+      final FakeSelfReportActions actions = FakeSelfReportActions();
+      final FakeSelfReportCommandApi cmd = FakeSelfReportCommandApi(
+        submit: (_) => Future<CommandReceipt>.value(receipts.rows[0]),
+        watch: (_) => Stream<CommandReceipt>.value(receipts.rows[0]),
+      );
+      final RecordingDraftStore store = RecordingDraftStore();
+      await pumpSelfReport(
+        tester,
+        overrides: selfReportOverrides(
+          repo: repo,
+          actions: actions,
+          cmd: cmd,
+          store: store,
+        ),
+        yyyyMm: yyyyMm,
+        accountAlias: alias,
+      );
       expect(
         find.descendant(
-          of: find.byKey(ValueKey<String>('l3-line-$i')),
-          matching: find.text(session1.symbols[i].label),
+          of: find.byKey(const Key('l3-asof')),
+          matching: find.text(session1.asOf.label),
         ),
         findsOneWidget,
       );
       expect(
+        tester.widget<Text>(find.byKey(const Key('l3-title'))).data,
+        session1.titleText,
+      );
+      expect(
+        tester.widget<Text>(find.byKey(const Key('l3-notice'))).data,
+        session1.noticeText,
+      );
+      expect(
+        tester.widget<Text>(find.byKey(const Key('l3-account'))).data,
+        session1.accountLabel,
+      );
+      expect(
+        tester.widget<Text>(find.byKey(const Key('l3-trade-date'))).data,
+        session1.asOfTradeDateText,
+      );
+      expect(session1.symbols, hasLength(4));
+      for (int i = 0; i < session1.symbols.length; i++) {
+        expect(
+          find.descendant(
+            of: find.byKey(ValueKey<String>('l3-line-$i')),
+            matching: find.text(session1.symbols[i].label),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          tester
+              .widget<TextField>(find.byKey(ValueKey<String>('l3-line-$i')))
+              .controller
+              ?.text,
+          '',
+        );
+      }
+      expect(find.byKey(const ValueKey<String>('l3-line-4')), findsNothing);
+      expect(
         tester
-            .widget<TextField>(find.byKey(ValueKey<String>('l3-line-$i')))
+            .widget<TextField>(find.byKey(const Key('l3-cash')))
             .controller
             ?.text,
         '',
       );
-    }
-    expect(find.byKey(const ValueKey<String>('l3-line-4')), findsNothing);
-    expect(
-      tester
-          .widget<TextField>(find.byKey(const Key('l3-cash')))
-          .controller
-          ?.text,
-      '',
-    );
-    expect(
-      tester
-          .widget<CheckboxListTile>(find.byKey(const Key('l3-declare')))
-          .value,
-      isFalse,
-    );
-    expect(
-      tester.widget<FilledButton>(find.byKey(const Key('l3-submit'))).onPressed,
-      isNull,
-    );
-    expect(actions.ids, <SettingsActionId>[
-      SettingsActionId.selfReportSessionStart,
-    ]);
-    expect(actions.runArgs, <Map<String, String>>[
-      <String, String>{'yyyy_mm': yyyyMm, 'account_alias': alias},
-    ]);
-    expect(repo.args, <(String, String)>[(yyyyMm, alias)]);
-    expect(store.loaded, <DraftKey>[drafts.rows[2].key]);
-    expect(store.saved, <DraftRecord>[]);
-    expect(find.text(JournalLabels.retry), findsNothing);
-  });
+      expect(
+        tester
+            .widget<CheckboxListTile>(find.byKey(const Key('l3-declare')))
+            .value,
+        isFalse,
+      );
+      expect(
+        tester
+            .widget<FilledButton>(find.byKey(const Key('l3-submit')))
+            .onPressed,
+        isNull,
+      );
+      expect(actions.ids, <SettingsActionId>[
+        SettingsActionId.selfReportSessionStart,
+      ]);
+      expect(actions.runArgs, <Map<String, String>>[
+        <String, String>{'yyyy_mm': yyyyMm, 'account_alias': alias},
+      ]);
+      expect(repo.args, <(String, String)>[(yyyyMm, alias)]);
+      expect(store.loaded, <DraftKey>[drafts.rows[2].key]);
+      expect(store.saved, <DraftRecord>[]);
+      expect(find.text(JournalLabels.retry), findsNothing);
+    },
+  );
 
   testWidgets('L3-02 leave stops with same instance and no ref in dispose', (
     WidgetTester tester,
@@ -676,7 +679,10 @@ void main() {
   for (final _BlockedCase c in <_BlockedCase>[
     _BlockedCase(
       name: 'blocked',
-      session: selfReportSessionBlocked(session1, blockedSpec.blockedText ?? ''),
+      session: selfReportSessionBlocked(
+        session1,
+        blockedSpec.blockedText ?? '',
+      ),
       blocked: blockedSpec.blockedText,
       submit: findsNothing,
     ),
@@ -739,8 +745,9 @@ void main() {
     ),
     _StateCase(
       name: 'session_loading',
-      session: (_) =>
-          Stream<SelfReportSession>.fromFuture(Completer<SelfReportSession>().future),
+      session: (_) => Stream<SelfReportSession>.fromFuture(
+        Completer<SelfReportSession>().future,
+      ),
       store: RecordingDraftStore(),
       clock: null,
       present: const <Key>[Key('l3-loading')],
@@ -787,14 +794,8 @@ void main() {
       session: (_) => Stream<SelfReportSession>.value(diffResult),
       store: RecordingDraftStore(),
       clock: ledgerStaleClock(),
-      present: const <Key>[
-        ValueKey<String>('l3-diff-0'),
-        Key('l3-resolve'),
-      ],
-      absent: const <Key>[
-        ValueKey<String>('l3-line-0'),
-        Key('l3-submit'),
-      ],
+      present: const <Key>[ValueKey<String>('l3-diff-0'), Key('l3-resolve')],
+      absent: const <Key>[ValueKey<String>('l3-line-0'), Key('l3-submit')],
       stale: findsNothing,
       asOfText: findsOneWidget,
     ),
@@ -896,8 +897,9 @@ void main() {
       final FakeSelfReportActions actions = FakeSelfReportActions();
       final FakeSelfReportCommandApi cmd = FakeSelfReportCommandApi(
         submit: (_) => Future<CommandReceipt>.value(receipts.rows[0]),
-        watch: (int call) =>
-            call == 0 ? c.first() : Stream<CommandReceipt>.value(receipts.rows[0]),
+        watch: (int call) => call == 0
+            ? c.first()
+            : Stream<CommandReceipt>.value(receipts.rows[0]),
       );
       final RecordingDraftStore store = RecordingDraftStore(
         seed: <DraftRecord>[
@@ -1142,70 +1144,66 @@ void main() {
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 
-  testWidgets(
-    'L3-17 restored executed arriving after session clears form',
-    (WidgetTester tester) async {
-      final StreamController<CommandReceipt> late =
-          StreamController<CommandReceipt>();
-      addTearDown(late.close);
-      final FakeSelfReportRepository repo = FakeSelfReportRepository(
-        session: (_) => Stream<SelfReportSession>.value(session1),
-      );
-      final FakeSelfReportActions actions = FakeSelfReportActions();
-      final FakeSelfReportCommandApi cmd = FakeSelfReportCommandApi(
-        submit: (_) => Future<CommandReceipt>.value(receipts.rows[0]),
-        watch: (_) => late.stream,
-      );
-      final RecordingDraftStore store = RecordingDraftStore(
-        seed: <DraftRecord>[
-          selfReportSeedWithCash(
-            selfReportSeedWithCommand(
-              drafts.rows[2],
-              receipts.rows[0].commandId,
-            ),
-            '500',
-          ),
-        ],
-      );
-      await pumpSelfReport(
-        tester,
-        overrides: selfReportOverrides(
-          repo: repo,
-          actions: actions,
-          cmd: cmd,
-          store: store,
+  testWidgets('L3-17 restored executed arriving after session clears form', (
+    WidgetTester tester,
+  ) async {
+    final StreamController<CommandReceipt> late =
+        StreamController<CommandReceipt>();
+    addTearDown(late.close);
+    final FakeSelfReportRepository repo = FakeSelfReportRepository(
+      session: (_) => Stream<SelfReportSession>.value(session1),
+    );
+    final FakeSelfReportActions actions = FakeSelfReportActions();
+    final FakeSelfReportCommandApi cmd = FakeSelfReportCommandApi(
+      submit: (_) => Future<CommandReceipt>.value(receipts.rows[0]),
+      watch: (_) => late.stream,
+    );
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[
+        selfReportSeedWithCash(
+          selfReportSeedWithCommand(drafts.rows[2], receipts.rows[0].commandId),
+          '500',
         ),
-        yyyyMm: yyyyMm,
-        accountAlias: alias,
-      );
-      expect(
-        tester
-            .widget<TextField>(find.byKey(const ValueKey<String>('l3-line-0')))
-            .controller
-            ?.text,
-        drafts.rows[2].selfReport?.lines.first.quantityText,
-      );
-      late.add(receipts.rows[1]);
-      await tester.pump();
-      await tester.pump();
-      expect(
-        tester
-            .widget<TextField>(find.byKey(const ValueKey<String>('l3-line-0')))
-            .controller
-            ?.text,
-        '',
-      );
-      expect(
-        tester
-            .widget<TextField>(find.byKey(const Key('l3-cash')))
-            .controller
-            ?.text,
-        '',
-      );
-      expect(store.cleared, <DraftKey>[drafts.rows[2].key]);
-      expect(find.text(JournalLabels.retry), findsNothing);
-    },
-  );
+      ],
+    );
+    await pumpSelfReport(
+      tester,
+      overrides: selfReportOverrides(
+        repo: repo,
+        actions: actions,
+        cmd: cmd,
+        store: store,
+      ),
+      yyyyMm: yyyyMm,
+      accountAlias: alias,
+    );
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey<String>('l3-line-0')))
+          .controller
+          ?.text,
+      drafts.rows[2].selfReport?.lines.first.quantityText,
+    );
+    late.add(receipts.rows[1]);
+    await tester.pump();
+    await tester.pump();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey<String>('l3-line-0')))
+          .controller
+          ?.text,
+      '',
+    );
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('l3-cash')))
+          .controller
+          ?.text,
+      '',
+    );
+    expect(store.cleared, <DraftKey>[drafts.rows[2].key]);
+    expect(find.text(JournalLabels.retry), findsNothing);
+  });
 
   testWidgets('L3-18 safety banner renders above title and below asof', (
     WidgetTester tester,
@@ -1235,10 +1233,12 @@ void main() {
     final String flagLabel = safetyFixtureRow(3).activeFlags.first.label;
     expect(find.text(flagLabel), findsOneWidget);
     final double bannerDy = tester.getTopLeft(find.text(flagLabel)).dy;
-    final double asofDy =
-        tester.getTopLeft(find.byKey(const Key('l3-asof'))).dy;
-    final double titleDy =
-        tester.getTopLeft(find.byKey(const Key('l3-title'))).dy;
+    final double asofDy = tester
+        .getTopLeft(find.byKey(const Key('l3-asof')))
+        .dy;
+    final double titleDy = tester
+        .getTopLeft(find.byKey(const Key('l3-title')))
+        .dy;
     expect(bannerDy, greaterThan(asofDy));
     expect(bannerDy, lessThan(titleDy));
     expect(find.text(JournalLabels.retry), findsNothing);

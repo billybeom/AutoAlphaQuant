@@ -104,10 +104,7 @@ Future<void> pumpSelfReport(
       overrides: overrides,
       child: MaterialApp(
         home: Scaffold(
-          body: SelfReportForm(
-            yyyyMm: yyyyMm,
-            accountAlias: accountAlias,
-          ),
+          body: SelfReportForm(yyyyMm: yyyyMm, accountAlias: accountAlias),
         ),
       ),
     ),
@@ -122,10 +119,8 @@ DraftRecord selfReportSeedWithCommand(DraftRecord r, String commandId) =>
 DraftRecord selfReportSeedWithCash(DraftRecord r, String cash) =>
     r.copyWith(selfReport: r.selfReport?.copyWith(cashKrwText: cash));
 
-SelfReportSession selfReportSessionBlocked(
-  SelfReportSession s,
-  String text,
-) => s.copyWith(blockedText: text);
+SelfReportSession selfReportSessionBlocked(SelfReportSession s, String text) =>
+    s.copyWith(blockedText: text);
 
 Set<String> selfReportAllowed(SelfReportSession s) => <String>{
   s.asOf.label,
