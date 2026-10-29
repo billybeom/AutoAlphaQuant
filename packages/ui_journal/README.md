@@ -17,6 +17,8 @@
 
 `A-1` 오늘의 매매 안내 = `lib/src/advice_inbox.dart`(`AdviceInbox()` · 주입 2 `journalAdviceRepositoryProvider`·`journalAdviceCommandApiProvider` = 이 파일 머리 — 조립 앱이 override) · 공개 조각 `lib/src/advice/advice_card.dart`(`AdviceCard(item:)` — R5c `A-2` 가 import) · 「지난 안내」 = `lib/src/advice_history.dart`(`AdviceHistory()` · `journalAdviceRepositoryProvider` 재사용) — R5b(PR #78 `4736b10`).
 
+`A-2` 안내 상세 = `lib/src/advice_detail.dart`(`AdviceDetail(adviceId:)` · 배럴 · 데이터 2 = 이 파일 안 private — `journalAdviceRepositoryProvider` 재사용 · `AdviceCard` import) · `A-4` 미이행 사유 = `lib/src/journal_draft/advice_skip_form.dart`(`AdviceSkipForm(adviceId:)` · operator 배럴 `journal_draft.dart` · X7 제출·초안 꼴 첫 화면 — 새 주입 0 · J-3 주입 `journalCommandApiProvider`·`journalDraftStoreProvider` 재사용 · R5d `A-3` 이 `_restore`·`_applyReceipt`·`_afterExecuted`·`_locked` 꼴을 본뜬다) — R5c(PR #81 `df4a4d4`).
+
 ## 의존 — 허용 (01 §1-1)
 
 `domain_contracts` · Flutter · `flutter_riverpod`. **이 셋이 전부다.**
@@ -48,9 +50,11 @@
 3. **`prevented`는 실패가 아니라 성공이다** — 이중 발주 차단이 작동한 것이며 그렇게 렌더한다. `unknown`은 «실패»로 단정하지 말고 해소 보드로 딥링크한다.
 4. **v2.31 P0S 정합**: 슬리브 칸은 **A/B/C 3칸**이되 그 3을 상수로 알지 않는다 — `SleeveCatalogEntry` 목록에서 온다. 새틀라이트는 «비활성»이 아니라 **숨김**이다.
 
-## 지금 상태 — ✅ J-1~J-5 · H6-1~H6-3 · L-1·L-2 · A-1·「지난 안내」 병합(2026-10-29 · R5b PR #78 squash `4736b10`)
+## 지금 상태 — ✅ J-1~J-5 · H6-1~H6-3 · L-1·L-2 · A-1·「지난 안내」 · A-2·A-4 병합(2026-10-29 · R5c PR #81 squash `df4a4d4`)
 
-`flutter test` **485**(R5b 병합본 `4736b10` 실측 · 2026-10-29 · 430 + R5b 55 — `advice_inbox_test` +26 · `advice_history_test` +13 · `a1_golden` +14 · `a1_history_golden` +2) · 골든 PNG **126장**(`git ls-tree` 실측 · 110 + `a1_*` 14 + `a1_history` 2 · `test/golden/README.md` «🆕 R5») · R5 5장 중 2장 완료 — 다음 화면 카드 = 설계 12 §6 큐 7c R5c-Bob-A2A4(`A-2`·`A-4` · ▶ `docs/ai-context/send/R5c-Bob-A2A4.md` 「푸시해」 뒤 · 끝 기대 538 · 골든 +10) → R5d(`A-3`) → R5e(`L-3`) · 그 뒤 통합 담당 test-only PR(`advice_inbox_test` A1-04 두 경우 + `a1-overdue` 부재 1줄 · C4r5b-1·2).
+`flutter test` **538**(R5c 병합본 실측 · 2026-10-29 · `origin/main` `a1aa807` = `df4a4d4` + 엔진 E8d2b(ui 변경 0) · 485 + R5c 53 — `advice_detail_test` +16 · `advice_skip_form_test` +27 · `a2_golden` +6 · `a4_golden` +4) · 골든 PNG **136장**(`git ls-tree` 실측 · 126 + `a2_*` 6 + `a4_*` 4 · `test/golden/README.md` «🆕 R5») · R5 5장 중 3장 완료 — 다음 화면 카드 = 설계 12 §6 큐 7d R5d-Bob-A3(`A-3` · ▶ `docs/ai-context/send/R5d-Bob-A3.md` 「푸시해」 뒤 · 끝 기대 579 · 골든 +8) → R5e(`L-3`) · 그 뒤 통합 담당 test-only PR(`advice_inbox_test` A1-04 두 경우 + `a1-overdue` 부재 1줄 · C4r5b-1·2 + `advice_skip_form_test` A4-07 «에러 뒤 열린 채인 스트림» · executed 접수증 두 번 · 미접수 뒤 재제출 성공 · C4r5c-1).
+
+~~`flutter test` **485**(R5b 병합본 `4736b10` 실측 · 2026-10-29 · 430 + R5b 55 — `advice_inbox_test` +26 · `advice_history_test` +13 · `a1_golden` +14 · `a1_history_golden` +2) · 골든 PNG **126장**(`git ls-tree` 실측 · 110 + `a1_*` 14 + `a1_history` 2 · `test/golden/README.md` «🆕 R5») · R5 5장 중 2장 완료 — 다음 화면 카드 = 설계 12 §6 큐 7c R5c-Bob-A2A4(`A-2`·`A-4` · ▶ `docs/ai-context/send/R5c-Bob-A2A4.md` 「푸시해」 뒤 · 끝 기대 538 · 골든 +10) → R5d(`A-3`) → R5e(`L-3`) · 그 뒤 통합 담당 test-only PR(`advice_inbox_test` A1-04 두 경우 + `a1-overdue` 부재 1줄 · C4r5b-1·2).~~(2026-10-29 R5b 판)
 
 ~~`flutter test` **430**(R5a 병합본 `a28db65` 실측 · 2026-10-28 · 388 + R5a 42 — `ledger_diffs_test` +15 · `ledger_repairs_test` +15 · `l1_golden` +8 · `l2_golden` +4) · 골든 PNG **110장**(`git ls-tree` 실측 · 98 + `l1_*` 8 + `l2_*` 4 · `test/golden/README.md` «🆕 R5») · R5 5장 중 1장 완료 — 다음 화면 카드 = 설계 12 §6 큐 7b R5b-Bob-A1(`A-1`·「지난 안내」 · ▶ `docs/ai-context/send/R5b-Bob-A1.md` 「푸시해」 뒤 · 끝 기대 485 · 골든 +16) → R5c(`A-2`·`A-4`) → R5d(`A-3`) → R5e(`L-3`).~~(2026-10-28 판)
 
