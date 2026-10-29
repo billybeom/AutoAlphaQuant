@@ -491,6 +491,23 @@ void main() {
       declared: isTrue,
       cleared: <DraftKey>[],
     ),
+    // R5 test-only(C4r5e-1 ⓐ · C4F-4) — 보류 두 상태는 접수증 픽스처에 표본이 없어 copyWith 로 시드한다.
+    _ReceiptCase(
+      name: 'stale_context',
+      watch: receipts.rows[4].copyWith(state: CommandState.staleContext),
+      enabled: isNull,
+      fieldEnabled: isFalse,
+      declared: isTrue,
+      cleared: <DraftKey>[],
+    ),
+    _ReceiptCase(
+      name: 'pending_lease_confirm',
+      watch: receipts.rows[4].copyWith(state: CommandState.pendingLeaseConfirm),
+      enabled: isNull,
+      fieldEnabled: isFalse,
+      declared: isTrue,
+      cleared: <DraftKey>[],
+    ),
   ]) {
     testWidgets('L3-06 receipt branch ${c.name}', (WidgetTester tester) async {
       expect(receipts.rows[1].state, CommandState.executed); // pre
@@ -1241,6 +1258,144 @@ void main() {
         .dy;
     expect(bannerDy, greaterThan(asofDy));
     expect(bannerDy, lessThan(titleDy));
+    expect(find.text(JournalLabels.retry), findsNothing);
+  });
+
+  // R5 test-only(C4r5e-1 ⓑ · C4F-5) — 폼 밖 세 갈래(닫힘 · 결과 · 오래됨)에도 안전 배너가 갈래마다 있다.
+  for (final ({
+        String name,
+        SelfReportSession session,
+        Clock? clock,
+        Finder marker,
+      })
+      c
+      in <
+        ({String name, SelfReportSession session, Clock? clock, Finder marker})
+      >[
+        (
+          name: 'closed',
+          session: closedSession,
+          clock: null,
+          marker: find.byKey(const Key('l3-closed')),
+        ),
+        (
+          name: 'result',
+          session: diffResult,
+          clock: null,
+          marker: find.byKey(const ValueKey<String>('l3-diff-0')),
+        ),
+        (
+          name: 'stale',
+          session: session1,
+          clock: ledgerStaleClock(),
+          marker: find.text(JournalLabels.staleBannerTitle),
+        ),
+      ]) {
+    testWidgets('L3-18b safety banner on branch ${c.name}', (
+      WidgetTester tester,
+    ) async {
+      expect(safetyFixtureRow(3).activeFlags, isNotEmpty); // pre
+      final FakeSelfReportRepository repo = FakeSelfReportRepository(
+        session: (_) => Stream<SelfReportSession>.value(c.session),
+      );
+      final FakeSelfReportActions actions = FakeSelfReportActions();
+      final FakeSelfReportCommandApi cmd = FakeSelfReportCommandApi(
+        submit: (_) => Future<CommandReceipt>.value(receipts.rows[0]),
+        watch: (_) => Stream<CommandReceipt>.value(receipts.rows[0]),
+      );
+      final RecordingDraftStore store = RecordingDraftStore();
+      await pumpSelfReport(
+        tester,
+        overrides: selfReportOverrides(
+          repo: repo,
+          actions: actions,
+          cmd: cmd,
+          store: store,
+          clock: c.clock,
+          safety: safetyFixtureRow(3),
+        ),
+        yyyyMm: yyyyMm,
+        accountAlias: alias,
+      );
+      // 폼 갈래가 아님을 먼저 못박는다(폼 갈래 배너는 L3-18 몫).
+      expect(c.marker, findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('l3-line-0')), findsNothing);
+      expect(find.byKey(const Key('l3-submit')), findsNothing);
+      final String flagLabel = safetyFixtureRow(3).activeFlags.first.label;
+      expect(find.text(flagLabel), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text(flagLabel)).dy,
+        greaterThan(tester.getTopLeft(find.byKey(const Key('l3-asof'))).dy),
+      );
+      expect(find.text(JournalLabels.retry), findsNothing);
+    });
+  }
+
+  // R5 test-only(C4r5e-1 ⓒ · C4F-6) — 복원 뒤 복원에 없던 종목을 적어 제출하면 lines 는 세션 종목 전부(차례대로)다.
+  testWidgets('L3-05b restore then new line submits every session line', (
+    WidgetTester tester,
+  ) async {
+    expect(
+      <String>[
+        for (final SelfReportLineInput l
+            in drafts.rows[2].selfReport?.lines ?? <SelfReportLineInput>[])
+          l.symbol,
+      ],
+      <String>[session1.symbols[0].symbol, session1.symbols[1].symbol],
+    ); // pre
+    final FakeSelfReportRepository repo = FakeSelfReportRepository(
+      session: (_) => Stream<SelfReportSession>.value(session1),
+    );
+    final FakeSelfReportActions actions = FakeSelfReportActions();
+    final FakeSelfReportCommandApi cmd = FakeSelfReportCommandApi(
+      submit: (_) => Future<CommandReceipt>.value(receipts.rows[0]),
+      watch: (_) => Stream<CommandReceipt>.value(receipts.rows[0]),
+    );
+    final RecordingDraftStore store = RecordingDraftStore(
+      seed: <DraftRecord>[selfReportSeedWithCash(drafts.rows[2], '500')],
+    );
+    await pumpSelfReport(
+      tester,
+      overrides: selfReportOverrides(
+        repo: repo,
+        actions: actions,
+        cmd: cmd,
+        store: store,
+      ),
+      yyyyMm: yyyyMm,
+      accountAlias: alias,
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey<String>('l3-line-3')));
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('l3-line-3')),
+      ' 7',
+    );
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('l3-declare')));
+    await tester.tap(find.byKey(const Key('l3-declare')));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('l3-submit')));
+    await tester.tap(find.byKey(const Key('l3-submit')));
+    await tester.pump();
+    final SelfReportSubmission s = cmd.submitted.single;
+    expect(
+      <(String, String)>[
+        for (final SelfReportLineInput l in s.input.lines)
+          (l.symbol, l.quantityText),
+      ],
+      <(String, String)>[
+        (
+          session1.symbols[0].symbol,
+          drafts.rows[2].selfReport?.lines.first.quantityText ?? '',
+        ),
+        (session1.symbols[1].symbol, ''),
+        (session1.symbols[2].symbol, ''),
+        (session1.symbols[3].symbol, ' 7'),
+      ],
+    );
+    expect(s.input.cashKrwText, '500');
+    expect(s.declaredComplete, isTrue);
+    expect(store.saved.last.selfReport, s.input);
     expect(find.text(JournalLabels.retry), findsNothing);
   });
 }
