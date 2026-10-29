@@ -149,4 +149,12 @@ abstract final class JournalLabels {
 
   /// A-1 하단 «지난 안내» 화면 이동 버튼.
   static const String adviceHistoryLink = '지난 안내';
+
+  // ── 🆕 R5c — A-2 안내 상세 · A-4 미이행 사유 ──────────────────────────────
+
+  /// A-2·A-4 안내를 찾지 못했을 때의 한 줄.
+  static const String adviceNotFound = '이 안내를 찾을 수 없습니다';
+
+  /// A-2 체결 블록 머리.
+  static const String adviceRecordedFills = '기록된 체결';
 }
