@@ -1,0 +1,8 @@
+# broker_gateway 시험 설정(설계 13 §8 R29 L10 · E8d2a).
+#
+# 🔴 `network` 태그 = KIS 모의 서버를 실제로 부르는 시험 — CI·평소 `dart test` 에서는 건너뛴다.
+#    돌리는 법(발주자 승인 뒤 · 키는 저장소 밖 파일 — 13 §5-2 · 절차서 14 §3 꼴):
+#      AAQ_NETWORK=1 AAQ_KIS_MOCK_KEY_FILE=<키 파일 경로> dart test -t network --run-skipped
+tags:
+  network:
+    skip: '실호출 — 발주자 승인 뒤 AAQ_NETWORK=1 AAQ_KIS_MOCK_KEY_FILE=… dart test -t network --run-skipped'

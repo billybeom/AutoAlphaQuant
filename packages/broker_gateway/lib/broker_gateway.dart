@@ -6,5 +6,11 @@
 // 🔴 웹·데스크탑 타깃에서는 이 패키지가 **빌드에서 제외**된다(경계 규칙 ③).
 //    코드 리뷰로 대체하지 않는다.
 //
-// 아직 비어 있다. 구현은 lib/src/ 아래로 들어오고 공개할 것만 여기에서
-// export 한다.
+// 구현은 lib/src/ 아래로 들어오고 공개할 것만 여기에서 export 한다.
+// 🆕 E8d2a(설계 13 §8 R29) — KIS REST 핵심(환경 · 자격증명 · 토큰 · 유량 문 · 조회 재시도)과 시세 6종.
+//    주문(E10)은 같은 클라이언트·유량 문 위에 얹는다.
+
+export 'src/kis/kis_environment.dart';
+export 'src/kis/kis_quotes.dart';
+export 'src/kis/kis_rest_client.dart';
+export 'src/kis/kis_token.dart';

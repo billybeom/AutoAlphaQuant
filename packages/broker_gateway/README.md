@@ -12,7 +12,7 @@ KIS 접근토큰 수명 관리 · 유량(rate) 제어 · **멱등 주문 발주*
 
 ## 의존 — 허용
 
-`domain_contracts` · `core_engine`. ⚠️ HTTP 클라이언트는 구현 착수 시 하나만 고른다(아직 선언하지 않았다).
+`domain_contracts` · `core_engine` · 🆕 `http`(E8d2a · 01 §1-1 v1.14 허용 — data_sync 와 같은 클라이언트 하나 · `dio` 아님).
 
 ## 의존 — 🔴 금지
 
@@ -28,6 +28,16 @@ KIS 접근토큰 수명 관리 · 유량(rate) 제어 · **멱등 주문 발주*
 
 **KIS 앱키를 새로 발급하면 기존 접근토큰(24h)이 살아 있는가.** X1(기기 이전) 착수 전 필수이며 결과는 `06_시스템설계/07_검증원장.md`에 기록한다. 실측 전에는 X1의 토큰 처리 분기를 확정하지 않는다.
 
-## 지금 상태 — 🟡 스캐폴드
+## 🆕 KIS REST 핵심 · 시세(E8d2a · 설계 13 §8 R29)
+
+- `KisEnvironment`(mock · live — 도메인·유량 간격) · `KisCredentials`(키 세트가 환경을 **지닌다** · 클라이언트 환경과 다르면 요청 전에 거절 = 잘못된 키 세트로 실전 전환 차단 · `toString` 가림)
+- `KisTokenStore`(메모리 · 파일 — 키 금고 M4-4 전 · 저장소 밖) · 만료 5분 전 새로 · 발급 1분 1회(`EGW00133`)는 다시 보내지 않음
+- `KisRateGate` — 앱키 하나에 하나(주문 E10 과 나눠 쓴다) · 모의 1.1초 · 실전 1/18초 · 신규 키 `kKisNewKeyInterval`
+- `KisRestClient.get` — 조회만 1 → 2 → 4초 최대 3회(유량 코드 · 429 · 502~504 · 비JSON 500 · 시간 초과 · 연결 실패) · 업무 거절은 그대로 · 토큰 무효면 새 토큰으로 1회 · 다 쓰면 `KisUnavailable` · 오류에 주소·키·계좌·토큰 없음
+- `KisQuotes` — 시세 6종(실험 5 확정 TR · 07 §6-2): 국내 일봉(수정/원) · 현재가 · 국내 지수 일봉(50행) · 해외 일봉(MODP 원/수정) · 해외 지수 일봉(🔴 거래량 0) · 휴장일(모의 미지원) · 범위 조회 = 창 밀기(`pageBack`) · 수 = `pandasPreciseXstrtod`
+- 시험 픽스처 `test/fixtures/kis/` = 실험 5 **실응답 본문**(헤더·키·계좌 없음) · 실호출 = `network` 태그(`AAQ_NETWORK=1` · `AAQ_KIS_MOCK_KEY_FILE`)
+- ⬜ 받은 값을 원장에 넣는 수집기(`fetch_log` · `data_gap` · 확정 세션만) = E8d2b · 주문 = E10
+
+## 지금 상태 — 🟡 주문 경로는 스캐폴드
 
 배럴과 `lib/src/fake_broker/` 자리만 있다. **⚠️ 이 PC에는 Flutter·Dart·melos가 없다**(2026-09-06).
