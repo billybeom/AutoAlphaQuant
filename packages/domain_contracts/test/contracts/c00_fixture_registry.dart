@@ -62,6 +62,22 @@ final DtoCodec<Object> _alertItem = DtoCodec<AlertItem>(
   AlertItem.fromJson,
   (AlertItem v) => v.toJson(),
 );
+// 🆕 계약 v1.15(R14 선행 · 01 §24) — `N-01` 센터 · `N-02` 상세 · `W-01` 보드(VM 1행 봉투).
+final DtoCodec<Object> _alertCenterVm = DtoCodec<AlertCenterVm>(
+  'AlertCenterVm',
+  AlertCenterVm.fromJson,
+  (AlertCenterVm v) => v.toJson(),
+);
+final DtoCodec<Object> _alertDetailVm = DtoCodec<AlertDetailVm>(
+  'AlertDetailVm',
+  AlertDetailVm.fromJson,
+  (AlertDetailVm v) => v.toJson(),
+);
+final DtoCodec<Object> _watchdogBoardVm = DtoCodec<WatchdogBoardVm>(
+  'WatchdogBoardVm',
+  WatchdogBoardVm.fromJson,
+  (WatchdogBoardVm v) => v.toJson(),
+);
 final DtoCodec<Object> _depositPlan = DtoCodec<DepositPlan>(
   'DepositPlan',
   DepositPlan.fromJson,
@@ -138,11 +154,6 @@ final DtoCodec<Object> _opsDailySummary = DtoCodec<OpsDailySummary>(
   'OpsDailySummary',
   OpsDailySummary.fromJson,
   (OpsDailySummary v) => v.toJson(),
-);
-final DtoCodec<Object> _watchdogCheck = DtoCodec<WatchdogCheck>(
-  'WatchdogCheck',
-  WatchdogCheck.fromJson,
-  (WatchdogCheck v) => v.toJson(),
 );
 // 🆕 계약 v1.12(R5·R13 선행 · 01 §21) — `L-3` 세션 · `L-2` 정정 이력 · 공용(차이 행·신뢰 배지·안전 상태·리듬 행).
 final DtoCodec<Object> _selfReportSession = DtoCodec<SelfReportSession>(
@@ -565,6 +576,16 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   ),
 
   // ── m8/ — 셸·운영 홈·알림·온보딩 ─────────────────────────────────────────
+  // 🆕 v1.15 — `ALERT_ACK` 접수증 3갈래 · 알림 센터 5 · 상세 3.
+  FixturePaths.m8AlertAckReceipts3: FixtureBinding(_commandReceipt),
+  FixturePaths.m8AlertCenterDigest: FixtureBinding(_alertCenterVm),
+  FixturePaths.m8AlertCenterEmpty: FixtureBinding(_alertCenterVm),
+  FixturePaths.m8AlertCenterP0Ack: FixtureBinding(_alertCenterVm),
+  FixturePaths.m8AlertCenterP0AckReordered: FixtureBinding(_alertCenterVm),
+  FixturePaths.m8AlertCenterP0Only: FixtureBinding(_alertCenterVm),
+  FixturePaths.m8AlertDetailFull: FixtureBinding(_alertDetailVm),
+  FixturePaths.m8AlertDetailMissing: FixtureBinding(_alertDetailVm),
+  FixturePaths.m8AlertDetailNoLink: FixtureBinding(_alertDetailVm),
   FixturePaths.m8AlertsAdvice9codes: FixtureBinding(_alertItem),
   FixturePaths.m8AlertsDigest: FixtureBinding(_alertItem),
   FixturePaths.m8AlertsP0Ack: FixtureBinding(_alertItem),
@@ -625,8 +646,11 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     ),
   ),
   FixturePaths.m8RestartLostPhone: FixtureBinding(_onboardingStep),
-  FixturePaths.m8WatchdogDelayed: FixtureBinding(_watchdogCheck),
-  FixturePaths.m8WatchdogHoliday: FixtureBinding(_watchdogCheck),
+  // 🆕 v1.15(K3) — 워치독 4벌 = `WatchdogBoardVm` 1행(구 `WatchdogCheck` 목록 · 형제 키 `holiday_notice` → VM 필드).
+  FixturePaths.m8WatchdogDelayed: FixtureBinding(_watchdogBoardVm),
+  FixturePaths.m8WatchdogEmpty: FixtureBinding(_watchdogBoardVm),
+  FixturePaths.m8WatchdogHoliday: FixtureBinding(_watchdogBoardVm),
+  FixturePaths.m8WatchdogPaused: FixtureBinding(_watchdogBoardVm),
 
   // ── m9/ — 설정·운영 모드 전환 ────────────────────────────────────────────
   // 🆕 v1.4 — 월 납입 설정 2갈래(`pension_limit_note_text` 있음 / 없음).
@@ -685,7 +709,6 @@ const Map<String, String> unboundSiblingKeys = <String, String>{
   'counterfactual_collapsed': 'bool 원시 — C-30 ⓒ 대조 전용 · DTO 아님.',
   'credential_use': '원시 글자 — DTO 아님.',
   'finish_headline': '문장(원시) — DTO 아님.',
-  'holiday_notice': '문장(원시) — DTO 아님.',
   'incident_alert': '`AlertItem` — 이 픽스처 자체가 미매핑([unmappedFixtures]) · 등급은 C-47 ⑥ 전 픽스처 walk 가 본다.',
   'index':
       '`HandbookIndex` — 핸드북 원고 선행(C-13 🔵 · C-8 `_knownUncovered`) · 묶으면 C-8 인구조사가 바뀐다 — '

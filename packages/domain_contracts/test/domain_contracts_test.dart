@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 //    껍데기로 남는다 — C-1·C-15 는 봉투와 상수를 대조할 뿐 배럴 노출 여부를 보지 않는다.
 void main() {
   test('배럴이 계약 버전을 노출하고, 값이 확정판이다', () {
-    // 🔴 이 상수와 전 픽스처 봉투(v1.13 = 176건 — 기존 174 + R13b 선행 v1.13 신설 2)의 `meta.contract_version` 은
+    // 🔴 이 상수와 전 픽스처 봉투(v1.15 = 187건 — 기존 176 + R14 선행 v1.15 신설 11)의 `meta.contract_version` 은
     //    같은 축이며 한쪽만 올리지 않는다(C-1 · C-15 ④ 가 전량 대조한다).
     // 🔵 '1.1.0'(2026-09-17 · M2 보강) — 내비게이션 계약·표시 문자열·J-2/J-3/J-5 읽기 창구.
     // 🔵 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore` · `watchDecisionJournal` ·
@@ -41,7 +41,10 @@ void main() {
     // 🔵 '1.13.0'(R13b 선행 M2 보강 · 01 §23) — `DiagnosticCell.level` · `headline` «늘 엔진 문장» ·
     //    `m8/recon_board_ok`·`m8/ops_home_advice_suppressed_due` · 픽스처 176 · C-47 ⑩⑪.
     // 🔵 '1.14.0'(E8a · M1-7) — `MarketDataSource` · `GapReasonCodes` +5 · 배치 G(`market_series`·`fetch_log`) · C-48.
-    expect(contractVersion, '1.14.0');
+    // 🔵 '1.15.0'(R14 선행 · 01 §24) — `AlertCenterVm`·`AlertSection`·`AlertDetailVm` · `watchCenter`·`watchAlert` ·
+    //    `acknowledgeAlert(String alertId)` · 라우트 54 · `WatchdogBoardVm` · `WatchdogCheck` −slug +checkId +level ·
+    //    받침대 2 · 픽스처 187 · C-49.
+    expect(contractVersion, '1.15.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.

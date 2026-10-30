@@ -125,13 +125,16 @@ void main() {
       // 🆕 v1.6 — 43 → 45(`ledgerExecutionGapMonth` · `rebalanceHistory` · 01 §15-4).
       // 🆕 v1.8 — 45 → 48(`holdingsOverview` · `holdingsDetail` · `holdingsAllocation` · 01 §17).
       // 🆕 v1.12 — 48 → 52(`adviceSkip` · `ledgerDiffs` · `ledgerRepairs` · `opsRhythm` · 01 §21 · 교체 2 는 수 불변).
+      // 🆕 v1.15 — 52 → 54(`alertsInbox`·`alertDetail` · 01 §24).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(52),
-        reason: '라우트 수가 계약(01 §21 · v1.12 = 52)과 다르다.',
+        hasLength(54),
+        reason: '라우트 수가 계약(01 §24 · v1.15 = 54)과 다르다.',
       );
+      expect(AppRoutes.all, contains(AppRoutes.alertsInbox));
+      expect(AppRoutes.all, contains(AppRoutes.alertDetail));
       expect(AppRoutes.all, contains(AppRoutes.adviceSkip));
       expect(AppRoutes.all, contains(AppRoutes.ledgerDiffs));
       expect(AppRoutes.all, contains(AppRoutes.ledgerRepairs));
