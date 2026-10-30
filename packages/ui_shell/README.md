@@ -34,15 +34,18 @@
 
 온보딩이 키를 다루더라도 **입력 위젯 자체가 이 패키지에 있어서는 안 된다**(뷰어 빌드에 경로가 생긴다). 검증·저장은 `SettingsActions` 주입 콜백이고, 구현체가 없으면 **컨트롤을 렌더하지 않는다** — «비활성»이 아니라 **부재**다.
 
-## 지금 상태 — ✅ S-01·S-02 셸 · H-02 운영 리듬 · H-01 운영 홈 병합(2026-10-27 · R13a PR #71 `315bbbd` · R13b PR #74 `49e4329`)
+## 지금 상태 — ✅ S-01·S-02 셸 · H-02 운영 리듬 · H-01 운영 홈 · N-01·N-02 알림 병합(2026-10-31 · R13a PR #71 `315bbbd` · R13b PR #74 `49e4329` · R14a PR #87 `185e9c7`)
 
-`flutter test` **117**(R13b 병합본 · `origin/main` `49e4329` · 66 + 51 — 패키지 트리 = C4 수정안 · C4·드라이런 실측) · 골든 PNG **24장**(`test/golden/README.md` «🆕 R13») · 🏁 R13 2장 완료 · 다음 셸 카드 = R14(알림 · 설계 12 §6 · 조립 전).
+`flutter test` **164**(R14a 병합본 `185e9c7` 실측 · 2026-10-31 · 117 + R14a 47 — `alert_center_test` +24 · `alert_detail_test` +13 · `n01_golden` +6 · `n02_golden` +4) · 골든 PNG **34장**(`git ls-tree` 실측 · 24 + `n01_*` 6 + `n02_*` 4 · `test/golden/README.md` «🆕 R14») · R14 2장 중 1장 완료 — 다음 셸 카드 = R14b-Bob-W01(`W-01` 워치독 · ▶ `docs/ai-context/send/R14b-Bob-W01.md` 「푸시해」 뒤 · 끝 기대 189 · 골든 +6 · «정확히 N» 소유) · 그 뒤 통합 담당 R14 test-only PR(C4r13a-3 · C4r13b-4 · C4r14a-1 = `alert_center_test` N01-07 `failed_then_accepted` 한 경우 · `alert_detail_test` N02-02 operator 주입).
+
+~~`flutter test` **117**(R13b 병합본 · `origin/main` `49e4329` · 66 + 51 — 패키지 트리 = C4 수정안 · C4·드라이런 실측) · 골든 PNG **24장**(`test/golden/README.md` «🆕 R13») · 🏁 R13 2장 완료 · 다음 셸 카드 = R14(알림 · 설계 12 §6 · 조립 전).~~(2026-10-27 R13b 판)
 
 - `ShellRoot` · `ShellBandOverlay` = `lib/src/shell_scaffold.dart`(폰 5탭 · 웹 사이드바 · 띠).
 - 라우터 = `lib/src/routing/shell_router.dart`(`AppRoutes.all` 54 정적 등록 — 🆕 계약 v1.15 `alertsInbox`·`alertDetail` · 가드 · `ShellLinkOpener` · `shellLinkOpenerProvider`).
 - `OpsRhythm` = `lib/src/ops_rhythm.dart`(`H-02` · `watchRhythm()` 1구독).
 - `OpsHome` = `lib/src/ops_home.dart`(`H-01` · 블록 1~9b · 구독 6 · 홈 탭 연결 = 레지스트리 `home` 칸 · 조립 앱 몫).
+- 🆕 `AlertCenter` · `AlertDetail` = `lib/src/alerts/alert_center.dart` · `alert_detail.dart`(`N-01` 알림 센터 · `N-02` 알림 상세 · R14a PR #87 `185e9c7` · 원천 `watchCenter(p0Only:)` · `watchAlert(alertId)` · 정렬·그룹·접힘 = 엔진) · 공용 조각 `AlertAckBlock` = `alert_ack.dart`(배럴 밖 · 쓰기 `acknowledgeAlert` 1종) · 주입 `shellAlertCommandApiProvider`(뷰어 null = 확인 버튼 부재) · 셸 연결 = 레지스트리 칸(조립 앱 몫).
 - 공통 조각 = `lib/src/common/shell_common.dart`(`ShellAsOfHeader` · `ShellStaleBanner` · `ShellSkeleton` · `ShellErrorView` · `ShellPlaceholder`).
 - 주입 = `lib/src/shell_providers.dart`(🆕 R13b 주입 5 = 파일 끝 절 · 조립 앱 3종이 override · 본문 레지스트리 `ShellRouteBodies` 의 54 패턴·`home` 칸 = 조립 앱 몫).
 - 테스트 가짜 = `test/shell_fakes.dart` — 🆕 계약 v1.15 부터 전부 `extends Unimplemented…`(받침대 `UnimplementedAlertRepository`·`UnimplementedOpsStatusRepository` · 구 `implements` 가짜 2 → `extends` · 테스트 수 불변).
-- 정적 라벨 = `lib/l10n/labels.dart`(`ShellLabels` 31 = R13a 25 + R13b 6).
+- 정적 라벨 = `lib/l10n/labels.dart`(`ShellLabels` 35 = R13a 25 + R13b 6 + R14a 4).
