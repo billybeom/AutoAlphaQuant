@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.14.0",
+    "contract_version": "1.15.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -23,7 +23,7 @@
       "action_line": "지금 안내함을 여십시오.",
       "grouped_count": 1,
       "deep_link": "aaq://advice/inbox",
-      "ack": { "acked": false, "state_label": "수신 확인 전", "escalation_step": 1 }
+      "ack": null
     },
     {
       "alert_id": "al_0002",
@@ -47,7 +47,7 @@
       "action_line": "안내함에서 하나씩 처리하십시오.",
       "grouped_count": 1,
       "deep_link": "aaq://advice/inbox",
-      "ack": { "acked": true, "acked_at": "2026-08-31T02:40:00Z", "state_label": "수신 확인함", "escalation_step": 0 }
+      "ack": null
     },
     {
       "alert_id": "al_0004",
@@ -83,39 +83,6 @@
       "deep_link": "aaq://ledger/trust"
     },
     {
-      "alert_id": "al_0007",
-      "level": "P2",
-      "raised_at": "2026-08-31T02:23:00Z",
-      "code": "ADVICE_EXPIRED",
-      "title": "만료된 안내 2건",
-      "body_text": "어제자 안내 2건이 만료되었습니다.",
-      "action_line": "만료 확인 카드에서 정리하십시오.",
-      "grouped_count": 2,
-      "deep_link": "aaq://advice/history"
-    },
-    {
-      "alert_id": "al_0008",
-      "level": "P2",
-      "raised_at": "2026-08-31T02:26:00Z",
-      "code": "SELF_AUDIT_DUE",
-      "title": "분기 실사 기한",
-      "body_text": "이번 분기 실사가 아직 남아 있습니다.",
-      "action_line": "실사 화면에서 잔고를 보고하십시오.",
-      "grouped_count": 1,
-      "deep_link": "aaq://ledger/self-report/2026-08/연금저축"
-    },
-    {
-      "alert_id": "al_0009",
-      "level": "P2",
-      "raised_at": "2026-08-31T03:29:00Z",
-      "code": "CONTRIBUTION_CHANGED",
-      "title": "월 납입 설정이 바뀌었습니다",
-      "body_text": "설정에서 월 납입 금액이 변경되었습니다.",
-      "action_line": "다음 납입 주기부터 적용됩니다.",
-      "grouped_count": 1,
-      "deep_link": null
-    },
-    {
       "alert_id": "al_0010",
       "level": "P1",
       "raised_at": "2026-08-31T03:32:00Z",
@@ -147,6 +114,39 @@
       "action_line": "전환 결과를 확인하십시오.",
       "grouped_count": 1,
       "deep_link": "aaq://handover/status"
+    },
+    {
+      "alert_id": "al_0007",
+      "level": "P2",
+      "raised_at": "2026-08-31T02:23:00Z",
+      "code": "ADVICE_EXPIRED",
+      "title": "만료된 안내 2건",
+      "body_text": "어제자 안내 2건이 만료되었습니다.",
+      "action_line": "만료 확인 카드에서 정리하십시오.",
+      "grouped_count": 2,
+      "deep_link": "aaq://advice/history"
+    },
+    {
+      "alert_id": "al_0008",
+      "level": "P2",
+      "raised_at": "2026-08-31T02:26:00Z",
+      "code": "SELF_AUDIT_DUE",
+      "title": "분기 실사 기한",
+      "body_text": "이번 분기 실사가 아직 남아 있습니다.",
+      "action_line": "실사 화면에서 잔고를 보고하십시오.",
+      "grouped_count": 1,
+      "deep_link": "aaq://ledger/self-report/2026-08/연금저축"
+    },
+    {
+      "alert_id": "al_0009",
+      "level": "P2",
+      "raised_at": "2026-08-31T03:29:00Z",
+      "code": "CONTRIBUTION_CHANGED",
+      "title": "월 납입 설정이 바뀌었습니다",
+      "body_text": "설정에서 월 납입 금액이 변경되었습니다.",
+      "action_line": "다음 납입 주기부터 적용됩니다.",
+      "grouped_count": 1,
+      "deep_link": null
     }
   ]
 }
