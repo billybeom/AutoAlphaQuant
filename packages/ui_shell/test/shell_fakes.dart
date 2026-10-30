@@ -473,3 +473,147 @@ Set<String> homeAllowed({
     ShellLabels.staleBannerTitle,
   };
 }
+
+// ── R14a — N-01·N-02 fakes ────────────────────────────────────────────────────
+
+class FakeShellAlertCenterRepository extends UnimplementedAlertRepository {
+  FakeShellAlertCenterRepository({
+    required this.center,
+    required this.detail,
+  });
+
+  final Stream<AlertCenterVm> Function(int call) center;
+  final Stream<AlertDetailVm> Function(int call) detail;
+  final List<bool> p0Onlys = <bool>[];
+  final List<String> alertIds = <String>[];
+
+  @override
+  Stream<AlertCenterVm> watchCenter({required bool p0Only}) {
+    final int call = p0Onlys.length;
+    p0Onlys.add(p0Only);
+    return center(call);
+  }
+
+  @override
+  Stream<AlertDetailVm> watchAlert(String alertId) {
+    final int call = alertIds.length;
+    alertIds.add(alertId);
+    return detail(call);
+  }
+}
+
+class FakeShellAlertCommandApi extends UnimplementedCommandApi {
+  FakeShellAlertCommandApi({required this.receipt});
+
+  final Future<CommandReceipt> Function(int call) receipt;
+  final List<String> acks = <String>[];
+
+  @override
+  Future<CommandReceipt> acknowledgeAlert(String alertId) {
+    final int call = acks.length;
+    acks.add(alertId);
+    return receipt(call);
+  }
+}
+
+List<Override> alertOverrides({
+  required FakeShellAlertCenterRepository alerts,
+  required CommandApi? api,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  shellAlertRepositoryProvider.overrideWithValue(alerts),
+  shellAlertCommandApiProvider.overrideWithValue(api),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+  shellClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpAlertCenter(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: AlertCenter())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+Future<void> pumpAlertDetail(
+  WidgetTester tester, {
+  required List<Override> overrides,
+  required String alertId,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: MaterialApp(home: Scaffold(body: AlertDetail(alertId: alertId))),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> alertTileTexts(AlertItem a) => <String?>[
+  a.title,
+  ?a.groupedText,
+  ?a.raisedAtText,
+];
+
+Set<String?> alertCenterAllowed(AlertCenterVm v) => <String?>{
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+  for (final AlertItem a in v.pinned) ...<String?>[
+    a.title,
+    ?a.groupedText,
+    ?a.raisedAtText,
+    ?a.ack?.stateLabel,
+  ],
+  for (final AlertSection sec in v.sections) ...<String?>[
+    sec.headerText,
+    ?sec.digestLabel,
+    for (final AlertItem a in sec.rows) ...<String?>[
+      a.title,
+      ?a.groupedText,
+      ?a.raisedAtText,
+      ?a.ack?.stateLabel,
+    ],
+    for (final AlertItem a in sec.digestRows) ...<String?>[
+      a.title,
+      ?a.groupedText,
+      ?a.raisedAtText,
+      ?a.ack?.stateLabel,
+    ],
+  ],
+  ?v.emptyLabel,
+  ShellLabels.alertsP0Only,
+  ShellLabels.alertsAck,
+  ShellLabels.staleBannerTitle,
+};
+
+Set<String?> alertDetailAllowed(AlertDetailVm v) => <String?>{
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+  ?v.missingLabel,
+  ?v.item?.title,
+  ?v.item?.raisedAtText,
+  ?v.item?.bodyText,
+  ?v.item?.actionLine,
+  ?v.item?.ack?.stateLabel,
+  ShellLabels.alertsEvidence,
+  ShellLabels.alertsAck,
+  ShellLabels.staleBannerTitle,
+};

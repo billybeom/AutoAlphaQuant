@@ -11,6 +11,8 @@
 // export 한다.
 
 export 'l10n/labels.dart';
+export 'src/alerts/alert_center.dart';
+export 'src/alerts/alert_detail.dart';
 export 'src/ops_home.dart';
 export 'src/ops_rhythm.dart';
 export 'src/routing/shell_router.dart';
