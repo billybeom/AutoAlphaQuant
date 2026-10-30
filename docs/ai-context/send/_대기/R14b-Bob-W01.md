@@ -1,14 +1,14 @@
 # 발송 패킷 R14b-Bob-W01 — W-01 워치독 상태 (계약 v1.15 전제 · R14 2장 중 2번째 · M8 · «정확히 N» 소유)
 
-> ⬜ **_대기 — 앞 카드 병합 기록 때 send/ 로**(2026-10-30 조립 · 🆕 계약 v1.15 실물 반영 재조립 · 앱 `rec/r14` · 글자 기준 = M2 가지 `m2/v115-r14` `d9916ca` 의 코드) · 선행 = ① R14a 병합(squash `__R14A_SQ__` · 시작 기준 N = R14a 병합본 실측) ② 🔴 계약 v1.15 보강 병합(R14a 와 같은 PR — 워치독 몫 = `WatchdogBoardVm` · `WatchdogCheck` − `slug` + `checkId` + `level` · `m8/watchdog_paused`·`watchdog_empty` · 휴장 표본 정리 · `UnimplementedOpsStatusRepository` · ✅ 설계 확정(01 §24) · ⬜ PR) ③ ⬜ 재드라이런(v1.15 가지 위 · R14a 재드라이런 끝 위 · 아래 «드라이런» 줄) ④ ✅ 발주자 확인 ①~⑪(2026-10-30 — 아래 «✅ 확정») ⑤ 「푸시해」 — 다 풀리고 머리 첫 줄이 ▶ 일 때만 보낸다. 🔴 Bob 의 R14a 브랜치(`ui/m8-n01-alerts`)는 건드리지 않는다.
+> ⬜ **_대기 — 앞 카드 병합 기록 때 send/ 로**(2026-10-30 조립 · 🆕 계약 v1.15 실물 반영 재조립 · 앱 `rec/r14` · 글자 기준 = M2 가지 `m2/v115-r14` `d9916ca` 의 코드) · 선행 = ① R14a 병합(squash `__R14A_SQ__` · 시작 기준 N = R14a 병합본 실측) ② 🔴 계약 v1.15 보강 병합(R14a 와 같은 PR — 워치독 몫 = `WatchdogBoardVm` · `WatchdogCheck` − `slug` + `checkId` + `level` · `m8/watchdog_paused`·`watchdog_empty` · 휴장 표본 정리 · `UnimplementedOpsStatusRepository` · ✅ 설계 확정(01 §24) · ⬜ PR) ③ ✅ 재드라이런(2026-10-30 · v1.15 실물 위 · R14a 재드라이런 끝 위 · 아래 «드라이런» 줄 · 남은 표식 = R14a 병합본 실측 몫만) ④ ✅ 발주자 확인 ①~⑪(2026-10-30 — 아래 «✅ 확정») ⑤ 「푸시해」 — 다 풀리고 머리 첫 줄이 ▶ 일 때만 보낸다. 🔴 Bob 의 R14a 브랜치(`ui/m8-n01-alerts`)는 건드리지 않는다.
 > 만든 날 2026-10-30 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 `R14-Bob-M8b` 행(🔀 2분할 — R14a 카드 머리 «재분할 판정») + §3-0 + §3 공통 조문 + 이월 부록 «R14» 대상(R14a 카드 «6» 과 같은 표 · W-01 자리) · 화면 몫 원본 = `04_…` §7(`W-01` · 3분법 + `paused` · 수용 (a)~(e) · 그림 15) · §2-5(뷰어 = 조회) · `01_…` §4-1 `watchWatchdog` · 🆕 §24(계약 v1.15 — K3 `WatchdogBoardVm` · K4·K17 `slug` → `checkId` · K15 보드 꼴 · K16 `level`) · 설계서 `10_리뷰/2026-10-30_R14선행_계약v1.15_설계서.md` §8(카드 영향) · 판독 메모(통합 담당 스크래치 `r14/read_memo.md` §2-3 · §5 G10~G13).
-> 사전 조건 — ⬜ R14a 병합(PR `__R14A_PR__` squash `__R14A_SQ__` · `ui_shell` = lib 10파일 · 라벨 35 · 배럴 export 8줄 · 셸 주입 15줄 · PNG 34) · ⬜ 계약 v1.15(R14a 와 같은 보강 PR · 가지 `m2/v115-r14` · 워치독 몫 = 아래 이름표) · ✅ 프롬프트 v2. 시작 기준 = R14a 병합본의 `flutter test`(packages/ui_shell) = **⟦실측: R14a 병합본 — 앞 카드 병합 기록 때 채움 · 기대 164(R14a 재드라이런 끝 = 117 + 47)⟧** · 이 카드 끝 기대 = 시작 기준 N + **25**(뷰 19 = `watchdog_board_test` 19 · 골든 6) · 끝 = ⟦실측: 앞 카드 병합 기록 때 채움 · 기대 «+189»(첫 판 «+183» → 🆕 v1.15 반영 +2 = W01-08 두 경우)⟧.
-> 🔀 **재분할 판정** — 새 `testWidgets(`·`test(` 줄 **9**(`watchdog_board_test` 8 · 골든 1 — 🆕 v1.15 W01-08) · lib ⟦실측: 재드라이런 · 첫 판 +127(`watchdog_board.dart` 126 + 배럴 1) · 머리·하단 몇 줄이 붙는다⟧ · 새 PNG **6** · 원천 **1**(`watchWatchdog`) → 임계 안 · 재분할 없음(R14 를 두 장으로 나눈 까닭 = R14a 카드 머리 «재분할 판정» — 🆕 임계는 한 장이어도 안 넘는다 · 감사 지적).
+> 사전 조건 — ⬜ R14a 병합(PR `__R14A_PR__` squash `__R14A_SQ__` · `ui_shell` = lib 10파일 · 라벨 35 · 배럴 export 8줄 · 셸 주입 15줄 · PNG 34) · ⬜ 계약 v1.15(R14a 와 같은 보강 PR · 가지 `m2/v115-r14` · 워치독 몫 = 아래 이름표) · ✅ 프롬프트 v2. 시작 기준 = R14a 병합본의 `flutter test`(packages/ui_shell) = **⟦실측: R14a 병합본 — 앞 카드 병합 기록 때 채움 · 드라이런 기대 164(R14a 재드라이런 끝 = 117 + 47 · 이 카드 재드라이런 시작 «00:13 +164» 같음)⟧** · 이 카드 끝 기대 = 시작 기준 N + **25**(뷰 19 = `watchdog_board_test` 19 · 골든 6) · 끝 = ⟦실측: 앞 카드 병합 기록 때 채움 · 드라이런 기대 «+189»(재드라이런 실측 «00:13 +189» · 첫 판 «+183» → 🆕 v1.15 반영 +2 = W01-08 두 경우)⟧.
+> 🔀 **재분할 판정** — 새 `testWidgets(`·`test(` 줄 **9**(`watchdog_board_test` 8 · 골든 1 — 🆕 v1.15 W01-08) · lib **+147**(재드라이런 실측 — `watchdog_board.dart` 146 + 배럴 1 · 첫 판 +127) · 새 PNG **6** · 원천 **1**(`watchWatchdog`) → 임계 안 · 재분할 없음(R14 를 두 장으로 나눈 까닭 = R14a 카드 머리 «재분할 판정» — 🆕 임계는 한 장이어도 안 넘는다 · 감사 지적).
 > 카드 기본값(✅ 발주자 확인 ①~⑪ 로 확정 — 2026-10-30 · 아래 «✅ 확정»): ⓐ 위젯 = `WatchdogBoard({super.key})`(`lib/src/watchdog_board.dart` · `ConsumerWidget` — R13a `OpsRhythm` 꼴) ⓑ **셸 파일·R14a 파일은 고치지 않는다** — 셸 연결 = 조립 앱 레지스트리 `AppRoutes.opsWatchdog` 칸(이 카드 밖) ⓒ 원천 = 기존 셸 주입 `shellOpsStatusRepositoryProvider` 의 `watchWatchdog()` → 🆕 `WatchdogBoardVm` 하나(새 주입 0 · ✅ 결정 ②(b)) ⓓ 상태 모양 = `check.level`(`UiLevel` 전수 switch `_checkLook` · v1.15) — `stateCode` 미참조 · 지연(watch) ≠ 실패(blocked) 색 · paused·휴장 = 실패·결측 색 아님 · 🆕 글리프·색 = H-01 `_cellLook`(`ops_home.dart`) 글자 그대로(같은 `UiLevel` 은 화면마다 같은 기호 — 04 §2-3 «공통 계약(화면별로 다시 정하지 말 것)» · 명세 지적 · «일시정지» 라는 뜻은 엔진 `stateLabel` 이 말한다 · ⑪ · 공용 모양 함수 = 01 §8 미결 145) ⓔ 행 글자 = `label` · `stateLabel` · `lastPingText` · `graceText`(null = 부재) 원문 그대로 — 유예값·개수·이름 리터럴 0 ⓕ 🔴 슬러그·ping URL·키 = 계약에 0(✅ 결정 ②(c) · v1.15 — `slug` 필드 삭제 · 슬러그는 엔진·healthchecks 설정의 이름이라 DTO 에 오지 않는다 · 워치독 픽스처 `slug` 키 0 = 계약 C-49 ⑪ · 04 §7 «뷰모델에 없어야 정상») · 행의 이름표 = 엔진이 짓는 불투명 `checkId` — 화면은 그리지도 · Key 로도 · 로그로도 · 비교로도 쓰지 않는다(Key = 순번만 · 정적 W07) ⓖ 행 탭 = `check.route`(데이터 · null = 탭 없음 · 🔵 표본 DELAYED 행 route = W-01 자기 자신 — 데이터대로 연다 · v1.15 표본 정리 0 — W01-03 이 이 행으로 «탭 = route» 를 잡는다 · ⑥ · 01 §8 미결 143) ⓗ 🆕 머리 «마지막 수신» = `lastReceivedText`(null = 부재) · 하단 = 휴장 고지 `holidayNotice`(휴장일만) → 한계 고지 `limitNotice`(엔진이 늘 싣는다 · null = 부재) · 빈 = `emptyLabel`(✅ 결정 ②(b) · 04 §7 «한계·이력» — ⑤) ⓘ 새 lib 파일 1 · 공용 2(배럴 +1 · `test/shell_fakes.dart` 끝 절 — **끝 절 더하기만** · 라벨·주입 0) · 🔴 이 카드가 «정확히 N» 을 **소유**한다(R14 마지막 — 라벨 35 · 배럴 9 · 주입 15 · PNG 40) · Key 접두 `w01-` · 테스트 `test/watchdog_board_test.dart` · 골든 3이름 6장(`test/golden/w01_golden_test.dart` · 크기 = `kGoldenPhoneSize`).
 > 🔴 **카드 덮개 필수 문장(04 §7 · prompt_M8 141~144)** — «체크 목록은 서버가 준 것만 — 개수·이름·유예값 리터럴 0 · 받은 차례 그대로» · «상태 = `level` 하나(성공·지연·실패 + 일시정지 · 지연을 실패색으로 칠하지 않는다 · paused·휴장을 실패·결측으로 칠하지 않는다)» · «슬러그·ping URL·키 = 계약에 0(v1.15) — 행 이름표 `checkId` 도 화면·Key·로그·비교 0 · 문자열 파싱 0 · `/pause`·`/resume` 버튼 0» · «머리 마지막 수신·하단 휴장·한계 고지 = 엔진 글자 그대로(null = 부재)» · «셸 파일·R13·R14a 테스트·PNG 는 고치지 않는다».
 > ✅ **K 결정 표식** — 새 K 0 · 관련 = 결정 9c(healthchecks.io) · v1.13 `DiagnosticCell.level` 선례(상태 모양 = `UiLevel`) · 🆕 01 §24 K3(`WatchdogBoardVm`) · K4·K17(`slug` → `checkId`) · K15(보드 꼴) · K16(`level` 매핑).
 > ✅ **확정(2026-10-30 · 발주자 · ① 2장 + F-01 이관 + v1.15 선행 · ② v1.15 에 ⑪·R14b ⑤·R14b ⑩ 포함 · R14a ⑩ 사다리 = 부재 + 01 §8 소유 카드 · ③ 나머지 권고대로)** — 이 카드 11건이 정한 것: ① 순서 = R14a 병합 뒤(공용 파일 «정확히 N» 을 이 카드가 소유) ② 상태 모양 원천 = v1.15 `WatchdogCheck.level: UiLevel`(엔진 매핑 = 성공·휴장 성공 핑 `ok` · 지연 `watch` · 실패 `blocked` · 일시정지 `info` — 01 §24 K16) ③ `w01_paused` 입력 = v1.15 `m8/watchdog_paused` ④ 휴장 표본 = «휴장 성공 핑»(`state_code` `OK` · `level` `ok` — 04 §7) · 그래서 «`stateCode` 문자열 비교로 모양» 변이는 표본상 `level` 과 같다 → 🔵 참고(정적 W07 이 `stateCode` 를 잡는다 · 드라이런 M10a) ⑤ 🆕 머리 «마지막 수신» · 하단 한계 고지 · 휴장 고지 = **v1.15 `WatchdogBoardVm{rows, asOf, emptyLabel?, holidayNotice?, limitNotice?, lastReceivedText?}`**(창구 교체 · 호출처 = 이 카드 1곳 — 아래 «화면» · W01-01 · W01-08 · `w01_*` 6장 다시 · 재드라이런) ⑥ 자기 링크 행 = 데이터대로(v1.15 표본 정리 0 · 01 §8 미결 143) ⑦ 빈 = v1.15 `m8/watchdog_empty` · `FAILED` 표본 1행 = `watchdog_delayed`(6행) ⑧ 골든 크기 = `kGoldenPhoneSize` ⑨ 이월 반영(아래 «6») ⑩ 🆕 `WatchdogCheck.slug` = **v1.15 에서 삭제 → `checkId`**(엔진이 짓는 불투명 id · 슬러그 파생 금지 · 워치독 픽스처 `slug` 키 0 = 계약 C-49 ⑪ — 이 카드의 슬러그 단언 두 줄은 뺐다 · 화면 몫 = `checkId` 를 그리지도·Key·비교 0(정적 W07 · W01-07 «화면 Text 전부»)) ⑪ 상태 아이콘 = H-01 `_cellLook` 글자 그대로(공용 모양 함수 = 01 §8 미결 145 · 셸 손질 카드).
-> 드라이런: 🆕 ⬜ **재드라이런**(v1.15 반영 재조립 뒤 · 기준 = M2 가지 `m2/v115-r14` 위 R14a 재드라이런 끝 · 실측 표식 자리 = lib 줄 · 정적 출력 줄 수 · `w01_*` dy · `w01_delayed` 견본 칸 · 🟡 기대 · 변이 표(머리·하단 고지 변이 포함)) ← 이전 판: ✅ 누적 드라이런 2번째(2026-10-30 · worktree `C:/Work/AAQ-claude-r14dry` · 첫 판 가지 `dry/r14-2` = R14a 드라이런 끝 `e7cdbd9` → v1.15 워치독 몫 흉내 + R14a 병합 기록 흉내 `7a47f0f`(비교 기준 `dry/r14-2base`) → 권장 4커밋 · 🆕 반영판 가지 `dry/r14-2b` = R14a 반영판 `d57ce62` 위 같은 흉내(`a9effc7` · 비교 기준 `dry/r14-2base2`) + 4커밋 + (5) 글리프 `a5c149c`) · 시작 «+158» → 끝 «+181»(첫 판) · 반영판 «+160» → **«+183»**(`watchdog_board_test` +17 · `w01_golden` +6) · `domain_contracts` «+392 ~30» · 정적 = 아래 머리 수 · 사전검사 ① 🔴 0 · 🟡 0 · ② 🔴 0(머리 «12항») · 🟡 0 · 골든 dy 3(light = dark) · lib +127 · 변이 38꼴 + 테스트 쪽 2 = 예고 KILLED 29 · 🔵 참고로 옮김 1(M10a 동치 — 정적 W07) · 탐침 M10c KILLED · 참고 7 중 KILLED 5 · SURVIVED 2(R3 정적 W04 · R8 act 표본 0) · 테스트 쪽 T-a = 사전검사 T1 🔴 · T-b = 🔴 0(눈 — «예고 변이» 🔵).
+> 드라이런: 🆕 ✅ **재드라이런**(2026-10-30 · 누적 2번째 · worktree `C:/Work/AAQ-claude-r14dry` · 가지 `dry/r14v-2` = 기준 `dry/r14v-2base` `66562f9`(R14a 재드라이런 끝 `a488f83`(v1.15 실물 `d9916ca` + 기록 커밋 cherry-pick 위) + R14a 병합 기록 흉내 — 이 카드를 `send/` 로 · `origin/main` 자리) → 0단계 18줄 = 기대 그대로 → 권장 4커밋 `e802f70` → `74d2b64` → `e106486` → `177e0d4`((5) 없음 · name-status = «■ 제출» 기대 12줄 그대로) · 시작 «+164» → 끝 **«+189»**(`watchdog_board_test` +19 · `w01_golden` +6) · `domain_contracts` «+408 ~30» · 정적 118줄(EXIT:1 18 · EXIT:0 14 · 꺼낸 32줄 해시 일치) · 사전검사 ① 🔴 0 · 🟡 0 · ② 🔴 0 · 🟡 0 · 골든 dy 3(light = dark · 696.0 · 580.0 · 592.0) · lib +147 · format·analyze·경계 통과 · 변이 56꼴(예고 39 · 탐침 4 · 참고 11) + 테스트 쪽 2 — 예고 KILLED 39(🆕 머리·하단 고지 12 포함) · 탐침 KILLED 4(checkId 글자 M16 · 행 Key M41 · 비교 M42 · 휴장 PAUSED M10c) · 참고 KILLED 4(R1·R2·R5·R6) · SURVIVED 7(M10a·M17·R3 = 정적 W07·W07·W04 · R8 = 표본 0 · R10 = 동치 · 🔴 R9·R11 = 빈틈 «마지막 수신·한계 고지를 오래됨일 때 숨기기» → W01-05 stale·stale_empty 에 w01-received·w01-limit 단언을 더해 막음 — 확인 가지 dry/r14v-2c bbd8264 에서 R9·R11 KILLED · +189 · 정적 118 불변 · 사전검사 ① 🔴 0 → 이제 예고) · T-a(else 없는 if) = 사전검사 T1 🔴 · T-b(아이콘 단언 약화) = 🔴 0(C4 눈) · 예고 SURVIVED 0 · 표 = 통합 담당 스크래치 `r14/mut2_R14b-Bob-W01/table.md`) ← 이전 판: ✅ 누적 드라이런 2번째(2026-10-30 · worktree `C:/Work/AAQ-claude-r14dry` · 첫 판 가지 `dry/r14-2` = R14a 드라이런 끝 `e7cdbd9` → v1.15 워치독 몫 흉내 + R14a 병합 기록 흉내 `7a47f0f`(비교 기준 `dry/r14-2base`) → 권장 4커밋 · 🆕 반영판 가지 `dry/r14-2b` = R14a 반영판 `d57ce62` 위 같은 흉내(`a9effc7` · 비교 기준 `dry/r14-2base2`) + 4커밋 + (5) 글리프 `a5c149c`) · 시작 «+158» → 끝 «+181»(첫 판) · 반영판 «+160» → **«+183»**(`watchdog_board_test` +17 · `w01_golden` +6) · `domain_contracts` «+392 ~30» · 정적 = 아래 머리 수 · 사전검사 ① 🔴 0 · 🟡 0 · ② 🔴 0(머리 «12항») · 🟡 0 · 골든 dy 3(light = dark) · lib +127 · 변이 38꼴 + 테스트 쪽 2 = 예고 KILLED 29 · 🔵 참고로 옮김 1(M10a 동치 — 정적 W07) · 탐침 M10c KILLED · 참고 7 중 KILLED 5 · SURVIVED 2(R3 정적 W04 · R8 act 표본 0) · 테스트 쪽 T-a = 사전검사 T1 🔴 · T-b = 🔴 0(눈 — «예고 변이» 🔵).
 > 프롬프트 = `docs/ai-context/prompt_M8.md`(**v2 판 183줄** · 2행·119행 범위 · 128행 PR 제목 형식 → 이 카드가 덮는다). 🔴 Bob **새 대화** 전제 — R14a 대화를 기억하지 못합니다.
 > R4·R13·R5·R14a 교훈 반영: R14a 카드 머리 «교훈 반영» 줄과 같다(PNG 열람 = 이름마다 light 1장(3장) · 갈래마다 배너 · 흐름 = 클로저 · 전제는 if 밖·`// pre` · 커밋마다 `git show --stat HEAD` · 저장 파일 · 정적 = 파일로 Git Bash · 머리 ASCII · G1 🟡 조문 · ③ 구분 줄 · ④ «+» · 단언 없는 `takeException` 0 · «자리 바꿈» 견본 · 입력 칸 = 파일 이름만).
 
@@ -76,7 +76,7 @@ R14b-Bob-W01 — 범위: W-01 워치독 상태(WatchdogBoard() — 머리 · 오
   melos.bat bootstrap
   melos.bat run build:gen   ← 🔴 필수(브랜치를 바꾼 뒤마다) · «Can't load Kernel binary: Invalid SDK hash.» 경고는 SUCCESS 면 무시.
   cd packages/ui_shell
-  flutter test   ← 시작 기준: R14a 병합본 전부 통과 · 기대 «+⟦실측: R14a 병합본 — 앞 카드 병합 기록 때 채움 · 기대 164(R14a 재드라이런 끝)⟧: All tests passed!»(끝 줄의 수를 «시작 기준 N» 으로 · 다르면 PR 본문에 까닭 한 줄 · 실패가 있으면 멈추고 끝 20줄을 채팅으로)
+  flutter test   ← 시작 기준: R14a 병합본 전부 통과 · 기대 «+⟦실측: R14a 병합본 — 앞 카드 병합 기록 때 채움 · 드라이런 기대 164(R14a 재드라이런 끝 = 이 카드 재드라이런 시작)⟧: All tests passed!»(끝 줄의 수를 «시작 기준 N» 으로 · 다르면 PR 본문에 까닭 한 줄 · 실패가 있으면 멈추고 끝 20줄을 채팅으로)
   cd ../..
 git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 
@@ -94,7 +94,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  1 고치는 곳 = packages/ui_shell + docs/ai-context/inbox/W01_questions.md 만. 새 파일 = lib/src/watchdog_board.dart · test/watchdog_board_test.dart · test/golden/w01_golden_test.dart · 새 PNG 6.
    공용 2파일은 **끝 절 더하기만**: lib/ui_shell.dart = export 한 줄(자리 = 정렬 차례 — export 'src/watchdog_board.dart'; 는 export 'src/shell_scaffold.dart'; 바로 뒤 · 맨 끝) · test/shell_fakes.dart = 파일 끝에 R14b 절.
    고치면 반려: 그 밖의 ui_shell 파일 전부(lib/l10n/labels.dart · lib/src/shell_providers.dart · 셸·홈·리듬·알림 lib · 앞 카드 테스트 · 비교기 · golden_support.dart · golden README · 기존 PNG · pubspec · analysis_options · README) · domain_contracts/** · apps/** · 다른 ui_*.
- 2 화면은 받은 글자와 null 여부만 본다 — 값 = label · stateLabel · lastPingText · graceText · asOf.label · emptyLabel · lastReceivedText · holidayNotice · limitNotice 원문 그대로 · 폴백 문구 금지 · 색 = Theme.of(context).colorScheme(Colors.* 금지) · 한국어 리터럴 0(라벨도 새로 0) · lib 주석의 Key·글자 인용 = 백틱만.
+ 2 화면은 받은 글자와 null 여부만 본다 — 값 = label · stateLabel · lastPingText · graceText · asOf.label · emptyLabel · lastReceivedText · holidayNotice · limitNotice 원문 그대로 · 폴백 문구 금지 · 색 = Theme.of(context).colorScheme(Colors.* 금지) · 한국어 리터럴 0(라벨도 새로 0) · 🔴 lib 주석에서 Key·글자를 인용할 때 작은따옴표 금지(백틱 — 정적 W14 는 주석 줄도 센다 · «» 인용은 W14 밖이라 반려 사유 아님).
  3 읽지 않는 필드(카드가 정함): WatchdogCheck 의 checkId(🔴 엔진의 불투명 id — 그리지도·Key·로그·비교 0 · 정적 W07) · stateCode(🔴 모양 = level) · AsOf 의 source · tradeDate · 🔵 slug 필드는 v1.15 계약에 없다(슬러그·ping URL·키 = DTO 밖 · 계약 C-49 ⑪).
  4 이동 = AppLinkOpener.open(route) 하나(ref.read(shellLinkOpenerProvider) · 행 탭 콜백 안 · route null = onTap null) · 🔴 'aaq://' 리터럴 0 · AppRoutes 0(자기 링크 행도 데이터대로 — 링크 비교 0) · 공개 위젯 생성자 = WatchdogBoard({super.key}) 하나.
  5 산술·판정 0 — 허용 = ⓐ 신선도 한 식(vm.asOf.observedAt.add(vm.asOf.staleAfter).isBefore(clock.nowUtc())) ⓑ null 여부(route · graceText · emptyLabel · lastReceivedText · holidayNotice · limitNotice) ⓒ UiLevel 5값 전수 switch(_checkLook) 셋뿐 ·
@@ -221,7 +221,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 
 ■ 할 일 — 이 순서로 · 커밋 나누기는 재량(제목 = 내용 · 커밋마다 git add <파일> + git show --stat HEAD · amend·rebase·강제 푸시 금지 · 마지막 = format · 질문)
  (1) lib/src/watchdog_board.dart + 배럴 한 줄. 커밋 «[M8] R14b (1) W-01 워치독 상태»
- (2) test/shell_fakes.dart 끝 절 + test/watchdog_board_test.dart(W01-01~W01-08) · 🔴 커밋 전에 «정적 묶음» 미리 돌리기. 커밋 «[M8] R14b (2) W-01 테스트»
+ (2) test/shell_fakes.dart 끝 절 + test/watchdog_board_test.dart(W01-01~W01-08) · 🔴 커밋 전에 git add <그 파일들> 뒤 «정적 묶음» 미리 돌리기(실행 꼴 그대로 · git add 전이면 새 테스트 파일을 git grep 이 못 봐 W01·W02·W03·W17·W18·W26~W28·W30·W31 이 EXIT:1 로 «통과» 처럼 보인다 · 이때 W25 · W29 · W32 · 출력 줄 수는 (4) 뒤 기대와 다르다 — 118 은 (4) 뒤 기준). 커밋 «[M8] R14b (2) W-01 테스트»
  (3) 골든 6장 — test/golden/w01_golden_test.dart(3이름 × 2). 커밋 «[M8] R14b (3) 골든 w01_* 6장»
  (4) melos.bat run format:fix · analyze 한 번 · 질문 파일(W01_questions.md — dy 측정 행 A1~A3). 커밋 «[M8] R14b (4) format · 질문» · 🔴 (4) 뒤 커밋 0(예외 = 사전검사 ① 🔴 · analyze · format 수정 (5) 하나).
 
@@ -255,8 +255,8 @@ W-01 — test/watchdog_board_test.dart
  W01-04 빈 = 데이터 — 두 경우 ㉠ (empty · emptyV · want = emptyV.emptyLabel) · (delayed · null)마다 — 전제 셋: expect(emptyV.rows, isEmpty); // pre · expect(emptyV.emptyLabel, isNotNull); // pre · expect(delayed.emptyLabel, isNull); // pre →
         규칙 10 «없는 쪽» 견본 그대로(Text 에 붙은 Key — tester.widget<Text>(find.byKey(const Key('w01-empty'))).data == want · 양성 기준점 w01-row-0) · w01-asof findsOneWidget · ⓡ.
  W01-05 갈래 × 상태(🆕 갈래마다 배너 C4r5e-3) — 다섯 경우 ㉠ (loading · Stream.multi(값 0) · [w01-loading] · [w01-asof, w01-fail] · 배너 0) · (fail · Stream.error · [w01-fail] · [w01-asof, w01-loading] · 0) ·
-        (value_then_fail · valueThenFail(delayed) · [w01-fail] · [w01-asof] · 0 · 흐름 = find.text(delayed.asOf.label) findsOneWidget) · (stale · one(delayed) · 오래됨 · [w01-asof, w01-row-0] · [w01-fail] · 1 · 흐름 = 배너 dy < w01-row-0 dy) ·
-        (stale_empty · one(emptyV) · 오래됨 · [w01-asof, w01-empty] · [w01-fail] · 1 · 흐름 = 배너 dy < w01-empty dy)마다 Key 목록 findsOneWidget / findsNothing · 배너 = c.banner ? findsOneWidget : findsNothing · 흐름 · CircularProgressIndicator findsNothing.
+        (value_then_fail · valueThenFail(delayed) · [w01-fail] · [w01-asof] · 0 · 흐름 = find.text(delayed.asOf.label) findsOneWidget) · (stale · one(delayed) · 오래됨 · [w01-asof, w01-received, w01-row-0, w01-limit] · [w01-fail] · 1 · 흐름 = 배너 dy < w01-row-0 dy) ·
+        (stale_empty · one(emptyV) · 오래됨 · [w01-asof, w01-empty, w01-limit] · [w01-fail] · 1 · 흐름 = 배너 dy < w01-empty dy)마다 Key 목록 findsOneWidget / findsNothing · 배너 = c.banner ? findsOneWidget : findsNothing · 흐름 · CircularProgressIndicator findsNothing(🆕 재드라이런 지적 — 오래됨이어도 머리 «마지막 수신»·하단 한계 고지는 그대로 · 두 Key 가 없으면 «오래됨일 때 숨기기» 가 통과했다 = R9·R11).
  W01-06 재시도 — 공장 = (int call) => call == 0 ? Stream<WatchdogBoardVm>.error(StateError('fail')) : one(delayed) → tap(find.text(ShellLabels.retry)) → pump 두 번 → w01-fail findsNothing · w01-asof findsOneWidget · ops.calls == 2 · ⓡ.
  W01-07 화면 Text 전부 · 큰 글꼴(04 §7 수용 (c) · prompt 141) — 세 경우 ㉠ (delayed) · (holiday) · (paused)마다 규칙 10 «화면 Text 전부» 견본(allowed = watchdogAllowed(c.v) — checkId·route 가 allowed 에 없어 그리면 잡힌다) →
         textScaleFactorTestValue = 2.0 → takeException isNull · ⓡ(🆕 v1.15 — 슬러그 단언 두 줄은 뺐다 · 슬러그는 계약에 없다 = 계약 C-49 ⑪ · checkId 를 Key·비교로 쓰는 것 = 정적 W07).
@@ -274,22 +274,22 @@ W-01 — test/watchdog_board_test.dart
      🔵 참고 — 타입이 막음(적용 불가): «level 을 화면이 다시 매기기»(final 필드) · 🔵 참고 — 표본상 동치 · 정적이 잡음(예고 아님): «stateCode 네 갈래 문자열 비교로 모양»(엔진 매핑이 state_code 의 함수라 v1.15 표본에서 level 과 같다 · 드라이런 M10a SURVIVED · 정적 W07 이 stateCode 를 본다) ·
      🔵 참고 — 표본 0: «act 갈래 색 바꾸기»(엔진 매핑이 act 를 쓰지 않는다 · 드라이런 R8).
    (글자) stateLabel 빼기 · lastPingText 빼기 · graceText 빼기 · graceText null 에도 빈 줄 · 유예 글자를 화면이 짓기(정적 라벨 더하기) · 🆕 checkId 를 글자로(탐침 — W01-07 allowed) ·
-     🆕 마지막 수신 빼기 · 한계 고지 빼기 · 휴장 고지 빼기 · 휴장 고지를 null 에도(빈 줄) · 한계 고지를 머리로 · 마지막 수신을 하단으로 ·
+     🆕 마지막 수신 빼기 · 한계 고지 빼기 · 휴장 고지 빼기 · 휴장 고지를 null 에도(빈 줄) · 한계 고지를 머리로 · 마지막 수신을 하단으로 · 마지막 수신을 null 에도(빈 줄) · 휴장 고지를 행 위로 · 한계 고지를 휴장 고지 없을 때만 · 한계 고지를 행 있을 때만 · 휴장·한계 고지 자리 바꾸기 · 마지막 수신 자리에 asOf 글자 · checkId 를 행 Key 로(순번 대신 · 탐침) ·
      🔵 참고 — 정적이 잡음: «checkId 를 Key 로(KeyedSubtree 로 감싸기 — 순번 Key 는 그대로라 테스트는 동치)»(정적 W07).
-   (링크) 행 탭 0 · route null 에도 탭 · 자기 링크 행 탭 막기(링크 비교) · 🔵 참고 — 정적이 잡음: «행 탭 링크를 'aaq://ops/watchdog' 리터럴로»(표본 route 와 같다 · 정적 W04 · 드라이런 R3).
-   (빈·상태 — 갈래마다) emptyLabel 빼기 · 에러를 스켈레톤으로 · 값 뒤 에러에 마지막 asOf 글자 빼기 · 재시도 invalidate 0 · 오래됨 배너 빼기(행 있음 · 빈 — 둘 다) · 신선도 비교 뒤집기 · 벽시계로 신선도 · 화면에 정적 글자 하나 더하기.
+   (링크) 행 탭 0 · route null 에도 탭 · 자기 링크 행 탭 막기(링크 비교) · 🆕 checkId 비교로 한 행 탭 막기(탐침) · 🔵 참고 — 정적이 잡음: «행 탭 링크를 'aaq://ops/watchdog' 리터럴로»(표본 route 와 같다 · 정적 W04 · 드라이런 R3).
+   (빈·상태 — 갈래마다) emptyLabel 빼기 · 에러를 스켈레톤으로 · 값 뒤 에러에 마지막 asOf 글자 빼기 · 재시도 invalidate 0 · 오래됨 배너 빼기(행 있음 · 빈 — 둘 다) · 신선도 비교 뒤집기 · 벽시계로 신선도 · 화면에 정적 글자 하나 더하기 · 🆕 마지막 수신·한계 고지를 오래됨일 때 숨기기(W01-05 stale·stale_empty · 재드라이런 R9·R11) · 🔵 참고 — 동치: «빈 문장에 화면 조건 더하기(rows 0 일 때만)»(계약상 emptyLabel 은 rows 0 일 때만 온다 · 재드라이런 R10).
    🔵 판정 = 변이마다 ui_shell 의 flutter test 전부(골든 포함) + 정적 묶음(🔵 참고 «정적이 잡음» 몫) · 🔵 C4 눈 검사 — W01-02 아이콘 단언이 _wantIcon/_wantColor 두 줄 꼴인지(약하게 바꿔도 사전검사 🔴 0 · 드라이런 T-b) ·
      드라이런 = 38꼴(예고 30 · 탐침 1 · 참고 7) + 테스트 쪽 2 — 예고 KILLED 29 · M10a → 🔵 참고 · 탐침 M10c KILLED · 참고 KILLED 5 · SURVIVED 2(R3 · R8 → 🔵 참고) · T-a(else 없는 if) = 사전검사 T1 🔴 · 예고 SURVIVED 0 · 🆕 글리프 반영판 = 전부 통과(PNG 불변) ·
-     🆕 v1.15 반영판 = ⟦실측: 재드라이런 — 머리·하단 고지·checkId 변이 포함 · 예고 SURVIVED 0 이어야 보낸다⟧.
+     🆕 v1.15 반영판(재드라이런 2026-10-30) = 56꼴(예고 39 · 탐침 4 · 참고 11) + 테스트 쪽 2 — 예고 KILLED 39(🆕 머리·하단 고지 12 포함) · 탐침 KILLED 4(checkId 글자 M16 · 행 Key M41 · 비교 M42 · 휴장 PAUSED M10c) · 참고 KILLED 4(R1·R2·R5·R6) · SURVIVED 7(M10a·M17·R3 = 정적 W07·W07·W04 · R8 = 표본 0 · R10 = 동치 · 🔴 R9·R11 = 빈틈 «마지막 수신·한계 고지를 오래됨일 때 숨기기» → W01-05 stale·stale_empty 에 w01-received·w01-limit 단언을 더해 막음 — 확인 가지 dry/r14v-2c bbd8264 에서 R9·R11 KILLED · +189 · 정적 118 불변 · 사전검사 ① 🔴 0 → 이제 예고) · T-a(else 없는 if) = 사전검사 T1 🔴 · T-b(아이콘 단언 약화) = 🔴 0(C4 눈) · 예고 SURVIVED 0.
 
-■ 정적 묶음 — 아래 32줄을 파일로 꺼내 Git Bash 로 돌리고, 나온 출력 전부를 PR 본문 ② 에 코드 블록 하나로 그대로 붙인다(대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 머리 ASCII · «EXIT:1» = 출력 없음 · 출력 줄 수(EXIT 줄 포함) = ⟦실측: 재드라이런 · 기대 118줄(첫 판 115 + W19 의 w01-received · w01-holiday · w01-limit)⟧ — 붙이기 전에 세어 같은지 본다)
+■ 정적 묶음 — 아래 32줄을 파일로 꺼내 Git Bash 로 돌리고, 나온 출력 전부를 PR 본문 ② 에 코드 블록 하나로 그대로 붙인다(대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 머리 ASCII · «EXIT:1» = 출력 없음 · 출력 줄 수(EXIT 줄 포함) = 118줄(재드라이런 실측 · 첫 판 115 + W19 의 w01-received · w01-holiday · w01-limit) — 붙이기 전에 세어 같은지 본다)
   🔴 터미널에 붙여 넣어 돌리지 않는다(대화형 bash 는 ! 든 줄을 건너뛸 수 있다 · bash 라고만 치면 이 PC 에서는 WSL)
   실행 꼴(packages/ui_shell 에서 · PowerShell · 손으로 옮겨 쓰지 않는다):
   & "C:\Program Files\Git\bin\bash.exe" -c "mkdir -p ../../build && git show 'origin/main:docs/ai-context/send/R14b-Bob-W01.md' | sed -n '294,325p' > ../../build/r14b_static.sh"
   git hash-object ../../build/r14b_static.sh   ← e253ad80851787a4017272e0eb96e9ec040a25dc(= 아래 32줄 · 다르면 멈추고 채팅으로)
   & "C:\Program Files\Git\bin\bash.exe" -c "LC_ALL=C.UTF-8 bash ../../build/r14b_static.sh > ../../build/r14b_static_out.txt"
   Select-String -Path ..\..\build\r14b_static_out.txt -Pattern '^EXIT:(?![01]$)'   ← 출력 없음이어야 한다(나오면 한 번 더 · 두 번째에도 나오면 멈추고 출력 파일 전부를 채팅으로)
-  (Get-Content ..\..\build\r14b_static_out.txt).Count   ← ⟦실측: 재드라이런 · 기대 118⟧(EXIT 줄 32 포함) · (Select-String -Path ..\..\build\r14b_static_out.txt -Pattern '^EXIT:1$').Count ← 18 · -Pattern '^EXIT:0$' ← 14
+  (Get-Content ..\..\build\r14b_static_out.txt).Count   ← 118(재드라이런 실측 · EXIT 줄 32 포함) · (Select-String -Path ..\..\build\r14b_static_out.txt -Pattern '^EXIT:1$').Count ← 18 · -Pattern '^EXIT:0$' ← 14
   ② 에 붙일 출력 = Get-Content -Encoding UTF8 ..\..\build\r14b_static_out.txt 전부(build/ 는 .gitignore 대상 — git status 는 빈 채 · 커밋 0 · 할 일의 «미리 돌리기» 도 이 꼴)
 echo "## W01 new test files hangul 0 (comment lines only)"; git grep -nP "'[^'\n]*[\x{AC00}-\x{D7A3}]" -- test/shell_fakes.dart test/watchdog_board_test.dart test/golden/w01_golden_test.dart; echo "EXIT:$?"
 echo "## W02 test names ASCII"; git grep -nP "(testWidgets|test|group)\('[^']*[^\x00-\x7F]|^\s*'[^']*[^\x00-\x7F][^']*',?\s*$" -- test/watchdog_board_test.dart test/golden/w01_golden_test.dart; echo "EXIT:$?"
@@ -323,14 +323,14 @@ echo "## W29 golden files"; git diff --name-status origin/main...HEAD -- test/go
 echo "## W30 precondition marks (pre)"; git grep -c "// pre$" -- test/watchdog_board_test.dart; echo "EXIT:$?"
 echo "## W31 bare takeException 0"; git grep -nE "^\s*tester\.takeException\(\);" -- test/watchdog_board_test.dart; echo "EXIT:$?"
 echo "## W32 golden PNG total (40 exact)"; git ls-files -- test/golden/goldens | grep -c "\.png$"; echo "EXIT:$?"
-  (줄의 뜻과 기대(✅ 첫 판 드라이런 실측 · 🆕 v1.15 반영으로 바뀐 것 = W03 · W07 낱말 · W17 · W19 · W30 · 출력 줄 수 — 재드라이런이 다시 잰다) — W01 = 주석 줄 말고 출력 없음 · W02 = 출력 없음 · W03 = 2줄(w01_golden 1 · watchdog_board_test 8) · W04 = 0 · S05 = 1줄(행 탭 콜백 안) · W06 = 1줄 · W07 = 0 ·
+  (줄의 뜻과 기대(✅ 첫 판 드라이런 실측 · 🆕 v1.15 반영으로 바뀐 것 = W03 · W07 낱말 · W17 · W19 · W30 · 출력 줄 수 — ✅ 재드라이런 실측 그대로) — W01 = 주석 줄 말고 출력 없음 · W02 = 출력 없음 · W03 = 2줄(w01_golden 1 · watchdog_board_test 8) · W04 = 0 · S05 = 1줄(행 탭 콜백 안) · W06 = 1줄 · W07 = 0 ·
    W08 = 5줄(_checkLook 다섯 갈래) · W09 = 0(🔴 주석 포함 · 앞 카드 파일 포함) · W10 = «lib/l10n/labels.dart:35»(🔴 정확히 — R13 31 + R14a 4 + 이 카드 0) · W11 = 9줄(… src/shell_scaffold.dart · 🆕 src/watchdog_board.dart 차례 · 🔴 정확히) ·
    W12 = 15줄(🔴 정확히 — 이 카드 몫 0) · W13~W16 = 0 · W17 = «test/watchdog_board_test.dart:7» · W18 = «test/watchdog_board_test.dart:2»(🔴 정확히) · W19 = 이름 8 = 위 «Key 표»(w01-row 는 머리만 · 표 밖 0) · W20~W24 = 0 ·
    W25 = 두 줄(lib/ui_shell.dart 1 · 0 · test/shell_fakes.dart <n> · 0 — 그 밖 파일 줄 없음(🆕 앞 카드 골든 테스트 5파일 포함) · 🔴 labels.dart · shell_providers.dart 줄 0) · W26 = 0 · W27 = 0 · W28 = 0 · W29 = 6줄 전부 «A»(w01_* 만) · W30 = «test/watchdog_board_test.dart:18»(🔴 정확히) · W31 = 0 ·
    W32 = «40»(🔴 정확히 — R13 24 + R14a 10 + 이 카드 6))
 
 ■ 골든 — 3이름 × light/dark = 6장(전부 신규 · 이름 = 04 §7 수용 (d) 글자 그대로 · golden README «🆕 R14» 절 표 그대로)
-  w01 — test/golden/w01_golden_test.dart · 크기 = kGoldenPhoneSize(390 × 844 · 🆕 맨 아래 = 한계 고지 Key('w01-limit') · dy = ⟦실측: 재드라이런 — 첫 판 행 끝 w01_delayed 584.0 · w01_holiday 440.0 · w01_paused 480.0 보다 머리·하단 줄만큼 내려간다 · light = dark 확인⟧) · 위젯 = WatchdogBoard() · 저장소 = FakeShellWatchdogRepository(…)(🔴 testWidgets 안에서 새로 · _Flow 칸에 인스턴스 0) · 시계 = FixedClock(kGoldenNowUtc):
+  w01 — test/golden/w01_golden_test.dart · 크기 = kGoldenPhoneSize(390 × 844 · 🆕 맨 아래 = 한계 고지 Key('w01-limit') · 재드라이런 dy = w01_delayed 696.0 · w01_holiday 580.0 · w01_paused 592.0 — light = dark · 첫 판 행 끝 584.0 · 440.0 · 480.0 보다 머리·하단 줄만큼 내려감 · 높이 늘림 0) · 위젯 = WatchdogBoard() · 저장소 = FakeShellWatchdogRepository(…)(🔴 testWidgets 안에서 새로 · _Flow 칸에 인스턴스 0) · 시계 = FixedClock(kGoldenNowUtc):
     이름           입력      흐름    맨 아래 Key
     w01_delayed    delayed   없음    Key('w01-limit')
     w01_holiday    holiday   없음    Key('w01-limit')
@@ -355,10 +355,10 @@ echo "## W32 golden PNG total (40 exact)"; git ls-files -- test/golden/goldens |
   cd packages/ui_shell
   flutter test test/watchdog_board_test.dart       ← 끝 줄 그대로(기대 «+19: All tests passed!»)
   flutter test test/golden/w01_golden_test.dart    ← 끝 줄 그대로(기대 «+6: All tests passed!»)
-  flutter test   ← 옵션 없이 전부 통과(기대 = 시작 기준 N + 25 — ⟦실측: 앞 카드 병합 기록 때 채움 · 기대 164 → «+189: All tests passed!»⟧)
+  flutter test   ← 옵션 없이 전부 통과(기대 = 시작 기준 N + 25 — ⟦실측: 앞 카드 병합 기록 때 채움 · 드라이런 기대 164 → «+189: All tests passed!»(재드라이런 실측)⟧)
   cd ../..
   & "C:\Program Files\Git\bin\bash.exe" tool/check_boundaries.sh   ← 실패 0 · 기존 ui_journal 🟡 1건 그대로
-  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · domain_contracts «+⟦실측: v1.15 병합본 — 앞 카드 병합 기록 때 채움 · 기대 408(M2 가지 d9916ca 실측)⟧ ~30»(이 카드 몫 0) · «Some tests failed»·«FAILED» 0건 · format 0 changed · 🔴 백그라운드·파이프 금지(&& 가 안 되면 한 줄씩)
+  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · domain_contracts «+⟦실측: v1.15 병합본 — 앞 카드 병합 기록 때 채움 · 드라이런 기대 408(재드라이런 실측 «00:05 +408 ~30»)⟧ ~30»(이 카드 몫 0) · «Some tests failed»·«FAILED» 0건 · format 0 changed · 🔴 백그라운드·파이프 금지(&& 가 안 되면 한 줄씩)
   git status --short   ← 🔴 비어 있어야 다음으로
   git diff --name-status origin/main...HEAD
      ← 기대(이 줄들만 · 앞머리 packages/ui_shell/): A lib/src/watchdog_board.dart · M lib/ui_shell.dart · A test/golden/goldens/w01_*.png 6장 · A test/golden/w01_golden_test.dart · M test/shell_fakes.dart · A test/watchdog_board_test.dart ·
@@ -381,7 +381,7 @@ echo "## W32 golden PNG total (40 exact)"; git ls-files -- test/golden/goldens |
       🔴 N3 — 내기 전 사전검사 ② — 제출 글 전체(①~⑤ + flutter test 한 줄)를 저장소 밖 파일(notepad $env:TEMP\R14b-Bob-W01_submit.md · «UTF-8» 저장 · 커밋 0)에 저장한 뒤 저장소 뿌리에서:
      [Console]::OutputEncoding = [Text.Encoding]::UTF8
      dart tool/precheck.dart --base origin/main --collection-if 0 --report $env:TEMP\R14b-Bob-W01_submit.md --golden-prefix w01 --goldens 6 | Out-File -Encoding utf8 $env:TEMP\r14b_pre2.txt; Get-Content -Encoding UTF8 $env:TEMP\r14b_pre2.txt | Select-Object -Last 1
-        ← 🔴 끝 줄 «── 결과: 🔴 0 · …» 를 확인한 뒤에만 낸다 · 출력은 채팅에 붙이지 않는다 · 🟡 [G1] = 멈춤 아님(드라이런 기대 🟡 = ⟦실측: 재드라이런 · 첫 판 0⟧) · 🔴 🟡 가 하나라도 나오면 그 행의 light PNG 를 다시 열어 표를 맞춘다 — 다시 열지 않고 그대로 내면 ② 반려(C4r5d-1).
+        ← 🔴 끝 줄 «── 결과: 🔴 0 · …» 를 확인한 뒤에만 낸다 · 출력은 채팅에 붙이지 않는다 · 🟡 [G1] = 멈춤 아님(드라이런 기대 🟡 = 0(재드라이런 · 첫 판도 0)) · 🔴 🟡 가 하나라도 나오면 그 행의 light PNG 를 다시 열어 표를 맞춘다 — 다시 열지 않고 그대로 내면 ② 반려(C4r5d-1).
    ① 아래 «① 머리 복사 상자» 한 줄 그대로 + «바뀐 파일:» + name-status 출력 그대로(코드 블록 하나) + «커밋 목록:» + log 출력 그대로(코드 블록 하나)
       ┌── ① 머리 복사 시작(다음 줄부터)
 화면 ID: W-01 — 워치독 상태(WatchdogBoard())
@@ -433,7 +433,7 @@ echo "## W32 golden PNG total (40 exact)"; git ls-files -- test/golden/goldens |
       골든 표 6행(한 표 · 한 행 한 줄) = «| 이름 | 입력 픽스처 | 크기 | 위치 전제 dy | 배치·잘림 |» + 바로 다음 줄 구분 줄 «|---|---|---|---|---|»(없으면 표로 그려지지 않는다) · 이름 칸 = «w01_delayed light» 꼴 ·
         입력 = 파일 이름만(watchdog_delayed.json · watchdog_holiday.json · watchdog_paused.json) · 크기 = 390×844 · dy = 이름·밝기마다 잰 값 · light PNG 한 장씩(3장) · dark 행 = 같은 이름 light 행 칸 글자 그대로(dy 가 같을 때만) ·
         칸 꼴 = «<덩어리 → 로 — 글자 n줄 · 상자 · 점 · 아이콘> — 잘림 없음» 또는 «… — 잘림: <어디가 어떻게>»(6행 모두 꼬리 · 코드 이름·픽스처 낱말·영문 0 · 🔴 사전검사 G1 출력을 옮기지 않는다) ·
-        셈 단위 견본 1행(드라이런이 PNG 를 열어 쓴 칸 · 🔴 같은 이름 행은 꼬리까지 견본 글자 그대로 — PNG 가 다르게 보이면 칸을 바꾸지 말고 질문 파일에): «| w01_delayed light | watchdog_delayed.json | 390×844 | ⟦실측: 재드라이런 — dy⟧ | ⟦실측: 재드라이런 — PNG 를 열어 쓴 칸(첫 판 «글자 21줄 — 잘림 없음» · 머리·하단 글자 줄이 붙는다)⟧ |»
+        셈 단위 견본 1행(드라이런이 PNG 를 열어 쓴 칸 · 🔴 같은 이름 행은 꼬리까지 견본 글자 그대로 — PNG 가 다르게 보이면 칸을 바꾸지 말고 질문 파일에): «| w01_delayed light | watchdog_delayed.json | 390×844 | 696.0 | 글자 25줄 — 잘림 없음 |»
    ④ 질문 목록 — git -c core.quotePath=false diff origin/main...HEAD -- docs/ai-context/inbox/W01_questions.md 의 «+|» 줄 전부(줄머리 «+» 그대로 · 코드 블록 하나)
    ⑤ 추측한 것 = 새 A 행 중 «측정:» 이 아닌 행 — 번호로(없으면 정확히 «없음»)
       ┌── 시작·끝 복사 시작(다음 줄부터 · 1줄)
@@ -451,8 +451,8 @@ flutter test: 시작 기준 <N> → 끝 <packages/ui_shell 의 flutter test 끝 
 - `test/` 새 파일 2(`watchdog_board_test.dart` · `golden/w01_golden_test.dart`) + 수정 1(`shell_fakes.dart` 끝 절) + 새 PNG 6 · 재생성 0.
 - 질문 파일 `W01_questions.md`(A1~A3 «측정:»).
 - 저장 파일 `$env:TEMP\R14b-Bob-W01_submit.md` + 채팅 두 줄 · 사전검사 ① ② 🔴 0.
-- `flutter test` = 시작 기준 N(⟦실측: R14a 병합본 — 앞 카드 병합 기록 때 채움 · 기대 164⟧) + 25 · 정적 W10 = 35 · W11 = 9 · W12 = 15 · W17 = 7 · W18 = 2 · W30 = 18 · W32 = 40(🔴 정확히) · W08 = 5 · W19 = 이름 8 · S05 = 1 · W06 = 1 · W29 = 6 A.
-- 재분할 임계: 줄 9 · lib ⟦실측: 재드라이런 · 첫 판 +127⟧ · PNG 6 → 재분할 없음 · 정적 출력 ⟦실측: 재드라이런 · 기대 118⟧줄.
+- `flutter test` = 시작 기준 N(⟦실측: R14a 병합본 — 앞 카드 병합 기록 때 채움 · 드라이런 기대 164⟧) + 25 · 정적 W10 = 35 · W11 = 9 · W12 = 15 · W17 = 7 · W18 = 2 · W30 = 18 · W32 = 40(🔴 정확히) · W08 = 5 · W19 = 이름 8 · S05 = 1 · W06 = 1 · W29 = 6 A.
+- 재분할 임계: 줄 9 · lib +147(재드라이런 · 첫 판 +127) · PNG 6 → 재분할 없음 · 정적 출력 118줄(재드라이런).
 
 ## 4. 받은 뒤 Claude에게 보낼 문장(한 줄)
 
@@ -467,7 +467,7 @@ R14b-Bob-W01 결과: 브랜치 ui/m8-w01-watchdog 푸시됨 — PR 만들고 병
 - **5분 눈 검사**: ① `labels.dart`·`shell_providers.dart`·셸·홈·리듬·알림 파일·기존 테스트·PNG 가 `M` ② `watchdog_board.dart` 에 `checkId`·`slug`·`stateCode`·`'aaq://`·`AppRoutes`·`Duration(`·`.where(`·`split(`·`print(` ③ 지연 행이 빨강·실패 아이콘 ④ 휴장·일시정지 행이 회색 «결측» ⑤ `/pause` 버튼 ⑥ `checkId` 가 Key·글자에 ⑦ 머리 «마지막 수신»·하단 고지를 화면이 지음(리터럴) · null 에도 빈 줄.
 - 🔵 `golden:approved` 불필요(새 PNG 만).
 - 🔵 R14 마지막 카드 — 병합 기록이 R14 완료(🏁)를 적는다 · 다음 = 12 §6 큐(R15) · 통합 담당 test-only PR(C4r13a-3 · C4r13b-4 · R14a «6» 권고).
-- ⬜ 자리표시자 = `__R14A_SQ__` · `__R14A_PR__`(R14a 병합 기록 때 채움) · 남은 실측 표식(꺾쇠 U+27E6 으로 여는 자리 — 셈 = `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R14b-Bob-W01.md` · 🔵 이 안내 줄에는 그 글자를 쓰지 않았다 — 셈이 이 줄을 세지 않는다) = ① R14a 병합본 실측(시작 기준 N · 끝 N · `domain_contracts` 수 — «앞 카드 병합 기록 때 채움» 표시) ② 🆕 재드라이런 몫(lib 줄 · 정적 출력 줄 수 · `w01_*` dy · 견본 칸 · 🟡 기대 · 변이 표) · ✅ 이 판에서 채운 것 = 계약 버전 줄(`1.15.0`) · `required UiLevel level,` 수(2) · 01 §24 절 번호 · 이름표(M2 코드 글자) · 꺼내기 줄 범위·해시(이 판 글자 — 재드라이런이 카드를 고치면 다시 잰다) — 🔴 보내기 전 표식 0.
+- ⬜ 자리표시자 = `__R14A_SQ__` · `__R14A_PR__`(R14a 병합 기록 때 채움) · 남은 실측 표식(꺾쇠 U+27E6 으로 여는 자리 — 셈 = `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R14b-Bob-W01.md` · 🔵 이 안내 줄에는 그 글자를 쓰지 않았다 — 셈이 이 줄을 세지 않는다) = R14a 병합본 실측만(시작 기준 N · 끝 N · `domain_contracts` 수 — «앞 카드 병합 기록 때 채움» 표시 · 드라이런 기대 = 재드라이런 실측) · ✅ 재드라이런이 채운 것(2026-10-30) = lib 줄 · 정적 출력 줄 수 · `w01_*` dy · 견본 칸 · 🟡 기대 · 변이 표 · W01-05 오래됨 단언(R9·R11) · ✅ 앞 판에서 채운 것 = 계약 버전 줄(`1.15.0`) · `required UiLevel level,` 수(2) · 01 §24 절 번호 · 이름표(M2 코드 글자) · 꺼내기 줄 범위 294~325·해시(그대로 — 이 판은 그 밖만 고쳤다) — 🔴 보내기 전 표식 0.
 - 범위 고지: 🆕 v1.15 가 01 §8 에 적은 미결(이 카드가 닫지 않는다) = 143 자기 링크 행(셸 «늘 push» · 미결 137 과 같은 뿌리) · 145 공용 모양 함수(`UiLevel` 아이콘·색 — H-01·W-01 이 같은 글자를 따로 둔다 · 셸 손질 카드) · 147 `limitNotice` «늘 싣기» · `lastReceivedText` 원천(엔진 레인 06 `M1-12`) · 148 공통 상태 ⑤ 차단·⑥ 부분 동기(04 §2-3) · 142 뷰어 원천(워치독 읽기 모델 표 · 엔진 레인) · 미결 137(ShellLinkOpener 늘 push)도 이 카드가 닫지 않는다.
 
 ## 6. R14 이월 반영 — R14a 카드 «6» 과 같은 표(W-01 자리)
