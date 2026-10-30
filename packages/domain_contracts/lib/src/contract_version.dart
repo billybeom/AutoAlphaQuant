@@ -96,12 +96,19 @@
 //    `PRICE_JUMP`·`CALENDAR_SUSPECT` — `data_gap.reason_code`) · 🆕 `ddl/batch_g_market_data.sql`(`market_series`·`fetch_log`
 //    신설 · `daily_prices` += `source`·`fetched_at` · `regime_score_daily` += `source` · 스키마 v1 한 판) · `data_gap.dataset`
 //    주석 += macro·regime·calendar · 🆕 C-48 · C-15 축 +3 · 픽스처 176(봉투 버전만).
+// 🆕 '1.15.0'(R14 선행 · 01 §24 · 발주자 결정 2026-10-30 ①~④ · K1~K23) — 알림 센터·상세·워치독 표시 계약:
+//    `AlertCenterVm`·`AlertSection`·`AlertDetailVm` · `AlertItem` +3(`raisedAtText`·`groupedText`·`detailDeepLink`) ·
+//    `AlertRepository.watchCenter({required bool p0Only})`·`watchAlert(alertId)`(추가형 · `watchInbox` 무변경) ·
+//    `CommandApi.acknowledgeAlert(String alertId)`(인자 교체 · 와이어 `AlertAck` 무변경) · 라우트 `alertsInbox`·`alertDetail`(54) ·
+//    `WatchdogBoardVm` · `watchWatchdog()` 반환 교체 · `WatchdogCheck` − `slug` + `checkId` + `level` · 받침대
+//    `UnimplementedAlertRepository`·`UnimplementedOpsStatusRepository` · 🆕 C-49 · 픽스처 176 → 187(신설 11 · 개정 5) —
+//    🆕 tool/gen_r14_v115_fixtures.py(기준 1bb1a84 원문에서 멱등 생성).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.14.0';
+const String contractVersion = '1.15.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

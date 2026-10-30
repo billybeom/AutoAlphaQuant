@@ -16,6 +16,7 @@
 // 🆕 v1.12(01 §21 · K4) — X7 기록 3종(`recordManualFill`·`skipAdvice`·`submitSelfReportBalance`)의 인자 = «화면 제출»
 //    DTO(원문 · `payloads_x7.dart`). 화면은 와이어 DTO·`CommandContext` 를 만들지 않는다 — 파싱·맥락 부착·세션 시각은
 //    이 인터페이스의 구현이 한다(실패 = 큐 적재 없는 `rejected` 접수증 `INPUT_INVALID`).
+// 🆕 v1.15(01 §24 · K12) — `acknowledgeAlert` 인자 = `String alertId`(와이어 `AlertAck` = 구현이 만든다).
 
 import 'command_receipt.dart';
 import 'payloads.dart';
@@ -77,8 +78,13 @@ abstract interface class CommandApi {
     SelfReportSubmission submission,
   );
 
-  /// 🔴 효력 없는 «수신 확인».
-  Future<CommandReceipt> acknowledgeAlert(AlertAck ack);
+  /// 🔴 효력 없는 «수신 확인»(P0 승급 사다리 정지만 · `SafetyState` 무영향 · A5).
+  /// 🆕 v1.15(01 §24 · K12) 인자 교체(구 `AlertAck ack` — 화면은 `CommandContext` 를 만들지 않는다 · G-19 · C-28 ⑨) ·
+  /// 와이어 = [AlertAck](구현이 맥락을 붙인다 · [deferAdviceConfirm] 선례) · 🔴 폰(operator) 전용
+  /// (뷰어 = 주입 없음 = 버튼 부재 · §8-10).
+  /// 구현 의무 ⓐ [alertId] 단위 멱등 — 이미 확인된 알림의 두 번째 확인은 거부가 아니라 `executed`(효과 0)
+  /// ⓑ 모르는 id · 사다리 없는 알림(`ack == null`) = 큐 적재 없는 `rejected`(`INPUT_INVALID` · [watchCommand] 의무 ④).
+  Future<CommandReceipt> acknowledgeAlert(String alertId);
 
   /// 🔴 48h 해제 카운트다운 개시의 유일한 방아쇠.
   Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack);

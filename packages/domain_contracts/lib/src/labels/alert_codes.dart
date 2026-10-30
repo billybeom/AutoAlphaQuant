@@ -17,6 +17,7 @@ abstract final class AlertCodes {
   static const String adviceIssued = 'ADVICE_ISSUED';
 
   /// 잠정 P0 · 🔴 **ack 승급 사다리 미적용** — 대신 T-90분 [adviceDueSoon] 이 한 번 더 온다.
+  /// 🆕 v1.15 — 이 코드의 `AlertItem.ack` = 늘 null(C-49 ⑥).
   static const String adviceExitUrgent = 'ADVICE_EXIT_URGENT';
 
   /// 잠정 P1 · 유효기한 당일 장 마감 T-90분, 미기록 잔존. 1건으로 묶음.
@@ -25,7 +26,8 @@ abstract final class AlertCodes {
   /// 잠정 P2 · 만료 스윕 직후. 일 1건 묶음.
   static const String adviceExpired = 'ADVICE_EXPIRED';
 
-  /// 잠정 P0 · 🔴 **독립 `AlertItem`** 이며 킬스위치 알림과 같은 `groupKey` 로 인접 렌더한다
+  /// 잠정 P0 · 🔴 **독립 `AlertItem`** 이며 킬스위치 알림과 **엔진 순서로 인접**해 온다
+  /// (`groupKey` 필드 없음 · 🆕 v1.15 · 화면은 받은 차례 그대로)
   /// («동봉»은 세 번째 발송 형태라 만들지 않는다 · C13).
   static const String adviceRevoked = 'ADVICE_REVOKED';
 

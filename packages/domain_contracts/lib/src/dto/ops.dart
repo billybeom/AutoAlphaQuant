@@ -72,16 +72,26 @@ abstract class OpsRhythmRow with _$OpsRhythmRow {
       _$OpsRhythmRowFromJson(json);
 }
 
-/// m2-8 G-3 — 워치독 체크 1행(04 §7 `W-01`).
-/// 🔴 `slug` 는 **2축 합성** `{sim|live}-{auto|advisory}-{체크명}` 이며(§9-5 ⑦ · C20)
-///    목록의 길이·이름은 **서버가 준다** — 화면이 상수 배열을 갖지 않는다.
+/// m2-8 G-3 — 워치독 체크 1행(04 §7 `W-01`). 🆕 v1.15(01 §24 · K4 · K16 · K17) — `slug` 삭제 → [checkId] · [level].
+///
+/// 🔴 목록의 길이·이름·차례는 **서버가 준다** — 화면이 상수 배열을 갖지 않는다.
+/// 🔴 healthchecks 슬러그(2축 합성 `{sim|live}-{auto|advisory}-{체크명}` · §9-5 ⑦ · C20)·ping URL·키는 이 DTO 에
+///    **오지 않는다**(엔진·워치독 설정 몫 · 04 §7 «뷰모델에 그 필드가 없어야 정상» · C-49 ⑪).
 @freezed
 abstract class WatchdogCheck with _$WatchdogCheck {
   const factory WatchdogCheck({
-    required String slug,
+    /// 🆕 v1.15(K17) — 엔진이 짓는 불투명 id(보드 안 유일). 🔴 슬러그·URL 에서 파생하지 않는다 ·
+    /// 화면은 그리지도 · Key 로도 · 비교로도 쓰지 않는다(Key = 순번).
+    required String checkId,
     required String label,
+
+    /// 화면 미참조(사전 아님 — 엔진 몫).
     required String stateCode,
     required String stateLabel,
+
+    /// 🆕 v1.15(K16) — 상태 모양의 유일한 근거(성공·휴장 성공 핑 = ok · 지연 = watch · 실패 = blocked ·
+    /// 일시정지 = info). 🔴 화면은 [stateCode] 로 색·아이콘을 고르지 않는다(v1.13 `DiagnosticCell.level` 선례).
+    required UiLevel level,
     required String lastPingText,
     String? graceText,
     String? route,
@@ -89,6 +99,33 @@ abstract class WatchdogCheck with _$WatchdogCheck {
 
   factory WatchdogCheck.fromJson(Map<String, dynamic> json) =>
       _$WatchdogCheckFromJson(json);
+}
+
+/// 🆕 v1.15(01 §24 · K3 · K15 · 발주자 결정 ②(b)) — `W-01` 워치독 보드 한 화면
+/// (창구 [OpsStatusRepository.watchWatchdog] 의 반환 · 구 `ListResult<WatchdogCheck>`).
+@freezed
+abstract class WatchdogBoardVm with _$WatchdogBoardVm {
+  const factory WatchdogBoardVm({
+    /// 서버가 준 목록 그대로(개수·이름·차례 = 엔진).
+    required List<WatchdogCheck> rows,
+    required AsOf asOf,
+
+    /// 행 0 일 때만 non-null(엔진 문장). 행이 있으면 null.
+    String? emptyLabel,
+
+    /// 휴장일 고지(구 봉투 형제 키 `holiday_notice`) — 휴장일만 non-null.
+    String? holidayNotice,
+
+    /// 하단 한계 고지(healthchecks.io 자체 장애 계열 · 04 §7 «한계·이력»).
+    /// 엔진 의무 = 늘 싣는다(행 0 보드 포함). null = 부재.
+    String? limitNotice,
+
+    /// 머리 «마지막 수신 17:58»(엔진 글자). 받은 적이 없으면 null.
+    String? lastReceivedText,
+  }) = _WatchdogBoardVm;
+
+  factory WatchdogBoardVm.fromJson(Map<String, dynamic> json) =>
+      _$WatchdogBoardVmFromJson(json);
 }
 
 /// 01 §4-1 · m2-8 G-4 — 홈 블록 5·7 의 오늘 요약.

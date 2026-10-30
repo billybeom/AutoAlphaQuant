@@ -12,8 +12,9 @@ import '../primitives/list_result.dart';
 /// 워치독·연결·기기·백업·진단·연간 리뷰.
 /// ✅ H-8 — 반환 타입 이름은 `m2-8_naming.md` G-3·G-7·G-8·G-9·G-10·F-6 이 확정한 그대로다.
 abstract interface class OpsStatusRepository {
-  /// `W-01` — 🔴 목록 길이·슬러그 이름은 **서버가 준다**(2축 합성 `{sim|live}-{auto|advisory}-{체크명}`).
-  Stream<ListResult<WatchdogCheck>> watchWatchdog();
+  /// `W-01` — 🆕 v1.15(01 §24 · K3) 반환 = [WatchdogBoardVm](구 `ListResult<WatchdogCheck>`).
+  /// 🔴 목록 길이·이름·차례는 서버가 준다 · healthchecks 슬러그·ping URL·키는 이 창구에 오지 않는다(K4 · K17).
+  Stream<WatchdogBoardVm> watchWatchdog();
 
   /// `S07`.
   Stream<ConnectionsVm> watchConnections();
