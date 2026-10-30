@@ -1,29 +1,29 @@
 # 발송 패킷 R14a-Bob-N01N02 — N-01 알림 센터 · N-02 알림 상세 (계약 v1.15 전제 · R14 2장 중 1번째 · M8)
 
-> ⬜ **조립됨 · ✅ 누적 드라이런·지적 반영**(2026-10-30 · 앱 `rec/r14`) · 🔴 **선행 1 = 계약 v1.15 보강(R14 선행 M2 — 아래 «■ 계약 v1.15 이름표» · ⬜ 발주자 결정 · ▶ 금지)** · ✅ 누적 드라이런(v1.15 흉내 위 · 아래 «드라이런» 줄) · ⬜ 발주자 확인 ①~⑭ · ⬜ 「푸시해」 — 셋이 다 풀리고 머리 첫 줄이 ▶ 일 때만 보낸다. 🔴 Bob 의 R13 브랜치(`ui/m8-s01-shell` · `ui/m8-h01-home` · 병합됨)는 건드리지 않는다.
-> 만든 날 2026-10-30 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 `R14-Bob-M8b` 행(378행 · 🔀 2분할 권고 — 아래 «재분할 판정») + §3-0 사전검사 블록 + §3 공통 조문(strict 나눔 · PR 본문은 통합 담당 · 커밋 = 제목만 맞추기 · 골든 높이 = 재량 + 기록 · 재제출 = 전체판 + 상자) + 이월 부록 «R14» 대상(«R5e C4 이월 부록» C4r5e-3~7 · «R5a» C4r5a-5·7 · «R5c» C4r5c-5 · «R5d» C4r5d-5 — 아래 «6») · 화면 몫 원본 = `04_…` §5-1(등급 표시 계약) · §5-1b~d(카탈로그 — 아이콘만) · §5-2(`N-01`) · §5-3(`N-02` 블록 순서) · §5-4(ack 사다리) · §11-13 · `01_…` §2-10 `AlertItem`·`AckState` · §4-1 `AlertRepository` · §4-2 `acknowledgeAlert` · §8-10(뷰어 ALERT_ACK) · 판독 메모(통합 담당 스크래치 `r14/read_memo.md` · 2026-10-29 · 앱 `origin/main` `1bb1a84` · 설계 `1650769`).
-> 사전 조건 — ✅ R13 병합(R13a PR #71 `315bbbd` · R13b PR #74 `49e4329` · `ui_shell` = lib 7파일 · 라벨 31 · 배럴 export 6줄 · 셸 주입 14줄 · PNG 24) · ⬜ **선행 1 계약 v1.15**(R14 선행 M2 보강 PR — G1·G2·G3·G4·G14 + 픽스처 5 · 아래 이름표 · 병합 squash = `__R14V115_SQ__`) · ✅ 프롬프트 v2(`34bf60a`). 시작 기준 = 계약 v1.15 병합본의 `flutter test`(packages/ui_shell) = **117**(드라이런 = v1.15 흉내 위 «+117» · v1.15 가 `shell_fakes.dart` 의 implements 가짜 둘을 extends 로 바꿔도 수 불변 · v1.15 병합 기록 때 병합본에서 다시 잰다) · 이 카드 끝 기대 = 시작 기준 N + **43**(뷰 33 = `alert_center_test` 23 + `alert_detail_test` 10 · 골든 10 = `n01_*` 6 + `n02_*` 4) · 끝 = 드라이런 «+160»(첫 판 «+158» → 지적 반영 +2 = N01-07 `pending` · N01-12).
-> 🔀 **재분할 판정(12 §3 공통 임계 = 새 `testWidgets(`·`test(` 줄 > 33 · lib > +900 · 새 PNG > 16 · K35 새 원천·쓰기 창구 ≤ 5)** — 🆕 드라이런 실측으로 고침(감사 지적 — 조립 때 «세 축 경계 이상» 은 추정이었고 틀렸다): R14 를 한 장(N-01·N-02·W-01)으로 내도 줄 **28**(20 + 8) · lib **+556**(+429 + +127) · 새 PNG **16**(경계 · 넘지 않음) · 원천·쓰기 **4**(`watchCenter` · `watchAlert` · `acknowledgeAlert` · `watchWatchdog`) → **임계는 어느 축도 넘지 않는다(한 장도 된다 — R13a ⑯ 선례)**. 그래도 **2분할 권고**(발주자 확인 ①) — 까닭은 임계 밖 셋: ⓐ Bob 대화 길이(한 장이면 «3» 본문이 두 카드 합 · 정적 66줄 · PNG 열람 8장 — 대화가 길면 멈춘다) ⓑ 계약 v1.15 의 알림 몫·워치독 몫이 서로 독립 → 먼저 풀리는 쪽부터 보낼 수 있다(R14b ①) ⓒ strict 반려 1회의 되돌림 폭이 반. 이 카드 = `N-01`·`N-02`(드라이런 = 줄 **20**(`alert_center_test` 12 · `alert_detail_test` 6 · 골든 2) · lib **+429** · 새 PNG **10** · 원천·쓰기 **3**(`watchCenter` · `watchAlert` · `acknowledgeAlert`)) → 다음 장 `send/_대기/R14b-Bob-W01.md`(`W-01` · 줄 8 · lib +127 · PNG 6 · 원천 1) · `F-01` = 화면 카드 밖(아래 ②).
-> 카드 기본값(카드 권한 — ⬜ 아래 «발주자 확인» ①~⑭ 가 확정 · 조립 단계 = 권고 = 카드 기본값): ⓐ 위젯 = `AlertCenter({super.key})`(`lib/src/alerts/alert_center.dart` · `ConsumerStatefulWidget` — «P0만 보기» bool 1) · `AlertDetail({super.key, required this.alertId})`(`lib/src/alerts/alert_detail.dart` · `ConsumerWidget`) · 공용 조각 `AlertAckBlock`(`lib/src/alerts/alert_ack.dart` · 배럴 export 0 · `ConsumerStatefulWidget`) ⓑ **셸 파일은 고치지 않는다** — 알림 센터·상세의 셸 연결 = 조립 앱 레지스트리 칸(`AppRoutes.alertsInbox` · `alertDetail` · 이 카드 밖) · 셸 진입 UI(AppBar 종 아이콘·탭) = 0(발주자 확인 ⑥ · `s01_*` 재생성 0) ⓒ 원천 = `watchCenter(p0Only:)`(창구 인자 재구독 — H6-1 `_holdingsOverviewProvider` 꼴) · `watchAlert(alertId)` · 쓰기 = `acknowledgeAlert(alertId)` 1종(셸 주입 `shellAlertCommandApiProvider` · 뷰어 = null = 버튼 부재 · 🆕 주입 타입 = `CommandApi` 전체(선례 = ui_analytics `analyticsWhatIfApiProvider`) — `confirmKillChecklist` 를 막는 것은 타입이 아니라 정적 N07 · 대안 = `Future<CommandReceipt> Function(String alertId)?` 콜백 하나로 좁히기(명세 지적 · 비권고 — 선례와 가짜 꼴이 갈린다)) · `watchInbox` = 부르지 않는다(S-01 P0 점 몫) ⓓ 정렬·그룹·고정·접힘 = 전부 엔진(`AlertCenterVm.pinned` · `sections` · `digestLabel`) — 화면은 받은 차례 그대로 · 펼침 = 표시 상태 bool(데이터 0) ⓔ 확인 버튼 = `ack != null && !ack.acked && 주입 non-null` 일 때만 «확인했습니다» 1개 · 누르면 `acknowledgeAlert` 1회 · 받은 접수증 `stateLabel` 한 줄 · 실패 = 정적 «접수되지 않았습니다» · 버튼은 숨기지 않는다(데이터 `acked` 가 바뀌면 사라짐) · 확인 다이얼로그 0 · 낙관 갱신 0 · `watchCommand` 0(A-1 «내일 다시» `deferAdviceConfirm` 선례) · 🆕 기다리는 동안 버튼 `onPressed` null(두 번 누름 0 — N01-07 `pending`) · 🆕 재발행 = 조각 상태 초기화(`didUpdateWidget` — 같은 자리의 `alertId` 가 바뀌면 `_busy`·`_failed`·`_label` 을 비우고, 누른 때의 id 와 완료 때의 id 가 다르면 반영 0 · 명세 지적 — 엔진 재발행·재정렬은 정상 경로라, 앞 알림의 «접수됨» 이 다른 P0 밑에 남으면 확인 안 한 P0 를 확인한 것으로 읽는다 · N01-12) · 접수 뒤 다시 누름 = 막지 않는다(🆕 v1.15 01 절 «`acknowledgeAlert` 는 `alertId` 단위 멱등» · 발주자 확인 ⑤) ⓕ 묶음 배지 = `groupedText`(엔진 글자 · null = 부재) · 시각 = `raisedAtText`(null = 부재) · 행 탭 = `detailLink`(null = 탭 없음) — `groupedCount`·`raisedAt` 미참조 ⓖ N-02 블록 = 제목 → 시각 → 무슨 일(`bodyText`) → 지금 할 조치(`actionLine`) → 근거(`deepLink` · null = 부재) → 확인 조각 · 핸드북 앵커 = 부재(01 §8 미결 신설 후보 · R16) · 사다리 단계 줄 = 부재(`ack.stateLabel` 한 줄만 · 🆕 맡을 카드가 아직 없다 — 발주자 확인 ⑩) ⓗ 신선도 = N-01 만(`vm.asOf` 한 식) · N-02 = 신선도 없음(`AlertItem` 에 `asOf` 0 — 🆕 04 §2-3 «as-of 고지 = 모든 조회 화면» 과 어긋남 · 발주자 확인 ⑪) ⓘ 새 lib 파일 3 · 공용 4(`labels.dart` R14a 절 4개 · `shell_providers.dart` 끝 절 주입 1 · 배럴 +2 · `test/shell_fakes.dart` 끝 절 — 전부 **끝 절 더하기만** · «정확히 N»(라벨·PNG 총수) = R14b 만) · Key 접두 `n01-`·`n02-`(순번만 · `alertId` 0) · 테스트 `test/alert_center_test.dart` · `test/alert_detail_test.dart` · 골든 5이름 10장(`test/golden/n01_golden_test.dart` 3이름 · `n02_golden_test.dart` 2이름 · 크기 = `kGoldenPhoneSize`(390 × 844 — 드라이런 맨 아래 dy 최대 416.0 · 확정)) ⓙ copyWith 예외 0 · implements 가짜 0(v1.15 받침대 `UnimplementedAlertRepository` · `UnimplementedCommandApi` extends) ⓚ 픽스처 = v1.15 의 `m8/alert_center_*` 4 + `m8/alert_ack_receipts_2` — 12 §3 행의 `alerts_12`·`m8/alerts_p0_ack`·`alerts_digest`·`alerts_advice_9codes` 는 **쓰지 않는다**(봉투 `ListResult<AlertItem>` = `watchInbox` 꼴 · 표본 순서가 엔진 순서가 아님 · `al_p0_01` = `ADVICE_EXIT_URGENT` + 사다리 — 04 §5-4 위반 장면 · 판독 G5) · 🆕 재발행 표본 = v1.15 `m8/alert_center_p0_ack_reordered`(N01-12) · 🆕 X7 인접 규약(04 §5-1b `ADVICE_REVOKED` 와 킬스위치 알림이 같은 `groupKey` 로 인접) = 이 카드 표본 밖(엔진 순서 그대로라 화면 몫 0 · 인접 쌍 표본 = v1.15 재량).
-> 🔴 **카드 덮개 필수 문장(04 §5-1 · §5-2 · §5-3 · §5-4 · §11-13 · 01 §2-10 · prompt_M8 134~140)** — «등급·정렬·그룹·고정·접힘·묶음은 엔진이 끝냈다 — 화면은 받은 차례 그대로 그린다(재분류·재정렬·재그룹·건수 집계 0 · `level` 은 아이콘·색 switch 에만)» · «확인 = `acknowledgeAlert` 하나(효력 없는 수신 확인) — `confirmKillChecklist` 버튼·문구 0 · 확인 다이얼로그 0 · 버튼 숨김 0 · «읽음» 로컬 상태 0 · 뷰어 = 버튼 부재(주입 null)» · «N-02 = 두 문단 분리(`bodyText` / `actionLine`) · 제목 늘리기·합치기 0 · 링크 = 데이터(`detailLink` · `deepLink` · null = 부재)» · «셸 파일·R13 테스트·PNG 는 고치지 않는다». 본문 머리 · 규칙 요약 · «프롬프트보다 이 카드가 이긴다» 에 있습니다.
-> ✅ **K 결정 표식** — 새 K 0 · 관련 = 결정 7c(등급 = 엔진 한 번) · K32(픽스처 등급 5행 · 01 §8 미결 114 ✅) · K35(새 원천·쓰기 ≤ 5) · 01 §4-2(ack 두 갈래 · 2026-09-07 해소).
-> ⬜ **발주자 확인 14건(권고 = 카드 기본값 · 이의 없으면 그대로 · 🔴 확인 전 ▶ 금지)** — ① **분할 · F-01 이관 · M2 선행을 한 문항으로**: R14 = 2장(이 카드 `N-01`·`N-02` → `R14b-Bob-W01`) · `F-01` FGS = 화면 카드 밖 — Android 포그라운드 서비스 알림은 OS 가 그리는 것(Flutter 위젯 아님) · 채널·서비스 = 플랫폼 플러그인(C-3 허용 의존 밖) · `FgsNotification` DTO 0 · 06 작업목록 `M1-11`·`M1-15`(Claude · `trading_runtime`)가 이미 소유 → 12 §3 R14 행·§6 9번 글자 정정(🆕 이관을 확정하면 함께 고칠 곳 — 04 §1-2 F-01 행 «소유 = 06 M1-11·M1-15(엔진 레인) · ui_shell 0» · §5-6 머리 같은 줄 · §11-3 «F-01 = 엔진 C4» · 06 M1-15 에 §5-6 네 규약(채널 2 `ops`·`ops_p0` · 상태 전이 때만 갱신 · 탭 = 딥링크 직행(P0 → `alertDetail/:alertId`) · 손익 0) — 명세 지적: 안 옮기면 화면 C4 도 엔진 C4 도 이 규약을 안 본다) · 선행 = 계약 v1.15 보강(아래 이름표 · 대안 = M2 없이 강행 = 평면 목록·시각 0·그룹 0·빈 문장 0·N-02 진입 0·확인 버튼 0 → 04 §5-2 (c) `n01_digest`·`n01_empty` 미충족 · 비권고 · 대안 2 = 한 장(🆕 임계는 안 넘는다 — 위 «재분할 판정» · R13a ⑯ 선례 · 권고와 갈리는 까닭 = 위 ⓐⓑⓒ) · 대안 3 = 3분할(N-02 분리 · 비효율)) ② 계약 v1.15 이름표(아래 블록) = M2 보강 PR 의 권고 이름 — PR 이 다르게 정하면 병합 기록 때 이 카드 글자를 그 이름으로 고친다(⟦v1.15⟧ 표식 자리) ③ 알림 원천 = **추가형 창구** `watchCenter({required bool p0Only})` → `AlertCenterVm`(봉투 대신 VM — `asOf`·`pinned`·`sections`·`emptyLabel`) · 기존 `watchInbox` 무변경(S-01 P0 점 · `shell_scaffold.dart` 20~23·99~106 · `alertsOf` · `s01_*` 연쇄 방지) ④ 확인 명령 = `acknowledgeAlert(String alertId)`(인자 교체 — 와이어 `AlertAck` 의 `CommandContext` 는 구현이 붙인다 · `deferAdviceConfirm` 선례 · G-19 · C-28 ⑨) ⑤ 확인 버튼 조건 = `ack != null && !ack.acked && 주입 non-null`(prompt 138~140 «액션 목록» 을 덮음 — 계약에 액션 목록 0) · 접수 뒤 = 접수증 `stateLabel` 한 줄 · 실패 = 정적 «접수되지 않았습니다» · `watchCommand` 0(대안 = 접수증 구독 — 원천 +1) · 🆕 접수 뒤 다시 누름 = 막지 않는다(권고 = v1.15 01 절에 «`acknowledgeAlert` 는 `alertId` 단위 멱등 — 엔진이 중복을 하나로 본다» 한 줄 · A-1 `_defer` 선례 · 대안 = 접수 뒤 `onPressed` null(보이되 비활성) + N01-07 «다시 탭 → acks 1» 단언 — 새벽 반사 탭이 반복되는 자리라 명세 지적) ⑥ 셸 진입 UI 0(라우트 = v1.15 `alertsInbox`·`alertDetail` 등록 · 진입 = FGS·푸시·데이터 링크 · 대안 = AppBar 종 아이콘 → `s01_*` 4장 재생성 `golden:approved` · 04 결정 필요 → 01 §8 미결 신설) ⑦ 묶음 배지 = `groupedText`(v1.15 엔진 글자 · null = 부재 · 대안 = `groupedCount > 1` 일 때 `Badge.count` — 화면 비교 1식) ⑧ 행 시각 = `raisedAtText`(v1.15) · 날짜 머리 = `AlertSection.headerText` · 접힌 묶음 머리 = `digestLabel`(«P2 3건» — 엔진) · 펼침 = 표시 상태 bool(머리 탭 · 기본 접힘) ⑨ N-01 행 = 제목 · 배지 · 시각만(`bodyText`·`actionLine` = N-02 몫) · 행 탭 = `detailLink`(v1.15) ⑩ N-02 확인 조각 자리 = 근거 버튼 뒤(04 §5-3 블록 순서 밖 · 대안 = 제목 아래) · 핸드북 앵커·사다리 단계 줄 = 부재 + 01 §8 미결 신설 — 🆕 사다리 = 04 §5-1 P0 행 «ack 사다리(§5-4)» · R14 가 N-01·N-02 의 유일한 화면 카드라 «신설 후보» 로 두면 사라진다(명세 지적) → 권고 = 부재 + 01 §8 미결에 **소유 카드**(R14 test-only 뒤 셸 손질 카드)를 12 §3 에 못박기 · 대안 = v1.15 `AckState.ladder`(`List<AckLadderStep>?` — `label`·`stateLabel` 엔진 글자 · `ADVICE_EXIT_URGENT` = null) + 조각에 단계 줄 for(Key `$base-step-$k`) · 테스트 +1 · `n01_p0_ack`·`n02_detail` 4장 다시 · 재드라이런 ⑪ N-02 신선도 = 없음(`AlertItem.asOf` 0) — 🆕 04 §2-3 «as-of 고지·오래됨 배너·에러의 마지막 as-of = 모든 조회 화면 · 그 예외의 이유는 viewer(죽은 엔진은 «나 죽었다» 를 push 하지 않는다)» 와 어긋난다(명세 지적) · 권고 = 지금 글자(부재) + 01 §8 미결 «N-02 신선도 원천»에 소유 카드(R16 — N-02 핸드북 앵커와 함께) 못박기 · 대안 = v1.15 `watchAlert` → `Stream<AlertDetailVm>`(`AlertDetailVm{asOf, item?, missingLabel?}` · 모르는 id = 엔진 문장 한 줄) + N-02 `ShellAsOfHeader`·`ShellStaleBanner`·`lastAsOfLabel`(테스트 +2 · `n02_*` 4장 다시 · 재드라이런) — v1.15 가 이 창구를 새로 만드는 PR 이라 지금이 가장 싼 창 ⑫ 정적 라벨 4(아래 «정적 라벨» · `'P0만 보기'` 의 숫자 = 등급 이름 · 금액 아님) ⑬ 골든 5이름 = `n01_p0_ack` · `n01_digest` · `n01_empty`(04 §5-2 (c) 글자) + `n02_detail` · `n02_no_link`(04 §5-3 이름 없음 → 권고 이름) · 크기 = `kGoldenPhoneSize` ⑭ 이월 반영(아래 «6») — C4r13a-3 · C4r13b-4(S-01·H-01 테스트 보강)는 이 카드가 S-01·H-01 테스트 파일을 고치지 않으므로 반영 안 함 → 통합 담당 test-only PR(R5 #85 선례 · R14b 병합 뒤) 권고.
-> 🔵 **판독 원문 요약(선행 빈틈 — 판독 메모 §5)**: 🔴 G1 알림 창구가 봉투가 아님(`asOf`·`emptyLabel` 0) · 🔴 G2 날짜 머리·접힘 머리·행 시각 글자 0 · 🔴 G3 N-01·N-02 라우트 0(52) · 상세 링크·단건 조회 0 · 🔴 G4 ack 가 화면에 `CommandContext` 를 요구 · 🔴 G5 표본 뜻 어긋남(`al_p0_01` EXIT_URGENT + 사다리 · 9codes·alerts_12 순서) · 🔴 G14 `UnimplementedAlertRepository`·`UnimplementedOpsStatusRepository` 0(인터페이스 확장 시 `shell_fakes.dart:79`·`:336` implements 가짜 컴파일 실패) · 🟡 G6 사다리 단계 글자 · G7 핸드북 앵커 · G8 §5-5 채널 고지(M9) · G9 `groupKey`(엔진 순서로 인접 — 필드 불필요) · 🟡 G16 경계 [5b][5c]·C-6·C-46/C-47 화면 스캔이 `ui_shell` 을 뺀다(01 §8 미결 91) → 이 카드 정적 묶음이 메운다 · 🔵 G17 엔진 레인(E10)이 `contractVersion` 을 올릴 수 있다 → v1.15 PR 직전 fetch · 번호 조율 · ⛔ G15 F-01 = 화면 패키지 몫 아님(①).
-> 드라이런: ✅ 누적 드라이런 1번째(2026-10-30 · worktree `C:/Work/AAQ-claude-r14dry` · 첫 판 가지 `dry/r14-1` = `origin/main` `1bb1a84` → 기록 커밋 `5336177` ff → v1.15 흉내 `758e314`(이름표 그대로 · 비교 기준 `dry/r14-1base`) → 권장 4커밋 + (5) 주석 줄 고침 `e7cdbd9` · 🆕 지적 반영판 가지 `dry/r14-1b` = + 재발행 표본 `76cde31` + (6) `d57ce62`) · 시작 «+117» → 끝 «+158»(첫 판) → **«+160»**(반영판 · 파일별 `alert_center_test` +23 · `alert_detail_test` +10 · `n01_golden` +6 · `n02_golden` +4) · `domain_contracts` «+392 ~30» · 정적 = 아래 «정적 묶음» 머리 수 · 사전검사 ① 🔴 0 · 🟡 0 · ② 🔴 0(머리 «12항») · 🟡 6(■ 제출 N3 기대) · 골든 dy 5(light = dark) · lib +429 · 변이 72꼴 = KILLED 66(예고 전부 · 🆕 막은 3 = N01-07 `pending`·상태 글자 · N01-12) · 참고 6(동치·정적 몫 — «예고 변이» 🔵 참고).
+> ⬜ **조립됨 · 🆕 계약 v1.15 실물 반영 재조립**(2026-10-30 · 앱 `rec/r14` · 글자 기준 = M2 가지 `m2/v115-r14` `d9916ca` 의 코드 — 이름·서명·픽스처 경로·`FixturePaths`·`AppRoutes`) · 🔴 **선행 1 = 계약 v1.15 보강 병합**(R14 선행 M2 — ✅ 설계 확정(01 §24 · 설계서 `10_리뷰/2026-10-30_R14선행_계약v1.15_설계서.md`) · ✅ M2 가지 검증(`domain_contracts` +408 ~30) · ⬜ PR·병합(squash `__R14V115_SQ__`) · ▶ 금지) · ⬜ 재드라이런(v1.15 가지 위 — 아래 «드라이런» 줄 · 실측 표식 자리를 채운다) · ✅ 발주자 확인 ①~⑭(2026-10-30 — 아래 «✅ 확정») · ⬜ 「푸시해」 — 셋(v1.15 병합 · 재드라이런 · 「푸시해」)이 다 풀리고 머리 첫 줄이 ▶ 일 때만 보낸다. 🔴 Bob 의 R13 브랜치(`ui/m8-s01-shell` · `ui/m8-h01-home` · 병합됨)는 건드리지 않는다.
+> 만든 날 2026-10-30 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 `R14-Bob-M8b` 행(378행 · ✅ 2분할 확정 — 아래 «재분할 판정») · `R14a-Bob-N01N02` 행(379행) + §3-0 사전검사 블록 + §3 공통 조문(strict 나눔 · PR 본문은 통합 담당 · 커밋 = 제목만 맞추기 · 골든 높이 = 재량 + 기록 · 재제출 = 전체판 + 상자) + 이월 부록 «R14» 대상(«R5e C4 이월 부록» C4r5e-3~7 · «R5a» C4r5a-5·7 · «R5c» C4r5c-5 · «R5d» C4r5d-5 — 아래 «6») · 화면 몫 원본 = `04_…` §5-1(등급 표시 계약) · §5-1b~d(카탈로그 — 아이콘만) · §5-2(`N-01`) · §5-3(`N-02` 블록 순서) · §5-4(ack 사다리) · §11-13 · `01_…` §2-10 `AlertItem`·`AckState` · §4-1 `AlertRepository` · §4-2 `acknowledgeAlert` · §8-10(뷰어 ALERT_ACK) · 🆕 §24(계약 v1.15 — R14 선행 · K1~K23) · §8 미결 138~148 · 🆕 설계서 §8(카드 영향 표) · 판독 메모(통합 담당 스크래치 `r14/read_memo.md` · 2026-10-29 · 앱 `origin/main` `1bb1a84` · 설계 `1650769`).
+> 사전 조건 — ✅ R13 병합(R13a PR #71 `315bbbd` · R13b PR #74 `49e4329` · `ui_shell` = lib 7파일 · 라벨 31 · 배럴 export 6줄 · 셸 주입 14줄 · PNG 24) · ⬜ **선행 1 계약 v1.15**(R14 선행 M2 보강 PR · 가지 `m2/v115-r14` — 알림 센터·상세 VM · `AlertItem` +3 · `watchCenter`·`watchAlert` · `acknowledgeAlert(String alertId)` · 라우트 54 · 받침대 2 · 셸 가짜 extends · 알림 픽스처 신설 9(센터 5 · 상세 3 · 접수증 1) · 아래 이름표 · 병합 squash = `__R14V115_SQ__`) · ✅ 프롬프트 v2(`34bf60a`). 시작 기준 = 계약 v1.15 병합본의 `flutter test`(packages/ui_shell) = **⟦실측: 재드라이런 — v1.15 가지 위 · 기대 117(M2 검증 실측 · v1.15 가 `shell_fakes.dart` 의 implements 가짜 둘을 extends 로 바꿔도 수 불변)⟧** · 이 카드 끝 기대 = 시작 기준 N + **47**(뷰 37 = `alert_center_test` 24 + `alert_detail_test` 13 · 골든 10 = `n01_*` 6 + `n02_*` 4) · 끝 = ⟦실측: 재드라이런 · 기대 «+164»⟧(첫 판 «+158» → 지적 반영 «+160» → 🆕 v1.15 반영 +4 = N01-07 `rejected` · N02-04 `stale`·`stale_missing` · N02-06 `missing`).
+> 🔀 **재분할 판정(12 §3 공통 임계 = 새 `testWidgets(`·`test(` 줄 > 33 · lib > +900 · 새 PNG > 16 · K35 새 원천·쓰기 창구 ≤ 5)** — 드라이런 첫 판 실측(감사 지적 — 조립 때 «세 축 경계 이상» 은 추정이었고 틀렸다): R14 를 한 장(N-01·N-02·W-01)으로 내도 줄 **28**(20 + 8) · lib **+556**(+429 + +127) · 새 PNG **16**(경계 · 넘지 않음) · 원천·쓰기 **4**(`watchCenter` · `watchAlert` · `acknowledgeAlert` · `watchWatchdog`) → **임계는 어느 축도 넘지 않는다(한 장도 된다 — R13a ⑯ 선례)** · 🆕 v1.15 반영 뒤 = 줄 29(이 카드 20 그대로 · R14b 8 → 9) · PNG·원천 불변 → 판정 불변. ✅ **2분할 확정**(발주자 결정 ①) — 까닭 = 임계 밖 셋: ⓐ Bob 대화 길이(한 장이면 «3» 본문이 두 카드 합 · 정적 66줄 · PNG 열람 8장 — 대화가 길면 멈춘다) ⓑ 계약 v1.15 의 알림 몫·워치독 몫이 서로 독립 → 먼저 풀리는 쪽부터 보낼 수 있다(R14b ①) ⓒ strict 반려 1회의 되돌림 폭이 반. 이 카드 = `N-01`·`N-02`(줄 **20**(`alert_center_test` 12 · `alert_detail_test` 6 · 골든 2) · lib ⟦실측: 재드라이런 · 첫 판 +429 · N-02 머리·모르는 id 몇 줄이 붙는다⟧ · 새 PNG **10** · 원천·쓰기 **3**(`watchCenter` · `watchAlert` · `acknowledgeAlert`)) → 다음 장 `send/_대기/R14b-Bob-W01.md`(`W-01` · 줄 9 · PNG 6 · 원천 1) · `F-01` = 엔진 레인(화면 카드 0).
+> 카드 기본값(✅ 발주자 확인 ①~⑭ 로 확정 — 2026-10-30 · 아래 «✅ 확정»): ⓐ 위젯 = `AlertCenter({super.key})`(`lib/src/alerts/alert_center.dart` · `ConsumerStatefulWidget` — «P0만 보기» bool 1) · `AlertDetail({super.key, required this.alertId})`(`lib/src/alerts/alert_detail.dart` · `ConsumerWidget`) · 공용 조각 `AlertAckBlock`(`lib/src/alerts/alert_ack.dart` · 배럴 export 0 · `ConsumerStatefulWidget`) ⓑ **셸 파일은 고치지 않는다** — 알림 센터·상세의 셸 연결 = 조립 앱 레지스트리 칸(`AppRoutes.alertsInbox` · `alertDetail` · 이 카드 밖) · 셸 진입 UI(AppBar 종 아이콘·탭) = 0(⑥ · 01 §8 미결 141 · `s01_*` 재생성 0) ⓒ 원천 = `watchCenter(p0Only:)` → `AlertCenterVm`(창구 인자 재구독 — H6-1 `_holdingsOverviewProvider` 꼴) · `watchAlert(alertId)` → 🆕 `AlertDetailVm`(✅ 결정 ②(a)) · 쓰기 = `acknowledgeAlert(alertId)` 1종(셸 주입 `shellAlertCommandApiProvider` · 뷰어 = null = 버튼 부재 · 주입 타입 = `CommandApi` 전체(선례 = ui_analytics `analyticsWhatIfApiProvider`) — `confirmKillChecklist` 를 막는 것은 타입이 아니라 정적 N07) · `watchInbox` = 부르지 않는다(S-01 P0 점 몫) ⓓ 정렬·그룹·고정·접힘 = 전부 엔진(`AlertCenterVm.pinned` · `sections` · `digestLabel` — 01 §24 K10) — 화면은 받은 차례 그대로 · 펼침 = 표시 상태 bool(데이터 0) ⓔ 확인 버튼 = `ack != null && !ack.acked && 주입 non-null` 일 때만 «확인했습니다» 1개 · 누르면 `acknowledgeAlert` 1회 · 받은 접수증 `stateLabel` 한 줄(🆕 거부 접수증 `REJECTED`·`INPUT_INVALID` 도 그 글자 그대로 — N01-07 `rejected`) · 실패(예외) = 정적 «접수되지 않았습니다» · 버튼은 숨기지 않는다(데이터 `acked` 가 바뀌면 사라짐) · 확인 다이얼로그 0 · 낙관 갱신 0 · `watchCommand` 0(A-1 «내일 다시» `deferAdviceConfirm` 선례) · 기다리는 동안 버튼 `onPressed` null(두 번 누름 0 — N01-07 `pending`) · 재발행 = 조각 상태 초기화(`didUpdateWidget` — 같은 자리의 `alertId` 가 바뀌면 `_busy`·`_failed`·`_label` 을 비우고, 누른 때의 id 와 완료 때의 id 가 다르면 반영 0 · 명세 지적 — 엔진 재발행·재정렬은 정상 경로라, 앞 알림의 «접수됨» 이 다른 P0 밑에 남으면 확인 안 한 P0 를 확인한 것으로 읽는다 · N01-12) · 접수 뒤 다시 누름 = 막지 않는다(01 §24 K12 «`acknowledgeAlert` 는 `alertId` 단위 멱등 — 두 번째 확인 = `executed` 효과 0» · ⑤) ⓕ 묶음 배지 = `groupedText`(엔진 글자 · null = 부재) · 시각 = `raisedAtText`(null = 부재) · 행 탭 = `detailDeepLink`(null = 탭 없음) — `groupedCount`·`raisedAt` 미참조 ⓖ N-02 블록 = 🆕 머리(`ShellAsOfHeader` · 오래됨 `ShellStaleBanner`) → (모르는 id 면) `missingLabel` 한 줄 · (있으면) 제목 → 시각 → 무슨 일(`bodyText`) → 지금 할 조치(`actionLine`) → 근거(`deepLink` · null = 부재) → 확인 조각 · 핸드북 앵커 = 부재(01 §8 미결 139 · R16) · 사다리 단계 줄 = 부재(`ack.stateLabel` 한 줄만 · 🔴 결정 ② «넣지 않음» · 01 §8 미결 138 · 소유 = R14 뒤 셸 손질 카드 — ⑩) ⓗ 신선도 = 두 화면 각 `vm.asOf` 한 식(N-01 `AlertCenterVm` · 🆕 N-02 `AlertDetailVm` — 04 §2-3 «as-of 고지·오래됨 배너·에러의 마지막 as-of = 모든 조회 화면» · ⑪) ⓘ 새 lib 파일 3 · 공용 4(`labels.dart` R14a 절 4개 · `shell_providers.dart` 끝 절 주입 1 · 배럴 +2 · `test/shell_fakes.dart` 끝 절 — 전부 **끝 절 더하기만** · «정확히 N»(라벨·PNG 총수) = R14b 만) · Key 접두 `n01-`·`n02-`(순번만 · `alertId` 0) · 테스트 `test/alert_center_test.dart` · `test/alert_detail_test.dart` · 골든 5이름 10장(`test/golden/n01_golden_test.dart` 3이름 · `n02_golden_test.dart` 2이름 · 크기 = `kGoldenPhoneSize`(390 × 844 — 드라이런 맨 아래 dy 최대 416.0 · 확정)) ⓙ copyWith 예외 0 · implements 가짜 0(v1.15 받침대 `UnimplementedAlertRepository` · `UnimplementedCommandApi` extends) ⓚ 픽스처 = v1.15 의 `m8/alert_center_*` 5(재발행 표본 `m8/alert_center_p0_ack_reordered` 포함 — N01-12) + 🆕 `m8/alert_detail_*` 3(`full` · `no_link` · `missing`) + `m8/alert_ack_receipts_3`(🆕 3행 — REJECTED 포함) — 12 §3 원 행의 `alerts_12`·`m8/alerts_p0_ack`·`alerts_digest`·`alerts_advice_9codes` 는 **쓰지 않는다**(봉투 `ListResult<AlertItem>` = `watchInbox` 꼴 · S-01 몫 · v1.15 가 뜻을 정정했지만(K13 차례 · K14 사다리) 이 카드 입력 아님) · X7 인접 규약(04 §5-1b `ADVICE_REVOKED` 와 킬스위치 알림) = 엔진 순서로 인접(01 §24 K21 · `groupKey` 필드 0 · 화면 몫 0).
+> 🔴 **카드 덮개 필수 문장(04 §5-1 · §5-2 · §5-3 · §5-4 · §11-13 · 01 §2-10 · prompt_M8 134~140)** — «등급·정렬·그룹·고정·접힘·묶음은 엔진이 끝냈다 — 화면은 받은 차례 그대로 그린다(재분류·재정렬·재그룹·건수 집계 0 · `level` 은 아이콘·색 switch 에만)» · «확인 = `acknowledgeAlert` 하나(효력 없는 수신 확인) — `confirmKillChecklist` 버튼·문구 0 · 확인 다이얼로그 0 · 버튼 숨김 0 · «읽음» 로컬 상태 0 · 뷰어 = 버튼 부재(주입 null)» · «N-02 = 머리(asOf · 오래됨 배너) · 두 문단 분리(`bodyText` / `actionLine`) · 제목 늘리기·합치기 0 · 모르는 id = `missingLabel` 한 줄(값 — 에러 화면 아님) · 링크 = 데이터(`detailDeepLink` · `deepLink` · null = 부재)» · «셸 파일·R13 테스트·PNG 는 고치지 않는다». 본문 머리 · 규칙 요약 · «프롬프트보다 이 카드가 이긴다» 에 있습니다.
+> ✅ **K 결정 표식** — 새 K 0 · 관련 = 결정 7c(등급 = 엔진 한 번) · K32(픽스처 등급 5행 · 01 §8 미결 114 ✅) · K35(새 원천·쓰기 ≤ 5) · 01 §4-2(ack 두 갈래 · 2026-09-07 해소) · 🆕 01 §24 K1~K23(계약 v1.15 — K2 `AlertDetailVm` · K5 사다리 넣지 않음 · K9 이름 · K10 센터 불변식 · K12 ack 인자·멱등 · K21 `groupKey` 0).
+> ✅ **확정(2026-10-30 · 발주자 · ① 2장 + F-01 이관 + v1.15 선행 · ② v1.15 에 ⑪·R14b ⑤·R14b ⑩ 포함 · R14a ⑩ 사다리 = 부재 + 01 §8 소유 카드 · ③ 나머지 권고대로)** — 이 카드 14건이 정한 것(글자 = 위 «카드 기본값» · 아래 본문): ① 2장(이 카드 `N-01`·`N-02` → `R14b-Bob-W01` `W-01`) · `F-01` FGS = 화면 카드 밖(엔진 레인 06 `M1-11`·`M1-15` · `FgsNotification` DTO 0) · 선행 = 계약 v1.15 보강 ② 이름표 = v1.15 코드(아래 «■ 계약 v1.15 이름표» · 🔵 조립 때 권고와 달라진 것 4 = `detailLink` → `detailDeepLink`(선례 `AdviceItem.detailDeepLink`) · `watchAlert` → `Stream<AlertDetailVm>` · `m8/alert_ack_receipts_2` → `_3`(REJECTED 행) · 라우트 글자 `aaq://alerts/inbox`·`aaq://alerts/detail/:alertId` — 01 §24 K9) ③ 추가형 `watchCenter({required bool p0Only})` · `watchInbox` 무변경 ④ `acknowledgeAlert(String alertId)`(와이어 `AlertAck` = 구현이 맥락을 붙인다) ⑤ 버튼 조건 = `ack != null && !ack.acked && 주입 non-null` · 접수 뒤 다시 누름 = 막지 않는다(K12 멱등) · `watchCommand` 0 ⑥ 셸 진입 UI 0(01 §8 미결 141) ⑦ 배지 = `groupedText` ⑧ 시각 = `raisedAtText` · 날짜 머리 = `headerText` · 접힌 머리 = `digestLabel` · 펼침 = 표시 상태 bool ⑨ N-01 행 = 제목·배지·시각 · 행 탭 = `detailDeepLink` ⑩ 확인 조각 자리 = 근거 버튼 뒤 · 🔴 사다리 단계 줄 = **부재**(v1.15 에 넣지 않음 · `AckState` 무변경 · 01 §8 미결 138 · 소유 = «R14 뒤 셸 손질 카드») · 핸드북 앵커 = 부재(미결 139 · R16) ⑪ 🆕 N-02 신선도·모르는 id = **v1.15 `AlertDetailVm{asOf, item?, missingLabel?}`**(머리 `ShellAsOfHeader` · 오래됨 `ShellStaleBanner` · 에러 = `lastAsOfLabel` · 모르는 id = `missingLabel` 한 줄 — 아래 «화면 2» · N02-04 · N02-06 · `n02_*` 4장 다시 · 재드라이런) ⑫ 정적 라벨 4 ⑬ 골든 5이름(`n01_p0_ack` · `n01_digest` · `n01_empty` · `n02_detail` · `n02_no_link`) · `kGoldenPhoneSize` ⑭ 이월 반영(아래 «6») · C4r13a-3 · C4r13b-4 = 통합 담당 test-only PR(R14b 병합 뒤).
+> 🔵 **판독 빈틈 → v1.15 처리(01 §24 · 설계서 §2)**: G1 봉투 = `AlertCenterVm` + 추가형 `watchCenter` · G2 = `AlertSection`·`raisedAtText`·`groupedText` · G3 = 라우트 54(`alertsInbox`·`alertDetail`) · `detailDeepLink` · `watchAlert` → `AlertDetailVm` · G4 = `acknowledgeAlert(String alertId)` + 접수증 3갈래 · G5 = 표본 뜻 정정(K13 차례 · K14 «ack ⇒ P0 ∧ ≠ EXIT_URGENT») · G14 = 받침대 2 + 셸 가짜 extends · 🟡 G6 사다리 = 부재(미결 138) · G7 핸드북 앵커 = 부재(미결 139 · R16) · G8 채널 고지 = 부재(미결 140 · M9) · G9 `groupKey` 필드 0(K21) · G16 셸 스캔 빈틈(미결 144 — 이 카드 정적 묶음이 메운다) · 🔵 G17 = 1.15.0(PR 직전 재확인 · 엔진 다음 판 1.16.0) · ⛔ G15 F-01 = 엔진 레인.
+> 드라이런: 🆕 ⬜ **재드라이런**(v1.15 반영 재조립 뒤 · 기준 = M2 가지 `m2/v115-r14` `d9916ca`(흉내 아님 — 실물) · 실측 표식 자리 = 시작 기준 N · 끝 N · `domain_contracts` 수 · lib 줄 · 정적 출력 줄 수 · `n02_*` dy · `n02_detail` 견본 칸 · 🟡 기대 · 변이 표(늘어난 N-02·거부 접수증 변이 포함)) ← 이전 판: ✅ 누적 드라이런 1번째(2026-10-30 · worktree `C:/Work/AAQ-claude-r14dry` · 첫 판 가지 `dry/r14-1` = `origin/main` `1bb1a84` → 기록 커밋 `5336177` ff → v1.15 흉내 `758e314`(이름표 그대로 · 비교 기준 `dry/r14-1base`) → 권장 4커밋 + (5) 주석 줄 고침 `e7cdbd9` · 🆕 지적 반영판 가지 `dry/r14-1b` = + 재발행 표본 `76cde31` + (6) `d57ce62`) · 시작 «+117» → 끝 «+158»(첫 판) → **«+160»**(반영판 · 파일별 `alert_center_test` +23 · `alert_detail_test` +10 · `n01_golden` +6 · `n02_golden` +4) · `domain_contracts` «+392 ~30» · 정적 = 아래 «정적 묶음» 머리 수 · 사전검사 ① 🔴 0 · 🟡 0 · ② 🔴 0(머리 «12항») · 🟡 6(■ 제출 N3 기대) · 골든 dy 5(light = dark) · lib +429 · 변이 72꼴 = KILLED 66(예고 전부 · 🆕 막은 3 = N01-07 `pending`·상태 글자 · N01-12) · 참고 6(동치·정적 몫 — «예고 변이» 🔵 참고).
 > 프롬프트 = `docs/ai-context/prompt_M8.md`(**v2 판 183줄** · 2행 `{{범위}}` = `S-01` · 119행 «이번 과제 범위: S-01» · 128행 PR 제목 = 형식만 → 이 카드가 덮는다(«이긴다» ①⑮) · 재조립 0). 🔴 Bob **새 대화** 전제 — R13 대화를 기억하지 못합니다. 0단계·규칙 요약·본받지 않는 것·스케치·테스트 목록은 본문에 담았습니다.
 > R4·R13·R5 교훈 반영(공통 교훈만): PNG 열람 = 이름마다 light 1장(5장 — 이미지 20장 한도) · dark 행 = 같은 이름 light 행 칸 글자 그대로(dy 같을 때만) · 구독마다 «로딩·에러 × 갈래»(C4r3-1) · 🆕 갈래마다 배너 단언(C4r5e-3) · 흐름 = 클로저 칸(C4r3-4 · C4r5c-5 (a) = 코드 글자) · 위치 전제 = `expect` 코드 견본(C4r3-5) · 전제는 if 밖·`// pre`(C4r4b-1·2) · 커밋마다 `git add <파일>` + `git show --stat HEAD`(C4r5a-3) · 제네릭 위젯 술어 = `tester.widget<T>(find.byKey(…))` 만(`find.byType(Radio)` 류 늘 참 금지 · C4r5a-4) · 저장 파일로 받기 · 채팅 두 줄(C4r5a-1) · 정적 묶음 = 파일로 꺼내 Git Bash 전체 경로 · EXIT 0/1 밖이면 다시(C4r5a-2 · C4L-4) · 🆕 정적 머리 ASCII · `Get-Content -Encoding UTF8` · `[Console]::OutputEncoding`(C4r5e-5) · 골든 칸 셈 단위 견본 · G1 🟡 조문(C4r5d-1) · ③ 표 구분 줄 · ④ «+»(C4r5d-8) · 단언 없는 `takeException` 0(C4r5d-6) · 🆕 «자리 바꿈» 견본 = 글자 그대로 · 입력 칸 = 파일 이름만(C4r5e-7).
 
 ## 0. 한 줄 목적
 
-`AlertCenter()` 가 `watchCenter(p0Only:)` 의 **엔진이 다 묶고 정렬한** `AlertCenterVm`(고정 P0 · 날짜 묶음 · 접힌 P2 묶음 · 빈 문장)을 받은 차례 그대로 그리고, `AlertDetail(alertId:)` 가 `watchAlert` 의 한 건을 «제목 → 시각 → 무슨 일 → 지금 할 조치 → 근거» 고정 순서로 그리며, 두 화면의 «확인했습니다» 가 `acknowledgeAlert` 한 번만 부르는 `N-01`·`N-02` 를 계약 v1.15 그대로 짓기(셸 파일 무수정).
+`AlertCenter()` 가 `watchCenter(p0Only:)` 의 **엔진이 다 묶고 정렬한** `AlertCenterVm`(고정 P0 · 날짜 묶음 · 접힌 P2 묶음 · 빈 문장)을 받은 차례 그대로 그리고, `AlertDetail(alertId:)` 가 `watchAlert` 의 `AlertDetailVm`(머리 asOf · 한 건 또는 «모르는 id» 엔진 문장)을 «머리 → 제목 → 시각 → 무슨 일 → 지금 할 조치 → 근거» 고정 순서로 그리며, 두 화면의 «확인했습니다» 가 `acknowledgeAlert` 한 번만 부르는 `N-01`·`N-02` 를 계약 v1.15 그대로 짓기(셸 파일 무수정).
 
 ## 1. 어디에 보내나
 
-**IBM Bob** — 작업 공간 `C:\Work\Bob\AutoAlphaQuant` · **새 브랜치 `ui/m8-n01-alerts`**(base = 최신 `origin/main` · `--no-track` · 이름 = 설계 12 §3 R14 행 그대로 · PR 제목 = «[M8] N-01·N-02 알림 센터·상세»(분할 뒤 글자 · 발주자 확인 ①)).
+**IBM Bob** — 작업 공간 `C:\Work\Bob\AutoAlphaQuant` · **새 브랜치 `ui/m8-n01-alerts`**(base = 최신 `origin/main` · `--no-track` · 이름 = 설계 12 §3 R14 행 그대로 · PR 제목 = «[M8] N-01·N-02 알림 센터·상세»(분할 뒤 글자 · ✅ 발주자 확인 ①)).
 
 ## 2. 보내기 전에 발주자가 할 것 🔴
 
-1. **이 파일이 `send/` 바로 아래에 있고 머리 첫 줄이 ▶ 일 때만 보냅니다** — 지금은 ⬜(선행 1 계약 v1.15 · 드라이런 · 발주자 확인 ①~⑭ · 「푸시해」 남음).
+1. **이 파일이 `send/` 바로 아래에 있고 머리 첫 줄이 ▶ 일 때만 보냅니다** — 지금은 ⬜(선행 1 계약 v1.15 병합 · 재드라이런 · 「푸시해」 남음 · ✅ 발주자 확인 ①~⑭).
 2. Bob 에 R13 을 한 대화가 있으면 이어 쓰지 않고 **새 대화(new task)** 로 시작합니다(멈춘 대화는 **강제 중지**).
 3. 패킷은 **GitHub `main`** 에서 엽니다 — <https://github.com/billybeom/AutoAlphaQuant/blob/main/docs/ai-context/send/R14a-Bob-N01N02.md> (🔴 `C:\Work\AAQ-claude\` 와 Bob 폴더의 사본은 최신이 아닐 수 있습니다 · `send/_대기/` 판은 보내지 않습니다).
 4. 붙여넣을 것은 «3» 본문 **전부** — ````text 다음 줄(«R14a-Bob-N01N02 — 범위»)부터 닫는 ```` 직전 줄(«(+ flutter test 한 줄 …)»)까지 · 바깥 울타리 = 백틱 네 개 · 고치지 않습니다.
@@ -37,12 +37,12 @@
 
 ````text
 R14a-Bob-N01N02 — 범위: N-01 알림 센터(AlertCenter() — 머리 · 오래됨 · «P0만 보기» 하나 · 고정 P0 행 · 날짜 묶음 · 접힌 묶음 펼침 · 빈 문장 · 행 탭 = 상세 링크) ·
-  N-02 알림 상세(AlertDetail(alertId:) — 제목 → 시각 → 무슨 일 → 지금 할 조치 → 근거) · 공용 확인 조각(AlertAckBlock — «확인했습니다» = acknowledgeAlert 1회 · 접수증 한 줄) + 새 주입 1 + 정적 라벨 4 + 배럴 export 2줄 + 가짜 끝 절.
+  N-02 알림 상세(AlertDetail(alertId:) — 머리 · 오래됨 · 제목 → 시각 → 무슨 일 → 지금 할 조치 → 근거 · 모르는 id = 엔진 문장 한 줄) · 공용 확인 조각(AlertAckBlock — «확인했습니다» = acknowledgeAlert 1회 · 접수증 한 줄) + 새 주입 1 + 정적 라벨 4 + 배럴 export 2줄 + 가짜 끝 절.
 🔴 등급·정렬·그룹·고정·접힘·묶음은 엔진이 끝냈다 — 받은 차례 그대로(재분류·재정렬·재그룹·건수 집계 0 · level 은 아이콘·색 switch 에만 · code 로 분기 0).
 🔴 확인 = acknowledgeAlert 하나 — confirmKillChecklist 0 · 확인 다이얼로그 0 · 버튼 숨김 0 · «읽음» 로컬 상태 0 · 낙관 갱신 0 · 뷰어 = 버튼 부재(주입 null).
-🔴 N-02 = 두 문단 분리(bodyText / actionLine) · 제목 늘리기·합치기 0 · 링크 = 데이터(detailLink · deepLink · null = 부재) · 링크 조립·AppRoutes 상수 0.
+🔴 N-02 = 머리(asOf · 오래됨 배너) · 두 문단 분리(bodyText / actionLine) · 제목 늘리기·합치기 0 · 모르는 id = missingLabel 한 줄(값 — 에러 화면 아님) · 링크 = 데이터(detailDeepLink · deepLink · null = 부재) · 링크 조립·AppRoutes 상수 0.
 🔴 셸 파일(shell_scaffold · shell_router · shell_common · ops_rhythm · ops_home)·R13 테스트·PNG 는 고치지 않는다 — 셸 연결은 레지스트리 칸(조립 앱 몫 · 이 카드 밖).
-하지 않는 것: W-01 워치독(R14b) · F-01 FGS(화면 카드 밖) · 셸 진입 UI(종 아이콘·탭) · DND·채널 고지(M9) · 사다리 단계 줄 · 핸드북 앵커(R16) · watchInbox · watchCommand · 조립 앱 배선 · domain_contracts·pubspec 수정 · 다른 ui_* 수정.
+하지 않는 것: W-01 워치독(R14b) · F-01 FGS(엔진 레인) · 셸 진입 UI(종 아이콘·탭) · DND·채널 고지(M9) · 사다리 단계 줄(01 §8 미결 138) · 핸드북 앵커(R16) · watchInbox · watchCommand · 조립 앱 배선 · domain_contracts·pubspec 수정 · 다른 ui_* 수정.
 🔴 이 카드가 docs/ai-context/prompt_M8.md 보다 이깁니다(아래 «프롬프트보다 이 카드가 이긴다» 22항).
 
 ■ 0단계 — 대상 확인 (새 대화라면 아무것도 읽기 전에 이것부터)
@@ -52,18 +52,21 @@ R14a-Bob-N01N02 — 범위: N-01 알림 센터(AlertCenter() — 머리 · 오�
   git status --short            ← 비어 있어야 합니다. 아니면 멈추고 출력을 채팅으로(커밋·stash·reset 금지)
   git fetch origin --prune
   git checkout --no-track -b ui/m8-n01-alerts origin/main      ← 🔴 git checkout main 금지(다른 worktree 에 체크아웃돼 있어 거부)
-  git grep -c "contractVersion = '1.15.0'" -- packages/domain_contracts/lib/src/contract_version.dart                  ← «…contract_version.dart:1»(계약 v1.15 · 드라이런 흉내 = 1.15.0 · 🔵 G17 엔진 레인이 먼저 올렸으면 통합 담당이 이 줄을 다시 잰 뒤 보낸다)
+  git grep -c "contractVersion = '1.15.0'" -- packages/domain_contracts/lib/src/contract_version.dart                  ← «…contract_version.dart:1»(계약 v1.15 · M2 가지 m2/v115-r14 의 글자 · 🔵 G17 엔진 레인이 먼저 1.15.0 을 병합하면 이 보강이 1.16.0 으로 밀린다 — 통합 담당이 v1.15 병합 기록 때 이 줄을 main 글자로 다시 잰 뒤 보낸다)
   git grep -c "Stream<AlertCenterVm> watchCenter({required bool p0Only});" -- packages/domain_contracts/lib/src/repositories/alert_repository.dart   ← «…alert_repository.dart:1»
-  git grep -c "Stream<AlertItem> watchAlert(String alertId);" -- packages/domain_contracts/lib/src/repositories/alert_repository.dart             ← «…alert_repository.dart:1»
+  git grep -c "Stream<AlertDetailVm> watchAlert(String alertId);" -- packages/domain_contracts/lib/src/repositories/alert_repository.dart         ← «…alert_repository.dart:1»(v1.15 · N-02 VM)
   git grep -c "Stream<List<AlertItem>> watchInbox({AlertLevel? min});" -- packages/domain_contracts/lib/src/repositories/alert_repository.dart     ← «…alert_repository.dart:1»(S-01 몫 · 그대로)
   git grep -c "Future<CommandReceipt> acknowledgeAlert(String alertId);" -- packages/domain_contracts/lib/src/commands/command_api.dart           ← «…command_api.dart:1»
   git grep -c "abstract class AlertCenterVm" -- packages/domain_contracts/lib/src/dto/safety.dart                                            ← «…safety.dart:1»
+  git grep -c "abstract class AlertDetailVm" -- packages/domain_contracts/lib/src/dto/safety.dart                                            ← «…safety.dart:1»(v1.15 · N-02)
   git grep -c "String? digestLabel," -- packages/domain_contracts/lib/src/dto/safety.dart                                                    ← «…safety.dart:1»
-  git grep -c "String? detailLink," -- packages/domain_contracts/lib/src/dto/safety.dart                                                     ← «…safety.dart:1»
+  git grep -c "String? detailDeepLink," -- packages/domain_contracts/lib/src/dto/safety.dart                                                 ← «…safety.dart:1»(v1.15 · AlertItem)
   git grep -c "String? raisedAtText," -- packages/domain_contracts/lib/src/dto/safety.dart                                                   ← «…safety.dart:1»
   git grep -c "String? groupedText," -- packages/domain_contracts/lib/src/dto/safety.dart                                                    ← «…safety.dart:1»
+  git grep -c "String? missingLabel," -- packages/domain_contracts/lib/src/dto/safety.dart                                                   ← «…safety.dart:1»(v1.15 · 모르는 id)
   git grep -c "class UnimplementedAlertRepository" -- packages/domain_contracts/lib/testing.dart                                             ← «…testing.dart:1»
   git grep -c "static const String m8AlertCenterP0Ack =" -- packages/domain_contracts/lib/src/fixtures/fixture_paths.dart                    ← «…fixture_paths.dart:1»
+  git grep -c "static const String m8AlertDetailMissing =" -- packages/domain_contracts/lib/src/fixtures/fixture_paths.dart                  ← «…fixture_paths.dart:1»(v1.15)
   git grep -c "final Provider<AlertRepository> shellAlertRepositoryProvider" -- packages/ui_shell/lib/src/shell_providers.dart                ← «…shell_providers.dart:1»(R13a)
   git grep -c "final Provider<AppLinkOpener> shellLinkOpenerProvider" -- packages/ui_shell/lib/src/routing/shell_router.dart                  ← «…shell_router.dart:1»(R13a)
   git grep -c "class ShellErrorView" -- packages/ui_shell/lib/src/common/shell_common.dart                                                   ← «…shell_common.dart:1»(R13a)
@@ -76,7 +79,10 @@ R14a-Bob-N01N02 — 범위: N-01 알림 센터(AlertCenter() — 머리 · 오�
   ls packages/domain_contracts/fixtures/m8/alert_center_empty.json          ← 보여야 함(v1.15)
   ls packages/domain_contracts/fixtures/m8/alert_center_p0_only.json        ← 보여야 함(v1.15)
   ls packages/domain_contracts/fixtures/m8/alert_center_p0_ack_reordered.json  ← 보여야 함(v1.15 · 재발행 표본)
-  ls packages/domain_contracts/fixtures/m8/alert_ack_receipts_2.json        ← 보여야 함(v1.15)
+  ls packages/domain_contracts/fixtures/m8/alert_detail_full.json          ← 보여야 함(v1.15 · N-02)
+  ls packages/domain_contracts/fixtures/m8/alert_detail_no_link.json       ← 보여야 함(v1.15 · N-02)
+  ls packages/domain_contracts/fixtures/m8/alert_detail_missing.json       ← 보여야 함(v1.15 · N-02 모르는 id)
+  ls packages/domain_contracts/fixtures/m8/alert_ack_receipts_3.json        ← 보여야 함(v1.15 · 3행)
      (🔴 한 줄에 하나 · 하나라도 «없음»·출력 없음이면 멈추고 채팅으로 — 계약 v1.15 보다 카드가 먼저 왔습니다 · && 가 안 되는 셸이면 한 줄씩)
   아래 네 줄만 반대다 — 🔴 «없음»·출력 없음이 정상(보이면 이미 들어간 것 — 멈추고 알림):
   ls packages/ui_shell/lib/src/alerts                                       ← 없어야 함
@@ -91,18 +97,20 @@ R14a-Bob-N01N02 — 범위: N-01 알림 센터(AlertCenter() — 머리 · 오�
   cd ../..
 git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 
-■ 계약 v1.15 이름표 — 이 카드가 쓰는 새 이름(0단계가 확인한 것 · 🔴 코드가 정본 — 아래와 다르면 멈추고 질문 파일에)
-  dto/safety.dart  AlertItem 에 더한 nullable 3: String? raisedAtText(표시 시각 «18:41» — 엔진) · String? groupedText(묶음 배지 «2건» — 엔진 · 묶음 1 = null) · String? detailLink(N-02 링크 — 엔진)
+■ 계약 v1.15 이름표 — 이 카드가 쓰는 새 이름(0단계가 확인한 것 · 🔴 코드가 정본 — 아래와 다르면 멈추고 질문 파일에 · 글자 = M2 가지 m2/v115-r14)
+  dto/safety.dart  AlertItem 에 더한 nullable 3: String? raisedAtText(표시 시각 «10:05» — 엔진) · String? groupedText(묶음 배지 «2건» — 엔진 · 묶음 1 = null) · String? detailDeepLink(N-02 링크 — 엔진이 완성 · null = 행 탭 없음)
                    AlertCenterVm({required AsOf asOf, required List<AlertItem> pinned, required List<AlertSection> sections, String? emptyLabel})
-                     — pinned = P0 고정(엔진 순서 · 맨 위) · sections = 날짜 묶음(엔진 순서) · emptyLabel = 고정·묶음이 다 빈 날의 엔진 문장(정상 = 무소식)
+                     — pinned = P0 고정(엔진 순서 · 맨 위 · 확인됨 포함) · sections = 날짜 묶음(엔진 순서 · 최신 날 먼저) · emptyLabel = 고정·묶음이 다 빈 날의 엔진 문장(정상 = 무소식 · 행이 있으면 null)
                    AlertSection({required String headerText, required List<AlertItem> rows, String? digestLabel, required List<AlertItem> digestRows})
-                     — headerText = 날짜 머리(«오늘» · «2026-08-30») · rows = 펼친 행 · digestLabel non-null = 접힌 묶음 머리(«P2 3건») · digestRows = 접힌 행(digestLabel null 이면 빈 목록)
-  repositories/alert_repository.dart  Stream<AlertCenterVm> watchCenter({required bool p0Only}); · Stream<AlertItem> watchAlert(String alertId);(모르는 id = 에러) · watchInbox 그대로
-  commands/command_api.dart  Future<CommandReceipt> acknowledgeAlert(String alertId);(와이어 AlertAck 의 맥락 = 구현이 붙인다)
-  testing.dart  UnimplementedAlertRepository · UnimplementedOpsStatusRepository(받침대) · UnimplementedCommandApi(기존)
-  FixturePaths  m8AlertCenterP0Ack · m8AlertCenterDigest · m8AlertCenterEmpty · m8AlertCenterP0Only · m8AlertCenterP0AckReordered · m8AlertAckReceipts2(아래 «픽스처» 표)
-  01 v1.15 절  acknowledgeAlert 는 alertId 단위 멱등(엔진이 중복을 하나로 본다 — 화면은 접수 뒤 다시 눌러도 막지 않는다)
-  AppRoutes  alertsInbox · alertDetail(v1.15 등록 · 🔴 이 카드는 이 상수를 쓰지 않는다 — 링크는 데이터)
+                     — headerText = 날짜 머리(«오늘» · «2026-08-30») · rows = 펼친 P1 행 · digestLabel non-null = 접힌 P2 묶음 머리(«P2 3건») · digestRows = 접힌 행(digestLabel null 이면 빈 목록)
+                   AlertDetailVm({required AsOf asOf, AlertItem? item, String? missingLabel})
+                     — 🆕 N-02 한 화면 · item non-null XOR missingLabel non-null · item = 센터의 같은 alertId 객체와 같은 값 · 모르는·지난 id = item null + missingLabel(엔진 문장 — 🔴 스트림 에러가 아니라 값)
+  repositories/alert_repository.dart  Stream<AlertCenterVm> watchCenter({required bool p0Only}); · Stream<AlertDetailVm> watchAlert(String alertId);(스트림 에러 = 읽기 실패) · watchInbox 그대로
+  commands/command_api.dart  Future<CommandReceipt> acknowledgeAlert(String alertId);(와이어 AlertAck 의 맥락 = 구현이 붙인다 · 구현 의무 = alertId 단위 멱등 · 모르는 id·사다리 없는 알림 = rejected INPUT_INVALID 접수증)
+  testing.dart  UnimplementedAlertRepository · UnimplementedOpsStatusRepository(받침대) · UnimplementedCommandApi(기존 · acknowledgeAlert(String alertId))
+  FixturePaths  m8AlertCenterP0Ack · m8AlertCenterDigest · m8AlertCenterEmpty · m8AlertCenterP0Only · m8AlertCenterP0AckReordered · m8AlertDetailFull · m8AlertDetailNoLink · m8AlertDetailMissing · m8AlertAckReceipts3(아래 «픽스처» 표)
+  01 §24  acknowledgeAlert 는 alertId 단위 멱등(K12 — 이미 확인된 알림의 두 번째 확인 = executed · 효과 0 — 화면은 접수 뒤 다시 눌러도 막지 않는다) · 사다리 단계 줄 = 부재(K5 · 01 §8 미결 138)
+  AppRoutes  alertsInbox = aaq://alerts/inbox · alertDetail = aaq://alerts/detail/:alertId(52 → 54 · 🔴 이 카드는 이 상수를 쓰지 않는다 — 링크는 데이터)
 
 ■ 규칙 요약 (전문 = prompt_M8.md · 우선순위 = 코드(DTO·인터페이스·testing.dart) > 이 카드(지시) > 01 §2-10·§4-1·§4-2 > 04 §5-1~§5-4 본문·그림 10·11·12 > prompt_M8.
    카드는 코드와 다를 수 없습니다 — 다르게 보이면 멈추고 질문 파일에 적은 뒤 채팅으로 · «규칙 N» = 바로 아래의 N 번 · 정본 = 이 카드의 글자)
@@ -113,13 +121,13 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
      test/shell_fakes.dart = 파일 끝에 R14a 절.
    고치면 반려: 그 밖의 ui_shell 파일 전부(lib/src/shell_scaffold.dart · routing/shell_router.dart · common/shell_common.dart · ops_rhythm.dart · ops_home.dart · R13 테스트 · 비교기 2파일 · golden_support.dart ·
      golden README · test/ui_shell_test.dart · goldens/ 의 기존 PNG · pubspec.yaml · analysis_options.yaml · README.md) · domain_contracts/** · apps/** · 다른 ui_*.
- 2 화면은 받은 글자와 null 여부만 본다 — 값 = DTO 의 title·bodyText·actionLine·raisedAtText·groupedText·headerText·digestLabel·emptyLabel·ack.stateLabel·접수증 stateLabel·asOf.label 원문 그대로 ·
+ 2 화면은 받은 글자와 null 여부만 본다 — 값 = DTO 의 title·bodyText·actionLine·raisedAtText·groupedText·headerText·digestLabel·emptyLabel·missingLabel·ack.stateLabel·접수증 stateLabel·asOf.label 원문 그대로 ·
    원값·.wire·code 표시 금지 · 폴백 문구 금지 · 색 = Theme.of(context).colorScheme(Colors.* 금지) · 한국어 리터럴 = labels.dart 의 ShellLabels 에만(테스트에도 금지) · 🔴 lib 주석에서 Key·글자를 인용할 때 작은따옴표 금지(백틱만).
  3 읽지 않는 필드(카드가 정함 — 질문 아님): AlertItem 의 raisedAt(🔴 UTC DateTime · 표시 = raisedAtText) · code(🔴 분기 0 · 아이콘 등재 전) · groupedCount(🔴 배지 = groupedText) · AckState 의 ackedAt · escalationStep(🔴 사다리 단계 글자 0) ·
    CommandReceipt 의 stateLabel 밖 전부(commandId · kind · state · requestedAt · expiresAt · nonce · issuedByDeviceId · rejectReasonCode · retryCode · retryLabel) · AsOf 의 source · tradeDate.
- 4 이동 = AppLinkOpener.open(link) 하나(ref.read(shellLinkOpenerProvider) · 탭 콜백 안) — 링크 = 행 탭 item.detailLink · N-02 근거 item.deepLink 둘뿐 · 🔴 lib 에 'aaq://' 리터럴 0 · AppRoutes 0 · 링크 조립·파라미터·비교 0 ·
+ 4 이동 = AppLinkOpener.open(link) 하나(ref.read(shellLinkOpenerProvider) · 탭 콜백 안) — 링크 = 행 탭 item.detailDeepLink · N-02 근거 item.deepLink 둘뿐 · 🔴 lib 에 'aaq://' 리터럴 0 · AppRoutes 0 · 링크 조립·파라미터·비교 0 ·
    공개 위젯 생성자 = AlertCenter({super.key}) · AlertDetail({super.key, required this.alertId}) 둘 · AlertAckBlock 은 배럴 밖(src 안 공용).
- 5 산술·판정 0 — 허용되는 것은 여섯뿐이다: ⓐ 신선도 한 식(vm.asOf.observedAt.add(vm.asOf.staleAfter).isBefore(clock.nowUtc()) — N-01 만) ⓑ null 여부(링크·시각·배지·머리·빈 문장·ack·접수증 글자·주입) ·
+ 5 산술·판정 0 — 허용되는 것은 여섯뿐이다: ⓐ 신선도 한 식(vm.asOf.observedAt.add(vm.asOf.staleAfter).isBefore(clock.nowUtc()) — N-01·N-02 화면마다 한 번) ⓑ null 여부(링크·시각·배지·머리·빈 문장·item·missingLabel·ack·접수증 글자·주입) ·
    ⓒ ack 조건 = !a.acked && api != null(a = non-null ack) ⓓ AlertLevel 3값 전수 switch(아이콘·색) ⓔ 표시 상태 bool 둘 — _p0Only(창구 인자 · 칩 선택) · _open(접힌 묶음 펼침) · 확인 조각의 _busy·_failed ·
    ⓕ 확인 조각의 alertId 같음 비교 둘(didUpdateWidget 의 oldWidget.alertId != widget.alertId · 완료 때 widget.alertId != id — 재발행 초기화 · 링크 비교 아님). 그 밖에 거르기·세기·정렬·자르기 0 ·
    목록 길이·int 를 글자로 0 · maxLines · TextOverflow · FittedBox · .trim( 0 · DateTime.now 0 · DateFormat·NumberFormat 0 · FeatureFlags·OperatingMode·RunMode 0(모드를 모른다).
@@ -137,11 +145,11 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    🔴 반려 꼴: bool 칸 + if 로 경우 흐름 가르기 · c.name == / flow.name == 비교 · opened[0] 만 보기 · expect(a || b, isTrue) · 괄호 단언(«X 0(Y 0)» — 단언마다 따로) · 단언 없는 tester.takeException();(쓰면 expect(tester.takeException(), isNull) 꼴 · 정적 N34) ·
    제네릭 위젯 술어 = tester.widget<FilterChip>(find.byKey(…)) · tester.widget<Icon>(find.descendant(of: find.byKey(…), matching: find.byType(Icon))) 꼴만(🔴 find.byType(FilledButton) 류를 단독으로 세면 늘 참 · C4r5a-4) ·
    스켈레톤 1 = expect(find.byKey(const Key('n01-loading')), findsOneWidget) 꼴 · Key 를 단 묶음(Padding·InkWell)의 글자 = shownTexts(tester, find.byKey(…)) == 기대 목록(R13a 도우미 · 트리 순서) ·
-   🔴 Key 가 Text 자체에 붙은 자리(n01-empty · $base-state · $base-receipt · $base-ack-fail)는 shownTexts 가 [] 를 낸다(find.descendant 는 뿌리를 세지 않는다 — 드라이런 지적) →
+   🔴 Key 가 Text 자체에 붙은 자리(n01-empty · n02-missing · $base-state · $base-receipt · $base-ack-fail)는 shownTexts 가 [] 를 낸다(find.descendant 는 뿌리를 세지 않는다 — 드라이런 지적) →
      그 자리는 expect(tester.widget<Text>(find.byKey(…)).data, want) 꼴만(R13a T02-04 · H-02 h02-empty 선례).
    ⓡ = 정상 상태 테스트마다 expect(find.text(ShellLabels.retry), findsNothing); 한 줄 · ⓗ = 목록 단언 루프 앞의 expect(<목록>, hasLength(n)); 한 줄 — 🔴 n = 정수 리터럴(고정 3 · 묶음 행 2 · 접힌 행 3 · P0 필터 고정 3 —
       v1.15 픽스처 표본 수 · 같은 목록에서 센 수와 맞대면 늘 참이다) · 끝 Key 도 리터럴(n01-pin-3 · n01-row-0-2 · n01-drow-1-3) — 도우미로 감싸지 않는다 · 🔴 전제에는 hasLength 를 쓰지 않는다(ⓗ 셈에 섞인다 — .single · isEmpty 꼴) ·
-      정적 N17·N18 이 git grep -c 로 센다 — 🔴 아래 최소 목록의 표시 수와 정확히 같아야 한다(alert_center_test ⓡ 10 · ⓗ 4 · alert_detail_test ⓡ 5 · ⓗ 0 · 다르면 제출 전에 고친다 · 다른 채 내면 반려).
+      정적 N17·N18 이 git grep -c 로 센다 — 🔴 아래 최소 목록의 표시 수와 정확히 같아야 한다(alert_center_test ⓡ 11 · ⓗ 4 · alert_detail_test ⓡ 5 · ⓗ 0 · 다르면 제출 전에 고친다 · 다른 채 내면 반려).
    «없는 쪽» 견본 · «화면 Text 전부» 견본 = 아래 글자 꼴(🆕 이 카드에 다 담았다 — 앞 카드를 찾지 않는다):
         final String? want = c.want;                              // 경우 칸 = 기대 글자 String?(empty = 픽스처 emptyLabel · 그 밖 = null)
         if (want != null) {
@@ -180,10 +188,10 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 
 ■ 프롬프트보다 이 카드가 이긴다 — 22항 (prompt_M8.md 183줄 판 v2 · 2026-10-26 재조립)
  ① 2행 {{범위}} = S-01 · 119행 «이번 과제 범위: S-01» → 이 카드의 범위 = N-01 · N-02(위 첫 줄)
- ② 113~118행 역할·범위(M8 전 화면 나열) → 이 카드 = N-01·N-02 · W-01 = R14b(다음 장) · F-01 = 화면 카드 밖(Android 포그라운드 서비스 알림 = OS · 엔진 레인 M1-15) · S-01·S-02·H-01·H-02 = R13(병합됨) · H-03·D-*·B-*·O-* = R15~R16
+ ② 113~118행 역할·범위(M8 전 화면 나열) → 이 카드 = N-01·N-02 · W-01 = R14b(다음 장) · F-01 = 엔진 레인(06 M1-15 · 화면 카드 0) · S-01·S-02·H-01·H-02 = R13(병합됨) · H-03·D-*·B-*·O-* = R15~R16
  ③ 12~13행 «의존 셋뿐 · 추가하려면 먼저 질문» → 추가 0 · pubspec 무변경
- ④ 15~19행 «링크는 데이터 · null = 부재 · 라우터·플랫폼 가드 = 셸» → 그대로 유효 — 상수 진입 0(행 탭 = detailLink · 근거 = deepLink)
- ⑤ 20~23행 DateTime.now 금지 · 신선도 = 주입 Clock + asOf → 그대로 유효(N-01 한 식 · 행 시각 = raisedAtText · N-02 = asOf 없음 → 신선도 없음)
+ ④ 15~19행 «링크는 데이터 · null = 부재 · 라우터·플랫폼 가드 = 셸» → 그대로 유효 — 상수 진입 0(행 탭 = detailDeepLink · 근거 = deepLink)
+ ⑤ 20~23행 DateTime.now 금지 · 신선도 = 주입 Clock + asOf → 그대로 유효(N-01·N-02 각 한 식 · 행 시각 = raisedAtText)
  ⑥ 25~31행 «산술·건수 집계 · 거르기·묶기·재정렬 금지» → 그대로 유효 · 예외 = 규칙 5 의 여섯 · «P0만 보기» = 창구 인자(받은 목록을 거르지 않는다)
  ⑦ 32~35행 «한국어 리터럴 = labels.dart 한 파일» → 그대로 유효(ShellLabels R14a 절 4개)
  ⑧ 36~38행 «아무 일 없음 문장 금지 · 오지 않으면 그리지 않는다» → 그대로 유효(빈 문장 = emptyLabel · 정상 = 무소식)
@@ -205,19 +213,20 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 ■ 먼저 읽을 것 (🔴 02·03·05 명세는 읽지 않음 — 모듈 명세 1부 규칙)
  ① prompt_M8.md 전문 ② 04 §5-1(표 · 사적 재분류 금지) · §5-1b~d(카탈로그 — 🔵 화면이 code 로 하는 일 = 0) · §5-2(N-01 · 그림 10) · §5-3(N-02 · 그림 11) · §5-4(사다리 · 그림 12 · ADVICE_EXIT_URGENT 문단) · §11 13번
     (🔵 등급 정본표 = 엔진 06_시스템설계/04_안전장치.md §5-3 — 앱 04 의 «§5-3» 은 N-02 상세 절이다 · 헷갈리지 않는다 · 화면은 그 표를 읽지 않는다 = level 만)
- ③ 01 §2-10 AlertItem·AckState · §4-1 AlertRepository · §4-2 acknowledgeAlert · §8-10(뷰어 ALERT_ACK) · ⟦v1.15: 01 §24(계약 v1.15 — R14 선행) 절 번호⟧
- ④ packages/domain_contracts/lib/ — src/dto/safety.dart(AlertItem · AckState · AlertCenterVm · AlertSection) · src/enums/safety.dart(AlertLevel) · src/repositories/alert_repository.dart · src/commands/command_api.dart(acknowledgeAlert) ·
+ ③ 01 §2-10 AlertItem·AckState · §4-1 AlertRepository · §4-2 acknowledgeAlert · §8-10(뷰어 ALERT_ACK) · §24(계약 v1.15 — R14 선행 · 24-3 코드 · 24-6 결정 K1~K23) · §8 미결 138~148
+ ④ packages/domain_contracts/lib/ — src/dto/safety.dart(AlertItem · AckState · AlertCenterVm · AlertSection · AlertDetailVm) · src/enums/safety.dart(AlertLevel) · src/repositories/alert_repository.dart · src/commands/command_api.dart(acknowledgeAlert) ·
     src/commands/command_receipt.dart · src/primitives/as_of.dart · testing.dart(UnimplementedAlertRepository · UnimplementedCommandApi · RecordingLinkOpener)
  ⑤ packages/ui_shell — lib 전부(R13 병합본 · 읽기만) · test/shell_fakes.dart · test/ops_rhythm_test.dart · test/golden/h02_golden_test.dart(꼴) · test/golden/golden_support.dart · test/golden/README.md «🆕 R13»·«🆕 R14» 절
  ⑥ packages/domain_contracts/fixtures/README.md(m8 행) ⑦ tool/check_boundaries.sh [5] ⑧ docs/ai-context/inbox/README.md · N01N02_questions.md 머리말
  ⑨ 꼴 선례(읽기만): packages/ui_journal/lib/src/holdings_overview.dart(bool family 재구독) · packages/ui_journal/lib/src/advice_inbox.dart 의 _defer(명령 1회 · 접수증 글자 · 실패 글자)
 
 ■ 본받지 않는 것
- · 셸 파일(shell_scaffold.dart)에 종 아이콘·알림 탭을 더하는 것 — 셸 진입 UI = 이 카드 밖(발주자 확인 ⑥) · s01_* 골든을 다시 찍게 된다
+ · 셸 파일(shell_scaffold.dart)에 종 아이콘·알림 탭을 더하는 것 — 셸 진입 UI = 이 카드 밖(✅ 발주자 확인 ⑥ · 01 §8 미결 141) · s01_* 골든을 다시 찍게 된다
  · S-01 P0 점의 watchInbox · shell_fakes 의 FakeShellAlertRepository·alertsOf 를 고치거나 쓰는 것 — 알림 센터 원천은 watchCenter 하나(새 가짜 = 끝 절)
- · alerts_12 · m8/alerts_p0_ack · alerts_digest · alerts_advice_9codes(봉투 = watchInbox 꼴)를 읽는 것 — 이 카드 입력 = v1.15 m8/alert_center_* 4 + 접수증 1
+ · alerts_12 · m8/alerts_p0_ack · alerts_digest · alerts_advice_9codes(봉투 = watchInbox 꼴)를 읽는 것 — 이 카드 입력 = v1.15 m8/alert_center_* 5 + m8/alert_detail_* 3 + 접수증 1
  · level 로 정렬하거나 P0 를 화면이 위로 올리는 것 · raisedAt 으로 날짜 머리를 짓는 것 · digestRows 를 세어 «P2 3건» 을 짓는 것 · groupedCount 를 글자로 그리는 것 · code 로 아이콘·문구를 고르는 것
  · ack 를 누른 뒤 행을 숨기거나 acked 처럼 그리는 것(낙관 갱신) · 확인 다이얼로그 · SnackBar · 두 번 묻기 · watchCommand 구독 · «읽음» bool
+ · 모르는 id 를 에러 화면(ShellErrorView)·스켈레톤으로 그리는 것 — 값이다(missingLabel 한 줄 · 01 §24 K2) · 거부 접수증(REJECTED)을 실패 글자로 바꾸는 것(접수증 stateLabel 그대로)
  · ui_journal 의 위젯을 import 하는 것(ui_shell 은 ui_journal 을 의존하지 못한다) · implements 가짜 · 한국어 테스트 이름 · 조건부 단언 · lib 의 nullable 에 !(null 검사 뒤 지역 변수로)
 
 ■ 주입 구조 (이름·타입·파일 고정 — 카드 기본값 · Key 접두 n01- · n02-)
@@ -233,24 +242,25 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
       (뷰어 조립 = overrideWithValue(null) → 확인 버튼 부재 · operator 조립 = 실제 CommandApi · 꼴 선례 = ui_analytics analyticsWhatIfApiProvider)
 · 데이터 2(파일 안 private · autoDispose 0 · family 꼴 = H6-1 _holdingsOverviewProvider):
     final StreamProviderFamily<AlertCenterVm, bool> _centerProvider = StreamProvider.family<AlertCenterVm, bool>((Ref ref, bool p0Only) => ref.watch(shellAlertRepositoryProvider).watchCenter(p0Only: p0Only));
-    final StreamProviderFamily<AlertItem, String> _alertDetailProvider = StreamProvider.family<AlertItem, String>((Ref ref, String alertId) => ref.watch(shellAlertRepositoryProvider).watchAlert(alertId));
+    final StreamProviderFamily<AlertDetailVm, String> _alertDetailProvider = StreamProvider.family<AlertDetailVm, String>((Ref ref, String alertId) => ref.watch(shellAlertRepositoryProvider).watchAlert(alertId));
 · 🆕 배럴 lib/ui_shell.dart 에 export 두 줄 — export 'src/alerts/alert_center.dart'; · export 'src/alerts/alert_detail.dart';(자리 = export 'l10n/labels.dart'; 바로 뒤 · 정렬 차례 · 삭제 0)
 · 조립 앱(이 카드 밖 · 참고만): ShellRouteBodies 의 AppRoutes.alertsInbox 칸 = (_) => const AlertCenter() · alertDetail 칸 = 경로의 :alertId 로 AlertDetail(alertId: …) · overrides = shellAlertCommandApiProvider.
 
 ■ 호출 표 (부르는 것 · 부르지 않는 것)
  AlertCenter — 부르는 것: watchCenter(p0Only: false) 한 번 · 칩을 켜면 watchCenter(p0Only: true) 한 번(🔵 끄면 앞 구독이 살아 있어 다시 부르지 않는다 — autoDispose 0) · 재시도 = 지금 인자로 한 번 더 · shellClockProvider · shellLinkOpenerProvider(행 탭 콜백 안).
- AlertDetail — 부르는 것: watchAlert(alertId)(받은 id 그대로 · 재시도 = 한 번 더) · shellLinkOpenerProvider(근거 탭 콜백 안).
+ AlertDetail — 부르는 것: watchAlert(alertId)(받은 id 그대로 · 재시도 = 한 번 더) · shellClockProvider(🆕 신선도) · shellLinkOpenerProvider(근거 탭 콜백 안).
  AlertAckBlock — 부르는 것: acknowledgeAlert(alertId)(버튼 한 번에 한 번 · 결과 기다리는 동안 버튼 onPressed null) · shellAlertCommandApiProvider(build 에서 watch — null 여부).
  셋 다 부르지 않는 것: watchInbox · watchCommand · confirmKillChecklist · CommandApi 의 그 밖 전부 · SettingsActions · AppRoutes.isRegistered · OpsStatusRepository · SafetyRepository.
 
 ■ 상태 표 (구독마다 — C4r3-1 · 꼴 = R13a OpsRhythm: hasError 가 먼저 · 값 뒤 에러 = 에러 화면 + 마지막 asOf 글자)
  center   hasError → ShellErrorView(key: const Key('n01-fail'), onRetry: () => ref.invalidate(_centerProvider(_p0Only)), lastAsOfLabel: center.valueOrNull?.asOf.label) ·
           값 전 → ShellSkeleton(key: const Key('n01-loading')) · 값 → 아래 «화면 1»(빈 문장도 같은 목록 안 — 갈래 1)
- detail   hasError → ShellErrorView(key: const Key('n02-fail'), onRetry: () => ref.invalidate(_alertDetailProvider(alertId)))(🆕 ConsumerWidget 이라 widget. 0 · lastAsOfLabel 없음 — AlertItem 에 asOf 0) · 값 전 → ShellSkeleton(key: const Key('n02-loading')) · 값 → «화면 2»
+ detail   hasError → ShellErrorView(key: const Key('n02-fail'), onRetry: () => ref.invalidate(_alertDetailProvider(alertId)), lastAsOfLabel: detail.valueOrNull?.asOf.label)(ConsumerWidget 이라 widget. 0 · 🆕 v1.15 AlertDetailVm 에 asOf) ·
+          값 전 → ShellSkeleton(key: const Key('n02-loading')) · 값 → «화면 2»(🆕 모르는 id 도 값 — 같은 갈래 · 에러 아님)
  ack      버튼 누름 → _busy = true(버튼 onPressed null) → acknowledgeAlert 완료 → _busy = false · _failed = false · _label = 접수증 stateLabel → 실패(예외) → _busy = false · _failed = true · _label = null
           (🔴 mounted 확인 뒤 setState · 버튼은 그대로 — 사라지는 것은 데이터 ack.acked 가 true 로 다시 올 때뿐)
           🆕 재발행(같은 자리에 다른 alertId) → didUpdateWidget 에서 _busy = false · _failed = false · _label = null(setState 0 — build 가 뒤따른다) · 완료가 늦게 와도 누른 id ≠ 지금 id 면 반영 0
- 🆕 04 §2-3 공통 상태 6종 중 ⑤ 차단 = 셸 §2-4 배너 슬롯 몫(본문 0) · ⑥ 부분 동기 = 계약 필드 0 → 부재(01 §8 미결 후보) — 두 화면 다(R13a «부분 동기 = 이 카드 밖» 선례 · 명세 지적).
+ 🆕 04 §2-3 공통 상태 6종 중 ⑤ 차단 = 셸 §2-4 배너 슬롯 몫(본문 0) · ⑥ 부분 동기 = 계약 필드 0 → 부재(01 §8 미결 148) — 두 화면 다(R13a «부분 동기 = 이 카드 밖» 선례 · 명세 지적).
  🔴 갈래를 고르는 것은 AsyncValue · null 여부 · 규칙 5 의 식 · AlertLevel switch 뿐.
 
 ■ 화면 1 — N-01 (lib/src/alerts/alert_center.dart · 위 → 아래 · 🔴 이 순서 · 묶음 Key = Padding/InkWell · 묶음 안 Text 에는 Key 를 달지 않는다(n01-empty 는 예외 — Text 하나))
@@ -268,19 +278,23 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
          InkWell(key: ValueKey<String>(keyBase), onTap: link == null ? null : () { ref.read(shellLinkOpenerProvider).open(link); }, Padding(EdgeInsets.symmetric(horizontal: 16, vertical: 8))[ Row[
            Icon(look.$1, color: look.$2, size: 20) · SizedBox(width: 8) · Expanded(Text(item.title)) · (grouped != null) Badge(label: Text(grouped)) · (when != null) Padding(EdgeInsets.only(left: 8), Text(when)) ] ]) ·
          AlertAckBlock(keyBase: keyBase, alertId: item.alertId, ack: item.ack) ]
-         ← final String? link = item.detailLink; final String? grouped = item.groupedText; final String? when = item.raisedAtText; final (IconData, Color) look = _levelLook(Theme.of(context).colorScheme, item.level);
+         ← final String? link = item.detailDeepLink; final String? grouped = item.groupedText; final String? when = item.raisedAtText; final (IconData, Color) look = _levelLook(Theme.of(context).colorScheme, item.level);
  _levelLook(ColorScheme cs, AlertLevel l) = switch (l) { AlertLevel.p0 => (Icons.error_outline, cs.error) · AlertLevel.p1 => (Icons.warning_amber_outlined, cs.tertiary) · AlertLevel.p2 => (Icons.info_outline, cs.onSurfaceVariant) }
          (04 §5-1 «P0 적 · P1 주황 · P2 회색» 의 colorScheme 근사 · 아이콘에 Key 0 · 반환 = (IconData, Color) 레코드 · 규칙 6 의 유일한 switch)
  🔴 행 사이 = Divider 또는 SizedBox(height: 정수) 재량 · 정적 글자 = 칩 라벨 하나 + 확인 조각의 둘 · 그 밖 0.
 
-■ 화면 2 — N-02 (lib/src/alerts/alert_detail.dart · 04 §5-3 블록 순서 고정 · 위 → 아래)
- 제목    Padding(key: const Key('n02-title'), EdgeInsets.fromLTRB(16, 16, 16, 4), Text(item.title, style: Theme.of(context).textTheme.titleMedium))     · 늘(🔵 머리 dy 0.0 = 이 Padding)
- 시각    (when != null) Padding(key: const Key('n02-time'), EdgeInsets.fromLTRB(16, 0, 16, 8), Text(when))                                               ← final String? when = item.raisedAtText;
- 무슨 일 Padding(key: const Key('n02-body'), EdgeInsets.fromLTRB(16, 8, 16, 8), Text(item.bodyText))                                                       · 늘
- 조치    Padding(key: const Key('n02-action'), EdgeInsets.fromLTRB(16, 8, 16, 8), Text(item.actionLine))                                                  · 늘(🔴 두 문단 = Text 둘 · 잇기 0)
- 근거    (link != null) Padding(EdgeInsets.fromLTRB(16, 8, 16, 8)) · Align(centerLeft) · OutlinedButton(key: const Key('n02-link'), onPressed: () { ref.read(shellLinkOpenerProvider).open(link); }, child: const Text(ShellLabels.alertsEvidence))   ← final String? link = item.deepLink;
+■ 화면 2 — N-02 (lib/src/alerts/alert_detail.dart · 04 §5-3 블록 순서 고정 · 위 → 아래 · 🆕 v1.15 AlertDetailVm)
+ 머리    Key n02-asof        ShellAsOfHeader(asOf: vm.asOf) · (stale) ShellStaleBanner(asOf: vm.asOf)                                      · 늘(🆕 · 🔵 머리 dy 0.0 = 이 위젯)
+ 모르는 id (missing != null) Padding(EdgeInsets.all(16), Text(missing, key: const Key('n02-missing')))                                      ← final String? missing = vm.missingLabel;(🔴 다른 조건 0 — 데이터가 정한다)
+ 아래 여섯 = item 이 있을 때만 — final AlertItem? item = vm.item;(build 지역 변수 · ! 0 · 꼴 = if (item != null) ...<Widget>[ … ] — 안에서 item 이 승격된다)
+ 제목    Padding(key: const Key('n02-title'), EdgeInsets.fromLTRB(16, 16, 16, 4), Text(item.title, style: Theme.of(context).textTheme.titleMedium))
+ 시각    (when != null) Padding(key: const Key('n02-time'), EdgeInsets.fromLTRB(16, 0, 16, 8), Text(when))                                               ← final String? when = item?.raisedAtText;
+ 무슨 일 Padding(key: const Key('n02-body'), EdgeInsets.fromLTRB(16, 8, 16, 8), Text(item.bodyText))
+ 조치    Padding(key: const Key('n02-action'), EdgeInsets.fromLTRB(16, 8, 16, 8), Text(item.actionLine))                                                  · (🔴 두 문단 = Text 둘 · 잇기 0)
+ 근거    (link != null) Padding(EdgeInsets.fromLTRB(16, 8, 16, 8)) · Align(centerLeft) · OutlinedButton(key: const Key('n02-link'), onPressed: () { ref.read(shellLinkOpenerProvider).open(link); }, child: const Text(ShellLabels.alertsEvidence))   ← final String? link = item?.deepLink;
  확인    AlertAckBlock(keyBase: 'n02', alertId: item.alertId, ack: item.ack)
- 핸드북  (부재 — G7 · R16 · 코드 0)
+ 핸드북  (부재 — 01 §8 미결 139 · R16 · 코드 0)
+ 신선도  final bool stale = vm.asOf.observedAt.add(vm.asOf.staleAfter).isBefore(clock.nowUtc());(규칙 5 ⓐ · clock = ref.watch(shellClockProvider) · build 에서 한 번)
 
 ■ 공용 조각 — AlertAckBlock (lib/src/alerts/alert_ack.dart)
  AlertAckBlock({super.key, required this.keyBase, required this.alertId, required this.ack}) · final String keyBase · final String alertId · final AckState? ack
@@ -295,19 +309,22 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    catch (_) { if (!mounted || widget.alertId != id) return; setState(() { _busy = false; _failed = true; _label = null; }); }(꼴 = ui_journal advice_inbox.dart _defer + id 잡아 두기)
  🔴 이 조각 밖에서 acknowledgeAlert 를 부르지 않는다 · confirmKillChecklist 0 · 확인 다이얼로그 0 · dispose 0(구독 0).
 
-■ 픽스처 (FixturePaths.… · singleFixture / listFixture · 🔴 테스트는 이 표를 믿지 말고 전제 expect 로 다시 확인한다 · 아래 «v1.15 표본 뜻» = M2 보강 PR 의 권고 내용)
- p0ack    singleFixture(m8AlertCenterP0Ack, AlertCenterVm.fromJson) — pinned 3(P0 · [0] ack 미확인 사다리 + raisedAtText + groupedText «2건» + deepLink + detailLink · [1] ack acked · [2] ADVICE_EXIT_URGENT ack null) ·
+■ 픽스처 (FixturePaths.… · singleFixture / listFixture · 🔴 테스트는 이 표를 믿지 말고 전제 expect 로 다시 확인한다 · 글자 = v1.15 픽스처 실물(M2 가지 m2/v115-r14))
+ p0ack    singleFixture(m8AlertCenterP0Ack, AlertCenterVm.fromJson) — pinned 3(P0 · [0] ack 미확인 사다리 + raisedAtText + groupedText «2건» + deepLink + detailDeepLink · [1] ack acked · [2] ADVICE_EXIT_URGENT ack null) ·
           sections 1(«오늘» · rows 2 P1 · digestLabel null) · emptyLabel null · asOf «알림 기준 2026-08-31»(observed 2026-08-31T09:00Z · 26h)
- digest   singleFixture(m8AlertCenterDigest, …) — pinned 0 · sections 2: [0] «오늘» rows 1 P1(detailLink **null** · raisedAtText non-null) · digestLabel null / [1] «2026-08-30» rows 0 · digestLabel «P2 3건» · digestRows 3 P2
-          ([2] = raisedAtText null · deepLink null · ack null · detailLink non-null · groupedText «3건») · emptyLabel null
+ digest   singleFixture(m8AlertCenterDigest, …) — pinned 0 · sections 2: [0] «오늘» rows 1 P1(detailDeepLink **null** · raisedAtText non-null) · digestLabel null / [1] «2026-08-30» rows 0 · digestLabel «P2 3건» · digestRows 3 P2
+          ([2] = raisedAtText null · deepLink null · ack null · detailDeepLink non-null · groupedText «3건») · emptyLabel null
  empty    singleFixture(m8AlertCenterEmpty, …) — pinned 0 · sections 0 · emptyLabel non-null(엔진 «정상 = 무소식» 문장)
  p0only   singleFixture(m8AlertCenterP0Only, …) — pinned 3(p0ack 의 pinned 와 같은 행) · sections 0 · emptyLabel null
- reordered singleFixture(m8AlertCenterP0AckReordered, …) — 🆕 p0ack 와 같고 pinned 차례만 [1][0][2](재발행 표본 — [0] = p0ack.pinned[1](확인됨) · [1] = p0ack.pinned[0](미확인))
- receipts listFixture(m8AlertAckReceipts2, CommandReceipt.fromJson) — 2행 · kind ALERT_ACK · [0] REQUESTED · [1] EXECUTED(stateLabel 은 엔진 글자)
- full = p0ack.pinned[0](main() 머리 final) · bare = digest.sections[1].digestRows[2](main() 머리 final)
+ reordered singleFixture(m8AlertCenterP0AckReordered, …) — p0ack 와 같고 pinned 차례만 [1][0][2](재발행 표본 — [0] = p0ack.pinned[1](확인됨) · [1] = p0ack.pinned[0](미확인))
+ 🆕 fullV  singleFixture(m8AlertDetailFull, AlertDetailVm.fromJson) — item = p0ack.pinned[0] 과 같은 값(시각·근거·사다리 있음 · K11) · missingLabel null · asOf «알림 기준 2026-08-31»
+ 🆕 bareV  singleFixture(m8AlertDetailNoLink, …) — item = digest.sections[1].digestRows[2] 와 같은 값(raisedAtText · deepLink · ack null) · missingLabel null
+ 🆕 missingV singleFixture(m8AlertDetailMissing, …) — item null · missingLabel non-null(엔진 문장) · asOf 같음
+ receipts listFixture(m8AlertAckReceipts3, CommandReceipt.fromJson) — 3행 · kind ALERT_ACK · [0] REQUESTED · [1] EXECUTED · 🆕 [2] REJECTED(rejectReasonCode INPUT_INVALID)(stateLabel 은 엔진 글자)
+ full = fullV.item! · bare = bareV.item!(main() 머리 final · 두 픽스처 다 item non-null — 아니면 파일 적재가 큰 소리로 실패한다)
  🔴 쓰지 않는 것: alerts_12 · m8/alerts_p0_ack · alerts_digest · alerts_advice_9codes · 워치독 · copyWith · 지은 DTO.
 
-■ Key 표 (n01- 10이름 + n02- 7이름 + 조각 4꼴 — 정본 = 이 표 · 🔴 표 밖 Key 0 · id 0 — 순번만 · 같은 이름을 두 자리에 달면 반려)
+■ Key 표 (n01- 10이름 + n02- 9이름 + 조각 4꼴 — 정본 = 이 표 · 🔴 표 밖 Key 0 · id 0 — 순번만 · 같은 이름을 두 자리에 달면 반려)
    이름                 다는 자리
    n01-loading          ShellSkeleton(값 전)
    n01-fail             ShellErrorView(에러)
@@ -319,12 +336,12 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
    n01-digest-$s        _DigestBlock 머리 InkWell
    n01-drow-$s-$i       접힌 행 _AlertTile 의 InkWell
    n01-empty            빈 문장 Text
-   n02-loading · n02-fail · n02-title · n02-time · n02-body · n02-action(각 Padding) · n02-link(OutlinedButton)
+   n02-loading · n02-fail · n02-asof(ShellAsOfHeader) · n02-missing(모르는 id 문장 Text) · n02-title · n02-time · n02-body · n02-action(각 Padding) · n02-link(OutlinedButton)
    조각 4꼴($base = keyBase — n01-pin-$i · n01-row-$s-$i · n01-drow-$s-$i · n02): $base-state(ack 글자 Text) · $base-ack(FilledButton) · $base-receipt(접수증 Text) · $base-ack-fail(실패 Text)
 
 ■ 할 일 — 이 순서로 · 커밋 나누기는 재량(제목 = 그 커밋 내용 · 🔴 커밋마다 git add <파일> 로 지정 — git add . 금지 · 커밋마다 바로 git show --stat HEAD 로 파일 목록 확인(C4r5a-3) · amend·rebase·강제 푸시 금지 · 마지막 커밋 = format · 질문 파일)
  (1) 정적 라벨 4(labels.dart R14a 절) + shell_providers.dart 끝 절(주입 1). 커밋 «[M8] R14a (1) 정적 라벨 · 주입»
- (2) lib/src/alerts/ 3파일 + 배럴 두 줄 + test/shell_fakes.dart 끝 절 + test/alert_center_test.dart(N01-01~N01-11) + test/alert_detail_test.dart(N02-01~N02-06). 🔴 커밋 전에 git add <그 파일들> 뒤 «정적 묶음» 미리 돌리기(실행 꼴 그대로).
+ (2) lib/src/alerts/ 3파일 + 배럴 두 줄 + test/shell_fakes.dart 끝 절 + test/alert_center_test.dart(N01-01~N01-12) + test/alert_detail_test.dart(N02-01~N02-06). 🔴 커밋 전에 git add <그 파일들> 뒤 «정적 묶음» 미리 돌리기(실행 꼴 그대로).
      커밋 «[M8] R14a (2) N-01·N-02 알림 센터·상세 + 테스트»
  (3) 골든 10장 — test/golden/n01_golden_test.dart(3이름 × 2) · test/golden/n02_golden_test.dart(2이름 × 2). 커밋 «[M8] R14a (3) 골든 n01_* 6장 · n02_* 4장»
  (4) melos.bat run format:fix · melos.bat run analyze(🔴 (4) 전에 한 번) · 질문 파일(N01N02_questions.md — dy 측정 행 A1~A5 · 그 밖의 질문). 커밋 «[M8] R14a (4) format · 질문»
@@ -340,11 +357,11 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
   상세 띄우기 = pumpAlertDetail(tester, overrides:, alertId:)(같은 꼴 · body: AlertDetail(alertId: alertId)) · overrides = alertOverrides(alerts:, api:, opener:, clock:)(4줄 · 아래 fakes) ·
   시계 = FixedClock(kGoldenNowUtc) · 오래됨 = FixedClock(kGoldenNowUtc.add(const Duration(days: 2)))(테스트 파일 안 final) ·
   경우가 여럿인 테스트 = for 로 testWidgets 를 경우마다(이름 '<번호> <설명> <경우>') · 경우의 흐름 = 클로저 칸((WidgetTester t) async {} · 🔴 bool 칸 + if 금지 · C4r5c-5 (a) — 이 꼴이 코드 글자다) · 기대 글자는 픽스처·ShellLabels 에서 · 띄우기는 한 테스트에 한 번 ·
-  계획 = alert_center_test testWidgets 줄 12(테스트 23개) · alert_detail_test 줄 6(테스트 10개) · 골든 1 + 1 · testWidgets·test 줄 합 20(≤ 33) · import = 안 쓰는 것 0(analyze «No issues found!» 가 정본) —
+  계획 = alert_center_test testWidgets 줄 12(테스트 24개) · alert_detail_test 줄 6(테스트 13개) · 골든 1 + 1 · testWidgets·test 줄 합 20(≤ 33) · import = 안 쓰는 것 0(analyze «No issues found!» 가 정본) —
      꼴 = 'dart:async'(🆕 두 테스트 파일 — Stream.multi 의 MultiStreamController · Completer · 드라이런 지적) → 'package:domain_contracts/domain_contracts.dart' → 'package:domain_contracts/testing.dart' → 'package:flutter/material.dart' → 'package:flutter_test/flutter_test.dart' → 'package:ui_shell/ui_shell.dart' → 'golden/golden_support.dart' → 'shell_fakes.dart'.
   🆕 test/shell_fakes.dart 끝 절(공개 이름 · 한국어 리터럴 0 · if 0 · collection-if 0 · import 추가 = 'package:ui_shell/src/…' 0(배럴로 충분) — 꼭 필요한 import 만):
     class FakeShellAlertCenterRepository extends UnimplementedAlertRepository { FakeShellAlertCenterRepository({required this.center, required this.detail});
-      final Stream<AlertCenterVm> Function(int call) center; final Stream<AlertItem> Function(int call) detail; final List<bool> p0Onlys = <bool>[]; final List<String> alertIds = <String>[];
+      final Stream<AlertCenterVm> Function(int call) center; final Stream<AlertDetailVm> Function(int call) detail; final List<bool> p0Onlys = <bool>[]; final List<String> alertIds = <String>[];
       @override watchCenter({required bool p0Only}) → call = p0Onlys.length · p0Onlys.add(p0Only) · center(call) · @override watchAlert(String alertId) → call = alertIds.length · alertIds.add(alertId) · detail(call) }
     class FakeShellAlertCommandApi extends UnimplementedCommandApi { FakeShellAlertCommandApi({required this.receipt}); final Future<CommandReceipt> Function(int call) receipt; final List<String> acks = <String>[];
       @override acknowledgeAlert(String alertId) → call = acks.length · acks.add(alertId) · receipt(call) }(🔴 confirmKillChecklist 는 넘기지 않는다 — 받침대가 던진다)
@@ -354,7 +371,8 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
     List<String> alertTileTexts(AlertItem a) => <String>[a.title, ?a.groupedText, ?a.raisedAtText](행 InkWell 안 Text 차례)
     Set<String> alertCenterAllowed(AlertCenterVm v)(= v 의 표시 글자 전부 — asOf.label · ?asOf.staleLabel · 행마다 title·?groupedText·?raisedAtText·?ack?.stateLabel(고정·묶음·접힌 행) · headerText · ?digestLabel · ?emptyLabel ·
       + ShellLabels.alertsP0Only · alertsAck · staleBannerTitle · null-aware 원소 · collection-for 만 · 🔴 링크·경로 문자열 0(C4r13b-6))
-    Set<String> alertDetailAllowed(AlertItem a)(= title · ?raisedAtText · bodyText · actionLine · ?ack?.stateLabel + ShellLabels.alertsEvidence · alertsAck · 🔴 링크 문자열 0)
+    Set<String> alertDetailAllowed(AlertDetailVm v)(= asOf.label · ?asOf.staleLabel · ?missingLabel · ?item?.title · ?item?.raisedAtText · ?item?.bodyText · ?item?.actionLine · ?item?.ack?.stateLabel
+      + ShellLabels.alertsEvidence · alertsAck · staleBannerTitle · null-aware 원소만 · 🔴 링크 문자열 0)
   `one<T>(T v)` = R13b 도우미 그대로(새로 만들지 않는다) · 파일 머리(main() 안)에서 위 «픽스처» 를 한 번 final 로 읽는다 · Stream<T> valueThenFail<T>(T v) async* { yield v; throw StateError('fail'); } 를 지역 함수로 ·
   값을 끝까지 내지 않는 스트림 = Stream<T>.multi((MultiStreamController<T> c) {})(닫지 않는다 · teardown 0).
 N-01 — test/alert_center_test.dart
@@ -381,16 +399,17 @@ N-01 — test/alert_center_test.dart
         전제 셋: expect(p0ack.pinned[0].ack?.acked, isFalse); // pre · expect(p0ack.pinned[1].ack?.acked, isTrue); // pre · expect(p0ack.pinned[2].ack, isNull); // pre →
         i(0..2)마다 final String? s = p0ack.pinned[i].ack?.stateLabel; «없는 쪽» 견본 꼴(s → tester.widget<Text>(find.byKey(n01-pin-$i-state)).data == s / findsNothing — Text 에 붙은 Key) · expect(find.byKey(ValueKey<String>('n01-pin-$i-ack')), c.buttons[i] ? findsOneWidget : findsNothing) ·
         find.byKey(ValueKey<String>('n01-pin-0-receipt')) findsNothing · ⓡ.
- N01-07 확인 누르기 = 명령 1회 · 접수증 한 줄 · 기다리는 동안 비활성(04 §5-4 · A-1 _defer 선례) — 세 경우 ㉠ (accepted · 접수 공장 = (int call) => Future<CommandReceipt>.value(receipts.rows[0]) · want = receipts.rows[0].stateLabel · 실패 글자 false · busy false) ·
+ N01-07 확인 누르기 = 명령 1회 · 접수증 한 줄 · 기다리는 동안 비활성(04 §5-4 · A-1 _defer 선례) — 네 경우 ㉠ (accepted · 접수 공장 = (int call) => Future<CommandReceipt>.value(receipts.rows[0]) · want = receipts.rows[0].stateLabel · 실패 글자 false · busy false) ·
+        🆕 (rejected · (int call) => Future<CommandReceipt>.value(receipts.rows[2]) · receipts.rows[2].stateLabel · false · false — 거부 접수증도 엔진 글자 그대로 · 실패 글자 아님) ·
         (failed · (int call) => Future<CommandReceipt>.error(StateError('fail')) · null · true · false) · 🆕 (pending · (int call) => Completer<CommandReceipt>().future(끝나지 않는다) · null · false · true)마다 —
-        전제 하나: expect(receipts.rows[0].kind, CommandKind.alertAck); // pre →
+        전제 둘: expect(receipts.rows[0].kind, CommandKind.alertAck); // pre · expect(receipts.rows[2].state, CommandState.rejected); // pre →
         tap(n01-pin-0-ack) → pump 두 번 → api.acks == <String>[p0ack.pinned[0].alertId] · «없는 쪽» 견본 꼴(want → tester.widget<Text>(find.byKey(n01-pin-0-receipt)).data == want / findsNothing) ·
         expect(find.byKey(const ValueKey<String>('n01-pin-0-ack-fail')), c.failText ? findsOneWidget : findsNothing) · n01-pin-0-ack findsOneWidget(숨기지 않는다) ·
         🆕 expect(tester.widget<FilledButton>(find.byKey(const ValueKey<String>('n01-pin-0-ack'))).onPressed, c.busy ? isNull : isNotNull)(두 번 누름 막기) ·
         🆕 expect(tester.widget<Text>(find.byKey(const ValueKey<String>('n01-pin-0-state'))).data, p0ack.pinned[0].ack!.stateLabel)(낙관 갱신 0 — 상태 글자는 데이터가 바뀔 때만) · find.byType(AlertDialog) findsNothing ·
         alerts.p0Onlys == <bool>[false](낙관 갱신·재구독 0) · ⓡ.
- N01-08 행 탭 = detailLink(데이터 · 링크 조립 0) — 두 경우 ㉠ (linked · p0ack · Key n01-pin-0 · want = <String>[p0ack.pinned[0].detailLink!]) · (unlinked · digest · Key n01-row-0-0 · want = <String>[])마다 —
-        전제 둘: expect(p0ack.pinned[0].detailLink, isNotNull); // pre · expect(digest.sections.first.rows.first.detailLink, isNull); // pre → tap(c.key) → pump → expect(opener.opened, c.want) · ⓡ.
+ N01-08 행 탭 = detailDeepLink(데이터 · 링크 조립 0) — 두 경우 ㉠ (linked · p0ack · Key n01-pin-0 · want = <String>[p0ack.pinned[0].detailDeepLink!]) · (unlinked · digest · Key n01-row-0-0 · want = <String>[])마다 —
+        전제 둘: expect(p0ack.pinned[0].detailDeepLink, isNotNull); // pre · expect(digest.sections.first.rows.first.detailDeepLink, isNull); // pre → tap(c.key) → pump → expect(opener.opened, c.want) · ⓡ.
  N01-09 갈래 × 상태(C4r3-1 · 🆕 갈래마다 배너 C4r5e-3) — 다섯 경우 ㉠ (이름, 센터 공장, 시계, 있어야 할 Key, 없어야 할 Key, 배너, 흐름):
         (loading · Stream.multi(값 0) · 정상 · [n01-loading] · [n01-asof, n01-fail] · 0) · (fail · Stream.error · 정상 · [n01-fail] · [n01-asof, n01-loading] · 0) ·
         (value_then_fail · valueThenFail(p0ack) · 정상 · [n01-fail] · [n01-asof] · 0 · 흐름 = expect(find.text(p0ack.asOf.label), findsOneWidget)) ·
@@ -405,23 +424,29 @@ N-01 — test/alert_center_test.dart
         final Completer<void> gate = Completer<void>(); · 센터 공장 = (int call) => twice()(지역 async* — yield p0ack → await gate.future → yield reordered) · api = FakeShellAlertCommandApi(receipt: (int call) => Future<CommandReceipt>.value(receipts.rows[0])) →
         tap(n01-pin-0-ack) → pump 두 번 → tester.widget<Text>(find.byKey(n01-pin-0-receipt)).data == receipts.rows[0].stateLabel(양성 기준점) → gate.complete() → pump 두 번 →
         tester.widget<Text>(find.byKey(n01-pin-0-state)).data == reordered.pinned[0].ack!.stateLabel · n01-pin-0-receipt findsNothing · n01-pin-1-receipt findsNothing · api.acks == <String>[p0ack.pinned[0].alertId] · ⓡ.
- ⓡ 기대 = alert_center_test.dart 11줄(N01-01~08 · 10 · 11 · 12) · ⓗ 기대 = 4줄(N01-01 둘 · N01-03 · N01-04) — 🔴 정확히 · (전제) = 22(01 2 · 02 3 · 03 2 · 04 3 · 05 4 · 06 3 · 07 1 · 08 2 · 12 2 — 정적 N31).
-N-02 — test/alert_detail_test.dart
- N02-01 블록 순서 고정 · 두 문단(04 §5-3 · 그림 11) — full · operator: 전제 셋: expect(full.raisedAtText, isNotNull); // pre · expect(full.deepLink, isNotNull); // pre · expect(full.ack, isNotNull); // pre →
-        alerts.alertIds == <String>[full.alertId](받은 id 그대로) · 사슬 dy: n02-title → n02-time → n02-body → n02-action → n02-link → n02-state ·
-        shownTexts: n02-title == [full.title] · n02-time == [full.raisedAtText!] · n02-body == [full.bodyText] · n02-action == [full.actionLine] · n02-link == [ShellLabels.alertsEvidence] →
-        tap(n02-link) → pump → opener.opened == <String>[full.deepLink!] · ⓡ.
- N02-02 부재 = 데이터(null = 부재) — bare: 전제 셋: expect(bare.raisedAtText, isNull); // pre · expect(bare.deepLink, isNull); // pre · expect(bare.ack, isNull); // pre →
-        n02-time · n02-link · n02-state · n02-ack findsNothing(단언마다 따로) · 양성 기준점 n02-title · n02-body · n02-action findsOneWidget · ⓡ.
+ ⓡ 기대 = alert_center_test.dart 11줄(N01-01~08 · 10 · 11 · 12) · ⓗ 기대 = 4줄(N01-01 둘 · N01-03 · N01-04) — 🔴 정확히 · (전제) = 23(01 2 · 02 3 · 03 2 · 04 3 · 05 4 · 06 3 · 07 2 · 08 2 · 12 2 — 정적 N31).
+N-02 — test/alert_detail_test.dart(🆕 v1.15 — 입력 = AlertDetailVm 픽스처 3 · main() 머리 final: fullV · bareV · missingV · receipts · full = fullV.item! · bare = bareV.item! · const String goneId = 'al_gone_01'(ASCII · 픽스처에 없는 id — 가짜는 받은 id 를 기록만 한다))
+ N02-01 블록 순서 고정 · 두 문단 · 머리(04 §5-3 · 그림 11 · §2-3) — fullV · operator: 전제 넷: expect(full.raisedAtText, isNotNull); // pre · expect(full.deepLink, isNotNull); // pre · expect(full.ack, isNotNull); // pre ·
+        expect(fullV.missingLabel, isNull); // pre → alerts.alertIds == <String>[full.alertId](받은 id 그대로) · 사슬 dy: n02-asof → n02-title → n02-time → n02-body → n02-action → n02-link → n02-state ·
+        shownTexts: n02-asof == [fullV.asOf.label] · n02-title == [full.title] · n02-time == [full.raisedAtText!] · n02-body == [full.bodyText] · n02-action == [full.actionLine] · n02-link == [ShellLabels.alertsEvidence] ·
+        n02-missing findsNothing · find.text(ShellLabels.staleBannerTitle) findsNothing → tap(n02-link) → pump → opener.opened == <String>[full.deepLink!] · ⓡ.
+ N02-02 부재 = 데이터(null = 부재) — bareV: 전제 셋: expect(bare.raisedAtText, isNull); // pre · expect(bare.deepLink, isNull); // pre · expect(bare.ack, isNull); // pre →
+        n02-time · n02-link · n02-state · n02-ack · n02-missing findsNothing(단언마다 따로) · 양성 기준점 n02-asof · n02-title · n02-body · n02-action findsOneWidget · ⓡ.
  N02-03 확인 = 공용 조각 · 주입(04 §5-4) — 두 경우 ㉠ (operator · api 공장 = () => FakeShellAlertCommandApi(receipt: (int call) => Future<CommandReceipt>.value(receipts.rows[1])) · 흐름 = tap(n02-ack) → pump 두 번 → api!.acks == [full.alertId] ·
-        tester.widget<Text>(find.byKey(n02-receipt)).data == receipts.rows[1].stateLabel) · (viewer · api 공장 = () => null · 흐름 = n02-ack findsNothing · n02-state findsOneWidget)마다 — 전제 하나: expect(full.ack?.acked, isFalse); // pre →
-        🆕 흐름 칸 = (WidgetTester t, FakeShellAlertCommandApi? api) async {}(이 테스트만 두 인자 — testWidgets 안에서 공장으로 만든 가짜를 흐름에 넘긴다 · 드라이런 지적) → final FakeShellAlertCommandApi? api = c.api(); … await c.steps(tester, api) · ⓡ.
- N02-04 상태 갈래 — 세 경우 ㉠ (loading · Stream.multi(값 0) · [n02-loading] · [n02-title, n02-fail]) · (unknown_id · Stream.error(StateError('unknown')) · [n02-fail] · [n02-title, n02-loading]) ·
-        (value_then_fail · valueThenFail(full) · [n02-fail] · [n02-title])마다 Key 목록 findsOneWidget / findsNothing · CircularProgressIndicator findsNothing(ⓡ 없음).
- N02-05 재시도 — 상세 공장 = (int call) => call == 0 ? Stream<AlertItem>.error(StateError('fail')) : one(full) → tap(find.text(ShellLabels.retry)) → pump 두 번 → n02-fail findsNothing · n02-title findsOneWidget ·
+        tester.widget<Text>(find.byKey(n02-receipt)).data == receipts.rows[1].stateLabel) · (viewer · api 공장 = () => null · 흐름 = n02-ack findsNothing · n02-state findsOneWidget)마다 — 전제 하나: expect(full.ack?.acked, isFalse); // pre → 상세 공장 = one(fullV) ·
+        흐름 칸 = (WidgetTester t, FakeShellAlertCommandApi? api) async {}(이 테스트만 두 인자 — testWidgets 안에서 공장으로 만든 가짜를 흐름에 넘긴다 · 드라이런 지적) → final FakeShellAlertCommandApi? api = c.api(); … await c.steps(tester, api) · ⓡ.
+ N02-04 갈래 × 상태(C4r3-1 · 🆕 갈래마다 배너 C4r5e-3 · 모르는 id = 값 — 01 §24 K2) — 다섯 경우 ㉠ (이름, 상세 공장, 시계, id, 있어야 할 Key, 없어야 할 Key, 배너, 흐름):
+        (loading · Stream.multi(값 0) · 정상 · full.alertId · [n02-loading] · [n02-asof, n02-fail] · 0) · (fail · Stream.error(StateError('fail')) · 정상 · full.alertId · [n02-fail] · [n02-asof, n02-loading] · 0) ·
+        (value_then_fail · valueThenFail(fullV) · 정상 · full.alertId · [n02-fail] · [n02-asof] · 0 · 흐름 = expect(find.text(fullV.asOf.label), findsOneWidget)) ·
+        (stale · one(fullV) · 오래됨 · full.alertId · [n02-asof, n02-title] · [n02-fail, n02-missing] · 1 · 흐름 = expect(t.getTopLeft(find.text(ShellLabels.staleBannerTitle)).dy, lessThan(t.getTopLeft(find.byKey(const Key('n02-title'))).dy))) ·
+        (stale_missing · one(missingV) · 오래됨 · goneId · [n02-asof, n02-missing] · [n02-fail, n02-title, n02-loading] · 1 · 흐름 = 배너 dy < n02-missing dy · expect(t.widget<Text>(find.byKey(const Key('n02-missing'))).data, missingV.missingLabel))마다 —
+        전제 둘: expect(missingV.item, isNull); // pre · expect(missingV.missingLabel, isNotNull); // pre → Key 목록마다 findsOneWidget / findsNothing · find.text(ShellLabels.staleBannerTitle) = c.banner ? findsOneWidget : findsNothing · 흐름 ·
+        CircularProgressIndicator · LinearProgressIndicator findsNothing(ⓡ·ⓗ 없음 · 🔵 옛 unknown_id(스트림 에러) 경우는 없앴다 — v1.15 에서 모르는 id 는 값이다).
+ N02-05 재시도 — 상세 공장 = (int call) => call == 0 ? Stream<AlertDetailVm>.error(StateError('fail')) : one(fullV) → tap(find.text(ShellLabels.retry)) → pump 두 번 → n02-fail findsNothing · n02-asof findsOneWidget · n02-title findsOneWidget ·
         alerts.alertIds == <String>[full.alertId, full.alertId] · ⓡ.
- N02-06 화면 Text 전부 · 큰 글꼴 — 두 경우 ㉠ (full · operator · allowed = alertDetailAllowed(full)) · (bare · operator · alertDetailAllowed(bare))마다 규칙 10 «화면 Text 전부» 견본 → textScaleFactorTestValue = 2.0 → takeException isNull · ⓡ.
- ⓡ 기대 = alert_detail_test.dart 5줄(N02-01 · 02 · 03 · 05 · 06) · ⓗ 기대 = 0줄(정적 N18 에 이 파일 줄이 나오지 않는다) — 🔴 정확히 · (전제) = 7(01 3 · 02 3 · 03 1).
+ N02-06 화면 Text 전부 · 큰 글꼴 — 세 경우 ㉠ (full · fullV · full.alertId) · (bare · bareV · bare.alertId) · 🆕 (missing · missingV · goneId)마다 operator · allowed = alertDetailAllowed(c.v) · 규칙 10 «화면 Text 전부» 견본 →
+        textScaleFactorTestValue = 2.0 → takeException isNull · ⓡ.
+ ⓡ 기대 = alert_detail_test.dart 5줄(N02-01 · 02 · 03 · 05 · 06) · ⓗ 기대 = 0줄(정적 N18 에 이 파일 줄이 나오지 않는다) — 🔴 정확히 · (전제) = 10(01 4 · 02 3 · 03 1 · 04 2).
 
 🔴 병합 검사 때 통합 담당이 넣어 볼 변이(하나라도 테스트가 그대로 통과하면 반려 · 🆕 «갈래마다» — 공통 변이는 갈래 수만큼 짝으로 넣는다 · C4r5e-3):
    (순서·묶음) 고정 행 뒤집기 · 고정 둘 자리 바꾸기 · 묶음 머리 빼기 · 묶음 행을 시각 글자로 정렬 · P1 을 고정 쪽으로 올리기 · 접힌 행을 처음부터 펼침 · 접힌 머리 빼기 · 접힌 행 둘만(take(2)) · 묶음 둘 자리 바꾸기 ·
@@ -431,26 +456,30 @@ N-02 — test/alert_detail_test.dart
    (빈) emptyLabel 빼기 · 빈 문장을 고정 행이 있을 때도 정적 글자로 · 빈 갈래에 칩 빼기 ·
      🔵 참고 — 동치: «빈 문장에 화면 조건 더하기(고정·묶음 0 일 때만)»(계약상 emptyLabel 은 고정·묶음이 다 빈 날만 온다 — 잡을 표본 0 · 드라이런 R3).
    (확인) 버튼을 acked 에도 · 버튼을 ack null 에도 · 버튼을 주입 null 에도(비활성) · 누르면 acknowledgeAlert 두 번 · 누르면 0번 · 누른 뒤 버튼 숨김 · 누른 뒤 행 숨김(낙관) · 접수증 글자 빼기 · 실패 글자 빼기 ·
-     확인 다이얼로그 겹치기 · ack.stateLabel 빼기 · 🆕 기다리는 동안 버튼 살리기(_busy 무시 — N01-07 pending) · 🆕 누른 뒤 상태 글자를 접수증으로(낙관 — N01-07 accepted) · 🆕 재발행 초기화 빼기(didUpdateWidget 0 — N01-12) ·
+     확인 다이얼로그 겹치기 · ack.stateLabel 빼기 · 기다리는 동안 버튼 살리기(_busy 무시 — N01-07 pending) · 누른 뒤 상태 글자를 접수증으로(낙관 — N01-07 accepted) · 재발행 초기화 빼기(didUpdateWidget 0 — N01-12) ·
+     🆕 거부 접수증을 실패 글자로(N01-07 rejected) ·
      🔵 참고 — 타입이 막음: «confirmKillChecklist 를 같은 버튼에»(가짜 받침대가 던진다 = 테스트 실패로 드러남 · 정적 N07 이 이름 0 을 본다) · 🔵 참고 — 테스트 밖: «완료 때 id 비교 빼기»(늦은 완료 경합 · 드라이런 D2 SURVIVED · 눈으로 본다).
-   (링크) 행 탭 0 · 행 탭에 deepLink · detailLink null 에도 탭(빈 링크) · N-02 근거 0 · 근거에 detailLink · 링크를 글자로 그리기(탐침 · C4r13b-6) ·
-     🔵 참고 — 정적이 잡음(테스트로는 동치 · 드라이런 R2·R6): «행 탭 링크를 'aaq://alerts/<id>' 로 조립»(표본 detailLink 가 조립 꼴과 같다 — 정적 N04 EXIT:0) · «slug·secret 낱말 주석»(정적 N32).
-   (N-02) bodyText·actionLine 한 Text 로 잇기 · 두 블록 자리 바꾸기 · 시각 빼기 · 제목을 title + code 로 늘리기 · raisedAtText null 에도 빈 줄 · 근거 버튼을 deepLink null 에도.
-   (상태 — 갈래마다) 센터·상세 에러를 스켈레톤으로 · 값 뒤 에러에 마지막 asOf 글자 빼기(센터) · 재시도에 invalidate 0(센터 · 상세) · 오래됨 배너 빼기(행 있음 · 빈 — 둘 다) · 배너를 칩 아래로 · 신선도 비교 뒤집기 · 벽시계로 신선도 ·
+   (링크) 행 탭 0 · 행 탭에 deepLink · detailDeepLink null 에도 탭(빈 링크) · N-02 근거 0 · 근거에 detailDeepLink · 링크를 글자로 그리기(탐침 · C4r13b-6) ·
+     🔵 참고 — 정적이 잡음(테스트로는 동치 · 드라이런 R2·R6): «행 탭 링크를 'aaq://alerts/detail/<id>' 로 조립»(표본 detailDeepLink 가 조립 꼴과 같다 — 정적 N04 EXIT:0) · «slug·secret 낱말 주석»(정적 N32).
+   (N-02) bodyText·actionLine 한 Text 로 잇기 · 두 블록 자리 바꾸기 · 시각 빼기 · 제목을 title + code 로 늘리기 · raisedAtText null 에도 빈 줄 · 근거 버튼을 deepLink null 에도 ·
+     🆕 머리(asOf) 빼기 · 모르는 id 를 에러 화면으로(item null → ShellErrorView) · missingLabel 빼기 · 모르는 id 를 정적 글자로.
+   (상태 — 갈래마다) 센터·상세 에러를 스켈레톤으로 · 값 뒤 에러에 마지막 asOf 글자 빼기(센터 · 🆕 상세) · 재시도에 invalidate 0(센터 · 상세) · 오래됨 배너 빼기(센터 행 있음 · 빈 · 🆕 상세 item · 모르는 id — 넷) · 배너를 칩 아래로 ·
+     신선도 비교 뒤집기(센터 · 🆕 상세) · 벽시계로 신선도(센터 · 🆕 상세) ·
      화면에 정적 글자 하나 더하기(센터 · 상세 — 둘 다) · 스피너 더하기.
    🔵 판정 = 변이마다 ui_shell 의 flutter test 전부(골든 포함) + 정적 묶음(🔵 참고 «정적이 잡음» 몫). 골든은 아이콘 모양 일부를 못 본다 — 모양 변이는 N01-02 가 잡는다 ·
-     드라이런 = 72꼴(갈래·짝마다 · 판정 4파일 alert_center_test · alert_detail_test · n01_golden · n02_golden · --update-goldens 0) — 예고 전부 KILLED 66 · 🔵 참고 6(M04·M04b·R3 동치 · R2·R6 정적 · D2 테스트 밖) · 예고 SURVIVED 0.
+     드라이런 = 72꼴(갈래·짝마다 · 판정 4파일 alert_center_test · alert_detail_test · n01_golden · n02_golden · --update-goldens 0) — 예고 전부 KILLED 66 · 🔵 참고 6(M04·M04b·R3 동치 · R2·R6 정적 · D2 테스트 밖) · 예고 SURVIVED 0(첫 판) ·
+     🆕 v1.15 반영판 = ⟦실측: 재드라이런 — 늘어난 N-02·거부 접수증 변이 포함 · 예고 SURVIVED 0 이어야 보낸다⟧.
 
 ■ 정적 묶음 — 아래 34줄을 파일로 꺼내 Git Bash 로 돌리고(C4r5a-2 · 🔴 터미널에 붙여 넣어 돌리지 않는다 — 대화형 bash 는 ! 든 줄을 건너뛸 수 있다 · bash 라고만 치면 이 PC 에서는 WSL), 나온 출력 전부를 PR 본문 ② 에 코드 블록 하나로 그대로 붙인다
-  (대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 출력 줄 수(EXIT 줄 포함) = 145줄 — 붙이기 전에 세어 같은지 본다 ·
+  (대조에서 빼는 것 = 빈 줄·EXIT 표기·warning:·error: 줄·PowerShell 장식 줄·줄 머리 경과 시각뿐 · 🔴 출력은 줄이지 않는다 · 출력 줄 수(EXIT 줄 포함) = ⟦실측: 재드라이런 · 기대 147줄(첫 판 145 + N19 의 n02-asof · n02-missing)⟧ — 붙이기 전에 세어 같은지 본다 ·
    🆕 머리 글자 = ASCII 만(C4r5e-5) · 🆕 줄 수 기대는 판정 줄 위주(목록 줄은 N11 · N12 · N19 셋 — format 이 줄을 나눠도 수가 흔들리지 않는 꼴 · C4r5e-4) · «EXIT:1» = 출력 없음 · 블록 뒤 S05 결과 줄마다 정확히 «<파일>:<줄> — 탭 콜백 안»)
   실행 꼴(packages/ui_shell 에서 · PowerShell · 🔴 손으로 옮겨 쓰지 않는다 — 꺼내기 줄이 이 카드 main 판의 34줄을 그대로 꺼낸다):
-  & "C:\Program Files\Git\bin\bash.exe" -c "mkdir -p ../../build && git show 'origin/main:docs/ai-context/send/R14a-Bob-N01N02.md' | sed -n '455,488p' > ../../build/r14a_static.sh"
+  & "C:\Program Files\Git\bin\bash.exe" -c "mkdir -p ../../build && git show 'origin/main:docs/ai-context/send/R14a-Bob-N01N02.md' | sed -n '484,517p' > ../../build/r14a_static.sh"
   git hash-object ../../build/r14a_static.sh   ← 23b9bda2c893636be47a3c5b683cdb48de40fc27(= 아래 34줄 · 다르면 멈추고 채팅으로)
   & "C:\Program Files\Git\bin\bash.exe" -c "LC_ALL=C.UTF-8 bash ../../build/r14a_static.sh > ../../build/r14a_static_out.txt"
   Select-String -Path ..\..\build\r14a_static_out.txt -Pattern '^EXIT:(?![01]$)'
      ← 출력 없음이어야 한다 · 🔴 EXIT 가 0·1 밖(128 · 2 …)인 줄이 하나라도 나오면 그 검사가 돌지 않은 것 — 바로 위 줄을 한 번 더 돌린다 · 두 번째에도 나오면 멈추고 출력 파일 전부를 채팅으로(C4L-4)
-  (Get-Content ..\..\build\r14a_static_out.txt).Count   ← 145(EXIT 줄 34 포함) · (Select-String -Path ..\..\build\r14a_static_out.txt -Pattern '^EXIT:1$').Count ← 19 · -Pattern '^EXIT:0$' ← 15
+  (Get-Content ..\..\build\r14a_static_out.txt).Count   ← ⟦실측: 재드라이런 · 기대 147⟧(EXIT 줄 34 포함) · (Select-String -Path ..\..\build\r14a_static_out.txt -Pattern '^EXIT:1$').Count ← 19 · -Pattern '^EXIT:0$' ← 15
   ② 에 붙일 출력 = Get-Content -Encoding UTF8 ..\..\build\r14a_static_out.txt 전부(build/ 는 .gitignore 대상 — git status 는 빈 채 · 커밋 0 · 할 일의 «미리 돌리기» 도 이 꼴)
 echo "## N01 new test files hangul 0 (comment lines only)"; git grep -nP "'[^'\n]*[\x{AC00}-\x{D7A3}]" -- test/shell_fakes.dart test/alert_center_test.dart test/alert_detail_test.dart test/golden/n01_golden_test.dart test/golden/n02_golden_test.dart; echo "EXIT:$?"
 echo "## N02 test names ASCII"; git grep -nP "(testWidgets|test|group)\('[^']*[^\x00-\x7F]|^\s*'[^']*[^\x00-\x7F][^']*',?\s*$" -- test/alert_center_test.dart test/alert_detail_test.dart test/golden/n01_golden_test.dart test/golden/n02_golden_test.dart; echo "EXIT:$?"
@@ -486,33 +515,33 @@ echo "## N31 precondition marks (pre)"; git grep -c "// pre$" -- test/alert_cent
 echo "## N32 secret words in alerts 0"; git grep -niE "slug|ping url|api.?key|healthchecks|secret" -- lib/src/alerts; echo "EXIT:$?"
 echo "## N33 local read state 0"; git grep -nE "isRead|markRead|_read\b|_seen|dismiss" -- lib/src/alerts; echo "EXIT:$?"
 echo "## N34 bare takeException 0"; git grep -nE "^\s*tester\.takeException\(\);" -- test/alert_center_test.dart test/alert_detail_test.dart; echo "EXIT:$?"
-  (줄의 뜻과 기대(✅ 드라이런 실측과 같다 · 2026-10-30) — N01 = 주석 줄 말고 출력 없음 · N02 = 출력 없음 · N03 = 4줄(alert_center_test 12 · alert_detail_test 6 · n01_golden 1 · n02_golden 1) · N04 = 0 ·
+  (줄의 뜻과 기대(✅ 첫 판 드라이런 실측 · 🆕 v1.15 반영으로 바뀐 것 = N19 · N31 · 출력 줄 수 — 재드라이런이 다시 잰다) — N01 = 주석 줄 말고 출력 없음 · N02 = 출력 없음 · N03 = 4줄(alert_center_test 12 · alert_detail_test 6 · n01_golden 1 · n02_golden 1) · N04 = 0 ·
    S05 = 2줄(alert_center.dart 행 탭 · alert_detail.dart 근거 탭 — 줄마다 탭 콜백 안) · N06 = 3줄(alert_center watchCenter · alert_detail watchAlert · alert_ack acknowledgeAlert) · N07 = 0 · N08 = 3줄(_levelLook 세 갈래) ·
    N09 = 1줄(alert_ack.dart 의 if (!a.acked && api != null) — 드라이런) · N10 = «lib/l10n/labels.dart:4» · N11 = 8줄(l10n/labels.dart · src/alerts/alert_center.dart · src/alerts/alert_detail.dart · src/ops_home.dart · src/ops_rhythm.dart ·
    src/routing/shell_router.dart · src/shell_providers.dart · src/shell_scaffold.dart 차례 — R14a 몫 = 둘째·셋째 · 기대 — 🔵 «정확히» 판정 = R14b W11) · N12 = 15줄(R13 14 + 끝 1 = final Provider<CommandApi?> shellAlertCommandApiProvider · 기대 — «정확히» = R14b W12 · 이 카드 판정 = +1 · 삭제 0(N26)) · N13~N16 = 0 ·
    N17 = «test/alert_center_test.dart:11» · «test/alert_detail_test.dart:5» · N18 = «test/alert_center_test.dart:4»(alert_detail 줄 없음)(🔴 정확히 — 다르면 반려) ·
-   N19 = 이름 17 = 위 «Key 표» 의 리터럴 이름(n01-loading · n01-fail · n01-asof · n01-p0-only · n01-pin · n01-sec · n01-row · n01-digest · n01-drow · n01-empty · n02-loading · n02-fail · n02-title · n02-time · n02-body · n02-action · n02-link — 순번 꼴은 머리만 · 같은 이름이 갈래마다 두 번 나와도 된다 · 표 밖 0) ·
+   N19 = 이름 19 = 위 «Key 표» 의 리터럴 이름(n01-loading · n01-fail · n01-asof · n01-p0-only · n01-pin · n01-sec · n01-row · n01-digest · n01-drow · n01-empty · n02-loading · n02-fail · n02-asof · n02-missing · n02-title · n02-time · n02-body · n02-action · n02-link — 순번 꼴은 머리만 · 같은 이름이 갈래마다 두 번 나와도 된다 · 표 밖 0) ·
    N20 = 4줄($base-state · $base-ack · $base-receipt · $base-ack-fail) · N21~N25 = 0 · N26 = 네 줄(labels.dart · shell_providers.dart · ui_shell.dart · shell_fakes.dart — 둘째 수 0 · ui_shell.dart 첫째 수 2 · 첫째 수는 재량 — 삭제 0 만 본다) ·
-   그 밖 파일 줄 없음(🆕 R13 골든 테스트 3파일 포함 — 고치면 줄이 나온다) · N27 = 0 · N28 = 0 · N29 = 0 · N30 = 10줄 전부 «A»(n01_* 6 · n02_* 4 만) · N31 = «test/alert_center_test.dart:22» · «test/alert_detail_test.dart:7»(🔴 정확히) · N32 = 0 · N33 = 0 · N34 = 0)
+   그 밖 파일 줄 없음(🆕 R13 골든 테스트 3파일 포함 — 고치면 줄이 나온다) · N27 = 0 · N28 = 0 · N29 = 0 · N30 = 10줄 전부 «A»(n01_* 6 · n02_* 4 만) · N31 = «test/alert_center_test.dart:23» · «test/alert_detail_test.dart:10»(🔴 정확히) · N32 = 0 · N33 = 0 · N34 = 0)
   (🔵 git grep -c 가 0 인 파일은 줄로 나오지 않는다 — 출력 그대로 붙이고 «:0» 을 손으로 더하지 않는다 · N07 · N32 · N33 은 주석 줄도 센다(규칙 15))
 
 ■ 골든 — 5이름 × light/dark = 10장(전부 신규 · 이름 = 04 §5-2 (c) 글자 그대로 + N-02 권고 이름 · golden README «🆕 R14» 절 표 그대로)
-  n01 — test/golden/n01_golden_test.dart · 크기 = kGoldenPhoneSize(390 × 844 · 드라이런 맨 아래 dy = n01_p0_ack 416.0 · n01_digest 244.0 · n01_empty 152.0 · n02_detail 276.0 · n02_no_link 116.0 — light = dark) · 위젯 = AlertCenter() · 명령 = FakeShellAlertCommandApi(receipt: …) · 저장소 = FakeShellAlertCenterRepository(…) · 시계 = FixedClock(kGoldenNowUtc)
+  n01 — test/golden/n01_golden_test.dart · 크기 = kGoldenPhoneSize(390 × 844 · 드라이런 맨 아래 dy = n01_p0_ack 416.0 · n01_digest 244.0 · n01_empty 152.0 — light = dark · 🆕 n02_detail · n02_no_link = ⟦실측: 재드라이런 — v1.15 머리(asOf)가 붙어 첫 판 276.0 · 116.0 보다 내려간다⟧) · 위젯 = AlertCenter() · 명령 = FakeShellAlertCommandApi(receipt: …) · 저장소 = FakeShellAlertCenterRepository(…) · 시계 = FixedClock(kGoldenNowUtc)
     (🔴 가짜·저장소·명령은 testWidgets 안에서 새로 — 공장 꼴(C4r5d-5) · _Flow 칸에 인스턴스 0 · light·dark 공유 금지):
     이름           입력      주입       흐름    맨 아래 Key
     n01_p0_ack     p0ack     operator   없음    ValueKey<String>('n01-row-0-1')
     n01_digest     digest    operator   없음    ValueKey<String>('n01-digest-1')(🔵 접힌 채 — 04 «P2 3건 ▾ 접힘»)
     n01_empty      empty     operator   없음    Key('n01-empty')
-  n02 — test/golden/n02_golden_test.dart · 크기 = kGoldenPhoneSize · 위젯 = AlertDetail(alertId: item.alertId):
-    n02_detail     full      operator   없음    ValueKey<String>('n02-ack')
-    n02_no_link    bare      operator   없음    Key('n02-action')
+  n02 — test/golden/n02_golden_test.dart · 크기 = kGoldenPhoneSize · 위젯 = AlertDetail(alertId: flow.vm.item!.alertId) · 상세 공장 = (int call) => one(flow.vm):
+    n02_detail     fullV     operator   없음    ValueKey<String>('n02-ack')
+    n02_no_link    bareV     operator   없음    Key('n02-action')
   모양 = h02_golden_test.dart(R13a)와 같은 (이름, 입력, 맨 아래 Key, 흐름) 목록(private class _Flow) × Brightness.values 루프 · 흐름 = 클로저 칸(전부 (WidgetTester t) async {}) · 테스트 이름 '${flow.name} ${brightnessSuffix(b)}' ·
   주입 = pumpForGolden(tester, <위젯>, brightness: b, logicalSize: kGoldenPhoneSize, wrapApp: (Widget app) => ProviderScope(overrides: alertOverrides(…), child: app)) → await tester.pump(); → await flow.steps(tester); →
-    (<위젯> = n01 파일 const AlertCenter() · n02 파일 AlertDetail(alertId: flow.item.alertId) — n02 의 _Flow 입력 칸 = AlertItem item · 드라이런 지적)
+    (<위젯> = n01 파일 const AlertCenter() · n02 파일 AlertDetail(alertId: flow.vm.item!.alertId) — n02 의 _Flow 입력 칸 = AlertDetailVm vm(🆕 v1.15 · 드라이런 지적 꼴 그대로))
     await tester.pumpAndSettle(); → 위치 전제 둘 → expectGolden(flow.name, b).
   위치 전제 둘 = 이 코드 글자 꼴(C4r3-5 · 흐름 뒤 · expectGolden 앞):
     expect(tester.getBottomLeft(find.byKey(flow.bottom)).dy, lessThan(kGoldenPhoneSize.height));
-    expect(tester.getTopLeft(find.byKey(const Key('n01-asof'))).dy, 0.0);      ← n02 파일은 Key('n02-title')
+    expect(tester.getTopLeft(find.byKey(const Key('n01-asof'))).dy, 0.0);      ← n02 파일은 Key('n02-asof')(🆕 v1.15 — 머리가 맨 위)
   명령(packages/ui_shell): flutter test --update-goldens test/golden/n01_golden_test.dart → flutter test --update-goldens test/golden/n02_golden_test.dart → flutter test(옵션 없이 · git status 에 새 PNG 10 만 ?? · M 0).
   🔴 다른 골든 파일·폴더를 --update-goldens 에 넣지 않는다 · 🔴 높이는 늘리지 않는다(카드 확정값) · 머리 dy == 0 전제가 실패하면 고치지 말고 멈춘 뒤 실측 dy 를 질문 파일에 ·
      골든 높이 = 카드 확정값 + 여백 재량 — 줄였으면 «측정:» 행(줄이기 전 dy · 줄인 뒤 dy · 자리)을 질문 파일에 · 여백 밖을 바꿔야 들어가면 멈추고 dy 를 질문 파일에.
@@ -535,14 +564,14 @@ echo "## N34 bare takeException 0"; git grep -nE "^\s*tester\.takeException\(\);
 ■ 제출
   (할 일 (1)~(4) 커밋이 끝난 뒤 — 마지막 커밋 = format·질문 커밋(또는 (5)))
   cd packages/ui_shell
-  flutter test test/alert_center_test.dart          ← 끝 줄 그대로(기대 «+23: All tests passed!»)
-  flutter test test/alert_detail_test.dart          ← 끝 줄 그대로(기대 «+10: All tests passed!»)
+  flutter test test/alert_center_test.dart          ← 끝 줄 그대로(기대 «+24: All tests passed!»)
+  flutter test test/alert_detail_test.dart          ← 끝 줄 그대로(기대 «+13: All tests passed!»)
   flutter test test/golden/n01_golden_test.dart     ← 끝 줄 그대로(기대 «+6: All tests passed!»)
   flutter test test/golden/n02_golden_test.dart     ← 끝 줄 그대로(기대 «+4: All tests passed!»)
-  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 43 — 드라이런 117 → «+160: All tests passed!»)
+  flutter test   ← 옵션 없이 전부 통과(끝 줄 그대로 · 기대 = 시작 기준 N + 47 — ⟦실측: 재드라이런 · 기대 117 → «+164: All tests passed!»⟧)
   cd ../..
   & "C:\Program Files\Git\bin\bash.exe" tool/check_boundaries.sh   ← Git Bash 전체 경로(C4r5a-2) · 실패 0 · 🔵 main 에 원래 있는 ui_journal 🟡 1건(«packages/ui_journal/lib/src/timeline.dart:109»)은 이 카드와 무관 — 그대로 둔다
-  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · test:contracts 의 domain_contracts 끝 줄 «+392 ~30: All tests passed!»(드라이런 v1.15 흉내 · v1.15 병합본에서 다시 잰다 · 이 카드 몫 0) · «Some tests failed»·«FAILED» 0건 · format 0 changed(&& 가 안 되면 한 줄씩 · 🔴 백그라운드·파이프 금지)
+  melos.bat run format && melos.bat run analyze && melos.bat run test && melos.bat run test:contracts   ← 전부 SUCCESS · test:contracts 의 domain_contracts 끝 줄 «+⟦실측: 재드라이런 · 기대 408 — M2 가지 d9916ca 실측⟧ ~30: All tests passed!»(v1.15 병합본에서 다시 잰다 · 이 카드 몫 0) · «Some tests failed»·«FAILED» 0건 · format 0 changed(&& 가 안 되면 한 줄씩 · 🔴 백그라운드·파이프 금지)
   git status --short   ← 🔴 비어 있어야 다음으로
   git diff --name-status origin/main...HEAD
      ← 기대(이 줄들만 · 앞머리 packages/ui_shell/): M lib/l10n/labels.dart · A lib/src/alerts/alert_ack.dart · A lib/src/alerts/alert_center.dart · A lib/src/alerts/alert_detail.dart · M lib/src/shell_providers.dart · M lib/ui_shell.dart ·
@@ -572,8 +601,8 @@ echo "## N34 bare takeException 0"; git grep -nE "^\s*tester\.takeException\(\);
      dart tool/precheck.dart --base origin/main --collection-if 0 --report $env:TEMP\R14a-Bob-N01N02_submit.md --golden-prefix n01 --goldens 6 | Out-File -Encoding utf8 $env:TEMP\r14a_pre2_n01.txt; Get-Content -Encoding UTF8 $env:TEMP\r14a_pre2_n01.txt | Select-Object -Last 1
      dart tool/precheck.dart --base origin/main --collection-if 0 --report $env:TEMP\R14a-Bob-N01N02_submit.md --golden-prefix n02 --goldens 4 | Out-File -Encoding utf8 $env:TEMP\r14a_pre2_n02.txt; Get-Content -Encoding UTF8 $env:TEMP\r14a_pre2_n02.txt | Select-Object -Last 1
         ← 🔴 두 출력 끝 줄 «── 결과: 🔴 0 · …» 를 눈으로 확인한 뒤에만 낸다(🔴 1 이상이면 글을 고쳐 다시 돌린다) · 출력은 채팅에 붙이지 않는다(출력 전부 = $env:TEMP\r14a_pre2_n0?.txt · 화면엔 끝 줄 한 줄씩) ·
-          🔵 🟡 [G1] 은 멈춤이 아니다(드라이런 기대 🟡 = 6행 — n01: n01_p0_ack light·dark «덩어리 차례 다름»(G1 이 버튼을 «칩 1개» 로 읽는다 · 표는 «버튼 글자») · n01_digest light·dark «글자 줄 수만 다름»(표 4줄 · G1 3줄) ·
-          n02: n02_detail light·dark «덩어리 차례 다름»(같은 까닭) → 🔴 이 6행은 그대로 낸다 · PNG 를 다시 열지 않는다 · 칸을 고치지 않는다) · 🟡 [G1] 이 그 밖의 행에서 **상자 수·덩어리 차례**를 다르게 읽으면 그 이름의 light PNG 를 다시 열어 표를 맞춘다(안 줄 수만 다른 🟡 · «덩어리로 셀 수 없어 대조하지 않았다» 🟡 는 그대로 · C4r5b-4) ·
+          🔵 🟡 [G1] 은 멈춤이 아니다(드라이런 기대 🟡 = ⟦실측: 재드라이런 — 첫 판 6행 = n01 4 · n02 2⟧ — n01: n01_p0_ack light·dark «덩어리 차례 다름»(G1 이 버튼을 «칩 1개» 로 읽는다 · 표는 «버튼 글자») · n01_digest light·dark «글자 줄 수만 다름»(표 4줄 · G1 3줄) ·
+          n02: n02_detail light·dark «덩어리 차례 다름»(같은 까닭 · 🆕 v1.15 머리 줄이 붙어 재드라이런이 다시 잰다) → 🔴 이 행들은 그대로 낸다 · PNG 를 다시 열지 않는다 · 칸을 고치지 않는다) · 🟡 [G1] 이 그 밖의 행에서 **상자 수·덩어리 차례**를 다르게 읽으면 그 이름의 light PNG 를 다시 열어 표를 맞춘다(안 줄 수만 다른 🟡 · «덩어리로 셀 수 없어 대조하지 않았다» 🟡 는 그대로 · C4r5b-4) ·
           🔴 🟡 수가 카드 기대보다 많으면 늘어난 🟡 행의 light PNG 를 다시 열어 표를 맞춘다 — 다시 열지 않고 그대로 내면 ② 반려(C4r5d-1).
    ① 아래 «① 머리 복사 상자» 한 줄 그대로 + «바뀐 파일:» + name-status 출력 그대로(코드 블록 하나) + «커밋 목록:» + log 출력 그대로(코드 블록 하나)
       ┌── ① 머리 복사 시작(다음 줄부터)
@@ -619,28 +648,30 @@ echo "## N34 bare takeException 0"; git grep -nE "^\s*tester\.takeException\(\);
 ⓗ = N18 출력:
 <N18 출력 줄 그대로>
       └── ⓡⓗ 복사 끝(이 줄 앞까지)
-   ③ 스크린샷 서술 — 센터 로딩·정상·빈·에러·오래됨 5줄 + 상세 로딩·정상·부재·에러 4줄 + 골든 표 10행(처음부터 · 코드와 PNG 를 다시 열어 맞춘 뒤)
+   ③ 스크린샷 서술 — 센터 로딩·정상·빈·에러·오래됨 5줄 + 상세 로딩·정상·부재·모르는 id·에러·오래됨 6줄 + 골든 표 10행(처음부터 · 코드와 PNG 를 다시 열어 맞춘 뒤)
       🔴 서술 = 코드의 위젯·Key 이름 나열(«렌더 순서» 그대로 «→» · 조건부는 «(있을 때)» · 위 «화면 1·2» 배치와 다르면 제출하지 말고 멈춤) · 요약어 금지 · 색·테마 낱말 0(사전검사 R2) — 이 견본 글자 그대로(🆕 «자리 바꿈» 줄은 이 글자 그대로 — 펼치지 않는다 · C4r5e-7):
          «센터 정상» = ListView → Key('n01-asof') → ShellStaleBanner(있을 때) → Key('n01-p0-only') → ValueKey<String>('n01-pin-$i')(AlertAckBlock) → ValueKey<String>('n01-sec-$s') → ValueKey<String>('n01-row-$s-$i')(AlertAckBlock) →
                      ValueKey<String>('n01-digest-$s')(있을 때) → ValueKey<String>('n01-drow-$s-$i')(펼쳤을 때) → Key('n01-empty')(있을 때)
          «센터 빈» = «센터 정상» 의 행 자리에 Key('n01-empty')
          «센터 로딩» = ShellSkeleton(Key('n01-loading')) · «센터 에러» = ShellErrorView(Key('n01-fail')) · «센터 오래됨» = ListView → Key('n01-asof') → ShellStaleBanner → Key('n01-p0-only')
-         «상세 정상» = ListView → Key('n02-title') → Key('n02-time')(있을 때) → Key('n02-body') → Key('n02-action') → Key('n02-link')(있을 때) → AlertAckBlock(ValueKey<String>('n02-state') → ValueKey<String>('n02-ack')(있을 때))
+         «상세 정상» = ListView → Key('n02-asof') → ShellStaleBanner(있을 때) → Key('n02-title') → Key('n02-time')(있을 때) → Key('n02-body') → Key('n02-action') → Key('n02-link')(있을 때) →
+                     AlertAckBlock(ValueKey<String>('n02-state') → ValueKey<String>('n02-ack')(있을 때))
          «상세 부재» = «상세 정상» 에서 Key('n02-time') · Key('n02-link') · AlertAckBlock 글자가 빠진 꼴
-         «상세 로딩» = ShellSkeleton(Key('n02-loading')) · «상세 에러» = ShellErrorView(Key('n02-fail'))
+         «상세 모르는 id» = «상세 정상» 의 Key('n02-title') 부터 끝까지 자리에 Key('n02-missing')
+         «상세 로딩» = ShellSkeleton(Key('n02-loading')) · «상세 에러» = ShellErrorView(Key('n02-fail')) · «상세 오래됨» = ListView → Key('n02-asof') → ShellStaleBanner → Key('n02-title')
       골든 표 10행(한 표 · 한 행 한 줄): «| 이름 | 입력 픽스처 | 주입 | 크기 | 위치 전제 dy | 배치·잘림 |» + 바로 다음 줄 구분 줄 «|---|---|---|---|---|---|»(없으면 표로 그려지지 않는다 · C4r5d-8) · 이름 칸 = «n01_p0_ack light» 꼴 ·
-        🆕 입력 = 파일 이름만(경로 앞머리 없이 · C4r5e-7 — alert_center_p0_ack.json · alert_center_digest.json · alert_center_empty.json · n02 두 행 = 그 행을 꺼낸 파일 이름) · 주입 = operator · 크기 = 390×844 ·
+        🆕 입력 = 파일 이름만(경로 앞머리 없이 · C4r5e-7 — alert_center_p0_ack.json · alert_center_digest.json · alert_center_empty.json · n02 두 행 = alert_detail_full.json · alert_detail_no_link.json) · 주입 = operator · 크기 = 390×844 ·
         dy = 이름·밝기마다 잰 값 · 배치·잘림 = 이름마다 light PNG 한 장만 연다(5장) · dark 행 = 같은 이름 light 행 칸 글자 그대로(dy 가 같을 때만) ·
         칸 꼴 = «<덩어리 → 로 — 글자 n줄 · 상자 · 칩 n개 · 버튼 글자> — 잘림 없음» 또는 «… — 잘림: <어디가 어떻게>»(10행 모두 꼬리 · 코드 이름·픽스처 낱말·영문 0 · 🔴 사전검사 G1 출력을 옮기지 않는다) ·
         셈 단위 견본 2행(드라이런이 PNG 를 열어 쓴 칸 · 꼴만 본뜬다 · 🔴 견본과 같은 이름의 행은 꼬리까지 견본 글자 그대로 — PNG 가 견본과 다르게 보이면 칸을 바꾸지 말고 질문 파일에 · C4r5d-1):
          «| n01_p0_ack light | alert_center_p0_ack.json | operator | 390×844 | 416.0 | 글자 1줄 → 칩 1개 → 글자 2줄 → 버튼 글자 → 글자 6줄 — 잘림 없음 |»
-         «| n02_detail light | alert_center_p0_ack.json | operator | 390×844 | 276.0 | 글자 4줄 → 버튼 글자 → 글자 1줄 → 버튼 글자 — 잘림 없음 |».
+         «| n02_detail light | alert_detail_full.json | operator | 390×844 | ⟦실측: 재드라이런 — dy⟧ | ⟦실측: 재드라이런 — PNG 를 열어 쓴 칸(첫 판 «글자 4줄 → 버튼 글자 → 글자 1줄 → 버튼 글자 — 잘림 없음» 앞에 머리 글자 줄이 붙는다)⟧ |».
    ④ 질문 목록 — git -c core.quotePath=false diff origin/main...HEAD -- docs/ai-context/inbox/N01N02_questions.md 출력에서 «+|» 로 시작하는 줄 전부(코드 블록 하나 · 순서 그대로 · 줄머리 «+» 까지 출력 그대로 — 지우지 않는다 · C4r5d-8 · 손으로 만들지 않는다)
    ⑤ 추측한 것 = N01N02_questions.md 새 A 행 중 «측정:» 이 아닌 행 전부 — 번호로(🔴 없으면 정확히 «없음» 한 낱말)
       ┌── 시작·끝 복사 시작(다음 줄부터 · 1줄)
 flutter test: 시작 기준 <N> → 끝 <packages/ui_shell 의 flutter test 끝 줄 그대로>
       └── 시작·끝 복사 끝(이 줄 앞까지 · 끝 자리 = 시각·«+수»·«All tests passed!» 까지 끝 줄 그대로 · 사전검사 R5)
-   (+ flutter test 한 줄 — 위 상자의 글자 틀 그대로(기대 M = N + 41 · 다르면 그 위 한 줄에 «까닭:» + 테스트 파일별 끝 줄))
+   (+ flutter test 한 줄 — 위 상자의 글자 틀 그대로(기대 M = N + 47 · 다르면 그 위 한 줄에 «까닭:» + 테스트 파일별 끝 줄))
 ````
 
 ---
@@ -652,9 +683,9 @@ flutter test: 시작 기준 <N> → 끝 <packages/ui_shell 의 flutter test 끝 
 - `test/` 새 파일 4(`alert_center_test.dart` · `alert_detail_test.dart` · `golden/n01_golden_test.dart` · `golden/n02_golden_test.dart`) + 수정 1(`shell_fakes.dart` 끝 절) + 새 PNG 10장 · 재생성 0.
 - 질문 파일 `N01N02_questions.md`(새 행 A1~A5 «측정:» 반드시).
 - 저장 파일 `$env:TEMP\R14a-Bob-N01N02_submit.md`(PR 본문 5섹션 + flutter test 한 줄) + 채팅 두 줄 · 사전검사 ① 한 번 · ② 두 번(`n01` 6 · `n02` 4) 🔴 0.
-- `flutter test` = 시작 기준 N(117 · 드라이런 — v1.15 병합본에서 다시 잰다) + 43(뷰 33 + 골든 10) · 정적 N10 = 4 · N17 = 11 · 5 · N18 = 4 · N20 = 4 · N30 = 10 A · N31 = 22 · 7(🔴 정확히) · N11 = 8줄 · N12 = 15(기대 — «정확히» = R14b · 이 카드 = 더하기만) · 출력 145줄 · S05 = 2 · N06 = 3 · N08 = 3.
-- 재분할 임계(드라이런): 새 `testWidgets(`·`test(` 줄 20 · lib +429 · 새 PNG 10 → 재분할 없음.
-- 🔴 C4 가 넣어 볼 예고 변이 중 드라이런이 확인한 것: 예고 전부 KILLED(66꼴 · 갈래·짝마다) · 🔵 참고 6(동치 3 · 정적 2 · 테스트 밖 1 — «예고 변이» 🔵 참고 줄) · 표 = 통합 담당 스크래치 `r14/mut_R14a-Bob-N01N02/table.md` + `r14/mut_fix/`.
+- `flutter test` = 시작 기준 N(⟦실측: 재드라이런 · 기대 117⟧) + 47(뷰 37 + 골든 10) · 정적 N10 = 4 · N17 = 11 · 5 · N18 = 4 · N20 = 4 · N30 = 10 A · N31 = 23 · 10(🔴 정확히) · N11 = 8줄 · N12 = 15(기대 — «정확히» = R14b · 이 카드 = 더하기만) · N19 = 이름 19 · 출력 ⟦실측: 재드라이런 · 기대 147⟧줄 · S05 = 2 · N06 = 3 · N08 = 3.
+- 재분할 임계: 새 `testWidgets(`·`test(` 줄 20 · lib ⟦실측: 재드라이런 · 첫 판 +429⟧ · 새 PNG 10 → 재분할 없음.
+- 🔴 C4 가 넣어 볼 예고 변이 중 드라이런이 확인한 것: 첫 판 = 예고 전부 KILLED(66꼴 · 갈래·짝마다) · 🔵 참고 6(동치 3 · 정적 2 · 테스트 밖 1 — «예고 변이» 🔵 참고 줄) · 표 = 통합 담당 스크래치 `r14/mut_R14a-Bob-N01N02/table.md` + `r14/mut_fix/` · 🆕 v1.15 반영판 = 재드라이런이 다시 넣는다(실측 표식 자리).
 
 ## 4. 받은 뒤 Claude에게 보낼 문장(한 줄)
 
@@ -670,8 +701,8 @@ R14a-Bob-N01N02 결과: 브랜치 ui/m8-n01-alerts 푸시됨 — PR 만들고 �
 - 🔵 `golden:approved` 는 **이 카드에 필요 없다**(새 PNG 만 · 기존 24장 무변경).
 - 🔵 C-46·C-47·경계 [5b][5c] 의 화면 스캔은 `ui_shell` 을 뺀다(01 §8 미결 91) — 이 카드는 정적 N07 · N13 · N14 · N32 가 그 구멍을 메운다(통합 담당이 C4 때 같은 줄을 다시 돌린다).
 - 🔵 R14 2장 중 1번째 — 이 카드 병합 기록이 `send/_대기/R14b-Bob-W01.md` 를 `send/` 로 옮기고 `__R14A_SQ__`·`__R14A_PR__`·«앞 카드 병합 기록 때 채움» 실측 자리를 채운다 · «정확히 N»(라벨 35 · PNG 40 · README 장수) = R14b.
-- ⬜ 남은 표식 = ⟦v1.15: …⟧ 자리(`LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R14a-Bob-N01N02.md` 로 센다 — 01 v1.15 절 번호 · ② 이름표 표식) + 자리표시자 `__R14V115_SQ__`(계약 v1.15 squash) — 계약 v1.15 병합 기록 때 채운다 · ✅ 누적 드라이런 실측(끝 N · 정적 출력·EXIT 수 · 꺼내기 줄 범위·해시 · 골든 dy · 견본 칸 · lib 줄 · 변이 표 · 🟡 기대)은 채웠다(2026-10-30) · 드라이런 값 중 v1.15 병합본에 기대는 셋(계약 버전 줄 1.15.0 · 시작 기준 117 · `domain_contracts` +392 ~30)은 그때 다시 잰다 — 🔴 보내기 전 0.
-- 범위 고지: 01 §8 미결 10(뷰어 ALERT_ACK · v1 = 부재) · 91(셸 스캔 제외) · 137(ShellLinkOpener 늘 push)은 이 카드가 닫지 않는다 · 🆕 기록 후보(발주자 확인 뒤 01 §8 신설) = 사다리 단계 글자(G6 · ⑩ — 소유 카드를 함께) · N-02 핸드북 앵커(G7) · §5-5 채널 고지(G8 · M9 — 🆕 «알림 센터 첫 진입 1회» 판정 = 엔진 플래그(`AlertCenterVm` 의 채널 고지 목록 · 보여 줄 때만 non-null) · 화면 로컬 기억 0(N33 과 같은 뜻) · 소유 = M9 S-* 또는 R14 뒤 셸 손질 — 명세 지적) · N-02 신선도 원천(⑪ — 소유 카드를 함께) · 알림 센터 셸 진입점(⑥) · F-01 이관(①) · 🆕 셸 공용 모양 함수(`AlertLevel`·`UiLevel` 아이콘·색 — R14b 가 H-01 `_cellLook` 글자를 복사 · P0 `error_outline` 은 H-01 act 와 같은 글리프(색만 다름 — error vs secondary)) = 다음 셸 손질 카드.
+- ⬜ 남은 표식 = 실측 표식(꺾쇠 U+27E6 으로 여는 자리 — 셈 = `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R14a-Bob-N01N02.md` · 🔵 이 안내 줄에는 그 글자를 쓰지 않았다 — 셈이 이 줄을 세지 않는다) + 자리표시자 `__R14V115_SQ__`(계약 v1.15 squash — v1.15 병합 기록 때) · 🆕 실측 표식은 전부 **재드라이런 몫**(v1.15 가지 위 — 시작 기준 N · 끝 N · `domain_contracts` 수 · lib 줄 · 정적 출력 줄 수 · `n02_*` dy · `n02_detail` 견본 칸 · 🟡 기대 · 변이 표 — 꺼내기 줄 범위·해시는 이 판 글자로 이미 맞췄다 · 재드라이런이 카드 글자를 고치면 다시 잰다) · ✅ 이 판에서 채운 것 = 01 §24 절 번호 · 이름표(M2 코드 글자) · 0단계 계약 버전 줄(`1.15.0`) — 🔴 보내기 전 표식 0 · 자리표시자 0.
+- 범위 고지: 01 §8 미결 10(뷰어 ALERT_ACK · v1 = 부재) · 91(셸 스캔 제외) · 137(ShellLinkOpener 늘 push)은 이 카드가 닫지 않는다 · 🆕 v1.15 가 01 §8 에 적은 미결(이 카드가 닫지 않는다 · 소유 카드 = 01 §24-8) = 138 사다리 단계 줄(소유 = R14 뒤 셸 손질 카드) · 139 N-02 핸드북 앵커(R16) · 140 §5-5 채널 능력 고지(M9 — «첫 진입 1회» = 엔진 플래그 · 화면 로컬 기억 0 = N33 과 같은 뜻) · 141 알림 센터 셸 진입점 · 142 뷰어 원천(엔진 레인) · 144 `ui_shell` 화면 스캔 빈틈(이 카드 정적 묶음이 메운다) · 145 공용 모양 함수(`AlertLevel`·`UiLevel` 아이콘·색 — R14b 가 H-01 `_cellLook` 글자를 복사 · P0 `error_outline` 은 H-01 act 와 같은 글리프 · 색만 다름) · 146 구 `watchInbox` 표본의 표시 필드 null · 148 공통 상태 ⑤ 차단·⑥ 부분 동기 · F-01 = 엔진 레인(06 `M1-15` · 04 §5-6 네 규약).
 
 ## 6. R14 이월 반영 — 설계 12 §3 부록 중 대상 «R14» 항목(2026-10-30 · 조립 — ✅ 는 병합된 것만이라 쓰지 않는다)
 
@@ -684,11 +715,11 @@ R14a-Bob-N01N02 결과: 브랜치 ui/m8-n01-alerts 푸시됨 — PR 만들고 �
 | C4r5e-5 PowerShell 5.1 인코딩 | 정적 묶음 머리 글자 ASCII(34줄 전부) · ② 붙이기 줄 `Get-Content -Encoding UTF8` · ■ 제출 사전검사 ①·N3 앞 `[Console]::OutputEncoding` · «2» 6번 · ■ 제출 «UTF-8 · BOM 있어도 됨» | infra(사전검사 ② «??»·U+FFFD 🟡) = 12 §3 부록 그대로 |
 | C4r5e-6 타입이 막는 변이 = 참고 | 예고 변이 (등급) «level 다시 매기기» · (확인) «confirmKillChecklist 같은 버튼» = «🔵 참고 — 타입이 막음(적용 불가)» | — |
 | C4r5e-7 ③ «자리 바꿈» 줄 · 입력 칸 = 파일 이름만 | ■ 제출 ③ 견본 머리(«자리 바꿈» 줄 = 글자 그대로) · «센터 빈» · «상세 부재» 줄 · 골든 표 «입력 = 파일 이름만» | — |
-| C4r5a-5 «선택 UI 더하기» · «rows 있을 때도 빈 문장» | 예고 변이 (필터) «칩 두 개» · (빈) «빈 문장을 고정 행이 있을 때도» | 01 §8 «rows non-empty ∧ emptyLabel non-null» 의미 한 줄 = 계약 v1.15 이름표가 정함(«고정·묶음이 다 빈 날의 엔진 문장») — M2 보강 PR 의 01 절에 |
+| C4r5a-5 «선택 UI 더하기» · «rows 있을 때도 빈 문장» | 예고 변이 (필터) «칩 두 개» · (빈) «빈 문장을 고정 행이 있을 때도» | ✅ 01 §24 K10(«`emptyLabel` non-null ⇔ `pinned` 0 ∧ `sections` 0» · 계약 C-49 가 픽스처로 지킨다) |
 | C4r5a-7 «없는 쪽» 양성 기준점 | 규칙 10 «없는 쪽» 견본(`n01-pin-0` findsOneWidget) · N02-02 양성 기준점 | — |
 | C4r5a-8 G1 «상자(안 n)» · 같은 기하 같은 셈 | 규칙 요약 셈 단위(칩 · 버튼 글자 2) | infra 그대로 |
 | C4r5c-5 견본 «그대로» 의 폭 | (a) 공통 «흐름 = 클로저 칸 — 이 꼴이 코드 글자다» · 골든 흐름 = 전부 `(WidgetTester t) async {}` | (b) X7 `_restoreDone` = 해당 없음(초안 0) |
 | C4r5d-5 골든 «명령 칸» = 공장 | ■ 골든 «가짜·저장소·명령은 testWidgets 안에서 새로 — 공장 꼴 · _Flow 칸에 인스턴스 0» | 이 카드는 X7 카드가 아니지만 골든이 확인 버튼(명령 주입)을 찍어 반영 · 다음 X7 카드 몫 = 부록 그대로 |
-| C4r13a-3 참고 변이 6꼴(셸) | — | 🔵 이 카드는 S-01·H-02 테스트 파일을 고치지 않는다(규칙 1) → 통합 담당 test-only PR(R5 #85 선례 · R14b 병합 뒤) 권고 · «빈 + emptyLabel null» 표본 = M2 보강 PR 에 얹을 수 있음(발주자 확인 ⑭) |
+| C4r13a-3 참고 변이 6꼴(셸) | — | 🔵 이 카드는 S-01·H-02 테스트 파일을 고치지 않는다(규칙 1) → 통합 담당 test-only PR(R5 #85 선례 · R14b 병합 뒤) 권고 · «빈 + emptyLabel null» 표본 = test-only PR 몫(✅ ⑭ 권고대로 · v1.15 는 싣지 않았다) |
 | C4r13b-4 T01-09 today_stale 존재 목록 · valueThenFail | — | 🔵 홈 연결 0(셸 진입 0 · ⑥) → C4r13a-3 와 한 test-only PR 권고(⑭) |
 | 공통 교훈(R5a~R5e) | 머리 «교훈 반영» 줄 · «2» 6·7번 · 규칙 10 반려 꼴 · ■ 정적 묶음 실행 꼴 · ■ 제출 N3 G1 조문 · ③ 구분 줄 · ④ «+» · N34 | — |

@@ -74,9 +74,9 @@
 
 - R13 시작 **0장**(`ui_shell` 첫 골든) → R13a 병합 뒤 **8장**(+ `s01_*` 4 · `h02_*` 4 · ✅ 2026-10-27 PR #71 `315bbbd` · `git ls-tree` 8) → R13b 병합 뒤 **24장**(+ `h01_*` 16 · ✅ 2026-10-27 PR #74 `49e4329` · `git ls-tree` 24). 질문 파일 = `docs/ai-context/inbox/S01H02_questions.md`(R13a) · `H01_questions.md`(R13b).
 
-## 🆕 R14(계약 v1.15 전제 · 🔀 2분할) — `N-01`·`N-02`(R14a) · `W-01`(R14b) (2026-10-30 조립 · ⬜ 선행 = 계약 v1.15 보강(R14 선행 M2) · ✅ 누적 드라이런(v1.15 흉내 위) · ⬜ 발주자 확인 · ⬜ 병합 전 — 이 절의 dy 는 드라이런 실측 · 장수는 계획이다)
+## 🆕 R14(계약 v1.15 전제 · ✅ 2분할 확정) — `N-01`·`N-02`(R14a) · `W-01`(R14b) (2026-10-30 조립 · 🆕 v1.15 실물 반영 재조립 · ⬜ 선행 = 계약 v1.15 보강 병합(R14 선행 M2 · 가지 `m2/v115-r14`) · ✅ 발주자 확인(2026-10-30) · ⬜ 재드라이런 · ⬜ 병합 전 — 이 절의 dy 는 첫 판 드라이런 실측(`n02_*`·`w01_*` 는 재드라이런이 다시 잰다) · 장수는 계획이다)
 
-- 카드 = `docs/ai-context/send/R14a-Bob-N01N02.md`(`send/` · ⬜) · `docs/ai-context/send/_대기/R14b-Bob-W01.md`(R14a 병합 기록 때 `send/` 로) · `F-01` FGS = 화면 카드 밖(골든 0 · 엔진 레인 M1-15 권고).
+- 카드 = `docs/ai-context/send/R14a-Bob-N01N02.md`(`send/` · ⬜) · `docs/ai-context/send/_대기/R14b-Bob-W01.md`(R14a 병합 기록 때 `send/` 로) · `F-01` FGS = 화면 카드 밖(골든 0 · ✅ 엔진 레인 06 `M1-15` · 2026-10-30 발주자).
 - 이 절은 통합 담당이 쓴다(화면 담당 무수정 — 카드 규칙 1 «golden README 고치면 반려»).
 
 ### 1. 골든 이름 — R14a 5이름 × light/dark = 10장 · R14b 3이름 × 2 = 6장 · 재생성 0
@@ -86,14 +86,14 @@
 | `n01_p0_ack` | 2 | `test/golden/n01_golden_test.dart` | `m8/alert_center_p0_ack`(v1.15 · 고정 P0 3 — 미확인 사다리·확인됨·EXIT_URGENT ack 없음 · «오늘» 묶음 P1 2) · 주입 operator(확인 버튼 1) · `ValueKey('n01-row-0-1')` < 844 · `Key('n01-asof')` dy 0.0 |
 | `n01_digest` | 2 | 〃 | `m8/alert_center_digest`(v1.15 · «오늘» P1 1 · «2026-08-30» 접힌 묶음 «P2 3건» — 접힌 채) · `ValueKey('n01-digest-1')` < 844 · 머리 0.0 |
 | `n01_empty` | 2 | 〃 | `m8/alert_center_empty`(v1.15 · 고정·묶음 0 · 엔진 빈 문장) · `Key('n01-empty')` < 844 · 머리 0.0 |
-| `n02_detail` | 2 | `test/golden/n02_golden_test.dart` | `m8/alert_center_p0_ack` 의 고정 행 0(시각·근거·사다리 있음) · 주입 operator · `ValueKey('n02-ack')` < 844 · `Key('n02-title')` dy 0.0 |
-| `n02_no_link` | 2 | 〃 | `m8/alert_center_digest` 의 접힌 행 2(시각·근거·ack 없음) · `Key('n02-action')` < 844 · 머리 0.0 |
-| `w01_delayed` | 2 | `test/golden/w01_golden_test.dart` | `m8/watchdog_delayed`(v1.15 · 6행 — 성공 3 · 지연 2 · 실패 1 · `level`) · `ValueKey('w01-row-5')` < 844 · `Key('w01-asof')` dy 0.0 |
-| `w01_holiday` | 2 | 〃 | `m8/watchdog_holiday`(v1.15 정리 · 휴장 성공 핑 3(`state_code` OK · level ok) · 성공 2 · `holiday_notice` 형제 키는 화면 밖) · `ValueKey('w01-row-4')` < 844 · 머리 0.0 |
-| `w01_paused` | 2 | 〃 | 🆕 `m8/watchdog_paused`(v1.15 신설 · 일시정지 3 · 성공 2) · `ValueKey('w01-row-4')` < 844 · 머리 0.0(🔵 발주자 확인 R14b ③ 대안 = 이 이름 빼고 4장) |
+| `n02_detail` | 2 | `test/golden/n02_golden_test.dart` | 🆕 `m8/alert_detail_full`(v1.15 `AlertDetailVm` · item = 센터 고정 행 0 과 같은 값 — 시각·근거·사다리 있음) · 주입 operator · `ValueKey('n02-ack')` < 844 · 🆕 `Key('n02-asof')` dy 0.0(머리) |
+| `n02_no_link` | 2 | 〃 | 🆕 `m8/alert_detail_no_link`(v1.15 · item = 센터 접힌 행 2 와 같은 값 — 시각·근거·ack 없음) · `Key('n02-action')` < 844 · 머리 0.0 |
+| `w01_delayed` | 2 | `test/golden/w01_golden_test.dart` | `m8/watchdog_delayed`(v1.15 `WatchdogBoardVm` · 6행 — 성공 3 · 지연 2 · 실패 1 · `level` · 머리 «마지막 수신» · 하단 한계 고지) · 🆕 `Key('w01-limit')` < 844 · `Key('w01-asof')` dy 0.0 |
+| `w01_holiday` | 2 | 〃 | `m8/watchdog_holiday`(v1.15 정리 · 휴장 성공 핑 3(`state_code` OK · level ok) · 성공 2 · 🆕 휴장 고지 `holidayNotice` = 하단에 그린다) · 🆕 `Key('w01-limit')` < 844 · 머리 0.0 |
+| `w01_paused` | 2 | 〃 | 🆕 `m8/watchdog_paused`(v1.15 신설 · 일시정지 3 · 성공 2) · 🆕 `Key('w01-limit')` < 844 · 머리 0.0(✅ 발주자 확인 R14b ③ 권고대로 = 이 이름 그대로) |
 
 - 공통: 시계 `FixedClock(kGoldenNowUtc)` · 흐름 = 클로저 칸(전부 `(WidgetTester t) async {}`) · 가짜·저장소·명령 = testWidgets 안에서 새로(공장 꼴 · C4r5d-5) · 크기 = `kGoldenPhoneSize`(390 × 844 · 카드 확정값 — 늘리지 않는다 · 드라이런 dy 로 확인).
-- 드라이런 실측 dy(맨 아래 Key · light = dark · 2026-10-30 · `dry/r14-1`·`dry/r14-1b`(n01·n02) · `dry/r14-2`·`dry/r14-2b`(w01)): `n01_p0_ack` 416.0 · `n01_digest` 244.0 · `n01_empty` 152.0 · `n02_detail` 276.0 · `n02_no_link` 116.0 · `w01_delayed` 584.0 · `w01_holiday` 440.0 · `w01_paused` 480.0 — 전부 844 미만 · 머리 dy 0.0 · 높이 늘림 0.
+- 드라이런 실측 dy(맨 아래 Key · light = dark · 2026-10-30 · `dry/r14-1`·`dry/r14-1b`(n01·n02) · `dry/r14-2`·`dry/r14-2b`(w01)): `n01_p0_ack` 416.0 · `n01_digest` 244.0 · `n01_empty` 152.0 — 전부 844 미만 · 머리 dy 0.0 · 높이 늘림 0 · 🆕 `n02_*`(첫 판 276.0 · 116.0) · `w01_*`(첫 판 행 끝 584.0 · 440.0 · 480.0) = v1.15 머리(`n02-asof`)·머리·하단 줄(`w01-received`·`w01-holiday`·`w01-limit`)이 붙어 **재드라이런이 다시 잰다**(맨 아래 Key 도 `w01-limit` 로 바뀌었다).
 - 🔵 W-01 상태 아이콘 = H-01 `_cellLook` 글리프 그대로(R14b ⑪ · 드라이런 반영판 = PNG 불변 — 테스트 글꼴에서 아이콘은 작은 네모 · 색만 PNG 에 남는다).
 - 보고 «배치·잘림» 칸 — Bob 은 이름마다 light PNG 한 장만 연다(R14a 5장 · R14b 3장).
 
