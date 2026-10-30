@@ -2,8 +2,8 @@
 //
 // WatchdogBoard — W-01 워치독 상태(04 §7 · K3 · K4 · K15~K17 · 계약 v1.15).
 //
-// 🔴 Scaffold·AppBar·SafeArea·Navigator 없음(화면 규칙 · 부모 높이 안 ListView).
-// 🔴 watchWatchdog() 하나만 구독.
+// 🔴 래퍼 없음(화면 규칙 · 부모 높이 안 ListView).
+// 🔴 구독 하나(watchWatchdog).
 
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/material.dart';
