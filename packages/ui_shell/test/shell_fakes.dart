@@ -76,7 +76,7 @@ class FakeShellConfigRepository extends UnimplementedConfigRepository {
   }
 }
 
-class FakeShellAlertRepository implements AlertRepository {
+class FakeShellAlertRepository extends UnimplementedAlertRepository {
   FakeShellAlertRepository({required this.inbox});
 
   final Stream<List<AlertItem>> Function(int call) inbox;
@@ -333,7 +333,7 @@ class FakeShellHoldingsRepository extends UnimplementedHoldingsRepository {
   }
 }
 
-class FakeShellOpsStatusRepository implements OpsStatusRepository {
+class FakeShellOpsStatusRepository extends UnimplementedOpsStatusRepository {
   FakeShellOpsStatusRepository({required this.diagnostics});
 
   final Stream<DiagnosticsVm> Function(int call) diagnostics;
@@ -345,25 +345,6 @@ class FakeShellOpsStatusRepository implements OpsStatusRepository {
     calls = calls + 1;
     return diagnostics(call);
   }
-
-  @override
-  Stream<ListResult<WatchdogCheck>> watchWatchdog() =>
-      throw UnimplementedError('watchWatchdog');
-
-  @override
-  Stream<ConnectionsVm> watchConnections() =>
-      throw UnimplementedError('watchConnections');
-
-  @override
-  Stream<DeviceAccessVm> watchDeviceAccess() =>
-      throw UnimplementedError('watchDeviceAccess');
-
-  @override
-  Stream<BackupVm> watchBackup() => throw UnimplementedError('watchBackup');
-
-  @override
-  Stream<AnnualReviewVm> watchAnnualReview() =>
-      throw UnimplementedError('watchAnnualReview');
 }
 
 class FakeShellLedgerTrustRepository
