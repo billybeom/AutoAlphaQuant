@@ -66,4 +66,10 @@ abstract final class ShellLabels {
   static const String homeSelfAuditAction = '실사하기';
   static const String homeDeployed = '투자분';
   static const String homeParking = '파킹';
+
+  // ── 🆕 R14a — N-01·N-02 알림 ──────────────────────────────────────────────
+  static const String alertsP0Only = 'P0만 보기';
+  static const String alertsAck = '확인했습니다';
+  static const String alertsEvidence = '근거 보기';
+  static const String alertsAckNotAccepted = '접수되지 않았습니다';
 }
