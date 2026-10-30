@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 90개 · 계약 v1.14.0 · 조립일 2026-10-27(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 90개 · 계약 v1.15.0 · 조립일 2026-10-30(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -174,12 +174,19 @@ export 'commands/settings_actions.dart';
 //    `PRICE_JUMP`·`CALENDAR_SUSPECT` — `data_gap.reason_code`) · 🆕 `ddl/batch_g_market_data.sql`(`market_series`·`fetch_log`
 //    신설 · `daily_prices` += `source`·`fetched_at` · `regime_score_daily` += `source` · 스키마 v1 한 판) · `data_gap.dataset`
 //    주석 += macro·regime·calendar · 🆕 C-48 · C-15 축 +3 · 픽스처 176(봉투 버전만).
+// 🆕 '1.15.0'(R14 선행 · 01 §24 · 발주자 결정 2026-10-30 ①~④ · K1~K23) — 알림 센터·상세·워치독 표시 계약:
+//    `AlertCenterVm`·`AlertSection`·`AlertDetailVm` · `AlertItem` +3(`raisedAtText`·`groupedText`·`detailDeepLink`) ·
+//    `AlertRepository.watchCenter({required bool p0Only})`·`watchAlert(alertId)`(추가형 · `watchInbox` 무변경) ·
+//    `CommandApi.acknowledgeAlert(String alertId)`(인자 교체 · 와이어 `AlertAck` 무변경) · 라우트 `alertsInbox`·`alertDetail`(54) ·
+//    `WatchdogBoardVm` · `watchWatchdog()` 반환 교체 · `WatchdogCheck` − `slug` + `checkId` + `level` · 받침대
+//    `UnimplementedAlertRepository`·`UnimplementedOpsStatusRepository` · 🆕 C-49 · 픽스처 176 → 187(신설 11 · 개정 5) —
+//    🆕 tool/gen_r14_v115_fixtures.py(기준 1bb1a84 원문에서 멱등 생성).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.14.0';
+const String contractVersion = '1.15.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -391,6 +398,7 @@ export 'repositories/what_if_api.dart';
 // 🆕 v1.12(01 §21 · K4) — X7 기록 3종(`recordManualFill`·`skipAdvice`·`submitSelfReportBalance`)의 인자 = «화면 제출»
 //    DTO(원문 · `payloads_x7.dart`). 화면은 와이어 DTO·`CommandContext` 를 만들지 않는다 — 파싱·맥락 부착·세션 시각은
 //    이 인터페이스의 구현이 한다(실패 = 큐 적재 없는 `rejected` 접수증 `INPUT_INVALID`).
+// 🆕 v1.15(01 §24 · K12) — `acknowledgeAlert` 인자 = `String alertId`(와이어 `AlertAck` = 구현이 만든다).
 
 import 'command_receipt.dart';
 import 'payloads.dart';
@@ -452,8 +460,13 @@ abstract interface class CommandApi {
     SelfReportSubmission submission,
   );
 
-  /// 🔴 효력 없는 «수신 확인».
-  Future<CommandReceipt> acknowledgeAlert(AlertAck ack);
+  /// 🔴 효력 없는 «수신 확인»(P0 승급 사다리 정지만 · `SafetyState` 무영향 · A5).
+  /// 🆕 v1.15(01 §24 · K12) 인자 교체(구 `AlertAck ack` — 화면은 `CommandContext` 를 만들지 않는다 · G-19 · C-28 ⑨) ·
+  /// 와이어 = [AlertAck](구현이 맥락을 붙인다 · [deferAdviceConfirm] 선례) · 🔴 폰(operator) 전용
+  /// (뷰어 = 주입 없음 = 버튼 부재 · §8-10).
+  /// 구현 의무 ⓐ [alertId] 단위 멱등 — 이미 확인된 알림의 두 번째 확인은 거부가 아니라 `executed`(효과 0)
+  /// ⓑ 모르는 id · 사다리 없는 알림(`ack == null`) = 큐 적재 없는 `rejected`(`INPUT_INVALID` · [watchCommand] 의무 ④).
+  Future<CommandReceipt> acknowledgeAlert(String alertId);
 
   /// 🔴 48h 해제 카운트다운 개시의 유일한 방아쇠.
   Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack);
@@ -1187,6 +1200,7 @@ abstract class SelfReportBalance with _$SelfReportBalance {
 }
 
 /// 🔴 A5 — 순수 수신 확인. `SafetyState` 에 **아무 효력이 없다**. P0 승급 사다리 정지만.
+/// 🆕 v1.15(01 §24 · K12) — 화면 인자 아님 · `CommandApi.acknowledgeAlert(String)` 구현이 만든다.
 /// ⏸ J-3 — 뷰어 허용 여부는 §8-10 미결이며 현행 `command_insert_viewer` 4종 화이트리스트를
 ///    유지한다(= 지금은 폰 전용).
 @freezed
@@ -3816,16 +3830,26 @@ abstract class OpsRhythmRow with _$OpsRhythmRow {
       _$OpsRhythmRowFromJson(json);
 }
 
-/// m2-8 G-3 — 워치독 체크 1행(04 §7 `W-01`).
-/// 🔴 `slug` 는 **2축 합성** `{sim|live}-{auto|advisory}-{체크명}` 이며(§9-5 ⑦ · C20)
-///    목록의 길이·이름은 **서버가 준다** — 화면이 상수 배열을 갖지 않는다.
+/// m2-8 G-3 — 워치독 체크 1행(04 §7 `W-01`). 🆕 v1.15(01 §24 · K4 · K16 · K17) — `slug` 삭제 → [checkId] · [level].
+///
+/// 🔴 목록의 길이·이름·차례는 **서버가 준다** — 화면이 상수 배열을 갖지 않는다.
+/// 🔴 healthchecks 슬러그(2축 합성 `{sim|live}-{auto|advisory}-{체크명}` · §9-5 ⑦ · C20)·ping URL·키는 이 DTO 에
+///    **오지 않는다**(엔진·워치독 설정 몫 · 04 §7 «뷰모델에 그 필드가 없어야 정상» · C-49 ⑪).
 @freezed
 abstract class WatchdogCheck with _$WatchdogCheck {
   const factory WatchdogCheck({
-    required String slug,
+    /// 🆕 v1.15(K17) — 엔진이 짓는 불투명 id(보드 안 유일). 🔴 슬러그·URL 에서 파생하지 않는다 ·
+    /// 화면은 그리지도 · Key 로도 · 비교로도 쓰지 않는다(Key = 순번).
+    required String checkId,
     required String label,
+
+    /// 화면 미참조(사전 아님 — 엔진 몫).
     required String stateCode,
     required String stateLabel,
+
+    /// 🆕 v1.15(K16) — 상태 모양의 유일한 근거(성공·휴장 성공 핑 = ok · 지연 = watch · 실패 = blocked ·
+    /// 일시정지 = info). 🔴 화면은 [stateCode] 로 색·아이콘을 고르지 않는다(v1.13 `DiagnosticCell.level` 선례).
+    required UiLevel level,
     required String lastPingText,
     String? graceText,
     String? route,
@@ -3833,6 +3857,33 @@ abstract class WatchdogCheck with _$WatchdogCheck {
 
   factory WatchdogCheck.fromJson(Map<String, dynamic> json) =>
       _$WatchdogCheckFromJson(json);
+}
+
+/// 🆕 v1.15(01 §24 · K3 · K15 · 발주자 결정 ②(b)) — `W-01` 워치독 보드 한 화면
+/// (창구 [OpsStatusRepository.watchWatchdog] 의 반환 · 구 `ListResult<WatchdogCheck>`).
+@freezed
+abstract class WatchdogBoardVm with _$WatchdogBoardVm {
+  const factory WatchdogBoardVm({
+    /// 서버가 준 목록 그대로(개수·이름·차례 = 엔진).
+    required List<WatchdogCheck> rows,
+    required AsOf asOf,
+
+    /// 행 0 일 때만 non-null(엔진 문장). 행이 있으면 null.
+    String? emptyLabel,
+
+    /// 휴장일 고지(구 봉투 형제 키 `holiday_notice`) — 휴장일만 non-null.
+    String? holidayNotice,
+
+    /// 하단 한계 고지(healthchecks.io 자체 장애 계열 · 04 §7 «한계·이력»).
+    /// 엔진 의무 = 늘 싣는다(행 0 보드 포함). null = 부재.
+    String? limitNotice,
+
+    /// 머리 «마지막 수신 17:58»(엔진 글자). 받은 적이 없으면 null.
+    String? lastReceivedText,
+  }) = _WatchdogBoardVm;
+
+  factory WatchdogBoardVm.fromJson(Map<String, dynamic> json) =>
+      _$WatchdogBoardVmFromJson(json);
 }
 
 /// 01 §4-1 · m2-8 G-4 — 홈 블록 5·7 의 오늘 요약.
@@ -5430,6 +5481,8 @@ abstract class AlertItem with _$AlertItem {
   const factory AlertItem({
     required String alertId,
     required AlertLevel level,
+
+    /// 🔴 표시용 아님 — 화면은 [raisedAtText] 만 그린다(🆕 v1.15 · 01 §24).
     required DateTime raisedAt,
 
     /// 'SAF-407' · 'RESUME_INCOMPLETE' · 'WATCHDOG_LATE'
@@ -5442,15 +5495,95 @@ abstract class AlertItem with _$AlertItem {
 
     /// 「지금 할 일」 한 줄 — 조치가 같으면 엔진이 이미 묶었다
     required String actionLine,
+
+    /// 🔴 화면은 이 수로 글자를 만들지 않는다 — [groupedText](🆕 v1.15).
     required int groupedCount,
     String? deepLink,
 
     /// P0 수신 확인 사다리 ⚠️ 쓰기 경로 미결(01 §8-10 · m2-8 J-3)
+    /// 🆕 v1.15(01 §24 · K14) — 🔴 P0 만 · `ADVICE_EXIT_URGENT` 엔 오지 않는다(04 §5-4 · C-49 ⑥).
     AckState? ack,
+
+    /// 🆕 v1.15(01 §24 · K5) — 표시 시각 «10:05»(엔진 글자 · 기기 시간대).
+    /// null = 부재(묶음이 시각 하나로 말할 수 없을 때 등).
+    String? raisedAtText,
+
+    /// 🆕 v1.15(K5) — 묶음 배지 «2건»(엔진 글자 · [groupedCount] ≤ 1 이면 null).
+    String? groupedText,
+
+    /// 🆕 v1.15(K9 · `AdviceItem.detailDeepLink` 선례) — `N-02` 상세 링크
+    /// (`aaq://alerts/detail/<alertId>` · 엔진이 완성). null = 행 탭 없음.
+    String? detailDeepLink,
   }) = _AlertItem;
 
   factory AlertItem.fromJson(Map<String, dynamic> json) =>
       _$AlertItemFromJson(json);
+}
+
+/// 🆕 v1.15(01 §24 · K2 · K10) — `N-01` 알림 센터 한 화면. 고정·묶음·접힘·정렬 = 엔진이 끝냈다.
+///
+/// 🔴 화면은 받은 차례 그대로 그린다(재분류·재정렬·재그룹·건수 집계 0) · `level` 은 아이콘·색에만.
+/// 🔴 불변식(엔진 의무 · C-49 ②~⑤) — [pinned] = P0 만 · 섹션 `rows` = P1 만 · `digestRows` = P2 만 ·
+///    [emptyLabel] non-null ⇔ [pinned] 0 ∧ [sections] 0 · `watchCenter(p0Only: true)` ⇒ [sections] 0.
+@freezed
+abstract class AlertCenterVm with _$AlertCenterVm {
+  const factory AlertCenterVm({
+    required AsOf asOf,
+
+    /// 고정 P0(엔진 순서 · 🔴 P0 만 · 확인됨 포함 · 고정을 언제 푸는지 = 엔진).
+    required List<AlertItem> pinned,
+
+    /// 날짜 묶음(엔진 순서 · 최신 날 먼저). `watchCenter(p0Only: true)` 이면 빈 목록.
+    required List<AlertSection> sections,
+
+    /// 고정·묶음이 다 빌 때만 non-null(«정상 = 무소식» 엔진 문장 · 04 §5-2). 행이 있으면 null.
+    String? emptyLabel,
+  }) = _AlertCenterVm;
+
+  factory AlertCenterVm.fromJson(Map<String, dynamic> json) =>
+      _$AlertCenterVmFromJson(json);
+}
+
+/// 🆕 v1.15(01 §24 · K10) — 날짜 묶음 1개(머리 · 펼친 P1 행 · 접힌 P2 묶음).
+///
+/// 🔴 `rows ∪ digestRows` 는 비지 않는다 · [digestLabel] non-null ⇔ [digestRows] non-empty.
+@freezed
+abstract class AlertSection with _$AlertSection {
+  const factory AlertSection({
+    /// «오늘» · «2026-08-30» — 엔진 글자.
+    required String headerText,
+
+    /// 펼친 행 — 🔴 P1 만(엔진 순서).
+    required List<AlertItem> rows,
+
+    /// 접힌 묶음 머리 «P2 3건» — 엔진 글자 · [digestRows] 가 비면 null.
+    String? digestLabel,
+
+    /// 접힌 행 — 🔴 P2 만 · 펼침 여부 = 화면 표시 상태(데이터 0 · 기본 접힘).
+    required List<AlertItem> digestRows,
+  }) = _AlertSection;
+
+  factory AlertSection.fromJson(Map<String, dynamic> json) =>
+      _$AlertSectionFromJson(json);
+}
+
+/// 🆕 v1.15(01 §24 · K2 · K11 · 발주자 결정 ②(a)) — `N-02` 알림 상세 한 화면.
+///
+/// 🔴 [item] non-null XOR [missingLabel] non-null · [item] = 센터의 같은 `alertId` 객체와 같은 값(같은 엔진 산출).
+@freezed
+abstract class AlertDetailVm with _$AlertDetailVm {
+  const factory AlertDetailVm({
+    required AsOf asOf,
+
+    /// 그 알림(센터의 같은 `alertId` 객체와 같은 값).
+    AlertItem? item,
+
+    /// 모르는·지난 id = 엔진 문장 — 🔴 스트림 에러가 아니라 값이다.
+    String? missingLabel,
+  }) = _AlertDetailVm;
+
+  factory AlertDetailVm.fromJson(Map<String, dynamic> json) =>
+      _$AlertDetailVmFromJson(json);
 }
 
 /// P0 수신 확인 상태(m2-8 D-2).
@@ -5458,6 +5591,8 @@ abstract class AlertItem with _$AlertItem {
 /// ⚠️ 쓰기 경로(`alertAck` 명령의 뷰어 허용 여부)는 01 §8-10 미결이다 —
 ///    m2-8 J-3 권고는 «허용하지 않는다»(현행 viewer 4종 화이트리스트 유지).
 /// 🔴 ack 는 `SafetyState` 에 아무 효력이 없다(A5 — P0 승급 사다리 정지만).
+/// 🆕 v1.15(01 §24 · K5 · K14) — P0 만 · `ADVICE_EXIT_URGENT` 엔 오지 않는다(04 §5-4) ·
+///    사다리 단계 줄 = 부재(01 §8 미결 138).
 @freezed
 abstract class AckState with _$AckState {
   const factory AckState({
@@ -8129,6 +8264,21 @@ abstract final class FixturePaths {
   static const String m7RealizedAllocS7 = 'm7/realized_alloc_S7.json';
 
   // ── m8/ — 셸·운영 홈·알림·온보딩 (04 §10) ──
+  /// 🆕 v1.15(01 §24 · K12) — `ALERT_ACK` 접수증 3갈래(REQUESTED · EXECUTED · REJECTED `INPUT_INVALID`) — R14a 확인 조각.
+  static const String m8AlertAckReceipts3 = 'm8/alert_ack_receipts_3.json';
+
+  /// 🆕 v1.15(K10) — 알림 센터(`AlertCenterVm`) 5벌(digest · empty · p0_ack · p0_ack_reordered · p0_only).
+  static const String m8AlertCenterDigest = 'm8/alert_center_digest.json';
+  static const String m8AlertCenterEmpty = 'm8/alert_center_empty.json';
+  static const String m8AlertCenterP0Ack = 'm8/alert_center_p0_ack.json';
+  static const String m8AlertCenterP0AckReordered =
+      'm8/alert_center_p0_ack_reordered.json';
+  static const String m8AlertCenterP0Only = 'm8/alert_center_p0_only.json';
+
+  /// 🆕 v1.15(K11) — 알림 상세(`AlertDetailVm`) 3벌(full · missing · no_link).
+  static const String m8AlertDetailFull = 'm8/alert_detail_full.json';
+  static const String m8AlertDetailMissing = 'm8/alert_detail_missing.json';
+  static const String m8AlertDetailNoLink = 'm8/alert_detail_no_link.json';
   static const String m8AlertsAdvice9codes = 'm8/alerts_advice_9codes.json';
   static const String m8AlertsDigest = 'm8/alerts_digest.json';
   static const String m8AlertsP0Ack = 'm8/alerts_p0_ack.json';
@@ -8156,8 +8306,18 @@ abstract final class FixturePaths {
   /// 🆕 v1.13(01 §23 · K5) — 대조 보드 전부 일치(칸 5 · 자가보고 해당 없음 · `headline` = 엔진 일치 문장) — R13b `h01_normal` 계열.
   static const String m8ReconBoardOk = 'm8/recon_board_ok.json';
   static const String m8RestartLostPhone = 'm8/restart_lost_phone.json';
+
+  /// 🆕 v1.15(01 §24 · K3) 꼴 = `WatchdogBoardVm` 1행(6행 · 실패 1).
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
+
+  /// 🆕 v1.15(K15) — 행 0(`emptyLabel`) · 받은 적 없음(`lastReceivedText` null).
+  static const String m8WatchdogEmpty = 'm8/watchdog_empty.json';
+
+  /// 🆕 v1.15 — 휴장 행 = 성공 핑(OK · ok) · `holidayNotice`.
   static const String m8WatchdogHoliday = 'm8/watchdog_holiday.json';
+
+  /// 🆕 v1.15(K16) — X1 유지보수 창 일시정지(`info`) 3행.
+  static const String m8WatchdogPaused = 'm8/watchdog_paused.json';
 
   // ── m9/ — 설정·운영 모드 전환 (05) ──
   // 🆕 v1.4(R11 선행) — `ConfigRepository.watchContributionSetting()` 의 입력(폴더 규약상 `m9_` 접두 없음).
@@ -8324,6 +8484,15 @@ abstract final class FixturePaths {
     m7M7WithdrawalPensionPenalty,
     m7M7WithdrawalShortfall,
     m7RealizedAllocS7,
+    m8AlertAckReceipts3,
+    m8AlertCenterDigest,
+    m8AlertCenterEmpty,
+    m8AlertCenterP0Ack,
+    m8AlertCenterP0AckReordered,
+    m8AlertCenterP0Only,
+    m8AlertDetailFull,
+    m8AlertDetailMissing,
+    m8AlertDetailNoLink,
     m8AlertsAdvice9codes,
     m8AlertsDigest,
     m8AlertsP0Ack,
@@ -8344,7 +8513,9 @@ abstract final class FixturePaths {
     m8ReconBoardOk,
     m8RestartLostPhone,
     m8WatchdogDelayed,
+    m8WatchdogEmpty,
     m8WatchdogHoliday,
+    m8WatchdogPaused,
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
     m9HandoverStates,
@@ -8634,6 +8805,7 @@ abstract final class AlertCodes {
   static const String adviceIssued = 'ADVICE_ISSUED';
 
   /// 잠정 P0 · 🔴 **ack 승급 사다리 미적용** — 대신 T-90분 [adviceDueSoon] 이 한 번 더 온다.
+  /// 🆕 v1.15 — 이 코드의 `AlertItem.ack` = 늘 null(C-49 ⑥).
   static const String adviceExitUrgent = 'ADVICE_EXIT_URGENT';
 
   /// 잠정 P1 · 유효기한 당일 장 마감 T-90분, 미기록 잔존. 1건으로 묶음.
@@ -8642,7 +8814,8 @@ abstract final class AlertCodes {
   /// 잠정 P2 · 만료 스윕 직후. 일 1건 묶음.
   static const String adviceExpired = 'ADVICE_EXPIRED';
 
-  /// 잠정 P0 · 🔴 **독립 `AlertItem`** 이며 킬스위치 알림과 같은 `groupKey` 로 인접 렌더한다
+  /// 잠정 P0 · 🔴 **독립 `AlertItem`** 이며 킬스위치 알림과 **엔진 순서로 인접**해 온다
+  /// (`groupKey` 필드 없음 · 🆕 v1.15 · 화면은 받은 차례 그대로)
   /// («동봉»은 세 번째 발송 형태라 만들지 않는다 · C13).
   static const String adviceRevoked = 'ADVICE_REVOKED';
 
@@ -10160,6 +10333,14 @@ abstract final class AppRoutes {
   /// 🆕 v1.12(01 §21 · K43) — `H-02` 운영 리듬 표(`OpsRhythm()` · `ui_shell`). 홈 블록 7·8 탭·«더 보기» = 이 상수
   /// (04 §4-6 · 규칙 ④). 등록 = 전 플랫폼 · 본문 = 전 플랫폼(`rm_ops_summary` v1 필수 · N-07).
   static const String opsRhythm = 'aaq://ops/rhythm';
+
+  /// 🆕 v1.15(01 §24 · K7) — `N-01` 알림 센터(`AlertCenter()` · `ui_shell`). 등록 = 전 플랫폼 · 가드 = 기본 open
+  /// (뷰어 = 조회 · 확인 버튼 부재). 진입 = 데이터 링크·푸시·FGS 탭(셸 진입 UI 0 · K22).
+  static const String alertsInbox = 'aaq://alerts/inbox';
+
+  /// 🆕 v1.15 — `N-02` 알림 상세(`AlertDetail(alertId:)`) · 들어오는 링크 = `AlertItem.detailDeepLink`(데이터) ·
+  /// 푸시·FGS 탭(엔진).
+  static const String alertDetail = 'aaq://alerts/detail/:alertId';
   static const String settingsContribution = 'aaq://settings/contribution';
   static const String settingsCredentials = 'aaq://settings/credentials';
   static const String handoverStatus = 'aaq://handover/status';
@@ -10225,6 +10406,8 @@ abstract final class AppRoutes {
     opsMaintenance,
     opsWatchdog,
     opsRhythm,
+    alertsInbox,
+    alertDetail,
     settingsContribution,
     settingsCredentials,
     handoverStatus,
@@ -10667,9 +10850,18 @@ abstract interface class AdviceRepository {
 import '../dto/safety.dart';
 import '../enums/safety.dart';
 
-/// 알림 목록.
+/// 알림 창구(M8).
 abstract interface class AlertRepository {
+  /// `S-01` P0 점(🔵 v1.15 무변경). 받은 차례 = 엔진 순서(등급 순 P0 → P1 → P2 · 같은 등급 안 = 엔진 · K13).
   Stream<List<AlertItem>> watchInbox({AlertLevel? min});
+
+  /// 🆕 v1.15(01 §24 · K2 · K10) — `N-01` 알림 센터. [p0Only] = «P0만 보기»(창구 인자 · 바꾸면 재구독) —
+  /// true 면 `sections` 빈 목록 · `pinned` 그대로. 🔴 화면은 받은 VM 을 거르거나 다시 묶지 않는다.
+  Stream<AlertCenterVm> watchCenter({required bool p0Only});
+
+  /// 🆕 v1.15(K2 · 발주자 결정 ②(a)) — `N-02` 알림 상세. 모르는·지난 [alertId] = `item` null + `missingLabel`
+  /// (값 · 에러 아님) · 스트림 에러 = 읽기 실패.
+  Stream<AlertDetailVm> watchAlert(String alertId);
 }
 ```
 
@@ -11004,8 +11196,9 @@ import '../primitives/list_result.dart';
 /// 워치독·연결·기기·백업·진단·연간 리뷰.
 /// ✅ H-8 — 반환 타입 이름은 `m2-8_naming.md` G-3·G-7·G-8·G-9·G-10·F-6 이 확정한 그대로다.
 abstract interface class OpsStatusRepository {
-  /// `W-01` — 🔴 목록 길이·슬러그 이름은 **서버가 준다**(2축 합성 `{sim|live}-{auto|advisory}-{체크명}`).
-  Stream<ListResult<WatchdogCheck>> watchWatchdog();
+  /// `W-01` — 🆕 v1.15(01 §24 · K3) 반환 = [WatchdogBoardVm](구 `ListResult<WatchdogCheck>`).
+  /// 🔴 목록 길이·이름·차례는 서버가 준다 · healthchecks 슬러그·ping URL·키는 이 창구에 오지 않는다(K4 · K17).
+  Stream<WatchdogBoardVm> watchWatchdog();
 
   /// `S07`.
   Stream<ConnectionsVm> watchConnections();
