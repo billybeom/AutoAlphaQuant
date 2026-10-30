@@ -4,7 +4,8 @@
 //        P0 수신 확인 사다리는 P0(청산 긴급 제외)에만 실리고, 워치독 보드는 상태 모양(`level`)·고지·마지막 수신을 싣되
 //        healthchecks 슬러그·ping URL·키는 어디에도 싣지 않는다」.
 //   ① 허용 키 ② 칸막이 ③ 빈 ④ P0만 ⑤ 재발행 ⑥ ack 사다리(전 픽스처) ⑦ 표시 글자(전 픽스처) ⑧ 상세 ⑨ 접수증
-//   ⑩ 워치독 키 ⑪ slug 0(전 픽스처) ⑫ 레벨 ⑬ 빈·고지 ⑭ 자기 링크 ⑮ 받침대.
+//   ⑩ 워치독 키 ⑪ slug 0(전 픽스처) ⑫ 레벨 ⑬ 빈·고지 ⑭ 자기 링크 ⑮ 받침대
+//   ⑯ 차례·시각(받은함 등급 순 · raised_at_text = KST · 섹션 = 최신 날 먼저 — 검증 반영).
 //
 // 🔴 픽스처 불변식만 본다 — `ui_shell` 화면 스캔은 R14 카드 정적 묶음 몫(01 §8 미결 144).
 // 🔴 한국어 글자 단언 0 — 글자는 픽스처끼리 맞댄다(상수 리터럴 = 표본 id·키 이름·코드뿐).
@@ -528,6 +529,106 @@ void main() {
         () => UnimplementedCommandApi().acknowledgeAlert('al_x'),
         throwsUnimpl,
       );
+    });
+
+    test('C-49 ⑯ 차례·시각 — 받은함 등급 순 · raised_at_text = KST · 섹션 = 최신 날 먼저', () {
+      const Map<String, int> rank = <String, int>{'P0': 0, 'P1': 1, 'P2': 2};
+      // (a) K13 — 행이 알림 객체인 봉투(watchInbox 표본): 등급이 내려가지 않는다(P0 → P1 → P2).
+      final List<String> inboxes = <String>[];
+      final List<String> bad = <String>[];
+      for (final String path in FixturePaths.all) {
+        final Object? rows = _env(path)['rows'];
+        if (rows is! List<Object?> || rows.isEmpty) {
+          continue;
+        }
+        if (!rows.every(
+          (Object? r) => r is Map<String, Object?> && r.containsKey('alert_id'),
+        )) {
+          continue;
+        }
+        inboxes.add(path);
+        final List<int> ranks = <int>[
+          for (final Map<String, Object?> r in _maps(rows))
+            rank[r['level']! as String]!,
+        ];
+        for (int i = 1; i < ranks.length; i++) {
+          if (ranks[i] < ranks[i - 1]) {
+            bad.add('$path 행 $i');
+            break;
+          }
+        }
+      }
+      expect(
+        inboxes,
+        containsAll(<String>[
+          FixturePaths.alerts12,
+          FixturePaths.m8AlertsDigest,
+          FixturePaths.m8AlertsP0Ack,
+          FixturePaths.m8AlertsAdvice9codes,
+        ]),
+      );
+      expect(
+        bad,
+        isEmpty,
+        reason: 'watchInbox 받은 차례 = 등급 순(K13).\n${bad.join('\n')}',
+      );
+
+      // (b) 전 픽스처 알림 객체: raised_at_text non-null ⇒ == raised_at 의 KST HH:mm(표본 규칙 · 01 §24).
+      DateTime kst(Map<String, Object?> a) =>
+          DateTime.parse(a['raised_at']! as String)
+              .toUtc()
+              .add(const Duration(hours: 9));
+      String two(int n) => n.toString().padLeft(2, '0');
+      final List<String> badText = <String>[];
+      int withText = 0;
+      for (final String path in FixturePaths.all) {
+        for (final Map<String, Object?> a in _alertObjects(_env(path))) {
+          final Object? t = a['raised_at_text'];
+          if (t == null) {
+            continue;
+          }
+          withText++;
+          final DateTime k = kst(a);
+          if (t != '${two(k.hour)}:${two(k.minute)}') {
+            badText.add('$path ${a['alert_id']} $t');
+          }
+        }
+      }
+      expect(withText, greaterThan(0), reason: 'raised_at_text 표본이 없다');
+      expect(badText, isEmpty, reason: badText.join('\n'));
+
+      // (c) 센터 섹션: 한 섹션 = KST 하루 · 섹션 차례 = 최신 날 먼저(K10).
+      String day(Map<String, Object?> a) {
+        final DateTime k = kst(a);
+        return '${k.year}-${two(k.month)}-${two(k.day)}';
+      }
+
+      int multi = 0;
+      for (final String path in _centers) {
+        final List<String> days = <String>[];
+        for (final Map<String, Object?> s in _sections(path)) {
+          final Set<String> ds = <String>{
+            for (final Map<String, Object?> a in <Map<String, Object?>>[
+              ..._maps(s['rows']),
+              if (s['digest_rows'] != null) ..._maps(s['digest_rows']),
+            ])
+              day(a),
+          };
+          expect(ds, hasLength(1), reason: '$path — 섹션이 하루가 아니다');
+          days.add(ds.single);
+        }
+        if (days.length > 1) {
+          multi++;
+        }
+        for (int i = 1; i < days.length; i++) {
+          expect(
+            days[i].compareTo(days[i - 1]),
+            lessThan(0),
+            reason: '$path — 섹션 $i 가 앞 섹션보다 최신이거나 같은 날',
+          );
+        }
+      }
+      expect(multi, greaterThan(0), reason: '여러 날 섹션 표본이 없다');
     });
   });
 }
