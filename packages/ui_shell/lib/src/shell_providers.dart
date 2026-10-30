@@ -144,3 +144,12 @@ final Provider<LedgerTrustRepository> shellLedgerTrustRepositoryProvider =
         'shellLedgerTrustRepositoryProvider must be overridden',
       ),
     );
+
+// ── R14a — N-01·N-02 injection providers ──────────────────────────────────
+
+final Provider<CommandApi?> shellAlertCommandApiProvider =
+    Provider<CommandApi?>(
+      (Ref ref) => throw UnimplementedError(
+        'shellAlertCommandApiProvider must be overridden',
+      ),
+    );
