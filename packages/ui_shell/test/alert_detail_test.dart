@@ -51,8 +51,9 @@ void main() {
   );
 
   // -- N02-01 fixed block order, two paragraphs, header --------------------
-  testWidgets('N02-01 block order two paragraphs header',
-      (WidgetTester tester) async {
+  testWidgets('N02-01 block order two paragraphs header', (
+    WidgetTester tester,
+  ) async {
     expect(full.raisedAtText, isNotNull); // pre
     expect(full.deepLink, isNotNull); // pre
     expect(full.ack, isNotNull); // pre
@@ -84,8 +85,7 @@ void main() {
     expect(tester.getTopLeft(title).dy, lessThan(tester.getTopLeft(time).dy));
     expect(tester.getTopLeft(time).dy, lessThan(tester.getTopLeft(body).dy));
     expect(tester.getTopLeft(body).dy, lessThan(tester.getTopLeft(action).dy));
-    expect(
-        tester.getTopLeft(action).dy, lessThan(tester.getTopLeft(link).dy));
+    expect(tester.getTopLeft(action).dy, lessThan(tester.getTopLeft(link).dy));
     expect(tester.getTopLeft(link).dy, lessThan(tester.getTopLeft(state).dy));
     expect(shownTexts(tester, aof), equals(<String?>[fullV.asOf.label]));
     expect(shownTexts(tester, title), equals(<String?>[full.title]));
@@ -93,7 +93,9 @@ void main() {
     expect(shownTexts(tester, body), equals(<String?>[full.bodyText]));
     expect(shownTexts(tester, action), equals(<String?>[full.actionLine]));
     expect(
-        shownTexts(tester, link), equals(<String?>[ShellLabels.alertsEvidence]));
+      shownTexts(tester, link),
+      equals(<String?>[ShellLabels.alertsEvidence]),
+    );
     expect(find.byKey(const Key('n02-missing')), findsNothing);
     expect(find.text(ShellLabels.staleBannerTitle), findsNothing);
     await tester.tap(find.byKey(const Key('n02-link')));
@@ -103,8 +105,9 @@ void main() {
   });
 
   // -- N02-02 absent fields null means absent --------------------------------
-  testWidgets('N02-02 absent fields null means absent',
-      (WidgetTester tester) async {
+  testWidgets('N02-02 absent fields null means absent', (
+    WidgetTester tester,
+  ) async {
     expect(bare.raisedAtText, isNull); // pre
     expect(bare.deepLink, isNull); // pre
     expect(bare.ack, isNull); // pre
@@ -136,47 +139,58 @@ void main() {
 
   // -- N02-03 ack shared block and injection --------------------------------
 
-  final List<({
-    String name,
-    FakeShellAlertCommandApi? Function() apiFn,
-    Future<void> Function(WidgetTester t, FakeShellAlertCommandApi? api) steps,
-  })> n02_03cases = <({
-    String name,
-    FakeShellAlertCommandApi? Function() apiFn,
-    Future<void> Function(WidgetTester t, FakeShellAlertCommandApi? api) steps,
-  })>[
-    (
-      name: 'operator',
-      apiFn: operatorApi,
-      steps: (WidgetTester t, FakeShellAlertCommandApi? api) async {
-        await t.tap(find.byKey(const ValueKey<String>('n02-ack')));
-        await t.pump();
-        await t.pump();
-        expect(api!.acks, equals(<String>[full.alertId]));
-        expect(
-          t
-              .widget<Text>(
-                find.byKey(const ValueKey<String>('n02-receipt')),
-              )
-              .data,
-          receipts.rows[1].stateLabel,
-        );
-      },
-    ),
-    (
-      name: 'viewer',
-      apiFn: () => null,
-      steps: (WidgetTester t, FakeShellAlertCommandApi? api) async {
-        expect(find.byKey(const ValueKey<String>('n02-ack')), findsNothing);
-        expect(
-            find.byKey(const ValueKey<String>('n02-state')), findsOneWidget);
-      },
-    ),
-  ];
+  final List<
+    ({
+      String name,
+      FakeShellAlertCommandApi? Function() apiFn,
+      Future<void> Function(WidgetTester t, FakeShellAlertCommandApi? api)
+      steps,
+    })
+  >
+  n02_03cases =
+      <
+        ({
+          String name,
+          FakeShellAlertCommandApi? Function() apiFn,
+          Future<void> Function(WidgetTester t, FakeShellAlertCommandApi? api)
+          steps,
+        })
+      >[
+        (
+          name: 'operator',
+          apiFn: operatorApi,
+          steps: (WidgetTester t, FakeShellAlertCommandApi? api) async {
+            await t.tap(find.byKey(const ValueKey<String>('n02-ack')));
+            await t.pump();
+            await t.pump();
+            expect(api!.acks, equals(<String>[full.alertId]));
+            expect(
+              t
+                  .widget<Text>(
+                    find.byKey(const ValueKey<String>('n02-receipt')),
+                  )
+                  .data,
+              receipts.rows[1].stateLabel,
+            );
+          },
+        ),
+        (
+          name: 'viewer',
+          apiFn: () => null,
+          steps: (WidgetTester t, FakeShellAlertCommandApi? api) async {
+            expect(find.byKey(const ValueKey<String>('n02-ack')), findsNothing);
+            expect(
+              find.byKey(const ValueKey<String>('n02-state')),
+              findsOneWidget,
+            );
+          },
+        ),
+      ];
 
   for (final c in n02_03cases) {
-    testWidgets('N02-03 ack shared block and injection ${c.name}',
-        (WidgetTester tester) async {
+    testWidgets('N02-03 ack shared block and injection ${c.name}', (
+      WidgetTester tester,
+    ) async {
       expect(full.ack?.acked, isFalse); // pre
       final FakeShellAlertCommandApi? api = c.apiFn();
       final FakeShellAlertCenterRepository alerts = detailOf(
@@ -199,125 +213,108 @@ void main() {
 
   // -- N02-04 state branches ------------------------------------------------
 
-  final List<({
-    String name,
-    Stream<AlertDetailVm> Function(int call) detailFn,
-    Clock clock,
-    String id,
-    List<Key> present,
-    List<Key> absent,
-    bool banner,
-    Future<void> Function(WidgetTester t) steps,
-  })> n02_04cases = <({
-    String name,
-    Stream<AlertDetailVm> Function(int call) detailFn,
-    Clock clock,
-    String id,
-    List<Key> present,
-    List<Key> absent,
-    bool banner,
-    Future<void> Function(WidgetTester t) steps,
-  })>[
-    (
-      name: 'loading',
-      detailFn: (int call) => Stream<AlertDetailVm>.multi(
+  final List<
+    ({
+      String name,
+      Stream<AlertDetailVm> Function(int call) detailFn,
+      Clock clock,
+      String id,
+      List<Key> present,
+      List<Key> absent,
+      bool banner,
+      Future<void> Function(WidgetTester t) steps,
+    })
+  >
+  n02_04cases =
+      <
+        ({
+          String name,
+          Stream<AlertDetailVm> Function(int call) detailFn,
+          Clock clock,
+          String id,
+          List<Key> present,
+          List<Key> absent,
+          bool banner,
+          Future<void> Function(WidgetTester t) steps,
+        })
+      >[
+        (
+          name: 'loading',
+          detailFn: (int call) => Stream<AlertDetailVm>.multi(
             (MultiStreamController<AlertDetailVm> c) {},
           ),
-      clock: fresh,
-      id: full.alertId,
-      present: <Key>[const Key('n02-loading')],
-      absent: <Key>[
-        const Key('n02-asof'),
-        const Key('n02-fail'),
-      ],
-      banner: false,
-      steps: (WidgetTester t) async {},
-    ),
-    (
-      name: 'fail',
-      detailFn: (int call) => Stream<AlertDetailVm>.error(
-            StateError('fail'),
-          ),
-      clock: fresh,
-      id: full.alertId,
-      present: <Key>[const Key('n02-fail')],
-      absent: <Key>[
-        const Key('n02-asof'),
-        const Key('n02-loading'),
-      ],
-      banner: false,
-      steps: (WidgetTester t) async {},
-    ),
-    (
-      name: 'value_then_fail',
-      detailFn: (int call) => valueThenFail(fullV),
-      clock: fresh,
-      id: full.alertId,
-      present: <Key>[const Key('n02-fail')],
-      absent: <Key>[const Key('n02-asof')],
-      banner: false,
-      steps: (WidgetTester t) async {
-        expect(find.text(fullV.asOf.label), findsOneWidget);
-      },
-    ),
-    (
-      name: 'stale',
-      detailFn: (int call) => one(fullV),
-      clock: old,
-      id: full.alertId,
-      present: <Key>[
-        const Key('n02-asof'),
-        const Key('n02-title'),
-      ],
-      absent: <Key>[
-        const Key('n02-fail'),
-        const Key('n02-missing'),
-      ],
-      banner: true,
-      steps: (WidgetTester t) async {
-        expect(
-          t.getTopLeft(find.text(ShellLabels.staleBannerTitle)).dy,
-          lessThan(
-            t.getTopLeft(find.byKey(const Key('n02-title'))).dy,
-          ),
-        );
-      },
-    ),
-    (
-      name: 'stale_missing',
-      detailFn: (int call) => one(missingV),
-      clock: old,
-      id: goneId,
-      present: <Key>[
-        const Key('n02-asof'),
-        const Key('n02-missing'),
-      ],
-      absent: <Key>[
-        const Key('n02-fail'),
-        const Key('n02-title'),
-        const Key('n02-loading'),
-      ],
-      banner: true,
-      steps: (WidgetTester t) async {
-        expect(
-          t.getTopLeft(find.text(ShellLabels.staleBannerTitle)).dy,
-          lessThan(
-            t.getTopLeft(find.byKey(const Key('n02-missing'))).dy,
-          ),
-        );
-        expect(
-          t
-              .widget<Text>(find.byKey(const Key('n02-missing')))
-              .data,
-          missingV.missingLabel,
-        );
-      },
-    ),
-  ];
+          clock: fresh,
+          id: full.alertId,
+          present: <Key>[const Key('n02-loading')],
+          absent: <Key>[const Key('n02-asof'), const Key('n02-fail')],
+          banner: false,
+          steps: (WidgetTester t) async {},
+        ),
+        (
+          name: 'fail',
+          detailFn: (int call) =>
+              Stream<AlertDetailVm>.error(StateError('fail')),
+          clock: fresh,
+          id: full.alertId,
+          present: <Key>[const Key('n02-fail')],
+          absent: <Key>[const Key('n02-asof'), const Key('n02-loading')],
+          banner: false,
+          steps: (WidgetTester t) async {},
+        ),
+        (
+          name: 'value_then_fail',
+          detailFn: (int call) => valueThenFail(fullV),
+          clock: fresh,
+          id: full.alertId,
+          present: <Key>[const Key('n02-fail')],
+          absent: <Key>[const Key('n02-asof')],
+          banner: false,
+          steps: (WidgetTester t) async {
+            expect(find.text(fullV.asOf.label), findsOneWidget);
+          },
+        ),
+        (
+          name: 'stale',
+          detailFn: (int call) => one(fullV),
+          clock: old,
+          id: full.alertId,
+          present: <Key>[const Key('n02-asof'), const Key('n02-title')],
+          absent: <Key>[const Key('n02-fail'), const Key('n02-missing')],
+          banner: true,
+          steps: (WidgetTester t) async {
+            expect(
+              t.getTopLeft(find.text(ShellLabels.staleBannerTitle)).dy,
+              lessThan(t.getTopLeft(find.byKey(const Key('n02-title'))).dy),
+            );
+          },
+        ),
+        (
+          name: 'stale_missing',
+          detailFn: (int call) => one(missingV),
+          clock: old,
+          id: goneId,
+          present: <Key>[const Key('n02-asof'), const Key('n02-missing')],
+          absent: <Key>[
+            const Key('n02-fail'),
+            const Key('n02-title'),
+            const Key('n02-loading'),
+          ],
+          banner: true,
+          steps: (WidgetTester t) async {
+            expect(
+              t.getTopLeft(find.text(ShellLabels.staleBannerTitle)).dy,
+              lessThan(t.getTopLeft(find.byKey(const Key('n02-missing'))).dy),
+            );
+            expect(
+              t.widget<Text>(find.byKey(const Key('n02-missing'))).data,
+              missingV.missingLabel,
+            );
+          },
+        ),
+      ];
 
   for (final c in n02_04cases) {
-    testWidgets('N02-04 state branches ${c.name}',
-        (WidgetTester tester) async {
+    testWidgets('N02-04 state branches ${c.name}', (WidgetTester tester) async {
       expect(missingV.item, isNull); // pre
       expect(missingV.missingLabel, isNotNull); // pre
       final FakeShellAlertCenterRepository alerts = detailOf(c.detailFn);
@@ -376,44 +373,51 @@ void main() {
 
   // -- N02-06 all texts large font ------------------------------------------
 
-  final List<({AlertDetailVm v, String id})> n02_06cases = <({AlertDetailVm v, String id})>[
-    (v: fullV, id: full.alertId),
-    (v: bareV, id: bare.alertId),
-    (v: missingV, id: goneId),
-  ];
+  final List<({AlertDetailVm v, String id})> n02_06cases =
+      <({AlertDetailVm v, String id})>[
+        (v: fullV, id: full.alertId),
+        (v: bareV, id: bare.alertId),
+        (v: missingV, id: goneId),
+      ];
 
   for (final c in n02_06cases) {
-    testWidgets('N02-06 all texts large font ${c.v == fullV ? 'full' : c.v == bareV ? 'bare' : 'missing'}',
-        (WidgetTester tester) async {
-      final FakeShellAlertCenterRepository alerts = detailOf(
-        (int call) => one(c.v),
-      );
-      await pumpAlertDetail(
-        tester,
-        overrides: alertOverrides(
-          alerts: alerts,
-          api: operatorApi(),
-          opener: RecordingLinkOpener(),
-          clock: fresh,
-        ),
-        alertId: c.id,
-      );
-      final Set<String?> allowed = alertDetailAllowed(c.v);
-      final List<String?> shown = tester
-          .widgetList<Text>(find.byType(Text))
-          .map((Text t) => t.data)
-          .toList();
-      expect(shown, isNotEmpty);
-      for (final String? data in shown) {
-        expect(data, isIn(allowed));
-      }
-      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
-      addTearDown(
-        () => tester.platformDispatcher.clearTextScaleFactorTestValue(),
-      );
-      await tester.pump();
-      expect(tester.takeException(), isNull);
-      expect(find.text(ShellLabels.retry), findsNothing);
-    });
+    testWidgets(
+      'N02-06 all texts large font ${c.v == fullV
+          ? 'full'
+          : c.v == bareV
+          ? 'bare'
+          : 'missing'}',
+      (WidgetTester tester) async {
+        final FakeShellAlertCenterRepository alerts = detailOf(
+          (int call) => one(c.v),
+        );
+        await pumpAlertDetail(
+          tester,
+          overrides: alertOverrides(
+            alerts: alerts,
+            api: operatorApi(),
+            opener: RecordingLinkOpener(),
+            clock: fresh,
+          ),
+          alertId: c.id,
+        );
+        final Set<String?> allowed = alertDetailAllowed(c.v);
+        final List<String?> shown = tester
+            .widgetList<Text>(find.byType(Text))
+            .map((Text t) => t.data)
+            .toList();
+        expect(shown, isNotEmpty);
+        for (final String? data in shown) {
+          expect(data, isIn(allowed));
+        }
+        tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+        addTearDown(
+          () => tester.platformDispatcher.clearTextScaleFactorTestValue(),
+        );
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+        expect(find.text(ShellLabels.retry), findsNothing);
+      },
+    );
   }
 }

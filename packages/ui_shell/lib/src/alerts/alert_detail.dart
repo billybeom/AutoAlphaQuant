@@ -109,11 +109,7 @@ class AlertDetail extends ConsumerWidget {
                 ),
               ),
             ),
-          AlertAckBlock(
-            keyBase: 'n02',
-            alertId: item.alertId,
-            ack: item.ack,
-          ),
+          AlertAckBlock(keyBase: 'n02', alertId: item.alertId, ack: item.ack),
         ],
       ],
     );

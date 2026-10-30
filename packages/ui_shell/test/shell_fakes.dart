@@ -477,10 +477,7 @@ Set<String> homeAllowed({
 // ── R14a — N-01·N-02 fakes ────────────────────────────────────────────────────
 
 class FakeShellAlertCenterRepository extends UnimplementedAlertRepository {
-  FakeShellAlertCenterRepository({
-    required this.center,
-    required this.detail,
-  });
+  FakeShellAlertCenterRepository({required this.center, required this.detail});
 
   final Stream<AlertCenterVm> Function(int call) center;
   final Stream<AlertDetailVm> Function(int call) detail;
@@ -560,7 +557,9 @@ Future<void> pumpAlertDetail(
   await tester.pumpWidget(
     ProviderScope(
       overrides: overrides,
-      child: MaterialApp(home: Scaffold(body: AlertDetail(alertId: alertId))),
+      child: MaterialApp(
+        home: Scaffold(body: AlertDetail(alertId: alertId)),
+      ),
     ),
   );
   await tester.pump();

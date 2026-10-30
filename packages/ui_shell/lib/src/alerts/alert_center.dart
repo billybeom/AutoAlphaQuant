@@ -116,11 +116,7 @@ class _SectionBlock extends StatelessWidget {
         for (final (int i, AlertItem a) in section.rows.indexed)
           _AlertTile(keyBase: 'n01-row-$s-$i', item: a),
         if (digest != null)
-          _DigestBlock(
-            index: s,
-            label: digest,
-            rows: section.digestRows,
-          ),
+          _DigestBlock(index: s, label: digest, rows: section.digestRows),
       ],
     );
   }
@@ -217,11 +213,7 @@ class _AlertTile extends ConsumerWidget {
             ),
           ),
         ),
-        AlertAckBlock(
-          keyBase: keyBase,
-          alertId: item.alertId,
-          ack: item.ack,
-        ),
+        AlertAckBlock(keyBase: keyBase, alertId: item.alertId, ack: item.ack),
       ],
     );
   }
@@ -230,7 +222,7 @@ class _AlertTile extends ConsumerWidget {
 // ── _levelLook ─────────────────────────────────────────────────────────────────
 
 (IconData, Color) _levelLook(ColorScheme cs, AlertLevel l) => switch (l) {
-      AlertLevel.p0 => (Icons.error_outline, cs.error),
-      AlertLevel.p1 => (Icons.warning_amber_outlined, cs.tertiary),
-      AlertLevel.p2 => (Icons.info_outline, cs.onSurfaceVariant),
-    };
+  AlertLevel.p0 => (Icons.error_outline, cs.error),
+  AlertLevel.p1 => (Icons.warning_amber_outlined, cs.tertiary),
+  AlertLevel.p2 => (Icons.info_outline, cs.onSurfaceVariant),
+};

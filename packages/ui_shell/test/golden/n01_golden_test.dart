@@ -76,10 +76,10 @@ void main() {
         );
         final FakeShellAlertCenterRepository alerts =
             FakeShellAlertCenterRepository(
-          center: (int call) => one(flow.vm),
-          detail: (int call) =>
-              Stream<AlertDetailVm>.error(StateError('unused')),
-        );
+              center: (int call) => one(flow.vm),
+              detail: (int call) =>
+                  Stream<AlertDetailVm>.error(StateError('unused')),
+            );
         await pumpForGolden(
           tester,
           const AlertCenter(),
@@ -103,10 +103,7 @@ void main() {
           tester.getBottomLeft(find.byKey(flow.bottom)).dy,
           lessThan(kGoldenPhoneSize.height),
         );
-        expect(
-          tester.getTopLeft(find.byKey(const Key('n01-asof'))).dy,
-          0.0,
-        );
+        expect(tester.getTopLeft(find.byKey(const Key('n01-asof'))).dy, 0.0);
 
         await expectGolden(flow.name, b);
       });

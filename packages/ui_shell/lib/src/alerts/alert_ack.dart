@@ -84,10 +84,15 @@ class _AlertAckBlockState extends ConsumerState<AlertAckBlock> {
           if (!a.acked && api != null)
             FilledButton(
               key: ValueKey<String>('$base-ack'),
-              onPressed: _busy ? null : () { unawaited(_ack(api)); },
+              onPressed: _busy
+                  ? null
+                  : () {
+                      unawaited(_ack(api));
+                    },
               child: const Text(ShellLabels.alertsAck),
             ),
-          if (label != null) Text(label, key: ValueKey<String>('$base-receipt')),
+          if (label != null)
+            Text(label, key: ValueKey<String>('$base-receipt')),
           if (_failed)
             Text(
               ShellLabels.alertsAckNotAccepted,
