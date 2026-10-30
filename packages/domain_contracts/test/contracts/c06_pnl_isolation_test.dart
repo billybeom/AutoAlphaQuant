@@ -67,6 +67,15 @@ void main() {
         FixturePaths.m8AlertsDigest,
         FixturePaths.m8AlertsP0Ack,
         FixturePaths.m8AlertsAdvice9codes,
+        // 🆕 v1.15(01 §24) — 알림 센터 5 · 상세 3(접수증 = 명령이라 뺀다).
+        FixturePaths.m8AlertCenterP0Ack,
+        FixturePaths.m8AlertCenterDigest,
+        FixturePaths.m8AlertCenterEmpty,
+        FixturePaths.m8AlertCenterP0Only,
+        FixturePaths.m8AlertCenterP0AckReordered,
+        FixturePaths.m8AlertDetailFull,
+        FixturePaths.m8AlertDetailNoLink,
+        FixturePaths.m8AlertDetailMissing,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {

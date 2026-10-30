@@ -466,6 +466,21 @@ abstract final class FixturePaths {
   static const String m7RealizedAllocS7 = 'm7/realized_alloc_S7.json';
 
   // ── m8/ — 셸·운영 홈·알림·온보딩 (04 §10) ──
+  /// 🆕 v1.15(01 §24 · K12) — `ALERT_ACK` 접수증 3갈래(REQUESTED · EXECUTED · REJECTED `INPUT_INVALID`) — R14a 확인 조각.
+  static const String m8AlertAckReceipts3 = 'm8/alert_ack_receipts_3.json';
+
+  /// 🆕 v1.15(K10) — 알림 센터(`AlertCenterVm`) 5벌(digest · empty · p0_ack · p0_ack_reordered · p0_only).
+  static const String m8AlertCenterDigest = 'm8/alert_center_digest.json';
+  static const String m8AlertCenterEmpty = 'm8/alert_center_empty.json';
+  static const String m8AlertCenterP0Ack = 'm8/alert_center_p0_ack.json';
+  static const String m8AlertCenterP0AckReordered =
+      'm8/alert_center_p0_ack_reordered.json';
+  static const String m8AlertCenterP0Only = 'm8/alert_center_p0_only.json';
+
+  /// 🆕 v1.15(K11) — 알림 상세(`AlertDetailVm`) 3벌(full · missing · no_link).
+  static const String m8AlertDetailFull = 'm8/alert_detail_full.json';
+  static const String m8AlertDetailMissing = 'm8/alert_detail_missing.json';
+  static const String m8AlertDetailNoLink = 'm8/alert_detail_no_link.json';
   static const String m8AlertsAdvice9codes = 'm8/alerts_advice_9codes.json';
   static const String m8AlertsDigest = 'm8/alerts_digest.json';
   static const String m8AlertsP0Ack = 'm8/alerts_p0_ack.json';
@@ -493,8 +508,18 @@ abstract final class FixturePaths {
   /// 🆕 v1.13(01 §23 · K5) — 대조 보드 전부 일치(칸 5 · 자가보고 해당 없음 · `headline` = 엔진 일치 문장) — R13b `h01_normal` 계열.
   static const String m8ReconBoardOk = 'm8/recon_board_ok.json';
   static const String m8RestartLostPhone = 'm8/restart_lost_phone.json';
+
+  /// 🆕 v1.15(01 §24 · K3) 꼴 = `WatchdogBoardVm` 1행(6행 · 실패 1).
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
+
+  /// 🆕 v1.15(K15) — 행 0(`emptyLabel`) · 받은 적 없음(`lastReceivedText` null).
+  static const String m8WatchdogEmpty = 'm8/watchdog_empty.json';
+
+  /// 🆕 v1.15 — 휴장 행 = 성공 핑(OK · ok) · `holidayNotice`.
   static const String m8WatchdogHoliday = 'm8/watchdog_holiday.json';
+
+  /// 🆕 v1.15(K16) — X1 유지보수 창 일시정지(`info`) 3행.
+  static const String m8WatchdogPaused = 'm8/watchdog_paused.json';
 
   // ── m9/ — 설정·운영 모드 전환 (05) ──
   // 🆕 v1.4(R11 선행) — `ConfigRepository.watchContributionSetting()` 의 입력(폴더 규약상 `m9_` 접두 없음).
@@ -661,6 +686,15 @@ abstract final class FixturePaths {
     m7M7WithdrawalPensionPenalty,
     m7M7WithdrawalShortfall,
     m7RealizedAllocS7,
+    m8AlertAckReceipts3,
+    m8AlertCenterDigest,
+    m8AlertCenterEmpty,
+    m8AlertCenterP0Ack,
+    m8AlertCenterP0AckReordered,
+    m8AlertCenterP0Only,
+    m8AlertDetailFull,
+    m8AlertDetailMissing,
+    m8AlertDetailNoLink,
     m8AlertsAdvice9codes,
     m8AlertsDigest,
     m8AlertsP0Ack,
@@ -681,7 +715,9 @@ abstract final class FixturePaths {
     m8ReconBoardOk,
     m8RestartLostPhone,
     m8WatchdogDelayed,
+    m8WatchdogEmpty,
     m8WatchdogHoliday,
+    m8WatchdogPaused,
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
     m9HandoverStates,

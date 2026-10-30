@@ -44,6 +44,8 @@
 //   `UnimplementedLedgerTrustRepository`(2) · `UnimplementedOpsSummaryRepository`(2 — 🔵 v1.6 «Ops 받침대는 만들지
 //   않는다»는 `S7-7` 한정이었다 · R13 이 필요로 한다) · `UnimplementedSettingsActions`(2 · **`Future` 에러 / 에러 스트림** —
 //   `L-3` `dispose` 경로에서도 동기 throw 0) · `UnimplementedCommandApi` X7 3 인자 교체(제출 DTO) + `deferAdviceConfirm`.
+//   🆕 계약 v1.15 R14 선행(01 §24 · K18) — `UnimplementedAlertRepository`(3) · `UnimplementedOpsStatusRepository`(6 —
+//   v1.6 «Ops 받침대는 만들지 않는다» 는 `S7-7` 한정 · R14 가 필요로 한다) · `UnimplementedCommandApi.acknowledgeAlert(String alertId)`.
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -164,6 +166,42 @@ class UnimplementedOpsSummaryRepository implements OpsSummaryRepository {
   @override
   Stream<ListResult<OpsRhythmRow>> watchRhythm() =>
       throw UnimplementedError('watchRhythm');
+}
+
+/// 🆕 계약 v1.15(01 §24 · K18) — [AlertRepository] 받침대(`N-01`·`N-02`·`S-01` 가짜의 받침대).
+/// 🔴 동기로 던진다. 값은 지어내지 않는다 — `m8/alert_center_*`·`m8/alert_detail_*`·`alerts_*` 픽스처를 override 로.
+class UnimplementedAlertRepository implements AlertRepository {
+  @override
+  Stream<List<AlertItem>> watchInbox({AlertLevel? min}) =>
+      throw UnimplementedError('watchInbox');
+  @override
+  Stream<AlertCenterVm> watchCenter({required bool p0Only}) =>
+      throw UnimplementedError('watchCenter');
+  @override
+  Stream<AlertDetailVm> watchAlert(String alertId) =>
+      throw UnimplementedError('watchAlert');
+}
+
+/// 🆕 계약 v1.15(01 §24 · K18) — [OpsStatusRepository] 받침대(`W-01`·`H-01` 블록 6 가짜의 받침대 · 6메서드 전부).
+/// 🔴 동기로 던진다. 값은 지어내지 않는다 — `m8/watchdog_*`·`m8/recon_board_*` 픽스처를 override 로.
+class UnimplementedOpsStatusRepository implements OpsStatusRepository {
+  @override
+  Stream<WatchdogBoardVm> watchWatchdog() =>
+      throw UnimplementedError('watchWatchdog');
+  @override
+  Stream<ConnectionsVm> watchConnections() =>
+      throw UnimplementedError('watchConnections');
+  @override
+  Stream<DeviceAccessVm> watchDeviceAccess() =>
+      throw UnimplementedError('watchDeviceAccess');
+  @override
+  Stream<BackupVm> watchBackup() => throw UnimplementedError('watchBackup');
+  @override
+  Stream<DiagnosticsVm> watchDiagnostics() =>
+      throw UnimplementedError('watchDiagnostics');
+  @override
+  Stream<AnnualReviewVm> watchAnnualReview() =>
+      throw UnimplementedError('watchAnnualReview');
 }
 
 /// 🆕 계약 v1.12(01 §21 · K9 · K28) — [SettingsActions] 받침대(`L-3` 세션 start·stop 가짜의 받침대).
@@ -373,7 +411,7 @@ class UnimplementedCommandApi implements CommandApi {
   ) => throw UnimplementedError('submitSelfReportBalance');
 
   @override
-  Future<CommandReceipt> acknowledgeAlert(AlertAck ack) =>
+  Future<CommandReceipt> acknowledgeAlert(String alertId) =>
       throw UnimplementedError('acknowledgeAlert');
 
   @override

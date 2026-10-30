@@ -205,6 +205,14 @@ abstract final class AppRoutes {
   /// 🆕 v1.12(01 §21 · K43) — `H-02` 운영 리듬 표(`OpsRhythm()` · `ui_shell`). 홈 블록 7·8 탭·«더 보기» = 이 상수
   /// (04 §4-6 · 규칙 ④). 등록 = 전 플랫폼 · 본문 = 전 플랫폼(`rm_ops_summary` v1 필수 · N-07).
   static const String opsRhythm = 'aaq://ops/rhythm';
+
+  /// 🆕 v1.15(01 §24 · K7) — `N-01` 알림 센터(`AlertCenter()` · `ui_shell`). 등록 = 전 플랫폼 · 가드 = 기본 open
+  /// (뷰어 = 조회 · 확인 버튼 부재). 진입 = 데이터 링크·푸시·FGS 탭(셸 진입 UI 0 · K22).
+  static const String alertsInbox = 'aaq://alerts/inbox';
+
+  /// 🆕 v1.15 — `N-02` 알림 상세(`AlertDetail(alertId:)`) · 들어오는 링크 = `AlertItem.detailDeepLink`(데이터) ·
+  /// 푸시·FGS 탭(엔진).
+  static const String alertDetail = 'aaq://alerts/detail/:alertId';
   static const String settingsContribution = 'aaq://settings/contribution';
   static const String settingsCredentials = 'aaq://settings/credentials';
   static const String handoverStatus = 'aaq://handover/status';
@@ -270,6 +278,8 @@ abstract final class AppRoutes {
     opsMaintenance,
     opsWatchdog,
     opsRhythm,
+    alertsInbox,
+    alertDetail,
     settingsContribution,
     settingsCredentials,
     handoverStatus,

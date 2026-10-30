@@ -167,6 +167,7 @@ abstract class SelfReportBalance with _$SelfReportBalance {
 }
 
 /// 🔴 A5 — 순수 수신 확인. `SafetyState` 에 **아무 효력이 없다**. P0 승급 사다리 정지만.
+/// 🆕 v1.15(01 §24 · K12) — 화면 인자 아님 · `CommandApi.acknowledgeAlert(String)` 구현이 만든다.
 /// ⏸ J-3 — 뷰어 허용 여부는 §8-10 미결이며 현행 `command_insert_viewer` 4종 화이트리스트를
 ///    유지한다(= 지금은 폰 전용).
 @freezed

@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.14.0",
+    "contract_version": "1.15.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -17,12 +17,12 @@
       "alert_id": "al_p0_01",
       "level": "P0",
       "raised_at": "2026-08-31T01:05:00Z",
-      "code": "ADVICE_EXIT_URGENT",
-      "title": "즉시 확인이 필요한 청산 안내",
-      "body_text": "손절선에 닿은 종목이 있습니다.",
-      "action_line": "지금 안내함을 여십시오.",
+      "code": "ORDER_OUTCOME_UNKNOWN",
+      "title": "주문 결과를 확인하지 못했습니다",
+      "body_text": "증권사 응답이 끊겨 주문 2건의 체결 여부를 모릅니다.",
+      "action_line": "미확인 주문 보드를 여십시오.",
       "grouped_count": 1,
-      "deep_link": "aaq://advice/inbox",
+      "deep_link": "aaq://journal/unknown-board",
       "ack": { "acked": false, "state_label": "수신 확인 전", "escalation_step": 2 }
     },
     {

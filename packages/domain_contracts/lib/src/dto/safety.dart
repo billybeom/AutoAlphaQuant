@@ -53,6 +53,8 @@ abstract class AlertItem with _$AlertItem {
   const factory AlertItem({
     required String alertId,
     required AlertLevel level,
+
+    /// 🔴 표시용 아님 — 화면은 [raisedAtText] 만 그린다(🆕 v1.15 · 01 §24).
     required DateTime raisedAt,
 
     /// 'SAF-407' · 'RESUME_INCOMPLETE' · 'WATCHDOG_LATE'
@@ -65,15 +67,95 @@ abstract class AlertItem with _$AlertItem {
 
     /// 「지금 할 일」 한 줄 — 조치가 같으면 엔진이 이미 묶었다
     required String actionLine,
+
+    /// 🔴 화면은 이 수로 글자를 만들지 않는다 — [groupedText](🆕 v1.15).
     required int groupedCount,
     String? deepLink,
 
     /// P0 수신 확인 사다리 ⚠️ 쓰기 경로 미결(01 §8-10 · m2-8 J-3)
+    /// 🆕 v1.15(01 §24 · K14) — 🔴 P0 만 · `ADVICE_EXIT_URGENT` 엔 오지 않는다(04 §5-4 · C-49 ⑥).
     AckState? ack,
+
+    /// 🆕 v1.15(01 §24 · K5) — 표시 시각 «10:05»(엔진 글자 · 기기 시간대).
+    /// null = 부재(묶음이 시각 하나로 말할 수 없을 때 등).
+    String? raisedAtText,
+
+    /// 🆕 v1.15(K5) — 묶음 배지 «2건»(엔진 글자 · [groupedCount] ≤ 1 이면 null).
+    String? groupedText,
+
+    /// 🆕 v1.15(K9 · `AdviceItem.detailDeepLink` 선례) — `N-02` 상세 링크
+    /// (`aaq://alerts/detail/<alertId>` · 엔진이 완성). null = 행 탭 없음.
+    String? detailDeepLink,
   }) = _AlertItem;
 
   factory AlertItem.fromJson(Map<String, dynamic> json) =>
       _$AlertItemFromJson(json);
+}
+
+/// 🆕 v1.15(01 §24 · K2 · K10) — `N-01` 알림 센터 한 화면. 고정·묶음·접힘·정렬 = 엔진이 끝냈다.
+///
+/// 🔴 화면은 받은 차례 그대로 그린다(재분류·재정렬·재그룹·건수 집계 0) · `level` 은 아이콘·색에만.
+/// 🔴 불변식(엔진 의무 · C-49 ②~⑤) — [pinned] = P0 만 · 섹션 `rows` = P1 만 · `digestRows` = P2 만 ·
+///    [emptyLabel] non-null ⇔ [pinned] 0 ∧ [sections] 0 · `watchCenter(p0Only: true)` ⇒ [sections] 0.
+@freezed
+abstract class AlertCenterVm with _$AlertCenterVm {
+  const factory AlertCenterVm({
+    required AsOf asOf,
+
+    /// 고정 P0(엔진 순서 · 🔴 P0 만 · 확인됨 포함 · 고정을 언제 푸는지 = 엔진).
+    required List<AlertItem> pinned,
+
+    /// 날짜 묶음(엔진 순서 · 최신 날 먼저). `watchCenter(p0Only: true)` 이면 빈 목록.
+    required List<AlertSection> sections,
+
+    /// 고정·묶음이 다 빌 때만 non-null(«정상 = 무소식» 엔진 문장 · 04 §5-2). 행이 있으면 null.
+    String? emptyLabel,
+  }) = _AlertCenterVm;
+
+  factory AlertCenterVm.fromJson(Map<String, dynamic> json) =>
+      _$AlertCenterVmFromJson(json);
+}
+
+/// 🆕 v1.15(01 §24 · K10) — 날짜 묶음 1개(머리 · 펼친 P1 행 · 접힌 P2 묶음).
+///
+/// 🔴 `rows ∪ digestRows` 는 비지 않는다 · [digestLabel] non-null ⇔ [digestRows] non-empty.
+@freezed
+abstract class AlertSection with _$AlertSection {
+  const factory AlertSection({
+    /// «오늘» · «2026-08-30» — 엔진 글자.
+    required String headerText,
+
+    /// 펼친 행 — 🔴 P1 만(엔진 순서).
+    required List<AlertItem> rows,
+
+    /// 접힌 묶음 머리 «P2 3건» — 엔진 글자 · [digestRows] 가 비면 null.
+    String? digestLabel,
+
+    /// 접힌 행 — 🔴 P2 만 · 펼침 여부 = 화면 표시 상태(데이터 0 · 기본 접힘).
+    required List<AlertItem> digestRows,
+  }) = _AlertSection;
+
+  factory AlertSection.fromJson(Map<String, dynamic> json) =>
+      _$AlertSectionFromJson(json);
+}
+
+/// 🆕 v1.15(01 §24 · K2 · K11 · 발주자 결정 ②(a)) — `N-02` 알림 상세 한 화면.
+///
+/// 🔴 [item] non-null XOR [missingLabel] non-null · [item] = 센터의 같은 `alertId` 객체와 같은 값(같은 엔진 산출).
+@freezed
+abstract class AlertDetailVm with _$AlertDetailVm {
+  const factory AlertDetailVm({
+    required AsOf asOf,
+
+    /// 그 알림(센터의 같은 `alertId` 객체와 같은 값).
+    AlertItem? item,
+
+    /// 모르는·지난 id = 엔진 문장 — 🔴 스트림 에러가 아니라 값이다.
+    String? missingLabel,
+  }) = _AlertDetailVm;
+
+  factory AlertDetailVm.fromJson(Map<String, dynamic> json) =>
+      _$AlertDetailVmFromJson(json);
 }
 
 /// P0 수신 확인 상태(m2-8 D-2).
@@ -81,6 +163,8 @@ abstract class AlertItem with _$AlertItem {
 /// ⚠️ 쓰기 경로(`alertAck` 명령의 뷰어 허용 여부)는 01 §8-10 미결이다 —
 ///    m2-8 J-3 권고는 «허용하지 않는다»(현행 viewer 4종 화이트리스트 유지).
 /// 🔴 ack 는 `SafetyState` 에 아무 효력이 없다(A5 — P0 승급 사다리 정지만).
+/// 🆕 v1.15(01 §24 · K5 · K14) — P0 만 · `ADVICE_EXIT_URGENT` 엔 오지 않는다(04 §5-4) ·
+///    사다리 단계 줄 = 부재(01 §8 미결 138).
 @freezed
 abstract class AckState with _$AckState {
   const factory AckState({
