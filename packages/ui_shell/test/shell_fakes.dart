@@ -616,3 +616,66 @@ Set<String?> alertDetailAllowed(AlertDetailVm v) => <String?>{
   ShellLabels.alertsAck,
   ShellLabels.staleBannerTitle,
 };
+
+// ── R14b — W-01 fakes ─────────────────────────────────────────────────────────
+
+class FakeShellWatchdogRepository extends UnimplementedOpsStatusRepository {
+  FakeShellWatchdogRepository({required this.watchdog});
+
+  final Stream<WatchdogBoardVm> Function(int call) watchdog;
+  int calls = 0;
+
+  @override
+  Stream<WatchdogBoardVm> watchWatchdog() {
+    final int call = calls;
+    calls = calls + 1;
+    return watchdog(call);
+  }
+}
+
+List<Override> watchdogOverrides({
+  required FakeShellWatchdogRepository ops,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  shellOpsStatusRepositoryProvider.overrideWithValue(ops),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+  shellClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpWatchdogBoard(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: WatchdogBoard())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String> watchdogRowTexts(WatchdogCheck c) => <String>[
+  c.label,
+  c.stateLabel,
+  c.lastPingText,
+  ?c.graceText,
+];
+
+Set<String> watchdogAllowed(WatchdogBoardVm v) => <String>{
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+  ?v.lastReceivedText,
+  for (final WatchdogCheck c in v.rows) ...watchdogRowTexts(c),
+  ?v.emptyLabel,
+  ?v.holidayNotice,
+  ?v.limitNotice,
+  ShellLabels.staleBannerTitle,
+};
