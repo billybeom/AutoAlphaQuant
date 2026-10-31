@@ -85,14 +85,12 @@ void main() {
       );
     }
 
-    expect(
-      shownTexts(tester, find.byKey(const Key('w01-asof'))),
-      <String>[delayed.asOf.label],
-    );
-    expect(
-      shownTexts(tester, find.byKey(const Key('w01-received'))),
-      <String>[delayed.lastReceivedText!],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('w01-asof'))), <String>[
+      delayed.asOf.label,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('w01-received'))), <String>[
+      delayed.lastReceivedText!,
+    ]);
     expect(delayed.rows, hasLength(6)); // ⓗ
     for (final (int i, WatchdogCheck c) in delayed.rows.indexed) {
       expect(
@@ -101,10 +99,9 @@ void main() {
       );
     }
     expect(find.byKey(const ValueKey<String>('w01-row-6')), findsNothing);
-    expect(
-      shownTexts(tester, find.byKey(const Key('w01-limit'))),
-      <String>[delayed.limitNotice!],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('w01-limit'))), <String>[
+      delayed.limitNotice!,
+    ]);
     expect(find.byKey(const Key('w01-holiday')), findsNothing);
     expect(find.byKey(const Key('w01-empty')), findsNothing);
     expect(find.text(ShellLabels.staleBannerTitle), findsNothing);
@@ -263,17 +260,13 @@ void main() {
           (
             name: 'loading',
             opsFactory: () => FakeShellWatchdogRepository(
-              watchdog: (int call) =>
-                  Stream<WatchdogBoardVm>.multi(
-                    (MultiStreamController<WatchdogBoardVm> c) {},
-                  ),
+              watchdog: (int call) => Stream<WatchdogBoardVm>.multi(
+                (MultiStreamController<WatchdogBoardVm> c) {},
+              ),
             ),
             clock: FixedClock(kGoldenNowUtc),
             present: <Key>[const Key('w01-loading')],
-            absent: <Key>[
-              const Key('w01-asof'),
-              const Key('w01-fail'),
-            ],
+            absent: <Key>[const Key('w01-asof'), const Key('w01-fail')],
             banner: false,
             flow: null,
           ),
@@ -285,10 +278,7 @@ void main() {
             ),
             clock: FixedClock(kGoldenNowUtc),
             present: <Key>[const Key('w01-fail')],
-            absent: <Key>[
-              const Key('w01-asof'),
-              const Key('w01-loading'),
-            ],
+            absent: <Key>[const Key('w01-asof'), const Key('w01-loading')],
             banner: false,
             flow: null,
           ),
@@ -323,9 +313,11 @@ void main() {
               expect(
                 t.getTopLeft(find.text(ShellLabels.staleBannerTitle)).dy,
                 lessThan(
-                  t.getTopLeft(
-                    find.byKey(const ValueKey<String>('w01-row-0')),
-                  ).dy,
+                  t
+                      .getTopLeft(
+                        find.byKey(const ValueKey<String>('w01-row-0')),
+                      )
+                      .dy,
                 ),
               );
             },
@@ -346,9 +338,7 @@ void main() {
             flow: (WidgetTester t) async {
               expect(
                 t.getTopLeft(find.text(ShellLabels.staleBannerTitle)).dy,
-                lessThan(
-                  t.getTopLeft(find.byKey(const Key('w01-empty'))).dy,
-                ),
+                lessThan(t.getTopLeft(find.byKey(const Key('w01-empty'))).dy),
               );
             },
           ),
@@ -454,21 +444,8 @@ void main() {
     expect(holiday.limitNotice, isNotNull); // pre
     expect(emptyV.limitNotice, isNotNull); // pre
 
-    final List<
-      ({
-        String name,
-        WatchdogBoardVm v,
-        List<Key> chain,
-      })
-    >
-    cases =
-        <
-          ({
-            String name,
-            WatchdogBoardVm v,
-            List<Key> chain,
-          })
-        >[
+    final List<({String name, WatchdogBoardVm v, List<Key> chain})> cases =
+        <({String name, WatchdogBoardVm v, List<Key> chain})>[
           (
             name: 'holiday',
             v: holiday,
@@ -535,10 +512,9 @@ void main() {
         expect(find.byKey(const Key('w01-limit')), findsOneWidget);
       }
 
-      expect(
-        shownTexts(tester, find.byKey(const Key('w01-limit'))),
-        <String>[c.v.limitNotice!],
-      );
+      expect(shownTexts(tester, find.byKey(const Key('w01-limit'))), <String>[
+        c.v.limitNotice!,
+      ]);
       expect(find.text(ShellLabels.retry), findsNothing);
     }
   });

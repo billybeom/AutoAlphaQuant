@@ -17,8 +17,7 @@ import 'shell_providers.dart';
 
 final StreamProvider<WatchdogBoardVm> _watchdogProvider =
     StreamProvider<WatchdogBoardVm>(
-      (Ref ref) =>
-          ref.watch(shellOpsStatusRepositoryProvider).watchWatchdog(),
+      (Ref ref) => ref.watch(shellOpsStatusRepositoryProvider).watchWatchdog(),
     );
 
 // ── WatchdogBoard ──────────────────────────────────────────────────────────────
@@ -65,8 +64,7 @@ class WatchdogBoard extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Text(received),
           ),
-        for (final (int i, WatchdogCheck c) in vm.rows.indexed)
-          _CheckRow(i, c),
+        for (final (int i, WatchdogCheck c) in vm.rows.indexed) _CheckRow(i, c),
         if (empty != null)
           Padding(
             padding: const EdgeInsets.all(16),
