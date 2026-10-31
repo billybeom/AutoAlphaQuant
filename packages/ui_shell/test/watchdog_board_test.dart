@@ -242,7 +242,7 @@ void main() {
         List<Key> present,
         List<Key> absent,
         bool banner,
-        Future<void> Function(WidgetTester t)? flow,
+        Future<void> Function(WidgetTester t) flow,
       })
     >
     cases =
@@ -254,7 +254,7 @@ void main() {
             List<Key> present,
             List<Key> absent,
             bool banner,
-            Future<void> Function(WidgetTester t)? flow,
+            Future<void> Function(WidgetTester t) flow,
           })
         >[
           (
@@ -268,7 +268,7 @@ void main() {
             present: <Key>[const Key('w01-loading')],
             absent: <Key>[const Key('w01-asof'), const Key('w01-fail')],
             banner: false,
-            flow: null,
+            flow: (WidgetTester t) async {},
           ),
           (
             name: 'fail',
@@ -280,7 +280,7 @@ void main() {
             present: <Key>[const Key('w01-fail')],
             absent: <Key>[const Key('w01-asof'), const Key('w01-loading')],
             banner: false,
-            flow: null,
+            flow: (WidgetTester t) async {},
           ),
           (
             name: 'value_then_fail',
@@ -363,9 +363,7 @@ void main() {
         find.text(ShellLabels.staleBannerTitle),
         c.banner ? findsOneWidget : findsNothing,
       );
-      if (c.flow != null) {
-        await c.flow!(tester);
-      }
+      await c.flow(tester);
       expect(find.byType(CircularProgressIndicator), findsNothing);
     }
   });
