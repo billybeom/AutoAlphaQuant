@@ -34,9 +34,11 @@
 
 온보딩이 키를 다루더라도 **입력 위젯 자체가 이 패키지에 있어서는 안 된다**(뷰어 빌드에 경로가 생긴다). 검증·저장은 `SettingsActions` 주입 콜백이고, 구현체가 없으면 **컨트롤을 렌더하지 않는다** — «비활성»이 아니라 **부재**다.
 
-## 지금 상태 — ✅ S-01·S-02 셸 · H-02 운영 리듬 · H-01 운영 홈 · N-01·N-02 알림 병합(2026-10-31 · R13a PR #71 `315bbbd` · R13b PR #74 `49e4329` · R14a PR #87 `185e9c7`)
+## 지금 상태 — ✅ S-01·S-02 셸 · H-02 운영 리듬 · H-01 운영 홈 · N-01·N-02 알림 · W-01 워치독 병합(2026-10-31 · R13a PR #71 `315bbbd` · R13b PR #74 `49e4329` · R14a PR #87 `185e9c7` · R14b PR #88 `afe3e1d` · 🏁 R14)
 
-`flutter test` **164**(R14a 병합본 `185e9c7` 실측 · 2026-10-31 · 117 + R14a 47 — `alert_center_test` +24 · `alert_detail_test` +13 · `n01_golden` +6 · `n02_golden` +4) · 골든 PNG **34장**(`git ls-tree` 실측 · 24 + `n01_*` 6 + `n02_*` 4 · `test/golden/README.md` «🆕 R14») · R14 2장 중 1장 완료 — 다음 셸 카드 = R14b-Bob-W01(`W-01` 워치독 · ▶ `docs/ai-context/send/R14b-Bob-W01.md` 「푸시해」 뒤 · 끝 기대 189 · 골든 +6 · «정확히 N» 소유) · 그 뒤 통합 담당 R14 test-only PR(C4r13a-3 · C4r13b-4 · C4r14a-1 = `alert_center_test` N01-07 `failed_then_accepted` 한 경우 · `alert_detail_test` N02-02 operator 주입).
+`flutter test` **178**(R14b 병합본 `afe3e1d` 실측 · 2026-10-31 · 164 + R14b 14 — `watchdog_board_test` +8 · `w01_golden` +6 · 경우 for 를 testWidgets 안에 묶은 꼴(경우 19·단언 전부 · 카드 계획 +19/+189 와 다름 = 기록만 C4H-11)) · 골든 PNG **40장**(`git ls-tree` 실측 · 34 + `w01_*` 6 · `test/golden/README.md` «🆕 R14») · 🏁 R14 2장 완료 — 다음 = 통합 담당 R14 test-only PR(테스트 파일만 · lib·픽스처·PNG·fakes 무수정 · 설계 12 §3 «R14 test-only PR 묶음»: C4r13a-3 = 셸·리듬 참고 변이 6꼴(iosViewer 셸 배치 · opener 경유 음성 링크 · T02-03 route/dDay null 따로 · 사이드바 `ListTile.selected` · TS-02 `Badge.label` null) · C4r13b-4 = `ops_home` T01-09 today_stale «항상» 블록 전부 · valueThenFail · C4r14a-1 = `alert_center_test` N01-07 `failed_then_accepted` 한 경우 · `alert_detail_test` N02-02 operator 주입 · C4r14b-4 = `watchdog_board_test` W01-05 `stale_holiday` · 배너 dy < `w01-received` · 값 쥔 채 다시 읽기) → 다음 셸 카드 조립.
+
+~~`flutter test` **164**(R14a 병합본 `185e9c7` 실측 · 2026-10-31 · 117 + R14a 47 — `alert_center_test` +24 · `alert_detail_test` +13 · `n01_golden` +6 · `n02_golden` +4) · 골든 PNG **34장**(`git ls-tree` 실측 · 24 + `n01_*` 6 + `n02_*` 4 · `test/golden/README.md` «🆕 R14») · R14 2장 중 1장 완료 — 다음 셸 카드 = R14b-Bob-W01(`W-01` 워치독 · ▶ `docs/ai-context/send/R14b-Bob-W01.md` 「푸시해」 뒤 · 끝 기대 189 · 골든 +6 · «정확히 N» 소유) · 그 뒤 통합 담당 R14 test-only PR(C4r13a-3 · C4r13b-4 · C4r14a-1 = `alert_center_test` N01-07 `failed_then_accepted` 한 경우 · `alert_detail_test` N02-02 operator 주입).~~(2026-10-31 R14a 판)
 
 ~~`flutter test` **117**(R13b 병합본 · `origin/main` `49e4329` · 66 + 51 — 패키지 트리 = C4 수정안 · C4·드라이런 실측) · 골든 PNG **24장**(`test/golden/README.md` «🆕 R13») · 🏁 R13 2장 완료 · 다음 셸 카드 = R14(알림 · 설계 12 §6 · 조립 전).~~(2026-10-27 R13b 판)
 
@@ -45,7 +47,8 @@
 - `OpsRhythm` = `lib/src/ops_rhythm.dart`(`H-02` · `watchRhythm()` 1구독).
 - `OpsHome` = `lib/src/ops_home.dart`(`H-01` · 블록 1~9b · 구독 6 · 홈 탭 연결 = 레지스트리 `home` 칸 · 조립 앱 몫).
 - 🆕 `AlertCenter` · `AlertDetail` = `lib/src/alerts/alert_center.dart` · `alert_detail.dart`(`N-01` 알림 센터 · `N-02` 알림 상세 · R14a PR #87 `185e9c7` · 원천 `watchCenter(p0Only:)` · `watchAlert(alertId)` · 정렬·그룹·접힘 = 엔진) · 공용 조각 `AlertAckBlock` = `alert_ack.dart`(배럴 밖 · 쓰기 `acknowledgeAlert` 1종) · 주입 `shellAlertCommandApiProvider`(뷰어 null = 확인 버튼 부재) · 셸 연결 = 레지스트리 칸(조립 앱 몫).
+- 🆕 `WatchdogBoard` = `lib/src/watchdog_board.dart`(`W-01` 워치독 상태 · R14b PR #88 `afe3e1d` · 원천 `watchWatchdog()` 1구독 → `WatchdogBoardVm`(머리 «마지막 수신» · 하단 휴장·한계 고지) · 상태 모양 = `level` · `checkId` 미참조 · 슬러그·ping URL·키 = 계약에 0 · 새 주입 0(`shellOpsStatusRepositoryProvider` 그대로) · 셸 연결 = 레지스트리 칸(조립 앱 몫)).
 - 공통 조각 = `lib/src/common/shell_common.dart`(`ShellAsOfHeader` · `ShellStaleBanner` · `ShellSkeleton` · `ShellErrorView` · `ShellPlaceholder`).
 - 주입 = `lib/src/shell_providers.dart`(🆕 R13b 주입 5 = 파일 끝 절 · 조립 앱 3종이 override · 본문 레지스트리 `ShellRouteBodies` 의 54 패턴·`home` 칸 = 조립 앱 몫).
-- 테스트 가짜 = `test/shell_fakes.dart` — 🆕 계약 v1.15 부터 전부 `extends Unimplemented…`(받침대 `UnimplementedAlertRepository`·`UnimplementedOpsStatusRepository` · 구 `implements` 가짜 2 → `extends` · 테스트 수 불변).
-- 정적 라벨 = `lib/l10n/labels.dart`(`ShellLabels` 35 = R13a 25 + R13b 6 + R14a 4).
+- 테스트 가짜 = `test/shell_fakes.dart` — 🆕 계약 v1.15 부터 전부 `extends Unimplemented…`(받침대 `UnimplementedAlertRepository`·`UnimplementedOpsStatusRepository` · 구 `implements` 가짜 2 → `extends` · 테스트 수 불변) · 🆕 R14b `FakeShellWatchdogRepository`(`extends UnimplementedOpsStatusRepository`).
+- 정적 라벨 = `lib/l10n/labels.dart`(`ShellLabels` 35 = R13a 25 + R13b 6 + R14a 4 · R14b 0).
