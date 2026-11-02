@@ -342,6 +342,58 @@ void main() {
               );
             },
           ),
+          // C4r14b-4 ⓑ — 오래됨 배너는 마지막 수신보다 위(X7)
+          (
+            name: 'stale_received',
+            opsFactory: () => FakeShellWatchdogRepository(
+              watchdog: (int call) => one(delayed),
+            ),
+            clock: FixedClock(kGoldenNowUtc.add(const Duration(days: 2))),
+            present: <Key>[
+              const Key('w01-asof'),
+              const Key('w01-received'),
+              const ValueKey<String>('w01-row-0'),
+            ],
+            absent: <Key>[const Key('w01-fail'), const Key('w01-loading')],
+            banner: true,
+            flow: (WidgetTester t) async {
+              expect(
+                t.getTopLeft(find.text(ShellLabels.staleBannerTitle)).dy,
+                lessThan(
+                  t.getTopLeft(find.byKey(const Key('w01-received'))).dy,
+                ),
+              );
+            },
+          ),
+          // C4r14b-4 ⓐ — 오래됨이어도 휴장 고지는 남는다(X3)
+          // holiday 기준 = 2026-09-01 09:00 + 26시간 → 3일 뒤면 오래됨
+          (
+            name: 'stale_holiday',
+            opsFactory: () => FakeShellWatchdogRepository(
+              watchdog: (int call) => one(holiday),
+            ),
+            clock: FixedClock(kGoldenNowUtc.add(const Duration(days: 3))),
+            present: <Key>[
+              const Key('w01-asof'),
+              const Key('w01-received'),
+              const Key('w01-holiday'),
+              const Key('w01-limit'),
+            ],
+            absent: <Key>[const Key('w01-fail'), const Key('w01-loading')],
+            banner: true,
+            flow: (WidgetTester t) async {
+              expect(
+                shownTexts(t, find.byKey(const Key('w01-holiday'))),
+                <String>[holiday.holidayNotice!],
+              );
+              expect(
+                t.getTopLeft(find.text(ShellLabels.staleBannerTitle)).dy,
+                lessThan(
+                  t.getTopLeft(find.byKey(const Key('w01-received'))).dy,
+                ),
+              );
+            },
+          ),
         ];
 
     for (final c in cases) {
@@ -515,5 +567,61 @@ void main() {
       ]);
       expect(find.text(ShellLabels.retry), findsNothing);
     }
+  });
+
+  // ── W01-05c 값을 쥔 채 다시 읽기 = 같은 화면 유지(C4r14b-4 ⓒ · X10) ──────
+  testWidgets('W01-05c reread with value keeps screen no skeleton', (
+    WidgetTester tester,
+  ) async {
+    final FakeShellWatchdogRepository first = FakeShellWatchdogRepository(
+      watchdog: (int call) => one(delayed),
+    );
+    // 다시 읽기 = 저장소 교체 → 새 구독은 값을 내지 않는 열린 스트림
+    final FakeShellWatchdogRepository second = FakeShellWatchdogRepository(
+      watchdog: (int call) => Stream<WatchdogBoardVm>.multi(
+        (MultiStreamController<WatchdogBoardVm> c) {},
+      ),
+    );
+    final Clock clock = FixedClock(kGoldenNowUtc);
+    await pumpWatchdogBoard(
+      tester,
+      overrides: watchdogOverrides(
+        ops: first,
+        opener: RecordingLinkOpener(),
+        clock: clock,
+      ),
+    );
+    expect(find.byKey(const Key('w01-asof')), findsOneWidget); // pre
+    expect(find.byKey(const Key('w01-loading')), findsNothing); // pre
+
+    await pumpWatchdogBoard(
+      tester,
+      overrides: watchdogOverrides(
+        ops: second,
+        opener: RecordingLinkOpener(),
+        clock: clock,
+      ),
+    );
+    // 다시 읽기가 실제로 일어났다
+    expect(first.calls, 1);
+    expect(second.calls, 1);
+
+    // 값 → 같은 화면 유지 · 스켈레톤 0
+    expect(find.byKey(const Key('w01-loading')), findsNothing);
+    expect(find.byKey(const Key('w01-fail')), findsNothing);
+    expect(shownTexts(tester, find.byKey(const Key('w01-asof'))), <String>[
+      delayed.asOf.label,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('w01-received'))), <String>[
+      delayed.lastReceivedText!,
+    ]);
+    for (final (int i, WatchdogCheck c) in delayed.rows.indexed) {
+      expect(
+        shownTexts(tester, find.byKey(ValueKey<String>('w01-row-$i'))),
+        watchdogRowTexts(c),
+      );
+    }
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text(ShellLabels.retry), findsNothing);
   });
 }
