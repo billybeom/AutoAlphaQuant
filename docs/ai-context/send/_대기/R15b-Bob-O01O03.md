@@ -1,15 +1,15 @@
 # 발송 패킷 R15b-Bob-O01O03 — O-01 단계 목록 · O-02 단계 상세 · O-03 검증 드라이런 결과 (계약 v1.16 전제 · R15 4장 중 2번째 · M8)
 
-> ⬜ **_대기 — 앞 카드 병합 기록 때 send/ 로**(2026-11-02 조립 · 앱 `rec/r15`) · 선행 = ① R15a 병합(squash `__R15A_SQ__` · PR `__R15A_PR__` · 시작 기준 N = R15a 병합본 실측) ② 🔴 **계약 v1.16 보강 R15b 몫(G8~G14 — 아래 «■ 계약 v1.16 이름표» · ⬜ 발주자 결정 · ▶ 금지)** ③ 🔴 **`SecretField` 삽입 자리 꼴 결정**(M4·M9 소유 위젯 · 실물 0 — 권고 = 슬롯 빌더 주입 · ⬜ 발주자 확인 ⑦) ④ ⬜ 누적 드라이런(R15a 드라이런 끝 위) ⑤ ⬜ 발주자 확인 ①~⑫ ⑥ ⬜ 「푸시해」 — 다 풀리고 머리 첫 줄이 ▶ 일 때만 보낸다. 🔴 Bob 의 R15a 브랜치(`ui/m8-o00-mode-pick`)는 건드리지 않는다.
+> ⬜ **_대기 — 앞 카드 병합 기록 때 send/ 로**(2026-11-02 조립 · 앱 `rec/r15`) · 선행 = ① R15a 병합(squash `__R15A_SQ__` · PR `__R15A_PR__` · 시작 기준 N = R15a 병합본 실측) ② 🔴 **계약 v1.16 보강 R15b 몫(G8~G14 — 아래 «■ 계약 v1.16 이름표» · ⬜ 발주자 결정 · ▶ 금지)** ③ 🔴 **`SecretField` 삽입 자리 꼴 결정**(M4·M9 소유 위젯 · 실물 0 — 권고 = 슬롯 빌더 주입 · ⬜ 발주자 확인 ⑦) ④ ✅ 누적 드라이런 2번째(아래 «드라이런» 줄 · 지적 반영판 `dry/r15-2b`) ⑤ ⬜ 발주자 확인 ①~⑫ ⑥ ⬜ 「푸시해」 — 다 풀리고 머리 첫 줄이 ▶ 일 때만 보낸다. 🔴 Bob 의 R15a 브랜치(`ui/m8-o00-mode-pick`)는 건드리지 않는다.
 > 만든 날 2026-11-02 · 원문 = 설계 저장소 `11_앱설계/12_AI별_요청_스크립트.md` §3 `R15-Bob-M8c` 행(🔀 4분할 — R15a 카드 머리 «재분할 판정») + §3-0 + §3 공통 조문 + 이월 부록 «R15» 대상(R15a 카드 «6» 과 같은 표 · O-01~O-03 자리) · 화면 몫 원본 = `04_…` §9 머리 · §9-2(`O-01` · 3등급 · 진행률 · 만료 시계 · 해외주식 0 · 갈래별 준비물 참고표 · 그림 18) · §9-3(`O-02` · 시크릿 6원칙 = `SecretField` 몫) · §9-4(`O-03` · 3상 · 원문 코드 · 그림 19) · §9-8(게이트 3상 · 그림 23) · `01_…` §2-10 `OnboardingStep`·`StepState`·`StepRequirement` · §2-1 `GateState`·`GateBadge` · §4-1 · §4-3 `SettingsActions`·`ActionResult` · `05_…` §4-1(`SecretField` 6원칙 — 읽기만) · 판독 메모 §5-1 G8~G14 · §5-2.
-> 사전 조건 — ⬜ **R15a 병합**(PR `__R15A_PR__` squash `__R15A_SQ__` · `ui_shell` = lib 14파일 · 라벨 37 · 배럴 export 11줄 · 셸 주입 17줄 · PNG 48 — 병합본 실측으로 채움) · ⬜ 계약 v1.16 R15b 몫(R15a 와 같은 보강 PR 이면 그 PR · 따로면 v1.16.x — 아래 이름표) · ✅ 프롬프트 v2. 시작 기준 = R15a 병합본의 `flutter test`(packages/ui_shell) = **⟦실측: R15a 병합본 — 드라이런 기대 237⟧** · 이 카드 끝 기대 = 시작 기준 N + **44**(뷰 34 = `onboarding_step_list_test` 13 + `onboarding_step_detail_test` 21 · 골든 10 = `o01_*` 4 + `o02_*` 2 + `o03_*` 4) · 끝 = ⟦실측: 드라이런 «+281» 기대⟧.
-> 🔀 **재분할 판정** — 새 `testWidgets(`·`test(` 줄 **22**(`onboarding_step_list_test` 8 · `onboarding_step_detail_test` 11 · 골든 3) · lib ⟦실측: 드라이런 — 추정 +390~510⟧ · 새 PNG **10** · 원천·쓰기 **3**(`watchStepList` · `watchStep` · `run(verify.id)`) → 임계 안 · 재분할 없음(R15 를 4장으로 나눈 까닭 = R15a 카드 머리).
+> 사전 조건 — ⬜ **R15a 병합**(PR `__R15A_PR__` squash `__R15A_SQ__` · `ui_shell` = lib 14파일 · 라벨 37 · 배럴 export 11줄 · 셸 주입 17줄 · PNG 48 — 병합본 실측으로 채움) · ⬜ 계약 v1.16 R15b 몫(R15a 와 같은 보강 PR 이면 그 PR · 따로면 v1.16.x — 아래 이름표) · ✅ 프롬프트 v2. 시작 기준 = R15a 병합본의 `flutter test`(packages/ui_shell) = **⟦실측: R15a 병합본 — 앞 카드 병합 기록 때 채움 · 드라이런 기대 237⟧** · 이 카드 끝 기대 = 시작 기준 N + **49**(뷰 39 = `onboarding_step_list_test` 16 + `onboarding_step_detail_test` 23 · 골든 10 = `o01_*` 4 + `o02_*` 2 + `o03_*` 4 · 🆕 첫 판 44 → 지적 반영 +5 = O01-05 `locked`·`ready_warn` · O01-09 · O02-06 · O03-07) · 끝 = ⟦실측: 앞 카드 병합 기록 때 채움 — 드라이런 기대 «+286»(반영판 `dry/r15-2b` 실측 · 첫 판 «+281»)⟧.
+> 🔀 **재분할 판정** — 새 `testWidgets(`·`test(` 줄 **25**(`onboarding_step_list_test` 9 · `onboarding_step_detail_test` 13 · 골든 3 — 드라이런 지적 반영판) · lib **+410**(드라이런 · `onboarding_step_list.dart` 178 · `onboarding_step_detail.dart` 219 · `shell_providers.dart` +11 · `ui_shell.dart` +2) · 새 PNG **10** · 원천·쓰기 **3**(`watchStepList` · `watchStep` · `run(verify.id)`) → 임계 안 · 재분할 없음(R15 를 4장으로 나눈 까닭 = R15a 카드 머리).
 > 카드 기본값(⬜ 아래 «발주자 확인» ①~⑫ 가 확정): ⓐ 위젯 = `OnboardingStepList({super.key})`(`lib/src/onboarding/onboarding_step_list.dart` · `ConsumerWidget`) · `OnboardingStepDetail({super.key, required this.stepId})`(`lib/src/onboarding/onboarding_step_detail.dart` · `ConsumerStatefulWidget` — 검증 조각 `_busy`·`_failed`·`_result`) · `O-03` = `O-02` 안의 결과 조각(별도 라우트 0 — ⑥) ⓑ **셸 파일·R15a 파일은 고치지 않는다** — 연결 = 조립 앱 레지스트리(`AppRoutes.onboardingStep` · v1.16 `O-01` 라우트) ⓒ 원천 = 🆕 `watchStepList()` → `OnboardingStepsVm`(갈래 인자 0 — 엔진이 `onboarding_choice` 로 고른다 · ①) · 🆕 `watchStep(stepId)` → `OnboardingStepDetailVm` · 쓰기 = `SettingsActions.run(verify.id, args: verify.args)`(VM 이 준 동작 그대로 · 화면이 id·키를 짓지 않는다 · ⑤) — 주입 = R15a `shellOnboardingActionsProvider`(뷰어 null = 검증 버튼 부재) ⓓ O-01 = 진행률 글자(`progressText`) → 단계 행(받은 차례 · 상태 아이콘 = `StepState` 5값 전수 · 등급 글자 `requirementLabel` · 경고 배지 `warningLabel?` · 만료 `verifiedUntilText?` · 실패 문장 `failureText?` + 원문 코드 `failureReasonCode?` · 게이트 `gate?`(`GateState` 4값 전수 — `unknown` = 진행 차단 모양 · `notApplicable` 과 다른 모양)) → 빈 문장(`emptyLabel?`) → «다음» = `finishLink`(O-04 · 있을 때) · 행 탭 = `detailLink`(O-02 · null = 탭 없음) ⓔ O-02 = 제목·이유·어디서·얼마나·어떻게·만료(엔진 글자) → 🔒 시크릿 자리(`secretSlotId` 가 있을 때 · 슬롯 빌더 주입 · 자체 `TextField` 0) → 검증 버튼(`verify.label` · 주입·`verify` 있을 때) → O-03 결과 조각(`UiLevel` 5값 아이콘 · `headline` · `reasonCode` 원문 · `retryable` 이면 «다시 시도») · 모르는 id = `missingLabel` 한 줄 ⓕ 🔴 판정 0 — «검증 성공 같으니 다음 활성» 0 · 권장 미통과 = 경고 배지만(차단 = 엔진 `gate`) · 비율·남은 시간·만료 계산 0 · 해외주식 행 0(목록에 없으면 없다) ⓖ 새 lib 파일 2 · 공용 3(배럴 +2 · `shell_providers.dart` 끝 절 슬롯 빌더 1 · `test/shell_fakes.dart` 끝 절 — **끝 절 더하기만** · 라벨 0 · «정확히 N» = 마지막 카드) · Key 접두 `o01-`·`o02-`·`o03-` · 골든 5이름 10장(`o01_fresh` · `o01_advisory` · `o02_step` · `o03_ok` · `o03_fail_code`).
 > 🔴 **카드 덮개 필수 문장(04 §9 머리 · §9-2~§9-4 · §9-8 · prompt_M8 145~152)** — «게이트 판정은 전부 엔진 — 화면은 판정 결과와 문구를 그린다(«검증 성공 같으니 다음» 0 · 권장 미통과 = 경고 배지만 · `unknown` = 진행 차단 · `notApplicable` 과 같은 모양 0 · «일단 진행» 0)» · «목록은 받은 차례 그대로 — 갈래를 화면이 모른다(목록 두 벌 0 · `OperatingMode` 0) · 진행률 = `progressText` 그대로(비율 계산 0) · 만료 = `verifiedUntilText` 늘 보임(UTC `verifiedUntil` 포맷 0)» · «시크릿 = `SecretField` 삽입 자리뿐 — 자체 `TextField`·붙여넣기 버튼·마스킹·임시 저장·확인 필드 0» · «검증 = VM 이 준 동작 `run(id, args)` 그대로 1회 · 결과 = 3상(성공/실패/재시도)만 · 실패 문구 = `headline` + 원문 코드(요약·의역 0) · 재시도 가능 = `retryable` 데이터» · «셸 파일·R13·R14·R15a 파일·테스트·PNG 는 고치지 않는다».
 > ✅ **K 결정 표식** — 새 K 0 · 관련 = 01 §2-1 `GateState.unknown`(진행 차단) · 01 §2-10 `estimatedText` · X7 §5-3(준비물 갈래 — 엔진 몫) · K35.
-> ⬜ **발주자 확인 12건(권고 = 카드 기본값)** — ① O-01 원천 = 🆕 추가형 `watchStepList()` → `OnboardingStepsVm{progressText, rows, emptyLabel?, finishLink?}`(갈래 인자 0 — 04 §9-2 «화면은 갈래를 알지 못한다» · 기존 `watchSteps(OnboardingTrack)` 는 v1.16 이 두거나 지운다) ② `OnboardingStep` 표시 칸 = 🆕 `requirementLabel`(등급 글자 — «권장» 낱말도 엔진 글자 · R15a 의 «권장 0» 은 `O-00b` 몫) · `warningLabel?`(권장 미통과 배지 — 엔진 판정) · `verifiedUntilText?` · `failureText?` · `gate?`(`GateBadge`) · `detailLink?`(O-02) — `verifiedUntil`·`estimated`·`requirement`·`whereDeepLink` = 화면 미참조 ③ 단계 게이트 = `GateBadge.state` 4값 전수 switch(아이콘·색 — `unknown` = 차단 모양 · `notApplicable` = 다른 모양) · 글자 = `gate.label` · «일단 진행» 0 ④ O-02 원천 = 🆕 `watchStep(stepId)` → `OnboardingStepDetailVm{step?, missingLabel?, whereText?, howText?, verify?, secretSlotId?}`(목록을 거르면 «판정» — 단건 창구) · 모르는 id = `missingLabel` 값(에러 아님) ⑤ 검증 동작 = 🆕 `OnboardingVerifyAction{id, args, label}`(엔진이 단계 ↔ `SettingsActionId` + 화이트리스트 args 를 완성 — 화면이 키를 짓지 않는다 · null = 버튼 부재) ⑥ O-03 = O-02 안 결과 조각(`run` 반환 `ActionResult` 하나 · `level` 아이콘 · `headline` · `reasonCode` 원문 · `retryable` → «다시 시도») · 별도 라우트·`watch(actionRunId)` 0(링크 조립 0) ⑦ 🔴 `SecretField` 삽입 자리 = 🆕 슬롯 빌더 주입 `shellOnboardingSlotBuilderProvider`(`Widget Function(String slotId)?` · 조립 앱 = M4·M9 `SecretField` · 뷰어·미주입 = null = 자리 부재 · R15c 의 서약문·생체·셀프테스트·체크섬 자리도 같은 주입) · 대안 = `ShellPlaceholder` 고정 높이 자리(소유 위젯이 오면 골든 재촬영 `golden:approved`) ⑧ `whereDeepLink` 뜻 = v1.16 이 정리(권고: 내부 단계 링크 = `detailLink` · «어디서 받나» = `whereText` 글자 · 외부 URL 열기 = 플랫폼 몫 · `AppLinkSchemes` 밖) ⑨ 표본 정리 = v1.16 새 `m8/onboarding_steps_*` 에 `o_00`(운영 모드 행 — O-01 에서 O-00b 로 되돌아가는 길 · 04 §9-1 «O-01 안의 한 단계 기각»)·`o_04`(가상 초기금 — O-04 6단계 몫) 행 0 · 해외주식 행 0 ⑩ 정적 라벨 0(«다음» = R15a `onboardingNext` · «다시 시도» = `retry` · 실패 = R15a `onboardingNotAccepted` 재사용) ⑪ 골든 5이름 10장(`o01_fresh` · `o01_advisory` · `o02_step` · `o03_ok` · `o03_fail_code` — 04 에 이름 없음 · 카드가 지음) ⑫ 이월 반영(«6» — C4r14a-5 = O-03 검증 조각).
+> ⬜ **발주자 확인 12건(권고 = 카드 기본값 · 🆕 2026-11-03 드라이런·감사·명세 지적으로 ②③⑥⑧⑨ 에 갈림을 더했다)** — ① O-01 원천 = 🆕 추가형 `watchStepList()` → `OnboardingStepsVm{progressText, rows, emptyLabel?, finishLink?}`(갈래 인자 0 — 04 §9-2 «화면은 갈래를 알지 못한다» · 기존 `watchSteps(OnboardingTrack)` 는 v1.16 이 두거나 지운다) ② `OnboardingStep` 표시 칸 = 🆕 `requirementLabel`(등급 글자 — «권장» 낱말도 엔진 글자 · R15a 의 «권장 0» 은 `O-00b` 몫) · `warningLabel?`(권장 미통과 배지 — 엔진 판정) · `verifiedUntilText?` · `failureText?` · `gate?`(`GateBadge`) · `detailLink?`(O-02) — `verifiedUntil`·`estimated`·`requirement`·`whereDeepLink` = 화면 미참조 · 🆕 상태 글자 = `verificationLabel`·`failureText` 가 있을 때만(notStarted·inProgress 는 아이콘·색만 — 04 §2-3 «색·아이콘·글자 함께» 와 갈림 · 명세 지적) · 대안 = v1.16 `stateLabel`(엔진 글자) ③ 단계 게이트 = `GateBadge.state` 4값 전수 switch(아이콘·색 — `unknown` = 차단 모양 · `notApplicable` = 다른 모양) · 글자 = `gate.label` · «일단 진행» 0 · 🆕 `GateBadge.blockedReasonCode` = 화면 미참조 그대로(01 C-44 ⑮ 가 같은 칸을 «원값·키» 로 금지한 선례 · 04 §9-8 그림 23 «blockedReasonCode 문구» = 그 코드의 문구 = `gate.label` · 원문 코드 = 행 `failureReasonCode`·검증 `reasonCode` 몫 — 명세 지적 기각 까닭) · 대안 = block 행에 코드 한 줄 더하기(C-44 와 갈린다) ④ O-02 원천 = 🆕 `watchStep(stepId)` → `OnboardingStepDetailVm{step?, missingLabel?, whereText?, howText?, verify?, secretSlotId?}`(목록을 거르면 «판정» — 단건 창구) · 모르는 id = `missingLabel` 값(에러 아님) ⑤ 검증 동작 = 🆕 `OnboardingVerifyAction{id, args, label}`(엔진이 단계 ↔ `SettingsActionId` + 화이트리스트 args 를 완성 — 화면이 키를 짓지 않는다 · null = 버튼 부재) ⑥ O-03 = O-02 안 결과 조각(`run` 반환 `ActionResult` 하나 · `level` 아이콘 · `headline` · `reasonCode` 원문 · `retryable` → «다시 시도») · 별도 라우트·`watch(actionRunId)` 0(링크 조립 0) · 🆕 04 §9-4 «3상» 읽기 = 성공(`level` ok) · 실패(그 밖 `level` · 또는 예외 = 정적 «접수되지 않았습니다») · 재시도(`retryable`) — 아이콘은 `UiLevel` 5값 전수(규칙 6 · 상태를 새로 만들지 않는다 · 표본 = ok·blocked 만 · 명세 지적) ⑦ 🔴 `SecretField` 삽입 자리 = 🆕 슬롯 빌더 주입 `shellOnboardingSlotBuilderProvider`(`Widget Function(String slotId)?` · 조립 앱 = M4·M9 `SecretField` · 뷰어·미주입 = null = 자리 부재 · R15c 의 서약문·생체·셀프테스트·체크섬 자리도 같은 주입) · 대안 = `ShellPlaceholder` 고정 높이 자리(소유 위젯이 오면 골든 재촬영 `golden:approved`) ⑧ `whereDeepLink` 뜻 = v1.16 이 정리(권고: 내부 단계 링크 = `detailLink` · «어디서 받나» = `whereText` 글자 · 외부 URL 열기 = 플랫폼 몫 · `AppLinkSchemes` 밖) · 🆕 🔴 명세 지적 — 04 §9-3 은 «어디서 받나(외부 딥링크)» 를 요구한다(권고는 글자만이라 사용자가 KIS 개발자센터·GitHub·healthchecks 로 가는 길이 앱에 0) → 대안(04 를 따르는 쪽) = v1.16 `OnboardingStepDetailVm.whereLink: OnboardingLinkAction?`(링크 = 엔진이 완성한 `aaq://` 외부 열기 라우트 · 조립 앱이 외부 앱·브라우저로 넘김) + 화면 = `o02-where` 안 버튼 하나 `AppLinkOpener.open` · 탭 테스트 1(O02-07) · S05 +1 — 고르면 이 카드 «화면 2» 어디서 줄 · 최소 목록 · 정적 S05·P10 을 고친다 · 권고를 지키면 04 §9-3 «외부 딥링크» 를 «글자 + 플랫폼 몫» 으로 고쳐 적는다(설계 정정) ⑨ 표본 정리 = v1.16 새 `m8/onboarding_steps_*` 에 `o_00`(운영 모드 행 — O-01 에서 O-00b 로 되돌아가는 길 · 04 §9-1 «O-01 안의 한 단계 기각»)·`o_04`(가상 초기금 — O-04 6단계 몫) 행 0 · 해외주식 행 0 · 🆕 표본 셋 더(드라이런 지적 — 예고 변이를 잡는 표본): `m8/onboarding_steps_empty`(rows 0 · `emptyLabel` · «emptyLabel 빼기») · `m8/onboarding_steps_all_verified_locked`(전부 verified · `finishLink` null · 게이트 unknown 행 — «전부 verified 면 첫 행 링크로 다음» 류) · `m8/onboarding_steps_finish_ready_warn`(권장 미통과 행 + `finishLink` — «finishLink 대신 전부 verified 면 다음») ⑩ 정적 라벨 0(«다음» = R15a `onboardingNext` · «다시 시도» = `retry` · 실패 = R15a `onboardingNotAccepted` 재사용) ⑪ 골든 5이름 10장(`o01_fresh` · `o01_advisory` · `o02_step` · `o03_ok` · `o03_fail_code` — 04 에 이름 없음 · 카드가 지음) ⑫ 이월 반영(«6» — C4r14a-5 = O-03 검증 조각).
 > 🚫 **플랫폼 몫 = 화면 밖** — Android Keystore · 클립보드 60초 클리어 · `FLAG_SECURE`(시크릿 라우트 진입/이탈 · 05 §4-2) · 생체인증 열람 · 외부 URL 열기(KIS 개발자센터 · GitHub · healthchecks — `url_launcher` 0) · Android 권한 요청(`o_05` 알림 · `o_06` 배터리 최적화 · 정확 알람 · FGS 5분 실측) = 조립 앱·엔진(06 M4 · X3) · 이 카드 = 엔진이 준 결과·글자만.
-> 드라이런: ⬜ ⟦실측: 누적 드라이런 2번째 — 가지 `dry/r15-2` = R15a 드라이런 끝 + R15a 병합 기록 흉내 + v1.16 R15b 몫 흉내 → 권장 4커밋 · 시작 · 끝 · 정적 · 사전검사 · dy · lib 줄 · 변이⟧.
+> 드라이런: ✅ 누적 드라이런 2번째(2026-11-02~03 · 첫 판 가지 `dry/r15-2` = R15a 드라이런 끝 `5c46f58` → R15a 병합 기록 흉내 `77ad6dc` → v1.16 R15b 몫 흉내 `90edc68`(G8~G14 · 칸 +6 · 새 DTO 3 · 표본 7 · 기존 OnboardingStep 표본 5개 `requirement_label` · C-33 링크 키 2 · reason_code = C-5 등재 코드) → 권장 4커밋 `31a341e`·`bac114e`·`91dc333`·`66ffe93` · 🆕 지적 반영판 가지 `dry/r15-2b` = + 표본 흉내 `031af01`·`260fdd6`(empty · all_verified_locked · finish_ready_warn) + 테스트 `85475d5`·`260fdd6`) · 첫 판 시작 «+237» → 끝 «+281»(파일별 +13 · +21 · +4 · +2 · +4) → 반영판 끝 «+286»(+16 · +23) · 정적 34줄(첫 판 = 출력 162줄 · EXIT:1 19 · EXIT:0 15 — 판정 줄 전부 기대대로) · 사전검사 ① 🔴 0 · 🟡 0 · ② `o01_` 🟡 0 · `o02_` 🟡 2 · `o03_` 🟡 4(전부 G1) · 골든 dy 5(light = dark) · lib +410 · PNG 열람 5장 · 막힌 곳 2 = `StepState` 이름 충돌(`hide StepState`) · `o01_fresh` 맨 아래 Key(→ `o01-row-4`) · 변이 62꼴 = 예고 SURVIVED 4(L6 emptyLabel 빼기 · J6a «전부 verified 면 다음» · T1b O-02 머리 만료 빼기 · V5 기다리는 동안 두 번) → 🆕 반영판에서 4꼴 + J6c(fallback 링크) KILLED(O01-09 · O01-05 `ready_warn`·`locked` · O02-06 · O03-07) · 정적이 잡음 = J1a(P11 `.requirement`) · 참고 RF7(P04) · RF9(P06) · RF5b = 이름 충돌로 컴파일 무효.
 > 프롬프트 = `docs/ai-context/prompt_M8.md`(v2 판 183줄 · 2행·119행 범위 · 128행 PR 제목 형식 → 이 카드가 덮는다). 🔴 Bob **새 대화** 전제 — R15a 대화를 기억하지 못합니다.
 > R4·R13·R5·R14·R15a 교훈 반영: R15a 카드 머리 «교훈 반영» 줄과 같다(PNG 열람 = 이름마다 light 1장(5장) · 경우 for 는 testWidgets 밖 · 흐름 칸 non-null · 경우 이름 = name 칸 · 쓰기 조각 두 방향 · 부재 = 데이터는 operator · 전제는 if 밖·`// pre` · 커밋마다 `git show --stat HEAD` · 저장 파일 BOM 0 · ① = 파일로 받은 출력 · 정적 = 파일로 Git Bash · 머리 ASCII · G1 🟡 조문 · ③ 구분 줄 · ④ «+» · 단언 없는 `takeException` 0 · 파일별 시각 머리 · 이어진 글자 행 = 한 덩어리 · «자리 바꿈» 견본 · 입력 칸 = 파일 이름만).
 
@@ -74,6 +74,9 @@ R15b-Bob-O01O03 — 범위: O-01 단계 목록(OnboardingStepList() — 진행�
   ls packages/domain_contracts/fixtures/m8/onboarding_steps_fresh.json      ← 보여야 함(v1.16)
   ls packages/domain_contracts/fixtures/m8/onboarding_steps_advisory.json   ← 보여야 함(v1.16)
   ls packages/domain_contracts/fixtures/m8/onboarding_steps_finish_ready.json  ← 보여야 함(v1.16)
+  ls packages/domain_contracts/fixtures/m8/onboarding_steps_finish_ready_warn.json  ← 보여야 함(v1.16 · 🆕 드라이런 지적)
+  ls packages/domain_contracts/fixtures/m8/onboarding_steps_all_verified_locked.json  ← 보여야 함(v1.16 · 🆕)
+  ls packages/domain_contracts/fixtures/m8/onboarding_steps_empty.json      ← 보여야 함(v1.16 · 🆕)
   ls packages/domain_contracts/fixtures/m8/onboarding_step_detail_kis_mock.json  ← 보여야 함(v1.16)
   ls packages/domain_contracts/fixtures/m8/onboarding_step_detail_no_verify.json  ← 보여야 함(v1.16)
   ls packages/domain_contracts/fixtures/m8/onboarding_step_detail_missing.json  ← 보여야 함(v1.16)
@@ -86,7 +89,7 @@ R15b-Bob-O01O03 — 범위: O-01 단계 목록(OnboardingStepList() — 진행�
   melos.bat bootstrap
   melos.bat run build:gen   ← 🔴 필수(브랜치를 바꾼 뒤마다) · «Can't load Kernel binary: Invalid SDK hash.» 경고는 SUCCESS 면 무시.
   cd packages/ui_shell
-  flutter test   ← 시작 기준: R15a 병합본 전부 통과 · 기대 ⟦실측: «+237: All tests passed!»(R15a 병합본 · 드라이런 기대 237)⟧(끝 줄의 수를 «시작 기준 N» 으로 · 다르면 PR 본문에 까닭 한 줄 · 실패가 있으면 멈추고 끝 20줄을 채팅으로)
+  flutter test   ← 시작 기준: R15a 병합본 전부 통과 · 기대 ⟦실측: 앞 카드 병합 기록 때 채움 — «+237: All tests passed!»(R15a 병합본 · 드라이런 기대 237)⟧(끝 줄의 수를 «시작 기준 N» 으로 · 다르면 PR 본문에 까닭 한 줄 · 실패가 있으면 멈추고 끝 20줄을 채팅으로)
   cd ../..
 git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 
@@ -94,6 +97,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
   OnboardingStep(기존 + 🆕 칸)  …기존 칸 · 🆕 required String requirementLabel(등급 글자 — 엔진) · String? warningLabel(권장 미통과 배지 — 엔진 판정 · null = 부재) · String? verifiedUntilText(만료 글자 — 엔진 · null = 만료 없음) ·
                      String? failureText(실패 문장 — 엔진 · failureReasonCode 와 함께) · GateBadge? gate(단계 잠금 — 엔진 판정 · null = 게이트 없음) · String? detailLink(O-02 링크 — 엔진이 완성 · null = 행 탭 없음)
                      — 🔴 화면 미참조: stepId · track · order · estimated(Duration) · requirement(열거 — 글자 = requirementLabel) · verifiedUntil(UTC) · whereDeepLink(⟦v1.16 뜻 정리⟧)
+                     — 🔵 v1.16 PR 체크(드라이런·명세 지적): requirementLabel 이 required 라 기존 OnboardingStep 표본 5개(onboarding_fresh · onboarding_reconnect · m8/onboarding_finish · m8/onboarding_fresh_advisory · m8/restart_lost_phone)에 requirement_label 보강 · C-33 `_linkKeys` += detail_link · finish_link · 규칙 «verifiedUntil non-null ⇒ verifiedUntilText non-null»(표본 계약 테스트 — 화면은 글자만 읽는다)
   🆕 OnboardingStepsVm({required String progressText, required List<OnboardingStep> rows, String? emptyLabel, String? finishLink})
                      — progressText = «7/12 완료» 류(엔진) · rows = 엔진이 onboarding_choice 로 고른 갈래 목록(받은 차례) · emptyLabel = rows 0 일 때만 · finishLink = O-04 링크(필수 통과 뒤에만 — 엔진 판정 · null = «다음» 부재)
   🆕 OnboardingStepDetailVm({OnboardingStep? step, String? missingLabel, String? whereText, String? howText, OnboardingVerifyAction? verify, String? secretSlotId})
@@ -102,7 +106,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
                      — id·args = 엔진이 화이트리스트 안에서 완성(🔴 화면이 키·값을 짓지 않는다 · 그대로 넘긴다) · label = 버튼 글자(엔진)
   repositories/onboarding_repository.dart  Stream<OnboardingStepsVm> watchStepList(); · Stream<OnboardingStepDetailVm> watchStep(String stepId);(추가형 · 스트림 에러 = 읽기 실패 · 모르는 id = missingLabel 값)
   testing.dart  UnimplementedOnboardingRepository(v1.16 — 새 두 메서드 포함) · UnimplementedSettingsActions(기존)
-  FixturePaths  m8OnboardingStepsFresh · m8OnboardingStepsAdvisory · m8OnboardingStepsFinishReady · m8OnboardingStepDetailKisMock · m8OnboardingStepDetailNoVerify · m8OnboardingStepDetailMissing · m8OnboardingVerifyResults(아래 «픽스처»)
+  FixturePaths  m8OnboardingStepsFresh · m8OnboardingStepsAdvisory · m8OnboardingStepsFinishReady · 🆕 m8OnboardingStepsFinishReadyWarn · m8OnboardingStepsAllVerifiedLocked · m8OnboardingStepsEmpty · m8OnboardingStepDetailKisMock · m8OnboardingStepDetailNoVerify · m8OnboardingStepDetailMissing · m8OnboardingVerifyResults(아래 «픽스처»)
   🔴 쓰지 않는 것: watchSteps(OnboardingTrack) · 코어 onboarding_fresh·onboarding_reconnect · m8/onboarding_fresh_advisory(형제 키 operating_mode·credential_use — 화면이 읽을 DTO 0) · OperatingMode · SettingsActions.watch.
 
 ■ 규칙 요약 (전문 = prompt_M8.md · 우선순위 = 코드 > 이 카드 > 01 §2-10·§2-1·§4-1·§4-3 > 04 §9-2~§9-4·§9-8 > prompt_M8 · 정본 = 이 카드의 글자)
@@ -123,20 +127,21 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  7 공통 조각 = ShellSkeleton · ShellErrorView 재사용 · asOf 머리·오래됨 배너 0(R15a ⑤ 와 같다 — VM 에 asOf 없음) · 새 공용 조각 0 · 스피너 금지 · 시계 미사용.
  8 본문이다 — Scaffold·AppBar·SafeArea·Navigator 0 · 부모 높이 안 ListView(padding: EdgeInsets.zero) · Row 안 엔진 문자열은 Expanded/Flexible · 390px overflow 0 · 글꼴 200% overflow 0 · 간격·크기 = 정수·N.0.
  9 프로바이더 — 새 주입 1(슬롯 빌더 · throw 기본값) · 데이터 2(StreamProvider 1 · StreamProvider.family 1 — stepId · 파일 안 private · autoDispose 0) · 탭 핸들러 안 ref.read · 데이터·주입 null 여부는 build 에서 ref.watch.
-10 테스트 = R15a 카드 규칙 10 과 같다(받침대 extends · implements 0 · 호출마다 새 Stream/Future · 공장 = call 삼항 · 픽스처 = main() 머리 final · 전제 = testWidgets 본문 첫머리 · if 밖 · `// pre` · 경우 for 는 testWidgets 밖 ·
+10 ⟦펼침: R15a 규칙 10 전문 — send/ 승격 때 이 자리에 글자 그대로⟧ 테스트 = R15a 카드 규칙 10 과 같다(받침대 extends · implements 0 · 호출마다 새 Stream/Future · 공장 = call 삼항 · 픽스처 = main() 머리 final · 전제 = testWidgets 본문 첫머리 · if 밖 · `// pre` · 경우 for 는 testWidgets 밖 ·
    흐름 칸 non-null 클로저 · 경우 이름 = name 칸 · 자기 주입값 확인 금지 · 늘 참 금지 · ⓡ + 양성 기준점 · copyWith 0 · 링크 = RecordingLinkOpener · 목록 == 목록 · 갈리는 단언 = if/else 양쪽 또는 want ? findsOneWidget : findsNothing ·
    «부재 = 데이터» = operator 주입 · ASCII 이름·리터럴 · null-aware 원소 · collection-if 0 · else 없는 if 0 · 반려 꼴 목록 그대로 · 제네릭 위젯 술어 = descendant of byKey 꼴만 · 스켈레톤 1 = byKey findsOneWidget · 묶음 글자 = shownTexts) ·
    🔴 시크릿 자리 테스트 = 가짜 슬롯 빌더(slotId 를 받아 Key('fake-slot-<slotId>') 단 SizedBox 를 낸다 · 받은 slotId 를 기록)로만 — TextField 를 찾지 않는다 ·
    ⓡ = 정상 상태 테스트마다 expect(find.text(ShellLabels.retry), findsNothing); 한 줄(🔴 O-03 «다시 시도» 가 보이는 경우는 그 테스트의 ⓡ 를 쓰지 않는다 — 아래 목록이 정한다) · ⓗ = 목록 단언 루프 앞의 hasLength 한 줄 ·
-      정적 P20·P21 — 🔴 아래 최소 목록의 표시 수와 정확히 같아야 한다(onboarding_step_list_test ⓡ 7 · ⓗ 1 · onboarding_step_detail_test ⓡ 8 · ⓗ 0).
+      정적 P20·P21 — 🔴 아래 최소 목록의 표시 수와 정확히 같아야 한다(onboarding_step_list_test ⓡ 8 · ⓗ 1 · onboarding_step_detail_test ⓡ 10 · ⓗ 0 — 드라이런 지적 반영판 실측).
    «없는 쪽» 견본 · «화면 Text 전부» 견본 = R15a 카드 규칙 10 과 같은 글자 꼴(경우 칸 = 기대 글자 String? · if/else 양쪽 · 양성 기준점 · allowed = stepListAllowed(c.v) / stepDetailAllowed(c.v, r) · ⓡ 는 테스트 끝 한 줄).
 11 골든 = 새 PNG o01_* 4장 · o02_* 2장 · o03_* 4장 · --update-goldens 는 o01·o02·o03 골든 파일만 · 기존 PNG(48장) 재생성 0 · golden:approved 안 붙임 · 🔴 높이(844)는 늘리지 않는다.
-12 도구 = R15a 와 같다(format:fix → format·analyze·test·test:contracts SUCCESS · melos run test 백그라운드·파이프 0 · 패키지 폴더 flutter test 직접).
-13 C-4 이름 함정 — R15a 와 같다.
+12 ⟦펼침: R15a 규칙 12⟧ 도구 = R15a 와 같다(format:fix → format·analyze·test·test:contracts SUCCESS · melos run test 백그라운드·파이프 0 · 패키지 폴더 flutter test 직접).
+13 ⟦펼침: R15a 규칙 13⟧ C-4 이름 함정 — R15a 와 같다.
 14 모르는 것은 질문 파일에 · UI 자리표시자 글자 금지 · 실키·URL 0 · PR·라벨·병합은 통합 담당.
 15 정적 묶음은 주석도 센다 — 두 새 lib 파일 주석에 이 낱말을 쓰지 않는다: stepId · verifiedUntil · requirement · estimated · whereDeepLink · OperatingMode · TextField · TextFormField · Clipboard · obscure · FLAG_SECURE · keystore · url_launcher ·
    DateTime.now · Duration · AppRoutes · FeatureFlags · runMode · Colors · RichText · autoDispose · Scaffold · Navigator · actionRunId · handoffRoute · skip · 해외 · 건너뛰 · 추천 · 권유 · 자문 · 시그널.
-🔴 보고 규칙(strict 나눔) · PNG 열람(이름마다 light 1장 = 5장) · 배치·잘림 칸 · 셈 단위 · PR 본문 = 통합 담당 · S05 결과 줄 · 자체 점검 ② · ③ = R15a 카드 «보고 규칙» 과 같은 글자(이 카드의 수 = 5장 · S05 기대 2줄).
+🔴 ⟦펼침: R15a «보고 규칙» 전문⟧ 보고 규칙(strict 나눔) · PNG 열람(이름마다 light 1장 = 5장) · 배치·잘림 칸 · 셈 단위 · PR 본문 = 통합 담당 · S05 결과 줄 · 자체 점검 ② · ③ = R15a 카드 «보고 규칙» 과 같은 글자(이 카드의 수 = 5장 · S05 기대 2줄) ·
+   🆕 사전검사 G1 은 «버튼 글자» 를 «상자» 로 읽고 이어진 «글자 n줄» 덩어리를 합쳐 센다 — 표 칸은 이 카드 단위 그대로 · 드라이런 기대 🟡 = o01_ 0 · o02_ 2 · o03_ 4(그대로 · 다시 열지 않음) · 🆕 화면 아래 끝에서 잘린 줄은 «글자 n줄» 에 세지 않는다(o01_fresh — 잘린 셋째 줄을 셌을 때 🟡 2).
 
 ■ 프롬프트보다 이 카드가 이긴다 — 17항 (prompt_M8.md 183줄 판 v2)
  ① 2행 {{범위}} = S-01 · 119행 → 이 카드의 범위 = O-01 · O-02 · O-03
@@ -163,7 +168,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  ⑤ packages/domain_contracts/lib/ — dto/safety.dart(OnboardingStep · v1.16 새 DTO) · dto/common.dart(GateBadge) · enums/onboarding.dart · enums/ui.dart(GateState · UiLevel) · commands/settings_actions.dart · testing.dart
  ⑥ packages/ui_shell — lib/src/onboarding/onboarding_mode_pick.dart(🔵 R15a 쓰기 조각 꼴 · 읽기만) · lib/src/watchdog_board.dart(_checkLook 꼴) · test/onboarding_mode_pick_test.dart · test/shell_fakes.dart · golden README «🆕 R15»
  ⑦ fixtures/README.md(m8 행 · v1.16) ⑧ inbox/README.md · O01O03_questions.md 머리말
- ⑨ docs/ai-context/send/_완료/R15a-Bob-O00O00b.md «3» 의 규칙 10 · «보고 규칙» · «■ 골든» · «■ 제출»(🔴 이 카드가 «R15a 와 같다» 로 부른 글자의 정본 — 읽기만 · 그 카드의 수·이름·파일은 쓰지 않는다)
+ ⑨ ⟦펼침: 승격 때 이 줄을 지운다 — 규칙 10 · 보고 규칙 · 골든 · 제출을 이 카드에 펼친 뒤⟧ docs/ai-context/send/_완료/R15a-Bob-O00O00b.md «3» 의 규칙 10 · «보고 규칙» · «■ 골든» · «■ 제출»(🔴 이 카드가 «R15a 와 같다» 로 부른 글자의 정본 — 읽기만 · 그 카드의 수·이름·파일은 쓰지 않는다)
 
 ■ 본받지 않는 것
  · 코어 onboarding_fresh 의 o_00(«운영 모드 고르기» 행)·o_04 행을 기대하는 것 — 이 카드 표본(m8/onboarding_steps_*)에는 없다(R15a 순서 · O-04 몫) · watchSteps(OnboardingTrack) 를 부르는 것(화면이 갈래를 고르게 된다)
@@ -177,7 +182,7 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 · 🆕 lib 파일 2개:
   lib/src/onboarding/onboarding_step_list.dart — OnboardingStepList(공개 · ConsumerWidget) · _stepsProvider · _StepRow(ConsumerWidget) · _stepLook · _gateLook
   lib/src/onboarding/onboarding_step_detail.dart — OnboardingStepDetail(공개 · ConsumerStatefulWidget · stepId) · _stepDetailProvider(family) · _VerifyResult(StatelessWidget) · _resultLook
-  import 차례 = R15a 와 같다(onboarding_step_detail 만 'dart:async').
+  import 차례 = R15a 와 같다(onboarding_step_detail 만 'dart:async') · 🔴 flutter 줄 = `import 'package:flutter/material.dart' hide StepState;`(두 lib 파일 + StepState 를 쓰는 테스트 — domain_contracts `StepState` 와 flutter Stepper `StepState` 이름 충돌 · 없으면 analyze ambiguous_import 6건 · 드라이런 지적 · 골든 파일은 StepState 를 안 쓰면 붙이지 않는다).
 · 🆕 주입 1 = lib/src/shell_providers.dart 끝 R15b 절:
     // ── R15b — O-01~O-03 injection providers ─────────────────────────────────
     typedef ShellSlotBuilder = Widget Function(String slotId);
@@ -225,12 +230,15 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
  fresh        m8OnboardingStepsFresh — rows ⟦v1.16 · 권고 12⟧(StepState 5값 전부 · 권장 미통과 행 warningLabel non-null · 만료 행 verifiedUntilText non-null · 실패 행 failureText·failureReasonCode non-null · gate 4값 표본 각 1행(unknown 포함) · detailLink null 1행) · finishLink null · emptyLabel null · o_00·o_04·해외주식 행 0
  advisory     m8OnboardingStepsAdvisory — 투자 안내 갈래 rows(대사 전용 키 recommended 등 — 04 §9-2 참고표) · finishLink null
  ready        m8OnboardingStepsFinishReady — rows 전부 verified · finishLink non-null
+ 🆕 readyWarn   m8OnboardingStepsFinishReadyWarn — 권장 미통과 행(NOT_STARTED · warningLabel) 하나 + finishLink non-null(필수 통과 = 엔진이 마무리를 연다 · 드라이런 J6a)
+ 🆕 locked      m8OnboardingStepsAllVerifiedLocked — rows 전부 verified · finishLink null · 게이트 unknown 행 하나(엔진이 막는다 · 드라이런 J6c)
+ 🆕 empty       m8OnboardingStepsEmpty — rows 0 · emptyLabel non-null · finishLink null(드라이런 L6)
  kisMock      m8OnboardingStepDetailKisMock — step non-null · whereText·howText non-null · verify non-null(label · id · args) · secretSlotId non-null
  noVerify     m8OnboardingStepDetailNoVerify — step non-null · verify null · secretSlotId null
  missingV     m8OnboardingStepDetailMissing — step null · missingLabel non-null
- results      listFixture(m8OnboardingVerifyResults, ActionResult.fromJson).rows — [0] 성공(level ok · reasonCode null · retryable false) · [1] 실패(level blocked · reasonCode «EGW00133» · retryable true) · [2] 실패(reasonCode non-null · retryable false)
+ results      listFixture(m8OnboardingVerifyResults, ActionResult.fromJson).rows — [0] 성공(level ok · reasonCode null · retryable false) · [1] 실패(level blocked · reasonCode = 사전 등재 원문 코드(⟦v1.16 — EGW 류 브로커 원문을 사전에 등재하거나 등재 코드로 · 사전 밖이면 C-5 실패 · 드라이런 지적⟧) · retryable true) · [2] 실패(reasonCode non-null · retryable false)
 
-■ Key 표 (o01- 8이름 · o02- 7이름 · o03- 5이름 — 정본 · 표 밖 Key 0 · 순번만 · 🔴 stepId 0)
+■ Key 표 (o01- 7이름 · o02- 7이름 · o03- 5이름 — 정본 · 표 밖 Key 0 · 순번만 · 🔴 stepId 0)
    o01-loading · o01-fail · o01-progress · o01-row-$i · o01-gate-$i · o01-empty · o01-finish · (o01 행 안 글자는 Key 0) ·
    o02-loading · o02-fail · o02-missing · o02-head · o02-where · o02-how · o02-secret · o03-run · o03-not-accepted · o03-result · o03-level · o03-retry
 
@@ -244,7 +252,9 @@ git stash list 의 옛 «WIP on …» 은 pop 하지 말고 그대로.
 
 ■ 테스트 최소 목록 (ⓡ·ⓗ = P20·P21 · (전제) = P34)
 공통: 띄우기 = pumpStepList(tester, overrides:) · pumpStepDetail(tester, overrides:, stepId:)(R15a pump 꼴) · overrides = stepOverrides(repo:, actions:, slots:, opener:)(4줄 · slots = ShellSlotBuilder?) · 경우 for = testWidgets 밖 · 흐름 = 클로저 칸 ·
-  계획 = step_list_test 줄 8(테스트 13) · step_detail_test 줄 11(테스트 21) · 골든 3 · 합 22.
+  계획 = step_list_test 줄 9(테스트 16) · step_detail_test 줄 13(테스트 23) · 골든 3 · 합 25(드라이런 지적 반영판 실측).
+  🆕 테스트 파일 머리 도우미(main() 밖 · 드라이런 글자): valueThenFail(R15a 꼴) · listRepo(steps) / detailRepo(detail)(안 쓰는 쪽 공장 = Stream.error(StateError('unused'))) · wantStep(cs, StepState) · wantGate(cs, GateState) · wantResult(cs, UiLevel)(= «화면 1·2» 의 _stepLook · _gateLook · _resultLook 글자 사본) ·
+    firstIconIn(tester, key) => tester.widget<Icon>(find.descendant(of: find.byKey(key), matching: find.byType(Icon)).first) · main() 머리 final: fresh · advisory · ready · readyWarn · locked · empty · kisMock · noVerify · missingV · results · askedId = kisMock.step!.stepId · linkedAt · unlinkedAt.
   🆕 test/shell_fakes.dart 끝 절(«// ── R15b — O-01~O-03 fakes ──»): FakeShellStepRepository extends UnimplementedOnboardingRepository(steps · detail 공장 · stepIds 기록 · listCalls) · FakeShellSlotRecorder(slotIds 기록 · build(slotId) → SizedBox(key: ValueKey<String>('fake-slot-$slotId'), height: 48)) ·
     stepOverrides(…) · pumpStepList · pumpStepDetail · stepRowTexts(OnboardingStep s) => <String>[s.title, s.whyLine, s.estimatedText, s.requirementLabel, ?s.warningLabel, ?s.verificationLabel, ?s.verifiedUntilText, ?s.failureText, ?s.failureReasonCode, ?s.gate?.label] ·
     stepListAllowed(OnboardingStepsVm v) · stepDetailAllowed(OnboardingStepDetailVm v, ActionResult? r)(+ ShellLabels.onboardingNext · onboardingNotAccepted · retry 중 그 화면에 나올 수 있는 것 · 🔴 stepId·링크·code(GateBadge) 0) · FakeShellOnboardingActions = R15a 가짜 재사용(고치지 않는다).
@@ -253,37 +263,42 @@ O-01 — test/onboarding_step_list_test.dart
         ⓗ expect(fresh.rows, hasLength(⟦v1.16 표본 행 수⟧)) → i 마다 shownTexts(o01-row-$i) == stepRowTexts(fresh.rows[i]) · 사슬 dy o01-progress → o01-row-0 → … · o01-finish findsNothing · o01-empty findsNothing · ⓡ.
  O01-02 상태 아이콘 = StepState 5값 전수 — fresh: 전제 하나: expect(fresh.rows.map((OnboardingStep r) => r.state).toSet(), StepState.values.toSet()); // pre → i 마다 tester.widget<Icon>(descendant of o01-row-$i, first Icon) icon·color == wantStep(row.state)(테스트 파일 private switch · 기대 원천 = «화면 1» _stepLook) · ⓡ.
  O01-03 게이트 3상 — fresh: 전제 하나: expect(fresh.rows.where((OnboardingStep r) => r.gate?.state == GateState.unknown), isNotEmpty); // pre → gate non-null 인 행 i 마다 o01-gate-$i 의 Icon icon·color == wantGate(state) · 🔴 unknown 행과 notApplicable 행의 아이콘이 다르다 한 줄 · gate null 행 = o01-gate-$i findsNothing · ⓡ.
- O01-04 행 탭 = detailLink — 두 경우 ㉠ (linked · 첫 detailLink non-null 행 · [link]) · (unlinked · detailLink null 행 · [])마다 — 전제 둘(두 행이 표본에 있다 // pre) → tap(o01-row-$k) → expect(opener.opened, c.want) · ⓡ.
- O01-05 «다음» = finishLink(데이터 · 판정 0) — 두 경우 ㉠ (ready · want [ready.finishLink!]) · (fresh · null)마다 — 전제 둘: expect(ready.finishLink, isNotNull); // pre · expect(fresh.finishLink, isNull); // pre → «없는 쪽» 견본(o01-finish · 양성 기준점 o01-row-0) · 있으면 tap → opener.opened == want · ⓡ.
+ O01-04 행 탭 = detailLink — 두 경우 ㉠ (linked · k = linkedAt · [fresh.rows[linkedAt].detailLink!]) · (unlinked · k = unlinkedAt · [])마다(main() 머리 final int linkedAt = fresh.rows.indexWhere((OnboardingStep r) => r.detailLink != null); · unlinkedAt = 같은 꼴 == null) — 전제 둘: expect(linkedAt, greaterThanOrEqualTo(0)); // pre · expect(unlinkedAt, greaterThanOrEqualTo(0)); // pre → tap(o01-row-$k) → expect(opener.opened, c.want) · ⓡ.
+ O01-05 «다음» = finishLink(데이터 · 판정 0) — 네 경우 ㉠ (ready · want ready.finishLink) · (fresh · null) · 🆕 (locked · null) · (ready_warn · want readyWarn.finishLink)마다(경우 칸 want = String?) — 전제 여섯: expect(ready.finishLink, isNotNull); // pre · expect(fresh.finishLink, isNull); // pre · expect(locked.finishLink, isNull); // pre ·
+        expect(locked.rows.every((OnboardingStep r) => r.state == StepState.verified), isTrue); // pre · expect(readyWarn.finishLink, isNotNull); // pre · expect(readyWarn.rows.any((OnboardingStep r) => r.state != StepState.verified), isTrue); // pre →
+        final String? want = c.want; if (want != null) { tap(o01-finish) → pump → expect(opener.opened, <String>[want]); } else { o01-finish findsNothing · 양성 기준점 o01-row-0 findsOneWidget } · ⓡ(🔴 locked = «전부 verified 면 다음» 류 · ready_warn = «finishLink 대신 전부 verified» — 드라이런 J6a·J6c).
  O01-06 상태 갈래 — 세 경우(loading · fail · value_then_fail)마다 Key 목록 · CircularProgressIndicator findsNothing.
  O01-07 재시도 — call 0 error → retry → value → o01-fail findsNothing · o01-progress findsOneWidget · repo.listCalls == 2 · ⓡ.
  O01-08 화면 Text 전부 · 큰 글꼴(해외주식·o_00 글자 0 = allowed 밖) — 두 경우(fresh · advisory) → allowed = stepListAllowed(c.v) → textScaleFactorTestValue 2.0 → expect(tester.takeException(), isNull) · ⓡ.
- ⓡ 기대 = 7줄(O01-01 · 02 · 03 · 04 · 05 · 07 · 08) · ⓗ = 1(O01-01) · (전제) = ⟦실측: 계획 8 — 01 2 · 02 1 · 03 1 · 04 2 · 05 2⟧.
+ 🆕 O01-09 빈 문장 = emptyLabel 데이터 — empty: 전제 둘: expect(empty.rows, isEmpty); // pre · expect(empty.emptyLabel, isNotNull); // pre → shownTexts(o01-empty) == [empty.emptyLabel] · o01-row-0 findsNothing · o01-progress findsOneWidget · ⓡ(드라이런 L6).
+ ⓡ 기대 = 8줄(O01-01 · 02 · 03 · 04 · 05 · 07 · 08 · 09) · ⓗ = 1(O01-01) · (전제) = 14(01 2 · 02 1 · 03 1 · 04 2 · 05 6 · 09 2 — 드라이런 지적 반영판 실측 · 🔴 정확히).
 O-02 · O-03 — test/onboarding_step_detail_test.dart(주입 = 따로 적지 않으면 operator · 슬롯 = FakeShellSlotRecorder)
- O02-01 상세 글자·차례 — kisMock: 전제 셋(step · whereText · howText non-null // pre) → repo.stepIds == ['<stepId 인자>'](🔵 인자 = 테스트가 넘긴 글자 · 표본 step.stepId 를 그대로 넘긴다) · 사슬 dy o02-head → o02-where → o02-how → o02-secret → o03-run · 글자 = shownTexts · ⓡ.
+ O02-01 상세 글자·차례 — kisMock: 전제 셋(step · whereText · howText non-null // pre) → repo.stepIds == <String>[askedId](main() 머리 final String askedId = kisMock.step!.stepId; — 위젯 인자로 그대로 넘긴다) · 사슬 dy o02-head → o02-where → o02-how → o02-secret → o03-run · 글자 = shownTexts · ⓡ.
  O02-02 모르는 id = missingLabel 값(에러 아님) — missingV: 전제 둘 → o02-missing 글자 == [missingLabel] · o02-head · o03-run · o02-fail findsNothing · ⓡ.
  O02-03 시크릿 자리 = 슬롯 빌더(SecretField 삽입만) — 세 경우 ㉠ (slot · kisMock · 빌더 있음 · fake-slot-<id> findsOneWidget · slots.slotIds == [kisMock.secretSlotId!]) · (no_builder · kisMock · 빌더 null · o02-secret findsNothing) · (no_slot · noVerify · 빌더 있음 · o02-secret findsNothing · slotIds == [])마다 ·
         🔴 find.byType(TextField) findsNothing 한 줄(세 경우 모두) · ⓡ.
  O02-04 상태 갈래 — 세 경우(loading · fail · value_then_fail) · O02-05 재시도(구독 · stepIds 두 번 같은 인자) · ⓡ.
+ 🆕 O02-06 머리 만료 글자 = 데이터 — noVerify: 전제 둘: expect(noVerify.step, isNotNull); // pre · expect(noVerify.step!.verifiedUntilText, isNotNull); // pre → shownTexts(o02-head) == <String?>[s.title, s.whyLine, s.estimatedText, s.verifiedUntilText] · ⓡ(🔴 kisMock 은 만료가 없어 O02-01 이 «만료 빼기» 를 못 본다 — 드라이런 T1b).
  O03-01 검증 버튼 = run(verify.id, verify.args) 1회 — kisMock → tap(o03-run) → pump → expect(actions.ids, [kisMock.verify!.id]) · expect(actions.argsSeen, [kisMock.verify!.args]) · ⓡ.
- O03-02 결과 3상 · 원문 코드 — 세 경우 ㉠ (ok · results[0]) · (fail_retry · results[1]) · (fail_final · results[2])마다 — 전제 셋(reasonCode·retryable 표본 // pre) → tap(o03-run) → pump 두 번 → shownTexts(o03-result) 앞부분 == [r.headline, ?r.reasonCode](«다시 시도» 글자는 따로) · o03-level Icon == wantResult(r.level) · o03-not-accepted findsNothing(🔵 fail_retry 경우는 ⓡ 대신 o03-retry 단언 — retry 글자가 보인다).
+ O03-02 결과 3상 · 원문 코드 — 세 경우 ㉠ (ok · results[0]) · (fail_retry · results[1]) · (fail_final · results[2])마다 — 전제 셋(reasonCode·retryable 표본 // pre) → tap(o03-run) → pump 두 번 → expect(shownTexts(o03-result), <String?>[c.r.headline, ?c.r.reasonCode, ...c.tail])(🆕 경우 칸 tail = 기대 꼬리 글자 목록 — ok·fail_final <String>[] · fail_retry <String>[ShellLabels.retry] · 드라이런 글자) · expect(find.byKey(const Key('o03-retry')), c.r.retryable ? findsOneWidget : findsNothing) · o03-level Icon == wantResult(r.level) · o03-not-accepted findsNothing(🔵 fail_retry 경우는 ⓡ 대신 o03-retry 단언 — retry 글자가 보인다).
  O03-03 «다시 시도» = retryable 데이터 — 두 경우 ㉠ (retryable · results[1] · o03-retry findsOneWidget → tap → actions.ids 두 번) · (final · results[2] · o03-retry findsNothing · actions.ids 한 번)마다.
- O03-04 실패 ↔ 성공 두 방향(C4r14a-5) — R15a O0B-06 꼴(o03-not-accepted ↔ o03-result) · ⓡ.
+ O03-04 실패 ↔ 성공 두 방향(C4r14a-5) — R15a O0B-06 꼴(o03-not-accepted ↔ o03-result · 🆕 성공 = results[0](retryable false — «다시 시도» 0 이라 ⓡ 가 선다) · 실패 = Future<ActionResult>.error(StateError('fail'))) · ⓡ.
  O03-05 주입 null(뷰어) = 검증 버튼 부재 · operator 대조(C4r14a-6) — 두 경우(viewer · operator) → o03-run viewer findsNothing / operator findsOneWidget(want ? findsOneWidget : findsNothing 한 꼴) · ⓡ.
  O03-06 화면 Text 전부 · 큰 글꼴 — 두 경우(kisMock · noVerify) → allowed = stepDetailAllowed(c.v, null) → textScaleFactorTestValue 2.0 → takeException isNull · ⓡ.
- ⓡ 기대 = 8줄(O02-01 · 02 · 03 · 05 · O03-01 · 04 · 05 · 06 — 계획) · ⓗ = 0 · (전제) = ⟦실측: 계획 O02-01 3 · O02-02 2 · O03-02 3⟧ — 드라이런이 확정하고 이 줄을 «정확히» 로 고친다.
+ 🆕 O03-07 기다리는 동안 두 번 누름 0 — 공장 = (int call) => Completer<ActionResult>().future(끝나지 않음) · kisMock → tap(o03-run) → pump → tap(o03-run) → pump → expect(actions.ids, <SettingsActionId>[?kisMock.verify?.id]) · CircularProgressIndicator findsNothing · ⓡ(드라이런 V5).
+ ⓡ 기대 = 10줄(O02-01 · 02 · 03 · 05 · 06 · O03-01 · 04 · 05 · 06 · 07) · ⓗ = 0 · (전제) = 10(O02-01 3 · O02-02 2 · O02-06 2 · O03-02 3) — 드라이런 지적 반영판 실측 · 🔴 정확히.
 
 🔴 병합 검사 때 통합 담당이 넣어 볼 변이(갈래마다 짝):
-   (목록) 행 뒤집기 · 행 하나 빼기 · verified 행 거르기 · 해외주식 행 더하기(정적 글자) · progressText 대신 rows 수로 «n/m»(정적·O01-01) · emptyLabel 빼기.
-   (판정) warningLabel 대신 requirement·state 로 배지(표본상 동치면 🔵 참고 — 정적 P11 이 requirement 를 잡는다) · gate unknown 을 notApplicable 모양으로 · gate unknown 을 pass 모양으로 · state 아이콘 하나로 고정 · failed 를 verified 색으로 · finishLink 대신 «전부 verified 면 다음».
-   (글자) verifiedUntilText 빼기 · verifiedUntil 포맷(정적 P11) · failureText 빼기 · failureReasonCode 빼기 · failureText 대신 정적 글자 · gate.label 빼기 · whereText·howText 빼기.
+   (목록) 행 뒤집기 · 행 하나 빼기 · verified 행 거르기 · 해외주식 행 더하기(정적 글자) · progressText 대신 rows 수로 «n/m»(정적·O01-01) · emptyLabel 빼기(O01-09).
+   (판정) warningLabel 대신 requirement·state 로 배지(표본상 동치면 🔵 참고 — 정적 P11 이 requirement 를 잡는다) · gate unknown 을 notApplicable 모양으로 · gate unknown 을 pass 모양으로 · state 아이콘 하나로 고정 · failed 를 verified 색으로 · finishLink 대신 «전부 verified 면 다음»(O01-05 ready_warn) · 🆕 fallback 링크(finishLink 없고 전부 verified 면 첫 행 링크 — O01-05 locked).
+   (글자) verifiedUntilText 빼기(O-01 행 · O-02 머리 — O02-06) · verifiedUntil 포맷(정적 P11) · failureText 빼기 · failureReasonCode 빼기 · failureText 대신 정적 글자 · gate.label 빼기 · whereText·howText 빼기.
    (시크릿) 슬롯 빌더 대신 TextField(O02-03 · 정적 P36) · 빌더 null 인데 빈 상자 · slotId 대신 고정 글자 · 시크릿 자리를 검증 버튼 아래로.
-   (검증) run 0 · run 두 번 · verify.args 에 키 더하기 · 다른 id · 기다리는 동안 두 번 · 결과 headline 빼기 · reasonCode 빼기 · level 아이콘 고정 · retryable 무시(늘 «다시 시도» · 늘 없음) · 실패 글자 빼기 · 한 칸 초기화 빼기(두 방향) · 주입 null 에도 버튼.
+   (검증) run 0 · run 두 번 · verify.args 에 키 더하기 · 다른 id · 기다리는 동안 두 번(O03-07) · 결과 headline 빼기 · reasonCode 빼기 · level 아이콘 고정 · retryable 무시(늘 «다시 시도» · 늘 없음) · 실패 글자 빼기 · 한 칸 초기화 빼기(두 방향) · 주입 null 에도 버튼.
    (링크) 행 탭 0 · detailLink null 에도 탭 · «다음» 탭 0.
    (상태 — 갈래마다 · 두 화면) 에러를 스켈레톤 · 재시도 invalidate 0 · 모르는 id 를 에러 화면으로 · 정적 글자 더하기.
-   🔵 참고 — 타입이 막음: «verify 없이 화면이 SettingsActionId 고르기»(검증 id 는 VM 칸 — 화면이 고르면 정적 P07 «SettingsActionId.» 0 이 잡는다) · ⟦실측: 드라이런 변이 표⟧.
+   🔵 참고 — 타입이 막음: «verify 없이 화면이 SettingsActionId 고르기»(검증 id 는 VM 칸 — 화면이 고르면 정적 P07 «SettingsActionId.» 0 이 잡는다) · 드라이런 변이 표 = 첫 판 62꼴(예고 51 · 참고 9 · 사전검사 2) — 예고 KILLED 47 · SURVIVED 4(L6 · J6a · T1b · V5) · 정적이 잡음 1(J1a = P11) → 반영판 `dry/r15-2b` 에서 4꼴 + 🆕 J6c KILLED · 참고 KILLED 8 · 정적 2(RF7 = P04 · RF9 = P06) · 무효 1(RF5b = 이름 충돌 컴파일 실패) · 사전검사 RF1(늘 참) = T3 🔴 · RF2(else 없는 if) = T1 🔴.
 
-■ 정적 묶음 — R15a 꼴 37줄 안팎(머리 «## P01» ~ · 파일로 꺼내 Git Bash · 꺼내기 줄 범위·해시 = ⟦실측: 이 카드가 send/ 로 옮겨질 때 잰다⟧) — 줄과 기대(⬜ 드라이런 실측 전 — 카드 계획):
+■ 정적 묶음 — 34줄(머리 «## P01» ~ «## P36» · P12·P28 비움 — 드라이런 실측) · 파일로 꺼내 Git Bash · ⟦펼침: R15a 실행 꼴 6줄 — r15b_static.sh · r15b_static_out.txt · sed -n '<범위>p' · hash-object · Select-String EXIT · Count⟧ · 꺼내기 줄 범위·해시 = ⟦실측: 이 카드가 send/ 로 옮겨질 때 잰다 — 드라이런 첫 판(이 카드 287~320 · hash dafea36)은 지적 반영으로 글자가 바뀌어 무효⟧ — 줄과 기대(드라이런 지적 반영판 기준):
 echo "## P01 new test files hangul 0 (comment lines only)"; git grep -nP "'[^'\n]*[\x{AC00}-\x{D7A3}]" -- test/shell_fakes.dart test/onboarding_step_list_test.dart test/onboarding_step_detail_test.dart test/golden/o01_golden_test.dart test/golden/o02_golden_test.dart test/golden/o03_golden_test.dart; echo "EXIT:$?"
 echo "## P02 test names ASCII"; git grep -nP "(testWidgets|test|group)\('[^']*[^\x00-\x7F]|^\s*'[^']*[^\x00-\x7F][^']*',?\s*$" -- test/onboarding_step_list_test.dart test/onboarding_step_detail_test.dart test/golden/o01_golden_test.dart test/golden/o02_golden_test.dart test/golden/o03_golden_test.dart; echo "EXIT:$?"
 echo "## P03 testWidgets and test lines"; git grep -cE "^\s*(testWidgets|test)\(" -- test/onboarding_step_list_test.dart test/onboarding_step_detail_test.dart test/golden/o01_golden_test.dart test/golden/o02_golden_test.dart test/golden/o03_golden_test.dart; echo "EXIT:$?"
@@ -294,7 +309,7 @@ echo "## P07 action ids in step files 0"; git grep -nE "SettingsActionId\." -- l
 echo "## P08 run calls (1)"; git grep -nE "\.run\(" -- lib/src/onboarding/onboarding_step_detail.dart; echo "EXIT:$?"
 echo "## P09 StepState GateState UiLevel arms (5 4 5)"; git grep -nE "StepState\.(notStarted|inProgress|verified|failed|expired)|GateState\.(pass|block|notApplicable|unknown)|UiLevel\.(ok|info|watch|act|blocked)" -- lib/src/onboarding/onboarding_step_list.dart lib/src/onboarding/onboarding_step_detail.dart; echo "EXIT:$?"
 echo "## P10 slot builder lines"; git grep -n "shellOnboardingSlotBuilderProvider" -- lib/src/onboarding; echo "EXIT:$?"
-echo "## P11 forbidden words in step files 0"; git grep -nE "stepId\b.*(Key|Text)|verifiedUntil\b|\.requirement\b|\.estimated\b|whereDeepLink|\.track\b|watchSteps\(|OperatingMode|FeatureFlags|runMode|DateTime\.now|DateFormat|Duration\(|toString\(|\.where\(|\.length|\.sort|\.take\(|split\(|RegExp|actionRunId|handoffRoute|AppRoutes|AppLinkSchemes|kIsWeb|Platform\.|dart:io|showDialog|SnackBar|print\(|[Ss]kip" -- lib/src/onboarding/onboarding_step_list.dart lib/src/onboarding/onboarding_step_detail.dart; echo "EXIT:$?"
+echo "## P11 forbidden words in step files 0"; git grep -nE "stepId\b.*(Key|Text)|verifiedUntil\b|\.requirement\b|\.estimated\b|whereDeepLink|\.track\b|watchSteps\(|OperatingMode|FeatureFlags|runMode|DateTime\.now|DateFormat|Duration\(|toString\(|\.where\(|\.length|\.sort|\.take\(|split\(|RegExp|actionRunId|handoffRoute|AppRoutes|AppLinkSchemes|kIsWeb|Platform\.|dart:io|showDialog|SnackBar|print\(|[Ss]kip|\.every\(|\.any\(|\.state\s*(==|!=)|(==|!=)\s*StepState\." -- lib/src/onboarding/onboarding_step_list.dart lib/src/onboarding/onboarding_step_detail.dart; echo "EXIT:$?"
 echo "## P13 shell labels (37)"; git grep -cE "^\s*static const String " -- lib/l10n/labels.dart; echo "EXIT:$?"
 echo "## P14 barrel exports"; git grep -n "^export " -- lib/ui_shell.dart; echo "EXIT:$?"
 echo "## P15 shell providers"; git grep -nE "^final [A-Za-z]+<[^ ]+> shell" -- lib/src/shell_providers.dart; echo "EXIT:$?"
@@ -310,7 +325,7 @@ echo "## P24 Colors files 0"; git grep -lw Colors -- lib; echo "EXIT:$?"
 echo "## P25 rich text and trimming 0"; git grep -nE "RichText|SelectableText|Text\.rich|maxLines|TextOverflow|softWrap|\.trim\(|FittedBox|LinearProgressIndicator" -- lib; echo "EXIT:$?"
 echo "## P26 autoDispose 0"; git grep -n "autoDispose" -- lib; echo "EXIT:$?"
 echo "## P27 Scaffold AppBar Navigator in onboarding 0"; git grep -nE "Scaffold|AppBar|SafeArea|Navigator" -- lib/src/onboarding; echo "EXIT:$?"
-echo "## P29 shared files add-only and frozen files (numstat)"; git diff --numstat origin/main...HEAD -- lib/ui_shell.dart test/shell_fakes.dart lib/src/shell_providers.dart lib/l10n/labels.dart lib/src/onboarding/onboarding_start.dart lib/src/onboarding/onboarding_mode_pick.dart lib/src/shell_scaffold.dart lib/src/routing lib/src/common lib/src/ops_rhythm.dart lib/src/ops_home.dart lib/src/alerts lib/src/watchdog_board.dart pubspec.yaml README.md test/golden/golden_support.dart test/golden/README.md test/onboarding_start_test.dart test/onboarding_mode_pick_test.dart test/golden/o00_golden_test.dart test/golden/o00b_golden_test.dart; echo "EXIT:$?"
+echo "## P29 shared files add-only and frozen files (numstat)"; git diff --numstat origin/main...HEAD -- lib/ui_shell.dart test/shell_fakes.dart lib/src/shell_providers.dart lib/l10n/labels.dart lib/src/onboarding/onboarding_start.dart lib/src/onboarding/onboarding_mode_pick.dart lib/src/shell_scaffold.dart lib/src/routing lib/src/common lib/src/ops_rhythm.dart lib/src/ops_home.dart lib/src/alerts lib/src/watchdog_board.dart pubspec.yaml analysis_options.yaml README.md test/ui_shell_test.dart test/golden/golden_support.dart test/golden/README.md test/flutter_test_config.dart test/golden/shift_tolerant_compare.dart test/shell_router_test.dart test/shell_scaffold_test.dart test/ops_rhythm_test.dart test/ops_home_test.dart test/alert_center_test.dart test/alert_detail_test.dart test/watchdog_board_test.dart test/golden/s01_golden_test.dart test/golden/h01_golden_test.dart test/golden/h02_golden_test.dart test/golden/n01_golden_test.dart test/golden/n02_golden_test.dart test/golden/w01_golden_test.dart test/onboarding_start_test.dart test/onboarding_mode_pick_test.dart test/golden/o00_golden_test.dart test/golden/o00b_golden_test.dart; echo "EXIT:$?"
 echo "## P30 implements in new tests 0"; git grep -n " implements " -- test/shell_fakes.dart test/onboarding_step_list_test.dart test/onboarding_step_detail_test.dart test/golden/o01_golden_test.dart test/golden/o02_golden_test.dart test/golden/o03_golden_test.dart; echo "EXIT:$?"
 echo "## P31 copyWith in tests 0"; git grep -n "copyWith(" -- test/onboarding_step_list_test.dart test/onboarding_step_detail_test.dart test/golden/o01_golden_test.dart test/golden/o02_golden_test.dart test/golden/o03_golden_test.dart; echo "EXIT:$?"
 echo "## P32 collection-if in tests 0"; git grep -nE "^\s*if \(.*\) [^{]*,$|\[\s*if \(|<[A-Za-z]+>\[[^]]*\bif \(" -- test/shell_fakes.dart test/onboarding_step_list_test.dart test/onboarding_step_detail_test.dart test/golden/o01_golden_test.dart test/golden/o02_golden_test.dart test/golden/o03_golden_test.dart; echo "EXIT:$?"
@@ -318,31 +333,31 @@ echo "## P33 golden files"; git diff --name-status origin/main...HEAD -- test/go
 echo "## P34 precondition marks (pre)"; git grep -c "// pre$" -- test/onboarding_step_list_test.dart test/onboarding_step_detail_test.dart; echo "EXIT:$?"
 echo "## P35 bare takeException 0"; git grep -nE "^\s*tester\.takeException\(\);" -- test/onboarding_step_list_test.dart test/onboarding_step_detail_test.dart; echo "EXIT:$?"
 echo "## P36 secret input widgets in onboarding 0"; git grep -niE "textfield|textformfield|editabletext|obscure|clipboard|keystore|flag_secure|url_launcher|launchUrl" -- lib/src/onboarding; echo "EXIT:$?"
-  (줄의 뜻과 기대 — P01·P02 = 출력 없음 · P03 = 5줄(o01_golden 1 · o02_golden 1 · o03_golden 1 · step_detail_test 11 · step_list_test 8) · P04 = 0 · S05 = 2줄(행 탭 · «다음») · P06 = 2줄 · P07 = 0(🔴 검증 id = VM 칸) · P08 = 1줄 ·
-   P09 = 14줄(_stepLook 5 · _gateLook 4 · _resultLook 5) · P10 = 1줄(onboarding_step_detail.dart build) · P11 = 0 · P13 = «lib/l10n/labels.dart:37»(R15a 병합본 · 이 카드 0 · 기대 — «정확히» = 마지막 카드) ·
-   P14 = 13줄(… src/onboarding/onboarding_mode_pick.dart · onboarding_start.dart · 🆕 onboarding_step_detail.dart · onboarding_step_list.dart · …) · P15 = 18줄(R15a 17 + 슬롯 빌더 1) · P16~P19 = 0 · P20·P21 = ⟦실측⟧(🔴 정확히) · P22 = 이름 = 위 «Key 표» ·
-   P23~P27 = 0 · P29 = 세 줄(lib/src/shell_providers.dart · lib/ui_shell.dart · test/shell_fakes.dart — 둘째 수 0) · P30~P32 = 0 · P33 = 10줄 전부 «A» · P34 = ⟦실측⟧(🔴 정확히) · P35 = 0 · P36 = 0)
+  (줄의 뜻과 기대 — 드라이런 지적 반영판 · 출력 줄 수 = ⟦실측: 승격 때 잰다 — 드라이런 반영판 162줄(EXIT:1 19 · EXIT:0 15 · 흉내 base · 첫 판도 162)⟧ · P01·P02 = 출력 없음 · P03 = 5줄(o01_golden 1 · o02_golden 1 · o03_golden 1 · step_detail_test 13 · step_list_test 9) · P04 = 0 · S05 = 2줄(행 탭 · «다음») · P06 = 2줄 · P07 = 0(🔴 검증 id = VM 칸) · P08 = 1줄 ·
+   P09 = 14줄(_stepLook 5 · _gateLook 4 · _resultLook 5) · P10 = 1줄(onboarding_step_detail.dart build) · P11 = 0(🆕 `.every(`·`.any(`·state 비교 — «전부 verified 면 다음» 류를 정적으로도 · 드라이런 J6a) · P13 = «lib/l10n/labels.dart:37»(R15a 병합본 · 이 카드 0 · 기대 — «정확히» = 마지막 카드) ·
+   P14 = 13줄(… src/onboarding/onboarding_mode_pick.dart · onboarding_start.dart · 🆕 onboarding_step_detail.dart · onboarding_step_list.dart · …) · P15 = 18줄(R15a 17 + 슬롯 빌더 1) · P16~P19 = 0 · P20 = «test/onboarding_step_detail_test.dart:10» · «test/onboarding_step_list_test.dart:8» · P21 = «test/onboarding_step_list_test.dart:1»(🔴 정확히) · P22 = 이름 19(o01 7 · o02 7 · o03 5 = 위 «Key 표») ·
+   P23~P27 = 0 · P29 = 세 줄(lib/src/shell_providers.dart · lib/ui_shell.dart · test/shell_fakes.dart — 둘째 수 0 · 🆕 목록 = R15a O29 목록 + R15a 파일 — 감사 지적) · P30~P32 = 0 · P33 = 10줄 전부 «A» · P34 = «test/onboarding_step_detail_test.dart:10» · «test/onboarding_step_list_test.dart:14»(🔴 정확히) · P35 = 0 · P36 = 0)
   (🔵 P12·P28 은 이 카드에 없다(번호 비움 — R15a 의 «선택 비교»·«포커스» 줄 몫 없음) · 이 카드가 send/ 로 옮겨질 때 줄 번호를 이어 매기고 «아래 n줄» 을 실측으로 고친다)
 
 ■ 골든 — 5이름 × light/dark = 10장(전부 신규 · golden README «🆕 R15» 절 표 그대로)
-  o01 — test/golden/o01_golden_test.dart · 위젯 = OnboardingStepList() · 이름 o01_fresh(fresh · 맨 아래 Key = 마지막 o01-row) · o01_advisory(advisory · 마지막 o01-row) · 머리 Key('o01-progress') dy 0.0 · 🔴 행이 많아 844 를 넘으면 높이를 늘리지 말고 멈춘 뒤 dy 를 질문 파일에(⟦실측: 드라이런 dy⟧ · 넘으면 맨 아래 Key = 화면 안 마지막 행으로 카드가 고친다)
-  o02 — test/golden/o02_golden_test.dart · 위젯 = OnboardingStepDetail(stepId: kisMock.step!.stepId) · 이름 o02_step(kisMock · 슬롯 = FakeShellSlotRecorder · 맨 아래 Key('o03-run')) · 머리 Key('o02-head') dy 0.0
+  ⟦펼침: R15a 골든 절 글자⟧ o01 — test/golden/o01_golden_test.dart · 위젯 = OnboardingStepList() · 이름 o01_fresh(fresh · 맨 아래 Key = ValueKey<String>('o01-row-4') — 🆕 드라이런: 12행 표본은 row-5 가 968 · row-6 부터는 ListView 가 만들지 않는다 · row-4 = 784.0 · ⟦실측: v1.16 실제 표본 글자 길이로 다시 잰다⟧) · o01_advisory(advisory · ValueKey<String>('o01-row-4') = 마지막 행 664.0) · 머리 Key('o01-progress') dy 0.0 · 🔴 높이는 늘리지 않는다 · o01_fresh 배치·잘림 칸 = «— 잘림: 맨 아래 덩어리 셋째 줄이 화면 아래 끝에서 잘림» 이 정상
+  o02 — test/golden/o02_golden_test.dart · 위젯 = OnboardingStepDetail(stepId: kisMock.step!.stepId) · 이름 o02_step(kisMock · 슬롯 = FakeShellSlotRecorder · 맨 아래 Key('o03-run') — 드라이런 296.0) · 머리 Key('o02-head') dy 0.0
   o03 — test/golden/o03_golden_test.dart · 위젯 = 같은 상세 · 흐름 = tap(o03-run) → pump 두 번(🔴 명령 칸 = 공장 SettingsActions Function() 을 testWidgets 안에서 부른다 — 가짜 공유 금지 · C4r5d-5) ·
-    이름 o03_ok(results[0] · 맨 아래 Key('o03-result')) · o03_fail_code(results[1] · 맨 아래 Key('o03-retry')) · 머리 Key('o02-head') dy 0.0
+    이름 o03_ok(results[0] · 맨 아래 Key('o03-result') — 드라이런 344.0) · o03_fail_code(results[1] · 맨 아래 Key('o03-retry') — 드라이런 396.0) · 머리 Key('o02-head') dy 0.0 · 여백 조정 0 · light = dark
   모양·주입·위치 전제 둘·명령 = R15a 골든 절과 같은 글자(_Flow · 흐름 칸 non-null · pumpForGolden · wrapApp ProviderScope · getBottomLeft dy < 844 · getTopLeft 머리 dy 0.0 · --update-goldens 는 파일 지정).
 
 ■ 질문 파일 (🔴 새 파일을 만들지 않는다 — 이미 있다)
 · O01O03_questions.md — «다음 번호»(Q1·A1)부터 · 행 앞에 «O-01:» · «O-02:» · «O-03:» 접두(골든 «측정:» 행 예외) · 꼭 적을 것: 골든 dy 5행(A1~A5 = o01_fresh · o01_advisory · o02_step · o03_ok · o03_fail_code — R15a 상자 꼴 · 카드ID = R15b-Bob-O01O03).
 · 적지 않을 것(카드가 정함): 위젯·Key·파일 이름 · 라벨 0 · 읽지 않는 필드 · 아이콘·색 표 · 슬롯 빌더 꼴 · 골든 이름·입력 · 재량(여백).
 
-■ 제출 — R15a «■ 제출» 과 같은 꼴(파일별 끝 줄 = 시각 머리까지 · 저장 파일 BOM 0 · ① = 파일로 받은 출력 · 채팅 두 줄 · N1 · N3 · 섹션 머리 5줄 · 자체 점검 상자 · 10항 줄 수 · ⓡⓗ 상자 · ③ 견본 · ④ «+» · ⑤ · 시작·끝 상자)
+■ 제출 — ⟦펼침: R15a ■ 제출 전문 — 섹션 머리 · ①~⑤ 상자 · N1 · N3 · 저장 명령⟧ R15a «■ 제출» 과 같은 꼴(파일별 끝 줄 = 시각 머리까지 · 저장 파일 BOM 0 · ① = 파일로 받은 출력 · 채팅 두 줄 · N1 · N3 · 섹션 머리 5줄 · 자체 점검 상자 · 10항 줄 수 · ⓡⓗ 상자 · ③ 견본 · ④ «+» · ⑤ · 시작·끝 상자)
   cd packages/ui_shell
-  flutter test test/onboarding_step_list_test.dart     ← 끝 줄 그대로 — 줄 머리 시각까지(기대 «00:0n +13: All tests passed!»)
-  flutter test test/onboarding_step_detail_test.dart   ← 끝 줄 그대로 — 줄 머리 시각까지(기대 «00:0n +21: All tests passed!»)
+  flutter test test/onboarding_step_list_test.dart     ← 끝 줄 그대로 — 줄 머리 시각까지(기대 «00:0n +16: All tests passed!» — 드라이런 반영판)
+  flutter test test/onboarding_step_detail_test.dart   ← 끝 줄 그대로 — 줄 머리 시각까지(기대 «00:0n +23: All tests passed!»)
   flutter test test/golden/o01_golden_test.dart        ← 기대 «00:0n +4: All tests passed!» · o02 ← «+2» · o03 ← «+4»
-  flutter test   ← 기대 = 시작 기준 N + 44 — ⟦실측: 237 → «00:nn +281: All tests passed!»⟧
-  cd ../.. → check_boundaries(Git Bash 전체 경로) → melos format·analyze·test·test:contracts(domain_contracts ⟦실측⟧) → git status 빈 → name-status 기대(A lib/src/onboarding/onboarding_step_detail.dart · A onboarding_step_list.dart · M lib/src/shell_providers.dart · M lib/ui_shell.dart ·
-     A PNG 10 · A test/golden/o01·o02·o03_golden_test.dart · A test/onboarding_step_detail_test.dart · A test/onboarding_step_list_test.dart · M test/shell_fakes.dart · M docs/ai-context/inbox/O01O03_questions.md · 그 밖 = 금지)
+  flutter test   ← 기대 = 시작 기준 N + 49 — ⟦실측: 앞 카드 병합 기록 때 채움 — 드라이런 기대 237 → «00:nn +286: All tests passed!»⟧
+  cd ../.. → check_boundaries(Git Bash 전체 경로) → melos format·analyze·test·test:contracts(domain_contracts ⟦실측: v1.16 병합 기록 때 채움 — 드라이런 흉내 «+408 ~30»⟧) → git status 빈 → name-status 기대(A lib/src/onboarding/onboarding_step_detail.dart · A onboarding_step_list.dart · M lib/src/shell_providers.dart · M lib/ui_shell.dart ·
+     A PNG 10 · A test/golden/o01·o02·o03_golden_test.dart · A test/onboarding_step_detail_test.dart · A test/onboarding_step_list_test.dart · M test/shell_fakes.dart · M docs/ai-context/inbox/O01O03_questions.md · 그 밖 = 금지 · 권장대로면 바뀐 파일 21줄 · 커밋 4줄 — 드라이런 실측)
   사전검사 ① → git push -u origin ui/m8-o01-steps → ① 출력 파일로 받기($env:TEMP\r15b_ns.txt · r15b_log.txt) → 정적 묶음 → 저장 파일 $env:TEMP\R15b-Bob-O01O03_submit.md(BOM 0)
   사전검사 ② 세 번: --golden-prefix o01_ --goldens 4 · o02_ --goldens 2 · o03_ --goldens 4(출력 파일 r15b_pre2_o01.txt · _o02 · _o03 · 끝 줄 셋을 « / » 로 이은 한 줄 = 채팅 둘째 줄)
   PR 제목: [M8] O-01~O-03 단계 목록·상세·검증 · 🔴 채팅 답 = 두 줄뿐: «R15b-Bob-O01O03 제출 글 저장했음: <경로>» · 사전검사 ② 끝 줄 셋.
@@ -350,7 +365,17 @@ echo "## P36 secret input widgets in onboarding 0"; git grep -niE "textfield|tex
    ② 붙일 괄호: 1번 «정적 묶음 P16 — 허용 밖 import 0줄 · pubspec 무변경(P29)» · 2번 «산술 = null 여부 · 열거 switch 셋(P09) · 표시 상태뿐 · 거르기·정렬·세기 0(P11) · 진행률 = progressText 그대로 · 금지 수치 P18 0건» ·
      3번 «DateTime.now 0(P11) · 만료 = verifiedUntilText 그대로 · verifiedUntil 포맷 0(P11)» · 4번 «이 카드 범위 밖(5탭·홈·F-01) · 손익 0» · 5번 «이 카드 범위 밖(알림 = R14)» · 6번 «이 카드 범위 밖(DND UI = M9)» · 7번 «이 카드 범위 밖(워치독 = R14b)» ·
      8번 «시크릿 = 슬롯 빌더 삽입만(O02-03 · P10) · TextField·클립보드·마스킹 0(P36)» · 9번 «건너뛰기·해외주식 0(P11 · P23 · O01-08) · 실패 문구 = failureText + 원문 코드 · 결과 = headline + reasonCode 원문(O03-02)» · 10번 «삽입 자리 직접 구현 0(SecretField = 슬롯 · P36) · 킬스위치 진입 = 셸 몫(무수정 P29)»
-   ③ 견본 = «목록 정상» · «목록 빈» · «목록 로딩·에러» · «상세 정상» · «상세 모르는 id» · «상세 결과(성공·실패)» · «상세 로딩·에러» 7줄(R15a ③ 꼴 · Key 이름 나열 · ⟦실측: 드라이런이 글자를 짓는다⟧) + 골든 표 10행(입력 = 파일 이름만 · 셈 단위 견본 = ⟦실측⟧).
+   ③ 견본 7줄(R15a ③ 꼴 · Key 이름 나열 · 드라이런 글자 · 이 글자 그대로):
+         «목록 정상» = ListView → Key('o01-progress') → ValueKey<String>('o01-row-$i')(안에 ValueKey<String>('o01-gate-$i') 있을 때) → Key('o01-finish')(있을 때)
+         «목록 빈» = ListView → Key('o01-progress') → Key('o01-empty')
+         «목록 로딩·에러» = ShellSkeleton(Key('o01-loading')) · ShellErrorView(Key('o01-fail'))
+         «상세 정상» = ListView → Key('o02-head') → Key('o02-where')(있을 때) → Key('o02-how')(있을 때) → Key('o02-secret')(있을 때) → Key('o03-run')(있을 때)
+         «상세 모르는 id» = ListView → Key('o02-missing')
+         «상세 결과(성공·실패)» = «상세 정상» 끝에 Key('o03-result')(안에 Key('o03-level') · Key('o03-retry') 있을 때) 또는 Key('o03-not-accepted')
+         «상세 로딩·에러» = ShellSkeleton(Key('o02-loading')) · ShellErrorView(Key('o02-fail'))
+      + 골든 표 10행(입력 = 파일 이름만) · 셈 단위 견본 2행(드라이런 · 견본과 같은 이름의 행은 꼬리까지 그대로):
+         «| o01_fresh light | onboarding_steps_fresh.json | operator | 390×844 | 784.0 | 글자 1줄 → 글자 7줄 → 글자 6줄 → 글자 5줄 → 글자 7줄 → 글자 6줄 → 글자 2줄 — 잘림: 맨 아래 덩어리 셋째 줄이 화면 아래 끝에서 잘림 |»
+         «| o03_fail_code light | onboarding_step_detail_kis_mock.json | operator | 390×844 | 396.0 | 글자 3줄 → 글자 2줄 → 글자 1줄 → 버튼 글자 → 글자 2줄 → 글자 1줄 — 잘림 없음 |».
    (+ flutter test 한 줄 — 시작·끝 상자 글자 틀 그대로(기대 M = N + 44))
 ````
 
@@ -362,8 +387,8 @@ echo "## P36 secret input widgets in onboarding 0"; git grep -niE "textfield|tex
 - `lib/` 새 파일 **2**(`src/onboarding/onboarding_step_list.dart` · `onboarding_step_detail.dart`) · 수정 2(`shell_providers.dart` 끝 절 1 · `ui_shell.dart` export 2 · 더하기만) · 라벨·셸·R13·R14·R15a 파일 변경 0.
 - `test/` 새 파일 5(두 테스트 · 골든 세 파일) + 수정 1(`shell_fakes.dart` 끝 절) + 새 PNG 10 · 재생성 0.
 - 질문 파일 `O01O03_questions.md`(A1~A5 «측정:»).
-- `flutter test` = 시작 기준 N(R15a 병합본 · 기대 237) + 44 · 정적 P13 = 37 · P14 = 13 · P15 = 18 · P09 = 14 · P33 = 10 A · P20·P21·P34 = ⟦실측⟧(🔴 정확히).
-- 재분할 임계: 줄 22 · lib ⟦실측⟧ · PNG 10 · 원천 3 → 재분할 없음.
+- `flutter test` = 시작 기준 N(R15a 병합본 · 기대 237) + 49 · 정적 P13 = 37 · P14 = 13 · P15 = 18 · P09 = 14 · P33 = 10 A · P20 = 10 · 8 · P21 = 1 · P34 = 10 · 14(🔴 정확히 · 드라이런 반영판).
+- 재분할 임계: 줄 25 · lib +410(드라이런) · PNG 10 · 원천 3 → 재분할 없음.
 
 ## 4. 받은 뒤 Claude에게 보낼 문장(한 줄)
 
@@ -377,7 +402,7 @@ R15b-Bob-O01O03 결과: 브랜치 ui/m8-o01-steps 푸시됨 — PR 만들고 병
 
 - **5분 눈 검사**: ① 셸·R15a 파일·`labels.dart`·기존 테스트·PNG 가 `M` ② 새 lib 파일에 `TextField`·`Clipboard`·`obscure`·`verifiedUntil`·`.requirement`·`.estimated`·`whereDeepLink`·`stepId` 를 Key/글자로·`SettingsActionId.`·`'aaq://`·`AppRoutes` ③ 권장 미통과 배지를 화면이 짓기 ④ gate unknown = notApplicable 모양 ⑤ «다음» 을 finishLink 없이 ⑥ 결과를 level 로 숨김 · retryable 무시 ⑦ 슬롯 빌더 null 인데 자리.
 - 🔵 `golden:approved` 불필요(새 PNG 만). 🔵 R15c 의 서약문·생체·셀프테스트·체크섬 자리도 이 카드의 슬롯 빌더를 쓴다(⑦ 확정 시).
-- ⬜ 남은 표식 = 실측 표식(꺾쇠 U+27E6 으로 여는 자리 · 셈 = `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R15b-Bob-O01O03.md`) + 자리표시자 `__R15A_SQ__` · `__R15A_PR__` — R15a 병합 기록 · v1.16 병합 기록 · 드라이런 때 채운다 · 🔴 보내기 전 표식 0 · 자리표시자 0.
+- ⬜ 남은 표식 = 꺾쇠 U+27E6 으로 여는 자리 셋 갈래(셈 = `LC_ALL=C.UTF-8 grep -cP '\x{27E6}' R15b-Bob-O01O03.md`) — ⓐ «앞 카드 병합 기록 때 채움» 실측(시작 N · 끝 · 정적 출력 줄 수) ⓑ v1.16 이름표 표식 ⓒ 🆕 «펼침» 표식(규칙 10·12·13 · 보고 규칙 · 골든 · 제출 · 정적 실행 꼴 — send/ 승격 때 R15a 글자를 이 카드에 펼친다 · 감사 지적) + 자리표시자 `__R15A_SQ__` · `__R15A_PR__` — 🔴 보내기 전 표식 0 · 자리표시자 0 · ✅ 드라이런 실측(파일별 · 줄 · ⓡⓗ(전제) · dy · 견본 · 변이 표 · 🟡 기대)은 «드라이런 기대» 로 채웠다(2026-11-03).
 - 범위 고지: 01 §8 미결 91·144(셸 스캔 제외 — 이 카드 정적 묶음이 메운다) · 137·143(늘 push — O-01 ↔ O-02 가 쌓인다) · 🆕 v1.16 미결 후보 = `whereDeepLink` 뜻(⑧) · 외부 URL 열기 경로(플랫폼) · 슬롯 빌더 꼴(⑦) · 갈래 목록 원천(`onboarding_choice` → 엔진) — 이 카드가 닫지 않는다.
 
 ## 6. R15 이월 반영 — R15a 카드 «6» 과 같은 표(O-01~O-03 자리)
