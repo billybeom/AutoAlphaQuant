@@ -420,4 +420,41 @@ void main() {
       },
     );
   }
+
+  // -- N02-02 absent fields with operator injection (C4r14a-1 b) ------------
+  // 주입 = operator 라서 n02-ack findsNothing 이 «ack null -> 버튼 부재» 를 시험한다.
+  testWidgets('N02-02 absent fields null means absent operator', (
+    WidgetTester tester,
+  ) async {
+    expect(bare.raisedAtText, isNull); // pre
+    expect(bare.deepLink, isNull); // pre
+    expect(bare.ack, isNull); // pre
+
+    final FakeShellAlertCommandApi api = operatorApi();
+    final FakeShellAlertCenterRepository alerts = detailOf(
+      (int call) => one(bareV),
+    );
+    await pumpAlertDetail(
+      tester,
+      overrides: alertOverrides(
+        alerts: alerts,
+        api: api,
+        opener: RecordingLinkOpener(),
+        clock: fresh,
+      ),
+      alertId: bare.alertId,
+    );
+    expect(alerts.alertIds, equals(<String>[bare.alertId]));
+    expect(find.byKey(const Key('n02-time')), findsNothing);
+    expect(find.byKey(const Key('n02-link')), findsNothing);
+    expect(find.byKey(const ValueKey<String>('n02-state')), findsNothing);
+    expect(find.byKey(const ValueKey<String>('n02-ack')), findsNothing);
+    expect(find.byKey(const ValueKey<String>('n02-receipt')), findsNothing);
+    expect(find.byKey(const Key('n02-missing')), findsNothing);
+    expect(find.byKey(const Key('n02-asof')), findsOneWidget);
+    expect(find.byKey(const Key('n02-title')), findsOneWidget);
+    expect(find.byKey(const Key('n02-body')), findsOneWidget);
+    expect(find.byKey(const Key('n02-action')), findsOneWidget);
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
 }

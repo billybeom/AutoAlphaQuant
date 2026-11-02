@@ -851,4 +851,65 @@ void main() {
     expect(api.acks, equals(<String>[p0ack.pinned[0].alertId]));
     expect(find.text(ShellLabels.retry), findsNothing);
   });
+
+  // -- N01-07 ack retry after failure (C4r14a-1 a) ---------------------------
+  // 실패 -> 다시 누름 -> 성공이면 실패 글자는 지워지고 접수증 글자만 남는다.
+  testWidgets('N01-07 ack retry failed_then_accepted', (
+    WidgetTester tester,
+  ) async {
+    expect(p0ack.pinned[0].ack?.acked, isFalse); // pre
+    expect(receipts.rows[0].kind, CommandKind.alertAck); // pre
+    final FakeShellAlertCommandApi api = FakeShellAlertCommandApi(
+      receipt: (int call) => call == 0
+          ? Future<CommandReceipt>.error(StateError('fail'))
+          : Future<CommandReceipt>.value(receipts.rows[0]),
+    );
+    final FakeShellAlertCenterRepository alerts = centerOf(
+      (int call) => one(p0ack),
+    );
+    await pumpAlertCenter(
+      tester,
+      overrides: alertOverrides(
+        alerts: alerts,
+        api: api,
+        opener: RecordingLinkOpener(),
+        clock: fresh,
+      ),
+    );
+    final Finder ack = find.byKey(const ValueKey<String>('n01-pin-0-ack'));
+    final Finder fail = find.byKey(
+      const ValueKey<String>('n01-pin-0-ack-fail'),
+    );
+    final Finder receipt = find.byKey(
+      const ValueKey<String>('n01-pin-0-receipt'),
+    );
+    // 첫 탭 = 실패
+    await tester.tap(ack);
+    await tester.pump();
+    await tester.pump();
+    expect(api.acks, equals(<String>[p0ack.pinned[0].alertId]));
+    expect(fail, findsOneWidget);
+    expect(receipt, findsNothing);
+    expect(tester.widget<FilledButton>(ack).onPressed, isNotNull);
+    // 둘째 탭 = 성공
+    await tester.tap(ack);
+    await tester.pump();
+    await tester.pump();
+    expect(
+      api.acks,
+      equals(<String>[p0ack.pinned[0].alertId, p0ack.pinned[0].alertId]),
+    );
+    expect(fail, findsNothing);
+    expect(tester.widget<Text>(receipt).data, receipts.rows[0].stateLabel);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey<String>('n01-pin-0-state')))
+          .data,
+      p0ack.pinned[0].ack!.stateLabel,
+    );
+    expect(tester.widget<FilledButton>(ack).onPressed, isNotNull);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(alerts.p0Onlys, equals(<bool>[false]));
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
 }
