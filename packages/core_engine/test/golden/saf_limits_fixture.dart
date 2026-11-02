@@ -36,6 +36,12 @@ LimitIntent intentFrom(Map<String, Object?> j) => LimitIntent(
   entryPrice: _decOrNull(j['entry_price']),
   stopPrice: _decOrNull(j['stop_price']),
   isSatellite: asString(j['sleeve']) == 'satellite',
+  // 🆕 v2.38(GV-39 17) — 칸이 없으면 개별주(04 §1 «비면 STOCK»). GV-32 63 에는 칸이 없다.
+  instrument: switch (j['instrument']) {
+    null || 'STOCK' => InstrumentKind.stock,
+    'ETF' => InstrumentKind.etf,
+    final Object? s => throw StateError('모르는 instrument: $s'),
+  },
 );
 
 /// 정답지 상태 → [LimitState].

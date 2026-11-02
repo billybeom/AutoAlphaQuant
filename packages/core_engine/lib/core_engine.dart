@@ -70,8 +70,37 @@ export 'src/data/regime_inputs.dart'
         usCalendarLagSessions;
 export 'src/decimal_rules.dart'
     show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
+export 'src/orders/block_bundles.dart' show BlockBundles, blockingFlagsFor;
+export 'src/orders/fills.dart'
+    show
+        DailyFillRow,
+        FillDelta,
+        RecordedFill,
+        brokerOrderNoOf,
+        executionIdOf,
+        fillDeltas;
 export 'src/orders/idempotency.dart'
     show DecisionIds, idempotencyKey, idempotencyRaw;
+export 'src/orders/order_draft.dart'
+    show
+        AllHeldSizing,
+        AmountSizing,
+        DraftConfig,
+        DraftIssue,
+        DraftIssueCode,
+        DraftQuote,
+        DraftResult,
+        OrderIntentDraft,
+        OrderSizing,
+        OrderTarget,
+        OrderTypes,
+        P0sStrategyIds,
+        ShareSizing,
+        draftOrders,
+        limitPriceFor,
+        targetsFromMonthEnd;
+export 'src/orders/split_execution.dart'
+    show SplitDay, seasonalExecutionDays, splitDay;
 export 'src/portfolio/allocation.dart'
     show AllocationTargets, kAllocationProfiles, resolveAllocation;
 export 'src/portfolio/core_band.dart'
@@ -112,6 +141,7 @@ export 'src/risk/limits.dart'
     show
         LimitCheckResult,
         LimitConfig,
+        InstrumentKind,
         LimitIntent,
         LimitSide,
         LimitState,

@@ -24,9 +24,10 @@
 | `gv12_trading_day.json` | 같은 문서 §GV-12 코드 블록(1943~1957행) | 05 **v1.22** | 2026-10-20 |
 | `gv12c_last_session_negative.json` | 같은 문서 §GV-12c 코드 블록(1967~1981행) | 05 **v1.22** | 2026-10-20 |
 | `gv13_decision_id.json` | 같은 문서 §GV-13 코드 블록(2040~2083행) — 형식 부분만 시험(발주 횟수는 E10) | 05 **v1.22** | 2026-10-20 |
+| `gv30_split_execution.json` | 🆕 E10a — `06_시스템설계/05_수용기준_골든벡터.md` §GV-30 코드 블록(1790~1807행) — AC-B23 e1~e4 · e4 = 미체결 이월 + 마지막 날 강제(v2.38 해석 = 중간 날은 계획 잔량 · 마지막 날 = 목표 − 누적 체결 · 기대값 불변 · 설계 13 §8 R33 D8) · `sessions` 는 동결 달력과 대조한다 | 05 **v1.23** | 2026-11-03 |
 | `sessions_xkrx.json` · `sessions_xnys.json` | 🔵 **정답지가 아니라 입력 데이터** — `tool/gen_exchange_sessions.py` 가 exchange_calendars **4.13.2**(pandas 3.0.6 · Python 3.14.6)로 1999-12-01~2027-12-31 세션을 동결한 것(발주자 결정 2026-10-20). 05 GV-12 가 지정한 판(4.13.2)과 같다. 🔴 손으로 고치지 않는다 — 판을 올리면 생성기를 다시 돌린다. 🆕 라이브러리가 빠뜨린 임시휴장은 생성기의 `CLOSED_OVERRIDES` 에 근거와 함께 적고 다시 돌린다 — XKRX **2026-06-03**(지방선거일) · **2026-07-17**(제헌절 공휴일 복원) — 한국거래소 2026-05-20 휴장 공지(설계 13 §8 R15 · XKRX 6,922 → 6,920 세션) | 생성 2026-10-20 · 재생성 2026-10-20 | 2026-10-20 |
 | `gv32_saf_vectors.json` | `08_파일럿/파일럿4/vectors/saf_vectors.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `6549049dc5711f26d95f90b451902b492e53b6a4eac7f2f968f4b2fede4b57a0`) · 05 §GV-32 가 정본으로 지목 · 63케이스. `_meta.cfg_risk` 의 `circuit_breaker.dd_stop: -0.3` 은 v2.16 이전 값이지만 한도 판정에는 쓰이지 않는다 | 파일 커밋 `b1c85de` | 2026-10-20 |
-| `gv39_trace_vectors.json` | `08_파일럿/파일럿5/vectors/gv39_vectors.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `cd0702d5101cf85d04261d61abf0f727f8673eb7e2ab9fd5692e031ecea5378d`) · 15케이스 | 파일 커밋 `b1c85de` | 2026-10-20 |
+| `gv39_trace_vectors.json` | `08_파일럿/파일럿5/vectors/gv39_vectors.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `d6350505848d85216f086db795387b5f8f84f517408b7df11427fc1f5140665b`) · 🆕 E10a **17케이스**(v2.38 재생성판 — `intent.instrument` STOCK|ETF · `g05` trace 15 → 12 · 🆕 `g08b` SELL equity 불요 · 🆕 `g15` ETF BUY 손절가 없음 → ALLOW · 05 v1.23 · 설계 13 §8 R33 D1 · D23) · 구판(15 · 원본 sha256 `cd0702d5…5378d` · 파일 커밋 `b1c85de`)을 덮었다 | 파일 커밋 `66aad71` | 2026-11-03 |
 | `gv17_fail_closed.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-17 코드 블록(2209~2225행) — v1.6 상태 모델이라 테스트가 GV-32 이름으로 옮겨 읽는다. x3(`usd_exposure_pct`)은 v2.30 SAF-307 재정의로 판정 입력이 아니게 돼 시험하지 않는다 | 05 **v1.22** | 2026-10-20 |
 | `gv31_breaker_vectors.json` | `08_파일럿/파일럿4/vectors/breaker_vectors.json` — 파일 통째(sha256 원본과 같음 · 05 §GV-31 이 정본으로 지목 · v1.13 재생성판 = 단발 23 + 시퀀스 6 · dd_stop −0.35) | 파일 커밋 `2a699f9` | 2026-10-20 |
 | `gv31_s_h5_1_J1_stopped.json` | `09_백테스트/백테스트6/runs/J1_stopped/J1_stopped.json` — 파일 통째, **줄 끝만 CRLF → LF**(저장소 `.gitattributes` `eol=lf` — 내용 바이트는 그 밖에 같다 · 원본 sha256 `30e050b3bd88dcf9160eb0bf568410982d1208bd3f6a721d497759d8e175845b`) · 테스트는 `vectorB_deterministic` 만 쓴다(05 §GV-31 계열 s_h5_1 정본 실측). 입력 시퀀스는 05 본문 · `exp/J1_stopped_vector.py` 271~277행대로 테스트가 만든다 | 파일 커밋 `2a699f9` | 2026-10-20 |
@@ -87,12 +88,13 @@ e129f3e5c64aeea318c1c1569f46ff99fde2669ff02cf63e984569b99d513ee0  gv09_idempoten
 31b3638927c3322cd0099be7ecce480af78b553125f9b4c0ef8ceb6d989e271a  gv12_trading_day.json
 75bb7bae52c08254637de59b1f9443ef1610abe0544a97beb46ca96d0bf7fb02  gv12c_last_session_negative.json
 bd9716f1e6ce14525e659bafc64d6dd52c429b48517cae8e5b7d8fd85b69f797  gv13_decision_id.json
+0c3d102bb8f1e229a1d38983d0682bcba1270282904e0e8476e7daa23f7f16d8  gv30_split_execution.json
 8b3546977f2280f11a48f20313abd8d0419701ca1432404038d015d9cf632caa  gv17_fail_closed.json
 00ec726fe83e363ab2c79e678c90114310e217737987a58cff4c21e7d01b193a  gv18_exposure_multiplier.json
 ba67b95e245664103a67ff8bd3de7ddacf0bb9f8fc0a7fa52e98e260512a4ebd  gv31_breaker_vectors.json
 e804a744586588a36d1cb6f79e3fb2a1e7f020208a03ccf5b5d5d4ea422b0b22  gv31_s_h5_1_J1_stopped.json
 6747c17f86950cbd0b8db5e3a2d5d845bfd4bad37d744312f3500b8504ed610e  gv32_saf_vectors.json
-9bb3e433ec1e90495a6fe852a4a39e35defdb2d874714a08157b7a35e83aaa9a  gv39_trace_vectors.json
+aad01ad857af429b00af3b50323430fb8feef162a566cce715f631ea316df2a6  gv39_trace_vectors.json
 3aec46c1f7582f27e5e7f0fb257858c1b58a1e0f59587467a5bb1862b411fba9  sessions_xkrx.json
 4c9f436b4bad413636bd38f25961630fdf2d6ade88fc6cd2be8b952f77895195  sessions_xnys.json
 a0a15d8697ef6b32d6689990750ecd27a711e6b97dfd74e2bc62b5e8f5ebed5b  gv03_exposure_gate.json

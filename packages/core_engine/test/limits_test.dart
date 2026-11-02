@@ -88,6 +88,66 @@ void main() {
     expect(r.alert, isFalse);
   });
 
+  test('🆕 v2.38 ETF 매수도 평가액은 요구한다(D23 은 SELL 만 · 프렐류드 trace = [])', () {
+    final LimitIntent etfBuy = LimitIntent(
+      side: LimitSide.buy,
+      isUsMarket: false,
+      orderType: 'LIMIT',
+      quantity: 100,
+      limitPrice: Decimal.parse('10000'),
+      entryPrice: Decimal.parse('10000'),
+      stopPrice: null,
+      isSatellite: false,
+      instrument: InstrumentKind.etf,
+    );
+    final LimitState s = _state();
+    final LimitState noEquity = LimitState(
+      totalEquity: null,
+      ordersToday: s.ordersToday,
+      riskExposureAfter: s.riskExposureAfter,
+      leverageAfter: s.leverageAfter,
+      positionsAfter: s.positionsAfter,
+      satellitePositionsAfter: s.satellitePositionsAfter,
+      satelliteSectorCountAfter: s.satelliteSectorCountAfter,
+      satelliteAllocation: s.satelliteAllocation,
+      satelliteExposure: s.satelliteExposure,
+      satelliteDeployedBefore: s.satelliteDeployedBefore,
+      dailyPnlPct: s.dailyPnlPct,
+      fxRateUsdKrw: s.fxRateUsdKrw,
+      strategyRegistered: s.strategyRegistered,
+      tradingBlocked: s.tradingBlocked,
+      journalMissing: s.journalMissing,
+      tierBUnjudged: s.tierBUnjudged,
+    );
+    final List<String> trace = <String>[];
+    expect(
+      () => checkAllLimits(etfBuy, noEquity, _config, trace: trace),
+      throwsA(isA<RiskCheckUnavailable>()),
+    );
+    expect(trace, isEmpty);
+    // 평가액이 있으면 손절가 없이도 통과한다(L1 을 건너뛴다 — GV-39 g15).
+    expect(checkAllLimits(etfBuy, s, _config).allowed, isTrue);
+  });
+
+  test('🆕 v2.38 상품 구분을 비우면 개별주 — 손절가 없는 매수는 103 에서 확인 불가', () {
+    final LimitIntent b = _buy();
+    final LimitIntent noStop = LimitIntent(
+      side: b.side,
+      isUsMarket: b.isUsMarket,
+      orderType: b.orderType,
+      quantity: b.quantity,
+      limitPrice: b.limitPrice,
+      entryPrice: b.entryPrice,
+      stopPrice: null,
+      isSatellite: false,
+    );
+    expect(noStop.instrument, InstrumentKind.stock);
+    expect(
+      () => checkAllLimits(noStop, _state(), _config),
+      throwsA(isA<RiskCheckUnavailable>()),
+    );
+  });
+
   test('통과 결과는 축소 기록이 비어 있고 ALERT 가 없다', () {
     final LimitCheckResult r = checkAllLimits(_buy(), _state(), _config);
     expect(r.allowed, isTrue);

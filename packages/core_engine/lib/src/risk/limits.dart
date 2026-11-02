@@ -10,9 +10,10 @@
 //    P6 판정에 필요한 입력이 하나라도 null 이면 [RiskCheckUnavailable](기본값·대체값 금지).
 // 🔴 금액은 Decimal 이다(01 §0). 참조 구현의 `+ 1e-9` 여유는 float 잡음을 덮으려던 것이라 Decimal 에서는
 //    정확 비교로 같은 결과가 된다.
-// ⚠️ 적용 범위(설계 13 §8 R10): 참조 구현·정답지(GV-39 g05)는 SAF-101·102·103 을 **슬리브 구분 없이
-//    모든 매수**에 건다 — P0S 의 ETF 주문(손절가 없음 · 슬리브 B 42%)에 그대로 쓰면 매수가 막힌다.
-//    이 파일은 정답지대로 두고, 어느 주문이 이 판정을 지나는지는 주문 경로(E10) 전에 정한다.
+// 🔵 v2.38 적용 범위(04 §1 · 설계 13 §8 R33 D1 · D23 — R10 해소): SAF-101·102·103 은 **개별주 BUY** 에만
+//    건다([InstrumentKind] — 칸이 비면 개별주로 본다 · fail-closed). ETF BUY(P0S 전부 — 손절가 없음 · 슬리브 B
+//    42%)는 Level 1 을 건너뛰고 104 는 그대로다. SELL 은 `total_equity` 를 요구하지 않는다. 정답지 = 파일럿5
+//    생성기 재실행판(GV-39 17 · `g05` · `g08b` · `g15`) · GV-32 63 은 전부 개별주라 그대로다.
 
 import 'package:decimal/decimal.dart';
 
@@ -39,6 +40,20 @@ enum LimitSide {
   sell('SELL');
 
   const LimitSide(this.code);
+
+  /// 저장·골든 표기.
+  final String code;
+}
+
+/// 상품 구분(04 §1 v2.38 · 설계 13 §8 R33 D1) — Level 1 을 가른다. 슬리브 이름에서 추론하지 않는다.
+enum InstrumentKind {
+  /// 개별주 — 매수에 Level 1(101·103·102)이 걸린다. 칸이 비면 이것으로 본다(fail-closed).
+  stock('STOCK'),
+
+  /// ETF — Level 1 을 건너뛴다(104 는 그대로).
+  etf('ETF');
+
+  const InstrumentKind(this.code);
 
   /// 저장·골든 표기.
   final String code;
@@ -73,6 +88,7 @@ class LimitIntent {
     required this.entryPrice,
     required this.stopPrice,
     required this.isSatellite,
+    this.instrument = InstrumentKind.stock,
   });
 
   /// 방향.
@@ -98,6 +114,9 @@ class LimitIntent {
 
   /// 새틀라이트 슬리브 주문이면 true — L2(SAF-203·206·207)가 걸린다.
   final bool isSatellite;
+
+  /// 상품 구분 — 개별주 BUY 에만 L1(SAF-101·103·102)이 걸린다(v2.38). 기본값 = 개별주(L1 을 거는 쪽).
+  final InstrumentKind instrument;
 }
 
 /// 한도 판정 입력 상태. 🔴 확보하지 못한 값은 null 로 둔다(기본값 금지 — 02 §3-1 v1.5).
@@ -308,7 +327,10 @@ LimitCheckResult _check(
   final Decimal fx = it.isUsMarket
       ? _require(st.fxRateUsdKrw, 'fx_rate_usdkrw')
       : Decimal.one;
-  final Decimal equity = _require(st.totalEquity, 'total_equity');
+  // v2.38 D23 — SELL 은 평가액을 요구하지 않는다(확인 안 된 평가액 때문에 청산·매도가 막히지 않게).
+  final Decimal? equity = isBuy
+      ? _require(st.totalEquity, 'total_equity')
+      : null;
   final Decimal unitKrw = price * fx;
   final Decimal orderValueKrw = Decimal.fromInt(it.quantity) * unitKrw;
 
@@ -402,8 +424,9 @@ LimitCheckResult _check(
     }
   }
 
-  // ── Level 1 종목(매수만 · 104 는 전부) ──────────────────────────────
-  if (isBuy) {
+  // ── Level 1 종목(개별주 매수만 · 104 는 전부 · v2.38 D1) ─────────────
+  //    `equity != null` ⇔ 매수(프렐류드가 매수에만 해석한다).
+  if (equity != null && it.instrument == InstrumentKind.stock) {
     start('SAF-101');
     final Decimal capNotional = multiply(
       equity,

@@ -1,0 +1,18 @@
+{
+  "config": { "execution_days": 3, "limit_offset_pct": 0.005 },
+  "anchor_date": "2026-10-30",
+  "sessions": ["2026-10-28", "2026-10-29", "2026-10-30"],
+  "cases": [
+    { "id": "e1", "symbol": "A", "target_qty": 100,
+      "expected": { "daily_qty": [34, 33, 33] } },
+    { "id": "e2", "symbol": "B", "target_qty": 7,
+      "expected": { "daily_qty": [3, 2, 2] } },
+    { "id": "e3", "symbol": "C", "target_qty": 1,
+      "expected": { "daily_qty": [1, 0, 0] } },
+    { "id": "e4", "symbol": "D", "target_qty": 10,
+      "filled": [2, 0],
+      "expected": { "daily_qty": [4, 3, 8],
+                    "note": "1일차 4주 중 2주만 체결 → 잔량 8주가 이월. 2일차 계획 3주 중 0주 체결 → 마지막 날 잔량 8주 전량" } }
+  ],
+  "exact_fields": ["daily_qty"]
+}
