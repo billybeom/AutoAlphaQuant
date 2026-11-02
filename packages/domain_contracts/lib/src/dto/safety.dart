@@ -1,5 +1,7 @@
 // packages/domain_contracts/lib/src/dto/safety.dart
 //
+// 🆕 v1.16 — `OnboardingStep` 표시 칸 6(01 §25) · 온보딩 한 화면 VM = `onboarding.dart`.
+//
 // 01 §2-10 «AlertItem · SafetyState · OnboardingStep» + m2-8 D-1~D-3(`KillSwitchView`·
 // `AckState`·`GaugeProgress`) · C-5(`EntryRampProgress`) · C-6(`RampLevel`)
 // · 인벤토리 §3-7 · §3-14(영역 B).
@@ -17,6 +19,7 @@ import '../enums/safety.dart';
 import '../enums/sleeve.dart';
 import '../primitives/as_of.dart';
 import '../primitives/money.dart';
+import 'common.dart';
 
 part 'safety.freezed.dart';
 part 'safety.g.dart';
@@ -284,9 +287,11 @@ abstract class BlockFlag with _$BlockFlag {
       _$BlockFlagFromJson(json);
 }
 
-/// 온보딩 단계 1행 — X3(01 §2-10).
+/// 온보딩 단계 1행 — X3(01 §2-10). 🆕 v1.16(01 §25 · K15) — 표시 칸 6.
 ///
 /// 🔴 화면이 `Duration` 을 포맷하지 않는다(01 §1-3) — 표시는 `estimatedText` 다.
+/// 🔴 화면 미참조 = [stepId] · [track] · [order] · [estimated] · [requirement] · [verifiedUntil] · [whereDeepLink]
+///    (값으로 글자·차단·정렬·Key 를 고르지 않는다 — 글자는 `*Label`·`*Text` 칸).
 @freezed
 abstract class OnboardingStep with _$OnboardingStep {
   const factory OnboardingStep({
@@ -297,6 +302,9 @@ abstract class OnboardingStep with _$OnboardingStep {
 
     /// 왜 필요한가 — 엔진 생성
     required String whyLine,
+
+    /// 🔵 v1.16(K16) — 화면 미참조(옛 뜻 = 자기 단계 링크 · «어디서 받나» = `OnboardingStepDetailVm.whereText` ·
+    ///    외부 열기 = 플랫폼 · 01 §8 미결 150). 신설 표본은 null.
     String? whereDeepLink,
 
     /// 정렬·집계용. JSON 키는 `*_seconds`(01 §1-2 `DurationSecondsConverter`)
@@ -312,9 +320,27 @@ abstract class OnboardingStep with _$OnboardingStep {
     /// "KIS 토큰 발급 + 잔고 조회 1회" — 엔진 생성
     String? verificationLabel,
 
-    /// 검증 유효기간(KIS 접근토큰 24h · PAT 만료일 등)
+    /// 검증 유효기간(KIS 접근토큰 24h · PAT 만료일 등) — 🔵 v1.16 화면 미참조(표시 = [verifiedUntilText]).
     DateTime? verifiedUntil,
     String? failureReasonCode,
+
+    /// 🆕 v1.16 — 등급 글자 «필수»·«권장»·«선택»(엔진). 🔴 화면은 [requirement] 로 글자·차단을 고르지 않는다.
+    required String requirementLabel,
+
+    /// 🆕 v1.16 — 권장 미통과 경고 배지(엔진 판정 · null = 부재). 🔴 차단이 아니다 — 차단 = [gate].
+    String? warningLabel,
+
+    /// 🆕 v1.16 — 만료 글자 «2026-11-30까지» · «2026-08-30에 만료됨»(엔진 · [verifiedUntil] non-null ⇒ non-null · C-50 ⑥).
+    String? verifiedUntilText,
+
+    /// 🆕 v1.16 — 실패 문장(엔진 · [failureReasonCode] 원문과 **함께** 그린다 · 요약·의역 0).
+    String? failureText,
+
+    /// 🆕 v1.16 — 단계 게이트(엔진 판정 · null = 게이트 없음 · `unknown` = 진행 차단 · 04 §9-8).
+    GateBadge? gate,
+
+    /// 🆕 v1.16 — `O-02` 링크(`aaq://onboarding/<stepId>` · 엔진 완성). null = 행 탭 없음.
+    String? detailDeepLink,
   }) = _OnboardingStep;
 
   factory OnboardingStep.fromJson(Map<String, dynamic> json) =>

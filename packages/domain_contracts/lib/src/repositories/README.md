@@ -2,7 +2,7 @@
 
 정본: 01_M2_도메인계약 **§4-1**
 
-`JournalRepository` · `HoldingsRepository` · `PerformanceRepository` · `RebalanceRepository` · `SafetyRepository` · `AlertRepository` · `ResumeRepository` · `LedgerRepository` · `OnboardingRepository` · `CalendarRepository` · `ConfigRepository` · `WhatIfApi`
+`JournalRepository` · `HoldingsRepository` · `PerformanceRepository` · `RebalanceRepository` · `SafetyRepository` · `AlertRepository` · `ResumeRepository` · `LedgerRepository` · `OnboardingRepository` · 🆕 v1.16 `PairingRepository`(뷰어 `V-01`) · `CalendarRepository` · `ConfigRepository` · `WhatIfApi`
 
 ## 이 폴더가 지는 규칙
 

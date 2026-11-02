@@ -18,6 +18,7 @@ export 'repositories/ledger_repository.dart';
 export 'repositories/ledger_trust_repository.dart';
 export 'repositories/onboarding_repository.dart';
 export 'repositories/ops_repository.dart';
+export 'repositories/pairing_repository.dart';
 export 'repositories/performance_repository.dart';
 export 'repositories/rebalance_repository.dart';
 export 'repositories/resume_repository.dart';

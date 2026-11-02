@@ -39,6 +39,7 @@ import 'exit_kind.dart';
 import 'flag_ids.dart';
 import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
+import 'onboarding_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
@@ -52,6 +53,7 @@ export 'exit_kind.dart';
 export 'flag_ids.dart';
 export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
+export 'onboarding_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
@@ -200,6 +202,12 @@ abstract final class ContractCodes {
     'advice_retry': AdviceRetryCodes.values,
     // 🆕 v1.12(K19) — 수기 체결 초안의 «채우기» 필드(`ManualFillInput.prefilledFields` · C-5 «values 집합 = 등재»)
     'manual_fill_prefill': ManualFillPrefillFields.values,
+    // 🆕 v1.16(01 §25 · K21) — 온보딩·페어링 결과의 앱 코드(`ActionResult.reasonCode` · `PairingResult.reasonCode`)
+    'onboarding_result': OnboardingResultCodes.values,
+    // 🆕 v1.16(01 §25 · K21) — 브로커 원문 코드(계약 표본이 쓰는 것 · 전수 아님 · 01 §8 미결 157)
+    'broker_raw': BrokerRawCodes.values,
+    // 🆕 v1.16(01 §25 · K21) — 온보딩 🔒 슬롯 이름(`secretSlotId`·`slotId`·`loginSlotId`·`scannerSlotId`)
+    'onboarding_slot': OnboardingSlotIds.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

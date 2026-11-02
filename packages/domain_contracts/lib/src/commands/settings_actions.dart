@@ -9,6 +9,8 @@
 //    화면이 `run()` 을 폴링해 상태를 만들면 경계 규칙 ① 위반이다.
 // 🔴 «적용»류는 **`run()` 1회 + `handoffRoute` 이동**으로 끝난다. 냉각 30일·12월 창·48h
 //    대기·체크리스트 7항 UI 를 화면이 만들면 반려다.
+// 🆕 v1.16(01 §25) — 온보딩 args 화이트리스트(`onboardingOperatingModeSelect` · `onboardingDryRunStart` · 검증 3) ·
+//    O-00b·O-03·O-04 는 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -38,6 +40,20 @@ part 'settings_actions.g.dart';
 ///    🔴 가림 범위 = **그 폰 한 대**(뷰어 iOS·웹은 가리지 않는다 · ✅ 발주자 2026-10-22). 화면은 [ActionResult] 를
 ///    읽지 않는다(갈래 = `SelfReportSession.sessionClosedText` 하나) · `dispose` 의 stop 은 `initState` 에서 잡아 둔
 ///    인스턴스로 부른다(`dispose` 안 `ref` 0 · C-46 ㉔).
+///
+///    🆕 v1.16(01 §25 · K13 · K19 · K24) — X3 온보딩(폰 로컬 · 뷰어 경로 0):
+///    · `onboardingOperatingModeSelect` = `{operating_mode ∈ {AUTO_TRADE, ADVISORY}}`(값 = `OperatingMode.wire` —
+///      화면이 고른 카드의 `OperatingModeOption.mode.wire` 그대로) · 결과 = 접수(`ok`) / 거부(`blocked` ·
+///      `ONBOARDING_CHOICE_COMMITTED` · `committed_at` 뒤 — 이후 변경 = `runtimeOperatingModeSwitchRequest` → 🔒 `M5-11`) ·
+///      같은 값 재선택 = 접수(멱등)
+///    · `onboardingDryRunStart`        = `{}`(O-04 ⑥ · 종착 조합은 엔진이 `onboarding_choice` 로 안다 ·
+///      첫 `committed_at` 과 같은 트랜잭션 · 실패 = 둘 다 되돌림 `DRY_RUN_START_ROLLED_BACK`)
+///    · 검증 동작 — `OnboardingAction` 이 id·args 를 **완성해서** 싣는다(🔴 화면은 그대로 넘긴다 · 짓지 않는다):
+///      `credentialVerify` = `{kind}` · `connectionTest` = `{target}` · `accountVerifyMapping` = `{}`
+///      (`kind`·`target` 값 = 엔진 표기 — 05 §7 꼴 · 값 사전 = 01 §8 미결 151)
+///    🔴 `O-00b`·`O-03`·`O-04` 는 [ActionResult] 를 **읽는다** — `headline` + `reasonCode` 원문 + `retryable`
+///      (표본 = `m8/onboarding_mode_select_results` · `m8/onboarding_verify_results` · `m8/onboarding_finish_results`).
+///      `level`·`handoffRoute`·`actionRunId` 로 화면이 분기하지 않는다(아이콘 = `level` 5값 전수).
 ///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
@@ -70,6 +86,7 @@ abstract class ActionResult with _$ActionResult {
     required String headline,
 
     /// 원문 코드(예 `'EGW00133'`)가 있으면 함께 온다.
+    /// 🆕 v1.16 — 값 = 사전 등재 코드(`OnboardingResultCodes` · `BrokerRawCodes` 등 · C-5) · 화면은 글자 그대로(분기 0).
     String? reasonCode,
 
     /// 🔴 게이트가 필요한 동작은 여기로 넘긴다(M5).

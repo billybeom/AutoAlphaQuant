@@ -34,7 +34,9 @@ part 'drafts.g.dart';
 ///    01 §11-10). 링크 조립이 아니다. 대상 id 표(01 §12-1): `journalDraft` = `decisionId` ·
 ///    `manualFillRecord`·`adviceSkip` = `adviceId`(라우트) · 🆕 v1.12 `selfReportBalance` = `L-3` 라우트 `:yyyyMm` 과
 ///    `:accountAlias` 를 `/` 로 이은 글자(`2026-08/연금저축` — «생성자 인자 그대로»의 2인자 판 · K7 · K36 ⓐ) ·
-///    `O-04` = `SelfReportPurpose.simOpening.wire`(R15). 지난 달·다른 계좌의 초안은 복원 경로가 0 이다.
+///    `O-04` 시작 상태 선언(🆕 v1.16 `AppRoutes.ledgerSimOpening` · 계좌마다) = `SIM_OPENING/<accountAlias>`
+///    («생성자 인자 그대로»의 2조각 판 — `L-3` simOpening 갈래 구현 = 01 §8 미결 153). 지난 달·다른 계좌의
+///    초안은 복원 경로가 0 이다.
 /// 🔴 모드(계열)는 키에 **없다** — 구현이 계열별로 저장 공간을 가른다(화면은 모드를 모른다 · A7).
 @freezed
 abstract class DraftKey with _$DraftKey {

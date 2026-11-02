@@ -109,8 +109,8 @@ enum CommandState {
 ///
 /// 🔴 **개수를 숫자로 적지 않는다**(G-91 · §8-17 — 골든벡터 총계와 같은 이유).
 /// 🔴 `M9` 가 부르는 값은 05 §7 이 정본이고 행이 늘면 여기가 따라온다. 그러나
-///    **`M5`·`M8` 전용 4값**(`onboardingOperatingModeSelect`·`handoverAdoptionSet`·
-///    `handoverExternalRegister`·`handoverCommit`)은 **이 파일이 정본**이며 05 §7 표에
+///    **`M5`·`M8` 전용 5값**(`onboardingOperatingModeSelect`·`handoverAdoptionSet`·
+///    `handoverExternalRegister`·`handoverCommit` · 🆕 v1.16 `onboardingDryRunStart`)은 **이 파일이 정본**이며 05 §7 표에
 ///    나타나지 않는 것이 설계다 — 🔴 05 §7 에 없다는 이유로 지우지 않는다. 지우면 G-01·G-03
 ///    이 닫은 구멍(위저드·온보딩의 쓰기 경로 부재)이 되살아난다.
 /// 🔴 DDL `CHECK` 대응 컬럼은 없다. 표기는 §1-2 규약대로 SCREAMING_SNAKE 다.
@@ -134,6 +134,12 @@ enum SettingsActionId {
   /// 거치지 않으며, `O-04` 완료 후에는 이 동작이 거부되고 아래 전환 요청으로만 바뀐다.
   @JsonValue('ONBOARDING_OPERATING_MODE_SELECT')
   onboardingOperatingModeSelect('ONBOARDING_OPERATING_MODE_SELECT'),
+
+  /// 🆕 v1.16(01 §25 · K24) — 🔴 온보딩 `O-04` ⑥ «DRY_RUN 시작» 전용(M8). 첫 `onboarding_choice.committed_at` 을
+  /// **같은 트랜잭션**에서 채운다(01 §8-23) — 실패하면 둘 다 되돌린다. `runtimeEngineStart`(M9 운용 관리 ·
+  /// 온보딩을 마친 엔진의 시작)와 다르다. args = `{}`.
+  @JsonValue('ONBOARDING_DRY_RUN_START')
+  onboardingDryRunStart('ONBOARDING_DRY_RUN_START'),
 
   @JsonValue('RUNTIME_MODE_SWITCH_REQUEST')
   runtimeModeSwitchRequest('RUNTIME_MODE_SWITCH_REQUEST'),
