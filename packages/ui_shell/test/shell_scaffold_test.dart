@@ -164,6 +164,32 @@ void main() {
         expect(find.text(ShellLabels.retry), findsNothing);
       });
     }
+
+    // 점 = 수 없음 — Badge.label null(C4r13a-3 · 배지 수 변이 S06 을 위젯 테스트로)
+    testWidgets('TS-02 p0 dot has no count label', (WidgetTester tester) async {
+      await pumpShell(
+        tester,
+        overrides: shellOverrides(
+          platform: ShellPlatform.androidOperator,
+          config: flagsOf(kFlagsLiveAuto),
+          alerts: alertsOf(alerts12.rows),
+          bodies: dummyBodies(AppRoutes.all, <String>[]),
+        ),
+      );
+      expect(find.byKey(const Key('s01-p0-dot')), findsOneWidget);
+      expect(
+        tester.widget<Badge>(find.byKey(const Key('s01-p0-dot'))).label,
+        isNull,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('s01-p0-dot')),
+          matching: find.byType(Text),
+        ),
+        findsNothing,
+      );
+      expect(find.text(ShellLabels.retry), findsNothing);
+    });
   });
 
   // ── TS-03 탭 전환 = 상태 보존 + 홈 칸 ────────────────────────────────────
@@ -245,6 +271,52 @@ void main() {
         expect(find.text(ShellLabels.retry), findsNothing);
       });
     }
+
+    // iosViewer = 폰 셸 · 보유 탭 = 보유 본문(C4r13a-3 · X03)
+    testWidgets('TS-03 ios viewer', (WidgetTester tester) async {
+      final List<String> log = <String>[];
+      final ShellRouteBodies bodies = ShellRouteBodies(
+        dummyBodies(AppRoutes.all, log).byPattern,
+        home: (BuildContext ctx) => DummyBody(
+          tag: kHomeTag,
+          params: const <String, String>{},
+          log: log,
+        ),
+      );
+      await pumpShell(
+        tester,
+        overrides: shellOverrides(
+          platform: ShellPlatform.iosViewer,
+          config: flagsOf(kFlagsLiveAuto),
+          alerts: alertsOf(const <AlertItem>[]),
+          bodies: bodies,
+        ),
+      );
+      expect(log, <String>[
+        kHomeTag,
+        AppRoutes.journalTimeline,
+        AppRoutes.holdingsOverview,
+      ]);
+      expect(dummyOf(kHomeTag), findsOneWidget);
+      expect(dummyOf(AppRoutes.holdingsOverview), findsNothing);
+
+      // 보유 탭 → 보유 본문 · 가드 글자 0
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('s01-tabs')),
+          matching: find.text(ShellLabels.tabHoldings),
+        ),
+      );
+      await tester.pump();
+      expect(dummyOf(AppRoutes.holdingsOverview), findsOneWidget);
+      expect(find.byKey(const Key('s01-guard')), findsNothing);
+      expect(log, <String>[
+        kHomeTag,
+        AppRoutes.journalTimeline,
+        AppRoutes.holdingsOverview,
+      ]);
+      expect(find.text(ShellLabels.retry), findsNothing);
+    });
   });
 
   // ── TS-04 일지 세그먼트 ────────────────────────────────────────────────────
@@ -640,6 +712,91 @@ void main() {
     for (final String? data in shown) {
       expect(data, isIn(allowed));
     }
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
+
+  // ── R14 test-only (C4r13a-3) ─────────────────────────────────────────────
+  // TS-01 iosViewer = 폰 셸 배치(탭 5 · 사이드바 0 · X02)
+  testWidgets('TS-01 ios viewer phone shell tabs 5', (
+    WidgetTester tester,
+  ) async {
+    await pumpShell(
+      tester,
+      overrides: shellOverrides(
+        platform: ShellPlatform.iosViewer,
+        config: flagsOf(kFlagsLiveAuto),
+        alerts: alertsOf(const <AlertItem>[]),
+        bodies: dummyBodies(AppRoutes.all, <String>[]),
+      ),
+    );
+    expect(find.byKey(const Key('s01-tabs')), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byKey(const Key('s02-sidebar')), findsNothing);
+    expect(find.byKey(const Key('s02-view-only')), findsNothing);
+    expect(find.byKey(const Key('s02-kill-slot')), findsNothing);
+    final List<String> labels = <String>[
+      ShellLabels.tabHome,
+      ShellLabels.tabJournal,
+      ShellLabels.tabHoldings,
+      ShellLabels.tabPlan,
+      ShellLabels.tabMore,
+    ];
+    expect(
+      tester
+          .widgetList<NavigationDestination>(find.byType(NavigationDestination))
+          .map((NavigationDestination d) => d.label)
+          .toList(),
+      labels,
+    );
+    for (final String label in labels) {
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('s01-tabs')),
+          matching: find.text(label),
+        ),
+      );
+      await tester.pump();
+      expect(
+        tester.widget<Text>(find.byKey(const Key('s01-title'))).data,
+        label,
+      );
+    }
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
+
+  // TS-07 사이드바 탭 뒤 ListTile.selected = 누른 칸 하나(X10)
+  testWidgets('TS-07 web sidebar selected follows tap', (
+    WidgetTester tester,
+  ) async {
+    await pumpShell(
+      tester,
+      overrides: shellOverrides(
+        platform: ShellPlatform.web,
+        config: flagsOf(kFlagsLiveAuto),
+        alerts: alertsOf(const <AlertItem>[]),
+        bodies: dummyBodies(AppRoutes.all, <String>[]),
+      ),
+      size: const Size(1280, 800),
+    );
+    List<bool> selectedOf() => <bool>[
+      for (int i = 0; i < 5; i++)
+        tester
+            .widget<ListTile>(find.byKey(ValueKey<String>('s02-item-$i')))
+            .selected,
+    ];
+    expect(selectedOf(), <bool>[true, false, false, false, false]);
+
+    await tester.tap(find.byKey(const ValueKey<String>('s02-item-3')));
+    await tester.pumpAndSettle();
+    expect(selectedOf(), <bool>[false, false, false, true, false]);
+
+    await tester.tap(find.byKey(const ValueKey<String>('s02-item-4')));
+    await tester.pumpAndSettle();
+    expect(selectedOf(), <bool>[false, false, false, false, true]);
+
+    await tester.tap(find.byKey(const ValueKey<String>('s02-item-0')));
+    await tester.pumpAndSettle();
+    expect(selectedOf(), <bool>[true, false, false, false, false]);
     expect(find.text(ShellLabels.retry), findsNothing);
   });
 }

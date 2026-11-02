@@ -433,6 +433,15 @@ void main() {
             handbook: false,
             placeholder: true,
           ),
+          // opener 경유 음성 링크 — 물음표 뒤를 자르지 않는다(C4r13a-3 · X05)
+          (
+            name: 'query_link',
+            bodiesFactory: (List<String> log) => AppRoutes.all,
+            link: 'aaq://holdings/detail/h1?x=1',
+            unknown: true,
+            handbook: false,
+            placeholder: false,
+          ),
         ];
 
     for (final c in cases) {

@@ -485,4 +485,110 @@ void main() {
     expect(find.byKey(const Key('h02-asof')), findsOneWidget);
     expect(find.text(ShellLabels.retry), findsNothing);
   });
+
+  // ── R14 test-only (C4r13a-3) ─────────────────────────────────────────────
+  // T02-03 route null 만 — dDay 는 그대로 그린다(X07)
+  testWidgets('T02-03 null route only keeps dday', (WidgetTester tester) async {
+    final RecordingLinkOpener opener = RecordingLinkOpener();
+    final OpsRhythmRow row = rows.rows[0];
+    expect(row.dDayText, isNotNull); // pre
+    final ListResult<OpsRhythmRow> noRoute = rows.copyWith(
+      rows: <OpsRhythmRow>[row.copyWith(route: null)],
+    );
+    await pumpOpsRhythm(
+      tester,
+      overrides: opsRhythmOverrides(
+        ops: FakeShellOpsSummaryRepository(
+          rhythm: (int call) => Stream<ListResult<OpsRhythmRow>>.value(noRoute),
+        ),
+        opener: opener,
+        clock: FixedClock(kGoldenNowUtc),
+      ),
+    );
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey<String>('h02-dday-0')))
+          .data,
+      row.dDayText,
+    );
+    expect(
+      tester
+          .widget<InkWell>(find.byKey(const ValueKey<String>('h02-row-0')))
+          .onTap,
+      isNull,
+    );
+    await tester.tap(find.byKey(const ValueKey<String>('h02-title-0')));
+    await tester.pump();
+    expect(opener.opened, <String>[]);
+    expect(
+      shownTexts(tester, find.byKey(const ValueKey<String>('h02-row-0'))),
+      <String>[row.title, row.whenText, row.dDayText!],
+    );
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
+
+  // T02-03 dDay null 만 — 행 탭은 route 를 연다
+  testWidgets('T02-03 null dday only keeps route', (WidgetTester tester) async {
+    final RecordingLinkOpener opener = RecordingLinkOpener();
+    final OpsRhythmRow row = rows.rows[0];
+    expect(row.route, isNotNull); // pre
+    final ListResult<OpsRhythmRow> noDDay = rows.copyWith(
+      rows: <OpsRhythmRow>[row.copyWith(dDayText: null)],
+    );
+    await pumpOpsRhythm(
+      tester,
+      overrides: opsRhythmOverrides(
+        ops: FakeShellOpsSummaryRepository(
+          rhythm: (int call) => Stream<ListResult<OpsRhythmRow>>.value(noDDay),
+        ),
+        opener: opener,
+        clock: FixedClock(kGoldenNowUtc),
+      ),
+    );
+    expect(find.byKey(const ValueKey<String>('h02-dday-0')), findsNothing);
+    expect(
+      tester
+          .widget<InkWell>(find.byKey(const ValueKey<String>('h02-row-0')))
+          .onTap,
+      isNotNull,
+    );
+    await tester.tap(find.byKey(const ValueKey<String>('h02-title-0')));
+    await tester.pump();
+    expect(opener.opened, <String>[row.route!]);
+    expect(
+      shownTexts(tester, find.byKey(const ValueKey<String>('h02-row-0'))),
+      <String>[row.title, row.whenText],
+    );
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
+
+  // 빈 + emptyLabel null 표본(테스트 안 값) — 빈 갈래 · 머리·행·빈 문장 0(X09)
+  testWidgets('T02-04 empty rows with null empty label', (
+    WidgetTester tester,
+  ) async {
+    final ListResult<OpsRhythmRow> blank = empty.copyWith(emptyLabel: null);
+    expect(blank.rows, isEmpty); // pre
+    expect(blank.emptyLabel, isNull); // pre
+    await pumpOpsRhythm(
+      tester,
+      overrides: opsRhythmOverrides(
+        ops: FakeShellOpsSummaryRepository(
+          rhythm: (int call) => Stream<ListResult<OpsRhythmRow>>.value(blank),
+        ),
+        opener: RecordingLinkOpener(),
+        clock: FixedClock(kGoldenNowUtc),
+      ),
+    );
+    expect(shownTexts(tester, find.byKey(const Key('h02-asof'))), <String>[
+      blank.asOf.label,
+    ]);
+    expect(find.byKey(const Key('h02-head')), findsNothing);
+    expect(find.text(ShellLabels.rhythmColumnItem), findsNothing);
+    expect(find.text(ShellLabels.rhythmColumnNext), findsNothing);
+    expect(find.byKey(const Key('h02-empty')), findsNothing);
+    expect(find.byKey(const ValueKey<String>('h02-row-0')), findsNothing);
+    expect(find.byKey(const Key('h02-loading')), findsNothing);
+    expect(find.byKey(const Key('h02-fail')), findsNothing);
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
 }
