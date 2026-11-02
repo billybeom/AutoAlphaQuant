@@ -1067,6 +1067,100 @@ void main() {
           false,
           (WidgetTester t) async {},
         ),
+        // R14 test-only (C4r13b-4 · C4h-17): 오래됨에도 «항상» 블록 5 전부가 남는다.
+        (
+          'today_stale_always_blocks',
+          () => FakeShellOpsTodayRepository(today: (int call) => one(normal)),
+          () => FakeShellSafetyRepository(state: (int call) => one(safe0)),
+          () =>
+              FakeShellHoldingsRepository(allocation: (int call) => one(alloc)),
+          () =>
+              FakeShellOpsStatusRepository(diagnostics: (int call) => one(ok)),
+          () => FakeShellAdviceRepository(summary: (int call) => one(none)),
+          () => FakeShellLedgerTrustRepository(
+            grade: (int call) => one(trustDue),
+          ),
+          FixedClock(kGoldenNowUtc.add(const Duration(days: 2))),
+          <String>[
+            'h01-asof',
+            'h01-status',
+            'h01-process',
+            'h01-today',
+            'h01-upcoming',
+            'h01-alloc',
+            'h01-recon',
+          ],
+          <String>[
+            'h01-fail',
+            'h01-loading',
+            'h01-status-fail',
+            'h01-alloc-fail',
+            'h01-recon-fail',
+          ],
+          true,
+          (WidgetTester t) async {},
+        ),
+        // R14 test-only (C4r13b-4 · C4h-19): 블록 1 값 뒤 에러 = 마지막 값 유지(재시도 0).
+        (
+          'safety_value_then_fail',
+          () => FakeShellOpsTodayRepository(today: (int call) => one(normal)),
+          () => FakeShellSafetyRepository(
+            state: (int call) => valueThenFail(safe0),
+          ),
+          () =>
+              FakeShellHoldingsRepository(allocation: (int call) => one(alloc)),
+          () =>
+              FakeShellOpsStatusRepository(diagnostics: (int call) => one(ok)),
+          () => FakeShellAdviceRepository(summary: (int call) => one(none)),
+          () => FakeShellLedgerTrustRepository(
+            grade: (int call) => one(trustDue),
+          ),
+          clock,
+          <String>['h01-asof', 'h01-status'],
+          <String>['h01-status-fail', 'h01-fail'],
+          false,
+          (WidgetTester t) async {},
+        ),
+        // R14 test-only (C4r13b-4 · C4h-19): 블록 4 값 뒤 에러 = 마지막 값 유지(재시도 0).
+        (
+          'alloc_value_then_fail',
+          () => FakeShellOpsTodayRepository(today: (int call) => one(normal)),
+          () => FakeShellSafetyRepository(state: (int call) => one(safe0)),
+          () => FakeShellHoldingsRepository(
+            allocation: (int call) => valueThenFail(alloc),
+          ),
+          () =>
+              FakeShellOpsStatusRepository(diagnostics: (int call) => one(ok)),
+          () => FakeShellAdviceRepository(summary: (int call) => one(none)),
+          () => FakeShellLedgerTrustRepository(
+            grade: (int call) => one(trustDue),
+          ),
+          clock,
+          <String>['h01-asof', 'h01-alloc'],
+          <String>['h01-alloc-fail', 'h01-fail'],
+          false,
+          (WidgetTester t) async {},
+        ),
+        // R14 test-only (C4r13b-4 · C4h-19): 블록 6 값 뒤 에러 = 마지막 값 유지(재시도 0).
+        (
+          'diag_value_then_fail',
+          () => FakeShellOpsTodayRepository(today: (int call) => one(normal)),
+          () => FakeShellSafetyRepository(state: (int call) => one(safe0)),
+          () =>
+              FakeShellHoldingsRepository(allocation: (int call) => one(alloc)),
+          () => FakeShellOpsStatusRepository(
+            diagnostics: (int call) => valueThenFail(ok),
+          ),
+          () => FakeShellAdviceRepository(summary: (int call) => one(none)),
+          () => FakeShellLedgerTrustRepository(
+            grade: (int call) => one(trustDue),
+          ),
+          clock,
+          <String>['h01-asof', 'h01-recon'],
+          <String>['h01-recon-fail', 'h01-fail'],
+          false,
+          (WidgetTester t) async {},
+        ),
       ];
 
   for (final (
