@@ -46,6 +46,8 @@
 //   `L-3` `dispose` 경로에서도 동기 throw 0) · `UnimplementedCommandApi` X7 3 인자 교체(제출 DTO) + `deferAdviceConfirm`.
 //   🆕 계약 v1.15 R14 선행(01 §24 · K18) — `UnimplementedAlertRepository`(3) · `UnimplementedOpsStatusRepository`(6 —
 //   v1.6 «Ops 받침대는 만들지 않는다» 는 `S7-7` 한정 · R14 가 필요로 한다) · `UnimplementedCommandApi.acknowledgeAlert(String alertId)`.
+//   🆕 계약 v1.16 R15 선행(01 §25 · K30) — `UnimplementedOnboardingRepository`(7) · `UnimplementedPairingRepository`(1 ·
+//   뷰어 `V-01`) · `UnimplementedSettingsActions` 주석(O-00b·O-03·O-04 는 결과를 읽는다).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -204,12 +206,44 @@ class UnimplementedOpsStatusRepository implements OpsStatusRepository {
       throw UnimplementedError('watchAnnualReview');
 }
 
+/// 🆕 계약 v1.16(01 §25 · K30) — [OnboardingRepository] 받침대(`O-00`~`O-04`·`R-01` 가짜의 받침대 · 7메서드 전부).
+/// 🔴 동기로 던진다. 값은 지어내지 않는다 — `m8/onboarding_*`·`m8/restart_vm_*` 픽스처를 override 로.
+class UnimplementedOnboardingRepository implements OnboardingRepository {
+  @override
+  Stream<List<OnboardingStep>> watchSteps(OnboardingTrack t) =>
+      throw UnimplementedError('watchSteps');
+  @override
+  Stream<OnboardingStartVm> watchStart() =>
+      throw UnimplementedError('watchStart');
+  @override
+  Stream<OnboardingModeChoiceVm> watchModeChoice() =>
+      throw UnimplementedError('watchModeChoice');
+  @override
+  Stream<OnboardingStepsVm> watchStepList() =>
+      throw UnimplementedError('watchStepList');
+  @override
+  Stream<OnboardingStepDetailVm> watchStep(String stepId) =>
+      throw UnimplementedError('watchStep');
+  @override
+  Stream<OnboardingFinishVm> watchFinish() =>
+      throw UnimplementedError('watchFinish');
+  @override
+  Stream<RestartVm> watchRestart() => throw UnimplementedError('watchRestart');
+}
+
+/// 🆕 계약 v1.16(01 §25 · K30) — [PairingRepository] 받침대(`V-01` 가짜의 받침대). 🔴 동기로 던진다.
+class UnimplementedPairingRepository implements PairingRepository {
+  @override
+  Stream<PairingVm> watchPairing() => throw UnimplementedError('watchPairing');
+}
+
 /// 🆕 계약 v1.12(01 §21 · K9 · K28) — [SettingsActions] 받침대(`L-3` 세션 start·stop 가짜의 받침대).
 ///
 /// 🔴 리포지토리 받침대와 달리 **동기로 던지지 않는다**([UnimplementedWhatIfApi] 선례) — `run` = `Future` 에러 ·
 ///    `watch` = 에러 스트림. `L-3` 은 `dispose` 에서 `initState` 에 잡아 둔 인스턴스로 stop 을 부르고 그 결과를
 ///    삼키므로(`.then((_) {}, onError: …)`), override 하지 않은 받침대를 주입해도 위젯 트리가 깨지지 않는다.
-/// 🔴 결과(`ActionResult`)는 지어내지 않는다 — 화면은 결과를 읽지 않는다(갈래 = `SelfReportSession.sessionClosedText`).
+/// 🔴 결과(`ActionResult`)는 지어내지 않는다 — `L-3` 은 결과를 읽지 않는다(갈래 = `SelfReportSession.sessionClosedText`) ·
+///    🆕 v1.16 `O-00b`·`O-03`·`O-04` 는 `run` 의 결과를 **읽는다** — 결과는 가짜가 픽스처(`m8/onboarding_*_results`)로 준다.
 class UnimplementedSettingsActions implements SettingsActions {
   @override
   Future<ActionResult> run(
