@@ -104,3 +104,37 @@
 ### 2. 장수(계획)
 
 - R14 시작 **24장**(R13 병합본 · ✅ v1.15 병합본 `e9e71c8` `git ls-tree` 24) → R14a 병합 뒤 **34장**(+ `n01_*` 6 · `n02_*` 4 · ✅ 2026-10-31 PR #87 `185e9c7` · `git ls-tree` 34) → R14b 병합 뒤 **40장**(+ `w01_*` 6 · ✅ 2026-10-31 PR #88 `afe3e1d` · `git ls-tree` 40 · 🔴 «정확히» = R14b 정적 W32). 🏁 **R14** = `n01_*`·`n02_*`·`w01_*` 8이름 16장(24 → 40) → R14 test-only PR 병합 뒤 **40장 그대로**(✅ 2026-11-02 PR #89 `14d6374` · 테스트 파일만 · 장수 변화 0 · `git ls-tree` 40). 질문 파일 = `docs/ai-context/inbox/N01N02_questions.md`(R14a) · `W01_questions.md`(R14b).
+
+## 🆕 R15(계약 v1.16 전제 · 🔀 4분할 권고) — `O-00`·`O-00b`(R15a) · `O-01`~`O-03`(R15b) · `O-04`(R15c) · `R-01`·`V-01`(R15d) (2026-11-02 조립 · ⬜ 선행 = 계약 v1.16 보강(R15 선행 M2 · ⬜ 발주자 결정) · ⬜ 누적 드라이런 · ⬜ 발주자 확인)
+
+- 카드 = `docs/ai-context/send/R15a-Bob-O00O00b.md`(R15a · ⬜ 조립됨 — 드라이런 대기) · `docs/ai-context/send/_대기/R15b-Bob-O01O03.md` · `_대기/R15c-Bob-O04.md` · `_대기/R15d-Bob-R01V01.md`(🔵 R15d = X1·M9 창과 묶어 후순위 가능 — 미루면 «정확히 N» = R15c).
+- 이 절은 통합 담당이 쓴다(화면 담당 무수정 — 카드 규칙 1 «golden README 고치면 반려»).
+
+### 1. 골든 이름 — R15a 4이름 × 2 = 8장 · R15b 5이름 × 2 = 10장 · R15c 2이름 × 2 = 4장 · R15d 4이름 × 2 = 8장 · 재생성 0
+
+| 이름 | 장수 | 테스트 파일 | 입력 · 위치 전제(맨 아래 · 머리) |
+|---|---|---|---|
+| `o00_start` | 2 | `test/golden/o00_golden_test.dart` | 🆕 v1.16 `m8/onboarding_start`(`OnboardingStartVm` · 계정 축 2 + 조회 갈래) · `Key('o00-viewer')` < 844 · `Key('o00-headline')` dy 0.0 · 🔵 이름 = 카드가 지음(04 는 `O-00` 골든 이름을 주지 않는다) |
+| `o00b_unselected` | 2 | `test/golden/o00b_golden_test.dart` | 🆕 `m8/onboarding_mode_unselected`(`selected` null · 체크·«다음» 0 — 04 §9-1b 수용 (a)) · `Key('o00b-honesty')` < 844 · `Key('o00b-headline')` dy 0.0 |
+| `o00b_auto` | 2 | 〃 | 🆕 `m8/onboarding_mode_auto`(`selected` AUTO_TRADE · `nextLink`) · `Key('o00b-next')` < 844 · 머리 0.0 |
+| `o00b_advisory` | 2 | 〃 | 🆕 `m8/onboarding_mode_advisory`(`selected` ADVISORY · `nextLink`) · `Key('o00b-next')` < 844 · 머리 0.0 |
+| `o01_fresh` | 2 | `test/golden/o01_golden_test.dart` | 🆕 `m8/onboarding_steps_fresh`(`OnboardingStepsVm` · 상태 5값 · 게이트 4값 · `o_00`·`o_04`·해외주식 행 0) · 마지막 `o01-row` < 844 ⟦실측 — 넘으면 카드가 맨 아래 Key 를 고친다⟧ · `Key('o01-progress')` dy 0.0 |
+| `o01_advisory` | 2 | 〃 | 🆕 `m8/onboarding_steps_advisory` · 마지막 `o01-row` < 844 · 머리 0.0 |
+| `o02_step` | 2 | `test/golden/o02_golden_test.dart` | 🆕 `m8/onboarding_step_detail_kis_mock`(슬롯 = 가짜 빌더) · `Key('o03-run')` < 844 · `Key('o02-head')` dy 0.0 |
+| `o03_ok` | 2 | `test/golden/o03_golden_test.dart` | 같은 상세 + 흐름 = 검증 탭(명령 = 공장 · `m8/onboarding_verify_results` [0]) · `Key('o03-result')` < 844 · 머리 0.0 |
+| `o03_fail_code` | 2 | 〃 | 같은 상세 + 흐름 = 검증 탭(`results` [1] · 원문 코드 · `retryable`) · `Key('o03-retry')` < 844 · 머리 0.0 |
+| `o04_auto` | 2 | `test/golden/o04_golden_test.dart` | 🆕 `m8/onboarding_finish_auto`(6단계 · 기대치 한 줄 · 🔒 자리 4 · DRY_RUN 동작) · `ValueKey('o04-action-5')` < 844 ⟦실측⟧ · `Key('o04-headline')` dy 0.0 |
+| `o04_advisory` | 2 | 〃 | 🆕 `m8/onboarding_finish_advisory`(⑥ 동작 없음 · 시작 상태 선언 링크) · `Key('o04-declare')` < 844 · 머리 0.0 |
+| `r01_lost_phone` | 2 | `test/golden/r01_golden_test.dart` | 🆕 `m8/restart_vm_lost_phone`(`RestartVm` · 분기 2 · 승계 고지) · `Key('r01-inherit')` < 844 · `Key('r01-headline')` dy 0.0 |
+| `r01_gap7` | 2 | 〃 | 🆕 `m8/restart_vm_gap7`(분기 1 — 신규 온보딩 + 잔고 승계) · ⟦v1.16 표본⟧ < 844 · 머리 0.0 |
+| `v01_ok` | 2 | `test/golden/v01_golden_test.dart` | 🆕 `m8/pairing_ok`(`PairingVm` · 결과 ok · 다음 링크) · `Key('v01-next')` < 844 · `Key('v01-headline')` dy 0.0 |
+| `v01_fail` | 2 | 〃 | 🆕 `m8/pairing_fail`(결과 blocked · 원문 코드 · 다음 0) · `Key('v01-result')` < 844 · 머리 0.0 |
+
+- 공통: 흐름 = 클로저 칸 non-null(흐름 없는 이름 = `(WidgetTester t) async {}`) · 가짜·저장소·명령 = testWidgets 안에서 새로(공장 꼴 · C4r5d-5) · 크기 = `kGoldenPhoneSize`(390 × 844 — 늘리지 않는다 · 드라이런 dy 로 확인) · 시계 미사용(온보딩 VM 에 asOf 없음 — R15a 발주자 확인 ⑤) · 🔒 자리 = R15b 가짜 슬롯 빌더(소유 위젯이 와도 골든 무변경 — R15b 발주자 확인 ⑦).
+- 드라이런 실측 dy: ⟦실측: 누적 드라이런 `dry/r15-1`~`dry/r15-4`⟧.
+- 보고 «배치·잘림» 칸 — Bob 은 이름마다 light PNG 한 장만 연다(R15a 4장 · R15b 5장 · R15c 2장 · R15d 4장).
+- 🔴 `m8/onboarding_mode_pick`(`OperatingModeView` · `current: ADVISORY` = «아직 안 고름» 함정 · M9 `S05` 몫)은 R15 골든 입력이 아니다.
+
+### 2. 장수(계획)
+
+- R15 시작 **40장**(R14 test-only 병합본 `14d6374`) → R15a 병합 뒤 **48장**(+ `o00_*` 2 · `o00b_*` 6) → R15b 뒤 **58장**(+ `o01_*` 4 · `o02_*` 2 · `o03_*` 4) → R15c 뒤 **62장**(+ `o04_*` 4) → R15d 뒤 **70장**(+ `r01_*` 4 · `v01_*` 4 · 🔴 «정확히» = R15d 정적 T37 · R15d 를 미루면 R15c 가 «정확히 62»). 질문 파일 = `docs/ai-context/inbox/O00O00b_questions.md`(R15a) · `O01O03_questions.md`(R15b) · `O04_questions.md`(R15c) · `R01V01_questions.md`(R15d).
