@@ -66,8 +66,9 @@
     "SAF-104"
    ]
   },
+  "instrument": "🆕 v2.38 (04 §1 D1) intent.instrument = 'STOCK' | 'ETF' — 없으면 'STOCK'. L1(101·103·102)은 STOCK BUY 에만 · 104 는 전부. SELL 은 total_equity 를 요구하지 않는다(D23)",
   "compare": "GV-32 의 5필드(status·allowed·violated·adjusted_qty·raises) + trace(순서 포함 완전 일치)",
-  "n_cases": 15
+  "n_cases": 17
  },
  "cases": [
   {
@@ -248,9 +249,10 @@
   },
   {
    "id": "g05_nonsatellite_sleeve_skips_l2",
-   "note": "슬리브 B BUY — L2(203·206·207) 만 trace 에서 빠진다 (15개)",
+   "note": "🆕 v2.38 재생성(D1) — 슬리브 B ETF BUY: L2(203·206·207)와 L1(101·103·102)이 trace 에서 빠진다 (12개 · 구 15개)",
    "intent": {
-    "sleeve": "sleeve_b"
+    "sleeve": "sleeve_b",
+    "instrument": "ETF"
    },
    "state": {},
    "expected": {
@@ -271,9 +273,6 @@
      "SAF-301",
      "SAF-303",
      "SAF-304",
-     "SAF-101",
-     "SAF-103",
-     "SAF-102",
      "SAF-104"
     ]
    }
@@ -331,7 +330,7 @@
   },
   {
    "id": "g08_p6_prelude_equity_none",
-   "note": "P6 프렐류드 — total_equity None 은 스캔 전 해석이라 trace = [] (파일럿4 구조 고정)",
+   "note": "P6 프렐류드 — total_equity None 은 스캔 전 해석이라 trace = [] (파일럿4 구조 고정 · BUY 만 · v2.38 D23)",
    "intent": {},
    "state": {
     "total_equity": null
@@ -343,6 +342,32 @@
     "adjusted_qty": null,
     "raises": "RiskCheckUnavailable",
     "trace": []
+   }
+  },
+  {
+   "id": "g08b_sell_equity_none_ok",
+   "note": "🆕 v2.38 D23 — SELL 은 total_equity 를 요구하지 않는다: equity None 이어도 통과 · trace = SELL 7개",
+   "intent": {
+    "side": "SELL"
+   },
+   "state": {
+    "total_equity": null
+   },
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-303",
+     "SAF-104"
+    ]
    }
   },
   {
@@ -554,6 +579,37 @@
      "SAF-101",
      "SAF-103",
      "SAF-102",
+     "SAF-104"
+    ]
+   }
+  },
+  {
+   "id": "g15_etf_buy_no_stop_allows",
+   "note": "🆕 v2.38 D1 — ETF BUY · 손절가 없음 → ALLOW: L1 을 건너뛰어 103 의 RiskCheckUnavailable 이 없다 (g10 의 개별주 판과 짝) · trace 12개",
+   "intent": {
+    "sleeve": "sleeve_b",
+    "instrument": "ETF",
+    "stop_price": null
+   },
+   "state": {},
+   "expected": {
+    "status": "ALLOW",
+    "allowed": true,
+    "violated": [],
+    "adjusted_qty": 100,
+    "raises": null,
+    "trace": [
+     "SAF-401",
+     "SAF-402",
+     "SAF-403",
+     "SAF-404",
+     "SAF-406",
+     "SAF-407",
+     "SAF-408",
+     "SAF-410",
+     "SAF-301",
+     "SAF-303",
+     "SAF-304",
      "SAF-104"
     ]
    }

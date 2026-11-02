@@ -62,7 +62,7 @@ void main() {
     }
   });
 
-  group('GV-39 P2 검사 순서 trace (15)', () {
+  group('GV-39 P2 검사 순서 trace (17 · v2.38)', () {
     final Map<String, Object?> gv39 = loadVector('gv39_trace_vectors.json');
     final Map<String, Object?> meta = asObject(gv39['_meta']);
     test('정본 순서(L4 → L3 → L2 → L1)를 이어 붙이면 기준선 g00 의 전수 trace 와 같다', () {

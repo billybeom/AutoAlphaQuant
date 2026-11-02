@@ -156,4 +156,46 @@ void main() {
       );
     });
   });
+
+  group('🆕 E10a n번째 세션 앞(nthSessionAfter 의 거울 — 분할 집행일)', () {
+    final ExchangeCalendar kr = frozenCalendar(Market.kr);
+
+    test('같은 날은 세지 않는다 — 주말을 건너뛴다', () {
+      expect(
+        kr.nthSessionBefore(const TradeDate('2026-02-02'), 1),
+        const TradeDate('2026-01-30'),
+      );
+      expect(
+        kr.nthSessionBefore(const TradeDate('2026-10-30'), 2),
+        const TradeDate('2026-10-28'),
+      );
+    });
+
+    test('휴장일에서 시작해도 그 앞 첫 세션부터 센다', () {
+      expect(
+        kr.nthSessionBefore(const TradeDate('2027-01-01'), 1),
+        const TradeDate('2026-12-30'),
+      );
+    });
+
+    test('nthSessionAfter 와 서로 되돌린다', () {
+      const TradeDate d = TradeDate('2026-10-14');
+      expect(kr.nthSessionAfter(kr.nthSessionBefore(d, 20), 20), d);
+    });
+
+    test('범위 앞으로 넘어가면 StateError · n < 1 은 ArgumentError', () {
+      expect(
+        () => _tiny().nthSessionBefore(const TradeDate('2026-01-30'), 2),
+        throwsStateError,
+      );
+      expect(
+        () => _tiny().nthSessionBefore(const TradeDate('2026-01-30'), 0),
+        throwsArgumentError,
+      );
+      expect(
+        _tiny().nthSessionBefore(const TradeDate('2026-01-30'), 1),
+        const TradeDate('2026-01-29'),
+      );
+    });
+  });
 }

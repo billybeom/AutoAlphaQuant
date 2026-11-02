@@ -15,7 +15,7 @@
 // 🔴 계좌는 스냅샷의 계좌 매핑(`PlanInputs`)에서 — B 몫 → 연금 · 나머지(A · C · 원화 대기) → 일반(D6).
 // 🔴 등록은 기록만 한다(D11) — 파킹 매수·안내·`rebalance_event` 는 E10·E18.
 // 🔵 명령 TTL(30분) 만료와 «보류는 TTL 을 쓰지 않는다»는 수송(E11 · M4-3)의 몫이다 — 여기는 받은 명령의 판정만.
-// ✅ 형식(설계 13 §8 R12 DEPOSIT 행 · 발주자 확정 2026-10-22 · 이 파일 한 곳): decision_id = `DEP-{plan_id}`(계획 하나에
+// ✅ 형식(설계 13 §8 R12 DEPOSIT 행 · 발주자 확정 2026-10-22 · 🆕 E10a 부터 `DecisionIds.deposit`): decision_id = `DEP-{plan_id}`(계획 하나에
 //    결정 하나 — 시각·난수 없음 · 다시 돌려도 같은 값) · strategy_id = `P0S` · flow_id = `{decision_id}-PENSION|GENERAL`.
 
 import 'dart:convert';
@@ -25,6 +25,7 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
 import '../calendar/exchange_calendar.dart';
+import '../orders/idempotency.dart';
 import 'plan_inputs.dart';
 import 'what_if_gates.dart';
 import 'what_if_state.dart';
@@ -104,7 +105,8 @@ abstract final class DepositRegisterTexts {
 const String kDepositStrategyId = 'P0S';
 
 /// 입금 결정 id = `DEP-{plan_id}`(13 §8 R12 확정 — `DEP-{trade_date}` 는 하루 두 입금이면 겹친다).
-String depositDecisionId(String planId) => 'DEP-$planId';
+/// 🆕 E10a — 형식은 [DecisionIds.deposit] 한 곳에 있다(04 §3-2 v2.38 표 · 구성 요소 검사 포함).
+String depositDecisionId(String planId) => DecisionIds.deposit(planId);
 
 /// 등록 판정.
 sealed class DepositRegisterOutcome {

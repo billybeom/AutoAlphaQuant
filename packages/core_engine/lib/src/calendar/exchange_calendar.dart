@@ -1,4 +1,4 @@
-// 거래소 캘린더 — 세션 판정 · 월 마지막 세션 · n번째 세션 뒤(06 M1-6 · 05 GV-12 · GV-12c · 03 §4-3).
+// 거래소 캘린더 — 세션 판정 · 월 마지막 세션 · n번째 세션 뒤 · 앞(06 M1-6 · 05 GV-12 · GV-12c · 03 §4-3).
 //
 // 🔴 세션은 «데이터»로 받는다. KRX 휴장일은 음력 명절·임시공휴일이라 규칙으로 계산할 수 없고,
 //    05 §GV-12 는 «exchange_calendars 기준 · 하드코딩 금지»다. 이 클래스는 받은 세션 목록 위에서
@@ -132,6 +132,18 @@ class ExchangeCalendar {
     return TradeDate(_sorted[index]);
   }
 
+  /// [date] 앞 n번째 세션(같은 날은 세지 않는다 — [nthSessionAfter] 의 거울 · 03 §5-3-1 분할 집행일).
+  /// 범위 안에 없으면 [StateError].
+  TradeDate nthSessionBefore(TradeDate date, int n) {
+    if (n < 1) throw ArgumentError.value(n, 'n', '1 이상이어야 한다');
+    _checkCovered(date);
+    final int index = _lowerBound(date.yyyyMmDd) - n;
+    if (index < 0) {
+      throw StateError('${market.mic} 범위 안에 $date 앞 $n번째 세션이 없다');
+    }
+    return TradeDate(_sorted[index]);
+  }
+
   String? _nextAfter(String day) {
     final int index = _upperBound(day);
     return index < _sorted.length ? _sorted[index] : null;
@@ -144,6 +156,21 @@ class ExchangeCalendar {
     while (lo < hi) {
       final int mid = (lo + hi) >> 1;
       if (_sorted[mid].compareTo(day) <= 0) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    return lo;
+  }
+
+  /// [day] 이상인 첫 원소의 위치.
+  int _lowerBound(String day) {
+    int lo = 0;
+    int hi = _sorted.length;
+    while (lo < hi) {
+      final int mid = (lo + hi) >> 1;
+      if (_sorted[mid].compareTo(day) < 0) {
         lo = mid + 1;
       } else {
         hi = mid;
