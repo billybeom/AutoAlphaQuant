@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.15.0",
+    "contract_version": "1.16.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -25,7 +25,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_00",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "o_01",
@@ -39,7 +41,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_01",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "o_02",
@@ -53,7 +57,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_02",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "o_03",
@@ -67,7 +73,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_03",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "o_04",
@@ -81,7 +89,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_04",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "o_12",
@@ -95,7 +105,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_12",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "o_13",
@@ -109,7 +121,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_13",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     }
   ],
   "finish_headline": "준비가 끝났습니다. 이제 규칙이 대신 굴립니다."

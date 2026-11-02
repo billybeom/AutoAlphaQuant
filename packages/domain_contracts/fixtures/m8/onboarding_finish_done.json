@@ -1,0 +1,106 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.16.0",
+    "generated_at": "2026-11-03T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261103,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "온보딩 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "headline": "마무리 여섯 단계를 순서대로 진행합니다.",
+      "stages": [
+        {
+          "title": "P0S 프로파일 확인",
+          "state": "VERIFIED",
+          "gate": null,
+          "lines": [
+            "배분 A 20% · B 42% · 새틀라이트 0%(꺼짐) · 나머지 C",
+            "금 상한 8%(설정값)",
+            "설정 해시 cfg_fake_0000000000000000"
+          ],
+          "expectation_line": "규칙을 지켰을 때의 기대치는 전 계좌 세후 10.2% 안팎(최악 9.7%)입니다.",
+          "slot_id": null,
+          "link": null,
+          "action": null
+        },
+        {
+          "title": "본인 서약문 3문장",
+          "state": "VERIFIED",
+          "gate": null,
+          "lines": [],
+          "expectation_line": null,
+          "slot_id": null,
+          "link": null,
+          "action": null
+        },
+        {
+          "title": "생체 서명",
+          "state": "VERIFIED",
+          "gate": null,
+          "lines": [],
+          "expectation_line": null,
+          "slot_id": null,
+          "link": null,
+          "action": null
+        },
+        {
+          "title": "골든벡터 셀프테스트",
+          "state": "VERIFIED",
+          "gate": null,
+          "lines": [
+            "통과 12/전체 12"
+          ],
+          "expectation_line": null,
+          "slot_id": null,
+          "link": null,
+          "action": null
+        },
+        {
+          "title": "복구 카드 발급",
+          "state": "VERIFIED",
+          "gate": null,
+          "lines": [
+            "프로젝트 ref: ref-fake-aaq",
+            "계정 이메일: owner@example.invalid",
+            "데이터 저장소: github.com/fake-owner/aaq-data",
+            "복구 코드: FAKE-WXYZ-ABCD-EFGH",
+            "종이에 옮겨 적은 뒤 체크섬을 입력하십시오."
+          ],
+          "expectation_line": null,
+          "slot_id": null,
+          "link": null,
+          "action": null
+        },
+        {
+          "title": "모의 운영(DRY_RUN) 시작",
+          "state": "VERIFIED",
+          "gate": null,
+          "lines": [
+            "운영 램프 L1 · 모의투자(내부 시뮬레이션)",
+            "종착: 모의 · 자동 매매 · 실행",
+            "시작 상태를 선언했습니다"
+          ],
+          "expectation_line": null,
+          "slot_id": null,
+          "link": null,
+          "action": null
+        }
+      ],
+      "done_label": "모의투자를 시작했습니다. 이제 앱은 모의투자 모드로 돕니다.",
+      "checks": [
+        { "label": "전 키 1회 호출", "state": "VERIFIED" },
+        { "label": "워치독 첫 핑", "state": "VERIFIED" },
+        { "label": "워치독 체크 active 확인", "state": "IN_PROGRESS" },
+        { "label": "GitHub 첫 커밋", "state": "VERIFIED" },
+        { "label": "상시 알림(FGS) 생존", "state": "NOT_STARTED" }
+      ]
+    }
+  ]
+}

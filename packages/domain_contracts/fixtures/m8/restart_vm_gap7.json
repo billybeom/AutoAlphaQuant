@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.16.0",
+    "generated_at": "2026-11-03T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261103,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "온보딩 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "headline": "기존 계정에서 다시 시작합니다",
+      "login_slot_id": null,
+      "ledger_lines": [
+        "구 폰: 거실 폰(Android)",
+        "마지막 접속: 2026-08-20 08:10",
+        "마지막 접속 뒤 7일이 지났습니다"
+      ],
+      "lease_gate": { "code": "X3_LEASE", "label": "리스가 끝나 이 경로로는 이어받을 수 없습니다", "state": "BLOCK", "blocked_reason_code": null },
+      "branches": [
+        { "label": "신규 온보딩으로 진행하고 잔고 이어받기", "deep_link": "aaq://onboarding/mode" }
+      ],
+      "inherit_notice": "킬스위치와 차단 플래그는 켜진 그대로 이어받습니다."
+    }
+  ]
+}

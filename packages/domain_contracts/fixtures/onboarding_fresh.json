@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.15.0",
+    "contract_version": "1.16.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -25,7 +25,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_00",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "o_01",
@@ -39,7 +41,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_01",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "o_02",
@@ -53,7 +57,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/o_02",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "o_03",
@@ -65,7 +71,8 @@
       "estimated_text": "약 12분",
       "requirement": "REQUIRED",
       "state": "IN_PROGRESS",
-      "where_deep_link": "aaq://onboarding/o_03"
+      "where_deep_link": "aaq://onboarding/o_03",
+      "requirement_label": "필수"
     },
     {
       "step_id": "o_04",
@@ -77,7 +84,8 @@
       "estimated_text": "약 8분",
       "requirement": "REQUIRED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/o_04"
+      "where_deep_link": "aaq://onboarding/o_04",
+      "requirement_label": "필수"
     },
     {
       "step_id": "o_05",
@@ -90,7 +98,8 @@
       "requirement": "RECOMMENDED",
       "state": "FAILED",
       "where_deep_link": "aaq://onboarding/o_05",
-      "failure_reason_code": "PERMISSION_DENIED"
+      "failure_reason_code": "PERMISSION_DENIED",
+      "requirement_label": "권장"
     },
     {
       "step_id": "o_06",
@@ -102,7 +111,8 @@
       "estimated_text": "약 4분",
       "requirement": "RECOMMENDED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/o_06"
+      "where_deep_link": "aaq://onboarding/o_06",
+      "requirement_label": "권장"
     },
     {
       "step_id": "o_07",
@@ -114,7 +124,8 @@
       "estimated_text": "약 5분",
       "requirement": "RECOMMENDED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/o_07"
+      "where_deep_link": "aaq://onboarding/o_07",
+      "requirement_label": "권장"
     },
     {
       "step_id": "o_08",
@@ -126,7 +137,8 @@
       "estimated_text": "약 4분",
       "requirement": "OPTIONAL",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/o_08"
+      "where_deep_link": "aaq://onboarding/o_08",
+      "requirement_label": "선택"
     },
     {
       "step_id": "o_09",
@@ -139,7 +151,8 @@
       "requirement": "OPTIONAL",
       "state": "EXPIRED",
       "where_deep_link": "aaq://onboarding/o_09",
-      "failure_reason_code": "CONSENT_EXPIRED"
+      "failure_reason_code": "CONSENT_EXPIRED",
+      "requirement_label": "선택"
     },
     {
       "step_id": "o_10",
@@ -151,7 +164,8 @@
       "estimated_text": "약 10분",
       "requirement": "RECOMMENDED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/o_10"
+      "where_deep_link": "aaq://onboarding/o_10",
+      "requirement_label": "권장"
     },
     {
       "step_id": "o_11",
@@ -163,7 +177,8 @@
       "estimated_text": "약 7분",
       "requirement": "RECOMMENDED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/o_11"
+      "where_deep_link": "aaq://onboarding/o_11",
+      "requirement_label": "권장"
     },
     {
       "step_id": "o_12",
@@ -175,7 +190,8 @@
       "estimated_text": "약 3분",
       "requirement": "REQUIRED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/o_12"
+      "where_deep_link": "aaq://onboarding/o_12",
+      "requirement_label": "필수"
     },
     {
       "step_id": "o_13",
@@ -187,7 +203,8 @@
       "estimated_text": "약 5분",
       "requirement": "REQUIRED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/o_13"
+      "where_deep_link": "aaq://onboarding/o_13",
+      "requirement_label": "필수"
     }
   ]
 }

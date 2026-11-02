@@ -1,4 +1,4 @@
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.15 · 187파일**(🆕 v1.15 R14 선행 · 2026-10-30 · ⬜ 로컬 커밋 — PR 대기 · 신설 11 · 개정 5) · ~~계약 v1.13 · 176파일~~(✅ 병합 PR #72 squash `638fca4` · v1.14 = 봉투 버전 줄만) · ~~계약 v1.12 · 174파일~~(v1.12 R5·R13 선행 15 · 2026-10-22 · ✅ 병합 PR #68 squash `fb67caf` · v1.9~v1.11 = 봉투 버전 줄만) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ✅ 병합 PR #48 squash `dcac7ec` + 🆕 v1.12 R5·R13 선행 15(X7 `A-*`·`L-3` · X5 `L-1`·`L-2` · 리듬) · 2026-10-22 + 🆕 v1.13 R13b 선행 2(대조 보드 전부 일치 · 억제 + 기한) · 2026-10-26)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.16 · 219파일**(🆕 v1.16 R15 선행 · 2026-11-03 · ⬜ 로컬 커밋 — PR 대기 · 신설 32 · 개정 6) · ~~계약 v1.15 · 187파일~~(R14 선행 · 2026-10-30 · ✅ 병합 PR #86 squash `e9e71c8` · 신설 11 · 개정 5) · ~~계약 v1.13 · 176파일~~(✅ 병합 PR #72 squash `638fca4` · v1.14 = 봉투 버전 줄만) · ~~계약 v1.12 · 174파일~~(v1.12 R5·R13 선행 15 · 2026-10-22 · ✅ 병합 PR #68 squash `fb67caf` · v1.9~v1.11 = 봉투 버전 줄만) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ✅ 병합 PR #48 squash `dcac7ec` + 🆕 v1.12 R5·R13 선행 15(X7 `A-*`·`L-3` · X5 `L-1`·`L-2` · 리듬) · 2026-10-22 + 🆕 v1.13 R13b 선행 2(대조 보드 전부 일치 · 억제 + 기한) · 2026-10-26)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -12,7 +12,7 @@
   아래 «픽스처 계좌 별칭 표»가 정본이다.
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 187파일(🆕 2026-10-30 v1.15) 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 219파일(🆕 2026-11-03 v1.16) 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -57,7 +57,10 @@
    (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
    자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
 2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
-   🆕 **지금 값은 `1.15.0`**(2026-10-30 R14 선행 · 01 §24) — 상수와 기존 176개 + 신규 11개 = **187개**를 **함께** 올렸다.
+   🆕 **지금 값은 `1.16.0`**(2026-11-03 R15 선행 · 01 §25) — 상수와 기존 187개 + 신규 32개 = **219개**를 **함께** 올렸다.
+   🔴 기존 187개 가운데 181개는 `"contract_version"` **한 줄만** 바뀌었고 6개(`onboarding_fresh`·`onboarding_reconnect`·`m8/onboarding_finish`·
+   `m8/onboarding_fresh_advisory`·`m8/restart_lost_phone`·`m8/onboarding_mode_pick`)는 본문도 개정됐다 — 아래 «계약 v1.16» 절. 🔵 번호 = K8(엔진 다음 판 = 1.17.0).
+   그 앞 ~~`1.15.0`~~(2026-10-30 R14 선행 · 01 §24) — 상수와 기존 176개 + 신규 11개 = **187개**를 **함께** 올렸다.
    🔴 기존 176개 가운데 171개는 `"contract_version"` **한 줄만** 바뀌었고 5개(`alerts_12`·`m8/alerts_p0_ack`·`m8/alerts_advice_9codes`·
    `m8/watchdog_delayed`·`m8/watchdog_holiday`)는 본문도 개정됐다 — 아래 «계약 v1.15» 절. 🔵 번호 = K8(엔진 다음 판 = 1.16.0).
    그 앞 ~~`1.14.0`~~(2026-10-26 E8a · M1-7 데이터 어댑터 · 01 §22) — 상수와 176개를 **함께** 올렸다(봉투 버전 줄만 · 본문 무변경 ·
@@ -136,7 +139,7 @@
 
 ---
 
-## 파일 목록 (187)
+## 파일 목록 (219)
 
 ### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
@@ -278,7 +281,14 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 ~~`m7_next_rebalance_d6`~~ 🆕 v1.6 개명 `m7_next_rebalance_countdown`(«2026년 9월 1일 · D-1») · `m7_rebalance_detail_band`(🆕 v1.5 버튼·행 링크 · 🆕 v1.6 대조 행·관측 시각) · `m7_annual_2026`·`_first_year`(🆕 v1.6 `year_label` · 세후 사본 2블록) ·
 `m7_goal_path_on`·`_hold`·`_realworld`(🆕 v1.4 `GoalPathVm` 재설계 — 생성 스크립트).
 
-### `m8/` 32 — 셸·운영 홈·알림·온보딩 (04 §10)
+### `m8/` 64 — 셸·운영 홈·알림·온보딩 (04 §10)
+
+🆕 **계약 v1.16 32건**(R15 선행 · 01 §25 · 전부 VM 1행 봉투 · 결과 3벌 = 목록 봉투) —
+R15a 7 `onboarding_start`(`O-00` 계정 축 2 + 조회 갈래) · `onboarding_start_no_viewer`(조회 갈래 null · 탭 없음 1) · `onboarding_mode_unselected`(🔴 기본값 없음) · `onboarding_mode_auto` · `onboarding_mode_advisory`(고른 뒤에만 «다음») · `onboarding_mode_locked`(`committed_at` 뒤 읽기 전용) · `onboarding_mode_select_results`(접수 · 거부 `ONBOARDING_CHOICE_COMMITTED`) ·
+R15b 10 `onboarding_steps_fresh`(12행 · `StepState` 5 · 게이트 4 · 경고 2 · 만료 글자 2 · 실패 문장 2 · 탭 없음 1) · `onboarding_steps_advisory`(투자 안내 갈래 10행) · `onboarding_steps_finish_ready` · `onboarding_steps_finish_ready_warn`(권장 미통과 + 다음) · `onboarding_steps_all_verified_locked`(전부 통과인데 `UNKNOWN` 이 막는다) · `onboarding_steps_empty` · `onboarding_step_detail_kis_mock`(검증 동작 · 시크릿 슬롯) · `onboarding_step_detail_no_verify` · `onboarding_step_detail_missing`(모르는 id = 값) · `onboarding_verify_results`(성공 · `EGW00133` 재시도 · `CREDENTIAL_REJECTED`) ·
+R15c 8 `onboarding_finish_auto`(진행 중 · 닫힌 단계 = 게이트) · `onboarding_finish_auto_ready`(자동 매매 선언 전 · 가상 초기금 링크) · `onboarding_finish_auto_declared`(선언 뒤 DRY_RUN 동작 · `o04_auto`) · `onboarding_finish_advisory`(투자 안내 선언 전 · `L-3` 링크 · `o04_advisory`) · `onboarding_finish_advisory_declared` · `onboarding_finish_no_expectation`(① 기대치 줄 0) · `onboarding_finish_done`(완료 체크 5) · `onboarding_finish_results`(접수 · 되돌림 `DRY_RUN_START_ROLLED_BACK`) ·
+R15d 7 `restart_vm_lost_phone`(분기 X1 계획·비상) · `restart_vm_logged_out`(로그인 자리만) · `restart_vm_gap7`(갭 7일 → 신규 온보딩) · `restart_vm_unknown`(모름 = 분기 0) · `pairing_waiting` · `pairing_ok` · `pairing_fail`(`PAIRING_TOKEN_REVOKED`) ·
+🔵 같은 창에서 `onboarding_finish`·`onboarding_fresh_advisory`·`restart_lost_phone`(+ 코어 `onboarding_fresh`·`onboarding_reconnect`)에 `requirement_label`·`verified_until_text` 가 붙고 `onboarding_mode_pick.explain_line` 의 «권장» 낱말이 빠졌다.
 
 🆕 **계약 v1.15 11건** — `alert_center_p0_ack`(고정 P0 3 = 미확인 사다리 · 확인됨 · EXIT_URGENT ack 없음 + 오늘 P1 2) · `alert_center_digest`(«P2 3건» 접힘) ·
 `alert_center_empty`(«정상 = 무소식» 엔진 문장) · `alert_center_p0_only`(`watchCenter(p0Only: true)` 의 답 · 섹션 0) ·
@@ -299,7 +309,7 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 `alerts_p0_ack` · `alerts_digest` · `alerts_advice_9codes`(X7 알림 9종) ·
 `watchdog_delayed`(🆕 v1.15 `WatchdogBoardVm` · 실패 1행) · `watchdog_holiday`(🔴 휴장의 쉼은 결측이 아니다 · 🆕 v1.15 휴장 행 = 성공 핑) · `watchdog_paused` · `watchdog_empty` · `incident_token_expired` ·
 `onboarding_finish` · `restart_lost_phone` · `onboarding_fresh_advisory` ·
-`onboarding_mode_pick`(🔴 **기본 선택 없음 · 「권장」 배지 없음**) · `handbook_page_sleeve_b`.
+`onboarding_mode_pick`(🔴 **기본 선택 없음 · 「권장」 배지 없음** · 🆕 v1.16 «권장» 낱말 0 · `O-00b` 는 이 표본을 읽지 않는다 — `onboarding_mode_*`) · `handbook_page_sleeve_b`.
 
 > ⚠️ 04 §10 목록의 `onboarding_fresh.json` 은 **코어의 같은 이름 파일이 정본**이라
 > `m8/` 에 다시 두지 않았다(같은 데이터가 두 벌이 되면 한쪽만 갱신된다).
@@ -891,6 +901,43 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 ### 표기 — 알림 행 키 차례
 
 신설 알림 행 = `alert_id, level, raised_at, code, title, body_text, action_line, grouped_count, deep_link, ack, raised_at_text, grouped_text, detail_deep_link`(13키 · 없는 값은 `null` 로 적는다) · 워치독 행 = `check_id, label, state_code, state_label, level, last_ping_text, grace_text?, route?`(없는 키는 뺀다).
+
+## 계약 v1.16 (2026-11-03 · R15 선행 M2 보강 · 01 §25 · ⬜ 로컬 커밋 — PR 대기)
+
+정본: 설계 `10_리뷰/2026-11-03_R15선행_계약v1.16_설계서.md` §5 · 발주자 결정 2026-11-03 ①~④.
+**187 → 219** = 신설 32 · 개정 6 · 버전 줄만 181. 신설 32건의 `meta` = `generated_at` 2026-11-03 · `seed` 20261103 · 개정 6건은 원래 `meta` 에서 `contract_version` 만.
+
+### 신설 32건 — 위 «`m8/` 64» 의 v1.16 줄 · 골든 ↔ 입력은 설계서 §5-6
+
+- VM 1행 봉투 29(`OnboardingStartVm` 2 · `OnboardingModeChoiceVm` 4 · `OnboardingStepsVm` 6 · `OnboardingStepDetailVm` 3 · `OnboardingFinishVm` 7 · `RestartVm` 4 · `PairingVm` 3) — 🔴 VM 에 `as_of` 칸이 없다(봉투 `as_of` 만 · 화면 미참조 · K10).
+- 결과 목록 봉투 3(`ActionResult` 2 · 3 · 2행) — `[0]` = `OK` · 나머지 `BLOCKED` · `handoff_route` 전부 null.
+
+### 개정 6건 (파일 이름·`FixturePaths` 상수 그대로)
+
+| 파일 | 바뀐 것 |
+|---|---|
+| `onboarding_fresh` | 14행 `requirement_label`(등급 사전) · `verified_until` 있는 3행 `verified_until_text` «2026-11-30까지» · 🔴 `gate` 없음(C-15 `state` 축) |
+| `onboarding_reconnect` | 9행 `requirement_label` · `r_00`·`r_01` `verified_until_text` |
+| `m8/onboarding_finish` | 7행 `requirement_label` · `verified_until_text` · 형제 키 `finish_headline` 그대로 |
+| `m8/onboarding_fresh_advisory` | 9행 `requirement_label` · 3행 `verified_until_text` · 형제 키 `operating_mode`·`credential_use` 그대로 |
+| `m8/restart_lost_phone` | 6행 `requirement_label` · `r_00` `verified_until_text` · 형제 키 `lease_notice` 그대로 |
+| `m8/onboarding_mode_pick` | `explain_line` «… 권장 표시는 없습니다.» → «… 어느 쪽도 미리 골라 두지 않았습니다.» |
+
+### 🔴 개정·신설은 **생성 스크립트**가 만든다 (손 계산 금지)
+
+`packages/domain_contracts/tool/gen_r15_v116_fixtures.py` — 기준 커밋 `267e867`(계약 1.15.0 · 187건)의 원문에서 매번 다시 만든다(멱등 · `git cat-file --batch` 한 번 ·
+두 번 돌려 219건 md5 동일). 개정 단계 표본 5파일은 원문 꼴을 그대로 다시 쓴다(직렬화기가 기준 원문을 바이트 그대로 재현하는지 먼저 단언 · 새 키는 행 끝).
+쓰기 전 자가 검사 — `OnboardingStep` 객체(`step_id`+`track`+`requirement`) 전부 등급 글자 사전 1벌 · 만료 글자 짝 · `detail_deep_link` = `aaq://onboarding/<step_id>` ·
+`step_id` 꼴 `^[orv]_[0-9]{2}[a-z]?$`(고정 조각 6 아님) · O-00·O-00b 표본 «권장»·«추천» 0 · O-00b 고른 뒤에만 «다음» · O-04 6단계 칸 자리 · 결과 `[0]` OK · 금지어·해외·손익 키·폐기 운영값 0.
+
+### 🔵 표본 사실 — 고치지 않고 적어 둔다
+
+- `onboarding_fresh` 에는 `gate` 를 싣지 않는다 — C-15 가 그 표본의 키 `state` 를 `onboarding_progress.state` CHECK 로 맞댄다(`GateState` 값이면 실패 · 설계서 G20).
+- 옛 표본의 `where_deep_link` = 자기 단계 링크(`aaq://onboarding/<자기 id>`) — 화면 미참조 · 신설 표본은 null(01 §8 미결 150).
+
+### 표기 — 단계 행 · 마무리 단계 키 차례
+
+신설 단계 행 = `OnboardingStep` 선언 차례 19키(`step_id … failure_reason_code, requirement_label, warning_label, verified_until_text, failure_text, gate, detail_deep_link` · 없는 값은 `null` 로 적는다) · 마무리 단계 = `title, state, gate, lines, expectation_line, slot_id, link, action`.
 
 ## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과 → 2026-10-20 v1.7 · 141파일(매핑 138파일 331행) · C-1·C-8 통과 → 2026-10-21 v1.8 · 159파일(매핑 156파일 349행) · C-1·C-8 통과 → 2026-10-22 v1.12 · 174파일(매핑 172파일 385행 · 원시 387) · C-1·C-8 통과 → 2026-10-26 v1.13 · 176파일(매핑 174파일 387행 · 원시 389 · 봉투 형제 키 +3 = m8 `advice_summary`) · C-1·C-8 통과 → 🆕 2026-10-30 v1.15 · 187파일(매핑 185파일 392행 · 원시 394 · 신설 11파일 +13행(VM 1행 10 + 접수증 3행) · 개정 워치독 2파일 5행 → VM 1행 = −8 · 봉투 형제 키 −1 = m8 `holiday_notice`(VM 필드로) · 코덱 +3 `AlertCenterVm`·`AlertDetailVm`·`WatchdogBoardVm` · `WatchdogCheck` 코덱 삭제) · C-1·C-8 통과)
 
