@@ -169,3 +169,14 @@ final Provider<SettingsActions?> shellOnboardingActionsProvider =
         'shellOnboardingActionsProvider must be overridden',
       ),
     );
+
+// ── R15b — O-01~O-03 injection providers ─────────────────────────────────
+
+typedef ShellSlotBuilder = Widget Function(String slotId);
+
+final Provider<ShellSlotBuilder?> shellOnboardingSlotBuilderProvider =
+    Provider<ShellSlotBuilder?>(
+      (Ref ref) => throw UnimplementedError(
+        'shellOnboardingSlotBuilderProvider must be overridden',
+      ),
+    );
