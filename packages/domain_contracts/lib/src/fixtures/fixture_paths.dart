@@ -487,9 +487,58 @@ abstract final class FixturePaths {
   static const String m8HandbookPageSleeveB = 'm8/handbook_page_sleeve_b.json';
   static const String m8IncidentTokenExpired = 'm8/incident_token_expired.json';
   static const String m8OnboardingFinish = 'm8/onboarding_finish.json';
+
+  /// 🆕 v1.16(01 §25 · K23 · R15c) — `O-04` 마무리(`OnboardingFinishVm`) 7벌 + DRY_RUN 결과(`ActionResult` 2).
+  static const String m8OnboardingFinishAdvisory =
+      'm8/onboarding_finish_advisory.json';
+  static const String m8OnboardingFinishAdvisoryDeclared =
+      'm8/onboarding_finish_advisory_declared.json';
+  static const String m8OnboardingFinishAuto = 'm8/onboarding_finish_auto.json';
+  static const String m8OnboardingFinishAutoDeclared =
+      'm8/onboarding_finish_auto_declared.json';
+  static const String m8OnboardingFinishAutoReady =
+      'm8/onboarding_finish_auto_ready.json';
+  static const String m8OnboardingFinishDone = 'm8/onboarding_finish_done.json';
+  static const String m8OnboardingFinishNoExpectation =
+      'm8/onboarding_finish_no_expectation.json';
+  static const String m8OnboardingFinishResults =
+      'm8/onboarding_finish_results.json';
   static const String m8OnboardingFreshAdvisory =
       'm8/onboarding_fresh_advisory.json';
+
+  /// 🆕 v1.16(01 §25 · K12 · R15a) — `O-00b` 운영 방식 선택(`OnboardingModeChoiceVm`) 4벌 + 선택 결과(`ActionResult` 2).
+  static const String m8OnboardingModeAdvisory =
+      'm8/onboarding_mode_advisory.json';
+  static const String m8OnboardingModeAuto = 'm8/onboarding_mode_auto.json';
+  static const String m8OnboardingModeLocked = 'm8/onboarding_mode_locked.json';
   static const String m8OnboardingModePick = 'm8/onboarding_mode_pick.json';
+  static const String m8OnboardingModeSelectResults =
+      'm8/onboarding_mode_select_results.json';
+  static const String m8OnboardingModeUnselected =
+      'm8/onboarding_mode_unselected.json';
+
+  /// 🆕 v1.16(01 §25 · K11·K17·K18 · R15a·R15b) — `O-00` 첫 실행(`OnboardingStartVm`) 2 · `O-02` 상세(`OnboardingStepDetailVm`) 3 · `O-01` 목록(`OnboardingStepsVm`) 6 · 검증 결과(`ActionResult` 3).
+  static const String m8OnboardingStart = 'm8/onboarding_start.json';
+  static const String m8OnboardingStartNoViewer =
+      'm8/onboarding_start_no_viewer.json';
+  static const String m8OnboardingStepDetailKisMock =
+      'm8/onboarding_step_detail_kis_mock.json';
+  static const String m8OnboardingStepDetailMissing =
+      'm8/onboarding_step_detail_missing.json';
+  static const String m8OnboardingStepDetailNoVerify =
+      'm8/onboarding_step_detail_no_verify.json';
+  static const String m8OnboardingStepsAdvisory =
+      'm8/onboarding_steps_advisory.json';
+  static const String m8OnboardingStepsAllVerifiedLocked =
+      'm8/onboarding_steps_all_verified_locked.json';
+  static const String m8OnboardingStepsEmpty = 'm8/onboarding_steps_empty.json';
+  static const String m8OnboardingStepsFinishReady =
+      'm8/onboarding_steps_finish_ready.json';
+  static const String m8OnboardingStepsFinishReadyWarn =
+      'm8/onboarding_steps_finish_ready_warn.json';
+  static const String m8OnboardingStepsFresh = 'm8/onboarding_steps_fresh.json';
+  static const String m8OnboardingVerifyResults =
+      'm8/onboarding_verify_results.json';
   static const String m8OpsHomeAdviceOpen = 'm8/ops_home_advice_open.json';
 
   /// 🆕 v1.13(01 §23 · K7 ⓑ) — 억제 + 기한 라벨(`H-01` 3b 억제 갈래 = `headline` 한 줄만 · R13b 참고 변이 표본).
@@ -503,11 +552,22 @@ abstract final class FixturePaths {
 
   /// 🆕 v1.12(K29) — `H-02` 리듬을 아직 받지 못함(`NOT_LOADED` · «모름» ≠ «없음») — R13a 위젯 테스트.
   static const String m8OpsRhythmEmpty = 'm8/ops_rhythm_empty.json';
+
+  /// 🆕 v1.16(01 §25 · K27 · R15d) — `V-01` 페어링(`PairingVm`) 3벌(fail · ok · waiting).
+  static const String m8PairingFail = 'm8/pairing_fail.json';
+  static const String m8PairingOk = 'm8/pairing_ok.json';
+  static const String m8PairingWaiting = 'm8/pairing_waiting.json';
   static const String m8ReconBoardDiff = 'm8/recon_board_diff.json';
 
   /// 🆕 v1.13(01 §23 · K5) — 대조 보드 전부 일치(칸 5 · 자가보고 해당 없음 · `headline` = 엔진 일치 문장) — R13b `h01_normal` 계열.
   static const String m8ReconBoardOk = 'm8/recon_board_ok.json';
   static const String m8RestartLostPhone = 'm8/restart_lost_phone.json';
+
+  /// 🆕 v1.16(01 §25 · K26 · R15d) — `R-01` 다시 시작(`RestartVm`) 4벌(gap7 · logged_out · lost_phone · unknown).
+  static const String m8RestartVmGap7 = 'm8/restart_vm_gap7.json';
+  static const String m8RestartVmLoggedOut = 'm8/restart_vm_logged_out.json';
+  static const String m8RestartVmLostPhone = 'm8/restart_vm_lost_phone.json';
+  static const String m8RestartVmUnknown = 'm8/restart_vm_unknown.json';
 
   /// 🆕 v1.15(01 §24 · K3) 꼴 = `WatchdogBoardVm` 1행(6행 · 실패 1).
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
@@ -701,8 +761,33 @@ abstract final class FixturePaths {
     m8HandbookPageSleeveB,
     m8IncidentTokenExpired,
     m8OnboardingFinish,
+    m8OnboardingFinishAdvisory,
+    m8OnboardingFinishAdvisoryDeclared,
+    m8OnboardingFinishAuto,
+    m8OnboardingFinishAutoDeclared,
+    m8OnboardingFinishAutoReady,
+    m8OnboardingFinishDone,
+    m8OnboardingFinishNoExpectation,
+    m8OnboardingFinishResults,
     m8OnboardingFreshAdvisory,
+    m8OnboardingModeAdvisory,
+    m8OnboardingModeAuto,
+    m8OnboardingModeLocked,
     m8OnboardingModePick,
+    m8OnboardingModeSelectResults,
+    m8OnboardingModeUnselected,
+    m8OnboardingStart,
+    m8OnboardingStartNoViewer,
+    m8OnboardingStepDetailKisMock,
+    m8OnboardingStepDetailMissing,
+    m8OnboardingStepDetailNoVerify,
+    m8OnboardingStepsAdvisory,
+    m8OnboardingStepsAllVerifiedLocked,
+    m8OnboardingStepsEmpty,
+    m8OnboardingStepsFinishReady,
+    m8OnboardingStepsFinishReadyWarn,
+    m8OnboardingStepsFresh,
+    m8OnboardingVerifyResults,
     m8OpsHomeAdviceOpen,
     m8OpsHomeAdviceSuppressedDue,
     m8OpsHomeAdviceZero,
@@ -711,9 +796,16 @@ abstract final class FixturePaths {
     m8OpsHomeResumeGap7,
     m8OpsRhythmRows,
     m8OpsRhythmEmpty,
+    m8PairingFail,
+    m8PairingOk,
+    m8PairingWaiting,
     m8ReconBoardDiff,
     m8ReconBoardOk,
     m8RestartLostPhone,
+    m8RestartVmGap7,
+    m8RestartVmLoggedOut,
+    m8RestartVmLostPhone,
+    m8RestartVmUnknown,
     m8WatchdogDelayed,
     m8WatchdogEmpty,
     m8WatchdogHoliday,

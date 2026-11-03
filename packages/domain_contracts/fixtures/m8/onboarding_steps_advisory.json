@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.16.0",
+    "generated_at": "2026-11-03T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261103,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "온보딩 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "progress_text": "1/10 완료",
+      "rows": [
+        { "step_id": "o_01", "track": "FRESH", "order": 1, "title": "기기 등록", "why_line": "이 폰을 운영 기기로 등록합니다.", "where_deep_link": null, "estimated_seconds": 180, "estimated_text": "약 3분", "requirement": "REQUIRED", "state": "VERIFIED", "verification_label": "이 폰을 운영 기기로 등록함", "verified_until": "2026-11-30T00:00:00Z", "failure_reason_code": null, "requirement_label": "필수", "warning_label": null, "verified_until_text": "2026-11-30까지", "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_01" },
+        { "step_id": "o_02", "track": "FRESH", "order": 2, "title": "KIS 모의 앱키(시세)", "why_line": "수기 기록의 가격 범위 검증에 시세가 필요합니다.", "where_deep_link": null, "estimated_seconds": 900, "estimated_text": "약 15분", "requirement": "REQUIRED", "state": "NOT_STARTED", "verification_label": null, "verified_until": null, "failure_reason_code": null, "requirement_label": "필수", "warning_label": null, "verified_until_text": null, "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_02" },
+        { "step_id": "o_03", "track": "FRESH", "order": 3, "title": "계좌 매핑 · 절세계좌 판정", "why_line": "슬리브와 계좌를 잇고 절세계좌 판정을 한 번 통과합니다.", "where_deep_link": null, "estimated_seconds": 600, "estimated_text": "약 10분", "requirement": "REQUIRED", "state": "NOT_STARTED", "verification_label": null, "verified_until": null, "failure_reason_code": null, "requirement_label": "필수", "warning_label": null, "verified_until_text": null, "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_03" },
+        { "step_id": "o_12", "track": "FRESH", "order": 4, "title": "KIS 대사 전용 키", "why_line": "등록하지 않으면 원장 신뢰 등급이 자기 보고로 고정됩니다. 진행은 막지 않습니다.", "where_deep_link": null, "estimated_seconds": 600, "estimated_text": "약 10분", "requirement": "RECOMMENDED", "state": "NOT_STARTED", "verification_label": null, "verified_until": null, "failure_reason_code": null, "requirement_label": "권장", "warning_label": "권장 단계가 남았습니다 — 진행은 막지 않습니다", "verified_until_text": null, "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_12" },
+        { "step_id": "o_05", "track": "FRESH", "order": 5, "title": "알림 권한", "why_line": "안내와 경보를 놓치지 않게 합니다.", "where_deep_link": null, "estimated_seconds": 120, "estimated_text": "약 2분", "requirement": "RECOMMENDED", "state": "NOT_STARTED", "verification_label": null, "verified_until": null, "failure_reason_code": null, "requirement_label": "권장", "warning_label": "권장 단계가 남았습니다 — 진행은 막지 않습니다", "verified_until_text": null, "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_05" },
+        { "step_id": "o_07", "track": "FRESH", "order": 6, "title": "Supabase 연결", "why_line": "다른 기기가 읽을 기록을 올립니다.", "where_deep_link": null, "estimated_seconds": 600, "estimated_text": "약 10분", "requirement": "REQUIRED", "state": "NOT_STARTED", "verification_label": null, "verified_until": null, "failure_reason_code": null, "requirement_label": "필수", "warning_label": null, "verified_until_text": null, "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_07" },
+        { "step_id": "o_08", "track": "FRESH", "order": 7, "title": "GitHub 데이터 저장소", "why_line": "매일 기록을 보관합니다.", "where_deep_link": null, "estimated_seconds": 600, "estimated_text": "약 10분", "requirement": "REQUIRED", "state": "NOT_STARTED", "verification_label": null, "verified_until": null, "failure_reason_code": null, "requirement_label": "필수", "warning_label": null, "verified_until_text": null, "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_08" },
+        { "step_id": "o_09", "track": "FRESH", "order": 8, "title": "알림 채널 · 워치독 채널", "why_line": "안내를 못 받는 것도 사고입니다.", "where_deep_link": null, "estimated_seconds": 480, "estimated_text": "약 8분", "requirement": "REQUIRED", "state": "NOT_STARTED", "verification_label": null, "verified_until": null, "failure_reason_code": null, "requirement_label": "필수", "warning_label": null, "verified_until_text": null, "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_09" },
+        { "step_id": "o_10", "track": "FRESH", "order": 9, "title": "healthchecks.io 연결", "why_line": "폰이 멈추면 바깥에서 알려 줍니다.", "where_deep_link": null, "estimated_seconds": 300, "estimated_text": "약 5분", "requirement": "REQUIRED", "state": "NOT_STARTED", "verification_label": null, "verified_until": null, "failure_reason_code": null, "requirement_label": "필수", "warning_label": null, "verified_until_text": null, "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_10" },
+        { "step_id": "o_11", "track": "FRESH", "order": 10, "title": "Android 권한 실측", "why_line": "무인 발주가 없어 위험이 낮지만, 배치가 안 돌면 안내도 나오지 않습니다.", "where_deep_link": null, "estimated_seconds": 420, "estimated_text": "약 7분", "requirement": "RECOMMENDED", "state": "NOT_STARTED", "verification_label": null, "verified_until": null, "failure_reason_code": null, "requirement_label": "권장", "warning_label": "권장 단계가 남았습니다 — 진행은 막지 않습니다", "verified_until_text": null, "failure_text": null, "gate": null, "detail_deep_link": "aaq://onboarding/o_11" }
+      ],
+      "empty_label": null,
+      "finish_deep_link": null
+    }
+  ]
+}

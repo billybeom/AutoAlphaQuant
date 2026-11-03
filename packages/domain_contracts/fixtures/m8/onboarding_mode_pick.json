@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.15.0",
+    "contract_version": "1.16.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -16,7 +16,7 @@
     {
       "current": "ADVISORY",
       "label": "아직 고르지 않았습니다",
-      "explain_line": "둘 중 하나를 고르셔야 다음으로 갑니다. 권장 표시는 없습니다.",
+      "explain_line": "둘 중 하나를 고르셔야 다음으로 갑니다. 어느 쪽도 미리 골라 두지 않았습니다.",
       "options": [
         { "mode": "AUTO_TRADE", "title": "자동으로 맡기기", "body": "규칙이 정한 대로 앱이 직접 주문을 냅니다.", "prep_line": "증권사 주문 권한과 새벽 배치가 필요합니다.", "honesty_line": "사람이 개입할 자리가 줄어드는 대신 기기가 멈추면 아무것도 돌지 않습니다." },
         { "mode": "ADVISORY", "title": "안내만 받기", "body": "무엇을 살지 알려 주고 주문은 사람이 냅니다.", "prep_line": "잔고 읽기 권한만 있으면 됩니다.", "honesty_line": "손으로 하는 만큼 빠뜨리거나 고르게 됩니다. 그 흔적이 이행 갭으로 남습니다." }

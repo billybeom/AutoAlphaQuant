@@ -11,7 +11,7 @@
 - 판단 기준: 데이터가 바뀌어도 글자가 같으면 정적 라벨, **데이터·상태에 따라 달라지면 사유 문구**다. `if 상태 then A else B` 처럼 **분기로 고르는 것은 정적 라벨이 아니라 생성**이다.
 - 이 목록의 쓰임은 둘뿐이다: ① 픽스처·DDL 대조(**C-15**) ② 미등록 코드 조기 실패.
 
-## 파일 (13)
+## 파일 (14)
 
 | 파일 | 무엇 | 근거 |
 |---|---|---|
@@ -27,6 +27,7 @@
 | `deviation_kind_codes.dart` | `DeviationKindCodes` 13 | §2-2 |
 | `ledger_event_codes.dart` | `LedgerEventCodes` 1 · `OperatingParamKeys` 1 | §3-6 · §6-2 |
 | `journal_codes.dart` | **v1.1** `DecisionChainStageCodes` 8 · `SafetyCheckLevelCodes` 4 · `UnknownResolutionStageCodes` 4 · `JournalBadgeCodes` 2 · `JournalDraftRejectCodes` 1 | §11 · 02 §3-2 |
+| 🆕 `onboarding_codes.dart` | **v1.16** `OnboardingResultCodes` 4(`onboarding_result`) · `BrokerRawCodes` 1(`broker_raw` · 원문 표본 · 전수 아님) · `OnboardingSlotIds` 7(`onboarding_slot` · 🔒 슬롯 이름) | §25 |
 | `labels.dart` | §1-5 조문 · `AfterTaxStepCodes` 6 · ⏸ `StaleReasonCodes` 4 · **`ContractCodes` 배럴·단일 소스 조회** | §1-5 · §2-4 · §8-8 |
 
 ## 단일 소스 조회 — `ContractCodes`

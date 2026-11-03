@@ -18,7 +18,9 @@ import 'ledger_trust.dart';
 part 'handover.freezed.dart';
 part 'handover.g.dart';
 
-/// 01 §2-11 — M9 `S05` 표시 + M8 `O-00b` 선택 카드가 **같은 타입**을 쓴다.
+/// 01 §2-11 — M9 `S05` 표시(지금 운영 방식 · `current` 늘 값). 🆕 v1.16(01 §25 · K12) — `O-00b` 는
+/// 이 타입을 읽지 않는다(`OnboardingModeChoiceVm` — «아직 안 고름» = `selected` null) · 카드 1장 =
+/// **같은 타입** [OperatingModeOption](S05·O-00b 공용).
 @freezed
 abstract class OperatingModeView with _$OperatingModeView {
   const factory OperatingModeView({
@@ -28,8 +30,8 @@ abstract class OperatingModeView with _$OperatingModeView {
     required String label,
     required String explainLine,
 
-    /// `O-00b` 카드 2장 — 🔴 **기본 선택 없음**(«온보딩 미완»은 «자동 매매»가
-    /// 아니다 · G-02).
+    /// S05 의 카드 묶음(🔵 v1.16 — O-00b 는 `OnboardingModeChoiceVm.options`) — 🔴 **기본 선택 없음**
+    /// («온보딩 미완»은 «자동 매매»가 아니다 · G-02).
     required List<OperatingModeOption> options,
     required LedgerTrustBadge trust,
 

@@ -126,6 +126,13 @@ abstract final class AppRoutes {
   static const String ledgerSelfReport =
       'aaq://ledger/self-report/:yyyyMm/:accountAlias';
 
+  /// 🆕 v1.16(01 §25 · K3 · K25) — `O-04` ⑥ 투자 안내 갈래 시작 상태 선언 = `L-3` 폼 재사용(`SelfReportPurpose.simOpening` ·
+  /// 세션 없음 · `yyyyMm` 없음 · 계좌 별칭 = 그 계좌). 들어오는 링크 = `OnboardingFinishStage.link`(엔진 완성).
+  /// 본문 = `ui_journal` 의 `L-3` simOpening 갈래(01 §8 미결 153 — 그 카드 전까지 셸 = 빈 자리).
+  /// `'/'` 조각 수(5)가 `ledger/execution-gap/:yyyyMm` 과 같고 **둘째 고정 조각**으로 갈린다.
+  static const String ledgerSimOpening =
+      'aaq://ledger/sim-opening/:accountAlias';
+
   /// 원장 신뢰 등급 설명.
   static const String ledgerTrust = 'aaq://ledger/trust';
 
@@ -196,7 +203,27 @@ abstract final class AppRoutes {
       'aaq://rebalance/event/:rebalanceEventId';
 
   // ── M8 셸·운영·온보딩 · M9 설정(04 · 05) ─────────────────────────────────
-  /// 온보딩·재연결 단계(`o_00`~ · `r_00`~).
+  /// 🆕 v1.16(01 §25 · K28) — `O-00` 첫 실행(`OnboardingStart()` · `ui_shell`). 들어오는 길 = 첫 실행 판정(조립 앱 · 06 M4-11).
+  /// 🔴 아래 고정 6 은 [all] 에서 [onboardingStep] **앞**이다(고정 조각이 파라미터보다 먼저 일치 — `report/archive` 선례 · C-33 ⑦).
+  ///    엔진 의무 = `stepId` 꼴 `^[orv]_[0-9]{2}[a-z]?$`(고정 조각과 겹치지 않는다 · C-50 ⑥).
+  static const String onboardingStart = 'aaq://onboarding/start';
+
+  /// 🆕 v1.16 — `O-00b` 운영 방식 선택 · 들어오는 링크 = `OnboardingTrackCard.deepLink`(fresh) · `RestartVm.branches`(갭 7일).
+  static const String onboardingModePick = 'aaq://onboarding/mode';
+
+  /// 🆕 v1.16 — `O-01` 단계 목록 · 들어오는 링크 = `OnboardingModeChoiceVm.nextDeepLink`.
+  static const String onboardingSteps = 'aaq://onboarding/steps';
+
+  /// 🆕 v1.16 — `O-04` 마무리 · 들어오는 링크 = `OnboardingStepsVm.finishDeepLink`.
+  static const String onboardingFinish = 'aaq://onboarding/finish';
+
+  /// 🆕 v1.16 — `R-01` 기존 계정에서 다시 시작 · 들어오는 링크 = `OnboardingTrackCard.deepLink`(reconnect).
+  static const String onboardingRestart = 'aaq://onboarding/restart';
+
+  /// 🆕 v1.16 — `V-01` 조회 전용 QR 페어링(뷰어) · 들어오는 링크 = `OnboardingStartVm.viewerTrack.deepLink`.
+  static const String onboardingPairing = 'aaq://onboarding/pairing';
+
+  /// 온보딩·재연결 단계(`o_00`~ · `r_00`~). 🆕 v1.16 — 들어오는 링크 = `OnboardingStep.detailDeepLink`(`O-02`).
   static const String onboardingStep = 'aaq://onboarding/:stepId';
   static const String opsArchive = 'aaq://ops/archive';
   static const String opsMaintenance = 'aaq://ops/maintenance';
@@ -227,7 +254,16 @@ abstract final class AppRoutes {
 
   /// `M5-13` 원장 실사 해소·격리 검토.
   static const String m5SelfAuditResolve = 'aaq://m5/self-audit-resolve';
+
+  /// 🆕 v1.16(01 §25 · K3) — `O-04` ⑥ 자동 매매 갈래 시작 상태 선언 = 가상 초기금 1칸(🔒 M5 위젯 · 06 M5-14 · 기본값 없음).
+  static const String m5SimOpeningCash = 'aaq://m5/sim-opening-cash';
   static const String x1Migration = 'aaq://x1/migration';
+
+  /// 🆕 v1.16(01 §25 · K5) — `R-01` 분기 «구 폰이 옆에 있어요» = X1 계획 경로(QR · 🔒 X1-2).
+  static const String x1MigrationPlan = 'aaq://x1/migration/plan';
+
+  /// 🆕 v1.16 — `R-01` 분기 «잃어버렸어요» = X1 비상 경로(복구 코드 → epoch+1 → TTL 대기 · 🔒 X1-3).
+  static const String x1MigrationEmergency = 'aaq://x1/migration/emergency';
   static const String x2ResumeReport = 'aaq://x2/resume-report';
   static const String x2ResumeGate = 'aaq://x2/resume-gate';
 
@@ -239,6 +275,7 @@ abstract final class AppRoutes {
   /// `holdingsDetail`·`holdingsAllocation` · 🆕 v1.12 = **52** · `adviceSkip`·`ledgerDiffs`·`ledgerRepairs`·`opsRhythm`
   /// + 교체 2 `adviceFill`·`ledgerSelfReport`). 순서 = 첫 일치(C-33 ⑦ · 겹침 0) — `adviceSkip` 은 `adviceFill` 뒤 ·
   /// `ledgerDiffs`·`ledgerRepairs` 는 `ledgerTrust` 뒤 · `opsRhythm` 은 `opsWatchdog` 뒤.
+  /// 🆕 v1.16 = **64** · 온보딩 6(`onboardingStep` 앞 — 첫 일치) · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2.
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -256,6 +293,7 @@ abstract final class AppRoutes {
     adviceSkip,
     adviceHistory,
     ledgerSelfReport,
+    ledgerSimOpening,
     ledgerTrust,
     ledgerDiffs,
     ledgerRepairs,
@@ -273,6 +311,12 @@ abstract final class AppRoutes {
     rebalanceHistory,
     rebalancePreview,
     rebalanceEvent,
+    onboardingStart,
+    onboardingModePick,
+    onboardingSteps,
+    onboardingFinish,
+    onboardingRestart,
+    onboardingPairing,
     onboardingStep,
     opsArchive,
     opsMaintenance,
@@ -290,7 +334,10 @@ abstract final class AppRoutes {
     m5HandoverGate,
     m5HandoverWizard,
     m5SelfAuditResolve,
+    m5SimOpeningCash,
     x1Migration,
+    x1MigrationPlan,
+    x1MigrationEmergency,
     x2ResumeReport,
     x2ResumeGate,
     x5RepairWizard,

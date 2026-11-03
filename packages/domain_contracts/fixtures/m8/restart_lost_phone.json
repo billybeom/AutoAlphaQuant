@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.15.0",
+    "contract_version": "1.16.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -25,7 +25,9 @@
       "state": "VERIFIED",
       "where_deep_link": "aaq://onboarding/r_00",
       "verification_label": "확인 완료",
-      "verified_until": "2026-11-30T00:00:00Z"
+      "verified_until": "2026-11-30T00:00:00Z",
+      "requirement_label": "필수",
+      "verified_until_text": "2026-11-30까지"
     },
     {
       "step_id": "r_01",
@@ -37,7 +39,8 @@
       "estimated_text": "약 6분",
       "requirement": "REQUIRED",
       "state": "IN_PROGRESS",
-      "where_deep_link": "aaq://onboarding/r_01"
+      "where_deep_link": "aaq://onboarding/r_01",
+      "requirement_label": "필수"
     },
     {
       "step_id": "r_02",
@@ -49,7 +52,8 @@
       "estimated_text": "약 4분",
       "requirement": "REQUIRED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/r_02"
+      "where_deep_link": "aaq://onboarding/r_02",
+      "requirement_label": "필수"
     },
     {
       "step_id": "r_03",
@@ -61,7 +65,8 @@
       "estimated_text": "약 3분",
       "requirement": "REQUIRED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/r_03"
+      "where_deep_link": "aaq://onboarding/r_03",
+      "requirement_label": "필수"
     },
     {
       "step_id": "r_04",
@@ -73,7 +78,8 @@
       "estimated_text": "약 9분",
       "requirement": "REQUIRED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/r_04"
+      "where_deep_link": "aaq://onboarding/r_04",
+      "requirement_label": "필수"
     },
     {
       "step_id": "r_05",
@@ -85,7 +91,8 @@
       "estimated_text": "약 7분",
       "requirement": "REQUIRED",
       "state": "NOT_STARTED",
-      "where_deep_link": "aaq://onboarding/r_05"
+      "where_deep_link": "aaq://onboarding/r_05",
+      "requirement_label": "필수"
     }
   ],
   "lease_notice": "이전 기기의 리스가 살아 있는 동안에는 새 기기가 굴리지 않습니다."

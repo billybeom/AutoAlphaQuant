@@ -276,7 +276,6 @@ const String _reasonHandbookDraft =
 /// 🔴 픽스처로 덮이지 않는 계약 타입 — **전량**이 사유와 함께 여기 있다.
 const Map<String, String> _knownUncovered = <String, String>{
   // ── 명령 인자·봉투(01 §4-2) ─────────────────────────────────────────────
-  'ActionResult': _reasonCommandPayload,
   'AdviceSkip': _reasonCommandPayload,
   // 🆕 v1.12(01 §21 · K4 · K14 ⓐ) — «화면 제출» DTO 3(셋 다 fromJson — 관행 · 이 모집단에 든다) + 와이어 1.
   'AdviceSkipSubmission': _reasonCommandPayload,

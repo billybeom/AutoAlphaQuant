@@ -16,6 +16,7 @@ export 'dto/holdings.dart';
 export 'dto/journal.dart';
 export 'dto/ledger.dart';
 export 'dto/ledger_trust.dart';
+export 'dto/onboarding.dart';
 export 'dto/ops.dart';
 export 'dto/performance.dart';
 export 'dto/plan.dart';
