@@ -1,7 +1,8 @@
 // KIS REST 핵심 — 토큰 · 유량 문 · 조회 재시도(설계 13 §8 R29 L2~L5 · M1-8).
 //
 // 🔴 이 클라이언트는 주문(E10)과 시세(E8d)가 **같이** 쓴다 — 앱키 하나에 [KisRateGate] 하나(유량은 앱키 단위).
-// 🔴 재시도는 조회 GET 만이다(R23 D10). 주문 POST 는 다시 보내지 않는다(02 §5-1 «재시도 금지» · E10 몫).
+// 🔴 조회 GET 의 재시도(R23 D10)와 주문 POST 의 재시도는 다르다 — 주문은 [KisRestClient.postOrder] 가 04 §3-3 v2.38 표대로만
+//    다시 보낸다(유량 · 토큰 무효 = «접수 안 됨 확인»뿐 · 결과 불명은 0회 · 설계 13 §8 R37 Y2).
 // 🔴 업무 거절(JSON `rt_cd ≠ 0`)은 다시 보내지 않는다 — 고칠 것은 요청이다. 토큰 무효면 새 토큰으로 1회.
 // 🔴 오류 문구에는 주소·키·시크릿·계좌번호·토큰이 들어가지 않는다(코드와 서버 문구만).
 
@@ -65,7 +66,13 @@ const String kKisTokenRateCode = 'EGW00133';
 
 /// 응답 하나.
 class KisResponse {
-  const KisResponse(this.status, this.body, this.attempts, [this.text]);
+  const KisResponse(
+    this.status,
+    this.body,
+    this.attempts, [
+    this.text,
+    this.trCont,
+  ]);
 
   /// HTTP 상태.
   final int status;
@@ -78,6 +85,9 @@ class KisResponse {
 
   /// 🆕 본문 원문(받지 못했으면 null) — 수집 기록의 sha256 재료(설계 13 §8 R30 N6). 기록에 원문을 남기지 않는다.
   final String? text;
+
+  /// 🆕 E10d — 응답 머리 `tr_cont`(F · M = 다음 쪽 있음 · R37 Y6).
+  final String? trCont;
 
   String? _s(String k) => body?[k] is String ? body![k]! as String : null;
 
@@ -222,8 +232,9 @@ class KisRestClient {
   Future<KisResponse> get(
     String path,
     String trId,
-    Map<String, String> query,
-  ) async {
+    Map<String, String> query, {
+    String trCont = '',
+  }) async {
     final Uri u = _uri(path, query);
     int attempts = 0;
     bool refreshed = false;
@@ -236,6 +247,7 @@ class KisRestClient {
       int? status;
       Map<String, Object?>? body;
       String? text;
+      String? cont;
       try {
         final http.Response r = await _http
             .get(
@@ -247,13 +259,14 @@ class KisRestClient {
                 'appsecret': credentials.appSecret,
                 'tr_id': trId,
                 'custtype': 'P',
-                'tr_cont': '',
+                'tr_cont': trCont,
               },
             )
             .timeout(timeout);
         status = r.statusCode;
         body = _json(r.bodyBytes);
         text = utf8.decode(r.bodyBytes, allowMalformed: true);
+        cont = r.headers['tr_cont'];
       } on TimeoutException {
         failure = '시간 초과';
       } on http.ClientException {
@@ -261,7 +274,13 @@ class KisRestClient {
       } on SocketException {
         failure = '연결 실패';
       }
-      final KisResponse res = KisResponse(status ?? 0, body, attempts, text);
+      final KisResponse res = KisResponse(
+        status ?? 0,
+        body,
+        attempts,
+        text,
+        cont,
+      );
       if (status != null &&
           !refreshed &&
           kKisTokenInvalidCodes.contains(res.msgCd)) {
@@ -287,6 +306,148 @@ class KisRestClient {
       await _sleep(kKisGetBackoff[attempts - 1]);
     }
   }
+
+  /// 🆕 E10d — 주문 POST(매수 · 매도 · 취소 · 04 §3-3 v2.38 · 설계 13 §8 R37 Y2). 결과는 값이다(예외 아님).
+  ///
+  /// 판정 순서 = 전송 예외 → 본문 JSON 여부 → 본문 코드(유량 · 토큰 무효 먼저) → HTTP 상태.
+  /// 🔴 결과 불명(전송 예외 · 5xx · 200 비JSON)은 다시 보내지 않는다 — 허용 재시도(유량 1→2→4s · 토큰 1회) 중에 불명이
+  ///    나와도 즉시 [KisOrderUnknown] 이다(F-14b S10). 관측점은 전송된 요청 수 — 이 함수 밖에 재시도를 두지 않는다.
+  Future<KisOrderPost> postOrder(
+    String path,
+    String trId,
+    Map<String, String> body,
+  ) async {
+    final Uri u = _uri(path);
+    int attempts = 0;
+    int rateRetries = 0;
+    bool refreshed = false;
+    while (true) {
+      final KisToken t;
+      try {
+        t = await token();
+      } on KisTokenError catch (e) {
+        // 보내기 전이다 — 접수 안 됨이 확실하다.
+        return KisOrderRefused('TOKEN', e.toString(), attempts);
+      }
+      await gate.pass();
+      attempts++;
+      calls++;
+      final http.Response r;
+      try {
+        r = await _http
+            .post(
+              u,
+              headers: <String, String>{
+                'content-type': 'application/json; charset=utf-8',
+                'authorization': 'Bearer ${t.accessToken}',
+                'appkey': credentials.appKey,
+                'appsecret': credentials.appSecret,
+                'tr_id': trId,
+                'custtype': 'P',
+              },
+              body: jsonEncode(body),
+            )
+            .timeout(timeout);
+      } on TimeoutException {
+        return KisOrderUnknown('시간 초과', attempts);
+      } on Object {
+        // 🔴 Dart `http` 는 «보내기 전 실패»와 «보낸 뒤 끊김»을 가르지 않는다 — 전부 결과 불명(02 §5-1 · 04 v2.38).
+        return KisOrderUnknown('연결 예외', attempts);
+      }
+      final int status = r.statusCode;
+      final Map<String, Object?>? b = _json(r.bodyBytes);
+      if (b == null) {
+        if (status == 401) {
+          if (refreshed) return KisOrderRefused('HTTP_401', '토큰 무효', attempts);
+          _tokens.clear(environment);
+          refreshed = true;
+          continue;
+        }
+        if (status >= 400 && status < 500) {
+          return KisOrderRefused('HTTP_$status', '비JSON 거절', attempts);
+        }
+        return KisOrderUnknown('HTTP $status 비JSON', attempts);
+      }
+      final KisResponse res = KisResponse(status, b, attempts);
+      final String? code = res.msgCd;
+      if (code != null && kKisRateCodes.contains(code)) {
+        // 접수 안 됨 확인 — 재시도는 의무(FR-405 · F-14b S08 · S09).
+        if (rateRetries >= kKisGetBackoff.length) {
+          return KisOrderRefused(code, res.msg1 ?? '', attempts);
+        }
+        await _sleep(kKisGetBackoff[rateRetries++]);
+        continue;
+      }
+      if (status == 401 || kKisTokenInvalidCodes.contains(code)) {
+        if (refreshed) {
+          return KisOrderRefused(code ?? 'HTTP_401', res.msg1 ?? '', attempts);
+        }
+        _tokens.clear(environment);
+        refreshed = true;
+        continue;
+      }
+      if (status >= 500) {
+        // 서버에 없는 TR 만 분명한 거절이다(07 §6-2 · §6-3) — 그 밖 5xx 는 접수 여부를 모른다(F-14b S02).
+        return code == kKisNoSuchTrCode
+            ? KisOrderRefused(kKisNoSuchTrCode, res.msg1 ?? '', attempts)
+            : KisOrderUnknown('HTTP $status ${code ?? ''}'.trim(), attempts);
+      }
+      if (status >= 400) {
+        return KisOrderRefused(
+          code ?? 'HTTP_$status',
+          res.msg1 ?? '',
+          attempts,
+        );
+      }
+      if (status == 200) {
+        final String? rt = res.rtCd;
+        if (rt == null) return KisOrderUnknown('rt_cd 없음', attempts);
+        return rt == '0'
+            ? KisOrderAccepted(res, attempts)
+            : KisOrderRefused(code ?? 'RT_CD_$rt', res.msg1 ?? '', attempts);
+      }
+      return KisOrderUnknown('HTTP $status', attempts);
+    }
+  }
+}
+
+/// 서버에 없는 TR(모의 서버에 실전 TR 등 — HTTP 500 + JSON · 07 §6-2).
+const String kKisNoSuchTrCode = 'EGW02006';
+
+/// 주문 POST 결과(R37 Y2) — [attempts] = 보낸 주문 요청 수(토큰 발급 제외).
+sealed class KisOrderPost {
+  const KisOrderPost(this.attempts);
+
+  /// 보낸 주문 요청 수.
+  final int attempts;
+}
+
+/// 접수(HTTP 200 · `rt_cd` 0).
+final class KisOrderAccepted extends KisOrderPost {
+  const KisOrderAccepted(this.response, int attempts) : super(attempts);
+
+  /// 응답(`output.ODNO` 등).
+  final KisResponse response;
+}
+
+/// 분명한 거절 — 접수 안 됨이 확실하다(다시 보내지 않는다).
+final class KisOrderRefused extends KisOrderPost {
+  const KisOrderRefused(this.code, this.message, int attempts)
+    : super(attempts);
+
+  /// 브로커 코드(`msg_cd`) 또는 `TOKEN` · `HTTP_4xx` 등.
+  final String code;
+
+  /// 브로커 문구(키 · 토큰 · 계좌번호 없음).
+  final String message;
+}
+
+/// 결과 불명 — 🔴 나갔는지 모른다(재주문 금지 · NR-2).
+final class KisOrderUnknown extends KisOrderPost {
+  const KisOrderUnknown(this.reason, int attempts) : super(attempts);
+
+  /// 사유(주소 · 키 없음).
+  final String reason;
 }
 
 Map<String, Object?>? _json(List<int> bytes) {

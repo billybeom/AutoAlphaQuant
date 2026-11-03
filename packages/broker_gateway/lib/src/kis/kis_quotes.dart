@@ -8,6 +8,7 @@
 //    늦으면 그 전날까지로 다시 부른다(R29 L9 · I3).
 
 import 'package:core_engine/core_engine.dart' show pandasPreciseXstrtod;
+import 'package:decimal/decimal.dart';
 
 import 'kis_rest_client.dart';
 
@@ -46,10 +47,25 @@ class KisBar {
 
 /// 현재가.
 class KisPrice {
-  const KisPrice({required this.price, this.volume});
+  const KisPrice({
+    required this.price,
+    this.volume,
+    this.basePrice,
+    this.tickSize,
+    this.upperLimit,
+    this.lowerLimit,
+    this.halted,
+  });
 
   final double price;
   final double? volume;
+
+  /// 🆕 E10d(R37 Y1) — 기준가(`stck_sdpr` · 보통 전날 종가) · 호가 단위(`aspr_unit`) · 상한가(`stck_mxpr`) · 하한가(`stck_llam`)
+  /// — 원 단위 정수라 Decimal 로 받는다(주문 초안 `DraftQuote` 의 재료 · R34 U3). 칸이 없으면 null.
+  final Decimal? basePrice, tickSize, upperLimit, lowerLimit;
+
+  /// 거래정지(`temp_stop_yn` = Y) — 칸이 없으면 null(모름).
+  final bool? halted;
 }
 
 /// 국내 휴장일 표 한 줄.
@@ -326,9 +342,21 @@ KisPrice parseKisPrice(Map<String, Object?> body) {
   final Object? o = body['output'];
   final double? p = o is Map<String, Object?> ? _num(o['stck_prpr']) : null;
   if (p == null) throw const FormatException('현재가(stck_prpr)가 없다');
+  final Map<String, Object?> out = o! as Map<String, Object?>;
+  Decimal? won(String key) {
+    final Object? v = out[key];
+    return v is String ? Decimal.tryParse(v.trim()) : null;
+  }
+
+  final Object? stop = out['temp_stop_yn'];
   return KisPrice(
     price: p,
-    volume: _num((o! as Map<String, Object?>)['acml_vol']),
+    volume: _num(out['acml_vol']),
+    basePrice: won('stck_sdpr'),
+    tickSize: won('aspr_unit'),
+    upperLimit: won('stck_mxpr'),
+    lowerLimit: won('stck_llam'),
+    halted: stop is String ? stop.trim() == 'Y' : null,
   );
 }
 

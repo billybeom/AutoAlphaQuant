@@ -12,7 +12,7 @@ KIS 접근토큰 수명 관리 · 유량(rate) 제어 · **멱등 주문 발주*
 
 ## 의존 — 허용
 
-`domain_contracts` · `core_engine` · 🆕 `http`(E8d2a · 01 §1-1 v1.14 허용 — data_sync 와 같은 클라이언트 하나 · `dio` 아님).
+`domain_contracts` · `core_engine` · 🆕 `http`(E8d2a · 01 §1-1 v1.14 허용 — data_sync 와 같은 클라이언트 하나 · `dio` 아님) · 🆕 `decimal`(E10d — core 주문 포트의 금액 타입 · ⏸ 01 §1-1 개정은 다음 계약 창 · 설계 13 §8 R37 Y1).
 
 ## 의존 — 🔴 금지
 
@@ -37,8 +37,12 @@ KIS 접근토큰 수명 관리 · 유량(rate) 제어 · **멱등 주문 발주*
 - `KisQuotes` — 시세 6종(실험 5 확정 TR · 07 §6-2): 국내 일봉(수정/원) · 현재가 · 국내 지수 일봉(50행) · 해외 일봉(MODP 원/수정) · 해외 지수 일봉(🔴 거래량 0) · 휴장일(모의 미지원) · 범위 조회 = 창 밀기(`pageBack`) · 수 = `pandasPreciseXstrtod`
 - 시험 픽스처 `test/fixtures/kis/` = 실험 5 **실응답 본문**(헤더·키·계좌 없음) · 실호출 = `network` 태그(`AAQ_NETWORK=1` · `AAQ_KIS_MOCK_KEY_FILE`)
 - 🆕 `KisQuoteFeed`(E8d2b · 설계 13 §8 R30) — core_engine 일봉 원천 포트 구현: 저장 이름 → KIS 코드(`^GSPC` → SPX · `KQ11` → 1001 · `SPY`·`RSP` → AMS · 표 밖 = `ArgumentError`) · 실패 3종 → `QuoteFeedDown` · 쪽 본문·시도 수(`KisQuotes.onPage` · `KisResponse.text`). 원장에 넣는 것은 data_sync `QuoteCollector`(이 패키지는 SQLite 를 모른다)
-- ⬜ 주문 = E10
+- 🆕 **E10d — 국내 주문**(설계 13 §8 R37 · 04 §3-3 v2.38 · 07 §6-3):
+  - `KisRestClient.postOrder` — 주문 POST 분류는 **값**(`KisOrderAccepted` · `KisOrderRefused` · `KisOrderUnknown`) · 판정 순서 = 전송 예외 → 본문 JSON → 본문 코드(유량 · 토큰 먼저) → HTTP 상태 · 🔴 결과 불명(시간 초과 · 연결 예외 · 5xx · 200 비JSON)은 0회 재시도 · 유량 1→2→4s 3회 의무 · 토큰 무효 1회 · 5xx 는 `EGW02006` 만 거절 · `get` 이어받기(`tr_cont`)
+  - `KisTr.of(환경)`(모의 V · 실전 T — TR 은 환경에서만) · `KisOrderBroker`(core `OrderBroker` 구현 · 계좌 한 벌): 매수 · 매도(지정가 `00` · 시장가 `01`) · 취소(그날 체결조회에서 지점 찾기 · 없으면 `ORDER_NOT_FOUND`) · 일별주문체결조회(`parseKisFillRow` → `DailyFillRow` · 10쪽 상한) · 예수금(`prvs_rcdl_excc_amt` · 🟡 값 실측 전)
+  - `KisPrice` 넓힘(기준가 · 호가 · 상하한 · 거래정지) · 픽스처 `test/fixtures/kis/orders/` = 실험 2·7·8 실응답(가림 자리표시 — 시험이 치환) · 시험 F-14b S01~S13(주문 전송 수 · 잠 열)
+  - 🔴 실주문 `network` 시험은 없다(실험 278 스크립트가 그 몫 · 실전 키 때 다시)
 
-## 지금 상태 — 🟡 주문 경로는 스캐폴드
+## 지금 상태 — 🟢 시세(E8d) · 주문 REST(E10d) · 🟡 배선(E11)
 
 배럴과 `lib/src/fake_broker/` 자리만 있다. **⚠️ 이 PC에는 Flutter·Dart·melos가 없다**(2026-09-06).

@@ -12,6 +12,7 @@
 // 🆕 E8d2b(설계 13 §8 R30) — core_engine 일봉 원천 포트 구현(`KisQuoteFeed` · 저장 이름 → KIS 코드 · 오류 → `QuoteFeedDown`).
 
 export 'src/kis/kis_environment.dart';
+export 'src/kis/kis_orders.dart';
 export 'src/kis/kis_quote_feed.dart';
 export 'src/kis/kis_quotes.dart';
 export 'src/kis/kis_rest_client.dart';
