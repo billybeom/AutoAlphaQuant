@@ -309,6 +309,27 @@ class OrderIntentDraft {
     instrument: instrument,
   );
 
+  /// 수량만 바꾼 사본(예수금 축소 — 결정 id · 멱등키는 그대로 · R35 V8). [quantity] < 1 이면 [ArgumentError].
+  OrderIntentDraft withQuantity(int quantity) {
+    if (quantity < 1) {
+      throw ArgumentError.value(quantity, 'quantity', '1 이상이어야 한다');
+    }
+    return OrderIntentDraft(
+      executionDate: executionDate,
+      account: account,
+      strategyId: strategyId,
+      symbol: symbol,
+      side: side,
+      quantity: quantity,
+      orderType: orderType,
+      limitPrice: limitPrice,
+      sizingPrice: sizingPrice,
+      logicalDecisionId: logicalDecisionId,
+      decisionId: decisionId,
+      instrument: instrument,
+    );
+  }
+
   @override
   String toString() =>
       '$decisionId $account $strategyId $symbol ${side.wire} $quantity '
