@@ -32,6 +32,7 @@ KIS 접근토큰 수명 관리 · 유량(rate) 제어 · **멱등 주문 발주*
 
 - `KisEnvironment`(mock · live — 도메인·유량 간격) · `KisCredentials`(키 세트가 환경을 **지닌다** · 클라이언트 환경과 다르면 요청 전에 거절 = 잘못된 키 세트로 실전 전환 차단 · `toString` 가림)
 - `KisTokenStore`(메모리 · 파일 — 키 금고 M4-4 전 · 저장소 밖) · 만료 5분 전 새로 · 발급 1분 1회(`EGW00133`)는 다시 보내지 않음
+  - 🆕 **E11d — 보관 키 = `KisTokenKey`(환경 · 앱키 지문)**(설계 13 §8 R44 E8 · X11) — 같은 환경 두 계좌(실전 · ISA)가 서로 덮지 않는다 · 파일 칸 = `환경:지문`(옛 칸은 안 읽는다 → 1회 재발급) · `VaultKisTokenStore`(core `SecretVault` 한 칸 `kis.tokens` · 기동 때 메모리로 · 쓰기 = 메모리 즉시 + 금고 비동기 순서 보존 · 금고 실패는 센다 · 던지지 않는다)
 - `KisRateGate` — 앱키 하나에 하나(주문 E10 과 나눠 쓴다) · 모의 1.1초 · 실전 1/18초 · 신규 키 `kKisNewKeyInterval`
 - `KisRestClient.get` — 조회만 1 → 2 → 4초 최대 3회(유량 코드 · 429 · 502~504 · 비JSON 500 · 시간 초과 · 연결 실패) · 업무 거절은 그대로 · 토큰 무효면 새 토큰으로 1회 · 다 쓰면 `KisUnavailable` · 오류에 주소·키·계좌·토큰 없음
 - `KisQuotes` — 시세 6종(실험 5 확정 TR · 07 §6-2): 국내 일봉(수정/원) · 현재가 · 국내 지수 일봉(50행) · 해외 일봉(MODP 원/수정) · 해외 지수 일봉(🔴 거래량 0) · 휴장일(모의 미지원) · 범위 조회 = 창 밀기(`pageBack`) · 수 = `pandasPreciseXstrtod`
@@ -44,6 +45,6 @@ KIS 접근토큰 수명 관리 · 유량(rate) 제어 · **멱등 주문 발주*
   - 🔴 실주문 `network` 시험은 없다(실험 278 스크립트가 그 몫 · 실전 키 때 다시)
 - 🆕 **E10g — 대사 잔고**(설계 13 §8 R41 · core 포트 `BrokerBalanceSource` · E10f 대사의 짝): `KisOrderBroker.balance()` = 보유(`output1` `pdno` → `hldg_qty` · 종목 합 · 0 은 빼고 · 빠진 칸 = FormatException) + 관측 현금(`dnca_tot_amt` · 없으면 null) · 이어받기 10쪽 상한 · 픽스처 `orders/balance_balance.json` = 실험 278 판 3 실응답(🟡 보유 0주 — 보유 행은 시험 코드가 실응답 본문에 넣는다 · 실물 행 = 다음 장중)
 
-## 지금 상태 — 🟢 시세(E8d) · 주문 REST(E10d) · 대사 잔고(E10g) · 🟡 배선(E11)
+## 지금 상태 — 🟢 시세(E8d) · 주문 REST(E10d) · 대사 잔고(E10g) · 토큰 금고 보관(E11d) · 🟡 배선(E11)
 
 배럴과 `lib/src/fake_broker/` 자리만 있다. **⚠️ 이 PC에는 Flutter·Dart·melos가 없다**(2026-09-06).

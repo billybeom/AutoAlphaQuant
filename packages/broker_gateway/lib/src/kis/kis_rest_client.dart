@@ -164,6 +164,9 @@ class KisRestClient {
   final Duration timeout;
 
   final KisTokenStore _tokens;
+
+  /// 토큰 보관 키 — (환경 · 앱키 지문 · R44 E8 · X11).
+  late final KisTokenKey tokenKey = KisTokenKey.of(credentials);
   final DateTime Function() _now;
   final KisSleep _sleep;
 
@@ -180,7 +183,7 @@ class KisRestClient {
 
   /// 쓸 수 있는 토큰(보관된 것이 만료 5분 전이 아니면 그대로 · 아니면 새로).
   Future<KisToken> token() async {
-    final KisToken? t = _tokens.read(environment);
+    final KisToken? t = _tokens.read(tokenKey);
     if (t != null && t.usableAt(_now())) return t;
     await gate.pass();
     calls++;
@@ -224,7 +227,7 @@ class KisRestClient {
       access,
       _now().add(Duration(seconds: seconds)),
     );
-    _tokens.write(environment, fresh);
+    _tokens.write(tokenKey, fresh);
     return fresh;
   }
 
@@ -284,7 +287,7 @@ class KisRestClient {
       if (status != null &&
           !refreshed &&
           kKisTokenInvalidCodes.contains(res.msgCd)) {
-        _tokens.clear(environment);
+        _tokens.clear(tokenKey);
         refreshed = true;
         continue;
       }
@@ -359,7 +362,7 @@ class KisRestClient {
       if (b == null) {
         if (status == 401) {
           if (refreshed) return KisOrderRefused('HTTP_401', '토큰 무효', attempts);
-          _tokens.clear(environment);
+          _tokens.clear(tokenKey);
           refreshed = true;
           continue;
         }
@@ -382,7 +385,7 @@ class KisRestClient {
         if (refreshed) {
           return KisOrderRefused(code ?? 'HTTP_401', res.msg1 ?? '', attempts);
         }
-        _tokens.clear(environment);
+        _tokens.clear(tokenKey);
         refreshed = true;
         continue;
       }
