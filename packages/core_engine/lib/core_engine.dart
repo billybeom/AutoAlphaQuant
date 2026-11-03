@@ -151,6 +151,29 @@ export 'src/orders/order_ports.dart'
         OrderLedger,
         OrderOutcomeUnknown,
         intentIdFor;
+export 'src/orders/reconcile.dart'
+    show
+        BrokerBalance,
+        BrokerBalanceSource,
+        JournalRequired,
+        LedgerHolding,
+        LedgerOrderFill,
+        RecheckRequired,
+        ReconAction,
+        ReconClearOutcome,
+        ReconClearance,
+        ReconDiff,
+        ReconKind,
+        ReconLedger,
+        ReconRecord,
+        ReconReport,
+        clearRecon,
+        kManualOrderPostmortemDue,
+        kReconClearOriginCodes,
+        kReconRecheckDelay,
+        ledgerDiffIdOf,
+        reconcileAccount,
+        runReconciliation;
 export 'src/orders/split_execution.dart'
     show SplitDay, seasonalExecutionDays, splitDay;
 export 'src/orders/unknown_resolution.dart'

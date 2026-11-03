@@ -4,6 +4,7 @@
 //    data_sync `SqliteOrderLedger` 시험(E10c)이 한다.
 // 🔴 상태 전이를 엄격히 본다 — 순서기가 RESERVED 를 건너뛰거나 거꾸로 가면 StateError 가 난다(SQLite 구현도 같은 규칙).
 // 🆕 E10e2 — 이월 원장(`CarryLedger`) · 해소 원장(`UnknownLedger`) · 예약 시각([clock]) · 취소 확인 누적.
+// 🆕 E10f — 대사 원장(`ReconLedger`) · 기록 · 해제 · 해제 저널.
 
 import 'package:domain_contracts/domain_contracts.dart';
 
@@ -11,6 +12,7 @@ import '../orders/carry_over.dart';
 import '../orders/fill_sync.dart';
 import '../orders/fills.dart';
 import '../orders/order_ports.dart';
+import '../orders/reconcile.dart';
 import '../orders/unknown_resolution.dart';
 
 /// 원장 한 의도의 현재 값.
@@ -50,7 +52,12 @@ const Set<IntentStatus> _submittedOrLater = <IntentStatus>{
 
 /// 메모리 주문 원장.
 class FakeOrderLedger
-    implements OrderLedger, FillLedger, CarryLedger, UnknownLedger {
+    implements
+        OrderLedger,
+        FillLedger,
+        CarryLedger,
+        UnknownLedger,
+        ReconLedger {
   /// 원장을 만든다. [registeredStrategies] 에 없는 strategy_id 는 SAF-406 거부를 받는다.
   FakeOrderLedger({
     this.killSwitch = false,
@@ -361,6 +368,91 @@ class FakeOrderLedger
       throw StateError('$intentId: UNKNOWN 이 아니다');
     }
     r.errorMessage = message;
+  }
+
+  // ── 🆕 E10f 대사 원장(ReconLedger · R40 A2 · A7 · A8) ─────────────────────────
+
+  /// 남긴 대사 기록(실행 순서).
+  final List<ReconRecord> reconRecords = <ReconRecord>[];
+
+  /// diff_id → (어긋남 · 상태 · 원인 코드) — ledger_diff 의 짝.
+  final Map<String, (ReconDiff, DiffStatus, String?)> ledgerDiffs =
+      <String, (ReconDiff, DiffStatus, String?)>{};
+
+  /// `kind = 'RECON_CLEAR'` 저널 id.
+  final Set<String> reconClearJournals = <String>{};
+
+  /// 남긴 해제.
+  final List<ReconClearance> clearances = <ReconClearance>[];
+
+  @override
+  Future<List<LedgerHolding>> krHoldings() async {
+    _enter('krHoldings');
+    return <LedgerHolding>[
+      for (final MapEntry<(String, String), int> e in positions.entries)
+        LedgerHolding(e.key.$1, e.key.$2, e.value),
+    ];
+  }
+
+  @override
+  Future<List<LedgerOrderFill>> orderFills(TradeDate tradeDate) async {
+    _enter('orderFills');
+    return <LedgerOrderFill>[
+      for (final FakeIntentRecord r in records.values)
+        if (r.row.tradeDate == tradeDate && r.brokerOrderNo != null)
+          LedgerOrderFill(
+            brokerOrderNo: r.brokerOrderNo!,
+            account: r.row.account,
+            symbol: r.row.symbol,
+            filledQty: executions
+                .where((FillDelta d) => d.brokerOrderNo == r.brokerOrderNo)
+                .fold<int>(0, (int a, FillDelta d) => a + d.quantity),
+          ),
+    ];
+  }
+
+  @override
+  Future<String> recordReconciliation(ReconRecord record) async {
+    _enter('recordReconciliation');
+    reconRecords.add(record);
+    for (final ReconDiff d in record.blocking) {
+      // 같은 날 같은 어긋남 = 같은 행 · 해제 뒤 다시 보이면 다시 연다(SQLite 와 같다).
+      ledgerDiffs[ledgerDiffIdOf(record.tradeDate, d)] = (
+        d,
+        DiffStatus.open,
+        null,
+      );
+    }
+    // 🔴 세우기만 한다 — 대사는 풀지 않는다.
+    if (record.blocking.isNotEmpty) flags.add(FlagIds.reconMismatch);
+    return 'rc-fake-${reconRecords.length}';
+  }
+
+  @override
+  Future<bool> reconBlocked() async {
+    _enter('reconBlocked');
+    return flags.contains(FlagIds.reconMismatch);
+  }
+
+  @override
+  Future<bool> reconClearJournalExists(String decisionId) async {
+    _enter('reconClearJournalExists');
+    return reconClearJournals.contains(decisionId);
+  }
+
+  @override
+  Future<void> clearReconBlock(ReconClearance clearance) async {
+    _enter('clearReconBlock');
+    if (!flags.remove(FlagIds.reconMismatch)) {
+      throw StateError('RECON_MISMATCH 가 서 있지 않다');
+    }
+    for (final String id in ledgerDiffs.keys.toList()) {
+      final (ReconDiff d, DiffStatus s, String? _) = ledgerDiffs[id]!;
+      if (s == DiffStatus.open) {
+        ledgerDiffs[id] = (d, DiffStatus.resolved, clearance.originCode);
+      }
+    }
+    clearances.add(clearance);
   }
 
   @override

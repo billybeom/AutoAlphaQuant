@@ -3,6 +3,7 @@
 // 🔴 `test_intent_before_order` 진짜판 — 파일 SQLite + **둘째 연결**: 브로커 호출 순간 둘째 연결에서 행이 보여야
 //    한다(04 §3-1 v1.5 · AC-S04). 같은 연결의 SELECT 는 미커밋 행도 보이므로 판정 근거가 될 수 없다.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:core_engine/core_engine.dart';
@@ -1157,6 +1158,273 @@ void main() {
         "UPDATE broker_orders SET raw_response = '{\"tot_ccld_qty\":0,\"tot_ccld_amt\":\"0\"}'",
       );
       await expectLater(ledger.expiredIntents(_exec), throwsStateError);
+    });
+  });
+
+  group('🆕 E10f 대사 원장(ReconLedger · R40 A2 · A7 · A8 · 04 §7)', () {
+    const Map<String, String> map = <String, String>{
+      P0sStrategyIds.sleeveB: 'pension',
+    };
+    final DateTime at = DateTime.utc(2026, 11, 2, 6, 45);
+
+    void position(String symbol, int qty, {String market = 'KR'}) => db.execute(
+      'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, updated_at) '
+      'VALUES (?, ?, ?, ?, 174180, ?, ?)',
+      <Object?>[market, symbol, P0sStrategyIds.sleeveB, qty, '2026-10-30', 't'],
+    );
+
+    void journal(String id, String? kind) => db.execute(
+      'INSERT INTO decision_journal (journal_id, trade_date, strategy_id, signal_value, action_taken, kind, created_at) '
+      "VALUES (?, '2026-11-02', ?, '{}', '{}', ?, 't')",
+      <Object?>[id, P0sStrategyIds.sleeveB, kind],
+    );
+
+    Future<ReconReport> recon(FakeOrderBroker broker, {DateTime? now}) =>
+        runReconciliation(
+          ledger: ledger,
+          brokers: <String, OrderBroker>{'pension': broker},
+          balances: <String, BrokerBalanceSource>{'pension': broker},
+          accountByStrategy: map,
+          tradeDate: _exec,
+          nowUtc: () => now ?? at,
+          sleep: (Duration d) async {},
+        );
+
+    Row flag() => db
+        .select("SELECT * FROM trading_block WHERE flag_id = 'RECON_MISMATCH'")
+        .single;
+
+    test('대사 기록 = 한 트랜잭션 — reconciliation_log · ledger_diff(CANON_BROKER · BLOCKING · OPEN · applicable 1) · RECON_MISMATCH · 같은 어긋남 재실행 = 한 행', () async {
+      position('133690', 5);
+      final FakeOrderBroker broker = FakeOrderBroker()..holdings['133690'] = 3;
+      final ReconReport r = await recon(broker);
+      expect(r.action, ReconAction.blocked);
+
+      final Row log = db.select('SELECT * FROM reconciliation_log').single;
+      expect(log['recon_id'], r.reconId);
+      expect(log['matched'], 0);
+      expect(log['action_taken'], 'BLOCKED');
+      expect(log['run_at'], at.toIso8601String());
+      final Row d = db.select('SELECT * FROM ledger_diff').single;
+      expect(d['diff_id'], ledgerDiffIdOf(_exec, r.blocking.single));
+      expect(
+        (
+          d['pair'],
+          d['axis'],
+          d['authored_date'],
+          d['severity'],
+          d['status'],
+          d['applicable'],
+          d['origin_code'],
+        ),
+        ('CANON_BROKER', 'QUANTITY', '2026-11-02', 'BLOCKING', 'OPEN', 1, null),
+      );
+      expect(d['delta_label'], 'pension · 133690 보유 — 원장 5주 · 브로커 3주');
+      expect(flag()['cleared_at'], isNull);
+      expect(flag()['reason'], contains(r.reconId));
+      final Object? setAt = flag()['set_at'];
+
+      await recon(broker);
+      expect(db.select('SELECT * FROM ledger_diff'), hasLength(1));
+      // 같은 시각 두 판도 id 가 겹치지 않는다(원장이 시각 + 일련으로 매긴다).
+      expect(
+        db
+            .select('SELECT recon_id FROM reconciliation_log ORDER BY recon_id')
+            .map((Row x) => x['recon_id']),
+        <String>[
+          'rc-${at.toIso8601String()}#1',
+          'rc-${at.toIso8601String()}#2',
+        ],
+      );
+      expect(flag()['set_at'], setAt);
+      // 이미 서 있으면 다시 쓰지 않는다(뒤 시각의 판도 set_at 그대로).
+      await recon(broker, now: at.add(const Duration(minutes: 9)));
+      expect(flag()['set_at'], setAt);
+      expect(db.select('SELECT * FROM ledger_diff'), hasLength(1));
+      // 🔴 자동 수정 없음.
+      expect(db.select('SELECT quantity FROM positions').single['quantity'], 5);
+    });
+
+    test(
+      'krHoldings = KR 만 · orderFills = 그날 KR 주문의 체결 합(체결 0 주문 포함)',
+      () async {
+        position('133690', 5);
+        position('QQQ', 2, market: 'US');
+        expect(
+          (await ledger.krHoldings()).map(
+            (LedgerHolding h) => (h.strategyId, h.symbol, h.quantity),
+          ),
+          <(String, String, int)>[(P0sStrategyIds.sleeveB, '133690', 5)],
+        );
+        final FakeOrderBroker broker = FakeOrderBroker();
+        await executeIntent(_draft(), _ok, ctx(broker));
+        await executeIntent(_draft(symbol: '411060'), _ok, ctx(broker));
+        broker.fills['2026-11-02'] = <DailyFillRow>[
+          DailyFillRow(
+            orderDate: _exec,
+            odno: '0000000001',
+            isCancelRow: false,
+            symbol: '133690',
+            side: OrderSide.buy,
+            orderQty: 5,
+            cumFilledQty: 3,
+            cumFilledAmount: Decimal.parse('522540'),
+            remainingQty: 2,
+          ),
+        ];
+        await runFillSync(
+          ledger: ledger,
+          brokers: <String, OrderBroker>{'pension': broker},
+          tradeDate: _exec,
+          nowUtc: DateTime.utc(2026, 11, 2, 1),
+          dayEnd: false,
+          costs: const FillCostRates(commissionRate: 0, sellTaxRate: 0),
+        );
+        expect(
+          (await ledger.orderFills(_exec)).map(
+            (LedgerOrderFill f) =>
+                (f.brokerOrderNo, f.account, f.symbol, f.filledQty),
+          ),
+          <(String, String, String, int)>[
+            ('2026-11-02:0000000001', 'pension', '133690', 3),
+            ('2026-11-02:0000000002', 'pension', '411060', 0),
+          ],
+        );
+        expect(await ledger.orderFills(const TradeDate('2026-11-03')), isEmpty);
+      },
+    );
+
+    test('🔴 test_reconcile_mismatch_blocks(SQLite) — 다음 주문 SAF-407 거부 · 브로커 호출 0 · 일치 대사도 플래그를 풀지 않는다', () async {
+      position('133690', 5);
+      final FakeOrderBroker broker = FakeOrderBroker()..holdings['133690'] = 3;
+      await recon(broker);
+      final ExecutionOutcome o = await executeIntent(
+        _draft(side: OrderSide.sell),
+        _ok,
+        ctx(broker),
+      );
+      expect(o.status, ExecutionStatus.rejected);
+      expect(o.message, contains(FlagIds.reconMismatch));
+      expect(broker.submitCount, 0);
+
+      broker.holdings['133690'] = 5;
+      expect((await recon(broker)).action, ReconAction.matched);
+      expect(await ledger.reconBlocked(), isTrue);
+      expect(flag()['cleared_at'], isNull);
+    });
+
+    test('🔴 test_clear_recon_without_decision_id_rejected(SQLite) — 저널은 kind = RECON_CLEAR · 해제 = 플래그 · RESOLVED · 해제 로그 한 트랜잭션 · 다시 보이면 다시 연다', () async {
+      journal('dj-discretion', 'DISCRETION');
+      journal('dj-recon', 'RECON_CLEAR');
+      position('133690', 5);
+      final FakeOrderBroker broker = FakeOrderBroker()..holdings['133690'] = 3;
+      await recon(broker);
+
+      for (final String id in <String>['', 'dj-none', 'dj-discretion']) {
+        await expectLater(
+          clearRecon(
+            ledger,
+            originCode: OriginCodes.fillLag,
+            decisionId: id,
+            clearedBy: 'telegram:owner',
+            nowUtc: at,
+          ),
+          throwsA(isA<JournalRequired>()),
+          reason: id,
+        );
+      }
+      expect(await ledger.reconBlocked(), isTrue);
+
+      final DateTime cAt = at.add(const Duration(minutes: 5));
+      final ReconClearOutcome out = await clearRecon(
+        ledger,
+        originCode: OriginCodes.manualOrder,
+        decisionId: 'dj-recon',
+        clearedBy: 'telegram:owner',
+        nowUtc: cAt,
+      );
+      expect(out.postmortemDueUtc, cAt.add(const Duration(days: 7)));
+      final Row f = flag();
+      expect(
+        (f['cleared_at'], f['cleared_by'], f['decision_id'], f['origin_code']),
+        (cAt.toIso8601String(), 'telegram:owner', 'dj-recon', 'MANUAL_ORDER'),
+      );
+      final Row d = db.select('SELECT * FROM ledger_diff').single;
+      expect((d['status'], d['origin_code']), ('RESOLVED', 'MANUAL_ORDER'));
+      final Row log = db
+          .select(
+            "SELECT * FROM reconciliation_log WHERE action_taken = 'CLEARED'",
+          )
+          .single;
+      expect(jsonDecode(log['discrepancies'] as String), <String, Object?>{
+        'origin_code': 'MANUAL_ORDER',
+        'decision_id': 'dj-recon',
+        'cleared_by': 'telegram:owner',
+        'resolved': 1,
+      });
+      expect(await ledger.reconBlocked(), isFalse);
+
+      // 원장이 그대로면 다음 대사가 같은 행을 다시 연다(정정 경로 = E13).
+      await recon(broker);
+      final Row again = db.select('SELECT * FROM ledger_diff').single;
+      expect((again['status'], again['origin_code']), ('OPEN', null));
+      expect(flag()['cleared_at'], isNull);
+      expect(flag()['decision_id'], isNull);
+    });
+
+    test(
+      '플래그가 없을 때 · 이미 풀렸을 때 해제 = StateError · 아무것도 남지 않는다(한 트랜잭션)',
+      () async {
+        final ReconClearance c = ReconClearance(
+          originCode: OriginCodes.fillLag,
+          decisionId: 'dj-recon',
+          clearedBy: 'x',
+          clearedAtUtc: at,
+        );
+        await expectLater(ledger.clearReconBlock(c), throwsStateError);
+        expect(db.select('SELECT * FROM reconciliation_log'), isEmpty);
+        expect(db.autocommit, isTrue);
+
+        position('133690', 5);
+        final FakeOrderBroker broker = FakeOrderBroker()
+          ..holdings['133690'] = 3;
+        await recon(broker);
+        await ledger.clearReconBlock(c);
+        final int logs = db.select('SELECT * FROM reconciliation_log').length;
+        final Object? clearedAt = flag()['cleared_at'];
+        await expectLater(
+          ledger.clearReconBlock(
+            ReconClearance(
+              originCode: OriginCodes.dbError,
+              decisionId: 'dj-other',
+              clearedBy: 'y',
+              clearedAtUtc: at.add(const Duration(minutes: 1)),
+            ),
+          ),
+          throwsStateError,
+        );
+        expect(db.select('SELECT * FROM reconciliation_log'), hasLength(logs));
+        expect(flag()['cleared_at'], clearedAt);
+        expect(flag()['origin_code'], OriginCodes.fillLag);
+        expect(db.autocommit, isTrue);
+      },
+    );
+
+    test('🔴 test_resume_does_not_clear_recon_block(SQLite) — 킬스위치 해제 행 · SAF-408 · 410 판정 · 일치 대사 뒤에도 RECON_MISMATCH 는 남는다', () async {
+      position('133690', 5);
+      final FakeOrderBroker broker = FakeOrderBroker()..holdings['133690'] = 3;
+      await recon(broker);
+      db.execute(
+        'INSERT INTO kill_switch_state (id, activated_at, activated_by, cleared_at, decision_id) '
+        "VALUES (1, 't0', 'telegram', 't1', 'dj-resume')",
+      );
+      expect(await ledger.killSwitchActive(), isFalse);
+      await ledger.journalMissing();
+      await ledger.tierBUnjudged(_exec);
+      broker.holdings['133690'] = 5;
+      expect((await recon(broker)).action, ReconAction.matched);
+      expect(await ledger.reconBlocked(), isTrue);
+      expect(await ledger.activeBlockFlags(), contains(FlagIds.reconMismatch));
     });
   });
 }
