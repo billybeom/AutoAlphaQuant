@@ -679,3 +679,126 @@ Set<String> watchdogAllowed(WatchdogBoardVm v) => <String>{
   ?v.limitNotice,
   ShellLabels.staleBannerTitle,
 };
+
+// ── R15a — O-00·O-00b fakes ───────────────────────────────────────────────────
+
+class FakeShellOnboardingRepository extends UnimplementedOnboardingRepository {
+  FakeShellOnboardingRepository({
+    required this.start,
+    required this.modeChoice,
+  });
+
+  final Stream<OnboardingStartVm> Function(int call) start;
+  final Stream<OnboardingModeChoiceVm> Function(int call) modeChoice;
+  int startCalls = 0;
+  int modeCalls = 0;
+
+  @override
+  Stream<OnboardingStartVm> watchStart() {
+    final int call = startCalls;
+    startCalls = startCalls + 1;
+    return start(call);
+  }
+
+  @override
+  Stream<OnboardingModeChoiceVm> watchModeChoice() {
+    final int call = modeCalls;
+    modeCalls = modeCalls + 1;
+    return modeChoice(call);
+  }
+}
+
+class FakeShellOnboardingActions extends UnimplementedSettingsActions {
+  FakeShellOnboardingActions({required this.result});
+
+  final Future<ActionResult> Function(int call) result;
+  final List<SettingsActionId> ids = <SettingsActionId>[];
+  final List<Map<String, String>> argsSeen = <Map<String, String>>[];
+
+  @override
+  Future<ActionResult> run(
+    SettingsActionId id, {
+    Map<String, String> args = const <String, String>{},
+  }) {
+    final int call = ids.length;
+    ids.add(id);
+    argsSeen.add(args);
+    return result(call);
+  }
+}
+
+List<Override> onboardingOverrides({
+  required FakeShellOnboardingRepository repo,
+  required SettingsActions? actions,
+  required RecordingLinkOpener opener,
+}) => <Override>[
+  shellOnboardingRepositoryProvider.overrideWithValue(repo),
+  shellOnboardingActionsProvider.overrideWithValue(actions),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+];
+
+Future<void> pumpOnboardingStart(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: OnboardingStart())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+Future<void> pumpOnboardingModePick(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: OnboardingModePick())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String> trackCardTexts(OnboardingTrackCard c) => <String>[
+  c.title,
+  c.estimatedText,
+];
+
+List<String> modeCardTexts(OperatingModeOption o) => <String>[
+  o.title,
+  o.body,
+  o.prepLine,
+  o.honestyLine,
+];
+
+Set<String> onboardingStartAllowed(OnboardingStartVm v) => <String>{
+  v.headline,
+  for (final OnboardingTrackCard t in v.tracks) ...trackCardTexts(t),
+  ?v.viewerTrack?.title,
+  ?v.viewerTrack?.estimatedText,
+};
+
+Set<String> modePickAllowed(OnboardingModeChoiceVm v) => <String>{
+  v.headline,
+  for (final OperatingModeOption o in v.options) ...modeCardTexts(o),
+  v.recordGapNotice,
+  v.honestyText,
+  ?v.lockedLabel,
+  ShellLabels.onboardingNext,
+};
