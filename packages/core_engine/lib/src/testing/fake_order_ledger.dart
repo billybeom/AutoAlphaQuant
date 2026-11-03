@@ -11,6 +11,7 @@ import 'package:domain_contracts/domain_contracts.dart';
 import '../orders/carry_over.dart';
 import '../orders/fill_sync.dart';
 import '../orders/fills.dart';
+import '../orders/order_path_ports.dart';
 import '../orders/order_ports.dart';
 import '../orders/reconcile.dart';
 import '../orders/unknown_resolution.dart';
@@ -51,13 +52,7 @@ const Set<IntentStatus> _submittedOrLater = <IntentStatus>{
 };
 
 /// 메모리 주문 원장.
-class FakeOrderLedger
-    implements
-        OrderLedger,
-        FillLedger,
-        CarryLedger,
-        UnknownLedger,
-        ReconLedger {
+class FakeOrderLedger implements OrderPathLedger {
   /// 원장을 만든다. [registeredStrategies] 에 없는 strategy_id 는 SAF-406 거부를 받는다.
   FakeOrderLedger({
     this.killSwitch = false,

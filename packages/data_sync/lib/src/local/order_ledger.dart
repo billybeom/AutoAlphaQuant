@@ -22,28 +22,24 @@ import 'dart:convert' show jsonEncode;
 import 'package:core_engine/core_engine.dart'
     show
         BlockBundles,
-        CarryLedger,
         DailyFillRow,
         ExchangeCalendar,
         ExpiredIntent,
         FillApplication,
         FillDelta,
-        FillLedger,
         FillVerdict,
         IntentRow,
         IntentStatus,
         LedgerHolding,
         LedgerOrderFill,
         OpenIntent,
-        OrderLedger,
+        OrderPathLedger,
         ReconClearance,
         ReconDiff,
-        ReconLedger,
         ReconRecord,
         RecordedFill,
         SplitProgress,
         UnknownIntent,
-        UnknownLedger,
         averageFillPrice,
         averagePriceAfterBuy,
         demoteToDouble,
@@ -84,13 +80,7 @@ const List<IntentStatus> _submittedOrLater = <IntentStatus>[
 const int kTierBGraceSessions = 3;
 
 /// 로컬 원장 파일 하나의 주문 원장(포트 구현).
-final class SqliteOrderLedger
-    implements
-        OrderLedger,
-        FillLedger,
-        CarryLedger,
-        UnknownLedger,
-        ReconLedger {
+final class SqliteOrderLedger implements OrderPathLedger {
   /// 원장을 만든다. [kr] = SAF-410 의 영업일 달력(동결 XKRX · 범위 밖이면 StateError).
   SqliteOrderLedger(
     this._db, {

@@ -138,6 +138,7 @@ export 'src/orders/order_draft.dart'
         draftOrders,
         limitPriceFor,
         targetsFromMonthEnd;
+export 'src/orders/order_path_ports.dart' show AccountBroker, OrderPathLedger;
 export 'src/orders/order_ports.dart'
     show
         AdviceSink,

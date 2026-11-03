@@ -8,6 +8,7 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
 import '../orders/fills.dart';
+import '../orders/order_path_ports.dart';
 import '../orders/order_ports.dart';
 import '../orders/reconcile.dart';
 
@@ -56,7 +57,7 @@ final class FakeThrow extends FakeSubmitStep {
 }
 
 /// 결정론 가짜 브로커 — 계좌 하나.
-class FakeOrderBroker implements OrderBroker, BrokerBalanceSource {
+class FakeOrderBroker implements AccountBroker {
   /// 가짜를 만든다. [cashKrw] = 예수금(기본 1조 원) · [cashError] 를 주면 예수금 조회가 그것을 던진다.
   FakeOrderBroker({
     List<FakeSubmitStep>? script,
