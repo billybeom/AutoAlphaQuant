@@ -486,3 +486,27 @@ R13b(`H-01` 운영 홈) 카드의 선행 2 를 닫았다. `contractVersion` = **
 🔴 **만들지 않은 이름**(재론 방지): `DiagnosticLevel`(새 열거 — `UiLevel` 재사용) · `String? headline`(nullable — 존재 판정이 화면으로 온다 · K4 대안 기각) · `m6/allocation_no_pot`(재사용 `m6/allocation_empty` 로 충분 · K7 ⓐ' 기각) · C-48(새 번호 — C-47 확장 · 같은 번호는 엔진 레인 E8a 가 쓴다).
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 128(뷰어 홈 블록 6 원천 · 열린 채 · 05 `S10` VM 꼴 어긋남 함께) · 125·129·130·131 · 억제 + 기한 공존의 엔진 빈도(X7) · `UiLevel` → 아이콘 공용 사전(R13b 밖).
+
+## U. 🆕 계약 v1.16 (2026-11-03 · R15 선행 M2 보강) — 온보딩 한 화면 VM 7 · 라우트 64 · args·결과 표본 · 슬롯 이름 · 페어링 창구 · X1 두 라우트
+
+R15(`O-00`~`O-04` · `R-01` · `V-01`) 네 카드의 선행을 닫았다. `contractVersion` = **`1.16.0`**(엔진 다음 = 1.17.0) · 픽스처 **219건**(187 + 신설 32 · 개정 6 · 버전 줄만 181) · 조문 = 01 §25.
+상태 = ✅ 병합 PR #96 squash `dd9e162`(2026-11-03 · CI 3/3 · 병합 전 `origin/main` `12f1aa4` 위로 rebase).
+결정 = 발주자 2026-11-03 ①~④ 모두 권고대로(정본 = 설계 `10_리뷰/2026-11-03_R15선행_계약v1.16_설계서.md` §3 K1~K35).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| U-1 | `OnboardingStartVm{headline, tracks, viewerTrack?}` · `OnboardingTrackCard{track, title, estimatedText, deepLink?}` | `O-00` · 🆕 `dto/onboarding.dart` · 조회 갈래 = `viewerTrack`(null = 부재 · 분리 위젯) · 갈래 탭 = `deepLink` |
+| U-2 | `OnboardingModeChoiceVm{headline, options, selected?, recordGapNotice, honestyText, nextDeepLink?, lockedLabel?}` | `O-00b` · K12 · 🔴 `selected` null = 안 고름(기본값 없음) · 카드 = 기존 `OperatingModeOption`(G-12 «같은 타입» 유지) · `OperatingModeView` 는 읽지 않는다 |
+| U-3 | `OnboardingStepsVm{progressText, rows, emptyLabel?, finishDeepLink?}` · `OnboardingStepDetailVm{step?, missingLabel?, whereText?, howText?, verify?, secretSlotId?}` · `OnboardingAction{id, args, label}` | `O-01`·`O-02`·`O-03` · «어디서 받나» = `whereText` 글자만(결정 ②) · 검증 = `OnboardingAction` 이 id·args 를 완성 |
+| U-4 | `OnboardingFinishVm{headline, stages, doneLabel?, checks}` · `OnboardingFinishStage{title, state, gate?, lines, expectationLine?, slotId?, link?, action?}` · `OnboardingFinishCheck{label, state}` | `O-04` 6단계 · ⑥ 시작 상태 선언 = `link`(`LinkAction` 재사용 · 결정 ③) |
+| U-5 | `RestartVm{headline, loginSlotId?, ledgerLines?, leaseGate?, branches, inheritNotice?}` · `PairingVm{headline, scannerSlotId?, result?}` · `PairingResult{level, headline, reasonCode?, nextLink?}` | `R-01` · `V-01` · `PairingRepository.watchPairing()`(🆕 `repositories/pairing_repository.dart` · 뷰어 주입) |
+| U-6 | `OnboardingRepository` += `watchStart` · `watchModeChoice` · `watchStepList` · `watchStep(String stepId)` · `watchFinish` · `watchRestart` | K29 · 추가형(`watchSteps` 무변경 · R15 미호출 · 01 §8 미결 149) |
+| U-7 | `OnboardingStep` += `requirementLabel` · `warningLabel?` · `verifiedUntilText?` · `failureText?` · `gate?` · `detailDeepLink?` | K15 · 표시 칸 6 · `whereDeepLink` = 화면 미참조(K16 · 미결 150) |
+| U-8 | `SettingsActionId.onboardingDryRunStart`(`ONBOARDING_DRY_RUN_START`) | K24 · `O-04` ⑥ 전용 · args `{}` · 첫 `committed_at` 과 같은 트랜잭션 · A-12 와 같은 «05 §7 밖» 값 |
+| U-9 | 사전 `OnboardingResultCodes`(`onboarding_result`) · `BrokerRawCodes`(`broker_raw`) · `OnboardingSlotIds`(`onboarding_slot`) | K21 · 🆕 `labels/onboarding_codes.dart` · 코드 목록이지 문구 매핑이 아니다 |
+| U-10 | 라우트 `onboardingStart` · `onboardingModePick` · `onboardingSteps` · `onboardingFinish` · `onboardingRestart` · `onboardingPairing` · `ledgerSimOpening` · `m5SimOpeningCash` · `x1MigrationPlan` · `x1MigrationEmergency` | K28·K3 · `AppRoutes.all` 54 → 64 · 온보딩 고정 6 = `onboardingStep` 앞 |
+| U-11 | 받침대 `UnimplementedOnboardingRepository` · `UnimplementedPairingRepository`(`lib/testing.dart`) · 계약 테스트 C-50(`c50_onboarding_test.dart`) · 생성기 `tool/gen_r15_v116_fixtures.py` | K30(받침대) · K32(픽스처 · 기준 `267e867` 원문에서 멱등) |
+
+🔴 **만들지 않은 이름**(재론 방지): `OperatingModeView.current` nullable(S05·표본 연쇄 · K12 대안 기각) · `OnboardingLinkAction`(새 타입 — `LinkAction` 재사용 · K9) · `link`·`next_link`(흉내 글자 — 실물 = `deepLink`·`nextDeepLink`) · `PairingResult.nextDeepLink`(실물 = `nextLink: LinkAction?`).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 149~158(`watchSteps` 존폐 · `whereDeepLink` 옛 뜻 · 검증 args 값 사전 · 슬롯 이름 확장 · `L-3` simOpening · M5 가상 초기금 · VM 산출 원천 · 뷰어 쪽 원천 · 브로커 원문 코드 범위 · 첫 실행 판정) · 플랫폼 몫(06 `M4-10`·`M4-11`·`M5-14`).

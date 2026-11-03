@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 90개 · 계약 v1.15.0 · 조립일 2026-10-30(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 93개 · 계약 v1.16.0 · 조립일 2026-11-03(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -181,12 +181,19 @@ export 'commands/settings_actions.dart';
 //    `WatchdogBoardVm` · `watchWatchdog()` 반환 교체 · `WatchdogCheck` − `slug` + `checkId` + `level` · 받침대
 //    `UnimplementedAlertRepository`·`UnimplementedOpsStatusRepository` · 🆕 C-49 · 픽스처 176 → 187(신설 11 · 개정 5) —
 //    🆕 tool/gen_r14_v115_fixtures.py(기준 1bb1a84 원문에서 멱등 생성).
+// 🆕 '1.16.0'(R15 선행 · 01 §25 · 발주자 결정 2026-11-03 ①~④ · K1~K35) — X3 온보딩 위저드 표시·동작 계약:
+//    `dto/onboarding.dart` VM 7(`OnboardingStartVm`·`OnboardingModeChoiceVm`·`OnboardingStepsVm`·`OnboardingStepDetailVm`·
+//    `OnboardingFinishVm`·`RestartVm`·`PairingVm`) + 부품 5 · `OnboardingStep` +6(`requirementLabel` 등) ·
+//    `OnboardingRepository` +6(추가형) · 🆕 `PairingRepository` · `SettingsActionId.onboardingDryRunStart` · args 화이트리스트 ·
+//    라우트 64(온보딩 6 · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2) · 사전 3축(`OnboardingResultCodes`·`BrokerRawCodes`·
+//    `OnboardingSlotIds`) · 받침대 2 · 🆕 C-50 · 픽스처 187 → 219(신설 32 · 개정 6) — 🆕 tool/gen_r15_v116_fixtures.py
+//    (기준 267e867 원문에서 멱등 생성). 엔진 다음 계약 판 = 1.17.0(E10 D11 4건 · 06 변경 이력).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.15.0';
+const String contractVersion = '1.16.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -250,6 +257,7 @@ export 'dto/holdings.dart';
 export 'dto/journal.dart';
 export 'dto/ledger.dart';
 export 'dto/ledger_trust.dart';
+export 'dto/onboarding.dart';
 export 'dto/ops.dart';
 export 'dto/performance.dart';
 export 'dto/plan.dart';
@@ -368,6 +376,7 @@ export 'repositories/ledger_repository.dart';
 export 'repositories/ledger_trust_repository.dart';
 export 'repositories/onboarding_repository.dart';
 export 'repositories/ops_repository.dart';
+export 'repositories/pairing_repository.dart';
 export 'repositories/performance_repository.dart';
 export 'repositories/rebalance_repository.dart';
 export 'repositories/resume_repository.dart';
@@ -781,7 +790,9 @@ part 'drafts.g.dart';
 ///    01 §11-10). 링크 조립이 아니다. 대상 id 표(01 §12-1): `journalDraft` = `decisionId` ·
 ///    `manualFillRecord`·`adviceSkip` = `adviceId`(라우트) · 🆕 v1.12 `selfReportBalance` = `L-3` 라우트 `:yyyyMm` 과
 ///    `:accountAlias` 를 `/` 로 이은 글자(`2026-08/연금저축` — «생성자 인자 그대로»의 2인자 판 · K7 · K36 ⓐ) ·
-///    `O-04` = `SelfReportPurpose.simOpening.wire`(R15). 지난 달·다른 계좌의 초안은 복원 경로가 0 이다.
+///    `O-04` 시작 상태 선언(🆕 v1.16 `AppRoutes.ledgerSimOpening` · 계좌마다) = `SIM_OPENING/<accountAlias>`
+///    («생성자 인자 그대로»의 2조각 판 — `L-3` simOpening 갈래 구현 = 01 §8 미결 153). 지난 달·다른 계좌의
+///    초안은 복원 경로가 0 이다.
 /// 🔴 모드(계열)는 키에 **없다** — 구현이 계열별로 저장 공간을 가른다(화면은 모드를 모른다 · A7).
 @freezed
 abstract class DraftKey with _$DraftKey {
@@ -1393,6 +1404,8 @@ abstract class LedgerEventRecord with _$LedgerEventRecord {
 //    화면이 `run()` 을 폴링해 상태를 만들면 경계 규칙 ① 위반이다.
 // 🔴 «적용»류는 **`run()` 1회 + `handoffRoute` 이동**으로 끝난다. 냉각 30일·12월 창·48h
 //    대기·체크리스트 7항 UI 를 화면이 만들면 반려다.
+// 🆕 v1.16(01 §25) — 온보딩 args 화이트리스트(`onboardingOperatingModeSelect` · `onboardingDryRunStart` · 검증 3) ·
+//    O-00b·O-03·O-04 는 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -1422,6 +1435,21 @@ part 'settings_actions.g.dart';
 ///    🔴 가림 범위 = **그 폰 한 대**(뷰어 iOS·웹은 가리지 않는다 · ✅ 발주자 2026-10-22). 화면은 [ActionResult] 를
 ///    읽지 않는다(갈래 = `SelfReportSession.sessionClosedText` 하나) · `dispose` 의 stop 은 `initState` 에서 잡아 둔
 ///    인스턴스로 부른다(`dispose` 안 `ref` 0 · C-46 ㉔).
+///
+///    🆕 v1.16(01 §25 · K13 · K19 · K24) — X3 온보딩(폰 로컬 · 뷰어 경로 0):
+///    · `onboardingOperatingModeSelect` = `{operating_mode ∈ {AUTO_TRADE, ADVISORY}}`(값 = `OperatingMode.wire` —
+///      화면이 고른 카드의 `OperatingModeOption.mode.wire` 그대로) · 결과 = 접수(`ok`) / 거부(`blocked` ·
+///      `ONBOARDING_CHOICE_COMMITTED` · `committed_at` 뒤 — 이후 변경 = `runtimeOperatingModeSwitchRequest` → 🔒 `M5-11`) ·
+///      같은 값 재선택 = 접수(멱등)
+///    · `onboardingDryRunStart`        = `{}`(O-04 ⑥ · 종착 조합은 엔진이 `onboarding_choice` 로 안다 ·
+///      첫 `committed_at` 과 같은 트랜잭션 · 실패 = 둘 다 되돌림 `DRY_RUN_START_ROLLED_BACK`)
+///    · 검증 동작 — `OnboardingAction` 이 id·args 를 **완성해서** 싣는다(🔴 화면은 그대로 넘긴다 · 짓지 않는다):
+///      `credentialVerify` = `{kind}` · `connectionTest` = `{target}` · `accountVerifyMapping` = `{}`
+///      (`kind`·`target` 값 = 엔진 표기 — 05 §7 꼴 · 값 사전 = 01 §8 미결 151)
+///    🔴 `O-00b`·`O-03`·`O-04` 는 [ActionResult] 를 **읽는다** — `headline` + `reasonCode` 원문
+///      (`O-03` 은 + `retryable` · `O-00b`·`O-04` 는 다시 시도 갈래가 없다 — 표본 `retryable` 전부 false)
+///      (표본 = `m8/onboarding_mode_select_results` · `m8/onboarding_verify_results` · `m8/onboarding_finish_results`).
+///      `level`·`handoffRoute`·`actionRunId` 로 화면이 분기하지 않는다(아이콘 = `level` 5값 전수).
 ///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
@@ -1454,6 +1482,7 @@ abstract class ActionResult with _$ActionResult {
     required String headline,
 
     /// 원문 코드(예 `'EGW00133'`)가 있으면 함께 온다.
+    /// 🆕 v1.16 — 값 = 사전 등재 코드(`OnboardingResultCodes` · `BrokerRawCodes` 등 · C-5) · 화면은 글자 그대로(분기 0).
     String? reasonCode,
 
     /// 🔴 게이트가 필요한 동작은 여기로 넘긴다(M5).
@@ -2214,7 +2243,9 @@ import 'ledger_trust.dart';
 part 'handover.freezed.dart';
 part 'handover.g.dart';
 
-/// 01 §2-11 — M9 `S05` 표시 + M8 `O-00b` 선택 카드가 **같은 타입**을 쓴다.
+/// 01 §2-11 — M9 `S05` 표시(지금 운영 방식 · `current` 늘 값). 🆕 v1.16(01 §25 · K12) — `O-00b` 는
+/// 이 타입을 읽지 않는다(`OnboardingModeChoiceVm` — «아직 안 고름» = `selected` null) · 카드 1장 =
+/// **같은 타입** [OperatingModeOption](S05·O-00b 공용).
 @freezed
 abstract class OperatingModeView with _$OperatingModeView {
   const factory OperatingModeView({
@@ -2224,8 +2255,8 @@ abstract class OperatingModeView with _$OperatingModeView {
     required String label,
     required String explainLine,
 
-    /// `O-00b` 카드 2장 — 🔴 **기본 선택 없음**(«온보딩 미완»은 «자동 매매»가
-    /// 아니다 · G-02).
+    /// S05 의 카드 묶음(🔵 v1.16 — O-00b 는 `OnboardingModeChoiceVm.options`) — 🔴 **기본 선택 없음**
+    /// («온보딩 미완»은 «자동 매매»가 아니다 · G-02).
     required List<OperatingModeOption> options,
     required LedgerTrustBadge trust,
 
@@ -3749,6 +3780,303 @@ abstract class SelfReportLine with _$SelfReportLine {
   factory SelfReportLine.fromJson(Map<String, dynamic> json) =>
       _$SelfReportLineFromJson(json);
 }
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/onboarding.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/onboarding.dart
+//
+// 🆕 계약 v1.16(01 §25 · R15 선행 · 발주자 결정 2026-11-03 ①~④) — X3 온보딩 위저드(04 §9) **한 화면 VM 7종** + 부품 5종.
+//
+// 🔴 판정·게이트·순서·문구 = 전부 엔진(04 §9 머리 «게이트 판정은 전부 Claude»). 화면은 받은 차례 그대로 그리고 null = 부재.
+// 🔴 asOf 칸이 없다(K6 ⓐ · K10) — 온보딩 화면 공통 상태 = 로딩·에러 둘(04 §2-3 예외 · 01 §8 미결 148).
+//    모르는 id = 값(`missingLabel`) · 스트림 에러 = 읽기 실패.
+// 🔴 링크 = 데이터(01 §4-4) — 문자열 칸 = `*DeepLink` · 글자 + 링크 = [LinkAction](같은 뜻 같은 이름 · K9).
+// 🔴 🔒 자리 = 슬롯 이름(`OnboardingSlotIds`)만 싣는다 — 위젯은 조립 앱이 주입한다(K22 · 06 M4-11).
+// 🔴 `OperatingModeView`(M9 `S05`)는 여기서 쓰지 않는다 — `current` 가 required 라 «아직 안 고름»을 표현하지 못한다(K12).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/command.dart';
+import '../enums/mode.dart';
+import '../enums/onboarding.dart';
+import '../enums/ui.dart';
+import 'common.dart';
+import 'handover.dart';
+import 'safety.dart';
+
+part 'onboarding.freezed.dart';
+part 'onboarding.g.dart';
+
+/// `O-00` 첫 실행 갈래(04 §9-1 · K11). 🔴 운영 방식은 갈래가 아니다 — 넷째 갈래 0.
+@freezed
+abstract class OnboardingStartVm with _$OnboardingStartVm {
+  const factory OnboardingStartVm({
+    /// 첫 화면 머리 — 엔진 문장.
+    required String headline,
+
+    /// 계정 축 갈래(처음 · 다시) — 엔진 차례 그대로.
+    required List<OnboardingTrackCard> tracks,
+
+    /// 조회 전용 갈래 한 칸(🔵 청사진 §9-1b ⑦ 권고 선반영 · 되돌림 = 엔진이 null). null = 첫 화면에 내지 않는다.
+    OnboardingTrackCard? viewerTrack,
+  }) = _OnboardingStartVm;
+
+  factory OnboardingStartVm.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingStartVmFromJson(json);
+}
+// JSON 키: headline · tracks · viewer_track
+
+/// `O-00` 갈래 카드 1장(K11).
+@freezed
+abstract class OnboardingTrackCard with _$OnboardingTrackCard {
+  const factory OnboardingTrackCard({
+    /// 엔진 표지 — 🔴 화면은 이 값으로 분기·글자·아이콘을 고르지 않는다.
+    required OnboardingTrack track,
+
+    /// «처음 시작하기» — 엔진.
+    required String title,
+
+    /// «약 60~90분» — 엔진(🔴 화면이 시간을 셈하지 않는다).
+    required String estimatedText,
+
+    /// 다음 화면(엔진 완성 · `aaq://onboarding/mode` 등). null = 탭 없음.
+    String? deepLink,
+  }) = _OnboardingTrackCard;
+
+  factory OnboardingTrackCard.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingTrackCardFromJson(json);
+}
+// JSON 키: track · title · estimated_text · deep_link
+
+/// `O-00b` 운영 방식 선택(04 §9-1b · K12). 🔴 기본값 없음 — [selected] null = 아직 안 고름.
+@freezed
+abstract class OnboardingModeChoiceVm with _$OnboardingModeChoiceVm {
+  const factory OnboardingModeChoiceVm({
+    required String headline,
+
+    /// 카드 2장(엔진 차례 · 기존 [OperatingModeOption] — M9 `S05` 와 같은 타입). 🔴 크기·색·순서 우대 0.
+    required List<OperatingModeOption> options,
+
+    /// 고른 값(엔진이 `onboarding_choice` 에서 읽은 것). null = 아직 안 고름(진입 때 체크·포커스·«다음» 0).
+    OperatingMode? selected,
+
+    /// 하단 고정 고지 «투자 안내에서는 … 기록하지 않은 매매는 시스템이 알 수 없습니다.» — 엔진.
+    required String recordGapNotice,
+
+    /// 정직 고지 한 문단 — 엔진(🔴 기대치 숫자는 이 문장 안에만 · 화면 리터럴 0).
+    required String honestyText,
+
+    /// `O-01` 링크 — 엔진이 **고른 뒤에만** 준다(`aaq://onboarding/steps`). null = «다음» 부재.
+    String? nextDeepLink,
+
+    /// `committed_at` 뒤 읽기 전용 문장. non-null = 카드 탭 부재(이후 변경 = 🔒 `M5-11`).
+    String? lockedLabel,
+  }) = _OnboardingModeChoiceVm;
+
+  factory OnboardingModeChoiceVm.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingModeChoiceVmFromJson(json);
+}
+// JSON 키: headline · options · selected · record_gap_notice · honesty_text · next_deep_link · locked_label
+
+/// `O-01` 단계 목록(04 §9-2 · K17). 🔴 갈래 인자 0 — 엔진이 `onboarding_choice` 로 고른 목록이다.
+@freezed
+abstract class OnboardingStepsVm with _$OnboardingStepsVm {
+  const factory OnboardingStepsVm({
+    /// «1/12 완료» — 엔진(🔴 비율 계산 0).
+    required String progressText,
+
+    /// 단계 행(받은 차례 그대로).
+    required List<OnboardingStep> rows,
+
+    /// 행 0 일 때만 non-null(엔진 문장).
+    String? emptyLabel,
+
+    /// `O-04` 링크(`aaq://onboarding/finish`) — 엔진이 필수 통과·게이트를 판정한 뒤에만. null = «다음» 부재.
+    String? finishDeepLink,
+  }) = _OnboardingStepsVm;
+
+  factory OnboardingStepsVm.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingStepsVmFromJson(json);
+}
+// JSON 키: progress_text · rows · empty_label · finish_deep_link
+
+/// `O-02` 단계 상세 + `O-03` 검증(04 §9-3·§9-4 · K18). [step] non-null XOR [missingLabel] non-null.
+@freezed
+abstract class OnboardingStepDetailVm with _$OnboardingStepDetailVm {
+  const factory OnboardingStepDetailVm({
+    /// 그 단계(목록의 같은 `stepId` 객체와 같은 값).
+    OnboardingStep? step,
+
+    /// 모르는·지난 id = 엔진 문장(🔴 스트림 에러가 아니라 값이다).
+    String? missingLabel,
+
+    /// «어디서 받나» — 엔진 글자(🔴 결정 ② · 외부 열기 = 플랫폼 · 화면 링크 0).
+    String? whereText,
+
+    /// «어떻게 검증하나» — 엔진 글자.
+    String? howText,
+
+    /// 검증 동작(엔진이 id·args 완성). null = 버튼 부재.
+    OnboardingAction? verify,
+
+    /// 시크릿 자리 이름(`OnboardingSlotIds` · `SecretField` = 조립 앱 슬롯). null = 자리 없음.
+    String? secretSlotId,
+  }) = _OnboardingStepDetailVm;
+
+  factory OnboardingStepDetailVm.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingStepDetailVmFromJson(json);
+}
+// JSON 키: step · missing_label · where_text · how_text · verify · secret_slot_id
+
+/// 엔진이 완성한 `SettingsActions.run` 호출 1개(K19 · 검증 · DRY_RUN 공용).
+/// 🔴 화면은 [id]·[args] 를 **그대로** 넘긴다(키·값을 짓지 않는다 · 화이트리스트 = `settings_actions.dart`).
+@freezed
+abstract class OnboardingAction with _$OnboardingAction {
+  const factory OnboardingAction({
+    required SettingsActionId id,
+    required Map<String, String> args,
+
+    /// 버튼 글자 «검증 실행» · «모의 운영 시작» — 엔진.
+    required String label,
+  }) = _OnboardingAction;
+
+  factory OnboardingAction.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingActionFromJson(json);
+}
+// JSON 키: id · args · label
+
+/// `O-04` 마무리(04 §9-5 · K23). 🔴 6단계 순서 고정 · 건너뛰기 0 · 열림 = 엔진 · 모드 선택 컨트롤 0.
+@freezed
+abstract class OnboardingFinishVm with _$OnboardingFinishVm {
+  const factory OnboardingFinishVm({
+    required String headline,
+
+    /// 6단계(엔진 차례 · 🔴 화면이 순번으로 칸 뜻을 고르지 않는다 — 칸은 단계 객체가 싣는다).
+    required List<OnboardingFinishStage> stages,
+
+    /// DRY_RUN 시작 뒤 문장(모의투자 진입). null = 아직.
+    String? doneLabel,
+
+    /// 완료 체크(X3 배관 점검 — 판정 = 서버 · DRY_RUN 시작 전 = 빈 목록).
+    required List<OnboardingFinishCheck> checks,
+  }) = _OnboardingFinishVm;
+
+  factory OnboardingFinishVm.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingFinishVmFromJson(json);
+}
+// JSON 키: headline · stages · done_label · checks
+
+/// `O-04` 한 단계(K23).
+@freezed
+abstract class OnboardingFinishStage with _$OnboardingFinishStage {
+  const factory OnboardingFinishStage({
+    required String title,
+    required StepState state,
+
+    /// 열림·잠금(엔진 판정 · `unknown` = 진행 차단). null = 게이트 없음.
+    GateBadge? gate,
+
+    /// 엔진 글자 줄(배분·금 상한(config)·`config_hash` · «통과 n/전체 n» · 복구 카드 4칸 · 램프 L1·종착 조합).
+    required List<String> lines,
+
+    /// ① 정직한 기대치 한 줄(04 §9-5 ⚠️ `expectationLine?` = 이 칸) — 값이 없으면 null(줄 0).
+    String? expectationLine,
+
+    /// 🔒 자리 이름(②~⑤ · 열린 단계만 · 닫힌·끝난 단계 = null).
+    String? slotId,
+
+    /// ⑥ 시작 상태 선언(두 갈래 · 결정 ③ · 선언 뒤 = null).
+    LinkAction? link,
+
+    /// ⑥ DRY_RUN 시작(앞 단계 미통과·선언 전 = null — 엔진 판정).
+    OnboardingAction? action,
+  }) = _OnboardingFinishStage;
+
+  factory OnboardingFinishStage.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingFinishStageFromJson(json);
+}
+// JSON 키: title · state · gate · lines · expectation_line · slot_id · link · action
+
+/// 완료 체크 한 줄(04 §9-5 «체크리스트로 보이되 판정은 전부 서버» · 그림 20 `CHK`).
+@freezed
+abstract class OnboardingFinishCheck with _$OnboardingFinishCheck {
+  const factory OnboardingFinishCheck({
+    required String label,
+    required StepState state,
+  }) = _OnboardingFinishCheck;
+
+  factory OnboardingFinishCheck.fromJson(Map<String, dynamic> json) =>
+      _$OnboardingFinishCheckFromJson(json);
+}
+// JSON 키: label · state
+
+/// `R-01` 기존 계정에서 다시 시작(04 §9-6 · K26). 🔴 3)에서 역할 끝 — 분기 = 엔진이 고른 링크 · 갭 일수 판정 0.
+@freezed
+abstract class RestartVm with _$RestartVm {
+  const factory RestartVm({
+    required String headline,
+
+    /// ① 복구 카드 로그인 자리(매직링크/OTP = 플랫폼). null = 이미 로그인.
+    String? loginSlotId,
+
+    /// ② 기기 원장 요약(구 폰 라벨 · 마지막 접속 · 리스 잔여 — 엔진 글자). null = 로그인 전(원장을 아직 못 읽음).
+    List<String>? ledgerLines,
+
+    /// 리스·기기 원장 3상(`unknown` = 진행 차단 · 엔진이 그때 [branches] 를 비운다).
+    GateBadge? leaseGate,
+
+    /// ③ 분기(엔진이 고른 목록 · 모름·로그인 전 = 빈 목록).
+    required List<LinkAction> branches,
+
+    /// 킬스위치·차단 플래그 승계 고지(🔴 «초기화» 선택지 0).
+    String? inheritNotice,
+  }) = _RestartVm;
+
+  factory RestartVm.fromJson(Map<String, dynamic> json) =>
+      _$RestartVmFromJson(json);
+}
+// JSON 키: headline · login_slot_id · ledger_lines · lease_gate · branches · inherit_notice
+
+/// `V-01` 조회 전용 QR 페어링(04 §9-7 · K27). 🔴 스캔·클레임 = 플랫폼 · 수동 입력 대체 경로 0.
+@freezed
+abstract class PairingVm with _$PairingVm {
+  const factory PairingVm({
+    required String headline,
+
+    /// 스캐너 자리(플랫폼 카메라 · 대기·재시도 때). null = 자리 없음(성공 뒤).
+    String? scannerSlotId,
+
+    /// 클레임 결과. null = 아직 스캔 전.
+    PairingResult? result,
+  }) = _PairingVm;
+
+  factory PairingVm.fromJson(Map<String, dynamic> json) =>
+      _$PairingVmFromJson(json);
+}
+// JSON 키: headline · scanner_slot_id · result
+
+/// `V-01` 클레임 결과(판정 = 엔진·플랫폼 · 폐기된 토큰 = 즉시 차단).
+@freezed
+abstract class PairingResult with _$PairingResult {
+  const factory PairingResult({
+    required UiLevel level,
+    required String headline,
+
+    /// 원문 코드(`OnboardingResultCodes` 등). `OK` 밖이면 non-null.
+    String? reasonCode,
+
+    /// 다음 화면(`OK` 일 때만 · 엔진 완성). null = 부재.
+    LinkAction? nextLink,
+  }) = _PairingResult;
+
+  factory PairingResult.fromJson(Map<String, dynamic> json) =>
+      _$PairingResultFromJson(json);
+}
+// JSON 키: level · headline · reason_code · next_link
 ```
 
 ---
@@ -5428,6 +5756,8 @@ abstract class DataGapRow with _$DataGapRow {
 ```dart
 // packages/domain_contracts/lib/src/dto/safety.dart
 //
+// 🆕 v1.16 — `OnboardingStep` 표시 칸 6(01 §25) · 온보딩 한 화면 VM = `onboarding.dart`.
+//
 // 01 §2-10 «AlertItem · SafetyState · OnboardingStep» + m2-8 D-1~D-3(`KillSwitchView`·
 // `AckState`·`GaugeProgress`) · C-5(`EntryRampProgress`) · C-6(`RampLevel`)
 // · 인벤토리 §3-7 · §3-14(영역 B).
@@ -5445,6 +5775,7 @@ import '../enums/safety.dart';
 import '../enums/sleeve.dart';
 import '../primitives/as_of.dart';
 import '../primitives/money.dart';
+import 'common.dart';
 
 part 'safety.freezed.dart';
 part 'safety.g.dart';
@@ -5712,9 +6043,11 @@ abstract class BlockFlag with _$BlockFlag {
       _$BlockFlagFromJson(json);
 }
 
-/// 온보딩 단계 1행 — X3(01 §2-10).
+/// 온보딩 단계 1행 — X3(01 §2-10). 🆕 v1.16(01 §25 · K15) — 표시 칸 6.
 ///
 /// 🔴 화면이 `Duration` 을 포맷하지 않는다(01 §1-3) — 표시는 `estimatedText` 다.
+/// 🔴 화면 미참조 = [stepId] · [track] · [order] · [estimated] · [requirement] · [verifiedUntil] · [whereDeepLink]
+///    (값으로 글자·차단·정렬·Key 를 고르지 않는다 — 글자는 `*Label`·`*Text` 칸).
 @freezed
 abstract class OnboardingStep with _$OnboardingStep {
   const factory OnboardingStep({
@@ -5725,6 +6058,9 @@ abstract class OnboardingStep with _$OnboardingStep {
 
     /// 왜 필요한가 — 엔진 생성
     required String whyLine,
+
+    /// 🔵 v1.16(K16) — 화면 미참조(옛 뜻 = 자기 단계 링크 · «어디서 받나» = `OnboardingStepDetailVm.whereText` ·
+    ///    외부 열기 = 플랫폼 · 01 §8 미결 150). 신설 표본은 null.
     String? whereDeepLink,
 
     /// 정렬·집계용. JSON 키는 `*_seconds`(01 §1-2 `DurationSecondsConverter`)
@@ -5740,9 +6076,27 @@ abstract class OnboardingStep with _$OnboardingStep {
     /// "KIS 토큰 발급 + 잔고 조회 1회" — 엔진 생성
     String? verificationLabel,
 
-    /// 검증 유효기간(KIS 접근토큰 24h · PAT 만료일 등)
+    /// 검증 유효기간(KIS 접근토큰 24h · PAT 만료일 등) — 🔵 v1.16 화면 미참조(표시 = [verifiedUntilText]).
     DateTime? verifiedUntil,
     String? failureReasonCode,
+
+    /// 🆕 v1.16 — 등급 글자 «필수»·«권장»·«선택»(엔진). 🔴 화면은 [requirement] 로 글자·차단을 고르지 않는다.
+    required String requirementLabel,
+
+    /// 🆕 v1.16 — 권장 미통과 경고 배지(엔진 판정 · null = 부재). 🔴 차단이 아니다 — 차단 = [gate].
+    String? warningLabel,
+
+    /// 🆕 v1.16 — 만료 글자 «2026-11-30까지» · «2026-08-30에 만료됨»(엔진 · [verifiedUntil] non-null ⇒ non-null · C-50 ⑥).
+    String? verifiedUntilText,
+
+    /// 🆕 v1.16 — 실패 문장(엔진 · [failureReasonCode] 원문과 **함께** 그린다 · 요약·의역 0).
+    String? failureText,
+
+    /// 🆕 v1.16 — 단계 게이트(엔진 판정 · null = 게이트 없음 · `unknown` = 진행 차단 · 04 §9-8).
+    GateBadge? gate,
+
+    /// 🆕 v1.16 — `O-02` 링크(`aaq://onboarding/<stepId>` · 엔진 완성). null = 행 탭 없음.
+    String? detailDeepLink,
   }) = _OnboardingStep;
 
   factory OnboardingStep.fromJson(Map<String, dynamic> json) =>
@@ -6329,8 +6683,8 @@ enum CommandState {
 ///
 /// 🔴 **개수를 숫자로 적지 않는다**(G-91 · §8-17 — 골든벡터 총계와 같은 이유).
 /// 🔴 `M9` 가 부르는 값은 05 §7 이 정본이고 행이 늘면 여기가 따라온다. 그러나
-///    **`M5`·`M8` 전용 4값**(`onboardingOperatingModeSelect`·`handoverAdoptionSet`·
-///    `handoverExternalRegister`·`handoverCommit`)은 **이 파일이 정본**이며 05 §7 표에
+///    **`M5`·`M8` 전용 5값**(`onboardingOperatingModeSelect`·`handoverAdoptionSet`·
+///    `handoverExternalRegister`·`handoverCommit` · 🆕 v1.16 `onboardingDryRunStart`)은 **이 파일이 정본**이며 05 §7 표에
 ///    나타나지 않는 것이 설계다 — 🔴 05 §7 에 없다는 이유로 지우지 않는다. 지우면 G-01·G-03
 ///    이 닫은 구멍(위저드·온보딩의 쓰기 경로 부재)이 되살아난다.
 /// 🔴 DDL `CHECK` 대응 컬럼은 없다. 표기는 §1-2 규약대로 SCREAMING_SNAKE 다.
@@ -6354,6 +6708,12 @@ enum SettingsActionId {
   /// 거치지 않으며, `O-04` 완료 후에는 이 동작이 거부되고 아래 전환 요청으로만 바뀐다.
   @JsonValue('ONBOARDING_OPERATING_MODE_SELECT')
   onboardingOperatingModeSelect('ONBOARDING_OPERATING_MODE_SELECT'),
+
+  /// 🆕 v1.16(01 §25 · K24) — 🔴 온보딩 `O-04` ⑥ «DRY_RUN 시작» 전용(M8). 첫 `onboarding_choice.committed_at` 을
+  /// **같은 트랜잭션**에서 채운다(01 §8-23) — 실패하면 둘 다 되돌린다. `runtimeEngineStart`(M9 운용 관리 ·
+  /// 온보딩을 마친 엔진의 시작)와 다르다. args = `{}`.
+  @JsonValue('ONBOARDING_DRY_RUN_START')
+  onboardingDryRunStart('ONBOARDING_DRY_RUN_START'),
 
   @JsonValue('RUNTIME_MODE_SWITCH_REQUEST')
   runtimeModeSwitchRequest('RUNTIME_MODE_SWITCH_REQUEST'),
@@ -8285,9 +8645,58 @@ abstract final class FixturePaths {
   static const String m8HandbookPageSleeveB = 'm8/handbook_page_sleeve_b.json';
   static const String m8IncidentTokenExpired = 'm8/incident_token_expired.json';
   static const String m8OnboardingFinish = 'm8/onboarding_finish.json';
+
+  /// 🆕 v1.16(01 §25 · K23 · R15c) — `O-04` 마무리(`OnboardingFinishVm`) 7벌 + DRY_RUN 결과(`ActionResult` 2).
+  static const String m8OnboardingFinishAdvisory =
+      'm8/onboarding_finish_advisory.json';
+  static const String m8OnboardingFinishAdvisoryDeclared =
+      'm8/onboarding_finish_advisory_declared.json';
+  static const String m8OnboardingFinishAuto = 'm8/onboarding_finish_auto.json';
+  static const String m8OnboardingFinishAutoDeclared =
+      'm8/onboarding_finish_auto_declared.json';
+  static const String m8OnboardingFinishAutoReady =
+      'm8/onboarding_finish_auto_ready.json';
+  static const String m8OnboardingFinishDone = 'm8/onboarding_finish_done.json';
+  static const String m8OnboardingFinishNoExpectation =
+      'm8/onboarding_finish_no_expectation.json';
+  static const String m8OnboardingFinishResults =
+      'm8/onboarding_finish_results.json';
   static const String m8OnboardingFreshAdvisory =
       'm8/onboarding_fresh_advisory.json';
+
+  /// 🆕 v1.16(01 §25 · K12 · R15a) — `O-00b` 운영 방식 선택(`OnboardingModeChoiceVm`) 4벌 + 선택 결과(`ActionResult` 2).
+  static const String m8OnboardingModeAdvisory =
+      'm8/onboarding_mode_advisory.json';
+  static const String m8OnboardingModeAuto = 'm8/onboarding_mode_auto.json';
+  static const String m8OnboardingModeLocked = 'm8/onboarding_mode_locked.json';
   static const String m8OnboardingModePick = 'm8/onboarding_mode_pick.json';
+  static const String m8OnboardingModeSelectResults =
+      'm8/onboarding_mode_select_results.json';
+  static const String m8OnboardingModeUnselected =
+      'm8/onboarding_mode_unselected.json';
+
+  /// 🆕 v1.16(01 §25 · K11·K17·K18 · R15a·R15b) — `O-00` 첫 실행(`OnboardingStartVm`) 2 · `O-02` 상세(`OnboardingStepDetailVm`) 3 · `O-01` 목록(`OnboardingStepsVm`) 6 · 검증 결과(`ActionResult` 3).
+  static const String m8OnboardingStart = 'm8/onboarding_start.json';
+  static const String m8OnboardingStartNoViewer =
+      'm8/onboarding_start_no_viewer.json';
+  static const String m8OnboardingStepDetailKisMock =
+      'm8/onboarding_step_detail_kis_mock.json';
+  static const String m8OnboardingStepDetailMissing =
+      'm8/onboarding_step_detail_missing.json';
+  static const String m8OnboardingStepDetailNoVerify =
+      'm8/onboarding_step_detail_no_verify.json';
+  static const String m8OnboardingStepsAdvisory =
+      'm8/onboarding_steps_advisory.json';
+  static const String m8OnboardingStepsAllVerifiedLocked =
+      'm8/onboarding_steps_all_verified_locked.json';
+  static const String m8OnboardingStepsEmpty = 'm8/onboarding_steps_empty.json';
+  static const String m8OnboardingStepsFinishReady =
+      'm8/onboarding_steps_finish_ready.json';
+  static const String m8OnboardingStepsFinishReadyWarn =
+      'm8/onboarding_steps_finish_ready_warn.json';
+  static const String m8OnboardingStepsFresh = 'm8/onboarding_steps_fresh.json';
+  static const String m8OnboardingVerifyResults =
+      'm8/onboarding_verify_results.json';
   static const String m8OpsHomeAdviceOpen = 'm8/ops_home_advice_open.json';
 
   /// 🆕 v1.13(01 §23 · K7 ⓑ) — 억제 + 기한 라벨(`H-01` 3b 억제 갈래 = `headline` 한 줄만 · R13b 참고 변이 표본).
@@ -8301,11 +8710,22 @@ abstract final class FixturePaths {
 
   /// 🆕 v1.12(K29) — `H-02` 리듬을 아직 받지 못함(`NOT_LOADED` · «모름» ≠ «없음») — R13a 위젯 테스트.
   static const String m8OpsRhythmEmpty = 'm8/ops_rhythm_empty.json';
+
+  /// 🆕 v1.16(01 §25 · K27 · R15d) — `V-01` 페어링(`PairingVm`) 3벌(fail · ok · waiting).
+  static const String m8PairingFail = 'm8/pairing_fail.json';
+  static const String m8PairingOk = 'm8/pairing_ok.json';
+  static const String m8PairingWaiting = 'm8/pairing_waiting.json';
   static const String m8ReconBoardDiff = 'm8/recon_board_diff.json';
 
   /// 🆕 v1.13(01 §23 · K5) — 대조 보드 전부 일치(칸 5 · 자가보고 해당 없음 · `headline` = 엔진 일치 문장) — R13b `h01_normal` 계열.
   static const String m8ReconBoardOk = 'm8/recon_board_ok.json';
   static const String m8RestartLostPhone = 'm8/restart_lost_phone.json';
+
+  /// 🆕 v1.16(01 §25 · K26 · R15d) — `R-01` 다시 시작(`RestartVm`) 4벌(gap7 · logged_out · lost_phone · unknown).
+  static const String m8RestartVmGap7 = 'm8/restart_vm_gap7.json';
+  static const String m8RestartVmLoggedOut = 'm8/restart_vm_logged_out.json';
+  static const String m8RestartVmLostPhone = 'm8/restart_vm_lost_phone.json';
+  static const String m8RestartVmUnknown = 'm8/restart_vm_unknown.json';
 
   /// 🆕 v1.15(01 §24 · K3) 꼴 = `WatchdogBoardVm` 1행(6행 · 실패 1).
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
@@ -8499,8 +8919,33 @@ abstract final class FixturePaths {
     m8HandbookPageSleeveB,
     m8IncidentTokenExpired,
     m8OnboardingFinish,
+    m8OnboardingFinishAdvisory,
+    m8OnboardingFinishAdvisoryDeclared,
+    m8OnboardingFinishAuto,
+    m8OnboardingFinishAutoDeclared,
+    m8OnboardingFinishAutoReady,
+    m8OnboardingFinishDone,
+    m8OnboardingFinishNoExpectation,
+    m8OnboardingFinishResults,
     m8OnboardingFreshAdvisory,
+    m8OnboardingModeAdvisory,
+    m8OnboardingModeAuto,
+    m8OnboardingModeLocked,
     m8OnboardingModePick,
+    m8OnboardingModeSelectResults,
+    m8OnboardingModeUnselected,
+    m8OnboardingStart,
+    m8OnboardingStartNoViewer,
+    m8OnboardingStepDetailKisMock,
+    m8OnboardingStepDetailMissing,
+    m8OnboardingStepDetailNoVerify,
+    m8OnboardingStepsAdvisory,
+    m8OnboardingStepsAllVerifiedLocked,
+    m8OnboardingStepsEmpty,
+    m8OnboardingStepsFinishReady,
+    m8OnboardingStepsFinishReadyWarn,
+    m8OnboardingStepsFresh,
+    m8OnboardingVerifyResults,
     m8OpsHomeAdviceOpen,
     m8OpsHomeAdviceSuppressedDue,
     m8OpsHomeAdviceZero,
@@ -8509,9 +8954,16 @@ abstract final class FixturePaths {
     m8OpsHomeResumeGap7,
     m8OpsRhythmRows,
     m8OpsRhythmEmpty,
+    m8PairingFail,
+    m8PairingOk,
+    m8PairingWaiting,
     m8ReconBoardDiff,
     m8ReconBoardOk,
     m8RestartLostPhone,
+    m8RestartVmGap7,
+    m8RestartVmLoggedOut,
+    m8RestartVmLostPhone,
+    m8RestartVmUnknown,
     m8WatchdogDelayed,
     m8WatchdogEmpty,
     m8WatchdogHoliday,
@@ -9379,6 +9831,7 @@ import 'exit_kind.dart';
 import 'flag_ids.dart';
 import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
+import 'onboarding_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
@@ -9392,6 +9845,7 @@ export 'exit_kind.dart';
 export 'flag_ids.dart';
 export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
+export 'onboarding_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
@@ -9540,6 +9994,12 @@ abstract final class ContractCodes {
     'advice_retry': AdviceRetryCodes.values,
     // 🆕 v1.12(K19) — 수기 체결 초안의 «채우기» 필드(`ManualFillInput.prefilledFields` · C-5 «values 집합 = 등재»)
     'manual_fill_prefill': ManualFillPrefillFields.values,
+    // 🆕 v1.16(01 §25 · K21) — 온보딩·페어링 결과의 앱 코드(`ActionResult.reasonCode` · `PairingResult.reasonCode`)
+    'onboarding_result': OnboardingResultCodes.values,
+    // 🆕 v1.16(01 §25 · K21) — 브로커 원문 코드(계약 표본이 쓰는 것 · 전수 아님 · 01 §8 미결 157)
+    'broker_raw': BrokerRawCodes.values,
+    // 🆕 v1.16(01 §25 · K21) — 온보딩 🔒 슬롯 이름(`secretSlotId`·`slotId`·`loginSlotId`·`scannerSlotId`)
+    'onboarding_slot': OnboardingSlotIds.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -9683,6 +10143,84 @@ abstract final class LedgerEventRejectCodes {
     corporateActionSymbolNotHeld,
     voidTargetNotActive,
     duplicateSuspected,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/onboarding_codes.dart`
+
+```dart
+// 01 §3 · 🆕 계약 v1.16(01 §25 · K21) — X3 온보딩·페어링 코드 사전 3축.
+//
+// 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이
+//    함께 싣는다(`ActionResult.headline` · `PairingResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
+
+/// `ActionResult.reasonCode`·`PairingResult.reasonCode` 의 온보딩 앱 코드(도메인 `onboarding_result`).
+abstract final class OnboardingResultCodes {
+  /// `O-00b` 재선택 거부 — `onboarding_choice.committed_at` 뒤(`O-04` 완료 · 01 §8-23). 이후 변경 = 🔒 `M5-11`.
+  static const String choiceCommitted = 'ONBOARDING_CHOICE_COMMITTED';
+
+  /// `O-03` 검증 거절 — 다시 눌러도 같다(키를 다시 발급·입력해야 한다 · `retryable` false).
+  static const String credentialRejected = 'CREDENTIAL_REJECTED';
+
+  /// `O-04` ⑥ DRY_RUN 시작 실패 — `committed_at` 도 함께 되돌렸다(01 §8-23).
+  static const String dryRunStartRolledBack = 'DRY_RUN_START_ROLLED_BACK';
+
+  /// `V-01` 폐기된 연결 코드(M9 `S06` 이 폐기 · 즉시 차단 · 04 §9-7).
+  static const String pairingTokenRevoked = 'PAIRING_TOKEN_REVOKED';
+
+  static const Set<String> values = <String>{
+    choiceCommitted,
+    credentialRejected,
+    dryRunStartRolledBack,
+    pairingTokenRevoked,
+  };
+}
+
+/// 브로커 원문 코드(도메인 `broker_raw`) — 엔진이 받은 그대로 `reasonCode` 에 싣는 외부 코드 중 **계약 표본이 쓰는 것**.
+/// 🔴 전수 목록이 아니다 — 실 응답 등재는 엔진 레인이 늘린다(SPEC 02 §5-1 에러표 · 13 §8 R33 D15 · 01 §8 미결 157).
+abstract final class BrokerRawCodes {
+  /// KIS — 접근토큰 발급 제한(1분 1회 · 잠시 뒤 재시도 = `retryable` true).
+  static const String kisTokenRateLimited = 'EGW00133';
+
+  static const Set<String> values = <String>{kisTokenRateLimited};
+}
+
+/// 온보딩 🔒 슬롯 이름(도메인 `onboarding_slot`) — VM 칸 `secretSlotId`·`slotId`·`loginSlotId`·`scannerSlotId` 의 값.
+/// 🔴 `ui_shell` 은 이름을 해석하지 않는다 — 주입된 슬롯 빌더에 그대로 넘긴다. 이름 → 위젯 = 조립 앱(06 M4-11).
+/// 🔴 더할 때 = 엔진(VM 산출)·조립 앱(빌더)이 같은 회차에 — 01 §8 미결 152.
+abstract final class OnboardingSlotIds {
+  /// `O-02` KIS 모의 앱키 — M4-4 `SecretField`.
+  static const String secretKisMock = 'SECRET_KIS_MOCK';
+
+  /// `O-04` ② 본인 서약문 3문장 — 🔒 M5-8(프리필 0 · 건너뛰기 0).
+  static const String pledgeWrite = 'PLEDGE_WRITE';
+
+  /// `O-04` ③ 생체 서명 — 🔒 M5.
+  static const String biometricSign = 'BIOMETRIC_SIGN';
+
+  /// `O-04` ④ 골든벡터 셀프테스트 실행 버튼 — 🔒 M9(`selftestGoldenRun` 은 위젯 안에서).
+  static const String selftestRun = 'SELFTEST_RUN';
+
+  /// `O-04` ⑤ 복구 카드 체크섬 입력 — 🔒 M9 입력 위젯(06 M4-10 · 결정 ②).
+  static const String recoveryChecksum = 'RECOVERY_CHECKSUM';
+
+  /// `R-01` ① 복구 카드 로그인(매직링크/OTP) — 플랫폼(06 M4-11).
+  static const String recoveryLogin = 'RECOVERY_LOGIN';
+
+  /// `V-01` QR 스캔·토큰 클레임 — 플랫폼(06 M4-11 · 01 §8 미결 13).
+  static const String viewerQrScan = 'VIEWER_QR_SCAN';
+
+  static const Set<String> values = <String>{
+    secretKisMock,
+    pledgeWrite,
+    biometricSign,
+    selftestRun,
+    recoveryChecksum,
+    recoveryLogin,
+    viewerQrScan,
   };
 }
 ```
@@ -10254,6 +10792,13 @@ abstract final class AppRoutes {
   static const String ledgerSelfReport =
       'aaq://ledger/self-report/:yyyyMm/:accountAlias';
 
+  /// 🆕 v1.16(01 §25 · K3 · K25) — `O-04` ⑥ 투자 안내 갈래 시작 상태 선언 = `L-3` 폼 재사용(`SelfReportPurpose.simOpening` ·
+  /// 세션 없음 · `yyyyMm` 없음 · 계좌 별칭 = 그 계좌). 들어오는 링크 = `OnboardingFinishStage.link`(엔진 완성).
+  /// 본문 = `ui_journal` 의 `L-3` simOpening 갈래(01 §8 미결 153 — 그 카드 전까지 셸 = 빈 자리).
+  /// `'/'` 조각 수(5)가 `ledger/execution-gap/:yyyyMm` 과 같고 **둘째 고정 조각**으로 갈린다.
+  static const String ledgerSimOpening =
+      'aaq://ledger/sim-opening/:accountAlias';
+
   /// 원장 신뢰 등급 설명.
   static const String ledgerTrust = 'aaq://ledger/trust';
 
@@ -10324,7 +10869,27 @@ abstract final class AppRoutes {
       'aaq://rebalance/event/:rebalanceEventId';
 
   // ── M8 셸·운영·온보딩 · M9 설정(04 · 05) ─────────────────────────────────
-  /// 온보딩·재연결 단계(`o_00`~ · `r_00`~).
+  /// 🆕 v1.16(01 §25 · K28) — `O-00` 첫 실행(`OnboardingStart()` · `ui_shell`). 들어오는 길 = 첫 실행 판정(조립 앱 · 06 M4-11).
+  /// 🔴 아래 고정 6 은 [all] 에서 [onboardingStep] **앞**이다(고정 조각이 파라미터보다 먼저 일치 — `report/archive` 선례 · C-33 ⑦).
+  ///    엔진 의무 = `stepId` 꼴 `^[orv]_[0-9]{2}[a-z]?$`(고정 조각과 겹치지 않는다 · C-50 ⑥).
+  static const String onboardingStart = 'aaq://onboarding/start';
+
+  /// 🆕 v1.16 — `O-00b` 운영 방식 선택 · 들어오는 링크 = `OnboardingTrackCard.deepLink`(fresh) · `RestartVm.branches`(갭 7일).
+  static const String onboardingModePick = 'aaq://onboarding/mode';
+
+  /// 🆕 v1.16 — `O-01` 단계 목록 · 들어오는 링크 = `OnboardingModeChoiceVm.nextDeepLink`.
+  static const String onboardingSteps = 'aaq://onboarding/steps';
+
+  /// 🆕 v1.16 — `O-04` 마무리 · 들어오는 링크 = `OnboardingStepsVm.finishDeepLink`.
+  static const String onboardingFinish = 'aaq://onboarding/finish';
+
+  /// 🆕 v1.16 — `R-01` 기존 계정에서 다시 시작 · 들어오는 링크 = `OnboardingTrackCard.deepLink`(reconnect).
+  static const String onboardingRestart = 'aaq://onboarding/restart';
+
+  /// 🆕 v1.16 — `V-01` 조회 전용 QR 페어링(뷰어) · 들어오는 링크 = `OnboardingStartVm.viewerTrack.deepLink`.
+  static const String onboardingPairing = 'aaq://onboarding/pairing';
+
+  /// 온보딩·재연결 단계(`o_00`~ · `r_00`~). 🆕 v1.16 — 들어오는 링크 = `OnboardingStep.detailDeepLink`(`O-02`).
   static const String onboardingStep = 'aaq://onboarding/:stepId';
   static const String opsArchive = 'aaq://ops/archive';
   static const String opsMaintenance = 'aaq://ops/maintenance';
@@ -10355,7 +10920,16 @@ abstract final class AppRoutes {
 
   /// `M5-13` 원장 실사 해소·격리 검토.
   static const String m5SelfAuditResolve = 'aaq://m5/self-audit-resolve';
+
+  /// 🆕 v1.16(01 §25 · K3) — `O-04` ⑥ 자동 매매 갈래 시작 상태 선언 = 가상 초기금 1칸(🔒 M5 위젯 · 06 M5-14 · 기본값 없음).
+  static const String m5SimOpeningCash = 'aaq://m5/sim-opening-cash';
   static const String x1Migration = 'aaq://x1/migration';
+
+  /// 🆕 v1.16(01 §25 · K5) — `R-01` 분기 «구 폰이 옆에 있어요» = X1 계획 경로(QR · 🔒 X1-2).
+  static const String x1MigrationPlan = 'aaq://x1/migration/plan';
+
+  /// 🆕 v1.16 — `R-01` 분기 «잃어버렸어요» = X1 비상 경로(복구 코드 → epoch+1 → TTL 대기 · 🔒 X1-3).
+  static const String x1MigrationEmergency = 'aaq://x1/migration/emergency';
   static const String x2ResumeReport = 'aaq://x2/resume-report';
   static const String x2ResumeGate = 'aaq://x2/resume-gate';
 
@@ -10367,6 +10941,7 @@ abstract final class AppRoutes {
   /// `holdingsDetail`·`holdingsAllocation` · 🆕 v1.12 = **52** · `adviceSkip`·`ledgerDiffs`·`ledgerRepairs`·`opsRhythm`
   /// + 교체 2 `adviceFill`·`ledgerSelfReport`). 순서 = 첫 일치(C-33 ⑦ · 겹침 0) — `adviceSkip` 은 `adviceFill` 뒤 ·
   /// `ledgerDiffs`·`ledgerRepairs` 는 `ledgerTrust` 뒤 · `opsRhythm` 은 `opsWatchdog` 뒤.
+  /// 🆕 v1.16 = **64** · 온보딩 6(`onboardingStep` 앞 — 첫 일치) · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2.
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -10384,6 +10959,7 @@ abstract final class AppRoutes {
     adviceSkip,
     adviceHistory,
     ledgerSelfReport,
+    ledgerSimOpening,
     ledgerTrust,
     ledgerDiffs,
     ledgerRepairs,
@@ -10401,6 +10977,12 @@ abstract final class AppRoutes {
     rebalanceHistory,
     rebalancePreview,
     rebalanceEvent,
+    onboardingStart,
+    onboardingModePick,
+    onboardingSteps,
+    onboardingFinish,
+    onboardingRestart,
+    onboardingPairing,
     onboardingStep,
     opsArchive,
     opsMaintenance,
@@ -10418,7 +11000,10 @@ abstract final class AppRoutes {
     m5HandoverGate,
     m5HandoverWizard,
     m5SelfAuditResolve,
+    m5SimOpeningCash,
     x1Migration,
+    x1MigrationPlan,
+    x1MigrationEmergency,
     x2ResumeReport,
     x2ResumeGate,
     x5RepairWizard,
@@ -11163,17 +11748,37 @@ abstract interface class LedgerTrustRepository {
 ## `packages/domain_contracts/lib/src/repositories/onboarding_repository.dart`
 
 ```dart
-// 01 §4-1 — X3 온보딩 읽기 창구.
+// 01 §4-1 — X3 온보딩 읽기 창구. 🆕 v1.16(01 §25 · K29) — 한 화면 VM 창구 6(추가형 · `watchSteps` 무변경).
 
+import '../dto/onboarding.dart';
 import '../dto/safety.dart';
 import '../enums/onboarding.dart';
 
-/// 온보딩 단계 목록.
+/// 온보딩 읽기 창구(폰 · 엔진 로컬). 🔴 읽기 전용 — 쓰기 = `SettingsActions`·`CommandApi`.
 abstract interface class OnboardingRepository {
   /// 🆕 G-01 — 🔴 **갈래별(자동 매매 / 투자 안내) 준비물 목록의 근거는 `onboarding_choice`**
   ///    이며 화면이 `OperatingMode` 를 **인자로 넘기지 않는다**. 선택 전에는 공통 단계만
   ///    오고, `O-00b` 가 선택을 저장한 뒤부터 갈래 단계가 목록에 나타난다.
+  /// 🔵 v1.16 — R15 화면은 부르지 않는다(`O-01` = [watchStepList]) · 존폐 = 01 §8 미결 149.
   Stream<List<OnboardingStep>> watchSteps(OnboardingTrack t);
+
+  /// 🆕 v1.16 — `O-00` 첫 실행 갈래.
+  Stream<OnboardingStartVm> watchStart();
+
+  /// 🆕 v1.16 — `O-00b` 운영 방식 선택(🔴 기본값 없음 = `selected` null).
+  Stream<OnboardingModeChoiceVm> watchModeChoice();
+
+  /// 🆕 v1.16 — `O-01` 단계 목록(🔴 갈래 인자 0 — 엔진이 `onboarding_choice` 로 고른다).
+  Stream<OnboardingStepsVm> watchStepList();
+
+  /// 🆕 v1.16 — `O-02`·`O-03` 단계 상세. 모르는·지난 [stepId] = `step` null + `missingLabel`(값 · 에러 아님).
+  Stream<OnboardingStepDetailVm> watchStep(String stepId);
+
+  /// 🆕 v1.16 — `O-04` 마무리 6단계.
+  Stream<OnboardingFinishVm> watchFinish();
+
+  /// 🆕 v1.16 — `R-01` 기존 계정에서 다시 시작(분기까지).
+  Stream<RestartVm> watchRestart();
 }
 ```
 
@@ -11233,6 +11838,27 @@ abstract interface class OpsSummaryRepository {
   /// 🔴 [watchToday] 의 `upcoming` 은 이 목록의 **앞 ≤3 과 같은 값**이다(엔진 의무 · C-47 ⑤) · 뷰어 = `rm_ops_summary`
   ///    전체 목록 열(열 이름 = 엔진 배치).
   Stream<ListResult<OpsRhythmRow>> watchRhythm();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/pairing_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 계약 v1.16(01 §25 · K4 · K27 · 발주자 결정 2026-11-03 ③) — `V-01` 조회 전용 QR 페어링 읽기 창구.
+//
+// 🔴 **뷰어(iOS) 빌드에 주입된다** — 뷰어에는 `SettingsActions` 가 주입되지 않는다(settings_actions.dart 머리).
+// 🔴 스캔·토큰 클레임·저장 = **플랫폼**(조립 앱 · 카메라 플러그인 = C-3 밖 · 01 §8 미결 13 과 한 창) —
+//    플랫폼이 클레임한 결과를 이 스트림에 싣는다. 화면은 스캐너 자리를 비우고 결과를 그대로 그린다
+//    (쓰기 0 · URL·키 수동 입력 0 · 04 §9-7).
+
+import '../dto/onboarding.dart';
+
+/// `V-01` 페어링 상태 읽기 창구.
+abstract interface class PairingRepository {
+  /// 스캔 전(`result` null) → 결과(`OK` · 실패 + 원문 코드). 폐기된 토큰 = 엔진·플랫폼이 즉시 차단해 실패로 싣는다.
+  Stream<PairingVm> watchPairing();
 }
 ```
 
