@@ -955,4 +955,249 @@ void main() {
       expect(rig.posts, hasLength(1));
     });
   });
+
+  group('🆕 E10g 잔고 — 대사 포트(BrokerBalanceSource · R41 J1~J9)', () {
+    /// 실응답(2026-11-04 01:07 · 보유 0주)에 시험이 보유 행을 넣는다(J2 — 합성 파일은 두지 않는다).
+    Map<String, Object?> withRows(
+      List<Map<String, String>> rows, {
+      String nk = '',
+      String fk = '',
+      String? cash,
+    }) {
+      final Map<String, Object?> b = _fixture('balance_balance.json');
+      final List<Object?> o2 = b['output2']! as List<Object?>;
+      return <String, Object?>{
+        ...b,
+        'output1': rows,
+        'ctx_area_nk100': nk,
+        'ctx_area_fk100': fk,
+        if (cash != null)
+          'output2': <Object?>[
+            <String, Object?>{
+              ...o2.first! as Map<String, Object?>,
+              'dnca_tot_amt': cash,
+            },
+          ],
+      };
+    }
+
+    _Rig rigOf(
+      Future<http.Response> Function(http.Request r, int i) get, {
+      KisEnvironment env = KisEnvironment.mock,
+    }) => _Rig(
+      (http.Request r, int i) async => _json(_okOrder()),
+      get: get,
+      env: env,
+    );
+
+    test('실응답(보유 0주) — 보유 없음 · 관측 현금 = dnca_tot_amt · 예수금 = prvs_rcdl_excc_amt(R37 Y7 실측) · 요청 인자', () async {
+      final _Rig rig = rigOf(
+        (http.Request r, int i) async =>
+            _json(_fixture('balance_balance.json')),
+      );
+      final BrokerBalance b = await rig.broker.balance();
+      expect(b.holdings, isEmpty);
+      expect(b.cashKrw, Decimal.parse('49999965'));
+      expect(await rig.broker.orderableCashKrw(), Decimal.parse('49999965'));
+      final http.Request q = rig.gets.first;
+      expect(q.url.path, KisOrderPaths.balance);
+      expect(q.headers['tr_id'], 'VTTC8434R');
+      expect(q.url.queryParameters, <String, String>{
+        'CANO': '50123456',
+        'ACNT_PRDT_CD': q.url.queryParameters['ACNT_PRDT_CD']!,
+        'AFHR_FLPR_YN': 'N',
+        'OFL_YN': '',
+        'INQR_DVSN': '02',
+        'UNPR_DVSN': '01',
+        'FUND_STTL_ICLD_YN': 'N',
+        'FNCG_AMT_AUTO_RDPT_YN': 'N',
+        'PRCS_DVSN': '00',
+        'CTX_AREA_FK100': '',
+        'CTX_AREA_NK100': '',
+      });
+      expect(rig.gets, hasLength(2));
+      expect(rig.posts, isEmpty);
+    });
+
+    test('보유 행 — 종목마다 합 · 0주는 넣지 않는다 · 대문자 칸도 읽는다', () async {
+      final _Rig rig = rigOf(
+        (http.Request r, int i) async => _json(
+          withRows(<Map<String, String>>[
+            <String, String>{'pdno': '133690', 'hldg_qty': '3'},
+            <String, String>{'PDNO': '411060', 'HLDG_QTY': '2'},
+            <String, String>{'pdno': '133690', 'hldg_qty': '2'},
+            <String, String>{'pdno': '069500', 'hldg_qty': '0'},
+          ]),
+        ),
+      );
+      expect((await rig.broker.balance()).holdings, <String, int>{
+        '133690': 5,
+        '411060': 2,
+      });
+    });
+
+    test('보유 행의 빠진 칸 · 정수 아님 · 음수 · 객체 아님 = FormatException(지어내지 않는다)', () {
+      for (final List<Object?> rows in <List<Object?>>[
+        <Object?>[
+          <String, String>{'hldg_qty': '1'},
+        ],
+        <Object?>[
+          <String, String>{'pdno': '133690'},
+        ],
+        <Object?>[
+          <String, String>{'pdno': '133690', 'hldg_qty': '1.5'},
+        ],
+        <Object?>[
+          <String, String>{'pdno': '133690', 'hldg_qty': '-1'},
+        ],
+        <Object?>[
+          <String, String>{'pdno': ' ', 'hldg_qty': '1'},
+        ],
+        <Object?>['133690'],
+      ]) {
+        expect(
+          () => parseKisHoldings(rows),
+          throwsFormatException,
+          reason: '$rows',
+        );
+      }
+      expect(parseKisHoldings(const <Object?>[]), isEmpty);
+    });
+
+    test('관측 현금 — 칸 없음 · 숫자 아님 · output2 없음 = null(관측만이라 막지 않는다)', () {
+      expect(
+        parseKisObservedCash(
+          withRows(const <Map<String, String>>[], cash: 'abc'),
+        ),
+        isNull,
+      );
+      expect(
+        parseKisObservedCash(<String, Object?>{'output2': <Object?>[]}),
+        isNull,
+      );
+      expect(parseKisObservedCash(<String, Object?>{}), isNull);
+      expect(
+        parseKisObservedCash(<String, Object?>{
+          'output2': <Object?>[
+            <String, String>{'nass_amt': '1'},
+          ],
+        }),
+        isNull,
+      );
+      expect(
+        parseKisObservedCash(<String, Object?>{
+          'output2': <String, String>{'dnca_tot_amt': '7'},
+        }),
+        Decimal.parse('7'),
+      );
+    });
+
+    test('이어받기 — tr_cont M · nk 가 있으면 다음 쪽(tr_cont N · FK · NK) · 행을 모은다 · 현금 = 첫 쪽', () async {
+      final _Rig rig = rigOf(
+        (http.Request r, int i) async => i == 0
+            ? _json(
+                withRows(
+                  <Map<String, String>>[
+                    <String, String>{'pdno': '133690', 'hldg_qty': '3'},
+                  ],
+                  nk: 'NK1',
+                  fk: 'FK1',
+                ),
+                200,
+                <String, String>{'tr_cont': 'M'},
+              )
+            : _json(
+                withRows(<Map<String, String>>[
+                  <String, String>{'pdno': '133690', 'hldg_qty': '2'},
+                ], cash: '1'),
+                200,
+                <String, String>{'tr_cont': 'D'},
+              ),
+      );
+      final BrokerBalance b = await rig.broker.balance();
+      expect(b.holdings, <String, int>{'133690': 5});
+      expect(b.cashKrw, Decimal.parse('49999965'));
+      expect(rig.gets, hasLength(2));
+      expect(rig.gets[0].headers['tr_cont'] ?? '', '');
+      expect(rig.gets[1].headers['tr_cont'], 'N');
+      expect(rig.gets[1].url.queryParameters['CTX_AREA_NK100'], 'NK1');
+      expect(rig.gets[1].url.queryParameters['CTX_AREA_FK100'], 'FK1');
+    });
+
+    test('tr_cont F 도 다음 쪽 · nk 가 비면 끝 · 10쪽 상한 = KisUnavailable · 거절 = KisRejected', () async {
+      _Rig rig = rigOf(
+        (http.Request r, int i) async => _json(
+          withRows(const <Map<String, String>>[]),
+          200,
+          <String, String>{'tr_cont': 'F'},
+        ),
+      );
+      expect((await rig.broker.balance()).holdings, isEmpty);
+      expect(rig.gets, hasLength(1));
+      rig = rigOf(
+        (http.Request r, int i) async => _json(
+          withRows(const <Map<String, String>>[], nk: 'NK'),
+          200,
+          <String, String>{'tr_cont': 'F'},
+        ),
+      );
+      await expectLater(rig.broker.balance(), throwsA(isA<KisUnavailable>()));
+      expect(rig.gets, hasLength(kKisBalancePageLimit));
+      rig = rigOf(
+        (http.Request r, int i) async => _json(_codeBody('APBK0013')),
+      );
+      await expectLater(rig.broker.balance(), throwsA(isA<KisRejected>()));
+    });
+
+    test('실전 환경 = TTTC8434R(TR 은 환경에서만 나온다)', () async {
+      final _Rig rig = rigOf(
+        (http.Request r, int i) async =>
+            _json(_fixture('balance_balance.json')),
+        env: KisEnvironment.live,
+      );
+      await rig.broker.balance();
+      expect(rig.gets.single.headers['tr_id'], 'TTTC8434R');
+    });
+
+    test('대사 경로 — KIS 브로커(잔고 + 체결조회)로 runReconciliation: 일치 = MATCHED · 원장이 더 많으면 재대사 뒤 BLOCKED', () async {
+      final Map<String, Object?> noFills = <String, Object?>{
+        'rt_cd': '0',
+        'msg_cd': '20310000',
+        'output1': <Object?>[],
+        'output2': <String, Object?>{},
+        'ctx_area_fk100': '',
+        'ctx_area_nk100': '',
+      };
+      final _Rig rig = rigOf(
+        (http.Request r, int i) async => r.url.path == KisOrderPaths.balance
+            ? _json(
+                withRows(<Map<String, String>>[
+                  <String, String>{'pdno': '133690', 'hldg_qty': '5'},
+                ]),
+              )
+            : _json(noFills),
+      );
+      final FakeOrderLedger ledger = FakeOrderLedger();
+      ledger.positions[(P0sStrategyIds.sleeveB, '133690')] = 5;
+      Future<ReconReport> run() => runReconciliation(
+        ledger: ledger,
+        brokers: <String, OrderBroker>{'pension': rig.broker},
+        balances: <String, BrokerBalanceSource>{'pension': rig.broker},
+        accountByStrategy: const <String, String>{
+          P0sStrategyIds.sleeveB: 'pension',
+        },
+        tradeDate: const TradeDate('2026-11-04'),
+        nowUtc: () => DateTime.utc(2026, 11, 4, 6, 45),
+        sleep: (Duration d) async {},
+      );
+      ReconReport r = await run();
+      expect(r.action, ReconAction.matched);
+      expect(r.cashKrw['pension'], Decimal.parse('49999965'));
+      ledger.positions[(P0sStrategyIds.sleeveB, '133690')] = 7;
+      r = await run();
+      expect(r.action, ReconAction.blocked);
+      expect((r.blocking.single.ledger, r.blocking.single.broker), (7, 5));
+      expect(rig.posts, isEmpty);
+    });
+  });
 }

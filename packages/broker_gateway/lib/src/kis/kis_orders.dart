@@ -4,11 +4,15 @@
 // 🔴 TR 은 접속 환경에서만 나온다([KisTr.of]) — 도메인만 바꾸고 TR 을 그대로 두면 실주문이 나간다(R29 L2).
 // 🔴 주문 POST 의 재시도 · 분류는 [KisRestClient.postOrder] 한 곳이다 — 여기서 다시 보내지 않는다(NR-2).
 // 🔴 결과 불명은 `OrderOutcomeUnknown` 으로 던진다(순서기가 UNKNOWN 으로 기록한다). 분명한 거절은 `BrokerRejected` 값.
-// 🟡 실전 TR · hashkey · 체결조회 이어받기 머리 · 예수금 칸 값은 실측 전이다(07 §6-3 «실전 키 때» · R37 Y3 · Y6 · Y7).
+// 🟡 실전 TR · hashkey · 체결조회 이어받기 머리는 실측 전이다(07 §6-3 «실전 키 때» · R37 Y3 · Y6). 예수금 칸은 모의 실측됨(R41 J8).
+// 🆕 E10g — 대사 잔고 포트(`BrokerBalanceSource` · 설계 13 §8 R41): 보유 = `output1` `pdno` → `hldg_qty` · 관측 현금 = `dnca_tot_amt` · 이어받기.
+//    🟡 실물 보유 행은 아직 못 봤다(실응답 2026-11-04 = 보유 0주) — 칸 이름은 KIS 문서 · 실험 278 의 같은 해석.
 
 import 'package:core_engine/core_engine.dart'
     show
         BrokerAccepted,
+        BrokerBalance,
+        BrokerBalanceSource,
         BrokerOrderRequest,
         BrokerRejected,
         BrokerSubmitResult,
@@ -82,6 +86,9 @@ final class KisTr {
 
 /// 체결조회 이어받기 상한(R37 Y6) — 하루 주문은 60건 이하(SAF-401)라 넘으면 이상이다.
 const int kKisFillPageLimit = 10;
+
+/// 🆕 E10g — 잔고 이어받기 상한(R41 J5) — 보유 종목은 30 이하(SAF-203)라 넘으면 이상이다.
+const int kKisBalancePageLimit = 10;
 
 /// 체결조회 한 행 + 취소에 쓰는 지점 번호(`ord_gno_brno`).
 class KisFillRow {
@@ -177,10 +184,43 @@ Decimal parseKisOrderableCash(Map<String, Object?> body) {
   return cash < Decimal.zero ? Decimal.zero : cash;
 }
 
+/// 🆕 E10g — 잔고 `output1` → 종목 → 보유 수량(R41 J3). 0 은 넣지 않고 같은 종목 여러 행은 더한다.
+/// 칸이 없거나 정수가 아니면 FormatException(지어내지 않는다 — 대사는 그 계좌를 «대사 못 함»으로 둔다).
+Map<String, int> parseKisHoldings(List<Object?> rows) {
+  final Map<String, int> out = <String, int>{};
+  for (final Object? row in rows) {
+    if (row is! Map<String, Object?>) {
+      throw const FormatException('잔고 output1 행이 객체가 아니다');
+    }
+    final String? symbol = _field(row, 'pdno');
+    if (symbol == null || symbol.isEmpty) {
+      throw const FormatException('잔고 행에 pdno 가 없다');
+    }
+    final int? qty = int.tryParse(_field(row, 'hldg_qty') ?? '');
+    if (qty == null || qty < 0) {
+      throw FormatException('잔고 행의 hldg_qty 가 0 이상 정수가 아니다', symbol);
+    }
+    if (qty == 0) continue;
+    out[symbol] = (out[symbol] ?? 0) + qty;
+  }
+  return out;
+}
+
+/// 🆕 E10g — 잔고 응답 → 관측 현금(R41 J4 — `output2[0].dnca_tot_amt` · 예수금 총금액 · D+0). 없거나 숫자가 아니면 null.
+Decimal? parseKisObservedCash(Map<String, Object?> body) {
+  final Object? out = body['output2'];
+  final Object? first = out is List<Object?> && out.isNotEmpty
+      ? out.first
+      : out;
+  if (first is! Map<String, Object?>) return null;
+  final String? v = _field(first, 'dnca_tot_amt');
+  return v == null ? null : Decimal.tryParse(v);
+}
+
 DateTime _realNow() => DateTime.now().toUtc();
 
-/// 계좌 하나의 KIS 주문 브로커(core `OrderBroker` 구현 · R37).
-final class KisOrderBroker implements OrderBroker {
+/// 계좌 하나의 KIS 주문 브로커(core `OrderBroker` 구현 · R37 · 🆕 E10g `BrokerBalanceSource` · R41).
+final class KisOrderBroker implements OrderBroker, BrokerBalanceSource {
   /// 브로커를 만든다. [now] = 접수 응답의 주문일(KST 날짜)을 정하는 시계.
   KisOrderBroker(this._client, {DateTime Function()? now})
     : _now = now ?? _realNow;
@@ -360,8 +400,12 @@ final class KisOrderBroker implements OrderBroker {
         for (final KisFillRow r in await fillRows(orderDate)) r.row,
       ];
 
-  @override
-  Future<Decimal> orderableCashKrw() async {
+  /// 잔고 조회 한 쪽(R41 J6 — 실험 278 과 같은 인자).
+  Future<KisResponse> _balancePage({
+    String fk = '',
+    String nk = '',
+    String cont = '',
+  }) async {
     final KisResponse r = await _client.get(
       KisOrderPaths.balance,
       _tr.balance,
@@ -374,11 +418,44 @@ final class KisOrderBroker implements OrderBroker {
         'FUND_STTL_ICLD_YN': 'N',
         'FNCG_AMT_AUTO_RDPT_YN': 'N',
         'PRCS_DVSN': '00',
-        'CTX_AREA_FK100': '',
-        'CTX_AREA_NK100': '',
+        'CTX_AREA_FK100': fk,
+        'CTX_AREA_NK100': nk,
       },
+      trCont: cont,
     );
     if (!r.ok) throw KisRejected(_tr.balance, r.status, r.msgCd, r.msg1);
-    return parseKisOrderableCash(r.body!);
+    return r;
+  }
+
+  @override
+  Future<Decimal> orderableCashKrw() async =>
+      parseKisOrderableCash((await _balancePage()).body!);
+
+  /// 🆕 E10g — 잔고(보유 · 관측 현금 · R41 J3~J5) — 이어받기로 보유 행을 다 모은다. 관측 현금 = 첫 쪽.
+  @override
+  Future<BrokerBalance> balance() async {
+    final List<Object?> rows = <Object?>[];
+    Decimal? cash;
+    String fk = '';
+    String nk = '';
+    String cont = '';
+    for (int page = 0; page < kKisBalancePageLimit; page++) {
+      final KisResponse r = await _balancePage(fk: fk, nk: nk, cont: cont);
+      final Map<String, Object?> body = r.body!;
+      if (page == 0) cash = parseKisObservedCash(body);
+      final Object? out = body['output1'];
+      if (out is List<Object?>) rows.addAll(out);
+      final String nextNk = (body['ctx_area_nk100'] as String? ?? '').trim();
+      if (!(r.trCont == 'M' || r.trCont == 'F') || nextNk.isEmpty) {
+        return BrokerBalance(holdings: parseKisHoldings(rows), cashKrw: cash);
+      }
+      fk = (body['ctx_area_fk100'] as String? ?? '').trim();
+      nk = nextNk;
+      cont = 'N';
+    }
+    throw KisUnavailable(
+      '잔고 쪽이 $kKisBalancePageLimit 을 넘는다',
+      kKisBalancePageLimit,
+    );
   }
 }

@@ -3,7 +3,7 @@
 - 출처: 실험 5(2026-10-29 00:41 KST · 발주자 모의 앱키 · 모의 서버 `openapivts.koreainvestment.com:29443`).
   보존본 = 설계 저장소 `11_앱설계/tool/kis-exp5/results/20261029_004112/fixtures/` · 결과 = `06_시스템설계/07_검증원장.md` §6-2.
 - **응답 본문만** 담았다. 요청 헤더(앱키·시크릿·토큰)와 계좌번호는 없다. 실험 스크립트가 쓰기 전에 비밀값을 훑었고, Claude 가 한 번 더 훑었다.
-  잔고 응답은 담지 않았다.
+  잔고 응답은 담지 않았다(→ 🆕 `orders/balance_balance.json` · 실험 278 판 3 · E10g).
 - 손으로 고치지 않는다. 꼴이 바뀌면 실험 스크립트로 다시 받아 통째로 바꾼다.
 
 | 파일 | 요청 |
@@ -35,3 +35,4 @@
 | post | `order_buy_post` · `resv_order` · `ccld_*` | 장 마감 뒤 지정가 `40580000` · 예약주문 `EGW02006` · 남긴 주문 잔여 1 |
 | pre | `order_buy_pre` · `cancel_pre` | 장전 08:32 지정가 접수 → 바로 취소 |
 | next | `cancel_next-prevday` · `ccld_next_*` | 전날 주문 취소 `40320000` · 전날 행 잔여 1 그대로 · 오늘 조회엔 없음 |
+| 🆕 balance | `balance_balance` | 잔고 `VTTC8434R` `20310000` — 실험 278 **판 3** `--phase balance`(2026-11-04 01:07 · 주문 0) · `output1` = **빈 목록**(보유 0주) · `output2` 1행(`dnca_tot_amt` = `prvs_rcdl_excc_amt` = 49,999,965) · 이어받기 머리 빈칸(E10g · R41) |
