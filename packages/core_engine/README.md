@@ -38,7 +38,7 @@
 2. **골든벡터 전량 통과 전에는 DRY_RUN을 벗어나지 않는다**(결정 2). 이 패키지의 Dart 재현이 그 게이트다.
 3. **사유 문구는 여기서 만들어진다.** 화면은 만들지 않는다 — 엔진이 `label`·`actionLine` 필드에 실어 보낸다.
 
-## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a~E6e · E7a(E7a0~E7a3-2) · E10a · E10b · E10e1 · E10e2 · 나머지는 🟡
+## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a~E6e · E7a(E7a0~E7a3-2) · E10a · E10b · E10e1 · E10e2 · E10f · 나머지는 🟡
 
 실행 계획(블록 E1~E18)은 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` 가 정본이다.
 
@@ -69,6 +69,7 @@
 | 🆕 `lib/testing.dart`(+ `lib/src/testing/`) — 시험 전용 받침대: `FakeOrderBroker`(각본 · 제출 기록 · 제출 순간 걸이 · 예수금) · `FakeOrderLedger`(메모리 · UNIQUE · 엄격한 전이 · 실패 주입) · `RecordingAdviceSink` — 🔴 lib 는 import 하지 않는다 | G-FB v1 포트 수준(E10b — R33 D13 · R35 V9) | 위 시험들이 쓴다 |
 | 🆕 `lib/src/orders/fill_sync.dart` — 체결 동기화 · 일 마감(`reconcileFills` 판정: FILLED · PARTIAL · EXPIRED(실효 = 잔여) · CANCELLED · 원주문 행 없음 = UNKNOWN · `runFillSync` 계좌마다 체결조회 → 적용 · 일 마감 = 15:40 KST 뒤에만 · 조회 실패 = UNKNOWN(이월 안 함) · `estimateFillCost` · 포트 `FillLedger`) · 다음 날 가드 `staleOrderRows`(`runOrderBatch` 가 첫 주문 앞에 — 지난 날 원주문 = 계좌 보류) · `fills.dart` += 누적 저장 꼴 · 평균 단가 · 매수 뒤 평단 · `decimal_rules` += `demoteToDouble`(🔴 `toDouble()` 은 105 → 104.999… — 실측) | M1-9 일 마감 · X4-3(E10e1 — 04 §3-1 ③ v2.38 · R38 Z1~Z9) | `test/fill_sync_test.dart` · `test/decimal_rules_test.dart` |
 | 🆕 `lib/src/orders/carry_over.dart` · `unknown_resolution.dart` — 이월(`planCarryOver`: 계절 밖 = 사용 세션 < 3 이면 실효 수량을 다음 세션 대상 · 3 = 버림(P1) · 계절 = 이월하지 않고 분할 규칙 · 포트 `CarryLedger` · `seasonalShareToday` = 원장 «앞날 계획 · 체결 합» → `splitDay`) · UNKNOWN 해소(`resolveUnknown`: 종목 · 방향 · 수량 · 단가 · 주문 시각 ≥ 예약 − 60초 · 1행 = 연결 · 2행+ = 유지 + P0 · 0행 = 같은 KST 날 3분 뒤 두 번째 놓침에서 `UNKNOWN_NOT_FOUND` · 이미 붙은 주문번호는 후보 아님 · `resolveUnknownOrders` 계좌 · 집행일마다 조회 한 번 · 포트 `UnknownLedger`) | M1-9 이월 · X4-3(E10e2 — 04 §3-1 ③ ④ · §3-3 v2.38 · R39 T1~T10) | `test/carry_unknown_test.dart`(G-FB 3일 시뮬레이션 포함) |
+| 🆕 `lib/src/orders/reconcile.dart` — 일일 대사 `CANON_BROKER`(`reconcileAccount`: 수량 축 = 계좌마다 브로커 보유 ↔ 전략 → 계좌 맵으로 모은 원장 보유 · 0 오차 · 맵에 없는 전략 = 차단 후보 · 체결 축 = 원주문 행 ↔ 원장 주문별 체결 합(`UNKNOWN_ORDER` · `FILL_COUNT` · `GHOST_FILL`) · 현금 = 관측만) · `runReconciliation`(🔴 재대사 1회 뒤 같은 값으로 남은 것만 차단 · P0 `RECON_MISMATCH` · 대사는 플래그를 풀지 않는다 · 자동 수정 없음) · `clearRecon`(04 §3-5 ①~④ — 저널 `RECON_CLEAR` · 원인 코드 12 · MANUAL_ORDER = postmortem 기한) · 포트 `BrokerBalanceSource` · `ReconLedger` | M1-10 · X5-2(E10f — 04 §3-5 · v2.33 X5 · R40 A1~A10) | `test/reconcile_test.dart`(04 §7 시험 3종 포함) |
 | `lib/src/costs/trade_costs.dart` — 거래비용(`total` 에 시장충격 포함 · 구간 `>=` · ETF 매도세 0 · 미국 = `UnimplementedError`) · 참여율 절단 · 왕복 손익 · 보유비용 `(1 − er/연거래일)^일수`(🔴 백테스트 전용) · 가중 총보수 | M1-4 일부 · M3-1 `estimate_costs` 계산부(E5a) | GV-11(3) · GV-11e(6) · GV-11d · GV-19 · GV-24(5 + 가중) · `test/costs_test.dart`(ETF 면제 · 구간표 정렬·0 구간 · 입력 거부) |
 | `lib/src/portfolio/allocation.dart` — 자본 배분 해석·검증(합 1.0 아니면 거부 · 하나 빠지면 잔여 · 새틀 밴드 = 목표 × 15/18 · 21/18 · 새틀 0 허용 · 오류 문구 = 참조 구현) | M1-4 일부(E5a) | GV-42(12 · AC-B30) · `test/allocation_test.dart`(문구 전체 · 키 순서 · 잔여 반올림) |
 | `lib/src/signals/sleeve_b_tranche.dart` — 슬리브 B 3-트랜치 SMA(다수결 아님 · 월봉 · 판정월 포함 · 워밍업 0.0) · P0S 하한 1/3 먼저 → BEAR 차감 2/3 나중(B 본책 전용) | M1-4 일부(E5b) | GV-20(5 · AC-B13) · `test/sleeve_signals_test.dart`(P0S 하한·차감 · 03 v2.27 블록 값) |

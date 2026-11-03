@@ -13,6 +13,11 @@
 // 🆕 E10e2 — 이월 원장(`CarryLedger`) · 해소 원장(`UnknownLedger`) · 설계 13 §8 R39 T2 · T4 · T9.
 //    🔴 논리 id 비교는 `substr(decision_id, 1, n) = '{논리 id}@'` — `LIKE` 를 쓰지 않는다(`_` · `%` 가 와일드카드).
 //    🔴 UNKNOWN 해소 거절(`UNKNOWN_NOT_FOUND: `)도 7단계를 지났다 — orders_today · 분할 계획 합에 센다.
+// 🆕 E10f — 대사 원장(`ReconLedger` · 설계 13 §8 R40 A2 · A7 · A8): `reconciliation_log` + `ledger_diff`(CANON_BROKER) +
+//    `trading_block(RECON_MISMATCH)` 를 한 트랜잭션. 🔴 대사는 플래그를 세우기만 한다(풀기 = `clearReconBlock` 뿐 ·
+//    저널 `RECON_CLEAR` 확인은 core `clearRecon`). 🔴 positions · executions 를 고치지 않는다(자동 수정 금지).
+
+import 'dart:convert' show jsonEncode;
 
 import 'package:core_engine/core_engine.dart'
     show
@@ -27,8 +32,14 @@ import 'package:core_engine/core_engine.dart'
         FillVerdict,
         IntentRow,
         IntentStatus,
+        LedgerHolding,
+        LedgerOrderFill,
         OpenIntent,
         OrderLedger,
+        ReconClearance,
+        ReconDiff,
+        ReconLedger,
+        ReconRecord,
         RecordedFill,
         SplitProgress,
         UnknownIntent,
@@ -37,12 +48,22 @@ import 'package:core_engine/core_engine.dart'
         averagePriceAfterBuy,
         demoteToDouble,
         kUnknownNotFoundPrefix,
+        ledgerDiffIdOf,
         logicalIdOf,
         parseRecordedCancelJson,
         parseRecordedFillJson,
         recordedFillJson;
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, ExecPolicy, FlagIds, OrderSide, RunMode, TradeDate;
+    show
+        Clock,
+        DiffSeverity,
+        DiffStatus,
+        ExecPolicy,
+        FlagIds,
+        LedgerPair,
+        OrderSide,
+        RunMode,
+        TradeDate;
 import 'package:sqlite3/sqlite3.dart';
 
 /// 브로커 거절의 `error_message` 접두(R36 W5).
@@ -64,7 +85,12 @@ const int kTierBGraceSessions = 3;
 
 /// 로컬 원장 파일 하나의 주문 원장(포트 구현).
 final class SqliteOrderLedger
-    implements OrderLedger, FillLedger, CarryLedger, UnknownLedger {
+    implements
+        OrderLedger,
+        FillLedger,
+        CarryLedger,
+        UnknownLedger,
+        ReconLedger {
   /// 원장을 만든다. [kr] = SAF-410 의 영업일 달력(동결 XKRX · 범위 밖이면 StateError).
   SqliteOrderLedger(
     this._db, {
@@ -775,5 +801,176 @@ final class SqliteOrderLedger
       <Object?>[message, _now(), intentId],
     );
     if (_db.updatedRows != 1) throw StateError('$intentId: UNKNOWN 이 아니다');
+  }
+
+  // ── 🆕 E10f 대사 원장(ReconLedger · R40 A2 · A7 · A8) ─────────────────────────
+
+  /// `reconciliation_log.recon_id` — `{접두}{시각}#{그 시각의 일련}`(열린 트랜잭션 안에서 부른다).
+  String _reconLogId(String prefix, String at) {
+    final int n =
+        _db.select(
+              'SELECT COUNT(*) AS n FROM reconciliation_log WHERE run_at = ?',
+              <Object?>[at],
+            ).single['n']
+            as int;
+    return '$prefix$at#${n + 1}';
+  }
+
+  bool _reconActive() => _exists(
+    'SELECT 1 FROM trading_block WHERE flag_id = ? AND cleared_at IS NULL',
+    <Object?>[FlagIds.reconMismatch],
+  );
+
+  @override
+  Future<List<LedgerHolding>> krHoldings() async => <LedgerHolding>[
+    for (final Row r in _db.select(
+      "SELECT strategy_id, symbol, quantity FROM positions WHERE market = 'KR' "
+      'ORDER BY strategy_id, symbol',
+    ))
+      LedgerHolding(
+        r['strategy_id'] as String,
+        r['symbol'] as String,
+        r['quantity'] as int,
+      ),
+  ];
+
+  @override
+  Future<List<LedgerOrderFill>> orderFills(
+    TradeDate tradeDate,
+  ) async => <LedgerOrderFill>[
+    for (final Row r in _db.select(
+      'SELECT b.broker_order_no, i.account, i.symbol, '
+      '(SELECT COALESCE(SUM(e.quantity), 0) FROM executions e '
+      'WHERE e.broker_order_no = b.broker_order_no) AS filled '
+      'FROM broker_orders b JOIN order_intents i ON i.intent_id = b.intent_id '
+      "WHERE i.trade_date = ? AND i.market = 'KR' ORDER BY b.broker_order_no",
+      <Object?>[tradeDate.yyyyMmDd],
+    ))
+      LedgerOrderFill(
+        brokerOrderNo: r['broker_order_no'] as String,
+        account: r['account'] as String,
+        symbol: r['symbol'] as String,
+        filledQty: r['filled'] as int,
+      ),
+  ];
+
+  @override
+  Future<String> recordReconciliation(ReconRecord record) async {
+    final String at = record.runAtUtc.toUtc().toIso8601String();
+    _db.execute('BEGIN IMMEDIATE');
+    try {
+      final String reconId = _reconLogId('rc-', at);
+      _db.execute(
+        'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+        'VALUES (?, ?, ?, ?, ?)',
+        <Object?>[
+          reconId,
+          at,
+          record.matched ? 1 : 0,
+          record.discrepanciesJson,
+          record.action.code,
+        ],
+      );
+      for (final ReconDiff d in record.blocking) {
+        // 같은 날 같은 어긋남 = 같은 행(내용 해시) · 해제 뒤 다시 보이면 다시 연다.
+        _db.execute(
+          'INSERT INTO ledger_diff (diff_id, pair, axis, authored_date, delta, delta_label, '
+          'severity, origin_code, status, detected_at, applicable) '
+          'VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 1) '
+          'ON CONFLICT(diff_id) DO UPDATE SET status = excluded.status, origin_code = NULL, '
+          'detected_at = excluded.detected_at WHERE ledger_diff.status <> excluded.status',
+          <Object?>[
+            ledgerDiffIdOf(record.tradeDate, d),
+            LedgerPair.canonBroker.wire,
+            d.axis.wire,
+            record.tradeDate.yyyyMmDd,
+            d.deltaJson,
+            d.label,
+            DiffSeverity.blocking.wire,
+            DiffStatus.open.wire,
+            at,
+          ],
+        );
+      }
+      if (record.blocking.isNotEmpty && !_reconActive()) {
+        // 🔴 세우기만 — 일치하는 대사도 풀지 않는다(04 §3-5 ④).
+        _db.execute(
+          'INSERT INTO trading_block (flag_id, set_at, reason) VALUES (?, ?, ?) '
+          'ON CONFLICT(flag_id) DO UPDATE SET set_at = excluded.set_at, '
+          'reason = excluded.reason, origin_code = NULL, cleared_at = NULL, '
+          'cleared_by = NULL, decision_id = NULL',
+          <Object?>[
+            FlagIds.reconMismatch,
+            at,
+            '대사 불일치 ${record.blocking.length}건 — 재대사 뒤 잔존 (SAF-407 · $reconId)',
+          ],
+        );
+      }
+      _db.execute('COMMIT');
+      return reconId;
+    } catch (_) {
+      if (!_db.autocommit) _db.execute('ROLLBACK');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<bool> reconBlocked() async => _reconActive();
+
+  @override
+  Future<bool> reconClearJournalExists(String decisionId) async => _exists(
+    "SELECT 1 FROM decision_journal WHERE journal_id = ? AND kind = 'RECON_CLEAR'",
+    <Object?>[decisionId],
+  );
+
+  @override
+  Future<void> clearReconBlock(ReconClearance clearance) async {
+    final String at = clearance.clearedAtUtc.toUtc().toIso8601String();
+    _db.execute('BEGIN IMMEDIATE');
+    try {
+      _db.execute(
+        'UPDATE trading_block SET cleared_at = ?, cleared_by = ?, decision_id = ?, origin_code = ? '
+        'WHERE flag_id = ? AND cleared_at IS NULL',
+        <Object?>[
+          at,
+          clearance.clearedBy,
+          clearance.decisionId,
+          clearance.originCode,
+          FlagIds.reconMismatch,
+        ],
+      );
+      if (_db.updatedRows != 1) {
+        throw StateError('RECON_MISMATCH 가 서 있지 않다');
+      }
+      _db.execute(
+        'UPDATE ledger_diff SET status = ?, origin_code = ? WHERE pair = ? AND status = ?',
+        <Object?>[
+          DiffStatus.resolved.wire,
+          clearance.originCode,
+          LedgerPair.canonBroker.wire,
+          DiffStatus.open.wire,
+        ],
+      );
+      final int resolved = _db.updatedRows;
+      // 해제도 로그 한 행(원인 코드를 남긴다 — 04 §3-5 ②). matched = 0 — 대사 판이 아니다.
+      _db.execute(
+        'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+        "VALUES (?, ?, 0, ?, 'CLEARED')",
+        <Object?>[
+          _reconLogId('rc-clear-', at),
+          at,
+          jsonEncode(<String, Object?>{
+            'origin_code': clearance.originCode,
+            'decision_id': clearance.decisionId,
+            'cleared_by': clearance.clearedBy,
+            'resolved': resolved,
+          }),
+        ],
+      );
+      _db.execute('COMMIT');
+    } catch (_) {
+      if (!_db.autocommit) _db.execute('ROLLBACK');
+      rethrow;
+    }
   }
 }

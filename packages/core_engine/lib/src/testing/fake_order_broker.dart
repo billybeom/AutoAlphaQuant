@@ -9,6 +9,7 @@ import 'package:domain_contracts/domain_contracts.dart';
 
 import '../orders/fills.dart';
 import '../orders/order_ports.dart';
+import '../orders/reconcile.dart';
 
 /// 제출 각본 한 줄.
 sealed class FakeSubmitStep {
@@ -55,7 +56,7 @@ final class FakeThrow extends FakeSubmitStep {
 }
 
 /// 결정론 가짜 브로커 — 계좌 하나.
-class FakeOrderBroker implements OrderBroker {
+class FakeOrderBroker implements OrderBroker, BrokerBalanceSource {
   /// 가짜를 만든다. [cashKrw] = 예수금(기본 1조 원) · [cashError] 를 주면 예수금 조회가 그것을 던진다.
   FakeOrderBroker({
     List<FakeSubmitStep>? script,
@@ -157,5 +158,25 @@ class FakeOrderBroker implements OrderBroker {
     final Object? error = cashError;
     if (error != null) Error.throwWithStackTrace(error, StackTrace.current);
     return cashKrw;
+  }
+
+  /// 🆕 E10f — 보유(종목 → 수량 · 잔고 포트).
+  final Map<String, int> holdings = <String, int>{};
+
+  /// 🆕 E10f — 잔고 조회가 던질 예외.
+  Object? balanceError;
+
+  /// 🆕 E10f — 잔고 조회 수.
+  int balanceReads = 0;
+
+  @override
+  Future<BrokerBalance> balance() async {
+    balanceReads++;
+    final Object? error = balanceError;
+    if (error != null) Error.throwWithStackTrace(error, StackTrace.current);
+    return BrokerBalance(
+      holdings: Map<String, int>.of(holdings),
+      cashKrw: cashKrw,
+    );
   }
 }
