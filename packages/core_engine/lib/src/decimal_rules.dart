@@ -70,6 +70,12 @@ Decimal multiply(Decimal a, Decimal b) {
   );
 }
 
+/// Decimal → double — 규약 ② «double 필드에 담을 때만 내린다»의 **내리는 길**(🆕 E10e1).
+///
+/// 🔴 `Decimal.toDouble()` 은 유리수의 분자 ÷ 분모를 double 로 나눠 마지막 자리가 어긋난다(유효숫자 28 로 환원한
+///    `105.000…` 이 `104.99999999999999` 가 된다 — 실측). 십진 문자열을 거쳐 가장 가까운 double 로 내린다.
+double demoteToDouble(Decimal value) => double.parse(value.toString());
+
 /// `(a × b) / c` — 규약 ④ «곱셈 먼저, 나눗셈 나중»을 모양으로 강제한다.
 ///
 /// `(a / c) × b` 로 쓰면 비종료 소수가 먼저 생겨 동률 판정이 뒤집힌다(05 §GV-8f).

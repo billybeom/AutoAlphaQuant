@@ -10,6 +10,8 @@
 //    조용히 버리지도 않는다 — [StateError](호출자 = UNKNOWN · 대사 경로).
 // 🔵 비용 추정 · `executed_at`(조회 시각) · `fill_origin` 은 기록 쪽(E10c) 몫이다. 이 파일은 값만 낸다.
 
+import 'dart:convert';
+
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
@@ -204,4 +206,60 @@ List<FillDelta> fillDeltas(
     );
   }
   return out;
+}
+
+/// 🆕 E10e1 — 기록된 누적의 저장 꼴(`broker_orders.raw_response` · R38 Z4) — 마지막으로 본 원주문 행의 누적 칸.
+///
+/// 🔴 계좌 · 연락처 칸은 넣지 않는다. 누적 금액은 문자열(정확한 Decimal)이다 — 실행 행 단가는 REAL 이라
+///    Σ 수량 × 단가로는 정확한 누적을 되살리지 못한다.
+String recordedFillJson(DailyFillRow row, DateTime seenAtUtc) =>
+    jsonEncode(<String, Object?>{
+      'tot_ccld_qty': row.cumFilledQty,
+      'tot_ccld_amt': row.cumFilledAmount.toString(),
+      'rmn_qty': row.remainingQty,
+      'cncl_cfrm_qty': row.cancelConfirmedQty,
+      'seen_at': seenAtUtc.toUtc().toIso8601String(),
+    });
+
+/// [recordedFillJson] 의 역 — 꼴이 틀리면 FormatException.
+RecordedFill parseRecordedFillJson(String raw) {
+  final Object? j = jsonDecode(raw);
+  if (j is! Map<String, Object?> ||
+      j['tot_ccld_qty'] is! int ||
+      j['tot_ccld_amt'] is! String) {
+    throw const FormatException('기록된 누적의 꼴이 틀렸다');
+  }
+  return RecordedFill(
+    j['tot_ccld_qty']! as int,
+    Decimal.parse(j['tot_ccld_amt']! as String),
+  );
+}
+
+/// 누적 평균 체결 단가(`broker_orders.avg_fill_price` · REAL 저장용) — 누적 0 이면 null.
+double? averageFillPrice(DailyFillRow row) => row.cumFilledQty == 0
+    ? null
+    : demoteToDouble(
+        divide(row.cumFilledAmount, Decimal.fromInt(row.cumFilledQty)),
+      );
+
+/// 매수 체결 뒤 평단(`positions.avg_price` · R38 Z6) — Decimal 로 셈한다(곱셈 먼저 · 나눗셈 나중 · 규약 ④).
+double averagePriceAfterBuy({
+  required int heldQty,
+  required double heldAvg,
+  required FillDelta buy,
+}) {
+  if (buy.side != OrderSide.buy) {
+    throw ArgumentError.value(buy.side, 'buy', '매수 체결이 아니다');
+  }
+  final int q1 = heldQty + buy.quantity;
+  if (heldQty < 0 || q1 <= 0) {
+    throw ArgumentError.value(heldQty, 'heldQty', '보유 수량이 앞뒤가 안 맞는다');
+  }
+  return demoteToDouble(
+    divide(
+      multiply(Decimal.fromInt(heldQty), promoteRatio(heldAvg)) +
+          multiply(Decimal.fromInt(buy.quantity), buy.price),
+      Decimal.fromInt(q1),
+    ),
+  );
 }

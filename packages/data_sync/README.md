@@ -65,5 +65,6 @@
   - 🔴 `insertIntent` = **자동 커밋 한 문장**(돌아오면 둘째 연결에서 보인다 = NR-1 6.5 · AC-S04) — 연결에 열린 트랜잭션이 있으면 INSERT 하지 않고 StateError · UNIQUE · PK 충돌(확장 코드 2067 · 1555)만 false.
   - 상태 전이 = `WHERE status = 앞 상태` 만(아니면 StateError) · 접수 = SUBMITTED + `broker_orders`(`submitted_at` = SUBMITTING 시각) **한 트랜잭션** · 브로커 거절 = `error_message` 접두 `BROKER: `(orders_today 에 센다 · D22).
   - 판정 SQL — 킬스위치(`kill_switch_state`) · 묶음(04 §3-1 ①) · 미해소 UNKNOWN 3인자 · SAF-406(`strategy_state_current`) · SAF-408(04 §1 SQL → `JOURNAL_MISSING` 자동 설정 · 해제 `auto:SAF-408`) · SAF-410(집행일 전월 · 동결 XKRX 월말 뒤 3거래일 유예 → `TIER_B_UNJUDGED` 자동 설정 · 해제 `auto:SAF-410`).
-  - 스키마 자산 재생성(02 v2.38 — `order_intents.status` += `EXPIRED` · 주석 · 정정 0). 체결 기록(`executions` · `positions`)은 E10e.
+  - 스키마 자산 재생성(02 v2.38 — `order_intents.status` += `EXPIRED` · 주석 · 정정 0).
+  - 🆕 **E10e1 — 체결 원장**(core `FillLedger` · R38): `openIntents`(SUBMITTED · PARTIAL · 브로커 주문 있음) · `applyFill` **한 트랜잭션** = `executions`(R31 키 · 조회 시각 · BROKER · ESTIMATED 비용) + `broker_orders`(누적 · 평균 단가 · 🔴 누적 정본 = `raw_response` 의 누적 칸 JSON) + `positions`(매수 평단 · 매도 수량 · 🔴 보유를 넘는 매도 = StateError · 0 이면 지움) + 의도 상태(FILLED · PARTIAL · EXPIRED · CANCELLED) · `markUnresolved`(→ UNKNOWN)
 - ⬜ 리포지토리 구현체(`LocalSqliteReader`) · 명령 인입(수송 · 명령 TTL) · Supabase(E11) = 그 뒤.

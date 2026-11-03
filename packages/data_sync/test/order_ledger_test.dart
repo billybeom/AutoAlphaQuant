@@ -583,4 +583,207 @@ void main() {
       );
     });
   });
+
+  group('🆕 E10e1 체결 원장(FillLedger · R38 Z2~Z6 · Z9)', () {
+    const FillCostRates rates = FillCostRates(
+      commissionRate: 0.00015,
+      sellTaxRate: 0,
+    );
+    final DateTime intraday = DateTime.utc(2026, 11, 2, 1);
+    final DateTime afterClose = DateTime.utc(2026, 11, 2, 6, 41);
+
+    DailyFillRow fill(
+      int cum,
+      String amount, {
+      int remaining = 0,
+      int qty = 5,
+      OrderSide side = OrderSide.buy,
+      String odno = '0000000001',
+    }) => DailyFillRow(
+      orderDate: _exec,
+      odno: odno,
+      isCancelRow: false,
+      symbol: '133690',
+      side: side,
+      orderQty: qty,
+      cumFilledQty: cum,
+      cumFilledAmount: Decimal.parse(amount),
+      remainingQty: remaining,
+    );
+
+    Future<FillSyncReport> sync(
+      FakeOrderBroker broker, {
+      required bool dayEnd,
+    }) => runFillSync(
+      ledger: ledger,
+      brokers: <String, OrderBroker>{'pension': broker},
+      tradeDate: _exec,
+      nowUtc: dayEnd ? afterClose : intraday,
+      dayEnd: dayEnd,
+      costs: rates,
+    );
+
+    Row brokerOrder() => db.select('SELECT * FROM broker_orders').single;
+    List<Row> positions() =>
+        db.select('SELECT * FROM positions ORDER BY symbol').toList();
+
+    test(
+      '주문 → 장중 부분 체결 → 마감 실효 — 실행 행 · 누적 정본 · 평단 · 의도 상태(한 트랜잭션씩)',
+      () async {
+        final FakeOrderBroker broker = FakeOrderBroker();
+        final OrderIntentDraft d = _draft();
+        await executeIntent(d, _ok, ctx(broker));
+        final String id = intentIdFor(d.idempotencyKey);
+        expect(
+          (await ledger.openIntents(_exec)).single.brokerOrderNo,
+          '2026-11-02:0000000001',
+        );
+        expect(await ledger.recordedFill('2026-11-02:0000000001'), isNull);
+
+        broker.fills['2026-11-02'] = <DailyFillRow>[
+          fill(3, '522541', remaining: 2),
+        ];
+        FillSyncReport r = await sync(broker, dayEnd: false);
+        expect(r.applied.single.status, IntentStatus.partial);
+        final Row e = db.select('SELECT * FROM executions').single;
+        expect(e['execution_id'], '2026-11-02:0000000001#3');
+        expect(e['quantity'], 3);
+        expect(e['price'], closeTo(174180.3333333333, 1e-6));
+        expect(e['commission'], closeTo(78.38115, 1e-9));
+        expect(e['tax'], 0);
+        expect(e['fill_origin'], 'BROKER');
+        expect(e['cost_source'], 'ESTIMATED');
+        expect(e['executed_at'], intraday.toIso8601String());
+        expect(e['authored_at'], intraday.toIso8601String());
+        Row bo = brokerOrder();
+        expect(bo['status'], 'PARTIAL');
+        expect(bo['filled_qty'], 3);
+        expect(bo['remaining_qty'], 2);
+        final RecordedFill rec = (await ledger.recordedFill(
+          '2026-11-02:0000000001',
+        ))!;
+        expect(rec.quantity, 3);
+        expect(
+          rec.amount,
+          Decimal.parse('522541'),
+        ); // 🔴 정확한 누적(REAL 단가로는 되살리지 못한다)
+        expect(intentRow(db, id)['status'], 'PARTIAL');
+        Row pos = positions().single;
+        expect(pos['quantity'], 3);
+        expect(pos['entry_date'], '2026-11-02');
+        expect(pos['entry_decision_id'], 'B-SMA-2026-10-30@2026-11-02');
+
+        // 같은 누적을 다시 보면 행이 늘지 않는다(멱등).
+        r = await sync(broker, dayEnd: false);
+        expect(r.applied, isEmpty);
+        expect(db.select('SELECT 1 FROM executions'), hasLength(1));
+
+        broker.fills['2026-11-02'] = <DailyFillRow>[
+          fill(4, '696720', remaining: 1),
+        ];
+        r = await sync(broker, dayEnd: true);
+        expect(r.expired.single.expiredQty, 1);
+        expect(
+          db
+              .select(
+                'SELECT execution_id FROM executions ORDER BY execution_id',
+              )
+              .map((Row x) => x['execution_id']),
+          <Object?>['2026-11-02:0000000001#3', '2026-11-02:0000000001#4'],
+        );
+        bo = brokerOrder();
+        expect(bo['status'], 'EXPIRED');
+        expect(bo['avg_fill_price'], 174180);
+        expect(intentRow(db, id)['status'], 'EXPIRED');
+        expect(intentRow(db, id)['error_message'], 'EXPIRED: 마감 실효 1주');
+        pos = positions().single;
+        expect(pos['quantity'], 4);
+        expect(pos['avg_price'], closeTo(174180, 1e-6));
+        expect(await ledger.openIntents(_exec), isEmpty);
+      },
+    );
+
+    test(
+      '매도로 0주 = 포지션 행을 지운다 · 보유를 넘는 매도는 StateError + 롤백(아무것도 안 쓴다)',
+      () async {
+        db.execute(
+          'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, updated_at) '
+          "VALUES ('KR', '133690', 'P0S_B', 2, 170000, '2026-10-01', 't')",
+        );
+        final FakeOrderBroker broker = FakeOrderBroker();
+        final OrderIntentDraft sell = _draft(
+          side: OrderSide.sell,
+          logical: 'BAND-B-2026-10-30',
+        );
+        await executeIntent(sell, _ok, ctx(broker));
+        broker.fills['2026-11-02'] = <DailyFillRow>[
+          fill(5, '870900', side: OrderSide.sell),
+        ];
+        await expectLater(sync(broker, dayEnd: false), throwsStateError);
+        expect(db.select('SELECT 1 FROM executions'), isEmpty);
+        expect(brokerOrder()['filled_qty'], 0);
+        expect(
+          intentRow(db, intentIdFor(sell.idempotencyKey))['status'],
+          'SUBMITTED',
+        );
+        expect(positions().single['quantity'], 2);
+        expect(db.autocommit, isTrue);
+
+        db.execute("UPDATE positions SET quantity = 5 WHERE symbol = '133690'");
+        final FillSyncReport r = await sync(broker, dayEnd: false);
+        expect(r.applied.single.status, IntentStatus.filled);
+        expect(positions(), isEmpty);
+      },
+    );
+
+    test('일 마감 조회 실패 = UNKNOWN(DAY_END_UNAVAILABLE) · 열린 의도가 아니면 markUnresolved 는 StateError', () async {
+      final FakeOrderBroker broker = FakeOrderBroker();
+      final OrderIntentDraft d = _draft();
+      await executeIntent(d, _ok, ctx(broker));
+      broker.fillsError = StateError('조회 실패');
+      final FillSyncReport r = await sync(broker, dayEnd: true);
+      expect(r.unresolved.single.$2, startsWith('DAY_END_UNAVAILABLE'));
+      final Map<String, Object?> row = intentRow(
+        db,
+        intentIdFor(d.idempotencyKey),
+      );
+      expect(row['status'], 'UNKNOWN');
+      expect(
+        await ledger.hasUnresolvedUnknown(
+          'KR',
+          '133690',
+          P0sStrategyIds.sleeveB,
+        ),
+        isTrue,
+      );
+      await expectLater(
+        ledger.markUnresolved(intentIdFor(d.idempotencyKey), 'x'),
+        throwsStateError,
+      );
+    });
+
+    test('기록된 누적의 꼴이 틀리면 StateError · 없는 주문번호도 StateError', () async {
+      final FakeOrderBroker broker = FakeOrderBroker();
+      await executeIntent(_draft(), _ok, ctx(broker));
+      db.execute(
+        "UPDATE broker_orders SET raw_response = '{\"tot_ccld_qty\":\"3\"}'",
+      );
+      await expectLater(
+        ledger.recordedFill('2026-11-02:0000000001'),
+        throwsStateError,
+      );
+      await expectLater(ledger.recordedFill('2026-11-02:9'), throwsStateError);
+    });
+
+    test('같은 의도에 브로커 주문이 둘이면 openIntents 가 StateError(이 판은 하나뿐이다)', () async {
+      final FakeOrderBroker broker = FakeOrderBroker();
+      final OrderIntentDraft d = _draft();
+      await executeIntent(d, _ok, ctx(broker));
+      db.execute(
+        "INSERT INTO broker_orders (broker_order_no, intent_id, submitted_at, status) VALUES ('2026-11-02:7', ?, 't', 'SUBMITTED')",
+        <Object?>[intentIdFor(d.idempotencyKey)],
+      );
+      await expectLater(ledger.openIntents(_exec), throwsStateError);
+    });
+  });
 }

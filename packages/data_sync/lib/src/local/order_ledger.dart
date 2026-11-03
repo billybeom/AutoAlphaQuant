@@ -7,12 +7,31 @@
 // 🔴 브로커 거절은 `error_message` 접두 `BROKER: ` 로 1~5단계 거부와 가른다(orders_today 에 센다 — R33 D22 · R36 W5).
 // 🔴 SAF-408 · 410 판정은 SQL 을 직접 돌려 `trading_block` 플래그를 **자동** 설정 · 해제하고 그 결과를 돌려준다 —
 //    사람이 해제하는 경로는 없다(`cleared_by = 'auto:SAF-40x'` · 04 §1 v2.11 · v2.15 SF-01 · 파일럿4 `safety/gates.py`).
-// 🔵 체결 기록(`broker_orders` 갱신 · `executions` · `positions`)은 E10e(R36 W1).
+// 🆕 E10e1 — 체결 원장(`FillLedger` · 설계 13 §8 R38 Z2~Z6 · Z9): 실행 행 · 브로커 주문 누적 · 포지션 · 의도 상태를 한 트랜잭션.
+//    🔴 누적 정본 = `broker_orders.raw_response` 에 마지막으로 본 원주문 행의 누적 칸(실행 행 단가는 REAL 이라 Σ 로 되살리지 못한다).
+//    🔴 매도가 보유를 넘으면 StateError(원장이 틀렸다 — 쓰지 않는다) · 0 이면 포지션 행을 지운다.
 
 import 'package:core_engine/core_engine.dart'
-    show BlockBundles, ExchangeCalendar, IntentRow, IntentStatus, OrderLedger;
+    show
+        BlockBundles,
+        DailyFillRow,
+        ExchangeCalendar,
+        FillApplication,
+        FillDelta,
+        FillLedger,
+        FillVerdict,
+        IntentRow,
+        IntentStatus,
+        OpenIntent,
+        OrderLedger,
+        RecordedFill,
+        averageFillPrice,
+        averagePriceAfterBuy,
+        demoteToDouble,
+        parseRecordedFillJson,
+        recordedFillJson;
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, ExecPolicy, FlagIds, RunMode, TradeDate;
+    show Clock, ExecPolicy, FlagIds, OrderSide, RunMode, TradeDate;
 import 'package:sqlite3/sqlite3.dart';
 
 /// 브로커 거절의 `error_message` 접두(R36 W5).
@@ -33,7 +52,7 @@ const List<IntentStatus> _submittedOrLater = <IntentStatus>[
 const int kTierBGraceSessions = 3;
 
 /// 로컬 원장 파일 하나의 주문 원장(포트 구현).
-final class SqliteOrderLedger implements OrderLedger {
+final class SqliteOrderLedger implements OrderLedger, FillLedger {
   /// 원장을 만든다. [kr] = SAF-410 의 영업일 달력(동결 XKRX · 범위 밖이면 StateError).
   SqliteOrderLedger(
     this._db, {
@@ -242,7 +261,10 @@ final class SqliteOrderLedger implements OrderLedger {
           row.side.wire,
           row.orderType,
           row.quantity,
-          row.limitPrice?.toDouble(),
+          switch (row.limitPrice) {
+            final p? => demoteToDouble(p),
+            null => null,
+          },
           row.status.code,
           row.configHash,
           row.execPolicy == ExecPolicy.dryRun ? 1 : 0,
@@ -342,4 +364,202 @@ final class SqliteOrderLedger implements OrderLedger {
     IntentStatus.skipped,
     message: message,
   );
+  // ── 🆕 E10e1 체결 원장(FillLedger · R38) ─────────────────────────────────
+
+  static const List<String> _openCodes = <String>['SUBMITTED', 'PARTIAL'];
+
+  @override
+  Future<List<OpenIntent>> openIntents(TradeDate tradeDate) async {
+    final List<OpenIntent> out = <OpenIntent>[];
+    final Set<String> seen = <String>{};
+    for (final Row r in _db.select(
+      'SELECT i.intent_id, b.broker_order_no, i.trade_date, i.market, i.account, i.strategy_id, '
+      'i.symbol, i.side, i.quantity, i.decision_id, i.status FROM order_intents i '
+      'JOIN broker_orders b ON b.intent_id = i.intent_id '
+      'WHERE i.trade_date = ? AND i.status IN (?, ?) ORDER BY i.created_at, i.intent_id',
+      <Object?>[tradeDate.yyyyMmDd, ..._openCodes],
+    )) {
+      final String id = r['intent_id'] as String;
+      if (!seen.add(id)) {
+        // 이 판은 의도 하나 = 브로커 주문 하나다(정정 · 재주문 없음) — 둘이면 원장이 틀렸다.
+        throw StateError('$id: 브로커 주문이 둘 이상이다');
+      }
+      out.add(
+        OpenIntent(
+          intentId: id,
+          brokerOrderNo: r['broker_order_no'] as String,
+          tradeDate: TradeDate(r['trade_date'] as String),
+          market: r['market'] as String,
+          account: r['account'] as String,
+          strategyId: r['strategy_id'] as String,
+          symbol: r['symbol'] as String,
+          side: r['side'] == 'BUY' ? OrderSide.buy : OrderSide.sell,
+          quantity: r['quantity'] as int,
+          decisionId: r['decision_id'] as String,
+          status: r['status'] == 'PARTIAL'
+              ? IntentStatus.partial
+              : IntentStatus.submitted,
+        ),
+      );
+    }
+    return out;
+  }
+
+  @override
+  Future<RecordedFill?> recordedFill(String brokerOrderNo) async {
+    final ResultSet rows = _db.select(
+      'SELECT raw_response FROM broker_orders WHERE broker_order_no = ?',
+      <Object?>[brokerOrderNo],
+    );
+    if (rows.isEmpty) throw StateError('없는 브로커 주문: $brokerOrderNo');
+    final Object? raw = rows.single['raw_response'];
+    if (raw == null) return null;
+    try {
+      return parseRecordedFillJson(raw as String);
+    } on FormatException {
+      throw StateError('$brokerOrderNo: 기록된 누적의 꼴이 틀렸다');
+    }
+  }
+
+  @override
+  Future<void> applyFill(FillApplication application) async {
+    final FillVerdict v = application.verdict;
+    final OpenIntent it = v.intent;
+    final DailyFillRow? row = v.row;
+    if (row == null) throw StateError('${it.intentId}: 원주문 행이 없는 판정은 쓸 수 없다');
+    if (application.costs.length != v.deltas.length) {
+      throw ArgumentError('체결 행과 비용의 개수가 다르다');
+    }
+    final String now = application.seenAtUtc.toUtc().toIso8601String();
+    _db.execute('BEGIN IMMEDIATE');
+    try {
+      for (int i = 0; i < v.deltas.length; i++) {
+        final FillDelta d = v.deltas[i];
+        final c = application.costs[i]; // (commission, tax) — 금액 타입은 core 의 것
+        _db.execute(
+          'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, '
+          'commission, tax, authored_at, fill_origin, cost_source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          <Object?>[
+            d.executionId,
+            d.brokerOrderNo,
+            now,
+            d.quantity,
+            demoteToDouble(d.price),
+            demoteToDouble(c.commission),
+            demoteToDouble(c.tax),
+            now,
+            'BROKER',
+            'ESTIMATED',
+          ],
+        );
+        _position(it, d, now);
+      }
+      final int cum = row.cumFilledQty;
+      _db.execute(
+        'UPDATE broker_orders SET status = ?, filled_qty = ?, remaining_qty = ?, '
+        'avg_fill_price = ?, raw_response = ? WHERE broker_order_no = ?',
+        <Object?>[
+          v.status.code,
+          cum,
+          row.remainingQty,
+          averageFillPrice(row),
+          recordedFillJson(row, application.seenAtUtc),
+          it.brokerOrderNo,
+        ],
+      );
+      if (_db.updatedRows != 1) {
+        throw StateError('없는 브로커 주문: ${it.brokerOrderNo}');
+      }
+      _db.execute(
+        'UPDATE order_intents SET status = ?, error_message = ?, updated_at = ? '
+        'WHERE intent_id = ? AND status = ?',
+        <Object?>[v.status.code, v.message, now, it.intentId, it.status.code],
+      );
+      if (_db.updatedRows != 1) {
+        throw StateError(
+          '${it.intentId}: ${it.status.code} 가 아니다(체결 적용 전이 불가)',
+        );
+      }
+      _db.execute('COMMIT');
+    } catch (_) {
+      if (!_db.autocommit) _db.execute('ROLLBACK');
+      rethrow;
+    }
+  }
+
+  /// 포지션 갱신(R38 Z6) — 매수 = 평단 갱신 · 매도 = 수량만 · 음수 = StateError · 0 = 지운다.
+  void _position(OpenIntent it, FillDelta d, String now) {
+    final ResultSet rows = _db.select(
+      'SELECT quantity, avg_price FROM positions WHERE market = ? AND symbol = ? AND strategy_id = ?',
+      <Object?>[it.market, it.symbol, it.strategyId],
+    );
+    final int q0 = rows.isEmpty ? 0 : rows.single['quantity'] as int;
+    if (d.side == OrderSide.buy) {
+      final int q1 = q0 + d.quantity;
+      if (rows.isEmpty) {
+        _db.execute(
+          'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, '
+          'updated_at, entry_decision_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          <Object?>[
+            it.market,
+            it.symbol,
+            it.strategyId,
+            q1,
+            demoteToDouble(d.price),
+            it.tradeDate.yyyyMmDd,
+            now,
+            it.decisionId,
+          ],
+        );
+        return;
+      }
+      final double a1 = averagePriceAfterBuy(
+        heldQty: q0,
+        heldAvg: (rows.single['avg_price'] as num).toDouble(),
+        buy: d,
+      );
+      _db.execute(
+        'UPDATE positions SET quantity = ?, avg_price = ?, updated_at = ? '
+        'WHERE market = ? AND symbol = ? AND strategy_id = ?',
+        <Object?>[q1, a1, now, it.market, it.symbol, it.strategyId],
+      );
+      return;
+    }
+    final int q1 = q0 - d.quantity;
+    if (q1 < 0) {
+      throw StateError(
+        '${it.symbol}(${it.strategyId}): 매도 ${d.quantity}주가 보유 $q0주를 넘는다',
+      );
+    }
+    if (q1 == 0) {
+      _db.execute(
+        'DELETE FROM positions WHERE market = ? AND symbol = ? AND strategy_id = ?',
+        <Object?>[it.market, it.symbol, it.strategyId],
+      );
+    } else {
+      _db.execute(
+        'UPDATE positions SET quantity = ?, updated_at = ? '
+        'WHERE market = ? AND symbol = ? AND strategy_id = ?',
+        <Object?>[q1, now, it.market, it.symbol, it.strategyId],
+      );
+    }
+  }
+
+  @override
+  Future<void> markUnresolved(String intentId, String message) async {
+    _db.execute(
+      'UPDATE order_intents SET status = ?, error_message = ?, updated_at = ? '
+      'WHERE intent_id = ? AND status IN (?, ?)',
+      <Object?>[
+        IntentStatus.unknown.code,
+        message,
+        _now(),
+        intentId,
+        ..._openCodes,
+      ],
+    );
+    if (_db.updatedRows != 1) {
+      throw StateError('$intentId: 열린 의도(SUBMITTED · PARTIAL)가 아니다');
+    }
+  }
 }

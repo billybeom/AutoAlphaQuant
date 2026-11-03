@@ -6,6 +6,8 @@
 
 import 'package:domain_contracts/domain_contracts.dart';
 
+import '../orders/fill_sync.dart';
+import '../orders/fills.dart';
 import '../orders/order_ports.dart';
 
 /// 원장 한 의도의 현재 값.
@@ -41,7 +43,7 @@ const Set<IntentStatus> _submittedOrLater = <IntentStatus>{
 };
 
 /// 메모리 주문 원장.
-class FakeOrderLedger implements OrderLedger {
+class FakeOrderLedger implements OrderLedger, FillLedger {
   /// 원장을 만든다. [registeredStrategies] 에 없는 strategy_id 는 SAF-406 거부를 받는다.
   FakeOrderLedger({
     this.killSwitch = false,
@@ -79,6 +81,98 @@ class FakeOrderLedger implements OrderLedger {
 
   /// 불린 메서드 이름(순서대로).
   final List<String> calls = <String>[];
+
+  /// 🆕 E10e1 — 주문번호 → 기록한 누적(체결 원장 · R38 Z4).
+  final Map<String, RecordedFill> recordedFills = <String, RecordedFill>{};
+
+  /// 🆕 E10e1 — 쓴 체결 행(실행 순서).
+  final List<FillDelta> executions = <FillDelta>[];
+
+  /// 🆕 E10e1 — (strategy_id, 종목) → 보유 수량(0 이면 지운다 · 매도가 넘으면 StateError).
+  final Map<(String, String), int> positions = <(String, String), int>{};
+
+  static const Set<IntentStatus> _open = <IntentStatus>{
+    IntentStatus.submitted,
+    IntentStatus.partial,
+  };
+
+  @override
+  Future<List<OpenIntent>> openIntents(TradeDate tradeDate) async {
+    _enter('openIntents');
+    return <OpenIntent>[
+      for (final FakeIntentRecord r in records.values)
+        if (r.row.tradeDate == tradeDate &&
+            _open.contains(r.status) &&
+            r.brokerOrderNo != null)
+          OpenIntent(
+            intentId: r.row.intentId,
+            brokerOrderNo: r.brokerOrderNo!,
+            tradeDate: r.row.tradeDate,
+            market: r.row.market,
+            account: r.row.account,
+            strategyId: r.row.strategyId,
+            symbol: r.row.symbol,
+            side: r.row.side,
+            quantity: r.row.quantity,
+            decisionId: r.row.decisionId,
+            status: r.status,
+          ),
+    ];
+  }
+
+  @override
+  Future<RecordedFill?> recordedFill(String brokerOrderNo) async {
+    _enter('recordedFill');
+    return recordedFills[brokerOrderNo];
+  }
+
+  @override
+  Future<void> applyFill(FillApplication application) async {
+    _enter('applyFill');
+    final FillVerdict v = application.verdict;
+    final OpenIntent it = v.intent;
+    final FakeIntentRecord? rec = records[it.intentId];
+    if (rec == null || !_open.contains(rec.status)) {
+      throw StateError('${it.intentId}: 열린 의도가 아니다');
+    }
+    if (!const <IntentStatus>{
+      IntentStatus.partial,
+      IntentStatus.filled,
+      IntentStatus.expired,
+      IntentStatus.cancelled,
+      IntentStatus.submitted,
+    }.contains(v.status)) {
+      throw StateError('${it.intentId}: 체결 적용 상태가 아니다 — ${v.status.code}');
+    }
+    // 포지션을 먼저 검사한다(한 트랜잭션 — 실패하면 아무것도 쓰지 않는다).
+    final (String, String) key = (it.strategyId, it.symbol);
+    int held = positions[key] ?? 0;
+    for (final FillDelta d in v.deltas) {
+      held += d.side == OrderSide.buy ? d.quantity : -d.quantity;
+      if (held < 0) throw StateError('${it.symbol}: 매도가 보유를 넘는다');
+    }
+    executions.addAll(v.deltas);
+    if (held == 0) {
+      positions.remove(key);
+    } else {
+      positions[key] = held;
+    }
+    final DailyFillRow row = v.row!;
+    recordedFills[it.brokerOrderNo] = RecordedFill(
+      row.cumFilledQty,
+      row.cumFilledAmount,
+    );
+    rec
+      ..status = v.status
+      ..errorMessage = v.message;
+    transitions.add((it.intentId, v.status));
+  }
+
+  @override
+  Future<void> markUnresolved(String intentId, String message) async {
+    _enter('markUnresolved');
+    _move(intentId, _open, IntentStatus.unknown, message);
+  }
 
   void _enter(String method) {
     calls.add(method);
