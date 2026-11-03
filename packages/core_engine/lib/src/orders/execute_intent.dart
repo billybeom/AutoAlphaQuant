@@ -2,7 +2,7 @@
 // 01 §6 `execute_intent` · 설계 13 §8 R33 D21 · D22 · D24 · D25 · R35 V5~V7.
 //
 // 🔴 순서의 정본은 04 §3-1 이다:
-//    1 킬스위치 → 2 차단 묶음 → 2.5 미해소 UNKNOWN → 3 전략 상태 → 4 리스크 한도 → 5 주문유형 화이트리스트 →
+//    1 킬스위치 → 2 차단 묶음(매수면 SAF-408 · 410 판정을 먼저 갱신) → 2.5 미해소 UNKNOWN → 3 전략 상태 → 4 리스크 한도 → 5 주문유형 화이트리스트 →
 //    6 INSERT(RESERVED) → 6.5 COMMIT(INSERT 가 돌아오면 커밋됨 — 포트 계약) → [안내 모드 = 여기서 안내로 · DRY_RUN = SKIPPED] →
 //    7 SUBMITTING → 8 제출 → 9 SUBMITTED | REJECTED | UNKNOWN(+ OrderOutcomeUnknown 다시 던짐).
 // 🔴 1~5단계 거부도 그 멱등키로 REJECTED 행을 남긴다(D21 — 감사 · 같은 날 같은 결정은 다시 낼 수 없다).
@@ -187,6 +187,14 @@ Future<ExecutionOutcome> executeIntent(
     }
 
     trail.add('2');
+    // 🔴 04 §1 v2.15 SF-01 — 매수면 SAF-408 · 410 판정 SQL 을 **먼저** 돌린다(플래그 자동 설정 · 해제 → 반환값).
+    //    플래그를 먼저 읽으면 한 번 선 JOURNAL_MISSING · TIER_B_UNJUDGED 가 해제에 닿지 못한다(설계 13 §8 R36 W9).
+    final bool? journalMissing = isBuy
+        ? await _read(ledger.journalMissing)
+        : null;
+    final bool? tierBUnjudged = isBuy
+        ? await _read(() => ledger.tierBUnjudged(draft.executionDate))
+        : null;
     final List<String> blocked = blockingFlagsFor(
       await _read(ledger.activeBlockFlags),
       isBuy: isBuy,
@@ -228,8 +236,8 @@ Future<ExecutionOutcome> executeIntent(
       fxRateUsdKrw: portfolio.fxRateUsdKrw,
       strategyRegistered: true, // 3단계를 지났다
       tradingBlocked: false, // 2단계가 전 주문 차단 묶음을 이미 걸렀다
-      journalMissing: isBuy ? await _read(ledger.journalMissing) : null,
-      tierBUnjudged: isBuy ? await _read(ledger.tierBUnjudged) : null,
+      journalMissing: journalMissing, // 2단계 앞 판정의 반환값(매수만)
+      tierBUnjudged: tierBUnjudged,
     );
     final LimitCheckResult limit;
     try {

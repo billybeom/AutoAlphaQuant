@@ -61,4 +61,9 @@
   - `FredClient`(키 있으면 JSON → 실패면 키 없는 `fredgraph.csv` · 키 없으면 CSV 만) · `OfrClient`(`fsi.csv`) · `getWithRetry`(10s · 1→2→4s · 429·5xx·타임아웃·연결 실패만 다시) · `MacroCollector`(FRED 4 + OFR 1 · 마지막 저장일부터 하루 겹쳐 받기 = 백필·소급 · 끝내 실패 = FAILED + `data_gap(macro)` — P1 알림은 잡 E11).
   - 시험 픽스처 `test/fixtures/{fred,fred_csv,ofr}/` = 응답 본문만(🟡 손으로 씀 — 첫 실호출 때 실응답으로) · 실호출 시험 = `network` 태그(기본 건너뜀 · `dart_test.yaml`).
   - 🆕 **E8d2b** `QuoteCollector`(설계 13 §8 R30) — core_engine 포트(`DailyQuoteFeed`)만 부른다(KIS 구현은 잡 E11 이 넣는다 · 01 §1-1). 국면 대상 5(`^GSPC`·`SPY` 일봉 · `SPY_ADJ`·`RSP_ADJ` · `KQ11`) + KR 계획 종목(`close` = 수정 · `close_unadj` = 원). 🔴 **끝난 세션만**(KR 18:00 · US 다음 날 07:00 KST — 그 뒤 행은 버리고 센다) · 창 = 마지막 저장일(포함) ~ 끝난 세션 · 이미 최신이면 부르지 않는다 · 실패 = FAILED + `data_gap` · 빠진 세션 = 하루짜리 MISSING_ROW · 🔴 KIS ^GSPC 거래량은 늘 0 이라 실전 국면은 SPY 거래량을 읽는다(R27 I1). VIX·VIX3M = FRED 가 대신 받는다(`MacroCollector.standIns` · `collect(withStandIns: true)` — KIS 지수 코드 미실측).
+- 🆕 **E10c — 주문 원장** `SqliteOrderLedger`(core `OrderLedger` 포트 구현 · 설계 13 §8 R36):
+  - 🔴 `insertIntent` = **자동 커밋 한 문장**(돌아오면 둘째 연결에서 보인다 = NR-1 6.5 · AC-S04) — 연결에 열린 트랜잭션이 있으면 INSERT 하지 않고 StateError · UNIQUE · PK 충돌(확장 코드 2067 · 1555)만 false.
+  - 상태 전이 = `WHERE status = 앞 상태` 만(아니면 StateError) · 접수 = SUBMITTED + `broker_orders`(`submitted_at` = SUBMITTING 시각) **한 트랜잭션** · 브로커 거절 = `error_message` 접두 `BROKER: `(orders_today 에 센다 · D22).
+  - 판정 SQL — 킬스위치(`kill_switch_state`) · 묶음(04 §3-1 ①) · 미해소 UNKNOWN 3인자 · SAF-406(`strategy_state_current`) · SAF-408(04 §1 SQL → `JOURNAL_MISSING` 자동 설정 · 해제 `auto:SAF-408`) · SAF-410(집행일 전월 · 동결 XKRX 월말 뒤 3거래일 유예 → `TIER_B_UNJUDGED` 자동 설정 · 해제 `auto:SAF-410`).
+  - 스키마 자산 재생성(02 v2.38 — `order_intents.status` += `EXPIRED` · 주석 · 정정 0). 체결 기록(`executions` · `positions`)은 E10e.
 - ⬜ 리포지토리 구현체(`LocalSqliteReader`) · 명령 인입(수송 · 명령 TTL) · Supabase(E11) = 그 뒤.
