@@ -6,6 +6,8 @@
 // 🔴 핑 실패는 잡 결과를 바꾸지 않는다 — 감시는 바깥(healthchecks · M1-12) 몫이고, 핑이 안 가면 그쪽이 지연을 본다.
 // 🔴 알림 발송이 실패하면 fail 핑 — P0 가 안 갔을 수 있다(바깥이 알린다 · 결과는 남긴다).
 // 🔵 잡 실패 알림 코드는 두지 않는다 — fail 핑을 바깥 워치독이 알린다(경보 피로 규칙 · 같은 사고에 알림 둘을 내지 않는다).
+// 🆕 E11b(R43 B7) — 달력은 시장별(`calendar`) · 세션일 함수(`us_data` = KST 날 − 1) · 회차 `rid`(start · 끝 핑이 같은 값 —
+//    바깥이 한 회차의 시작과 끝을 짝짓는다 · 결정적 UUID 꼴).
 
 import 'package:core_engine/core_engine.dart' show ExchangeCalendar;
 import 'package:domain_contracts/domain_contracts.dart';
@@ -29,8 +31,13 @@ enum PingStatus {
 
 /// 하트비트 포트 — 구현 = healthchecks.io 어댑터(M1-12 · E11 다음 조각) · 시험 기록기.
 abstract interface class JobHeartbeat {
-  /// [check] 에 [status] 를 보낸다(실패하면 예외 — 잡은 세기만 한다).
-  Future<void> ping(String check, PingStatus status, {String? note});
+  /// [check] 에 [status] 를 보낸다(실패하면 예외 — 잡은 세기만 한다). [rid] = 회차 id(start · 끝이 같다).
+  Future<void> ping(
+    String check,
+    PingStatus status, {
+    String? note,
+    String? rid,
+  });
 }
 
 /// 알림 포트 — 엔진이 정한 코드만 넘긴다(등급 · 발송은 받는 쪽 · M5 · E13).
@@ -72,7 +79,8 @@ class JobRun<T> {
   const JobRun({
     required this.check,
     required this.status,
-    required this.today,
+    required this.sessionDay,
+    required this.rid,
     required this.report,
     required this.alerts,
     required this.note,
@@ -86,8 +94,11 @@ class JobRun<T> {
   /// 상태.
   final JobStatus status;
 
-  /// 집행일(KST 날짜).
-  final TradeDate today;
+  /// 세션일(KR 잡 = KST 날 · `us_data` = 앞 날).
+  final TradeDate sessionDay;
+
+  /// 회차 id(핑에 실은 값).
+  final String rid;
 
   /// 본체 보고(휴장 · 본체 실패면 null).
   final T? report;
@@ -128,30 +139,54 @@ Duration kstTimeOfDay(DateTime utc) {
   return Duration(hours: k.hour, minutes: k.minute, seconds: k.second);
 }
 
+int _fnv1a64(String s) {
+  // 64비트 FNV-1a — 의존을 더하지 않는 결정적 해시(암호용 아님 · 회차 짝짓기용).
+  int h = 0xcbf29ce484222325;
+  for (final int c in s.codeUnits) {
+    h ^= c;
+    h = (h * 0x100000001b3) & 0xFFFFFFFFFFFFFFFF;
+  }
+  return h;
+}
+
+String _hex16(int v) => v.toUnsigned(64).toRadixString(16).padLeft(16, '0');
+
+/// 회차 id(R43 B7) — (체크 · 시작 시각)의 결정적 UUID 꼴(버전 4 자리 · 변형 8).
+String runIdFor(String check, DateTime startUtc) {
+  final String seed = '$check|${startUtc.toUtc().toIso8601String()}';
+  final String h = _hex16(_fnv1a64(seed)) + _hex16(_fnv1a64('$seed#2'));
+  return '${h.substring(0, 8)}-${h.substring(8, 12)}-4${h.substring(13, 16)}-'
+      '8${h.substring(17, 20)}-${h.substring(20, 32)}';
+}
+
 String _short(Object e) {
   final String s = '$e';
   return s.length <= 200 ? s : '${s.substring(0, 200)}…';
 }
 
-/// 잡 규약 실행(R42 S3) — 휴장 = 성공 핑만 · 아니면 start → [body] → success | fail.
+/// 잡 규약 실행(R42 S3 · R43 B7) — 휴장 = 성공 핑만 · 아니면 start → [body] → success | fail.
+///
+/// [calendar] = 잡 시장의 달력 · [sessionDayOf] = 지금 → 다루는 세션일(기본 = KST 날 · `us_data` = 앞 날).
 Future<JobRun<T>> runJob<T>({
   required String check,
   required JobHeartbeat heartbeat,
   required AlertSink alerts,
-  required ExchangeCalendar kr,
+  required ExchangeCalendar calendar,
   required DateTime nowUtc,
-  required Future<JobBody<T>> Function(TradeDate today) body,
+  required Future<JobBody<T>> Function(TradeDate sessionDay) body,
+  TradeDate Function(DateTime nowUtc) sessionDayOf = kstDateOf,
 }) async {
   int pingFailures = 0;
+  final String rid = runIdFor(check, nowUtc);
   Future<void> ping(PingStatus s, [String? note]) async {
     try {
-      await heartbeat.ping(check, s, note: note);
+      await heartbeat.ping(check, s, note: note, rid: rid);
     } on Object {
       pingFailures++;
     }
   }
 
-  final TradeDate today = kstDateOf(nowUtc);
+  final TradeDate today = sessionDayOf(nowUtc);
   JobRun<T> failed(
     Object e, {
     T? report,
@@ -159,7 +194,8 @@ Future<JobRun<T>> runJob<T>({
   }) => JobRun<T>(
     check: check,
     status: JobStatus.failed,
-    today: today,
+    sessionDay: today,
+    rid: rid,
     report: report,
     alerts: codes,
     note: _short(e),
@@ -169,7 +205,7 @@ Future<JobRun<T>> runJob<T>({
 
   final bool session;
   try {
-    session = kr.isSession(today);
+    session = calendar.isSession(today);
   } on Object catch (e) {
     // 달력 범위 밖 — 무엇도 판정할 수 없다(fail-closed).
     await ping(PingStatus.start);
@@ -181,7 +217,8 @@ Future<JobRun<T>> runJob<T>({
     return JobRun<T>(
       check: check,
       status: JobStatus.holiday,
-      today: today,
+      sessionDay: today,
+      rid: rid,
       report: null,
       alerts: const <String>{},
       note: '휴장',
@@ -209,7 +246,8 @@ Future<JobRun<T>> runJob<T>({
   return JobRun<T>(
     check: check,
     status: JobStatus.success,
-    today: today,
+    sessionDay: today,
+    rid: rid,
     report: b.report,
     alerts: b.alerts,
     note: b.note,

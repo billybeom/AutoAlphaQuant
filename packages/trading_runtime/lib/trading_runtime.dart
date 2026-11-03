@@ -5,8 +5,11 @@
 // 🔴 ui_*는 이 패키지를 의존하지 않는다(C-3). 재개 게이트 화면은 ui_safety다.
 //
 // 🆕 E11a(설계 13 §8 R42) — 잡 규약(01 §10) · 주문 잡(`kr_order` 오전 · 마감 · `daily_reconcile`).
-//    알람 · FGS · 실제 핑 · 알림 발송 · 재개(R0~R8)는 아직 없다.
+// 🆕 E11b(설계 13 §8 R43 B1~B9) — 잡 표 · 회차 · 다음 발화 · 놓친 발화 · 3분법 판정 · `rid` · FGS 문구.
+//    알람 · FGS 서비스 · 실제 핑 · 알림 발송 · 재개(R0~R8)는 아직 없다.
 
+export 'src/jobs/fgs_notice.dart'
+    show FgsChannel, FgsNotice, FgsStatus, buildFgsNotice, shouldRepostFgs;
 export 'src/jobs/job_contract.dart'
     show
         AlertSink,
@@ -17,8 +20,23 @@ export 'src/jobs/job_contract.dart'
         PingStatus,
         kstDateOf,
         kstTimeOfDay,
+        runIdFor,
         runJob,
         watchdogCheckName;
+export 'src/jobs/job_schedule.dart'
+    show
+        JobCadence,
+        JobCalendars,
+        JobOccurrence,
+        JobSpec,
+        WakeAction,
+        WakeDecision,
+        jobSpecOf,
+        kJobTable,
+        nextOccurrence,
+        occurrenceOn,
+        occurrencesBetween,
+        wakeDecisions;
 export 'src/jobs/kr_order_jobs.dart'
     show
         DraftQuoteSource,
@@ -30,3 +48,5 @@ export 'src/jobs/kr_order_jobs.dart'
         TargetSource,
         kKrOrderCutoffKst,
         kKrOrderEarliestKst;
+export 'src/jobs/watchdog_judge.dart'
+    show OccurrenceRecord, WatchdogState, WatchdogVerdict, judgeOccurrence;
