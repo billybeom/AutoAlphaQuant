@@ -150,16 +150,30 @@ class FakeOrderLedger implements OrderLedger {
         .length;
   }
 
-  @override
-  Future<bool> journalMissing() async {
-    _enter('journalMissing');
-    return journalMissingValue;
+  /// 판정이 플래그를 세우고 지운다(SQLite 원장과 같은 꼴 — 자동 해제 · R36 W9).
+  bool _refresh(String flag, bool judged) {
+    if (judged) {
+      flags.add(flag);
+    } else {
+      flags.remove(flag);
+    }
+    return judged;
   }
 
   @override
-  Future<bool> tierBUnjudged() async {
+  Future<bool> journalMissing() async {
+    _enter('journalMissing');
+    return _refresh(FlagIds.journalMissing, journalMissingValue);
+  }
+
+  /// 마지막 [tierBUnjudged] 의 집행일.
+  TradeDate? lastTierBDate;
+
+  @override
+  Future<bool> tierBUnjudged(TradeDate tradeDate) async {
     _enter('tierBUnjudged');
-    return tierBUnjudgedValue;
+    lastTierBDate = tradeDate;
+    return _refresh(FlagIds.tierBUnjudged, tierBUnjudgedValue);
   }
 
   @override

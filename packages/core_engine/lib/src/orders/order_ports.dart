@@ -283,11 +283,13 @@ abstract interface class OrderLedger {
   /// SAF-401 — 그날 7단계(SUBMITTING)에 들어선 의도 수(R33 D22).
   Future<int> ordersToday(TradeDate tradeDate);
 
-  /// SAF-408 판정 SQL(주문 경로에서 직접 — SF-01).
+  /// SAF-408 판정 SQL(주문 경로에서 직접 — SF-01) — 🔴 `JOURNAL_MISSING` 플래그를 자동 설정 · 해제하고 판정을 돌려준다
+  /// (사람 해제 경로 없음 · 2단계 앞에서 부른다 — R36 W9).
   Future<bool> journalMissing();
 
-  /// SAF-410 판정 SQL(주문 경로에서 직접 — 04 v2.38 D20).
-  Future<bool> tierBUnjudged();
+  /// SAF-410 판정 SQL([tradeDate] 의 전월 판정 · 월말 뒤 3거래일 유예 — 04 §1 v2.15 · v2.38 D20) — `TIER_B_UNJUDGED`
+  /// 플래그를 자동 설정 · 해제하고 판정을 돌려준다.
+  Future<bool> tierBUnjudged(TradeDate tradeDate);
 
   /// 6단계 INSERT — 멱등키 UNIQUE 충돌이면 false(이미 처리된 의도). 🔴 돌아오면 커밋됐다(6.5).
   Future<bool> insertIntent(IntentRow row);

@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `89229d7a670dda70b19078f3bf7e1b4efc51cec574e3372c8a728bd9d8cb804a`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `030b24f2376bb821621e7d3c0da54ba236da80c81b84343732740d28ee744e0f`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS signals (
     PRIMARY KEY (trade_date, strategy_id, symbol)
 );
 
--- ── 02_데이터모델.md L218-270 ──
+-- ── 02_데이터모델.md L218-272 ──
 -- 주문 의도 원장. 🔴 브로커 호출 전에 먼저 INSERT (NR-1)
 CREATE TABLE IF NOT EXISTS order_intents (
     intent_id       TEXT NOT NULL PRIMARY KEY,        -- UUID
@@ -197,17 +197,18 @@ CREATE TABLE IF NOT EXISTS order_intents (
     created_at      TEXT NOT NULL,                    -- ISO8601 (UTC)
     trade_date      TEXT NOT NULL,                    -- 🔴 해당 시장 현지 거래일 (US는 ET)
     market          TEXT NOT NULL CHECK (market IN ('KR','US')),
-    account         TEXT NOT NULL,
-    strategy_id     TEXT NOT NULL,
-    decision_id     TEXT NOT NULL,                    -- 논리적 의사결정 단위
+    account         TEXT NOT NULL,                    -- 🆕 v2.38 계좌 **별칭**(cash_flow.account_alias 와 같은 축 · R33 D18)
+    strategy_id     TEXT NOT NULL,                    -- 🆕 v2.38 P0S = 'P0S_A'·'P0S_B'·'P0S_C'·'P0S_POT' (입금 = 'P0S')
+    decision_id     TEXT NOT NULL,                    -- 논리적 의사결정 단위 · 🆕 v2.38 주문 의도 = '{논리 id}@{집행일}'(04 §3-2)
     symbol          TEXT NOT NULL,
     side            TEXT NOT NULL CHECK (side IN ('BUY','SELL')),
-    order_type      TEXT NOT NULL,                    -- 화이트리스트 검증 대상
+    order_type      TEXT NOT NULL,                    -- 화이트리스트 검증 대상 · 🆕 v2.38 값 = 'LIMIT'·'MARKET'(KIS ORD_DVSN 대응은 broker_gateway · R33 D19)
     quantity        INTEGER NOT NULL CHECK (quantity > 0),
     limit_price     REAL,
     status          TEXT NOT NULL CHECK (status IN
                      ('RESERVED','SUBMITTING','SUBMITTED','FILLED','PARTIAL',
-                      'CANCELLED','REJECTED','UNKNOWN','SKIPPED')),
+                      'CANCELLED','REJECTED','UNKNOWN','SKIPPED',
+                      'EXPIRED')),                    -- 🆕 v2.38 EXPIRED = 일 마감 실효(취소 아님 · 04 §3-1 ③ · R32 O3 · R33 D5)
     sizing_binding  TEXT CHECK (sizing_binding IN ('RISK','NOTIONAL')),
     config_hash     TEXT NOT NULL,
     dry_run         INTEGER NOT NULL DEFAULT 1,       -- 🆕 v2.33 = `ExecPolicy`(1 ⇔ DRY_RUN · 0 ⇔ EXECUTE) ·
@@ -220,7 +221,8 @@ CREATE INDEX IF NOT EXISTS ix_intents_unknown ON order_intents(status) WHERE sta
 
 -- 브로커 주문 (의도 1개에 브로커 주문 여러 개 가능: 정정·재주문)
 CREATE TABLE IF NOT EXISTS broker_orders (
-    broker_order_no TEXT NOT NULL PRIMARY KEY,
+    broker_order_no TEXT NOT NULL PRIMARY KEY,        -- 🆕 v2.38 = '{주문일}:{ODNO}'(주문일 = KR 거래일 ISO 날짜 · ODNO = KIS 주문번호 원문)
+                                                      --    KIS 주문번호는 날마다 새로 매겨질 수 있어 단독 PK 가 날을 넘겨 겹친다(R31 · R33 D3)
     intent_id       TEXT NOT NULL,
     submitted_at    TEXT NOT NULL,
     status          TEXT NOT NULL,
@@ -233,7 +235,7 @@ CREATE TABLE IF NOT EXISTS broker_orders (
 
 -- 체결
 CREATE TABLE IF NOT EXISTS executions (
-    execution_id    TEXT NOT NULL PRIMARY KEY,
+    execution_id    TEXT NOT NULL PRIMARY KEY,        -- 🆕 v2.38 브로커 체결 = '{broker_order_no}#{누적 체결수량}'(R31 (a) · §3-2 v2.38)
     broker_order_no TEXT,                             -- 🆕 v2.33 NULL 허용 — 수기 체결(X7 `MANUAL`)은 브로커 주문이 없다.
                                                       --    배치 F 의 `fill_origin` CHECK 가 «MANUAL ⇔ NULL» 을 강제한다(R20 Q2)
     executed_at     TEXT NOT NULL,
@@ -244,7 +246,7 @@ CREATE TABLE IF NOT EXISTS executions (
     FOREIGN KEY (broker_order_no) REFERENCES broker_orders(broker_order_no)
 );
 
--- ── 02_데이터모델.md L276-294 ──
+-- ── 02_데이터모델.md L295-313 ──
 CREATE TABLE IF NOT EXISTS positions (
     market          TEXT NOT NULL,
     symbol          TEXT NOT NULL,
@@ -265,7 +267,7 @@ CREATE TABLE IF NOT EXISTS positions (
     PRIMARY KEY (market, symbol, strategy_id)
 );
 
--- ── 02_데이터모델.md L315-361 ──
+-- ── 02_데이터모델.md L334-380 ──
 -- (positions 계속)
 
 -- 🔴 매일 저장. 소급 복원 불가
@@ -314,7 +316,7 @@ CREATE TABLE IF NOT EXISTS trades (
     holding_days    INTEGER NOT NULL
 );
 
--- ── 02_데이터모델.md L367-522 ──
+-- ── 02_데이터모델.md L386-541 ──
 CREATE TABLE IF NOT EXISTS strategy_state_log (
     log_id               TEXT NOT NULL PRIMARY KEY,
     strategy_id          TEXT NOT NULL,

@@ -250,7 +250,8 @@ void main() {
   group('2단계 묶음 · 2.5 · 한도 · 원장 값', () {
     test('신규 매수 차단(JOURNAL_MISSING)은 매수만 · 표식은 막지 않는다', () async {
       final FakeOrderLedger ledger = ledgerOf()
-        ..flags.addAll(<String>{FlagIds.journalMissing, FlagIds.dstWeek});
+        ..journalMissingValue = true
+        ..flags.add(FlagIds.dstWeek);
       final FakeOrderBroker broker = FakeOrderBroker();
       final ExecutionOutcome buy = await executeIntent(
         draftOf(),
@@ -321,6 +322,48 @@ void main() {
       },
     );
 
+    test('🔴 한 번 선 JOURNAL_MISSING · TIER_B_UNJUDGED 도 판정이 풀리면 다음 매수는 낸다(자동 해제 · R36 W9)', () async {
+      final FakeOrderLedger ledger = ledgerOf()
+        ..flags.addAll(<String>{FlagIds.journalMissing, FlagIds.tierBUnjudged});
+      final FakeOrderBroker broker = FakeOrderBroker();
+      final List<String> steps = <String>[];
+      final ExecutionOutcome o = await executeIntent(
+        draftOf(),
+        portfolioOk(),
+        ctxOf(ledger, broker),
+        steps: steps,
+      );
+      expect(o.status, ExecutionStatus.submitted);
+      expect(ledger.flags, isEmpty);
+      expect(ledger.lastTierBDate, kExec);
+      // 판정은 묶음을 읽기 전에 돈다.
+      expect(
+        ledger.calls.indexOf('tierBUnjudged'),
+        lessThan(ledger.calls.indexOf('activeBlockFlags')),
+      );
+      expect(
+        ledger.calls.indexOf('journalMissing'),
+        lessThan(ledger.calls.indexOf('activeBlockFlags')),
+      );
+    });
+
+    test('SAF-410 판정이 서면 매수만 막는다', () async {
+      final FakeOrderLedger ledger = ledgerOf()..tierBUnjudgedValue = true;
+      final FakeOrderBroker broker = FakeOrderBroker();
+      final ExecutionOutcome buy = await executeIntent(
+        draftOf(),
+        portfolioOk(),
+        ctxOf(ledger, broker),
+      );
+      final ExecutionOutcome sell = await executeIntent(
+        draftOf(side: OrderSide.sell, logical: 'S-9'),
+        portfolioOk(),
+        ctxOf(ledger, broker),
+      );
+      expect(buy.message, 'SAF-407: TIER_B_UNJUDGED');
+      expect(sell.status, ExecutionStatus.submitted);
+    });
+
     test('한도 위반(SAF-402 주문 금액) = REJECTED 「SAF-402: 한도 위반」', () async {
       final FakeOrderLedger ledger = ledgerOf();
       final FakeOrderBroker broker = FakeOrderBroker();
@@ -343,7 +386,8 @@ void main() {
           portfolioOk(),
           ctxOf(ledger, broker),
         );
-        expect(buy.message, 'SAF-408: 한도 위반');
+        // 2단계 앞 SAF-408 판정이 JOURNAL_MISSING 을 세우고 2단계가 막는다(R36 W9).
+        expect(buy.message, 'SAF-407: JOURNAL_MISSING');
         ledger.calls.clear();
         final ExecutionOutcome sell = await executeIntent(
           draftOf(side: OrderSide.sell, logical: 'S-2'),
