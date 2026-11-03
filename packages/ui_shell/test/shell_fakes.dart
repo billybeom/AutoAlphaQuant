@@ -802,3 +802,126 @@ Set<String> modePickAllowed(OnboardingModeChoiceVm v) => <String>{
   ?v.lockedLabel,
   ShellLabels.onboardingNext,
 };
+
+// ── R15b — O-01~O-03 fakes ──
+
+class FakeShellStepRepository extends UnimplementedOnboardingRepository {
+  FakeShellStepRepository({required this.steps, required this.detail});
+
+  final Stream<OnboardingStepsVm> Function(int call) steps;
+  final Stream<OnboardingStepDetailVm> Function(int call) detail;
+  final List<String> stepIds = <String>[];
+  int listCalls = 0;
+
+  @override
+  Stream<OnboardingStepsVm> watchStepList() {
+    final int call = listCalls;
+    listCalls = listCalls + 1;
+    return steps(call);
+  }
+
+  @override
+  Stream<OnboardingStepDetailVm> watchStep(String stepId) {
+    final int call = stepIds.length;
+    stepIds.add(stepId);
+    return detail(call);
+  }
+}
+
+class FakeShellSlotRecorder {
+  final List<String> slotIds = <String>[];
+
+  Widget build(String slotId) {
+    slotIds.add(slotId);
+    return SizedBox(key: ValueKey<String>('fake-slot-$slotId'), height: 48);
+  }
+}
+
+List<Override> stepOverrides({
+  required FakeShellStepRepository repo,
+  required SettingsActions? actions,
+  required ShellSlotBuilder? slots,
+  required RecordingLinkOpener opener,
+}) => <Override>[
+  shellOnboardingRepositoryProvider.overrideWithValue(repo),
+  shellOnboardingActionsProvider.overrideWithValue(actions),
+  shellOnboardingSlotBuilderProvider.overrideWithValue(slots),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+];
+
+Future<void> pumpStepList(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 4000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: OnboardingStepList())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+Future<void> pumpStepDetail(
+  WidgetTester tester, {
+  required List<Override> overrides,
+  required String stepId,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: MaterialApp(
+        home: Scaffold(body: OnboardingStepDetail(stepId: stepId)),
+      ),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String> stepRowTexts(OnboardingStep s) => <String>[
+  s.title,
+  s.whyLine,
+  s.estimatedText,
+  s.requirementLabel,
+  ?s.warningLabel,
+  ?s.verificationLabel,
+  ?s.verifiedUntilText,
+  ?s.failureText,
+  ?s.failureReasonCode,
+  ?s.gate?.label,
+];
+
+Set<String> stepListAllowed(OnboardingStepsVm v) => <String>{
+  v.progressText,
+  ?v.emptyLabel,
+  for (final OnboardingStep r in v.rows) ...stepRowTexts(r),
+  ShellLabels.onboardingNext,
+};
+
+Set<String> stepDetailAllowed(OnboardingStepDetailVm v, ActionResult? r) =>
+    <String>{
+      ?v.missingLabel,
+      ?v.step?.title,
+      ?v.step?.whyLine,
+      ?v.step?.estimatedText,
+      ?v.step?.verifiedUntilText,
+      ?v.whereText,
+      ?v.howText,
+      ?v.verify?.label,
+      ?r?.headline,
+      ?r?.reasonCode,
+      ShellLabels.onboardingNotAccepted,
+      ShellLabels.retry,
+    };
