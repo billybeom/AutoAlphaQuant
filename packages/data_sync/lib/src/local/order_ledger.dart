@@ -10,12 +10,17 @@
 // 🆕 E10e1 — 체결 원장(`FillLedger` · 설계 13 §8 R38 Z2~Z6 · Z9): 실행 행 · 브로커 주문 누적 · 포지션 · 의도 상태를 한 트랜잭션.
 //    🔴 누적 정본 = `broker_orders.raw_response` 에 마지막으로 본 원주문 행의 누적 칸(실행 행 단가는 REAL 이라 Σ 로 되살리지 못한다).
 //    🔴 매도가 보유를 넘으면 StateError(원장이 틀렸다 — 쓰지 않는다) · 0 이면 포지션 행을 지운다.
+// 🆕 E10e2 — 이월 원장(`CarryLedger`) · 해소 원장(`UnknownLedger`) · 설계 13 §8 R39 T2 · T4 · T9.
+//    🔴 논리 id 비교는 `substr(decision_id, 1, n) = '{논리 id}@'` — `LIKE` 를 쓰지 않는다(`_` · `%` 가 와일드카드).
+//    🔴 UNKNOWN 해소 거절(`UNKNOWN_NOT_FOUND: `)도 7단계를 지났다 — orders_today · 분할 계획 합에 센다.
 
 import 'package:core_engine/core_engine.dart'
     show
         BlockBundles,
+        CarryLedger,
         DailyFillRow,
         ExchangeCalendar,
+        ExpiredIntent,
         FillApplication,
         FillDelta,
         FillLedger,
@@ -25,9 +30,15 @@ import 'package:core_engine/core_engine.dart'
         OpenIntent,
         OrderLedger,
         RecordedFill,
+        SplitProgress,
+        UnknownIntent,
+        UnknownLedger,
         averageFillPrice,
         averagePriceAfterBuy,
         demoteToDouble,
+        kUnknownNotFoundPrefix,
+        logicalIdOf,
+        parseRecordedCancelJson,
         parseRecordedFillJson,
         recordedFillJson;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -52,7 +63,8 @@ const List<IntentStatus> _submittedOrLater = <IntentStatus>[
 const int kTierBGraceSessions = 3;
 
 /// 로컬 원장 파일 하나의 주문 원장(포트 구현).
-final class SqliteOrderLedger implements OrderLedger, FillLedger {
+final class SqliteOrderLedger
+    implements OrderLedger, FillLedger, CarryLedger, UnknownLedger {
   /// 원장을 만든다. [kr] = SAF-410 의 영업일 달력(동결 XKRX · 범위 밖이면 StateError).
   SqliteOrderLedger(
     this._db, {
@@ -119,25 +131,33 @@ final class SqliteOrderLedger implements OrderLedger, FillLedger {
     <Object?>[strategyId],
   );
 
-  @override
-  Future<int> ordersToday(TradeDate tradeDate) async {
+  /// 7단계를 지난 의도의 조건(R33 D22 · R39 T9) — orders_today · 분할 계획 합이 같이 쓴다. 인자 = [_sentArgs].
+  static String _sentWhere(String a) {
     final String marks = List<String>.filled(
       _submittedOrLater.length,
       '?',
     ).join(', ');
-    return _db.select(
-          'SELECT COUNT(*) AS n FROM order_intents WHERE trade_date = ? AND ('
-          'status IN ($marks) OR '
-          "(status = 'REJECTED' AND substr(error_message, 1, ?) = ?))",
-          <Object?>[
-            tradeDate.yyyyMmDd,
-            for (final IntentStatus s in _submittedOrLater) s.code,
-            kBrokerRejectedPrefix.length,
-            kBrokerRejectedPrefix,
-          ],
-        ).single['n']
-        as int;
+    return '($a.status IN ($marks) OR '
+        "($a.status = 'REJECTED' AND (substr($a.error_message, 1, ?) = ? "
+        'OR substr($a.error_message, 1, ?) = ?)))';
   }
+
+  static List<Object?> get _sentArgs => <Object?>[
+    for (final IntentStatus s in _submittedOrLater) s.code,
+    kBrokerRejectedPrefix.length,
+    kBrokerRejectedPrefix,
+    kUnknownNotFoundPrefix.length,
+    kUnknownNotFoundPrefix,
+  ];
+
+  @override
+  Future<int> ordersToday(TradeDate tradeDate) async =>
+      _db.select(
+            'SELECT COUNT(*) AS n FROM order_intents i WHERE i.trade_date = ? AND '
+            '${_sentWhere('i')}',
+            <Object?>[tradeDate.yyyyMmDd, ..._sentArgs],
+          ).single['n']
+          as int;
 
   @override
   Future<bool> journalMissing() async {
@@ -561,5 +581,199 @@ final class SqliteOrderLedger implements OrderLedger, FillLedger {
     if (_db.updatedRows != 1) {
       throw StateError('$intentId: 열린 의도(SUBMITTED · PARTIAL)가 아니다');
     }
+  }
+
+  // ── 🆕 E10e2 이월 원장(CarryLedger · R39 T2 · T4) ───────────────────────────
+
+  /// `substr(decision_id, 1, n) = '{논리 id}@'` 의 인자(n · 접두).
+  static List<Object?> _logicalArgs(String logical) {
+    final String prefix = '$logical@';
+    return <Object?>[prefix.length, prefix];
+  }
+
+  @override
+  Future<List<ExpiredIntent>> expiredIntents(TradeDate tradeDate) async {
+    final List<ExpiredIntent> out = <ExpiredIntent>[];
+    final Set<String> seen = <String>{};
+    for (final Row r in _db.select(
+      'SELECT i.intent_id, i.decision_id, i.strategy_id, i.symbol, i.side, i.quantity, '
+      'b.broker_order_no, b.filled_qty, b.raw_response FROM order_intents i '
+      'JOIN broker_orders b ON b.intent_id = i.intent_id '
+      "WHERE i.trade_date = ? AND i.status = 'EXPIRED' ORDER BY i.created_at, i.intent_id",
+      <Object?>[tradeDate.yyyyMmDd],
+    )) {
+      final String id = r['intent_id'] as String;
+      if (!seen.add(id)) throw StateError('$id: 브로커 주문이 둘 이상이다');
+      final String no = r['broker_order_no'] as String;
+      final Object? raw = r['raw_response'];
+      if (raw == null) throw StateError('$no: 실효인데 기록된 누적이 없다');
+      final int cancelled;
+      try {
+        cancelled = parseRecordedCancelJson(raw as String);
+      } on FormatException {
+        throw StateError('$no: 기록된 취소 확인의 꼴이 틀렸다');
+      }
+      final String logical = logicalIdOf(r['decision_id'] as String);
+      final String strategyId = r['strategy_id'] as String;
+      final String symbol = r['symbol'] as String;
+      out.add(
+        ExpiredIntent(
+          intentId: id,
+          logicalDecisionId: logical,
+          strategyId: strategyId,
+          symbol: symbol,
+          side: r['side'] == 'BUY' ? OrderSide.buy : OrderSide.sell,
+          expiredQty:
+              (r['quantity'] as int) - (r['filled_qty'] as int) - cancelled,
+          // 어느 상태든 센다(막힌 날도 — 보수 · R39 T2).
+          sessionsUsed:
+              _db.select(
+                    'SELECT COUNT(DISTINCT trade_date) AS n FROM order_intents '
+                    'WHERE strategy_id = ? AND symbol = ? AND substr(decision_id, 1, ?) = ?',
+                    <Object?>[strategyId, symbol, ..._logicalArgs(logical)],
+                  ).single['n']
+                  as int,
+        ),
+      );
+    }
+    return out;
+  }
+
+  @override
+  Future<SplitProgress> splitProgress(
+    String logicalDecisionId, {
+    required String strategyId,
+    required String symbol,
+    required TradeDate before,
+  }) async {
+    final Row r = _db.select(
+      'SELECT COALESCE(SUM(i.quantity), 0) AS planned, COALESCE(SUM(b.filled_qty), 0) AS filled '
+      'FROM order_intents i LEFT JOIN broker_orders b ON b.intent_id = i.intent_id '
+      'WHERE i.strategy_id = ? AND i.symbol = ? AND substr(i.decision_id, 1, ?) = ? '
+      'AND i.trade_date < ? AND ${_sentWhere('i')}',
+      <Object?>[
+        strategyId,
+        symbol,
+        ..._logicalArgs(logicalDecisionId),
+        before.yyyyMmDd,
+        ..._sentArgs,
+      ],
+    ).single;
+    return SplitProgress(
+      planned: r['planned'] as int,
+      filled: r['filled'] as int,
+    );
+  }
+
+  // ── 🆕 E10e2 해소 원장(UnknownLedger · R39 T9) ─────────────────────────────
+
+  static const String _noBrokerOrder =
+      'NOT EXISTS (SELECT 1 FROM broker_orders b WHERE b.intent_id = i.intent_id)';
+
+  @override
+  Future<List<UnknownIntent>> unknownIntents() async => <UnknownIntent>[
+    for (final Row r in _db.select(
+      'SELECT i.intent_id, i.trade_date, i.account, i.symbol, i.side, i.quantity, i.limit_price, '
+      "i.created_at, i.error_message FROM order_intents i WHERE i.status = 'UNKNOWN' "
+      'AND $_noBrokerOrder ORDER BY i.created_at, i.intent_id',
+    ))
+      UnknownIntent(
+        intentId: r['intent_id'] as String,
+        tradeDate: TradeDate(r['trade_date'] as String),
+        account: r['account'] as String,
+        symbol: r['symbol'] as String,
+        side: r['side'] == 'BUY' ? OrderSide.buy : OrderSide.sell,
+        quantity: r['quantity'] as int,
+        limitPrice: (r['limit_price'] as num?)?.toDouble(),
+        createdAtUtc: DateTime.parse(r['created_at'] as String).toUtc(),
+        errorMessage: r['error_message'] as String?,
+      ),
+  ];
+
+  @override
+  Future<Set<String>> linkedOrderNos(Iterable<String> brokerOrderNos) async {
+    final List<String> all = brokerOrderNos.toSet().toList();
+    final Set<String> out = <String>{};
+    for (int i = 0; i < all.length; i += 500) {
+      final List<String> part = all.sublist(
+        i,
+        i + 500 < all.length ? i + 500 : all.length,
+      );
+      final String marks = List<String>.filled(part.length, '?').join(', ');
+      for (final Row r in _db.select(
+        'SELECT broker_order_no FROM broker_orders WHERE broker_order_no IN ($marks)',
+        part,
+      )) {
+        out.add(r['broker_order_no'] as String);
+      }
+    }
+    return out;
+  }
+
+  @override
+  Future<void> linkUnknown(String intentId, String brokerOrderNo) async {
+    _db.execute('BEGIN IMMEDIATE');
+    try {
+      final ResultSet rows = _db.select(
+        'SELECT i.quantity, i.created_at FROM order_intents i '
+        "WHERE i.intent_id = ? AND i.status = 'UNKNOWN' AND $_noBrokerOrder",
+        <Object?>[intentId],
+      );
+      if (rows.isEmpty) {
+        throw StateError('$intentId: 브로커 주문이 없는 UNKNOWN 이 아니다');
+      }
+      if (_exists(
+        'SELECT 1 FROM broker_orders WHERE broker_order_no = ?',
+        <Object?>[brokerOrderNo],
+      )) {
+        throw StateError('$brokerOrderNo: 이미 다른 의도에 붙어 있다');
+      }
+      // submitted_at = 예약 시각(SUBMITTING 시각은 UNKNOWN 기록이 덮었다 — 이르게 잡힌다 · R39 T5).
+      _db.execute(
+        'INSERT INTO broker_orders (broker_order_no, intent_id, submitted_at, status, '
+        'filled_qty, remaining_qty) VALUES (?, ?, ?, ?, 0, ?)',
+        <Object?>[
+          brokerOrderNo,
+          intentId,
+          rows.single['created_at'],
+          IntentStatus.submitted.code,
+          rows.single['quantity'],
+        ],
+      );
+      _move(intentId, IntentStatus.unknown, IntentStatus.submitted);
+      _db.execute('COMMIT');
+    } catch (_) {
+      if (!_db.autocommit) _db.execute('ROLLBACK');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> rejectUnknown(String intentId, String message) async {
+    if (!message.startsWith(kUnknownNotFoundPrefix)) {
+      throw ArgumentError.value(
+        message,
+        'message',
+        '`$kUnknownNotFoundPrefix` 접두가 없다',
+      );
+    }
+    _db.execute(
+      'UPDATE order_intents AS i SET status = ?, error_message = ?, updated_at = ? '
+      "WHERE i.intent_id = ? AND i.status = 'UNKNOWN' AND $_noBrokerOrder",
+      <Object?>[IntentStatus.rejected.code, message, _now(), intentId],
+    );
+    if (_db.updatedRows != 1) {
+      throw StateError('$intentId: 브로커 주문이 없는 UNKNOWN 이 아니다');
+    }
+  }
+
+  @override
+  Future<void> noteUnknownMiss(String intentId, String message) async {
+    _db.execute(
+      'UPDATE order_intents SET error_message = ?, updated_at = ? '
+      "WHERE intent_id = ? AND status = 'UNKNOWN'",
+      <Object?>[message, _now(), intentId],
+    );
+    if (_db.updatedRows != 1) throw StateError('$intentId: UNKNOWN 이 아니다');
   }
 }
