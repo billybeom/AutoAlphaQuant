@@ -78,6 +78,49 @@ final DtoCodec<Object> _watchdogBoardVm = DtoCodec<WatchdogBoardVm>(
   WatchdogBoardVm.fromJson,
   (WatchdogBoardVm v) => v.toJson(),
 );
+// 🆕 계약 v1.16(R15 선행 · 01 §25) — 온보딩 한 화면 VM 7(VM 1행 봉투) + 결과 `ActionResult`(목록 봉투 · C-8).
+final DtoCodec<Object> _onboardingStartVm = DtoCodec<OnboardingStartVm>(
+  'OnboardingStartVm',
+  OnboardingStartVm.fromJson,
+  (OnboardingStartVm v) => v.toJson(),
+);
+final DtoCodec<Object> _onboardingModeChoiceVm =
+    DtoCodec<OnboardingModeChoiceVm>(
+      'OnboardingModeChoiceVm',
+      OnboardingModeChoiceVm.fromJson,
+      (OnboardingModeChoiceVm v) => v.toJson(),
+    );
+final DtoCodec<Object> _onboardingStepsVm = DtoCodec<OnboardingStepsVm>(
+  'OnboardingStepsVm',
+  OnboardingStepsVm.fromJson,
+  (OnboardingStepsVm v) => v.toJson(),
+);
+final DtoCodec<Object> _onboardingStepDetailVm =
+    DtoCodec<OnboardingStepDetailVm>(
+      'OnboardingStepDetailVm',
+      OnboardingStepDetailVm.fromJson,
+      (OnboardingStepDetailVm v) => v.toJson(),
+    );
+final DtoCodec<Object> _onboardingFinishVm = DtoCodec<OnboardingFinishVm>(
+  'OnboardingFinishVm',
+  OnboardingFinishVm.fromJson,
+  (OnboardingFinishVm v) => v.toJson(),
+);
+final DtoCodec<Object> _restartVm = DtoCodec<RestartVm>(
+  'RestartVm',
+  RestartVm.fromJson,
+  (RestartVm v) => v.toJson(),
+);
+final DtoCodec<Object> _pairingVm = DtoCodec<PairingVm>(
+  'PairingVm',
+  PairingVm.fromJson,
+  (PairingVm v) => v.toJson(),
+);
+final DtoCodec<Object> _actionResult = DtoCodec<ActionResult>(
+  'ActionResult',
+  ActionResult.fromJson,
+  (ActionResult v) => v.toJson(),
+);
 final DtoCodec<Object> _depositPlan = DtoCodec<DepositPlan>(
   'DepositPlan',
   DepositPlan.fromJson,
@@ -597,7 +640,28 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     ),
   ),
   FixturePaths.m8OnboardingFinish: FixtureBinding(_onboardingStep),
+  // 🆕 v1.16(01 §25 · R15c) — `O-04` 마무리 7 · DRY_RUN 결과.
+  FixturePaths.m8OnboardingFinishAdvisory: FixtureBinding(_onboardingFinishVm),
+  FixturePaths.m8OnboardingFinishAdvisoryDeclared: FixtureBinding(
+    _onboardingFinishVm,
+  ),
+  FixturePaths.m8OnboardingFinishAuto: FixtureBinding(_onboardingFinishVm),
+  FixturePaths.m8OnboardingFinishAutoDeclared: FixtureBinding(
+    _onboardingFinishVm,
+  ),
+  FixturePaths.m8OnboardingFinishAutoReady: FixtureBinding(_onboardingFinishVm),
+  FixturePaths.m8OnboardingFinishDone: FixtureBinding(_onboardingFinishVm),
+  FixturePaths.m8OnboardingFinishNoExpectation: FixtureBinding(
+    _onboardingFinishVm,
+  ),
+  FixturePaths.m8OnboardingFinishResults: FixtureBinding(_actionResult),
   FixturePaths.m8OnboardingFreshAdvisory: FixtureBinding(_onboardingStep),
+  // 🆕 v1.16(01 §25 · R15a) — `O-00b` 4 · 선택 결과.
+  FixturePaths.m8OnboardingModeAdvisory: FixtureBinding(
+    _onboardingModeChoiceVm,
+  ),
+  FixturePaths.m8OnboardingModeAuto: FixtureBinding(_onboardingModeChoiceVm),
+  FixturePaths.m8OnboardingModeLocked: FixtureBinding(_onboardingModeChoiceVm),
   FixturePaths.m8OnboardingModePick: FixtureBinding(
     DtoCodec<OperatingModeView>(
       'OperatingModeView',
@@ -605,6 +669,33 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (OperatingModeView v) => v.toJson(),
     ),
   ),
+  FixturePaths.m8OnboardingModeSelectResults: FixtureBinding(_actionResult),
+  FixturePaths.m8OnboardingModeUnselected: FixtureBinding(
+    _onboardingModeChoiceVm,
+  ),
+  // 🆕 v1.16(01 §25 · R15a·R15b) — `O-00` 2 · `O-02` 3 · `O-01` 6 · 검증 결과.
+  FixturePaths.m8OnboardingStart: FixtureBinding(_onboardingStartVm),
+  FixturePaths.m8OnboardingStartNoViewer: FixtureBinding(_onboardingStartVm),
+  FixturePaths.m8OnboardingStepDetailKisMock: FixtureBinding(
+    _onboardingStepDetailVm,
+  ),
+  FixturePaths.m8OnboardingStepDetailMissing: FixtureBinding(
+    _onboardingStepDetailVm,
+  ),
+  FixturePaths.m8OnboardingStepDetailNoVerify: FixtureBinding(
+    _onboardingStepDetailVm,
+  ),
+  FixturePaths.m8OnboardingStepsAdvisory: FixtureBinding(_onboardingStepsVm),
+  FixturePaths.m8OnboardingStepsAllVerifiedLocked: FixtureBinding(
+    _onboardingStepsVm,
+  ),
+  FixturePaths.m8OnboardingStepsEmpty: FixtureBinding(_onboardingStepsVm),
+  FixturePaths.m8OnboardingStepsFinishReady: FixtureBinding(_onboardingStepsVm),
+  FixturePaths.m8OnboardingStepsFinishReadyWarn: FixtureBinding(
+    _onboardingStepsVm,
+  ),
+  FixturePaths.m8OnboardingStepsFresh: FixtureBinding(_onboardingStepsVm),
+  FixturePaths.m8OnboardingVerifyResults: FixtureBinding(_actionResult),
   // 🆕 v1.13(01 §23 K9) — 형제 키 `advice_summary` 를 C-1·C-8 이 연다(3벌 · 옛 2벌은 행만 묶었다).
   FixturePaths.m8OpsHomeAdviceOpen: FixtureBinding(
     _opsDailySummary,
@@ -630,6 +721,10 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8OpsRhythmRows: FixtureBinding(_opsRhythmRow),
   // 🆕 v1.12(K29) — `H-02` 리듬 모름(NOT_LOADED).
   FixturePaths.m8OpsRhythmEmpty: FixtureBinding(_opsRhythmRow),
+  // 🆕 v1.16(01 §25 · R15d) — `V-01` 페어링 3.
+  FixturePaths.m8PairingFail: FixtureBinding(_pairingVm),
+  FixturePaths.m8PairingOk: FixtureBinding(_pairingVm),
+  FixturePaths.m8PairingWaiting: FixtureBinding(_pairingVm),
   FixturePaths.m8ReconBoardDiff: FixtureBinding(
     DtoCodec<DiagnosticsVm>(
       'DiagnosticsVm',
@@ -646,6 +741,11 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     ),
   ),
   FixturePaths.m8RestartLostPhone: FixtureBinding(_onboardingStep),
+  // 🆕 v1.16(01 §25 · R15d) — `R-01` 다시 시작 4.
+  FixturePaths.m8RestartVmGap7: FixtureBinding(_restartVm),
+  FixturePaths.m8RestartVmLoggedOut: FixtureBinding(_restartVm),
+  FixturePaths.m8RestartVmLostPhone: FixtureBinding(_restartVm),
+  FixturePaths.m8RestartVmUnknown: FixtureBinding(_restartVm),
   // 🆕 v1.15(K3) — 워치독 4벌 = `WatchdogBoardVm` 1행(구 `WatchdogCheck` 목록 · 형제 키 `holiday_notice` → VM 필드).
   FixturePaths.m8WatchdogDelayed: FixtureBinding(_watchdogBoardVm),
   FixturePaths.m8WatchdogEmpty: FixtureBinding(_watchdogBoardVm),

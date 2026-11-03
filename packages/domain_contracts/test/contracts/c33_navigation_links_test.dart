@@ -51,6 +51,11 @@ const Set<String> _linkKeys = <String>{
   // 🆕 v1.4(01 §14-9) — `MonthlyReport.goalDeepLink`(«목표 경로 보기» · `aaq://report/goal/<yyyy-MM>`).
   //    `DepositPreviewResult.blockedAction.deep_link` 는 위 `deep_link` 로 이미 덮인다.
   'goal_deep_link',
+  // 🆕 v1.16(01 §25 · K9) — `OnboardingModeChoiceVm.nextDeepLink` · `OnboardingStepsVm.finishDeepLink`
+  //    (`OnboardingTrackCard.deepLink` · `OnboardingStep.detailDeepLink` = 위 기존 키 · `branches`·`link`·`nextLink` =
+  //    `LinkAction` 안쪽 `deep_link`).
+  'next_deep_link',
+  'finish_deep_link',
 };
 
 /// `route` 라는 키는 링크가 아닌 **열거값**으로도 쓰인다(`LedgerDiffRow.route` =
@@ -119,20 +124,31 @@ void main() {
       );
     });
 
-    test('C-33 ③ 라우트 목록에 중복이 없고 M5·X 소유 10종이 들어 있다', () {
+    test('C-33 ③ 라우트 목록에 중복이 없고 M5·X 소유 13종이 들어 있다', () {
       expect(AppRoutes.all.toSet().length, AppRoutes.all.length);
       // 🆕 v1.4 — 41 → 42(`reportGoalPath`). 🆕 v1.5 — 42 → 43(`journalRebalance` · 01 §15-3).
       // 🆕 v1.6 — 43 → 45(`ledgerExecutionGapMonth` · `rebalanceHistory` · 01 §15-4).
       // 🆕 v1.8 — 45 → 48(`holdingsOverview` · `holdingsDetail` · `holdingsAllocation` · 01 §17).
       // 🆕 v1.12 — 48 → 52(`adviceSkip` · `ledgerDiffs` · `ledgerRepairs` · `opsRhythm` · 01 §21 · 교체 2 는 수 불변).
       // 🆕 v1.15 — 52 → 54(`alertsInbox`·`alertDetail` · 01 §24).
+      // 🆕 v1.16 — 54 → 64(온보딩 6 · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2 · 01 §25).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(54),
-        reason: '라우트 수가 계약(01 §24 · v1.15 = 54)과 다르다.',
+        hasLength(64),
+        reason: '라우트 수가 계약(01 §25 · v1.16 = 64)과 다르다.',
       );
+      expect(AppRoutes.all, contains(AppRoutes.onboardingStart));
+      expect(AppRoutes.all, contains(AppRoutes.onboardingModePick));
+      expect(AppRoutes.all, contains(AppRoutes.onboardingSteps));
+      expect(AppRoutes.all, contains(AppRoutes.onboardingFinish));
+      expect(AppRoutes.all, contains(AppRoutes.onboardingRestart));
+      expect(AppRoutes.all, contains(AppRoutes.onboardingPairing));
+      expect(AppRoutes.all, contains(AppRoutes.ledgerSimOpening));
+      expect(AppRoutes.all, contains(AppRoutes.m5SimOpeningCash));
+      expect(AppRoutes.all, contains(AppRoutes.x1MigrationPlan));
+      expect(AppRoutes.all, contains(AppRoutes.x1MigrationEmergency));
       expect(AppRoutes.all, contains(AppRoutes.alertsInbox));
       expect(AppRoutes.all, contains(AppRoutes.alertDetail));
       expect(AppRoutes.all, contains(AppRoutes.adviceSkip));
@@ -158,6 +174,10 @@ void main() {
         'aaq://x5/repair-wizard',
         'aaq://m5/handover-gate',
         'aaq://m5/handover-wizard',
+        // 🆕 v1.16(01 §25 · K28) — 06 §3-5 표 +3(가상 초기금 1칸 · X1 계획·비상).
+        'aaq://m5/sim-opening-cash',
+        'aaq://x1/migration/plan',
+        'aaq://x1/migration/emergency',
       ];
       for (final String route in ownedByClaude) {
         expect(AppRoutes.all, contains(route), reason: '06 §3-5 목록의 $route');
@@ -230,6 +250,14 @@ void main() {
       expect(AppRoutes.isRegistered('aaq://ledger/repairs'), isTrue);
       expect(AppRoutes.isRegistered('aaq://ops/rhythm'), isTrue);
       expect(AppRoutes.isRegistered('aaq://journal/timeline'), isTrue);
+      // 🆕 v1.16(01 §25) — 온보딩 고정 6 · 단계 파라미터 · X1 두 갈래 · 시작 상태 선언.
+      expect(AppRoutes.isRegistered('aaq://onboarding/start'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://onboarding/o_05'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://x1/migration/plan'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://x1/migration/emergency'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://ledger/sim-opening/연금저축'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://ledger/sim-opening'), isFalse);
+      expect(AppRoutes.isRegistered('aaq://x1/migration/x/y'), isFalse);
       expect(AppRoutes.isRegistered('aaq://nowhere'), isFalse);
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);
     });

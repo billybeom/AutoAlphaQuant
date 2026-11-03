@@ -50,6 +50,12 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   'badge_code': 'journal_badge',
   // 🆕 v1.8(01 §17) — `StopLineNormalized.tierCode`(손절선 등급 · `StopTierCodes` · C-44 ⑦ 도 같은 사전을 맞댄다).
   'tier_code': 'stop_tier',
+  // 🆕 v1.16(01 §25 · K21) — 온보딩 🔒 슬롯 이름 4칸(`OnboardingSlotIds` · 화면은 이름을 빌더에 그대로 넘긴다).
+  //    결과 `reason_code`(`OnboardingResultCodes`·`BrokerRawCodes`)는 위 전역 조회로 덮인다.
+  'secret_slot_id': 'onboarding_slot',
+  'slot_id': 'onboarding_slot',
+  'login_slot_id': 'onboarding_slot',
+  'scanner_slot_id': 'onboarding_slot',
 };
 
 /// 🔴 **사전에 없는 코드 축** — 01 §3 이 열거하지 않은 값이라 검사 대상이 아니다.
@@ -57,7 +63,7 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
 const Map<String, String> _fieldsOutsideDictionary = <String, String>{
   'failure_reason_code':
       'OnboardingStep.failureReasonCode — 01 §3 에 온보딩 실패 코드 목록이 없다'
-      '(픽스처 값: CONSENT_EXPIRED·PERMISSION_DENIED). 등재는 M2-8 의 일이다.',
+      '(픽스처 값: CONSENT_EXPIRED·PERMISSION_DENIED · 🆕 v1.16 TOKEN_EXPIRED). 등재는 M2-8 의 일이다.',
   'status_code':
       '진단·인시던트 칸의 상태 코드(OK·LAG·TOKEN_EXPIRED) — §3 이 아니라 화면 상태 축이며 '
       '짝이 되는 status_label 이 함께 온다.',
