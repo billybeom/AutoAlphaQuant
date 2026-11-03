@@ -3,21 +3,27 @@
 // 🔴 시험 전용이다. INSERT 가 돌아오면 곧 «커밋»으로 본다(포트 계약 6.5) — 진짜 커밋 증명(파일 SQLite + 둘째 연결)은
 //    data_sync `SqliteOrderLedger` 시험(E10c)이 한다.
 // 🔴 상태 전이를 엄격히 본다 — 순서기가 RESERVED 를 건너뛰거나 거꾸로 가면 StateError 가 난다(SQLite 구현도 같은 규칙).
+// 🆕 E10e2 — 이월 원장(`CarryLedger`) · 해소 원장(`UnknownLedger`) · 예약 시각([clock]) · 취소 확인 누적.
 
 import 'package:domain_contracts/domain_contracts.dart';
 
+import '../orders/carry_over.dart';
 import '../orders/fill_sync.dart';
 import '../orders/fills.dart';
 import '../orders/order_ports.dart';
+import '../orders/unknown_resolution.dart';
 
 /// 원장 한 의도의 현재 값.
 class FakeIntentRecord {
-  FakeIntentRecord._(this.row)
+  FakeIntentRecord._(this.row, this.createdAtUtc)
     : status = row.status,
       errorMessage = row.errorMessage;
 
   /// INSERT 때 행.
   final IntentRow row;
+
+  /// 🆕 E10e2 — 예약 시각(`created_at`).
+  final DateTime createdAtUtc;
 
   /// 지금 상태.
   IntentStatus status;
@@ -43,7 +49,8 @@ const Set<IntentStatus> _submittedOrLater = <IntentStatus>{
 };
 
 /// 메모리 주문 원장.
-class FakeOrderLedger implements OrderLedger, FillLedger {
+class FakeOrderLedger
+    implements OrderLedger, FillLedger, CarryLedger, UnknownLedger {
   /// 원장을 만든다. [registeredStrategies] 에 없는 strategy_id 는 SAF-406 거부를 받는다.
   FakeOrderLedger({
     this.killSwitch = false,
@@ -52,8 +59,13 @@ class FakeOrderLedger implements OrderLedger, FillLedger {
     this.journalMissingValue = false,
     this.tierBUnjudgedValue = false,
     this.failOn,
+    DateTime Function()? clock,
   }) : flags = flags ?? <String>{},
-       registeredStrategies = registeredStrategies ?? <String>{};
+       registeredStrategies = registeredStrategies ?? <String>{},
+       clock = clock ?? (() => DateTime.now().toUtc());
+
+  /// 🆕 E10e2 — 예약 시각을 매기는 시계.
+  DateTime Function() clock;
 
   /// 킬스위치 활성.
   bool killSwitch;
@@ -84,6 +96,9 @@ class FakeOrderLedger implements OrderLedger, FillLedger {
 
   /// 🆕 E10e1 — 주문번호 → 기록한 누적(체결 원장 · R38 Z4).
   final Map<String, RecordedFill> recordedFills = <String, RecordedFill>{};
+
+  /// 🆕 E10e2 — 주문번호 → 마지막으로 본 취소 확인 누적.
+  final Map<String, int> cancelConfirmed = <String, int>{};
 
   /// 🆕 E10e1 — 쓴 체결 행(실행 순서).
   final List<FillDelta> executions = <FillDelta>[];
@@ -162,6 +177,7 @@ class FakeOrderLedger implements OrderLedger, FillLedger {
       row.cumFilledQty,
       row.cumFilledAmount,
     );
+    cancelConfirmed[it.brokerOrderNo] = row.cancelConfirmedQty;
     rec
       ..status = v.status
       ..errorMessage = v.message;
@@ -196,6 +212,155 @@ class FakeOrderLedger implements OrderLedger, FillLedger {
       ..errorMessage = message;
     transitions.add((intentId, to));
     return r;
+  }
+
+  // ── 🆕 E10e2 이월 원장(CarryLedger · R39 T2 · T4) ─────────────────────────
+
+  /// 7단계를 지난 것(orders_today 와 같은 셈 — 분할 계획 합의 대상).
+  bool _sent(FakeIntentRecord r) =>
+      _submittedOrLater.contains(r.status) || r.brokerRejected;
+
+  bool _sameLogical(
+    FakeIntentRecord r,
+    String logical,
+    String strategyId,
+    String symbol,
+  ) =>
+      r.row.decisionId.startsWith('$logical@') &&
+      r.row.strategyId == strategyId &&
+      r.row.symbol == symbol;
+
+  @override
+  Future<List<ExpiredIntent>> expiredIntents(TradeDate tradeDate) async {
+    _enter('expiredIntents');
+    final List<ExpiredIntent> out = <ExpiredIntent>[];
+    for (final FakeIntentRecord r in records.values) {
+      if (r.row.tradeDate != tradeDate || r.status != IntentStatus.expired) {
+        continue;
+      }
+      final String no = r.brokerOrderNo!;
+      final String logical = logicalIdOf(r.row.decisionId);
+      final int filled = recordedFills[no]?.quantity ?? 0;
+      out.add(
+        ExpiredIntent(
+          intentId: r.row.intentId,
+          logicalDecisionId: logical,
+          strategyId: r.row.strategyId,
+          symbol: r.row.symbol,
+          side: r.row.side,
+          expiredQty: r.row.quantity - filled - (cancelConfirmed[no] ?? 0),
+          sessionsUsed: <TradeDate>{
+            for (final FakeIntentRecord o in records.values)
+              if (_sameLogical(o, logical, r.row.strategyId, r.row.symbol))
+                o.row.tradeDate,
+          }.length,
+        ),
+      );
+    }
+    return out;
+  }
+
+  @override
+  Future<SplitProgress> splitProgress(
+    String logicalDecisionId, {
+    required String strategyId,
+    required String symbol,
+    required TradeDate before,
+  }) async {
+    _enter('splitProgress');
+    int planned = 0;
+    int filled = 0;
+    for (final FakeIntentRecord r in records.values) {
+      if (!_sameLogical(r, logicalDecisionId, strategyId, symbol) ||
+          r.row.tradeDate.yyyyMmDd.compareTo(before.yyyyMmDd) >= 0 ||
+          !_sent(r)) {
+        continue;
+      }
+      planned += r.row.quantity;
+      if (r.brokerOrderNo case final String no) {
+        filled += recordedFills[no]?.quantity ?? 0;
+      }
+    }
+    return SplitProgress(planned: planned, filled: filled);
+  }
+
+  // ── 🆕 E10e2 해소 원장(UnknownLedger · R39 T9) ─────────────────────────────
+
+  @override
+  Future<List<UnknownIntent>> unknownIntents() async {
+    _enter('unknownIntents');
+    return <UnknownIntent>[
+      for (final FakeIntentRecord r in records.values)
+        // 주문번호가 있는 UNKNOWN(체결조회 실패)은 맞출 것이 없다 — 제출 결과 불명만.
+        if (r.status == IntentStatus.unknown && r.brokerOrderNo == null)
+          UnknownIntent(
+            intentId: r.row.intentId,
+            tradeDate: r.row.tradeDate,
+            account: r.row.account,
+            symbol: r.row.symbol,
+            side: r.row.side,
+            quantity: r.row.quantity,
+            limitPrice: r.row.limitPrice?.toDouble(),
+            createdAtUtc: r.createdAtUtc,
+            errorMessage: r.errorMessage,
+          ),
+    ];
+  }
+
+  @override
+  Future<Set<String>> linkedOrderNos(Iterable<String> brokerOrderNos) async {
+    _enter('linkedOrderNos');
+    final Set<String> known = <String>{
+      for (final FakeIntentRecord r in records.values)
+        if (r.brokerOrderNo case final String no) no,
+    };
+    return brokerOrderNos.where(known.contains).toSet();
+  }
+
+  @override
+  Future<void> linkUnknown(String intentId, String brokerOrderNo) async {
+    _enter('linkUnknown');
+    if ((await linkedOrderNos(<String>[brokerOrderNo])).isNotEmpty) {
+      throw StateError('$brokerOrderNo: 이미 다른 의도에 붙어 있다');
+    }
+    final FakeIntentRecord? r = records[intentId];
+    if (r != null && r.brokerOrderNo != null) {
+      throw StateError('$intentId: 이미 브로커 주문이 있다');
+    }
+    _move(
+      intentId,
+      <IntentStatus>{IntentStatus.unknown},
+      IntentStatus.submitted,
+      null,
+    ).brokerOrderNo = brokerOrderNo;
+  }
+
+  @override
+  Future<void> rejectUnknown(String intentId, String message) async {
+    _enter('rejectUnknown');
+    if (!message.startsWith(kUnknownNotFoundPrefix)) {
+      throw ArgumentError.value(
+        message,
+        'message',
+        '`$kUnknownNotFoundPrefix` 접두가 없다',
+      );
+    }
+    _move(
+      intentId,
+      <IntentStatus>{IntentStatus.unknown},
+      IntentStatus.rejected,
+      message,
+    ).brokerRejected = true;
+  }
+
+  @override
+  Future<void> noteUnknownMiss(String intentId, String message) async {
+    _enter('noteUnknownMiss');
+    final FakeIntentRecord? r = records[intentId];
+    if (r == null || r.status != IntentStatus.unknown) {
+      throw StateError('$intentId: UNKNOWN 이 아니다');
+    }
+    r.errorMessage = message;
   }
 
   @override
@@ -286,7 +451,7 @@ class FakeOrderLedger implements OrderLedger, FillLedger {
       (FakeIntentRecord r) => r.row.idempotencyKey == row.idempotencyKey,
     );
     if (duplicate || records.containsKey(row.intentId)) return false;
-    records[row.intentId] = FakeIntentRecord._(row);
+    records[row.intentId] = FakeIntentRecord._(row, clock().toUtc());
     transitions.add((row.intentId, row.status));
     return true;
   }

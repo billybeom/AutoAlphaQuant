@@ -235,6 +235,15 @@ RecordedFill parseRecordedFillJson(String raw) {
   );
 }
 
+/// 🆕 E10e2 — [recordedFillJson] 의 취소 확인 누적(이월 실효 수량 · R39 T2) — 꼴이 틀리면 FormatException.
+int parseRecordedCancelJson(String raw) {
+  final Object? j = jsonDecode(raw);
+  if (j is! Map<String, Object?> || j['cncl_cfrm_qty'] is! int) {
+    throw const FormatException('기록된 취소 확인의 꼴이 틀렸다');
+  }
+  return j['cncl_cfrm_qty']! as int;
+}
+
 /// 누적 평균 체결 단가(`broker_orders.avg_fill_price` · REAL 저장용) — 누적 0 이면 null.
 double? averageFillPrice(DailyFillRow row) => row.cumFilledQty == 0
     ? null

@@ -786,4 +786,377 @@ void main() {
       await expectLater(ledger.openIntents(_exec), throwsStateError);
     });
   });
+
+  group('🆕 E10e2 이월 · 해소 원장(CarryLedger · UnknownLedger · R39 T2 · T4 · T9)', () {
+    const FillCostRates rates = FillCostRates(
+      commissionRate: 0.00015,
+      sellTaxRate: 0,
+    );
+
+    DailyFillRow row({
+      int cum = 0,
+      int remaining = 5,
+      int cancelled = 0,
+      String odno = '0000000001',
+      TradeDate date = _exec,
+    }) => DailyFillRow(
+      orderDate: date,
+      odno: odno,
+      isCancelRow: false,
+      symbol: '133690',
+      side: OrderSide.buy,
+      orderQty: 5,
+      orderPrice: Decimal.parse('174180'),
+      orderTime: '091005',
+      cumFilledQty: cum,
+      cumFilledAmount: Decimal.fromInt(174180 * cum),
+      remainingQty: remaining,
+      cancelConfirmedQty: cancelled,
+    );
+
+    Future<FillSyncReport> dayEnd(FakeOrderBroker broker, TradeDate day) =>
+        runFillSync(
+          ledger: ledger,
+          brokers: <String, OrderBroker>{'pension': broker},
+          tradeDate: day,
+          nowUtc: DateTime.parse('${day.yyyyMmDd}T06:41:00Z'),
+          dayEnd: true,
+          costs: rates,
+        );
+
+    Future<void> submitted(OrderIntentDraft d, {DailyFillRow? fill}) async {
+      final FakeOrderBroker broker = FakeOrderBroker(
+        orderDate: d.executionDate,
+      );
+      final ExecutionOutcome o = await executeIntent(d, _ok, ctx(broker));
+      expect(o.status, ExecutionStatus.submitted);
+      if (fill != null) {
+        broker.fills[d.executionDate.yyyyMmDd] = <DailyFillRow>[fill];
+        await dayEnd(broker, d.executionDate);
+      }
+    }
+
+    Future<void> rejectedBefore7(OrderIntentDraft d) async {
+      expect(
+        await ledger.insertIntent(
+          IntentRow.fromDraft(
+            d,
+            status: IntentStatus.rejected,
+            configHash: 'cfg-test',
+            execPolicy: ExecPolicy.execute,
+            operatingMode: OperatingMode.autoTrade,
+            errorMessage: 'SAF-104: 한도',
+          ),
+        ),
+        isTrue,
+      );
+    }
+
+    setUp(() {
+      for (final String s in <String>[
+        P0sStrategyIds.sleeveB,
+        P0sStrategyIds.sleeveC,
+      ]) {
+        db.execute(
+          "INSERT INTO tier_b_judgement VALUES ('2026-09', ?, 't', 0, 0, 0, 0)",
+          <Object?>[s],
+        );
+      }
+    });
+
+    String status(String intentId) =>
+        db.select(
+              'SELECT status FROM order_intents WHERE intent_id = ?',
+              <Object?>[intentId],
+            ).single['status']
+            as String;
+
+    test('실효 = 주문 − 누적 체결 − 취소 확인 · 사용 세션 = 서로 다른 집행일 수(막힌 날 포함 · `@` 앞만 같은 id 는 아니다)', () async {
+      await rejectedBefore7(_draft(exec: const TradeDate('2026-10-30')));
+      await submitted(
+        _draft(
+          logical: 'B-SMA-2026-10-30X',
+          exec: const TradeDate('2026-10-29'),
+        ),
+      );
+      await submitted(_draft(), fill: row(cum: 2, remaining: 2, cancelled: 1));
+      final ExpiredIntent e = (await ledger.expiredIntents(_exec)).single;
+      expect(e.logicalDecisionId, 'B-SMA-2026-10-30');
+      expect(e.expiredQty, 2);
+      expect(e.sessionsUsed, 2);
+      expect(
+        (e.strategyId, e.symbol, e.side),
+        (P0sStrategyIds.sleeveB, '133690', OrderSide.buy),
+      );
+      expect(
+        await ledger.expiredIntents(const TradeDate('2026-10-30')),
+        isEmpty,
+      );
+      expect(
+        planCarryOver(<ExpiredIntent>[e]).targets.single.sizing,
+        isA<ShareSizing>(),
+      );
+    });
+
+    test('🔴 `LIKE` 함정 — `_` 가 든 논리 id 는 그 id 만 센다(세션 · 분할 진행)', () async {
+      await submitted(
+        _draft(logical: 'DEP-plX1', exec: const TradeDate('2026-10-30')),
+        fill: row(date: const TradeDate('2026-10-30'), cum: 1, remaining: 4),
+      );
+      await submitted(_draft(logical: 'DEP-pl_1'), fill: row());
+      final ExpiredIntent e = (await ledger.expiredIntents(_exec)).single;
+      expect(e.logicalDecisionId, 'DEP-pl_1');
+      expect(e.sessionsUsed, 1);
+      final SplitProgress p = await ledger.splitProgress(
+        'DEP-pl_1',
+        strategyId: P0sStrategyIds.sleeveB,
+        symbol: '133690',
+        before: const TradeDate('2026-11-03'),
+      );
+      expect((p.planned, p.filled), (5, 0));
+    });
+
+    test('분할 진행 = 앞 집행일 · 7단계를 지난 것(브로커 거절 · UNKNOWN_NOT_FOUND 포함 · SKIPPED · 1~5단계 거부 · 오늘 제외)', () async {
+      const String logical = 'SEAS-A-IN-2026-11-04';
+      // 10-26 결과 불명 → 해소 거절(UNKNOWN_NOT_FOUND) — 계획에 센다.
+      final OrderIntentDraft unk = _draft(
+        logical: logical,
+        exec: const TradeDate('2026-10-26'),
+      );
+      await expectLater(
+        executeIntent(
+          unk,
+          _ok,
+          ctx(FakeOrderBroker(script: <FakeSubmitStep>[const FakeUnknown()])),
+        ),
+        throwsA(isA<OrderOutcomeUnknown>()),
+      );
+      await ledger.rejectUnknown(
+        intentIdFor(unk.idempotencyKey),
+        '$kUnknownNotFoundPrefix시험',
+      );
+      // 10-27 1~5단계 거부 · 10-28 DRY_RUN — 세지 않는다.
+      await rejectedBefore7(
+        _draft(logical: logical, exec: const TradeDate('2026-10-27')),
+      );
+      final ExecutionOutcome dry = await executeIntent(
+        _draft(logical: logical, exec: const TradeDate('2026-10-28')),
+        _ok,
+        ctx(FakeOrderBroker(), policy: ExecPolicy.dryRun),
+      );
+      expect(dry.status, ExecutionStatus.skipped);
+      // 10-29 접수 · 마감 3 체결 — 계획 5 · 체결 3.
+      await submitted(
+        _draft(logical: logical, exec: const TradeDate('2026-10-29')),
+        fill: row(date: const TradeDate('2026-10-29'), cum: 3, remaining: 2),
+      );
+      // 10-30 브로커 거절 — 계획에 센다(7단계를 지났다).
+      final ExecutionOutcome rej = await executeIntent(
+        _draft(logical: logical, exec: const TradeDate('2026-10-30')),
+        _ok,
+        ctx(
+          FakeOrderBroker(
+            script: <FakeSubmitStep>[const FakeReject('APBK0919', '거절')],
+          ),
+        ),
+      );
+      expect(rej.status, ExecutionStatus.rejected);
+      // 오늘(11-02) 접수 — 앞날이 아니다.
+      await submitted(_draft(logical: logical));
+
+      final SplitProgress p = await ledger.splitProgress(
+        logical,
+        strategyId: P0sStrategyIds.sleeveB,
+        symbol: '133690',
+        before: _exec,
+      );
+      expect((p.planned, p.filled), (15, 3));
+      final SplitProgress other = await ledger.splitProgress(
+        logical,
+        strategyId: P0sStrategyIds.sleeveC,
+        symbol: '133690',
+        before: _exec,
+      );
+      expect((other.planned, other.filled), (0, 0));
+    });
+
+    test('UNKNOWN 해소 — 연결 = broker_orders 행 + SUBMITTED(한 트랜잭션) → 체결 동기화가 이어 쓴다 · 이미 붙은 주문번호 = 롤백', () async {
+      final FakeOrderBroker broker = FakeOrderBroker(
+        script: <FakeSubmitStep>[const FakeUnknown(), const FakeUnknown()],
+      );
+      final OrderIntentDraft d = _draft();
+      final OrderIntentDraft c = _draft(
+        strategy: P0sStrategyIds.sleeveC,
+        logical: 'C-REB-2026-10-30',
+      );
+      // 예약 시각 순 — d 가 앞이다(같은 시각이면 intent_id 순).
+      for (final (OrderIntentDraft x, int s) in <(OrderIntentDraft, int)>[
+        (d, 0),
+        (c, 1),
+      ]) {
+        clock.at = _t0.add(Duration(seconds: s));
+        await expectLater(
+          executeIntent(x, _ok, ctx(broker)),
+          throwsA(isA<OrderOutcomeUnknown>()),
+        );
+      }
+      final String id = intentIdFor(d.idempotencyKey);
+      final String idC = intentIdFor(c.idempotencyKey);
+      final List<UnknownIntent> u = await ledger.unknownIntents();
+      expect(u.map((UnknownIntent x) => x.intentId), <String>[id, idC]);
+      expect(
+        (
+          u.first.limitPrice,
+          u.first.createdAtUtc,
+          u.first.account,
+          u.first.quantity,
+        ),
+        (174180.0, _t0, 'pension', 5),
+      );
+
+      broker.fills['2026-11-02'] = <DailyFillRow>[row()];
+      clock.at = _t0.add(const Duration(minutes: 10));
+      final UnknownResolutionReport report = await resolveUnknownOrders(
+        ledger: ledger,
+        brokers: <String, OrderBroker>{'pension': broker},
+        nowUtc: clock.at,
+      );
+      expect(
+        report.resolutions.map((UnknownResolution r) => r.runtimeType),
+        <Type>[UnknownLinked, UnknownMissed],
+      );
+      final Row b = db.select('SELECT * FROM broker_orders').single;
+      expect(b['broker_order_no'], '2026-11-02:0000000001');
+      expect(b['intent_id'], id);
+      expect(b['status'], 'SUBMITTED');
+      expect(b['submitted_at'], _t0.toIso8601String());
+      expect(b['remaining_qty'], 5);
+      expect(status(id), 'SUBMITTED');
+      expect(
+        await ledger.hasUnresolvedUnknown(
+          'KR',
+          '133690',
+          P0sStrategyIds.sleeveB,
+        ),
+        isFalse,
+      );
+      expect(
+        await ledger.linkedOrderNos(<String>[
+          '2026-11-02:0000000001',
+          '2026-11-02:9',
+        ]),
+        <String>{'2026-11-02:0000000001'},
+      );
+      expect(await ledger.linkedOrderNos(const <String>[]), isEmpty);
+
+      // 이미 붙은 주문번호 · 이미 연결된 의도 = StateError · 아무것도 남지 않는다.
+      await expectLater(
+        ledger.linkUnknown(idC, '2026-11-02:0000000001'),
+        throwsStateError,
+      );
+      await expectLater(
+        ledger.linkUnknown(id, '2026-11-02:0000000002'),
+        throwsStateError,
+      );
+      expect(db.select('SELECT * FROM broker_orders'), hasLength(1));
+      expect(status(idC), 'UNKNOWN');
+      expect(db.autocommit, isTrue);
+
+      broker.fills['2026-11-02'] = <DailyFillRow>[row(cum: 5, remaining: 0)];
+      final FillSyncReport fills = await runFillSync(
+        ledger: ledger,
+        brokers: <String, OrderBroker>{'pension': broker},
+        tradeDate: _exec,
+        nowUtc: DateTime.utc(2026, 11, 2, 1),
+        dayEnd: false,
+        costs: rates,
+      );
+      expect(fills.applied.single.status, IntentStatus.filled);
+      expect(status(id), 'FILLED');
+    });
+
+    test('UNKNOWN 해소 — 놓침 표시 → 3분 뒤 REJECTED(UNKNOWN_NOT_FOUND) · orders_today 에 센다 · 그 밖 전이 = 오류', () async {
+      final FakeOrderBroker broker = FakeOrderBroker(
+        script: <FakeSubmitStep>[const FakeUnknown()],
+      );
+      final OrderIntentDraft d = _draft();
+      await expectLater(
+        executeIntent(d, _ok, ctx(broker)),
+        throwsA(isA<OrderOutcomeUnknown>()),
+      );
+      final String id = intentIdFor(d.idempotencyKey);
+      final String original =
+          db
+                  .select('SELECT error_message FROM order_intents')
+                  .single['error_message']
+              as String;
+      expect(await ledger.ordersToday(_exec), 1);
+
+      final DateTime t1 = _t0.add(const Duration(minutes: 10));
+      final Map<String, OrderBroker> brokers = <String, OrderBroker>{
+        'pension': broker,
+      };
+      await resolveUnknownOrders(ledger: ledger, brokers: brokers, nowUtc: t1);
+      expect(
+        db
+            .select('SELECT error_message FROM order_intents')
+            .single['error_message'],
+        withUnknownMiss(original, t1),
+      );
+      expect(status(id), 'UNKNOWN');
+
+      await resolveUnknownOrders(
+        ledger: ledger,
+        brokers: brokers,
+        nowUtc: t1.add(kUnknownMissGap),
+      );
+      expect(status(id), 'REJECTED');
+      expect(
+        db
+            .select('SELECT error_message FROM order_intents')
+            .single['error_message'],
+        startsWith(kUnknownNotFoundPrefix),
+      );
+      expect(await ledger.ordersToday(_exec), 1);
+      expect(await ledger.unknownIntents(), isEmpty);
+
+      await expectLater(
+        ledger.noteUnknownMiss(id, 'UNKNOWN_MISS@x'),
+        throwsStateError,
+      );
+      await expectLater(
+        ledger.rejectUnknown(id, '${kUnknownNotFoundPrefix}again'),
+        throwsStateError,
+      );
+      await expectLater(ledger.rejectUnknown(id, '사유'), throwsArgumentError);
+    });
+
+    test('주문번호가 있는 UNKNOWN(일 마감 조회 실패)은 해소 대상이 아니다 · 거절도 못 한다', () async {
+      final FakeOrderBroker broker = FakeOrderBroker();
+      final OrderIntentDraft d = _draft();
+      await executeIntent(d, _ok, ctx(broker));
+      broker.fillsError = StateError('조회 실패');
+      await dayEnd(broker, _exec);
+      final String id = intentIdFor(d.idempotencyKey);
+      expect(status(id), 'UNKNOWN');
+      expect(await ledger.unknownIntents(), isEmpty);
+      await expectLater(
+        ledger.rejectUnknown(id, '${kUnknownNotFoundPrefix}x'),
+        throwsStateError,
+      );
+      await expectLater(
+        ledger.linkUnknown(id, '2026-11-02:0000000009'),
+        throwsStateError,
+      );
+      expect(status(id), 'UNKNOWN');
+    });
+
+    test('실효 행의 기록된 취소 확인 꼴이 틀리면 StateError', () async {
+      await submitted(_draft(), fill: row());
+      db.execute(
+        "UPDATE broker_orders SET raw_response = '{\"tot_ccld_qty\":0,\"tot_ccld_amt\":\"0\"}'",
+      );
+      await expectLater(ledger.expiredIntents(_exec), throwsStateError);
+    });
+  });
 }

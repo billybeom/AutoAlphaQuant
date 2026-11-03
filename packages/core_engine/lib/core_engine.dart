@@ -78,6 +78,16 @@ export 'src/decimal_rules.dart'
         oneMinus,
         promoteRatio;
 export 'src/orders/block_bundles.dart' show BlockBundles, blockingFlagsFor;
+export 'src/orders/carry_over.dart'
+    show
+        CarryLedger,
+        CarryPlan,
+        ExpiredIntent,
+        SplitProgress,
+        kCarrySessionLimit,
+        logicalIdOf,
+        planCarryOver,
+        seasonalShareToday;
 export 'src/orders/execute_intent.dart'
     show ExecutionContext, ExecutionOutcome, ExecutionStatus, executeIntent;
 export 'src/orders/fill_sync.dart'
@@ -103,6 +113,7 @@ export 'src/orders/fills.dart'
         brokerOrderNoOf,
         executionIdOf,
         fillDeltas,
+        parseRecordedCancelJson,
         parseRecordedFillJson,
         recordedFillJson;
 export 'src/orders/idempotency.dart'
@@ -142,6 +153,24 @@ export 'src/orders/order_ports.dart'
         intentIdFor;
 export 'src/orders/split_execution.dart'
     show SplitDay, seasonalExecutionDays, splitDay;
+export 'src/orders/unknown_resolution.dart'
+    show
+        UnknownAmbiguous,
+        UnknownIntent,
+        UnknownLedger,
+        UnknownLinked,
+        UnknownMissed,
+        UnknownNotFound,
+        UnknownResolution,
+        UnknownResolutionReport,
+        kUnknownMissGap,
+        kUnknownMissPrefix,
+        kUnknownNotFoundPrefix,
+        kUnknownTimeMargin,
+        resolveUnknown,
+        resolveUnknownOrders,
+        unknownMissAt,
+        withUnknownMiss;
 export 'src/portfolio/allocation.dart'
     show AllocationTargets, kAllocationProfiles, resolveAllocation;
 export 'src/portfolio/core_band.dart'
