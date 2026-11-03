@@ -153,3 +153,19 @@ final Provider<CommandApi?> shellAlertCommandApiProvider =
         'shellAlertCommandApiProvider must be overridden',
       ),
     );
+
+// ── R15a — O-00·O-00b injection providers ──────────────────────────────────
+
+final Provider<OnboardingRepository> shellOnboardingRepositoryProvider =
+    Provider<OnboardingRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellOnboardingRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<SettingsActions?> shellOnboardingActionsProvider =
+    Provider<SettingsActions?>(
+      (Ref ref) => throw UnimplementedError(
+        'shellOnboardingActionsProvider must be overridden',
+      ),
+    );

@@ -72,4 +72,8 @@ abstract final class ShellLabels {
   static const String alertsAck = '확인했습니다';
   static const String alertsEvidence = '근거 보기';
   static const String alertsAckNotAccepted = '접수되지 않았습니다';
+
+  // ── 🆕 R15a — O-00·O-00b 온보딩 ──────────────────────────────────────────
+  static const String onboardingNext = '다음';
+  static const String onboardingNotAccepted = '접수되지 않았습니다';
 }
