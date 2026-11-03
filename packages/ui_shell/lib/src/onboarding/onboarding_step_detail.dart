@@ -178,7 +178,7 @@ class _VerifyResult extends StatelessWidget {
 
     return Padding(
       key: const Key('o03-result'),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
