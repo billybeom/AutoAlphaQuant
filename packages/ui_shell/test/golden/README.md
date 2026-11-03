@@ -105,9 +105,9 @@
 
 - R14 시작 **24장**(R13 병합본 · ✅ v1.15 병합본 `e9e71c8` `git ls-tree` 24) → R14a 병합 뒤 **34장**(+ `n01_*` 6 · `n02_*` 4 · ✅ 2026-10-31 PR #87 `185e9c7` · `git ls-tree` 34) → R14b 병합 뒤 **40장**(+ `w01_*` 6 · ✅ 2026-10-31 PR #88 `afe3e1d` · `git ls-tree` 40 · 🔴 «정확히» = R14b 정적 W32). 🏁 **R14** = `n01_*`·`n02_*`·`w01_*` 8이름 16장(24 → 40) → R14 test-only PR 병합 뒤 **40장 그대로**(✅ 2026-11-02 PR #89 `14d6374` · 테스트 파일만 · 장수 변화 0 · `git ls-tree` 40). 질문 파일 = `docs/ai-context/inbox/N01N02_questions.md`(R14a) · `W01_questions.md`(R14b).
 
-## 🆕 R15(계약 v1.16 전제 · 🔀 4분할 권고) — `O-00`·`O-00b`(R15a) · `O-01`~`O-03`(R15b) · `O-04`(R15c) · `R-01`·`V-01`(R15d) (2026-11-02 조립 · ✅ 2026-11-03 누적 드라이런·지적 반영 · ⬜ 선행 = 계약 v1.16 보강(R15 선행 M2 · ⬜ 발주자 결정) · ⬜ 발주자 확인)
+## 🆕 R15(계약 v1.16 전제 · 🔀 4분할 권고) — `O-00`·`O-00b`(R15a) · `O-01`~`O-03`(R15b) · `O-04`(R15c) · `R-01`·`V-01`(R15d) (2026-11-02 조립 · ✅ 2026-11-03 누적 드라이런·지적 반영 · ✅ 4분할·발주자 확인 확정(2026-11-03 결정 ①~④) · ✅ v1.16 반영 재조립(2026-11-03) · ⬜ 선행 = 계약 v1.16 병합(R15 선행 M2 · 가지 `m2/v116-r15` `aaefdbc`) · ⬜ 누적 재드라이런(v1.16 실물 위))
 
-- 카드 = `docs/ai-context/send/R15a-Bob-O00O00b.md`(R15a · ⬜ 조립됨 · ✅ 드라이런·지적 반영) · `docs/ai-context/send/_대기/R15b-Bob-O01O03.md` · `_대기/R15c-Bob-O04.md` · `_대기/R15d-Bob-R01V01.md`(🔵 R15d = X1·M9 창과 묶어 후순위 가능 — 미루면 «정확히 N» = R15c).
+- 카드 = `docs/ai-context/send/R15a-Bob-O00O00b.md`(R15a · ⬜ 조립됨 · ✅ 드라이런·지적 반영) · `docs/ai-context/send/_대기/R15b-Bob-O01O03.md` · `_대기/R15c-Bob-O04.md` · `_대기/R15d-Bob-R01V01.md`(✅ 결정 ① 순서대로 — 후순위 0 · «정확히 N» = R15d).
 - 이 절은 통합 담당이 쓴다(화면 담당 무수정 — 카드 규칙 1 «golden README 고치면 반려»).
 
 ### 1. 골든 이름 — R15a 4이름 × 2 = 8장 · R15b 5이름 × 2 = 10장 · R15c 2이름 × 2 = 4장 · R15d 4이름 × 2 = 8장 · 재생성 0
@@ -116,25 +116,25 @@
 |---|---|---|---|
 | `o00_start` | 2 | `test/golden/o00_golden_test.dart` | 🆕 v1.16 `m8/onboarding_start`(`OnboardingStartVm` · 계정 축 2 + 조회 갈래) · `Key('o00-viewer')` < 844(드라이런 308.0) · `Key('o00-headline')` dy 0.0 · 🔵 이름 = 카드가 지음(04 는 `O-00` 골든 이름을 주지 않는다) |
 | `o00b_unselected` | 2 | `test/golden/o00b_golden_test.dart` | 🆕 `m8/onboarding_mode_unselected`(`selected` null · 체크·«다음» 0 — 04 §9-1b 수용 (a)) · `Key('o00b-honesty')` < 844(드라이런 504.0) · `Key('o00b-headline')` dy 0.0 |
-| `o00b_auto` | 2 | 〃 | 🆕 `m8/onboarding_mode_auto`(`selected` AUTO_TRADE · `nextLink`) · `Key('o00b-next')` < 844(드라이런 572.0 — 체크 아이콘 24 가 제목 줄 20 보다 커서 고른 쪽 +4) · 머리 0.0 |
-| `o00b_advisory` | 2 | 〃 | 🆕 `m8/onboarding_mode_advisory`(`selected` ADVISORY · `nextLink`) · `Key('o00b-next')` < 844(드라이런 568.0) · 머리 0.0 |
+| `o00b_auto` | 2 | 〃 | 🆕 `m8/onboarding_mode_auto`(`selected` AUTO_TRADE · `nextDeepLink`) · `Key('o00b-next')` < 844(드라이런 572.0 — 체크 아이콘 24 가 제목 줄 20 보다 커서 고른 쪽 +4) · 머리 0.0 |
+| `o00b_advisory` | 2 | 〃 | 🆕 `m8/onboarding_mode_advisory`(`selected` ADVISORY · `nextDeepLink`) · `Key('o00b-next')` < 844(드라이런 568.0) · 머리 0.0 |
 | `o01_fresh` | 2 | `test/golden/o01_golden_test.dart` | 🆕 `m8/onboarding_steps_fresh`(`OnboardingStepsVm` · 상태 5값 · 게이트 4값 · `o_00`·`o_04`·해외주식 행 0) · `ValueKey('o01-row-4')` < 844(드라이런 784.0 — 12행 표본은 row-5 가 968 · row-6 부터는 만들지 않는다 · 🔵 맨 아래 덩어리 셋째 줄 잘림이 정상 · ⟦실측: v1.16 표본으로 다시 잰다⟧) · `Key('o01-progress')` dy 0.0 |
-| `o01_advisory` | 2 | 〃 | 🆕 `m8/onboarding_steps_advisory` · `ValueKey('o01-row-4')`(마지막 행) < 844(드라이런 664.0) · 머리 0.0 |
+| `o01_advisory` | 2 | 〃 | 🆕 `m8/onboarding_steps_advisory`(v1.16 = 10행 · 흉내 5행) · 맨 아래 Key ⟦실측: 재드라이런 — 흉내 `ValueKey('o01-row-4')`(마지막 행) 664.0 · 10행 표본이면 화면 안 마지막 행으로 다시 고른다⟧ < 844 · 머리 0.0 |
 | `o02_step` | 2 | `test/golden/o02_golden_test.dart` | 🆕 `m8/onboarding_step_detail_kis_mock`(슬롯 = 가짜 빌더) · `Key('o03-run')` < 844(드라이런 296.0) · `Key('o02-head')` dy 0.0 |
 | `o03_ok` | 2 | `test/golden/o03_golden_test.dart` | 같은 상세 + 흐름 = 검증 탭(명령 = 공장 · `m8/onboarding_verify_results` [0]) · `Key('o03-result')` < 844(드라이런 344.0) · 머리 0.0 |
 | `o03_fail_code` | 2 | 〃 | 같은 상세 + 흐름 = 검증 탭(`results` [1] · 원문 코드 · `retryable`) · `Key('o03-retry')` < 844(드라이런 396.0) · 머리 0.0 |
 | `o04_auto` | 2 | `test/golden/o04_golden_test.dart` | 🆕 `m8/onboarding_finish_auto_declared`(준비 끝 — ①~⑤ 자리 닫힘 · 선언 뒤 ⑥ DRY_RUN 동작 · 기대치 한 줄) · `ValueKey('o04-action-5')` < 844(드라이런 752.0 · 🔴 조립 판 입력(6단계 자리 전부 열림)은 976 까지 내려가 두 이름 PNG 가 바이트까지 같아졌다 — 입력을 바꾼 까닭) · `Key('o04-headline')` dy 0.0 |
 | `o04_advisory` | 2 | 〃 | 🆕 `m8/onboarding_finish_advisory`(①~⑤ 끝 · ⑥ 동작 없음 · ⑥ 단계 링크 = 시작 상태 선언) · `ValueKey('o04-link-5')` < 844(⟦실측: 재드라이런 — 흉내(VM 칸 선언 `o04-declare`) 772.0⟧) · 머리 0.0 |
 | `r01_lost_phone` | 2 | `test/golden/r01_golden_test.dart` | 🆕 `m8/restart_vm_lost_phone`(`RestartVm` · 분기 2 · 승계 고지) · `Key('r01-inherit')` < 844(드라이런 404.0) · `Key('r01-headline')` dy 0.0 |
-| `r01_gap7` | 2 | 〃 | 🆕 `m8/restart_vm_gap7`(분기 1 — 신규 온보딩 + 잔고 승계 · 리스 block) · `ValueKey('r01-branch-0')` < 844(드라이런 276.0 · ⟦v1.16 표본⟧) · 머리 0.0 |
+| `r01_gap7` | 2 | 〃 | 🆕 `m8/restart_vm_gap7`(분기 1 — 신규 온보딩 + 잔고 승계 · 리스 block · v1.16 = 승계 고지 있음) · `Key('r01-inherit')` < 844(⟦실측: 재드라이런 — 흉내(고지 없음) 맨 아래 `ValueKey('r01-branch-0')` 276.0⟧) · 머리 0.0 |
 | `v01_ok` | 2 | `test/golden/v01_golden_test.dart` | 🆕 `m8/pairing_ok`(`PairingVm` · 결과 ok · 다음 링크) · `Key('v01-next')` < 844(드라이런 136.0) · `Key('v01-headline')` dy 0.0 |
 | `v01_fail` | 2 | 〃 | 🆕 `m8/pairing_fail`(결과 blocked · 원문 코드 · 다음 0) · `Key('v01-result')` < 844(드라이런 184.0) · 머리 0.0 |
 
 - 공통: 흐름 = 클로저 칸 non-null(흐름 없는 이름 = `(WidgetTester t) async {}`) · 가짜·저장소·명령 = testWidgets 안에서 새로(공장 꼴 · C4r5d-5) · 크기 = `kGoldenPhoneSize`(390 × 844 — 늘리지 않는다 · 드라이런 dy 로 확인) · 시계 미사용(온보딩 VM 에 asOf 없음 — R15a 발주자 확인 ⑤) · 🔒 자리 = R15b 가짜 슬롯 빌더(소유 위젯이 와도 골든 무변경 — R15b 발주자 확인 ⑦).
-- 드라이런 실측 dy(2026-11-02~03 · light = dark · 머리 dy 0.0 · 여백 조정 0): 위 표 칸 «드라이런» 값 — R15a = 실측(`dry/r15-1` · v1.16 흉내 위 · v1.16 병합 기록 때 다시 잰다) · R15b~R15d = «드라이런 기대»(`dry/r15-2`~`dry/r15-4` · 앞 카드 병합본·v1.16 실물에서 다시 잰다) · R15c 는 입력을 바꿔 `dry/r15-3b` 에서 다시 쟀다.
+- 드라이런 실측 dy(2026-11-02~03 · light = dark · 머리 dy 0.0 · 여백 조정 0): 위 표 칸 «드라이런» 값 — R15a = 실측(`dry/r15-1` · v1.16 흉내 위 · v1.16 병합 기록 때 다시 잰다) · R15b~R15d = «드라이런 기대»(`dry/r15-2`~`dry/r15-4` · 앞 카드 병합본·v1.16 실물에서 다시 잰다) · R15c 는 입력을 바꿔 `dry/r15-3b` 에서 다시 쟀다 · 🔵 v1.16 실물 표본 글자(32벌)는 흉내와 다르다(설계서 §5) — 표의 «드라이런» dy 는 전부 누적 재드라이런(v1.16 실물 위)이 다시 잰다.
 - 보고 «배치·잘림» 칸 — Bob 은 이름마다 light PNG 한 장만 연다(R15a 4장 · R15b 5장 · R15c 2장 · R15d 4장).
 - 🔴 `m8/onboarding_mode_pick`(`OperatingModeView` · `current: ADVISORY` = «아직 안 고름» 함정 · M9 `S05` 몫)은 R15 골든 입력이 아니다.
 
 ### 2. 장수(계획)
 
-- R15 시작 **40장**(R14 test-only 병합본 `14d6374`) → R15a 병합 뒤 **48장**(+ `o00_*` 2 · `o00b_*` 6) → R15b 뒤 **58장**(+ `o01_*` 4 · `o02_*` 2 · `o03_*` 4) → R15c 뒤 **62장**(+ `o04_*` 4) → R15d 뒤 **70장**(+ `r01_*` 4 · `v01_*` 4 · 🔴 «정확히» = R15d 정적 T37 · R15d 를 미루면 R15c 가 «정확히 62»). 질문 파일 = `docs/ai-context/inbox/O00O00b_questions.md`(R15a) · `O01O03_questions.md`(R15b) · `O04_questions.md`(R15c) · `R01V01_questions.md`(R15d).
+- R15 시작 **40장**(R14 test-only 병합본 `14d6374`) → R15a 병합 뒤 **48장**(+ `o00_*` 2 · `o00b_*` 6) → R15b 뒤 **58장**(+ `o01_*` 4 · `o02_*` 2 · `o03_*` 4) → R15c 뒤 **62장**(+ `o04_*` 4) → R15d 뒤 **70장**(+ `r01_*` 4 · `v01_*` 4 · 🔴 «정확히» = R15d 정적 T37 · ✅ 결정 ① 순서대로 — R15c 는 «정확히» 를 지지 않는다). 질문 파일 = `docs/ai-context/inbox/O00O00b_questions.md`(R15a) · `O01O03_questions.md`(R15b) · `O04_questions.md`(R15c) · `R01V01_questions.md`(R15d).
