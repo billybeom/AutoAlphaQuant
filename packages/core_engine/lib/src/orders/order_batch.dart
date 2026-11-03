@@ -7,7 +7,8 @@
 // 🔴 한 의도의 결과 불명은 그 의도만 멈춘다 — 배치는 이어 가고, 같은 (시장 · 종목 · 전략)의 다음 의도는 2.5단계가
 //    막는다. 알림 코드는 배치당 한 번(04 §5-3 — 발송은 E11).
 // 🔴 예수금을 못 읽은 계좌의 매수는 내지 않는다(주문 0 · 원장 행 0 — 다음 배치가 다시 판정한다).
-// 🔵 체결 기록 · 다음 날 지난 주문 가드(04 §3-1 ③ ⑤) · 놓친 날(D27)은 E10e 몫이다.
+// 🔴 🆕 E10e1 — 계좌마다 첫 주문 앞에 오늘 체결조회로 다음 날 가드를 돈다(지난 날 원주문 = 그 계좌 보류 · 조회 실패도 보류).
+// 🔵 체결 기록은 `runFillSync`(fill_sync.dart) · 이월 · 놓친 날(D27)은 E10e2 몫이다.
 
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
@@ -15,6 +16,7 @@ import 'package:domain_contracts/domain_contracts.dart';
 import '../decimal_rules.dart';
 import '../risk/limits.dart';
 import 'execute_intent.dart';
+import 'fill_sync.dart';
 import 'order_draft.dart';
 import 'order_ports.dart';
 
@@ -124,7 +126,8 @@ class BatchOutcome {
   /// 예수금이 모자라 줄인 매수(이월 = E10e).
   final List<CashShortfall> shortfalls;
 
-  /// 내지 않고 보류한 초안과 사유(`BROKER_UNMAPPED` · `CASH_UNAVAILABLE`).
+  /// 내지 않고 보류한 초안과 사유(`BROKER_UNMAPPED` · `CASH_UNAVAILABLE` · 🆕 `STALE_ORDERS` · `STALE_GUARD_UNAVAILABLE`).
+  /// 🟡 다음 날 가드의 P1 알림 코드는 다음 계약 창(R33 D11) — 그때까지 이 사유로만 낸다.
   final List<(OrderIntentDraft, String)> held;
 
   /// 이 배치의 알림 코드(코드마다 한 번 · 발송은 E11).
@@ -191,6 +194,23 @@ Future<BatchOutcome> runOrderBatch(
         unknowns.add(e);
         alerts.add(AlertCodes.orderOutcomeUnknown);
       }
+    }
+
+    // 🆕 E10e1 다음 날 가드(04 §3-1 ③ ⑤ · R38 Z8) — 첫 주문 앞에 오늘 체결조회 한 번 · 지난 날 원주문이 보이면 보류.
+    final TradeDate today = mine.first.executionDate;
+    String? guard;
+    try {
+      if (staleOrderRows(await broker.dailyFills(today), today).isNotEmpty) {
+        guard = 'STALE_ORDERS';
+      }
+    } on Object {
+      guard = 'STALE_GUARD_UNAVAILABLE'; // fail-closed
+    }
+    if (guard != null) {
+      held.addAll(<(OrderIntentDraft, String)>[
+        for (final OrderIntentDraft d in mine) (d, guard),
+      ]);
+      continue;
     }
 
     // ① 매도 전부.

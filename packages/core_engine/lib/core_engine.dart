@@ -69,18 +69,42 @@ export 'src/data/regime_inputs.dart'
         regimeStaleDays,
         usCalendarLagSessions;
 export 'src/decimal_rules.dart'
-    show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
+    show
+        demoteToDouble,
+        divide,
+        kContextPrecision,
+        mulDiv,
+        multiply,
+        oneMinus,
+        promoteRatio;
 export 'src/orders/block_bundles.dart' show BlockBundles, blockingFlagsFor;
 export 'src/orders/execute_intent.dart'
     show ExecutionContext, ExecutionOutcome, ExecutionStatus, executeIntent;
+export 'src/orders/fill_sync.dart'
+    show
+        FillApplication,
+        FillCostRates,
+        FillLedger,
+        FillSyncReport,
+        FillVerdict,
+        OpenIntent,
+        estimateFillCost,
+        kDayEndCheckAfterKst,
+        reconcileFills,
+        runFillSync,
+        staleOrderRows;
 export 'src/orders/fills.dart'
     show
         DailyFillRow,
         FillDelta,
         RecordedFill,
+        averageFillPrice,
+        averagePriceAfterBuy,
         brokerOrderNoOf,
         executionIdOf,
-        fillDeltas;
+        fillDeltas,
+        parseRecordedFillJson,
+        recordedFillJson;
 export 'src/orders/idempotency.dart'
     show DecisionIds, idempotencyKey, idempotencyRaw;
 export 'src/orders/order_batch.dart'

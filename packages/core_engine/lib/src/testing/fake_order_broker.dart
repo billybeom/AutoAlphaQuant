@@ -63,6 +63,7 @@ class FakeOrderBroker implements OrderBroker {
     Decimal? cashKrw,
     this.cashError,
     Map<String, List<DailyFillRow>>? fills,
+    this.fillsError,
     this.onSubmit,
   }) : script = script ?? <FakeSubmitStep>[],
        cashKrw = cashKrw ?? Decimal.parse('1000000000000'),
@@ -82,6 +83,12 @@ class FakeOrderBroker implements OrderBroker {
 
   /// 주문일(YYYY-MM-DD) → 체결조회 행.
   final Map<String, List<DailyFillRow>> fills;
+
+  /// 🆕 E10e1 — 체결조회가 던질 예외(일 마감 조회 실패 · 다음 날 가드 실패 시험).
+  Object? fillsError;
+
+  /// 체결조회 수.
+  int fillReads = 0;
 
   /// 제출 순간 걸이 — 원장에 행이 이미 있는지 보는 데 쓴다(04 §7 `test_intent_before_order`).
   Future<void> Function(BrokerOrderRequest request)? onSubmit;
@@ -135,10 +142,14 @@ class FakeOrderBroker implements OrderBroker {
   }
 
   @override
-  Future<List<DailyFillRow>> dailyFills(TradeDate orderDate) async =>
-      List<DailyFillRow>.of(
-        fills[orderDate.yyyyMmDd] ?? const <DailyFillRow>[],
-      );
+  Future<List<DailyFillRow>> dailyFills(TradeDate orderDate) async {
+    fillReads++;
+    final Object? error = fillsError;
+    if (error != null) Error.throwWithStackTrace(error, StackTrace.current);
+    return List<DailyFillRow>.of(
+      fills[orderDate.yyyyMmDd] ?? const <DailyFillRow>[],
+    );
+  }
 
   @override
   Future<Decimal> orderableCashKrw() async {

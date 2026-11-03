@@ -89,4 +89,13 @@ void main() {
       );
     });
   });
+
+  group('🆕 E10e1 demoteToDouble — 문자열을 거쳐 내린다(규약 ② 의 내리는 길)', () {
+    test('유효숫자 28 로 환원된 105 가 105.0 이다(toDouble 은 104.99999999999999)', () {
+      final Decimal v = divide(d('2100'), d('20'));
+      expect(demoteToDouble(v), 105.0);
+      expect(demoteToDouble(divide(d('1'), d('3'))), 1 / 3);
+      expect(demoteToDouble(d('-174180.5')), -174180.5);
+    });
+  });
 }
