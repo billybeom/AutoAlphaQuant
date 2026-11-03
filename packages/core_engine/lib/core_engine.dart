@@ -71,6 +71,8 @@ export 'src/data/regime_inputs.dart'
 export 'src/decimal_rules.dart'
     show divide, kContextPrecision, mulDiv, multiply, oneMinus, promoteRatio;
 export 'src/orders/block_bundles.dart' show BlockBundles, blockingFlagsFor;
+export 'src/orders/execute_intent.dart'
+    show ExecutionContext, ExecutionOutcome, ExecutionStatus, executeIntent;
 export 'src/orders/fills.dart'
     show
         DailyFillRow,
@@ -81,6 +83,8 @@ export 'src/orders/fills.dart'
         fillDeltas;
 export 'src/orders/idempotency.dart'
     show DecisionIds, idempotencyKey, idempotencyRaw;
+export 'src/orders/order_batch.dart'
+    show BatchOutcome, CashFit, CashShortfall, fitBuysToCash, runOrderBatch;
 export 'src/orders/order_draft.dart'
     show
         AllHeldSizing,
@@ -99,6 +103,19 @@ export 'src/orders/order_draft.dart'
         draftOrders,
         limitPriceFor,
         targetsFromMonthEnd;
+export 'src/orders/order_ports.dart'
+    show
+        AdviceSink,
+        BrokerAccepted,
+        BrokerOrderRequest,
+        BrokerRejected,
+        BrokerSubmitResult,
+        IntentRow,
+        IntentStatus,
+        OrderBroker,
+        OrderLedger,
+        OrderOutcomeUnknown,
+        intentIdFor;
 export 'src/orders/split_execution.dart'
     show SplitDay, seasonalExecutionDays, splitDay;
 export 'src/portfolio/allocation.dart'

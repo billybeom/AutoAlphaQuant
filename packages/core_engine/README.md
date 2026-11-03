@@ -38,7 +38,7 @@
 2. **골든벡터 전량 통과 전에는 DRY_RUN을 벗어나지 않는다**(결정 2). 이 패키지의 Dart 재현이 그 게이트다.
 3. **사유 문구는 여기서 만들어진다.** 화면은 만들지 않는다 — 엔진이 `label`·`actionLine` 필드에 실어 보낸다.
 
-## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a~E6e · E7a(E7a0~E7a3-2) · E10a · 나머지는 🟡
+## 지금 상태 — 🟢 E1 · E2a · E2b · E3a · E3b · E4 · E5a~E5d · E6a~E6e · E7a(E7a0~E7a3-2) · E10a · E10b · 나머지는 🟡
 
 실행 계획(블록 E1~E18)은 설계 저장소 `11_앱설계/13_엔진레인_착수계획.md` 가 정본이다.
 
@@ -63,6 +63,10 @@
 | 🆕 `lib/src/orders/order_draft.dart` — 주문 초안기(`OrderTarget` 금액 · 주수 · 전량 → `OrderIntentDraft` 계좌 · strategy_id · 수량 · 지정가 · decision_id · 멱등키 · 한도 판정 입력) · 지정가 = 직전 원 종가 × (1 ± offset) → 호가 안쪽 맞춤 → 상 · 하한 안(호가 · 상하한 = 시세 입력) · 순매매(같은 전략 안 · 다른 전략이 같은 (계좌 · 종목) = 내지 않음) · fail-closed 사유 7 · 월말 계획 → 대상 5종(`targetsFromMonthEnd`) · strategy_id `P0sStrategyIds` · 계좌 = 설정 맵 | M1-9 · M1-9b 계산부(E10a — R33 D9 · D17 · D18 · D19 · R34 U3~U7) | `test/order_draft_test.dart` |
 | 🆕 `lib/src/orders/fills.dart` — 체결 델타(R31 (a) — `brokerOrderNoOf` `{주문일}:{ODNO}` · `executionIdOf` `#{누적}` · `fillDeltas` Δ누적 > 0 인 원주문 행만 · 취소 행 거름 · 앞뒤 안 맞으면 StateError) | X4-3 · M1-9 계산부(E10a — 02 §3-2 v2.38 · R33 D3 · D4 · R34 U9) | `test/fills_test.dart`(멱등 · 단가 · 날짜 다른 같은 ODNO) |
 | 🆕 `lib/src/orders/block_bundles.dart` — NR-1 2단계 묶음 3(전 주문 · 신규 매수 · 진입 안내) + `blockingFlagsFor` | X5-2 계산부(E10a — 04 §3-1 v2.33 ① · R34 U10) | `test/block_bundles_test.dart`(합 = `FlagIds.blocking` · 겹침 0 · 표식 · `LEDGER_FIX` 밖) |
+| 🆕 `lib/src/orders/order_ports.dart` — 주문 경로 포트(`OrderBroker` 계좌 한 벌 · `OrderLedger` · `AdviceSink`) · `IntentStatus` 10값 · `IntentRow` · `intentIdFor`(멱등키 앞 24자) · `OrderOutcomeUnknown` — 구현 = broker_gateway(E10d) · data_sync(E10c) · E18 | M1-8 · M1-9 포트(E10b — R33 D12 · R35 V2~V4) | `test/execute_intent_test.dart` |
+| 🆕 `lib/src/orders/execute_intent.dart` — NR-1 순서기 `executeIntent`(1 킬스위치 → 2 묶음 → 2.5 미해소 UNKNOWN → 3 SAF-406 → 4 한도(원장 값으로 덮음) → 5 화이트리스트 → 6 INSERT → 6.5 → 안내 · DRY_RUN → 7~9 · 1~5 거부도 행 · 결과 불명 = UNKNOWN 뒤 다시 던짐 · 응답 뒤 기록 실패 = UNKNOWN) | M1-9(E10b — 04 §3-1 · §3-3 · R35 V5~V7) | 04 §7 포트 수준 9종 + 21 · `test/execute_intent_test.dart` |
+| 🆕 `lib/src/orders/order_batch.dart` — `kr_order` 2단계 `runOrderBatch`(계좌마다 매도 → 예수금 → 매수) · `fitBuysToCash`(비례 축소 · 비용 포함 · 0주 = 부족분) | M1-9(E10b — R33 D10 · R35 V8) | 🆕 GV-13 발주 횟수(v1~v4 · AC-S13) · `test/order_batch_test.dart` |
+| 🆕 `lib/testing.dart`(+ `lib/src/testing/`) — 시험 전용 받침대: `FakeOrderBroker`(각본 · 제출 기록 · 제출 순간 걸이 · 예수금) · `FakeOrderLedger`(메모리 · UNIQUE · 엄격한 전이 · 실패 주입) · `RecordingAdviceSink` — 🔴 lib 는 import 하지 않는다 | G-FB v1 포트 수준(E10b — R33 D13 · R35 V9) | 위 시험들이 쓴다 |
 | `lib/src/costs/trade_costs.dart` — 거래비용(`total` 에 시장충격 포함 · 구간 `>=` · ETF 매도세 0 · 미국 = `UnimplementedError`) · 참여율 절단 · 왕복 손익 · 보유비용 `(1 − er/연거래일)^일수`(🔴 백테스트 전용) · 가중 총보수 | M1-4 일부 · M3-1 `estimate_costs` 계산부(E5a) | GV-11(3) · GV-11e(6) · GV-11d · GV-19 · GV-24(5 + 가중) · `test/costs_test.dart`(ETF 면제 · 구간표 정렬·0 구간 · 입력 거부) |
 | `lib/src/portfolio/allocation.dart` — 자본 배분 해석·검증(합 1.0 아니면 거부 · 하나 빠지면 잔여 · 새틀 밴드 = 목표 × 15/18 · 21/18 · 새틀 0 허용 · 오류 문구 = 참조 구현) | M1-4 일부(E5a) | GV-42(12 · AC-B30) · `test/allocation_test.dart`(문구 전체 · 키 순서 · 잔여 반올림) |
 | `lib/src/signals/sleeve_b_tranche.dart` — 슬리브 B 3-트랜치 SMA(다수결 아님 · 월봉 · 판정월 포함 · 워밍업 0.0) · P0S 하한 1/3 먼저 → BEAR 차감 2/3 나중(B 본책 전용) | M1-4 일부(E5b) | GV-20(5 · AC-B13) · `test/sleeve_signals_test.dart`(P0S 하한·차감 · 03 v2.27 블록 값) |
