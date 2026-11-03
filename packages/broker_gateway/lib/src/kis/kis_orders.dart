@@ -10,14 +10,13 @@
 
 import 'package:core_engine/core_engine.dart'
     show
+        AccountBroker,
         BrokerAccepted,
         BrokerBalance,
-        BrokerBalanceSource,
         BrokerOrderRequest,
         BrokerRejected,
         BrokerSubmitResult,
         DailyFillRow,
-        OrderBroker,
         OrderOutcomeUnknown,
         OrderTypes;
 import 'package:decimal/decimal.dart';
@@ -220,7 +219,7 @@ Decimal? parseKisObservedCash(Map<String, Object?> body) {
 DateTime _realNow() => DateTime.now().toUtc();
 
 /// 계좌 하나의 KIS 주문 브로커(core `OrderBroker` 구현 · R37 · 🆕 E10g `BrokerBalanceSource` · R41).
-final class KisOrderBroker implements OrderBroker, BrokerBalanceSource {
+final class KisOrderBroker implements AccountBroker {
   /// 브로커를 만든다. [now] = 접수 응답의 주문일(KST 날짜)을 정하는 시계.
   KisOrderBroker(this._client, {DateTime Function()? now})
     : _now = now ?? _realNow;

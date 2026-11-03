@@ -4,5 +4,29 @@
 //    재개 절차가 여기 모인다.
 // 🔴 ui_*는 이 패키지를 의존하지 않는다(C-3). 재개 게이트 화면은 ui_safety다.
 //
-// 아직 비어 있다. 구현은 lib/src/ 아래로 들어오고 공개할 것만 여기에서
-// export 한다.
+// 🆕 E11a(설계 13 §8 R42) — 잡 규약(01 §10) · 주문 잡(`kr_order` 오전 · 마감 · `daily_reconcile`).
+//    알람 · FGS · 실제 핑 · 알림 발송 · 재개(R0~R8)는 아직 없다.
+
+export 'src/jobs/job_contract.dart'
+    show
+        AlertSink,
+        JobBody,
+        JobHeartbeat,
+        JobRun,
+        JobStatus,
+        PingStatus,
+        kstDateOf,
+        kstTimeOfDay,
+        runJob,
+        watchdogCheckName;
+export 'src/jobs/kr_order_jobs.dart'
+    show
+        DraftQuoteSource,
+        KrJobs,
+        KrOrderCloseReport,
+        KrOrderConfig,
+        KrOrderJobs,
+        KrOrderOpenReport,
+        TargetSource,
+        kKrOrderCutoffKst,
+        kKrOrderEarliestKst;
