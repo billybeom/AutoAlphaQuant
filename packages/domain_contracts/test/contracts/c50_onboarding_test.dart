@@ -249,6 +249,13 @@ List<Map<String, Object?>> _stepObjects(Object? node) {
   return out;
 }
 
+/// UTC 시각 [iso] 의 KST 날짜(`yyyy-MM-dd` · 숫자만).
+String _kstDate(String iso) {
+  final DateTime k = DateTime.parse(iso).toUtc().add(const Duration(hours: 9));
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${k.year}-${two(k.month)}-${two(k.day)}';
+}
+
 /// 링크가 라우트 패턴 [pattern] 과 일치하는가(`AppRoutes.isRegistered` 와 같은 규칙 — 한 패턴만).
 bool _matches(String pattern, String link) {
   final List<String> p = pattern.split('/');
@@ -523,8 +530,15 @@ void main() {
               bad.add('$where — 같은 등급 다른 글자');
             }
           }
-          if (s['verified_until'] != null && s['verified_until_text'] == null) {
+          final Object? until = s['verified_until'];
+          final Object? untilText = s['verified_until_text'];
+          if (until != null && untilText == null) {
             bad.add('$where — verified_until 만 있고 글자가 없다');
+          } else if (until is String &&
+              untilText is String &&
+              !untilText.startsWith(_kstDate(until))) {
+            // 날짜 숫자만 대조한다 — 꼬리 낱말(«까지»·«에 만료됨»)은 엔진 몫.
+            bad.add('$where — verified_until_text 날짜 ≠ verified_until(KST)');
           }
           final Object? detail = s['detail_deep_link'];
           if (detail != null && detail != 'aaq://onboarding/$id') {
@@ -750,6 +764,17 @@ void main() {
           if (st[i].slotId != null) {
             expect(i, inInclusiveRange(1, 4), reason: '$path [$i]');
             expect(st[i].slotId, _stageSlots[i - 1], reason: '$path [$i]');
+            // 칸은 열린 단계에만 — 마친(VERIFIED) 단계 · 닫힌(게이트 PASS 밖) 단계 = null.
+            expect(
+              st[i].state,
+              isNot(StepState.verified),
+              reason: '$path [$i] — 마친 단계에 칸',
+            );
+            expect(
+              st[i].gate == null || st[i].gate!.state == GateState.pass,
+              isTrue,
+              reason: '$path [$i] — 닫힌 단계에 칸',
+            );
           }
           if (i != 5) {
             expect(st[i].link, isNull, reason: '$path [$i]');
