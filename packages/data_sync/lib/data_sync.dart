@@ -20,12 +20,14 @@
 export 'src/device/device_draft_store.dart';
 export 'src/device/device_local.dart';
 export 'src/device/local_command_queue.dart';
+export 'src/jobs/daily_archive_job.dart';
 export 'src/jobs/daily_jobs.dart';
 export 'src/jobs/monthly_rebalance_job.dart';
 export 'src/jobs/seasonal_a_job.dart';
 export 'src/jobs/tier_b_step.dart';
 export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
+export 'src/local/ledger_archive_writer.dart';
 export 'src/local/ledger_database.dart';
 export 'src/local/ledger_hash_stamper.dart';
 export 'src/local/ledger_schema.dart';
