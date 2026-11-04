@@ -95,6 +95,15 @@ const List<JobSpec> kJobTable = <JobSpec>[
     // 🔴 소급 불가 — 그날 안에만.
     lateUntilKst: Duration(hours: 23, minutes: 59),
   ),
+  // 🆕 E11f3(R49 Q1 · 발주자 결정 2026-11-04) — 계절 A 판정. 매 KR 평일 08:00 · 판정 날(그 달 마지막 3 KR 세션의
+  //    첫날)에만 움직인다 · 늦은 끝 09:05(`kr_order` 시작 앞) · 🔴 SPEC 잡 표 추가 = v2.39 창.
+  JobSpec(
+    job: 'seasonal_a',
+    cadence: JobCadence.krWeekday,
+    kstTime: Duration(hours: 8),
+    grace: Duration(hours: 1),
+    lateUntilKst: Duration(hours: 9, minutes: 5),
+  ),
   // 🆕 E11f2(R48 P1 · 발주자 결정 2026-11-04) — 월말 다음 KR 세션 08:00 · 그날 미국 종가까지 본 판정(골든과 같다) ·
   //    유예 1시간(`kr_order` 09:10 앞) · 늦은 끝 15:00(`kr_order` 끝) — 넘기면 워치독 실패 · 사람.
   //    🔴 SPEC 잡 표 문언(«월 마지막 거래일»)은 v2.39 창.

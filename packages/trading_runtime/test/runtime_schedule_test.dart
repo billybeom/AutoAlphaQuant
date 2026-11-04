@@ -61,6 +61,7 @@ void main() {
             const Duration(hours: 20, minutes: 30),
             JobCadence.krWeekday,
           ),
+          ('seasonal_a', const Duration(hours: 8), JobCadence.krWeekday),
           (
             'monthly_rebalance',
             const Duration(hours: 8),
@@ -83,6 +84,11 @@ void main() {
       expect(_s('daily_data').lateUntilKst, isNull);
       expect(_s('monthly_rebalance').lateUntilKst, const Duration(hours: 15));
       expect(
+        _s('seasonal_a').lateUntilKst,
+        const Duration(hours: 9, minutes: 5),
+      );
+      expect(_s('seasonal_a').lateUntilKst, kKrOrderEarliestKst);
+      expect(
         kJobTable.map((JobSpec s) => (s.job, s.grace.inMinutes)),
         <(String, int)>[
           ('daily_reconcile', 120),
@@ -91,6 +97,7 @@ void main() {
           ('daily_data', 120),
           ('daily_signal', 60),
           ('equity_snapshot', 60),
+          ('seasonal_a', 60),
           ('monthly_rebalance', 60),
           ('us_data', 120),
         ],
@@ -287,6 +294,8 @@ void main() {
           ('daily_reconcile', WakeAction.done),
           // 07:30 us_data — 늦은 끝 = 다음 회차(목 07:30) 앞이라 지금 돌린다.
           ('us_data', WakeAction.runNow),
+          // 🆕 08:00 seasonal_a — 늦은 끝 09:05 지남(그날 판정은 놓침 · 워치독 실패로 보인다).
+          ('seasonal_a', WakeAction.missed),
           ('kr_order', WakeAction.missed),
           ('kr_order_close', WakeAction.runNow),
         ],

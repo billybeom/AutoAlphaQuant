@@ -10,6 +10,7 @@
 // 🔵 E9-0 — 로컬 정본 SQLite 연결(`package:sqlite3`) · 🆕 E9c — 스키마 v1 · 두 파일 열기 · 🆕 E7b1 — 계획 스냅샷 저장소.
 // 🆕 E8c — 시세·지표 저장(`daily_prices`·`market_series`) · 국면 행 · 결측 · 수집 기록 · 동결 번들 시드 · FRED·OFR 수집.
 // 🆕 E8d2b — 일봉 시세 수집(`QuoteCollector` — core_engine 포트만 안다 · KIS 구현은 잡이 넣는다 · 끝난 세션만).
+// 🆕 E11f3 — `seasonal_a` 본체 · `SeasonalTargetSource` · POT 현금 흐름(설계 13 §8 R49).
 // 🆕 E11f2 — `monthly_rebalance` 본체 · 계획 보관 · `StoredPlanTargetSource`(설계 13 §8 R48).
 // 🆕 E11f1 — 아침 · 저녁 잡 본체 넷(`DailyDataJob` · `UsDataJob` · `DailySignalJob` · `EquitySnapshotJob` · 설계 13 §8 R47).
 // 🆕 E11e — 기기 로컬 암호화 저장소(`DeviceLocal` · 초안 `DeviceDraftStore` = `DraftStore` 구현 · 큐 ⓐ `LocalCommandQueue` · 설계 13 §8 R46).
@@ -21,6 +22,7 @@ export 'src/device/device_local.dart';
 export 'src/device/local_command_queue.dart';
 export 'src/jobs/daily_jobs.dart';
 export 'src/jobs/monthly_rebalance_job.dart';
+export 'src/jobs/seasonal_a_job.dart';
 export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
 export 'src/local/ledger_database.dart';

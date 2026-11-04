@@ -123,6 +123,8 @@ export 'src/orders/carry_over.dart'
         logicalIdOf,
         planCarryOver,
         seasonalShareToday;
+// 🆕 E11f3 — 대상 출처 묶음(월말 + 계절 A · 설계 13 §8 R49 Q5).
+export 'src/orders/composite_target_source.dart' show CompositeTargetSource;
 export 'src/orders/execute_intent.dart'
     show ExecutionContext, ExecutionOutcome, ExecutionStatus, executeIntent;
 export 'src/orders/fill_sync.dart'
@@ -248,6 +250,21 @@ export 'src/portfolio/month_end_plan.dart'
         MonthEndPlan,
         MonthEndState,
         planMonthEnd;
+// 🆕 E11f3 — 슬리브 A 계절 판정 · POT 현금 재계산(설계 13 §8 R49 Q2 · Q3 · Q6).
+export 'src/portfolio/seasonal_a.dart'
+    show
+        PotCashFlow,
+        PotCashFlowKind,
+        SeasonalAConfig,
+        SeasonalADecision,
+        SeasonalAInput,
+        SeasonalAInputError,
+        SeasonalAOutcome,
+        decideSeasonalA,
+        kP0sAllocA,
+        kSeasonalMinDeltaFraction,
+        potCashOf,
+        seasonalAInputFromLedger;
 export 'src/portfolio/sleeve_c.dart'
     show
         InflowCurrency,

@@ -4,7 +4,7 @@
 //    그래서 이 잡이 먼저 국면을 다시 계산 · 덧붙이고, 월말 미국 세션 값이 아직 없으면 **계획 없이 실패**한다(fail-closed).
 // 🔴 저장은 한 트랜잭션이다 — `plan_snapshot`(REBALANCE) · `rebalance_event`(MONTHLY_REGULAR) · `decision_log`(REBALANCE).
 //    같은 월말 계획이 이미 있으면 아무것도 바꾸지 않고 그것을 보고한다(멱등 — 다시 돌려도 안전).
-// 🔴 POT 현금 · 예약 원화 = 0(계절 A = E11f3 전) — `P0S_POT` 보유가 있으면 실패(계절 A 없이 POT 가 생길 수 없다).
+// 🔴 POT 현금 = 체결에서 다시 센다(🆕 E11f3 · R49 Q6 — `potCashFlowsSinceLiquidation`) · 예약 원화 = 0(S7).
 // 🔴 계층 B 판정(E11g)은 저장 뒤에 건다 — 이 판에는 자리만 있다.
 
 import 'dart:convert';
@@ -17,6 +17,7 @@ import '../local/deposit_ledger.dart';
 import '../market/market_store.dart';
 import '../market/regime_store.dart';
 import 'daily_jobs.dart';
+import 'seasonal_a_job.dart' show potCashFlowsSinceLiquidation;
 
 /// 월말 계획 실패 — 🔴 사유 = 종목 · 계좌 별칭 · 날짜만(금액 0). 아무것도 쓰지 않았다.
 class MonthlyRebalanceError implements Exception {
@@ -262,11 +263,6 @@ class MonthlyRebalanceJob {
     }
 
     final List<LedgerHolding> held = await _holdings();
-    for (final LedgerHolding h in held) {
-      if (h.strategyId == P0sStrategyIds.pot && h.quantity != 0) {
-        throw MonthlyRebalanceError('POT 보유 — 계절 A 전: ${h.symbol}');
-      }
-    }
     final String month = d.substring(0, 7);
     final SqliteMarketStore market = SqliteMarketStore(_db);
     final Map<String, List<double>> monthly = <String, List<double>>{
@@ -294,6 +290,7 @@ class MonthlyRebalanceJob {
         pensionRows: SqliteDepositLedger(_db).cashRows(_pensionAlias),
         pensionAlias: _pensionAlias,
         pensionOutsideText: _pensionOutside,
+        potCashText: potCashOf(potCashFlowsSinceLiquidation(_db)).toString(),
         monthIndex: monthIndex,
         regimeState: regime.$1,
         monthlyCloses: monthly,
