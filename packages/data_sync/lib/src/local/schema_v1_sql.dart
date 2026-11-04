@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `030b24f2376bb821621e7d3c0da54ba236da80c81b84343732740d28ee744e0f`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `9836f4f06b0b3a3738d206e50c64b2b1f66e387a0c0c0efcfd368fcf75324296`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS trades (
     holding_days    INTEGER NOT NULL
 );
 
--- ── 02_데이터모델.md L386-541 ──
+-- ── 02_데이터모델.md L386-603 ──
 CREATE TABLE IF NOT EXISTS strategy_state_log (
     log_id               TEXT NOT NULL PRIMARY KEY,
     strategy_id          TEXT NOT NULL,
@@ -362,6 +362,22 @@ CREATE TABLE IF NOT EXISTS kill_switch_state (
     activated_by  TEXT,                               -- 'telegram' | 'file' | ...
     cleared_at    TEXT,                               -- try_resume 통과 시각. NULL 이면 활성
     decision_id   TEXT                                -- 🔴 재개 저널 (필수)
+);
+-- 🆕 v2.40(04 §3-6 · 설계 13 §8 R55 D1 · D12 · D17) — 48h 기준 = 체크리스트 확인 시각 · 이력 · STOPPED 재개 기록
+ALTER TABLE kill_switch_state ADD COLUMN checklist_confirmed_at TEXT;   -- 발동 뒤 기록 확인 시각(🔴 ≥ activated_at · 48h 기준)
+CREATE TABLE IF NOT EXISTS kill_switch_event (                          -- append-only(연습 · 반복 횟수를 센다)
+    event_id    TEXT NOT NULL PRIMARY KEY,
+    occurred_at TEXT NOT NULL,                          -- 신뢰 시각(UTC ISO8601)
+    kind        TEXT NOT NULL CHECK (kind IN ('ACTIVATED','CHECKLIST_CONFIRMED','CANCEL_REPORT','RESUMED')),
+    channel     TEXT,                                   -- 'app' | 'viewer' | 'web' | 'messenger' | 'file'
+    decision_id TEXT,                                   -- CHECKLIST_CONFIRMED · RESUMED = 필수
+    summary     TEXT NOT NULL                           -- JSON(취소 건별 결과 · 응답 요약 — 🔴 금액 0)
+);
+CREATE TABLE IF NOT EXISTS breaker_release (                            -- 🔴 STOPPED → HALTED 의 유일한 입력(결정 B · 04 §2 v2.40)
+    release_id  TEXT NOT NULL PRIMARY KEY,
+    trade_date  TEXT NOT NULL,                          -- 이 날부터 HALTED(재생이 이 날 하강)
+    decision_id TEXT NOT NULL,                          -- 🔴 결정 B 저널
+    created_at  TEXT NOT NULL
 );
 -- 검증: test_kill_file_deleted_but_wait_not_elapsed_still_blocked · test_resume_before_min_wait_blocked
 
@@ -428,6 +444,51 @@ CREATE TABLE IF NOT EXISTS discretion_adjustment (
     decision_id   TEXT NOT NULL,             -- 🔴 저널 연결 필수
     reason        TEXT NOT NULL
 );
+-- 🆕 v2.40(설계 13 §8 R55 D6 · D7 · D20 · 03_운영 §6-4 · §6-5 · §6-8) — 서약 · 규칙 변경 · 개입. 🔴 전부 append-only(상태 = 뒤 행)
+CREATE TABLE IF NOT EXISTS pledge (                     -- 본인 서약문 3문장(온보딩 · 12월 창에서만 새 판)
+    pledge_id   TEXT NOT NULL PRIMARY KEY,
+    version     INTEGER NOT NULL UNIQUE,                -- 1부터 · 편집 = 새 판
+    sentence_1  TEXT NOT NULL,
+    sentence_2  TEXT NOT NULL,
+    sentence_3  TEXT NOT NULL,
+    written_at  TEXT NOT NULL,                          -- 신뢰 시각
+    decision_id TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS pledge_replay (              -- DD 임계 «최초 도달» 재생(임계 · 에피소드마다 1회)
+    replay_id         TEXT NOT NULL PRIMARY KEY,
+    threshold_dd      REAL NOT NULL,                    -- operations.pledge.replay_dd 의 값
+    episode_peak_date TEXT NOT NULL,                    -- 이 하락의 고점 날(에피소드 키)
+    shown_at          TEXT NOT NULL,
+    UNIQUE (threshold_dd, episode_peak_date)
+);
+CREATE TABLE IF NOT EXISTS rule_change_request (        -- 요청은 언제든(큐) · 🔴 냉각 30일 시작점
+    request_id         TEXT NOT NULL PRIMARY KEY,
+    requested_at       TEXT NOT NULL,                   -- 신뢰 시각
+    change_type        TEXT NOT NULL CHECK (change_type IN ('INFRA','STRATEGY_RULE','BUGFIX')),
+    config_hash_before TEXT NOT NULL,
+    config_hash_after  TEXT NOT NULL,
+    reason             TEXT NOT NULL,
+    rollback_method    TEXT NOT NULL,                   -- 롤백 방법(§6-8 · 🔴 칸 이름이 `rollback` 이면 스키마 적재기가 제어문으로 읽는다)
+    decision_id        TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS rule_change_decision (       -- 취소 또는 승인 = CHANGELOG 행(03_운영 §6-8 **10칸**)
+    request_id     TEXT NOT NULL PRIMARY KEY REFERENCES rule_change_request(request_id),
+    decided_at     TEXT NOT NULL,                       -- 승인일(신뢰 시각)
+    outcome        TEXT NOT NULL CHECK (outcome IN ('CANCELLED','APPROVED')),
+    golden_changed INTEGER CHECK (golden_changed IN (0,1)),  -- 승인 = 필수(§6-3)
+    approver       TEXT,                                -- 승인 = 필수(1인이면 본인)
+    approval_dd    REAL,                                -- 🔴 승인 시점 DD(드로다운 락 감사) — 승인 = 필수
+    third_party_notified INTEGER CHECK (third_party_notified IN (0,1)),   -- §6-5 ⑤(전송은 앱 밖 · 체크만)
+    decision_id    TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS intervention_step (          -- 수동 개입 5단계(규칙 대비 표시 → 카드 → 저널 → 냉각 → 실행)
+    session_id  TEXT NOT NULL,
+    stage       INTEGER NOT NULL CHECK (stage BETWEEN 1 AND 5),
+    occurred_at TEXT NOT NULL,                          -- 신뢰 시각 · 4단계 냉각 = operations.intervention.cooling_hours
+    outcome     TEXT NOT NULL CHECK (outcome IN ('PASSED','ABANDONED','DO_NOTHING')),
+    decision_id TEXT,                                   -- 3단계 · 5단계 = 필수
+    PRIMARY KEY (session_id, stage)
+);
 -- 롤링 12개월 횟수: SELECT COUNT(*) FROM discretion_adjustment
 --                    WHERE applied_at >= date('now','-12 months')
 
@@ -462,6 +523,7 @@ CREATE TABLE IF NOT EXISTS incidents (
     resolved_at TEXT,
     postmortem  TEXT
 );
+ALTER TABLE incidents ADD COLUMN due_at TEXT;   -- 🆕 v2.40 postmortem 기한(SEV1 = 3일 · SEV2 = 7일 · 03_운영 카드 ⑤ 7)
 
 -- 🔴 백테스트 시행 레지스트리 (DSR의 N 입력)
 CREATE TABLE IF NOT EXISTS backtest_trials (

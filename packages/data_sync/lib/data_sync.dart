@@ -27,6 +27,7 @@ export 'src/jobs/seasonal_a_job.dart';
 export 'src/jobs/tier_b_step.dart';
 export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
+export 'src/local/kill_switch_store.dart';
 export 'src/local/ledger_archive_writer.dart';
 export 'src/local/ledger_database.dart';
 export 'src/local/ledger_hash_stamper.dart';

@@ -282,6 +282,25 @@ Future<ExecutionOutcome> executeIntent(
   if (!await ledger.insertIntent(reserved)) return prevented();
   trail.add('6.5'); // 포트 계약 — INSERT 가 돌아오면 커밋됐다.
 
+  // 🔴 04 §3-6 «매 주문 직전» — 1단계 뒤 · 여기 전에 눌렸으면 이 의도는 나가지 않는다(설계 13 §8 R57 B6 ·
+  //    안내 · DRY_RUN 도 같다). 다시 읽지 못하면 막는다(fail-closed) · 브로커 호출 0.
+  bool killedNow;
+  try {
+    killedNow = await ledger.killSwitchActive();
+  } on Object {
+    killedNow = true;
+  }
+  if (killedNow) {
+    trail.add('6.9');
+    await ledger.markSkipped(intentId, 'KILL_SWITCH');
+    return ExecutionOutcome(
+      ExecutionStatus.skipped,
+      intentId: intentId,
+      message: 'KILL_SWITCH',
+      quantity: quantity,
+    );
+  }
+
   if (advisory) {
     // 04 §3-1 ② — 안내는 자동 모드가 냈을 주문 그대로(1~6 을 다 지난 뒤).
     await ctx.advice!.publish(reserved);
