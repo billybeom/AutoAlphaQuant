@@ -142,6 +142,14 @@ export 'src/ops/ledger_hash.dart'
         kLedgerHashPopulationV1,
         rowCountsJson,
         sortCanonicalLines;
+// 🆕 E13c1 — 정본 자가 무결성(체인 자가 대조 · 설계 13 §8 R58 C2 · C3).
+export 'src/ops/ledger_integrity.dart'
+    show
+        LedgerIntegrityReason,
+        LedgerIntegrityVerdict,
+        StoredDayStamp,
+        kLedgerIntegrityAlertCode,
+        verifyLedgerChain;
 // 🆕 E11f2 — 월말 계획기 입력 조립(원장 보유 → MonthEndState · 월별 마지막 종가 · 슬리브 비중 · 설계 13 §8 R48 P4~P6).
 export 'src/ops/month_end_inputs.dart'
     show
@@ -222,6 +230,9 @@ export 'src/orders/fills.dart'
         recordedFillJson;
 export 'src/orders/idempotency.dart'
     show DecisionIds, idempotencyKey, idempotencyRaw;
+// 🆕 E13c1 — 쌍 · 축 심각도 · 원인 코드 쓰기 화이트리스트(설계 13 §8 R58 C7 · C8).
+export 'src/orders/ledger_pairs.dart'
+    show diffSeverityFor, writableOriginCodesFor;
 export 'src/orders/order_batch.dart'
     show BatchOutcome, CashFit, CashShortfall, fitBuysToCash, runOrderBatch;
 export 'src/orders/order_draft.dart'

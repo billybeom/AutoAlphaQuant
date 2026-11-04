@@ -2,7 +2,7 @@
 //
 // 🔴 날 = 달력일 연속(행 없는 날도 1행) · 첫 날 = 모집단 최소 귀속 날 · 이미 끝난 한국 날짜만.
 // 🔴 한 번에 여러 날 = 한 트랜잭션 · 멱등(이미 있는 날은 건너뜀) · 귀속 실패 = 아무것도 쓰지 않고 [LedgerHashError].
-// 🔴 지난날 재계산 대조 = E16(X5-2) — 여기서는 하지 않는다.
+// 🔴 지난날 재계산 대조 = E13c1 `LedgerIntegrityCheck`(X5-2 · 설계 13 §8 R58 C9) — 여기서는 하지 않는다.
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'

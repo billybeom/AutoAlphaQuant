@@ -43,17 +43,18 @@ import 'package:core_engine/core_engine.dart'
         averageFillPrice,
         averagePriceAfterBuy,
         demoteToDouble,
+        diffSeverityFor,
         kUnknownNotFoundPrefix,
         ledgerDiffIdOf,
         logicalIdOf,
         parseRecordedCancelJson,
         parseRecordedFillJson,
-        recordedFillJson;
+        recordedFillJson,
+        writableOriginCodesFor;
 import 'package:core_engine/core_engine.dart' as core show killSwitchActive;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         Clock,
-        DiffSeverity,
         DiffStatus,
         ExecPolicy,
         FlagIds,
@@ -878,7 +879,8 @@ final class SqliteOrderLedger implements OrderPathLedger {
             record.tradeDate.yyyyMmDd,
             d.deltaJson,
             d.label,
-            DiffSeverity.blocking.wire,
+            // 🆕 E13c1 — 심각도 = 쌍 · 축 규칙(R58 C8 · 브로커 수량 · 체결 = 차단).
+            diffSeverityFor(LedgerPair.canonBroker, d.axis).wire,
             DiffStatus.open.wire,
             at,
           ],
@@ -917,6 +919,15 @@ final class SqliteOrderLedger implements OrderPathLedger {
 
   @override
   Future<void> clearReconBlock(ReconClearance clearance) async {
+    // 🆕 E13c1 — 원인 코드 쓰기 화이트리스트(R58 C7) · 밖이면 아무것도 쓰지 않는다.
+    if (!writableOriginCodesFor(LedgerPair.canonBroker)
+        .contains(clearance.originCode)) {
+      throw ArgumentError.value(
+        clearance.originCode,
+        'originCode',
+        '대사 해제에 쓸 수 없는 원인 코드',
+      );
+    }
     final String at = clearance.clearedAtUtc.toUtc().toIso8601String();
     _db.execute('BEGIN IMMEDIATE');
     try {

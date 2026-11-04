@@ -379,6 +379,45 @@ void main() {
       },
     );
 
+    test('🆕 E13c1 🔴 파생 불일치는 어떤 심각도 · 상태에서도 주문을 막지 않는다 — LEDGER_INTEGRITY 는 막는다(R58 C8)', () async {
+      int n = 0;
+      for (final LedgerPair p in <LedgerPair>[
+        LedgerPair.canonSupabase,
+        LedgerPair.canonGithub,
+        LedgerPair.canonCalendar,
+        LedgerPair.canonSelfReport,
+      ]) {
+        for (final DiffSeverity sev in DiffSeverity.values) {
+          for (final DiffStatus st in DiffStatus.values) {
+            db.execute(
+              'INSERT INTO ledger_diff (diff_id, pair, axis, authored_date, delta, delta_label, '
+              'severity, origin_code, status, detected_at, applicable) '
+              "VALUES (?, ?, 'EXECUTION_ROW', '2026-11-01', '{}', 'x', ?, NULL, ?, '2026-11-01T00:00:00Z', 1)",
+              <Object?>['ld-${n++}', p.wire, sev.wire, st.wire],
+            );
+          }
+        }
+      }
+      expect(n, 24);
+      expect(await ledger.activeBlockFlags(), isEmpty);
+      final ExecutionOutcome o = await executeIntent(
+        _draft(logical: 'D-1'),
+        _ok,
+        ctx(FakeOrderBroker()),
+      );
+      expect(o.status, ExecutionStatus.submitted);
+      db.execute(
+        "INSERT INTO trading_block (flag_id, set_at, reason) VALUES ('LEDGER_INTEGRITY', '2026-11-02T00:00:00Z', 't')",
+      );
+      final ExecutionOutcome k = await executeIntent(
+        _draft(logical: 'D-2', side: OrderSide.sell),
+        _ok,
+        ctx(FakeOrderBroker()),
+      );
+      expect(k.status, ExecutionStatus.rejected);
+      expect(k.message, contains('LEDGER_INTEGRITY'));
+    });
+
     test(
       '묶음 판정 SQL — 활성 RECON_MISMATCH 는 막고 · 해제된 행 · 표식 · LEDGER_FIX 는 읽지 않는다',
       () async {
@@ -1431,6 +1470,36 @@ void main() {
         expect(db.autocommit, isTrue);
       },
     );
+
+    test('🆕 E13c1 🔴 원인 코드 쓰기 화이트리스트 — 파생 · 옛 CORP_ACTION · 열거 밖 = ArgumentError · 아무것도 안 씀(R58 C7)', () async {
+      position('133690', 5);
+      await recon(FakeOrderBroker()..holdings['133690'] = 3);
+      final int logs = db.select('SELECT * FROM reconciliation_log').length;
+      for (final String code in <String>[
+        OriginCodes.pushLag,
+        OriginCodes.corpActionLegacy,
+        '확인함',
+      ]) {
+        await expectLater(
+          ledger.clearReconBlock(
+            ReconClearance(
+              originCode: code,
+              decisionId: 'dj-recon',
+              clearedBy: 'x',
+              clearedAtUtc: at,
+            ),
+          ),
+          throwsArgumentError,
+        );
+      }
+      expect(flag()['cleared_at'], isNull);
+      expect(db.select('SELECT * FROM reconciliation_log'), hasLength(logs));
+      expect(
+        db.select('SELECT status FROM ledger_diff').single['status'],
+        'OPEN',
+      );
+      expect(db.autocommit, isTrue);
+    });
 
     test('🔴 test_resume_does_not_clear_recon_block(SQLite) — 킬스위치 해제 행 · SAF-408 · 410 판정 · 일치 대사 뒤에도 RECON_MISMATCH 는 남는다', () async {
       position('133690', 5);

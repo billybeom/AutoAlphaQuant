@@ -3,6 +3,7 @@
 // 🔴 잡 등록(잡 표 · 하트비트 · SPEC 잡 표 창) = E11n(원격 커밋)과 함께 — 원격 없이 매일 돌면 26h 뒤부터 매일 P1.
 // 🔴 달력일 잡(휴장 무관) · 어제(한국)까지 스탬프 · 실패 = 던짐(스탬프 · 아카이브는 각자 원자).
 // 🔴 백업 나이 = 매매를 막지 않는다(보고 표식만).
+// 🆕 E13c1 — 스탬프 **뒤** · 아카이브 **앞** 정본 자가 무결성 검사(R58 C5) · 불일치면 아카이브 건너뜀 · 🔴 `LEDGER_INTEGRITY` 는 검사가 세운다.
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
@@ -11,6 +12,7 @@ import 'package:sqlite3/sqlite3.dart';
 
 import '../local/ledger_archive_writer.dart';
 import '../local/ledger_hash_stamper.dart';
+import '../local/ledger_integrity_check.dart';
 import 'daily_jobs.dart' show DailyJobReport;
 
 /// 일일 아카이브 보고.
@@ -20,6 +22,7 @@ class DailyArchiveReport implements DailyJobReport {
     required this.stamped,
     required this.archived,
     required this.backup,
+    required this.integrity,
   });
 
   /// 이번에 스탬프한 날.
@@ -31,14 +34,18 @@ class DailyArchiveReport implements DailyJobReport {
   /// 백업 나이(스탬프 0 = null).
   final BackupAge? backup;
 
+  /// 🆕 E13c1 — 정본 자가 무결성 검사.
+  final LedgerIntegrityReport integrity;
+
   @override
-  Set<String> get alerts => backup?.stale ?? false
-      ? const <String>{AlertCodes.backupStale}
-      : const <String>{};
+  Set<String> get alerts => <String>{
+    if (backup?.stale ?? false) AlertCodes.backupStale,
+    ...integrity.alerts,
+  };
 
   @override
   String toString() =>
-      'DailyArchiveReport(스탬프 ${stamped.length} · 아카이브 ${archived.length} · 백업 ${backup?.age.inHours ?? '-'}h)';
+      'DailyArchiveReport(스탬프 ${stamped.length} · 무결성 ${integrity.verdict.ok ? '일치' : integrity.verdict.reason!.code} · 아카이브 ${archived.length} · 백업 ${backup?.age.inHours ?? '-'}h)';
 }
 
 String _kstYesterday(DateTime utc) {
@@ -57,6 +64,7 @@ class DailyArchiveJob {
     required RunMode mode,
     required String writerDeviceId,
     required int operatorEpoch,
+    List<String> Function(Database db)? sqliteIntegrity,
   }) : _writer = LedgerArchiveWriter(
          _db,
          root: root,
@@ -64,11 +72,17 @@ class DailyArchiveJob {
          clock: _clock,
          writerDeviceId: writerDeviceId,
          operatorEpoch: operatorEpoch,
+       ),
+       _integrity = LedgerIntegrityCheck(
+         _db,
+         clock: _clock,
+         sqliteIntegrity: sqliteIntegrity,
        );
 
   final Database _db;
   final Clock _clock;
   final LedgerArchiveWriter _writer;
+  final LedgerIntegrityCheck _integrity;
 
   /// 백업 나이 — `sync_state`(`GITHUB`) `last_ok_at` · 없으면 첫 스탬프 `created_at`.
   BackupAge? backupAge() {
@@ -88,17 +102,21 @@ class DailyArchiveJob {
     );
   }
 
-  /// ① 어제(한국)까지 스탬프 ② 아카이브 ③ 백업 나이.
+  /// ① 어제(한국)까지 스탬프 ② 정본 자가 무결성 ③ 아카이브(② 통과일 때만) ④ 백업 나이.
   DailyArchiveReport run() {
     final List<LedgerDayStamp> stamped = LedgerHashStamper(
       _db,
       clock: _clock,
     ).stampThrough(_kstYesterday(_clock.nowUtc()));
-    final LedgerArchiveReport archived = _writer.archiveStamped();
+    final LedgerIntegrityReport integrity = _integrity.run();
+    final List<String> archived = integrity.verdict.ok
+        ? _writer.archiveStamped().days
+        : const <String>[];
     return DailyArchiveReport(
       stamped: <String>[for (final LedgerDayStamp s in stamped) s.authoredDate],
-      archived: archived.days,
+      archived: archived,
       backup: backupAge(),
+      integrity: integrity,
     );
   }
 }
