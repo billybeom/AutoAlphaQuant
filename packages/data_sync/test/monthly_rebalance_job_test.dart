@@ -473,4 +473,72 @@ void main() {
       expect(_count(db, 'tier_b_judgement'), 2);
     });
   });
+
+  test('🆕 E11j — 🔴 월 납입 운영값은 config_hash 밖: 기록이 있어도 월말 계획 바이트 불변(06 M3-6 ⓕ · R54 J7)', () async {
+    // 같은 시작 원장 사본 둘 — 하나에만 월 납입 변경 2건.
+    final Directory other = Directory.systemTemp.createTempSync('aaq_me_b_');
+    for (final FileSystemEntity f in template.listSync()) {
+      if (f is File) f.copySync('${other.path}/${f.uri.pathSegments.last}');
+    }
+    final Database db2 = openLocalLedger(other.path, RunMode.live);
+    try {
+      for (final (int n, String amount) in <(int, String)>[
+        (1, '150000'),
+        (2, '0'),
+      ]) {
+        db.execute(
+          'INSERT INTO operating_param_log(param_key, value_text, changed_at, effective_from, action_run_id, device_id) '
+          'VALUES (?, ?, ?, ?, ?, ?)',
+          <Object?>[
+            OperatingParamKeys.monthlyContribution,
+            amount,
+            '2026-07-0${n}T00:00:00.000Z',
+            '2026-07-01',
+            'run-$n',
+            'dev-1',
+          ],
+        );
+      }
+      await job().run(_me);
+      await MonthlyRebalanceJob(
+        db2,
+        mode: RunMode.live,
+        kr: _kr,
+        us: _us,
+        clock: _Clock(),
+        cash: <String, OrderBroker>{
+          'main': FakeOrderBroker(cashKrw: Decimal.parse('10000000')),
+        },
+        holdings: () async => const <LedgerHolding>[],
+        pensionAlias: 'pension',
+        regimeConfigHash: 'cfg_regime',
+        configHash: 'cfg_plan',
+      ).run(_me);
+      String plan(Database d) {
+        final Row p = d
+            .select(
+              "SELECT inputs, outputs, config_hash, expires_at FROM plan_snapshot WHERE kind = 'REBALANCE'",
+            )
+            .single;
+        return '${p['inputs']}|${p['outputs']}|${p['config_hash']}|${p['expires_at']}';
+      }
+
+      String event(Database d) {
+        final Row e = d
+            .select(
+              'SELECT weights_before, weights_after, trigger_snapshot, config_hash FROM rebalance_event',
+            )
+            .single;
+        return '${e['weights_before']}|${e['weights_after']}|${e['trigger_snapshot']}|${e['config_hash']}';
+      }
+
+      expect(plan(db), plan(db2));
+      expect(event(db), event(db2));
+      expect(_count(db, 'operating_param_log'), 2);
+      expect(_count(db2, 'operating_param_log'), 0);
+    } finally {
+      db2.close();
+      other.deleteSync(recursive: true);
+    }
+  });
 }

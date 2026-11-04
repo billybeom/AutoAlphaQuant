@@ -77,6 +77,25 @@ export 'src/decimal_rules.dart'
         multiply,
         oneMinus,
         promoteRatio;
+// 🆕 E11j — 월 납입 운영값(M3-6 엔진 몫 · 설계 13 §8 R54).
+export 'src/ops/contribution_setting.dart'
+    show
+        ContributionConfig,
+        ContributionDecision,
+        ContributionRejectCodes,
+        ContributionParamRow,
+        contributionEffectiveFrom,
+        contributionEquivalentNoteText,
+        contributionKstDay,
+        contributionParamRowFromColumns,
+        contributionPensionLimitNoteText,
+        contributionSettingOf,
+        decideContributionChange,
+        firstKrSessionOfMonth,
+        latestContributionRow,
+        nextContributionDay,
+        p0sContributionConfig,
+        splitContributionRows;
 // 🆕 E11f1 — 일일 평가 스냅숏 계산(평가 · HWM · 드로다운 · 브레이커 재생 · P0S 브레이커 설정 · 설계 13 §8 R47 F6~F8).
 export 'src/ops/equity_snapshot.dart'
     show
@@ -147,6 +166,8 @@ export 'src/ops/tier_b.dart'
         tierBMetrics,
         tierBTrigger,
         twrIndex;
+// 🆕 E11j — 신뢰 시각 포트(M1-13 · 실물 = E11k · 설계 13 §8 R54 J1).
+export 'src/ops/trusted_clock.dart' show TrustedClock;
 // 🆕 E11c — 워치독 포트 · 값 꼴(설계 13 §8 R45 C1 — 구현 = data_sync · 보드 = trading_runtime).
 export 'src/ops/watchdog_ports.dart'
     show
