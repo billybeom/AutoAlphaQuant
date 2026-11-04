@@ -150,6 +150,38 @@ export 'src/ops/ledger_integrity.dart'
         StoredDayStamp,
         kLedgerIntegrityAlertCode,
         verifyLedgerChain;
+// 🆕 E13c2 — X5 읽기 쪽(L-1 최근 차이 · 5칸 대조 보드 · 설계 13 §8 R59).
+export 'src/ops/ledger_views.dart'
+    show
+        BrokerReconSummary,
+        DerivedPairSummary,
+        DiagnosticStates,
+        StoredLedgerDiff,
+        axisLabelOf,
+        brokerCellOf,
+        candidatesOfDelta,
+        derivedCellOf,
+        diagnosticsHeadline,
+        diagnosticsOf,
+        emptyLedgerList,
+        evidenceHashOf,
+        kLagOriginCodes,
+        kOriginLabels,
+        kReconStaleAfter,
+        kRecentDiffLimit,
+        kRecentDiffWindow,
+        kstDateText,
+        kstMinuteText,
+        ledgerDiffRowOf,
+        originChipOf,
+        pairLabelOf,
+        reconAsOf,
+        recentLedgerDiffsOf,
+        routeLabelOf,
+        routeOf,
+        selfReportCellOf,
+        severityLabelOf,
+        statusLabelOf;
 // 🆕 E11f2 — 월말 계획기 입력 조립(원장 보유 → MonthEndState · 월별 마지막 종가 · 슬리브 비중 · 설계 13 §8 R48 P4~P6).
 export 'src/ops/month_end_inputs.dart'
     show
