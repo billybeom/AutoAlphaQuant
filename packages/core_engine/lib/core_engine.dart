@@ -101,6 +101,19 @@ export 'src/ops/month_end_inputs.dart'
         monthEndStateToJson,
         monthlyLastCloses,
         sleeveWeightsOf;
+// 🆕 E11g — 계층 B 월간 판정(TWR · 롤링 12M · DD · TUW · 카드 대조 · 설계 13 §8 R50).
+export 'src/ops/tier_b.dart'
+    show
+        EquityPoint,
+        TierBCard,
+        TierBError,
+        TierBMetrics,
+        TierBVerdict,
+        judgeTierB,
+        p0sTierBCard,
+        tierBMetrics,
+        tierBTrigger,
+        twrIndex;
 // 🆕 E11c — 워치독 포트 · 값 꼴(설계 13 §8 R45 C1 — 구현 = data_sync · 보드 = trading_runtime).
 export 'src/ops/watchdog_ports.dart'
     show

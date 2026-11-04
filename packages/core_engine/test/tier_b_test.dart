@@ -1,0 +1,203 @@
+// E11g — 계층 B 계산(설계 13 §8 R50 T2~T4).
+import 'package:core_engine/core_engine.dart';
+import 'package:test/test.dart';
+
+const TierBCard _card = TierBCard(
+  b1R12mFloor: -0.15,
+  b2DdFloor: -0.34,
+  b3TuwMonths: 31,
+);
+
+TierBMetrics _m({double? r12m, double dd = 0, double tuw = 0}) => TierBMetrics(
+  asOf: '2027-01-29',
+  r12m: r12m,
+  dd: dd,
+  tuwMonths: tuw,
+  peakDate: '2026-01-01',
+);
+
+void main() {
+  group('twrIndex', () {
+    test('입금 · 출금은 수익이 아니다', () {
+      final List<double> idx = twrIndex(const <EquityPoint>[
+        EquityPoint('2026-01-02', 100),
+        EquityPoint('2026-01-05', 160, flow: 50), // 110 → +10%
+        EquityPoint('2026-01-06', 120, flow: -40), // 160 → 160 = 0%
+        EquityPoint('2026-01-07', 132), // +10%
+      ]);
+      expect(idx[0], 1);
+      expect(idx[1], closeTo(1.1, 1e-12));
+      expect(idx[2], closeTo(1.1, 1e-12));
+      expect(idx[3], closeTo(1.21, 1e-12));
+    });
+
+    test('앞 평가 0 이하 = 그날 수익 0', () {
+      final List<double> idx = twrIndex(const <EquityPoint>[
+        EquityPoint('2026-01-02', 0),
+        EquityPoint('2026-01-05', 100, flow: 100),
+        EquityPoint('2026-01-06', 90),
+      ]);
+      expect(idx, <Object>[1, 1, closeTo(0.9, 1e-12)]);
+    });
+
+    test('빈 시리즈 = 빈 지수', () {
+      expect(twrIndex(const <EquityPoint>[]), isEmpty);
+    });
+  });
+
+  group('tierBMetrics', () {
+    test('롤링 12M = 12달 전 같은 날 이하 마지막 점 · DD · TUW', () {
+      final TierBMetrics m = tierBMetrics(const <EquityPoint>[
+        EquityPoint('2025-12-30', 100),
+        EquityPoint('2026-01-30', 120), // 기준 = 2026-01-30 이하 마지막
+        EquityPoint('2026-02-02', 150), // 최고점
+        EquityPoint('2026-06-30', 140),
+        EquityPoint('2027-01-29', 132),
+        EquityPoint('2027-02-01', 999), // 월말 뒤 — 안 본다
+      ], '2027-01-29');
+      expect(m.asOf, '2027-01-29');
+      // 기준 = 2026-01-29 이하 마지막 = 2025-12-30(100).
+      expect(m.r12m, closeTo(0.32, 1e-12));
+      expect(m.dd, closeTo(132 / 150 - 1, 1e-12));
+      expect(m.peakDate, '2026-02-02');
+      expect(m.tuwMonths, closeTo(361 / 30.4375, 1e-12));
+    });
+
+    test('기준 날 바로 그 점이 있으면 그 점', () {
+      final TierBMetrics m = tierBMetrics(const <EquityPoint>[
+        EquityPoint('2025-12-30', 100),
+        EquityPoint('2026-01-29', 110),
+        EquityPoint('2027-01-29', 121),
+      ], '2027-01-29');
+      expect(m.r12m, closeTo(0.1, 1e-12));
+    });
+
+    test('12달 이력 없음 = r12 없음', () {
+      final TierBMetrics m = tierBMetrics(const <EquityPoint>[
+        EquityPoint('2026-02-02', 100),
+        EquityPoint('2027-01-29', 80),
+      ], '2027-01-29');
+      expect(m.r12m, isNull);
+      expect(m.dd, closeTo(-0.2, 1e-12));
+    });
+
+    test('최고점이면 DD 0 · TUW 0 · 같은 높이는 뒤 점이 최고점', () {
+      final TierBMetrics m = tierBMetrics(const <EquityPoint>[
+        EquityPoint('2026-11-02', 100),
+        EquityPoint('2026-11-30', 120),
+        EquityPoint('2026-12-15', 110),
+        EquityPoint('2026-12-30', 120),
+      ], '2026-12-31');
+      expect(m.dd, 0);
+      expect(m.tuwMonths, 0);
+      expect(m.peakDate, '2026-12-30');
+    });
+
+    test('윤년 2월 29일 → 앞 해 2월 28일', () {
+      final TierBMetrics m = tierBMetrics(const <EquityPoint>[
+        EquityPoint('2027-02-26', 100),
+        EquityPoint('2027-03-01', 999),
+        EquityPoint('2028-02-29', 110),
+      ], '2028-02-29');
+      expect(m.r12m, closeTo(0.1, 1e-12));
+    });
+
+    test('그 달 점 없음 = TierBError', () {
+      expect(
+        () => tierBMetrics(const <EquityPoint>[
+          EquityPoint('2026-11-30', 100),
+        ], '2026-12-31'),
+        throwsA(
+          isA<TierBError>().having(
+            (e) => e.reason,
+            'reason',
+            contains('2026-12'),
+          ),
+        ),
+      );
+      expect(
+        () => tierBMetrics(const <EquityPoint>[
+          EquityPoint('2027-01-04', 100),
+        ], '2026-12-31'),
+        throwsA(isA<TierBError>()),
+      );
+    });
+
+    test('날짜 순 아님 · 같은 날 두 점 = ArgumentError', () {
+      expect(
+        () => tierBMetrics(const <EquityPoint>[
+          EquityPoint('2026-12-30', 100),
+          EquityPoint('2026-12-29', 100),
+        ], '2026-12-31'),
+        throwsArgumentError,
+      );
+      expect(
+        () => tierBMetrics(const <EquityPoint>[
+          EquityPoint('2026-12-30', 100),
+          EquityPoint('2026-12-30', 100),
+        ], '2026-12-31'),
+        throwsArgumentError,
+      );
+    });
+
+    test('입출금이 섞여도 TWR 로 본다', () {
+      final TierBMetrics m = tierBMetrics(const <EquityPoint>[
+        EquityPoint('2026-11-02', 100),
+        EquityPoint('2026-12-30', 190, flow: 100), // 큰 입금 — 평가는 올랐어도 −10%
+      ], '2026-12-31');
+      expect(m.dd, closeTo(-0.1, 1e-12));
+      expect(m.peakDate, '2026-11-02');
+    });
+  });
+
+  group('judgeTierB', () {
+    test('B1 = r12 < 하한(같으면 아님) · r12 없음 = 아님', () {
+      expect(judgeTierB(_m(r12m: -0.1501), _card).b1, isTrue);
+      expect(judgeTierB(_m(r12m: -0.15), _card).b1, isFalse);
+      expect(judgeTierB(_m(), _card).b1, isFalse);
+    });
+
+    test('B2 = DD ≤ 하한(같으면 충족)', () {
+      expect(judgeTierB(_m(dd: -0.34), _card).b2, isTrue);
+      expect(judgeTierB(_m(dd: -0.3399), _card).b2, isFalse);
+    });
+
+    test('B3 = TUW > 상한(같으면 아님)', () {
+      expect(judgeTierB(_m(tuw: 31.01), _card).b3, isTrue);
+      expect(judgeTierB(_m(tuw: 31), _card).b3, isFalse);
+    });
+
+    test('firstCode · any · trigger', () {
+      final TierBMetrics m = _m(r12m: -0.2, dd: -0.4, tuw: 40);
+      final TierBVerdict all = judgeTierB(m, _card);
+      expect(all.any, isTrue);
+      expect(all.firstCode, 'B1');
+      expect(tierBTrigger(m, _card, all), (-0.2, -0.15));
+
+      final TierBMetrics m2 = _m(dd: -0.4, tuw: 40);
+      final TierBVerdict v2 = judgeTierB(m2, _card);
+      expect(v2.firstCode, 'B2');
+      expect(tierBTrigger(m2, _card, v2), (-0.4, -0.34));
+
+      final TierBMetrics m3 = _m(tuw: 40);
+      final TierBVerdict v3 = judgeTierB(m3, _card);
+      expect(v3.firstCode, 'B3');
+      expect(tierBTrigger(m3, _card, v3), (40.0, 31.0));
+
+      final TierBVerdict none = judgeTierB(_m(), _card);
+      expect(none.any, isFalse);
+      expect(none.firstCode, isNull);
+      expect(tierBTrigger(_m(), _card, none), isNull);
+      expect(none.toString(), contains('B1 false'));
+    });
+
+    test('하나만 충족해도 any', () {
+      expect(judgeTierB(_m(dd: -0.5), _card).any, isTrue);
+      expect(judgeTierB(_m(tuw: 32), _card).any, isTrue);
+    });
+  });
+
+  test('P0S 카드 = 미등록(R50 T4 · 값은 발주자 확정 뒤)', () {
+    expect(p0sTierBCard(), isNull);
+  });
+}

@@ -18,6 +18,7 @@ import '../market/market_store.dart';
 import '../market/regime_store.dart';
 import 'daily_jobs.dart';
 import 'seasonal_a_job.dart' show potCashFlowsSinceLiquidation;
+import 'tier_b_step.dart';
 
 /// 월말 계획 실패 — 🔴 사유 = 종목 · 계좌 별칭 · 날짜만(금액 0). 아무것도 쓰지 않았다.
 class MonthlyRebalanceError implements Exception {
@@ -48,6 +49,7 @@ class MonthlyRebalanceReport implements DailyJobReport {
     required this.targets,
     required this.sleeveBHeld,
     required this.monthIndex,
+    this.tierB,
   });
 
   /// 계획 id.
@@ -71,12 +73,15 @@ class MonthlyRebalanceReport implements DailyJobReport {
   /// 램프 달.
   final int monthIndex;
 
+  /// 🆕 E11g — 계층 B 판정 단계(R50 · 계획 저장 뒤).
+  final TierBStepReport? tierB;
+
   @override
   Set<String> get alerts => const <String>{};
 
   @override
   String toString() =>
-      'MonthlyRebalanceReport($planId · ${created ? '새로' : '이미 있음'} · 대상 ${targets.length} · 집행 $executionDay)';
+      'MonthlyRebalanceReport($planId · ${created ? '새로' : '이미 있음'} · 대상 ${targets.length} · 집행 $executionDay · $tierB)';
 }
 
 List<Map<String, Object?>> _weightsJson(Map<String, double> w) =>
@@ -156,6 +161,7 @@ class MonthlyRebalanceJob {
     String pensionDeclaredOutsideText = '0',
     MonthEndConfig? config,
     this._parkingSymbol = kP0sParkingSymbol,
+    this._tierBCard = p0sTierBCard,
   }) : _cash = Map<String, OrderBroker>.unmodifiable(cash),
        _pensionOutside = pensionDeclaredOutsideText,
        _config = config ?? p0sMonthEndConfig() {
@@ -175,6 +181,7 @@ class MonthlyRebalanceJob {
   final String _pensionOutside;
   final MonthEndConfig _config;
   final String _parkingSymbol;
+  final TierBCard? Function() _tierBCard;
 
   List<String> get _planSymbols => <String>{
     for (final (String s, _) in _config.bAssets) s,
@@ -231,10 +238,20 @@ class MonthlyRebalanceJob {
     return _kr.nextSession(d).yyyyMmDd;
   }
 
+  /// 계층 B 단계(R50 T1 · T8) — 실패 = [MonthlyRebalanceError](계획은 그대로 · 다시 돌리면 판정만).
+  TierBStepReport _tierB(TradeDate monthEnd) {
+    try {
+      return TierBStep(_db, clock: _clock, card: _tierBCard).run(monthEnd);
+    } on TierBError catch (e) {
+      throw MonthlyRebalanceError('계층 B: ${e.reason}');
+    }
+  }
+
   MonthlyRebalanceReport _report(
     String monthEnd,
     Map<String, Object?> o, {
     required bool created,
+    required TierBStepReport tierB,
   }) => MonthlyRebalanceReport(
     planId: rebalancePlanIdOf(monthEnd),
     created: created,
@@ -243,6 +260,7 @@ class MonthlyRebalanceJob {
     targets: _targetsOf(o),
     sleeveBHeld: o['sleeve_b_held'] == true,
     monthIndex: o['month_index']! as int,
+    tierB: tierB,
   );
 
   /// [monthEnd](월 마지막 KR 세션)의 계획을 만든다 — 실패면 [MonthlyRebalanceError](아무것도 쓰지 않음).
@@ -253,7 +271,9 @@ class MonthlyRebalanceJob {
     }
     final SqliteRebalancePlanStore plans = SqliteRebalancePlanStore(_db);
     final Map<String, Object?>? existing = plans.outputsOf(d);
-    if (existing != null) return _report(d, existing, created: false);
+    if (existing != null) {
+      return _report(d, existing, created: false, tierB: _tierB(monthEnd));
+    }
 
     // P3 — 국면을 다시 계산 · 덧붙이고 월말 미국 세션 값이 들어왔는지 본다.
     await DailySignalJob(_db, configHash: _regimeConfigHash).run(monthEnd);
@@ -381,8 +401,8 @@ class MonthlyRebalanceJob {
         ],
       );
     });
-    // 🔵 E11g — 계층 B 판정은 여기(저장 뒤)에 건다.
-    return _report(d, outputs, created: true);
+    // 🆕 E11g — 계층 B 판정(저장 뒤 · 실패해도 계획은 남는다 → 다시 돌리면 판정만 · R50 T1 · T8).
+    return _report(d, outputs, created: true, tierB: _tierB(monthEnd));
   }
 }
 
