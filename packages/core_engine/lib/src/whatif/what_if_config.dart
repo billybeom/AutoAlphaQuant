@@ -21,7 +21,7 @@ class WhatIfConfig {
     required this.depositMax,
     Map<SleeveId, Decimal>? targetWeights,
     Decimal? commissionRate,
-    this.parkingSymbol = '214980',
+    this.parkingSymbol = kP0sParkingSymbol,
     Map<String, String>? symbolLabels,
     Map<SleeveId, String>? sleeveLabels,
     this.asOfStaleAfter = const Duration(seconds: 93600),
@@ -102,6 +102,20 @@ const Map<String, String> _symbolLabels = <String, String>{
   '411060': '411060 ACE KRX금현물',
   '0085P0': '0085P0 ACE 미국10년국채액티브',
 };
+
+/// P0S 파킹 ETF(단기채 · 슬리브 B 대기 자금 — 03 §2-7-1).
+const String kP0sParkingSymbol = '214980';
+
+/// P0S 의 KR 계획 종목(B 자산 · C 채권 · C 금 · 파킹 — 슬리브 A 종목은 아직 정해지지 않아 부르는 쪽이 더한다 · 설계 13 §8 R47 F3).
+List<String> p0sKrPlanSymbols() {
+  final MonthEndConfig m = p0sMonthEndConfig();
+  return <String>{
+    for (final (String s, _) in m.bAssets) s,
+    m.cBondSymbol,
+    m.cGoldSymbol,
+    kP0sParkingSymbol,
+  }.toList()..sort();
+}
 
 /// P0S 정본 월말 계획기 설정(02 §4 · 실전 비용 — 국내상장 ETF 수수료 0.015% + 슬리피지 0.10% · 거래세 0).
 /// ⬜ 슬리브 C 의 국내상장 종목은 확정 대기다(02 §4 는 미국 상장 UST10·IAU) — 채권 0085P0(픽스처) · 금 411060 을 기본으로 둔다.
