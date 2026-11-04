@@ -3,12 +3,13 @@
 > **owner(사양·결정)**: Claude · **코드 담당**: Claude
 > **청사진 카드**: **M4** sync-gateway · **X1** device-migration · **X4** calendar-journal · **X5** ledger-integrity
 > **정본**: 01_M2_도메인계약 **§4-1 구현 대상** · **§6 스키마 DDL** · `06_시스템설계/02_데이터모델.md`
+> 🔴 **operator 전용**(🆕 2026-11-04 · 설계 13 §8 R53 · 지도 D1 발주자 결정) — viewer 는 `packages/read_model_client` 로만 읽는다.
 
 ## 무엇을 담나
 
 | 갈래 | 내용 |
 |---|---|
-| 리포지토리 구현체 | `LocalSqliteReader`(폰 · 정본 SQLite) · `SupabaseReadModel`(viewer · RLS + Realtime) |
+| 리포지토리 구현체 | `LocalSqliteReader`(폰 · 정본 SQLite) · ~~`SupabaseReadModel`(viewer · RLS + Realtime)~~ 🆕 viewer 쪽 읽기 · 명령 INSERT 는 **`read_model_client`**(설계 13 §8 R53 · 지도 D1 — 🔴 이 패키지는 **operator 전용**: viewer 가 의존하면 `core_engine` 이 전이로 들어온다 · `tool/check_boundaries.sh` [8]) |
 | 명령 API 구현체 | Supabase **append-only** 명령 테이블 INSERT (`CommandApi`) |
 | 키 금고 | KIS 앱키·Supabase 키·GitHub PAT 보관. 🔴 폰(operator) 전용 |
 | 리스 원장 | `operator_lease` — 주문 자격이 있는 기기는 **정확히 1대**(X1) |
