@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.17.0",
+    "generated_at": "2026-11-04T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261104,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-28T07:40:00Z", "trade_date": "2026-08-28", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "체결 반영 2026-08-28" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "entry_id": "je_exp_01",
+      "mode": "LIVE",
+      "trade_date": "2026-08-28",
+      "executed_at": null,
+      "symbol": "379810",
+      "symbol_label": "379810 KODEX 미국S&P500",
+      "sleeve": "B",
+      "side": "BUY",
+      "side_label": "매수",
+      "quantity": 12,
+      "price": "17650",
+      "commission": "0",
+      "tax": "0",
+      "quantity_text": "12주",
+      "price_text": "17,650원",
+      "commission_text": "0원",
+      "tax_text": "0원",
+      "status": "EXPIRED",
+      "status_label": "마감 실효 · 다음 거래일로 이월",
+      "status_tone": "NEUTRAL",
+      "visibility": "SETTLED",
+      "visibility_label": "확정",
+      "reasons": [
+        { "code": "DAY_END_EXPIRED", "label": "장 마감까지 체결되지 않아 다음 거래일 주문으로 넘겼습니다", "tone": "NEUTRAL" }
+      ],
+      "decision": { "decision_id": "d_20260828_b_21", "intent_id": "i_0021", "broker_order_no": "2026-08-28:0000004821", "execution_id": null, "config_hash": "cfg_fake_0000000000000000" },
+      "deviation": { "is_deviation": false, "label": "규칙대로" },
+      "account_alias": "연금저축",
+      "fill_origin": "BROKER",
+      "fill_kind": "ORIGINAL",
+      "advice_id": null,
+      "backdate": { "trade_date": "2026-08-28", "authored_at": "2026-08-28T07:00:00Z", "backdate_trading_days": 0, "is_backdated": false, "label": "당일 기록", "price_range_source_date": "2026-08-28", "crosses_closed_period": false },
+      "cost_source": "ESTIMATED",
+      "cost_source_label": "추정치",
+      "origin_label": "브로커 체결",
+      "rebalance_event_id": null,
+      "detail_deep_link": "aaq://journal/decision/d_20260828_b_21",
+      "as_of": { "observed_at": "2026-08-28T07:40:00Z", "trade_date": "2026-08-28", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "체결 반영 2026-08-28 16:40" }
+    }
+  ]
+}

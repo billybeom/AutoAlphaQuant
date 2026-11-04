@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.17.0",
+    "generated_at": "2026-11-04T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261104,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "핸드북 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "anchor": "rebalance/monthly",
+      "title": "핸드북",
+      "blocks": [],
+      "config_hash": "cfg_fake_0000000000000000",
+      "outdated_notice": null,
+      "missing_label": "이 장은 핸드북에 없습니다. 목차에서 다른 장을 고르십시오.",
+      "as_of": null
+    }
+  ]
+}

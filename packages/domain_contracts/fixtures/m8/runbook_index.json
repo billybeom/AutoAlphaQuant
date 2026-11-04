@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.17.0",
+    "generated_at": "2026-11-04T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261104,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "운영 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "rows": [
+        { "title": "운영 폰을 잃어버렸거나 고장 났을 때", "summary_text": "주문을 먼저 멈추고 새 폰으로 옮깁니다", "deep_link": "aaq://ops/runbooks/host-lost" },
+        { "title": "기록이 깨졌을 때", "summary_text": null, "deep_link": "aaq://ops/runbooks/db-corrupt" },
+        { "title": "증권사 연결이 오래 끊겼을 때", "summary_text": "정해 둔 시각이 지나면 손으로 주문합니다", "deep_link": "aaq://ops/runbooks/broker-outage" },
+        { "title": "계좌에 접근할 수 없을 때", "summary_text": "재발급 절차와 걸리는 날을 확인합니다", "deep_link": "aaq://ops/runbooks/account-access" },
+        { "title": "키가 새어 나갔을 때", "summary_text": null, "deep_link": "aaq://ops/runbooks/secret-leak" },
+        { "title": "오래 자리를 비우거나 크게 아플 때", "summary_text": "가족이 종이 카드로 멈춥니다", "deep_link": "aaq://ops/emergency-card" }
+      ],
+      "empty_label": null
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.16.0",
+    "contract_version": "1.17.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -35,7 +35,7 @@
     "alert_id": "al_inc_01",
     "level": "P0",
     "raised_at": "2026-08-31T00:05:00Z",
-    "code": "MAINTENANCE_RESUME_FAILED",
+    "code": "BROKER_AUTH_FAILED",
     "title": "증권사 토큰이 만료되었습니다",
     "body_text": "새벽 배치가 잔고를 읽지 못했습니다.",
     "action_line": "설정에서 자격증명을 다시 등록하십시오.",

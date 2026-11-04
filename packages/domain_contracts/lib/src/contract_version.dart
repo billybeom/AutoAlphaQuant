@@ -109,13 +109,22 @@
 //    `OnboardingRepository` +6(추가형) · 🆕 `PairingRepository` · `SettingsActionId.onboardingDryRunStart` · args 화이트리스트 ·
 //    라우트 64(온보딩 6 · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2) · 사전 3축(`OnboardingResultCodes`·`BrokerRawCodes`·
 //    `OnboardingSlotIds`) · 받침대 2 · 🆕 C-50 · 픽스처 187 → 219(신설 32 · 개정 6) — 🆕 tool/gen_r15_v116_fixtures.py
-//    (기준 267e867 원문에서 멱등 생성). 엔진 다음 계약 판 = 1.17.0(E10 D11 4건 · 06 변경 이력).
+//    (기준 267e867 원문에서 멱등 생성). 엔진 다음 계약 판 = 1.17.0(E10 D11 4건 · 06 변경 이력) — 🆕 v1.17 이 R16 선행과
+//    한 판으로 실었다(아래).
+// 🆕 '1.17.0'(R16 선행 + 엔진 E10 D11 · 01 §26 · 발주자 결정 2026-11-04 ①~④ · K1~K33) — M8 장애·DR·핸드북·기기 리스크 표시 계약:
+//    `dto/incident.dart`(`IncidentBanner`·`IncidentBannerVm` · `RunbookIndexVm`·`RunbookRow`·`RunbookVm`·`RunbookStep` · `EmergencyCardVm`) ·
+//    enum `IncidentKind`·`HandbookEntryState` · 핸드북 추가형(`state`·`stateLabel`·`deepLink`·`children` · `outdatedNotice` ·
+//    `missingLabel` · `asOf?` · `HandbookLiveValue`) · `DeviceRiskItem`·`DeviceRiskVm` · 🆕 `IncidentRepository`·`RunbookRepository`·
+//    `HandbookRepository` · `OpsStatusRepository.watchDeviceRisk`(추가형) · 라우트 69 · `OpsSlotIds` · 받침대 3 + 1 · 🆕 C-51 ·
+//    🔴 엔진 D11 4건(R31 체결 키 주석 · `JournalStatus.expired` · `AlertCodes.staleOrdersHeld` · PREVENTED 근거 = `JournalReasonCodes`) ·
+//    픽스처 219 → 240(신설 21 · 개정 3) — 🆕 tool/gen_r16_v117_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
+//    엔진 다음 계약 판 = 1.18.0(13 §8 R55 E13i1·i2 · E11d X12 등 «계약 창» 몫 · 06 변경 이력).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.16.0';
+const String contractVersion = '1.17.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

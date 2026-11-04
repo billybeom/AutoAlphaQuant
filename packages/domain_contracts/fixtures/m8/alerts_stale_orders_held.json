@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.17.0",
+    "generated_at": "2026-11-04T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261104,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "알림 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "alert_id": "al_stale_01",
+      "level": "P1",
+      "raised_at": "2026-08-31T00:10:00Z",
+      "code": "STALE_ORDERS_HELD",
+      "title": "지난 주문이 남아 있어 오늘 주문을 보류했습니다",
+      "body_text": "오늘 체결 조회에 지난 거래일 주문이 보입니다. 같은 종목을 두 번 사지 않도록 이 계좌의 오늘 주문을 내지 않았습니다.",
+      "action_line": "증권사 앱에서 지난 주문이 남아 있는지 확인하십시오.",
+      "grouped_count": 1,
+      "deep_link": null,
+      "ack": null,
+      "raised_at_text": null,
+      "grouped_text": null,
+      "detail_deep_link": null
+    }
+  ]
+}
