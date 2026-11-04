@@ -31,6 +31,7 @@ export 'src/local/ledger_archive_writer.dart';
 export 'src/local/ledger_database.dart';
 export 'src/local/ledger_hash_stamper.dart';
 export 'src/local/ledger_schema.dart';
+export 'src/local/operating_param_store.dart';
 export 'src/local/order_ledger.dart';
 export 'src/local/plan_snapshot_store.dart';
 export 'src/market/csv_table.dart';
