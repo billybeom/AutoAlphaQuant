@@ -49,7 +49,7 @@
 ~~`flutter test` **117**(R13b 병합본 · `origin/main` `49e4329` · 66 + 51 — 패키지 트리 = C4 수정안 · C4·드라이런 실측) · 골든 PNG **24장**(`test/golden/README.md` «🆕 R13») · 🏁 R13 2장 완료 · 다음 셸 카드 = R14(알림 · 설계 12 §6 · 조립 전).~~(2026-10-27 R13b 판)
 
 - `ShellRoot` · `ShellBandOverlay` = `lib/src/shell_scaffold.dart`(폰 5탭 · 웹 사이드바 · 띠).
-- 라우터 = `lib/src/routing/shell_router.dart`(`AppRoutes.all` 64 정적 등록 — 🆕 계약 v1.16 온보딩 6(`onboardingStep` 앞)·`ledgerSimOpening`·`m5SimOpeningCash`·X1 2 · v1.15 `alertsInbox`·`alertDetail` · 가드 · `ShellLinkOpener` · `shellLinkOpenerProvider`).
+- 라우터 = `lib/src/routing/shell_router.dart`(`AppRoutes.all` 69 정적 등록 — 🆕 계약 v1.17 `opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex`(`opsRhythm` 뒤 · 가드 = 기본 open) · v1.16 온보딩 6(`onboardingStep` 앞)·`ledgerSimOpening`·`m5SimOpeningCash`·X1 2 · v1.15 `alertsInbox`·`alertDetail` · 가드 · `ShellLinkOpener` · `shellLinkOpenerProvider`).
 - `OpsRhythm` = `lib/src/ops_rhythm.dart`(`H-02` · `watchRhythm()` 1구독).
 - `OpsHome` = `lib/src/ops_home.dart`(`H-01` · 블록 1~9b · 구독 6 · 홈 탭 연결 = 레지스트리 `home` 칸 · 조립 앱 몫).
 - 🆕 `AlertCenter` · `AlertDetail` = `lib/src/alerts/alert_center.dart` · `alert_detail.dart`(`N-01` 알림 센터 · `N-02` 알림 상세 · R14a PR #87 `185e9c7` · 원천 `watchCenter(p0Only:)` · `watchAlert(alertId)` · 정렬·그룹·접힘 = 엔진) · 공용 조각 `AlertAckBlock` = `alert_ack.dart`(배럴 밖 · 쓰기 `acknowledgeAlert` 1종) · 주입 `shellAlertCommandApiProvider`(뷰어 null = 확인 버튼 부재) · 셸 연결 = 레지스트리 칸(조립 앱 몫).
@@ -59,6 +59,6 @@
 - 🆕 `OnboardingFinish` = `lib/src/onboarding/onboarding_finish.dart`(`O-04` 온보딩 마무리 6단계 · R15c PR #107 `0e96ed3` · 원천 `watchFinish()` · 단계 = 받은 차례·열림 그대로(건너뛰기·«n/6» 0 · `state` 비교 0) · 새 주입 0 · 🔒 자리 = R15b 슬롯 빌더(서약문·생체·셀프테스트·체크섬) · 단계 동작 = VM 이 준 `run(action.id, args)` · 시작 상태 선언 = ⑥ 단계 링크 · 완료 체크 = 서버 판정 글자 · 셸 연결 = 레지스트리 칸(조립 앱 몫)).
 - 🆕 `OnboardingRestart` · `ViewerPairing` = `lib/src/onboarding/onboarding_restart.dart` · `viewer_pairing.dart`(`R-01` 기존 계정에서 다시 시작 · `V-01` 조회 전용 QR 페어링 · R15d PR #110 `4b31603` · 원천 `watchRestart()` · 🆕 주입 `shellPairingRepositoryProvider` → `watchPairing()` · 분기 = 받은 링크(세기·고르기·거르기 0 · 갭 일수 판정 0 · X1 마법사 = 링크로 넘기기만) · 리스 게이트 3상(모름 = 차단 모양) · 🔒 로그인·스캔 = 슬롯 빌더 `place(slotId)` · 결과 = 원문 코드(`reasonCode`) · 발급·폐기 버튼·수동 입력 0 · 셸 연결 = 레지스트리 칸(조립 앱 몫)).
 - 공통 조각 = `lib/src/common/shell_common.dart`(`ShellAsOfHeader` · `ShellStaleBanner` · `ShellSkeleton` · `ShellErrorView` · `ShellPlaceholder`).
-- 주입 = `lib/src/shell_providers.dart`(🆕 R13b 주입 5 = 파일 끝 절 · 🆕 R15d `shellPairingRepositoryProvider`(기본값 throw · 실물 = 조립 앱) · 주입 19 · 조립 앱 3종이 override · 본문 레지스트리 `ShellRouteBodies` 의 64 패턴·`home` 칸 = 조립 앱 몫).
+- 주입 = `lib/src/shell_providers.dart`(🆕 R13b 주입 5 = 파일 끝 절 · 🆕 R15d `shellPairingRepositoryProvider`(기본값 throw · 실물 = 조립 앱) · 주입 19 · 조립 앱 3종이 override · 본문 레지스트리 `ShellRouteBodies` 의 69 패턴·`home` 칸 = 조립 앱 몫).
 - 테스트 가짜 = `test/shell_fakes.dart` — 🆕 계약 v1.15 부터 전부 `extends Unimplemented…`(받침대 `UnimplementedAlertRepository`·`UnimplementedOpsStatusRepository` · 구 `implements` 가짜 2 → `extends` · 테스트 수 불변) · 🆕 R14b `FakeShellWatchdogRepository`(`extends UnimplementedOpsStatusRepository`).
 - 정적 라벨 = `lib/l10n/labels.dart`(`ShellLabels` 37 = R13a 25 + R13b 6 + R14a 4 · R14b 0 · R15a 2(`onboardingNext` · `onboardingNotAccepted`) · R15b~R15d 0).

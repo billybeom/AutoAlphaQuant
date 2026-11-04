@@ -35,6 +35,10 @@ abstract interface class OpsStatusRepository {
   ///    `afterTaxCounterfactual` 을 **null** 로 준다(엔진 의무 · 06 M1-20b) — 세후 수치는 M7 `S7-7`
   ///    (`PerformanceRepository.annualReview`) 한 자리에만 간다. `S12` 의 표시 범위는 미결 95.
   Stream<AnnualReviewVm> watchAnnualReview();
+
+  /// 🆕 v1.17(01 §26 · K17 · 01 §8 미결 123) — `H-03` 물리 리스크 점검(측정 = 플랫폼 · 판정·문구 = 엔진 · asOf 있음).
+  /// 🔴 Android(operator) 화면이다 — 뷰어 빌드에는 본문이 등록되지 않는다(조립 앱 레지스트리 · 셸 가드 무변경).
+  Stream<DeviceRiskVm> watchDeviceRisk();
 }
 
 /// 홈 블록 5·7 의 오늘 요약.

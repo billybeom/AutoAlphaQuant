@@ -292,3 +292,51 @@ abstract class LiveDryRunObservationVm with _$LiveDryRunObservationVm {
   factory LiveDryRunObservationVm.fromJson(Map<String, dynamic> json) =>
       _$LiveDryRunObservationVmFromJson(json);
 }
+
+/// 🆕 계약 v1.17(01 §26 · K17 · 01 §8 미결 123) — `H-03` 물리 리스크 항목 1행.
+/// 🔴 글자 전부 = 엔진(측정 = 플랫폼 API · 임계·판정·조치 문구 = 엔진) · 화면은 비교·남은 일수 계산을 하지 않는다 ·
+///    [level] = 아이콘·색만.
+@freezed
+abstract class DeviceRiskItem with _$DeviceRiskItem {
+  const factory DeviceRiskItem({
+    /// «저장공간» — 엔진.
+    required String label,
+
+    /// «남은 공간 3.1GB» — 엔진.
+    required String currentText,
+
+    /// «임계 2GB 미만» — 엔진.
+    required String thresholdText,
+
+    /// «오래된 아카이브를 PC로 옮기세요» — 엔진.
+    required String actionText,
+
+    /// «마지막 점검 08-31 08:55» — 엔진(KST).
+    required String lastCheckedText,
+    required UiLevel level,
+  }) = _DeviceRiskItem;
+
+  factory DeviceRiskItem.fromJson(Map<String, dynamic> json) =>
+      _$DeviceRiskItemFromJson(json);
+}
+// JSON 키: label · current_text · threshold_text · action_text · last_checked_text · level
+
+/// 🆕 계약 v1.17 — `H-03` 물리 리스크 점검 상세(창구 [OpsStatusRepository.watchDeviceRisk] · 04 §4-6 그림 8).
+/// 🔴 항목 목록·수·차례 = 받은 그대로(넷 하드코딩 0) · 조작 버튼(로그 정리·백업 실행) 칸 0 = 01 §8 미결 161 · asOf 있음(측정값).
+@freezed
+abstract class DeviceRiskVm with _$DeviceRiskVm {
+  const factory DeviceRiskVm({
+    required List<DeviceRiskItem> rows,
+
+    /// «비상 복구가 아니라 계획 교체» 안내 — 엔진(늘 싣는다).
+    required String guidanceText,
+
+    /// 행 0 일 때만 non-null(엔진 문장).
+    String? emptyLabel,
+    required AsOf asOf,
+  }) = _DeviceRiskVm;
+
+  factory DeviceRiskVm.fromJson(Map<String, dynamic> json) =>
+      _$DeviceRiskVmFromJson(json);
+}
+// JSON 키: rows · guidance_text · empty_label · as_of

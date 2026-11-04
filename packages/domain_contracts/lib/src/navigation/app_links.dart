@@ -233,6 +233,26 @@ abstract final class AppRoutes {
   /// (04 §4-6 · 규칙 ④). 등록 = 전 플랫폼 · 본문 = 전 플랫폼(`rm_ops_summary` v1 필수 · N-07).
   static const String opsRhythm = 'aaq://ops/rhythm';
 
+  /// 🆕 v1.17(01 §26 · K18) — `D-02` DR 런북 목록(`RunbookList()` · `ui_shell` · R16a). 등록 = 전 플랫폼 · 가드 = 기본 open
+  /// (뷰어에도 보인다 — 발주자 결정 2026-11-04 ③). 들어오는 링크 = 데이터(셸 진입 UI = 카드 몫).
+  static const String opsRunbooks = 'aaq://ops/runbooks';
+
+  /// 🆕 v1.17 — `D-02` 런북 상세(`RunbookDetail(runbookId:)`) · 들어오는 링크 = `RunbookRow.deepLink`(엔진 완성 ·
+  /// `runbookId` 꼴 `^[a-z][a-z0-9-]*$` — 엔진 의무 · C-51 ③). 🔴 화면은 id 로 링크를 짓지 않는다.
+  static const String opsRunbook = 'aaq://ops/runbooks/:runbookId';
+
+  /// 🆕 v1.17 — `D-03` 오프라인 긴급정지 카드(`EmergencyStopCard()`) · 들어오는 링크 = 런북 ⑥ 행 `deepLink` 등(데이터).
+  /// 등록 = 전 플랫폼 · 가드 = 기본 open(결정 ③) · 인쇄 = 플랫폼 슬롯(`OpsSlotIds.emergencyCardPrint`).
+  static const String opsEmergencyCard = 'aaq://ops/emergency-card';
+
+  /// 🆕 v1.17 — `H-03` 물리 리스크 점검 상세(`DeviceRiskBoard()` · R16c). 🔴 Android(operator) 전용 = 조립 앱 레지스트리가
+  /// 뷰어 빌드에 본문을 주지 않는 것으로 지킨다 — 셸 가드 표 무변경(발주자 결정 ④ R16c ③ · 01 §8 미결 127).
+  static const String opsDeviceRisk = 'aaq://ops/device-risk';
+
+  /// 🆕 v1.17 — `B-01` 전략 핸드북 목차(`HandbookContents()` · R16b · 웹 사이드바 «핸드북»). 🔴 페이지(`B-02`)는 이 상수가 아니라
+  /// `handbook://<앵커>` 스킴이다(셸 라우터 한 곳이 앵커 = `handbook://` 뒤 글자 전부로 연다).
+  static const String handbookIndex = 'aaq://handbook';
+
   /// 🆕 v1.15(01 §24 · K7) — `N-01` 알림 센터(`AlertCenter()` · `ui_shell`). 등록 = 전 플랫폼 · 가드 = 기본 open
   /// (뷰어 = 조회 · 확인 버튼 부재). 진입 = 데이터 링크·푸시·FGS 탭(셸 진입 UI 0 · K22).
   static const String alertsInbox = 'aaq://alerts/inbox';
@@ -276,6 +296,8 @@ abstract final class AppRoutes {
   /// + 교체 2 `adviceFill`·`ledgerSelfReport`). 순서 = 첫 일치(C-33 ⑦ · 겹침 0) — `adviceSkip` 은 `adviceFill` 뒤 ·
   /// `ledgerDiffs`·`ledgerRepairs` 는 `ledgerTrust` 뒤 · `opsRhythm` 은 `opsWatchdog` 뒤.
   /// 🆕 v1.16 = **64** · 온보딩 6(`onboardingStep` 앞 — 첫 일치) · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2.
+  /// 🆕 v1.17 = **69** · `opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex`(`opsRhythm` 뒤 ·
+  /// 조각 수 4·5·4·4·3 — 기존 패턴과 겹침 0).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -322,6 +344,11 @@ abstract final class AppRoutes {
     opsMaintenance,
     opsWatchdog,
     opsRhythm,
+    opsRunbooks,
+    opsRunbook,
+    opsEmergencyCard,
+    opsDeviceRisk,
+    handbookIndex,
     alertsInbox,
     alertDetail,
     settingsContribution,

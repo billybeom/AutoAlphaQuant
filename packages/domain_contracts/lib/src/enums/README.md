@@ -16,6 +16,8 @@
 | `ledger.dart` | `LedgerPair` · `LedgerAxis` · `DiffSeverity` · `DiffStatus` · `RepairRoute` · `LedgerTrustGrade`(+ ⏸ `LedgerEventKind` 주석) |
 | `safety.dart` | `AlertLevel` · `BreakerLevel` · `ClearRoute` |
 | `onboarding.dart` | `OnboardingTrack` · `StepRequirement` · `StepState` |
+| 🆕 `incident.dart` | **v1.17** `IncidentKind`(`D-01` 배너 아이콘 5값 · 모르는 wire = `other` · 01 §26) |
+| 🆕 `handbook.dart` | **v1.17** `HandbookEntryState`(`B-01` 목차 상태 3값 · 아이콘·색만 · 01 §26) |
 | `advice.dart` | `AdviceStatus` · `AdviceKind` · `AdviceSkipReason` · `AdviceActionId` · `HoldingScope` · `HandoverPath` · `CredentialUse` · `SelfReportPurpose` · `SeasonalEntryGateState` |
 | 🆕 `market_data.dart` | **v1.14** `MarketDataSource`(시세·지표 원천 6값 — 배치 G `source` CHECK · C-15 · 01 §22 · 화면 미사용) |
 | `command.dart` | `CommandKind` · `CommandState` · `SettingsActionId` — 🔴 **A가 소유하고 `commands/`(D)는 import만** |

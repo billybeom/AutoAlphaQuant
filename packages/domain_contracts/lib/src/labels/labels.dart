@@ -40,6 +40,7 @@ import 'flag_ids.dart';
 import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
 import 'onboarding_codes.dart';
+import 'ops_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
@@ -54,6 +55,7 @@ export 'flag_ids.dart';
 export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
 export 'onboarding_codes.dart';
+export 'ops_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
@@ -208,6 +210,8 @@ abstract final class ContractCodes {
     'broker_raw': BrokerRawCodes.values,
     // 🆕 v1.16(01 §25 · K21) — 온보딩 🔒 슬롯 이름(`secretSlotId`·`slotId`·`loginSlotId`·`scannerSlotId`)
     'onboarding_slot': OnboardingSlotIds.values,
+    // 🆕 v1.17(01 §26 · K19) — M8 운영 슬롯 이름(`EmergencyCardVm.printSlotId`)
+    'ops_slot': OpsSlotIds.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
