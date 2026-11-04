@@ -13,6 +13,7 @@
 export 'l10n/labels.dart';
 export 'src/alerts/alert_center.dart';
 export 'src/alerts/alert_detail.dart';
+export 'src/onboarding/onboarding_finish.dart';
 export 'src/onboarding/onboarding_mode_pick.dart';
 export 'src/onboarding/onboarding_start.dart';
 export 'src/onboarding/onboarding_step_detail.dart';

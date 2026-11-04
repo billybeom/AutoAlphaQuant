@@ -925,3 +925,69 @@ Set<String> stepDetailAllowed(OnboardingStepDetailVm v, ActionResult? r) =>
       ShellLabels.onboardingNotAccepted,
       ShellLabels.retry,
     };
+
+// ── R15c — O-04 fakes ──
+
+class FakeShellFinishRepository extends UnimplementedOnboardingRepository {
+  FakeShellFinishRepository({required this.finish});
+
+  final Stream<OnboardingFinishVm> Function(int call) finish;
+  int finishCalls = 0;
+
+  @override
+  Stream<OnboardingFinishVm> watchFinish() {
+    final int call = finishCalls;
+    finishCalls = finishCalls + 1;
+    return finish(call);
+  }
+}
+
+List<Override> finishOverrides({
+  required FakeShellFinishRepository repo,
+  required SettingsActions? actions,
+  required ShellSlotBuilder? slots,
+  required RecordingLinkOpener opener,
+}) => <Override>[
+  shellOnboardingRepositoryProvider.overrideWithValue(repo),
+  shellOnboardingActionsProvider.overrideWithValue(actions),
+  shellOnboardingSlotBuilderProvider.overrideWithValue(slots),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+];
+
+Future<void> pumpFinish(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: OnboardingFinish())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String> stageTexts(OnboardingFinishStage s) => <String>[
+  s.title,
+  ?s.gate?.label,
+  ...s.lines,
+  ?s.expectationLine,
+  ?s.link?.label,
+  ?s.action?.label,
+];
+
+Set<String> finishAllowed(OnboardingFinishVm v, ActionResult? r) => <String>{
+  v.headline,
+  for (final OnboardingFinishStage s in v.stages) ...stageTexts(s),
+  ?v.doneLabel,
+  for (final OnboardingFinishCheck c in v.checks) c.label,
+  ?r?.headline,
+  ?r?.reasonCode,
+  ShellLabels.onboardingNotAccepted,
+};
