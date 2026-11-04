@@ -139,6 +139,46 @@ void main() {
       },
     );
 
+    test('🆕 E13b — 1단계 뒤 · 제출 전에 눌린 킬스위치 = SKIPPED KILL_SWITCH · 제출 0(04 §3-6 «매 주문 직전»)', () async {
+      final FakeOrderLedger ledger = ledgerOf();
+      ledger.failOn = (String m) {
+        if (m == 'insertIntent') ledger.killSwitch = true;
+        return null;
+      };
+      final FakeOrderBroker broker = FakeOrderBroker();
+      final List<String> steps = <String>[];
+      final ExecutionOutcome o = await executeIntent(
+        draftOf(),
+        portfolioOk(),
+        ctxOf(ledger, broker),
+        steps: steps,
+      );
+      expect((o.status, o.message), (ExecutionStatus.skipped, 'KILL_SWITCH'));
+      expect(broker.submitCount, 0);
+      expect(steps, containsAllInOrder(<String>['1', '6', '6.5', '6.9']));
+      expect(steps, isNot(contains('7')));
+      final FakeIntentRecord r = ledger.records.values.single;
+      expect((r.status, r.errorMessage), (IntentStatus.skipped, 'KILL_SWITCH'));
+    });
+
+    test('🆕 E13b — 제출 전 재확인을 읽지 못하면 막는다(fail-closed)', () async {
+      final FakeOrderLedger ledger = ledgerOf();
+      int reads = 0;
+      ledger.failOn = (String m) {
+        if (m == 'killSwitchActive' && ++reads == 2) return StateError('디스크');
+        return null;
+      };
+      final FakeOrderBroker broker = FakeOrderBroker();
+      final ExecutionOutcome o = await executeIntent(
+        draftOf(),
+        portfolioOk(),
+        ctxOf(ledger, broker),
+      );
+      expect((o.status, o.message), (ExecutionStatus.skipped, 'KILL_SWITCH'));
+      expect(broker.submitCount, 0);
+      expect(reads, 2);
+    });
+
     test('test_limit_check_failure_rejects — 한도 입력 없음 · 원장 읽기 실패 = REJECTED RISK_UNAVAILABLE', () async {
       final FakeOrderLedger ledger = ledgerOf();
       final FakeOrderBroker broker = FakeOrderBroker();

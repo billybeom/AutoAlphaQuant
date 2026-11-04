@@ -49,6 +49,7 @@ import 'package:core_engine/core_engine.dart'
         parseRecordedCancelJson,
         parseRecordedFillJson,
         recordedFillJson;
+import 'package:core_engine/core_engine.dart' as core show killSwitchActive;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         Clock,
@@ -61,6 +62,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         RunMode,
         TradeDate;
 import 'package:sqlite3/sqlite3.dart';
+
+import 'kill_switch_store.dart' show readKillSwitchRecord;
 
 /// 브로커 거절의 `error_message` 접두(R36 W5).
 const String kBrokerRejectedPrefix = 'BROKER: ';
@@ -106,10 +109,9 @@ final class SqliteOrderLedger implements OrderPathLedger {
       _db.select(sql, args).isNotEmpty;
 
   @override
-  Future<bool> killSwitchActive() async => _exists(
-    'SELECT 1 FROM kill_switch_state '
-    'WHERE id = 1 AND activated_at IS NOT NULL AND cleared_at IS NULL',
-  );
+  Future<bool> killSwitchActive() async =>
+      // 🆕 E13b — SPEC v2.40 04 §3-6 판정식(48h = 체크리스트 확인부터 · 손으로 고친 행은 못 푼다 · 설계 13 §8 R57 B6).
+      core.killSwitchActive(readKillSwitchRecord(_db));
 
   @override
   Future<Set<String>> activeBlockFlags() async {

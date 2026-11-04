@@ -56,13 +56,13 @@ void main() {
       (RunMode.simInternal, LedgerFile.sim),
     ]) {
       test(
-        '${file.fileName} — 64표 · schema_version 1행 · application_id · 무결성',
+        '${file.fileName} — 71표(🆕 v2.40 안전 통제 7표) · schema_version 1행 · application_id · 무결성',
         () {
           final Database db = open(mode);
           expect(
             _tableCount(db),
-            64,
-            reason: '02 기본 32 + 배치 신설 30(ledger_event 포함)',
+            71,
+            reason: '02 기본 32 + 🆕 v2.40 안전 통제 7 + 배치 신설 30(ledger_event 포함)',
           );
           final ResultSet v = db.select(
             'SELECT version, applied_at, description FROM schema_version',
@@ -91,7 +91,7 @@ void main() {
     open(RunMode.live).close();
     final Database again = open(RunMode.live);
     expect(again.select('SELECT * FROM schema_version'), hasLength(1));
-    expect(_tableCount(again), 64);
+    expect(_tableCount(again), 71);
     expect(_pragma(again, 'foreign_keys'), 1, reason: 'FK 는 연결마다 다시 켠다');
   });
 

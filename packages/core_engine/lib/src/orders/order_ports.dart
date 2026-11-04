@@ -264,7 +264,7 @@ String intentIdFor(String idempotencyKey) {
 
 /// 원장 포트(R35 V3) — 구현 = data_sync `SqliteOrderLedger`(E10c). 읽기가 실패하면 예외를 던진다(기본값 금지).
 abstract interface class OrderLedger {
-  /// 1단계 — `kill_switch_state` 활성 행이 있는가(R33 D26).
+  /// 1단계 · 7단계 직전 — 킬스위치가 켜져 있는가(R33 D26 · 🆕 E13b = SPEC v2.40 식 `killSwitchActive` · R57 B6).
   Future<bool> killSwitchActive();
 
   /// 2단계 — `trading_block` 활성 행 가운데 묶음 플래그(04 §3-1 ① 판정 SQL).

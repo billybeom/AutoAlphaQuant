@@ -346,16 +346,38 @@ void main() {
       },
     );
 
-    test('킬스위치 = cleared_at 이 NULL 인 동안만', () async {
-      db.execute(
-        "INSERT INTO kill_switch_state (id, activated_at, activated_by) VALUES (1, '2026-11-01T00:00:00Z', 'test')",
-      );
-      expect(await ledger.killSwitchActive(), isTrue);
-      db.execute(
-        "UPDATE kill_switch_state SET cleared_at = '2026-11-02T00:00:00Z', decision_id = 'J-1'",
-      );
-      expect(await ledger.killSwitchActive(), isFalse);
-    });
+    test(
+      '킬스위치 = 🆕 E13b SPEC v2.40 식 — 확인 뒤 48h 지나 해제해야만 꺼진다(손으로 고친 행은 못 푼다)',
+      () async {
+        db.execute(
+          "INSERT INTO kill_switch_state (id, activated_at, activated_by) VALUES (1, '2026-11-01T00:00:00Z', 'test')",
+        );
+        expect(await ledger.killSwitchActive(), isTrue);
+        db.execute(
+          "UPDATE kill_switch_state SET cleared_at = '2026-11-02T00:00:00Z', decision_id = 'J-1'",
+        );
+        expect(await ledger.killSwitchActive(), isTrue); // 확인 없음
+        db.execute(
+          "UPDATE kill_switch_state SET checklist_confirmed_at = '2026-11-01T00:30:00Z'",
+        );
+        expect(await ledger.killSwitchActive(), isTrue); // 23.5h
+        db.execute(
+          "UPDATE kill_switch_state SET cleared_at = '2026-11-03T00:30:00Z'",
+        );
+        expect(await ledger.killSwitchActive(), isFalse); // 48h
+        // 🔴 시차 없는 시각 = 던진다(주문 경로는 막음으로 받는다).
+        db.execute(
+          "UPDATE kill_switch_state SET cleared_at = '2026-11-03T00:30:00'",
+        );
+        await expectLater(ledger.killSwitchActive(), throwsFormatException);
+        final ExecutionOutcome o = await executeIntent(
+          _draft(logical: 'K-1'),
+          _ok,
+          ctx(FakeOrderBroker()),
+        );
+        expect(o.status, isNot(ExecutionStatus.submitted));
+      },
+    );
 
     test(
       '묶음 판정 SQL — 활성 RECON_MISMATCH 는 막고 · 해제된 행 · 표식 · LEDGER_FIX 는 읽지 않는다',
@@ -1415,8 +1437,8 @@ void main() {
       final FakeOrderBroker broker = FakeOrderBroker()..holdings['133690'] = 3;
       await recon(broker);
       db.execute(
-        'INSERT INTO kill_switch_state (id, activated_at, activated_by, cleared_at, decision_id) '
-        "VALUES (1, 't0', 'telegram', 't1', 'dj-resume')",
+        'INSERT INTO kill_switch_state (id, activated_at, activated_by, checklist_confirmed_at, cleared_at, decision_id) '
+        "VALUES (1, '2026-11-01T00:00:00Z', 'telegram', '2026-11-01T00:10:00Z', '2026-11-03T00:10:00Z', 'dj-resume')",
       );
       expect(await ledger.killSwitchActive(), isFalse);
       await ledger.journalMissing();
