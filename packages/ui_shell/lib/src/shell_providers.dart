@@ -180,3 +180,12 @@ final Provider<ShellSlotBuilder?> shellOnboardingSlotBuilderProvider =
         'shellOnboardingSlotBuilderProvider must be overridden',
       ),
     );
+
+// ── R15d — R-01·V-01 injection providers ─────────────────────────────────
+
+final Provider<PairingRepository> shellPairingRepositoryProvider =
+    Provider<PairingRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellPairingRepositoryProvider must be overridden',
+      ),
+    );
