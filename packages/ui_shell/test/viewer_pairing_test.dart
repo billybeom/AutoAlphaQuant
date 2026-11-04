@@ -270,6 +270,11 @@ void main() {
       for (final String? data in shown) {
         expect(data, isIn(allowed));
       }
+      // 화면 버튼 수 = 받은 다음 링크 수(R01-09 꼴 · C4r15d-1).
+      expect(
+        find.byWidgetPredicate((Widget w) => w is ButtonStyleButton),
+        findsNWidgets(c.v.result?.nextLink == null ? 0 : 1),
+      );
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(
         () => tester.platformDispatcher.clearTextScaleFactorTestValue(),

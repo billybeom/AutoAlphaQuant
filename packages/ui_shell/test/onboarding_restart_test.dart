@@ -243,6 +243,34 @@ void main() {
     });
   }
 
+  // R01-05 차단 게이트 + 승계 고지 있음(gap7): 고지는 데이터라 게이트가 막아도 그대로 보인다.
+  testWidgets('R01-05 inherit notice gap7 block', (WidgetTester tester) async {
+    expect(gap7.leaseGate?.state, GateState.block); // pre
+    expect(gap7.inheritNotice, isNotNull); // pre
+    await pumpRestart(
+      tester,
+      overrides: restartOverrides(
+        repo: repoOf(gap7),
+        slots: FakeShellSlotRecorder().build,
+        opener: RecordingLinkOpener(),
+      ),
+    );
+    expect(find.byKey(const Key('r01-inherit')), findsOneWidget);
+    expect(shownTexts(tester, find.byKey(const Key('r01-inherit'))), <String?>[
+      gap7.inheritNotice,
+    ]);
+    expect(find.byKey(const Key('r01-gate')), findsOneWidget);
+    expect(
+      firstIconIn(tester, const Key('r01-gate')).icon,
+      wantGate(csOf(tester), GateState.block).$1,
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('r01-gate'))).dy,
+      lessThan(tester.getTopLeft(find.byKey(const Key('r01-inherit'))).dy),
+    );
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
+
   // R01-06 login place = slot builder; ledger and branches follow the data.
   final List<_LoginCase> loginCases = <_LoginCase>[
     (

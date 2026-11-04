@@ -593,4 +593,44 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.text(ShellLabels.retry), findsNothing);
   });
+
+  // O03-07b no second retry while waiting (C4r15b-1).
+  // 처음 실행 = 재시도 가능 결과(results[1]) · 재시도 실행 = 끝나지 않음.
+  // 두 번째 누름은 처음 «다시 시도» 자리를 다시 누른다(숨기든 끄든 같은 기대).
+  testWidgets('O03-07b no second retry tap while waiting', (
+    WidgetTester tester,
+  ) async {
+    expect(results[1].retryable, isTrue); // pre
+    final FakeShellOnboardingActions actions = FakeShellOnboardingActions(
+      result: (int call) =>
+          <int, Future<ActionResult>>{
+            0: Future<ActionResult>.value(results[1]),
+          }[call] ??
+          Completer<ActionResult>().future,
+    );
+    await pumpStepDetail(
+      tester,
+      stepId: askedId,
+      overrides: stepOverrides(
+        repo: detailRepo((int call) => one(kisMock)),
+        actions: actions,
+        slots: FakeShellSlotRecorder().build,
+        opener: RecordingLinkOpener(),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('o03-run')));
+    await tester.pump();
+    await tester.pump();
+    expect(find.byKey(const Key('o03-retry')), findsOneWidget); // pre
+    final Offset retryAt = tester.getCenter(find.byKey(const Key('o03-retry')));
+    await tester.tap(find.byKey(const Key('o03-retry')));
+    await tester.pump();
+    await tester.tapAt(retryAt);
+    await tester.pump();
+    await tester.pump();
+    expect(actions.ids, <SettingsActionId>[
+      kisMock.verify!.id,
+      kisMock.verify!.id,
+    ]);
+  });
 }
