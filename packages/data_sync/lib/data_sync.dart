@@ -23,6 +23,7 @@ export 'src/device/local_command_queue.dart';
 export 'src/jobs/daily_jobs.dart';
 export 'src/jobs/monthly_rebalance_job.dart';
 export 'src/jobs/seasonal_a_job.dart';
+export 'src/jobs/tier_b_step.dart';
 export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
 export 'src/local/ledger_database.dart';

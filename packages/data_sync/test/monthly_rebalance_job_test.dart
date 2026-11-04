@@ -88,6 +88,7 @@ void main() {
   MonthlyRebalanceJob job({
     List<LedgerHolding> held = const <LedgerHolding>[],
     Map<String, OrderBroker>? cash,
+    TierBCard? Function() tierBCard = p0sTierBCard,
   }) => MonthlyRebalanceJob(
     db,
     mode: RunMode.live,
@@ -103,6 +104,7 @@ void main() {
     pensionAlias: 'pension',
     regimeConfigHash: 'cfg_regime',
     configHash: 'cfg_plan',
+    tierBCard: tierBCard,
   );
 
   test(
@@ -386,6 +388,89 @@ void main() {
         ),
         isTrue,
       );
+    });
+  });
+
+  group('🆕 E11g — 계층 B 단계(R50 T1 · T8)', () {
+    const TierBCard card = TierBCard(
+      b1R12mFloor: -0.15,
+      b2DdFloor: -0.05,
+      b3TuwMonths: 31,
+    );
+    void strategies() {
+      for (final String id in <String>[
+        P0sStrategyIds.sleeveB,
+        P0sStrategyIds.sleeveC,
+      ]) {
+        db.execute(
+          'INSERT INTO strategy_state_current(strategy_id, state, since, capital_cap) VALUES (?, ?, ?, 1.0)',
+          <Object?>[id, 'ACTIVE', '2026-01-02'],
+        );
+      }
+    }
+
+    void snap(String day, double equity) => db.execute(
+      'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+      "VALUES (?, ?, 0, ?, ?, 0, 'LIVE')",
+      <Object?>[day, equity, equity, equity],
+    );
+
+    test('기본 = P0S 카드 미등록 → 계획은 만들고 판정 행 0 · 보고 «카드 없음»', () async {
+      strategies();
+      final MonthlyRebalanceReport r = await job().run(_me);
+      expect(r.created, isTrue);
+      expect(r.tierB!.cardMissing, isTrue);
+      expect(r.tierB!.judgedMonth, '2026-07');
+      expect(r.toString(), contains('카드 없음'));
+      expect(_count(db, 'tier_b_judgement'), 0);
+    });
+
+    test('카드 등록 → 저장 뒤 판정 · 전 전략 행 · ACTIVE → PROBATION', () async {
+      strategies();
+      snap('2026-06-30', 100);
+      snap('2026-07-31', 90);
+      final MonthlyRebalanceReport r = await job(tierBCard: () => card)
+          .run(_me);
+      expect(r.created, isTrue);
+      expect(r.tierB!.judged, <String>[
+        P0sStrategyIds.sleeveB,
+        P0sStrategyIds.sleeveC,
+      ]);
+      expect(r.tierB!.transitioned, r.tierB!.judged);
+      expect(_count(db, 'tier_b_judgement'), 2);
+      expect(_count(db, 'plan_snapshot'), 1);
+    });
+
+    test('🔴 판정 실패 = 월말 잡 실패 · 계획은 남는다 → 다시 돌리면 판정만', () async {
+      strategies();
+      snap('2026-06-30', 100);
+      await expectLater(
+        job(tierBCard: () => card).run(_me),
+        throwsA(
+          isA<MonthlyRebalanceError>().having(
+            (MonthlyRebalanceError e) => e.reason,
+            'reason',
+            '계층 B: 2026-07 스냅숏 없음',
+          ),
+        ),
+      );
+      expect(_count(db, 'plan_snapshot'), 1);
+      expect(_count(db, 'rebalance_event'), 1);
+      expect(_count(db, 'tier_b_judgement'), 0);
+
+      snap('2026-07-31', 99);
+      final MonthlyRebalanceReport again = await job(tierBCard: () => card)
+          .run(_me);
+      expect(again.created, isFalse);
+      expect(again.tierB!.judged, hasLength(2));
+      expect(again.tierB!.transitioned, isEmpty);
+      expect(_count(db, 'plan_snapshot'), 1);
+      expect(_count(db, 'tier_b_judgement'), 2);
+
+      final MonthlyRebalanceReport third = await job(tierBCard: () => card)
+          .run(_me);
+      expect(third.tierB!.judged, isEmpty);
+      expect(_count(db, 'tier_b_judgement'), 2);
     });
   });
 }
