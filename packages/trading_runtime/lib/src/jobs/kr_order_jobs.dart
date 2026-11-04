@@ -201,7 +201,7 @@ class KrOrderJobs {
     check: checkOf(job),
     heartbeat: heartbeat,
     alerts: alerts,
-    kr: kr,
+    calendar: kr,
     nowUtc: nowUtc(),
     body: body,
   );

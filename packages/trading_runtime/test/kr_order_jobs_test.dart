@@ -135,9 +135,17 @@ class _Beat implements JobHeartbeat {
       <(String, PingStatus, String?)>[];
   bool failing = false;
 
+  final List<String?> rids = <String?>[];
+
   @override
-  Future<void> ping(String check, PingStatus status, {String? note}) async {
+  Future<void> ping(
+    String check,
+    PingStatus status, {
+    String? note,
+    String? rid,
+  }) async {
     pings.add((check, status, note));
+    rids.add(rid);
     if (failing) throw StateError('핑 실패');
   }
 
