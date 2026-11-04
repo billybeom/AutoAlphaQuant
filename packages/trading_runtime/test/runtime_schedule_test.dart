@@ -63,8 +63,8 @@ void main() {
           ),
           (
             'monthly_rebalance',
-            const Duration(hours: 20, minutes: 45),
-            JobCadence.krMonthEnd,
+            const Duration(hours: 8),
+            JobCadence.krAfterMonthEnd,
           ),
           (
             'us_data',
@@ -81,6 +81,7 @@ void main() {
         const Duration(hours: 23, minutes: 59),
       );
       expect(_s('daily_data').lateUntilKst, isNull);
+      expect(_s('monthly_rebalance').lateUntilKst, const Duration(hours: 15));
       expect(
         kJobTable.map((JobSpec s) => (s.job, s.grace.inMinutes)),
         <(String, int)>[
@@ -90,7 +91,7 @@ void main() {
           ('daily_data', 120),
           ('daily_signal', 60),
           ('equity_snapshot', 60),
-          ('monthly_rebalance', 120),
+          ('monthly_rebalance', 60),
           ('us_data', 120),
         ],
       );
@@ -138,31 +139,42 @@ void main() {
       );
     });
 
-    test('월말 잡 = 그 달 마지막 KR 세션에만', () {
-      final JobOccurrence o = nextOccurrence(
-        _s('monthly_rebalance'),
-        _cals,
-        _kst('2026-11-04', 10, 0),
-      );
-      expect(_kr.isLastSessionOfMonth(o.fireDay), isTrue);
-      expect(o.fireDay.yyyyMmDd.substring(0, 7), '2026-11');
-      expect(o.scheduledUtc, _kst(o.fireDay.yyyyMmDd, 20, 45));
-      final JobOccurrence next = nextOccurrence(
-        _s('monthly_rebalance'),
-        _cals,
-        o.scheduledUtc,
-      );
-      expect(next.fireDay.yyyyMmDd.substring(0, 7), '2026-12');
-      expect(_kr.isLastSessionOfMonth(next.fireDay), isTrue);
-      expect(
-        () => occurrenceOn(
+    test(
+      '🆕 월말 잡 = 마지막 KR 세션의 다음 KR 세션 08:00 · 세션일 = 그 월말 · 휴장 회차 없음(R48 P1)',
+      () {
+        final JobOccurrence o = nextOccurrence(
           _s('monthly_rebalance'),
-          const TradeDate('2026-11-04'),
           _cals,
-        ),
-        throwsArgumentError,
-      );
-    });
+          _kst('2026-11-04', 10, 0),
+        );
+        // 2026-11-30(월) = 11월 마지막 KR 세션 → 12-01(화) 08:00.
+        expect(o.sessionDay.yyyyMmDd, '2026-11-30');
+        expect(_kr.isLastSessionOfMonth(o.sessionDay), isTrue);
+        expect(o.fireDay.yyyyMmDd, '2026-12-01');
+        expect(o.scheduledUtc, _kst('2026-12-01', 8, 0));
+        expect(o.lateUntilUtc, _kst('2026-12-01', 15, 0));
+        expect(o.holiday, isFalse);
+        final JobOccurrence next = nextOccurrence(
+          _s('monthly_rebalance'),
+          _cals,
+          o.scheduledUtc,
+        );
+        // 12월 마지막 KR 세션(12-30 수) → 다음 KR 세션 = 2027-01-04(월 · 1-1 휴장 · 주말).
+        expect(next.sessionDay.yyyyMmDd, '2026-12-30');
+        expect(next.fireDay.yyyyMmDd, '2027-01-04');
+        for (final String d in <String>[
+          '2026-11-30',
+          '2026-12-02',
+          '2026-12-31',
+        ]) {
+          expect(
+            () => occurrenceOn(_s('monthly_rebalance'), TradeDate(d), _cals),
+            throwsArgumentError,
+            reason: d,
+          );
+        }
+      },
+    );
 
     test('us_data = XNYS 세션 d → (d+1) 07:30 KST · 화~토 · 세션일 = 앞 날', () {
       JobOccurrence o = nextOccurrence(

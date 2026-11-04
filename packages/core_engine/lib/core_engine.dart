@@ -90,6 +90,17 @@ export 'src/ops/equity_snapshot.dart'
         p0sBreakerConfig,
         positionsValueKrw,
         replayBreaker;
+// 🆕 E11f2 — 월말 계획기 입력 조립(원장 보유 → MonthEndState · 월별 마지막 종가 · 슬리브 비중 · 설계 13 §8 R48 P4~P6).
+export 'src/ops/month_end_inputs.dart'
+    show
+        MonthEndInputError,
+        MonthEndRun,
+        computeMonthEndRun,
+        monthEndActionToJson,
+        monthEndStateFromLedger,
+        monthEndStateToJson,
+        monthlyLastCloses,
+        sleeveWeightsOf;
 // 🆕 E11c — 워치독 포트 · 값 꼴(설계 13 §8 R45 C1 — 구현 = data_sync · 보드 = trading_runtime).
 export 'src/ops/watchdog_ports.dart'
     show
@@ -201,6 +212,9 @@ export 'src/orders/reconcile.dart'
         runReconciliation;
 export 'src/orders/split_execution.dart'
     show SplitDay, seasonalExecutionDays, splitDay;
+// 🆕 E11f2 — 오늘의 주문 대상 포트(trading_runtime 에서 옮김) · 대상 직렬화(설계 13 §8 R48 P2 · P9).
+export 'src/orders/target_source.dart'
+    show TargetSource, orderTargetFromJson, orderTargetToJson;
 export 'src/orders/unknown_resolution.dart'
     show
         UnknownAmbiguous,

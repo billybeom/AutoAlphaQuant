@@ -17,8 +17,8 @@ enum JobCadence {
   /// KST 평일(월~금) — 세션 판정은 발화 때.
   krWeekday,
 
-  /// 그 달 마지막 KR 세션.
-  krMonthEnd,
+  /// 그 달 마지막 KR 세션의 **다음 KR 세션**(R48 P1 — 월말 판정 = 그날 미국 종가 포함 · 세션일 = 그 월말).
+  krAfterMonthEnd,
 
   /// KST 화~토 — 세션일 = 앞 날(XNYS 세션 d).
   usNextKstDay,
@@ -95,12 +95,15 @@ const List<JobSpec> kJobTable = <JobSpec>[
     // 🔴 소급 불가 — 그날 안에만.
     lateUntilKst: Duration(hours: 23, minutes: 59),
   ),
+  // 🆕 E11f2(R48 P1 · 발주자 결정 2026-11-04) — 월말 다음 KR 세션 08:00 · 그날 미국 종가까지 본 판정(골든과 같다) ·
+  //    유예 1시간(`kr_order` 09:10 앞) · 늦은 끝 15:00(`kr_order` 끝) — 넘기면 워치독 실패 · 사람.
+  //    🔴 SPEC 잡 표 문언(«월 마지막 거래일»)은 v2.39 창.
   JobSpec(
     job: 'monthly_rebalance',
-    cadence: JobCadence.krMonthEnd,
-    kstTime: Duration(hours: 20, minutes: 45),
-    grace: Duration(hours: 2),
-    lateUntilKst: Duration(hours: 23, minutes: 59),
+    cadence: JobCadence.krAfterMonthEnd,
+    kstTime: Duration(hours: 8),
+    grace: Duration(hours: 1),
+    lateUntilKst: Duration(hours: 15),
   ),
   JobSpec(
     job: 'us_data',
@@ -198,16 +201,20 @@ int _weekday(TradeDate d) => DateTime.parse('${d.yyyyMmDd}T00:00:00Z').weekday;
 bool _fires(JobSpec spec, TradeDate fireDay, JobCalendars cals) =>
     switch (spec.cadence) {
       JobCadence.krWeekday => _weekday(fireDay) <= DateTime.friday,
-      JobCadence.krMonthEnd => cals.kr.isLastSessionOfMonth(fireDay),
+      JobCadence.krAfterMonthEnd =>
+        cals.kr.isSession(fireDay) &&
+            cals.kr.isLastSessionOfMonth(cals.kr.nthSessionBefore(fireDay, 1)),
       JobCadence.usNextKstDay =>
         _weekday(fireDay) >= DateTime.tuesday &&
             _weekday(fireDay) <= DateTime.saturday,
     };
 
 JobOccurrence _build(JobSpec spec, TradeDate fireDay, JobCalendars cals) {
-  final TradeDate session = spec.cadence == JobCadence.usNextKstDay
-      ? _addDays(fireDay, -1)
-      : fireDay;
+  final TradeDate session = switch (spec.cadence) {
+    JobCadence.usNextKstDay => _addDays(fireDay, -1),
+    JobCadence.krAfterMonthEnd => cals.kr.nthSessionBefore(fireDay, 1),
+    JobCadence.krWeekday => fireDay,
+  };
   final DateTime scheduled = _kstAt(fireDay, spec.kstTime);
   final Duration? late = spec.lateUntilKst;
   return JobOccurrence(
