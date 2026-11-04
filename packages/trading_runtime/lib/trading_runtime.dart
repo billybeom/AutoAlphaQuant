@@ -11,7 +11,8 @@
 //    알람 · FGS 서비스 · 알림 발송 · 재개(R0~R8)는 아직 없다.
 
 // 🆕 E11c(R45 C1) — 하트비트 포트는 core_engine 에 있다(구현 = data_sync) · 같은 이름으로 다시 내보낸다.
-export 'package:core_engine/core_engine.dart' show JobHeartbeat, PingStatus;
+export 'package:core_engine/core_engine.dart'
+    show JobHeartbeat, PingStatus, TargetSource;
 
 export 'src/jobs/fgs_notice.dart'
     show FgsChannel, FgsNotice, FgsStatus, buildFgsNotice, shouldRepostFgs;
@@ -48,7 +49,6 @@ export 'src/jobs/kr_order_jobs.dart'
         KrOrderConfig,
         KrOrderJobs,
         KrOrderOpenReport,
-        TargetSource,
         kKrOrderCutoffKst,
         kKrOrderEarliestKst;
 export 'src/jobs/watchdog_board.dart'

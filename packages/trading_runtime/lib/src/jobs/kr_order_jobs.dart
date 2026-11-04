@@ -30,11 +30,7 @@ const Duration kKrOrderEarliestKst = Duration(hours: 9, minutes: 5);
 /// 발주 상한(KST) — 이 뒤면 그날은 내지 않는다(00_SPEC v2.38).
 const Duration kKrOrderCutoffKst = Duration(hours: 15);
 
-/// 오늘의 주문 대상(월말 계획 · 계절 분할 몫) — 이월은 잡이 더한다.
-abstract interface class TargetSource {
-  /// [today] 집행 대상.
-  Future<List<OrderTarget>> targetsFor(TradeDate today);
-}
+// 🆕 E11f2(R48 P2) — [TargetSource] 는 core_engine `orders/target_source.dart` 로 옮겼다(배럴이 다시 내보낸다).
 
 /// 초안 시세(기준가 · 호가 · 상하한).
 abstract interface class DraftQuoteSource {
