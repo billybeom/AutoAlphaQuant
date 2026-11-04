@@ -28,7 +28,7 @@ FGS(포그라운드 서비스) 수명 · 정확 알람 · 일 1회 배치 잡 �
 
 FGS·정확 알람은 Android 기능이라 Flutter 플러그인이 필요해질 수 있다. 그러면 이 패키지가 순수 Dart를 벗어나고 재개 로직을 폰 없이 테스트할 수 없게 된다. **플랫폼 호출을 `app_operator_android` 쪽 얇은 어댑터로 밀어낼 수 있는지 먼저 검토할 것.**
 
-## 지금 상태 — 🟢 주문 잡(E11a) · 잡 표 · 3분법 · FGS 문구(E11b) · 🟡 알람 · FGS 서비스 · 실제 핑 · 재개
+## 지금 상태 — 🟢 주문 잡(E11a) · 잡 표 · 3분법 · FGS 문구(E11b) · 워치독 보드(E11c) · 🟡 알람 · FGS 서비스 · 재개
 
 - 🆕 **E11a — 잡 규약 · 주문 잡**(설계 13 §8 R42 · 01 §10 · 00_SPEC 잡 표 v2.38 · 04 §4-2 · §3-5 · §5-2) — 순수 Dart · 포트만(플랫폼 0):
   - `runJob`(01 §10 잡 규약) — 휴장(동결 XKRX 비세션) = 성공 핑 «휴장» 하나 · 아니면 start → 본체 → success | fail · 본체 예외 = fail 핑(다시 던지지 않음) · 핑 실패는 결과를 바꾸지 않는다(센다) · 알림 발송 실패 = fail 핑 · 달력 범위 밖 = fail · 체크 이름 `{sim|live}-{auto|advisory}-{잡}`
@@ -40,4 +40,5 @@ FGS·정확 알람은 Android 기능이라 Flutter 플러그인이 필요해질 
   - 🔴 KR 잡은 **평일마다** 발화(평일 공휴일 = «휴장» 성공 핑) · 월말 잡 = 마지막 KR 세션 · `us_data` = XNYS 세션 d → (d+1) 07:30 KST(DST 무관 · 화~토)
   - `nextOccurrence` · `occurrencesBetween` · `wakeDecisions`(깨어났을 때 — 돌았음 · 지금 · 놓침) · `judgeOccurrence`(성공 · 지연 · 실패 · 휴장 · 일시정지 · 아직 → `UiLevel` · 🔴 지연 ≠ 실패)
   - `runJob` = 시장별 달력 + 세션일 함수 + 회차 `rid`(start · 끝 같은 값) · `buildFgsNotice`(완성 문자열 1 · 손익 0 · P0 = `ops_p0` · 딥링크) · `shouldRepostFgs`(전이 때만)
-- 아직 없는 것: 알람 · FGS 서비스(M1-11 — `app_operator_android` 어댑터 · E11p) · 실제 핑(M1-12 · E11c) · 알림 발송 · 재개 R0~R8(X2)
+- 🆕 **E11c — 워치독 보드 · 자기 점검**(설계 13 §8 R45 C7~C9 · 06 M1-12 · 지도 D12 · 앱 04 §7 `W-01`): `buildWatchdogBoard` = 로컬 판정(정본) → `WatchdogBoardVm`(문구 = 계약 표본 꼴 · 지연 watch · 일시정지 info · `checkId` = 차례 · 🔴 슬러그 0) · 바깥 대조(로컬이 받았다는데 바깥 `last_ping` 이 60초 넘게 앞서거나 없음 · 체크 없음 · 겹침 · 바깥만 멈춤 = watch · 바깥 못 읽음 = 머리만) · `auditRemoteChecks`(없음 · 겹침 · 멈춤 · new · down · 기대 밖) · 포트 `JobHeartbeat` · `PingStatus` = core 에서 다시 내보냄
+- 아직 없는 것: 알람 · FGS 서비스(M1-11 — `app_operator_android` 어댑터 · E11p) · 핑 배선(조립 앱이 data_sync `HealthchecksClient` 를 `runJob` 에 넣는다) · 알림 발송 · 재개 R0~R8(X2)

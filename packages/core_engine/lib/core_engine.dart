@@ -77,6 +77,17 @@ export 'src/decimal_rules.dart'
         multiply,
         oneMinus,
         promoteRatio;
+// 🆕 E11c — 워치독 포트 · 값 꼴(설계 13 §8 R45 C1 — 구현 = data_sync · 보드 = trading_runtime).
+export 'src/ops/watchdog_ports.dart'
+    show
+        JobHeartbeat,
+        PauseReason,
+        PingStatus,
+        RemoteCheck,
+        RemoteCheckStatus,
+        WatchdogRemote,
+        isNeverPauseSlug,
+        kNeverPauseChecks;
 export 'src/orders/block_bundles.dart' show BlockBundles, blockingFlagsFor;
 export 'src/orders/carry_over.dart'
     show
