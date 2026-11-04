@@ -366,6 +366,44 @@ export 'src/risk/limits.dart'
         checkAllLimits;
 export 'src/risk/position_sizing.dart'
     show SizingBinding, SizingResult, sizePosition;
+// 🆕 E13a — 킬스위치 발동 순서기 · 저장 포트(SPEC v2.40 04 §3-6 · 설계 13 §8 R56 K6).
+export 'src/safety/kill_activation.dart'
+    show
+        KillActivationResult,
+        KillCancelCandidate,
+        KillCancelItem,
+        KillCancelOutcome,
+        KillCancelReport,
+        KillSwitchStore,
+        activateKillSwitch,
+        planKillCancels;
+// 🆕 E13a — 킬스위치 체크리스트 두 벌 · 재개판 · tryResume(설계 13 §8 R56 K3~K5).
+export 'src/safety/kill_checklist.dart'
+    show
+        KillAckAnswers,
+        KillActivationAnswers,
+        KillChecklistVerdict,
+        KillReasonKind,
+        KillScope,
+        ResumeChecklist,
+        ResumeConditionStatus,
+        ResumeDecision,
+        ResumeItemAnswer,
+        ScenarioStatus,
+        activationChecklistVerdict,
+        tryResume;
+// 🆕 E13a — 킬스위치 활성 판정 · 재개 준비 · 화면 문장(설계 13 §8 R56 K1 · K2).
+export 'src/safety/kill_switch.dart'
+    show
+        KillSwitchConfig,
+        KillSwitchRecord,
+        ResumeReadiness,
+        ResumeReadinessKind,
+        effectiveChecklistConfirmedAt,
+        kP0sKillSwitchConfig,
+        killSwitchActive,
+        killSwitchViewOf,
+        resumeReadinessOf;
 // 🆕 E11d — 키 금고 포트 · 마스킹 · 지문 · 회전 · 봉함(설계 13 §8 R44 · 06 M4-4 순수 몫).
 export 'src/security/key_rotation.dart'
     show
