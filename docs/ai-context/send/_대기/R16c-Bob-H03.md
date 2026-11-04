@@ -1,15 +1,15 @@
 # 발송 패킷 R16c-Bob-H03 — H-03 물리 리스크 점검 상세 (계약 v1.17 전제 · R16 3장 중 3번째 · M8 · «정확히 N» 소유)
 
-> ⬜ **_대기 — 앞 카드 병합 기록 때 send/ 로**(2026-11-04 조립 · 앱 `rec/r16`) · 선행 = ① ⬜ R16b 병합(PR `__R16B_PR__` · squash `__R16B_SQ__` · 시작 기준 N = R16b 병합본 실측) ② ⬜ **계약 v1.17 R16c 몫**(12 §3 «R16 선행 M2 v1.17 이름표» #9·#10·#12 · 01 §8 미결 123 «R16(H-03)과 한 창» · R16a 와 같은 PR · ⬜ 발주자 결정 · ▶ 금지) ③ ⬜ 누적 드라이런 3번째 ④ ⬜ 발주자 확인 ①~⑨ ⑤ ⬜ 「푸시해」 — 다 풀리고 머리 첫 줄이 ▶ 일 때만 보낸다. 🔵 후순위 가능(Android 전용 · 미결 123·127 이 M9 와 얽힘 — 미루면 «정확히 N» = R16b).
+> ⬜ **_대기 — 앞 카드 병합 기록 때 send/ 로**(2026-11-04 조립 · 앱 `rec/r16`) · 선행 = ① ⬜ R16b 병합(PR `__R16B_PR__` · squash `__R16B_SQ__` · 시작 기준 N = R16b 병합본 실측) ② ⬜ **계약 v1.17 R16c 몫**(12 §3 «R16 선행 M2 v1.17 이름표» #9·#10·#12 · 01 §8 미결 123 «R16(H-03)과 한 창» · R16a 와 같은 PR · ⬜ 발주자 결정 · ▶ 금지) ③ ✅ 누적 드라이런 3번째(반영판 · 아래 «드라이런» 줄) ④ ⬜ 발주자 확인 ①~⑨ ⑤ ⬜ 「푸시해」 — 다 풀리고 머리 첫 줄이 ▶ 일 때만 보낸다. 🔵 후순위 가능(Android 전용 · 미결 123·127 이 M9 와 얽힘 — 미루면 «정확히 N» = R16b).
 > 만든 날 2026-11-04 · 원문 = 12 §3 `R16-Bob-M8d` 행(🔀 3분할 — R16c 하위 행) + §3-0 + §3 공통 조문 + 이월 부록 «R16» 대상 · 화면 몫 원본 = `04_…` §4-6 «블록 9 물리 리스크 카드» · 그림 8(`H-03` 상세 — 저장공간 임계 · 로그 로테이션 · 배터리 열화 · OS 보안 지원 종료일 · 항목별 현재값·임계·조치·마지막 점검 시각 · «비상 복구가 아니라 계획 교체» 안내 = 엔진 문구 · 로그 정리·백업 실행 버튼 = M9 삽입 자리 · 없으면 비움) · §2-5(H-03 = Android 에서만) · §2-3(조회 화면 asOf · 오래됨) · `01_…` §8 미결 123 · 127 · 판독 메모 §6 G5.
-> 사전 조건 — ⬜ R16b 병합(`__R16B_SQ__` · `ui_shell` = 라벨 37 · 배럴 22 · 주입 23 · PNG 88 — ⟦실측⟧) · ⬜ 계약 v1.17 R16c 몫. 시작 기준 = **⟦실측: R16b 병합본 — 드라이런 기대 N⟧** · 끝 기대 = N + **⟦실측: 계획 16 — 뷰 12 = `device_risk_board_test` · 골든 4 = `h03_*`⟧**.
-> 🔀 **재분할 판정** — 새 줄 계획 **9**(`device_risk_board_test` 8 · 골든 1) · lib ⟦실측: 추정 +150~200⟧ · 새 PNG **4** · 원천 **1**(`watchDeviceRisk`) → 임계 안 · 🔴 이 카드가 «정확히 N» 을 **소유**한다(R16 마지막 — 라벨 37 · 배럴 23 · 주입 23 · PNG 92).
+> 사전 조건 — ⬜ R16b 병합(`__R16B_SQ__` · `ui_shell` = 라벨 37 · 배럴 22 · 주입 23 · PNG 88 — ⟦실측: R16b 병합본 · 앞 카드 병합 기록 때 채움 — 드라이런 기대 그대로⟧) · ⬜ 계약 v1.17 R16c 몫. 시작 기준 = **⟦실측: R16b 병합본 — 앞 카드 병합 기록 때 채움⟧**(드라이런 기대 = R16a·R16b 반영판 454 · 드라이런 3번째는 첫 판 흉내 451 위에서 쟀다) · 끝 기대 = N + **16**(✅ 드라이런 — 뷰 12 = `device_risk_board_test` · 골든 4 = `h03_*`).
+> 🔀 **재분할 판정** — 새 줄 **9**(✅ 드라이런 — `device_risk_board_test` 8 · 골든 1) · lib **+111 / −0**(드라이런 — 새 1파일 110 · 배럴 +1 · 추정 +150~200 보다 적음) · 새 PNG **4** · 원천 **1**(`watchDeviceRisk`) → 임계 안 · 🔴 이 카드가 «정확히 N» 을 **소유**한다(R16 마지막 — 라벨 37 · 배럴 23 · 주입 23 · PNG 92).
 > 카드 기본값(⬜ 발주자 확인 ①~⑨): ⓐ 위젯 = `DeviceRiskBoard({super.key})`(`lib/src/device_risk_board.dart` · `ConsumerWidget` · W-01 `watchdog_board.dart` 꼴) ⓑ 원천 = 🆕 `OpsStatusRepository.watchDeviceRisk()` → `DeviceRiskVm` · 주입 = 기존 `shellOpsStatusRepositoryProvider`(새 주입 0) · 쓰기 0 ⓒ 머리 = `ShellAsOfHeader` · 오래됨 = `ShellStaleBanner`(`observedAt + staleAfter < clock.nowUtc()` — W-01 꼴) · 행 = 항목마다 등급 아이콘 + 다섯 칸(이름 · 현재값 · 임계 · 조치 · 마지막 점검 — 전부 엔진 글자) · 빈 = `emptyLabel`(있으면) · 맨 아래 «계획 교체» 안내 = `guidanceText` ⓓ 조작 버튼(로그 정리·백업 실행) = 부재(M9 슬롯 이름 0) ⓔ 셸 가드 무변경(Android 전용 = 조립 앱 레지스트리가 iOS·웹에 본문을 주지 않는다 · 01 §8 미결 127 · R15 꼴) ⓕ H-01 블록 9 = 이 카드 밖(`ops_home.dart` 무변경) ⓖ 새 lib 파일 1 · 공용 2(배럴 +1 · `test/shell_fakes.dart` 끝 절) · 라벨 0 · Key 접두 `h03-` · 골든 2이름 4장(`h03_items` · `h03_empty`).
 > 🔴 **카드 덮개 필수 문장(04 §4-6 · 그림 8)** — «항목 목록·순서·수 = 받은 그대로(저장공간·로그·배터리·OS 넷을 코드에 두지 않는다)» · «현재값·임계·조치·마지막 점검 시각 = 엔진 글자 — 화면이 비교·계산·남은 일수 0 · 등급 = level 로 아이콘·색만» · ««비상 복구가 아니라 계획 교체» 안내 = 엔진 문구 그대로» · «로그 정리·백업 실행 = M9 삽입 자리 — 이 판 = 부재(버튼 0)» · «셸·홈(H-01)·R13~R16b 파일·테스트·PNG 무변경».
-> ⬜ **발주자 확인 9건(권고 = 카드 기본값)** — ① = R16a ① ② 원천 = 🆕 `OpsStatusRepository.watchDeviceRisk()`(추가형 · 받침대 `UnimplementedOpsStatusRepository` 6 → 7 · 기존 가짜는 상속이라 무변경) → `DeviceRiskVm{rows, guidanceText, emptyLabel?, asOf}` · `DeviceRiskItem{label, currentText, thresholdText, actionText, lastCheckedText, level}` · 측정(저장공간·배터리·OS 지원 종료) = 플랫폼·엔진 몫 ③ Android 전용 = 셸 가드 무변경(레지스트리 · 미결 127) · 대안 = 셸 가드 phoneOnly(`_kPhoneOnlyIos`·`_kPhoneOnlyWeb` + `shell_router_test` TR-04 표 두 줄 수정 — 비권고) ④ 조작 버튼 = 부재(슬롯 이름 0 · 04 «없으면 비움») ⑤ H-01 블록 9 = R16c 밖(`ops_home.dart`·`homeOverrides` 무변경 · 다음 홈 손질 카드 · 미결 123 = 계약 ✅ · 렌더 ⬜) · 대안 = 같은 카드(lib +60 · `h01_*` 16장 바이트 불변 확인 · 비권고) ⑥ asOf 머리 + 오래됨 배너(측정값 · 04 §2-3) · 시계 = `shellClockProvider` ⑦ «정확히 N» = 이 카드(라벨 37 · 배럴 23 · 주입 23 · PNG 92) · 미루면 R16b ⑧ 골든 2이름 4장(`h03_items` · `h03_empty` · 04 에 이름 없음 · 카드가 지음) ⑨ 이월(«6» = R16a 표 꼴).
+> ⬜ **발주자 확인 9건(권고 = 카드 기본값)** — ① = R16a ① ② 원천 = 🆕 `OpsStatusRepository.watchDeviceRisk()`(추가형 · 받침대 `UnimplementedOpsStatusRepository` 6 → 7 · 기존 가짜는 상속이라 무변경) → `DeviceRiskVm{rows, guidanceText, emptyLabel?, asOf}` · `DeviceRiskItem{label, currentText, thresholdText, actionText, lastCheckedText, level}`(🆕 표본 `device_risk_items` = 5행 · 등급 5값 전수 — 드라이런: 4행 · BLOCKED 없음이면 blocked 갈래 모양 변이가 표본 동치) · 측정(저장공간·배터리·OS 지원 종료) = 플랫폼·엔진 몫 ③ Android 전용 = 셸 가드 무변경(레지스트리 · 미결 127) · 대안 = 셸 가드 phoneOnly(`_kPhoneOnlyIos`·`_kPhoneOnlyWeb` + `shell_router_test` TR-04 표 두 줄 수정 — 비권고) ④ 조작 버튼 = 부재(슬롯 이름 0 · 04 «없으면 비움») ⑤ H-01 블록 9 = R16c 밖(`ops_home.dart`·`homeOverrides` 무변경 · 다음 홈 손질 카드 · 미결 123 = 계약 ✅ · 렌더 ⬜) · 대안 = 같은 카드(lib +60 · `h01_*` 16장 바이트 불변 확인 · 비권고) ⑥ asOf 머리 + 오래됨 배너(측정값 · 04 §2-3) · 시계 = `shellClockProvider` ⑦ «정확히 N» = 이 카드(라벨 37 · 배럴 23 · 주입 23 · PNG 92) · 미루면 R16b ⑧ 골든 2이름 4장(`h03_items` · `h03_empty` · 04 에 이름 없음 · 카드가 지음) ⑨ 이월(«6» = R16a 표 꼴).
 > 🔵 **판독 빈틈 → v1.17 권고(G5)**: `DeviceRiskItem` 계약 0(01 §8 미결 123) · 라우트 0 → #9 · `AppRoutes.opsDeviceRisk = 'aaq://ops/device-risk'`(#10 · 이 카드는 상수를 쓰지 않는다).
-> 드라이런: ⬜ ⟦실측: 누적 드라이런 3번째 — 가지 `dry/r16-3` · 시작 · 끝 · 정적 · dy · «정확히 N» T13~T15 · T37⟧.
-> ⟦펼침: R16b 병합 기록 때 — R16b(= R16a 펼침) 판 글자를 이 카드 수·이름·파일로(교훈 줄 · 규칙 7·8·10~15 · 보고 규칙 · ■ 골든 공통 · ■ 제출 · 정적 실행 꼴)⟧.
+> 드라이런: ✅ 누적 3번째(2026-11-04 · 가지 `dry/r16-3` = `dry/r16-2` 첫 판 끝 `955a9fe` → R16b 병합 기록 흉내 + v1.17 R16c 흉내 `56d2664` → 권장 4커밋(`dc7f813`·`9c5a61c`·`40fa46b`·`89931f8`) → 🆕 반영판 `236b9a6`(표본 5행 · H03-01 hasLength(5) · H03-05 InkWell 0)) · 시작 451 → 끝 467(N + 16) · 파일별 = board «+12» · h03 «+4» · 줄 9 · ⓡ 7 · ⓗ 1 · (전제) 3 · Key 8 · 정적(펼친 37줄) 147줄 · EXIT:1 24 · EXIT:0 13 · S05 = 0줄 · «정확히» T13 37 · T14 23 · T15 23 · T37 92 · T29 = ui_shell.dart 1/0 · shell_fakes 48/0 만 · 사전검사 ① 🔴 0·🟡 0 · ② h03_ 🔴 0·🟡 1(«덩어리로 셀 수 없어 대조하지 않았다» — h03_items) · 골든 dy h03_items 784(반영판 5행 · 첫 판 4행 660) · h03_empty 196(light = dark · 머리 dy 0.0) · name-status 10줄 · 커밋 4줄. 변이: 예고 20(짝·갈래 나눔) = 전부 KILLED · 참고 12 = 첫 판 KILLED 8 · SURVIVED 4(blocked 모양 맞바꿈 = 표본 동치 → 🆕 표본 5행으로 KILLED · 항목 이름 하드코딩 = 정적 T17·T23 · 빈 문장을 행 수로 = 정적 T11 · 안내 탭 링크 = 정적 S05·T04·T07) · 킬스위치 InkWell = 첫 판 골든·정적만 → 🆕 H03-05 InkWell 0 으로 뷰 테스트도 잡음.
+> ⟦펼침: R16b 병합 기록 때 — R16b(= R16a 펼침) 판 글자를 이 카드 수·이름·파일로(교훈 줄 · 규칙 7·8·10~15 · 보고 규칙 · ■ 골든 공통 · ■ 제출 · 정적 실행 꼴) · 🔴 그대로 옮기면 안 되는 글자(드라이런 — 이 화면은 조회 화면이다): 규칙 7 = «asOf 머리 = ShellAsOfHeader · 오래됨 = ShellStaleBanner(vm.asOf.observedAt.add(vm.asOf.staleAfter).isBefore(clock.nowUtc()) — W-01 글자) · 시계 = shellClockProvider · 스피너 금지» · 규칙 8 길 = lib/src/device_risk_board.dart · 규칙 9 주입 읽기 = shellOpsStatusRepositoryProvider · shellClockProvider(shellLinkOpenerProvider 0) · 테스트 import = R16a 차례에서 'package:domain_contracts/testing.dart' 를 뺀다(이 카드 테스트는 RecordingLinkOpener 를 안 쓴다 — 남기면 unused_import · shell_fakes 만 쓴다) · ■ 제출 S05 = «S05 결과:» 다음 줄에 정확히 «없음»(기대 0줄 — 이 화면에 링크 없음)⟧.
 
 ## 0. 한 줄 목적
 
@@ -36,23 +36,30 @@ R16c-Bob-H03 — 범위: H-03 물리 리스크 점검 상세(DeviceRiskBoard() �
 🔴 이 카드가 docs/ai-context/prompt_M8.md 보다 이깁니다(아래 13항).
 
 ■ 0단계 — 대상 확인
-  git branch --show-current · git status --short(빈) · git fetch origin --prune · git checkout --no-track -b ui/m8-h03-device-risk origin/main
+  git branch --show-current
+  git status --short            ← 비어 있어야 합니다
+  git fetch origin --prune
+  git checkout --no-track -b ui/m8-h03-device-risk origin/main
   git grep -c "contractVersion = '⟦1.17.0⟧'" -- packages/domain_contracts/lib/src/contract_version.dart   ← ⟦실측⟧
   git grep -c "Stream<DeviceRiskVm> watchDeviceRisk();" -- packages/domain_contracts/lib/src/repositories/ops_repository.dart   ← ⟦v1.17⟧ «…:1»
   git grep -c "Stream<DeviceRiskVm> watchDeviceRisk()" -- packages/domain_contracts/lib/testing.dart   ← ⟦v1.17 받침대 UnimplementedOpsStatusRepository⟧ «…:1»
-  git grep -c "abstract class DeviceRiskVm" -- packages/domain_contracts/lib · git grep -c "abstract class DeviceRiskItem" -- packages/domain_contracts/lib   ← ⟦v1.17⟧ 각 «…:1»
+  git grep -c "abstract class DeviceRiskVm" -- packages/domain_contracts/lib   ← ⟦v1.17⟧ «…:1»
+  git grep -c "abstract class DeviceRiskItem" -- packages/domain_contracts/lib   ← ⟦v1.17⟧ «…:1»
   git grep -c "static const String m8DeviceRiskItems =" -- packages/domain_contracts/lib/src/fixtures/fixture_paths.dart   ← ⟦v1.17⟧ «…:1»
   git grep -c "class HandbookContents" -- packages/ui_shell/lib/src/handbook/handbook_contents.dart   ← «…:1»(R16b 병합)
   git grep -c "class WatchdogBoard" -- packages/ui_shell/lib/src/watchdog_board.dart   ← «…:1»(R14b · 읽기만 · 꼴 본보기)
   git grep -c "판 v2" -- docs/ai-context/prompt_M8.md
-  ls docs/ai-context/send/R16c-Bob-H03.md · ls docs/ai-context/inbox/H03_questions.md · ls packages/domain_contracts/fixtures/m8/device_risk_items.json · device_risk_empty.json   ← 전부 보여야 함
+  ls docs/ai-context/send/R16c-Bob-H03.md
+  ls docs/ai-context/inbox/H03_questions.md
+  ls packages/domain_contracts/fixtures/m8/device_risk_items.json   ← ⟦v1.17⟧
+  ls packages/domain_contracts/fixtures/m8/device_risk_empty.json   ← ⟦v1.17⟧
   반대(없어야 함): ls packages/ui_shell/lib/src/device_risk_board.dart
-  melos.bat bootstrap → melos.bat run build:gen → cd packages/ui_shell → flutter test ← 시작 기준 «⟦실측: R16b 병합본⟧: All tests passed!» → cd ../..
+  melos.bat bootstrap → melos.bat run build:gen → cd packages/ui_shell → flutter test ← 시작 기준 «⟦실측: R16b 병합본 — 앞 카드 병합 기록 때 채움 · 드라이런 기대 +454⟧: All tests passed!» → cd ../..
 
 ■ 계약 v1.17 이름표 — R16c 몫(⟦v1.17⟧)
   🆕 DeviceRiskItem({required String label, required String currentText, required String thresholdText, required String actionText, required String lastCheckedText, required UiLevel level})
   🆕 DeviceRiskVm({required List<DeviceRiskItem> rows, required String guidanceText, String? emptyLabel, required AsOf asOf}) · OpsStatusRepository += Stream<DeviceRiskVm> watchDeviceRisk()(받침대 7메서드)
-  FixturePaths  m8DeviceRiskItems(rows 4 — 등급 섞임 · emptyLabel null) · m8DeviceRiskEmpty(rows 0 · emptyLabel non-null)
+  FixturePaths  m8DeviceRiskItems(rows 5 — 🆕 등급 5값 전수(ok · info · watch · act · blocked) · 항목 이름 = M2 원고 · emptyLabel null · 오래됨 표본(staleLabel) 있음) · m8DeviceRiskEmpty(rows 0 · emptyLabel non-null)
   🔴 쓰지 않는 것: watchWatchdog · watchDiagnostics · watchBackup(다른 화면) · SettingsActions · AppRoutes.opsDeviceRisk(링크 = 데이터) · Platform·kIsWeb.
 
 ■ 규칙 요약(이 카드 고유 — 나머지 = 펼침)
@@ -69,31 +76,39 @@ R16c-Bob-H03 — 범위: H-03 물리 리스크 점검 상세(DeviceRiskBoard() �
  ⑪ 127~128행 → ui/m8-h03-device-risk · «[M8] H-03 물리 리스크 점검» ⑫ 169~171행 «홈 블록 구성» → 홈(블록 9) = 이 카드 밖 ⑬ 172~182행 → ■ 제출 ② 상자 + 괄호
 
 ■ 화면 — H-03: ListView(padding: EdgeInsets.zero)[ ShellAsOfHeader(key: const Key('h03-asof'), asOf: vm.asOf) → (stale) ShellStaleBanner(key: const Key('h03-stale'), asOf: vm.asOf) →
-   for (i, r) in rows.indexed Padding(key: ValueKey<String>('h03-row-$i'), Row(crossAxisAlignment: start)[ Icon(_levelLook(r.level).$1, key: ValueKey<String>('h03-level-$i'), size: 24, color: _levelLook(r.level).$2) · SizedBox(width: 12) ·
+   for (i, r) in rows.indexed Padding(key: ValueKey<String>('h03-row-$i'), Row(crossAxisAlignment: start)[ Icon(_levelLook(cs, r.level).$1, key: ValueKey<String>('h03-level-$i'), size: 24, color: _levelLook(cs, r.level).$2) · SizedBox(width: 12) ·
      Expanded(Column(crossAxisAlignment: start)[ Text(r.label) · Text(r.currentText) · Text(r.thresholdText) · Text(r.actionText) · Text(r.lastCheckedText) ]) ]) → (emptyLabel) Padding(key: const Key('h03-empty'), Text(empty)) → Padding(key: const Key('h03-guidance'), Text(guidanceText)) ]
- Row 정렬 = start · 아이콘 크기 = 24 · 여백 = 재량.
-■ Key 표 (h03- 8 — ⟦실측⟧) — h03-loading · h03-fail · h03-asof · h03-stale · h03-row-$i · h03-level-$i · h03-empty · h03-guidance
+ Row 정렬 = start · 아이콘 크기 = 24 · 여백 = 재량 · final ColorScheme cs = Theme.of(context).colorScheme; · _levelLook(ColorScheme cs, UiLevel l) 꼴(W-01 _checkLook 선례 · 드라이런).
+ ■ 상태 표 — hasError → ShellErrorView(key: const Key('h03-fail'), onRetry: () { ref.invalidate(_deviceRiskProvider); }, lastAsOfLabel: risk.valueOrNull?.asOf.label) · 값 전 → const ShellSkeleton(key: Key('h03-loading')) · 값 → 위 나무(W-01 꼴 · 드라이런).
+■ Key 표 (h03- 8 — ✅ 드라이런 8) — h03-loading · h03-fail · h03-asof · h03-stale · h03-row-$i · h03-level-$i · h03-empty · h03-guidance
 ■ 할 일 — (1) lib 한 파일 + 배럴 «[M8] R16c (1) H-03 화면» (2) fakes + 테스트 «[M8] R16c (2) H-03 테스트» (3) 골든 «[M8] R16c (3) 골든 h03_* 4장» (4) «[M8] R16c (4) format · 질문» · 커밋 제목 = 내용(C4r15c-3).
 ■ 정적 라벨 — 0개(🔴 «정확히» 37).
 
-■ 테스트 최소 목록 (계획 — ⟦실측⟧)
- 공통: test/shell_fakes.dart 끝 절 «// ── R16c — H-03 fakes ──» = class FakeShellDeviceRiskRepository extends UnimplementedOpsStatusRepository(deviceRisk 공장 · deviceRiskCalls) · deviceRiskOverrides({ops, clock}) · pumpDeviceRiskBoard · deviceRiskAllowed(DeviceRiskVm v).
+■ 테스트 최소 목록 (✅ 드라이런 — 수 = 실측)
+ 공통: test/shell_fakes.dart 끝 절 «// ── R16c — H-03 fakes ──» = class FakeShellDeviceRiskRepository extends UnimplementedOpsStatusRepository(deviceRisk 공장 · deviceRiskCalls) · deviceRiskOverrides({ops, clock}) · deviceRiskAllowed(DeviceRiskVm v) ·
+   pumpDeviceRiskBoard(tester, {required overrides}) = 기존 R16a _pumpIncidentBody(tester, overrides: overrides, body: const DeviceRiskBoard()) 재사용(같은 파일 private · 기존 줄 수정 0 — 끝 절 더하기만 · 드라이런 shell_fakes 48/0).
  H-03 — test/device_risk_board_test.dart(줄 8 · 테스트 12 계획)
- H03-01 행 차례·글자(items · ⓗ expect(items.rows, hasLength(4))) → 행마다 shownTexts(h03-row-$i) == [label, currentText, thresholdText, actionText, lastCheckedText] · 맨 아래 h03-guidance == [guidanceText] · h03-empty findsNothing · ⓡ.
- H03-02 등급 → 아이콘·색(행마다 · 표본이 가진 등급마다 — C4r15c-2 · 전제 = 등급 둘 이상 섞임 // pre) → Key('h03-level-$i') icon · color == wantLevel(cs, level) · ⓡ.
+ H03-01 행 차례·글자(items · ⓗ expect(items.rows, hasLength(5))) → 행마다 shownTexts(h03-row-$i) == [label, currentText, thresholdText, actionText, lastCheckedText] · 사슬 dy h03-asof → h03-row-0 … h03-row-4 → h03-guidance · ValueKey<String>('h03-row-5') findsNothing(받은 수 뒤 행 0) · 맨 아래 h03-guidance == [guidanceText] · h03-empty findsNothing · ⓡ.
+ H03-02 등급 → 아이콘·색(🔴 테스트 하나 · 행 루프 — 경우 for 아님 · 표본 5행 = 등급 5값 — C4r15c-2 · 전제 = 등급 둘 이상 섞임 // pre) → 행마다 ValueKey<String>('h03-level-$i') icon · color == wantLevel(cs, level) · ⓡ.
  H03-03 빈 = emptyLabel(데이터 · empty · 전제 둘(rows isEmpty · emptyLabel isNotNull // pre) · h03-row-0 findsNothing · 양성 기준점 h03-empty · h03-guidance 그대로) · ⓡ.
  H03-04 asOf 머리 · 오래됨 두 경우(fresh = h03-stale findsNothing(양성 기준점 h03-asof) · stale = clock 을 staleAfter 너머로 → h03-stale findsOneWidget) · ⓡ.
- H03-05 조작 버튼 0 · 버튼 수 = 0(C4r15d-1 · ButtonStyleButton findsNothing · 두 경우 items · empty) · ⓡ.
+ H03-05 조작 버튼 0 · 버튼 수 = 0(C4r15d-1 · ButtonStyleButton findsNothing · IconButton findsNothing · 🆕 InkWell findsNothing(이 화면에 탭 자리 0 — 드라이런: 킬스위치를 InkWell + 아이콘으로 지은 변이를 뷰 테스트가 잡음) · 두 경우 items · empty) · ⓡ.
  H03-06 상태 갈래 두 경우 · H03-07 재시도 · ⓡ · H03-08 화면 Text 전부 · 큰 글꼴 두 경우 · ⓡ.
-🔴 예고 변이: 행 하나 빼기 · 뒤집기 · 등급 아이콘 고정(아이콘 · 색) · 다섯 칸 중 하나 빼기 · 안내 빼기·위로 · 빈 문장 대신 정적 글자 · 오래됨 배너 빼기·늘 그리기 · 조작 버튼 더하기(엔진 글자 재사용) · 임계 비교로 색 고르기 · 에러를 스켈레톤 · 재시도 invalidate 0 · 🔵 참고 = ⟦실측⟧.
+🔴 예고 변이: 행 하나 빼기 · 뒤집기 · 등급 아이콘 고정(아이콘 · 색) · 다섯 칸 중 하나 빼기 · 안내 빼기·위로 · 빈 문장 대신 정적 글자 · 오래됨 배너 빼기·늘 그리기 · 조작 버튼 더하기(엔진 글자 재사용) · 임계 비교로 색 고르기 · 에러를 스켈레톤 · 재시도 invalidate 0 ·
+   🔵 참고(드라이런 3번째 · 12꼴) — 정적만 잡는 셋: 항목 이름 하드코딩(T17·T23) · 빈 문장을 행 수로(T11 `.isEmpty`) · 안내 탭에 링크(S05·T04·T07) · 나머지 KILLED(🆕 blocked 모양 맞바꿈 = 표본 5행 · 킬스위치 InkWell = H03-05).
 
-■ 정적 묶음 — ⟦펼침: R16a 37줄 꼴을 이 카드 파일·수로(T06 = watchDeviceRisk 1 · T08·T10·T12·T28 = 비움 · T09 = UiLevel 5 · 🔴 T13 «37» · T14 «23» · T15 «23»(정확히 — 무변경) · T29 = ui_shell.dart · shell_fakes.dart 둘째 수 0 · shell_providers.dart · ops_home.dart · routing 줄 0 · T33 4줄 A · 🔴 T37 «92»(정확히)) · 꺼내기 범위·해시 = 승격 때 잼⟧
+■ 정적 묶음 — ⟦펼침: R16a 37줄 꼴을 이 카드 파일·수로(T06 = watchDeviceRisk 1 · T08·T10·T12·T28 = 비움(EXIT:1) · T09 = UiLevel 5 · S05 = 0줄(EXIT:1) ·
+   🔴 T07 = SettingsActions|CommandApi|watchWatchdog|watchConnections|watchDeviceAccess|watchBackup|watchDiagnostics|watchAnnualReview|shellLinkOpenerProvider|Platform|kIsWeb(R16a 글자의 OpsStatusRepository 는 뺀다 — 이 화면이 그 창구를 정당하게 읽어 0 기대가 깨진다 · 드라이런) ·
+   T11 += Platform|kIsWeb|setState|\.compareTo · T23 += 저장공간|배터리|로그 정리|백업 실행 · 🔴 T13 «37» · T14 «23» · T15 «23»(정확히 — 머리에 수) · T29 = ui_shell.dart 1 0 · shell_fakes.dart 48 0(드라이런) · shell_providers.dart · ops_home.dart · routing 줄 0 ·
+   T33 4줄 A · 🔴 T37 «92»(정확히 · 총수 — git ls-files test/golden/goldens/*.png) · 드라이런 기대 출력 147줄 · EXIT:1 24 · EXIT:0 13) · 꺼내기 범위·해시 = 승격 때 잼⟧
 ■ 골든 — 2이름 × light/dark = 4장(크기 kGoldenPhoneSize · 시계 = FixedClock(kGoldenNowUtc) · 높이 확장 ⓐ~ⓔ = R16a 글자)
     이름         입력     흐름    맨 아래 Key            머리 Key
-    h03_items    items    없음    Key('h03-guidance')    Key('h03-asof')
-    h03_empty    empty    없음    Key('h03-guidance')    Key('h03-asof')
+    h03_items    items    없음    Key('h03-guidance')    Key('h03-asof')    dy 784.0(반영판 5행)
+    h03_empty    empty    없음    Key('h03-guidance')    Key('h03-asof')    dy 196.0
+  (dy = 드라이런 기대 · light = dark · 머리 dy 0.0 · 셈 단위 견본(light) = h03_items «글자 1줄 → 아이콘 · 글자 5줄 → 아이콘 · 글자 5줄 → 아이콘 · 글자 6줄 → 아이콘 · 글자 6줄 → 아이콘 · 글자 5줄 → 글자 3줄 — 잘림 없음» · h03_empty «글자 1줄 → 글자 2줄 → 글자 3줄 — 잘림 없음»)
 ■ 질문 파일 — H03_questions.md · 접두 «H-03:» · 측정 행 상자 2줄(A1 h03_items · A2 h03_empty · 꼴 = R16a 상자 글자 그대로 · ⟦펼침⟧).
-■ 제출 — ⟦펼침: R16b 판 ■ 제출 글자를 이 카드로(사전검사 ② = h03_ --goldens 4 · ① 머리 «화면 ID: H-03 — 물리 리스크 점검 상세(DeviceRiskBoard())» · ② 괄호 10줄 · ③ 견본(«H-03 정상» · «H-03 로딩·에러») · 끝 = N + ⟦실측: 16⟧)⟧
+■ 제출 — ⟦펼침: R16b 판 ■ 제출 글자를 이 카드로(사전검사 ② = h03_ --goldens 4 · ① 머리 «화면 ID: H-03 — 물리 리스크 점검 상세(DeviceRiskBoard())» · ② 괄호 10줄 · ③ 견본(«H-03 정상» · «H-03 로딩·에러») · S05 결과 = 정확히 «없음» ·
+   파일별 끝 줄(드라이런 기대) = board «+12» · h03 «+4» · 끝 = N + 16 · name-status 10줄 · 커밋 4줄 · 🟡 기대 h03_ 1(h03_items «덩어리로 셀 수 없어 대조하지 않았다»))⟧
 ````
 
 ---
