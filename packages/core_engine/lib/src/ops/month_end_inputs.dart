@@ -247,7 +247,8 @@ class MonthEndRun {
 /// 원장 보유 · 종가 글자 · 계좌 현금 → 상태 → 계획 → 대상(R48 P4~P7).
 ///
 /// [closeTexts] = 월말 원가 종가 글자 · [cashAccounts] = 계좌 별칭 → 브로커(🔴 `orderableCashKrw` = D+2) ·
-/// [pensionRows] · [pensionAlias] · [pensionOutsideText] = 연금 한도 사용액 계산 입력.
+/// [pensionRows] · [pensionAlias] · [pensionOutsideText] = 연금 한도 사용액 계산 입력 · [potCashText] = POT 현금(🆕 E11f3 —
+/// 체결에서 다시 센 값 · 음수 = 실패) · 예약 원화 = 0(S7 · R49).
 /// 종가 · 귀속 · 현금 조회 실패 = [MonthEndInputError](금액 0).
 Future<MonthEndRun> computeMonthEndRun({
   required TradeDate monthEnd,
@@ -265,11 +266,16 @@ Future<MonthEndRun> computeMonthEndRun({
   required String parkingSymbol,
   required Map<String, InstrumentKind> instruments,
   String pensionOutsideText = '0',
+  String potCashText = '0',
 }) async {
   if (cashAccounts.isEmpty) throw ArgumentError('현금 계좌가 없다');
   final Decimal? outside = Decimal.tryParse(pensionOutsideText);
   if (outside == null || outside < Decimal.zero) {
     throw ArgumentError.value(pensionOutsideText, 'pensionOutsideText');
+  }
+  final Decimal? pot = Decimal.tryParse(potCashText);
+  if (pot == null || pot < Decimal.zero) {
+    throw MonthEndInputError('POT 현금이 음수거나 숫자가 아니다');
   }
   Decimal cash = Decimal.zero;
   for (final String a in cashAccounts.keys.toList()..sort()) {
@@ -287,7 +293,7 @@ Future<MonthEndRun> computeMonthEndRun({
     holdings: holdings,
     closes: closes,
     cashKrw: cash,
-    potCash: Decimal.zero,
+    potCash: pot,
     reservedKrw: Decimal.zero,
     pensionUsedThisYear: pensionUsedInYear(
       pensionRows,

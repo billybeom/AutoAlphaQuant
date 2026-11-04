@@ -1,7 +1,7 @@
 // `monthly_rebalance` 본체 · 계획 보관 · StoredPlanTargetSource(설계 13 §8 R48 P1~P10).
 //
 // 🔵 잡는 것: ① 한 트랜잭션 저장(plan_snapshot REBALANCE · rebalance_event · decision_log) · 집행 첫날 · 만료 · 램프 달
-//    ② 멱등(다시 = 아무것도 안 바꿈) ③ 🔴 국면 준비 안 됨 · POT 보유 · 귀속 불가 · 현금 실패 = 쓰지 않고 실패
+//    ② 멱등(다시 = 아무것도 안 바꿈) ③ 🔴 국면 준비 안 됨 · 귀속 불가 · 현금 실패 = 쓰지 않고 실패 · 🆕 POT 현금 = 체결 재계산
 //    ④ 보유 → 상태(원가 종가) ⑤ TargetSource = 집행 첫날 ≤ 오늘 < 만료 · 낸 대상 걸러냄.
 // 🔵 국면 = 시드 묶음(기준일 2026-08-14) — 월말 2026-07-31(금 · 미국 세션 있음 · 시드 안) · 다음 KR 세션 08-03(월).
 
@@ -246,59 +246,78 @@ void main() {
   });
 
   test(
-    '🔴 POT 보유 · 귀속 불가 · 현금 실패 = 실패 · 아무것도 안 씀 · 월말 아님 = ArgumentError',
+    '🆕 POT 보유 = POT 자산 · POT 현금 = 체결에서 다시 셈(E11f3 · R49 Q6) · C 원화 = 현금 − POT',
     () async {
-      for (final (MonthlyRebalanceJob j, String why)
-          in <(MonthlyRebalanceJob, String)>[
-            (
-              job(
-                held: const <LedgerHolding>[
-                  LedgerHolding('P0S_POT', '133690', 1),
-                ],
-              ),
-              'POT 보유 — 계절 A 전: 133690',
-            ),
-            (
-              job(
-                held: const <LedgerHolding>[
-                  LedgerHolding('P0S_X', '133690', 1),
-                ],
-              ),
-              '귀속 불가 보유: P0S_X 133690',
-            ),
-            (
-              job(
-                cash: <String, OrderBroker>{
-                  'isa': FakeOrderBroker(cashError: StateError('끊김')),
-                },
-              ),
-              '현금 조회 실패: isa',
-            ),
-          ]) {
-        await expectLater(
-          j.run(_me),
-          throwsA(
-            isA<MonthlyRebalanceError>().having(
-              (MonthlyRebalanceError e) => e.reason,
-              'r',
-              why,
-            ),
-          ),
-        );
-      }
-      for (final String t in <String>[
-        'plan_snapshot',
-        'rebalance_event',
-        'decision_log',
-      ]) {
-        expect(_count(db, t), 0, reason: t);
-      }
-      await expectLater(
-        job().run(const TradeDate('2026-07-30')),
-        throwsArgumentError,
+      // 계절 A 청산 판정이 없으니 처음부터 센다 — SEAS-A-OUT 매도 순대금 1,000,000 − 30.
+      db.execute(
+        'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
+        "decision_id, symbol, side, order_type, quantity, status, config_hash, updated_at, mode) VALUES ('i1', 'k1', 'x', "
+        "'2026-04-28', 'KR', 'main', 'P0S_A', 'SEAS-A-OUT-2026-04-30@2026-04-28', '229200', 'SELL', 'LIMIT', 100, 'FILLED', 'c', 'x', 'LIVE')",
       );
+      db.execute(
+        "INSERT INTO broker_orders(broker_order_no, intent_id, submitted_at, status) VALUES ('b1', 'i1', 'x', 'FILLED')",
+      );
+      db.execute(
+        'INSERT INTO executions(execution_id, broker_order_no, executed_at, quantity, price, commission, tax) '
+        "VALUES ('e1', 'b1', '2026-04-28T01:00:00Z', 100, 10000, 30, 0)",
+      );
+      await job(
+        held: const <LedgerHolding>[LedgerHolding('P0S_POT', '133690', 1)],
+      ).run(_me);
+      final Map<String, Object?> inputs = jsonDecode(
+        db.select('SELECT inputs FROM plan_snapshot').single['inputs']
+            as String,
+      ) as Map<String, Object?>;
+      expect(inputs['pot_cash'], '999970');
+      expect(
+        (inputs['pot_assets']! as Map<String, Object?>)['133690'],
+        '120000',
+      );
+      expect(inputs['krw_cash'], '9000030');
     },
   );
+
+  test('🔴 귀속 불가 · 현금 실패 = 실패 · 아무것도 안 씀 · 월말 아님 = ArgumentError', () async {
+    for (final (MonthlyRebalanceJob j, String why)
+        in <(MonthlyRebalanceJob, String)>[
+          (
+            job(
+              held: const <LedgerHolding>[LedgerHolding('P0S_X', '133690', 1)],
+            ),
+            '귀속 불가 보유: P0S_X 133690',
+          ),
+          (
+            job(
+              cash: <String, OrderBroker>{
+                'isa': FakeOrderBroker(cashError: StateError('끊김')),
+              },
+            ),
+            '현금 조회 실패: isa',
+          ),
+        ]) {
+      await expectLater(
+        j.run(_me),
+        throwsA(
+          isA<MonthlyRebalanceError>().having(
+            (MonthlyRebalanceError e) => e.reason,
+            'r',
+            why,
+          ),
+        ),
+      );
+    }
+    for (final String t in <String>[
+      'plan_snapshot',
+      'rebalance_event',
+      'decision_log',
+    ]) {
+      expect(_count(db, t), 0, reason: t);
+    }
+    await expectLater(
+      job().run(const TradeDate('2026-07-30')),
+      throwsArgumentError,
+    );
+  });
 
   group('StoredPlanTargetSource(P8)', () {
     test('계획 없음 · 집행 첫날 전 · 만료 = 빈 목록 · 집행 첫날 ~ 만료 전 = 대상', () async {
