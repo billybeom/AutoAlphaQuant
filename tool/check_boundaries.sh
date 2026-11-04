@@ -20,6 +20,12 @@
 #              (조립 앱 배선 때 더한다 · 번호만 잡아 둔다)
 #   [7] 🔴 실패: viewer 조립 앱(apps/app_viewer_*/lib)이 `package:ui_analytics/planner.dart` 를
 #              import 하는가 (🆕 계약 v1.4 · 01 §14-1 · docs/TARGETS.md T-4)
+#   [8] 🔴 실패: viewer 조립 앱(apps/app_viewer_*)의 **전이 의존 그래프**(pubspec `dependencies:` 의 `path:` 를
+#              재귀로 따라감 · dev_dependencies 제외)에 core_engine · broker_gateway · trading_runtime · data_sync ·
+#              sqlite3 가 있는가 (🆕 설계 13 §8 R53 I3 · 지도 D1 · 01 §1-1 · docs/TARGETS.md)
+#   [9] 🔴 실패: read_model_client(뷰어 전용 읽기 패키지)의 pubspec 직접 의존 · lib/ import 에 엔진 · 주문 · 원장 ·
+#              decimal · flutter 가 있는가 (🆕 설계 13 §8 R53 I3)
+#   🔵 [8][9] 자가 시험 = tool/check_boundaries_selftest.sh(저장소 사본에 경우를 꾸며 돌린다 · 손으로 · R53 I6)
 #
 # 왜 있나: 위반이 「잘못된 화면」이 아니라 「빌드 실패」로 나타나야 리뷰가
 #   병목이 되지 않는다(청사진 §9-2 · 00_README §5 · 01 §7 C-3/C-5).
@@ -246,6 +252,69 @@ for app in apps/app_viewer_*; do
     printf '     %s\n' "$hits" | head -20
   fi
 done
+
+# ── [8] viewer 전이 의존 그래프 (🆕 설계 13 §8 R53 I3 · 지도 D1 · 01 §1-1) ─────────────────
+# 🔴 viewer 에는 엔진 · 주문 · 원장 코드가 «컴파일되지 않아야» 한다 — 직접 의존만 보면 data_sync → core_engine
+#    같은 전이 통로를 놓친다(지도 X1). pubspec 의 `dependencies:` 블록만 읽고(dev 제외) `path:` 를 재귀로 따라간다.
+#    CI 잡에 SDK 가 없어 pub 해석기를 쓰지 않는다 — 호스티드 의존은 이름만 본다(그 아래는 저장소 밖).
+VIEWER_FORBIDDEN_RE='^(core_engine|broker_gateway|trading_runtime|data_sync|sqlite3)([A-Za-z0-9_]*)$'
+pubspec_deps() {  # $1 = pubspec.yaml → 줄마다 «N 이름» 또는 «P 이름 경로»
+  awk '
+    /^dependencies:[[:space:]]*$/ { inb = 1; next }
+    /^[^[:space:]#]/ { inb = 0 }
+    inb && /^  [A-Za-z0-9_]+:/ { n = $1; sub(/:.*/, "", n); print "N " n; cur = n; next }
+    inb && /^    path:[[:space:]]*/ { p = $2; print "P " cur " " p }
+  ' "$1"
+}
+declare -A GRAPH_SEEN
+graph_walk() {  # $1 = 패키지 폴더(절대) → 줄마다 «의존이름 들여온패키지»
+  local dir="$1" kind a b sub
+  [ -f "$dir/pubspec.yaml" ] || return 0
+  while read -r kind a b; do
+    if [ "$kind" = "N" ]; then
+      printf '%s %s\n' "$a" "$(basename "$dir")"
+    elif [ "$kind" = "P" ]; then
+      sub="$(cd "$dir/$b" 2>/dev/null && pwd)" || continue
+      if [ -z "${GRAPH_SEEN[$sub]:-}" ]; then
+        GRAPH_SEEN[$sub]=1
+        graph_walk "$sub"
+      fi
+    fi
+  done < <(pubspec_deps "$dir/pubspec.yaml")
+}
+for app in apps/app_viewer_*; do
+  [ -f "$app/pubspec.yaml" ] || continue
+  GRAPH_SEEN=()
+  abs="$(cd "$app" && pwd)"
+  GRAPH_SEEN[$abs]=1
+  hits=$(graph_walk "$abs" | awk -v re="$VIEWER_FORBIDDEN_RE" '$1 ~ re { print $1 " ← " $2 }' | sort -u || true)
+  if [ -n "$hits" ]; then
+    fail "[8] $(basename "$app"): viewer 의 전이 의존 그래프에 엔진 · 주문 · 원장 패키지가 있다 — viewer 는 read_model_client 로만 읽는다(01 §1-1 · 설계 13 §8 R53):"
+    printf '     %s\n' "$hits" | head -20
+  fi
+done
+
+# ── [9] read_model_client 금지 의존 · import (🆕 설계 13 §8 R53 I3) ─────────────────────
+RMC=packages/read_model_client
+RMC_FORBIDDEN='core_engine|broker_gateway|trading_runtime|data_sync|sqlite3|decimal|flutter'
+if [ -f "$RMC/pubspec.yaml" ]; then
+  hits=$(pubspec_deps "$RMC/pubspec.yaml" | awk -v re="^($RMC_FORBIDDEN)([A-Za-z0-9_]*)$" '$1 == "N" && $2 ~ re { print $2 }' || true)
+  if [ -n "$hits" ]; then
+    fail "[9] read_model_client: pubspec dependencies 에 금지 패키지가 있다(01 §1-1):"
+    printf '     %s\n' "$hits" | head -20
+  fi
+  if [ -d "$RMC/lib" ]; then
+    hits=$(grep -rnE "['\"]package:($RMC_FORBIDDEN)[A-Za-z0-9_]*/" "$RMC/lib" 2>/dev/null \
+           | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|///|\*)' \
+           || true)
+    if [ -n "$hits" ]; then
+      fail "[9] read_model_client: lib/ 가 금지 패키지를 import 한다(01 §1-1):"
+      printf '     %s\n' "$hits" | head -20
+    fi
+  fi
+else
+  fail "[9] packages/read_model_client 가 없다 — viewer 의 유일한 읽기 통로다(설계 13 §8 R53)"
+fi
 
 # ── 결과 ────────────────────────────────────────────────────────────────────
 say "──"

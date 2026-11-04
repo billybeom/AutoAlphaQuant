@@ -1,0 +1,24 @@
+name: read_model_client
+description: >-
+  AutoAlphaQuant 뷰어 전용 읽기 패키지(M4-7 · M4-8 · 설계 13 §8 R53). 읽기 모델 행을 읽고
+  스키마 버전 게이트를 판정한다. 엔진 · 주문 · 원장 코드가 없는 것이 사양이다.
+publish_to: none
+version: 0.1.0
+
+environment:
+  # ✅ 저장소 pubspec 이 같은 값이다(SETUP §4-6) — 한 곳만 다르면 해석이 조용히 갈린다.
+  sdk: ^3.13.0
+
+# 🔴 이 목록에 `core_engine` · `broker_gateway` · `trading_runtime` · `data_sync` · `sqlite3` · `decimal` ·
+#    `flutter` 가 **없는 것이 사양**이다(01 §1-1 · tool/check_boundaries.sh [9]). viewer 앱은 이 패키지로만
+#    읽기 모델에 닿는다 — 원장 쓰기 · 주문은 이 빌드에 «컴파일되지 않는다».
+# 🔵 Supabase 순수 Dart 클라이언트는 그것을 쓰는 조각(E11l2 읽는 쪽 · E11m 명령 INSERT) 때 넣는다(지도 D2).
+# 🔴 알파벳 순서를 지킬 것 — sort_pub_dependencies + --fatal-infos.
+dependencies:
+  domain_contracts:
+    path: ../domain_contracts
+
+dev_dependencies:
+  # ⚠️ 루트 analysis_options.yaml 의 package: include 해석용(Flutter 를 끌어오지 않는다).
+  flutter_lints: ^5.0.0
+  test: ^1.25.0
