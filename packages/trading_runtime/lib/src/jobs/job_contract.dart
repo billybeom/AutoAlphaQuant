@@ -9,36 +9,11 @@
 // 🆕 E11b(R43 B7) — 달력은 시장별(`calendar`) · 세션일 함수(`us_data` = KST 날 − 1) · 회차 `rid`(start · 끝 핑이 같은 값 —
 //    바깥이 한 회차의 시작과 끝을 짝짓는다 · 결정적 UUID 꼴).
 
-import 'package:core_engine/core_engine.dart' show ExchangeCalendar;
+import 'package:core_engine/core_engine.dart'
+    show ExchangeCalendar, JobHeartbeat, PingStatus;
 import 'package:domain_contracts/domain_contracts.dart';
 
-/// 핑 상태(01 §10 · 04 §5-2).
-enum PingStatus {
-  /// 시작.
-  start('start'),
-
-  /// 성공(휴장 포함).
-  success('success'),
-
-  /// 실패.
-  fail('fail');
-
-  const PingStatus(this.wire);
-
-  /// 전송 표기.
-  final String wire;
-}
-
-/// 하트비트 포트 — 구현 = healthchecks.io 어댑터(M1-12 · E11 다음 조각) · 시험 기록기.
-abstract interface class JobHeartbeat {
-  /// [check] 에 [status] 를 보낸다(실패하면 예외 — 잡은 세기만 한다). [rid] = 회차 id(start · 끝이 같다).
-  Future<void> ping(
-    String check,
-    PingStatus status, {
-    String? note,
-    String? rid,
-  });
-}
+// 🆕 E11c(R45 C1) — [PingStatus] · [JobHeartbeat] 는 core_engine `ops/watchdog_ports.dart` 로 옮겼다(배럴이 다시 내보낸다).
 
 /// 알림 포트 — 엔진이 정한 코드만 넘긴다(등급 · 발송은 받는 쪽 · M5 · E13).
 abstract interface class AlertSink {

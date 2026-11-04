@@ -10,6 +10,7 @@
 // 🔵 E9-0 — 로컬 정본 SQLite 연결(`package:sqlite3`) · 🆕 E9c — 스키마 v1 · 두 파일 열기 · 🆕 E7b1 — 계획 스냅샷 저장소.
 // 🆕 E8c — 시세·지표 저장(`daily_prices`·`market_series`) · 국면 행 · 결측 · 수집 기록 · 동결 번들 시드 · FRED·OFR 수집.
 // 🆕 E8d2b — 일봉 시세 수집(`QuoteCollector` — core_engine 포트만 안다 · KIS 구현은 잡이 넣는다 · 끝난 세션만).
+// 🆕 E11c — healthchecks 어댑터(`HealthchecksClient` = core `JobHeartbeat` · `WatchdogRemote` 구현 · 설계 13 §8 R45).
 // 🆕 E11d — 시크릿 스캔(정확 값 · 접두 · 시크릿 필드 · 8자리 숫자 패턴 없음). 금고 포트 · 마스킹은 core_engine `security/`.
 
 export 'src/local/deposit_ledger.dart';
@@ -31,3 +32,4 @@ export 'src/market/seed_bundle.dart';
 export 'src/market/series_clients.dart';
 // 🆕 E11d — 시크릿 스캔 게이트(설계 13 §8 R44 E7 · 06 M4-6).
 export 'src/security/secret_scan.dart';
+export 'src/watchdog/healthchecks_client.dart';
