@@ -106,6 +106,28 @@ void main() {
         FixturePaths.m8PairingWaiting,
         FixturePaths.m8PairingOk,
         FixturePaths.m8PairingFail,
+        // 🆕 v1.17(01 §26) — 배너 6 · 런북 4 · 카드 2 · 핸드북 6 · 기기 2 · 알림 1.
+        FixturePaths.m8IncidentBannerTokenExpired,
+        FixturePaths.m8IncidentBannerOrderRejected,
+        FixturePaths.m8IncidentBannerNetworkDown,
+        FixturePaths.m8IncidentBannerPhoneDown,
+        FixturePaths.m8IncidentBannerOther,
+        FixturePaths.m8IncidentBannerNone,
+        FixturePaths.m8RunbookIndex,
+        FixturePaths.m8RunbookIndexEmpty,
+        FixturePaths.m8RunbookHostLost,
+        FixturePaths.m8RunbookMissing,
+        FixturePaths.m8EmergencyCard,
+        FixturePaths.m8EmergencyCardNoPrint,
+        FixturePaths.m8HandbookIndex,
+        FixturePaths.m8HandbookIndexOutdated,
+        FixturePaths.m8HandbookPageSleeveB,
+        FixturePaths.m8HandbookPageOutdated,
+        FixturePaths.m8HandbookPageMissing,
+        FixturePaths.m8HandbookPageArchived,
+        FixturePaths.m8DeviceRiskItems,
+        FixturePaths.m8DeviceRiskEmpty,
+        FixturePaths.m8AlertsStaleOrdersHeld,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {

@@ -68,7 +68,7 @@ const Map<String, String> _engineLevel = <String, String>{
   'ADVICE_EXIT_URGENT': 'P0',
   'ADVICE_REVOKED': 'P0',
   'ADVICE_SUPPRESSED': 'P0',
-  // P1 12
+  // P1 13
   'ORDER_REJECTED': 'P1',
   'REBALANCE_D1': 'P1',
   'WATCHDOG_LATE': 'P1',
@@ -81,6 +81,8 @@ const Map<String, String> _engineLevel = <String, String>{
   'MANUAL_FILL_REJECTED': 'P1',
   'HANDOVER_COOLING_ACTIVE': 'P1',
   'HANDOVER_COMMITTED': 'P1',
+  // 🆕 v1.17(엔진 D11) — 04_안전장치 §3-1 ③ 5 «P1 알림» 글자 · §5-3 표 등재 = 엔진 다음 SPEC 판(06 변경 이력).
+  'STALE_ORDERS_HELD': 'P1',
   // P2 5
   'REBALANCE_D7': 'P2',
   'DEPOSIT_REMINDER': 'P2',
@@ -521,7 +523,7 @@ void main() {
       for (final String v in _engineLevel.values) {
         count[v] = count[v]! + 1;
       }
-      expect(count, <String, int>{'P0': 7, 'P1': 12, 'P2': 5});
+      expect(count, <String, int>{'P0': 7, 'P1': 13, 'P2': 5});
       int seen = 0;
       final List<String> bad = <String>[];
       for (final String path in FixturePaths.all) {

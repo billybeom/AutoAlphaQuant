@@ -27,6 +27,9 @@
 //   `detail_deep_link` · `decisionLink`·`actionLink`·`resumeLine`·`resolveLink`·`nextAccountLink`·요약 링크 2 =
 //   `LinkAction` 안쪽 `deep_link`) · 옛 꼴 링크 7곳(알림·다이제스트·리듬·안전 상태 `clear_deep_link`)은 픽스처에서
 //   고쳤다 — 옛 꼴은 이제 미등록이다(④ 의 ✗ 예시).
+//   🆕 v1.17(01 §26 · K18) — 라우트 **69**(`opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex`) ·
+//   `_linkKeys` 무변경(`IncidentBanner.actionLink` = `LinkAction` 안쪽 `deep_link` · `RunbookRow`·`HandbookEntry`·
+//   `HandbookBlock` = `deep_link`) · ④ 에 `ops/runbooks/<id>`·`handbook` 일치 예시.
 // 🔴 화면은 이 검사의 대상이 아니다 — 화면은 링크를 **만들지 않으므로** 검사할 것이 없고,
 //    만들었다면 `tool/check_boundaries.sh` 의 `aaq://` 리터럴 스캔이 잡는다.
 
@@ -132,13 +135,19 @@ void main() {
       // 🆕 v1.12 — 48 → 52(`adviceSkip` · `ledgerDiffs` · `ledgerRepairs` · `opsRhythm` · 01 §21 · 교체 2 는 수 불변).
       // 🆕 v1.15 — 52 → 54(`alertsInbox`·`alertDetail` · 01 §24).
       // 🆕 v1.16 — 54 → 64(온보딩 6 · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2 · 01 §25).
+      // 🆕 v1.17 — 64 → 69(`opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex` · 01 §26).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(64),
-        reason: '라우트 수가 계약(01 §25 · v1.16 = 64)과 다르다.',
+        hasLength(69),
+        reason: '라우트 수가 계약(01 §26 · v1.17 = 69)과 다르다.',
       );
+      expect(AppRoutes.all, contains(AppRoutes.opsRunbooks));
+      expect(AppRoutes.all, contains(AppRoutes.opsRunbook));
+      expect(AppRoutes.all, contains(AppRoutes.opsEmergencyCard));
+      expect(AppRoutes.all, contains(AppRoutes.opsDeviceRisk));
+      expect(AppRoutes.all, contains(AppRoutes.handbookIndex));
       expect(AppRoutes.all, contains(AppRoutes.onboardingStart));
       expect(AppRoutes.all, contains(AppRoutes.onboardingModePick));
       expect(AppRoutes.all, contains(AppRoutes.onboardingSteps));
@@ -257,6 +266,15 @@ void main() {
       expect(AppRoutes.isRegistered('aaq://x1/migration/emergency'), isTrue);
       expect(AppRoutes.isRegistered('aaq://ledger/sim-opening/연금저축'), isTrue);
       expect(AppRoutes.isRegistered('aaq://ledger/sim-opening'), isFalse);
+      // 🆕 v1.17(01 §26) — 런북 상세 파라미터 · 목록 · 핸드북 목차(3조각).
+      expect(AppRoutes.isRegistered('aaq://ops/runbooks/host-lost'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://ops/runbooks/'), isFalse);
+      expect(
+        AppRoutes.isRegistered('aaq://ops/runbooks/host-lost?x=1'),
+        isFalse,
+      );
+      expect(AppRoutes.isRegistered('aaq://handbook'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://handbook/x'), isFalse);
       expect(AppRoutes.isRegistered('aaq://x1/migration/x/y'), isFalse);
       expect(AppRoutes.isRegistered('aaq://nowhere'), isFalse);
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);

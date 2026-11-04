@@ -24,7 +24,7 @@ import 'c00_support.dart';
 
 /// 🔴 `wire` 필드 없이 선언된 열거형 — **문서화된 예외**다.
 ///
-/// 다른 52 종은 전부 `@JsonValue` 와 같은 문자열을 `wire` 로 노출한다(01 §1-2 규약).
+/// 다른 54 종은 전부 `@JsonValue` 와 같은 문자열을 `wire` 로 노출한다(01 §1-2 규약).
 /// 목록이 늘거나 줄면 이 검사가 실패한다 — 「조용히 하나 더」를 막는다.
 const Map<String, String> _enumsWithoutWireField = <String, String>{
   'RampLevel':
