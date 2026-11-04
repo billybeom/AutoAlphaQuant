@@ -212,6 +212,8 @@ abstract final class ContractCodes {
     'onboarding_slot': OnboardingSlotIds.values,
     // 🆕 v1.17(01 §26 · K19) — M8 운영 슬롯 이름(`EmergencyCardVm.printSlotId`)
     'ops_slot': OpsSlotIds.values,
+    // 🆕 v1.17(01 §26 · 엔진 D11 · K28) — 일지 사유 칩 코드 중 D11 2종(`TradeJournalEntry.reasons[].code` · 🔴 전수 아님)
+    'journal_reason': JournalReasonCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

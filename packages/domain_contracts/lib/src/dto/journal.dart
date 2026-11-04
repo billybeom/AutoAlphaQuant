@@ -34,6 +34,8 @@ part 'journal.g.dart';
 /// 🔴 `status == unknown` 은 UNKNOWN 해소 보드로 딥링크한다 — 화면이 «실패»로 단정하지 않는다.
 /// 🔴 `fillKind == reversal`·`restatement` 행은 «매매로 읽히는 표현»을 쓰지 않는다
 ///    (방향 색 금지 · 손익 기여 0) — 문구는 `statusLabel`·`originLabel` 이 준다.
+/// 🆕 v1.17(엔진 D11) — `status == expired` = 일 마감 실효(취소 아님 · 사유 칩 `DAY_END_EXPIRED`). `status == prevented` 행의 근거 =
+/// [decision] 의 `intentId`(그 멱등키를 이미 가진 **원 의도** · 새 의도 행 0 — R33 D24) + 사유 칩 `DUPLICATE_ORDER_PREVENTED`(`JournalReasonCodes`).
 @freezed
 abstract class TradeJournalEntry with _$TradeJournalEntry {
   const factory TradeJournalEntry({

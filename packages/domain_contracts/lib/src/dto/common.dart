@@ -66,7 +66,14 @@ abstract class DecisionRef with _$DecisionRef {
     /// X2 재판정 child 의 원행
     String? parentDecisionId,
     String? intentId,
+
+    /// 🆕 v1.17(엔진 D11 · 13 §8 R31 · R33 D3 · 02 §3-2 v2.38) — 브로커 주문 번호 = `{주문일}:{ODNO}`(주문일 = KR 거래일 ISO ·
+    /// ODNO = KIS 주문번호 원문 — KIS 번호는 날마다 새로 매겨져 단독으로는 날을 넘겨 겹친다). 수기 체결(X7 `MANUAL`) = null.
+    /// 🔴 화면은 이 값을 쪼개거나 표시하지 않는다(식별자 · 표시 = `*Label`). 합성 표본(`B0018` 꼴)은 이 꼴이 아니어도 된다(01 §8 미결 166).
     String? brokerOrderNo,
+
+    /// 🆕 v1.17(엔진 D11 · R31 (a) · R33 D3·D4) — 브로커 체결 = `{brokerOrderNo}#{누적 체결수량}`(체결조회 누적이 늘 때마다 새 행 ·
+    /// Δ수량 ≤ 0 = 행 없음). 수기·가상 체결 = 엔진의 다른 꼴. 🔴 화면은 파싱하지 않는다.
     String? executionId,
     required String configHash,
   }) = _DecisionRef;
