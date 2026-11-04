@@ -77,6 +77,19 @@ export 'src/decimal_rules.dart'
         multiply,
         oneMinus,
         promoteRatio;
+// 🆕 E11f1 — 일일 평가 스냅숏 계산(평가 · HWM · 드로다운 · 브레이커 재생 · P0S 브레이커 설정 · 설계 13 §8 R47 F6~F8).
+export 'src/ops/equity_snapshot.dart'
+    show
+        BreakerDay,
+        BreakerReplay,
+        EquitySnapshotError,
+        EquitySnapshotRow,
+        EquitySnapshotStep,
+        computeEquitySnapshot,
+        nextEquitySnapshot,
+        p0sBreakerConfig,
+        positionsValueKrw,
+        replayBreaker;
 // 🆕 E11c — 워치독 포트 · 값 꼴(설계 13 §8 R45 C1 — 구현 = data_sync · 보드 = trading_runtime).
 export 'src/ops/watchdog_ports.dart'
     show
@@ -381,7 +394,8 @@ export 'src/whatif/plan_store.dart'
     show InMemoryPlanSnapshotStore, PlanSnapshotStore, depositPlanId, kstDay;
 export 'src/whatif/rebalance_preview.dart'
     show RebalancePreviewTexts, plannedRebalanceDate, previewRebalancePlan;
-export 'src/whatif/what_if_config.dart' show WhatIfConfig, p0sMonthEndConfig;
+export 'src/whatif/what_if_config.dart'
+    show WhatIfConfig, kP0sParkingSymbol, p0sKrPlanSymbols, p0sMonthEndConfig;
 export 'src/whatif/what_if_gates.dart'
     show
         DepositGateTexts,
