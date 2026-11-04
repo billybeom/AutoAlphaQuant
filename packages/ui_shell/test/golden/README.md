@@ -148,9 +148,9 @@
 
 - R15 시작 **40장**(R14 test-only 병합본 `14d6374` · ✅ v1.16 병합본 `dd9e162` `git ls-tree` 40) → R15a 병합 뒤 **48장**(+ `o00_*` 2 · `o00b_*` 6 · ✅ 2026-11-04 PR #99 `940082c` · `git ls-tree` 48) → R15b 뒤 **58장**(+ `o01_*` 4 · `o02_*` 2 · `o03_*` 4 · ✅ 2026-11-04 PR #103 `a79f620` · `git ls-tree` 58) → R15c 뒤 **62장**(+ `o04_*` 4 · ✅ 2026-11-04 PR #107 `0e96ed3` · `git ls-tree` 62) → R15d 뒤 **70장**(+ `r01_*` 4 · `v01_*` 4 · ✅ 2026-11-04 PR #110 `4b31603` · `git ls-tree` 70 · 🔴 «정확히» = R15d 정적 T37 · ✅ 결정 ① 순서대로 — R15c 는 «정확히» 를 지지 않는다). 🏁 **R15** = `o00_*`·`o00b_*`·`o01_*`·`o02_*`·`o03_*`·`o04_*`·`r01_*`·`v01_*` 15이름 30장(40 → 70) → R15 test-only PR 병합 뒤 **70장 그대로**(✅ 2026-11-04 PR #113 `69afd33` · 테스트 파일만 · 장수 변화 0 · `git ls-tree` 70). 질문 파일 = `docs/ai-context/inbox/O00O00b_questions.md`(R15a) · `O01O03_questions.md`(R15b) · `O04_questions.md`(R15c) · `R01V01_questions.md`(R15d).
 
-## 🆕 R16(계약 v1.17 전제 · 🔀 3분할 권고) — `D-01`~`D-03`(R16a) · `B-01`·`B-02`(R16b) · `H-03`(R16c) (2026-11-04 조립 · ⬜ 선행 = 계약 v1.17 보강(R16 선행 M2 · ⬜ 발주자 결정 · 번호 = 엔진 E10 D11 과 조율) · ✅ 누적 드라이런·지적 반영 · ⬜ 발주자 확인)
+## 🆕 R16(계약 v1.17 전제 · 🔀 3분할 ✅ 확정) — `D-01`~`D-03`(R16a) · `B-01`·`B-02`(R16b) · `H-03`(R16c) (2026-11-04 조립 · 🆕 2026-11-05 v1.17 반영 재조립 · ⬜ 선행 = 계약 v1.17 병합(R16 선행 M2 + 엔진 E10 D11 한 PR — 가지 `m2/v117-r16` `f4b51ca` · `'1.17.0'`) · ✅ 누적 드라이런·지적 반영(흉내 위) · ⬜ 누적 재드라이런(v1.17 실물 위) · ✅ 발주자 확인)
 
-- 카드 = `docs/ai-context/send/R16a-Bob-D01D03.md`(R16a · ⬜ 조립됨 · ✅ 드라이런·지적 반영) · `docs/ai-context/send/_대기/R16b-Bob-B01B02.md` · `_대기/R16c-Bob-H03.md`(«정확히 N» 소유 · 🔵 후순위 가능 — 미루면 «정확히 N» = R16b).
+- 카드 = `docs/ai-context/send/R16a-Bob-D01D03.md`(R16a · ⬜ 조립됨 · ✅ 드라이런·지적 반영) · `docs/ai-context/send/_대기/R16b-Bob-B01B02.md` · `_대기/R16c-Bob-H03.md`(«정확히 N» 소유 · 순서대로).
 - 이 절은 통합 담당이 쓴다(화면 담당 무수정 — 카드 규칙 1 «golden README 고치면 반려»).
 
 ### 1. 골든 이름 — R16a 5이름 × 2 = 10장 · R16b 4이름 × 2 = 8장 · R16c 2이름 × 2 = 4장 · 재생성 0(🔴 `s01_*` 4장 포함 — R16a 셸 틀 배선은 배너 주입 없음이면 바이트 그대로)
@@ -159,21 +159,21 @@
 |---|---|---|---|
 | `d01_token_expired` | 2 | `test/golden/d01_golden_test.dart` | 🆕 v1.17 `m8/incident_banner_token_expired`(`IncidentBannerVm` · 종류 토큰 만료 · 등급 차단 · 조치 링크 1) · 🔴 위젯 = `const Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[IncidentBannerSlot()])`(셸 꼴 — 맨몸이면 배너 Material 이 844 로 늘어 `d01_network_down` 위치 전제 실패 · 드라이런) · `Key('d01-action')` dy 120.0 < 844 · `Key('d01-banner')` dy 0.0 · 🔵 이름 = 카드가 지음(04 는 `D-*` 골든 이름을 주지 않는다) |
 | `d01_network_down` | 2 | 〃 | 🆕 `m8/incident_banner_network_down`(조치 없음 — 버튼 0) · `Key('d01-banner')` dy 84.0 < 844 · 머리 0.0 |
-| `d02_list` | 2 | `test/golden/d02_golden_test.dart` | 🆕 `m8/runbook_index`(`RunbookIndexVm` · 행 6) · `ValueKey('d02-list-row-5')` dy 400.0 < 844 · `ValueKey('d02-list-row-0')` dy 0.0 |
-| `d02_detail` | 2 | 〃 | 🆕 `m8/runbook_host_lost`(`RunbookVm` · 단계 5 · 🆕 orderText 하나 이상 비순번 · 체크 칸 꺼짐 · 하단 고지) · `Key('d02-notice')` dy 404.0 < 844 · `Key('d02-title')` dy 0.0 |
-| `d03_card` | 2 | `test/golden/d03_golden_test.dart` | 🆕 `m8/emergency_card`(`EmergencyCardVm` · 단계 5 · 🆕 orderText 하나 이상 비순번 · 인쇄 = 가짜 슬롯 빌더) · `Key('d03-print')` dy 348.0 < 844 · `Key('d03-title')` dy 0.0 |
-| `b01_index` | 2 | `test/golden/b01_golden_test.dart` | 🆕 `m8/handbook_index`(8항목 · ② 자식 4 · 준비 중 3 · 보관됨 1) · 맨 아래 `ValueKey('b01-entry-7')` dy 744.0 < 844(12행 들어감) · `ValueKey('b01-entry-0')` dy 0.0 |
-| `b02_page` | 2 | `test/golden/b02_golden_test.dart` | 🆕 `m8/handbook_page_sleeve_b`(v1.17 개정 · 라이브 값 블록 1 · 링크 블록) · `ValueKey('b02-block-4')` dy 348.0 < 844 · `Key('b02-title')` dy 0.0 |
-| `b02_outdated` | 2 | 〃 | 🆕 `m8/handbook_page_outdated`(뒤처짐 고지 맨 위 · 숨김 0) · `ValueKey('b02-block-1')` dy 248.0 < 844 · `Key('b02-outdated')` dy 0.0 |
-| `b02_missing` | 2 | 〃 | 🆕 `m8/handbook_page_missing`(모르는 앵커 · 블록 0) · `Key('b02-missing')` dy 116.0 < 844 · `Key('b02-title')` dy 0.0 |
+| `d02_list` | 2 | `test/golden/d02_golden_test.dart` | 🆕 `m8/runbook_index`(`RunbookIndexVm` · 행 6 · v1.17 원고 글자(03_실행 §10-5) · ⑥ 링크 = 긴급 카드) · `ValueKey('d02-list-row-5')` dy 400.0(흉내 · ⟦실측: 재드라이런⟧) < 844 · `ValueKey('d02-list-row-0')` dy 0.0 |
+| `d02_detail` | 2 | 〃 | 🆕 `m8/runbook_host_lost`(`RunbookVm` · 단계 5 · 🆕 orderText 하나 이상 비순번 · 체크 칸 꺼짐 · 하단 고지) · `Key('d02-notice')` dy 404.0(흉내 · ⟦실측: 재드라이런⟧) < 844 · `Key('d02-title')` dy 0.0 |
+| `d03_card` | 2 | `test/golden/d03_golden_test.dart` | 🆕 `m8/emergency_card`(`EmergencyCardVm` · 단계 5 · 🆕 orderText 하나 이상 비순번 · 인쇄 = 가짜 슬롯 빌더) · `Key('d03-print')` dy 348.0(흉내 · ⟦실측: 재드라이런⟧) < 844 · `Key('d03-title')` dy 0.0 |
+| `b01_index` | 2 | `test/golden/b01_golden_test.dart` | 🆕 `m8/handbook_index`(8항목 · ② 자식 4 · 준비 중 3 · 보관됨 1 · v1.17 = 04 §8 항목 이름) · 맨 아래 `ValueKey('b01-entry-7')` dy 744.0(흉내 · ⟦실측: 재드라이런⟧) < 844(12행 들어감) · `ValueKey('b01-entry-0')` dy 0.0 |
+| `b02_page` | 2 | `test/golden/b02_golden_test.dart` | 🆕 `m8/handbook_page_sleeve_b`(v1.17 개정 · 라이브 값 블록 1 · 링크 블록 · 🆕 `as_of` = asOf 머리(발주자 결정 ④ R16b ⑨) · 시계 `FixedClock(kGoldenNowUtc)` = 신선) · `ValueKey('b02-block-4')` dy ⟦실측: 재드라이런⟧(흉내 348.0 = 머리 줄 전) < 844 · 🆕 `Key('b02-asof')` dy 0.0 |
+| `b02_outdated` | 2 | 〃 | 🆕 `m8/handbook_page_outdated`(뒤처짐 고지 맨 위 · 숨김 0) · `ValueKey('b02-block-1')` dy 248.0(흉내 · ⟦실측: 재드라이런⟧) < 844 · `Key('b02-outdated')` dy 0.0 |
+| `b02_missing` | 2 | 〃 | 🆕 `m8/handbook_page_missing`(모르는 앵커 · 블록 0) · `Key('b02-missing')` dy 116.0(흉내 · ⟦실측: 재드라이런⟧) < 844 · `Key('b02-title')` dy 0.0 |
 | `h03_items` | 2 | `test/golden/h03_golden_test.dart` | 🆕 `m8/device_risk_items`(`DeviceRiskVm` · 🆕 행 5 · 등급 5값 전수) · 시계 `FixedClock(kGoldenNowUtc)` · `Key('h03-guidance')` dy 784.0 < 844(반영판 · 첫 판 4행 660.0) · `Key('h03-asof')` dy 0.0 |
 | `h03_empty` | 2 | 〃 | 🆕 `m8/device_risk_empty`(행 0 · 빈 문장) · `Key('h03-guidance')` dy 196.0 < 844 · 머리 0.0 |
 
 - 공통: 흐름 = 클로저 칸 non-null(흐름 없는 이름 = `(WidgetTester t) async {}`) · 가짜·저장소 = testWidgets 안에서 새로(공장 꼴) · 크기 = `kGoldenPhoneSize`(390 × 844 — 늘리지 않는다) · 탭을 찍는 골든 0 · 🆕 골든 높이 = 재량 + 기록 확장 ⓐ~ⓔ(12 §3 · C4r15d-3 — R16 부터).
-- 드라이런 실측 dy(✅ 누적 드라이런 `dry/r16-1`~`dry/r16-3` 반영판 · light = dark · 머리 dy 0.0 전부): 위 표의 dy · 🟡 기대 = d01_ 4 · d02_ 1 · d03_ 0 · b01_ 1 · b02_ 1 · h03_ 1 · dy 는 v1.17 실물 표본에서 달라질 수 있다(«드라이런 기대» — 병합 기록이 실측).
+- 드라이런 실측 dy(✅ 누적 드라이런 `dry/r16-1`~`dry/r16-3` 반영판 · light = dark · 머리 dy 0.0 전부): 위 표의 dy · 🟡 기대 = d01_ 4 · d02_ 1 · d03_ 0 · b01_ 1 · b02_ 1 · h03_ 1 · 🔵 v1.17 실물 표본 = 런북·카드·목차·`missing` 글자가 원고로 바뀌었고 `b02_page` 는 asOf 머리 줄이 생긴다 → `d02_*`·`d03_card`·`b01_index`·`b02_*` dy = ⟦실측: 재드라이런⟧ · `d01_*`·`h03_*` = 표본 글자 같음(dy 불변 기대).
 - 보고 «배치·잘림» 칸 — Bob 은 이름마다 light PNG 한 장만 연다(R16a 5장 · R16b 4장 · R16c 2장).
 - 🔴 `m8/incident_token_expired`(봉투 = `ConnectionsVm` · 형제 키 = `AlertItem`) · `m8/recon_board_diff`(`DiagnosticsVm` · `h01_recon_diff` 가 이미 씀)는 R16 골든 입력이 아니다.
 
 ### 2. 장수(계획)
 
-- R16 시작 **70장**(R15 test-only 병합본 `69afd33` · `git ls-tree` 70) → R16a 병합 뒤 **80장**(+ `d01_*` 4 · `d02_*` 4 · `d03_*` 2) → R16b 뒤 **88장**(+ `b01_*` 2 · `b02_*` 6) → R16c 뒤 **92장**(+ `h03_*` 4 · 🔴 «정확히» = R16c 정적 T37 · R16c 를 미루면 R16b 가 «정확히 88»). 질문 파일 = `docs/ai-context/inbox/D01D03_questions.md`(R16a) · `B01B02_questions.md`(R16b) · `H03_questions.md`(R16c).
+- R16 시작 **70장**(R15 test-only 병합본 `69afd33` · `git ls-tree` 70) → R16a 병합 뒤 **80장**(+ `d01_*` 4 · `d02_*` 4 · `d03_*` 2) → R16b 뒤 **88장**(+ `b01_*` 2 · `b02_*` 6) → R16c 뒤 **92장**(+ `h03_*` 4 · 🔴 «정확히» = R16c 정적 T37 · 순서대로). 질문 파일 = `docs/ai-context/inbox/D01D03_questions.md`(R16a) · `B01B02_questions.md`(R16b) · `H03_questions.md`(R16c).
