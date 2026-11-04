@@ -121,6 +121,42 @@ final DtoCodec<Object> _actionResult = DtoCodec<ActionResult>(
   ActionResult.fromJson,
   (ActionResult v) => v.toJson(),
 );
+// 🆕 계약 v1.17(R16 선행 · 01 §26) — `D-01` 배너 · `D-02` 런북 · `D-03` 카드 · `B-01`·`B-02` 핸드북 · `H-03` 기기 리스크(VM 1행 봉투).
+final DtoCodec<Object> _incidentBannerVm = DtoCodec<IncidentBannerVm>(
+  'IncidentBannerVm',
+  IncidentBannerVm.fromJson,
+  (IncidentBannerVm v) => v.toJson(),
+);
+final DtoCodec<Object> _runbookIndexVm = DtoCodec<RunbookIndexVm>(
+  'RunbookIndexVm',
+  RunbookIndexVm.fromJson,
+  (RunbookIndexVm v) => v.toJson(),
+);
+final DtoCodec<Object> _runbookVm = DtoCodec<RunbookVm>(
+  'RunbookVm',
+  RunbookVm.fromJson,
+  (RunbookVm v) => v.toJson(),
+);
+final DtoCodec<Object> _emergencyCardVm = DtoCodec<EmergencyCardVm>(
+  'EmergencyCardVm',
+  EmergencyCardVm.fromJson,
+  (EmergencyCardVm v) => v.toJson(),
+);
+final DtoCodec<Object> _handbookIndex = DtoCodec<HandbookIndex>(
+  'HandbookIndex',
+  HandbookIndex.fromJson,
+  (HandbookIndex v) => v.toJson(),
+);
+final DtoCodec<Object> _handbookPage = DtoCodec<HandbookPage>(
+  'HandbookPage',
+  HandbookPage.fromJson,
+  (HandbookPage v) => v.toJson(),
+);
+final DtoCodec<Object> _deviceRiskVm = DtoCodec<DeviceRiskVm>(
+  'DeviceRiskVm',
+  DeviceRiskVm.fromJson,
+  (DeviceRiskVm v) => v.toJson(),
+);
 final DtoCodec<Object> _depositPlan = DtoCodec<DepositPlan>(
   'DepositPlan',
   DepositPlan.fromJson,
@@ -517,6 +553,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m6UnknownBoardEmpty: FixtureBinding(_unknownBoardVm),
   // 🆕 2026-09-17 — 0행이지만 봉투 타입은 같다(C-1 은 빈 rows 도 등록부를 요구한다).
   FixturePaths.m6JournalEmpty: FixtureBinding(_tradeJournalEntry),
+  // 🆕 v1.17(01 §26 · 엔진 D11) — 일 마감 실효 1행.
+  FixturePaths.m6JournalExpired1: FixtureBinding(_tradeJournalEntry),
   // 🆕 v1.5(01 §15-3) — 회차 범위 · 모르는 회차의 0행 봉투.
   FixturePaths.m6JournalRebalanceScope1: FixtureBinding(_journalRebalanceScope),
   FixturePaths.m6JournalRebalanceUnknown: FixtureBinding(_tradeJournalEntry),
@@ -632,13 +670,28 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8AlertsAdvice9codes: FixtureBinding(_alertItem),
   FixturePaths.m8AlertsDigest: FixtureBinding(_alertItem),
   FixturePaths.m8AlertsP0Ack: FixtureBinding(_alertItem),
-  FixturePaths.m8HandbookPageSleeveB: FixtureBinding(
-    DtoCodec<HandbookPage>(
-      'HandbookPage',
-      HandbookPage.fromJson,
-      (HandbookPage v) => v.toJson(),
-    ),
-  ),
+  // 🆕 v1.17(01 §26 · 엔진 D11) — `STALE_ORDERS_HELD` 알림 1행.
+  FixturePaths.m8AlertsStaleOrdersHeld: FixtureBinding(_alertItem),
+  // 🆕 v1.17(01 §26 · R16c) — `H-03` 기기 리스크 2.
+  FixturePaths.m8DeviceRiskEmpty: FixtureBinding(_deviceRiskVm),
+  FixturePaths.m8DeviceRiskItems: FixtureBinding(_deviceRiskVm),
+  // 🆕 v1.17(01 §26 · R16a) — `D-03` 긴급정지 카드 2.
+  FixturePaths.m8EmergencyCard: FixtureBinding(_emergencyCardVm),
+  FixturePaths.m8EmergencyCardNoPrint: FixtureBinding(_emergencyCardVm),
+  // 🆕 v1.17(01 §26 · R16b) — `B-01` 목차 2 · `B-02` 페이지 3 + 개정 `sleeve_b`(형제 키 `index` 삭제 · K22).
+  FixturePaths.m8HandbookIndex: FixtureBinding(_handbookIndex),
+  FixturePaths.m8HandbookIndexOutdated: FixtureBinding(_handbookIndex),
+  FixturePaths.m8HandbookPageArchived: FixtureBinding(_handbookPage),
+  FixturePaths.m8HandbookPageMissing: FixtureBinding(_handbookPage),
+  FixturePaths.m8HandbookPageOutdated: FixtureBinding(_handbookPage),
+  FixturePaths.m8HandbookPageSleeveB: FixtureBinding(_handbookPage),
+  // 🆕 v1.17(01 §26 · R16a) — `D-01` 장애 배너 6.
+  FixturePaths.m8IncidentBannerNetworkDown: FixtureBinding(_incidentBannerVm),
+  FixturePaths.m8IncidentBannerNone: FixtureBinding(_incidentBannerVm),
+  FixturePaths.m8IncidentBannerOrderRejected: FixtureBinding(_incidentBannerVm),
+  FixturePaths.m8IncidentBannerOther: FixtureBinding(_incidentBannerVm),
+  FixturePaths.m8IncidentBannerPhoneDown: FixtureBinding(_incidentBannerVm),
+  FixturePaths.m8IncidentBannerTokenExpired: FixtureBinding(_incidentBannerVm),
   FixturePaths.m8OnboardingFinish: FixtureBinding(_onboardingStep),
   // 🆕 v1.16(01 §25 · R15c) — `O-04` 마무리 7 · DRY_RUN 결과.
   FixturePaths.m8OnboardingFinishAdvisory: FixtureBinding(_onboardingFinishVm),
@@ -746,6 +799,11 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8RestartVmLoggedOut: FixtureBinding(_restartVm),
   FixturePaths.m8RestartVmLostPhone: FixtureBinding(_restartVm),
   FixturePaths.m8RestartVmUnknown: FixtureBinding(_restartVm),
+  // 🆕 v1.17(01 §26 · R16a) — `D-02` 런북 목록 2 · 상세 2.
+  FixturePaths.m8RunbookHostLost: FixtureBinding(_runbookVm),
+  FixturePaths.m8RunbookIndex: FixtureBinding(_runbookIndexVm),
+  FixturePaths.m8RunbookIndexEmpty: FixtureBinding(_runbookIndexVm),
+  FixturePaths.m8RunbookMissing: FixtureBinding(_runbookVm),
   // 🆕 v1.15(K3) — 워치독 4벌 = `WatchdogBoardVm` 1행(구 `WatchdogCheck` 목록 · 형제 키 `holiday_notice` → VM 필드).
   FixturePaths.m8WatchdogDelayed: FixtureBinding(_watchdogBoardVm),
   FixturePaths.m8WatchdogEmpty: FixtureBinding(_watchdogBoardVm),
@@ -781,9 +839,9 @@ const Map<String, String> unmappedFixtures = <String, String>{
       'v1.8 — `H6-3` 은 `SleeveAllocationRow.stateChips` 로 보류를 말한다 · `enteredInNov` 골든 의무는 '
       '`A-2` `ReasonChip`(`F1_ENTRY_LATE`) 몫(01 §17 · K13).',
   'm8/incident_token_expired.json':
-      'IncidentBanner·Runbook 이름 미확정(배럴 머리 주석 · M2-8 §G 표 미등재). '
-      'v1.12 — 형제 키 incident_alert 등급 P1 → P0(MAINTENANCE_RESUME_FAILED 정본 · 01 §8 미결 114 · C-47 ⑥ 이 '
-      '전 픽스처 walk 로 본다).',
+      'v1.17 — `D-01` 배너 VM 은 `m8/incident_banner_*` 가 맡는다(R16 행 픽스처 교체 · 01 §26 K21) · 이 파일 = '
+      '연결 4행(M9 S07 `ConnectionsVm` 꼴) + 형제 키 `incident_alert`(`AlertItem` · 🆕 code `BROKER_AUTH_FAILED` P0) — '
+      '바인딩 = M9 카드(01 §8 미결 165) · C-47 ⑥ 이 전 픽스처 walk 로 등급을 본다.',
 };
 
 /// 봉투 필수 6키 — 이 밖의 최상위 키가 «형제 키»다(fixtures/README «봉투 형제 키 표»).
@@ -810,9 +868,6 @@ const Map<String, String> unboundSiblingKeys = <String, String>{
   'credential_use': '원시 글자 — DTO 아님.',
   'finish_headline': '문장(원시) — DTO 아님.',
   'incident_alert': '`AlertItem` — 이 픽스처 자체가 미매핑([unmappedFixtures]) · 등급은 C-47 ⑥ 전 픽스처 walk 가 본다.',
-  'index':
-      '`HandbookIndex` — 핸드북 원고 선행(C-13 🔵 · C-8 `_knownUncovered`) · 묶으면 C-8 인구조사가 바뀐다 — '
-      'v1.13 K9 밖.',
   'lease_notice': '문장(원시) — DTO 아님.',
   'operating_mode': '원시 글자 — DTO 아님(C-18 ② 가 값을 본다).',
   'preserved_input': '원시(`ManualFillRecord` 모양 · `context` 없음) — DTO 아님.',
