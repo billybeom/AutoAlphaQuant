@@ -85,7 +85,7 @@ class _OnboardingFinishState extends ConsumerState<OnboardingFinish> {
       children: <Widget>[
         Padding(
           key: const Key('o04-headline'),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.all(16),
           child: Text(vm.headline),
         ),
         for (final (int i, OnboardingFinishStage st) in vm.stages.indexed)
@@ -176,7 +176,7 @@ class _StageBlock extends StatelessWidget {
 
     return Padding(
       key: ValueKey<String>('o04-stage-$index'),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
