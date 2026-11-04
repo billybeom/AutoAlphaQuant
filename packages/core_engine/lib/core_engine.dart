@@ -90,6 +90,20 @@ export 'src/ops/equity_snapshot.dart'
         p0sBreakerConfig,
         positionsValueKrw,
         replayBreaker;
+// 🆕 E11h2 — 아카이브 레이아웃 · checkpoint.json · 백업 나이(설계 13 §8 R52).
+export 'src/ops/ledger_archive.dart'
+    show
+        ArchiveCheckpoint,
+        BackupAge,
+        archiveCheckpointPath,
+        archiveDayDir,
+        archiveFileContent,
+        archiveFileLines,
+        archivePrefix,
+        archiveTablePath,
+        backupAgeOf,
+        dayHashFromArchive,
+        kBackupStaleAfter;
 // 🆕 E11h1 — X5-1 정규 직렬화 · day_hash · 해시 체인(설계 13 §8 R51).
 export 'src/ops/ledger_hash.dart'
     show

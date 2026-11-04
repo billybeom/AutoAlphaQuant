@@ -12,6 +12,8 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
+import 'support/ledger_golden.dart';
+
 class _Clock implements Clock {
   _Clock(this.at);
   DateTime at;
@@ -22,62 +24,11 @@ class _Clock implements Clock {
 // 2026-11-04T15:00Z = 한국 11-05 00:00 — 11-04 까지 끝났다.
 final DateTime _t0 = DateTime.utc(2026, 11, 4, 15);
 
-final Map<String, dynamic> _golden = jsonDecode(
-  File('../core_engine/test/golden/vectors/ledger_hash_v1.json')
-      .readAsStringSync(),
-) as Map<String, dynamic>;
-
-List<Map<String, dynamic>> _maps(Object? v) =>
-    (v! as List<dynamic>).cast<Map<String, dynamic>>();
-
-Object? _decode(Object? v) {
-  if (v == null) return null;
-  final MapEntry<String, dynamic> e =
-      (v as Map<String, dynamic>).entries.single;
-  return switch (e.key) {
-    'i' => e.value as int,
-    'd' => double.parse(e.value as String),
-    's' => e.value as String,
-    _ => throw StateError(e.key),
-  };
-}
-
-/// 고정 투영 밖 칸(NOT NULL)을 채운다.
-const Map<String, Map<String, Object?>> _extra = <String, Map<String, Object?>>{
-  'order_intents': <String, Object?>{
-    'status': 'SUBMITTED',
-    'error_message': null,
-    'updated_at': '2026-11-04T00:10:01.000Z',
-  },
-};
-
-void _insert(Database db, String table, Map<String, Object?> row) {
-  final Map<String, Object?> all = <String, Object?>{...row, ...?_extra[table]};
-  db.execute(
-    'INSERT INTO $table(${all.keys.join(', ')}) VALUES (${List<String>.filled(all.length, '?').join(', ')})',
-    all.values.toList(),
-  );
-}
-
-void _loadGolden(Database db) {
-  for (final Map<String, dynamic> day in _maps(_golden['days'])) {
-    final Map<String, dynamic> rows = day['rows'] as Map<String, dynamic>;
-    // 부모 먼저.
-    final List<String> order = <String>[
-      for (final String t in rows.keys)
-        if (t != 'self_report_line') t,
-      if (rows.containsKey('self_report_line')) 'self_report_line',
-    ];
-    for (final String t in order) {
-      for (final Map<String, dynamic> r in _maps(rows[t])) {
-        _insert(db, t, <String, Object?>{
-          for (final MapEntry<String, dynamic> e in r.entries)
-            e.key: _decode(e.value),
-        });
-      }
-    }
-  }
-}
+final Map<String, dynamic> _golden = ledgerGolden;
+List<Map<String, dynamic>> _maps(Object? v) => goldenMaps(v);
+void _insert(Database db, String table, Map<String, Object?> row) =>
+    insertLedgerRow(db, table, row);
+void _loadGolden(Database db) => loadLedgerGolden(db);
 
 int _count(Database db, String table) =>
     db.select('SELECT COUNT(*) AS n FROM $table').first['n'] as int;
