@@ -151,6 +151,15 @@ void main() {
         stageTexts(s),
       );
     }
+    // 단계 제목 아이콘 = 상태 그대로(C4r15c-2 · 참고 변이 R04).
+    expect(auto.stages[0].state, StepState.verified); // pre
+    final ColorScheme cs = csOf(tester);
+    for (final (int i, OnboardingFinishStage s) in auto.stages.indexed) {
+      final Icon icon = firstIconIn(tester, ValueKey<String>('o04-stage-$i'));
+      final (IconData, Color) want = wantStep(cs, s.state);
+      expect(icon.icon, want.$1);
+      expect(icon.color, want.$2);
+    }
     expect(find.byKey(const ValueKey<String>('o04-check-0')), findsNothing);
     expect(find.text(ShellLabels.retry), findsNothing);
   });
@@ -237,6 +246,8 @@ void main() {
         );
       }
       expect(find.byType(TextField), findsNothing);
+      // 양성 기준점(C4r15c-1).
+      expect(find.byKey(const Key('o04-headline')), findsOneWidget);
       expect(find.text(ShellLabels.retry), findsNothing);
     });
   }
@@ -482,6 +493,8 @@ void main() {
         find.byKey(const ValueKey<String>('o04-action-5')),
         c.want ? findsOneWidget : findsNothing,
       );
+      // 양성 기준점(C4r15c-1).
+      expect(find.byKey(const ValueKey<String>('o04-stage-5')), findsOneWidget);
       expect(find.text(ShellLabels.retry), findsNothing);
     });
   }
