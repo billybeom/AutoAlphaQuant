@@ -1019,6 +1019,30 @@ void main() {
       expect(rig.posts, isEmpty);
     });
 
+    test('🆕 실응답(보유 1주 · 실험 278 판 4 held) — 보유 행 그대로 · 관측 현금 = D+0(매수 전과 같음) · 예수금 = D+2(매수 + 수수료만큼 줄었다)', () async {
+      final _Rig rig = rigOf(
+        (http.Request r, int i) async =>
+            _json(_fixture('held_balance_held.json')),
+      );
+      final BrokerBalance b = await rig.broker.balance();
+      expect(b.holdings, <String, int>{'133690': 1});
+      expect(b.cashKrw, Decimal.parse('49999965'));
+      expect(await rig.broker.orderableCashKrw(), Decimal.parse('49832955'));
+      // 🔴 매수 당일: D+0 예수금(dnca_tot_amt)은 그대로 · D+2(prvs_rcdl_excc_amt)만 줄어든다 — 매수에 쓸 돈은 D+2(R37 Y7).
+      expect(
+        Decimal.parse('49999965') - Decimal.parse('49832955'),
+        Decimal.parse('167010'),
+      );
+      // 행 칸은 26개지만 읽는 칸은 pdno · hldg_qty 둘뿐이다.
+      final List<Object?> rows =
+          _fixture('held_balance_held.json')['output1']! as List<Object?>;
+      expect(rows, hasLength(1));
+      expect((rows.single! as Map<String, Object?>).length, 26);
+      expect(parseKisHoldings(rows), <String, int>{'133690': 1});
+      expect(rig.gets, hasLength(2));
+      expect(rig.posts, isEmpty);
+    });
+
     test('보유 행 — 종목마다 합 · 0주는 넣지 않는다 · 대문자 칸도 읽는다', () async {
       final _Rig rig = rigOf(
         (http.Request r, int i) async => _json(
