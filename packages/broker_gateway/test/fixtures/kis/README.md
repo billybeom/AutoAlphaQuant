@@ -36,3 +36,4 @@
 | pre | `order_buy_pre` · `cancel_pre` | 장전 08:32 지정가 접수 → 바로 취소 |
 | next | `cancel_next-prevday` · `ccld_next_*` | 전날 주문 취소 `40320000` · 전날 행 잔여 1 그대로 · 오늘 조회엔 없음 |
 | 🆕 balance | `balance_balance` | 잔고 `VTTC8434R` `20310000` — 실험 278 **판 3** `--phase balance`(2026-11-04 01:07 · 주문 0) · `output1` = **빈 목록**(보유 0주) · `output2` 1행(`dnca_tot_amt` = `prvs_rcdl_excc_amt` = 49,999,965) · 이어받기 머리 빈칸(E10g · R41) |
+| 🆕 held | `held_balance_held` | 잔고 `VTTC8434R` `20310000` — 실험 278 **판 4** `--phase held`(2026-11-04 09:23 · 133690 1주 매수 체결 직후 · 곧 되팔아 0주로 되돌림) · `output1` **한 행**(`pdno` `133690` · `hldg_qty` `1` · 칸 26개) · `output2` `dnca_tot_amt` 49,999,965(D+0 · 매수 전과 같음) · `prvs_rcdl_excc_amt` 49,832,955(D+2 · 매수 166,990 + 수수료 20 만큼 줄었다) |

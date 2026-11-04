@@ -43,7 +43,7 @@ KIS 접근토큰 수명 관리 · 유량(rate) 제어 · **멱등 주문 발주*
   - `KisTr.of(환경)`(모의 V · 실전 T — TR 은 환경에서만) · `KisOrderBroker`(core `OrderBroker` 구현 · 계좌 한 벌): 매수 · 매도(지정가 `00` · 시장가 `01`) · 취소(그날 체결조회에서 지점 찾기 · 없으면 `ORDER_NOT_FOUND`) · 일별주문체결조회(`parseKisFillRow` → `DailyFillRow` · 10쪽 상한) · 예수금(`prvs_rcdl_excc_amt` · ✅ 모의 실측 2026-11-04 — R41 J8)
   - `KisPrice` 넓힘(기준가 · 호가 · 상하한 · 거래정지) · 픽스처 `test/fixtures/kis/orders/` = 실험 2·7·8 실응답(가림 자리표시 — 시험이 치환) · 시험 F-14b S01~S13(주문 전송 수 · 잠 열)
   - 🔴 실주문 `network` 시험은 없다(실험 278 스크립트가 그 몫 · 실전 키 때 다시)
-- 🆕 **E10g — 대사 잔고**(설계 13 §8 R41 · core 포트 `BrokerBalanceSource` · E10f 대사의 짝): `KisOrderBroker.balance()` = 보유(`output1` `pdno` → `hldg_qty` · 종목 합 · 0 은 빼고 · 빠진 칸 = FormatException) + 관측 현금(`dnca_tot_amt` · 없으면 null) · 이어받기 10쪽 상한 · 픽스처 `orders/balance_balance.json` = 실험 278 판 3 실응답(🟡 보유 0주 — 보유 행은 시험 코드가 실응답 본문에 넣는다 · 실물 행 = 다음 장중)
+- 🆕 **E10g — 대사 잔고**(설계 13 §8 R41 · core 포트 `BrokerBalanceSource` · E10f 대사의 짝): `KisOrderBroker.balance()` = 보유(`output1` `pdno` → `hldg_qty` · 종목 합 · 0 은 빼고 · 빠진 칸 = FormatException) + 관측 현금(`dnca_tot_amt` · 없으면 null) · 이어받기 10쪽 상한 · 픽스처 `orders/balance_balance.json` = 실험 278 판 3 실응답(보유 0주 — 여러 행 · 이어받기는 시험 코드가 실응답 본문에 넣는다) · 🆕 `orders/held_balance_held.json` = 실험 278 판 4 실응답(보유 1주 실물 행 · D+0 예수금 그대로 · D+2 만 줄어듦)
 
 ## 지금 상태 — 🟢 시세(E8d) · 주문 REST(E10d) · 대사 잔고(E10g) · 토큰 금고 보관(E11d) · 🟡 배선(E11)
 
