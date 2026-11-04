@@ -36,6 +36,7 @@ void main() {
         expect(seenAtSubmit, <IntentStatus>[IntentStatus.submitting]);
         expect(steps, <String>[
           '1',
+          '1.5', // 🆕 E13d1 — 브레이커 STOPPED 확인(R60 B1).
           '2',
           '2.5',
           '3',

@@ -50,6 +50,18 @@ void _prices(Database db) {
   }
 }
 
+void _snapshot(
+  Database db,
+  String day,
+  String level, {
+  double hwm = 100,
+  double dd = -0.4,
+}) => db.execute(
+  'INSERT OR REPLACE INTO equity_snapshot(trade_date, total_equity, cash_krw, cash_usd, fx_rate, positions_value, '
+  "high_water_mark, drawdown, breaker_level, mode) VALUES (?, ?, ?, 0, NULL, 0, ?, ?, ?, 'LIVE')",
+  <Object?>[day, hwm * (1 + dd), hwm * (1 + dd), hwm, dd, level],
+);
+
 int _count(Database db, String table) =>
     db.select('SELECT COUNT(*) AS n FROM $table').first['n'] as int;
 
@@ -195,6 +207,39 @@ void main() {
     ]) {
       expect(_count(db, t), 1, reason: t);
     }
+  });
+
+  test('🆕 E13d1 🔴 월말 이하 마지막 스냅숏 = STOPPED → 계획 행 0 · 대상 0 · 계층 B 는 판정 · HALTED = 계획(R60 B2)', () async {
+    _snapshot(db, '2026-07-30', 'STOPPED');
+    _snapshot(db, '2026-08-03', 'NORMAL'); // 월말 뒤 = 보지 않는다
+    final MonthlyRebalanceReport r = await job().run(_me);
+    expect(
+      (
+        r.created,
+        r.skippedReason,
+        r.planId,
+        r.executionDay,
+        r.monthIndex,
+        r.sleeveBHeld,
+      ),
+      (false, 'BREAKER_STOPPED', 'REBAL-2026-07-31', '2026-08-03', 0, false),
+    );
+    expect(r.targets, isEmpty);
+    expect(r.tierB, isNotNull);
+    for (final String t in <String>[
+      'plan_snapshot',
+      'rebalance_event',
+      'decision_log',
+    ]) {
+      expect(_count(db, t), 0, reason: t);
+    }
+    _snapshot(db, '2026-07-31', 'HALTED');
+    final MonthlyRebalanceReport made = await job().run(_me);
+    expect(
+      (made.created, made.skippedReason, made.monthIndex),
+      (true, null, 1),
+    );
+    expect(_count(db, 'plan_snapshot'), 1);
   });
 
   test('앞 계획이 있으면 램프 달 = 앞 + 1', () async {

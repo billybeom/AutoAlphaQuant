@@ -6,6 +6,8 @@
 //    같은 월말 계획이 이미 있으면 아무것도 바꾸지 않고 그것을 보고한다(멱등 — 다시 돌려도 안전).
 // 🔴 POT 현금 = 체결에서 다시 센다(🆕 E11f3 · R49 Q6 — `potCashFlowsSinceLiquidation`) · 예약 원화 = 0(S7).
 // 🔴 계층 B 판정(E11g)은 저장 뒤에 건다 — 이 판에는 자리만 있다.
+// 🆕 E13d1 — 월말 이하 마지막 스냅숏이 STOPPED 면 계획 행 0(SPEC v2.40 04 §2 «리밸런싱 모두 중단» · R60 B2) ·
+//    계층 B 판정은 그대로 · 🔴 `exposureMultiplier` 를 곱하지 않는다(곱하면 B · C 가 팔린다 = 청산).
 
 import 'dart:convert';
 
@@ -50,6 +52,7 @@ class MonthlyRebalanceReport implements DailyJobReport {
     required this.sleeveBHeld,
     required this.monthIndex,
     this.tierB,
+    this.skippedReason,
   });
 
   /// 계획 id.
@@ -75,6 +78,9 @@ class MonthlyRebalanceReport implements DailyJobReport {
 
   /// 🆕 E11g — 계층 B 판정 단계(R50 · 계획 저장 뒤).
   final TierBStepReport? tierB;
+
+  /// 🆕 E13d1 — 계획을 만들지 않은 까닭(STOPPED = `BREAKER_STOPPED` · 만들었으면 null).
+  final String? skippedReason;
 
   @override
   Set<String> get alerts => const <String>{};
@@ -239,6 +245,17 @@ class MonthlyRebalanceJob {
   }
 
   /// 계층 B 단계(R50 T1 · T8) — 실패 = [MonthlyRebalanceError](계획은 그대로 · 다시 돌리면 판정만).
+  /// 월말 **이하** 마지막 스냅숏의 레벨(없으면 NORMAL).
+  BreakerLevel _breakerAt(String monthEnd) {
+    final ResultSet rs = _db.select(
+      'SELECT breaker_level FROM equity_snapshot WHERE trade_date <= ? ORDER BY trade_date DESC LIMIT 1',
+      <Object?>[monthEnd],
+    );
+    return rs.isEmpty
+        ? BreakerLevel.normal
+        : BreakerLevel.fromCode(rs.first['breaker_level'] as String);
+  }
+
   TierBStepReport _tierB(TradeDate monthEnd) {
     try {
       return TierBStep(_db, clock: _clock, card: _tierBCard).run(monthEnd);
@@ -273,6 +290,19 @@ class MonthlyRebalanceJob {
     final Map<String, Object?>? existing = plans.outputsOf(d);
     if (existing != null) {
       return _report(d, existing, created: false, tierB: _tierB(monthEnd));
+    }
+    if (_breakerAt(d) == BreakerLevel.stopped) {
+      return MonthlyRebalanceReport(
+        planId: rebalancePlanIdOf(d),
+        created: false,
+        monthEnd: d,
+        executionDay: _kr.nextSession(monthEnd).yyyyMmDd,
+        targets: const <OrderTarget>[],
+        sleeveBHeld: false,
+        monthIndex: 0,
+        tierB: _tierB(monthEnd),
+        skippedReason: kBreakerStoppedAlertCode,
+      );
     }
 
     // P3 — 국면을 다시 계산 · 덧붙이고 월말 미국 세션 값이 들어왔는지 본다.

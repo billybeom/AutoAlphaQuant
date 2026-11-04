@@ -10,7 +10,7 @@ import 'package:core_engine/core_engine.dart';
 import 'package:core_engine/testing.dart';
 import 'package:data_sync/data_sync.dart';
 import 'package:decimal/decimal.dart';
-import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
@@ -345,6 +345,43 @@ void main() {
         expect(await ledger.ordersToday(const TradeDate('2026-11-03')), 0);
       },
     );
+
+    test('🆕 E13d1 1.5 — 집행일 이하 마지막 스냅숏 · 없으면 NORMAL · STOPPED = REJECTED BREAKER_STOPPED · 모르는 코드 = 원장 불가', () async {
+      expect(await ledger.breakerLevel(_exec), BreakerLevel.normal);
+      db.execute(
+        'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, cash_usd, fx_rate, positions_value, high_water_mark, drawdown, breaker_level, mode) '
+        "VALUES ('2026-10-30', 60, 60, 0, NULL, 0, 100, -0.4, 'HALTED', 'LIVE'), ('2026-11-02', 60, 60, 0, NULL, 0, 100, -0.4, 'STOPPED', 'LIVE'), "
+        "('2026-11-03', 60, 60, 0, NULL, 0, 100, -0.4, 'NORMAL', 'LIVE')",
+      );
+      expect(await ledger.breakerLevel(_exec), BreakerLevel.stopped);
+      expect(
+        await ledger.breakerLevel(const TradeDate('2026-11-01')),
+        BreakerLevel.halted,
+      );
+      expect(
+        await ledger.breakerLevel(const TradeDate('2026-11-03')),
+        BreakerLevel.normal,
+      );
+      final ExecutionOutcome o = await executeIntent(
+        _draft(logical: 'BS-1'),
+        _ok,
+        ctx(FakeOrderBroker()),
+      );
+      expect(
+        (o.status, o.message),
+        (ExecutionStatus.rejected, 'BREAKER_STOPPED'),
+      );
+      db.execute(
+        "UPDATE equity_snapshot SET breaker_level = 'WEIRD' WHERE trade_date = '2026-11-02'",
+      );
+      await expectLater(ledger.breakerLevel(_exec), throwsArgumentError);
+      final ExecutionOutcome f = await executeIntent(
+        _draft(logical: 'BS-2'),
+        _ok,
+        ctx(FakeOrderBroker()),
+      );
+      expect(f.message, startsWith('RISK_UNAVAILABLE: 원장 확인 불가'));
+    });
 
     test(
       '킬스위치 = 🆕 E13b SPEC v2.40 식 — 확인 뒤 48h 지나 해제해야만 꺼진다(손으로 고친 행은 못 푼다)',

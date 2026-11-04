@@ -336,7 +336,12 @@ class SqliteEquitySnapshotStore {
 /// `equity_snapshot` 보고.
 class EquitySnapshotReport implements DailyJobReport {
   /// 보고를 만든다.
-  const EquitySnapshotReport(this.row, {required this.releaseEligibleToday});
+  const EquitySnapshotReport(
+    this.row, {
+    required this.releaseEligibleToday,
+    this.stoppedEnteredToday = false,
+    this.incidentId,
+  });
 
   /// 쓴 행.
   final EquitySnapshotRow row;
@@ -344,8 +349,18 @@ class EquitySnapshotReport implements DailyJobReport {
   /// 오늘 STOPPED 재개 자격 이벤트가 났나(🟡 알림 코드는 계약 창 — 지금은 보고만).
   final bool releaseEligibleToday;
 
+  /// 🆕 E13d1 — 오늘 STOPPED 로 들어섰나(SEV1 을 열었다).
+  final bool stoppedEnteredToday;
+
+  /// 🆕 E13d1 — 연 SEV1(`incidents.incident_id`).
+  final String? incidentId;
+
+  /// 🆕 E13d1 제안 알림(계약 = E13i1 · R60 B6).
   @override
-  Set<String> get alerts => const <String>{};
+  Set<String> get alerts => <String>{
+    if (stoppedEnteredToday) kBreakerStoppedAlertCode,
+    if (releaseEligibleToday) kStoppedReleaseEligibleAlertCode,
+  };
 
   @override
   String toString() => 'EquitySnapshotReport($row)';
@@ -359,6 +374,7 @@ class EquitySnapshotJob {
     required Map<String, OrderBroker> cash,
     required this._mode,
     required this._holdings,
+    required this._clock,
     this._config,
   }) : _cash = Map<String, OrderBroker>.unmodifiable(cash) {
     if (cash.isEmpty) throw ArgumentError('현금 계좌가 없다');
@@ -368,7 +384,16 @@ class EquitySnapshotJob {
   final Map<String, OrderBroker> _cash;
   final RunMode _mode;
   final Future<List<LedgerHolding>> Function() _holdings;
+  final Clock _clock;
   final BreakerConfig? _config;
+
+  /// 🆕 E13d1 — 사람의 STOPPED 재개 날(결정 B `breaker_release` · R60 B3).
+  List<String> _releaseDates() => <String>[
+    for (final Row r in _db.select(
+      'SELECT trade_date FROM breaker_release ORDER BY trade_date',
+    ))
+      r['trade_date'] as String,
+  ];
 
   Map<String, String> _closeTexts(String day, Iterable<String> symbols) {
     final Map<String, String> out = <String, String>{};
@@ -414,11 +439,39 @@ class EquitySnapshotJob {
       history: store.before(d),
       regimeOf: _regimeLookup(),
       config: _config,
+      releaseDates: _releaseDates(),
     );
-    store.upsert(step.row);
+    final bool entered = step.replay?.stoppedEnteredToday ?? false;
+    // 🆕 E13d1 — 스냅숏 + STOPPED 진입 SEV1 = 한 트랜잭션 · 다시 돌려도 1건(R60 B5).
+    final StoppedIncident? incident = entered
+        ? stoppedIncidentOf(
+            tradeDate: d,
+            drawdown: step.row.drawdown,
+            nowUtc: _clock.nowUtc(),
+          )
+        : null;
+    inLedgerTransaction(_db, () {
+      store.upsert(step.row);
+      if (incident != null) {
+        _db.execute(
+          'INSERT OR IGNORE INTO incidents (incident_id, occurred_at, severity, category, description, '
+          'resolved_at, postmortem, due_at) VALUES (?, ?, ?, ?, ?, NULL, NULL, ?)',
+          <Object?>[
+            incident.incidentId,
+            incident.occurredAtUtc.toIso8601String(),
+            incident.severity,
+            incident.category,
+            incident.description,
+            incident.dueAtUtc.toIso8601String(),
+          ],
+        );
+      }
+    });
     return EquitySnapshotReport(
       step.row,
       releaseEligibleToday: step.releaseEligibleToday,
+      stoppedEnteredToday: entered,
+      incidentId: incident?.incidentId,
     );
   }
 }

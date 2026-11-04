@@ -6,7 +6,7 @@
 // 🆕 E10e2 — 이월 원장(`CarryLedger`) · 해소 원장(`UnknownLedger`) · 예약 시각([clock]) · 취소 확인 누적.
 // 🆕 E10f — 대사 원장(`ReconLedger`) · 기록 · 해제 · 해제 저널.
 
-import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 
 import '../orders/carry_over.dart';
 import '../orders/fill_sync.dart';
@@ -15,6 +15,7 @@ import '../orders/order_path_ports.dart';
 import '../orders/order_ports.dart';
 import '../orders/reconcile.dart';
 import '../orders/unknown_resolution.dart';
+import '../risk/breaker.dart' show BreakerLevel;
 
 /// 원장 한 의도의 현재 값.
 class FakeIntentRecord {
@@ -56,6 +57,7 @@ class FakeOrderLedger implements OrderPathLedger {
   /// 원장을 만든다. [registeredStrategies] 에 없는 strategy_id 는 SAF-406 거부를 받는다.
   FakeOrderLedger({
     this.killSwitch = false,
+    this.breaker = BreakerLevel.normal,
     Set<String>? flags,
     Set<String>? registeredStrategies,
     this.journalMissingValue = false,
@@ -71,6 +73,9 @@ class FakeOrderLedger implements OrderPathLedger {
 
   /// 킬스위치 활성.
   bool killSwitch;
+
+  /// 🆕 E13d1 — 브레이커 레벨(1.5단계).
+  BreakerLevel breaker;
 
   /// 활성 `trading_block` 플래그(묶음 밖 값도 넣을 수 있다 — 판정은 순서기 몫).
   final Set<String> flags;
@@ -454,6 +459,12 @@ class FakeOrderLedger implements OrderPathLedger {
   Future<bool> killSwitchActive() async {
     _enter('killSwitchActive');
     return killSwitch;
+  }
+
+  @override
+  Future<BreakerLevel> breakerLevel(TradeDate executionDate) async {
+    _enter('breakerLevel');
+    return breaker;
   }
 
   @override

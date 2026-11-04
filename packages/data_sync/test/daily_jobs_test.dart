@@ -104,6 +104,18 @@ void _krHistory(_Feed f, List<String> symbols) {
   }
 }
 
+void _snapshot(
+  Database db,
+  String day,
+  String level, {
+  double hwm = 100,
+  double dd = -0.4,
+}) => db.execute(
+  'INSERT OR REPLACE INTO equity_snapshot(trade_date, total_equity, cash_krw, cash_usd, fx_rate, positions_value, '
+  "high_water_mark, drawdown, breaker_level, mode) VALUES (?, ?, ?, 0, NULL, 0, ?, ?, ?, 'LIVE')",
+  <Object?>[day, hwm * (1 + dd), hwm * (1 + dd), hwm, dd, level],
+);
+
 void _price(Database db, String symbol, String day, double closeUnadj) =>
     db.execute(
       'INSERT OR REPLACE INTO daily_prices(trade_date, market, symbol, open, high, low, close, close_unadj, volume) '
@@ -410,6 +422,7 @@ void main() {
           },
       mode: RunMode.live,
       holdings: () async => held,
+      clock: clock,
     );
 
     test('원가 종가 × 보유 + D+2 현금 · 모드 칸 LIVE · 행 = 되읽은 값', () async {
@@ -436,6 +449,60 @@ void main() {
             .first['mode'],
         'LIVE',
       );
+    });
+
+    test('🆕 E13d1 STOPPED 진입 = SEV1 1건(기한 3일 · 한 트랜잭션) · 제안 알림 · 다시 돌려도 1건 · 다음 날 = 새 건 0 · 재개 행 = HALTED(R60 B3 · B5)', () async {
+      _snapshot(db, '2026-11-03', 'NORMAL', hwm: 100000000, dd: 0);
+      for (final String day in <String>[
+        '2026-11-04',
+        '2026-11-05',
+        '2026-11-06',
+      ]) {
+        _price(db, '133690', day, 167000);
+      }
+      EquitySnapshotReport r = await job().run(const TradeDate('2026-11-04'));
+      expect(
+        (r.row.breakerLevel, r.stoppedEnteredToday, r.incidentId),
+        (BreakerLevel.stopped, true, 'SEV1-BREAKER_STOPPED-2026-11-04'),
+      );
+      expect(r.alerts, <String>{'BREAKER_STOPPED'});
+      final Row i = db.select('SELECT * FROM incidents').single;
+      expect(
+        (
+          i['severity'],
+          i['category'],
+          i['occurred_at'],
+          i['due_at'],
+          i['resolved_at'],
+          i['postmortem'],
+        ),
+        (
+          'SEV1',
+          'BREAKER_STOPPED',
+          clock.t.toIso8601String(),
+          clock.t.add(const Duration(days: 3)).toIso8601String(),
+          null,
+          null,
+        ),
+      );
+      expect(
+        i['description'] as String,
+        startsWith('2026-11-04 드로다운 -50.00% — STOPPED 진입'),
+      );
+      r = await job().run(const TradeDate('2026-11-04'));
+      expect(db.select('SELECT * FROM incidents'), hasLength(1));
+      r = await job().run(const TradeDate('2026-11-05'));
+      expect(
+        (r.row.breakerLevel, r.stoppedEnteredToday, r.incidentId),
+        (BreakerLevel.stopped, false, null),
+      );
+      expect(r.alerts, isEmpty);
+      db.execute(
+        "INSERT INTO breaker_release (release_id, trade_date, decision_id, created_at) VALUES ('BR-1', '2026-11-06', 'J-B', 't')",
+      );
+      r = await job().run(const TradeDate('2026-11-06'));
+      expect(r.row.breakerLevel, BreakerLevel.halted);
+      expect(db.select('SELECT * FROM incidents'), hasLength(1));
     });
 
     test('같은 날 다시 = 덮어쓴다(행 1) · HWM 은 앞 날 행으로 · 다음 날 내려가면 dd', () async {
@@ -513,6 +580,34 @@ void main() {
       expect(f('2026-11-09'), (10.0, false));
     });
 
+    test('🆕 E13d1 보고 알림 — 진입 = BREAKER_STOPPED · 자격 = STOPPED_RELEASE_ELIGIBLE · 없으면 0', () {
+      const EquitySnapshotRow row = EquitySnapshotRow(
+        tradeDate: '2026-11-04',
+        totalEquity: 1,
+        cashKrw: 1,
+        positionsValue: 0,
+        highWaterMark: 1,
+        drawdown: 0,
+        breakerLevel: BreakerLevel.stopped,
+      );
+      expect(
+        const EquitySnapshotReport(row, releaseEligibleToday: true).alerts,
+        <String>{'STOPPED_RELEASE_ELIGIBLE'},
+      );
+      expect(
+        const EquitySnapshotReport(
+          row,
+          releaseEligibleToday: true,
+          stoppedEnteredToday: true,
+        ).alerts,
+        <String>{'BREAKER_STOPPED', 'STOPPED_RELEASE_ELIGIBLE'},
+      );
+      expect(
+        const EquitySnapshotReport(row, releaseEligibleToday: false).alerts,
+        isEmpty,
+      );
+    });
+
     test('현금 계좌 없음 = ArgumentError', () {
       expect(
         () => EquitySnapshotJob(
@@ -520,6 +615,7 @@ void main() {
           cash: const <String, OrderBroker>{},
           mode: RunMode.live,
           holdings: () async => const <LedgerHolding>[],
+          clock: clock,
         ),
         throwsArgumentError,
       );
