@@ -153,7 +153,7 @@ void main() {
     test('만료 5분 전이면 새로 받는다', () async {
       final MemoryKisTokenStore store = MemoryKisTokenStore()
         ..write(
-          KisEnvironment.mock,
+          KisTokenKey.of(_mockKeys()),
           KisToken('old', clock.now().add(const Duration(minutes: 4))),
         );
       final KisRestClient c = client(
@@ -162,7 +162,7 @@ void main() {
       );
       expect((await c.token()).accessToken, _token);
       store.write(
-        KisEnvironment.mock,
+        KisTokenKey.of(_mockKeys()),
         KisToken('keep', clock.now().add(const Duration(minutes: 6))),
       );
       expect((await c.token()).accessToken, 'keep');
@@ -185,22 +185,38 @@ void main() {
       expect(e.toString(), isNot(contains(_mockKeys().appKey)));
     });
 
-    test('파일 보관 — 환경마다 · 버리기', () {
+    test('파일 보관 — 칸 = 환경:지문 · 버리기 · 옛 꼴 칸은 안 읽는다', () {
       final Directory d = Directory.systemTemp.createTempSync('aaq_kis_tok_');
       addTearDown(() => d.deleteSync(recursive: true));
-      final FileKisTokenStore f = FileKisTokenStore(File('${d.path}/t.json'));
-      expect(f.read(KisEnvironment.mock), isNull);
-      f.write(KisEnvironment.mock, KisToken('m', DateTime.utc(2026, 10, 30)));
-      f.write(KisEnvironment.live, KisToken('l', DateTime.utc(2026, 10, 31)));
-      final FileKisTokenStore g = FileKisTokenStore(File('${d.path}/t.json'));
-      expect(g.read(KisEnvironment.mock)!.accessToken, 'm');
-      expect(
-        g.read(KisEnvironment.live)!.expiresAt,
-        DateTime.utc(2026, 10, 31),
+      final File file = File('${d.path}/t.json');
+      final FileKisTokenStore f = FileKisTokenStore(file);
+      final KisTokenKey mock = KisTokenKey.of(_mockKeys());
+      const KisTokenKey live = KisTokenKey(KisEnvironment.live, 'aaaa1111');
+      expect(f.read(mock), isNull);
+      f.write(mock, KisToken('m', DateTime.utc(2026, 10, 30)));
+      f.write(live, KisToken('l', DateTime.utc(2026, 10, 31)));
+      final FileKisTokenStore g = FileKisTokenStore(file);
+      expect(g.read(mock)!.accessToken, 'm');
+      expect(g.read(live)!.expiresAt, DateTime.utc(2026, 10, 31));
+      final Map<String, Object?> raw =
+          jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
+      expect(raw.keys.toSet(), <String>{mock.slot, 'live:aaaa1111'});
+      expect(file.readAsStringSync().contains(_mockKeys().appKey), isFalse);
+      g.clear(mock);
+      expect(f.read(mock), isNull);
+      expect(f.read(live), isNotNull);
+      // 옛 꼴(환경 이름만) 칸 = 읽지 않는다 → 1회 재발급.
+      file.writeAsStringSync(
+        jsonEncode(<String, Object?>{
+          'mock': <String, String>{
+            'access_token': 'legacy',
+            'expires_at': '2026-10-30T00:00:00.000Z',
+          },
+        }),
       );
-      g.clear(KisEnvironment.mock);
-      expect(f.read(KisEnvironment.mock), isNull);
-      expect(f.read(KisEnvironment.live), isNotNull);
+      expect(FileKisTokenStore(file).read(mock), isNull);
+      file.writeAsStringSync('{깨짐');
+      expect(FileKisTokenStore(file).read(mock), isNull);
       expect(
         KisToken('secret', DateTime.utc(2026)).toString(),
         isNot(contains('secret')),

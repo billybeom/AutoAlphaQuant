@@ -244,6 +244,25 @@ export 'src/risk/limits.dart'
         checkAllLimits;
 export 'src/risk/position_sizing.dart'
     show SizingBinding, SizingResult, sizePosition;
+// 🆕 E11d — 키 금고 포트 · 마스킹 · 지문 · 회전 · 봉함(설계 13 §8 R44 · 06 M4-4 순수 몫).
+export 'src/security/key_rotation.dart'
+    show
+        KeyRotation,
+        KeyRotationStage,
+        RotationOutcome,
+        rotateSecret,
+        stagedSecretId;
+export 'src/security/sealed_box.dart' show SealedBox;
+export 'src/security/secret_mask.dart'
+    show
+        kMinRedactLength,
+        kRedacted,
+        maskAccount,
+        maskSecret,
+        redactSecrets,
+        secretFingerprint;
+export 'src/security/secret_vault.dart'
+    show SecretId, SecretVault, SecretVaultError, readAllSecretValues;
 export 'src/signals/exposure_gate.dart'
     show directionFactor, exposureGate, trendFactor;
 export 'src/signals/hysteresis.dart'
