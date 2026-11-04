@@ -352,6 +352,9 @@ void main() {
       expect(r.backup!.age, Duration.zero);
       expect(r.alerts, isEmpty);
       expect(r.toString(), contains('스탬프 3'));
+      // 🆕 E13c1 — 스탬프 뒤 자가 무결성 검사(일치 · 기록 1행).
+      expect(r.integrity.verdict.daysChecked, 3);
+      expect(r.toString(), contains('무결성 일치'));
 
       // 27시간 뒤 — 원격 성공이 없으니 26h 를 넘었다.
       clock.at = _t0.add(const Duration(hours: 27));
@@ -385,6 +388,36 @@ void main() {
       );
       expect(job().run().alerts, <String>{AlertCodes.backupStale});
     });
+
+    test(
+      '🆕 E13c1 🔴 정본 자가 무결성 불일치 = LEDGER_INTEGRITY · 아카이브 건너뜀 · P0 제안(R58 C5)',
+      () {
+        loadLedgerGolden(db);
+        job().run();
+        final List<String> before = tree();
+        db.execute(
+          "UPDATE decision_log SET reason = reason || '.' WHERE decision_id = 'D-1'",
+        );
+        clock.at = _t0.add(const Duration(days: 1));
+        final DailyArchiveReport r = job().run();
+        expect(r.stamped, <String>['2026-11-05']);
+        expect(
+          r.integrity.verdict.reason,
+          LedgerIntegrityReason.dayHashMismatch,
+        );
+        expect(r.integrity.flagRaised, isTrue);
+        expect(r.archived, isEmpty);
+        expect(tree(), before);
+        expect(r.alerts, contains('LEDGER_INTEGRITY_BROKEN'));
+        expect(r.toString(), contains('무결성 DAY_HASH_MISMATCH'));
+        expect(
+          db.select(
+            "SELECT 1 FROM trading_block WHERE flag_id = 'LEDGER_INTEGRITY' AND cleared_at IS NULL",
+          ),
+          hasLength(1),
+        );
+      },
+    );
 
     test('행이 없으면 스탬프 0 · 백업 판정 없음 · 알림 없음', () {
       final DailyArchiveReport r = job().run();
