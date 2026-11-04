@@ -10,7 +10,7 @@
 //   ⑨ 기기 리스크 ⑩ D11 실효 ⑪ D11 PREVENTED 근거 ⑫ D11 알림 코드 ⑬ 받침대 ⑭ 라우트.
 //
 // 🔴 픽스처 불변식만 본다 — `ui_shell` 화면 스캔은 R16 카드 정적 묶음 몫(01 §8 미결 144).
-// 🔴 한국어 글자 단언 0 — 상수 리터럴 = 표본 id·키 이름·코드·라우트 상수·`FixturePaths` 뿐.
+// 🔴 한국어 글자 단언 0 — 상수 리터럴 = 표본 id·키 이름·코드·라우트 상수·`FixturePaths` · 카드 허용 대표번호 1 뿐.
 
 import 'dart:convert';
 
@@ -82,6 +82,19 @@ final RegExp _runbookId = RegExp(r'^[a-z][a-z0-9-]*$');
 
 /// 개인 전화번호 꼴(C-51 ⑤ · 공개 고객센터 대표번호 «1544-5000» 꼴은 걸리지 않는다).
 final RegExp _personalPhone = RegExp(r'01[016-9]-?[0-9]{3,4}-?[0-9]{4}');
+
+/// 긴급 카드에 허용하는 숫자 묶음 — 공개 고객센터 대표번호 하나(C-51 ⑤ · K11).
+const String _publicContact = '1544-5000';
+
+/// 긴급 카드 글자에 오면 안 되는 숫자 꼴(C-51 ⑤ · 🆕 v1.17 검증 반영 — C-14 패턴 밖까지):
+/// 유선·휴대 전화(`02-3276-5000`) · 은행식 계좌(`110-123-456789`) · 대표번호 꼴(`1588-0000` — 허용 하나 밖) ·
+/// 하이픈 없는 8자리 이상 숫자. 허용 대표번호는 지운 뒤 본다.
+final List<RegExp> _cardNumberShapes = <RegExp>[
+  RegExp(r'[0-9]{2,4}-[0-9]{3,4}-[0-9]{4}'),
+  RegExp(r'[0-9]{3}-[0-9]{2,6}-[0-9]{2,6}'),
+  RegExp(r'[0-9]{4}-[0-9]{4}'),
+  RegExp(r'[0-9]{8,}'),
+];
 
 Map<String, Object?> _env(String path) =>
     jsonDecode(readFixture(path)) as Map<String, Object?>;
@@ -331,6 +344,13 @@ void main() {
         IncidentKind.other,
         reason: '엔진이 종류를 늘려도 화면이 죽지 않는다(unknownEnumValue).',
       );
+      expect(
+        _map(
+          _env(FixturePaths.m8IncidentTokenExpired)['incident_alert'],
+        )!['code'],
+        AlertCodes.brokerAuthFailed,
+        reason: 'K21 — 토큰 만료 알림 = BROKER_AUTH_FAILED(옛 MAINTENANCE_RESUME_FAILED 아님 · 둘 다 P0 라 C-47 ⑥ 은 못 잡는다).',
+      );
     });
 
     test('C-51 ③ 런북 목록 — 6행 · id 꼴 · ⑥ = 카드 · 요약 null · 빈 문장 조건', () {
@@ -417,6 +437,14 @@ void main() {
             reason: '$path — 개인 전화번호 꼴: $s',
           );
           expect(scanForSecrets('"$s"'), isEmpty, reason: '$path — $s');
+          final String rest = s.replaceAll(_publicContact, '');
+          for (final RegExp shape in _cardNumberShapes) {
+            expect(
+              shape.hasMatch(rest),
+              isFalse,
+              reason: '$path — 계좌·전화번호 꼴(허용 = $_publicContact 하나): $s',
+            );
+          }
         }
       }
       final Map<String, Object?> card = _vm(FixturePaths.m8EmergencyCard);
