@@ -33,6 +33,7 @@ export 'src/local/ledger_database.dart';
 export 'src/local/ledger_fix.dart';
 export 'src/local/ledger_hash_stamper.dart';
 export 'src/local/ledger_integrity_check.dart';
+export 'src/local/ledger_read_model.dart';
 export 'src/local/ledger_schema.dart';
 export 'src/local/operating_param_store.dart';
 export 'src/local/order_ledger.dart';
