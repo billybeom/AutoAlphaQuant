@@ -991,3 +991,106 @@ Set<String> finishAllowed(OnboardingFinishVm v, ActionResult? r) => <String>{
   ?r?.reasonCode,
   ShellLabels.onboardingNotAccepted,
 };
+
+// ── R15d — R-01·V-01 fakes ──
+
+class FakeShellRestartRepository extends UnimplementedOnboardingRepository {
+  FakeShellRestartRepository({required this.restart});
+
+  final Stream<RestartVm> Function(int call) restart;
+  int restartCalls = 0;
+
+  @override
+  Stream<RestartVm> watchRestart() {
+    final int call = restartCalls;
+    restartCalls = restartCalls + 1;
+    return restart(call);
+  }
+}
+
+class FakeShellPairingRepository extends UnimplementedPairingRepository {
+  FakeShellPairingRepository({required this.pairing});
+
+  final Stream<PairingVm> Function(int call) pairing;
+  int pairingCalls = 0;
+
+  @override
+  Stream<PairingVm> watchPairing() {
+    final int call = pairingCalls;
+    pairingCalls = pairingCalls + 1;
+    return pairing(call);
+  }
+}
+
+List<Override> restartOverrides({
+  required FakeShellRestartRepository repo,
+  required ShellSlotBuilder? slots,
+  required RecordingLinkOpener opener,
+}) => <Override>[
+  shellOnboardingRepositoryProvider.overrideWithValue(repo),
+  shellOnboardingSlotBuilderProvider.overrideWithValue(slots),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+];
+
+List<Override> pairingOverrides({
+  required FakeShellPairingRepository repo,
+  required ShellSlotBuilder? slots,
+  required RecordingLinkOpener opener,
+}) => <Override>[
+  shellPairingRepositoryProvider.overrideWithValue(repo),
+  shellOnboardingSlotBuilderProvider.overrideWithValue(slots),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+];
+
+Future<void> pumpRestart(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: OnboardingRestart())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+Future<void> pumpPairing(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: ViewerPairing())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+Set<String> restartAllowed(RestartVm v) => <String>{
+  v.headline,
+  ...?v.ledgerLines,
+  ?v.leaseGate?.label,
+  for (final LinkAction b in v.branches) b.label,
+  ?v.inheritNotice,
+};
+
+Set<String> pairingAllowed(PairingVm v) => <String>{
+  v.headline,
+  ?v.result?.headline,
+  ?v.result?.reasonCode,
+  ?v.result?.nextLink?.label,
+};
