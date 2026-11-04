@@ -27,6 +27,7 @@ export 'src/jobs/tier_b_step.dart';
 export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
 export 'src/local/ledger_database.dart';
+export 'src/local/ledger_hash_stamper.dart';
 export 'src/local/ledger_schema.dart';
 export 'src/local/order_ledger.dart';
 export 'src/local/plan_snapshot_store.dart';

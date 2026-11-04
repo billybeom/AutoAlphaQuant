@@ -56,6 +56,7 @@
 | `gv08_machine_block.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-8 «🆕 v1.5 — GV-8 기계 채점 블록» 코드 블록(1082~1105행) | 05 **v1.22** | 2026-10-19 |
 | `gv03_exposure_gate.json` | 같은 문서 §GV-3 코드 블록(525~535행) | 05 **v1.22** | 2026-10-19 |
 | `gv03c_unknown_fail_closed.json` | 같은 문서 §GV-3c 코드 블록(549~555행) | 05 **v1.22** | 2026-10-19 |
+| `ledger_hash_v1.json` | 🆕 E11h1 — 원본이 설계 저장소가 아니라 **이 저장소의 `tool/make_ledger_hash_golden.py`**(Python 표준 라이브러리만 · Dart 와 독립된 구현)다. 규칙 = 설계 13 §8 R51 H3~H8(정규 행 · 실수 표기 · 문자열 이스케이프 · 한국 날짜 귀속 · day_hash · 체인 · 축약). 🔴 손으로 고치지 않는다 — 규칙을 바꾸면 스크립트를 고치고 다시 만들며 `hashFormatVersion` 을 올린다(01 §6-7) · sha256 `c434602d057da6c40d7e43765bafc4ad561d89ce4cc59ff03b3b22a18c206d9a` | 생성 스크립트 = 브랜치 `feat/E11h1-ledger-hash` | 2026-11-04 |
 
 sha256(복사본 — `sha256sum *.json`):
 

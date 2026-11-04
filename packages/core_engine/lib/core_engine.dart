@@ -90,6 +90,25 @@ export 'src/ops/equity_snapshot.dart'
         p0sBreakerConfig,
         positionsValueKrw,
         replayBreaker;
+// 🆕 E11h1 — X5-1 정규 직렬화 · day_hash · 해시 체인(설계 13 §8 R51).
+export 'src/ops/ledger_hash.dart'
+    show
+        LedgerHashError,
+        LedgerHashTable,
+        authoredKstDate,
+        canonicalDouble,
+        canonicalRow,
+        canonicalString,
+        canonicalValue,
+        chainCarryText,
+        chainHashOf,
+        chainStampText,
+        dayHashInput,
+        dayHashOf,
+        kChainGenesis,
+        kLedgerHashPopulationV1,
+        rowCountsJson,
+        sortCanonicalLines;
 // 🆕 E11f2 — 월말 계획기 입력 조립(원장 보유 → MonthEndState · 월별 마지막 종가 · 슬리브 비중 · 설계 13 §8 R48 P4~P6).
 export 'src/ops/month_end_inputs.dart'
     show
