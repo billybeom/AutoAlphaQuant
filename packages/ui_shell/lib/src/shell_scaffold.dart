@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/labels.dart';
 import 'common/shell_common.dart';
+import 'incident/incident_banner.dart';
 import 'routing/shell_router.dart';
 import 'shell_providers.dart';
 
@@ -113,14 +114,22 @@ class _PhoneHome extends ConsumerWidget {
           key: const Key('s01-title'),
         ),
       ),
-      body: IndexedStack(
-        index: index,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _homeOf(bodies),
-          const _JournalTab(),
-          const ShellRouteBody(link: AppRoutes.holdingsOverview),
-          const ShellPlaceholder(key: Key('s01-plan-slot')),
-          const ShellPlaceholder(key: Key('s01-more-slot')),
+          const IncidentBannerSlot(),
+          Expanded(
+            child: IndexedStack(
+              index: index,
+              children: <Widget>[
+                _homeOf(bodies),
+                const _JournalTab(),
+                const ShellRouteBody(link: AppRoutes.holdingsOverview),
+                const ShellPlaceholder(key: Key('s01-plan-slot')),
+                const ShellPlaceholder(key: Key('s01-more-slot')),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -317,14 +326,22 @@ class _WebBody extends ConsumerWidget {
           key: const Key('s01-title'),
         ),
       ),
-      body: IndexedStack(
-        index: index,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _homeOf(ref.watch(shellRouteBodiesProvider)),
-          const ShellRouteBody(link: AppRoutes.journalTimeline),
-          const ShellRouteBody(link: AppRoutes.holdingsOverview),
-          const ShellRouteBody(link: AppRoutes.reportArchive),
-          const ShellPlaceholder(key: Key('s02-handbook-slot')),
+          const IncidentBannerSlot(),
+          Expanded(
+            child: IndexedStack(
+              index: index,
+              children: <Widget>[
+                _homeOf(ref.watch(shellRouteBodiesProvider)),
+                const ShellRouteBody(link: AppRoutes.journalTimeline),
+                const ShellRouteBody(link: AppRoutes.holdingsOverview),
+                const ShellRouteBody(link: AppRoutes.reportArchive),
+                const ShellPlaceholder(key: Key('s02-handbook-slot')),
+              ],
+            ),
+          ),
         ],
       ),
     );
