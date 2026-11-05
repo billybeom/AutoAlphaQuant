@@ -159,6 +159,7 @@ void main() {
 
   for (final _LiveCase c in liveCases) {
     testWidgets('B02-02 live value ${c.name}', (WidgetTester tester) async {
+      expect(sleeveB.blocks[1].live, isNotNull); // pre
       final HandbookLiveValue? live = sleeveB.blocks[c.block].live;
       await pumpHandbookPage(
         tester,
