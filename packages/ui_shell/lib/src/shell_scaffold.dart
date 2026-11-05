@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/labels.dart';
 import 'common/shell_common.dart';
+import 'handbook/handbook_contents.dart';
 import 'incident/incident_banner.dart';
 import 'routing/shell_router.dart';
 import 'shell_providers.dart';
@@ -338,7 +339,10 @@ class _WebBody extends ConsumerWidget {
                 const ShellRouteBody(link: AppRoutes.journalTimeline),
                 const ShellRouteBody(link: AppRoutes.holdingsOverview),
                 const ShellRouteBody(link: AppRoutes.reportArchive),
-                const ShellPlaceholder(key: Key('s02-handbook-slot')),
+                const KeyedSubtree(
+                  key: Key('s02-handbook-slot'),
+                  child: HandbookContents(),
+                ),
               ],
             ),
           ),

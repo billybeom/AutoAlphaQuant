@@ -13,6 +13,8 @@
 export 'l10n/labels.dart';
 export 'src/alerts/alert_center.dart';
 export 'src/alerts/alert_detail.dart';
+export 'src/handbook/handbook_contents.dart';
+export 'src/handbook/handbook_page_view.dart';
 export 'src/incident/emergency_stop_card.dart';
 export 'src/incident/incident_banner.dart';
 export 'src/incident/runbook_detail.dart';
