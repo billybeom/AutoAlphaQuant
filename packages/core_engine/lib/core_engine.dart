@@ -104,7 +104,6 @@ export 'src/ops/equity_snapshot.dart'
         EquitySnapshotError,
         EquitySnapshotRow,
         EquitySnapshotStep,
-        StoppedIncident,
         computeEquitySnapshot,
         kBreakerStoppedAlertCode,
         kStoppedPostmortemDue,
@@ -323,7 +322,6 @@ export 'src/orders/reconcile.dart'
         ReconRecord,
         ReconReport,
         clearRecon,
-        kManualOrderPostmortemDue,
         kReconClearOriginCodes,
         kReconRecheckDelay,
         ledgerDiffIdOf,
@@ -400,6 +398,7 @@ export 'src/risk/breaker.dart'
         evaluateBreaker,
         exposureMultiplier,
         isStoppedReleaseEligible,
+        kReduceReleaseDirectionScore,
         levelFromDrawdown,
         releaseStoppedToHalted,
         stepBreaker;
@@ -416,6 +415,20 @@ export 'src/risk/limits.dart'
         checkAllLimits;
 export 'src/risk/position_sizing.dart'
     show SizingBinding, SizingResult, sizePosition;
+// 🆕 E13e2 — 브레이커 사다리 원천(M5-4 · 설계 13 §8 R63 V4).
+export 'src/safety/breaker_ladder.dart'
+    show BreakerLadderStep, breakerLadderOf, ladderPercent;
+// 🆕 E13e2 — 안전 사건 꼴 · MANUAL_ORDER SEV2 · postmortem 판정(설계 13 §8 R63).
+export 'src/safety/incident.dart'
+    show
+        PostmortemCodes,
+        SafetyIncident,
+        StoppedIncident,
+        kManualOrderPostmortemDue,
+        manualOrderIncidentOf,
+        postmortemClosesIncident,
+        postmortemOverdue,
+        postmortemRejectCode;
 // 🆕 E13a — 킬스위치 발동 순서기 · 저장 포트(SPEC v2.40 04 §3-6 · 설계 13 §8 R56 K6).
 export 'src/safety/kill_activation.dart'
     show

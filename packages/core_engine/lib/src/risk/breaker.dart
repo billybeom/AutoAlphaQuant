@@ -115,6 +115,9 @@ class BreakerConfig {
   final int stopReleaseBullStreak;
 }
 
+/// REDUCED 해제에 필요한 방향 점수(04 §2 «direction_score ≥ 50» · 🆕 E13e2 — 사다리 문장이 같은 값을 쓴다).
+const double kReduceReleaseDirectionScore = 50.0;
+
 /// 낙폭만으로 정해지는 레벨 — 심각한 쪽부터 · 경계 `<=`.
 BreakerLevel levelFromDrawdown(double drawdown, BreakerConfig config) {
   if (drawdown <= config.stopDd) return BreakerLevel.stopped;
@@ -154,7 +157,7 @@ BreakerLevel evaluateBreaker({
       return drawdown >= config.reduceReleaseDd &&
               directionScore != null &&
               !directionScore.isNaN &&
-              directionScore >= 50.0
+              directionScore >= kReduceReleaseDirectionScore
           ? BreakerLevel.alert
           : previous;
     case BreakerLevel.alert:
