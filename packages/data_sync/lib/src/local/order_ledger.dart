@@ -39,6 +39,7 @@ import 'package:core_engine/core_engine.dart'
         ReconDiff,
         ReconRecord,
         RecordedFill,
+        SafetyIncident,
         SplitProgress,
         UnknownIntent,
         averageFillPrice,
@@ -969,6 +970,22 @@ final class SqliteOrderLedger implements OrderPathLedger {
         ],
       );
       final int resolved = _db.updatedRows;
+      // 🆕 E13e2 — MANUAL_ORDER = 같은 트랜잭션에 SEV2 postmortem 7일(04 §3-5 ④ · R63 V1 · 다시 = 1건).
+      final SafetyIncident? incident = clearance.incident;
+      if (incident != null) {
+        _db.execute(
+          'INSERT OR IGNORE INTO incidents (incident_id, occurred_at, severity, category, description, '
+          'resolved_at, postmortem, due_at) VALUES (?, ?, ?, ?, ?, NULL, NULL, ?)',
+          <Object?>[
+            incident.incidentId,
+            incident.occurredAtUtc.toIso8601String(),
+            incident.severity,
+            incident.category,
+            incident.description,
+            incident.dueAtUtc.toIso8601String(),
+          ],
+        );
+      }
       // 해제도 로그 한 행(원인 코드를 남긴다 — 04 §3-5 ②). matched = 0 — 대사 판이 아니다.
       _db.execute(
         'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '

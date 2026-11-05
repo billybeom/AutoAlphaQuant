@@ -1508,6 +1508,62 @@ void main() {
       },
     );
 
+    test('🆕 E13e2 🔴 MANUAL_ORDER 해제 = 같은 트랜잭션에 SEV2 7일 — 건 쓰기 실패 = 해제도 없음(04 §3-5 ④ · R63 V1)', () async {
+      position('133690', 5);
+      await recon(FakeOrderBroker()..holdings['133690'] = 3);
+      final SafetyIncident inc = manualOrderIncidentOf(
+        decisionId: 'dj-m',
+        clearedAtUtc: at,
+      );
+      ReconClearance c() => ReconClearance(
+        originCode: OriginCodes.manualOrder,
+        decisionId: 'dj-m',
+        clearedBy: 'app',
+        clearedAtUtc: at,
+        incident: inc,
+      );
+      db.execute(
+        "CREATE TRIGGER no_inc BEFORE INSERT ON incidents BEGIN SELECT RAISE(ABORT, 'x'); END",
+      );
+      await expectLater(
+        ledger.clearReconBlock(c()),
+        throwsA(isA<SqliteException>()),
+      );
+      expect(flag()['cleared_at'], isNull);
+      expect(
+        db.select('SELECT status FROM ledger_diff').single['status'],
+        'OPEN',
+      );
+      expect(
+        db.select(
+          "SELECT 1 FROM reconciliation_log WHERE action_taken = 'CLEARED'",
+        ),
+        isEmpty,
+      );
+      db.execute('DROP TRIGGER no_inc');
+      await ledger.clearReconBlock(c());
+      final Row i = db.select('SELECT * FROM incidents').single;
+      expect(
+        (
+          i['incident_id'],
+          i['severity'],
+          i['category'],
+          i['due_at'],
+          i['resolved_at'],
+          i['postmortem'],
+        ),
+        (
+          'SEV2-MANUAL_ORDER-dj-m',
+          'SEV2',
+          'MANUAL_ORDER',
+          at.add(const Duration(days: 7)).toIso8601String(),
+          null,
+          null,
+        ),
+      );
+      expect(flag()['origin_code'], OriginCodes.manualOrder);
+    });
+
     test('🆕 E13c1 🔴 원인 코드 쓰기 화이트리스트 — 파생 · 옛 CORP_ACTION · 열거 밖 = ArgumentError · 아무것도 안 씀(R58 C7)', () async {
       position('133690', 5);
       await recon(FakeOrderBroker()..holdings['133690'] = 3);

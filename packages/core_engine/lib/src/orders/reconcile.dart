@@ -12,6 +12,7 @@ import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
+import '../safety/incident.dart' show SafetyIncident, manualOrderIncidentOf;
 import 'fills.dart';
 import 'order_ports.dart';
 
@@ -23,9 +24,6 @@ final Set<String> kReconClearOriginCodes = <String>{
   for (final String c in OriginCodes.writable)
     if (!OriginCodes.derived.contains(c)) c,
 };
-
-/// MANUAL_ORDER 해제 뒤 SEV2 postmortem 기한(04 §3-5 ④ · 03 운영 카드 ⑤).
-const Duration kManualOrderPostmortemDue = Duration(days: 7);
 
 /// 브로커 계좌의 잔고(R40 A2).
 class BrokerBalance {
@@ -344,6 +342,7 @@ class ReconClearance {
     required this.decisionId,
     required this.clearedBy,
     required this.clearedAtUtc,
+    this.incident,
   });
 
   /// 원인 코드 · 저널 id · 해제한 사람.
@@ -351,6 +350,9 @@ class ReconClearance {
 
   /// 해제 시각.
   final DateTime clearedAtUtc;
+
+  /// 🆕 E13e2 — MANUAL_ORDER 면 같은 트랜잭션에 여는 SEV2(R63 V1 · 그 밖 null).
+  final SafetyIncident? incident;
 }
 
 /// 대사 원장 포트(R40 A2) — 구현 = data_sync `SqliteOrderLedger`.
@@ -642,18 +644,21 @@ Future<ReconClearOutcome> clearRecon(
     throw StateError('RECON_MISMATCH 가 서 있지 않다');
   }
   final DateTime at = nowUtc.toUtc();
+  // 🆕 E13e2 — 04 §3-5 ④ «MANUAL_ORDER 면 SEV2 postmortem(7일)을 함께 연다» = 해제와 같은 트랜잭션(R63 V1).
+  final SafetyIncident? incident = originCode == OriginCodes.manualOrder
+      ? manualOrderIncidentOf(decisionId: decisionId, clearedAtUtc: at)
+      : null;
   await ledger.clearReconBlock(
     ReconClearance(
       originCode: originCode,
       decisionId: decisionId,
       clearedBy: clearedBy,
       clearedAtUtc: at,
+      incident: incident,
     ),
   );
   return ReconClearOutcome(
     originCode: originCode,
-    postmortemDueUtc: originCode == OriginCodes.manualOrder
-        ? at.add(kManualOrderPostmortemDue)
-        : null,
+    postmortemDueUtc: incident?.dueAtUtc,
   );
 }

@@ -13,6 +13,7 @@ import 'package:decimal/decimal.dart';
 import '../orders/order_ports.dart' show OrderBroker;
 import '../orders/reconcile.dart' show LedgerHolding;
 import '../risk/breaker.dart';
+import '../safety/incident.dart' show SafetyIncident, StoppedIncident;
 
 /// P0S 브레이커 설정(04 §2 — 사다리 −15 · −20 · −25 · −35 · 해제 −13 · −12 · −15 · 유지 20 · bull 3 · STOPPED 자격 −25 · 5).
 BreakerConfig p0sBreakerConfig() => BreakerConfig(
@@ -155,32 +156,6 @@ const String kStoppedReleaseEligibleAlertCode = 'STOPPED_RELEASE_ELIGIBLE';
 /// STOPPED SEV1 postmortem 기한(03_운영 §6-4b ① · 카드 ⑤ · R60 B5).
 const Duration kStoppedPostmortemDue = Duration(days: 3);
 
-/// STOPPED 진입 SEV1 한 건(`incidents` 꼴 · 🔴 금액 0).
-class StoppedIncident {
-  /// 건을 만든다.
-  const StoppedIncident({
-    required this.incidentId,
-    required this.description,
-    required this.occurredAtUtc,
-    required this.dueAtUtc,
-  });
-
-  /// `SEV1-BREAKER_STOPPED-{그날}` — 같은 날 다시 돌려도 같은 건.
-  final String incidentId;
-
-  /// 설명(날 · 낙폭 % · 절차).
-  final String description;
-
-  /// 연 시각 · postmortem 기한.
-  final DateTime occurredAtUtc, dueAtUtc;
-
-  /// 심각도.
-  String get severity => 'SEV1';
-
-  /// 분류.
-  String get category => kBreakerStoppedAlertCode;
-}
-
 /// STOPPED 진입 날 SEV1 의 id(🆕 E13d2 — 결정이 이 에피소드의 건을 찾는다 · R61 T2).
 String stoppedIncidentIdOf(String entryTradeDate) =>
     'SEV1-$kBreakerStoppedAlertCode-$entryTradeDate';
@@ -190,8 +165,10 @@ StoppedIncident stoppedIncidentOf({
   required String tradeDate,
   required double drawdown,
   required DateTime nowUtc,
-}) => StoppedIncident(
+}) => SafetyIncident(
   incidentId: stoppedIncidentIdOf(tradeDate),
+  severity: 'SEV1',
+  category: kBreakerStoppedAlertCode,
   description:
       '$tradeDate 드로다운 ${(drawdown * 100).toStringAsFixed(2)}% — STOPPED 진입 · 신규 주문 전면 중단 · '
       '03_운영 §6-4b(postmortem 3일 · 최소 20거래일 대기 · 결정 A/B/C)',
