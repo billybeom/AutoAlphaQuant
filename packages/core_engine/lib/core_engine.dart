@@ -428,6 +428,22 @@ export 'src/safety/alert_rules.dart'
         dueEscalationSteps,
         kAckLadder,
         kAlertLevels;
+// 🆕 E13h2 — 알림 문구 사전 · AckState 글자 · 인박스 · 센터 · 상세 VM(설계 13 §8 R69).
+export 'src/safety/alert_text.dart'
+    show
+        AlertText,
+        StoredAlert,
+        ackStateOf,
+        alertAsOf,
+        alertCenterOf,
+        alertDetailOf,
+        alertInboxOf,
+        alertItemOf,
+        alertTextOf,
+        kAlertEmptyLabel,
+        kAlertMissingLabel,
+        kAlertTexts,
+        kAlertWindowDays;
 // 🆕 E13e2 — 브레이커 사다리 원천(M5-4 · 설계 13 §8 R63 V4).
 export 'src/safety/breaker_ladder.dart'
     show BreakerLadderStep, breakerLadderOf, ladderPercent;
