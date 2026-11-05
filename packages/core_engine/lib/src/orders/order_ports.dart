@@ -8,8 +8,9 @@
 //    분명한 거절은 [BrokerRejected] 로 돌려준다(예외 아님).
 
 import 'package:decimal/decimal.dart';
-import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 
+import '../risk/breaker.dart' show BreakerLevel;
 import 'fills.dart';
 import 'order_draft.dart';
 
@@ -266,6 +267,9 @@ String intentIdFor(String idempotencyKey) {
 abstract interface class OrderLedger {
   /// 1단계 · 7단계 직전 — 킬스위치가 켜져 있는가(R33 D26 · 🆕 E13b = SPEC v2.40 식 `killSwitchActive` · R57 B6).
   Future<bool> killSwitchActive();
+
+  /// 🆕 E13d1 1.5단계 — 집행일 **이하** 마지막 `equity_snapshot.breaker_level`(없으면 NORMAL · SPEC v2.40 04 §2 · R60 B1).
+  Future<BreakerLevel> breakerLevel(TradeDate executionDate);
 
   /// 2단계 — `trading_block` 활성 행 가운데 묶음 플래그(04 §3-1 ① 판정 SQL).
   Future<Set<String>> activeBlockFlags();

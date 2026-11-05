@@ -10,8 +10,9 @@
 // 🔴 결과 불명 뒤에는 브로커를 다시 부르지 않는다(NR-2). 브로커가 응답한 뒤 기록이 실패해도 UNKNOWN 이다
 //    (04 §3-3 «DB 기록 실패» — DB 쓰기 재시도는 허용 · 브로커 재호출은 금지).
 
-import 'package:domain_contracts/domain_contracts.dart';
+import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 
+import '../risk/breaker.dart' show BreakerLevel;
 import '../risk/limits.dart';
 import 'block_bundles.dart';
 import 'fills.dart';
@@ -184,6 +185,14 @@ Future<ExecutionOutcome> executeIntent(
     trail.add('1');
     if (await _read(ledger.killSwitchActive)) {
       return await reject('KILL_SWITCH');
+    }
+
+    trail.add('1.5');
+    // 🆕 E13d1 — 04 §3-1 NR-1 1.5 · §2 v2.40 «STOPPED = 신규 주문 전면 중단»(매수 · 매도 · 안내 — 안내 분기는 6.5 뒤 ·
+    //    보유는 그대로 · 자동 청산 없음 · R60 B1).
+    if (await _read(() => ledger.breakerLevel(draft.executionDate)) ==
+        BreakerLevel.stopped) {
+      return await reject('BREAKER_STOPPED');
     }
 
     trail.add('2');

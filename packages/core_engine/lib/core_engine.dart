@@ -104,11 +104,16 @@ export 'src/ops/equity_snapshot.dart'
         EquitySnapshotError,
         EquitySnapshotRow,
         EquitySnapshotStep,
+        StoppedIncident,
         computeEquitySnapshot,
+        kBreakerStoppedAlertCode,
+        kStoppedPostmortemDue,
+        kStoppedReleaseEligibleAlertCode,
         nextEquitySnapshot,
         p0sBreakerConfig,
         positionsValueKrw,
-        replayBreaker;
+        replayBreaker,
+        stoppedIncidentOf;
 // 🆕 E11h2 — 아카이브 레이아웃 · checkpoint.json · 백업 나이(설계 13 §8 R52).
 export 'src/ops/ledger_archive.dart'
     show

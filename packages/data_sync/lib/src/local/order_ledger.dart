@@ -22,6 +22,7 @@ import 'dart:convert' show jsonEncode;
 import 'package:core_engine/core_engine.dart'
     show
         BlockBundles,
+        BreakerLevel,
         DailyFillRow,
         ExchangeCalendar,
         ExpiredIntent,
@@ -113,6 +114,19 @@ final class SqliteOrderLedger implements OrderPathLedger {
   Future<bool> killSwitchActive() async =>
       // 🆕 E13b — SPEC v2.40 04 §3-6 판정식(48h = 체크리스트 확인부터 · 손으로 고친 행은 못 푼다 · 설계 13 §8 R57 B6).
       core.killSwitchActive(readKillSwitchRecord(_db));
+
+  @override
+  Future<BreakerLevel> breakerLevel(TradeDate executionDate) async {
+    // 🆕 E13d1 — 집행일 이하 마지막 스냅숏(없으면 NORMAL · 모르는 코드 = 던짐 → 원장 불가 · R60 B1).
+    final ResultSet rs = _db.select(
+      'SELECT breaker_level FROM equity_snapshot WHERE trade_date <= ? '
+      'ORDER BY trade_date DESC LIMIT 1',
+      <Object?>[executionDate.yyyyMmDd],
+    );
+    return rs.isEmpty
+        ? BreakerLevel.normal
+        : BreakerLevel.fromCode(rs.first['breaker_level'] as String);
+  }
 
   @override
   Future<Set<String>> activeBlockFlags() async {

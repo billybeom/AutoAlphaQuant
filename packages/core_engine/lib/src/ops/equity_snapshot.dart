@@ -5,7 +5,8 @@
 //    매수액만큼 이중 계상된다. 이 파일은 받은 값을 더할 뿐이고, 어느 칸을 넘길지는 부르는 쪽(브로커 포트 `orderableCashKrw`)이다.
 // 🔴 HWM = max(앞 HWM, 오늘 평가) · 드로다운 = 평가 ÷ HWM − 1 — 참조 엔진 `_updateBreaker` 와 같다(입금 보정 없음 🟡 · F7).
 // 🔴 브레이커 레벨 = 저장된 역사를 [stepBreaker] 로 처음부터 재생(F8) — 상태(유지 봉 수 · 자격 이벤트)를 따로 두지 않는다.
-//    사람의 STOPPED 재개(M5-3)는 아직 기록이 없어 재생에 넣지 않는다.
+// 🆕 E13d1 — 사람의 STOPPED 재개(결정 B · `breaker_release`)만 재생 입력으로 넣는다(SPEC v2.40 04 §2 · R60 B3 · D17):
+//    그날 걸음 **뒤** STOPPED 면 HALTED(유지 봉 0) · STOPPED 아닌 날의 재개 행 = 무시(한 에피소드에 한 번).
 
 import 'package:decimal/decimal.dart';
 
@@ -57,6 +58,7 @@ class BreakerDay {
     required this.drawdown,
     required this.directionScore,
     required this.bull,
+    this.release = false,
   });
 
   /// 그날 드로다운(≤ 0).
@@ -67,18 +69,43 @@ class BreakerDay {
 
   /// 그날 방향 상태가 BULL 인가.
   final bool bull;
+
+  /// 🆕 E13d1 — 이 날 사람의 STOPPED 재개(결정 B `breaker_release`)가 있나.
+  final bool release;
 }
 
-/// 재생 결과.
+/// 재생 결과(🆕 E13d1 — M5-7 게이지 원천 · R60 B4).
 class BreakerReplay {
   /// 결과를 만든다.
-  const BreakerReplay(this.state, {required this.releaseEligibleToday});
+  const BreakerReplay(
+    this.state, {
+    required this.releaseEligibleToday,
+    this.bullStreak = 0,
+    this.lastDrawdown = 0,
+    this.stoppedEnteredToday = false,
+  });
 
   /// 마지막 날 뒤 상태.
   final BreakerState state;
 
   /// 마지막 날에 STOPPED 재개 자격 이벤트가 났나(에피소드당 1회 — P1 신호 · 레벨 불변).
   final bool releaseEligibleToday;
+
+  /// 마지막 날까지 이어진 BULL 일 수.
+  final int bullStreak;
+
+  /// 마지막 날 드로다운.
+  final double lastDrawdown;
+
+  /// 마지막 날에 STOPPED 로 들어섰나(SEV1 · P0 신호).
+  final bool stoppedEnteredToday;
+
+  /// 레벨이 바뀐 뒤 지난 봉 수(유지 봉 · 20거래일 판정).
+  int get heldBars => state.barsSinceChange;
+
+  /// 🔴 이번 STOPPED 에피소드 동안 재개 자격이 한 번이라도 났나(지속 값 — 결정 화면의 자격).
+  bool get stoppedReleaseEligible =>
+      state.level == BreakerLevel.stopped && state.releaseEligibilitySent;
 }
 
 /// [days] 를 처음부터 재생한다(NORMAL · 0 에서 시작 · bull 연속 = 그날까지 이어진 BULL 일 수).
@@ -89,8 +116,12 @@ BreakerReplay replayBreaker(List<BreakerDay> days, BreakerConfig config) {
   );
   int bull = 0;
   bool eligible = false;
+  bool entered = false;
+  double dd = 0;
   for (final BreakerDay d in days) {
     bull = d.bull ? bull + 1 : 0;
+    dd = d.drawdown;
+    final BreakerLevel before = s.level;
     final BreakerStep step = stepBreaker(
       s,
       drawdown: d.drawdown,
@@ -100,9 +131,69 @@ BreakerReplay replayBreaker(List<BreakerDay> days, BreakerConfig config) {
     );
     s = step.state;
     eligible = step.releaseEligible;
+    entered = before != BreakerLevel.stopped && s.level == BreakerLevel.stopped;
+    // 🆕 E13d1 — 사람의 재개는 그날 걸음 뒤(GV-31 s_h5_1 하네스와 같은 차례).
+    if (d.release && s.level == BreakerLevel.stopped) {
+      s = releaseStoppedToHalted(s);
+    }
   }
-  return BreakerReplay(s, releaseEligibleToday: eligible);
+  return BreakerReplay(
+    s,
+    releaseEligibleToday: eligible,
+    bullStreak: bull,
+    lastDrawdown: dd,
+    stoppedEnteredToday: entered,
+  );
 }
+
+/// 🆕 E13d1 제안 알림(계약 = E13i1 · R60 B6) — STOPPED 진입(P0).
+const String kBreakerStoppedAlertCode = 'BREAKER_STOPPED';
+
+/// 🆕 E13d1 제안 알림 — STOPPED 재개 자격(P1 · v2.29).
+const String kStoppedReleaseEligibleAlertCode = 'STOPPED_RELEASE_ELIGIBLE';
+
+/// STOPPED SEV1 postmortem 기한(03_운영 §6-4b ① · 카드 ⑤ · R60 B5).
+const Duration kStoppedPostmortemDue = Duration(days: 3);
+
+/// STOPPED 진입 SEV1 한 건(`incidents` 꼴 · 🔴 금액 0).
+class StoppedIncident {
+  /// 건을 만든다.
+  const StoppedIncident({
+    required this.incidentId,
+    required this.description,
+    required this.occurredAtUtc,
+    required this.dueAtUtc,
+  });
+
+  /// `SEV1-BREAKER_STOPPED-{그날}` — 같은 날 다시 돌려도 같은 건.
+  final String incidentId;
+
+  /// 설명(날 · 낙폭 % · 절차).
+  final String description;
+
+  /// 연 시각 · postmortem 기한.
+  final DateTime occurredAtUtc, dueAtUtc;
+
+  /// 심각도.
+  String get severity => 'SEV1';
+
+  /// 분류.
+  String get category => kBreakerStoppedAlertCode;
+}
+
+/// STOPPED 진입 날의 SEV1(R60 B5).
+StoppedIncident stoppedIncidentOf({
+  required String tradeDate,
+  required double drawdown,
+  required DateTime nowUtc,
+}) => StoppedIncident(
+  incidentId: 'SEV1-$kBreakerStoppedAlertCode-$tradeDate',
+  description:
+      '$tradeDate 드로다운 ${(drawdown * 100).toStringAsFixed(2)}% — STOPPED 진입 · 신규 주문 전면 중단 · '
+      '03_운영 §6-4b(postmortem 3일 · 최소 20거래일 대기 · 결정 A/B/C)',
+  occurredAtUtc: nowUtc.toUtc(),
+  dueAtUtc: nowUtc.toUtc().add(kStoppedPostmortemDue),
+);
 
 /// 하루 평가 행(02 `equity_snapshot` 꼴).
 class EquitySnapshotRow {
@@ -180,13 +271,20 @@ class EquitySnapshotRow {
 /// 오늘 행 계산 결과.
 class EquitySnapshotStep {
   /// 결과를 만든다.
-  const EquitySnapshotStep(this.row, {required this.releaseEligibleToday});
+  const EquitySnapshotStep(
+    this.row, {
+    required this.releaseEligibleToday,
+    this.replay,
+  });
 
   /// 오늘 행.
   final EquitySnapshotRow row;
 
   /// 오늘 STOPPED 재개 자격 이벤트가 났나.
   final bool releaseEligibleToday;
+
+  /// 🆕 E13d1 — 재생 결과(게이지 원천 · STOPPED 진입 판정).
+  final BreakerReplay? replay;
 }
 
 /// 오늘 행을 만든다(R47 F6~F8).
@@ -200,6 +298,7 @@ EquitySnapshotStep nextEquitySnapshot({
   required List<EquitySnapshotRow> history,
   required (double?, bool) Function(String tradeDate) regimeOf,
   BreakerConfig? config,
+  List<String> releaseDates = const <String>[],
 }) {
   for (int k = 0; k < history.length; k++) {
     if (history[k].tradeDate.compareTo(tradeDate) >= 0) {
@@ -215,10 +314,23 @@ EquitySnapshotStep nextEquitySnapshot({
   final double prevHwm = history.isEmpty ? total : history.last.highWaterMark;
   final double hwm = total > prevHwm ? total : prevHwm;
   final double dd = hwm <= 0 ? 0 : total / hwm - 1;
+  final List<String> dates = <String>[
+    for (final EquitySnapshotRow r in history) r.tradeDate,
+    tradeDate,
+  ];
+  // 🆕 E13d1 — 재개 행마다 그 날짜 **이상**인 첫 재생 날(R60 B3).
+  final Set<int> releaseAt = <int>{
+    for (final String r in releaseDates)
+      if (_firstOnOrAfter(dates, r) case final int k) k,
+  };
   final List<BreakerDay> days = <BreakerDay>[
-    for (final EquitySnapshotRow r in history)
-      _day(r.drawdown, regimeOf(r.tradeDate)),
-    _day(dd, regimeOf(tradeDate)),
+    for (int k = 0; k < history.length; k++)
+      _day(
+        history[k].drawdown,
+        regimeOf(history[k].tradeDate),
+        release: releaseAt.contains(k),
+      ),
+    _day(dd, regimeOf(tradeDate), release: releaseAt.contains(history.length)),
   ];
   final BreakerReplay b = replayBreaker(days, config ?? p0sBreakerConfig());
   return EquitySnapshotStep(
@@ -232,11 +344,24 @@ EquitySnapshotStep nextEquitySnapshot({
       breakerLevel: b.state.level,
     ),
     releaseEligibleToday: b.releaseEligibleToday,
+    replay: b,
   );
 }
 
-BreakerDay _day(double dd, (double?, bool) regime) =>
-    BreakerDay(drawdown: dd, directionScore: regime.$1, bull: regime.$2);
+int? _firstOnOrAfter(List<String> dates, String r) {
+  for (int k = 0; k < dates.length; k++) {
+    if (dates[k].compareTo(r) >= 0) return k;
+  }
+  return null;
+}
+
+BreakerDay _day(double dd, (double?, bool) regime, {bool release = false}) =>
+    BreakerDay(
+      drawdown: dd,
+      directionScore: regime.$1,
+      bull: regime.$2,
+      release: release,
+    );
 
 /// 평가 실패 — 🔴 쓰지 않는다(소급 불가 행을 틀린 값으로 남기지 않는다 · R47 F6). 사유 = 종목 · 계좌 별칭만(금액 0).
 class EquitySnapshotError implements Exception {
@@ -262,6 +387,7 @@ Future<EquitySnapshotStep> computeEquitySnapshot({
   required List<EquitySnapshotRow> history,
   required (double?, bool) Function(String tradeDate) regimeOf,
   BreakerConfig? config,
+  List<String> releaseDates = const <String>[],
 }) async {
   if (cashAccounts.isEmpty) throw ArgumentError('현금 계좌가 없다');
   final Map<String, int> qty = <String, int>{};
@@ -297,5 +423,6 @@ Future<EquitySnapshotStep> computeEquitySnapshot({
     history: history,
     regimeOf: regimeOf,
     config: config,
+    releaseDates: releaseDates,
   );
 }
