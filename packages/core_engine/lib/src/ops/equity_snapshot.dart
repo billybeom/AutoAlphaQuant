@@ -181,13 +181,17 @@ class StoppedIncident {
   String get category => kBreakerStoppedAlertCode;
 }
 
+/// STOPPED 진입 날 SEV1 의 id(🆕 E13d2 — 결정이 이 에피소드의 건을 찾는다 · R61 T2).
+String stoppedIncidentIdOf(String entryTradeDate) =>
+    'SEV1-$kBreakerStoppedAlertCode-$entryTradeDate';
+
 /// STOPPED 진입 날의 SEV1(R60 B5).
 StoppedIncident stoppedIncidentOf({
   required String tradeDate,
   required double drawdown,
   required DateTime nowUtc,
 }) => StoppedIncident(
-  incidentId: 'SEV1-$kBreakerStoppedAlertCode-$tradeDate',
+  incidentId: stoppedIncidentIdOf(tradeDate),
   description:
       '$tradeDate 드로다운 ${(drawdown * 100).toStringAsFixed(2)}% — STOPPED 진입 · 신규 주문 전면 중단 · '
       '03_운영 §6-4b(postmortem 3일 · 최소 20거래일 대기 · 결정 A/B/C)',
@@ -314,25 +318,17 @@ EquitySnapshotStep nextEquitySnapshot({
   final double prevHwm = history.isEmpty ? total : history.last.highWaterMark;
   final double hwm = total > prevHwm ? total : prevHwm;
   final double dd = hwm <= 0 ? 0 : total / hwm - 1;
-  final List<String> dates = <String>[
-    for (final EquitySnapshotRow r in history) r.tradeDate,
-    tradeDate,
-  ];
-  // 🆕 E13d1 — 재개 행마다 그 날짜 **이상**인 첫 재생 날(R60 B3).
-  final Set<int> releaseAt = <int>{
-    for (final String r in releaseDates)
-      if (_firstOnOrAfter(dates, r) case final int k) k,
-  };
-  final List<BreakerDay> days = <BreakerDay>[
-    for (int k = 0; k < history.length; k++)
-      _day(
-        history[k].drawdown,
-        regimeOf(history[k].tradeDate),
-        release: releaseAt.contains(k),
-      ),
-    _day(dd, regimeOf(tradeDate), release: releaseAt.contains(history.length)),
-  ];
-  final BreakerReplay b = replayBreaker(days, config ?? p0sBreakerConfig());
+  final BreakerReplay b = replayBreaker(
+    _breakerDays(
+      <(String, double)>[
+        for (final EquitySnapshotRow r in history) (r.tradeDate, r.drawdown),
+        (tradeDate, dd),
+      ],
+      regimeOf,
+      releaseDates,
+    ),
+    config ?? p0sBreakerConfig(),
+  );
   return EquitySnapshotStep(
     EquitySnapshotRow(
       tradeDate: tradeDate,
@@ -346,6 +342,40 @@ EquitySnapshotStep nextEquitySnapshot({
     releaseEligibleToday: b.releaseEligibleToday,
     replay: b,
   );
+}
+
+/// 🆕 E13d2 — 저장된 역사를 **지금** 다시 재생한다(R61 T1 · 상태를 따로 두지 않는 F8 그대로) — [rows] = 날짜 순.
+BreakerReplay replayStoredBreaker(
+  List<EquitySnapshotRow> rows,
+  (double?, bool) Function(String tradeDate) regimeOf, {
+  List<String> releaseDates = const <String>[],
+  BreakerConfig? config,
+}) => replayBreaker(
+  _breakerDays(
+    <(String, double)>[
+      for (final EquitySnapshotRow r in rows) (r.tradeDate, r.drawdown),
+    ],
+    regimeOf,
+    releaseDates,
+  ),
+  config ?? p0sBreakerConfig(),
+);
+
+/// (날 · 낙폭) → 재생 입력 — 재개 행마다 그 날짜 **이상**인 첫 재생 날(R60 B3).
+List<BreakerDay> _breakerDays(
+  List<(String, double)> dayDd,
+  (double?, bool) Function(String tradeDate) regimeOf,
+  List<String> releaseDates,
+) {
+  final List<String> dates = <String>[for (final (String d, _) in dayDd) d];
+  final Set<int> releaseAt = <int>{
+    for (final String r in releaseDates)
+      if (_firstOnOrAfter(dates, r) case final int k) k,
+  };
+  return <BreakerDay>[
+    for (final (int k, (String d, double dd)) in dayDd.indexed)
+      _day(dd, regimeOf(d), release: releaseAt.contains(k)),
+  ];
 }
 
 int? _firstOnOrAfter(List<String> dates, String r) {

@@ -113,6 +113,8 @@ export 'src/ops/equity_snapshot.dart'
         p0sBreakerConfig,
         positionsValueKrw,
         replayBreaker,
+        replayStoredBreaker,
+        stoppedIncidentIdOf,
         stoppedIncidentOf;
 // 🆕 E11h2 — 아카이브 레이아웃 · checkpoint.json · 백업 나이(설계 13 §8 R52).
 export 'src/ops/ledger_archive.dart'
@@ -452,6 +454,14 @@ export 'src/safety/kill_switch.dart'
         killSwitchActive,
         killSwitchViewOf,
         resumeReadinessOf;
+// 🆕 E13d2 — STOPPED 결정 A/B/C 판정(SPEC v2.40 04 §2 · 03_운영 §6-4b · 설계 13 §8 R61).
+export 'src/safety/stopped_decision.dart'
+    show
+        StoppedDecisionAnswers,
+        StoppedDecisionCodes,
+        StoppedDecisionKind,
+        StoppedDecisionVerdict,
+        judgeStoppedDecision;
 // 🆕 E11d — 키 금고 포트 · 마스킹 · 지문 · 회전 · 봉함(설계 13 §8 R44 · 06 M4-4 순수 몫).
 export 'src/security/key_rotation.dart'
     show
