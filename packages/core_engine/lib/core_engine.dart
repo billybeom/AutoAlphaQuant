@@ -502,6 +502,24 @@ export 'src/safety/kill_switch.dart'
         killSwitchActive,
         killSwitchViewOf,
         resumeReadinessOf;
+// 🆕 E13g1 — 규칙 변경 게이트 · SAF-405 기동 통제(M5-9 · 설계 13 §8 R66).
+export 'src/safety/rule_change.dart'
+    show
+        RuleChangeCodes,
+        RuleChangeRequestFacts,
+        RuleChangeType,
+        StartupGate,
+        isFirstApproval,
+        kNoApprovedConfig,
+        kRuleChangeCooling,
+        kRuleChangeDrawdownLock,
+        kRuleChangeWindowMonth,
+        kSaf405,
+        ruleChangeApproveRejectCode,
+        ruleChangeCancelRejectCode,
+        ruleChangeJournalLinked,
+        ruleChangeRequestRejectCode,
+        startupConfigGate;
 // 🆕 E13e1 — 안전 상태 조립(플래그 12 사전 · 정렬 · 게이지 · 램프 · 설계 13 §8 R62).
 export 'src/safety/safety_text.dart'
     show
