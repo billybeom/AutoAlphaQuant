@@ -502,6 +502,21 @@ export 'src/safety/kill_switch.dart'
         killSwitchActive,
         killSwitchViewOf,
         resumeReadinessOf;
+// 🆕 E13g2 — 본인 서약문 · 12월 편집 창 · DD 최초 도달 재생(M5-8 · 설계 13 §8 R67).
+export 'src/safety/pledge.dart'
+    show
+        DrawdownEpisode,
+        DrawdownPoint,
+        Pledge,
+        PledgeCodes,
+        PledgeReplayDue,
+        currentEpisodeOf,
+        kPledgeReplayDd,
+        kPledgeSentences,
+        pledgeEditRejectCode,
+        pledgeReplayDueOf,
+        pledgeSentencesOf,
+        pledgeWriteRejectCode;
 // 🆕 E13g1 — 규칙 변경 게이트 · SAF-405 기동 통제(M5-9 · 설계 13 §8 R66).
 export 'src/safety/rule_change.dart'
     show
