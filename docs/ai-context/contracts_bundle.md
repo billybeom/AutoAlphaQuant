@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 93개 · 계약 v1.16.0 · 조립일 2026-11-03(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 100개 · 계약 v1.17.0 · 조립일 2026-11-05(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -31,7 +31,8 @@
 //    사항에 사유와 함께 적혀 있다. 대표적으로 `LedgerEventKind`/
 //    `LedgerEventRecord`(결정 ㊲ 대기 · M2-8 A-15·J-6) · `SplitExecutionLeg`
 //    (M2-8 C-11) · `AccountMappingVm`·`AllocationEditorVm`·`OperationsVm`
-//    (M2-8 §G 표 미등재) · `IncidentBanner`/`Runbook`(이름 미확정)이다.
+//    (M2-8 §G 표 미등재)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
+//    들어왔다(`dto/incident.dart`).
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';
@@ -187,13 +188,22 @@ export 'commands/settings_actions.dart';
 //    `OnboardingRepository` +6(추가형) · 🆕 `PairingRepository` · `SettingsActionId.onboardingDryRunStart` · args 화이트리스트 ·
 //    라우트 64(온보딩 6 · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2) · 사전 3축(`OnboardingResultCodes`·`BrokerRawCodes`·
 //    `OnboardingSlotIds`) · 받침대 2 · 🆕 C-50 · 픽스처 187 → 219(신설 32 · 개정 6) — 🆕 tool/gen_r15_v116_fixtures.py
-//    (기준 267e867 원문에서 멱등 생성). 엔진 다음 계약 판 = 1.17.0(E10 D11 4건 · 06 변경 이력).
+//    (기준 267e867 원문에서 멱등 생성). 엔진 다음 계약 판 = 1.17.0(E10 D11 4건 · 06 변경 이력) — 🆕 v1.17 이 R16 선행과
+//    한 판으로 실었다(아래).
+// 🆕 '1.17.0'(R16 선행 + 엔진 E10 D11 · 01 §26 · 발주자 결정 2026-11-04 ①~④ · K1~K33) — M8 장애·DR·핸드북·기기 리스크 표시 계약:
+//    `dto/incident.dart`(`IncidentBanner`·`IncidentBannerVm` · `RunbookIndexVm`·`RunbookRow`·`RunbookVm`·`RunbookStep` · `EmergencyCardVm`) ·
+//    enum `IncidentKind`·`HandbookEntryState` · 핸드북 추가형(`state`·`stateLabel`·`deepLink`·`children` · `outdatedNotice` ·
+//    `missingLabel` · `asOf?` · `HandbookLiveValue`) · `DeviceRiskItem`·`DeviceRiskVm` · 🆕 `IncidentRepository`·`RunbookRepository`·
+//    `HandbookRepository` · `OpsStatusRepository.watchDeviceRisk`(추가형) · 라우트 69 · `OpsSlotIds` · 받침대 3 + 1 · 🆕 C-51 ·
+//    🔴 엔진 D11 4건(R31 체결 키 주석 · `JournalStatus.expired` · `AlertCodes.staleOrdersHeld` · PREVENTED 근거 = `JournalReasonCodes`) ·
+//    픽스처 219 → 240(신설 21 · 개정 3) — 🆕 tool/gen_r16_v117_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
+//    엔진 다음 계약 판 = 1.18.0(13 §8 R55 E13i1·i2 · E11d X12 등 «계약 창» 몫 · 06 변경 이력).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.16.0';
+const String contractVersion = '1.17.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -254,6 +264,7 @@ export 'dto/common.dart';
 export 'dto/handbook.dart';
 export 'dto/handover.dart';
 export 'dto/holdings.dart';
+export 'dto/incident.dart';
 export 'dto/journal.dart';
 export 'dto/ledger.dart';
 export 'dto/ledger_trust.dart';
@@ -284,6 +295,8 @@ export 'enums/advice.dart';
 export 'enums/calendar.dart';
 export 'enums/command.dart';
 export 'enums/draft.dart';
+export 'enums/handbook.dart';
+export 'enums/incident.dart';
 export 'enums/journal.dart';
 export 'enums/ledger.dart';
 export 'enums/market_data.dart';
@@ -370,7 +383,9 @@ export 'repositories/alert_repository.dart';
 export 'repositories/calendar_repository.dart';
 export 'repositories/config_repository.dart';
 export 'repositories/execution_gap_repository.dart';
+export 'repositories/handbook_repository.dart';
 export 'repositories/holdings_repository.dart';
+export 'repositories/incident_repository.dart';
 export 'repositories/journal_repository.dart';
 export 'repositories/ledger_repository.dart';
 export 'repositories/ledger_trust_repository.dart';
@@ -380,6 +395,7 @@ export 'repositories/pairing_repository.dart';
 export 'repositories/performance_repository.dart';
 export 'repositories/rebalance_repository.dart';
 export 'repositories/resume_repository.dart';
+export 'repositories/runbook_repository.dart';
 export 'repositories/safety_repository.dart';
 export 'repositories/what_if_api.dart';
 ```
@@ -2047,7 +2063,14 @@ abstract class DecisionRef with _$DecisionRef {
     /// X2 재판정 child 의 원행
     String? parentDecisionId,
     String? intentId,
+
+    /// 🆕 v1.17(엔진 D11 · 13 §8 R31 · R33 D3 · 02 §3-2 v2.38) — 브로커 주문 번호 = `{주문일}:{ODNO}`(주문일 = KR 거래일 ISO ·
+    /// ODNO = KIS 주문번호 원문 — KIS 번호는 날마다 새로 매겨져 단독으로는 날을 넘겨 겹친다). 수기 체결(X7 `MANUAL`) = null.
+    /// 🔴 화면은 이 값을 쪼개거나 표시하지 않는다(식별자 · 표시 = `*Label`). 합성 표본(`B0018` 꼴)은 이 꼴이 아니어도 된다(01 §8 미결 166).
     String? brokerOrderNo,
+
+    /// 🆕 v1.17(엔진 D11 · R31 (a) · R33 D3·D4) — 브로커 체결 = `{brokerOrderNo}#{누적 체결수량}`(체결조회 누적이 늘 때마다 새 행 ·
+    /// Δ수량 ≤ 0 = 행 없음). 수기·가상 체결 = 엔진의 다른 꼴. 🔴 화면은 파싱하지 않는다.
     String? executionId,
     required String configHash,
   }) = _DecisionRef;
@@ -2159,7 +2182,18 @@ abstract class ThresholdCompare with _$ThresholdCompare {
 // 🔴 **C-13 의 `config_hash` 메타를 싣는 주체**이며, 픽스처의 `config_hash` 와
 //    어긋나면 계약 테스트가 실패한다 — 화면이 두 값을 비교하지 않는다.
 // 🔴 본문 문구는 전부 원고(엔진·핸드북 소스)에서 오며 화면이 문장을 짓지 않는다.
+// 🆕 계약 v1.17(01 §26 · R16 선행 · 발주자 결정 2026-11-04 ④) — 목차 상태·자식·링크 · 뒤처짐 글자 · 모르는 앵커 · live 블록:
+//    ① «설명이 규칙보다 뒤처졌다» 판정 = **엔진**(원고 메타 해시 ↔ 지금 config 대조) — 결과는 [HandbookIndex.outdatedNotice]·
+//       [HandbookPage.outdatedNotice] 글자로만 온다(숨김·닫기 0 · P1 알림 = 엔진). 뒤처짐 표본도 `config_hash` = 봉투 meta(C-13 ⓐ).
+//    ② 목차 항목 수·차례·접힘 = 받은 그대로(8 리터럴 0) · 링크 = [HandbookEntry.deepLink](화면이 `handbook://$anchor` 를 짓지 않는다).
+//    ③ 모르는 앵커 = [HandbookPage.missingLabel](값 · 스트림 에러 아님) · 앵커 별칭 해석 = 엔진.
+//    ④ live «현재 상태» 블록이 하나라도 있으면 [HandbookPage.asOf] non-null(엔진 의무) — 지금 값을 보이므로 조회 화면이다.
+//       live 가 없으면 asOf 0(문서 콘텐츠 · K20).
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/handbook.dart';
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
 
 part 'handbook.freezed.dart';
 part 'handbook.g.dart';
@@ -2170,11 +2204,15 @@ abstract class HandbookIndex with _$HandbookIndex {
   const factory HandbookIndex({
     required List<HandbookEntry> entries,
     required String configHash,
+
+    /// 🆕 v1.17 — 뒤처짐 고지(엔진 판정 글자). null = 고지 없음.
+    String? outdatedNotice,
   }) = _HandbookIndex;
 
   factory HandbookIndex.fromJson(Map<String, dynamic> json) =>
       _$HandbookIndexFromJson(json);
 }
+// JSON 키: entries · config_hash · outdated_notice
 
 /// m2-8 D-9 — 목차 1행. 🔴 `order` 는 엔진이 정한다(화면이 정렬하지 않는다).
 @freezed
@@ -2183,11 +2221,24 @@ abstract class HandbookEntry with _$HandbookEntry {
     required String anchor,
     required String title,
     required int order,
+
+    /// 🆕 v1.17 — 아이콘·색에만. 키가 없는 옛 표본 = [HandbookEntryState.ready].
+    @Default(HandbookEntryState.ready) HandbookEntryState state,
+
+    /// 🆕 v1.17 — «준비 중» · «보관됨»(엔진). `ready` 면 null.
+    String? stateLabel,
+
+    /// 🆕 v1.17 — 탭 목적지(`handbook://…` · 엔진 완성). null = 탭 부재(준비 중).
+    String? deepLink,
+
+    /// 🆕 v1.17 — 하위 항목(② 슬리브 A·B·C · 보관된 새틀라이트 — 받은 차례). 키 없음 = [].
+    @Default(<HandbookEntry>[]) List<HandbookEntry> children,
   }) = _HandbookEntry;
 
   factory HandbookEntry.fromJson(Map<String, dynamic> json) =>
       _$HandbookEntryFromJson(json);
 }
+// JSON 키: anchor · title · order · state · state_label · deep_link · children
 
 /// m2-8 D-9 — 핸드북 한 쪽.
 @freezed
@@ -2197,11 +2248,21 @@ abstract class HandbookPage with _$HandbookPage {
     required String title,
     required List<HandbookBlock> blocks,
     required String configHash,
+
+    /// 🆕 v1.17 — 뒤처짐 고지(엔진 판정 글자 · 맨 위 · 숨김 0). null = 없음.
+    String? outdatedNotice,
+
+    /// 🆕 v1.17 — 모르는 앵커 문장(엔진). non-null ⇔ [blocks] 0.
+    String? missingLabel,
+
+    /// 🆕 v1.17(발주자 결정 2026-11-04 ④ R16b ⑨) — live 블록이 하나라도 있으면 non-null(엔진 의무) · 없으면 null.
+    AsOf? asOf,
   }) = _HandbookPage;
 
   factory HandbookPage.fromJson(Map<String, dynamic> json) =>
       _$HandbookPageFromJson(json);
 }
+// JSON 키: anchor · title · blocks · config_hash · outdated_notice · missing_label · as_of
 
 /// m2-8 D-9 — 본문 블록 1개. 🔴 `kind` 는 엔진이 준 블록 종류 코드이며 화면이
 /// 이 값으로 문구를 고르지 않는다(C-5).
@@ -2211,11 +2272,31 @@ abstract class HandbookBlock with _$HandbookBlock {
     required String kind,
     required String text,
     String? deepLink,
+
+    /// 🆕 v1.17 — «현재 상태» 라이브 값(라벨 = 엔진 · 등급 = 아이콘·색만). null = 일반 블록.
+    HandbookLiveValue? live,
   }) = _HandbookBlock;
 
   factory HandbookBlock.fromJson(Map<String, dynamic> json) =>
       _$HandbookBlockFromJson(json);
 }
+// JSON 키: kind · text · deep_link · live
+
+/// 🆕 v1.17(01 §26 · K13) — 블록의 «현재 상태» 값(예 «금 비중이 상한에 가깝습니다» · WATCH).
+@freezed
+abstract class HandbookLiveValue with _$HandbookLiveValue {
+  const factory HandbookLiveValue({
+    /// 값·라벨 — 엔진(🔴 화면 숫자 0).
+    required String label,
+
+    /// 아이콘·색에만.
+    required UiLevel level,
+  }) = _HandbookLiveValue;
+
+  factory HandbookLiveValue.fromJson(Map<String, dynamic> json) =>
+      _$HandbookLiveValueFromJson(json);
+}
+// JSON 키: label · level
 ```
 
 ---
@@ -2672,6 +2753,169 @@ abstract class HoldingDetailVm with _$HoldingDetailVm {
 
 ---
 
+## `packages/domain_contracts/lib/src/dto/incident.dart`
+
+```dart
+// 🆕 계약 v1.17(01 §26 · R16 선행 · 발주자 결정 2026-11-04 ①~④) — M8 `D-01` 장애 배너 · `D-02` DR 런북 · `D-03` 오프라인 긴급정지 카드.
+//
+// 🔴 배너 고르기·정렬·최대 1건·원인 해소 = 전부 엔진(04 §6) — 화면은 받은 0/1건을 그린다. 배너 ≠ 알림(배너 = 원인이 남아 있는
+//    상태 · 알림 = 사건 · 등급(P0/P1/P2)은 알림에만 있다). 닫기·«다시 보지 않기» 칸이 없다 — 해소되면 데이터에서 사라진다.
+// 🔴 문구·조치는 완성돼 온다 — [IncidentKind] 는 아이콘에만 · `UiLevel` 은 색에만(🔴 `ok` 는 배너에 오지 않는다).
+// 🔴 asOf 칸이 없다(K20 — 지속 상태 1건 · 절차서 · 안내 · R15 온보딩 꼴 · 04 §2-3 «모든 조회 화면» 의 예외 · 01 §8 미결 148).
+// 🔴 런북 원고 = 03_실행 §10-5 여섯 시나리오 · 긴급 카드 원고 = 04_안전장치 §5-5 + 03_실행 §10-5 ⑥ — M2 번들(엔진이 늘 싣는다 ·
+//    뷰어도 같은 번들 — 폰이 죽어도 읽힌다 · K3).
+// 🔴 런북 «확인» 체크는 화면 로컬 표시다 — 이 계약에 그 상태 칸·명령이 없다(저장 0 · 명령 0 · 그 사실 = [RunbookVm.localCheckNotice]).
+//    «지금 실행» 류 단계별 실행 자리도 칸이 없다(01 §8 미결 161 · M5·M9 창) — 이 판 = 부재.
+// 🔴 인쇄·PDF = 플랫폼 슬롯([EmergencyCardVm.printSlotId] = `OpsSlotIds` · 위젯 = 조립 앱 06 M4-12) — 04 §2-1 금지 5 의 유일한 예외.
+// 🔴 링크 = 데이터(01 §4-4) — [IncidentBanner.actionLink] · [RunbookRow.deepLink] · 화면이 id 로 링크를 짓지 않는다.
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/incident.dart';
+import '../enums/ui.dart';
+import 'common.dart';
+
+part 'incident.freezed.dart';
+part 'incident.g.dart';
+
+/// `D-01` 배너 1건(04 §6 · K8).
+@freezed
+abstract class IncidentBanner with _$IncidentBanner {
+  const factory IncidentBanner({
+    /// 아이콘 선택에만. 모르는 wire = [IncidentKind.other].
+    @JsonKey(unknownEnumValue: IncidentKind.other) required IncidentKind kind,
+
+    /// 색 선택에만(`blocked`·`act`·`watch`·`info` — 🔴 `ok` 는 오지 않는다).
+    required UiLevel level,
+
+    /// «증권사 접근 토큰이 만료되었습니다» — 엔진(종류별로 다른 문구 · 04 §6).
+    required String title,
+
+    /// 본문 한 문단 — 엔진.
+    required String bodyText,
+
+    /// 조치 버튼 0/1(글자 + 목적지 = 엔진 · 예 «연결 설정 열기» → `aaq://settings/credentials`). null = 버튼 부재.
+    /// 🔴 칸 이름 `action` 을 쓰지 않는다 — C-50 ⑨ 가 «모든 픽스처의 `action` 키 = `OnboardingAction`» 으로 걷는다(드라이런).
+    LinkAction? actionLink,
+  }) = _IncidentBanner;
+
+  factory IncidentBanner.fromJson(Map<String, dynamic> json) =>
+      _$IncidentBannerFromJson(json);
+}
+// JSON 키: kind · level · title · body_text · action_link
+
+/// `D-01` VM(K9) — 🔴 **최대 1건**. 여러 건이면 엔진이 정렬해 첫 건을 준다. null = 배너 없음(스트림은 늘 값을 낸다).
+@freezed
+abstract class IncidentBannerVm with _$IncidentBannerVm {
+  const factory IncidentBannerVm({IncidentBanner? banner}) = _IncidentBannerVm;
+
+  factory IncidentBannerVm.fromJson(Map<String, dynamic> json) =>
+      _$IncidentBannerVmFromJson(json);
+}
+// JSON 키: banner
+
+/// `D-02` 목록 1행(K10).
+@freezed
+abstract class RunbookRow with _$RunbookRow {
+  const factory RunbookRow({
+    /// «운영 폰을 잃어버렸거나 고장 났을 때» — 엔진(원고).
+    required String title,
+
+    /// 한 줄 요약 — 엔진. null = 줄 없음.
+    String? summaryText,
+
+    /// 상세 링크(`aaq://ops/runbooks/<runbookId>` · ⑥ = `aaq://ops/emergency-card`) — 엔진 완성 · 🔴 화면은 열기만.
+    required String deepLink,
+  }) = _RunbookRow;
+
+  factory RunbookRow.fromJson(Map<String, dynamic> json) =>
+      _$RunbookRowFromJson(json);
+}
+// JSON 키: title · summary_text · deep_link
+
+/// `D-02` 목록 VM(K10). 🔴 행 수·차례 = 받은 그대로(6 리터럴 0).
+@freezed
+abstract class RunbookIndexVm with _$RunbookIndexVm {
+  const factory RunbookIndexVm({
+    required List<RunbookRow> rows,
+
+    /// 행 0 일 때만 non-null(엔진 문장).
+    String? emptyLabel,
+  }) = _RunbookIndexVm;
+
+  factory RunbookIndexVm.fromJson(Map<String, dynamic> json) =>
+      _$RunbookIndexVmFromJson(json);
+}
+// JSON 키: rows · empty_label
+
+/// 런북·긴급 카드의 단계 1개(K10). 🔴 번호 = [orderText] 글자(화면이 `i + 1` 로 짓지 않는다 · «2-1.» 꼴도 온다).
+@freezed
+abstract class RunbookStep with _$RunbookStep {
+  const factory RunbookStep({
+    /// «1.» · «2-1.» — 엔진.
+    required String orderText,
+
+    /// 단계 글자 — 엔진(원고).
+    required String text,
+  }) = _RunbookStep;
+
+  factory RunbookStep.fromJson(Map<String, dynamic> json) =>
+      _$RunbookStepFromJson(json);
+}
+// JSON 키: order_text · text
+
+/// `D-02` 상세 VM(K10). 🔴 [missingLabel] non-null ⇔ [steps] 0 ∧ [introText] null(모르는 id = 값 · 스트림 에러 아님).
+@freezed
+abstract class RunbookVm with _$RunbookVm {
+  const factory RunbookVm({
+    required String title,
+
+    /// 머리 한 문단 — 엔진. null = 없음.
+    String? introText,
+
+    /// 번호 단계(받은 차례 그대로).
+    required List<RunbookStep> steps,
+
+    /// 하단 고지 «확인 표시는 이 화면에서만 보입니다. 저장되지 않고, 아무것도 실행하지 않습니다.» — 엔진(늘 싣는다).
+    required String localCheckNotice,
+
+    /// 모르는·지난 id = 엔진 문장.
+    String? missingLabel,
+  }) = _RunbookVm;
+
+  factory RunbookVm.fromJson(Map<String, dynamic> json) =>
+      _$RunbookVmFromJson(json);
+}
+// JSON 키: title · intro_text · steps · local_check_notice · missing_label
+
+/// `D-03` 오프라인 긴급정지 카드 VM(K11) — 가족용 한 장(전문 용어 0 · 문안 = 원고).
+/// 🔴 계좌번호·앱키·개인 연락처는 이 VM 어디에도 없다(C-14 · C-51 ⑤ · 엔진 원고 검증 게이트).
+@freezed
+abstract class EmergencyCardVm with _$EmergencyCardVm {
+  const factory EmergencyCardVm({
+    required String title,
+
+    /// 정지 단계(받은 차례 · `RunbookStep` 재사용).
+    required List<RunbookStep> steps,
+
+    /// «한국투자증권 고객센터 1544-5000 · 연락처는 종이에 직접 적어 둡니다» — 엔진(공개 대표번호만).
+    required String contactLine,
+
+    /// «이 카드는 인쇄해 종이로 보관하세요. 계좌번호와 앱키는 이 카드에 없습니다.» — 엔진(늘 싣는다).
+    required String keepOnPaperNotice,
+
+    /// 인쇄·PDF 슬롯 이름(`OpsSlotIds.emergencyCardPrint`). null = 인쇄 자리 부재(인쇄할 수 없는 빌드).
+    String? printSlotId,
+  }) = _EmergencyCardVm;
+
+  factory EmergencyCardVm.fromJson(Map<String, dynamic> json) =>
+      _$EmergencyCardVmFromJson(json);
+}
+// JSON 키: title · steps · contact_line · keep_on_paper_notice · print_slot_id
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/dto/journal.dart`
 
 ```dart
@@ -2711,6 +2955,8 @@ part 'journal.g.dart';
 /// 🔴 `status == unknown` 은 UNKNOWN 해소 보드로 딥링크한다 — 화면이 «실패»로 단정하지 않는다.
 /// 🔴 `fillKind == reversal`·`restatement` 행은 «매매로 읽히는 표현»을 쓰지 않는다
 ///    (방향 색 금지 · 손익 기여 0) — 문구는 `statusLabel`·`originLabel` 이 준다.
+/// 🆕 v1.17(엔진 D11) — `status == expired` = 일 마감 실효(취소 아님 · 사유 칩 `DAY_END_EXPIRED`). `status == prevented` 행의 근거 =
+/// [decision] 의 `intentId`(그 멱등키를 이미 가진 **원 의도** · 새 의도 행 0 — R33 D24) + 사유 칩 `DUPLICATE_ORDER_PREVENTED`(`JournalReasonCodes`).
 @freezed
 abstract class TradeJournalEntry with _$TradeJournalEntry {
   const factory TradeJournalEntry({
@@ -4378,6 +4624,54 @@ abstract class LiveDryRunObservationVm with _$LiveDryRunObservationVm {
   factory LiveDryRunObservationVm.fromJson(Map<String, dynamic> json) =>
       _$LiveDryRunObservationVmFromJson(json);
 }
+
+/// 🆕 계약 v1.17(01 §26 · K17 · 01 §8 미결 123) — `H-03` 물리 리스크 항목 1행.
+/// 🔴 글자 전부 = 엔진(측정 = 플랫폼 API · 임계·판정·조치 문구 = 엔진) · 화면은 비교·남은 일수 계산을 하지 않는다 ·
+///    [level] = 아이콘·색만.
+@freezed
+abstract class DeviceRiskItem with _$DeviceRiskItem {
+  const factory DeviceRiskItem({
+    /// «저장공간» — 엔진.
+    required String label,
+
+    /// «남은 공간 3.1GB» — 엔진.
+    required String currentText,
+
+    /// «임계 2GB 미만» — 엔진.
+    required String thresholdText,
+
+    /// «오래된 아카이브를 PC로 옮기세요» — 엔진.
+    required String actionText,
+
+    /// «마지막 점검 08-31 08:55» — 엔진(KST).
+    required String lastCheckedText,
+    required UiLevel level,
+  }) = _DeviceRiskItem;
+
+  factory DeviceRiskItem.fromJson(Map<String, dynamic> json) =>
+      _$DeviceRiskItemFromJson(json);
+}
+// JSON 키: label · current_text · threshold_text · action_text · last_checked_text · level
+
+/// 🆕 계약 v1.17 — `H-03` 물리 리스크 점검 상세(창구 [OpsStatusRepository.watchDeviceRisk] · 04 §4-6 그림 8).
+/// 🔴 항목 목록·수·차례 = 받은 그대로(넷 하드코딩 0) · 조작 버튼(로그 정리·백업 실행) 칸 0 = 01 §8 미결 161 · asOf 있음(측정값).
+@freezed
+abstract class DeviceRiskVm with _$DeviceRiskVm {
+  const factory DeviceRiskVm({
+    required List<DeviceRiskItem> rows,
+
+    /// «비상 복구가 아니라 계획 교체» 안내 — 엔진(늘 싣는다).
+    required String guidanceText,
+
+    /// 행 0 일 때만 non-null(엔진 문장).
+    String? emptyLabel,
+    required AsOf asOf,
+  }) = _DeviceRiskVm;
+
+  factory DeviceRiskVm.fromJson(Map<String, dynamic> json) =>
+      _$DeviceRiskVmFromJson(json);
+}
+// JSON 키: rows · guidance_text · empty_label · as_of
 ```
 
 ---
@@ -6822,6 +7116,62 @@ enum DraftKind {
 
 ---
 
+## `packages/domain_contracts/lib/src/enums/handbook.dart`
+
+```dart
+// 🆕 계약 v1.17(01 §26 · K13) — M8 `B-01` 목차 항목 상태.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// `B-01` 목차 항목 상태 — 🔴 화면은 **아이콘·색 선택에만** 쓴다(글자 = `HandbookEntry.stateLabel`).
+/// [preparing] = 원고 대기(04 §8 ⑥⑦⑧ · 06 §3-11 HB-1~HB-3 — 본문을 대신 쓰지 않는다) ·
+/// [archived] = 보관됨(새틀라이트 — «왜 없앴나» 한 단락 · 목차에서 접힘 = 엔진이 상태 글자로 보낸다 · 화면 접기 판정 0).
+enum HandbookEntryState {
+  @JsonValue('READY')
+  ready('READY'),
+  @JsonValue('PREPARING')
+  preparing('PREPARING'),
+  @JsonValue('ARCHIVED')
+  archived('ARCHIVED');
+
+  const HandbookEntryState(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/incident.dart`
+
+```dart
+// 🆕 계약 v1.17(01 §26 · K8) — M8 `D-01` 장애 배너 종류.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// `D-01` 장애 종류 — 🔴 화면은 **아이콘 선택에만** 쓴다(문구·조치는 [IncidentBanner] 가 완성해 준다 · 04 §6).
+/// 🔴 모르는 wire 값 = [other](`IncidentBanner.kind` 의 `unknownEnumValue` · 엔진이 종류를 늘려도 화면이 죽지 않는다).
+/// 원천: [phoneDown] = 뷰어가 rm_* 신선도로 파생(죽은 폰은 push 못 한다 · 04 §2-3) · 그 밖 = 엔진 `incidents` 표(06 숙제).
+enum IncidentKind {
+  @JsonValue('PHONE_DOWN')
+  phoneDown('PHONE_DOWN'),
+  @JsonValue('NETWORK_DOWN')
+  networkDown('NETWORK_DOWN'),
+  @JsonValue('TOKEN_EXPIRED')
+  tokenExpired('TOKEN_EXPIRED'),
+  @JsonValue('ORDER_REJECTED')
+  orderRejected('ORDER_REJECTED'),
+  @JsonValue('OTHER')
+  other('OTHER');
+
+  const IncidentKind(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/enums/journal.dart`
 
 ```dart
@@ -6834,6 +7184,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 /// 🔴 `prevented` = «이중 발주 차단 작동» 이며 **성공으로 렌더**한다.
 ///    `unknown` 은 UNKNOWN 해소 보드로 딥링크한다.
 /// 🔴 C-12(`default:` 없는 망라 switch)가 전 화면을 동시에 깨뜨리는 것이 **의도된 게이트**다.
+/// 🆕 v1.17(엔진 D11 · 13 §8 R33 D5 · 04_안전장치 §3-1 ③) — `expired` = 일 마감 실효(🔴 취소 아님 · 잔량 = 다음 거래일 의도로 이월 · 근거 칩 `JournalReasonCodes.dayEndExpired`).
 enum JournalStatus {
   @JsonValue('FILLED')
   filled('FILLED'),
@@ -6841,6 +7192,8 @@ enum JournalStatus {
   partial('PARTIAL'),
   @JsonValue('CANCELLED')
   cancelled('CANCELLED'),
+  @JsonValue('EXPIRED')
+  expired('EXPIRED'),
   @JsonValue('REJECTED')
   rejected('REJECTED'),
   @JsonValue('UNKNOWN')
@@ -8390,6 +8743,9 @@ abstract final class FixturePaths {
   ///    「없음」(NO_DATA)은 문구를 실어야 하므로(계약 3조 ③) M2 가 파일로 준다(02 §3-1 · §6).
   static const String m6JournalEmpty = 'm6/journal_empty.json';
 
+  /// 🆕 v1.17(01 §26 · 엔진 D11 · K26) — `JournalStatus.expired` 1행(일 마감 실효 · 칩 `DAY_END_EXPIRED` · R31 꼴 `broker_order_no`).
+  static const String m6JournalExpired1 = 'm6/journal_expired_1.json';
+
   // 🆕 v1.1 — `J-1` 배지·필터 · `J-3` 폼 스펙 · 가림(LEDGER_INTEGRITY) 일지.
   static const String m6JournalBadges2 = 'm6/journal_badges_2.json';
 
@@ -8642,7 +8998,40 @@ abstract final class FixturePaths {
   static const String m8AlertsAdvice9codes = 'm8/alerts_advice_9codes.json';
   static const String m8AlertsDigest = 'm8/alerts_digest.json';
   static const String m8AlertsP0Ack = 'm8/alerts_p0_ack.json';
+
+  /// 🆕 v1.17(01 §26 · 엔진 D11 · K27) — `STALE_ORDERS_HELD`(P1 · 다음 날 가드 보류) 알림 1행.
+  static const String m8AlertsStaleOrdersHeld =
+      'm8/alerts_stale_orders_held.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16c) — `H-03` 기기 리스크(`DeviceRiskVm`) 2벌(empty · items 5행 등급 5값).
+  static const String m8DeviceRiskEmpty = 'm8/device_risk_empty.json';
+  static const String m8DeviceRiskItems = 'm8/device_risk_items.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16a) — `D-03` 긴급정지 카드(`EmergencyCardVm`) 2벌(인쇄 슬롯 있음 · 없음).
+  static const String m8EmergencyCard = 'm8/emergency_card.json';
+  static const String m8EmergencyCardNoPrint =
+      'm8/emergency_card_no_print.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16b) — `B-01` 목차(`HandbookIndex`) 2벌 · `B-02` 페이지(`HandbookPage`) 3벌(archived · missing · outdated).
+  static const String m8HandbookIndex = 'm8/handbook_index.json';
+  static const String m8HandbookIndexOutdated =
+      'm8/handbook_index_outdated.json';
+  static const String m8HandbookPageArchived = 'm8/handbook_page_archived.json';
+  static const String m8HandbookPageMissing = 'm8/handbook_page_missing.json';
+  static const String m8HandbookPageOutdated = 'm8/handbook_page_outdated.json';
   static const String m8HandbookPageSleeveB = 'm8/handbook_page_sleeve_b.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16a) — `D-01` 장애 배너(`IncidentBannerVm`) 6벌(종류 5 + 배너 없음).
+  static const String m8IncidentBannerNetworkDown =
+      'm8/incident_banner_network_down.json';
+  static const String m8IncidentBannerNone = 'm8/incident_banner_none.json';
+  static const String m8IncidentBannerOrderRejected =
+      'm8/incident_banner_order_rejected.json';
+  static const String m8IncidentBannerOther = 'm8/incident_banner_other.json';
+  static const String m8IncidentBannerPhoneDown =
+      'm8/incident_banner_phone_down.json';
+  static const String m8IncidentBannerTokenExpired =
+      'm8/incident_banner_token_expired.json';
   static const String m8IncidentTokenExpired = 'm8/incident_token_expired.json';
   static const String m8OnboardingFinish = 'm8/onboarding_finish.json';
 
@@ -8726,6 +9115,12 @@ abstract final class FixturePaths {
   static const String m8RestartVmLoggedOut = 'm8/restart_vm_logged_out.json';
   static const String m8RestartVmLostPhone = 'm8/restart_vm_lost_phone.json';
   static const String m8RestartVmUnknown = 'm8/restart_vm_unknown.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16a) — `D-02` 런북 상세(`RunbookVm`) 2벌(host_lost · missing) · 목록(`RunbookIndexVm`) 2벌(index · index_empty).
+  static const String m8RunbookHostLost = 'm8/runbook_host_lost.json';
+  static const String m8RunbookIndex = 'm8/runbook_index.json';
+  static const String m8RunbookIndexEmpty = 'm8/runbook_index_empty.json';
+  static const String m8RunbookMissing = 'm8/runbook_missing.json';
 
   /// 🆕 v1.15(01 §24 · K3) 꼴 = `WatchdogBoardVm` 1행(6행 · 실패 1).
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
@@ -8825,6 +9220,7 @@ abstract final class FixturePaths {
     m6HoldingsOverviewRecon,
     m6HoldingsOverviewViewer,
     m6JournalEmpty,
+    m6JournalExpired1,
     m6JournalBadges2,
     m6JournalDraftReceipts5,
     m6JournalDraftSpecDiscretion,
@@ -8916,7 +9312,23 @@ abstract final class FixturePaths {
     m8AlertsAdvice9codes,
     m8AlertsDigest,
     m8AlertsP0Ack,
+    m8AlertsStaleOrdersHeld,
+    m8DeviceRiskEmpty,
+    m8DeviceRiskItems,
+    m8EmergencyCard,
+    m8EmergencyCardNoPrint,
+    m8HandbookIndex,
+    m8HandbookIndexOutdated,
+    m8HandbookPageArchived,
+    m8HandbookPageMissing,
+    m8HandbookPageOutdated,
     m8HandbookPageSleeveB,
+    m8IncidentBannerNetworkDown,
+    m8IncidentBannerNone,
+    m8IncidentBannerOrderRejected,
+    m8IncidentBannerOther,
+    m8IncidentBannerPhoneDown,
+    m8IncidentBannerTokenExpired,
     m8IncidentTokenExpired,
     m8OnboardingFinish,
     m8OnboardingFinishAdvisory,
@@ -8964,6 +9376,10 @@ abstract final class FixturePaths {
     m8RestartVmLoggedOut,
     m8RestartVmLostPhone,
     m8RestartVmUnknown,
+    m8RunbookHostLost,
+    m8RunbookIndex,
+    m8RunbookIndexEmpty,
+    m8RunbookMissing,
     m8WatchdogDelayed,
     m8WatchdogEmpty,
     m8WatchdogHoliday,
@@ -9238,7 +9654,7 @@ abstract final class SeasonalEntryGateCodes {
 ## `packages/domain_contracts/lib/src/labels/alert_codes.dart`
 
 ```dart
-// 알림 코드 24종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 10 + 유지보수 2) · §5-1d(운영 1).
+// 알림 코드 25종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11).
 // 인벤토리 §6-9 의 분류를 그대로 쓴다.
 //
 // 🔴 **등급(P0/P1/P2)을 이 파일에 사전으로 만들지 않는다.** 등급의 런타임 정본은
@@ -9290,7 +9706,7 @@ abstract final class AlertCodes {
   /// 잠정 P1 · 전환 커밋 성공 직후 **1회** — 띠·탭이 바뀐 이유를 말하는 유일한 자리.
   static const String handoverCommitted = 'HANDOVER_COMMITTED';
 
-  // ── 자동 매매 10 (04 §5-1c) ───────────────────────────────────────────────
+  // ── 자동 매매 11 (04 §5-1c) ───────────────────────────────────────────────
   /// 잠정 P1 · 주문 거부. 배치당 묶음.
   static const String orderRejected = 'ORDER_REJECTED';
 
@@ -9322,6 +9738,11 @@ abstract final class AlertCodes {
 
   /// 잠정 P2 · 월 납입 리마인더(`H-02` 행과 같은 트리거). 일일 다이제스트.
   static const String depositReminder = 'DEPOSIT_REMINDER';
+
+  /// 🆕 v1.17(01 §26 · 엔진 D11 · 13 §8 R33 D11 · R38 Z8) — 잠정 P1 · **다음 날 가드 보류**: 그날 계좌 첫 주문 앞 체결조회에
+  /// 지난 거래일 원주문 행이 보이거나(`STALE_ORDERS`) 그 조회가 실패해(`STALE_GUARD_UNAVAILABLE` · fail-closed) **그 계좌의
+  /// 그날 배치를 보류**했다(이중 매수 방지 · 04_안전장치 §3-1 ③ 5). 🔴 계좌·날 1건 · 등급 정본 등재(§5-3 표) = 엔진 다음 SPEC 판.
+  static const String staleOrdersHeld = 'STALE_ORDERS_HELD';
 
   // ── 유지보수 창 2 (04 §5-1c · S7 재추적 N-2) ────────────────────────────────
   /// 잠정 P1 · X1 유지보수 창이 T시간을 넘겨 열려 있음. 🔴 창 1개당 1건.
@@ -9358,7 +9779,7 @@ abstract final class AlertCodes {
     handoverCommitted,
   };
 
-  /// 자동 매매 10종.
+  /// 자동 매매 11종.
   static const Set<String> autoTrade = <String>{
     orderRejected,
     orderOutcomeUnknown,
@@ -9370,6 +9791,7 @@ abstract final class AlertCodes {
     dataSourceDown,
     backupStale,
     depositReminder,
+    staleOrdersHeld,
   };
 
   /// 유지보수 창 2종.
@@ -9381,7 +9803,7 @@ abstract final class AlertCodes {
   /// 운영 파라미터 1종.
   static const Set<String> operatingParam = <String>{contributionChanged};
 
-  /// 전량 24종.
+  /// 전량 25종.
   static const Set<String> values = <String>{
     ...x7Advice,
     ...handover,
@@ -9783,6 +10205,24 @@ abstract final class BlindReviewRejectCodes {
 
   static const Set<String> values = <String>{alreadyScored, answersInvalid};
 }
+
+/// 🆕 계약 v1.17(01 §26 · 엔진 D11 · 13 §8 R33 D11·D24) — `TradeJournalEntry.reasons[].code` 중 **엔진 D11 이 정한 2종**.
+///
+/// 🔴 **전수 목록이 아니다** — 일지 사유 칩 코드 전수 등재 = 01 §8 미결 166. 화면은 이 코드로 분기·문구·아이콘을 고르지 않는다
+///    (칩 `label`·`tone` 이 준다). 쓰는 곳 = 계약 테스트(C-51 ⑩⑪)와 엔진 구현.
+abstract final class JournalReasonCodes {
+  /// `status == prevented` 행의 근거 — 같은 멱등키의 의도가 이미 있어 새 의도 행을 만들지 않았다(NR-1 6.5 · R33 D24).
+  /// 🔴 그 행의 `decision.intentId` = **이미 그 키를 가진 원 의도**.
+  static const String duplicateOrderPrevented = 'DUPLICATE_ORDER_PREVENTED';
+
+  /// `status == expired` 행의 근거 — 장 마감까지 체결되지 않은 잔량을 실효로 기록했다(취소 아님 · 04_안전장치 §3-1 ③ · R33 D5).
+  static const String dayEndExpired = 'DAY_END_EXPIRED';
+
+  static const Set<String> values = <String>{
+    duplicateOrderPrevented,
+    dayEndExpired,
+  };
+}
 ```
 
 ---
@@ -9832,6 +10272,7 @@ import 'flag_ids.dart';
 import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
 import 'onboarding_codes.dart';
+import 'ops_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
@@ -9846,6 +10287,7 @@ export 'flag_ids.dart';
 export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
 export 'onboarding_codes.dart';
+export 'ops_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
@@ -10000,6 +10442,10 @@ abstract final class ContractCodes {
     'broker_raw': BrokerRawCodes.values,
     // 🆕 v1.16(01 §25 · K21) — 온보딩 🔒 슬롯 이름(`secretSlotId`·`slotId`·`loginSlotId`·`scannerSlotId`)
     'onboarding_slot': OnboardingSlotIds.values,
+    // 🆕 v1.17(01 §26 · K19) — M8 운영 슬롯 이름(`EmergencyCardVm.printSlotId`)
+    'ops_slot': OpsSlotIds.values,
+    // 🆕 v1.17(01 §26 · 엔진 D11 · K28) — 일지 사유 칩 코드 중 D11 2종(`TradeJournalEntry.reasons[].code` · 🔴 전수 아님)
+    'journal_reason': JournalReasonCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -10222,6 +10668,25 @@ abstract final class OnboardingSlotIds {
     recoveryLogin,
     viewerQrScan,
   };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/ops_codes.dart`
+
+```dart
+// 01 §3 · 🆕 계약 v1.17(01 §26 · K19) — M8 운영 화면의 🔒/플랫폼 슬롯 이름.
+//
+// 🔴 «어떤 슬롯 이름이 오는가» 의 상수 목록이다 — 화면은 이름을 슬롯 빌더(`shellOpsSlotBuilderProvider`)에 그대로 넘기고
+//    이름으로 분기·위젯을 고르지 않는다. 이름 → 위젯 = 조립 앱(06 M4-12 · v1.16 `OnboardingSlotIds` 꼴).
+
+/// M8 운영 슬롯 이름.
+abstract final class OpsSlotIds {
+  /// `D-03` 긴급정지 카드 인쇄·PDF 저장 — 플랫폼(조립 앱 · 04 §2-1 금지 5 의 유일한 예외).
+  static const String emergencyCardPrint = 'EMERGENCY_CARD_PRINT';
+
+  static const Set<String> values = <String>{emergencyCardPrint};
 }
 ```
 
@@ -10899,6 +11364,26 @@ abstract final class AppRoutes {
   /// (04 §4-6 · 규칙 ④). 등록 = 전 플랫폼 · 본문 = 전 플랫폼(`rm_ops_summary` v1 필수 · N-07).
   static const String opsRhythm = 'aaq://ops/rhythm';
 
+  /// 🆕 v1.17(01 §26 · K18) — `D-02` DR 런북 목록(`RunbookList()` · `ui_shell` · R16a). 등록 = 전 플랫폼 · 가드 = 기본 open
+  /// (뷰어에도 보인다 — 발주자 결정 2026-11-04 ③). 들어오는 링크 = 데이터(셸 진입 UI = 카드 몫).
+  static const String opsRunbooks = 'aaq://ops/runbooks';
+
+  /// 🆕 v1.17 — `D-02` 런북 상세(`RunbookDetail(runbookId:)`) · 들어오는 링크 = `RunbookRow.deepLink`(엔진 완성 ·
+  /// `runbookId` 꼴 `^[a-z][a-z0-9-]*$` — 엔진 의무 · C-51 ③). 🔴 화면은 id 로 링크를 짓지 않는다.
+  static const String opsRunbook = 'aaq://ops/runbooks/:runbookId';
+
+  /// 🆕 v1.17 — `D-03` 오프라인 긴급정지 카드(`EmergencyStopCard()`) · 들어오는 링크 = 런북 ⑥ 행 `deepLink` 등(데이터).
+  /// 등록 = 전 플랫폼 · 가드 = 기본 open(결정 ③) · 인쇄 = 플랫폼 슬롯(`OpsSlotIds.emergencyCardPrint`).
+  static const String opsEmergencyCard = 'aaq://ops/emergency-card';
+
+  /// 🆕 v1.17 — `H-03` 물리 리스크 점검 상세(`DeviceRiskBoard()` · R16c). 🔴 Android(operator) 전용 = 조립 앱 레지스트리가
+  /// 뷰어 빌드에 본문을 주지 않는 것으로 지킨다 — 셸 가드 표 무변경(발주자 결정 ④ R16c ③ · 01 §8 미결 127).
+  static const String opsDeviceRisk = 'aaq://ops/device-risk';
+
+  /// 🆕 v1.17 — `B-01` 전략 핸드북 목차(`HandbookContents()` · R16b · 웹 사이드바 «핸드북»). 🔴 페이지(`B-02`)는 이 상수가 아니라
+  /// `handbook://<앵커>` 스킴이다(셸 라우터 한 곳이 앵커 = `handbook://` 뒤 글자 전부로 연다).
+  static const String handbookIndex = 'aaq://handbook';
+
   /// 🆕 v1.15(01 §24 · K7) — `N-01` 알림 센터(`AlertCenter()` · `ui_shell`). 등록 = 전 플랫폼 · 가드 = 기본 open
   /// (뷰어 = 조회 · 확인 버튼 부재). 진입 = 데이터 링크·푸시·FGS 탭(셸 진입 UI 0 · K22).
   static const String alertsInbox = 'aaq://alerts/inbox';
@@ -10942,6 +11427,8 @@ abstract final class AppRoutes {
   /// + 교체 2 `adviceFill`·`ledgerSelfReport`). 순서 = 첫 일치(C-33 ⑦ · 겹침 0) — `adviceSkip` 은 `adviceFill` 뒤 ·
   /// `ledgerDiffs`·`ledgerRepairs` 는 `ledgerTrust` 뒤 · `opsRhythm` 은 `opsWatchdog` 뒤.
   /// 🆕 v1.16 = **64** · 온보딩 6(`onboardingStep` 앞 — 첫 일치) · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2.
+  /// 🆕 v1.17 = **69** · `opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex`(`opsRhythm` 뒤 ·
+  /// 조각 수 4·5·4·4·3 — 기존 패턴과 겹침 0).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -10988,6 +11475,11 @@ abstract final class AppRoutes {
     opsMaintenance,
     opsWatchdog,
     opsRhythm,
+    opsRunbooks,
+    opsRunbook,
+    opsEmergencyCard,
+    opsDeviceRisk,
+    handbookIndex,
     alertsInbox,
     alertDetail,
     settingsContribution,
@@ -11531,6 +12023,26 @@ abstract interface class ExecutionGapRepository {
 
 ---
 
+## `packages/domain_contracts/lib/src/repositories/handbook_repository.dart`
+
+```dart
+// 🆕 계약 v1.17(01 §26 · K16) — M8 `B-01`·`B-02` 전략 핸드북 읽기 창구.
+// 🔴 앵커 = `handbook://` 뒤 글자 전부(셸 라우터 한 곳이 뗀다) · 별칭 해석·모르는 앵커 판정 = 엔진.
+// 🔴 셸 주입은 nullable 기본 null(셸 핸드북 자리표시자 그대로) — 조립 앱 override 의무(06 M4-12).
+
+import '../dto/handbook.dart';
+
+/// `B-01` 목차 · `B-02` 페이지.
+abstract interface class HandbookRepository {
+  Stream<HandbookIndex> watchIndex();
+
+  /// 모르는 앵커 = `HandbookPage.missingLabel`(스트림 에러 아님).
+  Stream<HandbookPage> watchPage(String anchor);
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/repositories/holdings_repository.dart`
 
 ```dart
@@ -11567,6 +12079,24 @@ abstract interface class HoldingsRepository {
 
   /// 🆕 v1.8 — `H6-3` 배분 행 전부(회계 기준). 홈 블록 4(R13)도 이 창구의 `sleeveWeight`·`*PctText` 만 쓴다.
   Stream<SleeveAllocationVm> watchAllocation();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/incident_repository.dart`
+
+```dart
+// 🆕 계약 v1.17(01 §26 · K9) — M8 `D-01` 장애 배너 읽기 창구.
+// 🔴 폰(로컬 엔진)·뷰어(rm_* + `phoneDown` 파생 — 06 숙제)가 **같은 DTO** 를 준다(01 §4-1 계약 3조 ①).
+// 🔴 셸 주입은 nullable 기본 null(배너 부재) — 조립 앱은 반드시 override 하고 조립 테스트 1줄로 비-null 을 단언한다(06 M4-12).
+
+import '../dto/incident.dart';
+
+/// `D-01` 장애 배너 — 최대 1건(엔진이 고름).
+abstract interface class IncidentRepository {
+  /// 늘 값을 낸다 — 배너 없음 = `IncidentBannerVm(banner: null)`.
+  Stream<IncidentBannerVm> watchIncident();
 }
 ```
 
@@ -11824,6 +12354,10 @@ abstract interface class OpsStatusRepository {
   ///    `afterTaxCounterfactual` 을 **null** 로 준다(엔진 의무 · 06 M1-20b) — 세후 수치는 M7 `S7-7`
   ///    (`PerformanceRepository.annualReview`) 한 자리에만 간다. `S12` 의 표시 범위는 미결 95.
   Stream<AnnualReviewVm> watchAnnualReview();
+
+  /// 🆕 v1.17(01 §26 · K17 · 01 §8 미결 123) — `H-03` 물리 리스크 점검(측정 = 플랫폼 · 판정·문구 = 엔진 · asOf 있음).
+  /// 🔴 Android(operator) 화면이다 — 뷰어 빌드에는 본문이 등록되지 않는다(조립 앱 레지스트리 · 셸 가드 무변경).
+  Stream<DeviceRiskVm> watchDeviceRisk();
 }
 
 /// 홈 블록 5·7 의 오늘 요약.
@@ -11992,6 +12526,29 @@ abstract interface class ResumeRepository {
   Stream<ResumeReport?> watchLatest();
 
   Stream<List<PlannedWorkSummary>> watchPlannedWork();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/runbook_repository.dart`
+
+```dart
+// 🆕 계약 v1.17(01 §26 · K12) — M8 `D-02` DR 런북 · `D-03` 오프라인 긴급정지 카드 읽기 창구.
+// 🔴 원고 = M2 번들(03_실행 §10-5 · 04_안전장치 §5-5) — 뷰어도 같은 번들을 읽는다(폰이 죽어도 열린다 · 발주자 결정 ③).
+
+import '../dto/incident.dart';
+
+/// `D-02`·`D-03` 문서 창구(읽기 전용 · 쓰기 0).
+abstract interface class RunbookRepository {
+  /// `D-02` 목록.
+  Stream<RunbookIndexVm> watchRunbookIndex();
+
+  /// `D-02` 상세 — 모르는 id = `RunbookVm.missingLabel`(스트림 에러 아님).
+  Stream<RunbookVm> watchRunbook(String runbookId);
+
+  /// `D-03` 카드.
+  Stream<EmergencyCardVm> watchEmergencyCard();
 }
 ```
 

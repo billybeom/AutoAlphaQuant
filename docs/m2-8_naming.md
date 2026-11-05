@@ -510,3 +510,27 @@ R15(`O-00`~`O-04` · `R-01` · `V-01`) 네 카드의 선행을 닫았다. `contr
 🔴 **만들지 않은 이름**(재론 방지): `OperatingModeView.current` nullable(S05·표본 연쇄 · K12 대안 기각) · `OnboardingLinkAction`(새 타입 — `LinkAction` 재사용 · K9) · `link`·`next_link`(흉내 글자 — 실물 = `deepLink`·`nextDeepLink`) · `PairingResult.nextDeepLink`(실물 = `nextLink: LinkAction?`).
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 149~158(`watchSteps` 존폐 · `whereDeepLink` 옛 뜻 · 검증 args 값 사전 · 슬롯 이름 확장 · `L-3` simOpening · M5 가상 초기금 · VM 산출 원천 · 뷰어 쪽 원천 · 브로커 원문 코드 범위 · 첫 실행 판정) · 플랫폼 몫(06 `M4-10`·`M4-11`·`M5-14`).
+
+## V. 🆕 계약 v1.17 (2026-11-04 · R16 선행 M2 보강 + 엔진 E10 D11) — 장애 배너 · DR 런북 · 긴급정지 카드 · 핸드북 목차·페이지 · 기기 리스크 · 라우트 69
+
+R16(`D-01`~`D-03` · `B-01` · `B-02` · `H-03`) 세 카드의 선행과 엔진 D11 4건(13 §8 R33 D11 · `contract_version.dart` 예약 몫)을 한 판으로 닫았다. `contractVersion` = **`1.17.0`**(엔진 다음 = 1.18.0) · 픽스처 **240건**(219 + 신설 21 · 개정 3 · 버전 줄만 216) · 조문 = 01 §26.
+상태 = ✅ 병합 PR #123 squash `0249f61`(2026-11-05 · CI 3/3 · 밑동 `6eefc8a` · 병합 직전 `main` = 엔진 E13d1 `fea72c8` · 겹침 0 · 합친 트리 확인 뒤 squash).
+결정 = 발주자 2026-11-04 ①~④ 모두 권고 + R16b ⑨ `HandbookPage.asOf?` 붙임(정본 = 설계 `10_리뷰/2026-11-04_R16선행_계약v1.17_설계서.md` §3 K1~K33).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| V-1 | `IncidentBanner{kind, level, title, bodyText, actionLink?}` · `IncidentBannerVm{banner?}` · enum `IncidentKind{phoneDown, networkDown, tokenExpired, orderRejected, other}` | `D-01` · 🆕 `dto/incident.dart` · `enums/incident.dart` · 최대 1건(고르기 = 엔진) · 종류 = 아이콘만 · 등급 = 색만(`ok` 없음) · 조치 = `actionLink`(JSON `action_link` — `action` 은 C-50 ⑨ walker 와 충돌) · 모르는 wire = `other` |
+| V-2 | `RunbookIndexVm{rows, emptyLabel?}` · `RunbookRow{title, summaryText?, deepLink}` · `RunbookVm{title, introText?, steps, localCheckNotice, missingLabel?}` · `RunbookStep{orderText, text}` | `D-02` · 번호 = `orderText` 글자(비순번 «2-1.» 표본) · «확인» 체크 = 화면 로컬(고지 = `localCheckNotice`) · ⑥ 행 링크 = `opsEmergencyCard` |
+| V-3 | `EmergencyCardVm{title, steps, contactLine, keepOnPaperNotice, printSlotId?}` · 사전 `OpsSlotIds.emergencyCardPrint`(`EMERGENCY_CARD_PRINT` · `ops_slot`) | `D-03` · 🆕 `labels/ops_codes.dart` · 인쇄·PDF = 플랫폼 슬롯(04 §2-1 금지 5 의 유일한 예외) · 계좌번호·앱키 0(C-14 · C-51 ⑤) |
+| V-4 | `IncidentRepository{watchIncident()}` · `RunbookRepository{watchRunbookIndex() · watchRunbook(runbookId) · watchEmergencyCard()}` | 🆕 `repositories/incident_repository.dart` · 🆕 별 파일 `repositories/runbook_repository.dart`(K7) · 늘 값을 낸다(없음 = null · 모르는 id = `missingLabel`) |
+| V-5 | 핸드북 추가형 — `HandbookIndex` += `outdatedNotice?` · `HandbookEntry` += `state` · `stateLabel?` · `deepLink?` · `children` · `HandbookPage` += `outdatedNotice?` · `missingLabel?` · `asOf?` · `HandbookBlock` += `live?` · 🆕 `HandbookLiveValue{label, level}` · enum `HandbookEntryState{ready, preparing, archived}` | `B-01`·`B-02` · K13~K15 · 뒤처짐 판정 = 엔진 글자(C-13 ⓐ · 04 §8 그림 16 정정) · `asOf` = live 블록이 있으면 non-null(결정 ④ ⑨) |
+| V-6 | `HandbookRepository{watchIndex() · watchPage(anchor)}` | 🆕 `repositories/handbook_repository.dart` · K16 · 앵커 = `handbook://` 뒤 전부 · 별칭 해석 = 엔진 |
+| V-7 | `DeviceRiskItem{label, currentText, thresholdText, actionText, lastCheckedText, level}` · `DeviceRiskVm{rows, guidanceText, emptyLabel?, asOf}` · `OpsStatusRepository` += `watchDeviceRisk()` | `H-03` · `dto/ops.dart` · K17 · 추가형(받침대 6 → 7) · 측정 = 플랫폼 · 판정 = 엔진 · 버튼 칸 0 |
+| V-8 | 라우트 `opsRunbooks` · `opsRunbook`(`:runbookId`) · `opsEmergencyCard` · `opsDeviceRisk` · `handbookIndex`(`aaq://handbook`) | K18 · `AppRoutes.all` 64 → 69 · 전부 `opsRhythm` 뒤 · 셸 가드 기본 open(결정 ③) |
+| V-9 | 엔진 D11 — `DecisionRef.brokerOrderNo`·`executionId` R31 주석 · `JournalStatus.expired`(`EXPIRED`) · `AlertCodes.staleOrdersHeld`(`STALE_ORDERS_HELD` · 잠정 P1) · `JournalReasonCodes{duplicateOrderPrevented, dayEndExpired}`(`journal_reason`) | K25~K28 · 01 §26-8 · 🔴 `JournalReasonCodes` 는 전수 아님(01 §8 미결 166) · 엔진 소비 = 06 변경 이력 «2026-11-04 · 계약 v1.17» |
+| V-10 | 받침대 `UnimplementedIncidentRepository` · `UnimplementedRunbookRepository` · `UnimplementedHandbookRepository`(`lib/testing.dart`) · 계약 테스트 C-51(`c51_r16_incident_handbook_device_test.dart` · 14항) · 생성기 `tool/gen_r16_v117_fixtures.py` | K23 · K29(기준 `ea06df2` 원문에서 멱등) · K30 |
+| V-11 | 셸 주입 이름(카드 몫 · 계약 밖) `shellIncidentRepositoryProvider`(기본 null) · `shellRunbookRepositoryProvider`(throw) · `shellOpsSlotBuilderProvider`(기본 null) · `shellHandbookRepositoryProvider`(기본 null) | K24 · 조립 앱 override 의무 = 06 `M4-12` |
+
+🔴 **만들지 않은 이름**(재론 방지): `IncidentBanner.action`(C-50 ⑨ 충돌 — 실물 = `actionLink`) · 런북 창구를 `incident_repository.dart` 에 같이 두기(별 파일 — K7) · 화면이 `handbook://$anchor` 를 짓는 것(링크 = 데이터) · `RunbookStep` 실행 링크·슬롯 칸(01 §8 미결 161) · 1.17.0 을 엔진 단독 판으로 쓰기(D11 = 이 판 · D11 밖 «1.17.0 창» 몫 = 1.18.0).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 159~166(밀어 넣은 화면 위 배너 · 전역 슬롯 ① 게이트 · 단계별 실행 자리 · 핸드북 하위 앵커·접힘 · 뒤처짐 P1 코드 · R16 VM 산출 원천 · `incident_token_expired` 바인딩 · 일지 칩 사전 전수) · 123(H-01 블록 9 렌더) · 엔진 숙제(06 변경 이력 · 번호 1.18.0) · 조립 앱 몫(06 `M4-12`).
