@@ -38,6 +38,7 @@ export 'src/local/ledger_schema.dart';
 export 'src/local/operating_param_store.dart';
 export 'src/local/order_ledger.dart';
 export 'src/local/plan_snapshot_store.dart';
+export 'src/local/safety_read_model.dart';
 export 'src/local/stopped_decision_store.dart';
 export 'src/market/csv_table.dart';
 export 'src/market/fetch_log.dart';
