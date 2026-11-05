@@ -1247,3 +1247,100 @@ Set<String> emergencyCardAllowed(EmergencyCardVm v) => <String>{
   v.contactLine,
   v.keepOnPaperNotice,
 };
+
+// ── R16b — B-01·B-02 fakes ──
+
+class FakeShellHandbookRepository extends UnimplementedHandbookRepository {
+  FakeShellHandbookRepository({required this.index, required this.page});
+
+  final Stream<HandbookIndex> Function(int call) index;
+  final Stream<HandbookPage> Function(int call) page;
+  int indexCalls = 0;
+  final List<String> pageAnchors = <String>[];
+
+  @override
+  Stream<HandbookIndex> watchIndex() {
+    final int call = indexCalls;
+    indexCalls = indexCalls + 1;
+    return index(call);
+  }
+
+  @override
+  Stream<HandbookPage> watchPage(String anchor) {
+    final int call = pageAnchors.length;
+    pageAnchors.add(anchor);
+    return page(call);
+  }
+}
+
+List<Override> handbookOverrides({
+  required FakeShellHandbookRepository? repo,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  shellHandbookRepositoryProvider.overrideWithValue(repo),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+  shellClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpHandbookContents(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: HandbookContents())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+Future<void> pumpHandbookPage(
+  WidgetTester tester, {
+  required List<Override> overrides,
+  required String anchor,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: MaterialApp(
+        home: Scaffold(body: HandbookPageView(anchor: anchor)),
+      ),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+Set<String> _entryTexts(HandbookEntry e) => <String>{
+  e.title,
+  ?e.stateLabel,
+  for (final HandbookEntry c in e.children) ..._entryTexts(c),
+};
+
+Set<String> handbookIndexAllowed(HandbookIndex v) => <String>{
+  ?v.outdatedNotice,
+  for (final HandbookEntry e in v.entries) ..._entryTexts(e),
+};
+
+Set<String> handbookPageAllowed(HandbookPage v) => <String>{
+  ?v.outdatedNotice,
+  v.title,
+  ?v.missingLabel,
+  for (final HandbookBlock b in v.blocks) ...<String>[?b.live?.label, b.text],
+  ?v.asOf?.label,
+  ?v.asOf?.staleLabel,
+  ShellLabels.staleBannerTitle,
+};

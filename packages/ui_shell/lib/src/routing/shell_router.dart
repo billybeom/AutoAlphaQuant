@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/labels.dart';
 import '../common/shell_common.dart';
+import '../handbook/handbook_page_view.dart';
 import '../shell_providers.dart';
 
 // ── Route match ────────────────────────────────────────────────────────────────
@@ -208,9 +209,14 @@ class ShellRouteBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. handbook 스킴 → 자리표시자
+    // 1. handbook 스킴 → 핸드북 페이지
     if (link.startsWith('${AppLinkSchemes.handbook}://')) {
-      return const ShellPlaceholder(key: Key('s01-handbook-slot'));
+      return KeyedSubtree(
+        key: const Key('s01-handbook-slot'),
+        child: HandbookPageView(
+          anchor: link.substring('${AppLinkSchemes.handbook}://'.length),
+        ),
+      );
     }
 
     // 2. 라우트 일치 확인

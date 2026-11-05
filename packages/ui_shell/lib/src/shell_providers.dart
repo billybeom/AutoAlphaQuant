@@ -204,3 +204,8 @@ final Provider<RunbookRepository> shellRunbookRepositoryProvider =
 
 final Provider<ShellSlotBuilder?> shellOpsSlotBuilderProvider =
     Provider<ShellSlotBuilder?>((Ref ref) => null);
+
+// ── R16b — B-01·B-02 injection providers ──────────────────────────────────
+
+final Provider<HandbookRepository?> shellHandbookRepositoryProvider =
+    Provider<HandbookRepository?>((Ref ref) => null);
