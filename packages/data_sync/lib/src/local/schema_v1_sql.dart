@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `9836f4f06b0b3a3738d206e50c64b2b1f66e387a0c0c0efcfd368fcf75324296`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `b93ee416fd97626107c3aaa920c91a167cfa26f79cc6ddd998784cb1d3b50838`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS trades (
     holding_days    INTEGER NOT NULL
 );
 
--- ── 02_데이터모델.md L386-603 ──
+-- ── 02_데이터모델.md L386-624 ──
 CREATE TABLE IF NOT EXISTS strategy_state_log (
     log_id               TEXT NOT NULL PRIMARY KEY,
     strategy_id          TEXT NOT NULL,
@@ -488,6 +488,27 @@ CREATE TABLE IF NOT EXISTS intervention_step (          -- 수동 개입 5단계
     outcome     TEXT NOT NULL CHECK (outcome IN ('PASSED','ABANDONED','DO_NOTHING')),
     decision_id TEXT,                                   -- 3단계 · 5단계 = 필수
     PRIMARY KEY (session_id, stage)
+);
+-- 🆕 v2.41(설계 13 §8 R68 · 06 M5-15 · 04 §5-3 등급 · 앱 04 §5-4 P0 ack 사다리) — 운영 기기 알림 저장.
+--    🔴 전부 append-only(상태 = 뒤 행) · 🔴 X5-1 해시 모집단 밖(원장 사실이 아니다 — 넣으면 hash_format_version 을 올린다)
+CREATE TABLE IF NOT EXISTS alert_event (                -- 알림 1건 · 🔴 같은 사건(dedupe_key) = 1행(다시 와도 새 행 0)
+    alert_id   TEXT NOT NULL PRIMARY KEY,
+    raised_at  TEXT NOT NULL,                           -- 기기 시계(발생 기록 · 사다리 기준 — 마찰 시간이 아니다)
+    code       TEXT NOT NULL,                           -- 엔진 알림 코드(앱 계약 AlertCodes + 등재 대기 제안 코드)
+    level      TEXT NOT NULL CHECK (level IN ('P0','P1','P2')),   -- 🔴 엔진이 정한 등급(04 §5-3) · 화면 재분류 금지
+    source     TEXT NOT NULL,                           -- 낸 곳(잡 체크 이름 등)
+    dedupe_key TEXT NOT NULL UNIQUE                     -- 코드 · 낸 곳 · 한국 날(«배치당 · 체크당 · 일 1건» — 04 §5-3)
+);
+CREATE TABLE IF NOT EXISTS alert_ack (                  -- P0 수신 확인 — 🔴 효력 없음(사다리 정지만 · 앱 01 §4-2 `ALERT_ACK`)
+    alert_id   TEXT NOT NULL PRIMARY KEY REFERENCES alert_event(alert_id),
+    acked_at   TEXT NOT NULL,
+    command_id TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS alert_escalation (           -- P0 ack 승급 사다리(1 = 15분 백업 채널 · 2 = 60분 반복 알람 + 워치독) · 🔴 건너뛰기 0
+    alert_id     TEXT NOT NULL REFERENCES alert_event(alert_id),
+    step         INTEGER NOT NULL CHECK (step IN (1,2)),
+    escalated_at TEXT NOT NULL,
+    PRIMARY KEY (alert_id, step)
 );
 -- 롤링 12개월 횟수: SELECT COUNT(*) FROM discretion_adjustment
 --                    WHERE applied_at >= date('now','-12 months')

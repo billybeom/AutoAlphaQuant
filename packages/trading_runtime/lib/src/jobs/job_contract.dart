@@ -10,16 +10,12 @@
 //    바깥이 한 회차의 시작과 끝을 짝짓는다 · 결정적 UUID 꼴).
 
 import 'package:core_engine/core_engine.dart'
-    show ExchangeCalendar, JobHeartbeat, PingStatus;
+    show AlertSink, ExchangeCalendar, JobHeartbeat, PingStatus;
 import 'package:domain_contracts/domain_contracts.dart';
 
 // 🆕 E11c(R45 C1) — [PingStatus] · [JobHeartbeat] 는 core_engine `ops/watchdog_ports.dart` 로 옮겼다(배럴이 다시 내보낸다).
 
-/// 알림 포트 — 엔진이 정한 코드만 넘긴다(등급 · 발송은 받는 쪽 · M5 · E13).
-abstract interface class AlertSink {
-  /// [check] 잡이 낸 알림 코드.
-  Future<void> emit(String check, Set<String> codes);
-}
+// 🆕 E13h1(R68 H1) — [AlertSink] 는 core_engine `safety/alert_rules.dart` 로 옮겼다(구현 = data_sync · 배럴이 다시 내보낸다).
 
 /// 잡 결과 상태.
 enum JobStatus {

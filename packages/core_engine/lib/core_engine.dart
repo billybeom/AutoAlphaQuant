@@ -415,6 +415,19 @@ export 'src/risk/limits.dart'
         checkAllLimits;
 export 'src/risk/position_sizing.dart'
     show SizingBinding, SizingResult, sizePosition;
+// 🆕 E13h1 — 알림 등급 · 묶음 · P0 ack 사다리 · 알림 포트(06 M5-15 · 설계 13 §8 R68).
+export 'src/safety/alert_rules.dart'
+    show
+        AlertEscalationChannel,
+        AlertSink,
+        alertAckRejectCode,
+        alertDedupeKey,
+        alertHasLadder,
+        alertIdOf,
+        alertLevelOf,
+        dueEscalationSteps,
+        kAckLadder,
+        kAlertLevels;
 // 🆕 E13e2 — 브레이커 사다리 원천(M5-4 · 설계 13 §8 R63 V4).
 export 'src/safety/breaker_ladder.dart'
     show BreakerLadderStep, breakerLadderOf, ladderPercent;
