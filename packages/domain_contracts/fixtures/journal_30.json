@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.16.0",
+    "contract_version": "1.17.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -683,7 +683,7 @@
       "visibility": "SETTLED",
       "visibility_label": "확정",
       "reasons": [
-        { "code": "DUPLICATE_SUSPECTED", "label": "같은 결정의 주문이 이미 접수되었습니다", "tone": "PREVENTED" }
+        { "code": "DUPLICATE_ORDER_PREVENTED", "label": "같은 결정의 주문이 이미 접수되었습니다", "tone": "PREVENTED" }
       ],
       "decision": { "decision_id": "d_20260826_b_18", "intent_id": "i_0018", "broker_order_no": "B0018", "config_hash": "cfg_fake_0000000000000000" },
       "deviation": { "is_deviation": false, "label": "규칙대로" },

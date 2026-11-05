@@ -14,7 +14,8 @@
 //    사항에 사유와 함께 적혀 있다. 대표적으로 `LedgerEventKind`/
 //    `LedgerEventRecord`(결정 ㊲ 대기 · M2-8 A-15·J-6) · `SplitExecutionLeg`
 //    (M2-8 C-11) · `AccountMappingVm`·`AllocationEditorVm`·`OperationsVm`
-//    (M2-8 §G 표 미등재) · `IncidentBanner`/`Runbook`(이름 미확정)이다.
+//    (M2-8 §G 표 미등재)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
+//    들어왔다(`dto/incident.dart`).
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';

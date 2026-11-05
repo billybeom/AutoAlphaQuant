@@ -7,6 +7,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 /// 🔴 `prevented` = «이중 발주 차단 작동» 이며 **성공으로 렌더**한다.
 ///    `unknown` 은 UNKNOWN 해소 보드로 딥링크한다.
 /// 🔴 C-12(`default:` 없는 망라 switch)가 전 화면을 동시에 깨뜨리는 것이 **의도된 게이트**다.
+/// 🆕 v1.17(엔진 D11 · 13 §8 R33 D5 · 04_안전장치 §3-1 ③) — `expired` = 일 마감 실효(🔴 취소 아님 · 잔량 = 다음 거래일 의도로 이월 · 근거 칩 `JournalReasonCodes.dayEndExpired`).
 enum JournalStatus {
   @JsonValue('FILLED')
   filled('FILLED'),
@@ -14,6 +15,8 @@ enum JournalStatus {
   partial('PARTIAL'),
   @JsonValue('CANCELLED')
   cancelled('CANCELLED'),
+  @JsonValue('EXPIRED')
+  expired('EXPIRED'),
   @JsonValue('REJECTED')
   rejected('REJECTED'),
   @JsonValue('UNKNOWN')

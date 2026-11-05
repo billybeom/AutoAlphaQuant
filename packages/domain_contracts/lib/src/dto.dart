@@ -13,6 +13,7 @@ export 'dto/common.dart';
 export 'dto/handbook.dart';
 export 'dto/handover.dart';
 export 'dto/holdings.dart';
+export 'dto/incident.dart';
 export 'dto/journal.dart';
 export 'dto/ledger.dart';
 export 'dto/ledger_trust.dart';

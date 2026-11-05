@@ -270,8 +270,6 @@ const String _reasonM9Fixture =
     '픽스처가 생기면 등록부에 올리고 여기서 지운다.';
 const String _reasonCalendarUndecided =
     'X4 캘린더 채택이 미결이라 픽스처를 만들지 않았다(01 §8-5 · FeatureFlags.calendarEnabled).';
-const String _reasonHandbookDraft =
-    '핸드북 원고가 선행이다(C-13 🔵) — 지금 있는 것은 페이지 1건뿐이고 색인·항목 픽스처가 없다.';
 
 /// 🔴 픽스처로 덮이지 않는 계약 타입 — **전량**이 사유와 함께 여기 있다.
 const Map<String, String> _knownUncovered = <String, String>{
@@ -320,10 +318,6 @@ const Map<String, String> _knownUncovered = <String, String>{
   // ── X4 캘린더 ───────────────────────────────────────────────────────────
   'CalendarEventDto': _reasonCalendarUndecided,
   'CalendarSyncStatus': _reasonCalendarUndecided,
-
-  // ── 핸드북 ──────────────────────────────────────────────────────────────
-  'HandbookEntry': _reasonHandbookDraft,
-  'HandbookIndex': _reasonHandbookDraft,
 
   // ── 낱건 ────────────────────────────────────────────────────────────────
   'EntryRampProgress': '진입 램프 픽스처가 없다 — safety_states 는 브레이커·플래그 축만 담는다.',

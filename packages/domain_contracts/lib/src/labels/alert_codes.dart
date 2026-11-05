@@ -1,4 +1,4 @@
-// 알림 코드 24종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 10 + 유지보수 2) · §5-1d(운영 1).
+// 알림 코드 25종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11).
 // 인벤토리 §6-9 의 분류를 그대로 쓴다.
 //
 // 🔴 **등급(P0/P1/P2)을 이 파일에 사전으로 만들지 않는다.** 등급의 런타임 정본은
@@ -50,7 +50,7 @@ abstract final class AlertCodes {
   /// 잠정 P1 · 전환 커밋 성공 직후 **1회** — 띠·탭이 바뀐 이유를 말하는 유일한 자리.
   static const String handoverCommitted = 'HANDOVER_COMMITTED';
 
-  // ── 자동 매매 10 (04 §5-1c) ───────────────────────────────────────────────
+  // ── 자동 매매 11 (04 §5-1c) ───────────────────────────────────────────────
   /// 잠정 P1 · 주문 거부. 배치당 묶음.
   static const String orderRejected = 'ORDER_REJECTED';
 
@@ -82,6 +82,11 @@ abstract final class AlertCodes {
 
   /// 잠정 P2 · 월 납입 리마인더(`H-02` 행과 같은 트리거). 일일 다이제스트.
   static const String depositReminder = 'DEPOSIT_REMINDER';
+
+  /// 🆕 v1.17(01 §26 · 엔진 D11 · 13 §8 R33 D11 · R38 Z8) — 잠정 P1 · **다음 날 가드 보류**: 그날 계좌 첫 주문 앞 체결조회에
+  /// 지난 거래일 원주문 행이 보이거나(`STALE_ORDERS`) 그 조회가 실패해(`STALE_GUARD_UNAVAILABLE` · fail-closed) **그 계좌의
+  /// 그날 배치를 보류**했다(이중 매수 방지 · 04_안전장치 §3-1 ③ 5). 🔴 계좌·날 1건 · 등급 정본 등재(§5-3 표) = 엔진 다음 SPEC 판.
+  static const String staleOrdersHeld = 'STALE_ORDERS_HELD';
 
   // ── 유지보수 창 2 (04 §5-1c · S7 재추적 N-2) ────────────────────────────────
   /// 잠정 P1 · X1 유지보수 창이 T시간을 넘겨 열려 있음. 🔴 창 1개당 1건.
@@ -118,7 +123,7 @@ abstract final class AlertCodes {
     handoverCommitted,
   };
 
-  /// 자동 매매 10종.
+  /// 자동 매매 11종.
   static const Set<String> autoTrade = <String>{
     orderRejected,
     orderOutcomeUnknown,
@@ -130,6 +135,7 @@ abstract final class AlertCodes {
     dataSourceDown,
     backupStale,
     depositReminder,
+    staleOrdersHeld,
   };
 
   /// 유지보수 창 2종.
@@ -141,7 +147,7 @@ abstract final class AlertCodes {
   /// 운영 파라미터 1종.
   static const Set<String> operatingParam = <String>{contributionChanged};
 
-  /// 전량 24종.
+  /// 전량 25종.
   static const Set<String> values = <String>{
     ...x7Advice,
     ...handover,

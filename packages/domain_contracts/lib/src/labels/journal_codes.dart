@@ -115,3 +115,21 @@ abstract final class BlindReviewRejectCodes {
 
   static const Set<String> values = <String>{alreadyScored, answersInvalid};
 }
+
+/// 🆕 계약 v1.17(01 §26 · 엔진 D11 · 13 §8 R33 D11·D24) — `TradeJournalEntry.reasons[].code` 중 **엔진 D11 이 정한 2종**.
+///
+/// 🔴 **전수 목록이 아니다** — 일지 사유 칩 코드 전수 등재 = 01 §8 미결 166. 화면은 이 코드로 분기·문구·아이콘을 고르지 않는다
+///    (칩 `label`·`tone` 이 준다). 쓰는 곳 = 계약 테스트(C-51 ⑩⑪)와 엔진 구현.
+abstract final class JournalReasonCodes {
+  /// `status == prevented` 행의 근거 — 같은 멱등키의 의도가 이미 있어 새 의도 행을 만들지 않았다(NR-1 6.5 · R33 D24).
+  /// 🔴 그 행의 `decision.intentId` = **이미 그 키를 가진 원 의도**.
+  static const String duplicateOrderPrevented = 'DUPLICATE_ORDER_PREVENTED';
+
+  /// `status == expired` 행의 근거 — 장 마감까지 체결되지 않은 잔량을 실효로 기록했다(취소 아님 · 04_안전장치 §3-1 ③ · R33 D5).
+  static const String dayEndExpired = 'DAY_END_EXPIRED';
+
+  static const Set<String> values = <String>{
+    duplicateOrderPrevented,
+    dayEndExpired,
+  };
+}

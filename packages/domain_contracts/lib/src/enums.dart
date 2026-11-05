@@ -10,6 +10,8 @@ export 'enums/advice.dart';
 export 'enums/calendar.dart';
 export 'enums/command.dart';
 export 'enums/draft.dart';
+export 'enums/handbook.dart';
+export 'enums/incident.dart';
 export 'enums/journal.dart';
 export 'enums/ledger.dart';
 export 'enums/market_data.dart';

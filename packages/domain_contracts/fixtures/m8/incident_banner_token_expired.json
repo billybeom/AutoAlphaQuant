@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.17.0",
+    "generated_at": "2026-11-04T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261104,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "운영 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "banner": { "kind": "TOKEN_EXPIRED", "level": "BLOCKED", "title": "증권사 접근 토큰이 만료되었습니다", "body_text": "주문이 멈춰 있습니다. 연결 설정에서 토큰을 다시 받으면 이어서 진행합니다.", "action_link": { "label": "연결 설정 열기", "deep_link": "aaq://settings/credentials" } }
+    }
+  ]
+}

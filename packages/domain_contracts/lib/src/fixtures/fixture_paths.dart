@@ -232,6 +232,9 @@ abstract final class FixturePaths {
   ///    「없음」(NO_DATA)은 문구를 실어야 하므로(계약 3조 ③) M2 가 파일로 준다(02 §3-1 · §6).
   static const String m6JournalEmpty = 'm6/journal_empty.json';
 
+  /// 🆕 v1.17(01 §26 · 엔진 D11 · K26) — `JournalStatus.expired` 1행(일 마감 실효 · 칩 `DAY_END_EXPIRED` · R31 꼴 `broker_order_no`).
+  static const String m6JournalExpired1 = 'm6/journal_expired_1.json';
+
   // 🆕 v1.1 — `J-1` 배지·필터 · `J-3` 폼 스펙 · 가림(LEDGER_INTEGRITY) 일지.
   static const String m6JournalBadges2 = 'm6/journal_badges_2.json';
 
@@ -484,7 +487,40 @@ abstract final class FixturePaths {
   static const String m8AlertsAdvice9codes = 'm8/alerts_advice_9codes.json';
   static const String m8AlertsDigest = 'm8/alerts_digest.json';
   static const String m8AlertsP0Ack = 'm8/alerts_p0_ack.json';
+
+  /// 🆕 v1.17(01 §26 · 엔진 D11 · K27) — `STALE_ORDERS_HELD`(P1 · 다음 날 가드 보류) 알림 1행.
+  static const String m8AlertsStaleOrdersHeld =
+      'm8/alerts_stale_orders_held.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16c) — `H-03` 기기 리스크(`DeviceRiskVm`) 2벌(empty · items 5행 등급 5값).
+  static const String m8DeviceRiskEmpty = 'm8/device_risk_empty.json';
+  static const String m8DeviceRiskItems = 'm8/device_risk_items.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16a) — `D-03` 긴급정지 카드(`EmergencyCardVm`) 2벌(인쇄 슬롯 있음 · 없음).
+  static const String m8EmergencyCard = 'm8/emergency_card.json';
+  static const String m8EmergencyCardNoPrint =
+      'm8/emergency_card_no_print.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16b) — `B-01` 목차(`HandbookIndex`) 2벌 · `B-02` 페이지(`HandbookPage`) 3벌(archived · missing · outdated).
+  static const String m8HandbookIndex = 'm8/handbook_index.json';
+  static const String m8HandbookIndexOutdated =
+      'm8/handbook_index_outdated.json';
+  static const String m8HandbookPageArchived = 'm8/handbook_page_archived.json';
+  static const String m8HandbookPageMissing = 'm8/handbook_page_missing.json';
+  static const String m8HandbookPageOutdated = 'm8/handbook_page_outdated.json';
   static const String m8HandbookPageSleeveB = 'm8/handbook_page_sleeve_b.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16a) — `D-01` 장애 배너(`IncidentBannerVm`) 6벌(종류 5 + 배너 없음).
+  static const String m8IncidentBannerNetworkDown =
+      'm8/incident_banner_network_down.json';
+  static const String m8IncidentBannerNone = 'm8/incident_banner_none.json';
+  static const String m8IncidentBannerOrderRejected =
+      'm8/incident_banner_order_rejected.json';
+  static const String m8IncidentBannerOther = 'm8/incident_banner_other.json';
+  static const String m8IncidentBannerPhoneDown =
+      'm8/incident_banner_phone_down.json';
+  static const String m8IncidentBannerTokenExpired =
+      'm8/incident_banner_token_expired.json';
   static const String m8IncidentTokenExpired = 'm8/incident_token_expired.json';
   static const String m8OnboardingFinish = 'm8/onboarding_finish.json';
 
@@ -568,6 +604,12 @@ abstract final class FixturePaths {
   static const String m8RestartVmLoggedOut = 'm8/restart_vm_logged_out.json';
   static const String m8RestartVmLostPhone = 'm8/restart_vm_lost_phone.json';
   static const String m8RestartVmUnknown = 'm8/restart_vm_unknown.json';
+
+  /// 🆕 v1.17(01 §26 · K29 · R16a) — `D-02` 런북 상세(`RunbookVm`) 2벌(host_lost · missing) · 목록(`RunbookIndexVm`) 2벌(index · index_empty).
+  static const String m8RunbookHostLost = 'm8/runbook_host_lost.json';
+  static const String m8RunbookIndex = 'm8/runbook_index.json';
+  static const String m8RunbookIndexEmpty = 'm8/runbook_index_empty.json';
+  static const String m8RunbookMissing = 'm8/runbook_missing.json';
 
   /// 🆕 v1.15(01 §24 · K3) 꼴 = `WatchdogBoardVm` 1행(6행 · 실패 1).
   static const String m8WatchdogDelayed = 'm8/watchdog_delayed.json';
@@ -667,6 +709,7 @@ abstract final class FixturePaths {
     m6HoldingsOverviewRecon,
     m6HoldingsOverviewViewer,
     m6JournalEmpty,
+    m6JournalExpired1,
     m6JournalBadges2,
     m6JournalDraftReceipts5,
     m6JournalDraftSpecDiscretion,
@@ -758,7 +801,23 @@ abstract final class FixturePaths {
     m8AlertsAdvice9codes,
     m8AlertsDigest,
     m8AlertsP0Ack,
+    m8AlertsStaleOrdersHeld,
+    m8DeviceRiskEmpty,
+    m8DeviceRiskItems,
+    m8EmergencyCard,
+    m8EmergencyCardNoPrint,
+    m8HandbookIndex,
+    m8HandbookIndexOutdated,
+    m8HandbookPageArchived,
+    m8HandbookPageMissing,
+    m8HandbookPageOutdated,
     m8HandbookPageSleeveB,
+    m8IncidentBannerNetworkDown,
+    m8IncidentBannerNone,
+    m8IncidentBannerOrderRejected,
+    m8IncidentBannerOther,
+    m8IncidentBannerPhoneDown,
+    m8IncidentBannerTokenExpired,
     m8IncidentTokenExpired,
     m8OnboardingFinish,
     m8OnboardingFinishAdvisory,
@@ -806,6 +865,10 @@ abstract final class FixturePaths {
     m8RestartVmLoggedOut,
     m8RestartVmLostPhone,
     m8RestartVmUnknown,
+    m8RunbookHostLost,
+    m8RunbookIndex,
+    m8RunbookIndexEmpty,
+    m8RunbookMissing,
     m8WatchdogDelayed,
     m8WatchdogEmpty,
     m8WatchdogHoliday,

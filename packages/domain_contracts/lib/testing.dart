@@ -48,6 +48,8 @@
 //   v1.6 «Ops 받침대는 만들지 않는다» 는 `S7-7` 한정 · R14 가 필요로 한다) · `UnimplementedCommandApi.acknowledgeAlert(String alertId)`.
 //   🆕 계약 v1.16 R15 선행(01 §25 · K30) — `UnimplementedOnboardingRepository`(7) · `UnimplementedPairingRepository`(1 ·
 //   뷰어 `V-01`) · `UnimplementedSettingsActions` 주석(O-00b·O-03·O-04 는 결과를 읽는다).
+//   🆕 계약 v1.17 R16 선행(01 §26 · K23) — `UnimplementedIncidentRepository`(1) · `UnimplementedRunbookRepository`(3) ·
+//   `UnimplementedHandbookRepository`(2) · `UnimplementedOpsStatusRepository` +1(`watchDeviceRisk` · 7).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -184,7 +186,7 @@ class UnimplementedAlertRepository implements AlertRepository {
       throw UnimplementedError('watchAlert');
 }
 
-/// 🆕 계약 v1.15(01 §24 · K18) — [OpsStatusRepository] 받침대(`W-01`·`H-01` 블록 6 가짜의 받침대 · 6메서드 전부).
+/// 🆕 계약 v1.15(01 §24 · K18) — [OpsStatusRepository] 받침대(`W-01`·`H-01` 블록 6 가짜의 받침대 · 7메서드 전부(🆕 v1.17 `watchDeviceRisk`)).
 /// 🔴 동기로 던진다. 값은 지어내지 않는다 — `m8/watchdog_*`·`m8/recon_board_*` 픽스처를 override 로.
 class UnimplementedOpsStatusRepository implements OpsStatusRepository {
   @override
@@ -204,6 +206,9 @@ class UnimplementedOpsStatusRepository implements OpsStatusRepository {
   @override
   Stream<AnnualReviewVm> watchAnnualReview() =>
       throw UnimplementedError('watchAnnualReview');
+  @override
+  Stream<DeviceRiskVm> watchDeviceRisk() =>
+      throw UnimplementedError('watchDeviceRisk');
 }
 
 /// 🆕 계약 v1.16(01 §25 · K30) — [OnboardingRepository] 받침대(`O-00`~`O-04`·`R-01` 가짜의 받침대 · 7메서드 전부).
@@ -235,6 +240,38 @@ class UnimplementedOnboardingRepository implements OnboardingRepository {
 class UnimplementedPairingRepository implements PairingRepository {
   @override
   Stream<PairingVm> watchPairing() => throw UnimplementedError('watchPairing');
+}
+
+/// 🆕 계약 v1.17(01 §26 · K23) — [IncidentRepository] 받침대(`D-01` 가짜의 받침대). 🔴 동기로 던진다.
+class UnimplementedIncidentRepository implements IncidentRepository {
+  @override
+  Stream<IncidentBannerVm> watchIncident() =>
+      throw UnimplementedError('watchIncident');
+}
+
+/// 🆕 계약 v1.17(01 §26 · K23) — [RunbookRepository] 받침대(`D-02`·`D-03` 가짜의 받침대 · 3메서드 전부). 🔴 동기로 던진다.
+class UnimplementedRunbookRepository implements RunbookRepository {
+  @override
+  Stream<RunbookIndexVm> watchRunbookIndex() =>
+      throw UnimplementedError('watchRunbookIndex');
+
+  @override
+  Stream<RunbookVm> watchRunbook(String runbookId) =>
+      throw UnimplementedError('watchRunbook');
+
+  @override
+  Stream<EmergencyCardVm> watchEmergencyCard() =>
+      throw UnimplementedError('watchEmergencyCard');
+}
+
+/// 🆕 계약 v1.17(01 §26 · K23) — [HandbookRepository] 받침대(`B-01`·`B-02` 가짜의 받침대). 🔴 동기로 던진다.
+class UnimplementedHandbookRepository implements HandbookRepository {
+  @override
+  Stream<HandbookIndex> watchIndex() => throw UnimplementedError('watchIndex');
+
+  @override
+  Stream<HandbookPage> watchPage(String anchor) =>
+      throw UnimplementedError('watchPage');
 }
 
 /// 🆕 계약 v1.12(01 §21 · K9 · K28) — [SettingsActions] 받침대(`L-3` 세션 start·stop 가짜의 받침대).

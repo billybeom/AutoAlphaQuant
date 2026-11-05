@@ -56,6 +56,8 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   'slot_id': 'onboarding_slot',
   'login_slot_id': 'onboarding_slot',
   'scanner_slot_id': 'onboarding_slot',
+  // 🆕 v1.17(01 §26 · K19) — `D-03` 긴급정지 카드 인쇄 슬롯 이름(`OpsSlotIds` · 화면은 이름을 빌더에 그대로 넘긴다).
+  'print_slot_id': 'ops_slot',
 };
 
 /// 🔴 **사전에 없는 코드 축** — 01 §3 이 열거하지 않은 값이라 검사 대상이 아니다.
@@ -203,6 +205,8 @@ void main() {
         FixturePaths.m8AlertsAdvice9codes,
         FixturePaths.m8AlertsDigest,
         FixturePaths.m8AlertsP0Ack,
+        // 🆕 v1.17(01 §26 · 엔진 D11) — `STALE_ORDERS_HELD`.
+        FixturePaths.m8AlertsStaleOrdersHeld,
       ];
       for (final String path in alertFixtures) {
         final FixtureEnvelope envelope = decodeEnvelope(readFixture(path));
