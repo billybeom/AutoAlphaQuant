@@ -1,0 +1,2489 @@
+{
+ "GV-40a": [
+  {
+   "id": "a01 전부 통과 (기준선)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite"
+    },
+    "weights": [
+     0.5,
+     0.0625,
+     0.0625,
+     0.0625,
+     0.0625
+    ],
+    "cov": [
+     [
+      0.029296875,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0625,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0625,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0625,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0625
+     ]
+    ],
+    "defensive_pct": 0.2,
+    "usd_exposure_pct": 0.3,
+    "risky_exposure": 0.45,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.11764705882352941,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.25,
+      "SAT2": 0.25,
+      "SAT3": 0.25,
+      "SAT4": 0.25
+     },
+     "defensive_pct": 0.2,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.45,
+     "usd_exposure_pct": 0.3
+    }
+   }
+  },
+  {
+   "id": "a02 🔴 한 종목 쏠림 — 202 통과·208 발동 (분모 혼동 판별, 상관 0.5)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite"
+    },
+    "weights": [
+     0.86,
+     0.1,
+     0.04
+    ],
+    "cov": [
+     [
+      0.003,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.09,
+      0.045
+     ],
+     [
+      0.0,
+      0.045,
+      0.09
+     ]
+    ],
+    "defensive_pct": 0.2,
+    "usd_exposure_pct": 0.3,
+    "risky_exposure": 0.45,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [
+     "SAF-208"
+    ],
+    "actions": {
+     "SAF-208": "경고+다음 리밸런싱에 반영"
+    },
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.38754554488241144,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.7692307692307692,
+      "SAT2": 0.23076923076923075
+     },
+     "defensive_pct": 0.2,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.45,
+     "usd_exposure_pct": 0.3
+    }
+   }
+  },
+  {
+   "id": "a03 🔴 고른 분산·슬리브 전체 과대 — 202 발동·208 통과 (역방향 판별)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4",
+     "SAT5"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite",
+     "SAT5": "satellite"
+    },
+    "weights": [
+     0.75,
+     0.05,
+     0.05,
+     0.05,
+     0.05,
+     0.05
+    ],
+    "cov": [
+     [
+      0.002,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.16,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.16,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.16,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.16,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.16
+     ]
+    ],
+    "defensive_pct": 0.2,
+    "usd_exposure_pct": 0.3,
+    "risky_exposure": 0.45,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [
+     "SAF-202"
+    ],
+    "actions": {
+     "SAF-202": "경고+다음 리밸런싱에 반영"
+    },
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.64,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.2,
+      "SAT2": 0.2,
+      "SAT3": 0.2,
+      "SAT4": 0.2,
+      "SAT5": 0.2
+     },
+     "defensive_pct": 0.2,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.45,
+     "usd_exposure_pct": 0.3
+    }
+   }
+  },
+  {
+   "id": "a04 202 정확히 0.40 → 통과 (== 통과, 이진 정확 구성)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite"
+    },
+    "weights": [
+     0.5,
+     0.0625,
+     0.0625,
+     0.0625,
+     0.0625
+    ],
+    "cov": [
+     [
+      0.005859375,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0625,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0625,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0625,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0625
+     ]
+    ],
+    "defensive_pct": 0.2,
+    "usd_exposure_pct": 0.3,
+    "risky_exposure": 0.45,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.4,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.25,
+      "SAT2": 0.25,
+      "SAT3": 0.25,
+      "SAT4": 0.25
+     },
+     "defensive_pct": 0.2,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.45,
+     "usd_exposure_pct": 0.3
+    }
+   }
+  },
+  {
+   "id": "a05 208 정확히 0.30 → 통과 (== 통과, 이진 정확 구성)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite"
+    },
+    "weights": [
+     0.5,
+     0.0625,
+     0.0625,
+     0.0625,
+     0.0625
+    ],
+    "cov": [
+     [
+      0.029296875,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.1875,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.1875,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.1875,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0625
+     ]
+    ],
+    "defensive_pct": 0.2,
+    "usd_exposure_pct": 0.3,
+    "risky_exposure": 0.45,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.25,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.3,
+      "SAT2": 0.3,
+      "SAT3": 0.3,
+      "SAT4": 0.1
+     },
+     "defensive_pct": 0.2,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.45,
+     "usd_exposure_pct": 0.3
+    }
+   }
+  },
+  {
+   "id": "a06 208 한도+ε → 발동 (0.3171)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite"
+    },
+    "weights": [
+     0.5,
+     0.0625,
+     0.0625,
+     0.0625,
+     0.0625
+    ],
+    "cov": [
+     [
+      0.029296875,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.203125,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.1875,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.1875,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0625
+     ]
+    ],
+    "defensive_pct": 0.2,
+    "usd_exposure_pct": 0.3,
+    "risky_exposure": 0.45,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [
+     "SAF-208"
+    ],
+    "actions": {
+     "SAF-208": "경고+다음 리밸런싱에 반영"
+    },
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.2546583850931677,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.3170731707317073,
+      "SAT2": 0.2926829268292683,
+      "SAT3": 0.2926829268292683,
+      "SAT4": 0.0975609756097561
+     },
+     "defensive_pct": 0.2,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.45,
+     "usd_exposure_pct": 0.3
+    }
+   }
+  },
+  {
+   "id": "a07 202 한도+ε → 발동 (0.4074)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite"
+    },
+    "weights": [
+     0.5,
+     0.0625,
+     0.0625,
+     0.0625,
+     0.0625
+    ],
+    "cov": [
+     [
+      0.005859375,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0703125,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0625,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0625,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0625
+     ]
+    ],
+    "defensive_pct": 0.2,
+    "usd_exposure_pct": 0.3,
+    "risky_exposure": 0.45,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [
+     "SAF-202"
+    ],
+    "actions": {
+     "SAF-202": "경고+다음 리밸런싱에 반영"
+    },
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.4074074074074074,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.2727272727272727,
+      "SAT2": 0.24242424242424243,
+      "SAT3": 0.24242424242424243,
+      "SAT4": 0.24242424242424243
+     },
+     "defensive_pct": 0.2,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.45,
+     "usd_exposure_pct": 0.3
+    }
+   }
+  },
+  {
+   "id": "a08 302·305·307 전부 정확히 한도 → 전부 통과 (== 통과)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite"
+    },
+    "weights": [
+     0.5,
+     0.0625,
+     0.0625,
+     0.0625,
+     0.0625
+    ],
+    "cov": [
+     [
+      0.029296875,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0625,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0625,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0625,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0625
+     ]
+    ],
+    "defensive_pct": 0.1,
+    "usd_exposure_pct": 0.5,
+    "risky_exposure": 0.5,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.11764705882352941,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.25,
+      "SAT2": 0.25,
+      "SAT3": 0.25,
+      "SAT4": 0.25
+     },
+     "defensive_pct": 0.1,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.5,
+     "usd_exposure_pct": 0.5
+    }
+   }
+  },
+  {
+   "id": "a09 302 하한−ε → 발동 (0.099)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite"
+    },
+    "weights": [
+     0.5,
+     0.0625,
+     0.0625,
+     0.0625,
+     0.0625
+    ],
+    "cov": [
+     [
+      0.029296875,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0625,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0625,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0625,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0625
+     ]
+    ],
+    "defensive_pct": 0.099,
+    "usd_exposure_pct": 0.3,
+    "risky_exposure": 0.45,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [
+     "SAF-302"
+    ],
+    "actions": {
+     "SAF-302": "경고"
+    },
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.11764705882352941,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.25,
+      "SAT2": 0.25,
+      "SAT3": 0.25,
+      "SAT4": 0.25
+     },
+     "defensive_pct": 0.099,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.45,
+     "usd_exposure_pct": 0.3
+    }
+   }
+  },
+  {
+   "id": "a10 305 하프켈리+ε → 발동·경고일 뿐 주문 거부 아님 (0.51 > 0.5)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite"
+    },
+    "weights": [
+     0.5,
+     0.0625,
+     0.0625,
+     0.0625,
+     0.0625
+    ],
+    "cov": [
+     [
+      0.029296875,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0625,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0625,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0625,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0625
+     ]
+    ],
+    "defensive_pct": 0.2,
+    "usd_exposure_pct": 0.3,
+    "risky_exposure": 0.51,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [
+     "SAF-305"
+    ],
+    "actions": {
+     "SAF-305": "경고"
+    },
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.11764705882352941,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.25,
+      "SAT2": 0.25,
+      "SAT3": 0.25,
+      "SAT4": 0.25
+     },
+     "defensive_pct": 0.2,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.51,
+     "usd_exposure_pct": 0.3
+    }
+   }
+  },
+  {
+   "id": "a11 307 상한+ε → 발동 (0.51)",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite"
+    },
+    "weights": [
+     0.5,
+     0.0625,
+     0.0625,
+     0.0625,
+     0.0625
+    ],
+    "cov": [
+     [
+      0.029296875,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0625,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0625,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0625,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0625
+     ]
+    ],
+    "defensive_pct": 0.2,
+    "usd_exposure_pct": 0.51,
+    "risky_exposure": 0.45,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [
+     "SAF-307"
+    ],
+    "actions": {
+     "SAF-307": "경고"
+    },
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.11764705882352941,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.25,
+      "SAT2": 0.25,
+      "SAT3": 0.25,
+      "SAT4": 0.25
+     },
+     "defensive_pct": 0.2,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.45,
+     "usd_exposure_pct": 0.51
+    }
+   }
+  },
+  {
+   "id": "a12 복합 — 5종 동시 발동, ID 오름차순 확인",
+   "input": {
+    "symbols": [
+     "CORE1",
+     "SAT1",
+     "SAT2",
+     "SAT3",
+     "SAT4",
+     "SAT5"
+    ],
+    "sleeves": {
+     "CORE1": "sleeve_a",
+     "SAT1": "satellite",
+     "SAT2": "satellite",
+     "SAT3": "satellite",
+     "SAT4": "satellite",
+     "SAT5": "satellite"
+    },
+    "weights": [
+     0.75,
+     0.05,
+     0.05,
+     0.05,
+     0.05,
+     0.05
+    ],
+    "cov": [
+     [
+      0.002,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.64,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.04,
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.04,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.04,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.04
+     ]
+    ],
+    "defensive_pct": 0.05,
+    "usd_exposure_pct": 0.6,
+    "risky_exposure": 0.9,
+    "mean_return": 0.09375,
+    "risk_free": 0.03125,
+    "variance": 0.0625
+   },
+   "expected": {
+    "triggered": [
+     "SAF-202",
+     "SAF-208",
+     "SAF-302",
+     "SAF-305",
+     "SAF-307"
+    ],
+    "actions": {
+     "SAF-202": "경고+다음 리밸런싱에 반영",
+     "SAF-208": "경고+다음 리밸런싱에 반영",
+     "SAF-302": "경고",
+     "SAF-305": "경고",
+     "SAF-307": "경고"
+    },
+    "metrics": {
+     "sat_rc_share_of_portfolio": 0.64,
+     "sat_inner_rc_shares": {
+      "SAT1": 0.8,
+      "SAT2": 0.05,
+      "SAT3": 0.05,
+      "SAT4": 0.05,
+      "SAT5": 0.05
+     },
+     "defensive_pct": 0.05,
+     "kelly_limit": 0.5,
+     "risky_exposure": 0.9,
+     "usd_exposure_pct": 0.6
+    }
+   }
+  }
+ ],
+ "GV-40b": [
+  {
+   "id": "b1 밴드 안·소득 이하 → 무발동",
+   "input": {
+    "satellite_alloc_pct": 0.18,
+    "ytd_financial_income_krw": 5000000
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "metrics": {
+     "satellite_alloc_pct": 0.18,
+     "ytd_financial_income_krw": 5000000
+    }
+   }
+  },
+  {
+   "id": "b2 밴드 상한 정확히 0.21 → 통과 (== 통과)",
+   "input": {
+    "satellite_alloc_pct": 0.21,
+    "ytd_financial_income_krw": 5000000
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "metrics": {
+     "satellite_alloc_pct": 0.21,
+     "ytd_financial_income_krw": 5000000
+    }
+   }
+  },
+  {
+   "id": "b3 밴드 상한+ε → 201 발동(리밸런싱)",
+   "input": {
+    "satellite_alloc_pct": 0.2101,
+    "ytd_financial_income_krw": 5000000
+   },
+   "expected": {
+    "triggered": [
+     "SAF-201"
+    ],
+    "actions": {
+     "SAF-201": "리밸런싱"
+    },
+    "metrics": {
+     "satellite_alloc_pct": 0.2101,
+     "ytd_financial_income_krw": 5000000
+    }
+   }
+  },
+  {
+   "id": "b4 밴드 하한 정확히 0.15 → 통과",
+   "input": {
+    "satellite_alloc_pct": 0.15,
+    "ytd_financial_income_krw": 5000000
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "metrics": {
+     "satellite_alloc_pct": 0.15,
+     "ytd_financial_income_krw": 5000000
+    }
+   }
+  },
+  {
+   "id": "b5 밴드 하한−ε → 201 발동",
+   "input": {
+    "satellite_alloc_pct": 0.1499,
+    "ytd_financial_income_krw": 5000000
+   },
+   "expected": {
+    "triggered": [
+     "SAF-201"
+    ],
+    "actions": {
+     "SAF-201": "리밸런싱"
+    },
+    "metrics": {
+     "satellite_alloc_pct": 0.1499,
+     "ytd_financial_income_krw": 5000000
+    }
+   }
+  },
+  {
+   "id": "b6 금융소득 정확히 2,000만원 → 통과 (== 통과)",
+   "input": {
+    "satellite_alloc_pct": 0.18,
+    "ytd_financial_income_krw": 20000000
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "metrics": {
+     "satellite_alloc_pct": 0.18,
+     "ytd_financial_income_krw": 20000000
+    }
+   }
+  },
+  {
+   "id": "b7 금융소득 2,000만원+1원 → 306 발동(경고)",
+   "input": {
+    "satellite_alloc_pct": 0.18,
+    "ytd_financial_income_krw": 20000001
+   },
+   "expected": {
+    "triggered": [
+     "SAF-306"
+    ],
+    "actions": {
+     "SAF-306": "경고"
+    },
+    "metrics": {
+     "satellite_alloc_pct": 0.18,
+     "ytd_financial_income_krw": 20000001
+    }
+   }
+  },
+  {
+   "id": "b8 동시 발동 — ID 오름차순 [201, 306]",
+   "input": {
+    "satellite_alloc_pct": 0.14,
+    "ytd_financial_income_krw": 25000000
+   },
+   "expected": {
+    "triggered": [
+     "SAF-201",
+     "SAF-306"
+    ],
+    "actions": {
+     "SAF-201": "리밸런싱",
+     "SAF-306": "경고"
+    },
+    "metrics": {
+     "satellite_alloc_pct": 0.14,
+     "ytd_financial_income_krw": 25000000
+    }
+   }
+  }
+ ],
+ "GV-40c": [
+  {
+   "id": "c1 25종·섹터 위반 없음 → 204 만, 랭크 21~25 제외",
+   "input": {
+    "candidates": [
+     [
+      "S01",
+      1,
+      "TECH"
+     ],
+     [
+      "S02",
+      2,
+      "FIN"
+     ],
+     [
+      "S03",
+      3,
+      "HLTH"
+     ],
+     [
+      "S04",
+      4,
+      "IND"
+     ],
+     [
+      "S05",
+      5,
+      "CONS"
+     ],
+     [
+      "S06",
+      6,
+      "MTRL"
+     ],
+     [
+      "S07",
+      7,
+      "ENGY"
+     ],
+     [
+      "S08",
+      8,
+      "TECH"
+     ],
+     [
+      "S09",
+      9,
+      "FIN"
+     ],
+     [
+      "S10",
+      10,
+      "HLTH"
+     ],
+     [
+      "S11",
+      11,
+      "IND"
+     ],
+     [
+      "S12",
+      12,
+      "CONS"
+     ],
+     [
+      "S13",
+      13,
+      "MTRL"
+     ],
+     [
+      "S14",
+      14,
+      "ENGY"
+     ],
+     [
+      "S15",
+      15,
+      "TECH"
+     ],
+     [
+      "S16",
+      16,
+      "FIN"
+     ],
+     [
+      "S17",
+      17,
+      "HLTH"
+     ],
+     [
+      "S18",
+      18,
+      "IND"
+     ],
+     [
+      "S19",
+      19,
+      "CONS"
+     ],
+     [
+      "S20",
+      20,
+      "MTRL"
+     ],
+     [
+      "S21",
+      21,
+      "ENGY"
+     ],
+     [
+      "S22",
+      22,
+      "TECH"
+     ],
+     [
+      "S23",
+      23,
+      "FIN"
+     ],
+     [
+      "S24",
+      24,
+      "HLTH"
+     ],
+     [
+      "S25",
+      25,
+      "IND"
+     ]
+    ]
+   },
+   "expected": {
+    "triggered": [
+     "SAF-204"
+    ],
+    "actions": {
+     "SAF-204": "상위 20개만"
+    },
+    "selected": [
+     "S01",
+     "S02",
+     "S03",
+     "S04",
+     "S05",
+     "S06",
+     "S07",
+     "S08",
+     "S09",
+     "S10",
+     "S11",
+     "S12",
+     "S13",
+     "S14",
+     "S15",
+     "S16",
+     "S17",
+     "S18",
+     "S19",
+     "S20"
+    ],
+    "excluded_205": [],
+    "excluded_204": [
+     "S21",
+     "S22",
+     "S23",
+     "S24",
+     "S25"
+    ],
+    "metrics": {
+     "n_candidates": 25,
+     "n_selected": 20
+    }
+   }
+  },
+  {
+   "id": "c2 TECH 6종 → 205 만, 랭크 하위 2종 제외 (상위 4 유지)",
+   "input": {
+    "candidates": [
+     [
+      "S01",
+      1,
+      "HLTH"
+     ],
+     [
+      "S02",
+      2,
+      "TECH"
+     ],
+     [
+      "S03",
+      3,
+      "CONS"
+     ],
+     [
+      "S04",
+      4,
+      "FIN"
+     ],
+     [
+      "S05",
+      5,
+      "TECH"
+     ],
+     [
+      "S06",
+      6,
+      "IND"
+     ],
+     [
+      "S07",
+      7,
+      "CONS"
+     ],
+     [
+      "S08",
+      8,
+      "TECH"
+     ],
+     [
+      "S09",
+      9,
+      "HLTH"
+     ],
+     [
+      "S10",
+      10,
+      "IND"
+     ],
+     [
+      "S11",
+      11,
+      "TECH"
+     ],
+     [
+      "S12",
+      12,
+      "FIN"
+     ],
+     [
+      "S13",
+      13,
+      "HLTH"
+     ],
+     [
+      "S14",
+      14,
+      "TECH"
+     ],
+     [
+      "S15",
+      15,
+      "CONS"
+     ],
+     [
+      "S16",
+      16,
+      "FIN"
+     ],
+     [
+      "S17",
+      17,
+      "TECH"
+     ],
+     [
+      "S18",
+      18,
+      "IND"
+     ]
+    ]
+   },
+   "expected": {
+    "triggered": [
+     "SAF-205"
+    ],
+    "actions": {
+     "SAF-205": "초과분 제외"
+    },
+    "selected": [
+     "S01",
+     "S02",
+     "S03",
+     "S04",
+     "S05",
+     "S06",
+     "S07",
+     "S08",
+     "S09",
+     "S10",
+     "S11",
+     "S12",
+     "S13",
+     "S15",
+     "S16",
+     "S18"
+    ],
+    "excluded_205": [
+     "S14",
+     "S17"
+    ],
+    "excluded_204": [],
+    "metrics": {
+     "n_candidates": 18,
+     "n_selected": 16
+    }
+   }
+  },
+  {
+   "id": "c3 🔴 sector NULL 6종 = UNKNOWN 버킷 — 205 미적용, 무발동",
+   "input": {
+    "candidates": [
+     [
+      "S01",
+      1,
+      null
+     ],
+     [
+      "S02",
+      2,
+      null
+     ],
+     [
+      "S03",
+      3,
+      null
+     ],
+     [
+      "S04",
+      4,
+      null
+     ],
+     [
+      "S05",
+      5,
+      null
+     ],
+     [
+      "S06",
+      6,
+      null
+     ],
+     [
+      "S07",
+      7,
+      "CONS"
+     ],
+     [
+      "S08",
+      8,
+      "FIN"
+     ],
+     [
+      "S09",
+      9,
+      "HLTH"
+     ],
+     [
+      "S10",
+      10,
+      "IND"
+     ],
+     [
+      "S11",
+      11,
+      "CONS"
+     ],
+     [
+      "S12",
+      12,
+      "FIN"
+     ],
+     [
+      "S13",
+      13,
+      "HLTH"
+     ],
+     [
+      "S14",
+      14,
+      "IND"
+     ],
+     [
+      "S15",
+      15,
+      "CONS"
+     ],
+     [
+      "S16",
+      16,
+      "FIN"
+     ],
+     [
+      "S17",
+      17,
+      "HLTH"
+     ],
+     [
+      "S18",
+      18,
+      "IND"
+     ]
+    ]
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "selected": [
+     "S01",
+     "S02",
+     "S03",
+     "S04",
+     "S05",
+     "S06",
+     "S07",
+     "S08",
+     "S09",
+     "S10",
+     "S11",
+     "S12",
+     "S13",
+     "S14",
+     "S15",
+     "S16",
+     "S17",
+     "S18"
+    ],
+    "excluded_205": [],
+    "excluded_204": [],
+    "metrics": {
+     "n_candidates": 18,
+     "n_selected": 18
+    }
+   }
+  },
+  {
+   "id": "c4 🔴 순서 판별 — 205 먼저 제외 후 204 상위 20 (204 먼저면 결원 19종)",
+   "input": {
+    "candidates": [
+     [
+      "S01",
+      1,
+      "HLTH"
+     ],
+     [
+      "S02",
+      2,
+      "IND"
+     ],
+     [
+      "S03",
+      3,
+      "TECH"
+     ],
+     [
+      "S04",
+      4,
+      "TECH"
+     ],
+     [
+      "S05",
+      5,
+      "TECH"
+     ],
+     [
+      "S06",
+      6,
+      "TECH"
+     ],
+     [
+      "S07",
+      7,
+      "TECH"
+     ],
+     [
+      "S08",
+      8,
+      "IND"
+     ],
+     [
+      "S09",
+      9,
+      "CONS"
+     ],
+     [
+      "S10",
+      10,
+      "MTRL"
+     ],
+     [
+      "S11",
+      11,
+      "ENGY"
+     ],
+     [
+      "S12",
+      12,
+      "FIN"
+     ],
+     [
+      "S13",
+      13,
+      "HLTH"
+     ],
+     [
+      "S14",
+      14,
+      "IND"
+     ],
+     [
+      "S15",
+      15,
+      "CONS"
+     ],
+     [
+      "S16",
+      16,
+      "MTRL"
+     ],
+     [
+      "S17",
+      17,
+      "ENGY"
+     ],
+     [
+      "S18",
+      18,
+      "FIN"
+     ],
+     [
+      "S19",
+      19,
+      "HLTH"
+     ],
+     [
+      "S20",
+      20,
+      "IND"
+     ],
+     [
+      "S21",
+      21,
+      "TECH"
+     ],
+     [
+      "S22",
+      22,
+      "MTRL"
+     ],
+     [
+      "S23",
+      23,
+      "ENGY"
+     ],
+     [
+      "S24",
+      24,
+      "FIN"
+     ],
+     [
+      "S25",
+      25,
+      "HLTH"
+     ],
+     [
+      "S26",
+      26,
+      "IND"
+     ]
+    ]
+   },
+   "expected": {
+    "triggered": [
+     "SAF-204",
+     "SAF-205"
+    ],
+    "actions": {
+     "SAF-204": "상위 20개만",
+     "SAF-205": "초과분 제외"
+    },
+    "selected": [
+     "S01",
+     "S02",
+     "S03",
+     "S04",
+     "S05",
+     "S06",
+     "S08",
+     "S09",
+     "S10",
+     "S11",
+     "S12",
+     "S13",
+     "S14",
+     "S15",
+     "S16",
+     "S17",
+     "S18",
+     "S19",
+     "S20",
+     "S22"
+    ],
+    "excluded_205": [
+     "S07",
+     "S21",
+     "S26"
+    ],
+    "excluded_204": [
+     "S23",
+     "S24",
+     "S25"
+    ],
+    "metrics": {
+     "n_candidates": 26,
+     "n_selected": 20
+    }
+   }
+  },
+  {
+   "id": "c5 정확히 20종·섹터 정확히 4종 → 무발동 (== 통과)",
+   "input": {
+    "candidates": [
+     [
+      "S01",
+      1,
+      "TECH"
+     ],
+     [
+      "S02",
+      2,
+      "TECH"
+     ],
+     [
+      "S03",
+      3,
+      "TECH"
+     ],
+     [
+      "S04",
+      4,
+      "TECH"
+     ],
+     [
+      "S05",
+      5,
+      "FIN"
+     ],
+     [
+      "S06",
+      6,
+      "HLTH"
+     ],
+     [
+      "S07",
+      7,
+      "IND"
+     ],
+     [
+      "S08",
+      8,
+      "CONS"
+     ],
+     [
+      "S09",
+      9,
+      "MTRL"
+     ],
+     [
+      "S10",
+      10,
+      "ENGY"
+     ],
+     [
+      "S11",
+      11,
+      "FIN"
+     ],
+     [
+      "S12",
+      12,
+      "HLTH"
+     ],
+     [
+      "S13",
+      13,
+      "IND"
+     ],
+     [
+      "S14",
+      14,
+      "CONS"
+     ],
+     [
+      "S15",
+      15,
+      "MTRL"
+     ],
+     [
+      "S16",
+      16,
+      "ENGY"
+     ],
+     [
+      "S17",
+      17,
+      "FIN"
+     ],
+     [
+      "S18",
+      18,
+      "HLTH"
+     ],
+     [
+      "S19",
+      19,
+      "IND"
+     ],
+     [
+      "S20",
+      20,
+      "CONS"
+     ]
+    ]
+   },
+   "expected": {
+    "triggered": [],
+    "actions": {},
+    "selected": [
+     "S01",
+     "S02",
+     "S03",
+     "S04",
+     "S05",
+     "S06",
+     "S07",
+     "S08",
+     "S09",
+     "S10",
+     "S11",
+     "S12",
+     "S13",
+     "S14",
+     "S15",
+     "S16",
+     "S17",
+     "S18",
+     "S19",
+     "S20"
+    ],
+    "excluded_205": [],
+    "excluded_204": [],
+    "metrics": {
+     "n_candidates": 20,
+     "n_selected": 20
+    }
+   }
+  },
+  {
+   "id": "c6 21종 → 204 발동, 1종 제외",
+   "input": {
+    "candidates": [
+     [
+      "S01",
+      1,
+      "TECH"
+     ],
+     [
+      "S02",
+      2,
+      "FIN"
+     ],
+     [
+      "S03",
+      3,
+      "HLTH"
+     ],
+     [
+      "S04",
+      4,
+      "IND"
+     ],
+     [
+      "S05",
+      5,
+      "CONS"
+     ],
+     [
+      "S06",
+      6,
+      "MTRL"
+     ],
+     [
+      "S07",
+      7,
+      "ENGY"
+     ],
+     [
+      "S08",
+      8,
+      "TECH"
+     ],
+     [
+      "S09",
+      9,
+      "FIN"
+     ],
+     [
+      "S10",
+      10,
+      "HLTH"
+     ],
+     [
+      "S11",
+      11,
+      "IND"
+     ],
+     [
+      "S12",
+      12,
+      "CONS"
+     ],
+     [
+      "S13",
+      13,
+      "MTRL"
+     ],
+     [
+      "S14",
+      14,
+      "ENGY"
+     ],
+     [
+      "S15",
+      15,
+      "TECH"
+     ],
+     [
+      "S16",
+      16,
+      "FIN"
+     ],
+     [
+      "S17",
+      17,
+      "HLTH"
+     ],
+     [
+      "S18",
+      18,
+      "IND"
+     ],
+     [
+      "S19",
+      19,
+      "CONS"
+     ],
+     [
+      "S20",
+      20,
+      "MTRL"
+     ],
+     [
+      "S21",
+      21,
+      "ENGY"
+     ]
+    ]
+   },
+   "expected": {
+    "triggered": [
+     "SAF-204"
+    ],
+    "actions": {
+     "SAF-204": "상위 20개만"
+    },
+    "selected": [
+     "S01",
+     "S02",
+     "S03",
+     "S04",
+     "S05",
+     "S06",
+     "S07",
+     "S08",
+     "S09",
+     "S10",
+     "S11",
+     "S12",
+     "S13",
+     "S14",
+     "S15",
+     "S16",
+     "S17",
+     "S18",
+     "S19",
+     "S20"
+    ],
+    "excluded_205": [],
+    "excluded_204": [
+     "S21"
+    ],
+    "metrics": {
+     "n_candidates": 21,
+     "n_selected": 20
+    }
+   }
+  },
+  {
+   "id": "c7 TECH 5종 → 205 발동, 1종 제외",
+   "input": {
+    "candidates": [
+     [
+      "S01",
+      1,
+      "TECH"
+     ],
+     [
+      "S02",
+      2,
+      "TECH"
+     ],
+     [
+      "S03",
+      3,
+      "TECH"
+     ],
+     [
+      "S04",
+      4,
+      "TECH"
+     ],
+     [
+      "S05",
+      5,
+      "TECH"
+     ],
+     [
+      "S06",
+      6,
+      "HLTH"
+     ],
+     [
+      "S07",
+      7,
+      "IND"
+     ],
+     [
+      "S08",
+      8,
+      "CONS"
+     ],
+     [
+      "S09",
+      9,
+      "MTRL"
+     ],
+     [
+      "S10",
+      10,
+      "FIN"
+     ],
+     [
+      "S11",
+      11,
+      "HLTH"
+     ],
+     [
+      "S12",
+      12,
+      "IND"
+     ]
+    ]
+   },
+   "expected": {
+    "triggered": [
+     "SAF-205"
+    ],
+    "actions": {
+     "SAF-205": "초과분 제외"
+    },
+    "selected": [
+     "S01",
+     "S02",
+     "S03",
+     "S04",
+     "S06",
+     "S07",
+     "S08",
+     "S09",
+     "S10",
+     "S11",
+     "S12"
+    ],
+    "excluded_205": [
+     "S05"
+    ],
+    "excluded_204": [],
+    "metrics": {
+     "n_candidates": 12,
+     "n_selected": 11
+    }
+   }
+  }
+ ],
+ "GV-40d": [
+  {
+   "id": "d1 approved=1 → 기동",
+   "input": {
+    "approved": 1
+   },
+   "expected": {
+    "action": "기동",
+    "triggered": []
+   }
+  },
+  {
+   "id": "d2 approved=0 → 🔴 기동 거부 (경고 강등 금지)",
+   "input": {
+    "approved": 0
+   },
+   "expected": {
+    "action": "기동 거부",
+    "triggered": [
+     "SAF-405"
+    ],
+    "metrics": {
+     "approved": 0
+    }
+   }
+  },
+  {
+   "id": "d3 approved 행 없음(None) → 기동 거부 (fail-closed)",
+   "input": {
+    "approved": null
+   },
+   "expected": {
+    "action": "기동 거부",
+    "triggered": [
+     "SAF-405"
+    ],
+    "metrics": {
+     "approved": null
+    }
+   }
+  }
+ ],
+ "GV-40e": [
+  {
+   "id": "e1 Δ 정확히 +10%p·3회 사용·저널 연결 → 반영 (== 통과, 02 DDL CHECK 근거)",
+   "input": {
+    "now": "2026-08-24",
+    "delta_pct": 0.1,
+    "decision_id": "DJ-2026-081",
+    "history": [
+     "2025-10-01",
+     "2026-01-15",
+     "2026-05-20"
+    ]
+   },
+   "expected": {
+    "action": "반영",
+    "triggered": [],
+    "reject_reasons": [],
+    "metrics": {
+     "rolling_12m_count": 3,
+     "delta_pct": 0.1
+    }
+   }
+  },
+  {
+   "id": "e2 Δ +10%p+ε → 요청 거부",
+   "input": {
+    "now": "2026-08-24",
+    "delta_pct": 0.1001,
+    "decision_id": "DJ-2026-081",
+    "history": [
+     "2026-01-15"
+    ]
+   },
+   "expected": {
+    "action": "요청 거부",
+    "triggered": [
+     "SAF-409"
+    ],
+    "reject_reasons": [
+     "DELTA_EXCEEDED"
+    ],
+    "metrics": {
+     "rolling_12m_count": 1,
+     "delta_pct": 0.1001
+    }
+   }
+  },
+  {
+   "id": "e3 Δ 정확히 −10%p → 반영",
+   "input": {
+    "now": "2026-08-24",
+    "delta_pct": -0.1,
+    "decision_id": "DJ-2026-081",
+    "history": [
+     "2026-01-15"
+    ]
+   },
+   "expected": {
+    "action": "반영",
+    "triggered": [],
+    "reject_reasons": [],
+    "metrics": {
+     "rolling_12m_count": 1,
+     "delta_pct": -0.1
+    }
+   }
+  },
+  {
+   "id": "e4 Δ −10%p−ε → 요청 거부",
+   "input": {
+    "now": "2026-08-24",
+    "delta_pct": -0.1001,
+    "decision_id": "DJ-2026-081",
+    "history": [
+     "2026-01-15"
+    ]
+   },
+   "expected": {
+    "action": "요청 거부",
+    "triggered": [
+     "SAF-409"
+    ],
+    "reject_reasons": [
+     "DELTA_EXCEEDED"
+    ],
+    "metrics": {
+     "rolling_12m_count": 1,
+     "delta_pct": -0.1001
+    }
+   }
+  },
+  {
+   "id": "e5 롤링 12개월 4회 사용(달력연도로는 2회) → 5회째 요청 거부",
+   "input": {
+    "now": "2026-08-24",
+    "delta_pct": 0.05,
+    "decision_id": "DJ-2026-082",
+    "history": [
+     "2025-11-10",
+     "2025-12-05",
+     "2026-03-01",
+     "2026-06-15"
+    ]
+   },
+   "expected": {
+    "action": "요청 거부",
+    "triggered": [
+     "SAF-409"
+    ],
+    "reject_reasons": [
+     "COUNT_EXCEEDED"
+    ],
+    "metrics": {
+     "rolling_12m_count": 4,
+     "delta_pct": 0.05
+    }
+   }
+  },
+  {
+   "id": "e6 가장 오래된 사용이 정확히 12개월 전 → 윈도 포함(>=), 요청 거부",
+   "input": {
+    "now": "2026-08-24",
+    "delta_pct": 0.05,
+    "decision_id": "DJ-2026-082",
+    "history": [
+     "2025-08-24",
+     "2025-10-01",
+     "2026-01-15",
+     "2026-05-20"
+    ]
+   },
+   "expected": {
+    "action": "요청 거부",
+    "triggered": [
+     "SAF-409"
+    ],
+    "reject_reasons": [
+     "COUNT_EXCEEDED"
+    ],
+    "metrics": {
+     "rolling_12m_count": 4,
+     "delta_pct": 0.05
+    }
+   }
+  },
+  {
+   "id": "e7 가장 오래된 사용이 12개월+1일 전 → 윈도 밖, 3회 → 반영",
+   "input": {
+    "now": "2026-08-24",
+    "delta_pct": 0.05,
+    "decision_id": "DJ-2026-082",
+    "history": [
+     "2025-08-23",
+     "2025-10-01",
+     "2026-01-15",
+     "2026-05-20"
+    ]
+   },
+   "expected": {
+    "action": "반영",
+    "triggered": [],
+    "reject_reasons": [],
+    "metrics": {
+     "rolling_12m_count": 3,
+     "delta_pct": 0.05
+    }
+   }
+  },
+  {
+   "id": "e8 decision_id 미연결 → 요청 거부",
+   "input": {
+    "now": "2026-08-24",
+    "delta_pct": 0.05,
+    "decision_id": null,
+    "history": [
+     "2026-01-15"
+    ]
+   },
+   "expected": {
+    "action": "요청 거부",
+    "triggered": [
+     "SAF-409"
+    ],
+    "reject_reasons": [
+     "JOURNAL_MISSING"
+    ],
+    "metrics": {
+     "rolling_12m_count": 1,
+     "delta_pct": 0.05
+    }
+   }
+  },
+  {
+   "id": "e9 3중 위반 — 거부 사유 오름차순 [COUNT, DELTA, JOURNAL]",
+   "input": {
+    "now": "2026-08-24",
+    "delta_pct": 0.12,
+    "decision_id": null,
+    "history": [
+     "2025-09-01",
+     "2025-12-05",
+     "2026-03-01",
+     "2026-06-15"
+    ]
+   },
+   "expected": {
+    "action": "요청 거부",
+    "triggered": [
+     "SAF-409"
+    ],
+    "reject_reasons": [
+     "COUNT_EXCEEDED",
+     "DELTA_EXCEEDED",
+     "JOURNAL_MISSING"
+    ],
+    "metrics": {
+     "rolling_12m_count": 4,
+     "delta_pct": 0.12
+    }
+   }
+  }
+ ]
+}

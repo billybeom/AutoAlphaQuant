@@ -418,6 +418,23 @@ export 'src/risk/position_sizing.dart'
 // 🆕 E13e2 — 브레이커 사다리 원천(M5-4 · 설계 13 §8 R63 V4).
 export 'src/safety/breaker_ladder.dart'
     show BreakerLadderStep, breakerLadderOf, ladderPercent;
+// 🆕 E13f1 — 재량 예산 SAF-409 판정 · 예산 셈 · 게이지 문장(설계 13 §8 R64).
+export 'src/safety/discretion.dart'
+    show
+        DiscretionBudget,
+        DiscretionCodes,
+        DiscretionJournalFacts,
+        DiscretionJudgement,
+        discretionBudgetOf,
+        discretionBudgetText,
+        discretionJournalLinked,
+        discretionRecoveryDate,
+        discretionWindowStart,
+        judgeDiscretion,
+        kDiscretionJournalKind,
+        kDiscretionMaxDelta,
+        kDiscretionMaxUses,
+        rollingDiscretionUses;
 // 🆕 E13e2 — 안전 사건 꼴 · MANUAL_ORDER SEV2 · postmortem 판정(설계 13 §8 R63).
 export 'src/safety/incident.dart'
     show
