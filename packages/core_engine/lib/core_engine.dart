@@ -454,6 +454,21 @@ export 'src/safety/kill_switch.dart'
         killSwitchActive,
         killSwitchViewOf,
         resumeReadinessOf;
+// 🆕 E13e1 — 안전 상태 조립(플래그 12 사전 · 정렬 · 게이지 · 램프 · 설계 13 §8 R62).
+export 'src/safety/safety_text.dart'
+    show
+        FlagEntry,
+        GaugeCodes,
+        StoredBlockFlag,
+        blockFlagsOf,
+        breakerLabelOf,
+        checkpointLabelOf,
+        contractBreakerLevelOf,
+        kFlagDictionary,
+        rampLevelOf,
+        releaseProgressOf,
+        safetyAsOf,
+        safetyStateOf;
 // 🆕 E13d2 — STOPPED 결정 A/B/C 판정(SPEC v2.40 04 §2 · 03_운영 §6-4b · 설계 13 §8 R61).
 export 'src/safety/stopped_decision.dart'
     show
