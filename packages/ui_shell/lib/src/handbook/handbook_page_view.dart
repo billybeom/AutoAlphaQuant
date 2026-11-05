@@ -81,13 +81,13 @@ class HandbookPageView extends ConsumerWidget {
           ),
         Padding(
           key: const Key('b02-title'),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(v.title),
         ),
         if (missing != null)
           Padding(
             key: const Key('b02-missing'),
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.all(16),
             child: Text(missing),
           ),
         for (final (int i, HandbookBlock blk) in v.blocks.indexed)

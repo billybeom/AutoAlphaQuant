@@ -64,44 +64,42 @@ class HandbookContents extends ConsumerWidget {
             ),
           ),
         for (final (int i, HandbookEntry e) in v.entries.indexed) ...<Widget>[
-          ListTile(
-            key: ValueKey<String>('b01-entry-$i'),
-            leading: Icon(
-              _stateLook(cs, e.state).$1,
-              key: ValueKey<String>('b01-state-$i'),
-              size: 24,
-              color: _stateLook(cs, e.state).$2,
-            ),
-            title: Text(e.title),
-            subtitle: e.stateLabel == null ? null : Text(e.stateLabel!),
-            onTap: e.deepLink == null
-                ? null
-                : () {
-                    ref.read(shellLinkOpenerProvider).open(e.deepLink!);
-                  },
-          ),
+          _entryTile(ref, cs, '$i', e, 16),
           for (final (int j, HandbookEntry c) in e.children.indexed)
-            ListTile(
-              key: ValueKey<String>('b01-entry-$i-$j'),
-              contentPadding: const EdgeInsets.only(left: 40, right: 16),
-              leading: Icon(
-                _stateLook(cs, c.state).$1,
-                key: ValueKey<String>('b01-state-$i-$j'),
-                size: 24,
-                color: _stateLook(cs, c.state).$2,
-              ),
-              title: Text(c.title),
-              subtitle: c.stateLabel == null ? null : Text(c.stateLabel!),
-              onTap: c.deepLink == null
-                  ? null
-                  : () {
-                      ref.read(shellLinkOpenerProvider).open(c.deepLink!);
-                    },
-            ),
+            _entryTile(ref, cs, '$i-$j', c, 40),
         ],
       ],
     );
   }
+}
+
+Widget _entryTile(
+  WidgetRef ref,
+  ColorScheme cs,
+  String suffix,
+  HandbookEntry e,
+  double indent,
+) {
+  final (IconData, Color) look = _stateLook(cs, e.state);
+  final String? stateLabel = e.stateLabel;
+  final String? link = e.deepLink;
+  return ListTile(
+    key: ValueKey<String>('b01-entry-$suffix'),
+    contentPadding: EdgeInsets.only(left: indent, right: 16),
+    leading: Icon(
+      look.$1,
+      key: ValueKey<String>('b01-state-$suffix'),
+      size: 24,
+      color: look.$2,
+    ),
+    title: Text(e.title),
+    subtitle: stateLabel == null ? null : Text(stateLabel),
+    onTap: link == null
+        ? null
+        : () {
+            ref.read(shellLinkOpenerProvider).open(link);
+          },
+  );
 }
 
 (IconData, Color) _stateLook(ColorScheme cs, HandbookEntryState s) =>
