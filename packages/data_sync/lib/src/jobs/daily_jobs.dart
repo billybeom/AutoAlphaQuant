@@ -333,6 +333,19 @@ class SqliteEquitySnapshotStore {
   );
 }
 
+/// 브레이커 재생의 국면 조회(as-of) — 🆕 E13d2 `EquitySnapshotJob` · STOPPED 결정이 같이 쓴다(R61 T0).
+(double?, bool) Function(String) regimeLookupOf(Database db) =>
+    regimeAsOfLookup(<(String, double?, String?)>[
+      for (final Row r in db.select(
+        'SELECT trade_date, direction_score, direction_state FROM regime_score_daily ORDER BY trade_date',
+      ))
+        (
+          r['trade_date'] as String,
+          (r['direction_score'] as num?)?.toDouble(),
+          r['direction_state'] as String?,
+        ),
+    ]);
+
 /// `equity_snapshot` 보고.
 class EquitySnapshotReport implements DailyJobReport {
   /// 보고를 만든다.
@@ -408,18 +421,6 @@ class EquitySnapshotJob {
     return out;
   }
 
-  (double?, bool) Function(String) _regimeLookup() =>
-      regimeAsOfLookup(<(String, double?, String?)>[
-        for (final Row r in _db.select(
-          'SELECT trade_date, direction_score, direction_state FROM regime_score_daily ORDER BY trade_date',
-        ))
-          (
-            r['trade_date'] as String,
-            (r['direction_score'] as num?)?.toDouble(),
-            r['direction_state'] as String?,
-          ),
-      ]);
-
   /// [day](KR 세션) 의 평가 행을 쓴다 — 실패면 [EquitySnapshotError](쓰지 않음).
   Future<EquitySnapshotReport> run(TradeDate day) async {
     final String d = day.yyyyMmDd;
@@ -437,7 +438,7 @@ class EquitySnapshotJob {
       }),
       cashAccounts: _cash,
       history: store.before(d),
-      regimeOf: _regimeLookup(),
+      regimeOf: regimeLookupOf(_db),
       config: _config,
       releaseDates: _releaseDates(),
     );
