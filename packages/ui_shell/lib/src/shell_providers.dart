@@ -189,3 +189,18 @@ final Provider<PairingRepository> shellPairingRepositoryProvider =
         'shellPairingRepositoryProvider must be overridden',
       ),
     );
+
+// ── R16a — D-01~D-03 injection providers ──────────────────────────────────
+
+final Provider<IncidentRepository?> shellIncidentRepositoryProvider =
+    Provider<IncidentRepository?>((Ref ref) => null);
+
+final Provider<RunbookRepository> shellRunbookRepositoryProvider =
+    Provider<RunbookRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'shellRunbookRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<ShellSlotBuilder?> shellOpsSlotBuilderProvider =
+    Provider<ShellSlotBuilder?>((Ref ref) => null);
