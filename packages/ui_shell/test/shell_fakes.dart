@@ -1094,3 +1094,156 @@ Set<String> pairingAllowed(PairingVm v) => <String>{
   ?v.result?.reasonCode,
   ?v.result?.nextLink?.label,
 };
+
+// ── R16a — D-01~D-03 fakes ──
+
+class FakeShellIncidentRepository extends UnimplementedIncidentRepository {
+  FakeShellIncidentRepository({required this.incident});
+
+  final Stream<IncidentBannerVm> Function(int call) incident;
+  int incidentCalls = 0;
+
+  @override
+  Stream<IncidentBannerVm> watchIncident() {
+    final int call = incidentCalls;
+    incidentCalls = incidentCalls + 1;
+    return incident(call);
+  }
+}
+
+class FakeShellRunbookRepository extends UnimplementedRunbookRepository {
+  FakeShellRunbookRepository({
+    required this.index,
+    required this.runbook,
+    required this.card,
+  });
+
+  final Stream<RunbookIndexVm> Function(int call) index;
+  final Stream<RunbookVm> Function(int call) runbook;
+  final Stream<EmergencyCardVm> Function(int call) card;
+  int indexCalls = 0;
+  final List<String> runbookIds = <String>[];
+  int cardCalls = 0;
+
+  @override
+  Stream<RunbookIndexVm> watchRunbookIndex() {
+    final int call = indexCalls;
+    indexCalls = indexCalls + 1;
+    return index(call);
+  }
+
+  @override
+  Stream<RunbookVm> watchRunbook(String runbookId) {
+    final int call = runbookIds.length;
+    runbookIds.add(runbookId);
+    return runbook(call);
+  }
+
+  @override
+  Stream<EmergencyCardVm> watchEmergencyCard() {
+    final int call = cardCalls;
+    cardCalls = cardCalls + 1;
+    return card(call);
+  }
+}
+
+List<Override> incidentOverrides({
+  required FakeShellIncidentRepository repo,
+  required RecordingLinkOpener opener,
+}) => <Override>[
+  shellIncidentRepositoryProvider.overrideWithValue(repo),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+];
+
+List<Override> runbookOverrides({
+  required FakeShellRunbookRepository repo,
+  required ShellSlotBuilder? slots,
+  required RecordingLinkOpener opener,
+}) => <Override>[
+  shellRunbookRepositoryProvider.overrideWithValue(repo),
+  shellOpsSlotBuilderProvider.overrideWithValue(slots),
+  shellLinkOpenerProvider.overrideWithValue(opener),
+];
+
+Future<void> _pumpIncidentBody(
+  WidgetTester tester, {
+  required List<Override> overrides,
+  required Widget body,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: MaterialApp(home: Scaffold(body: body)),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+Future<void> pumpIncidentBanner(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) => _pumpIncidentBody(
+  tester,
+  overrides: overrides,
+  body: const Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: <Widget>[IncidentBannerSlot()],
+  ),
+);
+
+Future<void> pumpRunbookList(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) =>
+    _pumpIncidentBody(tester, overrides: overrides, body: const RunbookList());
+
+Future<void> pumpRunbookDetail(
+  WidgetTester tester, {
+  required List<Override> overrides,
+  required String runbookId,
+}) => _pumpIncidentBody(
+  tester,
+  overrides: overrides,
+  body: RunbookDetail(runbookId: runbookId),
+);
+
+Future<void> pumpEmergencyCard(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) => _pumpIncidentBody(
+  tester,
+  overrides: overrides,
+  body: const EmergencyStopCard(),
+);
+
+Set<String> incidentAllowed(IncidentBannerVm v) => <String>{
+  ?v.banner?.title,
+  ?v.banner?.bodyText,
+  ?v.banner?.actionLink?.label,
+};
+
+Set<String> runbookIndexAllowed(RunbookIndexVm v) => <String>{
+  for (final RunbookRow r in v.rows) ...<String>[r.title, ?r.summaryText],
+  ?v.emptyLabel,
+};
+
+Set<String> runbookAllowed(RunbookVm v) => <String>{
+  v.title,
+  ?v.introText,
+  for (final RunbookStep s in v.steps) ...<String>[s.orderText, s.text],
+  ?v.missingLabel,
+  v.localCheckNotice,
+};
+
+Set<String> emergencyCardAllowed(EmergencyCardVm v) => <String>{
+  v.title,
+  for (final RunbookStep s in v.steps) ...<String>[s.orderText, s.text],
+  v.contactLine,
+  v.keepOnPaperNotice,
+};
