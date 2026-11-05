@@ -446,6 +446,24 @@ export 'src/safety/incident.dart'
         postmortemClosesIncident,
         postmortemOverdue,
         postmortemRejectCode;
+// 🆕 E13f2 — 수동 개입 5단계 상태기계(M5-6 · 설계 13 §8 R65).
+export 'src/safety/intervention.dart'
+    show
+        InterventionCodes,
+        InterventionJournalFacts,
+        InterventionOutcome,
+        InterventionState,
+        InterventionStep,
+        interventionExecutable,
+        interventionJournalLinked,
+        interventionRejectCode,
+        interventionStateOf,
+        kCoolingStage,
+        kExecuteStage,
+        kInterventionCooling,
+        kInterventionExecuteWindow,
+        kInterventionStages,
+        kJournalStage;
 // 🆕 E13a — 킬스위치 발동 순서기 · 저장 포트(SPEC v2.40 04 §3-6 · 설계 13 §8 R56 K6).
 export 'src/safety/kill_activation.dart'
     show

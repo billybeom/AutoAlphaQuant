@@ -29,6 +29,7 @@ export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
 export 'src/local/discretion_store.dart';
 export 'src/local/incident_store.dart';
+export 'src/local/intervention_store.dart';
 export 'src/local/kill_switch_store.dart';
 export 'src/local/ledger_archive_writer.dart';
 export 'src/local/ledger_database.dart';
