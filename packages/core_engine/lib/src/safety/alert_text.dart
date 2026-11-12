@@ -205,6 +205,24 @@ const Map<String, AlertText> kAlertTexts = <String, AlertText>{
     '회복 조건을 채워 재개 결정을 할 수 있습니다. 자동으로 풀리지 않습니다.',
     '재개 결정 전에 postmortem 과 가족 합의를 확인하십시오.',
     AppRoutes.m5BlockBoard,
+  ), // ── 🆕 E14b 재개 묶음 제안 3(04 §5-3 v2.42 · R72 J9) ──
+  'RESUME_COMPLETED': AlertText(
+    '재개를 마쳤습니다',
+    '멈춰 있던 동안의 계획을 다시 판정했습니다. 주문은 다음 주문 회차가 냅니다.',
+    '재개 리포트에서 항목별 결과를 확인하십시오.',
+    AppRoutes.x2ResumeReport,
+  ),
+  'RESUME_TRADING_HALTED': AlertText(
+    '재개 뒤 매매를 멈춰 두었습니다',
+    '재개 점검이 끝나지 않아 모든 신규 주문을 막아 두었습니다.',
+    '재개 화면에서 막힌 이유와 할 일을 확인하십시오.',
+    AppRoutes.x2ResumeGate,
+  ),
+  'RESUME_DATA_GAP': AlertText(
+    '되살릴 수 없는 기록 공백이 있습니다',
+    '멈춰 있던 동안의 기록 가운데 소급할 수 없는 것은 비운 채로 둡니다.',
+    '재개 리포트에서 빈 구간을 확인하십시오.',
+    AppRoutes.x2ResumeReport,
   ),
 };
 

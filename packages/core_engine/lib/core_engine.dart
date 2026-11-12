@@ -398,6 +398,57 @@ export 'src/portfolio/sleeve_c.dart'
         SleeveCWeights,
         sleeveCAllocateInflow,
         sleeveCUsdTargets;
+// 🆕 E14b — 재개 판정 순수(06 X2-2 · X2-3 · X2-5 · X2-6 · SPEC v2.42 04 §3-1 ②③④ · §5-3 · 설계 13 §8 R72).
+export 'src/resume/planned_work_machine.dart'
+    show
+        PlannedWorkCodes,
+        kPlannedWorkTerminal,
+        plannedWorkPastDue,
+        plannedWorkTransitionRejectCode;
+export 'src/resume/resume_alerts.dart'
+    show
+        kResumeAlertSource,
+        kResumeCompletedAlertCode,
+        kResumeDataGapAlertCode,
+        kResumeTradingHaltedAlertCode,
+        kResumeUnfoldedAlertCodes,
+        resumeBundleAlerts,
+        resumeFoldsAlert;
+export 'src/resume/resume_gap.dart'
+    show ResumeLadder, resumeGapSessions, resumeModeOf;
+export 'src/resume/resume_judge.dart'
+    show
+        ResumeDirection,
+        ResumeItemDecided,
+        ResumeItemJudgement,
+        ResumeItemNeedsReevaluation,
+        ResumeItemStep,
+        ResumeItemUntouched,
+        ResumePreconditions,
+        ResumeReasonCodes,
+        ResumeWorkItem,
+        ResumeWorkKinds,
+        SeasonalChoiceCodes,
+        SeasonalWindowChoice,
+        judgeResumeItem,
+        reevaluatedJudgement,
+        resumeAutoAllows,
+        resumeHaltReason,
+        resumePriorityOrder,
+        resumeReleasesFlag,
+        seasonalChoiceJudgement,
+        seasonalChoiceRejectCode;
+export 'src/resume/resume_text.dart'
+    show
+        resumeCountsOf,
+        resumeHeadline,
+        resumeItemOf,
+        resumeLineText,
+        resumeModeLabel,
+        resumeModeName,
+        resumePlannedLine,
+        resumeReevaluatedLine,
+        resumeVerdictLabel;
 export 'src/risk/breaker.dart'
     show
         BreakerConfig,
