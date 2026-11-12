@@ -413,6 +413,32 @@ void main() {
     });
   }
 
+  // B02-07 shell wiring with shellOverrides only: the handbook repository
+  // provider keeps its default (C4r16b-3 · C4O-9 · probe P2).
+  testWidgets('B02-07 shell wiring phone_default', (WidgetTester tester) async {
+    await pumpShell(
+      tester,
+      overrides: shellOverrides(
+        platform: ShellPlatform.androidOperator,
+        config: flagsOf(kFlagsLiveAuto),
+        alerts: alertsOf(const <AlertItem>[]),
+        bodies: dummyBodies(AppRoutes.all, <String>[]),
+      ),
+      size: const Size(390, 844),
+    );
+    await openLink(tester, 'handbook://${sleeveB.anchor}');
+    expect(find.byKey(const Key('s01-handbook-slot')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('s01-handbook-slot')),
+        matching: find.byType(ShellPlaceholder),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('b02-title')), findsNothing);
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
+
   // B02-08 state branches.
   final List<_StateCase> stateCases = <_StateCase>[
     (
