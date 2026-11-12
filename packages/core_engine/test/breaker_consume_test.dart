@@ -88,7 +88,7 @@ void main() {
         }
         expect(broker.submitCount, 0);
         expect(sink.published, isEmpty);
-        expect(steps, <String>['1', '1.5']);
+        expect(steps, <String>['0', '1', '1.5']);
         expect(ledger.seen.first, const TradeDate('2026-11-06'));
         expect(
           ledger.records.values

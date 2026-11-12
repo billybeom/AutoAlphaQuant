@@ -36,6 +36,7 @@ Future<BatchOutcome> _run(
   Map<String, OrderBroker> brokers, {
   FakeOrderLedger? ledger,
   Future<LimitState> Function(OrderIntentDraft)? limitStateFor,
+  LeaseGate? lease,
 }) => runOrderBatch(
   drafts,
   brokers: brokers,
@@ -46,6 +47,7 @@ Future<BatchOutcome> _run(
   execPolicy: ExecPolicy.execute,
   operatingMode: OperatingMode.autoTrade,
   configHash: 'cfg-test',
+  lease: lease ?? FakeLeaseGate(),
 );
 
 void main() {

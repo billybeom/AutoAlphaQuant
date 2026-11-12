@@ -789,6 +789,7 @@ void main() {
         drafts,
         brokers: <String, OrderBroker>{'pension': broker},
         ledger: ledger,
+        lease: FakeLeaseGate(),
         limitStateFor: (OrderIntentDraft d) async => portfolioOk(),
         limitConfig: kLimitConfig,
         buyCostRate: 0,

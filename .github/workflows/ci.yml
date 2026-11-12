@@ -121,6 +121,10 @@ jobs:
         if: steps.probe.outputs.count != '0'
         with:
           channel: stable
+          # 🔴 판 고정(2026-11-13 · E14a PR #136 Auto-fix) — 고정 없이 stable 을 따라가면 Flutter 3.50.0(Dart 3.14.0)이
+          #    `package:flutter/material.dart` 를 폐기 예고해 UI 패키지 전부가 «경고 0» 분석에서 떨어졌다(main 4db3ddf 부터).
+          #    마지막 초록 = 3.47.9(Dart 3.13.7 · 2026-11-06). 올리려면 `material_ui` 이주를 먼저 한다(infra PR #23 analyzer 고정 선례).
+          flutter-version: 3.47.9
           cache: true
 
       - name: melos 설치

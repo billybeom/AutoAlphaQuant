@@ -146,6 +146,7 @@ class KrOrderJobs {
     required this.heartbeat,
     required this.alerts,
     required this.nowUtc,
+    required this.lease,
     Future<void> Function(Duration)? sleep,
     this.advice,
   }) : sleep = sleep ?? Future<void>.delayed;
@@ -185,6 +186,9 @@ class KrOrderJobs {
 
   /// 안내 모드 받는 쪽.
   final AdviceSink? advice;
+
+  /// 🆕 E14a — 리스(NR-1 0 · 6.9 · 설계 13 §8 R71 · 필수).
+  final LeaseGate lease;
 
   /// [job] 의 체크 이름.
   String checkOf(String job) =>
@@ -267,6 +271,7 @@ class KrOrderJobs {
       execPolicy: config.execPolicy,
       operatingMode: config.operatingMode,
       configHash: config.configHash,
+      lease: lease,
       advice: advice,
     );
     final ReconReport recon = await _reconcile(today);
