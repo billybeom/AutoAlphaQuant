@@ -1344,3 +1344,53 @@ Set<String> handbookPageAllowed(HandbookPage v) => <String>{
   ?v.asOf?.staleLabel,
   ShellLabels.staleBannerTitle,
 };
+
+// ── R16c — H-03 fakes ──
+
+class FakeShellDeviceRiskRepository extends UnimplementedOpsStatusRepository {
+  FakeShellDeviceRiskRepository({required this.deviceRisk});
+
+  final Stream<DeviceRiskVm> Function(int call) deviceRisk;
+  int deviceRiskCalls = 0;
+
+  @override
+  Stream<DeviceRiskVm> watchDeviceRisk() {
+    final int call = deviceRiskCalls;
+    deviceRiskCalls = deviceRiskCalls + 1;
+    return deviceRisk(call);
+  }
+}
+
+List<Override> deviceRiskOverrides({
+  required FakeShellDeviceRiskRepository ops,
+  required Clock clock,
+}) => <Override>[
+  shellOpsStatusRepositoryProvider.overrideWithValue(ops),
+  shellClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpDeviceRiskBoard(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) => _pumpIncidentBody(
+  tester,
+  overrides: overrides,
+  body: const DeviceRiskBoard(),
+);
+
+List<String> deviceRiskRowTexts(DeviceRiskItem r) => <String>[
+  r.label,
+  r.currentText,
+  r.thresholdText,
+  r.actionText,
+  r.lastCheckedText,
+];
+
+Set<String> deviceRiskAllowed(DeviceRiskVm v) => <String>{
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+  for (final DeviceRiskItem r in v.rows) ...deviceRiskRowTexts(r),
+  ?v.emptyLabel,
+  v.guidanceText,
+  ShellLabels.staleBannerTitle,
+};

@@ -13,6 +13,7 @@
 export 'l10n/labels.dart';
 export 'src/alerts/alert_center.dart';
 export 'src/alerts/alert_detail.dart';
+export 'src/device_risk_board.dart';
 export 'src/handbook/handbook_contents.dart';
 export 'src/handbook/handbook_page_view.dart';
 export 'src/incident/emergency_stop_card.dart';
