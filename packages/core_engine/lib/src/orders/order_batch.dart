@@ -14,6 +14,7 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
 import '../decimal_rules.dart';
+import '../ops/lease_gate.dart' show LeaseGate;
 import '../risk/limits.dart';
 import 'execute_intent.dart';
 import 'fill_sync.dart';
@@ -145,6 +146,7 @@ Future<BatchOutcome> runOrderBatch(
   required ExecPolicy execPolicy,
   required OperatingMode operatingMode,
   required String configHash,
+  required LeaseGate lease,
   AdviceSink? advice,
 }) async {
   final List<ExecutionOutcome> outcomes = <ExecutionOutcome>[];
@@ -175,6 +177,7 @@ Future<BatchOutcome> runOrderBatch(
       execPolicy: execPolicy,
       operatingMode: operatingMode,
       configHash: configHash,
+      lease: lease,
       advice: advice,
     );
     Future<void> run(OrderIntentDraft d) async {

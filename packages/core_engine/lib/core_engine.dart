@@ -115,6 +115,16 @@ export 'src/ops/equity_snapshot.dart'
         replayStoredBreaker,
         stoppedIncidentIdOf,
         stoppedIncidentOf;
+// 🆕 E14a — 리스 포트 · 3상 · 상수(SPEC v2.42 NR-1 0 · 6.9 · 설계 13 §8 R71).
+export 'src/ops/lease_gate.dart'
+    show
+        LeaseGate,
+        LeaseVerdict,
+        kLeaseInvalidCode,
+        kLeaseRenewEvery,
+        kLeaseTtl,
+        leaseStale,
+        readLease;
 // 🆕 E11h2 — 아카이브 레이아웃 · checkpoint.json · 백업 나이(설계 13 §8 R52).
 export 'src/ops/ledger_archive.dart'
     show

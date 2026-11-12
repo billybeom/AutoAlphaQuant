@@ -179,9 +179,12 @@ class _Rig {
       heartbeat: beat,
       alerts: alerts,
       nowUtc: () => clock,
+      lease: lease,
       sleep: (Duration d) async => sleeps.add(d),
     );
   }
+
+  final FakeLeaseGate lease = FakeLeaseGate();
 
   final FakeOrderLedger ledger = FakeOrderLedger(
     registeredStrategies: <String>{P0sStrategyIds.sleeveB},
@@ -337,6 +340,25 @@ void main() {
       ]);
     });
   });
+
+  test(
+    '🔴 E14a 리스 무효 = 배치 의도 REJECTED LEASE_INVALID · 브로커 제출 0(NR-1 0 · R71)',
+    () async {
+      final _Rig rig = _Rig();
+      rig.targets.byDay[_d1.yyyyMmDd] = <OrderTarget>[_target(10)];
+      rig.lease.verdict = LeaseVerdict.invalid;
+      rig.at(_d1, 9, 10);
+      final JobRun<KrOrderOpenReport> open = await rig.jobs.runOpen();
+      expect(open.status, JobStatus.success);
+      final ExecutionOutcome o = open.report!.batch!.outcomes.single;
+      expect(
+        (o.status, o.message),
+        (ExecutionStatus.rejected, 'LEASE_INVALID'),
+      );
+      expect(rig.broker.submitted, isEmpty);
+      expect(rig.lease.calls, greaterThan(0));
+    },
+  );
 
   group('하루 — 07:00 대사 → 09:10 배치 → 15:40 마감 실효 → 다음 날 이월(R42 S10)', () {
     test('목표 10 → 1일 6 체결 · 4 실효 → 2일 이월 4 발주 · 대사 일치 · 핑 · 알림 없음', () async {

@@ -94,6 +94,7 @@ ExecutionContext ctxOf(
   OperatingMode mode = OperatingMode.autoTrade,
   AdviceSink? advice,
   LimitConfig? limitConfig,
+  LeaseGate? lease,
 }) => ExecutionContext(
   ledger: ledger,
   broker: broker,
@@ -101,5 +102,6 @@ ExecutionContext ctxOf(
   execPolicy: execPolicy,
   operatingMode: mode,
   configHash: 'cfg-test',
+  lease: lease ?? FakeLeaseGate(),
   advice: advice,
 );

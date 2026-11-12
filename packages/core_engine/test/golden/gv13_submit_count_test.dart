@@ -132,6 +132,7 @@ void main() {
         <OrderIntentDraft>[draft(logical, asString(setup['strategy_id']))],
         brokers: <String, OrderBroker>{account: broker},
         ledger: ledger,
+        lease: FakeLeaseGate(),
         limitStateFor: (OrderIntentDraft d) async => portfolioOk(),
         limitConfig: kLimitConfig,
         buyCostRate: 0.00015,

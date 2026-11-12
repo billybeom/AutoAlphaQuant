@@ -33,6 +33,7 @@ export 'src/local/discretion_store.dart';
 export 'src/local/incident_store.dart';
 export 'src/local/intervention_store.dart';
 export 'src/local/kill_switch_store.dart';
+export 'src/local/lease_store.dart';
 export 'src/local/ledger_archive_writer.dart';
 export 'src/local/ledger_database.dart';
 export 'src/local/ledger_fix.dart';

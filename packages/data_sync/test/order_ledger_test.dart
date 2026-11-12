@@ -133,6 +133,7 @@ void main() {
     ExecPolicy policy = ExecPolicy.execute,
   }) => ExecutionContext(
     ledger: ledger,
+    lease: FakeLeaseGate(),
     broker: broker,
     limitConfig: _limits,
     execPolicy: policy,

@@ -914,6 +914,7 @@ void main() {
     ExecutionContext ctx(FakeOrderLedger ledger, OrderBroker broker) =>
         ExecutionContext(
           ledger: ledger,
+          lease: FakeLeaseGate(),
           broker: broker,
           limitConfig: limits,
           execPolicy: ExecPolicy.execute,

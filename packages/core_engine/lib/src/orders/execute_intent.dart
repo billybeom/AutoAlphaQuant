@@ -2,7 +2,7 @@
 // 01 §6 `execute_intent` · 설계 13 §8 R33 D21 · D22 · D24 · D25 · R35 V5~V7.
 //
 // 🔴 순서의 정본은 04 §3-1 이다:
-//    1 킬스위치 → 2 차단 묶음(매수면 SAF-408 · 410 판정을 먼저 갱신) → 2.5 미해소 UNKNOWN → 3 전략 상태 → 4 리스크 한도 → 5 주문유형 화이트리스트 →
+//    🆕 v2.42 0 리스(R71) → 1 킬스위치 → 2 차단 묶음(매수면 SAF-408 · 410 판정을 먼저 갱신) → 2.5 미해소 UNKNOWN → 3 전략 상태 → 4 리스크 한도 → 5 주문유형 화이트리스트 →
 //    6 INSERT(RESERVED) → 6.5 COMMIT(INSERT 가 돌아오면 커밋됨 — 포트 계약) → [안내 모드 = 여기서 안내로 · DRY_RUN = SKIPPED] →
 //    7 SUBMITTING → 8 제출 → 9 SUBMITTED | REJECTED | UNKNOWN(+ OrderOutcomeUnknown 다시 던짐).
 // 🔴 1~5단계 거부도 그 멱등키로 REJECTED 행을 남긴다(D21 — 감사 · 같은 날 같은 결정은 다시 낼 수 없다).
@@ -12,6 +12,8 @@
 
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 
+import '../ops/lease_gate.dart'
+    show LeaseGate, LeaseVerdict, kLeaseInvalidCode, readLease;
 import '../risk/breaker.dart' show BreakerLevel;
 import '../risk/limits.dart';
 import 'block_bundles.dart';
@@ -90,6 +92,7 @@ class ExecutionContext {
     required this.execPolicy,
     required this.operatingMode,
     required this.configHash,
+    required this.lease,
     this.advice,
   });
 
@@ -113,6 +116,9 @@ class ExecutionContext {
 
   /// 안내 모드의 받는 쪽(안내 모드면 필수).
   final AdviceSink? advice;
+
+  /// 🆕 E14a — 리스(이 기기의 발주권 · SPEC v2.42 NR-1 0 · 6.9 · 설계 13 §8 R71 · 필수 — 없이 도는 길 0).
+  final LeaseGate lease;
 }
 
 /// 원장 읽기 실패 — 거부로 바꾼다(fail-closed).
@@ -182,6 +188,12 @@ Future<ExecutionOutcome> executeIntent(
 
   final int quantity;
   try {
+    trail.add('0');
+    // 🆕 E14a — 04 §3-1 NR-1 0(v2.42 ①) · 유효만 통과 · 무효 · 모름 · 포트 예외 = 거부(그 키를 먹는다 = 그날 보류).
+    if (await readLease(ctx.lease) != LeaseVerdict.valid) {
+      return await reject(kLeaseInvalidCode);
+    }
+
     trail.add('1');
     if (await _read(ledger.killSwitchActive)) {
       return await reject('KILL_SWITCH');
@@ -306,6 +318,17 @@ Future<ExecutionOutcome> executeIntent(
       ExecutionStatus.skipped,
       intentId: intentId,
       message: 'KILL_SWITCH',
+      quantity: quantity,
+    );
+  }
+  // 🆕 E14a — 04 §3-1 NR-1 6.9(v2.42 ①) · 리스 직전 재확인 · 무효 · 모름 = 건너뜀(브로커 호출 0 · 안내 · DRY_RUN 도 같다).
+  if (await readLease(ctx.lease) != LeaseVerdict.valid) {
+    trail.add('6.9');
+    await ledger.markSkipped(intentId, kLeaseInvalidCode);
+    return ExecutionOutcome(
+      ExecutionStatus.skipped,
+      intentId: intentId,
+      message: kLeaseInvalidCode,
       quantity: quantity,
     );
   }
