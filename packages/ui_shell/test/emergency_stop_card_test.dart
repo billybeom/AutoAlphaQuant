@@ -59,6 +59,7 @@ void main() {
   // D03-01 block order and words.
   testWidgets('D03-01 block order and words', (WidgetTester tester) async {
     expect(card.printSlotId, isNotNull); // pre
+    expect(card.contactLine, isNot(card.keepOnPaperNotice)); // pre
     final FakeShellRunbookRepository repo = repoOf(card);
     await pumpEmergencyCard(
       tester,
@@ -84,6 +85,16 @@ void main() {
         <String?>[s.orderText, s.text],
       );
     }
+    // C4r16a-2(C4N-4): 제목 · 연락처 · 보관 고지 블록도 받은 글자 그대로.
+    expect(shownTexts(tester, find.byKey(const Key('d03-title'))), <String?>[
+      card.title,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('d03-contact'))), <String?>[
+      card.contactLine,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('d03-notice'))), <String?>[
+      card.keepOnPaperNotice,
+    ]);
     expect(repo.cardCalls, 1);
     expect(find.text(ShellLabels.retry), findsNothing);
   });
