@@ -58,6 +58,27 @@ void _position(Database db, String strategy, String symbol, int q) =>
 int _count(Database db, String table) =>
     db.select('SELECT COUNT(*) AS n FROM $table').first['n'] as int;
 
+class _Progress implements CarryLedger {
+  int filled = 0;
+  final List<(String, String, String, TradeDate)> asked =
+      <(String, String, String, TradeDate)>[];
+
+  @override
+  Future<List<ExpiredIntent>> expiredIntents(TradeDate tradeDate) async =>
+      const <ExpiredIntent>[];
+
+  @override
+  Future<SplitProgress> splitProgress(
+    String logicalDecisionId, {
+    required String strategyId,
+    required String symbol,
+    required TradeDate before,
+  }) async {
+    asked.add((logicalDecisionId, strategyId, symbol, before));
+    return SplitProgress(planned: filled, filled: filled);
+  }
+}
+
 void main() {
   late Directory dir;
   late Database db;
@@ -242,6 +263,110 @@ void main() {
       'SEAS-A-OUT-2026-04-30',
     );
   });
+
+  test('🆕 E14d2a 낡은 판정 차단 — planned_work BLOCKED · 대체 = A 몫 0 · PLANNED · 재판정 집행 = 낸다 · 행 없음 = 지금처럼(R76 Q3)', () async {
+    _kq(db, '2025-10-28', up: true);
+    db.execute(
+      'INSERT INTO plan_snapshot(plan_id, kind, computed_at, as_of_trade_date, expires_at, inputs, outputs, config_hash) '
+      "VALUES ('REBAL-2025-09-30', 'REBALANCE', 'x', '2025-09-30', '2025-11-03', '{}', ?, 'c')",
+      <Object?>[
+        jsonEncode(<String, Object?>{
+          'month_index': 6,
+          'targets': <Object?>[],
+          'execution_day': '2025-10-01',
+        }),
+      ],
+    );
+    await job().run(const TradeDate('2025-10-29'));
+    final SeasonalTargetSource src = SeasonalTargetSource(
+      db,
+      ledger: SqliteOrderLedger(
+        db,
+        mode: RunMode.live,
+        clock: _Clock(),
+        kr: _kr,
+      ),
+    );
+    Future<int> aLeg() async =>
+        (await src.targetsFor(const TradeDate('2025-10-29')))
+            .where((OrderTarget x) => x.strategyId == 'P0S_A')
+            .length;
+    void state(String st, String? verdict) => db.execute(
+      'UPDATE planned_work SET state = ?, verdict_code = ? WHERE work_id = ?',
+      <Object?>[st, verdict, 'PW-SEAS-A-IN-2025-10-31'],
+    );
+    expect(await aLeg(), 1);
+    state('BLOCKED', 'BLOCKED');
+    expect(await aLeg(), 0);
+    state('REEVALUATED', 'SUPERSEDED');
+    expect(await aLeg(), 0);
+    state('REEVALUATED', 'EXECUTED_AS_REEVALUATED');
+    expect(await aLeg(), 1);
+    db.execute('DELETE FROM planned_work');
+    expect(await aLeg(), 1);
+  });
+
+  test(
+    '🆕 E14d2a 재판정 실물(계절) — 남은 주수 > 0 = 할 일 있음 · 다 체결 = 없음 · 진행 = 오늘 앞(R76 Q3)',
+    () async {
+      _kq(db, '2025-10-28', up: true);
+      db.execute(
+        'INSERT INTO plan_snapshot(plan_id, kind, computed_at, as_of_trade_date, expires_at, inputs, outputs, config_hash) '
+        "VALUES ('REBAL-2025-09-30', 'REBALANCE', 'x', '2025-09-30', '2025-11-03', '{}', ?, 'c')",
+        <Object?>[
+          jsonEncode(<String, Object?>{
+            'month_index': 6,
+            'targets': <Object?>[],
+            'execution_day': '2025-10-01',
+          }),
+        ],
+      );
+      await job().run(const TradeDate('2025-10-29'));
+      final _Progress carry = _Progress();
+      final SqliteResumeReevaluator re = SqliteResumeReevaluator(
+        db,
+        monthly: MonthlyRebalanceJob(
+          db,
+          mode: RunMode.live,
+          kr: _kr,
+          us: frozenExchangeCalendar(Market.us),
+          clock: _Clock(),
+          cash: <String, OrderBroker>{'main': FakeOrderBroker()},
+          holdings: () async => const <LedgerHolding>[],
+          pensionAlias: 'pension',
+          regimeConfigHash: 'r',
+          configHash: 'c',
+        ),
+        carry: carry,
+      );
+      const ResumeWorkItem item = ResumeWorkItem(
+        workId: 'PW-SEAS-A-IN-2025-10-31',
+        kind: ResumeWorkKinds.seasonalWindow,
+        oneLine: 'x',
+        state: PlannedWorkState.planned,
+        plannedOn: TradeDate('2025-10-29'),
+        dueBy: TradeDate('2025-10-31'),
+        direction: ResumeDirection.defensive,
+        sell: true,
+      );
+      carry.filled = 199;
+      expect(
+        await re.actionNeeded(item, const TradeDate('2025-10-30')),
+        isTrue,
+      );
+      expect(carry.asked.single, (
+        'SEAS-A-IN-2025-10-31',
+        'P0S_A',
+        _a,
+        const TradeDate('2025-10-30'),
+      ));
+      carry.filled = 200;
+      expect(
+        await re.actionNeeded(item, const TradeDate('2025-10-30')),
+        isFalse,
+      );
+    },
+  );
 
   test('브레이커 = 오늘 앞 **가장 최근** 행(옛 HALTED · 최근 NORMAL = 진입)', () async {
     _kq(db, '2025-10-28', up: true);

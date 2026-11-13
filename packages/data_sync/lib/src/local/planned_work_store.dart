@@ -14,7 +14,8 @@ import 'package:domain_contracts/domain_contracts.dart'
     show Clock, OrderSide, PlannedWorkState, TradeDate, VerdictCodes;
 import 'package:sqlite3/sqlite3.dart';
 
-import '../jobs/monthly_rebalance_job.dart' show unissuedPlanTargets;
+import '../jobs/monthly_rebalance_job.dart'
+    show rebalancePlanIdOfDecision, unissuedPlanTargets;
 import '../market/market_store.dart' show inLedgerTransaction;
 
 /// 등록 행 id(R74 M2).
@@ -46,6 +47,7 @@ void registerPlannedWork(
   required String oneLine,
   required String payloadJson,
   required String createdAtUtc,
+  String? parentWorkId,
 }) {
   if (db.autocommit) {
     throw StateError('planned_work 등록은 계획 저장 트랜잭션 안에서만');
@@ -54,7 +56,7 @@ void registerPlannedWork(
   db.execute(
     'INSERT INTO planned_work (work_id, idempotency_key, kind, created_at, due_by, state, verdict_code, '
     "digest, one_line, parent_work_id, decision_id, origin, row_version) VALUES (?, ?, ?, ?, ?, 'PLANNED', NULL, "
-    "?, ?, NULL, ?, 'LOCAL', 0)",
+    "?, ?, ?, ?, 'LOCAL', 0)",
     <Object?>[
       workId,
       '$kind|$decisionId',
@@ -63,6 +65,7 @@ void registerPlannedWork(
       dueBy.yyyyMmDd,
       plannedWorkDigestOf(payloadJson),
       oneLine,
+      parentWorkId,
       decisionId,
     ],
   );
@@ -254,10 +257,12 @@ class SqlitePlannedWorkStore implements PlannedWorkLedger {
 
   // 월말 = 집행일이 왔고 계획의 대상을 전부 낸 적이 있다(StoredPlanTargetSource 와 같은 축).
   bool _monthlyFinished(String decisionId, TradeDate today) {
+    // 🆕 E14d2a(R76 Q4) — 계획 id 를 결정 id 에서 짓는다(원 · 재개 child 둘 다).
+    final String? planId = rebalancePlanIdOfDecision(decisionId);
+    if (planId == null) return false;
     final ResultSet rs = _db.select(
-      "SELECT p.outputs FROM decision_log d JOIN plan_snapshot p ON p.plan_id = 'REBAL-' || d.trade_date "
-      "WHERE d.decision_id = ? AND p.kind = 'REBALANCE'",
-      <Object?>[decisionId],
+      "SELECT outputs FROM plan_snapshot WHERE plan_id = ? AND kind = 'REBALANCE'",
+      <Object?>[planId],
     );
     if (rs.isEmpty) return false;
     final Map<String, Object?> o =
