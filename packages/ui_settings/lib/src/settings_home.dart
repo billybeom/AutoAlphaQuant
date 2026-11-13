@@ -86,7 +86,9 @@ class SettingsHome extends ConsumerWidget {
           InkWell(
             key: const Key('m9s01-review'),
             onTap: () {
-              ref.read(settingsLinkOpenerProvider).open(vm.annualReviewLink!.deepLink);
+              ref
+                  .read(settingsLinkOpenerProvider)
+                  .open(vm.annualReviewLink!.deepLink);
             },
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -98,7 +100,8 @@ class SettingsHome extends ConsumerWidget {
               ),
             ),
           ),
-        for (final (int g, SettingsGroup group) in vm.groups.indexed) ...<Widget>[
+        for (final (int g, SettingsGroup group)
+            in vm.groups.indexed) ...<Widget>[
           Padding(
             key: ValueKey<String>('m9s01-group-$g'),
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
@@ -188,9 +191,7 @@ class _CardRow extends StatelessWidget {
             ),
             if (attention != null)
               Padding(
-                key: ValueKey<String>(
-                  'm9s01-attention-$groupIndex-$cardIndex',
-                ),
+                key: ValueKey<String>('m9s01-attention-$groupIndex-$cardIndex'),
                 padding: const EdgeInsets.only(left: 8, top: 2),
                 child: Badge(label: Text(attention)),
               ),

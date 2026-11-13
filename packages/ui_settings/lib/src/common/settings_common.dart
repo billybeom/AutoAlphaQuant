@@ -104,10 +104,7 @@ class SettingsErrorView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           if (label != null) Text(label),
-          FilledButton(
-            onPressed: onRetry,
-            child: Text(SettingsLabels.retry),
-          ),
+          FilledButton(onPressed: onRetry, child: Text(SettingsLabels.retry)),
         ],
       ),
     );

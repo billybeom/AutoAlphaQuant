@@ -11,8 +11,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_settings/ui_settings.dart';
 
-import 'golden/golden_support.dart';
-
 // ── R6a — M9 S01 fakes ──
 
 class FakeSettingsRepository extends UnimplementedSettingsRepository {

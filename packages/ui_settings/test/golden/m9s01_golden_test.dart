@@ -86,9 +86,7 @@ void main() {
           logicalSize: flow.size,
           wrapApp: (Widget app) => ProviderScope(
             overrides: settingsHomeOverrides(
-              repo: FakeSettingsRepository(
-                home: (int call) => one(flow.vm),
-              ),
+              repo: FakeSettingsRepository(home: (int call) => one(flow.vm)),
               opener: RecordingLinkOpener(),
               clock: FixedClock(kGoldenNowUtc),
             ),

@@ -11,8 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final Provider<SettingsRepository> settingsRepositoryProvider =
     Provider<SettingsRepository>(
-      (Ref ref) =>
-          throw UnimplementedError('settingsRepositoryProvider must be overridden'),
+      (Ref ref) => throw UnimplementedError(
+        'settingsRepositoryProvider must be overridden',
+      ),
     );
 
 final Provider<Clock> settingsClockProvider = Provider<Clock>(
@@ -22,6 +23,7 @@ final Provider<Clock> settingsClockProvider = Provider<Clock>(
 
 final Provider<AppLinkOpener> settingsLinkOpenerProvider =
     Provider<AppLinkOpener>(
-      (Ref ref) =>
-          throw UnimplementedError('settingsLinkOpenerProvider must be overridden'),
+      (Ref ref) => throw UnimplementedError(
+        'settingsLinkOpenerProvider must be overridden',
+      ),
     );

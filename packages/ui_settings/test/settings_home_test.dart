@@ -78,18 +78,16 @@ void main() {
       }
     }
 
-    expect(
-      shownTexts(tester, find.byKey(const Key('m9s01-chip'))),
-      <String>[home.statusChip.label, home.statusChip.promotionLabel!],
-    );
-    expect(
-      shownTexts(tester, find.byKey(const Key('m9s01-review'))),
-      <String>[home.annualReviewLink!.label],
-    );
-    expect(
-      shownTexts(tester, find.byKey(const Key('m9s01-asof'))),
-      <String>[home.asOf.label],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('m9s01-chip'))), <String>[
+      home.statusChip.label,
+      home.statusChip.promotionLabel!,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('m9s01-review'))), <String>[
+      home.annualReviewLink!.label,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('m9s01-asof'))), <String>[
+      home.asOf.label,
+    ]);
 
     // chain dy
     final List<Key> chain = <Key>[
@@ -139,9 +137,8 @@ void main() {
       ),
     );
 
-    final ColorScheme cs = Theme.of(
-      tester.element(find.byType(SettingsHome)),
-    ).colorScheme;
+    final ColorScheme cs = Theme.of(tester.element(find.byType(SettingsHome)))
+        .colorScheme;
 
     expect(home.groups[1].cards, hasLength(9)); // ⓗ
     expect(
@@ -184,10 +181,11 @@ void main() {
       ),
     );
 
-    expect(
-      home.groups.map((SettingsGroup g) => g.tier).toList(),
-      <SettingTier>[SettingTier.general, SettingTier.operational, SettingTier.rule],
-    ); // pre
+    expect(home.groups.map((SettingsGroup g) => g.tier).toList(), <SettingTier>[
+      SettingTier.general,
+      SettingTier.operational,
+      SettingTier.rule,
+    ]); // pre
 
     final List<Matcher> lockMatchers = <Matcher>[
       findsNothing,
@@ -195,10 +193,7 @@ void main() {
       findsOneWidget,
     ];
     for (int g = 0; g < home.groups.length; g++) {
-      expect(
-        find.byKey(ValueKey<String>('m9s01-lock-$g')),
-        lockMatchers[g],
-      );
+      expect(find.byKey(ValueKey<String>('m9s01-lock-$g')), lockMatchers[g]);
     }
 
     for (final int g in <int>[1, 2]) {
@@ -214,7 +209,7 @@ void main() {
 
   // ── M9S01-04: annual review card and promotion label = data ───────────────
 
-  ({
+  final ({
     String name,
     SettingsHomeVm v,
     Matcher reviewMatcher,
@@ -228,10 +223,7 @@ void main() {
     v: home,
     reviewMatcher: findsOneWidget,
     reviewTexts: <String>[home.annualReviewLink!.label],
-    chipTexts: <String>[
-      home.statusChip.label,
-      home.statusChip.promotionLabel!,
-    ],
+    chipTexts: <String>[home.statusChip.label, home.statusChip.promotionLabel!],
     flow: (WidgetTester t) async {
       await t.tap(find.byKey(const Key('m9s01-review')));
       await t.pump();
@@ -239,7 +231,7 @@ void main() {
     wantOpened: <String>[home.annualReviewLink!.deepLink],
   );
 
-  ({
+  final ({
     String name,
     SettingsHomeVm v,
     Matcher reviewMatcher,
@@ -258,15 +250,18 @@ void main() {
     wantOpened: <String>[],
   );
 
-  for (final c in <({
-    String name,
-    SettingsHomeVm v,
-    Matcher reviewMatcher,
-    List<String> reviewTexts,
-    List<String> chipTexts,
-    Future<void> Function(WidgetTester t) flow,
-    List<String> wantOpened,
-  })>[caseHome, caseNoReview]) {
+  for (final c
+      in <
+        ({
+          String name,
+          SettingsHomeVm v,
+          Matcher reviewMatcher,
+          List<String> reviewTexts,
+          List<String> chipTexts,
+          Future<void> Function(WidgetTester t) flow,
+          List<String> wantOpened,
+        })
+      >[caseHome, caseNoReview]) {
     testWidgets('M9S01-04 annual review promotion ${c.name}', (
       WidgetTester tester,
     ) async {
@@ -397,10 +392,7 @@ void main() {
       shownTexts(tester, find.byKey(const ValueKey<String>('m9s01-card-2-0'))),
       settingsCardTexts(viewer.groups[2].cards[0]),
     );
-    expect(
-      find.byKey(const ValueKey<String>('m9s01-card-1-1')),
-      findsNothing,
-    );
+    expect(find.byKey(const ValueKey<String>('m9s01-card-1-1')), findsNothing);
     expect(
       shownTexts(
         tester,
@@ -414,12 +406,7 @@ void main() {
 
   // ── M9S01-08: asOf line and stale banner two cases ─────────────────────────
 
-  ({
-    String name,
-    Clock clock,
-    Matcher staleMatcher,
-    List<Key> chain,
-  })
+  final ({String name, Clock clock, Matcher staleMatcher, List<Key> chain})
   caseFresh = (
     name: 'fresh',
     clock: FixedClock(kGoldenNowUtc),
@@ -427,18 +414,13 @@ void main() {
     chain: <Key>[const Key('m9s01-chip'), const Key('m9s01-asof')],
   );
 
-  ({
-    String name,
-    Clock clock,
-    Matcher staleMatcher,
-    List<Key> chain,
-  })
+  final ({String name, Clock clock, Matcher staleMatcher, List<Key> chain})
   caseStale = (
     name: 'stale',
     clock: FixedClock(
-      home.asOf.observedAt.add(home.asOf.staleAfter).add(
-        const Duration(seconds: 1),
-      ),
+      home.asOf.observedAt
+          .add(home.asOf.staleAfter)
+          .add(const Duration(seconds: 1)),
     ),
     staleMatcher: findsOneWidget,
     chain: <Key>[
@@ -448,12 +430,11 @@ void main() {
     ],
   );
 
-  for (final c in <({
-    String name,
-    Clock clock,
-    Matcher staleMatcher,
-    List<Key> chain,
-  })>[caseFresh, caseStale]) {
+  for (final c
+      in <({String name, Clock clock, Matcher staleMatcher, List<Key> chain})>[
+        caseFresh,
+        caseStale,
+      ]) {
     testWidgets('M9S01-08 asof stale ${c.name}', (WidgetTester tester) async {
       final RecordingLinkOpener opener = RecordingLinkOpener();
       await pumpSettingsHome(
@@ -485,17 +466,30 @@ void main() {
 
   // ── M9S01-09: state branches two cases ─────────────────────────────────────
 
-  ({String name, Stream<SettingsHomeVm> Function(int) repoFn, Matcher loadMatcher, Matcher failMatcher, Matcher chipMatcher})
+  final ({
+    String name,
+    Stream<SettingsHomeVm> Function(int) repoFn,
+    Matcher loadMatcher,
+    Matcher failMatcher,
+    Matcher chipMatcher,
+  })
   caseLoading = (
     name: 'loading',
-    repoFn: (int call) =>
-        Stream<SettingsHomeVm>.multi((MultiStreamController<SettingsHomeVm> c) {}),
+    repoFn: (int call) => Stream<SettingsHomeVm>.multi(
+      (MultiStreamController<SettingsHomeVm> c) {},
+    ),
     loadMatcher: findsOneWidget,
     failMatcher: findsNothing,
     chipMatcher: findsNothing,
   );
 
-  ({String name, Stream<SettingsHomeVm> Function(int) repoFn, Matcher loadMatcher, Matcher failMatcher, Matcher chipMatcher})
+  final ({
+    String name,
+    Stream<SettingsHomeVm> Function(int) repoFn,
+    Matcher loadMatcher,
+    Matcher failMatcher,
+    Matcher chipMatcher,
+  })
   caseFail = (
     name: 'fail',
     repoFn: (int call) => Stream<SettingsHomeVm>.error(StateError('fail')),
@@ -504,10 +498,16 @@ void main() {
     chipMatcher: findsNothing,
   );
 
-  for (final c in <({String name, Stream<SettingsHomeVm> Function(int) repoFn, Matcher loadMatcher, Matcher failMatcher, Matcher chipMatcher})>[
-    caseLoading,
-    caseFail,
-  ]) {
+  for (final c
+      in <
+        ({
+          String name,
+          Stream<SettingsHomeVm> Function(int) repoFn,
+          Matcher loadMatcher,
+          Matcher failMatcher,
+          Matcher chipMatcher,
+        })
+      >[caseLoading, caseFail]) {
     testWidgets('M9S01-09 state branch ${c.name}', (WidgetTester tester) async {
       final RecordingLinkOpener opener = RecordingLinkOpener();
       await pumpSettingsHome(
@@ -559,12 +559,15 @@ void main() {
 
   // ── M9S01-11: all screen texts and large font three cases ──────────────────
 
-  ({String name, SettingsHomeVm v})
-  case11Home = (name: 'home', v: home);
-  ({String name, SettingsHomeVm v})
-  case11NoReview = (name: 'no_review', v: noReview);
-  ({String name, SettingsHomeVm v})
-  case11Viewer = (name: 'viewer', v: viewer);
+  final ({String name, SettingsHomeVm v}) case11Home = (name: 'home', v: home);
+  final ({String name, SettingsHomeVm v}) case11NoReview = (
+    name: 'no_review',
+    v: noReview,
+  );
+  final ({String name, SettingsHomeVm v}) case11Viewer = (
+    name: 'viewer',
+    v: viewer,
+  );
 
   for (final c in <({String name, SettingsHomeVm v})>[
     case11Home,
