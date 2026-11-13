@@ -58,6 +58,10 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   'scanner_slot_id': 'onboarding_slot',
   // 🆕 v1.17(01 §26 · K19) — `D-03` 긴급정지 카드 인쇄 슬롯 이름(`OpsSlotIds` · 화면은 이름을 빌더에 그대로 넘긴다).
   'print_slot_id': 'ops_slot',
+  // 🆕 v1.18(01 §27 · K-n ⓗ) — `ConnectionRow.target`·동작 args 의 연결 대상 · 채널 선택 args·옵션의 채널
+  //    (`ConnectionTargetCodes` · `NotifyChannelCodes` · 다른 표본의 같은 키 쓰임 0 — git grep 실측).
+  'target': 'connection_target',
+  'channel': 'notify_channel',
 };
 
 /// 🔴 **사전에 없는 코드 축** — 01 §3 이 열거하지 않은 값이라 검사 대상이 아니다.
@@ -68,7 +72,7 @@ const Map<String, String> _fieldsOutsideDictionary = <String, String>{
       '(픽스처 값: CONSENT_EXPIRED·PERMISSION_DENIED · 🆕 v1.16 TOKEN_EXPIRED). 등재는 M2-8 의 일이다.',
   'status_code':
       '진단·인시던트 칸의 상태 코드(OK·LAG·TOKEN_EXPIRED) — §3 이 아니라 화면 상태 축이며 '
-      '짝이 되는 status_label 이 함께 온다.',
+      '짝이 되는 status_label 이 함께 온다 · 🆕 v1.18 S07 `ConnectionRow` — `level` 이 색 근거(01 §27 K-r).',
   'state_code': '워치독·진단 칸의 상태 코드 — 위와 같은 축(state_label 이 짝이다).',
 };
 
@@ -207,6 +211,8 @@ void main() {
         FixturePaths.m8AlertsP0Ack,
         // 🆕 v1.17(01 §26 · 엔진 D11) — `STALE_ORDERS_HELD`.
         FixturePaths.m8AlertsStaleOrdersHeld,
+        // 🆕 v1.18(01 §27 · K-z) — 엔진 등재형 6코드.
+        FixturePaths.m8AlertsSafetyResume,
       ];
       for (final String path in alertFixtures) {
         final FixtureEnvelope envelope = decodeEnvelope(readFixture(path));

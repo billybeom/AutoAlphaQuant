@@ -30,6 +30,8 @@
 //   🆕 v1.17(01 §26 · K18) — 라우트 **69**(`opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex`) ·
 //   `_linkKeys` 무변경(`IncidentBanner.actionLink` = `LinkAction` 안쪽 `deep_link` · `RunbookRow`·`HandbookEntry`·
 //   `HandbookBlock` = `deep_link`) · ④ 에 `ops/runbooks/<id>`·`handbook` 일치 예시.
+//   🆕 v1.18(01 §27 · K-w) — 라우트 **80**(M9 11 · `settingsHome`·…·`settingsAnnualReview`) · `_linkKeys` 무변경
+//   (`SettingsCard.route`·`ConnectionRow.route` = `route` · 연간 링크 = `LinkAction` 안쪽 `deep_link`) · ④ 에 `settings` 예시 4.
 // 🔴 화면은 이 검사의 대상이 아니다 — 화면은 링크를 **만들지 않으므로** 검사할 것이 없고,
 //    만들었다면 `tool/check_boundaries.sh` 의 `aaq://` 리터럴 스캔이 잡는다.
 
@@ -136,13 +138,25 @@ void main() {
       // 🆕 v1.15 — 52 → 54(`alertsInbox`·`alertDetail` · 01 §24).
       // 🆕 v1.16 — 54 → 64(온보딩 6 · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2 · 01 §25).
       // 🆕 v1.17 — 64 → 69(`opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex` · 01 §26).
+      // 🆕 v1.18 — 69 → 80(M9 11 · `settingsHome` … `settingsAnnualReview` · 01 §27).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(69),
-        reason: '라우트 수가 계약(01 §26 · v1.17 = 69)과 다르다.',
+        hasLength(80),
+        reason: '라우트 수가 계약(01 §27 · v1.18 = 80)과 다르다.',
       );
+      expect(AppRoutes.all, contains(AppRoutes.settingsHome));
+      expect(AppRoutes.all, contains(AppRoutes.settingsAccounts));
+      expect(AppRoutes.all, contains(AppRoutes.settingsAllocation));
+      expect(AppRoutes.all, contains(AppRoutes.settingsOperations));
+      expect(AppRoutes.all, contains(AppRoutes.settingsDevices));
+      expect(AppRoutes.all, contains(AppRoutes.settingsConnections));
+      expect(AppRoutes.all, contains(AppRoutes.settingsCalendar));
+      expect(AppRoutes.all, contains(AppRoutes.settingsBackup));
+      expect(AppRoutes.all, contains(AppRoutes.settingsDiagnostics));
+      expect(AppRoutes.all, contains(AppRoutes.settingsGeneral));
+      expect(AppRoutes.all, contains(AppRoutes.settingsAnnualReview));
       expect(AppRoutes.all, contains(AppRoutes.opsRunbooks));
       expect(AppRoutes.all, contains(AppRoutes.opsRunbook));
       expect(AppRoutes.all, contains(AppRoutes.opsEmergencyCard));
@@ -275,6 +289,11 @@ void main() {
       );
       expect(AppRoutes.isRegistered('aaq://handbook'), isTrue);
       expect(AppRoutes.isRegistered('aaq://handbook/x'), isFalse);
+      // 🆕 v1.18(01 §27) — M9 설정 홈(고정 1조각) · 끝 빗금 · 쿼리 · 모르는 하위.
+      expect(AppRoutes.isRegistered('aaq://settings'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://settings/'), isFalse);
+      expect(AppRoutes.isRegistered('aaq://settings/operations?x=1'), isFalse);
+      expect(AppRoutes.isRegistered('aaq://settings/unknown'), isFalse);
       expect(AppRoutes.isRegistered('aaq://x1/migration/x/y'), isFalse);
       expect(AppRoutes.isRegistered('aaq://nowhere'), isFalse);
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);

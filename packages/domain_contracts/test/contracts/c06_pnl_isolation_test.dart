@@ -128,6 +128,15 @@ void main() {
         FixturePaths.m8DeviceRiskItems,
         FixturePaths.m8DeviceRiskEmpty,
         FixturePaths.m8AlertsStaleOrdersHeld,
+        // 🆕 v1.18(01 §27) — S01 3 · S07 3 · 결과 1 · 알림 1.
+        FixturePaths.m9SettingsHome,
+        FixturePaths.m9SettingsHomeNoReview,
+        FixturePaths.m9SettingsHomeViewer,
+        FixturePaths.m9Connections,
+        FixturePaths.m9ConnectionsTelegram,
+        FixturePaths.m9ConnectionsLocked,
+        FixturePaths.m9SettingsActionResults,
+        FixturePaths.m8AlertsSafetyResume,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {
