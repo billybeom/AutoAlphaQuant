@@ -82,8 +82,7 @@ Set<String> settingsHomeAllowed(SettingsHomeVm v) => <String>{
 
 // ── R6b — M9 S07 fakes ──
 
-class FakeSettingsOpsStatusRepository
-    extends UnimplementedOpsStatusRepository {
+class FakeSettingsOpsStatusRepository extends UnimplementedOpsStatusRepository {
   FakeSettingsOpsStatusRepository({required this.connections});
 
   final Stream<ConnectionsVm> Function(int call) connections;
@@ -163,19 +162,16 @@ List<String?> connectionRowTexts(ConnectionRow k) => <String?>[
 
 Set<String> connectionsAllowed(ConnectionsVm v) => <String>{
   ?v.lockedLabel,
-  for (final ConnectionRow k in v.rows) ...connectionRowTexts(k).whereType<String>(),
   for (final ConnectionRow k in v.rows)
-    ?k.channelPicker?.label,
+    ...connectionRowTexts(k).whereType<String>(),
+  for (final ConnectionRow k in v.rows) ?k.channelPicker?.label,
   for (final ConnectionRow k in v.rows)
     for (final NotifyChannelOption o
         in k.channelPicker?.options ?? const <NotifyChannelOption>[])
       o.label,
-  for (final ConnectionRow k in v.rows)
-    ?k.channelPicker?.capabilityNotice,
-  for (final ConnectionRow k in v.rows)
-    ?k.channelPicker?.tokenBadgeText,
-  for (final ConnectionRow k in v.rows)
-    ?k.channelPicker?.watchdogChannelLine,
+  for (final ConnectionRow k in v.rows) ?k.channelPicker?.capabilityNotice,
+  for (final ConnectionRow k in v.rows) ?k.channelPicker?.tokenBadgeText,
+  for (final ConnectionRow k in v.rows) ?k.channelPicker?.watchdogChannelLine,
   v.asOf.label,
   ?v.asOf.staleLabel,
 };

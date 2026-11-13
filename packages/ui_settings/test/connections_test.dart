@@ -123,10 +123,9 @@ void main() {
       shownTexts(tester, find.byKey(const ValueKey<String>('m9s07-picker-2'))),
       kakaoOperator,
     );
-    expect(
-      shownTexts(tester, find.byKey(const Key('m9s07-asof'))),
-      <String>[conn.asOf.label],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('m9s07-asof'))), <String>[
+      conn.asOf.label,
+    ]);
 
     final List<Key> chain = <Key>[
       const ValueKey<String>('m9s07-row-0'),
@@ -180,10 +179,7 @@ void main() {
     }
     expect(find.byKey(const ValueKey<String>('m9s07-row-4')), findsNothing);
     expect(
-      shownTexts(
-        tester,
-        find.byKey(const ValueKey<String>('m9s07-picker-2')),
-      ),
+      shownTexts(tester, find.byKey(const ValueKey<String>('m9s07-picker-2'))),
       telegramOperator,
     );
     expect(find.byKey(const ValueKey<String>('m9s07-token-2')), findsNothing);
@@ -215,9 +211,8 @@ void main() {
       ),
     );
 
-    final ColorScheme cs = Theme.of(
-      tester.element(find.byType(Connections)),
-    ).colorScheme;
+    final ColorScheme cs = Theme.of(tester.element(find.byType(Connections)))
+        .colorScheme;
 
     for (final (int r, ConnectionRow row) in conn.rows.indexed) {
       final Icon icon = tester.widget<Icon>(
@@ -303,10 +298,22 @@ void main() {
       }
     }
 
-    expect(find.byKey(const ValueKey<String>('m9s07-action-0-2')), findsNothing);
-    expect(find.byKey(const ValueKey<String>('m9s07-action-2-1')), findsNothing);
-    expect(find.byKey(const ValueKey<String>('m9s07-action-3-0')), findsNothing);
-    expect(find.byKey(const ValueKey<String>('m9s07-action-4-0')), findsNothing);
+    expect(
+      find.byKey(const ValueKey<String>('m9s07-action-0-2')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('m9s07-action-2-1')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('m9s07-action-3-0')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('m9s07-action-4-0')),
+      findsNothing,
+    );
     expect(
       find.byWidgetPredicate((Widget w) => w is ButtonStyleButton),
       findsNWidgets(6),
@@ -439,9 +446,8 @@ void main() {
         <String?>[c.r.headline, ?c.r.reasonCode],
       );
 
-      final ColorScheme cs = Theme.of(
-        tester.element(find.byType(Connections)),
-      ).colorScheme;
+      final ColorScheme cs = Theme.of(tester.element(find.byType(Connections)))
+          .colorScheme;
       final Icon resultIcon = tester.widget<Icon>(
         find.byKey(const Key('m9s07-result-level')),
       );
@@ -476,7 +482,8 @@ void main() {
     List<String?> firstRes,
     List<String?> secondNa,
     List<String?> secondRes,
-  }) case08failThenOk = (
+  })
+  case08failThenOk = (
     name: 'fail_then_ok',
     factory: (int call) => call == 0
         ? Future<ActionResult>.error(StateError('fail'))
@@ -494,7 +501,8 @@ void main() {
     List<String?> firstRes,
     List<String?> secondNa,
     List<String?> secondRes,
-  }) case08okThenFail = (
+  })
+  case08okThenFail = (
     name: 'ok_then_fail',
     factory: (int call) => call == 0
         ? Future<ActionResult>.value(results[0])
@@ -505,14 +513,17 @@ void main() {
     secondRes: <String?>[],
   );
 
-  for (final c in <({
-    String name,
-    Future<ActionResult> Function(int call) factory,
-    List<String?> firstNa,
-    List<String?> firstRes,
-    List<String?> secondNa,
-    List<String?> secondRes,
-  })>[case08failThenOk, case08okThenFail]) {
+  for (final c
+      in <
+        ({
+          String name,
+          Future<ActionResult> Function(int call) factory,
+          List<String?> firstNa,
+          List<String?> firstRes,
+          List<String?> secondNa,
+          List<String?> secondRes,
+        })
+      >[case08failThenOk, case08okThenFail]) {
     testWidgets('M9S07-08 fail ok two directions ${c.name}', (
       WidgetTester tester,
     ) async {
@@ -565,31 +576,22 @@ void main() {
 
   // ── M9S07-09 no double tap while busy ─────────────────────────────────────
 
-  final ({
-    String name,
-    Key tap,
-    List<SettingsActionId> want,
-  }) case09action = (
+  final ({String name, Key tap, List<SettingsActionId> want}) case09action = (
     name: 'action',
     tap: const ValueKey<String>('m9s07-action-0-0'),
     want: <SettingsActionId>[conn.rows[0].actions[0].id],
   );
 
-  final ({
-    String name,
-    Key tap,
-    List<SettingsActionId> want,
-  }) case09select = (
+  final ({String name, Key tap, List<SettingsActionId> want}) case09select = (
     name: 'select',
     tap: const ValueKey<String>('m9s07-select-2-0'),
     want: <SettingsActionId>[?kakao.options[0].selectAction?.id],
   );
 
-  for (final c in <({
-    String name,
-    Key tap,
-    List<SettingsActionId> want,
-  })>[case09action, case09select]) {
+  for (final c in <({String name, Key tap, List<SettingsActionId> want})>[
+    case09action,
+    case09select,
+  ]) {
     testWidgets('M9S07-09 no double tap while busy ${c.name}', (
       WidgetTester tester,
     ) async {
@@ -645,7 +647,8 @@ void main() {
     Matcher token,
     List<SettingsActionId> wantIds,
     List<Map<String, String>> wantArgs,
-  }) case10kakao = (
+  })
+  case10kakao = (
     name: 'kakao',
     v: conn,
     pickerTexts: kakaoOperator,
@@ -671,7 +674,8 @@ void main() {
     Matcher token,
     List<SettingsActionId> wantIds,
     List<Map<String, String>> wantArgs,
-  }) case10telegram = (
+  })
+  case10telegram = (
     name: 'telegram',
     v: tele,
     pickerTexts: telegramOperator,
@@ -685,19 +689,22 @@ void main() {
     wantArgs: <Map<String, String>>[?telegram.options[1].selectAction?.args],
   );
 
-  for (final c in <({
-    String name,
-    ConnectionsVm v,
-    List<String?> pickerTexts,
-    Key selectedKey,
-    List<String?> selectedTexts,
-    Key selectKey,
-    List<String?> selectTexts,
-    Key otherOptionKey,
-    Matcher token,
-    List<SettingsActionId> wantIds,
-    List<Map<String, String>> wantArgs,
-  })>[case10kakao, case10telegram]) {
+  for (final c
+      in <
+        ({
+          String name,
+          ConnectionsVm v,
+          List<String?> pickerTexts,
+          Key selectedKey,
+          List<String?> selectedTexts,
+          Key selectKey,
+          List<String?> selectTexts,
+          Key otherOptionKey,
+          Matcher token,
+          List<SettingsActionId> wantIds,
+          List<Map<String, String>> wantArgs,
+        })
+      >[case10kakao, case10telegram]) {
     testWidgets('M9S07-10 channel picker selection ${c.name}', (
       WidgetTester tester,
     ) async {
@@ -724,14 +731,8 @@ void main() {
         ),
         c.pickerTexts,
       );
-      expect(
-        shownTexts(tester, find.byKey(c.selectedKey)),
-        c.selectedTexts,
-      );
-      expect(
-        shownTexts(tester, find.byKey(c.selectKey)),
-        c.selectTexts,
-      );
+      expect(shownTexts(tester, find.byKey(c.selectedKey)), c.selectedTexts);
+      expect(shownTexts(tester, find.byKey(c.selectKey)), c.selectTexts);
       expect(find.byKey(c.otherOptionKey), findsNothing);
       expect(find.byKey(const ValueKey<String>('m9s07-token-2')), c.token);
 
@@ -739,10 +740,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(
-        shownTexts(tester, find.byKey(c.selectedKey)),
-        c.selectedTexts,
-      );
+      expect(shownTexts(tester, find.byKey(c.selectedKey)), c.selectedTexts);
       expect(find.byKey(c.selectKey), findsOneWidget);
       expect(actions.ids, c.wantIds);
       expect(actions.argsSeen, c.wantArgs);
@@ -758,9 +756,7 @@ void main() {
     expect(conn.lockedLabel, isNull); // pre
 
     final FakeSettingsOpsStatusRepository repo =
-        FakeSettingsOpsStatusRepository(
-          connections: (int call) => one(conn),
-        );
+        FakeSettingsOpsStatusRepository(connections: (int call) => one(conn));
 
     await pumpConnections(
       tester,
@@ -777,21 +773,18 @@ void main() {
       findsNothing,
     );
     for (final (int r, ConnectionRow row) in conn.rows.indexed) {
-      expect(
-        find.byKey(ValueKey<String>('m9s07-action-$r-0')),
-        findsNothing,
-      );
+      expect(find.byKey(ValueKey<String>('m9s07-action-$r-0')), findsNothing);
       expect(
         shownTexts(tester, find.byKey(ValueKey<String>('m9s07-row-$r'))),
         connectionRowTexts(row),
       );
     }
-    expect(find.byKey(const ValueKey<String>('m9s07-select-2-0')), findsNothing);
     expect(
-      shownTexts(
-        tester,
-        find.byKey(const ValueKey<String>('m9s07-picker-2')),
-      ),
+      find.byKey(const ValueKey<String>('m9s07-select-2-0')),
+      findsNothing,
+    );
+    expect(
+      shownTexts(tester, find.byKey(const ValueKey<String>('m9s07-picker-2'))),
       kakaoViewer,
     );
     expect(
@@ -827,7 +820,8 @@ void main() {
     Matcher buttons,
     List<Key> chain,
     List<String?> pickerTexts,
-  }) case12locked = (
+  })
+  case12locked = (
     name: 'locked',
     v: locked,
     lockedTexts: <String?>[?locked.lockedLabel],
@@ -847,7 +841,8 @@ void main() {
     Matcher buttons,
     List<Key> chain,
     List<String?> pickerTexts,
-  }) case12normal = (
+  })
+  case12normal = (
     name: 'normal',
     v: conn,
     lockedTexts: <String?>[],
@@ -859,14 +854,17 @@ void main() {
     pickerTexts: kakaoOperator,
   );
 
-  for (final c in <({
-    String name,
-    ConnectionsVm v,
-    List<String?> lockedTexts,
-    Matcher buttons,
-    List<Key> chain,
-    List<String?> pickerTexts,
-  })>[case12locked, case12normal]) {
+  for (final c
+      in <
+        ({
+          String name,
+          ConnectionsVm v,
+          List<String?> lockedTexts,
+          Matcher buttons,
+          List<Key> chain,
+          List<String?> pickerTexts,
+        })
+      >[case12locked, case12normal]) {
     testWidgets('M9S07-12 locked lockedLabel line ${c.name}', (
       WidgetTester tester,
     ) async {
@@ -921,7 +919,8 @@ void main() {
     Matcher staleMatcher,
     List<String?> staleTexts,
     List<Key> chain,
-  }) case13fresh = (
+  })
+  case13fresh = (
     name: 'fresh',
     clock: FixedClock(kGoldenNowUtc),
     staleMatcher: findsNothing,
@@ -938,7 +937,8 @@ void main() {
     Matcher staleMatcher,
     List<String?> staleTexts,
     List<Key> chain,
-  }) case13stale = (
+  })
+  case13stale = (
     name: 'stale',
     clock: FixedClock(
       conn.asOf.observedAt
@@ -946,7 +946,10 @@ void main() {
           .add(const Duration(seconds: 1)),
     ),
     staleMatcher: findsOneWidget,
-    staleTexts: <String?>[SettingsLabels.staleBannerTitle, ?conn.asOf.staleLabel],
+    staleTexts: <String?>[
+      SettingsLabels.staleBannerTitle,
+      ?conn.asOf.staleLabel,
+    ],
     chain: <Key>[
       const Key('m9s07-stale'),
       const ValueKey<String>('m9s07-row-0'),
@@ -954,13 +957,16 @@ void main() {
     ],
   );
 
-  for (final c in <({
-    String name,
-    Clock clock,
-    Matcher staleMatcher,
-    List<String?> staleTexts,
-    List<Key> chain,
-  })>[case13fresh, case13stale]) {
+  for (final c
+      in <
+        ({
+          String name,
+          Clock clock,
+          Matcher staleMatcher,
+          List<String?> staleTexts,
+          List<Key> chain,
+        })
+      >[case13fresh, case13stale]) {
     testWidgets('M9S07-13 asof stale ${c.name}', (WidgetTester tester) async {
       await pumpConnections(
         tester,
@@ -999,7 +1005,8 @@ void main() {
     Matcher rowMatcher,
     Matcher retryMatcher,
     SettingsActions? acts,
-  }) case14loading = (
+  })
+  case14loading = (
     name: 'loading',
     repoFn: (int call) => Stream<ConnectionsVm>.multi(
       (MultiStreamController<ConnectionsVm> c) {},
@@ -1019,7 +1026,8 @@ void main() {
     Matcher rowMatcher,
     Matcher retryMatcher,
     SettingsActions? acts,
-  }) case14fail = (
+  })
+  case14fail = (
     name: 'fail',
     repoFn: (int call) => Stream<ConnectionsVm>.error(StateError('fail')),
     loadMatcher: findsNothing,
@@ -1029,18 +1037,19 @@ void main() {
     acts: okActions(),
   );
 
-  for (final c in <({
-    String name,
-    Stream<ConnectionsVm> Function(int) repoFn,
-    Matcher loadMatcher,
-    Matcher failMatcher,
-    Matcher rowMatcher,
-    Matcher retryMatcher,
-    SettingsActions? acts,
-  })>[case14loading, case14fail]) {
-    testWidgets('M9S07-14 state branch ${c.name}', (
-      WidgetTester tester,
-    ) async {
+  for (final c
+      in <
+        ({
+          String name,
+          Stream<ConnectionsVm> Function(int) repoFn,
+          Matcher loadMatcher,
+          Matcher failMatcher,
+          Matcher rowMatcher,
+          Matcher retryMatcher,
+          SettingsActions? acts,
+        })
+      >[case14loading, case14fail]) {
+    testWidgets('M9S07-14 state branch ${c.name}', (WidgetTester tester) async {
       await pumpConnections(
         tester,
         overrides: connectionsOverrides(
@@ -1053,10 +1062,7 @@ void main() {
 
       expect(find.byKey(const Key('m9s07-loading')), c.loadMatcher);
       expect(find.byKey(const Key('m9s07-fail')), c.failMatcher);
-      expect(
-        find.byKey(const ValueKey<String>('m9s07-row-0')),
-        c.rowMatcher,
-      );
+      expect(find.byKey(const ValueKey<String>('m9s07-row-0')), c.rowMatcher);
       expect(find.text(SettingsLabels.retry), c.retryMatcher);
     });
   }
@@ -1122,12 +1128,10 @@ void main() {
     buttons: findsNothing,
   );
 
-  for (final c in <({
-    String name,
-    ConnectionsVm v,
-    SettingsActions? acts,
-    Matcher buttons,
-  })>[case16connOp, case16teleOp, case16lockedOp, case16connViewer]) {
+  for (final c
+      in <
+        ({String name, ConnectionsVm v, SettingsActions? acts, Matcher buttons})
+      >[case16connOp, case16teleOp, case16lockedOp, case16connViewer]) {
     testWidgets('M9S07-16 all texts large font ${c.name}', (
       WidgetTester tester,
     ) async {
