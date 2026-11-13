@@ -181,9 +181,12 @@ class _Rig {
       nowUtc: () => clock,
       lease: lease,
       runLog: runLog,
+      plannedWork: plannedWork,
       sleep: (Duration d) async => sleeps.add(d),
     );
   }
+
+  final FakePlannedWorkLedger plannedWork = FakePlannedWorkLedger();
 
   final FakeLeaseGate lease = FakeLeaseGate();
   final FakeJobRunLog runLog = FakeJobRunLog();
@@ -384,6 +387,27 @@ void main() {
     );
     expect(jobDeadlineUtc(jobSpecOf(KrJobs.order), _d1), _kst(_d1, 10, 10));
     expect(sat.runLog.entries.single.status, JobRunStatus.holiday);
+  });
+
+  test('🆕 E14c2 마감 끝 = planned_work 평시 정리 1번(그날) · 보고 · 정리 실패 = 마감 FAILED · 15:39 실패 = 정리 0(R74 M5)', () async {
+    final _Rig rig = _Rig();
+    rig.plannedWork.settled = 2;
+    rig.at(_d1, 15, 45);
+    final JobRun<KrOrderCloseReport> r = await rig.jobs.runClose();
+    expect(r.status, JobStatus.success);
+    expect(r.report!.plannedSettled, 2);
+    expect(r.note, endsWith('계획 정리 2'));
+    expect(rig.plannedWork.calls, <TradeDate>[_d1]);
+    final _Rig bad = _Rig();
+    bad.plannedWork.throwing = Exception('정리 실패');
+    bad.at(_d1, 15, 45);
+    final JobRun<KrOrderCloseReport> f = await bad.jobs.runClose();
+    expect(f.status, JobStatus.failed);
+    expect(f.error, isA<Exception>());
+    final _Rig early = _Rig();
+    early.at(_d1, 15, 39);
+    await early.jobs.runClose();
+    expect(early.plannedWork.calls, isEmpty);
   });
 
   group('하루 — 07:00 대사 → 09:10 배치 → 15:40 마감 실효 → 다음 날 이월(R42 S10)', () {

@@ -111,6 +111,8 @@ void main() {
       );
       // 램프 = 앞 월말 계획 없음 → 0 → 사지 않는다.
       expect(r.targetShares, 0);
+      // 🆕 E14c2(R74 M1) — 분할 집행이 없으면 planned_work 0.
+      expect(_count(db, 'planned_work'), 0);
       final Row e = db.select('SELECT * FROM rebalance_event').single;
       expect(
         (e['event_id'], e['kind'], e['decision_id'], e['mode']),
@@ -161,6 +163,28 @@ void main() {
     );
     final SeasonalAReport r = await job().run(const TradeDate('2025-10-29'));
     expect(r.targetShares, 200);
+    // 🆕 E14c2(R74 M1 · M2) — 같은 트랜잭션에 planned_work 1행 · 마지막 유효 세션 = 기준(마지막 분할 날).
+    final Row w = db.select('SELECT * FROM planned_work').single;
+    expect(
+      (w['work_id'], w['kind'], w['due_by'], w['one_line'], w['state']),
+      (
+        'PW-SEAS-A-IN-2025-10-31',
+        'SEASONAL_WINDOW',
+        '2025-10-31',
+        '10월 계절 A 진입 분할 집행',
+        'PLANNED',
+      ),
+    );
+    expect(
+      w['digest'],
+      plannedWorkDigestOf(
+        db
+                .select('SELECT trigger_snapshot FROM rebalance_event')
+                .single['trigger_snapshot']
+            as String,
+      ),
+    );
+    expect(_count(db, 'planned_work_transition'), 1);
   });
 
   test('10월 내림세 = 연기 · 11월 판정 날 재시도(연기 계수 1 → 내림세면 2)', () async {
@@ -180,6 +204,8 @@ void main() {
     expect(j.deferCountBefore(const TradeDate('2025-11-26')), 1);
     final SeasonalAReport nov = await j.run(const TradeDate('2025-11-26'));
     expect(nov.outcome, SeasonalAOutcome.defer);
+    // 🆕 E14c2(R74 M1) — 보류 = planned_work 0.
+    expect(_count(db, 'planned_work'), 0);
     expect(j.deferCountBefore(const TradeDate('2025-12-26')), 2);
   });
 
@@ -201,6 +227,12 @@ void main() {
       held: const <LedgerHolding>[LedgerHolding('P0S_A', _a, 37)],
     ).run(const TradeDate('2026-04-28'));
     expect((x.outcome, x.targetShares), (SeasonalAOutcome.exit, 37));
+    // 🆕 E14c2(R74 M1 · M2) — 10월 건너뜀 = 0 · 4월 청산(37주) = 1행(청산 한 줄 · 기준 04-30).
+    final Row w = db.select('SELECT * FROM planned_work').single;
+    expect(
+      (w['work_id'], w['due_by'], w['one_line']),
+      ('PW-SEAS-A-OUT-2026-04-30', '2026-04-30', '4월 계절 A 청산 분할 집행'),
+    );
     expect(
       db
           .select(

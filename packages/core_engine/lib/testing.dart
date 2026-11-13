@@ -21,5 +21,6 @@ export 'src/testing/fake_order_broker.dart'
 export 'src/testing/fake_order_ledger.dart'
     show FakeIntentRecord, FakeOrderLedger, RecordingAdviceSink;
 // 🆕 E11d — 키 금고 · 봉함 가짜(설계 13 §8 R44 E2 · E6 · 🔴 암호가 아니다).
+export 'src/testing/fake_planned_work_ledger.dart' show FakePlannedWorkLedger;
 export 'src/testing/fake_secret_vault.dart'
     show FakeSealedBox, MemorySecretVault;

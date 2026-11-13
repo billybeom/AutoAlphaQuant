@@ -402,6 +402,8 @@ export 'src/portfolio/sleeve_c.dart'
         sleeveCAllocateInflow,
         sleeveCUsdTargets;
 // 🆕 E14b — 재개 판정 순수(06 X2-2 · X2-3 · X2-5 · X2-6 · SPEC v2.42 04 §3-1 ②③④ · §5-3 · 설계 13 §8 R72).
+// 🆕 E14c2 — 평시 정리 포트(설계 13 §8 R74 M5).
+export 'src/resume/planned_work_ledger.dart' show PlannedWorkLedger;
 export 'src/resume/planned_work_machine.dart'
     show
         PlannedWorkCodes,

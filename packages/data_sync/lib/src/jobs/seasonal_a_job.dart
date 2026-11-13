@@ -12,6 +12,8 @@ import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 
+import '../local/planned_work_store.dart'
+    show registerPlannedWork, seasonalPlanOneLine;
 import '../market/market_ids.dart' show MarketSymbols;
 import '../market/market_store.dart';
 import 'daily_jobs.dart';
@@ -299,6 +301,8 @@ class SeasonalAJob {
       SeasonalAOutcome.exit => 'EXIT',
       _ => 'SAFETY',
     };
+    final String triggerJson = jsonEncode(trigger);
+    final OrderSide? side = dec.side;
     inLedgerTransaction(_db, () {
       _db.execute(
         'INSERT INTO rebalance_event(event_id, trade_date, mode, kind, decision_id, trigger_snapshot, '
@@ -308,11 +312,24 @@ class SeasonalAJob {
           today.yyyyMmDd,
           _mode.wire,
           decisionId,
-          jsonEncode(trigger),
+          triggerJson,
           _configHash,
           now,
         ],
       );
+      // 🆕 E14c2(R74 M1 · M2) — 분할 집행이 있는 판정만 `planned_work` 1행(보류 · 건너뜀 · 할 일 없음 = 0) ·
+      //    낼 수 있는 마지막 세션 = 기준(마지막 분할 날).
+      if (side != null && dec.targetShares > 0) {
+        registerPlannedWork(
+          _db,
+          kind: ResumeWorkKinds.seasonalWindow,
+          decisionId: decisionId,
+          dueBy: TradeDate(anchorText),
+          oneLine: seasonalPlanOneLine(anchorText, side),
+          payloadJson: triggerJson,
+          createdAtUtc: now,
+        );
+      }
       _db.execute(
         'INSERT INTO decision_log(decision_id, created_at, trade_date, mode, kind, strategy_id, sleeve, symbol, '
         "reason, reason_code, config_hash) VALUES (?, ?, ?, ?, ?, ?, 'A', ?, ?, ?, ?)",
