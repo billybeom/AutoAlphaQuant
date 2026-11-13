@@ -17,4 +17,5 @@ abstract final class SettingsLabels {
   // 예: static const String save = '저장';
   static const String retry = '다시 시도';
   static const String staleBannerTitle = '오래된 데이터';
+  static const String notAccepted = '접수되지 않았습니다';
 }
