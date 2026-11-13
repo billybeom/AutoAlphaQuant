@@ -32,6 +32,9 @@ abstract final class PlannedWorkCodes {
 
   /// 표에 없는 전이(PLANNED 로 되돌리기 · BLOCKED → DONE).
   static const String illegal = 'PLANNED_WORK_ILLEGAL';
+
+  /// 🆕 E14c2 — 그런 행이 없다(R74 M3).
+  static const String unknown = 'PLANNED_WORK_UNKNOWN';
 }
 
 /// 기한을 넘겼나 — 오늘 > `due_by`(같은 날은 아직 유효).

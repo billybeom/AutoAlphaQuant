@@ -16,6 +16,20 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
+class _NoCarry implements CarryLedger {
+  @override
+  Future<List<ExpiredIntent>> expiredIntents(TradeDate tradeDate) async =>
+      const <ExpiredIntent>[];
+
+  @override
+  Future<SplitProgress> splitProgress(
+    String logicalDecisionId, {
+    required String strategyId,
+    required String symbol,
+    required TradeDate before,
+  }) async => const SplitProgress(planned: 0, filled: 0);
+}
+
 class _Clock implements Clock {
   @override
   DateTime nowUtc() => DateTime.utc(2026, 7, 31, 23);
@@ -230,6 +244,8 @@ void main() {
       'plan_snapshot',
       'rebalance_event',
       'decision_log',
+      'planned_work',
+      'planned_work_transition',
     ]) {
       expect(_count(db, t), 0, reason: t);
     }
@@ -357,6 +373,8 @@ void main() {
       'plan_snapshot',
       'rebalance_event',
       'decision_log',
+      'planned_work',
+      'planned_work_transition',
     ]) {
       expect(_count(db, t), 0, reason: t);
     }
@@ -364,6 +382,136 @@ void main() {
       job().run(const TradeDate('2026-07-30')),
       throwsArgumentError,
     );
+  });
+
+  group('🆕 E14c2 planned_work(R74 M1 · M2 · M4 · M6)', () {
+    SqlitePlannedWorkStore store() =>
+        SqlitePlannedWorkStore(db, carry: _NoCarry(), clock: _Clock());
+
+    void issue(OrderTarget t, int n) => db.execute(
+      'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
+      "decision_id, symbol, side, order_type, quantity, status, config_hash, updated_at, mode) VALUES (?, ?, 'x', "
+      "'2026-08-03', 'KR', 'main', ?, ?, ?, ?, 'LIMIT', 1, 'SUBMITTED', 'c', 'x', 'LIVE')",
+      <Object?>[
+        'pw$n',
+        'kpw$n',
+        t.strategyId,
+        '${t.logicalDecisionId}@2026-08-03',
+        t.symbol,
+        t.side.wire,
+      ],
+    );
+
+    test(
+      '계획 저장 트랜잭션에 1행 + 등록 전이 · 마지막 유효 세션 = 다음 판정 날의 앞 세션 · 다시 돌려도 1행',
+      () async {
+        await job().run(_me);
+        final Row p = db
+            .select(
+              "SELECT computed_at, outputs FROM plan_snapshot WHERE kind = 'REBALANCE'",
+            )
+            .single;
+        final Row w = db.select('SELECT * FROM planned_work').single;
+        expect(
+          (
+            w['work_id'],
+            w['idempotency_key'],
+            w['kind'],
+            w['due_by'],
+            w['state'],
+            w['verdict_code'],
+          ),
+          (
+            'PW-MONTH-END-2026-07-31',
+            'MONTHLY_PLAN|MONTH-END-2026-07-31',
+            'MONTHLY_PLAN',
+            '2026-08-31',
+            'PLANNED',
+            null,
+          ),
+        );
+        expect(
+          (
+            w['one_line'],
+            w['decision_id'],
+            w['origin'],
+            w['row_version'],
+            w['created_at'],
+          ),
+          ('7월말 정기 리밸런싱', 'MONTH-END-2026-07-31', 'LOCAL', 0, p['computed_at']),
+        );
+        expect(w['digest'], plannedWorkDigestOf(p['outputs'] as String));
+        expect(w['digest'], hasLength(12));
+        final Row t = db.select('SELECT * FROM planned_work_transition').single;
+        expect(
+          (
+            t['transition_id'],
+            t['work_id'],
+            t['from_state'],
+            t['to_state'],
+            t['decision_id'],
+            t['occurred_at'],
+          ),
+          (
+            'PWT-PW-MONTH-END-2026-07-31#0',
+            'PW-MONTH-END-2026-07-31',
+            null,
+            'PLANNED',
+            'MONTH-END-2026-07-31',
+            p['computed_at'],
+          ),
+        );
+        await job().run(_me);
+        expect(_count(db, 'planned_work'), 1);
+        expect(_count(db, 'planned_work_transition'), 1);
+      },
+    );
+
+    test(
+      '평시 정리 — 집행일 전 = 그대로 · 대상 일부만 = 그대로 · 전부 낸 날 = DONE · 끝난 행은 다시 안 건드림',
+      () async {
+        final MonthlyRebalanceReport r = await job().run(_me);
+        final SqlitePlannedWorkStore s = store();
+        expect(await s.settle(const TradeDate('2026-07-31')), 0);
+        expect(await s.settle(const TradeDate('2026-08-03')), 0);
+        for (int i = 0; i < r.targets.length - 1; i++) {
+          issue(r.targets[i], i);
+        }
+        expect(await s.settle(const TradeDate('2026-08-03')), 0);
+        issue(r.targets.last, 99);
+        // 🔴 집행일(08-03) 전에는 대상을 다 냈어도 그대로.
+        expect(await s.settle(const TradeDate('2026-07-31')), 0);
+        expect(await s.settle(const TradeDate('2026-08-03')), 1);
+        final PlannedWorkRow w = s.rows().single;
+        expect(
+          (w.state, w.verdictCode, w.rowVersion),
+          (PlannedWorkState.done, null, 1),
+        );
+        final Row t = db
+            .select(
+              "SELECT * FROM planned_work_transition WHERE transition_id LIKE '%#1'",
+            )
+            .single;
+        expect(
+          (t['from_state'], t['to_state'], t['verdict_code'], t['occurred_at']),
+          ('PLANNED', 'DONE', null, '2026-07-31T23:00:00.000Z'),
+        );
+        expect(await s.settle(const TradeDate('2026-09-01')), 0);
+        expect(s.rows().single.state, PlannedWorkState.done);
+      },
+    );
+
+    test('🔴 기한(08-31) 안 = 그대로 · 다음 날 = EXPIRED(verdict EXPIRED) — 대상이 끝내 안 나가도 DONE 0', () async {
+      await job().run(_me);
+      final SqlitePlannedWorkStore s = store();
+      expect(await s.settle(const TradeDate('2026-08-31')), 0);
+      expect(await s.settle(const TradeDate('2026-09-01')), 1);
+      final PlannedWorkRow w = s.rows().single;
+      expect(
+        (w.state, w.verdictCode, w.rowVersion),
+        (PlannedWorkState.expired, 'EXPIRED', 1),
+      );
+    });
   });
 
   group('StoredPlanTargetSource(P8)', () {

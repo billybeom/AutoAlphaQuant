@@ -124,13 +124,20 @@ class KrOrderOpenReport {
 /// 마감 확인 보고.
 class KrOrderCloseReport {
   /// 보고를 만든다.
-  const KrOrderCloseReport({required this.unknowns, required this.fills});
+  const KrOrderCloseReport({
+    required this.unknowns,
+    required this.fills,
+    required this.plannedSettled,
+  });
 
   /// UNKNOWN 해소.
   final UnknownResolutionReport unknowns;
 
   /// 일 마감 체결 동기화.
   final FillSyncReport fills;
+
+  /// 🆕 E14c2 — `planned_work` 평시 정리로 옮긴 행 수(DONE · EXPIRED · R74 M5).
+  final int plannedSettled;
 }
 
 /// 주문 잡 묶음(R42 S4~S6) — 조립 앱이 원장 · 브로커 · 포트를 넣는다.
@@ -149,6 +156,7 @@ class KrOrderJobs {
     required this.nowUtc,
     required this.lease,
     required this.runLog,
+    required this.plannedWork,
     Future<void> Function(Duration)? sleep,
     this.advice,
   }) : sleep = sleep ?? Future<void>.delayed;
@@ -194,6 +202,9 @@ class KrOrderJobs {
 
   /// 🆕 E14c1 — 잡 실행 기록(02 v2.42 `job_run` · 설계 13 §8 R73 K4 · 필수).
   final JobRunLog runLog;
+
+  /// 🆕 E14c2 — `planned_work` 평시 정리(마감 잡 끝 · 설계 13 §8 R74 M5 · 필수).
+  final PlannedWorkLedger plannedWork;
 
   /// [job] 의 체크 이름.
   String checkOf(String job) =>
@@ -326,14 +337,21 @@ class KrOrderJobs {
       dayEnd: true,
       costs: config.fillCosts,
     );
+    // 🆕 E14c2(R74 M4 · M5) — 그날 발주 · 체결이 끝난 뒤 계획 행을 정리(끝남 = DONE · 기한 지남 = EXPIRED).
+    final int settled = await plannedWork.settle(today);
     return JobBody<KrOrderCloseReport>(
-      KrOrderCloseReport(unknowns: unknowns, fills: fills),
+      KrOrderCloseReport(
+        unknowns: unknowns,
+        fills: fills,
+        plannedSettled: settled,
+      ),
       alerts: <String>{
         if (fills.unresolved.isNotEmpty || unknowns.ambiguous.isNotEmpty)
           AlertCodes.orderOutcomeUnknown,
       },
       note:
-          '체결 반영 ${fills.applied.length} · 실효 ${fills.expired.length} · 미해소 ${fills.unresolved.length}',
+          '체결 반영 ${fills.applied.length} · 실효 ${fills.expired.length} · 미해소 ${fills.unresolved.length} · '
+          '계획 정리 $settled',
     );
   });
 

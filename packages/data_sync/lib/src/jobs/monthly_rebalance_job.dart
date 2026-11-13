@@ -16,6 +16,8 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../local/deposit_ledger.dart';
+import '../local/planned_work_store.dart'
+    show monthlyPlanOneLine, registerPlannedWork;
 import '../market/market_store.dart';
 import '../market/regime_store.dart';
 import 'daily_jobs.dart';
@@ -147,6 +149,27 @@ List<OrderTarget> _targetsOf(Map<String, Object?> outputs) => <OrderTarget>[
   for (final Object? t
       in (outputs['targets'] as List<Object?>? ?? const <Object?>[]))
     orderTargetFromJson(t! as Map<String, Object?>),
+];
+
+/// 이미 낸 대상인가 — 멱등키와 같은 축(논리 id@집행일 · 종목 · 방향 · 04 §3-2). 🔴 논리 id 만으로 보지 않는다 —
+/// 한 논리 id 에 대상이 여럿이다(예 `C-REBAL-{월말}` = 채권 · 금).
+bool planTargetIssued(Database db, OrderTarget t) => db.select(
+  'SELECT 1 FROM order_intents WHERE substr(decision_id, 1, ?) = ? AND symbol = ? AND side = ? LIMIT 1',
+  <Object?>[
+    t.logicalDecisionId.length + 1,
+    '${t.logicalDecisionId}@',
+    t.symbol,
+    t.side.wire,
+  ],
+).isNotEmpty;
+
+/// 🆕 E14c2(R74 M4) — 계획의 대상 가운데 아직 낸 적 없는 것(`StoredPlanTargetSource` · 평시 정리가 같은 축).
+List<OrderTarget> unissuedPlanTargets(
+  Database db,
+  Map<String, Object?> outputs,
+) => <OrderTarget>[
+  for (final OrderTarget x in _targetsOf(outputs))
+    if (!planTargetIssued(db, x)) x,
 ];
 
 /// `monthly_rebalance`(월말 다음 KR 세션 08:00 · R48).
@@ -377,6 +400,8 @@ class MonthlyRebalanceJob {
       'after': monthEndStateToJson(plan.after),
     };
     final String decisionId = monthEndDecisionIdOf(d);
+    final String expires = _nextJudgementDay(d);
+    final String outputsJson = jsonEncode(outputs);
     inLedgerTransaction(_db, () {
       _db.execute(
         'INSERT INTO plan_snapshot(plan_id, kind, computed_at, as_of_trade_date, expires_at, inputs, outputs, config_hash) '
@@ -385,12 +410,12 @@ class MonthlyRebalanceJob {
           rebalancePlanIdOf(d),
           now,
           d,
-          _nextJudgementDay(d),
+          expires,
           jsonEncode(<String, Object?>{
             ...monthEndStateToJson(state),
             'monthly_closes': monthly,
           }),
-          jsonEncode(outputs),
+          outputsJson,
           _configHash,
         ],
       );
@@ -430,6 +455,16 @@ class MonthlyRebalanceJob {
           _configHash,
         ],
       );
+      // 🆕 E14c2(R74 M1 · M2) — 같은 트랜잭션에 `planned_work` 1행 · 낼 수 있는 마지막 세션 = 다음 판정 날의 앞 세션.
+      registerPlannedWork(
+        _db,
+        kind: ResumeWorkKinds.monthlyPlan,
+        decisionId: decisionId,
+        dueBy: _kr.nthSessionBefore(TradeDate(expires), 1),
+        oneLine: monthlyPlanOneLine(d),
+        payloadJson: outputsJson,
+        createdAtUtc: now,
+      );
     });
     // 🆕 E11g — 계층 B 판정(저장 뒤 · 실패해도 계획은 남는다 → 다시 돌리면 판정만 · R50 T1 · T8).
     return _report(d, outputs, created: true, tierB: _tierB(monthEnd));
@@ -444,18 +479,6 @@ class StoredPlanTargetSource implements TargetSource {
 
   final Database _db;
 
-  /// 이미 낸 대상인가 — 멱등키와 같은 축(논리 id@집행일 · 종목 · 방향 · 04 §3-2). 🔴 논리 id 만으로 보지 않는다 —
-  /// 한 논리 id 에 대상이 여럿이다(예 `C-REBAL-{월말}` = 채권 · 금).
-  bool _issued(OrderTarget t) => _db.select(
-    'SELECT 1 FROM order_intents WHERE substr(decision_id, 1, ?) = ? AND symbol = ? AND side = ? LIMIT 1',
-    <Object?>[
-      t.logicalDecisionId.length + 1,
-      '${t.logicalDecisionId}@',
-      t.symbol,
-      t.side.wire,
-    ],
-  ).isNotEmpty;
-
   @override
   Future<List<OrderTarget>> targetsFor(TradeDate today) async {
     final (String, String, Map<String, Object?>)? p = SqliteRebalancePlanStore(
@@ -468,9 +491,6 @@ class StoredPlanTargetSource implements TargetSource {
     if (t.compareTo(exec) < 0 || t.compareTo(expires) >= 0) {
       return const <OrderTarget>[];
     }
-    return <OrderTarget>[
-      for (final OrderTarget x in _targetsOf(o))
-        if (!_issued(x)) x,
-    ];
+    return unissuedPlanTargets(_db, o);
   }
 }
