@@ -50,6 +50,8 @@
 //   뷰어 `V-01`) · `UnimplementedSettingsActions` 주석(O-00b·O-03·O-04 는 결과를 읽는다).
 //   🆕 계약 v1.17 R16 선행(01 §26 · K23) — `UnimplementedIncidentRepository`(1) · `UnimplementedRunbookRepository`(3) ·
 //   `UnimplementedHandbookRepository`(2) · `UnimplementedOpsStatusRepository` +1(`watchDeviceRisk` · 7).
+//   🆕 계약 v1.18 R6 선행(01 §27 · K-v) — `UnimplementedSettingsRepository`(1 · 동기 throw) · `UnimplementedOpsStatusRepository`
+//   무변경(7 · `watchConnections` 반환 타입 그대로).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -272,6 +274,13 @@ class UnimplementedHandbookRepository implements HandbookRepository {
   @override
   Stream<HandbookPage> watchPage(String anchor) =>
       throw UnimplementedError('watchPage');
+}
+
+/// 🆕 계약 v1.18(01 §27 · K-v) — [SettingsRepository] 받침대(`S01` 가짜의 받침대 · 뒤 카드가 메서드를 더하면 같은 커밋에서 고친다).
+/// 🔴 동기로 던진다.
+class UnimplementedSettingsRepository implements SettingsRepository {
+  @override
+  Stream<SettingsHomeVm> watchHome() => throw UnimplementedError('watchHome');
 }
 
 /// 🆕 계약 v1.12(01 §21 · K9 · K28) — [SettingsActions] 받침대(`L-3` 세션 start·stop 가짜의 받침대).
