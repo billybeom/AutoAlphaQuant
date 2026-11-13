@@ -704,6 +704,24 @@ final class SqliteOrderLedger implements OrderPathLedger {
   static const String _noBrokerOrder =
       'NOT EXISTS (SELECT 1 FROM broker_orders b WHERE b.intent_id = i.intent_id)';
 
+  /// 🆕 E14d1(R75 N6) — UNKNOWN 의도 전체 수(브로커 주문이 있든 없든 · 재개 child 전제).
+  int unknownCount() =>
+      _db
+              .select(
+                "SELECT COUNT(*) AS n FROM order_intents WHERE status = 'UNKNOWN'",
+              )
+              .first['n']!
+          as int;
+
+  /// 🆕 E14d1(R75 N6) — RESERVED · SUBMITTING 잔류 수(재개 child 전제 · 보강 (a)).
+  int residualCount() =>
+      _db
+              .select(
+                "SELECT COUNT(*) AS n FROM order_intents WHERE status IN ('RESERVED', 'SUBMITTING')",
+              )
+              .first['n']!
+          as int;
+
   @override
   Future<List<UnknownIntent>> unknownIntents() async => <UnknownIntent>[
     for (final Row r in _db.select(

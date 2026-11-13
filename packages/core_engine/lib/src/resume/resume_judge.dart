@@ -90,6 +90,9 @@ abstract final class ResumeReasonCodes {
 
   /// 사람이 그대로를 고름.
   static const String humanAsIs = 'HUMAN_AS_IS';
+
+  /// 🆕 E14d1 — 재판정 포트가 실패했다(항목은 그대로 · 플래그 유지 · R75 N7).
+  static const String reevaluationFailed = 'REEVALUATION_FAILED';
 }
 
 /// 계절 선택 거부 코드(R72 J6).
