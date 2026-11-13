@@ -15,4 +15,6 @@
 /// ui_settings의 정적 UI 라벨 모음. 인스턴스를 만들지 않는다.
 abstract final class SettingsLabels {
   // 예: static const String save = '저장';
+  static const String retry = '다시 시도';
+  static const String staleBannerTitle = '오래된 데이터';
 }
