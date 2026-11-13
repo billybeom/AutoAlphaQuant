@@ -166,7 +166,11 @@ class _Alerts implements AlertSink {
 }
 
 class _Rig {
-  _Rig({DateTime? now, KrOrderConfig? config}) {
+  _Rig({
+    DateTime? now,
+    KrOrderConfig? config,
+    Future<void> Function(TradeDate)? preGuard,
+  }) {
     clock = now ?? _kst(_d1, 9, 10);
     jobs = KrOrderJobs(
       ledger: ledger,
@@ -182,6 +186,7 @@ class _Rig {
       lease: lease,
       runLog: runLog,
       plannedWork: plannedWork,
+      preGuard: preGuard,
       sleep: (Duration d) async => sleeps.add(d),
     );
   }
@@ -408,6 +413,16 @@ void main() {
     early.at(_d1, 15, 39);
     await early.jobs.runClose();
     expect(early.plannedWork.calls, isEmpty);
+  });
+
+  test('🆕 E14d2b KrOrderJobs 가드 = 잡마다 그 세션일로 한 번(R77 S2)', () async {
+    final List<TradeDate> calls = <TradeDate>[];
+    final _Rig rig = _Rig(preGuard: (TradeDate d) async => calls.add(d));
+    rig.at(_d1, 9, 10);
+    await rig.jobs.runOpen();
+    rig.at(_d1, 15, 45);
+    await rig.jobs.runClose();
+    expect(calls, <TradeDate>[_d1, _d1]);
   });
 
   group('하루 — 07:00 대사 → 09:10 배치 → 15:40 마감 실효 → 다음 날 이월(R42 S10)', () {

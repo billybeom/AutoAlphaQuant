@@ -436,13 +436,15 @@ export 'src/resume/resume_judge.dart'
         SeasonalChoiceCodes,
         SeasonalWindowChoice,
         judgeResumeItem,
+        kSeasonalReducedEntryRatio,
         reevaluatedJudgement,
         resumeAutoAllows,
         resumeHaltReason,
         resumePriorityOrder,
         resumeReleasesFlag,
         seasonalChoiceJudgement,
-        seasonalChoiceRejectCode;
+        seasonalChoiceRejectCode,
+        seasonalReducedShares;
 // 🆕 E14d1 — 재판정 포트(설계 13 §8 R75 N7 · 실물 = E14d2).
 export 'src/resume/resume_reevaluator.dart' show ResumeReevaluator;
 export 'src/resume/resume_text.dart'

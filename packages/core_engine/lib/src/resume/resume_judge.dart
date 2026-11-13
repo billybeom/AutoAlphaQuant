@@ -382,6 +382,17 @@ String? seasonalChoiceRejectCode({
   );
 }
 
+/// 🆕 E14d2b(R77 · 🔴 발주자 결정 2026-11-13) — 계절 A 축소 진입 = 원 목표 주수의 이 비율(내림).
+const double kSeasonalReducedEntryRatio = 0.5;
+
+/// 축소 진입 주수 — 원 목표 × [kSeasonalReducedEntryRatio] 내림 · 음수 = [ArgumentError].
+int seasonalReducedShares(int targetShares) {
+  if (targetShares < 0) {
+    throw ArgumentError.value(targetShares, 'targetShares', '음수');
+  }
+  return (targetShares * kSeasonalReducedEntryRatio).floor();
+}
+
 /// 계절 선택의 결과(R72 J6).
 ResumeItemJudgement seasonalChoiceJudgement(SeasonalWindowChoice choice) =>
     switch (choice) {

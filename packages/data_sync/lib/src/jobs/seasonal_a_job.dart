@@ -380,6 +380,11 @@ class SeasonalTargetSource implements TargetSource {
             w.first['verdict_code'] == VerdictCodes.executedAsReevaluated);
   }
 
+  bool _reducedChosen(String decisionId) => _db.select(
+    'SELECT 1 FROM decision_log WHERE parent_decision_id = ? AND reason_code = ? LIMIT 1',
+    <Object?>[decisionId, ResumeReasonCodes.humanReduced],
+  ).isNotEmpty;
+
   bool _issuedToday(String id, String today, String symbol, OrderSide side) =>
       _db.select(
         'SELECT 1 FROM order_intents WHERE decision_id = ? AND symbol = ? AND side = ? LIMIT 1',
@@ -425,7 +430,11 @@ class SeasonalTargetSource implements TargetSource {
       }
     }
     final String? sideWire = s['side'] as String?;
-    final int shares = s['target_shares'] as int? ?? 0;
+    int shares = s['target_shares'] as int? ?? 0;
+    // 🆕 E14d2b(R77 · 🔴 발주자 결정) — 사람이 축소 진입을 골랐으면 원 목표의 50%(내림).
+    if (_reducedChosen(seasonalDecisionIdOf(outcome, anchor))) {
+      shares = seasonalReducedShares(shares);
+    }
     if (sideWire != null &&
         shares > 0 &&
         _legAllowed(seasonalDecisionIdOf(outcome, anchor))) {

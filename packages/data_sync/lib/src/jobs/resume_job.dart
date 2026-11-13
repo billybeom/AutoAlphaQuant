@@ -218,25 +218,13 @@ class ResumeJob {
       }
       commit(ResumePhase.r4);
     }
-    // R5 — 증분 수집은 정기 잡이 갭을 메운다 · 소급 불가 기록 = E14d2.
-    if (due(ResumePhase.r5)) commit(ResumePhase.r5);
+    // R5 — 수집은 정기 잡이 증분으로 메운다 · 🆕 E14d2b(R77 S1) 소급 불가 `equity_snapshot` 공백 기록.
+    if (due(ResumePhase.r5)) {
+      _recordUnrecoverable(id, today);
+      commit(ResumePhase.r5);
+    }
     // R6 — 재판정.
-    final ResumePreconditions pre = _sim
-        ? ResumePreconditions(
-            reconMismatches: 0,
-            unknownOrders: 0,
-            residualOrders: 0,
-          )
-        : ResumePreconditions(
-            reconMismatches:
-                (await _ledger.activeBlockFlags()).contains(
-                  FlagIds.reconMismatch,
-                )
-                ? 1
-                : 0,
-            unknownOrders: _ledger.unknownCount(),
-            residualOrders: _ledger.residualCount(),
-          );
+    final ResumePreconditions pre = await _preconditions();
     final List<ResumeItem> items = <ResumeItem>[];
     final List<String> verdicts = <String>[];
     int failures = 0;
@@ -315,7 +303,7 @@ class ResumeJob {
     // R8 — 집계 · 머리말 · 끝 · 묶음 알림(이번에 R6 을 돌지 않았으면 이 회차의 전이에서 센다).
     final ResumeCounts counts = resumeCountsOf(
       verdictCodes: r6Now ? verdicts : store.roundVerdicts(id),
-      unrecoverableGaps: 0,
+      unrecoverableGaps: _unrecoverableOf(id),
     );
     final String headline = resumeHeadline(
       gapSessions: r.gapTradingDays,
@@ -337,7 +325,129 @@ class ResumeJob {
       haltReason: halt,
       flagReleased: released,
       reevaluationFailures: failures,
-      alerts: resumeBundleAlerts(flagReleased: released, unrecoverableGaps: 0),
+      alerts: resumeBundleAlerts(
+        flagReleased: released,
+        unrecoverableGaps: _unrecoverableOf(id),
+      ),
+    );
+  }
+
+  // child 전제(R3 · R4 결과 · simInternal = 자동 충족).
+  Future<ResumePreconditions> _preconditions() async => _sim
+      ? ResumePreconditions(
+          reconMismatches: 0,
+          unknownOrders: 0,
+          residualOrders: 0,
+        )
+      : ResumePreconditions(
+          reconMismatches:
+              (await _ledger.activeBlockFlags()).contains(FlagIds.reconMismatch)
+              ? 1
+              : 0,
+          unknownOrders: _ledger.unknownCount(),
+          residualOrders: _ledger.residualCount(),
+        );
+
+  /// 소급 불가 공백 id(R77 S1).
+  static String unrecoverableGapIdOf(String resumeRunId) =>
+      'GAP-$resumeRunId-equity_snapshot';
+
+  // 갭 세션(마지막 성공 다음 ~ 오늘 앞)을 `data_gap` 1행으로(같은 회차 두 번 = 한 행).
+  void _recordUnrecoverable(String runId, TradeDate today) {
+    final TradeDate? last = SqliteJobRunLog(_db)
+        .lastSuccessSession('equity_snapshot');
+    if (last == null) return;
+    final List<String> gap = <String>[];
+    for (
+      TradeDate d = _kr.nextSession(last);
+      d.yyyyMmDd.compareTo(today.yyyyMmDd) < 0;
+      d = _kr.nextSession(d)
+    ) {
+      gap.add(d.yyyyMmDd);
+    }
+    if (gap.isEmpty) return;
+    _db.execute(
+      'INSERT OR IGNORE INTO data_gap (gap_id, dataset, from_date, to_date, recoverable, reason_code, detected_at) '
+      "VALUES (?, 'equity_snapshot', ?, ?, 0, ?, ?)",
+      <Object?>[
+        unrecoverableGapIdOf(runId),
+        gap.first,
+        gap.last,
+        GapReasonCodes.resumeGap,
+        _clock.nowUtc().toUtc().toIso8601String(),
+      ],
+    );
+  }
+
+  int _unrecoverableOf(String runId) =>
+      _db.select(
+            'SELECT COUNT(*) AS n FROM data_gap WHERE gap_id = ? AND recoverable = 0',
+            <Object?>[unrecoverableGapIdOf(runId)],
+          ).first['n']!
+          as int;
+
+  /// 🆕 E14d2b(R77 S3) — 계절 A 진입 사람 선택 적용 — 거부 코드(쓰기 0) · null = 적용.
+  ///
+  /// 모드 = 마지막 재개 회차의 모드(없으면 NORMAL) · 전제 = R6 과 같은 셈. 허용이면 결정 행(kind ENTRY ·
+  /// reason_code = HUMAN_* · parent = 계절 판정)을 먼저 남기고(같은 id 두 번 = 무시) 전이(사람 결정 id)를 한다.
+  Future<String?> applySeasonalChoice({
+    required String workId,
+    required SeasonalWindowChoice choice,
+    required String decisionId,
+    required TradeDate today,
+  }) async {
+    final SqlitePlannedWorkStore planned = SqlitePlannedWorkStore(
+      _db,
+      carry: _ledger,
+      clock: _clock,
+    );
+    final PlannedWorkRow? row = planned
+        .rows()
+        .where((PlannedWorkRow w) => w.workId == workId)
+        .firstOrNull;
+    if (row == null) return PlannedWorkCodes.unknown;
+    final ResumeWorkItem? item = _itemOf(row);
+    if (item == null) {
+      return SeasonalChoiceCodes.notSeasonalEntry;
+    }
+    final ResultSet last = _db.select(
+      'SELECT mode FROM resume_run ORDER BY started_at DESC, resume_run_id DESC LIMIT 1',
+    );
+    final ResumeMode mode = last.isEmpty
+        ? ResumeMode.normal
+        : ResumeMode.values.firstWhere(
+            (ResumeMode m) => m.wire == last.first['mode'],
+          );
+    final String? code = seasonalChoiceRejectCode(
+      item: item,
+      choice: choice,
+      decisionId: decisionId,
+      today: today,
+      mode: mode,
+      advisory: _advisory,
+      preconditions: await _preconditions(),
+    );
+    if (code != null) return code;
+    final ResumeItemJudgement j = seasonalChoiceJudgement(choice);
+    _db.execute(
+      'INSERT OR IGNORE INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, '
+      "reason_code, config_hash, parent_decision_id) SELECT ?, ?, ?, mode, 'ENTRY', strategy_id, ?, ?, "
+      'config_hash, decision_id FROM decision_log WHERE decision_id = ?',
+      <Object?>[
+        decisionId,
+        _clock.nowUtc().toUtc().toIso8601String(),
+        today.yyyyMmDd,
+        '계절 A 진입 사람 선택 — ${choice.name}',
+        j.reasonCode,
+        row.decisionId,
+      ],
+    );
+    return planned.transition(
+      workId,
+      j.nextState,
+      today: today,
+      verdictCode: j.verdictCode,
+      decisionId: decisionId,
     );
   }
 
