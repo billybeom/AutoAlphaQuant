@@ -488,6 +488,10 @@ abstract final class FixturePaths {
   static const String m8AlertsDigest = 'm8/alerts_digest.json';
   static const String m8AlertsP0Ack = 'm8/alerts_p0_ack.json';
 
+  /// 🆕 v1.18(01 §27 · 엔진 등재형 K-z) — `AlertCodes.safety` 3 · `resume` 3 각 1행(글자 = 엔진 `alert_text.dart` 초안 ·
+  /// 등급 = 엔진 `kAlertLevels` · 등급 순).
+  static const String m8AlertsSafetyResume = 'm8/alerts_safety_resume.json';
+
   /// 🆕 v1.17(01 §26 · 엔진 D11 · K27) — `STALE_ORDERS_HELD`(P1 · 다음 날 가드 보류) 알림 1행.
   static const String m8AlertsStaleOrdersHeld =
       'm8/alerts_stale_orders_held.json';
@@ -624,6 +628,16 @@ abstract final class FixturePaths {
   static const String m8WatchdogPaused = 'm8/watchdog_paused.json';
 
   // ── m9/ — 설정·운영 모드 전환 (05) ──
+  // 🆕 v1.18(01 §27) — `S01` 3 · `S07` 3 · M9 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
+  /// 🆕 v1.18 — `S07` 정상(행 5 · 레벨 5값 전수 · 부분 동기 · 실패 2 · 미설정 · 워치독·캘린더 링크 · 카카오 선택 + 배지).
+  static const String m9Connections = 'm9/connections.json';
+
+  /// 🆕 v1.18 — `S07` 잠김(운영 등급 생체 축소 · `lockedLabel` · 모든 `actions` 빈 · `selectAction` 전부 null).
+  static const String m9ConnectionsLocked = 'm9/connections_locked.json';
+
+  /// 🆕 v1.18 — `S07` 전부 정상 · 행 4(캘린더 행 0 = `calendarEnabled` false 엔진 몫) · 텔레그램 선택.
+  static const String m9ConnectionsTelegram = 'm9/connections_telegram.json';
+
   // 🆕 v1.4(R11 선행) — `ConfigRepository.watchContributionSetting()` 의 입력(폴더 규약상 `m9_` 접두 없음).
   /// 월 납입 설정 — `pension_limit_note_text` 있음.
   static const String m9ContributionSettingDefault =
@@ -633,6 +647,20 @@ abstract final class FixturePaths {
   static const String m9ContributionSettingNoLimitNote =
       'm9/contribution_setting_no_limit_note.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
+
+  /// 🆕 v1.18 — M9 `S07` 동작 결과 `ActionResult` 5(레벨 5값 · `SettingsResultCodes` 3 + null 2 · 넘김 0 · 재시도 0).
+  static const String m9SettingsActionResults =
+      'm9/settings_action_results.json';
+
+  /// 🆕 v1.18 — `S01` 정상(묶음 3 · 카드 11 · 레벨 5값 · 주의 배지 · 승격 줄 · 연간 리뷰 링크).
+  static const String m9SettingsHome = 'm9/settings_home.json';
+
+  /// 🆕 v1.18 — `S01` 연간 리뷰 링크 0 · 승격 줄 0.
+  static const String m9SettingsHomeNoReview =
+      'm9/settings_home_no_review.json';
+
+  /// 🆕 v1.18 — `S01` 뷰어 판(폰 전용 행을 엔진이 뺀 VM).
+  static const String m9SettingsHomeViewer = 'm9/settings_home_viewer.json';
 
   /// 전량 목록 — C-14 시크릿 스캔·C-15 열거값 대조가 이 목록을 돈다.
   static const List<String> all = <String>[
@@ -801,6 +829,7 @@ abstract final class FixturePaths {
     m8AlertsAdvice9codes,
     m8AlertsDigest,
     m8AlertsP0Ack,
+    m8AlertsSafetyResume,
     m8AlertsStaleOrdersHeld,
     m8DeviceRiskEmpty,
     m8DeviceRiskItems,
@@ -873,8 +902,15 @@ abstract final class FixturePaths {
     m8WatchdogEmpty,
     m8WatchdogHoliday,
     m8WatchdogPaused,
+    m9Connections,
+    m9ConnectionsLocked,
+    m9ConnectionsTelegram,
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
     m9HandoverStates,
+    m9SettingsActionResults,
+    m9SettingsHome,
+    m9SettingsHomeNoReview,
+    m9SettingsHomeViewer,
   ];
 }

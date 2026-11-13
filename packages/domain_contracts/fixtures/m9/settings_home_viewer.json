@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.18.0",
+    "generated_at": "2026-11-13T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261113,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "설정 기준 2026-08-31 09:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "status_chip": { "label": "실전 · 관찰 중 · 골든벡터 통과", "level": "WATCH", "promotion_label": "승격 불가 — 무결 거래일이 아직 모자랍니다(1/2)" },
+      "annual_review_link": { "label": "12월 연간 리뷰가 열렸습니다", "deep_link": "aaq://settings/annual-review" },
+      "groups": [
+        {
+          "tier": "GENERAL",
+          "label": "일반",
+          "cards": [
+            { "code": "SET_GENERAL", "title": "알림·방해금지·화면", "level": "OK", "status_label": "P1 묶음 · 22:00–07:00 조용히", "attention_text": null, "route": "aaq://settings/general" }
+          ]
+        },
+        {
+          "tier": "OPERATIONAL",
+          "label": "운영 · 들어갈 때 생체 인증",
+          "cards": [
+            { "code": "SET_CONNECTIONS", "title": "연결", "level": "BLOCKED", "status_label": "5개 중 3개 확인 필요", "attention_text": "3", "route": "aaq://settings/connections" }
+          ]
+        },
+        {
+          "tier": "RULE",
+          "label": "규칙 · 12월 창에서만 적용",
+          "cards": [
+            { "code": "SET_ALLOCATION", "title": "전략·배분", "level": "OK", "status_label": "balanced(P0S)", "attention_text": null, "route": "aaq://settings/allocation" }
+          ]
+        }
+      ],
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "설정 기준 2026-08-31 09:00" }
+    }
+  ]
+}
