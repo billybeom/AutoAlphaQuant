@@ -534,3 +534,27 @@ R16(`D-01`~`D-03` · `B-01` · `B-02` · `H-03`) 세 카드의 선행과 엔진 
 🔴 **만들지 않은 이름**(재론 방지): `IncidentBanner.action`(C-50 ⑨ 충돌 — 실물 = `actionLink`) · 런북 창구를 `incident_repository.dart` 에 같이 두기(별 파일 — K7) · 화면이 `handbook://$anchor` 를 짓는 것(링크 = 데이터) · `RunbookStep` 실행 링크·슬롯 칸(01 §8 미결 161) · 1.17.0 을 엔진 단독 판으로 쓰기(D11 = 이 판 · D11 밖 «1.17.0 창» 몫 = 1.18.0).
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 159~166(밀어 넣은 화면 위 배너 · 전역 슬롯 ① 게이트 · 단계별 실행 자리 · 핸드북 하위 앵커·접힘 · 뒤처짐 P1 코드 · R16 VM 산출 원천 · `incident_token_expired` 바인딩 · 일지 칩 사전 전수) · 123(H-01 블록 9 렌더) · 엔진 숙제(06 변경 이력 · 번호 1.18.0) · 조립 앱 몫(06 `M4-12`).
+
+## W. 🆕 계약 v1.18 (2026-11-13 · R6 선행 M2 보강 + 엔진 등재형 7) — M9 설정 홈 · 연결 관리 · 라우트 80 · `ui_settings` 골든 받침 · 셸 «더보기»
+
+R6a(`S01`)·R6b(`S07`) 두 카드의 선행과 엔진 등재형 7코드(13 §8 R55·R70 · `contract_version.dart` 예약 몫)를 한 판으로 닫았다. `contractVersion` = **`1.18.0`**(엔진 다음 = 1.19.0 · R6c `S05` `OperationsVm` 도 1.19.0) · 픽스처 **248건**(240 + 신설 8 · 개정 1 · 버전 줄만 239) · 조문 = 01 §27.
+상태 = ✅ 병합 PR #142 squash `b582c49`(2026-11-13 · CI 3/3 · head `58eeed7` · 커밋 7 · 밑동 `47f8198`(E14c2) · 원격 가지 삭제).
+결정 = 발주자 2026-11-13 Q1~Q4 모두 권고(정본 = 설계 `10_리뷰/2026-11-13_R6선행_계약v1.18_설계서.md` §3 · 통합 담당 기본값 K-a~K-l · 갈림 결론 K-m~K-z).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| W-1 | enum `SettingTier{general, operational, rule}` | 🆕 `enums/settings.dart` · `GENERAL`·`OPERATIONAL`·`RULE` · 자물쇠 아이콘·묶음 머리에만 · 등급 = 엔진 |
+| W-2 | `SettingsHomeVm{statusChip, annualReviewLink?, groups, asOf}`(교체) · 🆕 `SettingsGroup{tier, label, cards}` · 🆕 `EngineStatusChip{label, level, promotionLabel?}` | `S01` · `dto/settings.dart` · 묶음 차례 = 엔진 · 연간 링크 = OPEN 만 · 칩 = DRY_RUN 글자 0 · 손익 0 · `isViewer` 칸 0(뷰어 판 = 엔진이 폰 전용 행을 뺀다) · K-o |
+| W-3 | `SettingsCard` += `attentionText?` · − `actionAvailable` | 주의 = 글자(int 아님) · 카테고리 아이콘 사전 0(행 아이콘 = `level` — K-p) · 부재 = 목록에 없음(K-q) |
+| W-4 | `SettingsRepository{watchHome()}` · 받침대 `UnimplementedSettingsRepository` | 🆕 `repositories/settings_repository.dart` · K-c · K-v · 뒤 카드가 추가형으로 늘린다 · `S07` = `OpsStatusRepository.watchConnections()` 그대로 |
+| W-5 | `typedef SettingsActionCall = OnboardingAction` | `dto/settings.dart` · 엔진 완성 호출(`id` · `args` · `label`) · K-d |
+| W-6 | `ConnectionsVm` += `lockedLabel?` · `ConnectionRow` += `detailLine?` · `level` · `actions`(기본 []) · `channelPicker?` · − `actionAvailable` | `S07` · `dto/ops.dart` · 짝 규칙(OK ⇔ ok · NOT_SET ⇒ info · FAILED ⇒ act/blocked · LAGGED ⇒ watch/act) · 잠기면 엔진이 동작 칸을 비운다(화면은 거르지 않는다) · K-r · K-t |
+| W-7 | 🆕 `NotifyChannelCard{label, options, capabilityNotice, tokenBadgeText?, watchdogChannelLine}` · 🆕 `NotifyChannelOption{code, label, selected, selectAction?}` · `SettingsActionId.notifyChannelSelect`(`NOTIFY_CHANNEL_SELECT`) | 알림 채널 행에 붙음(`ConnectionRow.channelPicker` — 메모 권고 `ConnectionsVm.notifyChannel` 에서 바꿈 · K-n ⓐ) · args `{channel}` · 01 §8 미결 140 `S07` 몫 |
+| W-8 | 사전 `ConnectionTargetCodes`(6 · `connection_target`) · `NotifyChannelCodes`(2 · `notify_channel`) · `SettingsResultCodes`(3 · `settings_result`) | 🆕 `labels/settings_codes.dart` · args `connectionTest`·`connectionSyncNow` = `{target}` · 01 §8 미결 151 `target` 몫 · K-u |
+| W-9 | 라우트 11 `settingsHome`(`aaq://settings`) · `settingsAccounts` · `settingsAllocation` · `settingsOperations` · `settingsDevices` · `settingsConnections` · `settingsCalendar` · `settingsBackup` · `settingsDiagnostics` · `settingsGeneral` · `settingsAnnualReview`(`aaq://settings/annual-review`) | K-w · `AppRoutes.all` 69 → 80 · `settingsCredentials` 뒤 · 셸 가드 기본 open · 폰 전용 = 조립 앱 레지스트리(06 `M4-12` ⑤) |
+| W-10 | 엔진 등재형 — `AlertCodes.safety`{`breakerStopped` · `ledgerIntegrityBroken` · `stoppedReleaseEligible`} · `AlertCodes.resume`{`resumeTradingHalted` · `resumeCompleted` · `resumeDataGap`}(25 → 31) · `JournalReasonCodes.leaseInvalid`(`LEASE_INVALID`) | K-z · 01 §27-8 · 엔진 lib 0줄 · `core_engine` test 1 hunk · 🔴 `leaseInvalid` ≠ `AdviceRejectCodes.leaseExpired`(다른 축) · 엔진 소비 = 01 §8 미결 171 |
+| W-11 | 계약 테스트 C-52(`c52_r6_settings_connections_test.dart` · 13항) · 생성기 `tool/gen_r6_v118_fixtures.py` · 계약 밖 `ui_settings/test/golden/golden_support.dart`(`ui_shell` 판 복사) · 셸 «더보기» = `KeyedSubtree(s01-more-slot, ShellRouteBody(settingsHome))`(TS-10 2) | K-x · K-y · `ui_settings` 주입 이름(카드 몫) `settingsRepositoryProvider` · `settingsOpsStatusRepositoryProvider` · `settingsClockProvider` · `settingsLinkOpenerProvider` · `settingsActionsProvider`(`SettingsActions?` 기본 null = 뷰어) |
+
+🔴 **만들지 않은 이름**(재론 방지): `ConnectionsVm.notifyChannel`(실물 = 행에 붙는 `ConnectionRow.channelPicker`) · `SettingsCard.actionAvailable`·`ConnectionRow.actionAvailable`(삭제 — 부재 = 목록에 없음 / 동작 목록 빔) · `SettingsHomeVm.isViewer`(뷰어 판 = 엔진이 행을 뺀다) · 카테고리 아이콘 사전(코드로 아이콘을 고르면 «코드로 분기 0» 위반) · `OperationsVm`(R6c · 1.19.0).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 167~171(S05 계약 = v1.19 · S01·S07 VM 산출 원천 · 운영 등급 생체 주체·세션 · S11·S12 카드 배정 · 엔진 등재형 소비) · 16 · 95 · 127 · 140(N-01 첫 진입 쪽) · 151(`credentialVerify.kind` = R7) · 엔진 숙제(06 변경 이력 «2026-11-13 · 계약 v1.18» · 번호 1.19.0) · 조립 앱 몫(06 `M4-12` ⑤).

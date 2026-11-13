@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 100개 · 계약 v1.17.0 · 조립일 2026-11-05(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 103개 · 계약 v1.18.0 · 조립일 2026-11-13(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -33,6 +33,7 @@
 //    (M2-8 C-11) · `AccountMappingVm`·`AllocationEditorVm`·`OperationsVm`
 //    (M2-8 §G 표 미등재)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
 //    들어왔다(`dto/incident.dart`).
+//    🆕 v1.18(01 §27) — `S01`·`S07` 계약 확정(`SettingsHomeVm` 교체 · `SettingsRepository`) · `OperationsVm` = v1.19.
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';
@@ -87,7 +88,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -197,13 +198,22 @@ export 'commands/settings_actions.dart';
 //    `HandbookRepository` · `OpsStatusRepository.watchDeviceRisk`(추가형) · 라우트 69 · `OpsSlotIds` · 받침대 3 + 1 · 🆕 C-51 ·
 //    🔴 엔진 D11 4건(R31 체결 키 주석 · `JournalStatus.expired` · `AlertCodes.staleOrdersHeld` · PREVENTED 근거 = `JournalReasonCodes`) ·
 //    픽스처 219 → 240(신설 21 · 개정 3) — 🆕 tool/gen_r16_v117_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
-//    엔진 다음 계약 판 = 1.18.0(13 §8 R55 E13i1·i2 · E11d X12 등 «계약 창» 몫 · 06 변경 이력).
+//    엔진 다음 계약 판 = 1.18.0(13 §8 R55 E13i1·i2 · E11d X12 등 «계약 창» 몫 · 06 변경 이력) — 🆕 v1.18 이 R6 선행과
+//    한 판으로 엔진 등재형 7 을 실었다 · E13i1·i2 등 나머지 = 1.19.0(아래).
+// 🆕 '1.18.0'(R6 선행 + 엔진 등재형 7 · 01 §27 · 발주자 결정 2026-11-13 Q1~Q4 · K-a~K-z) — M9 S01 설정 홈 · S07 연결 관리 표시·동작 계약:
+//    `SettingsHomeVm` 교체(`statusChip`·`annualReviewLink`·`groups`·`asOf`) · 🆕 `SettingsGroup`·`EngineStatusChip`·enum `SettingTier` ·
+//    `SettingsCard` += `attentionText` − `actionAvailable` · `ConnectionsVm` += `lockedLabel` · `ConnectionRow` += `detailLine`·`level`·
+//    `actions`·`channelPicker` − `actionAvailable` · 🆕 `NotifyChannelCard`·`NotifyChannelOption` · `typedef SettingsActionCall` ·
+//    `SettingsActionId.notifyChannelSelect` · 🆕 `SettingsRepository` · 라우트 80(M9 11) · 사전 3(`connection_target`·`notify_channel`·
+//    `settings_result`) · 받침대 1 · 🆕 C-52 · 🔴 엔진 등재형 7(`AlertCodes.safety` 3 · `resume` 3 · `JournalReasonCodes.leaseInvalid`) ·
+//    픽스처 240 → 248(신설 8 · 개정 1 — `incident_token_expired` 바인딩) — 🆕 tool/gen_r6_v118_fixtures.py(기준 = M2 밑동 원문에서 멱등).
+//    엔진 다음 계약 판 = 1.19.0(13 §8 R55 E13i1·i2 · E14i 재개 VM · E11d X12 등 + R6c S05 `OperationsVm` · 06 변경 이력).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.17.0';
+const String contractVersion = '1.18.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -307,6 +317,7 @@ export 'enums/performance.dart';
 export 'enums/rebalance.dart';
 export 'enums/resume.dart';
 export 'enums/safety.dart';
+export 'enums/settings.dart';
 export 'enums/sleeve.dart';
 export 'enums/ui.dart';
 ```
@@ -397,6 +408,7 @@ export 'repositories/rebalance_repository.dart';
 export 'repositories/resume_repository.dart';
 export 'repositories/runbook_repository.dart';
 export 'repositories/safety_repository.dart';
+export 'repositories/settings_repository.dart';
 export 'repositories/what_if_api.dart';
 ```
 
@@ -1422,6 +1434,8 @@ abstract class LedgerEventRecord with _$LedgerEventRecord {
 //    대기·체크리스트 7항 UI 를 화면이 만들면 반려다.
 // 🆕 v1.16(01 §25) — 온보딩 args 화이트리스트(`onboardingOperatingModeSelect` · `onboardingDryRunStart` · 검증 3) ·
 //    O-00b·O-03·O-04 는 결과를 읽는다.
+// 🆕 v1.18(01 §27) — M9 `S07` args 화이트리스트(`connectionTest`·`connectionSyncNow` = `{target}` ·
+//    `notifyChannelSelect` = `{channel}`) · S07 은 결과를 읽는다(`SettingsResultCodes`).
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -1466,6 +1480,15 @@ part 'settings_actions.g.dart';
 ///      (`O-03` 은 + `retryable` · `O-00b`·`O-04` 는 다시 시도 갈래가 없다 — 표본 `retryable` 전부 false)
 ///      (표본 = `m8/onboarding_mode_select_results` · `m8/onboarding_verify_results` · `m8/onboarding_finish_results`).
 ///      `level`·`handoffRoute`·`actionRunId` 로 화면이 분기하지 않는다(아이콘 = `level` 5값 전수).
+///
+///    🆕 v1.18(01 §27 · K-r · K-s · K-u) — M9 `S07`(폰 로컬 · 운영 등급 · 뷰어 경로 0):
+///    · `connectionTest`·`connectionSyncNow` = `{target ∈ ConnectionTargetCodes}`(엔진이 `ConnectionRow.actions` 에 완성 —
+///      값 = 그 행의 `target` · 🔴 화면은 그대로 넘긴다 · 01 §8 미결 151 의 `target` 몫 해소)
+///    · `notifyChannelSelect` = `{channel ∈ NotifyChannelCodes}`(`NotifyChannelOption.selectAction`)
+///    🔴 `S07` 은 [ActionResult] 를 읽는다 — `headline` + `reasonCode` 원문(`SettingsResultCodes`) · `retryable` 전부 false
+///      (버튼 = 행 `actions` 뿐 · 05 «재시도 무한 버튼 0») · `handoffRoute` null(표본 = `m9/settings_action_results`).
+///    ⏸ S05 4동작(`runtimeModeSwitchRequest` · `runtimeOperatingModeSwitchRequest` · `runtimeEngineStart` · `runtimeEngineStop`)
+///      args = 계약 v1.19 · `settingsContributionUpdate` = R8 창(엔진 E11j).
 ///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
@@ -4343,6 +4366,8 @@ import '../enums/ledger.dart';
 import '../enums/ui.dart'; // 🆕 v1.13 — DiagnosticCell.level
 import '../primitives/as_of.dart';
 import 'common.dart';
+import 'onboarding.dart'; // 🆕 v1.18 — SettingsActionCall 의 원형(freezed copyWith 가 `$OnboardingActionCopyWith` 를 본다)
+import 'settings.dart'; // 🆕 v1.18 — SettingsActionCall
 
 part 'ops.freezed.dart';
 part 'ops.g.dart';
@@ -4485,36 +4510,101 @@ abstract class OpsDailySummary with _$OpsDailySummary {
       _$OpsDailySummaryFromJson(json);
 }
 
-/// m2-8 G-7 — 연결 관리(05 `S07`).
+/// m2-8 G-7 — 연결 관리(05 `S07`). 🆕 v1.18(01 §27 · K-r · K-t) — [lockedLabel] 추가.
+/// 🔴 행 수·차례 = 엔진(«5장 고정» 아님 · `calendarEnabled == false` 면 캘린더 행 0).
 @freezed
 abstract class ConnectionsVm with _$ConnectionsVm {
   const factory ConnectionsVm({
     required List<ConnectionRow> rows,
     required AsOf asOf,
+
+    /// 🆕 v1.18 — 운영 등급 생체 축소 글자(non-null = 보기만). 🔴 엔진 의무 = 이때 모든 행 `actions` 빈 ·
+    /// `selectAction` 전부 null — 화면은 이 칸으로 컨트롤을 거르지 않는다(받은 대로 + 머리 글자 한 줄).
+    String? lockedLabel,
   }) = _ConnectionsVm;
 
   factory ConnectionsVm.fromJson(Map<String, dynamic> json) =>
       _$ConnectionsVmFromJson(json);
 }
+// JSON 키: rows · as_of · locked_label
 
-/// m2-8 G-7 — 연결 1행.
+/// m2-8 G-7 — 연결 1행. 🆕 v1.18(K-q · K-r · K-s) — `actionAvailable` 삭제 · [detailLine] · [level] · [actions] · [channelPicker].
+/// 🔴 토큰·키·전체 URL 은 어떤 칸에도 오지 않는다(PAT = 만료일만 · C-14).
 @freezed
 abstract class ConnectionRow with _$ConnectionRow {
   const factory ConnectionRow({
+    /// `ConnectionTargetCodes` 값 — 🔴 화면 미참조(Key = 순번 · 행 찾기 0).
     required String target,
     required String label,
+
+    /// 🔴 화면 미참조(색 근거 아님 — [level]). 사전 밖 상태 축(C-5 `_fieldsOutsideDictionary`).
     required String statusCode,
     required String statusLabel,
     required String lastOkText,
 
-    /// 🔴 false 면 버튼을 **만들지 않는다**(비활성이 아니다).
-    required bool actionAvailable,
+    /// 🆕 v1.18 — 한 줄 상세(부분 동기 «9개 표 중 1개 지연 — 보유현황» · GitHub 커밋 줄). null = 줄 없음.
+    String? detailLine,
+
+    /// 🆕 v1.18 — 상태 점의 유일한 근거(짝 규칙 = 01 §27 K-r · C-52 ⑤).
+    required UiLevel level,
+
+    /// 🆕 v1.18 — 엔진이 완성한 호출(«연결 테스트» · «지금 동기화» · «시험 발송»). 빈 = 버튼 부재(뷰어는 화면이 그리지 않는다).
+    @Default(<SettingsActionCall>[]) List<SettingsActionCall> actions,
+
+    /// 상세 화면 링크(`settingsCalendar` · `opsWatchdog` · `settingsCredentials`). null = 탭 부재.
     String? route,
+
+    /// 🆕 v1.18 — 알림 채널 행에만 non-null(엔진 의무 · 화면은 `target` 으로 행을 찾지 않는다).
+    NotifyChannelCard? channelPicker,
   }) = _ConnectionRow;
 
   factory ConnectionRow.fromJson(Map<String, dynamic> json) =>
       _$ConnectionRowFromJson(json);
 }
+// JSON 키: target · label · status_code · status_label · last_ok_text · detail_line · level · actions · route · channel_picker
+
+/// 🆕 v1.18(01 §27 · K-s · 01 §8 미결 140) — `S07` 알림 채널 선택 블록(텔레그램 / 카카오톡).
+@freezed
+abstract class NotifyChannelCard with _$NotifyChannelCard {
+  const factory NotifyChannelCard({
+    /// «받을 채널» — 엔진.
+    required String label,
+
+    /// 받은 차례 · `selected` 정확히 1(엔진 의무).
+    required List<NotifyChannelOption> options,
+
+    /// 능력 차이 고지문 — 엔진(늘 · 04 §5-5 와 같은 글자 원천).
+    required String capabilityNotice,
+
+    /// 카카오 리프레시·만료 임박 배지 — 엔진. null = 배지 부재.
+    String? tokenBadgeText,
+
+    /// «생존 신호 경보는 따로 텔레그램이나 이메일로» — 엔진(늘 · 🔴 «중복»으로 숨기지 않는다).
+    required String watchdogChannelLine,
+  }) = _NotifyChannelCard;
+
+  factory NotifyChannelCard.fromJson(Map<String, dynamic> json) =>
+      _$NotifyChannelCardFromJson(json);
+}
+// JSON 키: label · options · capability_notice · token_badge_text · watchdog_channel_line
+
+/// 🆕 v1.18 — 채널 선택지 1개. 🔴 선택된 옵션 = [selectAction] null · 기본 선택을 화면이 정하지 않는다.
+@freezed
+abstract class NotifyChannelOption with _$NotifyChannelOption {
+  const factory NotifyChannelOption({
+    /// `NotifyChannelCodes` 값 — 🔴 화면 미참조.
+    required String code,
+    required String label,
+    required bool selected,
+
+    /// 엔진이 완성한 `notifyChannelSelect` 호출(`{channel}`). null = 그 선택지로 바꾸는 컨트롤 부재.
+    SettingsActionCall? selectAction,
+  }) = _NotifyChannelOption;
+
+  factory NotifyChannelOption.fromJson(Map<String, dynamic> json) =>
+      _$NotifyChannelOptionFromJson(json);
+}
+// JSON 키: code · label · selected · select_action
 
 /// m2-8 G-8 — 기기·접근 관리(05 `S06`). 🔴 **리스는 읽기 전용**이다.
 @freezed
@@ -6448,13 +6538,22 @@ abstract class EntryRampSleeveState with _$EntryRampSleeveState {
 // 🔴 **최소·최대·0 허용 여부를 필드로 내려보내지 않는다** — 범위 판정은 저장
 //    명령의 `ActionResult.headline`·`reasonCode` 로만 돌아온다(그래야 「저장 버튼
 //    비활성」이라는 **화면의 판정**이 생기지 않는다).
+// 🆕 계약 v1.18(01 §27 · R6 선행 · 발주자 결정 2026-11-13 Q1~Q4 · K-o~K-q):
+//    ① `S01` = 엔진이 묶은 그룹 VM — 그룹 차례(일반 → 운영 → 규칙)·카드 차례·요약 글자·주의 배지 글자 = **엔진** ·
+//       화면은 받은 차례 그대로(정렬·세기·묶기 0) · 폰 전용 행은 뷰어 VM 에 엔진이 싣지 않는다(`isViewer` 칸 0).
+//    ② 12월 연간 리뷰 카드 = [SettingsHomeVm.annualReviewLink](OPEN 판정 = 엔진 · 화면이 달을 보지 않는다).
+//    ③ `actionAvailable` 삭제 — «부재 = 목록에 없음» 한 원칙(K-q).
+//    ④ «엔진이 완성한 호출 1개» = [SettingsActionCall](`OnboardingAction` 별칭 · 화면은 id·args 를 그대로 넘긴다).
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/advice.dart';
+import '../enums/settings.dart';
 import '../enums/ui.dart';
 import '../primitives/as_of.dart';
 import '../primitives/converters.dart';
+import 'common.dart'; // LinkAction
+import 'onboarding.dart'; // OnboardingAction
 
 part 'settings.freezed.dart';
 part 'settings.g.dart';
@@ -6526,34 +6625,92 @@ abstract class MonthlyContributionVm with _$MonthlyContributionVm {
       _$MonthlyContributionVmFromJson(json);
 }
 
-/// m2-8 G-5 — 설정 홈(05 `S01`).
+/// 🆕 v1.18(01 §27 · K-d) — 엔진이 완성한 `SettingsActions.run` 호출 1개(M9 공용 이름).
+/// 🔴 화면은 [OnboardingAction.id]·[OnboardingAction.args] 를 **그대로** 넘긴다(키·값을 짓지 않는다 · 화이트리스트 =
+///    `settings_actions.dart` 머리) · 버튼 글자 = [OnboardingAction.label](엔진). JSON 키 = id · args · label.
+typedef SettingsActionCall = OnboardingAction;
+
+/// m2-8 G-5 · 🆕 v1.18 **교체**(01 §27 · K-o) — 설정 홈(05 `S01`).
+/// 🔴 [groups] 차례 = 엔진(일반 → 운영 → 규칙 · 빈 그룹은 엔진이 뺀다) · [asOf] = 조회 화면(하단 고지 · 오래됨 = 카드 몫).
 @freezed
 abstract class SettingsHomeVm with _$SettingsHomeVm {
-  const factory SettingsHomeVm({required List<SettingsCard> cards}) =
-      _SettingsHomeVm;
+  const factory SettingsHomeVm({
+    /// 엔진 상태 칩(늘 그린다 — «정상 = 무소식» 의 예외 05:43).
+    required EngineStatusChip statusChip,
+
+    /// 12월 연간 리뷰 카드 — 창이 OPEN 일 때만 non-null(엔진 판정 · 목적지 = `AppRoutes.settingsAnnualReview`).
+    LinkAction? annualReviewLink,
+    required List<SettingsGroup> groups,
+    required AsOf asOf,
+  }) = _SettingsHomeVm;
 
   factory SettingsHomeVm.fromJson(Map<String, dynamic> json) =>
       _$SettingsHomeVmFromJson(json);
 }
+// JSON 키: status_chip · annual_review_link · groups · as_of
 
-/// m2-8 G-5 — 설정 카드 1장.
-/// 🔴 `actionAvailable == false` 는 «비활성»이 아니라 **카드 부재**로 그린다.
+/// 🆕 v1.18(01 §27 · K-o) — 설정 홈 묶음 1개(05 그림 4).
+@freezed
+abstract class SettingsGroup with _$SettingsGroup {
+  const factory SettingsGroup({
+    /// 자물쇠 아이콘·묶음 머리에만(🔴 화면이 등급을 정하지 않는다).
+    required SettingTier tier,
+
+    /// 머리 글자 «운영 · 들어갈 때 생체 인증» — 엔진(등급 라벨 포함).
+    required String label,
+
+    /// 받은 차례 그대로 · 1장 이상(빈 묶음 = 엔진이 뺀다).
+    required List<SettingsCard> cards,
+  }) = _SettingsGroup;
+
+  factory SettingsGroup.fromJson(Map<String, dynamic> json) =>
+      _$SettingsGroupFromJson(json);
+}
+// JSON 키: tier · label · cards
+
+/// 🆕 v1.18(01 §27 · K-o) — 엔진 상태 칩. 🔴 손익 성격 글자 0 · «DRY_RUN» 글자 0(G-63) · [level] = 색·아이콘만.
+@freezed
+abstract class EngineStatusChip with _$EngineStatusChip {
+  const factory EngineStatusChip({
+    /// «실전 · 관찰 중 · 골든벡터 통과» — 엔진.
+    required String label,
+    required UiLevel level,
+
+    /// `live × dryRun` 관찰 중일 때만 «승격 가능/불가 + 사유» 한 줄(06 `M1-22`). null = 줄 없음.
+    String? promotionLabel,
+  }) = _EngineStatusChip;
+
+  factory EngineStatusChip.fromJson(Map<String, dynamic> json) =>
+      _$EngineStatusChipFromJson(json);
+}
+// JSON 키: label · level · promotion_label
+
+/// m2-8 G-5 — 설정 카드 1장. 🆕 v1.18(K-p · K-q) — `actionAvailable` 삭제 · [attentionText] 추가.
+/// 🔴 [code] = 엔진 불투명 id(화면 미참조 · Key = 순번) · 행 아이콘 = [level] 상태 아이콘뿐(카테고리 아이콘 사전 0).
+/// 🔴 갈 수 없는 카드는 «비활성»이 아니라 **목록에 없다**(엔진이 싣지 않는다).
 @freezed
 abstract class SettingsCard with _$SettingsCard {
   const factory SettingsCard({
     required String code,
     required String title,
 
-    /// 🔴 색의 근거. 값의 부호로 고르지 않는다.
+    /// 🔴 색·상태 아이콘의 근거. 값의 부호로 고르지 않는다.
     required UiLevel level,
-    required bool actionAvailable,
+
+    /// 현재 상태 한 줄 — 엔진(화면이 조립하지 않는다).
     String? statusLabel,
+
+    /// 🆕 v1.18 — 주의 배지 글자(«1»). null = 배지 부재 · 🔴 int 아님(화면이 하위 항목을 세지 않는다 · `OpsDailySummary` 선례).
+    String? attentionText,
+
+    /// 하위 화면 링크(`AppRoutes` M9 묶음). null = 탭 부재.
     String? route,
   }) = _SettingsCard;
 
   factory SettingsCard.fromJson(Map<String, dynamic> json) =>
       _$SettingsCardFromJson(json);
 }
+// JSON 키: code · title · level · status_label · attention_text · route
 
 /// m2-8 G-6 — 증권사 키 관리(05 `S02`).
 /// 🔴 값은 어떤 필드로도 오지 않는다 — `credential_registry` 는 별칭·상태만 싣는다.
@@ -7047,6 +7204,11 @@ enum SettingsActionId {
   connectionTest('CONNECTION_TEST'),
   @JsonValue('CONNECTION_SYNC_NOW')
   connectionSyncNow('CONNECTION_SYNC_NOW'),
+
+  /// 🆕 v1.18(01 §27 · K-s · 05 §7 C22) — `S07` 알림 채널 선택(운영 등급 · 🔴 `settingsGeneralUpdate` 로 태우지 않는다 —
+  /// 채널은 안전장치의 일부). args = `{channel ∈ NotifyChannelCodes}`(엔진이 `NotifyChannelOption.selectAction` 에 완성).
+  @JsonValue('NOTIFY_CHANNEL_SELECT')
+  notifyChannelSelect('NOTIFY_CHANNEL_SELECT'),
   @JsonValue('CALENDAR_SYNC_NOW')
   calendarSyncNow('CALENDAR_SYNC_NOW'),
   @JsonValue('CALENDAR_REBACKFILL')
@@ -7965,6 +8127,33 @@ enum ClearRoute {
   const ClearRoute(this.wire);
 
   /// JSON·DDL 표기.
+  final String wire;
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/enums/settings.dart`
+
+```dart
+// 01 §4-1 · 05 §1 — M9 설정 3등급(🆕 계약 v1.18 · 01 §27 · K-o).
+//
+// 🔴 등급은 엔진(M2·M4)이 정한다 — 화면은 이 값으로 **자물쇠 아이콘·묶음 머리**만 고른다(`general` = 자물쇠 0).
+//    등급별 마찰(즉시 반영 · 진입 생체 · 냉각 30일·12월 창)은 화면이 아니라 엔진·M5 게이트의 일이다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 05 §1 — 설정 등급.
+enum SettingTier {
+  @JsonValue('GENERAL')
+  general('GENERAL'),
+  @JsonValue('OPERATIONAL')
+  operational('OPERATIONAL'),
+  @JsonValue('RULE')
+  rule('RULE');
+
+  const SettingTier(this.wire);
+
+  /// JSON 표기(DDL 대응 컬럼 없음 — 뷰모델 전용).
   final String wire;
 }
 ```
@@ -8999,6 +9188,10 @@ abstract final class FixturePaths {
   static const String m8AlertsDigest = 'm8/alerts_digest.json';
   static const String m8AlertsP0Ack = 'm8/alerts_p0_ack.json';
 
+  /// 🆕 v1.18(01 §27 · 엔진 등재형 K-z) — `AlertCodes.safety` 3 · `resume` 3 각 1행(글자 = 엔진 `alert_text.dart` 초안 ·
+  /// 등급 = 엔진 `kAlertLevels` · 등급 순).
+  static const String m8AlertsSafetyResume = 'm8/alerts_safety_resume.json';
+
   /// 🆕 v1.17(01 §26 · 엔진 D11 · K27) — `STALE_ORDERS_HELD`(P1 · 다음 날 가드 보류) 알림 1행.
   static const String m8AlertsStaleOrdersHeld =
       'm8/alerts_stale_orders_held.json';
@@ -9135,6 +9328,16 @@ abstract final class FixturePaths {
   static const String m8WatchdogPaused = 'm8/watchdog_paused.json';
 
   // ── m9/ — 설정·운영 모드 전환 (05) ──
+  // 🆕 v1.18(01 §27) — `S01` 3 · `S07` 3 · M9 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
+  /// 🆕 v1.18 — `S07` 정상(행 5 · 레벨 5값 전수 · 부분 동기 · 실패 2 · 미설정 · 워치독·캘린더 링크 · 카카오 선택 + 배지).
+  static const String m9Connections = 'm9/connections.json';
+
+  /// 🆕 v1.18 — `S07` 잠김(운영 등급 생체 축소 · `lockedLabel` · 모든 `actions` 빈 · `selectAction` 전부 null).
+  static const String m9ConnectionsLocked = 'm9/connections_locked.json';
+
+  /// 🆕 v1.18 — `S07` 전부 정상 · 행 4(캘린더 행 0 = `calendarEnabled` false 엔진 몫) · 텔레그램 선택.
+  static const String m9ConnectionsTelegram = 'm9/connections_telegram.json';
+
   // 🆕 v1.4(R11 선행) — `ConfigRepository.watchContributionSetting()` 의 입력(폴더 규약상 `m9_` 접두 없음).
   /// 월 납입 설정 — `pension_limit_note_text` 있음.
   static const String m9ContributionSettingDefault =
@@ -9144,6 +9347,20 @@ abstract final class FixturePaths {
   static const String m9ContributionSettingNoLimitNote =
       'm9/contribution_setting_no_limit_note.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
+
+  /// 🆕 v1.18 — M9 `S07` 동작 결과 `ActionResult` 5(레벨 5값 · `SettingsResultCodes` 3 + null 2 · 넘김 0 · 재시도 0).
+  static const String m9SettingsActionResults =
+      'm9/settings_action_results.json';
+
+  /// 🆕 v1.18 — `S01` 정상(묶음 3 · 카드 11 · 레벨 5값 · 주의 배지 · 승격 줄 · 연간 리뷰 링크).
+  static const String m9SettingsHome = 'm9/settings_home.json';
+
+  /// 🆕 v1.18 — `S01` 연간 리뷰 링크 0 · 승격 줄 0.
+  static const String m9SettingsHomeNoReview =
+      'm9/settings_home_no_review.json';
+
+  /// 🆕 v1.18 — `S01` 뷰어 판(폰 전용 행을 엔진이 뺀 VM).
+  static const String m9SettingsHomeViewer = 'm9/settings_home_viewer.json';
 
   /// 전량 목록 — C-14 시크릿 스캔·C-15 열거값 대조가 이 목록을 돈다.
   static const List<String> all = <String>[
@@ -9312,6 +9529,7 @@ abstract final class FixturePaths {
     m8AlertsAdvice9codes,
     m8AlertsDigest,
     m8AlertsP0Ack,
+    m8AlertsSafetyResume,
     m8AlertsStaleOrdersHeld,
     m8DeviceRiskEmpty,
     m8DeviceRiskItems,
@@ -9384,9 +9602,16 @@ abstract final class FixturePaths {
     m8WatchdogEmpty,
     m8WatchdogHoliday,
     m8WatchdogPaused,
+    m9Connections,
+    m9ConnectionsLocked,
+    m9ConnectionsTelegram,
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
     m9HandoverStates,
+    m9SettingsActionResults,
+    m9SettingsHome,
+    m9SettingsHomeNoReview,
+    m9SettingsHomeViewer,
   ];
 }
 ```
@@ -9654,7 +9879,8 @@ abstract final class SeasonalEntryGateCodes {
 ## `packages/domain_contracts/lib/src/labels/alert_codes.dart`
 
 ```dart
-// 알림 코드 25종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11).
+// 알림 코드 31종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11) ·
+// 🆕 v1.18 안전 3(E13 · 04 §5-3 v2.40·v2.41 제안) · 재개 3(E14 · 04 §5-3 v2.42 제안).
 // 인벤토리 §6-9 의 분류를 그대로 쓴다.
 //
 // 🔴 **등급(P0/P1/P2)을 이 파일에 사전으로 만들지 않는다.** 등급의 런타임 정본은
@@ -9760,6 +9986,27 @@ abstract final class AlertCodes {
   /// ⚠️ 코드명 M2-3 확정 대기.
   static const String contributionChanged = 'CONTRIBUTION_CHANGED';
 
+  // ── 🆕 v1.18 안전 3 (01 §27 · K-z · 엔진 E13d1·E13c1 상수 = 등재 · 등급 = 엔진 `kAlertLevels`) ──────────
+  /// 잠정 P0 · 서킷브레이커 STOPPED 진입(신규 주문 전면 중단 · 보유 그대로 · postmortem 3일 · 엔진 `kBreakerStoppedAlertCode`).
+  static const String breakerStopped = 'BREAKER_STOPPED';
+
+  /// 잠정 P0 · 원장 자가 무결성 실패(지난 날 해시 불일치 → 전 신규 주문 차단 · 엔진 `kLedgerIntegrityAlertCode` · E13c1).
+  static const String ledgerIntegrityBroken = 'LEDGER_INTEGRITY_BROKEN';
+
+  /// 잠정 P1 · STOPPED 재개 자격 충족(v2.29 · 자동으로 풀리지 않는다 · 에피소드당 1회 · 엔진 `kStoppedReleaseEligibleAlertCode` ·
+  /// 🔵 E11f1 `equity_snapshot` 보고 «재개 자격» 과 **같은 사건** — 한 코드).
+  static const String stoppedReleaseEligible = 'STOPPED_RELEASE_ELIGIBLE';
+
+  // ── 🆕 v1.18 재개 3 (01 §27 · K-z · 엔진 E14b `resume_alerts.dart` · 회차 끝 묶음 · 한국 날 ≤ 1) ──────────
+  /// 잠정 P0 · 재개 뒤 매매 정지 유지(`RESUME_INCOMPLETE` 유지 · [resumeCompleted] 와 배타).
+  static const String resumeTradingHalted = 'RESUME_TRADING_HALTED';
+
+  /// 잠정 P1 · 재개 완료(해제 · 주문은 다음 `kr_order` 회차가 낸다).
+  static const String resumeCompleted = 'RESUME_COMPLETED';
+
+  /// 잠정 P2 · 되살릴 수 없는 기록 공백(복구 불가 갭이 있을 때 더한다).
+  static const String resumeDataGap = 'RESUME_DATA_GAP';
+
   /// X7 안내 9종.
   static const Set<String> x7Advice = <String>{
     adviceIssued,
@@ -9803,13 +10050,29 @@ abstract final class AlertCodes {
   /// 운영 파라미터 1종.
   static const Set<String> operatingParam = <String>{contributionChanged};
 
-  /// 전량 25종.
+  /// 🆕 v1.18 안전 3종.
+  static const Set<String> safety = <String>{
+    breakerStopped,
+    ledgerIntegrityBroken,
+    stoppedReleaseEligible,
+  };
+
+  /// 🆕 v1.18 재개 3종.
+  static const Set<String> resume = <String>{
+    resumeTradingHalted,
+    resumeCompleted,
+    resumeDataGap,
+  };
+
+  /// 전량 31종.
   static const Set<String> values = <String>{
     ...x7Advice,
     ...handover,
     ...autoTrade,
     ...maintenance,
     ...operatingParam,
+    ...safety,
+    ...resume,
   };
 }
 ```
@@ -10206,7 +10469,8 @@ abstract final class BlindReviewRejectCodes {
   static const Set<String> values = <String>{alreadyScored, answersInvalid};
 }
 
-/// 🆕 계약 v1.17(01 §26 · 엔진 D11 · 13 §8 R33 D11·D24) — `TradeJournalEntry.reasons[].code` 중 **엔진 D11 이 정한 2종**.
+/// 🆕 계약 v1.17(01 §26 · 엔진 D11 · 13 §8 R33 D11·D24) — `TradeJournalEntry.reasons[].code` 중 **엔진이 정한 3종**
+/// (D11 2 · 🆕 v1.18 E14a 1 — 01 §27 · K-n ⓕ).
 ///
 /// 🔴 **전수 목록이 아니다** — 일지 사유 칩 코드 전수 등재 = 01 §8 미결 166. 화면은 이 코드로 분기·문구·아이콘을 고르지 않는다
 ///    (칩 `label`·`tone` 이 준다). 쓰는 곳 = 계약 테스트(C-51 ⑩⑪)와 엔진 구현.
@@ -10218,9 +10482,15 @@ abstract final class JournalReasonCodes {
   /// `status == expired` 행의 근거 — 장 마감까지 체결되지 않은 잔량을 실효로 기록했다(취소 아님 · 04_안전장치 §3-1 ③ · R33 D5).
   static const String dayEndExpired = 'DAY_END_EXPIRED';
 
+  /// 🆕 v1.18(01 §27 · K-n ⓕ · 엔진 E14a `kLeaseInvalidCode`) — `status == rejected`(NR-1 0단계) · `skipped`(6.9 직전 재확인) 행의 근거 —
+  /// 이 기기에 발주권(리스)이 없거나 모른다(fail-closed · 그 키를 먹는다 = 그날 보류). 🔴 `AdviceRejectCodes.leaseExpired`
+  /// (명령 접수 축 · 발행 epoch)와 **다른 축**이다.
+  static const String leaseInvalid = 'LEASE_INVALID';
+
   static const Set<String> values = <String>{
     duplicateOrderPrevented,
     dayEndExpired,
+    leaseInvalid,
   };
 }
 ```
@@ -10276,6 +10546,7 @@ import 'ops_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
+import 'settings_codes.dart';
 import 'verdict_codes.dart';
 
 export 'advice_codes.dart';
@@ -10291,6 +10562,7 @@ export 'ops_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
+export 'settings_codes.dart';
 export 'verdict_codes.dart';
 
 /// 세후 사다리 층 코드 6종(01 §2-4 `AfterTaxStep.stepCode` · M2-8 A-7).
@@ -10446,6 +10718,10 @@ abstract final class ContractCodes {
     'ops_slot': OpsSlotIds.values,
     // 🆕 v1.17(01 §26 · 엔진 D11 · K28) — 일지 사유 칩 코드 중 D11 2종(`TradeJournalEntry.reasons[].code` · 🔴 전수 아님)
     'journal_reason': JournalReasonCodes.values,
+    // 🆕 v1.18(01 §27 · K-n ⓗ) — M9 연결 대상 · 알림 채널 · 설정 동작 결과
+    'connection_target': ConnectionTargetCodes.values,
+    'notify_channel': NotifyChannelCodes.values,
+    'settings_result': SettingsResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -11022,6 +11298,76 @@ abstract final class Saf309Codes {
 
 ---
 
+## `packages/domain_contracts/lib/src/labels/settings_codes.dart`
+
+```dart
+// 01 §3 · 🆕 계약 v1.18(01 §27 · K-n ⓗ · K-s · K-u) — M9 설정 코드 사전 3축.
+//
+// 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 함께 싣는다
+//    (`ConnectionRow.label` · `NotifyChannelOption.label` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
+
+/// `ConnectionRow.target` · `connectionTest`·`connectionSyncNow` args `target` 의 값(도메인 `connection_target` · 01 §8 미결 151).
+abstract final class ConnectionTargetCodes {
+  /// Supabase 미러(읽기 모델 push · 무료 티어 일시정지 경고).
+  static const String supabase = 'SUPABASE';
+
+  /// GitHub 아카이브(운영 이력 · `sim/` · PAT = 만료일만).
+  static const String githubArchive = 'GITHUB_ARCHIVE';
+
+  /// 알림 채널(텔레그램/카카오톡 — 선택 = `ConnectionRow.channelPicker`).
+  static const String notifyChannel = 'NOTIFY_CHANNEL';
+
+  /// healthchecks.io 생존 신호(목록 = `W-01` · 행 = 요약 1 + `opsWatchdog` 링크).
+  static const String healthchecks = 'HEALTHCHECKS';
+
+  /// 구글 캘린더(X4 · `calendarEnabled == false` 면 행 0 · 상세 = `S08`).
+  static const String calendar = 'CALENDAR';
+
+  /// 증권사(KIS) 연결 — `m8/incident_token_expired` 행 · 키 관리 = `S02`.
+  static const String brokerKis = 'BROKER_KIS';
+
+  static const Set<String> values = <String>{
+    supabase,
+    githubArchive,
+    notifyChannel,
+    healthchecks,
+    calendar,
+    brokerKis,
+  };
+}
+
+/// `NotifyChannelOption.code` · `notifyChannelSelect` args `channel` 의 값(도메인 `notify_channel`).
+abstract final class NotifyChannelCodes {
+  /// 텔레그램 — 원격 `/stop` 가능.
+  static const String telegram = 'TELEGRAM';
+
+  /// 카카오톡 «나에게 보내기» — 발신 전용(원격 정지 불가 · 토큰 주기 만료).
+  static const String kakao = 'KAKAO';
+
+  static const Set<String> values = <String>{telegram, kakao};
+}
+
+/// M9 `ActionResult.reasonCode` 의 앱 코드(도메인 `settings_result`). 🔴 전수 아님 — 뒤 카드(R6c~R9)가 늘린다.
+abstract final class SettingsResultCodes {
+  /// 운영 등급 동작 거부 — 생체 실패·미등록·세션 만료(`blocked` · 다시 들어와 인증).
+  static const String biometricUnavailable = 'BIOMETRIC_UNAVAILABLE';
+
+  /// 연결 테스트 실패 — 원인 = `headline`(엔진 문장).
+  static const String connectionTestFailed = 'CONNECTION_TEST_FAILED';
+
+  /// 지금 동기화 중복 요청 — 이미 도는 중(멱등 접수 · `info`).
+  static const String syncAlreadyRunning = 'SYNC_ALREADY_RUNNING';
+
+  static const Set<String> values = <String>{
+    biometricUnavailable,
+    connectionTestFailed,
+    syncAlreadyRunning,
+  };
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/labels/verdict_codes.dart`
 
 ```dart
@@ -11393,6 +11739,41 @@ abstract final class AppRoutes {
   static const String alertDetail = 'aaq://alerts/detail/:alertId';
   static const String settingsContribution = 'aaq://settings/contribution';
   static const String settingsCredentials = 'aaq://settings/credentials';
+
+  /// 🆕 v1.18(01 §27 · K-w · 발주자 결정 2026-11-13 Q2) — M9 `S01` 설정 홈(`SettingsHome()` · `ui_settings` · R6a) =
+  /// 폰·iOS 뷰어 «더보기» 탭 몸통(셸 `ShellRouteBody` · 04 §3-1) · 웹 = 탭 없음(04 §3-2). 들어오는 링크 = 셸 탭 · 데이터.
+  static const String settingsHome = 'aaq://settings';
+
+  /// 🆕 v1.18 — `S03` 계좌 연동·슬리브↔계좌 매핑(R7 · 폰 전용 · 01 §8 미결 72 목적지).
+  static const String settingsAccounts = 'aaq://settings/accounts';
+
+  /// 🆕 v1.18 — `S04` 전략·배분 편집기(R8 · 규칙 등급 · 조회 = 전 플랫폼).
+  static const String settingsAllocation = 'aaq://settings/allocation';
+
+  /// 🆕 v1.18 — `S05` 운용 관리(R6c · 계약 = v1.19 · 폰 전용 기본 — 05 C3 = v1.19 창).
+  static const String settingsOperations = 'aaq://settings/operations';
+
+  /// 🆕 v1.18 — `S06` 기기·접근(QR 페어링 · R7 · 폰 전용).
+  static const String settingsDevices = 'aaq://settings/devices';
+
+  /// 🆕 v1.18 — `S07` 연결 관리(`Connections()` · R6b · 상태 조회 = 폰·iOS 뷰어 · 버튼 = 폰만).
+  static const String settingsConnections = 'aaq://settings/connections';
+
+  /// 🆕 v1.18 — `S08` 구글 캘린더(X4 · R9 · 폰 전용 · `ConnectionRow.route` 목적지).
+  static const String settingsCalendar = 'aaq://settings/calendar';
+
+  /// 🆕 v1.18 — `S09` 백업·복원(R9 · 폰 전용).
+  static const String settingsBackup = 'aaq://settings/backup';
+
+  /// 🆕 v1.18 — `S10` 진단(골든벡터 셀프테스트 · 무결성 · R9 · 폰 전용).
+  static const String settingsDiagnostics = 'aaq://settings/diagnostics';
+
+  /// 🆕 v1.18 — `S11` 일반 설정·방해금지(카드 배정 = R9 조립 때 · 01 §8 미결 170).
+  static const String settingsGeneral = 'aaq://settings/general';
+
+  /// 🆕 v1.18 — `S12` 12월 연간 리뷰 진입(M9 목차 · `SettingsHomeVm.annualReviewLink` 목적지 · M7 `reportAnnual` 과 다른 화면 ·
+  /// 카드 배정 = R9 조립 때 · 미결 95·170).
+  static const String settingsAnnualReview = 'aaq://settings/annual-review';
   static const String handoverStatus = 'aaq://handover/status';
 
   // ── M5 · X1 · X2 · X5 소유(06 §3-5 목록 — 위젯은 Claude, 등록은 셸) ────────
@@ -11429,6 +11810,7 @@ abstract final class AppRoutes {
   /// 🆕 v1.16 = **64** · 온보딩 6(`onboardingStep` 앞 — 첫 일치) · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2.
   /// 🆕 v1.17 = **69** · `opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex`(`opsRhythm` 뒤 ·
   /// 조각 수 4·5·4·4·3 — 기존 패턴과 겹침 0).
+  /// 🆕 v1.18 = **80** · M9 11(`settingsCredentials` 뒤 · S 번호 차례 · 3조각 1 + 4조각 10 · 파라미터 0 — 기존 패턴과 겹침 0).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -11484,6 +11866,17 @@ abstract final class AppRoutes {
     alertDetail,
     settingsContribution,
     settingsCredentials,
+    settingsHome,
+    settingsAccounts,
+    settingsAllocation,
+    settingsOperations,
+    settingsDevices,
+    settingsConnections,
+    settingsCalendar,
+    settingsBackup,
+    settingsDiagnostics,
+    settingsGeneral,
+    settingsAnnualReview,
     handoverStatus,
     m5KillSwitch,
     m5ReleaseGate,
@@ -12567,6 +12960,25 @@ import '../dto/safety.dart';
 /// 브레이커·차단 플래그·킬스위치 표시 상태.
 abstract interface class SafetyRepository {
   Stream<SafetyState> watchState();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/settings_repository.dart`
+
+```dart
+// 01 §4-1 · 🆕 계약 v1.18(01 §27 · K-c · K-v) — M9 설정 화면 읽기 창구.
+//
+// 🔴 뒤 카드가 **추가형**으로 늘린다(R6c `watchOperations` · R7 `watchCredentials`·`watchAccountMapping` ·
+//    R8 `watchAllocationEditor` · S11 `watchGeneral`) — 받침대 `UnimplementedSettingsRepository` 를 같은 커밋에서 고친다.
+// 🔴 `S07` 은 이 창구가 아니라 [OpsStatusRepository.watchConnections] 다(v1.0 부터 · 두 벌 0).
+
+import '../dto/settings.dart';
+
+abstract interface class SettingsRepository {
+  /// `S01` 설정 홈 — 폰·뷰어 같은 DTO(뷰어 판 = 폰 전용 행을 엔진이 뺀 VM).
+  Stream<SettingsHomeVm> watchHome();
 }
 ```
 
