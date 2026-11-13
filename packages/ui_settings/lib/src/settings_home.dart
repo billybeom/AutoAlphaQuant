@@ -4,7 +4,7 @@
 //
 // 🔴 본문이다 — 부모 높이 안 ListView(padding: EdgeInsets.zero).
 // 🔴 묶음·카드 차례·수 = 받은 그대로(정렬·세기·묶기 0).
-// 🔴 쓰기 0 — 탭 = 받은 링크를 settingsLinkOpenerProvider 로 여는 것뿐.
+// 🔴 쓰기 0 — 탭 = 받은 링크를 여는 것뿐.
 
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/material.dart';
