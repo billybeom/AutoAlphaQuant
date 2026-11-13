@@ -1,6 +1,7 @@
 // 잡 표 · 다음 발화 · 놓친 발화 · 3분법 · rid · FGS 문구(설계 13 §8 R43 B2~B9).
 
 import 'package:core_engine/core_engine.dart';
+import 'package:core_engine/testing.dart' show FakeJobRunLog;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 import 'package:trading_runtime/trading_runtime.dart';
@@ -488,6 +489,8 @@ void main() {
         calendar: _kr,
         nowUtc: _kst('2026-11-04', 18, 30),
         body: (TradeDate d) async => const JobBody<int>(1),
+        runLog: FakeJobRunLog(),
+        clockUtc: () => _kst('2026-11-04', 18, 31),
       );
       expect(
         beat.pings.map(((PingStatus, String?, String?) p) => p.$1),
@@ -523,6 +526,8 @@ void main() {
           nowUtc: now,
           sessionDayOf: usDay,
           body: (TradeDate d) async => JobBody<int>(d.yyyyMmDd.length),
+          runLog: FakeJobRunLog(),
+          clockUtc: () => now,
         );
         final _Beat b1 = _Beat();
         final JobRun<int> sat = await run(_kst('2026-11-07', 7, 30), b1);

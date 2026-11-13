@@ -405,6 +405,60 @@ void main() {
       final DailySignalReport b = await job.run(const TradeDate('2026-08-14'));
       expect(b.written, 0);
     });
+
+    // 🆕 E14c1(X2-4 · R70 D5 · R73 K7) — 앞 행까지 미리 써 두고(untilDate) 잡을 돌린다.
+    Future<(SqliteRegimeStore, List<String>)> seeded(int missing) async {
+      final Map<String, List<int>> gz = <String, List<int>>{
+        for (final SeedFile f in kSeedFiles)
+          f.fileName: File('assets/seed/${f.fileName}').readAsBytesSync(),
+      };
+      importSeedBundle(db, gz, importedAt: _seedAt);
+      final RegimeSources s = SqliteMarketStore(db).regimeSources();
+      final RegimeComputation c = computeRegime(
+        s,
+        raw: applyFreshnessCaps(s, regimeRawIndicators(s)),
+      );
+      final SqliteRegimeStore store = SqliteRegimeStore(db);
+      final int n = c.calendar.length;
+      final int pre = store.writeComputation(
+        c,
+        fromDate: c.calendar.first,
+        untilDate: c.calendar[n - missing],
+        source: RegimeRowSource.live,
+        configHash: 'cfg_p0s',
+      );
+      expect(pre, n - missing);
+      expect(store.lastDate(), c.calendar[n - missing - 1]);
+      return (store, c.calendar.sublist(n - missing));
+    }
+
+    test(
+      '🆕 E14c1 갭 뒤 = 이 회차가 새로 쓰는 행 가운데 가장 늦은 날만 LIVE · 그 앞은 BACKFILL',
+      () async {
+        final (SqliteRegimeStore store, List<String> days) = await seeded(3);
+        final DailySignalReport r = await DailySignalJob(
+          db,
+          configHash: 'cfg_p0s',
+        ).run(const TradeDate('2026-08-14'));
+        expect(r.written, 3);
+        expect(r.lastDate, days.last);
+        expect(
+          <Object?>[for (final String d in days) store.row(d)!['source']],
+          <String>['BACKFILL', 'BACKFILL', 'LIVE'],
+        );
+        expect(store.row(days.first)!['config_hash'], 'cfg_p0s');
+      },
+    );
+
+    test('🆕 E14c1 평시 = 새 행 1 = LIVE', () async {
+      final (SqliteRegimeStore store, List<String> days) = await seeded(1);
+      final DailySignalReport r = await DailySignalJob(
+        db,
+        configHash: 'cfg_p0s',
+      ).run(const TradeDate('2026-08-14'));
+      expect(r.written, 1);
+      expect(store.row(days.single)!['source'], 'LIVE');
+    });
   });
 
   group('equity_snapshot(F6~F9)', () {

@@ -12,8 +12,16 @@
 
 // 🆕 E11c(R45 C1) — 하트비트 포트는 core_engine 에 있다(구현 = data_sync) · 같은 이름으로 다시 내보낸다.
 // 🆕 E13h1(R68 H1) — 알림 포트도 core_engine 에 있다(구현 = data_sync `SqliteAlertSink`).
+// 🆕 E14c1(R73 K1) — 잡 실행 기록 포트도 core_engine 에 있다(구현 = data_sync `SqliteJobRunLog`).
 export 'package:core_engine/core_engine.dart'
-    show AlertSink, JobHeartbeat, PingStatus, TargetSource;
+    show
+        AlertSink,
+        JobHeartbeat,
+        JobRunEntry,
+        JobRunLog,
+        JobRunStatus,
+        PingStatus,
+        TargetSource;
 
 export 'src/jobs/fgs_notice.dart'
     show FgsChannel, FgsNotice, FgsStatus, buildFgsNotice, shouldRepostFgs;
@@ -35,11 +43,14 @@ export 'src/jobs/job_schedule.dart'
         JobSpec,
         WakeAction,
         WakeDecision,
+        fireDayOfSession,
+        jobDeadlineUtc,
         jobSpecOf,
         kJobTable,
         nextOccurrence,
         occurrenceOn,
         occurrencesBetween,
+        ranOccurrences,
         wakeDecisions;
 export 'src/jobs/kr_order_jobs.dart'
     show

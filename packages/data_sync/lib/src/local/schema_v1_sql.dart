@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `b93ee416fd97626107c3aaa920c91a167cfa26f79cc6ddd998784cb1d3b50838`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `9de3243e230d792c9632940e08475d65cd348046831cb5d6151836031a8e5c5e`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS trades (
     holding_days    INTEGER NOT NULL
 );
 
--- ── 02_데이터모델.md L386-624 ──
+-- ── 02_데이터모델.md L386-635 ──
 CREATE TABLE IF NOT EXISTS strategy_state_log (
     log_id               TEXT NOT NULL PRIMARY KEY,
     strategy_id          TEXT NOT NULL,
@@ -510,6 +510,17 @@ CREATE TABLE IF NOT EXISTS alert_escalation (           -- P0 ack 승급 사다�
     escalated_at TEXT NOT NULL,
     PRIMARY KEY (alert_id, step)
 );
+-- 🆕 v2.42(설계 13 §8 R70 D4 · R73 K8 · 앱 E14) — 잡 실행 기록(엔진 로컬 운영 기록 — 배치 C 가 아니라 이 §2-6 기본 블록 · 앱 로컬 스키마 생성기가 읽는다). 갭 · 놓친 회차 · «마지막 성공 거래일»의 원천(04 §3-1 v2.42 ④).
+--    🔴 append-only · 회차가 끝날 때 1행(끝나지 않은 회차 = 행 없음 = 성공 아님) · 🔴 X5-1 해시 모집단 밖(원장 사실이 아니다)
+CREATE TABLE IF NOT EXISTS job_run (
+    rid          TEXT    NOT NULL PRIMARY KEY,           -- 회차 id(시작 · 끝 핑과 같은 값)
+    check_name   TEXT    NOT NULL,                       -- 잡 체크 이름(앱 잡 표)
+    session_day  TEXT    NOT NULL,                       -- 그 잡의 세션일 YYYY-MM-DD
+    started_at   TEXT    NOT NULL,
+    finished_at  TEXT    NOT NULL,
+    status       TEXT    NOT NULL CHECK (status IN ('SUCCESS','LATE','FAILED','HOLIDAY'))
+);
+CREATE INDEX IF NOT EXISTS ix_job_run_check ON job_run(check_name, session_day);
 -- 롤링 12개월 횟수: SELECT COUNT(*) FROM discretion_adjustment
 --                    WHERE applied_at >= date('now','-12 months')
 
