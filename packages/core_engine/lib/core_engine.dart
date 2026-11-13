@@ -449,7 +449,9 @@ export 'src/resume/resume_judge.dart'
 export 'src/resume/resume_reevaluator.dart' show ResumeReevaluator;
 export 'src/resume/resume_text.dart'
     show
+        plannedWorkStateLabel,
         resumeCountsOf,
+        resumeGapLabel,
         resumeHeadline,
         resumeItemOf,
         resumeLineText,

@@ -294,6 +294,42 @@ void main() {
     });
   });
 
+  group('🆕 E14e1 라벨(R78 T2 · T3)', () {
+    test('공백 라벨 — 구간 · 하루 · 다른 자료', () {
+      expect(
+        resumeGapLabel(
+          dataset: 'equity_snapshot',
+          from: const TradeDate('2026-11-02'),
+          to: const TradeDate('2026-11-12'),
+        ),
+        '11월 2일~11월 12일 평가액 스냅샷 없음 — 복구 불가',
+      );
+      expect(
+        resumeGapLabel(
+          dataset: 'equity_snapshot',
+          from: const TradeDate('2026-11-02'),
+          to: const TradeDate('2026-11-02'),
+        ),
+        '11월 2일 평가액 스냅샷 없음 — 복구 불가',
+      );
+      expect(
+        resumeGapLabel(
+          dataset: 'prices',
+          from: const TradeDate('2026-01-05'),
+          to: const TradeDate('2026-01-06'),
+        ),
+        '1월 5일~1월 6일 prices 없음 — 복구 불가',
+      );
+    });
+
+    test('계획 상태 라벨 6', () {
+      expect(
+        PlannedWorkState.values.map(plannedWorkStateLabel).toList(),
+        <String>['예정', '재판정됨', '대체됨', '만료', '완료', '차단'],
+      );
+    });
+  });
+
   group('묶음 알림', () {
     test('🔴 완료 · 정지 배타 · 복구 불가 공백이면 P2 더함', () {
       expect(

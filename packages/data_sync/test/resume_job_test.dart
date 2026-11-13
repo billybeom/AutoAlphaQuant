@@ -298,9 +298,19 @@ void main() {
     );
     monthlyPlan('MONTH-END-2026-11-30', '2026-12-30');
     s.commitPhase(open2.resumeRunId, ResumePhase.r6);
+    // 🆕 E14e1 — R6 이 남긴 항목(`resume_item`)이 집계 원천.
     db.execute(
-      'UPDATE planned_work_transition SET resume_run_id = ? WHERE resume_run_id = ?',
-      <Object?>[open2.resumeRunId, open.resumeRunId],
+      'INSERT INTO resume_item VALUES (?, ?, 0, ?, ?, ?, ?, ?, ?)',
+      <Object?>[
+        open2.resumeRunId,
+        'PW-X',
+        'x',
+        'p',
+        'r',
+        'EXECUTED_AS_REEVALUATED',
+        '재판정 값으로 집행 예정',
+        'REEVALUATED',
+      ],
     );
     final ResumeJobReport r2 = await job().run(_today);
     expect(r2.resumeRunId, open2.resumeRunId);
@@ -585,6 +595,153 @@ void main() {
       );
     },
   );
+
+  group('🆕 E14e1 리포트 항목 저장 · 읽기 창구(R78)', () {
+    test('열린 회차만 = null · 끝난 회차 둘 = 늦은 쪽 · 같은 항목 두 번 = 처음 그대로', () async {
+      final SqliteResumeStore st = SqliteResumeStore(db, clock: _Clock());
+      final ResumeRunRow open = st.startRun(
+        today: _today,
+        gapTradingDays: 1,
+        mode: ResumeMode.normal,
+      );
+      expect(SqliteResumeRepository(db).latest(), isNull);
+      ResumeItem it(String line) => ResumeItem(
+        workId: 'PW-X',
+        oneLine: line,
+        plannedLine: 'p',
+        reevaluatedLine: 'r',
+        verdictCode: 'EXPIRED',
+        verdictLabel: '만료',
+      );
+      st.writeItem(
+        open.resumeRunId,
+        seq: 0,
+        item: it('첫'),
+        reasonCode: 'DUE_PASSED',
+      );
+      st.writeItem(open.resumeRunId, seq: 5, item: it('둘'), reasonCode: 'X');
+      final Row row = db.select('SELECT * FROM resume_item').single;
+      expect(
+        (row['one_line'], row['seq'], row['reason_code']),
+        ('첫', 0, 'DUE_PASSED'),
+      );
+      db.execute('DELETE FROM resume_run');
+      db.execute('DELETE FROM resume_item');
+      await job().run(_today);
+      db.execute(
+        "INSERT INTO trading_block(flag_id, set_at, reason) VALUES ('RESUME_INCOMPLETE', 'x', 'y') "
+        'ON CONFLICT (flag_id) DO UPDATE SET cleared_at = NULL',
+      );
+      final ResumeJobReport second = await job().run(_today);
+      expect(second.resumeRunId, 'RR-2026-11-13-2');
+      expect(
+        SqliteResumeRepository(db).latest()!.resumeRunId,
+        'RR-2026-11-13-2',
+      );
+    });
+
+    test('R6 항목 = resume_item(차례 · 사유) · 리포트 = 끝난 회차를 그대로 · 공백 라벨', () async {
+      await lastSuccess('2026-11-06'); // 갭 4 = CONSERVATIVE
+      monthlyPlan('MONTH-END-2026-10-30', '2026-11-27');
+      seasonalPlan('ZZZ-SEAS-OUT', 'SELL');
+      final ResumeJobReport r = await job().run(_today);
+      final List<Row> rows = db.select(
+        'SELECT * FROM resume_item ORDER BY seq',
+      );
+      expect(
+        rows
+            .map((Row x) => (x['seq'], x['work_id'], x['reason_code']))
+            .toList(),
+        <(Object?, Object?, Object?)>[
+          (0, 'PW-ZZZ-SEAS-OUT', 'REEVALUATED'),
+          (1, 'PW-MONTH-END-2026-10-30', 'CONSERVATIVE_DEFER'),
+        ],
+      );
+      // 같은 회차 접두의 복구 가능 공백은 리포트에 안 실린다.
+      db.execute(
+        "INSERT INTO data_gap VALUES (?, 'prices', '2026-11-09', '2026-11-09', 1, 'MISSING_ROW', 'x')",
+        <Object?>['GAP-${r.resumeRunId}-prices'],
+      );
+      final ResumeReport rep = SqliteResumeRepository(db).latest()!;
+      expect(rep.resumeRunId, r.resumeRunId);
+      expect(rep.items, r.items);
+      expect(rep.counts, r.counts);
+      expect(rep.headline, r.headline);
+      expect(
+        (rep.mode, rep.gapTradingDays, rep.phase, rep.modeLabel),
+        (ResumeMode.conservative, 4, ResumePhase.r8, '4거래일 미실행 — 보수'),
+      );
+      expect(rep.finishedAt, isNotNull);
+      final DataGapRow g = rep.unrecoverableGaps.single;
+      expect(
+        (g.dataset, g.recoverable, g.reasonCode, g.label),
+        (
+          'equity_snapshot',
+          false,
+          'RESUME_GAP',
+          '11월 9일~11월 12일 평가액 스냅샷 없음 — 복구 불가',
+        ),
+      );
+    });
+
+    test('회차 없음 = null · 열린 회차는 건너뛰고 앞의 끝난 회차 · 재판정 실패도 항목', () async {
+      final SqliteResumeRepository repo = SqliteResumeRepository(db);
+      expect(repo.latest(), isNull);
+      await lastSuccess('2026-11-11');
+      monthlyPlan('MONTH-END-2026-10-30', '2026-11-27');
+      reeval.throwingFor.add('PW-MONTH-END-2026-10-30');
+      final ResumeJobReport done = await job().run(_today);
+      expect(
+        db.select('SELECT reason_code FROM resume_item').single['reason_code'],
+        'REEVALUATION_FAILED',
+      );
+      SqliteResumeStore(
+        db,
+        clock: _Clock(),
+      ).startRun(today: _today, gapTradingDays: 1, mode: ResumeMode.normal);
+      expect(repo.latest()!.resumeRunId, done.resumeRunId);
+      expect(
+        await repo.watchLatest().first,
+        isA<ResumeReport>().having(
+          (ResumeReport x) => x.resumeRunId,
+          'id',
+          done.resumeRunId,
+        ),
+      );
+    });
+
+    test('계획 목록 = planned_work → 요약(상태 라벨 · 행 판 · epoch 0 · 원문 없음)', () async {
+      monthlyPlan('MONTH-END-2026-10-30', '2026-11-27');
+      seasonalPlan('AAA-SEAS-IN', 'BUY');
+      SqlitePlannedWorkStore(db, carry: ledger, clock: _Clock()).transition(
+        'PW-AAA-SEAS-IN',
+        PlannedWorkState.blocked,
+        today: _today,
+        verdictCode: VerdictCodes.blocked,
+      );
+      final List<PlannedWorkSummary> l = SqliteResumeRepository(db)
+          .plannedWork();
+      expect(
+        l
+            .map(
+              (PlannedWorkSummary x) =>
+                  (x.workId, x.stateLabel, x.rowVersion, x.leaseEpoch),
+            )
+            .toList(),
+        <(String, String, int, int)>[
+          ('PW-AAA-SEAS-IN', '차단', 1, 0),
+          ('PW-MONTH-END-2026-10-30', '예정', 0, 0),
+        ],
+      );
+      expect(l.last.oneLine, '10월말 정기 리밸런싱');
+      expect(l.last.digest, hasLength(12));
+      expect(l.last.dueBy, const TradeDate('2026-11-27'));
+      expect(
+        (await SqliteResumeRepository(db).watchPlannedWork().first).length,
+        2,
+      );
+    });
+  });
 
   test('⑫ 원장 읽기 — UNKNOWN 전체 · RESERVED/SUBMITTING 잔류', () {
     void intent(String id, String status) => db.execute(

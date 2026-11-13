@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `9de3243e230d792c9632940e08475d65cd348046831cb5d6151836031a8e5c5e`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `fa47cb2bd1b9a7a309dc2c16fed839d2cd8f2bf0a95b35ef3c9d7f07e3fa1949`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS trades (
     holding_days    INTEGER NOT NULL
 );
 
--- ── 02_데이터모델.md L386-635 ──
+-- ── 02_데이터모델.md L386-649 ──
 CREATE TABLE IF NOT EXISTS strategy_state_log (
     log_id               TEXT NOT NULL PRIMARY KEY,
     strategy_id          TEXT NOT NULL,
@@ -521,6 +521,20 @@ CREATE TABLE IF NOT EXISTS job_run (
     status       TEXT    NOT NULL CHECK (status IN ('SUCCESS','LATE','FAILED','HOLIDAY'))
 );
 CREATE INDEX IF NOT EXISTS ix_job_run_check ON job_run(check_name, session_day);
+-- 🆕 v2.43(설계 13 §8 R78 · 발주자 결정 2026-11-13 · 앱 E14e) — 재개 리포트 항목(회차가 판정한 그대로 · 읽기 = 앱 01 `ResumeReport.items`).
+--    🔴 append-only · 회차 · 항목마다 1행(같은 회차 다시 = 무시) · 🔴 X5-1 해시 모집단 밖 · 🔴 손익 칸 없음(앱 01 §2-7)
+CREATE TABLE IF NOT EXISTS resume_item (
+    resume_run_id    TEXT    NOT NULL,                   -- resume_run 의 회차
+    work_id          TEXT    NOT NULL,                   -- planned_work 의 행
+    seq              INTEGER NOT NULL,                   -- 집행 우선순위 차례(0부터 · 04 §3-1 v2.42 ②)
+    one_line         TEXT    NOT NULL,                   -- 엔진 한 줄
+    planned_line     TEXT    NOT NULL,                   -- 계획 시점 한 줄
+    reevaluated_line TEXT    NOT NULL,                   -- 재판정 한 줄(사유별 엔진 문장)
+    verdict_code     TEXT    NOT NULL,                   -- §3-3 재판정 결과 5종
+    verdict_label    TEXT    NOT NULL,
+    reason_code      TEXT    NOT NULL,                   -- 엔진 사유 코드(관찰 · 안전 정지 · 대사 불일치 … — 계약 등재 = 앱 계약 창)
+    PRIMARY KEY (resume_run_id, work_id)
+);
 -- 롤링 12개월 횟수: SELECT COUNT(*) FROM discretion_adjustment
 --                    WHERE applied_at >= date('now','-12 months')
 
