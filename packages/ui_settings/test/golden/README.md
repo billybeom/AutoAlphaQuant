@@ -11,6 +11,11 @@
 
 병합 검사는 `git diff --name-status`로 **A(추가)**와 **M(수정)**을 구별한다.
 
+## 하네스
+
+- 🆕 계약 v1.18(01 §27 · K-y) — `golden_support.dart` = M2 가 `ui_shell` 판을 복사해 두었다(픽스처 → DTO · 고정 크기 폰 · light/dark) ·
+  비교기(`flutter_test_config.dart`·`shift_tolerant_compare.dart`) = R6a 첫 카드가 첫 골든과 함께 `ui_shell` 판을 옮긴다.
+
 ## 규칙
 
 - 렌더 입력은 `packages/domain_contracts/fixtures/`다. **화면 담당은 픽스처를 수정하지 않는다.**
