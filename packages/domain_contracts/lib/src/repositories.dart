@@ -26,4 +26,5 @@ export 'repositories/rebalance_repository.dart';
 export 'repositories/resume_repository.dart';
 export 'repositories/runbook_repository.dart';
 export 'repositories/safety_repository.dart';
+export 'repositories/settings_repository.dart';
 export 'repositories/what_if_api.dart';

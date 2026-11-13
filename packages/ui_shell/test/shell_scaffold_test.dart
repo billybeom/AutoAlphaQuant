@@ -203,6 +203,7 @@ void main() {
               kHomeTag,
               AppRoutes.journalTimeline,
               AppRoutes.holdingsOverview,
+              AppRoutes.settingsHome,
             ],
           ),
           (
@@ -213,6 +214,7 @@ void main() {
               AppRoutes.adviceInbox,
               AppRoutes.journalTimeline,
               AppRoutes.holdingsOverview,
+              AppRoutes.settingsHome,
             ],
           ),
         ];
@@ -296,6 +298,7 @@ void main() {
         kHomeTag,
         AppRoutes.journalTimeline,
         AppRoutes.holdingsOverview,
+        AppRoutes.settingsHome,
       ]);
       expect(dummyOf(kHomeTag), findsOneWidget);
       expect(dummyOf(AppRoutes.holdingsOverview), findsNothing);
@@ -314,7 +317,74 @@ void main() {
         kHomeTag,
         AppRoutes.journalTimeline,
         AppRoutes.holdingsOverview,
+        AppRoutes.settingsHome,
       ]);
+      expect(find.text(ShellLabels.retry), findsNothing);
+    });
+  });
+
+  // ── TS-10 더보기 탭 = M9 S01 설정 홈 본문(🆕 v1.18 · 01 §27 K-a · K-x) ──────────
+  group('TS-10 more tab settings home', () {
+    testWidgets('TS-10 registered body shown', (WidgetTester tester) async {
+      final List<String> log = <String>[];
+      await pumpShell(
+        tester,
+        overrides: shellOverrides(
+          platform: ShellPlatform.androidOperator,
+          config: flagsOf(kFlagsLiveAuto),
+          alerts: alertsOf(const <AlertItem>[]),
+          bodies: dummyBodies(AppRoutes.all, log),
+        ),
+      );
+      expect(dummyOf(AppRoutes.settingsHome), findsNothing);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('s01-tabs')),
+          matching: find.text(ShellLabels.tabMore),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('s01-more-slot')),
+          matching: dummyOf(AppRoutes.settingsHome),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      final List<String> moreBuilds = log
+          .where((String t) => t == AppRoutes.settingsHome)
+          .toList();
+      expect(moreBuilds, hasLength(1));
+      expect(find.text(ShellLabels.retry), findsNothing);
+    });
+
+    testWidgets('TS-10 unregistered body = placeholder', (
+      WidgetTester tester,
+    ) async {
+      await pumpShell(
+        tester,
+        overrides: shellOverrides(
+          platform: ShellPlatform.androidOperator,
+          config: flagsOf(kFlagsLiveAuto),
+          alerts: alertsOf(const <AlertItem>[]),
+          bodies: const ShellRouteBodies(<String, ShellBodyBuilder>{}),
+        ),
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('s01-tabs')),
+          matching: find.text(ShellLabels.tabMore),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('s01-more-slot')),
+          matching: find.byKey(const Key('s01-placeholder')),
+        ),
+        findsOneWidget,
+      );
       expect(find.text(ShellLabels.retry), findsNothing);
     });
   });

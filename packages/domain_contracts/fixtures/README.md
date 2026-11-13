@@ -1,4 +1,4 @@
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.17 · 240파일**(🆕 v1.17 R16 선행 + 엔진 E10 D11 · 2026-11-04 · ⬜ 로컬 커밋 — PR 대기 · 신설 21 · 개정 3) · ~~계약 v1.16 · 219파일~~(R15 선행 · 2026-11-03 · ✅ 병합 PR #96 squash `dd9e162` · 신설 32 · 개정 6) · ~~계약 v1.15 · 187파일~~(R14 선행 · 2026-10-30 · ✅ 병합 PR #86 squash `e9e71c8` · 신설 11 · 개정 5) · ~~계약 v1.13 · 176파일~~(✅ 병합 PR #72 squash `638fca4` · v1.14 = 봉투 버전 줄만) · ~~계약 v1.12 · 174파일~~(v1.12 R5·R13 선행 15 · 2026-10-22 · ✅ 병합 PR #68 squash `fb67caf` · v1.9~v1.11 = 봉투 버전 줄만) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ✅ 병합 PR #48 squash `dcac7ec` + 🆕 v1.12 R5·R13 선행 15(X7 `A-*`·`L-3` · X5 `L-1`·`L-2` · 리듬) · 2026-10-22 + 🆕 v1.13 R13b 선행 2(대조 보드 전부 일치 · 억제 + 기한) · 2026-10-26)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.18 · 248파일**(🆕 v1.18 R6 선행 + 엔진 등재형 7 · 2026-11-13 · ⬜ 로컬 커밋 — PR 대기 · 신설 8 · 개정 1) · ~~계약 v1.17 · 240파일~~(R16 선행 + 엔진 E10 D11 · 2026-11-04 · ✅ 병합 PR #123 squash `0249f61` · 신설 21 · 개정 3) · ~~계약 v1.16 · 219파일~~(R15 선행 · 2026-11-03 · ✅ 병합 PR #96 squash `dd9e162` · 신설 32 · 개정 6) · ~~계약 v1.15 · 187파일~~(R14 선행 · 2026-10-30 · ✅ 병합 PR #86 squash `e9e71c8` · 신설 11 · 개정 5) · ~~계약 v1.13 · 176파일~~(✅ 병합 PR #72 squash `638fca4` · v1.14 = 봉투 버전 줄만) · ~~계약 v1.12 · 174파일~~(v1.12 R5·R13 선행 15 · 2026-10-22 · ✅ 병합 PR #68 squash `fb67caf` · v1.9~v1.11 = 봉투 버전 줄만) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ✅ 병합 PR #48 squash `dcac7ec` + 🆕 v1.12 R5·R13 선행 15(X7 `A-*`·`L-3` · X5 `L-1`·`L-2` · 리듬) · 2026-10-22 + 🆕 v1.13 R13b 선행 2(대조 보드 전부 일치 · 억제 + 기한) · 2026-10-26)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -12,7 +12,7 @@
   아래 «픽스처 계좌 별칭 표»가 정본이다.
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 240파일(🆕 2026-11-04 v1.17) 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 248파일(🆕 2026-11-13 v1.18) 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -57,7 +57,10 @@
    (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
    자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
 2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
-   🆕 **지금 값은 `1.17.0`**(2026-11-04 R16 선행 + 엔진 E10 D11 · 01 §26) — 상수와 기존 219개 + 신규 21개 = **240개**를 **함께** 올렸다.
+   🆕 **지금 값은 `1.18.0`**(2026-11-13 R6 선행 + 엔진 등재형 7 · 01 §27) — 상수와 기존 240개 + 신규 8개 = **248개**를 **함께** 올렸다.
+   🔴 기존 240개 가운데 239개는 `"contract_version"` **한 줄만** 바뀌었고 1개(`m8/incident_token_expired`)는 본문도 개정됐다 — 아래 «계약 v1.18» 절.
+   🔵 번호 = K-m(엔진 다음 판 = 1.19.0).
+   그 앞 ~~`1.17.0`~~(2026-11-04 R16 선행 + 엔진 E10 D11 · 01 §26) — 상수와 기존 219개 + 신규 21개 = **240개**를 **함께** 올렸다.
    🔴 기존 219개 가운데 216개는 `"contract_version"` **한 줄만** 바뀌었고 3개(`m8/handbook_page_sleeve_b`·`m8/incident_token_expired`·`journal_30`)는
    본문도 개정됐다 — 아래 «계약 v1.17» 절. 🔵 번호 = K6(엔진 다음 판 = 1.18.0).
    그 앞 ~~`1.16.0`~~(2026-11-03 R15 선행 · 01 §25) — 상수와 기존 187개 + 신규 32개 = **219개**를 **함께** 올렸다.
@@ -118,7 +121,7 @@
 | `advice_summary` | `AdviceInboxSummary` | `m8/ops_home_advice_open.json` · `m8/ops_home_advice_zero.json` · 🆕 v1.13 `m8/ops_home_advice_suppressed_due.json`(등록부 extras 3벌 — C-1·C-8 이 연다) |
 | `counterfactual` | `AfterTaxLadder` | `m7/aftertax_ladder_1.json` — 🆕 v1.6 **C-30 골든 대조 전용**(화면 경로는 `AnnualReviewVm.afterTaxCounterfactual` · `m7_annual_*` 3벌이 이 블록의 사본을 싣는다) |
 | `counterfactual_collapsed` | bool | `m7/aftertax_ladder_1.json` — 🆕 v1.6 C-30 대조 전용(접힘 값은 DTO 에 두지 않는다 · `S7-7` 반사실 카드는 늘 기본 접힘) |
-| `incident_alert` | `AlertItem` | `m8/incident_token_expired.json` |
+| `incident_alert` | `AlertItem` | `m8/incident_token_expired.json`(🆕 v1.18 — 파일이 `ConnectionsVm` 으로 바인딩됐다 · 이 블록은 곁 블록 · extras 묶음 밖 · 등급 = C-47 ⑥) |
 | `preserved_input` | 원시(`ManualFillRecord` 모양 · `context` 없음) | `m6/fill_rejected_price.json` |
 | `reject_reason` | `ReasonChip` | `m6/fill_rejected_price.json` |
 | `price_range_source_date` | `TradeDate` | `m6/fill_rejected_price.json` |
@@ -143,7 +146,7 @@
 
 ---
 
-## 파일 목록 (240)
+## 파일 목록 (248)
 
 ### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
@@ -287,7 +290,10 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 ~~`m7_next_rebalance_d6`~~ 🆕 v1.6 개명 `m7_next_rebalance_countdown`(«2026년 9월 1일 · D-1») · `m7_rebalance_detail_band`(🆕 v1.5 버튼·행 링크 · 🆕 v1.6 대조 행·관측 시각) · `m7_annual_2026`·`_first_year`(🆕 v1.6 `year_label` · 세후 사본 2블록) ·
 `m7_goal_path_on`·`_hold`·`_realworld`(🆕 v1.4 `GoalPathVm` 재설계 — 생성 스크립트).
 
-### `m8/` 84 — 셸·운영 홈·알림·온보딩·장애·핸드북·기기 리스크 (04 §10)
+### `m8/` 85 — 셸·운영 홈·알림·온보딩·장애·핸드북·기기 리스크 (04 §10)
+
+🆕 **계약 v1.18 1건**(엔진 등재형 · 01 §27 K-z · 알림 목록 봉투) — `alerts_safety_resume`(`AlertCodes.safety` 3 · `resume` 3 각 1행 · 글자 = 엔진 `alert_text.dart` 초안 · 등급 = 엔진 `kAlertLevels` · 등급 순) ·
+🔵 같은 창에서 `incident_token_expired` 가 개정됐다(연결 4행 `action_available` 삭제 · `detail_line`·`level`·`actions`·`channel_picker` · VM `locked_label` — 등록부 `ConnectionsVm` 바인딩 · 미결 165 해소).
 
 🆕 **계약 v1.17 20건**(R16 선행 + 엔진 D11 · 01 §26 · VM 1행 봉투 19 · 알림 목록 봉투 1) —
 R16a 12 `incident_banner_token_expired`·`_order_rejected`(조치 있음) · `_network_down`·`_phone_down`·`_other`(조치 없음) · `_none`(배너 없음 · 🔴 종류 5 전수 · `OK` 0) · `runbook_index`(6행 · 원고 = 03_실행 §10-5 ①~⑥ · ⑥ = `aaq://ops/emergency-card` · 요약 null [1]·[4]) · `runbook_index_empty` · `runbook_host_lost`(비순번 «2-1.») · `runbook_missing`(모르는 id = 값) · `emergency_card`(원고 = 04_안전장치 §5-5 + §10-5 ⑥ · 공개 고객센터 번호만 · 인쇄 슬롯 `EMERGENCY_CARD_PRINT`) · `emergency_card_no_print` ·
@@ -326,7 +332,11 @@ R15d 7 `restart_vm_lost_phone`(분기 X1 계획·비상) · `restart_vm_logged_o
 > ⚠️ 04 §10 목록의 `onboarding_fresh.json` 은 **코어의 같은 이름 파일이 정본**이라
 > `m8/` 에 다시 두지 않았다(같은 데이터가 두 벌이 되면 한쪽만 갱신된다).
 
-### `m9/` 3 — 설정·운영 모드 전환 (05)
+### `m9/` 10 — 설정·운영 모드 전환 (05)
+
+🆕 **계약 v1.18 7건**(R6 선행 · 01 §27 · VM 1행 봉투 6 · 동작 결과 목록 봉투 1 · 골든 ↔ 입력 = 05 §10) —
+R6a 3 `settings_home`(`S01` 묶음 3 · 카드 11 · `UiLevel` 5값 전수 · 주의 배지 2 · 승격 줄 · 연간 리뷰 링크) · `settings_home_no_review`(연간 링크 0 · 승격 줄 0) · `settings_home_viewer`(폰 전용 행을 엔진이 뺀 판) ·
+R6b 4 `connections`(`S07` 행 5 · 레벨 5값 전수 · 부분 동기 · 실패 2 · 미설정 · 워치독·캘린더 링크 · 카카오 선택 + 배지) · `connections_telegram`(전부 정상 · 행 4) · `connections_locked`(`locked_label` · 동작 칸 0) · `settings_action_results`(`ActionResult` 5 · 레벨 5값 · `SettingsResultCodes` 3 + null 2).
 
 `handover_states`(경로 4 × 성공/실패 — `SIM_TO_AUTO` 통과 · `FRESH_AUTO` 차단 ·
 `ADOPT_LEDGER` 모름 · `HANDBACK_MANUAL` 차단 + `handback_branch`).
@@ -951,7 +961,7 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 
 신설 단계 행 = `OnboardingStep` 선언 차례 19키(`step_id … failure_reason_code, requirement_label, warning_label, verified_until_text, failure_text, gate, detail_deep_link` · 없는 값은 `null` 로 적는다) · 마무리 단계 = `title, state, gate, lines, expectation_line, slot_id, link, action`.
 
-## 계약 v1.17 (2026-11-04 · R16 선행 M2 보강 + 엔진 E10 D11 · 01 §26 · ⬜ 로컬 커밋 — PR 대기)
+## 계약 v1.17 (2026-11-04 · R16 선행 M2 보강 + 엔진 E10 D11 · 01 §26 · ✅ 병합 PR #123 squash `0249f61`)
 
 정본: 설계 `10_리뷰/2026-11-04_R16선행_계약v1.17_설계서.md` §5 · 발주자 결정 2026-11-04 ①~④.
 **219 → 240** = 신설 21 · 개정 3 · 버전 줄만 216. 신설 21건의 `meta` = `generated_at` 2026-11-04 · `seed` 20261104 · 개정 3건은 원래 `meta` 에서 `contract_version` 만.
@@ -986,16 +996,49 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 
 신설 VM 의 키 = DTO 선언 차례 · 없는 값은 `null` 로 적는다(`HandbookEntry` 7키 `anchor, title, order, state, state_label, deep_link, children` · `HandbookBlock` 4키 `kind, text, deep_link, live` · `HandbookPage` 7키 · 옛 `sleeve_b` 블록 4개는 원래 키 꼴 그대로).
 
-## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과 → 2026-10-20 v1.7 · 141파일(매핑 138파일 331행) · C-1·C-8 통과 → 2026-10-21 v1.8 · 159파일(매핑 156파일 349행) · C-1·C-8 통과 → 2026-10-22 v1.12 · 174파일(매핑 172파일 385행 · 원시 387) · C-1·C-8 통과 → 2026-10-26 v1.13 · 176파일(매핑 174파일 387행 · 원시 389 · 봉투 형제 키 +3 = m8 `advice_summary`) · C-1·C-8 통과 → 🆕 2026-10-30 v1.15 · 187파일(매핑 185파일 392행 · 원시 394 · 신설 11파일 +13행(VM 1행 10 + 접수증 3행) · 개정 워치독 2파일 5행 → VM 1행 = −8 · 봉투 형제 키 −1 = m8 `holiday_notice`(VM 필드로) · 코덱 +3 `AlertCenterVm`·`AlertDetailVm`·`WatchdogBoardVm` · `WatchdogCheck` 코덱 삭제) · C-1·C-8 통과 → 🆕 2026-11-03 v1.16 · 219파일(매핑 217파일 428행 · 원시 430 · 신설 32파일 +36행(VM 1행 29 + 결과 7행) · 개정 6 = 행 수 불변 · 코덱 +8 온보딩 VM 7·`ActionResult`) · C-1·C-8 통과 → 🆕 2026-11-04 v1.17 · 240파일(매핑 238파일 449행 · 원시 451 · 신설 21파일 +21행(VM 1행 19 + 목록 1행 2) · 개정 3 = 행 수 불변 · 봉투 형제 키 −1 = m8 `index` · 코덱 +7 `IncidentBannerVm`·`RunbookIndexVm`·`RunbookVm`·`EmergencyCardVm`·`HandbookIndex`·`HandbookPage`·`DeviceRiskVm`) · C-1·C-8 통과)
+## 계약 v1.18 (2026-11-13 · R6 선행 M2 보강 + 엔진 등재형 7 · 01 §27 · ⬜ 로컬 커밋 — PR 대기)
+
+정본: 설계 `10_리뷰/2026-11-13_R6선행_계약v1.18_설계서.md` §5 · 발주자 결정 2026-11-13 Q1~Q4 · K-a~K-z.
+**240 → 248** = 신설 8 · 개정 1 · 버전 줄만 239. 신설 8건의 `meta` = `generated_at` 2026-11-13 · `seed` 20261113 · 개정 1건은 원래 `meta` 에서 `contract_version` 만.
+
+### 신설 8건 — 위 «`m9/` 10» · «`m8/` 85» 의 v1.18 줄 · 골든 ↔ 입력은 설계서 §5-5 · 05 §10
+
+- VM 1행 봉투 6(`SettingsHomeVm` 3 · `ConnectionsVm` 3) — VM 안 `as_of` = 봉투와 같은 값.
+- 목록 봉투 2 — `m9/settings_action_results`(`ActionResult` 5행) · `m8/alerts_safety_resume`(`AlertItem` 6행 · 엔진 등재형).
+
+### 개정 1건 (파일 이름·`FixturePaths` 상수 그대로)
+
+| 파일 | 바뀐 것 |
+|---|---|
+| `m8/incident_token_expired` | 연결 4행: `action_available` 키 삭제 + `detail_line` null · `level`(`BROKER_KIS` BLOCKED · `SUPABASE` OK · `GITHUB_ARCHIVE` WATCH · `HEALTHCHECKS` OK) · `actions`(연결 테스트 1 · 지금 동기화 1) · `channel_picker` null · `HEALTHCHECKS` `route` = `aaq://ops/watchdog`(C-52 ⑤) · VM `locked_label` null · 🔴 `status_code` 글자 무변경 · 형제 키 `incident_alert` 무변경 → 등록부 `ConnectionsVm` 바인딩(미결 165 해소) |
+
+### 🔴 개정·신설은 **생성 스크립트**가 만든다 (손 계산 금지)
+
+`packages/domain_contracts/tool/gen_r6_v118_fixtures.py` — 기준 커밋 `3d4c79e`(계약 1.17.0 · 240건)의 원문에서 매번 다시 만든다(멱등 · `git cat-file --batch` ·
+두 번 돌려 248건 md5 동일). 쓰기 전 자가 검사 — 레벨 5값 전수(홈 카드 11 · 연결 행 5 · 결과 5) · 묶음 차례 · 라우트 등록 · 짝 규칙 · 동작 args 화이트리스트 ·
+채널 선택 1 · 잠김 = 동작 칸 0 · «DRY_RUN» 0 · 손익 낱말·금액 글자 0 · 계좌꼴·전화번호 꼴·앱키 꼴·URL·금지어·폐기 운영값 0.
+
+### 🔵 표본 사실 — 고치지 않고 적어 둔다
+
+- `connections_telegram` 은 캘린더 행 0 — `calendarEnabled` false 의 엔진 몫(행 수 = 받은 수).
+- `connections_locked` = 동작 칸 0 — 화면은 `lockedLabel` 로 거르지 않는다(엔진이 칸을 비운다 · K-t).
+- `incident_token_expired` 의 `status_code` 는 옛 글자(`TOKEN_EXPIRED`·`LAG`) 그대로 — ui 미참조 · 짝 규칙 OK ⇔ ok 만 맞춘다.
+- `LEASE_INVALID` 일지 칩 표본 = 0(등재만 · 미결 166 축).
+
+### 표기 — 키 차례
+
+신설 VM 의 키 = DTO 선언 차례 · 없는 값은 `null` 로 적는다(`SettingsCard` 6키 `code, title, level, status_label, attention_text, route` · `ConnectionRow` 10키 `target, label, status_code, status_label, last_ok_text, detail_line, level, actions, route, channel_picker` · 동작 호출 3키 `id, args, label`).
+
+## 역직렬화 실측 (2026-09-08 · 233행 → 2026-09-23 · 94파일 267행 → 2026-09-25 v1.2 · 101파일 281행 → 2026-09-28 v1.3 · 112파일 295행 → 2026-09-30 v1.4 · 119파일 306행 + 봉투 형제 키 9 · 실패 0 → 2026-10-07 v1.5 · 126파일(매핑 123파일 308행) · C-1·C-8 통과 → 2026-10-08 v1.6 · 135파일(매핑 132파일 319행) · C-1·C-8 통과 → 2026-10-20 v1.7 · 141파일(매핑 138파일 331행) · C-1·C-8 통과 → 2026-10-21 v1.8 · 159파일(매핑 156파일 349행) · C-1·C-8 통과 → 2026-10-22 v1.12 · 174파일(매핑 172파일 385행 · 원시 387) · C-1·C-8 통과 → 2026-10-26 v1.13 · 176파일(매핑 174파일 387행 · 원시 389 · 봉투 형제 키 +3 = m8 `advice_summary`) · C-1·C-8 통과 → 🆕 2026-10-30 v1.15 · 187파일(매핑 185파일 392행 · 원시 394 · 신설 11파일 +13행(VM 1행 10 + 접수증 3행) · 개정 워치독 2파일 5행 → VM 1행 = −8 · 봉투 형제 키 −1 = m8 `holiday_notice`(VM 필드로) · 코덱 +3 `AlertCenterVm`·`AlertDetailVm`·`WatchdogBoardVm` · `WatchdogCheck` 코덱 삭제) · C-1·C-8 통과 → 🆕 2026-11-03 v1.16 · 219파일(매핑 217파일 428행 · 원시 430 · 신설 32파일 +36행(VM 1행 29 + 결과 7행) · 개정 6 = 행 수 불변 · 코덱 +8 온보딩 VM 7·`ActionResult`) · C-1·C-8 통과 → 🆕 2026-11-04 v1.17 · 240파일(매핑 238파일 449행 · 원시 451 · 신설 21파일 +21행(VM 1행 19 + 목록 1행 2) · 개정 3 = 행 수 불변 · 봉투 형제 키 −1 = m8 `index` · 코덱 +7 `IncidentBannerVm`·`RunbookIndexVm`·`RunbookVm`·`EmergencyCardVm`·`HandbookIndex`·`HandbookPage`·`DeviceRiskVm`) · C-1·C-8 통과 → 🆕 2026-11-13 v1.18 · 248파일(매핑 247파일 467행 · 원시 468 · 신설 8파일 +17행(VM 1행 6 + 결과 5행 + 알림 6행) · `incident_token_expired` 바인딩 +1행 · 코덱 +2 `SettingsHomeVm`·`ConnectionsVm`) · C-1·C-8 통과)
 
 🔵 **집계 정의**(🆕 2026-09-25 검증 반영 — 판마다 세는 법이 적혀 있지 않아 267·268·270·280 이 섞였다): «파일» = 등록부(`c00_fixture_registry.dart`)가 행 타입을 매핑한 파일(매핑 없는 3건 `unmappedFixtures` 제외 · 0행 봉투 ~~3건~~ 5건 포함 — 🆕 v1.5 `m6/journal_rebalance_unknown`·`m7/m7_rebalance_empty`) · «행» = 그 파일들의 봉투 `rows` 원소 합. 원시 합(전 159파일 `rows`)은 🆕 v1.8 352 = 349 + 매핑 없는 3건 각 1행(🆕 v1.8 신규 18파일이 18행(VM 1행씩)을 더했다 — 개정 3건은 행 수 불변 · `holdings_6` 6행 그대로 · v1.7 판은 141파일 334 = 331 + 3(🆕 v1.7 신규 6파일이 12행을 더했다 — 0행 봉투 1 포함 · 개정 0) · v1.6 판은 135파일 322 = 319 + 3 · v1.5 판은 126파일 311 = 308 + 3 · 🆕 v1.6 신규 9파일이 11행을 더했다 — 개정 14건은 행 수 불변 · v1.4 판은 122파일 309 = 306 + 3 · v1.2 판은 104파일 284 = 281 + 3 · v1.3 신규 11파일이 14행을 더했다 · v1.4 신규 7파일이 11행을 더했다 — 개정 16건은 행 수 불변 · 🆕 v1.5 신규 4파일이 2행을 더했다(0행 봉투 2 포함) — 개정 2건은 행 수 불변). 2026-09-23 판 267 도 같은 정의(원시 270 − 3)이며, v1.2 첫 판의 «280»은 1행 틀린 값이었다(정의대로 279 → 검증 반영 +2행 = 281).
 
-240파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·`m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` · v1.7 `m6/blind_review_queue_empty.json` · v1.12 `m6/ledger_repairs_empty.json`·`m8/ops_rhythm_empty.json` 은 0행 봉투 · v1.6 신설 9건은 전부 행이 있다 · v1.8 신설 18건은 전부 VM 1행 — `holdings_overview_empty`·`allocation_empty` 도 «빈 VM» 1행이다 · 🆕 v1.15 신설 11건 중 10건은 VM 1행(`m8/alert_center_empty`·`m8/watchdog_empty` 도 «빈 VM» 1행) · `m8/alert_ack_receipts_3` 은 3행 · 🆕 v1.16 신설 32건 중 29건은 VM 1행 · 결과 3건은 2·3·2행 · 🆕 v1.17 신설 21건은 전부 1행), 그중 **238파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + v1.5 2026-10-07 +4 + v1.6 2026-10-08 +9 + v1.7 2026-10-20 +6 + v1.8 2026-10-21 +18 + v1.12 2026-10-22 +16 — 신설 15 + `self_report_1` 이동 + v1.13 2026-10-26 +2 + v1.15 2026-10-30 +11 + v1.16 2026-11-03 +32 + 🆕 v1.17 2026-11-04 +21)이 실제 DTO 의 `fromJson` 을 지나
+248파일 전량이 봉투 검사를 통과하고(`m6/journal_empty.json`·`m6/journal_rebalance_unknown.json`·`m7/m7_rebalance_empty.json` · v1.7 `m6/blind_review_queue_empty.json` · v1.12 `m6/ledger_repairs_empty.json`·`m8/ops_rhythm_empty.json` 은 0행 봉투 · v1.6 신설 9건은 전부 행이 있다 · v1.8 신설 18건은 전부 VM 1행 — `holdings_overview_empty`·`allocation_empty` 도 «빈 VM» 1행이다 · 🆕 v1.15 신설 11건 중 10건은 VM 1행(`m8/alert_center_empty`·`m8/watchdog_empty` 도 «빈 VM» 1행) · `m8/alert_ack_receipts_3` 은 3행 · 🆕 v1.16 신설 32건 중 29건은 VM 1행 · 결과 3건은 2·3·2행 · 🆕 v1.17 신설 21건은 전부 1행), 그중 **247파일**(v1.1 실측 2026-09-17 93 + R2 준비 2026-09-23 +1 + v1.2 2026-09-25 +7 + v1.3 2026-09-28 +11 + v1.4 2026-09-30 +7 + v1.5 2026-10-07 +4 + v1.6 2026-10-08 +9 + v1.7 2026-10-20 +6 + v1.8 2026-10-21 +18 + v1.12 2026-10-22 +16 — 신설 15 + `self_report_1` 이동 + v1.13 2026-10-26 +2 + v1.15 2026-10-30 +11 + v1.16 2026-11-03 +32 + v1.17 2026-11-04 +21 + 🆕 v1.18 2026-11-13 +9 — 신설 8 + `incident_token_expired` 바인딩)이 실제 DTO 의 `fromJson` 을 지나
 `fromJson(toJson(x)) == x`(**C-8**)를 만족한다. 🔴 열거값은 `@JsonValue` 로 못 박혀 있어 모르는
 값이면 `fromJson` 이 **던진다** — 이 실측이 통과했다는 것은 픽스처의 열거값 전량이 영역 A 의 표기와
 일치한다는 뜻이다(**C-15 의 절반**. 나머지 절반인 «`@JsonValue` ↔ DDL `CHECK`» 대조는 영역 E 몫이다).
 
-### 🔴 DTO 로 열리지 **않는** 픽스처 ~~2건~~ 🆕 v1.12 1건(+ 인시던트 1 — 등록부 `unmappedFixtures`) — 설계이지 결함이 아니다
+### 🔴 DTO 로 열리지 **않는** 픽스처 ~~2건~~ 🆕 v1.12 1건(~~+ 인시던트 1~~ 🆕 v1.18 바인딩 — 등록부 `unmappedFixtures` 1) — 설계이지 결함이 아니다
 
 | 파일 | 왜 DTO 가 없나 | 화면이 할 일 |
 |---|---|---|
@@ -1032,7 +1075,8 @@ PYTHONDONTWRITEBYTECODE=1 python packages/domain_contracts/tool/gen_h6_v18_fixtu
 
 ## 아직 없는 것
 
-- **`m9/` 화면별 픽스처** — 05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
+- **`m9/` 화면별 픽스처** — 🆕 v1.18 `S01` 3 · `S07` 3 + 결과 1 은 생겼다(05 §10 표 · 위 «계약 v1.18» 절) · 그 밖 M9 화면(S02~S06·S08~S12)은 각 창 — 아래는 v1.17 까지의 글자.
+  05 에 «모의 데이터» 절이 없어 파일명이 문서에 **하나도 없다**.
   🔴 구현자가 이름을 지어내지 않는다(인벤토리 §0 규칙) — M2가 05 에 목록을 등재한 뒤 만든다.
   🔵 v1.4 의 `m9/contribution_setting_*` 2벌은 `S7-4` 스텝 ① 의 입력(`ContributionSetting`)이라 M2 가 먼저 만들었다 —
   05 화면(`MonthlyContributionVm` 카드 등)의 픽스처는 여전히 없다.

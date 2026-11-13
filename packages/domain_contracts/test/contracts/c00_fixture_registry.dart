@@ -157,6 +157,17 @@ final DtoCodec<Object> _deviceRiskVm = DtoCodec<DeviceRiskVm>(
   DeviceRiskVm.fromJson,
   (DeviceRiskVm v) => v.toJson(),
 );
+// 🆕 계약 v1.18(R6 선행 · 01 §27) — M9 `S01` 설정 홈 · `S07` 연결 관리 VM.
+final DtoCodec<Object> _settingsHomeVm = DtoCodec<SettingsHomeVm>(
+  'SettingsHomeVm',
+  SettingsHomeVm.fromJson,
+  (SettingsHomeVm v) => v.toJson(),
+);
+final DtoCodec<Object> _connectionsVm = DtoCodec<ConnectionsVm>(
+  'ConnectionsVm',
+  ConnectionsVm.fromJson,
+  (ConnectionsVm v) => v.toJson(),
+);
 final DtoCodec<Object> _depositPlan = DtoCodec<DepositPlan>(
   'DepositPlan',
   DepositPlan.fromJson,
@@ -670,6 +681,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8AlertsAdvice9codes: FixtureBinding(_alertItem),
   FixturePaths.m8AlertsDigest: FixtureBinding(_alertItem),
   FixturePaths.m8AlertsP0Ack: FixtureBinding(_alertItem),
+  // 🆕 v1.18(01 §27 · 엔진 등재형 K-z) — `AlertCodes.safety` 3 · `resume` 3 알림 6행.
+  FixturePaths.m8AlertsSafetyResume: FixtureBinding(_alertItem),
   // 🆕 v1.17(01 §26 · 엔진 D11) — `STALE_ORDERS_HELD` 알림 1행.
   FixturePaths.m8AlertsStaleOrdersHeld: FixtureBinding(_alertItem),
   // 🆕 v1.17(01 §26 · R16c) — `H-03` 기기 리스크 2.
@@ -692,6 +705,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8IncidentBannerOther: FixtureBinding(_incidentBannerVm),
   FixturePaths.m8IncidentBannerPhoneDown: FixtureBinding(_incidentBannerVm),
   FixturePaths.m8IncidentBannerTokenExpired: FixtureBinding(_incidentBannerVm),
+  // 🆕 v1.18(01 §27 · 미결 165 해소) — 연결 4행 = `ConnectionsVm`(형제 키 `incident_alert` = 곁 블록 · [unboundSiblingKeys]).
+  FixturePaths.m8IncidentTokenExpired: FixtureBinding(_connectionsVm),
   FixturePaths.m8OnboardingFinish: FixtureBinding(_onboardingStep),
   // 🆕 v1.16(01 §25 · R15c) — `O-04` 마무리 7 · DRY_RUN 결과.
   FixturePaths.m8OnboardingFinishAdvisory: FixtureBinding(_onboardingFinishVm),
@@ -811,6 +826,10 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8WatchdogPaused: FixtureBinding(_watchdogBoardVm),
 
   // ── m9/ — 설정·운영 모드 전환 ────────────────────────────────────────────
+  // 🆕 v1.18(01 §27 · R6b) — `S07` 연결 관리 3벌.
+  FixturePaths.m9Connections: FixtureBinding(_connectionsVm),
+  FixturePaths.m9ConnectionsLocked: FixtureBinding(_connectionsVm),
+  FixturePaths.m9ConnectionsTelegram: FixtureBinding(_connectionsVm),
   // 🆕 v1.4 — 월 납입 설정 2갈래(`pension_limit_note_text` 있음 / 없음).
   FixturePaths.m9ContributionSettingDefault: FixtureBinding(
     _contributionSetting,
@@ -825,12 +844,19 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (HandoverPlan v) => v.toJson(),
     ),
   ),
+  // 🆕 v1.18(01 §27 · R6b) — M9 동작 결과 5행.
+  FixturePaths.m9SettingsActionResults: FixtureBinding(_actionResult),
+  // 🆕 v1.18(01 §27 · R6a) — `S01` 설정 홈 3벌.
+  FixturePaths.m9SettingsHome: FixtureBinding(_settingsHomeVm),
+  FixturePaths.m9SettingsHomeNoReview: FixtureBinding(_settingsHomeVm),
+  FixturePaths.m9SettingsHomeViewer: FixtureBinding(_settingsHomeVm),
 };
 
 /// 🔴 **뷰모델이 아직 계약에 없는 픽스처** — 지우지 않고 사유와 함께 남긴다.
 ///
-/// 이 둘은 봉투(`as_of`·`empty_kind`·`empty_label`·`has_more`)까지만 검사한다.
+/// 이 목록(🆕 v1.18 = 1건)은 봉투(`as_of`·`empty_kind`·`empty_label`·`has_more`)까지만 검사한다.
 /// 🆕 v1.12 — `m6/self_report_1.json` 은 `L-3` 세션 VM(`SelfReportSession`)이 생겨 바인딩으로 옮겼다(01 §21 · K8).
+/// 🆕 v1.18 — `m8/incident_token_expired.json` 은 행 `level`·`actions` 가 생겨 `ConnectionsVm` 바인딩으로 옮겼다(01 §27 · 미결 165).
 /// 이름이 확정되어 DTO 가 들어오면 [fixtureBindings] 로 옮기고 여기서 지운다.
 const Map<String, String> unmappedFixtures = <String, String>{
   'm6/entry_gate_nov_pass_1.json':
@@ -838,10 +864,6 @@ const Map<String, String> unmappedFixtures = <String, String>{
       '화면 타입(state·gates·history·trigger 묶음)은 §2 에 등재되지 않았다 — 이름 확정 대기. '
       'v1.8 — `H6-3` 은 `SleeveAllocationRow.stateChips` 로 보류를 말한다 · `enteredInNov` 골든 의무는 '
       '`A-2` `ReasonChip`(`F1_ENTRY_LATE`) 몫(01 §17 · K13).',
-  'm8/incident_token_expired.json':
-      'v1.17 — `D-01` 배너 VM 은 `m8/incident_banner_*` 가 맡는다(R16 행 픽스처 교체 · 01 §26 K21) · 이 파일 = '
-      '연결 4행(M9 S07 `ConnectionsVm` 꼴) + 형제 키 `incident_alert`(`AlertItem` · 🆕 code `BROKER_AUTH_FAILED` P0) — '
-      '바인딩 = M9 카드(01 §8 미결 165) · C-47 ⑥ 이 전 픽스처 walk 로 등급을 본다.',
 };
 
 /// 봉투 필수 6키 — 이 밖의 최상위 키가 «형제 키»다(fixtures/README «봉투 형제 키 표»).
@@ -867,7 +889,9 @@ const Map<String, String> unboundSiblingKeys = <String, String>{
   'counterfactual_collapsed': 'bool 원시 — C-30 ⓒ 대조 전용 · DTO 아님.',
   'credential_use': '원시 글자 — DTO 아님.',
   'finish_headline': '문장(원시) — DTO 아님.',
-  'incident_alert': '`AlertItem` — 이 픽스처 자체가 미매핑([unmappedFixtures]) · 등급은 C-47 ⑥ 전 픽스처 walk 가 본다.',
+  'incident_alert':
+      '`AlertItem` — `ConnectionsVm` 봉투의 곁 블록(🆕 v1.18 바인딩 · 01 §27 · 미결 165 해소) · extras 묶음 밖 · '
+      '등급은 C-47 ⑥ 전 픽스처 walk 가 본다.',
   'lease_notice': '문장(원시) — DTO 아님.',
   'operating_mode': '원시 글자 — DTO 아님(C-18 ② 가 값을 본다).',
   'preserved_input': '원시(`ManualFillRecord` 모양 · `context` 없음) — DTO 아님.',

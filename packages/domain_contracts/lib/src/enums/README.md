@@ -15,6 +15,7 @@
 | `calendar.dart` | `CalendarOrigin` · `CalendarEventKind` |
 | `ledger.dart` | `LedgerPair` · `LedgerAxis` · `DiffSeverity` · `DiffStatus` · `RepairRoute` · `LedgerTrustGrade`(+ ⏸ `LedgerEventKind` 주석) |
 | `safety.dart` | `AlertLevel` · `BreakerLevel` · `ClearRoute` |
+| 🆕 `settings.dart` | **v1.18** `SettingTier`(`S01` 묶음 머리·자물쇠 3값 GENERAL·OPERATIONAL·RULE · 01 §27) |
 | `onboarding.dart` | `OnboardingTrack` · `StepRequirement` · `StepState` |
 | 🆕 `incident.dart` | **v1.17** `IncidentKind`(`D-01` 배너 아이콘 5값 · 모르는 wire = `other` · 01 §26) |
 | 🆕 `handbook.dart` | **v1.17** `HandbookEntryState`(`B-01` 목차 상태 3값 · 아이콘·색만 · 01 §26) |

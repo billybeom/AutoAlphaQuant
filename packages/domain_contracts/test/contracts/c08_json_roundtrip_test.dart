@@ -266,7 +266,8 @@ const String _reasonCommandPayload =
     '(01 §4-2 · C-28 G-19). 왕복은 C-16·C-28 의 몫이다.';
 const String _reasonM9Fixture =
     '05(M9) 설정·운영 화면 픽스처가 인벤토리 §8 목록에 없다(m9/ 는 handover_states 와 '
-    '🆕 v1.4 contribution_setting 2벌뿐 — `ContributionSetting` 은 덮였다). '
+    '🆕 v1.4 contribution_setting 2벌 — `ContributionSetting` 은 덮였다 · 🆕 v1.18 settings_home 3 · connections 3 · '
+    '결과 1 — `S01`·`S07` 은 덮였다). '
     '픽스처가 생기면 등록부에 올리고 여기서 지운다.';
 const String _reasonCalendarUndecided =
     'X4 캘린더 채택이 미결이라 픽스처를 만들지 않았다(01 §8-5 · FeatureFlags.calendarEnabled).';
@@ -299,16 +300,12 @@ const Map<String, String> _knownUncovered = <String, String>{
 
   // ── M9 설정·기기·연결·백업·셸(05) ────────────────────────────────────────
   'BackupVm': _reasonM9Fixture,
-  'ConnectionRow': _reasonM9Fixture,
-  'ConnectionsVm': _reasonM9Fixture,
   'CredentialCardVm': _reasonM9Fixture,
   'CredentialListVm': _reasonM9Fixture,
   'DeviceAccessVm': _reasonM9Fixture,
   'DeviceRow': _reasonM9Fixture,
   'LiveDryRunObservationVm': _reasonM9Fixture,
   'MonthlyContributionVm': _reasonM9Fixture,
-  'SettingsCard': _reasonM9Fixture,
-  'SettingsHomeVm': _reasonM9Fixture,
   'ShellChip': _reasonM9Fixture,
   'ShellVm': _reasonM9Fixture,
 

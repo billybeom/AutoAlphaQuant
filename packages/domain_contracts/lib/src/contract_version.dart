@@ -8,7 +8,7 @@
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -118,13 +118,22 @@
 //    `HandbookRepository` · `OpsStatusRepository.watchDeviceRisk`(추가형) · 라우트 69 · `OpsSlotIds` · 받침대 3 + 1 · 🆕 C-51 ·
 //    🔴 엔진 D11 4건(R31 체결 키 주석 · `JournalStatus.expired` · `AlertCodes.staleOrdersHeld` · PREVENTED 근거 = `JournalReasonCodes`) ·
 //    픽스처 219 → 240(신설 21 · 개정 3) — 🆕 tool/gen_r16_v117_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
-//    엔진 다음 계약 판 = 1.18.0(13 §8 R55 E13i1·i2 · E11d X12 등 «계약 창» 몫 · 06 변경 이력).
+//    엔진 다음 계약 판 = 1.18.0(13 §8 R55 E13i1·i2 · E11d X12 등 «계약 창» 몫 · 06 변경 이력) — 🆕 v1.18 이 R6 선행과
+//    한 판으로 엔진 등재형 7 을 실었다 · E13i1·i2 등 나머지 = 1.19.0(아래).
+// 🆕 '1.18.0'(R6 선행 + 엔진 등재형 7 · 01 §27 · 발주자 결정 2026-11-13 Q1~Q4 · K-a~K-z) — M9 S01 설정 홈 · S07 연결 관리 표시·동작 계약:
+//    `SettingsHomeVm` 교체(`statusChip`·`annualReviewLink`·`groups`·`asOf`) · 🆕 `SettingsGroup`·`EngineStatusChip`·enum `SettingTier` ·
+//    `SettingsCard` += `attentionText` − `actionAvailable` · `ConnectionsVm` += `lockedLabel` · `ConnectionRow` += `detailLine`·`level`·
+//    `actions`·`channelPicker` − `actionAvailable` · 🆕 `NotifyChannelCard`·`NotifyChannelOption` · `typedef SettingsActionCall` ·
+//    `SettingsActionId.notifyChannelSelect` · 🆕 `SettingsRepository` · 라우트 80(M9 11) · 사전 3(`connection_target`·`notify_channel`·
+//    `settings_result`) · 받침대 1 · 🆕 C-52 · 🔴 엔진 등재형 7(`AlertCodes.safety` 3 · `resume` 3 · `JournalReasonCodes.leaseInvalid`) ·
+//    픽스처 240 → 248(신설 8 · 개정 1 — `incident_token_expired` 바인딩) — 🆕 tool/gen_r6_v118_fixtures.py(기준 = M2 밑동 원문에서 멱등).
+//    엔진 다음 계약 판 = 1.19.0(13 §8 R55 E13i1·i2 · E14i 재개 VM · E11d X12 등 + R6c S05 `OperationsVm` · 06 변경 이력).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.17.0';
+const String contractVersion = '1.18.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
