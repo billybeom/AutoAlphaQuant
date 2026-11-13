@@ -6,7 +6,14 @@
 import 'dart:convert';
 
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, FlagIds, ResumeCounts, ResumeMode, ResumePhase, TradeDate;
+    show
+        Clock,
+        FlagIds,
+        ResumeCounts,
+        ResumeItem,
+        ResumeMode,
+        ResumePhase,
+        TradeDate;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
@@ -149,11 +156,32 @@ class SqliteResumeStore {
     return _db.updatedRows > 0;
   }
 
-  /// 이 회차가 옮긴 항목의 verdict(전이 행 · R8 집계 원천 — 크래시 뒤에도 같은 값).
+  /// 🆕 E14e1(R78) — 이 회차의 리포트 항목 1행(같은 회차 · 항목 두 번 = 무시 · 크래시 멱등).
+  void writeItem(
+    String resumeRunId, {
+    required int seq,
+    required ResumeItem item,
+    required String reasonCode,
+  }) => _db.execute(
+    'INSERT OR IGNORE INTO resume_item (resume_run_id, work_id, seq, one_line, planned_line, reevaluated_line, '
+    'verdict_code, verdict_label, reason_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    <Object?>[
+      resumeRunId,
+      item.workId,
+      seq,
+      item.oneLine,
+      item.plannedLine,
+      item.reevaluatedLine,
+      item.verdictCode,
+      item.verdictLabel,
+      reasonCode,
+    ],
+  );
+
+  /// 이 회차 항목의 verdict(`resume_item` 차례 · R8 집계 원천 — 크래시 뒤에도 같은 값 · 🆕 E14e1 = 전이 셈을 대체).
   List<String> roundVerdicts(String resumeRunId) => <String>[
     for (final Row r in _db.select(
-      'SELECT verdict_code FROM planned_work_transition WHERE resume_run_id = ? AND verdict_code IS NOT NULL '
-      'ORDER BY transition_id',
+      'SELECT verdict_code FROM resume_item WHERE resume_run_id = ? ORDER BY seq',
       <Object?>[resumeRunId],
     ))
       r['verdict_code'] as String,

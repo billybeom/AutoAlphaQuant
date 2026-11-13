@@ -5,7 +5,13 @@
 // 🔴 재개는 주문을 내지 않는다 — «실행»이라 쓰지 않고 «집행 예정» · «다음 주문 회차»라 쓴다.
 
 import 'package:domain_contracts/domain_contracts.dart'
-    show ResumeCounts, ResumeItem, ResumeMode, TradeDate, VerdictCodes;
+    show
+        PlannedWorkState,
+        ResumeCounts,
+        ResumeItem,
+        ResumeMode,
+        TradeDate,
+        VerdictCodes;
 
 import 'resume_judge.dart'
     show ResumeItemJudgement, ResumeReasonCodes, ResumeWorkItem;
@@ -140,6 +146,29 @@ String? resumeLineText({required int? gapSessions, required int pendingWork}) {
   final String work = pendingWork == 0 ? '없음' : '$pendingWork건';
   return '마지막 성공 거래일 D+$gapSessions · 대기 작업 $work';
 }
+
+/// 🆕 E14e1(R78 T2) — 복구 불가 공백 라벨 — «{M}월 {D}일~{M}월 {D}일 평가액 스냅샷 없음 — 복구 불가»(하루면 한 날).
+String resumeGapLabel({
+  required String dataset,
+  required TradeDate from,
+  required TradeDate to,
+}) {
+  final String span = from.yyyyMmDd == to.yyyyMmDd
+      ? _monthDay(from)
+      : '${_monthDay(from)}~${_monthDay(to)}';
+  final String what = dataset == 'equity_snapshot' ? '평가액 스냅샷' : dataset;
+  return '$span $what 없음 — 복구 불가';
+}
+
+/// 🆕 E14e1(R78 T3) — `planned_work.state` 라벨.
+String plannedWorkStateLabel(PlannedWorkState state) => switch (state) {
+  PlannedWorkState.planned => '예정',
+  PlannedWorkState.reevaluated => '재판정됨',
+  PlannedWorkState.superseded => '대체됨',
+  PlannedWorkState.expired => '만료',
+  PlannedWorkState.done => '완료',
+  PlannedWorkState.blocked => '차단',
+};
 
 String _monthDay(TradeDate d) {
   final List<String> p = d.yyyyMmDd.split('-');

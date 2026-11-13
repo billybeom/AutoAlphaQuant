@@ -226,10 +226,14 @@ class ResumeJob {
     // R6 — 재판정.
     final ResumePreconditions pre = await _preconditions();
     final List<ResumeItem> items = <ResumeItem>[];
-    final List<String> verdicts = <String>[];
     int failures = 0;
-    final bool r6Now = due(ResumePhase.r6);
-    if (r6Now) {
+    // 🆕 E14e1(R78) — 항목마다 `resume_item` 1행(차례 = 우선순위).
+    void keep(ResumeItem item, String reason) {
+      store.writeItem(id, seq: items.length, item: item, reasonCode: reason);
+      items.add(item);
+    }
+
+    if (due(ResumePhase.r6)) {
       final List<ResumeWorkItem> work = resumePriorityOrder(<ResumeWorkItem>[
         for (final PlannedWorkRow w in <PlannedWorkRow>[
           ...planned.rows(state: PlannedWorkState.planned),
@@ -262,8 +266,7 @@ class ResumeJob {
             }
         }
         if (j == null) {
-          verdicts.add(VerdictCodes.blocked);
-          items.add(
+          keep(
             resumeItemOf(
               item: item,
               judgement: const ResumeItemJudgement(
@@ -273,6 +276,7 @@ class ResumeJob {
               ),
               today: today,
             ),
+            ResumeReasonCodes.reevaluationFailed,
           );
           continue;
         }
@@ -287,8 +291,10 @@ class ResumeJob {
           );
         }
         if (j.delegates) _writeChild(item, today, id);
-        verdicts.add(j.verdictCode);
-        items.add(resumeItemOf(item: item, judgement: j, today: today));
+        keep(
+          resumeItemOf(item: item, judgement: j, today: today),
+          j.reasonCode,
+        );
       }
       commit(ResumePhase.r6);
     }
@@ -300,9 +306,9 @@ class ResumeJob {
       if (halt == null) store.clearFlag();
       commit(ResumePhase.r7);
     }
-    // R8 — 집계 · 머리말 · 끝 · 묶음 알림(이번에 R6 을 돌지 않았으면 이 회차의 전이에서 센다).
+    // R8 — 집계 · 머리말 · 끝 · 묶음 알림(집계 = 이 회차의 `resume_item` — 크래시 뒤에도 같은 값).
     final ResumeCounts counts = resumeCountsOf(
-      verdictCodes: r6Now ? verdicts : store.roundVerdicts(id),
+      verdictCodes: store.roundVerdicts(id),
       unrecoverableGaps: _unrecoverableOf(id),
     );
     final String headline = resumeHeadline(
