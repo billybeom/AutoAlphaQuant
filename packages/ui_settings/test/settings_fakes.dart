@@ -79,3 +79,112 @@ Set<String> settingsHomeAllowed(SettingsHomeVm v) => <String>{
   v.asOf.label,
   ?v.asOf.staleLabel,
 };
+
+// ── R6b — M9 S07 fakes ──
+
+class FakeSettingsOpsStatusRepository
+    extends UnimplementedOpsStatusRepository {
+  FakeSettingsOpsStatusRepository({required this.connections});
+
+  final Stream<ConnectionsVm> Function(int call) connections;
+  int connectionsCalls = 0;
+
+  @override
+  Stream<ConnectionsVm> watchConnections() {
+    final int call = connectionsCalls;
+    connectionsCalls = connectionsCalls + 1;
+    return connections(call);
+  }
+}
+
+class FakeSettingsActions extends UnimplementedSettingsActions {
+  FakeSettingsActions({required this.result});
+
+  final Future<ActionResult> Function(int call) result;
+  final List<SettingsActionId> ids = <SettingsActionId>[];
+  final List<Map<String, String>> argsSeen = <Map<String, String>>[];
+  int watchCalls = 0;
+
+  @override
+  Future<ActionResult> run(
+    SettingsActionId id, {
+    Map<String, String> args = const <String, String>{},
+  }) {
+    final int call = ids.length;
+    ids.add(id);
+    argsSeen.add(args);
+    return result(call);
+  }
+
+  @override
+  Stream<ActionResult> watch(String actionRunId) {
+    watchCalls = watchCalls + 1;
+    return const Stream<ActionResult>.empty();
+  }
+}
+
+List<Override> connectionsOverrides({
+  required FakeSettingsOpsStatusRepository repo,
+  required SettingsActions? actions,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  settingsOpsStatusRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsLinkOpenerProvider.overrideWithValue(opener),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpConnections(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: Connections())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> connectionRowTexts(ConnectionRow k) => <String?>[
+  k.label,
+  k.statusLabel,
+  k.lastOkText,
+  ?k.detailLine,
+];
+
+Set<String> connectionsAllowed(ConnectionsVm v) => <String>{
+  ?v.lockedLabel,
+  for (final ConnectionRow k in v.rows) ...connectionRowTexts(k).whereType<String>(),
+  for (final ConnectionRow k in v.rows)
+    ?k.channelPicker?.label,
+  for (final ConnectionRow k in v.rows)
+    for (final NotifyChannelOption o
+        in k.channelPicker?.options ?? const <NotifyChannelOption>[])
+      o.label,
+  for (final ConnectionRow k in v.rows)
+    ?k.channelPicker?.capabilityNotice,
+  for (final ConnectionRow k in v.rows)
+    ?k.channelPicker?.tokenBadgeText,
+  for (final ConnectionRow k in v.rows)
+    ?k.channelPicker?.watchdogChannelLine,
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
+
+Set<String> connectionsControlTexts(ConnectionsVm v) => <String>{
+  for (final ConnectionRow k in v.rows)
+    for (final SettingsActionCall call in k.actions) call.label,
+  for (final ConnectionRow k in v.rows)
+    for (final NotifyChannelOption o
+        in k.channelPicker?.options ?? const <NotifyChannelOption>[])
+      ?o.selectAction?.label,
+};
