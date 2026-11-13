@@ -49,8 +49,10 @@ String stripControlStatements(String sql) {
 }
 
 /// [file] 판 v1 스크립트 — 02 기본 1개 + 배치 4개(적용 순서 · SIM 판은 `ledgerDdlFor`).
+///
+/// 🆕 E15b(설계 13 §8 R82 W1 · SPEC v2.44) — 02 기본 블록에도 `ledgerDdlFor` 를 건다(`mode_transition.mode` = 기본 블록의 첫 `@sim` 태그).
 List<String> ledgerSchemaV1Scripts(LedgerFile file) => <String>[
-  stripControlStatements(kBase02Sql),
+  stripControlStatements(ledgerDdlFor(file, kBase02Sql)),
   for (final (String _, String sql) in kLocalBatchSql)
     stripControlStatements(ledgerDdlFor(file, sql)),
 ];
