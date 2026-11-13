@@ -116,7 +116,8 @@ abstract final class BlindReviewRejectCodes {
   static const Set<String> values = <String>{alreadyScored, answersInvalid};
 }
 
-/// 🆕 계약 v1.17(01 §26 · 엔진 D11 · 13 §8 R33 D11·D24) — `TradeJournalEntry.reasons[].code` 중 **엔진 D11 이 정한 2종**.
+/// 🆕 계약 v1.17(01 §26 · 엔진 D11 · 13 §8 R33 D11·D24) — `TradeJournalEntry.reasons[].code` 중 **엔진이 정한 3종**
+/// (D11 2 · 🆕 v1.18 E14a 1 — 01 §27 · K-n ⓕ).
 ///
 /// 🔴 **전수 목록이 아니다** — 일지 사유 칩 코드 전수 등재 = 01 §8 미결 166. 화면은 이 코드로 분기·문구·아이콘을 고르지 않는다
 ///    (칩 `label`·`tone` 이 준다). 쓰는 곳 = 계약 테스트(C-51 ⑩⑪)와 엔진 구현.
@@ -128,8 +129,14 @@ abstract final class JournalReasonCodes {
   /// `status == expired` 행의 근거 — 장 마감까지 체결되지 않은 잔량을 실효로 기록했다(취소 아님 · 04_안전장치 §3-1 ③ · R33 D5).
   static const String dayEndExpired = 'DAY_END_EXPIRED';
 
+  /// 🆕 v1.18(01 §27 · K-n ⓕ · 엔진 E14a `kLeaseInvalidCode`) — `status == rejected`(NR-1 0단계) · `skipped`(6.9 직전 재확인) 행의 근거 —
+  /// 이 기기에 발주권(리스)이 없거나 모른다(fail-closed · 그 키를 먹는다 = 그날 보류). 🔴 `AdviceRejectCodes.leaseExpired`
+  /// (명령 접수 축 · 발행 epoch)와 **다른 축**이다.
+  static const String leaseInvalid = 'LEASE_INVALID';
+
   static const Set<String> values = <String>{
     duplicateOrderPrevented,
     dayEndExpired,
+    leaseInvalid,
   };
 }

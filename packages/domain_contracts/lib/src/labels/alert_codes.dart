@@ -1,4 +1,5 @@
-// 알림 코드 25종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11).
+// 알림 코드 31종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11) ·
+// 🆕 v1.18 안전 3(E13 · 04 §5-3 v2.40·v2.41 제안) · 재개 3(E14 · 04 §5-3 v2.42 제안).
 // 인벤토리 §6-9 의 분류를 그대로 쓴다.
 //
 // 🔴 **등급(P0/P1/P2)을 이 파일에 사전으로 만들지 않는다.** 등급의 런타임 정본은
@@ -104,6 +105,27 @@ abstract final class AlertCodes {
   /// ⚠️ 코드명 M2-3 확정 대기.
   static const String contributionChanged = 'CONTRIBUTION_CHANGED';
 
+  // ── 🆕 v1.18 안전 3 (01 §27 · K-z · 엔진 E13d1·E13c1 상수 = 등재 · 등급 = 엔진 `kAlertLevels`) ──────────
+  /// 잠정 P0 · 서킷브레이커 STOPPED 진입(신규 주문 전면 중단 · 보유 그대로 · postmortem 3일 · 엔진 `kBreakerStoppedAlertCode`).
+  static const String breakerStopped = 'BREAKER_STOPPED';
+
+  /// 잠정 P0 · 원장 자가 무결성 실패(지난 날 해시 불일치 → 전 신규 주문 차단 · 엔진 `kLedgerIntegrityAlertCode` · E13c1).
+  static const String ledgerIntegrityBroken = 'LEDGER_INTEGRITY_BROKEN';
+
+  /// 잠정 P1 · STOPPED 재개 자격 충족(v2.29 · 자동으로 풀리지 않는다 · 에피소드당 1회 · 엔진 `kStoppedReleaseEligibleAlertCode` ·
+  /// 🔵 E11f1 `equity_snapshot` 보고 «재개 자격» 과 **같은 사건** — 한 코드).
+  static const String stoppedReleaseEligible = 'STOPPED_RELEASE_ELIGIBLE';
+
+  // ── 🆕 v1.18 재개 3 (01 §27 · K-z · 엔진 E14b `resume_alerts.dart` · 회차 끝 묶음 · 한국 날 ≤ 1) ──────────
+  /// 잠정 P0 · 재개 뒤 매매 정지 유지(`RESUME_INCOMPLETE` 유지 · [resumeCompleted] 와 배타).
+  static const String resumeTradingHalted = 'RESUME_TRADING_HALTED';
+
+  /// 잠정 P1 · 재개 완료(해제 · 주문은 다음 `kr_order` 회차가 낸다).
+  static const String resumeCompleted = 'RESUME_COMPLETED';
+
+  /// 잠정 P2 · 되살릴 수 없는 기록 공백(복구 불가 갭이 있을 때 더한다).
+  static const String resumeDataGap = 'RESUME_DATA_GAP';
+
   /// X7 안내 9종.
   static const Set<String> x7Advice = <String>{
     adviceIssued,
@@ -147,12 +169,28 @@ abstract final class AlertCodes {
   /// 운영 파라미터 1종.
   static const Set<String> operatingParam = <String>{contributionChanged};
 
-  /// 전량 25종.
+  /// 🆕 v1.18 안전 3종.
+  static const Set<String> safety = <String>{
+    breakerStopped,
+    ledgerIntegrityBroken,
+    stoppedReleaseEligible,
+  };
+
+  /// 🆕 v1.18 재개 3종.
+  static const Set<String> resume = <String>{
+    resumeTradingHalted,
+    resumeCompleted,
+    resumeDataGap,
+  };
+
+  /// 전량 31종.
   static const Set<String> values = <String>{
     ...x7Advice,
     ...handover,
     ...autoTrade,
     ...maintenance,
     ...operatingParam,
+    ...safety,
+    ...resume,
   };
 }

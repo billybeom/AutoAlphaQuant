@@ -66,21 +66,11 @@ void main() {
       'RESUME_DATA_GAP',
       'SELF_AUDIT_DUE',
     ]);
-    // 계약 코드 전부 등급이 있다 · 표 밖 = 제안 6 뿐.
+    // 계약 코드 전부 등급이 있다 · 🆕 v1.18(앱 01 §27 · K-z) — 제안 6 = 계약 등재 → 표 밖 0.
     expect(AlertCodes.values.every(kAlertLevels.containsKey), isTrue);
     expect(
-      kAlertLevels.keys
-          .where((String c) => !AlertCodes.values.contains(c))
-          .toList()
-        ..sort(),
-      <String>[
-        'BREAKER_STOPPED',
-        'LEDGER_INTEGRITY_BROKEN',
-        'RESUME_COMPLETED',
-        'RESUME_DATA_GAP',
-        'RESUME_TRADING_HALTED',
-        'STOPPED_RELEASE_ELIGIBLE',
-      ],
+      kAlertLevels.keys.where((String c) => !AlertCodes.values.contains(c)),
+      isEmpty,
     );
   });
 
