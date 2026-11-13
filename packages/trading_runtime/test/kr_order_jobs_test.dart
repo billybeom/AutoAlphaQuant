@@ -61,10 +61,11 @@ final DraftQuote _quote = DraftQuote(
 KrOrderConfig _config({
   RunMode run = RunMode.live,
   OperatingMode op = OperatingMode.autoTrade,
+  ExecPolicy exec = ExecPolicy.execute,
 }) => KrOrderConfig(
   runMode: run,
   operatingMode: op,
-  execPolicy: ExecPolicy.execute,
+  execPolicy: exec,
   draft: DraftConfig(
     limitOffsetPct: 0.005,
     buyCostRate: 0.00015,
@@ -186,6 +187,7 @@ class _Rig {
       lease: lease,
       runLog: runLog,
       plannedWork: plannedWork,
+      modeFacts: modeFacts,
       preGuard: preGuard,
       sleep: (Duration d) async => sleeps.add(d),
     );
@@ -194,6 +196,7 @@ class _Rig {
   final FakePlannedWorkLedger plannedWork = FakePlannedWorkLedger();
 
   final FakeLeaseGate lease = FakeLeaseGate();
+  final FakeModeFacts modeFacts = FakeModeFacts();
   final FakeJobRunLog runLog = FakeJobRunLog();
 
   final FakeOrderLedger ledger = FakeOrderLedger(
@@ -423,6 +426,146 @@ void main() {
     rig.at(_d1, 15, 45);
     await rig.jobs.runClose();
     expect(calls, <TradeDate>[_d1, _d1]);
+  });
+
+  group('🆕 E15a 모드 가드 — 세 잡 본체 앞 · 재개 가드보다 먼저(R81 V4 · C-19 ⑦ 실엔진)', () {
+    // 01 §10-2 #1~#12 · bool = 세션 없이 허용되나.
+    const List<(RunMode, OperatingMode, ExecPolicy, bool)>
+    cells = <(RunMode, OperatingMode, ExecPolicy, bool)>[
+      (RunMode.simInternal, OperatingMode.autoTrade, ExecPolicy.execute, true),
+      (RunMode.simInternal, OperatingMode.autoTrade, ExecPolicy.dryRun, false),
+      (RunMode.simInternal, OperatingMode.advisory, ExecPolicy.execute, true),
+      (RunMode.simInternal, OperatingMode.advisory, ExecPolicy.dryRun, false),
+      (RunMode.simBroker, OperatingMode.autoTrade, ExecPolicy.execute, true),
+      (RunMode.simBroker, OperatingMode.autoTrade, ExecPolicy.dryRun, false),
+      (RunMode.simBroker, OperatingMode.advisory, ExecPolicy.execute, false),
+      (RunMode.simBroker, OperatingMode.advisory, ExecPolicy.dryRun, false),
+      (RunMode.live, OperatingMode.autoTrade, ExecPolicy.dryRun, true),
+      (RunMode.live, OperatingMode.autoTrade, ExecPolicy.execute, true),
+      (RunMode.live, OperatingMode.advisory, ExecPolicy.execute, true),
+      (RunMode.live, OperatingMode.advisory, ExecPolicy.dryRun, false),
+    ];
+
+    // 세 잡을 그 시각에 한 번씩.
+    Future<List<JobRun<Object?>>> runAll(_Rig rig) async {
+      rig.at(_d1, 7, 0);
+      final JobRun<Object?> a = await rig.jobs.runDailyReconcile();
+      rig.at(_d1, 9, 10);
+      final JobRun<Object?> b = await rig.jobs.runOpen();
+      rig.at(_d1, 15, 45);
+      final JobRun<Object?> c = await rig.jobs.runClose();
+      return <JobRun<Object?>>[a, b, c];
+    }
+
+    int brokerTouches(_Rig rig) =>
+        rig.broker.submitCount +
+        rig.broker.fillReads +
+        rig.broker.cashReads +
+        rig.broker.balanceReads +
+        rig.broker.cancelled.length;
+
+    test('C-19 ⑦ 금지 5칸 + 세션 없는 #12 = 세 잡 전부 FAILED · 거부 코드 · 핑 «모드 가드 거부» · 원장 · 브로커 · 재개 가드 0', () async {
+      int denied = 0;
+      for (final (RunMode r, OperatingMode o, ExecPolicy e, bool ok) in cells) {
+        if (ok) continue;
+        denied++;
+        final List<TradeDate> guards = <TradeDate>[];
+        final _Rig rig = _Rig(
+          config: _config(run: r, op: o, exec: e),
+          preGuard: (TradeDate d) async => guards.add(d),
+        );
+        final String cell = '${r.wire}×${o.wire}×${e.wire}';
+        for (final JobRun<Object?> res in await runAll(rig)) {
+          expect(res.status, JobStatus.failed, reason: cell);
+          expect(
+            (res.error! as ModeGuardRejected).code,
+            kModeCombinationDenied,
+            reason: cell,
+          );
+          expect(res.report, isNull, reason: cell);
+        }
+        final List<String?> failNotes = <String?>[
+          for (final (String _, PingStatus s, String? n) in rig.beat.pings)
+            if (s == PingStatus.fail) n,
+        ];
+        expect(failNotes, hasLength(3), reason: cell);
+        for (final String? n in failNotes) {
+          expect(n, startsWith('모드 가드 거부 — '), reason: cell);
+          expect(n, contains(kModeCombinationDenied), reason: cell);
+        }
+        expect(
+          rig.runLog.entries.map((JobRunEntry x) => x.status).toSet(),
+          <JobRunStatus>{JobRunStatus.failed},
+          reason: cell,
+        );
+        expect(guards, isEmpty, reason: cell);
+        expect(rig.ledger.calls, isEmpty, reason: cell);
+        expect(brokerTouches(rig), 0, reason: cell);
+        expect(rig.lease.calls, 0, reason: cell);
+        expect(rig.modeFacts.calls, 3, reason: cell);
+      }
+      expect(denied, 6);
+    });
+
+    test('허용 6칸 = 가드 통과(재개 가드까지 감 · 거부 아님) · #12 + 유효 세션 = 통과', () async {
+      for (final (RunMode r, OperatingMode o, ExecPolicy e, bool ok) in cells) {
+        final bool conditional =
+            r == RunMode.live &&
+            o == OperatingMode.advisory &&
+            e == ExecPolicy.dryRun;
+        if (!ok && !conditional) continue;
+        final List<TradeDate> guards = <TradeDate>[];
+        final _Rig rig = _Rig(
+          config: _config(run: r, op: o, exec: e),
+          preGuard: (TradeDate d) async => guards.add(d),
+        );
+        rig.modeFacts.handoverSessionValid = conditional;
+        rig.at(_d1, 7, 0);
+        final JobRun<Object?> res = await rig.jobs.runDailyReconcile();
+        final String cell = '${r.wire}×${o.wire}×${e.wire}';
+        expect(res.error, isNot(isA<ModeGuardRejected>()), reason: cell);
+        expect(guards, <TradeDate>[_d1], reason: cell);
+        expect(rig.modeFacts.calls, 1, reason: cell);
+      }
+    });
+
+    test('🔴 실키 대기(live × 자동 매매 · 미검증) = 세 잡 FAILED · LIVE_AWAITING_KEYS · 브로커 0 · 안내 모드 = 통과', () async {
+      final _Rig rig = _Rig();
+      rig.modeFacts.liveKeysVerified = false;
+      for (final JobRun<Object?> res in await runAll(rig)) {
+        expect(res.status, JobStatus.failed);
+        expect(
+          (res.error! as ModeGuardRejected).code,
+          SafetyHoldCodes.liveAwaitingKeys,
+        );
+      }
+      expect(brokerTouches(rig), 0);
+      expect(rig.ledger.calls, isEmpty);
+      final _Rig adv = _Rig(config: _config(op: OperatingMode.advisory));
+      adv.modeFacts.liveKeysVerified = false;
+      adv.at(_d1, 7, 0);
+      final JobRun<Object?> ok = await adv.jobs.runDailyReconcile();
+      expect(ok.error, isNot(isA<ModeGuardRejected>()));
+    });
+
+    test(
+      '🔴 입력 포트 예외 = FAILED(fail-closed) · 재개 가드 · 브로커 0 · 휴장 = 가드 안 부름',
+      () async {
+        final List<TradeDate> guards = <TradeDate>[];
+        final _Rig rig = _Rig(preGuard: (TradeDate d) async => guards.add(d));
+        rig.modeFacts.throwing = Exception('정본을 못 읽었다');
+        rig.at(_d1, 9, 10);
+        final JobRun<KrOrderOpenReport> r = await rig.jobs.runOpen();
+        expect(r.status, JobStatus.failed);
+        expect(r.error.toString(), contains('정본을 못 읽었다'));
+        expect(rig.beat.pings.last.$3, startsWith('모드 가드 거부 — '));
+        expect(guards, isEmpty);
+        expect(brokerTouches(rig), 0);
+        final _Rig hol = _Rig(now: _kst(_sat, 9, 10));
+        await hol.jobs.runOpen();
+        expect(hol.modeFacts.calls, 0);
+      },
+    );
   });
 
   group('하루 — 07:00 대사 → 09:10 배치 → 15:40 마감 실효 → 다음 날 이월(R42 S10)', () {

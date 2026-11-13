@@ -77,6 +77,21 @@ export 'src/decimal_rules.dart'
         multiply,
         oneMinus,
         promoteRatio;
+// 🆕 E15a — 모드 조합 가드 · 기동 판정(X6-3 · X7-8 · X18 · SPEC v2.44 · 설계 13 §8 R81).
+export 'src/mode/mode_guard.dart'
+    show
+        ModeCell,
+        ModeFacts,
+        ModeFactsSource,
+        ModeGuardRejected,
+        ModeStartupGate,
+        kCredentialEnvMismatch,
+        kModeCombinationDenied,
+        liveAwaitingKeys,
+        modeCombinationAllowed,
+        modeCombinationCell,
+        modeStartupGate,
+        orderJobModeReject;
 // 🆕 E11j — 월 납입 운영값(M3-6 엔진 몫 · 설계 13 §8 R54).
 export 'src/ops/contribution_setting.dart'
     show

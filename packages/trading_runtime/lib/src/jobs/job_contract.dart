@@ -164,6 +164,7 @@ Future<JobRun<T>> runJob<T>({
   required JobRunLog runLog,
   required DateTime Function() clockUtc,
   DateTime? deadlineUtc,
+  Future<void> Function(TradeDate sessionDay)? modeGuard,
   Future<void> Function(TradeDate sessionDay)? preGuard,
   TradeDate Function(DateTime nowUtc) sessionDayOf = kstDateOf,
 }) async {
@@ -247,6 +248,16 @@ Future<JobRun<T>> runJob<T>({
     );
   }
   await ping(PingStatus.start);
+  // 🆕 E15a(R81 V4) — 모드 가드 · 🔴 재개 가드보다 먼저(재개 R3 가 브로커를 부르기 전에) · 거부 = 이 잡 FAILED(재개 · 본체 0).
+  if (modeGuard != null) {
+    try {
+      await modeGuard(today);
+    } on Object catch (e) {
+      await record(JobRunStatus.failed);
+      await ping(PingStatus.fail, '모드 가드 거부 — ${_short(e)}');
+      return failed(e);
+    }
+  }
   // 🆕 E14d2b(R70 D13 · R77 S2) — 잡 앞 가드(재개) · 🔴 실패 = 이 잡 FAILED(본체 0 — fail-closed).
   if (preGuard != null) {
     try {
