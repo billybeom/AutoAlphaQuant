@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `fa47cb2bd1b9a7a309dc2c16fed839d2cd8f2bf0a95b35ef3c9d7f07e3fa1949`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `7085030d530b6fb38c2c40ed7a70c4aefff4969fc9b4bc4ad328e1f894f7f6e7`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS trades (
     holding_days    INTEGER NOT NULL
 );
 
--- ── 02_데이터모델.md L386-649 ──
+-- ── 02_데이터모델.md L386-670 ──
 CREATE TABLE IF NOT EXISTS strategy_state_log (
     log_id               TEXT NOT NULL PRIMARY KEY,
     strategy_id          TEXT NOT NULL,
@@ -535,6 +535,27 @@ CREATE TABLE IF NOT EXISTS resume_item (
     reason_code      TEXT    NOT NULL,                   -- 엔진 사유 코드(관찰 · 안전 정지 · 대사 불일치 … — 계약 등재 = 앱 계약 창)
     PRIMARY KEY (resume_run_id, work_id)
 );
+-- 🆕 v2.44(설계 13 §8 R80 D1 · 발주자 결정 2026-11-13 · 앱 E15b) — 실행 모드 정본(`RunMode` · `ExecPolicy` · 04 §3-1 v2.44 ①).
+--    파일마다 있고, 기동이 «어느 파일 · 어느 조합»을 이 표로 정한다: live 파일에 RUN_MODE 행이 있으면 LIVE + 그 파일 최신 exec_policy ·
+--    없으면 sim 파일 최신 행 · 둘 다 없으면 «온보딩 미완»(자동 매매가 아니다 — `onboarding_choice` 와 같은 규칙).
+--    🔴 append-only · 🔴 거부된 조합(04 §3-1 v2.44 ②)은 쓰지 않는다 = 직전 유효 조합 유지 · 🔴 한 트랜잭션이 두 파일에 걸치지 않는다 —
+--       simToAuto 커밋 = 2단(live 파일 RUN_MODE 행 먼저 → sim 파일 CLOSE 행 · 기동 때 «live 행 있음 ∧ sim CLOSE 없음» = CLOSE 마저)
+--    🔴 X5-1 해시 모집단 밖(운영 상태) · `OperatingMode` 정본은 따로(§2-10 `operating_mode_transition`)
+--    🔴 `mode` 줄 = §2-1~§2-6 기본 블록의 첫 @sim 태그 — 앱 로컬 스키마 생성기는 기본 블록에도 `ledgerDdlFor` 를 건다(앱 E15b · §2-7)
+CREATE TABLE IF NOT EXISTS mode_transition (
+    transition_id       TEXT    NOT NULL PRIMARY KEY,
+    axis                TEXT    NOT NULL CHECK (axis IN ('RUN_MODE','EXEC_POLICY','CLOSE')),
+                                                     -- RUN_MODE = 계좌·서버(온보딩 커밋 · simToAuto · 모의 폐기 후 새 개시)
+                                                     -- EXEC_POLICY = 승격(관찰 뒤 생체 1회) · 강등(골든벡터 재검증 실패) · CLOSE = 이 파일을 닫음
+    mode                TEXT    NOT NULL CHECK (mode = 'LIVE'),   -- @sim ledger
+    exec_policy         TEXT    NOT NULL CHECK (exec_policy IN ('DRY_RUN','EXECUTE')),   -- 전이 뒤 조합 · 🔴 SIM 계열 = EXECUTE 만(가드)
+    from_mode           TEXT    CHECK (from_mode IN ('LIVE','SIM_INTERNAL','SIM_BROKER')),   -- 전이 전(그 파일 첫 행 = NULL)
+    from_exec_policy    TEXT    CHECK (from_exec_policy IN ('DRY_RUN','EXECUTE')),
+    decision_id         TEXT    NOT NULL,                -- 그 전이의 결정(사람 = MANUAL · 강등 = 엔진 SAFETY)
+    handover_session_id TEXT,                            -- simToAuto · 승격 = 그 세션 토큰(§2-11 `handover_session`)
+    committed_at        TEXT    NOT NULL                 -- ISO8601 (UTC)
+);
+CREATE INDEX IF NOT EXISTS ix_mode_transition_at ON mode_transition(committed_at);
 -- 롤링 12개월 횟수: SELECT COUNT(*) FROM discretion_adjustment
 --                    WHERE applied_at >= date('now','-12 months')
 

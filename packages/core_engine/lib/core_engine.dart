@@ -77,6 +77,14 @@ export 'src/decimal_rules.dart'
         multiply,
         oneMinus,
         promoteRatio;
+// 🆕 E15b — 기동 해석(어느 파일 · 어느 조합 · 반쯤 끝난 커밋 · SPEC v2.44 · 설계 13 §8 R82).
+export 'src/mode/boot_mode.dart'
+    show
+        BootMode,
+        BootModeOnboardingIncomplete,
+        BootModeResolved,
+        ModeRowFacts,
+        resolveBootMode;
 // 🆕 E15a — 모드 조합 가드 · 기동 판정(X6-3 · X7-8 · X18 · SPEC v2.44 · 설계 13 §8 R81).
 export 'src/mode/mode_guard.dart'
     show
