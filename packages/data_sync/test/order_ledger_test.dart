@@ -1612,4 +1612,220 @@ void main() {
       expect(await ledger.activeBlockFlags(), contains(FlagIds.reconMismatch));
     });
   });
+
+  group('🆕 E15c1 가상 체결 브로커 × sim 원장(R83 Y3 · Y5 · Y6)', () {
+    test('주문 → 15:40 앞 = 미판정 · 예약 현금 · 마감 = 당일 봉 체결(SIMULATED) · 닿지 않음 = 실효 · 잔고 · 현금 = 원장', () async {
+      final Database sdb = openLocalLedger(
+        dir.path,
+        RunMode.simInternal,
+        clock: () => _t0,
+      );
+      addTearDown(sdb.close);
+      final SqliteOrderLedger sl = SqliteOrderLedger(
+        sdb,
+        mode: RunMode.simInternal,
+        clock: clock,
+        kr: frozenExchangeCalendar(Market.kr),
+      );
+      sdb.execute(
+        'INSERT INTO cash_flow (flow_id, trade_date, amount, kind, account_alias) VALUES '
+        "('F1', '2026-10-30', 5000000, 'DEPOSIT', 'pension'), ('F2', '2026-10-30', 999, 'DEPOSIT', 'general')",
+      );
+      sdb.execute(
+        'INSERT INTO strategy_state_current (strategy_id, state, since, capital_cap) VALUES (?, ?, ?, ?)',
+        <Object?>[P0sStrategyIds.sleeveB, 'LIVE', '2026-10-01', 1.0],
+      );
+      final SqliteSimLedgerView view = SqliteSimLedgerView(
+        sdb,
+        account: 'pension',
+        strategies: <String>{P0sStrategyIds.sleeveB},
+        clock: clock,
+      );
+      final _SimBars bars = _SimBars()
+        ..bars['133690'] = const QuoteBar(
+          date: '2026-11-02',
+          close: 174500,
+          open: 174000,
+          high: 175000,
+          low: 173000,
+        )
+        ..bars['069500'] = const QuoteBar(
+          date: '2026-11-02',
+          close: 181000,
+          open: 181000,
+          high: 182000,
+          low: 180000,
+        );
+      DateTime now = _t0;
+      final SimInternalBroker broker = SimInternalBroker(
+        ledger: view,
+        bars: bars,
+        nowUtc: () => now,
+      );
+      final ExecutionContext sctx = ExecutionContext(
+        ledger: sl,
+        lease: FakeLeaseGate(),
+        broker: broker,
+        limitConfig: _limits,
+        execPolicy: ExecPolicy.execute,
+        operatingMode: OperatingMode.autoTrade,
+        configHash: 'cfg-test',
+      );
+      await executeIntent(_draft(), _ok, sctx);
+      await executeIntent(
+        _draft(symbol: '069500', logical: 'B-SMA-2026-10-30-X'),
+        _ok,
+        sctx,
+      );
+      final List<SimOrder> orders = await view.ordersOf(_exec);
+      expect(
+        orders.map(
+          (SimOrder o) =>
+              (o.odno, o.symbol, o.side, o.quantity, o.orderType, o.limitPrice),
+        ),
+        <(String, String, OrderSide, int, String, double?)>[
+          ('SIM0000001', '133690', OrderSide.buy, 5, 'LIMIT', 174180),
+          ('SIM0000002', '069500', OrderSide.buy, 5, 'LIMIT', 174180),
+        ],
+      );
+      expect(await view.ordersOf(const TradeDate('2026-11-03')), isEmpty);
+      expect((await view.orderNo('2026-11-02:SIM0000002'))!.symbol, '069500');
+      expect(await view.orderNo('2026-11-02:SIM0000009'), isNull);
+      expect(await view.maxSimSeq(_exec), 2);
+      expect(await view.maxSimSeq(const TradeDate('2026-11-03')), 0);
+      expect(await view.openBuys(), hasLength(2));
+      expect(await view.cashFlowSum(), 5000000);
+      expect(
+        await broker.orderableCashKrw(),
+        Decimal.parse('3258200'),
+        reason: '5,000,000 − 판정 전 매수 2 × 5 × 174,180',
+      );
+      expect(
+        (await broker.dailyFills(_exec))
+            .map((DailyFillRow r) => r.remainingQty),
+        <int>[5, 5],
+      );
+      now = DateTime.utc(2026, 11, 2, 6, 41); // 15:41 KST
+      await runFillSync(
+        ledger: sl,
+        brokers: <String, OrderBroker>{'pension': broker},
+        tradeDate: _exec,
+        nowUtc: now,
+        dayEnd: true,
+        costs: const FillCostRates(commissionRate: 0.00015, sellTaxRate: 0),
+      );
+      final Row e = sdb.select('SELECT * FROM executions').single;
+      expect(
+        (
+          e['broker_order_no'],
+          e['quantity'],
+          e['price'],
+          e['fill_origin'],
+          e['cost_source'],
+        ),
+        ('2026-11-02:SIM0000001', 5, 174000.0, 'SIMULATED', 'ESTIMATED'),
+      );
+      expect(
+        sdb
+            .select('SELECT symbol, status FROM order_intents ORDER BY symbol')
+            .map((Row r) => (r['symbol'], r['status'])),
+        <(Object?, Object?)>[('069500', 'EXPIRED'), ('133690', 'FILLED')],
+      );
+      expect(await view.holdings(), <String, int>{'133690': 5});
+      expect(await view.openBuys(), isEmpty);
+      final List<SimExecution> ex = await view.executions();
+      expect(
+        (ex.single.side, ex.single.quantity, ex.single.price),
+        (OrderSide.buy, 5, 174000.0),
+      );
+      final double fee =
+          (e['commission'] as num).toDouble() + (e['tax'] as num).toDouble();
+      expect(
+        await broker.orderableCashKrw(),
+        Decimal.parse('5000000') -
+            Decimal.parse('870000') -
+            Decimal.parse('$fee'),
+      );
+      expect((await broker.balance()).holdings, <String, int>{'133690': 5});
+      expect(sdb.select('SELECT * FROM data_gap'), isEmpty);
+      final SqliteSimLedgerView other = SqliteSimLedgerView(
+        sdb,
+        account: 'general',
+        strategies: const <String>{},
+        clock: clock,
+      );
+      expect(await other.ordersOf(_exec), isEmpty);
+      expect(await other.holdings(), isEmpty);
+      expect(await other.cashFlowSum(), 999);
+      expect(await other.executions(), isEmpty);
+      expect(await other.maxSimSeq(_exec), 2);
+      expect(await other.orderNo('2026-11-02:SIM0000001'), isNull);
+      expect(
+        await SqliteSimLedgerView(
+          sdb,
+          account: 'pension',
+          strategies: <String>{P0sStrategyIds.sleeveC},
+          clock: clock,
+        ).holdings(),
+        isEmpty,
+      );
+    });
+
+    test('봉 공백 기록 = 1행(같은 날 · 종목 다시 = 그대로)', () async {
+      final Database sdb = openLocalLedger(
+        dir.path,
+        RunMode.simInternal,
+        clock: () => _t0,
+      );
+      addTearDown(sdb.close);
+      final SqliteSimLedgerView view = SqliteSimLedgerView(
+        sdb,
+        account: 'pension',
+        strategies: const <String>{},
+        clock: clock,
+      );
+      await view.recordBarGap(_exec, '133690');
+      await view.recordBarGap(_exec, '133690');
+      final Row g = sdb.select('SELECT * FROM data_gap').single;
+      expect(
+        (
+          g['gap_id'],
+          g['dataset'],
+          g['from_date'],
+          g['to_date'],
+          g['recoverable'],
+          g['reason_code'],
+        ),
+        (
+          'GAP-SIMBAR-2026-11-02-133690',
+          'sim_fill_bar',
+          '2026-11-02',
+          '2026-11-02',
+          0,
+          'SIM_BAR_MISSING',
+        ),
+      );
+    });
+  });
+}
+
+class _SimBars implements DailyQuoteFeed {
+  final Map<String, QuoteBar> bars = <String, QuoteBar>{};
+
+  @override
+  MarketDataSource get source => MarketDataSource.kis;
+
+  @override
+  Future<QuoteFetch> daily({
+    required Market market,
+    required String symbol,
+    required QuoteKind kind,
+    PriceAdjust adjust = PriceAdjust.raw,
+    required String from,
+    required String to,
+  }) async => QuoteFetch(
+    bars: <QuoteBar>[?bars[symbol]],
+    pageBodies: const <String>[],
+    attempts: 1,
+  );
 }
