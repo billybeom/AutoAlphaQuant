@@ -12,8 +12,13 @@ import '../ops/equity_snapshot.dart'
     show kBreakerStoppedAlertCode, kStoppedReleaseEligibleAlertCode;
 import '../ops/ledger_integrity.dart' show kLedgerIntegrityAlertCode;
 import '../ops/ledger_views.dart' show kstDateText;
+import '../resume/resume_alerts.dart'
+    show
+        kResumeCompletedAlertCode,
+        kResumeDataGapAlertCode,
+        kResumeTradingHaltedAlertCode;
 
-/// 엔진 등급 표(04 §5-3 · 계약 25 + 등재 대기 제안 3 — 등재 = 계약 창 E13i1).
+/// 엔진 등급 표(04 §5-3 · 계약 25 + 등재 대기 제안 6 — 등재 = 계약 창 E13i1 · E14i).
 const Map<String, AlertLevel> kAlertLevels = <String, AlertLevel>{
   // P0(04 §5-3).
   AlertCodes.orderOutcomeUnknown: AlertLevel.p0,
@@ -48,6 +53,10 @@ const Map<String, AlertLevel> kAlertLevels = <String, AlertLevel>{
   kBreakerStoppedAlertCode: AlertLevel.p0,
   kLedgerIntegrityAlertCode: AlertLevel.p0,
   kStoppedReleaseEligibleAlertCode: AlertLevel.p1,
+  // 🆕 E14b 재개 묶음 제안 3(04 §5-3 v2.42 · R72 J9).
+  kResumeTradingHaltedAlertCode: AlertLevel.p0,
+  kResumeCompletedAlertCode: AlertLevel.p1,
+  kResumeDataGapAlertCode: AlertLevel.p2,
 };
 
 /// 코드의 등급 — 🔴 모르는 코드 = [ArgumentError](지어내지 않는다 · 잡 규약상 fail 핑).

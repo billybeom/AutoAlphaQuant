@@ -1,6 +1,6 @@
 // E13h1 — 알림 등급 · 묶음 키 · P0 ack 사다리 · 확인 판정(설계 13 §8 R68 H2~H5).
 //
-// 🔵 잡는 것: ① 등급 표 = 04 §5-3 표 그대로(P0 7 · P1 12 · P2 5) + 계약 잠정 1 + 제안 3 · 계약 코드 전부 덮음
+// 🔵 잡는 것: ① 등급 표 = 04 §5-3 표 그대로(P0 7 · P1 12 · P2 5) + 계약 잠정 1 + 제안 6(🆕 E14b 재개 3) · 계약 코드 전부 덮음
 //    ② 모르는 코드 = 오류 ③ 사다리 = P0 ∧ 손절 안내 아님 ④ 묶음 키 · id = 한국 날(15:00Z 경계)
 //    ⑤ 사다리 경계(15분 · 60분) · 건너뛰기 0 · 확인 = 멈춤 ⑥ 확인 판정.
 import 'package:core_engine/core_engine.dart';
@@ -22,7 +22,7 @@ List<int> _due(
 );
 
 void main() {
-  test('🔴 등급 표 = 04 §5-3 그대로 + 계약 잠정 1 + 제안 3', () {
+  test('🔴 등급 표 = 04 §5-3 그대로 + 계약 잠정 1 + 제안 6', () {
     List<String> of(AlertLevel l) =>
         (kAlertLevels.entries
             .where((MapEntry<String, AlertLevel> e) => e.value == l)
@@ -39,6 +39,7 @@ void main() {
       'MAINTENANCE_RESUME_FAILED',
       'ORDER_OUTCOME_UNKNOWN',
       'RECON_MISMATCH',
+      'RESUME_TRADING_HALTED',
     ]);
     expect(of(AlertLevel.p1), <String>[
       'ADVICE_DUE_SOON',
@@ -52,6 +53,7 @@ void main() {
       'MANUAL_FILL_REJECTED',
       'ORDER_REJECTED',
       'REBALANCE_D1',
+      'RESUME_COMPLETED',
       'STALE_ORDERS_HELD',
       'STOPPED_RELEASE_ELIGIBLE',
       'WATCHDOG_LATE',
@@ -61,9 +63,10 @@ void main() {
       'CONTRIBUTION_CHANGED',
       'DEPOSIT_REMINDER',
       'REBALANCE_D7',
+      'RESUME_DATA_GAP',
       'SELF_AUDIT_DUE',
     ]);
-    // 계약 코드 전부 등급이 있다 · 표 밖 = 제안 3 뿐.
+    // 계약 코드 전부 등급이 있다 · 표 밖 = 제안 6 뿐.
     expect(AlertCodes.values.every(kAlertLevels.containsKey), isTrue);
     expect(
       kAlertLevels.keys
@@ -73,6 +76,9 @@ void main() {
       <String>[
         'BREAKER_STOPPED',
         'LEDGER_INTEGRITY_BROKEN',
+        'RESUME_COMPLETED',
+        'RESUME_DATA_GAP',
+        'RESUME_TRADING_HALTED',
         'STOPPED_RELEASE_ELIGIBLE',
       ],
     );
@@ -87,6 +93,8 @@ void main() {
   test('사다리 = P0 ∧ 손절 안내 아님', () {
     expect(alertHasLadder('ORDER_OUTCOME_UNKNOWN'), isTrue);
     expect(alertHasLadder('BREAKER_STOPPED'), isTrue);
+    expect(alertHasLadder('RESUME_TRADING_HALTED'), isTrue);
+    expect(alertHasLadder('RESUME_COMPLETED'), isFalse);
     expect(alertHasLadder('ADVICE_EXIT_URGENT'), isFalse);
     expect(alertHasLadder('ORDER_REJECTED'), isFalse);
     expect(alertHasLadder('ADVICE_EXPIRED'), isFalse);

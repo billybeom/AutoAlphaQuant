@@ -1,6 +1,6 @@
 // E13h2 — 알림 문구 사전 · AckState 글자 · 인박스 · 센터 · 상세 VM(설계 13 §8 R69).
 //
-// 🔵 잡는 것: ① 사전 = 등급 표의 코드 28 그대로 · 빈 글자 0 · 링크 = AppRoutes 상수 · 픽스처 글자(그대로 쓴 9코드)
+// 🔵 잡는 것: ① 사전 = 등급 표의 코드 31 그대로(🆕 E14b 재개 3) · 빈 글자 0 · 링크 = AppRoutes 상수 · 픽스처 글자(그대로 쓴 9코드)
 //    ② 모르는 코드 = 오류 ③ AckState 갈래(사다리 없는 알림 = null · 확인 · 0 · 1 · 2단) · 픽스처 글자
 //    ④ 고정 = 미확인 P0(나이 무관) + 기간 안 확인 P0 · 차례 ⑤ 섹션 = 한국 날 · 오늘 머리 · P1 펼침 · P2 접힘 · 접힘 머리 ·
 //    7일 경계 ⑥ 빈 문장 · P0만 ⑦ 인박스 차례 · min ⑧ 상세 있음 · 모르는 id · 기간 밖 ⑨ 행 글자.
@@ -50,9 +50,9 @@ List<Map<String, Object?>> _fixtureItems(String name) {
 }
 
 void main() {
-  test('사전 = 등급 표 코드 28 그대로 · 빈 글자 0 · 링크 = AppRoutes 상수', () {
+  test('사전 = 등급 표 코드 31 그대로 · 빈 글자 0 · 링크 = AppRoutes 상수', () {
     expect(kAlertTexts.keys.toSet(), kAlertLevels.keys.toSet());
-    expect(kAlertTexts, hasLength(28));
+    expect(kAlertTexts, hasLength(31));
     for (final MapEntry<String, AlertText> e in kAlertTexts.entries) {
       expect(
         <String>[
