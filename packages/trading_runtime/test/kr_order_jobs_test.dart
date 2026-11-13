@@ -180,11 +180,13 @@ class _Rig {
       alerts: alerts,
       nowUtc: () => clock,
       lease: lease,
+      runLog: runLog,
       sleep: (Duration d) async => sleeps.add(d),
     );
   }
 
   final FakeLeaseGate lease = FakeLeaseGate();
+  final FakeJobRunLog runLog = FakeJobRunLog();
 
   final FakeOrderLedger ledger = FakeOrderLedger(
     registeredStrategies: <String>{P0sStrategyIds.sleeveB},
@@ -359,6 +361,30 @@ void main() {
       expect(rig.lease.calls, greaterThan(0));
     },
   );
+
+  test('🆕 E14c1 job_run — 잡마다 1행(체크 · 세션일 · 시작) · 유예 끝(09:10 + 60분) 안 = SUCCESS · 넘김 = LATE · 휴장 = HOLIDAY(R73 K2 · K4)', () async {
+    final _Rig rig = _Rig();
+    rig.at(_d1, 9, 10);
+    await rig.jobs.runOpen();
+    rig.at(_d1, 10, 11);
+    await rig.jobs.runOpen();
+    final _Rig sat = _Rig(now: _kst(_sat, 9, 10));
+    await sat.jobs.runOpen();
+    expect(
+      rig.runLog.entries
+          .map(
+            (JobRunEntry e) =>
+                (e.checkName, e.sessionDay, e.startedAtUtc, e.status),
+          )
+          .toList(),
+      <(String, TradeDate, DateTime, JobRunStatus)>[
+        ('live-auto-kr_order', _d1, _kst(_d1, 9, 10), JobRunStatus.success),
+        ('live-auto-kr_order', _d1, _kst(_d1, 10, 11), JobRunStatus.late),
+      ],
+    );
+    expect(jobDeadlineUtc(jobSpecOf(KrJobs.order), _d1), _kst(_d1, 10, 10));
+    expect(sat.runLog.entries.single.status, JobRunStatus.holiday);
+  });
 
   group('하루 — 07:00 대사 → 09:10 배치 → 15:40 마감 실효 → 다음 날 이월(R42 S10)', () {
     test('목표 10 → 1일 6 체결 · 4 실효 → 2일 이월 4 발주 · 대사 일치 · 핑 · 알림 없음', () async {

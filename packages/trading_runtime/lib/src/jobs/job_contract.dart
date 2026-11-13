@@ -8,9 +8,19 @@
 // 🔵 잡 실패 알림 코드는 두지 않는다 — fail 핑을 바깥 워치독이 알린다(경보 피로 규칙 · 같은 사고에 알림 둘을 내지 않는다).
 // 🆕 E11b(R43 B7) — 달력은 시장별(`calendar`) · 세션일 함수(`us_data` = KST 날 − 1) · 회차 `rid`(start · 끝 핑이 같은 값 —
 //    바깥이 한 회차의 시작과 끝을 짝짓는다 · 결정적 UUID 꼴).
+// 🆕 E14c1(R73 K2 · K3) — 나가는 길마다 **마지막 핑 앞에** `job_run` 1행(02 v2.42 · 갭 · 놓친 회차의 원천) · LATE = 유예 끝을
+//    넘긴 성공 · 🔴 기록 실패 = fail 핑 + FAILED(보고는 남긴다 — 기록이 빠지면 갭이 조용히 틀린다).
 
 import 'package:core_engine/core_engine.dart'
-    show AlertSink, ExchangeCalendar, JobHeartbeat, PingStatus;
+    show
+        AlertSink,
+        ExchangeCalendar,
+        JobHeartbeat,
+        JobRunEntry,
+        JobRunLog,
+        JobRunStatus,
+        PingStatus,
+        successStatusOf;
 import 'package:domain_contracts/domain_contracts.dart';
 
 // 🆕 E11c(R45 C1) — [PingStatus] · [JobHeartbeat] 는 core_engine `ops/watchdog_ports.dart` 로 옮겼다(배럴이 다시 내보낸다).
@@ -57,6 +67,7 @@ class JobRun<T> {
     required this.note,
     required this.error,
     required this.pingFailures,
+    required this.runLogFailed,
   });
 
   /// 체크 이름.
@@ -85,6 +96,9 @@ class JobRun<T> {
 
   /// 보내지 못한 핑 수.
   final int pingFailures;
+
+  /// 🆕 E14c1 — `job_run` 기록에 실패했나(실패 회차의 기록 실패도 여기 · R73 K3).
+  final bool runLogFailed;
 }
 
 /// 체크 이름(04 §5-2 2축 접두) — `{sim|live}-{auto|advisory}-{잡}`.
@@ -138,6 +152,7 @@ String _short(Object e) {
 /// 잡 규약 실행(R42 S3 · R43 B7) — 휴장 = 성공 핑만 · 아니면 start → [body] → success | fail.
 ///
 /// [calendar] = 잡 시장의 달력 · [sessionDayOf] = 지금 → 다루는 세션일(기본 = KST 날 · `us_data` = 앞 날).
+/// 🆕 E14c1 — [runLog] = `job_run` 기록(필수) · [clockUtc] = 끝 시각 · [deadlineUtc] = 유예 끝(null = 지연 없음).
 Future<JobRun<T>> runJob<T>({
   required String check,
   required JobHeartbeat heartbeat,
@@ -145,9 +160,13 @@ Future<JobRun<T>> runJob<T>({
   required ExchangeCalendar calendar,
   required DateTime nowUtc,
   required Future<JobBody<T>> Function(TradeDate sessionDay) body,
+  required JobRunLog runLog,
+  required DateTime Function() clockUtc,
+  DateTime? deadlineUtc,
   TradeDate Function(DateTime nowUtc) sessionDayOf = kstDateOf,
 }) async {
   int pingFailures = 0;
+  bool runLogFailed = false;
   final String rid = runIdFor(check, nowUtc);
   Future<void> ping(PingStatus s, [String? note]) async {
     try {
@@ -158,6 +177,26 @@ Future<JobRun<T>> runJob<T>({
   }
 
   final TradeDate today = sessionDayOf(nowUtc);
+  // 회차 1행(끝 시각 = 지금 시계 한 번) — 실패하면 그 까닭(null = 남김).
+  Future<Object?> record(JobRunStatus status, [DateTime? endUtc]) async {
+    try {
+      await runLog.record(
+        JobRunEntry(
+          rid: rid,
+          checkName: check,
+          sessionDay: today,
+          startedAtUtc: nowUtc.toUtc(),
+          finishedAtUtc: endUtc ?? clockUtc().toUtc(),
+          status: status,
+        ),
+      );
+      return null;
+    } on Object catch (e) {
+      runLogFailed = true;
+      return e;
+    }
+  }
+
   JobRun<T> failed(
     Object e, {
     T? report,
@@ -172,6 +211,7 @@ Future<JobRun<T>> runJob<T>({
     note: _short(e),
     error: e,
     pingFailures: pingFailures,
+    runLogFailed: runLogFailed,
   );
 
   final bool session;
@@ -180,10 +220,16 @@ Future<JobRun<T>> runJob<T>({
   } on Object catch (e) {
     // 달력 범위 밖 — 무엇도 판정할 수 없다(fail-closed).
     await ping(PingStatus.start);
+    await record(JobRunStatus.failed);
     await ping(PingStatus.fail, _short(e));
     return failed(e);
   }
   if (!session) {
+    final Object? lost = await record(JobRunStatus.holiday);
+    if (lost != null) {
+      await ping(PingStatus.fail, '실행 기록 실패 — ${_short(lost)}');
+      return failed(lost);
+    }
     await ping(PingStatus.success, '휴장');
     return JobRun<T>(
       check: check,
@@ -195,6 +241,7 @@ Future<JobRun<T>> runJob<T>({
       note: '휴장',
       error: null,
       pingFailures: pingFailures,
+      runLogFailed: runLogFailed,
     );
   }
   await ping(PingStatus.start);
@@ -202,6 +249,7 @@ Future<JobRun<T>> runJob<T>({
   try {
     b = await body(today);
   } on Object catch (e) {
+    await record(JobRunStatus.failed);
     await ping(PingStatus.fail, _short(e));
     return failed(e);
   }
@@ -209,9 +257,19 @@ Future<JobRun<T>> runJob<T>({
     try {
       await alerts.emit(check, b.alerts);
     } on Object catch (e) {
+      await record(JobRunStatus.failed);
       await ping(PingStatus.fail, '알림 발송 실패 — ${_short(e)}');
       return failed(e, report: b.report, codes: b.alerts);
     }
+  }
+  final DateTime end = clockUtc().toUtc();
+  final Object? lost = await record(
+    successStatusOf(finishedAtUtc: end, deadlineUtc: deadlineUtc),
+    end,
+  );
+  if (lost != null) {
+    await ping(PingStatus.fail, '실행 기록 실패 — ${_short(lost)}');
+    return failed(lost, report: b.report, codes: b.alerts);
   }
   await ping(PingStatus.success, b.note);
   return JobRun<T>(
@@ -224,5 +282,6 @@ Future<JobRun<T>> runJob<T>({
     note: b.note,
     error: null,
     pingFailures: pingFailures,
+    runLogFailed: runLogFailed,
   );
 }

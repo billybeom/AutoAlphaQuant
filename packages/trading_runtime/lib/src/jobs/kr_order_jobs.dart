@@ -11,6 +11,7 @@ import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
 import 'job_contract.dart';
+import 'job_schedule.dart' show jobDeadlineUtc, jobSpecOf;
 
 /// 잡 이름(01 §10 · 04 §5-2).
 abstract final class KrJobs {
@@ -147,6 +148,7 @@ class KrOrderJobs {
     required this.alerts,
     required this.nowUtc,
     required this.lease,
+    required this.runLog,
     Future<void> Function(Duration)? sleep,
     this.advice,
   }) : sleep = sleep ?? Future<void>.delayed;
@@ -190,6 +192,9 @@ class KrOrderJobs {
   /// 🆕 E14a — 리스(NR-1 0 · 6.9 · 설계 13 §8 R71 · 필수).
   final LeaseGate lease;
 
+  /// 🆕 E14c1 — 잡 실행 기록(02 v2.42 `job_run` · 설계 13 §8 R73 K4 · 필수).
+  final JobRunLog runLog;
+
   /// [job] 의 체크 이름.
   String checkOf(String job) =>
       watchdogCheckName(config.runMode, config.operatingMode, job);
@@ -197,14 +202,21 @@ class KrOrderJobs {
   Future<JobRun<T>> _run<T>(
     String job,
     Future<JobBody<T>> Function(TradeDate today) body,
-  ) => runJob<T>(
-    check: checkOf(job),
-    heartbeat: heartbeat,
-    alerts: alerts,
-    calendar: kr,
-    nowUtc: nowUtc(),
-    body: body,
-  );
+  ) {
+    final DateTime start = nowUtc();
+    return runJob<T>(
+      check: checkOf(job),
+      heartbeat: heartbeat,
+      alerts: alerts,
+      calendar: kr,
+      nowUtc: start,
+      body: body,
+      runLog: runLog,
+      clockUtc: nowUtc,
+      // 🆕 E14c1(R73 K4) — 유예 끝 = 잡 표(예정 + 유예 · 잠정값) · 넘긴 성공 = LATE.
+      deadlineUtc: jobDeadlineUtc(jobSpecOf(job), kstDateOf(start)),
+    );
+  }
 
   Future<ReconReport> _reconcile(TradeDate today) => runReconciliation(
     ledger: ledger,

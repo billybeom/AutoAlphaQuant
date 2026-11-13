@@ -234,12 +234,37 @@ class DailySignalJob {
     );
     final SqliteRegimeStore store = SqliteRegimeStore(_db);
     final String? before = store.lastDate();
-    final int n = store.writeComputation(
-      c,
-      fromDate: before == null ? c.calendar.first : _nextDay(before),
-      source: RegimeRowSource.live,
-      configHash: configHash,
-    );
+    int n;
+    if (before == null) {
+      // 첫 가동(부트스트랩) — 지금 그대로 LIVE(R73 K7 · D5 밖).
+      n = store.writeComputation(
+        c,
+        fromDate: c.calendar.first,
+        source: RegimeRowSource.live,
+        configHash: configHash,
+      );
+    } else {
+      // 🆕 E14c1(X2-4 · R70 D5 · R73 K7) — 이 회차가 새로 쓰는 행 가운데 가장 늦은 날만 LIVE · 그 앞은 BACKFILL
+      //    (갭일 = 그날 실시간으로 계산하지 않았다 · 집행 근거 아님 · 덧붙이기만이라 첫 기록이 영구다).
+      final String from = _nextDay(before);
+      final String? last = c.calendar.isEmpty ? null : c.calendar.last;
+      n = 0;
+      if (last != null && last.compareTo(from) >= 0) {
+        n += store.writeComputation(
+          c,
+          fromDate: from,
+          untilDate: last,
+          source: RegimeRowSource.backfill,
+          configHash: configHash,
+        );
+        n += store.writeComputation(
+          c,
+          fromDate: last,
+          source: RegimeRowSource.live,
+          configHash: configHash,
+        );
+      }
+    }
     return DailySignalReport(
       written: n,
       lastDate: c.calendar.isEmpty ? null : c.calendar.last,

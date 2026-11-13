@@ -249,6 +249,38 @@ DateTime _nextFireAfter(JobSpec spec, JobCalendars cals, DateTime afterUtc) {
   throw StateError('${spec.job}: 400일 안에 발화 날이 없다');
 }
 
+/// 🆕 E14c1(R73 K4) — [fireDay] 회차의 유예 끝(예정 + 유예 · 잠정값) · 넘긴 성공 = `job_run` LATE.
+DateTime jobDeadlineUtc(JobSpec spec, TradeDate fireDay) =>
+    _kstAt(fireDay, spec.kstTime).add(spec.grace);
+
+/// 🆕 E14c1(R73 K5) — 세션일 → 발화 날(평일 잡 = 같은 날 · 월말 잡 = 다음 KR 세션 · `us_data` = +1일).
+TradeDate fireDayOfSession(
+  JobSpec spec,
+  TradeDate sessionDay,
+  JobCalendars cals,
+) => switch (spec.cadence) {
+  JobCadence.krWeekday => sessionDay,
+  JobCadence.krAfterMonthEnd => cals.kr.nextSession(sessionDay),
+  JobCadence.usNextKstDay => _addDays(sessionDay, 1),
+};
+
+/// 🆕 E14c1(R73 K5) — `wakeDecisions` 의 `ran` 원천: 잡 → «돈» 세션일(`job_run` SUCCESS · LATE · HOLIDAY) → 회차.
+///
+/// 잡 표에 없는 잡 · 발화 날이 아닌 세션 = ArgumentError(지어내지 않는다).
+Set<JobOccurrence> ranOccurrences({
+  required JobCalendars cals,
+  required Map<String, Iterable<TradeDate>> doneSessionsByJob,
+}) => <JobOccurrence>{
+  for (final MapEntry<String, Iterable<TradeDate>> e
+      in doneSessionsByJob.entries)
+    for (final TradeDate d in e.value)
+      occurrenceOn(
+        jobSpecOf(e.key),
+        fireDayOfSession(jobSpecOf(e.key), d, cals),
+        cals,
+      ),
+};
+
 /// [fireDay] 의 회차 — 발화 날이 아니면 ArgumentError · 달력 범위 밖 = StateError.
 JobOccurrence occurrenceOn(JobSpec spec, TradeDate fireDay, JobCalendars cals) {
   if (!_fires(spec, fireDay, cals)) {

@@ -31,10 +31,11 @@ final class SqliteRegimeStore {
 
   final Database _db;
 
-  /// [c] 의 [fromDate] 이후(포함) 날을 덧붙인다 — 새로 쓴 행 수.
+  /// [c] 의 [fromDate] 이후(포함) 날을 덧붙인다 — 새로 쓴 행 수. 🆕 E14c1 — [untilDate] 가 있으면 그 날 앞까지(제외).
   int writeComputation(
     RegimeComputation c, {
     required String fromDate,
+    String? untilDate,
     required RegimeRowSource source,
     required String configHash,
   }) {
@@ -49,6 +50,9 @@ final class SqliteRegimeStore {
     try {
       for (int t = 0; t < c.calendar.length; t++) {
         if (c.calendar[t].compareTo(fromDate) < 0) continue;
+        if (untilDate != null && c.calendar[t].compareTo(untilDate) >= 0) {
+          continue;
+        }
         final DirectionScore d = c.direction[t];
         final RegimeDay f = c.fsm[t];
         ins.execute(<Object?>[

@@ -56,13 +56,13 @@ void main() {
       (RunMode.simInternal, LedgerFile.sim),
     ]) {
       test(
-        '${file.fileName} — 74표(🆕 v2.40 안전 통제 7표 · 🆕 v2.41 알림 3표) · schema_version 1행 · application_id · 무결성',
+        '${file.fileName} — 75표(🆕 v2.40 안전 통제 7표 · 🆕 v2.41 알림 3표 · 🆕 v2.42 job_run) · schema_version 1행 · application_id · 무결성',
         () {
           final Database db = open(mode);
           expect(
             _tableCount(db),
-            74,
-            reason: '02 기본 32 + 🆕 v2.40 안전 통제 7 + 🆕 v2.41 알림 3 + 배치 신설 30(ledger_event 포함)',
+            75,
+            reason: '02 기본 32 + 🆕 v2.40 안전 통제 7 + 🆕 v2.41 알림 3 + 🆕 v2.42 job_run 1 + 배치 신설 30(ledger_event 포함)',
           );
           expect(
             db
@@ -72,6 +72,15 @@ void main() {
                 .map((Row r) => r['name'])
                 .toList(),
             <String>['alert_ack', 'alert_escalation', 'alert_event'],
+          );
+          expect(
+            db
+                .select(
+                  "SELECT name FROM sqlite_master WHERE name IN ('job_run', 'ix_job_run_check') ORDER BY name",
+                )
+                .map((Row r) => r['name'])
+                .toList(),
+            <String>['ix_job_run_check', 'job_run'],
           );
           final ResultSet v = db.select(
             'SELECT version, applied_at, description FROM schema_version',
@@ -100,7 +109,7 @@ void main() {
     open(RunMode.live).close();
     final Database again = open(RunMode.live);
     expect(again.select('SELECT * FROM schema_version'), hasLength(1));
-    expect(_tableCount(again), 74);
+    expect(_tableCount(again), 75);
     expect(_pragma(again, 'foreign_keys'), 1, reason: 'FK 는 연결마다 다시 켠다');
   });
 

@@ -115,6 +115,9 @@ export 'src/ops/equity_snapshot.dart'
         replayStoredBreaker,
         stoppedIncidentIdOf,
         stoppedIncidentOf;
+// 🆕 E14c1 — 잡 실행 기록 포트 · 값 꼴(02 v2.42 `job_run` · 설계 13 §8 R73 K1).
+export 'src/ops/job_run_log.dart'
+    show JobRunEntry, JobRunLog, JobRunStatus, successStatusOf;
 // 🆕 E14a — 리스 포트 · 3상 · 상수(SPEC v2.42 NR-1 0 · 6.9 · 설계 13 §8 R71).
 export 'src/ops/lease_gate.dart'
     show
