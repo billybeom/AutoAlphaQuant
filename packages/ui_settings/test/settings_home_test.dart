@@ -406,15 +406,28 @@ void main() {
 
   // ── M9S01-08: asOf line and stale banner two cases ─────────────────────────
 
-  final ({String name, Clock clock, Matcher staleMatcher, List<Key> chain})
+  final ({
+    String name,
+    Clock clock,
+    Matcher staleMatcher,
+    List<String?> staleTexts,
+    List<Key> chain,
+  })
   caseFresh = (
     name: 'fresh',
     clock: FixedClock(kGoldenNowUtc),
     staleMatcher: findsNothing,
+    staleTexts: <String?>[],
     chain: <Key>[const Key('m9s01-chip'), const Key('m9s01-asof')],
   );
 
-  final ({String name, Clock clock, Matcher staleMatcher, List<Key> chain})
+  final ({
+    String name,
+    Clock clock,
+    Matcher staleMatcher,
+    List<String?> staleTexts,
+    List<Key> chain,
+  })
   caseStale = (
     name: 'stale',
     clock: FixedClock(
@@ -423,6 +436,7 @@ void main() {
           .add(const Duration(seconds: 1)),
     ),
     staleMatcher: findsOneWidget,
+    staleTexts: <String?>[SettingsLabels.staleBannerTitle, ?home.asOf.staleLabel],
     chain: <Key>[
       const Key('m9s01-stale'),
       const Key('m9s01-chip'),
@@ -431,7 +445,13 @@ void main() {
   );
 
   for (final c
-      in <({String name, Clock clock, Matcher staleMatcher, List<Key> chain})>[
+      in <({
+        String name,
+        Clock clock,
+        Matcher staleMatcher,
+        List<String?> staleTexts,
+        List<Key> chain,
+      })>[
         caseFresh,
         caseStale,
       ]) {
@@ -447,12 +467,10 @@ void main() {
       );
 
       expect(find.byKey(const Key('m9s01-stale')), c.staleMatcher);
-      if (c.staleMatcher == findsOneWidget) {
-        expect(
-          shownTexts(tester, find.byKey(const Key('m9s01-stale'))),
-          <String?>[SettingsLabels.staleBannerTitle, ?home.asOf.staleLabel],
-        );
-      }
+      expect(
+        shownTexts(tester, find.byKey(const Key('m9s01-stale'))),
+        c.staleTexts,
+      );
 
       for (int i = 0; i < c.chain.length - 1; i++) {
         final double dyA = tester.getTopLeft(find.byKey(c.chain[i])).dy;
@@ -472,6 +490,7 @@ void main() {
     Matcher loadMatcher,
     Matcher failMatcher,
     Matcher chipMatcher,
+    Matcher retryMatcher,
   })
   caseLoading = (
     name: 'loading',
@@ -481,6 +500,7 @@ void main() {
     loadMatcher: findsOneWidget,
     failMatcher: findsNothing,
     chipMatcher: findsNothing,
+    retryMatcher: findsNothing,
   );
 
   final ({
@@ -489,6 +509,7 @@ void main() {
     Matcher loadMatcher,
     Matcher failMatcher,
     Matcher chipMatcher,
+    Matcher retryMatcher,
   })
   caseFail = (
     name: 'fail',
@@ -496,6 +517,7 @@ void main() {
     loadMatcher: findsNothing,
     failMatcher: findsOneWidget,
     chipMatcher: findsNothing,
+    retryMatcher: findsOneWidget,
   );
 
   for (final c
@@ -506,6 +528,7 @@ void main() {
           Matcher loadMatcher,
           Matcher failMatcher,
           Matcher chipMatcher,
+          Matcher retryMatcher,
         })
       >[caseLoading, caseFail]) {
     testWidgets('M9S01-09 state branch ${c.name}', (WidgetTester tester) async {
@@ -522,9 +545,7 @@ void main() {
       expect(find.byKey(const Key('m9s01-loading')), c.loadMatcher);
       expect(find.byKey(const Key('m9s01-fail')), c.failMatcher);
       expect(find.byKey(const Key('m9s01-chip')), c.chipMatcher);
-      if (c.failMatcher == findsOneWidget) {
-        expect(find.text(SettingsLabels.retry), findsOneWidget);
-      }
+      expect(find.text(SettingsLabels.retry), c.retryMatcher);
     });
   }
 
