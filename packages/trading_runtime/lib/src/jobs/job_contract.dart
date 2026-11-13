@@ -153,6 +153,7 @@ String _short(Object e) {
 ///
 /// [calendar] = 잡 시장의 달력 · [sessionDayOf] = 지금 → 다루는 세션일(기본 = KST 날 · `us_data` = 앞 날).
 /// 🆕 E14c1 — [runLog] = `job_run` 기록(필수) · [clockUtc] = 끝 시각 · [deadlineUtc] = 유예 끝(null = 지연 없음).
+/// 🆕 E14d2b — [preGuard] = 본체 앞 가드(재개 · 휴장이면 부르지 않는다 · 던지면 이 잡 FAILED).
 Future<JobRun<T>> runJob<T>({
   required String check,
   required JobHeartbeat heartbeat,
@@ -163,6 +164,7 @@ Future<JobRun<T>> runJob<T>({
   required JobRunLog runLog,
   required DateTime Function() clockUtc,
   DateTime? deadlineUtc,
+  Future<void> Function(TradeDate sessionDay)? preGuard,
   TradeDate Function(DateTime nowUtc) sessionDayOf = kstDateOf,
 }) async {
   int pingFailures = 0;
@@ -245,6 +247,16 @@ Future<JobRun<T>> runJob<T>({
     );
   }
   await ping(PingStatus.start);
+  // 🆕 E14d2b(R70 D13 · R77 S2) — 잡 앞 가드(재개) · 🔴 실패 = 이 잡 FAILED(본체 0 — fail-closed).
+  if (preGuard != null) {
+    try {
+      await preGuard(today);
+    } on Object catch (e) {
+      await record(JobRunStatus.failed);
+      await ping(PingStatus.fail, '재개 가드 실패 — ${_short(e)}');
+      return failed(e);
+    }
+  }
   final JobBody<T> b;
   try {
     b = await body(today);

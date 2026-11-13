@@ -461,6 +461,15 @@ void main() {
     });
   });
 
+  test('🆕 E14d2b 축소 진입 = 원 목표 × 0.5 내림(발주자 결정) · 음수 = 오류', () {
+    expect(kSeasonalReducedEntryRatio, 0.5);
+    expect(seasonalReducedShares(200), 100);
+    expect(seasonalReducedShares(7), 3);
+    expect(seasonalReducedShares(1), 0);
+    expect(seasonalReducedShares(0), 0);
+    expect(() => seasonalReducedShares(-1), throwsArgumentError);
+  });
+
   group('계절 선택', () {
     final ResumeWorkItem entry = _item(
       kind: ResumeWorkKinds.seasonalWindow,

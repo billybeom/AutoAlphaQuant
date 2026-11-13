@@ -164,7 +164,11 @@ void main() {
       expect(r.headline, startsWith('1거래일 미실행: 재판정 1 / 만료 0'));
       expect(r.counts!.executed, 1);
       expect((r.flagReleased, flag(), r.haltReason), (true, false, null));
-      expect(r.alerts, <String>{kResumeCompletedAlertCode});
+      // 🆕 E14d2b — 갭 1세션 = 소급 불가 공백 1 → P2 묶음 더함.
+      expect(r.alerts, <String>{
+        kResumeCompletedAlertCode,
+        kResumeDataGapAlertCode,
+      });
       final Row b = db
           .select(
             "SELECT cleared_by FROM trading_block WHERE flag_id = 'RESUME_INCOMPLETE'",
@@ -219,7 +223,10 @@ void main() {
       (r.flagReleased, flag(), r.haltReason),
       (false, true, ResumeReasonCodes.observing),
     );
-    expect(r.alerts, <String>{kResumeTradingHaltedAlertCode});
+    expect(r.alerts, <String>{
+      kResumeTradingHaltedAlertCode,
+      kResumeDataGapAlertCode,
+    });
     expect(r.headline, endsWith('관찰 회차라 발주하지 않습니다.'));
     expect(run1()['finished_at'], isNotNull);
   });
@@ -249,7 +256,10 @@ void main() {
     expect(r.items.single.reevaluatedLine, '재판정에 필요한 자료가 없어 미뤄 둡니다');
     expect(r.counts!.blocked, 1);
     expect(r.headline, endsWith('재판정을 마치지 못해 매매를 멈춰 둡니다.'));
-    expect(r.alerts, <String>{kResumeTradingHaltedAlertCode});
+    expect(r.alerts, <String>{
+      kResumeTradingHaltedAlertCode,
+      kResumeDataGapAlertCode,
+    });
   });
 
   test('⑧ 기한 지남 = EXPIRED(재판정 안 부름)', () async {
@@ -423,6 +433,158 @@ void main() {
     expect(r.haltReason, ResumeReasonCodes.reconMismatch);
     expect(r.flagReleased, isFalse);
   });
+
+  test('🆕 E14d2b R5 — 갭 세션 = data_gap 1행(equity_snapshot · 복구 불가 · RESUME_GAP) · 집계 · P2 알림 · 이어가도 한 행', () async {
+    await lastSuccess('2026-10-30');
+    final ResumeJobReport r = await job().run(_today);
+    final Row g = db.select('SELECT * FROM data_gap').single;
+    expect(
+      (
+        g['gap_id'],
+        g['dataset'],
+        g['from_date'],
+        g['to_date'],
+        g['recoverable'],
+        g['reason_code'],
+      ),
+      (
+        'GAP-RR-2026-11-13-1-equity_snapshot',
+        'equity_snapshot',
+        '2026-11-02',
+        '2026-11-12',
+        0,
+        'RESUME_GAP',
+      ),
+    );
+    expect(r.counts!.unrecoverable, 1);
+    expect(r.alerts, contains(kResumeDataGapAlertCode));
+    // 갭 0 · 플래그만 = 공백 행 0.
+    await lastSuccess('2026-11-12');
+    final ResumeJobReport r2 = await job().run(_today);
+    expect(r2.counts!.unrecoverable, 0);
+    expect(r2.alerts, isNot(contains(kResumeDataGapAlertCode)));
+    expect(db.select('SELECT * FROM data_gap'), hasLength(1));
+  });
+
+  test('🆕 E14d2b 계절 사람 선택 — 축소 = 재판정 집행 + 결정 행(HUMAN_REDUCED · parent) · 건너뛰기 = 대체 · 거부 차례', () async {
+    seasonalPlan('AAA-SEAS-IN', 'BUY');
+    seasonalPlan('BBB-SEAS-IN', 'BUY');
+    monthlyPlan('MONTH-END-2026-10-30', '2026-11-27');
+    final ResumeJob j = job();
+    Future<String?> pick(
+      String work,
+      SeasonalWindowChoice c, {
+      String decision = 'D-H1',
+      TradeDate day = _today,
+    }) => j.applySeasonalChoice(
+      workId: work,
+      choice: c,
+      decisionId: decision,
+      today: day,
+    );
+    expect(
+      await pick('PW-AAA-SEAS-IN', SeasonalWindowChoice.reduced, decision: ' '),
+      SeasonalChoiceCodes.decisionMissing,
+    );
+    expect(
+      await pick('PW-MONTH-END-2026-10-30', SeasonalWindowChoice.asIs),
+      SeasonalChoiceCodes.notSeasonalEntry,
+    );
+    expect(
+      await pick('PW-NONE', SeasonalWindowChoice.asIs),
+      PlannedWorkCodes.unknown,
+    );
+    expect(
+      await pick(
+        'PW-AAA-SEAS-IN',
+        SeasonalWindowChoice.asIs,
+        day: const TradeDate('2026-11-30'),
+      ),
+      SeasonalChoiceCodes.pastDue,
+    );
+    expect(await pick('PW-AAA-SEAS-IN', SeasonalWindowChoice.reduced), isNull);
+    final Row w = db
+        .select("SELECT * FROM planned_work WHERE work_id = 'PW-AAA-SEAS-IN'")
+        .single;
+    expect(
+      (w['state'], w['verdict_code']),
+      ('REEVALUATED', 'EXECUTED_AS_REEVALUATED'),
+    );
+    expect(
+      db
+          .select(
+            "SELECT decision_id FROM planned_work_transition WHERE work_id = 'PW-AAA-SEAS-IN' AND to_state = 'REEVALUATED'",
+          )
+          .single['decision_id'],
+      'D-H1',
+    );
+    final Row d = db
+        .select("SELECT * FROM decision_log WHERE decision_id = 'D-H1'")
+        .single;
+    expect(
+      (d['kind'], d['reason_code'], d['parent_decision_id'], d['strategy_id']),
+      ('ENTRY', 'HUMAN_REDUCED', 'AAA-SEAS-IN', P0sStrategyIds.sleeveA),
+    );
+    expect(
+      await pick('PW-AAA-SEAS-IN', SeasonalWindowChoice.skip, decision: 'D-H2'),
+      SeasonalChoiceCodes.notPending,
+    );
+    expect(
+      await pick('PW-BBB-SEAS-IN', SeasonalWindowChoice.skip, decision: 'D-H3'),
+      isNull,
+    );
+    expect(
+      db
+          .select(
+            "SELECT state FROM planned_work WHERE work_id = 'PW-BBB-SEAS-IN'",
+          )
+          .single['state'],
+      'SUPERSEDED',
+    );
+  });
+
+  test('🆕 E14d2b 실행 기록이 없어도(기준 없음) 플래그만으로 연 회차 = R5 건너뜀 · 끝까지', () async {
+    db.execute(
+      "INSERT INTO trading_block(flag_id, set_at, reason) VALUES ('RESUME_INCOMPLETE', 'x', 'y')",
+    );
+    final ResumeJobReport r = await job().run(_today);
+    expect((r.gapTradingDays, r.counts!.unrecoverable), (0, 0));
+    expect(run1()['phase'], 'R8');
+    expect(db.select('SELECT * FROM data_gap'), isEmpty);
+  });
+
+  test(
+    '🆕 E14d2b 계절 선택 — 마지막 회차 FULL = 축소 · 그대로 거부(안전 정지) · 건너뛰기는 받음',
+    () async {
+      await lastSuccess('2026-10-23'); // 갭 > 10 = RECOVERY_FULL
+      await job().run(_today);
+      expect(run1()['mode'], 'RECOVERY_FULL');
+      seasonalPlan('AAA-SEAS-IN', 'BUY');
+      final ResumeJob j = job();
+      expect(
+        await j.applySeasonalChoice(
+          workId: 'PW-AAA-SEAS-IN',
+          choice: SeasonalWindowChoice.asIs,
+          decisionId: 'D-H1',
+          today: _today,
+        ),
+        ResumeReasonCodes.safetyStop,
+      );
+      expect(
+        db.select("SELECT * FROM decision_log WHERE decision_id = 'D-H1'"),
+        isEmpty,
+      );
+      expect(
+        await j.applySeasonalChoice(
+          workId: 'PW-AAA-SEAS-IN',
+          choice: SeasonalWindowChoice.skip,
+          decisionId: 'D-H2',
+          today: _today,
+        ),
+        isNull,
+      );
+    },
+  );
 
   test('⑫ 원장 읽기 — UNKNOWN 전체 · RESERVED/SUBMITTING 잔류', () {
     void intent(String id, String status) => db.execute(

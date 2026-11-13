@@ -307,6 +307,55 @@ void main() {
   });
 
   test(
+    '🆕 E14d2b 사람이 축소 진입 = A 몫 목표 50%(첫날 34 = ⌈100/3⌉ · 원 200 이면 67)',
+    () async {
+      _kq(db, '2025-10-28', up: true);
+      db.execute(
+        'INSERT INTO plan_snapshot(plan_id, kind, computed_at, as_of_trade_date, expires_at, inputs, outputs, config_hash) '
+        "VALUES ('REBAL-2025-09-30', 'REBALANCE', 'x', '2025-09-30', '2025-11-03', '{}', ?, 'c')",
+        <Object?>[
+          jsonEncode(<String, Object?>{
+            'month_index': 6,
+            'targets': <Object?>[],
+            'execution_day': '2025-10-01',
+          }),
+        ],
+      );
+      await job().run(const TradeDate('2025-10-29'));
+      final SeasonalTargetSource src = SeasonalTargetSource(
+        db,
+        ledger: SqliteOrderLedger(
+          db,
+          mode: RunMode.live,
+          clock: _Clock(),
+          kr: _kr,
+        ),
+      );
+      Future<int> aShares() async {
+        final OrderTarget a = (await src.targetsFor(
+          const TradeDate('2025-10-29'),
+        )).singleWhere((OrderTarget x) => x.strategyId == 'P0S_A');
+        return (a.sizing as ShareSizing).shares;
+      }
+
+      expect(await aShares(), 67);
+      // 그대로 = 축소 아님.
+      db.execute(
+        'INSERT INTO decision_log(decision_id, created_at, trade_date, mode, kind, strategy_id, reason, reason_code, '
+        "config_hash, parent_decision_id) VALUES ('D-H0', 'x', '2025-10-29', 'LIVE', 'ENTRY', 'P0S_A', 'r', "
+        "'HUMAN_AS_IS', 'c', 'SEAS-A-IN-2025-10-31')",
+      );
+      expect(await aShares(), 67);
+      db.execute(
+        'INSERT INTO decision_log(decision_id, created_at, trade_date, mode, kind, strategy_id, reason, reason_code, '
+        "config_hash, parent_decision_id) VALUES ('D-H1', 'x', '2025-10-29', 'LIVE', 'ENTRY', 'P0S_A', 'r', "
+        "'HUMAN_REDUCED', 'c', 'SEAS-A-IN-2025-10-31')",
+      );
+      expect(await aShares(), 34);
+    },
+  );
+
+  test(
     '🆕 E14d2a 재판정 실물(계절) — 남은 주수 > 0 = 할 일 있음 · 다 체결 = 없음 · 진행 = 오늘 앞(R76 Q3)',
     () async {
       _kq(db, '2025-10-28', up: true);

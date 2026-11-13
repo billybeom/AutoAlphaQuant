@@ -162,6 +162,70 @@ void main() {
     });
   });
 
+  group('🆕 E14d2b 잡 앞 가드(R77 S2)', () {
+    test('세션 = start 핑 뒤 · 본체 앞에 그 세션일로 부른다 · 휴장 = 안 부른다', () async {
+      final _Rig rig = _Rig();
+      final List<String> order = <String>[];
+      final JobRun<int> r = await runJob<int>(
+        check: _check,
+        heartbeat: rig.beat,
+        alerts: rig.alerts,
+        calendar: _kr,
+        nowUtc: _kst('2026-11-04', 18, 30),
+        body: (TradeDate d) async {
+          order.add('body');
+          return const JobBody<int>(1);
+        },
+        runLog: rig.log,
+        clockUtc: () => rig.end,
+        preGuard: (TradeDate d) async => order.add('guard:${d.yyyyMmDd}'),
+      );
+      expect(r.status, JobStatus.success);
+      expect(order, <String>['guard:2026-11-04', 'body']);
+      expect(rig.log.order.first, 'ping:start');
+      final List<String> holiday = <String>[];
+      await runJob<int>(
+        check: _check,
+        heartbeat: _Rig().beat,
+        alerts: rig.alerts,
+        calendar: _kr,
+        nowUtc: _kst('2026-11-07', 18, 30),
+        body: (TradeDate d) async => const JobBody<int>(1),
+        runLog: _Log(),
+        clockUtc: () => rig.end,
+        preGuard: (TradeDate d) async => holiday.add('guard'),
+      );
+      expect(holiday, isEmpty);
+    });
+
+    test('🔴 가드 실패 = FAILED · 본체 0 · 기록 FAILED · fail 핑 «재개 가드 실패»', () async {
+      final _Rig rig = _Rig();
+      bool ran = false;
+      final JobRun<int> r = await runJob<int>(
+        check: _check,
+        heartbeat: rig.beat,
+        alerts: rig.alerts,
+        calendar: _kr,
+        nowUtc: _kst('2026-11-04', 18, 30),
+        body: (TradeDate d) async {
+          ran = true;
+          return const JobBody<int>(1);
+        },
+        runLog: rig.log,
+        clockUtc: () => rig.end,
+        preGuard: (TradeDate d) async => throw StateError('재개 실패'),
+      );
+      expect((r.status, ran), (JobStatus.failed, false));
+      expect(r.error, isA<StateError>());
+      expect(rig.log.order, <String>[
+        'ping:start',
+        'record:FAILED',
+        'ping:fail',
+      ]);
+      expect(rig.beat.pings.last.$2, startsWith('재개 가드 실패 — '));
+    });
+  });
+
   group('🔴 기록 실패(R73 K3)', () {
     test('성공 회차 = fail 핑 «실행 기록 실패» · FAILED · 보고 · 알림 남김', () async {
       final _Rig rig = _Rig();

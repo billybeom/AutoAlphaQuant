@@ -157,6 +157,7 @@ class KrOrderJobs {
     required this.lease,
     required this.runLog,
     required this.plannedWork,
+    this.preGuard,
     Future<void> Function(Duration)? sleep,
     this.advice,
   }) : sleep = sleep ?? Future<void>.delayed;
@@ -206,6 +207,9 @@ class KrOrderJobs {
   /// 🆕 E14c2 — `planned_work` 평시 정리(마감 잡 끝 · 설계 13 §8 R74 M5 · 필수).
   final PlannedWorkLedger plannedWork;
 
+  /// 🆕 E14d2b — 잡 앞 가드(재개 `ResumeJob.run` · 조립 앱이 넣는다 · R77 S2).
+  final Future<void> Function(TradeDate sessionDay)? preGuard;
+
   /// [job] 의 체크 이름.
   String checkOf(String job) =>
       watchdogCheckName(config.runMode, config.operatingMode, job);
@@ -226,6 +230,7 @@ class KrOrderJobs {
       clockUtc: nowUtc,
       // 🆕 E14c1(R73 K4) — 유예 끝 = 잡 표(예정 + 유예 · 잠정값) · 넘긴 성공 = LATE.
       deadlineUtc: jobDeadlineUtc(jobSpecOf(job), kstDateOf(start)),
+      preGuard: preGuard,
     );
   }
 
