@@ -127,7 +127,12 @@ class _PhoneHome extends ConsumerWidget {
                 const _JournalTab(),
                 const ShellRouteBody(link: AppRoutes.holdingsOverview),
                 const ShellPlaceholder(key: Key('s01-plan-slot')),
-                const ShellPlaceholder(key: Key('s01-more-slot')),
+                // 🆕 v1.18(01 §27 · K-a · K-x) — 더보기 = M9 `S01` 설정 홈(보유 탭 꼴 · 상태 보존). 본문 등록 = 조립 앱 레지스트리
+                //    (06 M4-12 · 미등록 = `s01-placeholder`) · 웹 = 탭 없음(04 §3-2).
+                const KeyedSubtree(
+                  key: Key('s01-more-slot'),
+                  child: ShellRouteBody(link: AppRoutes.settingsHome),
+                ),
               ],
             ),
           ),
