@@ -16,4 +16,5 @@ export 'src/kis/kis_orders.dart';
 export 'src/kis/kis_quote_feed.dart';
 export 'src/kis/kis_quotes.dart';
 export 'src/kis/kis_rest_client.dart';
+export 'src/kis/kis_run_mode.dart';
 export 'src/kis/kis_token.dart';

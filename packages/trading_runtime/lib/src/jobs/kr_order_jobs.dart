@@ -157,6 +157,7 @@ class KrOrderJobs {
     required this.lease,
     required this.runLog,
     required this.plannedWork,
+    required this.modeFacts,
     this.preGuard,
     Future<void> Function(Duration)? sleep,
     this.advice,
@@ -210,6 +211,20 @@ class KrOrderJobs {
   /// 🆕 E14d2b — 잡 앞 가드(재개 `ResumeJob.run` · 조립 앱이 넣는다 · R77 S2).
   final Future<void> Function(TradeDate sessionDay)? preGuard;
 
+  /// 🆕 E15a — 모드 판정 입력(#12 세션 · 실키 검증 · 설계 13 §8 R81 V5 · 필수 · 예외 = 거부).
+  final ModeFactsSource modeFacts;
+
+  /// 🔴 세 잡 앞 모드 가드(R81 V4) — 조합 금지 · 실키 대기 hold = [ModeGuardRejected] → 그 잡 FAILED · 브로커 0.
+  Future<void> _modeGuard(TradeDate _) async {
+    final String? code = orderJobModeReject(
+      runMode: config.runMode,
+      operatingMode: config.operatingMode,
+      execPolicy: config.execPolicy,
+      facts: await modeFacts.facts(),
+    );
+    if (code != null) throw ModeGuardRejected(code);
+  }
+
   /// [job] 의 체크 이름.
   String checkOf(String job) =>
       watchdogCheckName(config.runMode, config.operatingMode, job);
@@ -230,6 +245,7 @@ class KrOrderJobs {
       clockUtc: nowUtc,
       // 🆕 E14c1(R73 K4) — 유예 끝 = 잡 표(예정 + 유예 · 잠정값) · 넘긴 성공 = LATE.
       deadlineUtc: jobDeadlineUtc(jobSpecOf(job), kstDateOf(start)),
+      modeGuard: _modeGuard,
       preGuard: preGuard,
     );
   }
