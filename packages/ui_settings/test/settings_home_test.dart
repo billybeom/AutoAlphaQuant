@@ -288,6 +288,17 @@ void main() {
         shownTexts(tester, find.byKey(const Key('m9s01-chip'))),
         c.chipTexts,
       );
+      final ColorScheme cs = Theme.of(tester.element(find.byType(SettingsHome)))
+          .colorScheme;
+      final Icon chipIcon = tester.widget<Icon>(
+        find.byKey(const Key('m9s01-chip-level')),
+      );
+      final (IconData wantIcon, Color wantColor) = wantLevel(
+        cs,
+        c.v.statusChip.level,
+      );
+      expect(chipIcon.icon, wantIcon);
+      expect(chipIcon.color, wantColor);
       await c.flow(tester);
       expect(opener.opened, c.wantOpened);
       expect(find.text(SettingsLabels.retry), findsNothing); // ⓡ
