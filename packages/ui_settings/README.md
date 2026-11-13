@@ -28,10 +28,17 @@
 
 ## ⚠️ 미결 — 임의 확정 금지
 
-- `SettingsActionId`의 **인자 스키마·반환 필드**가 미확정이다(01 §8-13). 열거형 20종만 고정돼 있다 — 화면은 인자 이름을 상상하지 말고 요청 목록에 올린다.
+- `SettingsActionId`의 **인자 스키마·반환 필드**가 미확정이다(01 §8-13). ~~열거형 20종만 고정돼 있다~~ 열거형 값은 계약 판마다 늘어난다(계약 v1.18 기준 31종 — 2026-11-14 · 개수를 상수로 알지 않는다) — 화면은 인자 이름을 상상하지 말고 요청 목록에 올린다.
 - `FeatureFlags.calendarEnabled`가 `false`면 **M9 캘린더 화면 자체가 없다**. X4 채택은 OAuth 동의화면 만료 실측에 달려 있다.
 - 골든벡터 서브케이스 **총계를 화면에 상수로 적지 않는다**(01 §8-14) — 진단 화면이 총계를 표시할지 자체가 미결이다.
 
-## 지금 상태 — 🟡 스캐폴드
+## 지금 상태 — ✅ S01 설정 홈 병합(2026-11-14 · R6a PR #146 squash `9840603` · M9 첫 카드)
 
-배럴과 빈 `labels.dart`만 있다. **⚠️ 이 PC에는 Flutter·Dart·melos가 없다**(2026-09-06).
+`flutter test` **23**(R6a 병합본 · 뷰 16 `settings_home_test` · 골든 6 `m9s01_golden_test` · 자리표시 1 `ui_settings_test` · 1회차 `7c5ac34` 반려(C4Q-1) → 재제출 `60803aa`(테스트 +11) → 2회차 merge · C4 정정 0 · 코드 정정 0) · 골든 PNG **6장**(`test/golden/README.md` «🆕 R6») · 도구 = Flutter·Dart·melos 설치돼 있다(`docs/toolchain_notes.md` · ~~«이 PC에는 Flutter·Dart·melos가 없다»(2026-09-06)~~ 낡은 줄) · 테스트는 패키지 폴더에서 `flutter test`(🔴 중첩 `melos run test` 는 쓰지 않는다).
+
+- `SettingsHome` = `lib/src/settings_home.dart`(`S01` 설정 홈 · R6a · 원천 `SettingsRepository.watchHome()` 1구독 · 엔진 상태 칩 · 12월 연간 리뷰 카드 · 일반 → 운영 → 규칙 묶음(자물쇠 = `tier`) · 카드 행(등급 아이콘 · 제목 · 상태 한 줄 · 주의 배지 `attentionText`) · 맨 아래 asOf · 쓰기 0).
+- 주입 3 = `lib/src/settings_providers.dart`(`settingsRepositoryProvider` · `settingsClockProvider` · `settingsLinkOpenerProvider` · 기본 throw — 조립 앱이 override).
+- 공용 조각 = `lib/src/common/settings_common.dart`(배럴 밖 · `SettingsAsOfLine` · `SettingsStaleBanner` · `SettingsSkeleton` · `SettingsErrorView`).
+- 라벨 = `lib/l10n/labels.dart` 2(`retry` · `staleBannerTitle`) · 배럴 `lib/ui_settings.dart` export 3(`l10n/labels.dart` · `src/settings_home.dart` · `src/settings_providers.dart`).
+- 공용 test 파일 = `test/settings_fakes.dart`(81줄 · 첫 절 «// ── R6a — M9 S01 fakes ──» · 다음 카드는 끝 절을 더한다 — 둘째 정의 0 · C4r16c-2) · 비교기 `test/flutter_test_config.dart` · `test/golden/shift_tolerant_compare.dart`(`ui_shell` 판 복사 · R6a) · 받침 `test/golden/golden_support.dart`(M2 계약 v1.18).
+- 다음 = R6b-Bob-M9S07(`S07` 연결 관리 · M9 첫 쓰기 · 조립 대기 · 밑동 = R6a 병합본) → R6c-Bob-M9S05(`S05` 운용 관리 · 선행 = 계약 v1.19 · «정확히 N»).
