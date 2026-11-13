@@ -262,6 +262,41 @@ abstract final class AppRoutes {
   static const String alertDetail = 'aaq://alerts/detail/:alertId';
   static const String settingsContribution = 'aaq://settings/contribution';
   static const String settingsCredentials = 'aaq://settings/credentials';
+
+  /// 🆕 v1.18(01 §27 · K-w · 발주자 결정 2026-11-13 Q2) — M9 `S01` 설정 홈(`SettingsHome()` · `ui_settings` · R6a) =
+  /// 폰·iOS 뷰어 «더보기» 탭 몸통(셸 `ShellRouteBody` · 04 §3-1) · 웹 = 탭 없음(04 §3-2). 들어오는 링크 = 셸 탭 · 데이터.
+  static const String settingsHome = 'aaq://settings';
+
+  /// 🆕 v1.18 — `S03` 계좌 연동·슬리브↔계좌 매핑(R7 · 폰 전용 · 01 §8 미결 72 목적지).
+  static const String settingsAccounts = 'aaq://settings/accounts';
+
+  /// 🆕 v1.18 — `S04` 전략·배분 편집기(R8 · 규칙 등급 · 조회 = 전 플랫폼).
+  static const String settingsAllocation = 'aaq://settings/allocation';
+
+  /// 🆕 v1.18 — `S05` 운용 관리(R6c · 계약 = v1.19 · 폰 전용 기본 — 05 C3 = v1.19 창).
+  static const String settingsOperations = 'aaq://settings/operations';
+
+  /// 🆕 v1.18 — `S06` 기기·접근(QR 페어링 · R7 · 폰 전용).
+  static const String settingsDevices = 'aaq://settings/devices';
+
+  /// 🆕 v1.18 — `S07` 연결 관리(`Connections()` · R6b · 상태 조회 = 폰·iOS 뷰어 · 버튼 = 폰만).
+  static const String settingsConnections = 'aaq://settings/connections';
+
+  /// 🆕 v1.18 — `S08` 구글 캘린더(X4 · R9 · 폰 전용 · `ConnectionRow.route` 목적지).
+  static const String settingsCalendar = 'aaq://settings/calendar';
+
+  /// 🆕 v1.18 — `S09` 백업·복원(R9 · 폰 전용).
+  static const String settingsBackup = 'aaq://settings/backup';
+
+  /// 🆕 v1.18 — `S10` 진단(골든벡터 셀프테스트 · 무결성 · R9 · 폰 전용).
+  static const String settingsDiagnostics = 'aaq://settings/diagnostics';
+
+  /// 🆕 v1.18 — `S11` 일반 설정·방해금지(카드 배정 = R9 조립 때 · 01 §8 미결 170).
+  static const String settingsGeneral = 'aaq://settings/general';
+
+  /// 🆕 v1.18 — `S12` 12월 연간 리뷰 진입(M9 목차 · `SettingsHomeVm.annualReviewLink` 목적지 · M7 `reportAnnual` 과 다른 화면 ·
+  /// 카드 배정 = R9 조립 때 · 미결 95·170).
+  static const String settingsAnnualReview = 'aaq://settings/annual-review';
   static const String handoverStatus = 'aaq://handover/status';
 
   // ── M5 · X1 · X2 · X5 소유(06 §3-5 목록 — 위젯은 Claude, 등록은 셸) ────────
@@ -298,6 +333,7 @@ abstract final class AppRoutes {
   /// 🆕 v1.16 = **64** · 온보딩 6(`onboardingStep` 앞 — 첫 일치) · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2.
   /// 🆕 v1.17 = **69** · `opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex`(`opsRhythm` 뒤 ·
   /// 조각 수 4·5·4·4·3 — 기존 패턴과 겹침 0).
+  /// 🆕 v1.18 = **80** · M9 11(`settingsCredentials` 뒤 · S 번호 차례 · 3조각 1 + 4조각 10 · 파라미터 0 — 기존 패턴과 겹침 0).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -353,6 +389,17 @@ abstract final class AppRoutes {
     alertDetail,
     settingsContribution,
     settingsCredentials,
+    settingsHome,
+    settingsAccounts,
+    settingsAllocation,
+    settingsOperations,
+    settingsDevices,
+    settingsConnections,
+    settingsCalendar,
+    settingsBackup,
+    settingsDiagnostics,
+    settingsGeneral,
+    settingsAnnualReview,
     handoverStatus,
     m5KillSwitch,
     m5ReleaseGate,

@@ -179,6 +179,11 @@ enum SettingsActionId {
   connectionTest('CONNECTION_TEST'),
   @JsonValue('CONNECTION_SYNC_NOW')
   connectionSyncNow('CONNECTION_SYNC_NOW'),
+
+  /// 🆕 v1.18(01 §27 · K-s · 05 §7 C22) — `S07` 알림 채널 선택(운영 등급 · 🔴 `settingsGeneralUpdate` 로 태우지 않는다 —
+  /// 채널은 안전장치의 일부). args = `{channel ∈ NotifyChannelCodes}`(엔진이 `NotifyChannelOption.selectAction` 에 완성).
+  @JsonValue('NOTIFY_CHANNEL_SELECT')
+  notifyChannelSelect('NOTIFY_CHANNEL_SELECT'),
   @JsonValue('CALENDAR_SYNC_NOW')
   calendarSyncNow('CALENDAR_SYNC_NOW'),
   @JsonValue('CALENDAR_REBACKFILL')

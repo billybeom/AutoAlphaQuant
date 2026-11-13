@@ -11,6 +11,8 @@ import '../enums/ledger.dart';
 import '../enums/ui.dart'; // 🆕 v1.13 — DiagnosticCell.level
 import '../primitives/as_of.dart';
 import 'common.dart';
+import 'onboarding.dart'; // 🆕 v1.18 — SettingsActionCall 의 원형(freezed copyWith 가 `$OnboardingActionCopyWith` 를 본다)
+import 'settings.dart'; // 🆕 v1.18 — SettingsActionCall
 
 part 'ops.freezed.dart';
 part 'ops.g.dart';
@@ -153,36 +155,101 @@ abstract class OpsDailySummary with _$OpsDailySummary {
       _$OpsDailySummaryFromJson(json);
 }
 
-/// m2-8 G-7 — 연결 관리(05 `S07`).
+/// m2-8 G-7 — 연결 관리(05 `S07`). 🆕 v1.18(01 §27 · K-r · K-t) — [lockedLabel] 추가.
+/// 🔴 행 수·차례 = 엔진(«5장 고정» 아님 · `calendarEnabled == false` 면 캘린더 행 0).
 @freezed
 abstract class ConnectionsVm with _$ConnectionsVm {
   const factory ConnectionsVm({
     required List<ConnectionRow> rows,
     required AsOf asOf,
+
+    /// 🆕 v1.18 — 운영 등급 생체 축소 글자(non-null = 보기만). 🔴 엔진 의무 = 이때 모든 행 `actions` 빈 ·
+    /// `selectAction` 전부 null — 화면은 이 칸으로 컨트롤을 거르지 않는다(받은 대로 + 머리 글자 한 줄).
+    String? lockedLabel,
   }) = _ConnectionsVm;
 
   factory ConnectionsVm.fromJson(Map<String, dynamic> json) =>
       _$ConnectionsVmFromJson(json);
 }
+// JSON 키: rows · as_of · locked_label
 
-/// m2-8 G-7 — 연결 1행.
+/// m2-8 G-7 — 연결 1행. 🆕 v1.18(K-q · K-r · K-s) — `actionAvailable` 삭제 · [detailLine] · [level] · [actions] · [channelPicker].
+/// 🔴 토큰·키·전체 URL 은 어떤 칸에도 오지 않는다(PAT = 만료일만 · C-14).
 @freezed
 abstract class ConnectionRow with _$ConnectionRow {
   const factory ConnectionRow({
+    /// `ConnectionTargetCodes` 값 — 🔴 화면 미참조(Key = 순번 · 행 찾기 0).
     required String target,
     required String label,
+
+    /// 🔴 화면 미참조(색 근거 아님 — [level]). 사전 밖 상태 축(C-5 `_fieldsOutsideDictionary`).
     required String statusCode,
     required String statusLabel,
     required String lastOkText,
 
-    /// 🔴 false 면 버튼을 **만들지 않는다**(비활성이 아니다).
-    required bool actionAvailable,
+    /// 🆕 v1.18 — 한 줄 상세(부분 동기 «9개 표 중 1개 지연 — 보유현황» · GitHub 커밋 줄). null = 줄 없음.
+    String? detailLine,
+
+    /// 🆕 v1.18 — 상태 점의 유일한 근거(짝 규칙 = 01 §27 K-r · C-52 ⑤).
+    required UiLevel level,
+
+    /// 🆕 v1.18 — 엔진이 완성한 호출(«연결 테스트» · «지금 동기화» · «시험 발송»). 빈 = 버튼 부재(뷰어는 화면이 그리지 않는다).
+    @Default(<SettingsActionCall>[]) List<SettingsActionCall> actions,
+
+    /// 상세 화면 링크(`settingsCalendar` · `opsWatchdog` · `settingsCredentials`). null = 탭 부재.
     String? route,
+
+    /// 🆕 v1.18 — 알림 채널 행에만 non-null(엔진 의무 · 화면은 `target` 으로 행을 찾지 않는다).
+    NotifyChannelCard? channelPicker,
   }) = _ConnectionRow;
 
   factory ConnectionRow.fromJson(Map<String, dynamic> json) =>
       _$ConnectionRowFromJson(json);
 }
+// JSON 키: target · label · status_code · status_label · last_ok_text · detail_line · level · actions · route · channel_picker
+
+/// 🆕 v1.18(01 §27 · K-s · 01 §8 미결 140) — `S07` 알림 채널 선택 블록(텔레그램 / 카카오톡).
+@freezed
+abstract class NotifyChannelCard with _$NotifyChannelCard {
+  const factory NotifyChannelCard({
+    /// «받을 채널» — 엔진.
+    required String label,
+
+    /// 받은 차례 · `selected` 정확히 1(엔진 의무).
+    required List<NotifyChannelOption> options,
+
+    /// 능력 차이 고지문 — 엔진(늘 · 04 §5-5 와 같은 글자 원천).
+    required String capabilityNotice,
+
+    /// 카카오 리프레시·만료 임박 배지 — 엔진. null = 배지 부재.
+    String? tokenBadgeText,
+
+    /// «생존 신호 경보는 따로 텔레그램이나 이메일로» — 엔진(늘 · 🔴 «중복»으로 숨기지 않는다).
+    required String watchdogChannelLine,
+  }) = _NotifyChannelCard;
+
+  factory NotifyChannelCard.fromJson(Map<String, dynamic> json) =>
+      _$NotifyChannelCardFromJson(json);
+}
+// JSON 키: label · options · capability_notice · token_badge_text · watchdog_channel_line
+
+/// 🆕 v1.18 — 채널 선택지 1개. 🔴 선택된 옵션 = [selectAction] null · 기본 선택을 화면이 정하지 않는다.
+@freezed
+abstract class NotifyChannelOption with _$NotifyChannelOption {
+  const factory NotifyChannelOption({
+    /// `NotifyChannelCodes` 값 — 🔴 화면 미참조.
+    required String code,
+    required String label,
+    required bool selected,
+
+    /// 엔진이 완성한 `notifyChannelSelect` 호출(`{channel}`). null = 그 선택지로 바꾸는 컨트롤 부재.
+    SettingsActionCall? selectAction,
+  }) = _NotifyChannelOption;
+
+  factory NotifyChannelOption.fromJson(Map<String, dynamic> json) =>
+      _$NotifyChannelOptionFromJson(json);
+}
+// JSON 키: code · label · selected · select_action
 
 /// m2-8 G-8 — 기기·접근 관리(05 `S06`). 🔴 **리스는 읽기 전용**이다.
 @freezed

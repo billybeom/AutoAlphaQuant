@@ -11,6 +11,8 @@
 //    대기·체크리스트 7항 UI 를 화면이 만들면 반려다.
 // 🆕 v1.16(01 §25) — 온보딩 args 화이트리스트(`onboardingOperatingModeSelect` · `onboardingDryRunStart` · 검증 3) ·
 //    O-00b·O-03·O-04 는 결과를 읽는다.
+// 🆕 v1.18(01 §27) — M9 `S07` args 화이트리스트(`connectionTest`·`connectionSyncNow` = `{target}` ·
+//    `notifyChannelSelect` = `{channel}`) · S07 은 결과를 읽는다(`SettingsResultCodes`).
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -55,6 +57,15 @@ part 'settings_actions.g.dart';
 ///      (`O-03` 은 + `retryable` · `O-00b`·`O-04` 는 다시 시도 갈래가 없다 — 표본 `retryable` 전부 false)
 ///      (표본 = `m8/onboarding_mode_select_results` · `m8/onboarding_verify_results` · `m8/onboarding_finish_results`).
 ///      `level`·`handoffRoute`·`actionRunId` 로 화면이 분기하지 않는다(아이콘 = `level` 5값 전수).
+///
+///    🆕 v1.18(01 §27 · K-r · K-s · K-u) — M9 `S07`(폰 로컬 · 운영 등급 · 뷰어 경로 0):
+///    · `connectionTest`·`connectionSyncNow` = `{target ∈ ConnectionTargetCodes}`(엔진이 `ConnectionRow.actions` 에 완성 —
+///      값 = 그 행의 `target` · 🔴 화면은 그대로 넘긴다 · 01 §8 미결 151 의 `target` 몫 해소)
+///    · `notifyChannelSelect` = `{channel ∈ NotifyChannelCodes}`(`NotifyChannelOption.selectAction`)
+///    🔴 `S07` 은 [ActionResult] 를 읽는다 — `headline` + `reasonCode` 원문(`SettingsResultCodes`) · `retryable` 전부 false
+///      (버튼 = 행 `actions` 뿐 · 05 «재시도 무한 버튼 0») · `handoffRoute` null(표본 = `m9/settings_action_results`).
+///    ⏸ S05 4동작(`runtimeModeSwitchRequest` · `runtimeOperatingModeSwitchRequest` · `runtimeEngineStart` · `runtimeEngineStop`)
+///      args = 계약 v1.19 · `settingsContributionUpdate` = R8 창(엔진 E11j).
 ///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).

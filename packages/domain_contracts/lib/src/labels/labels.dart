@@ -44,6 +44,7 @@ import 'ops_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
+import 'settings_codes.dart';
 import 'verdict_codes.dart';
 
 export 'advice_codes.dart';
@@ -59,6 +60,7 @@ export 'ops_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
+export 'settings_codes.dart';
 export 'verdict_codes.dart';
 
 /// 세후 사다리 층 코드 6종(01 §2-4 `AfterTaxStep.stepCode` · M2-8 A-7).
@@ -214,6 +216,10 @@ abstract final class ContractCodes {
     'ops_slot': OpsSlotIds.values,
     // 🆕 v1.17(01 §26 · 엔진 D11 · K28) — 일지 사유 칩 코드 중 D11 2종(`TradeJournalEntry.reasons[].code` · 🔴 전수 아님)
     'journal_reason': JournalReasonCodes.values,
+    // 🆕 v1.18(01 §27 · K-n ⓗ) — M9 연결 대상 · 알림 채널 · 설정 동작 결과
+    'connection_target': ConnectionTargetCodes.values,
+    'notify_channel': NotifyChannelCodes.values,
+    'settings_result': SettingsResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

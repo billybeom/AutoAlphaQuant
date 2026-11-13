@@ -16,6 +16,7 @@
 //    (M2-8 C-11) · `AccountMappingVm`·`AllocationEditorVm`·`OperationsVm`
 //    (M2-8 §G 표 미등재)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
 //    들어왔다(`dto/incident.dart`).
+//    🆕 v1.18(01 §27) — `S01`·`S07` 계약 확정(`SettingsHomeVm` 교체 · `SettingsRepository`) · `OperationsVm` = v1.19.
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';

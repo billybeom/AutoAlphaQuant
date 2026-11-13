@@ -22,5 +22,6 @@ export 'enums/performance.dart';
 export 'enums/rebalance.dart';
 export 'enums/resume.dart';
 export 'enums/safety.dart';
+export 'enums/settings.dart';
 export 'enums/sleeve.dart';
 export 'enums/ui.dart';
