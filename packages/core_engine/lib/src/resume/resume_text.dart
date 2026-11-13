@@ -56,6 +56,7 @@ String resumeReevaluatedLine({
   ResumeReasonCodes.humanSkip => '직접 건너뛰었습니다',
   ResumeReasonCodes.humanReduced => '직접 축소 진입을 골랐습니다',
   ResumeReasonCodes.humanAsIs => '직접 그대로 진입을 골랐습니다',
+  ResumeReasonCodes.reevaluationFailed => '재판정에 필요한 자료가 없어 미뤄 둡니다',
   _ => throw ArgumentError.value(reasonCode, 'reasonCode', '모르는 재개 사유'),
 };
 
@@ -123,6 +124,7 @@ String _tail(String? haltReason, ResumeCounts counts) => switch (haltReason) {
   ResumeReasonCodes.reconMismatch => '대사 불일치가 풀릴 때까지 매매를 멈춰 둡니다.',
   ResumeReasonCodes.unknownOrders => '결과를 모르는 주문이 풀릴 때까지 매매를 멈춰 둡니다.',
   ResumeReasonCodes.residualOrders => '처리 중인 주문이 풀릴 때까지 매매를 멈춰 둡니다.',
+  ResumeReasonCodes.reevaluationFailed => '재판정을 마치지 못해 매매를 멈춰 둡니다.',
   _ => throw ArgumentError.value(haltReason, 'haltReason', '모르는 정지 사유'),
 };
 

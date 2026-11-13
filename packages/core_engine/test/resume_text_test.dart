@@ -26,6 +26,7 @@ const List<String> _reasons = <String>[
   ResumeReasonCodes.humanSkip,
   ResumeReasonCodes.humanReduced,
   ResumeReasonCodes.humanAsIs,
+  ResumeReasonCodes.reevaluationFailed,
 ];
 
 const List<String?> _halts = <String?>[
@@ -36,6 +37,7 @@ const List<String?> _halts = <String?>[
   ResumeReasonCodes.reconMismatch,
   ResumeReasonCodes.unknownOrders,
   ResumeReasonCodes.residualOrders,
+  ResumeReasonCodes.reevaluationFailed,
 ];
 
 String _line(String r) =>
@@ -113,6 +115,10 @@ void main() {
       expect(_line(ResumeReasonCodes.humanSkip), '직접 건너뛰었습니다');
       expect(_line(ResumeReasonCodes.humanReduced), '직접 축소 진입을 골랐습니다');
       expect(_line(ResumeReasonCodes.humanAsIs), '직접 그대로 진입을 골랐습니다');
+      expect(
+        _line(ResumeReasonCodes.reevaluationFailed),
+        '재판정에 필요한 자료가 없어 미뤄 둡니다',
+      );
       expect(_reasons.map(_line).toSet(), hasLength(_reasons.length));
       expect(() => _line('SOMETHING'), throwsArgumentError);
       expect(
