@@ -436,7 +436,10 @@ void main() {
           .add(const Duration(seconds: 1)),
     ),
     staleMatcher: findsOneWidget,
-    staleTexts: <String?>[SettingsLabels.staleBannerTitle, ?home.asOf.staleLabel],
+    staleTexts: <String?>[
+      SettingsLabels.staleBannerTitle,
+      ?home.asOf.staleLabel,
+    ],
     chain: <Key>[
       const Key('m9s01-stale'),
       const Key('m9s01-chip'),
@@ -445,16 +448,15 @@ void main() {
   );
 
   for (final c
-      in <({
-        String name,
-        Clock clock,
-        Matcher staleMatcher,
-        List<String?> staleTexts,
-        List<Key> chain,
-      })>[
-        caseFresh,
-        caseStale,
-      ]) {
+      in <
+        ({
+          String name,
+          Clock clock,
+          Matcher staleMatcher,
+          List<String?> staleTexts,
+          List<Key> chain,
+        })
+      >[caseFresh, caseStale]) {
     testWidgets('M9S01-08 asof stale ${c.name}', (WidgetTester tester) async {
       final RecordingLinkOpener opener = RecordingLinkOpener();
       await pumpSettingsHome(
