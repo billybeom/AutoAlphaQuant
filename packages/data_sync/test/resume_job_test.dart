@@ -743,6 +743,173 @@ void main() {
     });
   });
 
+  group('🆕 E14e2 홈 한 줄 · recovery · 미러 행(R79)', () {
+    SqliteResumeStatus status() => SqliteResumeStatus(db, kr: _kr);
+
+    test(
+      '홈 한 줄 — 실행 기록 없음 = null · D+n · 대기 = PLANNED · BLOCKED 만 · 링크',
+      () async {
+        expect(status().resumeLine(_today), isNull);
+        await lastSuccess('2026-11-12');
+        expect(
+          status().resumeLine(_today),
+          const LinkAction(
+            label: '마지막 성공 거래일 D+0 · 대기 작업 없음',
+            deepLink: AppRoutes.x2ResumeReport,
+          ),
+        );
+        monthlyPlan('MONTH-END-2026-10-30', '2026-11-27');
+        seasonalPlan('AAA-SEAS-IN', 'BUY');
+        seasonalPlan('BBB-SEAS-IN', 'BUY');
+        final SqlitePlannedWorkStore pw = SqlitePlannedWorkStore(
+          db,
+          carry: ledger,
+          clock: _Clock(),
+        );
+        pw.transition(
+          'PW-AAA-SEAS-IN',
+          PlannedWorkState.blocked,
+          today: _today,
+          verdictCode: VerdictCodes.blocked,
+        );
+        pw.transition(
+          'PW-BBB-SEAS-IN',
+          PlannedWorkState.superseded,
+          today: _today,
+          verdictCode: VerdictCodes.superseded,
+        );
+        await lastSuccess('2026-11-06');
+        expect(status().resumeLine(_today)!.label, '마지막 성공 거래일 D+0 · 대기 작업 2건');
+        db.execute("DELETE FROM job_run WHERE session_day = '2026-11-12'");
+        expect(status().resumeLine(_today)!.label, '마지막 성공 거래일 D+4 · 대기 작업 2건');
+      },
+    );
+
+    test('recovery — 플래그 ∧ 최근 회차 DRY · FULL 만', () async {
+      expect(status().recoveryActive(), isFalse);
+      db.execute(
+        "INSERT INTO trading_block(flag_id, set_at, reason) VALUES ('RESUME_INCOMPLETE', 'x', 'y')",
+      );
+      expect(status().recoveryActive(), isFalse);
+      await lastSuccess('2026-10-30'); // 갭 9 = DRY(플래그 유지)
+      await job().run(_today);
+      expect(status().recoveryActive(), isTrue);
+      final Object? st = db
+          .select('SELECT started_at FROM resume_run')
+          .first['started_at'];
+      db.execute(
+        'INSERT INTO resume_run (resume_run_id, started_at, finished_at, gap_trading_days, mode, phase, counts, headline) '
+        "VALUES ('RR-2026-11-13-0', ?, ?, 0, 'NORMAL', 'R8', '{}', 'h')",
+        <Object?>[st, st],
+      );
+      db.execute(
+        'INSERT INTO resume_run (resume_run_id, started_at, finished_at, gap_trading_days, mode, phase, counts, headline) '
+        "VALUES ('RR-2026-11-13-9', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z', 0, 'NORMAL', 'R8', '{}', 'h')",
+      );
+      expect(
+        status().recoveryActive(),
+        isTrue,
+      ); // 같은 시각 = id 큰 쪽 · 더 이른 회차 = 무시
+      db.execute("UPDATE resume_run SET mode = 'RECOVERY_FULL'");
+      expect(status().recoveryActive(), isTrue);
+      db.execute("UPDATE resume_run SET mode = 'CONSERVATIVE'");
+      expect(status().recoveryActive(), isFalse);
+      db.execute("UPDATE resume_run SET mode = 'RECOVERY_DRY'");
+      db.execute(
+        "UPDATE trading_block SET cleared_at = 'x' WHERE flag_id = 'RESUME_INCOMPLETE'",
+      );
+      expect(status().recoveryActive(), isFalse);
+    });
+
+    test(
+      '🔴 미러 행 — 칸 정확히(원문 0) · 모드 · epoch · 원격 epoch 이 더 높으면 0행 · 같으면 행',
+      () async {
+        await lastSuccess('2026-11-11');
+        monthlyPlan('MONTH-END-2026-10-30', '2026-11-27');
+        await job().run(_today);
+        final ResumeMirrorPayload p = status().mirrorPayload(
+          mode: RunMode.simInternal,
+          leaseEpoch: 3,
+          remoteEpoch: 3,
+        );
+        expect(p.plannedWork, hasLength(1));
+        expect(p.plannedWork.single.keys.toSet(), <String>{
+          'work_id',
+          'mode',
+          'digest',
+          'one_line',
+          'due_by',
+          'state',
+          'row_version',
+          'lease_epoch',
+        });
+        expect(
+          (
+            p.plannedWork.single['work_id'],
+            p.plannedWork.single['mode'],
+            p.plannedWork.single['state'],
+            p.plannedWork.single['row_version'],
+            p.plannedWork.single['lease_epoch'],
+            p.plannedWork.single['due_by'],
+          ),
+          (
+            'PW-MONTH-END-2026-10-30',
+            'SIM_INTERNAL',
+            'REEVALUATED',
+            1,
+            3,
+            '2026-11-27',
+          ),
+        );
+        final Row pw = db
+            .select('SELECT digest, one_line FROM planned_work')
+            .first;
+        expect(
+          (p.plannedWork.single['digest'], p.plannedWork.single['one_line']),
+          (pw['digest'], pw['one_line']),
+        );
+        expect(p.resumeRuns.single.keys.toSet(), <String>{
+          'resume_run_id',
+          'gap_trading_days',
+          'mode',
+          'phase',
+          'headline',
+        });
+        expect(
+          (
+            p.resumeRuns.single['resume_run_id'],
+            p.resumeRuns.single['gap_trading_days'],
+            p.resumeRuns.single['mode'],
+            p.resumeRuns.single['phase'],
+          ),
+          ('RR-2026-11-13-1', 1, 'SIM_INTERNAL', 'R8'),
+        );
+        expect(
+          p.resumeRuns.single['headline'],
+          db.select('SELECT headline FROM resume_run').first['headline'],
+        );
+        expect(
+          status()
+              .mirrorPayload(
+                mode: RunMode.live,
+                leaseEpoch: 0,
+                remoteEpoch: null,
+              )
+              .plannedWork
+              .single['mode'],
+          'LIVE',
+        );
+        final ResumeMirrorPayload low = status().mirrorPayload(
+          mode: RunMode.simInternal,
+          leaseEpoch: 2,
+          remoteEpoch: 3,
+        );
+        expect(low.plannedWork, isEmpty);
+        expect(low.resumeRuns, isEmpty);
+      },
+    );
+  });
+
   test('⑫ 원장 읽기 — UNKNOWN 전체 · RESERVED/SUBMITTING 잔류', () {
     void intent(String id, String status) => db.execute(
       'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
