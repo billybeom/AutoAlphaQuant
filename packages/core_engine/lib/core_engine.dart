@@ -743,6 +743,20 @@ export 'src/signals/regime_states.dart' show DirectionState, TrendState;
 export 'src/signals/seasonal_exit.dart' show seasonalExitFraction;
 export 'src/signals/sleeve_b_tranche.dart'
     show SleeveBAssist, sleeveBTargetRatioP0, sleeveBTargetWeight;
+// 🆕 E15c1 — 엔진 내부 가상 체결 브로커(같은 포트 · 원장 주문 · 15:40 뒤 판정 · 설계 13 §8 R83 Y3~Y7).
+export 'src/sim/sim_internal_broker.dart'
+    show
+        SimExecution,
+        SimInternalBroker,
+        SimLedgerView,
+        SimOrder,
+        kSimCancelTooLate,
+        kSimInvalidOrder,
+        kSimOdnoPrefix,
+        kSimOrderNotFound;
+// 🆕 E15c1 — 가상 체결가(주문 세션 당일 봉 · SPEC v2.44 · 설계 13 §8 R83 Y2).
+export 'src/sim/virtual_fill.dart'
+    show kVirtualLimitOrder, kVirtualMarketOrder, virtualFillPrice;
 export 'src/whatif/after_tax.dart'
     show
         AfterTaxBranch,

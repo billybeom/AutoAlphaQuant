@@ -502,7 +502,8 @@ final class SqliteOrderLedger implements OrderPathLedger {
             demoteToDouble(c.commission),
             demoteToDouble(c.tax),
             now,
-            'BROKER',
+            // 🆕 E15c1(R83 Y6) — 엔진 내부 가상 체결 = SIMULATED(실계좌 파일 CHECK 태그 = 계약 창).
+            mode == RunMode.simInternal ? 'SIMULATED' : 'BROKER',
             'ESTIMATED',
           ],
         );
