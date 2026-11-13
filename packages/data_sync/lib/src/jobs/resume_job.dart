@@ -17,6 +17,7 @@ import '../local/planned_work_store.dart'
     show PlannedWorkRow, SqlitePlannedWorkStore;
 import '../local/resume_store.dart' show ResumeRunRow, SqliteResumeStore;
 import 'daily_jobs.dart' show DailyJobReport;
+import 'resume_reevaluator.dart' show resumeChildDecisionIdOf;
 
 /// 재개 회차 보고.
 class ResumeJobReport implements DailyJobReport {
@@ -342,7 +343,7 @@ class ResumeJob {
 
   /// child 결정 id(D15 — 원 결정의 RESUME 자식 · 같은 날 다시 = 같은 id).
   static String _childIdOf(ResumeWorkItem item, TradeDate today) =>
-      '${item.workId}#RESUME-${today.yyyyMmDd}';
+      resumeChildDecisionIdOf(item.workId, today);
 
   // child 결정 행(kind RESUME · parent = 원 계획 결정) — 같은 id 두 번 = 무시(크래시 멱등).
   void _writeChild(ResumeWorkItem item, TradeDate today, String runId) {

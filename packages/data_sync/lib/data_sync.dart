@@ -24,6 +24,7 @@ export 'src/jobs/daily_archive_job.dart';
 export 'src/jobs/daily_jobs.dart';
 export 'src/jobs/monthly_rebalance_job.dart';
 export 'src/jobs/resume_job.dart';
+export 'src/jobs/resume_reevaluator.dart';
 export 'src/jobs/seasonal_a_job.dart';
 export 'src/jobs/tier_b_step.dart';
 export 'src/local/alert_read_model.dart';

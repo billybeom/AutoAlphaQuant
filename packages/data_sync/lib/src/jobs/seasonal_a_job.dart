@@ -13,7 +13,7 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../local/planned_work_store.dart'
-    show registerPlannedWork, seasonalPlanOneLine;
+    show plannedWorkIdOf, registerPlannedWork, seasonalPlanOneLine;
 import '../market/market_ids.dart' show MarketSymbols;
 import '../market/market_store.dart';
 import 'daily_jobs.dart';
@@ -366,6 +366,20 @@ class SeasonalTargetSource implements TargetSource {
   final Database _db;
   final CarryLedger _ledger;
 
+  // 🆕 E14d2a(R76 Q3) — 🔴 낡은 판정 차단: 그 판정의 `planned_work` 가 PLANNED · (REEVALUATED ∧ 재판정 집행)일 때만
+  // A 몫을 낸다(없으면 = 옛 판정 · 지금처럼 · 사람 결정 대기 BLOCKED = 0).
+  bool _legAllowed(String decisionId) {
+    final ResultSet w = _db.select(
+      'SELECT state, verdict_code FROM planned_work WHERE work_id = ?',
+      <Object?>[plannedWorkIdOf(decisionId)],
+    );
+    if (w.isEmpty) return true;
+    final Object? state = w.first['state'];
+    return state == 'PLANNED' ||
+        (state == 'REEVALUATED' &&
+            w.first['verdict_code'] == VerdictCodes.executedAsReevaluated);
+  }
+
   bool _issuedToday(String id, String today, String symbol, OrderSide side) =>
       _db.select(
         'SELECT 1 FROM order_intents WHERE decision_id = ? AND symbol = ? AND side = ? LIMIT 1',
@@ -412,7 +426,9 @@ class SeasonalTargetSource implements TargetSource {
     }
     final String? sideWire = s['side'] as String?;
     final int shares = s['target_shares'] as int? ?? 0;
-    if (sideWire != null && shares > 0) {
+    if (sideWire != null &&
+        shares > 0 &&
+        _legAllowed(seasonalDecisionIdOf(outcome, anchor))) {
       final OrderSide side = OrderSide.values.firstWhere(
         (OrderSide x) => x.wire == sideWire,
       );

@@ -514,6 +514,311 @@ void main() {
     });
   });
 
+  group('🆕 E14d2a 재개 재판정 — M 의 판정 + T 의 금액 · 낡은 계획 차단(R76)', () {
+    const TradeDate t = TradeDate('2026-08-05');
+    const String parent = 'PW-MONTH-END-2026-07-31';
+    const String child = 'PW-MONTH-END-2026-07-31#RESUME-2026-08-05';
+
+    // T 앞 마지막 세션(08-04) 종가 = 월말의 1.5배(금액이 T 의 가격으로 다시 지어지는지 본다).
+    void valuationBars() {
+      for (final Row r in db.select(
+        "SELECT symbol, close FROM daily_prices WHERE trade_date = '2026-07-31'",
+      )) {
+        _bar(
+          db,
+          r['symbol'] as String,
+          '2026-08-04',
+          (r['close'] as num) * 1.5,
+        );
+      }
+    }
+
+    Future<int> replan(MonthlyRebalanceJob j) => j.replanAsOf(
+      _me,
+      t,
+      parentWorkId: parent,
+      childDecisionId: child,
+      dueBy: const TradeDate('2026-08-31'),
+    );
+
+    // B 보유 20주 — 평가 종가가 금액에 들어가게.
+    MonthlyRebalanceJob jh() => job(
+      held: <LedgerHolding>[
+        const LedgerHolding(P0sStrategyIds.sleeveB, '133690', 20),
+      ],
+    );
+
+    SqlitePlannedWorkStore store() =>
+        SqlitePlannedWorkStore(db, carry: _NoCarry(), clock: _Clock());
+
+    test('child 계획 = REBAL-{M}#RESUME-{T} · as-of T · 만료 = 원 · 램프 달 = 원 · 논리 id #R{T} · child planned_work(부모)', () async {
+      final MonthlyRebalanceReport r = await jh().run(_me);
+      valuationBars();
+      final int n = await replan(jh());
+      expect(n, greaterThan(0));
+      final Row p = db
+          .select(
+            "SELECT * FROM plan_snapshot WHERE plan_id = 'REBAL-2026-07-31#RESUME-2026-08-05'",
+          )
+          .single;
+      expect(
+        (p['kind'], p['as_of_trade_date'], p['expires_at'], p['config_hash']),
+        ('REBALANCE', '2026-08-05', '2026-09-01', 'cfg_plan'),
+      );
+      final Map<String, Object?> o =
+          jsonDecode(p['outputs'] as String) as Map<String, Object?>;
+      expect(
+        (
+          o['execution_day'],
+          o['month_index'],
+          o['decision_id'],
+          o['resume_of'],
+          o['valuation_day'],
+        ),
+        ('2026-08-05', r.monthIndex, child, 'REBAL-2026-07-31', '2026-08-04'),
+      );
+      final List<Object?> ts = o['targets']! as List<Object?>;
+      expect(ts, hasLength(n));
+      for (final Object? x in ts) {
+        expect(
+          (x! as Map<String, Object?>)['logical_decision_id'] as String,
+          endsWith('#R2026-08-05'),
+        );
+      }
+      final Row w = db.select(
+        'SELECT * FROM planned_work WHERE decision_id = ?',
+        <Object?>[child],
+      ).single;
+      expect(
+        (w['kind'], w['parent_work_id'], w['due_by'], w['state'], w['work_id']),
+        ('MONTHLY_PLAN', parent, '2026-08-31', 'PLANNED', 'PW-$child'),
+      );
+      expect(w['one_line'], '7월말 정기 리밸런싱 · 재개 재판정');
+      // 🔴 금액 = T 의 가격 — 원 계획과 다르다.
+      expect(
+        jsonEncode(
+          ts
+              .map((Object? x) => (x! as Map<String, Object?>)['sizing'])
+              .toList(),
+        ),
+        isNot(
+          jsonEncode(
+            r.targets
+                .map((OrderTarget x) => orderTargetToJson(x)['sizing'])
+                .toList(),
+          ),
+        ),
+      );
+    });
+
+    test('같은 날 다시 = 있는 child 그대로 · 원 계획 없음 = 오류', () async {
+      await jh().run(_me);
+      valuationBars();
+      final int n = await replan(jh());
+      expect(await replan(jh()), n);
+      expect(
+        db
+            .select(
+              "SELECT COUNT(*) AS c FROM plan_snapshot WHERE plan_id LIKE 'REBAL-2026-07-31#%'",
+            )
+            .first['c'],
+        1,
+      );
+      await expectLater(
+        jh().replanAsOf(
+          const TradeDate('2026-06-30'),
+          t,
+          parentWorkId: 'x',
+          childDecisionId: 'y',
+          dueBy: t,
+        ),
+        throwsStateError,
+      );
+    });
+
+    test('🔴 낡은 계획 차단 — 원 계획 PLANNED 아님 = 0 · child = 그 대상(#R) · child 도 PLANNED 아니면 0 · 행 없는 옛 계획 = 지금처럼', () async {
+      final MonthlyRebalanceReport r = await jh().run(_me);
+      final StoredPlanTargetSource src = StoredPlanTargetSource(db);
+      expect(await src.targetsFor(t), hasLength(r.targets.length));
+      store().transition(
+        parent,
+        PlannedWorkState.superseded,
+        today: t,
+        verdictCode: VerdictCodes.superseded,
+      );
+      expect(await src.targetsFor(t), isEmpty);
+      valuationBars();
+      final int n = await replan(jh());
+      final List<OrderTarget> fromChild = await src.targetsFor(t);
+      expect(fromChild, hasLength(n));
+      expect(
+        fromChild.every(
+          (OrderTarget x) => x.logicalDecisionId.endsWith('#R2026-08-05'),
+        ),
+        isTrue,
+      );
+      store().transition(
+        'PW-$child',
+        PlannedWorkState.blocked,
+        today: t,
+        verdictCode: VerdictCodes.blocked,
+      );
+      expect(await src.targetsFor(t), isEmpty);
+      db.execute('DELETE FROM planned_work');
+      expect(await src.targetsFor(t), hasLength(n));
+    });
+
+    test(
+      'child «끝남» = 계획 id 를 결정 id 에서(REBAL-{M}#RESUME-{T}) · 낸 날 DONE',
+      () async {
+        await jh().run(_me);
+        valuationBars();
+        await replan(jh());
+        final SqlitePlannedWorkStore s = store();
+        final List<OrderTarget> ts = await StoredPlanTargetSource(db)
+            .targetsFor(t);
+        int i = 0;
+        for (final OrderTarget x in ts) {
+          db.execute(
+            'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
+            "decision_id, symbol, side, order_type, quantity, status, config_hash, updated_at, mode) VALUES (?, ?, 'x', "
+            "'2026-08-05', 'KR', 'main', ?, ?, ?, ?, 'LIMIT', 1, 'SUBMITTED', 'c', 'x', 'LIVE')",
+            <Object?>[
+              'c$i',
+              'kc$i',
+              x.strategyId,
+              '${x.logicalDecisionId}@2026-08-05',
+              x.symbol,
+              x.side.wire,
+            ],
+          );
+          i++;
+        }
+        expect(await s.settle(t), 1);
+        expect(
+          db.select(
+            'SELECT state FROM planned_work WHERE work_id = ?',
+            <Object?>['PW-$child'],
+          ).single['state'],
+          'DONE',
+        );
+        expect(
+          rebalancePlanIdOfDecision('MONTH-END-2026-07-31'),
+          'REBAL-2026-07-31',
+        );
+        expect(
+          rebalancePlanIdOfDecision(child),
+          'REBAL-2026-07-31#RESUME-2026-08-05',
+        );
+        expect(rebalancePlanIdOfDecision('SEAS-A-IN-2026-10-30'), isNull);
+      },
+    );
+
+    test('대상 0 = 아무것도 안 씀 · 재판정 = 할 일 없음(현금 0 · 보유 0)', () async {
+      await job().run(_me);
+      valuationBars();
+      MonthlyRebalanceJob broke() => job(
+        cash: <String, OrderBroker>{
+          'main': FakeOrderBroker(cashKrw: Decimal.zero),
+        },
+      );
+      expect(await replan(broke()), 0);
+      expect(
+        db
+            .select(
+              "SELECT COUNT(*) AS c FROM plan_snapshot WHERE plan_id LIKE '%#RESUME-%'",
+            )
+            .first['c'],
+        0,
+      );
+      expect(
+        db
+            .select(
+              'SELECT COUNT(*) AS c FROM planned_work WHERE parent_work_id IS NOT NULL',
+            )
+            .first['c'],
+        0,
+      );
+      final SqliteResumeReevaluator re = SqliteResumeReevaluator(
+        db,
+        monthly: broke(),
+        carry: _NoCarry(),
+      );
+      final PlannedWorkRow row = store().rows().single;
+      expect(
+        await re.actionNeeded(
+          ResumeWorkItem(
+            workId: parent,
+            kind: ResumeWorkKinds.monthlyPlan,
+            oneLine: row.oneLine,
+            state: PlannedWorkState.planned,
+            plannedOn: _me,
+            dueBy: row.dueBy,
+            direction: ResumeDirection.rebalance,
+            sell: false,
+          ),
+          t,
+        ),
+        isFalse,
+      );
+    });
+
+    test('latest() 동률(as-of 같음) = 늦게 계산한 쪽 · 계획 id 큰 쪽', () async {
+      final SqliteRebalancePlanStore plans = SqliteRebalancePlanStore(db);
+      void plan(String id, String computed, String exec) => db.execute(
+        'INSERT INTO plan_snapshot(plan_id, kind, computed_at, as_of_trade_date, expires_at, inputs, outputs, config_hash) '
+        "VALUES (?, 'REBALANCE', ?, '2026-08-05', '2026-09-01', '{}', ?, 'c')",
+        <Object?>[id, computed, '{"execution_day":"$exec","targets":[]}'],
+      );
+      plan('REBAL-A', '2026-08-05T00:00:00Z', 'old');
+      plan('REBAL-B', '2026-08-05T01:00:00Z', 'new');
+      expect(plans.latest()!.$3['execution_day'], 'new');
+      plan('REBAL-C', '2026-08-05T01:00:00Z', 'tie');
+      expect(plans.latest()!.$3['execution_day'], 'tie');
+    });
+
+    test('재판정 실물(월말) — child 를 남기고 할 일 있음 · 결정 없는 행 · 모르는 종류 = 오류', () async {
+      await jh().run(_me);
+      valuationBars();
+      final SqliteResumeReevaluator re = SqliteResumeReevaluator(
+        db,
+        monthly: jh(),
+        carry: _NoCarry(),
+      );
+      final PlannedWorkRow row = store().rows().single;
+      ResumeWorkItem item(String kind, String workId) => ResumeWorkItem(
+        workId: workId,
+        kind: kind,
+        oneLine: row.oneLine,
+        state: PlannedWorkState.planned,
+        plannedOn: _me,
+        dueBy: row.dueBy,
+        direction: ResumeDirection.rebalance,
+        sell: false,
+      );
+      expect(
+        await re.actionNeeded(item(ResumeWorkKinds.monthlyPlan, parent), t),
+        isTrue,
+      );
+      expect(
+        db.select(
+          'SELECT COUNT(*) AS c FROM planned_work WHERE parent_work_id = ?',
+          <Object?>[parent],
+        ).first['c'],
+        1,
+      );
+      await expectLater(
+        re.actionNeeded(item(ResumeWorkKinds.monthlyPlan, 'PW-NONE'), t),
+        throwsStateError,
+      );
+      await expectLater(
+        re.actionNeeded(item('OTHER', parent), t),
+        throwsArgumentError,
+      );
+      expect(resumeChildDecisionIdOf(parent, t), child);
+    });
+  });
+
   group('StoredPlanTargetSource(P8)', () {
     test('계획 없음 · 집행 첫날 전 · 만료 = 빈 목록 · 집행 첫날 ~ 만료 전 = 대상', () async {
       final StoredPlanTargetSource src = StoredPlanTargetSource(db);

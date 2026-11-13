@@ -17,7 +17,7 @@ import 'package:sqlite3/sqlite3.dart';
 
 import '../local/deposit_ledger.dart';
 import '../local/planned_work_store.dart'
-    show monthlyPlanOneLine, registerPlannedWork;
+    show monthlyPlanOneLine, plannedWorkIdOf, registerPlannedWork;
 import '../market/market_store.dart';
 import '../market/regime_store.dart';
 import 'daily_jobs.dart';
@@ -41,6 +41,28 @@ String rebalancePlanIdOf(String monthEnd) => 'REBAL-$monthEnd';
 
 /// 월말 결정 id.
 String monthEndDecisionIdOf(String monthEnd) => 'MONTH-END-$monthEnd';
+
+/// 🆕 E14d2a(R76 Q4) — 결정 id → 월말 계획 id. 원 = `MONTH-END-{M}` → `REBAL-{M}` · 재개 child =
+/// `PW-MONTH-END-{M}#RESUME-{T}` → `REBAL-{M}#RESUME-{T}` · 모르는 꼴 = null.
+String? rebalancePlanIdOfDecision(String decisionId) {
+  const String child = 'PW-MONTH-END-';
+  const String original = 'MONTH-END-';
+  if (decisionId.startsWith(child)) {
+    return 'REBAL-${decisionId.substring(child.length)}';
+  }
+  if (decisionId.startsWith(original)) {
+    return 'REBAL-${decisionId.substring(original.length)}';
+  }
+  return null;
+}
+
+/// 🆕 E14d2a(R76 Q1) — 재개 child 계획 id.
+String resumeRebalancePlanIdOf(String monthEnd, String today) =>
+    '${rebalancePlanIdOf(monthEnd)}#RESUME-$today';
+
+/// 🆕 E14d2a(R76 Q1) — child 논리 id(원 계획의 «낸 적 있음»에 막히지 않게 · `@` · `+` 없음).
+String resumeLogicalIdOf(String logicalDecisionId, String today) =>
+    '$logicalDecisionId#R$today';
 
 /// `monthly_rebalance` 보고.
 class MonthlyRebalanceReport implements DailyJobReport {
@@ -130,11 +152,11 @@ class SqliteRebalancePlanStore {
     );
   }
 
-  /// 가장 최근 계획의 (월말 · 만료 · 출력)(없으면 null).
+  /// 가장 최근 계획의 (as-of · 만료 · 출력)(없으면 null) — 🆕 E14d2a 동률 차례 = 계산 시각 · 계획 id(R76 Q2).
   (String, String, Map<String, Object?>)? latest() {
     final ResultSet rs = _db.select(
       "SELECT as_of_trade_date, expires_at, outputs FROM plan_snapshot WHERE kind = 'REBALANCE' "
-      'ORDER BY as_of_trade_date DESC LIMIT 1',
+      'ORDER BY as_of_trade_date DESC, computed_at DESC, plan_id DESC LIMIT 1',
     );
     if (rs.isEmpty) return null;
     return (
@@ -302,6 +324,140 @@ class MonthlyRebalanceJob {
     monthIndex: o['month_index']! as int,
     tierB: tierB,
   );
+
+  /// 🆕 E14d2a(R76 Q1 · 🔴 발주자 결정 2026-11-13 «M 의 판정 + T 의 금액») — 낡은 월말 계획 [monthEnd] 의 재개일
+  /// [today] child. 판정 입력(국면 · 브레이커 · 램프 달 · 월 종가 · 다음 세션 유무)은 원 계획(M) 그대로 · 보유 · 현금 ·
+  /// 평가 종가 = T 앞 마지막 세션. 대상 수를 돌려준다(0 = 할 일 없음 · 아무것도 쓰지 않음).
+  ///
+  /// child 계획 `REBAL-{M}#RESUME-{T}`(as-of = T · 만료 = 원 계획 · 집행 = T · 논리 id = `{원}#R{T}`) + child
+  /// `planned_work`(부모 = [parentWorkId]) = 한 트랜잭션 · 같은 날 다시 = 있는 child 그대로. 실패 = 예외(실행기가 센다).
+  Future<int> replanAsOf(
+    TradeDate monthEnd,
+    TradeDate today, {
+    required String parentWorkId,
+    required String childDecisionId,
+    required TradeDate dueBy,
+  }) async {
+    final String d = monthEnd.yyyyMmDd;
+    final String t = today.yyyyMmDd;
+    final String childPlanId = resumeRebalancePlanIdOf(d, t);
+    final ResultSet have = _db.select(
+      'SELECT outputs FROM plan_snapshot WHERE plan_id = ?',
+      <Object?>[childPlanId],
+    );
+    if (have.isNotEmpty) {
+      return _targetsOf(
+        jsonDecode(have.first['outputs'] as String) as Map<String, Object?>,
+      ).length;
+    }
+    final ResultSet orig = _db.select(
+      "SELECT expires_at, outputs FROM plan_snapshot WHERE kind = 'REBALANCE' AND plan_id = ?",
+      <Object?>[rebalancePlanIdOf(d)],
+    );
+    if (orig.isEmpty) {
+      throw StateError('원 계획 없음: ${rebalancePlanIdOf(d)}');
+    }
+    final String expires = orig.first['expires_at'] as String;
+    final Map<String, Object?> original =
+        jsonDecode(orig.first['outputs'] as String) as Map<String, Object?>;
+    final int monthIndex = original['month_index']! as int;
+    final String valuation = _kr.nthSessionBefore(today, 1).yyyyMmDd;
+    final List<LedgerHolding> held = await _holdings();
+    final String month = d.substring(0, 7);
+    final SqliteMarketStore market = SqliteMarketStore(_db);
+    final Map<String, List<double>> monthly = <String, List<double>>{
+      for (final (String s, _) in _config.bAssets)
+        s: monthlyLastCloses(<(String, double)>[
+          for (final PriceBar b in market.readBars('KR', s))
+            (b.tradeDate, b.close),
+        ], month),
+    };
+    final (DirectionState?, String?) regime = _regimeAt(d);
+    final MonthEndRun run;
+    try {
+      run = await computeMonthEndRun(
+        monthEnd: monthEnd,
+        holdings: held,
+        closeTexts: _closeTexts(valuation, <String>{
+          ..._planSymbols,
+          for (final LedgerHolding h in held) h.symbol,
+        }),
+        cashAccounts: _cash,
+        pensionRows: SqliteDepositLedger(_db).cashRows(_pensionAlias),
+        pensionAlias: _pensionAlias,
+        pensionOutsideText: _pensionOutside,
+        potCashText: potCashOf(potCashFlowsSinceLiquidation(_db)).toString(),
+        monthIndex: monthIndex,
+        regimeState: regime.$1,
+        monthlyCloses: monthly,
+        hasNextKrSession: _hasNext(_kr, d),
+        hasNextUsSession: _hasNext(_us, d),
+        config: _config,
+        parkingSymbol: _parkingSymbol,
+        instruments: <String, InstrumentKind>{
+          for (final String s in _planSymbols) s: InstrumentKind.etf,
+        },
+      );
+    } on MonthEndInputError catch (e) {
+      throw MonthlyRebalanceError(e.reason);
+    }
+    final List<OrderTarget> targets = <OrderTarget>[
+      for (final OrderTarget x in run.targets)
+        orderTargetFromJson(<String, Object?>{
+          ...orderTargetToJson(x),
+          'logical_decision_id': resumeLogicalIdOf(x.logicalDecisionId, t),
+        }),
+    ];
+    if (targets.isEmpty) return 0;
+    final String now = _clock.nowUtc().toIso8601String();
+    final String outputsJson = jsonEncode(<String, Object?>{
+      'targets': <Object?>[
+        for (final OrderTarget x in targets) orderTargetToJson(x),
+      ],
+      'execution_day': t,
+      'month_index': monthIndex,
+      'sleeve_b_held': run.plan.sleeveBHeld,
+      'weights_before': _weightsJson(run.weightsBefore),
+      'weights_after': _weightsJson(run.weightsAfter),
+      'actions': <Object?>[
+        for (final MonthEndAction a in run.plan.actions)
+          monthEndActionToJson(a),
+      ],
+      'after': monthEndStateToJson(run.plan.after),
+      'decision_id': childDecisionId,
+      'resume_of': rebalancePlanIdOf(d),
+      'valuation_day': valuation,
+    });
+    inLedgerTransaction(_db, () {
+      _db.execute(
+        'INSERT INTO plan_snapshot(plan_id, kind, computed_at, as_of_trade_date, expires_at, inputs, outputs, config_hash) '
+        "VALUES (?, 'REBALANCE', ?, ?, ?, ?, ?, ?)",
+        <Object?>[
+          childPlanId,
+          now,
+          t,
+          expires,
+          jsonEncode(<String, Object?>{
+            ...monthEndStateToJson(run.state),
+            'monthly_closes': monthly,
+          }),
+          outputsJson,
+          _configHash,
+        ],
+      );
+      registerPlannedWork(
+        _db,
+        kind: ResumeWorkKinds.monthlyPlan,
+        decisionId: childDecisionId,
+        dueBy: dueBy,
+        oneLine: '${monthlyPlanOneLine(d)} · 재개 재판정',
+        payloadJson: outputsJson,
+        createdAtUtc: now,
+        parentWorkId: parentWorkId,
+      );
+    });
+    return targets.length;
+  }
 
   /// [monthEnd](월 마지막 KR 세션)의 계획을 만든다 — 실패면 [MonthlyRebalanceError](아무것도 쓰지 않음).
   Future<MonthlyRebalanceReport> run(TradeDate monthEnd) async {
@@ -485,10 +641,20 @@ class StoredPlanTargetSource implements TargetSource {
       _db,
     ).latest();
     if (p == null) return const <OrderTarget>[];
-    final (String _, String expires, Map<String, Object?> o) = p;
+    final (String asOf, String expires, Map<String, Object?> o) = p;
     final String t = today.yyyyMmDd;
     final String exec = o['execution_day']! as String;
     if (t.compareTo(exec) < 0 || t.compareTo(expires) >= 0) {
+      return const <OrderTarget>[];
+    }
+    // 🆕 E14d2a(R76 Q2) — 🔴 낡은 계획 차단: 그 계획의 `planned_work` 가 PLANNED 일 때만(없으면 = 옛 계획 · 지금처럼).
+    final String decision =
+        o['decision_id'] as String? ?? monthEndDecisionIdOf(asOf);
+    final ResultSet w = _db.select(
+      'SELECT state FROM planned_work WHERE work_id = ?',
+      <Object?>[plannedWorkIdOf(decision)],
+    );
+    if (w.isNotEmpty && w.first['state'] != 'PLANNED') {
       return const <OrderTarget>[];
     }
     return unissuedPlanTargets(_db, o);
