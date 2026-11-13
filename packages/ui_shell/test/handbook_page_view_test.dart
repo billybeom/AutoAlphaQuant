@@ -100,6 +100,8 @@ void main() {
 
   // B02-01 block order, words, one text look.
   testWidgets('B02-01 block order and words', (WidgetTester tester) async {
+    expect(sleeveB.blocks[3].kind, 'CAUTION'); // pre
+    expect(sleeveB.blocks[3].live, isNull); // pre
     final FakeShellHandbookRepository repo = repoOf(sleeveB);
     await pumpHandbookPage(
       tester,
@@ -144,6 +146,14 @@ void main() {
             )
             .style,
         firstStyle,
+      );
+      // C4r16b-3(C4O-7 · P11): 블록 안 Icon = live 행 것만.
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey<String>('b02-block-$i')),
+          matching: find.byType(Icon),
+        ),
+        findsNWidgets(blk.live == null ? 0 : 1),
       );
     }
     expect(find.byKey(const ValueKey<String>('b02-block-5')), findsNothing);
@@ -242,6 +252,36 @@ void main() {
           findsNothing,
         );
         expect(find.byType(IconButton), findsNothing);
+        // C4r16b-3(C4O-7 · P09d): 고지 자리 안 탭 위젯 0.
+        // 양성 기준점 = 고지 안 경고 Icon 1 · 링크 블록 안 GestureDetector 1.
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('b02-outdated')),
+            matching: find.byType(Icon),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('b02-outdated')),
+            matching: find.byType(InkWell),
+          ),
+          findsNothing,
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('b02-outdated')),
+            matching: find.byType(GestureDetector),
+          ),
+          findsNothing,
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(ValueKey<String>('b02-block-${c.linkBlock}')),
+            matching: find.byType(GestureDetector),
+          ),
+          findsOneWidget,
+        );
       } else {
         expect(find.byKey(const Key('b02-outdated')), findsNothing);
         expect(find.text(outdated.outdatedNotice!), findsNothing);
@@ -267,6 +307,10 @@ void main() {
     );
     expect(shownTexts(tester, find.byKey(const Key('b02-missing'))), <String?>[
       missing.missingLabel,
+    ]);
+    // C4r16b-3(C4O-7 · X12): 없는 장이어도 제목 = 받은 글자.
+    expect(shownTexts(tester, find.byKey(const Key('b02-title'))), <String?>[
+      missing.title,
     ]);
     expect(find.byKey(const ValueKey<String>('b02-block-0')), findsNothing);
     expect(find.byKey(const Key('b02-missing')), findsOneWidget);
@@ -368,6 +412,32 @@ void main() {
       expect(find.text(ShellLabels.retry), findsNothing);
     });
   }
+
+  // B02-07 shell wiring with shellOverrides only: the handbook repository
+  // provider keeps its default (C4r16b-3 · C4O-9 · probe P2).
+  testWidgets('B02-07 shell wiring phone_default', (WidgetTester tester) async {
+    await pumpShell(
+      tester,
+      overrides: shellOverrides(
+        platform: ShellPlatform.androidOperator,
+        config: flagsOf(kFlagsLiveAuto),
+        alerts: alertsOf(const <AlertItem>[]),
+        bodies: dummyBodies(AppRoutes.all, <String>[]),
+      ),
+      size: const Size(390, 844),
+    );
+    await openLink(tester, 'handbook://${sleeveB.anchor}');
+    expect(find.byKey(const Key('s01-handbook-slot')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('s01-handbook-slot')),
+        matching: find.byType(ShellPlaceholder),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('b02-title')), findsNothing);
+    expect(find.text(ShellLabels.retry), findsNothing);
+  });
 
   // B02-08 state branches.
   final List<_StateCase> stateCases = <_StateCase>[

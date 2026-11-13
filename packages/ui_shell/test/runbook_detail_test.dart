@@ -55,6 +55,7 @@ void main() {
   // D02-11 step order and words.
   testWidgets('D02-11 step order and words', (WidgetTester tester) async {
     expect(hostLost.introText, isNotNull); // pre
+    expect(hostLost.introText, isNot(hostLost.title)); // pre
     final FakeShellRunbookRepository repo = repoOf(hostLost);
     await pumpRunbookDetail(
       tester,
@@ -80,6 +81,13 @@ void main() {
         <String?>[s.orderText, s.text],
       );
     }
+    // C4r16a-2(C4N-4): 제목 · intro 블록도 받은 글자 그대로.
+    expect(shownTexts(tester, find.byKey(const Key('d02-title'))), <String?>[
+      hostLost.title,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('d02-intro'))), <String?>[
+      hostLost.introText,
+    ]);
     expect(repo.runbookIds, <String>[runbookId]);
     expect(find.text(ShellLabels.retry), findsNothing);
   });
