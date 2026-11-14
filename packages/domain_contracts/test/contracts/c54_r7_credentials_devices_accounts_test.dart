@@ -90,10 +90,22 @@ const Map<String, String> _slotOfKind = <String, String>{
 };
 
 /// ⑤ 키 조각 꼴 · 8자리 이상 숫자 · 엔진 마스킹 꼴.
-final RegExp _keyPiece = RegExp(r'[A-Za-z0-9]{4}(…|\.\.\.)[A-Za-z0-9]{4}');
+/// 줄임표 앞뒤 공백도 키 조각으로 본다(«PSab … 9xQz»).
+final RegExp _keyPiece = RegExp(
+  r'[A-Za-z0-9]{4}\s*(…|\.\.\.)\s*[A-Za-z0-9]{4}',
+);
 final RegExp _longDigits = RegExp(r'[0-9]{8,}');
 final RegExp _masked = RegExp(r'^\*{4}[0-9]{4}$');
 final RegExp _numberPiece = RegExp(r'[*0-9]{4,}');
+
+/// ⑩ 페어링 카드 글자 칸의 페이로드 꼴(K15) — 긴 불투명 토큰 · `scheme:` 접두(`aaq://` 라우트는 제외).
+final RegExp _opaqueToken = RegExp(r'[A-Za-z0-9+/=_:-]{16,}');
+final RegExp _schemePrefix = RegExp(
+  r'[A-Za-z][A-Za-z0-9+.-]*:(?!//)[A-Za-z0-9]',
+);
+
+/// ⑩ 글자 검사에서 빼는 키(사전 id 자리 — 대문자 코드라 토큰 꼴과 겹친다).
+const Set<String> _pairingIdKeys = <String>{'id', 'qr_slot_id'};
 
 /// ⑱ 손익 낱말 · 금지어 · 범위 밖 · 카운트다운.
 const List<String> _forbiddenWords = <String>[
@@ -660,6 +672,23 @@ void main() {
         if (p != null) {
           expect(p.qrSlotId == null, p.expiresText == null, reason: path);
         }
+      }
+      for (final String path in _s06) {
+        final Map<String, Object?>? raw = _map(_vm(path)['pairing']);
+        if (raw == null) continue;
+        walkJson(raw, (String p, String key, Object? value) {
+          if (value is! String || _pairingIdKeys.contains(key)) return;
+          expect(
+            _opaqueToken.hasMatch(value),
+            isFalse,
+            reason: '$path $p — QR 페이로드 꼴 $value',
+          );
+          expect(
+            _schemePrefix.hasMatch(value),
+            isFalse,
+            reason: '$path $p — scheme 접두 $value',
+          );
+        });
       }
       final PairingTicketCard ticket = _dev(FixturePaths.m9DeviceAccessTicket)
           .pairing!;

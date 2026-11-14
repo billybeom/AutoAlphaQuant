@@ -112,9 +112,9 @@ abstract class AccountMappingOption with _$AccountMappingOption {
 
     /// 엔진이 완성한 `accountMapSleeve{sleeve, account_alias}`. null = 고를 수 없음(지금 계좌 · 막힘 · 잠김).
     SettingsActionCall? selectAction,
-  }) = _AccountOption;
+  }) = _AccountMappingOption;
 
   factory AccountMappingOption.fromJson(Map<String, dynamic> json) =>
-      _$AccountOptionFromJson(json);
+      _$AccountMappingOptionFromJson(json);
 }
 // JSON 키: label · selected · impacts · blocked_text · select_action
