@@ -754,6 +754,18 @@ export 'src/sim/sim_internal_broker.dart'
         kSimInvalidOrder,
         kSimOdnoPrefix,
         kSimOrderNotFound;
+// 🆕 E15d1 — 모의 개시(가상 초기금 나눔 · 시딩 전략 · 체험 시작 문 · 설계 13 §8 R85 AA3 · AA4).
+export 'src/sim/sim_opening.dart'
+    show
+        SimOpeningCodes,
+        SimOpeningSplit,
+        kP0sSeedStrategies,
+        kSeedCapitalCap,
+        kSeedStrategyState,
+        p0sStrategyOfSleeve,
+        simOpeningDecisionId,
+        simOpeningSplit,
+        simTrialStartReject;
 // 🆕 E15c1 — 가상 체결가(주문 세션 당일 봉 · SPEC v2.44 · 설계 13 §8 R83 Y2).
 export 'src/sim/virtual_fill.dart'
     show kVirtualLimitOrder, kVirtualMarketOrder, virtualFillPrice;

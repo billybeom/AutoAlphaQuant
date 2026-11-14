@@ -9,6 +9,7 @@ import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 
+import '../local/deposit_ledger.dart' show openingCashTradeDate;
 import '../market/market_store.dart' show inLedgerTransaction;
 
 /// 전이 사유 코드(`strategy_state_log.reason`).
@@ -60,11 +61,18 @@ String _kstYmd(DateTime utc) {
 }
 
 /// [monthEnd] 까지의 시리즈 — 스냅숏 날짜 순 · 점마다 (앞 스냅숏 날 뒤 ~ 그날) 입출금 합.
+///
+/// 🆕 E15d1(R85 AA5 · SPEC v2.44 02 §2-7) — 🔴 지수 첫날 = 개시 날 이후 첫 스냅숏(개시 이전 구간은 성과 밖).
+/// 그래서 개시 입금 행(`kOpeningCashNotes` · 개시 날 ≤ 첫 스냅숏 날)은 어느 구간(앞 스냅숏 날 뒤 ~ 그날)에도
+/// 들지 않는다 = 외부 흐름이 아니다. 🔴 흐름에서 따로 빼지 않는다 — 시작점을 옮기지 않고 흐름만 빼면, 개시 앞
+/// 스냅숏이 있을 때 개시 금액이 수익으로 잡힌다.
 List<EquityPoint> tierBSeries(Database db, String monthEnd) {
+  final String? opening = openingCashTradeDate(db);
   final List<(String, double)> snaps = <(String, double)>[
     for (final Row r in db.select(
-      'SELECT trade_date, total_equity FROM equity_snapshot WHERE trade_date <= ? ORDER BY trade_date',
-      <Object?>[monthEnd],
+      'SELECT trade_date, total_equity FROM equity_snapshot WHERE trade_date <= ? AND trade_date >= ? '
+      'ORDER BY trade_date',
+      <Object?>[monthEnd, opening ?? ''],
     ))
       (r['trade_date'] as String, (r['total_equity'] as num).toDouble()),
   ];
