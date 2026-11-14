@@ -76,6 +76,13 @@ export 'src/jobs/watchdog_board.dart'
         kWatchdogStaleAfter;
 export 'src/jobs/watchdog_judge.dart'
     show OccurrenceRecord, WatchdogState, WatchdogVerdict, judgeOccurrence;
+// 🆕 E11p3d-2 — 워치독 보드 행 재료(잡 이름표 · 마지막 회차 판정 · job_run 기록 · 설계 13 §8 R109).
+export 'src/jobs/watchdog_rows.dart'
+    show
+        kJobWatchdogLabels,
+        kWatchdogBoardLookback,
+        occurrenceRecordOf,
+        watchdogBoardInputsFor;
 // 🆕 E15f4b1 — 잡 표 → 감시 체크 생성 꼴(설계 13 §8 R105 AJ5).
 export 'src/jobs/watchdog_specs.dart'
     show kWatchdogSpecExcluded, watchdogCheckSpecsFor, watchdogCronOf;

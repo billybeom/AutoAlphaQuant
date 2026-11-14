@@ -30,6 +30,7 @@ void main() {
   late LedgerFiles files;
   late OperatorRuntime rt;
   late ProviderContainer container;
+  bool disposed = false;
 
   setUp(() {
     clock = FakeClock(kst(2026, 12, 22, 9, 30));
@@ -37,9 +38,10 @@ void main() {
     files = openFiles(dir, clock);
     rt = OperatorRuntime(files: files, clock: clock);
     container = ProviderContainer(overrides: operatorShellOverrides(rt));
+    disposed = false;
   });
   tearDown(() {
-    container.dispose();
+    if (!disposed) container.dispose();
     files.close();
   });
 
@@ -154,5 +156,20 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(AlertDetail), findsOneWidget);
     expect(find.text(a.title), findsWidgets);
+  });
+
+  testWidgets('🔴 감시 보드(R109) = 조립 셸에 등록 · 로컬 판정 행이 선다(바깥 없음 = 머리 문구)', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(tester);
+    await ready(tester);
+    await open(tester, AppRoutes.opsWatchdog);
+    expect(tester.takeException(), isNull);
+    expect(find.byType(WatchdogBoard), findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    // 보드 흐름의 1분 타이머는 컨테이너가 닫힐 때 멈춘다 — 시험 안에서 닫는다.
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
   });
 }
