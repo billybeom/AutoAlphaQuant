@@ -10,6 +10,7 @@
 
 import 'package:core_engine/core_engine.dart'
     show
+        AccountBroker,
         DailyQuoteFeed,
         LedgerHolding,
         Market,
@@ -84,8 +85,8 @@ class _LazyFeed implements DailyQuoteFeed {
   );
 }
 
-/// 🔴 계좌 별칭 → 현금 브로커(설정의 전략 → 계좌를 뒤집어 계좌마다 전략 묶음).
-Map<String, OrderBroker> cashBrokersOf(
+/// 🔴 계좌 별칭 → 브로커(설정의 전략 → 계좌를 뒤집어 계좌마다 전략 묶음 · 현금 · 🆕 c3 주문 · 대사가 같이 쓴다).
+Map<String, AccountBroker> cashBrokersOf(
   JobContext c,
   JobParts p,
   P0sOpsConfig cfg,
@@ -104,7 +105,7 @@ Map<String, OrderBroker> cashBrokersOf(
   });
   final DailyQuoteFeed bars = _LazyFeed(() => p.quoteFeed(c.runMode));
   final List<String> aliases = strategiesOf.keys.toList()..sort();
-  return <String, OrderBroker>{
+  return <String, AccountBroker>{
     for (final String alias in aliases)
       alias: SimInternalBroker(
         ledger: SqliteSimLedgerView(
@@ -190,18 +191,29 @@ JobRunner monthlyRebalanceRunner(JobContext c, JobParts p) =>
     (JobOccurrence o) =>
         runOccurrence<MonthlyRebalanceReport>(c, o, (TradeDate monthEnd) async {
           final P0sOpsConfig cfg = opsConfigOf(c);
-          final MonthlyRebalanceReport r = await MonthlyRebalanceJob(
-            c.db,
-            mode: c.runMode,
-            kr: c.calendars.kr,
-            us: c.calendars.us,
-            clock: c.clock,
-            cash: cashBrokersOf(c, p, cfg, 'monthly_rebalance'),
-            holdings: holdingsOf(c),
-            pensionAlias: cfg.pensionAlias,
-            regimeConfigHash: cfg.regimeConfigHash,
-            configHash: cfg.configHash,
-            config: cfg.monthEnd,
+          final MonthlyRebalanceReport r = await monthlyRebalanceJobOf(
+            c,
+            cfg,
+            cashBrokersOf(c, p, cfg, 'monthly_rebalance'),
           ).run(monthEnd);
           return JobBody<MonthlyRebalanceReport>(r, alerts: r.alerts);
         });
+
+/// 월말 계획 본체 — 🆕 c3 재개 재판정(`SqliteResumeReevaluator`)도 같은 본체를 쓴다.
+MonthlyRebalanceJob monthlyRebalanceJobOf(
+  JobContext c,
+  P0sOpsConfig cfg,
+  Map<String, OrderBroker> cash,
+) => MonthlyRebalanceJob(
+  c.db,
+  mode: c.runMode,
+  kr: c.calendars.kr,
+  us: c.calendars.us,
+  clock: c.clock,
+  cash: cash,
+  holdings: holdingsOf(c),
+  pensionAlias: cfg.pensionAlias,
+  regimeConfigHash: cfg.regimeConfigHash,
+  configHash: cfg.configHash,
+  config: cfg.monthEnd,
+);

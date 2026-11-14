@@ -13,7 +13,7 @@
 import 'package:core_engine/core_engine.dart'
     show AlertSink, JobHeartbeat, JobRunLog;
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, OperatingMode, RunMode, TradeDate;
+    show Clock, ExecPolicy, OperatingMode, RunMode, TradeDate;
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
     show
@@ -41,6 +41,7 @@ class JobContext {
     required this.db,
     required this.runMode,
     required this.operatingMode,
+    required this.execPolicy,
     required this.calendars,
     required this.heartbeat,
     required this.alerts,
@@ -56,6 +57,9 @@ class JobContext {
 
   /// 운영 방식.
   final OperatingMode operatingMode;
+
+  /// 🆕 E11p3c-3 — 집행 정책(기동 판정 값 · 주문 잡 `KrOrderConfig`).
+  final ExecPolicy execPolicy;
 
   /// 시장 달력.
   final JobCalendars calendars;

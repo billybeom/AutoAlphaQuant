@@ -22,6 +22,7 @@ import 'package:data_sync/data_sync.dart'
         DailySignalReport,
         FredClient,
         OfrClient,
+        OpsConfigUnavailable,
         SeedFile,
         SqliteAlertSink,
         SqliteJobRunLog,
@@ -29,7 +30,13 @@ import 'package:data_sync/data_sync.dart'
         importSeedBundle,
         kSeedFiles;
 import 'package:domain_contracts/domain_contracts.dart'
-    show AlertCodes, MarketDataSource, OperatingMode, RunMode, TradeDate;
+    show
+        ExecPolicy,
+        AlertCodes,
+        MarketDataSource,
+        OperatingMode,
+        RunMode,
+        TradeDate;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -88,6 +95,8 @@ void main() {
               asked.add(m);
               return feed;
             },
+        priceFetch: (RunMode m) async =>
+            (String code) async => throw StateError('현재가 없음(시험)'),
         fred: FredClient(down, sleep: (Duration _) async {}),
         ofr: OfrClient(down, sleep: (Duration _) async {}),
         regimeConfigHash: p0sRegimeConfigHash(),
@@ -109,6 +118,7 @@ void main() {
       db: files.sim,
       runMode: RunMode.simInternal,
       operatingMode: OperatingMode.autoTrade,
+      execPolicy: ExecPolicy.execute,
       calendars: cals,
       heartbeat: hb,
       alerts: SqliteAlertSink(files.sim, clock: clock),
@@ -127,16 +137,18 @@ void main() {
               .first['n']
           as int;
 
-  test('🔴 부품이 있으면 실물 칸에 daily_signal · us_data · 주문 셋은 미조립 그대로', () async {
+  test('🔴 부품이 있으면 실물 칸 — 설정이 없으면(모의 개시 전) 그 회차는 실패(지어내지 않는다)', () async {
     final Map<String, JobRunner> t = composeJobRunners(ctx, parts: parts());
     expect(
       kAssembledRunners.keys.toSet(),
       containsAll(<String>{'daily_signal', 'us_data'}),
     );
+    clock.now = kst(2026, 12, 1, 7, 10);
     final JobRun<Object?> r = await t['daily_reconcile']!(
       occ('daily_reconcile', '2026-12-01'),
     );
-    expect(r.error, isA<JobNotAssembled>());
+    expect(r.status, JobStatus.failed);
+    expect(r.error, isA<OpsConfigUnavailable>());
   });
 
   test('부품이 없으면 = p3a 그대로(전부 미조립)', () async {

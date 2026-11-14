@@ -5,6 +5,7 @@
 // 🔴 사람 값(A 종목 · 계좌)이 드는 잡(daily_data · equity_snapshot · seasonal_a · monthly_rebalance)은 `ledger_job_runners.dart`(p3c-2).
 // 🔴 수집 실패는 회차를 실패시키지 않는다(본체 규칙 · P1 `DATA_SOURCE_DOWN`). 일봉 원천을 **못 만들면**(KIS 키 없음) 회차 실패.
 
+import 'package:broker_gateway/broker_gateway.dart' show KisPriceFetch;
 import 'package:core_engine/core_engine.dart' show DailyQuoteFeed;
 import 'package:data_sync/data_sync.dart'
     show
@@ -27,12 +28,15 @@ import 'ledger_job_runners.dart'
         equitySnapshotRunner,
         monthlyRebalanceRunner,
         seasonalARunner;
+import 'order_job_runners.dart'
+    show dailyReconcileRunner, krOrderCloseRunner, krOrderRunner;
 
 /// 실물 잡이 쓰는 바깥 부품(조립 앱이 한 번 만든다 · 시험이 가짜를 넣는다).
 class JobParts {
   /// 만든다.
   const JobParts({
     required this.quoteFeed,
+    required this.priceFetch,
     required this.fred,
     required this.ofr,
     required this.regimeConfigHash,
@@ -40,6 +44,9 @@ class JobParts {
 
   /// 🔴 [RunMode] 의 일봉 원천(KIS · 모드 세트) — 못 만들면 던진다(그 회차 실패).
   final Future<DailyQuoteFeed> Function(RunMode mode) quoteFeed;
+
+  /// 🆕 E11p3c-3 — [RunMode] 의 국내 현재가(KIS · 모드 세트 · 주문 초안 · 한도 입력) — 못 만들면 던진다.
+  final Future<KisPriceFetch> Function(RunMode mode) priceFetch;
 
   /// FRED(키 없음 = CSV · R47).
   final FredClient fred;
@@ -91,4 +98,8 @@ const Map<String, JobRunner Function(JobContext, JobParts)> kAssembledRunners =
       'equity_snapshot': equitySnapshotRunner,
       'seasonal_a': seasonalARunner,
       'monthly_rebalance': monthlyRebalanceRunner,
+      // 🆕 E11p3c-3(R101) — 주문 셋(simInternal × 자동 매매 · 본체가 잡 규약을 감싼다).
+      'kr_order': krOrderRunner,
+      'kr_order_close': krOrderCloseRunner,
+      'daily_reconcile': dailyReconcileRunner,
     };

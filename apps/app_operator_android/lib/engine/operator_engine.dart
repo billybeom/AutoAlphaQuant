@@ -97,6 +97,7 @@ class OperatorEngine {
       db: ready.db,
       runMode: ready.runMode,
       operatingMode: ready.operatingMode,
+      execPolicy: ready.execPolicy,
       calendars: _cals,
       heartbeat: _heartbeat,
       alerts: SqliteAlertSink(ready.db, clock: _clock),
