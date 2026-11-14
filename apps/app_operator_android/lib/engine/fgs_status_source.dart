@@ -57,6 +57,8 @@ FgsStatus fgsStatusForReady(
   final DateTime now = clock.nowUtc();
   return fgsStatusOf(
     FgsFacts(
+      runMode: ready.runMode,
+      operatingMode: ready.operatingMode,
       safety: SqliteSafetyRepository(
         ready.db,
         mode: ready.runMode,
@@ -80,5 +82,9 @@ FgsStatus fgsStatusForReady(
 }
 
 /// 🔴 기동 거부의 FGS 상태 — BLOCKED · 문구 = 엔진 거부 코드(차례 그대로).
-FgsStatus fgsStatusForRejected(EngineRejected rejected) =>
-    FgsStatus(level: UiLevel.blocked, headline: rejected.triggered.join(' · '));
+FgsStatus fgsStatusForRejected(EngineRejected rejected) => FgsStatus(
+  level: UiLevel.blocked,
+  runMode: rejected.runMode,
+  operatingMode: rejected.operatingMode,
+  headline: rejected.triggered.join(' · '),
+);

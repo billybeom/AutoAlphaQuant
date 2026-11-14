@@ -27,6 +27,8 @@ void main() {
 
   FgsStatus of(SafetyState s, {AlertItem? alert}) => fgsStatusOf(
     FgsFacts(
+      runMode: RunMode.live,
+      operatingMode: OperatingMode.autoTrade,
       safety: s,
       openP0: alert,
       lastReconAtUtc: recon,
