@@ -40,30 +40,31 @@
 | **백그라운드 네트워크** | 데이터 세이버·절전 모드에서 브로커 호출 차단 가능 | 대사(reconciliation) 실패로 나타납니다 |
 | **시계** | 🔴 폰 시계는 신뢰 대상이 아닙니다. 마찰 카운트다운의 신뢰 시각은 **Supabase 서버 시각**(01 §1-3) | 리스 TTL·킬스위치 48h·냉각 30일 |
 
-## 4. 네이티브 폴더는 아직 없습니다
+## 4. 네이티브 폴더 — 🆕 E11p1 에서 생성(2026-11-14)
 
-`android/` 폴더를 **일부러 만들지 않았습니다.** 이 PC에 Flutter SDK가 없어(2026-09-06) 손으로 쓴 Gradle 뼈대는 SDK 버전과 어긋날 위험이 큽니다. SDK 설치 후 아래로 생성합니다.
+`android/` 는 Flutter 3.47.4 템플릿(AGP 9.1 · Kotlin 2.4 · Gradle 9.3.1)을 임시 폴더에 만들어 **플랫폼 폴더만** 옮겨 왔습니다(설계 13 · e11p-map P1).
 
-```bash
-# 저장소 루트에서
-cd apps/app_operator_android
+| 항목 | 값 |
+|---|---|
+| `applicationId` · `namespace` | **`com.billybeom.autoalphaquant.operator`**(`--org` = 발주자 확정 2026-09-06 · 접미 `operator` = P1 — Dart 패키지 이름 `app_operator_android` 는 그대로) |
+| Kotlin 자리 | `android/app/src/main/kotlin/com/billybeom/autoalphaquant/operator/` — `MainActivity`(채널 등록만) · `OperatorChannels` · `security/`(AES-GCM 봉투 · Keystore 키 · DEK 봉함 · 금고) |
+| Dart 어댑터 | `lib/platform/` — `AndroidSecretVault`(core `SecretVault`) · `AndroidSealedBox`(core `SealedBox`) · 채널 이름 · 오류 코드 |
+| 백업 | 🔴 `allowBackup=false` · `fullBackupContent=false` · `dataExtractionRules`(클라우드 · 기기 간 이전 전 도메인 제외) · 비밀 파일 = `noBackupFilesDir`(06 M4-9 ⑤) |
+| 시험 | `test/platform/` = 채널 계약 · Kotlin 글자 대조 · 매니페스트(CI) · `integration_test/` = 실 Keystore(에뮬레이터 · 폰 · 로컬만) |
 
-# ⚠️ 기존 pubspec.yaml·README.md·lib/main.dart를 덮어쓸 수 있습니다.
-#    임시 폴더에 만들어 android/ 만 복사해 오는 편이 안전합니다.
-flutter create --platforms=android --project-name=app_operator_android --org=com.billybeom.autoalphaquant .
-```
-
-- ✅ `--org` = **`com.billybeom.autoalphaquant`** (발주자 확정 2026-09-06, 3개 타깃 공통 접두). 최종 applicationId는 `com.billybeom.autoalphaquant.<project-name>` 규칙을 따르며 세 타깃은 서로 달라야 합니다 — Android는 밑줄 허용, iOS 번들 ID는 밑줄 불가이므로 `--project-name`은 상세 설계에서 확정(예 `operator` / `viewer`). 네이티브 폴더는 임시 폴더에 만들어 플랫폼 폴더만 복사하십시오.
-- 생성 후 `AndroidManifest.xml`에 §3의 권한을 추가하는 것은 M1 작업입니다.
+- 🔵 FGS · 정확 알람 · 부팅 · 알림 채널 2(§3 표의 권한)는 **E11p2** 가 더합니다 — 지금 매니페스트에는 권한이 없습니다.
 - `ios/`·`web/` 폴더는 이 타깃에 **만들지 않습니다**(§2 빌드 제외 규칙).
+- 🔴 `local.properties` · `gradlew*` · `gradle-wrapper.jar` 는 저장소에 넣지 않습니다(루트 `.gitignore`) — `flutter build` 가 다시 만듭니다.
 
-## 5. 빌드·실행 (SDK 설치 후)
+## 5. 빌드·실행
 
 ```bash
 melos bootstrap                 # 저장소 루트에서 1회
 melos run analyze               # 경고 0이 병합 조건
 cd apps/app_operator_android
-flutter run                     # android/ 생성 이후에만 동작
+flutter build apk --debug       # Kotlin 컴파일 확인(CI 는 Gradle 을 돌리지 않는다)
+flutter test                    # 채널 계약 · 글자 대조(CI 와 같은 범위)
+flutter test integration_test/keystore_test.dart -d <기기>   # 실 Keystore(에뮬레이터 · 폰)
 ```
 
 ## 6. 금지

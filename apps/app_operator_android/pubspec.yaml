@@ -30,6 +30,11 @@ environment:
 # ── 의존 (알파벳 순) ────────────────────────────────────────────────────────
 # 🔴 여기 있는 것만 이 앱에 컴파일된다. 타깃×패키지 전체 매트릭스는 docs/TARGETS.md.
 dependencies:
+  # 🆕 E11p(설계 e11p-map P5) — 플랫폼 어댑터(lib/platform/)가 core 포트(`SecretVault`·
+  #    `SealedBox`)를 직접 구현한다 → 직접 의존(`depend_on_referenced_packages`).
+  #    operator 에는 trading_runtime 으로 이미 전이로 들어와 있었다 — 빌드 내용은 같다.
+  core_engine:
+    path: ../../packages/core_engine
   # 동기화 — operator는 읽기+쓰기(viewer는 읽기 전용 표면만).
   data_sync:
     path: ../../packages/data_sync
@@ -59,7 +64,7 @@ dependencies:
   # ⚠️ domain_contracts는 위 패키지들을 통해 전이로 들어온다. 리포지토리 구현체를
   #    Riverpod 프로바이더에 주입하기 시작하면(조립 코드가 계약 타입을 직접 참조하면)
   #    `depend_on_referenced_packages` 린트가 뜨므로 그때 아래를 살린다.
-  #    🔴 살릴 때는 알파벳 순서대로 data_sync 위(맨 앞)에 넣는다.
+  #    🔴 살릴 때는 알파벳 순서대로 data_sync 위에 넣는다(core_engine 다음).
   # domain_contracts:
   #   path: ../../packages/domain_contracts
 
@@ -67,6 +72,10 @@ dev_dependencies:
   # 🔴 알파벳 순 — flutter_lints가 flutter_test보다 앞이다.
   flutter_lints: ^5.0.0
   flutter_test:
+    sdk: flutter
+  # 🆕 E11p(설계 e11p-map P13) — integration_test/ = 에뮬레이터 · 폰에서 실 Keystore 로 도는 시험.
+  #    CI(`test:flutter` = `flutter test` = test/ 만)는 돌리지 않는다 — 기기가 있어야 한다.
+  integration_test:
     sdk: flutter
 
 flutter:
