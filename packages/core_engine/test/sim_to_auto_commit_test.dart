@@ -88,6 +88,12 @@ LiveAccountProbe _p(
 
 const Set<String> _aliases = <String>{'general', 'pension'};
 
+const LeaseSnapshot _lease = LeaseSnapshot(
+  verdict: LeaseVerdict.valid,
+  epoch: 1,
+  deviceId: 'device-1',
+);
+
 String? _reject({
   bool noNow = false,
   DateTime? now,
@@ -98,9 +104,11 @@ String? _reject({
   bool noReport = false,
   Set<String> aliases = _aliases,
   List<LiveAccountProbe>? probes,
+  LeaseSnapshot lease = _lease,
 }) => simToAutoCommitReject(
   trustedNowUtc: noNow ? null : (now ?? _now),
   session: noSession ? null : (session ?? _session()),
+  lease: lease,
   liveModeRows: rows,
   report: noReport ? null : (report ?? _report(now: now)),
   aliases: aliases,
@@ -264,6 +272,51 @@ void main() {
       ),
       SimToAutoCommitCodes.zeroCash,
     );
+  });
+
+  test('🆕 f4a 리스 — 유효 아님 = LEASE_INVALID · 세대 · 기기 다름 = MISMATCH · 세션 뒤 · 이미 커밋 앞', () {
+    LeaseSnapshot l(
+      LeaseVerdict v, {
+      int epoch = 1,
+      String device = 'device-1',
+    }) => LeaseSnapshot(verdict: v, epoch: epoch, deviceId: device);
+    expect(simToAutoLeaseReject(_lease, _session()), isNull);
+    expect(
+      simToAutoLeaseReject(l(LeaseVerdict.invalid), _session()),
+      'LEASE_INVALID',
+    );
+    expect(
+      simToAutoLeaseReject(l(LeaseVerdict.unknown), _session()),
+      'LEASE_INVALID',
+    );
+    expect(
+      simToAutoLeaseReject(l(LeaseVerdict.valid, epoch: 2), _session()),
+      SimToAutoCommitCodes.leaseMismatch,
+    );
+    expect(
+      simToAutoLeaseReject(
+        l(LeaseVerdict.valid, device: 'device-2'),
+        _session(),
+      ),
+      SimToAutoCommitCodes.leaseMismatch,
+    );
+    // 세션이 먼저 · 리스가 이미 커밋보다 먼저.
+    expect(
+      _reject(noSession: true, lease: l(LeaseVerdict.unknown)),
+      HandoverSessionCodes.sessionInvalid,
+    );
+    expect(_reject(rows: 1, lease: l(LeaseVerdict.unknown)), 'LEASE_INVALID');
+    expect(
+      _reject(rows: 1, lease: l(LeaseVerdict.valid, epoch: 0)),
+      SimToAutoCommitCodes.leaseMismatch,
+    );
+    expect(SimToAutoCommitCodes.leaseMismatch, 'SIM_TO_AUTO_LEASE_MISMATCH');
+    final Set<String> texts = <String>{
+      simToAutoCommitHeadline('LEASE_INVALID'),
+      simToAutoCommitHeadline(SimToAutoCommitCodes.leaseMismatch),
+      simToAutoCommitHeadline('SOMETHING_ELSE'),
+    };
+    expect(texts, hasLength(3));
   });
 
   test('통과 — 5분 정각 조회 · 대응 밖 계좌의 보유는 보지 않는다 · 한 계좌만 현금', () {

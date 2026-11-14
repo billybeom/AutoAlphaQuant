@@ -39,6 +39,15 @@ class SqliteLeaseGate implements LeaseGate {
     <Object?>[kLeaseSyncTarget],
   );
 
+  /// 🆕 E15f4a(R103 AI3) — 지금 리스 세대(`sync_state` SUPABASE 행 `operator_epoch` · 행 없음 = 0 · 로컬 단독 리스).
+  int epoch() {
+    final ResultSet rs = _db.select(
+      'SELECT operator_epoch FROM sync_state WHERE target = ?',
+      <Object?>[kLeaseSyncTarget],
+    );
+    return rs.isEmpty ? 0 : rs.first['operator_epoch'] as int;
+  }
+
   /// 봉인됐나.
   bool sealed() {
     final ResultSet rs = _row();

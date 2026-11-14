@@ -8,6 +8,7 @@
 
 import 'package:domain_contracts/domain_contracts.dart' show HandoverPath;
 
+import '../ops/lease_gate.dart' show LeaseVerdict, kLeaseInvalidCode;
 import 'handover_session.dart'
     show HandoverSessionCodes, HandoverSessionKind, HandoverSessionRecord;
 import 'sim_to_auto.dart'
@@ -69,6 +70,9 @@ abstract final class SimToAutoCommitCodes {
 
   /// 쓰기 실패 — 전부 되돌리고 세션을 닫았다.
   static const String rolledBack = 'SIM_TO_AUTO_COMMIT_ROLLED_BACK';
+
+  /// 🆕 E15f4a — 세션을 연 기기 · 리스 세대가 지금과 다르다(R103 AI2).
+  static const String leaseMismatch = 'SIM_TO_AUTO_LEASE_MISMATCH';
 
   /// 닫힌 모의 파일에는 S5 고름을 적지 않는다.
   static const String simClosed = 'SIM_LEDGER_FATE_SIM_CLOSED';
@@ -144,13 +148,47 @@ Map<String, int> liveOpeningCash(
   );
 }
 
-/// 1단계 게이트(AG3) — 통과 = null · 아니면 거부 코드.
+/// 🆕 E15f4a — 커밋 직전 리스 스냅숏(R103 AI3 — 리스 읽기는 async 라 트랜잭션 앞에서 잡아 넘긴다).
+class LeaseSnapshot {
+  /// 스냅숏을 만든다.
+  const LeaseSnapshot({
+    required this.verdict,
+    required this.epoch,
+    required this.deviceId,
+  });
+
+  /// 운영 중인 파일의 리스 판정.
+  final LeaseVerdict verdict;
+
+  /// 지금 리스 세대(`sync_state.operator_epoch` · 행 없음 = 0).
+  final int epoch;
+
+  /// 이 기기 id.
+  final String deviceId;
+}
+
+/// 🆕 E15f4a — 리스 재확인(R103 AI2 · 06 :242 ⓑ) — 통과 = null · epoch 는 올리지 않는다.
+///
+/// 유효 아님 = `LEASE_INVALID` · 세션을 연 세대 · 기기가 지금과 다름 = `SIM_TO_AUTO_LEASE_MISMATCH`.
+String? simToAutoLeaseReject(
+  LeaseSnapshot lease,
+  HandoverSessionRecord session,
+) {
+  if (lease.verdict != LeaseVerdict.valid) return kLeaseInvalidCode;
+  if (session.leaseEpoch != lease.epoch || session.deviceId != lease.deviceId) {
+    return SimToAutoCommitCodes.leaseMismatch;
+  }
+  return null;
+}
+
+/// 1단계 게이트(AG3 · 🆕 리스 = R103 AI4) — 통과 = null · 아니면 거부 코드.
 ///
 /// [report] = 실전 세션 시각 · 신뢰 시각으로 다시 낸 판정(세션 · 시각이 없으면 null).
 /// [aliases] = 설정 `accountByStrategy` 의 값들.
 String? simToAutoCommitReject({
   required DateTime? trustedNowUtc,
   required HandoverSessionRecord? session,
+  required LeaseSnapshot lease,
   required int liveModeRows,
   required SimToAutoReport? report,
   required Set<String> aliases,
@@ -158,9 +196,11 @@ String? simToAutoCommitReject({
 }) {
   final DateTime? now = trustedNowUtc;
   if (now == null) return SimToAutoCodes.trustedTimeUnavailable;
-  if (!simToAutoSessionUsable(session, now)) {
+  if (session == null || !simToAutoSessionUsable(session, now)) {
     return HandoverSessionCodes.sessionInvalid;
   }
+  final String? leaseCode = simToAutoLeaseReject(lease, session);
+  if (leaseCode != null) return leaseCode;
   if (liveModeRows > 0) return SimToAutoCommitCodes.alreadyCommitted;
   if (report == null || !report.readyToCommit) {
     return report?.code ?? SimToAutoCodes.notSimAuto;
@@ -233,6 +273,9 @@ String simToAutoCommitHeadline(String? code, {Map<String, int>? cash}) {
     SimToAutoCommitCodes.zeroCash => '실전 계좌 예수금이 0원이라 확정하지 않았습니다.',
     SimToAutoCommitCodes.rolledBack =>
       '저장에 실패해 아무것도 바꾸지 않았습니다 — 전환 세션을 닫았으니 처음부터 다시 진행해 주세요.',
+    kLeaseInvalidCode => '이 기기의 발주권(리스)을 확인할 수 없어 확정하지 않았습니다.',
+    SimToAutoCommitCodes.leaseMismatch =>
+      '전환을 시작한 기기 · 발주권이 지금과 달라 확정하지 않았습니다 — 처음부터 다시 진행해 주세요.',
     _ => '아직 확정할 수 없습니다 — 전환 단계를 확인해 주세요.',
   };
 }

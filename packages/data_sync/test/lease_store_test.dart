@@ -126,6 +126,16 @@ void main() {
     expect(await gate(RunMode.simInternal).derivedWritesAllowed(), isFalse);
   });
 
+  test('🆕 E15f4a 세대 — 행 없음 = 0 · 있으면 operator_epoch · 봉인과 무관', () {
+    expect(gate(RunMode.simInternal).epoch(), 0);
+    row('OK');
+    expect(gate(RunMode.simInternal).epoch(), 3);
+    db.execute(
+      "UPDATE sync_state SET operator_epoch = 7, status = 'SEALED' WHERE target = 'SUPABASE'",
+    );
+    expect(gate(RunMode.live).epoch(), 7);
+  });
+
   test('오프셋 없는 시각 = 형식 오류', () {
     row('OK', lastOk: '2026-11-13T00:00:00');
     expect(gate(RunMode.live).sealIfStale, throwsFormatException);

@@ -12,6 +12,7 @@ import 'package:core_engine/core_engine.dart'
         ExchangeCalendar,
         HandoverCloseCode,
         HandoverSessionRecord,
+        LeaseSnapshot,
         LiveAccountProbe,
         LiveObservationConfig,
         P0sStrategyIds,
@@ -114,7 +115,8 @@ class SqliteSimToAutoCommitStore {
   final SqliteHandoverSessionStore _sessions;
 
   /// 🔴 실전 개시 1단계 — [simFacts] = 모의 파일 · 포트 · 설정에서 모은 판정 입력(시각 · 세션 칸은 버린다) ·
-  /// [probes] = 대응 계좌의 브로커 잔고 조회(5분 안) · [configHash] = 지금 설정의 해시.
+  /// [probes] = 대응 계좌의 브로커 잔고 조회(5분 안) · [configHash] = 지금 설정의 해시 ·
+  /// 🆕 E15f4a [lease] = 운영 중인 파일의 리스 스냅숏(트랜잭션 앞에서 잡는다 · R103 AI3).
   SimToAutoCommitOutcome commit({
     required String sessionId,
     required SimToAutoFacts simFacts,
@@ -122,6 +124,7 @@ class SqliteSimToAutoCommitStore {
     required LiveObservationConfig observation,
     required List<LiveAccountProbe> probes,
     required String configHash,
+    required LeaseSnapshot lease,
   }) {
     final DateTime? now = _trusted.trustedNowUtc()?.toUtc();
     // 빈 별칭은 재판정 S4(`SIM_TO_AUTO_ACCOUNT_UNMAPPED`)가 먼저 막는다.
@@ -145,6 +148,7 @@ class SqliteSimToAutoCommitStore {
         code = simToAutoCommitReject(
           trustedNowUtc: now,
           session: s,
+          lease: lease,
           liveModeRows: rows,
           report: report,
           aliases: aliases,

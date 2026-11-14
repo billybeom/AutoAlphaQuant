@@ -99,6 +99,8 @@ export 'src/mode/handover_session.dart'
         kHandoverCoolingCheck,
         kHandoverSessionTtl,
         simToAutoOpenReject;
+// 🆕 E15f4a — 커밋 직전 계좌 조회 어댑터(브로커 포트 → LiveAccountProbe · 설계 13 §8 R103 AI6).
+export 'src/mode/live_account_probe.dart' show probeLiveAccount;
 // 🆕 E15e1 — M1-22 실전 드라이런 관찰 창(연속 무결 거래일 · 승격 가능 판정 · 설계 13 §8 R89).
 export 'src/mode/live_observation.dart'
     show
@@ -162,6 +164,7 @@ export 'src/mode/sim_to_auto.dart'
 // 🆕 E15f3a — simToAuto 2단 커밋 1단계 순수 몫(게이트 · 개시 현금 · 결정 id · S5 고름 · 설계 13 §8 R98).
 export 'src/mode/sim_to_auto_commit.dart'
     show
+        LeaseSnapshot,
         LiveAccountProbe,
         SimToAutoCommitCodes,
         kHandoverCommitCheck,
@@ -176,6 +179,7 @@ export 'src/mode/sim_to_auto_commit.dart'
         simLedgerFateReasonCode,
         simToAutoCommitHeadline,
         simToAutoCommitReject,
+        simToAutoLeaseReject,
         simToAutoSessionUsable;
 // 🆕 E11p3b-1 — 설정 지문(정규 JSON SHA-256 앞 16자 · 설계 13 §8 R90).
 export 'src/ops/config_fingerprint.dart'
