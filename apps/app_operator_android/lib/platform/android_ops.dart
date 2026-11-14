@@ -171,6 +171,51 @@ class OperatorPaths {
   String get engineDir => '$noBackup/engine';
 }
 
+/// 🆕 E11p3d-5(R107) — 요청할 권한(06 M1-15 · 04 O-02 플랫폼 몫).
+enum OpsPermission {
+  /// 알림(Android 13+ 실행 중 권한 · 그 전 = 앱 알림 설정).
+  notifications('notifications'),
+
+  /// 배터리 최적화 예외(엔진 생존).
+  batteryExemption('batteryExemption'),
+
+  /// 정확 알람(Android 12 전용 사용자 허용 · 13+ = `USE_EXACT_ALARM` 으로 이미 허용).
+  exactAlarm('exactAlarm');
+
+  const OpsPermission(this.wire);
+
+  /// 채널 글자.
+  final String wire;
+}
+
+/// 🆕 R107 — 권한 요청 결과(사실 · 허용 여부는 `diagnose` 로 다시 읽는다).
+enum PermissionRequestOutcome {
+  /// 이미 허용.
+  alreadyGranted('ALREADY_GRANTED'),
+
+  /// 시스템 화면을 띄웠다(사람이 고른다).
+  requested('REQUESTED'),
+
+  /// 대화상자를 띄울 화면이 없다(앱 화면이 앞에 없음).
+  noActivity('NO_ACTIVITY'),
+
+  /// 이 기기 · 이 판에서 불가(또는 모르는 응답).
+  unsupported('UNSUPPORTED');
+
+  const PermissionRequestOutcome(this.wire);
+
+  /// 채널 글자.
+  final String wire;
+
+  /// 채널 글자 → 결과(모르는 글자 = [unsupported] — 지어내지 않는다).
+  static PermissionRequestOutcome fromWire(Object? w) {
+    for (final PermissionRequestOutcome o in values) {
+      if (o.wire == w) return o;
+    }
+    return unsupported;
+  }
+}
+
 /// 운영 채널 어댑터.
 class AndroidOps {
   /// 만든다 — [channel] 은 시험용 대체.
@@ -246,4 +291,33 @@ class AndroidOps {
   /// 알림 탭으로 열렸으면 그 링크(한 번만).
   Future<String?> takeLaunchLink() =>
       _ch.invokeMethod<String>('takeLaunchLink');
+
+  /// 🆕 R107 — 화면 캡처 막기(FLAG_SECURE) — 겹침은 부르는 쪽이 센다(`SecureScreen`).
+  Future<void> setSecure(bool on) =>
+      _ch.invokeMethod<void>('setSecure', <String, Object?>{'on': on});
+
+  /// 🆕 R107 — 권한 요청(결과 = 사실 · 허용 여부는 [diagnose]).
+  Future<PermissionRequestOutcome> requestPermission(OpsPermission p) async =>
+      PermissionRequestOutcome.fromWire(
+        await _ch.invokeMethod<Object?>('requestPermission', <String, Object?>{
+          'kind': p.wire,
+        }),
+      );
+
+  /// 🆕 R107 — 외부 링크(브라우저) — 🔴 https 만(다른 꼴 = [ArgumentError] · 채널에 보내지 않는다) · 열었으면 true.
+  Future<bool> openExternalUrl(String url) async {
+    if (!isExternalHttps(url)) {
+      throw ArgumentError.value(url, 'url', 'https 링크가 아니다');
+    }
+    return await _ch.invokeMethod<bool>('openUrl', <String, Object?>{
+          'url': url,
+        }) ??
+        false;
+  }
+}
+
+/// 🔴 바깥 링크인가 — `https://<host>…` 만(앱 링크 `aaq://` · http · 다른 꼴 = 아니다).
+bool isExternalHttps(String link) {
+  final Uri? u = Uri.tryParse(link);
+  return u != null && u.scheme == 'https' && u.host.isNotEmpty;
 }

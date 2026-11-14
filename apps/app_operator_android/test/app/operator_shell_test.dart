@@ -91,6 +91,27 @@ void main() {
     },
   );
 
+  test('🔴 조립 셸의 링크 열기(R107) — https = 바깥 · 앱 링크는 셸에 남는다', () async {
+    final List<String> outside = <String>[];
+    final ProviderContainer c = ProviderContainer(
+      overrides: operatorShellOverrides(
+        OperatorRuntime(
+          files: files,
+          clock: clock,
+          openExternal: (String u) async {
+            outside.add(u);
+            return true;
+          },
+        ),
+      ),
+    );
+    addTearDown(c.dispose);
+    c.read(shellLinkOpenerProvider).open('https://healthchecks.io');
+    c.read(shellLinkOpenerProvider).open(AppRoutes.alertsInbox);
+    await Future<void>.delayed(Duration.zero);
+    expect(outside, <String>['https://healthchecks.io']);
+  });
+
   testWidgets('🔴 깨어남 전 = 셸이 플래그를 기다린다(크래시 없음)', (WidgetTester tester) async {
     await pumpApp(tester);
     expect(tester.takeException(), isNull);
