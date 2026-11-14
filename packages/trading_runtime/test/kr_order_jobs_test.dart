@@ -719,4 +719,32 @@ void main() {
       expect(r.note, startsWith('초안 0'));
     });
   });
+
+  test('🆕 E15e1 «승격 전 브로커 주문 0» — live × auto × dryRun 이틀 · 목표 있음 = 제출 0 · 회차 SUCCESS · 대사 일치(06 M1-22 · R89 AC9)', () async {
+    final _Rig rig = _Rig(config: _config(exec: ExecPolicy.dryRun));
+    for (final TradeDate d in <TradeDate>[_d1, _d2]) {
+      rig.targets.byDay[d.yyyyMmDd] = <OrderTarget>[_target(10)];
+      rig.at(d, 9, 10);
+      final JobRun<KrOrderOpenReport> open = await rig.jobs.runOpen();
+      expect(open.status, JobStatus.success, reason: d.yyyyMmDd);
+      expect(open.check, 'live-auto-kr_order');
+      expect(open.report!.recon!.action, ReconAction.matched);
+      final List<ExecutionOutcome> outs = open.report!.batch!.outcomes;
+      expect(outs, isNotEmpty, reason: d.yyyyMmDd);
+      for (final ExecutionOutcome o in outs) {
+        expect(o.status, ExecutionStatus.skipped, reason: d.yyyyMmDd);
+      }
+    }
+    expect(rig.broker.submitCount, 0);
+    expect(rig.broker.submitted, isEmpty);
+    expect(
+      <(String, JobRunStatus)>[
+        for (final JobRunEntry e in rig.runLog.entries) (e.checkName, e.status),
+      ],
+      <(String, JobRunStatus)>[
+        ('live-auto-kr_order', JobRunStatus.success),
+        ('live-auto-kr_order', JobRunStatus.success),
+      ],
+    );
+  });
 }
