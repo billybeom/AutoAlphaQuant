@@ -349,14 +349,22 @@ export 'src/ops/trusted_clock.dart' show TrustedClock;
 // 🆕 E11c — 워치독 포트 · 값 꼴(설계 13 §8 R45 C1 — 구현 = data_sync · 보드 = trading_runtime).
 export 'src/ops/watchdog_ports.dart'
     show
+        EnsureOutcome,
+        EnsuredCheck,
         JobHeartbeat,
         PauseReason,
         PingStatus,
         RemoteCheck,
         RemoteCheckStatus,
+        WatchdogCheckSpec,
         WatchdogRemote,
         isNeverPauseSlug,
-        kNeverPauseChecks;
+        kNeverPauseChecks,
+        kWatchdogPrefixes,
+        pausePermitted,
+        watchdogCheckName,
+        watchdogCheckPrefix,
+        watchdogPrefixOf;
 export 'src/orders/block_bundles.dart' show BlockBundles, blockingFlagsFor;
 export 'src/orders/carry_over.dart'
     show

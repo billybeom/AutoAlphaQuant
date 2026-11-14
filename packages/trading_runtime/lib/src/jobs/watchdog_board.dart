@@ -301,9 +301,11 @@ List<RemoteAuditFinding> auditRemoteChecks(
     };
     if (k != null) out.add(RemoteAuditFinding(k, slug));
   }
+  // 🆕 E15f4b1(R105 AJ6) — 기대 밖이라도 멈춘 체크는 지적하지 않는다(모드 전환 뒤 옛 모드 체크 = 정상).
   final List<String> extra = <String>{
     for (final RemoteCheck r in remote)
-      if (!expected.contains(r.slug)) r.slug,
+      if (!expected.contains(r.slug) && r.status != RemoteCheckStatus.paused)
+        r.slug,
   }.toList()..sort();
   for (final String slug in extra) {
     out.add(RemoteAuditFinding(RemoteAuditKind.unexpected, slug));
