@@ -100,6 +100,9 @@ export 'src/mode/mode_guard.dart'
         modeCombinationCell,
         modeStartupGate,
         orderJobModeReject;
+// 🆕 E11p3b-1 — 설정 지문(정규 JSON SHA-256 앞 16자 · 설계 13 §8 R90).
+export 'src/ops/config_fingerprint.dart'
+    show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;
 // 🆕 E11j — 월 납입 운영값(M3-6 엔진 몫 · 설계 13 §8 R54).
 export 'src/ops/contribution_setting.dart'
     show
@@ -235,6 +238,17 @@ export 'src/ops/month_end_inputs.dart'
         monthEndStateToJson,
         monthlyLastCloses,
         sleeveWeightsOf;
+// 🆕 E11p3b-1 — P0S 운영 설정 원천(SPEC 한도 · 비용 · 지정가 여유 + 사람 값 필수 입력 · 설계 13 §8 R90).
+export 'src/ops/p0s_ops_config.dart'
+    show
+        P0sHumanInputs,
+        P0sOpsConfig,
+        kP0sBuyCostRate,
+        kP0sConfigSpecVersion,
+        kP0sFillCostRates,
+        kP0sLimitOffsetPct,
+        kP0sMappedStrategies,
+        p0sLimitConfig;
 // 🆕 E11g — 계층 B 월간 판정(TWR · 롤링 12M · DD · TUW · 카드 대조 · 설계 13 §8 R50).
 export 'src/ops/tier_b.dart'
     show
