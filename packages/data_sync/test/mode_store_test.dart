@@ -431,6 +431,8 @@ void main() {
         path: 'FRESH_AUTO',
       );
       session('HS-ODD', '2026-11-14T00:00:00.000Z', path: 'SIM_TO_AUTO');
+      // 위저드는 경로가 비어도 #12 근거가 아니다(짝이 어긋난 행).
+      session('HS-WNULL', '2026-11-14T00:00:00.000Z', kind: 'WIZARD_M5_11');
       expect((await f.facts()).handoverSessionValid, isFalse);
       session('HS-GATE', '2026-11-14T00:00:00.000Z');
       expect((await f.facts()).handoverSessionValid, isTrue);

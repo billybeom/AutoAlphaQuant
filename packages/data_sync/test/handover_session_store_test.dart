@@ -386,6 +386,13 @@ void main() {
     raw('HS-2', opened: _k('2027-01-02', 0));
     raw('HS-3', kind: 'GATE_M5_10', path: null, opened: _k('2027-01-03', 0));
     raw('HS-4', path: 'FRESH_AUTO', opened: _k('2027-01-04', 0));
+    // 종류가 게이트면 경로가 SIM_TO_AUTO 여도 아니다(짝이 어긋난 행).
+    raw(
+      'HS-6',
+      kind: 'GATE_M5_10',
+      path: 'SIM_TO_AUTO',
+      opened: _k('2027-01-06', 0),
+    );
     raw(
       'HS-5',
       opened: _k('2027-01-05', 0),
