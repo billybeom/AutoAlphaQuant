@@ -1,0 +1,319 @@
+// 🆕 E15f3a — simToAuto 2단 커밋 1단계 순수 몫(게이트 차례 · 개시 현금 · id · S5 코드 · 문구 · 설계 13 §8 R98 AG2~AG10).
+
+import 'package:core_engine/core_engine.dart';
+import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
+import 'package:test/test.dart';
+
+final ExchangeCalendar _kr = frozenExchangeCalendar(Market.kr);
+final LiveObservationConfig _two = LiveObservationConfig(
+  requiredTradingDays: 2,
+);
+
+/// 한국 시각 → UTC.
+DateTime _k(String day, int h, [int m = 0, int s = 0]) => DateTime.utc(
+  int.parse(day.substring(0, 4)),
+  int.parse(day.substring(5, 7)),
+  int.parse(day.substring(8, 10)),
+  h,
+  m,
+  s,
+).subtract(const Duration(hours: 9));
+
+const SimTrialReport _done = SimTrialReport(
+  started: true,
+  items: <SimTrialItemResult>[],
+  complete: true,
+  needsWarning: false,
+  counters: SimTrialCounters.zero,
+  headline: '체험 5항목을 모두 채웠습니다.',
+);
+
+/// 생체 = 01-12 10:00 → 냉각 끝 01-13 10:00 → 기한 01-14 10:00 · 확정 = 01-13 11:00.
+final DateTime _opened = _k('2027-01-12', 10);
+final DateTime _now = _k('2027-01-13', 11);
+
+SimToAutoReport _report({DateTime? now}) => judgeSimToAuto(
+  SimToAutoFacts(
+    trustedNowUtc: now ?? _now,
+    simRunMode: RunMode.simInternal,
+    simClosed: false,
+    operatingMode: OperatingMode.autoTrade,
+    trial: _done,
+    goldenVectorPassed: true,
+    liveKeysVerified: true,
+    accountByStrategy: const <String, String>{
+      P0sStrategyIds.sleeveA: 'general',
+      P0sStrategyIds.sleeveB: 'pension',
+      P0sStrategyIds.sleeveC: 'general',
+      P0sStrategyIds.pot: 'general',
+    },
+    fate: SimLedgerFate.keep,
+    sessionOpenedAtUtc: _opened,
+    killSwitchActive: false,
+    blockingFlags: const <String>[],
+  ),
+  kr: _kr,
+  observation: _two,
+);
+
+HandoverSessionRecord _session({
+  HandoverSessionKind kind = HandoverSessionKind.wizard,
+  HandoverPath? path = HandoverPath.simToAuto,
+  DateTime? closed,
+}) => HandoverSessionRecord(
+  sessionId: 'HS-1',
+  kind: kind,
+  path: path,
+  deviceId: 'device-1',
+  leaseEpoch: 1,
+  openedAtUtc: _opened,
+  expiresAtUtc: _opened.add(kHandoverSessionTtl),
+  closedAtUtc: closed,
+  closeCode: closed == null ? null : HandoverCloseCode.cancelled,
+);
+
+LiveAccountProbe _p(
+  String alias, {
+  int holdings = 0,
+  int? cash = 1000000,
+  int activity = 0,
+  DateTime? at,
+}) => LiveAccountProbe(
+  alias: alias,
+  holdingsCount: holdings,
+  orderableCashKrw: cash,
+  activityToday: activity,
+  fetchedAtUtc: at ?? _now.subtract(const Duration(minutes: 2)),
+);
+
+const Set<String> _aliases = <String>{'general', 'pension'};
+
+String? _reject({
+  bool noNow = false,
+  DateTime? now,
+  HandoverSessionRecord? session,
+  bool noSession = false,
+  int rows = 0,
+  SimToAutoReport? report,
+  bool noReport = false,
+  Set<String> aliases = _aliases,
+  List<LiveAccountProbe>? probes,
+}) => simToAutoCommitReject(
+  trustedNowUtc: noNow ? null : (now ?? _now),
+  session: noSession ? null : (session ?? _session()),
+  liveModeRows: rows,
+  report: noReport ? null : (report ?? _report(now: now)),
+  aliases: aliases,
+  probes: probes ?? <LiveAccountProbe>[_p('general'), _p('pension')],
+);
+
+void main() {
+  test('id · 사유 · 낸 곳 · S5 코드 왕복', () {
+    expect(liveOpeningDecisionId(_now), 'LIVEOPEN-20270113-110000');
+    expect(
+      simLedgerFateDecisionId(_k('2027-01-12', 23, 59, 7), 12),
+      'SIMFATE-20270112-235907-012',
+    );
+    expect(kHandoverCommitCheck, 'handover-commit');
+    expect(kLiveOpeningSeedReason, 'LIVE_OPENING');
+    expect(simLedgerFateReasonCode(SimLedgerFate.keep), 'SIM_LEDGER_KEEP');
+    expect(
+      simLedgerFateReasonCode(SimLedgerFate.discard),
+      'SIM_LEDGER_DISCARD',
+    );
+    for (final SimLedgerFate f in SimLedgerFate.values) {
+      expect(simLedgerFateOfReasonCode(simLedgerFateReasonCode(f)), f);
+    }
+    expect(simLedgerFateOfReasonCode('OPENING_BALANCE'), isNull);
+    expect(kLiveOpeningReason.contains('DRY_RUN'), isFalse);
+  });
+
+  test('세션 쓰임 = 위저드 ∧ SIM_TO_AUTO ∧ 안 닫힘 ∧ 만료 전', () {
+    expect(simToAutoSessionUsable(_session(), _now), isTrue);
+    expect(simToAutoSessionUsable(null, _now), isFalse);
+    expect(
+      simToAutoSessionUsable(
+        _session(kind: HandoverSessionKind.gate, path: null),
+        _now,
+      ),
+      isFalse,
+    );
+    expect(
+      simToAutoSessionUsable(_session(kind: HandoverSessionKind.gate), _now),
+      isFalse,
+    );
+    expect(
+      simToAutoSessionUsable(_session(path: HandoverPath.freshAuto), _now),
+      isFalse,
+    );
+    expect(simToAutoSessionUsable(_session(closed: _now), _now), isFalse);
+    expect(
+      simToAutoSessionUsable(_session(), _opened.add(kHandoverSessionTtl)),
+      isFalse,
+    );
+  });
+
+  test('개시 현금 = 대응 별칭만 · 0원 · 모름 제외 · 별칭 순', () {
+    expect(
+      liveOpeningCash(
+        <LiveAccountProbe>[
+          _p('pension', cash: 500000),
+          _p('general', cash: 1200000),
+          _p('isa', cash: 9000000),
+          _p('zero', cash: 0),
+        ],
+        <String>{'general', 'pension', 'zero'},
+      ).entries.map((MapEntry<String, int> e) => '${e.key}=${e.value}'),
+      <String>['general=1200000', 'pension=500000'],
+    );
+    expect(
+      liveOpeningCash(<LiveAccountProbe>[_p('general', cash: null)], _aliases),
+      isEmpty,
+    );
+  });
+
+  test('게이트 차례 — 시각 → 세션 → 이미 커밋 → 재판정 → 조회 → 신선도 → 보유 → 활동 → 예수금 → 합계', () {
+    expect(
+      _reject(noNow: true, noSession: true, rows: 1),
+      SimToAutoCodes.trustedTimeUnavailable,
+    );
+    expect(
+      _reject(noSession: true, rows: 1),
+      HandoverSessionCodes.sessionInvalid,
+    );
+    expect(
+      _reject(session: _session(closed: _now), rows: 1),
+      HandoverSessionCodes.sessionInvalid,
+    );
+    expect(
+      _reject(rows: 1, noReport: true),
+      SimToAutoCommitCodes.alreadyCommitted,
+    );
+    expect(_reject(noReport: true), SimToAutoCodes.notSimAuto);
+    // 냉각 중 = 재판정 코드 그대로.
+    final DateTime cool = _k('2027-01-12', 20);
+    expect(
+      _reject(
+        now: cool,
+        report: _report(now: cool),
+      ),
+      SimToAutoCodes.cooling,
+    );
+    expect(_reject(aliases: <String>{}), SimToAutoCommitCodes.probeMissing);
+    expect(
+      _reject(probes: <LiveAccountProbe>[_p('general')]),
+      SimToAutoCommitCodes.probeMissing,
+    );
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p(
+            'general',
+            at: _now.subtract(const Duration(minutes: 5, seconds: 1)),
+          ),
+          _p('pension', holdings: 3),
+        ],
+      ),
+      SimToAutoCommitCodes.snapshotStale,
+    );
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p('general', at: _now.add(const Duration(seconds: 1))),
+          _p('pension'),
+        ],
+      ),
+      SimToAutoCommitCodes.snapshotStale,
+    );
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p('general', holdings: 1, activity: 2, cash: null),
+          _p('pension'),
+        ],
+      ),
+      SimToAutoCommitCodes.holdingsNotZero,
+    );
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p('general'),
+          _p('pension', activity: 1, cash: null),
+        ],
+      ),
+      SimToAutoCommitCodes.brokerActivityToday,
+    );
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[_p('general'), _p('pension', cash: null)],
+      ),
+      SimToAutoCommitCodes.cashUnknown,
+    );
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[_p('general'), _p('pension', cash: -1)],
+      ),
+      SimToAutoCommitCodes.cashUnknown,
+    );
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p('general', cash: 0),
+          _p('pension', cash: 0),
+        ],
+      ),
+      SimToAutoCommitCodes.zeroCash,
+    );
+  });
+
+  test('통과 — 5분 정각 조회 · 대응 밖 계좌의 보유는 보지 않는다 · 한 계좌만 현금', () {
+    expect(_reject(), isNull);
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p('general', at: _now.subtract(kHandoverPlanStaleAfter)),
+          _p('pension', at: _now),
+          _p('isa', holdings: 5, activity: 3, cash: null),
+        ],
+      ),
+      isNull,
+    );
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[_p('general'), _p('pension', cash: 0)],
+      ),
+      isNull,
+    );
+  });
+
+  test('문구 — 성공 = 계좌 수 · 합계(쉼표) · 거부마다 다름 · DRY_RUN 글자 0', () {
+    expect(
+      simToAutoCommitHeadline(
+        null,
+        cash: const <String, int>{'general': 1234567, 'pension': 500000},
+      ),
+      '실전 자동 매매로 옮겼습니다 — 계좌 2곳 예수금 1,734,567원으로 개시했습니다. 실전은 주문 없이 관찰부터 시작합니다.',
+    );
+    expect(simToAutoCommitHeadline(null), contains('0원'));
+    final List<String> codes = <String>[
+      SimToAutoCodes.trustedTimeUnavailable,
+      HandoverSessionCodes.sessionInvalid,
+      SimToAutoCommitCodes.alreadyCommitted,
+      SimToAutoCommitCodes.probeMissing,
+      SimToAutoCommitCodes.snapshotStale,
+      SimToAutoCommitCodes.holdingsNotZero,
+      SimToAutoCommitCodes.brokerActivityToday,
+      SimToAutoCommitCodes.cashUnknown,
+      SimToAutoCommitCodes.zeroCash,
+      SimToAutoCommitCodes.rolledBack,
+      SimToAutoCodes.cooling,
+    ];
+    final Set<String> texts = <String>{
+      for (final String c in codes) simToAutoCommitHeadline(c),
+    };
+    expect(texts, hasLength(codes.length));
+    for (final String t in <String>[...texts, simToAutoCommitHeadline(null)]) {
+      expect(t.contains('DRY_RUN'), isFalse);
+    }
+  });
+}
