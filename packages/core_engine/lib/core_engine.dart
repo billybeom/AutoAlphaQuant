@@ -214,6 +214,26 @@ export 'src/ops/contribution_setting.dart'
         nextContributionDay,
         p0sContributionConfig,
         splitContributionRows;
+// 🆕 E16a — X5-4 파생 관계 · 동기 조치 · 체인 diff(순수 · 설계 13 §8 R112).
+export 'src/ops/derived_sync.dart'
+    show
+        CanonChain,
+        ChainBaseline,
+        DerivedChainDiff,
+        DerivedForkStop,
+        DerivedHold,
+        DerivedHoldReason,
+        DerivedNoop,
+        DerivedRelation,
+        DerivedResync,
+        DerivedStamp,
+        DerivedSyncAction,
+        DerivedSyncStatus,
+        DerivedTarget,
+        derivedChainDiffOf,
+        derivedRelationOf,
+        derivedSyncActionOf,
+        kDerivedForkAlertCode;
 // 🆕 E11f1 — 일일 평가 스냅숏 계산(평가 · HWM · 드로다운 · 브레이커 재생 · P0S 브레이커 설정 · 설계 13 §8 R47 F6~F8).
 export 'src/ops/equity_snapshot.dart'
     show
@@ -260,6 +280,14 @@ export 'src/ops/ledger_archive.dart'
         backupAgeOf,
         dayHashFromArchive,
         kBackupStaleAfter;
+// 🆕 E16a — X5-5 X1 경계 판정(나쁜 쪽이 이긴다 · 안내까지만 · 설계 13 §8 R112).
+export 'src/ops/ledger_boundary.dart'
+    show
+        BoundaryPath,
+        BoundaryReason,
+        LedgerBoundaryVerdict,
+        kBoundaryX1Headline,
+        ledgerBoundaryOf;
 // 🆕 E11h1 — X5-1 정규 직렬화 · day_hash · 해시 체인(설계 13 §8 R51).
 export 'src/ops/ledger_hash.dart'
     show
