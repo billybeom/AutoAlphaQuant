@@ -14,7 +14,7 @@
 |---|---|:--:|:--:|:--:|
 | `domain_contracts` | Claude (M2) | ● 🆕 E11p2(조립 · 시험이 계약 타입을 직접 쓴다 — 전에는 ○) | ○ | — |
 | `core_engine` | Claude (M1·M3) | ● 🆕 E11p(플랫폼 어댑터가 core 포트를 구현 — 전에는 ○) | **—** | **—** |
-| `broker_gateway` | Claude (M1) | ○ | **—** | **—** |
+| `broker_gateway` | Claude (M1) | ● 🆕 E11p3b-4(조립이 KIS 자격증명 금고 칸 · 기동 판정을 직접 쓴다 — 전에는 ○) | **—** | **—** |
 | `trading_runtime` | Claude (M1·X2) | ● | **—** | **—** |
 | `data_sync` | Claude (M4·X1·X4·X5) | ● 읽기+쓰기 | **—** 🆕 operator 전용(설계 13 §8 R53 · 지도 D1) | — |
 | 🆕 `read_model_client` | Claude (M4-7·M4-8) | — | ● **읽기 전용**(읽기 모델 · 버전 게이트 · 뒤에 명령 INSERT 4종) | — |
@@ -26,7 +26,7 @@
 
 - 🆕 v1.8 — 보유 화면 셋(`H6-*`)은 `ui_journal` 안이라 웹 타깃에는 없다: 셸은 라우트 3(`holdingsOverview`·`holdingsDetail`·`holdingsAllocation`)을 전 플랫폼 등록하되 웹 목적지 = Q-D 전 «부재» 가드(`journalRead` 조문과 같은 꼴 · 04 §1-2 · R13).
 - `app_viewer_web` 열이 전부 «—»인 것은 **스텁이기 때문**입니다. 발주자 결정 **Q-D**(v1에서 웹·데스크탑을 뺄 것인가, 00_README §8-2)가 「포함」으로 나면 **`app_viewer_ios` 열과 같은 집합**이 됩니다.
-- `broker_gateway`가 operator에서 «○»인 것은 `trading_runtime`을 통해 들어오기 때문입니다(`core_engine` 도 그랬다가 🆕 E11p 에서 «●» — `lib/platform/` 어댑터가 `SecretVault`·`SealedBox` 포트를 직접 구현한다 · 빌드 내용은 같다). **viewer에는 그 통로 자체가 없습니다.**
+- `broker_gateway`가 operator에서 «○»였던 것은 `trading_runtime`을 통해 들어오기 때문이었습니다(🆕 E11p3b-4 에서 «●» — 조립이 `kisKeySetFits` · 금고 칸을 직접 쓴다 · 빌드 내용은 같다 · `core_engine` 도 그랬다가 🆕 E11p 에서 «●» — `lib/platform/` 어댑터가 `SecretVault`·`SealedBox` 포트를 직접 구현한다 · 빌드 내용은 같다). **viewer에는 그 통로 자체가 없습니다.**
   - 🆕 2026-11-04 정정(설계 13 §8 R53) — 이 문장은 **그동안 거짓이었다**: viewer 가 의존하던 `data_sync` 가 `core_engine` 을 의존해 전이로 들어왔다(지도 X1). viewer 는 이제 `read_model_client`(의존 = `domain_contracts` 만)로만 읽고, `tool/check_boundaries.sh` [8] 이 viewer 의 **전이 의존 그래프**에 `core_engine` · `broker_gateway` · `trading_runtime` · `data_sync` · `sqlite3` 가 없는지 본다.
 - `domain_contracts`가 «○»인 것은 앱 조립 코드가 아직 계약 타입을 직접 참조하지 않아서입니다. 리포지토리 주입을 시작하면 각 앱 pubspec에 직접 의존으로 올라갑니다(`depend_on_referenced_packages` 린트). 🆕 operator 는 E11p2 에서 올라갔다(●).
 - 🆕 E11p3a — operator 조립(`lib/engine/`)이 원장 연결(`sqlite3` `Database`)과 healthchecks 어댑터의 `http.Client` 를 직접 다룬다 → 외부 패키지 `sqlite3` · `http` 를 직접 의존으로 올렸다(`data_sync` 와 같은 범위 · 빌드 내용은 같다 — 전에도 `data_sync` 를 거쳐 들어와 있었다). viewer 의 전이 그래프에 `sqlite3` 가 없다는 [8] 검사는 그대로다.
