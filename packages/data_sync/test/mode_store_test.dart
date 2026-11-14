@@ -379,13 +379,19 @@ void main() {
   });
 
   group('W5 판정 입력 실물', () {
-    void session(String id, String expires, {String? closedAt}) => sim.execute(
+    void session(
+      String id,
+      String expires, {
+      String? closedAt,
+      String kind = 'GATE_M5_10',
+      String? path,
+    }) => sim.execute(
       'INSERT INTO handover_session (handover_session_id, kind, path, device_id, lease_epoch, opened_at, expires_at, closed_at) '
-      "VALUES (?, 'WIZARD_M5_11', 'SIM_TO_AUTO', 'dev', 0, 'x', ?, ?)",
-      <Object?>[id, expires, closedAt],
+      "VALUES (?, ?, ?, 'dev', 0, 'x', ?, ?)",
+      <Object?>[id, kind, path, expires, closedAt],
     );
 
-    test('#12 세션 = 열림 ∧ 만료 전만 · 실키 = 주입 그대로', () async {
+    test('#12 세션 = 게이트 · 열림 ∧ 만료 전만 · 실키 = 주입 그대로', () async {
       bool keys = false;
       final SqliteModeFacts f = SqliteModeFacts(
         sim,
@@ -404,6 +410,48 @@ void main() {
       expect((x.handoverSessionValid, x.liveKeysVerified), (true, true));
       clock.at = DateTime.utc(2026, 11, 13, 1, 0, 1);
       expect((await f.facts()).handoverSessionValid, isFalse);
+    });
+
+    test('🆕 E15f2 AF10 — 위저드 · 경로 있는 세션은 #12 를 «유효»로 만들지 않는다', () async {
+      final SqliteModeFacts f = SqliteModeFacts(
+        sim,
+        clock: clock,
+        liveKeysVerified: () async => false,
+      );
+      session(
+        'HS-SIM',
+        '2026-11-14T00:00:00.000Z',
+        kind: 'WIZARD_M5_11',
+        path: 'SIM_TO_AUTO',
+      );
+      session(
+        'HS-FRESH',
+        '2026-11-14T00:00:00.000Z',
+        kind: 'WIZARD_M5_11',
+        path: 'FRESH_AUTO',
+      );
+      session('HS-ODD', '2026-11-14T00:00:00.000Z', path: 'SIM_TO_AUTO');
+      // 위저드는 경로가 비어도 #12 근거가 아니다(짝이 어긋난 행).
+      session('HS-WNULL', '2026-11-14T00:00:00.000Z', kind: 'WIZARD_M5_11');
+      expect((await f.facts()).handoverSessionValid, isFalse);
+      session('HS-GATE', '2026-11-14T00:00:00.000Z');
+      expect((await f.facts()).handoverSessionValid, isTrue);
+    });
+
+    test('🆕 E15f2 AF10 — 만료 = 시각 파싱(표기가 섞여도) · 시차 없음 = 오류', () async {
+      final SqliteModeFacts f = SqliteModeFacts(
+        sim,
+        clock: clock,
+        liveKeysVerified: () async => false,
+      );
+      // 09:30+09:00 = 00:30Z — 지금(01:00Z)보다 앞(글자 비교면 «뒤»로 읽혔다).
+      session('HS-KST', '2026-11-13T09:30:00+09:00');
+      expect((await f.facts()).handoverSessionValid, isFalse);
+      session('HS-KST2', '2026-11-13T10:30:00+09:00');
+      expect((await f.facts()).handoverSessionValid, isTrue);
+      sim.execute('DELETE FROM handover_session');
+      session('HS-BARE', '2026-11-14T00:00:00');
+      await expectLater(f.facts(), throwsFormatException);
     });
   });
 }
