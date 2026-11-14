@@ -39,7 +39,7 @@ final RegExp _writeVerb = RegExp(
   r'\b(save|write|submit|send|insert|update|delete|apply|commit)[A-Z_]',
 );
 
-/// 🆕 v1.19(01 §28 · K17) — 쓰기 동사로 시작하지만 **읽기 표시 칸**인 이름(파일별 · 이름 정확히).
+/// 🆕 v1.19(01 §7 C-7 · §28 K17 · K27) — 쓰기 동사로 시작하지만 **읽기 표시 칸**인 이름(파일별 · 이름 정확히).
 /// `OperationsVm.updateGate` = 엔진 버전 전환 게이트 카드(강행 칸 0) — 쓰기 표면이 아니다. 이 이름만 걸러내고
 /// 그 파일의 다른 쓰기 이름은 그대로 잡는다(파일 통째 예외 0).
 const Map<String, Set<String>> _readOnlyFieldNames = <String, Set<String>>{
