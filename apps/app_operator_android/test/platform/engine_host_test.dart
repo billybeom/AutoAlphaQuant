@@ -5,7 +5,8 @@ import 'dart:async';
 import 'package:app_operator_android/platform/platform.dart';
 import 'package:core_engine/core_engine.dart'
     show Market, frozenExchangeCalendar;
-import 'package:domain_contracts/domain_contracts.dart' show UiLevel;
+import 'package:domain_contracts/domain_contracts.dart'
+    show OperatingMode, RunMode, UiLevel;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trading_runtime/trading_runtime.dart';
@@ -94,11 +95,20 @@ void main() {
     test('🔴 전이 때만 다시 띄운다(같은 상태 = 0회)', () async {
       final List<FgsNotice> sent = <FgsNotice>[];
       final FgsPresenter f = FgsPresenter((FgsNotice n) async => sent.add(n));
-      const FgsStatus ok = FgsStatus(level: UiLevel.ok);
+      const FgsStatus ok = FgsStatus(
+        runMode: RunMode.live,
+        operatingMode: OperatingMode.autoTrade,
+        level: UiLevel.ok,
+      );
       expect(await f.show(ok), isTrue);
       expect(await f.show(ok), isFalse);
       expect(await f.show(ok), isFalse);
-      const FgsStatus bad = FgsStatus(level: UiLevel.act, headline: '대사 차이 1건');
+      const FgsStatus bad = FgsStatus(
+        runMode: RunMode.live,
+        operatingMode: OperatingMode.autoTrade,
+        level: UiLevel.act,
+        headline: '대사 차이 1건',
+      );
       expect(await f.show(bad), isTrue);
       expect(await f.show(ok), isTrue);
       expect(sent, hasLength(3));
@@ -108,6 +118,8 @@ void main() {
     test('와이어 = 채널 id · 완성 문자열 · 레벨 글자 · 링크(조립 0)', () async {
       final FgsNotice n = buildFgsNotice(
         const FgsStatus(
+          runMode: RunMode.live,
+          operatingMode: OperatingMode.autoTrade,
           level: UiLevel.blocked,
           headline: '킬스위치',
           p0AlertId: 'a1',

@@ -8,7 +8,7 @@
 //    · 열린 P0 알림 = ACT(+ `ops_p0` 채널 · 탭 = 그 알림)
 //    · 차단 플래그(하나라도) = ACT — 주문이 막혀 있다
 //    가장 무거운 레벨을 고르고, 같으면 킬스위치 → 정지 · 중지 브레이커 → P0 → 플래그 → 경고 · 축소 브레이커 차례.
-// 🔵 모드 접두(«모의투자 실행 중») = E15g(R80 D16) — 여기 없다.
+// 🆕 E15g(R110) — 모드 · 운영 방식은 재료에서 그대로 넘긴다(표지 문장 = `buildFgsNotice`).
 
 import 'package:core_engine/core_engine.dart'
     show ExchangeCalendar, NextRebalance, nextRegularRebalance;
@@ -21,6 +21,8 @@ class FgsFacts {
   /// 만든다.
   const FgsFacts({
     required this.safety,
+    required this.runMode,
+    required this.operatingMode,
     this.openP0,
     this.lastReconAtUtc,
     this.nextRebalanceInSessions,
@@ -28,6 +30,12 @@ class FgsFacts {
 
   /// 안전 상태(`SafetyRepository`).
   final SafetyState safety;
+
+  /// 🆕 E15g — 실행 모드(🔴 필수).
+  final RunMode runMode;
+
+  /// 🆕 E15g — 운영 방식.
+  final OperatingMode operatingMode;
 
   /// 가장 이른 열린 P0 알림(없으면 null).
   final AlertItem? openP0;
@@ -81,6 +89,8 @@ FgsStatus fgsStatusOf(FgsFacts f) {
   if (c.isEmpty) {
     return FgsStatus(
       level: UiLevel.ok,
+      runMode: f.runMode,
+      operatingMode: f.operatingMode,
       lastReconAtUtc: f.lastReconAtUtc,
       nextRebalanceInSessions: f.nextRebalanceInSessions,
     );
@@ -91,6 +101,8 @@ FgsStatus fgsStatusOf(FgsFacts f) {
   });
   return FgsStatus(
     level: c.first.$1,
+    runMode: f.runMode,
+    operatingMode: f.operatingMode,
     headline: c.first.$2,
     lastReconAtUtc: f.lastReconAtUtc,
     nextRebalanceInSessions: f.nextRebalanceInSessions,

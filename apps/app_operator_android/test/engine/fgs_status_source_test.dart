@@ -113,6 +113,12 @@ void main() {
       final FgsNotice n = buildFgsNotice(s);
       expect(n.text, isNotEmpty);
       expect(n.channel, FgsChannel.opsStatus);
+      // 🆕 E15g(R110) — 기동 판정의 모드가 그대로 실린다 · 모의 표지.
+      expect(
+        (s.runMode, s.operatingMode),
+        (RunMode.simInternal, OperatingMode.autoTrade),
+      );
+      expect(n.text, startsWith('모의투자 실행 중 · 정상 · '));
     });
 
     test('🔴 열린 P0 알림 = ACT · P0 채널 · 탭 = 그 알림', () async {
@@ -156,5 +162,21 @@ void main() {
     expect(s.level, UiLevel.blocked);
     expect(s.headline, kSaf405);
     expect(buildFgsNotice(s).text, startsWith(kSaf405));
+  });
+
+  test('🆕 E15g 기동 거부도 모드가 실린다 — 모의 × 안내 = 두 표지(모의 왼쪽)', () {
+    final FgsStatus s = fgsStatusForRejected(
+      const EngineRejected(
+        runMode: RunMode.simInternal,
+        operatingMode: OperatingMode.advisory,
+        triggered: <String>[kSaf405],
+        repaired: false,
+      ),
+    );
+    expect(
+      (s.runMode, s.operatingMode),
+      (RunMode.simInternal, OperatingMode.advisory),
+    );
+    expect(buildFgsNotice(s).text, startsWith('모의투자 · 투자 안내 실행 중 · $kSaf405'));
   });
 }

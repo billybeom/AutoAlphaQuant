@@ -319,6 +319,9 @@ export 'src/ops/ledger_views.dart'
         selfReportCellOf,
         severityLabelOf,
         statusLabelOf;
+// 🆕 E15g — 모드 표지(OS 알림 제목 접두 · 표지 글자 · 설계 13 §8 R110 AO7).
+export 'src/ops/mode_marker.dart'
+    show alertOsTitlePrefix, kAdvisoryMarker, kSimMarker;
 // 🆕 E11f2 — 월말 계획기 입력 조립(원장 보유 → MonthEndState · 월별 마지막 종가 · 슬리브 비중 · 설계 13 §8 R48 P4~P6).
 export 'src/ops/month_end_inputs.dart'
     show

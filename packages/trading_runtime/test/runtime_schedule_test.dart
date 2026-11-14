@@ -554,6 +554,8 @@ void main() {
       () {
         final FgsNotice n = buildFgsNotice(
           FgsStatus(
+            runMode: RunMode.live,
+            operatingMode: OperatingMode.autoTrade,
             level: UiLevel.ok,
             lastReconAtUtc: recon,
             nextRebalanceInSessions: 6,
@@ -570,12 +572,20 @@ void main() {
           ),
         );
         expect(
-          buildFgsNotice(const FgsStatus(level: UiLevel.ok)).text,
+          buildFgsNotice(
+            const FgsStatus(
+              runMode: RunMode.live,
+              operatingMode: OperatingMode.autoTrade,
+              level: UiLevel.ok,
+            ),
+          ).text,
           '정상 · 대사 전',
         );
         expect(
           buildFgsNotice(
             FgsStatus(
+              runMode: RunMode.live,
+              operatingMode: OperatingMode.autoTrade,
               level: UiLevel.ok,
               lastReconAtUtc: recon,
               nextRebalanceInSessions: 0,
@@ -589,6 +599,8 @@ void main() {
     test('이상 = «{엔진 문구} · 마지막 대사 HH:mm» · 탭 = 알림함 · 문구 없으면 ArgumentError', () {
       final FgsNotice n = buildFgsNotice(
         FgsStatus(
+          runMode: RunMode.live,
+          operatingMode: OperatingMode.autoTrade,
           level: UiLevel.act,
           headline: '대사 불일치 — 주문 멈춤',
           lastReconAtUtc: recon,
@@ -600,18 +612,34 @@ void main() {
         (FgsChannel.opsStatus, AppRoutes.alertsInbox),
       );
       expect(
-        () => buildFgsNotice(const FgsStatus(level: UiLevel.watch)),
-        throwsArgumentError,
-      );
-      expect(
         () => buildFgsNotice(
-          const FgsStatus(level: UiLevel.blocked, headline: ' '),
+          const FgsStatus(
+            runMode: RunMode.live,
+            operatingMode: OperatingMode.autoTrade,
+            level: UiLevel.watch,
+          ),
         ),
         throwsArgumentError,
       );
       expect(
         () => buildFgsNotice(
-          const FgsStatus(level: UiLevel.ok, nextRebalanceInSessions: -1),
+          const FgsStatus(
+            runMode: RunMode.live,
+            operatingMode: OperatingMode.autoTrade,
+            level: UiLevel.blocked,
+            headline: ' ',
+          ),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => buildFgsNotice(
+          const FgsStatus(
+            runMode: RunMode.live,
+            operatingMode: OperatingMode.autoTrade,
+            level: UiLevel.ok,
+            nextRebalanceInSessions: -1,
+          ),
         ),
         throwsArgumentError,
       );
@@ -620,6 +648,8 @@ void main() {
     test('🔴 P0 = ops_p0 채널 · 탭 = 그 알림 상세(id 는 인코딩)', () {
       final FgsNotice n = buildFgsNotice(
         const FgsStatus(
+          runMode: RunMode.live,
+          operatingMode: OperatingMode.autoTrade,
           level: UiLevel.blocked,
           headline: '결과 불명 주문',
           p0AlertId: 'al/1',
@@ -632,6 +662,8 @@ void main() {
     test('🔴 재발행 = 전이 때만 · 손익 문자 0', () {
       final FgsNotice a = buildFgsNotice(
         FgsStatus(
+          runMode: RunMode.live,
+          operatingMode: OperatingMode.autoTrade,
           level: UiLevel.ok,
           lastReconAtUtc: recon,
           nextRebalanceInSessions: 6,
@@ -639,6 +671,8 @@ void main() {
       );
       final FgsNotice same = buildFgsNotice(
         FgsStatus(
+          runMode: RunMode.live,
+          operatingMode: OperatingMode.autoTrade,
           level: UiLevel.ok,
           lastReconAtUtc: recon,
           nextRebalanceInSessions: 6,
@@ -652,6 +686,8 @@ void main() {
           a,
           buildFgsNotice(
             FgsStatus(
+              runMode: RunMode.live,
+              operatingMode: OperatingMode.autoTrade,
               level: UiLevel.ok,
               lastReconAtUtc: recon,
               nextRebalanceInSessions: 5,
@@ -665,6 +701,8 @@ void main() {
           a,
           buildFgsNotice(
             FgsStatus(
+              runMode: RunMode.live,
+              operatingMode: OperatingMode.autoTrade,
               level: UiLevel.watch,
               headline: '지연',
               lastReconAtUtc: recon,
