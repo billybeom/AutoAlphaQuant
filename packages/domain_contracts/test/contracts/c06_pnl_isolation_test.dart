@@ -137,6 +137,15 @@ void main() {
         FixturePaths.m9ConnectionsLocked,
         FixturePaths.m9SettingsActionResults,
         FixturePaths.m8AlertsSafetyResume,
+        // 🆕 v1.19(01 §28) — S05 7 · 결과 1.
+        FixturePaths.m9OperationsSimAuto,
+        FixturePaths.m9OperationsSimComplete,
+        FixturePaths.m9OperationsLiveObserve,
+        FixturePaths.m9OperationsLivePromotable,
+        FixturePaths.m9OperationsLiveHoldKeys,
+        FixturePaths.m9OperationsAdvisory,
+        FixturePaths.m9OperationsLocked,
+        FixturePaths.m9OperationsActionResults,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {
