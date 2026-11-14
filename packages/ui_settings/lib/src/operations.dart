@@ -1,6 +1,6 @@
 // lib/src/operations.dart
 //
-// Operations — M9 S05 part 1 of 2 (contract v1.19).
+// Operations — M9 S05 parts 1–2 (R6c1 · R6c2) (contract v1.19).
 //
 // 🔴 Body only — parent height ListView(padding: EdgeInsets.zero).
 // 🔴 Chip, mode card, operating way card, trial card = received as-is.
@@ -35,7 +35,7 @@ final StreamProvider<OperationsVm> _operationsProvider =
 
 // ── Operations ─────────────────────────────────────────────────────────────────
 
-/// M9 S05 operations management, part 1 of 2.
+/// M9 S05 operations management, parts 1–2 (R6c1 · R6c2).
 class Operations extends ConsumerStatefulWidget {
   const Operations({super.key});
 
