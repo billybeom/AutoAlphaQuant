@@ -6,6 +6,8 @@
 
 import 'dart:async';
 
+import 'package:core_engine/core_engine.dart'
+    show Market, WatchdogRemote, frozenExchangeCalendar;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppLinkOpener,
@@ -16,6 +18,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         FeatureFlags,
         SleeveCatalogEntry;
 import 'package:flutter/foundation.dart';
+import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
 
 import '../engine/ledger_files.dart';
 import '../engine/operator_engine.dart' show EngineWakeReport;
@@ -30,8 +33,22 @@ class OperatorRuntime {
     required this.clock,
     SecureScreen? secure,
     Future<bool> Function(String url)? openExternal,
+    JobCalendars? calendars,
+    this.watchdogRemote,
   }) : secure = secure ?? SecureScreen(_noSecure),
-       openExternal = openExternal ?? _noExternal;
+       openExternal = openExternal ?? _noExternal,
+       calendars =
+           calendars ??
+           JobCalendars(
+             kr: frozenExchangeCalendar(Market.kr),
+             us: frozenExchangeCalendar(Market.us),
+           );
+
+  /// 🆕 E11p3d-2(R109) — 시장 달력(감시 보드 · 엔진과 같은 동결 달력).
+  final JobCalendars calendars;
+
+  /// 🆕 R109 — 바깥 감시 체크 목록(없음 = 보드가 «바깥을 읽지 못했습니다»).
+  final WatchdogRemote? watchdogRemote;
 
   static Future<void> _noSecure(bool on) async {}
   static Future<bool> _noExternal(String url) async => false;

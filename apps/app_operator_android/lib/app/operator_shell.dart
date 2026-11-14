@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:ui_shell/ui_shell.dart';
 
+import 'operator_ops_status.dart';
 import 'operator_runtime.dart';
 import 'operator_view.dart';
 import 'secure_screen.dart';
@@ -45,11 +46,15 @@ Widget _alertCenter(Map<String, String> _) => const AlertCenter();
 Widget _alertDetail(Map<String, String> p) =>
     AlertDetail(alertId: p['alertId'] ?? '');
 
+Widget _watchdog(Map<String, String> _) => const WatchdogBoard();
+
 /// 🔴 본문 레지스트리 — 실물이 있는 화면만(R104 d1).
 const ShellRouteBodies kOperatorRouteBodies = ShellRouteBodies(
   <String, ShellBodyBuilder>{
     AppRoutes.alertsInbox: _alertCenter,
     AppRoutes.alertDetail: _alertDetail,
+    // 🆕 E11p3d-2(R109) — 감시 보드(로컬 판정 + 바깥 대조).
+    AppRoutes.opsWatchdog: _watchdog,
   },
 );
 
@@ -69,6 +74,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   // 확인(ack) = 명령 API 전 — null = 버튼 부재(셸 규약).
   shellAlertCommandApiProvider.overrideWithValue(null as CommandApi?),
+  // 🆕 R109 — 운영 상태(감시 보드 · 진단 = 실물 · 나머지 = 원천 없음).
+  shellOpsStatusRepositoryProvider.overrideWithValue(
+    OperatorOpsStatusRepository(runtime),
+  ),
   // 🆕 R107 — 시크릿 · QR · 복구 라우트 = 캡처 막기(본문이 서 있는 동안).
   shellRouteBodiesProvider.overrideWithValue(
     secureRouteBodies(kOperatorRouteBodies, runtime.secure),

@@ -144,6 +144,8 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       clock: clock,
       secure: SecureScreen(ops.setSecure),
       openExternal: ops.openExternalUrl,
+      // 🆕 R109 — 감시 보드의 바깥 대조(읽기 키 = 금고 · 없으면 보드가 «읽지 못했습니다»).
+      watchdogRemote: HealthchecksClient(http.Client(), AndroidSecretVault()),
     );
   } on Object {
     return null;
