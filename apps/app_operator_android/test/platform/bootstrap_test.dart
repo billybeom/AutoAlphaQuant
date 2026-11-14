@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/engine/kis_sessions.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/platform/platform.dart';
@@ -104,6 +105,28 @@ void main() {
       expect(shown.single.headline, kSaf405);
     },
   );
+
+  test('🔴 깨어남 → 화면 상태(R104) — 실행 묶음의 원장을 쓰고 보고로 화면 상태를 바꾼다', () async {
+    final Directory root = tempLedgerDir();
+    final FakeClock clock = FakeClock(DateTime.now().toUtc());
+    final LedgerFiles f = openFiles(root, clock);
+    addTearDown(f.close);
+    writeSimMode(f.sim, clock, committed: OperatingMode.autoTrade);
+    final Database live = writeLiveMode(root, clock);
+    live.close();
+    final OperatorRuntime rt = OperatorRuntime(files: f, clock: clock);
+    final WakeHandler h = engineWakeHandler(
+      ops: AndroidOps(),
+      calendars: calendars(),
+      runtime: rt,
+    );
+    expect(rt.view.value, isNull);
+    await h(
+      WakeEvent.fromWire(<String, Object?>{'reason': 'start', 'firedAtMs': 1})!,
+    );
+    expect(rt.view.value!.flags.runMode, RunMode.live);
+    expect(identical(rt.view.value!.db, f.liveIfExists()), true);
+  });
 
   test('🔴 조립 앱 부품(R97) — 일봉 원천 = 모드 세트의 KIS · 국면 지문 = 사람 값 없는 지문', () async {
     final http.Client net = MockClient(

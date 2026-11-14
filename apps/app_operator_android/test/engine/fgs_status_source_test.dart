@@ -148,6 +148,7 @@ void main() {
     final FgsStatus s = fgsStatusForRejected(
       const EngineRejected(
         runMode: RunMode.live,
+        operatingMode: OperatingMode.autoTrade,
         triggered: <String>[kSaf405],
         repaired: false,
       ),
