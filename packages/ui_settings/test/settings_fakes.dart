@@ -184,3 +184,164 @@ Set<String> connectionsControlTexts(ConnectionsVm v) => <String>{
         in k.channelPicker?.options ?? const <NotifyChannelOption>[])
       ?o.selectAction?.label,
 };
+
+// ── R6c1 — M9 S05 fakes ──
+
+class FakeSettingsOperationsRepository extends UnimplementedSettingsRepository {
+  FakeSettingsOperationsRepository({required this.operations});
+
+  final Stream<OperationsVm> Function(int call) operations;
+  int operationsCalls = 0;
+
+  @override
+  Stream<OperationsVm> watchOperations() {
+    final int call = operationsCalls;
+    operationsCalls = operationsCalls + 1;
+    return operations(call);
+  }
+}
+
+List<Override> operationsOverrides({
+  required FakeSettingsOperationsRepository repo,
+  required SettingsActions? actions,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  settingsRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsLinkOpenerProvider.overrideWithValue(opener),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpOperations(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 6000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: Operations())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> chipTexts(EngineStatusChip c) => <String?>[
+  c.label,
+  ?c.promotionLabel,
+];
+
+List<String?> modeViewerTexts(RunModeCard m) => <String?>[
+  m.label,
+  ?m.holdLabel,
+  ?m.observation?.progressText,
+  ?m.observation?.stateLabel,
+  ?m.switchNoticeText,
+];
+
+List<String?> modeOperatorTexts(RunModeCard m) => <String?>[
+  m.label,
+  ?m.holdLabel,
+  ?m.observation?.progressText,
+  ?m.observation?.stateLabel,
+  ?m.promotionAction?.label,
+  ?m.switchNoticeText,
+  for (final SettingsActionCall c in m.switchActions) c.label,
+];
+
+List<String?> opModeViewerTexts(OperatingModeView v) => <String?>[
+  v.label,
+  v.explainLine,
+  for (final OperatingModeOption o in v.options) ...<String?>[
+    o.title,
+    o.body,
+    o.prepLine,
+    o.honestyLine,
+  ],
+  v.trust.label,
+  v.trust.consequenceLine,
+  ?v.trust.upgradeHint,
+  for (final GateBadge g in v.switchGates) g.label,
+];
+
+List<String?> opModeOperatorTexts(OperatingModeView v) => <String?>[
+  ...opModeViewerTexts(v),
+  for (final SettingsActionCall c in v.switchActions) c.label,
+];
+
+List<String?> trialTexts(SimTrialCard? t) => <String?>[
+  ?t?.headline,
+  ?t?.summaryText,
+  for (final SimTrialCheck k
+      in t?.checks ?? const <SimTrialCheck>[]) ...<String?>[
+    k.label,
+    k.stateLabel,
+    k.detailText,
+  ],
+];
+
+Set<String> operationsAllowed(OperationsVm v) => <String>{
+  v.statusChip.label,
+  ?v.statusChip.promotionLabel,
+  v.mode.label,
+  ?v.mode.holdLabel,
+  ?v.mode.observation?.progressText,
+  ?v.mode.observation?.stateLabel,
+  ?v.mode.switchNoticeText,
+  v.operatingMode.label,
+  v.operatingMode.explainLine,
+  for (final OperatingModeOption o in v.operatingMode.options) ...<String>[
+    o.title,
+    o.body,
+    o.prepLine,
+    o.honestyLine,
+  ],
+  v.operatingMode.trust.label,
+  v.operatingMode.trust.consequenceLine,
+  ?v.operatingMode.trust.upgradeHint,
+  for (final GateBadge g in v.operatingMode.switchGates) g.label,
+  ?v.trial?.headline,
+  ?v.trial?.summaryText,
+  for (final SimTrialCheck k
+      in v.trial?.checks ?? const <SimTrialCheck>[]) ...<String>[
+    k.label,
+    k.stateLabel,
+    k.detailText,
+  ],
+  v.ramp.levelLabel,
+  ?v.ramp.dstNoticeText,
+  ?v.ramp.emptyLabel,
+  for (final RampCondition c in v.ramp.conditions) ...<String>[
+    c.label,
+    c.progressText,
+  ],
+  for (final JobRow j in v.jobs) ...<String>[
+    j.label,
+    j.stateLabel,
+    j.scheduleText,
+    j.lastRunText,
+    ?j.detailLine,
+  ],
+  v.control.stateLabel,
+  ?v.control.stopPromptText,
+  ?v.updateGate?.stateLabel,
+  ?v.updateGate?.bodyText,
+  ?v.lastRequestNotice,
+  ?v.lockedLabel,
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
+
+Set<String> operationsControlTexts(OperationsVm v) => <String>{
+  for (final SettingsActionCall c in v.mode.switchActions) c.label,
+  ?v.mode.promotionAction?.label,
+  for (final SettingsActionCall c in v.operatingMode.switchActions) c.label,
+  ?v.control.startAction?.label,
+  for (final SettingsActionCall c in v.control.stopActions) c.label,
+};

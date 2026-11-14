@@ -12,5 +12,6 @@
 
 export 'l10n/labels.dart';
 export 'src/connections.dart';
+export 'src/operations.dart';
 export 'src/settings_home.dart';
 export 'src/settings_providers.dart';
