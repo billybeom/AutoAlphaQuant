@@ -334,6 +334,16 @@ export 'src/orders/idempotency.dart'
 // 🆕 E13c1 — 쌍 · 축 심각도 · 원인 코드 쓰기 화이트리스트(설계 13 §8 R58 C7 · C8).
 export 'src/orders/ledger_pairs.dart'
     show diffSeverityFor, writableOriginCodesFor;
+// 🆕 E11p3b-2 — 한도 판정 입력(총자산 · 오늘 손익률 · 위험자산 · 레버리지 · 보유 수 · 설계 13 §8 R91).
+export 'src/orders/limit_inputs.dart'
+    show
+        LimitCurrentPrice,
+        LimitInputs,
+        LimitInputsCollector,
+        LimitInputsUnavailable,
+        LimitLedgerFacts,
+        LimitLedgerFactsSource,
+        limitStateOf;
 export 'src/orders/order_batch.dart'
     show BatchOutcome, CashFit, CashShortfall, fitBuysToCash, runOrderBatch;
 export 'src/orders/order_draft.dart'
