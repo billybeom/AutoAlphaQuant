@@ -7,6 +7,8 @@ import 'package:core_engine/core_engine.dart'
         ExchangeCalendar,
         HandoverCloseCode,
         HandoverSessionCodes,
+        LeaseSnapshot,
+        LeaseVerdict,
         LiveAccountProbe,
         LiveObservationConfig,
         Market,
@@ -118,15 +120,23 @@ void main() {
   late SqliteHandoverSessionStore sessions;
   late String sessionId;
 
-  SimToAutoCommitOutcome commit({String? id, List<LiveAccountProbe>? probes}) =>
-      store.commit(
-        sessionId: id ?? sessionId,
-        simFacts: _facts,
-        kr: _kr,
-        observation: _two,
-        probes: probes ?? <LiveAccountProbe>[_p('general'), _p('pension')],
-        configHash: 'cfg-1',
-      );
+  SimToAutoCommitOutcome commit({
+    String? id,
+    List<LiveAccountProbe>? probes,
+    LeaseSnapshot lease = const LeaseSnapshot(
+      verdict: LeaseVerdict.valid,
+      epoch: 1,
+      deviceId: 'device-1',
+    ),
+  }) => store.commit(
+    sessionId: id ?? sessionId,
+    simFacts: _facts,
+    kr: _kr,
+    observation: _two,
+    probes: probes ?? <LiveAccountProbe>[_p('general'), _p('pension')],
+    configHash: 'cfg-1',
+    lease: lease,
+  );
 
   int writes() =>
       _n(live, 'decision_log') +
@@ -262,6 +272,37 @@ void main() {
     same(SimToAutoCodes.cooling, commit());
     trusted.at = _commitAt;
     same(HandoverSessionCodes.sessionInvalid, commit(id: 'HS-NONE'));
+    // 🆕 E15f4a 리스 — 유효 아님 · 세대 다름 · 기기 다름.
+    same(
+      'LEASE_INVALID',
+      commit(
+        lease: const LeaseSnapshot(
+          verdict: LeaseVerdict.unknown,
+          epoch: 1,
+          deviceId: 'device-1',
+        ),
+      ),
+    );
+    same(
+      SimToAutoCommitCodes.leaseMismatch,
+      commit(
+        lease: const LeaseSnapshot(
+          verdict: LeaseVerdict.valid,
+          epoch: 2,
+          deviceId: 'device-1',
+        ),
+      ),
+    );
+    same(
+      SimToAutoCommitCodes.leaseMismatch,
+      commit(
+        lease: const LeaseSnapshot(
+          verdict: LeaseVerdict.valid,
+          epoch: 1,
+          deviceId: 'device-9',
+        ),
+      ),
+    );
     same(
       SimToAutoCommitCodes.holdingsNotZero,
       commit(
