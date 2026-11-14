@@ -25,30 +25,30 @@ import 'settings_fakes.dart';
   UiLevel.blocked => (Icons.block, cs.error),
 };
 
-// ── Fixtures ──────────────────────────────────────────────────────────────────
-
-final ConnectionsVm conn = singleFixture(
-  FixturePaths.m9Connections,
-  ConnectionsVm.fromJson,
-);
-final ConnectionsVm tele = singleFixture(
-  FixturePaths.m9ConnectionsTelegram,
-  ConnectionsVm.fromJson,
-);
-final ConnectionsVm locked = singleFixture(
-  FixturePaths.m9ConnectionsLocked,
-  ConnectionsVm.fromJson,
-);
-final List<ActionResult> results = listFixture(
-  FixturePaths.m9SettingsActionResults,
-  ActionResult.fromJson,
-).rows;
-
-FakeSettingsActions okActions() => FakeSettingsActions(
-  result: (int call) => Future<ActionResult>.value(results[0]),
-);
-
 void main() {
+  // ── Fixtures (main() head, read once) ──────────────────────────────────────
+
+  final ConnectionsVm conn = singleFixture(
+    FixturePaths.m9Connections,
+    ConnectionsVm.fromJson,
+  );
+  final ConnectionsVm tele = singleFixture(
+    FixturePaths.m9ConnectionsTelegram,
+    ConnectionsVm.fromJson,
+  );
+  final ConnectionsVm locked = singleFixture(
+    FixturePaths.m9ConnectionsLocked,
+    ConnectionsVm.fromJson,
+  );
+  final List<ActionResult> results = listFixture(
+    FixturePaths.m9SettingsActionResults,
+    ActionResult.fromJson,
+  ).rows;
+
+  FakeSettingsActions okActions() => FakeSettingsActions(
+    result: (int call) => Future<ActionResult>.value(results[0]),
+  );
+
   final NotifyChannelCard kakao = conn.rows[2].channelPicker!;
   final NotifyChannelCard telegram = tele.rows[2].channelPicker!;
   final NotifyChannelCard lockedPicker = locked.rows[2].channelPicker!;
@@ -763,13 +763,14 @@ void main() {
 
     final FakeSettingsOpsStatusRepository repo =
         FakeSettingsOpsStatusRepository(connections: (int call) => one(conn));
+    final RecordingLinkOpener opener = RecordingLinkOpener();
 
     await pumpConnections(
       tester,
       overrides: connectionsOverrides(
         repo: repo,
         actions: null,
-        opener: RecordingLinkOpener(),
+        opener: opener,
         clock: FixedClock(kGoldenNowUtc),
       ),
     );
@@ -799,21 +800,9 @@ void main() {
     );
     expect(repo.connectionsCalls, 1);
 
-    final RecordingLinkOpener opener2 = RecordingLinkOpener();
-    await pumpConnections(
-      tester,
-      overrides: connectionsOverrides(
-        repo: FakeSettingsOpsStatusRepository(
-          connections: (int call) => one(conn),
-        ),
-        actions: null,
-        opener: opener2,
-        clock: FixedClock(kGoldenNowUtc),
-      ),
-    );
     await tester.tap(find.byKey(const ValueKey<String>('m9s07-row-3')));
     await tester.pump();
-    expect(opener2.opened, <String>[?conn.rows[3].route]);
+    expect(opener.opened, <String>[?conn.rows[3].route]);
     expect(find.text(SettingsLabels.retry), findsNothing); // ⓡ
   });
 
@@ -986,6 +975,7 @@ void main() {
         ),
       );
 
+      expect(find.byKey(const Key('m9s07-asof')), findsOneWidget);
       expect(find.byKey(const Key('m9s07-stale')), c.staleMatcher);
       expect(
         shownTexts(tester, find.byKey(const Key('m9s07-stale'))),
@@ -1021,7 +1011,7 @@ void main() {
     failMatcher: findsNothing,
     rowMatcher: findsNothing,
     retryMatcher: findsNothing,
-    acts: null,
+    acts: okActions(),
   );
 
   final ({
@@ -1105,38 +1095,81 @@ void main() {
 
   // ── M9S07-16 all screen texts large font four cases ───────────────────────
 
-  final ({String name, ConnectionsVm v, SettingsActions? acts, Matcher buttons})
+  final ({
+    String name,
+    ConnectionsVm v,
+    SettingsActions? acts,
+    Set<String> allowed,
+    Matcher buttons,
+  })
   case16connOp = (
     name: 'conn_operator',
     v: conn,
     acts: okActions(),
+    allowed: <String>{
+      ...connectionsAllowed(conn),
+      ...connectionsControlTexts(conn),
+    },
     buttons: findsNWidgets(6),
   );
-  final ({String name, ConnectionsVm v, SettingsActions? acts, Matcher buttons})
+  final ({
+    String name,
+    ConnectionsVm v,
+    SettingsActions? acts,
+    Set<String> allowed,
+    Matcher buttons,
+  })
   case16teleOp = (
     name: 'tele_operator',
     v: tele,
     acts: okActions(),
+    allowed: <String>{
+      ...connectionsAllowed(tele),
+      ...connectionsControlTexts(tele),
+    },
     buttons: findsNWidgets(6),
   );
-  final ({String name, ConnectionsVm v, SettingsActions? acts, Matcher buttons})
+  final ({
+    String name,
+    ConnectionsVm v,
+    SettingsActions? acts,
+    Set<String> allowed,
+    Matcher buttons,
+  })
   case16lockedOp = (
     name: 'locked_operator',
     v: locked,
     acts: okActions(),
+    allowed: <String>{
+      ...connectionsAllowed(locked),
+      ...connectionsControlTexts(locked),
+    },
     buttons: findsNothing,
   );
-  final ({String name, ConnectionsVm v, SettingsActions? acts, Matcher buttons})
+  final ({
+    String name,
+    ConnectionsVm v,
+    SettingsActions? acts,
+    Set<String> allowed,
+    Matcher buttons,
+  })
   case16connViewer = (
     name: 'conn_viewer',
     v: conn,
     acts: null,
+    allowed: connectionsAllowed(conn),
     buttons: findsNothing,
   );
 
   for (final c
       in <
-        ({String name, ConnectionsVm v, SettingsActions? acts, Matcher buttons})
+        ({
+          String name,
+          ConnectionsVm v,
+          SettingsActions? acts,
+          Set<String> allowed,
+          Matcher buttons,
+        })
       >[case16connOp, case16teleOp, case16lockedOp, case16connViewer]) {
     testWidgets('M9S07-16 all texts large font ${c.name}', (
       WidgetTester tester,
@@ -1156,12 +1189,7 @@ void main() {
         ),
       );
 
-      final Set<String> allowed = c.acts != null
-          ? <String>{
-              ...connectionsAllowed(c.v),
-              ...connectionsControlTexts(c.v),
-            }
-          : connectionsAllowed(c.v);
+      final Set<String> allowed = c.allowed;
       final List<String?> shown = tester
           .widgetList<Text>(find.byType(Text))
           .map((Text t) => t.data)
