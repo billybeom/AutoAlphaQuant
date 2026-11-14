@@ -215,12 +215,16 @@ class P0sOpsConfig {
   /// 🔴 설정 지문(`config_hash` — 주문 · 결정 기록에 붙는다 · SAF-405 승인 단위).
   String get configHash => configFingerprint(content());
 
-  /// 국면 설정 지문(R90 — SPEC 판 + 파이프라인 이름).
-  String get regimeConfigHash => configFingerprint(<String, Object?>{
-    'spec': kP0sConfigSpecVersion,
-    'regime_pipeline': 'computeRegime',
-  });
+  /// 국면 설정 지문(R90 — SPEC 판 + 파이프라인 이름 · = [p0sRegimeConfigHash]).
+  String get regimeConfigHash => p0sRegimeConfigHash();
 }
+
+/// 🆕 E11p3c-1 — 국면 설정 지문(R90 — SPEC 판 + 파이프라인 이름). 🔴 사람 값(A 종목 · 계좌)이 들지 않는다 —
+/// 사람 값이 정해지기 전에도 `daily_signal` 이 같은 지문으로 국면을 쌓는다.
+String p0sRegimeConfigHash() => configFingerprint(<String, Object?>{
+  'spec': kP0sConfigSpecVersion,
+  'regime_pipeline': 'computeRegime',
+});
 
 Map<String, Object?> _monthEndContent(MonthEndConfig m) => <String, Object?>{
   'alloc_b': m.allocB,

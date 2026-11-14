@@ -2,10 +2,17 @@
 
 import 'dart:io';
 
+import 'package:app_operator_android/engine/kis_sessions.dart';
 import 'package:app_operator_android/platform/platform.dart';
-import 'package:domain_contracts/domain_contracts.dart' show LedgerFile;
+import 'package:broker_gateway/broker_gateway.dart' show KisQuoteFeed;
+import 'package:core_engine/core_engine.dart' show p0sRegimeConfigHash;
+import 'package:core_engine/testing.dart' show MemorySecretVault;
+import 'package:domain_contracts/domain_contracts.dart'
+    show LedgerFile, RunMode;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 import '../engine/support.dart';
 
@@ -54,4 +61,23 @@ void main() {
       expect(Directory('${root.path}/files').existsSync(), false);
     },
   );
+
+  test('🔴 조립 앱 부품(R97) — 일봉 원천 = 모드 세트의 KIS · 국면 지문 = 사람 값 없는 지문', () async {
+    final http.Client net = MockClient(
+      (http.Request r) async => http.Response('', 500),
+    );
+    final MemorySecretVault vault = MemorySecretVault(<String, String>{
+      'kis.paper.app_key': 'fakePaperAppKey${'A' * 21}',
+      'kis.paper.app_secret': 'fakePaperSecret${'Z' * 165}',
+      'kis.paper.account_no': '50123456',
+      'kis.paper.product_code': '01',
+    });
+    final p = operatorJobParts(KisSessions(vault: vault, http: net), net);
+    expect(p.regimeConfigHash, p0sRegimeConfigHash());
+    expect(await p.quoteFeed(RunMode.simInternal), isA<KisQuoteFeed>());
+    await expectLater(
+      p.quoteFeed(RunMode.live),
+      throwsA(isA<KisSessionUnavailable>()),
+    );
+  });
 }

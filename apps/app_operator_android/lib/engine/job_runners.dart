@@ -7,11 +7,14 @@
 // 🔴 미조립 칸(설계 Q7) = 돌리되 본체가 곧바로 실패 → `job_run` FAILED + fail 핑. 조용히 건너뛰면 갭 · 재개가
 //    «놓침»으로 오판한다. 기동 판정이 «준비»일 때만 돌므로 온보딩 전 기기에서는 0건이다.
 // 🔵 p3a 는 아홉 칸 전부 미조립 — 빈 부품(운영 설정 · 시세 · 한도 · 브로커)은 p3b · 실물 조립은 p3c.
+// 🆕 E11p3c-1(설계 13 §8 R97) — 부품([JobParts])을 받으면 실물 칸(`kAssembledRunners`)을 쓴다: `daily_signal` · `us_data`.
+//    부품이 없으면(시험 · p3a) 전부 미조립 그대로.
 
 import 'package:core_engine/core_engine.dart'
     show AlertSink, JobHeartbeat, JobRunLog;
 import 'package:domain_contracts/domain_contracts.dart'
     show Clock, OperatingMode, RunMode, TradeDate;
+import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
     show
         JobBody,
@@ -23,6 +26,8 @@ import 'package:trading_runtime/trading_runtime.dart'
         runJob,
         watchdogCheckName;
 
+import 'data_job_runners.dart' show JobParts, kAssembledRunners;
+
 /// 회차 하나를 돌린다.
 typedef JobRunner = Future<JobRun<Object?>> Function(JobOccurrence occurrence);
 
@@ -33,6 +38,7 @@ typedef JobRunnerFactory = Map<String, JobRunner> Function(JobContext context);
 class JobContext {
   /// 만든다.
   const JobContext({
+    required this.db,
     required this.runMode,
     required this.operatingMode,
     required this.calendars,
@@ -41,6 +47,9 @@ class JobContext {
     required this.runLog,
     required this.clock,
   });
+
+  /// 🆕 E11p3c-1 — 이 모드의 원장(기동 판정이 고른 파일).
+  final Database db;
 
   /// 실행 모드.
   final RunMode runMode;
@@ -124,15 +133,21 @@ const Map<String, List<String>> kMissingParts = <String, List<String>>{
   'us_data': <String>['quote_feed', 'macro_keys'],
 };
 
-/// 🔴 실행기 표 — `kJobTable` 의 잡마다 한 칸(p3a = 전부 미조립).
+/// 🔴 실행기 표 — `kJobTable` 의 잡마다 한 칸. [parts] 가 있으면 실물 칸(`kAssembledRunners`) · 나머지 = 미조립.
 Map<String, JobRunner> composeJobRunners(
   JobContext c, {
   List<JobSpec> specs = kJobTable,
+  JobParts? parts,
 }) => <String, JobRunner>{
-  for (final JobSpec s in specs)
-    s.job: unassembledRunner(
-      c,
-      s.job,
-      kMissingParts[s.job] ?? const <String>['unknown_job'],
-    ),
+  for (final JobSpec s in specs) s.job: _runnerOf(c, s.job, parts),
 };
+
+JobRunner _runnerOf(JobContext c, String job, JobParts? parts) {
+  final JobRunner Function(JobContext, JobParts)? make = kAssembledRunners[job];
+  if (parts != null && make != null) return make(c, parts);
+  return unassembledRunner(
+    c,
+    job,
+    kMissingParts[job] ?? const <String>['unknown_job'],
+  );
+}
