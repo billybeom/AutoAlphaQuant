@@ -168,6 +168,12 @@ final DtoCodec<Object> _connectionsVm = DtoCodec<ConnectionsVm>(
   ConnectionsVm.fromJson,
   (ConnectionsVm v) => v.toJson(),
 );
+// 🆕 계약 v1.19(R6c 선행 · 01 §28) — M9 `S05` 운용 관리 VM.
+final DtoCodec<Object> _operationsVm = DtoCodec<OperationsVm>(
+  'OperationsVm',
+  OperationsVm.fromJson,
+  (OperationsVm v) => v.toJson(),
+);
 final DtoCodec<Object> _depositPlan = DtoCodec<DepositPlan>(
   'DepositPlan',
   DepositPlan.fromJson,
@@ -844,6 +850,15 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (HandoverPlan v) => v.toJson(),
     ),
   ),
+  // 🆕 v1.19(01 §28 · R6c) — `S05` 운용 관리 7벌 · S05 동작 결과 13행.
+  FixturePaths.m9OperationsActionResults: FixtureBinding(_actionResult),
+  FixturePaths.m9OperationsAdvisory: FixtureBinding(_operationsVm),
+  FixturePaths.m9OperationsLiveHoldKeys: FixtureBinding(_operationsVm),
+  FixturePaths.m9OperationsLiveObserve: FixtureBinding(_operationsVm),
+  FixturePaths.m9OperationsLivePromotable: FixtureBinding(_operationsVm),
+  FixturePaths.m9OperationsLocked: FixtureBinding(_operationsVm),
+  FixturePaths.m9OperationsSimAuto: FixtureBinding(_operationsVm),
+  FixturePaths.m9OperationsSimComplete: FixtureBinding(_operationsVm),
   // 🆕 v1.18(01 §27 · R6b) — M9 동작 결과 5행.
   FixturePaths.m9SettingsActionResults: FixtureBinding(_actionResult),
   // 🆕 v1.18(01 §27 · R6a) — `S01` 설정 홈 3벌.
