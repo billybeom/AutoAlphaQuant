@@ -136,6 +136,13 @@ export 'src/mode/mode_guard.dart'
         modeCombinationCell,
         modeStartupGate,
         orderJobModeReject;
+// 🆕 E15f3b — simToAuto 2단계 · 기동 복구 모의 파일 처리 판정(설계 13 §8 R100).
+export 'src/mode/sim_ledger_finish.dart'
+    show
+        SimLedgerDeleteResult,
+        SimLedgerFinish,
+        SimLedgerFinishPlan,
+        simLedgerFinishOf;
 // 🆕 E15f1 — simToAuto 순수 판정(7단계 · 냉각 · 확정 기한 · 커밋 창 막기 · 화면 계획 · 설계 13 §8 R93).
 export 'src/mode/sim_to_auto.dart'
     show
