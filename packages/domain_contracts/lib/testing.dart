@@ -54,6 +54,8 @@
 //   무변경(7 · `watchConnections` 반환 타입 그대로).
 //   🆕 계약 v1.19(01 §28) — `UnimplementedSettingsRepository.watchOperations`(동기 throw).
 //   🆕 계약 v1.20(01 §29) — `UnimplementedSettingsRepository.watchCredentials`·`watchAccountMapping`(동기 throw).
+//   🆕 계약 v1.21(01 §30) — `UnimplementedKillSwitchGateRepository`(1) · `UnimplementedPledgeRepository`(1 · 동기 throw) ·
+//   `UnimplementedSafetyActions`(4 · `Future` 에러 / 에러 스트림).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -565,6 +567,41 @@ class UnimplementedWhatIfApi implements WhatIfApi {
 class UnimplementedSafetyRepository implements SafetyRepository {
   @override
   Stream<SafetyState> watchState() => throw UnimplementedError('watchState');
+}
+
+/// 🆕 계약 v1.21(01 §30 · K6) — [KillSwitchGateRepository] 받침대(`M5-2` 가짜의 받침대). 🔴 동기로 던진다.
+class UnimplementedKillSwitchGateRepository
+    implements KillSwitchGateRepository {
+  @override
+  Stream<KillResumeGateVm> watchResumeGate() =>
+      throw UnimplementedError('watchResumeGate');
+}
+
+/// 🆕 계약 v1.21(01 §30 · K6) — [PledgeRepository] 받침대(`M5-8`·`O-04` ② 가짜의 받침대). 🔴 동기로 던진다.
+class UnimplementedPledgeRepository implements PledgeRepository {
+  @override
+  Stream<PledgeVm> watchPledge() => throw UnimplementedError('watchPledge');
+}
+
+/// 🆕 계약 v1.21(01 §30 · K5) — [SafetyActions] 받침대. 🔴 [UnimplementedSettingsActions] 꼴 — 동기로 던지지 않는다
+///    (`Future` 에러 · 에러 스트림). 결과는 지어내지 않는다 — 가짜가 `m5/safety_action_results` 로 준다.
+class UnimplementedSafetyActions implements SafetyActions {
+  @override
+  Future<SafetyActionResult> run(
+    SafetyActionId id, {
+    Map<String, String> args = const <String, String>{},
+  }) => Future<SafetyActionResult>.error(UnimplementedError('run'));
+  @override
+  Future<SafetyActionResult> runKillResumeItem(
+    KillResumeItemSubmission submission,
+  ) =>
+      Future<SafetyActionResult>.error(UnimplementedError('runKillResumeItem'));
+  @override
+  Future<SafetyActionResult> runPledge(PledgeSubmission submission) =>
+      Future<SafetyActionResult>.error(UnimplementedError('runPledge'));
+  @override
+  Stream<SafetyActionResult> watch(String actionRunId) =>
+      Stream<SafetyActionResult>.error(UnimplementedError('watch'));
 }
 
 /// 🆕 계약 v1.2 — [DraftStore] 받침대(전부 `Future` 에러 · **초안 포트를 읽지 않는 화면**용).
