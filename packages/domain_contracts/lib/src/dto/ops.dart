@@ -5,6 +5,7 @@
 // 🔴 홈 블록 5·7 의 «세는 수»는 전부 엔진이 세어 **문자열로** 준다 — 화면이 목록
 //    길이로 만들지 않는다(01 §4-1 · G-29). int·double 산술이라 C-4 가 잡지 못한다.
 // 🔴 `actionAvailable == false` 는 «비활성»이 아니라 **카드·버튼의 부재**로 그린다.
+// 🆕 v1.20(01 §29) — `S06` `DeviceAccessVm`·`DeviceRow` 추가형 · 🆕 `PairingTicketCard`.
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
@@ -251,7 +252,9 @@ abstract class NotifyChannelOption with _$NotifyChannelOption {
 }
 // JSON 키: code · label · selected · select_action
 
-/// m2-8 G-8 — 기기·접근 관리(05 `S06`). 🔴 **리스는 읽기 전용**이다.
+/// m2-8 G-8 · 🆕 v1.20 추가형(01 §29 · K14~K16 · K18 · K35) — 기기·접근 관리(05 `S06` · 폰 전용 · 운영 등급). 🔴 **리스는 읽기 전용**이다.
+/// 🔴 이 폰(operator)·조회 전용 기기(viewer)는 **한 목록**([devices] · 차례 = 엔진 · 역할 = [DeviceRow.roleLabel] 글자).
+/// 🔴 QR 은 결과가 아니라 이 VM 의 [pairing] 으로 온다(`ActionResult` 페이로드 칸 0 · 그리기 = 슬롯) · 이전·강등·비상 = [migrationLink] 하나.
 @freezed
 abstract class DeviceAccessVm with _$DeviceAccessVm {
   const factory DeviceAccessVm({
@@ -263,26 +266,82 @@ abstract class DeviceAccessVm with _$DeviceAccessVm {
     /// 🔴 신뢰 시각(Supabase 서버 시각) 기반 엔진 문자열 — 폰 시계로 남은 시간을
     ///    계산하지 않는다.
     String? leaseEtaText,
+
+    /// 🆕 v1.20 — 리스 카드 색의 유일한 근거(짝 = 엔진 · 유효 ⇒ ok · 늦음 ⇒ watch/act · 무효·대기 ⇒ blocked).
+    required UiLevel leaseLevel,
+
+    /// 🆕 v1.20 — «세대 3» 류 epoch 글자(Supabase `operator_lease.epoch` · E11k 전 null).
+    String? leaseEpochText,
+
+    /// 🆕 v1.20 — X1 기기 이전·강등·비상 복구 진입(`AppRoutes.x1Migration` · 🔒 X1 · 리스 편집 칸 0). null = 링크 부재(잠김 포함).
+    LinkAction? migrationLink,
+
+    /// 🆕 v1.20 — viewer QR 페어링 티켓 카드(발급 쪽 · 🔴 X1 이전 QR 아님 — K16). null = 카드 부재.
+    PairingTicketCard? pairing,
+
+    /// 🆕 v1.20 — 조회 전용 기기가 0대일 때만 한 줄(«연결된 조회 전용 기기가 없습니다.» · K29). null = 줄 없음.
+    String? emptyLabel,
+
+    /// 🆕 v1.20 — 운영 등급 생체 축소(non-null = 보기만). 🔴 엔진 의무 = 모든 행 `revokeAction`·`revokeConfirmText` null ·
+    /// [pairing] 의 `issueAction`·`qrSlotId`·`expiresText` null · [migrationLink] null — 화면은 거르지 않는다(K35).
+    String? lockedLabel,
   }) = _DeviceAccessVm;
 
   factory DeviceAccessVm.fromJson(Map<String, dynamic> json) =>
       _$DeviceAccessVmFromJson(json);
 }
+// JSON 키: devices · lease_holder_label · lease_state_label · as_of · lease_eta_text · lease_level · lease_epoch_text ·
+//          migration_link · pairing · empty_label · locked_label
 
-/// m2-8 G-8 — 기기 1행. 🔴 기기 전체 식별자를 화면 문구로 만들지 않는다.
+/// m2-8 G-8 · 🆕 v1.20 추가형 — 기기 1행. 🔴 기기 전체 식별자를 화면 문구로 만들지 않는다.
 @freezed
 abstract class DeviceRow with _$DeviceRow {
   const factory DeviceRow({
+    /// 🔴 화면 미참조(글자·Key 0 — Key = 순번 · K10). 폐기 호출 args 는 엔진이 [revokeAction] 에 완성한다.
     required String deviceId,
     required String label,
     required String roleLabel,
     required String statusLabel,
     required String lastSeenText,
+
+    /// 🆕 v1.20 — 행 색의 유일한 근거.
+    required UiLevel level,
+
+    /// 🆕 v1.20 — 엔진이 완성한 `deviceTokenRevoke{device_id}`(viewer 행만 · 이 폰 행·폐기된 행·잠김 = null).
+    SettingsActionCall? revokeAction,
+
+    /// 🆕 v1.20 — 펼침 확인 글자(«즉시 조회가 차단됩니다 …» · 엔진 · K18). 🔴 [revokeAction] non-null ⇔ non-null.
+    String? revokeConfirmText,
   }) = _DeviceRow;
 
   factory DeviceRow.fromJson(Map<String, dynamic> json) =>
       _$DeviceRowFromJson(json);
 }
+// JSON 키: device_id · label · role_label · status_label · last_seen_text · level · revoke_action · revoke_confirm_text
+
+/// 🆕 v1.20(01 §29 · K15 · K16) — `S06` viewer QR 페어링 티켓 카드(발급 쪽 · 스캔 = M8 `V-01` `VIEWER_QR_SCAN`).
+/// 🔴 잠김 밖에서는 [issueAction] XOR [qrSlotId](티켓 없음 = 발급 버튼 · 유효 티켓 = QR 자리) · [qrSlotId] ⇔ [expiresText].
+/// 🔴 페이로드·토큰 칸 0(QR 은 슬롯 위젯 안에서만 — 조립 앱 · 06 `M4-12` ⑦) · 카운트다운 0(만료 = 엔진이 카드를 닫은 새 VM).
+@freezed
+abstract class PairingTicketCard with _$PairingTicketCard {
+  const factory PairingTicketCard({
+    /// 카드 머리 한 줄 — 엔진.
+    required String headline,
+
+    /// 엔진이 완성한 `devicePairingTicketCreate{}`(«QR 만들기»). null = 버튼 부재.
+    SettingsActionCall? issueAction,
+
+    /// QR 표시 자리 이름(`SettingsSlotIds.pairingQrDisplay`). null = 자리 부재.
+    String? qrSlotId,
+
+    /// «09:15 까지 유효» — 엔진 절대 시각 글자(🔴 남은 초를 세지 않는다).
+    String? expiresText,
+  }) = _PairingTicketCard;
+
+  factory PairingTicketCard.fromJson(Map<String, dynamic> json) =>
+      _$PairingTicketCardFromJson(json);
+}
+// JSON 키: headline · issue_action · qr_slot_id · expires_text
 
 /// m2-8 G-9 — 백업·복원(05 `S09`).
 @freezed

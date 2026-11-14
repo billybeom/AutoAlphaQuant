@@ -6,7 +6,7 @@
 |---|---|
 | `command_api.dart` | `CommandApi` · `CommandReceipt` · `CommandKind` · `CommandState` · `DepositRegistration` |
 | `payloads.dart` | ~~⚠️ `JournalDraft` · `BlindReviewScore` · `DisclosureViewEvent` — **필드 미확정**. 이것이 없으면 명령 5종 중 3종을 호출할 수 없다(M2-8 최우선)~~ ✅ `JournalDraft`(H-1) · `BlindReviewScore`(H-2 · 🆕 v1.7 주석 — 점수 = 고른 `BlindReviewChoice.score` 그대로 · 01 §16) · `DisclosureViewEvent`(H-3) — 필드 확정 |
-| `settings_actions.dart` | `SettingsActions` · `SettingsActionId`(32종 — 🆕 v1.12 +2 `selfReportSessionStart`·`selfReportSessionStop` · 🔵 옛 «20종» 은 실물 27과 어긋난 오기였다 · 🆕 v1.19 +1 `runtimeLivePromotion` · 🔵 옛 «29종» 은 v1.16·v1.18 추가분을 빠뜨린 실물 31 의 오기였다) · 🆕 v1.19 `S05` args 화이트리스트 5(`settings_actions.dart` 머리) · `ActionResult` |
+| `settings_actions.dart` | `SettingsActions` · `SettingsActionId`(32종 — 🆕 v1.12 +2 `selfReportSessionStart`·`selfReportSessionStop` · 🔵 옛 «20종» 은 실물 27과 어긋난 오기였다 · 🆕 v1.19 +1 `runtimeLivePromotion` · 🔵 옛 «29종» 은 v1.16·v1.18 추가분을 빠뜨린 실물 31 의 오기였다) · 🆕 v1.19 `S05` args 화이트리스트 5(`settings_actions.dart` 머리) · 🆕 v1.20 `S02`·`S06`·`S03` args 화이트리스트 5 + 화면 미호출 1(`credentialRegister` · 값 0 추가) · `ActionResult` |
 
 ## 이 폴더가 지는 규칙
 

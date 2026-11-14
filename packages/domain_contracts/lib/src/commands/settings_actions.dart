@@ -14,6 +14,7 @@
 // 🆕 v1.18(01 §27) — M9 `S07` args 화이트리스트(`connectionTest`·`connectionSyncNow` = `{target}` ·
 //    `notifyChannelSelect` = `{channel}`) · S07 은 결과를 읽는다(`SettingsResultCodes`).
 // 🆕 v1.19(01 §28) — M9 `S05` args 화이트리스트(전환 2 · 엔진 시작·중지 · 승격) · S05 는 결과를 읽는다.
+// 🆕 v1.20(01 §29) — M9 `S02`·`S06`·`S03` args 화이트리스트(검증 1단 · 발급 · 폐기 · 매핑 · 전체 검증) · 🔴 시크릿 값 args 0.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -78,7 +79,20 @@ part 'settings_actions.g.dart';
 ///    🔴 키 `target` 을 쓰지 않는다(C-5 `connection_target` 사전 키). `S05` 는 [ActionResult] 를 읽는다 — `headline` + `reasonCode`
 ///      원문 · `handoffRoute` 가 있으면 `AppLinkOpener.open(handoffRoute)` 하고 끝 · `retryable` 전부 false(버튼 = VM 의 호출뿐)
 ///      (표본 = `m9/operations_action_results`).
-///    ⏸ `settingsContributionUpdate` = R8 창(엔진 E11j) · R7·R9 동작 = 각 창.
+///    🆕 v1.20(01 §29 · K5 · K6 · K15 · K19 · K32 · K33) — M9 `S02`·`S06`·`S03`(폰 로컬 · 운영 등급 · 뷰어 경로 0 · 엔진이 `SettingsActionCall` 에 완성):
+///    · `credentialVerify`          = `{kind ∈ CredentialKindCodes}`(`CredentialCardVm.verifyAction` · 🔴 1단 — 통과 = 구현이 Keystore 에 저장 ·
+///      값은 슬롯 위젯 ↔ 이 구현 사이(조립 앱 내부)로만 · args·VM·결과 어디에도 0) · 거절 = `CREDENTIAL_REJECTED`(온보딩 한 벌) ·
+///      다른 환경 키 = `WRONG_KEY_SET` · 생체 = `BIOMETRIC_UNAVAILABLE`
+///    · `credentialRegister`        = 🔴 화면 미호출(1단 · 조립·엔진 내부 — 회전 마법사 `M4-4` 등 · args 미정 유지)
+///    · `devicePairingTicketCreate` = `{}`(`PairingTicketCard.issueAction` · 티켓·QR = VM 스트림 + 슬롯 — 결과에 페이로드 0)
+///    · `deviceTokenRevoke`         = `{device_id}`(`DeviceRow.revokeAction` · 값 = 그 행 `deviceId` — 🔴 화면은 읽지 않는다 ·
+///      중복 = `DEVICE_ALREADY_REVOKED`)
+///    · `accountMapSleeve`          = `{sleeve ∈ {A, B, C}, account_alias}`(`AccountMappingOption.selectAction` · 🔴 계좌번호 키 0 · 엔진이 안에서
+///      드라이런 + SAF-309 재확인 뒤 원자 저장 · 거부 = `Saf309Codes` · `MAPPING_VERIFY_FAILED`)
+///    · `accountVerifyMapping`      = `{}`(v1.16 그대로 · `AccountMappingVm.verifyAction` = 전체 검증)
+///    🔴 R7 세 화면은 [ActionResult] 의 `headline` + `reasonCode` 원문만 읽는다 — `handoffRoute`·`retryable` 미참조(표본 null·false ·
+///      다시 시도 = VM 의 같은 버튼)(표본 = `m9/credential_action_results` · `m9/device_action_results` · `m9/account_mapping_action_results`).
+///    ⏸ `settingsContributionUpdate` = R8 창(엔진 E11j) · R9 동작 = 그 창.
 ///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).

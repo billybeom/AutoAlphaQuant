@@ -299,7 +299,10 @@ abstract final class AppRoutes {
   static const String settingsAnnualReview = 'aaq://settings/annual-review';
   static const String handoverStatus = 'aaq://handover/status';
 
-  // ── M5 · X1 · X2 · X5 소유(06 §3-5 목록 — 위젯은 Claude, 등록은 셸) ────────
+  // ── M4 · M5 · X1 · X2 · X5 소유(06 §3-5 목록 — 위젯은 Claude, 등록은 셸) ────────
+  /// 🆕 v1.20(01 §29 · K12 · K37) — 🔒 06 `M4-4` 키 회전 마법사(`S02` 카드 `rotateLink` 목적지 · 파라미터 0 — 세트는 마법사가 VM 으로 안다) ·
+  /// 본문 = 마법사가 생길 때까지 조립 앱 레지스트리 빈 자리(v1.16 `x1MigrationPlan` 선례) · 셸 가드 무변경.
+  static const String m4KeyRotation = 'aaq://m4/key-rotation';
   static const String m5KillSwitch = 'aaq://m5/kill-switch';
   static const String m5ReleaseGate = 'aaq://m5/release-gate';
   static const String m5BlockBoard = 'aaq://m5/block-board';
@@ -334,6 +337,7 @@ abstract final class AppRoutes {
   /// 🆕 v1.17 = **69** · `opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex`(`opsRhythm` 뒤 ·
   /// 조각 수 4·5·4·4·3 — 기존 패턴과 겹침 0).
   /// 🆕 v1.18 = **80** · M9 11(`settingsCredentials` 뒤 · S 번호 차례 · 3조각 1 + 4조각 10 · 파라미터 0 — 기존 패턴과 겹침 0).
+  /// 🆕 v1.20 = **81** · `m4KeyRotation`(Claude 소유 묶음 머리 · 4조각 · 파라미터 0 — 기존 패턴과 겹침 0).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -401,6 +405,7 @@ abstract final class AppRoutes {
     settingsGeneral,
     settingsAnnualReview,
     handoverStatus,
+    m4KeyRotation,
     m5KillSwitch,
     m5ReleaseGate,
     m5BlockBoard,
