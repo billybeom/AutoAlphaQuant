@@ -7,6 +7,7 @@
 //    조립한다(폴더 · 원장) — 조립이 실패해도 호스트(알람 · FGS)는 이미 서 있고, 다음 깨어남에 다시 조립한다.
 // 🆕 E11p3b-4(설계 13 §8 R95) — 기동 판정 «자격증명 환경» = 모드가 고르는 KIS 키 세트의 환경(`kisKeySetFits`).
 // 🆕 E11p3c-1(설계 13 §8 R97) — 실물 잡 부품(`JobParts`): KIS 일봉 원천(금고 키 → 클라이언트 하나) · FRED · OFR · 국면 지문.
+// 🆕 E11p3c-4(설계 13 §8 R102) — 깨어남이 끝나면 엔진 상태를 FGS 에 띄운다(호스트 `fgs.show` · 전이 때만 다시 띄움).
 
 import 'dart:io' show Platform;
 
@@ -19,7 +20,8 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart' show RunMode;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
-import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
+import 'package:trading_runtime/trading_runtime.dart'
+    show FgsStatus, JobCalendars;
 
 import '../engine/data_job_runners.dart' show JobParts;
 import '../engine/engine_boot.dart' show BootInputs;
@@ -45,11 +47,18 @@ Future<OperatorEngineHost?> startOperatorPlatform({
     kr: frozenExchangeCalendar(Market.kr),
     us: frozenExchangeCalendar(Market.us),
   );
-  final OperatorEngineHost host = OperatorEngineHost(
+  late final OperatorEngineHost host;
+  host = OperatorEngineHost(
     ops: ops,
     calendars: cals,
     channelNames: kOpsChannelNames,
-    onWake: onWake ?? engineWakeHandler(ops: ops, calendars: cals),
+    onWake:
+        onWake ??
+        engineWakeHandler(
+          ops: ops,
+          calendars: cals,
+          fgs: (FgsStatus s) => host.fgs.show(s),
+        ),
     onLink: onLink,
   );
   await host.start();
@@ -60,15 +69,20 @@ Future<OperatorEngineHost?> startOperatorPlatform({
 WakeHandler engineWakeHandler({
   required AndroidOps ops,
   required JobCalendars calendars,
+  FgsSink? fgs,
 }) {
   OperatorEngine? engine;
   return (WakeEvent _) async {
-    final OperatorEngine e = engine ??= await _assemble(ops, calendars);
+    final OperatorEngine e = engine ??= await _assemble(ops, calendars, fgs);
     await e.wake();
   };
 }
 
-Future<OperatorEngine> _assemble(AndroidOps ops, JobCalendars cals) async {
+Future<OperatorEngine> _assemble(
+  AndroidOps ops,
+  JobCalendars cals,
+  FgsSink? fgs,
+) async {
   final String dir = (await ops.paths()).engineDir;
   const SystemClock clock = SystemClock();
   final http.Client net = http.Client();
@@ -84,6 +98,7 @@ Future<OperatorEngine> _assemble(AndroidOps ops, JobCalendars cals) async {
     bootInputs: kOperatorBootInputs,
     runners: (JobContext c) => composeJobRunners(c, parts: parts),
     seed: () => loadSeedAssets(rootBundle),
+    fgs: fgs,
   );
 }
 

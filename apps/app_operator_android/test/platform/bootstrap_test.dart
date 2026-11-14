@@ -3,16 +3,19 @@
 import 'dart:io';
 
 import 'package:app_operator_android/engine/kis_sessions.dart';
+import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/platform/platform.dart';
 import 'package:broker_gateway/broker_gateway.dart' show KisQuoteFeed;
-import 'package:core_engine/core_engine.dart' show p0sRegimeConfigHash;
+import 'package:core_engine/core_engine.dart' show kSaf405, p0sRegimeConfigHash;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:domain_contracts/domain_contracts.dart'
-    show LedgerFile, RunMode;
+    show LedgerFile, OperatingMode, RunMode, UiLevel;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:trading_runtime/trading_runtime.dart' show FgsStatus;
 
 import '../engine/support.dart';
 
@@ -59,6 +62,46 @@ void main() {
         true,
       );
       expect(Directory('${root.path}/files').existsSync(), false);
+    },
+  );
+
+  test(
+    '🔴 깨어남 → FGS(R102) — 조립된 엔진이 상태를 넘긴다(기동 거부 = BLOCKED · 거부 코드)',
+    () async {
+      final Directory root = tempLedgerDir();
+      final Directory engineDir = Directory('${root.path}/no_backup/engine')
+        ..createSync(recursive: true);
+      final FakeClock clock = FakeClock(DateTime.now().toUtc());
+      final LedgerFiles f = openFiles(engineDir, clock);
+      writeSimMode(f.sim, clock, committed: OperatingMode.autoTrade);
+      final Database live = writeLiveMode(engineDir, clock);
+      live.close();
+      f.close();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            _ch,
+            (MethodCall c) async => c.method == 'paths'
+                ? <String, Object?>{
+                    'files': '${root.path}/files',
+                    'noBackup': '${root.path}/no_backup',
+                  }
+                : null,
+          );
+      final List<FgsStatus> shown = <FgsStatus>[];
+      final WakeHandler h = engineWakeHandler(
+        ops: AndroidOps(),
+        calendars: calendars(),
+        fgs: (FgsStatus s) async => shown.add(s),
+      );
+      await h(
+        WakeEvent.fromWire(<String, Object?>{
+          'reason': 'start',
+          'firedAtMs': 1,
+        })!,
+      );
+      expect(shown, hasLength(1));
+      expect(shown.single.level, UiLevel.blocked);
+      expect(shown.single.headline, kSaf405);
     },
   );
 

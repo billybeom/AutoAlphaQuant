@@ -3,6 +3,7 @@ library;
 
 export 'data_job_runners.dart';
 export 'engine_boot.dart';
+export 'fgs_status_source.dart';
 export 'job_runners.dart';
 export 'kis_sessions.dart';
 export 'ledger_files.dart';
