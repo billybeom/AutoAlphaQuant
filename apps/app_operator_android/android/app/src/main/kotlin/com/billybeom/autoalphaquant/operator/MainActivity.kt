@@ -28,6 +28,17 @@ class MainActivity : FlutterActivity() {
         forwardLink(intent)
     }
 
+    // 🆕 E11p3d-5(R107) — 앞에 온 화면을 채널에 알린다(FLAG_SECURE · 권한 대화상자).
+    override fun onResume() {
+        super.onResume()
+        OpsChannel.attachActivity(this)
+    }
+
+    override fun onPause() {
+        OpsChannel.detachActivity(this)
+        super.onPause()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         forwardLink(intent)

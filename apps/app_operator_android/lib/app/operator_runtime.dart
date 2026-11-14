@@ -20,11 +20,27 @@ import 'package:flutter/foundation.dart';
 import '../engine/ledger_files.dart';
 import '../engine/operator_engine.dart' show EngineWakeReport;
 import 'operator_view.dart';
+import 'secure_screen.dart';
 
 /// operator 실행 묶음.
 class OperatorRuntime {
-  /// 만든다 — [files] = 엔진 원장 폴더의 원장(열린 채로 넘긴다).
-  OperatorRuntime({required this.files, required this.clock});
+  /// 만든다 — [files] = 엔진 원장 폴더의 원장(열린 채로 넘긴다) · [secure] · [openExternal] = 플랫폼(시험 = 기본값 · 아무것도 안 함).
+  OperatorRuntime({
+    required this.files,
+    required this.clock,
+    SecureScreen? secure,
+    Future<bool> Function(String url)? openExternal,
+  }) : secure = secure ?? SecureScreen(_noSecure),
+       openExternal = openExternal ?? _noExternal;
+
+  static Future<void> _noSecure(bool on) async {}
+  static Future<bool> _noExternal(String url) async => false;
+
+  /// 🆕 E11p3d-5(R107) — 캡처 막기 겹침 세기(FLAG_SECURE).
+  final SecureScreen secure;
+
+  /// 🆕 R107 — 바깥 링크 열기(https 만).
+  final Future<bool> Function(String url) openExternal;
 
   /// 엔진 · 화면 공용 원장.
   final LedgerFiles files;

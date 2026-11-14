@@ -25,6 +25,7 @@ import 'package:trading_runtime/trading_runtime.dart'
     show FgsStatus, JobCalendars;
 
 import '../app/operator_runtime.dart';
+import '../app/secure_screen.dart' show SecureScreen;
 import '../engine/data_job_runners.dart' show JobParts;
 import '../engine/engine_boot.dart' show BootInputs;
 import '../engine/job_runners.dart' show JobContext, composeJobRunners;
@@ -136,10 +137,13 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
   if (!Platform.isAndroid) return null;
   try {
     const SystemClock clock = SystemClock();
-    final String dir = (await AndroidOps().paths()).engineDir;
+    final AndroidOps ops = AndroidOps();
+    final String dir = (await ops.paths()).engineDir;
     return OperatorRuntime(
       files: LedgerFiles.open(dir, clock: clock),
       clock: clock,
+      secure: SecureScreen(ops.setSecure),
+      openExternal: ops.openExternalUrl,
     );
   } on Object {
     return null;

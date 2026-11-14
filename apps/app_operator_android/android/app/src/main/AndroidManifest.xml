@@ -18,6 +18,8 @@
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- 🆕 E11p3d-5(R107) — 배터리 최적화 예외 요청(엔진 생존 · 06 M1-15 · 개인용 배포 · Play 정책 대상 아님). -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <application
         android:label="AutoAlphaQuant"
         android:name="${applicationName}"
