@@ -148,6 +148,47 @@ class SqliteModeStore {
     required bool handoverSessionValid,
     required String decisionId,
     String? handoverSessionId,
+  }) => _record(
+    axis: axis,
+    runMode: runMode,
+    execPolicy: execPolicy,
+    operatingMode: operatingMode,
+    handoverSessionValid: handoverSessionValid,
+    decisionId: decisionId,
+    handoverSessionId: handoverSessionId,
+    wrap: true,
+  );
+
+  /// 🆕 E15d1(R85 AA4) — [record] 와 같은 검사 · 같은 행이지만 **호출자가 연 트랜잭션 안에서** 쓴다
+  /// (온보딩 커밋 = 모드 행 · 전략 시딩 · `committed_at` 한 트랜잭션). 트랜잭션 밖에서 부르지 마십시오.
+  String? recordInTransaction({
+    required ModeAxis axis,
+    required RunMode runMode,
+    required ExecPolicy execPolicy,
+    required OperatingMode operatingMode,
+    required bool handoverSessionValid,
+    required String decisionId,
+    String? handoverSessionId,
+  }) => _record(
+    axis: axis,
+    runMode: runMode,
+    execPolicy: execPolicy,
+    operatingMode: operatingMode,
+    handoverSessionValid: handoverSessionValid,
+    decisionId: decisionId,
+    handoverSessionId: handoverSessionId,
+    wrap: false,
+  );
+
+  String? _record({
+    required ModeAxis axis,
+    required RunMode runMode,
+    required ExecPolicy execPolicy,
+    required OperatingMode operatingMode,
+    required bool handoverSessionValid,
+    required String decisionId,
+    required String? handoverSessionId,
+    required bool wrap,
   }) {
     if (axis == ModeAxis.close) {
       throw ArgumentError.value(axis, 'axis', 'CLOSE 는 close() 로 쓴다');
@@ -168,15 +209,18 @@ class SqliteModeStore {
     )) {
       return kModeCombinationDenied;
     }
-    inLedgerTransaction(_db, () {
-      _insert(
-        axis: axis,
-        runMode: runMode,
-        execPolicy: execPolicy,
-        decisionId: decisionId,
-        handoverSessionId: handoverSessionId,
-      );
-    });
+    void write() => _insert(
+      axis: axis,
+      runMode: runMode,
+      execPolicy: execPolicy,
+      decisionId: decisionId,
+      handoverSessionId: handoverSessionId,
+    );
+    if (wrap) {
+      inLedgerTransaction(_db, write);
+    } else {
+      write();
+    }
     return null;
   }
 
