@@ -38,6 +38,9 @@ dependencies:
   # 동기화 — operator는 읽기+쓰기(viewer는 읽기 전용 표면만).
   data_sync:
     path: ../../packages/data_sync
+  # 🆕 E11p2 — 시험 · 조립이 계약 타입(`UiLevel`)을 직접 쓴다(`depend_on_referenced_packages`).
+  domain_contracts:
+    path: ../../packages/domain_contracts
   flutter:
     sdk: flutter
   # 상태관리 — 청사진 채택(00_README §4)
@@ -60,13 +63,6 @@ dependencies:
     path: ../../packages/ui_settings
   ui_shell:
     path: ../../packages/ui_shell
-
-  # ⚠️ domain_contracts는 위 패키지들을 통해 전이로 들어온다. 리포지토리 구현체를
-  #    Riverpod 프로바이더에 주입하기 시작하면(조립 코드가 계약 타입을 직접 참조하면)
-  #    `depend_on_referenced_packages` 린트가 뜨므로 그때 아래를 살린다.
-  #    🔴 살릴 때는 알파벳 순서대로 data_sync 위에 넣는다(core_engine 다음).
-  # domain_contracts:
-  #   path: ../../packages/domain_contracts
 
 dev_dependencies:
   # 🔴 알파벳 순 — flutter_lints가 flutter_test보다 앞이다.

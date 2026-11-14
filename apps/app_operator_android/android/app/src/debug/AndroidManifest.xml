@@ -4,4 +4,10 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <application>
+        <!-- 🔴 debug 전용 — 실측 스크립트의 시험 알람(E11p2 · P13 ③). release 에는 없다. -->
+        <receiver
+            android:name=".ops.ProbeReceiver"
+            android:exported="true" />
+    </application>
 </manifest>

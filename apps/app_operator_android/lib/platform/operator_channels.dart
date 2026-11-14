@@ -10,7 +10,18 @@ abstract final class OperatorChannelNames {
 
   /// 봉함(`SealedBox`).
   static const String sealedBox = 'aaq/sealed_box';
+
+  /// 🆕 E11p2 — 운영(FGS 알림 · 정확 알람 · 깨어남 · 자가진단).
+  static const String ops = 'aaq/ops';
 }
+
+/// 🆕 E11p2 — FGS 채널 표시 이름(OS 알림 설정에 보이는 **정적 라벨** · 사유 문구가 아니다).
+///
+/// 키 = `FgsChannel.id`(trading_runtime) — 글자 대조 시험이 묶는다.
+const Map<String, String> kOpsChannelNames = <String, String>{
+  'ops_status': '운영 상태',
+  'ops_p0': '긴급 알림(P0)',
+};
 
 /// Kotlin 이 보내는 오류 코드.
 abstract final class OperatorChannelCodes {

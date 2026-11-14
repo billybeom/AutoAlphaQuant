@@ -6,8 +6,18 @@
          allowBackup=false 만으로는 Android 12+ 의 «기기 간 이전(D2D)»이 막히지 않는다 →
          dataExtractionRules 로 cloud-backup · device-transfer 둘 다 전 도메인을 뺀다.
          비밀 파일은 그 위에 noBackupFilesDir 에 둔다(이중).
-      🔵 FGS · 정확 알람 · 부팅 · 알림 채널 권한은 E11p2 가 더한다.
+      🔵 E11p2 — FGS(specialUse) · 정확 알람 · 부팅 · 알림 권한과 서비스 · 수신기(P6 · P7 · P11).
     -->
+    <!-- 🆕 E11p2 — FGS · 정확 알람 · 부팅 · 알림(설계 e11p-map P6 · P7 · P10 · P11). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <application
         android:label="AutoAlphaQuant"
         android:name="${applicationName}"
@@ -37,6 +47,28 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- 🆕 E11p2 — 엔진 FGS(specialUse · 상시 알림 = 사양 · 앱 04 §5-6) · 알람 · 부팅 수신기. -->
+        <service
+            android:name=".ops.EngineService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Personal portfolio engine: runs scheduled jobs at exchange session times and shows a persistent status notification." />
+        </service>
+        <receiver
+            android:name=".ops.AlarmReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".ops.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
