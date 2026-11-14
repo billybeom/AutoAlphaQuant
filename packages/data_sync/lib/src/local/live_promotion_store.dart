@@ -11,6 +11,7 @@ import 'package:core_engine/core_engine.dart'
         LiveObservationConfig,
         LiveObservationFacts,
         LiveObservationReport,
+        LeaseVerdict,
         LivePromotionCodes,
         P0sStrategyIds,
         judgeLiveObservation,
@@ -80,12 +81,14 @@ class SqliteLivePromotionStore {
     return nowUtc.isBefore(DateTime.parse(v).toUtc());
   }
 
-  /// 🔴 승격(AD4 · AD5) — [biometricConfirmed] = 호출자(M5 게이트 대화상자)의 생체 1회 증명.
+  /// 🔴 승격(AD4 · AD5) — [biometricConfirmed] = 호출자(M5 게이트 대화상자)의 생체 1회 증명 ·
+  /// 🆕 E15f5(R108 AM4) [lease] = 실전 파일 리스 판정(async 라 트랜잭션 앞에서 읽어 넘긴다 · 모름 = 거부).
   LivePromotionOutcome promote({
     required bool biometricConfirmed,
     required String configHash,
     required ExchangeCalendar kr,
     required LiveObservationConfig config,
+    required LeaseVerdict lease,
     String? handoverSessionId,
   }) {
     String? code;
@@ -111,6 +114,7 @@ class SqliteLivePromotionStore {
           operatingMode: _mode.operatingMode(),
           currentSinceUtc: f.currentSinceUtc,
           nowUtc: now,
+          lease: lease,
           report: r,
         );
         if (code != null) return;
