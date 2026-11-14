@@ -27,3 +27,28 @@ NextRebalance? nextRegularRebalance(ExchangeCalendar kr, TradeDate asOf) {
     return null;
   }
 }
+
+/// 🆕 E15f1(R93 AE5) — [atUtc] 뒤 첫 **정기 집행 세션**(월 마지막 세션 다음 세션) 가운데 그 세션 09:10
+/// (`kr_order`)이 아직 오지 않은 것(`YYYY-MM-DD` · 범위 밖 = null).
+///
+/// 🔴 월말 판정일과 집행일 사이(주말 · 휴장)에도 그 집행일을 준다 — [nextRegularRebalance] 는 «판정일 ≥ 기준일»
+/// 이라 판정일이 지나면 다음 달을 준다.
+String? nextRegularExecutionSession(ExchangeCalendar kr, DateTime atUtc) {
+  try {
+    final DateTime k = atUtc.toUtc().add(const Duration(hours: 9));
+    String two(int n) => n.toString().padLeft(2, '0');
+    final TradeDate today = TradeDate(
+      '${k.year.toString().padLeft(4, '0')}-${two(k.month)}-${two(k.day)}',
+    );
+    final bool beforeOrder = k.hour < 9 || (k.hour == 9 && k.minute < 10);
+    final TradeDate s0 = kr.isSession(today) && beforeOrder
+        ? today
+        : kr.nextSession(today);
+    if (kr.isLastSessionOfMonth(kr.nthSessionBefore(s0, 1))) {
+      return s0.yyyyMmDd;
+    }
+    return nextRegularRebalance(kr, s0)?.planned.yyyyMmDd;
+  } on StateError {
+    return null;
+  }
+}

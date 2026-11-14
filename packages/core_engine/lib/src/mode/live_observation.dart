@@ -12,7 +12,7 @@ import 'package:domain_contracts/domain_contracts.dart'
     show ExecPolicy, LiveDryRunObservationVm, RunMode, TradeDate;
 
 import '../calendar/exchange_calendar.dart' show ExchangeCalendar;
-import '../calendar/next_rebalance.dart' show nextRegularRebalance;
+import '../calendar/next_rebalance.dart' show nextRegularExecutionSession;
 import '../ops/ledger_views.dart' show kstDateText;
 
 /// 관찰 일수 설정 키(02 §5 `operations.*` · 값 = 설정 원천).
@@ -185,15 +185,6 @@ String _firstSessionOnOrAfter(ExchangeCalendar kr, String day) {
   return kr.isSession(d) ? day : kr.nextSession(d).yyyyMmDd;
 }
 
-/// 다음 정기 집행 세션(오늘이 집행일이면 오늘).
-String? _nextExecution(ExchangeCalendar kr, String today) {
-  final TradeDate t = TradeDate(today);
-  if (kr.isSession(t) && kr.isLastSessionOfMonth(kr.nthSessionBefore(t, 1))) {
-    return today;
-  }
-  return nextRegularRebalance(kr, t)?.planned.yyyyMmDd;
-}
-
 /// M1-22 관찰 판정(R89 AC2~AC8).
 LiveObservationReport judgeLiveObservation(
   LiveObservationFacts f, {
@@ -257,7 +248,8 @@ LiveObservationReport judgeLiveObservation(
       '승격 불가 — 확인 안 된 주문 ${f.unknownOrders}건',
     LiveObservationBlock.notEnoughDays => '승격 불가 — 무결 거래일이 아직 모자랍니다($shown/$m)',
   };
-  final String? exec = _nextExecution(kr, today);
+  // 🔵 E15f1 정정 — 그 집행 09:10 이 아직 오지 않은 다음 정기 집행(월말 뒤 주말에도 그 집행일).
+  final String? exec = nextRegularExecutionSession(kr, f.asOfUtc);
   final String state = exec == null
       ? '실전 관찰 중'
       : '실전 관찰 중 · 정기 리밸런싱 $exec 09:10 전에 승격해야 첫 주문이 나갑니다';
