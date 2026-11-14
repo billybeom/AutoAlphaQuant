@@ -766,6 +766,24 @@ export 'src/sim/sim_opening.dart'
         simOpeningDecisionId,
         simOpeningSplit,
         simTrialStartReject;
+// 🆕 E15d2 — 체험 5항목 판정 · 요약 카운터(설계 13 §8 R87 AB1~AB11).
+export 'src/sim/sim_trial.dart'
+    show
+        SimTrialCounters,
+        SimTrialFacts,
+        SimTrialFactsSource,
+        SimTrialItem,
+        SimTrialItemResult,
+        SimTrialItemState,
+        SimTrialKillEvent,
+        SimTrialRebalance,
+        SimTrialRecon,
+        SimTrialReport,
+        SimTrialResumeRun,
+        judgeSimTrial,
+        kSimTrialBatchJob,
+        kSimTrialMonthlyKind,
+        kSimTrialRequiredSessions;
 // 🆕 E15c1 — 가상 체결가(주문 세션 당일 봉 · SPEC v2.44 · 설계 13 §8 R83 Y2).
 export 'src/sim/virtual_fill.dart'
     show kVirtualLimitOrder, kVirtualMarketOrder, virtualFillPrice;
