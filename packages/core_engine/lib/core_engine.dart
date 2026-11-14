@@ -152,6 +152,24 @@ export 'src/mode/sim_to_auto.dart'
         kHandoverPlanStaleAfter,
         simToAutoCommitWindow,
         simToAutoPlan;
+// 🆕 E15f3a — simToAuto 2단 커밋 1단계 순수 몫(게이트 · 개시 현금 · 결정 id · S5 고름 · 설계 13 §8 R98).
+export 'src/mode/sim_to_auto_commit.dart'
+    show
+        LiveAccountProbe,
+        SimToAutoCommitCodes,
+        kHandoverCommitCheck,
+        kLiveOpeningReason,
+        kLiveOpeningSeedReason,
+        kSimLedgerDiscardCode,
+        kSimLedgerKeepCode,
+        liveOpeningCash,
+        liveOpeningDecisionId,
+        simLedgerFateDecisionId,
+        simLedgerFateOfReasonCode,
+        simLedgerFateReasonCode,
+        simToAutoCommitHeadline,
+        simToAutoCommitReject,
+        simToAutoSessionUsable;
 // 🆕 E11p3b-1 — 설정 지문(정규 JSON SHA-256 앞 16자 · 설계 13 §8 R90).
 export 'src/ops/config_fingerprint.dart'
     show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;

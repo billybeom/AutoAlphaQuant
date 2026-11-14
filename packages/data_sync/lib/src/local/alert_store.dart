@@ -63,26 +63,41 @@ class SqliteAlertSink implements AlertSink {
   Future<void> emit(String check, Set<String> codes) async {
     if (codes.isEmpty) return;
     final DateTime now = _clock.nowUtc().toUtc();
-    // 🔴 등급을 먼저 전부 판정 — 모르는 코드가 하나라도 있으면 아무것도 적지 않고 던진다.
-    final List<(String, AlertLevel)> rows = <(String, AlertLevel)>[
-      for (final String c in codes.toList()..sort()) (c, alertLevelOf(c)),
-    ];
-    inLedgerTransaction(_db, () {
-      for (final (String code, AlertLevel level) in rows) {
-        _db.execute(
-          'INSERT OR IGNORE INTO alert_event(alert_id, raised_at, code, level, source, dedupe_key) '
-          'VALUES (?, ?, ?, ?, ?, ?)',
-          <Object?>[
-            alertIdOf(code: code, source: check, raisedAtUtc: now),
-            now.toIso8601String(),
-            code,
-            level.wire,
-            check,
-            alertDedupeKey(code: code, source: check, raisedAtUtc: now),
-          ],
-        );
-      }
-    });
+    final List<(String, AlertLevel)> rows = _levels(codes);
+    inLedgerTransaction(_db, () => _write(check, rows, now));
+  }
+
+  /// 🆕 E15f3a(R98 AG8) — 바깥 트랜잭션 안에서 적는다(커밋과 함께 정확히 1회 · 되돌리면 같이 사라진다).
+  /// 트랜잭션 밖 = [StateError] · 모르는 코드 = [ArgumentError](아무것도 적지 않는다).
+  void emitInTransaction(String check, Set<String> codes) {
+    if (_db.autocommit) {
+      throw StateError('emitInTransaction 은 바깥 트랜잭션 안에서만');
+    }
+    if (codes.isEmpty) return;
+    _write(check, _levels(codes), _clock.nowUtc().toUtc());
+  }
+
+  // 🔴 등급을 먼저 전부 판정 — 모르는 코드가 하나라도 있으면 아무것도 적지 않고 던진다.
+  List<(String, AlertLevel)> _levels(Set<String> codes) =>
+      <(String, AlertLevel)>[
+        for (final String c in codes.toList()..sort()) (c, alertLevelOf(c)),
+      ];
+
+  void _write(String check, List<(String, AlertLevel)> rows, DateTime now) {
+    for (final (String code, AlertLevel level) in rows) {
+      _db.execute(
+        'INSERT OR IGNORE INTO alert_event(alert_id, raised_at, code, level, source, dedupe_key) '
+        'VALUES (?, ?, ?, ?, ?, ?)',
+        <Object?>[
+          alertIdOf(code: code, source: check, raisedAtUtc: now),
+          now.toIso8601String(),
+          code,
+          level.wire,
+          check,
+          alertDedupeKey(code: code, source: check, raisedAtUtc: now),
+        ],
+      );
+    }
   }
 
   void _command(String commandId, String digest, {String? rejectCode}) =>
