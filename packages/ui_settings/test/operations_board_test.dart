@@ -699,16 +699,14 @@ void main() {
       );
 
       final Set<String> allowed = c.allowed(c.v);
-      tester
-          .widgetList<Text>(
-            find.descendant(
-              of: find.byType(Operations),
-              matching: find.byType(Text),
-            ),
-          )
+      final List<String?> shown = tester
+          .widgetList<Text>(find.byType(Text))
           .map((Text t) => t.data)
-          .whereType<String>()
-          .forEach((String s) => expect(allowed, contains(s)));
+          .toList();
+      expect(shown, isNotEmpty);
+      for (final String? data in shown) {
+        expect(data, isIn(allowed));
+      }
 
       expect(
         find.byWidgetPredicate((Widget w) => w is ButtonStyleButton),
