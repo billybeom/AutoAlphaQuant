@@ -12,7 +12,7 @@
 
 | 패키지 | 소유 | `app_operator_android` | `app_viewer_ios` | `app_viewer_web` ⚠️Q-D |
 |---|---|:--:|:--:|:--:|
-| `domain_contracts` | Claude (M2) | ○ | ○ | — |
+| `domain_contracts` | Claude (M2) | ● 🆕 E11p2(조립 · 시험이 계약 타입을 직접 쓴다 — 전에는 ○) | ○ | — |
 | `core_engine` | Claude (M1·M3) | ● 🆕 E11p(플랫폼 어댑터가 core 포트를 구현 — 전에는 ○) | **—** | **—** |
 | `broker_gateway` | Claude (M1) | ○ | **—** | **—** |
 | `trading_runtime` | Claude (M1·X2) | ● | **—** | **—** |
@@ -28,7 +28,8 @@
 - `app_viewer_web` 열이 전부 «—»인 것은 **스텁이기 때문**입니다. 발주자 결정 **Q-D**(v1에서 웹·데스크탑을 뺄 것인가, 00_README §8-2)가 「포함」으로 나면 **`app_viewer_ios` 열과 같은 집합**이 됩니다.
 - `broker_gateway`가 operator에서 «○»인 것은 `trading_runtime`을 통해 들어오기 때문입니다(`core_engine` 도 그랬다가 🆕 E11p 에서 «●» — `lib/platform/` 어댑터가 `SecretVault`·`SealedBox` 포트를 직접 구현한다 · 빌드 내용은 같다). **viewer에는 그 통로 자체가 없습니다.**
   - 🆕 2026-11-04 정정(설계 13 §8 R53) — 이 문장은 **그동안 거짓이었다**: viewer 가 의존하던 `data_sync` 가 `core_engine` 을 의존해 전이로 들어왔다(지도 X1). viewer 는 이제 `read_model_client`(의존 = `domain_contracts` 만)로만 읽고, `tool/check_boundaries.sh` [8] 이 viewer 의 **전이 의존 그래프**에 `core_engine` · `broker_gateway` · `trading_runtime` · `data_sync` · `sqlite3` 가 없는지 본다.
-- `domain_contracts`가 «○»인 것은 앱 조립 코드가 아직 계약 타입을 직접 참조하지 않아서입니다. 리포지토리 주입을 시작하면 각 앱 pubspec에 직접 의존으로 올라갑니다(`depend_on_referenced_packages` 린트).
+- `domain_contracts`가 «○»인 것은 앱 조립 코드가 아직 계약 타입을 직접 참조하지 않아서입니다. 리포지토리 주입을 시작하면 각 앱 pubspec에 직접 의존으로 올라갑니다(`depend_on_referenced_packages` 린트). 🆕 operator 는 E11p2 에서 올라갔다(●).
+- 🆕 E11p3a — operator 조립(`lib/engine/`)이 원장 연결(`sqlite3` `Database`)과 healthchecks 어댑터의 `http.Client` 를 직접 다룬다 → 외부 패키지 `sqlite3` · `http` 를 직접 의존으로 올렸다(`data_sync` 와 같은 범위 · 빌드 내용은 같다 — 전에도 `data_sync` 를 거쳐 들어와 있었다). viewer 의 전이 그래프에 `sqlite3` 가 없다는 [8] 검사는 그대로다.
 
 ## 2. 이 표가 막는 사고
 
@@ -73,7 +74,7 @@ melos run check:boundaries
 
 | 타깃 | 네이티브 폴더 | 생성 방법 |
 |---|---|---|
-| `app_operator_android` | `android/` **없음** | `flutter create --platforms=android …` — 각 앱 README §「네이티브 폴더」 |
+| `app_operator_android` | ✅ `android/` — 🆕 E11p1 에서 생성(PR #152 · Flutter 3.47.4 템플릿 · id `com.billybeom.autoalphaquant.operator`) | 앱 README §4 「네이티브 폴더」 |
 | `app_viewer_ios` | `ios/` **없음** | `flutter create --platforms=ios …` (macOS + Xcode 필요) |
 | `app_viewer_web` | `web/` **없음** | ⚠️ Q-D 확정 후에만 |
 

@@ -40,6 +40,19 @@
 | 알림 채널 | `ops_status`(LOW · 무음) · `ops_p0`(HIGH · 방해금지 관통 요청 — 실제 값은 자가진단) · 본문 = 엔진 `FgsNotice` 그대로 |
 | 실측 | Kotlin 이 깨어날 때마다 `files/aaq_wake_log.jsonl` 에 먼저 적는다 · `tool/measure_survival.sh`(FGS 5분 · 정확 알람 · Doze 흉내) · debug 빌드 전용 `ProbeReceiver` |
 
+🆕 **E11p3a(2026-11-14)** — 엔진 조립 뼈대(`lib/engine/` · 설계 e11p-map §3 Q0~Q10). 깨어날 때마다:
+
+| 차례 | 하는 일 | 판정 주인 |
+|---|---|---|
+| ① 원장 | 처음 깨어날 때 한 번 — `noBackupFilesDir/engine/`(Kotlin `paths`) 에 sim 파일을 열고 live 파일은 **있을 때만** 연다 | 조립 |
+| ② 기동 판정 | 모드 해석 → 온보딩 미완 = 잡 0 → 반쯤 끝난 커밋 복구 → 운영 방식 → 기동 판정(거부 = 잡 0) — **깨어날 때마다 다시** | data_sync `bootModeOf` · `repairHalfCommit` · core `modeStartupGate` |
+| ③ 회차 판정 | 지금 − 14일 ~ 지금 · 이미 돈 회차 = `job_run` 의 SUCCESS · LATE · HOLIDAY(기준점 저장 0) · runNow 만 예정 차례대로 | trading_runtime `wakeDecisions` |
+| ④ 실행 | 잡 표 9칸 · `runJob` 감싸기(체크 이름 2축 · 시장 달력 · 🔴 세션일 · 마감 = 회차 값) | trading_runtime `runJob` |
+
+- 🔵 지금은 아홉 칸 **전부 미조립** — 돌면 본체가 곧바로 `UNASSEMBLED <잡>: <부품>` 으로 실패해 `job_run` FAILED + fail 핑이 남는다(조용히 건너뛰지 않는다). 빈 부품(운영 설정 · 시세 · 한도 · 브로커 · FGS 상태 함수)은 **E11p3b**(packages) · 실물 조립은 **E11p3c**.
+- 🔵 온보딩 전 기기(폰 실측 D22 포함)는 ② 에서 멈추므로 잡 · 핑 · 기록 0건이다.
+- 🔵 live 는 설정 승인 원천(E11p3b) 전까지 SAF-405 로 기동 거부된다(안전한 빈 입력).
+
 아래 표는 처음 적어 둔 제약입니다(그대로 유효).
 
 | 제약 | 내용 | 언제 문제가 되나 |
@@ -62,7 +75,7 @@
 | 백업 | 🔴 `allowBackup=false` · `fullBackupContent=false` · `dataExtractionRules`(클라우드 · 기기 간 이전 전 도메인 제외) · 비밀 파일 = `noBackupFilesDir`(06 M4-9 ⑤) |
 | 시험 | `test/platform/` = 채널 계약 · Kotlin 글자 대조 · 매니페스트(CI) · `integration_test/` = 실 Keystore(에뮬레이터 · 폰 · 로컬만) |
 
-- 🔵 FGS · 정확 알람 · 부팅 · 알림 채널 2(§3 표의 권한)는 **E11p2** 가 더합니다 — 지금 매니페스트에는 권한이 없습니다.
+- ✅ FGS · 정확 알람 · 부팅 · 알림 채널 2(§3 표의 권한)는 **E11p2**(PR #153)에서 더했습니다.
 - `ios/`·`web/` 폴더는 이 타깃에 **만들지 않습니다**(§2 빌드 제외 규칙).
 - 🔴 `local.properties` · `gradlew*` · `gradle-wrapper.jar` 는 저장소에 넣지 않습니다(루트 `.gitignore`) — `flutter build` 가 다시 만듭니다.
 
@@ -75,6 +88,7 @@ cd apps/app_operator_android
 flutter build apk --debug       # Kotlin 컴파일 확인(CI 는 Gradle 을 돌리지 않는다)
 flutter test                    # 채널 계약 · 글자 대조(CI 와 같은 범위)
 flutter test integration_test/keystore_test.dart -d <기기>   # 실 Keystore(에뮬레이터 · 폰)
+flutter test integration_test/engine_test.dart -d <기기>     # 🆕 E11p3a 조립(원장 폴더 · 기동 판정)
 ```
 
 ## 6. 금지

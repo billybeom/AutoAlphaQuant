@@ -108,6 +108,13 @@ internal object OpsChannel {
                 releaseWakeLock()
                 r.success(null)
             }
+            // E11p3a(Q1) — 앱 전용 폴더(엔진 원장 = noBackup 아래 · 백업 차단 이중).
+            "paths" -> r.success(
+                mapOf(
+                    "files" to ctx.filesDir.absolutePath,
+                    "noBackup" to ctx.noBackupFilesDir.absolutePath,
+                ),
+            )
             "takeLaunchLink" -> {
                 r.success(pendingLink)
                 pendingLink = null
