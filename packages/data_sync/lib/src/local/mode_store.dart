@@ -10,6 +10,7 @@ import 'package:core_engine/core_engine.dart'
     show
         BootMode,
         BootModeResolved,
+        HandoverSessionKind,
         ModeFacts,
         ModeFactsSource,
         ModeRowFacts,
@@ -290,7 +291,11 @@ bool repairHalfCommit(BootMode mode, SqliteModeStore sim) {
   return true;
 }
 
-/// 판정 입력 실물(R82 W5) — #12 세션 = 열린 `handover_session` ∧ 만료 전 · 실키 검증 = 주입(금고 = E11p).
+final RegExp _offset = RegExp(r'(Z|[+-]\d\d:?\d\d)$');
+
+/// 판정 입력 실물(R82 W5) — #12 세션 = 안내 개시 게이트(`GATE_M5_10` · 경로 없음) 세션이 안 닫힘 ∧ 만료 전
+/// (🆕 E15f2 R96 AF10 — simToAuto · 위저드 세션은 #12 를 «유효»로 만들지 않는다 · 만료 = 시각 파싱) ·
+/// 실키 검증 = 주입(금고 = E11p).
 class SqliteModeFacts implements ModeFactsSource {
   /// 입력을 만든다.
   SqliteModeFacts(
@@ -303,12 +308,25 @@ class SqliteModeFacts implements ModeFactsSource {
   final Clock _clock;
   final Future<bool> Function() _liveKeysVerified;
 
+  bool _gateSessionValid() {
+    final DateTime now = _clock.nowUtc().toUtc();
+    for (final Row r in _db.select(
+      'SELECT expires_at FROM handover_session '
+      'WHERE kind = ? AND path IS NULL AND closed_at IS NULL',
+      <Object?>[HandoverSessionKind.gate.wire],
+    )) {
+      final String v = r['expires_at'] as String;
+      if (!_offset.hasMatch(v)) {
+        throw FormatException('handover_session 시각에 시차가 없다', v);
+      }
+      if (now.isBefore(DateTime.parse(v).toUtc())) return true;
+    }
+    return false;
+  }
+
   @override
   Future<ModeFacts> facts() async => ModeFacts(
-    handoverSessionValid: _db.select(
-      'SELECT 1 FROM handover_session WHERE closed_at IS NULL AND expires_at > ? LIMIT 1',
-      <Object?>[_clock.nowUtc().toUtc().toIso8601String()],
-    ).isNotEmpty,
+    handoverSessionValid: _gateSessionValid(),
     liveKeysVerified: await _liveKeysVerified(),
   );
 }
