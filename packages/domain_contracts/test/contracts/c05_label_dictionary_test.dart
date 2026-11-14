@@ -65,6 +65,10 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   // 🆕 v1.19(01 §28 · K21) — `SimTrialCheck` 의 항목·상태 코드(다른 표본 쓰임 0 — git grep 실측).
   'item_code': 'sim_trial_item',
   'item_state': 'sim_trial_state',
+  // 🆕 v1.20(01 §29 · K31) — `S02` 카드 슬롯(`settings_slot` 3 + 모의 = `onboarding_slot` `SECRET_KIS_MOCK` 재사용 → 전역 조회 ·
+  //    좁힘 = C-54 ④) · `S06` QR 자리. 🔴 `secret_slot_id` 키를 쓰지 않는다(위 온보딩 사전 고정 · C-50 ⑮).
+  'credential_slot_id': '',
+  'qr_slot_id': 'settings_slot',
 };
 
 /// 🔴 **사전에 없는 코드 축** — 01 §3 이 열거하지 않은 값이라 검사 대상이 아니다.
@@ -78,6 +82,9 @@ const Map<String, String> _fieldsOutsideDictionary = <String, String>{
       '짝이 되는 status_label 이 함께 온다 · 🆕 v1.18 S07 `ConnectionRow` — `level` 이 색 근거(01 §27 K-r) · '
       '🆕 v1.19 S05 `JobRow` — `level` 이 색 근거(01 §28 K12).',
   'state_code': '워치독·진단 칸의 상태 코드 — 위와 같은 축(state_label 이 짝이다).',
+  'health_code':
+      '🆕 v1.20 `CredentialCardVm.healthCode` — DDL `credential_registry.health` 5 ∪ `NOT_REGISTERED` · 화면 미참조 · '
+      '`level` 이 색 근거(01 §29 K11).',
 };
 
 void main() {
