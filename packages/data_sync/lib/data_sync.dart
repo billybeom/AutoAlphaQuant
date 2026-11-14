@@ -53,6 +53,7 @@ export 'src/local/mode_anchor.dart';
 export 'src/local/mode_store.dart';
 export 'src/local/onboarding_store.dart';
 export 'src/local/operating_param_store.dart';
+export 'src/local/ops_config_source.dart';
 export 'src/local/order_ledger.dart';
 export 'src/local/plan_snapshot_store.dart';
 export 'src/local/planned_work_store.dart';

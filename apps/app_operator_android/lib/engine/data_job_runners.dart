@@ -2,7 +2,7 @@
 //
 // 🔴 본체는 data_sync 그대로 — 여기는 부품을 넣고 `runOccurrence`(세션일 · 마감 = 회차 값)로 감싸기만 한다.
 //    보고의 알림 코드는 `JobBody.alerts` 로 넘긴다(R42 S2 · trading_runtime ↛ data_sync).
-// 🔴 사람 값(A 종목 · 계좌)이 드는 잡(daily_data · equity_snapshot · seasonal_a · monthly_rebalance)은 여기 없다 — p3c-2.
+// 🔴 사람 값(A 종목 · 계좌)이 드는 잡(daily_data · equity_snapshot · seasonal_a · monthly_rebalance)은 `ledger_job_runners.dart`(p3c-2).
 // 🔴 수집 실패는 회차를 실패시키지 않는다(본체 규칙 · P1 `DATA_SOURCE_DOWN`). 일봉 원천을 **못 만들면**(KIS 키 없음) 회차 실패.
 
 import 'package:core_engine/core_engine.dart' show DailyQuoteFeed;
@@ -21,6 +21,12 @@ import 'package:trading_runtime/trading_runtime.dart'
     show JobBody, JobOccurrence;
 
 import 'job_runners.dart' show JobContext, JobRunner, runOccurrence;
+import 'ledger_job_runners.dart'
+    show
+        dailyDataRunner,
+        equitySnapshotRunner,
+        monthlyRebalanceRunner,
+        seasonalARunner;
 
 /// 실물 잡이 쓰는 바깥 부품(조립 앱이 한 번 만든다 · 시험이 가짜를 넣는다).
 class JobParts {
@@ -80,4 +86,9 @@ const Map<String, JobRunner Function(JobContext, JobParts)> kAssembledRunners =
     <String, JobRunner Function(JobContext, JobParts)>{
       'daily_signal': dailySignalRunner,
       'us_data': usDataRunner,
+      // 🆕 E11p3c-2(R99) — 사람 값(지금 설정) · 현금(simInternal = 가상 체결 브로커).
+      'daily_data': dailyDataRunner,
+      'equity_snapshot': equitySnapshotRunner,
+      'seasonal_a': seasonalARunner,
+      'monthly_rebalance': monthlyRebalanceRunner,
     };
