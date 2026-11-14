@@ -4,7 +4,7 @@
 // 🔴 차례: 모드 해석 → 온보딩 미완이면 잡 0 → 반쯤 끝난 커밋 복구 → 운영 방식 → 기동 판정(거부 = 잡 0).
 // 🔵 p3a 의 빈 입력(설계 Q3):
 //    · approved = 설정 지문 원천이 아직 없다(p3b) → 기본 null → live 는 SAF-405 로 거부 · sim 은 무관.
-//    · 자격증명 환경 = 금고 칸이 아직 없다(p3b) → 기본 «어긋남 없음»(없음은 실행기 미조립으로 드러난다).
+//    · 자격증명 환경 = 기본 «어긋남 없음»(없음은 실행기 미조립으로 드러난다) · 🆕 E11p3b-4 조립 앱 = `kisKeySetFits`(R95).
 //    · 실키 검증 = 기본 false(live × 자동 매매면 `LIVE_AWAITING_KEYS` hold).
 
 import 'package:core_engine/core_engine.dart'

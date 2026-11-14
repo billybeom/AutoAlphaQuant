@@ -30,6 +30,10 @@ environment:
 # ── 의존 (알파벳 순) ────────────────────────────────────────────────────────
 # 🔴 여기 있는 것만 이 앱에 컴파일된다. 타깃×패키지 전체 매트릭스는 docs/TARGETS.md.
 dependencies:
+  # 🆕 E11p3b-4(설계 13 §8 R95) — 조립이 KIS 자격증명 금고 칸 · 기동 판정(`kisKeySetFits`)을 직접 쓴다
+  #    (`depend_on_referenced_packages`). operator 에는 trading_runtime 으로 이미 전이로 들어와 있었다 — 빌드 내용은 같다.
+  broker_gateway:
+    path: ../../packages/broker_gateway
   # 🆕 E11p(설계 e11p-map P5) — 플랫폼 어댑터(lib/platform/)가 core 포트(`SecretVault`·
   #    `SealedBox`)를 직접 구현한다 → 직접 의존(`depend_on_referenced_packages`).
   #    operator 에는 trading_runtime 으로 이미 전이로 들어와 있었다 — 빌드 내용은 같다.

@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
+import 'package:app_operator_android/platform/bootstrap.dart'
+    show kOperatorBootInputs;
 import 'package:core_engine/core_engine.dart'
     show kCredentialEnvMismatch, kSaf405;
 import 'package:data_sync/data_sync.dart' show SqliteModeStore;
@@ -65,6 +67,31 @@ void main() {
     expect((b as EngineRejected).triggered, <String>[kCredentialEnvMismatch]);
     expect(b.runMode, RunMode.simInternal);
   });
+
+  test(
+    '🔴 조립 앱 입력(R95) — sim 은 모의 세트라 환경이 맞아 준비 · live 는 여전히 SAF-405',
+    () async {
+      final LedgerFiles f = openFiles(tempLedgerDir(), clock);
+      addTearDown(f.close);
+      writeSimMode(f.sim, clock, committed: OperatingMode.autoTrade);
+      expect(
+        await bootEngine(f, clock: clock, inputs: kOperatorBootInputs),
+        isA<EngineReady>(),
+      );
+      final Directory dir = tempLedgerDir();
+      final LedgerFiles g = openFiles(dir, clock);
+      addTearDown(g.close);
+      writeSimMode(g.sim, clock, committed: OperatingMode.autoTrade);
+      final Database live = writeLiveMode(dir, clock);
+      addTearDown(live.close);
+      final EngineBoot b = await bootEngine(
+        g,
+        clock: clock,
+        inputs: kOperatorBootInputs,
+      );
+      expect((b as EngineRejected).triggered, <String>[kSaf405]);
+    },
+  );
 
   test('🔴 live 는 승인 원천이 없으면(p3a 기본) SAF-405 로 거부', () async {
     final Directory dir = tempLedgerDir();

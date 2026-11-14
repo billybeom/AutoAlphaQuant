@@ -10,7 +10,9 @@
 // 🆕 E8d2a(설계 13 §8 R29) — KIS REST 핵심(환경 · 자격증명 · 토큰 · 유량 문 · 조회 재시도)과 시세 6종.
 //    주문(E10)은 같은 클라이언트·유량 문 위에 얹는다.
 // 🆕 E8d2b(설계 13 §8 R30) — core_engine 일봉 원천 포트 구현(`KisQuoteFeed` · 저장 이름 → KIS 코드 · 오류 → `QuoteFeedDown`).
+// 🆕 E11p3b-4(설계 13 §8 R95) — KIS 자격증명 금고 칸(모의 세트 `KIS_PAPER` · 값 하나 = 칸 하나 · 기동 판정 `kisKeySetFits`).
 
+export 'src/kis/kis_credential_vault.dart';
 export 'src/kis/kis_draft_quote.dart';
 export 'src/kis/kis_environment.dart';
 export 'src/kis/kis_orders.dart';
