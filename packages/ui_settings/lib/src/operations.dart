@@ -189,6 +189,11 @@ class _OperationsState extends ConsumerState<Operations> {
         ),
         if (trial != null)
           _TrialCard(key: const Key('m9s05-trial'), trial: trial, cs: cs),
+        _RampView(key: const Key('m9s05-ramp'), ramp: vm.ramp, cs: cs),
+        for (final (int j, JobRow job) in vm.jobs.indexed)
+          _JobView(key: ValueKey<String>('m9s05-job-$j'), index: j, job: job, cs: cs),
+        _ControlView(key: const Key('m9s05-control'), control: vm.control, cs: cs, actions: actions, busy: _busy, onRun: _run),
+        if (vm.updateGate != null) _UpdateView(key: const Key('m9s05-update'), gate: vm.updateGate!, cs: cs),
         if (lastRequest != null)
           Padding(
             key: const Key('m9s05-last-request'),
@@ -469,6 +474,256 @@ class _TrialCard extends StatelessWidget {
                 ],
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── R6c2 — board ──────────────────────────────────────────────────────────────
+
+class _RampView extends StatelessWidget {
+  const _RampView({super.key, required this.ramp, required this.cs});
+
+  final RampBoard ramp;
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    final String? dst = ramp.dstNoticeText;
+    final String? empty = ramp.emptyLabel;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Icon(
+                settingsLevelLook(cs, ramp.level).$1,
+                key: const Key('m9s05-ramp-level'),
+                size: 24,
+                color: settingsLevelLook(cs, ramp.level).$2,
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(ramp.levelLabel)),
+            ],
+          ),
+          if (dst != null)
+            Padding(
+              key: const Key('m9s05-dst'),
+              padding: const EdgeInsets.only(left: 36, top: 4),
+              child: Text(dst),
+            ),
+          if (empty != null)
+            Padding(
+              key: const Key('m9s05-ramp-empty'),
+              padding: const EdgeInsets.only(left: 36, top: 4),
+              child: Text(empty),
+            ),
+          for (final (int k, RampCondition condition) in ramp.conditions.indexed)
+            Padding(
+              key: ValueKey<String>('m9s05-cond-$k'),
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Icon(
+                    settingsLevelLook(cs, condition.level).$1,
+                    key: ValueKey<String>('m9s05-cond-level-$k'),
+                    size: 24,
+                    color: settingsLevelLook(cs, condition.level).$2,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(condition.label),
+                        Text(condition.progressText),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ──
+
+class _JobView extends StatelessWidget {
+  const _JobView({
+    super.key,
+    required this.index,
+    required this.job,
+    required this.cs,
+  });
+
+  final int index;
+  final JobRow job;
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    final String? detail = job.detailLine;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(
+            settingsLevelLook(cs, job.level).$1,
+            key: ValueKey<String>('m9s05-job-level-$index'),
+            size: 24,
+            color: settingsLevelLook(cs, job.level).$2,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(job.label),
+                Text(job.stateLabel),
+                Text(job.scheduleText),
+                Text(job.lastRunText),
+                if (detail != null) Text(detail),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ──
+
+class _ControlView extends StatelessWidget {
+  const _ControlView({
+    super.key,
+    required this.control,
+    required this.cs,
+    required this.actions,
+    required this.busy,
+    required this.onRun,
+  });
+
+  final EngineControl control;
+  final ColorScheme cs;
+  final SettingsActions? actions;
+  final bool busy;
+  final Future<void> Function(SettingsActions a, SettingsActionCall call) onRun;
+
+  @override
+  Widget build(BuildContext context) {
+    final SettingsActions? a = actions;
+    final SettingsActionCall? startAction = control.startAction;
+    final String? prompt = control.stopPromptText;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Icon(
+                settingsLevelLook(cs, control.level).$1,
+                key: const Key('m9s05-control-level'),
+                size: 24,
+                color: settingsLevelLook(cs, control.level).$2,
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(control.stateLabel)),
+            ],
+          ),
+          if (a != null && startAction != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 36, top: 8),
+              child: OutlinedButton(
+                key: const Key('m9s05-start'),
+                onPressed: busy
+                    ? null
+                    : () {
+                        unawaited(onRun(a, startAction));
+                      },
+                child: Text(startAction.label),
+              ),
+            ),
+          if (prompt != null)
+            Padding(
+              key: const Key('m9s05-reason-prompt'),
+              padding: const EdgeInsets.only(left: 36, top: 4),
+              child: Text(prompt),
+            ),
+          if (a != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 36),
+              child: Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  for (final (int i, SettingsActionCall call)
+                      in control.stopActions.indexed)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: OutlinedButton(
+                        key: ValueKey<String>('m9s05-stop-$i'),
+                        onPressed: busy
+                            ? null
+                            : () {
+                                unawaited(onRun(a, call));
+                              },
+                        child: Text(call.label),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ──
+
+class _UpdateView extends StatelessWidget {
+  const _UpdateView({super.key, required this.gate, required this.cs});
+
+  final UpdateGateCard gate;
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(
+            settingsLevelLook(cs, gate.level).$1,
+            key: const Key('m9s05-update-level'),
+            size: 24,
+            color: settingsLevelLook(cs, gate.level).$2,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(gate.stateLabel),
+                Text(gate.bodyText),
+              ],
+            ),
+          ),
         ],
       ),
     );
