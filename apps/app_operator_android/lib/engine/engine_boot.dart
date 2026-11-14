@@ -65,12 +65,16 @@ final class EngineRejected extends EngineBoot {
   /// 만든다.
   const EngineRejected({
     required this.runMode,
+    required this.operatingMode,
     required this.triggered,
     required this.repaired,
   });
 
   /// 해석된 실행 모드.
   final RunMode runMode;
+
+  /// 🆕 E11p3d-1 — 운영 방식(화면 접두 · 플래그).
+  final OperatingMode operatingMode;
 
   /// 걸린 거부 사유(엔진 차례 그대로).
   final List<String> triggered;
@@ -160,6 +164,7 @@ Future<EngineBoot> bootEngine(
   if (!gate.start) {
     return EngineRejected(
       runMode: resolved.runMode,
+      operatingMode: op,
       triggered: gate.triggered,
       repaired: repaired,
     );

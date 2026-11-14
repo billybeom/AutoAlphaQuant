@@ -8,6 +8,7 @@
 // 🆕 E11p3b-4(설계 13 §8 R95) — 기동 판정 «자격증명 환경» = 모드가 고르는 KIS 키 세트의 환경(`kisKeySetFits`).
 // 🆕 E11p3c-1(설계 13 §8 R97) — 실물 잡 부품(`JobParts`): KIS 일봉 원천(금고 키 → 클라이언트 하나) · FRED · OFR · 국면 지문.
 // 🆕 E11p3c-4(설계 13 §8 R102) — 깨어남이 끝나면 엔진 상태를 FGS 에 띄운다(호스트 `fgs.show` · 전이 때만 다시 띄움).
+// 🆕 E11p3d-1(설계 13 §8 R104) — 화면과 엔진이 원장 하나를 함께 쓴다(`OperatorRuntime`) · 깨어남 보고 → 화면 상태.
 
 import 'dart:io' show Platform;
 
@@ -23,6 +24,7 @@ import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart'
     show FgsStatus, JobCalendars;
 
+import '../app/operator_runtime.dart';
 import '../engine/data_job_runners.dart' show JobParts;
 import '../engine/engine_boot.dart' show BootInputs;
 import '../engine/job_runners.dart' show JobContext, composeJobRunners;
@@ -40,6 +42,7 @@ import 'operator_channels.dart';
 Future<OperatorEngineHost?> startOperatorPlatform({
   WakeHandler? onWake,
   void Function(String link)? onLink,
+  OperatorRuntime? runtime,
 }) async {
   if (!Platform.isAndroid) return null;
   final AndroidOps ops = AndroidOps();
@@ -58,6 +61,7 @@ Future<OperatorEngineHost?> startOperatorPlatform({
           ops: ops,
           calendars: cals,
           fgs: (FgsStatus s) => host.fgs.show(s),
+          runtime: runtime,
         ),
     onLink: onLink,
   );
@@ -70,11 +74,18 @@ WakeHandler engineWakeHandler({
   required AndroidOps ops,
   required JobCalendars calendars,
   FgsSink? fgs,
+  OperatorRuntime? runtime,
 }) {
   OperatorEngine? engine;
   return (WakeEvent _) async {
-    final OperatorEngine e = engine ??= await _assemble(ops, calendars, fgs);
-    await e.wake();
+    final OperatorEngine e = engine ??= await _assemble(
+      ops,
+      calendars,
+      fgs,
+      runtime,
+    );
+    final EngineWakeReport r = await e.wake();
+    runtime?.onWake(r);
   };
 }
 
@@ -82,8 +93,10 @@ Future<OperatorEngine> _assemble(
   AndroidOps ops,
   JobCalendars cals,
   FgsSink? fgs,
+  OperatorRuntime? runtime,
 ) async {
-  final String dir = (await ops.paths()).engineDir;
+  // 🔴 화면과 같은 원장(실행 묶음이 있으면 그 연결) — 없으면 엔진이 연다(시험 · 화면 없는 조립).
+  final String? dir = runtime == null ? (await ops.paths()).engineDir : null;
   const SystemClock clock = SystemClock();
   final http.Client net = http.Client();
   final AndroidSecretVault vault = AndroidSecretVault();
@@ -92,7 +105,7 @@ Future<OperatorEngine> _assemble(
     net,
   );
   return OperatorEngine(
-    openFiles: () => LedgerFiles.open(dir, clock: clock),
+    openFiles: () => runtime?.files ?? LedgerFiles.open(dir!, clock: clock),
     calendars: cals,
     heartbeat: HealthchecksClient(net, vault),
     bootInputs: kOperatorBootInputs,
@@ -117,3 +130,18 @@ JobParts operatorJobParts(KisSessions kis, http.Client net) => JobParts(
   ofr: OfrClient(net),
   regimeConfigHash: p0sRegimeConfigHash(),
 );
+
+/// 🔴 화면 · 엔진 공용 실행 묶음을 연다 — Android 가 아니거나 폴더를 못 얻으면 null(엔진은 깨어날 때 다시 시도한다).
+Future<OperatorRuntime?> openOperatorRuntime() async {
+  if (!Platform.isAndroid) return null;
+  try {
+    const SystemClock clock = SystemClock();
+    final String dir = (await AndroidOps().paths()).engineDir;
+    return OperatorRuntime(
+      files: LedgerFiles.open(dir, clock: clock),
+      clock: clock,
+    );
+  } on Object {
+    return null;
+  }
+}
