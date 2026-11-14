@@ -13,7 +13,7 @@
 | 패키지 | 소유 | `app_operator_android` | `app_viewer_ios` | `app_viewer_web` ⚠️Q-D |
 |---|---|:--:|:--:|:--:|
 | `domain_contracts` | Claude (M2) | ○ | ○ | — |
-| `core_engine` | Claude (M1·M3) | ○ | **—** | **—** |
+| `core_engine` | Claude (M1·M3) | ● 🆕 E11p(플랫폼 어댑터가 core 포트를 구현 — 전에는 ○) | **—** | **—** |
 | `broker_gateway` | Claude (M1) | ○ | **—** | **—** |
 | `trading_runtime` | Claude (M1·X2) | ● | **—** | **—** |
 | `data_sync` | Claude (M4·X1·X4·X5) | ● 읽기+쓰기 | **—** 🆕 operator 전용(설계 13 §8 R53 · 지도 D1) | — |
@@ -26,7 +26,7 @@
 
 - 🆕 v1.8 — 보유 화면 셋(`H6-*`)은 `ui_journal` 안이라 웹 타깃에는 없다: 셸은 라우트 3(`holdingsOverview`·`holdingsDetail`·`holdingsAllocation`)을 전 플랫폼 등록하되 웹 목적지 = Q-D 전 «부재» 가드(`journalRead` 조문과 같은 꼴 · 04 §1-2 · R13).
 - `app_viewer_web` 열이 전부 «—»인 것은 **스텁이기 때문**입니다. 발주자 결정 **Q-D**(v1에서 웹·데스크탑을 뺄 것인가, 00_README §8-2)가 「포함」으로 나면 **`app_viewer_ios` 열과 같은 집합**이 됩니다.
-- `core_engine`·`broker_gateway`가 operator에서 «○»인 것은 `trading_runtime`을 통해 들어오기 때문입니다. **viewer에는 그 통로 자체가 없습니다.**
+- `broker_gateway`가 operator에서 «○»인 것은 `trading_runtime`을 통해 들어오기 때문입니다(`core_engine` 도 그랬다가 🆕 E11p 에서 «●» — `lib/platform/` 어댑터가 `SecretVault`·`SealedBox` 포트를 직접 구현한다 · 빌드 내용은 같다). **viewer에는 그 통로 자체가 없습니다.**
   - 🆕 2026-11-04 정정(설계 13 §8 R53) — 이 문장은 **그동안 거짓이었다**: viewer 가 의존하던 `data_sync` 가 `core_engine` 을 의존해 전이로 들어왔다(지도 X1). viewer 는 이제 `read_model_client`(의존 = `domain_contracts` 만)로만 읽고, `tool/check_boundaries.sh` [8] 이 viewer 의 **전이 의존 그래프**에 `core_engine` · `broker_gateway` · `trading_runtime` · `data_sync` · `sqlite3` 가 없는지 본다.
 - `domain_contracts`가 «○»인 것은 앱 조립 코드가 아직 계약 타입을 직접 참조하지 않아서입니다. 리포지토리 주입을 시작하면 각 앱 pubspec에 직접 의존으로 올라갑니다(`depend_on_referenced_packages` 린트).
 
