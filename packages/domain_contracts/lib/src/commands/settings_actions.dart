@@ -13,6 +13,7 @@
 //    O-00b·O-03·O-04 는 결과를 읽는다.
 // 🆕 v1.18(01 §27) — M9 `S07` args 화이트리스트(`connectionTest`·`connectionSyncNow` = `{target}` ·
 //    `notifyChannelSelect` = `{channel}`) · S07 은 결과를 읽는다(`SettingsResultCodes`).
+// 🆕 v1.19(01 §28) — M9 `S05` args 화이트리스트(전환 2 · 엔진 시작·중지 · 승격) · S05 는 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -64,8 +65,20 @@ part 'settings_actions.g.dart';
 ///    · `notifyChannelSelect` = `{channel ∈ NotifyChannelCodes}`(`NotifyChannelOption.selectAction`)
 ///    🔴 `S07` 은 [ActionResult] 를 읽는다 — `headline` + `reasonCode` 원문(`SettingsResultCodes`) · `retryable` 전부 false
 ///      (버튼 = 행 `actions` 뿐 · 05 «재시도 무한 버튼 0») · `handoffRoute` null(표본 = `m9/settings_action_results`).
-///    ⏸ S05 4동작(`runtimeModeSwitchRequest` · `runtimeOperatingModeSwitchRequest` · `runtimeEngineStart` · `runtimeEngineStop`)
-///      args = 계약 v1.19 · `settingsContributionUpdate` = R8 창(엔진 E11j).
+///    🆕 v1.19(01 §28 · K6 · K7 · K16) — M9 `S05`(폰 로컬 · 운영 등급 · 뷰어 경로 0 · 엔진이 `SettingsActionCall` 에 완성):
+///    · `runtimeModeSwitchRequest`          = `{run_mode ∈ RunMode.wire}`(`RunModeCard.switchActions` · 실전 전환 =
+///      `handoffRoute` `m5HandoverWizard`(K-h) · advisory 안내 개시 = `m5HandoverGate` — 목적지 = 엔진)
+///    · `runtimeOperatingModeSwitchRequest` = `{operating_mode ∈ OperatingMode.wire}`(`OperatingModeView.switchActions` ·
+///      값 ≠ 지금 `current` · 목적지 `M5-10`/`M5-11` = 엔진)
+///    · `runtimeEngineStart`                = `{}`(`EngineControl.startAction` · 기동 거부 = `reasonCode` ∈ `ModeStartupCodes` ∪
+///      `AdviceRejectCodes.modeCombinationDenied`)
+///    · `runtimeEngineStop`                 = `{reason_code ∈ EngineStopReasonCodes}`(`EngineControl.stopActions` — 사유마다 1)
+///    · 🆕 `runtimeLivePromotion`           = `{}`(`RunModeCard.promotionAction` · 생체 1회 = 구현 · 결과 `reasonCode` ∈
+///      `LiveObservationBlockCodes` ∪ `LivePromotionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`})
+///    🔴 키 `target` 을 쓰지 않는다(C-5 `connection_target` 사전 키). `S05` 는 [ActionResult] 를 읽는다 — `headline` + `reasonCode`
+///      원문 · `handoffRoute` 가 있으면 `AppLinkOpener.open(handoffRoute)` 하고 끝 · `retryable` 전부 false(버튼 = VM 의 호출뿐)
+///      (표본 = `m9/operations_action_results`).
+///    ⏸ `settingsContributionUpdate` = R8 창(엔진 E11j) · R7·R9 동작 = 각 창.
 ///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).

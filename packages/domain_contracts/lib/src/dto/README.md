@@ -17,9 +17,10 @@
 | `ledger_trust.dart` | `LedgerTrustBadge` · `ExecutionGapResult`·`ExecutionGapReport` · `ExternalHoldingRow` · `CashEstimateNotice` · `SelfReportLine` · 🆕 v1.12 `SelfReportSession`·`SelfReportResult`(`L-3`) | §2-11 · §15-4 · §21 |
 | 🆕 `onboarding.dart` | `OnboardingStartVm` · `OnboardingTrackCard` · `OnboardingModeChoiceVm` · `OnboardingStepsVm` · `OnboardingStepDetailVm` · `OnboardingAction` · `OnboardingFinishVm` · `OnboardingFinishStage` · `OnboardingFinishCheck` · `RestartVm` · `PairingVm` · `PairingResult` | §25 |
 | 🆕 `incident.dart` | **v1.17** `IncidentBanner` · `IncidentBannerVm`(`D-01`) · `RunbookIndexVm` · `RunbookRow` · `RunbookVm` · `RunbookStep`(`D-02`) · `EmergencyCardVm`(`D-03`) — asOf 칸 0(문서·지속 상태 VM) | §26 |
+| 🆕 `operations.dart` | **v1.19** `OperationsVm`(`S05` · 칸 11 · `scope`·`HandoverPlan`·`contribution` 칸 0) · `RunModeCard` · `SimTrialCard` · `SimTrialCheck` · `RampBoard` · `RampCondition` · `JobRow` · `EngineControl` · `UpdateGateCard` | §28 |
 | `ops.dart` | `ShellVm` · `OpsRhythmRow` · `OpsDailySummary`(🆕 v1.12 `resumeLine`) · M9 VM · 🆕 v1.17 `DeviceRiskItem`·`DeviceRiskVm`(`H-03` · asOf 있음) · 🆕 v1.18 `ConnectionsVm.lockedLabel` · `ConnectionRow` += `detailLine`·`level`·`actions`·`channelPicker` − `actionAvailable` · `NotifyChannelCard`·`NotifyChannelOption`(`S07`) | §2-6 · §4-1 · §21 · §26 · §27 |
 | `handbook.dart` | `HandbookIndex` · `HandbookEntry` · `HandbookPage` · `HandbookBlock` · 🆕 v1.17 추가형(`state`·`stateLabel`·`deepLink`·`children` · `outdatedNotice` · `missingLabel` · `asOf?`) · `HandbookLiveValue` | §2-6 · §26 |
-| `safety.dart` | `AlertItem` · `SafetyState` · `BlockFlag` · `OnboardingStep` | §2-10 |
+| `safety.dart` | `AlertItem` · `SafetyState`(🆕 v1.19 `holds` 추가형) · `BlockFlag` · `OnboardingStep` · `RampLevel`(🆕 v1.19 주석 — 엔진 발행 L1~L5) | §2-10 · §28 |
 | `settings.dart` | `ContributionSetting` · `MonthlyContributionVm` · `CredentialListVm` · `CredentialCardVm` · 🆕 **v1.18** `SettingsHomeVm` 교체(`statusChip`·`annualReviewLink`·`groups`·`asOf`) · `SettingsGroup` · `EngineStatusChip` · `SettingsCard`(+ `attentionText` − `actionAvailable`) · `typedef SettingsActionCall = OnboardingAction`(`S01`) | §2-6 · §4-1 · §27 |
 
 ## ⚠️ 아직 이름만 있고 필드가 없는 타입
