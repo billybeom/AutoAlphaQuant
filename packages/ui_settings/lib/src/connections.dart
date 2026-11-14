@@ -4,7 +4,7 @@
 //
 // 🔴 Body only — parent height ListView(padding: EdgeInsets.zero).
 // 🔴 Row count/order = received as-is. No sorting, filtering, counting.
-// 🔴 Write = SettingsActions.run(call.id, args: call.args) once per tap.
+// 🔴 Write = SettingsActions action called once per tap (_run).
 
 import 'dart:async';
 
@@ -139,7 +139,7 @@ class _ConnectionsState extends ConsumerState<Connections> {
                     ref.read(settingsLinkOpenerProvider).open(row.route!);
                   },
           ),
-          if (actions != null && row.actions.isNotEmpty)
+          if (actions != null)
             Padding(
               padding: const EdgeInsets.only(left: 52, right: 16),
               child: Wrap(
