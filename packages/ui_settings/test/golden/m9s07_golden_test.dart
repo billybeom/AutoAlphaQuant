@@ -15,6 +15,8 @@ import 'golden_support.dart';
 
 const Size _kM9s07Tall = Size(390, 1040);
 
+SettingsActions? _nullActions() => null;
+
 class _Flow {
   const _Flow({
     required this.name,
@@ -53,7 +55,7 @@ void main() {
     _Flow(
       name: 'm9s07_connections',
       vm: connVm,
-      actions: () => UnimplementedSettingsActions(),
+      actions: UnimplementedSettingsActions.new,
       size: _kM9s07Tall,
       bottom: const Key('m9s07-asof'),
       head: const ValueKey<String>('m9s07-row-0'),
@@ -62,7 +64,7 @@ void main() {
     _Flow(
       name: 'm9s07_telegram',
       vm: teleVm,
-      actions: () => UnimplementedSettingsActions(),
+      actions: UnimplementedSettingsActions.new,
       size: kGoldenPhoneSize,
       bottom: const Key('m9s07-asof'),
       head: const ValueKey<String>('m9s07-row-0'),
@@ -71,7 +73,7 @@ void main() {
     _Flow(
       name: 'm9s07_locked',
       vm: lockedVm,
-      actions: () => UnimplementedSettingsActions(),
+      actions: UnimplementedSettingsActions.new,
       size: kGoldenPhoneSize,
       bottom: const Key('m9s07-asof'),
       head: const Key('m9s07-locked'),
@@ -80,7 +82,7 @@ void main() {
     _Flow(
       name: 'm9s07_viewer',
       vm: connVm,
-      actions: () => null,
+      actions: _nullActions,
       size: kGoldenPhoneSize,
       bottom: const Key('m9s07-asof'),
       head: const ValueKey<String>('m9s07-row-0'),
