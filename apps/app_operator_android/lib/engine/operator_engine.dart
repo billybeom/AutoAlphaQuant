@@ -3,7 +3,8 @@
 // 깨어날 때마다: 원장 열기(처음 한 번) → 기동 판정 → (준비면) 회차 판정 → runNow 회차를 예정 차례대로 하나씩.
 // 🔴 깨어남은 플랫폼 호스트가 이미 한 줄로 세운다(`OperatorEngineHost` · 원장 단일 쓰기) — 여기서도 겹쳐 부르지 않는다.
 // 🔴 원장을 못 열면 그 깨어남은 실패한다(호스트가 받아 재무장 · 다음 깨어남에 다시 연다) — 호스트 기동은 막지 않는다.
-// 🔴 판정 · 문구는 엔진 몫 — 여기는 차례만 잇는다. FGS 문구는 p3b(상태 함수) 뒤.
+// 🔴 판정 · 문구는 엔진 몫 — 여기는 차례만 잇는다.
+// 🆕 E11p3c-4(R102) — 깨어남 끝에 FGS 상태를 넘긴다(준비 = 엔진 재료 · 거부 = BLOCKED + 거부 코드 · 온보딩 미완 = 넘기지 않음).
 
 import 'package:core_engine/core_engine.dart' show JobHeartbeat;
 import 'package:data_sync/data_sync.dart'
@@ -16,9 +17,10 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart' show Clock, TradeDate;
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
-    show JobCalendars, JobOccurrence, JobRun, JobSpec, kJobTable;
+    show FgsStatus, JobCalendars, JobOccurrence, JobRun, JobSpec, kJobTable;
 
 import 'engine_boot.dart';
+import 'fgs_status_source.dart' show fgsStatusForReady, fgsStatusForRejected;
 import 'job_runners.dart';
 import 'ledger_files.dart';
 import 'system_clock.dart';
@@ -29,6 +31,9 @@ typedef LedgerFilesOpener = LedgerFiles Function();
 
 /// 시드 자산 바이트(파일 이름 → gz 바이트 · 조립 = `rootBundle`).
 typedef SeedAssets = Future<Map<String, List<int>>> Function();
+
+/// FGS 상태를 받는 쪽(조립 = 호스트 `FgsPresenter.show` · 전이 때만 다시 띄운다).
+typedef FgsSink = Future<void> Function(FgsStatus status);
 
 /// 깨어남 한 번의 결과(시험 · 진단 — 정본 기록은 `job_run`).
 class EngineWakeReport {
@@ -57,6 +62,7 @@ class OperatorEngine {
     this._runners = _defaultRunners,
     this._specs = kJobTable,
     this._seed,
+    this._fgs,
   }) : _cals = calendars;
 
   final LedgerFilesOpener _openFiles;
@@ -67,6 +73,7 @@ class OperatorEngine {
   final JobRunnerFactory _runners;
   final List<JobSpec> _specs;
   final SeedAssets? _seed;
+  final FgsSink? _fgs;
   LedgerFiles? _files;
 
   static Map<String, JobRunner> _defaultRunners(JobContext c) =>
@@ -87,7 +94,9 @@ class OperatorEngine {
     final EngineReady ready;
     switch (boot) {
       case EngineOnboardingIncomplete():
+        return EngineWakeReport(boot: boot);
       case EngineRejected():
+        await _fgs?.call(fgsStatusForRejected(boot));
         return EngineWakeReport(boot: boot);
       case EngineReady():
         ready = boot;
@@ -122,6 +131,8 @@ class OperatorEngine {
       }
       runs.add(await run(o));
     }
+    // 🔴 회차가 끝난 뒤의 상태 — 상태를 못 만들면 이 깨어남이 실패한다(앞 문구를 «정상»으로 남겨 두지 않게 크게 드러낸다).
+    await _fgs?.call(fgsStatusForReady(ready, calendars: _cals, clock: _clock));
     return EngineWakeReport(boot: boot, plan: plan, runs: runs);
   }
 

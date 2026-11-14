@@ -9,11 +9,12 @@ import 'package:app_operator_android/engine/operator_engine.dart';
 import 'package:core_engine/core_engine.dart' show JobRunStatus, kSaf405;
 import 'package:data_sync/data_sync.dart'
     show SeedFile, SqliteJobRunLog, kSeedFiles, seedBundleImported;
-import 'package:domain_contracts/domain_contracts.dart' show OperatingMode;
+import 'package:domain_contracts/domain_contracts.dart'
+    show OperatingMode, UiLevel;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
-    show JobOccurrence, JobRun, JobStatus;
+    show FgsStatus, JobOccurrence, JobRun, JobStatus, buildFgsNotice;
 
 import 'support.dart';
 
@@ -161,6 +162,48 @@ void main() {
     expect(r.boot, isA<EngineReady>());
     expect(r.runs, isEmpty);
     expect(r.plan!.runNow, isEmpty);
+  });
+
+  group('FGS 상태(R102)', () {
+    late List<FgsStatus> shown;
+
+    OperatorEngine withFgs() => OperatorEngine(
+      openFiles: open,
+      calendars: calendars(),
+      heartbeat: hb,
+      clock: clock,
+      fgs: (FgsStatus s) async => shown.add(s),
+    );
+
+    setUp(() => shown = <FgsStatus>[]);
+
+    test('🔴 온보딩 전 = 띄우지 않는다', () async {
+      await withFgs().wake();
+      expect(shown, isEmpty);
+    });
+
+    test('🔴 준비 = 회차가 끝난 뒤 한 번 · 엔진 재료', () async {
+      final OperatorEngine e = withFgs();
+      await e.wake();
+      commitEarly(e);
+      final EngineWakeReport r = await e.wake();
+      expect(r.boot, isA<EngineReady>());
+      expect(shown, hasLength(1));
+      expect(buildFgsNotice(shown.single).text, isNotEmpty);
+    });
+
+    test('🔴 기동 거부 = BLOCKED · 거부 코드(앞의 «정상»이 남지 않는다)', () async {
+      final OperatorEngine e = withFgs();
+      await e.wake();
+      commitEarly(e);
+      await e.wake();
+      final Database live = writeLiveMode(dir, clock);
+      addTearDown(live.close);
+      await e.wake();
+      expect(shown, hasLength(2));
+      expect(shown.last.level, UiLevel.blocked);
+      expect(shown.last.headline, kSaf405);
+    });
   });
 
   test('🔴 시드 = 아직 안 실은 원장에만 · 자산은 필요할 때만 읽는다', () async {
