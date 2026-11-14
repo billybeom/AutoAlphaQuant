@@ -584,3 +584,29 @@ R6c(`S05`) 카드의 선행과 엔진 E15i 가운데 엔진 lib 에 글자가 �
 🔴 **만들지 않은 이름**(재론 방지): `OperationsVm.contribution`(R6 Q4 «칸만» → 칸 0 · 월 납입 = R8 별도 화면) · `OperationsVm.scope`·`HandoverPlan` 칸 · 체험 카드용 `GateState` 짝(R87 AB11 · `unknown` = 진행 차단과 충돌) · 승격 `LinkAction`(위저드 7단계 종착 = 관찰 — 승격은 위저드 안에 없다) · `EngineControl` 킬스위치 칸 · `UpdateGateCard` 강행 칸 · 단일 모드 토글(→ 칩 2 + 전환 «요청» 버튼).
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 168(넓힘 — `OperationsVm` 산출 원천) · 169 · 172(램프 조건 원천) · 173(엔진 시작·중지 원천 · 중지 사유 값) · 174(업데이트 게이트 · 지난 요청 원천) · 175 · 176(계약 1.20.0 창) · 177(E15i 등재형 소비) · 28(관찰 일수 값 = 발주자) · 엔진 숙제(06 변경 이력 «2026-11-14 · 계약 v1.19» · 번호 1.20.0) · 조립 앱 몫(06 `M4-12` ⑥).
+
+## Y. 🆕 계약 v1.20 (2026-11-15 · R7 선행 M2 보강 + 엔진 겹침 몫) — M9 증권사 키 `S02` · 기기·접근 `S06` · 계좌 매핑 `S03` · 라우트 81
+
+R7a(`S02`)·R7b(`S06`)·R7c(`S03`) 세 카드의 선행과 엔진 겹침 몫(`CredentialKindCodes` · 온보딩 표본 `KIS_PAPER`)을 한 판으로 닫았다. `contractVersion` = **`1.20.0`**(엔진 다음 = **1.21.0** — E15i 코드 등재 모음 · E13i1 · E13i2 · E14i · E16i · F1~F8 · 알림 · 01 §8 미결 176 · 창 = R7a 병합 뒤 · R7b 발송 전) · 픽스처 **271건**(256 + 신설 15 · 개정 1 · 버전 줄만 255) · 라우트 80 → **81** · 조문 = 01 §29.
+상태 = ✅ 병합 PR #187 squash `52f2fc9`(2026-11-15 · CI 3/3 · head `7ecfb64` · 커밋 8 · 밑동 `7320c92` · 원격 가지 삭제).
+결정 = 발주자 위임 2026-11-14 — K1~K39 권고대로(정본 = 설계 `10_리뷰/2026-11-15_R7선행_계약v1.20_설계서.md` §3 · 이름표 정본 §4-11 #1~#20 · #21 = 1.21.0 예약).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| Y-1 | `CredentialListVm` += `modeNotice?` · `leakRunbookLink?` · `lockedLabel?` · `asOf` | `S02` · `dto/settings.dart` 추가형 · cards ≥ 1 · `emptyLabel` 칸 0(K29) |
+| Y-2 | `CredentialCardVm` += `level` · `lastVerifiedText?` · `requirementLabel?` · `whyLine?` · `sealLabel?` · `credentialSlotId?` · `verifyAction?` · `rotateLink?` | 키 조각 칸 0(K7) · `registerAction` 칸 0(검증 1단 — K6) · `alias`·`kind`·`healthCode`·`usage` 화면 미참조(K11 · K30) |
+| Y-3 | `DeviceAccessVm` += `leaseLevel` · `leaseEpochText?` · `migrationLink?` · `pairing?` · `emptyLabel?` · `lockedLabel?` · `DeviceRow` += `level` · `revokeAction?` · `revokeConfirmText?` | `S06` · `dto/ops.dart` 추가형 · 창구 = 기존 `OpsStatusRepository.watchDeviceAccess()`(K14) · 리스 편집 칸 0 · 폐기 확인 = 화면 안 펼침(K18) · `deviceId` 화면 미참조 |
+| Y-4 | 🆕 `PairingTicketCard{headline, issueAction?, qrSlotId?, expiresText?}` | `dto/ops.dart` · 잠김 밖 발급 XOR QR · QR ⇔ 유효 시각 · 카운트다운·페이로드 0 · QR = 슬롯 `PAIRING_QR_DISPLAY`(K15) |
+| Y-5 | 🆕 `AccountMappingVm{accounts, mappings, verifyAction?, lockedLabel?, asOf}` · 🆕 `AccountRow{label, kindLabel, maskedNumberText, checkText?, badgeText?, level}` · 🆕 `SleeveMappingRow{sleeveLabel, accountLabel?, subbookLine?, statusLine?, level, options}` | `S03` · 🆕 `dto/accounts.dart`(`dto.dart` export 맨 앞) · 칸 수 = 받은 `mappings`(POT 행 0 — K20) · 번호 = 엔진 마스킹 글자 · 종류 코드·별칭·전체번호 칸 0(K19 · K21) |
+| Y-6 | 🆕 `AccountMappingOption{label, selected, impacts = [], blockedText?, selectAction?}` | 🔵 **K39** — 이름표 초안 «`AccountOption`» 은 v1.12 `dto/advice.dart` `AccountOption{alias, label}`(`ManualFillFormSpec`)과 배럴 export 가 겹친다(`ambiguous_export`) → `AccountMappingOption`(칸·JSON 키 그대로 · freezed 내부 이름 `_AccountMappingOption`) · 미리 판정(SAF-309 = `blockedText`) · 원자 저장 |
+| Y-7 | `SettingsRepository` += `watchCredentials()` · `watchAccountMapping()` | 받침대 `UnimplementedSettingsRepository` 같은 커밋 · 폰 전용 |
+| Y-8 | 🆕 `CredentialKindCodes`(`credential_kind` · `KIS_LIVE` · `KIS_ISA` · `KIS_PAPER` · `KIS_RECONCILE`) | `labels/settings_codes.dart` · 엔진 `KisKeySet.wire` 와 같은 글자 · **엔진 겹침 몫**(K8) · 온보딩 표본 `KIS_MOCK` → `KIS_PAPER`(슬롯 이름 `SECRET_KIS_MOCK` 그대로) |
+| Y-9 | 🆕 `SettingsSlotIds`(`settings_slot` · `SECRET_KIS_LIVE` · `SECRET_KIS_ISA` · `SECRET_KIS_RECONCILE` · `PAIRING_QR_DISPLAY`) | 모의 = `OnboardingSlotIds.secretKisMock` 재사용 · JSON 키 `credential_slot_id` · `qr_slot_id`(K9 · K31 — `secret_slot_id` 는 C-5 · C-50 ⑮ 가 온보딩 사전으로 고정) |
+| Y-10 | `SettingsResultCodes` += `WRONG_KEY_SET` · `MAPPING_VERIFY_FAILED` · `DEVICE_ALREADY_REVOKED` | K13 · `S02` 거절 = `OnboardingResultCodes.credentialRejected`(`CREDENTIAL_REJECTED` 한 벌 — K32) · 결과 `handoffRoute`·`retryable` 0(K33) |
+| Y-11 | R7 args 5 | `credentialVerify = {kind}` · `devicePairingTicketCreate = {}` · `deviceTokenRevoke = {device_id}` · `accountMapSleeve = {sleeve, account_alias}` · `accountVerifyMapping = {}` · `credentialRegister` 화면 미호출 · 시크릿 값 args 0 · `SettingsActionId` 값 0 추가 |
+| Y-12 | 🆕 `AppRoutes.m4KeyRotation` = `aaq://m4/key-rotation` | 🔒 06 `M4-4` 키 회전 마법사 · `AppRoutes.all` 81 · Claude 소유 묶음 머리(`handoverStatus` 뒤) · 파라미터 0 · 본문 = 조립 앱 빈 자리(K12 · K37) |
+| Y-13 | 계약 테스트 C-54(`c54_r7_credentials_devices_accounts_test.dart` · 19항) · 생성기 `tool/gen_r7_v120_fixtures.py` · 표본 `m9/credential*` 5 · `m9/device*` 6 · `m9/account_mapping*` 4 | 등록부 코덱 3 · 바인딩 15 · C-5 · C-6 · C-8 `_knownUncovered` − 4 · C-33 ③ 81 · docs 사본 = PR 커밋(K38 ⓑ) |
+
+🔴 **만들지 않은 이름**(재론 방지): `CredentialListVm.emptyLabel`·`AccountMappingVm.emptyLabel`(K29 — 카드·행 ≥ 1) · 키 조각 칸(«앞4…뒤4» = 조립 앱 `SecretField` 안 — K7) · `CredentialCardVm.registerAction`(검증 통과 = 저장 — K6) · `CREDENTIAL_VERIFY_FAILED`(→ `CREDENTIAL_REJECTED` 한 벌 — K32) · 앱 잠금 on/off 칸·`SettingsActionId`(K17 · 미결 179) · S03 선택지 이름 `AccountOption`(→ `AccountMappingOption` — K39) · M9 슬롯 JSON 키 `secret_slot_id`(→ `credential_slot_id` · `qr_slot_id` — K31) · QR 페이로드·카운트다운 칸(K15).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 178(S02·S03·S06 VM 산출 원천 · `KisKeySet` += 3 · POT 같이 쓰기) · 179(앱 잠금) · 180(증권사 밖 시크릿) · 181(매핑 = 지문 파급) · 182(QR TTL — 발주자) · 176(계약 1.21.0 창) · 13 · 152 · 168 · 169 · 엔진 숙제(06 변경 이력 «2026-11-15 · 계약 v1.20» · 13 의 «1.20.0» 줄 → 1.21.0) · 조립 앱 몫(06 `M4-12` ⑦ · 슬롯 빌더 override · `m4KeyRotation` 빈 자리).
