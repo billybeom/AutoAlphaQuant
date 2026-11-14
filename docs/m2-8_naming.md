@@ -558,3 +558,29 @@ R6a(`S01`)·R6b(`S07`) 두 카드의 선행과 엔진 등재형 7코드(13 §8 R
 🔴 **만들지 않은 이름**(재론 방지): `ConnectionsVm.notifyChannel`(실물 = 행에 붙는 `ConnectionRow.channelPicker`) · `SettingsCard.actionAvailable`·`ConnectionRow.actionAvailable`(삭제 — 부재 = 목록에 없음 / 동작 목록 빔) · `SettingsHomeVm.isViewer`(뷰어 판 = 엔진이 행을 뺀다) · 카테고리 아이콘 사전(코드로 아이콘을 고르면 «코드로 분기 0» 위반) · `OperationsVm`(R6c · 1.19.0).
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 167~171(S05 계약 = v1.19 · S01·S07 VM 산출 원천 · 운영 등급 생체 주체·세션 · S11·S12 카드 배정 · 엔진 등재형 소비) · 16 · 95 · 127 · 140(N-01 첫 진입 쪽) · 151(`credentialVerify.kind` = R7) · 엔진 숙제(06 변경 이력 «2026-11-13 · 계약 v1.18» · 번호 1.19.0) · 조립 앱 몫(06 `M4-12` ⑤).
+
+## X. 🆕 계약 v1.19 (2026-11-14 · R6c 선행 M2 보강 + 엔진 E15i 굳은 몫) — M9 운용 관리 `OperationsVm` · 체험 카드 · 승격 동작 · E15i 등재형
+
+R6c(`S05`) 카드의 선행과 엔진 E15i 가운데 엔진 lib 에 글자가 굳은 몫을 한 판으로 닫았다. `contractVersion` = **`1.19.0`**(엔진 다음 = **1.20.0** — E13i1 · E13i2 · E14i · fill-origin · F1~F8 · 알림 · 01 §8 미결 176) · 픽스처 **256건**(248 + 신설 8 · 개정 0 · 버전 줄만 248) · 라우트 80 그대로 · 조문 = 01 §28.
+상태 = ✅ 병합 PR #163 squash `6b8ed02`(2026-11-14 · CI 3/3 · head `5f86e54` · 커밋 7 · 밑동 `175cbd5`(E15e2 #161) · 원격 가지 삭제).
+결정 = 발주자 위임 2026-11-14 «v1.19 진행해줘» — K1~K27 권고대로(정본 = 설계 `10_리뷰/2026-11-14_R6c선행_계약v1.19_설계서.md` §3 · 이름표 정본 §4-11 #1~#21).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| X-1 | 🆕 `OperationsVm{statusChip, mode, operatingMode, trial?, ramp, jobs, control, updateGate?, lastRequestNotice?, lockedLabel?, asOf}` | `S05` · 🆕 `dto/operations.dart`(`dto.dart` export `onboarding` 뒤 · `ops` 앞) · `scope`·`HandoverPlan`·`contribution` 칸 0(K3) · 폰 전용 |
+| X-2 | 🆕 `RunModeCard{label, level, holdLabel?, observation?, promotionAction?, switchNoticeText?, switchActions = []}` | runMode 축만 · 관찰 = `LiveDryRunObservationVm` 재사용 · 승격 버튼 = 관찰 중 ∧ 승격 가능일 때만 · hold «모의» 0 · K4 · K5 |
+| X-3 | `OperatingModeView` += `switchActions`(기본 []) | `dto/handover.dart` · 운영 방식 전환 요청 버튼 · `options` 카드엔 버튼 0 · K8 |
+| X-4 | 🆕 `SimTrialCard{headline, summaryText, checks}` · 🆕 `SimTrialCheck{itemCode, label, detailText, itemState, stateLabel, level}` | 체험 요약·5항목 · 짝 PASSED·AUTO_PASSED ⇒ ok · OPEN ⇒ watch · OPEN_WARN ⇒ info · `GateState`·`OnboardingFinishCheck` 안 씀 · K9 · K10 |
+| X-5 | 🆕 `RampBoard{levelLabel, level, conditions = [], emptyLabel?, dstNoticeText?}` · 🆕 `RampCondition{label, progressText, level}` | 레벨 = 글자 · `RampLevel` 열거 미사용 · 엔진 발행 L1~L5 · `RampLevel.l0` 유지 + 주석 · K11 |
+| X-6 | 🆕 `JobRow{label, scheduleText, lastRunText, statusCode, stateLabel, level, detailLine?}` | `statusCode` 화면 미참조 · `job_run.status` 4 + `NONE` · K12 |
+| X-7 | 🆕 `EngineControl{stateLabel, level, startAction?, stopPromptText?, stopActions = []}` · 🆕 `UpdateGateCard{stateLabel, bodyText, level}` | 시작 xor 중지 · 킬스위치 칸 0 · 게이트 강행 칸 0 · K13 · K17 · 🔴 C-7 `updateGate` = 파일별 읽기 칸 허용(K27) |
+| X-8 | `SettingsRepository` += `watchOperations()` | 받침대 같은 커밋 · 뷰어 원천 0(K20) |
+| X-9 | 🆕 `SettingsActionId.runtimeLivePromotion`(`RUNTIME_LIVE_PROMOTION`) · S05 args 5 | `runtimeModeSwitchRequest = {run_mode}` · `runtimeOperatingModeSwitchRequest = {operating_mode}` · `runtimeEngineStart = {}` · `runtimeEngineStop = {reason_code}` · `runtimeLivePromotion = {}` · 🔴 키 `target` 금지 · K6 · K7 |
+| X-10 | 🆕 `EngineStopReasonCodes`(2 잠정 · `engine_stop_reason`) · `SettingsResultCodes` += `ENGINE_ALREADY_RUNNING` · `ENGINE_ALREADY_STOPPED` | `labels/settings_codes.dart` · K14 · K16 · 값 확정 = 미결 173 |
+| X-11 | 🆕 `labels/sim_codes.dart` — `SimTrialItemCodes`(5) · `SimTrialItemStateCodes`(4) · `LiveObservationBlockCodes`(4) · `LivePromotionResultCodes`(5) · `ModeStartupCodes`(2) · `SimOpeningResultCodes`(10) · `DecisionReasonCodes.livePromotion`(`LIVE_EXECUTE_PROMOTION`) | 엔진 E15i · E15e2 #161 글자 1:1 · `byDomain` +7 · K15 · K21 · 엔진 소비 = 미결 177 |
+| X-12 | `SafetyState` += `holds`(기본 [] · ⊆ `SafetyHoldCodes`) | 엔진 `ModeStartupGate.holds` 파생 · 기동 거부 ≠ hold · K21 |
+| X-13 | 계약 테스트 C-53(`c53_r6c_operations_test.dart` · 15항) · 생성기 `tool/gen_r6c_v119_fixtures.py` · 표본 `m9/operations_*` 8 | C-52 ⑨ 좁힘 · c08 `_knownUncovered` − `LiveDryRunObservationVm` · docs 사본 = PR 커밋(K24) |
+
+🔴 **만들지 않은 이름**(재론 방지): `OperationsVm.contribution`(R6 Q4 «칸만» → 칸 0 · 월 납입 = R8 별도 화면) · `OperationsVm.scope`·`HandoverPlan` 칸 · 체험 카드용 `GateState` 짝(R87 AB11 · `unknown` = 진행 차단과 충돌) · 승격 `LinkAction`(위저드 7단계 종착 = 관찰 — 승격은 위저드 안에 없다) · `EngineControl` 킬스위치 칸 · `UpdateGateCard` 강행 칸 · 단일 모드 토글(→ 칩 2 + 전환 «요청» 버튼).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 168(넓힘 — `OperationsVm` 산출 원천) · 169 · 172(램프 조건 원천) · 173(엔진 시작·중지 원천 · 중지 사유 값) · 174(업데이트 게이트 · 지난 요청 원천) · 175 · 176(계약 1.20.0 창) · 177(E15i 등재형 소비) · 28(관찰 일수 값 = 발주자) · 엔진 숙제(06 변경 이력 «2026-11-14 · 계약 v1.19» · 번호 1.20.0) · 조립 앱 몫(06 `M4-12` ⑥).
