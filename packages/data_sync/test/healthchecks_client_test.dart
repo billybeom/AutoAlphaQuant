@@ -422,7 +422,11 @@ void main() {
           }
           return http.Response('{}', 200);
         });
-        await rig.client.pause(_slug, reason: PauseReason.modeSwitchCommit);
+        await rig.client.pause(
+          _slug,
+          reason: PauseReason.modeSwitchCommit,
+          toPrefix: 'sim-auto',
+        );
         expect(
           await rig.client.resume(_slug, reason: PauseReason.maintenanceWindow),
           isTrue,
@@ -542,5 +546,178 @@ void main() {
     expect(isNeverPauseSlug('live-auto-engine_alive_2'), isFalse);
     expect(isNeverPauseSlug('live-auto-daily_data'), isFalse);
     expect(isNeverPauseSlug('engine-alive'), isFalse);
+  });
+
+  group('🆕 E15f4b1 생성(ensure) · 멈춤 규칙(R105)', () {
+    WatchdogCheckSpec spec({String slug = _slug, bool cron = true}) =>
+        WatchdogCheckSpec(
+          slug: slug,
+          grace: const Duration(hours: 2),
+          cron: cron ? '30 18 * * 1-5' : null,
+          timeout: cron ? null : const Duration(days: 1),
+          tags: const <String>['live', 'auto'],
+        );
+
+    test('없으면 만든다 — GET ?slug= 다음 POST 1번 · 본문 = 이름 · 슬러그 · 태그 · 유예 · cron + tz · channels * · unique slug · 201 = created', () async {
+      final _Rig rig = _Rig((http.Request r, int i) async {
+        if (r.method == 'GET') {
+          return _json(<String, Object?>{'checks': <Object?>[]});
+        }
+        return _json(_row(_slug, status: 'new', lastPing: null), 201);
+      });
+      final EnsuredCheck e = await rig.client.ensure(spec());
+      expect(e.outcome, EnsureOutcome.created);
+      expect(e.check.slug, _slug);
+      expect(e.check.status, RemoteCheckStatus.fresh);
+      expect(
+        rig.requests.map((http.Request r) => '${r.method} ${r.url}'),
+        <String>[
+          'GET https://healthchecks.io/api/v3/checks/?slug=$_slug',
+          'POST https://healthchecks.io/api/v3/checks/',
+        ],
+      );
+      final http.Request post = rig.requests.last;
+      expect(post.headers['X-Api-Key'], _apiKey);
+      expect(post.headers['content-type'], startsWith('application/json'));
+      final Map<String, Object?> body =
+          jsonDecode(post.body) as Map<String, Object?>;
+      expect(body, <String, Object?>{
+        'name': _slug,
+        'slug': _slug,
+        'tags': 'live auto',
+        'grace': 7200,
+        'schedule': '30 18 * * 1-5',
+        'tz': 'Asia/Seoul',
+        'channels': '*',
+        'unique': <Object?>['slug'],
+      });
+      for (final http.Request r in rig.requests) {
+        expect(r.url.toString().contains('create'), isFalse);
+      }
+      _clean(e.check);
+    });
+
+    test('있으면 고친다(200 = updated) · 주기 꼴 = timeout(cron · tz 없음)', () async {
+      final _Rig rig = _Rig((http.Request r, int i) async {
+        if (r.method == 'GET') {
+          return _json(<String, Object?>{
+            'checks': <Object?>[_row(_slug)],
+          });
+        }
+        return _json(_row(_slug, status: 'paused'));
+      });
+      final EnsuredCheck e = await rig.client.ensure(spec(cron: false));
+      expect(e.outcome, EnsureOutcome.updated);
+      expect(e.check.status, RemoteCheckStatus.paused);
+      final Map<String, Object?> body =
+          jsonDecode(rig.requests.last.body) as Map<String, Object?>;
+      expect(body['timeout'], 86400);
+      expect(body.containsKey('schedule'), isFalse);
+      expect(body.containsKey('tz'), isFalse);
+      expect(body['unique'], <Object?>['slug']);
+    });
+
+    test(
+      '같은 슬러그 여럿 = ambiguousSlug · 읽기 전용 키 = readOnlyKey · 둘 다 POST 0',
+      () async {
+        for (final (List<Object?> rows, HealthchecksErrorKind kind)
+            in <(List<Object?>, HealthchecksErrorKind)>[
+              (
+                <Object?>[_row(_slug), _row(_slug)],
+                HealthchecksErrorKind.ambiguousSlug,
+              ),
+              (
+                <Object?>[_row(_slug, withUuid: false)],
+                HealthchecksErrorKind.readOnlyKey,
+              ),
+            ]) {
+          final _Rig rig = _Rig((http.Request r, int i) async {
+            if (r.method == 'GET') {
+              return _json(<String, Object?>{'checks': rows});
+            }
+            return _json(_row(_slug), 201);
+          });
+          final HealthchecksError e = await _fails(rig.client.ensure(spec()));
+          expect(e.kind, kind);
+          expect(
+            rig.requests.where((http.Request r) => r.method == 'POST'),
+            isEmpty,
+          );
+        }
+      },
+    );
+
+    test('403 = checkLimit · 401 = unauthorized · 5xx 다음 201 = 다시 해서 created · 응답 꼴 틀림 = badResponse', () async {
+      Future<HealthchecksError> postFails(int code) async {
+        final _Rig rig = _Rig((http.Request r, int i) async {
+          if (r.method == 'GET') {
+            return _json(<String, Object?>{'checks': <Object?>[]});
+          }
+          return http.Response('{}', code);
+        });
+        return _fails(rig.client.ensure(spec()));
+      }
+
+      final HealthchecksError limit = await postFails(403);
+      expect(limit.kind, HealthchecksErrorKind.checkLimit);
+      expect(limit.statusCode, 403);
+      _clean(limit);
+      expect((await postFails(401)).kind, HealthchecksErrorKind.unauthorized);
+      expect((await postFails(200)).kind, HealthchecksErrorKind.badResponse);
+      final List<int> codes = <int>[503, 201];
+      final _Rig rig = _Rig((http.Request r, int i) async {
+        if (r.method == 'GET') {
+          return _json(<String, Object?>{'checks': <Object?>[]});
+        }
+        return _json(_row(_slug, status: 'new'), codes.removeAt(0));
+      });
+      final EnsuredCheck e = await rig.client.ensure(spec());
+      expect(e.outcome, EnsureOutcome.created);
+      expect(rig.slept, hasLength(1));
+      final _Rig other = _Rig((http.Request r, int i) async {
+        if (r.method == 'GET') {
+          return _json(<String, Object?>{'checks': <Object?>[]});
+        }
+        return _json(_row('live-auto-other'), 201);
+      });
+      expect(
+        (await _fails(other.client.ensure(spec()))).kind,
+        HealthchecksErrorKind.badResponse,
+      );
+    });
+
+    test(
+      '🔴 모드 전환 커밋 — 옛 접두 엔진 생존 체크는 멈춘다 · 새 접두 · 새 접두 없음 = 거절(망 0)',
+      () async {
+        final _Rig rig = _Rig((http.Request r, int i) async {
+          if (r.method == 'GET') {
+            return _json(<String, Object?>{
+              'checks': <Object?>[_row('sim-auto-engine_alive')],
+            });
+          }
+          return http.Response('{}', 200);
+        });
+        for (final String? to in <String?>[null, 'sim-auto', 'nope-x']) {
+          final HealthchecksError e = await _fails(
+            rig.client.pause(
+              'sim-auto-engine_alive',
+              reason: PauseReason.modeSwitchCommit,
+              toPrefix: to,
+            ),
+          );
+          expect(e.kind, HealthchecksErrorKind.refusedPause);
+        }
+        expect(rig.requests, isEmpty);
+        await rig.client.pause(
+          'sim-auto-engine_alive',
+          reason: PauseReason.modeSwitchCommit,
+          toPrefix: 'live-auto',
+        );
+        expect(rig.requests.map((http.Request r) => r.method), <String>[
+          'GET',
+          'POST',
+        ]);
+      },
+    );
   });
 }

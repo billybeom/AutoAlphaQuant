@@ -530,5 +530,20 @@ void main() {
         isEmpty,
       );
     });
+
+    test('🆕 E15f4b1 — 기대 밖이라도 멈춘 체크는 지적하지 않는다(모드 전환 뒤 옛 모드 = 정상) · 멈추지 않은 기대 밖은 그대로', () {
+      expect(
+        auditRemoteChecks(
+          <String>{'live-auto-kr_order'},
+          <RemoteCheck>[
+            _r('live-auto-kr_order'),
+            _r('sim-auto-kr_order', status: RemoteCheckStatus.paused),
+            _r('sim-auto-engine_alive', status: RemoteCheckStatus.paused),
+            _r('sim-auto-daily_data', status: RemoteCheckStatus.down),
+          ],
+        ).map((RemoteAuditFinding x) => '$x'),
+        <String>['unexpected:sim-auto-daily_data'],
+      );
+    });
   });
 }

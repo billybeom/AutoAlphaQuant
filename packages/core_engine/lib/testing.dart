@@ -27,3 +27,5 @@ export 'src/testing/fake_planned_work_ledger.dart' show FakePlannedWorkLedger;
 export 'src/testing/fake_resume_reevaluator.dart' show FakeResumeReevaluator;
 export 'src/testing/fake_secret_vault.dart'
     show FakeSealedBox, MemorySecretVault;
+// 🆕 E15f4b1 — 바깥 감시 포트 가짜(설계 13 §8 R105 AJ7).
+export 'src/testing/fake_watchdog_remote.dart' show FakeWatchdogRemote;

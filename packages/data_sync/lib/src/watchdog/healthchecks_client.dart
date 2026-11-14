@@ -7,6 +7,8 @@
 // 🔴 핑 URL · 키 · 체크 uuid 는 어떤 문자열(`toString` · 오류 · 기록)에도 나오지 않는다 — 알면 «살아있음»을 위조할 수 있다.
 // 🔴 키는 부를 때마다 금고에서 읽는다(E11d 회전이 재기동 없이 먹게).
 // 🔵 재시도 = 망 · 시간 초과 · 429 · 5xx 만(같은 핑을 두 번 보내도 해가 없다 — 성공 둘 = 성공 · start 둘 = 시간만 다시 잰다).
+// 🆕 E15f4b1(R105 AJ3 · 문서 2026-11-14 확인) — 생성 `POST /api/v3/checks/` · `unique: ["slug"]`(같은 슬러그 = 고침 ·
+//    재시도해도 하나) · 201 = 새로 · 200 = 고침 · 403 = 체크 상한 · 새 체크엔 연동이 안 붙으므로 `channels: "*"`.
 
 import 'dart:async';
 import 'dart:convert';
@@ -40,8 +42,11 @@ enum HealthchecksErrorKind {
   /// 읽기 전용 키로 pause · resume 을 부르려 했다.
   readOnlyKey,
 
-  /// 엔진 생존 체크를 멈추려 했다(X1-6 ⓑ).
+  /// 멈춤 규칙(core `pausePermitted` · SPEC 04 :925)이 거절했다 — 엔진 생존 체크 · 새 모드 체크 · 사유 없는 전환(X1-6 ⓑ).
   refusedPause,
+
+  /// 🆕 E15f4b1 — 체크 상한(생성 403 · 무료 20).
+  checkLimit,
 
   /// 서버 오류(5xx).
   server,
@@ -338,11 +343,92 @@ class HealthchecksClient implements JobHeartbeat, WatchdogRemote {
     throw _errorOf(r, attempts);
   }
 
-  /// 멈춘다(R45 C6) — 🔴 엔진 생존 체크는 망에 가기 전에 거절.
+  /// 🆕 E15f4b1 — 만든다(같은 슬러그가 있으면 고친다 · R105 AJ3) — 먼저 슬러그로 찾아 여럿 = `ambiguousSlug` ·
+  /// uuid 없음(읽기 전용 키) = `readOnlyKey` 이면 POST 하지 않는다 · 🔴 `unique` 없는 생성은 없다.
   @override
-  Future<void> pause(String slug, {required PauseReason reason}) async {
+  Future<EnsuredCheck> ensure(WatchdogCheckSpec spec) async {
+    _checkSlug(spec.slug);
+    final List<Map<String, Object?>> hits = <Map<String, Object?>>[
+      for (final Map<String, Object?> m in await _listRaw(slug: spec.slug))
+        if (m['slug'] == spec.slug) m,
+    ];
+    if (hits.length > 1) {
+      throw const HealthchecksError(HealthchecksErrorKind.ambiguousSlug);
+    }
+    if (hits.length == 1) {
+      final Object? uuid = hits.single['uuid'];
+      if (uuid is! String || !_uuidShape.hasMatch(uuid)) {
+        throw const HealthchecksError(HealthchecksErrorKind.readOnlyKey);
+      }
+    }
+    final String key = await _key(apiKeyId);
+    final Uri uri = _join(apiBase, const <String>['api', 'v3', 'checks', '']);
+    final String? cron = spec.cron;
+    final String body = jsonEncode(<String, Object?>{
+      'name': spec.name,
+      'slug': spec.slug,
+      'tags': spec.tags.join(' '),
+      'grace': spec.grace.inSeconds,
+      if (cron != null) ...<String, Object?>{'schedule': cron, 'tz': spec.tz},
+      if (cron == null) 'timeout': spec.timeout!.inSeconds,
+      'channels': '*',
+      'unique': const <String>['slug'],
+    });
+    final (http.Response? r, int attempts) = await _send(
+      () => _http.post(
+        uri,
+        headers: <String, String>{
+          'X-Api-Key': key,
+          'content-type': 'application/json',
+        },
+        body: utf8.encode(body),
+      ),
+    );
+    if (r != null && (r.statusCode == 200 || r.statusCode == 201)) {
+      final Object? decoded;
+      try {
+        decoded = jsonDecode(utf8.decode(r.bodyBytes));
+      } on FormatException {
+        throw HealthchecksError(
+          HealthchecksErrorKind.badResponse,
+          statusCode: r.statusCode,
+          attempts: attempts,
+        );
+      }
+      final RemoteCheck? c = decoded is Map<String, Object?>
+          ? _checkOf(decoded)
+          : null;
+      if (c == null || c.slug != spec.slug) {
+        throw HealthchecksError(
+          HealthchecksErrorKind.badResponse,
+          statusCode: r.statusCode,
+          attempts: attempts,
+        );
+      }
+      return EnsuredCheck(
+        c,
+        r.statusCode == 201 ? EnsureOutcome.created : EnsureOutcome.updated,
+      );
+    }
+    if (r != null && r.statusCode == 403) {
+      throw HealthchecksError(
+        HealthchecksErrorKind.checkLimit,
+        statusCode: 403,
+        attempts: attempts,
+      );
+    }
+    throw _errorOf(r, attempts);
+  }
+
+  /// 멈춘다(R45 C6) — 🔴 멈춤 규칙(`pausePermitted`)이 거절하면 망에 가기 전에 거절(🆕 E15f4b1 — 모드 전환 커밋은 새 접두 [toPrefix] 필수 · 옛 모드 엔진 생존 체크는 이때만 멈춘다).
+  @override
+  Future<void> pause(
+    String slug, {
+    required PauseReason reason,
+    String? toPrefix,
+  }) async {
     _checkSlug(slug);
-    if (isNeverPauseSlug(slug)) {
+    if (!pausePermitted(slug, reason, toPrefix: toPrefix)) {
       throw const HealthchecksError(HealthchecksErrorKind.refusedPause);
     }
     final http.Response? r = await _post(await _uuidOf(slug), 'pause');

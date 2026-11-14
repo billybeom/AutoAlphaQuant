@@ -21,7 +21,10 @@ export 'package:core_engine/core_engine.dart'
         JobRunLog,
         JobRunStatus,
         PingStatus,
-        TargetSource;
+        TargetSource,
+        // 🆕 E15f4b1(R105 AJ4) — 체크 이름은 core_engine 에 있다.
+        watchdogCheckName,
+        watchdogCheckPrefix;
 
 export 'src/jobs/fgs_notice.dart'
     show FgsChannel, FgsNotice, FgsStatus, buildFgsNotice, shouldRepostFgs;
@@ -29,15 +32,7 @@ export 'src/jobs/fgs_notice.dart'
 export 'src/jobs/fgs_status.dart'
     show FgsFacts, breakerUiLevel, fgsStatusOf, sessionsUntilNextRebalance;
 export 'src/jobs/job_contract.dart'
-    show
-        JobBody,
-        JobRun,
-        JobStatus,
-        kstDateOf,
-        kstTimeOfDay,
-        runIdFor,
-        runJob,
-        watchdogCheckName;
+    show JobBody, JobRun, JobStatus, kstDateOf, kstTimeOfDay, runIdFor, runJob;
 export 'src/jobs/job_schedule.dart'
     show
         JobCadence,
@@ -81,3 +76,6 @@ export 'src/jobs/watchdog_board.dart'
         kWatchdogStaleAfter;
 export 'src/jobs/watchdog_judge.dart'
     show OccurrenceRecord, WatchdogState, WatchdogVerdict, judgeOccurrence;
+// 🆕 E15f4b1 — 잡 표 → 감시 체크 생성 꼴(설계 13 §8 R105 AJ5).
+export 'src/jobs/watchdog_specs.dart'
+    show kWatchdogSpecExcluded, watchdogCheckSpecsFor, watchdogCronOf;

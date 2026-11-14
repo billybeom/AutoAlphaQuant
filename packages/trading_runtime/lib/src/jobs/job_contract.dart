@@ -101,15 +101,7 @@ class JobRun<T> {
   final bool runLogFailed;
 }
 
-/// 체크 이름(04 §5-2 2축 접두) — `{sim|live}-{auto|advisory}-{잡}`.
-String watchdogCheckName(RunMode run, OperatingMode op, String job) {
-  final String r = run.isSim ? 'sim' : 'live';
-  final String o = switch (op) {
-    OperatingMode.autoTrade => 'auto',
-    OperatingMode.advisory => 'advisory',
-  };
-  return '$r-$o-$job';
-}
+// 🆕 E15f4b1(R105 AJ4) — 체크 이름 `watchdogCheckName` 은 core_engine(`watchdog_ports.dart`)으로 옮겼다 · 배럴이 다시 내보낸다.
 
 /// UTC 시각의 KST 날짜.
 TradeDate kstDateOf(DateTime utc) {
