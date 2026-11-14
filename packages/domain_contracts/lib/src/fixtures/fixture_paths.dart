@@ -628,6 +628,21 @@ abstract final class FixturePaths {
   static const String m8WatchdogPaused = 'm8/watchdog_paused.json';
 
   // ── m9/ — 설정·운영 모드 전환 (05) ──
+  // 🆕 v1.20(01 §29) — `S02` 4 · `S06` 5 · `S03` 3 · 결과 3(파일 이름 바이트 차례 · `all` 도 같은 차례).
+  /// 🆕 v1.20 — `S03` 정상(계좌 5 · 매핑 3 · A 행 POT 한 줄 · SAF-309 막힌 선택지 · DC «수동» 배지 · 전체 검증).
+  static const String m9AccountMapping = 'm9/account_mapping.json';
+
+  /// 🆕 v1.20 — `S03` 동작 결과 `ActionResult` 8(레벨 5값 · 매핑 · 전체 검증 · 넘김 0 · 재시도 0).
+  static const String m9AccountMappingActionResults =
+      'm9/account_mapping_action_results.json';
+
+  /// 🆕 v1.20 — `S03` 잠김(`account_mapping` 에서 전체 검증·선택지 호출·영향을 비운 판 + `lockedLabel`).
+  static const String m9AccountMappingLocked = 'm9/account_mapping_locked.json';
+
+  /// 🆕 v1.20 — `S03` C 미지정(ACT) · ISA 잔고 확인 실패(BLOCKED) · 미지정 행 선택지 2 + 막힘 1.
+  static const String m9AccountMappingUnmapped =
+      'm9/account_mapping_unmapped.json';
+
   // 🆕 v1.18(01 §27) — `S01` 3 · `S07` 3 · M9 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
   /// 🆕 v1.18 — `S07` 정상(행 5 · 레벨 5값 전수 · 부분 동기 · 실패 2 · 미설정 · 워치독·캘린더 링크 · 카카오 선택 + 배지).
   static const String m9Connections = 'm9/connections.json';
@@ -646,6 +661,41 @@ abstract final class FixturePaths {
   /// 월 납입 설정 — `pension_limit_note_text` 없음(그 줄 부재).
   static const String m9ContributionSettingNoLimitNote =
       'm9/contribution_setting_no_limit_note.json';
+
+  /// 🆕 v1.20 — `S02` 동작 결과 `ActionResult` 6(레벨 5값 · `CREDENTIAL_VERIFY` · 넘김 0 · 재시도 0).
+  static const String m9CredentialActionResults =
+      'm9/credential_action_results.json';
+
+  /// 🆕 v1.20 — `S02` `live × autoTrade` · 검증됨 · 만료 임박 + 회전 링크 · 검증 실패 + 슬롯 + 검증 버튼.
+  static const String m9Credentials = 'm9/credentials.json';
+
+  /// 🆕 v1.20 — `S02` `live × advisory` · 실전 키 «선택» 미등록 · 대사 키 «권장» 미등록(info · `whyLine`).
+  static const String m9CredentialsAdvisory = 'm9/credentials_advisory.json';
+
+  /// 🆕 v1.20 — `S02` 잠김(`credentials` 에서 슬롯·검증·회전을 비운 판 + `lockedLabel` · 런북 링크 유지).
+  static const String m9CredentialsLocked = 'm9/credentials_locked.json';
+
+  /// 🆕 v1.20 — `S02` `simInternal × autoTrade` · 봉인 머리 줄 · 봉인 배지 2 · 모의 키 만료(BLOCKED).
+  static const String m9CredentialsSimSealed = 'm9/credentials_sim_sealed.json';
+
+  /// 🆕 v1.20 — `S06` 정상(이 폰 + viewer 3 · 리스 유효 · X1 링크 · 발급 버튼).
+  static const String m9DeviceAccess = 'm9/device_access.json';
+
+  /// 🆕 v1.20 — `S06` 잠김(폐기·발급·QR·X1 링크를 비운 판 + `lockedLabel`).
+  static const String m9DeviceAccessLocked = 'm9/device_access_locked.json';
+
+  /// 🆕 v1.20 — `S06` viewer 0 · 리스 대기(BLOCKED · epoch null) · `emptyLabel`.
+  static const String m9DeviceAccessNoViewers =
+      'm9/device_access_no_viewers.json';
+
+  /// 🆕 v1.20 — `S06` 오래됨(`device_access` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9DeviceAccessStale = 'm9/device_access_stale.json';
+
+  /// 🆕 v1.20 — `S06` QR 자리(`device_access` 에서 `pairing` 만 티켓 판).
+  static const String m9DeviceAccessTicket = 'm9/device_access_ticket.json';
+
+  /// 🆕 v1.20 — `S06` 동작 결과 `ActionResult` 6(레벨 5값 · 발급 · 폐기 · 넘김 0 · 재시도 0).
+  static const String m9DeviceActionResults = 'm9/device_action_results.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
 
   // 🆕 v1.19(01 §28) — `S05` 7 · S05 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
@@ -932,11 +982,26 @@ abstract final class FixturePaths {
     m8WatchdogEmpty,
     m8WatchdogHoliday,
     m8WatchdogPaused,
+    m9AccountMapping,
+    m9AccountMappingActionResults,
+    m9AccountMappingLocked,
+    m9AccountMappingUnmapped,
     m9Connections,
     m9ConnectionsLocked,
     m9ConnectionsTelegram,
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
+    m9CredentialActionResults,
+    m9Credentials,
+    m9CredentialsAdvisory,
+    m9CredentialsLocked,
+    m9CredentialsSimSealed,
+    m9DeviceAccess,
+    m9DeviceAccessLocked,
+    m9DeviceAccessNoViewers,
+    m9DeviceAccessStale,
+    m9DeviceAccessTicket,
+    m9DeviceActionResults,
     m9HandoverStates,
     m9OperationsActionResults,
     m9OperationsAdvisory,

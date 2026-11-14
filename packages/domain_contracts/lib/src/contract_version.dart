@@ -8,7 +8,7 @@
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -137,13 +137,25 @@
 //    `SettingsResultCodes` +2 · `DecisionReasonCodes` += `LIVE_EXECUTE_PROMOTION`(엔진 E15e2 #161) ·
 //    받침대 메서드 1 · 🆕 C-53 · 픽스처 248 → 256(신설 8) — 🆕 tool/gen_r6c_v119_fixtures.py(기준 = M2 밑동 원문에서 멱등).
 //    엔진 다음 계약 판 = 1.20.0(E13i1 `SafetyActions`·거부 코드·라우트 3·`GaugeCodes`·생체 포트 · E13i2 VM · E14i 코드·동작·`ResumeGateVm` ·
-//    fill-origin · `simToAuto` 표본 · 픽스처 정정 F1~F8 · 이름 붙은 알림 — 06 변경 이력 «2026-11-14 · 계약 v1.19»).
+//    fill-origin · `simToAuto` 표본 · 픽스처 정정 F1~F8 · 이름 붙은 알림 — 06 변경 이력 «2026-11-14 · 계약 v1.19») —
+//    🆕 v1.20 이 R7 선행 + 겹침 몫으로 번호를 가져갔다 · 엔진 덩어리 = 1.21.0(아래).
+// 🆕 '1.20.0'(R7 선행 + 엔진 겹침 몫 · 01 §29 · 발주자 위임 2026-11-14 — 권고대로 · K1~K39) — M9 S02 증권사 키 · S06 기기·접근 · S03 계좌 매핑 표시·동작 계약:
+//    `CredentialListVm` += `modeNotice`·`leakRunbookLink`·`lockedLabel`·`asOf` · `CredentialCardVm` += `level`·`lastVerifiedText`·`requirementLabel`·
+//    `whyLine`·`sealLabel`·`credentialSlotId`·`verifyAction`·`rotateLink`(키 조각 0 · 1단) · `DeviceAccessVm` += `leaseLevel`·`leaseEpochText`·
+//    `migrationLink`·`pairing`·`emptyLabel`·`lockedLabel` · `DeviceRow` += `level`·`revokeAction`·`revokeConfirmText` · 🆕 `PairingTicketCard` ·
+//    🆕 dto/accounts.dart — `AccountMappingVm`·`AccountRow`·`SleeveMappingRow`·`AccountMappingOption`(K39 — v1.12 `AccountOption` 과 이름 겹침 회피) ·
+//    `SettingsRepository.watchCredentials`·`watchAccountMapping` · 라우트 81(`m4KeyRotation`) · R7 args 5 · 사전 +2(`credential_kind` — 엔진
+//    `KisKeySet.wire` 겹침 · `settings_slot`) · `SettingsResultCodes` +3 · 받침대 메서드 2 · 🆕 C-54 · 픽스처 256 → 271(신설 15 · 개정 1 —
+//    온보딩 `KIS_MOCK` → `KIS_PAPER`) — 🆕 tool/gen_r7_v120_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
+//    엔진 다음 계약 판 = 1.21.0(E15i 코드 등재 모음 · E13i1 `SafetyActions`·거부 코드·라우트 3·`GaugeCodes`·생체 포트 · E13i2 VM · E14i ·
+//    E16i(13 R112 D21) · fill-origin · `simToAuto` 표본 · 픽스처 정정 F1~F8 · 이름 붙은 알림 — 창 = R7a 병합 뒤 · R7b 발송 전 ·
+//    06 변경 이력 «2026-11-15 · 계약 v1.20»).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.19.0';
+const String contractVersion = '1.20.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
