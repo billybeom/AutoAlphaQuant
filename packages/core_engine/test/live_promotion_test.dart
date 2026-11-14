@@ -35,6 +35,7 @@ String? _reject({
   bool noSince = false,
   DateTime? now,
   LiveObservationReport report = _ok,
+  LeaseVerdict lease = LeaseVerdict.valid,
 }) => livePromotionReject(
   biometricConfirmed: bio,
   sessionValid: session,
@@ -43,6 +44,7 @@ String? _reject({
   operatingMode: op,
   currentSinceUtc: noSince ? null : (since ?? _since),
   nowUtc: now ?? _now,
+  lease: lease,
   report: report,
 );
 
@@ -113,6 +115,23 @@ void main() {
         LivePromotionCodes.clockBehind,
       );
       expect(_reject(now: _since.add(const Duration(microseconds: 1))), isNull);
+    });
+
+    test('🆕 E15f5 리스 — 유효 아님 = LEASE_INVALID(시각 뒤 · 재판정보다 먼저)', () {
+      expect(_reject(lease: LeaseVerdict.unknown), 'LEASE_INVALID');
+      expect(_reject(lease: LeaseVerdict.invalid), 'LEASE_INVALID');
+      expect(
+        _reject(lease: LeaseVerdict.unknown, report: _short),
+        'LEASE_INVALID',
+      );
+      expect(
+        _reject(now: _since, lease: LeaseVerdict.unknown),
+        LivePromotionCodes.clockBehind,
+      );
+      expect(
+        livePromotionHeadline('LEASE_INVALID'),
+        '이 기기의 발주권(리스)을 확인할 수 없어 올리지 않았습니다.',
+      );
     });
 
     test('재판정 막힘 = 그 사유 코드 · 사유 없으면 관찰 중 아님', () {

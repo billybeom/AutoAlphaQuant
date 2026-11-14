@@ -2,12 +2,14 @@
 // 01 §10-2 G-43 · SPEC v2.44 04 §3-1 ① · 설계 13 §8 R91 AD1~AD5).
 //
 // 🔴 자동 승격 0 — 사람의 생체 1회(호출자 증명)가 있어야 하고, 같은 트랜잭션 안에서 관찰을 다시 판정한다.
-// 🔴 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → 재판정(AD4).
+// 🔴 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → 🆕 리스(E15f5 R108 AM4) → 재판정(AD4).
+// 🔴 리스 «모름 = 거부»(SPEC 04 :383) — E11k 전에 올리면 첫 월말 회차가 `LEASE_INVALID` 로 한 달 밀린다.
 // 🔴 문구에 «DRY_RUN» 글자 0(G-63) · 코드 = 엔진 문자열(계약 등재 = 1.19.0 창 후보).
 
 import 'package:domain_contracts/domain_contracts.dart'
     show ExecPolicy, OperatingMode, RunMode, SettingsResultCodes;
 
+import '../ops/lease_gate.dart' show LeaseVerdict, kLeaseInvalidCode;
 import 'live_observation.dart' show LiveObservationBlock, LiveObservationReport;
 
 /// 승격 거부 · 결과 코드(R91).
@@ -50,7 +52,7 @@ String livePromotionDecisionId(DateTime nowUtc) {
 /// 사전 판정(AD4) — 통과 = null · 아니면 거부 코드.
 ///
 /// [sessionValid] = 세션을 주지 않았으면 null · 줬으면 그 행이 열림 ∧ 만료 전인가.
-/// [report] = 같은 트랜잭션 안에서 다시 판정한 관찰 결과.
+/// [report] = 같은 트랜잭션 안에서 다시 판정한 관찰 결과 · 🆕 [lease] = 실전 파일 리스 판정(트랜잭션 앞에서 읽은 값).
 String? livePromotionReject({
   required bool biometricConfirmed,
   required bool? sessionValid,
@@ -59,6 +61,7 @@ String? livePromotionReject({
   required OperatingMode? operatingMode,
   required DateTime? currentSinceUtc,
   required DateTime nowUtc,
+  required LeaseVerdict lease,
   required LiveObservationReport report,
 }) {
   if (!biometricConfirmed) return LivePromotionCodes.biometricUnavailable;
@@ -72,6 +75,7 @@ String? livePromotionReject({
     return LivePromotionCodes.notAutoTrade;
   }
   if (!nowUtc.isAfter(currentSinceUtc)) return LivePromotionCodes.clockBehind;
+  if (lease != LeaseVerdict.valid) return kLeaseInvalidCode;
   if (!report.promotionAvailable) {
     return report.block?.code ?? LivePromotionCodes.notObserving;
   }
@@ -92,6 +96,7 @@ String livePromotionHeadline(String? code, {LiveObservationReport? report}) {
     LivePromotionCodes.notObserving => '실전 관찰 중이 아니라 올릴 것이 없습니다.',
     LivePromotionCodes.notAutoTrade => '자동 매매가 아니라 올리지 않았습니다.',
     LivePromotionCodes.clockBehind => '기기 시각이 관찰 시작보다 앞서 올리지 않았습니다.',
+    kLeaseInvalidCode => '이 기기의 발주권(리스)을 확인할 수 없어 올리지 않았습니다.',
     _ => '실전 집행으로 올리지 못했습니다 — 바뀐 것은 없습니다. 다시 시도해 주세요.',
   };
 }

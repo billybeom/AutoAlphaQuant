@@ -7,6 +7,7 @@ import 'package:core_engine/core_engine.dart'
         ExchangeCalendar,
         JobRunEntry,
         JobRunStatus,
+        LeaseVerdict,
         LiveObservationConfig,
         LivePromotionCodes,
         Market,
@@ -103,14 +104,18 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  LivePromotionOutcome promote({bool bio = true, String? session}) =>
-      SqliteLivePromotionStore(live, clock: clock).promote(
-        biometricConfirmed: bio,
-        configHash: 'cfg-ops-1',
-        kr: _kr,
-        config: LiveObservationConfig(requiredTradingDays: 2),
-        handoverSessionId: session,
-      );
+  LivePromotionOutcome promote({
+    bool bio = true,
+    String? session,
+    LeaseVerdict lease = LeaseVerdict.valid,
+  }) => SqliteLivePromotionStore(live, clock: clock).promote(
+    biometricConfirmed: bio,
+    configHash: 'cfg-ops-1',
+    kr: _kr,
+    config: LiveObservationConfig(requiredTradingDays: 2),
+    lease: lease,
+    handoverSessionId: session,
+  );
 
   void nothingWritten() {
     expect(_count(live, 'decision_log'), 0);
@@ -201,6 +206,18 @@ void main() {
   });
 
   group('거부 = 아무것도 쓰지 않는다(AD4)', () {
+    test('🆕 E15f5 실전 리스 모름 · 무효 = LEASE_INVALID(E11k 전 승격 막음)', () {
+      for (final LeaseVerdict v in <LeaseVerdict>[
+        LeaseVerdict.unknown,
+        LeaseVerdict.invalid,
+      ]) {
+        final LivePromotionOutcome o = promote(lease: v);
+        expect(o.reasonCode, 'LEASE_INVALID');
+        expect(o.headline, '이 기기의 발주권(리스)을 확인할 수 없어 올리지 않았습니다.');
+        nothingWritten();
+      }
+    });
+
     test('생체 없음', () {
       final LivePromotionOutcome o = promote(bio: false);
       expect(o.ok, isFalse);

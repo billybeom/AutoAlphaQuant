@@ -747,4 +747,134 @@ void main() {
       ],
     );
   });
+
+  group('🆕 E15f5 전환 구간 재생(설계 13 §8 R108 AM5 · SPEC 04 :400 ① «실계좌 첫 주문 = 승격 뒤 첫 배치»)', () {
+    test('위저드 조회 → 전환(감시 체크 바꿈) → live dryRun 이틀(리스 유효 = SKIPPED · 모름 = LEASE_INVALID) → 관찰 2일 = 승격 가능 · 승격 판정 = 리스 모름이면 막힘 · 실계좌 제출 내내 0', () async {
+      final _Rig rig = _Rig(config: _config(exec: ExecPolicy.dryRun));
+
+      // ① 위저드 S3 · 커밋 직전 조회 = 조회만.
+      final LiveAccountProbe p = (await probeLiveAccount(
+        alias: 'pension',
+        broker: rig.broker,
+        today: _d1,
+        fetchedAtUtc: _kst(_d1, 8, 0),
+      ))!;
+      expect((p.holdingsCount, p.activityToday), (0, 0));
+      expect(rig.broker.balanceReads, 1);
+      expect(rig.broker.submitCount, 0);
+
+      // ② 전환 — 새 live-auto 체크 생성 → 커밋 → 마감 → 옛 sim-auto 체크 멈춤.
+      final FakeWatchdogRemote remote = FakeWatchdogRemote(
+        initial: <RemoteCheck>[
+          for (final WatchdogCheckSpec s in watchdogCheckSpecsFor(
+            RunMode.simInternal,
+            OperatingMode.autoTrade,
+          ))
+            RemoteCheck(slug: s.slug, status: RemoteCheckStatus.up),
+        ],
+      );
+      final SimToAutoSwitchResult sw = await runSimToAutoSwitch(
+        remote: remote,
+        newSpecs: watchdogCheckSpecsFor(RunMode.live, OperatingMode.autoTrade),
+        newPrefix: 'live-auto',
+        oldPrefix: 'sim-auto',
+        commit: () async =>
+            const SimToAutoSwitchCommit.ok('LIVEOPEN-1', '옮겼습니다.'),
+        finish: () async {},
+      );
+      expect(sw.committed, isTrue);
+      final Iterable<RemoteCheck> sims = remote.store.values.where(
+        (RemoteCheck c) => c.slug.startsWith('sim-auto-'),
+      );
+      final Iterable<RemoteCheck> lives = remote.store.values.where(
+        (RemoteCheck c) => c.slug.startsWith('live-auto-'),
+      );
+      expect(sims, hasLength(8));
+      expect(
+        sims.every((RemoteCheck c) => c.status == RemoteCheckStatus.paused),
+        isTrue,
+      );
+      expect(lives, hasLength(8));
+      expect(
+        lives.every((RemoteCheck c) => c.status == RemoteCheckStatus.fresh),
+        isTrue,
+      );
+      expect(rig.broker.submitCount, 0);
+
+      // ③ live × auto × dryRun 이틀 — 첫날 리스 유효 · 둘째 날 모름(E11k 전).
+      final Map<TradeDate, (LeaseVerdict, ExecutionStatus, String?)> days =
+          <TradeDate, (LeaseVerdict, ExecutionStatus, String?)>{
+            _d1: (LeaseVerdict.valid, ExecutionStatus.skipped, null),
+            _d2: (
+              LeaseVerdict.unknown,
+              ExecutionStatus.rejected,
+              'LEASE_INVALID',
+            ),
+          };
+      for (final MapEntry<TradeDate, (LeaseVerdict, ExecutionStatus, String?)> e
+          in days.entries) {
+        rig.lease.verdict = e.value.$1;
+        rig.targets.byDay[e.key.yyyyMmDd] = <OrderTarget>[_target(10)];
+        rig.at(e.key, 9, 10);
+        final JobRun<KrOrderOpenReport> open = await rig.jobs.runOpen();
+        expect(open.status, JobStatus.success, reason: e.key.yyyyMmDd);
+        expect(open.check, 'live-auto-kr_order');
+        final List<ExecutionOutcome> outs = open.report!.batch!.outcomes;
+        expect(outs, isNotEmpty);
+        for (final ExecutionOutcome o in outs) {
+          expect(o.status, e.value.$2, reason: e.key.yyyyMmDd);
+          if (e.value.$3 != null) expect(o.message, e.value.$3);
+        }
+      }
+      expect(rig.broker.submitCount, 0);
+      expect(rig.broker.submitted, isEmpty);
+
+      // ④ 관찰 판정 — 회차(잡 기록 그대로) + 그날 대사(일치).
+      final DateTime since = _kst(_d1, 8, 0);
+      final LiveObservationFacts facts = LiveObservationFacts(
+        asOfUtc: _kst(_d2, 18, 0),
+        runMode: RunMode.live,
+        execPolicy: ExecPolicy.dryRun,
+        currentSinceUtc: since,
+        runs: <LiveObservationRun>[
+          for (final JobRunEntry r in rig.runLog.entries)
+            LiveObservationRun(
+              r.sessionDay.yyyyMmDd,
+              r.startedAtUtc,
+              succeeded: r.status == JobRunStatus.success,
+            ),
+        ],
+        recons: <LiveObservationRecon>[
+          LiveObservationRecon(_kst(_d1, 9, 11), matched: true),
+          LiveObservationRecon(_kst(_d2, 9, 11), matched: true),
+        ],
+        unknownOrders: 0,
+        killSwitchActive: false,
+        blockingFlags: const <String>[],
+      );
+      final LiveObservationReport report = judgeLiveObservation(
+        facts,
+        kr: frozenExchangeCalendar(Market.kr),
+        config: LiveObservationConfig(requiredTradingDays: 2),
+      );
+      expect(report.observedTradingDays, 2);
+      expect(report.promotionAvailable, isTrue);
+
+      // ⑤ 승격 판정 — 실전 리스 모름(E11k 전) = 막힘 · 유효 = 통과.
+      String? promote(LeaseVerdict lease) => livePromotionReject(
+        biometricConfirmed: true,
+        sessionValid: null,
+        runMode: RunMode.live,
+        execPolicy: ExecPolicy.dryRun,
+        operatingMode: OperatingMode.autoTrade,
+        currentSinceUtc: since,
+        nowUtc: _kst(_d2, 18, 0),
+        lease: lease,
+        report: report,
+      );
+      expect(promote(LeaseVerdict.unknown), 'LEASE_INVALID');
+      expect(promote(LeaseVerdict.valid), isNull);
+      expect(rig.broker.submitCount, 0);
+    });
+  });
 }
