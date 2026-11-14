@@ -18,6 +18,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:ui_journal/ui_journal.dart'
+    show
+        LedgerDiffs,
+        LedgerRepairs,
+        journalLedgerRepositoryProvider,
+        journalLinkOpenerProvider;
 import 'package:ui_shell/ui_shell.dart';
 
 import '../engine/support.dart';
@@ -171,5 +177,48 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     container.dispose();
     disposed = true;
+  });
+
+  testWidgets(
+    '🔴 원장 대조 · 수리 기록(R111) = 조립 셸에 등록 · 같은 원장(빈 원장 = 빈 목록 · 크래시 없음)',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      await open(tester, AppRoutes.ledgerDiffs);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(LedgerDiffs), findsOneWidget);
+      await open(tester, AppRoutes.ledgerRepairs);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(LedgerRepairs), findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    },
+  );
+
+  test('🔴 일지 패키지 링크 열기 = 셸과 같은 것(https = 바깥)', () async {
+    final List<String> outside = <String>[];
+    final ProviderContainer c = ProviderContainer(
+      overrides: operatorShellOverrides(
+        OperatorRuntime(
+          files: files,
+          clock: clock,
+          openExternal: (String u) async {
+            outside.add(u);
+            return true;
+          },
+        ),
+      ),
+    );
+    addTearDown(c.dispose);
+    expect(
+      identical(
+        c.read(journalLinkOpenerProvider),
+        c.read(shellLinkOpenerProvider),
+      ),
+      true,
+    );
+    c.read(journalLinkOpenerProvider).open('https://github.com');
+    await Future<void>.delayed(Duration.zero);
+    expect(outside, <String>['https://github.com']);
+    expect(c.read(journalLedgerRepositoryProvider), isNotNull);
   });
 }

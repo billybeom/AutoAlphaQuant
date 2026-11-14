@@ -7,12 +7,20 @@
 // 🔵 홈(H-01) · 일지 · 보유 · 더보기 본문 · 온보딩 · 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
-import 'package:data_sync/data_sync.dart' show SqliteAlertRepository;
+import 'package:data_sync/data_sync.dart'
+    show SqliteAlertRepository, SqliteLedgerRepository;
 import 'package:domain_contracts/domain_contracts.dart'
-    show AlertRepository, AppRoutes, CommandApi;
+    show AlertRepository, AppRoutes, CommandApi, LedgerRepository;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:ui_journal/ui_journal.dart'
+    show
+        LedgerDiffs,
+        LedgerRepairs,
+        journalClockProvider,
+        journalLedgerRepositoryProvider,
+        journalLinkOpenerProvider;
 import 'package:ui_shell/ui_shell.dart';
 
 import 'operator_ops_status.dart';
@@ -48,15 +56,21 @@ Widget _alertDetail(Map<String, String> p) =>
 
 Widget _watchdog(Map<String, String> _) => const WatchdogBoard();
 
+Widget _ledgerDiffs(Map<String, String> _) => const LedgerDiffs();
+
+Widget _ledgerRepairs(Map<String, String> _) => const LedgerRepairs();
+
 /// 🔴 본문 레지스트리 — 실물이 있는 화면만(R104 d1).
-const ShellRouteBodies kOperatorRouteBodies = ShellRouteBodies(
-  <String, ShellBodyBuilder>{
-    AppRoutes.alertsInbox: _alertCenter,
-    AppRoutes.alertDetail: _alertDetail,
-    // 🆕 E11p3d-2(R109) — 감시 보드(로컬 판정 + 바깥 대조).
-    AppRoutes.opsWatchdog: _watchdog,
-  },
-);
+const ShellRouteBodies
+kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
+  AppRoutes.alertsInbox: _alertCenter,
+  AppRoutes.alertDetail: _alertDetail,
+  // 🆕 E11p3d-2(R109) — 감시 보드(로컬 판정 + 바깥 대조).
+  AppRoutes.opsWatchdog: _watchdog,
+  // 🆕 E11p3d-3a(R111) — 원장 대조 · 수리 기록(실물 = `SqliteLedgerRepository` · 같은 원장).
+  AppRoutes.ledgerDiffs: _ledgerDiffs,
+  AppRoutes.ledgerRepairs: _ledgerRepairs,
+});
 
 /// 🔴 operator 셸 주입 — 실물 있는 칸.
 List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
@@ -91,5 +105,16 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
       ),
       external: runtime.openExternal,
     ),
+  ),
+  // 🆕 R111 — 일지 패키지 주입: 원장 읽기(화면이 고른 원장) · 시계 · 링크 열기 = 셸과 같은 것(https = 바깥).
+  journalLedgerRepositoryProvider.overrideWith(
+    (Ref ref) => SqliteLedgerRepository(
+      ref.watch(operatorDbProvider),
+      clock: runtime.clock,
+    ) as LedgerRepository,
+  ),
+  journalClockProvider.overrideWithValue(runtime.clock),
+  journalLinkOpenerProvider.overrideWith(
+    (Ref ref) => ref.watch(shellLinkOpenerProvider),
   ),
 ];
