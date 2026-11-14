@@ -648,6 +648,36 @@ abstract final class FixturePaths {
       'm9/contribution_setting_no_limit_note.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
 
+  // 🆕 v1.19(01 §28) — `S05` 7 · S05 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
+  /// 🆕 v1.19 — `S05` 동작 결과 `ActionResult` 13(레벨 5값 · id 5 전수 · 넘김 = 전환 요청 3 · 재시도 0).
+  static const String m9OperationsActionResults =
+      'm9/operations_action_results.json';
+
+  /// 🆕 v1.19 — `S05` `live × advisory` · 운영 방식 전환 요청 1 · `switchGates` PASS + BLOCK · 신뢰 SELF_REPORTED.
+  static const String m9OperationsAdvisory = 'm9/operations_advisory.json';
+
+  /// 🆕 v1.19 — `S05` `live × autoTrade` + `LIVE_AWAITING_KEYS` hold · 엔진 멈춤 · DST 표식 · 업데이트 보류(기준일 2026-11-02).
+  static const String m9OperationsLiveHoldKeys =
+      'm9/operations_live_hold_keys.json';
+
+  /// 🆕 v1.19 — `S05` 실전 관찰 1/2 · 승격 불가 · 램프 조건 5.
+  static const String m9OperationsLiveObserve =
+      'm9/operations_live_observe.json';
+
+  /// 🆕 v1.19 — `S05` 실전 관찰 2/2 · 승격 버튼.
+  static const String m9OperationsLivePromotable =
+      'm9/operations_live_promotable.json';
+
+  /// 🆕 v1.19 — `S05` 잠김(`operations_live_promotable` 에서 동작 칸 5 를 비운 판 + `lockedLabel`).
+  static const String m9OperationsLocked = 'm9/operations_locked.json';
+
+  /// 🆕 v1.19 — `S05` `simInternal × autoTrade` 체험 진행 중(레벨 5값 · 체험 상태 4값 · 잡 상태 5값 전수).
+  static const String m9OperationsSimAuto = 'm9/operations_sim_auto.json';
+
+  /// 🆕 v1.19 — `S05` `simBroker × autoTrade` 체험 5항목 완료 · 업데이트 대기 · 지난 요청 줄.
+  static const String m9OperationsSimComplete =
+      'm9/operations_sim_complete.json';
+
   /// 🆕 v1.18 — M9 `S07` 동작 결과 `ActionResult` 5(레벨 5값 · `SettingsResultCodes` 3 + null 2 · 넘김 0 · 재시도 0).
   static const String m9SettingsActionResults =
       'm9/settings_action_results.json';
@@ -908,6 +938,14 @@ abstract final class FixturePaths {
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
     m9HandoverStates,
+    m9OperationsActionResults,
+    m9OperationsAdvisory,
+    m9OperationsLiveHoldKeys,
+    m9OperationsLiveObserve,
+    m9OperationsLivePromotable,
+    m9OperationsLocked,
+    m9OperationsSimAuto,
+    m9OperationsSimComplete,
     m9SettingsActionResults,
     m9SettingsHome,
     m9SettingsHomeNoReview,

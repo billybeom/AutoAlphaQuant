@@ -5,6 +5,8 @@
 //    넘긴다(01 §4-3).
 // 🔴 엔진의 어떤 안전 강등도 `OperatingMode` 를 건드리지 않는다(§10-1 · C-20).
 // 🔒 전환 위저드는 M5 소유 화면이다 — 다른 화면은 읽을 수는 있으나 렌더하지 않는다.
+// 🆕 v1.19(01 §28 · K8) — `S05` 는 `OperationsVm.operatingMode` 로 이 타입을 받는다(창구 = `SettingsRepository.watchOperations`) ·
+//    전환 버튼 = [OperatingModeView.switchActions].
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/advice.dart';
@@ -14,6 +16,7 @@ import '../enums/ui.dart';
 import '../primitives/as_of.dart';
 import 'common.dart';
 import 'ledger_trust.dart';
+import 'settings.dart'; // 🆕 v1.19 — SettingsActionCall
 
 part 'handover.freezed.dart';
 part 'handover.g.dart';
@@ -37,11 +40,16 @@ abstract class OperatingModeView with _$OperatingModeView {
 
     /// 전환 사전 점검 결과.
     required List<GateBadge> switchGates,
+
+    /// 🆕 v1.19(01 §28 · K8) — `S05` 운영 방식 전환 요청 버튼(엔진 완성 `runtimeOperatingModeSwitchRequest` ·
+    /// args `{operating_mode}` · 값 ≠ [current]). 빈 = 부재 · 🔴 [options] 카드에 버튼을 붙이지 않는다(O-00b 공용 · 기본 선택 0).
+    @Default(<SettingsActionCall>[]) List<SettingsActionCall> switchActions,
   }) = _OperatingModeView;
 
   factory OperatingModeView.fromJson(Map<String, dynamic> json) =>
       _$OperatingModeViewFromJson(json);
 }
+// JSON 키: current · label · explain_line · options · trust · switch_gates · switch_actions
 
 /// 01 §2-11 — 선택 카드 1장. 🔴 전부 엔진 문구다.
 @freezed

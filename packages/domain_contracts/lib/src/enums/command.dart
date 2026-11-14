@@ -163,6 +163,12 @@ enum SettingsActionId {
   @JsonValue('RUNTIME_ENGINE_STOP')
   runtimeEngineStop('RUNTIME_ENGINE_STOP'),
 
+  /// 🆕 v1.19(01 §28 · K6) — `S05` 첫 실전 주문 승격(`live × autoTrade × dryRun` → `execute` · 06 `M1-22` · 13 R91).
+  /// args = `{}`(엔진이 `RunModeCard.promotionAction` 에 완성 · 관찰 중 ∧ 승격 가능일 때만) · 🔴 생체 1회 = operator 구현이
+  /// 기존 M5 게이트 다이얼로그로 받는다(새 라우트·새 화면 0 · `handoffRoute` null) · 자동 승격 0.
+  @JsonValue('RUNTIME_LIVE_PROMOTION')
+  runtimeLivePromotion('RUNTIME_LIVE_PROMOTION'),
+
   /// 🆕 v1.12(01 §21 · K9) — `L-3` 실사 세션 열기(폰 로컬 · `args` = {yyyy_mm, account_alias} ·
   /// 그 폰의 원장 파생 표시를 가린다 — 뷰어는 가리지 않는다). `L-3` 이 `initState` 에서 부른다.
   @JsonValue('SELF_REPORT_SESSION_START')

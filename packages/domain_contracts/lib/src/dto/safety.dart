@@ -30,6 +30,8 @@ part 'safety.g.dart';
 ///    (01 §2-6 말미 · m2-8 C-6) — 하나의 «램프 진행» 위젯으로 합치지 않는다.
 /// ⚠️ 인벤토리 §2 열거형 52종 표에는 이 이름이 없고 §3-14 가 이 파일(영역 B)로
 ///    배정했다 — 영역 A 가 `enums/` 에 같은 이름을 만들면 통합 단계에서 한쪽을 지운다.
+/// 🆕 v1.19(01 §28 · K11) — 🔴 v1 엔진은 **L0 을 내지 않는다**(발행 집합 L1~L5 · `rampLevelOf` D19 · `ramp_state.level`
+///    CHECK 1..5 · 행 없음 = L1 fail-closed) · `l0` 은 삭제하지 않는다(major) · `S05` 는 이 열거를 쓰지 않는다(`RampBoard.levelLabel`).
 enum RampLevel {
   @JsonValue('L0')
   l0,
@@ -206,6 +208,10 @@ abstract class SafetyState with _$SafetyState {
     /// 🔵 OpsRamp(L0~L5) — 초기 진입 분할(EntryRamp)이 아니다(01 §2-6)
     required RampLevel rampLevel,
     required RunMode mode,
+
+    /// 🆕 v1.19(01 §28 · K21 · 엔진 E15b R82 W7) — 기동은 하되 배치를 멈추는 hold 사유(값 ⊆ `SafetyHoldCodes` ·
+    /// 읽을 때 파생 = 엔진 `ModeStartupGate.holds`). 빈 = hold 없음. 🔴 기동 거부(`ModeStartupCodes`)는 여기 오지 않는다.
+    @Default(<String>[]) List<String> holds,
     required AsOf asOf,
   }) = _SafetyState;
 

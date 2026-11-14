@@ -11,6 +11,7 @@
 //
 // 🔴 픽스처 불변식만 본다 — `ui_settings` 화면 스캔은 R6a·R6b 카드 정적 묶음 몫.
 // 🔴 한국어 글자 단언 0 — 상수 리터럴 = 표본 id·키 이름·코드·라우트 상수·`FixturePaths` · ⑬ 의 금지 낱말 목록 하나 뿐.
+// 🆕 v1.19(01 §28 · K16) — ⑨ «코드 3 전수» 를 S07 3 코드로 좁혔다(`SettingsResultCodes` += 엔진 제어 2 · 그 전수 = C-53 ⑫).
 
 import 'dart:convert';
 
@@ -571,9 +572,13 @@ void main() {
         isTrue,
       );
       expect(
-        codes.containsAll(SettingsResultCodes.values),
+        codes.containsAll(<String>{
+          SettingsResultCodes.biometricUnavailable,
+          SettingsResultCodes.connectionTestFailed,
+          SettingsResultCodes.syncAlreadyRunning,
+        }),
         isTrue,
-        reason: '코드 3 전수',
+        reason: 'S07 코드 3 전수(v1.18) · 🆕 v1.19 엔진 제어 2 = C-53 ⑫',
       );
       for (final ActionResult r in results) {
         expect(r.handoffRoute, isNull, reason: r.actionRunId);

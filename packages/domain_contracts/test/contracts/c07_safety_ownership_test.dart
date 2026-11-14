@@ -39,6 +39,15 @@ final RegExp _writeVerb = RegExp(
   r'\b(save|write|submit|send|insert|update|delete|apply|commit)[A-Z_]',
 );
 
+/// 🆕 v1.19(01 §7 C-7 · §28 K17 · K27) — 쓰기 동사로 시작하지만 **읽기 표시 칸**인 이름(파일별 · 이름 정확히).
+/// `OperationsVm.updateGate` = 엔진 버전 전환 게이트 카드(강행 칸 0) — 쓰기 표면이 아니다. 이 이름만 걸러내고
+/// 그 파일의 다른 쓰기 이름은 그대로 잡는다(파일 통째 예외 0).
+const Map<String, Set<String>> _readOnlyFieldNames = <String, Set<String>>{
+  'packages/domain_contracts/lib/src/dto/operations.dart': <String>{
+    'updateGate',
+  },
+};
+
 /// 🆕 v1.2 — 접미 없는 **맨** 쓰기 동사 메서드(`save(`·`delete(` …). [_writeVerb] 는 `…[A-Z_]` 만
 /// 보므로 `DraftStore.save(` 는 거기에 걸리지 않는다 — 그 구멍을 이름으로 허용해 닫는다(C-7 ⑥).
 final RegExp _bareWriteVerbCall = RegExp(
@@ -142,6 +151,10 @@ void main() {
       for (final File f in dartSourcesIn(libDir)) {
         final String code = stripCommentsAndStrings(f.readAsStringSync());
         if (!_writeVerb.hasMatch(code)) {
+          continue;
+        }
+        final Set<String>? readOnly = _readOnlyFieldNames[shortPath(f)];
+        if (readOnly != null && readOnly.containsAll(_writeNamesIn(f.path))) {
           continue;
         }
         writeSurfaces.add(shortPath(f));

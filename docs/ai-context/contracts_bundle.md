@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 103개 · 계약 v1.18.0 · 조립일 2026-11-13(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 105개 · 계약 v1.19.0 · 조립일 2026-11-14(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -30,10 +30,11 @@
 // ⚠️ 아직 여기에 없는 것(= 계약에 아직 존재하지 않는 것)은 각 영역의 인계
 //    사항에 사유와 함께 적혀 있다. 대표적으로 `LedgerEventKind`/
 //    `LedgerEventRecord`(결정 ㊲ 대기 · M2-8 A-15·J-6) · `SplitExecutionLeg`
-//    (M2-8 C-11) · `AccountMappingVm`·`AllocationEditorVm`·`OperationsVm`
+//    (M2-8 C-11) · `AccountMappingVm`·`AllocationEditorVm`
 //    (M2-8 §G 표 미등재)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
 //    들어왔다(`dto/incident.dart`).
-//    🆕 v1.18(01 §27) — `S01`·`S07` 계약 확정(`SettingsHomeVm` 교체 · `SettingsRepository`) · `OperationsVm` = v1.19.
+//    🆕 v1.18(01 §27) — `S01`·`S07` 계약 확정(`SettingsHomeVm` 교체 · `SettingsRepository`).
+//    🆕 v1.19(01 §28) — `S05` 계약 확정(`OperationsVm` · 부품 8 · `watchOperations`).
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';
@@ -88,7 +89,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -207,13 +208,23 @@ export 'commands/settings_actions.dart';
 //    `SettingsActionId.notifyChannelSelect` · 🆕 `SettingsRepository` · 라우트 80(M9 11) · 사전 3(`connection_target`·`notify_channel`·
 //    `settings_result`) · 받침대 1 · 🆕 C-52 · 🔴 엔진 등재형 7(`AlertCodes.safety` 3 · `resume` 3 · `JournalReasonCodes.leaseInvalid`) ·
 //    픽스처 240 → 248(신설 8 · 개정 1 — `incident_token_expired` 바인딩) — 🆕 tool/gen_r6_v118_fixtures.py(기준 = M2 밑동 원문에서 멱등).
-//    엔진 다음 계약 판 = 1.19.0(13 §8 R55 E13i1·i2 · E14i 재개 VM · E11d X12 등 + R6c S05 `OperationsVm` · 06 변경 이력).
+//    엔진 다음 계약 판 = 1.19.0(13 §8 R55 E13i1·i2 · E14i 재개 VM · E11d X12 등 + R6c S05 `OperationsVm` · 06 변경 이력) —
+//    🆕 v1.19 가 R6c 선행과 한 판으로 E15i 굳은 몫을 실었다 · E13i·E14i 등 = 1.20.0(아래).
+// 🆕 '1.19.0'(R6c 선행 + 엔진 E15i 굳은 몫 · 01 §28 · 발주자 위임 2026-11-14 — 권고대로 · K1~K26) — M9 S05 운용 관리 표시·동작 계약:
+//    🆕 dto/operations.dart — `OperationsVm`·`RunModeCard`·`SimTrialCard`·`SimTrialCheck`·`RampBoard`·`RampCondition`·`JobRow`·
+//    `EngineControl`·`UpdateGateCard` · `OperatingModeView` += `switchActions` · `SafetyState` += `holds` · `RampLevel` 주석(L0 미발행) ·
+//    `SettingsRepository.watchOperations` · 🆕 `SettingsActionId.runtimeLivePromotion` · S05 args 5 · 사전 +7(`engine_stop_reason` ·
+//    `sim_trial_item` · `sim_trial_state` · `live_observation_block` · `live_promotion_result` · `mode_startup` · `sim_opening_result`) ·
+//    `SettingsResultCodes` +2 · `DecisionReasonCodes` += `LIVE_EXECUTE_PROMOTION`(엔진 E15e2 #161) ·
+//    받침대 메서드 1 · 🆕 C-53 · 픽스처 248 → 256(신설 8) — 🆕 tool/gen_r6c_v119_fixtures.py(기준 = M2 밑동 원문에서 멱등).
+//    엔진 다음 계약 판 = 1.20.0(E13i1 `SafetyActions`·거부 코드·라우트 3·`GaugeCodes`·생체 포트 · E13i2 VM · E14i 코드·동작·`ResumeGateVm` ·
+//    fill-origin · `simToAuto` 표본 · 픽스처 정정 F1~F8 · 이름 붙은 알림 — 06 변경 이력 «2026-11-14 · 계약 v1.19»).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.18.0';
+const String contractVersion = '1.19.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -279,6 +290,7 @@ export 'dto/journal.dart';
 export 'dto/ledger.dart';
 export 'dto/ledger_trust.dart';
 export 'dto/onboarding.dart';
+export 'dto/operations.dart';
 export 'dto/ops.dart';
 export 'dto/performance.dart';
 export 'dto/plan.dart';
@@ -1436,6 +1448,7 @@ abstract class LedgerEventRecord with _$LedgerEventRecord {
 //    O-00b·O-03·O-04 는 결과를 읽는다.
 // 🆕 v1.18(01 §27) — M9 `S07` args 화이트리스트(`connectionTest`·`connectionSyncNow` = `{target}` ·
 //    `notifyChannelSelect` = `{channel}`) · S07 은 결과를 읽는다(`SettingsResultCodes`).
+// 🆕 v1.19(01 §28) — M9 `S05` args 화이트리스트(전환 2 · 엔진 시작·중지 · 승격) · S05 는 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -1487,8 +1500,20 @@ part 'settings_actions.g.dart';
 ///    · `notifyChannelSelect` = `{channel ∈ NotifyChannelCodes}`(`NotifyChannelOption.selectAction`)
 ///    🔴 `S07` 은 [ActionResult] 를 읽는다 — `headline` + `reasonCode` 원문(`SettingsResultCodes`) · `retryable` 전부 false
 ///      (버튼 = 행 `actions` 뿐 · 05 «재시도 무한 버튼 0») · `handoffRoute` null(표본 = `m9/settings_action_results`).
-///    ⏸ S05 4동작(`runtimeModeSwitchRequest` · `runtimeOperatingModeSwitchRequest` · `runtimeEngineStart` · `runtimeEngineStop`)
-///      args = 계약 v1.19 · `settingsContributionUpdate` = R8 창(엔진 E11j).
+///    🆕 v1.19(01 §28 · K6 · K7 · K16) — M9 `S05`(폰 로컬 · 운영 등급 · 뷰어 경로 0 · 엔진이 `SettingsActionCall` 에 완성):
+///    · `runtimeModeSwitchRequest`          = `{run_mode ∈ RunMode.wire}`(`RunModeCard.switchActions` · 실전 전환 =
+///      `handoffRoute` `m5HandoverWizard`(K-h) · advisory 안내 개시 = `m5HandoverGate` — 목적지 = 엔진)
+///    · `runtimeOperatingModeSwitchRequest` = `{operating_mode ∈ OperatingMode.wire}`(`OperatingModeView.switchActions` ·
+///      값 ≠ 지금 `current` · 목적지 `M5-10`/`M5-11` = 엔진)
+///    · `runtimeEngineStart`                = `{}`(`EngineControl.startAction` · 기동 거부 = `reasonCode` ∈ `ModeStartupCodes` ∪
+///      `AdviceRejectCodes.modeCombinationDenied`)
+///    · `runtimeEngineStop`                 = `{reason_code ∈ EngineStopReasonCodes}`(`EngineControl.stopActions` — 사유마다 1)
+///    · 🆕 `runtimeLivePromotion`           = `{}`(`RunModeCard.promotionAction` · 생체 1회 = 구현 · 결과 `reasonCode` ∈
+///      `LiveObservationBlockCodes` ∪ `LivePromotionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`})
+///    🔴 키 `target` 을 쓰지 않는다(C-5 `connection_target` 사전 키). `S05` 는 [ActionResult] 를 읽는다 — `headline` + `reasonCode`
+///      원문 · `handoffRoute` 가 있으면 `AppLinkOpener.open(handoffRoute)` 하고 끝 · `retryable` 전부 false(버튼 = VM 의 호출뿐)
+///      (표본 = `m9/operations_action_results`).
+///    ⏸ `settingsContributionUpdate` = R8 창(엔진 E11j) · R7·R9 동작 = 각 창.
 ///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
@@ -2334,6 +2359,8 @@ abstract class HandbookLiveValue with _$HandbookLiveValue {
 //    넘긴다(01 §4-3).
 // 🔴 엔진의 어떤 안전 강등도 `OperatingMode` 를 건드리지 않는다(§10-1 · C-20).
 // 🔒 전환 위저드는 M5 소유 화면이다 — 다른 화면은 읽을 수는 있으나 렌더하지 않는다.
+// 🆕 v1.19(01 §28 · K8) — `S05` 는 `OperationsVm.operatingMode` 로 이 타입을 받는다(창구 = `SettingsRepository.watchOperations`) ·
+//    전환 버튼 = [OperatingModeView.switchActions].
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/advice.dart';
@@ -2343,6 +2370,7 @@ import '../enums/ui.dart';
 import '../primitives/as_of.dart';
 import 'common.dart';
 import 'ledger_trust.dart';
+import 'settings.dart'; // 🆕 v1.19 — SettingsActionCall
 
 part 'handover.freezed.dart';
 part 'handover.g.dart';
@@ -2366,11 +2394,16 @@ abstract class OperatingModeView with _$OperatingModeView {
 
     /// 전환 사전 점검 결과.
     required List<GateBadge> switchGates,
+
+    /// 🆕 v1.19(01 §28 · K8) — `S05` 운영 방식 전환 요청 버튼(엔진 완성 `runtimeOperatingModeSwitchRequest` ·
+    /// args `{operating_mode}` · 값 ≠ [current]). 빈 = 부재 · 🔴 [options] 카드에 버튼을 붙이지 않는다(O-00b 공용 · 기본 선택 0).
+    @Default(<SettingsActionCall>[]) List<SettingsActionCall> switchActions,
   }) = _OperatingModeView;
 
   factory OperatingModeView.fromJson(Map<String, dynamic> json) =>
       _$OperatingModeViewFromJson(json);
 }
+// JSON 키: current · label · explain_line · options · trust · switch_gates · switch_actions
 
 /// 01 §2-11 — 선택 카드 1장. 🔴 전부 엔진 문구다.
 @freezed
@@ -4350,6 +4383,254 @@ abstract class PairingResult with _$PairingResult {
 
 ---
 
+## `packages/domain_contracts/lib/src/dto/operations.dart`
+
+```dart
+// 01 §4-1 · 05 §3 S05 — M9 운용 관리 뷰모델(🆕 계약 v1.19 · 01 §28 · R6c 선행 · 발주자 위임 2026-11-14 · K2~K20).
+//
+// 🔴 전부 엔진(폰 로컬 VM 산출)이 완성한다 — 화면은 받은 차례·글자 그대로 그린다(정렬·세기·묶기·분기 0).
+// 🔴 두 축(`mode` = RunMode · `operatingMode` = OperatingMode)은 **각각** 그린다 — 합성 라벨 0 · 토글 0(K4).
+// 🔴 버튼은 엔진이 `id`·`args` 까지 완성한 [SettingsActionCall] 뿐이다(빈 목록·null = 부재 · 화면이 짓지 않는다 ·
+//    화이트리스트 = `settings_actions.dart` 머리). 결과는 `ActionResult` — `handoffRoute` 가 있으면 그리로 넘기고 끝.
+// 🔴 «DRY_RUN» 글자 0 · 손익 성격 글자 0(G-63 · 결정 8) · 킬스위치 칸 0(엔진 중지 ≠ 킬스위치 — 05:449).
+// 🔴 `scope`·`HandoverPlan`·`contribution` 칸은 없다(K3 — P0S 범위 = 늘 null · 🔒 M5-11 · 월 납입 = 별도 화면).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import 'handover.dart'; // OperatingModeView
+import 'onboarding.dart'; // SettingsActionCall 의 원형(freezed copyWith 가 `$OnboardingActionCopyWith` 를 본다 — ops.dart:14 선례)
+import 'ops.dart'; // LiveDryRunObservationVm
+import 'settings.dart'; // EngineStatusChip · SettingsActionCall
+
+part 'operations.freezed.dart';
+part 'operations.g.dart';
+
+/// 🆕 v1.19(01 §28 · K3) — 운용 관리(05 `S05`). 칸 차례 = 화면 위 → 아래.
+@freezed
+abstract class OperationsVm with _$OperationsVm {
+  const factory OperationsVm({
+    /// 엔진 상태 칩 — `S01` 과 **같은 값**(생산 하나 · v1.18 K-o) · `promotionLabel` = 관찰 중일 때만.
+    required EngineStatusChip statusChip,
+
+    /// 모드 카드(runMode 축).
+    required RunModeCard mode,
+
+    /// 운영 방식 카드(operatingMode 축 · 🆕 v1.19 `switchActions`).
+    required OperatingModeView operatingMode,
+
+    /// 모의 체험 카드 — SIM 계열일 때만 non-null(엔진 의무 · live = null).
+    SimTrialCard? trial,
+    required RampBoard ramp,
+
+    /// 잡 행 — 행 수·차례 = 엔진(잡 이름 상수 0).
+    required List<JobRow> jobs,
+    required EngineControl control,
+
+    /// 엔진 버전 전환 게이트 — 대기 버전이 있을 때만 non-null.
+    UpdateGateCard? updateGate,
+
+    /// 지난 전환 요청이 M5 에서 나중에 미통과로 끝난 사유 한 줄(두 축 공용 · null = 줄 없음 · K18).
+    String? lastRequestNotice,
+
+    /// 운영 등급 생체 축소 글자(non-null = 보기만 · 🔴 엔진 의무 = 동작 칸 5 전부 비움 — K19).
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _OperationsVm;
+
+  factory OperationsVm.fromJson(Map<String, dynamic> json) =>
+      _$OperationsVmFromJson(json);
+}
+// JSON 키: status_chip · mode · operating_mode · trial · ramp · jobs · control · update_gate · last_request_notice ·
+//          locked_label · as_of
+
+/// 🆕 v1.19(K5 · K6) — 모드 카드(runMode 축 칩 1).
+@freezed
+abstract class RunModeCard with _$RunModeCard {
+  const factory RunModeCard({
+    /// «모의 · 내부 가상 체결» · «실전 · 관찰 중» — 엔진(🔴 «DRY_RUN» 0 · 세 값 분기 0).
+    required String label,
+    required UiLevel level,
+
+    /// hold 한 줄(`LIVE_AWAITING_KEYS` 등 · 🔴 «모의» 글자 0). null = 줄 없음.
+    String? holdLabel,
+
+    /// `live × autoTrade × dryRun` 관찰 중일 때만(엔진 #159 그대로). 🔴 화면은 `progressText`·`stateLabel` 만.
+    LiveDryRunObservationVm? observation,
+
+    /// 승격 버튼 — 관찰 중 ∧ 승격 가능일 때만(엔진 완성 `runtimeLivePromotion` · args `{}` · K6). null = 부재.
+    SettingsActionCall? promotionAction,
+
+    /// 전환 부작용 고지(«기존 계획이 무효화되고 …») — `switchActions` 가 비지 않을 때만.
+    String? switchNoticeText,
+
+    /// 전환 요청 버튼(엔진 완성 `runtimeModeSwitchRequest` · args `{run_mode}`). 빈 = 부재.
+    @Default(<SettingsActionCall>[]) List<SettingsActionCall> switchActions,
+  }) = _RunModeCard;
+
+  factory RunModeCard.fromJson(Map<String, dynamic> json) =>
+      _$RunModeCardFromJson(json);
+}
+// JSON 키: label · level · hold_label · observation · promotion_action · switch_notice_text · switch_actions
+
+/// 🆕 v1.19(K9 · K10 · 엔진 E15d2 `sim_trial.dart`) — 모의 체험 카드. 🔴 손익 0 · 화면은 개수·비율·잔여를 세지 않는다.
+@freezed
+abstract class SimTrialCard with _$SimTrialCard {
+  const factory SimTrialCard({
+    /// 엔진 머리말(`SimTrialReport.headline`).
+    required String headline,
+
+    /// 요약 카운터 문장(`SimTrialCounters.text` — «체험 N일 · 배치 n회 · 리밸런싱 r회 · 경보 k건 · 개입 m회»).
+    required String summaryText,
+
+    /// 체험 완료 기준 줄 — 차례·항목 수 = 엔진(정본 04 §9-5 · 1개 이상).
+    required List<SimTrialCheck> checks,
+  }) = _SimTrialCard;
+
+  factory SimTrialCard.fromJson(Map<String, dynamic> json) =>
+      _$SimTrialCardFromJson(json);
+}
+// JSON 키: headline · summary_text · checks
+
+/// 🆕 v1.19(K9) — 체험 완료 기준 1줄. 🔴 `GateState` 아님 · `OnboardingFinishCheck`(X3 배관 점검) 아님.
+/// 짝(엔진 의무 · C-53 ⑨): PASSED·AUTO_PASSED ⇒ ok · OPEN ⇒ watch · OPEN_WARN ⇒ info(🔴 act·blocked 0).
+@freezed
+abstract class SimTrialCheck with _$SimTrialCheck {
+  const factory SimTrialCheck({
+    /// `SimTrialItemCodes` 값 — 🔴 화면 미참조(Key = 순번).
+    required String itemCode,
+
+    /// 항목 이름(엔진 `SimTrialItem.label`).
+    required String label,
+
+    /// 진척·사유 문장(엔진 `SimTrialItemResult.detail`).
+    required String detailText,
+
+    /// `SimTrialItemStateCodes` 값 — 🔴 화면 미참조(엔진 4값 와이어).
+    required String itemState,
+
+    /// «통과» · «자동 통과» · «아직» · «아직 — 경고 후 진행» — 엔진.
+    required String stateLabel,
+
+    /// 🔴 아이콘·색의 유일한 근거.
+    required UiLevel level,
+  }) = _SimTrialCheck;
+
+  factory SimTrialCheck.fromJson(Map<String, dynamic> json) =>
+      _$SimTrialCheckFromJson(json);
+}
+// JSON 키: item_code · label · detail_text · item_state · state_label · level
+
+/// 🆕 v1.19(K11) — 운영 램프 보드(OpsRamp). 🔴 레벨 열거 미사용(`levelLabel` 글자만) · 성과 조건 0.
+@freezed
+abstract class RampBoard with _$RampBoard {
+  const factory RampBoard({
+    /// «L1 · 5% · 최저 단계» — 엔진(발행 집합 L1~L5).
+    required String levelLabel,
+    required UiLevel level,
+
+    /// 승급 조건 현황(받은 차례). 빈 ⇔ [emptyLabel] non-null.
+    @Default(<RampCondition>[]) List<RampCondition> conditions,
+
+    /// 조건 줄이 없는 까닭(«모의 계좌에서는 승급 조건을 세지 않습니다 …»).
+    String? emptyLabel,
+
+    /// DST 주간 1단계 하향 표식 — 🔴 주문 차단이 아니다(non-null ⇒ [level] ∉ {act, blocked}).
+    String? dstNoticeText,
+  }) = _RampBoard;
+
+  factory RampBoard.fromJson(Map<String, dynamic> json) =>
+      _$RampBoardFromJson(json);
+}
+// JSON 키: level_label · level · conditions · empty_label · dst_notice_text
+
+/// 🆕 v1.19(K11) — 승급 조건 1줄(03 §9-3 «배관» 항목). 🔴 [level] ∈ {ok, info, watch}.
+@freezed
+abstract class RampCondition with _$RampCondition {
+  const factory RampCondition({
+    required String label,
+
+    /// «충족» · «집계 중 — 기록 2건» — 엔진(🔴 화면이 n/m 을 조립하지 않는다).
+    required String progressText,
+    required UiLevel level,
+  }) = _RampCondition;
+
+  factory RampCondition.fromJson(Map<String, dynamic> json) =>
+      _$RampConditionFromJson(json);
+}
+// JSON 키: label · progress_text · level
+
+/// 🆕 v1.19(K12) — 잡 1행(성공 · 지연 · 실패 3분법 + 휴장 · 아직).
+/// 짝(엔진 의무 · C-53 ⑩): SUCCESS ⇒ ok · LATE ⇒ watch · HOLIDAY ⇒ info · NONE ⇒ info · FAILED ⇒ act·blocked.
+@freezed
+abstract class JobRow with _$JobRow {
+  const factory JobRow({
+    /// «국내 주문» — 엔진(🔴 잡 이름 상수 0).
+    required String label,
+
+    /// «평일 09:10 · 유예 1시간» — 엔진.
+    required String scheduleText,
+
+    /// «오늘 10:31 끝남» — 엔진.
+    required String lastRunText,
+
+    /// `SUCCESS`·`LATE`·`FAILED`·`HOLIDAY`(엔진 `job_run.status`) · `NONE`(아직 회차 없음) — 🔴 화면 미참조.
+    required String statusCode,
+
+    /// «지연 — 성공» — 엔진.
+    required String stateLabel,
+    required UiLevel level,
+
+    /// 한 줄 상세(«유예를 21분 넘겨 끝났습니다 …»). null = 줄 없음.
+    String? detailLine,
+  }) = _JobRow;
+
+  factory JobRow.fromJson(Map<String, dynamic> json) => _$JobRowFromJson(json);
+}
+// JSON 키: label · schedule_text · last_run_text · status_code · state_label · level · detail_line
+
+/// 🆕 v1.19(K13) — 엔진 시작·중지. 🔴 킬스위치가 아니다(칸 0 · 다른 색·자리).
+/// 잠김 밖 = [startAction] non-null xor [stopActions] 비지 않음 · [stopActions] 비지 않음 ⇔ [stopPromptText] non-null.
+@freezed
+abstract class EngineControl with _$EngineControl {
+  const factory EngineControl({
+    /// «돌고 있음 — 다음 잡: …» · «멈춤 — … 계획 점검으로 멈췄습니다» — 엔진.
+    required String stateLabel,
+    required UiLevel level,
+
+    /// 엔진 완성 `runtimeEngineStart`(args `{}`) — 멈춰 있을 때만.
+    SettingsActionCall? startAction,
+
+    /// 사유 고르기 머리말 — [stopActions] 가 비지 않을 때만.
+    String? stopPromptText,
+
+    /// 사유마다 1 — 엔진 완성 `runtimeEngineStop`(args `{reason_code}` 서로 다름 · 라벨 = 사유 글자).
+    @Default(<SettingsActionCall>[]) List<SettingsActionCall> stopActions,
+  }) = _EngineControl;
+
+  factory EngineControl.fromJson(Map<String, dynamic> json) =>
+      _$EngineControlFromJson(json);
+}
+// JSON 키: state_label · level · start_action · stop_prompt_text · stop_actions
+
+/// 🆕 v1.19(K17) — 엔진 버전 전환 게이트. 🔴 «지금 업데이트» 강행 칸 없음(구조로 막는다).
+@freezed
+abstract class UpdateGateCard with _$UpdateGateCard {
+  const factory UpdateGateCard({
+    /// «새 버전 대기 — 비거래 시간대에 바꿉니다» — 엔진.
+    required String stateLabel,
+    required String bodyText,
+    required UiLevel level,
+  }) = _UpdateGateCard;
+
+  factory UpdateGateCard.fromJson(Map<String, dynamic> json) =>
+      _$UpdateGateCardFromJson(json);
+}
+// JSON 키: state_label · body_text · level
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/dto/ops.dart`
 
 ```dart
@@ -6170,6 +6451,8 @@ part 'safety.g.dart';
 ///    (01 §2-6 말미 · m2-8 C-6) — 하나의 «램프 진행» 위젯으로 합치지 않는다.
 /// ⚠️ 인벤토리 §2 열거형 52종 표에는 이 이름이 없고 §3-14 가 이 파일(영역 B)로
 ///    배정했다 — 영역 A 가 `enums/` 에 같은 이름을 만들면 통합 단계에서 한쪽을 지운다.
+/// 🆕 v1.19(01 §28 · K11) — 🔴 v1 엔진은 **L0 을 내지 않는다**(발행 집합 L1~L5 · `rampLevelOf` D19 · `ramp_state.level`
+///    CHECK 1..5 · 행 없음 = L1 fail-closed) · `l0` 은 삭제하지 않는다(major) · `S05` 는 이 열거를 쓰지 않는다(`RampBoard.levelLabel`).
 enum RampLevel {
   @JsonValue('L0')
   l0,
@@ -6346,6 +6629,10 @@ abstract class SafetyState with _$SafetyState {
     /// 🔵 OpsRamp(L0~L5) — 초기 진입 분할(EntryRamp)이 아니다(01 §2-6)
     required RampLevel rampLevel,
     required RunMode mode,
+
+    /// 🆕 v1.19(01 §28 · K21 · 엔진 E15b R82 W7) — 기동은 하되 배치를 멈추는 hold 사유(값 ⊆ `SafetyHoldCodes` ·
+    /// 읽을 때 파생 = 엔진 `ModeStartupGate.holds`). 빈 = hold 없음. 🔴 기동 거부(`ModeStartupCodes`)는 여기 오지 않는다.
+    @Default(<String>[]) List<String> holds,
     required AsOf asOf,
   }) = _SafetyState;
 
@@ -7187,6 +7474,12 @@ enum SettingsActionId {
   runtimeEngineStart('RUNTIME_ENGINE_START'),
   @JsonValue('RUNTIME_ENGINE_STOP')
   runtimeEngineStop('RUNTIME_ENGINE_STOP'),
+
+  /// 🆕 v1.19(01 §28 · K6) — `S05` 첫 실전 주문 승격(`live × autoTrade × dryRun` → `execute` · 06 `M1-22` · 13 R91).
+  /// args = `{}`(엔진이 `RunModeCard.promotionAction` 에 완성 · 관찰 중 ∧ 승격 가능일 때만) · 🔴 생체 1회 = operator 구현이
+  /// 기존 M5 게이트 다이얼로그로 받는다(새 라우트·새 화면 0 · `handoffRoute` null) · 자동 승격 0.
+  @JsonValue('RUNTIME_LIVE_PROMOTION')
+  runtimeLivePromotion('RUNTIME_LIVE_PROMOTION'),
 
   /// 🆕 v1.12(01 §21 · K9) — `L-3` 실사 세션 열기(폰 로컬 · `args` = {yyyy_mm, account_alias} ·
   /// 그 폰의 원장 파생 표시를 가린다 — 뷰어는 가리지 않는다). `L-3` 이 `initState` 에서 부른다.
@@ -9348,6 +9641,36 @@ abstract final class FixturePaths {
       'm9/contribution_setting_no_limit_note.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
 
+  // 🆕 v1.19(01 §28) — `S05` 7 · S05 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
+  /// 🆕 v1.19 — `S05` 동작 결과 `ActionResult` 13(레벨 5값 · id 5 전수 · 넘김 = 전환 요청 3 · 재시도 0).
+  static const String m9OperationsActionResults =
+      'm9/operations_action_results.json';
+
+  /// 🆕 v1.19 — `S05` `live × advisory` · 운영 방식 전환 요청 1 · `switchGates` PASS + BLOCK · 신뢰 SELF_REPORTED.
+  static const String m9OperationsAdvisory = 'm9/operations_advisory.json';
+
+  /// 🆕 v1.19 — `S05` `live × autoTrade` + `LIVE_AWAITING_KEYS` hold · 엔진 멈춤 · DST 표식 · 업데이트 보류(기준일 2026-11-02).
+  static const String m9OperationsLiveHoldKeys =
+      'm9/operations_live_hold_keys.json';
+
+  /// 🆕 v1.19 — `S05` 실전 관찰 1/2 · 승격 불가 · 램프 조건 5.
+  static const String m9OperationsLiveObserve =
+      'm9/operations_live_observe.json';
+
+  /// 🆕 v1.19 — `S05` 실전 관찰 2/2 · 승격 버튼.
+  static const String m9OperationsLivePromotable =
+      'm9/operations_live_promotable.json';
+
+  /// 🆕 v1.19 — `S05` 잠김(`operations_live_promotable` 에서 동작 칸 5 를 비운 판 + `lockedLabel`).
+  static const String m9OperationsLocked = 'm9/operations_locked.json';
+
+  /// 🆕 v1.19 — `S05` `simInternal × autoTrade` 체험 진행 중(레벨 5값 · 체험 상태 4값 · 잡 상태 5값 전수).
+  static const String m9OperationsSimAuto = 'm9/operations_sim_auto.json';
+
+  /// 🆕 v1.19 — `S05` `simBroker × autoTrade` 체험 5항목 완료 · 업데이트 대기 · 지난 요청 줄.
+  static const String m9OperationsSimComplete =
+      'm9/operations_sim_complete.json';
+
   /// 🆕 v1.18 — M9 `S07` 동작 결과 `ActionResult` 5(레벨 5값 · `SettingsResultCodes` 3 + null 2 · 넘김 0 · 재시도 0).
   static const String m9SettingsActionResults =
       'm9/settings_action_results.json';
@@ -9608,6 +9931,14 @@ abstract final class FixturePaths {
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
     m9HandoverStates,
+    m9OperationsActionResults,
+    m9OperationsAdvisory,
+    m9OperationsLiveHoldKeys,
+    m9OperationsLiveObserve,
+    m9OperationsLivePromotable,
+    m9OperationsLocked,
+    m9OperationsSimAuto,
+    m9OperationsSimComplete,
     m9SettingsActionResults,
     m9SettingsHome,
     m9SettingsHomeNoReview,
@@ -9828,7 +10159,11 @@ abstract final class DecisionReasonCodes {
   /// 칩 코드 `DEPOSIT_ROUTING`(플래너 사전)과 다른 도메인이다 — 결정 사유는 이 사전만 쓴다.
   static const String depositRegistered = 'DEPOSIT_REGISTERED';
 
-  /// 전량 9종.
+  /// 🆕 v1.19(01 §28 · K21 · 엔진 E15e2 #161 `kLivePromotionReasonCode`) — 첫 실전 주문 승격
+  /// (`decision_log.kind='MANUAL'` · 전략 `P0S` · `OPENING_BALANCE`·`SIM_OPENING_BALANCE` 와 같은 축).
+  static const String livePromotion = 'LIVE_EXECUTE_PROMOTION';
+
+  /// 전량 10종.
   static const Set<String> values = <String>{
     openingBalance,
     simOpeningBalance,
@@ -9839,6 +10174,7 @@ abstract final class DecisionReasonCodes {
     ledgerEventCorporateAction,
     ledgerEventVoid,
     depositRegistered,
+    livePromotion,
   };
 }
 
@@ -10547,6 +10883,7 @@ import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
 import 'settings_codes.dart';
+import 'sim_codes.dart';
 import 'verdict_codes.dart';
 
 export 'advice_codes.dart';
@@ -10563,6 +10900,7 @@ export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
 export 'settings_codes.dart';
+export 'sim_codes.dart';
 export 'verdict_codes.dart';
 
 /// 세후 사다리 층 코드 6종(01 §2-4 `AfterTaxStep.stepCode` · M2-8 A-7).
@@ -10722,6 +11060,15 @@ abstract final class ContractCodes {
     'connection_target': ConnectionTargetCodes.values,
     'notify_channel': NotifyChannelCodes.values,
     'settings_result': SettingsResultCodes.values,
+    // 🆕 v1.19(01 §28 · K14) — S05 엔진 중지 사유(사람)
+    'engine_stop_reason': EngineStopReasonCodes.values,
+    // 🆕 v1.19(01 §28 · K15 · K21) — E15i 등재형(엔진 글자 1:1)
+    'sim_trial_item': SimTrialItemCodes.values,
+    'sim_trial_state': SimTrialItemStateCodes.values,
+    'live_observation_block': LiveObservationBlockCodes.values,
+    'live_promotion_result': LivePromotionResultCodes.values,
+    'mode_startup': ModeStartupCodes.values,
+    'sim_opening_result': SimOpeningResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -11302,6 +11649,7 @@ abstract final class Saf309Codes {
 
 ```dart
 // 01 §3 · 🆕 계약 v1.18(01 §27 · K-n ⓗ · K-s · K-u) — M9 설정 코드 사전 3축.
+// 🆕 계약 v1.19(01 §28 · K14 · K16) — `EngineStopReasonCodes`(S05 엔진 중지 사유 · 사람) · `SettingsResultCodes` +2.
 //
 // 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 함께 싣는다
 //    (`ConnectionRow.label` · `NotifyChannelOption.label` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
@@ -11358,10 +11706,211 @@ abstract final class SettingsResultCodes {
   /// 지금 동기화 중복 요청 — 이미 도는 중(멱등 접수 · `info`).
   static const String syncAlreadyRunning = 'SYNC_ALREADY_RUNNING';
 
+  /// 🆕 v1.19(01 §28 · K16) — 엔진 시작 중복 요청(이미 돌고 있음 · 멱등 접수 · `info`).
+  static const String engineAlreadyRunning = 'ENGINE_ALREADY_RUNNING';
+
+  /// 🆕 v1.19(01 §28 · K16) — 엔진 중지 중복 요청(이미 멈춰 있음 · 멱등 접수 · `info`).
+  static const String engineAlreadyStopped = 'ENGINE_ALREADY_STOPPED';
+
   static const Set<String> values = <String>{
     biometricUnavailable,
     connectionTestFailed,
     syncAlreadyRunning,
+    engineAlreadyRunning,
+    engineAlreadyStopped,
+  };
+}
+
+/// 🆕 v1.19(01 §28 · K14) — `runtimeEngineStop` args `reason_code` 의 값(도메인 `engine_stop_reason` · 사람이 고르는 사유).
+/// 🔵 잠정 2 — 값 확정 = 엔진 SPEC 판(01 §8 미결 173 · 추가 = 추가형 minor).
+/// 🔴 «시장이 불안해서» 류 사유를 넣지 않는다(시장 판단 중지 = 재량 개입 — 킬스위치·개입 경로) · 기기 이전 = X1 마법사(두 길 0).
+/// 🔴 엔진이 기동을 거부한 사유는 이 사전이 아니다 — `ModeStartupCodes`(labels/sim_codes.dart).
+abstract final class EngineStopReasonCodes {
+  /// 계획 점검(앱·OS 업데이트 · 기기 손질).
+  static const String plannedMaintenance = 'PLANNED_MAINTENANCE';
+
+  /// 이상 조사(알림·잡·연결이 이상해 원인을 볼 동안).
+  static const String troubleshooting = 'TROUBLESHOOTING';
+
+  static const Set<String> values = <String>{
+    plannedMaintenance,
+    troubleshooting,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/sim_codes.dart`
+
+```dart
+// 01 §3 · 🆕 계약 v1.19(01 §28 · K15 · K21) — X6 모의투자·관찰·기동 판정 코드 사전(엔진 E15 실물 글자 그대로).
+//
+// 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다 — 문구는 엔진이 함께 싣는다
+//    (`SimTrialCheck.label`·`stateLabel` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
+// 🔴 출처(origin/main 175cbd5) — core_engine `sim/sim_trial.dart` `SimTrialItem`·`SimTrialItemState` ·
+//    `mode/live_observation.dart` `LiveObservationBlock` · `mode/mode_guard.dart` `kCredentialEnvMismatch` ·
+//    `safety/rule_change.dart` `kSaf405` · `sim/sim_opening.dart` `SimOpeningCodes` · `mode/live_promotion.dart`
+//    `LivePromotionCodes`(E15e2 #161). 엔진 로컬 상수 → 이 사전 참조 = 엔진 다음 조각(01 §8 미결 177).
+
+/// `SimTrialCheck.itemCode` — 자동 매매 갈래 체험 5항목(도메인 `sim_trial_item` · 차례 = 04 §9-5 = 엔진 `SimTrialItem`).
+abstract final class SimTrialItemCodes {
+  /// ① 연속 2거래주 정상 배치.
+  static const String twoTradingWeeks = 'SIM_TRIAL_TWO_TRADING_WEEKS';
+
+  /// ② 월말 정기 리밸런싱 1회(🔴 소프트 — 미경험 = 경고 후 진행 허용).
+  static const String monthEndRebalance = 'SIM_TRIAL_MONTH_END_REBALANCE';
+
+  /// ③ 대사 0오차(simBroker 만 · simInternal = 자동 통과).
+  static const String reconciliation = 'SIM_TRIAL_RECONCILIATION';
+
+  /// ④ X2 재개 1회 시연.
+  static const String resume = 'SIM_TRIAL_RESUME';
+
+  /// ⑤ 킬스위치 발동·재개 1회 연습.
+  static const String killSwitch = 'SIM_TRIAL_KILL_SWITCH';
+
+  static const Set<String> values = <String>{
+    twoTradingWeeks,
+    monthEndRebalance,
+    reconciliation,
+    resume,
+    killSwitch,
+  };
+}
+
+/// `SimTrialCheck.itemState` — 항목 상태(도메인 `sim_trial_state` · 엔진 `SimTrialItemState.wire`).
+/// 🔴 `GateState` 가 아니다(K9) — 색 = `SimTrialCheck.level`(짝 = 01 §28 K9).
+abstract final class SimTrialItemStateCodes {
+  /// 채웠다.
+  static const String passed = 'PASSED';
+
+  /// 해당 없음 — 자동 통과(③ simInternal).
+  static const String autoPassed = 'AUTO_PASSED';
+
+  /// 아직(단단한 문).
+  static const String open = 'OPEN';
+
+  /// 아직 — 경고 후 진행 허용(② 소프트).
+  static const String openWarn = 'OPEN_WARN';
+
+  static const Set<String> values = <String>{
+    passed,
+    autoPassed,
+    open,
+    openWarn,
+  };
+}
+
+/// 실전 관찰 판정이 승격을 막는 사유(도메인 `live_observation_block` · 차례 = 판정 차례 · 엔진 `LiveObservationBlock.code`) —
+/// `runtimeLivePromotion` 결과 `ActionResult.reasonCode`(13 R91 AD4 재판정).
+abstract final class LiveObservationBlockCodes {
+  /// 킬스위치 켜짐.
+  static const String killSwitch = 'LIVE_OBSERVATION_KILL_SWITCH';
+
+  /// 주문 차단 플래그.
+  static const String tradingBlock = 'LIVE_OBSERVATION_TRADING_BLOCK';
+
+  /// 확인 안 된 주문.
+  static const String unknownOrders = 'LIVE_OBSERVATION_UNKNOWN_ORDERS';
+
+  /// 연속 무결 거래일 모자람.
+  static const String notEnoughDays = 'LIVE_OBSERVATION_NOT_ENOUGH_DAYS';
+
+  static const Set<String> values = <String>{
+    killSwitch,
+    tradingBlock,
+    unknownOrders,
+    notEnoughDays,
+  };
+}
+
+/// 🆕 E15e2(#161) — 승격 커밋 거부·결과(도메인 `live_promotion_result` · 엔진 `LivePromotionCodes` 글자 그대로) —
+/// `runtimeLivePromotion` 결과 `ActionResult.reasonCode`(사전 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → 재판정).
+/// 🔴 생체 없음 = `SettingsResultCodes.biometricUnavailable`(한 벌 — 이 사전에 다시 싣지 않는다) · 재판정 막힘 = [LiveObservationBlockCodes].
+abstract final class LivePromotionResultCodes {
+  /// 준 세션이 없거나 닫혔거나 만료.
+  static const String sessionInvalid = 'HANDOVER_SESSION_INVALID';
+
+  /// 현재 행이 실전 관찰(live × dryRun)이 아니다.
+  static const String notObserving = 'LIVE_PROMOTION_NOT_OBSERVING';
+
+  /// 운영 방식이 자동 매매가 아니다(모름 포함).
+  static const String notAutoTrade = 'LIVE_PROMOTION_NOT_AUTO_TRADE';
+
+  /// 지금이 현재 행 커밋 시각보다 늦지 않다.
+  static const String clockBehind = 'LIVE_PROMOTION_CLOCK_BEHIND';
+
+  /// 저장 실패 — 전부 되돌렸다.
+  static const String rolledBack = 'LIVE_PROMOTION_ROLLED_BACK';
+
+  static const Set<String> values = <String>{
+    sessionInvalid,
+    notObserving,
+    notAutoTrade,
+    clockBehind,
+    rolledBack,
+  };
+}
+
+/// 엔진 기동 판정이 시작을 거부한 사유(도메인 `mode_startup` · 차례 = SAF-405 → 조합 → 자격증명 환경) —
+/// `runtimeEngineStart` 결과 `ActionResult.reasonCode`.
+/// 🔴 조합 금지 = `AdviceRejectCodes.modeCombinationDenied`(01 §10-2 · 같은 글자 한 벌 — 이 사전에 다시 싣지 않는다).
+/// 🔴 hold(`SafetyHoldCodes` · 기동은 하되 배치를 멈춤)와 다르다.
+abstract final class ModeStartupCodes {
+  /// 승인되지 않은 규칙·설정 변경이 있다(엔진 `kSaf405`).
+  static const String saf405 = 'SAF-405';
+
+  /// 금고 자격증명의 환경 ≠ 실행 모드가 기대하는 환경(엔진 `kCredentialEnvMismatch`).
+  static const String credentialEnvMismatch = 'CREDENTIAL_ENV_MISMATCH';
+
+  static const Set<String> values = <String>{saf405, credentialEnvMismatch};
+}
+
+/// 모의 개시·온보딩 커밋 거부(도메인 `sim_opening_result` · 엔진 `SimOpeningCodes`) — `onboardingDryRunStart` 결과
+/// `ActionResult.reasonCode` · `submitSelfReportBalance(purpose: simOpening)` 의 `CommandReceipt.rejectReasonCode`(M5-14).
+abstract final class SimOpeningResultCodes {
+  /// 금액이 0 이하.
+  static const String notPositive = 'SIM_OPENING_NOT_POSITIVE';
+
+  /// 금액에 원 미만 자리가 있다.
+  static const String notWholeWon = 'SIM_OPENING_NOT_WHOLE_WON';
+
+  /// 비중이 있는 전략의 계좌가 설정에 없다.
+  static const String accountUnmapped = 'SIM_OPENING_ACCOUNT_UNMAPPED';
+
+  /// 자동 매매 개시에 보유 줄이 왔다(금액 1칸만 받는다).
+  static const String linesNotAllowed = 'SIM_OPENING_LINES_NOT_ALLOWED';
+
+  /// 정기 실사 등 다른 목적의 제출.
+  static const String wrongPurpose = 'SIM_OPENING_WRONG_PURPOSE';
+
+  /// 이미 선언했다(append-only).
+  static const String alreadyDeclared = 'SIM_OPENING_ALREADY_DECLARED';
+
+  /// 커밋 전에 가상 초기금 선언이 없다.
+  static const String notDeclared = 'SIM_OPENING_NOT_DECLARED';
+
+  /// 운영 방식 선택(O-00b)이 없다.
+  static const String choiceMissing = 'ONBOARDING_CHOICE_MISSING';
+
+  /// 투자 안내 갈래의 모의 개시(보유 선언 · L-3 폼) = E18.
+  static const String advisoryNotReady = 'SIM_OPENING_ADVISORY_NOT_READY';
+
+  /// 계층 B 카드 미등록 — 체험 시작 금지.
+  static const String tierBCardMissing = 'TIER_B_CARD_MISSING';
+
+  static const Set<String> values = <String>{
+    notPositive,
+    notWholeWon,
+    accountUnmapped,
+    linesNotAllowed,
+    wrongPurpose,
+    alreadyDeclared,
+    notDeclared,
+    choiceMissing,
+    advisoryNotReady,
+    tierBCardMissing,
   };
 }
 ```
@@ -12970,15 +13519,19 @@ abstract interface class SafetyRepository {
 ```dart
 // 01 §4-1 · 🆕 계약 v1.18(01 §27 · K-c · K-v) — M9 설정 화면 읽기 창구.
 //
-// 🔴 뒤 카드가 **추가형**으로 늘린다(R6c `watchOperations` · R7 `watchCredentials`·`watchAccountMapping` ·
+// 🔴 뒤 카드가 **추가형**으로 늘린다(✅ v1.19 R6c `watchOperations` · R7 `watchCredentials`·`watchAccountMapping` ·
 //    R8 `watchAllocationEditor` · S11 `watchGeneral`) — 받침대 `UnimplementedSettingsRepository` 를 같은 커밋에서 고친다.
 // 🔴 `S07` 은 이 창구가 아니라 [OpsStatusRepository.watchConnections] 다(v1.0 부터 · 두 벌 0).
 
+import '../dto/operations.dart';
 import '../dto/settings.dart';
 
 abstract interface class SettingsRepository {
   /// `S01` 설정 홈 — 폰·뷰어 같은 DTO(뷰어 판 = 폰 전용 행을 엔진이 뺀 VM).
   Stream<SettingsHomeVm> watchHome();
+
+  /// 🆕 v1.19(01 §28) — `S05` 운용 관리(🔴 폰 전용 · 뷰어 원천 0 · K20).
+  Stream<OperationsVm> watchOperations();
 }
 ```
 

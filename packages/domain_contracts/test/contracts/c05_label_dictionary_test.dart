@@ -62,6 +62,9 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   //    (`ConnectionTargetCodes` · `NotifyChannelCodes` · 다른 표본의 같은 키 쓰임 0 — git grep 실측).
   'target': 'connection_target',
   'channel': 'notify_channel',
+  // 🆕 v1.19(01 §28 · K21) — `SimTrialCheck` 의 항목·상태 코드(다른 표본 쓰임 0 — git grep 실측).
+  'item_code': 'sim_trial_item',
+  'item_state': 'sim_trial_state',
 };
 
 /// 🔴 **사전에 없는 코드 축** — 01 §3 이 열거하지 않은 값이라 검사 대상이 아니다.
@@ -72,7 +75,8 @@ const Map<String, String> _fieldsOutsideDictionary = <String, String>{
       '(픽스처 값: CONSENT_EXPIRED·PERMISSION_DENIED · 🆕 v1.16 TOKEN_EXPIRED). 등재는 M2-8 의 일이다.',
   'status_code':
       '진단·인시던트 칸의 상태 코드(OK·LAG·TOKEN_EXPIRED) — §3 이 아니라 화면 상태 축이며 '
-      '짝이 되는 status_label 이 함께 온다 · 🆕 v1.18 S07 `ConnectionRow` — `level` 이 색 근거(01 §27 K-r).',
+      '짝이 되는 status_label 이 함께 온다 · 🆕 v1.18 S07 `ConnectionRow` — `level` 이 색 근거(01 §27 K-r) · '
+      '🆕 v1.19 S05 `JobRow` — `level` 이 색 근거(01 §28 K12).',
   'state_code': '워치독·진단 칸의 상태 코드 — 위와 같은 축(state_label 이 짝이다).',
 };
 

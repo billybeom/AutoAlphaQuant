@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.19.0",
+    "generated_at": "2026-11-14T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261114,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "운용 기준 2026-08-31 09:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "status_chip": { "label": "실전 · 관찰 중 · 골든벡터 통과", "level": "WATCH", "promotion_label": "승격 가능 — 무결 거래일을 채웠습니다(2/2)" },
+      "mode": {
+        "label": "실전 · 관찰 중",
+        "level": "WATCH",
+        "hold_label": null,
+        "observation": { "observed_trading_days": 2, "required_trading_days": 2, "progress_text": "무결 거래일 2/2", "promotion_available": true, "state_label": "실전 관찰 중 · 정기 리밸런싱 2026-09-01 09:10 전에 승격해야 첫 주문이 나갑니다" },
+        "promotion_action": null,
+        "switch_notice_text": null,
+        "switch_actions": []
+      },
+      "operating_mode": {
+        "current": "AUTO_TRADE",
+        "label": "자동 매매",
+        "explain_line": "규칙이 정한 대로 앱이 주문을 냅니다. 관찰 중에는 주문을 내지 않습니다.",
+        "options": [
+          { "mode": "AUTO_TRADE", "title": "자동으로 맡기기", "body": "규칙이 정한 대로 앱이 직접 주문을 냅니다.", "prep_line": "증권사 주문 권한과 새벽 배치가 필요합니다.", "honesty_line": "사람이 개입할 자리가 줄어드는 대신 기기가 멈추면 아무것도 돌지 않습니다." },
+          { "mode": "ADVISORY", "title": "안내만 받기", "body": "무엇을 살지 알려 주고 주문은 사람이 냅니다.", "prep_line": "잔고 읽기 권한만 있으면 됩니다.", "honesty_line": "손으로 하는 만큼 빠뜨리거나 고르게 됩니다. 그 흔적이 이행 갭으로 남습니다." }
+        ],
+        "trust": { "grade": "RECONCILED", "level": "OK", "label": "브로커 대사 일치", "consequence_line": "오늘 07:02 대사에서 차이 0건입니다.", "upgrade_hint": null, "last_verified_on": "2026-08-31", "action_deep_link": null },
+        "switch_gates": [
+          { "code": "M5_11_WIZARD", "label": "운영 방식 전환 위저드", "state": "NOT_APPLICABLE", "blocked_reason_code": null }
+        ],
+        "switch_actions": []
+      },
+      "trial": null,
+      "ramp": {
+        "level_label": "L1 · 5% · 최저 단계",
+        "level": "INFO",
+        "conditions": [
+          { "label": "주문 사고 0건", "progress_text": "충족", "level": "OK" },
+          { "label": "신호 일치율 100%", "progress_text": "충족", "level": "OK" },
+          { "label": "하트비트 결측 0건 · 접수 마감 위반 0건", "progress_text": "충족", "level": "OK" },
+          { "label": "저널 이탈률 사전 등록치 이하", "progress_text": "집계 중 — 기록 2건", "level": "INFO" },
+          { "label": "스트레스 이벤트 1회 통과", "progress_text": "아직 — 휴장 전후 · 월말 · DST 전환 · 조기폐장일 중 하나", "level": "INFO" }
+        ],
+        "empty_label": null,
+        "dst_notice_text": null
+      },
+      "jobs": [
+        { "label": "아침 대사", "schedule_text": "평일 07:00 · 유예 2시간", "last_run_text": "오늘 07:02 끝남", "status_code": "SUCCESS", "state_label": "성공", "level": "OK", "detail_line": null },
+        { "label": "국내 주문", "schedule_text": "평일 09:10 · 유예 1시간", "last_run_text": "오늘 09:12 끝남 — 관찰 중이라 주문을 내지 않았습니다", "status_code": "SUCCESS", "state_label": "성공", "level": "OK", "detail_line": null },
+        { "label": "평가 스냅숏", "schedule_text": "평일 20:30 · 유예 1시간", "last_run_text": "8월 28일 20:31 끝남", "status_code": "SUCCESS", "state_label": "성공", "level": "OK", "detail_line": null },
+        { "label": "월말 리밸런싱", "schedule_text": "월말 다음 거래일 08:00 · 유예 1시간", "last_run_text": "아직 돈 적 없음", "status_code": "NONE", "state_label": "아직 없음", "level": "INFO", "detail_line": null }
+      ],
+      "control": {
+        "state_label": "돌고 있음 — 다음 잡: 평일 18:30 일별 데이터",
+        "level": "OK",
+        "start_action": null,
+        "stop_prompt_text": null,
+        "stop_actions": []
+      },
+      "update_gate": null,
+      "last_request_notice": null,
+      "locked_label": "생체 인증을 하지 않아 보기만 됩니다. 이 화면을 다시 열면 인증할 수 있습니다.",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "운용 기준 2026-08-31 09:00" }
+    }
+  ]
+}
