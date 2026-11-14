@@ -25,3 +25,15 @@ final Provider<AppLinkOpener> settingsLinkOpenerProvider =
         'settingsLinkOpenerProvider must be overridden',
       ),
     );
+
+// ── R6b — M9 S07 injection providers ──────────────────────────────────────────
+
+final Provider<OpsStatusRepository> settingsOpsStatusRepositoryProvider =
+    Provider<OpsStatusRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'settingsOpsStatusRepositoryProvider must be overridden',
+      ),
+    );
+
+final Provider<SettingsActions?> settingsActionsProvider =
+    Provider<SettingsActions?>((Ref ref) => null);
