@@ -352,7 +352,10 @@ List<String?> rampTexts(RampBoard r) => <String?>[
   r.levelLabel,
   ?r.dstNoticeText,
   ?r.emptyLabel,
-  for (final RampCondition k in r.conditions) ...<String?>[k.label, k.progressText],
+  for (final RampCondition k in r.conditions) ...<String?>[
+    k.label,
+    k.progressText,
+  ],
 ];
 
 List<String?> jobTexts(JobRow j) => <String?>[

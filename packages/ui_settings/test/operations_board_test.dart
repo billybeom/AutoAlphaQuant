@@ -115,18 +115,24 @@ void main() {
       findsNWidgets(2),
     );
 
-    final double dyTrial =
-        tester.getTopLeft(find.byKey(const Key('m9s05-trial'))).dy;
-    final double dyRamp =
-        tester.getTopLeft(find.byKey(const Key('m9s05-ramp'))).dy;
-    final double dyJob0 =
-        tester.getTopLeft(find.byKey(ValueKey<String>('m9s05-job-0'))).dy;
-    final double dyJob5 =
-        tester.getTopLeft(find.byKey(ValueKey<String>('m9s05-job-5'))).dy;
-    final double dyControl =
-        tester.getTopLeft(find.byKey(const Key('m9s05-control'))).dy;
-    final double dyAsof =
-        tester.getTopLeft(find.byKey(const Key('m9s05-asof'))).dy;
+    final double dyTrial = tester
+        .getTopLeft(find.byKey(const Key('m9s05-trial')))
+        .dy;
+    final double dyRamp = tester
+        .getTopLeft(find.byKey(const Key('m9s05-ramp')))
+        .dy;
+    final double dyJob0 = tester
+        .getTopLeft(find.byKey(ValueKey<String>('m9s05-job-0')))
+        .dy;
+    final double dyJob5 = tester
+        .getTopLeft(find.byKey(ValueKey<String>('m9s05-job-5')))
+        .dy;
+    final double dyControl = tester
+        .getTopLeft(find.byKey(const Key('m9s05-control')))
+        .dy;
+    final double dyAsof = tester
+        .getTopLeft(find.byKey(const Key('m9s05-asof')))
+        .dy;
 
     expect(dyTrial, lessThan(dyRamp));
     expect(dyRamp, lessThan(dyJob0));
@@ -139,57 +145,53 @@ void main() {
 
   // -- M9S05-22 board texts cases ----------------------------------------------
 
-  final List<({
-    String name,
-    OperationsVm v,
-    Matcher controlButtons,
-    List<Key> chain,
-  })> cases22 = <({
-    String name,
-    OperationsVm v,
-    Matcher controlButtons,
-    List<Key> chain,
-  })>[
-    (
-      name: 'sim_complete',
-      v: simComplete,
-      controlButtons: findsNWidgets(2),
-      chain: <Key>[
-        const Key('m9s05-control'),
-        const Key('m9s05-update'),
-        const Key('m9s05-last-request'),
-        const Key('m9s05-asof'),
-      ],
-    ),
-    (
-      name: 'live_observe',
-      v: observe,
-      controlButtons: findsNWidgets(2),
-      chain: <Key>[const Key('m9s05-control'), const Key('m9s05-asof')],
-    ),
-    (
-      name: 'hold_keys',
-      v: holdKeys,
-      controlButtons: findsNWidgets(1),
-      chain: <Key>[
-        const Key('m9s05-control'),
-        const Key('m9s05-update'),
-        const Key('m9s05-asof'),
-      ],
-    ),
-    (
-      name: 'advisory',
-      v: advisory,
-      controlButtons: findsNWidgets(2),
-      chain: <Key>[const Key('m9s05-control'), const Key('m9s05-asof')],
-    ),
-    (
-      name: 'locked',
-      v: locked,
-      controlButtons: findsNothing,
-      chain: <Key>[const Key('m9s05-control'), const Key('m9s05-asof')],
-    ),
-  ];
+  final List<
+    ({String name, OperationsVm v, Matcher controlButtons, List<Key> chain})
+  >
+  cases22 =
+      <
+        ({String name, OperationsVm v, Matcher controlButtons, List<Key> chain})
+      >[
+        (
+          name: 'sim_complete',
+          v: simComplete,
+          controlButtons: findsNWidgets(2),
+          chain: <Key>[
+            const Key('m9s05-control'),
+            const Key('m9s05-update'),
+            const Key('m9s05-last-request'),
+            const Key('m9s05-asof'),
+          ],
+        ),
+        (
+          name: 'live_observe',
+          v: observe,
+          controlButtons: findsNWidgets(2),
+          chain: <Key>[const Key('m9s05-control'), const Key('m9s05-asof')],
+        ),
+        (
+          name: 'hold_keys',
+          v: holdKeys,
+          controlButtons: findsNWidgets(1),
+          chain: <Key>[
+            const Key('m9s05-control'),
+            const Key('m9s05-update'),
+            const Key('m9s05-asof'),
+          ],
+        ),
+        (
+          name: 'advisory',
+          v: advisory,
+          controlButtons: findsNWidgets(2),
+          chain: <Key>[const Key('m9s05-control'), const Key('m9s05-asof')],
+        ),
+        (
+          name: 'locked',
+          v: locked,
+          controlButtons: findsNothing,
+          chain: <Key>[const Key('m9s05-control'), const Key('m9s05-asof')],
+        ),
+      ];
 
   for (final c in cases22) {
     testWidgets('M9S05-22 board texts ${c.name}', (WidgetTester tester) async {
@@ -228,16 +230,16 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const Key('m9s05-control')),
-          matching: find.byWidgetPredicate((Widget w) => w is ButtonStyleButton),
+          matching: find.byWidgetPredicate(
+            (Widget w) => w is ButtonStyleButton,
+          ),
         ),
         c.controlButtons,
       );
 
       for (int i = 0; i < c.chain.length - 1; i++) {
-        final double dy0 =
-            tester.getTopLeft(find.byKey(c.chain[i])).dy;
-        final double dy1 =
-            tester.getTopLeft(find.byKey(c.chain[i + 1])).dy;
+        final double dy0 = tester.getTopLeft(find.byKey(c.chain[i])).dy;
+        final double dy1 = tester.getTopLeft(find.byKey(c.chain[i + 1])).dy;
         expect(dy0, lessThan(dy1));
       }
 
@@ -247,15 +249,13 @@ void main() {
 
   // -- M9S05-23 level icon and color -------------------------------------------
 
-  final List<({String name, OperationsVm v})> cases23 = <({
-    String name,
-    OperationsVm v,
-  })>[
-    (name: 'sim_auto', v: simAuto),
-    (name: 'sim_complete', v: simComplete),
-    (name: 'live_observe', v: observe),
-    (name: 'hold_keys', v: holdKeys),
-  ];
+  final List<({String name, OperationsVm v})> cases23 =
+      <({String name, OperationsVm v})>[
+        (name: 'sim_auto', v: simAuto),
+        (name: 'sim_complete', v: simComplete),
+        (name: 'live_observe', v: observe),
+        (name: 'hold_keys', v: holdKeys),
+      ];
 
   for (final c in cases23) {
     testWidgets('M9S05-23 level icons ${c.name}', (WidgetTester tester) async {
@@ -355,10 +355,10 @@ void main() {
 
     expect(actions.ids, <SettingsActionId>[stop0.id, stop1.id]);
     expect(actions.argsSeen, <Map<String, String>>[stop0.args, stop1.args]);
-    expect(
-      shownTexts(tester, find.byKey(const Key('m9s05-result'))),
-      <String?>[results[3].headline, ?results[3].reasonCode],
-    );
+    expect(shownTexts(tester, find.byKey(const Key('m9s05-result'))), <String?>[
+      results[3].headline,
+      ?results[3].reasonCode,
+    ]);
     expect(actions.watchCalls, 0);
     expect(repo.operationsCalls, 1);
     expect(opener.opened, <String>[]);
@@ -368,55 +368,61 @@ void main() {
 
   // -- M9S05-25 start/stop results cases ----------------------------------------
 
-  final List<({
-    String name,
-    OperationsVm v,
-    Key tap,
-    SettingsActionCall call,
-    ActionResult r,
-  })> cases25 = <({
-    String name,
-    OperationsVm v,
-    Key tap,
-    SettingsActionCall call,
-    ActionResult r,
-  })>[
-    (
-      name: 'already_running',
-      v: holdKeys,
-      tap: const Key('m9s05-start'),
-      call: start,
-      r: results[5],
-    ),
-    (
-      name: 'combo_denied',
-      v: holdKeys,
-      tap: const Key('m9s05-start'),
-      call: start,
-      r: results[6],
-    ),
-    (
-      name: 'saf405',
-      v: holdKeys,
-      tap: const Key('m9s05-start'),
-      call: start,
-      r: results[7],
-    ),
-    (
-      name: 'credential',
-      v: holdKeys,
-      tap: const Key('m9s05-start'),
-      call: start,
-      r: results[8],
-    ),
-    (
-      name: 'already_stopped',
-      v: simAuto,
-      tap: ValueKey<String>('m9s05-stop-0'),
-      call: stop0,
-      r: results[4],
-    ),
-  ];
+  final List<
+    ({
+      String name,
+      OperationsVm v,
+      Key tap,
+      SettingsActionCall call,
+      ActionResult r,
+    })
+  >
+  cases25 =
+      <
+        ({
+          String name,
+          OperationsVm v,
+          Key tap,
+          SettingsActionCall call,
+          ActionResult r,
+        })
+      >[
+        (
+          name: 'already_running',
+          v: holdKeys,
+          tap: const Key('m9s05-start'),
+          call: start,
+          r: results[5],
+        ),
+        (
+          name: 'combo_denied',
+          v: holdKeys,
+          tap: const Key('m9s05-start'),
+          call: start,
+          r: results[6],
+        ),
+        (
+          name: 'saf405',
+          v: holdKeys,
+          tap: const Key('m9s05-start'),
+          call: start,
+          r: results[7],
+        ),
+        (
+          name: 'credential',
+          v: holdKeys,
+          tap: const Key('m9s05-start'),
+          call: start,
+          r: results[8],
+        ),
+        (
+          name: 'already_stopped',
+          v: simAuto,
+          tap: ValueKey<String>('m9s05-stop-0'),
+          call: stop0,
+          r: results[4],
+        ),
+      ];
 
   for (final c in cases25) {
     testWidgets('M9S05-25 start stop result ${c.name}', (
@@ -468,30 +474,24 @@ void main() {
 
   // -- M9S05-26 no double tap while busy ----------------------------------------
 
-  final List<({
-    String name,
-    OperationsVm v,
-    Key tap,
-    List<SettingsActionId> want,
-  })> cases26 = <({
-    String name,
-    OperationsVm v,
-    Key tap,
-    List<SettingsActionId> want,
-  })>[
-    (
-      name: 'start',
-      v: holdKeys,
-      tap: const Key('m9s05-start'),
-      want: <SettingsActionId>[start.id],
-    ),
-    (
-      name: 'stop',
-      v: simAuto,
-      tap: ValueKey<String>('m9s05-stop-0'),
-      want: <SettingsActionId>[stop0.id],
-    ),
-  ];
+  final List<
+    ({String name, OperationsVm v, Key tap, List<SettingsActionId> want})
+  >
+  cases26 =
+      <({String name, OperationsVm v, Key tap, List<SettingsActionId> want})>[
+        (
+          name: 'start',
+          v: holdKeys,
+          tap: const Key('m9s05-start'),
+          want: <SettingsActionId>[start.id],
+        ),
+        (
+          name: 'stop',
+          v: simAuto,
+          tap: ValueKey<String>('m9s05-stop-0'),
+          want: <SettingsActionId>[stop0.id],
+        ),
+      ];
 
   for (final c in cases26) {
     testWidgets('M9S05-26 no double tap ${c.name}', (
@@ -537,22 +537,18 @@ void main() {
 
   // -- M9S05-27 viewer no buttons, data intact ----------------------------------
 
-  final List<({String name, OperationsVm v})> cases27 = <({
-    String name,
-    OperationsVm v,
-  })>[
-    (name: 'sim_auto', v: simAuto),
-    (name: 'hold_keys', v: holdKeys),
-  ];
+  final List<({String name, OperationsVm v})> cases27 =
+      <({String name, OperationsVm v})>[
+        (name: 'sim_auto', v: simAuto),
+        (name: 'hold_keys', v: holdKeys),
+      ];
 
   for (final c in cases27) {
     testWidgets('M9S05-27 viewer no buttons ${c.name}', (
       WidgetTester tester,
     ) async {
       final FakeSettingsOperationsRepository repo =
-          FakeSettingsOperationsRepository(
-            operations: (int call) => one(c.v),
-          );
+          FakeSettingsOperationsRepository(operations: (int call) => one(c.v));
 
       await pumpOperations(
         tester,
@@ -583,97 +579,103 @@ void main() {
 
   // -- M9S05-28 all texts and button count large font --------------------------
 
-  final List<({
-    String name,
-    OperationsVm v,
-    SettingsActions? Function() actionsFactory,
-    Set<String> Function(OperationsVm) allowed,
-    Matcher buttons,
-  })> cases28 = <({
-    String name,
-    OperationsVm v,
-    SettingsActions? Function() actionsFactory,
-    Set<String> Function(OperationsVm) allowed,
-    Matcher buttons,
-  })>[
-    (
-      name: 'sim_auto',
-      v: simAuto,
-      actionsFactory: okActions,
-      allowed: (OperationsVm v) => <String>{
-        ...operationsAllowed(v),
-        ...operationsControlTexts(v),
-      },
-      buttons: findsNWidgets(3),
-    ),
-    (
-      name: 'sim_complete',
-      v: simComplete,
-      actionsFactory: okActions,
-      allowed: (OperationsVm v) => <String>{
-        ...operationsAllowed(v),
-        ...operationsControlTexts(v),
-      },
-      buttons: findsNWidgets(3),
-    ),
-    (
-      name: 'live_observe',
-      v: observe,
-      actionsFactory: okActions,
-      allowed: (OperationsVm v) => <String>{
-        ...operationsAllowed(v),
-        ...operationsControlTexts(v),
-      },
-      buttons: findsNWidgets(2),
-    ),
-    (
-      name: 'live_promotable',
-      v: promotable,
-      actionsFactory: okActions,
-      allowed: (OperationsVm v) => <String>{
-        ...operationsAllowed(v),
-        ...operationsControlTexts(v),
-      },
-      buttons: findsNWidgets(3),
-    ),
-    (
-      name: 'hold_keys',
-      v: holdKeys,
-      actionsFactory: okActions,
-      allowed: (OperationsVm v) => <String>{
-        ...operationsAllowed(v),
-        ...operationsControlTexts(v),
-      },
-      buttons: findsNWidgets(1),
-    ),
-    (
-      name: 'advisory',
-      v: advisory,
-      actionsFactory: okActions,
-      allowed: (OperationsVm v) => <String>{
-        ...operationsAllowed(v),
-        ...operationsControlTexts(v),
-      },
-      buttons: findsNWidgets(3),
-    ),
-    (
-      name: 'locked_operator',
-      v: locked,
-      actionsFactory: okActions,
-      allowed: (OperationsVm v) => <String>{
-        ...operationsAllowed(v),
-        ...operationsControlTexts(v),
-      },
-      buttons: findsNothing,
-    ),
-    (
-      name: 'sim_auto_viewer',
-      v: simAuto,
-      actionsFactory: noActions,
-      allowed: (OperationsVm v) => operationsAllowed(v),
-      buttons: findsNothing,
-    ),
-  ];
+  final List<
+    ({
+      String name,
+      OperationsVm v,
+      SettingsActions? Function() actionsFactory,
+      Set<String> Function(OperationsVm) allowed,
+      Matcher buttons,
+    })
+  >
+  cases28 =
+      <
+        ({
+          String name,
+          OperationsVm v,
+          SettingsActions? Function() actionsFactory,
+          Set<String> Function(OperationsVm) allowed,
+          Matcher buttons,
+        })
+      >[
+        (
+          name: 'sim_auto',
+          v: simAuto,
+          actionsFactory: okActions,
+          allowed: (OperationsVm v) => <String>{
+            ...operationsAllowed(v),
+            ...operationsControlTexts(v),
+          },
+          buttons: findsNWidgets(3),
+        ),
+        (
+          name: 'sim_complete',
+          v: simComplete,
+          actionsFactory: okActions,
+          allowed: (OperationsVm v) => <String>{
+            ...operationsAllowed(v),
+            ...operationsControlTexts(v),
+          },
+          buttons: findsNWidgets(3),
+        ),
+        (
+          name: 'live_observe',
+          v: observe,
+          actionsFactory: okActions,
+          allowed: (OperationsVm v) => <String>{
+            ...operationsAllowed(v),
+            ...operationsControlTexts(v),
+          },
+          buttons: findsNWidgets(2),
+        ),
+        (
+          name: 'live_promotable',
+          v: promotable,
+          actionsFactory: okActions,
+          allowed: (OperationsVm v) => <String>{
+            ...operationsAllowed(v),
+            ...operationsControlTexts(v),
+          },
+          buttons: findsNWidgets(3),
+        ),
+        (
+          name: 'hold_keys',
+          v: holdKeys,
+          actionsFactory: okActions,
+          allowed: (OperationsVm v) => <String>{
+            ...operationsAllowed(v),
+            ...operationsControlTexts(v),
+          },
+          buttons: findsNWidgets(1),
+        ),
+        (
+          name: 'advisory',
+          v: advisory,
+          actionsFactory: okActions,
+          allowed: (OperationsVm v) => <String>{
+            ...operationsAllowed(v),
+            ...operationsControlTexts(v),
+          },
+          buttons: findsNWidgets(3),
+        ),
+        (
+          name: 'locked_operator',
+          v: locked,
+          actionsFactory: okActions,
+          allowed: (OperationsVm v) => <String>{
+            ...operationsAllowed(v),
+            ...operationsControlTexts(v),
+          },
+          buttons: findsNothing,
+        ),
+        (
+          name: 'sim_auto_viewer',
+          v: simAuto,
+          actionsFactory: noActions,
+          allowed: operationsAllowed,
+          buttons: findsNothing,
+        ),
+      ];
 
   for (final c in cases28) {
     testWidgets('M9S05-28 all texts large font ${c.name}', (

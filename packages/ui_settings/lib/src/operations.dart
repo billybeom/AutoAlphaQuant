@@ -191,9 +191,26 @@ class _OperationsState extends ConsumerState<Operations> {
           _TrialCard(key: const Key('m9s05-trial'), trial: trial, cs: cs),
         _RampView(key: const Key('m9s05-ramp'), ramp: vm.ramp, cs: cs),
         for (final (int j, JobRow job) in vm.jobs.indexed)
-          _JobView(key: ValueKey<String>('m9s05-job-$j'), index: j, job: job, cs: cs),
-        _ControlView(key: const Key('m9s05-control'), control: vm.control, cs: cs, actions: actions, busy: _busy, onRun: _run),
-        if (vm.updateGate != null) _UpdateView(key: const Key('m9s05-update'), gate: vm.updateGate!, cs: cs),
+          _JobView(
+            key: ValueKey<String>('m9s05-job-$j'),
+            index: j,
+            job: job,
+            cs: cs,
+          ),
+        _ControlView(
+          key: const Key('m9s05-control'),
+          control: vm.control,
+          cs: cs,
+          actions: actions,
+          busy: _busy,
+          onRun: _run,
+        ),
+        if (vm.updateGate != null)
+          _UpdateView(
+            key: const Key('m9s05-update'),
+            gate: vm.updateGate!,
+            cs: cs,
+          ),
         if (lastRequest != null)
           Padding(
             key: const Key('m9s05-last-request'),
@@ -523,7 +540,8 @@ class _RampView extends StatelessWidget {
               padding: const EdgeInsets.only(left: 36, top: 4),
               child: Text(empty),
             ),
-          for (final (int k, RampCondition condition) in ramp.conditions.indexed)
+          for (final (int k, RampCondition condition)
+              in ramp.conditions.indexed)
             Padding(
               key: ValueKey<String>('m9s05-cond-$k'),
               padding: const EdgeInsets.only(top: 8),
@@ -718,10 +736,7 @@ class _UpdateView extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(gate.stateLabel),
-                Text(gate.bodyText),
-              ],
+              children: <Widget>[Text(gate.stateLabel), Text(gate.bodyText)],
             ),
           ),
         ],
