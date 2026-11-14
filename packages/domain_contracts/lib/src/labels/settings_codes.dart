@@ -1,4 +1,5 @@
 // 01 §3 · 🆕 계약 v1.18(01 §27 · K-n ⓗ · K-s · K-u) — M9 설정 코드 사전 3축.
+// 🆕 계약 v1.19(01 §28 · K14 · K16) — `EngineStopReasonCodes`(S05 엔진 중지 사유 · 사람) · `SettingsResultCodes` +2.
 //
 // 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 함께 싣는다
 //    (`ConnectionRow.label` · `NotifyChannelOption.label` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
@@ -55,9 +56,34 @@ abstract final class SettingsResultCodes {
   /// 지금 동기화 중복 요청 — 이미 도는 중(멱등 접수 · `info`).
   static const String syncAlreadyRunning = 'SYNC_ALREADY_RUNNING';
 
+  /// 🆕 v1.19(01 §28 · K16) — 엔진 시작 중복 요청(이미 돌고 있음 · 멱등 접수 · `info`).
+  static const String engineAlreadyRunning = 'ENGINE_ALREADY_RUNNING';
+
+  /// 🆕 v1.19(01 §28 · K16) — 엔진 중지 중복 요청(이미 멈춰 있음 · 멱등 접수 · `info`).
+  static const String engineAlreadyStopped = 'ENGINE_ALREADY_STOPPED';
+
   static const Set<String> values = <String>{
     biometricUnavailable,
     connectionTestFailed,
     syncAlreadyRunning,
+    engineAlreadyRunning,
+    engineAlreadyStopped,
+  };
+}
+
+/// 🆕 v1.19(01 §28 · K14) — `runtimeEngineStop` args `reason_code` 의 값(도메인 `engine_stop_reason` · 사람이 고르는 사유).
+/// 🔵 잠정 2 — 값 확정 = 엔진 SPEC 판(01 §8 미결 173 · 추가 = 추가형 minor).
+/// 🔴 «시장이 불안해서» 류 사유를 넣지 않는다(시장 판단 중지 = 재량 개입 — 킬스위치·개입 경로) · 기기 이전 = X1 마법사(두 길 0).
+/// 🔴 엔진이 기동을 거부한 사유는 이 사전이 아니다 — `ModeStartupCodes`(labels/sim_codes.dart).
+abstract final class EngineStopReasonCodes {
+  /// 계획 점검(앱·OS 업데이트 · 기기 손질).
+  static const String plannedMaintenance = 'PLANNED_MAINTENANCE';
+
+  /// 이상 조사(알림·잡·연결이 이상해 원인을 볼 동안).
+  static const String troubleshooting = 'TROUBLESHOOTING';
+
+  static const Set<String> values = <String>{
+    plannedMaintenance,
+    troubleshooting,
   };
 }

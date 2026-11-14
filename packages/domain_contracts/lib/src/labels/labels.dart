@@ -45,6 +45,7 @@ import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
 import 'settings_codes.dart';
+import 'sim_codes.dart';
 import 'verdict_codes.dart';
 
 export 'advice_codes.dart';
@@ -61,6 +62,7 @@ export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
 export 'settings_codes.dart';
+export 'sim_codes.dart';
 export 'verdict_codes.dart';
 
 /// 세후 사다리 층 코드 6종(01 §2-4 `AfterTaxStep.stepCode` · M2-8 A-7).
@@ -220,6 +222,15 @@ abstract final class ContractCodes {
     'connection_target': ConnectionTargetCodes.values,
     'notify_channel': NotifyChannelCodes.values,
     'settings_result': SettingsResultCodes.values,
+    // 🆕 v1.19(01 §28 · K14) — S05 엔진 중지 사유(사람)
+    'engine_stop_reason': EngineStopReasonCodes.values,
+    // 🆕 v1.19(01 §28 · K15 · K21) — E15i 등재형(엔진 글자 1:1)
+    'sim_trial_item': SimTrialItemCodes.values,
+    'sim_trial_state': SimTrialItemStateCodes.values,
+    'live_observation_block': LiveObservationBlockCodes.values,
+    'live_promotion_result': LivePromotionResultCodes.values,
+    'mode_startup': ModeStartupCodes.values,
+    'sim_opening_result': SimOpeningResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

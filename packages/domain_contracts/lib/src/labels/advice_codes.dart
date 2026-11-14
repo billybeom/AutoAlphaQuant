@@ -205,7 +205,11 @@ abstract final class DecisionReasonCodes {
   /// 칩 코드 `DEPOSIT_ROUTING`(플래너 사전)과 다른 도메인이다 — 결정 사유는 이 사전만 쓴다.
   static const String depositRegistered = 'DEPOSIT_REGISTERED';
 
-  /// 전량 9종.
+  /// 🆕 v1.19(01 §28 · K21 · 엔진 E15e2 #161 `kLivePromotionReasonCode`) — 첫 실전 주문 승격
+  /// (`decision_log.kind='MANUAL'` · 전략 `P0S` · `OPENING_BALANCE`·`SIM_OPENING_BALANCE` 와 같은 축).
+  static const String livePromotion = 'LIVE_EXECUTE_PROMOTION';
+
+  /// 전량 10종.
   static const Set<String> values = <String>{
     openingBalance,
     simOpeningBalance,
@@ -216,6 +220,7 @@ abstract final class DecisionReasonCodes {
     ledgerEventCorporateAction,
     ledgerEventVoid,
     depositRegistered,
+    livePromotion,
   };
 }
 
