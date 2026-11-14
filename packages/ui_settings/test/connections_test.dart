@@ -760,6 +760,7 @@ void main() {
     WidgetTester tester,
   ) async {
     expect(conn.lockedLabel, isNull); // pre
+    expect(conn.rows[3].route, isNotNull); // pre
 
     final FakeSettingsOpsStatusRepository repo =
         FakeSettingsOpsStatusRepository(connections: (int call) => one(conn));
@@ -1023,6 +1024,27 @@ void main() {
     Matcher retryMatcher,
     SettingsActions? acts,
   })
+  case14loadingViewer = (
+    name: 'loading_viewer',
+    repoFn: (int call) => Stream<ConnectionsVm>.multi(
+      (MultiStreamController<ConnectionsVm> c) {},
+    ),
+    loadMatcher: findsOneWidget,
+    failMatcher: findsNothing,
+    rowMatcher: findsNothing,
+    retryMatcher: findsNothing,
+    acts: null,
+  );
+
+  final ({
+    String name,
+    Stream<ConnectionsVm> Function(int) repoFn,
+    Matcher loadMatcher,
+    Matcher failMatcher,
+    Matcher rowMatcher,
+    Matcher retryMatcher,
+    SettingsActions? acts,
+  })
   case14fail = (
     name: 'fail',
     repoFn: (int call) => Stream<ConnectionsVm>.error(StateError('fail')),
@@ -1044,7 +1066,7 @@ void main() {
           Matcher retryMatcher,
           SettingsActions? acts,
         })
-      >[case14loading, case14fail]) {
+      >[case14loading, case14loadingViewer, case14fail]) {
     testWidgets('M9S07-14 state branch ${c.name}', (WidgetTester tester) async {
       await pumpConnections(
         tester,
