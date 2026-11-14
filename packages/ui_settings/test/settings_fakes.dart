@@ -345,3 +345,37 @@ Set<String> operationsControlTexts(OperationsVm v) => <String>{
   ?v.control.startAction?.label,
   for (final SettingsActionCall c in v.control.stopActions) c.label,
 };
+
+// ── R6c2 — M9 S05 board fakes ──
+
+List<String?> rampTexts(RampBoard r) => <String?>[
+  r.levelLabel,
+  ?r.dstNoticeText,
+  ?r.emptyLabel,
+  for (final RampCondition k in r.conditions) ...<String?>[k.label, k.progressText],
+];
+
+List<String?> jobTexts(JobRow j) => <String?>[
+  j.label,
+  j.stateLabel,
+  j.scheduleText,
+  j.lastRunText,
+  ?j.detailLine,
+];
+
+List<String?> controlViewerTexts(EngineControl c) => <String?>[
+  c.stateLabel,
+  ?c.stopPromptText,
+];
+
+List<String?> controlOperatorTexts(EngineControl c) => <String?>[
+  c.stateLabel,
+  ?c.startAction?.label,
+  ?c.stopPromptText,
+  for (final SettingsActionCall s in c.stopActions) s.label,
+];
+
+List<String?> updateTexts(UpdateGateCard? u) => <String?>[
+  ?u?.stateLabel,
+  ?u?.bodyText,
+];
