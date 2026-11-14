@@ -181,6 +181,17 @@ export 'src/mode/sim_to_auto_commit.dart'
         simToAutoCommitReject,
         simToAutoLeaseReject,
         simToAutoSessionUsable;
+// 🆕 E15f4b2 — simToAuto 전환 오케스트레이션(새 체크 → 커밋 → 마감 → 옛 멈춤 · 보상 · 기동 보정 · 설계 13 §8 R106).
+export 'src/mode/sim_to_auto_switch.dart'
+    show
+        SimToAutoSwitchCommit,
+        SimToAutoSwitchResult,
+        SimToAutoSwitchStage,
+        kSimToAutoCommitUnknown,
+        kSimToAutoWatchdogPrepareFailed,
+        pendingOldModePauses,
+        repairOldModePauses,
+        runSimToAutoSwitch;
 // 🆕 E11p3b-1 — 설정 지문(정규 JSON SHA-256 앞 16자 · 설계 13 §8 R90).
 export 'src/ops/config_fingerprint.dart'
     show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;
