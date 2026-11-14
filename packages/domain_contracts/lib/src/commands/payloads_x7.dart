@@ -7,6 +7,7 @@
 // 🔴 X7 8종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트를 건드리지 않는다.
 //
 // (§5-4 표는 기존 5종 계열과 이 8종을 한 표로 적는다 — 파일만 크기 규약상 나눴다.)
+// 🆕 v1.21(01 §30) — `KillChecklistAck.activation` + `KillActivationRecord`(카드 ④ 발동 뒤 기록 · 와이어 · 한 명령).
 
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -15,6 +16,7 @@ import '../dto/ledger_trust.dart';
 import '../enums/advice.dart';
 import '../enums/ledger.dart';
 import '../enums/order.dart';
+import '../enums/safety.dart';
 import '../primitives/money.dart';
 import 'command_context.dart';
 import 'drafts.dart';
@@ -184,6 +186,8 @@ abstract class AlertAck with _$AlertAck {
 /// 🔴 A5 — 킬스위치 체크리스트 이행 «선언». **이것만이 48h 해제 카운트다운을 개시**한다.
 ///    폰 전용 · M5 소유 화면 · 생체인증 · 항목별 개별 체크. 🔴 대사 전용 키가 있으면 엔진의
 ///    미체결 조회 0건으로 교차검증하고 불일치면 확인을 무효로 하고 P0 를 다시 올린다.
+/// 🆕 v1.21(01 §30 · K9) — [activation] = 카드 ④ 발동 뒤 기록 7(엔진 `confirmChecklist(answers, ack)` 한 명령 —
+///    두 번 나누지 않는다). null = 엔진 거부 `KILL_CHECKLIST_ITEM_MISSING`(추가형 · 기본 null · 옛 JSON 그대로 열린다).
 @freezed
 abstract class KillChecklistAck with _$KillChecklistAck {
   const factory KillChecklistAck({
@@ -204,11 +208,51 @@ abstract class KillChecklistAck with _$KillChecklistAck {
     /// 1줄 필수.
     required String note,
     required CommandContext context,
+
+    /// 🆕 v1.21 — 발동 뒤 기록(카드 ④ 7).
+    KillActivationRecord? activation,
   }) = _KillChecklistAck;
 
   factory KillChecklistAck.fromJson(Map<String, dynamic> json) =>
       _$KillChecklistAckFromJson(json);
 }
+
+/// 🆕 v1.21(01 §30 · K9) — 카드 ④ 발동 뒤 기록(엔진 core `KillActivationAnswers` · `kill_checklist.dart:30` 칸 1:1 ·
+/// 6번 «재개 최소 대기 시작 시각» = 엔진이 채운다). 판정(1·4·7 빈칸 · 2 감정이면 셋 필수 · 3 W번호 또는 «해당 없음») = 엔진.
+/// 🔵 와이어 칸이라 숫자 타입이다 — 화면 파싱 문제·입력 원천(`journalDecisionId` 등) = 01 §8 미결 183(1.22.0 판단).
+@freezed
+abstract class KillActivationRecord with _$KillActivationRecord {
+  const factory KillActivationRecord({
+    /// 1 · 규칙이 지시한 행동.
+    required String ruleAction,
+
+    /// 2 · 규칙인가 감정인가.
+    required KillActivationReason reasonKind,
+
+    /// 2 · 감정 · 강도 0~10 · 수면 0~24(감정이면 필수 — 엔진 판정).
+    String? emotion,
+    int? intensity,
+    double? sleepHours,
+
+    /// 3 · W번호 · 트리거 ID(«해당 없음» = [scenarioNone]).
+    String? scenarioId,
+    @Default(false) bool scenarioNone,
+
+    /// 4 · 재개 조건.
+    required String resumeCondition,
+
+    /// 5 · 끄는 범위.
+    required KillActivationScope scope,
+
+    /// 7 · 저널 `decision_id`(새 저널 · 겹치면 엔진 `JOURNAL_ID_TAKEN`).
+    required String journalDecisionId,
+  }) = _KillActivationRecord;
+
+  factory KillActivationRecord.fromJson(Map<String, dynamic> json) =>
+      _$KillActivationRecordFromJson(json);
+}
+// JSON 키: rule_action · reason_kind · emotion · intensity · sleep_hours · scenario_id · scenario_none ·
+//          resume_condition · scope · journal_decision_id
 
 // ════════════════════════════════════════════════════════════════════════════
 // 🆕 v1.12(01 §21 · K4) — «화면 제출» DTO 3. 기존 와이어 8종(`ManualFillRecord`…)은 **무변경** —
