@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (~~**아직 비어 있다**~~ → ~~**6장** · R6a 병합 PR #146 `9840603` · 2026-11-14~~ → ~~**14장** · R6b 병합 PR #155 `f58e2f9` · 2026-11-14~~ → ~~**26장** · R6c1 병합 PR #168 `b3b759c` · 2026-11-14~~ → **28장** · R6c2 병합 PR #176 `02099df` · 2026-11-15 · 🏁 R6)
+# `test/golden/` — 위젯 골든 스냅샷 (~~**아직 비어 있다**~~ → ~~**6장** · R6a 병합 PR #146 `9840603` · 2026-11-14~~ → ~~**14장** · R6b 병합 PR #155 `f58e2f9` · 2026-11-14~~ → ~~**26장** · R6c1 병합 PR #168 `b3b759c` · 2026-11-14~~ → **28장** · R6c2 병합 PR #176 `02099df` · 2026-11-15 · 🏁 R6 · ✅ R6 test-only 병합 뒤 **28장 그대로**(PR #184 `e36a310` · 테스트 파일만 · PNG 0 변경))
 
 정본: 01_M2_도메인계약 **§7** · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 
@@ -23,7 +23,7 @@
 - 임계 조정은 M2가 한다.
 - 🔴 골든에 **실키·실계좌번호가 절대 들어가지 않게** 한다. 렌더 입력은 합성 픽스처뿐이고, 계좌는 별칭만 보인다. 뷰어 빌드 프레임에서는 시크릿 컨트롤이 **아예 없는 것**이 정답이다.
 
-## 🆕 R6(계약 v1.18 전제 · 🔀 3분할 ✅ 확정) — `S01`(R6a) · `S07`(R6b) · `S05`(R6c) (2026-11-13 조립 · ✅ 선행 = 계약 v1.18 병합 PR #142 squash `b582c49` · ✅ R6a 병합 PR #146 `9840603` 2026-11-14(1회차 반려 → 재제출 → 2회차 merge) · ✅ R6b 병합 PR #155 `f58e2f9` 2026-11-14(1회차 반려 → 재제출 → 2회차 merge) · ~~R6c 조립 전(선행 = 계약 v1.19)~~ ✅ 계약 v1.19 병합 PR #163 `6b8ed02` · R6c 🔀 2분할 · ✅ R6c1 병합 PR #168 `b3b759c` 2026-11-14(1회차 merge-with-fixes) · ~~R6c2 ▶ 「푸시해」 뒤~~ ✅ R6c2 병합 PR #176 `02099df` 2026-11-15(1회차 반려 → 재제출 → 2회차 merge) · 🏁 R6)
+## 🆕 R6(계약 v1.18 전제 · 🔀 3분할 ✅ 확정) — `S01`(R6a) · `S07`(R6b) · `S05`(R6c) (2026-11-13 조립 · ✅ 선행 = 계약 v1.18 병합 PR #142 squash `b582c49` · ✅ R6a 병합 PR #146 `9840603` 2026-11-14(1회차 반려 → 재제출 → 2회차 merge) · ✅ R6b 병합 PR #155 `f58e2f9` 2026-11-14(1회차 반려 → 재제출 → 2회차 merge) · ~~R6c 조립 전(선행 = 계약 v1.19)~~ ✅ 계약 v1.19 병합 PR #163 `6b8ed02` · R6c 🔀 2분할 · ✅ R6c1 병합 PR #168 `b3b759c` 2026-11-14(1회차 merge-with-fixes) · ~~R6c2 ▶ 「푸시해」 뒤~~ ✅ R6c2 병합 PR #176 `02099df` 2026-11-15(1회차 반려 → 재제출 → 2회차 merge) · 🏁 R6 · ✅ R6 test-only PR #184 `e36a310` 2026-11-15(테스트 3파일만 · 골든 0 변경 · 28장 그대로))
 
 - 카드 = `docs/ai-context/send/_완료/R6a-Bob-M9S01.md`(R6a · ✅ 병합 PR #146 `9840603` 2026-11-14 · 1회차 반려 → 재제출 `_완료/R6a-Bob-M9S01-재제출.md` → 2회차 merge) · R6b = `docs/ai-context/send/_완료/R6b-Bob-M9S07.md`(✅ 병합 PR #155 `f58e2f9` 2026-11-14 · 1회차 반려 → 재제출 `_완료/R6b-Bob-M9S07-재제출.md` → 2회차 merge) · R6c `R6c-Bob-M9S05` = ~~조립 전(선행 = 계약 v1.19)~~ 🔀 2분할 — R6c1 = `docs/ai-context/send/_완료/R6c1-Bob-M9S05a.md`(✅ 병합 PR #168 `b3b759c` 2026-11-14 · 1회차 merge-with-fixes) · R6c2 = `docs/ai-context/send/_완료/R6c2-Bob-M9S05b.md`(✅ 병합 PR #176 `02099df` 2026-11-15 · 1회차 반려 → 재제출 `_완료/R6c2-Bob-M9S05b-재제출.md` → 2회차 merge · `m9s05_hold_keys` + R6c1 PNG 12 다시 찍기 · `golden:approved`).
 - 이 절은 통합 담당이 쓴다(화면 담당 무수정 — 카드 «고치면 반려» 목록에 `test/golden/README.md`). 다음 카드는 이 절 끝에 줄을 더한다(새 절 0).
@@ -41,7 +41,7 @@
 
 ### 2. 장수(계획)
 
-- R6 시작 **0장** → R6a 병합 뒤 **6장**(+ `m9s01_*` 6 · ✅ 2026-11-14 PR #146 `9840603` · `git ls-tree` 6) → R6b 병합 뒤 **14장**(+ `m9s07_connections` · `m9s07_telegram` · `m9s07_locked` · `m9s07_viewer` × 2 · ✅ 2026-11-14 PR #155 `f58e2f9` · `git ls-tree` 14) → R6c(`m9s05_*` · v1.19 표본 · 계획) → R6c1 병합 뒤 **26장**(+ `m9s05_*` 12 · ✅ 2026-11-14 PR #168 `b3b759c`) → R6c2 병합 뒤 **28장**(+ `m9s05_hold_keys` 2 · R6c1 12장 다시 찍기 · ✅ 2026-11-15 PR #176 `02099df` · `git ls-tree` 28).
+- R6 시작 **0장** → R6a 병합 뒤 **6장**(+ `m9s01_*` 6 · ✅ 2026-11-14 PR #146 `9840603` · `git ls-tree` 6) → R6b 병합 뒤 **14장**(+ `m9s07_connections` · `m9s07_telegram` · `m9s07_locked` · `m9s07_viewer` × 2 · ✅ 2026-11-14 PR #155 `f58e2f9` · `git ls-tree` 14) → R6c(`m9s05_*` · v1.19 표본 · 계획) → R6c1 병합 뒤 **26장**(+ `m9s05_*` 12 · ✅ 2026-11-14 PR #168 `b3b759c`) → R6c2 병합 뒤 **28장**(+ `m9s05_hold_keys` 2 · R6c1 12장 다시 찍기 · ✅ 2026-11-15 PR #176 `02099df` · `git ls-tree` 28) → R6 test-only PR 병합 뒤 **28장 그대로**(✅ 2026-11-15 PR #184 `e36a310` · 테스트 파일만 · 장수 변화 0 · `git ls-tree` `fef59a3` 28).
 
 ### 3. 골든 이름 — R6b 4이름 × 2 = 8장(✅ 병합 PR #155 `f58e2f9` · 2026-11-14)
 
@@ -82,3 +82,4 @@
 | `m9s05_hold_keys` | 2(새) | `test/golden/m9s05_board_golden_test.dart` | `m9/operations_live_hold_keys` · operator(`UnimplementedSettingsActions`) · 390×2160 · `m9s05-asof` dy **1424** < 2160 · 머리 `m9s05-chip` 0.0 |
 
 - 🆕 **R6c2 병합본 실측**(PR #176 squash `02099df` · 2026-11-15 · Bob `d500433`(커밋 5) + 재제출 `7cc7ea8`(테스트 파일 +7/−9 · lib·PNG 0) · C4 재실측 일치(이름마다 `--plain-name` · 1회차 · 2회차) · 병합 기록 재실측 일치(`lessThan(0.0)` 임시 · 되돌림) · light = dark · 머리 dy 0.0): PNG **28**(`m9s01` 6 + `m9s07` 8 + `m9s05` 14) · 다시 찍은 R6c1 12장(`m9s05_sim_auto` **2064** · `m9s05_sim_complete` **1828** · `m9s05_live_observe` **1540** · `m9s05_live_promotable` **1596** · `m9s05_advisory` **1508** · `m9s05_locked` **1476**) · 새 2장 `m9s05_hold_keys` **1424**(`test/golden/m9s05_board_golden_test.dart`) · 390×2160(`_kM9s05Tall`) — 드라이런 dy 와 같음 · PNG 14 = 드라이런 `0465cbda` 와 바이트 같음 · `golden:approved`(통합 담당) · `ui_settings` 테스트 **140**(R6c1 110 + `operations_board_test` 28 + 골든 2) · 질문 파일 `docs/ai-context/inbox/M9S05_questions.md` A7~A13 ✅ · 🏁 R6.
+- 🆕 **R6 test-only PR 실측**(PR #184 squash `e36a310` · 2026-11-15 · 통합 담당 · 밑동 `b46aff7` · head `04ffef0` · 테스트 파일 3개만 +119/−67 — `settings_home_test` · `connections_test` · `operations_board_test` · 골든 테스트·PNG·lib·픽스처·fakes 0 변경 · 같은 날 lib 주석 PR #185 `fef59a3` = `operations.dart` 주석 2줄 · 골든 영향 0): `*.png` diff 0 · `git ls-tree` `fef59a3` = `goldens/` **28장 그대로**(장수 변화 0) · 골든 포함 `flutter test` **+141** 통과(140 + 1 · 골든 재생성 0 · `--update-goldens` 0 · PR 실측 · 병합본 재실행 0 · CI 3/3) · `domain_contracts` **+466 ~30** · 근거 변이 H1(S01 리뷰 줄 겹침) = 밑동 `b46aff7` 판에선 골든 `m9s01_home` · `m9s01_viewer` 만 잡던 것 → 뷰 KILLED · H2(S01 오래됨 배너 겹침) · C1(S07 loading 뼈대 주입 null 일 때만) = 전체 SURVIVED(오래됨 · loading 골든 없음) → 뷰 KILLED.
