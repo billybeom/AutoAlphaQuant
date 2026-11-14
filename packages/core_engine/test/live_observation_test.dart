@@ -353,6 +353,16 @@ void main() {
       _judge(_facts(asOf: _k('2027-01-29', 18))).vm!.stateLabel,
       contains('2027-02-01'),
     );
+    // 🆕 E15f1 정정 — 월말 판정(01-29) 뒤 주말에도 그 집행(02-01)을 말한다(전엔 03-02).
+    expect(
+      _judge(_facts(asOf: _k('2027-01-30', 12))).vm!.stateLabel,
+      contains('2027-02-01'),
+    );
+    // 집행일 09:10 뒤 = 다음 달 집행.
+    expect(
+      _judge(_facts(asOf: _k('2027-02-01', 10))).vm!.stateLabel,
+      contains('2027-03-02'),
+    );
   });
 
   test('달력 범위 끝 날(2027-12-30) — 다음 세션을 묻지 않고 답한다 · 마감 날짜 없음 문구', () {

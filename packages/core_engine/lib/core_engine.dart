@@ -13,7 +13,7 @@ export 'src/calendar/exchange_calendar.dart' show ExchangeCalendar, Market;
 export 'src/calendar/frozen_calendar.dart'
     show FrozenCalendarInfo, frozenCalendarInfo, frozenExchangeCalendar;
 export 'src/calendar/next_rebalance.dart'
-    show NextRebalance, nextRegularRebalance;
+    show NextRebalance, nextRegularExecutionSession, nextRegularRebalance;
 export 'src/costs/trade_costs.dart'
     show
         KrCostConfig,
@@ -122,6 +122,22 @@ export 'src/mode/mode_guard.dart'
         modeCombinationCell,
         modeStartupGate,
         orderJobModeReject;
+// 🆕 E15f1 — simToAuto 순수 판정(7단계 · 냉각 · 확정 기한 · 커밋 창 막기 · 화면 계획 · 설계 13 §8 R93).
+export 'src/mode/sim_to_auto.dart'
+    show
+        SimLedgerFate,
+        SimToAutoCodes,
+        SimToAutoCommitWindow,
+        SimToAutoFacts,
+        SimToAutoReport,
+        SimToAutoStep,
+        SimToAutoStepResult,
+        judgeSimToAuto,
+        kHandoverCommitWindow,
+        kHandoverCooling,
+        kHandoverPlanStaleAfter,
+        simToAutoCommitWindow,
+        simToAutoPlan;
 // 🆕 E11p3b-1 — 설정 지문(정규 JSON SHA-256 앞 16자 · 설계 13 §8 R90).
 export 'src/ops/config_fingerprint.dart'
     show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;
