@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (~~**아직 비어 있다**~~ → **6장** · R6a 병합 PR #146 `9840603` · 2026-11-14)
+# `test/golden/` — 위젯 골든 스냅샷 (~~**아직 비어 있다**~~ → ~~**6장** · R6a 병합 PR #146 `9840603` · 2026-11-14~~ → **14장** · R6b 병합 PR #155 `f58e2f9` · 2026-11-14)
 
 정본: 01_M2_도메인계약 **§7** · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 
@@ -23,9 +23,9 @@
 - 임계 조정은 M2가 한다.
 - 🔴 골든에 **실키·실계좌번호가 절대 들어가지 않게** 한다. 렌더 입력은 합성 픽스처뿐이고, 계좌는 별칭만 보인다. 뷰어 빌드 프레임에서는 시크릿 컨트롤이 **아예 없는 것**이 정답이다.
 
-## 🆕 R6(계약 v1.18 전제 · 🔀 3분할 ✅ 확정) — `S01`(R6a) · `S07`(R6b) · `S05`(R6c) (2026-11-13 조립 · ✅ 선행 = 계약 v1.18 병합 PR #142 squash `b582c49` · ✅ R6a 병합 PR #146 `9840603` 2026-11-14(1회차 반려 → 재제출 → 2회차 merge) · R6b · R6c 조립 전)
+## 🆕 R6(계약 v1.18 전제 · 🔀 3분할 ✅ 확정) — `S01`(R6a) · `S07`(R6b) · `S05`(R6c) (2026-11-13 조립 · ✅ 선행 = 계약 v1.18 병합 PR #142 squash `b582c49` · ✅ R6a 병합 PR #146 `9840603` 2026-11-14(1회차 반려 → 재제출 → 2회차 merge) · ✅ R6b 병합 PR #155 `f58e2f9` 2026-11-14(1회차 반려 → 재제출 → 2회차 merge) · R6c 조립 전(선행 = 계약 v1.19))
 
-- 카드 = `docs/ai-context/send/_완료/R6a-Bob-M9S01.md`(R6a · ✅ 병합 PR #146 `9840603` 2026-11-14 · 1회차 반려 → 재제출 `_완료/R6a-Bob-M9S01-재제출.md` → 2회차 merge) · R6b `R6b-Bob-M9S07` · R6c `R6c-Bob-M9S05` = 조립 전.
+- 카드 = `docs/ai-context/send/_완료/R6a-Bob-M9S01.md`(R6a · ✅ 병합 PR #146 `9840603` 2026-11-14 · 1회차 반려 → 재제출 `_완료/R6a-Bob-M9S01-재제출.md` → 2회차 merge) · R6b = `docs/ai-context/send/_완료/R6b-Bob-M9S07.md`(✅ 병합 PR #155 `f58e2f9` 2026-11-14 · 1회차 반려 → 재제출 `_완료/R6b-Bob-M9S07-재제출.md` → 2회차 merge) · R6c `R6c-Bob-M9S05` = 조립 전(선행 = 계약 v1.19).
 - 이 절은 통합 담당이 쓴다(화면 담당 무수정 — 카드 «고치면 반려» 목록에 `test/golden/README.md`). 다음 카드는 이 절 끝에 줄을 더한다(새 절 0).
 
 ### 1. 골든 이름 — R6a 3이름 × 2 = 6장
@@ -41,4 +41,16 @@
 
 ### 2. 장수(계획)
 
-- R6 시작 **0장** → R6a 병합 뒤 **6장**(+ `m9s01_*` 6 · ✅ 2026-11-14 PR #146 `9840603` · `git ls-tree` 6) → R6b 뒤 14장(+ `m9s07_connections` · `m9s07_telegram` · `m9s07_locked` · `m9s07_viewer` × 2 · 계획) → R6c(`m9s05_*` · v1.19 표본 · 계획).
+- R6 시작 **0장** → R6a 병합 뒤 **6장**(+ `m9s01_*` 6 · ✅ 2026-11-14 PR #146 `9840603` · `git ls-tree` 6) → R6b 병합 뒤 **14장**(+ `m9s07_connections` · `m9s07_telegram` · `m9s07_locked` · `m9s07_viewer` × 2 · ✅ 2026-11-14 PR #155 `f58e2f9` · `git ls-tree` 14) → R6c(`m9s05_*` · v1.19 표본 · 계획).
+
+### 3. 골든 이름 — R6b 4이름 × 2 = 8장(✅ 병합 PR #155 `f58e2f9` · 2026-11-14)
+
+| 이름 | 장수 | 테스트 파일 | 입력 · 동작 주입 · 크기 · 위치 전제(맨 아래 · 머리) |
+|---|---|---|---|
+| `m9s07_connections` | 2 | `test/golden/m9s07_golden_test.dart` | `m9/connections` · operator(`UnimplementedSettingsActions` · 버튼 있음) · 390×1040(`_kM9s07Tall` · 키 큰 판 · 발주자 확인 ①) · 맨 아래 `Key('m9s07-asof')` dy **956** < 1040 · 머리 `ValueKey('m9s07-row-0')` dy 0.0 |
+| `m9s07_telegram` | 2 | 〃 | `m9/connections_telegram` · operator · 390×844(`kGoldenPhoneSize` 무수정) · `m9s07-asof` dy **788** < 844 · 머리 `m9s07-row-0` 0.0 |
+| `m9s07_locked` | 2 | 〃 | `m9/connections_locked` · operator · 390×844 · `m9s07-asof` dy **796** < 844 · 머리 `Key('m9s07-locked')` 0.0 |
+| `m9s07_viewer` | 2 | 〃 | `m9/connections`(`m9s07_connections` 와 같은 표본) · null(뷰어 = 버튼 부재) · 390×844 · `m9s07-asof` dy **740** < 844 · 머리 `m9s07-row-0` 0.0 |
+
+- 공통: 흐름 = 클로저 칸 non-null(`(WidgetTester t) async {}`) · 가짜 = testWidgets 안에서 새로(`FakeSettingsOpsStatusRepository` · `RecordingLinkOpener`) · 시계 `FixedClock(kGoldenNowUtc)` · 탭을 찍는 골든 0.
+- 🆕 **R6b 병합본 실측**(PR #155 squash `f58e2f9` · 2026-11-14 · Bob `be89e09`(커밋 6) + 재제출 `30704c9`(테스트 파일 +11/−5 · lib·PNG 0) · C4 재실측 일치(이름마다 `--plain-name` · 1회차 · 2회차) · light = dark · 머리 dy 0.0): `m9s07_connections` **956**(390×1040 · `_kM9s07Tall`) · `m9s07_telegram` **788** · `m9s07_locked` **796** · `m9s07_viewer` **740**(390×844) — 드라이런 dy 와 같음 · PNG 8 = 드라이런과 바이트 같음 · 동작 주입 = operator 3이름(`UnimplementedSettingsActions`) · viewer = null · `ui_settings` 테스트 **60**(R6a 23 + `connections_test` 29 + 골든 8) · `git ls-tree` PNG **14**(`m9s01` 6 + `m9s07` 8) · 질문 파일 `docs/ai-context/inbox/M9S07_questions.md` A1~A4 ✅.
