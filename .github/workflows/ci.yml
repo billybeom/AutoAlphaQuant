@@ -36,7 +36,7 @@ jobs:
   # ── 1. 경계 규칙 — SDK 불필요, 수 초 ──────────────────────────────────────
   boundaries:
     name: 경계 규칙 (C-3 · C-5)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
       - name: check_boundaries.sh
@@ -51,7 +51,7 @@ jobs:
   #    라벨 없이 통과시킬 방법은 없다.
   golden:
     name: 골든 스냅샷 (C-1 · C-2 무결성)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
@@ -100,7 +100,7 @@ jobs:
   # ── 3. 빌드·분석·테스트 ───────────────────────────────────────────────────
   build:
     name: 분석 · 테스트 (melos)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
