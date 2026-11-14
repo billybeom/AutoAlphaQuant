@@ -446,4 +446,17 @@ void main() {
     expect(r.counters.interventions, 1);
     expect(r.counters.text, '체험 18일 · 배치 10회 · 리밸런싱 2회 · 경보 4건 · 개입 1회');
   });
+
+  test('🆕 E15e1 정정 — 달력 범위 끝 날(2027-12-30)에도 답한다 · 다음 리밸런싱 모름 문구', () {
+    final SimTrialReport r = judgeSimTrial(
+      _facts(
+        anchor: _k('2027-12-28', 8),
+        asOf: _k('2027-12-30', 18),
+        ok: <String>['2027-12-28', '2027-12-29', '2027-12-30'],
+      ),
+      kr: _kr,
+    );
+    expect(r.counters.batches, 3);
+    expect(r.of(SimTrialItem.monthEndRebalance).detail, '아직 없음 — 건너뛰면 경고 후 진행');
+  });
 }

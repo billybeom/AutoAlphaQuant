@@ -85,6 +85,19 @@ export 'src/mode/boot_mode.dart'
         BootModeResolved,
         ModeRowFacts,
         resolveBootMode;
+// 🆕 E15e1 — M1-22 실전 드라이런 관찰 창(연속 무결 거래일 · 승격 가능 판정 · 설계 13 §8 R89).
+export 'src/mode/live_observation.dart'
+    show
+        LiveObservationBlock,
+        LiveObservationConfig,
+        LiveObservationFacts,
+        LiveObservationFactsSource,
+        LiveObservationRecon,
+        LiveObservationReport,
+        LiveObservationRun,
+        judgeLiveObservation,
+        kLiveDryRunObservationKey,
+        kLiveObservationBatchCheck;
 // 🆕 E15a — 모드 조합 가드 · 기동 판정(X6-3 · X7-8 · X18 · SPEC v2.44 · 설계 13 §8 R81).
 export 'src/mode/mode_guard.dart'
     show

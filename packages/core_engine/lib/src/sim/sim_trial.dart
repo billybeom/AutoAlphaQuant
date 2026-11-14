@@ -338,6 +338,8 @@ SimTrialReport judgeSimTrial(
     } else if (day != today) {
       run = 0;
     }
+    // 🔴 오늘에서 멈춘다 — 오늘 다음 세션은 묻지 않는다(달력 범위 끝 날에도 답한다 · E15e1 정정).
+    if (day == today) break;
   }
   final bool weeksOk = best >= requiredSessions;
   final SimTrialItemResult weeks = SimTrialItemResult(
