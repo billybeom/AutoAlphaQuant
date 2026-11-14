@@ -270,6 +270,8 @@ const String _reasonM9Fixture =
     '결과 1 — `S01`·`S07` 은 덮였다 · 🆕 v1.19 operations 7 · 결과 1 — `S05` 는 덮였다 · '
     '🆕 v1.20 credentials 4 · device_access 5 · account_mapping 3 · 결과 3 — `S02`·`S06`·`S03` 은 덮였다). '
     '픽스처가 생기면 등록부에 올리고 여기서 지운다.';
+const String _reasonNextVersionVm =
+    '1.21.0 사용처 0 — 1.22.0 VM(`ResumeGateVm.actions` 등)이 쓴다 · 표본 = 그 판(01 §30 K47).';
 const String _reasonCalendarUndecided =
     'X4 캘린더 채택이 미결이라 픽스처를 만들지 않았다(01 §8-5 · FeatureFlags.calendarEnabled).';
 
@@ -289,6 +291,10 @@ const Map<String, String> _knownUncovered = <String, String>{
   'DisclosureViewEvent': _reasonCommandPayload,
   'JournalDraft': _reasonCommandPayload,
   'KillChecklistAck': _reasonCommandPayload,
+  // 🆕 v1.21(01 §30 · K9 · K7) — 발동 뒤 기록(와이어 · `KillChecklistAck.activation`) · M5 제출 DTO 2(포트 인자).
+  'KillActivationRecord': _reasonCommandPayload,
+  'KillResumeItemSubmission': _reasonCommandPayload,
+  'PledgeSubmission': _reasonCommandPayload,
   'LedgerEventRecord': _reasonCommandPayload,
   'ManualFillAmendment': _reasonCommandPayload,
   'ManualFillPatchable': _reasonCommandPayload,
@@ -307,6 +313,9 @@ const Map<String, String> _knownUncovered = <String, String>{
 
   // ── M6 상세·기록 폼 — 🆕 v1.8(01 §17) 0건: `StopLineNormalized` 는 m6/holding_detail_* 가 덮는다 ·
   //    🆕 v1.12 `LedgerRepairRow`(m6/ledger_repairs_4)·`CashEstimateNotice`(advice_12 요약) 도 이제 덮인다 ──
+
+  // ── 🆕 v1.21 — 다음 판 VM 이 쓰는 꼴(01 §30 K47) ─────────────────────────
+  'SafetyActionCall': _reasonNextVersionVm,
 
   // ── X4 캘린더 ───────────────────────────────────────────────────────────
   'CalendarEventDto': _reasonCalendarUndecided,

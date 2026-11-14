@@ -9,7 +9,8 @@
 //    ① 소유 경로가 CODEOWNERS 에 파일 경로로 적혀 있고(07 §9 기계 검사 3)
 //    ② 리포지토리에 쓰기 메서드가 하나도 없으며(01 §4-1)
 //    ③ 쓰기 창구가 `CommandApi`·`SettingsActions` 둘 + 🆕 v1.2 예외 1 `DraftStore`(기기 로컬
-//       입력 초안 · 원장·명령 쓰기가 아니다 — 01 §1-4 · §12-1)뿐이다(01 §4-2·§4-3).
+//       입력 초안 · 원장·명령 쓰기가 아니다 — 01 §1-4 · §12-1) + 🆕 v1.21 `SafetyActions`(M5 폰 로컬 · 01 §30)뿐이다
+//       (01 §4-2·§4-3).
 
 import 'dart:io';
 
@@ -215,6 +216,26 @@ void main() {
       // 🆕 v1.2 검증 반영 — getter·필드도 표면이다(선언 전체 대조).
       _expectSurfaceIsExactly(surface, 'SettingsActions', <String>{
         'run',
+        'watch',
+      });
+    });
+
+    test('C-7 넷째 쓰기 창구 SafetyActions 의 표면은 run·runKillResumeItem·runPledge·watch 넷이다', () {
+      // 🆕 v1.21(01 §30 · K5 · K31 · K39) — M5 폰 로컬 안전 동작. `CommandApi` 가 **아니다** — 동사 이름 메서드 0
+      //    (`submit…` 은 위 «쓰기 이름 파일» 검사에 걸린다) · 제출 DTO 두 갈래(`runKillResumeItem` · `runPledge`) +
+      //    엔진이 완성한 호출 `run` + 결과 구독 `watch`. 1.22.0 이 동작을 늘려도 **표면은 늘지 않는다**(run 화이트리스트).
+      final String code = stripCommentsAndStrings(
+        File('${libDir.path}/src/commands/safety_actions.dart')
+            .readAsStringSync(),
+      );
+      final String surface = RegExp(
+        r'abstract interface class SafetyActions \{(.*?)\n\}',
+        dotAll: true,
+      ).firstMatch(code)!.group(1)!;
+      _expectSurfaceIsExactly(surface, 'SafetyActions', <String>{
+        'run',
+        'runKillResumeItem',
+        'runPledge',
         'watch',
       });
     });

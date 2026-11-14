@@ -305,25 +305,32 @@ void main() {
       // 🆕 v1.1 R2 준비(2026-09-23) — C-5 는 `reject_reason_code` 를 **전역**으로 조회한다
       //    (X7·J-3 두 사전이 같은 JSON 키). 그래서 «어느 사전인가»를 픽스처 이름 목록이 아니라
       //    **규칙**으로 여기서 고정한다 — 새 거부 픽스처가 들어와도 이 검사가 사전을 가린다.
-      const Map<CommandKind, String> domainByKind = <CommandKind, String>{
-        CommandKind.journalDraft: 'journal_draft_reject',
-        // 🆕 v1.7(01 §16) — J-4 blind 리뷰 점수 제출.
-        CommandKind.blindReviewScore: 'blind_review_reject',
-        CommandKind.manualFillRecord: 'advice_reject',
-        CommandKind.manualFillAmend: 'advice_reject',
-        CommandKind.manualFillVoid: 'advice_reject',
-        CommandKind.adviceSkip: 'advice_reject',
-        CommandKind.selfReportBalance: 'advice_reject',
-        CommandKind.alertAck: 'advice_reject',
-        CommandKind.killChecklistConfirm: 'advice_reject',
-        // 🆕 v1.10 ㊲ — 원장 사건 기록은 자기 사전을 쓴다(설계 13 §8 R21 L6).
-        CommandKind.ledgerEventRecord: 'ledger_event_reject',
-        // 🆕 v1.11(E7b0 · 01 §20) — 실입금 등록(`m7_deposit_register_receipts_5` 거부 행).
-        CommandKind.depositRegister: 'deposit_register_reject',
-        // 🆕 v1.12(01 §21 · K14 ⓐ) — 만료 확인 카드 「내일 다시」(`m6/advice_defer_receipts_3` 거부 행 ·
-        //    `DEFER_ALREADY_USED`).
-        CommandKind.adviceDeferConfirm: 'advice_reject',
-      };
+      // 🆕 v1.21(01 §30 · K40) — 값 = 도메인 **집합**(한 명령의 거부가 두 사전에 걸칠 수 있다 · 대조 = 그중 하나).
+      const Map<CommandKind, Set<String>> domainByKind =
+          <CommandKind, Set<String>>{
+            CommandKind.journalDraft: <String>{'journal_draft_reject'},
+            // 🆕 v1.7(01 §16) — J-4 blind 리뷰 점수 제출.
+            CommandKind.blindReviewScore: <String>{'blind_review_reject'},
+            CommandKind.manualFillRecord: <String>{'advice_reject'},
+            CommandKind.manualFillAmend: <String>{'advice_reject'},
+            CommandKind.manualFillVoid: <String>{'advice_reject'},
+            CommandKind.adviceSkip: <String>{'advice_reject'},
+            CommandKind.selfReportBalance: <String>{'advice_reject'},
+            CommandKind.alertAck: <String>{'advice_reject'},
+            // 🆕 v1.21(01 §30 · K40) — 엔진 `confirmChecklist` 거부 = 킬스위치 12 ∪ 공용 2 · 옛 `advice_reject` 대응 =
+            //    v1.1 잔재(엔진 코드와 어긋났다 · 표본 0 이라 지금까지 안 걸렸다 — `m5/kill_checklist_receipts` 가 증명한다).
+            CommandKind.killChecklistConfirm: <String>{
+              'kill_switch_result',
+              'safety_common_result',
+            },
+            // 🆕 v1.10 ㊲ — 원장 사건 기록은 자기 사전을 쓴다(설계 13 §8 R21 L6).
+            CommandKind.ledgerEventRecord: <String>{'ledger_event_reject'},
+            // 🆕 v1.11(E7b0 · 01 §20) — 실입금 등록(`m7_deposit_register_receipts_5` 거부 행).
+            CommandKind.depositRegister: <String>{'deposit_register_reject'},
+            // 🆕 v1.12(01 §21 · K14 ⓐ) — 만료 확인 카드 「내일 다시」(`m6/advice_defer_receipts_3` 거부 행 ·
+            //    `DEFER_ALREADY_USED`).
+            CommandKind.adviceDeferConfirm: <String>{'advice_reject'},
+          };
       final Set<String> seen = <String>{};
       for (final String path in FixturePaths.all) {
         _visitMaps(jsonDecode(readFixture(path)), (Map<String, Object?> m) {
@@ -339,9 +346,9 @@ void main() {
               kind = k;
             }
           }
-          final String? domain = domainByKind[kind];
+          final Set<String>? domains = domainByKind[kind];
           expect(
-            domain,
+            domains,
             isNotNull,
             reason:
                 '$path — kind=$wire 행에 reject_reason_code 가 있는데 그 명령의 거부 '
@@ -349,9 +356,11 @@ void main() {
           );
           expect(code, isA<String>(), reason: '$path — 사유 코드는 문자열이다.');
           expect(
-            ContractCodes.isRegisteredIn(domain!, code as String),
+            domains!.any(
+              (String d) => ContractCodes.isRegisteredIn(d, code as String),
+            ),
             isTrue,
-            reason: '$path — $code 는 $wire 의 사전($domain)에 없다.',
+            reason: '$path — $code 는 $wire 의 사전($domains)에 없다.',
           );
         });
       }
@@ -362,6 +371,8 @@ void main() {
           FixturePaths.m6JournalDraftReceipts5,
           FixturePaths.m6BlindReviewReceipts6,
           FixturePaths.m7M7DepositRegisterReceipts5,
+          // 🆕 v1.21(01 §30 · K40) — 킬스위치 발동 기록 접수증(거부 6행).
+          FixturePaths.m5KillChecklistReceipts,
         ]),
         reason: '거부 접수증 픽스처를 못 읽었다 — 이 검사가 아무것도 보지 않고 통과하면 안 된다.',
       );
