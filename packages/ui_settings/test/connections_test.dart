@@ -331,15 +331,16 @@ void main() {
     final FakeSettingsActions actions = FakeSettingsActions(
       result: (int call) => Future<ActionResult>.value(results[0]),
     );
+    final FakeSettingsOpsStatusRepository repo =
+        FakeSettingsOpsStatusRepository(connections: (int call) => one(conn));
+    final RecordingLinkOpener opener = RecordingLinkOpener();
 
     await pumpConnections(
       tester,
       overrides: connectionsOverrides(
-        repo: FakeSettingsOpsStatusRepository(
-          connections: (int call) => one(conn),
-        ),
+        repo: repo,
         actions: actions,
-        opener: RecordingLinkOpener(),
+        opener: opener,
         clock: FixedClock(kGoldenNowUtc),
       ),
     );
@@ -380,6 +381,8 @@ void main() {
     expect(actions.ids, wantIds);
     expect(actions.argsSeen, wantArgs);
     expect(actions.watchCalls, 0);
+    expect(repo.connectionsCalls, 1);
+    expect(opener.opened, <String>[]);
     expect(find.text(SettingsLabels.retry), findsNothing); // ⓡ
   });
 
@@ -569,7 +572,10 @@ void main() {
         c.secondRes,
       );
 
-      expect(actions.ids.length, 2);
+      expect(actions.ids, <SettingsActionId>[
+        conn.rows[0].actions[0].id,
+        conn.rows[0].actions[0].id,
+      ]);
       expect(find.text(SettingsLabels.retry), findsNothing); // ⓡ
     });
   }
