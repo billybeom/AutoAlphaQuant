@@ -112,7 +112,7 @@ void main() {
     for (int i = 0; i < chain.length - 1; i++) {
       final double dyA = tester.getTopLeft(find.byKey(chain[i])).dy;
       final double dyB = tester.getTopLeft(find.byKey(chain[i + 1])).dy;
-      expect(dyA, lessThanOrEqualTo(dyB));
+      expect(dyA, lessThan(dyB));
     }
 
     // absent keys
@@ -127,6 +127,11 @@ void main() {
   // ── M9S01-02: level icon and color ─────────────────────────────────────────
 
   testWidgets('M9S01-02 level icon color', (WidgetTester tester) async {
+    expect(
+      home.groups[1].cards.map((SettingsCard k) => k.level).toSet().length,
+      greaterThan(1),
+    ); // pre
+
     final RecordingLinkOpener opener = RecordingLinkOpener();
     await pumpSettingsHome(
       tester,
@@ -141,10 +146,6 @@ void main() {
         .colorScheme;
 
     expect(home.groups[1].cards, hasLength(9)); // ⓗ
-    expect(
-      home.groups[1].cards.map((SettingsCard k) => k.level).toSet().length,
-      greaterThan(1),
-    ); // pre
 
     for (final (int c, SettingsCard card) in home.groups[1].cards.indexed) {
       final Icon icon = tester.widget<Icon>(
@@ -171,6 +172,12 @@ void main() {
   // ── M9S01-03: group header lock = tier ─────────────────────────────────────
 
   testWidgets('M9S01-03 group lock tier', (WidgetTester tester) async {
+    expect(home.groups.map((SettingsGroup g) => g.tier).toList(), <SettingTier>[
+      SettingTier.general,
+      SettingTier.operational,
+      SettingTier.rule,
+    ]); // pre
+
     final RecordingLinkOpener opener = RecordingLinkOpener();
     await pumpSettingsHome(
       tester,
@@ -180,12 +187,6 @@ void main() {
         clock: FixedClock(kGoldenNowUtc),
       ),
     );
-
-    expect(home.groups.map((SettingsGroup g) => g.tier).toList(), <SettingTier>[
-      SettingTier.general,
-      SettingTier.operational,
-      SettingTier.rule,
-    ]); // pre
 
     final List<Matcher> lockMatchers = <Matcher>[
       findsNothing,
@@ -338,6 +339,9 @@ void main() {
   // ── M9S01-06: attention badge = attentionText as-is ────────────────────────
 
   testWidgets('M9S01-06 attention badge', (WidgetTester tester) async {
+    expect(home.groups[1].cards[0].attentionText, isNotNull); // pre
+    expect(home.groups[1].cards[1].attentionText, isNull); // pre
+
     final RecordingLinkOpener opener = RecordingLinkOpener();
     await pumpSettingsHome(
       tester,
@@ -349,8 +353,6 @@ void main() {
     );
 
     expect(home.groups[1].cards, hasLength(9)); // ⓗ
-    expect(home.groups[1].cards[0].attentionText, isNotNull); // pre
-    expect(home.groups[1].cards[1].attentionText, isNull); // pre
 
     for (final (int c, SettingsCard card) in home.groups[1].cards.indexed) {
       expect(
@@ -372,6 +374,8 @@ void main() {
   // ── M9S01-07: viewer = received as-is ──────────────────────────────────────
 
   testWidgets('M9S01-07 viewer received as-is', (WidgetTester tester) async {
+    expect(viewer.groups[1].tier, SettingTier.operational); // pre
+
     final RecordingLinkOpener opener = RecordingLinkOpener();
     await pumpSettingsHome(
       tester,
@@ -381,8 +385,6 @@ void main() {
         clock: FixedClock(kGoldenNowUtc),
       ),
     );
-
-    expect(viewer.groups[1].tier, SettingTier.operational); // pre
 
     for (final (int g, SettingsGroup group) in viewer.groups.indexed) {
       expect(
@@ -479,6 +481,7 @@ void main() {
         ),
       );
 
+      expect(find.byKey(const Key('m9s01-asof')), findsOneWidget);
       expect(find.byKey(const Key('m9s01-stale')), c.staleMatcher);
       expect(
         shownTexts(tester, find.byKey(const Key('m9s01-stale'))),
@@ -488,7 +491,7 @@ void main() {
       for (int i = 0; i < c.chain.length - 1; i++) {
         final double dyA = tester.getTopLeft(find.byKey(c.chain[i])).dy;
         final double dyB = tester.getTopLeft(find.byKey(c.chain[i + 1])).dy;
-        expect(dyA, lessThanOrEqualTo(dyB));
+        expect(dyA, lessThan(dyB));
       }
 
       expect(find.text(SettingsLabels.retry), findsNothing); // ⓡ
