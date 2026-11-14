@@ -30,7 +30,17 @@
 
 ## 3. Android 플랫폼 제약 — 착수 전에 알아 둘 것
 
-⚠️ 아래는 **예정 사항**입니다. 실제 권한 선언·서비스 구현은 `trading_runtime`(M1) 작업이며, 이 README는 그 요구를 미리 적어 둔 것입니다.
+🆕 **E11p2(2026-11-14)** — FGS · 정확 알람 · 부팅 · 알림 채널은 이 앱의 Kotlin 얇은 어댑터(`android/…/operator/ops/`)가 맡습니다(설계 13 · e11p-map P6~P12 · D20). 계산(잡 표 · 다음 회차 · 놓친 발화 · 알림 문구)은 `trading_runtime` 순수 몫 그대로이고, Kotlin 은 판정 · 문구 0 입니다.
+
+| 자리 | 값 |
+|---|---|
+| FGS | `EngineService` · 타입 **`specialUse`**(dataSync 는 Android 15 에서 24h 중 6h 한도 + 부팅 시작 금지) · 🔴 FlutterEngine 을 **소유**(`EngineHost` — 화면은 그 엔진에 붙는다 · Dart isolate 1 = 원장 단일 쓰기) |
+| 정확 알람 | `USE_EXACT_ALARM`(33+) + `SCHEDULE_EXACT_ALARM ≤32` · Dart 가 잡마다 `nextOccurrence` 1개를 통째로 넘김 · `setExactAndAllowWhileIdle` |
+| 부팅 | `BOOT_COMPLETED` · `MY_PACKAGE_REPLACED` · `TIME_SET` · `TIMEZONE_CHANGED` → FGS → Dart 재무장 |
+| 알림 채널 | `ops_status`(LOW · 무음) · `ops_p0`(HIGH · 방해금지 관통 요청 — 실제 값은 자가진단) · 본문 = 엔진 `FgsNotice` 그대로 |
+| 실측 | Kotlin 이 깨어날 때마다 `files/aaq_wake_log.jsonl` 에 먼저 적는다 · `tool/measure_survival.sh`(FGS 5분 · 정확 알람 · Doze 흉내) · debug 빌드 전용 `ProbeReceiver` |
+
+아래 표는 처음 적어 둔 제약입니다(그대로 유효).
 
 | 제약 | 내용 | 언제 문제가 되나 |
 |---|---|---|

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- E11p2 · FGS 상시 알림 작은 아이콘(주의 · 조치 · 차단) — 단색 삼각형 + 느낌표. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M1,21L12,2L23,21ZM11,9L11,15L13,15L13,9ZM11,17L11,19L13,19L13,17Z" />
+</vector>
