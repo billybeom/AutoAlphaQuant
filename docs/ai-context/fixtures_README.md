@@ -1165,7 +1165,7 @@ POT 행 0 · 전 표본 `CREDENTIAL_VERIFY` kind ∈ 사전 · 키 조각 꼴·8
 
 - 결과 `headline` · 접수증 `state_label` · 재생(1~5번) · 답 = **합성**(엔진 결과 문장 0 — K42 · 엔진이 지으면 표본 개정 · 그 화면 골든만 바뀐다).
 - 서약 줄 = «합성 서약 n — …»(실제 사용자 글 0) · `status_line`·`replay_notice` = null(엔진 글자 0 · K16).
-- 냉각 게이지 `normalized` = 설계서 §5-1 값(대기 0.65 — 31h/48h 를 둘째 자리로) · 표시 글자 «남은 17시간» = 엔진 식(남은 분 올림 ÷ 60).
+- 냉각 게이지 `normalized` = 엔진 식 그대로(대기 31h/48h = 0.6458333333333334 · 반올림 0 — 엔진 표본 대조 시험이 정확 비교로 붙어도 같다) · 표시 글자 «남은 17시간» = 엔진 식(남은 분 올림 ÷ 60).
 - 7문항 5번 «UNKNOWN» · 7번 «decision_id» 같은 기계 낱말 = 발주자 확정 문구 그대로(다듬기 = 엔진 먼저 정할 것 ② · 01 §8 미결 184).
 - 봉투 `meta.mode` = `LIVE`(v1.19·v1.20 선례).
 
@@ -1258,7 +1258,7 @@ POT 행 0 · 전 표본 `CREDENTIAL_VERIFY` kind ∈ 사전 · 키 조각 꼴·8
 | `m5/kill_resume_gate_not_confirmed.json` | 3,339 |
 | `m5/kill_resume_gate_ready.json` | 3,713 |
 | `m5/kill_resume_gate_time_unknown.json` | 3,742 |
-| `m5/kill_resume_gate_waiting.json` | 3,690 |
+| `m5/kill_resume_gate_waiting.json` | 3,704 |
 | `m5/pledge_edit_window.json` | 1,141 |
 | `m5/pledge_not_written.json` | 879 |
 | `m5/pledge_written.json` | 1,142 |
@@ -1541,4 +1541,4 @@ POT 행 0 · 전 표본 `CREDENTIAL_VERIFY` kind ∈ 사전 · 키 조각 꼴·8
 | `m9/settings_home_no_review.json` | 3,437 |
 | `m9/settings_home_viewer.json` | 2,066 |
 
-**합계 283개 · 1,048,381 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
+**합계 283개 · 1,048,395 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).

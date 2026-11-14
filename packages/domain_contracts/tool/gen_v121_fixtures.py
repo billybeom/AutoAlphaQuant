@@ -149,7 +149,7 @@ def gauge(normalized, value_text):
     return {'code': 'COOLDOWN', 'label': '냉각 기간', 'normalized': normalized, 'value_text': value_text}
 
 
-G_WAIT = gauge(0.65, '남은 17시간')    # 확인 11-16 14:00 · 관측 11-17 21:00 = 31h 경과 · 남은 시간 올림 = 17
+G_WAIT = gauge(31 / 48, '남은 17시간')    # 확인 11-16 14:00 · 관측 11-17 21:00 = 31h 경과 · 엔진 식 elapsed/48h 그대로(반올림 0) · 남은 시간 올림 = 17
 G_UNK = gauge(0.0, '신뢰 시각 확인 중')
 G_DONE = gauge(1.0, '냉각 완료')
 

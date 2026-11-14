@@ -17,7 +17,7 @@
       "readiness_label": "킬스위치 작동 중 — 신규 주문을 막고 있습니다",
       "level": "WATCH",
       "eta_text": "해제 가능 예정 11-18 14:00",
-      "cooldown": { "code": "COOLDOWN", "label": "냉각 기간", "normalized": 0.65, "value_text": "남은 17시간" },
+      "cooldown": { "code": "COOLDOWN", "label": "냉각 기간", "normalized": 0.6458333333333334, "value_text": "남은 17시간" },
       "items": [
         {
           "item_no": 1,
