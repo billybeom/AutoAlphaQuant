@@ -98,4 +98,33 @@ void main() {
       expect(o.scheduledUtc.isBefore(edge), false, reason: o.spec.job);
     }
   });
+
+  test('🔴 하한(모드 시작) 앞 회차는 계획에 없다 · 하한이 볼 구간보다 앞이면 볼 구간 그대로', () {
+    // 12-01 08:10 에 모드 시작 → 그 앞 회차(11-30 의 잡 · 12-01 07:00 대사 · 07:30 us_data · 08:00 계절 · 월말)는 없다.
+    final DateTime start = kst(2026, 12, 1, 8, 10);
+    final WakePlan p = planWake(
+      nowUtc: _now,
+      cals: cals,
+      doneSessions: (String job, TradeDate from) => const <TradeDate>[],
+      notBeforeUtc: start,
+    );
+    for (final JobOccurrence o in <JobOccurrence>[...p.runNow, ...p.missed]) {
+      expect(o.scheduledUtc.isBefore(start), false, reason: o.spec.job);
+    }
+    expect(_find(p.runNow, 'monthly_rebalance', '2026-11-30'), isNull);
+    final WakePlan old = planWake(
+      nowUtc: _now,
+      cals: cals,
+      doneSessions: (String job, TradeDate from) => const <TradeDate>[],
+      notBeforeUtc: _now.subtract(const Duration(days: 60)),
+    );
+    expect(_find(old.runNow, 'monthly_rebalance', '2026-11-30'), isNotNull);
+    final DateTime edge = _now.subtract(kWakeLookback);
+    for (final JobOccurrence o in <JobOccurrence>[
+      ...old.runNow,
+      ...old.missed,
+    ]) {
+      expect(o.scheduledUtc.isBefore(edge), false, reason: o.spec.job);
+    }
+  });
 }

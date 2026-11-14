@@ -11,11 +11,13 @@ import 'dart:io' show Platform;
 import 'package:core_engine/core_engine.dart'
     show Market, frozenExchangeCalendar;
 import 'package:data_sync/data_sync.dart' show HealthchecksClient;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
 
 import '../engine/ledger_files.dart';
 import '../engine/operator_engine.dart';
+import '../engine/seed_loader.dart';
 import '../engine/system_clock.dart';
 import 'android_ops.dart';
 import 'android_secret_vault.dart';
@@ -63,5 +65,6 @@ Future<OperatorEngine> _assemble(AndroidOps ops, JobCalendars cals) async {
     openFiles: () => LedgerFiles.open(dir, clock: clock),
     calendars: cals,
     heartbeat: HealthchecksClient(http.Client(), AndroidSecretVault()),
+    seed: () => loadSeedAssets(rootBundle),
   );
 }

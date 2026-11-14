@@ -8,6 +8,7 @@ import 'package:app_operator_android/engine/engine.dart';
 import 'package:app_operator_android/platform/platform.dart';
 import 'package:core_engine/core_engine.dart'
     show Market, frozenExchangeCalendar;
+import 'package:data_sync/data_sync.dart' show seedBundleImported;
 import 'package:domain_contracts/domain_contracts.dart' show LedgerFile;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -54,5 +55,12 @@ void main() {
     );
     final String dir = (await ops.paths()).engineDir;
     expect(File('$dir/${LedgerFile.sim.fileName}').existsSync(), true);
+    // 🆕 E11p3b-3 — 시드 자산(data_sync 선언)이 APK 에 실려 sim 원장에 적재됐다.
+    final LedgerFiles f = LedgerFiles.open(dir, clock: const SystemClock());
+    try {
+      expect(seedBundleImported(f.sim), true);
+    } finally {
+      f.close();
+    }
   });
 }

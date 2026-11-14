@@ -33,3 +33,10 @@ dev_dependencies:
   # ⚠️ 루트 analysis_options.yaml의 package: include 해석용(Flutter를 끌어오지 않는다).
   flutter_lints: ^5.0.0
   test: ^1.25.0
+
+# 🆕 E11p3b-3(설계 13 §8 R93) — 시드 번들 자산 선언(R23 D9 · R26 H8 «앱 자산 동봉»). 조립 앱이
+#    `packages/data_sync/assets/seed/<파일>` 로 읽는다. 🔵 의존이 아니다 — 이 패키지는 순수 Dart 그대로다
+#    (pub 은 이 절을 읽지 않고 Flutter 빌드만 자산으로 싣는다).
+flutter:
+  assets:
+    - assets/seed/
