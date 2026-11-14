@@ -98,6 +98,15 @@ export 'src/mode/live_observation.dart'
         judgeLiveObservation,
         kLiveDryRunObservationKey,
         kLiveObservationBatchCheck;
+// 🆕 E15e2 — M1-22 승격 커밋(사전 판정 차례 · 코드 · 결정 id · 문구 · 설계 13 §8 R91).
+export 'src/mode/live_promotion.dart'
+    show
+        LivePromotionCodes,
+        kLivePromotionReason,
+        kLivePromotionReasonCode,
+        livePromotionDecisionId,
+        livePromotionHeadline,
+        livePromotionReject;
 // 🆕 E15a — 모드 조합 가드 · 기동 판정(X6-3 · X7-8 · X18 · SPEC v2.44 · 설계 13 §8 R81).
 export 'src/mode/mode_guard.dart'
     show
