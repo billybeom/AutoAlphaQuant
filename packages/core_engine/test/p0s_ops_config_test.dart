@@ -155,6 +155,9 @@ void main() {
     });
 
     test('국면 지문은 사람 값에 따라 바뀌지 않는다', () {
+      // 🆕 E11p3c-1 — 사람 값 없이 얻는 함수와 같다(사람 값 전 `daily_signal`).
+      expect(p0sRegimeConfigHash(), 'a334201eb65f9ee4');
+      expect(P0sOpsConfig.of(_human()).regimeConfigHash, p0sRegimeConfigHash());
       expect(
         P0sOpsConfig.of(_human(a: '999991')).regimeConfigHash,
         P0sOpsConfig.of(_human()).regimeConfigHash,

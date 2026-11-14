@@ -94,6 +94,7 @@ class OperatorEngine {
     }
     final SqliteJobRunLog log = SqliteJobRunLog(ready.db);
     final JobContext ctx = JobContext(
+      db: ready.db,
       runMode: ready.runMode,
       operatingMode: ready.operatingMode,
       calendars: _cals,

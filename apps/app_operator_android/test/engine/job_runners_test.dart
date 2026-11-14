@@ -37,6 +37,7 @@ void main() {
     hb = RecordingHeartbeat();
     log = SqliteJobRunLog(files.sim);
     ctx = JobContext(
+      db: files.sim,
       runMode: RunMode.simInternal,
       operatingMode: OperatingMode.autoTrade,
       calendars: cals,
@@ -111,6 +112,7 @@ void main() {
 
   test('체크 이름 = 모드 2축(live · 안내 모드)', () async {
     final JobContext live = JobContext(
+      db: files.sim,
       runMode: RunMode.live,
       operatingMode: OperatingMode.advisory,
       calendars: cals,
