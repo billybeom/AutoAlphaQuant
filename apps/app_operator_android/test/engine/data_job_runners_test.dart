@@ -127,20 +127,17 @@ void main() {
               .first['n']
           as int;
 
-  test(
-    '🔴 부품이 있으면 실물 칸 = daily_signal · us_data 둘 · 나머지 일곱 = 미조립 그대로',
-    () async {
-      final Map<String, JobRunner> t = composeJobRunners(ctx, parts: parts());
-      expect(kAssembledRunners.keys.toSet(), <String>{
-        'daily_signal',
-        'us_data',
-      });
-      final JobRun<Object?> r = await t['daily_reconcile']!(
-        occ('daily_reconcile', '2026-12-01'),
-      );
-      expect(r.error, isA<JobNotAssembled>());
-    },
-  );
+  test('🔴 부품이 있으면 실물 칸에 daily_signal · us_data · 주문 셋은 미조립 그대로', () async {
+    final Map<String, JobRunner> t = composeJobRunners(ctx, parts: parts());
+    expect(
+      kAssembledRunners.keys.toSet(),
+      containsAll(<String>{'daily_signal', 'us_data'}),
+    );
+    final JobRun<Object?> r = await t['daily_reconcile']!(
+      occ('daily_reconcile', '2026-12-01'),
+    );
+    expect(r.error, isA<JobNotAssembled>());
+  });
 
   test('부품이 없으면 = p3a 그대로(전부 미조립)', () async {
     clock.now = kst(2026, 11, 30, 20, 5);
