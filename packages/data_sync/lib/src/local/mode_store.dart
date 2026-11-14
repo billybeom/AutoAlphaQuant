@@ -274,19 +274,22 @@ class SqliteModeStore {
   }
 }
 
-/// 🔴 기동 해석(R82 W4) — 두 정본을 **따로** 읽는다(한 트랜잭션 0) · live 파일이 아직 없으면 [live] = null.
+/// 🔴 기동 해석(R82 W4) — 두 정본을 **따로** 읽는다(한 트랜잭션 0) · live 파일이 아직 없으면 [live] = null ·
+/// 🆕 E15f3b(R100 AH4) — 모의 파일을 지운 뒤면 [sim] = null.
 BootMode bootModeOf({
   required SqliteModeStore? live,
-  required SqliteModeStore sim,
+  required SqliteModeStore? sim,
 }) => resolveBootMode(
   live: live?.current(),
-  sim: sim.current(),
-  simClosed: sim.closed(),
+  sim: sim?.current(),
+  simClosed: sim?.closed() ?? false,
 );
 
-/// 🔴 반쯤 끝난 2단 커밋 복구(R82 W4) — sim 파일에만 CLOSE 1행 · 고쳤으면 true.
-bool repairHalfCommit(BootMode mode, SqliteModeStore sim) {
-  if (mode is! BootModeResolved || !mode.repairSimClose) return false;
+/// 🔴 반쯤 끝난 2단 커밋 복구(R82 W4) — sim 파일에만 CLOSE 1행 · 고쳤으면 true · 모의 파일 없음 = false.
+bool repairHalfCommit(BootMode mode, SqliteModeStore? sim) {
+  if (sim == null || mode is! BootModeResolved || !mode.repairSimClose) {
+    return false;
+  }
   sim.close(decisionId: mode.decisionId);
   return true;
 }
