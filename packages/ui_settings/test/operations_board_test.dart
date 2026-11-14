@@ -73,8 +73,6 @@ void main() {
   // -- M9S05-21 board order and texts ------------------------------------------
 
   testWidgets('M9S05-21 board order and texts', (WidgetTester tester) async {
-    expect(simAuto.jobs, hasLength(6));
-
     await pumpOperations(
       tester,
       overrides: operationsOverrides(
@@ -91,6 +89,7 @@ void main() {
       shownTexts(tester, find.byKey(const Key('m9s05-ramp'))),
       rampTexts(simAuto.ramp),
     );
+    expect(simAuto.jobs, hasLength(6));
     for (final (int j, JobRow job) in simAuto.jobs.indexed) {
       expect(
         shownTexts(tester, find.byKey(ValueKey<String>('m9s05-job-$j'))),
