@@ -4,6 +4,8 @@
 //    (`s01-placeholder`)로 그린다(빈 칸 · 크래시가 아니다 · M4-11 머리 «미주입 = 자리 부재»).
 // 🔴 이번 조각 = 셸 뼈대 + 알림 센터 · 상세(실물 = `SqliteAlertRepository`) · 확인 버튼 = 명령 API 전이라 부재(null).
 // 🆕 E11p3d-5(R107) — 캡처 막기 라우트 감싸기 · https 링크 = 브라우저.
+// 🆕 E11p3d-3b(R113) — 안전 상태(셸 · 일지 · 분석 = 한 인스턴스) · 분석 · 설정 패키지의 실물 칸(시계 · 링크 · 운영 상태) 미리 주입.
+//    🔴 주입 의무 = 실물이 있는 칸은 전부 — 빠진 칸은 화면이 `valueOrNull` 로 삼켜 배너가 소리 없이 사라진다(시험이 표로 지킨다).
 // 🔵 홈(H-01) · 일지 · 보유 · 더보기 본문 · 온보딩 · 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
@@ -14,17 +16,29 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:ui_analytics/ui_analytics.dart'
+    show
+        analyticsClockProvider,
+        analyticsLinkOpenerProvider,
+        safetyRepositoryProvider;
 import 'package:ui_journal/ui_journal.dart'
     show
         LedgerDiffs,
         LedgerRepairs,
         journalClockProvider,
         journalLedgerRepositoryProvider,
-        journalLinkOpenerProvider;
+        journalLinkOpenerProvider,
+        journalSafetyRepositoryProvider;
+import 'package:ui_settings/ui_settings.dart'
+    show
+        settingsClockProvider,
+        settingsLinkOpenerProvider,
+        settingsOpsStatusRepositoryProvider;
 import 'package:ui_shell/ui_shell.dart';
 
 import 'operator_ops_status.dart';
 import 'operator_runtime.dart';
+import 'operator_safety.dart';
 import 'operator_view.dart';
 import 'secure_screen.dart';
 
@@ -48,6 +62,19 @@ final Provider<Database> operatorDbProvider = Provider<Database>(
       ref.watch(operatorViewProvider).value?.db ??
       ref.watch(operatorRuntimeProvider).files.sim,
 );
+
+/// 🆕 R113 — 운영 상태(셸 · 설정 = 한 인스턴스 — 바깥 목록 캐시를 같이 쓴다).
+final Provider<OperatorOpsStatusRepository> operatorOpsStatusProvider =
+    Provider<OperatorOpsStatusRepository>(
+      (Ref ref) =>
+          OperatorOpsStatusRepository(ref.watch(operatorRuntimeProvider)),
+    );
+
+/// 🆕 R113 — 안전 상태(셸 · 일지 · 분석 = 한 인스턴스).
+final Provider<OperatorSafetyRepository> operatorSafetyProvider =
+    Provider<OperatorSafetyRepository>(
+      (Ref ref) => OperatorSafetyRepository(ref.watch(operatorRuntimeProvider)),
+    );
 
 Widget _alertCenter(Map<String, String> _) => const AlertCenter();
 
@@ -89,8 +116,12 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 확인(ack) = 명령 API 전 — null = 버튼 부재(셸 규약).
   shellAlertCommandApiProvider.overrideWithValue(null as CommandApi?),
   // 🆕 R109 — 운영 상태(감시 보드 · 진단 = 실물 · 나머지 = 원천 없음).
-  shellOpsStatusRepositoryProvider.overrideWithValue(
-    OperatorOpsStatusRepository(runtime),
+  shellOpsStatusRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorOpsStatusProvider),
+  ),
+  // 🆕 R113 — 안전 상태 = 셸(H-01) · 일지 · 분석 한 인스턴스.
+  shellSafetyRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorSafetyProvider),
   ),
   // 🆕 R107 — 시크릿 · QR · 복구 라우트 = 캡처 막기(본문이 서 있는 동안).
   shellRouteBodiesProvider.overrideWithValue(
@@ -116,5 +147,24 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   journalClockProvider.overrideWithValue(runtime.clock),
   journalLinkOpenerProvider.overrideWith(
     (Ref ref) => ref.watch(shellLinkOpenerProvider),
+  ),
+  // 🆕 R113 — 일지 화면의 차단 배너(원장 대조 · 수리 기록이 이미 읽는다).
+  journalSafetyRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorSafetyProvider),
+  ),
+  // 🆕 R113 — 분석 · 설정 패키지의 실물 칸(본문은 원천이 서는 조각에서 등록 · 칸은 미리).
+  safetyRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorSafetyProvider),
+  ),
+  analyticsClockProvider.overrideWithValue(runtime.clock),
+  analyticsLinkOpenerProvider.overrideWith(
+    (Ref ref) => ref.watch(shellLinkOpenerProvider),
+  ),
+  settingsClockProvider.overrideWithValue(runtime.clock),
+  settingsLinkOpenerProvider.overrideWith(
+    (Ref ref) => ref.watch(shellLinkOpenerProvider),
+  ),
+  settingsOpsStatusRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorOpsStatusProvider),
   ),
 ];
