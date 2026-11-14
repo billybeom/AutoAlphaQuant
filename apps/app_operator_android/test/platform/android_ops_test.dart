@@ -134,4 +134,26 @@ void main() {
       unorderedEquals(<String>['ops_status', 'ops_p0']),
     );
   });
+
+  test('paths — 엔진 원장 = noBackup/engine · 🔴 꼴이 아니면 지어내지 않고 던진다', () async {
+    reply = <String, Object?>{'files': '/d/files', 'noBackup': '/d/no_backup'};
+    final OperatorPaths p = await AndroidOps().paths();
+    expect(calls.single.method, 'paths');
+    expect(p.files, '/d/files');
+    expect(p.engineDir, '/d/no_backup/engine');
+    for (final Object? bad in <Object?>[
+      null,
+      'x',
+      <String, Object?>{'files': '/d/files'},
+      <String, Object?>{'files': '', 'noBackup': '/n'},
+      <String, Object?>{'files': 1, 'noBackup': '/n'},
+    ]) {
+      reply = bad;
+      await expectLater(
+        AndroidOps().paths(),
+        throwsA(isA<StateError>()),
+        reason: '$bad',
+      );
+    }
+  });
 }

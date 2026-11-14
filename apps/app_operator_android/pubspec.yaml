@@ -46,6 +46,10 @@ dependencies:
   # 상태관리 — 청사진 채택(00_README §4)
   # ⚠️ riverpod 3.x가 나와 있으면 마이그레이션 여부를 먼저 결정한다. 지금은 2.x 계열.
   flutter_riverpod: ^2.5.0
+  # 🆕 E11p3a(설계 e11p-map Q8) — 조립이 healthchecks 어댑터에 `http.Client` 를 넣는다(data_sync 와 같은 범위).
+  http: ^1.6.0
+  # 🆕 E11p3a — 조립이 원장 연결(`Database`)을 직접 다룬다(data_sync 와 같은 범위 · 엔진 원장 = 이 앱만).
+  sqlite3: ^3.7.1
   # 🔴 엔진 — trading_runtime이 core_engine·broker_gateway를 전이로 끌고 온다.
   #    그래서 이 한 줄은 «operator 타깃에만» 존재해야 한다. viewer에 들어가는 순간
   #    브로커 키·주문 코드가 뷰어 바이너리에 컴파일된다.

@@ -147,6 +147,30 @@ class SurvivalFacts {
   final int fgsStartDenied;
 }
 
+/// 앱 전용 폴더(E11p3a Q1).
+class OperatorPaths {
+  /// 만든다.
+  const OperatorPaths({required this.files, required this.noBackup});
+
+  /// 채널 값 → 폴더 · 꼴이 아니면 null.
+  static OperatorPaths? fromWire(Object? w) {
+    if (w is! Map<Object?, Object?>) return null;
+    final Object? f = w['files'];
+    final Object? n = w['noBackup'];
+    if (f is! String || n is! String || f.isEmpty || n.isEmpty) return null;
+    return OperatorPaths(files: f, noBackup: n);
+  }
+
+  /// `filesDir`.
+  final String files;
+
+  /// `noBackupFilesDir`.
+  final String noBackup;
+
+  /// 엔진 원장 폴더(`noBackup/engine`).
+  String get engineDir => '$noBackup/engine';
+}
+
 /// 운영 채널 어댑터.
 class AndroidOps {
   /// 만든다 — [channel] 은 시험용 대체.
@@ -209,6 +233,15 @@ class AndroidOps {
 
   /// 깨어남 처리 끝 — CPU 붙잡기를 놓는다.
   Future<void> idle() => _ch.invokeMethod<void>('idle');
+
+  /// 앱 전용 폴더(E11p3a Q1) — 꼴이 아니면 [StateError](경로를 지어내지 않는다).
+  Future<OperatorPaths> paths() async {
+    final OperatorPaths? p = OperatorPaths.fromWire(
+      await _ch.invokeMethod<Object?>('paths'),
+    );
+    if (p == null) throw StateError('paths: 채널 응답 꼴이 아니다');
+    return p;
+  }
 
   /// 알림 탭으로 열렸으면 그 링크(한 번만).
   Future<String?> takeLaunchLink() =>

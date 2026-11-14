@@ -59,6 +59,7 @@ void main() {
       'diagnose',
       'ready',
       'idle',
+      'paths',
       'takeLaunchLink',
     ]) {
       expect(c, contains('"$m" ->'), reason: m);
@@ -66,6 +67,12 @@ void main() {
     for (final String m in <String>['onWake', 'onLink']) {
       expect(c, contains('invokeMethod("$m"'), reason: m);
     }
+  });
+
+  test('paths 응답 키 = Dart 가 읽는 키 · 엔진 원장은 noBackupFilesDir(백업 차단 이중)', () {
+    final String c = _read('$_kt/ops/OpsChannel.kt');
+    expect(c, contains('"files" to ctx.filesDir.absolutePath'));
+    expect(c, contains('"noBackup" to ctx.noBackupFilesDir.absolutePath'));
   });
 
   test(
