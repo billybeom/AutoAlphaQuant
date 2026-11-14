@@ -53,6 +53,7 @@
 //   🆕 계약 v1.18 R6 선행(01 §27 · K-v) — `UnimplementedSettingsRepository`(1 · 동기 throw) · `UnimplementedOpsStatusRepository`
 //   무변경(7 · `watchConnections` 반환 타입 그대로).
 //   🆕 계약 v1.19(01 §28) — `UnimplementedSettingsRepository.watchOperations`(동기 throw).
+//   🆕 계약 v1.20(01 §29) — `UnimplementedSettingsRepository.watchCredentials`·`watchAccountMapping`(동기 throw).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -287,6 +288,16 @@ class UnimplementedSettingsRepository implements SettingsRepository {
   @override
   Stream<OperationsVm> watchOperations() =>
       throw UnimplementedError('watchOperations');
+
+  /// 🆕 계약 v1.20(01 §29) — `S02` 증권사 키 관리.
+  @override
+  Stream<CredentialListVm> watchCredentials() =>
+      throw UnimplementedError('watchCredentials');
+
+  /// 🆕 계약 v1.20(01 §29) — `S03` 계좌 연동·슬리브 매핑.
+  @override
+  Stream<AccountMappingVm> watchAccountMapping() =>
+      throw UnimplementedError('watchAccountMapping');
 }
 
 /// 🆕 계약 v1.12(01 §21 · K9 · K28) — [SettingsActions] 받침대(`L-3` 세션 start·stop 가짜의 받침대).

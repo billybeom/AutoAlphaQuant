@@ -1,5 +1,6 @@
 // 01 §3 · 🆕 계약 v1.18(01 §27 · K-n ⓗ · K-s · K-u) — M9 설정 코드 사전 3축.
 // 🆕 계약 v1.19(01 §28 · K14 · K16) — `EngineStopReasonCodes`(S05 엔진 중지 사유 · 사람) · `SettingsResultCodes` +2.
+// 🆕 계약 v1.20(01 §29 · K8 · K9 · K13 · K32) — `CredentialKindCodes`(겹침 몫 · 엔진 `KisKeySet.wire` 1:1) · `SettingsSlotIds` · `SettingsResultCodes` +3.
 //
 // 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 함께 싣는다
 //    (`ConnectionRow.label` · `NotifyChannelOption.label` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
@@ -62,12 +63,26 @@ abstract final class SettingsResultCodes {
   /// 🆕 v1.19(01 §28 · K16) — 엔진 중지 중복 요청(이미 멈춰 있음 · 멱등 접수 · `info`).
   static const String engineAlreadyStopped = 'ENGINE_ALREADY_STOPPED';
 
+  /// 🆕 v1.20(01 §29 · K13) — 다른 환경의 키(모의 칸에 실전 키 등 · 엔진 `KisGuardError`) — 저장하지 않았다(`act`).
+  /// 🔴 기동 거부 `ModeStartupCodes.credentialEnvMismatch`(저장된 키 ↔ 지금 모드)와 다른 뜻.
+  static const String wrongKeySet = 'WRONG_KEY_SET';
+
+  /// 🆕 v1.20(K13) — 잔고 드라이런 실패로 매핑을 바꾸지 않았거나 전체 검증을 마치지 못했다(`act`).
+  static const String mappingVerifyFailed = 'MAPPING_VERIFY_FAILED';
+
+  /// 🆕 v1.20(K13) — 이미 폐기된 기기의 폐기 요청(멱등 접수 · `info`).
+  static const String deviceAlreadyRevoked = 'DEVICE_ALREADY_REVOKED';
+
+  // 🔴 S02 검증 거절 = `OnboardingResultCodes.credentialRejected` 한 벌(K32 — `CREDENTIAL_VERIFY_FAILED` · `CREDENTIAL_NOT_VERIFIED` 0).
   static const Set<String> values = <String>{
     biometricUnavailable,
     connectionTestFailed,
     syncAlreadyRunning,
     engineAlreadyRunning,
     engineAlreadyStopped,
+    wrongKeySet,
+    mappingVerifyFailed,
+    deviceAlreadyRevoked,
   };
 }
 
@@ -85,5 +100,58 @@ abstract final class EngineStopReasonCodes {
   static const Set<String> values = <String>{
     plannedMaintenance,
     troubleshooting,
+  };
+}
+
+/// 🆕 v1.20(01 §29 · K8 · 01 §8 미결 151 ✅) — 증권사 KIS 키 세트 종류(도메인 `credential_kind`) —
+/// `CredentialCardVm.kind` · `credentialVerify` args `kind` 의 값.
+/// 🔴 엔진 `broker_gateway` `KisKeySet.wire` 와 **같은 글자**다(실물 = `paper('KIS_PAPER')` · 나머지 3 = 엔진이 이 사전을 보고 더한다 —
+///    `kis_credential_vault.dart:8` «계약 창(R7) 뒤» · 06 변경 이력 «2026-11-15 · 계약 v1.20»).
+/// 🔴 `SECRET_KIS_MOCK`(슬롯 이름)은 이 사전의 값이 아니다 — 자리 이름과 키 세트는 다른 축(v1.16 표본 `KIS_MOCK` = v1.20 에서 `KIS_PAPER` 로 정정).
+/// 🔴 화면은 이 값으로 분기·아이콘·색을 고르지 않는다(카드 글자 = `kindLabel` · 색 = `level`).
+abstract final class CredentialKindCodes {
+  /// 실전 종합계좌(위탁 01 + 연금저축 22 공유) — 주문·조회.
+  static const String kisLive = 'KIS_LIVE';
+
+  /// ISA 중개형 전용 종합계좌.
+  static const String kisIsa = 'KIS_ISA';
+
+  /// 모의투자(SIM 계열 · 내부 시뮬레이터도 시세는 이 키 — 01 §9-5 ②).
+  static const String kisPaper = 'KIS_PAPER';
+
+  /// X7 대사 전용(`CredentialUse.reconcileOnly` · 주문 경로 봉인).
+  static const String kisReconcile = 'KIS_RECONCILE';
+
+  static const Set<String> values = <String>{
+    kisLive,
+    kisIsa,
+    kisPaper,
+    kisReconcile,
+  };
+}
+
+/// 🆕 v1.20(01 §29 · K9 · K15 · K31 · 01 §8 미결 152 🟡) — M9 🔒/플랫폼 슬롯 이름(도메인 `settings_slot`) —
+/// `CredentialCardVm.credentialSlotId` · `PairingTicketCard.qrSlotId` 의 값.
+/// 🔴 화면(`ui_settings`)은 이름을 해석하지 않는다 — 주입된 슬롯 빌더에 그대로 넘긴다. 이름 → 위젯 = 조립 앱(06 `M4-12` ⑦).
+/// 🔴 모의 키 카드 = `OnboardingSlotIds.secretKisMock` 재사용(같은 금고 칸 = 같은 자리 · 05 §4-1 «두 벌 금지») — 두 번째 이름을 만들지 않는다.
+/// 🔴 세 슬롯 사전(`onboarding_slot` · `ops_slot` · `settings_slot`) 값 겹침 0(C-54 ④).
+abstract final class SettingsSlotIds {
+  /// `S02` 실전 키 입력 — 06 `M4-4` `SecretField`.
+  static const String secretKisLive = 'SECRET_KIS_LIVE';
+
+  /// `S02` ISA 키 입력 — 같은 위젯.
+  static const String secretKisIsa = 'SECRET_KIS_ISA';
+
+  /// `S02` 대사 전용 키 입력 — 같은 위젯(X7).
+  static const String secretKisReconcile = 'SECRET_KIS_RECONCILE';
+
+  /// `S06` viewer 페어링 QR 표시 — 플랫폼(QR 그리기 · 페이로드는 위젯 안에서만 · `VIEWER_QR_SCAN` 의 짝).
+  static const String pairingQrDisplay = 'PAIRING_QR_DISPLAY';
+
+  static const Set<String> values = <String>{
+    secretKisLive,
+    secretKisIsa,
+    secretKisReconcile,
+    pairingQrDisplay,
   };
 }

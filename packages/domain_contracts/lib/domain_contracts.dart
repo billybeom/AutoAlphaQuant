@@ -13,11 +13,13 @@
 // ⚠️ 아직 여기에 없는 것(= 계약에 아직 존재하지 않는 것)은 각 영역의 인계
 //    사항에 사유와 함께 적혀 있다. 대표적으로 `LedgerEventKind`/
 //    `LedgerEventRecord`(결정 ㊲ 대기 · M2-8 A-15·J-6) · `SplitExecutionLeg`
-//    (M2-8 C-11) · `AccountMappingVm`·`AllocationEditorVm`
-//    (M2-8 §G 표 미등재)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
+//    (M2-8 C-11) · `AllocationEditorVm`
+//    (M2-8 §G 표 미등재 · R8 창)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
 //    들어왔다(`dto/incident.dart`).
 //    🆕 v1.18(01 §27) — `S01`·`S07` 계약 확정(`SettingsHomeVm` 교체 · `SettingsRepository`).
 //    🆕 v1.19(01 §28) — `S05` 계약 확정(`OperationsVm` · 부품 8 · `watchOperations`).
+//    🆕 v1.20(01 §29) — `S02`·`S06`·`S03` 계약 확정(`CredentialListVm` 추가형 · `DeviceAccessVm` 추가형 + `PairingTicketCard` ·
+//    🆕 `AccountMappingVm` · `watchCredentials`·`watchAccountMapping`).
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';

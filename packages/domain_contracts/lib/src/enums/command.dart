@@ -117,12 +117,20 @@ enum CommandState {
 enum SettingsActionId {
   @JsonValue('SETTINGS_GENERAL_UPDATE')
   settingsGeneralUpdate('SETTINGS_GENERAL_UPDATE'),
+
+  /// 🆕 v1.20(01 §29 K6) — `S02` 1단(통과 = 구현이 저장) · args `{kind ∈ CredentialKindCodes}`.
   @JsonValue('CREDENTIAL_VERIFY')
   credentialVerify('CREDENTIAL_VERIFY'),
+
+  /// 🆕 v1.20 — 🔴 화면 미호출(1단) · 조립·엔진 내부(`M4-4` 회전 마법사 등) · args 미정.
   @JsonValue('CREDENTIAL_REGISTER')
   credentialRegister('CREDENTIAL_REGISTER'),
+
+  /// 🆕 v1.20 — `S03` 전체 검증 · args = `settings_actions.dart` 머리.
   @JsonValue('ACCOUNT_VERIFY_MAPPING')
   accountVerifyMapping('ACCOUNT_VERIFY_MAPPING'),
+
+  /// 🆕 v1.20 — `S03` 슬리브↔계좌 원자 저장 · args = `settings_actions.dart` 머리.
   @JsonValue('ACCOUNT_MAP_SLEEVE')
   accountMapSleeve('ACCOUNT_MAP_SLEEVE'),
   @JsonValue('STRATEGY_PREVIEW')
@@ -177,8 +185,12 @@ enum SettingsActionId {
   /// 🆕 v1.12 — 닫기(`L-3` `dispose` · `initState` 에서 잡아 둔 인스턴스로 · 세션 만료는 엔진이 스스로 닫는다).
   @JsonValue('SELF_REPORT_SESSION_STOP')
   selfReportSessionStop('SELF_REPORT_SESSION_STOP'),
+
+  /// 🆕 v1.20 — `S06` viewer QR 티켓 발급(🔴 `deviceAppLockSet` 만들지 않음 — K17).
   @JsonValue('DEVICE_PAIRING_TICKET_CREATE')
   devicePairingTicketCreate('DEVICE_PAIRING_TICKET_CREATE'),
+
+  /// 🆕 v1.20 — `S06` viewer 연결 끊기 · args `{device_id}`.
   @JsonValue('DEVICE_TOKEN_REVOKE')
   deviceTokenRevoke('DEVICE_TOKEN_REVOKE'),
   @JsonValue('CONNECTION_TEST')

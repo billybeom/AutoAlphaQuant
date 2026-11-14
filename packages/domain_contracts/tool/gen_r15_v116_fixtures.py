@@ -317,7 +317,7 @@ def action(aid, args, label):
     return {'id': aid, 'args': dict(args), 'label': label}
 
 
-KIS_VERIFY = action('CREDENTIAL_VERIFY', {'kind': 'KIS_MOCK'}, '검증 실행')
+KIS_VERIFY = action('CREDENTIAL_VERIFY', {'kind': 'KIS_PAPER'}, '검증 실행')  # v1.20(01 §29 K8) — 엔진 KisKeySet.wire
 DRY_RUN = action('ONBOARDING_DRY_RUN_START', {}, '모의 운영 시작')
 
 # ── O-04(§5-3 · 키 = `OnboardingFinishStage` 선언 차례) ───────────────────────

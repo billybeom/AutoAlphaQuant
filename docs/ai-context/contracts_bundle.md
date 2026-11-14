@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 105개 · 계약 v1.19.0 · 조립일 2026-11-14(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 106개 · 계약 v1.20.0 · 조립일 2026-11-15(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -30,11 +30,13 @@
 // ⚠️ 아직 여기에 없는 것(= 계약에 아직 존재하지 않는 것)은 각 영역의 인계
 //    사항에 사유와 함께 적혀 있다. 대표적으로 `LedgerEventKind`/
 //    `LedgerEventRecord`(결정 ㊲ 대기 · M2-8 A-15·J-6) · `SplitExecutionLeg`
-//    (M2-8 C-11) · `AccountMappingVm`·`AllocationEditorVm`
-//    (M2-8 §G 표 미등재)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
+//    (M2-8 C-11) · `AllocationEditorVm`
+//    (M2-8 §G 표 미등재 · R8 창)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
 //    들어왔다(`dto/incident.dart`).
 //    🆕 v1.18(01 §27) — `S01`·`S07` 계약 확정(`SettingsHomeVm` 교체 · `SettingsRepository`).
 //    🆕 v1.19(01 §28) — `S05` 계약 확정(`OperationsVm` · 부품 8 · `watchOperations`).
+//    🆕 v1.20(01 §29) — `S02`·`S06`·`S03` 계약 확정(`CredentialListVm` 추가형 · `DeviceAccessVm` 추가형 + `PairingTicketCard` ·
+//    🆕 `AccountMappingVm` · `watchCredentials`·`watchAccountMapping`).
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';
@@ -89,7 +91,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -218,13 +220,25 @@ export 'commands/settings_actions.dart';
 //    `SettingsResultCodes` +2 · `DecisionReasonCodes` += `LIVE_EXECUTE_PROMOTION`(엔진 E15e2 #161) ·
 //    받침대 메서드 1 · 🆕 C-53 · 픽스처 248 → 256(신설 8) — 🆕 tool/gen_r6c_v119_fixtures.py(기준 = M2 밑동 원문에서 멱등).
 //    엔진 다음 계약 판 = 1.20.0(E13i1 `SafetyActions`·거부 코드·라우트 3·`GaugeCodes`·생체 포트 · E13i2 VM · E14i 코드·동작·`ResumeGateVm` ·
-//    fill-origin · `simToAuto` 표본 · 픽스처 정정 F1~F8 · 이름 붙은 알림 — 06 변경 이력 «2026-11-14 · 계약 v1.19»).
+//    fill-origin · `simToAuto` 표본 · 픽스처 정정 F1~F8 · 이름 붙은 알림 — 06 변경 이력 «2026-11-14 · 계약 v1.19») —
+//    🆕 v1.20 이 R7 선행 + 겹침 몫으로 번호를 가져갔다 · 엔진 덩어리 = 1.21.0(아래).
+// 🆕 '1.20.0'(R7 선행 + 엔진 겹침 몫 · 01 §29 · 발주자 위임 2026-11-14 — 권고대로 · K1~K39) — M9 S02 증권사 키 · S06 기기·접근 · S03 계좌 매핑 표시·동작 계약:
+//    `CredentialListVm` += `modeNotice`·`leakRunbookLink`·`lockedLabel`·`asOf` · `CredentialCardVm` += `level`·`lastVerifiedText`·`requirementLabel`·
+//    `whyLine`·`sealLabel`·`credentialSlotId`·`verifyAction`·`rotateLink`(키 조각 0 · 1단) · `DeviceAccessVm` += `leaseLevel`·`leaseEpochText`·
+//    `migrationLink`·`pairing`·`emptyLabel`·`lockedLabel` · `DeviceRow` += `level`·`revokeAction`·`revokeConfirmText` · 🆕 `PairingTicketCard` ·
+//    🆕 dto/accounts.dart — `AccountMappingVm`·`AccountRow`·`SleeveMappingRow`·`AccountMappingOption`(K39 — v1.12 `AccountOption` 과 이름 겹침 회피) ·
+//    `SettingsRepository.watchCredentials`·`watchAccountMapping` · 라우트 81(`m4KeyRotation`) · R7 args 5 · 사전 +2(`credential_kind` — 엔진
+//    `KisKeySet.wire` 겹침 · `settings_slot`) · `SettingsResultCodes` +3 · 받침대 메서드 2 · 🆕 C-54 · 픽스처 256 → 271(신설 15 · 개정 1 —
+//    온보딩 `KIS_MOCK` → `KIS_PAPER`) — 🆕 tool/gen_r7_v120_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
+//    엔진 다음 계약 판 = 1.21.0(E15i 코드 등재 모음 · E13i1 `SafetyActions`·거부 코드·라우트 3·`GaugeCodes`·생체 포트 · E13i2 VM · E14i ·
+//    E16i(13 R112 D21) · fill-origin · `simToAuto` 표본 · 픽스처 정정 F1~F8 · 이름 붙은 알림 — 창 = R7a 병합 뒤 · R7b 발송 전 ·
+//    06 변경 이력 «2026-11-15 · 계약 v1.20»).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.19.0';
+const String contractVersion = '1.20.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -279,6 +293,7 @@ const int hashFormatVersion = 1;
 //
 // 근거: 01 §2 · 인벤토리 §3.
 
+export 'dto/accounts.dart';
 export 'dto/advice.dart';
 export 'dto/calendar.dart';
 export 'dto/common.dart';
@@ -1449,6 +1464,7 @@ abstract class LedgerEventRecord with _$LedgerEventRecord {
 // 🆕 v1.18(01 §27) — M9 `S07` args 화이트리스트(`connectionTest`·`connectionSyncNow` = `{target}` ·
 //    `notifyChannelSelect` = `{channel}`) · S07 은 결과를 읽는다(`SettingsResultCodes`).
 // 🆕 v1.19(01 §28) — M9 `S05` args 화이트리스트(전환 2 · 엔진 시작·중지 · 승격) · S05 는 결과를 읽는다.
+// 🆕 v1.20(01 §29) — M9 `S02`·`S06`·`S03` args 화이트리스트(검증 1단 · 발급 · 폐기 · 매핑 · 전체 검증) · 🔴 시크릿 값 args 0.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -1513,7 +1529,20 @@ part 'settings_actions.g.dart';
 ///    🔴 키 `target` 을 쓰지 않는다(C-5 `connection_target` 사전 키). `S05` 는 [ActionResult] 를 읽는다 — `headline` + `reasonCode`
 ///      원문 · `handoffRoute` 가 있으면 `AppLinkOpener.open(handoffRoute)` 하고 끝 · `retryable` 전부 false(버튼 = VM 의 호출뿐)
 ///      (표본 = `m9/operations_action_results`).
-///    ⏸ `settingsContributionUpdate` = R8 창(엔진 E11j) · R7·R9 동작 = 각 창.
+///    🆕 v1.20(01 §29 · K5 · K6 · K15 · K19 · K32 · K33) — M9 `S02`·`S06`·`S03`(폰 로컬 · 운영 등급 · 뷰어 경로 0 · 엔진이 `SettingsActionCall` 에 완성):
+///    · `credentialVerify`          = `{kind ∈ CredentialKindCodes}`(`CredentialCardVm.verifyAction` · 🔴 1단 — 통과 = 구현이 Keystore 에 저장 ·
+///      값은 슬롯 위젯 ↔ 이 구현 사이(조립 앱 내부)로만 · args·VM·결과 어디에도 0) · 거절 = `CREDENTIAL_REJECTED`(온보딩 한 벌) ·
+///      다른 환경 키 = `WRONG_KEY_SET` · 생체 = `BIOMETRIC_UNAVAILABLE`
+///    · `credentialRegister`        = 🔴 화면 미호출(1단 · 조립·엔진 내부 — 회전 마법사 `M4-4` 등 · args 미정 유지)
+///    · `devicePairingTicketCreate` = `{}`(`PairingTicketCard.issueAction` · 티켓·QR = VM 스트림 + 슬롯 — 결과에 페이로드 0)
+///    · `deviceTokenRevoke`         = `{device_id}`(`DeviceRow.revokeAction` · 값 = 그 행 `deviceId` — 🔴 화면은 읽지 않는다 ·
+///      중복 = `DEVICE_ALREADY_REVOKED`)
+///    · `accountMapSleeve`          = `{sleeve ∈ {A, B, C}, account_alias}`(`AccountMappingOption.selectAction` · 🔴 계좌번호 키 0 · 엔진이 안에서
+///      드라이런 + SAF-309 재확인 뒤 원자 저장 · 거부 = `Saf309Codes` · `MAPPING_VERIFY_FAILED`)
+///    · `accountVerifyMapping`      = `{}`(v1.16 그대로 · `AccountMappingVm.verifyAction` = 전체 검증)
+///    🔴 R7 세 화면은 [ActionResult] 의 `headline` + `reasonCode` 원문만 읽는다 — `handoffRoute`·`retryable` 미참조(표본 null·false ·
+///      다시 시도 = VM 의 같은 버튼)(표본 = `m9/credential_action_results` · `m9/device_action_results` · `m9/account_mapping_action_results`).
+///    ⏸ `settingsContributionUpdate` = R8 창(엔진 E11j) · R9 동작 = 그 창.
 ///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
@@ -1559,6 +1588,133 @@ abstract class ActionResult with _$ActionResult {
   factory ActionResult.fromJson(Map<String, dynamic> json) =>
       _$ActionResultFromJson(json);
 }
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/accounts.dart`
+
+```dart
+// 01 §29 · 🆕 계약 v1.20(R7 선행 · K19~K21 · 발주자 위임 2026-11-14 — 권고대로) — M9 `S03` 계좌 연동·슬리브↔계좌 매핑.
+//
+// 🔴 계좌 전체번호·계좌 종류 코드·별칭 키는 어떤 칸에도 오지 않는다 — 번호 = 엔진 마스킹 글자(`maskAccount` «****1234» · SAF-906) ·
+//    종류 = 글자(`kindLabel`) · 별칭 = 엔진이 완성한 호출의 args 안에만(`accountMapSleeve{sleeve, account_alias}`).
+// 🔴 칸 수 = 받은 [AccountMappingVm.mappings] 길이(P0S = A·B·C 3행 · POT 행 0 — A 행의 [SleeveMappingRow.subbookLine]) ·
+//    선택지 = 엔진이 미리 판정해 싣는다(SAF-309 막힘 = [AccountMappingOption.blockedText] · 영향 = [AccountMappingOption.impacts]) ·
+//    확인 = 화면 안 펼침(시트·다이얼로그 0 · K18) · «확인» = [AccountMappingOption.selectAction] run 1회(엔진이 안에서 드라이런 · SAF-309 재확인 뒤
+//    원자 저장 — pending 0 · K19).
+// 🔴 화면이 계좌 종류로 절세 여부를 판정하지 않는다 · 세후 갈래를 계산·전달하지 않는다 · 금액 0.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import 'onboarding.dart'; // SettingsActionCall 의 원형(freezed copyWith 가 `$OnboardingActionCopyWith` 를 본다 — ops.dart 선례)
+import 'settings.dart'; // SettingsActionCall
+
+part 'accounts.freezed.dart';
+part 'accounts.g.dart';
+
+/// 🆕 v1.20 — `S03` VM(창구 = `SettingsRepository.watchAccountMapping()` · 폰 전용).
+@freezed
+abstract class AccountMappingVm with _$AccountMappingVm {
+  const factory AccountMappingVm({
+    /// 계좌 목록 — 받은 차례 · 1행 이상(엔진 의무 · K29). DC·IRP = «시스템 밖 자산(수동)» 배지 행(매핑 선택지에는 엔진이 넣지 않는다).
+    required List<AccountRow> accounts,
+
+    /// 슬리브 칸 — 받은 길이·차례(🔴 칸 수 상수 0 · POT 행 0 · K20).
+    required List<SleeveMappingRow> mappings,
+
+    /// 전체 검증(`accountVerifyMapping{}` · 잔고 드라이런). null = 버튼 부재.
+    SettingsActionCall? verifyAction,
+
+    /// 운영 등급 생체 축소(non-null = 보기만). 🔴 엔진 의무 = [verifyAction] null · 모든 선택지 `selectAction` null · `impacts` 빈(K35).
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _AccountMappingVm;
+
+  factory AccountMappingVm.fromJson(Map<String, dynamic> json) =>
+      _$AccountMappingVmFromJson(json);
+}
+// JSON 키: accounts · mappings · verify_action · locked_label · as_of
+
+/// 🆕 v1.20 — 계좌 1행.
+@freezed
+abstract class AccountRow with _$AccountRow {
+  const factory AccountRow({
+    /// «연금저축» — 엔진(사람 별칭 글자).
+    required String label,
+
+    /// «연금저축 22» · «ISA 중개형» · «퇴직연금 DC» — 엔진 글자(🔴 종류 코드 칸 0 — 화면이 종류로 판정하지 못하게).
+    required String kindLabel,
+
+    /// 엔진 마스킹 글자(«****4821») — 🔴 화면이 자르거나 다시 가리지 않는다.
+    required String maskedNumberText,
+
+    /// 잔고 드라이런 배지 한 줄. null = 줄 없음.
+    String? checkText,
+
+    /// «시스템 밖 자산(수동)» 류 배지. null = 배지 부재.
+    String? badgeText,
+    required UiLevel level,
+  }) = _AccountRow;
+
+  factory AccountRow.fromJson(Map<String, dynamic> json) =>
+      _$AccountRowFromJson(json);
+}
+// JSON 키: label · kind_label · masked_number_text · check_text · badge_text · level
+
+/// 🆕 v1.20 — 슬리브 칸 1행.
+@freezed
+abstract class SleeveMappingRow with _$SleeveMappingRow {
+  const factory SleeveMappingRow({
+    /// «슬리브 A» — 엔진.
+    required String sleeveLabel,
+
+    /// 지금 연결된 계좌 글자. null = 미지정(그 사실의 글자 = [statusLine]).
+    String? accountLabel,
+
+    /// A 행의 POT 서브북 한 줄(«POT 서브북도 이 계좌에서 운용합니다») — 🔴 4번째 칸 아님. null = 줄 없음.
+    String? subbookLine,
+
+    /// 상태 한 줄(미지정 · 잔고 확인 실패 등) — 엔진. null = 줄 없음(정상).
+    String? statusLine,
+    required UiLevel level,
+
+    /// 선택지 — 받은 차례(지금 계좌 = `selected` · 막힌 선택지 = `blockedText`).
+    required List<AccountMappingOption> options,
+  }) = _SleeveMappingRow;
+
+  factory SleeveMappingRow.fromJson(Map<String, dynamic> json) =>
+      _$SleeveMappingRowFromJson(json);
+}
+// JSON 키: sleeve_label · account_label · subbook_line · status_line · level · options
+
+/// 🆕 v1.20 — 계좌 선택지 1개(`NotifyChannelOption` 꼴 · 🔴 기본 선택을 화면이 정하지 않는다).
+/// 🔵 이름 = `AccountMappingOption`(설계서 이름표 #13 의 «AccountOption» 은 v1.12 `dto/advice.dart` `AccountOption{alias, label}`
+///    (`ManualFillFormSpec.accounts`)과 겹쳐 배럴 export 가 모호해진다 — 구현 실측 · K39 · 발주자 위임 2026-11-14 — 권고대로).
+@freezed
+abstract class AccountMappingOption with _$AccountMappingOption {
+  const factory AccountMappingOption({
+    /// «ISA · ****7730» — 엔진.
+    required String label,
+
+    /// 지금 연결된 계좌(행마다 많아야 1 · 엔진 의무).
+    required bool selected,
+
+    /// 펼침 확인에 보일 «이 변경이 영향을 주는 것» 줄 — 엔진. 🔴 [selectAction] non-null ⇔ 비지 않음.
+    @Default(<String>[]) List<String> impacts,
+
+    /// SAF-309 등 미리 판정한 막힘 사유 — 엔진 글자. 🔴 non-null ⇒ [selectAction] null.
+    String? blockedText,
+
+    /// 엔진이 완성한 `accountMapSleeve{sleeve, account_alias}`. null = 고를 수 없음(지금 계좌 · 막힘 · 잠김).
+    SettingsActionCall? selectAction,
+  }) = _AccountMappingOption;
+
+  factory AccountMappingOption.fromJson(Map<String, dynamic> json) =>
+      _$AccountMappingOptionFromJson(json);
+}
+// JSON 키: label · selected · impacts · blocked_text · select_action
 ```
 
 ---
@@ -4641,6 +4797,7 @@ abstract class UpdateGateCard with _$UpdateGateCard {
 // 🔴 홈 블록 5·7 의 «세는 수»는 전부 엔진이 세어 **문자열로** 준다 — 화면이 목록
 //    길이로 만들지 않는다(01 §4-1 · G-29). int·double 산술이라 C-4 가 잡지 못한다.
 // 🔴 `actionAvailable == false` 는 «비활성»이 아니라 **카드·버튼의 부재**로 그린다.
+// 🆕 v1.20(01 §29) — `S06` `DeviceAccessVm`·`DeviceRow` 추가형 · 🆕 `PairingTicketCard`.
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
@@ -4887,7 +5044,9 @@ abstract class NotifyChannelOption with _$NotifyChannelOption {
 }
 // JSON 키: code · label · selected · select_action
 
-/// m2-8 G-8 — 기기·접근 관리(05 `S06`). 🔴 **리스는 읽기 전용**이다.
+/// m2-8 G-8 · 🆕 v1.20 추가형(01 §29 · K14~K16 · K18 · K35) — 기기·접근 관리(05 `S06` · 폰 전용 · 운영 등급). 🔴 **리스는 읽기 전용**이다.
+/// 🔴 이 폰(operator)·조회 전용 기기(viewer)는 **한 목록**([devices] · 차례 = 엔진 · 역할 = [DeviceRow.roleLabel] 글자).
+/// 🔴 QR 은 결과가 아니라 이 VM 의 [pairing] 으로 온다(`ActionResult` 페이로드 칸 0 · 그리기 = 슬롯) · 이전·강등·비상 = [migrationLink] 하나.
 @freezed
 abstract class DeviceAccessVm with _$DeviceAccessVm {
   const factory DeviceAccessVm({
@@ -4899,26 +5058,82 @@ abstract class DeviceAccessVm with _$DeviceAccessVm {
     /// 🔴 신뢰 시각(Supabase 서버 시각) 기반 엔진 문자열 — 폰 시계로 남은 시간을
     ///    계산하지 않는다.
     String? leaseEtaText,
+
+    /// 🆕 v1.20 — 리스 카드 색의 유일한 근거(짝 = 엔진 · 유효 ⇒ ok · 늦음 ⇒ watch/act · 무효·대기 ⇒ blocked).
+    required UiLevel leaseLevel,
+
+    /// 🆕 v1.20 — «세대 3» 류 epoch 글자(Supabase `operator_lease.epoch` · E11k 전 null).
+    String? leaseEpochText,
+
+    /// 🆕 v1.20 — X1 기기 이전·강등·비상 복구 진입(`AppRoutes.x1Migration` · 🔒 X1 · 리스 편집 칸 0). null = 링크 부재(잠김 포함).
+    LinkAction? migrationLink,
+
+    /// 🆕 v1.20 — viewer QR 페어링 티켓 카드(발급 쪽 · 🔴 X1 이전 QR 아님 — K16). null = 카드 부재.
+    PairingTicketCard? pairing,
+
+    /// 🆕 v1.20 — 조회 전용 기기가 0대일 때만 한 줄(«연결된 조회 전용 기기가 없습니다.» · K29). null = 줄 없음.
+    String? emptyLabel,
+
+    /// 🆕 v1.20 — 운영 등급 생체 축소(non-null = 보기만). 🔴 엔진 의무 = 모든 행 `revokeAction`·`revokeConfirmText` null ·
+    /// [pairing] 의 `issueAction`·`qrSlotId`·`expiresText` null · [migrationLink] null — 화면은 거르지 않는다(K35).
+    String? lockedLabel,
   }) = _DeviceAccessVm;
 
   factory DeviceAccessVm.fromJson(Map<String, dynamic> json) =>
       _$DeviceAccessVmFromJson(json);
 }
+// JSON 키: devices · lease_holder_label · lease_state_label · as_of · lease_eta_text · lease_level · lease_epoch_text ·
+//          migration_link · pairing · empty_label · locked_label
 
-/// m2-8 G-8 — 기기 1행. 🔴 기기 전체 식별자를 화면 문구로 만들지 않는다.
+/// m2-8 G-8 · 🆕 v1.20 추가형 — 기기 1행. 🔴 기기 전체 식별자를 화면 문구로 만들지 않는다.
 @freezed
 abstract class DeviceRow with _$DeviceRow {
   const factory DeviceRow({
+    /// 🔴 화면 미참조(글자·Key 0 — Key = 순번 · K10). 폐기 호출 args 는 엔진이 [revokeAction] 에 완성한다.
     required String deviceId,
     required String label,
     required String roleLabel,
     required String statusLabel,
     required String lastSeenText,
+
+    /// 🆕 v1.20 — 행 색의 유일한 근거.
+    required UiLevel level,
+
+    /// 🆕 v1.20 — 엔진이 완성한 `deviceTokenRevoke{device_id}`(viewer 행만 · 이 폰 행·폐기된 행·잠김 = null).
+    SettingsActionCall? revokeAction,
+
+    /// 🆕 v1.20 — 펼침 확인 글자(«즉시 조회가 차단됩니다 …» · 엔진 · K18). 🔴 [revokeAction] non-null ⇔ non-null.
+    String? revokeConfirmText,
   }) = _DeviceRow;
 
   factory DeviceRow.fromJson(Map<String, dynamic> json) =>
       _$DeviceRowFromJson(json);
 }
+// JSON 키: device_id · label · role_label · status_label · last_seen_text · level · revoke_action · revoke_confirm_text
+
+/// 🆕 v1.20(01 §29 · K15 · K16) — `S06` viewer QR 페어링 티켓 카드(발급 쪽 · 스캔 = M8 `V-01` `VIEWER_QR_SCAN`).
+/// 🔴 잠김 밖에서는 [issueAction] XOR [qrSlotId](티켓 없음 = 발급 버튼 · 유효 티켓 = QR 자리) · [qrSlotId] ⇔ [expiresText].
+/// 🔴 페이로드·토큰 칸 0(QR 은 슬롯 위젯 안에서만 — 조립 앱 · 06 `M4-12` ⑦) · 카운트다운 0(만료 = 엔진이 카드를 닫은 새 VM).
+@freezed
+abstract class PairingTicketCard with _$PairingTicketCard {
+  const factory PairingTicketCard({
+    /// 카드 머리 한 줄 — 엔진.
+    required String headline,
+
+    /// 엔진이 완성한 `devicePairingTicketCreate{}`(«QR 만들기»). null = 버튼 부재.
+    SettingsActionCall? issueAction,
+
+    /// QR 표시 자리 이름(`SettingsSlotIds.pairingQrDisplay`). null = 자리 부재.
+    String? qrSlotId,
+
+    /// «09:15 까지 유효» — 엔진 절대 시각 글자(🔴 남은 초를 세지 않는다).
+    String? expiresText,
+  }) = _PairingTicketCard;
+
+  factory PairingTicketCard.fromJson(Map<String, dynamic> json) =>
+      _$PairingTicketCardFromJson(json);
+}
+// JSON 키: headline · issue_action · qr_slot_id · expires_text
 
 /// m2-8 G-9 — 백업·복원(05 `S09`).
 @freezed
@@ -6831,6 +7046,8 @@ abstract class EntryRampSleeveState with _$EntryRampSleeveState {
 //    ② 12월 연간 리뷰 카드 = [SettingsHomeVm.annualReviewLink](OPEN 판정 = 엔진 · 화면이 달을 보지 않는다).
 //    ③ `actionAvailable` 삭제 — «부재 = 목록에 없음» 한 원칙(K-q).
 //    ④ «엔진이 완성한 호출 1개» = [SettingsActionCall](`OnboardingAction` 별칭 · 화면은 id·args 를 그대로 넘긴다).
+// 🆕 계약 v1.20(01 §29) — `S02` `CredentialListVm`·`CredentialCardVm` 추가형(색 · 동작 · 슬롯 · 잠김 · asOf · 봉인 · 런북 ·
+//    회전 링크 · 키 조각 0 · 1단).
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -6999,37 +7216,94 @@ abstract class SettingsCard with _$SettingsCard {
 }
 // JSON 키: code · title · level · status_label · attention_text · route
 
-/// m2-8 G-6 — 증권사 키 관리(05 `S02`).
-/// 🔴 값은 어떤 필드로도 오지 않는다 — `credential_registry` 는 별칭·상태만 싣는다.
+/// m2-8 G-6 · 🆕 v1.20 추가형(01 §29 · K1 · K29 · K35) — 증권사 키 관리(05 `S02` · 폰 전용 · 운영 등급).
+/// 🔴 값·키 조각(«앞4…뒤4» 포함)은 어떤 필드로도 오지 않는다(K7) — 마스킹 표시는 조립 앱 `SecretField` 안에서만(06 `M4-4`).
+/// 🔴 [cards] 장 수·차례 = 엔진(종류·개수 상수 0 · 모드·운영 방식에 따라 엔진이 싣는다) · 1장 이상(엔진 의무 — 필수 세트는
+///    미등록이어도 카드가 있다 · 빈 칸 0 — K29).
 @freezed
 abstract class CredentialListVm with _$CredentialListVm {
-  const factory CredentialListVm({required List<CredentialCardVm> cards}) =
-      _CredentialListVm;
+  const factory CredentialListVm({
+    required List<CredentialCardVm> cards,
+
+    /// 🆕 v1.20 — 모드 봉인 머리 한 줄(SIM 계열 «모의투자 중입니다 — 실전 키의 주문 경로는 봉인돼 있습니다 …» · 01 §9-3). null = 줄 없음.
+    String? modeNotice,
+
+    /// 🆕 v1.20 — 키 유출 대응 런북 링크(엔진 완성 · `AppRoutes.opsRunbook` 의 한 값 · 읽기 문서라 잠김에도 남는다). null = 링크 부재.
+    LinkAction? leakRunbookLink,
+
+    /// 🆕 v1.20 — 운영 등급 생체 축소 글자(non-null = 보기만). 🔴 엔진 의무 = 이때 모든 카드 [CredentialCardVm.credentialSlotId]·
+    /// [CredentialCardVm.verifyAction]·[CredentialCardVm.rotateLink] null — 화면은 이 칸으로 컨트롤을 거르지 않는다(K23 · K35).
+    String? lockedLabel,
+
+    /// 🆕 v1.20 — 조회 화면 하단 고지(05 §0-4 · 오래됨 = `staleLabel`).
+    required AsOf asOf,
+  }) = _CredentialListVm;
 
   factory CredentialListVm.fromJson(Map<String, dynamic> json) =>
       _$CredentialListVmFromJson(json);
 }
+// JSON 키: cards · mode_notice · leak_runbook_link · locked_label · as_of
 
-/// m2-8 G-6 — 키 카드 1장. `kind` 에는 X7 의 `KIS_RECONCILE` 이 포함된다.
+/// m2-8 G-6 · 🆕 v1.20 추가형(01 §29 · K6 · K7 · K10~K12 · K30) — 키 카드 1장. `kind` 에는 X7 의 `KIS_RECONCILE` 이 포함된다.
 /// 🔴 `CredentialUse` 는 브로커 속성이 아니라 **앱 측 런타임 봉인 선언**이다.
+/// 🔴 화면이 읽는 칸 = [kindLabel]·[healthLabel]·[usageLabel]·[expiresText]·[level]·[lastVerifiedText]·[requirementLabel]·[whyLine]·
+///    [sealLabel]·[credentialSlotId](빌더에 그대로)·[verifyAction]·[rotateLink] — [alias]·[kind]·[healthCode]·[usage] 는 화면 미참조.
+/// 🔴 키 조각 칸 0(K7) · 저장 동작 칸 0(K6 — 검증 통과 = 구현이 저장하는 1단).
 @freezed
 abstract class CredentialCardVm with _$CredentialCardVm {
   const factory CredentialCardVm({
+    /// 엔진 식별자(`credential_registry.alias` · `kis_live` 꼴) — 🔴 화면 미참조(Key = 순번 · K30).
     required String alias,
+
+    /// `CredentialKindCodes` 값(K8) — 🔴 화면 미참조(분기·아이콘 0).
     required String kind,
+
+    /// 카드 제목 — 엔진(«실전 · 위탁 01 + 연금저축 22»).
     required String kindLabel,
+
+    /// 🔴 화면 미참조 · 사전 밖 축(DDL `credential_registry.health` 5 ∪ `NOT_REGISTERED` — C-5 `_fieldsOutsideDictionary`) · 색 = [level].
     required String healthCode,
     required String healthLabel,
+
+    /// 🔴 화면 미참조(봉인 표시 = [sealLabel] 글자).
     required CredentialUse usage,
     required String usageLabel,
 
     /// 만료 고지 — 엔진 생성. 🔴 화면이 남은 일수를 세지 않는다.
     String? expiresText,
+
+    /// 🆕 v1.20 — 색·상태 아이콘의 유일한 근거(K11 · advisory 미등록 ≠ 경고 — 엔진이 info 로 싣는다).
+    required UiLevel level,
+
+    /// 🆕 v1.20 — 마지막 검증 한 줄(성공·실패 · 원문 코드 포함 가능) — 엔진. null = 줄 없음(미등록).
+    String? lastVerifiedText,
+
+    /// 🆕 v1.20 — «필수»·«권장»·«선택» — 엔진 글자(🔴 `StepRequirement` 분기 0).
+    String? requirementLabel,
+
+    /// 🆕 v1.20 — 미등록의 결과 한 줄(X7 «원장 신뢰 등급이 자기 보고로 고정됩니다») — 경고 아님. null = 줄 없음.
+    String? whyLine,
+
+    /// 🆕 v1.20 — 봉인 배지(«대사 전용 — 주문 경로 봉인됨» · SIM «모의투자 중 — 주문 경로 봉인됨»). 🔴 해제 컨트롤 0.
+    String? sealLabel,
+
+    /// 🆕 v1.20 — 시크릿 입력 자리 이름(`SettingsSlotIds` · 모의 = `OnboardingSlotIds.secretKisMock` 재사용 — K8 · K9 · K31).
+    /// null = 자리 부재(잠김 포함). 🔴 화면은 이름을 슬롯 빌더에 그대로 넘긴다(분기·상수 0).
+    String? credentialSlotId,
+
+    /// 🆕 v1.20 — 엔진이 완성한 `credentialVerify{kind}` 호출(«검증 후 저장» · «다시 검증»). null = 버튼 부재.
+    /// 🔴 통과 = 구현이 저장한다(1단 · K6) — 저장 버튼·`credentialRegister` 호출 0.
+    SettingsActionCall? verifyAction,
+
+    /// 🆕 v1.20 — 키 회전 마법사 진입(`AppRoutes.m4KeyRotation` · 🔒 06 `M4-4` · K12). null = 링크 부재.
+    LinkAction? rotateLink,
   }) = _CredentialCardVm;
 
   factory CredentialCardVm.fromJson(Map<String, dynamic> json) =>
       _$CredentialCardVmFromJson(json);
 }
+// JSON 키: alias · kind · kind_label · health_code · health_label · usage · usage_label · expires_text · level ·
+//          last_verified_text · requirement_label · why_line · seal_label · credential_slot_id · verify_action · rotate_link
 ```
 
 ---
@@ -7429,12 +7703,20 @@ enum CommandState {
 enum SettingsActionId {
   @JsonValue('SETTINGS_GENERAL_UPDATE')
   settingsGeneralUpdate('SETTINGS_GENERAL_UPDATE'),
+
+  /// 🆕 v1.20(01 §29 K6) — `S02` 1단(통과 = 구현이 저장) · args `{kind ∈ CredentialKindCodes}`.
   @JsonValue('CREDENTIAL_VERIFY')
   credentialVerify('CREDENTIAL_VERIFY'),
+
+  /// 🆕 v1.20 — 🔴 화면 미호출(1단) · 조립·엔진 내부(`M4-4` 회전 마법사 등) · args 미정.
   @JsonValue('CREDENTIAL_REGISTER')
   credentialRegister('CREDENTIAL_REGISTER'),
+
+  /// 🆕 v1.20 — `S03` 전체 검증 · args = `settings_actions.dart` 머리.
   @JsonValue('ACCOUNT_VERIFY_MAPPING')
   accountVerifyMapping('ACCOUNT_VERIFY_MAPPING'),
+
+  /// 🆕 v1.20 — `S03` 슬리브↔계좌 원자 저장 · args = `settings_actions.dart` 머리.
   @JsonValue('ACCOUNT_MAP_SLEEVE')
   accountMapSleeve('ACCOUNT_MAP_SLEEVE'),
   @JsonValue('STRATEGY_PREVIEW')
@@ -7489,8 +7771,12 @@ enum SettingsActionId {
   /// 🆕 v1.12 — 닫기(`L-3` `dispose` · `initState` 에서 잡아 둔 인스턴스로 · 세션 만료는 엔진이 스스로 닫는다).
   @JsonValue('SELF_REPORT_SESSION_STOP')
   selfReportSessionStop('SELF_REPORT_SESSION_STOP'),
+
+  /// 🆕 v1.20 — `S06` viewer QR 티켓 발급(🔴 `deviceAppLockSet` 만들지 않음 — K17).
   @JsonValue('DEVICE_PAIRING_TICKET_CREATE')
   devicePairingTicketCreate('DEVICE_PAIRING_TICKET_CREATE'),
+
+  /// 🆕 v1.20 — `S06` viewer 연결 끊기 · args `{device_id}`.
   @JsonValue('DEVICE_TOKEN_REVOKE')
   deviceTokenRevoke('DEVICE_TOKEN_REVOKE'),
   @JsonValue('CONNECTION_TEST')
@@ -9621,6 +9907,21 @@ abstract final class FixturePaths {
   static const String m8WatchdogPaused = 'm8/watchdog_paused.json';
 
   // ── m9/ — 설정·운영 모드 전환 (05) ──
+  // 🆕 v1.20(01 §29) — `S02` 4 · `S06` 5 · `S03` 3 · 결과 3(파일 이름 바이트 차례 · `all` 도 같은 차례).
+  /// 🆕 v1.20 — `S03` 정상(계좌 5 · 매핑 3 · A 행 POT 한 줄 · SAF-309 막힌 선택지 · DC «수동» 배지 · 전체 검증).
+  static const String m9AccountMapping = 'm9/account_mapping.json';
+
+  /// 🆕 v1.20 — `S03` 동작 결과 `ActionResult` 8(레벨 5값 · 매핑 · 전체 검증 · 넘김 0 · 재시도 0).
+  static const String m9AccountMappingActionResults =
+      'm9/account_mapping_action_results.json';
+
+  /// 🆕 v1.20 — `S03` 잠김(`account_mapping` 에서 전체 검증·선택지 호출·영향을 비운 판 + `lockedLabel`).
+  static const String m9AccountMappingLocked = 'm9/account_mapping_locked.json';
+
+  /// 🆕 v1.20 — `S03` C 미지정(ACT) · ISA 잔고 확인 실패(BLOCKED) · 미지정 행 선택지 2 + 막힘 1.
+  static const String m9AccountMappingUnmapped =
+      'm9/account_mapping_unmapped.json';
+
   // 🆕 v1.18(01 §27) — `S01` 3 · `S07` 3 · M9 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
   /// 🆕 v1.18 — `S07` 정상(행 5 · 레벨 5값 전수 · 부분 동기 · 실패 2 · 미설정 · 워치독·캘린더 링크 · 카카오 선택 + 배지).
   static const String m9Connections = 'm9/connections.json';
@@ -9639,6 +9940,41 @@ abstract final class FixturePaths {
   /// 월 납입 설정 — `pension_limit_note_text` 없음(그 줄 부재).
   static const String m9ContributionSettingNoLimitNote =
       'm9/contribution_setting_no_limit_note.json';
+
+  /// 🆕 v1.20 — `S02` 동작 결과 `ActionResult` 6(레벨 5값 · `CREDENTIAL_VERIFY` · 넘김 0 · 재시도 0).
+  static const String m9CredentialActionResults =
+      'm9/credential_action_results.json';
+
+  /// 🆕 v1.20 — `S02` `live × autoTrade` · 검증됨 · 만료 임박 + 회전 링크 · 검증 실패 + 슬롯 + 검증 버튼.
+  static const String m9Credentials = 'm9/credentials.json';
+
+  /// 🆕 v1.20 — `S02` `live × advisory` · 실전 키 «선택» 미등록 · 대사 키 «권장» 미등록(info · `whyLine`).
+  static const String m9CredentialsAdvisory = 'm9/credentials_advisory.json';
+
+  /// 🆕 v1.20 — `S02` 잠김(`credentials` 에서 슬롯·검증·회전을 비운 판 + `lockedLabel` · 런북 링크 유지).
+  static const String m9CredentialsLocked = 'm9/credentials_locked.json';
+
+  /// 🆕 v1.20 — `S02` `simInternal × autoTrade` · 봉인 머리 줄 · 봉인 배지 2 · 모의 키 만료(BLOCKED).
+  static const String m9CredentialsSimSealed = 'm9/credentials_sim_sealed.json';
+
+  /// 🆕 v1.20 — `S06` 정상(이 폰 + viewer 3 · 리스 유효 · X1 링크 · 발급 버튼).
+  static const String m9DeviceAccess = 'm9/device_access.json';
+
+  /// 🆕 v1.20 — `S06` 잠김(폐기·발급·QR·X1 링크를 비운 판 + `lockedLabel`).
+  static const String m9DeviceAccessLocked = 'm9/device_access_locked.json';
+
+  /// 🆕 v1.20 — `S06` viewer 0 · 리스 대기(BLOCKED · epoch null) · `emptyLabel`.
+  static const String m9DeviceAccessNoViewers =
+      'm9/device_access_no_viewers.json';
+
+  /// 🆕 v1.20 — `S06` 오래됨(`device_access` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9DeviceAccessStale = 'm9/device_access_stale.json';
+
+  /// 🆕 v1.20 — `S06` QR 자리(`device_access` 에서 `pairing` 만 티켓 판).
+  static const String m9DeviceAccessTicket = 'm9/device_access_ticket.json';
+
+  /// 🆕 v1.20 — `S06` 동작 결과 `ActionResult` 6(레벨 5값 · 발급 · 폐기 · 넘김 0 · 재시도 0).
+  static const String m9DeviceActionResults = 'm9/device_action_results.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
 
   // 🆕 v1.19(01 §28) — `S05` 7 · S05 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
@@ -9925,11 +10261,26 @@ abstract final class FixturePaths {
     m8WatchdogEmpty,
     m8WatchdogHoliday,
     m8WatchdogPaused,
+    m9AccountMapping,
+    m9AccountMappingActionResults,
+    m9AccountMappingLocked,
+    m9AccountMappingUnmapped,
     m9Connections,
     m9ConnectionsLocked,
     m9ConnectionsTelegram,
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
+    m9CredentialActionResults,
+    m9Credentials,
+    m9CredentialsAdvisory,
+    m9CredentialsLocked,
+    m9CredentialsSimSealed,
+    m9DeviceAccess,
+    m9DeviceAccessLocked,
+    m9DeviceAccessNoViewers,
+    m9DeviceAccessStale,
+    m9DeviceAccessTicket,
+    m9DeviceActionResults,
     m9HandoverStates,
     m9OperationsActionResults,
     m9OperationsAdvisory,
@@ -11069,6 +11420,9 @@ abstract final class ContractCodes {
     'live_promotion_result': LivePromotionResultCodes.values,
     'mode_startup': ModeStartupCodes.values,
     'sim_opening_result': SimOpeningResultCodes.values,
+    // 🆕 v1.20(01 §29 · K8 · K9) — S02 키 세트 종류(엔진 겹침) · M9 슬롯 이름
+    'credential_kind': CredentialKindCodes.values,
+    'settings_slot': SettingsSlotIds.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -11650,6 +12004,7 @@ abstract final class Saf309Codes {
 ```dart
 // 01 §3 · 🆕 계약 v1.18(01 §27 · K-n ⓗ · K-s · K-u) — M9 설정 코드 사전 3축.
 // 🆕 계약 v1.19(01 §28 · K14 · K16) — `EngineStopReasonCodes`(S05 엔진 중지 사유 · 사람) · `SettingsResultCodes` +2.
+// 🆕 계약 v1.20(01 §29 · K8 · K9 · K13 · K32) — `CredentialKindCodes`(겹침 몫 · 엔진 `KisKeySet.wire` 1:1) · `SettingsSlotIds` · `SettingsResultCodes` +3.
 //
 // 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 함께 싣는다
 //    (`ConnectionRow.label` · `NotifyChannelOption.label` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
@@ -11712,12 +12067,26 @@ abstract final class SettingsResultCodes {
   /// 🆕 v1.19(01 §28 · K16) — 엔진 중지 중복 요청(이미 멈춰 있음 · 멱등 접수 · `info`).
   static const String engineAlreadyStopped = 'ENGINE_ALREADY_STOPPED';
 
+  /// 🆕 v1.20(01 §29 · K13) — 다른 환경의 키(모의 칸에 실전 키 등 · 엔진 `KisGuardError`) — 저장하지 않았다(`act`).
+  /// 🔴 기동 거부 `ModeStartupCodes.credentialEnvMismatch`(저장된 키 ↔ 지금 모드)와 다른 뜻.
+  static const String wrongKeySet = 'WRONG_KEY_SET';
+
+  /// 🆕 v1.20(K13) — 잔고 드라이런 실패로 매핑을 바꾸지 않았거나 전체 검증을 마치지 못했다(`act`).
+  static const String mappingVerifyFailed = 'MAPPING_VERIFY_FAILED';
+
+  /// 🆕 v1.20(K13) — 이미 폐기된 기기의 폐기 요청(멱등 접수 · `info`).
+  static const String deviceAlreadyRevoked = 'DEVICE_ALREADY_REVOKED';
+
+  // 🔴 S02 검증 거절 = `OnboardingResultCodes.credentialRejected` 한 벌(K32 — `CREDENTIAL_VERIFY_FAILED` · `CREDENTIAL_NOT_VERIFIED` 0).
   static const Set<String> values = <String>{
     biometricUnavailable,
     connectionTestFailed,
     syncAlreadyRunning,
     engineAlreadyRunning,
     engineAlreadyStopped,
+    wrongKeySet,
+    mappingVerifyFailed,
+    deviceAlreadyRevoked,
   };
 }
 
@@ -11735,6 +12104,59 @@ abstract final class EngineStopReasonCodes {
   static const Set<String> values = <String>{
     plannedMaintenance,
     troubleshooting,
+  };
+}
+
+/// 🆕 v1.20(01 §29 · K8 · 01 §8 미결 151 ✅) — 증권사 KIS 키 세트 종류(도메인 `credential_kind`) —
+/// `CredentialCardVm.kind` · `credentialVerify` args `kind` 의 값.
+/// 🔴 엔진 `broker_gateway` `KisKeySet.wire` 와 **같은 글자**다(실물 = `paper('KIS_PAPER')` · 나머지 3 = 엔진이 이 사전을 보고 더한다 —
+///    `kis_credential_vault.dart:8` «계약 창(R7) 뒤» · 06 변경 이력 «2026-11-15 · 계약 v1.20»).
+/// 🔴 `SECRET_KIS_MOCK`(슬롯 이름)은 이 사전의 값이 아니다 — 자리 이름과 키 세트는 다른 축(v1.16 표본 `KIS_MOCK` = v1.20 에서 `KIS_PAPER` 로 정정).
+/// 🔴 화면은 이 값으로 분기·아이콘·색을 고르지 않는다(카드 글자 = `kindLabel` · 색 = `level`).
+abstract final class CredentialKindCodes {
+  /// 실전 종합계좌(위탁 01 + 연금저축 22 공유) — 주문·조회.
+  static const String kisLive = 'KIS_LIVE';
+
+  /// ISA 중개형 전용 종합계좌.
+  static const String kisIsa = 'KIS_ISA';
+
+  /// 모의투자(SIM 계열 · 내부 시뮬레이터도 시세는 이 키 — 01 §9-5 ②).
+  static const String kisPaper = 'KIS_PAPER';
+
+  /// X7 대사 전용(`CredentialUse.reconcileOnly` · 주문 경로 봉인).
+  static const String kisReconcile = 'KIS_RECONCILE';
+
+  static const Set<String> values = <String>{
+    kisLive,
+    kisIsa,
+    kisPaper,
+    kisReconcile,
+  };
+}
+
+/// 🆕 v1.20(01 §29 · K9 · K15 · K31 · 01 §8 미결 152 🟡) — M9 🔒/플랫폼 슬롯 이름(도메인 `settings_slot`) —
+/// `CredentialCardVm.credentialSlotId` · `PairingTicketCard.qrSlotId` 의 값.
+/// 🔴 화면(`ui_settings`)은 이름을 해석하지 않는다 — 주입된 슬롯 빌더에 그대로 넘긴다. 이름 → 위젯 = 조립 앱(06 `M4-12` ⑦).
+/// 🔴 모의 키 카드 = `OnboardingSlotIds.secretKisMock` 재사용(같은 금고 칸 = 같은 자리 · 05 §4-1 «두 벌 금지») — 두 번째 이름을 만들지 않는다.
+/// 🔴 세 슬롯 사전(`onboarding_slot` · `ops_slot` · `settings_slot`) 값 겹침 0(C-54 ④).
+abstract final class SettingsSlotIds {
+  /// `S02` 실전 키 입력 — 06 `M4-4` `SecretField`.
+  static const String secretKisLive = 'SECRET_KIS_LIVE';
+
+  /// `S02` ISA 키 입력 — 같은 위젯.
+  static const String secretKisIsa = 'SECRET_KIS_ISA';
+
+  /// `S02` 대사 전용 키 입력 — 같은 위젯(X7).
+  static const String secretKisReconcile = 'SECRET_KIS_RECONCILE';
+
+  /// `S06` viewer 페어링 QR 표시 — 플랫폼(QR 그리기 · 페이로드는 위젯 안에서만 · `VIEWER_QR_SCAN` 의 짝).
+  static const String pairingQrDisplay = 'PAIRING_QR_DISPLAY';
+
+  static const Set<String> values = <String>{
+    secretKisLive,
+    secretKisIsa,
+    secretKisReconcile,
+    pairingQrDisplay,
   };
 }
 ```
@@ -12325,7 +12747,10 @@ abstract final class AppRoutes {
   static const String settingsAnnualReview = 'aaq://settings/annual-review';
   static const String handoverStatus = 'aaq://handover/status';
 
-  // ── M5 · X1 · X2 · X5 소유(06 §3-5 목록 — 위젯은 Claude, 등록은 셸) ────────
+  // ── M4 · M5 · X1 · X2 · X5 소유(06 §3-5 목록 — 위젯은 Claude, 등록은 셸) ────────
+  /// 🆕 v1.20(01 §29 · K12 · K37) — 🔒 06 `M4-4` 키 회전 마법사(`S02` 카드 `rotateLink` 목적지 · 파라미터 0 — 세트는 마법사가 VM 으로 안다) ·
+  /// 본문 = 마법사가 생길 때까지 조립 앱 레지스트리 빈 자리(v1.16 `x1MigrationPlan` 선례) · 셸 가드 무변경.
+  static const String m4KeyRotation = 'aaq://m4/key-rotation';
   static const String m5KillSwitch = 'aaq://m5/kill-switch';
   static const String m5ReleaseGate = 'aaq://m5/release-gate';
   static const String m5BlockBoard = 'aaq://m5/block-board';
@@ -12360,6 +12785,7 @@ abstract final class AppRoutes {
   /// 🆕 v1.17 = **69** · `opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex`(`opsRhythm` 뒤 ·
   /// 조각 수 4·5·4·4·3 — 기존 패턴과 겹침 0).
   /// 🆕 v1.18 = **80** · M9 11(`settingsCredentials` 뒤 · S 번호 차례 · 3조각 1 + 4조각 10 · 파라미터 0 — 기존 패턴과 겹침 0).
+  /// 🆕 v1.20 = **81** · `m4KeyRotation`(Claude 소유 묶음 머리 · 4조각 · 파라미터 0 — 기존 패턴과 겹침 0).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -12427,6 +12853,7 @@ abstract final class AppRoutes {
     settingsGeneral,
     settingsAnnualReview,
     handoverStatus,
+    m4KeyRotation,
     m5KillSwitch,
     m5ReleaseGate,
     m5BlockBoard,
@@ -13519,10 +13946,12 @@ abstract interface class SafetyRepository {
 ```dart
 // 01 §4-1 · 🆕 계약 v1.18(01 §27 · K-c · K-v) — M9 설정 화면 읽기 창구.
 //
-// 🔴 뒤 카드가 **추가형**으로 늘린다(✅ v1.19 R6c `watchOperations` · R7 `watchCredentials`·`watchAccountMapping` ·
+// 🔴 뒤 카드가 **추가형**으로 늘린다(✅ v1.19 R6c `watchOperations` · ✅ v1.20 R7 `watchCredentials`·`watchAccountMapping` ·
 //    R8 `watchAllocationEditor` · S11 `watchGeneral`) — 받침대 `UnimplementedSettingsRepository` 를 같은 커밋에서 고친다.
 // 🔴 `S07` 은 이 창구가 아니라 [OpsStatusRepository.watchConnections] 다(v1.0 부터 · 두 벌 0).
+// 🔴 `S06` 은 이 창구가 아니라 [OpsStatusRepository.watchDeviceAccess] 다(v1.0 부터 · 두 벌 0 · v1.20 K14).
 
+import '../dto/accounts.dart';
 import '../dto/operations.dart';
 import '../dto/settings.dart';
 
@@ -13532,6 +13961,12 @@ abstract interface class SettingsRepository {
 
   /// 🆕 v1.19(01 §28) — `S05` 운용 관리(🔴 폰 전용 · 뷰어 원천 0 · K20).
   Stream<OperationsVm> watchOperations();
+
+  /// 🆕 v1.20(01 §29) — `S02` 증권사 키 관리(🔴 폰 전용 · 값·키 조각 0 · K7).
+  Stream<CredentialListVm> watchCredentials();
+
+  /// 🆕 v1.20(01 §29) — `S03` 계좌 연동·슬리브 매핑(🔴 폰 전용 · 계좌 전체번호 0).
+  Stream<AccountMappingVm> watchAccountMapping();
 }
 ```
 

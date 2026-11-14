@@ -231,6 +231,9 @@ abstract final class ContractCodes {
     'live_promotion_result': LivePromotionResultCodes.values,
     'mode_startup': ModeStartupCodes.values,
     'sim_opening_result': SimOpeningResultCodes.values,
+    // 🆕 v1.20(01 §29 · K8 · K9) — S02 키 세트 종류(엔진 겹침) · M9 슬롯 이름
+    'credential_kind': CredentialKindCodes.values,
+    'settings_slot': SettingsSlotIds.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

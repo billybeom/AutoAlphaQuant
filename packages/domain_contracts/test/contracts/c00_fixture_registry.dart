@@ -168,6 +168,22 @@ final DtoCodec<Object> _connectionsVm = DtoCodec<ConnectionsVm>(
   ConnectionsVm.fromJson,
   (ConnectionsVm v) => v.toJson(),
 );
+// 🆕 계약 v1.20(R7 선행 · 01 §29) — M9 `S02` 증권사 키 · `S06` 기기·접근 · `S03` 계좌 매핑 VM.
+final DtoCodec<Object> _credentialListVm = DtoCodec<CredentialListVm>(
+  'CredentialListVm',
+  CredentialListVm.fromJson,
+  (CredentialListVm v) => v.toJson(),
+);
+final DtoCodec<Object> _deviceAccessVm = DtoCodec<DeviceAccessVm>(
+  'DeviceAccessVm',
+  DeviceAccessVm.fromJson,
+  (DeviceAccessVm v) => v.toJson(),
+);
+final DtoCodec<Object> _accountMappingVm = DtoCodec<AccountMappingVm>(
+  'AccountMappingVm',
+  AccountMappingVm.fromJson,
+  (AccountMappingVm v) => v.toJson(),
+);
 // 🆕 계약 v1.19(R6c 선행 · 01 §28) — M9 `S05` 운용 관리 VM.
 final DtoCodec<Object> _operationsVm = DtoCodec<OperationsVm>(
   'OperationsVm',
@@ -832,6 +848,11 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8WatchdogPaused: FixtureBinding(_watchdogBoardVm),
 
   // ── m9/ — 설정·운영 모드 전환 ────────────────────────────────────────────
+  // 🆕 v1.20(01 §29 · R7c) — `S03` 계좌 매핑 3벌 · S03 동작 결과 8행.
+  FixturePaths.m9AccountMapping: FixtureBinding(_accountMappingVm),
+  FixturePaths.m9AccountMappingActionResults: FixtureBinding(_actionResult),
+  FixturePaths.m9AccountMappingLocked: FixtureBinding(_accountMappingVm),
+  FixturePaths.m9AccountMappingUnmapped: FixtureBinding(_accountMappingVm),
   // 🆕 v1.18(01 §27 · R6b) — `S07` 연결 관리 3벌.
   FixturePaths.m9Connections: FixtureBinding(_connectionsVm),
   FixturePaths.m9ConnectionsLocked: FixtureBinding(_connectionsVm),
@@ -843,6 +864,18 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9ContributionSettingNoLimitNote: FixtureBinding(
     _contributionSetting,
   ),
+  // 🆕 v1.20(01 §29 · R7a · R7b) — `S02` 증권사 키 4벌 · 결과 6행 · `S06` 기기·접근 5벌 · 결과 6행.
+  FixturePaths.m9CredentialActionResults: FixtureBinding(_actionResult),
+  FixturePaths.m9Credentials: FixtureBinding(_credentialListVm),
+  FixturePaths.m9CredentialsAdvisory: FixtureBinding(_credentialListVm),
+  FixturePaths.m9CredentialsLocked: FixtureBinding(_credentialListVm),
+  FixturePaths.m9CredentialsSimSealed: FixtureBinding(_credentialListVm),
+  FixturePaths.m9DeviceAccess: FixtureBinding(_deviceAccessVm),
+  FixturePaths.m9DeviceAccessLocked: FixtureBinding(_deviceAccessVm),
+  FixturePaths.m9DeviceAccessNoViewers: FixtureBinding(_deviceAccessVm),
+  FixturePaths.m9DeviceAccessStale: FixtureBinding(_deviceAccessVm),
+  FixturePaths.m9DeviceAccessTicket: FixtureBinding(_deviceAccessVm),
+  FixturePaths.m9DeviceActionResults: FixtureBinding(_actionResult),
   FixturePaths.m9HandoverStates: FixtureBinding(
     DtoCodec<HandoverPlan>(
       'HandoverPlan',

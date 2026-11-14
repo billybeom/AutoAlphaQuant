@@ -146,6 +146,22 @@ void main() {
         FixturePaths.m9OperationsAdvisory,
         FixturePaths.m9OperationsLocked,
         FixturePaths.m9OperationsActionResults,
+        // 🆕 v1.20(01 §29) — S02 4 · S06 5 · S03 3 · 결과 3.
+        FixturePaths.m9Credentials,
+        FixturePaths.m9CredentialsSimSealed,
+        FixturePaths.m9CredentialsAdvisory,
+        FixturePaths.m9CredentialsLocked,
+        FixturePaths.m9CredentialActionResults,
+        FixturePaths.m9DeviceAccess,
+        FixturePaths.m9DeviceAccessTicket,
+        FixturePaths.m9DeviceAccessNoViewers,
+        FixturePaths.m9DeviceAccessStale,
+        FixturePaths.m9DeviceAccessLocked,
+        FixturePaths.m9DeviceActionResults,
+        FixturePaths.m9AccountMapping,
+        FixturePaths.m9AccountMappingUnmapped,
+        FixturePaths.m9AccountMappingLocked,
+        FixturePaths.m9AccountMappingActionResults,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {

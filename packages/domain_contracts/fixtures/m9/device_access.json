@@ -1,0 +1,58 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.20.0",
+    "generated_at": "2026-11-15T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261115,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "기기 기준 2026-08-31 09:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "devices": [
+        { "device_id": "dev_op_01", "label": "이 폰(운영)", "role_label": "운영 기기", "status_label": "사용 중", "last_seen_text": "지금", "level": "OK", "revoke_action": null, "revoke_confirm_text": null },
+        {
+          "device_id": "dev_vw_01",
+          "label": "태블릿",
+          "role_label": "조회 전용",
+          "status_label": "연결됨",
+          "last_seen_text": "08-31 07:55",
+          "level": "OK",
+          "revoke_action": { "id": "DEVICE_TOKEN_REVOKE", "args": { "device_id": "dev_vw_01" }, "label": "연결 끊기" },
+          "revoke_confirm_text": "태블릿의 조회 연결을 지금 끊습니다. 즉시 조회가 차단되고, 다시 쓰려면 QR 로 새로 연결해야 합니다."
+        },
+        {
+          "device_id": "dev_vw_02",
+          "label": "업무용 노트북(웹)",
+          "role_label": "조회 전용",
+          "status_label": "30일째 접속 없음 — 쓰지 않으면 연결을 끊으세요",
+          "last_seen_text": "08-01 18:10",
+          "level": "ACT",
+          "revoke_action": { "id": "DEVICE_TOKEN_REVOKE", "args": { "device_id": "dev_vw_02" }, "label": "연결 끊기" },
+          "revoke_confirm_text": "업무용 노트북(웹)의 조회 연결을 지금 끊습니다. 즉시 조회가 차단됩니다."
+        },
+        { "device_id": "dev_vw_03", "label": "예전 휴대폰", "role_label": "조회 전용", "status_label": "연결 끊김", "last_seen_text": "07-10 21:30", "level": "INFO", "revoke_action": null, "revoke_confirm_text": null }
+      ],
+      "lease_holder_label": "이 폰(운영)",
+      "lease_state_label": "유효 — 갱신 정상",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "기기 기준 2026-08-31 09:00" },
+      "lease_eta_text": "다음 갱신 09:25(서버 시각)",
+      "lease_level": "OK",
+      "lease_epoch_text": "세대 3",
+      "migration_link": { "label": "기기 이전 · 강등 · 비상 복구", "deep_link": "aaq://x1/migration" },
+      "pairing": {
+        "headline": "조회 전용 기기를 하나 더 연결합니다.",
+        "issue_action": { "id": "DEVICE_PAIRING_TICKET_CREATE", "args": {}, "label": "QR 만들기" },
+        "qr_slot_id": null,
+        "expires_text": null
+      },
+      "empty_label": null,
+      "locked_label": null
+    }
+  ]
+}

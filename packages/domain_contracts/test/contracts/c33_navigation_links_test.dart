@@ -32,6 +32,8 @@
 //   `HandbookBlock` = `deep_link`) · ④ 에 `ops/runbooks/<id>`·`handbook` 일치 예시.
 //   🆕 v1.18(01 §27 · K-w) — 라우트 **80**(M9 11 · `settingsHome`·…·`settingsAnnualReview`) · `_linkKeys` 무변경
 //   (`SettingsCard.route`·`ConnectionRow.route` = `route` · 연간 링크 = `LinkAction` 안쪽 `deep_link`) · ④ 에 `settings` 예시 4.
+//   🆕 v1.20(01 §29 · K37) — 라우트 **81**(`m4KeyRotation` · Claude 소유 14종) · `_linkKeys` 무변경(`rotate_link`·`leak_runbook_link`·
+//   `migration_link` = `LinkAction` 안쪽 `deep_link`) · ④ 에 `m4/key-rotation` 예시.
 // 🔴 화면은 이 검사의 대상이 아니다 — 화면은 링크를 **만들지 않으므로** 검사할 것이 없고,
 //    만들었다면 `tool/check_boundaries.sh` 의 `aaq://` 리터럴 스캔이 잡는다.
 
@@ -129,7 +131,7 @@ void main() {
       );
     });
 
-    test('C-33 ③ 라우트 목록에 중복이 없고 M5·X 소유 13종이 들어 있다', () {
+    test('C-33 ③ 라우트 목록에 중복이 없고 M4·M5·X 소유 14종이 들어 있다', () {
       expect(AppRoutes.all.toSet().length, AppRoutes.all.length);
       // 🆕 v1.4 — 41 → 42(`reportGoalPath`). 🆕 v1.5 — 42 → 43(`journalRebalance` · 01 §15-3).
       // 🆕 v1.6 — 43 → 45(`ledgerExecutionGapMonth` · `rebalanceHistory` · 01 §15-4).
@@ -139,13 +141,15 @@ void main() {
       // 🆕 v1.16 — 54 → 64(온보딩 6 · `ledgerSimOpening` · `m5SimOpeningCash` · X1 2 · 01 §25).
       // 🆕 v1.17 — 64 → 69(`opsRunbooks`·`opsRunbook`·`opsEmergencyCard`·`opsDeviceRisk`·`handbookIndex` · 01 §26).
       // 🆕 v1.18 — 69 → 80(M9 11 · `settingsHome` … `settingsAnnualReview` · 01 §27).
+      // 🆕 v1.20 — 80 → 81(`m4KeyRotation` · 01 §29).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(80),
-        reason: '라우트 수가 계약(01 §27 · v1.18 = 80)과 다르다.',
+        hasLength(81),
+        reason: '라우트 수가 계약(01 §29 · v1.20 = 81)과 다르다.',
       );
+      expect(AppRoutes.all, contains(AppRoutes.m4KeyRotation));
       expect(AppRoutes.all, contains(AppRoutes.settingsHome));
       expect(AppRoutes.all, contains(AppRoutes.settingsAccounts));
       expect(AppRoutes.all, contains(AppRoutes.settingsAllocation));
@@ -201,6 +205,8 @@ void main() {
         'aaq://m5/sim-opening-cash',
         'aaq://x1/migration/plan',
         'aaq://x1/migration/emergency',
+        // 🆕 v1.20(01 §29 · K37) — 06 §3-5 표 +1(M4 소유 · 키 회전 마법사).
+        'aaq://m4/key-rotation',
       ];
       for (final String route in ownedByClaude) {
         expect(AppRoutes.all, contains(route), reason: '06 §3-5 목록의 $route');
@@ -294,6 +300,9 @@ void main() {
       expect(AppRoutes.isRegistered('aaq://settings/'), isFalse);
       expect(AppRoutes.isRegistered('aaq://settings/operations?x=1'), isFalse);
       expect(AppRoutes.isRegistered('aaq://settings/unknown'), isFalse);
+      // 🆕 v1.20(01 §29 · K37) — 키 회전 마법사(파라미터 0 · 세트는 마법사가 VM 으로 안다).
+      expect(AppRoutes.isRegistered('aaq://m4/key-rotation'), isTrue);
+      expect(AppRoutes.isRegistered('aaq://m4/key-rotation/KIS_ISA'), isFalse);
       expect(AppRoutes.isRegistered('aaq://x1/migration/x/y'), isFalse);
       expect(AppRoutes.isRegistered('aaq://nowhere'), isFalse);
       expect(AppRoutes.isRegistered('m5/kill-switch'), isFalse);

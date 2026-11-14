@@ -15,6 +15,8 @@
 //    ② 12월 연간 리뷰 카드 = [SettingsHomeVm.annualReviewLink](OPEN 판정 = 엔진 · 화면이 달을 보지 않는다).
 //    ③ `actionAvailable` 삭제 — «부재 = 목록에 없음» 한 원칙(K-q).
 //    ④ «엔진이 완성한 호출 1개» = [SettingsActionCall](`OnboardingAction` 별칭 · 화면은 id·args 를 그대로 넘긴다).
+// 🆕 계약 v1.20(01 §29) — `S02` `CredentialListVm`·`CredentialCardVm` 추가형(색 · 동작 · 슬롯 · 잠김 · asOf · 봉인 · 런북 ·
+//    회전 링크 · 키 조각 0 · 1단).
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -183,34 +185,91 @@ abstract class SettingsCard with _$SettingsCard {
 }
 // JSON 키: code · title · level · status_label · attention_text · route
 
-/// m2-8 G-6 — 증권사 키 관리(05 `S02`).
-/// 🔴 값은 어떤 필드로도 오지 않는다 — `credential_registry` 는 별칭·상태만 싣는다.
+/// m2-8 G-6 · 🆕 v1.20 추가형(01 §29 · K1 · K29 · K35) — 증권사 키 관리(05 `S02` · 폰 전용 · 운영 등급).
+/// 🔴 값·키 조각(«앞4…뒤4» 포함)은 어떤 필드로도 오지 않는다(K7) — 마스킹 표시는 조립 앱 `SecretField` 안에서만(06 `M4-4`).
+/// 🔴 [cards] 장 수·차례 = 엔진(종류·개수 상수 0 · 모드·운영 방식에 따라 엔진이 싣는다) · 1장 이상(엔진 의무 — 필수 세트는
+///    미등록이어도 카드가 있다 · 빈 칸 0 — K29).
 @freezed
 abstract class CredentialListVm with _$CredentialListVm {
-  const factory CredentialListVm({required List<CredentialCardVm> cards}) =
-      _CredentialListVm;
+  const factory CredentialListVm({
+    required List<CredentialCardVm> cards,
+
+    /// 🆕 v1.20 — 모드 봉인 머리 한 줄(SIM 계열 «모의투자 중입니다 — 실전 키의 주문 경로는 봉인돼 있습니다 …» · 01 §9-3). null = 줄 없음.
+    String? modeNotice,
+
+    /// 🆕 v1.20 — 키 유출 대응 런북 링크(엔진 완성 · `AppRoutes.opsRunbook` 의 한 값 · 읽기 문서라 잠김에도 남는다). null = 링크 부재.
+    LinkAction? leakRunbookLink,
+
+    /// 🆕 v1.20 — 운영 등급 생체 축소 글자(non-null = 보기만). 🔴 엔진 의무 = 이때 모든 카드 [CredentialCardVm.credentialSlotId]·
+    /// [CredentialCardVm.verifyAction]·[CredentialCardVm.rotateLink] null — 화면은 이 칸으로 컨트롤을 거르지 않는다(K23 · K35).
+    String? lockedLabel,
+
+    /// 🆕 v1.20 — 조회 화면 하단 고지(05 §0-4 · 오래됨 = `staleLabel`).
+    required AsOf asOf,
+  }) = _CredentialListVm;
 
   factory CredentialListVm.fromJson(Map<String, dynamic> json) =>
       _$CredentialListVmFromJson(json);
 }
+// JSON 키: cards · mode_notice · leak_runbook_link · locked_label · as_of
 
-/// m2-8 G-6 — 키 카드 1장. `kind` 에는 X7 의 `KIS_RECONCILE` 이 포함된다.
+/// m2-8 G-6 · 🆕 v1.20 추가형(01 §29 · K6 · K7 · K10~K12 · K30) — 키 카드 1장. `kind` 에는 X7 의 `KIS_RECONCILE` 이 포함된다.
 /// 🔴 `CredentialUse` 는 브로커 속성이 아니라 **앱 측 런타임 봉인 선언**이다.
+/// 🔴 화면이 읽는 칸 = [kindLabel]·[healthLabel]·[usageLabel]·[expiresText]·[level]·[lastVerifiedText]·[requirementLabel]·[whyLine]·
+///    [sealLabel]·[credentialSlotId](빌더에 그대로)·[verifyAction]·[rotateLink] — [alias]·[kind]·[healthCode]·[usage] 는 화면 미참조.
+/// 🔴 키 조각 칸 0(K7) · 저장 동작 칸 0(K6 — 검증 통과 = 구현이 저장하는 1단).
 @freezed
 abstract class CredentialCardVm with _$CredentialCardVm {
   const factory CredentialCardVm({
+    /// 엔진 식별자(`credential_registry.alias` · `kis_live` 꼴) — 🔴 화면 미참조(Key = 순번 · K30).
     required String alias,
+
+    /// `CredentialKindCodes` 값(K8) — 🔴 화면 미참조(분기·아이콘 0).
     required String kind,
+
+    /// 카드 제목 — 엔진(«실전 · 위탁 01 + 연금저축 22»).
     required String kindLabel,
+
+    /// 🔴 화면 미참조 · 사전 밖 축(DDL `credential_registry.health` 5 ∪ `NOT_REGISTERED` — C-5 `_fieldsOutsideDictionary`) · 색 = [level].
     required String healthCode,
     required String healthLabel,
+
+    /// 🔴 화면 미참조(봉인 표시 = [sealLabel] 글자).
     required CredentialUse usage,
     required String usageLabel,
 
     /// 만료 고지 — 엔진 생성. 🔴 화면이 남은 일수를 세지 않는다.
     String? expiresText,
+
+    /// 🆕 v1.20 — 색·상태 아이콘의 유일한 근거(K11 · advisory 미등록 ≠ 경고 — 엔진이 info 로 싣는다).
+    required UiLevel level,
+
+    /// 🆕 v1.20 — 마지막 검증 한 줄(성공·실패 · 원문 코드 포함 가능) — 엔진. null = 줄 없음(미등록).
+    String? lastVerifiedText,
+
+    /// 🆕 v1.20 — «필수»·«권장»·«선택» — 엔진 글자(🔴 `StepRequirement` 분기 0).
+    String? requirementLabel,
+
+    /// 🆕 v1.20 — 미등록의 결과 한 줄(X7 «원장 신뢰 등급이 자기 보고로 고정됩니다») — 경고 아님. null = 줄 없음.
+    String? whyLine,
+
+    /// 🆕 v1.20 — 봉인 배지(«대사 전용 — 주문 경로 봉인됨» · SIM «모의투자 중 — 주문 경로 봉인됨»). 🔴 해제 컨트롤 0.
+    String? sealLabel,
+
+    /// 🆕 v1.20 — 시크릿 입력 자리 이름(`SettingsSlotIds` · 모의 = `OnboardingSlotIds.secretKisMock` 재사용 — K8 · K9 · K31).
+    /// null = 자리 부재(잠김 포함). 🔴 화면은 이름을 슬롯 빌더에 그대로 넘긴다(분기·상수 0).
+    String? credentialSlotId,
+
+    /// 🆕 v1.20 — 엔진이 완성한 `credentialVerify{kind}` 호출(«검증 후 저장» · «다시 검증»). null = 버튼 부재.
+    /// 🔴 통과 = 구현이 저장한다(1단 · K6) — 저장 버튼·`credentialRegister` 호출 0.
+    SettingsActionCall? verifyAction,
+
+    /// 🆕 v1.20 — 키 회전 마법사 진입(`AppRoutes.m4KeyRotation` · 🔒 06 `M4-4` · K12). null = 링크 부재.
+    LinkAction? rotateLink,
   }) = _CredentialCardVm;
 
   factory CredentialCardVm.fromJson(Map<String, dynamic> json) =>
       _$CredentialCardVmFromJson(json);
 }
+// JSON 키: alias · kind · kind_label · health_code · health_label · usage · usage_label · expires_text · level ·
+//          last_verified_text · requirement_label · why_line · seal_label · credential_slot_id · verify_action · rotate_link
