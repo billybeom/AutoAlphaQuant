@@ -11,7 +11,7 @@
 import 'dart:io' show Platform;
 
 import 'package:broker_gateway/broker_gateway.dart'
-    show KisQuoteFeed, kisKeySetFits;
+    show KisQuoteFeed, KisQuotes, kisKeySetFits;
 import 'package:core_engine/core_engine.dart'
     show Market, frozenExchangeCalendar, p0sRegimeConfigHash;
 import 'package:data_sync/data_sync.dart'
@@ -96,6 +96,8 @@ const BootInputs kOperatorBootInputs = BootInputs(
 /// 조립 앱의 실물 잡 부품(R97) — 일봉 원천 = 모드 세트의 KIS 클라이언트(하나) · FRED 는 키 없이 CSV.
 JobParts operatorJobParts(KisSessions kis, http.Client net) => JobParts(
   quoteFeed: (RunMode mode) async => KisQuoteFeed(await kis.clientFor(mode)),
+  priceFetch: (RunMode mode) async =>
+      KisQuotes(await kis.clientFor(mode)).domesticPrice,
   fred: FredClient(net),
   ofr: OfrClient(net),
   regimeConfigHash: p0sRegimeConfigHash(),

@@ -38,6 +38,7 @@ import 'package:data_sync/data_sync.dart'
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show
+        ExecPolicy,
         AlertCodes,
         CommandContext,
         MarketDataSource,
@@ -57,6 +58,7 @@ import 'package:trading_runtime/trading_runtime.dart'
         JobRun,
         JobStatus,
         jobSpecOf,
+        kJobTable,
         occurrenceOn;
 
 import 'support.dart';
@@ -111,6 +113,8 @@ void main() {
       if (feedFails) throw StateError('KIS 키 없음(시험)');
       return feed;
     },
+    priceFetch: (RunMode m) async =>
+        (String code) async => throw StateError('현재가 없음(시험)'),
     fred: FredClient(down, sleep: (Duration _) async {}),
     ofr: OfrClient(down, sleep: (Duration _) async {}),
     regimeConfigHash: p0sRegimeConfigHash(),
@@ -120,6 +124,7 @@ void main() {
     db: files.sim,
     runMode: mode,
     operatingMode: OperatingMode.autoTrade,
+    execPolicy: ExecPolicy.execute,
     calendars: cals,
     heartbeat: hb,
     alerts: SqliteAlertSink(files.sim, clock: clock),
@@ -191,19 +196,9 @@ void main() {
     occ(job, fireDay),
   );
 
-  test(
-    '🔴 실물 칸 = 여섯 · 미조립 = 주문 셋(kr_order · kr_order_close · daily_reconcile)',
-    () {
-      expect(kAssembledRunners.keys.toSet(), <String>{
-        'daily_signal',
-        'us_data',
-        'daily_data',
-        'equity_snapshot',
-        'seasonal_a',
-        'monthly_rebalance',
-      });
-    },
-  );
+  test('🔴 실물 칸 = 잡 표 전부(아홉) — 미조립 칸 0(부품이 있을 때)', () {
+    expect(kAssembledRunners.keys.toSet(), kJobTable.map((s) => s.job).toSet());
+  });
 
   test(
     '🔴 모의 개시 전 = 지금 설정 없음 → 회차 실패(OPS_CONFIG_NO_OPENING · 지어내지 않는다)',

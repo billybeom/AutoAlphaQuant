@@ -6,7 +6,7 @@ import 'package:core_engine/core_engine.dart'
     show JobRunEntry, JobRunStatus, PingStatus;
 import 'package:data_sync/data_sync.dart' show SqliteAlertSink, SqliteJobRunLog;
 import 'package:domain_contracts/domain_contracts.dart'
-    show OperatingMode, RunMode, TradeDate;
+    show ExecPolicy, OperatingMode, RunMode, TradeDate;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trading_runtime/trading_runtime.dart'
     show
@@ -40,6 +40,7 @@ void main() {
       db: files.sim,
       runMode: RunMode.simInternal,
       operatingMode: OperatingMode.autoTrade,
+      execPolicy: ExecPolicy.execute,
       calendars: cals,
       heartbeat: hb,
       alerts: SqliteAlertSink(files.sim, clock: clock),
@@ -115,6 +116,7 @@ void main() {
       db: files.sim,
       runMode: RunMode.live,
       operatingMode: OperatingMode.advisory,
+      execPolicy: ExecPolicy.execute,
       calendars: cals,
       heartbeat: hb,
       alerts: ctx.alerts,
