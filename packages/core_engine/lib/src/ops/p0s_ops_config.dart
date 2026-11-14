@@ -147,6 +147,14 @@ class P0sOpsConfig {
   List<String> get krSymbols =>
       (<String>{...p0sKrPlanSymbols(), human.aSymbol}.toList()..sort());
 
+  /// 🆕 E11p3b-2(R91) — 위험 종목(SAF-301 분자) = 슬리브 A + 슬리브 B 의 주식 자산(금 = 방어 쪽 · C 와 같은 종목) ·
+  /// 채권 · 파킹 · 금 · 현금은 넣지 않는다.
+  Set<String> get riskSymbols => <String>{
+    human.aSymbol,
+    for (final (String s, _) in monthEnd.bAssets)
+      if (s != monthEnd.cGoldSymbol) s,
+  };
+
   /// 상품 구분 — P0S 는 전부 ETF.
   Map<String, InstrumentKind> get instruments => <String, InstrumentKind>{
     for (final String s in krSymbols) s: InstrumentKind.etf,

@@ -52,6 +52,8 @@ export 'src/jobs/job_schedule.dart'
         occurrencesBetween,
         ranOccurrences,
         wakeDecisions;
+// 🆕 E11p3b-2 — KIS 현재가 → 초안 시세(설계 13 §8 R91).
+export 'src/jobs/kis_draft_quotes.dart' show KisDraftQuotes;
 export 'src/jobs/kr_order_jobs.dart'
     show
         DraftQuoteSource,

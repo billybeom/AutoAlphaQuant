@@ -45,6 +45,7 @@ export 'src/local/ledger_hash_stamper.dart';
 export 'src/local/ledger_integrity_check.dart';
 export 'src/local/ledger_read_model.dart';
 export 'src/local/ledger_schema.dart';
+export 'src/local/limit_inputs_source.dart';
 export 'src/local/live_observation_facts.dart';
 export 'src/local/mode_store.dart';
 export 'src/local/onboarding_store.dart';
