@@ -5,5 +5,6 @@ export 'engine_boot.dart';
 export 'job_runners.dart';
 export 'ledger_files.dart';
 export 'operator_engine.dart';
+export 'seed_loader.dart';
 export 'system_clock.dart';
 export 'wake_plan.dart';

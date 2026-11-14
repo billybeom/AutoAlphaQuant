@@ -51,8 +51,13 @@ WakePlan planWake({
   required DoneSessions doneSessions,
   List<JobSpec> specs = kJobTable,
   Duration lookback = kWakeLookback,
+  DateTime? notBeforeUtc,
 }) {
-  final DateTime since = nowUtc.subtract(lookback);
+  // 🆕 E11p3b-3(R93) — 모드가 생기기 전 회차는 보지 않는다(하한 = 이 파일 모드 시작 · 없으면 볼 구간 그대로).
+  final DateTime window = nowUtc.subtract(lookback);
+  final DateTime since = notBeforeUtc != null && notBeforeUtc.isAfter(window)
+      ? notBeforeUtc
+      : window;
   // 세션일은 발화 날보다 앞설 수 있다(US = 앞 날 · 월말 잡 = 월말) → 한 구간 더 앞에서부터 읽는다.
   final TradeDate from = kstDateOf(since.subtract(lookback));
   final Set<JobOccurrence> ran = ranOccurrences(

@@ -158,19 +158,22 @@ String seedTargetKey(SeedTarget t) => switch (t) {
 String seedFetchId(SeedFile f) =>
     '${MarketDataSource.seedBundle.wire}:$kSeedRequestKind:${f.name}';
 
+/// 🆕 E11p3b-3(R93) — 시드를 이미 다 적재했나(자산을 읽기 전에 묻는다 · 아래 적재와 같은 판정).
+bool seedBundleImported(Database db) =>
+    (db.select(
+          'SELECT COUNT(*) AS n FROM fetch_log WHERE source = ? AND request_kind = ?',
+          <Object>[MarketDataSource.seedBundle.wire, kSeedRequestKind],
+        ).first['n']
+        as int) ==
+    kSeedFiles.length;
+
 /// [gzBytes](자산 파일 이름 → 바이트)를 원장 [db] 에 적재한다. [importedAt] = ISO8601 UTC(`fetched_at`).
 SeedImportReport importSeedBundle(
   Database db,
   Map<String, List<int>> gzBytes, {
   required String importedAt,
 }) {
-  final int done =
-      db.select(
-            'SELECT COUNT(*) AS n FROM fetch_log WHERE source = ? AND request_kind = ?',
-            <Object>[MarketDataSource.seedBundle.wire, kSeedRequestKind],
-          ).first['n']
-          as int;
-  if (done == kSeedFiles.length) {
+  if (seedBundleImported(db)) {
     return const SeedImportReport(alreadyImported: true, rows: <String, int>{});
   }
   for (final SeedFile f in kSeedFiles) {

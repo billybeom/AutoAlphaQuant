@@ -66,6 +66,9 @@ Stream<T> watchLedgerQuery<T>(
   );
 }
 
+/// 🆕 E11p3b-3(R93) — 마지막 브로커 대사 시각(FGS «마지막 대사 HH:MM» · 위와 같은 규칙).
+DateTime? lastBrokerReconUtc(Database db) => _lastBrokerRecon(db).$1;
+
 /// 대조 차이 저장 행 전부(+ 브로커 쌍의 닫힌 시각 · R59 S2).
 List<StoredLedgerDiff> storedLedgerDiffs(Database db) {
   final List<DateTime> clears = <DateTime>[

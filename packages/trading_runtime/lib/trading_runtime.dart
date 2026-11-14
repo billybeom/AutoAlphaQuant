@@ -25,6 +25,9 @@ export 'package:core_engine/core_engine.dart'
 
 export 'src/jobs/fgs_notice.dart'
     show FgsChannel, FgsNotice, FgsStatus, buildFgsNotice, shouldRepostFgs;
+// 🆕 E11p3b-3 — FGS 상태 재료 → 입력(레벨 대응 · 다음 리밸런싱 D-n · 설계 13 §8 R93).
+export 'src/jobs/fgs_status.dart'
+    show FgsFacts, breakerUiLevel, fgsStatusOf, sessionsUntilNextRebalance;
 export 'src/jobs/job_contract.dart'
     show
         JobBody,

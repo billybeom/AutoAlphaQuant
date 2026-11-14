@@ -6,8 +6,15 @@
 // 🔴 판정 · 문구는 엔진 몫 — 여기는 차례만 잇는다. FGS 문구는 p3b(상태 함수) 뒤.
 
 import 'package:core_engine/core_engine.dart' show JobHeartbeat;
-import 'package:data_sync/data_sync.dart' show SqliteAlertSink, SqliteJobRunLog;
+import 'package:data_sync/data_sync.dart'
+    show
+        SqliteAlertSink,
+        SqliteJobRunLog,
+        importSeedBundle,
+        modeStartedAtUtc,
+        seedBundleImported;
 import 'package:domain_contracts/domain_contracts.dart' show Clock, TradeDate;
+import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
     show JobCalendars, JobOccurrence, JobRun, JobSpec, kJobTable;
 
@@ -19,6 +26,9 @@ import 'wake_plan.dart';
 
 /// 원장 묶음을 연다(처음 깨어날 때 한 번).
 typedef LedgerFilesOpener = LedgerFiles Function();
+
+/// 시드 자산 바이트(파일 이름 → gz 바이트 · 조립 = `rootBundle`).
+typedef SeedAssets = Future<Map<String, List<int>>> Function();
 
 /// 깨어남 한 번의 결과(시험 · 진단 — 정본 기록은 `job_run`).
 class EngineWakeReport {
@@ -46,6 +56,7 @@ class OperatorEngine {
     this._bootInputs = const BootInputs(),
     this._runners = _defaultRunners,
     this._specs = kJobTable,
+    this._seed,
   }) : _cals = calendars;
 
   final LedgerFilesOpener _openFiles;
@@ -55,6 +66,7 @@ class OperatorEngine {
   final BootInputs _bootInputs;
   final JobRunnerFactory _runners;
   final List<JobSpec> _specs;
+  final SeedAssets? _seed;
   LedgerFiles? _files;
 
   static Map<String, JobRunner> _defaultRunners(JobContext c) =>
@@ -66,6 +78,7 @@ class OperatorEngine {
   /// 🔴 깨어남 한 건(플랫폼 `WakeHandler` 자리 — 깨어남 까닭은 판정에 쓰지 않는다: 늘 전 구간을 본다).
   Future<EngineWakeReport> wake() async {
     final LedgerFiles files = _files ??= _openFiles();
+    await _ensureSeed(<Database?>[files.sim, files.liveIfExists()]);
     final EngineBoot boot = await bootEngine(
       files,
       clock: _clock,
@@ -96,6 +109,7 @@ class OperatorEngine {
       specs: _specs,
       doneSessions: (String job, TradeDate from) =>
           log.doneSessions(job, from: from),
+      notBeforeUtc: modeStartedAtUtc(ready.db),
     );
     final List<JobRun<Object?>> runs = <JobRun<Object?>>[];
     for (final JobOccurrence o in plan.runNow) {
@@ -107,5 +121,21 @@ class OperatorEngine {
       runs.add(await run(o));
     }
     return EngineWakeReport(boot: boot, plan: plan, runs: runs);
+  }
+
+  /// 🆕 E11p3b-3(R93) — 시드 번들을 아직 안 실은 원장에 싣는다(멱등 · 자산은 필요할 때만 읽는다 · 실패 = 이 깨어남 실패).
+  Future<void> _ensureSeed(List<Database?> dbs) async {
+    final SeedAssets? seed = _seed;
+    if (seed == null) return;
+    Map<String, List<int>>? bytes;
+    for (final Database? db in dbs) {
+      if (db == null || seedBundleImported(db)) continue;
+      bytes ??= await seed();
+      importSeedBundle(
+        db,
+        bytes,
+        importedAt: _clock.nowUtc().toUtc().toIso8601String(),
+      );
+    }
   }
 }
