@@ -39,6 +39,28 @@ abstract final class FixturePaths {
   /// 🆕 v1.1 — `ConfigRepository.watchSleeves()` 의 입력(P0S — 새틀라이트 행 없음).
   static const String sleeveCatalog4 = 'sleeve_catalog_4.json';
 
+  // ── m5/ — 🆕 v1.21(01 §30) M5 안전 동작 · 폴더 신설 · 게이트 7 · 서약 3 · 결과 1 · 접수증 1 ──
+  //    (파일 이름 바이트 차례 · `all` 도 같은 차례)
+  static const String m5KillChecklistReceipts =
+      'm5/kill_checklist_receipts.json';
+  static const String m5KillResumeGateConditionUnmet =
+      'm5/kill_resume_gate_condition_unmet.json';
+  static const String m5KillResumeGateInProgress =
+      'm5/kill_resume_gate_in_progress.json';
+  static const String m5KillResumeGateLocked =
+      'm5/kill_resume_gate_locked.json';
+  static const String m5KillResumeGateNotConfirmed =
+      'm5/kill_resume_gate_not_confirmed.json';
+  static const String m5KillResumeGateReady = 'm5/kill_resume_gate_ready.json';
+  static const String m5KillResumeGateTimeUnknown =
+      'm5/kill_resume_gate_time_unknown.json';
+  static const String m5KillResumeGateWaiting =
+      'm5/kill_resume_gate_waiting.json';
+  static const String m5PledgeEditWindow = 'm5/pledge_edit_window.json';
+  static const String m5PledgeNotWritten = 'm5/pledge_not_written.json';
+  static const String m5PledgeWritten = 'm5/pledge_written.json';
+  static const String m5SafetyActionResults = 'm5/safety_action_results.json';
+
   // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
   static const String m6Advice12 = 'm6/advice_12.json';
   static const String m6AdviceBlocked = 'm6/advice_blocked.json';
@@ -758,6 +780,18 @@ abstract final class FixturePaths {
     resumeReport1,
     safetyStates,
     sleeveCatalog4,
+    m5KillChecklistReceipts,
+    m5KillResumeGateConditionUnmet,
+    m5KillResumeGateInProgress,
+    m5KillResumeGateLocked,
+    m5KillResumeGateNotConfirmed,
+    m5KillResumeGateReady,
+    m5KillResumeGateTimeUnknown,
+    m5KillResumeGateWaiting,
+    m5PledgeEditWindow,
+    m5PledgeNotWritten,
+    m5PledgeWritten,
+    m5SafetyActionResults,
     m6Advice12,
     m6AdviceBlocked,
     m6AdviceDetailOnhold,

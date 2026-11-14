@@ -8,7 +8,7 @@
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -149,13 +149,26 @@
 //    온보딩 `KIS_MOCK` → `KIS_PAPER`) — 🆕 tool/gen_r7_v120_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
 //    엔진 다음 계약 판 = 1.21.0(E15i 코드 등재 모음 · E13i1 `SafetyActions`·거부 코드·라우트 3·`GaugeCodes`·생체 포트 · E13i2 VM · E14i ·
 //    E16i(13 R112 D21) · fill-origin · `simToAuto` 표본 · 픽스처 정정 F1~F8 · 이름 붙은 알림 — 창 = R7a 병합 뒤 · R7b 발송 전 ·
-//    06 변경 이력 «2026-11-15 · 계약 v1.20»).
+//    06 변경 이력 «2026-11-15 · 계약 v1.20») — 🆕 v1.21 이 포트·킬스위치·서약 몫을 실었다 · 나머지 = 1.22.0 · 1.23.0+(아래).
+// 🆕 '1.21.0'(엔진 예고 1/2 · 01 §30 · 발주자 위임 2026-11-14 — 권고대로 · K1~K47) — M5 안전 쓰기 포트 + 체험 길:
+//    🆕 commands/safety_actions.dart — `SafetyActions`(넷째 쓰기 창구 · 폰 전용 · `ui_safety` 만 · 표면 run·runKillResumeItem·
+//    runPledge·watch) · `SafetyActionResult` · `SafetyActionCall` · `KillResumeItemSubmission` · `PledgeSubmission` ·
+//    🆕 `SafetyActionId`(KILL_SWITCH_RESUME · PLEDGE_WRITE · PLEDGE_EDIT — run 화이트리스트 0) · `KillChecklistAck` += `activation` ·
+//    🆕 `KillActivationRecord` · 열거 4(`KillActivationReason` · `KillActivationScope` · `KillResumeScenario` · `KillResumeCondition`) ·
+//    🆕 dto/safety_gate.dart — `KillResumeGateVm`·`KillResumeItemRow`·`KillResumeChoice`·`PledgeVm` · 창구 2(`KillSwitchGateRepository` ·
+//    `PledgeRepository`) · 라우트 84(`m5StoppedDecision`·`m5Pledge`·`m5RuleChangeGate`) · 사전 +4(`kill_switch_result` 12 ·
+//    `safety_common_result` 2 · `pledge_result` 6 · `gauge` 4) · 받침대 3 · 🆕 C-55 · C-16 정정 · 픽스처 271 → 283(신설 12 · 개정 1 —
+//    F3 `safety_states` L0 → L1) — 🆕 tool/gen_v121_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
+//    엔진 다음 계약 판 = 1.22.0(E13 나머지 — STOPPED·postmortem·개입·규칙 변경·재량·RECON 해제 · 사다리 · E14i 전량 ·
+//    E15i 남은 굳은 몫(simToAuto 코드·단계·세션·결정 사유·위저드 동작·표본·가상 체결·모드 표지) · fill-origin · `resume_mode` · F8 ·
+//    01 §6-7 — 창 = R7b 병합 뒤 · R7c 발송 전) · 1.23.0+(E16i · 엔진 문구 0 VM 3 · 이름 없는 알림 · 승격 세션 종류 ·
+//    PNG 흔드는 F1·F2·F4~F7 — 굳는 대로) · 06 변경 이력 «2026-11-15 · 계약 판 나눔».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.20.0';
+const String contractVersion = '1.21.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
