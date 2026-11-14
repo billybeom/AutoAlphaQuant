@@ -67,14 +67,19 @@ class AndroidSecretVault implements SecretVault {
     }
   }
 
+  /// 코드 → 사유(이름을 붙이는가). 🔴 C-12 — `apps/` 의 switch 에 전부 받기(`_ =>`)를 두지 않는다 → 표 조회.
+  static const Map<String, (String, bool)> _reasons = <String, (String, bool)>{
+    OperatorChannelCodes.unreadable: ('읽을 수 없다', true),
+    OperatorChannelCodes.badId: ('이름 꼴이 아니다', false),
+    OperatorChannelCodes.badArgs: ('인자 꼴이 아니다', false),
+    OperatorChannelCodes.io: ('저장소 입출력 실패', true),
+  };
+
+  /// 모르는 코드(새 Kotlin · 낡은 Dart) = «쓸 수 없다».
+  static const (String, bool) _unavailable = ('금고를 쓸 수 없다', true);
+
   static String _message(String code, SecretId? id) {
-    final String name = id == null ? '' : ': ${id.value}';
-    return switch (code) {
-      OperatorChannelCodes.unreadable => '읽을 수 없다$name',
-      OperatorChannelCodes.badId => '이름 꼴이 아니다',
-      OperatorChannelCodes.badArgs => '인자 꼴이 아니다',
-      OperatorChannelCodes.io => '저장소 입출력 실패$name',
-      _ => '금고를 쓸 수 없다$name',
-    };
+    final (String reason, bool named) = _reasons[code] ?? _unavailable;
+    return named && id != null ? '$reason: ${id.value}' : reason;
   }
 }
