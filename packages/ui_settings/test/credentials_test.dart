@@ -422,6 +422,7 @@ void main() {
       final FakeSettingsActions actions = FakeSettingsActions(
         result: (int call) => Completer<ActionResult>().future,
       );
+      final RecordingLinkOpener opener = RecordingLinkOpener();
 
       await pumpCredentials(
         tester,
@@ -431,7 +432,7 @@ void main() {
           ),
           actions: actions,
           slots: FakeSettingsSlotRecorder().build,
-          opener: RecordingLinkOpener(),
+          opener: opener,
           clock: FixedClock(kGoldenNowUtc),
         ),
       );
@@ -440,8 +441,11 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(c.tap));
       await tester.pump();
+      await tester.tap(find.byKey(const Key('m9s02-runbook')));
+      await tester.pump();
 
       expect(actions.ids, c.want);
+      expect(opener.opened, <String>[runbook.deepLink]);
       expect(
         tester
             .widgetList<ButtonStyleButton>(
