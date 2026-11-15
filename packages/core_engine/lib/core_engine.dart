@@ -644,6 +644,36 @@ export 'src/portfolio/sleeve_c.dart'
         SleeveCWeights,
         sleeveCAllocateInflow,
         sleeveCUsdTargets;
+// 🆕 E16d1 — X5-3 정정 계획 · 역분개 · 새 기준점(순수 · 설계 13 §8 R121).
+export 'src/repair/baseline_plan.dart'
+    show
+        BaselineCodes,
+        baselinePlanOf,
+        baselineRejectCode,
+        integrityDiffIdOf,
+        oldStampsEvidenceJson;
+export 'src/repair/repair_plan.dart'
+    show
+        LedgerRepairPlanRow,
+        RepairChoice,
+        RepairCodes,
+        RepairDirection,
+        defaultRepairChoiceOf,
+        kBaselineOriginCodes,
+        kRepairableTables,
+        kResyncCanonOriginCodes,
+        repairDeltaRejectCode,
+        repairOriginCodesFor,
+        repairOriginRejectCode,
+        repairTargetRejectCode;
+export 'src/repair/reversal_plan.dart'
+    show
+        FillSnapshot,
+        PlannedFillRow,
+        amendFillPlan,
+        amendFillRejectCode,
+        signedFillQuantity,
+        voidFillPlan;
 // 🆕 E14b — 재개 판정 순수(06 X2-2 · X2-3 · X2-5 · X2-6 · SPEC v2.42 04 §3-1 ②③④ · §5-3 · 설계 13 §8 R72).
 // 🆕 E14c2 — 평시 정리 포트(설계 13 §8 R74 M5).
 export 'src/resume/planned_work_ledger.dart' show PlannedWorkLedger;
