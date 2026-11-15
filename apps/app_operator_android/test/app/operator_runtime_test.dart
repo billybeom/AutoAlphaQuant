@@ -4,12 +4,28 @@ import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
+import 'package:core_engine/core_engine.dart'
+    show Market, TrustedClock, frozenExchangeCalendar, p0sContributionConfig;
+import 'package:data_sync/data_sync.dart'
+    show ContributionChangeResult, ContributionSettingSource;
 import 'package:domain_contracts/domain_contracts.dart'
-    show AppLinkOpener, FeatureFlags, OperatingMode, RunMode;
+    show
+        AppLinkOpener,
+        ContributionSetting,
+        FeatureFlags,
+        OperatingMode,
+        RunMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../engine/support.dart';
+
+class _Trusted implements TrustedClock {
+  _Trusted(this.clock);
+  final FakeClock clock;
+  @override
+  DateTime? trustedNowUtc() => clock.nowUtc();
+}
 
 class _Opener implements AppLinkOpener {
   final List<String> opened = <String>[];
@@ -21,6 +37,16 @@ class _Opener implements AppLinkOpener {
 void main() {
   tearDownAll(deleteTempDirs);
   late FakeClock clock;
+
+  OperatorConfigRepository configOf(
+    OperatorRuntime rt, {
+    Duration tick = const Duration(minutes: 1),
+  }) => OperatorConfigRepository(
+    rt.view,
+    clock: rt.clock,
+    kr: rt.calendars.kr,
+    tick: tick,
+  );
 
   setUp(() => clock = FakeClock(kst(2026, 12, 22, 9, 30)));
 
@@ -70,9 +96,7 @@ void main() {
       addTearDown(f.close);
       final OperatorRuntime rt = OperatorRuntime(files: f, clock: clock);
       final List<FeatureFlags> got = <FeatureFlags>[];
-      final sub = OperatorConfigRepository(rt.view)
-          .watchFlags()
-          .listen(got.add);
+      final sub = configOf(rt).watchFlags().listen(got.add);
       addTearDown(sub.cancel);
       await Future<void>.delayed(Duration.zero);
       expect(got, isEmpty);
@@ -89,7 +113,7 @@ void main() {
       final OperatorRuntime rt = OperatorRuntime(files: f, clock: clock);
       rt.view.value = operatorViewOf(await bootEngine(f, clock: clock), f);
       await expectLater(
-        OperatorConfigRepository(rt.view).watchFlags(),
+        configOf(rt).watchFlags(),
         emits(
           isA<FeatureFlags>().having(
             (FeatureFlags x) => x.runMode,
@@ -103,18 +127,107 @@ void main() {
     test('🔴 원천 없는 흐름 = 오류(지어내지 않는다)', () async {
       final LedgerFiles f = openFiles(tempLedgerDir(), clock);
       addTearDown(f.close);
-      final OperatorConfigRepository c = OperatorConfigRepository(
-        OperatorRuntime(files: f, clock: clock).view,
+      final OperatorConfigRepository c = configOf(
+        OperatorRuntime(files: f, clock: clock),
       );
       await expectLater(c.watchSleeves(), emitsError(isA<UnsupportedError>()));
       await expectLater(
         c.watchRangePresets(),
         emitsError(isA<UnsupportedError>()),
       );
-      await expectLater(
-        c.watchContributionSetting(),
-        emitsError(isA<UnsupportedError>()),
-      );
+    });
+
+    group('🆕 월 납입(R120 — 엔진 운영값)', () {
+      Future<OperatorRuntime> readyRt(LedgerFiles f) async {
+        final OperatorRuntime rt = OperatorRuntime(files: f, clock: clock);
+        writeSimMode(f.sim, clock, committed: OperatingMode.autoTrade);
+        rt.view.value = operatorViewOf(await bootEngine(f, clock: clock), f);
+        return rt;
+      }
+
+      ContributionChangeResult change(
+        LedgerFiles f,
+        String amount,
+        String run,
+      ) => ContributionSettingSource(
+        f.sim,
+        trusted: _Trusted(clock),
+        clock: clock,
+        kr: frozenExchangeCalendar(Market.kr),
+        deviceId: 'test-device',
+      ).change(amountInput: amount, actionRunId: run);
+
+      Future<void> until(bool Function() ok) async {
+        final Stopwatch w = Stopwatch()..start();
+        while (!ok() && w.elapsed < const Duration(seconds: 5)) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+      }
+
+      test('🔴 화면 상태 없음(온보딩 전) = 오류 · 지어내지 않는다', () async {
+        final LedgerFiles f = openFiles(tempLedgerDir(), clock);
+        addTearDown(f.close);
+        await expectLater(
+          configOf(OperatorRuntime(files: f, clock: clock))
+              .watchContributionSetting(),
+          emitsError(isA<StateError>()),
+        );
+      });
+
+      test('🔴 기록 없음 = P0S 기본값 · 기록하면 다시 낸다(같은 연결)', () async {
+        final LedgerFiles f = openFiles(tempLedgerDir(), clock);
+        addTearDown(f.close);
+        final OperatorRuntime rt = await readyRt(f);
+        final List<ContributionSetting> got = <ContributionSetting>[];
+        final sub = configOf(rt).watchContributionSetting().listen(got.add);
+        addTearDown(sub.cancel);
+        await pumpEventQueue();
+        expect(got, hasLength(1));
+        expect(got.single.amount, p0sContributionConfig().defaultAmount);
+        expect(change(f, '150000', 'run-1').ok, true);
+        await pumpEventQueue();
+        expect(got, hasLength(2));
+        expect(got.last.lastChangedText, isNot(got.first.lastChangedText));
+      });
+
+      test('🔴 시간만 흘러도 주기마다 다시 계산 · 같은 값은 다시 내지 않는다', () async {
+        final LedgerFiles f = openFiles(tempLedgerDir(), clock);
+        addTearDown(f.close);
+        final OperatorRuntime rt = await readyRt(f);
+        final List<ContributionSetting> got = <ContributionSetting>[];
+        final sub = configOf(
+          rt,
+          tick: const Duration(milliseconds: 10),
+        ).watchContributionSetting().listen(got.add);
+        addTearDown(sub.cancel);
+        await pumpEventQueue();
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+        expect(got, hasLength(1));
+        clock.now = clock.now.add(const Duration(minutes: 1));
+        await until(() => got.length >= 2);
+        expect(got, hasLength(2));
+        expect(got.last.asOf.observedAt, clock.nowUtc());
+      });
+
+      test('🔴 화면 상태를 따라간다(없어짐 = 오류 · 다시 서면 값)', () async {
+        final LedgerFiles f = openFiles(tempLedgerDir(), clock);
+        addTearDown(f.close);
+        final OperatorRuntime rt = await readyRt(f);
+        final OperatorView v = rt.view.value!;
+        final List<Object> got = <Object>[];
+        final sub = configOf(rt)
+            .watchContributionSetting()
+            .listen(got.add, onError: got.add);
+        addTearDown(sub.cancel);
+        await pumpEventQueue();
+        expect(got.single, isA<ContributionSetting>());
+        rt.view.value = null;
+        await pumpEventQueue();
+        expect(got.last, isA<StateError>());
+        rt.view.value = v;
+        await pumpEventQueue();
+        expect(got.last, isA<ContributionSetting>());
+      });
     });
   });
 

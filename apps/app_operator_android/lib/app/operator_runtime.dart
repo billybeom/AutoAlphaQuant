@@ -7,7 +7,16 @@
 import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
-    show Market, SecretVault, WatchdogRemote, frozenExchangeCalendar;
+    show
+        ExchangeCalendar,
+        Market,
+        SecretVault,
+        WatchdogRemote,
+        contributionKstDay,
+        contributionSettingOf,
+        frozenExchangeCalendar;
+import 'package:data_sync/data_sync.dart'
+    show contributionRowsOf, watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppLinkOpener,
@@ -26,6 +35,7 @@ import '../engine/operator_engine.dart' show EngineWakeReport;
 import '../secret/secret_handoff.dart' show ClipboardJanitor, SecretHandoff;
 import 'operator_view.dart';
 import 'secure_screen.dart';
+import 'view_stream.dart';
 
 /// operator 실행 묶음.
 class OperatorRuntime {
@@ -94,12 +104,26 @@ class OperatorRuntime {
   }
 }
 
-/// 🔴 셸 설정 원천 — 플래그 = 화면 상태 · 그 밖(위성 목록 · 기간 프리셋 · 월 납입)은 아직 원천이 없다(R104 — 지어내지 않는다).
+/// 🔴 셸 설정 원천 — 플래그 = 화면 상태 · 🆕 월 납입 = 엔진 운영값(R120) · 위성 목록 · 기간 프리셋 = 아직 원천 없음(R104 — 지어내지 않는다).
 class OperatorConfigRepository implements ConfigRepository {
-  /// 만든다.
-  OperatorConfigRepository(this._view);
+  /// 만든다 — [clock] · [kr] = 월 납입 읽기(오늘 · 적용 회차) · [tick] = 시간만 흐를 때 다시 계산하는 주기.
+  OperatorConfigRepository(
+    this._view, {
+    required this.clock,
+    required this.kr,
+    this.tick = const Duration(minutes: 1),
+  });
 
   final ValueListenable<OperatorView?> _view;
+
+  /// 기기 시계(🔴 읽기는 신뢰 시각을 모르면 기기 시계 — 엔진 R54 J6 · 읽기는 상태를 바꾸지 않는다).
+  final Clock clock;
+
+  /// 국내 달력(적용 회차).
+  final ExchangeCalendar kr;
+
+  /// 다시 계산하는 주기(달이 바뀌어 예정 값이 지금 값이 되는 몫).
+  final Duration tick;
 
   @override
   Stream<FeatureFlags> watchFlags() {
@@ -133,10 +157,31 @@ class OperatorConfigRepository implements ConfigRepository {
     UnsupportedError('watchRangePresets: 엔진 원천 없음(R104)'),
   );
 
+  /// 🆕 R120 — 화면 상태 원장의 월 납입(엔진 `contributionSettingOf` · 기록 없음 = P0S 기본값).
+  ContributionSetting _contributionOf(OperatorView v) {
+    final DateTime now = clock.nowUtc();
+    return contributionSettingOf(
+      rows: contributionRowsOf(v.db),
+      todayKst: contributionKstDay(now),
+      observedAtUtc: now,
+      kr: kr,
+    );
+  }
+
+  /// 🆕 R120 — 월 납입 = 엔진 운영값(`operating_param_log`) · 기록마다 · 주기마다 · 화면 상태마다 · 바뀐 값만 ·
+  /// 화면 상태 없음 = 오류.
   @override
   Stream<ContributionSetting> watchContributionSetting() =>
-      Stream<ContributionSetting>.error(
-        UnsupportedError('watchContributionSetting: 조립 전(R104)'),
+      followView<ContributionSetting>(
+        view: _view,
+        changes: (OperatorView v) => watchLedgerQuery<ContributionSetting>(
+          v.db,
+          const <String>{'operating_param_log'},
+          () => _contributionOf(v),
+        ),
+        now: _contributionOf,
+        tick: tick,
+        noView: () => StateError('월 납입: 화면 상태 없음(온보딩 전)'),
       );
 }
 

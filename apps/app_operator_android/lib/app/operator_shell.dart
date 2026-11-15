@@ -146,7 +146,11 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   shellPlatformProvider.overrideWithValue(ShellPlatform.androidOperator),
   shellClockProvider.overrideWithValue(runtime.clock),
   shellConfigRepositoryProvider.overrideWithValue(
-    OperatorConfigRepository(runtime.view),
+    OperatorConfigRepository(
+      runtime.view,
+      clock: runtime.clock,
+      kr: runtime.calendars.kr,
+    ),
   ),
   shellAlertRepositoryProvider.overrideWith(
     (Ref ref) => SqliteAlertRepository(
