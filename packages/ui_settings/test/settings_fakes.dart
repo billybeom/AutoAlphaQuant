@@ -385,7 +385,8 @@ List<String?> updateTexts(UpdateGateCard? u) => <String?>[
 
 // ── R7a — M9 S02 fakes ──
 
-class FakeSettingsCredentialsRepository extends UnimplementedSettingsRepository {
+class FakeSettingsCredentialsRepository
+    extends UnimplementedSettingsRepository {
   FakeSettingsCredentialsRepository({required this.credentials});
 
   final Stream<CredentialListVm> Function(int call) credentials;
