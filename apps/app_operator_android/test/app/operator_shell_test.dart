@@ -12,10 +12,18 @@ import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/main.dart';
+import 'package:app_operator_android/secret/kis_key_set_field.dart';
 import 'package:core_engine/core_engine.dart' show alertInboxOf;
 import 'package:data_sync/data_sync.dart' show SqliteAlertSink, storedAlerts;
 import 'package:domain_contracts/domain_contracts.dart'
-    show AlertCodes, AlertItem, AppRoutes, BlockFlag, FlagIds, OperatingMode;
+    show
+        AlertCodes,
+        AlertItem,
+        AppRoutes,
+        BlockFlag,
+        FlagIds,
+        OnboardingSlotIds,
+        OperatingMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -273,6 +281,26 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     container.dispose();
     disposed = true;
+  });
+
+  test('🔴 온보딩 슬롯 빌더(R115) = 주입됨 · SECRET_KIS_MOCK = 키 세트 칸(실행 묶음의 넘김 · 캡처 막기) · 나머지 = 자리 부재', () {
+    final ShellSlotBuilder? b = container.read(
+      shellOnboardingSlotBuilderProvider,
+    );
+    expect(b, isNotNull);
+    for (final String id in OnboardingSlotIds.values) {
+      final Widget w = b!(id);
+      if (id == OnboardingSlotIds.secretKisMock) {
+        expect(w, isA<KisKeySetField>());
+        final KisKeySetField f = w as KisKeySetField;
+        expect(identical(f.handoff, rt.secrets), true);
+        expect(identical(f.janitor, rt.clipboard), true);
+        expect(identical(f.secure, rt.secure), true);
+      } else {
+        expect(w.key, const Key('m4-slot-absent'), reason: id);
+      }
+    }
+    expect(b!('SECRET_KIS_LIVE').key, const Key('m4-slot-absent'));
   });
 
   test('🔴 일지 패키지 링크 열기 = 셸과 같은 것(https = 바깥)', () async {
