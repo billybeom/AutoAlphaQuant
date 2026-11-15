@@ -257,6 +257,16 @@ export 'src/mode/sim_to_auto_switch.dart'
         repairOldModePauses,
         runSimToAutoSwitch;
 // 🆕 E11p3b-1 — 설정 지문(정규 JSON SHA-256 앞 16자 · 설계 13 §8 R90).
+export 'src/onboarding/onboarding_steps.dart'
+    show
+        OnboardingStepFact,
+        kOnboardingFailureFallback,
+        kOnboardingRecommendedWarning,
+        kOnboardingStepMissingLabel,
+        kOnboardingStepsEmptyLabel,
+        onboardingStepDetailVmOf,
+        onboardingStepIds,
+        onboardingStepsVmOf;
 export 'src/ops/config_fingerprint.dart'
     show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;
 // 🆕 E11j — 월 납입 운영값(M3-6 엔진 몫 · 설계 13 §8 R54).

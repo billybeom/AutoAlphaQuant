@@ -51,6 +51,7 @@ export 'src/local/live_observation_facts.dart';
 export 'src/local/live_promotion_store.dart';
 export 'src/local/mode_anchor.dart';
 export 'src/local/mode_store.dart';
+export 'src/local/onboarding_progress_store.dart';
 export 'src/local/onboarding_store.dart';
 export 'src/local/operating_param_store.dart';
 export 'src/local/ops_config_source.dart';
