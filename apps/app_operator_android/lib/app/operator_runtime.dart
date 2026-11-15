@@ -7,7 +7,7 @@
 import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
-    show Market, WatchdogRemote, frozenExchangeCalendar;
+    show Market, SecretVault, WatchdogRemote, frozenExchangeCalendar;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppLinkOpener,
@@ -18,6 +18,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         FeatureFlags,
         SleeveCatalogEntry;
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
 
 import '../engine/ledger_files.dart';
@@ -38,6 +39,8 @@ class OperatorRuntime {
     this.watchdogRemote,
     SecretHandoff? secrets,
     ClipboardJanitor? clipboard,
+    this.vault,
+    this.kisHttp,
   }) : secure = secure ?? SecureScreen(_noSecure),
        secrets = secrets ?? SecretHandoff(),
        clipboard = clipboard ?? ClipboardJanitor(),
@@ -66,6 +69,12 @@ class OperatorRuntime {
 
   /// 🆕 R115 — 붙여넣은 뒤 60초 클립보드 정리.
   final ClipboardJanitor clipboard;
+
+  /// 🆕 E11p3d-5c(R118) — 키 금고(검증 통과 뒤 저장 · 없음 = 설정 동작 부재).
+  final SecretVault? vault;
+
+  /// 🆕 R118 — 키 검증용 HTTP(모의 서버만 · 없음 = 설정 동작 부재).
+  final http.Client? kisHttp;
 
   /// 🆕 R107 — 바깥 링크 열기(https 만).
   final Future<bool> Function(String url) openExternal;

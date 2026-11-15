@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:app_operator_android/app/operator_ops_status.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_safety.dart';
+import 'package:app_operator_android/app/operator_settings_actions.dart';
 import 'package:app_operator_android/app/operator_shell.dart';
 import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/engine_boot.dart';
@@ -14,6 +15,7 @@ import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/secret/kis_key_set_field.dart';
 import 'package:core_engine/core_engine.dart' show alertInboxOf;
+import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart' show SqliteAlertSink, storedAlerts;
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -27,6 +29,8 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:ui_analytics/ui_analytics.dart'
     show
@@ -43,6 +47,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalSafetyRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
+        settingsActionsProvider,
         settingsClockProvider,
         settingsLinkOpenerProvider,
         settingsOpsStatusRepositoryProvider;
@@ -302,6 +307,30 @@ void main() {
     }
     expect(b!('SECRET_KIS_LIVE').key, const Key('m4-slot-absent'));
   });
+
+  test(
+    '🔴 설정 · 온보딩 동작(R118) — 금고 · 검증 HTTP 가 있으면 주입(한 인스턴스) · 없으면 null(컨트롤 부재)',
+    () {
+      expect(container.read(settingsActionsProvider), isNull);
+      expect(container.read(shellOnboardingActionsProvider), isNull);
+      final ProviderContainer c = ProviderContainer(
+        overrides: operatorShellOverrides(
+          OperatorRuntime(
+            files: files,
+            clock: clock,
+            vault: MemorySecretVault(),
+            kisHttp: MockClient(
+              (http.Request r) async => http.Response('', 500),
+            ),
+          ),
+        ),
+      );
+      addTearDown(c.dispose);
+      final Object? a = c.read(settingsActionsProvider);
+      expect(a, isA<OperatorSettingsActions>());
+      expect(identical(c.read(shellOnboardingActionsProvider), a), true);
+    },
+  );
 
   test('🔴 일지 패키지 링크 열기 = 셸과 같은 것(https = 바깥)', () async {
     final List<String> outside = <String>[];
