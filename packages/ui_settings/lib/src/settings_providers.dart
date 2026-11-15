@@ -3,6 +3,7 @@
 // 주입 프로바이더 3.
 
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ── Injection providers ────────────────────────────────────────────────────────
@@ -37,3 +38,10 @@ final Provider<OpsStatusRepository> settingsOpsStatusRepositoryProvider =
 
 final Provider<SettingsActions?> settingsActionsProvider =
     Provider<SettingsActions?>((Ref ref) => null);
+
+// ── R7a — M9 S02 injection providers ──────────────────────────────────────────
+
+typedef SettingsSlotBuilder = Widget Function(String slotId);
+
+final Provider<SettingsSlotBuilder?> settingsSlotBuilderProvider =
+    Provider<SettingsSlotBuilder?>((Ref ref) => null);
