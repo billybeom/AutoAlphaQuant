@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `7085030d530b6fb38c2c40ed7a70c4aefff4969fc9b4bc4ad328e1f894f7f6e7`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `a5f7fc28d891eae6d42a76194a39e900aa35d1364e858c37adf98c878d6b2b6c`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS trades (
     holding_days    INTEGER NOT NULL
 );
 
--- ── 02_데이터모델.md L386-670 ──
+-- ── 02_데이터모델.md L386-714 ──
 CREATE TABLE IF NOT EXISTS strategy_state_log (
     log_id               TEXT NOT NULL PRIMARY KEY,
     strategy_id          TEXT NOT NULL,
@@ -556,6 +556,50 @@ CREATE TABLE IF NOT EXISTS mode_transition (
     committed_at        TEXT    NOT NULL                 -- ISO8601 (UTC)
 );
 CREATE INDEX IF NOT EXISTS ix_mode_transition_at ON mode_transition(committed_at);
+-- 🆕 v2.45(설계 13 §8 R114 Z2 · 발주자 위임 2026-11-14 · 앱 E16s) — 기기 이전(X1) 저널 3표(04 §3-1 v2.45 ①~③).
+--    migration_run = 이전 한 번(옛 폰 · 새 폰이 각자 자기 파일에 자기 행) · migration_step = 단계 저널(단계마다 ENTERED → DONE | FAILED ·
+--    크래시 뒤 «ENTERED 있고 DONE · FAILED 없음» 단계부터 멱등 재개 — 앱 06 X1-2) · maintenance_window = 감시 유지보수 창 사건(04 §5-2 v2.45).
+--    🔴 셋 다 append-only(끝 = 마지막 단계 행 · 창 닫힘 = CLOSED 행 · 행 수정 0) · 🔴 X5-1 해시 모집단 밖(운영 상태 — 이전 · 정정의
+--       원장 사실은 모집단 안 `decision_log` · `executions` 에 남는다) · 🔴 X1 = live 파일만(04 §3-1 v2.45 ⑦ — sim 파일은 행 0)
+--    🔴 시크릿 0 · 금액 0 — `detail_json` · `checks_json` = 단계 코드 · 날 · 해시 앞 8 · 체크 이름만(핑 URL · 키 · 계좌 번호 0)
+CREATE TABLE IF NOT EXISTS migration_run (
+    run_id          TEXT    NOT NULL PRIMARY KEY,        -- 'mig-{시작 한국 날}-{순번}'
+    kind            TEXT    NOT NULL CHECK (kind IN ('PLAN','EMERGENCY')),         -- 계획 교체(X1-2) · 비상(X1-3)
+    role            TEXT    NOT NULL CHECK (role IN ('OLD_DEVICE','NEW_DEVICE')),  -- 이 파일 기기의 역할
+    device_id       TEXT    NOT NULL,                    -- 이 기기
+    operator_epoch  INTEGER NOT NULL CHECK (operator_epoch >= 0),   -- 시작 때 epoch(새 폰 = +1 뒤 값)
+    decision_id     TEXT,                                -- 계획 = `D-03` 확인 결정 · 비상 = 선언 결정
+    started_at      TEXT    NOT NULL                     -- ISO8601 (UTC)
+);
+CREATE TABLE IF NOT EXISTS migration_step (
+    run_id          TEXT    NOT NULL REFERENCES migration_run(run_id),
+    step            TEXT    NOT NULL,                    -- 단계 코드 = core 이전 상태기계 글자(앱 E16b — 목록은 코드가 정본)
+    state           TEXT    NOT NULL CHECK (state IN ('ENTERED','DONE','FAILED')),
+    detail_json     TEXT,                                -- 단계 근거(금액 · 시크릿 0)
+    at              TEXT    NOT NULL,                    -- ISO8601 (UTC)
+    PRIMARY KEY (run_id, step, state)                    -- 🔴 같은 단계 같은 상태 = 1행(재개 멱등)
+);
+CREATE INDEX IF NOT EXISTS ix_migration_step_at ON migration_step(run_id, at);
+CREATE TABLE IF NOT EXISTS maintenance_window (
+    event_id        TEXT    NOT NULL PRIMARY KEY,        -- '{window_id}:{event}' · RESUME_FAILED = '{window_id}:RESUME_FAILED:{부팅 id}'
+    window_id       TEXT    NOT NULL,                    -- 'mw-{열린 한국 날}-{순번}'
+    run_id          TEXT    REFERENCES migration_run(run_id),   -- 이전이 연 창(그 밖 = NULL)
+    event           TEXT    NOT NULL CHECK (event IN ('OPENED','OVERDUE','CLOSED','RESUME_FAILED')),
+                                                     -- OVERDUE = 창당 1건(P1 `MAINTENANCE_WINDOW_OVERDUE`) · RESUME_FAILED = 부팅당 1건(P0)
+    checks_json     TEXT,                                -- OPENED = 멈춘 체크 이름 목록 · 🔴 `engine_alive` 는 들어가지 않는다
+    at              TEXT    NOT NULL                     -- ISO8601 (UTC)
+);
+CREATE INDEX IF NOT EXISTS ix_maintenance_window_id ON maintenance_window(window_id, at);
+-- 🆕 v2.45(설계 13 §8 R114 Z3 · R116 · 04 §3-1 v2.45 ④ · 앱 E16s) — 정정 상세(엔진 로컬 · `ledger_repair` 1:1).
+--    `ledger_repair` 는 배치 C(앱 계약 `domain_contracts/ddl` 정본)라 칸을 더하지 않고 이 표에 둔다(계약 창과 v1 동결 시점을 묶지 않는다).
+--    🔴 append-only · `ledger_repair` 행과 같은 트랜잭션에서 1행 · 🔴 X5-1 해시 모집단 밖(정정 사실은 모집단 안 표에 남는다)
+CREATE TABLE IF NOT EXISTS ledger_repair_detail (
+    repair_id       TEXT    NOT NULL PRIMARY KEY REFERENCES ledger_repair(repair_id),   -- 1:1
+    recomputed_from TEXT,                                -- 다시 센 첫 날(새 기준점 = 첫 어긋난 날 · DERIVED_RESYNC = 재생성 시작 날)
+    chain_hash      TEXT,                                -- 적용 직후 체인(그 날 `ledger_daily_hash.chain_hash`)
+    target_json     TEXT,                                -- 대상(행 id · 종목 · 전후 수량 — 금액 0)
+    evidence_json   TEXT                                 -- 🔴 로컬 전용(아카이브 · push 제외) — 옛 스탬프 · 브로커 근거 원문(해시 = ledger_repair.evidence_hash)
+);
 -- 롤링 12개월 횟수: SELECT COUNT(*) FROM discretion_adjustment
 --                    WHERE applied_at >= date('now','-12 months')
 
