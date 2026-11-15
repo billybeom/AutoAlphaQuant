@@ -22,6 +22,7 @@ import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
 
 import '../engine/ledger_files.dart';
 import '../engine/operator_engine.dart' show EngineWakeReport;
+import '../secret/secret_handoff.dart' show ClipboardJanitor, SecretHandoff;
 import 'operator_view.dart';
 import 'secure_screen.dart';
 
@@ -35,7 +36,11 @@ class OperatorRuntime {
     Future<bool> Function(String url)? openExternal,
     JobCalendars? calendars,
     this.watchdogRemote,
+    SecretHandoff? secrets,
+    ClipboardJanitor? clipboard,
   }) : secure = secure ?? SecureScreen(_noSecure),
+       secrets = secrets ?? SecretHandoff(),
+       clipboard = clipboard ?? ClipboardJanitor(),
        openExternal = openExternal ?? _noExternal,
        calendars =
            calendars ??
@@ -55,6 +60,12 @@ class OperatorRuntime {
 
   /// 🆕 E11p3d-5(R107) — 캡처 막기 겹침 세기(FLAG_SECURE).
   final SecureScreen secure;
+
+  /// 🆕 E11p3d-5b(R115) — 시크릿 칸 ↔ 검증 동작 넘김(값은 위젯 상태에만).
+  final SecretHandoff secrets;
+
+  /// 🆕 R115 — 붙여넣은 뒤 60초 클립보드 정리.
+  final ClipboardJanitor clipboard;
 
   /// 🆕 R107 — 바깥 링크 열기(https 만).
   final Future<bool> Function(String url) openExternal;

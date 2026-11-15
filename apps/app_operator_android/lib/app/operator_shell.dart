@@ -6,9 +6,11 @@
 // 🆕 E11p3d-5(R107) — 캡처 막기 라우트 감싸기 · https 링크 = 브라우저.
 // 🆕 E11p3d-3b(R113) — 안전 상태(셸 · 일지 · 분석 = 한 인스턴스) · 분석 · 설정 패키지의 실물 칸(시계 · 링크 · 운영 상태) 미리 주입.
 //    🔴 주입 의무 = 실물이 있는 칸은 전부 — 빠진 칸은 화면이 `valueOrNull` 로 삼켜 배너가 소리 없이 사라진다(시험이 표로 지킨다).
+// 🆕 E11p3d-5b(R115) — 온보딩 슬롯 빌더(M4-11 ①): `SECRET_KIS_MOCK` = KIS 키 세트 시크릿 칸(M4-4) · 나머지 슬롯 = 자리 부재(크기 0).
 // 🔵 홈(H-01) · 일지 · 보유 · 더보기 본문 · 온보딩 · 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
+import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
 import 'package:data_sync/data_sync.dart'
     show SqliteAlertRepository, SqliteLedgerRepository;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -36,6 +38,8 @@ import 'package:ui_settings/ui_settings.dart'
         settingsOpsStatusRepositoryProvider;
 import 'package:ui_shell/ui_shell.dart';
 
+import '../secret/kis_key_set_field.dart';
+import '../secret/secret_handoff.dart';
 import 'operator_ops_status.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
@@ -75,6 +79,18 @@ final Provider<OperatorSafetyRepository> operatorSafetyProvider =
     Provider<OperatorSafetyRepository>(
       (Ref ref) => OperatorSafetyRepository(ref.watch(operatorRuntimeProvider)),
     );
+
+/// 🆕 R115 — 온보딩 슬롯 빌더(M4-11 ①) — 엔진에 있는 키 세트의 시크릿 칸만 · 나머지 = 자리 부재(크기 0 · 키 `m4-slot-absent`).
+ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
+  final KisKeySet? set = kisKeySetOfSlot(slotId);
+  if (set == null) return const SizedBox.shrink(key: Key('m4-slot-absent'));
+  return KisKeySetField(
+    set: set,
+    handoff: rt.secrets,
+    janitor: rt.clipboard,
+    secure: rt.secure,
+  );
+};
 
 Widget _alertCenter(Map<String, String> _) => const AlertCenter();
 
@@ -118,6 +134,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 R109 — 운영 상태(감시 보드 · 진단 = 실물 · 나머지 = 원천 없음).
   shellOpsStatusRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorOpsStatusProvider),
+  ),
+  // 🆕 R115 — 온보딩 슬롯 빌더(본문 = 온보딩 원천이 서는 조각에서 등록 · 빌더는 미리).
+  shellOnboardingSlotBuilderProvider.overrideWithValue(
+    operatorSlotBuilder(runtime),
   ),
   // 🆕 R113 — 안전 상태 = 셸(H-01) · 일지 · 분석 한 인스턴스.
   shellSafetyRepositoryProvider.overrideWith(
