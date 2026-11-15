@@ -77,6 +77,51 @@ export 'src/decimal_rules.dart'
         multiply,
         oneMinus,
         promoteRatio;
+// 🆕 E16b — X1-2 계획 교체 상태기계 · 이전 티켓 · X1-6 감시 유지보수 창(순수 · 설계 13 §8 R117).
+export 'src/migration/maintenance_window.dart'
+    show
+        WindowAction,
+        WindowEvent,
+        WindowEventRow,
+        WindowRaiseOverdue,
+        WindowState,
+        WindowTryResume,
+        kWindowResumeFailedAlertCode,
+        maintenanceWindowIdOf,
+        pausableChecksOf,
+        resumeFailedEventIdOf,
+        windowActionsOf,
+        windowEventIdOf,
+        windowStateOf;
+export 'src/migration/migration_plan.dart'
+    show
+        MigrationKind,
+        MigrationRole,
+        MigrationStartCodes,
+        MigrationStepRow,
+        MigrationStepState,
+        PlanAborted,
+        PlanBlockCodes,
+        PlanComplete,
+        PlanEnter,
+        PlanNext,
+        PlanProgress,
+        PlanResume,
+        PlanStep,
+        PlanStepFacts,
+        migrationRunIdOf,
+        migrationStartRejectCode,
+        orderLeaseDuringMigration,
+        planNextOf,
+        planProgressOf,
+        planStepBlockCode;
+export 'src/migration/transfer_ticket.dart'
+    show
+        DemotionReceipt,
+        TransferTicket,
+        demotionReceiptOf,
+        kTransferTicketKeys,
+        transferTicketValid;
 // 🆕 E15b — 기동 해석(어느 파일 · 어느 조합 · 반쯤 끝난 커밋 · SPEC v2.44 · 설계 13 §8 R82).
 export 'src/mode/boot_mode.dart'
     show
