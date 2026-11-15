@@ -382,3 +382,119 @@ List<String?> updateTexts(UpdateGateCard? u) => <String?>[
   ?u?.stateLabel,
   ?u?.bodyText,
 ];
+
+// ── R7a — M9 S02 fakes ──
+
+class FakeSettingsCredentialsRepository extends UnimplementedSettingsRepository {
+  FakeSettingsCredentialsRepository({required this.credentials});
+
+  final Stream<CredentialListVm> Function(int call) credentials;
+  int credentialsCalls = 0;
+
+  @override
+  Stream<CredentialListVm> watchCredentials() {
+    final int call = credentialsCalls;
+    credentialsCalls = credentialsCalls + 1;
+    return credentials(call);
+  }
+}
+
+class FakeSettingsSlotRecorder {
+  final List<String> slotIds = <String>[];
+
+  Widget build(String slotId) {
+    slotIds.add(slotId);
+    return DecoratedBox(
+      key: ValueKey<String>('fake-slot-$slotId'),
+      decoration: const BoxDecoration(
+        border: Border.fromBorderSide(BorderSide()),
+      ),
+      child: const SizedBox(height: 48, width: double.infinity),
+    );
+  }
+}
+
+List<Override> credentialsOverrides({
+  required FakeSettingsCredentialsRepository repo,
+  required SettingsActions? actions,
+  required SettingsSlotBuilder? slots,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  settingsRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsSlotBuilderProvider.overrideWithValue(slots),
+  settingsLinkOpenerProvider.overrideWithValue(opener),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpCredentials(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 4000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: Credentials())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> credentialViewerTexts(CredentialCardVm k) => <String?>[
+  k.kindLabel,
+  k.healthLabel,
+  k.usageLabel,
+  ?k.expiresText,
+  ?k.lastVerifiedText,
+  ?k.requirementLabel,
+  ?k.whyLine,
+  ?k.sealLabel,
+  ?k.rotateLink?.label,
+];
+
+List<String?> credentialOperatorTexts(CredentialCardVm k) => <String?>[
+  k.kindLabel,
+  k.healthLabel,
+  k.usageLabel,
+  ?k.expiresText,
+  ?k.lastVerifiedText,
+  ?k.requirementLabel,
+  ?k.whyLine,
+  ?k.sealLabel,
+  ?k.verifyAction?.label,
+  ?k.rotateLink?.label,
+];
+
+List<String> credentialSlotIds(CredentialListVm v) => <String>[
+  for (final CredentialCardVm k in v.cards) ?k.credentialSlotId,
+];
+
+Set<String> credentialsAllowed(CredentialListVm v) => <String>{
+  ?v.lockedLabel,
+  ?v.modeNotice,
+  for (final CredentialCardVm k in v.cards) ...<String>[
+    k.kindLabel,
+    k.healthLabel,
+    k.usageLabel,
+    ?k.expiresText,
+    ?k.lastVerifiedText,
+    ?k.requirementLabel,
+    ?k.whyLine,
+    ?k.sealLabel,
+    ?k.rotateLink?.label,
+  ],
+  ?v.leakRunbookLink?.label,
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
+
+Set<String> credentialsControlTexts(CredentialListVm v) => <String>{
+  for (final CredentialCardVm k in v.cards) ?k.verifyAction?.label,
+};
