@@ -133,11 +133,11 @@ void main() {
     });
   });
 
+  // 🔴 가짜 시간(testWidgets · tester.pump) — 실제 60초 그대로 · CI 의 시간 흔들림에 흔들리지 않는다.
   group('🔴 클립보드 정리(원칙 1)', () {
     late String? board;
     late List<String> writes;
     ClipboardJanitor janitor() => ClipboardJanitor(
-      after: const Duration(milliseconds: 20),
       read: () async => board,
       write: (String t) async {
         writes.add(t);
@@ -150,33 +150,41 @@ void main() {
       writes = <String>[];
     });
 
-    test('그대로면 시간 뒤 비운다 · 그 전에는 두지 않는다', () async {
+    testWidgets('그대로면 60초 뒤 비운다 · 그 전에는 두지 않는다', (WidgetTester tester) async {
       janitor().pasted(_key);
+      await tester.pump(const Duration(seconds: 59));
       expect(writes, isEmpty);
-      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await tester.pump(const Duration(seconds: 2));
       expect(writes, <String>['']);
     });
 
-    test('그 사이 다른 것을 복사했으면 둔다', () async {
+    testWidgets('그 사이 다른 것을 복사했으면 둔다', (WidgetTester tester) async {
       janitor().pasted(_key);
       board = '다른 메모';
-      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await tester.pump(const Duration(seconds: 61));
       expect(writes, isEmpty);
     });
 
-    test('못 읽으면 비운다(안전 쪽)', () async {
+    testWidgets('못 읽으면 비운다(안전 쪽)', (WidgetTester tester) async {
       board = null;
       janitor().pasted(_key);
-      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await tester.pump(const Duration(seconds: 61));
       expect(writes, <String>['']);
     });
 
-    test('다시 붙여넣으면 다시 센다 · flush = 지금 · dispose = 정리 안 함', () async {
+    testWidgets('다시 붙여넣으면 다시 센다 · flush = 지금 · dispose = 정리 안 함', (
+      WidgetTester tester,
+    ) async {
       final ClipboardJanitor j = janitor()..pasted(_key);
-      await Future<void>.delayed(const Duration(milliseconds: 12));
+      await tester.pump(const Duration(seconds: 40));
       j.pasted(_key);
-      await Future<void>.delayed(const Duration(milliseconds: 12));
+      await tester.pump(const Duration(seconds: 40));
       expect(writes, isEmpty);
+      await tester.pump(const Duration(seconds: 21));
+      expect(writes, <String>['']);
+      writes.clear();
+      board = _key;
+      j.pasted(_key);
       await j.flush();
       expect(writes, <String>['']);
       writes.clear();
@@ -184,7 +192,7 @@ void main() {
       j
         ..pasted(_key)
         ..dispose();
-      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await tester.pump(const Duration(seconds: 61));
       expect(writes, isEmpty);
     });
   });

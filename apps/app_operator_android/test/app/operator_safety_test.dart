@@ -85,7 +85,11 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 60));
     expect(got, hasLength(1));
     clock.now = clock.now.add(const Duration(minutes: 1));
-    await Future<void>.delayed(const Duration(milliseconds: 60));
+    // 🔴 고정 대기가 아니라 조건 대기(최대 5초) — CI 의 시간 흔들림에 흔들리지 않는다.
+    final Stopwatch w = Stopwatch()..start();
+    while (got.length < 2 && w.elapsed < const Duration(seconds: 5)) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
     expect(got, hasLength(2));
     expect(got.last.asOf.observedAt, clock.nowUtc());
   });
