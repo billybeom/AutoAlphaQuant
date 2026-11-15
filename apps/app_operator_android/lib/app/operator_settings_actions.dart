@@ -1,0 +1,255 @@
+// 설정 · 온보딩 «동작» operator 판 — 첫 칸 = 키 검증 1단(E11p3d-5c · 설계 13 §8 R118 · 06 M4-4 v1.20 · M4-12 ⑤⑦ · 앱 01 §4-3).
+//
+// 🔴 `credentialVerify{kind}` = 검증 1단 — 슬롯 위젯(`KisKeySetField`)이 쥔 값을 넘김([SecretHandoff])으로 받아
+//    ① 모의 서버 토큰 발급 ② 잔고 1쪽 조회(계좌 · 상품코드가 이 키와 맞는가) ③ 둘 다 통과 = 금고 저장 → 칸 비움.
+//    🔴 저장은 통과 뒤에만(05 §4 원칙 4) · 값은 args · 결과 · 로그 어디에도 없다 · 실패 = 칸 그대로(다시 붙여넣지 않아도 된다).
+// 🔴 모의 칸 검증은 모의 서버만 부른다 — 실전 도메인 호출 0(«다른 환경의 키» 판정 = 실전 세트가 생길 때 · 그 전 = 거절로 보인다).
+// 🔴 같은 세트 검증이 진행 중이면 같은 결과를 기다린다(토큰 발급 1분 1회 · 두 번 누름 = 한 번 발급).
+// 🔴 나머지 동작 = 아직 구현 없음 → `UnsupportedError`(지어내지 않는다 — 그 동작을 쓰는 화면은 아직 레지스트리에 없다).
+
+import 'dart:async';
+
+import 'package:broker_gateway/broker_gateway.dart'
+    show
+        KisCredentials,
+        KisKeySet,
+        KisOrderBroker,
+        KisRejected,
+        KisRestClient,
+        KisTokenError,
+        KisUnavailable,
+        storeKisCredentials;
+import 'package:core_engine/core_engine.dart' show SecretVault;
+import 'package:domain_contracts/domain_contracts.dart'
+    show
+        ActionResult,
+        BrokerRawCodes,
+        Clock,
+        OnboardingResultCodes,
+        SettingsActionId,
+        SettingsActions,
+        UiLevel;
+
+import '../secret/secret_handoff.dart';
+
+/// 검증 결과 문구(엔진 몫 — 화면은 그대로 그린다).
+abstract final class CredentialVerifyText {
+  /// 통과 · 저장.
+  static const String saved = '검증을 통과해 저장했습니다. 다음 회차부터 이 키를 씁니다.';
+
+  /// 칸이 화면에 없다.
+  static const String noField = '키 입력 칸이 화면에 없습니다 — 키를 붙여넣는 화면에서 검증하십시오.';
+
+  /// 칸이 덜 찼다.
+  static const String incomplete =
+      'APP Key · APP Secret · 계좌번호를 모두 붙여넣은 뒤 다시 검증하십시오.';
+
+  /// 토큰 1분 1회.
+  static const String rateLimited = '접근토큰은 1분에 한 번만 발급됩니다. 잠시 뒤 다시 시도하십시오.';
+
+  /// 앱키 거절.
+  static const String keyRejected = '앱키가 거절되었습니다. 발급 화면에서 키를 다시 확인하십시오.';
+
+  /// 계좌 거절.
+  static const String accountRejected =
+      '계좌번호가 이 키와 맞지 않습니다. 모의투자 계좌번호를 다시 확인하십시오.';
+
+  /// 닿지 못함.
+  static const String unreachable =
+      'KIS 모의 서버에 닿지 못했습니다 — 연결을 확인한 뒤 다시 시도하십시오.';
+
+  /// 응답을 읽지 못함.
+  static const String unreadable = 'KIS 모의 서버의 응답을 읽지 못했습니다 — 잠시 뒤 다시 시도하십시오.';
+
+  /// 저장 실패.
+  static const String saveFailed = '검증은 통과했지만 키 금고에 저장하지 못했습니다 — 다시 시도하십시오.';
+
+  /// 아직 이 기기에 없는 세트.
+  static const String setNotYet = '이 키 세트는 아직 이 기기에서 검증할 수 없습니다.';
+}
+
+/// 검증용 KIS 클라이언트를 만든다(시험 = 가짜 HTTP).
+typedef KisVerifyClientOf = KisRestClient Function(KisCredentials credentials);
+
+/// 설정 · 온보딩 «동작» operator 판.
+class OperatorSettingsActions implements SettingsActions {
+  /// 만든다.
+  OperatorSettingsActions({
+    required this.secrets,
+    required this.vault,
+    required this.clientOf,
+    required this.clock,
+  });
+
+  /// 슬롯 위젯 ↔ 검증 넘김.
+  final SecretHandoff secrets;
+
+  /// 키 금고(저장 = 통과 뒤에만).
+  final SecretVault vault;
+
+  /// 검증 클라이언트.
+  final KisVerifyClientOf clientOf;
+
+  /// 결과 id 시각.
+  final Clock clock;
+
+  final Map<String, ActionResult> _results = <String, ActionResult>{};
+  final Map<KisKeySet, Future<ActionResult>> _inFlight =
+      <KisKeySet, Future<ActionResult>>{};
+  int _seq = 0;
+
+  String _runId() => 'ar_op_${clock.nowUtc().microsecondsSinceEpoch}_${++_seq}';
+
+  ActionResult _result(
+    SettingsActionId id,
+    UiLevel level,
+    String headline, {
+    String? reasonCode,
+    bool retryable = false,
+  }) {
+    final ActionResult r = ActionResult(
+      actionRunId: _runId(),
+      id: id,
+      level: level,
+      headline: headline,
+      reasonCode: reasonCode,
+      retryable: retryable,
+    );
+    _results[r.actionRunId] = r;
+    return r;
+  }
+
+  @override
+  Future<ActionResult> run(
+    SettingsActionId id, {
+    Map<String, String> args = const <String, String>{},
+  }) {
+    if (id == SettingsActionId.credentialVerify) {
+      return _credentialVerify(args);
+    }
+    return Future<ActionResult>.error(
+      UnsupportedError('${id.name}: operator 구현 없음(R118)'),
+    );
+  }
+
+  @override
+  Stream<ActionResult> watch(String actionRunId) {
+    final ActionResult? r = _results[actionRunId];
+    return r == null
+        ? Stream<ActionResult>.error(StateError('모르는 동작 id'))
+        : Stream<ActionResult>.value(r);
+  }
+
+  Future<ActionResult> _credentialVerify(Map<String, String> args) {
+    final String? kind = args['kind'];
+    if (kind == null || args.length != 1) {
+      return Future<ActionResult>.error(
+        ArgumentError('credentialVerify args = {kind} 하나'),
+      );
+    }
+    KisKeySet? set;
+    for (final KisKeySet s in KisKeySet.values) {
+      if (s.wire == kind) set = s;
+    }
+    if (set == null) {
+      return Future<ActionResult>.value(
+        _result(
+          SettingsActionId.credentialVerify,
+          UiLevel.blocked,
+          CredentialVerifyText.setNotYet,
+        ),
+      );
+    }
+    final KisKeySet target = set;
+    final Future<ActionResult>? running = _inFlight[target];
+    if (running != null) return running;
+    // 🔴 블록 몸통 — `=> _inFlight.remove(..)` 는 지운 Future(자기 자신)를 돌려줘 whenComplete 가 자기를 기다린다(교착).
+    final Future<ActionResult> f = _verify(target).whenComplete(() {
+      _inFlight.remove(target);
+    });
+    _inFlight[target] = f;
+    return f;
+  }
+
+  Future<ActionResult> _verify(KisKeySet set) async {
+    const SettingsActionId id = SettingsActionId.credentialVerify;
+    if (!secrets.isOnScreen(set)) {
+      return _result(id, UiLevel.blocked, CredentialVerifyText.noField);
+    }
+    final KisCredentials? draft = secrets.draftOf(set);
+    if (draft == null) {
+      return _result(id, UiLevel.act, CredentialVerifyText.incomplete);
+    }
+    final KisRestClient client = clientOf(draft);
+    try {
+      await client.token();
+    } on KisTokenError catch (e) {
+      if (e.rateLimited) {
+        return _result(
+          id,
+          UiLevel.blocked,
+          CredentialVerifyText.rateLimited,
+          reasonCode: BrokerRawCodes.kisTokenRateLimited,
+          retryable: true,
+        );
+      }
+      if (e.status == null) {
+        return _result(
+          id,
+          UiLevel.blocked,
+          CredentialVerifyText.unreachable,
+          retryable: true,
+        );
+      }
+      return _result(
+        id,
+        UiLevel.blocked,
+        CredentialVerifyText.keyRejected,
+        reasonCode: OnboardingResultCodes.credentialRejected,
+      );
+    }
+    try {
+      await KisOrderBroker(client).orderableCashKrw();
+    } on KisRejected {
+      return _result(
+        id,
+        UiLevel.blocked,
+        CredentialVerifyText.accountRejected,
+        reasonCode: OnboardingResultCodes.credentialRejected,
+      );
+    } on KisTokenError {
+      return _result(
+        id,
+        UiLevel.blocked,
+        CredentialVerifyText.unreachable,
+        retryable: true,
+      );
+    } on KisUnavailable {
+      return _result(
+        id,
+        UiLevel.blocked,
+        CredentialVerifyText.unreachable,
+        retryable: true,
+      );
+    } on FormatException {
+      return _result(
+        id,
+        UiLevel.blocked,
+        CredentialVerifyText.unreadable,
+        retryable: true,
+      );
+    }
+    try {
+      await storeKisCredentials(vault, set, draft);
+    } on Object {
+      return _result(
+        id,
+        UiLevel.blocked,
+        CredentialVerifyText.saveFailed,
+        retryable: true,
+      );
+    }
+    secrets.clearAfterSave(set);
+    return _result(id, UiLevel.ok, CredentialVerifyText.saved);
+  }
+}
