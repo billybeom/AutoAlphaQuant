@@ -33,6 +33,7 @@ import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
 import '../engine/ledger_files.dart';
 import '../engine/operator_engine.dart' show EngineWakeReport;
 import '../secret/secret_handoff.dart' show ClipboardJanitor, SecretHandoff;
+import 'operator_onboarding.dart' show OnboardingProbe;
 import 'operator_view.dart';
 import 'secure_screen.dart';
 import 'view_stream.dart';
@@ -51,6 +52,7 @@ class OperatorRuntime {
     ClipboardJanitor? clipboard,
     this.vault,
     this.kisHttp,
+    this.onboardingProbe,
   }) : secure = secure ?? SecureScreen(_noSecure),
        secrets = secrets ?? SecretHandoff(),
        clipboard = clipboard ?? ClipboardJanitor(),
@@ -85,6 +87,9 @@ class OperatorRuntime {
 
   /// 🆕 R118 — 키 검증용 HTTP(모의 서버만 · 없음 = 설정 동작 부재).
   final http.Client? kisHttp;
+
+  /// 🆕 E11p4b(R125) — 온보딩 실측(알림 권한 · 배터리 예외 · 없음 = 진척 행만).
+  final Future<OnboardingProbe?> Function()? onboardingProbe;
 
   /// 🆕 R107 — 바깥 링크 열기(https 만).
   final Future<bool> Function(String url) openExternal;

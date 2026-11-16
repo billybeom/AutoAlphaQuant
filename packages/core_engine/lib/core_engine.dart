@@ -257,6 +257,12 @@ export 'src/mode/sim_to_auto_switch.dart'
         repairOldModePauses,
         runSimToAutoSwitch;
 // 🆕 E11p3b-1 — 설정 지문(정규 JSON SHA-256 앞 16자 · 설계 13 §8 R90).
+export 'src/onboarding/onboarding_choice.dart'
+    show
+        kOnboardingModeCommittedText,
+        kOnboardingModeSelectedText,
+        onboardingModeChoiceVmOf,
+        onboardingStartVmOf;
 export 'src/onboarding/onboarding_steps.dart'
     show
         OnboardingStepFact,

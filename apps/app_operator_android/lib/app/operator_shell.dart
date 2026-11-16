@@ -8,6 +8,8 @@
 //    🔴 주입 의무 = 실물이 있는 칸은 전부 — 빠진 칸은 화면이 `valueOrNull` 로 삼켜 배너가 소리 없이 사라진다(시험이 표로 지킨다).
 // 🆕 E11p3d-5b(R115) — 온보딩 슬롯 빌더(M4-11 ①): `SECRET_KIS_MOCK` = KIS 키 세트 시크릿 칸(M4-4) · 나머지 슬롯 = 자리 부재(크기 0).
 // 🆕 E11p3d-5c(R118) — 설정 · 온보딩 «동작» = `OperatorSettingsActions`(첫 칸 = 키 검증 1단) · 🔴 operator 빌드 주입 의무(M4-12 ⑤ · 비-null 단언 시험).
+// 🆕 E11p4b(R125) — 온보딩 읽기 모델(`OperatorOnboardingRepository`) · 본문 4(첫 화면 · 운영 방식 · 단계 목록 · 단계 상세) ·
+//    동작에 sim 파일(운영 방식 선택 · 키 검증 → 진척 기록). 마무리 · 재시작 = 4c · 4d.
 // 🔵 홈(H-01) · 일지 · 보유 · 더보기 본문 · 온보딩 · 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
@@ -48,6 +50,7 @@ import 'package:ui_shell/ui_shell.dart';
 
 import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
+import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
@@ -102,6 +105,7 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
         clientOf: (KisCredentials c) =>
             KisRestClient(net, c, environment: c.environment),
         clock: rt.clock,
+        sim: rt.files.sim,
       );
     });
 
@@ -117,7 +121,41 @@ ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
   );
 };
 
+/// 🆕 R125 — 온보딩 읽기 모델(한 인스턴스 — 실측 캐시를 같이 쓴다).
+final Provider<OperatorOnboardingRepository> operatorOnboardingProvider =
+    Provider<OperatorOnboardingRepository>(
+      (Ref ref) =>
+          OperatorOnboardingRepository(ref.watch(operatorRuntimeProvider)),
+    );
+
+/// 🆕 R125 — 첫 실행 판정(미결 158) — 온보딩이 끝났나(`committed_at`).
+final StreamProvider<bool> operatorOnboardingDoneProvider =
+    StreamProvider<bool>(
+      (Ref ref) => watchOnboardingDone(ref.watch(operatorRuntimeProvider)),
+    );
+
+/// 🆕 R125 — 셸 내비게이터 키.
+final Provider<GlobalKey<NavigatorState>> operatorShellNavigatorKeyProvider =
+    Provider<GlobalKey<NavigatorState>>(
+      (Ref ref) => GlobalKey<NavigatorState>(debugLabel: 'shell'),
+    );
+
+/// 🆕 R125 — 온보딩 내비게이터 키.
+final Provider<GlobalKey<NavigatorState>>
+operatorOnboardingNavigatorKeyProvider = Provider<GlobalKey<NavigatorState>>(
+  (Ref ref) => GlobalKey<NavigatorState>(debugLabel: 'onboarding'),
+);
+
 Widget _alertCenter(Map<String, String> _) => const AlertCenter();
+
+Widget _onboardingStart(Map<String, String> _) => const OnboardingStart();
+
+Widget _onboardingMode(Map<String, String> _) => const OnboardingModePick();
+
+Widget _onboardingSteps(Map<String, String> _) => const OnboardingStepList();
+
+Widget _onboardingStep(Map<String, String> p) =>
+    OnboardingStepDetail(stepId: p['stepId'] ?? '');
 
 Widget _alertDetail(Map<String, String> p) =>
     AlertDetail(alertId: p['alertId'] ?? '');
@@ -138,6 +176,11 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   // 🆕 E11p3d-3a(R111) — 원장 대조 · 수리 기록(실물 = `SqliteLedgerRepository` · 같은 원장).
   AppRoutes.ledgerDiffs: _ledgerDiffs,
   AppRoutes.ledgerRepairs: _ledgerRepairs,
+  // 🆕 E11p4b(R125) — 온보딩 넷(첫 화면 · 운영 방식 · 단계 목록 · 단계 상세 — 키 칸 = 슬롯 빌더 · 캡처 막기 = 칸이 스스로).
+  AppRoutes.onboardingStart: _onboardingStart,
+  AppRoutes.onboardingModePick: _onboardingMode,
+  AppRoutes.onboardingSteps: _onboardingSteps,
+  AppRoutes.onboardingStep: _onboardingStep,
 });
 
 /// 🔴 operator 셸 주입 — 실물 있는 칸.
@@ -167,6 +210,17 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 R115 — 온보딩 슬롯 빌더(본문 = 온보딩 원천이 서는 조각에서 등록 · 빌더는 미리).
   shellOnboardingSlotBuilderProvider.overrideWithValue(
     operatorSlotBuilder(runtime),
+  ),
+  // 🆕 R125 — 지금 서 있는 내비게이터의 키(온보딩 중 = 온보딩 · 뒤 = 셸) — 🔴 둘이 키를 나눠 쓰면 끝날 때
+  //    온보딩 쪽 내비게이터(쌓인 화면째)가 셸 자리로 옮겨 붙는다(GlobalKey 재부착). 링크 열기 · 딥링크 중계 = 이 키를 따른다.
+  shellNavigatorKeyProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorOnboardingDoneProvider).valueOrNull == false
+        ? ref.watch(operatorOnboardingNavigatorKeyProvider)
+        : ref.watch(operatorShellNavigatorKeyProvider),
+  ),
+  // 🆕 R125 — 온보딩 읽기 모델.
+  shellOnboardingRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorOnboardingProvider),
   ),
   // 🆕 R118 — 설정 · 온보딩 «동작» = 한 인스턴스(검증 진행 중 겹침을 한 곳에서 막는다).
   shellOnboardingActionsProvider.overrideWith(

@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_shell/ui_shell.dart';
 
+import 'app/operator_root.dart';
 import 'app/operator_runtime.dart';
 import 'app/operator_shell.dart';
 import 'platform/platform.dart';
@@ -68,7 +69,8 @@ class AutoAlphaQuantOperatorApp extends StatelessWidget {
       theme: ThemeData(useMaterial3: true),
       // ⚠️ 다크 테마·로케일은 ui_shell이 셸을 내놓을 때 함께 정한다.
       builder: shell ? _band : null,
-      home: shell ? const ShellRoot() : const _ScaffoldStub(),
+      // 🆕 E11p4b(R125) — 첫 실행 판정: 온보딩 전 = 온보딩 내비게이터 · 뒤 = 셸.
+      home: shell ? const OperatorRoot() : const _ScaffoldStub(),
     );
   }
 }

@@ -6,6 +6,9 @@
 // 🔴 모의 칸 검증은 모의 서버만 부른다 — 실전 도메인 호출 0(«다른 환경의 키» 판정 = 실전 세트가 생길 때 · 그 전 = 거절로 보인다).
 // 🔴 같은 세트 검증이 진행 중이면 같은 결과를 기다린다(토큰 발급 1분 1회 · 두 번 누름 = 한 번 발급).
 // 🔴 나머지 동작 = 아직 구현 없음 → `UnsupportedError`(지어내지 않는다 — 그 동작을 쓰는 화면은 아직 레지스트리에 없다).
+// 🆕 E11p4b(R125) — `onboardingOperatingModeSelect{operating_mode}`(sim 파일 `onboarding_choice` · 확정 뒤 = 거부) ·
+//    키 검증 결과를 온보딩 진척에 적는다(통과 = o_02 VERIFIED · 거절 = FAILED `CREDENTIAL_REJECTED` · 재시도 갈래 = 그대로).
+//    결과 문장 = 표본 글자(core `kOnboardingMode*Text`) — sim 파일이 없으면(시험 · 화면 없는 조립) 이 두 몫은 빠진다.
 
 import 'dart:async';
 
@@ -19,16 +22,25 @@ import 'package:broker_gateway/broker_gateway.dart'
         KisTokenError,
         KisUnavailable,
         storeKisCredentials;
-import 'package:core_engine/core_engine.dart' show SecretVault;
+import 'package:core_engine/core_engine.dart'
+    show SecretVault, kOnboardingModeCommittedText, kOnboardingModeSelectedText;
+import 'package:data_sync/data_sync.dart'
+    show
+        OnboardingOutcome,
+        SqliteOnboardingProgressStore,
+        SqliteOnboardingStore;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         ActionResult,
         BrokerRawCodes,
         Clock,
         OnboardingResultCodes,
+        OperatingMode,
         SettingsActionId,
         SettingsActions,
+        StepState,
         UiLevel;
+import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../secret/secret_handoff.dart';
 
@@ -79,7 +91,11 @@ class OperatorSettingsActions implements SettingsActions {
     required this.vault,
     required this.clientOf,
     required this.clock,
+    this.sim,
   });
+
+  /// 🆕 R125 — 온보딩이 쓰는 sim 파일(없음 = 운영 방식 선택 · 진척 기록 없음).
+  final Database? sim;
 
   /// 슬롯 위젯 ↔ 검증 넘김.
   final SecretHandoff secrets;
@@ -126,6 +142,10 @@ class OperatorSettingsActions implements SettingsActions {
   }) {
     if (id == SettingsActionId.credentialVerify) {
       return _credentialVerify(args);
+    }
+    final Database? db = sim;
+    if (id == SettingsActionId.onboardingOperatingModeSelect && db != null) {
+      return _modeSelect(db, args);
     }
     return Future<ActionResult>.error(
       UnsupportedError('${id.name}: operator 구현 없음(R118)'),
@@ -201,6 +221,11 @@ class OperatorSettingsActions implements SettingsActions {
           retryable: true,
         );
       }
+      _progress(
+        set,
+        StepState.failed,
+        OnboardingResultCodes.credentialRejected,
+      );
       return _result(
         id,
         UiLevel.blocked,
@@ -211,6 +236,11 @@ class OperatorSettingsActions implements SettingsActions {
     try {
       await KisOrderBroker(client).orderableCashKrw();
     } on KisRejected {
+      _progress(
+        set,
+        StepState.failed,
+        OnboardingResultCodes.credentialRejected,
+      );
       return _result(
         id,
         UiLevel.blocked,
@@ -250,6 +280,54 @@ class OperatorSettingsActions implements SettingsActions {
       );
     }
     secrets.clearAfterSave(set);
+    _progress(set, StepState.verified, null);
     return _result(id, UiLevel.ok, CredentialVerifyText.saved);
+  }
+
+  /// 🆕 R125 — 세트 → 온보딩 단계(모의 = o_02 · 그 밖 = 단계 없음).
+  static String? _stepOf(KisKeySet set) => switch (set) {
+    KisKeySet.paper => 'o_02',
+  };
+
+  void _progress(KisKeySet set, StepState state, String? code) {
+    final Database? db = sim;
+    final String? step = _stepOf(set);
+    if (db == null || step == null) return;
+    SqliteOnboardingProgressStore(
+      db,
+      clock: clock,
+    ).record(step, state, failureReasonCode: code);
+  }
+
+  Future<ActionResult> _modeSelect(Database db, Map<String, String> args) {
+    const SettingsActionId id = SettingsActionId.onboardingOperatingModeSelect;
+    final String? wire = args['operating_mode'];
+    OperatingMode? mode;
+    for (final OperatingMode m in OperatingMode.values) {
+      if (m.wire == wire) mode = m;
+    }
+    if (mode == null || args.length != 1) {
+      return Future<ActionResult>.error(
+        ArgumentError(
+          'onboardingOperatingModeSelect args = {operating_mode} 하나',
+        ),
+      );
+    }
+    final OnboardingOutcome out = SqliteOnboardingStore(
+      db,
+      clock: clock,
+    ).selectOperatingMode(mode);
+    return Future<ActionResult>.value(
+      out.ok
+          ? _result(id, UiLevel.ok, kOnboardingModeSelectedText)
+          : _result(
+              id,
+              UiLevel.blocked,
+              out.reasonCode == OnboardingResultCodes.choiceCommitted
+                  ? kOnboardingModeCommittedText
+                  : out.headline,
+              reasonCode: out.reasonCode,
+            ),
+    );
   }
 }
