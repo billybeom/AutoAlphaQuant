@@ -676,6 +676,18 @@ export 'src/repair/repair_plan.dart'
         repairOriginCodesFor,
         repairOriginRejectCode,
         repairTargetRejectCode;
+// 🆕 E16d2 — X5 정정 이력 표시 행 빌더(설계 13 §8 R123).
+export 'src/repair/repair_rows.dart'
+    show
+        RepairTargetKind,
+        StoredLedgerRepair,
+        kRepairDecisionLinkLabel,
+        kRepairReasonPhrases,
+        kRepairSupersededLabel,
+        ledgerRepairRowOf,
+        ledgerRepairRowsOf,
+        repairLabelOf,
+        repairTargetTextOf;
 export 'src/repair/reversal_plan.dart'
     show
         FillSnapshot,
