@@ -35,6 +35,7 @@ void main() {
       'ADVICE_SUPPRESSED',
       'BREAKER_STOPPED',
       'BROKER_AUTH_FAILED',
+      'DERIVED_FORK',
       'LEDGER_INTEGRITY_BROKEN',
       'MAINTENANCE_RESUME_FAILED',
       'ORDER_OUTCOME_UNKNOWN',
@@ -67,10 +68,11 @@ void main() {
       'SELF_AUDIT_DUE',
     ]);
     // 계약 코드 전부 등급이 있다 · 🆕 v1.18(앱 01 §27 · K-z) — 제안 6 = 계약 등재 → 표 밖 0.
+    // 🆕 E16f3a — 등재 대기 제안 1 = `DERIVED_FORK`(R130 L6 · 계약 등재 = E16i).
     expect(AlertCodes.values.every(kAlertLevels.containsKey), isTrue);
     expect(
       kAlertLevels.keys.where((String c) => !AlertCodes.values.contains(c)),
-      isEmpty,
+      <String>[kDerivedForkAlertCode],
     );
   });
 

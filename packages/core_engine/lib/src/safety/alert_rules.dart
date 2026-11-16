@@ -8,6 +8,7 @@
 import 'package:domain_contracts/domain_contracts.dart'
     show AdviceRejectCodes, AlertCodes, AlertLevel;
 
+import '../ops/derived_sync.dart' show kDerivedForkAlertCode;
 import '../ops/equity_snapshot.dart'
     show kBreakerStoppedAlertCode, kStoppedReleaseEligibleAlertCode;
 import '../ops/ledger_integrity.dart' show kLedgerIntegrityAlertCode;
@@ -18,7 +19,7 @@ import '../resume/resume_alerts.dart'
         kResumeDataGapAlertCode,
         kResumeTradingHaltedAlertCode;
 
-/// 엔진 등급 표(04 §5-3 · 계약 25 + 등재 대기 제안 6 — 등재 = 계약 창 E13i1 · E14i).
+/// 엔진 등급 표(04 §5-3 · 계약 31 + 🆕 등재 대기 제안 1 `DERIVED_FORK` — 등재 = 계약 창 E16i).
 const Map<String, AlertLevel> kAlertLevels = <String, AlertLevel>{
   // P0(04 §5-3).
   AlertCodes.orderOutcomeUnknown: AlertLevel.p0,
@@ -57,6 +58,8 @@ const Map<String, AlertLevel> kAlertLevels = <String, AlertLevel>{
   kResumeTradingHaltedAlertCode: AlertLevel.p0,
   kResumeCompletedAlertCode: AlertLevel.p1,
   kResumeDataGapAlertCode: AlertLevel.p2,
+  // 🆕 E16f3a 파생 FORK 제안 1(04 §5-3 v2.45 · R130 L6 — 계약 등재 = E16i).
+  kDerivedForkAlertCode: AlertLevel.p0,
 };
 
 /// 코드의 등급 — 🔴 모르는 코드 = [ArgumentError](지어내지 않는다 · 잡 규약상 fail 핑).

@@ -25,6 +25,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         hashFormatVersion;
 import 'package:sqlite3/sqlite3.dart';
 
+import 'derived_sync_store.dart' show storedDayStampsOf;
 import 'ledger_fix.dart' show withLedgerFix;
 import 'ledger_hash_stamper.dart' show ledgerLinesByDay;
 
@@ -131,18 +132,7 @@ class SqliteLedgerRepairStore {
     <Object?>[FlagIds.ledgerIntegrity],
   ).isNotEmpty;
 
-  List<StoredDayStamp> _stamps() => <StoredDayStamp>[
-    for (final Row r in _db.select(
-      'SELECT authored_date, day_hash, chain_hash, hash_format_version '
-      'FROM ledger_daily_hash ORDER BY authored_date',
-    ))
-      StoredDayStamp(
-        authoredDate: r['authored_date'] as String,
-        dayHash: r['day_hash'] as String,
-        chainHash: r['chain_hash'] as String,
-        hashFormatVersion: r['hash_format_version'] as int,
-      ),
-  ];
+  List<StoredDayStamp> _stamps() => storedDayStampsOf(_db);
 
   LedgerIntegrityVerdict _verdict() {
     final List<String> pragma = <String>[
