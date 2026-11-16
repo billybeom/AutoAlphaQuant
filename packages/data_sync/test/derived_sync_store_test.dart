@@ -332,6 +332,7 @@ void main() {
       mode: RunMode.live,
       writerDeviceId: 'dev-1',
       operatorEpoch: epoch,
+      derivedResyncDailyCap: 3,
     );
 
     test('평시 = 관계 보고 · 아카이브 · 건너뜀 없음', () {

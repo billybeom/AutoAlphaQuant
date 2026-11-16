@@ -5,10 +5,15 @@
 //    `last_ok_at` 은 손대지 않는다(원격 성공의 뜻 · 백업 나이).
 // 🔴 FORK 로 **바뀐 때만** true(끈적 — 다시 알리지 않는다) · 체인 diff = INSERT OR IGNORE(관측 · 같은 내용 = 같은 id).
 // 🔴 기록 = 저장소 한 트랜잭션(정본 정정이 아니라 `withLedgerFix` 밖).
-// 🟡 REBASED 재생성 · diff 해소 = E16f3b.
+// 🆕 E16f3b — 아카이브 재생성 기록(R131 M3 · M4): REBASED diff RESOLVED + `DERIVED_RESYNC` `ARCHIVE_DAYS` 정정 행 + 상세 ·
+//    id = 대상 · 첫 날 · 체인의 해시(다시 돌려도 한 행) · 오늘 횟수 = 한국 날 그 행 수(하루 상한).
+
+import 'dart:convert' show jsonEncode, utf8;
 
 import 'package:core_engine/core_engine.dart';
-import 'package:domain_contracts/domain_contracts.dart' show DiffStatus;
+import 'package:crypto/crypto.dart' show sha256;
+import 'package:domain_contracts/domain_contracts.dart'
+    show DiffStatus, OriginCodes;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
@@ -53,6 +58,14 @@ CanonChain canonChainOf(Database db, {required int operatorEpoch}) =>
           ),
       ],
     );
+
+/// 🆕 E16f3b — 재생성 정정 행 id(대상 · 첫 날 · 체인 · 다시 돌려도 같은 id · R131 M3).
+String archiveResyncRepairIdOf(
+  DerivedTarget target,
+  String fromDate,
+  String chainHash,
+) =>
+    'rs-${sha256.convert(utf8.encode('${target.syncTarget}|$fromDate|$chainHash')).toString().substring(0, 24)}';
 
 /// 아카이브 ↔ 정본 관계 한 판.
 typedef DerivedView = ({
@@ -142,6 +155,98 @@ class SqliteDerivedSyncStore {
       _db,
       () => _insertDiff(target, view, atUtc.toUtc().toIso8601String()),
     );
+  }
+
+  /// 🆕 E16f3b — 한국 날 [kstDay] 의 아카이브 재생성 횟수(`DERIVED_RESYNC` × `ARCHIVE_DAYS` · 하루 상한 · R131 M2).
+  int archiveResyncsOn(String kstDay) =>
+      _db.select(
+            'SELECT COUNT(*) AS n FROM ledger_repair r '
+            'JOIN ledger_repair_detail d ON d.repair_id = r.repair_id '
+            "WHERE r.direction = 'DERIVED_RESYNC' "
+            "AND json_extract(d.target_json, '\$.kind') = 'ARCHIVE_DAYS' "
+            "AND date(r.applied_at, '+9 hours') = ?",
+            <Object?>[kstDay],
+          ).single['n']
+          as int;
+
+  /// 🔴 아카이브 재생성 기록(R131 M3 · M4) — 한 트랜잭션: REBASED diff(없으면 넣고) RESOLVED + `DERIVED_RESYNC` 정정 행 + 상세.
+  ///
+  /// 같은 첫 날 · 체인 = 같은 id(INSERT OR IGNORE · 다시 돌려도 한 행) · REBASED 아님 = [ArgumentError].
+  LedgerRepairPlanRow recordArchiveResync(
+    DerivedTarget target,
+    DerivedView view, {
+    required String fromDate,
+    required int days,
+    required String chainHash,
+    required DateTime atUtc,
+  }) {
+    if (view.relation != DerivedRelation.rebased) {
+      throw ArgumentError.value(
+        view.relation.wire,
+        'relation',
+        'REBASED 가 아니다',
+      );
+    }
+    if (days < 0) throw ArgumentError.value(days, 'days', '0 이상');
+    final DerivedChainDiff d = derivedChainDiffOf(
+      target,
+      view.relation,
+      view.canon,
+      view.derived,
+    )!;
+    final DateTime at = atUtc.toUtc();
+    final LedgerRepairPlanRow row = LedgerRepairPlanRow(
+      repairId: archiveResyncRepairIdOf(target, fromDate, chainHash),
+      diffId: d.diffId,
+      direction: RepairDirection.derivedResync,
+      originCode: OriginCodes.chainBroken,
+      evidenceHash: evidenceHashOf(d.deltaJson),
+      appliedAtUtc: at,
+      recomputedFrom: fromDate,
+      chainHash: chainHash,
+      targetJson: jsonEncode(<String, Object?>{
+        'kind': 'ARCHIVE_DAYS',
+        'count': days,
+      }),
+      evidenceJson: d.deltaJson,
+    );
+    return inLedgerTransaction(_db, () {
+      final String iso = at.toIso8601String();
+      _insertDiff(target, view, iso);
+      _db.execute(
+        'UPDATE ledger_diff SET status = ?, origin_code = ? WHERE diff_id = ? AND status = ?',
+        <Object?>[
+          DiffStatus.resolved.wire,
+          row.originCode,
+          row.diffId,
+          DiffStatus.open.wire,
+        ],
+      );
+      _db.execute(
+        'INSERT OR IGNORE INTO ledger_repair (repair_id, diff_id, direction, origin_code, decision_id, '
+        'evidence_hash, supersedes, applied_at) VALUES (?, ?, ?, ?, NULL, ?, NULL, ?)',
+        <Object?>[
+          row.repairId,
+          row.diffId,
+          row.direction.wire,
+          row.originCode,
+          row.evidenceHash,
+          iso,
+        ],
+      );
+      _db.execute(
+        'INSERT OR IGNORE INTO ledger_repair_detail (repair_id, recomputed_from, chain_hash, target_json, '
+        'evidence_json) VALUES (?, ?, ?, ?, ?)',
+        <Object?>[
+          row.repairId,
+          row.recomputedFrom,
+          row.chainHash,
+          row.targetJson,
+          row.evidenceJson,
+        ],
+      );
+      return row;
+    });
   }
 
   bool _insertDiff(DerivedTarget target, DerivedView view, String at) {

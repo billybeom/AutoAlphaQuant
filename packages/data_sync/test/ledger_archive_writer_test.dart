@@ -342,6 +342,7 @@ void main() {
       mode: RunMode.live,
       writerDeviceId: 'dev-1',
       operatorEpoch: 0,
+      derivedResyncDailyCap: 3,
     );
 
     test('어제(한국)까지 스탬프 → 아카이브 → 백업 나이(원격 성공 없음 = 첫 스탬프부터)', () {

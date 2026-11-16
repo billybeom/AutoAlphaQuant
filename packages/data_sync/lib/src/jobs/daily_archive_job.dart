@@ -7,6 +7,8 @@
 // 🆕 E16f3a — 무결성 일치 뒤 아카이브 ↔ 정본 관계(R130 L7): FORK(지금 FORK 이거나 관계가 FORK) = 건너뜀 + 기록 ·
 //    FORK 로 바뀐 때만 P0 `DERIVED_FORK` · REBASED = 건너뜀(던지지 않음) + 관측 diff · 봉인 = 건너뜀 · 그 밖 = 아카이브.
 //    🔴 FORK 판정은 리스 무관(SPEC v2.45 ⑤) · 리스 · 하루 상한 = 재생성(E16f3b)부터.
+// 🆕 E16f3b — REBASED = `derivedSyncActionOf`(리스 유효 ∧ 하루 상한 안) → 재생성(파일 → 체크포인트) → 정정 행 · diff 해소
+//    (R131 M2 · M5) · 미룸 = 건너뜀 + 까닭 · 🔴 EMPTY · BEHIND 로컬 이어 쓰기는 리스를 보지 않는다(원격 커밋 = E11n).
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
@@ -50,6 +52,8 @@ class DailyArchiveReport implements DailyJobReport {
     this.skipped,
     this.relation,
     this.forkRaised = false,
+    this.hold,
+    this.resync,
   });
 
   /// 이번에 스탬프한 날.
@@ -73,6 +77,12 @@ class DailyArchiveReport implements DailyJobReport {
   /// 🆕 E16f3a — 이번에 FORK 로 바뀌었나(P0 `DERIVED_FORK` 한 번).
   final bool forkRaised;
 
+  /// 🆕 E16f3b — REBASED 재생성을 미룬 까닭(리스 · 하루 상한).
+  final DerivedHoldReason? hold;
+
+  /// 🆕 E16f3b — 이번 재생성 정정 행(다시 썼을 때만).
+  final LedgerRepairPlanRow? resync;
+
   @override
   Set<String> get alerts => <String>{
     if (backup?.stale ?? false) AlertCodes.backupStale,
@@ -82,7 +92,7 @@ class DailyArchiveReport implements DailyJobReport {
 
   @override
   String toString() =>
-      'DailyArchiveReport(스탬프 ${stamped.length} · 무결성 ${integrity.verdict.ok ? '일치' : integrity.verdict.reason!.code} · 아카이브 ${skipped == null ? archived.length : '건너뜀 ${skipped!.label}'} · 백업 ${backup?.age.inHours ?? '-'}h)';
+      'DailyArchiveReport(스탬프 ${stamped.length} · 무결성 ${integrity.verdict.ok ? '일치' : integrity.verdict.reason!.code} · 아카이브 ${skipped == null ? '${resync == null ? '' : '다시 씀 '}${archived.length}' : '건너뜀 ${skipped!.label}${hold == null ? '' : ' ${hold!.wire}'}'} · 백업 ${backup?.age.inHours ?? '-'}h)';
 }
 
 String _kstYesterday(DateTime utc) {
@@ -101,8 +111,16 @@ class DailyArchiveJob {
     required RunMode mode,
     required String writerDeviceId,
     required int operatorEpoch,
+    required int derivedResyncDailyCap,
     List<String> Function(Database db)? sqliteIntegrity,
   }) : _operatorEpoch = operatorEpoch,
+       _resyncCap = derivedResyncDailyCap < 1
+           ? throw ArgumentError.value(
+               derivedResyncDailyCap,
+               'derivedResyncDailyCap',
+               '1 이상',
+             )
+           : derivedResyncDailyCap,
        _derived = SqliteDerivedSyncStore(_db),
        _writer = LedgerArchiveWriter(
          _db,
@@ -121,6 +139,7 @@ class DailyArchiveJob {
   final Database _db;
   final Clock _clock;
   final int _operatorEpoch;
+  final int _resyncCap;
   final SqliteDerivedSyncStore _derived;
   final LedgerArchiveWriter _writer;
   final LedgerIntegrityCheck _integrity;
@@ -143,9 +162,11 @@ class DailyArchiveJob {
     );
   }
 
-  /// ① 어제(한국)까지 스탬프 ② 정본 자가 무결성 ③ 아카이브 ↔ 정본 관계(② 일치일 때만) ④ 아카이브(FORK · 봉인 · REBASED
-  /// 아님) ⑤ 백업 나이.
-  DailyArchiveReport run() {
+  /// ① 어제(한국)까지 스탬프 ② 정본 자가 무결성 ③ 아카이브 ↔ 정본 관계(② 일치일 때만) ④ 아카이브(FORK · 봉인 아님 ·
+  /// REBASED = 리스 ∧ 상한 안이면 재생성) ⑤ 백업 나이.
+  ///
+  /// [lease] = 지금 리스 판정(조립 앱이 넘긴다 · 기본 UNKNOWN = 재생성하지 않음).
+  DailyArchiveReport run({LeaseVerdict lease = LeaseVerdict.unknown}) {
     final List<LedgerDayStamp> stamped = LedgerHashStamper(
       _db,
       clock: _clock,
@@ -155,6 +176,8 @@ class DailyArchiveJob {
     ArchiveSkip? skipped;
     DerivedRelation? relation;
     bool forkRaised = false;
+    DerivedHoldReason? hold;
+    LedgerRepairPlanRow? resync;
     if (!integrity.verdict.ok) {
       skipped = ArchiveSkip.integrity;
     } else {
@@ -174,8 +197,36 @@ class DailyArchiveJob {
       } else if (current == DerivedSyncStatus.sealed) {
         skipped = ArchiveSkip.sealed;
       } else if (view.relation == DerivedRelation.rebased) {
-        skipped = ArchiveSkip.rebased;
-        _derived.recordRebased(DerivedTarget.github, view, _clock.nowUtc());
+        final DateTime now = _clock.nowUtc();
+        _derived.recordRebased(DerivedTarget.github, view, now);
+        final DerivedSyncAction action = derivedSyncActionOf(
+          relation: view.relation,
+          current: current,
+          lease: lease,
+          resyncsToday: _derived.archiveResyncsOn(kstDateText(now)),
+          dailyCap: _resyncCap,
+          canon: view.canon,
+          derived: view.derived,
+        );
+        switch (action) {
+          case DerivedResync(:final String fromDate):
+            // 🔴 파일 → 체크포인트 → DB(R131 M5).
+            final LedgerArchiveReport rep = _writer.regenerateFrom(fromDate);
+            archived = rep.days;
+            resync = _derived.recordArchiveResync(
+              DerivedTarget.github,
+              view,
+              fromDate: fromDate,
+              days: rep.days.length,
+              chainHash: rep.checkpoint!.chainHash,
+              atUtc: now,
+            );
+          case DerivedHold(:final DerivedHoldReason reason):
+            skipped = ArchiveSkip.rebased;
+            hold = reason;
+          case DerivedNoop() || DerivedForkStop():
+            throw StateError('REBASED 조치가 아니다: $action');
+        }
       } else {
         archived = _writer.archiveStamped().days;
       }
@@ -188,6 +239,8 @@ class DailyArchiveJob {
       skipped: skipped,
       relation: relation,
       forkRaised: forkRaised,
+      hold: hold,
+      resync: resync,
     );
   }
 }
