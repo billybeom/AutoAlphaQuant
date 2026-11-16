@@ -635,3 +635,30 @@ R7a(`S02`)·R7b(`S06`)·R7c(`S03`) 세 카드의 선행과 엔진 겹침 몫(`Cr
 🔴 **만들지 않은 이름**(재론 방지): `submitKillResumeItem` · `submitPledge`(C-7 쓰기 이름 검사 — K31) · `PledgeSubmitKind`(값 `write(` 가 C-7 맨 쓰기 동사 검사에 걸림 — K32) · 엔진과 같은 열거 타입 이름(K33) · `KillResumeItemSubmission.decisionId`(K34) · 기존 `SafetyRepository`·`ResumeRepository` 넓히기(K6) · `CommandApi` 해제 명령 · 카운트다운 칸 · 해제 버튼 칸.
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 183(M5-1 발동 뒤 기록 화면 입력 원천 — 1.22.0 판단) · 184(재개 게이트 세부 · 7문항 엔진 상수화) · 185(서약 편집 저널 id · 서약 VM 엔진 글자) · 93(남은 것 `S7-7` 링크) · 169 · 176(1.22.0 / 1.23.0+) · 엔진 숙제(`GaugeCodes` 지역 선언 지움 = 병합 뒤 첫 단계 · SPEC ⑦ 대조 1 · 7문항 상수화).
+
+## AA. 🆕 계약 v1.22 (2026-11-17 · 엔진 예고 2/2 — M5 나머지 + X2 재개 + simToAuto + DDL 글자) — `SafetyActions` 표면 8 · 사다리 · 재개 게이트 · simToAuto 사전 · fill-origin 계약 글자 · 미결 183 ⓐ
+
+엔진 예고 덩어리의 둘째 절반(E13 나머지 · 사다리 · E14i 재개 게이트 · E15i 남은 굳은 몫 · fill-origin 계약 글자 · `resume_mode` · F8 · 미결 183 ⓐ)을 한 판으로 닫았다. `contractVersion` = **`1.22.0`**(다음 = **1.23.0+** — E16i · VM 3 · 이름 없는 알림 · 승격 세션 종류 · PNG 묶음 · 미결 186~188 · `RuleChangeCategory` · 굳는 대로).
+상태 = ✅ 병합 PR #214 squash `67630bc`(2026-11-17 · CI 3/3 · head `7b145703` · 커밋 10 = 구현 8 + 감사 반영 2 · 가지 `m2/v122-rest` · R7b 병합 뒤 · R7c 발송 전 · 원격 가지 삭제).
+결정 = 발주자 위임 2026-11-14 — K48~K73 권고대로(정본 = 설계 `10_리뷰/2026-11-17_계약v1.22_설계서.md` §3 · 이름표 정본 §4-15 #1~#24 · #24 = 1.23.0+ 예약 · K72 · K73 = 구현 감사 §10).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AA-1 | `SafetyActionId` += `stoppedDecision` · `postmortemRecord` · `reconClear` · `interventionStep` · `discretionAdjust` · `ruleChangeCancel` · `ruleChangeApprove` · `seasonalWindowChoice` | `enums/command.dart` · 와이어 = 엔진 명령·저널 kind 글자(`postmortemRecord` = `INCIDENT_POSTMORTEM`) · `RECON_CLEAR` ≠ `DeviationKindCodes.reconClear`(축 다름 주석) |
+| AA-2 | `SafetyActions` += `runStoppedDecision` · `runPostmortem` · `runRuleChangeApproval` · `runDiscretionAdjust` | 표면 **8**(C-7) · 이름 `run…`(쓰기 동사 0 · v1.21 K31 결) · K7 이 v1.21 K39 를 이김(K52) |
+| AA-3 | 🆕 `StoppedDecisionSubmission` · `PostmortemSubmission` · `RuleChangeApprovalSubmission` · `DiscretionAdjustSubmission` | `commands/safety_actions.dart` · 엔진 Answers 1:1 − 구현이 짓는 id(K53) · `deltaPct` = 원문 String |
+| AA-4 | 🆕 `StoppedDecisionChoice` · `InterventionStepOutcome` · `SeasonalEntryChoice` | 🔵 **K49 이름 나눔** — 엔진 `StoppedDecisionKind` · `InterventionOutcome` · `SeasonalWindowChoice` 와 **다른 타입 이름**(같으면 ds lib `resume_job` · `seasonal_a_job` + 시험 5 `ambiguous_import`) · 값 이름·와이어 = 엔진 1:1 · 엔진이 계약 참조로 옮길 때 자기 선언을 지운다 |
+| AA-5 | 🆕 `ResumeItemReasonCodes`(`resume_reason` 15) | 🔵 K49 — 엔진 `ResumeReasonCodes` 와 이름 다름 · `labels/verdict_codes.dart` · 같은 곳 `SeasonalChoiceResultCodes` 4 · `PlannedWorkRejectCodes` 6 |
+| AA-6 | 🆕 `StoppedDecisionResultCodes` 7 · `PostmortemResultCodes` 3 · `InterventionResultCodes` 6 · `RuleChangeResultCodes` 11 · `DiscretionResultCodes` 3 | `labels/safety_codes.dart` · RECON 해제 = 사전 0(K55) |
+| AA-7 | 🆕 `SimToAutoResultCodes.windowBlocked` · `SimToAutoCommitResultCodes.outcomeUnknown` | 🔵 **K51** — 상수 이름 = C-7 쓰기 이름 검사 회피(`commitWindow` 이면 `sim_codes.dart` 가 «쓰기 이름 파일») · 값 `SIM_TO_AUTO_COMMIT_WINDOW` · `SIM_TO_AUTO_COMMIT_UNKNOWN` · 그 밖 상수 = 엔진 이름 · 같은 파일 `HandoverSessionResultCodes` 2 · `SimToAutoStepIds` 7 |
+| AA-8 | 🆕 `BreakerLadderVm` · `BreakerLadderRow` · `BreakerLadderRepository.watchLadder()` | `dto/safety_gate.dart` · `repositories/breaker_ladder_repository.dart` · 글자 = 엔진 `breakerLadderOf` 출력 그대로(K65) |
+| AA-9 | 🆕 `ResumeGateVm` · `ResumeGateRow` · `ResumeGateRepository.watchGate()` | `dto/resume.dart` · `repositories/resume_gate_repository.dart` · 계절 3택 = 행마다(K64) · 기존 `ResumeRepository` 무변경 |
+| AA-10 | `SettingsActionId` += `handoverSessionStart` · `handoverSessionCancel` · `handoverSimLedgerFate` | M5-11 handover 가족(K56) · `OPEN` 이름 0(거부 코드 `HANDOVER_SESSION_OPEN` 과 겹침 회피) · 🔴 `SimLedgerFate` 계약 열거 0(K49 걸림 · 값 = 엔진 `wire` 2) |
+| AA-11 | 🆕 `ModeMarkerText{sim, advisory, osSimPrefix, osAdvisoryPrefix}` | 🔵 **K73** — 자리 = `lib/src/mode_marker_text.dart`(labels 밖 단독 파일 · 배럴 export 한 줄 · 사전 아님 → C-5 예외 0 · 선례 `contract_version.dart`) · K67 의 `labels/sim_codes.dart` 정정 · 이름·글자 무변경 |
+| AA-12 | 🆕 `KillChecklistSubmission` · `CommandApi.confirmKillChecklist(KillChecklistSubmission)` | `commands/payloads_x7.dart` · 13칸 원문 · 인자 교체(미결 183 ⓐ · K60 · v1.15 K12 선례) |
+| AA-13 | 🆕 `LedgerModeCheck.fillOrigin` · 추가형 `PlannedWorkKindCodes.monthlyPlan`·`carryOver` · `DecisionReasonCodes.simLedgerKeep`·`simLedgerDiscard` · `BrokerRawCodes.simInvalidOrder`·`simOrderNotFound`·`simCancelTooLate` · `GapReasonCodes.simBarMissing` | fill-origin 태그 줄 = 엔진 재생성 PR(K61 · 미결 189) · DDL `resume_run_mirror.resume_mode`(K62) |
+| AA-14 | 계약 테스트 C-56(`c56_e13_resume_sim_test.dart` · 18항) · C-7 표면 8 · C-15 축 +2 · 생성기 `tool/gen_v122_fixtures.py` · 표본 `m5/` 8 · `x2/` 6 · `m6/` 1 + 개정 2 | 283 → **298** · `domain_contracts` +505 → +524 ~30 · 손글 lib 코드 543(K72 — 크기 선 판정 = 코드 줄 · 덜어 낸 것 0) |
+
+🔴 **만들지 않은 이름**(재론 방지): 엔진과 같은 타입 이름 4(`StoppedDecisionKind` · `InterventionOutcome` · `SeasonalWindowChoice` · `ResumeReasonCodes` — K49) · `RuleChangeType`(K50 — 들일 때 `RuleChangeCategory`) · `SimLedgerFate` 계약 열거(K56) · `commitWindow` · `commitUnknown` 꼴 상수 이름(K51) · `HandoverSessionOpen` 동작 이름(K56) · RECON 해제 결과 사전(K55) · 계절 args `decision_id`(K54) · `LIVE_OPENING` 결정 사유(K57) · `labels/` 안 `ModeMarkerText` · C-5 예외 집합 `_textConstantClasses`(K73).
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 186(M5-1 폼 문항 글자 · 🔴 12-04 전 창) · 187(M5-11 위저드 읽기 창구) · 188(E13 제출 DTO 의 엔진 값 원천 VM) · 189(fill-origin 태그 줄 = 엔진 재생성 PR · 🔴 v1 동결 12-21 전) · 184 · 185 · 176(1.23.0+) · 엔진 숙제(06 변경 이력 «2026-11-17 · 계약 v1.22 병합» — 로컬 상수 → 계약 참조 · operator `SafetyActions` 표면 8 · `confirmKillChecklist` 인자 교체 소비).
