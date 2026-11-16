@@ -620,3 +620,124 @@ Set<String> deviceAccessControlTexts(DeviceAccessVm v) => <String>{
   SettingsLabels.confirm,
   SettingsLabels.cancel,
 };
+
+// ── R7c — M9 S03 fakes ──
+
+class FakeSettingsAccountMappingRepository
+    extends UnimplementedSettingsRepository {
+  FakeSettingsAccountMappingRepository({required this.mapping});
+
+  final Stream<AccountMappingVm> Function(int call) mapping;
+  int mappingCalls = 0;
+
+  @override
+  Stream<AccountMappingVm> watchAccountMapping() {
+    final int call = mappingCalls;
+    mappingCalls = mappingCalls + 1;
+    return mapping(call);
+  }
+}
+
+List<Override> accountsOverrides({
+  required FakeSettingsAccountMappingRepository repo,
+  required SettingsActions? actions,
+  required Clock clock,
+}) => <Override>[
+  settingsRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpAccounts(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 6000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: Accounts())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> accountTexts(AccountRow a) => <String?>[
+  a.label,
+  a.kindLabel,
+  a.maskedNumberText,
+  ?a.checkText,
+  ?a.badgeText,
+];
+
+List<String?> optionViewerTexts(AccountMappingOption o) => <String?>[
+  o.label,
+  ?o.blockedText,
+];
+
+List<String?> optionOperatorTexts(AccountMappingOption o) => <String?>[
+  o.label,
+  ?o.blockedText,
+  ?o.selectAction?.label,
+];
+
+List<String?> optionConfirmTexts(AccountMappingOption o) => <String?>[
+  ...o.impacts,
+  SettingsLabels.confirm,
+  SettingsLabels.cancel,
+];
+
+List<String?> sleeveViewerTexts(SleeveMappingRow s) => <String?>[
+  s.sleeveLabel,
+  ?s.accountLabel,
+  ?s.subbookLine,
+  ?s.statusLine,
+  for (final AccountMappingOption o in s.options) ...optionViewerTexts(o),
+];
+
+List<String?> sleeveOperatorTexts(SleeveMappingRow s) => <String?>[
+  s.sleeveLabel,
+  ?s.accountLabel,
+  ?s.subbookLine,
+  ?s.statusLine,
+  for (final AccountMappingOption o in s.options) ...optionOperatorTexts(o),
+];
+
+Set<String> accountMappingAllowed(AccountMappingVm v) => <String>{
+  ?v.lockedLabel,
+  for (final AccountRow a in v.accounts) ...<String>[
+    a.label,
+    a.kindLabel,
+    a.maskedNumberText,
+    ?a.checkText,
+    ?a.badgeText,
+  ],
+  for (final SleeveMappingRow s in v.mappings) ...<String>[
+    s.sleeveLabel,
+    ?s.accountLabel,
+    ?s.subbookLine,
+    ?s.statusLine,
+    for (final AccountMappingOption o in s.options) ...<String>[
+      o.label,
+      ?o.blockedText,
+    ],
+  ],
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
+
+Set<String> accountMappingControlTexts(AccountMappingVm v) => <String>{
+  ?v.verifyAction?.label,
+  for (final SleeveMappingRow s in v.mappings)
+    for (final AccountMappingOption o in s.options) ...<String>[
+      ?o.selectAction?.label,
+      ...o.impacts,
+    ],
+  SettingsLabels.confirm,
+  SettingsLabels.cancel,
+};
