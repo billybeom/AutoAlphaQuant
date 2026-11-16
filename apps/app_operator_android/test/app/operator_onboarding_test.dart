@@ -6,12 +6,23 @@ import 'package:app_operator_android/app/operator_onboarding.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:core_engine/core_engine.dart'
-    show onboardingModeChoiceVmOf, onboardingStartVmOf;
+    show
+        P0sHumanInputs,
+        P0sOpsConfig,
+        P0sStrategyIds,
+        onboardingModeChoiceVmOf,
+        onboardingStartVmOf;
 import 'package:data_sync/data_sync.dart'
-    show SqliteOnboardingProgressStore, SqliteOnboardingStore;
+    show
+        SqliteConfigVersionStore,
+        SqliteOnboardingProgressStore,
+        SqliteOnboardingStore;
+import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show
+        CommandContext,
         GateState,
+        OnboardingFinishVm,
         OnboardingModeChoiceVm,
         OnboardingSlotIds,
         OnboardingStep,
@@ -19,11 +30,23 @@ import 'package:domain_contracts/domain_contracts.dart'
         OnboardingStepsVm,
         OnboardingTrack,
         OperatingMode,
+        RunMode,
+        SelfReportBalance,
+        SelfReportLine,
+        SelfReportPurpose,
         SettingsActionId,
-        StepState;
+        StepState,
+        TradeDate;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../engine/support.dart';
+
+const Map<String, String> _accounts = <String, String>{
+  P0sStrategyIds.sleeveA: 'general',
+  P0sStrategyIds.sleeveB: 'pension',
+  P0sStrategyIds.sleeveC: 'general',
+  P0sStrategyIds.pot: 'general',
+};
 
 void main() {
   tearDownAll(deleteTempDirs);
@@ -162,15 +185,99 @@ void main() {
     expect(m.missingLabel, isNotNull);
   });
 
-  test('🔴 마무리 · 재시작 · 옛 창구 = 오류(4c · 4d 전 · 지어내지 않는다)', () async {
+  test('🔴 재시작 · 옛 창구 = 오류(4d 전 · 지어내지 않는다)', () async {
     final OperatorOnboardingRepository r = OperatorOnboardingRepository(rt);
-    await expectLater(r.watchFinish(), emitsError(isA<UnsupportedError>()));
     await expectLater(r.watchRestart(), emitsError(isA<UnsupportedError>()));
     await expectLater(
       r.watchSteps(OnboardingTrack.fresh),
       emitsError(isA<UnsupportedError>()),
     );
   });
+
+  test('🔴 마무리(R127) — 고르기 전 = 오류 · 고른 뒤 6단계(원천 없는 ③④⑤ = 막힘 · ⑥ 막힘) · 서약 → ② 끝(다시 낸다)', () async {
+    await expectLater(
+      OperatorOnboardingRepository(rt).watchFinish(),
+      emitsError(isA<StateError>()),
+    );
+    store().selectOperatingMode(OperatingMode.autoTrade);
+    final List<OnboardingFinishVm> got = <OnboardingFinishVm>[];
+    final StreamSubscription<OnboardingFinishVm> sub =
+        OperatorOnboardingRepository(rt).watchFinish().listen(got.add);
+    addTearDown(sub.cancel);
+    await until(() => got.isNotEmpty);
+    final OnboardingFinishVm v = got.last;
+    expect(v.stages, hasLength(6));
+    // ① 설정 해시 = 모의 개시 전 → 줄 없음.
+    expect(v.stages[0].lines, hasLength(2));
+    expect(v.stages[1].state, StepState.notStarted);
+    expect(v.stages[1].slotId, OnboardingSlotIds.pledgeWrite);
+    expect(v.stages[2].gate?.state, GateState.block);
+    expect(v.stages[3].gate?.state, GateState.unknown);
+    expect(v.stages[4].gate?.state, GateState.unknown);
+    expect(v.stages[5].gate?.state, GateState.block);
+    expect(v.stages[5].action, isNull);
+    files.sim.execute(
+      'INSERT INTO pledge(pledge_id, version, sentence_1, sentence_2, sentence_3, written_at, decision_id) '
+      'VALUES (?, 1, ?, ?, ?, ?, ?)',
+      <Object?>[
+        'PL-1',
+        '첫 문장',
+        '둘째 문장',
+        '셋째 문장',
+        clock.nowUtc().toIso8601String(),
+        'D-PLEDGE-1',
+      ],
+    );
+    await until(() => got.last.stages[1].state == StepState.verified);
+    expect(got.last.stages[1].slotId, isNull);
+    // ② 끝 → ③ = 원천 없음(UNKNOWN · 슬롯 없음).
+    expect(got.last.stages[2].gate?.state, GateState.unknown);
+    expect(got.last.stages[2].slotId, isNull);
+  });
+
+  test(
+    '🔴 마무리(R127) — 모의 개시 뒤 = ① 설정 해시 줄 · ⑥ «시작 상태를 선언했습니다»(엔진 저장소 그대로)',
+    () async {
+      final P0sOpsConfig cfg = P0sOpsConfig.of(
+        P0sHumanInputs(aSymbol: '999990', accountByStrategy: _accounts),
+      );
+      final String hash = SqliteConfigVersionStore(
+        files.sim,
+        clock: clock,
+      ).register(cfg.content());
+      final SqliteOnboardingStore s = store();
+      expect(s.selectOperatingMode(OperatingMode.autoTrade).ok, true);
+      expect(
+        s
+            .declareSimOpening(
+              SelfReportBalance(
+                asOfTradeDate: const TradeDate('2026-12-01'),
+                purpose: SelfReportPurpose.simOpening,
+                sessionStartedAt: clock.now,
+                lines: const <SelfReportLine>[],
+                cashKrw: Decimal.parse('10000000'),
+                accountAlias: 'general',
+                declaredComplete: true,
+                context: const CommandContext(
+                  runMode: RunMode.simInternal,
+                  operatingMode: OperatingMode.autoTrade,
+                  leaseEpoch: 0,
+                  deviceId: 'dev-1',
+                ),
+              ),
+              accountByStrategy: _accounts,
+              configHash: hash,
+            )
+            .ok,
+        true,
+      );
+      final OnboardingFinishVm v = await OperatorOnboardingRepository(rt)
+          .watchFinish()
+          .first;
+      expect(v.stages[0].lines, contains('설정 해시 $hash'));
+      expect(v.stages[5].lines, contains('시작 상태를 선언했습니다'));
+    },
+  );
 
   test(
     '🔴 첫 실행 판정 = committed_at — 없음 → 고름(아직) → 확정 = 끝 · 바뀔 때 다시 낸다(실제 갱신 훅)',

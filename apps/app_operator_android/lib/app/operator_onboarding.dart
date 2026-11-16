@@ -4,14 +4,18 @@
 // 🔴 VM 짓기 · 글자 = 엔진(core `onboardingStartVmOf` · `onboardingModeChoiceVmOf` · `onboardingStepsVmOf` · `onboardingStepDetailVmOf`)
 //    · 여기는 사실만 모은다 — 진척 행(`SqliteOnboardingProgressStore`) + Android 실측(알림 권한 o_05 · 배터리 예외 o_06).
 // 🔴 다시 낸다 = 들을 때 · 진척 · 선택 표 변경(같은 연결) · [OperatorOnboardingRepository.tick] 마다(실측 다시 · 날짜 넘김) · 바뀐 값만.
-// 🔴 마무리(O-04) · 재시작(R-01) = 다음 조각(4c · 4d) — 그 전 = 오류(라우트도 미등록 · 재시작 카드 링크 없음).
+// 🔴 재시작(R-01) = 다음 조각(4d) — 그 전 = 오류(라우트도 미등록 · 재시작 카드 링크 없음).
+// 🆕 E11p4c(R127) — 마무리(O-04) = 엔진 `onboardingFinishVmOf` · 사실 = 선택 · 서약(`pledge`) · 시작 선언(개시 결정) ·
+//    설정 해시(모의 개시 뒤) · ③ 생체 · ④ 셀프테스트 · ⑤ 복구 카드 = 원천 0(null — 엔진이 막힘으로 그린다) · 고르기 전 = 오류.
 // 🔴 첫 실행 판정(미결 158) = [watchOnboardingDone] — `committed_at` 전이면 조립 앱 루트가 온보딩을 띄운다.
 
 import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
     show
+        OnboardingFinishFacts,
         OnboardingStepFact,
+        onboardingFinishVmOf,
         onboardingModeChoiceVmOf,
         onboardingStartVmOf,
         onboardingStepDetailVmOf,
@@ -19,8 +23,12 @@ import 'package:core_engine/core_engine.dart'
 import 'package:data_sync/data_sync.dart'
     show
         OnboardingChoice,
+        OpsConfigRead,
+        OpsConfigReady,
         SqliteOnboardingProgressStore,
         SqliteOnboardingStore,
+        SqlitePledgeStore,
+        currentP0sOpsConfig,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -36,6 +44,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         StepState;
 import 'package:sqlite3/sqlite3.dart' show Database;
 
+import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import 'operator_runtime.dart';
 
 /// 온보딩 실측(Android) — 모르면 null.
@@ -115,7 +124,10 @@ class OperatorOnboardingRepository implements OnboardingRepository {
   }
 
   /// 진척 · 선택 표 + 실측 + 주기를 따라 다시 짓는 흐름(바뀐 값만).
-  Stream<T> _live<T>(T Function() build) {
+  Stream<T> _live<T>(
+    T Function() build, {
+    Set<String> tables = SqliteOnboardingProgressStore.watchedTables,
+  }) {
     late final StreamController<T> c;
     StreamSubscription<T>? sub;
     Timer? timer;
@@ -143,7 +155,7 @@ class OperatorOnboardingRepository implements OnboardingRepository {
       onListen: () {
         sub = watchLedgerQuery<T>(
           _db,
-          SqliteOnboardingProgressStore.watchedTables,
+          tables,
           build,
         ).listen(put, onError: c.addError);
         timer = Timer.periodic(tick, (_) => unawaited(refresh()));
@@ -198,9 +210,42 @@ class OperatorOnboardingRepository implements OnboardingRepository {
         ),
       );
 
+  /// 🆕 R127 — 마무리가 다시 읽는 표(선택 · 서약 · 개시 결정 · 설정 판).
+  static const Set<String> finishTables = <String>{
+    'onboarding_choice',
+    'pledge',
+    'decision_log',
+    'config_versions',
+  };
+
+  /// 🆕 R127 — 마무리 사실(고르기 전 = [StateError]).
+  OnboardingFinishFacts _finishFacts() {
+    final SqliteOnboardingStore store = SqliteOnboardingStore(
+      _db,
+      clock: _rt.clock,
+    );
+    final OnboardingChoice? c = store.choice();
+    if (c == null) throw StateError('마무리: 운영 방식을 먼저 고르십시오');
+    final OpsConfigRead cfg = currentP0sOpsConfig(_db);
+    return OnboardingFinishFacts(
+      mode: c.operatingMode,
+      committed: c.committed,
+      pledged:
+          SqlitePledgeStore(
+            _db,
+            clock: _rt.clock,
+            trusted: const UnknownTrustedClock(),
+          ).currentPledge() !=
+          null,
+      openingDeclared: store.openingDecisionId() != null,
+      configHash: cfg is OpsConfigReady ? cfg.configHash : null,
+    );
+  }
+
   @override
-  Stream<OnboardingFinishVm> watchFinish() => Stream<OnboardingFinishVm>.error(
-    UnsupportedError('watchFinish: 4c 전(R125)'),
+  Stream<OnboardingFinishVm> watchFinish() => _live<OnboardingFinishVm>(
+    () => onboardingFinishVmOf(_finishFacts()),
+    tables: finishTables,
   );
 
   @override

@@ -154,6 +154,8 @@ Widget _onboardingMode(Map<String, String> _) => const OnboardingModePick();
 
 Widget _onboardingSteps(Map<String, String> _) => const OnboardingStepList();
 
+Widget _onboardingFinish(Map<String, String> _) => const OnboardingFinish();
+
 Widget _onboardingStep(Map<String, String> p) =>
     OnboardingStepDetail(stepId: p['stepId'] ?? '');
 
@@ -181,6 +183,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.onboardingModePick: _onboardingMode,
   AppRoutes.onboardingSteps: _onboardingSteps,
   AppRoutes.onboardingStep: _onboardingStep,
+  // 🆕 E11p4c(R127) — 마무리(O-04).
+  AppRoutes.onboardingFinish: _onboardingFinish,
 });
 
 /// 🔴 operator 셸 주입 — 실물 있는 칸.

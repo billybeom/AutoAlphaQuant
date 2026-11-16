@@ -23,7 +23,13 @@ import 'package:broker_gateway/broker_gateway.dart'
         KisUnavailable,
         storeKisCredentials;
 import 'package:core_engine/core_engine.dart'
-    show SecretVault, kOnboardingModeCommittedText, kOnboardingModeSelectedText;
+    show
+        SecretVault,
+        kOnboardingDryRunRolledBackText,
+        kOnboardingDryRunStartedText,
+        kOnboardingModeCommittedText,
+        kOnboardingModeSelectedText,
+        p0sTierBCard;
 import 'package:data_sync/data_sync.dart'
     show
         OnboardingOutcome,
@@ -146,6 +152,9 @@ class OperatorSettingsActions implements SettingsActions {
     final Database? db = sim;
     if (id == SettingsActionId.onboardingOperatingModeSelect && db != null) {
       return _modeSelect(db, args);
+    }
+    if (id == SettingsActionId.onboardingDryRunStart && db != null) {
+      return _dryRunStart(db, args);
     }
     return Future<ActionResult>.error(
       UnsupportedError('${id.name}: operator 구현 없음(R118)'),
@@ -328,6 +337,36 @@ class OperatorSettingsActions implements SettingsActions {
                   : out.headline,
               reasonCode: out.reasonCode,
             ),
+    );
+  }
+
+  /// 🆕 E11p4c(R127) — `onboardingDryRunStart{}` = 엔진 `dryRunStart`(모드 행 · 시딩 · committed_at 한 트랜잭션 · 계층 B 카드 = 엔진 값) ·
+  /// 통과 · 되돌림 문장 = 표본 글자 · 앞 조건 거부(마무리 VM 이 동작을 내기 전에 막는 것들) = 엔진 문장 · 코드 그대로.
+  Future<ActionResult> _dryRunStart(Database db, Map<String, String> args) {
+    const SettingsActionId id = SettingsActionId.onboardingDryRunStart;
+    if (args.isNotEmpty) {
+      return Future<ActionResult>.error(
+        ArgumentError('onboardingDryRunStart args = {}'),
+      );
+    }
+    final OnboardingOutcome out = SqliteOnboardingStore(
+      db,
+      clock: clock,
+    ).dryRunStart(card: p0sTierBCard());
+    if (out.ok) {
+      return Future<ActionResult>.value(
+        _result(id, UiLevel.ok, kOnboardingDryRunStartedText),
+      );
+    }
+    final bool rolledBack =
+        out.reasonCode == OnboardingResultCodes.dryRunStartRolledBack;
+    return Future<ActionResult>.value(
+      _result(
+        id,
+        UiLevel.blocked,
+        rolledBack ? kOnboardingDryRunRolledBackText : out.headline,
+        reasonCode: out.reasonCode,
+      ),
     );
   }
 }
