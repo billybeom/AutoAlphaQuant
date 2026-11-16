@@ -157,7 +157,8 @@ final class UnregisteredContractCodeError extends Error {
 ///   ② 계절 게이트 픽스처값 `ENTRY_GATE_OCT` 1개(⏸ 코드명 확정 전까지 픽스처가 쓰는 값)
 ///   ③ ⏸ `AsOf.staleReasonCode` 4개(M2-8 A-2 · 엔진 확정 대기)
 /// 🔴 도메인이 다르면 **같은 문자열이 두 번 등재될 수 있다**
-///    (`MANUAL_ORDER`·`RECON_MISMATCH`·`SELF_AUDIT_DUE`·`PUSH_LAG` 네 쌍) —
+///    (`MANUAL_ORDER`·`RECON_MISMATCH`·`SELF_AUDIT_DUE`·`PUSH_LAG` 네 쌍 + 🆕 v1.22 `JOURNAL_MISSING`(`flag_id` ↔
+///    `discretion_result`) = 다섯 쌍) —
 ///    그래서 [all] 의 크기는 등재 건수보다 작다. 전역 조회보다 [requireRegisteredIn] 을 쓴다.
 abstract final class ContractCodes {
   /// 도메인 → 코드 집합. 🔴 키 이름은 01 §3·§6 의 절 제목에서 따온다.
@@ -241,6 +242,19 @@ abstract final class ContractCodes {
     'safety_common_result': SafetyCommonResultCodes.values,
     'pledge_result': PledgeResultCodes.values,
     'gauge': GaugeCodes.values,
+    // 🆕 v1.22(01 §31) — E13 나머지 · E14i · E15i(엔진 글자 1:1)
+    'stopped_decision_result': StoppedDecisionResultCodes.values,
+    'postmortem_result': PostmortemResultCodes.values,
+    'intervention_result': InterventionResultCodes.values,
+    'rule_change_result': RuleChangeResultCodes.values,
+    'discretion_result': DiscretionResultCodes.values,
+    'resume_reason': ResumeItemReasonCodes.values,
+    'seasonal_choice_result': SeasonalChoiceResultCodes.values,
+    'planned_work_reject': PlannedWorkRejectCodes.values,
+    'sim_to_auto_result': SimToAutoResultCodes.values,
+    'sim_to_auto_commit_result': SimToAutoCommitResultCodes.values,
+    'handover_session_result': HandoverSessionResultCodes.values,
+    'sim_to_auto_step': SimToAutoStepIds.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

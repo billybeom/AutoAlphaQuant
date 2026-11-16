@@ -128,3 +128,153 @@ abstract final class GaugeCodes {
     cooldown,
   };
 }
+
+// 🆕 v1.22(01 §31 · K12) — E13 나머지 거부 사전 5(엔진 글자 1:1 · 공용 `TRUSTED_TIME_UNKNOWN` 은 뺀다 — 한 벌).
+
+/// 🆕 v1.22 — STOPPED 결정 거부(도메인 `stopped_decision_result` · core `safety/stopped_decision.dart:28` 7).
+abstract final class StoppedDecisionResultCodes {
+  /// 지금 STOPPED 가 아니다.
+  static const String notActive = 'STOPPED_NOT_ACTIVE';
+
+  /// 기다릴 거래일이 아직이다(일수 = 엔진 설정).
+  static const String wait20d = 'STOPPED_WAIT_20D';
+
+  /// 이 에피소드에 결정이 이미 있다.
+  static const String alreadyMade = 'DECISION_ALREADY_MADE';
+
+  /// SEV1 postmortem 이 비었다.
+  static const String postmortemMissing = 'POSTMORTEM_MISSING';
+
+  /// 가족 합의 선언이 없다.
+  static const String familyAgreementMissing = 'FAMILY_AGREEMENT_MISSING';
+
+  /// 사전 필드 3 이 비었다.
+  static const String journalRequired = 'JOURNAL_REQUIRED';
+
+  /// B 인데 재개 자격이 없다.
+  static const String notEligible = 'STOPPED_NOT_ELIGIBLE';
+
+  static const Set<String> values = <String>{
+    notActive,
+    wait20d,
+    alreadyMade,
+    postmortemMissing,
+    familyAgreementMissing,
+    journalRequired,
+    notEligible,
+  };
+}
+
+/// 🆕 v1.22 — postmortem 거부(도메인 `postmortem_result` · core `safety/incident.dart:61` 3).
+abstract final class PostmortemResultCodes {
+  /// 건이 없다.
+  static const String notFound = 'INCIDENT_NOT_FOUND';
+
+  /// 글이 비었다.
+  static const String blank = 'POSTMORTEM_BLANK';
+
+  /// 이미 썼다.
+  static const String alreadyRecorded = 'POSTMORTEM_ALREADY_RECORDED';
+
+  static const Set<String> values = <String>{notFound, blank, alreadyRecorded};
+}
+
+/// 🆕 v1.22 — 개입 거부(도메인 `intervention_result` · core `safety/intervention.dart:47` 7 − 공용 1).
+abstract final class InterventionResultCodes {
+  /// 이미 닫힌 세션.
+  static const String closed = 'INTERVENTION_CLOSED';
+
+  /// 냉각 중.
+  static const String cooling = 'INTERVENTION_COOLING';
+
+  /// 실행 창이 지났다.
+  static const String expired = 'INTERVENTION_EXPIRED';
+
+  /// 저널 미연결.
+  static const String journalMissing = 'INTERVENTION_JOURNAL_MISSING';
+
+  /// 차례가 아닌 단계(건너뛰기 · 되풀이).
+  static const String outOfOrder = 'INTERVENTION_STAGE_OUT_OF_ORDER';
+
+  /// 다른 세션이 살아 있다.
+  static const String sessionOpen = 'INTERVENTION_SESSION_OPEN';
+
+  static const Set<String> values = <String>{
+    closed,
+    cooling,
+    expired,
+    journalMissing,
+    outOfOrder,
+    sessionOpen,
+  };
+}
+
+/// 🆕 v1.22 — 규칙 변경 취소·승인 거부(도메인 `rule_change_result` · core `safety/rule_change.dart:56` 12 − 공용 1).
+abstract final class RuleChangeResultCodes {
+  /// 승인 칸(골든 영향 · 승인자) 빈칸.
+  static const String approvalFieldsMissing =
+      'RULE_CHANGE_APPROVAL_FIELDS_MISSING';
+
+  /// 전 hash 가 지금 승인된 것이 아니다.
+  static const String baseStale = 'RULE_CHANGE_BASE_STALE';
+
+  /// 후 hash 가 `config_versions` 에 없다.
+  static const String configUnknown = 'RULE_CHANGE_CONFIG_UNKNOWN';
+
+  /// 냉각 전.
+  static const String cooling = 'RULE_CHANGE_COOLING';
+
+  /// 드로다운 락.
+  static const String ddLocked = 'RULE_CHANGE_DD_LOCKED';
+
+  /// 이미 결정됐다(취소 · 승인).
+  static const String decided = 'RULE_CHANGE_DECIDED';
+
+  /// 요청 칸 빈칸 · 전후 같음.
+  static const String fieldsMissing = 'RULE_CHANGE_FIELDS_MISSING';
+
+  /// 저널 미연결.
+  static const String journalMissing = 'RULE_CHANGE_JOURNAL_MISSING';
+
+  /// 요청 없음.
+  static const String notFound = 'RULE_CHANGE_NOT_FOUND';
+
+  /// 12월 창 밖.
+  static const String outOfWindow = 'RULE_CHANGE_OUT_OF_WINDOW';
+
+  /// 제3자 통지 없음.
+  static const String thirdPartyMissing = 'RULE_CHANGE_THIRD_PARTY_MISSING';
+
+  static const Set<String> values = <String>{
+    approvalFieldsMissing,
+    baseStale,
+    configUnknown,
+    cooling,
+    ddLocked,
+    decided,
+    fieldsMissing,
+    journalMissing,
+    notFound,
+    outOfWindow,
+    thirdPartyMissing,
+  };
+}
+
+/// 🆕 v1.22 — 재량 조정 거부(도메인 `discretion_result` · core `safety/discretion.dart:19` 4 − 공용 1).
+/// 🔴 `JOURNAL_MISSING` = `FlagIds.journalMissing` 와 같은 글자 — 축 다름(재량 저널 미연결 ↔ 차단 플래그) · C-5 문서화 중복 다섯째 쌍.
+abstract final class DiscretionResultCodes {
+  /// 롤링 12개월 사용이 이미 상한.
+  static const String countExceeded = 'COUNT_EXCEEDED';
+
+  /// 조정폭이 상한 밖(파싱 실패·NaN 포함 — fail-closed).
+  static const String deltaExceeded = 'DELTA_EXCEEDED';
+
+  /// 저널 미연결.
+  static const String journalMissing = 'JOURNAL_MISSING';
+
+  static const Set<String> values = <String>{
+    countExceeded,
+    deltaExceeded,
+    journalMissing,
+  };
+}

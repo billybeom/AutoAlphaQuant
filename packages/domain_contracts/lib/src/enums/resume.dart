@@ -67,3 +67,20 @@ enum ResumePhase {
   /// JSON 표기.
   final String wire;
 }
+
+/// 🆕 v1.22(01 §31 · K10 · K49) — X2 재개 게이트 계절 A 진입 3택(엔진 core `SeasonalWindowChoice` ·
+/// `resume/resume_judge.dart:345` · 값 1:1 · 🔴 타입 이름 ≠ 엔진(`ambiguous_import`) · 엔진 enum 에 wire 0 → 와이어 = 값 이름의
+/// 기계적 SCREAMING_SNAKE · 엔진이 따른다 · «아무것도 안 하기» = 고르지 않음(1월 만료)).
+enum SeasonalEntryChoice {
+  @JsonValue('SKIP')
+  skip('SKIP'),
+  @JsonValue('REDUCED')
+  reduced('REDUCED'),
+  @JsonValue('AS_IS')
+  asIs('AS_IS');
+
+  const SeasonalEntryChoice(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}

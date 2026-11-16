@@ -166,6 +166,20 @@ enum SettingsActionId {
   @JsonValue('HANDOVER_COMMIT')
   handoverCommit('HANDOVER_COMMIT'),
 
+  /// 🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드 6단계 생체 확인 = 전환 세션 열기(`{path}` · 1.22.0 화이트리스트 =
+  /// `SIM_TO_AUTO` 하나 · ds `handover_session_store.dart:159` · 🔴 이름에 `OPEN` 을 쓰지 않는다 — 거부 코드 `HANDOVER_SESSION_OPEN` 과 겹침).
+  @JsonValue('HANDOVER_SESSION_START')
+  handoverSessionStart('HANDOVER_SESSION_START'),
+
+  /// 🆕 v1.22 — 전환 세션 물러나기(`{handover_session_id}` · ds `:242` · 시각 = 기기 시계).
+  @JsonValue('HANDOVER_SESSION_CANCEL')
+  handoverSessionCancel('HANDOVER_SESSION_CANCEL'),
+
+  /// 🆕 v1.22(K56) — 위저드 5단계 모의 기록 보관·지움(`{fate ∈ KEEP|DISCARD}` · 🔴 **세션 전** — `handover_session_id` 0 ·
+  /// ds `sim_ledger_fate_store.dart:51` · 결정 사유 `SIM_LEDGER_KEEP`·`SIM_LEDGER_DISCARD`).
+  @JsonValue('HANDOVER_SIM_LEDGER_FATE')
+  handoverSimLedgerFate('HANDOVER_SIM_LEDGER_FATE'),
+
   @JsonValue('RUNTIME_ENGINE_START')
   runtimeEngineStart('RUNTIME_ENGINE_START'),
   @JsonValue('RUNTIME_ENGINE_STOP')
@@ -241,6 +255,8 @@ enum SettingsActionId {
 ///    `PLEDGE_WRITE` = `OnboardingSlotIds.pledgeWrite`(슬롯 이름 사전). 열거 와이어 ↔ 사전 값이라 C-5 충돌 아님.
 /// 🔴 1.21.0 의 값은 전부 **제출 DTO 경로**(`runKillResumeItem` · `runPledge`)이고 `run(id, args)` 가 받는 값은 0 이다
 ///    (화이트리스트 = 1.22.0 · K39). 개수를 숫자로 적지 않는다(G-91).
+/// 🆕 v1.22(01 §31 · K52) — `run(id, args)` 화이트리스트 = `interventionStep` · `ruleChangeCancel` · `reconClear` ·
+///    `seasonalWindowChoice`(엔진이 `SafetyActionCall` 에 완성) · 그 밖 값 = 제출 DTO 경로(`run…` 메서드).
 enum SafetyActionId {
   /// 킬스위치 재개 게이트(M5-2) 문항 제출의 결과 id — 7번 통과 = 해제.
   @JsonValue('KILL_SWITCH_RESUME')
@@ -252,7 +268,42 @@ enum SafetyActionId {
 
   /// 서약 편집(새 판 · 12월 창만 — 엔진 R67 Z2 · M5-8).
   @JsonValue('PLEDGE_EDIT')
-  pledgeEdit('PLEDGE_EDIT');
+  pledgeEdit('PLEDGE_EDIT'),
+
+  /// 🆕 v1.22(01 §31 · K52 · K53) — `M5-3` STOPPED 결정 A·B·C(제출 `runStoppedDecision` · 엔진 ds `stopped_decision_store.dart:19`).
+  @JsonValue('STOPPED_DECISION')
+  stoppedDecision('STOPPED_DECISION'),
+
+  /// 🆕 v1.22 — `M5-3`·`M5-4` 사건 postmortem 쓰기(제출 `runPostmortem` · ds `incident_store.dart:13`).
+  @JsonValue('INCIDENT_POSTMORTEM')
+  postmortemRecord('INCIDENT_POSTMORTEM'),
+
+  /// 🆕 v1.22(K55) — `M5-5` 대사 불일치 해제(`run{origin_code, decision_id}` · 🔵 엔진 명령 kind 0 → 계약이 짓는다 ·
+  /// `DeviationKindCodes.reconClear` 배지 사전 · 저널 kind 와 같은 글자 = 축 다름).
+  @JsonValue('RECON_CLEAR')
+  reconClear('RECON_CLEAR'),
+
+  /// 🆕 v1.22 — `M5-6` 수동 개입 한 단계(`run{session_id, stage, outcome, decision_id?}` · ds `intervention_store.dart:16` ·
+  /// «아무것도 안 하기» 도 같은 동작 · outcome 만 다르다 — 메모 K17).
+  @JsonValue('INTERVENTION_STEP')
+  interventionStep('INTERVENTION_STEP'),
+
+  /// 🆕 v1.22 — `M5-6`·`M5-7` 재량 조정(제출 `runDiscretionAdjust` · ds `discretion_store.dart:15`).
+  @JsonValue('DISCRETION_ADJUST')
+  discretionAdjust('DISCRETION_ADJUST'),
+
+  /// 🆕 v1.22 — `M5-9` 규칙 변경 요청 취소(`run{request_id}` · ds `rule_change_store.dart:17` · 요청 = M9 `strategyApplyRequest`).
+  @JsonValue('RULE_CHANGE_CANCEL')
+  ruleChangeCancel('RULE_CHANGE_CANCEL'),
+
+  /// 🆕 v1.22 — `M5-9` 규칙 변경 승인(제출 `runRuleChangeApproval` · ds `rule_change_store.dart:18`).
+  @JsonValue('RULE_CHANGE_APPROVE')
+  ruleChangeApprove('RULE_CHANGE_APPROVE'),
+
+  /// 🆕 v1.22(K54) — X2 재개 게이트 계절 A 진입 3택(`run{work_id, choice}` · 🔵 엔진 명령 kind 0 → 계약이 짓는다 ·
+  /// ds `jobs/resume_job.dart:399` `applySeasonalChoice` · `decision_id` = 구현이 짓는다).
+  @JsonValue('SEASONAL_WINDOW_CHOICE')
+  seasonalWindowChoice('SEASONAL_WINDOW_CHOICE');
 
   const SafetyActionId(this.wire);
 

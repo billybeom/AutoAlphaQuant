@@ -167,3 +167,186 @@ abstract final class SimOpeningResultCodes {
     tierBCardMissing,
   };
 }
+
+// 🆕 v1.22(01 §31 · K21 · K51 · K58 · K67) — simToAuto 판정·확정·세션·단계 · 모드 표지(엔진 E15 실물 글자 그대로 ·
+// origin/main 4f85259 · 엔진 로컬 상수 → 이 사전 참조 = 엔진 다음 조각).
+
+/// 🆕 v1.22 — simToAuto 판정·막힘(도메인 `sim_to_auto_result` · core `SimToAutoCodes` · `mode/sim_to_auto.dart:92-123` 10).
+/// 축 = `HandoverStep.blockedReasonCode`(simToAuto) · `ActionResult.reasonCode`(위저드 동작).
+abstract final class SimToAutoResultCodes {
+  /// 모의 자동 매매가 아니다(모의 파일 현재 행 · 닫힘 · 운영 방식).
+  static const String notSimAuto = 'SIM_TO_AUTO_NOT_SIM_AUTO';
+
+  /// 킬스위치 · 주문 차단 플래그.
+  static const String safetyBlock = 'SIM_TO_AUTO_SAFETY_BLOCK';
+
+  /// 체험 미완.
+  static const String trialIncomplete = 'SIM_TO_AUTO_TRIAL_INCOMPLETE';
+
+  /// 골든 벡터 실패.
+  static const String goldenVectorFailed = 'SIM_TO_AUTO_GOLDEN_VECTOR_FAILED';
+
+  /// 실전 키 검증 실패.
+  static const String liveKeysFailed = 'SIM_TO_AUTO_LIVE_KEYS_FAILED';
+
+  /// 계좌 없는 전략.
+  static const String accountUnmapped = 'SIM_TO_AUTO_ACCOUNT_UNMAPPED';
+
+  /// 냉각 중.
+  static const String cooling = 'SIM_TO_AUTO_COOLING';
+
+  /// 확정 기한 지남(세션 만료).
+  static const String sessionExpired = 'SIM_TO_AUTO_SESSION_EXPIRED';
+
+  /// 신뢰 시각 없음 — 🔴 공용 `TRUSTED_TIME_UNKNOWN` 과 다른 글자(엔진 이력 · K12).
+  static const String trustedTimeUnavailable =
+      'SIM_TO_AUTO_TRUSTED_TIME_UNAVAILABLE';
+
+  /// 다음 정기 집행 전에 관찰을 채울 수 없다(🔴 상수 이름 ≠ 엔진 `commitWindow` — C-7 `_writeVerb` · K51).
+  static const String windowBlocked = 'SIM_TO_AUTO_COMMIT_WINDOW';
+
+  static const Set<String> values = <String>{
+    notSimAuto,
+    safetyBlock,
+    trialIncomplete,
+    goldenVectorFailed,
+    liveKeysFailed,
+    accountUnmapped,
+    cooling,
+    sessionExpired,
+    trustedTimeUnavailable,
+    windowBlocked,
+  };
+}
+
+/// 🆕 v1.22(K58) — simToAuto 확정 1단계 · 오케스트레이터 결과(도메인 `sim_to_auto_commit_result` ·
+/// core `SimToAutoCommitCodes` `mode/sim_to_auto_commit.dart:49-79` 10 + `mode/sim_to_auto_switch.dart:21-25` 2).
+abstract final class SimToAutoCommitResultCodes {
+  /// 실전 파일에 이미 모드 행이 있다.
+  static const String alreadyCommitted = 'SIM_TO_AUTO_ALREADY_COMMITTED';
+
+  /// 대응 계좌 가운데 조회가 없는 곳이 있다.
+  static const String probeMissing = 'SIM_TO_AUTO_ACCOUNT_PROBE_MISSING';
+
+  /// 조회가 오래됐거나 미래 시각이다.
+  static const String snapshotStale = 'SIM_TO_AUTO_SNAPSHOT_STALE';
+
+  /// 실전 계좌에 보유 종목이 있다.
+  static const String holdingsNotZero = 'SIM_TO_AUTO_HOLDINGS_NOT_ZERO';
+
+  /// 오늘 브로커 주문 · 체결이 있다.
+  static const String brokerActivityToday = 'SIM_TO_AUTO_BROKER_ACTIVITY_TODAY';
+
+  /// 예수금을 알 수 없다.
+  static const String cashUnknown = 'SIM_TO_AUTO_CASH_UNKNOWN';
+
+  /// 예수금 합계가 없다.
+  static const String zeroCash = 'SIM_TO_AUTO_ZERO_CASH';
+
+  /// 쓰기 실패 — 전부 되돌리고 세션을 닫았다.
+  static const String rolledBack = 'SIM_TO_AUTO_COMMIT_ROLLED_BACK';
+
+  /// 세션을 연 기기 · 리스 세대가 지금과 다르다.
+  static const String leaseMismatch = 'SIM_TO_AUTO_LEASE_MISMATCH';
+
+  /// 닫힌 모의 파일에는 5단계 고름을 적지 않는다.
+  static const String simClosed = 'SIM_LEDGER_FATE_SIM_CLOSED';
+
+  /// 오케스트레이터 — 새 감시 체크 준비 실패(전환하지 않았다).
+  static const String watchdogPrepareFailed =
+      'SIM_TO_AUTO_WATCHDOG_PREPARE_FAILED';
+
+  /// 오케스트레이터 — 커밋 콜백 결과 모름(보상 0 · 🔴 상수 이름 ≠ 엔진 `kSimToAutoCommitUnknown` — C-7 · K51).
+  static const String outcomeUnknown = 'SIM_TO_AUTO_COMMIT_UNKNOWN';
+
+  static const Set<String> values = <String>{
+    alreadyCommitted,
+    probeMissing,
+    snapshotStale,
+    holdingsNotZero,
+    brokerActivityToday,
+    cashUnknown,
+    zeroCash,
+    rolledBack,
+    leaseMismatch,
+    simClosed,
+    watchdogPrepareFailed,
+    outcomeUnknown,
+  };
+}
+
+/// 🆕 v1.22(K21) — 전환 세션 결과(도메인 `handover_session_result` · core `HandoverSessionCodes` `mode/handover_session.dart:75-88`
+/// − `INVALID`(v1.19 `LivePromotionResultCodes.sessionInvalid` 한 벌 — simToAuto 도 그 글자) − 생체(`SettingsResultCodes`)).
+abstract final class HandoverSessionResultCodes {
+  /// 이미 열린 세션이 있다.
+  static const String sessionOpen = 'HANDOVER_SESSION_OPEN';
+
+  /// 저장 실패 — 전부 되돌렸다.
+  static const String rolledBack = 'HANDOVER_SESSION_ROLLED_BACK';
+
+  static const Set<String> values = <String>{sessionOpen, rolledBack};
+}
+
+/// 🆕 v1.22 — simToAuto 7단계 id(도메인 `sim_to_auto_step` · core `SimToAutoStep.stepId` `mode/sim_to_auto.dart:53-77` ·
+/// 축 = `HandoverStep.stepId`(simToAuto) · 막힘 코드 없는 첫 열린 단계의 거부 `reasonCode` · `UnknownResolutionStep.stepId` 선례).
+/// 🔴 [cooling] ↔ `SimToAutoResultCodes.cooling` = 다른 클래스 · 다른 글자(`SIM_TO_AUTO_S7` ↔ `SIM_TO_AUTO_COOLING`).
+abstract final class SimToAutoStepIds {
+  /// 1 모의 체험 확인.
+  static const String trial = 'SIM_TO_AUTO_S1';
+
+  /// 2 골든 벡터 자가검사.
+  static const String goldenVector = 'SIM_TO_AUTO_S2';
+
+  /// 3 실전 키 등록 · 조회 검증.
+  static const String liveKeys = 'SIM_TO_AUTO_S3';
+
+  /// 4 계좌 연결.
+  static const String accounts = 'SIM_TO_AUTO_S4';
+
+  /// 5 모의 기록 보관 · 지움.
+  static const String simLedger = 'SIM_TO_AUTO_S5';
+
+  /// 6 생체 확인.
+  static const String biometric = 'SIM_TO_AUTO_S6';
+
+  /// 7 냉각.
+  static const String cooling = 'SIM_TO_AUTO_S7';
+
+  /// 차례 = 단계 차례(C-56 ④).
+  static const List<String> ordered = <String>[
+    trial,
+    goldenVector,
+    liveKeys,
+    accounts,
+    simLedger,
+    biometric,
+    cooling,
+  ];
+
+  static const Set<String> values = <String>{
+    trial,
+    goldenVector,
+    liveKeys,
+    accounts,
+    simLedger,
+    biometric,
+    cooling,
+  };
+}
+
+/// 🆕 v1.22(01 §31 · K67) — 모드 표지 글자(엔진 core `ops/mode_marker.dart:11-20` · 셸 `ui_shell/lib/l10n/labels.dart:31-32`
+/// 두 벌 → 한 벌). 🔴 «코드 → 문구» 사전이 아니다 — 표지 글자 상수(사전 도메인 0 · byDomain 0).
+/// 소비 이전 = 엔진 다음 조각 · 셸 = 다음 test-only/PNG 창.
+abstract final class ModeMarkerText {
+  /// 모의 표지.
+  static const String sim = '모의투자';
+
+  /// 투자 안내(X7) 표지.
+  static const String advisory = '투자 안내';
+
+  /// OS 알림·다이제스트 제목 접두 — 모의(앱 안 화면은 셸 띠가 덮는다 — 이중 표지 0).
+  static const String osSimPrefix = '[모의]';
+
+  /// OS 알림·다이제스트 제목 접두 — 투자 안내.
+  static const String osAdvisoryPrefix = '[안내]';
+}

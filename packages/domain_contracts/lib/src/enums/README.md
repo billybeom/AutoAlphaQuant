@@ -11,17 +11,17 @@
 | `journal.dart` | `JournalStatus` · `FillVisibility` · `FillOrigin` · `FillKind` · `CostSource` |
 | `performance.dart` | `PerfMetric` · `PerfGranularity` · `SegmentKind` · `TaxLadderBranch` |
 | `rebalance.dart` | `RebalanceKind` · 🆕 v1.8 `SleeveBandState`(01 §17) |
-| `resume.dart` | `PlannedWorkState` · `ResumeMode` · `ResumePhase` |
+| `resume.dart` | `PlannedWorkState` · `ResumeMode` · `ResumePhase` · 🆕 v1.22 `SeasonalEntryChoice`(계절 A 진입 3택 · 엔진 `SeasonalWindowChoice` 값 1:1 · 🔴 타입 이름 ≠ 엔진 · 01 §31 K49) |
 | `calendar.dart` | `CalendarOrigin` · `CalendarEventKind` |
 | `ledger.dart` | `LedgerPair` · `LedgerAxis` · `DiffSeverity` · `DiffStatus` · `RepairRoute` · `LedgerTrustGrade`(+ ⏸ `LedgerEventKind` 주석) |
-| `safety.dart` | `AlertLevel` · `BreakerLevel` · `ClearRoute` |
+| `safety.dart` | `AlertLevel` · `BreakerLevel` · `ClearRoute` · v1.21 킬스위치 기록·재개 열거 4 · 🆕 v1.22 `StoppedDecisionChoice` · `InterventionStepOutcome`(엔진 값·와이어 1:1 · 🔴 타입 이름 ≠ 엔진 · 01 §31 K49) |
 | 🆕 `settings.dart` | **v1.18** `SettingTier`(`S01` 묶음 머리·자물쇠 3값 GENERAL·OPERATIONAL·RULE · 01 §27) |
 | `onboarding.dart` | `OnboardingTrack` · `StepRequirement` · `StepState` |
 | 🆕 `incident.dart` | **v1.17** `IncidentKind`(`D-01` 배너 아이콘 5값 · 모르는 wire = `other` · 01 §26) |
 | 🆕 `handbook.dart` | **v1.17** `HandbookEntryState`(`B-01` 목차 상태 3값 · 아이콘·색만 · 01 §26) |
 | `advice.dart` | `AdviceStatus` · `AdviceKind` · `AdviceSkipReason` · `AdviceActionId` · `HoldingScope` · `HandoverPath` · `CredentialUse` · `SelfReportPurpose` · `SeasonalEntryGateState` |
 | 🆕 `market_data.dart` | **v1.14** `MarketDataSource`(시세·지표 원천 6값 — 배치 G `source` CHECK · C-15 · 01 §22 · 화면 미사용) |
-| `command.dart` | `CommandKind` · `CommandState` · `SettingsActionId` — 🔴 **A가 소유하고 `commands/`(D)는 import만** |
+| `command.dart` | `CommandKind` · `CommandState` · `SettingsActionId`(🆕 v1.22 handover +3) · `SafetyActionId`(🆕 v1.22 +8 · 01 §31 K52) — 🔴 **A가 소유하고 `commands/`(D)는 import만** |
 
 > 🔵 `RampLevel`(OpsRamp L0~L5)은 이 폴더가 아니라 **영역 B `dto/safety.dart`** 소유다(인벤토리 §3-14). 전략 §12-⑫의 `EntryRamp`(초기 진입 6개월 분할)와 **다른 것**이며 하나의 위젯으로 합치지 않는다.
 
