@@ -46,6 +46,40 @@ List<String> sqliteIntegrityLines(Database db) => <String>[
     r.values.first.toString(),
 ];
 
+/// 🆕 E16g2(R135 P6) — 스탬프 체인 자가 대조만(읽기 전용 · `PRAGMA` 빼고 · 기록 0) — 스냅숏 사본 검사도 부른다.
+///
+/// 스탬프 0 = 통과 · 귀속 실패 = `attribution` 실패(fail-closed).
+LedgerIntegrityVerdict ledgerChainVerdictOf(Database db) {
+  final List<StoredDayStamp> stamps = <StoredDayStamp>[
+    for (final Row r in db.select(
+      'SELECT authored_date, day_hash, chain_hash, hash_format_version '
+      'FROM ledger_daily_hash ORDER BY authored_date',
+    ))
+      StoredDayStamp(
+        authoredDate: r['authored_date'] as String,
+        dayHash: r['day_hash'] as String,
+        chainHash: r['chain_hash'] as String,
+        hashFormatVersion: r['hash_format_version'] as int,
+      ),
+  ];
+  if (stamps.isEmpty) {
+    return const LedgerIntegrityVerdict.ok(
+      daysChecked: 0,
+      checkedThrough: null,
+    );
+  }
+  final Map<String, Map<String, List<String>>> lines;
+  try {
+    lines = ledgerLinesByDay(db);
+  } on LedgerHashError {
+    return const LedgerIntegrityVerdict.failed(
+      LedgerIntegrityReason.attribution,
+      daysChecked: 0,
+    );
+  }
+  return verifyLedgerChain(stamps, lines);
+}
+
 /// 정본 자가 무결성 검사(R58 C1).
 class LedgerIntegrityCheck {
   /// 검사를 만든다 — [sqliteIntegrity] = 시험 주입(기본 = `PRAGMA integrity_check`).
@@ -67,34 +101,7 @@ class LedgerIntegrityCheck {
         daysChecked: 0,
       );
     }
-    final List<StoredDayStamp> stamps = <StoredDayStamp>[
-      for (final Row r in _db.select(
-        'SELECT authored_date, day_hash, chain_hash, hash_format_version '
-        'FROM ledger_daily_hash ORDER BY authored_date',
-      ))
-        StoredDayStamp(
-          authoredDate: r['authored_date'] as String,
-          dayHash: r['day_hash'] as String,
-          chainHash: r['chain_hash'] as String,
-          hashFormatVersion: r['hash_format_version'] as int,
-        ),
-    ];
-    if (stamps.isEmpty) {
-      return const LedgerIntegrityVerdict.ok(
-        daysChecked: 0,
-        checkedThrough: null,
-      );
-    }
-    final Map<String, Map<String, List<String>>> lines;
-    try {
-      lines = ledgerLinesByDay(_db);
-    } on LedgerHashError {
-      return const LedgerIntegrityVerdict.failed(
-        LedgerIntegrityReason.attribution,
-        daysChecked: 0,
-      );
-    }
-    return verifyLedgerChain(stamps, lines);
+    return ledgerChainVerdictOf(_db);
   }
 
   /// 한 번 돈다 — 한 트랜잭션(대조 · 기록 · 플래그).
