@@ -50,6 +50,7 @@ import 'package:ui_journal/ui_journal.dart'
 import 'package:ui_settings/ui_settings.dart'
     show
         Credentials,
+        SettingsHome,
         SettingsSlotBuilder,
         settingsActionsProvider,
         settingsClockProvider,
@@ -516,6 +517,54 @@ void main() {
     container.dispose();
     disposed = true;
   });
+
+  testWidgets(
+    '🔴 더보기 = S01 설정 홈(R134) · 원천 있는 카드 · 링크 = 등록된 화면만(키 → S02 · 운용 = 탭 부재)',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('s01-tabs')),
+          matching: find.text('더보기'),
+        ),
+      );
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final Finder home = find.byType(SettingsHome);
+      expect(home, findsOneWidget);
+      Finder inHome(String t) =>
+          find.descendant(of: home, matching: find.text(t));
+      expect(inHome('모의 · 내부 가상 체결 · 자동 매매'), findsOneWidget);
+      expect(inHome('모의투자 미등록'), findsOneWidget);
+      expect(inHome('모의 · 자동 매매'), findsOneWidget);
+      expect(inHome('월 10만원'), findsOneWidget);
+      // 시험 원장 = 운영 설정 없음(지문 '') → 전략 카드는 P0S 를 지어내지 않는다.
+      expect(inHome('운영 설정을 읽지 못했습니다'), findsOneWidget);
+      // 운용 관리 = S05 본문 미등록 → 탭 부재(눌러도 그대로).
+      await tester.tap(inHome('운용 관리'));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(find.byType(Credentials), findsNothing);
+      // 증권사 키 = S02 등록 → 연다.
+      await tester.tap(inHome('증권사 키'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(Credentials), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
 
   test('🔴 일지 패키지 링크 열기 = 셸과 같은 것(https = 바깥)', () async {
     final List<String> outside = <String>[];

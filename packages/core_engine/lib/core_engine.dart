@@ -496,6 +496,18 @@ export 'src/ops/p0s_ops_config.dart'
         kP0sMappedStrategies,
         p0sLimitConfig,
         p0sRegimeConfigHash;
+// 🆕 E11p3d-5e — M9 S01 설정 홈(설계 13 §8 R134).
+export 'src/ops/settings_home.dart'
+    show
+        SettingsCardCodes,
+        SettingsHomeFacts,
+        kSettingsAllocationLabel,
+        kSettingsAllocationMissingLabel,
+        kSettingsHomeStaleAfter,
+        settingsCredentialsCardOf,
+        settingsHomeVmOf,
+        settingsOperationsLabelOf,
+        settingsStatusChipOf;
 // 🆕 E11g — 계층 B 월간 판정(TWR · 롤링 12M · DD · TUW · 카드 대조 · 설계 13 §8 R50).
 export 'src/ops/tier_b.dart'
     show
