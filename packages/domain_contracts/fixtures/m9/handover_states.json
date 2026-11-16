@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.21.0",
+    "contract_version": "1.22.0",
     "generated_at": "2026-09-06T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -15,16 +15,17 @@
   "rows": [
     {
       "path": "SIM_TO_AUTO",
-      "path_label": "모의에서 자동 매매로",
+      "path_label": "모의투자 → 실전 자동 매매(관찰부터)",
       "steps": [
-        { "step_id": "h1", "order": 1, "title": "모의 기록 확인", "why_line": "모의 기간의 기록을 그대로 남깁니다.", "state": "PASS", "state_label": "통과" },
-        { "step_id": "h2", "order": 2, "title": "실계좌 키 등록", "why_line": "주문 권한이 필요합니다.", "state": "PASS", "state_label": "통과" },
-        { "step_id": "h3", "order": 3, "title": "개시 잔고 확정", "why_line": "실전 원장을 엽니다.", "state": "PASS", "state_label": "통과" }
+        { "step_id": "SIM_TO_AUTO_S1", "order": 1, "title": "모의 체험 확인", "why_line": "체험 5항목을 채웠는지 엔진이 확인합니다", "state": "PASS", "state_label": "체험 5항목 완료" },
+        { "step_id": "SIM_TO_AUTO_S2", "order": 2, "title": "계산 자가검사", "why_line": "실전과 같은 계산인지 골든 벡터로 다시 확인합니다", "state": "PASS", "state_label": "골든 벡터 통과" },
+        { "step_id": "SIM_TO_AUTO_S3", "order": 3, "title": "실전 키 확인", "why_line": "실전 키를 등록하고 조회만으로 확인합니다 — 주문은 내지 않습니다", "state": "PASS", "state_label": "실전 키 조회 확인" },
+        { "step_id": "SIM_TO_AUTO_S4", "order": 4, "title": "계좌 연결", "why_line": "전략 넷이 모두 실전 계좌에 연결됐는지 확인합니다", "state": "PASS", "state_label": "전략 4개 모두 계좌 연결" },
+        { "step_id": "SIM_TO_AUTO_S5", "order": 5, "title": "모의 기록 처리", "why_line": "모의 기록을 보관할지 지울지 고릅니다 — 실전 원장에는 남지 않습니다", "state": "PASS", "state_label": "모의 기록을 앱 밖 보관본으로 남깁니다" },
+        { "step_id": "SIM_TO_AUTO_S6", "order": 6, "title": "생체 확인", "why_line": "생체 확인 1회로 전환을 시작합니다", "state": "PASS", "state_label": "생체 확인 2026-12-09 11:00" },
+        { "step_id": "SIM_TO_AUTO_S7", "order": 7, "title": "24시간 냉각", "why_line": "생체 확인 뒤 24시간을 기다립니다 — 건너뛸 수 없습니다", "state": "PASS", "state_label": "냉각 끝 — 2026-12-11 11:00 전까지 확정하세요" }
       ],
-      "adoption_preview": [
-        { "symbol": "069500", "symbol_label": "069500 KODEX 200", "quantity": 212, "sleeve": "A", "adoption_id": "ap_069500", "disposition": "ADOPT", "disposition_label": "시스템이 인수" },
-        { "symbol": "379810", "symbol_label": "379810 KODEX 미국S&P500", "quantity": 248, "sleeve": "B", "adoption_id": "ap_379810", "disposition": "ADOPT", "disposition_label": "시스템이 인수" }
-      ],
+      "adoption_preview": [],
       "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "전환 기준 2026-08-31" }
     },
     {

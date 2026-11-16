@@ -41,6 +41,33 @@ abstract final class FixturePaths {
 
   // ── m5/ — 🆕 v1.21(01 §30) M5 안전 동작 · 폴더 신설 · 게이트 7 · 서약 3 · 결과 1 · 접수증 1 ──
   //    (파일 이름 바이트 차례 · `all` 도 같은 차례)
+  //    🆕 v1.22(01 §31) — 사다리 2 · simToAuto 계획 4 · 위저드 결과 1 · E13 결과 1(같은 차례 규약).
+
+  /// 🆕 v1.22(K65) — `M5-4` 사다리 · 지금 = 정상(글자 = 엔진 `breakerLadderOf` 출력).
+  static const String m5BreakerLadderNormal = 'm5/breaker_ladder_normal.json';
+
+  /// 🆕 v1.22 — `M5-4` 사다리 · 지금 = 정지(두 표본 `current` 빼면 바이트 같음 — C-56 ⑤).
+  static const String m5BreakerLadderStopped = 'm5/breaker_ladder_stopped.json';
+
+  /// 🆕 v1.22(K56 · K58) — `M5-11` 위저드 동작 결과 20행(fate 3 · 세션 열기 7 · 취소 2 · 확정 8 · 확정 성공 행 0).
+  static const String m5HandoverSimToAutoActionResults =
+      'm5/handover_sim_to_auto_action_results.json';
+
+  /// 🆕 v1.22(K59) — simToAuto 계획 · 7단계 S7 냉각 중(`SIM_TO_AUTO_COOLING`).
+  static const String m5HandoverSimToAutoCooling =
+      'm5/handover_sim_to_auto_cooling.json';
+
+  /// 🆕 v1.22 — simToAuto 계획 · 5단계 고르기 전(S5~S7 UNKNOWN · 코드 null).
+  static const String m5HandoverSimToAutoFatePending =
+      'm5/handover_sim_to_auto_fate_pending.json';
+
+  /// 🆕 v1.22 — simToAuto 계획 · 7단계 전부 통과(확정 가능).
+  static const String m5HandoverSimToAutoReady =
+      'm5/handover_sim_to_auto_ready.json';
+
+  /// 🆕 v1.22 — simToAuto 계획 · 3단계 실전 키 조회 실패(`SIM_TO_AUTO_LIVE_KEYS_FAILED`).
+  static const String m5HandoverSimToAutoS3Blocked =
+      'm5/handover_sim_to_auto_s3_blocked.json';
   static const String m5KillChecklistReceipts =
       'm5/kill_checklist_receipts.json';
   static const String m5KillResumeGateConditionUnmet =
@@ -60,6 +87,10 @@ abstract final class FixturePaths {
   static const String m5PledgeNotWritten = 'm5/pledge_not_written.json';
   static const String m5PledgeWritten = 'm5/pledge_written.json';
   static const String m5SafetyActionResults = 'm5/safety_action_results.json';
+
+  /// 🆕 v1.22(K52~K55) — E13 나머지 동작 8 결과 31행(`SafetyActionResult` · RECON 해제 = 생체 코드만 · K55).
+  static const String m5SafetyActionResultsE13 =
+      'm5/safety_action_results_e13.json';
 
   // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
   static const String m6Advice12 = 'm6/advice_12.json';
@@ -289,6 +320,11 @@ abstract final class FixturePaths {
   static const String m6JournalReadNotWritten =
       'm6/journal_read_not_written.json';
   static const String m6JournalReadWritten = 'm6/journal_read_written.json';
+
+  /// 🆕 v1.22(01 §31 · K66) — `J-1` 모의 가상 체결 브로커 거부 1행(`BrokerRawCodes.simInvalidOrder` 칩 · `fill_origin` SIMULATED ·
+  ///    제출 거부 = 주문번호 0 · 가격 칸 = J-1 꼴 · 소비 = 화면 판 1.23.0+).
+  static const String m6JournalSimBrokerReject =
+      'm6/journal_sim_broker_reject.json';
   static const String m6ManualFills8 = 'm6/manual_fills_8.json';
 
   /// 🔵 v1.12(01 §21 · K8) — **꼴 교체**: `L-3` 열린 실사 세션(`SelfReportSession` 12키 · 2026-08 · 연금저축 ·
@@ -764,6 +800,30 @@ abstract final class FixturePaths {
   /// 🆕 v1.18 — `S01` 뷰어 판(폰 전용 행을 엔진이 뺀 VM).
   static const String m9SettingsHomeViewer = 'm9/settings_home_viewer.json';
 
+  // ── x2/ — 🆕 v1.22(01 §31 · K63 · K64) X2 재개 게이트 4 · 재개 리포트 2 · 폴더 신설(파일 이름 바이트 차례) ──
+
+  /// 🆕 v1.22 — 보수 모드 · 보수 이월 1 + 계절 진입 1(3택).
+  static const String x2ResumeGateConservativeDefer =
+      'x2/resume_gate_conservative_defer.json';
+
+  /// 🆕 v1.22 — `seasonal_pending` 의 잠김 판(`locked_label` · 모든 행 `actions` 빈 · 그 밖 바이트 같음).
+  static const String x2ResumeGateLocked = 'x2/resume_gate_locked.json';
+
+  /// 🆕 v1.22 — 재판정 실패로 멈춤(`REEVALUATION_FAILED` · VM `level` BLOCKED).
+  static const String x2ResumeGateReevaluationFailed =
+      'x2/resume_gate_reevaluation_failed.json';
+
+  /// 🆕 v1.22 — 평상 · 계절 진입 사람 결정 1(3택 `seasonalWindowChoice`) + 기한 지남 1.
+  static const String x2ResumeGateSeasonalPending =
+      'x2/resume_gate_seasonal_pending.json';
+
+  /// 🆕 v1.22 — 재개 리포트 NORMAL(재판정 위임 1 · 대체 1 · 만료 1 · 공백 0).
+  static const String x2ResumeReportNormal = 'x2/resume_report_normal.json';
+
+  /// 🆕 v1.22 — 재개 리포트 RECOVERY_FULL(안전 정지 2 · 만료 1 · 복구 불가 공백 1).
+  static const String x2ResumeReportRecoveryFull =
+      'x2/resume_report_recovery_full.json';
+
   /// 전량 목록 — C-14 시크릿 스캔·C-15 열거값 대조가 이 목록을 돈다.
   static const List<String> all = <String>[
     alerts12,
@@ -780,6 +840,13 @@ abstract final class FixturePaths {
     resumeReport1,
     safetyStates,
     sleeveCatalog4,
+    m5BreakerLadderNormal,
+    m5BreakerLadderStopped,
+    m5HandoverSimToAutoActionResults,
+    m5HandoverSimToAutoCooling,
+    m5HandoverSimToAutoFatePending,
+    m5HandoverSimToAutoReady,
+    m5HandoverSimToAutoS3Blocked,
     m5KillChecklistReceipts,
     m5KillResumeGateConditionUnmet,
     m5KillResumeGateInProgress,
@@ -792,6 +859,7 @@ abstract final class FixturePaths {
     m5PledgeNotWritten,
     m5PledgeWritten,
     m5SafetyActionResults,
+    m5SafetyActionResultsE13,
     m6Advice12,
     m6AdviceBlocked,
     m6AdviceDetailOnhold,
@@ -863,6 +931,7 @@ abstract final class FixturePaths {
     m6JournalReadNoNote,
     m6JournalReadNotWritten,
     m6JournalReadWritten,
+    m6JournalSimBrokerReject,
     m6ManualFills8,
     m6SelfReport1,
     m6SelfReportDiffResult,
@@ -1049,5 +1118,11 @@ abstract final class FixturePaths {
     m9SettingsHome,
     m9SettingsHomeNoReview,
     m9SettingsHomeViewer,
+    x2ResumeGateConservativeDefer,
+    x2ResumeGateLocked,
+    x2ResumeGateReevaluationFailed,
+    x2ResumeGateSeasonalPending,
+    x2ResumeReportNormal,
+    x2ResumeReportRecoveryFull,
   ];
 }

@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.22.0",
+    "generated_at": "2026-11-17T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261117,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-12-22T00:45:00Z", "trade_date": "2026-12-22", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "재개 기준 2026-12-22 09:45" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "headline": "2거래일 미실행: 재판정 0 / 만료 0 / 대체 0 / 차단 1 / 복구 불가 0. 재판정을 마치지 못해 매매를 멈춰 둡니다.",
+      "mode_label": "2거래일 미실행 — 평상",
+      "level": "BLOCKED",
+      "rows": [
+        {
+          "work_id": "pw_x2_05",
+          "one_line": "(합성) 슬리브 B 정기 리밸런싱",
+          "reason_code": "REEVALUATION_FAILED",
+          "reason_label": "재판정에 필요한 자료가 없어 미뤄 둡니다",
+          "level": "BLOCKED",
+          "actions": []
+        }
+      ],
+      "report_link": { "label": "(합성) 재개 리포트 보기", "deep_link": "aaq://x2/resume-report" },
+      "locked_label": null,
+      "as_of": { "observed_at": "2026-12-22T00:45:00Z", "trade_date": "2026-12-22", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "재개 기준 2026-12-22 09:45" }
+    }
+  ]
+}

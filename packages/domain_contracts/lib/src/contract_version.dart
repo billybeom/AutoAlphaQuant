@@ -8,7 +8,7 @@
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -162,13 +162,26 @@
 //    엔진 다음 계약 판 = 1.22.0(E13 나머지 — STOPPED·postmortem·개입·규칙 변경·재량·RECON 해제 · 사다리 · E14i 전량 ·
 //    E15i 남은 굳은 몫(simToAuto 코드·단계·세션·결정 사유·위저드 동작·표본·가상 체결·모드 표지) · fill-origin · `resume_mode` · F8 ·
 //    01 §6-7 — 창 = R7b 병합 뒤 · R7c 발송 전) · 1.23.0+(E16i · 엔진 문구 0 VM 3 · 이름 없는 알림 · 승격 세션 종류 ·
-//    PNG 흔드는 F1·F2·F4~F7 — 굳는 대로) · 06 변경 이력 «2026-11-15 · 계약 판 나눔».
+//    PNG 흔드는 F1·F2·F4~F7 — 굳는 대로) · 06 변경 이력 «2026-11-15 · 계약 판 나눔» — 🆕 v1.22 가 1.22.0 몫을 실었다 ·
+//    나머지 = 1.23.0+(아래).
+// 🆕 '1.22.0'(엔진 예고 2/2 · 01 §31 · 발주자 위임 2026-11-14 — 권고대로 · K48~K71) — M5 나머지 + X2 재개 + simToAuto + DDL 글자:
+//    `SafetyActionId` +8(STOPPED_DECISION · INCIDENT_POSTMORTEM · RECON_CLEAR · INTERVENTION_STEP · DISCRETION_ADJUST ·
+//    RULE_CHANGE_CANCEL · RULE_CHANGE_APPROVE · SEASONAL_WINDOW_CHOICE) · `SafetyActions` 표면 8(+ runStoppedDecision · runPostmortem ·
+//    runRuleChangeApproval · runDiscretionAdjust · run 화이트리스트 4) · 제출 DTO 4 · 열거 3(`StoppedDecisionChoice` · `InterventionStepOutcome` ·
+//    `SeasonalEntryChoice` — 🔴 타입 이름 ≠ 엔진) · 🆕 `BreakerLadderVm` · `ResumeGateVm` + 창구 2 · 받침대 3 · 사전 +12(E13 5 · E14i 3 ·
+//    E15i 4) + 확장 4(`PlannedWorkKindCodes` · `GapReasonCodes` · `DecisionReasonCodes` · `BrokerRawCodes`) · `ModeMarkerText` ·
+//    `SettingsActionId` handover +3 · 🆕 `KillChecklistSubmission`(`confirmKillChecklist` 인자 교체 — 미결 183 ⓐ) ·
+//    `LedgerModeCheck.fillOrigin`(⏸ 태그 줄 = 엔진 재생성 PR) · DDL `resume_run_mirror.resume_mode` · 🆕 C-56 · 픽스처 283 → 298
+//    (신설 15 · 개정 2 — F8 `resume_report_1` · `m9/handover_states` SIM_TO_AUTO) — 🆕 tool/gen_v122_fixtures.py.
+//    엔진 다음 계약 판 = 1.23.0+(E16i · 엔진 문구 0 VM 3 · 이름 없는 알림 · 승격 세션 종류 · PNG 흔드는 F1·F2·F4~F7 ·
+//    M5-1 폼 VM(미결 186) · M5-11 위저드 VM(미결 187) · `RuleChangeCategory` · postmortem·재량 원천 VM(미결 188) — 굳는 대로) ·
+//    06 변경 이력 «2026-11-17 · 계약 v1.22».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.21.0';
+const String contractVersion = '1.22.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

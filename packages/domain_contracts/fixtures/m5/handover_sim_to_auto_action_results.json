@@ -1,0 +1,197 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.22.0",
+    "generated_at": "2026-11-17T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261117,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-12-10T03:05:00Z", "trade_date": "2026-12-10", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "전환 기준 2026-12-10 12:05" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "action_run_id": "ar_hs_01",
+      "id": "HANDOVER_SIM_LEDGER_FATE",
+      "level": "OK",
+      "headline": "(합성) 모의 기록을 앱 밖 보관본으로 남기기로 했습니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_02",
+      "id": "HANDOVER_SIM_LEDGER_FATE",
+      "level": "INFO",
+      "headline": "(합성) 모의 파일이 이미 닫혀 고른 것을 적지 않았습니다.",
+      "reason_code": "SIM_LEDGER_FATE_SIM_CLOSED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_03",
+      "id": "HANDOVER_SIM_LEDGER_FATE",
+      "level": "BLOCKED",
+      "headline": "모의투자 자동 매매 중일 때만 실전으로 옮길 수 있습니다.",
+      "reason_code": "SIM_TO_AUTO_NOT_SIM_AUTO",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_04",
+      "id": "HANDOVER_SESSION_START",
+      "level": "OK",
+      "headline": "생체 확인 완료 — 24시간 냉각 뒤 2026-12-10 11:00부터 2026-12-11 11:00 전까지 확정할 수 있습니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_05",
+      "id": "HANDOVER_SESSION_START",
+      "level": "BLOCKED",
+      "headline": "생체 확인이 없어 전환을 시작하지 않았습니다.",
+      "reason_code": "BIOMETRIC_UNAVAILABLE",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_06",
+      "id": "HANDOVER_SESSION_START",
+      "level": "ACT",
+      "headline": "앞 단계(1~5)를 모두 마친 뒤 생체 확인을 할 수 있습니다.",
+      "reason_code": "SIM_TO_AUTO_S5",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_07",
+      "id": "HANDOVER_SESSION_START",
+      "level": "ACT",
+      "headline": "앞 단계(1~5)를 모두 마친 뒤 생체 확인을 할 수 있습니다.",
+      "reason_code": "SIM_TO_AUTO_LIVE_KEYS_FAILED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_08",
+      "id": "HANDOVER_SESSION_START",
+      "level": "INFO",
+      "headline": "이미 열린 전환 세션이 있습니다 — 그 세션을 마치거나 취소한 뒤 다시 시작해 주세요.",
+      "reason_code": "HANDOVER_SESSION_OPEN",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_09",
+      "id": "HANDOVER_SESSION_START",
+      "level": "BLOCKED",
+      "headline": "저장에 실패해 아무것도 바꾸지 않았습니다.",
+      "reason_code": "HANDOVER_SESSION_ROLLED_BACK",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_10",
+      "id": "HANDOVER_SESSION_START",
+      "level": "WATCH",
+      "headline": "시각을 확인할 수 없어 전환을 시작하지 않았습니다.",
+      "reason_code": "SIM_TO_AUTO_TRUSTED_TIME_UNAVAILABLE",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_11",
+      "id": "HANDOVER_SESSION_CANCEL",
+      "level": "OK",
+      "headline": "전환을 취소했습니다 — 지금 모드 그대로입니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_12",
+      "id": "HANDOVER_SESSION_CANCEL",
+      "level": "INFO",
+      "headline": "열려 있는 전환 세션이 아닙니다.",
+      "reason_code": "HANDOVER_SESSION_INVALID",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_13",
+      "id": "HANDOVER_COMMIT",
+      "level": "WATCH",
+      "headline": "아직 확정할 수 없습니다 — 전환 단계를 확인해 주세요.",
+      "reason_code": "SIM_TO_AUTO_COOLING",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_14",
+      "id": "HANDOVER_COMMIT",
+      "level": "WATCH",
+      "headline": "아직 확정할 수 없습니다 — 전환 단계를 확인해 주세요.",
+      "reason_code": "SIM_TO_AUTO_COMMIT_WINDOW",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_15",
+      "id": "HANDOVER_COMMIT",
+      "level": "BLOCKED",
+      "headline": "실전 계좌에 보유 종목이 있어 확정하지 않았습니다 — 기존 보유를 넘겨받는 경로로 진행해 주세요.",
+      "reason_code": "SIM_TO_AUTO_HOLDINGS_NOT_ZERO",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_16",
+      "id": "HANDOVER_COMMIT",
+      "level": "ACT",
+      "headline": "계좌 조회가 오래됐습니다 — 다시 조회한 뒤 확정해 주세요.",
+      "reason_code": "SIM_TO_AUTO_SNAPSHOT_STALE",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_17",
+      "id": "HANDOVER_COMMIT",
+      "level": "BLOCKED",
+      "headline": "저장에 실패해 아무것도 바꾸지 않았습니다 — 전환 세션을 닫았으니 처음부터 다시 진행해 주세요.",
+      "reason_code": "SIM_TO_AUTO_COMMIT_ROLLED_BACK",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_18",
+      "id": "HANDOVER_COMMIT",
+      "level": "BLOCKED",
+      "headline": "이 기기의 발주권(리스)을 확인할 수 없어 확정하지 않았습니다.",
+      "reason_code": "LEASE_INVALID",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_19",
+      "id": "HANDOVER_COMMIT",
+      "level": "BLOCKED",
+      "headline": "바깥 감시를 준비하지 못해 전환하지 않았습니다 — 바뀐 것은 없습니다. 잠시 뒤 다시 확정해 주세요.",
+      "reason_code": "SIM_TO_AUTO_WATCHDOG_PREPARE_FAILED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_hs_20",
+      "id": "HANDOVER_COMMIT",
+      "level": "WATCH",
+      "headline": "확정 결과를 확인하지 못했습니다 — 앱을 다시 열어 상태를 확인해 주세요.",
+      "reason_code": "SIM_TO_AUTO_COMMIT_UNKNOWN",
+      "handoff_route": null,
+      "retryable": false
+    }
+  ]
+}

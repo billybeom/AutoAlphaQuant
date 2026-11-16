@@ -1,0 +1,296 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.22.0",
+    "generated_at": "2026-11-17T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261117,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-11-18T07:00:00Z", "trade_date": "2026-11-18", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안전 기준 2026-11-18 16:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "action_run_id": "ar_e13_01",
+      "id": "STOPPED_DECISION",
+      "level": "OK",
+      "headline": "(합성) 결정을 기록했습니다 — 정해진 다음 절차를 엔진이 이어 갑니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_02",
+      "id": "STOPPED_DECISION",
+      "level": "WATCH",
+      "headline": "(합성) 아직 결정할 수 있는 날이 아닙니다 — 정해진 기간을 채운 뒤 다시 고르십시오.",
+      "reason_code": "STOPPED_WAIT_20D",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_03",
+      "id": "STOPPED_DECISION",
+      "level": "ACT",
+      "headline": "(합성) 사건 사후 검토를 먼저 쓰십시오.",
+      "reason_code": "POSTMORTEM_MISSING",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_04",
+      "id": "STOPPED_DECISION",
+      "level": "ACT",
+      "headline": "(합성) 가족 합의 확인이 없어 받지 않았습니다.",
+      "reason_code": "FAMILY_AGREEMENT_MISSING",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_05",
+      "id": "STOPPED_DECISION",
+      "level": "ACT",
+      "headline": "(합성) 결정 전 기록 세 칸을 모두 채우십시오.",
+      "reason_code": "JOURNAL_REQUIRED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_06",
+      "id": "STOPPED_DECISION",
+      "level": "BLOCKED",
+      "headline": "(합성) 재가동 자격이 아직 없어 이 결정을 받지 않았습니다.",
+      "reason_code": "STOPPED_NOT_ELIGIBLE",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_07",
+      "id": "STOPPED_DECISION",
+      "level": "INFO",
+      "headline": "(합성) 이번 정지 구간에는 이미 결정이 있습니다.",
+      "reason_code": "DECISION_ALREADY_MADE",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_08",
+      "id": "STOPPED_DECISION",
+      "level": "BLOCKED",
+      "headline": "(합성) 저널 번호가 이미 쓰였습니다 — 다시 시도하십시오.",
+      "reason_code": "JOURNAL_ID_TAKEN",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_09",
+      "id": "INCIDENT_POSTMORTEM",
+      "level": "OK",
+      "headline": "(합성) 사후 검토를 저장했습니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_10",
+      "id": "INCIDENT_POSTMORTEM",
+      "level": "ACT",
+      "headline": "(합성) 사후 검토 글이 비었습니다.",
+      "reason_code": "POSTMORTEM_BLANK",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_11",
+      "id": "INCIDENT_POSTMORTEM",
+      "level": "INFO",
+      "headline": "(합성) 이 사건의 사후 검토는 이미 있습니다.",
+      "reason_code": "POSTMORTEM_ALREADY_RECORDED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_12",
+      "id": "RECON_CLEAR",
+      "level": "OK",
+      "headline": "(합성) 대사 불일치 표시를 풀었습니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_13",
+      "id": "RECON_CLEAR",
+      "level": "BLOCKED",
+      "headline": "(합성) 생체 확인을 할 수 없어 진행하지 않았습니다.",
+      "reason_code": "BIOMETRIC_UNAVAILABLE",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_14",
+      "id": "INTERVENTION_STEP",
+      "level": "OK",
+      "headline": "(합성) 이 단계를 마쳤습니다 — 다음 단계로 넘어갑니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_15",
+      "id": "INTERVENTION_STEP",
+      "level": "WATCH",
+      "headline": "(합성) 아직 기다리는 단계입니다 — 정해진 시각 뒤에 다시 여십시오.",
+      "reason_code": "INTERVENTION_COOLING",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_16",
+      "id": "INTERVENTION_STEP",
+      "level": "ACT",
+      "headline": "(합성) 이 단계 전에 저널을 먼저 쓰십시오.",
+      "reason_code": "INTERVENTION_JOURNAL_MISSING",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_17",
+      "id": "INTERVENTION_STEP",
+      "level": "BLOCKED",
+      "headline": "(합성) 실행할 수 있는 때가 지났습니다 — 처음부터 다시 여십시오.",
+      "reason_code": "INTERVENTION_EXPIRED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_18",
+      "id": "DISCRETION_ADJUST",
+      "level": "OK",
+      "headline": "(합성) 재량 조정을 기록했습니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_19",
+      "id": "DISCRETION_ADJUST",
+      "level": "BLOCKED",
+      "headline": "(합성) 올해 쓸 수 있는 재량 횟수를 다 썼습니다.",
+      "reason_code": "COUNT_EXCEEDED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_20",
+      "id": "DISCRETION_ADJUST",
+      "level": "ACT",
+      "headline": "(합성) 조정폭이 허용 범위를 벗어났습니다.",
+      "reason_code": "DELTA_EXCEEDED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_21",
+      "id": "RULE_CHANGE_CANCEL",
+      "level": "OK",
+      "headline": "(합성) 규칙 변경 요청을 거두었습니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_22",
+      "id": "RULE_CHANGE_CANCEL",
+      "level": "INFO",
+      "headline": "(합성) 이 요청은 이미 결정됐습니다.",
+      "reason_code": "RULE_CHANGE_DECIDED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_23",
+      "id": "RULE_CHANGE_APPROVE",
+      "level": "OK",
+      "headline": "(합성) 규칙 변경을 승인했습니다 — 정해진 때부터 적용됩니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_24",
+      "id": "RULE_CHANGE_APPROVE",
+      "level": "WATCH",
+      "headline": "(합성) 아직 기다리는 기간입니다 — 기간이 끝난 뒤 승인할 수 있습니다.",
+      "reason_code": "RULE_CHANGE_COOLING",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_25",
+      "id": "RULE_CHANGE_APPROVE",
+      "level": "BLOCKED",
+      "headline": "(합성) 낙폭이 커서 규칙 변경을 잠가 두었습니다.",
+      "reason_code": "RULE_CHANGE_DD_LOCKED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_26",
+      "id": "RULE_CHANGE_APPROVE",
+      "level": "ACT",
+      "headline": "(합성) 제3자에게 알렸는지 확인하십시오.",
+      "reason_code": "RULE_CHANGE_THIRD_PARTY_MISSING",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_27",
+      "id": "RULE_CHANGE_APPROVE",
+      "level": "BLOCKED",
+      "headline": "(합성) 서버 시각을 확인하지 못해 승인하지 않았습니다.",
+      "reason_code": "TRUSTED_TIME_UNKNOWN",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_28",
+      "id": "SEASONAL_WINDOW_CHOICE",
+      "level": "OK",
+      "headline": "(합성) 고른 대로 기록했습니다 — 다음 주문 회차가 이어 갑니다.",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_29",
+      "id": "SEASONAL_WINDOW_CHOICE",
+      "level": "ACT",
+      "headline": "(합성) 고를 수 있는 기한이 지났습니다.",
+      "reason_code": "SEASONAL_PAST_DUE",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_30",
+      "id": "SEASONAL_WINDOW_CHOICE",
+      "level": "BLOCKED",
+      "headline": "(합성) 대사 불일치가 남아 있어 진입을 고르지 않았습니다.",
+      "reason_code": "RECON_MISMATCH_REMAINS",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_e13_31",
+      "id": "SEASONAL_WINDOW_CHOICE",
+      "level": "INFO",
+      "headline": "(합성) 그 작업을 찾지 못했습니다.",
+      "reason_code": "PLANNED_WORK_UNKNOWN",
+      "handoff_route": null,
+      "retryable": false
+    }
+  ]
+}
