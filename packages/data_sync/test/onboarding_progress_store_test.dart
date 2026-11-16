@@ -95,6 +95,25 @@ void main() {
     expect(o3(), GateState.pass);
   });
 
+  test('🔴 마지막 기록(R129) = 상태 · 기록 시각 · 실패 코드 · 없음 = null', () {
+    expect(store.lastRecord('o_02'), isNull);
+    store.record(
+      'o_02',
+      StepState.failed,
+      failureReasonCode: 'CREDENTIAL_REJECTED',
+    );
+    clock.now = clock.now.add(const Duration(minutes: 3));
+    store.record('o_05', StepState.verified);
+    final OnboardingProgressRecord r = store.lastRecord('o_02')!;
+    expect(r.state, StepState.failed);
+    expect(r.updatedAtUtc, DateTime.utc(2026, 11, 15, 1));
+    expect(r.failureReasonCode, 'CREDENTIAL_REJECTED');
+    expect(
+      store.lastRecord('o_05')!.updatedAtUtc,
+      DateTime.utc(2026, 11, 15, 1, 3),
+    );
+  });
+
   test('감시 표 = 진척 · 선택(단계 목록이 다시 읽는다)', () {
     expect(SqliteOnboardingProgressStore.watchedTables, <String>{
       'onboarding_progress',

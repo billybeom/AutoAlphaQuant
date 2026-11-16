@@ -42,10 +42,13 @@ import 'package:ui_journal/ui_journal.dart'
         journalSafetyRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
+        Credentials,
         settingsActionsProvider,
         settingsClockProvider,
         settingsLinkOpenerProvider,
-        settingsOpsStatusRepositoryProvider;
+        settingsOpsStatusRepositoryProvider,
+        settingsRepositoryProvider,
+        settingsSlotBuilderProvider;
 import 'package:ui_shell/ui_shell.dart';
 
 import '../secret/kis_key_set_field.dart';
@@ -55,6 +58,7 @@ import 'operator_ops_status.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
 import 'operator_settings_actions.dart';
+import 'operator_settings_repository.dart';
 import 'operator_view.dart';
 import 'secure_screen.dart';
 
@@ -156,6 +160,15 @@ Widget _onboardingSteps(Map<String, String> _) => const OnboardingStepList();
 
 Widget _onboardingFinish(Map<String, String> _) => const OnboardingFinish();
 
+Widget _settingsCredentials(Map<String, String> _) => const Credentials();
+
+/// 🆕 R129 — 설정 읽기 모델(첫 칸 = S02 키 목록).
+final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
+    Provider<OperatorSettingsRepository>(
+      (Ref ref) =>
+          OperatorSettingsRepository(ref.watch(operatorRuntimeProvider)),
+    );
+
 Widget _onboardingStep(Map<String, String> p) =>
     OnboardingStepDetail(stepId: p['stepId'] ?? '');
 
@@ -185,6 +198,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.onboardingStep: _onboardingStep,
   // 🆕 E11p4c(R127) — 마무리(O-04).
   AppRoutes.onboardingFinish: _onboardingFinish,
+  // 🆕 E11p3d-5d(R129) — M9 S02 증권사 키(캡처 막기 = `kSecureRoutePatterns` · 키 칸 = 설정 슬롯 빌더).
+  AppRoutes.settingsCredentials: _settingsCredentials,
 });
 
 /// 🔴 operator 셸 주입 — 실물 있는 칸.
@@ -233,6 +248,11 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   settingsActionsProvider.overrideWith(
     (Ref ref) => ref.watch(operatorSettingsActionsProvider),
   ),
+  // 🆕 R129 — 설정 읽기 모델 · 🔴 설정 슬롯 빌더 = 온보딩과 같은 빌더(M4-12 ⑦ 주입 의무 · `SecretField` 한 벌 — 05 §4-1).
+  settingsRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorSettingsRepositoryProvider),
+  ),
+  settingsSlotBuilderProvider.overrideWithValue(operatorSlotBuilder(runtime)),
   // 🆕 R113 — 안전 상태 = 셸(H-01) · 일지 · 분석 한 인스턴스.
   shellSafetyRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorSafetyProvider),

@@ -16,7 +16,8 @@ import 'package:broker_gateway/broker_gateway.dart'
         KisKeySet,
         KisRateGate,
         KisRestClient,
-        readKisCredentials;
+        readKisCredentials,
+        storeKisCredentials;
 import 'package:core_engine/core_engine.dart'
     show
         OnboardingStepFact,
@@ -149,7 +150,7 @@ void main() {
     expect(await acts.watch(r.actionRunId).single, r);
   });
 
-  test('🔴 칸 없음 · 덜 참 = 다른 문구(조치가 다르다) · 서버 · 금고 0', () async {
+  test('🔴 칸 없음 · 덜 참(금고에도 키 없음) = 다른 문구(조치가 다르다) · 서버 0 · 금고 쓰기 0', () async {
     src.value = null;
     final ActionResult half = await verify();
     expect(half.level, UiLevel.act);
@@ -159,8 +160,41 @@ void main() {
     expect(none.level, UiLevel.blocked);
     expect(none.headline, CredentialVerifyText.noField);
     expect(paths, isEmpty);
-    expect(vault.calls, isEmpty);
+    expect(vault.calls.where((String c) => !c.startsWith('read:')), isEmpty);
   });
+
+  test(
+    '🔴 새 값 없음 + 금고에 키 = «다시 검증»(금고 키 · 저장 0 · 칸 비움 0 · 표본 문장) · 거절 = 키 거절',
+    () async {
+      await storeKisCredentials(vault, KisKeySet.paper, src.value!);
+      final int writes = vault.calls
+          .where((String c) => c.startsWith('write:'))
+          .length;
+      // 칸이 화면에 있지만 덜 참 → 금고 키로.
+      src.value = null;
+      final ActionResult again = await verify();
+      expect(
+        (again.level, again.headline, again.reasonCode),
+        (UiLevel.info, CredentialVerifyText.reverified, null),
+      );
+      expect(paths, <String>['/oauth2/tokenP', paths.last]);
+      expect(
+        vault.calls.where((String c) => c.startsWith('write:')).length,
+        writes,
+      );
+      expect(src.cleared, 0);
+      // 칸이 화면에 없어도 금고 키로.
+      handoff.detach(KisKeySet.paper, src);
+      paths.clear();
+      token = () => _json(<String, String>{
+        'error_code': 'EGW00103',
+        'error_description': '유효하지 않은 AppKey입니다.',
+      }, 403);
+      final ActionResult bad = await verify();
+      expect(bad.headline, CredentialVerifyText.keyRejected);
+      expect(bad.reasonCode, OnboardingResultCodes.credentialRejected);
+    },
+  );
 
   test(
     '🔴 앱키 거절 = CREDENTIAL_REJECTED · 다시 시도 없음 · 잔고 · 저장 0 · 칸 그대로',
@@ -264,8 +298,8 @@ void main() {
     ]);
     expect(identical(both[0], both[1]), true);
     expect(paths.where((String p) => p == '/oauth2/tokenP'), hasLength(1));
-    // 끝난 뒤 다시 누르면 새로 한다(칸이 비었으니 «덜 참»).
-    expect((await verify()).headline, CredentialVerifyText.incomplete);
+    // 끝난 뒤 다시 누르면 새로 한다(칸이 비었고 금고에 키 = «다시 검증» · R129).
+    expect((await verify()).headline, CredentialVerifyText.reverified);
   });
 
   test('🔴 아직 없는 세트 = 막힘 문구 · args 꼴 위반 = 오류 · 다른 동작 = 구현 없음', () async {
@@ -443,6 +477,17 @@ void main() {
         acts.run(SettingsActionId.onboardingDryRunStart),
         throwsUnsupportedError,
       );
+    });
+
+    test('🔴 금고 키 «다시 검증»(R129) 통과도 o_02 VERIFIED 로 적는다', () async {
+      await storeKisCredentials(vault, KisKeySet.paper, src.value!);
+      handoff.detach(KisKeySet.paper, src);
+      final ActionResult r = await withSim.run(
+        SettingsActionId.credentialVerify,
+        args: <String, String>{'kind': 'KIS_PAPER'},
+      );
+      expect(r.headline, CredentialVerifyText.reverified);
+      expect(progress()['o_02']?.state, StepState.verified);
     });
 
     test('🔴 계좌 거절도 FAILED CREDENTIAL_REJECTED', () async {
