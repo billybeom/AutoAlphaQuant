@@ -499,3 +499,124 @@ Set<String> credentialsAllowed(CredentialListVm v) => <String>{
 Set<String> credentialsControlTexts(CredentialListVm v) => <String>{
   for (final CredentialCardVm k in v.cards) ?k.verifyAction?.label,
 };
+
+// ── R7b — M9 S06 fakes ──
+
+class FakeSettingsDeviceAccessRepository
+    extends UnimplementedOpsStatusRepository {
+  FakeSettingsDeviceAccessRepository({required this.devices});
+
+  final Stream<DeviceAccessVm> Function(int call) devices;
+  int devicesCalls = 0;
+
+  @override
+  Stream<DeviceAccessVm> watchDeviceAccess() {
+    final int call = devicesCalls;
+    devicesCalls = devicesCalls + 1;
+    return devices(call);
+  }
+}
+
+List<Override> devicesOverrides({
+  required FakeSettingsDeviceAccessRepository repo,
+  required SettingsActions? actions,
+  required SettingsSlotBuilder? slots,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  settingsOpsStatusRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsSlotBuilderProvider.overrideWithValue(slots),
+  settingsLinkOpenerProvider.overrideWithValue(opener),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpDevices(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 4000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: Devices())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> deviceViewerTexts(DeviceRow d) => <String?>[
+  d.label,
+  d.roleLabel,
+  d.statusLabel,
+  d.lastSeenText,
+];
+
+List<String?> deviceOperatorTexts(DeviceRow d) => <String?>[
+  d.label,
+  d.roleLabel,
+  d.statusLabel,
+  d.lastSeenText,
+  ?d.revokeAction?.label,
+];
+
+List<String?> deviceConfirmTexts(DeviceRow d) => <String?>[
+  ?d.revokeConfirmText,
+  SettingsLabels.confirm,
+  SettingsLabels.cancel,
+];
+
+List<String?> pairingViewerTexts(DeviceAccessVm v) => <String?>[
+  ?v.pairing?.headline,
+  ?v.pairing?.expiresText,
+];
+
+List<String?> pairingOperatorTexts(DeviceAccessVm v) => <String?>[
+  ?v.pairing?.headline,
+  ?v.pairing?.issueAction?.label,
+  ?v.pairing?.expiresText,
+];
+
+List<String?> leaseTexts(DeviceAccessVm v) => <String?>[
+  v.leaseHolderLabel,
+  v.leaseStateLabel,
+  ?v.leaseEtaText,
+  ?v.leaseEpochText,
+];
+
+List<String> pairingSlotIds(DeviceAccessVm v) => <String>[?v.pairing?.qrSlotId];
+
+Set<String> deviceAccessAllowed(DeviceAccessVm v) => <String>{
+  ?v.lockedLabel,
+  ?v.pairing?.headline,
+  ?v.pairing?.expiresText,
+  for (final DeviceRow d in v.devices) ...<String>[
+    d.label,
+    d.roleLabel,
+    d.statusLabel,
+    d.lastSeenText,
+  ],
+  ?v.emptyLabel,
+  v.leaseHolderLabel,
+  v.leaseStateLabel,
+  ?v.leaseEtaText,
+  ?v.leaseEpochText,
+  ?v.migrationLink?.label,
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
+
+Set<String> deviceAccessControlTexts(DeviceAccessVm v) => <String>{
+  ?v.pairing?.issueAction?.label,
+  for (final DeviceRow d in v.devices) ...<String>[
+    ?d.revokeAction?.label,
+    ?d.revokeConfirmText,
+  ],
+  SettingsLabels.confirm,
+  SettingsLabels.cancel,
+};
