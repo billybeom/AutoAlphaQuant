@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 106개 · 계약 v1.20.0 · 조립일 2026-11-15(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 111개 · 계약 v1.21.0 · 조립일 2026-11-15(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -62,6 +62,7 @@ export 'src/schema/ledger_file.dart';
 // 🔴 화면이 상태를 바꾸는 경로는 여기 있는 것이 전부다. 리포지토리에는
 //    쓰기 메서드가 없다(01 §4-1·§4-2).
 // 🆕 v1.2 — 셋째 쓰기 창구 = 기기 로컬 초안 `DraftStore`(01 §12-1 · 원장·명령 쓰기가 아니다).
+// 🆕 v1.21 — 넷째 쓰기 창구 = `SafetyActions`(M5 폰 로컬 · 01 §30).
 //
 // 근거: 01 §4-2·§4-3 · 인벤토리 §5-4.
 
@@ -73,6 +74,7 @@ export 'commands/draft_store.dart';
 export 'commands/drafts.dart';
 export 'commands/payloads.dart';
 export 'commands/payloads_x7.dart';
+export 'commands/safety_actions.dart';
 export 'commands/settings_actions.dart';
 ```
 
@@ -91,7 +93,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -232,13 +234,26 @@ export 'commands/settings_actions.dart';
 //    온보딩 `KIS_MOCK` → `KIS_PAPER`) — 🆕 tool/gen_r7_v120_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
 //    엔진 다음 계약 판 = 1.21.0(E15i 코드 등재 모음 · E13i1 `SafetyActions`·거부 코드·라우트 3·`GaugeCodes`·생체 포트 · E13i2 VM · E14i ·
 //    E16i(13 R112 D21) · fill-origin · `simToAuto` 표본 · 픽스처 정정 F1~F8 · 이름 붙은 알림 — 창 = R7a 병합 뒤 · R7b 발송 전 ·
-//    06 변경 이력 «2026-11-15 · 계약 v1.20»).
+//    06 변경 이력 «2026-11-15 · 계약 v1.20») — 🆕 v1.21 이 포트·킬스위치·서약 몫을 실었다 · 나머지 = 1.22.0 · 1.23.0+(아래).
+// 🆕 '1.21.0'(엔진 예고 1/2 · 01 §30 · 발주자 위임 2026-11-14 — 권고대로 · K1~K47) — M5 안전 쓰기 포트 + 체험 길:
+//    🆕 commands/safety_actions.dart — `SafetyActions`(넷째 쓰기 창구 · 폰 전용 · `ui_safety` 만 · 표면 run·runKillResumeItem·
+//    runPledge·watch) · `SafetyActionResult` · `SafetyActionCall` · `KillResumeItemSubmission` · `PledgeSubmission` ·
+//    🆕 `SafetyActionId`(KILL_SWITCH_RESUME · PLEDGE_WRITE · PLEDGE_EDIT — run 화이트리스트 0) · `KillChecklistAck` += `activation` ·
+//    🆕 `KillActivationRecord` · 열거 4(`KillActivationReason` · `KillActivationScope` · `KillResumeScenario` · `KillResumeCondition`) ·
+//    🆕 dto/safety_gate.dart — `KillResumeGateVm`·`KillResumeItemRow`·`KillResumeChoice`·`PledgeVm` · 창구 2(`KillSwitchGateRepository` ·
+//    `PledgeRepository`) · 라우트 84(`m5StoppedDecision`·`m5Pledge`·`m5RuleChangeGate`) · 사전 +4(`kill_switch_result` 12 ·
+//    `safety_common_result` 2 · `pledge_result` 6 · `gauge` 4) · 받침대 3 · 🆕 C-55 · C-16 정정 · 픽스처 271 → 283(신설 12 · 개정 1 —
+//    F3 `safety_states` L0 → L1) — 🆕 tool/gen_v121_fixtures.py(기준 = M2 밑동 원문에서 멱등 생성).
+//    엔진 다음 계약 판 = 1.22.0(E13 나머지 — STOPPED·postmortem·개입·규칙 변경·재량·RECON 해제 · 사다리 · E14i 전량 ·
+//    E15i 남은 굳은 몫(simToAuto 코드·단계·세션·결정 사유·위저드 동작·표본·가상 체결·모드 표지) · fill-origin · `resume_mode` · F8 ·
+//    01 §6-7 — 창 = R7b 병합 뒤 · R7c 발송 전) · 1.23.0+(E16i · 엔진 문구 0 VM 3 · 이름 없는 알림 · 승격 세션 종류 ·
+//    PNG 흔드는 F1·F2·F4~F7 — 굳는 대로) · 06 변경 이력 «2026-11-15 · 계약 판 나눔».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.20.0';
+const String contractVersion = '1.21.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -312,6 +327,7 @@ export 'dto/plan.dart';
 export 'dto/rebalance.dart';
 export 'dto/resume.dart';
 export 'dto/safety.dart';
+export 'dto/safety_gate.dart';
 export 'dto/settings.dart';
 ```
 
@@ -411,7 +427,7 @@ export 'primitives/money.dart';
 //
 // 🔴 이 파일은 통합 담당이 관리한다(인벤토리 §0).
 // 🔴 리포지토리는 **읽기 전용**이다. 쓰기는 `CommandApi`·`SettingsActions`
-//    하나뿐이며 `save_`/`write_`/`submit_`/`send_` 이름은 계약에 존재하지
+//    (🆕 v1.2 `DraftStore` · 🆕 v1.21 `SafetyActions`)뿐이며 `save_`/`write_`/`submit_`/`send_` 이름은 계약에 존재하지
 //    않는다(01 §1-4 · 인벤토리 §0-2 3조).
 //
 // 근거: 01 §4-1 · 인벤토리 §5.
@@ -425,12 +441,14 @@ export 'repositories/handbook_repository.dart';
 export 'repositories/holdings_repository.dart';
 export 'repositories/incident_repository.dart';
 export 'repositories/journal_repository.dart';
+export 'repositories/kill_switch_gate_repository.dart';
 export 'repositories/ledger_repository.dart';
 export 'repositories/ledger_trust_repository.dart';
 export 'repositories/onboarding_repository.dart';
 export 'repositories/ops_repository.dart';
 export 'repositories/pairing_repository.dart';
 export 'repositories/performance_repository.dart';
+export 'repositories/pledge_repository.dart';
 export 'repositories/rebalance_repository.dart';
 export 'repositories/resume_repository.dart';
 export 'repositories/runbook_repository.dart';
@@ -533,6 +551,8 @@ abstract interface class CommandApi {
   Future<CommandReceipt> acknowledgeAlert(String alertId);
 
   /// 🔴 48h 해제 카운트다운 개시의 유일한 방아쇠.
+  /// 🆕 v1.21(01 §30 · K9 · K40) — 인자 `activation` = 발동 뒤 기록 7(엔진 한 명령). 거부 = `KillSwitchResultCodes` ∪
+  /// `SafetyCommonResultCodes`(C-16 · `m5/kill_checklist_receipts`) · 인자 교체(제출 DTO) = 01 §8 미결 183(1.22.0 판단).
   Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack);
 
   /// 🆕 v1.10 · ㊲ — 매매가 아닌데 원장을 바꾸는 사실(인출 · 분배금 · 기업행위 · 원천징수) 1건 ·
@@ -1106,6 +1126,7 @@ abstract class DisclosureViewEvent with _$DisclosureViewEvent {
 // 🔴 X7 8종은 **전량 폰(operator) 전용**이며 뷰어 화이트리스트를 건드리지 않는다.
 //
 // (§5-4 표는 기존 5종 계열과 이 8종을 한 표로 적는다 — 파일만 크기 규약상 나눴다.)
+// 🆕 v1.21(01 §30) — `KillChecklistAck.activation` + `KillActivationRecord`(카드 ④ 발동 뒤 기록 · 와이어 · 한 명령).
 
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -1114,6 +1135,7 @@ import '../dto/ledger_trust.dart';
 import '../enums/advice.dart';
 import '../enums/ledger.dart';
 import '../enums/order.dart';
+import '../enums/safety.dart';
 import '../primitives/money.dart';
 import 'command_context.dart';
 import 'drafts.dart';
@@ -1283,6 +1305,8 @@ abstract class AlertAck with _$AlertAck {
 /// 🔴 A5 — 킬스위치 체크리스트 이행 «선언». **이것만이 48h 해제 카운트다운을 개시**한다.
 ///    폰 전용 · M5 소유 화면 · 생체인증 · 항목별 개별 체크. 🔴 대사 전용 키가 있으면 엔진의
 ///    미체결 조회 0건으로 교차검증하고 불일치면 확인을 무효로 하고 P0 를 다시 올린다.
+/// 🆕 v1.21(01 §30 · K9) — [activation] = 카드 ④ 발동 뒤 기록 7(엔진 `confirmChecklist(answers, ack)` 한 명령 —
+///    두 번 나누지 않는다). null = 엔진 거부 `KILL_CHECKLIST_ITEM_MISSING`(추가형 · 기본 null · 옛 JSON 그대로 열린다).
 @freezed
 abstract class KillChecklistAck with _$KillChecklistAck {
   const factory KillChecklistAck({
@@ -1303,11 +1327,51 @@ abstract class KillChecklistAck with _$KillChecklistAck {
     /// 1줄 필수.
     required String note,
     required CommandContext context,
+
+    /// 🆕 v1.21 — 발동 뒤 기록(카드 ④ 7).
+    KillActivationRecord? activation,
   }) = _KillChecklistAck;
 
   factory KillChecklistAck.fromJson(Map<String, dynamic> json) =>
       _$KillChecklistAckFromJson(json);
 }
+
+/// 🆕 v1.21(01 §30 · K9) — 카드 ④ 발동 뒤 기록(엔진 core `KillActivationAnswers` · `kill_checklist.dart:30` 칸 1:1 ·
+/// 6번 «재개 최소 대기 시작 시각» = 엔진이 채운다). 판정(1·4·7 빈칸 · 2 감정이면 셋 필수 · 3 W번호 또는 «해당 없음») = 엔진.
+/// 🔵 와이어 칸이라 숫자 타입이다 — 화면 파싱 문제·입력 원천(`journalDecisionId` 등) = 01 §8 미결 183(1.22.0 판단).
+@freezed
+abstract class KillActivationRecord with _$KillActivationRecord {
+  const factory KillActivationRecord({
+    /// 1 · 규칙이 지시한 행동.
+    required String ruleAction,
+
+    /// 2 · 규칙인가 감정인가.
+    required KillActivationReason reasonKind,
+
+    /// 2 · 감정 · 강도 0~10 · 수면 0~24(감정이면 필수 — 엔진 판정).
+    String? emotion,
+    int? intensity,
+    double? sleepHours,
+
+    /// 3 · W번호 · 트리거 ID(«해당 없음» = [scenarioNone]).
+    String? scenarioId,
+    @Default(false) bool scenarioNone,
+
+    /// 4 · 재개 조건.
+    required String resumeCondition,
+
+    /// 5 · 끄는 범위.
+    required KillActivationScope scope,
+
+    /// 7 · 저널 `decision_id`(새 저널 · 겹치면 엔진 `JOURNAL_ID_TAKEN`).
+    required String journalDecisionId,
+  }) = _KillActivationRecord;
+
+  factory KillActivationRecord.fromJson(Map<String, dynamic> json) =>
+      _$KillActivationRecordFromJson(json);
+}
+// JSON 키: rule_action · reason_kind · emotion · intensity · sleep_hours · scenario_id · scenario_none ·
+//          resume_condition · scope · journal_decision_id
 
 // ════════════════════════════════════════════════════════════════════════════
 // 🆕 v1.12(01 §21 · K4) — «화면 제출» DTO 3. 기존 와이어 8종(`ManualFillRecord`…)은 **무변경** —
@@ -1441,6 +1505,154 @@ abstract class LedgerEventRecord with _$LedgerEventRecord {
   factory LedgerEventRecord.fromJson(Map<String, dynamic> json) =>
       _$LedgerEventRecordFromJson(json);
 }
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands/safety_actions.dart`
+
+```dart
+// 01 §30 — 🆕 계약 v1.21 · M5 «안전 동작». ⚠️ `CommandApi` 가 아니다 · 넷째 쓰기 창구(C-7 · 표면 넷 고정).
+//
+// 🔴 M5 의 재개·서약 쓰기는 Supabase 명령 테이블을 거치지 않는다 — **폰 로컬에서 operator 구현이 엔진(data_sync
+//    `kill_switch_store` · `pledge_store`)을 직접 부른다**(뷰어에 경로가 있어서는 안 된다 · 01 §4-3 `SettingsActions` 와 같은 결).
+// 🔴 **폰(operator) 빌드에만 구현체가 주입된다.** 뷰어 빌드 = `null` → 화면은 컨트롤을 **렌더하지 않는다**(부재 · 비활성 아님).
+// 🔴 **`ui_safety` 만 참조한다**(C-55 ⑯ — `ui_settings`·`ui_shell`·`ui_journal`·`ui_analytics` 0 · 조립 앱 = 주입만).
+// 🔴 **«동작»만이다**(G-29) — 상태 구독은 `KillSwitchGateRepository`·`PledgeRepository` 다. 화면이 `run…()` 을 폴링해
+//    상태를 만들면 경계 규칙 ① 위반이다(어디까지 왔나 = `KillResumeGateVm.nextItemNo` 로만).
+// 🔴 생체 = 구현(조립 앱 M5 가드 · 01 §8 미결 169) — 실패·미등록 = 결과 `reasonCode` `BIOMETRIC_UNAVAILABLE`(한 벌).
+// 🔴 킬스위치 «해제» 버튼·명령은 여전히 없다 — 재개는 7문항을 한 문항씩 통과한 결과일 뿐이다(`command_api.dart` 머리).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/command.dart';
+import '../enums/safety.dart';
+import '../enums/ui.dart';
+
+part 'safety_actions.freezed.dart';
+part 'safety_actions.g.dart';
+
+/// M5 안전 동작의 주입 콜백(폰 전용).
+///
+/// · `run(id, args)` — 엔진이 [SafetyActionCall] 에 완성한 호출(🔴 1.21.0 = 받는 id 0 · 부르면 구현 `ArgumentError`
+///   `Future` 에러 · 화이트리스트 = 1.22.0 이 이 머리에 적는다).
+/// · `runKillResumeItem` — 재개 게이트(M5-2) 한 문항. 🔴 구현 의무(K36): ① 재개 준비 확인(`ready` 아니면 엔진 `tryResume`
+///   차례 그대로 `KILL_SWITCH_NOT_ACTIVE` · `RESUME_CHECKLIST_NOT_CONFIRMED` · `RESUME_TRUSTED_TIME_UNKNOWN` · `RESUME_TOO_SOON`)
+///   ② 생체 ③ 엔진 `ResumeChecklist.accept`(순차 · 앞 번호 = `RESUME_ITEM_OUT_OF_ORDER` · 빈칸·범위 밖·파싱 실패 =
+///   `RESUME_ITEM_MISSING` · 4번 미충족 뒤 = `RESUME_CONDITION_UNMET`) ④ 7번 통과 = 엔진 `resume()` 한 트랜잭션(해제 ·
+///   `decision_id` = 구현이 짓는 새 저널 id — 겹치면 `JOURNAL_ID_TAKEN`) · **1번 제출 = 초안을 비우고 처음부터**(R56 K4
+///   «뒤로 고치기 = 처음부터») · 초안 = 구현이 든다 · 결과 id = 늘 [SafetyActionId.killSwitchResume].
+/// · `runPledge` — 서약 첫 판(`pledgeWrite` · `decisionId` null — 구현 = 명령 id · R67 Z1) / 편집(`pledgeEdit` · `decisionId`
+///   = 사전 저널 id · R67 Z2). 그 밖 id = 구현 `ArgumentError`. 거부 = `PledgeResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`.
+/// 🔴 화면은 [SafetyActionResult] 의 `headline` + `reasonCode` 원문만 그린다(분기 0 · `handoffRoute`·`retryable` 1.21.0 표본 null·false).
+abstract interface class SafetyActions {
+  /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
+  Future<SafetyActionResult> run(
+    SafetyActionId id, {
+    Map<String, String> args = const <String, String>{},
+  });
+
+  Future<SafetyActionResult> runKillResumeItem(
+    KillResumeItemSubmission submission,
+  );
+
+  Future<SafetyActionResult> runPledge(PledgeSubmission submission);
+
+  Stream<SafetyActionResult> watch(String actionRunId);
+}
+
+/// 안전 동작 1회의 결과(`ActionResult` 꼴 · [id] 타입만 다르다 — `ActionResult.id` 는 `SettingsActionId` required).
+@freezed
+abstract class SafetyActionResult with _$SafetyActionResult {
+  const factory SafetyActionResult({
+    required String actionRunId,
+    required SafetyActionId id,
+    required UiLevel level,
+
+    /// 결과 문구 — 🔴 엔진 생성(요약·의역 금지).
+    required String headline,
+
+    /// 값 ∈ `KillSwitchResultCodes` ∪ `SafetyCommonResultCodes` ∪ `PledgeResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ②).
+    String? reasonCode,
+
+    /// ⏸ 1.21.0 표본 null — 게이트로 넘기는 동작은 1.22.0(목적지 = M5·X 라우트 상수만).
+    String? handoffRoute,
+    required bool retryable,
+  }) = _SafetyActionResult;
+
+  factory SafetyActionResult.fromJson(Map<String, dynamic> json) =>
+      _$SafetyActionResultFromJson(json);
+}
+// JSON 키: action_run_id · id · level · headline · reason_code · handoff_route · retryable
+
+/// 엔진이 완성한 `SafetyActions.run` 호출 1개(`SettingsActionCall` 꼴). 🔴 화면은 [id]·[args] 를 그대로 넘긴다.
+/// ⏸ 1.21.0 사용처 0 — 1.22.0 VM(`ResumeGateVm.actions` · M5-3·M5-6 등)이 쓴다(K47 · C-8 `_knownUncovered`).
+@freezed
+abstract class SafetyActionCall with _$SafetyActionCall {
+  const factory SafetyActionCall({
+    required SafetyActionId id,
+    required Map<String, String> args,
+
+    /// 버튼 글자 — 엔진.
+    required String label,
+  }) = _SafetyActionCall;
+
+  factory SafetyActionCall.fromJson(Map<String, dynamic> json) =>
+      _$SafetyActionCallFromJson(json);
+}
+// JSON 키: id · args · label
+
+/// `M5-2` 재개 게이트 한 문항 제출(엔진 core `ResumeItemAnswer` 칸 − `decisionId`(구현이 짓는다 · K34) · 숫자 2 = 원문 · K35).
+/// 🔴 그 번호에 맞는 칸만 채운다 — 1 `text` · 2 `emotion`·`intensity`·`sleepHours` · 3 `scenario` · 4 `condition` ·
+///    5·6 `acknowledged` · 7 `rationaleBefore`·`expectedOutcome`·`ruleCited`. 3·4번 값 = 고른 `KillResumeChoice` 의 칸 그대로.
+/// 🔴 화면은 검증·파싱하지 않는다(빈칸·범위 = 엔진 판정 · `RESUME_ITEM_MISSING`).
+@freezed
+abstract class KillResumeItemSubmission with _$KillResumeItemSubmission {
+  const factory KillResumeItemSubmission({
+    /// 지금 차례 = `KillResumeGateVm.nextItemNo`(1~7 · 1 = 처음부터).
+    required int itemNo,
+    String? text,
+    String? emotion,
+
+    /// 강도 원문(0~10 판정 = 엔진).
+    String? intensity,
+
+    /// 수면 시간 원문(0~24 판정 = 엔진).
+    String? sleepHours,
+    KillResumeScenario? scenario,
+    KillResumeCondition? condition,
+    @Default(false) bool acknowledged,
+    String? rationaleBefore,
+    String? expectedOutcome,
+
+    /// 🔵 원문(엔진 = 비지 않음만 · J-3 의 «엔진 선택지 코드»와 다르다 — 01 §8 미결 184).
+    String? ruleCited,
+  }) = _KillResumeItemSubmission;
+
+  factory KillResumeItemSubmission.fromJson(Map<String, dynamic> json) =>
+      _$KillResumeItemSubmissionFromJson(json);
+}
+// JSON 키: item_no · text · emotion · intensity · sleep_hours · scenario · condition · acknowledged ·
+//          rationale_before · expected_outcome · rule_cited
+
+/// 서약 첫 판·편집 제출(엔진 `pledge_store.writeFirst` · `edit`). 🔴 문장 = 사람이 친 원문 그대로(프리필 0 · 다듬기 = 엔진).
+@freezed
+abstract class PledgeSubmission with _$PledgeSubmission {
+  const factory PledgeSubmission({
+    /// `pledgeWrite` · `pledgeEdit` 만(K32 · 그 밖 = 구현 `ArgumentError`).
+    required SafetyActionId id,
+
+    /// 세 문장(차례대로 · 셋 아님·빈칸 = 엔진 `PLEDGE_SENTENCES_MISSING`).
+    required List<String> sentences,
+
+    /// 첫 판 = null(구현 = 명령 id · R67 Z1) · 편집 = 사전 저널 id(R67 Z2 · 원천 = 01 §8 미결 185).
+    String? decisionId,
+  }) = _PledgeSubmission;
+
+  factory PledgeSubmission.fromJson(Map<String, dynamic> json) =>
+      _$PledgeSubmissionFromJson(json);
+}
+// JSON 키: id · sentences · decision_id
 ```
 
 ---
@@ -6668,6 +6880,7 @@ part 'safety.g.dart';
 ///    배정했다 — 영역 A 가 `enums/` 에 같은 이름을 만들면 통합 단계에서 한쪽을 지운다.
 /// 🆕 v1.19(01 §28 · K11) — 🔴 v1 엔진은 **L0 을 내지 않는다**(발행 집합 L1~L5 · `rampLevelOf` D19 · `ramp_state.level`
 ///    CHECK 1..5 · 행 없음 = L1 fail-closed) · `l0` 은 삭제하지 않는다(major) · `S05` 는 이 열거를 쓰지 않는다(`RampBoard.levelLabel`).
+/// 🆕 v1.21 F3 — `safety_states` L0 행 → L1(C-55 ⑲).
 enum RampLevel {
   @JsonValue('L0')
   l0,
@@ -6873,6 +7086,7 @@ abstract class KillSwitchView with _$KillSwitchView {
     /// "해제 가능 예정 09-10 14:00" — 엔진 생성(신뢰 시각 기준)
     String? releaseEtaText,
   }) = _KillSwitchView;
+  // 🆕 v1.21 — 재개 게이트(M5-2) 한 화면 = `KillResumeGateVm`(`safety_gate.dart`).
 
   factory KillSwitchView.fromJson(Map<String, dynamic> json) =>
       _$KillSwitchViewFromJson(json);
@@ -6885,6 +7099,7 @@ abstract class KillSwitchView with _$KillSwitchView {
 @freezed
 abstract class GaugeProgress with _$GaugeProgress {
   const factory GaugeProgress({
+    /// 🆕 v1.21(01 §30) — 값 ∈ `GaugeCodes`(`DD_RECOVERY` · `HOLD` · `BULL_STREAK` · `COOLDOWN` · 검사 = C-55 ⑭).
     required String code,
     required String label,
 
@@ -7022,6 +7237,132 @@ abstract class EntryRampSleeveState with _$EntryRampSleeveState {
   factory EntryRampSleeveState.fromJson(Map<String, dynamic> json) =>
       _$EntryRampSleeveStateFromJson(json);
 }
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/safety_gate.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/safety_gate.dart
+//
+// 🆕 계약 v1.21(01 §30) — M5-2 킬스위치 재개 게이트 · M5-8/`O-04` ② 서약 표시 VM.
+// 🔴 M5 만 렌더한다(`ui_safety` · 01 §2-10 표 · C-7) · 상태를 바꾸는 경로 = `SafetyActions`(포트) 뿐.
+// 🔴 화면은 받은 글자·차례 그대로 그린다 — 단계·남은 시간을 계산하지 않는다(카운트다운 0 · 새 VM 으로만).
+// 🔴 7문항 글자 출처 = SPEC v2.40 04 §3-6 ③ «재개판» 원문(발주자 확정 2026-11-04 · 정규화 = 01 §30 K38) —
+//    엔진이 같은 상수를 두고 계약 표본과 대조한다(엔진 숙제 · 06 변경 이력 «2026-11-15 · 계약 판 나눔»).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/safety.dart';
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import 'safety.dart';
+
+part 'safety_gate.freezed.dart';
+part 'safety_gate.g.dart';
+
+/// `M5-2` 재개 게이트 한 화면(창구 = `KillSwitchGateRepository.watchResumeGate()`).
+/// 🔴 불변식(엔진 의무 · C-55 ④~⑨) — [items] = 7(받은 길이 · 엔진 config `resumeChecklistItems`) · [nextItemNo] non-null ⇒
+///    준비됨 ∧ [blockedText]·[lockedLabel] null · 답한 행 = 앞에서부터 이어짐 · [lockedLabel] non-null ⇒ [nextItemNo] null.
+@freezed
+abstract class KillResumeGateVm with _$KillResumeGateVm {
+  const factory KillResumeGateVm({
+    /// 머리 줄 — 엔진 `killSwitchViewOf.stateLabel` 글자 그대로.
+    required String readinessLabel,
+    required UiLevel level,
+
+    /// 해제 시각 줄 — 엔진 `releaseEtaText`(«해제 가능 예정 11-18 14:00» · 시각 모름 · 해제 가능). null = 부재(확인 전).
+    String? etaText,
+
+    /// 48h 냉각 게이지 — `code` = `GaugeCodes.cooldown` · 표시 = `valueText`(엔진 «남은 n시간»). null = 확인 전.
+    GaugeProgress? cooldown,
+
+    /// 재개판 7문항(엔진 차례 · 🔴 화면이 7 을 박지 않는다 — 받은 길이).
+    required List<KillResumeItemRow> items,
+
+    /// 지금 받을 문항 번호(1~7). null = 받을 문항 없음(대기 · 확인 전 · 시각 모름 · 4번 미충족 · 잠김 · 꺼짐).
+    int? nextItemNo,
+
+    /// 막힌 까닭 한 줄 — 확인 전 = 엔진 «체크리스트를 먼저 마치십시오 — …» · 4번 미충족 = SPEC «미충족이면 재개하지 않는다».
+    String? blockedText,
+
+    /// 운영 등급 생체 축소(보기만) — non-null ⇒ [nextItemNo] null(01 §8 미결 169).
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _KillResumeGateVm;
+
+  factory KillResumeGateVm.fromJson(Map<String, dynamic> json) =>
+      _$KillResumeGateVmFromJson(json);
+}
+// JSON 키: readiness_label · level · eta_text · cooldown · items · next_item_no · blocked_text · locked_label · as_of
+
+/// 재개판 한 문항.
+@freezed
+abstract class KillResumeItemRow with _$KillResumeItemRow {
+  const factory KillResumeItemRow({
+    /// 1~7 — 🔴 화면은 이 번호로 글자·칸을 고르지 않는다(제출 `itemNo` 에 그대로).
+    required int itemNo,
+
+    /// 문항 글자(SPEC 원문 · K38).
+    required String label,
+
+    /// 발동 때 답(카드 ④ 같은 번호 · 엔진이 발동 기록에서 재생 · 6번 = «체크리스트 확인 …» · 7번 = null · 확인 전 = 전부 null).
+    String? replayText,
+
+    /// 지금 받은 답(통과한 문항만 · 엔진 글자).
+    String? answeredText,
+    required UiLevel level,
+
+    /// 고를 것(3번 3 · 4번 2 · 그 밖 빈) — 글자·값 = 엔진. 비면 = 글 입력(1·2·7) 또는 확인(5·6) 문항.
+    @Default(<KillResumeChoice>[]) List<KillResumeChoice> choices,
+  }) = _KillResumeItemRow;
+
+  factory KillResumeItemRow.fromJson(Map<String, dynamic> json) =>
+      _$KillResumeItemRowFromJson(json);
+}
+// JSON 키: item_no · label · replay_text · answered_text · level · choices
+
+/// 3·4번 선택지 1개 — 🔴 [scenario]·[condition] 중 **정확히 하나** non-null · 화면은 그 칸을 제출 DTO 에 그대로 옮긴다.
+@freezed
+abstract class KillResumeChoice with _$KillResumeChoice {
+  const factory KillResumeChoice({
+    /// «해소됨» · «진행 중» · «해당 없었음» · «충족» · «미충족»(SPEC 원문).
+    required String label,
+    KillResumeScenario? scenario,
+    KillResumeCondition? condition,
+  }) = _KillResumeChoice;
+
+  factory KillResumeChoice.fromJson(Map<String, dynamic> json) =>
+      _$KillResumeChoiceFromJson(json);
+}
+// JSON 키: label · scenario · condition
+
+/// `M5-8` · `O-04` ② 서약(창구 = `PledgeRepository.watchPledge()` · 재생처도 이 줄만 읽는다 — 원문은 한 번만).
+/// 🔴 [lines] = 0(첫 판 없음 = 쓰기 자리) 또는 3 · [editable] ⇒ 3 줄 ∧ 12월 창(엔진 판정) · [lockedLabel] ⇒ [editable] false.
+/// 🔴 엔진 글자가 없는 칸([statusLine] · [replayNotice])은 null 이다(K16 · 표본 null — 화면이 글자를 짓지 않는다).
+@freezed
+abstract class PledgeVm with _$PledgeVm {
+  const factory PledgeVm({
+    /// 사용자 원문(지금 판 · 차례대로).
+    @Default(<String>[]) List<String> lines,
+
+    /// 판·작성 시각 줄 — ⏸ 엔진 글자 0(표본 null).
+    String? statusLine,
+
+    /// DD 최초 도달 재생 까닭 — ⏸ 엔진 글자 0(표본 null · 재생 대상 판정 = 엔진 `replayDue`).
+    String? replayNotice,
+
+    /// 편집 가능(12월 창 · 판 있음 — 엔진 판정). 🔴 화면이 달력으로 판정하지 않는다.
+    @Default(false) bool editable,
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _PledgeVm;
+
+  factory PledgeVm.fromJson(Map<String, dynamic> json) =>
+      _$PledgeVmFromJson(json);
+}
+// JSON 키: lines · status_line · replay_notice · editable · locked_label · as_of
 ```
 
 ---
@@ -7586,7 +7927,7 @@ enum CalendarEventKind {
 ```dart
 // 01 §4-2 «명령 API» · §4-3 «설정 동작» 축(인벤토리 §2-13).
 //
-// 🔴 이 세 열거형은 **영역 A 가 소유**하고 `lib/src/commands/`(영역 D)는 import 만 한다 —
+// 🔴 이 네 열거형은(🆕 v1.21 `SafetyActionId`) **영역 A 가 소유**하고 `lib/src/commands/`(영역 D)는 import 만 한다 —
 //    열거형이 두 영역에 흩어지면 `@JsonValue` 규약의 소유자가 둘이 된다(인벤토리 §2 서문).
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -7816,6 +8157,33 @@ enum SettingsActionId {
   const SettingsActionId(this.wire);
 
   /// JSON 표기(DDL 대응 컬럼 없음).
+  final String wire;
+}
+
+/// 🆕 v1.21(01 §30 · K5 · K39) — `SafetyActions`(M5 · 폰 로컬)의 동작 식별자.
+///
+/// 🔴 와이어 = 엔진 data_sync 명령 kind 글자 그대로(`kill_switch_store.dart:352` · `pledge_store.dart:15`) —
+///    `command_queue.kind` CHECK 대응 아님(폰 로컬 · DDL 0).
+/// 🔴 같은 글자 다른 축 — `KILL_SWITCH_RESUME` = `DeviationKindCodes.killSwitchResume`(배지 종류 사전) ·
+///    `PLEDGE_WRITE` = `OnboardingSlotIds.pledgeWrite`(슬롯 이름 사전). 열거 와이어 ↔ 사전 값이라 C-5 충돌 아님.
+/// 🔴 1.21.0 의 값은 전부 **제출 DTO 경로**(`runKillResumeItem` · `runPledge`)이고 `run(id, args)` 가 받는 값은 0 이다
+///    (화이트리스트 = 1.22.0 · K39). 개수를 숫자로 적지 않는다(G-91).
+enum SafetyActionId {
+  /// 킬스위치 재개 게이트(M5-2) 문항 제출의 결과 id — 7번 통과 = 해제.
+  @JsonValue('KILL_SWITCH_RESUME')
+  killSwitchResume('KILL_SWITCH_RESUME'),
+
+  /// 서약 첫 판(`O-04` ② · 언제든 · 한 번만 — 엔진 R67 Z1).
+  @JsonValue('PLEDGE_WRITE')
+  pledgeWrite('PLEDGE_WRITE'),
+
+  /// 서약 편집(새 판 · 12월 창만 — 엔진 R67 Z2 · M5-8).
+  @JsonValue('PLEDGE_EDIT')
+  pledgeEdit('PLEDGE_EDIT');
+
+  const SafetyActionId(this.wire);
+
+  /// 표기(01 §1-2).
   final String wire;
 }
 ```
@@ -8650,6 +9018,7 @@ enum ResumePhase {
 //
 // 🔴 소유 경계는 타입이 아니라 «무엇을 그리는가» 다(01 §2-10 표) — 상태 표시는 허용,
 //    **상태를 바꾸는 경로를 만드는 것은 금지**. C-7 이 그 표대로 검사한다.
+// 🆕 v1.21(01 §30) — 킬스위치 발동 기록·재개 열거 4(엔진 값 1:1 · 이름 따로 · 와이어 = 값 이름 SCREAMING_SNAKE).
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 /// 01 §2-10 — 알림 등급.
@@ -8706,6 +9075,63 @@ enum ClearRoute {
   const ClearRoute(this.wire);
 
   /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 🆕 v1.21(01 §30 · K10 · K33) — 카드 ④ 2번 «끄는 것이 규칙인가 감정인가»(엔진 core `KillReasonKind` ·
+/// `safety/kill_checklist.dart:12` 와 값 1:1). 🔴 타입 이름은 엔진과 다르다(같은 이름 = 엔진 시험 `ambiguous_import`) ·
+/// 와이어 = 엔진 값 이름의 기계적 SCREAMING_SNAKE(엔진 enum 에 wire 0 → 엔진이 이 표기를 따른다).
+enum KillActivationReason {
+  @JsonValue('RULE')
+  rule('RULE'),
+  @JsonValue('EMOTION')
+  emotion('EMOTION');
+
+  const KillActivationReason(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+
+/// 🆕 v1.21 — 카드 ④ 5번 끄는 범위(엔진 `KillScope` · `:21`). 🔴 `liquidateAll` 이어도 앱은 자동으로 팔지 않는다(기록만).
+enum KillActivationScope {
+  @JsonValue('NEW_ENTRIES_ONLY')
+  newEntriesOnly('NEW_ENTRIES_ONLY'),
+  @JsonValue('LIQUIDATE_ALL')
+  liquidateAll('LIQUIDATE_ALL');
+
+  const KillActivationScope(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+
+/// 🆕 v1.21 — 재개판 3번 «그때 짚은 시나리오가 지금 어떻게 됐는가»(엔진 `ScenarioStatus` · `:157`).
+enum KillResumeScenario {
+  @JsonValue('RESOLVED')
+  resolved('RESOLVED'),
+  @JsonValue('ONGOING')
+  ongoing('ONGOING'),
+  @JsonValue('NOT_APPLICABLE')
+  notApplicable('NOT_APPLICABLE');
+
+  const KillResumeScenario(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+
+/// 🆕 v1.21 — 재개판 4번 «그때 적은 재개 조건이 지금 충족됐는가»(엔진 `ResumeConditionStatus` · `:169`).
+/// 🔴 `unmet` = 재개하지 않는다(엔진 판정 · 화면이 막지 않는다 — 결과 `RESUME_CONDITION_UNMET`).
+enum KillResumeCondition {
+  @JsonValue('MET')
+  met('MET'),
+  @JsonValue('UNMET')
+  unmet('UNMET');
+
+  const KillResumeCondition(this.wire);
+
+  /// JSON 표기.
   final String wire;
 }
 ```
@@ -9317,6 +9743,28 @@ abstract final class FixturePaths {
 
   /// 🆕 v1.1 — `ConfigRepository.watchSleeves()` 의 입력(P0S — 새틀라이트 행 없음).
   static const String sleeveCatalog4 = 'sleeve_catalog_4.json';
+
+  // ── m5/ — 🆕 v1.21(01 §30) M5 안전 동작 · 폴더 신설 · 게이트 7 · 서약 3 · 결과 1 · 접수증 1 ──
+  //    (파일 이름 바이트 차례 · `all` 도 같은 차례)
+  static const String m5KillChecklistReceipts =
+      'm5/kill_checklist_receipts.json';
+  static const String m5KillResumeGateConditionUnmet =
+      'm5/kill_resume_gate_condition_unmet.json';
+  static const String m5KillResumeGateInProgress =
+      'm5/kill_resume_gate_in_progress.json';
+  static const String m5KillResumeGateLocked =
+      'm5/kill_resume_gate_locked.json';
+  static const String m5KillResumeGateNotConfirmed =
+      'm5/kill_resume_gate_not_confirmed.json';
+  static const String m5KillResumeGateReady = 'm5/kill_resume_gate_ready.json';
+  static const String m5KillResumeGateTimeUnknown =
+      'm5/kill_resume_gate_time_unknown.json';
+  static const String m5KillResumeGateWaiting =
+      'm5/kill_resume_gate_waiting.json';
+  static const String m5PledgeEditWindow = 'm5/pledge_edit_window.json';
+  static const String m5PledgeNotWritten = 'm5/pledge_not_written.json';
+  static const String m5PledgeWritten = 'm5/pledge_written.json';
+  static const String m5SafetyActionResults = 'm5/safety_action_results.json';
 
   // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
   static const String m6Advice12 = 'm6/advice_12.json';
@@ -10037,6 +10485,18 @@ abstract final class FixturePaths {
     resumeReport1,
     safetyStates,
     sleeveCatalog4,
+    m5KillChecklistReceipts,
+    m5KillResumeGateConditionUnmet,
+    m5KillResumeGateInProgress,
+    m5KillResumeGateLocked,
+    m5KillResumeGateNotConfirmed,
+    m5KillResumeGateReady,
+    m5KillResumeGateTimeUnknown,
+    m5KillResumeGateWaiting,
+    m5PledgeEditWindow,
+    m5PledgeNotWritten,
+    m5PledgeWritten,
+    m5SafetyActionResults,
     m6Advice12,
     m6AdviceBlocked,
     m6AdviceDetailOnhold,
@@ -11233,6 +11693,7 @@ import 'ops_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
+import 'safety_codes.dart';
 import 'settings_codes.dart';
 import 'sim_codes.dart';
 import 'verdict_codes.dart';
@@ -11250,6 +11711,7 @@ export 'ops_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
+export 'safety_codes.dart';
 export 'settings_codes.dart';
 export 'sim_codes.dart';
 export 'verdict_codes.dart';
@@ -11423,6 +11885,11 @@ abstract final class ContractCodes {
     // 🆕 v1.20(01 §29 · K8 · K9) — S02 키 세트 종류(엔진 겹침) · M9 슬롯 이름
     'credential_kind': CredentialKindCodes.values,
     'settings_slot': SettingsSlotIds.values,
+    // 🆕 v1.21(01 §30 · K12 · K13) — M5 결과 · 게이지(엔진 글자 1:1)
+    'kill_switch_result': KillSwitchResultCodes.values,
+    'safety_common_result': SafetyCommonResultCodes.values,
+    'pledge_result': PledgeResultCodes.values,
+    'gauge': GaugeCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -11993,6 +12460,143 @@ abstract final class Saf309Codes {
     warnTaxableAccount,
     warnUnverified,
     naQueryNotAnOrder,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/safety_codes.dart`
+
+```dart
+// 🆕 계약 v1.21(01 §30 · K12 · K13 · K45) — M5 안전 동작 결과 코드 · 게이지 코드. 엔진 글자 1:1(core·ds 실물 · 01 §30-8).
+//
+// 🔴 «어떤 코드가 오는가» 의 목록이지 코드 → 문구 사전이 아니다(labels.dart 머리) — 화면은 `headline`·`stateLabel`
+//    원문을 그린다. 코드로 분기·아이콘·색을 고르지 않는다.
+// 🔴 공용 두 글자(`TRUSTED_TIME_UNKNOWN` · `JOURNAL_ID_TAKEN`)는 [SafetyCommonResultCodes] 한 벌이다 — 도메인 사전
+//    (킬스위치 · 서약 · 1.22.0 개입 · 규칙 변경 · 재량 · STOPPED)에 다시 적지 않는다(C-5 «같은 글자 두 사전 0»).
+
+/// 킬스위치 발동 기록·재개 거부(도메인 `kill_switch_result` · 엔진 core `kill_checklist.dart` 리터럴 12 — 상수 클래스 0 →
+/// 엔진이 이 사전을 참조로 바꾼다). 축 = `SafetyActionResult.reasonCode`(재개) · `CommandReceipt.rejectReasonCode`(발동 기록).
+abstract final class KillSwitchResultCodes {
+  /// 확인 3 중 빈 것(발동 기록).
+  static const String ackIncomplete = 'KILL_ACK_INCOMPLETE';
+
+  /// «잔여 0» 인데 엔진이 본 미체결 > 0 — 🔴 P0 를 다시 올린다(발동 기록).
+  static const String ackMismatch = 'KILL_ACK_MISMATCH';
+
+  /// 카드 ④ 7 중 빈 것(1 · 2 감정 · 3 · 4 · 7 · 발동 기록 · `activation` null 포함).
+  static const String checklistItemMissing = 'KILL_CHECKLIST_ITEM_MISSING';
+
+  /// 꺼져 있다(발동 기록 · 재개).
+  static const String notActive = 'KILL_SWITCH_NOT_ACTIVE';
+
+  /// 7문항을 이미 마쳤다.
+  static const String resumeChecklistDone = 'RESUME_CHECKLIST_DONE';
+
+  /// 7문항 미완(해제 시도).
+  static const String resumeChecklistIncomplete = 'RESUME_CHECKLIST_INCOMPLETE';
+
+  /// 발동 뒤 기록 확인 전(카운트다운 없음).
+  static const String resumeChecklistNotConfirmed =
+      'RESUME_CHECKLIST_NOT_CONFIRMED';
+
+  /// 4번 미충족 — 재개하지 않는다.
+  static const String resumeConditionUnmet = 'RESUME_CONDITION_UNMET';
+
+  /// 그 번호 칸이 비었다(범위 밖·파싱 실패 포함).
+  static const String resumeItemMissing = 'RESUME_ITEM_MISSING';
+
+  /// 차례가 아니다(앞 항목 통과 전 · 일괄 0).
+  static const String resumeItemOutOfOrder = 'RESUME_ITEM_OUT_OF_ORDER';
+
+  /// 48h 미경과.
+  static const String resumeTooSoon = 'RESUME_TOO_SOON';
+
+  /// 신뢰 시각 모름(재개). 🔴 공용 `TRUSTED_TIME_UNKNOWN` 과 글자가 다르다 — 엔진 이력(명령 행 저장 값 · 바꾸지 않는다).
+  static const String resumeTrustedTimeUnknown = 'RESUME_TRUSTED_TIME_UNKNOWN';
+
+  static const Set<String> values = <String>{
+    ackIncomplete,
+    ackMismatch,
+    checklistItemMissing,
+    notActive,
+    resumeChecklistDone,
+    resumeChecklistIncomplete,
+    resumeChecklistNotConfirmed,
+    resumeConditionUnmet,
+    resumeItemMissing,
+    resumeItemOutOfOrder,
+    resumeTooSoon,
+    resumeTrustedTimeUnknown,
+  };
+}
+
+/// M5 공용 거부(도메인 `safety_common_result` · 엔진 core `discretion`·`intervention`·`pledge`·`rule_change`·
+/// `ops/contribution_setting` 다섯 사전 + ds 킬스위치·STOPPED 저장이 같은 글자를 품는다 → 한 벌 · K12 · K45).
+abstract final class SafetyCommonResultCodes {
+  /// 신뢰 시각 모름(발동 기록 확인 · 서약 · 1.22.0 개입·규칙 변경·재량).
+  static const String trustedTimeUnknown = 'TRUSTED_TIME_UNKNOWN';
+
+  /// 저널 id 가 이미 있다(발동 기록 · 재개 · 1.22.0 STOPPED).
+  static const String journalIdTaken = 'JOURNAL_ID_TAKEN';
+
+  static const Set<String> values = <String>{
+    trustedTimeUnknown,
+    journalIdTaken,
+  };
+}
+
+/// 서약 거부(도메인 `pledge_result` · 엔진 core `pledge.dart:18` `PledgeCodes` 7 − 공용 1).
+abstract final class PledgeResultCodes {
+  /// 이미 첫 판이 있다(원문은 한 번만).
+  static const String alreadyWritten = 'PLEDGE_ALREADY_WRITTEN';
+
+  /// 편집 저널 미연결.
+  static const String journalMissing = 'PLEDGE_JOURNAL_MISSING';
+
+  /// 첫 판이 없다(편집할 것이 없다).
+  static const String notWritten = 'PLEDGE_NOT_WRITTEN';
+
+  /// 12월 창 밖.
+  static const String outOfWindow = 'PLEDGE_OUT_OF_WINDOW';
+
+  /// 문장 빈칸 · 셋이 아님.
+  static const String sentencesMissing = 'PLEDGE_SENTENCES_MISSING';
+
+  /// 지금 판과 같다.
+  static const String unchanged = 'PLEDGE_UNCHANGED';
+
+  static const Set<String> values = <String>{
+    alreadyWritten,
+    journalMissing,
+    notWritten,
+    outOfWindow,
+    sentencesMissing,
+    unchanged,
+  };
+}
+
+/// 해제 진행 게이지 코드(도메인 `gauge` · 엔진 core `safety_text.dart:192` · `GaugeProgress.code` 의 값 · 검사 = C-55 ⑭).
+/// 🔴 화면은 코드로 글자·색을 고르지 않는다 — `label`·`valueText`·`normalized`(폭) 를 그린다.
+abstract final class GaugeCodes {
+  /// 드로다운 회복.
+  static const String ddRecovery = 'DD_RECOVERY';
+
+  /// 유지 기간.
+  static const String hold = 'HOLD';
+
+  /// BULL 연속.
+  static const String bullStreak = 'BULL_STREAK';
+
+  /// 킬스위치 48h 냉각.
+  static const String cooldown = 'COOLDOWN';
+
+  static const Set<String> values = <String>{
+    ddRecovery,
+    hold,
+    bullStreak,
+    cooldown,
   };
 }
 ```
@@ -12763,6 +13367,15 @@ abstract final class AppRoutes {
 
   /// 🆕 v1.16(01 §25 · K3) — `O-04` ⑥ 자동 매매 갈래 시작 상태 선언 = 가상 초기금 1칸(🔒 M5 위젯 · 06 M5-14 · 기본값 없음).
   static const String m5SimOpeningCash = 'aaq://m5/sim-opening-cash';
+
+  /// 🆕 v1.21(01 §30 · K14) — 🔒 `M5-3` STOPPED 결정(A·B·C) 화면 · 본문 = 화면이 생길 때까지 레지스트리 빈 자리(1.22.0 동작).
+  static const String m5StoppedDecision = 'aaq://m5/stopped-decision';
+
+  /// 🆕 v1.21 — 🔒 `M5-8` 서약 보기·편집(12월 창) · 본문 = 빈 자리(E13m).
+  static const String m5Pledge = 'aaq://m5/pledge';
+
+  /// 🆕 v1.21 — 🔒 `M5-9` 규칙 변경 게이트(M9 `S04` «적용» `ActionResult.handoffRoute` 목적지 · R8) · 본문 = 빈 자리(E13m).
+  static const String m5RuleChangeGate = 'aaq://m5/rule-change-gate';
   static const String x1Migration = 'aaq://x1/migration';
 
   /// 🆕 v1.16(01 §25 · K5) — `R-01` 분기 «구 폰이 옆에 있어요» = X1 계획 경로(QR · 🔒 X1-2).
@@ -12786,6 +13399,7 @@ abstract final class AppRoutes {
   /// 조각 수 4·5·4·4·3 — 기존 패턴과 겹침 0).
   /// 🆕 v1.18 = **80** · M9 11(`settingsCredentials` 뒤 · S 번호 차례 · 3조각 1 + 4조각 10 · 파라미터 0 — 기존 패턴과 겹침 0).
   /// 🆕 v1.20 = **81** · `m4KeyRotation`(Claude 소유 묶음 머리 · 4조각 · 파라미터 0 — 기존 패턴과 겹침 0).
+  /// 🆕 v1.21 = **84** · M5 3(`m5SimOpeningCash` 뒤 · M5 번호 차례 · 4조각 · 파라미터 0 — 기존 패턴과 겹침 0).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -12862,6 +13476,9 @@ abstract final class AppRoutes {
     m5HandoverWizard,
     m5SelfAuditResolve,
     m5SimOpeningCash,
+    m5StoppedDecision,
+    m5Pledge,
+    m5RuleChangeGate,
     x1Migration,
     x1MigrationPlan,
     x1MigrationEmergency,
@@ -13590,6 +14207,24 @@ abstract interface class JournalRepository {
 
 ---
 
+## `packages/domain_contracts/lib/src/repositories/kill_switch_gate_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 계약 v1.21(01 §30 · K6) — M5-2 킬스위치 재개 게이트 읽기 창구(폰 전용 · `ui_safety` 만).
+//
+// 🔴 기존 `SafetyRepository`(배너·홈 공용 `watchState`)는 무변경 — 넓히면 UI 가짜 7 · ds 구현 · 조립 앱이 깨진다(실측).
+// 🔴 상태를 바꾸는 경로 0(C-7) — 쓰기 = `SafetyActions.runKillResumeItem`.
+
+import '../dto/safety_gate.dart';
+
+/// 재개 게이트 한 화면.
+abstract interface class KillSwitchGateRepository {
+  Stream<KillResumeGateVm> watchResumeGate();
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/repositories/ledger_repository.dart`
 
 ```dart
@@ -13837,6 +14472,24 @@ abstract interface class PerformanceRepository {
   /// 🔴 null 링크(과거 달·가림·미생성)면 화면은 이 메서드에 닿지 않는다.
   /// 🔴 숫자 가림(무결성 등)은 엔진 읽기 경로가 한다 — 화면은 배너만 그린다(03 §1-4).
   Future<GoalPathVm> goalPath({required String yyyyMm});
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/pledge_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 계약 v1.21(01 §30 · K6) — 서약 읽기 창구(M5-8 · `O-04` ② 슬롯 위젯 · 재생처).
+//
+// 🔴 J-3 의 `JournalDraftFormSpec.pledgeLines` 는 그대로(엔진이 같은 원문을 싣는다 — 원문은 한 번만).
+// 🔴 상태를 바꾸는 경로 0(C-7) — 쓰기 = `SafetyActions.runPledge`.
+
+import '../dto/safety_gate.dart';
+
+/// 서약 지금 판.
+abstract interface class PledgeRepository {
+  Stream<PledgeVm> watchPledge();
 }
 ```
 

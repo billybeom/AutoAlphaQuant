@@ -315,6 +315,15 @@ abstract final class AppRoutes {
 
   /// 🆕 v1.16(01 §25 · K3) — `O-04` ⑥ 자동 매매 갈래 시작 상태 선언 = 가상 초기금 1칸(🔒 M5 위젯 · 06 M5-14 · 기본값 없음).
   static const String m5SimOpeningCash = 'aaq://m5/sim-opening-cash';
+
+  /// 🆕 v1.21(01 §30 · K14) — 🔒 `M5-3` STOPPED 결정(A·B·C) 화면 · 본문 = 화면이 생길 때까지 레지스트리 빈 자리(1.22.0 동작).
+  static const String m5StoppedDecision = 'aaq://m5/stopped-decision';
+
+  /// 🆕 v1.21 — 🔒 `M5-8` 서약 보기·편집(12월 창) · 본문 = 빈 자리(E13m).
+  static const String m5Pledge = 'aaq://m5/pledge';
+
+  /// 🆕 v1.21 — 🔒 `M5-9` 규칙 변경 게이트(M9 `S04` «적용» `ActionResult.handoffRoute` 목적지 · R8) · 본문 = 빈 자리(E13m).
+  static const String m5RuleChangeGate = 'aaq://m5/rule-change-gate';
   static const String x1Migration = 'aaq://x1/migration';
 
   /// 🆕 v1.16(01 §25 · K5) — `R-01` 분기 «구 폰이 옆에 있어요» = X1 계획 경로(QR · 🔒 X1-2).
@@ -338,6 +347,7 @@ abstract final class AppRoutes {
   /// 조각 수 4·5·4·4·3 — 기존 패턴과 겹침 0).
   /// 🆕 v1.18 = **80** · M9 11(`settingsCredentials` 뒤 · S 번호 차례 · 3조각 1 + 4조각 10 · 파라미터 0 — 기존 패턴과 겹침 0).
   /// 🆕 v1.20 = **81** · `m4KeyRotation`(Claude 소유 묶음 머리 · 4조각 · 파라미터 0 — 기존 패턴과 겹침 0).
+  /// 🆕 v1.21 = **84** · M5 3(`m5SimOpeningCash` 뒤 · M5 번호 차례 · 4조각 · 파라미터 0 — 기존 패턴과 겹침 0).
   static const List<String> all = <String>[
     journalTimeline,
     journalDecision,
@@ -414,6 +424,9 @@ abstract final class AppRoutes {
     m5HandoverWizard,
     m5SelfAuditResolve,
     m5SimOpeningCash,
+    m5StoppedDecision,
+    m5Pledge,
+    m5RuleChangeGate,
     x1Migration,
     x1MigrationPlan,
     x1MigrationEmergency,

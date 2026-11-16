@@ -1,6 +1,6 @@
 // 01 §4-2 «명령 API» · §4-3 «설정 동작» 축(인벤토리 §2-13).
 //
-// 🔴 이 세 열거형은 **영역 A 가 소유**하고 `lib/src/commands/`(영역 D)는 import 만 한다 —
+// 🔴 이 네 열거형은(🆕 v1.21 `SafetyActionId`) **영역 A 가 소유**하고 `lib/src/commands/`(영역 D)는 import 만 한다 —
 //    열거형이 두 영역에 흩어지면 `@JsonValue` 규약의 소유자가 둘이 된다(인벤토리 §2 서문).
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -230,5 +230,32 @@ enum SettingsActionId {
   const SettingsActionId(this.wire);
 
   /// JSON 표기(DDL 대응 컬럼 없음).
+  final String wire;
+}
+
+/// 🆕 v1.21(01 §30 · K5 · K39) — `SafetyActions`(M5 · 폰 로컬)의 동작 식별자.
+///
+/// 🔴 와이어 = 엔진 data_sync 명령 kind 글자 그대로(`kill_switch_store.dart:352` · `pledge_store.dart:15`) —
+///    `command_queue.kind` CHECK 대응 아님(폰 로컬 · DDL 0).
+/// 🔴 같은 글자 다른 축 — `KILL_SWITCH_RESUME` = `DeviationKindCodes.killSwitchResume`(배지 종류 사전) ·
+///    `PLEDGE_WRITE` = `OnboardingSlotIds.pledgeWrite`(슬롯 이름 사전). 열거 와이어 ↔ 사전 값이라 C-5 충돌 아님.
+/// 🔴 1.21.0 의 값은 전부 **제출 DTO 경로**(`runKillResumeItem` · `runPledge`)이고 `run(id, args)` 가 받는 값은 0 이다
+///    (화이트리스트 = 1.22.0 · K39). 개수를 숫자로 적지 않는다(G-91).
+enum SafetyActionId {
+  /// 킬스위치 재개 게이트(M5-2) 문항 제출의 결과 id — 7번 통과 = 해제.
+  @JsonValue('KILL_SWITCH_RESUME')
+  killSwitchResume('KILL_SWITCH_RESUME'),
+
+  /// 서약 첫 판(`O-04` ② · 언제든 · 한 번만 — 엔진 R67 Z1).
+  @JsonValue('PLEDGE_WRITE')
+  pledgeWrite('PLEDGE_WRITE'),
+
+  /// 서약 편집(새 판 · 12월 창만 — 엔진 R67 Z2 · M5-8).
+  @JsonValue('PLEDGE_EDIT')
+  pledgeEdit('PLEDGE_EDIT');
+
+  const SafetyActionId(this.wire);
+
+  /// 표기(01 §1-2).
   final String wire;
 }

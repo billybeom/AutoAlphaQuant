@@ -162,6 +162,19 @@ void main() {
         FixturePaths.m9AccountMappingUnmapped,
         FixturePaths.m9AccountMappingLocked,
         FixturePaths.m9AccountMappingActionResults,
+        // 🆕 v1.21(01 §30) — 게이트 7 · 서약 3 · 결과 1 · 접수증 1.
+        FixturePaths.m5KillResumeGateNotConfirmed,
+        FixturePaths.m5KillResumeGateWaiting,
+        FixturePaths.m5KillResumeGateTimeUnknown,
+        FixturePaths.m5KillResumeGateReady,
+        FixturePaths.m5KillResumeGateInProgress,
+        FixturePaths.m5KillResumeGateConditionUnmet,
+        FixturePaths.m5KillResumeGateLocked,
+        FixturePaths.m5PledgeWritten,
+        FixturePaths.m5PledgeNotWritten,
+        FixturePaths.m5PledgeEditWindow,
+        FixturePaths.m5SafetyActionResults,
+        FixturePaths.m5KillChecklistReceipts,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {

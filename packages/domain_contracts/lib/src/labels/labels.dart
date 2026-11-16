@@ -44,6 +44,7 @@ import 'ops_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
 import 'saf_codes.dart';
+import 'safety_codes.dart';
 import 'settings_codes.dart';
 import 'sim_codes.dart';
 import 'verdict_codes.dart';
@@ -61,6 +62,7 @@ export 'ops_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
 export 'saf_codes.dart';
+export 'safety_codes.dart';
 export 'settings_codes.dart';
 export 'sim_codes.dart';
 export 'verdict_codes.dart';
@@ -234,6 +236,11 @@ abstract final class ContractCodes {
     // 🆕 v1.20(01 §29 · K8 · K9) — S02 키 세트 종류(엔진 겹침) · M9 슬롯 이름
     'credential_kind': CredentialKindCodes.values,
     'settings_slot': SettingsSlotIds.values,
+    // 🆕 v1.21(01 §30 · K12 · K13) — M5 결과 · 게이지(엔진 글자 1:1)
+    'kill_switch_result': KillSwitchResultCodes.values,
+    'safety_common_result': SafetyCommonResultCodes.values,
+    'pledge_result': PledgeResultCodes.values,
+    'gauge': GaugeCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

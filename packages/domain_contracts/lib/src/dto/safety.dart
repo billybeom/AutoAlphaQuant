@@ -32,6 +32,7 @@ part 'safety.g.dart';
 ///    배정했다 — 영역 A 가 `enums/` 에 같은 이름을 만들면 통합 단계에서 한쪽을 지운다.
 /// 🆕 v1.19(01 §28 · K11) — 🔴 v1 엔진은 **L0 을 내지 않는다**(발행 집합 L1~L5 · `rampLevelOf` D19 · `ramp_state.level`
 ///    CHECK 1..5 · 행 없음 = L1 fail-closed) · `l0` 은 삭제하지 않는다(major) · `S05` 는 이 열거를 쓰지 않는다(`RampBoard.levelLabel`).
+/// 🆕 v1.21 F3 — `safety_states` L0 행 → L1(C-55 ⑲).
 enum RampLevel {
   @JsonValue('L0')
   l0,
@@ -237,6 +238,7 @@ abstract class KillSwitchView with _$KillSwitchView {
     /// "해제 가능 예정 09-10 14:00" — 엔진 생성(신뢰 시각 기준)
     String? releaseEtaText,
   }) = _KillSwitchView;
+  // 🆕 v1.21 — 재개 게이트(M5-2) 한 화면 = `KillResumeGateVm`(`safety_gate.dart`).
 
   factory KillSwitchView.fromJson(Map<String, dynamic> json) =>
       _$KillSwitchViewFromJson(json);
@@ -249,6 +251,7 @@ abstract class KillSwitchView with _$KillSwitchView {
 @freezed
 abstract class GaugeProgress with _$GaugeProgress {
   const factory GaugeProgress({
+    /// 🆕 v1.21(01 §30) — 값 ∈ `GaugeCodes`(`DD_RECOVERY` · `HOLD` · `BULL_STREAK` · `COOLDOWN` · 검사 = C-55 ⑭).
     required String code,
     required String label,
 

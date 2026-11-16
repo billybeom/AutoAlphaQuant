@@ -184,6 +184,22 @@ final DtoCodec<Object> _accountMappingVm = DtoCodec<AccountMappingVm>(
   AccountMappingVm.fromJson,
   (AccountMappingVm v) => v.toJson(),
 );
+// 🆕 계약 v1.21(엔진 예고 1/2 · 01 §30) — M5 안전 동작 결과 · M5-2 재개 게이트 · 서약 VM.
+final DtoCodec<Object> _safetyActionResult = DtoCodec<SafetyActionResult>(
+  'SafetyActionResult',
+  SafetyActionResult.fromJson,
+  (SafetyActionResult v) => v.toJson(),
+);
+final DtoCodec<Object> _killResumeGateVm = DtoCodec<KillResumeGateVm>(
+  'KillResumeGateVm',
+  KillResumeGateVm.fromJson,
+  (KillResumeGateVm v) => v.toJson(),
+);
+final DtoCodec<Object> _pledgeVm = DtoCodec<PledgeVm>(
+  'PledgeVm',
+  PledgeVm.fromJson,
+  (PledgeVm v) => v.toJson(),
+);
 // 🆕 계약 v1.19(R6c 선행 · 01 §28) — M9 `S05` 운용 관리 VM.
 final DtoCodec<Object> _operationsVm = DtoCodec<OperationsVm>(
   'OperationsVm',
@@ -434,6 +450,23 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
       (SleeveCatalogEntry v) => v.toJson(),
     ),
   ),
+
+  // ── m5/ — 🆕 v1.21(01 §30) M5 안전 동작 ─────────────────────────────────
+  // 재개 게이트 7벌 · 서약 3벌 · 안전 동작 결과 14행 · 발동 기록 접수증 7행(기존 `_commandReceipt`).
+  FixturePaths.m5KillChecklistReceipts: FixtureBinding(_commandReceipt),
+  FixturePaths.m5KillResumeGateConditionUnmet: FixtureBinding(
+    _killResumeGateVm,
+  ),
+  FixturePaths.m5KillResumeGateInProgress: FixtureBinding(_killResumeGateVm),
+  FixturePaths.m5KillResumeGateLocked: FixtureBinding(_killResumeGateVm),
+  FixturePaths.m5KillResumeGateNotConfirmed: FixtureBinding(_killResumeGateVm),
+  FixturePaths.m5KillResumeGateReady: FixtureBinding(_killResumeGateVm),
+  FixturePaths.m5KillResumeGateTimeUnknown: FixtureBinding(_killResumeGateVm),
+  FixturePaths.m5KillResumeGateWaiting: FixtureBinding(_killResumeGateVm),
+  FixturePaths.m5PledgeEditWindow: FixtureBinding(_pledgeVm),
+  FixturePaths.m5PledgeNotWritten: FixtureBinding(_pledgeVm),
+  FixturePaths.m5PledgeWritten: FixtureBinding(_pledgeVm),
+  FixturePaths.m5SafetyActionResults: FixtureBinding(_safetyActionResult),
 
   // ── m6/ — 안내·수기 체결(01 §2-11) ───────────────────────────────────────
   FixturePaths.m6Advice12: FixtureBinding(

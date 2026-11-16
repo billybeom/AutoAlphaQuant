@@ -26,4 +26,5 @@ export 'dto/plan.dart';
 export 'dto/rebalance.dart';
 export 'dto/resume.dart';
 export 'dto/safety.dart';
+export 'dto/safety_gate.dart';
 export 'dto/settings.dart';
