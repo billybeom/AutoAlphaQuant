@@ -108,6 +108,13 @@ final List<_Axis> _axes = <_Axis>[
     'kind',
     _wires(CommandKind.values),
   ),
+  // 🆕 v1.22(01 §31 · K62) — 재개 미러의 재개 모드(`mode` = RunMode 와 다른 축).
+  _Axis(
+    'batch_d_supabase.sql',
+    'resume_run_mirror',
+    'resume_mode',
+    _wires(ResumeMode.values),
+  ),
   // 🆕 v1.9 — 인벤토리 §10-2 ① 해소: 두 표 = `CommandState` − `REQUESTED`(G-30).
   _Axis(
     'batch_b_plan_command.sql',
@@ -135,12 +142,8 @@ final List<_Axis> _axes = <_Axis>[
     'cause_code',
     AdviceTransitionCauseCodes.values,
   ),
-  _Axis(
-    'batch_f_x7_advisory.sql',
-    'executions',
-    'fill_origin',
-    _wires(FillOrigin.values),
-  ),
+  // 🔵 v1.22(01 §31 · K61) — `executions.fill_origin` 은 `@sim fill-origin` 축이라 아래 «두 판 합집합» 시험이 본다
+  //    (태그 전 = 두 판 4값 · 태그 뒤 = LIVE 3 ∪ SIM 4 — 엔진 재생성 PR 이 계약 시험을 고치지 않게).
   _Axis(
     'batch_f_x7_advisory.sql',
     'executions',
@@ -338,13 +341,24 @@ void main() {
       }
     });
 
+    test('C-15 executions.fill_origin — LIVE·SIM 두 판 CHECK 합집합이 FillOrigin 4값이다(태그 전·후 둘 다)', () {
+      // 🆕 v1.22(01 §31 · K61) — 태그 줄 = 엔진 재생성 PR. 이 시험은 그 PR 앞뒤로 같은 결과여야 한다.
+      expect(
+        _checkValuesBothFiles(
+          'batch_f_x7_advisory.sql',
+          'executions',
+          'fill_origin',
+        ),
+        _wires(FillOrigin.values),
+      );
+    });
+
     test('C-15 픽스처의 열거값이 CHECK 안에 있다', () {
       for (final _FixtureAxis axis in _fixtureAxes) {
-        final Set<String> allowed = _checkValues(
-          axis.file,
-          axis.table,
-          axis.column,
-        );
+        final Set<String> allowed =
+            _simTaggedColumns.contains('${axis.table}.${axis.column}')
+            ? _checkValuesBothFiles(axis.file, axis.table, axis.column)
+            : _checkValues(axis.file, axis.table, axis.column);
         expect(
           allowed,
           isNotEmpty,
@@ -572,6 +586,11 @@ void main() {
         f,
         contains("AND ((fill_origin = 'MANUAL') = (broker_order_no IS NULL))"),
       );
+      // 🆕 v1.22(K61) — SIM 판(태그 뒤에도)이 같은 묶음을 갖는다.
+      expect(
+        _localDdl(LedgerFile.sim, 'batch_f_x7_advisory.sql'),
+        contains("AND ((fill_origin = 'MANUAL') = (broker_order_no IS NULL))"),
+      );
     });
 
     test('C-15 픽스처 봉투의 meta.mode 는 전량 LIVE 다', () {
@@ -652,6 +671,20 @@ Set<String> _localModeValues(LedgerFile file, String table) => <String>{
   for (final CheckConstraint c in _localChecks(file))
     if (c.table == table && c.column == 'mode') ...c.values,
 };
+
+/// 🆕 v1.22(01 §31 · K61) — `@sim` 태그로 두 판이 갈리는 칸(픽스처 축은 두 판 합집합으로 본다).
+const Set<String> _simTaggedColumns = <String>{'executions.fill_origin'};
+
+/// 로컬 배치 [file] 의 LIVE·SIM 두 판 CHECK 값 합집합.
+Set<String> _checkValuesBothFiles(String file, String table, String column) =>
+    <String>{
+      for (final LedgerFile f in <LedgerFile>[LedgerFile.live, LedgerFile.sim])
+        for (final CheckConstraint c in parseCheckConstraintsText(
+          _localDdl(f, file),
+          file,
+        ))
+          if (c.table == table && c.column == column) ...c.values,
+    };
 
 Set<String> _checkValues(String file, String table, String column) => <String>{
   for (final CheckConstraint c in _allChecks())

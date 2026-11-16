@@ -70,12 +70,23 @@ final class LedgerModeCheck {
         "(operating_mode = 'AUTO_TRADE' OR mode = 'SIM_INTERNAL')",
   );
 
-  /// 네 종류 전부.
+  /// 🆕 v1.22(01 §31 · K61 · SPEC 02 :731 v2.44) — `executions.fill_origin`(배치 F) · 🔴 실계좌 파일은 `SIMULATED`(엔진 내부
+  /// 가상 체결 · ds `order_ledger.dart:509-510`)를 받지 않는다. ⏸ `ddl/batch_f_x7_advisory.sql` 의 태그 줄 = **엔진 재생성 PR**
+  /// (data_sync 배치 사본이 원문과 바이트 대조 — 같은 커밋에서만 움직인다 · v1 동결 12-21 전 · 01 §8 미결 189) · 그 전에는
+  /// 두 파일이 같은 4값 CHECK 를 갖는다(C-56 ⑮ 두 상태 허용).
+  static const LedgerModeCheck fillOrigin = LedgerModeCheck._(
+    'fill-origin',
+    "fill_origin IN ('BROKER','MANUAL','BROKER_RECOVERED')",
+    "fill_origin IN ('BROKER','MANUAL','SIMULATED','BROKER_RECOVERED')",
+  );
+
+  /// 다섯 종류 전부(🆕 v1.22 +[fillOrigin]).
   static const List<LedgerModeCheck> values = <LedgerModeCheck>[
     ledger,
     advice,
     calendar,
     intentOperatingMode,
+    fillOrigin,
   ];
 
   /// `-- @sim` 뒤에 오는 이름.
