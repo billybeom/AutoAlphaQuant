@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:app_operator_android/app/operator_ops_status.dart';
+import 'package:app_operator_android/app/operator_ops_summary.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_safety.dart';
 import 'package:app_operator_android/app/operator_settings_actions.dart';
@@ -206,16 +207,50 @@ void main() {
     },
   );
 
-  testWidgets('🔴 준비 = 셸이 선다 · 홈 · 일지 = 자리 부재(실물 원천 전)', (
+  testWidgets('🔴 준비 = 셸이 선다 · 홈 = 운영 홈(R133) · 일지 = 자리 부재(실물 원천 전)', (
     WidgetTester tester,
   ) async {
     await pumpApp(tester);
     await ready(tester);
+    await tester.pump();
+    await tester.pump();
     expect(tester.takeException(), isNull);
-    expect(find.byKey(const Key('s01-home-slot')), findsOneWidget);
+    expect(find.byKey(const Key('s01-home-slot')), findsNothing);
+    expect(find.byType(OpsHome), findsOneWidget);
+    expect(find.byKey(const Key('h01-asof')), findsOneWidget);
+    // 블록 7 = 엔진 문장 그대로(빈 원장 = 0건 · 정의 없는 칸 = 판정 보류).
+    expect(find.text('오늘 주문 0건'), findsOneWidget);
+    expect(find.text('오늘 오류 0건'), findsOneWidget);
+    expect(find.text('신호 일치 판정 보류'), findsOneWidget);
+    // 🔴 원천 없는 셋 — 슬리브 비중 = 다시 시도(지어내지 않는다) · 안내 · 실사 카드 = 부재.
+    expect(find.byKey(const Key('h01-alloc-fail')), findsOneWidget);
+    expect(find.byKey(const Key('h01-fail')), findsNothing);
     await open(tester, AppRoutes.journalTimeline);
     expect(tester.takeException(), isNull);
     expect(find.byKey(const Key('s01-placeholder')), findsOneWidget);
+    // 홈 흐름의 1분 타이머는 컨테이너가 닫힐 때 멈춘다 — 시험 안에서 닫는다.
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
+  });
+
+  testWidgets('🔴 운영 리듬(H-02 · R133) = 조립 셸에 등록 · 원천 있는 두 행', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(tester);
+    await ready(tester);
+    await open(tester, AppRoutes.opsRhythm);
+    expect(tester.takeException(), isNull);
+    expect(find.byType(OpsRhythm), findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    // 홈(아래 라우트)의 블록 8 도 같은 행을 그린다 — 리듬 화면 안에서만 찾는다.
+    Finder inRhythm(String t) =>
+        find.descendant(of: find.byType(OpsRhythm), matching: find.text(t));
+    expect(inRhythm('월간 정기 리밸런싱'), findsOneWidget);
+    expect(inRhythm('월 납입'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
   });
 
   testWidgets('🔴 알림 센터 · 상세 = 엔진 원장의 알림(같은 연결)', (WidgetTester tester) async {
@@ -242,6 +277,10 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(AlertDetail), findsOneWidget);
     expect(find.text(a.title), findsWidgets);
+    // 🆕 R133 — 홈 흐름의 1분 타이머는 컨테이너가 닫힐 때 멈춘다 — 시험 안에서 닫는다.
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
   });
 
   testWidgets('🔴 감시 보드(R109) = 조립 셸에 등록 · 로컬 판정 행이 선다(바깥 없음 = 머리 문구)', (
@@ -288,6 +327,26 @@ void main() {
     ]) {
       expect(identical(s, safety), true);
     }
+    // 🆕 R133 — 홈 오늘 요약 · 리듬 = 한 인스턴스 · 원천 없는 셋 = operator 의 «원천 없음»(받침대 아님).
+    expect(
+      identical(
+        container.read(shellOpsSummaryRepositoryProvider),
+        container.read(operatorOpsSummaryProvider),
+      ),
+      true,
+    );
+    expect(
+      container.read(shellAdviceRepositoryProvider),
+      isA<OperatorAdviceRepository>(),
+    );
+    expect(
+      container.read(shellHoldingsRepositoryProvider),
+      isA<OperatorHoldingsRepository>(),
+    );
+    expect(
+      container.read(shellLedgerTrustRepositoryProvider),
+      isA<OperatorLedgerTrustRepository>(),
+    );
     final Object ops = container.read(operatorOpsStatusProvider);
     expect(ops, isA<OperatorOpsStatusRepository>());
     expect(
@@ -334,7 +393,14 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(find.byType(LedgerDiffs), findsOneWidget);
-    expect(find.text(f.label), findsOneWidget);
+    // 🆕 R133 — 홈(아래 라우트) 블록 3 도 같은 플래그를 그린다 — 대조 화면 안에서만 찾는다.
+    expect(
+      find.descendant(
+        of: find.byType(LedgerDiffs),
+        matching: find.text(f.label),
+      ),
+      findsOneWidget,
+    );
     // 안전 흐름의 1분 타이머는 컨테이너가 닫힐 때 멈춘다 — 시험 안에서 닫는다.
     await tester.pumpWidget(const SizedBox.shrink());
     container.dispose();

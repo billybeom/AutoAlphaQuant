@@ -58,6 +58,8 @@ export 'src/local/onboarding_progress_store.dart';
 export 'src/local/onboarding_store.dart';
 export 'src/local/operating_param_store.dart';
 export 'src/local/ops_config_source.dart';
+// 🆕 E11p3d-2b — H-01 오늘 요약 · H-02 운영 리듬 사실(설계 13 §8 R133).
+export 'src/local/ops_home_source.dart';
 export 'src/local/order_ledger.dart';
 export 'src/local/plan_snapshot_store.dart';
 export 'src/local/planned_work_store.dart';
