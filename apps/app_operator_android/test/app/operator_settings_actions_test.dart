@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:app_operator_android/app/operator_settings_actions.dart';
+import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/secret/secret_handoff.dart';
 import 'package:broker_gateway/broker_gateway.dart'
     show
@@ -16,13 +17,22 @@ import 'package:broker_gateway/broker_gateway.dart'
         KisRateGate,
         KisRestClient,
         readKisCredentials;
+import 'package:core_engine/core_engine.dart'
+    show
+        OnboardingStepFact,
+        kOnboardingModeCommittedText,
+        kOnboardingModeSelectedText;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
+import 'package:data_sync/data_sync.dart'
+    show SqliteOnboardingProgressStore, SqliteOnboardingStore;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         ActionResult,
         BrokerRawCodes,
         OnboardingResultCodes,
+        OperatingMode,
         SettingsActionId,
+        StepState,
         UiLevel;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -281,5 +291,144 @@ void main() {
       await readKisCredentials(vault, KisKeySet.paper),
       isA<KisCredentialsMissing>(),
     );
+  });
+
+  group('🆕 온보딩(R125) — 운영 방식 선택 · 키 검증 → 진척', () {
+    late LedgerFiles files;
+    late FakeClock clock;
+    late MockClient net;
+    late OperatorSettingsActions withSim;
+
+    setUp(() {
+      clock = FakeClock(kst(2026, 12, 1, 9, 0));
+      files = openFiles(tempLedgerDir(), clock);
+      net = MockClient((http.Request r) async {
+        paths.add(r.url.path);
+        return r.url.path == '/oauth2/tokenP' ? token() : balance();
+      });
+      withSim = OperatorSettingsActions(
+        secrets: handoff,
+        vault: vault,
+        clientOf: (KisCredentials c) => KisRestClient(
+          net,
+          c,
+          environment: c.environment,
+          sleep: (_) async {},
+          gate: KisRateGate(Duration.zero, sleep: (_) async {}),
+        ),
+        clock: clock,
+        sim: files.sim,
+      );
+    });
+    tearDown(() => files.close());
+
+    Map<String, OnboardingStepFact> progress() =>
+        SqliteOnboardingProgressStore(files.sim, clock: clock).facts();
+
+    Future<ActionResult> select(String wire) => withSim.run(
+      SettingsActionId.onboardingOperatingModeSelect,
+      args: <String, String>{'operating_mode': wire},
+    );
+
+    test(
+      '🔴 선택 = sim 파일 기록 · 표본 문장 · 다시 고르기 = 덮어씀 · 확정 뒤 = 거부(표본 문장 · 코드)',
+      () async {
+        final ActionResult a = await select('ADVISORY');
+        expect(
+          (a.level, a.headline, a.reasonCode),
+          (UiLevel.ok, kOnboardingModeSelectedText, null),
+        );
+        final SqliteOnboardingStore st = SqliteOnboardingStore(
+          files.sim,
+          clock: clock,
+        );
+        expect(st.choice()?.operatingMode, OperatingMode.advisory);
+        expect((await select('AUTO_TRADE')).level, UiLevel.ok);
+        expect(st.choice()?.operatingMode, OperatingMode.autoTrade);
+        files.sim.execute(
+          'UPDATE onboarding_choice SET committed_at = ? WHERE id = 1',
+          <Object?>[clock.nowUtc().toIso8601String()],
+        );
+        final ActionResult c = await select('ADVISORY');
+        expect(
+          (c.level, c.headline, c.reasonCode),
+          (
+            UiLevel.blocked,
+            kOnboardingModeCommittedText,
+            OnboardingResultCodes.choiceCommitted,
+          ),
+        );
+        expect(st.choice()?.operatingMode, OperatingMode.autoTrade);
+      },
+    );
+
+    test('🔴 args 꼴 위반 = 오류 · sim 없는 조립 = 구현 없음', () async {
+      await expectLater(select('MANUAL'), throwsArgumentError);
+      await expectLater(
+        withSim.run(SettingsActionId.onboardingOperatingModeSelect),
+        throwsArgumentError,
+      );
+      await expectLater(
+        withSim.run(
+          SettingsActionId.onboardingOperatingModeSelect,
+          args: <String, String>{'operating_mode': 'ADVISORY', 'x': '1'},
+        ),
+        throwsArgumentError,
+      );
+      await expectLater(
+        acts.run(
+          SettingsActionId.onboardingOperatingModeSelect,
+          args: <String, String>{'operating_mode': 'ADVISORY'},
+        ),
+        throwsUnsupportedError,
+      );
+    });
+
+    test('🔴 키 검증 통과 = o_02 VERIFIED · 거절 = FAILED CREDENTIAL_REJECTED · 닿지 못함 = 기록 없음', () async {
+      token = () => throw http.ClientException('연결 실패');
+      await withSim.run(
+        SettingsActionId.credentialVerify,
+        args: <String, String>{'kind': 'KIS_PAPER'},
+      );
+      expect(progress(), isEmpty);
+      token = () => _json(<String, String>{
+        'error_code': 'EGW00103',
+        'error_description': '유효하지 않은 AppKey입니다.',
+      }, 403);
+      await withSim.run(
+        SettingsActionId.credentialVerify,
+        args: <String, String>{'kind': 'KIS_PAPER'},
+      );
+      expect(progress()['o_02']?.state, StepState.failed);
+      expect(
+        progress()['o_02']?.failureReasonCode,
+        OnboardingResultCodes.credentialRejected,
+      );
+      token = () => _json(<String, Object>{
+        'access_token': 'eyFAKE-TOKEN',
+        'token_type': 'Bearer',
+        'expires_in': 86400,
+      });
+      final ActionResult ok = await withSim.run(
+        SettingsActionId.credentialVerify,
+        args: <String, String>{'kind': 'KIS_PAPER'},
+      );
+      expect(ok.level, UiLevel.ok);
+      expect(progress()['o_02']?.state, StepState.verified);
+      expect(progress()['o_02']?.failureReasonCode, isNull);
+    });
+
+    test('🔴 계좌 거절도 FAILED CREDENTIAL_REJECTED', () async {
+      balance = () => _json(<String, String>{
+        'rt_cd': '1',
+        'msg_cd': 'OPSQ2000',
+        'msg1': 'ERROR : INPUT_FIELD_NAME CANO',
+      });
+      await withSim.run(
+        SettingsActionId.credentialVerify,
+        args: <String, String>{'kind': 'KIS_PAPER'},
+      );
+      expect(progress()['o_02']?.state, StepState.failed);
+    });
   });
 }

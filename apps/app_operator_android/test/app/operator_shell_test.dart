@@ -78,7 +78,20 @@ void main() {
     files.close();
   });
 
-  Future<void> pumpApp(WidgetTester tester) async {
+  /// 🆕 R125 — [onboarded] = 온보딩 확정 행을 먼저 둔다(루트 = 셸 · 아니면 온보딩 내비게이터).
+  /// 🔵 확정이 «바뀌는» 순간의 다시 냄은 SQLite 갱신 훅(실제 이벤트 루프)이라 위젯 시험의 가짜 시간 밖 —
+  ///    그 몫은 `operator_onboarding_test`(실제 시간)가 지킨다.
+  Future<void> pumpApp(WidgetTester tester, {bool onboarded = true}) async {
+    if (onboarded) {
+      files.sim.execute(
+        'INSERT INTO onboarding_choice (id, operating_mode, chosen_at, committed_at) VALUES (1, ?, ?, ?)',
+        <Object?>[
+          OperatingMode.autoTrade.wire,
+          clock.nowUtc().toIso8601String(),
+          clock.nowUtc().toIso8601String(),
+        ],
+      );
+    }
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -93,7 +106,8 @@ void main() {
   }
 
   Future<void> ready(WidgetTester tester) async {
-    writeSimMode(files.sim, clock, committed: OperatingMode.autoTrade);
+    // 확정 행은 pumpApp 이 먼저 뒀다 — 여기는 모드 행만.
+    writeSimMode(files.sim, clock);
     final EngineBoot b = await tester.runAsync(
       () => bootEngine(files, clock: clock),
     ) as EngineBoot;
@@ -147,11 +161,41 @@ void main() {
     expect(outside, <String>['https://healthchecks.io']);
   });
 
-  testWidgets('🔴 깨어남 전 = 셸이 플래그를 기다린다(크래시 없음)', (WidgetTester tester) async {
+  testWidgets('🔴 깨어남 전(온보딩 확정 뒤) = 셸이 플래그를 기다린다(크래시 없음)', (
+    WidgetTester tester,
+  ) async {
     await pumpApp(tester);
     expect(tester.takeException(), isNull);
     expect(find.byType(ShellRoot), findsOneWidget);
   });
+
+  testWidgets(
+    '🔴 첫 실행(R125 · 미결 158) — 온보딩 확정 전 = 온보딩 첫 화면(셸 아님) · 링크 = 온보딩 내비게이터로',
+    (WidgetTester tester) async {
+      await pumpApp(tester, onboarded: false);
+      // 판정 첫 값 · 첫 화면 VM = 다음 프레임들.
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(ShellRoot), findsNothing);
+      expect(find.byType(OnboardingStart), findsOneWidget);
+      expect(find.text('처음 시작하기'), findsOneWidget);
+      await open(tester, AppRoutes.onboardingModePick);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(OnboardingModePick), findsOneWidget);
+      await open(tester, AppRoutes.onboardingSteps);
+      expect(find.byType(OnboardingStepList), findsOneWidget);
+      await open(
+        tester,
+        AppRoutes.onboardingStep.replaceFirst(':stepId', 'o_02'),
+      );
+      expect(find.byType(OnboardingStepDetail), findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
 
   testWidgets('🔴 준비 = 셸이 선다 · 홈 · 일지 = 자리 부재(실물 원천 전)', (
     WidgetTester tester,
@@ -331,6 +375,40 @@ void main() {
       expect(identical(c.read(shellOnboardingActionsProvider), a), true);
     },
   );
+
+  test('🔴 내비게이터 키(R125) = 온보딩 중 온보딩 키 · 확정 뒤 셸 키 — 두 내비게이터가 키를 나눠 쓰지 않는다(실제 갱신 훅)', () async {
+    Future<void> until(bool Function() ok) async {
+      final Stopwatch w = Stopwatch()..start();
+      while (!ok() && w.elapsed < const Duration(seconds: 5)) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    }
+
+    final ProviderSubscription<GlobalKey<NavigatorState>> sub = container
+        .listen(shellNavigatorKeyProvider, (_, _) {}, fireImmediately: true);
+    addTearDown(sub.close);
+    await until(() => container.read(operatorOnboardingDoneProvider).hasValue);
+    final GlobalKey<NavigatorState> onb = container.read(
+      operatorOnboardingNavigatorKeyProvider,
+    );
+    final GlobalKey<NavigatorState> shell = container.read(
+      operatorShellNavigatorKeyProvider,
+    );
+    expect(identical(onb, shell), false);
+    expect(identical(container.read(shellNavigatorKeyProvider), onb), true);
+    files.sim.execute(
+      'INSERT INTO onboarding_choice (id, operating_mode, chosen_at, committed_at) VALUES (1, ?, ?, ?)',
+      <Object?>[
+        OperatingMode.autoTrade.wire,
+        clock.nowUtc().toIso8601String(),
+        clock.nowUtc().toIso8601String(),
+      ],
+    );
+    await until(
+      () => container.read(operatorOnboardingDoneProvider).valueOrNull == true,
+    );
+    expect(identical(container.read(shellNavigatorKeyProvider), shell), true);
+  });
 
   test('🔴 일지 패키지 링크 열기 = 셸과 같은 것(https = 바깥)', () async {
     final List<String> outside = <String>[];

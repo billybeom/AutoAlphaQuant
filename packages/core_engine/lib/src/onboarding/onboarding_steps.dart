@@ -144,6 +144,10 @@ const List<_Spec> _catalogue = <_Spec>[
       label: '검증 실행',
     ),
     secretSlotId: OnboardingSlotIds.secretKisMock,
+    // 🆕 E11p4b(R125) — 키 검증 거절(표본 `_verify_results` 글자).
+    failureTexts: <String, String>{
+      'CREDENTIAL_REJECTED': '앱키가 거절되었습니다. 발급 화면에서 키를 다시 확인하십시오.',
+    },
   ),
   _Spec(
     id: 'o_03',

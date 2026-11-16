@@ -24,6 +24,7 @@ import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart'
     show FgsStatus, JobCalendars;
 
+import '../app/operator_onboarding.dart' show OnboardingProbe;
 import '../app/operator_runtime.dart';
 import '../app/secure_screen.dart' show SecureScreen;
 import '../engine/data_job_runners.dart' show JobParts;
@@ -149,6 +150,14 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       // 🆕 R118 — 키 검증 1단(통과 = 금고 저장) · 검증 HTTP = 모의 서버만.
       vault: AndroidSecretVault(),
       kisHttp: http.Client(),
+      // 🆕 R125 — 온보딩 실측(Android 생존 사실의 두 칸).
+      onboardingProbe: () async {
+        final SurvivalFacts f = await ops.diagnose();
+        return OnboardingProbe(
+          notificationsEnabled: f.notificationsEnabled,
+          batteryExempt: f.batteryExempt,
+        );
+      },
     );
   } on Object {
     return null;
