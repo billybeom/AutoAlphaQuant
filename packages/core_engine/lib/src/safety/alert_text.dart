@@ -224,6 +224,13 @@ const Map<String, AlertText> kAlertTexts = <String, AlertText>{
     '재개 리포트에서 빈 구간을 확인하십시오.',
     AppRoutes.x2ResumeReport,
   ),
+  // ── 🆕 E16f3a 파생 FORK 제안 1(04 §5-3 v2.45 · R130 L6) ──
+  'DERIVED_FORK': AlertText(
+    '사본 기록이 원장과 갈라졌습니다',
+    '아카이브 같은 사본이 원장과 다른 기록을 가지고 있어 그 사본 쓰기를 멈췄습니다. 주문은 막지 않습니다.',
+    '대조 보드에서 어긋남을 확인하십시오. 기기 복원 또는 새 기준점은 사람만 할 수 있습니다.',
+    AppRoutes.ledgerDiffs,
+  ),
 };
 
 /// 코드의 글자 — 🔴 모르는 코드 = [ArgumentError](지어내지 않는다).

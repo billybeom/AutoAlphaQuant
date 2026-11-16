@@ -32,6 +32,7 @@ export 'src/local/alert_store.dart';
 export 'src/local/config_version_store.dart';
 export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
+export 'src/local/derived_sync_store.dart';
 export 'src/local/discretion_store.dart';
 export 'src/local/handover_session_store.dart';
 export 'src/local/incident_store.dart';
