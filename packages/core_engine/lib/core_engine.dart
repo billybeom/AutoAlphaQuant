@@ -77,6 +77,16 @@ export 'src/decimal_rules.dart'
         multiply,
         oneMinus,
         promoteRatio;
+// 🆕 E16g2 — X1-2 백업 매니페스트 · 복원 판정 합성(순수 · 설계 13 §8 R135).
+export 'src/migration/backup_manifest.dart'
+    show
+        BackupManifest,
+        RestoreReason,
+        RestoreVerdict,
+        SnapshotCodes,
+        SnapshotProbe,
+        kBackupManifestKeys,
+        restoreVerdictOf;
 // 🆕 E16b — X1-2 계획 교체 상태기계 · 이전 티켓 · X1-6 감시 유지보수 창(순수 · 설계 13 §8 R117).
 // 🆕 E16c — X1-3 비상 펜싱 대기 · 재발급 체크리스트 · X1-5 LIVE 재개 게이트(순수 · 설계 13 §8 R119).
 export 'src/migration/fencing.dart'
