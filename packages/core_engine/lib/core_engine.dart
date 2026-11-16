@@ -87,6 +87,27 @@ export 'src/migration/fencing.dart'
         fencingVerdictOf,
         fencingWaitEndOf,
         kBrokerTokenResidualAssumed;
+// 🆕 E16e — X1-4 갭 재구성 계획(순수 · 설계 13 §8 R124).
+export 'src/migration/gap_rebuild.dart'
+    show
+        GapRecompute,
+        GapViolation,
+        GapViolationKind,
+        GapWindow,
+        RecoveredFillPlan,
+        RecoverySealCodes,
+        backupGapDaysOf,
+        conservativeBreakerLevel,
+        gapFillsToRecover,
+        gapResumeModeOf,
+        gapSessionsOf,
+        gapViolationsOf,
+        gapWindowOf,
+        kGapRecomputeOrder,
+        kX1RecoveredReason,
+        recoveredFillPlanOf,
+        recoveredStatusOf,
+        recoveryOrderSealCode;
 export 'src/migration/maintenance_window.dart'
     show
         WindowAction,
