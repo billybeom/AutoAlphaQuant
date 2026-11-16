@@ -256,24 +256,27 @@ void main() {
       expect(n, 1);
     });
 
-    test('정정 이력 · 시스템 밖 자산 = 빈 봉투 · 행이 생기면 스트림 오류(생산자 판 E16 · E18)', () async {
-      final ListResult<LedgerRepairRow> r = await repo.watchRepairs().first;
-      expect(r.rows, isEmpty);
-      expect(
-        (r.emptyLabel, r.asOf.label),
-        ('정정 이력이 없습니다', '정정 이력 기준 2026-11-05'),
-      );
-      final ListResult<ExternalHoldingRow> h = await repo
-          .watchExternalHoldings()
-          .first;
-      expect(h.rows, isEmpty);
-      expect(h.emptyLabel, '시스템 밖 자산이 없습니다');
-      db.execute(
-        'INSERT INTO ledger_repair (repair_id, diff_id, direction, origin_code, decision_id, evidence_hash, supersedes, applied_at) '
-        "VALUES ('rp', 'd', 'DERIVED_RESYNC', 'PUSH_LAG', NULL, 'ev', NULL, 't')",
-      );
-      await expectLater(repo.watchRepairs().first, throwsUnsupportedError);
-    });
+    test(
+      '정정 이력 · 시스템 밖 자산 = 빈 봉투 · 🆕 E16f1 정정 이력은 실물(상세 없는 행 = 스트림 오류)',
+      () async {
+        final ListResult<LedgerRepairRow> r = await repo.watchRepairs().first;
+        expect(r.rows, isEmpty);
+        expect(
+          (r.emptyLabel, r.asOf.label),
+          ('정정 이력이 없습니다', '정정 이력 기준 2026-11-05'),
+        );
+        final ListResult<ExternalHoldingRow> h = await repo
+            .watchExternalHoldings()
+            .first;
+        expect(h.rows, isEmpty);
+        expect(h.emptyLabel, '시스템 밖 자산이 없습니다');
+        db.execute(
+          'INSERT INTO ledger_repair (repair_id, diff_id, direction, origin_code, decision_id, evidence_hash, supersedes, applied_at) '
+          "VALUES ('rp', 'd', 'DERIVED_RESYNC', 'PUSH_LAG', NULL, 'ev', NULL, '2026-11-04T00:00:00Z')",
+        );
+        await expectLater(repo.watchRepairs().first, throwsStateError);
+      },
+    );
   });
 
   group('LedgerDiagnosticsSource(R59 S5 · S7)', () {
