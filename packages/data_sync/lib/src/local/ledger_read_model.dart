@@ -2,7 +2,8 @@
 //
 // 🔴 글자 · 순서 · 색 = core `ledger_views.dart` · 여기는 SQL 로 재료만 모은다.
 // 🔴 갱신 = 같은 연결의 `db.updates` → 다시 읽어 바뀐 때만 내보낸다(구독 즉시 1회 · R59 S8).
-// 🔴 `watchRepairs` · `watchExternalHoldings` = 생산자(E16 · E18) 전이라 빈 봉투 — 행이 생기면 스트림 오류(R59 S9).
+// 🔴 `watchExternalHoldings` = 생산자(E18) 전이라 빈 봉투 — 행이 생기면 스트림 오류(R59 S9).
+// 🆕 E16f1(설계 13 §8 R126 J6) — `watchRepairs` 실물 = `ledger_repair` ⋈ 상세 → core `ledgerRepairRowsOf`(상세 없는 행 = 스트림 오류).
 
 import 'dart:async';
 
@@ -99,6 +100,34 @@ List<StoredLedgerDiff> storedLedgerDiffs(Database db) {
   ];
 }
 
+/// 🆕 E16f1 — 저장된 정정 행(`ledger_repair` ⋈ 상세 · R126 J6) — 🔴 상세 없는 행 = [StateError](지어내지 않는다).
+List<StoredLedgerRepair> storedLedgerRepairs(Database db) =>
+    <StoredLedgerRepair>[
+      for (final Row r in db.select(
+        'SELECT r.repair_id, r.diff_id, r.direction, r.origin_code, r.decision_id, r.evidence_hash, '
+        'r.supersedes, r.applied_at, d.recomputed_from, d.chain_hash, d.target_json '
+        'FROM ledger_repair r LEFT JOIN ledger_repair_detail d ON d.repair_id = r.repair_id '
+        'ORDER BY r.applied_at, r.repair_id',
+      ))
+        StoredLedgerRepair(
+          repairId: r['repair_id'] as String,
+          diffId: r['diff_id'] as String,
+          direction: r['direction'] as String,
+          originCode: r['origin_code'] as String,
+          evidenceHash: r['evidence_hash'] as String,
+          appliedAtUtc: DateTime.parse(r['applied_at'] as String).toUtc(),
+          chainHash:
+              r['chain_hash'] as String? ??
+              (throw StateError('정정 상세가 없다: ${r['repair_id']}')),
+          targetJson:
+              r['target_json'] as String? ??
+              (throw StateError('정정 대상이 없다: ${r['repair_id']}')),
+          decisionId: r['decision_id'] as String?,
+          supersedes: r['supersedes'] as String?,
+          recomputedFrom: r['recomputed_from'] as String?,
+        ),
+    ];
+
 /// `LedgerRepository` operator 판(R59 S0).
 class SqliteLedgerRepository implements LedgerRepository {
   /// 저장소를 만든다.
@@ -140,18 +169,27 @@ class SqliteLedgerRepository implements LedgerRepository {
     return emptyLedgerList<T>(_asOf(prefix), label);
   }
 
+  /// 🆕 E16f1 — 정정 이력 지금 값(R126 J6 · 상한 [limit]).
+  ListResult<LedgerRepairRow> repairs({int limit = 50}) {
+    final List<LedgerRepairRow> rows = ledgerRepairRowsOf(
+      storedLedgerRepairs(_db),
+    );
+    return ListResult<LedgerRepairRow>(
+      rows: rows.take(limit).toList(),
+      asOf: _asOf('정정 이력 기준'),
+      emptyKind: EmptyKind.noData,
+      emptyLabel: rows.isEmpty ? '정정 이력이 없습니다' : null,
+      hasMore: rows.length > limit,
+    );
+  }
+
   @override
   Stream<ListResult<LedgerRepairRow>> watchRepairs({int limit = 50}) =>
-      watchLedgerQuery(
-        _db,
-        const <String>{'ledger_repair', 'reconciliation_log'},
-        () => _emptyOrUnsupported<LedgerRepairRow>(
-          'ledger_repair',
-          '정정 이력 기준',
-          '정정 이력이 없습니다',
-          'E16',
-        ),
-      );
+      watchLedgerQuery(_db, const <String>{
+        'ledger_repair',
+        'ledger_repair_detail',
+        'reconciliation_log',
+      }, () => repairs(limit: limit));
 
   @override
   Stream<ListResult<ExternalHoldingRow>> watchExternalHoldings() =>
