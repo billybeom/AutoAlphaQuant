@@ -284,6 +284,12 @@ export 'src/onboarding/onboarding_choice.dart'
         kOnboardingModeSelectedText,
         onboardingModeChoiceVmOf,
         onboardingStartVmOf;
+export 'src/onboarding/onboarding_finish.dart'
+    show
+        OnboardingFinishFacts,
+        kOnboardingDryRunRolledBackText,
+        kOnboardingDryRunStartedText,
+        onboardingFinishVmOf;
 export 'src/onboarding/onboarding_steps.dart'
     show
         OnboardingStepFact,

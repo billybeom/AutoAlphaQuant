@@ -190,6 +190,10 @@ void main() {
         AppRoutes.onboardingStep.replaceFirst(':stepId', 'o_02'),
       );
       expect(find.byType(OnboardingStepDetail), findsOneWidget);
+      // 🆕 R127 — 마무리(O-04) 등록.
+      await open(tester, AppRoutes.onboardingFinish);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(OnboardingFinish), findsOneWidget);
       expect(find.byKey(const Key('s01-placeholder')), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();

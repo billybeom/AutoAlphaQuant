@@ -20,6 +20,7 @@ import 'package:broker_gateway/broker_gateway.dart'
 import 'package:core_engine/core_engine.dart'
     show
         OnboardingStepFact,
+        kOnboardingDryRunRolledBackText,
         kOnboardingModeCommittedText,
         kOnboardingModeSelectedText;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
@@ -416,6 +417,32 @@ void main() {
       expect(ok.level, UiLevel.ok);
       expect(progress()['o_02']?.state, StepState.verified);
       expect(progress()['o_02']?.failureReasonCode, isNull);
+    });
+
+    test('🔴 모의 운영 시작(R127) = 엔진 dryRunStart — 앞 조건 거부 = 엔진 문장 · 코드 그대로(바뀐 것 없음) · args = {} · sim 없음 = 구현 없음', () async {
+      await select('AUTO_TRADE');
+      final ActionResult r = await withSim.run(
+        SettingsActionId.onboardingDryRunStart,
+      );
+      expect(r.level, UiLevel.blocked);
+      expect(r.reasonCode, isNotNull);
+      expect(r.reasonCode, isNot(OnboardingResultCodes.dryRunStartRolledBack));
+      expect(r.headline, isNot(kOnboardingDryRunRolledBackText));
+      expect(
+        SqliteOnboardingStore(files.sim, clock: clock).choice()?.committed,
+        false,
+      );
+      await expectLater(
+        withSim.run(
+          SettingsActionId.onboardingDryRunStart,
+          args: <String, String>{'x': '1'},
+        ),
+        throwsArgumentError,
+      );
+      await expectLater(
+        acts.run(SettingsActionId.onboardingDryRunStart),
+        throwsUnsupportedError,
+      );
     });
 
     test('🔴 계좌 거절도 FAILED CREDENTIAL_REJECTED', () async {
