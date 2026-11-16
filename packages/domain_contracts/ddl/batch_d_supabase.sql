@@ -145,6 +145,9 @@ create table if not exists resume_run_mirror (
   gap_trading_days int not null,
   -- 🆕 N-03 — `mode` 컬럼은 이미 있었으나 **값 도메인을 여기서 못 박는다**(RunMode 3값).
   mode text not null check (mode in ('LIVE','SIM_INTERNAL','SIM_BROKER')),
+  -- 🆕 v1.22(01 §31 · K62) — 재개 모드(로컬 `resume_run.mode` = `ResumeMode` 4값 · 위 `mode` = `RunMode` · 이름만 비슷한 두 축).
+  --    엔진 미러 칸 = 숙제(ds `resume_status.dart` `mirrorPayload` · E11l2) · Supabase 부트스트랩 = E11k.
+  resume_mode text not null check (resume_mode in ('NORMAL','CONSERVATIVE','RECOVERY_DRY','RECOVERY_FULL')),
   phase text not null,
   headline text,
   updated_at timestamptz not null default now()

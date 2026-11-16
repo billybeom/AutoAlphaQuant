@@ -304,9 +304,10 @@ void main() {
         ))
           SafetyActionResult.fromJson(r),
       ];
+      // 🔵 v1.22(01 §31) — `SafetyActionId` 가 +8 로 늘었다 · 이 표본의 축 = v1.21 동작 3(새 8 = C-56 ②).
       expect(<SafetyActionId>{
         for (final SafetyActionResult r in rs) r.id,
-      }, SafetyActionId.values.toSet());
+      }, _v121SafetyIds);
       final Set<String?> resumeAllowed = <String?>{
         null,
         ...KillSwitchResultCodes.values.where(
@@ -727,9 +728,9 @@ void main() {
           for (final Enum v in values) _screamingSnake(v.name),
         ], reason: '${e.key} — 와이어 ≠ 값 이름 SCREAMING_SNAKE(K10)');
       }
-      // 엔진 ds `kill_switch_store.dart:352` · `pledge_store.dart:15` 명령 kind.
+      // 엔진 ds `kill_switch_store.dart:352` · `pledge_store.dart:15` 명령 kind(🔵 v1.22 새 8 = C-56 ⑨).
       expect(
-        <String>[for (final SafetyActionId v in SafetyActionId.values) v.wire],
+        <String>[for (final SafetyActionId v in _v121SafetyIds) v.wire],
         <String>['KILL_SWITCH_RESUME', 'PLEDGE_WRITE', 'PLEDGE_EDIT'],
       );
     });
@@ -905,3 +906,10 @@ void main() {
     });
   });
 }
+
+/// v1.21 동작 3(🔵 v1.22 +8 은 C-56 이 본다 — 01 §31).
+const Set<SafetyActionId> _v121SafetyIds = <SafetyActionId>{
+  SafetyActionId.killSwitchResume,
+  SafetyActionId.pledgeWrite,
+  SafetyActionId.pledgeEdit,
+};

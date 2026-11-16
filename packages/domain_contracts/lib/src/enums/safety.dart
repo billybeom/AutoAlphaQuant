@@ -118,3 +118,37 @@ enum KillResumeCondition {
   /// JSON 표기.
   final String wire;
 }
+
+// 🆕 v1.22(01 §31 · K49) — 엔진 값 1:1 · 🔴 타입 이름 ≠ 엔진(`ambiguous_import`).
+
+/// 🆕 v1.22 — `M5-3` STOPPED 결정(엔진 core `StoppedDecisionKind` · `safety/stopped_decision.dart:11` · 와이어 = 엔진 글자 ✅).
+/// A = 전량 방어 슬리브 이전 · B = 재가동(자격 = 엔진) · C = 청산(설명 글자 = 엔진 · 화면이 짓지 않는다).
+enum StoppedDecisionChoice {
+  @JsonValue('A')
+  a('A'),
+  @JsonValue('B')
+  b('B'),
+  @JsonValue('C')
+  c('C');
+
+  const StoppedDecisionChoice(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}
+
+/// 🆕 v1.22 — `M5-6` 개입 한 단계 결과(엔진 `InterventionOutcome` · `safety/intervention.dart:22` · 와이어 ✅) ·
+/// 🔴 `doNothing` = «아무것도 안 하기» 도 같은 마찰(동급 배치 · 13 R65 X2).
+enum InterventionStepOutcome {
+  @JsonValue('PASSED')
+  passed('PASSED'),
+  @JsonValue('DO_NOTHING')
+  doNothing('DO_NOTHING'),
+  @JsonValue('ABANDONED')
+  abandoned('ABANDONED');
+
+  const InterventionStepOutcome(this.wire);
+
+  /// JSON 표기.
+  final String wire;
+}

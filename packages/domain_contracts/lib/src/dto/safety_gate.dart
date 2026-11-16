@@ -1,6 +1,7 @@
 // packages/domain_contracts/lib/src/dto/safety_gate.dart
 //
 // 🆕 계약 v1.21(01 §30) — M5-2 킬스위치 재개 게이트 · M5-8/`O-04` ② 서약 표시 VM.
+// 🆕 v1.22(01 §31 · K65) — `M5-4` 브레이커 사다리(문장 = 엔진 `breakerLadderOf` 글자 그대로).
 // 🔴 M5 만 렌더한다(`ui_safety` · 01 §2-10 표 · C-7) · 상태를 바꾸는 경로 = `SafetyActions`(포트) 뿐.
 // 🔴 화면은 받은 글자·차례 그대로 그린다 — 단계·남은 시간을 계산하지 않는다(카운트다운 0 · 새 VM 으로만).
 // 🔴 7문항 글자 출처 = SPEC v2.40 04 §3-6 ③ «재개판» 원문(발주자 확정 2026-11-04 · 정규화 = 01 §30 K38) —
@@ -117,3 +118,38 @@ abstract class PledgeVm with _$PledgeVm {
       _$PledgeVmFromJson(json);
 }
 // JSON 키: lines · status_line · replay_notice · editable · locked_label · as_of
+
+/// 🆕 v1.22(01 §31 · K65) — `M5-4` 브레이커 사다리 한 화면(창구 = `BreakerLadderRepository.watchLadder()`).
+/// 🔴 문장 = 엔진 `breakerLadderOf` 글자 그대로(% · 거래일 = 엔진 설정 값 · 화면이 짓지 않는다) · [rows] = 받은 길이(엔진 5).
+@freezed
+abstract class BreakerLadderVm with _$BreakerLadderVm {
+  const factory BreakerLadderVm({
+    required List<BreakerLadderRow> rows,
+    required AsOf asOf,
+  }) = _BreakerLadderVm;
+
+  factory BreakerLadderVm.fromJson(Map<String, dynamic> json) =>
+      _$BreakerLadderVmFromJson(json);
+}
+// JSON 키: rows · as_of
+
+/// 사다리 한 단(엔진 core `BreakerLadderStep` · `safety/breaker_ladder.dart:12` 칸 1:1).
+@freezed
+abstract class BreakerLadderRow with _$BreakerLadderRow {
+  const factory BreakerLadderRow({
+    required BreakerLevel level,
+
+    /// «정상» · «경보» · «축소 운용» · «중지» · «정지»(엔진 `breakerLabelOf`).
+    required String label,
+    required String triggerText,
+    required String releaseText,
+    required String actionText,
+
+    /// 지금 단(정확히 한 행 — C-56 ⑤).
+    required bool current,
+  }) = _BreakerLadderRow;
+
+  factory BreakerLadderRow.fromJson(Map<String, dynamic> json) =>
+      _$BreakerLadderRowFromJson(json);
+}
+// JSON 키: level · label · trigger_text · release_text · action_text · current

@@ -209,7 +209,15 @@ abstract final class DecisionReasonCodes {
   /// (`decision_log.kind='MANUAL'` · 전략 `P0S` · `OPENING_BALANCE`·`SIM_OPENING_BALANCE` 와 같은 축).
   static const String livePromotion = 'LIVE_EXECUTE_PROMOTION';
 
-  /// 전량 10종.
+  /// 🆕 v1.22(01 §31 · K57 · core `mode/sim_to_auto_commit.dart:91 · 94`) — 위저드 5단계 모의 기록 보관
+  /// (`decision_log` MANUAL · 모의 파일). 🔴 `LIVE_OPENING` 은 `strategy_state_log.reason` 이라 여기 없다 ·
+  /// 실전 개시 결정 = [openingBalance].
+  static const String simLedgerKeep = 'SIM_LEDGER_KEEP';
+
+  /// 🆕 v1.22 — 위저드 5단계 모의 기록 지움.
+  static const String simLedgerDiscard = 'SIM_LEDGER_DISCARD';
+
+  /// 전량 12종(🆕 v1.22 +2).
   static const Set<String> values = <String>{
     openingBalance,
     simOpeningBalance,
@@ -221,6 +229,8 @@ abstract final class DecisionReasonCodes {
     ledgerEventVoid,
     depositRegistered,
     livePromotion,
+    simLedgerKeep,
+    simLedgerDiscard,
   };
 }
 

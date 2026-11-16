@@ -28,6 +28,7 @@ export 'src/dto.dart';
 export 'src/enums.dart';
 export 'src/fixtures.dart';
 export 'src/labels/labels.dart';
+export 'src/mode_marker_text.dart'; // 🆕 v1.22 영역 E — 표지 글자(사전 아님 · 01 §31 K67)
 export 'src/navigation.dart';
 export 'src/primitives.dart';
 export 'src/repositories.dart';

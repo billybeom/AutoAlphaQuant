@@ -31,7 +31,22 @@ abstract final class BrokerRawCodes {
   /// KIS — 접근토큰 발급 제한(1분 1회 · 잠시 뒤 재시도 = `retryable` true).
   static const String kisTokenRateLimited = 'EGW00133';
 
-  static const Set<String> values = <String>{kisTokenRateLimited};
+  /// 🆕 v1.22(01 §31 · K66 · core `sim/sim_internal_broker.dart:23 · 26 · 29`) — 모의 가상 체결 브로커 거부
+  /// (표본 `m6/journal_sim_broker_reject` 칩 · 축 = J-1 `ReasonChip.code`). 수량·주문 꼴이 맞지 않음.
+  static const String simInvalidOrder = 'SIM_INVALID_ORDER';
+
+  /// 🆕 v1.22 — 취소 거부 · 모르는 주문.
+  static const String simOrderNotFound = 'SIM_ORDER_NOT_FOUND';
+
+  /// 🆕 v1.22 — 취소 거부 · 이미 판정했거나 취소했다.
+  static const String simCancelTooLate = 'SIM_CANCEL_TOO_LATE';
+
+  static const Set<String> values = <String>{
+    kisTokenRateLimited,
+    simInvalidOrder,
+    simOrderNotFound,
+    simCancelTooLate,
+  };
 }
 
 /// 온보딩 🔒 슬롯 이름(도메인 `onboarding_slot`) — VM 칸 `secretSlotId`·`slotId`·`loginSlotId`·`scannerSlotId` 의 값.

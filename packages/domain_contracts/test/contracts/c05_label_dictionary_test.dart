@@ -25,6 +25,8 @@ const Set<String> _documentedCrossDomainDuplicates = <String>{
   'PUSH_LAG',
   'RECON_MISMATCH',
   'SELF_AUDIT_DUE',
+  // 🆕 v1.22(01 §31 · K12) — `flag_id` ↔ `discretion_result` · labels 머리 다섯째 쌍.
+  'JOURNAL_MISSING',
 };
 
 /// 픽스처의 코드 필드 → 조회할 도메인(빈 값이면 전역 조회).

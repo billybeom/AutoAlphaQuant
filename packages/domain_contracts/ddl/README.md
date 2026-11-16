@@ -62,6 +62,7 @@
   | `advice` | `mode = 'LIVE'` | `mode = 'SIM_INTERNAL'` | `advice_batch`·`advice` — `simBroker × advisory` 금지(§10-2 #7·#8) |
   | `calendar` | `mode = 'LIVE'` | `mode = 'SIM'` | `calendar_link`·`calendar_sync_state` — 캘린더 계열 2값(G-32) |
   | `intent-operating-mode` | `operating_mode IN ('AUTO_TRADE','ADVISORY')` | 같은 식 `AND (operating_mode = 'AUTO_TRADE' OR mode = 'SIM_INTERNAL')` | `order_intents.operating_mode`(C8) |
+  | `fill-origin` | `fill_origin IN ('BROKER','MANUAL','BROKER_RECOVERED')` | `fill_origin IN ('BROKER','MANUAL','SIMULATED','BROKER_RECOVERED')` | `executions.fill_origin`(배치 F · 🆕 v1.22 · ⏸ 태그 줄 = 엔진 재생성 PR — data_sync 배치 사본 바이트 대조 · v1 동결 12-21 전 · 01 §8 미결 189) |
 
 - 🔴 `mode` 칸은 위 **10표(캘린더 2 포함)에만** 있다 — 결정 → 주문 → 체결 → 성과 · 안내 사슬은 매 실행의
   첫 쓰기라 잘못 연 파일에서 즉시 실패한다. 나머지 표는 파일 식별이 덮는다(R20 Q1).

@@ -56,6 +56,9 @@
 //   🆕 계약 v1.20(01 §29) — `UnimplementedSettingsRepository.watchCredentials`·`watchAccountMapping`(동기 throw).
 //   🆕 계약 v1.21(01 §30) — `UnimplementedKillSwitchGateRepository`(1) · `UnimplementedPledgeRepository`(1 · 동기 throw) ·
 //   `UnimplementedSafetyActions`(4 · `Future` 에러 / 에러 스트림).
+//   🆕 계약 v1.22(01 §31) — `UnimplementedSafetyActions` +4(`runStoppedDecision` · `runPostmortem` · `runRuleChangeApproval` ·
+//   `runDiscretionAdjust` · `Future` 에러) · `UnimplementedCommandApi.confirmKillChecklist(KillChecklistSubmission)`(인자 교체 · K60) ·
+//   `UnimplementedBreakerLadderRepository` · `UnimplementedResumeGateRepository` · `UnimplementedResumeRepository`(동기 throw).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -514,8 +517,9 @@ class UnimplementedCommandApi implements CommandApi {
       throw UnimplementedError('acknowledgeAlert');
 
   @override
-  Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack) =>
-      throw UnimplementedError('confirmKillChecklist');
+  Future<CommandReceipt> confirmKillChecklist(
+    KillChecklistSubmission submission,
+  ) => throw UnimplementedError('confirmKillChecklist');
 
   @override
   Future<CommandReceipt> recordLedgerEvent(LedgerEventRecord record) =>
@@ -583,6 +587,29 @@ class UnimplementedPledgeRepository implements PledgeRepository {
   Stream<PledgeVm> watchPledge() => throw UnimplementedError('watchPledge');
 }
 
+/// 🆕 계약 v1.22(01 §31 · K6) — [BreakerLadderRepository] 받침대. 🔴 동기로 던진다.
+class UnimplementedBreakerLadderRepository implements BreakerLadderRepository {
+  @override
+  Stream<BreakerLadderVm> watchLadder() =>
+      throw UnimplementedError('watchLadder');
+}
+
+/// 🆕 계약 v1.22(01 §31 · K6) — [ResumeGateRepository] 받침대. 🔴 동기로 던진다.
+class UnimplementedResumeGateRepository implements ResumeGateRepository {
+  @override
+  Stream<ResumeGateVm> watchGate() => throw UnimplementedError('watchGate');
+}
+
+/// 🆕 계약 v1.22(01 §31 · 메모 C6) — [ResumeRepository] 받침대(지금까지 0 · 화면 시험 가짜의 받침대). 🔴 동기로 던진다.
+class UnimplementedResumeRepository implements ResumeRepository {
+  @override
+  Stream<ResumeReport?> watchLatest() =>
+      throw UnimplementedError('watchLatest');
+  @override
+  Stream<List<PlannedWorkSummary>> watchPlannedWork() =>
+      throw UnimplementedError('watchPlannedWork');
+}
+
 /// 🆕 계약 v1.21(01 §30 · K5) — [SafetyActions] 받침대. 🔴 [UnimplementedSettingsActions] 꼴 — 동기로 던지지 않는다
 ///    (`Future` 에러 · 에러 스트림). 결과는 지어내지 않는다 — 가짜가 `m5/safety_action_results` 로 준다.
 class UnimplementedSafetyActions implements SafetyActions {
@@ -599,6 +626,27 @@ class UnimplementedSafetyActions implements SafetyActions {
   @override
   Future<SafetyActionResult> runPledge(PledgeSubmission submission) =>
       Future<SafetyActionResult>.error(UnimplementedError('runPledge'));
+  @override
+  Future<SafetyActionResult> runStoppedDecision(
+    StoppedDecisionSubmission submission,
+  ) => Future<SafetyActionResult>.error(
+    UnimplementedError('runStoppedDecision'),
+  );
+  @override
+  Future<SafetyActionResult> runPostmortem(PostmortemSubmission submission) =>
+      Future<SafetyActionResult>.error(UnimplementedError('runPostmortem'));
+  @override
+  Future<SafetyActionResult> runRuleChangeApproval(
+    RuleChangeApprovalSubmission submission,
+  ) => Future<SafetyActionResult>.error(
+    UnimplementedError('runRuleChangeApproval'),
+  );
+  @override
+  Future<SafetyActionResult> runDiscretionAdjust(
+    DiscretionAdjustSubmission submission,
+  ) => Future<SafetyActionResult>.error(
+    UnimplementedError('runDiscretionAdjust'),
+  );
   @override
   Stream<SafetyActionResult> watch(String actionRunId) =>
       Stream<SafetyActionResult>.error(UnimplementedError('watch'));

@@ -200,6 +200,27 @@ final DtoCodec<Object> _pledgeVm = DtoCodec<PledgeVm>(
   PledgeVm.fromJson,
   (PledgeVm v) => v.toJson(),
 );
+// 🆕 계약 v1.22(엔진 예고 2/2 · 01 §31) — M5-4 사다리 · X2 재개 게이트 · simToAuto 계획 · 재개 리포트.
+final DtoCodec<Object> _breakerLadderVm = DtoCodec<BreakerLadderVm>(
+  'BreakerLadderVm',
+  BreakerLadderVm.fromJson,
+  (BreakerLadderVm v) => v.toJson(),
+);
+final DtoCodec<Object> _resumeGateVm = DtoCodec<ResumeGateVm>(
+  'ResumeGateVm',
+  ResumeGateVm.fromJson,
+  (ResumeGateVm v) => v.toJson(),
+);
+final DtoCodec<Object> _handoverPlan = DtoCodec<HandoverPlan>(
+  'HandoverPlan',
+  HandoverPlan.fromJson,
+  (HandoverPlan v) => v.toJson(),
+);
+final DtoCodec<Object> _resumeReport = DtoCodec<ResumeReport>(
+  'ResumeReport',
+  ResumeReport.fromJson,
+  (ResumeReport v) => v.toJson(),
+);
 // 🆕 계약 v1.19(R6c 선행 · 01 §28) — M9 `S05` 운용 관리 VM.
 final DtoCodec<Object> _operationsVm = DtoCodec<OperationsVm>(
   'OperationsVm',
@@ -434,13 +455,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     ),
   ),
   FixturePaths.rebalance6: FixtureBinding(_rebalanceEvent),
-  FixturePaths.resumeReport1: FixtureBinding(
-    DtoCodec<ResumeReport>(
-      'ResumeReport',
-      ResumeReport.fromJson,
-      (ResumeReport v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.resumeReport1: FixtureBinding(_resumeReport),
   FixturePaths.safetyStates: FixtureBinding(_safetyState),
   // 🆕 v1.1 — 슬리브 카탈로그(01 §2-1 — 목록의 유일한 창구).
   FixturePaths.sleeveCatalog4: FixtureBinding(
@@ -452,6 +467,14 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   ),
 
   // ── m5/ — 🆕 v1.21(01 §30) M5 안전 동작 ─────────────────────────────────
+  // 🆕 v1.22(01 §31) — 사다리 2 · simToAuto 계획 4 · 위저드 결과 1 · E13 결과 1.
+  FixturePaths.m5BreakerLadderNormal: FixtureBinding(_breakerLadderVm),
+  FixturePaths.m5BreakerLadderStopped: FixtureBinding(_breakerLadderVm),
+  FixturePaths.m5HandoverSimToAutoActionResults: FixtureBinding(_actionResult),
+  FixturePaths.m5HandoverSimToAutoCooling: FixtureBinding(_handoverPlan),
+  FixturePaths.m5HandoverSimToAutoFatePending: FixtureBinding(_handoverPlan),
+  FixturePaths.m5HandoverSimToAutoReady: FixtureBinding(_handoverPlan),
+  FixturePaths.m5HandoverSimToAutoS3Blocked: FixtureBinding(_handoverPlan),
   // 재개 게이트 7벌 · 서약 3벌 · 안전 동작 결과 14행 · 발동 기록 접수증 7행(기존 `_commandReceipt`).
   FixturePaths.m5KillChecklistReceipts: FixtureBinding(_commandReceipt),
   FixturePaths.m5KillResumeGateConditionUnmet: FixtureBinding(
@@ -467,6 +490,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m5PledgeNotWritten: FixtureBinding(_pledgeVm),
   FixturePaths.m5PledgeWritten: FixtureBinding(_pledgeVm),
   FixturePaths.m5SafetyActionResults: FixtureBinding(_safetyActionResult),
+  FixturePaths.m5SafetyActionResultsE13: FixtureBinding(_safetyActionResult),
 
   // ── m6/ — 안내·수기 체결(01 §2-11) ───────────────────────────────────────
   FixturePaths.m6Advice12: FixtureBinding(
@@ -590,6 +614,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m6DraftRecordsJ3: FixtureBinding(_draftRecord),
   FixturePaths.m6DraftRecordsX7: FixtureBinding(_draftRecord),
   FixturePaths.m6JournalReadWritten: FixtureBinding(_decisionJournalVm),
+  // 🆕 v1.22(01 §31 · K66) — J-1 모의 가상 체결 거부 1행.
+  FixturePaths.m6JournalSimBrokerReject: FixtureBinding(_tradeJournalEntry),
   FixturePaths.m6JournalReadNoNote: FixtureBinding(_decisionJournalVm),
   FixturePaths.m6JournalReadNotWritten: FixtureBinding(_decisionJournalVm),
   FixturePaths.m6JournalBadges2: FixtureBinding(
@@ -909,13 +935,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9DeviceAccessStale: FixtureBinding(_deviceAccessVm),
   FixturePaths.m9DeviceAccessTicket: FixtureBinding(_deviceAccessVm),
   FixturePaths.m9DeviceActionResults: FixtureBinding(_actionResult),
-  FixturePaths.m9HandoverStates: FixtureBinding(
-    DtoCodec<HandoverPlan>(
-      'HandoverPlan',
-      HandoverPlan.fromJson,
-      (HandoverPlan v) => v.toJson(),
-    ),
-  ),
+  FixturePaths.m9HandoverStates: FixtureBinding(_handoverPlan),
   // 🆕 v1.19(01 §28 · R6c) — `S05` 운용 관리 7벌 · S05 동작 결과 13행.
   FixturePaths.m9OperationsActionResults: FixtureBinding(_actionResult),
   FixturePaths.m9OperationsAdvisory: FixtureBinding(_operationsVm),
@@ -931,6 +951,14 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9SettingsHome: FixtureBinding(_settingsHomeVm),
   FixturePaths.m9SettingsHomeNoReview: FixtureBinding(_settingsHomeVm),
   FixturePaths.m9SettingsHomeViewer: FixtureBinding(_settingsHomeVm),
+
+  // ── x2/ — 🆕 v1.22(01 §31 · K63 · K64) X2 재개 게이트 · 리포트 ──────────────
+  FixturePaths.x2ResumeGateConservativeDefer: FixtureBinding(_resumeGateVm),
+  FixturePaths.x2ResumeGateLocked: FixtureBinding(_resumeGateVm),
+  FixturePaths.x2ResumeGateReevaluationFailed: FixtureBinding(_resumeGateVm),
+  FixturePaths.x2ResumeGateSeasonalPending: FixtureBinding(_resumeGateVm),
+  FixturePaths.x2ResumeReportNormal: FixtureBinding(_resumeReport),
+  FixturePaths.x2ResumeReportRecoveryFull: FixtureBinding(_resumeReport),
 };
 
 /// 🔴 **뷰모델이 아직 계약에 없는 픽스처** — 지우지 않고 사유와 함께 남긴다.

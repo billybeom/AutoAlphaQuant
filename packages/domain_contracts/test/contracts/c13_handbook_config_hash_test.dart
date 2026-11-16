@@ -148,7 +148,7 @@ void main() {
 Map<String, String> _freezedBodies() {
   final Map<String, String> out = <String, String>{};
   final RegExp re = RegExp(
-    r'abstract class (\w+) with _\$\w+[^{]*\{(.*?)\n\}',
+    r'abstract class (\w+)\s+with _\$\w+[^{]*\{(.*?)\n\}',
     dotAll: true,
   );
   for (final File f in dartSourcesIn(libDir)) {

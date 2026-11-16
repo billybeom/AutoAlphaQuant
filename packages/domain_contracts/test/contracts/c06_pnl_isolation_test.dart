@@ -175,6 +175,22 @@ void main() {
         FixturePaths.m5PledgeEditWindow,
         FixturePaths.m5SafetyActionResults,
         FixturePaths.m5KillChecklistReceipts,
+        // 🆕 v1.22(01 §31) — 신설 15(사다리 2 · E13 결과 · simToAuto 계획 4 · 위저드 결과 · 게이트 4 · 리포트 2 · J-1 모의 거부).
+        FixturePaths.m5BreakerLadderNormal,
+        FixturePaths.m5BreakerLadderStopped,
+        FixturePaths.m5SafetyActionResultsE13,
+        FixturePaths.m5HandoverSimToAutoReady,
+        FixturePaths.m5HandoverSimToAutoS3Blocked,
+        FixturePaths.m5HandoverSimToAutoCooling,
+        FixturePaths.m5HandoverSimToAutoFatePending,
+        FixturePaths.m5HandoverSimToAutoActionResults,
+        FixturePaths.x2ResumeGateSeasonalPending,
+        FixturePaths.x2ResumeGateConservativeDefer,
+        FixturePaths.x2ResumeGateReevaluationFailed,
+        FixturePaths.x2ResumeGateLocked,
+        FixturePaths.x2ResumeReportRecoveryFull,
+        FixturePaths.x2ResumeReportNormal,
+        FixturePaths.m6JournalSimBrokerReject,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {
@@ -242,7 +258,7 @@ void main() {
 Map<String, String> _freezedBodies() {
   final Map<String, String> out = <String, String>{};
   final RegExp re = RegExp(
-    r'abstract class (\w+) with _\$\w+[^{]*\{(.*?)\n\}',
+    r'abstract class (\w+)\s+with _\$\w+[^{]*\{(.*?)\n\}',
     dotAll: true,
   );
   for (final File f in dartSourcesIn(libDir)) {
