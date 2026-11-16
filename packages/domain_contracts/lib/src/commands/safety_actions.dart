@@ -1,4 +1,4 @@
-// 01 §30 — 🆕 계약 v1.21 · M5 «안전 동작». ⚠️ `CommandApi` 가 아니다 · 넷째 쓰기 창구(C-7 · 표면 넷 고정).
+// 01 §30 — 🆕 계약 v1.21 · M5 «안전 동작». ⚠️ `CommandApi` 가 아니다 · 넷째 쓰기 창구(C-7 · 🆕 v1.22 표면 여덟 — 01 §31 K52).
 //
 // 🔴 M5 의 재개·서약 쓰기는 Supabase 명령 테이블을 거치지 않는다 — **폰 로컬에서 operator 구현이 엔진(data_sync
 //    `kill_switch_store` · `pledge_store`)을 직접 부른다**(뷰어에 경로가 있어서는 안 된다 · 01 §4-3 `SettingsActions` 와 같은 결).
@@ -31,6 +31,20 @@ part 'safety_actions.g.dart';
 /// · `runPledge` — 서약 첫 판(`pledgeWrite` · `decisionId` null — 구현 = 명령 id · R67 Z1) / 편집(`pledgeEdit` · `decisionId`
 ///   = 사전 저널 id · R67 Z2). 그 밖 id = 구현 `ArgumentError`. 거부 = `PledgeResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`.
 /// 🔴 화면은 [SafetyActionResult] 의 `headline` + `reasonCode` 원문만 그린다(분기 0 · `handoffRoute`·`retryable` 1.21.0 표본 null·false).
+/// 🆕 v1.22(01 §31 · K52~K55) — `run(id, args)` 화이트리스트(엔진이 [SafetyActionCall] 에 완성 · 🔴 화면은 그대로 넘긴다 · 키 = snake_case):
+///    · `interventionStep`     = `{session_id, stage /* '1'~'5' */, outcome ∈ InterventionStepOutcome.wire, decision_id?}`
+///    · `ruleChangeCancel`     = `{request_id}`
+///    · `reconClear`           = `{origin_code ∈ OriginCodes(대사 해제 쓰기 화이트리스트), decision_id /* 사전 저널 RECON_CLEAR */}` ·
+///                               결과 `reasonCode` = null 또는 `BIOMETRIC_UNAVAILABLE`(엔진 거부 = 예외 · 코드 사전 0 — K55)
+///    · `seasonalWindowChoice` = `{work_id, choice ∈ SeasonalEntryChoice.wire}`(`decision_id` = 구현이 짓는다 — K54 · 거부 =
+///                               `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ 멈춤 사유 7(`ResumeItemReasonCodes`))
+///  그 밖 id 를 `run` 으로 부르면 구현 `ArgumentError`(`Future` 에러 · 결과 코드 0).
+/// · `runStoppedDecision` — `M5-3` 결정(`decision_id` = 구현이 짓는 새 저널 id · 겹치면 `JOURNAL_ID_TAKEN`) · 거부 = `StoppedDecisionResultCodes`.
+/// · `runPostmortem` — 사건 postmortem(거부 = `PostmortemResultCodes`).
+/// · `runRuleChangeApproval` — 승인(거부 = `RuleChangeResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`).
+/// · `runDiscretionAdjust` — 재량 조정(조정폭 원문 · 파싱 실패 = `DELTA_EXCEEDED` · 여러 사유 = 엔진 정렬 첫째 · 거부 =
+///   `DiscretionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`).
+/// 🔴 결과 id = 늘 그 동작의 id · 생체 = 구현(K11) · 화면은 `headline` + `reasonCode` 원문만 그린다(분기 0).
 abstract interface class SafetyActions {
   /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
   Future<SafetyActionResult> run(
@@ -43,6 +57,20 @@ abstract interface class SafetyActions {
   );
 
   Future<SafetyActionResult> runPledge(PledgeSubmission submission);
+
+  Future<SafetyActionResult> runStoppedDecision(
+    StoppedDecisionSubmission submission,
+  );
+
+  Future<SafetyActionResult> runPostmortem(PostmortemSubmission submission);
+
+  Future<SafetyActionResult> runRuleChangeApproval(
+    RuleChangeApprovalSubmission submission,
+  );
+
+  Future<SafetyActionResult> runDiscretionAdjust(
+    DiscretionAdjustSubmission submission,
+  );
 
   Stream<SafetyActionResult> watch(String actionRunId);
 }
@@ -58,10 +86,13 @@ abstract class SafetyActionResult with _$SafetyActionResult {
     /// 결과 문구 — 🔴 엔진 생성(요약·의역 금지).
     required String headline,
 
-    /// 값 ∈ `KillSwitchResultCodes` ∪ `SafetyCommonResultCodes` ∪ `PledgeResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ②).
+    /// 값 ∈ `KillSwitchResultCodes` ∪ `SafetyCommonResultCodes` ∪ `PledgeResultCodes` ∪ 🆕 v1.22 `StoppedDecisionResultCodes` ∪
+    /// `PostmortemResultCodes` ∪ `InterventionResultCodes` ∪ `RuleChangeResultCodes` ∪ `DiscretionResultCodes` ∪
+    /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ {`BIOMETRIC_UNAVAILABLE`}
+    /// (C-55 ② · C-56 ②).
     String? reasonCode,
 
-    /// ⏸ 1.21.0 표본 null — 게이트로 넘기는 동작은 1.22.0(목적지 = M5·X 라우트 상수만).
+    /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).
     String? handoffRoute,
     required bool retryable,
   }) = _SafetyActionResult;
@@ -72,7 +103,7 @@ abstract class SafetyActionResult with _$SafetyActionResult {
 // JSON 키: action_run_id · id · level · headline · reason_code · handoff_route · retryable
 
 /// 엔진이 완성한 `SafetyActions.run` 호출 1개(`SettingsActionCall` 꼴). 🔴 화면은 [id]·[args] 를 그대로 넘긴다.
-/// ⏸ 1.21.0 사용처 0 — 1.22.0 VM(`ResumeGateVm.actions` · M5-3·M5-6 등)이 쓴다(K47 · C-8 `_knownUncovered`).
+/// 🆕 v1.22 — 첫 사용처 = `ResumeGateRow.actions`(계절 3택 · 01 §31 K64).
 @freezed
 abstract class SafetyActionCall with _$SafetyActionCall {
   const factory SafetyActionCall({
@@ -139,3 +170,68 @@ abstract class PledgeSubmission with _$PledgeSubmission {
       _$PledgeSubmissionFromJson(json);
 }
 // JSON 키: id · sentences · decision_id
+
+/// 🆕 v1.22(01 §31 · K53) — `M5-3` STOPPED 결정 제출(엔진 core `StoppedDecisionAnswers` 칸 − `decisionId`(구현이 짓는다)).
+/// 🔴 [choice] = 누른 버튼(A·B·C — 선택지 글자·자격 = 엔진) · 사전 3필드 = 사람이 친 원문(빈칸 = 엔진 `JOURNAL_REQUIRED`).
+@freezed
+abstract class StoppedDecisionSubmission with _$StoppedDecisionSubmission {
+  const factory StoppedDecisionSubmission({
+    required StoppedDecisionChoice choice,
+
+    /// 가족 합의서 당사자가 참석했다는 사람 선언(엔진은 선언만 받는다 · false = `FAMILY_AGREEMENT_MISSING`).
+    @Default(false) bool familyAgreement,
+    required String rationaleBefore,
+    required String expectedOutcome,
+    required String ruleCited,
+  }) = _StoppedDecisionSubmission;
+
+  factory StoppedDecisionSubmission.fromJson(Map<String, dynamic> json) =>
+      _$StoppedDecisionSubmissionFromJson(json);
+}
+// JSON 키: choice · family_agreement · rationale_before · expected_outcome · rule_cited
+
+/// 🆕 v1.22 — 사건 postmortem 제출(ds `incident_store.dart:85` `recordPostmortem(incidentId, text)`).
+/// 🔴 [incidentId] = 엔진이 VM 에 실은 값 그대로(원천 VM = 1.23.0+ · 01 §8 미결 188) · [text] = 원문(빈칸 = `POSTMORTEM_BLANK`).
+@freezed
+abstract class PostmortemSubmission with _$PostmortemSubmission {
+  const factory PostmortemSubmission({
+    required String incidentId,
+    required String text,
+  }) = _PostmortemSubmission;
+
+  factory PostmortemSubmission.fromJson(Map<String, dynamic> json) =>
+      _$PostmortemSubmissionFromJson(json);
+}
+// JSON 키: incident_id · text
+
+/// 🆕 v1.22 — `M5-9` 규칙 변경 승인 제출(ds `rule_change_store.dart:364` `approve` 인자 1:1 · `requestId` = 엔진 값 그대로).
+/// 🔴 [goldenChanged] null · [approver] 빈칸 = `RULE_CHANGE_APPROVAL_FIELDS_MISSING` · [thirdPartyNotified] false = `_THIRD_PARTY_MISSING`.
+@freezed
+abstract class RuleChangeApprovalSubmission
+    with _$RuleChangeApprovalSubmission {
+  const factory RuleChangeApprovalSubmission({
+    required String requestId,
+    bool? goldenChanged,
+    required String approver,
+    @Default(false) bool thirdPartyNotified,
+  }) = _RuleChangeApprovalSubmission;
+
+  factory RuleChangeApprovalSubmission.fromJson(Map<String, dynamic> json) =>
+      _$RuleChangeApprovalSubmissionFromJson(json);
+}
+// JSON 키: request_id · golden_changed · approver · third_party_notified
+
+/// 🆕 v1.22 — `M5-6`·`M5-7` 재량 조정 제출(ds `discretion_store.dart:121` `requestAdjustment(deltaPct, decisionId)`).
+/// 🔴 [deltaPct] = 원문(파싱 = 구현 · 실패·NaN = 엔진과 같은 `DELTA_EXCEEDED`) · [decisionId] = 사전 저널(`DISCRETION` ·
+///    null = `JOURNAL_MISSING` · 원천 = 01 §8 미결 188).
+@freezed
+abstract class DiscretionAdjustSubmission with _$DiscretionAdjustSubmission {
+  const factory DiscretionAdjustSubmission({
+    required String deltaPct,
+    String? decisionId,
+  }) = _DiscretionAdjustSubmission;
+
+  factory DiscretionAdjustSubmission.fromJson(Map<String, dynamic> json) =>
+      _$DiscretionAdjustSubmissionFromJson(json);
+}
+// JSON 키: delta_pct · decision_id

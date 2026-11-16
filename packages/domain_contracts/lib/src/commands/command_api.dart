@@ -17,6 +17,8 @@
 //    DTO(원문 · `payloads_x7.dart`). 화면은 와이어 DTO·`CommandContext` 를 만들지 않는다 — 파싱·맥락 부착·세션 시각은
 //    이 인터페이스의 구현이 한다(실패 = 큐 적재 없는 `rejected` 접수증 `INPUT_INVALID`).
 // 🆕 v1.15(01 §24 · K12) — `acknowledgeAlert` 인자 = `String alertId`(와이어 `AlertAck` = 구현이 만든다).
+// 🆕 v1.22(01 §31 · K60) — `confirmKillChecklist` 인자 = «화면 제출» `KillChecklistSubmission`(와이어 `KillChecklistAck` =
+//    구현이 만든다 · v1.15 `acknowledgeAlert` 선례).
 
 import 'command_receipt.dart';
 import 'payloads.dart';
@@ -87,9 +89,13 @@ abstract interface class CommandApi {
   Future<CommandReceipt> acknowledgeAlert(String alertId);
 
   /// 🔴 48h 해제 카운트다운 개시의 유일한 방아쇠.
-  /// 🆕 v1.21(01 §30 · K9 · K40) — 인자 `activation` = 발동 뒤 기록 7(엔진 한 명령). 거부 = `KillSwitchResultCodes` ∪
-  /// `SafetyCommonResultCodes`(C-16 · `m5/kill_checklist_receipts`) · 인자 교체(제출 DTO) = 01 §8 미결 183(1.22.0 판단).
-  Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack);
+  /// 🆕 v1.21(01 §30 · K9 · K40) — 와이어 `activation` = 발동 뒤 기록 7(엔진 한 명령). 거부 = `KillSwitchResultCodes` ∪
+  /// `SafetyCommonResultCodes`(C-16 · `m5/kill_checklist_receipts`).
+  /// 🆕 v1.22(01 §31 · K60) 인자 교체(구 `KillChecklistAck ack`) — 원문 [KillChecklistSubmission] · 와이어 `KillChecklistAck` =
+  /// 구현(켜진 사건 · 신뢰 시각 · 새 저널 id · 맥락) · 파싱 실패·빈 선택 = 큐 적재 없는 rejected `KILL_CHECKLIST_ITEM_MISSING`.
+  Future<CommandReceipt> confirmKillChecklist(
+    KillChecklistSubmission submission,
+  );
 
   /// 🆕 v1.10 · ㊲ — 매매가 아닌데 원장을 바꾸는 사실(인출 · 분배금 · 기업행위 · 원천징수) 1건 ·
   /// `voidsEventId` 가 있으면 무효(상쇄만). 🔴 폰(operator) 전용 · 자동·안내 둘 다(설계 13 §8 R21 L3).

@@ -59,7 +59,8 @@ void main() {
           'CALENDAR_SUSPECT',
         ]),
       );
-      expect(GapReasonCodes.values, hasLength(8));
+      // 🔵 v1.22(01 §31 · K66) — +SIM_BAR_MISSING(모의 가상 체결 봉 공백 · 시세 결측 5 와 다른 갈래) → 9.
+      expect(GapReasonCodes.values, hasLength(9));
       expect(ContractCodes.byDomain['gap_reason_code'], GapReasonCodes.values);
     });
 

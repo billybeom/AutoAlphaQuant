@@ -8,6 +8,7 @@
 //
 // (§5-4 표는 기존 5종 계열과 이 8종을 한 표로 적는다 — 파일만 크기 규약상 나눴다.)
 // 🆕 v1.21(01 §30) — `KillChecklistAck.activation` + `KillActivationRecord`(카드 ④ 발동 뒤 기록 · 와이어 · 한 명령).
+// 🆕 v1.22(01 §31 · K60) — `KillChecklistSubmission`(«화면 제출» · `confirmKillChecklist` 인자 · 와이어 = 구현).
 
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -212,6 +213,7 @@ abstract class KillChecklistAck with _$KillChecklistAck {
     /// 🆕 v1.21 — 발동 뒤 기록(카드 ④ 7).
     KillActivationRecord? activation,
   }) = _KillChecklistAck;
+  // 🆕 v1.22(01 §31 · K60) — 이 와이어는 구현이 [KillChecklistSubmission] 에서 만든다(화면 생성 0).
 
   factory KillChecklistAck.fromJson(Map<String, dynamic> json) =>
       _$KillChecklistAckFromJson(json);
@@ -253,6 +255,50 @@ abstract class KillActivationRecord with _$KillActivationRecord {
 }
 // JSON 키: rule_action · reason_kind · emotion · intensity · sleep_hours · scenario_id · scenario_none ·
 //          resume_condition · scope · journal_decision_id
+
+/// 🆕 v1.22(01 §31 · K60 · 01 §8 미결 183 ⓐ) — `M5-1` 발동 뒤 기록 «화면 제출»(카드 ④ (가) 7 + 확인 3 · 원문 그대로).
+/// 🔴 화면은 와이어([KillChecklistAck]·[KillActivationRecord])·`CommandContext`·저널 id·사건 id·조회 시각을 만들지 않는다 —
+///    구현이 켜진 킬스위치 사건 · 신뢰 시각 · 새 저널 id(겹치면 `JOURNAL_ID_TAKEN`)를 붙여 와이어를 만든다(X7 K4 결).
+/// 🔴 파싱 실패(강도 0~10 · 수면 0~24 밖·글자) · [reasonKind]·[scope] 빈 선택 = `KILL_CHECKLIST_ITEM_MISSING`
+///    (큐 적재 없는 rejected 접수증 · K35 결). 문항 글자 원천 = 01 §8 미결 186(1.23.0).
+@freezed
+abstract class KillChecklistSubmission with _$KillChecklistSubmission {
+  const factory KillChecklistSubmission({
+    /// 1 · 규칙이 지시한 행동.
+    required String ruleAction,
+
+    /// 2 · 규칙인가 감정인가(null = 고르지 않음).
+    KillActivationReason? reasonKind,
+    String? emotion,
+
+    /// 2 · 강도 원문.
+    String? intensity,
+
+    /// 2 · 수면 시간 원문.
+    String? sleepHours,
+
+    /// 3 · W번호 · 트리거 ID / «해당 없음».
+    String? scenarioId,
+    @Default(false) bool scenarioNone,
+
+    /// 4 · 재개 조건.
+    required String resumeCondition,
+
+    /// 5 · 끄는 범위(null = 고르지 않음).
+    KillActivationScope? scope,
+
+    /// 확인 3 + 1줄.
+    @Default(false) bool openOrdersQueried,
+    @Default(false) bool openOrdersCancelled,
+    @Default(false) bool remainingCountZero,
+    required String note,
+  }) = _KillChecklistSubmission;
+
+  factory KillChecklistSubmission.fromJson(Map<String, dynamic> json) =>
+      _$KillChecklistSubmissionFromJson(json);
+}
+// JSON 키: rule_action · reason_kind · emotion · intensity · sleep_hours · scenario_id · scenario_none · resume_condition · scope ·
+//          open_orders_queried · open_orders_cancelled · remaining_count_zero · note
 
 // ════════════════════════════════════════════════════════════════════════════
 // 🆕 v1.12(01 §21 · K4) — «화면 제출» DTO 3. 기존 와이어 8종(`ManualFillRecord`…)은 **무변경** —

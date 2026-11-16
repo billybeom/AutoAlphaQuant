@@ -56,6 +56,8 @@
 //   🆕 계약 v1.20(01 §29) — `UnimplementedSettingsRepository.watchCredentials`·`watchAccountMapping`(동기 throw).
 //   🆕 계약 v1.21(01 §30) — `UnimplementedKillSwitchGateRepository`(1) · `UnimplementedPledgeRepository`(1 · 동기 throw) ·
 //   `UnimplementedSafetyActions`(4 · `Future` 에러 / 에러 스트림).
+//   🆕 계약 v1.22(01 §31) — `UnimplementedSafetyActions` +4(`runStoppedDecision` · `runPostmortem` · `runRuleChangeApproval` ·
+//   `runDiscretionAdjust` · `Future` 에러) · `UnimplementedCommandApi.confirmKillChecklist(KillChecklistSubmission)`(인자 교체 · K60).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -514,8 +516,9 @@ class UnimplementedCommandApi implements CommandApi {
       throw UnimplementedError('acknowledgeAlert');
 
   @override
-  Future<CommandReceipt> confirmKillChecklist(KillChecklistAck ack) =>
-      throw UnimplementedError('confirmKillChecklist');
+  Future<CommandReceipt> confirmKillChecklist(
+    KillChecklistSubmission submission,
+  ) => throw UnimplementedError('confirmKillChecklist');
 
   @override
   Future<CommandReceipt> recordLedgerEvent(LedgerEventRecord record) =>
@@ -599,6 +602,27 @@ class UnimplementedSafetyActions implements SafetyActions {
   @override
   Future<SafetyActionResult> runPledge(PledgeSubmission submission) =>
       Future<SafetyActionResult>.error(UnimplementedError('runPledge'));
+  @override
+  Future<SafetyActionResult> runStoppedDecision(
+    StoppedDecisionSubmission submission,
+  ) => Future<SafetyActionResult>.error(
+    UnimplementedError('runStoppedDecision'),
+  );
+  @override
+  Future<SafetyActionResult> runPostmortem(PostmortemSubmission submission) =>
+      Future<SafetyActionResult>.error(UnimplementedError('runPostmortem'));
+  @override
+  Future<SafetyActionResult> runRuleChangeApproval(
+    RuleChangeApprovalSubmission submission,
+  ) => Future<SafetyActionResult>.error(
+    UnimplementedError('runRuleChangeApproval'),
+  );
+  @override
+  Future<SafetyActionResult> runDiscretionAdjust(
+    DiscretionAdjustSubmission submission,
+  ) => Future<SafetyActionResult>.error(
+    UnimplementedError('runDiscretionAdjust'),
+  );
   @override
   Stream<SafetyActionResult> watch(String actionRunId) =>
       Stream<SafetyActionResult>.error(UnimplementedError('watch'));

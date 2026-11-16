@@ -224,7 +224,7 @@ String _snake(String camel) => camel
 Map<String, String> _freezedTypeBodies() {
   final Map<String, String> out = <String, String>{};
   final RegExp re = RegExp(
-    r'abstract class (\w+) with _\$\w+[^{]*\{(.*?)\n\}',
+    r'abstract class (\w+)\s+with _\$\w+[^{]*\{(.*?)\n\}',
     dotAll: true,
   );
   for (final File f in dartSourcesIn(libDir)) {
@@ -295,6 +295,13 @@ const Map<String, String> _knownUncovered = <String, String>{
   'KillActivationRecord': _reasonCommandPayload,
   'KillResumeItemSubmission': _reasonCommandPayload,
   'PledgeSubmission': _reasonCommandPayload,
+  // 🆕 v1.22(01 §31 · K53 · K60) — M5 제출 DTO 4(포트 인자) · 발동 뒤 기록 «화면 제출»(`confirmKillChecklist` 인자) ·
+  //    표본 0 · C-56 ⑩ 이 시험 안에서 왕복한다.
+  'StoppedDecisionSubmission': _reasonCommandPayload,
+  'PostmortemSubmission': _reasonCommandPayload,
+  'RuleChangeApprovalSubmission': _reasonCommandPayload,
+  'DiscretionAdjustSubmission': _reasonCommandPayload,
+  'KillChecklistSubmission': _reasonCommandPayload,
   'LedgerEventRecord': _reasonCommandPayload,
   'ManualFillAmendment': _reasonCommandPayload,
   'ManualFillPatchable': _reasonCommandPayload,
