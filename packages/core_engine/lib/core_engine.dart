@@ -353,6 +353,28 @@ export 'src/ops/derived_sync.dart'
         derivedRelationOf,
         derivedSyncActionOf,
         kDerivedForkAlertCode;
+// 🆕 E11p3d-2c — H-03 물리 리스크 점검(측정 = 조립 앱 · 임계 · 판정 · 문구 = 엔진 · 설계 13 §8 R136).
+export 'src/ops/device_risk.dart'
+    show
+        DeviceBatteryHealth,
+        DeviceRiskFacts,
+        deviceBytesText,
+        deviceRiskVmOf,
+        deviceTempText,
+        kDeviceBatteryCyclesAct,
+        kDeviceBatteryCyclesWatch,
+        kDevicePatchActDays,
+        kDevicePatchWatchDays,
+        kDeviceRiskEmptyLabel,
+        kDeviceRiskGuidance,
+        kDeviceRiskNoAction,
+        kDeviceRiskStaleAfter,
+        kDeviceRiskStaleLabel,
+        kDeviceStorageActBytes,
+        kDeviceStorageBlockedBytes,
+        kDeviceStorageWatchBytes,
+        kDeviceTempActTenths,
+        kDeviceTempWatchTenths;
 // 🆕 E11f1 — 일일 평가 스냅숏 계산(평가 · HWM · 드로다운 · 브레이커 재생 · P0S 브레이커 설정 · 설계 13 §8 R47 F6~F8).
 export 'src/ops/equity_snapshot.dart'
     show

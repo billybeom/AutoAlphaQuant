@@ -12,6 +12,7 @@
 //    동작에 sim 파일(운영 방식 선택 · 키 검증 → 진척 기록). 마무리 · 재시작 = 4c · 4d.
 // 🆕 E11p3d-2b(R133) — 홈(H-01) 본문 · 운영 리듬(H-02) = `OperatorOpsSummaryRepository`(오늘 요약 · 리듬) + 이미 있는 안전 상태 ·
 //    진단 · 원천 없는 셋(안내 요약 · 슬리브 비중 · 원장 실사 배지 = «원천 없음» 오류 — 블록 부재 · 다시 시도).
+// 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검 본문(기기 측정 = `OperatorRuntime.deviceProbe` · 판정 = 엔진) — Android 전용 = 이 레지스트리.
 // 🆕 E11p3d-5e(R134) — 더보기 본문 = M9 S01 설정 홈(`OperatorSettingsRepository.watchHome` · 링크 = 레지스트리에 본문이 있는 화면만).
 // 🔵 일지 · 보유 · 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
@@ -196,6 +197,8 @@ Widget _watchdog(Map<String, String> _) => const WatchdogBoard();
 
 Widget _opsRhythm(Map<String, String> _) => const OpsRhythm();
 
+Widget _deviceRisk(Map<String, String> _) => const DeviceRiskBoard();
+
 Widget _home(BuildContext _) => const OpsHome();
 
 Widget _ledgerDiffs(Map<String, String> _) => const LedgerDiffs();
@@ -225,6 +228,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.settingsHome: _settingsHome,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
+  // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).
+  AppRoutes.opsDeviceRisk: _deviceRisk,
 }, home: _home);
 
 /// 🔴 operator 셸 주입 — 실물 있는 칸.

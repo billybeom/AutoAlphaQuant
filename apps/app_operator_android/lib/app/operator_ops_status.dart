@@ -5,11 +5,14 @@
 // 🔴 다시 낸다 = 들을 때 · `job_run` 이 바뀔 때(같은 연결) · 1분마다(유예가 지나 «대기 → 실패»로 넘어가는 것) · 화면 상태가 바뀔 때.
 //    바깥 목록은 5분 동안 다시 묻지 않는다(호출 아끼기).
 // 🔴 화면 상태가 없으면(온보딩 전) 체크도 없다 — 빈 보드(«등록된 워치독 체크가 아직 없습니다»).
-// 🔵 진단 = 원장 진단 원천(E13c2) · 연결 · 기기 접근 · 백업 · 연간 · 기기 리스크 = 원천 없음(R109 — 지어내지 않는다).
+// 🔵 진단 = 원장 진단 원천(E13c2) · 연결 · 기기 접근 · 백업 · 연간 = 원천 없음(R109 — 지어내지 않는다).
+// 🆕 E11p3d-2c(R136) — 기기 리스크(H-03) = 플랫폼 측정(`OperatorRuntime.deviceProbe`) → 엔진 `deviceRiskVmOf` ·
+//    들을 때 · [riskTick] 마다 다시 잰다 · 바뀐 값만 · 측정 실패 = 오류 한 번(다음 주기에 다시 잰다) · 측정기 없음(플랫폼 밖) = 원천 없음.
 
 import 'dart:async';
 
-import 'package:core_engine/core_engine.dart' show RemoteCheck, WatchdogRemote;
+import 'package:core_engine/core_engine.dart'
+    show DeviceRiskFacts, RemoteCheck, WatchdogRemote, deviceRiskVmOf;
 import 'package:data_sync/data_sync.dart'
     show
         LedgerDiagnosticsSource,
@@ -35,11 +38,12 @@ import 'operator_view.dart';
 
 /// 운영 상태 원천(operator).
 class OperatorOpsStatusRepository implements OpsStatusRepository {
-  /// 만든다 — [tick] = 시간만 흐를 때 다시 내는 주기 · [remoteTtl] = 바깥 목록 재사용 시간.
+  /// 만든다 — [tick] = 시간만 흐를 때 다시 내는 주기 · [remoteTtl] = 바깥 목록 재사용 시간 · [riskTick] = 기기 다시 재는 주기.
   OperatorOpsStatusRepository(
     this._rt, {
     this.tick = const Duration(minutes: 1),
     this.remoteTtl = const Duration(minutes: 5),
+    this.riskTick = const Duration(minutes: 5),
   });
 
   final OperatorRuntime _rt;
@@ -49,6 +53,9 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
 
   /// 바깥 목록 재사용 시간.
   final Duration remoteTtl;
+
+  /// 🆕 R136 — 기기 다시 재는 주기(측정 = 채널 한 번 · 가볍다).
+  final Duration riskTick;
 
   List<RemoteCheck>? _remote;
   DateTime? _remoteAt;
@@ -205,6 +212,39 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
   @override
   Stream<AnnualReviewVm> watchAnnualReview() => _none('watchAnnualReview');
 
+  /// 🆕 R136 — H-03 기기 리스크(화면 상태와 무관 — 온보딩 전에도 잰다).
   @override
-  Stream<DeviceRiskVm> watchDeviceRisk() => _none('watchDeviceRisk');
+  Stream<DeviceRiskVm> watchDeviceRisk() {
+    final Future<DeviceRiskFacts> Function()? probe = _rt.deviceProbe;
+    if (probe == null) return _none('watchDeviceRisk');
+    late final StreamController<DeviceRiskVm> c;
+    Timer? timer;
+    DeviceRiskVm? last;
+
+    Future<void> measure() async {
+      try {
+        final DeviceRiskVm v = deviceRiskVmOf(
+          await probe(),
+          nowUtc: _rt.clock.nowUtc(),
+        );
+        if (c.isClosed || v == last) return;
+        last = v;
+        c.add(v);
+      } on Object catch (e, st) {
+        if (!c.isClosed) c.addError(e, st);
+      }
+    }
+
+    c = StreamController<DeviceRiskVm>(
+      onListen: () {
+        timer = Timer.periodic(riskTick, (_) => unawaited(measure()));
+        unawaited(measure());
+      },
+      onCancel: () async {
+        timer?.cancel();
+        await c.close();
+      },
+    );
+    return c.stream;
+  }
 }

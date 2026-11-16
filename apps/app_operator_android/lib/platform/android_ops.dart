@@ -2,7 +2,9 @@
 //
 // 실물 = Kotlin `OpsChannel` · `EngineService` · `AlarmPlanner` · `OpsNotifications`.
 // 🔴 판정 · 문구 0 — 알림 문구는 `buildFgsNotice`, 알람 시각은 `nextOccurrence`, 놓친 발화는 `wakeDecisions`(trading_runtime).
+// 🆕 E11p3d-2c(R136) — H-03 기기 측정(`deviceRisk` · 값만 · 임계 · 판정 · 문구 = 엔진 `deviceRiskVmOf`).
 
+import 'package:core_engine/core_engine.dart' show DeviceRiskFacts;
 import 'package:flutter/services.dart';
 import 'package:trading_runtime/trading_runtime.dart' show FgsNotice;
 
@@ -97,6 +99,31 @@ class AlarmItem {
 
   /// 울릴 시각.
   final DateTime atUtc;
+}
+
+/// 🆕 R136 — 와이어 → 기기 측정값 · 🔴 모르는 칸 · 꼴 틀림 = null(그 행 부재 — «정상»으로 지어내지 않는다) ·
+/// 남은 공간 음수 = 못 잼 · 충전 횟수 음수 = 못 잼.
+DeviceRiskFacts deviceRiskFactsFromWire(Object? raw, DateTime measuredAtUtc) {
+  final Map<Object?, Object?> m = raw is Map ? raw : const <Object?, Object?>{};
+  int? n(String k, {bool nonNegative = false}) {
+    final Object? v = m[k];
+    if (v is! int) return null;
+    return nonNegative && v < 0 ? null : v;
+  }
+
+  String? t(String k) {
+    final Object? v = m[k];
+    return v is String && v.trim().isNotEmpty ? v : null;
+  }
+
+  return DeviceRiskFacts(
+    measuredAtUtc: measuredAtUtc.toUtc(),
+    storageFreeBytes: n('storageFreeBytes', nonNegative: true),
+    batteryHealth: t('batteryHealth'),
+    batteryCycleCount: n('batteryCycleCount', nonNegative: true),
+    batteryTempTenthsC: n('batteryTempTenthsC'),
+    securityPatch: t('securityPatch'),
+  );
 }
 
 /// 자가진단 사실(06 M1-15 «Android 생존 자가진단») — 🔴 사실만 · 문구는 엔진.
@@ -275,6 +302,13 @@ class AndroidOps {
   /// 자가진단 사실.
   Future<SurvivalFacts> diagnose() async =>
       SurvivalFacts.fromWire(await _ch.invokeMethod<Object?>('diagnose'));
+
+  /// 🆕 R136 — H-03 기기 측정([measuredAtUtc] = 잰 시각 · 기기 시계).
+  Future<DeviceRiskFacts> deviceRisk(DateTime measuredAtUtc) async =>
+      deviceRiskFactsFromWire(
+        await _ch.invokeMethod<Object?>('deviceRisk'),
+        measuredAtUtc,
+      );
 
   /// 깨어남 처리 끝 — CPU 붙잡기를 놓는다.
   Future<void> idle() => _ch.invokeMethod<void>('idle');
