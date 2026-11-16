@@ -1,4 +1,5 @@
 // E11p3d-5d 설정 읽기 모델 operator 판 — M9 S02 키 목록(설계 13 §8 R129) — 메모리 금고 · 실 SQLite(sim) · 실제 시간(갱신 훅).
+// 🆕 E11p3d-5e — M9 S01 설정 홈(R134) — 사실 = 화면 상태 · 키 목록 · 월 납입 운영값 · 레지스트리 본문 유무.
 
 import 'dart:async';
 
@@ -13,14 +14,22 @@ import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart' show SqliteOnboardingProgressStore;
 import 'package:domain_contracts/domain_contracts.dart'
     show
+        AppRoutes,
         CredentialCardVm,
         CredentialListVm,
+        FeatureFlags,
         OnboardingResultCodes,
         OnboardingSlotIds,
         OperatingMode,
+        OperatingParamKeys,
+        RunMode,
+        SettingsCard,
+        SettingsGroup,
+        SettingsHomeVm,
         StepState,
         UiLevel;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../engine/support.dart';
 
@@ -133,9 +142,192 @@ void main() {
     expect(got.length, greaterThan(n));
   });
 
+  // ── 🆕 R134 — S01 설정 홈 ──────────────────────────────────────────────
+
+  OperatorView viewOf(
+    Database db, {
+    String hash = 'cfg_test',
+    RunMode run = RunMode.simInternal,
+    OperatingMode op = OperatingMode.autoTrade,
+  }) => OperatorView(
+    db: db,
+    flags: FeatureFlags(
+      satelliteEnabled: false,
+      webViewerEnabled: false,
+      calendarEnabled: false,
+      runMode: run,
+      operatingMode: op,
+      configHash: hash,
+    ),
+  );
+
+  void setContribution(Database db, int won) => db.execute(
+    'INSERT INTO operating_param_log(param_key, value_text, changed_at, effective_from, action_run_id, device_id) '
+    "VALUES (?, ?, ?, '2026-11-01', ?, 'test-device')",
+    <Object?>[
+      OperatingParamKeys.monthlyContribution,
+      '$won',
+      clock.nowUtc().toIso8601String(),
+      'run-$won',
+    ],
+  );
+
+  List<String> codes(SettingsHomeVm vm) => <String>[
+    for (final SettingsGroup g in vm.groups)
+      for (final SettingsCard c in g.cards) c.code,
+  ];
+
+  SettingsCard? cardOf(SettingsHomeVm vm, String code) {
+    for (final SettingsGroup g in vm.groups) {
+      for (final SettingsCard c in g.cards) {
+        if (c.code == code) return c;
+      }
+    }
+    return null;
+  }
+
+  bool onlyS02(String r) => r == AppRoutes.settingsCredentials;
+
+  test('🔴 설정 홈 — 화면 상태 없음(온보딩 전) = 오류(지어내지 않는다)', () async {
+    await expectLater(
+      OperatorSettingsRepository(rt).watchHome(),
+      emitsError(isA<StateError>()),
+    );
+  });
+
+  test('🔴 설정 홈 = 엔진 VM — 칩 · 키(금고 비었음 = 미등록 ACT) · 운용 · 월 납입 기본값 · 전략 · 링크 = 본문 있는 화면만', () async {
+    rt.view.value = viewOf(files.sim);
+    final SettingsHomeVm vm = await OperatorSettingsRepository(
+      rt,
+      hasBody: onlyS02,
+    ).home();
+    expect(vm.statusChip.label, '모의 · 내부 가상 체결 · 자동 매매');
+    expect(codes(vm), <String>[
+      'SET_CREDENTIALS',
+      'SET_OPERATIONS',
+      'SET_CONTRIBUTION',
+      'SET_ALLOCATION',
+    ]);
+    expect(
+      cardOf(vm, 'SET_CREDENTIALS'),
+      const SettingsCard(
+        code: 'SET_CREDENTIALS',
+        title: '증권사 키',
+        level: UiLevel.act,
+        statusLabel: '모의투자 미등록',
+        attentionText: '1',
+        route: AppRoutes.settingsCredentials,
+      ),
+    );
+    expect(cardOf(vm, 'SET_OPERATIONS')?.statusLabel, '모의 · 자동 매매');
+    expect(cardOf(vm, 'SET_CONTRIBUTION')?.statusLabel, '월 10만원');
+    expect(
+      (
+        cardOf(vm, 'SET_ALLOCATION')?.statusLabel,
+        cardOf(vm, 'SET_ALLOCATION')?.level,
+      ),
+      ('balanced(P0S)', UiLevel.ok),
+    );
+    expect(vm.asOf.label, '설정 기준 2026-12-01 09:00');
+    // 기본 조립(본문 판정 없음) = 링크 0.
+    final SettingsHomeVm bare = await OperatorSettingsRepository(rt).home();
+    expect(
+      bare.groups
+          .expand((SettingsGroup g) => g.cards)
+          .map((SettingsCard c) => c.route),
+      everyElement(isNull),
+    );
+  });
+
+  test('🔴 운영 설정 지문 없음 = 전략 카드 WATCH · 실전 · 투자 안내 = 칩 «골든벡터 판정 보류»', () async {
+    rt.view.value = viewOf(
+      files.sim,
+      hash: '',
+      run: RunMode.live,
+      op: OperatingMode.advisory,
+    );
+    final SettingsHomeVm vm = await OperatorSettingsRepository(rt).home();
+    expect(
+      (
+        cardOf(vm, 'SET_ALLOCATION')?.statusLabel,
+        cardOf(vm, 'SET_ALLOCATION')?.level,
+      ),
+      ('운영 설정을 읽지 못했습니다', UiLevel.watch),
+    );
+    expect(
+      (vm.statusChip.label, vm.statusChip.level),
+      ('실전 · 투자 안내 · 골든벡터 판정 보류', UiLevel.watch),
+    );
+    expect(cardOf(vm, 'SET_OPERATIONS')?.statusLabel, '실전 · 투자 안내');
+  });
+
+  test('🔴 월 납입 읽기 실패 = 그 카드만 빠진다(설정 홈 전체를 막지 않는다)', () async {
+    rt.view.value = viewOf(files.sim);
+    files.sim.execute('DROP TABLE operating_param_log');
+    final SettingsHomeVm vm = await OperatorSettingsRepository(rt).home();
+    expect(cardOf(vm, 'SET_CONTRIBUTION'), isNull);
+    expect(cardOf(vm, 'SET_CREDENTIALS'), isNotNull);
+  });
+
+  test(
+    '🔴 다시 낸다 — 월 납입 기록(화면 상태 원장) · 키 검증 기록(sim 진척) · 같은 값은 다시 내지 않는다',
+    () async {
+      rt.view.value = viewOf(files.sim);
+      final List<SettingsHomeVm> got = <SettingsHomeVm>[];
+      final StreamSubscription<SettingsHomeVm> sub = OperatorSettingsRepository(
+        rt,
+      ).watchHome().listen(got.add);
+      addTearDown(sub.cancel);
+      await until(() => got.isNotEmpty);
+      expect(cardOf(got.last, 'SET_CONTRIBUTION')?.statusLabel, '월 10만원');
+      setContribution(files.sim, 200000);
+      await until(
+        () => cardOf(got.last, 'SET_CONTRIBUTION')?.statusLabel == '월 20만원',
+      );
+      expect(cardOf(got.last, 'SET_CONTRIBUTION')?.statusLabel, '월 20만원');
+      progress().record(
+        'o_02',
+        StepState.failed,
+        failureReasonCode: OnboardingResultCodes.credentialRejected,
+      );
+      await until(
+        () => cardOf(got.last, 'SET_CREDENTIALS')?.statusLabel == '모의투자 검증 실패',
+      );
+      expect(cardOf(got.last, 'SET_CREDENTIALS')?.statusLabel, '모의투자 검증 실패');
+      final int n = got.length;
+      // 다른 표 · 같은 값 = 다시 내지 않는다.
+      progress().record(
+        'o_02',
+        StepState.failed,
+        failureReasonCode: OnboardingResultCodes.credentialRejected,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(got.length, n);
+    },
+  );
+
+  test('🔴 화면 상태가 바뀌면 월 납입 감시를 새 원장으로 옮긴다', () async {
+    rt.view.value = viewOf(files.sim);
+    final List<SettingsHomeVm> got = <SettingsHomeVm>[];
+    final StreamSubscription<SettingsHomeVm> sub = OperatorSettingsRepository(
+      rt,
+    ).watchHome().listen(got.add);
+    addTearDown(sub.cancel);
+    await until(() => got.isNotEmpty);
+    final Database live = writeLiveMode(tempLedgerDir(), clock);
+    addTearDown(live.close);
+    rt.view.value = viewOf(live, run: RunMode.live);
+    await until(() => got.last.statusChip.label.startsWith('실전'));
+    expect(cardOf(got.last, 'SET_CONTRIBUTION')?.statusLabel, '월 10만원');
+    setContribution(live, 300000);
+    await until(
+      () => cardOf(got.last, 'SET_CONTRIBUTION')?.statusLabel == '월 30만원',
+    );
+    expect(cardOf(got.last, 'SET_CONTRIBUTION')?.statusLabel, '월 30만원');
+  });
+
   test('🔴 나머지 창구 = 원천 없음(오류)', () async {
     final OperatorSettingsRepository r = OperatorSettingsRepository(rt);
-    await expectLater(r.watchHome(), emitsError(isA<UnsupportedError>()));
     await expectLater(r.watchOperations(), emitsError(isA<UnsupportedError>()));
     await expectLater(
       r.watchAccountMapping(),
