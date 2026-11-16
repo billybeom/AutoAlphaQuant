@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 113개 · 계약 v1.22.0 · 조립일 2026-11-17(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 114개 · 계약 v1.22.0 · 조립일 2026-11-17(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -45,6 +45,7 @@ export 'src/dto.dart';
 export 'src/enums.dart';
 export 'src/fixtures.dart';
 export 'src/labels/labels.dart';
+export 'src/mode_marker_text.dart'; // 🆕 v1.22 영역 E — 표지 글자(사전 아님 · 01 §31 K67)
 export 'src/navigation.dart';
 export 'src/primitives.dart';
 export 'src/repositories.dart';
@@ -395,6 +396,31 @@ export 'enums/ui.dart';
 
 export 'fixtures/fixture_loader.dart';
 export 'fixtures/fixture_paths.dart';
+```
+
+---
+
+## `packages/domain_contracts/lib/src/mode_marker_text.dart`
+
+```dart
+// 🆕 계약 v1.22(01 §31 · K67) — 모드 표지 글자. 🔴 표지 글자 상수라 C-5 사전 대상(`lib/src/labels/`) 밖에 둔다(C-5 예외 0).
+
+/// 모드 표지 글자(엔진 core `ops/mode_marker.dart:11-20` · 셸 `ui_shell/lib/l10n/labels.dart:31-32`
+/// 두 벌 → 한 벌). 🔴 «코드 → 문구» 사전이 아니다 — 표지 글자 상수(사전 도메인 0 · byDomain 0).
+/// 소비 이전 = 엔진 다음 조각 · 셸 = 다음 test-only/PNG 창.
+abstract final class ModeMarkerText {
+  /// 모의 표지.
+  static const String sim = '모의투자';
+
+  /// 투자 안내(X7) 표지.
+  static const String advisory = '투자 안내';
+
+  /// OS 알림·다이제스트 제목 접두 — 모의(앱 안 화면은 셸 띠가 덮는다 — 이중 표지 0).
+  static const String osSimPrefix = '[모의]';
+
+  /// OS 알림·다이제스트 제목 접두 — 투자 안내.
+  static const String osAdvisoryPrefix = '[안내]';
+}
 ```
 
 ---
@@ -13735,23 +13761,6 @@ abstract final class SimToAutoStepIds {
     biometric,
     cooling,
   };
-}
-
-/// 🆕 v1.22(01 §31 · K67) — 모드 표지 글자(엔진 core `ops/mode_marker.dart:11-20` · 셸 `ui_shell/lib/l10n/labels.dart:31-32`
-/// 두 벌 → 한 벌). 🔴 «코드 → 문구» 사전이 아니다 — 표지 글자 상수(사전 도메인 0 · byDomain 0).
-/// 소비 이전 = 엔진 다음 조각 · 셸 = 다음 test-only/PNG 창.
-abstract final class ModeMarkerText {
-  /// 모의 표지.
-  static const String sim = '모의투자';
-
-  /// 투자 안내(X7) 표지.
-  static const String advisory = '투자 안내';
-
-  /// OS 알림·다이제스트 제목 접두 — 모의(앱 안 화면은 셸 띠가 덮는다 — 이중 표지 0).
-  static const String osSimPrefix = '[모의]';
-
-  /// OS 알림·다이제스트 제목 접두 — 투자 안내.
-  static const String osAdvisoryPrefix = '[안내]';
 }
 ```
 
