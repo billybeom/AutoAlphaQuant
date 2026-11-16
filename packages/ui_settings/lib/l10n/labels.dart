@@ -18,4 +18,6 @@ abstract final class SettingsLabels {
   static const String retry = '다시 시도';
   static const String staleBannerTitle = '오래된 데이터';
   static const String notAccepted = '접수되지 않았습니다';
+  static const String confirm = '확인';
+  static const String cancel = '취소';
 }
