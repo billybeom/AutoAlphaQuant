@@ -9,7 +9,7 @@
 //   ⑩ 제출 DTO 왕복 ⑪ 포트 경계 ⑫ 받침대 ⑬ 글자 ⑭ 모드 표지 ⑮ fill-origin ⑯ resume_mode ⑰ 추가형 사전 ⑱ J-1 모의 행.
 //
 // 🔴 픽스처 불변식 + 경계 스캔만 본다 — `ui_safety` M5-3~M5-11·X2 화면은 카드(E13k~m · E14j · E15j) 몫.
-// 🔴 한국어 글자 단언 = 엔진 글자 표만(출처 주석 파일:줄 · origin/main 4f85259) — ④ 단계 제목 7 · ⑤ 사다리 라벨 5 ·
+// 🔴 한국어 글자 단언 = 엔진 글자 표만(출처 주석 파일:줄 · origin/main 4f85259) — ④ 단계 제목 7 · ⑤ 사다리 라벨 5·문장 5×3 ·
 //    ⑥ 재개 사유 줄 · ⑦ verdict 라벨 5·머리 꼬리 · ⑨ 엔진 명령 kind 6 · ⑭ 모드 표지 4 · ⑬ 금지 낱말 목록.
 
 import 'dart:convert';
@@ -83,6 +83,26 @@ const String _pathLabel = '모의투자 → 실전 자동 매매(관찰부터)';
 
 /// ⑤ 사다리 라벨(core `safety/safety_text.dart:179` `breakerLabelOf` · `BreakerLevel` 차례).
 const List<String> _ladderLabels = <String>['정상', '경보', '축소 운용', '중지', '정지'];
+
+/// ⑤ 사다리 문장 5×3(트리거 · 해제 · 조치) — 엔진 출력 그대로 옮겨 적음(새 수치 0 · 구현 감사 2026-11-17 변이 MA):
+/// core `safety/breaker_ladder.dart:45` `breakerLadderOf(config: p0sBreakerConfig(), satelliteActive: false)` ·
+/// 설정 = core `ops/equity_snapshot.dart:19` `p0sBreakerConfig` · `risk/breaker.dart:119` 방향 점수(origin/main 4f85259).
+/// 엔진 설정이 바뀌면 이 표 · 표본 2 · 생성기 `LADDER_TEXT` 를 같은 PR 에서 함께 고친다(엔진 대조 시험 = 01 §31-8 ⑥).
+const List<(String, String, String)> _ladderTexts = <(String, String, String)>[
+  ('dd > -15%', '—', '정상 운용'),
+  ('dd ≤ -15%', 'dd > -13% · 20거래일 유지', '알림 · 새틀라이트 신규 진입 · 증액 중단(지금은 대상 없음)'),
+  ('dd ≤ -20%', 'dd ≥ -12% · 방향 점수 50 이상 · 20거래일 유지', '새틀라이트 × 0.5(지금은 대상 없음)'),
+  (
+    'dd ≤ -25%',
+    'dd ≥ -15% · BULL 3일 연속 · 20거래일 유지',
+    '새틀라이트 0%(지금은 대상 없음) · 슬리브 A 신규 매수 정지',
+  ),
+  (
+    'dd ≤ -35%',
+    '자동 해제 없음 — 20거래일 · SEV1 postmortem · 가족 합의 · 결정 A/B/C',
+    '신규 주문 전면 중단 · 보유 유지 · 자동 청산 없음',
+  ),
+];
 
 /// ⑥ 재개 사유 줄 — 시점 무관 12(core `resume/resume_text.dart:45-66` `resumeReevaluatedLine`).
 const Map<String, String> _fixedReasonLines = <String, String>{
@@ -556,7 +576,7 @@ void main() {
       expect(fate.blockedReasonCode, isNull);
     });
 
-    test('C-56 ⑤ 사다리 — 5행 BreakerLevel 차례 · current 하나 · 라벨 == 엔진 · current 빼면 두 표본 같음 · 빈 글자 0', () {
+    test('C-56 ⑤ 사다리 — 5행 BreakerLevel 차례 · current 하나 · 라벨·문장 == 엔진 · current 빼면 두 표본 같음 · 빈 글자 0', () {
       final Map<String, BreakerLevel> want = <String, BreakerLevel>{
         FixturePaths.m5BreakerLadderNormal: BreakerLevel.normal,
         FixturePaths.m5BreakerLadderStopped: BreakerLevel.stopped,
@@ -580,6 +600,14 @@ void main() {
           <String>[for (final BreakerLadderRow r in vm.rows) r.label],
           _ladderLabels,
           reason: path,
+        );
+        expect(
+          <(String, String, String)>[
+            for (final BreakerLadderRow r in vm.rows)
+              (r.triggerText, r.releaseText, r.actionText),
+          ],
+          _ladderTexts,
+          reason: '$path — 사다리 문장 ≠ 엔진 breakerLadderOf 출력',
         );
         for (final BreakerLadderRow r in vm.rows) {
           for (final String s in <String>[

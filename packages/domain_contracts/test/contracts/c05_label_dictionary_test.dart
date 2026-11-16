@@ -336,10 +336,6 @@ void main() {
 }
 
 /// `lib/src/labels/` 의 `abstract final class` → 그 안의 코드 문자열 목록.
-/// 🆕 v1.22(01 §31 · K67) — labels/ 안의 «표지 글자» 상수 클래스(코드가 아니다 · byDomain 0 · 사전 도메인 0).
-/// 🔴 여기 더하는 것 = 코드 사전이 아닌 글자 상수뿐 — 코드 클래스를 넣어 C-5 를 피하지 않는다.
-const Set<String> _textConstantClasses = <String>{'ModeMarkerText'};
-
 Map<String, List<String>> _codeConstantsByClass() {
   final Map<String, List<String>> out = <String, List<String>>{};
   final RegExp classRe = RegExp(
@@ -354,7 +350,7 @@ Map<String, List<String>> _codeConstantsByClass() {
           .allMatches(m.group(2)!)
           .map((RegExpMatch c) => c.group(1)!)
           .toList();
-      if (codes.isNotEmpty && !_textConstantClasses.contains(m.group(1))) {
+      if (codes.isNotEmpty) {
         out[m.group(1)!] = codes;
       }
     }
