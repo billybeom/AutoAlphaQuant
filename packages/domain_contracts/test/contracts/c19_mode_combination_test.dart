@@ -205,7 +205,9 @@ void main() {
     test(
       'C-19 ⑦ 금지 6칸을 config·전환 명령으로 주입 → 기동 거부',
       () {},
-      skip: '엔진 런타임(배치 선행 가드)이 선행한다(인벤토리 §9 C-19 = 🟡).',
+      skip:
+          '시험 자리 = core `mode_guard_test.dart`(엔진 · 배치 선행 가드) · ui_shell TR-11b(test-only) — 계약 패키지는 '
+          '엔진·ui_shell 을 의존하지 않는다(01 §31 K23 · 해제 아님).',
     );
   });
 }
