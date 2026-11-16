@@ -854,6 +854,46 @@ void main() {
           );
         }
       }
+      // 선언한 상수 == values(상수만 두고 values 에서 빠뜨리면 전역 조회가 다른 사전으로 통과시킨다 — 변이 V20).
+      const Map<String, String> classOf = <String, String>{
+        'StoppedDecisionResultCodes': 'stopped_decision_result',
+        'PostmortemResultCodes': 'postmortem_result',
+        'InterventionResultCodes': 'intervention_result',
+        'RuleChangeResultCodes': 'rule_change_result',
+        'DiscretionResultCodes': 'discretion_result',
+        'ResumeItemReasonCodes': 'resume_reason',
+        'SeasonalChoiceResultCodes': 'seasonal_choice_result',
+        'PlannedWorkRejectCodes': 'planned_work_reject',
+        'SimToAutoResultCodes': 'sim_to_auto_result',
+        'SimToAutoCommitResultCodes': 'sim_to_auto_commit_result',
+        'HandoverSessionResultCodes': 'handover_session_result',
+        'SimToAutoStepIds': 'sim_to_auto_step',
+      };
+      final Map<String, Set<String>> declared = <String, Set<String>>{};
+      for (final File f in dartSourcesIn(
+        Directory('${libDir.path}/src/labels'),
+      )) {
+        final String src = stripComments(f.readAsStringSync());
+        for (final RegExpMatch m in RegExp(
+          r'abstract final class (\w+)\s*\{(.*?)\n\}',
+          dotAll: true,
+        ).allMatches(src)) {
+          if (!classOf.containsKey(m[1])) continue;
+          declared[m[1]!] = <String>{
+            for (final RegExpMatch c in RegExp(
+              r"static const String \w+\s*=\s*'([^']*)';",
+            ).allMatches(m[2]!))
+              c[1]!,
+          };
+        }
+      }
+      for (final MapEntry<String, String> e in classOf.entries) {
+        expect(
+          declared[e.key],
+          ContractCodes.byDomain[e.value],
+          reason: '${e.key} — 선언 상수 ≠ values',
+        );
+      }
       expect(SimToAutoResultCodes.windowBlocked, 'SIM_TO_AUTO_COMMIT_WINDOW');
       expect(
         SimToAutoCommitResultCodes.outcomeUnknown,
