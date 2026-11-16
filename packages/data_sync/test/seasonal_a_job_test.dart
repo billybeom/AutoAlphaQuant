@@ -649,5 +649,69 @@ void main() {
             Decimal.parse('997'),
       );
     });
+
+    test('🆕 E16f2 — REVERSAL 행 = 수량 · 수수료 · 세금 음수(되돌린 POT 매수는 현금에서 빠진다 · R128 K2)', () {
+      int n = 0;
+      void fill(
+        String strategy,
+        String decision,
+        String side,
+        int q,
+        double px,
+        double comm,
+        double tax,
+      ) {
+        n++;
+        db.execute(
+          'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
+          "decision_id, symbol, side, order_type, quantity, status, config_hash, updated_at, mode) VALUES (?, ?, 'x', "
+          "'2026-05-04', 'KR', 'main', ?, ?, 'S', ?, 'LIMIT', ?, 'FILLED', 'c', 'x', 'LIVE')",
+          <Object?>['i$n', 'k$n', strategy, decision, side, q],
+        );
+        db.execute(
+          "INSERT INTO broker_orders(broker_order_no, intent_id, submitted_at, status) VALUES (?, ?, 'x', 'FILLED')",
+          <Object?>['b$n', 'i$n'],
+        );
+        db.execute(
+          'INSERT INTO executions(execution_id, broker_order_no, executed_at, quantity, price, commission, tax) '
+          "VALUES (?, ?, '2026-05-04T01:00:00Z', ?, ?, ?, ?)",
+          <Object?>['e$n', 'b$n', q, px, comm, tax],
+        );
+      }
+
+      fill(
+        'P0S_A',
+        'SEAS-A-OUT-2026-04-30@2026-05-04',
+        'SELL',
+        10,
+        12000,
+        18,
+        0,
+      );
+      fill('P0S_POT', 'POT-SMA-2026-04-30@2026-05-04', 'BUY', 1, 100000, 15, 3);
+      db.execute(
+        'INSERT INTO executions(execution_id, broker_order_no, executed_at, quantity, price, commission, tax, '
+        "fill_kind, reverses_fill_id) VALUES ('e2|REV', 'b2', '2026-05-04T01:00:00Z', 1, 100000, 15, 3, 'REVERSAL', 'e2')",
+      );
+      final List<PotCashFlow> f = potCashFlowsSinceLiquidation(db);
+      expect(
+        f.map((PotCashFlow x) => (x.kind, x.quantity)),
+        <(PotCashFlowKind, int)>[
+          (PotCashFlowKind.aExitSell, 10),
+          (PotCashFlowKind.potBuy, 1),
+          (PotCashFlowKind.potBuy, -1),
+        ],
+      );
+      expect(
+        f
+            .map(
+              (PotCashFlow x) =>
+                  (Decimal.parse(x.commissionText), Decimal.parse(x.taxText)),
+            )
+            .last,
+        (Decimal.parse('-15'), Decimal.parse('-3')),
+      );
+      expect(potCashOf(f), Decimal.parse('119982'));
+    });
   });
 }

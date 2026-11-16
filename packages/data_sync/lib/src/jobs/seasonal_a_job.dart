@@ -12,6 +12,7 @@ import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 
+import '../local/fill_sign_sql.dart' show signedFillSql;
 import '../local/planned_work_store.dart'
     show plannedWorkIdOf, registerPlannedWork, seasonalPlanOneLine;
 import '../market/market_ids.dart' show MarketSymbols;
@@ -485,7 +486,10 @@ List<PotCashFlow> potCashFlowsSinceLiquidation(Database db) {
   }
   return <PotCashFlow>[
     for (final Row r in db.select(
-      'SELECT i.strategy_id, i.side, i.decision_id, e.quantity, e.price, e.commission, e.tax '
+      // 🆕 E16f2 — REVERSAL = 수량 · 수수료 · 세금 음수(R128 K2).
+      'SELECT i.strategy_id, i.side, i.decision_id, ${signedFillSql('e', 'quantity')} AS quantity, '
+      'e.price, ${signedFillSql('e', 'commission')} AS commission, '
+      '${signedFillSql('e', 'tax')} AS tax '
       'FROM executions e JOIN broker_orders b ON e.broker_order_no = b.broker_order_no '
       'JOIN order_intents i ON b.intent_id = i.intent_id '
       "WHERE i.trade_date >= ? AND ((i.strategy_id = ? AND i.side = 'SELL' AND i.decision_id LIKE 'SEAS-A-OUT-%') "

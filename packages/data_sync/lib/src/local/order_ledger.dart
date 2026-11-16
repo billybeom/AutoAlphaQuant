@@ -66,6 +66,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         TradeDate;
 import 'package:sqlite3/sqlite3.dart';
 
+import 'fill_sign_sql.dart' show signedFillSql;
 import 'kill_switch_store.dart' show readKillSwitchRecord;
 
 /// 브로커 거절의 `error_message` 접두(R36 W5).
@@ -867,7 +868,8 @@ final class SqliteOrderLedger implements OrderPathLedger {
   ) async => <LedgerOrderFill>[
     for (final Row r in _db.select(
       'SELECT b.broker_order_no, i.account, i.symbol, '
-      '(SELECT COALESCE(SUM(e.quantity), 0) FROM executions e '
+      // 🆕 E16f2 — 부호 있는 합(REVERSAL = 음수 · R128 K2).
+      '(SELECT COALESCE(SUM(${signedFillSql('e', 'quantity')}), 0) FROM executions e '
       'WHERE e.broker_order_no = b.broker_order_no) AS filled '
       'FROM broker_orders b JOIN order_intents i ON i.intent_id = b.intent_id '
       "WHERE i.trade_date = ? AND i.market = 'KR' ORDER BY b.broker_order_no",

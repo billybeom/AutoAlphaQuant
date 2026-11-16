@@ -4,11 +4,25 @@
 //    다시 씀 → 다시 대조가 통과해야 → `ledger_repair` + 상세 → `LEDGER_INTEGRITY` 해제. 어디서든 실패 = 전부 되돌림.
 // 🔴 본문 안에서 스탬퍼 · 무결성 검사 · 알림 `emit` 을 부르지 않는다(겹친 트랜잭션) — 셈은 core 순수 함수로.
 // 🔴 아무것도 안 하기 = 그 diff 하나 OPEN → ACCEPTED(플래그는 그대로).
-// 🟡 정본 정정 역분개 쓰기 = E16f2 · 파생 FORK 기록 · 아카이브 재생성 = E16f3.
+// 🆕 E16f2 — 정본 정정 역분개(R128 K1~K11): 브로커 체결 하나를 무효(REVERSAL) · 정정(REVERSAL + RESTATEMENT) —
+//    `withLedgerFix` 한 트랜잭션: 결정 → 원인 → diff(OPEN CANON_BROKER) → delta 같음 → 체결 → 열린 주문 → 정정 판정 →
+//    🔴 재생 앞 = 저장 포지션 → 재생 뒤 음수 없음 → 행 넣기 → 주문 합 · 포지션 다시 셈 → `ledger_repair` + 상세 → diff RESOLVED.
+//    🔴 `RECON_MISMATCH` 플래그는 그대로(해제 = 사람 `clearReconBlock`).
+// 🟡 파생 FORK 기록 · 아카이브 재생성 = E16f3.
+
+import 'dart:convert' show jsonEncode;
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
-    show FlagIds, hashFormatVersion;
+    show
+        AdviceRejectCodes,
+        CostSource,
+        DiffStatus,
+        FillKind,
+        FlagIds,
+        LedgerPair,
+        OrderSide,
+        hashFormatVersion;
 import 'package:sqlite3/sqlite3.dart';
 
 import 'ledger_fix.dart' show withLedgerFix;
@@ -36,6 +50,73 @@ class BaselineResult {
   /// 성공했나.
   bool get applied => row != null;
 }
+
+/// 정정할 새 값(🔴 종목 · 방향은 고칠 수 없다 — 무효 + 새 기록 · R128 K1).
+class FillRestatement {
+  /// 만든다 — 수량 · 가격 0 이하 · 비용 음수 = [ArgumentError].
+  FillRestatement({
+    required this.quantity,
+    required this.price,
+    required this.commission,
+    required this.tax,
+  }) {
+    if (quantity <= 0) throw ArgumentError.value(quantity, 'quantity', '양수');
+    if (price <= 0) throw ArgumentError.value(price, 'price', '양수');
+    if (commission < 0) {
+      throw ArgumentError.value(commission, 'commission', '0 이상');
+    }
+    if (tax < 0) throw ArgumentError.value(tax, 'tax', '0 이상');
+  }
+
+  /// 새 수량.
+  final int quantity;
+
+  /// 새 가격.
+  final double price;
+
+  /// 새 수수료 · 세금(사람이 넣은 값 = `USER_ENTERED`).
+  final double commission, tax;
+}
+
+/// 정본 정정 결과.
+class FillCorrectionResult {
+  const FillCorrectionResult._({
+    this.row,
+    this.rejectCode,
+    this.fillIds = const <String>[],
+  });
+
+  /// 쓴 정정 행(거부 = null).
+  final LedgerRepairPlanRow? row;
+
+  /// 거부 코드(쓰기 0 · 성공 = null).
+  final String? rejectCode;
+
+  /// 넣은 체결 행 id(REVERSAL 먼저).
+  final List<String> fillIds;
+
+  /// 성공했나.
+  bool get applied => row != null;
+}
+
+/// 🔴 열린 주문 상태 — 체결 동기가 누적을 다시 센다(R128 K4).
+final Set<String> _openIntentStatuses = <String>{
+  for (final IntentStatus s in <IntentStatus>[
+    IntentStatus.reserved,
+    IntentStatus.submitting,
+    IntentStatus.submitted,
+    IntentStatus.partial,
+    IntentStatus.unknown,
+  ])
+    s.code,
+};
+
+/// REVERSAL · RESTATEMENT 행 id(R128 K3 — 브로커 `{주문}#{누적}` · 복구 `rcv-` 와 겹치지 않는다).
+String correctionFillIdOf(String targetFillId, FillKind kind) => switch (kind) {
+  FillKind.reversal => '$targetFillId|REV',
+  FillKind.restatement => '$targetFillId|RST',
+  FillKind.original => throw ArgumentError.value(kind, 'kind', '정정 행이 아니다'),
+};
 
 /// `ledger_repair` 쓰기 저장소(operator 원장).
 class SqliteLedgerRepairStore {
@@ -252,5 +333,357 @@ class SqliteLedgerRepairStore {
       <Object?>[diffId],
     );
     return _db.updatedRows == 1;
+  }
+
+  /// 🔴 정본 정정 — 브로커 체결 [fillId] 하나를 무효([restatement] = null) 또는 정정한다 · 거부 = 쓰기 0 ·
+  /// 다른 정정 중 = `LedgerFixBusy` · 앞뒤가 안 맞는 원장 = [StateError](되돌림).
+  ///
+  /// [freshDiffIds] = 호출자가 방금 다시 대사한 diff id 들 · [chainLimit] = 정정 체인 상한(config · 기본값 없음).
+  FillCorrectionResult correctFill({
+    required String repairId,
+    required String diffId,
+    required Iterable<String> freshDiffIds,
+    required String fillId,
+    required String? decisionId,
+    required String originCode,
+    required int chainLimit,
+    FillRestatement? restatement,
+  }) {
+    final DateTime? now = _trusted.trustedNowUtc();
+    if (now == null) {
+      return const FillCorrectionResult._(
+        rejectCode: BaselineStoreCodes.trustedTimeUnknown,
+      );
+    }
+    final DateTime at = now.toUtc();
+    final String iso = at.toIso8601String();
+    return withLedgerFix(
+      _db,
+      reason: 'X5 정본 정정 $repairId',
+      atUtc: at,
+      body: () {
+        FillCorrectionResult reject(String code) =>
+            FillCorrectionResult._(rejectCode: code);
+        if (decisionId == null || decisionId.trim().isEmpty) {
+          return reject(RepairCodes.decisionRequired);
+        }
+        if (!repairOriginCodesFor(
+          RepairDirection.canonCorrect,
+          LedgerPair.canonBroker,
+        ).contains(originCode)) {
+          return reject(RepairCodes.originNotAllowed);
+        }
+        final ResultSet diff = _db.select(
+          'SELECT delta FROM ledger_diff WHERE diff_id = ? AND pair = ? AND status = ?',
+          <Object?>[diffId, LedgerPair.canonBroker.wire, DiffStatus.open.wire],
+        );
+        if (diff.isEmpty) return reject(RepairCodes.diffNotOpen);
+        final String? changed = repairDeltaRejectCode(
+          detectedDiffId: diffId,
+          freshDiffIds: freshDiffIds,
+        );
+        if (changed != null) return reject(changed);
+        final ResultSet target = _db.select(
+          'SELECT i.market, i.symbol, i.strategy_id, i.status FROM executions e '
+          'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
+          'JOIN order_intents i ON i.intent_id = b.intent_id WHERE e.execution_id = ?',
+          <Object?>[fillId],
+        );
+        if (target.isEmpty) return reject(RepairCodes.fillNotBroker);
+        final Row t = target.single;
+        if (_openIntentStatuses.contains(t['status'])) {
+          return reject(RepairCodes.orderOpen);
+        }
+        final String market = t['market'] as String;
+        final String symbol = t['symbol'] as String;
+        final String strategy = t['strategy_id'] as String;
+        final List<LedgerFillRow> rows = _fillsOf(market, symbol, strategy);
+        final LedgerFillRow f = rows.firstWhere(
+          (LedgerFillRow r) => r.executionId == fillId,
+        );
+        if (f.kind == FillKind.reversal ||
+            reversedFillIdsOf(rows).contains(fillId)) {
+          return reject(AdviceRejectCodes.amendTargetNotActive);
+        }
+        final FillSnapshot snap = FillSnapshot(
+          fillId: fillId,
+          symbol: symbol,
+          side: f.side.wire,
+          quantity: f.quantity,
+          price: f.price,
+          chainDepth: fillChainDepthOf(fillId, rows),
+        );
+        final List<PlannedFillRow> plan;
+        if (restatement == null) {
+          plan = voidFillPlan(snap);
+        } else {
+          final String? amend = amendFillRejectCode(
+            snap,
+            symbol: symbol,
+            side: f.side.wire,
+            quantity: restatement.quantity,
+            price: restatement.price,
+            chainLimit: chainLimit,
+          );
+          if (amend != null) return reject(amend);
+          plan = amendFillPlan(
+            snap,
+            symbol: symbol,
+            side: f.side.wire,
+            quantity: restatement.quantity,
+            price: restatement.price,
+            chainLimit: chainLimit,
+          );
+        }
+        final List<Object?> key = <Object?>[market, symbol, strategy];
+        final ResultSet pos = _db.select(
+          'SELECT quantity, avg_price FROM positions WHERE market = ? AND symbol = ? AND strategy_id = ?',
+          key,
+        );
+        final int storedQty = pos.isEmpty ? 0 : pos.single['quantity'] as int;
+        final double? storedAvg = pos.isEmpty
+            ? null
+            : (pos.single['avg_price'] as num).toDouble();
+        final ReplayedPosition? before = replayPositionOf(
+          effectiveFillsOf(rows),
+        );
+        if (before == null ||
+            !positionReplayMatches(
+              before,
+              storedQuantity: storedQty,
+              storedAvgPrice: storedAvg,
+            )) {
+          return reject(RepairCodes.positionDrift);
+        }
+        final List<LedgerFillRow> added = <LedgerFillRow>[
+          for (final PlannedFillRow p in plan)
+            LedgerFillRow(
+              executionId: correctionFillIdOf(fillId, p.kind),
+              kind: p.kind,
+              side: f.side,
+              quantity: p.quantity,
+              price: p.price,
+              brokerOrderNo: f.brokerOrderNo,
+              tradeDate: f.tradeDate,
+              decisionId: f.decisionId,
+              reversesFillId: p.reversesFillId,
+              restatesFillId: p.restatesFillId,
+            ),
+        ];
+        final List<LedgerFillRow> live = effectiveFillsOf(<LedgerFillRow>[
+          ...rows,
+          ...added,
+        ]);
+        final ReplayedPosition? after = replayPositionOf(live);
+        if (after == null) return reject(RepairCodes.positionNegative);
+
+        // ── 쓰기(여기부터 실패 = 되돌림) ──
+        String? restatedId;
+        for (final LedgerFillRow r in added) {
+          if (r.kind == FillKind.reversal) {
+            // 🔴 원 행의 가격 · 수수료 · 세금 · 비용 출처를 그대로(저장 양수 · 부호 = fill_kind).
+            _db.execute(
+              'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, '
+              'commission, tax, authored_at, fill_origin, fill_kind, reverses_fill_id, cost_source) '
+              'SELECT ?, broker_order_no, executed_at, quantity, price, commission, tax, ?, '
+              'fill_origin, ?, execution_id, cost_source FROM executions WHERE execution_id = ?',
+              <Object?>[r.executionId, iso, FillKind.reversal.wire, fillId],
+            );
+          } else {
+            restatedId = r.executionId;
+            _db.execute(
+              'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, '
+              'commission, tax, authored_at, fill_origin, fill_kind, restates_fill_id, cost_source) '
+              'SELECT ?, broker_order_no, executed_at, ?, ?, ?, ?, ?, '
+              'fill_origin, ?, execution_id, ? FROM executions WHERE execution_id = ?',
+              <Object?>[
+                r.executionId,
+                r.quantity,
+                r.price,
+                restatement!.commission,
+                restatement.tax,
+                iso,
+                FillKind.restatement.wire,
+                CostSource.userEntered.wire,
+                fillId,
+              ],
+            );
+          }
+          if (_db.updatedRows != 1) {
+            throw StateError('체결 행을 넣지 못했다: ${r.executionId}');
+          }
+        }
+        final ({int quantity, double? avgPrice}) totals = orderFillTotalsOf(
+          live.where((LedgerFillRow r) => r.brokerOrderNo == f.brokerOrderNo),
+        );
+        _db.execute(
+          'UPDATE broker_orders SET filled_qty = ?, avg_fill_price = ? WHERE broker_order_no = ?',
+          <Object?>[totals.quantity, totals.avgPrice, f.brokerOrderNo],
+        );
+        if (_db.updatedRows != 1) {
+          throw StateError('없는 브로커 주문: ${f.brokerOrderNo}');
+        }
+        _writePosition(key, exists: pos.isNotEmpty, p: after, iso: iso);
+        String? supersedes;
+        if (f.kind == FillKind.restatement) {
+          final ResultSet prior = _db.select(
+            r"SELECT repair_id FROM ledger_repair_detail WHERE json_extract(target_json, '$.restated_id') = ?",
+            <Object?>[fillId],
+          );
+          if (prior.length != 1) {
+            throw StateError(
+              '다시 적은 체결의 앞 정정이 1행이 아니다: $fillId · ${prior.length}',
+            );
+          }
+          supersedes = prior.single['repair_id'] as String;
+        }
+        final ResultSet stamp = _db.select(
+          'SELECT chain_hash FROM ledger_daily_hash ORDER BY authored_date DESC LIMIT 1',
+        );
+        final String deltaText = diff.single['delta'] as String;
+        final LedgerRepairPlanRow row = LedgerRepairPlanRow(
+          repairId: repairId,
+          diffId: diffId,
+          direction: RepairDirection.canonCorrect,
+          originCode: originCode,
+          evidenceHash: evidenceHashOf(deltaText),
+          appliedAtUtc: at,
+          decisionId: decisionId,
+          supersedes: supersedes,
+          recomputedFrom: f.tradeDate.compareTo(kstDateText(at)) < 0
+              ? f.tradeDate
+              : null,
+          // 적용 시점 마지막 스탬프 체인(오늘 행은 오늘 밤 스탬프) · 스탬프 없음 = 체인 시작값.
+          chainHash: stamp.isEmpty
+              ? kChainGenesis
+              : stamp.single['chain_hash'] as String,
+          targetJson: jsonEncode(<String, Object?>{
+            'kind': 'QUANTITY',
+            'symbol': symbol,
+            'before': storedQty,
+            'after': after.quantity,
+            'fill_id': fillId,
+            'restated_id': restatedId,
+          }),
+          evidenceJson: deltaText,
+        );
+        _db.execute(
+          'INSERT INTO ledger_repair (repair_id, diff_id, direction, origin_code, decision_id, '
+          'evidence_hash, supersedes, applied_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          <Object?>[
+            row.repairId,
+            row.diffId,
+            row.direction.wire,
+            row.originCode,
+            row.decisionId,
+            row.evidenceHash,
+            row.supersedes,
+            iso,
+          ],
+        );
+        _db.execute(
+          'INSERT INTO ledger_repair_detail (repair_id, recomputed_from, chain_hash, target_json, evidence_json) '
+          'VALUES (?, ?, ?, ?, ?)',
+          <Object?>[
+            row.repairId,
+            row.recomputedFrom,
+            row.chainHash,
+            row.targetJson,
+            row.evidenceJson,
+          ],
+        );
+        _db.execute(
+          'UPDATE ledger_diff SET status = ?, origin_code = ? WHERE diff_id = ? AND status = ?',
+          <Object?>[
+            DiffStatus.resolved.wire,
+            originCode,
+            diffId,
+            DiffStatus.open.wire,
+          ],
+        );
+        if (_db.updatedRows != 1) {
+          throw StateError('diff 해소가 1행이 아니다: ${_db.updatedRows}');
+        }
+        return FillCorrectionResult._(
+          row: row,
+          fillIds: <String>[for (final LedgerFillRow r in added) r.executionId],
+        );
+      },
+    );
+  }
+
+  /// (시장 · 종목 · 전략)의 브로커 체결 — 입력 차례(rowid).
+  List<LedgerFillRow> _fillsOf(
+    String market,
+    String symbol,
+    String strategy,
+  ) => <LedgerFillRow>[
+    for (final Row r in _db.select(
+      'SELECT e.execution_id, e.fill_kind, e.reverses_fill_id, e.restates_fill_id, e.quantity, '
+      'e.price, e.broker_order_no, i.side, i.trade_date, i.decision_id FROM executions e '
+      'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
+      'JOIN order_intents i ON i.intent_id = b.intent_id '
+      'WHERE i.market = ? AND i.symbol = ? AND i.strategy_id = ? ORDER BY e.rowid',
+      <Object?>[market, symbol, strategy],
+    ))
+      LedgerFillRow(
+        executionId: r['execution_id'] as String,
+        kind: FillKind.values.firstWhere(
+          (FillKind k) => k.wire == r['fill_kind'],
+        ),
+        side: OrderSide.values.firstWhere((OrderSide s) => s.wire == r['side']),
+        quantity: r['quantity'] as int,
+        price: (r['price'] as num).toDouble(),
+        brokerOrderNo: r['broker_order_no'] as String,
+        tradeDate: r['trade_date'] as String,
+        decisionId: r['decision_id'] as String,
+        reversesFillId: r['reverses_fill_id'] as String?,
+        restatesFillId: r['restates_fill_id'] as String?,
+      ),
+  ];
+
+  /// 🔴 다시 센 포지션을 쓴다 — 0 = 지움 · 남음 = 수량 · 평단 · 진입 갱신(ATR 등 그대로) · 새로 생김 = 넣음.
+  void _writePosition(
+    List<Object?> key, {
+    required bool exists,
+    required ReplayedPosition p,
+    required String iso,
+  }) {
+    if (p.quantity == 0) {
+      if (exists) {
+        _db.execute(
+          'DELETE FROM positions WHERE market = ? AND symbol = ? AND strategy_id = ?',
+          key,
+        );
+      }
+      return;
+    }
+    if (exists) {
+      _db.execute(
+        'UPDATE positions SET quantity = ?, avg_price = ?, entry_date = ?, entry_decision_id = ?, '
+        'updated_at = ? WHERE market = ? AND symbol = ? AND strategy_id = ?',
+        <Object?>[
+          p.quantity,
+          p.avgPrice,
+          p.entryDate,
+          p.entryDecisionId,
+          iso,
+          ...key,
+        ],
+      );
+      return;
+    }
+    _db.execute(
+      'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, '
+      'updated_at, entry_decision_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      <Object?>[
+        ...key,
+        p.quantity,
+        p.avgPrice,
+        p.entryDate,
+        iso,
+        p.entryDecisionId,
+      ],
+    );
   }
 }
