@@ -186,7 +186,10 @@ final class SqliteOrderLedger implements OrderPathLedger {
   ];
 
   @override
-  Future<int> ordersToday(TradeDate tradeDate) async =>
+  Future<int> ordersToday(TradeDate tradeDate) async => ordersOn(tradeDate);
+
+  /// 🆕 E11p3d-2b — [ordersToday] 와 같은 셈(동기 · 홈 오늘 요약 · 설계 13 §8 R133).
+  int ordersOn(TradeDate tradeDate) =>
       _db.select(
             'SELECT COUNT(*) AS n FROM order_intents i WHERE i.trade_date = ? AND '
             '${_sentWhere('i')}',

@@ -10,7 +10,9 @@
 // 🆕 E11p3d-5c(R118) — 설정 · 온보딩 «동작» = `OperatorSettingsActions`(첫 칸 = 키 검증 1단) · 🔴 operator 빌드 주입 의무(M4-12 ⑤ · 비-null 단언 시험).
 // 🆕 E11p4b(R125) — 온보딩 읽기 모델(`OperatorOnboardingRepository`) · 본문 4(첫 화면 · 운영 방식 · 단계 목록 · 단계 상세) ·
 //    동작에 sim 파일(운영 방식 선택 · 키 검증 → 진척 기록). 마무리 · 재시작 = 4c · 4d.
-// 🔵 홈(H-01) · 일지 · 보유 · 더보기 본문 · 온보딩 · 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
+// 🆕 E11p3d-2b(R133) — 홈(H-01) 본문 · 운영 리듬(H-02) = `OperatorOpsSummaryRepository`(오늘 요약 · 리듬) + 이미 있는 안전 상태 ·
+//    진단 · 원천 없는 셋(안내 요약 · 슬리브 비중 · 원장 실사 배지 = «원천 없음» 오류 — 블록 부재 · 다시 시도).
+// 🔵 일지 · 보유 · 더보기 본문 · 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
 import 'package:broker_gateway/broker_gateway.dart'
@@ -55,6 +57,7 @@ import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
+import 'operator_ops_summary.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
 import 'operator_settings_actions.dart';
@@ -88,6 +91,13 @@ final Provider<OperatorOpsStatusRepository> operatorOpsStatusProvider =
     Provider<OperatorOpsStatusRepository>(
       (Ref ref) =>
           OperatorOpsStatusRepository(ref.watch(operatorRuntimeProvider)),
+    );
+
+/// 🆕 R133 — 홈 오늘 요약 · 운영 리듬(한 인스턴스).
+final Provider<OperatorOpsSummaryRepository> operatorOpsSummaryProvider =
+    Provider<OperatorOpsSummaryRepository>(
+      (Ref ref) =>
+          OperatorOpsSummaryRepository(ref.watch(operatorRuntimeProvider)),
     );
 
 /// 🆕 R113 — 안전 상태(셸 · 일지 · 분석 = 한 인스턴스).
@@ -177,6 +187,10 @@ Widget _alertDetail(Map<String, String> p) =>
 
 Widget _watchdog(Map<String, String> _) => const WatchdogBoard();
 
+Widget _opsRhythm(Map<String, String> _) => const OpsRhythm();
+
+Widget _home(BuildContext _) => const OpsHome();
+
 Widget _ledgerDiffs(Map<String, String> _) => const LedgerDiffs();
 
 Widget _ledgerRepairs(Map<String, String> _) => const LedgerRepairs();
@@ -200,7 +214,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.onboardingFinish: _onboardingFinish,
   // 🆕 E11p3d-5d(R129) — M9 S02 증권사 키(캡처 막기 = `kSecureRoutePatterns` · 키 칸 = 설정 슬롯 빌더).
   AppRoutes.settingsCredentials: _settingsCredentials,
-});
+  // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
+  AppRoutes.opsRhythm: _opsRhythm,
+}, home: _home);
 
 /// 🔴 operator 셸 주입 — 실물 있는 칸.
 List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
@@ -253,6 +269,19 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
     (Ref ref) => ref.watch(operatorSettingsRepositoryProvider),
   ),
   settingsSlotBuilderProvider.overrideWithValue(operatorSlotBuilder(runtime)),
+  // 🆕 R133 — H-01 오늘 요약 · H-02 리듬(실물) · 홈의 나머지 셋 = 원천 없음(지어내지 않는다).
+  shellOpsSummaryRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorOpsSummaryProvider),
+  ),
+  shellAdviceRepositoryProvider.overrideWithValue(
+    const OperatorAdviceRepository(),
+  ),
+  shellHoldingsRepositoryProvider.overrideWithValue(
+    const OperatorHoldingsRepository(),
+  ),
+  shellLedgerTrustRepositoryProvider.overrideWithValue(
+    const OperatorLedgerTrustRepository(),
+  ),
   // 🆕 R113 — 안전 상태 = 셸(H-01) · 일지 · 분석 한 인스턴스.
   shellSafetyRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorSafetyProvider),
