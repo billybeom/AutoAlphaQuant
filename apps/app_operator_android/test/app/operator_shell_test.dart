@@ -519,7 +519,7 @@ void main() {
     disposed = true;
   });
 
-  testWidgets('🔴 H-03 물리 리스크(R135) = 조립 셸에 등록 · 기기 측정 → 엔진 행 · 크래시 없음', (
+  testWidgets('🔴 H-03 물리 리스크(R136) = 조립 셸에 등록 · 기기 측정 → 엔진 행 · 크래시 없음', (
     WidgetTester tester,
   ) async {
     container.dispose();

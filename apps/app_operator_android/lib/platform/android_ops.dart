@@ -2,7 +2,7 @@
 //
 // 실물 = Kotlin `OpsChannel` · `EngineService` · `AlarmPlanner` · `OpsNotifications`.
 // 🔴 판정 · 문구 0 — 알림 문구는 `buildFgsNotice`, 알람 시각은 `nextOccurrence`, 놓친 발화는 `wakeDecisions`(trading_runtime).
-// 🆕 E11p3d-2c(R135) — H-03 기기 측정(`deviceRisk` · 값만 · 임계 · 판정 · 문구 = 엔진 `deviceRiskVmOf`).
+// 🆕 E11p3d-2c(R136) — H-03 기기 측정(`deviceRisk` · 값만 · 임계 · 판정 · 문구 = 엔진 `deviceRiskVmOf`).
 
 import 'package:core_engine/core_engine.dart' show DeviceRiskFacts;
 import 'package:flutter/services.dart';
@@ -101,7 +101,7 @@ class AlarmItem {
   final DateTime atUtc;
 }
 
-/// 🆕 R135 — 와이어 → 기기 측정값 · 🔴 모르는 칸 · 꼴 틀림 = null(그 행 부재 — «정상»으로 지어내지 않는다) ·
+/// 🆕 R136 — 와이어 → 기기 측정값 · 🔴 모르는 칸 · 꼴 틀림 = null(그 행 부재 — «정상»으로 지어내지 않는다) ·
 /// 남은 공간 음수 = 못 잼 · 충전 횟수 음수 = 못 잼.
 DeviceRiskFacts deviceRiskFactsFromWire(Object? raw, DateTime measuredAtUtc) {
   final Map<Object?, Object?> m = raw is Map ? raw : const <Object?, Object?>{};
@@ -303,7 +303,7 @@ class AndroidOps {
   Future<SurvivalFacts> diagnose() async =>
       SurvivalFacts.fromWire(await _ch.invokeMethod<Object?>('diagnose'));
 
-  /// 🆕 R135 — H-03 기기 측정([measuredAtUtc] = 잰 시각 · 기기 시계).
+  /// 🆕 R136 — H-03 기기 측정([measuredAtUtc] = 잰 시각 · 기기 시계).
   Future<DeviceRiskFacts> deviceRisk(DateTime measuredAtUtc) async =>
       deviceRiskFactsFromWire(
         await _ch.invokeMethod<Object?>('deviceRisk'),

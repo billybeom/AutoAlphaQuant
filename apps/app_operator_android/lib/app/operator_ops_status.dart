@@ -6,7 +6,7 @@
 //    바깥 목록은 5분 동안 다시 묻지 않는다(호출 아끼기).
 // 🔴 화면 상태가 없으면(온보딩 전) 체크도 없다 — 빈 보드(«등록된 워치독 체크가 아직 없습니다»).
 // 🔵 진단 = 원장 진단 원천(E13c2) · 연결 · 기기 접근 · 백업 · 연간 = 원천 없음(R109 — 지어내지 않는다).
-// 🆕 E11p3d-2c(R135) — 기기 리스크(H-03) = 플랫폼 측정(`OperatorRuntime.deviceProbe`) → 엔진 `deviceRiskVmOf` ·
+// 🆕 E11p3d-2c(R136) — 기기 리스크(H-03) = 플랫폼 측정(`OperatorRuntime.deviceProbe`) → 엔진 `deviceRiskVmOf` ·
 //    들을 때 · [riskTick] 마다 다시 잰다 · 바뀐 값만 · 측정 실패 = 오류 한 번(다음 주기에 다시 잰다) · 측정기 없음(플랫폼 밖) = 원천 없음.
 
 import 'dart:async';
@@ -54,7 +54,7 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
   /// 바깥 목록 재사용 시간.
   final Duration remoteTtl;
 
-  /// 🆕 R135 — 기기 다시 재는 주기(측정 = 채널 한 번 · 가볍다).
+  /// 🆕 R136 — 기기 다시 재는 주기(측정 = 채널 한 번 · 가볍다).
   final Duration riskTick;
 
   List<RemoteCheck>? _remote;
@@ -212,7 +212,7 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
   @override
   Stream<AnnualReviewVm> watchAnnualReview() => _none('watchAnnualReview');
 
-  /// 🆕 R135 — H-03 기기 리스크(화면 상태와 무관 — 온보딩 전에도 잰다).
+  /// 🆕 R136 — H-03 기기 리스크(화면 상태와 무관 — 온보딩 전에도 잰다).
   @override
   Stream<DeviceRiskVm> watchDeviceRisk() {
     final Future<DeviceRiskFacts> Function()? probe = _rt.deviceProbe;

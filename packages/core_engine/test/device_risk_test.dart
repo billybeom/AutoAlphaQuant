@@ -1,4 +1,4 @@
-// E11p3d-2c — H-03 물리 리스크 점검(설계 13 §8 R135) · 표본 = domain_contracts `m8/device_risk_*`.
+// E11p3d-2c — H-03 물리 리스크 점검(설계 13 §8 R136) · 표본 = domain_contracts `m8/device_risk_*`.
 
 import 'dart:convert';
 import 'dart:io';

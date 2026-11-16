@@ -8,7 +8,7 @@
 // 🔴 Dart 가 `ready` 를 부르기 전의 깨어남 · 링크는 줄에 모았다가 그때 보낸다(콜드 스타트 · 알람으로 뜬 프로세스).
 // 🆕 E11p3d-5(R107) — 화면 몫 플랫폼: FLAG_SECURE(지금 화면 · 화면이 없으면 기억했다가 붙을 때) · 권한 요청(결과 = 사실 코드 넷 ·
 //    허용 여부는 `diagnose` 로 다시 읽는다) · 외부 링크(https 만 · 다른 꼴 = bad_args).
-// 🆕 E11p3d-2c(R135) — `deviceRisk`: H-03 기기 측정(저장공간 · 배터리 상태 · 충전 횟수 · 온도 · 보안 패치) — 값만 · 임계 · 판정 = 엔진.
+// 🆕 E11p3d-2c(R136) — `deviceRisk`: H-03 기기 측정(저장공간 · 배터리 상태 · 충전 횟수 · 온도 · 보안 패치) — 값만 · 임계 · 판정 = 엔진.
 
 package com.billybeom.autoalphaquant.operator.ops
 
@@ -252,7 +252,7 @@ internal object OpsChannel {
         )
     }
 
-    /** 🆕 R135 — H-03 기기 측정 · 🔴 값만(문구 · 임계 = 엔진) · 못 잰 칸 = null(엔진이 행을 뺀다). */
+    /** 🆕 R136 — H-03 기기 측정 · 🔴 값만(문구 · 임계 = 엔진) · 못 잰 칸 = null(엔진이 행을 뺀다). */
     private fun deviceRisk(ctx: Context): Map<String, Any?> {
         val free = try {
             StatFs(ctx.noBackupFilesDir.absolutePath).availableBytes

@@ -58,7 +58,7 @@ void main() {
     expect(await AndroidOps().arm(const <AlarmItem>[]), isFalse);
   });
 
-  test('🔴 H-03 기기 측정(R135) — 값 그대로 · 잰 시각 = 넘긴 시각(UTC) · 모르는 칸 · 꼴 틀림 · 음수 · 빈 글자 = null', () async {
+  test('🔴 H-03 기기 측정(R136) — 값 그대로 · 잰 시각 = 넘긴 시각(UTC) · 모르는 칸 · 꼴 틀림 · 음수 · 빈 글자 = null', () async {
     final DateTime at = DateTime.utc(2026, 11, 16, 23, 55);
     reply = <String, Object?>{
       'storageFreeBytes': 5123456789,

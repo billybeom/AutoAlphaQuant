@@ -1,4 +1,4 @@
-// E11p3d-2c 에뮬레이터 확인(설계 13 §8 R135) — 실제 Kotlin `OpsChannel.deviceRisk` 측정 → 엔진 `deviceRiskVmOf` → H-03 화면.
+// E11p3d-2c 에뮬레이터 확인(설계 13 §8 R136) — 실제 Kotlin `OpsChannel.deviceRisk` 측정 → 엔진 `deviceRiskVmOf` → H-03 화면.
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 값 · 키 · 계좌 0(기기 상태만).
 // 실행: `flutter test integration_test/device_risk_test.dart -d emulator-5554` · 표지 `IT_H03` 에서 4초 멈춘다(캡처 자리).

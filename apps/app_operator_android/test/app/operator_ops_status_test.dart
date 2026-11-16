@@ -201,7 +201,7 @@ void main() {
     );
   });
 
-  // ── 🆕 R135 — H-03 기기 리스크 ─────────────────────────────────────────
+  // ── 🆕 R136 — H-03 기기 리스크 ─────────────────────────────────────────
 
   Future<void> until(bool Function() ok) async {
     final Stopwatch w = Stopwatch()..start();
