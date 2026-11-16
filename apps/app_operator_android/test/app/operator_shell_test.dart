@@ -8,6 +8,7 @@ import 'package:app_operator_android/app/operator_ops_status.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_safety.dart';
 import 'package:app_operator_android/app/operator_settings_actions.dart';
+import 'package:app_operator_android/app/operator_settings_repository.dart';
 import 'package:app_operator_android/app/operator_shell.dart';
 import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/engine_boot.dart';
@@ -47,10 +48,14 @@ import 'package:ui_journal/ui_journal.dart'
         journalSafetyRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
+        Credentials,
+        SettingsSlotBuilder,
         settingsActionsProvider,
         settingsClockProvider,
         settingsLinkOpenerProvider,
-        settingsOpsStatusRepositoryProvider;
+        settingsOpsStatusRepositoryProvider,
+        settingsRepositoryProvider,
+        settingsSlotBuilderProvider;
 import 'package:ui_shell/ui_shell.dart';
 
 import '../engine/support.dart';
@@ -412,6 +417,38 @@ void main() {
       () => container.read(operatorOnboardingDoneProvider).valueOrNull == true,
     );
     expect(identical(container.read(shellNavigatorKeyProvider), shell), true);
+  });
+
+  test('🔴 설정 슬롯 빌더(R129 · M4-12 ⑦ 주입 의무) = 비-null · 모의 키 칸 = 온보딩과 같은 위젯 · 설정 읽기 모델 = operator', () {
+    final SettingsSlotBuilder? b = container.read(settingsSlotBuilderProvider);
+    expect(b, isNotNull);
+    final Widget w = b!(OnboardingSlotIds.secretKisMock);
+    expect(w, isA<KisKeySetField>());
+    expect(identical((w as KisKeySetField).handoff, rt.secrets), true);
+    expect(b('SECRET_KIS_LIVE').key, const Key('m4-slot-absent'));
+    expect(
+      container.read(settingsRepositoryProvider),
+      isA<OperatorSettingsRepository>(),
+    );
+  });
+
+  testWidgets('🔴 S02 증권사 키(R129) = 조립 셸에 등록 · 모의 카드 · 크래시 없음', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(tester);
+    await ready(tester);
+    await open(tester, AppRoutes.settingsCredentials);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 30)),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Credentials), findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
   });
 
   test('🔴 일지 패키지 링크 열기 = 셸과 같은 것(https = 바깥)', () async {

@@ -10,6 +10,25 @@ import 'package:domain_contracts/domain_contracts.dart'
     show Clock, OnboardingTrack, StepState;
 import 'package:sqlite3/sqlite3.dart';
 
+/// 🆕 R129 — 단계 하나의 마지막 기록.
+class OnboardingProgressRecord {
+  /// 만든다.
+  const OnboardingProgressRecord({
+    required this.state,
+    required this.updatedAtUtc,
+    this.failureReasonCode,
+  });
+
+  /// 상태.
+  final StepState state;
+
+  /// 기록 시각.
+  final DateTime updatedAtUtc;
+
+  /// 실패 코드.
+  final String? failureReasonCode;
+}
+
 /// 온보딩 진척 저장.
 class SqliteOnboardingProgressStore {
   /// 저장을 만든다 — 시각 = 기기 시계(갱신 시각 · 검증 시각).
@@ -41,6 +60,23 @@ class SqliteOnboardingProgressStore {
         failureReasonCode: r['failure_reason_code'] as String?,
       ),
   };
+
+  /// 🆕 E11p3d-5d(R129) — 단계 하나의 마지막 기록(상태 · 기록 시각 · 실패 코드 · 없음 = null) — S02 «마지막 검증» 줄.
+  OnboardingProgressRecord? lastRecord(String stepId) {
+    final Row? r = _db.select(
+      'SELECT state, updated_at, failure_reason_code FROM onboarding_progress '
+      'WHERE step_id = ? AND track = ?',
+      <Object?>[stepId, OnboardingTrack.fresh.wire],
+    ).firstOrNull;
+    if (r == null) return null;
+    return OnboardingProgressRecord(
+      state: StepState.values.singleWhere(
+        (StepState s) => s.wire == r['state'],
+      ),
+      updatedAtUtc: DateTime.parse(r['updated_at'] as String).toUtc(),
+      failureReasonCode: r['failure_reason_code'] as String?,
+    );
+  }
 
   /// 🔴 단계 하나의 지금 상태를 쓴다(덮어쓴다) — VERIFIED = 검증 시각 · 실패 코드 비움 · 그 밖 = 검증 시각 비움.
   void record(

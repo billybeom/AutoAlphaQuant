@@ -14,13 +14,16 @@ import 'dart:async';
 
 import 'package:broker_gateway/broker_gateway.dart'
     show
+        KisCredentialRead,
         KisCredentials,
+        KisCredentialsStored,
         KisKeySet,
         KisOrderBroker,
         KisRejected,
         KisRestClient,
         KisTokenError,
         KisUnavailable,
+        readKisCredentials,
         storeKisCredentials;
 import 'package:core_engine/core_engine.dart'
     show
@@ -54,6 +57,9 @@ import '../secret/secret_handoff.dart';
 abstract final class CredentialVerifyText {
   /// 통과 · 저장.
   static const String saved = '검증을 통과해 저장했습니다. 다음 회차부터 이 키를 씁니다.';
+
+  /// 🆕 R129 — 금고 키 다시 검증 통과(표본 `m9/credential_action_results` ar_s02_02).
+  static const String reverified = '다시 검증했습니다 — 바뀐 것이 없습니다.';
 
   /// 칸이 화면에 없다.
   static const String noField = '키 입력 칸이 화면에 없습니다 — 키를 붙여넣는 화면에서 검증하십시오.';
@@ -202,14 +208,15 @@ class OperatorSettingsActions implements SettingsActions {
 
   Future<ActionResult> _verify(KisKeySet set) async {
     const SettingsActionId id = SettingsActionId.credentialVerify;
-    if (!secrets.isOnScreen(set)) {
-      return _result(id, UiLevel.blocked, CredentialVerifyText.noField);
-    }
     final KisCredentials? draft = secrets.draftOf(set);
-    if (draft == null) {
-      return _result(id, UiLevel.act, CredentialVerifyText.incomplete);
+    // 🆕 E11p3d-5d(R129) — 새로 붙여넣은 값이 없으면 금고의 키를 «다시 검증»(저장 없음 · S02 OK 카드).
+    final KisCredentials? creds = draft ?? await _stored(set);
+    if (creds == null) {
+      return secrets.isOnScreen(set)
+          ? _result(id, UiLevel.act, CredentialVerifyText.incomplete)
+          : _result(id, UiLevel.blocked, CredentialVerifyText.noField);
     }
-    final KisRestClient client = clientOf(draft);
+    final KisRestClient client = clientOf(creds);
     try {
       await client.token();
     } on KisTokenError catch (e) {
@@ -278,6 +285,11 @@ class OperatorSettingsActions implements SettingsActions {
         retryable: true,
       );
     }
+    if (draft == null) {
+      // 금고 키 다시 검증 — 저장 · 칸 비움 없음.
+      _progress(set, StepState.verified, null);
+      return _result(id, UiLevel.info, CredentialVerifyText.reverified);
+    }
     try {
       await storeKisCredentials(vault, set, draft);
     } on Object {
@@ -291,6 +303,16 @@ class OperatorSettingsActions implements SettingsActions {
     secrets.clearAfterSave(set);
     _progress(set, StepState.verified, null);
     return _result(id, UiLevel.ok, CredentialVerifyText.saved);
+  }
+
+  /// 🆕 R129 — 금고에 저장된 그 세트의 키(없음 · 꼴 틀림 · 금고 오류 = null — 값은 검증 요청에만 쓰고 쥐지 않는다).
+  Future<KisCredentials?> _stored(KisKeySet set) async {
+    try {
+      final KisCredentialRead r = await readKisCredentials(vault, set);
+      return r is KisCredentialsStored ? r.credentials : null;
+    } on Object {
+      return null;
+    }
   }
 
   /// 🆕 R125 — 세트 → 온보딩 단계(모의 = o_02 · 그 밖 = 단계 없음).
