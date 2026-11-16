@@ -9,8 +9,12 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../commands/safety_actions.dart'; // SafetyActionCall(🆕 v1.22 · K47 «1.22.0 VM 이 쓴다»)
 import '../enums/resume.dart';
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
 import '../primitives/money.dart';
+import 'common.dart'; // LinkAction
 
 part 'resume.freezed.dart';
 part 'resume.g.dart';
@@ -128,3 +132,54 @@ abstract class DataGapRow with _$DataGapRow {
   factory DataGapRow.fromJson(Map<String, dynamic> json) =>
       _$DataGapRowFromJson(json);
 }
+
+/// 🆕 v1.22(01 §31 · K64) — X2 재개 게이트 한 화면(`x2ResumeGate` · 창구 = `ResumeGateRepository.watchGate()` · 🔒 `ui_safety`).
+/// 🔴 머리·줄 = 엔진 `resume_text.dart` 문장 그대로 · 화면이 D+n · 모드 · 멈춤 사유를 계산하지 않는다.
+/// 🔴 [lockedLabel] non-null ⇒ 모든 행 `actions` 빈(보기만 · 운영 등급 생체 축소 — 01 §8 미결 169).
+@freezed
+abstract class ResumeGateVm with _$ResumeGateVm {
+  const factory ResumeGateVm({
+    /// 엔진 `resumeHeadline`(집계 한 줄 + 멈춤 꼬리).
+    required String headline,
+
+    /// 엔진 `resumeModeLabel`(«n거래일 미실행 — 이름»).
+    required String modeLabel,
+    required UiLevel level,
+    required List<ResumeGateRow> rows,
+
+    /// 재개 리포트 링크(엔진 완성 · 목적지 = `AppRoutes.x2ResumeReport` · null = 버튼 부재).
+    LinkAction? reportLink,
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _ResumeGateVm;
+
+  factory ResumeGateVm.fromJson(Map<String, dynamic> json) =>
+      _$ResumeGateVmFromJson(json);
+}
+// JSON 키: headline · mode_label · level · rows · report_link · locked_label · as_of
+
+/// 게이트 한 행 — 계획 한 건이 왜 서 있나(+ 사람이 고를 것).
+@freezed
+abstract class ResumeGateRow with _$ResumeGateRow {
+  const factory ResumeGateRow({
+    /// 🔴 화면은 읽지 않는다(시험 · 키 전용 — 호출 args 의 `work_id` 와 같다).
+    required String workId,
+
+    /// 엔진 생성 요약(`planned_work.one_line`).
+    required String oneLine,
+
+    /// ∈ `ResumeItemReasonCodes`(🔴 화면 분기 0).
+    required String reasonCode,
+
+    /// 엔진 `resumeReevaluatedLine` 글자.
+    required String reasonLabel,
+    required UiLevel level,
+
+    /// 고를 것 — 계절 진입(`HUMAN_DECISION`)이면 엔진이 완성한 3택(`seasonalWindowChoice`) · 그 밖 빈.
+    @Default(<SafetyActionCall>[]) List<SafetyActionCall> actions,
+  }) = _ResumeGateRow;
+
+  factory ResumeGateRow.fromJson(Map<String, dynamic> json) =>
+      _$ResumeGateRowFromJson(json);
+}
+// JSON 키: work_id · one_line · reason_code · reason_label · level · actions

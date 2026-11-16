@@ -9,6 +9,7 @@
 
 export 'repositories/advice_repository.dart';
 export 'repositories/alert_repository.dart';
+export 'repositories/breaker_ladder_repository.dart';
 export 'repositories/calendar_repository.dart';
 export 'repositories/config_repository.dart';
 export 'repositories/execution_gap_repository.dart';
@@ -25,6 +26,7 @@ export 'repositories/pairing_repository.dart';
 export 'repositories/performance_repository.dart';
 export 'repositories/pledge_repository.dart';
 export 'repositories/rebalance_repository.dart';
+export 'repositories/resume_gate_repository.dart';
 export 'repositories/resume_repository.dart';
 export 'repositories/runbook_repository.dart';
 export 'repositories/safety_repository.dart';
