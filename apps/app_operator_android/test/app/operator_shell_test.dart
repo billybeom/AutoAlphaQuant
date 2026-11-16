@@ -16,7 +16,8 @@ import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/secret/kis_key_set_field.dart';
-import 'package:core_engine/core_engine.dart' show alertInboxOf;
+import 'package:core_engine/core_engine.dart'
+    show DeviceRiskFacts, alertInboxOf;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart' show SqliteAlertSink, storedAlerts;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -513,6 +514,42 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(Credentials), findsOneWidget);
     expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
+  });
+
+  testWidgets('🔴 H-03 물리 리스크(R135) = 조립 셸에 등록 · 기기 측정 → 엔진 행 · 크래시 없음', (
+    WidgetTester tester,
+  ) async {
+    container.dispose();
+    rt = OperatorRuntime(
+      files: files,
+      clock: clock,
+      deviceProbe: () async => DeviceRiskFacts(
+        measuredAtUtc: clock.nowUtc(),
+        storageFreeBytes: 3100000000,
+        batteryTempTenthsC: 470,
+      ),
+    );
+    container = ProviderContainer(overrides: operatorShellOverrides(rt));
+    await pumpApp(tester);
+    await ready(tester);
+    await open(tester, AppRoutes.opsDeviceRisk);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 30)),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    final Finder board = find.byType(DeviceRiskBoard);
+    expect(board, findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    Finder inBoard(String t) =>
+        find.descendant(of: board, matching: find.text(t));
+    expect(inBoard('남은 공간 3.1GB'), findsOneWidget);
+    expect(inBoard('현재 47도'), findsOneWidget);
+    expect(inBoard('충전기를 빼고 그늘로 옮기세요'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
     container.dispose();
     disposed = true;

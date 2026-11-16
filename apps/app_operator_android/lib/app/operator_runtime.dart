@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
     show
+        DeviceRiskFacts,
         ExchangeCalendar,
         Market,
         SecretVault,
@@ -53,6 +54,7 @@ class OperatorRuntime {
     this.vault,
     this.kisHttp,
     this.onboardingProbe,
+    this.deviceProbe,
   }) : secure = secure ?? SecureScreen(_noSecure),
        secrets = secrets ?? SecretHandoff(),
        clipboard = clipboard ?? ClipboardJanitor(),
@@ -90,6 +92,9 @@ class OperatorRuntime {
 
   /// 🆕 E11p4b(R125) — 온보딩 실측(알림 권한 · 배터리 예외 · 없음 = 진척 행만).
   final Future<OnboardingProbe?> Function()? onboardingProbe;
+
+  /// 🆕 E11p3d-2c(R135) — H-03 기기 측정(저장공간 · 배터리 · 보안 패치 · 온도 — 값만 · 없음 = 기기 리스크 원천 없음).
+  final Future<DeviceRiskFacts> Function()? deviceProbe;
 
   /// 🆕 R107 — 바깥 링크 열기(https 만).
   final Future<bool> Function(String url) openExternal;

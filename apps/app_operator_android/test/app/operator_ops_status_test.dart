@@ -9,6 +9,7 @@ import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:core_engine/core_engine.dart'
     show
+        DeviceRiskFacts,
         JobRunEntry,
         JobRunStatus,
         RemoteCheck,
@@ -18,6 +19,8 @@ import 'package:core_engine/testing.dart' show FakeWatchdogRemote;
 import 'package:data_sync/data_sync.dart' show SqliteJobRunLog;
 import 'package:domain_contracts/domain_contracts.dart'
     show
+        DeviceRiskItem,
+        DeviceRiskVm,
         OperatingMode,
         RunMode,
         TradeDate,
@@ -198,16 +201,111 @@ void main() {
     );
   });
 
-  test('🔴 원천 없는 흐름 = 오류(지어내지 않는다)', () async {
-    final OperatorOpsStatusRepository r = OperatorOpsStatusRepository(rt);
-    for (final Stream<Object?> s in <Stream<Object?>>[
-      r.watchConnections(),
-      r.watchDeviceAccess(),
-      r.watchBackup(),
-      r.watchAnnualReview(),
-      r.watchDeviceRisk(),
-    ]) {
-      await expectLater(s, emitsError(isA<UnsupportedError>()));
+  // ── 🆕 R135 — H-03 기기 리스크 ─────────────────────────────────────────
+
+  Future<void> until(bool Function() ok) async {
+    final Stopwatch w = Stopwatch()..start();
+    while (!ok() && w.elapsed < const Duration(seconds: 5)) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
     }
+  }
+
+  test('🔴 기기 리스크 = 측정 → 엔진 VM · 화면 상태 없어도(온보딩 전) 잰다 · 잰 것만 행', () async {
+    int n = 0;
+    final OperatorRuntime r = OperatorRuntime(
+      files: files,
+      clock: clock,
+      deviceProbe: () async {
+        n++;
+        return DeviceRiskFacts(
+          measuredAtUtc: clock.nowUtc(),
+          storageFreeBytes: 1500000000,
+          securityPatch: '2026-10-05',
+        );
+      },
+    );
+    expect(r.view.value, isNull);
+    final DeviceRiskVm vm = await OperatorOpsStatusRepository(r)
+        .watchDeviceRisk()
+        .first;
+    expect(n, 1);
+    expect(
+      vm.rows.map((DeviceRiskItem x) => (x.label, x.level)).toList(),
+      <(String, UiLevel)>[('저장공간', UiLevel.act), ('OS 보안 패치', UiLevel.ok)],
+    );
+    expect(vm.rows.first.currentText, '남은 공간 1.5GB');
+    expect(vm.emptyLabel, isNull);
   });
+
+  test(
+    '🔴 기기 리스크 — 주기마다 다시 잰다 · 바뀐 값만 낸다 · 측정 실패 = 오류 한 번 뒤 다음 주기에 복구',
+    () async {
+      int calls = 0;
+      int free = 5000000000;
+      bool fail = false;
+      final OperatorRuntime r = OperatorRuntime(
+        files: files,
+        clock: clock,
+        deviceProbe: () async {
+          calls++;
+          if (fail) throw StateError('채널 끊김');
+          return DeviceRiskFacts(
+            measuredAtUtc: clock.nowUtc(),
+            storageFreeBytes: free,
+          );
+        },
+      );
+      final List<DeviceRiskVm> got = <DeviceRiskVm>[];
+      final List<Object> errors = <Object>[];
+      final StreamSubscription<DeviceRiskVm> sub = OperatorOpsStatusRepository(
+        r,
+        riskTick: const Duration(milliseconds: 20),
+      ).watchDeviceRisk().listen(got.add, onError: errors.add);
+      addTearDown(sub.cancel);
+      await until(() => got.isNotEmpty);
+      expect(got.single.rows.single.level, UiLevel.ok);
+      // 같은 값(같은 시각 · 같은 측정) = 다시 내지 않는다.
+      await until(() => calls >= 4);
+      expect(got, hasLength(1));
+      free = 3000000000;
+      await until(() => got.length == 2);
+      expect(got.last.rows.single.level, UiLevel.watch);
+      fail = true;
+      await until(() => errors.isNotEmpty);
+      expect(errors.first, isA<StateError>());
+      fail = false;
+      free = 400000000;
+      await until(() => got.length == 3);
+      expect(got.last.rows.single.level, UiLevel.blocked);
+    },
+  );
+
+  test('🔴 기기 리스크 — 0행(아무것도 못 잼) = 빈 줄(엔진 문장)', () async {
+    final OperatorRuntime r = OperatorRuntime(
+      files: files,
+      clock: clock,
+      deviceProbe: () async => DeviceRiskFacts(measuredAtUtc: clock.nowUtc()),
+    );
+    final DeviceRiskVm vm = await OperatorOpsStatusRepository(r)
+        .watchDeviceRisk()
+        .first;
+    expect(vm.rows, isEmpty);
+    expect(vm.emptyLabel, '점검할 기기 항목을 아직 받지 못했습니다. 폰에서 앱을 열면 다시 잽니다.');
+  });
+
+  test(
+    '🔴 원천 없는 흐름 = 오류(지어내지 않는다) · 기기 측정기 없음(플랫폼 밖) = 기기 리스크도 원천 없음',
+    () async {
+      final OperatorOpsStatusRepository r = OperatorOpsStatusRepository(rt);
+      for (final Stream<Object?> s in <Stream<Object?>>[
+        r.watchConnections(),
+        r.watchDeviceAccess(),
+        r.watchBackup(),
+        r.watchAnnualReview(),
+        r.watchDeviceRisk(),
+      ]) {
+        await expectLater(s, emitsError(isA<UnsupportedError>()));
+      }
+    },
+  );
 }

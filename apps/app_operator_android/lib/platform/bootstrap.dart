@@ -158,6 +158,8 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
           batteryExempt: f.batteryExempt,
         );
       },
+      // 🆕 R135 — H-03 기기 측정(값만 · 판정 = 엔진).
+      deviceProbe: () => ops.deviceRisk(clock.nowUtc()),
     );
   } on Object {
     return null;

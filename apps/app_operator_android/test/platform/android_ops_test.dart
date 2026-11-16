@@ -1,6 +1,7 @@
 // E11p2 · P5 · P8 · P12 — 운영 채널 어댑터 계약(Kotlin `OpsChannel` 흉내).
 
 import 'package:app_operator_android/platform/platform.dart';
+import 'package:core_engine/core_engine.dart' show DeviceRiskFacts;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -55,6 +56,59 @@ void main() {
     });
     reply = null;
     expect(await AndroidOps().arm(const <AlarmItem>[]), isFalse);
+  });
+
+  test('🔴 H-03 기기 측정(R135) — 값 그대로 · 잰 시각 = 넘긴 시각(UTC) · 모르는 칸 · 꼴 틀림 · 음수 · 빈 글자 = null', () async {
+    final DateTime at = DateTime.utc(2026, 11, 16, 23, 55);
+    reply = <String, Object?>{
+      'storageFreeBytes': 5123456789,
+      'batteryHealth': 'GOOD',
+      'batteryCycleCount': 312,
+      'batteryTempTenthsC': 365,
+      'securityPatch': '2026-10-05',
+    };
+    final DeviceRiskFacts f = await AndroidOps().deviceRisk(at);
+    expect(calls.single.method, 'deviceRisk');
+    expect(f.measuredAtUtc, at);
+    expect(f.storageFreeBytes, 5123456789);
+    expect(f.batteryHealth, 'GOOD');
+    expect(f.batteryCycleCount, 312);
+    expect(f.batteryTempTenthsC, 365);
+    expect(f.securityPatch, '2026-10-05');
+    final DeviceRiskFacts bad = deviceRiskFactsFromWire(<String, Object?>{
+      'storageFreeBytes': -1,
+      'batteryHealth': '  ',
+      'batteryCycleCount': -1,
+      'batteryTempTenthsC': '365',
+      'securityPatch': 20261005,
+    }, at);
+    expect(bad.storageFreeBytes, isNull);
+    expect(bad.batteryHealth, isNull);
+    expect(bad.batteryCycleCount, isNull);
+    expect(bad.batteryTempTenthsC, isNull);
+    expect(bad.securityPatch, isNull);
+    // 영하 온도는 음수라도 값이다.
+    expect(
+      deviceRiskFactsFromWire(<String, Object?>{
+        'batteryTempTenthsC': -5,
+      }, at).batteryTempTenthsC,
+      -5,
+    );
+    final DeviceRiskFacts none = deviceRiskFactsFromWire(null, at);
+    expect(<Object?>[
+      none.storageFreeBytes,
+      none.batteryHealth,
+      none.batteryCycleCount,
+      none.batteryTempTenthsC,
+      none.securityPatch,
+    ], everyElement(isNull));
+    expect(
+      deviceRiskFactsFromWire(
+        null,
+        DateTime(2026, 11, 17, 8, 55),
+      ).measuredAtUtc.isUtc,
+      isTrue,
+    );
   });
 
   test('🔴 자가진단 — 모르는 칸 · 꼴 틀림은 «좋음»으로 지어내지 않는다(false · 0)', () async {
