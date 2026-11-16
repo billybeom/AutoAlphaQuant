@@ -697,6 +697,18 @@ export 'src/repair/baseline_plan.dart'
         baselineRejectCode,
         integrityDiffIdOf,
         oldStampsEvidenceJson;
+// 🆕 E16f2 — 체결 재생 · 포지션 다시 세기(순수 · 설계 13 §8 R128 K7 · K12).
+export 'src/repair/fill_replay.dart'
+    show
+        LedgerFillRow,
+        ReplayedPosition,
+        effectiveFillsOf,
+        fillChainDepthOf,
+        kReplayAvgTolerance,
+        orderFillTotalsOf,
+        positionReplayMatches,
+        replayPositionOf,
+        reversedFillIdsOf;
 export 'src/repair/repair_plan.dart'
     show
         LedgerRepairPlanRow,

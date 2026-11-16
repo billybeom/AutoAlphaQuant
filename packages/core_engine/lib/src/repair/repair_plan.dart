@@ -61,6 +61,21 @@ abstract final class RepairCodes {
 
   /// 바뀌는 것이 없다.
   static const String noChange = 'REPAIR_NO_CHANGE';
+
+  /// 🆕 E16f2 — 고를 diff 가 OPEN `CANON_BROKER` 가 아니다(R128 K8).
+  static const String diffNotOpen = 'REPAIR_DIFF_NOT_OPEN';
+
+  /// 🆕 E16f2 — 브로커 체결이 아니거나 없다(R128 K3).
+  static const String fillNotBroker = 'REPAIR_FILL_NOT_BROKER';
+
+  /// 🆕 E16f2 — 주문이 아직 열려 있다(체결 동기가 누적을 다시 센다 · R128 K4).
+  static const String orderOpen = 'REPAIR_ORDER_OPEN';
+
+  /// 🆕 E16f2 — 정정 전 재생이 저장 포지션과 다르다(R128 K7).
+  static const String positionDrift = 'REPAIR_POSITION_DRIFT';
+
+  /// 🆕 E16f2 — 정정 뒤 포지션이 중간에 음수가 된다(R128 K7).
+  static const String positionNegative = 'REPAIR_POSITION_NEGATIVE';
 }
 
 /// 🔴 기본 선택 — FILL_LAG 후보 · 현금 축 = 아무것도 안 하기 · 그 밖 = 기본 없음(null · 사람이 고른다).

@@ -10,6 +10,8 @@ import 'package:domain_contracts/domain_contracts.dart'
     show Clock, OrderSide, TradeDate;
 import 'package:sqlite3/sqlite3.dart';
 
+import 'fill_sign_sql.dart' show signedFillSql;
+
 /// 봉 공백 자료 이름.
 const String kSimBarGapDataset = 'sim_fill_bar';
 
@@ -99,7 +101,10 @@ class SqliteSimLedgerView implements SimLedgerView {
   @override
   Future<List<SimExecution>> executions() async => <SimExecution>[
     for (final Row r in _db.select(
-      'SELECT i.side, e.quantity, e.price, e.commission, e.tax FROM executions e '
+      // 🆕 E16f2 — REVERSAL = 수량 · 수수료 · 세금 음수(현금 셈이 정확히 되돌아간다 · R128 K2).
+      'SELECT i.side, ${signedFillSql('e', 'quantity')} AS quantity, e.price, '
+      '${signedFillSql('e', 'commission')} AS commission, '
+      '${signedFillSql('e', 'tax')} AS tax FROM executions e '
       'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
       'JOIN order_intents i ON i.intent_id = b.intent_id '
       'WHERE i.account = ? ORDER BY e.execution_id',
