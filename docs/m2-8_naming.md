@@ -610,3 +610,28 @@ R7a(`S02`)·R7b(`S06`)·R7c(`S03`) 세 카드의 선행과 엔진 겹침 몫(`Cr
 🔴 **만들지 않은 이름**(재론 방지): `CredentialListVm.emptyLabel`·`AccountMappingVm.emptyLabel`(K29 — 카드·행 ≥ 1) · 키 조각 칸(«앞4…뒤4» = 조립 앱 `SecretField` 안 — K7) · `CredentialCardVm.registerAction`(검증 통과 = 저장 — K6) · `CREDENTIAL_VERIFY_FAILED`(→ `CREDENTIAL_REJECTED` 한 벌 — K32) · 앱 잠금 on/off 칸·`SettingsActionId`(K17 · 미결 179) · S03 선택지 이름 `AccountOption`(→ `AccountMappingOption` — K39) · M9 슬롯 JSON 키 `secret_slot_id`(→ `credential_slot_id` · `qr_slot_id` — K31) · QR 페이로드·카운트다운 칸(K15).
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 178(S02·S03·S06 VM 산출 원천 · `KisKeySet` += 3 · POT 같이 쓰기) · 179(앱 잠금) · 180(증권사 밖 시크릿) · 181(매핑 = 지문 파급) · 182(QR TTL — 발주자) · 176(계약 1.21.0 창) · 13 · 152 · 168 · 169 · 엔진 숙제(06 변경 이력 «2026-11-15 · 계약 v1.20» · 13 의 «1.20.0» 줄 → 1.21.0) · 조립 앱 몫(06 `M4-12` ⑦ · 슬롯 빌더 override · `m4KeyRotation` 빈 자리).
+
+## Z. 🆕 계약 v1.21 (2026-11-15 · 엔진 예고 1/2 — M5 안전 쓰기 포트 + 체험 길) — `SafetyActions` 넷째 창구 · 킬스위치 기록·재개 · 서약 · 게이지 · 라우트 84
+
+엔진 예고 덩어리의 첫 절반(12-18 소비 몫 — 체험 ⑤ 킬스위치 연습 M5-1/M5-2 · `O-04` ② 서약 + 그것이 서는 포트)을 한 판으로 닫았다. `contractVersion` = **`1.21.0`**(다음 = **1.22.0** — E13 나머지 · 사다리 · E14i · E15i 남은 몫 · fill-origin · `resume_mode` · F8 · 창 = R7b 병합 뒤 · R7c 발송 전 · **1.23.0+** = 굳는 대로).
+상태 = ✅ 병합 PR #189 squash `81bf79c`(2026-11-16 · CI 3/3 · head `735470fc` · 커밋 8 · R7a 병합 PR #197 `18d241b` 뒤 rebase · 원격 가지 삭제).
+결정 = 발주자 위임 2026-11-14 — K1~K47 권고대로(정본 = 설계 `10_리뷰/2026-11-15_계약v1.21_설계서.md` §3 · 이름표 정본 §4-13 #1~#16 · #17 = 1.22.0 예약 · #18 = 1.23.0+).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| Z-1 | 🆕 `SafetyActions{run(SafetyActionId, {args}) · runKillResumeItem(KillResumeItemSubmission) · runPledge(PledgeSubmission) · watch(actionRunId)}` | `commands/safety_actions.dart` · 넷째 쓰기 창구 · 폰 전용 · 뷰어 null = 부재 · `ui_safety` 만 참조(C-55 ⑯) · 생체 = 구현 · 표면 넷 = C-7 · 이름 `run…`(K31) |
+| Z-2 | 🆕 `SafetyActionId{killSwitchResume, pledgeWrite, pledgeEdit}` | `enums/command.dart` · 와이어 `KILL_SWITCH_RESUME` · `PLEDGE_WRITE` · `PLEDGE_EDIT`(엔진 명령 kind 글자) · `run` 화이트리스트 0(1.22.0 · K39) · 같은 글자 다른 축 주석 2 |
+| Z-3 | 🆕 `SafetyActionResult{actionRunId, id, level, headline, reasonCode?, handoffRoute?, retryable}` · 🆕 `SafetyActionCall{id, args, label}` | `ActionResult` 꼴(`id` 타입만 다름) · 호출 = 1.21.0 사용처 0(C-8 `_knownUncovered` · K47) |
+| Z-4 | 🆕 `KillResumeItemSubmission{itemNo, text?, emotion?, intensity?, sleepHours?, scenario?, condition?, acknowledged, rationaleBefore?, expectedOutcome?, ruleCited?}` · 🆕 `PledgeSubmission{SafetyActionId id, sentences, decisionId?}` | 엔진 `ResumeItemAnswer` − `decisionId`(K34) · 숫자 2 = 원문 String(K35) · 한 문항씩 · 7번 통과 = 해제 확정(K36) · `PledgeSubmitKind` 0(K32) |
+| Z-5 | 🆕 `KillActivationRecord{ruleAction, reasonKind, emotion?, intensity?, sleepHours?, scenarioId?, scenarioNone, resumeCondition, scope, journalDecisionId}` · `KillChecklistAck += activation` | `commands/payloads_x7.dart` · 추가형 · 기본 null · 한 명령 `KILL_CHECKLIST_CONFIRM` · 경로 = 기존 `confirmKillChecklist`(인자 교체 = 미결 183 · K9 · K43) |
+| Z-6 | 🆕 `KillActivationReason` · `KillActivationScope` · `KillResumeScenario` · `KillResumeCondition` | `enums/safety.dart` · 값 이름 = 엔진 1:1 · 와이어 = SCREAMING_SNAKE · 🔵 타입 이름 ≠ 엔진(`KillReasonKind` 등 — 같으면 엔진 시험 2파일 `ambiguous_import` · K33) |
+| Z-7 | 🆕 `KillSwitchResultCodes`(12) · `SafetyCommonResultCodes`(2) · `PledgeResultCodes`(6) · `GaugeCodes`(4) | `labels/safety_codes.dart` · 도메인 `kill_switch_result` · `safety_common_result` · `pledge_result` · `gauge` · 엔진 글자 1:1 · 새 글자 24 · 중복 0(K12 · K13 · K45) · 게이지 검사 = C-55 ⑭(K41) |
+| Z-8 | 🆕 `KillResumeGateVm{readinessLabel, level, etaText?, cooldown?, items, nextItemNo?, blockedText?, lockedLabel?, asOf}` · `KillResumeItemRow{itemNo, label, replayText?, answeredText?, level, choices}` · 🆕 `KillResumeChoice{label, scenario?, condition?}` | `dto/safety_gate.dart` · 문항 글자 = SPEC v2.40 04 §3-6 «재개판»(K38) · `replayText` = 발동 때 답(K37) · 카운트다운 0 · 해제 버튼 0 |
+| Z-9 | 🆕 `PledgeVm{lines, statusLine?, replayNotice?, editable, lockedLabel?, asOf}` | `dto/safety_gate.dart` · `lines` 0 또는 3 · 엔진 글자 없는 칸 = 표본 null(K16 · 미결 185) |
+| Z-10 | 🆕 `KillSwitchGateRepository.watchResumeGate()` · 🆕 `PledgeRepository.watchPledge()` | 받침대 3(`UnimplementedKillSwitchGateRepository` · `UnimplementedPledgeRepository` · `UnimplementedSafetyActions`) · 기존 `SafetyRepository` · `ResumeRepository` 무변경(K6) |
+| Z-11 | 🆕 `AppRoutes.m5StoppedDecision` · `m5Pledge` · `m5RuleChangeGate` | `aaq://m5/stopped-decision`(M5-3) · `aaq://m5/pledge`(M5-8) · `aaq://m5/rule-change-gate`(M5-9 · R8 `S04` «적용» 목적지) · `AppRoutes.all` 81 → **84** · `ownedByClaude` 17 · 본문 = 레지스트리 빈 자리(K14 · K44) |
+| Z-12 | 계약 테스트 C-55(`c55_safety_actions_kill_pledge_test.dart` · 19항) · C-7 +1 · C-16 정정 · 생성기 `tool/gen_v121_fixtures.py` · 표본 `m5/` 12 + F3 | 271 → **283** · 등록부 코덱 3 · 바인딩 12 · C-6 +12 · C-8 `_knownUncovered` +4 · C-33 84 · `domain_contracts` +485 → +505 ~30 |
+
+🔴 **만들지 않은 이름**(재론 방지): `submitKillResumeItem` · `submitPledge`(C-7 쓰기 이름 검사 — K31) · `PledgeSubmitKind`(값 `write(` 가 C-7 맨 쓰기 동사 검사에 걸림 — K32) · 엔진과 같은 열거 타입 이름(K33) · `KillResumeItemSubmission.decisionId`(K34) · 기존 `SafetyRepository`·`ResumeRepository` 넓히기(K6) · `CommandApi` 해제 명령 · 카운트다운 칸 · 해제 버튼 칸.
+
+⏸ **이 창이 닫지 않은 것** — 01 §8 미결 183(M5-1 발동 뒤 기록 화면 입력 원천 — 1.22.0 판단) · 184(재개 게이트 세부 · 7문항 엔진 상수화) · 185(서약 편집 저널 id · 서약 VM 엔진 글자) · 93(남은 것 `S7-7` 링크) · 169 · 176(1.22.0 / 1.23.0+) · 엔진 숙제(`GaugeCodes` 지역 선언 지움 = 병합 뒤 첫 단계 · SPEC ⑦ 대조 1 · 7문항 상수화).
