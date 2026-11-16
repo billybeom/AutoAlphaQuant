@@ -86,6 +86,9 @@ export 'src/market/quote_collector.dart';
 export 'src/market/regime_store.dart';
 export 'src/market/seed_bundle.dart';
 export 'src/market/series_clients.dart';
+export 'src/migration/maintenance_window_store.dart';
+export 'src/migration/migration_journal_store.dart';
+export 'src/migration/migration_lease_gate.dart';
 // 🆕 E11d — 시크릿 스캔 게이트(설계 13 §8 R44 E7 · 06 M4-6).
 export 'src/security/secret_scan.dart';
 export 'src/watchdog/healthchecks_client.dart';
