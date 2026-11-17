@@ -10,11 +10,21 @@ import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:broker_gateway/broker_gateway.dart'
     show KisCredentials, KisEnvironment, KisKeySet, storeKisCredentials;
+import 'package:core_engine/core_engine.dart'
+    show P0sHumanInputs, P0sOpsConfig, P0sStrategyIds;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
-import 'package:data_sync/data_sync.dart' show SqliteOnboardingProgressStore;
+import 'package:data_sync/data_sync.dart'
+    show
+        SqliteConfigVersionStore,
+        SqliteOnboardingProgressStore,
+        SqliteOnboardingStore;
+import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show
+        AccountMappingVm,
+        AccountRow,
         AppRoutes,
+        CommandContext,
         CredentialCardVm,
         CredentialListVm,
         FeatureFlags,
@@ -25,8 +35,12 @@ import 'package:domain_contracts/domain_contracts.dart'
         RunMode,
         SettingsCard,
         SettingsGroup,
+        SelfReportBalance,
+        SelfReportPurpose,
         SettingsHomeVm,
+        SleeveMappingRow,
         StepState,
+        TradeDate,
         UiLevel;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
@@ -326,12 +340,136 @@ void main() {
     expect(cardOf(got.last, 'SET_CONTRIBUTION')?.statusLabel, '월 30만원');
   });
 
+  // ── 🆕 R151 — S03 계좌 · 매핑 ───────────────────────────────────────────
+
+  Future<void> storePaper() => storeKisCredentials(
+    vault,
+    KisKeySet.paper,
+    KisCredentials(
+      environment: KisEnvironment.mock,
+      appKey: 'PSTESTAPPKEY0000000000001',
+      appSecret: 'TESTSECRETVALUEabcdefghijklmnop9876',
+      accountNo: '12345678',
+    ),
+  );
+
+  test(
+    '🔴 계좌 — 화면 상태 없음 = 오류 · 금고 비었음 = 모의 «등록 전» · 운영 설정 없음 = 슬리브 셋 미지정',
+    () async {
+      await expectLater(
+        OperatorSettingsRepository(rt).accountMapping(),
+        throwsA(isA<StateError>()),
+      );
+      rt.view.value = viewOf(files.sim);
+      final AccountMappingVm vm = await OperatorSettingsRepository(rt)
+          .accountMapping();
+      expect(vm.accounts.single.maskedNumberText, '등록 전');
+      expect(vm.accounts.single.level, UiLevel.act);
+      expect(
+        vm.mappings.map((SleeveMappingRow m) => m.statusLine).toSet(),
+        <String>{'미지정 — 이 슬리브의 주문은 내지 않습니다.'},
+      );
+    },
+  );
+
+  test(
+    '🔴 계좌 — 금고의 모의 번호 = 엔진 마스킹 · 검증 통과 = 잔고 확인 줄 · 원번호 0 · 검증 기록 → 다시 낸다',
+    () async {
+      await storePaper();
+      rt.view.value = viewOf(files.sim);
+      final List<AccountMappingVm> got = <AccountMappingVm>[];
+      final StreamSubscription<AccountMappingVm> sub =
+          OperatorSettingsRepository(rt).watchAccountMapping().listen(got.add);
+      addTearDown(sub.cancel);
+      await until(() => got.isNotEmpty);
+      final AccountRow first = got.last.accounts.single;
+      expect(first.maskedNumberText, '****5678');
+      expect(first.checkText, '모의 서버 잔고 확인 기록 없음');
+      // 거절 기록 = 잔고 확인이 아니다(통과만 «잔고 확인»).
+      progress().record(
+        'o_02',
+        StepState.failed,
+        failureReasonCode: OnboardingResultCodes.credentialRejected,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(got.last.accounts.single.checkText, '모의 서버 잔고 확인 기록 없음');
+      progress().record('o_02', StepState.verified);
+      await until(
+        () => got.last.accounts.single.checkText == '모의 서버 잔고 확인 12-01 09:00',
+      );
+      expect(got.last.accounts.single.level, UiLevel.info);
+      expect(got.last.toJson().toString().contains('12345678'), isFalse);
+    },
+  );
+
+  test(
+    '🔴 계좌 — 모의 개시 판(운영 설정 등재 + 개시 결정)이 서면 슬리브 = 그 판의 별칭(다시 낸다 · 같은 원장)',
+    () async {
+      const Map<String, String> accounts = <String, String>{
+        P0sStrategyIds.sleeveA: 'general',
+        P0sStrategyIds.sleeveB: 'pension',
+        P0sStrategyIds.sleeveC: 'general',
+        P0sStrategyIds.pot: 'general',
+      };
+      rt.view.value = viewOf(files.sim);
+      final List<AccountMappingVm> got = <AccountMappingVm>[];
+      final StreamSubscription<AccountMappingVm> sub =
+          OperatorSettingsRepository(rt).watchAccountMapping().listen(got.add);
+      addTearDown(sub.cancel);
+      await until(() => got.isNotEmpty);
+      expect(got.last.mappings.first.accountLabel, isNull);
+      final String hash = SqliteConfigVersionStore(files.sim, clock: clock)
+          .register(
+            P0sOpsConfig.of(
+              P0sHumanInputs(aSymbol: '999990', accountByStrategy: accounts),
+            ).content(),
+          );
+      final SqliteOnboardingStore s = SqliteOnboardingStore(
+        files.sim,
+        clock: clock,
+      );
+      expect(s.selectOperatingMode(OperatingMode.autoTrade).ok, true);
+      expect(
+        s
+            .declareSimOpening(
+              SelfReportBalance(
+                asOfTradeDate: const TradeDate('2026-12-01'),
+                purpose: SelfReportPurpose.simOpening,
+                sessionStartedAt: clock.now,
+                lines: const [],
+                cashKrw: Decimal.parse('10000000'),
+                accountAlias: 'general',
+                declaredComplete: true,
+                context: const CommandContext(
+                  runMode: RunMode.simInternal,
+                  operatingMode: OperatingMode.autoTrade,
+                  leaseEpoch: 0,
+                  deviceId: 'dev-1',
+                ),
+              ),
+              accountByStrategy: accounts,
+              configHash: hash,
+            )
+            .ok,
+        true,
+      );
+      await until(() => got.last.mappings.first.accountLabel != null);
+      expect(
+        got.last.mappings
+            .map((SleeveMappingRow m) => (m.accountLabel, m.level))
+            .toList(),
+        <(String?, UiLevel)>[
+          ('general', UiLevel.ok),
+          ('pension', UiLevel.ok),
+          ('general', UiLevel.ok),
+        ],
+      );
+      expect(got.last.mappings.first.subbookLine, 'POT 서브북도 이 계좌에서 운용합니다.');
+    },
+  );
+
   test('🔴 나머지 창구 = 원천 없음(오류)', () async {
     final OperatorSettingsRepository r = OperatorSettingsRepository(rt);
     await expectLater(r.watchOperations(), emitsError(isA<UnsupportedError>()));
-    await expectLater(
-      r.watchAccountMapping(),
-      emitsError(isA<UnsupportedError>()),
-    );
   });
 }

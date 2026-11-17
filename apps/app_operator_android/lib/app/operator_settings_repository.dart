@@ -14,9 +14,12 @@ import 'package:broker_gateway/broker_gateway.dart'
     show KisCredentialRead, KisCredentialsStored, KisKeySet, readKisCredentials;
 import 'package:core_engine/core_engine.dart'
     show
+        AccountMappingFacts,
+        PaperAccountFacts,
         PaperCredentialFacts,
         SecretVault,
         SettingsHomeFacts,
+        accountMappingVmOf,
         contributionKstDay,
         contributionSettingOf,
         credentialListVmOf,
@@ -24,8 +27,11 @@ import 'package:core_engine/core_engine.dart'
 import 'package:data_sync/data_sync.dart'
     show
         OnboardingProgressRecord,
+        OpsConfigRead,
+        OpsConfigReady,
         SqliteOnboardingProgressStore,
         contributionRowsOf,
+        currentP0sOpsConfig,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -36,7 +42,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         OperationsVm,
         RunMode,
         SettingsHomeVm,
-        SettingsRepository;
+        SettingsRepository,
+        StepState;
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import 'operator_runtime.dart';
@@ -85,6 +92,56 @@ class OperatorSettingsRepository implements SettingsRepository {
       lastState: last?.state,
       lastAtUtc: last?.updatedAtUtc,
       lastFailureCode: last?.failureReasonCode,
+    );
+  }
+
+  /// 🆕 R151 — 모의 계좌 사실(금고의 모의 키 세트 번호 · 마지막 검증 통과 = 모의 서버 잔고 조회).
+  Future<PaperAccountFacts> paperAccount() async {
+    final SecretVault? vault = _rt.vault;
+    String? no;
+    String? product;
+    if (vault != null) {
+      try {
+        final KisCredentialRead read = await readKisCredentials(
+          vault,
+          KisKeySet.paper,
+        );
+        if (read is KisCredentialsStored) {
+          no = read.credentials.accountNo;
+          product = read.credentials.productCode;
+        }
+      } on Object {
+        no = null;
+      }
+    }
+    final OnboardingProgressRecord? last = SqliteOnboardingProgressStore(
+      _rt.files.sim,
+      clock: _rt.clock,
+    ).lastRecord('o_02');
+    return PaperAccountFacts(
+      accountNo: no,
+      productCode: product,
+      verifiedAtUtc: no != null && last?.state == StepState.verified
+          ? last?.updatedAtUtc
+          : null,
+    );
+  }
+
+  /// 🆕 R151 — 지금 계좌 · 슬리브 매핑(화면 상태 없음 = 오류 · 운영 설정 없음 = 미지정).
+  Future<AccountMappingVm> accountMapping() async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) {
+      throw StateError('계좌: 화면 상태 없음(온보딩 전)');
+    }
+    final OpsConfigRead cfg = currentP0sOpsConfig(v.db);
+    return accountMappingVmOf(
+      AccountMappingFacts(
+        paper: await paperAccount(),
+        accountByStrategy: cfg is OpsConfigReady
+            ? cfg.config.human.accountByStrategy
+            : null,
+      ),
+      nowUtc: _rt.clock.nowUtc(),
     );
   }
 
@@ -207,8 +264,10 @@ class OperatorSettingsRepository implements SettingsRepository {
   Stream<OperationsVm> watchOperations() => _none('watchOperations');
 
   @override
-  Stream<AccountMappingVm> watchAccountMapping() =>
-      _none('watchAccountMapping');
+  Stream<AccountMappingVm> watchAccountMapping() => _follow(
+    accountMapping,
+    viewTables: const <String>{'decision_log', 'config_versions'},
+  );
 
   /// 🆕 계약 v1.23(01 §32 · K92) — `S13` 월 납입 투영 = 원천 없음(투영 + 잠김·버튼 칸 = 06 `M4-12` ⑧ · 그 화면은 레지스트리에 없다).
   @override

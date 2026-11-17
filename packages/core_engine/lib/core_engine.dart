@@ -317,6 +317,14 @@ export 'src/onboarding/onboarding_steps.dart'
         onboardingStepDetailVmOf,
         onboardingStepIds,
         onboardingStepsVmOf;
+// 🆕 E11p3d-5i — M9 S03 계좌 · 슬리브 매핑(설계 13 §8 R151).
+export 'src/ops/account_mapping.dart'
+    show
+        AccountMappingFacts,
+        PaperAccountFacts,
+        accountMappingVmOf,
+        kAccountMappingStaleAfter,
+        kSleeveUnmappedLine;
 // 🆕 E11p3d-4a — 알림 수신 확인(ack) 명령 봉투(설계 13 §8 R147).
 export 'src/ops/alert_ack_command.dart'
     show AlertAckCommand, kAlertAckTtl, newCommandId;
