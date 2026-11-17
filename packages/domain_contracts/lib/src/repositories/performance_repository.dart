@@ -54,7 +54,7 @@ abstract interface class PerformanceRepository {
   /// `S7-7` — 🆕 v1.6 [year] == null = **엔진 기본 연도**(06 M1-20b · K24 — 권고: 12월 창 열림 = 그해 ·
   /// 그 밖 = 마지막 완결 연도 · 완결 연도가 없으면(운용 첫 해) 그해). 고른 연도는 `vm.yearLabel` 이 말한다.
   /// 🔴 `S7-7` 은 **이 창구 하나만** 쓴다 · `OpsStatusRepository.watchAnnualReview` 는 M9 `S12` 몫 —
-  ///    같은 타입이지만 **세후 두 필드는 null**(K25 · ⑦-b).
+  ///    🆕 v1.24 **다른 타입** `AnnualReviewIndexVm`(세후·수치 칸 0 · 01 §33 K118).
   /// 🔴 세후는 VM 의 `afterTax`·`afterTaxCounterfactual` 이 싣는다 — `S7-7` 은 [afterTaxLadder] 를 부르지 않는다.
   Future<AnnualReviewVm> annualReview({String? year});
 

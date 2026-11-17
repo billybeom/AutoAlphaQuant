@@ -115,6 +115,7 @@ enum CommandState {
 ///    이 닫은 구멍(위저드·온보딩의 쓰기 경로 부재)이 되살아난다.
 /// 🔴 DDL `CHECK` 대응 컬럼은 없다. 표기는 §1-2 규약대로 SCREAMING_SNAKE 다.
 enum SettingsActionId {
+  /// ⏸ v1.24(01 §33 · K106) — `S11` = ⏸ R9e(엔진 원천 뒤 · 01 §8 미결 197) · args 미정.
   @JsonValue('SETTINGS_GENERAL_UPDATE')
   settingsGeneralUpdate('SETTINGS_GENERAL_UPDATE'),
 
@@ -216,16 +217,26 @@ enum SettingsActionId {
   /// 채널은 안전장치의 일부). args = `{channel ∈ NotifyChannelCodes}`(엔진이 `NotifyChannelOption.selectAction` 에 완성).
   @JsonValue('NOTIFY_CHANNEL_SELECT')
   notifyChannelSelect('NOTIFY_CHANNEL_SELECT'),
+
+  /// ⏸ v1.24(01 §33 · K107) — X4 = R9 밖(⏸ R9d · 01 §8 미결 5 · 196) · args 미정.
   @JsonValue('CALENDAR_SYNC_NOW')
   calendarSyncNow('CALENDAR_SYNC_NOW'),
   @JsonValue('CALENDAR_REBACKFILL')
   calendarRebackfill('CALENDAR_REBACKFILL'),
+
+  /// 🆕 v1.24(01 §33 · K112) — `S09` «지금 백업» · args `{}`(엔진 완성 `BackupVm.runAction`) · 결과 `BackupResultCodes`.
   @JsonValue('BACKUP_RUN_NOW')
   backupRunNow('BACKUP_RUN_NOW'),
+
+  /// 🆕 v1.24(01 §33 · K111) — 🔴 화면 미호출(복원 = X1 마법사 · 같은 폰 = 엔진 `X1_LIVE_EXISTS`) · args 미정 유지(`credentialRegister` 선례).
   @JsonValue('BACKUP_RESTORE_START')
   backupRestoreStart('BACKUP_RESTORE_START'),
+
+  /// 🆕 v1.24(01 §33 · K114) — `S10` 골든벡터 셀프테스트 · args `{}` · 실행기 = E11o(전 = 버튼 부재).
   @JsonValue('SELFTEST_GOLDEN_RUN')
   selftestGoldenRun('SELFTEST_GOLDEN_RUN'),
+
+  /// 🆕 v1.24(01 §33 · K115) — `S10` 무결성 자가진단(정본 자가 대조 권고 · 불일치 = `LEDGER_INTEGRITY`) · args `{}` · 결과 `LedgerIntegrityResultCodes`.
   @JsonValue('SELFTEST_INTEGRITY_RUN')
   selftestIntegrityRun('SELFTEST_INTEGRITY_RUN'),
 
@@ -238,6 +249,7 @@ enum SettingsActionId {
 
   /// ⏸ `m2-8_naming.md` A-14(G-64) — 캘린더 재연결.
   /// ⏸ 사유 = X4 채택 자체가 미결이다(§8-5). **이름만 등재**한다.
+  /// ⏸ v1.24 — R9d(E17 뒤).
   @JsonValue('CALENDAR_RECONNECT')
   calendarReconnect('CALENDAR_RECONNECT');
 

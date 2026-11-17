@@ -472,8 +472,7 @@ abstract class AnnualReviewVm with _$AnnualReviewVm {
     required AsOf asOf,
 
     /// 🆕 v1.6 — 세후 사다리 본문 갈래(«묶음은 엔진» · `WithdrawalPlan.afterTax` 이름 선례). null = 블록 부재.
-    /// 🔴 같은 타입을 받는 M9 `S12`(`OpsStatusRepository.watchAnnualReview`) 창구는 이 필드와
-    ///    [afterTaxCounterfactual] 을 **null** 로 준다(K25 · 결정 8 · §8 미결 95 · 아래 ⑦-b).
+    /// 🆕 v1.24(01 §33 K118) — M9 `S12` 는 다른 타입 `AnnualReviewIndexVm`(세후 칸 0) · 이 타입의 소비자 = M7 `S7-7` 하나.
     AfterTaxLadder? afterTax,
 
     /// 🆕 v1.6 — 반사실 갈래. 🔴 non-null ⇒ [afterTax] non-null(C-41 ⑥) · 화면 = **늘 기본 접힘** 카드

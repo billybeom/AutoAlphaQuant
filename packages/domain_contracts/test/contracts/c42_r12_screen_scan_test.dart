@@ -22,7 +22,9 @@
 //   ⑨ 문자열 가공·정렬·거르기 0(받은 순서 그대로 · `.indexed`·`.map`·`.length` 는 허용).
 //   ⑩ 가드 — `ui_analytics/lib` 에서 R12 전용 이름을 말하는 파일 ⊆ 역할 대상 ∪ providers R12 절(늘 실행).
 //   ⑪ 자체 검증 — 양성은 걸리고(걸린 조항 번호 출력) 음성은 통과한다.
-//   ⑫ 세후 유출 경로 가드 — `ui_analytics` 밖 `ui_*`·`apps` lib 에 세후 수치 필드 참조 0(늘 실행 · 결정 8 · K25).
+//   ⑫ 세후 유출 경로 가드 — `ui_analytics` 밖 `ui_*`·`apps` lib 에 세후 수치 필드 참조 0(늘 실행 · 결정 8 · K25) · 🆕 v1.24(01 §33 K118) —
+//      M9 `S12` 는 다른 타입(`AnnualReviewIndexVm` · 세후 칸 0)이라 그 길은 타입으로 닫혔다 · 이 가드 = `AnnualReviewVm` 이 다른 길
+//      (조립 앱 등)로 새는 것만 본다.
 //   ⑬ providers R12 절 — ②⑤⑨ + 기간·일자 타입 0 + 읽기 창구 인자 0 + `previewRebalance` 0 · 표식 위 본문은 R12
 //      전용 이름을 말하지 않는다(표식이 없으면 파일 전체가 «표식 위»다).
 // 🔴 대상 파일이 아직 없으면(R12a~d 전) ②~⑨·⑬ 의 절 검사는 통과한다 — 없는 파일로 실패시키지 않는다.
@@ -854,7 +856,8 @@ void main() {
         isEmpty,
         reason:
             '세후 수치(`afterTax`·`afterTaxCounterfactual`·`cagrPct`·`endMult`)는 `ui_analytics` 의 S7-1·S7-7 '
-            '만 그린다 — 홈·설정·셸·앱이 같은 VM 을 받아도 세후 블록을 그리지 않는다(결정 8 · K25).'
+            '만 그린다 — 홈·셸·앱이 `AnnualReviewVm` 을 받아도 세후 블록을 그리지 않는다(결정 8 · K25 · '
+            '🆕 v1.24 — M9 `S12` = `AnnualReviewIndexVm` · 세후 칸 0).'
             '\n${bad.join('\n')}',
       );
     });

@@ -4,8 +4,11 @@
 //    구현체가 주입되지 않으므로 컨트롤은 «비활성»이 아니라 **부재**다.
 // 🔴 홈 블록 5·7 의 «세는 수»는 전부 엔진이 세어 **문자열로** 준다 — 화면이 목록
 //    길이로 만들지 않는다(01 §4-1 · G-29). int·double 산술이라 C-4 가 잡지 못한다.
-// 🔴 `actionAvailable == false` 는 «비활성»이 아니라 **카드·버튼의 부재**로 그린다.
+// 🔴 🆕 v1.24 — 이 파일에 `actionAvailable` 칸 0(v1.18 `ConnectionRow` · v1.24 `BackupVm` 삭제) · 버튼 유무 =
+//    `SettingsActionCall?`/`LinkAction?` null = **부재**(«비활성» 0).
 // 🆕 v1.20(01 §29) — `S06` `DeviceAccessVm`·`DeviceRow` 추가형 · 🆕 `PairingTicketCard`.
+// 🆕 v1.24(01 §33 · K110 · K113 · K118) — `S09` `BackupVm` 교체(소비자 0) + `RestorePointRow` · `S10` 감싸개 `DiagnosticsScreenVm` +
+//    `SelfTestCard`(`DiagnosticsVm` 무변경 — H-01 과 같은 값) · `S12` 전용 목차 `AnnualReviewIndexVm`(세후·수치 칸 0 — `AnnualReviewVm` 무변경).
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
@@ -343,22 +346,73 @@ abstract class PairingTicketCard with _$PairingTicketCard {
 }
 // JSON 키: headline · issue_action · qr_slot_id · expires_text
 
-/// m2-8 G-9 — 백업·복원(05 `S09`).
+/// m2-8 G-9 · 🆕 v1.24 교체(01 §33 · K110) — 백업·복원(05 `S09`) 화면 VM. 🔴 소비자 0 에서 바꿨다(v1.18 `SettingsHomeVm` 교체 선례) —
+///    옛 칸 `lastOkText`·`statusCode`·`statusLabel`·`actionAvailable`·`sizeText`·`route` 는 **삭제**(«부재 = 목록에 없음» K-q · 뜻 불명).
+/// 🔴 글자·시각·해시 = 엔진(화면은 자르기·잇기·세기 0 — `substring` 0) · 파일 경로·파일 이름·크기 칸 0(05 S09 «노출 금지») ·
+///    나이 판정·임계 = 엔진(`BACKUP_STALE` 와 같은 원천 · 화면 `DateTime.now()` 0).
+/// 🔴 **복원 버튼 0**(K111) — 복원 = 새 폰 X1 마법사(`R-01`) 몫 · 이 화면은 [migrationLink] 하나 · `backupRestoreStart` 화면 미호출.
+/// 🔴 [runAction] null = 버튼 **부재**(모의 원장 · 스탬프 0 · 아카이브 미일치 · 잠김 · 실행 중 — 판정 = 엔진 · K133) ·
+///    [lockedLabel] non-null ⇒ [runAction] null(K-t · C-58 ②).
 @freezed
 abstract class BackupVm with _$BackupVm {
   const factory BackupVm({
-    required String lastOkText,
-    required String statusCode,
-    required String statusLabel,
-    required bool actionAvailable,
+    /// «마지막 백업 11-17 21:40» — 엔진이 아카이브 나이와 스냅숏을 묶은 글자(K112 · 화면 분기 0).
+    required String lastBackupText,
+
+    /// 나이 배지(문구·임계 = 엔진). null = 배지 부재.
+    String? ageBadgeText,
+
+    /// [lastBackupText]·[ageBadgeText] 줄의 색·아이콘 근거.
+    required UiLevel level,
+
+    /// 고지 한 줄(«백업은 이 폰 안에만 있습니다 …» · 모의 «… 실전 원장에서만 …» — 엔진). null = 줄 부재.
+    String? noticeText,
+
+    /// 엔진이 완성한 `backupRunNow{}`(«지금 백업»). 🔴 null = 버튼 부재 — 화면은 그대로 `SettingsActions.run` 1회.
+    SettingsActionCall? runAction,
+
+    /// 운영 등급 생체 축소 등 «보기만» 한 줄(엔진·조립). non-null ⇒ [runAction] null.
+    String? lockedLabel,
+
+    /// 복원 지점(받은 차례 · 행 동작 0 — K111).
+    required List<RestorePointRow> points,
+
+    /// [points] 가 비었을 때의 엔진 한 줄. 🔴 [points] 빈 ⇔ non-null(C-58 ③).
+    String? pointsEmptyLabel,
+
+    /// «폰을 바꾸시나요?» + X1 기기 이전 링크(글자·목적지 = 엔진 · `x1Migration`). null = 부재(잠김 · 원천 없음).
+    LinkAction? migrationLink,
     required AsOf asOf,
-    String? sizeText,
-    String? route,
   }) = _BackupVm;
 
   factory BackupVm.fromJson(Map<String, dynamic> json) =>
       _$BackupVmFromJson(json);
 }
+// JSON 키: last_backup_text · age_badge_text · level · notice_text · run_action · locked_label · points · points_empty_label ·
+//          migration_link · as_of
+
+/// 🆕 v1.24(01 §33 · K110 · K111) — `S09` 복원 지점 1행(원천 = X1 스냅숏 매니페스트 목록 — 목록 함수 = 엔진 숙제 · 01 §8 미결 199).
+/// 🔴 **행 동작 칸 0**(복원 = X1 마법사 · K111) · 크기·파일 이름·경로 칸 0.
+@freezed
+abstract class RestorePointRow with _$RestorePointRow {
+  const factory RestorePointRow({
+    /// 🔴 ui 미참조(Key = 받은 차례 순번 — C4r7c-4).
+    required String code,
+
+    /// 시각·장부 날 글자(엔진 · 스냅숏 이름 = 시각 + 매니페스트 `authored_date`).
+    required String label,
+
+    /// 체인 해시 앞 8자 — 🔴 **엔진이 자른다**(화면 `substring` 0 · C-58 ④ `^[0-9a-f]{8}$`).
+    required String chainHashText,
+
+    /// 검증 상태 한 줄(엔진). null = 줄 부재.
+    String? stateLabel,
+  }) = _RestorePointRow;
+
+  factory RestorePointRow.fromJson(Map<String, dynamic> json) =>
+      _$RestorePointRowFromJson(json);
+}
+// JSON 키: code · label · chain_hash_text · state_label
 
 /// m2-8 G-10 — 진단 보드(05 `S10`) · 🆕 v1.13 `H-01` 블록 6(R13b)도 이 VM 을 그린다(01 §23).
 /// 🔴 **칸 수 5 고정은 엔진이 준다** — 모드와 무관하며 화면이 세지 않는다(§2-9).
@@ -397,6 +451,96 @@ abstract class DiagnosticCell with _$DiagnosticCell {
   factory DiagnosticCell.fromJson(Map<String, dynamic> json) =>
       _$DiagnosticCellFromJson(json);
 }
+
+/// 🆕 v1.24(01 §33 · K113) — 진단(05 `S10`) 화면 VM = **감싸개**(원천 1 스트림 · `SettingsRepository.watchDiagnosticsScreen`).
+/// 🔴 [board] = `H-01` 블록 6 과 **같은 값**(엔진 `diagnosticsOf` 하나 · 두 벌 0) · `board.asOf` 는 ui 미참조(오래됨 = [asOf]) ·
+///    무결성 칸 요약 문장 = `board.headline`(카드가 따로 짓지 않는다 · K137).
+/// 🔴 [lockedLabel] non-null ⇒ 두 카드 `runAction` null(C-58 ②) · [diffsLink] = 조회 링크(잠김에도 남을 수 있다 — K138).
+/// 🔴 05 옛 꼴 `{SelfTestVm golden, IntegrityVm integrity}`·`blocking` 은 쓰지 않는다(01 §8 미결 128 «05 꼴» 몫 닫음 · 차단 = `DiagnosticCell.level`).
+@freezed
+abstract class DiagnosticsScreenVm with _$DiagnosticsScreenVm {
+  const factory DiagnosticsScreenVm({
+    /// 골든벡터 셀프테스트 카드(E11o 전 = «판정 보류» · `runAction` null — K114).
+    required SelfTestCard golden,
+
+    /// 무결성 자가진단 카드(`statusLabel` = «마지막 검증 …» · 실행 = 정본 자가 대조 — K115 · K137).
+    required SelfTestCard integrity,
+
+    /// 5칸 대조 보드(`DiagnosticsVm` 무변경).
+    required DiagnosticsVm board,
+
+    /// 차이 상세 링크(글자·목적지 = 엔진 · `ledgerDiffs` · 🔴 정정 마법사 링크·렌더 0 — K116). null = 부재.
+    LinkAction? diffsLink,
+
+    /// 진입 권장 배너(«앱 업데이트 후 · 기기 이전 후 · 실전 전환 직전» — 엔진). null = 부재.
+    String? recommendText,
+
+    /// 운영 등급 생체 축소 등 «보기만» 한 줄. non-null ⇒ 두 카드 `runAction` null.
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _DiagnosticsScreenVm;
+
+  factory DiagnosticsScreenVm.fromJson(Map<String, dynamic> json) =>
+      _$DiagnosticsScreenVmFromJson(json);
+}
+// JSON 키: golden · integrity · board · diffs_link · recommend_text · locked_label · as_of
+
+/// 🆕 v1.24(01 §33 · K113 · K114 · K137) — `S10` 실행 카드 1장(골든 · 무결성 같은 꼴).
+/// 🔴 총계·비율·«n/m» 은 [summaryText] 엔진 글자 안에서만(화면 상수·조립 0 · 05 §8-1) · 실패 행 칸 = 이번 판 0(E11o 뒤 추가형 · 미결 198).
+/// 🔴 [runAction] null = 버튼 부재(실행기 없음 · 실행 중 · 잠김 — 판정 = 엔진) · 화면은 그대로 `SettingsActions.run` 1회.
+@freezed
+abstract class SelfTestCard with _$SelfTestCard {
+  const factory SelfTestCard({
+    /// 카드 제목(엔진 · 정적 라벨 0 — K137).
+    required String title,
+
+    /// 상태 한 줄(«골든벡터 판정 보류» · «실행 중» · «통과» · «마지막 검증 11-18 03:10» — 엔진).
+    required String statusLabel,
+
+    /// 카드 색·아이콘 근거.
+    required UiLevel level,
+
+    /// 마지막 실행 줄(엔진). null = 줄 부재.
+    String? lastRunText,
+
+    /// 요약 줄(엔진 · 총계 상수 0). null = 줄 부재.
+    String? summaryText,
+
+    /// 엔진이 완성한 `selftestGoldenRun{}` / `selftestIntegrityRun{}`. null = 버튼 부재.
+    SettingsActionCall? runAction,
+  }) = _SelfTestCard;
+
+  factory SelfTestCard.fromJson(Map<String, dynamic> json) =>
+      _$SelfTestCardFromJson(json);
+}
+// JSON 키: title · status_label · level · last_run_text · summary_text · run_action
+
+/// 🆕 v1.24(01 §33 · K118 · 01 §8 미결 95 (b)) — M9 `S12` 12월 연간 리뷰 **목차** VM(`OpsStatusRepository.watchAnnualReview` 반환).
+/// 🔴 세후·수익률·평가액·`lines`·연도 원값·창 상태 원값 칸 **0** — 타입에 없으면 나갈 수 없다(결정 8 · 01 §2-8 화이트리스트 원칙) ·
+///    M7 `S7-7` 의 `AnnualReviewVm` 은 무변경(다른 타입).
+/// 🔴 [entries] = 받은 차례 · M7 화면 링크만(기각 등록부 행 = HB-3 채택 전 0) · 화면이 행을 더하지 않는다 · 0 이면 행 0(K139) ·
+///    [pledgeLink] = 창 OPEN 일 때만 엔진이 채운다(목적지 `m5Pledge` · 편집 = M5-8) · 화면은 달·창을 판정하지 않는다.
+@freezed
+abstract class AnnualReviewIndexVm with _$AnnualReviewIndexVm {
+  const factory AnnualReviewIndexVm({
+    /// «2026년 연간 리뷰» — 엔진(`AnnualReviewVm.yearLabel` 과 같은 말).
+    required String yearLabel,
+
+    /// 창 상태 한 줄(엔진 · 원값 칸 0).
+    required String windowStateLabel,
+
+    /// 목차 행(M7 링크 · 받은 차례).
+    required List<LinkAction> entries,
+
+    /// 서약 편집 진입(M5-8 · OPEN 때만). null = 부재.
+    LinkAction? pledgeLink,
+    required AsOf asOf,
+  }) = _AnnualReviewIndexVm;
+
+  factory AnnualReviewIndexVm.fromJson(Map<String, dynamic> json) =>
+      _$AnnualReviewIndexVmFromJson(json);
+}
+// JSON 키: year_label · window_state_label · entries · pledge_link · as_of
 
 /// ⏸ m2-8 J-2 — `live × dryRun` 관찰 기간·승격 확인(§8-28 G-43).
 /// 🔴 **이름만 확정이고 기능은 발주자 확정 대기**다: 관찰 거래일 수는 엔진 config

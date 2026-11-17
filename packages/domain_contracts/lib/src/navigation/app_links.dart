@@ -284,20 +284,20 @@ abstract final class AppRoutes {
   /// 🆕 v1.18 — `S07` 연결 관리(`Connections()` · R6b · 상태 조회 = 폰·iOS 뷰어 · 버튼 = 폰만).
   static const String settingsConnections = 'aaq://settings/connections';
 
-  /// 🆕 v1.18 — `S08` 구글 캘린더(X4 · R9 · 폰 전용 · `ConnectionRow.route` 목적지).
+  /// 🆕 v1.18 — `S08` 구글 캘린더(X4 · ⏸ R9d — E17 판독 뒤 계약 창 · 01 §33 K107 · 폰 전용 · `ConnectionRow.route` 목적지).
   static const String settingsCalendar = 'aaq://settings/calendar';
 
-  /// 🆕 v1.18 — `S09` 백업·복원(R9 · 폰 전용).
+  /// 🆕 v1.18 — `S09` 백업·복원(🆕 v1.24 R9a · `BackupVm` · 폰 전용).
   static const String settingsBackup = 'aaq://settings/backup';
 
-  /// 🆕 v1.18 — `S10` 진단(골든벡터 셀프테스트 · 무결성 · R9 · 폰 전용).
+  /// 🆕 v1.18 — `S10` 진단(골든벡터 셀프테스트 · 무결성 · 🆕 v1.24 R9b · `DiagnosticsScreenVm` · 폰 전용).
   static const String settingsDiagnostics = 'aaq://settings/diagnostics';
 
-  /// 🆕 v1.18 — `S11` 일반 설정·방해금지(카드 배정 = R9 조립 때 · 01 §8 미결 170).
+  /// 🆕 v1.18 — `S11` 일반 설정·방해금지(⏸ R9e — 엔진 원천 뒤 · 01 §8 미결 197 · 170 닫음).
   static const String settingsGeneral = 'aaq://settings/general';
 
   /// 🆕 v1.18 — `S12` 12월 연간 리뷰 진입(M9 목차 · `SettingsHomeVm.annualReviewLink` 목적지 · M7 `reportAnnual` 과 다른 화면 ·
-  /// 카드 배정 = R9 조립 때 · 미결 95·170).
+  /// 🆕 v1.24 R9c · `AnnualReviewIndexVm` · v1 뷰어 = 레지스트리 빈 자리 · 미결 95·170 닫음).
   static const String settingsAnnualReview = 'aaq://settings/annual-review';
   static const String handoverStatus = 'aaq://handover/status';
 

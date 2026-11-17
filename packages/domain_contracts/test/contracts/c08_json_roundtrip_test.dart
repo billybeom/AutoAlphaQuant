@@ -315,6 +315,11 @@ const Map<String, String> _knownUncovered = <String, String>{
 
   // ── M9 설정·기기·연결·백업·셸(05) ────────────────────────────────────────
   'BackupVm': _reasonM9Fixture,
+  // 🆕 v1.24(01 §33) — 커밋 (3) 표본 신설 전 자리(같은 PR 커밋 (3)에서 지운다).
+  'AnnualReviewIndexVm': _reasonM9Fixture,
+  'DiagnosticsScreenVm': _reasonM9Fixture,
+  'RestorePointRow': _reasonM9Fixture,
+  'SelfTestCard': _reasonM9Fixture,
   // 🔵 v1.23(01 §32) — `MonthlyContributionVm` 은 m9/monthly_contribution* 6 이 덮어 목록에서 지웠다.
   'ShellChip': _reasonM9Fixture,
   'ShellVm': _reasonM9Fixture,
