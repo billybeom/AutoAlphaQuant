@@ -46,6 +46,7 @@ import 'job_runners.dart'
     show JobContext, JobNotAssembled, JobRunner, runOccurrence;
 import 'ledger_job_runners.dart'
     show cashBrokersOf, monthlyRebalanceJobOf, opsConfigOf;
+import 'x1_wiring.dart' show X1Wiring;
 
 /// 회차 세션일이 오늘(KST)이 아니다 — 주문 잡은 오늘로만 돈다.
 class OrderJobNotToday implements Exception {
@@ -84,6 +85,14 @@ KrOrderJobs orderJobsOf(JobContext c, JobParts p, String job) {
     mode: c.runMode,
     clock: c.clock,
   );
+  // 🆕 E16t2a(R141 V4 · V5) — X1 끼울 자리(기기 id ∧ live 일 때만 · 꺼짐 = 지금과 같다).
+  final X1Wiring x1 = X1Wiring.of(
+    c.db,
+    runMode: c.runMode,
+    deviceId: c.deviceId,
+    trusted: c.trusted,
+    lease: lease,
+  );
   // 현재가는 쓸 때 만든다 — 낼 주문이 없으면 KIS 키가 없어도 잡이 돈다.
   Future<KisPriceFetch>? fetch;
   Future<KisPrice> price(String code) async =>
@@ -111,6 +120,7 @@ KrOrderJobs orderJobsOf(JobContext c, JobParts p, String job) {
       carry: ledger,
     ),
     ladder: ResumeLadder.defaults,
+    backupGapDays: x1.backupGapDays(),
   );
   return KrOrderJobs(
     ledger: ledger,
@@ -136,7 +146,7 @@ KrOrderJobs orderJobsOf(JobContext c, JobParts p, String job) {
     heartbeat: c.heartbeat,
     alerts: c.alerts,
     nowUtc: c.clock.nowUtc,
-    lease: lease,
+    lease: x1.orderLease(lease),
     runLog: c.runLog,
     plannedWork: SqlitePlannedWorkStore(c.db, carry: ledger, clock: c.clock),
     modeFacts: SqliteModeFacts(
@@ -145,6 +155,8 @@ KrOrderJobs orderJobsOf(JobContext c, JobParts p, String job) {
       liveKeysVerified: () async => false,
     ),
     preGuard: (TradeDate day) async {
+      // 🔴 봉인이 먼저 — 재구성 전에는 재개 회차도 열지 않는다.
+      x1.checkOrderSeal();
       await resume.run(day);
     },
   );

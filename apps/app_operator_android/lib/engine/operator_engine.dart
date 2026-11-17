@@ -112,6 +112,8 @@ class OperatorEngine {
       alerts: SqliteAlertSink(ready.db, clock: _clock),
       runLog: log,
       clock: _clock,
+      deviceId: _bootInputs.deviceId,
+      trusted: _bootInputs.trusted,
     );
     final Map<String, JobRunner> table = _runners(ctx);
     final WakePlan plan = planWake(
