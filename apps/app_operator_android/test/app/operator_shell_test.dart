@@ -51,6 +51,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalSafetyRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
+        Accounts,
         Connections,
         Credentials,
         Devices,
@@ -580,6 +581,33 @@ void main() {
       // 확인 기록이 원장 감시(갱신 훅 · 0초 타이머)를 깨운다 — 가짜 시간을 흘려 보내고 닫는다.
       await tester.pump(const Duration(milliseconds: 10));
       await tester.pump(const Duration(milliseconds: 10));
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 S03 계좌 · 매핑(R151) = 조립 셸에 등록 · 모의 «등록 전» · 슬리브 셋 미지정(운영 설정 전)',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      await open(tester, AppRoutes.settingsAccounts);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(Accounts);
+      expect(screen, findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      Finder inScreen(String t) =>
+          find.descendant(of: screen, matching: find.text(t));
+      expect(inScreen('모의투자'), findsWidgets);
+      expect(inScreen('등록 전'), findsWidgets);
+      expect(inScreen('슬리브 A'), findsOneWidget);
+      expect(inScreen('미지정 — 이 슬리브의 주문은 내지 않습니다.'), findsNWidgets(3));
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;

@@ -12,6 +12,7 @@
 //    동작에 sim 파일(운영 방식 선택 · 키 검증 → 진척 기록). 마무리 · 재시작 = 4c · 4d.
 // 🆕 E11p3d-2b(R133) — 홈(H-01) 본문 · 운영 리듬(H-02) = `OperatorOpsSummaryRepository`(오늘 요약 · 리듬) + 이미 있는 안전 상태 ·
 //    진단 · 원천 없는 셋(안내 요약 · 슬리브 비중 · 원장 실사 배지 = «원천 없음» 오류 — 블록 부재 · 다시 시도).
+// 🆕 E11p3d-5i(R151) — M9 S03 계좌 · 매핑 본문(읽기만 · 선택 · 검증 = 동작 · 실전 키 전 · 운영 설정 없음 = 슬리브 미지정).
 // 🆕 E11p3d-4a(R147) — 알림 «확인했습니다» = `OperatorCommandApi.acknowledgeAlert`(엔진 `SqliteAlertSink.acknowledge` · 맥락 = 이 기기 id) ·
 //    기기 id 가 없으면 주입하지 않는다(버튼 부재) · 알림 화면에만 주입(나머지 명령 = operator 구현 전).
 // 🆕 E11p3d-5h(R146) — M9 S06 기기 · 접근 본문(캡처 막기 = `kSecureRoutePatterns` 이미 · 링크 = 레지스트리에 본문이 있는 화면만).
@@ -50,6 +51,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalSafetyRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
+        Accounts,
         Connections,
         Credentials,
         Devices,
@@ -197,6 +199,8 @@ Widget _settingsConnections(Map<String, String> _) => const Connections();
 
 Widget _settingsDevices(Map<String, String> _) => const Devices();
 
+Widget _settingsAccounts(Map<String, String> _) => const Accounts();
+
 /// 🆕 R129 — 설정 읽기 모델(첫 칸 = S02 키 목록) · 🆕 R134 설정 홈 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만.
 final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
     Provider<OperatorSettingsRepository>((Ref ref) {
@@ -250,6 +254,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.settingsConnections: _settingsConnections,
   // 🆕 E11p3d-5h(R146) — M9 S06 기기 · 접근.
   AppRoutes.settingsDevices: _settingsDevices,
+  // 🆕 E11p3d-5i(R151) — M9 S03 계좌 · 매핑.
+  AppRoutes.settingsAccounts: _settingsAccounts,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
   // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).
