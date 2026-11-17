@@ -118,6 +118,8 @@ export 'src/migration/gap_rebuild.dart'
         recoveredFillPlanOf,
         recoveredStatusOf,
         recoveryOrderSealCode;
+// 🆕 E16h2 — X1-5 골든 자가검사 포트(설계 13 §8 R138).
+export 'src/migration/golden_self_test.dart' show GoldenSelfTest;
 export 'src/migration/maintenance_window.dart'
     show
         WindowAction,
@@ -208,6 +210,7 @@ export 'src/mode/live_observation.dart'
         LiveObservationRecon,
         LiveObservationReport,
         LiveObservationRun,
+        cleanTradingDayStreakOf,
         judgeLiveObservation,
         kLiveDryRunObservationKey,
         kLiveObservationBatchCheck;

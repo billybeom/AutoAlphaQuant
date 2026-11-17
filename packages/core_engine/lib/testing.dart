@@ -8,6 +8,7 @@
 //   `RecordingAdviceSink`.
 
 // 🆕 E14a — 리스 포트 가짜(설계 13 §8 R71 L8).
+export 'src/testing/fake_golden_self_test.dart' show FakeGoldenSelfTest;
 export 'src/testing/fake_job_run_log.dart' show FakeJobRunLog;
 export 'src/testing/fake_lease_gate.dart' show FakeLeaseGate;
 // 🆕 E15a — 모드 판정 입력 가짜(설계 13 §8 R81 V5).

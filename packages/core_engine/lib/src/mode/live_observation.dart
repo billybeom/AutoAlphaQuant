@@ -185,36 +185,29 @@ String _firstSessionOnOrAfter(ExchangeCalendar kr, String day) {
   return kr.isSession(d) ? day : kr.nextSession(d).yyyyMmDd;
 }
 
-/// M1-22 관찰 판정(R89 AC2~AC8).
-LiveObservationReport judgeLiveObservation(
-  LiveObservationFacts f, {
+/// 🆕 E16h2(R138 Q2) — 최근 연속 무결 거래일(M1-22 · X1-5 공용 · `judgeLiveObservation` 에서 꺼냄 · 동작 0 변경).
+///
+/// 무결 = 그날 배치 정상(시작점 뒤) ∧ 그날 대사(시작점 뒤) ≥ 1 ∧ 전부 일치 · 🔴 오늘이 아직 무결이 아니면 끊지 않는다 ·
+/// 오늘에서 멈춘다(오늘 다음 세션은 묻지 않는다 — 달력 범위 끝 날에도 답한다).
+int cleanTradingDayStreakOf({
+  required Iterable<LiveObservationRun> runs,
+  required Iterable<LiveObservationRecon> recons,
+  required DateTime sinceUtc,
+  required DateTime asOfUtc,
   required ExchangeCalendar kr,
-  required LiveObservationConfig config,
 }) {
-  final DateTime? since = f.currentSinceUtc;
-  if (f.runMode != RunMode.live ||
-      f.execPolicy != ExecPolicy.dryRun ||
-      since == null) {
-    return LiveObservationReport.notObserving;
-  }
-  final int m = config.requiredTradingDays;
-  final String startDay = kstDateText(since);
-  final String today = kstDateText(f.asOfUtc);
-
-  // 무결 = 그날 kr_order 정상(시작점 뒤) ∧ 그날 대사(시작점 뒤) ≥ 1 ∧ 전부 일치(AC3).
+  final String startDay = kstDateText(sinceUtc);
+  final String today = kstDateText(asOfUtc);
   final Set<String> okRuns = <String>{
-    for (final LiveObservationRun r in f.runs)
-      if (r.succeeded && !r.startedAtUtc.isBefore(since)) r.sessionDay,
+    for (final LiveObservationRun r in runs)
+      if (r.succeeded && !r.startedAtUtc.isBefore(sinceUtc)) r.sessionDay,
   };
   final Map<String, bool> reconClean = <String, bool>{};
-  for (final LiveObservationRecon r in f.recons) {
-    if (r.runAtUtc.isBefore(since)) continue;
+  for (final LiveObservationRecon r in recons) {
+    if (r.runAtUtc.isBefore(sinceUtc)) continue;
     final String d = kstDateText(r.runAtUtc);
     reconClean[d] = (reconClean[d] ?? true) && r.matched;
   }
-
-  // 최근 연속 — 오늘이 아직 무결이 아니면 끊지 않는다(AC4).
-  // 🔴 오늘에서 멈춘다 — 오늘 다음 세션은 묻지 않는다(달력 범위 끝 날에도 답한다).
   int run = 0;
   for (
     String day = _firstSessionOnOrAfter(kr, startDay);
@@ -228,6 +221,29 @@ LiveObservationReport judgeLiveObservation(
     }
     if (day == today) break;
   }
+  return run;
+}
+
+/// M1-22 관찰 판정(R89 AC2~AC8).
+LiveObservationReport judgeLiveObservation(
+  LiveObservationFacts f, {
+  required ExchangeCalendar kr,
+  required LiveObservationConfig config,
+}) {
+  final DateTime? since = f.currentSinceUtc;
+  if (f.runMode != RunMode.live ||
+      f.execPolicy != ExecPolicy.dryRun ||
+      since == null) {
+    return LiveObservationReport.notObserving;
+  }
+  final int m = config.requiredTradingDays;
+  final int run = cleanTradingDayStreakOf(
+    runs: f.runs,
+    recons: f.recons,
+    sinceUtc: since,
+    asOfUtc: f.asOfUtc,
+    kr: kr,
+  );
 
   final LiveObservationBlock? block = f.killSwitchActive
       ? LiveObservationBlock.killSwitch
