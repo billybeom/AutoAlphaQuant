@@ -191,6 +191,14 @@ void main() {
         FixturePaths.x2ResumeReportRecoveryFull,
         FixturePaths.x2ResumeReportNormal,
         FixturePaths.m6JournalSimBrokerReject,
+        // 🆕 v1.23(01 §32) — 신설 7(S13 VM 6 · 결과 1).
+        FixturePaths.m9MonthlyContribution,
+        FixturePaths.m9MonthlyContributionPending,
+        FixturePaths.m9MonthlyContributionNoRecord,
+        FixturePaths.m9MonthlyContributionNoLimitNote,
+        FixturePaths.m9MonthlyContributionLocked,
+        FixturePaths.m9MonthlyContributionStale,
+        FixturePaths.m9ContributionActionResults,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {
