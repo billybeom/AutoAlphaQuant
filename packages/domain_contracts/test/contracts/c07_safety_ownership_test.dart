@@ -189,11 +189,14 @@ void main() {
       );
     });
 
-    test('C-7 둘째 쓰기 창구 SettingsActions 의 표면은 run·watch 둘뿐이다', () {
+    test('C-7 둘째 쓰기 창구 SettingsActions 의 표면은 '
+        'run·runContributionUpdate·watch 셋이다', () {
       // 🔴 `SettingsActions` 는 `CommandApi` 가 **아니다**(01 §4-3) — 그래서 동사
       //    이름의 메서드를 두지 않고 `run(SettingsActionId, args)` 하나로 받는다.
       //    동작이 늘어도 **표면은 늘지 않는** 것이 이 계약의 형태이며, 여기서
       //    표면이 늘어나는 것을 막는다.
+      // 🆕 v1.23(01 §32 · K77) — K7(사람 글·수 = 제출 DTO)이 표면 고정을 이긴다(v1.22 K52 선례) — 사람이 친 금액 1
+      //    (`runContributionUpdate(ContributionUpdateSubmission)`) · 엔진이 완성하는 동작은 여전히 `run` 화이트리스트.
       final String code = stripCommentsAndStrings(
         File('${libDir.path}/src/commands/settings_actions.dart')
             .readAsStringSync(),
@@ -208,14 +211,16 @@ void main() {
           .toList();
       expect(
         methods.toSet(),
-        <String>{'run', 'watch'},
+        <String>{'run', 'runContributionUpdate', 'watch'},
         reason:
             '01 §4-3 — «동작»만이다(G-29). 상태 구독은 리포지토리 쪽이고, 여기에 '
-            '메서드를 더하면 화면이 run() 을 폴링해 상태를 만들기 시작한다.',
+            '메서드를 더하면 화면이 run() 을 폴링해 상태를 만들기 시작한다 '
+            '(🆕 v1.23 K77 — 사람이 친 금액 제출 1 만 예외).',
       );
       // 🆕 v1.2 검증 반영 — getter·필드도 표면이다(선언 전체 대조).
       _expectSurfaceIsExactly(surface, 'SettingsActions', <String>{
         'run',
+        'runContributionUpdate',
         'watch',
       });
     });

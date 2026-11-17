@@ -3,8 +3,10 @@
 // 🔴 **월 추가 납입 운영값을 화면(`ui_*/lib` · `labels.dart` 포함)·계약 코드에 상수로 적지
 //    않는다**(C-32 · 🆕 v1.4 문구 통일 01 §14-13). 픽스처는 **폐기값만** 금지이고 금액 예시값은
 //    하나를 쓴다(`fixture_conventions_test.dart` 머리 주석).
-//    읽기 창구는 `ConfigRepository.watchContributionSetting()` **하나**이고 변경
-//    창구는 `SettingsActions`(운영 등급 · `settingsContributionUpdate` ⏸)다.
+// 🔵 v1.23 정정(01 §32 · K78) — **값의 원천은 엔진 `contributionSettingOf` 하나**이고 읽기 창구는 둘이다:
+//    `ConfigRepository.watchContributionSetting()`(원값 `ContributionSetting` · S7-4·H-02) ·
+//    🆕 `SettingsRepository.watchContribution()`(M9 `S13` 화면 투영 `MonthlyContributionVm` · 잠김·버튼 칸).
+//    변경 창구는 `SettingsActions.runContributionUpdate`(운영 등급 · 🆕 v1.23 원문 제출 DTO `ContributionUpdateSubmission`)다.
 // 🔴 화면이 `금액 × 12` 를 계산하지 않는다 — 한도 판정은 엔진 단일 소스다.
 // 🔴 **최소·최대·0 허용 여부를 필드로 내려보내지 않는다** — 범위 판정은 저장
 //    명령의 `ActionResult.headline`·`reasonCode` 로만 돌아온다(그래야 「저장 버튼
@@ -17,6 +19,7 @@
 //    ④ «엔진이 완성한 호출 1개» = [SettingsActionCall](`OnboardingAction` 별칭 · 화면은 id·args 를 그대로 넘긴다).
 // 🆕 계약 v1.20(01 §29) — `S02` `CredentialListVm`·`CredentialCardVm` 추가형(색 · 동작 · 슬롯 · 잠김 · asOf · 봉인 · 런북 ·
 //    회전 링크 · 키 조각 0 · 1단).
+// 🆕 계약 v1.23(01 §32 · K79) — `MonthlyContributionVm` 추가형(asOf · lockedLabel · changeLabel · editable = ui 미참조 표식) — M9 `S13` 화면 VM.
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -73,30 +76,43 @@ abstract class ContributionSetting with _$ContributionSetting {
       _$ContributionSettingFromJson(json);
 }
 
-/// m2-8 G-11 — 05 `S05` 월 납입 운영값 카드.
-/// 🔴 `ContributionSetting` 의 **1:1 투영**이며 `editable` 하나만 런타임 값이다
-///    (`SettingsActions` 주입 여부 — 뷰어에서는 false 가 아니라 **카드 부재**).
-/// 🔴 **필드를 이어 붙여 문장을 만들지 않는다.** 투영을 늘리는 것은 허용된다
-///    (엔진 문자열 필드가 늘면 여기도 **같은 이름으로** 는다 · N-S4-03).
-/// 🔴 03 §8 `S7-3b` 의 `ContributionVm`(슬리브 기여 분해)과 **다른 타입**이며
-///    이름을 재사용하지 않는다(N-01).
+/// m2-8 G-11 · 🆕 v1.23(01 §32 · K79) — 05 `S13` 월 납입 설정 화면 VM(~~`S05` 카드~~ — v1.19 K3 `S05` 칸 0).
+/// 🔴 앞 7 칸(− `editable`)과 [asOf] 는 `ContributionSetting` 의 **1:1 투영**이다(같은 이름 · N-S4-03).
+/// 🔴 **필드를 이어 붙여 문장을 만들지 않는다.** 투영을 늘리는 것은 허용된다(엔진 문자열 필드가 늘면 여기도 같은 이름으로).
+/// 🔴 03 §8 `S7-3b` 의 `ContributionVm`(슬리브 기여 분해)과 **다른 타입**이며 이름을 재사용하지 않는다(N-01 · G-67).
+/// 🆕 v1.23 — 입력칸·버튼 유무 = [changeLabel](엔진·조립 · null = **부재**) + `SettingsActions` 주입(뷰어 = 화면 부재 · 폰 전용) ·
+///    [lockedLabel] non-null ⇒ [changeLabel] null(K-t · C-57 ②) · 🔴 최소·최대·0 허용 칸 0(범위 판정 = 결과 `reasonCode` 로만).
 @freezed
 abstract class MonthlyContributionVm with _$MonthlyContributionVm {
   const factory MonthlyContributionVm({
     required String amountText,
 
-    /// 🆕 v1.4 — `ContributionSetting.amountInputText` 의 투영(N-S4-03 · 같은 이름).
+    /// 🆕 v1.4 — `ContributionSetting.amountInputText` 의 투영(N-S4-03 · 같은 이름) · 입력칸은 스트림의 **첫 값만** 채운다.
     required String amountInputText,
     required String equivalentNoteText,
     required String appliesFromText,
     required String lastChangedText,
+
+    /// 🔴 ui 미참조(🆕 v1.23 · K79) — 값 = `changeLabel != null`(C-57 ③) · 지우지 않는다(파괴 변경 0 · 추가형 원칙) ·
+    ///    화면은 [changeLabel] 의 null 여부로만 가른다.
     required bool editable,
     String? pensionLimitNoteText,
+
+    /// 🆕 v1.23 — `ContributionSetting.asOf` 의 투영(오래됨 배너 · 하단 고지).
+    required AsOf asOf,
+
+    /// 🆕 v1.23 — 운영 등급 생체 축소 등 «보기만» 한 줄(엔진·조립). non-null ⇒ [changeLabel] null.
+    String? lockedLabel,
+
+    /// 🆕 v1.23 — 변경 버튼 글자(엔진·조립). 🔴 null = 입력칸·버튼 **부재**(잠김 · 원천 없음) — 화면이 글자·유무를 짓지 않는다.
+    String? changeLabel,
   }) = _MonthlyContributionVm;
 
   factory MonthlyContributionVm.fromJson(Map<String, dynamic> json) =>
       _$MonthlyContributionVmFromJson(json);
 }
+// JSON 키: amount_text · amount_input_text · equivalent_note_text · applies_from_text · last_changed_text · editable ·
+//          pension_limit_note_text · as_of · locked_label · change_label
 
 /// 🆕 v1.18(01 §27 · K-d) — 엔진이 완성한 `SettingsActions.run` 호출 1개(M9 공용 이름).
 /// 🔴 화면은 [OnboardingAction.id]·[OnboardingAction.args] 를 **그대로** 넘긴다(키·값을 짓지 않는다 · 화이트리스트 =

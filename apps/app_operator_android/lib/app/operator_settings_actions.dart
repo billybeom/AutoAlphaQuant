@@ -43,6 +43,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         ActionResult,
         BrokerRawCodes,
         Clock,
+        ContributionUpdateSubmission,
         OnboardingResultCodes,
         OperatingMode,
         SettingsActionId,
@@ -166,6 +167,14 @@ class OperatorSettingsActions implements SettingsActions {
       UnsupportedError('${id.name}: operator 구현 없음(R118)'),
     );
   }
+
+  /// 🆕 계약 v1.23(01 §32 · K92) — `S13` 월 납입 제출 = 구현 없음(바인딩 = 06 `M4-12` ⑧ · 지어내지 않는다).
+  @override
+  Future<ActionResult> runContributionUpdate(
+    ContributionUpdateSubmission submission,
+  ) => Future<ActionResult>.error(
+    UnsupportedError('runContributionUpdate: operator 구현 없음(v1.23)'),
+  );
 
   @override
   Stream<ActionResult> watch(String actionRunId) {

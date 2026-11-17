@@ -16,6 +16,7 @@
 // 🆕 v1.19(01 §28) — M9 `S05` args 화이트리스트(전환 2 · 엔진 시작·중지 · 승격) · S05 는 결과를 읽는다.
 // 🆕 v1.20(01 §29) — M9 `S02`·`S06`·`S03` args 화이트리스트(검증 1단 · 발급 · 폐기 · 매핑 · 전체 검증) · 🔴 시크릿 값 args 0.
 // 🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드 args 화이트리스트(handover +3 · 확정 = 기존 `handoverCommit`).
+// 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 = 원문 제출 DTO `ContributionUpdateSubmission` + `runContributionUpdate`(표면 run·runContributionUpdate·watch 셋 — C-7) · `run` 화이트리스트 밖.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -93,7 +94,11 @@ part 'settings_actions.g.dart';
 ///    · `accountVerifyMapping`      = `{}`(v1.16 그대로 · `AccountMappingVm.verifyAction` = 전체 검증)
 ///    🔴 R7 세 화면은 [ActionResult] 의 `headline` + `reasonCode` 원문만 읽는다 — `handoffRoute`·`retryable` 미참조(표본 null·false ·
 ///      다시 시도 = VM 의 같은 버튼)(표본 = `m9/credential_action_results` · `m9/device_action_results` · `m9/account_mapping_action_results`).
-///    ⏸ `settingsContributionUpdate` = R8 창(엔진 E11j) · R9 동작 = 그 창.
+///    🆕 v1.23(01 §32 · K77) — `settingsContributionUpdate` = **제출 경로**(`runContributionUpdate(ContributionUpdateSubmission)`) ·
+///      🔴 `run` 화이트리스트 **밖**(사람이 친 금액 = 원문 제출 DTO — K7 이 표면 고정을 이긴다 · v1.22 K52 선례 · `run(settingsContributionUpdate)`
+///      = 구현 `ArgumentError`) · 결과 id = 늘 `settingsContributionUpdate` · `reasonCode` ∈ `ContributionResultCodes` ∪
+///      {`TRUSTED_TIME_UNKNOWN`, `BIOMETRIC_UNAVAILABLE`} ∪ null(접수) · `handoffRoute` null · `retryable` false
+///      (표본 = `m9/contribution_action_results`) · R9 동작 = 그 창.
 ///    🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드(🔒 `ui_safety` · 폰 로컬 · 뷰어 경로 0 · M9 `S05` 는 부르지 않는다):
 ///    · `handoverSimLedgerFate` = `{fate ∈ {KEEP, DISCARD}}`(엔진 `SimLedgerFate.wire` · 🔴 **세션 전** — 5단계는 6단계 생체(세션 열림) 앞이라
 ///      `handover_session_id` 를 넣지 않는다 · 결과 `reasonCode` ∈ {`SIM_LEDGER_FATE_SIM_CLOSED`, `SIM_TO_AUTO_NOT_SIM_AUTO`})
@@ -118,6 +123,13 @@ abstract interface class SettingsActions {
     SettingsActionId id, {
     Map<String, String> args = const <String, String>{},
   });
+
+  /// 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 운영값 변경(운영 등급 · 생체 = 구현). 🔴 화면은 입력칸 글자를 **원문 그대로** 싣는다
+  ///    (손질·파싱·범위 판정·버튼 비활성 0 · 빈칸·0 도 보낸다) · `actionRunId`·기기 id·신뢰 시각 = 구현.
+  ///    🔴 E11k(신뢰 시각) 전에는 형식이 맞는 입력 전부 `TRUSTED_TIME_UNKNOWN`(fail-closed · K98).
+  Future<ActionResult> runContributionUpdate(
+    ContributionUpdateSubmission submission,
+  );
 
   Stream<ActionResult> watch(String actionRunId);
 }
@@ -149,3 +161,18 @@ abstract class ActionResult with _$ActionResult {
   factory ActionResult.fromJson(Map<String, dynamic> json) =>
       _$ActionResultFromJson(json);
 }
+
+/// 🆕 v1.23(01 §32 · K77 · K103) — M9 `S13` 월 납입 변경 «화면 제출»(core `decideContributionChange(amountInput …)` :304 ·
+/// ds `ContributionSettingSource.change({amountInput, actionRunId})` :119 의 사람 몫 1 칸).
+/// 🔴 [amountInput] = 입력칸 글자 **원문 그대로**(콤마·공백·빈칸·음수·글자 포함 가능 — 판정 = 엔진 차례 빈칸 → 음수 → 숫자 아님 →
+///    상한 → 신뢰 시각 → 시계 전진 → 같은 값) · `actionRunId`(재생 멱등 = 같은 회차만)·기기 id·신뢰 시각 = 구현이 붙인다(화면 생성 0).
+@freezed
+abstract class ContributionUpdateSubmission
+    with _$ContributionUpdateSubmission {
+  const factory ContributionUpdateSubmission({required String amountInput}) =
+      _ContributionUpdateSubmission;
+
+  factory ContributionUpdateSubmission.fromJson(Map<String, dynamic> json) =>
+      _$ContributionUpdateSubmissionFromJson(json);
+}
+// JSON 키: amount_input

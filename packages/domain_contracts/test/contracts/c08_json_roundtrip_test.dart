@@ -300,6 +300,8 @@ const Map<String, String> _knownUncovered = <String, String>{
   'RuleChangeApprovalSubmission': _reasonCommandPayload,
   'DiscretionAdjustSubmission': _reasonCommandPayload,
   'KillChecklistSubmission': _reasonCommandPayload,
+  // 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 제출 DTO(포트 인자 · 표본 0) · C-57 ⑩ 이 시험 안에서 왕복한다.
+  'ContributionUpdateSubmission': _reasonCommandPayload,
   'LedgerEventRecord': _reasonCommandPayload,
   'ManualFillAmendment': _reasonCommandPayload,
   'ManualFillPatchable': _reasonCommandPayload,

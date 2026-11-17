@@ -27,5 +27,6 @@ abstract interface class ConfigRepository {
   ///    가정 카드 2줄은 `GoalPathVm.startingCapitalAssumptionText`(엔진 문장)가 준다.
   /// ✅ C-10 — 소속 리포지토리는 `ConfigRepository` 로 확정(별도 리포지토리를 만들지 않는다).
   /// 🔴 화면·계약·픽스처가 월 납입 금액을 상수로 적지 않는다(C-32).
+  /// 🆕 v1.23(01 §32 · K78) — `S05` 칸 0(v1.19 K3) · M9 `S13` 은 같은 값의 화면 투영 `SettingsRepository.watchContribution()` 을 읽는다(값의 원천 = 엔진 `contributionSettingOf` 하나 · 두 벌 문장 0).
   Stream<ContributionSetting> watchContributionSetting();
 }
