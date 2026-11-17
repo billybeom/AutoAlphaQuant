@@ -102,6 +102,10 @@ Future<OperatorEngine> _assemble(
   const SystemClock clock = SystemClock();
   final http.Client net = http.Client();
   final AndroidSecretVault vault = AndroidSecretVault();
+  // 🆕 E16t2b(R144 X1) — 이 기기 id = 실행 묶음의 값(화면과 같은 값) · 없으면 플랫폼에서(못 얻으면 null = X1 끼울 자리 꺼짐).
+  final String? deviceId = runtime != null
+      ? runtime.deviceId
+      : await deviceIdOrNull(ops);
   final JobParts parts = operatorJobParts(
     KisSessions(vault: vault, http: net),
     net,
@@ -110,7 +114,7 @@ Future<OperatorEngine> _assemble(
     openFiles: () => runtime?.files ?? LedgerFiles.open(dir!, clock: clock),
     calendars: cals,
     heartbeat: HealthchecksClient(net, vault),
-    bootInputs: kOperatorBootInputs,
+    bootInputs: operatorBootInputs(deviceId: deviceId),
     runners: (JobContext c) => composeJobRunners(c, parts: parts),
     seed: () => loadSeedAssets(rootBundle),
     fgs: fgs,
@@ -122,6 +126,19 @@ Future<OperatorEngine> _assemble(
 const BootInputs kOperatorBootInputs = BootInputs(
   credentialEnvironmentOk: kisKeySetFits,
 );
+
+/// 🆕 E16t2b(R144 X2) — 조립 앱의 기동 입력 + 이 기기 id(null = X1 끼울 자리 꺼짐 · 그 밖 = [kOperatorBootInputs] 와 같다).
+BootInputs operatorBootInputs({String? deviceId}) =>
+    BootInputs(credentialEnvironmentOk: kisKeySetFits, deviceId: deviceId);
+
+/// 🆕 E16t2b(R144 X3) — 이 기기 id(못 얻으면 null — 화면 · 엔진은 그대로 서고 기기 id 를 쓰는 칸만 꺼진다).
+Future<String?> deviceIdOrNull(AndroidOps ops) async {
+  try {
+    return await ops.deviceId();
+  } on Object {
+    return null;
+  }
+}
 
 /// 조립 앱의 실물 잡 부품(R97) — 일봉 원천 = 모드 세트의 KIS 클라이언트(하나) · FRED 는 키 없이 CSV.
 JobParts operatorJobParts(KisSessions kis, http.Client net) => JobParts(
@@ -141,12 +158,7 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
     final AndroidOps ops = AndroidOps();
     final String dir = (await ops.paths()).engineDir;
     // 🆕 R142 — 이 기기 id(못 얻으면 null — 화면은 그대로 선다 · 기기 id 를 쓰는 칸만 «없음»).
-    String? deviceId;
-    try {
-      deviceId = await ops.deviceId();
-    } on Object {
-      deviceId = null;
-    }
+    final String? deviceId = await deviceIdOrNull(ops);
     return OperatorRuntime(
       files: LedgerFiles.open(dir, clock: clock),
       clock: clock,
