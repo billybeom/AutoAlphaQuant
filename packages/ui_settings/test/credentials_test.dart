@@ -659,6 +659,9 @@ void main() {
       ]) {
     testWidgets('M9S02-10 locked ${c.name}', (WidgetTester tester) async {
       expect(locked.lockedLabel, isNotNull); // pre
+      expect(c.v.leakRunbookLink, isNotNull); // pre
+
+      final RecordingLinkOpener opener = RecordingLinkOpener();
 
       await pumpCredentials(
         tester,
@@ -668,7 +671,7 @@ void main() {
           ),
           actions: okActions(),
           slots: FakeSettingsSlotRecorder().build,
-          opener: RecordingLinkOpener(),
+          opener: opener,
           clock: FixedClock(kGoldenNowUtc),
         ),
       );
@@ -695,6 +698,10 @@ void main() {
         shownTexts(tester, find.byKey(const Key('m9s02-runbook'))),
         <String?>[?c.v.leakRunbookLink?.label],
       );
+      // 잠김에도 남는 런북 링크는 누르면 한 번 열린다(K35 · C4r7a-2 · C4U-5).
+      await tester.tap(find.byKey(const Key('m9s02-runbook')));
+      await tester.pump();
+      expect(opener.opened, <String>[?c.v.leakRunbookLink?.deepLink]);
       expect(find.text(SettingsLabels.retry), findsNothing); // ⓡ
     });
   }
