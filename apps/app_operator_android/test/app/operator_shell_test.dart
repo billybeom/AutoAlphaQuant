@@ -12,6 +12,7 @@ import 'package:app_operator_android/app/operator_settings_actions.dart';
 import 'package:app_operator_android/app/operator_settings_repository.dart';
 import 'package:app_operator_android/app/operator_shell.dart';
 import 'package:app_operator_android/app/operator_view.dart';
+import 'package:app_operator_android/app/secure_screen.dart';
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/main.dart';
@@ -52,6 +53,7 @@ import 'package:ui_settings/ui_settings.dart'
     show
         Connections,
         Credentials,
+        Devices,
         SettingsHome,
         SettingsSlotBuilder,
         settingsActionsProvider,
@@ -515,6 +517,42 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(Credentials), findsOneWidget);
     expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
+  });
+
+  testWidgets('🔴 S06 기기 · 접근(R146) = 조립 셸에 등록 · 이 폰 한 행 · 모의 단독 리스 · 캡처 막기', (
+    WidgetTester tester,
+  ) async {
+    container.dispose();
+    final List<bool> secure = <bool>[];
+    rt = OperatorRuntime(
+      files: files,
+      clock: clock,
+      deviceId: '3f2b8c1e-9a4d-4b6f-8e2a-1c5d7f9b0a3e',
+      secure: SecureScreen((bool on) async => secure.add(on)),
+    );
+    container = ProviderContainer(overrides: operatorShellOverrides(rt));
+    await pumpApp(tester);
+    await ready(tester);
+    await open(tester, AppRoutes.settingsDevices);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 30)),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    final Finder screen = find.byType(Devices);
+    expect(screen, findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    Finder inScreen(String t) =>
+        find.descendant(of: screen, matching: find.text(t));
+    expect(inScreen('이 폰(운영)'), findsWidgets);
+    expect(inScreen('유효 — 이 폰 단독 리스(모의)'), findsOneWidget);
+    expect(inScreen('연결된 조회 전용 기기가 없습니다.'), findsOneWidget);
+    // 🔴 S06 = 캡처 막기 라우트(R107 · QR 자리가 생길 화면).
+    expect(rt.secure.depth, greaterThan(0));
     await tester.pumpWidget(const SizedBox.shrink());
     container.dispose();
     disposed = true;

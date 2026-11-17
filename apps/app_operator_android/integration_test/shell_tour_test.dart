@@ -1,4 +1,5 @@
 // E11p3d-5f 에뮬레이터 종합 확인(설계 13 §8 R140) — 실제 앱 셸에서 홈(H-01) → 더보기 = 설정 홈(S01) → 연결(S07) → H-03.
+// 🆕 E11p3d-5h(R146) — + 기기 · 접근(S06 · 실제 기기 id · 설정 홈 «기기·접근» 카드로 들어간다).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
 // 실행: `flutter test integration_test/shell_tour_test.dart -d emulator-5554` · 표지 `IT_*` 마다 4초 멈춘다(캡처 자리).
@@ -23,7 +24,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
-import 'package:ui_settings/ui_settings.dart' show Connections, SettingsHome;
+import 'package:ui_settings/ui_settings.dart'
+    show Connections, Devices, SettingsHome;
 import 'package:ui_shell/ui_shell.dart'
     show DeviceRiskBoard, OpsHome, ShellRoot, shellLinkOpenerProvider;
 
@@ -76,6 +78,7 @@ void main() {
       vault: AndroidSecretVault(),
       watchdogRemote: HealthchecksClient(http.Client(), AndroidSecretVault()),
       deviceProbe: () => ops.deviceRisk(clock.nowUtc()),
+      deviceId: await ops.deviceId(),
     );
     // 온보딩 확정 + 모의 모드 행을 먼저 둔다 → 루트 = 셸.
     files.sim.execute(
@@ -137,6 +140,13 @@ void main() {
         findsOneWidget,
       );
       await _at(tester, conn, 'IT_S07');
+
+      // S06 — 설정 홈 «기기·접근» 카드(본문 등록 → 카드 · 탭이 저절로 선다).
+      await tester.pageBack();
+      await _until(tester, find.text('기기·접근'));
+      await tester.tap(find.descendant(of: home, matching: find.text('기기·접근')));
+      await _until(tester, find.text('연결된 조회 전용 기기가 없습니다.'));
+      await _at(tester, find.byType(Devices), 'IT_S06');
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
       await _until(tester, find.textContaining('남은 공간'));
