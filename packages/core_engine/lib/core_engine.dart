@@ -163,6 +163,8 @@ export 'src/migration/migration_plan.dart'
         planNextOf,
         planProgressOf,
         planStepBlockCode;
+// 🆕 E16h1 — X1-4 새 폰 복구 단계(순수 · 설계 13 §8 R137).
+export 'src/migration/recovery_steps.dart' show RecoveryStep;
 export 'src/migration/reissue_checklist.dart'
     show ReissueChecklist, ReissueCodes, ReissueEntry, ReissueItem;
 export 'src/migration/transfer_ticket.dart'

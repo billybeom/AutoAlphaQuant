@@ -21,13 +21,13 @@ import 'package:domain_contracts/domain_contracts.dart'
         FillKind,
         FlagIds,
         LedgerPair,
-        OrderSide,
         hashFormatVersion;
 import 'package:sqlite3/sqlite3.dart';
 
 import 'derived_sync_store.dart' show storedDayStampsOf;
 import 'ledger_fix.dart' show withLedgerFix;
 import 'ledger_hash_stamper.dart' show ledgerLinesByDay;
+import 'position_replay_sql.dart' show ledgerFillRowsOf, writeReplayedPosition;
 
 /// 새 기준점 거부 코드(core `BaselineCodes` 밖의 저장 쪽 사유).
 abstract final class BaselineStoreCodes {
@@ -387,7 +387,12 @@ class SqliteLedgerRepairStore {
         final String market = t['market'] as String;
         final String symbol = t['symbol'] as String;
         final String strategy = t['strategy_id'] as String;
-        final List<LedgerFillRow> rows = _fillsOf(market, symbol, strategy);
+        final List<LedgerFillRow> rows = ledgerFillRowsOf(
+          _db,
+          market,
+          symbol,
+          strategy,
+        );
         final LedgerFillRow f = rows.firstWhere(
           (LedgerFillRow r) => r.executionId == fillId,
         );
@@ -513,7 +518,13 @@ class SqliteLedgerRepairStore {
         if (_db.updatedRows != 1) {
           throw StateError('없는 브로커 주문: ${f.brokerOrderNo}');
         }
-        _writePosition(key, exists: pos.isNotEmpty, p: after, iso: iso);
+        writeReplayedPosition(
+          _db,
+          key,
+          exists: pos.isNotEmpty,
+          p: after,
+          iso: iso,
+        );
         String? supersedes;
         if (f.kind == FillKind.restatement) {
           final ResultSet prior = _db.select(
@@ -599,81 +610,6 @@ class SqliteLedgerRepairStore {
           fillIds: <String>[for (final LedgerFillRow r in added) r.executionId],
         );
       },
-    );
-  }
-
-  /// (시장 · 종목 · 전략)의 브로커 체결 — 입력 차례(rowid).
-  List<LedgerFillRow> _fillsOf(
-    String market,
-    String symbol,
-    String strategy,
-  ) => <LedgerFillRow>[
-    for (final Row r in _db.select(
-      'SELECT e.execution_id, e.fill_kind, e.reverses_fill_id, e.restates_fill_id, e.quantity, '
-      'e.price, e.broker_order_no, i.side, i.trade_date, i.decision_id FROM executions e '
-      'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
-      'JOIN order_intents i ON i.intent_id = b.intent_id '
-      'WHERE i.market = ? AND i.symbol = ? AND i.strategy_id = ? ORDER BY e.rowid',
-      <Object?>[market, symbol, strategy],
-    ))
-      LedgerFillRow(
-        executionId: r['execution_id'] as String,
-        kind: FillKind.values.firstWhere(
-          (FillKind k) => k.wire == r['fill_kind'],
-        ),
-        side: OrderSide.values.firstWhere((OrderSide s) => s.wire == r['side']),
-        quantity: r['quantity'] as int,
-        price: (r['price'] as num).toDouble(),
-        brokerOrderNo: r['broker_order_no'] as String,
-        tradeDate: r['trade_date'] as String,
-        decisionId: r['decision_id'] as String,
-        reversesFillId: r['reverses_fill_id'] as String?,
-        restatesFillId: r['restates_fill_id'] as String?,
-      ),
-  ];
-
-  /// 🔴 다시 센 포지션을 쓴다 — 0 = 지움 · 남음 = 수량 · 평단 · 진입 갱신(ATR 등 그대로) · 새로 생김 = 넣음.
-  void _writePosition(
-    List<Object?> key, {
-    required bool exists,
-    required ReplayedPosition p,
-    required String iso,
-  }) {
-    if (p.quantity == 0) {
-      if (exists) {
-        _db.execute(
-          'DELETE FROM positions WHERE market = ? AND symbol = ? AND strategy_id = ?',
-          key,
-        );
-      }
-      return;
-    }
-    if (exists) {
-      _db.execute(
-        'UPDATE positions SET quantity = ?, avg_price = ?, entry_date = ?, entry_decision_id = ?, '
-        'updated_at = ? WHERE market = ? AND symbol = ? AND strategy_id = ?',
-        <Object?>[
-          p.quantity,
-          p.avgPrice,
-          p.entryDate,
-          p.entryDecisionId,
-          iso,
-          ...key,
-        ],
-      );
-      return;
-    }
-    _db.execute(
-      'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, '
-      'updated_at, entry_decision_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      <Object?>[
-        ...key,
-        p.quantity,
-        p.avgPrice,
-        p.entryDate,
-        iso,
-        p.entryDecisionId,
-      ],
     );
   }
 }
