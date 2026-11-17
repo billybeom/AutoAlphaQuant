@@ -47,9 +47,11 @@ abstract final class OriginCodes {
   static const String schemaSkew = 'SCHEMA_SKEW';
 
   /// 해시 체인 단절.
+  /// 🔴 v1.24 — 같은 글자 다른 축 = `LedgerIntegrityResultCodes.chainBroken`(무결성 결과 · C-5 문서 쌍).
   static const String chainBroken = 'CHAIN_BROKEN';
 
   /// 복원 롤백.
+  /// 🔴 v1.24 — 같은 글자 다른 축 = `BackupResultCodes.rollback`(백업 거부 · C-5 문서 쌍).
   static const String restoreRollback = 'RESTORE_ROLLBACK';
 
   // ── X7 계열 6 (01 §10) ────────────────────────────────────────────────────
