@@ -60,8 +60,8 @@ class OperatorSettingsRepository implements SettingsRepository {
   /// 🆕 R134 — 라우트 본문 유무(없으면 설정 홈 카드에 링크를 싣지 않는다).
   final bool Function(String route) hasBody;
 
-  /// 지금 키 목록.
-  Future<CredentialListVm> credentials() async {
+  /// 🆕 R140 — 모의 키 세트 사실(금고 저장 여부 + 마지막 검증 기록) · 키 목록 · 연결 행(S07)이 같이 쓴다.
+  Future<PaperCredentialFacts> paperFacts() async {
     final SecretVault? vault = _rt.vault;
     bool stored = false;
     if (vault != null) {
@@ -79,17 +79,20 @@ class OperatorSettingsRepository implements SettingsRepository {
       _rt.files.sim,
       clock: _rt.clock,
     ).lastRecord('o_02');
-    return credentialListVmOf(
-      runMode: _rt.view.value?.flags.runMode ?? RunMode.simInternal,
-      paper: PaperCredentialFacts(
-        stored: stored,
-        lastState: last?.state,
-        lastAtUtc: last?.updatedAtUtc,
-        lastFailureCode: last?.failureReasonCode,
-      ),
-      nowUtc: _rt.clock.nowUtc(),
+    return PaperCredentialFacts(
+      stored: stored,
+      lastState: last?.state,
+      lastAtUtc: last?.updatedAtUtc,
+      lastFailureCode: last?.failureReasonCode,
     );
   }
+
+  /// 지금 키 목록.
+  Future<CredentialListVm> credentials() async => credentialListVmOf(
+    runMode: _rt.view.value?.flags.runMode ?? RunMode.simInternal,
+    paper: await paperFacts(),
+    nowUtc: _rt.clock.nowUtc(),
+  );
 
   @override
   Stream<CredentialListVm> watchCredentials() => _follow(credentials);

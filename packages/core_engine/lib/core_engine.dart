@@ -319,6 +319,17 @@ export 'src/onboarding/onboarding_steps.dart'
         onboardingStepsVmOf;
 export 'src/ops/config_fingerprint.dart'
     show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;
+// 🆕 E11p3d-5f — M9 S07 연결 관리(설계 13 §8 R140).
+export 'src/ops/connections.dart'
+    show
+        ConnectionStatusCodes,
+        ConnectionsFacts,
+        HealthchecksReach,
+        connectionAgoText,
+        connectionHealthchecksRowOf,
+        connectionKisRowOf,
+        connectionsVmOf,
+        kConnectionsStaleAfter;
 // 🆕 E11j — 월 납입 운영값(M3-6 엔진 몫 · 설계 13 §8 R54).
 export 'src/ops/contribution_setting.dart'
     show

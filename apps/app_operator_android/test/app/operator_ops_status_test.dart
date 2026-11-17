@@ -16,11 +16,21 @@ import 'package:core_engine/core_engine.dart'
         RemoteCheckStatus,
         watchdogCheckName;
 import 'package:core_engine/testing.dart' show FakeWatchdogRemote;
-import 'package:data_sync/data_sync.dart' show SqliteJobRunLog;
+import 'package:data_sync/data_sync.dart'
+    show
+        HealthchecksError,
+        HealthchecksErrorKind,
+        SqliteJobRunLog,
+        SqliteOnboardingProgressStore;
 import 'package:domain_contracts/domain_contracts.dart'
     show
+        AppRoutes,
+        ConnectionRow,
+        ConnectionTargetCodes,
+        ConnectionsVm,
         DeviceRiskItem,
         DeviceRiskVm,
+        StepState,
         OperatingMode,
         RunMode,
         TradeDate,
@@ -293,12 +303,135 @@ void main() {
     expect(vm.emptyLabel, '점검할 기기 항목을 아직 받지 못했습니다. 폰에서 앱을 열면 다시 잽니다.');
   });
 
+  // ── 🆕 R140 — S07 연결 ─────────────────────────────────────────────
+
+  ConnectionRow conn(ConnectionsVm vm, String target) =>
+      vm.rows.singleWhere((ConnectionRow r) => r.target == target);
+
+  test('🔴 연결 = 증권사 · Supabase · GitHub · 생존 신호 · 금고 없음 = 증권사 연결 안 됨(모의 = 할 일) · 링크 = 본문 있을 때만', () async {
+    remote.store['kr_order'] = RemoteCheck(
+      slug: 'kr_order',
+      status: RemoteCheckStatus.up,
+      lastPingUtc: clock.nowUtc().subtract(const Duration(minutes: 2)),
+    );
+    final ConnectionsVm vm = await OperatorOpsStatusRepository(
+      rt,
+      hasBody: (String r) =>
+          r == AppRoutes.settingsCredentials || r == AppRoutes.opsWatchdog,
+    ).connections();
+    expect(vm.rows.map((ConnectionRow r) => r.target).toList(), <String>[
+      ConnectionTargetCodes.brokerKis,
+      ConnectionTargetCodes.supabase,
+      ConnectionTargetCodes.githubArchive,
+      ConnectionTargetCodes.healthchecks,
+    ]);
+    final ConnectionRow kis = conn(vm, ConnectionTargetCodes.brokerKis);
+    expect(
+      (kis.statusLabel, kis.level, kis.route),
+      ('연결 안 됨', UiLevel.act, AppRoutes.settingsCredentials),
+    );
+    final ConnectionRow hc = conn(vm, ConnectionTargetCodes.healthchecks);
+    expect(
+      (hc.statusLabel, hc.level, hc.lastOkText, hc.detailLine, hc.route),
+      ('정상', UiLevel.ok, '2분 전에 수신', '체크 1개 모두 정상', AppRoutes.opsWatchdog),
+    );
+    expect(vm.asOf.label, '연결 기준 2026-12-22 09:30');
+    // 기본 조립 = 링크 0.
+    final ConnectionsVm bare = await OperatorOpsStatusRepository(rt)
+        .connections();
+    expect(bare.rows.map((ConnectionRow r) => r.route), everyElement(isNull));
+  });
+
+  test(
+    '🔴 생존 신호 — 클라이언트 없음 · 읽기 키 없음 = 연결 안 됨(INFO) · 그 밖 실패 = 읽지 못했습니다(WATCH)',
+    () async {
+      final ConnectionsVm none = await OperatorOpsStatusRepository(
+        OperatorRuntime(files: files, clock: clock),
+      ).connections();
+      expect(
+        conn(none, ConnectionTargetCodes.healthchecks).statusCode,
+        'NOT_SET',
+      );
+      remote.failOn[('checks', '*')] = const HealthchecksError(
+        HealthchecksErrorKind.missingKey,
+      );
+      final ConnectionsVm noKey = await OperatorOpsStatusRepository(rt)
+          .connections();
+      expect(
+        (
+          conn(noKey, ConnectionTargetCodes.healthchecks).statusCode,
+          conn(noKey, ConnectionTargetCodes.healthchecks).level,
+        ),
+        ('NOT_SET', UiLevel.info),
+      );
+      remote.failOn[('checks', '*')] = const HealthchecksError(
+        HealthchecksErrorKind.network,
+      );
+      final ConnectionsVm net = await OperatorOpsStatusRepository(rt)
+          .connections();
+      expect(
+        (
+          conn(net, ConnectionTargetCodes.healthchecks).statusCode,
+          conn(net, ConnectionTargetCodes.healthchecks).level,
+        ),
+        ('UNREADABLE', UiLevel.watch),
+      );
+    },
+  );
+
+  test('🔴 생존 신호 — 바깥 목록 5분 재사용(감시 보드와 같은 캐시 · 호출 아끼기)', () async {
+    final OperatorOpsStatusRepository r = OperatorOpsStatusRepository(rt);
+    await r.connections();
+    await r.connections();
+    expect(remote.calls.where((String c) => c == 'checks'), hasLength(1));
+    clock.now = clock.now.add(const Duration(minutes: 5));
+    await r.connections();
+    expect(remote.calls.where((String c) => c == 'checks'), hasLength(2));
+  });
+
+  test(
+    '🔴 연결 — 키 검증 기록이 바뀌면 다시 낸다(sim 진척 표 · 실제 갱신 훅) · 같은 값은 다시 내지 않는다',
+    () async {
+      final List<ConnectionsVm> got = <ConnectionsVm>[];
+      final StreamSubscription<ConnectionsVm> sub = OperatorOpsStatusRepository(
+        rt,
+      ).watchConnections().listen(got.add);
+      addTearDown(sub.cancel);
+      await until(() => got.isNotEmpty);
+      expect(
+        conn(got.last, ConnectionTargetCodes.brokerKis).statusCode,
+        'NOT_SET',
+      );
+      SqliteOnboardingProgressStore(files.sim, clock: clock).record(
+        'o_02',
+        StepState.failed,
+        failureReasonCode: 'CREDENTIAL_REJECTED',
+      );
+      await until(
+        () =>
+            conn(got.last, ConnectionTargetCodes.brokerKis).statusCode ==
+            'FAILED',
+      );
+      expect(
+        conn(got.last, ConnectionTargetCodes.brokerKis).detailLine,
+        '12-22 09:30 검증 거절(CREDENTIAL_REJECTED)',
+      );
+      final int n = got.length;
+      SqliteOnboardingProgressStore(files.sim, clock: clock).record(
+        'o_02',
+        StepState.failed,
+        failureReasonCode: 'CREDENTIAL_REJECTED',
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(got.length, n);
+    },
+  );
+
   test(
     '🔴 원천 없는 흐름 = 오류(지어내지 않는다) · 기기 측정기 없음(플랫폼 밖) = 기기 리스크도 원천 없음',
     () async {
       final OperatorOpsStatusRepository r = OperatorOpsStatusRepository(rt);
       for (final Stream<Object?> s in <Stream<Object?>>[
-        r.watchConnections(),
         r.watchDeviceAccess(),
         r.watchBackup(),
         r.watchAnnualReview(),

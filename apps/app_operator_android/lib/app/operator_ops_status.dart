@@ -6,15 +6,27 @@
 //    바깥 목록은 5분 동안 다시 묻지 않는다(호출 아끼기).
 // 🔴 화면 상태가 없으면(온보딩 전) 체크도 없다 — 빈 보드(«등록된 워치독 체크가 아직 없습니다»).
 // 🔵 진단 = 원장 진단 원천(E13c2) · 연결 · 기기 접근 · 백업 · 연간 = 원천 없음(R109 — 지어내지 않는다).
+// 🆕 E11p3d-5f(R140) — 연결(S07) = 엔진 `connectionsVmOf` · 사실 = 키 검증 기록(S02 와 같은 원천) · healthchecks 목록(감시 보드와
+//    같은 5분 캐시 · 키 없음 = «연결 안 됨» · 그 밖 실패 = «읽지 못했습니다») · 링크 = 셸 레지스트리에 본문이 있을 때만([hasBody]) ·
+//    다시 냄 = 들을 때 · 1분 · sim 진척 표(키 검증) · 화면 상태 변경 · 바뀐 값만.
 // 🆕 E11p3d-2c(R136) — 기기 리스크(H-03) = 플랫폼 측정(`OperatorRuntime.deviceProbe`) → 엔진 `deviceRiskVmOf` ·
 //    들을 때 · [riskTick] 마다 다시 잰다 · 바뀐 값만 · 측정 실패 = 오류 한 번(다음 주기에 다시 잰다) · 측정기 없음(플랫폼 밖) = 원천 없음.
 
 import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
-    show DeviceRiskFacts, RemoteCheck, WatchdogRemote, deviceRiskVmOf;
+    show
+        ConnectionsFacts,
+        DeviceRiskFacts,
+        HealthchecksReach,
+        RemoteCheck,
+        WatchdogRemote,
+        connectionsVmOf,
+        deviceRiskVmOf;
 import 'package:data_sync/data_sync.dart'
     show
+        HealthchecksError,
+        HealthchecksErrorKind,
         LedgerDiagnosticsSource,
         SqliteJobRunLog,
         modeStartedAtUtc,
@@ -28,13 +40,17 @@ import 'package:domain_contracts/domain_contracts.dart'
         DeviceRiskVm,
         DiagnosticsVm,
         OpsStatusRepository,
+        RunMode,
         TradeDate,
         WatchdogBoardVm;
 import 'package:trading_runtime/trading_runtime.dart'
     show buildWatchdogBoard, kstDateOf, watchdogBoardInputsFor;
 
 import 'operator_runtime.dart';
+import 'operator_settings_repository.dart';
 import 'operator_view.dart';
+
+bool _noBody(String _) => false;
 
 /// 운영 상태 원천(operator).
 class OperatorOpsStatusRepository implements OpsStatusRepository {
@@ -44,6 +60,7 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
     this.tick = const Duration(minutes: 1),
     this.remoteTtl = const Duration(minutes: 5),
     this.riskTick = const Duration(minutes: 5),
+    this.hasBody = _noBody,
   });
 
   final OperatorRuntime _rt;
@@ -57,8 +74,12 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
   /// 🆕 R136 — 기기 다시 재는 주기(측정 = 채널 한 번 · 가볍다).
   final Duration riskTick;
 
+  /// 🆕 R140 — 라우트 본문 유무(없으면 연결 행에 링크를 싣지 않는다).
+  final bool Function(String route) hasBody;
+
   List<RemoteCheck>? _remote;
   DateTime? _remoteAt;
+  Object? _remoteError;
 
   /// 🔴 바깥 체크 목록(없음 · 실패 = null — 보드가 «읽지 못했습니다»).
   Future<List<RemoteCheck>?> _remoteChecks(DateTime now) async {
@@ -67,14 +88,48 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
     final DateTime? at = _remoteAt;
     if (at != null && now.difference(at) < remoteTtl) return _remote;
     List<RemoteCheck>? got;
+    Object? error;
     try {
       got = await r.checks();
-    } on Object {
+    } on Object catch (e) {
       got = null;
+      error = e;
     }
     _remote = got;
+    _remoteError = error;
     _remoteAt = now;
     return got;
+  }
+
+  /// 🆕 R140 — healthchecks 에 닿았나(클라이언트 없음 · 읽기 키 없음 = 연결 전 · 그 밖 실패 = 읽지 못함).
+  Future<(HealthchecksReach, List<RemoteCheck>)> _reach(DateTime now) async {
+    if (_rt.watchdogRemote == null) {
+      return (HealthchecksReach.notSet, const <RemoteCheck>[]);
+    }
+    final List<RemoteCheck>? got = await _remoteChecks(now);
+    if (got != null) return (HealthchecksReach.read, got);
+    final Object? e = _remoteError;
+    return e is HealthchecksError && e.kind == HealthchecksErrorKind.missingKey
+        ? (HealthchecksReach.notSet, const <RemoteCheck>[])
+        : (HealthchecksReach.unreadable, const <RemoteCheck>[]);
+  }
+
+  /// 🆕 R140 — 지금 연결 화면(화면 상태 없음 = 모의로 본다 — 키 목록과 같은 축).
+  Future<ConnectionsVm> connections() async {
+    final DateTime now = _rt.clock.nowUtc();
+    final (HealthchecksReach reach, List<RemoteCheck> checks) = await _reach(
+      now,
+    );
+    return connectionsVmOf(
+      ConnectionsFacts(
+        runMode: _rt.view.value?.flags.runMode ?? RunMode.simInternal,
+        kis: await OperatorSettingsRepository(_rt).paperFacts(),
+        healthchecks: reach,
+        checks: checks,
+        hasBody: hasBody,
+      ),
+      nowUtc: now,
+    );
   }
 
   bool _holiday(TradeDate today) {
@@ -200,8 +255,46 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
   static Stream<T> _none<T>(String what) =>
       Stream<T>.error(UnsupportedError('$what: 원천 없음(R109)'));
 
+  /// 🆕 R140 — S07 연결.
   @override
-  Stream<ConnectionsVm> watchConnections() => _none('watchConnections');
+  Stream<ConnectionsVm> watchConnections() {
+    late final StreamController<ConnectionsVm> c;
+    StreamSubscription<Object>? progress;
+    Timer? timer;
+    ConnectionsVm? last;
+
+    Future<void> refresh() async {
+      try {
+        final ConnectionsVm v = await connections();
+        if (c.isClosed || v == last) return;
+        last = v;
+        c.add(v);
+      } on Object catch (e, st) {
+        if (!c.isClosed) c.addError(e, st);
+      }
+    }
+
+    void onView() => unawaited(refresh());
+
+    c = StreamController<ConnectionsVm>(
+      onListen: () {
+        // 키 검증 = sim 진척 표 기록 — 표가 바뀔 때마다(값 = 매번 새 표지).
+        progress = watchLedgerQuery<Object>(_rt.files.sim, const <String>{
+          'onboarding_progress',
+        }, Object.new).skip(1).listen((_) => unawaited(refresh()));
+        _rt.view.addListener(onView);
+        timer = Timer.periodic(tick, (_) => unawaited(refresh()));
+        unawaited(refresh());
+      },
+      onCancel: () async {
+        _rt.view.removeListener(onView);
+        timer?.cancel();
+        await progress?.cancel();
+        await c.close();
+      },
+    );
+    return c.stream;
+  }
 
   @override
   Stream<DeviceAccessVm> watchDeviceAccess() => _none('watchDeviceAccess');
