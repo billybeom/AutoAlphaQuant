@@ -1,0 +1,152 @@
+// E11p3d-5f 에뮬레이터 종합 확인(설계 13 §8 R140) — 실제 앱 셸에서 홈(H-01) → 더보기 = 설정 홈(S01) → 연결(S07) → H-03.
+//
+// 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
+// 실행: `flutter test integration_test/shell_tour_test.dart -d emulator-5554` · 표지 `IT_*` 마다 4초 멈춘다(캡처 자리).
+
+import 'dart:io';
+
+import 'package:app_operator_android/app/operator_runtime.dart';
+import 'package:app_operator_android/app/operator_shell.dart';
+import 'package:app_operator_android/app/operator_view.dart';
+import 'package:app_operator_android/app/secure_screen.dart';
+import 'package:app_operator_android/engine/engine_boot.dart';
+import 'package:app_operator_android/engine/ledger_files.dart';
+import 'package:app_operator_android/engine/system_clock.dart';
+import 'package:app_operator_android/main.dart';
+import 'package:app_operator_android/platform/platform.dart';
+import 'package:data_sync/data_sync.dart'
+    show HealthchecksClient, ModeAxis, SqliteModeStore;
+import 'package:domain_contracts/domain_contracts.dart'
+    show AppRoutes, ExecPolicy, LedgerFile, OperatingMode, RunMode;
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:integration_test/integration_test.dart';
+import 'package:ui_settings/ui_settings.dart' show Connections, SettingsHome;
+import 'package:ui_shell/ui_shell.dart'
+    show DeviceRiskBoard, OpsHome, ShellRoot, shellLinkOpenerProvider;
+
+void _mark(String m) {
+  // ignore: avoid_print
+  print(m);
+}
+
+/// 화면 하나에 멈춘다 — 보이는 글자를 찍고(`IT_TEXT`) · 표지를 찍고 · 바깥 캡처가 따라오게 기다린다.
+Future<void> _at(WidgetTester tester, Finder screen, String marker) async {
+  for (final Element e
+      in find.descendant(of: screen, matching: find.byType(Text)).evaluate()) {
+    final String? t = (e.widget as Text).data;
+    if (t != null) _mark('IT_TEXT $marker $t');
+  }
+  _mark(marker);
+  final DateTime end = DateTime.now().add(const Duration(seconds: 4));
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+  }
+}
+
+Future<void> _until(WidgetTester tester, Finder f) async {
+  final DateTime end = DateTime.now().add(const Duration(seconds: 20));
+  while (f.evaluate().isEmpty) {
+    if (DateTime.now().isAfter(end)) {
+      throw TestFailure('기다린 위젯이 안 나타났다: $f');
+    }
+    await tester.pump(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+  }
+  await tester.pump();
+}
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('🔴 셸 종합 — 홈 → 더보기(설정 홈) → 연결 → 기기 리스크', (
+    WidgetTester tester,
+  ) async {
+    const SystemClock clock = SystemClock();
+    final AndroidOps ops = AndroidOps();
+    final Directory dir = Directory.systemTemp.createTempSync('aaq_it_tour_');
+    final LedgerFiles files = LedgerFiles.open(dir.path, clock: clock);
+    final OperatorRuntime rt = OperatorRuntime(
+      files: files,
+      clock: clock,
+      secure: SecureScreen(ops.setSecure),
+      vault: AndroidSecretVault(),
+      watchdogRemote: HealthchecksClient(http.Client(), AndroidSecretVault()),
+      deviceProbe: () => ops.deviceRisk(clock.nowUtc()),
+    );
+    // 온보딩 확정 + 모의 모드 행을 먼저 둔다 → 루트 = 셸.
+    files.sim.execute(
+      'INSERT INTO onboarding_choice (id, operating_mode, chosen_at, committed_at) VALUES (1, ?, ?, ?)',
+      <Object?>[
+        OperatingMode.autoTrade.wire,
+        clock.nowUtc().toIso8601String(),
+        clock.nowUtc().toIso8601String(),
+      ],
+    );
+    expect(
+      SqliteModeStore(files.sim, LedgerFile.sim, clock: clock).record(
+        axis: ModeAxis.runMode,
+        runMode: RunMode.simInternal,
+        execPolicy: ExecPolicy.execute,
+        operatingMode: OperatingMode.autoTrade,
+        handoverSessionValid: false,
+        decisionId: 'D-IT-TOUR',
+      ),
+      isNull,
+    );
+    rt.view.value = operatorViewOf(
+      await bootEngine(files, clock: clock),
+      files,
+    );
+    final ProviderContainer container = ProviderContainer(
+      overrides: operatorShellOverrides(rt),
+    );
+    try {
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const AutoAlphaQuantOperatorApp(shell: true),
+        ),
+      );
+      await _until(tester, find.byType(ShellRoot));
+      await _until(tester, find.text('오늘 주문 0건'));
+      await _at(tester, find.byType(OpsHome), 'IT_HOME');
+
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('s01-tabs')),
+          matching: find.text('더보기'),
+        ),
+      );
+      await _until(tester, find.text('모의 · 내부 가상 체결 · 자동 매매'));
+      final Finder home = find.byType(SettingsHome);
+      expect(
+        find.descendant(of: home, matching: find.text('연결')),
+        findsOneWidget,
+      );
+      await _at(tester, home, 'IT_S01');
+
+      await tester.tap(find.descendant(of: home, matching: find.text('연결')));
+      await _until(tester, find.text('증권사 연결(모의투자)'));
+      final Finder conn = find.byType(Connections);
+      expect(
+        find.descendant(of: conn, matching: find.text('생존 신호(healthchecks)')),
+        findsOneWidget,
+      );
+      await _at(tester, conn, 'IT_S07');
+
+      container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
+      await _until(tester, find.textContaining('남은 공간'));
+      await _at(tester, find.byType(DeviceRiskBoard), 'IT_H03');
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      files.close();
+      dir.deleteSync(recursive: true);
+    }
+    _mark('IT_DONE');
+  });
+}

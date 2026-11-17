@@ -50,6 +50,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalSafetyRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
+        Connections,
         Credentials,
         SettingsHome,
         SettingsSlotBuilder,
@@ -514,6 +515,42 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(Credentials), findsOneWidget);
     expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
+  });
+
+  testWidgets('🔴 S07 연결(R140) = 조립 셸에 등록 · 원천 있는 네 행 · 증권사 행 탭 = S02', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(tester);
+    await ready(tester);
+    await open(tester, AppRoutes.settingsConnections);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 30)),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    final Finder screen = find.byType(Connections);
+    expect(screen, findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    Finder inScreen(String t) =>
+        find.descendant(of: screen, matching: find.text(t));
+    expect(inScreen('증권사 연결(모의투자)'), findsOneWidget);
+    expect(inScreen('미러(Supabase)'), findsOneWidget);
+    expect(inScreen('아카이브(GitHub)'), findsOneWidget);
+    expect(inScreen('생존 신호(healthchecks)'), findsOneWidget);
+    // 증권사 행 = S02 등록 → 연다(링크 = 셸이 쓰는 레지스트리).
+    await tester.tap(inScreen('증권사 연결(모의투자)'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 30)),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Credentials), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
     container.dispose();
     disposed = true;
