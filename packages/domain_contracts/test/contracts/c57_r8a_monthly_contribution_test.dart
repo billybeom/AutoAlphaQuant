@@ -10,7 +10,7 @@
 //
 // 🔴 픽스처 불변식 + 포트 경계 스캔만 본다 — `S13` 화면 규칙(입력칸 1 · 손질 0 · 확인 0)은 R8a 카드 정적 묶음 몫.
 // 🔴 한국어 글자 단언 = 엔진 글자 표만(출처 주석 파일:줄 · origin/main 33fe351) — ⑤ 거부 문장 7 · ⑥ 사전 값 6 ·
-//    ⑨ «변경 기록 없음(기본값)» · ⑦ 금액 글자 3(K102).
+//    ⑨ «변경 기록 없음(기본값)» · «다음 납입 주기(…)부터» 머리(core :203-204) · ⑦ 금액 글자 3(K102).
 
 import 'dart:convert';
 import 'dart:io';
@@ -365,6 +365,29 @@ void main() {
         without(base, <String>{'last_changed_text'}),
       );
       expect(noRecord['last_changed_text'], _noRecordText);
+      // _no_limit_note = 0원이면 한도 비교 문장 null(core `ops/contribution_setting.dart:178`) · 입력칸 원값 = 숫자 그대로.
+      final Map<String, Object?> noLimit = _vm(
+        FixturePaths.m9MonthlyContributionNoLimitNote,
+      );
+      expect(noLimit.containsKey('pension_limit_note_text'), isTrue);
+      expect(noLimit['pension_limit_note_text'], isNull);
+      expect(noLimit['amount_input_text'], '0');
+      for (final String path in _vms) {
+        if (path == FixturePaths.m9MonthlyContributionNoLimitNote) continue;
+        expect(_vm(path)['pension_limit_note_text'], isNotNull, reason: path);
+      }
+      // 적용 날짜 = 같은 today·달력의 «다음 납입 주기(…)»(core :203-204) — 6벌 모두 원판과 같은 날짜(K101).
+      final RegExp nextCycle = RegExp(r'^다음 납입 주기\(([^)]+)\)부터 ');
+      final String baseDate = nextCycle.firstMatch(
+        base['applies_from_text']! as String,
+      )![1]!;
+      for (final String path in _vms) {
+        final RegExpMatch? m = nextCycle.firstMatch(
+          _vm(path)['applies_from_text']! as String,
+        );
+        expect(m, isNotNull, reason: path);
+        expect(m![1], baseDate, reason: path);
+      }
     });
 
     test('C-57 ⑩ 제출 DTO 왕복 — 키 {amount_input} · 원문 그대로(손질 0) · 왕복 같음', () {
