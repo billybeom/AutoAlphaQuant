@@ -59,6 +59,7 @@
 //   🆕 계약 v1.22(01 §31) — `UnimplementedSafetyActions` +4(`runStoppedDecision` · `runPostmortem` · `runRuleChangeApproval` ·
 //   `runDiscretionAdjust` · `Future` 에러) · `UnimplementedCommandApi.confirmKillChecklist(KillChecklistSubmission)`(인자 교체 · K60) ·
 //   `UnimplementedBreakerLadderRepository` · `UnimplementedResumeGateRepository` · `UnimplementedResumeRepository`(동기 throw).
+//   🆕 계약 v1.23(01 §32) — `UnimplementedSettingsRepository.watchContribution`(동기 throw) · `UnimplementedSettingsActions.runContributionUpdate`(`Future` 에러).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -303,6 +304,11 @@ class UnimplementedSettingsRepository implements SettingsRepository {
   @override
   Stream<AccountMappingVm> watchAccountMapping() =>
       throw UnimplementedError('watchAccountMapping');
+
+  /// 🆕 계약 v1.23(01 §32) — `S13` 월 납입 설정.
+  @override
+  Stream<MonthlyContributionVm> watchContribution() =>
+      throw UnimplementedError('watchContribution');
 }
 
 /// 🆕 계약 v1.12(01 §21 · K9 · K28) — [SettingsActions] 받침대(`L-3` 세션 start·stop 가짜의 받침대).
@@ -318,6 +324,12 @@ class UnimplementedSettingsActions implements SettingsActions {
     SettingsActionId id, {
     Map<String, String> args = const <String, String>{},
   }) => Future<ActionResult>.error(UnimplementedError('run'));
+
+  /// 🆕 계약 v1.23(01 §32 · K77) — `S13` 월 납입 제출. 🔴 `Future` 에러(동기 throw 0 · 이 받침대의 꼴).
+  @override
+  Future<ActionResult> runContributionUpdate(
+    ContributionUpdateSubmission submission,
+  ) => Future<ActionResult>.error(UnimplementedError('runContributionUpdate'));
   @override
   Stream<ActionResult> watch(String actionRunId) =>
       Stream<ActionResult>.error(UnimplementedError('watch'));

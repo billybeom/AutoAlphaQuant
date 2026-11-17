@@ -255,6 +255,8 @@ abstract final class ContractCodes {
     'sim_to_auto_commit_result': SimToAutoCommitResultCodes.values,
     'handover_session_result': HandoverSessionResultCodes.values,
     'sim_to_auto_step': SimToAutoStepIds.values,
+    // 🆕 v1.23(01 §32 · K80) — S13 월 납입 거부(엔진 글자 1:1 − 공용)
+    'contribution_result': ContributionResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

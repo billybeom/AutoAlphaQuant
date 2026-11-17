@@ -32,6 +32,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         AccountMappingVm,
         ContributionSetting,
         CredentialListVm,
+        MonthlyContributionVm,
         OperationsVm,
         RunMode,
         SettingsHomeVm,
@@ -208,4 +209,9 @@ class OperatorSettingsRepository implements SettingsRepository {
   @override
   Stream<AccountMappingVm> watchAccountMapping() =>
       _none('watchAccountMapping');
+
+  /// 🆕 계약 v1.23(01 §32 · K92) — `S13` 월 납입 투영 = 원천 없음(투영 + 잠김·버튼 칸 = 06 `M4-12` ⑧ · 그 화면은 레지스트리에 없다).
+  @override
+  Stream<MonthlyContributionVm> watchContribution() =>
+      _none('watchContribution');
 }

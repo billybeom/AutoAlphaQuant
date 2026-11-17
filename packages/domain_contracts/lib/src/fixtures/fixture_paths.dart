@@ -711,6 +711,11 @@ abstract final class FixturePaths {
   /// 🆕 v1.18 — `S07` 전부 정상 · 행 4(캘린더 행 0 = `calendarEnabled` false 엔진 몫) · 텔레그램 선택.
   static const String m9ConnectionsTelegram = 'm9/connections_telegram.json';
 
+  // 🆕 v1.23(01 §32) — S13 VM 6 · 결과 1(파일 이름 바이트 차례 · all 도 같은 차례).
+  /// 🆕 v1.23(K80 · K101) — `S13` 동작 결과 `ActionResult` 9(레벨 5값 · 접수 합성 · 생체 · 엔진 거부 문장 7 · 넘김 0 · 재시도 0).
+  static const String m9ContributionActionResults =
+      'm9/contribution_action_results.json';
+
   // 🆕 v1.4(R11 선행) — `ConfigRepository.watchContributionSetting()` 의 입력(폴더 규약상 `m9_` 접두 없음).
   /// 월 납입 설정 — `pension_limit_note_text` 있음.
   static const String m9ContributionSettingDefault =
@@ -755,6 +760,29 @@ abstract final class FixturePaths {
   /// 🆕 v1.20 — `S06` 동작 결과 `ActionResult` 6(레벨 5값 · 발급 · 폐기 · 넘김 0 · 재시도 0).
   static const String m9DeviceActionResults = 'm9/device_action_results.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
+
+  /// 🆕 v1.23(K79 · K101) — `S13` 정상(글자 = 엔진 `contributionSettingOf` 출력 · 10만원 · 예정 없음 · 버튼 «바꾸기»).
+  static const String m9MonthlyContribution = 'm9/monthly_contribution.json';
+
+  /// 🆕 v1.23 — `S13` 잠김(`monthly_contribution` 에서 `locked_label` · `change_label` null · `editable` false 만 다른 판).
+  static const String m9MonthlyContributionLocked =
+      'm9/monthly_contribution_locked.json';
+
+  /// 🆕 v1.23 — `S13` 0원(납입 멈춤 · 한도 줄 null · 등가 «부족»).
+  static const String m9MonthlyContributionNoLimitNote =
+      'm9/monthly_contribution_no_limit_note.json';
+
+  /// 🆕 v1.23 — `S13` 기록 없음(기본값 · `last_changed_text` 만 다른 판).
+  static const String m9MonthlyContributionNoRecord =
+      'm9/monthly_contribution_no_record.json';
+
+  /// 🆕 v1.23 — `S13` 예정 있음(지금 값 10만원 그대로 · 다음 주기부터 0원 문장 — N-S4-01).
+  static const String m9MonthlyContributionPending =
+      'm9/monthly_contribution_pending.json';
+
+  /// 🆕 v1.23 — `S13` 오래됨(`monthly_contribution` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9MonthlyContributionStale =
+      'm9/monthly_contribution_stale.json';
 
   // 🆕 v1.19(01 §28) — `S05` 7 · S05 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
   /// 🆕 v1.19 — `S05` 동작 결과 `ActionResult` 13(레벨 5값 · id 5 전수 · 넘김 = 전환 요청 3 · 재시도 0).
@@ -1092,6 +1120,7 @@ abstract final class FixturePaths {
     m9Connections,
     m9ConnectionsLocked,
     m9ConnectionsTelegram,
+    m9ContributionActionResults,
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
     m9CredentialActionResults,
@@ -1106,6 +1135,12 @@ abstract final class FixturePaths {
     m9DeviceAccessTicket,
     m9DeviceActionResults,
     m9HandoverStates,
+    m9MonthlyContribution,
+    m9MonthlyContributionLocked,
+    m9MonthlyContributionNoLimitNote,
+    m9MonthlyContributionNoRecord,
+    m9MonthlyContributionPending,
+    m9MonthlyContributionStale,
     m9OperationsActionResults,
     m9OperationsAdvisory,
     m9OperationsLiveHoldKeys,

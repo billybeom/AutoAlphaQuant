@@ -1,6 +1,7 @@
 // 01 §3 · 🆕 계약 v1.18(01 §27 · K-n ⓗ · K-s · K-u) — M9 설정 코드 사전 3축.
 // 🆕 계약 v1.19(01 §28 · K14 · K16) — `EngineStopReasonCodes`(S05 엔진 중지 사유 · 사람) · `SettingsResultCodes` +2.
 // 🆕 계약 v1.20(01 §29 · K8 · K9 · K13 · K32) — `CredentialKindCodes`(겹침 몫 · 엔진 `KisKeySet.wire` 1:1) · `SettingsSlotIds` · `SettingsResultCodes` +3.
+// 🆕 계약 v1.23(01 §32 · K80) — `ContributionResultCodes`(S13 월 납입 거부 · 엔진 `ContributionRejectCodes` 7 − 공용 1).
 //
 // 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 함께 싣는다
 //    (`ConnectionRow.label` · `NotifyChannelOption.label` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
@@ -153,5 +154,40 @@ abstract final class SettingsSlotIds {
     secretKisIsa,
     secretKisReconcile,
     pairingQrDisplay,
+  };
+}
+
+/// 🆕 v1.23(01 §32 · K80 · v1.21 K45) — M9 `S13` 월 납입 변경 거부(도메인 `contribution_result` · 엔진 core
+/// `ops/contribution_setting.dart:241` `ContributionRejectCodes` 7 − 공용 `TRUSTED_TIME_UNKNOWN`(`SafetyCommonResultCodes` 한 벌)).
+/// 🔴 타입 이름 ≠ 엔진 — 같으면 core `test/contribution_setting_test.dart` · ds `test/operating_param_store_test.dart` 가 두 배럴을
+///    `hide BreakerLevel` 만 붙여 함께 import 해 `ambiguous_import`(v1.21 K33 · v1.22 K49 결) · 엔진이 계약 참조로 옮길 때 지역 선언을 지운다.
+/// 🔴 엔진 판정 차례 = 빈칸 → 음수 → 숫자 아님 → 상한 → (신뢰 시각 = 공용) → 시계 전진 → 같은 값(`decideContributionChange` :304).
+///    화면은 이 값으로 분기·아이콘·색을 고르지 않는다(결과 줄 = `headline` + `reasonCode` 원문).
+abstract final class ContributionResultCodes {
+  /// 빈칸.
+  static const String blank = 'CONTRIBUTION_INPUT_BLANK';
+
+  /// 음수.
+  static const String negative = 'CONTRIBUTION_INPUT_NEGATIVE';
+
+  /// 원 단위 숫자 아님(콤마·앞뒤 공백은 엔진이 지운 뒤 판정).
+  static const String notNumber = 'CONTRIBUTION_INPUT_NOT_NUMBER';
+
+  /// 상한 초과(상한 = 엔진 config `maxAmount` · 숫자 = 발주자 대기 05 §8-16).
+  static const String overMax = 'CONTRIBUTION_INPUT_OVER_MAX';
+
+  /// 신뢰 시각이 마지막 기록보다 앞서지 않음(같은 순간 · 되감김).
+  static const String clockNotAdvanced = 'CONTRIBUTION_CLOCK_NOT_ADVANCED';
+
+  /// 바뀌는 게 없음(가장 최근에 접수된 값 — 예정 포함 — 과 같다).
+  static const String unchanged = 'CONTRIBUTION_UNCHANGED';
+
+  static const Set<String> values = <String>{
+    blank,
+    negative,
+    notNumber,
+    overMax,
+    clockNotAdvanced,
+    unchanged,
   };
 }

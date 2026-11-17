@@ -260,6 +260,8 @@ abstract final class AppRoutes {
   /// 🆕 v1.15 — `N-02` 알림 상세(`AlertDetail(alertId:)`) · 들어오는 링크 = `AlertItem.detailDeepLink`(데이터) ·
   /// 푸시·FGS 탭(엔진).
   static const String alertDetail = 'aaq://alerts/detail/:alertId';
+
+  /// 🆕 v1.23(01 §32 · K75) — M9 `S13` 월 납입 설정(R8a · 운영 등급 · 🔴 폰 전용 — 뷰어 레지스트리 빈 자리). 들어오는 링크 = `S01` 운영 묶음 카드(`SET_CONTRIBUTION` · 데이터).
   static const String settingsContribution = 'aaq://settings/contribution';
   static const String settingsCredentials = 'aaq://settings/credentials';
 

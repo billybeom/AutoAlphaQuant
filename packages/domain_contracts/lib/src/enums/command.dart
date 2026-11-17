@@ -232,7 +232,7 @@ enum SettingsActionId {
   /// ⏸ `m2-8_naming.md` A-13(G-45) — 월 납입 운영값 변경.
   /// 🔴 **«운영 등급»이며 `settingsGeneralUpdate` 로 태우지 않는다** — 일반 등급이면
   /// 「즉시 반영」이 되어 「다음 납입 주기부터 적용」이 깨지고 생체 재인증도 건너뛴다.
-  /// ⏸ 사유 = 05 §1 등급표에 «운영 등급» 행이 신설되어야 성립한다. **이름만 등재**한다.
+  /// ✅ v1.23(01 §32 · K77) — 05 §1 등급표 «운영 — 월 납입» 행 있음 · 제출 경로 = `SettingsActions.runContributionUpdate`(`ContributionUpdateSubmission`) · `run` 화이트리스트 밖 · 화면 = M9 `S13`.
   @JsonValue('SETTINGS_CONTRIBUTION_UPDATE')
   settingsContributionUpdate('SETTINGS_CONTRIBUTION_UPDATE'),
 

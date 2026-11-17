@@ -221,6 +221,12 @@ final DtoCodec<Object> _resumeReport = DtoCodec<ResumeReport>(
   ResumeReport.fromJson,
   (ResumeReport v) => v.toJson(),
 );
+// 🆕 계약 v1.23(R8a 선행 · 01 §32) — M9 `S13` 월 납입 설정 VM.
+final DtoCodec<Object> _monthlyContributionVm = DtoCodec<MonthlyContributionVm>(
+  'MonthlyContributionVm',
+  MonthlyContributionVm.fromJson,
+  (MonthlyContributionVm v) => v.toJson(),
+);
 // 🆕 계약 v1.19(R6c 선행 · 01 §28) — M9 `S05` 운용 관리 VM.
 final DtoCodec<Object> _operationsVm = DtoCodec<OperationsVm>(
   'OperationsVm',
@@ -916,6 +922,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9Connections: FixtureBinding(_connectionsVm),
   FixturePaths.m9ConnectionsLocked: FixtureBinding(_connectionsVm),
   FixturePaths.m9ConnectionsTelegram: FixtureBinding(_connectionsVm),
+  // 🆕 v1.23(01 §32 · R8a) — `S13` 동작 결과 9행.
+  FixturePaths.m9ContributionActionResults: FixtureBinding(_actionResult),
   // 🆕 v1.4 — 월 납입 설정 2갈래(`pension_limit_note_text` 있음 / 없음).
   FixturePaths.m9ContributionSettingDefault: FixtureBinding(
     _contributionSetting,
@@ -936,6 +944,23 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9DeviceAccessTicket: FixtureBinding(_deviceAccessVm),
   FixturePaths.m9DeviceActionResults: FixtureBinding(_actionResult),
   FixturePaths.m9HandoverStates: FixtureBinding(_handoverPlan),
+  // 🆕 v1.23(01 §32 · R8a) — `S13` 월 납입 설정 6벌.
+  FixturePaths.m9MonthlyContribution: FixtureBinding(_monthlyContributionVm),
+  FixturePaths.m9MonthlyContributionLocked: FixtureBinding(
+    _monthlyContributionVm,
+  ),
+  FixturePaths.m9MonthlyContributionNoLimitNote: FixtureBinding(
+    _monthlyContributionVm,
+  ),
+  FixturePaths.m9MonthlyContributionNoRecord: FixtureBinding(
+    _monthlyContributionVm,
+  ),
+  FixturePaths.m9MonthlyContributionPending: FixtureBinding(
+    _monthlyContributionVm,
+  ),
+  FixturePaths.m9MonthlyContributionStale: FixtureBinding(
+    _monthlyContributionVm,
+  ),
   // 🆕 v1.19(01 §28 · R6c) — `S05` 운용 관리 7벌 · S05 동작 결과 13행.
   FixturePaths.m9OperationsActionResults: FixtureBinding(_actionResult),
   FixturePaths.m9OperationsAdvisory: FixtureBinding(_operationsVm),

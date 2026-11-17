@@ -64,7 +64,7 @@ abstract final class KillSwitchResultCodes {
 /// M5 공용 거부(도메인 `safety_common_result` · 엔진 core `discretion`·`intervention`·`pledge`·`rule_change`·
 /// `ops/contribution_setting` 다섯 사전 + ds 킬스위치·STOPPED 저장이 같은 글자를 품는다 → 한 벌 · K12 · K45).
 abstract final class SafetyCommonResultCodes {
-  /// 신뢰 시각 모름(발동 기록 확인 · 서약 · 1.22.0 개입·규칙 변경·재량).
+  /// 신뢰 시각 모름(발동 기록 확인 · 서약 · 1.22.0 개입·규칙 변경·재량 · 🆕 1.23.0 월 납입 `runContributionUpdate` — `ContributionResultCodes` 의 짝 · K45).
   static const String trustedTimeUnknown = 'TRUSTED_TIME_UNKNOWN';
 
   /// 저널 id 가 이미 있다(발동 기록 · 재개 · 1.22.0 STOPPED).
