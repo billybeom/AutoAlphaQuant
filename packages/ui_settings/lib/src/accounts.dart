@@ -3,9 +3,9 @@
 // Accounts — M9 S03 account link and sleeve mapping (contract v1.20).
 //
 // 🔴 Body only — parent height ListView(padding: EdgeInsets.zero).
-// 🔴 Row, slot and option counts and order = received as-is. No sorting, filtering, counting.
+// 🔴 Row, sleeve and option counts and order = received as-is. No sorting, filtering, counting.
 // 🔴 Received strings are drawn as-is. The masked number is never cut or masked again.
-// 🔴 Write = SettingsActions action called once per confirmed tap (_run). No link, no handoff.
+// 🔴 Write = SettingsActions action called once per confirm or verify tap (_run). No link, no handoff.
 
 import 'dart:async';
 
@@ -202,7 +202,7 @@ class _AccountsState extends ConsumerState<Accounts> {
   }
 }
 
-// ── Slot ───────────────────────────────────────────────────────────────────────
+// ── Sleeve ─────────────────────────────────────────────────────────────────────
 
 class _SleeveTile extends StatelessWidget {
   const _SleeveTile({
@@ -267,7 +267,7 @@ class _SleeveTile extends StatelessWidget {
             _OptionTile(
               key: ValueKey<String>('m9s03-option-$index-$o'),
               row: index,
-              slot: o,
+              optionIndex: o,
               option: option,
               actions: actions,
               busy: busy,
@@ -288,7 +288,7 @@ class _OptionTile extends StatelessWidget {
   const _OptionTile({
     super.key,
     required this.row,
-    required this.slot,
+    required this.optionIndex,
     required this.option,
     required this.actions,
     required this.busy,
@@ -299,7 +299,7 @@ class _OptionTile extends StatelessWidget {
   });
 
   final int row;
-  final int slot;
+  final int optionIndex;
   final AccountMappingOption option;
   final SettingsActions? actions;
   final bool busy;
@@ -326,7 +326,7 @@ class _OptionTile extends StatelessWidget {
                 option.selected
                     ? Icons.radio_button_checked
                     : Icons.radio_button_unchecked,
-                key: ValueKey<String>('m9s03-mark-$row-$slot'),
+                key: ValueKey<String>('m9s03-mark-$row-$optionIndex'),
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -345,18 +345,18 @@ class _OptionTile extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 36, top: 8),
               child: OutlinedButton(
-                key: ValueKey<String>('m9s03-pick-$row-$slot'),
+                key: ValueKey<String>('m9s03-pick-$row-$optionIndex'),
                 onPressed: busy
                     ? null
                     : () {
-                        onExpand(row, slot);
+                        onExpand(row, optionIndex);
                       },
                 child: Text(select.label),
               ),
             ),
           if (open && a != null && select != null)
             Padding(
-              key: ValueKey<String>('m9s03-confirm-$row-$slot'),
+              key: ValueKey<String>('m9s03-confirm-$row-$optionIndex'),
               padding: const EdgeInsets.only(left: 36, top: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,7 +367,9 @@ class _OptionTile extends StatelessWidget {
                     child: Row(
                       children: <Widget>[
                         OutlinedButton(
-                          key: ValueKey<String>('m9s03-confirm-yes-$row-$slot'),
+                          key: ValueKey<String>(
+                            'm9s03-confirm-yes-$row-$optionIndex',
+                          ),
                           onPressed: busy
                               ? null
                               : () {
@@ -377,7 +379,9 @@ class _OptionTile extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         TextButton(
-                          key: ValueKey<String>('m9s03-confirm-no-$row-$slot'),
+                          key: ValueKey<String>(
+                            'm9s03-confirm-no-$row-$optionIndex',
+                          ),
                           onPressed: busy ? null : onCollapse,
                           child: Text(SettingsLabels.cancel),
                         ),
