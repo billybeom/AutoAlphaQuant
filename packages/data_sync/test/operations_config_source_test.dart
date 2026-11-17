@@ -4,7 +4,8 @@
 
 import 'dart:io';
 
-import 'package:core_engine/core_engine.dart' show OperationsConfig;
+import 'package:core_engine/core_engine.dart'
+    show OperationsConfig, ResumeLadder;
 import 'package:data_sync/data_sync.dart';
 import 'package:test/test.dart';
 
@@ -23,6 +24,12 @@ void main() {
     expect(c.derivedResyncDailyCap, 3);
     expect(c.backupUpload, isFalse);
     expect(c.maintenanceOverdue, const Duration(hours: 72));
+    // 🆕 R150 — 재개 사다리 = SPEC 권고값(core 참조 값과 같다 · 동작 0 변경).
+    expect(
+      c.resumeLadder!.gapLadderTradingDays,
+      ResumeLadder.defaults.gapLadderTradingDays,
+    );
+    expect(c.resumeLadder!.backupGapDays, ResumeLadder.defaults.backupGapDays);
     expect(
       c.raw.keys,
       containsAll(<String>[

@@ -104,6 +104,10 @@ KrOrderJobs orderJobsOf(JobContext c, JobParts p, String job) {
     riskSymbols: cfg.riskSymbols,
     ledger: SqliteLimitLedgerFacts(c.db),
   );
+  // 🔴 R150 — 재개 사다리 = 운영 설정에서만(없음 = 조립하지 않는다 · core 기본값으로 조용히 돌지 않는다).
+  final ResumeLadder ladder =
+      c.operations?.resumeLadder ??
+      (throw JobNotAssembled(job, const <String>['operations.resume']));
   final ResumeJob resume = ResumeJob(
     c.db,
     runMode: c.runMode,
@@ -119,7 +123,7 @@ KrOrderJobs orderJobsOf(JobContext c, JobParts p, String job) {
       monthly: monthlyRebalanceJobOf(c, cfg, brokers),
       carry: ledger,
     ),
-    ladder: ResumeLadder.defaults,
+    ladder: ladder,
     backupGapDays: x1.backupGapDays(),
   );
   return KrOrderJobs(

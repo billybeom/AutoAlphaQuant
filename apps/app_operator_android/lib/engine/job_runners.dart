@@ -11,7 +11,7 @@
 //    부품이 없으면(시험 · p3a) 전부 미조립 그대로.
 
 import 'package:core_engine/core_engine.dart'
-    show AlertSink, JobHeartbeat, JobRunLog, TrustedClock;
+    show AlertSink, JobHeartbeat, JobRunLog, OperationsConfig, TrustedClock;
 import 'package:domain_contracts/domain_contracts.dart'
     show Clock, ExecPolicy, OperatingMode, RunMode, TradeDate;
 import 'package:sqlite3/sqlite3.dart' show Database;
@@ -50,6 +50,7 @@ class JobContext {
     required this.clock,
     this.deviceId,
     this.trusted = const UnknownTrustedClock(),
+    this.operations,
   });
 
   /// 🆕 E11p3c-1 — 이 모드의 원장(기동 판정이 고른 파일).
@@ -84,6 +85,9 @@ class JobContext {
 
   /// 🆕 E16t2a — 신뢰 시각(기본 = 모름).
   final TrustedClock trusted;
+
+  /// 🆕 R150 — 운영 설정(SPEC 02 §4 `operations` · 없음 = 그 값을 쓰는 잡은 조립하지 않는다).
+  final OperationsConfig? operations;
 }
 
 /// 🔴 회차를 잡 규약으로 감싼다 — 세션일 · 달력 · 마감 = 회차 값.

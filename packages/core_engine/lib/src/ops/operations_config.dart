@@ -7,6 +7,7 @@
 import '../migration/fencing.dart' show FencingConfig;
 import '../migration/migration_gate.dart' show MigrationObservationConfig;
 import '../mode/live_observation.dart' show LiveObservationConfig;
+import '../resume/resume_gap.dart' show ResumeLadder;
 
 /// `operations` 블록 읽기(원문 = JSON 객체).
 final class OperationsConfig {
@@ -44,6 +45,15 @@ final class OperationsConfig {
       throw FormatException('operations.${path.join('.')} 는 정수여야 한다', '$v');
     }
     return v;
+  }
+
+  List<int>? _intList(List<String> path) {
+    final Object? v = _at(path);
+    if (v == null) return null;
+    if (v is! List<Object?> || v.any((Object? x) => x is! int)) {
+      throw FormatException('operations.${path.join('.')} 는 정수 목록이어야 한다', '$v');
+    }
+    return <int>[for (final Object? x in v) x! as int];
   }
 
   bool? _bool(List<String> path) {
@@ -121,6 +131,21 @@ final class OperationsConfig {
   LiveObservationConfig? get liveObservation {
     final int? d = liveDryRunObservationTradingDays;
     return d == null ? null : LiveObservationConfig(requiredTradingDays: d);
+  }
+
+  /// 🆕 R150 — 재개 갭 사다리(거래일 · NORMAL · CONSERVATIVE · RECOVERY_DRY 상한).
+  List<int>? get gapLadderTradingDays =>
+      _intList(const <String>['resume', 'gap_ladder_trading_days']);
+
+  /// 🆕 R150 — 백업 갭(달력일 · 이상 = RECOVERY_FULL).
+  int? get backupGapDays => _int(const <String>['resume', 'backup_gap_days']);
+
+  /// 🔴 R150 — 재개 사다리(둘 중 하나라도 없음 = null · `ResumeLadder` 생성자 검사 그대로).
+  ResumeLadder? get resumeLadder {
+    final List<int>? gaps = gapLadderTradingDays;
+    final int? backup = backupGapDays;
+    if (gaps == null || backup == null) return null;
+    return ResumeLadder(gapLadderTradingDays: gaps, backupGapDays: backup);
   }
 
   /// 🔴 펜싱 설정(마진 없음 = null · 잔존 없음 = core 가정값).
