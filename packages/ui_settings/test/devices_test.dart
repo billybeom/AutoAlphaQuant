@@ -903,6 +903,67 @@ void main() {
     });
   }
 
+  // Locked line stays if the VM locks after a result (C4r7b-5, C4r7c-6).
+  testWidgets('M9S06-11 locked after_result', (WidgetTester tester) async {
+    expect(locked.lockedLabel, isNotNull); // pre
+
+    final StreamController<DeviceAccessVm> feed =
+        StreamController<DeviceAccessVm>();
+    addTearDown(feed.close);
+    final FakeSettingsDeviceAccessRepository repo =
+        FakeSettingsDeviceAccessRepository(devices: (int call) => feed.stream);
+    feed.add(access);
+
+    await pumpDevices(
+      tester,
+      overrides: devicesOverrides(
+        repo: repo,
+        actions: okActions(),
+        slots: FakeSettingsSlotRecorder().build,
+        opener: RecordingLinkOpener(),
+        clock: FixedClock(kGoldenNowUtc),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('m9s06-issue')));
+    await tester.pump();
+    await tester.pump();
+    expect(shownTexts(tester, find.byKey(const Key('m9s06-result'))), <String?>[
+      results[0].headline,
+      ?results[0].reasonCode,
+    ]);
+    expect(find.byKey(const Key('m9s06-locked')), findsNothing);
+
+    feed.add(locked);
+    await tester.pump();
+    await tester.pump();
+
+    expect(shownTexts(tester, find.byKey(const Key('m9s06-locked'))), <String?>[
+      ?locked.lockedLabel,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('m9s06-result'))), <String?>[
+      results[0].headline,
+      ?results[0].reasonCode,
+    ]);
+    expect(
+      find.byWidgetPredicate((Widget w) => w is ButtonStyleButton),
+      findsNothing,
+    );
+    final List<Key> chain = <Key>[
+      const Key('m9s06-locked'),
+      const Key('m9s06-result'),
+      const Key('m9s06-pairing'),
+    ];
+    for (int i = 1; i < chain.length; i++) {
+      expect(
+        tester.getTopLeft(find.byKey(chain[i - 1])).dy,
+        lessThan(tester.getTopLeft(find.byKey(chain[i])).dy),
+      );
+    }
+    expect(repo.devicesCalls, 1);
+    expect(find.text(SettingsLabels.retry), findsNothing);
+  });
+
   // -- M9S06-12 asOf line and stale banner two cases --------------------------
 
   for (final c

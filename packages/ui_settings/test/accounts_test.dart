@@ -882,6 +882,69 @@ void main() {
     });
   }
 
+  // Locked line stays if the VM locks after a result (C4r7b-5, C4r7c-6).
+  testWidgets('M9S03-11 locked after_result', (WidgetTester tester) async {
+    expect(locked.lockedLabel, isNotNull); // pre
+
+    final StreamController<AccountMappingVm> feed =
+        StreamController<AccountMappingVm>();
+    addTearDown(feed.close);
+    final FakeSettingsAccountMappingRepository repo =
+        FakeSettingsAccountMappingRepository(
+          mapping: (int call) => feed.stream,
+        );
+    feed.add(mapping);
+
+    await pumpAccounts(
+      tester,
+      overrides: accountsOverrides(
+        repo: repo,
+        actions: FakeSettingsActions(
+          result: (int call) => Future<ActionResult>.value(results[5]),
+        ),
+        clock: FixedClock(kGoldenNowUtc),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('m9s03-verify')));
+    await tester.pump();
+    await tester.pump();
+    expect(shownTexts(tester, find.byKey(const Key('m9s03-result'))), <String?>[
+      results[5].headline,
+      ?results[5].reasonCode,
+    ]);
+    expect(find.byKey(const Key('m9s03-locked')), findsNothing);
+
+    feed.add(locked);
+    await tester.pump();
+    await tester.pump();
+
+    expect(shownTexts(tester, find.byKey(const Key('m9s03-locked'))), <String?>[
+      ?locked.lockedLabel,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('m9s03-result'))), <String?>[
+      results[5].headline,
+      ?results[5].reasonCode,
+    ]);
+    expect(
+      find.byWidgetPredicate((Widget w) => w is ButtonStyleButton),
+      findsNothing,
+    );
+    final List<Key> chain = <Key>[
+      const Key('m9s03-locked'),
+      const Key('m9s03-result'),
+      const ValueKey<String>('m9s03-account-0'),
+    ];
+    for (int i = 1; i < chain.length; i++) {
+      expect(
+        tester.getTopLeft(find.byKey(chain[i - 1])).dy,
+        lessThan(tester.getTopLeft(find.byKey(chain[i])).dy),
+      );
+    }
+    expect(repo.mappingCalls, 1);
+    expect(find.text(SettingsLabels.retry), findsNothing);
+  });
+
   // -- M9S03-12 asOf line and stale banner two cases ----------------------------
 
   for (final c

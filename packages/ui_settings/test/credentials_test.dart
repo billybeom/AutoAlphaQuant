@@ -398,6 +398,7 @@ void main() {
   }
 
   // -- M9S02-06 no double tap while waiting, per button -----------------------
+  // Runbook and rotate links both open while waiting (C4r7a-1, C4U-4).
 
   for (final c in <({String name, Key tap, List<SettingsActionId> want})>[
     (
@@ -443,9 +444,11 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('m9s02-runbook')));
       await tester.pump();
+      await tester.tap(find.byKey(const ValueKey<String>('m9s02-rotate-1')));
+      await tester.pump();
 
       expect(actions.ids, c.want);
-      expect(opener.opened, <String>[runbook.deepLink]);
+      expect(opener.opened, <String>[runbook.deepLink, rotate.deepLink]);
       expect(
         tester
             .widgetList<ButtonStyleButton>(
@@ -656,6 +659,9 @@ void main() {
       ]) {
     testWidgets('M9S02-10 locked ${c.name}', (WidgetTester tester) async {
       expect(locked.lockedLabel, isNotNull); // pre
+      expect(c.v.leakRunbookLink, isNotNull); // pre
+
+      final RecordingLinkOpener opener = RecordingLinkOpener();
 
       await pumpCredentials(
         tester,
@@ -665,7 +671,7 @@ void main() {
           ),
           actions: okActions(),
           slots: FakeSettingsSlotRecorder().build,
-          opener: RecordingLinkOpener(),
+          opener: opener,
           clock: FixedClock(kGoldenNowUtc),
         ),
       );
@@ -692,9 +698,76 @@ void main() {
         shownTexts(tester, find.byKey(const Key('m9s02-runbook'))),
         <String?>[?c.v.leakRunbookLink?.label],
       );
+      // Runbook link kept while locked opens once (K35, C4r7a-2, C4U-5).
+      await tester.tap(find.byKey(const Key('m9s02-runbook')));
+      await tester.pump();
+      expect(opener.opened, <String>[?c.v.leakRunbookLink?.deepLink]);
       expect(find.text(SettingsLabels.retry), findsNothing); // ⓡ
     });
   }
+
+  // Locked line stays if the VM locks after a result (C4r7b-5, C4r7c-6).
+  testWidgets('M9S02-10 locked after_result', (WidgetTester tester) async {
+    expect(locked.lockedLabel, isNotNull); // pre
+
+    final StreamController<CredentialListVm> feed =
+        StreamController<CredentialListVm>();
+    addTearDown(feed.close);
+    final FakeSettingsCredentialsRepository repo =
+        FakeSettingsCredentialsRepository(
+          credentials: (int call) => feed.stream,
+        );
+    feed.add(live);
+
+    await pumpCredentials(
+      tester,
+      overrides: credentialsOverrides(
+        repo: repo,
+        actions: okActions(),
+        slots: FakeSettingsSlotRecorder().build,
+        opener: RecordingLinkOpener(),
+        clock: FixedClock(kGoldenNowUtc),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey<String>('m9s02-verify-2')));
+    await tester.pump();
+    await tester.pump();
+    expect(shownTexts(tester, find.byKey(const Key('m9s02-result'))), <String?>[
+      results[0].headline,
+      ?results[0].reasonCode,
+    ]);
+    expect(find.byKey(const Key('m9s02-locked')), findsNothing);
+
+    feed.add(locked);
+    await tester.pump();
+    await tester.pump();
+
+    expect(shownTexts(tester, find.byKey(const Key('m9s02-locked'))), <String?>[
+      ?locked.lockedLabel,
+    ]);
+    expect(shownTexts(tester, find.byKey(const Key('m9s02-result'))), <String?>[
+      results[0].headline,
+      ?results[0].reasonCode,
+    ]);
+    expect(
+      find.byWidgetPredicate((Widget w) => w is ButtonStyleButton),
+      findsNothing,
+    );
+    final List<Key> chain = <Key>[
+      const Key('m9s02-locked'),
+      const Key('m9s02-result'),
+      const ValueKey<String>('m9s02-card-0'),
+    ];
+    for (int i = 1; i < chain.length; i++) {
+      expect(
+        tester.getTopLeft(find.byKey(chain[i - 1])).dy,
+        lessThan(tester.getTopLeft(find.byKey(chain[i])).dy),
+      );
+    }
+    expect(repo.credentialsCalls, 1);
+    expect(find.text(SettingsLabels.retry), findsNothing); // ⓡ
+  });
 
   // -- M9S02-11 asOf line and stale banner two cases --------------------------
 
