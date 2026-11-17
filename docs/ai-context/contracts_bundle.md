@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 114개 · 계약 v1.22.0 · 조립일 2026-11-17(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 114개 · 계약 v1.23.0 · 조립일 2026-11-17(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -31,12 +31,13 @@
 //    사항에 사유와 함께 적혀 있다. 대표적으로 `LedgerEventKind`/
 //    `LedgerEventRecord`(결정 ㊲ 대기 · M2-8 A-15·J-6) · `SplitExecutionLeg`
 //    (M2-8 C-11) · `AllocationEditorVm`
-//    (M2-8 §G 표 미등재 · R8 창)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
+//    (M2-8 §G 표 미등재 · S04 창 — 엔진 결정 대기 · 01 §8 미결 190~194)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
 //    들어왔다(`dto/incident.dart`).
 //    🆕 v1.18(01 §27) — `S01`·`S07` 계약 확정(`SettingsHomeVm` 교체 · `SettingsRepository`).
 //    🆕 v1.19(01 §28) — `S05` 계약 확정(`OperationsVm` · 부품 8 · `watchOperations`).
 //    🆕 v1.20(01 §29) — `S02`·`S06`·`S03` 계약 확정(`CredentialListVm` 추가형 · `DeviceAccessVm` 추가형 + `PairingTicketCard` ·
 //    🆕 `AccountMappingVm` · `watchCredentials`·`watchAccountMapping`).
+//    🆕 v1.23(01 §32) — `S13` 월 납입 계약 확정(`MonthlyContributionVm` 추가형 · `watchContribution` · `ContributionUpdateSubmission` · `runContributionUpdate` · `ContributionResultCodes`).
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';
@@ -94,7 +95,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -261,13 +262,21 @@ export 'commands/settings_actions.dart';
 //    (신설 15 · 개정 2 — F8 `resume_report_1` · `m9/handover_states` SIM_TO_AUTO) — 🆕 tool/gen_v122_fixtures.py.
 //    엔진 다음 계약 판 = 1.23.0+(E16i · 엔진 문구 0 VM 3 · 이름 없는 알림 · 승격 세션 종류 · PNG 흔드는 F1·F2·F4~F7 ·
 //    M5-1 폼 VM(미결 186) · M5-11 위저드 VM(미결 187) · `RuleChangeCategory` · postmortem·재량 원천 VM(미결 188) — 굳는 대로) ·
-//    06 변경 이력 «2026-11-17 · 계약 v1.22».
+//    06 변경 이력 «2026-11-17 · 계약 v1.22» — 🆕 1.23.0 은 R8a 월 납입 몫이 가져갔다 · 엔진 예약 = 1.24.0+(아래).
+// 🆕 '1.23.0'(R8a 선행 · 01 §32 · 발주자 위임 2026-11-14 — 권고대로 · K74~K103) — M9 `S13` 월 납입 설정:
+//    `MonthlyContributionVm` 추가형(asOf · lockedLabel · changeLabel · editable = ui 미참조 표식) · 🆕 `SettingsRepository.watchContribution()` ·
+//    🆕 `ContributionUpdateSubmission{amountInput 원문}` + `SettingsActions.runContributionUpdate`(표면 run·runContributionUpdate·watch — C-7) ·
+//    🆕 `ContributionResultCodes` 6(엔진 `ContributionRejectCodes` 7 − 공용 `TRUSTED_TIME_UNKNOWN` · 🔴 타입 이름 ≠ 엔진) · 받침대 +2 ·
+//    🆕 C-57 · 픽스처 298 → 305(신설 7 — `m9/monthly_contribution*` 6 · `m9/contribution_action_results`) — 🆕 tool/gen_r8_v123_fixtures.py.
+//    다음 판 = 1.24.0(S04 창 — 엔진 결정 대기 01 §8 미결 190~194 · 엔진 예약 E16i · 엔진 문구 0 VM 3 · 이름 없는 알림 · 승격 세션 종류 ·
+//    PNG 흔드는 F1·F2·F4~F7 · M5-1 폼 VM(미결 186) · M5-11 위저드 VM(미결 187) · `RuleChangeCategory` · E13 원천 VM(미결 188) 중
+//    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-17 · 계약 v1.23».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.22.0';
+const String contractVersion = '1.23.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -1867,6 +1876,7 @@ abstract class DiscretionAdjustSubmission with _$DiscretionAdjustSubmission {
 // 🆕 v1.19(01 §28) — M9 `S05` args 화이트리스트(전환 2 · 엔진 시작·중지 · 승격) · S05 는 결과를 읽는다.
 // 🆕 v1.20(01 §29) — M9 `S02`·`S06`·`S03` args 화이트리스트(검증 1단 · 발급 · 폐기 · 매핑 · 전체 검증) · 🔴 시크릿 값 args 0.
 // 🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드 args 화이트리스트(handover +3 · 확정 = 기존 `handoverCommit`).
+// 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 = 원문 제출 DTO `ContributionUpdateSubmission` + `runContributionUpdate`(표면 run·runContributionUpdate·watch 셋 — C-7) · `run` 화이트리스트 밖.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -1944,7 +1954,11 @@ part 'settings_actions.g.dart';
 ///    · `accountVerifyMapping`      = `{}`(v1.16 그대로 · `AccountMappingVm.verifyAction` = 전체 검증)
 ///    🔴 R7 세 화면은 [ActionResult] 의 `headline` + `reasonCode` 원문만 읽는다 — `handoffRoute`·`retryable` 미참조(표본 null·false ·
 ///      다시 시도 = VM 의 같은 버튼)(표본 = `m9/credential_action_results` · `m9/device_action_results` · `m9/account_mapping_action_results`).
-///    ⏸ `settingsContributionUpdate` = R8 창(엔진 E11j) · R9 동작 = 그 창.
+///    🆕 v1.23(01 §32 · K77) — `settingsContributionUpdate` = **제출 경로**(`runContributionUpdate(ContributionUpdateSubmission)`) ·
+///      🔴 `run` 화이트리스트 **밖**(사람이 친 금액 = 원문 제출 DTO — K7 이 표면 고정을 이긴다 · v1.22 K52 선례 · `run(settingsContributionUpdate)`
+///      = 구현 `ArgumentError`) · 결과 id = 늘 `settingsContributionUpdate` · `reasonCode` ∈ `ContributionResultCodes` ∪
+///      {`TRUSTED_TIME_UNKNOWN`, `BIOMETRIC_UNAVAILABLE`} ∪ null(접수) · `handoffRoute` null · `retryable` false
+///      (표본 = `m9/contribution_action_results`) · R9 동작 = 그 창.
 ///    🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드(🔒 `ui_safety` · 폰 로컬 · 뷰어 경로 0 · M9 `S05` 는 부르지 않는다):
 ///    · `handoverSimLedgerFate` = `{fate ∈ {KEEP, DISCARD}}`(엔진 `SimLedgerFate.wire` · 🔴 **세션 전** — 5단계는 6단계 생체(세션 열림) 앞이라
 ///      `handover_session_id` 를 넣지 않는다 · 결과 `reasonCode` ∈ {`SIM_LEDGER_FATE_SIM_CLOSED`, `SIM_TO_AUTO_NOT_SIM_AUTO`})
@@ -1969,6 +1983,13 @@ abstract interface class SettingsActions {
     SettingsActionId id, {
     Map<String, String> args = const <String, String>{},
   });
+
+  /// 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 운영값 변경(운영 등급 · 생체 = 구현). 🔴 화면은 입력칸 글자를 **원문 그대로** 싣는다
+  ///    (손질·파싱·범위 판정·버튼 비활성 0 · 빈칸·0 도 보낸다) · `actionRunId`·기기 id·신뢰 시각 = 구현.
+  ///    🔴 E11k(신뢰 시각) 전에는 형식이 맞는 입력 전부 `TRUSTED_TIME_UNKNOWN`(fail-closed · K98).
+  Future<ActionResult> runContributionUpdate(
+    ContributionUpdateSubmission submission,
+  );
 
   Stream<ActionResult> watch(String actionRunId);
 }
@@ -2000,6 +2021,21 @@ abstract class ActionResult with _$ActionResult {
   factory ActionResult.fromJson(Map<String, dynamic> json) =>
       _$ActionResultFromJson(json);
 }
+
+/// 🆕 v1.23(01 §32 · K77 · K103) — M9 `S13` 월 납입 변경 «화면 제출»(core `decideContributionChange(amountInput …)` :304 ·
+/// ds `ContributionSettingSource.change({amountInput, actionRunId})` :119 의 사람 몫 1 칸).
+/// 🔴 [amountInput] = 입력칸 글자 **원문 그대로**(콤마·공백·빈칸·음수·글자 포함 가능 — 판정 = 엔진 차례 빈칸 → 음수 → 숫자 아님 →
+///    상한 → 신뢰 시각 → 시계 전진 → 같은 값) · `actionRunId`(재생 멱등 = 같은 회차만)·기기 id·신뢰 시각 = 구현이 붙인다(화면 생성 0).
+@freezed
+abstract class ContributionUpdateSubmission
+    with _$ContributionUpdateSubmission {
+  const factory ContributionUpdateSubmission({required String amountInput}) =
+      _ContributionUpdateSubmission;
+
+  factory ContributionUpdateSubmission.fromJson(Map<String, dynamic> json) =>
+      _$ContributionUpdateSubmissionFromJson(json);
+}
+// JSON 키: amount_input
 ```
 
 ---
@@ -7666,8 +7702,10 @@ abstract class BreakerLadderRow with _$BreakerLadderRow {
 // 🔴 **월 추가 납입 운영값을 화면(`ui_*/lib` · `labels.dart` 포함)·계약 코드에 상수로 적지
 //    않는다**(C-32 · 🆕 v1.4 문구 통일 01 §14-13). 픽스처는 **폐기값만** 금지이고 금액 예시값은
 //    하나를 쓴다(`fixture_conventions_test.dart` 머리 주석).
-//    읽기 창구는 `ConfigRepository.watchContributionSetting()` **하나**이고 변경
-//    창구는 `SettingsActions`(운영 등급 · `settingsContributionUpdate` ⏸)다.
+// 🔵 v1.23 정정(01 §32 · K78) — **값의 원천은 엔진 `contributionSettingOf` 하나**이고 읽기 창구는 둘이다:
+//    `ConfigRepository.watchContributionSetting()`(원값 `ContributionSetting` · S7-4·H-02) ·
+//    🆕 `SettingsRepository.watchContribution()`(M9 `S13` 화면 투영 `MonthlyContributionVm` · 잠김·버튼 칸).
+//    변경 창구는 `SettingsActions.runContributionUpdate`(운영 등급 · 🆕 v1.23 원문 제출 DTO `ContributionUpdateSubmission`)다.
 // 🔴 화면이 `금액 × 12` 를 계산하지 않는다 — 한도 판정은 엔진 단일 소스다.
 // 🔴 **최소·최대·0 허용 여부를 필드로 내려보내지 않는다** — 범위 판정은 저장
 //    명령의 `ActionResult.headline`·`reasonCode` 로만 돌아온다(그래야 「저장 버튼
@@ -7680,6 +7718,7 @@ abstract class BreakerLadderRow with _$BreakerLadderRow {
 //    ④ «엔진이 완성한 호출 1개» = [SettingsActionCall](`OnboardingAction` 별칭 · 화면은 id·args 를 그대로 넘긴다).
 // 🆕 계약 v1.20(01 §29) — `S02` `CredentialListVm`·`CredentialCardVm` 추가형(색 · 동작 · 슬롯 · 잠김 · asOf · 봉인 · 런북 ·
 //    회전 링크 · 키 조각 0 · 1단).
+// 🆕 계약 v1.23(01 §32 · K79) — `MonthlyContributionVm` 추가형(asOf · lockedLabel · changeLabel · editable = ui 미참조 표식) — M9 `S13` 화면 VM.
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -7736,30 +7775,43 @@ abstract class ContributionSetting with _$ContributionSetting {
       _$ContributionSettingFromJson(json);
 }
 
-/// m2-8 G-11 — 05 `S05` 월 납입 운영값 카드.
-/// 🔴 `ContributionSetting` 의 **1:1 투영**이며 `editable` 하나만 런타임 값이다
-///    (`SettingsActions` 주입 여부 — 뷰어에서는 false 가 아니라 **카드 부재**).
-/// 🔴 **필드를 이어 붙여 문장을 만들지 않는다.** 투영을 늘리는 것은 허용된다
-///    (엔진 문자열 필드가 늘면 여기도 **같은 이름으로** 는다 · N-S4-03).
-/// 🔴 03 §8 `S7-3b` 의 `ContributionVm`(슬리브 기여 분해)과 **다른 타입**이며
-///    이름을 재사용하지 않는다(N-01).
+/// m2-8 G-11 · 🆕 v1.23(01 §32 · K79) — 05 `S13` 월 납입 설정 화면 VM(~~`S05` 카드~~ — v1.19 K3 `S05` 칸 0).
+/// 🔴 앞 7 칸(− `editable`)과 [asOf] 는 `ContributionSetting` 의 **1:1 투영**이다(같은 이름 · N-S4-03).
+/// 🔴 **필드를 이어 붙여 문장을 만들지 않는다.** 투영을 늘리는 것은 허용된다(엔진 문자열 필드가 늘면 여기도 같은 이름으로).
+/// 🔴 03 §8 `S7-3b` 의 `ContributionVm`(슬리브 기여 분해)과 **다른 타입**이며 이름을 재사용하지 않는다(N-01 · G-67).
+/// 🆕 v1.23 — 입력칸·버튼 유무 = [changeLabel](엔진·조립 · null = **부재**) + `SettingsActions` 주입(뷰어 = 화면 부재 · 폰 전용) ·
+///    [lockedLabel] non-null ⇒ [changeLabel] null(K-t · C-57 ②) · 🔴 최소·최대·0 허용 칸 0(범위 판정 = 결과 `reasonCode` 로만).
 @freezed
 abstract class MonthlyContributionVm with _$MonthlyContributionVm {
   const factory MonthlyContributionVm({
     required String amountText,
 
-    /// 🆕 v1.4 — `ContributionSetting.amountInputText` 의 투영(N-S4-03 · 같은 이름).
+    /// 🆕 v1.4 — `ContributionSetting.amountInputText` 의 투영(N-S4-03 · 같은 이름) · 입력칸은 스트림의 **첫 값만** 채운다.
     required String amountInputText,
     required String equivalentNoteText,
     required String appliesFromText,
     required String lastChangedText,
+
+    /// 🔴 ui 미참조(🆕 v1.23 · K79) — 값 = `changeLabel != null`(C-57 ③) · 지우지 않는다(파괴 변경 0 · 추가형 원칙) ·
+    ///    화면은 [changeLabel] 의 null 여부로만 가른다.
     required bool editable,
     String? pensionLimitNoteText,
+
+    /// 🆕 v1.23 — `ContributionSetting.asOf` 의 투영(오래됨 배너 · 하단 고지).
+    required AsOf asOf,
+
+    /// 🆕 v1.23 — 운영 등급 생체 축소 등 «보기만» 한 줄(엔진·조립). non-null ⇒ [changeLabel] null.
+    String? lockedLabel,
+
+    /// 🆕 v1.23 — 변경 버튼 글자(엔진·조립). 🔴 null = 입력칸·버튼 **부재**(잠김 · 원천 없음) — 화면이 글자·유무를 짓지 않는다.
+    String? changeLabel,
   }) = _MonthlyContributionVm;
 
   factory MonthlyContributionVm.fromJson(Map<String, dynamic> json) =>
       _$MonthlyContributionVmFromJson(json);
 }
+// JSON 키: amount_text · amount_input_text · equivalent_note_text · applies_from_text · last_changed_text · editable ·
+//          pension_limit_note_text · as_of · locked_label · change_label
 
 /// 🆕 v1.18(01 §27 · K-d) — 엔진이 완성한 `SettingsActions.run` 호출 1개(M9 공용 이름).
 /// 🔴 화면은 [OnboardingAction.id]·[OnboardingAction.args] 를 **그대로** 넘긴다(키·값을 짓지 않는다 · 화이트리스트 =
@@ -8450,7 +8502,7 @@ enum SettingsActionId {
   /// ⏸ `m2-8_naming.md` A-13(G-45) — 월 납입 운영값 변경.
   /// 🔴 **«운영 등급»이며 `settingsGeneralUpdate` 로 태우지 않는다** — 일반 등급이면
   /// 「즉시 반영」이 되어 「다음 납입 주기부터 적용」이 깨지고 생체 재인증도 건너뛴다.
-  /// ⏸ 사유 = 05 §1 등급표에 «운영 등급» 행이 신설되어야 성립한다. **이름만 등재**한다.
+  /// ✅ v1.23(01 §32 · K77) — 05 §1 등급표 «운영 — 월 납입» 행 있음 · 제출 경로 = `SettingsActions.runContributionUpdate`(`ContributionUpdateSubmission`) · `run` 화이트리스트 밖 · 화면 = M9 `S13`.
   @JsonValue('SETTINGS_CONTRIBUTION_UPDATE')
   settingsContributionUpdate('SETTINGS_CONTRIBUTION_UPDATE'),
 
@@ -10809,6 +10861,11 @@ abstract final class FixturePaths {
   /// 🆕 v1.18 — `S07` 전부 정상 · 행 4(캘린더 행 0 = `calendarEnabled` false 엔진 몫) · 텔레그램 선택.
   static const String m9ConnectionsTelegram = 'm9/connections_telegram.json';
 
+  // 🆕 v1.23(01 §32) — S13 VM 6 · 결과 1(파일 이름 바이트 차례 · all 도 같은 차례).
+  /// 🆕 v1.23(K80 · K101) — `S13` 동작 결과 `ActionResult` 9(레벨 5값 · 접수 합성 · 생체 · 엔진 거부 문장 7 · 넘김 0 · 재시도 0).
+  static const String m9ContributionActionResults =
+      'm9/contribution_action_results.json';
+
   // 🆕 v1.4(R11 선행) — `ConfigRepository.watchContributionSetting()` 의 입력(폴더 규약상 `m9_` 접두 없음).
   /// 월 납입 설정 — `pension_limit_note_text` 있음.
   static const String m9ContributionSettingDefault =
@@ -10853,6 +10910,29 @@ abstract final class FixturePaths {
   /// 🆕 v1.20 — `S06` 동작 결과 `ActionResult` 6(레벨 5값 · 발급 · 폐기 · 넘김 0 · 재시도 0).
   static const String m9DeviceActionResults = 'm9/device_action_results.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
+
+  /// 🆕 v1.23(K79 · K101) — `S13` 정상(글자 = 엔진 `contributionSettingOf` 출력 · 10만원 · 예정 없음 · 버튼 «바꾸기»).
+  static const String m9MonthlyContribution = 'm9/monthly_contribution.json';
+
+  /// 🆕 v1.23 — `S13` 잠김(`monthly_contribution` 에서 `locked_label` · `change_label` null · `editable` false 만 다른 판).
+  static const String m9MonthlyContributionLocked =
+      'm9/monthly_contribution_locked.json';
+
+  /// 🆕 v1.23 — `S13` 0원(납입 멈춤 · 한도 줄 null · 등가 «부족»).
+  static const String m9MonthlyContributionNoLimitNote =
+      'm9/monthly_contribution_no_limit_note.json';
+
+  /// 🆕 v1.23 — `S13` 기록 없음(기본값 · `last_changed_text` 만 다른 판).
+  static const String m9MonthlyContributionNoRecord =
+      'm9/monthly_contribution_no_record.json';
+
+  /// 🆕 v1.23 — `S13` 예정 있음(지금 값 10만원 그대로 · 다음 주기부터 0원 문장 — N-S4-01).
+  static const String m9MonthlyContributionPending =
+      'm9/monthly_contribution_pending.json';
+
+  /// 🆕 v1.23 — `S13` 오래됨(`monthly_contribution` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9MonthlyContributionStale =
+      'm9/monthly_contribution_stale.json';
 
   // 🆕 v1.19(01 §28) — `S05` 7 · S05 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
   /// 🆕 v1.19 — `S05` 동작 결과 `ActionResult` 13(레벨 5값 · id 5 전수 · 넘김 = 전환 요청 3 · 재시도 0).
@@ -11190,6 +11270,7 @@ abstract final class FixturePaths {
     m9Connections,
     m9ConnectionsLocked,
     m9ConnectionsTelegram,
+    m9ContributionActionResults,
     m9ContributionSettingDefault,
     m9ContributionSettingNoLimitNote,
     m9CredentialActionResults,
@@ -11204,6 +11285,12 @@ abstract final class FixturePaths {
     m9DeviceAccessTicket,
     m9DeviceActionResults,
     m9HandoverStates,
+    m9MonthlyContribution,
+    m9MonthlyContributionLocked,
+    m9MonthlyContributionNoLimitNote,
+    m9MonthlyContributionNoRecord,
+    m9MonthlyContributionPending,
+    m9MonthlyContributionStale,
     m9OperationsActionResults,
     m9OperationsAdvisory,
     m9OperationsLiveHoldKeys,
@@ -12382,6 +12469,8 @@ abstract final class ContractCodes {
     'sim_to_auto_commit_result': SimToAutoCommitResultCodes.values,
     'handover_session_result': HandoverSessionResultCodes.values,
     'sim_to_auto_step': SimToAutoStepIds.values,
+    // 🆕 v1.23(01 §32 · K80) — S13 월 납입 거부(엔진 글자 1:1 − 공용)
+    'contribution_result': ContributionResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -13042,7 +13131,7 @@ abstract final class KillSwitchResultCodes {
 /// M5 공용 거부(도메인 `safety_common_result` · 엔진 core `discretion`·`intervention`·`pledge`·`rule_change`·
 /// `ops/contribution_setting` 다섯 사전 + ds 킬스위치·STOPPED 저장이 같은 글자를 품는다 → 한 벌 · K12 · K45).
 abstract final class SafetyCommonResultCodes {
-  /// 신뢰 시각 모름(발동 기록 확인 · 서약 · 1.22.0 개입·규칙 변경·재량).
+  /// 신뢰 시각 모름(발동 기록 확인 · 서약 · 1.22.0 개입·규칙 변경·재량 · 🆕 1.23.0 월 납입 `runContributionUpdate` — `ContributionResultCodes` 의 짝 · K45).
   static const String trustedTimeUnknown = 'TRUSTED_TIME_UNKNOWN';
 
   /// 저널 id 가 이미 있다(발동 기록 · 재개 · 1.22.0 STOPPED).
@@ -13266,6 +13355,7 @@ abstract final class DiscretionResultCodes {
 // 01 §3 · 🆕 계약 v1.18(01 §27 · K-n ⓗ · K-s · K-u) — M9 설정 코드 사전 3축.
 // 🆕 계약 v1.19(01 §28 · K14 · K16) — `EngineStopReasonCodes`(S05 엔진 중지 사유 · 사람) · `SettingsResultCodes` +2.
 // 🆕 계약 v1.20(01 §29 · K8 · K9 · K13 · K32) — `CredentialKindCodes`(겹침 몫 · 엔진 `KisKeySet.wire` 1:1) · `SettingsSlotIds` · `SettingsResultCodes` +3.
+// 🆕 계약 v1.23(01 §32 · K80) — `ContributionResultCodes`(S13 월 납입 거부 · 엔진 `ContributionRejectCodes` 7 − 공용 1).
 //
 // 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 함께 싣는다
 //    (`ConnectionRow.label` · `NotifyChannelOption.label` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
@@ -13418,6 +13508,41 @@ abstract final class SettingsSlotIds {
     secretKisIsa,
     secretKisReconcile,
     pairingQrDisplay,
+  };
+}
+
+/// 🆕 v1.23(01 §32 · K80 · v1.21 K45) — M9 `S13` 월 납입 변경 거부(도메인 `contribution_result` · 엔진 core
+/// `ops/contribution_setting.dart:241` `ContributionRejectCodes` 7 − 공용 `TRUSTED_TIME_UNKNOWN`(`SafetyCommonResultCodes` 한 벌)).
+/// 🔴 타입 이름 ≠ 엔진 — 같으면 core `test/contribution_setting_test.dart` · ds `test/operating_param_store_test.dart` 가 두 배럴을
+///    `hide BreakerLevel` 만 붙여 함께 import 해 `ambiguous_import`(v1.21 K33 · v1.22 K49 결) · 엔진이 계약 참조로 옮길 때 지역 선언을 지운다.
+/// 🔴 엔진 판정 차례 = 빈칸 → 음수 → 숫자 아님 → 상한 → (신뢰 시각 = 공용) → 시계 전진 → 같은 값(`decideContributionChange` :304).
+///    화면은 이 값으로 분기·아이콘·색을 고르지 않는다(결과 줄 = `headline` + `reasonCode` 원문).
+abstract final class ContributionResultCodes {
+  /// 빈칸.
+  static const String blank = 'CONTRIBUTION_INPUT_BLANK';
+
+  /// 음수.
+  static const String negative = 'CONTRIBUTION_INPUT_NEGATIVE';
+
+  /// 원 단위 숫자 아님(콤마·앞뒤 공백은 엔진이 지운 뒤 판정).
+  static const String notNumber = 'CONTRIBUTION_INPUT_NOT_NUMBER';
+
+  /// 상한 초과(상한 = 엔진 config `maxAmount` · 숫자 = 발주자 대기 05 §8-16).
+  static const String overMax = 'CONTRIBUTION_INPUT_OVER_MAX';
+
+  /// 신뢰 시각이 마지막 기록보다 앞서지 않음(같은 순간 · 되감김).
+  static const String clockNotAdvanced = 'CONTRIBUTION_CLOCK_NOT_ADVANCED';
+
+  /// 바뀌는 게 없음(가장 최근에 접수된 값 — 예정 포함 — 과 같다).
+  static const String unchanged = 'CONTRIBUTION_UNCHANGED';
+
+  static const Set<String> values = <String>{
+    blank,
+    negative,
+    notNumber,
+    overMax,
+    clockNotAdvanced,
+    unchanged,
   };
 }
 ```
@@ -14272,6 +14397,8 @@ abstract final class AppRoutes {
   /// 🆕 v1.15 — `N-02` 알림 상세(`AlertDetail(alertId:)`) · 들어오는 링크 = `AlertItem.detailDeepLink`(데이터) ·
   /// 푸시·FGS 탭(엔진).
   static const String alertDetail = 'aaq://alerts/detail/:alertId';
+
+  /// 🆕 v1.23(01 §32 · K75) — M9 `S13` 월 납입 설정(R8a · 운영 등급 · 🔴 폰 전용 — 뷰어 레지스트리 빈 자리). 들어오는 링크 = `S01` 운영 묶음 카드(`SET_CONTRIBUTION` · 데이터).
   static const String settingsContribution = 'aaq://settings/contribution';
   static const String settingsCredentials = 'aaq://settings/credentials';
 
@@ -14957,6 +15084,7 @@ abstract interface class ConfigRepository {
   ///    가정 카드 2줄은 `GoalPathVm.startingCapitalAssumptionText`(엔진 문장)가 준다.
   /// ✅ C-10 — 소속 리포지토리는 `ConfigRepository` 로 확정(별도 리포지토리를 만들지 않는다).
   /// 🔴 화면·계약·픽스처가 월 납입 금액을 상수로 적지 않는다(C-32).
+  /// 🆕 v1.23(01 §32 · K78) — `S05` 칸 0(v1.19 K3) · M9 `S13` 은 같은 값의 화면 투영 `SettingsRepository.watchContribution()` 을 읽는다(값의 원천 = 엔진 `contributionSettingOf` 하나 · 두 벌 문장 0).
   Stream<ContributionSetting> watchContributionSetting();
 }
 ```
@@ -15594,10 +15722,10 @@ abstract interface class SafetyRepository {
 ```dart
 // 01 §4-1 · 🆕 계약 v1.18(01 §27 · K-c · K-v) — M9 설정 화면 읽기 창구.
 //
-// 🔴 뒤 카드가 **추가형**으로 늘린다(✅ v1.19 R6c `watchOperations` · ✅ v1.20 R7 `watchCredentials`·`watchAccountMapping` ·
-//    R8 `watchAllocationEditor` · S11 `watchGeneral`) — 받침대 `UnimplementedSettingsRepository` 를 같은 커밋에서 고친다.
+// 🔴 뒤 카드가 **추가형**으로 늘린다(✅ v1.19 R6c `watchOperations` · ✅ v1.20 R7 `watchCredentials`·`watchAccountMapping` · ✅ v1.23 R8a `watchContribution` · S04 창 `watchAllocationEditor`(엔진 결정 대기 — 01 §8 미결 190~194) · S11 `watchGeneral`) — 받침대 `UnimplementedSettingsRepository` 를 같은 커밋에서 고친다.
 // 🔴 `S07` 은 이 창구가 아니라 [OpsStatusRepository.watchConnections] 다(v1.0 부터 · 두 벌 0).
 // 🔴 `S06` 은 이 창구가 아니라 [OpsStatusRepository.watchDeviceAccess] 다(v1.0 부터 · 두 벌 0 · v1.20 K14).
+// 🔴 `S13` 의 값은 `ConfigRepository.watchContributionSetting()` 과 **같은 값 하나**(엔진 `contributionSettingOf`)의 화면 투영이다 — 두 벌 0(🆕 v1.23 K78).
 
 import '../dto/accounts.dart';
 import '../dto/operations.dart';
@@ -15615,6 +15743,10 @@ abstract interface class SettingsRepository {
 
   /// 🆕 v1.20(01 §29) — `S03` 계좌 연동·슬리브 매핑(🔴 폰 전용 · 계좌 전체번호 0).
   Stream<AccountMappingVm> watchAccountMapping();
+
+  /// 🆕 v1.23(01 §32 · K78) — `S13` 월 납입 설정(🔴 폰 전용 · 뷰어 원천 0 · 값의 원천 = 엔진 `contributionSettingOf` 하나 —
+  ///    S7-4·H-02 는 그대로 `ConfigRepository.watchContributionSetting()`).
+  Stream<MonthlyContributionVm> watchContribution();
 }
 ```
 
