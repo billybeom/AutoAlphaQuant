@@ -512,7 +512,25 @@ def check_results(rows, prefix, ids, codes):
             assert r['headline'].startswith('(합성)'), r
 
 
+def check_base_fresh():
+    """rebase 뒤 밑동(merge-base HEAD origin/main)의 픽스처 트리가 BASE 와 다르면 멈춘다.
+
+    파일 수(BASE_FILES)만으로는 main 쪽 픽스처 **내용** 개정을 못 본다 — 그대로 돌리면
+    새 개정을 BASE 판으로 덮는다. 다르면 BASE(·판 번호가 바뀌었으면 OLD_VER · NEW_VER ·
+    BASE_FILES · WANT_FILES)를 새 밑동으로 고치고 다시 돌린다. origin/main 이 없으면 건너뛴다.
+    """
+    try:
+        mb = git('merge-base', 'HEAD', 'origin/main').strip()
+    except subprocess.CalledProcessError:
+        return
+    want = git('rev-parse', '%s:%s' % (BASE, FX_REL)).strip()
+    got = git('rev-parse', '%s:%s' % (mb, FX_REL)).strip()
+    assert want == got, ('BASE 가 낡았다 — 밑동 %s 의 픽스처 트리가 BASE %s 와 다르다(BASE 상수 갱신)'
+                         % (mb[:8], BASE[:8]))
+
+
 def main():
+    check_base_fresh()
     rels = base_files()
     preload(rels)
     assert not (set(NEW_FILES) & set(rels)), 'BASE 목록이 낡았다(신설 파일이 이미 있다)'
