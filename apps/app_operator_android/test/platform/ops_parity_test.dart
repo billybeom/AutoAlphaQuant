@@ -61,12 +61,26 @@ void main() {
       'idle',
       'paths',
       'takeLaunchLink',
+      'deviceRisk',
+      'deviceId',
     ]) {
       expect(c, contains('"$m" ->'), reason: m);
     }
     for (final String m in <String>['onWake', 'onLink']) {
       expect(c, contains('invokeMethod("$m"'), reason: m);
     }
+  });
+
+  test('🔴 기기 id(R142) = noBackupFilesDir · 있는 파일은 덮어쓰지 않는다 · 첫 생성 잠금', () {
+    final String d = _read('$_kt/ops/DeviceId.kt');
+    expect(_ktConst(d, 'FILE'), 'aaq_device_id');
+    expect(d, contains('val dir = ctx.noBackupFilesDir'));
+    expect(d, isNot(contains('filesDir.')));
+    expect(d, contains('if (f.exists()) return f.readText().trim()'));
+    // 잠금 = 만드는 함수 자체에(주석 글자가 아니라).
+    expect(d, contains('@Synchronized\n    fun get(ctx: Context): String'));
+    expect(d, contains('UUID.randomUUID().toString()'));
+    expect(_read('$_kt/ops/OpsChannel.kt'), contains('DeviceId.get(ctx)'));
   });
 
   test('paths 응답 키 = Dart 가 읽는 키 · 엔진 원장은 noBackupFilesDir(백업 차단 이중)', () {

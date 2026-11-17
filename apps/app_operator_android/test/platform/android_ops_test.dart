@@ -111,6 +111,39 @@ void main() {
     );
   });
 
+  test(
+    '🔴 기기 id(R142) — UUID v4 소문자만 · 꼴이 틀리면 던진다(새 id 를 만들거나 «없음»으로 넘기지 않는다)',
+    () async {
+      const String id = '3f2b8c1e-9a4d-4b6f-8e2a-1c5d7f9b0a3e';
+      reply = id;
+      expect(await AndroidOps().deviceId(), id);
+      expect(calls.single.method, 'deviceId');
+      for (final Object? bad in <Object?>[
+        null,
+        '',
+        'abc',
+        ' $id',
+        id.toUpperCase(),
+        '3F2B8C1E-9a4d-4b6f-8e2a-1c5d7f9b0a3e', // 앞 묶음만 대문자
+        '3f2b8c1e-9a4d-1b6f-8e2a-1c5d7f9b0a3e', // v1
+        '3f2b8c1e-9a4d-4b6f-7e2a-1c5d7f9b0a3e', // 변형 자리 틀림
+        '3f2b8c1e9a4d4b6f8e2a1c5d7f9b0a3e',
+        42,
+      ]) {
+        expect(
+          () => deviceIdFromWire(bad),
+          throwsA(isA<FormatException>()),
+          reason: '$bad',
+        );
+      }
+      reply = 'not-an-id';
+      await expectLater(
+        AndroidOps().deviceId(),
+        throwsA(isA<FormatException>()),
+      );
+    },
+  );
+
   test('🔴 자가진단 — 모르는 칸 · 꼴 틀림은 «좋음»으로 지어내지 않는다(false · 0)', () async {
     reply = <String, Object?>{
       'notificationsEnabled': true,

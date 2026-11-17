@@ -2,6 +2,7 @@
 //
 // 실물 = Kotlin `OpsChannel` · `EngineService` · `AlarmPlanner` · `OpsNotifications`.
 // 🔴 판정 · 문구 0 — 알림 문구는 `buildFgsNotice`, 알람 시각은 `nextOccurrence`, 놓친 발화는 `wakeDecisions`(trading_runtime).
+// 🆕 E11p3d-5g(R142) — 기기 id(`deviceId` · 백업 제외 자리 · 꼴 = UUID v4 소문자 · 꼴이 틀리면 거부 — 정체성을 지어내지 않는다).
 // 🆕 E11p3d-2c(R136) — H-03 기기 측정(`deviceRisk` · 값만 · 임계 · 판정 · 문구 = 엔진 `deviceRiskVmOf`).
 
 import 'package:core_engine/core_engine.dart' show DeviceRiskFacts;
@@ -99,6 +100,18 @@ class AlarmItem {
 
   /// 울릴 시각.
   final DateTime atUtc;
+}
+
+/// 🆕 R142 — 기기 id 꼴(UUID v4 · 소문자 — Kotlin `UUID.randomUUID().toString()`).
+final RegExp kDeviceIdPattern = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+);
+
+/// 🆕 R142 — 와이어 → 기기 id · 🔴 꼴이 틀리면(빈 값 · 깨진 파일) 던진다 — 새 id 를 만들거나 «없음»으로 넘기지 않는다
+/// (부르는 쪽이 정한다 · 값은 오류 글에 싣지 않는다).
+String deviceIdFromWire(Object? raw) {
+  if (raw is String && kDeviceIdPattern.hasMatch(raw)) return raw;
+  throw const FormatException('기기 id 꼴이 아니다');
 }
 
 /// 🆕 R136 — 와이어 → 기기 측정값 · 🔴 모르는 칸 · 꼴 틀림 = null(그 행 부재 — «정상»으로 지어내지 않는다) ·
@@ -302,6 +315,10 @@ class AndroidOps {
   /// 자가진단 사실.
   Future<SurvivalFacts> diagnose() async =>
       SurvivalFacts.fromWire(await _ch.invokeMethod<Object?>('diagnose'));
+
+  /// 🆕 R142 — 기기 id(백업 제외 자리 · 없으면 Kotlin 이 처음 한 번 만든다 · 같은 기기 = 늘 같은 값).
+  Future<String> deviceId() async =>
+      deviceIdFromWire(await _ch.invokeMethod<Object?>('deviceId'));
 
   /// 🆕 R136 — H-03 기기 측정([measuredAtUtc] = 잰 시각 · 기기 시계).
   Future<DeviceRiskFacts> deviceRisk(DateTime measuredAtUtc) async =>

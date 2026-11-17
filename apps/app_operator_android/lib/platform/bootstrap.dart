@@ -140,6 +140,13 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
     const SystemClock clock = SystemClock();
     final AndroidOps ops = AndroidOps();
     final String dir = (await ops.paths()).engineDir;
+    // 🆕 R142 — 이 기기 id(못 얻으면 null — 화면은 그대로 선다 · 기기 id 를 쓰는 칸만 «없음»).
+    String? deviceId;
+    try {
+      deviceId = await ops.deviceId();
+    } on Object {
+      deviceId = null;
+    }
     return OperatorRuntime(
       files: LedgerFiles.open(dir, clock: clock),
       clock: clock,
@@ -160,6 +167,7 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       },
       // 🆕 R136 — H-03 기기 측정(값만 · 판정 = 엔진).
       deviceProbe: () => ops.deviceRisk(clock.nowUtc()),
+      deviceId: deviceId,
     );
   } on Object {
     return null;

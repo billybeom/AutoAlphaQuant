@@ -255,4 +255,18 @@ void main() {
       expect(o.opened, <String>['aaq://x']);
     });
   });
+
+  test('🔴 기기 id(R142) = 조립이 넣은 값 그대로 · 넣지 않으면 없음(플랫폼 밖 · 지어내지 않는다)', () {
+    final LedgerFiles f = openFiles(tempLedgerDir(), clock);
+    addTearDown(f.close);
+    expect(OperatorRuntime(files: f, clock: clock).deviceId, isNull);
+    expect(
+      OperatorRuntime(
+        files: f,
+        clock: clock,
+        deviceId: '3f2b8c1e-9a4d-4b6f-8e2a-1c5d7f9b0a3e',
+      ).deviceId,
+      '3f2b8c1e-9a4d-4b6f-8e2a-1c5d7f9b0a3e',
+    );
+  });
 }
