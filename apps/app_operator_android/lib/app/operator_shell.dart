@@ -12,6 +12,8 @@
 //    동작에 sim 파일(운영 방식 선택 · 키 검증 → 진척 기록). 마무리 · 재시작 = 4c · 4d.
 // 🆕 E11p3d-2b(R133) — 홈(H-01) 본문 · 운영 리듬(H-02) = `OperatorOpsSummaryRepository`(오늘 요약 · 리듬) + 이미 있는 안전 상태 ·
 //    진단 · 원천 없는 셋(안내 요약 · 슬리브 비중 · 원장 실사 배지 = «원천 없음» 오류 — 블록 부재 · 다시 시도).
+// 🆕 E11p3d-4a(R147) — 알림 «확인했습니다» = `OperatorCommandApi.acknowledgeAlert`(엔진 `SqliteAlertSink.acknowledge` · 맥락 = 이 기기 id) ·
+//    기기 id 가 없으면 주입하지 않는다(버튼 부재) · 알림 화면에만 주입(나머지 명령 = operator 구현 전).
 // 🆕 E11p3d-5h(R146) — M9 S06 기기 · 접근 본문(캡처 막기 = `kSecureRoutePatterns` 이미 · 링크 = 레지스트리에 본문이 있는 화면만).
 // 🆕 E11p3d-5f(R140) — M9 S07 연결 본문(`OperatorOpsStatusRepository.watchConnections` · 링크 = 레지스트리에 본문이 있는 화면만).
 // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검 본문(기기 측정 = `OperatorRuntime.deviceProbe` · 판정 = 엔진) — Android 전용 = 이 레지스트리.
@@ -62,6 +64,7 @@ import 'package:ui_shell/ui_shell.dart';
 
 import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
+import 'operator_command_api.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
@@ -102,6 +105,12 @@ final Provider<OperatorOpsStatusRepository> operatorOpsStatusProvider =
         hasBody: bodies.byPattern.containsKey,
       );
     });
+
+/// 🆕 R147 — 명령 API(알림 화면 주입 · 한 인스턴스 — 낸 명령의 접수증을 쥔다).
+final Provider<OperatorCommandApi> operatorCommandApiProvider =
+    Provider<OperatorCommandApi>(
+      (Ref ref) => OperatorCommandApi(ref.watch(operatorRuntimeProvider)),
+    );
 
 /// 🆕 R133 — 홈 오늘 요약 · 운영 리듬(한 인스턴스).
 final Provider<OperatorOpsSummaryRepository> operatorOpsSummaryProvider =
@@ -265,8 +274,12 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
       clock: runtime.clock,
     ) as AlertRepository,
   ),
-  // 확인(ack) = 명령 API 전 — null = 버튼 부재(셸 규약).
-  shellAlertCommandApiProvider.overrideWithValue(null as CommandApi?),
+  // 🆕 R147 — 확인(ack) = 명령 API(한 인스턴스) · 기기 id 없음 = null = 버튼 부재(셸 규약).
+  shellAlertCommandApiProvider.overrideWith(
+    (Ref ref) => runtime.deviceId == null
+        ? null
+        : ref.watch(operatorCommandApiProvider) as CommandApi,
+  ),
   // 🆕 R109 — 운영 상태(감시 보드 · 진단 = 실물 · 나머지 = 원천 없음).
   shellOpsStatusRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorOpsStatusProvider),
