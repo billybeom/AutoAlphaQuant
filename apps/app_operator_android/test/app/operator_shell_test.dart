@@ -522,6 +522,70 @@ void main() {
     disposed = true;
   });
 
+  testWidgets(
+    '🔴 알림 확인(R147) — 기기 id 있음 = «확인» 버튼 · 누르면 엔진 원장에 확인 · 기기 id 없음 = 버튼 부재',
+    (WidgetTester tester) async {
+      // 기본 조립(기기 id 없음) = 주입 없음.
+      expect(container.read(shellAlertCommandApiProvider), isNull);
+      container.dispose();
+      rt = OperatorRuntime(
+        files: files,
+        clock: clock,
+        deviceId: '3f2b8c1e-9a4d-4b6f-8e2a-1c5d7f9b0a3e',
+      );
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      expect(
+        identical(
+          container.read(shellAlertCommandApiProvider),
+          container.read(operatorCommandApiProvider),
+        ),
+        true,
+      );
+      await pumpApp(tester);
+      await ready(tester);
+      await tester.runAsync(
+        () => SqliteAlertSink(
+          files.sim,
+          clock: clock,
+        ).emit('sim-auto-daily_reconcile', <String>{AlertCodes.reconMismatch}),
+      );
+      final AlertItem a = alertInboxOf(
+        rows: storedAlerts(files.sim),
+        nowUtc: clock.nowUtc(),
+      ).first;
+      await open(
+        tester,
+        AppRoutes.alertDetail.replaceFirst(':alertId', a.alertId),
+      );
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      final Finder ack = find.byKey(const ValueKey<String>('n02-ack'));
+      expect(ack, findsOneWidget);
+      await tester.tap(ack);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(
+        files.sim.select(
+          'SELECT COUNT(*) AS n FROM alert_ack WHERE alert_id = ?',
+          <Object?>[a.alertId],
+        ).first['n'],
+        1,
+      );
+      expect(find.text('실행됨'), findsWidgets);
+      // 확인 기록이 원장 감시(갱신 훅 · 0초 타이머)를 깨운다 — 가짜 시간을 흘려 보내고 닫는다.
+      await tester.pump(const Duration(milliseconds: 10));
+      await tester.pump(const Duration(milliseconds: 10));
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
   testWidgets('🔴 S06 기기 · 접근(R146) = 조립 셸에 등록 · 이 폰 한 행 · 모의 단독 리스 · 캡처 막기', (
     WidgetTester tester,
   ) async {
