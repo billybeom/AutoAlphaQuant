@@ -6,6 +6,9 @@
 //    바깥 목록은 5분 동안 다시 묻지 않는다(호출 아끼기).
 // 🔴 화면 상태가 없으면(온보딩 전) 체크도 없다 — 빈 보드(«등록된 워치독 체크가 아직 없습니다»).
 // 🔵 진단 = 원장 진단 원천(E13c2) · 연결 · 기기 접근 · 백업 · 연간 = 원천 없음(R109 — 지어내지 않는다).
+// 🆕 E11p3d-5h(R146) — 기기 · 접근(S06) = 엔진 `deviceAccessVmOf` · 사실 = 이 기기 id(실행 묶음 · R142) · 화면 상태 원장의 리스 판정
+//    (`SqliteLeaseGate.check` — 주문을 막는 그 판정) · 다시 냄 = 들을 때 · 1분 · 리스 표(`sync_state`) · 화면 상태 변경(새 원장으로 감시를 옮긴다) ·
+//    바뀐 값만 · 화면 상태 없음 · 기기 id 없음 = 오류(지어내지 않는다).
 // 🆕 E11p3d-5f(R140) — 연결(S07) = 엔진 `connectionsVmOf` · 사실 = 키 검증 기록(S02 와 같은 원천) · healthchecks 목록(감시 보드와
 //    같은 5분 캐시 · 키 없음 = «연결 안 됨» · 그 밖 실패 = «읽지 못했습니다») · 링크 = 셸 레지스트리에 본문이 있을 때만([hasBody]) ·
 //    다시 냄 = 들을 때 · 1분 · sim 진척 표(키 검증) · 화면 상태 변경 · 바뀐 값만.
@@ -17,11 +20,14 @@ import 'dart:async';
 import 'package:core_engine/core_engine.dart'
     show
         ConnectionsFacts,
+        DeviceAccessFacts,
         DeviceRiskFacts,
         HealthchecksReach,
+        LeaseVerdict,
         RemoteCheck,
         WatchdogRemote,
         connectionsVmOf,
+        deviceAccessVmOf,
         deviceRiskVmOf;
 import 'package:data_sync/data_sync.dart'
     show
@@ -29,6 +35,7 @@ import 'package:data_sync/data_sync.dart'
         HealthchecksErrorKind,
         LedgerDiagnosticsSource,
         SqliteJobRunLog,
+        SqliteLeaseGate,
         modeStartedAtUtc,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -296,8 +303,92 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
     return c.stream;
   }
 
+  /// 🆕 R146 — 지금 기기 화면(화면 상태 없음 · 기기 id 없음 = 오류).
+  Future<DeviceAccessVm> deviceAccess() async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) {
+      throw StateError('기기: 화면 상태 없음(온보딩 전)');
+    }
+    final String? id = _rt.deviceId;
+    if (id == null) {
+      throw StateError('기기: 기기 id 없음');
+    }
+    final LeaseVerdict lease = await SqliteLeaseGate(
+      v.db,
+      mode: v.flags.runMode,
+      clock: _rt.clock,
+    ).check();
+    return deviceAccessVmOf(
+      DeviceAccessFacts(
+        deviceId: id,
+        runMode: v.flags.runMode,
+        lease: lease,
+        hasBody: hasBody,
+      ),
+      nowUtc: _rt.clock.nowUtc(),
+    );
+  }
+
+  /// 🆕 R146 — S06 기기 · 접근.
   @override
-  Stream<DeviceAccessVm> watchDeviceAccess() => _none('watchDeviceAccess');
+  Stream<DeviceAccessVm> watchDeviceAccess() =>
+      _followView(deviceAccess, const <String>{'sync_state'});
+
+  /// 읽기 하나를 따라간다 — 들을 때 · [tick] · 화면 상태 원장의 [tables](화면 상태가 바뀌면 새 원장으로 옮긴다) ·
+  /// 화면 상태 변경 · 바뀐 값만 · 읽기 실패 = 오류 한 번(다음 계기에 다시 읽는다).
+  Stream<T> _followView<T>(Future<T> Function() read, Set<String> tables) {
+    late final StreamController<T> c;
+    StreamSubscription<Object>? ledger;
+    Timer? timer;
+    T? last;
+    bool has = false;
+
+    Future<void> refresh() async {
+      try {
+        final T v = await read();
+        if (c.isClosed || (has && v == last)) return;
+        has = true;
+        last = v;
+        c.add(v);
+      } on Object catch (e, st) {
+        if (!c.isClosed) c.addError(e, st);
+      }
+    }
+
+    void followLedger() {
+      unawaited(ledger?.cancel());
+      ledger = null;
+      final OperatorView? v = _rt.view.value;
+      if (v == null) return;
+      // 값 = 매번 새 표지 — 표가 바뀔 때마다 한 번(«바뀐 값만» 감시라 같은 값을 내지 않게).
+      ledger = watchLedgerQuery<Object>(
+        v.db,
+        tables,
+        Object.new,
+      ).skip(1).listen((_) => unawaited(refresh()));
+    }
+
+    void onView() {
+      followLedger();
+      unawaited(refresh());
+    }
+
+    c = StreamController<T>(
+      onListen: () {
+        followLedger();
+        _rt.view.addListener(onView);
+        timer = Timer.periodic(tick, (_) => unawaited(refresh()));
+        unawaited(refresh());
+      },
+      onCancel: () async {
+        _rt.view.removeListener(onView);
+        timer?.cancel();
+        await ledger?.cancel();
+        await c.close();
+      },
+    );
+    return c.stream;
+  }
 
   @override
   Stream<BackupVm> watchBackup() => _none('watchBackup');

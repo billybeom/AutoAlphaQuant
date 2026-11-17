@@ -28,6 +28,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         ConnectionRow,
         ConnectionTargetCodes,
         ConnectionsVm,
+        DeviceAccessVm,
         DeviceRiskItem,
         DeviceRiskVm,
         StepState,
@@ -427,12 +428,86 @@ void main() {
     },
   );
 
+  // ── 🆕 R146 — S06 기기 · 접근 ──────────────────────────────────────────
+
+  const String devId = '3f2b8c1e-9a4d-4b6f-8e2a-1c5d7f9b0a3e';
+
+  Future<OperatorRuntime> readyWithId() async {
+    writeSimMode(files.sim, clock, committed: OperatingMode.autoTrade);
+    final OperatorRuntime r = OperatorRuntime(
+      files: files,
+      clock: clock,
+      deviceId: devId,
+    );
+    r.view.value = operatorViewOf(await bootEngine(files, clock: clock), files);
+    return r;
+  }
+
+  test('🔴 기기 — 화면 상태 없음 · 기기 id 없음 = 오류(지어내지 않는다)', () async {
+    await expectLater(
+      OperatorOpsStatusRepository(
+        OperatorRuntime(files: files, clock: clock, deviceId: devId),
+      ).deviceAccess(),
+      throwsA(isA<StateError>()),
+    );
+    final OperatorRuntime r = await readyWithId();
+    final OperatorRuntime noId = OperatorRuntime(files: files, clock: clock);
+    noId.view.value = r.view.value;
+    await expectLater(
+      OperatorOpsStatusRepository(noId).deviceAccess(),
+      throwsA(isA<StateError>()),
+    );
+  });
+
+  test(
+    '🔴 기기 — 모의 = 이 폰 단독 리스 유효 · 이 폰 한 행(기기 id = 실행 묶음 값) · 조회 전용 0대',
+    () async {
+      final DeviceAccessVm vm = await OperatorOpsStatusRepository(
+        await readyWithId(),
+      ).deviceAccess();
+      expect(vm.devices.single.deviceId, devId);
+      expect(vm.devices.single.statusLabel, '사용 중');
+      expect(
+        (vm.leaseStateLabel, vm.leaseLevel),
+        ('유효 — 이 폰 단독 리스(모의)', UiLevel.ok),
+      );
+      expect(vm.emptyLabel, '연결된 조회 전용 기기가 없습니다.');
+      expect(vm.pairing, isNull);
+      expect(vm.migrationLink, isNull);
+      expect(vm.asOf.label, '기기 기준 2026-12-22 09:30');
+    },
+  );
+
+  test('🔴 기기 — 리스가 봉인되면 다시 낸다(리스 표 · 실제 갱신 훅) · 같은 값은 다시 내지 않는다', () async {
+    final OperatorRuntime r = await readyWithId();
+    files.sim.execute(
+      "INSERT INTO sync_state(target, last_ok_at, status, operator_epoch, updated_at) VALUES ('SUPABASE', NULL, 'OK', 0, '2026-12-22T00:30:00.000Z')",
+    );
+    final List<DeviceAccessVm> got = <DeviceAccessVm>[];
+    final StreamSubscription<DeviceAccessVm> sub = OperatorOpsStatusRepository(
+      r,
+    ).watchDeviceAccess().listen(got.add);
+    addTearDown(sub.cancel);
+    await until(() => got.isNotEmpty);
+    expect(got.last.leaseLevel, UiLevel.ok);
+    files.sim.execute(
+      "UPDATE sync_state SET status = 'SEALED' WHERE target = 'SUPABASE'",
+    );
+    await until(() => got.last.leaseLevel == UiLevel.blocked);
+    expect(got.last.leaseStateLabel, '무효 — 주문이 멈춰 있습니다');
+    final int n = got.length;
+    files.sim.execute(
+      "UPDATE sync_state SET updated_at = '2026-12-22T00:31:00.000Z' WHERE target = 'SUPABASE'",
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    expect(got.length, n);
+  });
+
   test(
     '🔴 원천 없는 흐름 = 오류(지어내지 않는다) · 기기 측정기 없음(플랫폼 밖) = 기기 리스크도 원천 없음',
     () async {
       final OperatorOpsStatusRepository r = OperatorOpsStatusRepository(rt);
       for (final Stream<Object?> s in <Stream<Object?>>[
-        r.watchDeviceAccess(),
         r.watchBackup(),
         r.watchAnnualReview(),
         r.watchDeviceRisk(),
