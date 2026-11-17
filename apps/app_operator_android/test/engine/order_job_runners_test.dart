@@ -16,6 +16,7 @@ import 'package:core_engine/core_engine.dart'
         JobRunEntry,
         JobRunStatus,
         Market,
+        OperationsConfig,
         OrderTarget,
         P0sHumanInputs,
         P0sOpsConfig,
@@ -91,6 +92,14 @@ const Map<String, String> _accounts = <String, String>{
   P0sStrategyIds.pot: 'general',
 };
 
+/// 🆕 R150 — 운영 설정의 재개 사다리(SPEC 02 §4 `operations.resume`).
+final OperationsConfig _ops = OperationsConfig.fromJson(<String, Object?>{
+  'resume': <String, Object?>{
+    'gap_ladder_trading_days': <int>[2, 5, 10],
+    'backup_gap_days': 7,
+  },
+});
+
 void main() {
   tearDownAll(deleteTempDirs);
   final JobCalendars cals = calendars();
@@ -122,6 +131,7 @@ void main() {
   JobContext ctx({
     RunMode mode = RunMode.simInternal,
     OperatingMode operating = OperatingMode.autoTrade,
+    bool withOperations = true,
   }) => JobContext(
     db: files.sim,
     runMode: mode,
@@ -132,6 +142,7 @@ void main() {
     alerts: SqliteAlertSink(files.sim, clock: clock),
     runLog: log,
     clock: clock,
+    operations: withOperations ? _ops : null,
   );
 
   /// 설정 등재 + 모의 개시(1,000만 원) + DRY_RUN 커밋(simInternal × 자동 매매 × 집행).
@@ -373,6 +384,18 @@ void main() {
       c: ctx(mode: RunMode.simBroker),
     );
     expect('${r.error}', 'UNASSEMBLED daily_reconcile: cash_broker_SIM_BROKER');
+  });
+
+  test('🔴 운영 설정(재개 사다리) 없음 = 미조립 — core 기본값으로 조용히 돌지 않는다', () async {
+    openSim();
+    clock.now = kst(2026, 12, 22, 9, 15);
+    final JobRun<Object?> r = await run(
+      'kr_order',
+      '2026-12-22',
+      c: ctx(withOperations: false),
+    );
+    expect('${r.error}', 'UNASSEMBLED kr_order: operations.resume');
+    expect(log.entriesOf('kr_order').single.status, JobRunStatus.failed);
   });
 
   test('모의 개시 전 = 설정 없음 → 회차 실패(기록 남김)', () async {

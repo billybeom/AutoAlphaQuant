@@ -52,6 +52,58 @@ void main() {
     );
   });
 
+  test('🆕 R150 재개 사다리 — 둘 다 있을 때만 · 꼴 틀림 · 사다리 검사 그대로', () {
+    Map<String, Object?> resume(Object? gaps, Object? backup) =>
+        <String, Object?>{
+          'resume': <String, Object?>{
+            'gap_ladder_trading_days': gaps,
+            'backup_gap_days': backup,
+          },
+        };
+    final OperationsConfig c = OperationsConfig.fromJson(
+      resume(<Object?>[2, 5, 10], 7),
+    );
+    expect(c.gapLadderTradingDays, <int>[2, 5, 10]);
+    expect(c.backupGapDays, 7);
+    final ResumeLadder l = c.resumeLadder!;
+    expect(l.gapLadderTradingDays, <int>[2, 5, 10]);
+    expect(l.backupGapDays, 7);
+    expect(
+      OperationsConfig.fromJson(resume(<Object?>[1, 3, 9], 4))
+          .resumeLadder!
+          .gapLadderTradingDays,
+      <int>[1, 3, 9],
+    );
+    expect(
+      OperationsConfig.fromJson(resume(<Object?>[1, 3, 9], 4))
+          .resumeLadder!
+          .backupGapDays,
+      4,
+    );
+    expect(OperationsConfig.fromJson(resume(null, 7)).resumeLadder, isNull);
+    expect(
+      OperationsConfig.fromJson(resume(<Object?>[2, 5, 10], null)).resumeLadder,
+      isNull,
+    );
+    expect(OperationsConfig.fromJson(<String, Object?>{}).resumeLadder, isNull);
+    expect(
+      () =>
+          OperationsConfig.fromJson(resume(<Object?>[2, '5', 10], 7))
+              .gapLadderTradingDays,
+      throwsFormatException,
+    );
+    expect(
+      () => OperationsConfig.fromJson(resume(2, 7)).gapLadderTradingDays,
+      throwsFormatException,
+    );
+    expect(
+      () =>
+          OperationsConfig.fromJson(resume(<Object?>[5, 2, 10], 7))
+              .resumeLadder,
+      throwsArgumentError,
+    );
+  });
+
   test('🔴 키 없음 · 값 null = null(기능 꺼짐 · 지어내지 않음)', () {
     final OperationsConfig empty = OperationsConfig.fromJson(
       <String, Object?>{},

@@ -161,6 +161,7 @@ class OperatorEngine {
       clock: _clock,
       deviceId: _bootInputs.deviceId,
       trusted: _bootInputs.trusted,
+      operations: _operations,
     );
     final Map<String, JobRunner> table = _runners(ctx);
     final WakePlan plan = planWake(
