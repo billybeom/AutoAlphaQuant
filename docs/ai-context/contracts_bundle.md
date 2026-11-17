@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 114개 · 계약 v1.23.0 · 조립일 2026-11-17(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 114개 · 계약 v1.24.0 · 조립일 2026-11-18(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -38,6 +38,8 @@
 //    🆕 v1.20(01 §29) — `S02`·`S06`·`S03` 계약 확정(`CredentialListVm` 추가형 · `DeviceAccessVm` 추가형 + `PairingTicketCard` ·
 //    🆕 `AccountMappingVm` · `watchCredentials`·`watchAccountMapping`).
 //    🆕 v1.23(01 §32) — `S13` 월 납입 계약 확정(`MonthlyContributionVm` 추가형 · `watchContribution` · `ContributionUpdateSubmission` · `runContributionUpdate` · `ContributionResultCodes`).
+//    🆕 v1.24(01 §33) — `S09`·`S10`·`S12` 계약(`BackupVm` 교체 · `RestorePointRow` · `DiagnosticsScreenVm` · `SelfTestCard` · `AnnualReviewIndexVm` ·
+//    `watchDiagnosticsScreen` · `BackupResultCodes` · `LedgerIntegrityResultCodes`).
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';
@@ -95,7 +97,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -270,13 +272,23 @@ export 'commands/settings_actions.dart';
 //    🆕 C-57 · 픽스처 298 → 305(신설 7 — `m9/monthly_contribution*` 6 · `m9/contribution_action_results`) — 🆕 tool/gen_r8_v123_fixtures.py.
 //    다음 판 = 1.24.0(S04 창 — 엔진 결정 대기 01 §8 미결 190~194 · 엔진 예약 E16i · 엔진 문구 0 VM 3 · 이름 없는 알림 · 승격 세션 종류 ·
 //    PNG 흔드는 F1·F2·F4~F7 · M5-1 폼 VM(미결 186) · M5-11 위저드 VM(미결 187) · `RuleChangeCategory` · E13 원천 VM(미결 188) 중
-//    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-17 · 계약 v1.23».
+//    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-17 · 계약 v1.23» — 🆕 1.24.0 은 R9 세 화면 몫이 가져갔다 ·
+//    나머지 = 1.25.0+(아래).
+// 🆕 '1.24.0'(R9 선행 · 01 §33 · 발주자 위임 2026-11-14 — 권고대로 · K104~K143) — M9 `S09` 백업·복원 · `S10` 진단 · `S12` 연간 리뷰 목차:
+//    `BackupVm` 교체(소비자 0) + 🆕 `RestorePointRow` · 🆕 `DiagnosticsScreenVm` + `SelfTestCard`(감싸개 — `DiagnosticsVm` 무변경) +
+//    🆕 `SettingsRepository.watchDiagnosticsScreen()` · 🆕 `AnnualReviewIndexVm`(`OpsStatusRepository.watchAnnualReview` 반환 교체 · 이름 그대로 ·
+//    세후·수치 칸 0) · args `backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}` · 🆕 `BackupResultCodes` 8(`take` 경로) ·
+//    `LedgerIntegrityResultCodes` 7(E13c1 · 🔴 타입 이름 ≠ 엔진) · C-5 도메인 간 중복 +2 · 받침대 · 🆕 C-58 · 픽스처 305 → 322(신설 17) —
+//    🆕 tool/gen_r9_v124_fixtures.py. 🔴 S08(X4) · S11 = 이 판 0(⏸ R9d · R9e).
+//    다음 판 = 1.25.0(E16i 나머지 + E16j 화면 · S04 창(01 §8 미결 190~194) · E13i2 VM 3 · 이름 없는 알림 · 승격 세션 종류 ·
+//    PNG 흔드는 F1·F2·F4~F7 · M5-1 폼 VM(미결 186) · M5-11 위저드 VM(미결 187) · `RuleChangeCategory` · E13 원천 VM(미결 188) 중
+//    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-18 · 계약 v1.24».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.23.0';
+const String contractVersion = '1.24.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -1877,6 +1889,7 @@ abstract class DiscretionAdjustSubmission with _$DiscretionAdjustSubmission {
 // 🆕 v1.20(01 §29) — M9 `S02`·`S06`·`S03` args 화이트리스트(검증 1단 · 발급 · 폐기 · 매핑 · 전체 검증) · 🔴 시크릿 값 args 0.
 // 🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드 args 화이트리스트(handover +3 · 확정 = 기존 `handoverCommit`).
 // 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 = 원문 제출 DTO `ContributionUpdateSubmission` + `runContributionUpdate`(표면 run·runContributionUpdate·watch 셋 — C-7) · `run` 화이트리스트 밖.
+// 🆕 v1.24(01 §33 · K120) — M9 `S09`·`S10` args 화이트리스트(`backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}`) · `backupRestoreStart` = 화면 미호출 · 두 화면은 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -1958,7 +1971,19 @@ part 'settings_actions.g.dart';
 ///      🔴 `run` 화이트리스트 **밖**(사람이 친 금액 = 원문 제출 DTO — K7 이 표면 고정을 이긴다 · v1.22 K52 선례 · `run(settingsContributionUpdate)`
 ///      = 구현 `ArgumentError`) · 결과 id = 늘 `settingsContributionUpdate` · `reasonCode` ∈ `ContributionResultCodes` ∪
 ///      {`TRUSTED_TIME_UNKNOWN`, `BIOMETRIC_UNAVAILABLE`} ∪ null(접수) · `handoffRoute` null · `retryable` false
-///      (표본 = `m9/contribution_action_results`) · R9 동작 = 그 창.
+///      (표본 = `m9/contribution_action_results`) · R9 동작 = 🆕 v1.24(아래).
+///    🆕 v1.24(01 §33 · K111 · K112 · K114 · K115 · K120 · K132) — M9 `S09`·`S10`(폰 로컬 · 운영 등급 · 뷰어 경로 0 · 엔진이 `SettingsActionCall` 에 완성):
+///    · `backupRunNow`         = `{}`(`BackupVm.runAction` · 구현 권고 = X1 스냅숏 `take` — live 원장만 · 트랜잭션 밖 · 아카이브 `IN_SYNC` 일 때만 ·
+///      결과 `reasonCode` ∈ `BackupResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`} ∪ null(접수))
+///    · `backupRestoreStart`   = 🔴 화면 미호출(복원 = X1 마법사 · 새 폰 `R-01` — 같은 폰 복원 = 엔진 `X1_LIVE_EXISTS` · args 미정 유지)
+///    · `selftestGoldenRun`    = `{}`(`DiagnosticsScreenVm.golden.runAction` · 실행기 = E11o — 전 = 버튼 부재 · 결과 `reasonCode` ∈
+///      {`BIOMETRIC_UNAVAILABLE`} ∪ null — 통과·불일치 = `headline` 만 · 코드를 지어내지 않는다)
+///    · `selftestIntegrityRun` = `{}`(`DiagnosticsScreenVm.integrity.runAction` · 구현 권고 = 정본 자가 대조(로컬 · 브로커 0) · 🔴 불일치 =
+///      `LEDGER_INTEGRITY` 차단(일일 잡과 같은 fail-closed — 엔진 headline 이 말한다) · 결과 `reasonCode` ∈ `LedgerIntegrityResultCodes` ∪
+///      {`BIOMETRIC_UNAVAILABLE`} ∪ null(일치))
+///    🔴 두 화면은 [ActionResult] 의 `headline` + `reasonCode` 원문만 읽는다 — `handoffRoute`(늘 null)·`retryable`(늘 false)·`level` 분기 0
+///      (표본 = `m9/backup_action_results` · `m9/selftest_action_results`). ⏸ `calendarSyncNow`·`calendarRebackfill`·`calendarReconnect`
+///      = X4(⏸ R9d · 01 §8 미결 5 · 196) · `settingsGeneralUpdate` = S11 창(⏸ R9e · 미결 197) — args 미정 유지.
 ///    🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드(🔒 `ui_safety` · 폰 로컬 · 뷰어 경로 0 · M9 `S05` 는 부르지 않는다):
 ///    · `handoverSimLedgerFate` = `{fate ∈ {KEEP, DISCARD}}`(엔진 `SimLedgerFate.wire` · 🔴 **세션 전** — 5단계는 6단계 생체(세션 열림) 앞이라
 ///      `handover_session_id` 를 넣지 않는다 · 결과 `reasonCode` ∈ {`SIM_LEDGER_FATE_SIM_CLOSED`, `SIM_TO_AUTO_NOT_SIM_AUTO`})
@@ -1973,7 +1998,8 @@ part 'settings_actions.g.dart';
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
 ///
-/// ⚠️ 나머지 동작의 args 스키마는 **미확정**이다(§4-3 말미 · 05 §7 표가 입력) — 확정 전에는
+/// ⚠️ 나머지 동작(🆕 v1.24 기준 = `strategyPreview`·`strategyApplyRequest`(S04 창) · `credentialRegister`·`backupRestoreStart`(화면 미호출) ·
+///    calendar 3 · `settingsGeneralUpdate`)의 args 스키마는 **미확정**이다(§4-3 말미 · 05 §7 표가 입력) — 확정 전에는
 ///    화면이 키를 지어내지 않는다.
 abstract interface class SettingsActions {
   /// ⚠️ 01 §4-3 원문은 `{Map<String, String> args}` 이지만 Dart 에서 non-nullable 선택
@@ -5244,8 +5270,11 @@ abstract class UpdateGateCard with _$UpdateGateCard {
 //    구현체가 주입되지 않으므로 컨트롤은 «비활성»이 아니라 **부재**다.
 // 🔴 홈 블록 5·7 의 «세는 수»는 전부 엔진이 세어 **문자열로** 준다 — 화면이 목록
 //    길이로 만들지 않는다(01 §4-1 · G-29). int·double 산술이라 C-4 가 잡지 못한다.
-// 🔴 `actionAvailable == false` 는 «비활성»이 아니라 **카드·버튼의 부재**로 그린다.
+// 🔴 🆕 v1.24 — 이 파일에 `actionAvailable` 칸 0(v1.18 `ConnectionRow` · v1.24 `BackupVm` 삭제) · 버튼 유무 =
+//    `SettingsActionCall?`/`LinkAction?` null = **부재**(«비활성» 0).
 // 🆕 v1.20(01 §29) — `S06` `DeviceAccessVm`·`DeviceRow` 추가형 · 🆕 `PairingTicketCard`.
+// 🆕 v1.24(01 §33 · K110 · K113 · K118) — `S09` `BackupVm` 교체(소비자 0) + `RestorePointRow` · `S10` 감싸개 `DiagnosticsScreenVm` +
+//    `SelfTestCard`(`DiagnosticsVm` 무변경 — H-01 과 같은 값) · `S12` 전용 목차 `AnnualReviewIndexVm`(세후·수치 칸 0 — `AnnualReviewVm` 무변경).
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/ledger.dart';
@@ -5583,22 +5612,73 @@ abstract class PairingTicketCard with _$PairingTicketCard {
 }
 // JSON 키: headline · issue_action · qr_slot_id · expires_text
 
-/// m2-8 G-9 — 백업·복원(05 `S09`).
+/// m2-8 G-9 · 🆕 v1.24 교체(01 §33 · K110) — 백업·복원(05 `S09`) 화면 VM. 🔴 소비자 0 에서 바꿨다(v1.18 `SettingsHomeVm` 교체 선례) —
+///    옛 칸 `lastOkText`·`statusCode`·`statusLabel`·`actionAvailable`·`sizeText`·`route` 는 **삭제**(«부재 = 목록에 없음» K-q · 뜻 불명).
+/// 🔴 글자·시각·해시 = 엔진(화면은 자르기·잇기·세기 0 — `substring` 0) · 파일 경로·파일 이름·크기 칸 0(05 S09 «노출 금지») ·
+///    나이 판정·임계 = 엔진(`BACKUP_STALE` 와 같은 원천 · 화면 `DateTime.now()` 0).
+/// 🔴 **복원 버튼 0**(K111) — 복원 = 새 폰 X1 마법사(`R-01`) 몫 · 이 화면은 [migrationLink] 하나 · `backupRestoreStart` 화면 미호출.
+/// 🔴 [runAction] null = 버튼 **부재**(모의 원장 · 스탬프 0 · 아카이브 미일치 · 잠김 · 실행 중 — 판정 = 엔진 · K133) ·
+///    [lockedLabel] non-null ⇒ [runAction] null(K-t · C-58 ②).
 @freezed
 abstract class BackupVm with _$BackupVm {
   const factory BackupVm({
-    required String lastOkText,
-    required String statusCode,
-    required String statusLabel,
-    required bool actionAvailable,
+    /// «마지막 백업 11-17 21:40» — 엔진이 아카이브 나이와 스냅숏을 묶은 글자(K112 · 화면 분기 0).
+    required String lastBackupText,
+
+    /// 나이 배지(문구·임계 = 엔진). null = 배지 부재.
+    String? ageBadgeText,
+
+    /// [lastBackupText]·[ageBadgeText] 줄의 색·아이콘 근거.
+    required UiLevel level,
+
+    /// 고지 한 줄(«백업은 이 폰 안에만 있습니다 …» · 모의 «… 실전 원장에서만 …» — 엔진). null = 줄 부재.
+    String? noticeText,
+
+    /// 엔진이 완성한 `backupRunNow{}`(«지금 백업»). 🔴 null = 버튼 부재 — 화면은 그대로 `SettingsActions.run` 1회.
+    SettingsActionCall? runAction,
+
+    /// 운영 등급 생체 축소 등 «보기만» 한 줄(엔진·조립). non-null ⇒ [runAction] null.
+    String? lockedLabel,
+
+    /// 복원 지점(받은 차례 · 행 동작 0 — K111).
+    required List<RestorePointRow> points,
+
+    /// [points] 가 비었을 때의 엔진 한 줄. 🔴 [points] 빈 ⇔ non-null(C-58 ③).
+    String? pointsEmptyLabel,
+
+    /// «폰을 바꾸시나요?» + X1 기기 이전 링크(글자·목적지 = 엔진 · `x1Migration`). null = 부재(잠김 · 원천 없음).
+    LinkAction? migrationLink,
     required AsOf asOf,
-    String? sizeText,
-    String? route,
   }) = _BackupVm;
 
   factory BackupVm.fromJson(Map<String, dynamic> json) =>
       _$BackupVmFromJson(json);
 }
+// JSON 키: last_backup_text · age_badge_text · level · notice_text · run_action · locked_label · points · points_empty_label ·
+//          migration_link · as_of
+
+/// 🆕 v1.24(01 §33 · K110 · K111) — `S09` 복원 지점 1행(원천 = X1 스냅숏 매니페스트 목록 — 목록 함수 = 엔진 숙제 · 01 §8 미결 199).
+/// 🔴 **행 동작 칸 0**(복원 = X1 마법사 · K111) · 크기·파일 이름·경로 칸 0.
+@freezed
+abstract class RestorePointRow with _$RestorePointRow {
+  const factory RestorePointRow({
+    /// 🔴 ui 미참조(Key = 받은 차례 순번 — C4r7c-4).
+    required String code,
+
+    /// 시각·장부 날 글자(엔진 · 스냅숏 이름 = 시각 + 매니페스트 `authored_date`).
+    required String label,
+
+    /// 체인 해시 앞 8자 — 🔴 **엔진이 자른다**(화면 `substring` 0 · C-58 ④ `^[0-9a-f]{8}$`).
+    required String chainHashText,
+
+    /// 검증 상태 한 줄(엔진). null = 줄 부재.
+    String? stateLabel,
+  }) = _RestorePointRow;
+
+  factory RestorePointRow.fromJson(Map<String, dynamic> json) =>
+      _$RestorePointRowFromJson(json);
+}
+// JSON 키: code · label · chain_hash_text · state_label
 
 /// m2-8 G-10 — 진단 보드(05 `S10`) · 🆕 v1.13 `H-01` 블록 6(R13b)도 이 VM 을 그린다(01 §23).
 /// 🔴 **칸 수 5 고정은 엔진이 준다** — 모드와 무관하며 화면이 세지 않는다(§2-9).
@@ -5637,6 +5717,96 @@ abstract class DiagnosticCell with _$DiagnosticCell {
   factory DiagnosticCell.fromJson(Map<String, dynamic> json) =>
       _$DiagnosticCellFromJson(json);
 }
+
+/// 🆕 v1.24(01 §33 · K113) — 진단(05 `S10`) 화면 VM = **감싸개**(원천 1 스트림 · `SettingsRepository.watchDiagnosticsScreen`).
+/// 🔴 [board] = `H-01` 블록 6 과 **같은 값**(엔진 `diagnosticsOf` 하나 · 두 벌 0) · `board.asOf` 는 ui 미참조(오래됨 = [asOf]) ·
+///    무결성 칸 요약 문장 = `board.headline`(카드가 따로 짓지 않는다 · K137).
+/// 🔴 [lockedLabel] non-null ⇒ 두 카드 `runAction` null(C-58 ②) · [diffsLink] = 조회 링크(잠김에도 남을 수 있다 — K138).
+/// 🔴 05 옛 꼴 `{SelfTestVm golden, IntegrityVm integrity}`·`blocking` 은 쓰지 않는다(01 §8 미결 128 «05 꼴» 몫 닫음 · 차단 = `DiagnosticCell.level`).
+@freezed
+abstract class DiagnosticsScreenVm with _$DiagnosticsScreenVm {
+  const factory DiagnosticsScreenVm({
+    /// 골든벡터 셀프테스트 카드(E11o 전 = «판정 보류» · `runAction` null — K114).
+    required SelfTestCard golden,
+
+    /// 무결성 자가진단 카드(`statusLabel` = «마지막 검증 …» · 실행 = 정본 자가 대조 — K115 · K137).
+    required SelfTestCard integrity,
+
+    /// 5칸 대조 보드(`DiagnosticsVm` 무변경).
+    required DiagnosticsVm board,
+
+    /// 차이 상세 링크(글자·목적지 = 엔진 · `ledgerDiffs` · 🔴 정정 마법사 링크·렌더 0 — K116). null = 부재.
+    LinkAction? diffsLink,
+
+    /// 진입 권장 배너(«앱 업데이트 후 · 기기 이전 후 · 실전 전환 직전» — 엔진). null = 부재.
+    String? recommendText,
+
+    /// 운영 등급 생체 축소 등 «보기만» 한 줄. non-null ⇒ 두 카드 `runAction` null.
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _DiagnosticsScreenVm;
+
+  factory DiagnosticsScreenVm.fromJson(Map<String, dynamic> json) =>
+      _$DiagnosticsScreenVmFromJson(json);
+}
+// JSON 키: golden · integrity · board · diffs_link · recommend_text · locked_label · as_of
+
+/// 🆕 v1.24(01 §33 · K113 · K114 · K137) — `S10` 실행 카드 1장(골든 · 무결성 같은 꼴).
+/// 🔴 총계·비율·«n/m» 은 [summaryText] 엔진 글자 안에서만(화면 상수·조립 0 · 05 §8-1) · 실패 행 칸 = 이번 판 0(E11o 뒤 추가형 · 미결 198).
+/// 🔴 [runAction] null = 버튼 부재(실행기 없음 · 실행 중 · 잠김 — 판정 = 엔진) · 화면은 그대로 `SettingsActions.run` 1회.
+@freezed
+abstract class SelfTestCard with _$SelfTestCard {
+  const factory SelfTestCard({
+    /// 카드 제목(엔진 · 정적 라벨 0 — K137).
+    required String title,
+
+    /// 상태 한 줄(«골든벡터 판정 보류» · «실행 중» · «통과» · «마지막 검증 11-18 03:10» — 엔진).
+    required String statusLabel,
+
+    /// 카드 색·아이콘 근거.
+    required UiLevel level,
+
+    /// 마지막 실행 줄(엔진). null = 줄 부재.
+    String? lastRunText,
+
+    /// 요약 줄(엔진 · 총계 상수 0). null = 줄 부재.
+    String? summaryText,
+
+    /// 엔진이 완성한 `selftestGoldenRun{}` / `selftestIntegrityRun{}`. null = 버튼 부재.
+    SettingsActionCall? runAction,
+  }) = _SelfTestCard;
+
+  factory SelfTestCard.fromJson(Map<String, dynamic> json) =>
+      _$SelfTestCardFromJson(json);
+}
+// JSON 키: title · status_label · level · last_run_text · summary_text · run_action
+
+/// 🆕 v1.24(01 §33 · K118 · 01 §8 미결 95 (b)) — M9 `S12` 12월 연간 리뷰 **목차** VM(`OpsStatusRepository.watchAnnualReview` 반환).
+/// 🔴 세후·수익률·평가액·`lines`·연도 원값·창 상태 원값 칸 **0** — 타입에 없으면 나갈 수 없다(결정 8 · 01 §2-8 화이트리스트 원칙) ·
+///    M7 `S7-7` 의 `AnnualReviewVm` 은 무변경(다른 타입).
+/// 🔴 [entries] = 받은 차례 · M7 화면 링크만(기각 등록부 행 = HB-3 채택 전 0) · 화면이 행을 더하지 않는다 · 0 이면 행 0(K139) ·
+///    [pledgeLink] = 창 OPEN 일 때만 엔진이 채운다(목적지 `m5Pledge` · 편집 = M5-8) · 화면은 달·창을 판정하지 않는다.
+@freezed
+abstract class AnnualReviewIndexVm with _$AnnualReviewIndexVm {
+  const factory AnnualReviewIndexVm({
+    /// «2026년 연간 리뷰» — 엔진(`AnnualReviewVm.yearLabel` 과 같은 말).
+    required String yearLabel,
+
+    /// 창 상태 한 줄(엔진 · 원값 칸 0).
+    required String windowStateLabel,
+
+    /// 목차 행(M7 링크 · 받은 차례).
+    required List<LinkAction> entries,
+
+    /// 서약 편집 진입(M5-8 · OPEN 때만). null = 부재.
+    LinkAction? pledgeLink,
+    required AsOf asOf,
+  }) = _AnnualReviewIndexVm;
+
+  factory AnnualReviewIndexVm.fromJson(Map<String, dynamic> json) =>
+      _$AnnualReviewIndexVmFromJson(json);
+}
+// JSON 키: year_label · window_state_label · entries · pledge_link · as_of
 
 /// ⏸ m2-8 J-2 — `live × dryRun` 관찰 기간·승격 확인(§8-28 G-43).
 /// 🔴 **이름만 확정이고 기능은 발주자 확정 대기**다: 관찰 거래일 수는 엔진 config
@@ -6187,8 +6357,7 @@ abstract class AnnualReviewVm with _$AnnualReviewVm {
     required AsOf asOf,
 
     /// 🆕 v1.6 — 세후 사다리 본문 갈래(«묶음은 엔진» · `WithdrawalPlan.afterTax` 이름 선례). null = 블록 부재.
-    /// 🔴 같은 타입을 받는 M9 `S12`(`OpsStatusRepository.watchAnnualReview`) 창구는 이 필드와
-    ///    [afterTaxCounterfactual] 을 **null** 로 준다(K25 · 결정 8 · §8 미결 95 · 아래 ⑦-b).
+    /// 🆕 v1.24(01 §33 K118) — M9 `S12` 는 다른 타입 `AnnualReviewIndexVm`(세후 칸 0) · 이 타입의 소비자 = M7 `S7-7` 하나.
     AfterTaxLadder? afterTax,
 
     /// 🆕 v1.6 — 반사실 갈래. 🔴 non-null ⇒ [afterTax] non-null(C-41 ⑥) · 화면 = **늘 기본 접힘** 카드
@@ -8385,6 +8554,7 @@ enum CommandState {
 ///    이 닫은 구멍(위저드·온보딩의 쓰기 경로 부재)이 되살아난다.
 /// 🔴 DDL `CHECK` 대응 컬럼은 없다. 표기는 §1-2 규약대로 SCREAMING_SNAKE 다.
 enum SettingsActionId {
+  /// ⏸ v1.24(01 §33 · K106) — `S11` = ⏸ R9e(엔진 원천 뒤 · 01 §8 미결 197) · args 미정.
   @JsonValue('SETTINGS_GENERAL_UPDATE')
   settingsGeneralUpdate('SETTINGS_GENERAL_UPDATE'),
 
@@ -8486,16 +8656,26 @@ enum SettingsActionId {
   /// 채널은 안전장치의 일부). args = `{channel ∈ NotifyChannelCodes}`(엔진이 `NotifyChannelOption.selectAction` 에 완성).
   @JsonValue('NOTIFY_CHANNEL_SELECT')
   notifyChannelSelect('NOTIFY_CHANNEL_SELECT'),
+
+  /// ⏸ v1.24(01 §33 · K107) — X4 = R9 밖(⏸ R9d · 01 §8 미결 5 · 196) · args 미정.
   @JsonValue('CALENDAR_SYNC_NOW')
   calendarSyncNow('CALENDAR_SYNC_NOW'),
   @JsonValue('CALENDAR_REBACKFILL')
   calendarRebackfill('CALENDAR_REBACKFILL'),
+
+  /// 🆕 v1.24(01 §33 · K112) — `S09` «지금 백업» · args `{}`(엔진 완성 `BackupVm.runAction`) · 결과 `BackupResultCodes`.
   @JsonValue('BACKUP_RUN_NOW')
   backupRunNow('BACKUP_RUN_NOW'),
+
+  /// 🆕 v1.24(01 §33 · K111) — 🔴 화면 미호출(복원 = X1 마법사 · 같은 폰 = 엔진 `X1_LIVE_EXISTS`) · args 미정 유지(`credentialRegister` 선례).
   @JsonValue('BACKUP_RESTORE_START')
   backupRestoreStart('BACKUP_RESTORE_START'),
+
+  /// 🆕 v1.24(01 §33 · K114) — `S10` 골든벡터 셀프테스트 · args `{}` · 실행기 = E11o(전 = 버튼 부재).
   @JsonValue('SELFTEST_GOLDEN_RUN')
   selftestGoldenRun('SELFTEST_GOLDEN_RUN'),
+
+  /// 🆕 v1.24(01 §33 · K115) — `S10` 무결성 자가진단(정본 자가 대조 권고 · 불일치 = `LEDGER_INTEGRITY`) · args `{}` · 결과 `LedgerIntegrityResultCodes`.
   @JsonValue('SELFTEST_INTEGRITY_RUN')
   selftestIntegrityRun('SELFTEST_INTEGRITY_RUN'),
 
@@ -8508,6 +8688,7 @@ enum SettingsActionId {
 
   /// ⏸ `m2-8_naming.md` A-14(G-64) — 캘린더 재연결.
   /// ⏸ 사유 = X4 채택 자체가 미결이다(§8-5). **이름만 등재**한다.
+  /// ⏸ v1.24 — R9d(E17 뒤).
   @JsonValue('CALENDAR_RECONNECT')
   calendarReconnect('CALENDAR_RECONNECT');
 
@@ -10851,6 +11032,44 @@ abstract final class FixturePaths {
   static const String m9AccountMappingUnmapped =
       'm9/account_mapping_unmapped.json';
 
+  // 🆕 v1.24(01 §33) — S09 VM 6 · 결과 1 · S10 VM 5 · 결과 1 · S12 VM 4(파일 이름 바이트 차례 · all 도 같은 차례).
+  /// 🆕 v1.24(K118) — `S12` 닫힘(2025년 · 창 닫힘 글자 = `m7_annual_offwindow` · 목차 4 · 서약 링크 null).
+  static const String m9AnnualReviewIndexClosed =
+      'm9/annual_review_index_closed.json';
+
+  /// 🆕 v1.24 — `S12` 첫해(«첫 해라 비교 대상이 없습니다» · 목차 2 = 받은 것만 · 서약 링크 null).
+  static const String m9AnnualReviewIndexFirstYear =
+      'm9/annual_review_index_first_year.json';
+
+  /// 🆕 v1.24 — `S12` 열림(2026년 · 목차 4 = M7 링크 · 서약 편집 링크 · 세후·수치 칸 0).
+  static const String m9AnnualReviewIndexOpen =
+      'm9/annual_review_index_open.json';
+
+  /// 🆕 v1.24 — `S12` 오래됨(`annual_review_index_open` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9AnnualReviewIndexStale =
+      'm9/annual_review_index_stale.json';
+
+  /// 🆕 v1.24(K110) — `S09` 정상(마지막 백업 · 지점 2 · 해시 앞 8 · 고지 · «지금 백업» · X1 링크).
+  static const String m9Backup = 'm9/backup.json';
+
+  /// 🆕 v1.24(K132 · K133) — `S09` 동작 결과 `ActionResult` 10(레벨 5값 · `BackupResultCodes` 8 전수 · 생체 · 접수 합성 · 넘김 0 · 재시도 0).
+  static const String m9BackupActionResults = 'm9/backup_action_results.json';
+
+  /// 🆕 v1.24 — `S09` 나이 배지(WATCH · 배지 문장 숫자 0 · 지점 1).
+  static const String m9BackupAgeWarn = 'm9/backup_age_warn.json';
+
+  /// 🆕 v1.24 — `S09` 빈 지점(`points_empty_label` · 버튼·링크 있음 · 골든 아님).
+  static const String m9BackupEmpty = 'm9/backup_empty.json';
+
+  /// 🆕 v1.24 — `S09` 잠김(`backup` 에서 `run_action`·`migration_link` 를 비우고 `locked_label` 만 더한 판 · K138).
+  static const String m9BackupLocked = 'm9/backup_locked.json';
+
+  /// 🆕 v1.24(K135) — `S09` 모의(지금 실기기 기본 꼴 · 고지 · 빈 지점 · 버튼·링크 부재 — `X1_LIVE_ONLY`).
+  static const String m9BackupSim = 'm9/backup_sim.json';
+
+  /// 🆕 v1.24 — `S09` 오래됨(`backup` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9BackupStale = 'm9/backup_stale.json';
+
   // 🆕 v1.18(01 §27) — `S01` 3 · `S07` 3 · M9 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
   /// 🆕 v1.18 — `S07` 정상(행 5 · 레벨 5값 전수 · 부분 동기 · 실패 2 · 미설정 · 워치독·캘린더 링크 · 카카오 선택 + 배지).
   static const String m9Connections = 'm9/connections.json';
@@ -10909,6 +11128,25 @@ abstract final class FixturePaths {
 
   /// 🆕 v1.20 — `S06` 동작 결과 `ActionResult` 6(레벨 5값 · 발급 · 폐기 · 넘김 0 · 재시도 0).
   static const String m9DeviceActionResults = 'm9/device_action_results.json';
+
+  /// 🆕 v1.24(K113 · K143) — `S10` 기본(지금 실물 꼴 · 골든 «판정 보류» 버튼 부재 · 무결성 버튼 · 보드 = `m8/recon_board_ok` · 권장 배너).
+  static const String m9DiagnosticsScreen = 'm9/diagnostics_screen.json';
+
+  /// 🆕 v1.24(K143) — `S10` 차이(E11o 뒤 꼴 · 두 버튼 · 보드 = `m8/recon_board_diff` · 차이 상세 링크).
+  static const String m9DiagnosticsScreenDiff =
+      'm9/diagnostics_screen_diff.json';
+
+  /// 🆕 v1.24(K138) — `S10` 잠김(`diagnostics_screen_diff` 에서 두 `run_action` 을 비우고 `locked_label` 을 더한 판 · 차이 링크 남음).
+  static const String m9DiagnosticsScreenLocked =
+      'm9/diagnostics_screen_locked.json';
+
+  /// 🆕 v1.24 — `S10` 골든 실행 중(골든 버튼 부재 · 무결성 버튼 그대로).
+  static const String m9DiagnosticsScreenRunning =
+      'm9/diagnostics_screen_running.json';
+
+  /// 🆕 v1.24 — `S10` 오래됨(`diagnostics_screen` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9DiagnosticsScreenStale =
+      'm9/diagnostics_screen_stale.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
 
   /// 🆕 v1.23(K79 · K101) — `S13` 정상(글자 = 엔진 `contributionSettingOf` 출력 · 10만원 · 예정 없음 · 버튼 «바꾸기»).
@@ -10963,6 +11201,10 @@ abstract final class FixturePaths {
   /// 🆕 v1.19 — `S05` `simBroker × autoTrade` 체험 5항목 완료 · 업데이트 대기 · 지난 요청 줄.
   static const String m9OperationsSimComplete =
       'm9/operations_sim_complete.json';
+
+  /// 🆕 v1.24(K114 · K115 · K143) — `S10` 동작 결과 `ActionResult` 12(골든 3 = 통과·불일치·생체 · 무결성 9 = 일치·생체·사유 7 전수 BLOCKED).
+  static const String m9SelftestActionResults =
+      'm9/selftest_action_results.json';
 
   /// 🆕 v1.18 — M9 `S07` 동작 결과 `ActionResult` 5(레벨 5값 · `SettingsResultCodes` 3 + null 2 · 넘김 0 · 재시도 0).
   static const String m9SettingsActionResults =
@@ -11267,6 +11509,17 @@ abstract final class FixturePaths {
     m9AccountMappingActionResults,
     m9AccountMappingLocked,
     m9AccountMappingUnmapped,
+    m9AnnualReviewIndexClosed,
+    m9AnnualReviewIndexFirstYear,
+    m9AnnualReviewIndexOpen,
+    m9AnnualReviewIndexStale,
+    m9Backup,
+    m9BackupActionResults,
+    m9BackupAgeWarn,
+    m9BackupEmpty,
+    m9BackupLocked,
+    m9BackupSim,
+    m9BackupStale,
     m9Connections,
     m9ConnectionsLocked,
     m9ConnectionsTelegram,
@@ -11284,6 +11537,11 @@ abstract final class FixturePaths {
     m9DeviceAccessStale,
     m9DeviceAccessTicket,
     m9DeviceActionResults,
+    m9DiagnosticsScreen,
+    m9DiagnosticsScreenDiff,
+    m9DiagnosticsScreenLocked,
+    m9DiagnosticsScreenRunning,
+    m9DiagnosticsScreenStale,
     m9HandoverStates,
     m9MonthlyContribution,
     m9MonthlyContributionLocked,
@@ -11299,6 +11557,7 @@ abstract final class FixturePaths {
     m9OperationsLocked,
     m9OperationsSimAuto,
     m9OperationsSimComplete,
+    m9SelftestActionResults,
     m9SettingsActionResults,
     m9SettingsHome,
     m9SettingsHomeNoReview,
@@ -12372,7 +12631,8 @@ final class UnregisteredContractCodeError extends Error {
 ///   ③ ⏸ `AsOf.staleReasonCode` 4개(M2-8 A-2 · 엔진 확정 대기)
 /// 🔴 도메인이 다르면 **같은 문자열이 두 번 등재될 수 있다**
 ///    (`MANUAL_ORDER`·`RECON_MISMATCH`·`SELF_AUDIT_DUE`·`PUSH_LAG` 네 쌍 + 🆕 v1.22 `JOURNAL_MISSING`(`flag_id` ↔
-///    `discretion_result`) = 다섯 쌍) —
+///    `discretion_result`) = 다섯 쌍 + 🆕 v1.24 `CHAIN_BROKEN`(`origin_code` ↔ `ledger_integrity_result`) ·
+///    `RESTORE_ROLLBACK`(`origin_code` ↔ `backup_result`) = **일곱 쌍** · 🔜 1.25.0 E16i 나머지 = 더 늘어난다 — 01 §33 K140) —
 ///    그래서 [all] 의 크기는 등재 건수보다 작다. 전역 조회보다 [requireRegisteredIn] 을 쓴다.
 abstract final class ContractCodes {
   /// 도메인 → 코드 집합. 🔴 키 이름은 01 §3·§6 의 절 제목에서 따온다.
@@ -12471,6 +12731,9 @@ abstract final class ContractCodes {
     'sim_to_auto_step': SimToAutoStepIds.values,
     // 🆕 v1.23(01 §32 · K80) — S13 월 납입 거부(엔진 글자 1:1 − 공용)
     'contribution_result': ContributionResultCodes.values,
+    // 🆕 v1.24(01 §33 · K119) — S09 백업 거부 · S10 무결성 사유(엔진 글자 1:1)
+    'backup_result': BackupResultCodes.values,
+    'ledger_integrity_result': LedgerIntegrityResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -12784,9 +13047,11 @@ abstract final class OriginCodes {
   static const String schemaSkew = 'SCHEMA_SKEW';
 
   /// 해시 체인 단절.
+  /// 🔴 v1.24 — 같은 글자 다른 축 = `LedgerIntegrityResultCodes.chainBroken`(무결성 결과 · C-5 문서 쌍).
   static const String chainBroken = 'CHAIN_BROKEN';
 
   /// 복원 롤백.
+  /// 🔴 v1.24 — 같은 글자 다른 축 = `BackupResultCodes.rollback`(백업 거부 · C-5 문서 쌍).
   static const String restoreRollback = 'RESTORE_ROLLBACK';
 
   // ── X7 계열 6 (01 §10) ────────────────────────────────────────────────────
@@ -13356,6 +13621,7 @@ abstract final class DiscretionResultCodes {
 // 🆕 계약 v1.19(01 §28 · K14 · K16) — `EngineStopReasonCodes`(S05 엔진 중지 사유 · 사람) · `SettingsResultCodes` +2.
 // 🆕 계약 v1.20(01 §29 · K8 · K9 · K13 · K32) — `CredentialKindCodes`(겹침 몫 · 엔진 `KisKeySet.wire` 1:1) · `SettingsSlotIds` · `SettingsResultCodes` +3.
 // 🆕 계약 v1.23(01 §32 · K80) — `ContributionResultCodes`(S13 월 납입 거부 · 엔진 `ContributionRejectCodes` 7 − 공용 1).
+// 🆕 계약 v1.24(01 §33 · K119 · K132) — `BackupResultCodes`(S09 «지금 백업» = X1 스냅숏 `take` 거부 8) · `LedgerIntegrityResultCodes`(S10 무결성 = E13c1 사유 7).
 //
 // 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 함께 싣는다
 //    (`ConnectionRow.label` · `NotifyChannelOption.label` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
@@ -13543,6 +13809,89 @@ abstract final class ContributionResultCodes {
     overMax,
     clockNotAdvanced,
     unchanged,
+  };
+}
+
+/// 🆕 v1.24(01 §33 · K119 · K132) — M9 `S09` «지금 백업»(`backupRunNow`) 거부(도메인 `backup_result` · 엔진 = ds
+/// `migration/ledger_snapshot.dart` `SqliteLedgerSnapshotter.take` :250-315 가 낼 수 있는 코드 **전수**).
+/// 🔴 타입 이름 ≠ 엔진(core `SnapshotCodes` · `RestoreReason` · `MigrationStartCodes` — 같으면 엔진 시험이 두 배럴을 함께 import 해
+///    `ambiguous_import` · v1.21 K33 · v1.23 K80 결) · 엔진이 계약 참조로 옮길 때 지역 선언을 지운다.
+/// 🔴 `take` 에서 구조상 나올 수 없는 `RESTORE_SHA_MISMATCH`·`RESTORE_MANIFEST_MISMATCH`(매니페스트 = 같은 사본의 digest·머리)는 싣지 않는다 —
+///    새 폰 복원 검증(X1 마법사)과 `X1_LIVE_EXISTS` 는 E16i 나머지 판(1.25.0+ · K132).
+/// 🔴 같은 글자 다른 축: [rollback] = `OriginCodes.restoreRollback`(C-5 문서 쌍) · [liveOnly] = 다음 판 `MigrationStartCodes` 겹침 예고(K140).
+///    화면은 이 값으로 분기·아이콘·색을 고르지 않는다(결과 줄 = `headline` + `reasonCode` 원문).
+abstract final class BackupResultCodes {
+  /// live 원장이 아니다(모의 원장 — 백업은 실전 원장에서만).
+  static const String liveOnly = 'X1_LIVE_ONLY';
+
+  /// 스탬프(장부 마감)가 없다 — 체인·날을 지어내지 않는다.
+  static const String noStamp = 'SNAPSHOT_NO_STAMP';
+
+  /// 그 이름(시각)의 매니페스트가 이미 있다(덮지 않는다).
+  static const String exists = 'SNAPSHOT_EXISTS';
+
+  /// 만든 사본을 열거나 읽지 못했다(사본 = 지웠다).
+  static const String unreadable = 'RESTORE_UNREADABLE';
+
+  /// 사본 `schema_version` 이 이 앱과 다르다.
+  static const String schemaSkew = 'RESTORE_SCHEMA_SKEW';
+
+  /// 사본 `PRAGMA integrity_check` 가 ok 가 아니다.
+  static const String sqliteIntegrity = 'RESTORE_SQLITE_INTEGRITY';
+
+  /// 사본 스탬프 체인 자가 대조 실패.
+  static const String chainInvalid = 'RESTORE_CHAIN_INVALID';
+
+  /// 아카이브 체크포인트와 같지 않다(없음 · 뒤처짐 · 앞섬 — SPEC ⑧ «같음만» · K133).
+  static const String rollback = 'RESTORE_ROLLBACK';
+
+  static const Set<String> values = <String>{
+    liveOnly,
+    noStamp,
+    exists,
+    unreadable,
+    schemaSkew,
+    sqliteIntegrity,
+    chainInvalid,
+    rollback,
+  };
+}
+
+/// 🆕 v1.24(01 §33 · K115 · K119) — M9 `S10` 무결성 자가진단(`selftestIntegrityRun`) 불일치 사유(도메인 `ledger_integrity_result` ·
+/// 엔진 core `ops/ledger_integrity.dart:16-43` `LedgerIntegrityReason` 7 — E13c1 · 🔴 타입 이름 ≠ 엔진).
+/// 🔴 불일치 = 엔진이 `trading_block` `LEDGER_INTEGRITY` 를 세운다(일치해도 풀지 않는다 — 해제 = X5-3 정정) · 일치 = `reasonCode` null.
+/// 🔴 같은 글자 다른 축: [chainBroken] = `OriginCodes.chainBroken`(C-5 문서 쌍) · [sqliteIntegrity]·[formatVersion] = 다음 판
+///    E16i `BoundaryReason` 겹침 예고(K140).
+abstract final class LedgerIntegrityResultCodes {
+  /// 스탬프의 직렬화 형식 판이 현행과 다르다.
+  static const String formatVersion = 'FORMAT_VERSION';
+
+  /// 스탬프 날이 달력일로 이어지지 않는다.
+  static const String dateGap = 'DATE_GAP';
+
+  /// 체인 칸이 앞 체인 ‖ day_hash 와 다르다.
+  static const String chainBroken = 'CHAIN_BROKEN';
+
+  /// 지금 원장으로 다시 센 day_hash 가 스탬프와 다르다.
+  static const String dayHashMismatch = 'DAY_HASH_MISMATCH';
+
+  /// 첫 스탬프 앞 날에 귀속되는 행이 있다(소급 삽입).
+  static const String rowsBeforeFirstStamp = 'ROWS_BEFORE_FIRST_STAMP';
+
+  /// 행을 날에 귀속하지 못했다(다시 셀 수 없으면 일치를 말할 수 없다 — fail-closed).
+  static const String attribution = 'ATTRIBUTION';
+
+  /// `PRAGMA integrity_check` 가 ok 가 아니다.
+  static const String sqliteIntegrity = 'SQLITE_INTEGRITY';
+
+  static const Set<String> values = <String>{
+    formatVersion,
+    dateGap,
+    chainBroken,
+    dayHashMismatch,
+    rowsBeforeFirstStamp,
+    attribution,
+    sqliteIntegrity,
   };
 }
 ```
@@ -14421,20 +14770,20 @@ abstract final class AppRoutes {
   /// 🆕 v1.18 — `S07` 연결 관리(`Connections()` · R6b · 상태 조회 = 폰·iOS 뷰어 · 버튼 = 폰만).
   static const String settingsConnections = 'aaq://settings/connections';
 
-  /// 🆕 v1.18 — `S08` 구글 캘린더(X4 · R9 · 폰 전용 · `ConnectionRow.route` 목적지).
+  /// 🆕 v1.18 — `S08` 구글 캘린더(X4 · ⏸ R9d — E17 판독 뒤 계약 창 · 01 §33 K107 · 폰 전용 · `ConnectionRow.route` 목적지).
   static const String settingsCalendar = 'aaq://settings/calendar';
 
-  /// 🆕 v1.18 — `S09` 백업·복원(R9 · 폰 전용).
+  /// 🆕 v1.18 — `S09` 백업·복원(🆕 v1.24 R9a · `BackupVm` · 폰 전용).
   static const String settingsBackup = 'aaq://settings/backup';
 
-  /// 🆕 v1.18 — `S10` 진단(골든벡터 셀프테스트 · 무결성 · R9 · 폰 전용).
+  /// 🆕 v1.18 — `S10` 진단(골든벡터 셀프테스트 · 무결성 · 🆕 v1.24 R9b · `DiagnosticsScreenVm` · 폰 전용).
   static const String settingsDiagnostics = 'aaq://settings/diagnostics';
 
-  /// 🆕 v1.18 — `S11` 일반 설정·방해금지(카드 배정 = R9 조립 때 · 01 §8 미결 170).
+  /// 🆕 v1.18 — `S11` 일반 설정·방해금지(⏸ R9e — 엔진 원천 뒤 · 01 §8 미결 197 · 170 닫음).
   static const String settingsGeneral = 'aaq://settings/general';
 
   /// 🆕 v1.18 — `S12` 12월 연간 리뷰 진입(M9 목차 · `SettingsHomeVm.annualReviewLink` 목적지 · M7 `reportAnnual` 과 다른 화면 ·
-  /// 카드 배정 = R9 조립 때 · 미결 95·170).
+  /// 🆕 v1.24 R9c · `AnnualReviewIndexVm` · v1 뷰어 = 레지스트리 빈 자리 · 미결 95·170 닫음).
   static const String settingsAnnualReview = 'aaq://settings/annual-review';
   static const String handoverStatus = 'aaq://handover/status';
 
@@ -15041,6 +15390,8 @@ abstract interface class BreakerLadderRepository {
 //
 // ⏸ J-5 — X4 계열 전체는 **이름·타입을 등재하되 구현하지 않는다**(OAuth 동의화면
 //    «테스트» 상태 7일 만료 스모크가 미결 · §8-5). 인터페이스 선언까지가 이 회차의 몫이다.
+// ⏸ v1.24(01 §33 · K107) — `S08` 은 1.24.0 에서 뺐다(X4 = 13 E17 «실험 3 · 실전 뒤» · 카드 ⏸ `R9d-Bob-M9S08`) — 이 창구·`CalendarSyncStatus` 는
+//    지우지 않는다(J-5 그대로 · 계약 창 = E17 판독 뒤 · 01 §8 미결 196).
 
 import '../dto/calendar.dart';
 
@@ -15434,11 +15785,11 @@ abstract interface class OnboardingRepository {
 // 🔴 폰 빌드는 로컬에서, viewer 는 `rm_*` 읽기 모델에서 **같은 DTO** 를 받는다(계약 3조 ①).
 
 import '../dto/ops.dart';
-import '../dto/performance.dart';
 import '../primitives/list_result.dart';
 
 /// 워치독·연결·기기·백업·진단·연간 리뷰.
-/// ✅ H-8 — 반환 타입 이름은 `m2-8_naming.md` G-3·G-7·G-8·G-9·G-10·F-6 이 확정한 그대로다.
+/// ✅ H-8 — 반환 타입 이름은 `m2-8_naming.md` G-3·G-7·G-8·G-9·G-10·F-6 이 확정한 그대로다 · 🆕 v1.24 — `watchAnnualReview` 반환 =
+///    F-6 밖 새 타입 `AnnualReviewIndexVm`(K118).
 abstract interface class OpsStatusRepository {
   /// `W-01` — 🆕 v1.15(01 §24 · K3) 반환 = [WatchdogBoardVm](구 `ListResult<WatchdogCheck>`).
   /// 🔴 목록 길이·이름·차례는 서버가 준다 · healthchecks 슬러그·ping URL·키는 이 창구에 오지 않는다(K4 · K17).
@@ -15450,19 +15801,20 @@ abstract interface class OpsStatusRepository {
   /// `S06` — 🔴 리스는 읽기 전용이다.
   Stream<DeviceAccessVm> watchDeviceAccess();
 
-  /// `S09`.
+  /// `S09` — 🆕 v1.24(01 §33 · K110) 반환 = 교체된 [BackupVm](타입 이름 그대로 · 칸 교체 — 소비자 0 에서) · 🔴 폰 전용(뷰어 원천 0).
   Stream<BackupVm> watchBackup();
 
   /// `S10` — 🔴 칸 수 5 고정은 엔진이 준다(§2-9 `applicable`).
   /// 🆕 v1.13(01 §23) — `H-01` 블록 6(R13b)의 원천도 이 창구다(칸 색 = `DiagnosticCell.level` · `headline` 늘) ·
   ///    뷰어 원천 = 01 §8 미결 128.
+  /// 🆕 v1.24(01 §33 · K113) — M9 `S10` 화면은 `SettingsRepository.watchDiagnosticsScreen()`(감싸개 · 같은 보드 값)을 읽는다 · 이 창구 무변경.
   Stream<DiagnosticsVm> watchDiagnostics();
 
-  /// `S12` — 🔴 화면이 `windowState` 를 «달»로 판정하지 않는다.
-  /// 🆕 v1.6(01 §15-4 · K25 · 결정 8 · §8 미결 95) — 이 창구의 `AnnualReviewVm` 은 `afterTax`·
-  ///    `afterTaxCounterfactual` 을 **null** 로 준다(엔진 의무 · 06 M1-20b) — 세후 수치는 M7 `S7-7`
-  ///    (`PerformanceRepository.annualReview`) 한 자리에만 간다. `S12` 의 표시 범위는 미결 95.
-  Stream<AnnualReviewVm> watchAnnualReview();
+  /// `S12` — 🔴 화면이 창을 «달»로 판정하지 않는다.
+  /// 🆕 v1.24(01 §33 · K118 · §8 미결 95 (b)) — 반환 = **[AnnualReviewIndexVm]**(목차 전용 · 세후·수익률·`lines` 칸 0 — 타입으로 막는다) ·
+  ///    ~~`AnnualReviewVm`(세후 두 필드 null 의무 · v1.6 K25)~~ · 이름 그대로(C-42 `_windowMethods` 가 쥔다) · M7 `S7-7` =
+  ///    `PerformanceRepository.annualReview` 의 `AnnualReviewVm` 그대로.
+  Stream<AnnualReviewIndexVm> watchAnnualReview();
 
   /// 🆕 v1.17(01 §26 · K17 · 01 §8 미결 123) — `H-03` 물리 리스크 점검(측정 = 플랫폼 · 판정·문구 = 엔진 · asOf 있음).
   /// 🔴 Android(operator) 화면이다 — 뷰어 빌드에는 본문이 등록되지 않는다(조립 앱 레지스트리 · 셸 가드 무변경).
@@ -15566,7 +15918,7 @@ abstract interface class PerformanceRepository {
   /// `S7-7` — 🆕 v1.6 [year] == null = **엔진 기본 연도**(06 M1-20b · K24 — 권고: 12월 창 열림 = 그해 ·
   /// 그 밖 = 마지막 완결 연도 · 완결 연도가 없으면(운용 첫 해) 그해). 고른 연도는 `vm.yearLabel` 이 말한다.
   /// 🔴 `S7-7` 은 **이 창구 하나만** 쓴다 · `OpsStatusRepository.watchAnnualReview` 는 M9 `S12` 몫 —
-  ///    같은 타입이지만 **세후 두 필드는 null**(K25 · ⑦-b).
+  ///    🆕 v1.24 **다른 타입** `AnnualReviewIndexVm`(세후·수치 칸 0 · 01 §33 K118).
   /// 🔴 세후는 VM 의 `afterTax`·`afterTaxCounterfactual` 이 싣는다 — `S7-7` 은 [afterTaxLadder] 를 부르지 않는다.
   Future<AnnualReviewVm> annualReview({String? year});
 
@@ -15722,13 +16074,15 @@ abstract interface class SafetyRepository {
 ```dart
 // 01 §4-1 · 🆕 계약 v1.18(01 §27 · K-c · K-v) — M9 설정 화면 읽기 창구.
 //
-// 🔴 뒤 카드가 **추가형**으로 늘린다(✅ v1.19 R6c `watchOperations` · ✅ v1.20 R7 `watchCredentials`·`watchAccountMapping` · ✅ v1.23 R8a `watchContribution` · S04 창 `watchAllocationEditor`(엔진 결정 대기 — 01 §8 미결 190~194) · S11 `watchGeneral`) — 받침대 `UnimplementedSettingsRepository` 를 같은 커밋에서 고친다.
+// 🔴 뒤 카드가 **추가형**으로 늘린다(✅ v1.19 R6c `watchOperations` · ✅ v1.20 R7 `watchCredentials`·`watchAccountMapping` · ✅ v1.23 R8a `watchContribution` · ✅ v1.24 R9 `watchDiagnosticsScreen` · S04 창 `watchAllocationEditor`(엔진 결정 대기 — 01 §8 미결 190~194) · S11 `watchGeneral` = ⏸ R9e 창(엔진 원천 뒤 — 01 §8 미결 197)) — 받침대 `UnimplementedSettingsRepository` 를 같은 커밋에서 고친다.
 // 🔴 `S07` 은 이 창구가 아니라 [OpsStatusRepository.watchConnections] 다(v1.0 부터 · 두 벌 0).
 // 🔴 `S06` 은 이 창구가 아니라 [OpsStatusRepository.watchDeviceAccess] 다(v1.0 부터 · 두 벌 0 · v1.20 K14).
 // 🔴 `S13` 의 값은 `ConfigRepository.watchContributionSetting()` 과 **같은 값 하나**(엔진 `contributionSettingOf`)의 화면 투영이다 — 두 벌 0(🆕 v1.23 K78).
+// 🔴 `S10` 의 보드는 `OpsStatusRepository.watchDiagnostics()`(H-01)와 **같은 값 하나**(엔진 `diagnosticsOf`)를 감싸개 칸으로 싣는다 — 두 벌 0(🆕 v1.24 K113).
 
 import '../dto/accounts.dart';
 import '../dto/operations.dart';
+import '../dto/ops.dart';
 import '../dto/settings.dart';
 
 abstract interface class SettingsRepository {
@@ -15747,6 +16101,10 @@ abstract interface class SettingsRepository {
   /// 🆕 v1.23(01 §32 · K78) — `S13` 월 납입 설정(🔴 폰 전용 · 뷰어 원천 0 · 값의 원천 = 엔진 `contributionSettingOf` 하나 —
   ///    S7-4·H-02 는 그대로 `ConfigRepository.watchContributionSetting()`).
   Stream<MonthlyContributionVm> watchContribution();
+
+  /// 🆕 v1.24(01 §33 · K113) — `S10` 진단(🔴 폰 전용 · 뷰어 원천 0 · 감싸개 한 스트림 — 보드 = `OpsStatusRepository.watchDiagnostics()`
+  ///    와 같은 값(엔진 `diagnosticsOf` 하나) · `watchDiagnostics` 는 무변경(H-01 몫)).
+  Stream<DiagnosticsScreenVm> watchDiagnosticsScreen();
 }
 ```
 
