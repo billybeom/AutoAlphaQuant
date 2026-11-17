@@ -32,6 +32,7 @@ import '../engine/engine_boot.dart' show BootInputs;
 import '../engine/job_runners.dart' show JobContext, composeJobRunners;
 import '../engine/kis_sessions.dart';
 import '../engine/ledger_files.dart';
+import '../engine/operations_loader.dart' show loadOperationsConfig;
 import '../engine/operator_engine.dart';
 import '../engine/seed_loader.dart';
 import '../engine/system_clock.dart';
@@ -79,14 +80,18 @@ WakeHandler engineWakeHandler({
   OperatorRuntime? runtime,
 }) {
   OperatorEngine? engine;
-  return (WakeEvent _) async {
+  return (WakeEvent event) async {
     final OperatorEngine e = engine ??= await _assemble(
       ops,
       calendars,
       fgs,
       runtime,
     );
-    final EngineWakeReport r = await e.wake();
+    final ({bool booting, String? bootId}) b = wakeBootOf(event);
+    final EngineWakeReport r = await e.wake(
+      booting: b.booting,
+      bootId: b.bootId,
+    );
     runtime?.onWake(r);
   };
 }
@@ -106,6 +111,7 @@ Future<OperatorEngine> _assemble(
   final String? deviceId = runtime != null
       ? runtime.deviceId
       : await deviceIdOrNull(ops);
+  final HealthchecksClient watch = HealthchecksClient(net, vault);
   final JobParts parts = operatorJobParts(
     KisSessions(vault: vault, http: net),
     net,
@@ -113,7 +119,10 @@ Future<OperatorEngine> _assemble(
   return OperatorEngine(
     openFiles: () => runtime?.files ?? LedgerFiles.open(dir!, clock: clock),
     calendars: cals,
-    heartbeat: HealthchecksClient(net, vault),
+    heartbeat: watch,
+    // 🆕 E16t3b(R149 AA5) — 같은 감시 클라이언트 = 창 재개 · 운영 설정 = data_sync 자산(SPEC 02 §4).
+    watchdog: watch,
+    operations: await loadOperationsConfig(rootBundle),
     bootInputs: operatorBootInputs(deviceId: deviceId),
     runners: (JobContext c) => composeJobRunners(c, parts: parts),
     seed: () => loadSeedAssets(rootBundle),
@@ -130,6 +139,12 @@ const BootInputs kOperatorBootInputs = BootInputs(
 /// 🆕 E16t2b(R144 X2) — 조립 앱의 기동 입력 + 이 기기 id(null = X1 끼울 자리 꺼짐 · 그 밖 = [kOperatorBootInputs] 와 같다).
 BootInputs operatorBootInputs({String? deviceId}) =>
     BootInputs(credentialEnvironmentOk: kisKeySetFits, deviceId: deviceId);
+
+/// 🆕 E16t3b(R149 AA6) — 깨어남 → (부팅인가 · 부팅 id) — 부팅(`WakeReason.boot`)만 · id = `boot-{울린 ms}`.
+({bool booting, String? bootId}) wakeBootOf(WakeEvent e) =>
+    e.reason == WakeReason.boot
+    ? (booting: true, bootId: 'boot-${e.firedAtUtc.millisecondsSinceEpoch}')
+    : (booting: false, bootId: null);
 
 /// 🆕 E16t2b(R144 X3) — 이 기기 id(못 얻으면 null — 화면 · 엔진은 그대로 서고 기기 id 를 쓰는 칸만 꺼진다).
 Future<String?> deviceIdOrNull(AndroidOps ops) async {
