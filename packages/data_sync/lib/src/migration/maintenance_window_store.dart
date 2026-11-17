@@ -5,7 +5,7 @@
 // 🔴 시각 = 신뢰 시각 · 열린 시각보다 앞이면 열린 시각(정렬이 뒤집혀 `windowStateOf` 가 던지지 않게).
 // 🟡 재개 실행 · 첫 핑 닫기 · 부팅 훅 = E16t.
 
-import 'dart:convert' show jsonEncode;
+import 'dart:convert' show jsonDecode, jsonEncode;
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
@@ -117,6 +117,20 @@ class SqliteMaintenanceWindowStore {
   /// 창 상태.
   WindowState stateOf(String windowId) =>
       windowStateOf(windowId, windowEventRowsOf(_db, windowId));
+
+  /// 🆕 E16t1(R139 U6) — [windowId] 가 멈춘 체크(OPENED `checks_json` · 창 없음 = 빈 목록).
+  List<String> pausedChecksOf(String windowId) {
+    final ResultSet r = _db.select(
+      "SELECT checks_json FROM maintenance_window WHERE window_id = ? AND event = 'OPENED'",
+      <Object?>[windowId],
+    );
+    final Object? json = r.isEmpty ? null : r.single['checks_json'];
+    if (json == null) return const <String>[];
+    return <String>[
+      for (final Object? x in jsonDecode(json as String) as List<Object?>)
+        x! as String,
+    ];
+  }
 
   /// 🔴 창을 연다 — 멈춘 체크 = core `pausableChecksOf`(`engine_alive` 0) · 열린 창이 있으면 거부.
   ({String? windowId, String? rejectCode}) open({
