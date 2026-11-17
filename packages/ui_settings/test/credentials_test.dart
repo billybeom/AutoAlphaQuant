@@ -398,6 +398,7 @@ void main() {
   }
 
   // -- M9S02-06 no double tap while waiting, per button -----------------------
+  // 기다리는 동안에도 화면의 링크 두 종류(런북 · 회전)가 열린다(C4r7a-1 · C4U-4).
 
   for (final c in <({String name, Key tap, List<SettingsActionId> want})>[
     (
@@ -443,9 +444,11 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('m9s02-runbook')));
       await tester.pump();
+      await tester.tap(find.byKey(const ValueKey<String>('m9s02-rotate-1')));
+      await tester.pump();
 
       expect(actions.ids, c.want);
-      expect(opener.opened, <String>[runbook.deepLink]);
+      expect(opener.opened, <String>[runbook.deepLink, rotate.deepLink]);
       expect(
         tester
             .widgetList<ButtonStyleButton>(
