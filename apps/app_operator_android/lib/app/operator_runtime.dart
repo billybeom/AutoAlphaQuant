@@ -55,6 +55,7 @@ class OperatorRuntime {
     this.kisHttp,
     this.onboardingProbe,
     this.deviceProbe,
+    this.deviceId,
   }) : secure = secure ?? SecureScreen(_noSecure),
        secrets = secrets ?? SecretHandoff(),
        clipboard = clipboard ?? ClipboardJanitor(),
@@ -92,6 +93,10 @@ class OperatorRuntime {
 
   /// 🆕 E11p4b(R125) — 온보딩 실측(알림 권한 · 배터리 예외 · 없음 = 진척 행만).
   final Future<OnboardingProbe?> Function()? onboardingProbe;
+
+  /// 🆕 E11p3d-5g(R142) — 이 기기 id(백업 제외 자리 · `AndroidOps.deviceId` · 없음 = 못 얻음 · 플랫폼 밖).
+  /// 🔴 X1 «이 기기» 판정 재료 — 엔진 기동 입력(`BootInputs.deviceId`)은 엔진 E16t2b 가 넣는다.
+  final String? deviceId;
 
   /// 🆕 E11p3d-2c(R136) — H-03 기기 측정(저장공간 · 배터리 · 보안 패치 · 온도 — 값만 · 없음 = 기기 리스크 원천 없음).
   final Future<DeviceRiskFacts> Function()? deviceProbe;
