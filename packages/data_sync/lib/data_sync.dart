@@ -87,6 +87,7 @@ export 'src/market/regime_store.dart';
 export 'src/market/seed_bundle.dart';
 export 'src/market/series_clients.dart';
 export 'src/migration/gap_rebuild_store.dart';
+export 'src/migration/ledger_restore.dart';
 export 'src/migration/ledger_snapshot.dart';
 export 'src/migration/maintenance_window_runner.dart';
 export 'src/migration/maintenance_window_store.dart';
