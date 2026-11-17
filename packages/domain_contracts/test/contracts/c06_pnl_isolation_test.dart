@@ -199,6 +199,24 @@ void main() {
         FixturePaths.m9MonthlyContributionLocked,
         FixturePaths.m9MonthlyContributionStale,
         FixturePaths.m9ContributionActionResults,
+        // 🆕 v1.24(01 §33) — 신설 17(S09 VM 6 · 결과 1 · S10 VM 5 · 결과 1 · S12 VM 4).
+        FixturePaths.m9Backup,
+        FixturePaths.m9BackupAgeWarn,
+        FixturePaths.m9BackupEmpty,
+        FixturePaths.m9BackupSim,
+        FixturePaths.m9BackupLocked,
+        FixturePaths.m9BackupStale,
+        FixturePaths.m9BackupActionResults,
+        FixturePaths.m9DiagnosticsScreen,
+        FixturePaths.m9DiagnosticsScreenDiff,
+        FixturePaths.m9DiagnosticsScreenRunning,
+        FixturePaths.m9DiagnosticsScreenLocked,
+        FixturePaths.m9DiagnosticsScreenStale,
+        FixturePaths.m9SelftestActionResults,
+        FixturePaths.m9AnnualReviewIndexOpen,
+        FixturePaths.m9AnnualReviewIndexClosed,
+        FixturePaths.m9AnnualReviewIndexFirstYear,
+        FixturePaths.m9AnnualReviewIndexStale,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {

@@ -269,7 +269,8 @@ const String _reasonM9Fixture =
     '🆕 v1.4 contribution_setting 2벌 — `ContributionSetting` 은 덮였다 · 🆕 v1.18 settings_home 3 · connections 3 · '
     '결과 1 — `S01`·`S07` 은 덮였다 · 🆕 v1.19 operations 7 · 결과 1 — `S05` 는 덮였다 · '
     '🆕 v1.20 credentials 4 · device_access 5 · account_mapping 3 · 결과 3 — `S02`·`S06`·`S03` 은 덮였다 · '
-    '🆕 v1.23 monthly_contribution 6 · 결과 1 — `S13` 은 덮였다). '
+    '🆕 v1.23 monthly_contribution 6 · 결과 1 — `S13` 은 덮였다 · 🆕 v1.24 backup 6 · diagnostics_screen 5 · '
+    'annual_review_index 4 · 결과 2 — `S09`·`S10`·`S12` 는 덮였다). '
     '픽스처가 생기면 등록부에 올리고 여기서 지운다.';
 const String _reasonCalendarUndecided =
     'X4 캘린더 채택이 미결이라 픽스처를 만들지 않았다(01 §8-5 · FeatureFlags.calendarEnabled).';
@@ -314,12 +315,8 @@ const Map<String, String> _knownUncovered = <String, String>{
   'SelfReportLine': _reasonCommandPayload,
 
   // ── M9 설정·기기·연결·백업·셸(05) ────────────────────────────────────────
-  'BackupVm': _reasonM9Fixture,
-  // 🆕 v1.24(01 §33) — 커밋 (3) 표본 신설 전 자리(같은 PR 커밋 (3)에서 지운다).
-  'AnnualReviewIndexVm': _reasonM9Fixture,
-  'DiagnosticsScreenVm': _reasonM9Fixture,
-  'RestorePointRow': _reasonM9Fixture,
-  'SelfTestCard': _reasonM9Fixture,
+  // 🔵 v1.24(01 §33) — `BackupVm` 은 m9/backup* 6 이 덮어 목록에서 지웠다(새 DTO 4 = 처음부터 덮임 — `RestorePointRow` ←
+  //    `BackupVm.points` · `SelfTestCard` ← 감싸개).
   // 🔵 v1.23(01 §32) — `MonthlyContributionVm` 은 m9/monthly_contribution* 6 이 덮어 목록에서 지웠다.
   'ShellChip': _reasonM9Fixture,
   'ShellVm': _reasonM9Fixture,

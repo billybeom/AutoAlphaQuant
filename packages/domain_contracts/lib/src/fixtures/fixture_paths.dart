@@ -701,6 +701,44 @@ abstract final class FixturePaths {
   static const String m9AccountMappingUnmapped =
       'm9/account_mapping_unmapped.json';
 
+  // 🆕 v1.24(01 §33) — S09 VM 6 · 결과 1 · S10 VM 5 · 결과 1 · S12 VM 4(파일 이름 바이트 차례 · all 도 같은 차례).
+  /// 🆕 v1.24(K118) — `S12` 닫힘(2025년 · 창 닫힘 글자 = `m7_annual_offwindow` · 목차 4 · 서약 링크 null).
+  static const String m9AnnualReviewIndexClosed =
+      'm9/annual_review_index_closed.json';
+
+  /// 🆕 v1.24 — `S12` 첫해(«첫 해라 비교 대상이 없습니다» · 목차 2 = 받은 것만 · 서약 링크 null).
+  static const String m9AnnualReviewIndexFirstYear =
+      'm9/annual_review_index_first_year.json';
+
+  /// 🆕 v1.24 — `S12` 열림(2026년 · 목차 4 = M7 링크 · 서약 편집 링크 · 세후·수치 칸 0).
+  static const String m9AnnualReviewIndexOpen =
+      'm9/annual_review_index_open.json';
+
+  /// 🆕 v1.24 — `S12` 오래됨(`annual_review_index_open` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9AnnualReviewIndexStale =
+      'm9/annual_review_index_stale.json';
+
+  /// 🆕 v1.24(K110) — `S09` 정상(마지막 백업 · 지점 2 · 해시 앞 8 · 고지 · «지금 백업» · X1 링크).
+  static const String m9Backup = 'm9/backup.json';
+
+  /// 🆕 v1.24(K132 · K133) — `S09` 동작 결과 `ActionResult` 10(레벨 5값 · `BackupResultCodes` 8 전수 · 생체 · 접수 합성 · 넘김 0 · 재시도 0).
+  static const String m9BackupActionResults = 'm9/backup_action_results.json';
+
+  /// 🆕 v1.24 — `S09` 나이 배지(WATCH · 배지 문장 숫자 0 · 지점 1).
+  static const String m9BackupAgeWarn = 'm9/backup_age_warn.json';
+
+  /// 🆕 v1.24 — `S09` 빈 지점(`points_empty_label` · 버튼·링크 있음 · 골든 아님).
+  static const String m9BackupEmpty = 'm9/backup_empty.json';
+
+  /// 🆕 v1.24 — `S09` 잠김(`backup` 에서 `run_action`·`migration_link` 를 비우고 `locked_label` 만 더한 판 · K138).
+  static const String m9BackupLocked = 'm9/backup_locked.json';
+
+  /// 🆕 v1.24(K135) — `S09` 모의(지금 실기기 기본 꼴 · 고지 · 빈 지점 · 버튼·링크 부재 — `X1_LIVE_ONLY`).
+  static const String m9BackupSim = 'm9/backup_sim.json';
+
+  /// 🆕 v1.24 — `S09` 오래됨(`backup` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9BackupStale = 'm9/backup_stale.json';
+
   // 🆕 v1.18(01 §27) — `S01` 3 · `S07` 3 · M9 동작 결과 1(파일 이름 바이트 차례 · `all` 도 같은 차례).
   /// 🆕 v1.18 — `S07` 정상(행 5 · 레벨 5값 전수 · 부분 동기 · 실패 2 · 미설정 · 워치독·캘린더 링크 · 카카오 선택 + 배지).
   static const String m9Connections = 'm9/connections.json';
@@ -759,6 +797,25 @@ abstract final class FixturePaths {
 
   /// 🆕 v1.20 — `S06` 동작 결과 `ActionResult` 6(레벨 5값 · 발급 · 폐기 · 넘김 0 · 재시도 0).
   static const String m9DeviceActionResults = 'm9/device_action_results.json';
+
+  /// 🆕 v1.24(K113 · K143) — `S10` 기본(지금 실물 꼴 · 골든 «판정 보류» 버튼 부재 · 무결성 버튼 · 보드 = `m8/recon_board_ok` · 권장 배너).
+  static const String m9DiagnosticsScreen = 'm9/diagnostics_screen.json';
+
+  /// 🆕 v1.24(K143) — `S10` 차이(E11o 뒤 꼴 · 두 버튼 · 보드 = `m8/recon_board_diff` · 차이 상세 링크).
+  static const String m9DiagnosticsScreenDiff =
+      'm9/diagnostics_screen_diff.json';
+
+  /// 🆕 v1.24(K138) — `S10` 잠김(`diagnostics_screen_diff` 에서 두 `run_action` 을 비우고 `locked_label` 을 더한 판 · 차이 링크 남음).
+  static const String m9DiagnosticsScreenLocked =
+      'm9/diagnostics_screen_locked.json';
+
+  /// 🆕 v1.24 — `S10` 골든 실행 중(골든 버튼 부재 · 무결성 버튼 그대로).
+  static const String m9DiagnosticsScreenRunning =
+      'm9/diagnostics_screen_running.json';
+
+  /// 🆕 v1.24 — `S10` 오래됨(`diagnostics_screen` 에서 VM `as_of.stale_label` 만 다른 판 · 봉투 그대로).
+  static const String m9DiagnosticsScreenStale =
+      'm9/diagnostics_screen_stale.json';
   static const String m9HandoverStates = 'm9/handover_states.json';
 
   /// 🆕 v1.23(K79 · K101) — `S13` 정상(글자 = 엔진 `contributionSettingOf` 출력 · 10만원 · 예정 없음 · 버튼 «바꾸기»).
@@ -813,6 +870,10 @@ abstract final class FixturePaths {
   /// 🆕 v1.19 — `S05` `simBroker × autoTrade` 체험 5항목 완료 · 업데이트 대기 · 지난 요청 줄.
   static const String m9OperationsSimComplete =
       'm9/operations_sim_complete.json';
+
+  /// 🆕 v1.24(K114 · K115 · K143) — `S10` 동작 결과 `ActionResult` 12(골든 3 = 통과·불일치·생체 · 무결성 9 = 일치·생체·사유 7 전수 BLOCKED).
+  static const String m9SelftestActionResults =
+      'm9/selftest_action_results.json';
 
   /// 🆕 v1.18 — M9 `S07` 동작 결과 `ActionResult` 5(레벨 5값 · `SettingsResultCodes` 3 + null 2 · 넘김 0 · 재시도 0).
   static const String m9SettingsActionResults =
@@ -1117,6 +1178,17 @@ abstract final class FixturePaths {
     m9AccountMappingActionResults,
     m9AccountMappingLocked,
     m9AccountMappingUnmapped,
+    m9AnnualReviewIndexClosed,
+    m9AnnualReviewIndexFirstYear,
+    m9AnnualReviewIndexOpen,
+    m9AnnualReviewIndexStale,
+    m9Backup,
+    m9BackupActionResults,
+    m9BackupAgeWarn,
+    m9BackupEmpty,
+    m9BackupLocked,
+    m9BackupSim,
+    m9BackupStale,
     m9Connections,
     m9ConnectionsLocked,
     m9ConnectionsTelegram,
@@ -1134,6 +1206,11 @@ abstract final class FixturePaths {
     m9DeviceAccessStale,
     m9DeviceAccessTicket,
     m9DeviceActionResults,
+    m9DiagnosticsScreen,
+    m9DiagnosticsScreenDiff,
+    m9DiagnosticsScreenLocked,
+    m9DiagnosticsScreenRunning,
+    m9DiagnosticsScreenStale,
     m9HandoverStates,
     m9MonthlyContribution,
     m9MonthlyContributionLocked,
@@ -1149,6 +1226,7 @@ abstract final class FixturePaths {
     m9OperationsLocked,
     m9OperationsSimAuto,
     m9OperationsSimComplete,
+    m9SelftestActionResults,
     m9SettingsActionResults,
     m9SettingsHome,
     m9SettingsHomeNoReview,

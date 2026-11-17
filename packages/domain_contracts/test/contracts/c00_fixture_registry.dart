@@ -221,6 +221,22 @@ final DtoCodec<Object> _resumeReport = DtoCodec<ResumeReport>(
   ResumeReport.fromJson,
   (ResumeReport v) => v.toJson(),
 );
+// 🆕 계약 v1.24(R9 선행 · 01 §33) — M9 `S09` 백업 · `S10` 진단 감싸개 · `S12` 연간 리뷰 목차 VM.
+final DtoCodec<Object> _backupVm = DtoCodec<BackupVm>(
+  'BackupVm',
+  BackupVm.fromJson,
+  (BackupVm v) => v.toJson(),
+);
+final DtoCodec<Object> _diagnosticsScreenVm = DtoCodec<DiagnosticsScreenVm>(
+  'DiagnosticsScreenVm',
+  DiagnosticsScreenVm.fromJson,
+  (DiagnosticsScreenVm v) => v.toJson(),
+);
+final DtoCodec<Object> _annualReviewIndexVm = DtoCodec<AnnualReviewIndexVm>(
+  'AnnualReviewIndexVm',
+  AnnualReviewIndexVm.fromJson,
+  (AnnualReviewIndexVm v) => v.toJson(),
+);
 // 🆕 계약 v1.23(R8a 선행 · 01 §32) — M9 `S13` 월 납입 설정 VM.
 final DtoCodec<Object> _monthlyContributionVm = DtoCodec<MonthlyContributionVm>(
   'MonthlyContributionVm',
@@ -918,6 +934,21 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9AccountMappingActionResults: FixtureBinding(_actionResult),
   FixturePaths.m9AccountMappingLocked: FixtureBinding(_accountMappingVm),
   FixturePaths.m9AccountMappingUnmapped: FixtureBinding(_accountMappingVm),
+  // 🆕 v1.24(01 §33 · R9c) — `S12` 연간 리뷰 목차 4벌.
+  FixturePaths.m9AnnualReviewIndexClosed: FixtureBinding(_annualReviewIndexVm),
+  FixturePaths.m9AnnualReviewIndexFirstYear: FixtureBinding(
+    _annualReviewIndexVm,
+  ),
+  FixturePaths.m9AnnualReviewIndexOpen: FixtureBinding(_annualReviewIndexVm),
+  FixturePaths.m9AnnualReviewIndexStale: FixtureBinding(_annualReviewIndexVm),
+  // 🆕 v1.24(01 §33 · R9a) — `S09` 백업·복원 6벌 · 결과 10행.
+  FixturePaths.m9Backup: FixtureBinding(_backupVm),
+  FixturePaths.m9BackupActionResults: FixtureBinding(_actionResult),
+  FixturePaths.m9BackupAgeWarn: FixtureBinding(_backupVm),
+  FixturePaths.m9BackupEmpty: FixtureBinding(_backupVm),
+  FixturePaths.m9BackupLocked: FixtureBinding(_backupVm),
+  FixturePaths.m9BackupSim: FixtureBinding(_backupVm),
+  FixturePaths.m9BackupStale: FixtureBinding(_backupVm),
   // 🆕 v1.18(01 §27 · R6b) — `S07` 연결 관리 3벌.
   FixturePaths.m9Connections: FixtureBinding(_connectionsVm),
   FixturePaths.m9ConnectionsLocked: FixtureBinding(_connectionsVm),
@@ -943,6 +974,12 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9DeviceAccessStale: FixtureBinding(_deviceAccessVm),
   FixturePaths.m9DeviceAccessTicket: FixtureBinding(_deviceAccessVm),
   FixturePaths.m9DeviceActionResults: FixtureBinding(_actionResult),
+  // 🆕 v1.24(01 §33 · R9b) — `S10` 진단 감싸개 5벌.
+  FixturePaths.m9DiagnosticsScreen: FixtureBinding(_diagnosticsScreenVm),
+  FixturePaths.m9DiagnosticsScreenDiff: FixtureBinding(_diagnosticsScreenVm),
+  FixturePaths.m9DiagnosticsScreenLocked: FixtureBinding(_diagnosticsScreenVm),
+  FixturePaths.m9DiagnosticsScreenRunning: FixtureBinding(_diagnosticsScreenVm),
+  FixturePaths.m9DiagnosticsScreenStale: FixtureBinding(_diagnosticsScreenVm),
   FixturePaths.m9HandoverStates: FixtureBinding(_handoverPlan),
   // 🆕 v1.23(01 §32 · R8a) — `S13` 월 납입 설정 6벌.
   FixturePaths.m9MonthlyContribution: FixtureBinding(_monthlyContributionVm),
@@ -970,6 +1007,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9OperationsLocked: FixtureBinding(_operationsVm),
   FixturePaths.m9OperationsSimAuto: FixtureBinding(_operationsVm),
   FixturePaths.m9OperationsSimComplete: FixtureBinding(_operationsVm),
+  // 🆕 v1.24(01 §33 · R9b) — `S10` 동작 결과 12행.
+  FixturePaths.m9SelftestActionResults: FixtureBinding(_actionResult),
   // 🆕 v1.18(01 §27 · R6b) — M9 동작 결과 5행.
   FixturePaths.m9SettingsActionResults: FixtureBinding(_actionResult),
   // 🆕 v1.18(01 §27 · R6a) — `S01` 설정 홈 3벌.
