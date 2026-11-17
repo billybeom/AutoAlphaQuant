@@ -14,14 +14,22 @@ import 'package:core_engine/core_engine.dart'
         BootModeResolved,
         ModeFacts,
         ModeStartupGate,
+        TrustedClock,
         modeStartupGate;
 import 'package:data_sync/data_sync.dart'
-    show SqliteModeFacts, SqliteModeStore, bootModeOf, repairHalfCommit;
+    show
+        SqliteLeaseGate,
+        SqliteModeFacts,
+        SqliteModeStore,
+        bootModeOf,
+        repairHalfCommit;
 import 'package:domain_contracts/domain_contracts.dart'
     show Clock, ExecPolicy, LedgerFile, OperatingMode, RunMode;
 import 'package:sqlite3/sqlite3.dart' show Database;
 
+import 'fgs_status_source.dart' show UnknownTrustedClock;
 import 'ledger_files.dart';
+import 'x1_wiring.dart' show X1Wiring;
 
 /// 기동 판정의 바깥 입력(p3b 가 채운다).
 class BootInputs {
@@ -30,6 +38,8 @@ class BootInputs {
     this.approvedOf = _noApproval,
     this.credentialEnvironmentOk = _noMismatch,
     this.liveKeysVerified = _notVerified,
+    this.deviceId,
+    this.trusted = const UnknownTrustedClock(),
   });
 
   /// 지금 설정의 SAF-405 승인(행 없음 = null).
@@ -40,6 +50,12 @@ class BootInputs {
 
   /// 실키 검증을 마쳤나.
   final Future<bool> Function() liveKeysVerified;
+
+  /// 🆕 E16t2a(R141 V2) — 이 기기 id(null = X1 끼울 자리 꺼짐 · 원천 = E16t2b).
+  final String? deviceId;
+
+  /// 🆕 E16t2a — 신뢰 시각(기본 = 모름 · 실물 = E11k).
+  final TrustedClock trusted;
 
   static int? _noApproval(Database db, RunMode mode) => null;
   static bool _noMismatch(RunMode mode) => true;
@@ -161,11 +177,23 @@ Future<EngineBoot> bootEngine(
     credentialEnvironmentOk: inputs.credentialEnvironmentOk(resolved.runMode),
     liveKeysVerified: facts.liveKeysVerified,
   );
-  if (!gate.start) {
+  // 🆕 E16t2a(R141 V2) — X1 거부(기기 id ∧ live 일 때만)를 기동 판정 뒤에 이어 붙인다(겹침 없음).
+  final List<String> x1 = X1Wiring.of(
+    db,
+    runMode: resolved.runMode,
+    deviceId: inputs.deviceId,
+    trusted: inputs.trusted,
+    lease: SqliteLeaseGate(db, mode: resolved.runMode, clock: clock),
+  ).bootRefusals();
+  if (!gate.start || x1.isNotEmpty) {
     return EngineRejected(
       runMode: resolved.runMode,
       operatingMode: op,
-      triggered: gate.triggered,
+      triggered: <String>[
+        ...gate.triggered,
+        for (final String c in x1)
+          if (!gate.triggered.contains(c)) c,
+      ],
       repaired: repaired,
     );
   }

@@ -11,7 +11,7 @@
 //    부품이 없으면(시험 · p3a) 전부 미조립 그대로.
 
 import 'package:core_engine/core_engine.dart'
-    show AlertSink, JobHeartbeat, JobRunLog;
+    show AlertSink, JobHeartbeat, JobRunLog, TrustedClock;
 import 'package:domain_contracts/domain_contracts.dart'
     show Clock, ExecPolicy, OperatingMode, RunMode, TradeDate;
 import 'package:sqlite3/sqlite3.dart' show Database;
@@ -27,6 +27,7 @@ import 'package:trading_runtime/trading_runtime.dart'
         watchdogCheckName;
 
 import 'data_job_runners.dart' show JobParts, kAssembledRunners;
+import 'fgs_status_source.dart' show UnknownTrustedClock;
 
 /// 회차 하나를 돌린다.
 typedef JobRunner = Future<JobRun<Object?>> Function(JobOccurrence occurrence);
@@ -47,6 +48,8 @@ class JobContext {
     required this.alerts,
     required this.runLog,
     required this.clock,
+    this.deviceId,
+    this.trusted = const UnknownTrustedClock(),
   });
 
   /// 🆕 E11p3c-1 — 이 모드의 원장(기동 판정이 고른 파일).
@@ -75,6 +78,12 @@ class JobContext {
 
   /// 기기 시계.
   final Clock clock;
+
+  /// 🆕 E16t2a(R141 V3) — 이 기기 id(null = X1 끼울 자리 꺼짐).
+  final String? deviceId;
+
+  /// 🆕 E16t2a — 신뢰 시각(기본 = 모름).
+  final TrustedClock trusted;
 }
 
 /// 🔴 회차를 잡 규약으로 감싼다 — 세션일 · 달력 · 마감 = 회차 값.
