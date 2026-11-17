@@ -882,7 +882,7 @@ void main() {
     });
   }
 
-  // 결과가 뜬 뒤 VM 이 잠김으로 바뀌어도 잠김 줄은 숨지 않는다(C4r7b-5 · C4r7c-6).
+  // Locked line stays if the VM locks after a result (C4r7b-5, C4r7c-6).
   testWidgets('M9S03-11 locked after_result', (WidgetTester tester) async {
     expect(locked.lockedLabel, isNotNull); // pre
 

@@ -398,7 +398,7 @@ void main() {
   }
 
   // -- M9S02-06 no double tap while waiting, per button -----------------------
-  // 기다리는 동안에도 화면의 링크 두 종류(런북 · 회전)가 열린다(C4r7a-1 · C4U-4).
+  // Runbook and rotate links both open while waiting (C4r7a-1, C4U-4).
 
   for (final c in <({String name, Key tap, List<SettingsActionId> want})>[
     (
@@ -698,7 +698,7 @@ void main() {
         shownTexts(tester, find.byKey(const Key('m9s02-runbook'))),
         <String?>[?c.v.leakRunbookLink?.label],
       );
-      // 잠김에도 남는 런북 링크는 누르면 한 번 열린다(K35 · C4r7a-2 · C4U-5).
+      // Runbook link kept while locked opens once (K35, C4r7a-2, C4U-5).
       await tester.tap(find.byKey(const Key('m9s02-runbook')));
       await tester.pump();
       expect(opener.opened, <String>[?c.v.leakRunbookLink?.deepLink]);
@@ -706,7 +706,7 @@ void main() {
     });
   }
 
-  // 결과가 뜬 뒤 VM 이 잠김으로 바뀌어도 잠김 줄은 숨지 않는다(C4r7b-5 · C4r7c-6).
+  // Locked line stays if the VM locks after a result (C4r7b-5, C4r7c-6).
   testWidgets('M9S02-10 locked after_result', (WidgetTester tester) async {
     expect(locked.lockedLabel, isNotNull); // pre
 
