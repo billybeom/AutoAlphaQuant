@@ -529,6 +529,8 @@ export 'src/ops/month_end_inputs.dart'
         monthEndStateToJson,
         monthlyLastCloses,
         sleeveWeightsOf;
+// 🆕 운영 설정 읽기(operations · 설계 13 §8 R148).
+export 'src/ops/operations_config.dart' show OperationsConfig;
 // 🆕 E11p3d-2b — H-01 오늘 요약 · H-02 운영 리듬(설계 13 §8 R133).
 export 'src/ops/ops_home.dart'
     show

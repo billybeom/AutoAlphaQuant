@@ -1,0 +1,41 @@
+{
+  "contribution_day": "FIRST_TRADING_DAY",
+  "advice_valid_trading_days": {
+    "exit": 0,
+    "entry": 1,
+    "rebalance": 2
+  },
+  "advice_batch_cap": 8,
+  "reentry_grace_trading_days": 5,
+  "record_command_ttl_days": 14,
+  "live_dry_run_observation_trading_days": 2,
+  "advisory_resume_observation_trading_days": null,
+  "watchdog_grace_minutes": null,
+  "rule_change": {
+    "cooling_off_days": 30,
+    "window_month": 12,
+    "drawdown_lock_dd": -0.10
+  },
+  "pledge": {
+    "replay_dd": [-0.10, -0.15, -0.20]
+  },
+  "intervention": {
+    "cooling_hours": 24
+  },
+  "resume": {
+    "gap_ladder_trading_days": [2, 5, 10],
+    "backup_gap_days": 7
+  },
+  "migration": {
+    "maintenance_overdue_hours": 72,
+    "fencing_margin_minutes": 10,
+    "broker_token_residual_hours": null,
+    "observation_trading_days": {
+      "plan": 2,
+      "emergency": 5
+    },
+    "ticket_ttl_minutes": 15,
+    "derived_resync_daily_cap": 3,
+    "backup_upload": false
+  }
+}
