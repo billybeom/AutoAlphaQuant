@@ -831,3 +831,95 @@ Set<String> contributionControlTexts(MonthlyContributionVm v) => <String>{
   SettingsLabels.contributionInputLabel,
   ?v.changeLabel,
 };
+
+// ── R9a — M9 S09 fakes ──
+
+class FakeSettingsBackupRepository extends UnimplementedOpsStatusRepository {
+  FakeSettingsBackupRepository({required this.backup});
+
+  final Stream<BackupVm> Function(int call) backup;
+  int backupCalls = 0;
+
+  @override
+  Stream<BackupVm> watchBackup() {
+    final int call = backupCalls;
+    backupCalls = backupCalls + 1;
+    return backup(call);
+  }
+}
+
+List<Override> backupOverrides({
+  required FakeSettingsBackupRepository repo,
+  required SettingsActions? actions,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  settingsOpsStatusRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsLinkOpenerProvider.overrideWithValue(opener),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpBackup(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: BackupRestore())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> backupLastTexts(BackupVm v) => <String?>[
+  v.lastBackupText,
+  ?v.ageBadgeText,
+];
+
+List<String?> backupPointTexts(RestorePointRow p) => <String?>[
+  p.label,
+  p.chainHashText,
+  ?p.stateLabel,
+];
+
+List<String?> backupPointsTexts(BackupVm v) => <String?>[
+  for (final RestorePointRow p in v.points) ...backupPointTexts(p),
+  ?v.pointsEmptyLabel,
+];
+
+bool isBackupPointRow(Widget w) {
+  final Key? k = w.key;
+  return k is ValueKey<String> && k.value.startsWith('m9s09-point-');
+}
+
+List<SettingsActionId> backupRunIds(BackupVm v) => <SettingsActionId>[
+  ?v.runAction?.id,
+];
+
+List<Map<String, String>> backupRunArgs(BackupVm v) => <Map<String, String>>[
+  ?v.runAction?.args,
+];
+
+Set<String> backupAllowed(BackupVm v) => <String>{
+  ?v.lockedLabel,
+  v.lastBackupText,
+  ?v.ageBadgeText,
+  ?v.noticeText,
+  for (final RestorePointRow p in v.points) p.label,
+  for (final RestorePointRow p in v.points) p.chainHashText,
+  for (final RestorePointRow p in v.points) ?p.stateLabel,
+  ?v.pointsEmptyLabel,
+  ?v.migrationLink?.label,
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
+
+Set<String> backupControlTexts(BackupVm v) => <String>{?v.runAction?.label};
