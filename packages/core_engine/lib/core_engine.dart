@@ -578,6 +578,19 @@ export 'src/ops/settings_home.dart'
         settingsHomeVmOf,
         settingsOperationsLabelOf,
         settingsStatusChipOf;
+// 🆕 E11p4f — 모의 개시 가상 초기금 제출 → 명령(설계 13 §8 R155 · 01 §21-3 · 06 M5-14).
+export 'src/ops/sim_opening_command.dart'
+    show
+        SimOpeningCommand,
+        SimOpeningInputInvalid,
+        SimOpeningWireReady,
+        SimOpeningWireResult,
+        cashKrwOfText,
+        kSimOpeningCashBlank,
+        kSimOpeningCashMalformed,
+        kSimOpeningLinesGiven,
+        kSimOpeningTtl,
+        simOpeningWireOf;
 // 🆕 E11g — 계층 B 월간 판정(TWR · 롤링 12M · DD · TUW · 카드 대조 · 설계 13 §8 R50).
 export 'src/ops/tier_b.dart'
     show
