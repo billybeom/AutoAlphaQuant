@@ -219,30 +219,30 @@ void main() {
 
   // ── M9S09-03: backup now runs action, result shows headline + reasonCode ──────
 
-  for (final (String name, ActionResult r) in <(String, ActionResult)>[
-    ('accepted', results[0]),
-    ('bio', results[1]),
-    ('live_only', results[2]),
-    ('no_stamp', results[3]),
-    ('exists', results[4]),
-    ('unreadable', results[5]),
-    ('schema_skew', results[6]),
-    ('sqlite', results[7]),
-    ('chain_invalid', results[8]),
-    ('rollback', results[9]),
+  for (final c in <({String name, ActionResult r})>[
+    (name: 'accepted', r: results[0]),
+    (name: 'bio', r: results[1]),
+    (name: 'live_only', r: results[2]),
+    (name: 'no_stamp', r: results[3]),
+    (name: 'exists', r: results[4]),
+    (name: 'unreadable', r: results[5]),
+    (name: 'schema_skew', r: results[6]),
+    (name: 'sqlite', r: results[7]),
+    (name: 'chain_invalid', r: results[8]),
+    (name: 'rollback', r: results[9]),
   ]) {
-    testWidgets('M9S09-03 backup run result $name', (
+    testWidgets('M9S09-03 backup run result ${c.name}', (
       WidgetTester tester,
     ) async {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
         backup: (int call) => one(normal),
       );
       final FakeSettingsActions actions = FakeSettingsActions(
-        result: (int call) => Future<ActionResult>.value(r),
+        result: (int call) => Future<ActionResult>.value(c.r),
       );
       final RecordingLinkOpener opener = RecordingLinkOpener();
 
-      expect(r.handoffRoute, isNull); // pre
+      expect(c.r.handoffRoute, isNull); // pre
 
       await pumpBackup(
         tester,
@@ -262,7 +262,7 @@ void main() {
       expect(actions.argsSeen, backupRunArgs(normal));
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-result'))),
-        <String?>[r.headline, ?r.reasonCode],
+        <String?>[c.r.headline, ?c.r.reasonCode],
       );
       expect(runOf(tester).enabled, isTrue);
 
@@ -270,8 +270,8 @@ void main() {
       final Icon ic = tester.widget<Icon>(
         find.byKey(const Key('m9s09-result-level')),
       );
-      expect(ic.icon, wantLevel(cs, r.level).$1);
-      expect(ic.color, wantLevel(cs, r.level).$2);
+      expect(ic.icon, wantLevel(cs, c.r.level).$1);
+      expect(ic.color, wantLevel(cs, c.r.level).$2);
 
       expect(
         tester.getTopLeft(find.byKey(const Key('m9s09-run'))).dy,
