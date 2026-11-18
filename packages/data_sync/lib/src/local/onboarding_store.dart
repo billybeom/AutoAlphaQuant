@@ -107,6 +107,10 @@ const Map<String, String> _rejectHeadline = <String, String>{
 OnboardingOutcome _no(String code) =>
     OnboardingOutcome.no(code, _rejectHeadline[code] ?? '요청을 처리하지 못했습니다.');
 
+/// 🆕 E11p4f(R155) — 거부 코드 → 같은 사전의 엔진 문구 · 명령 구현이 저장소를 부르기 전에 거부할 때
+/// (운영 방식 선택 전 · 계좌 대응 원천 없음 — 맥락 · 설정 판을 지어내지 않고 멈춘다).
+OnboardingOutcome onboardingRejected(String code) => _no(code);
+
 /// 온보딩 쓰기(sim 파일 하나).
 final class SqliteOnboardingStore {
   /// 쓰기를 만든다 — 🔴 [db] 가 sim 파일이 아니면 열지 않는다(`application_id` 대조).

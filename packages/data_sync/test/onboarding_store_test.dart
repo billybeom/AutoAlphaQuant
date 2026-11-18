@@ -115,6 +115,20 @@ void main() {
     );
   });
 
+  test('🆕 R155 — 거부 코드 → 같은 사전의 엔진 문구(모르는 코드 = 일반 문구)', () {
+    final OnboardingOutcome a = onboardingRejected(
+      SimOpeningCodes.choiceMissing,
+    );
+    expect(a.ok, isFalse);
+    expect(a.reasonCode, SimOpeningCodes.choiceMissing);
+    expect(a.headline, '운영 방식을 먼저 골라 주세요.');
+    expect(
+      onboardingRejected(SimOpeningCodes.accountUnmapped).headline,
+      '전략의 계좌 대응이 비어 있어 가상 초기금을 나눌 수 없습니다.',
+    );
+    expect(onboardingRejected('X').headline, '요청을 처리하지 못했습니다.');
+  });
+
   group('O-00b 운영 방식 선택', () {
     test('없으면 null · 고르면 행 하나 · 커밋 전엔 덮어쓴다', () {
       final SqliteOnboardingStore s = store();

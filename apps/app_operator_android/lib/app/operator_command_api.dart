@@ -5,20 +5,44 @@
 //    `command_inbox.state_label` 그대로(앱이 상태로 문장을 짓지 않는다).
 // 🔴 알림 단위 멱등 = 엔진(두 번째 확인 = 효과 0 · executed) · 모르는 id · 사다리 없는 알림 = rejected `INPUT_INVALID`.
 // 🔴 이 구현은 알림 화면 주입(`shellAlertCommandApiProvider`)에만 쓴다 — 나머지 명령 = operator 구현 전(오류 · 다른 화면에 주입하지 않는다).
+// 🆕 E11p4f(R155) — 둘째 칸 = 모의 개시 가상 초기금(`submitSelfReportBalance(simOpening)` · 01 §21-3 · 06 M5-14 · X6-5 ⓑ):
+//    원문 검사(엔진 `simOpeningWireOf` — 틀리면 큐 적재 없이 `INPUT_INVALID`) → 지금 설정 판 등재(발주자 결정 사람 값 ·
+//    R153 · R154) → 엔진 `declareSimOpening`(sim 파일 · 한 트랜잭션) · 접수증 글자 = 엔진 문구 그대로.
+//    정기 실사(`periodicAudit` · L-3) = 구현 전(오류) · 화면(M5-14) 주입 = 그 화면 조각.
 // 🔴 기기 id 가 없으면 주입 자체를 하지 않는다(버튼 부재 — 셸 규약) · 화면 상태 없음(온보딩 전) = 오류.
 
 import 'dart:math';
 
-import 'package:core_engine/core_engine.dart' show AlertAckCommand;
+import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
+import 'package:core_engine/core_engine.dart'
+    show
+        AlertAckCommand,
+        P0sOpsConfig,
+        SimOpeningCodes,
+        SimOpeningCommand,
+        SimOpeningInputInvalid,
+        SimOpeningWireReady,
+        SimOpeningWireResult,
+        depositTradeDate,
+        simOpeningWireOf;
 import 'package:data_sync/data_sync.dart'
-    show AlertAckResult, SqliteAlertSink, SqliteLeaseGate;
+    show
+        AlertAckResult,
+        OnboardingChoice,
+        OnboardingOutcome,
+        P0sHumanDecision,
+        SqliteAlertSink,
+        SqliteConfigVersionStore,
+        SqliteLeaseGate,
+        SqliteOnboardingStore,
+        onboardingRejected;
 import 'package:domain_contracts/domain_contracts.dart';
-import 'package:sqlite3/sqlite3.dart' show ResultSet;
+import 'package:sqlite3/sqlite3.dart' show Database, ResultSet;
 
 import 'operator_runtime.dart';
 import 'operator_view.dart';
 
-/// 명령 API(operator) — 지금 = 알림 수신 확인만.
+/// 명령 API(operator) — 지금 = 알림 수신 확인 · 모의 개시 가상 초기금.
 class OperatorCommandApi implements CommandApi {
   /// 만든다 — [random] = 명령 id · nonce 원천(기본 = `Random.secure()`).
   OperatorCommandApi(this._rt, {Random? random})
@@ -131,10 +155,80 @@ class OperatorCommandApi implements CommandApi {
   Future<CommandReceipt> skipAdvice(AdviceSkipSubmission submission) =>
       _none('skipAdvice');
 
+  /// 🆕 R155 — 모의 개시 가상 초기금(자동 매매 갈래) · 정기 실사 = 구현 전.
   @override
   Future<CommandReceipt> submitSelfReportBalance(
     SelfReportSubmission submission,
-  ) => _none('submitSelfReportBalance');
+  ) async {
+    if (submission.purpose != SelfReportPurpose.simOpening) {
+      return _none('submitSelfReportBalance(정기 실사)');
+    }
+    final String? deviceId = _rt.deviceId;
+    if (deviceId == null) {
+      throw StateError('모의 개시: 기기 id 없음');
+    }
+    final Database db = _rt.files.sim;
+    final DateTime now = _rt.clock.nowUtc();
+    final SimOpeningCommand c = SimOpeningCommand.issue(
+      deviceId: deviceId,
+      nowUtc: now,
+      random: _random,
+    );
+    CommandReceipt done(CommandReceipt r) => _issued[c.commandId] = r;
+    CommandReceipt outcome(OnboardingOutcome o) => done(
+      c.receipt(
+        executed: o.ok,
+        stateLabel: o.headline,
+        rejectReasonCode: o.reasonCode,
+      ),
+    );
+    final SqliteOnboardingStore store = SqliteOnboardingStore(
+      db,
+      clock: _rt.clock,
+    );
+    final OnboardingChoice? choice = store.choice();
+    if (choice == null) {
+      return outcome(onboardingRejected(SimOpeningCodes.choiceMissing));
+    }
+    final SimOpeningWireResult w = simOpeningWireOf(
+      submission,
+      asOfTradeDate: depositTradeDate(now, _rt.calendars.kr),
+      sessionStartedAt: now,
+      accountAlias: KisKeySet.paper.wire,
+      context: CommandContext(
+        runMode: RunMode.simInternal,
+        operatingMode: choice.operatingMode,
+        leaseEpoch: SqliteLeaseGate(
+          db,
+          mode: RunMode.simInternal,
+          clock: _rt.clock,
+        ).epoch(),
+        deviceId: deviceId,
+      ),
+    );
+    final SelfReportBalance wire;
+    switch (w) {
+      case SimOpeningInputInvalid():
+        return done(c.inputInvalid(w.stateLabel));
+      case SimOpeningWireReady():
+        wire = w.wire;
+    }
+    final P0sHumanDecision? human = _rt.humanDecision;
+    if (human == null) {
+      return outcome(onboardingRejected(SimOpeningCodes.accountUnmapped));
+    }
+    final String configHash = SqliteConfigVersionStore(
+      db,
+      clock: _rt.clock,
+    ).register(P0sOpsConfig.of(human.inputs).content());
+    return outcome(
+      store.declareSimOpening(
+        wire,
+        accountByStrategy: human.inputs.accountByStrategy,
+        configHash: configHash,
+      ),
+    );
+  }
 
   @override
   Future<CommandReceipt> confirmKillChecklist(
