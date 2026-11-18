@@ -150,18 +150,17 @@ void main() {
 
   // ── M9S09-02: data variants and button presence ──────────────────────────────
 
-  for (final (String name, BackupVm v, Matcher buttons)
-      in <(String, BackupVm, Matcher)>[
-        ('normal', normal, findsOneWidget),
-        ('age_warn', ageWarn, findsOneWidget),
-        ('empty', empty, findsOneWidget),
-        ('sim', sim, findsNothing),
-      ]) {
-    testWidgets('M9S09-02 data variant button $name', (
+  for (final c in <({String name, BackupVm v, Matcher buttons})>[
+    (name: 'normal', v: normal, buttons: findsOneWidget),
+    (name: 'age_warn', v: ageWarn, buttons: findsOneWidget),
+    (name: 'empty', v: empty, buttons: findsOneWidget),
+    (name: 'sim', v: sim, buttons: findsNothing),
+  ]) {
+    testWidgets('M9S09-02 data variant button ${c.name}', (
       WidgetTester tester,
     ) async {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
-        backup: (int call) => one(v),
+        backup: (int call) => one(c.v),
       );
       await pumpBackup(
         tester,
@@ -176,42 +175,42 @@ void main() {
       expect(find.byKey(const Key('m9s09-last')), findsOneWidget);
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-last'))),
-        backupLastTexts(v),
+        backupLastTexts(c.v),
       );
 
       final ColorScheme cs = colorsOf(tester);
       final Icon lv = tester.widget<Icon>(find.byKey(const Key('m9s09-level')));
-      expect(lv.icon, wantLevel(cs, v.level).$1);
-      expect(lv.color, wantLevel(cs, v.level).$2);
+      expect(lv.icon, wantLevel(cs, c.v.level).$1);
+      expect(lv.color, wantLevel(cs, c.v.level).$2);
 
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-notice'))),
-        <String?>[?v.noticeText],
+        <String?>[?c.v.noticeText],
       );
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-points'))),
-        backupPointsTexts(v),
+        backupPointsTexts(c.v),
       );
       expect(
         find.byWidgetPredicate(isBackupPointRow),
-        findsNWidgets(v.points.length),
+        findsNWidgets(c.v.points.length),
       );
-      for (final (int i, RestorePointRow p) in v.points.indexed) {
+      for (final (int i, RestorePointRow p) in c.v.points.indexed) {
         expect(
           shownTexts(tester, find.byKey(Key('m9s09-point-$i'))),
           backupPointTexts(p),
         );
       }
       expect(shownTexts(tester, find.byKey(const Key('m9s09-run'))), <String?>[
-        ?v.runAction?.label,
+        ?c.v.runAction?.label,
       ]);
       expect(
         find.byWidgetPredicate((Widget w) => w is ButtonStyleButton),
-        buttons,
+        c.buttons,
       );
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-migration'))),
-        <String?>[?v.migrationLink?.label],
+        <String?>[?c.v.migrationLink?.label],
       );
       expect(find.text(SettingsLabels.retry), findsNothing);
     });
@@ -341,52 +340,47 @@ void main() {
 
   // ── M9S09-05: failure <-> success two directions ──────────────────────────────
 
-  for (final (
-        String name,
-        Future<ActionResult> Function(int call) factory,
-        List<String?> firstNa,
-        List<String?> firstRes,
-        List<String?> secondNa,
-        List<String?> secondRes,
-      )
+  for (final c
       in <
-        (
-          String,
-          Future<ActionResult> Function(int call),
-          List<String?>,
-          List<String?>,
-          List<String?>,
-          List<String?>,
-        )
+        ({
+          String name,
+          Future<ActionResult> Function(int call) factory,
+          List<String?> firstNa,
+          List<String?> firstRes,
+          List<String?> secondNa,
+          List<String?> secondRes,
+        })
       >[
         (
-          'fail_then_ok',
-          (int call) => call == 0
+          name: 'fail_then_ok',
+          factory: (int call) => call == 0
               ? Future<ActionResult>.error(StateError('fail'))
               : Future<ActionResult>.value(results[0]),
-          <String?>[SettingsLabels.notAccepted],
-          <String?>[],
-          <String?>[],
-          <String?>[results[0].headline, ?results[0].reasonCode],
+          firstNa: <String?>[SettingsLabels.notAccepted],
+          firstRes: <String?>[],
+          secondNa: <String?>[],
+          secondRes: <String?>[results[0].headline, ?results[0].reasonCode],
         ),
         (
-          'ok_then_fail',
-          (int call) => call == 0
+          name: 'ok_then_fail',
+          factory: (int call) => call == 0
               ? Future<ActionResult>.value(results[0])
               : Future<ActionResult>.error(StateError('fail')),
-          <String?>[],
-          <String?>[results[0].headline, ?results[0].reasonCode],
-          <String?>[SettingsLabels.notAccepted],
-          <String?>[],
+          firstNa: <String?>[],
+          firstRes: <String?>[results[0].headline, ?results[0].reasonCode],
+          secondNa: <String?>[SettingsLabels.notAccepted],
+          secondRes: <String?>[],
         ),
       ]) {
-    testWidgets('M9S09-05 fail success direction $name', (
+    testWidgets('M9S09-05 fail success direction ${c.name}', (
       WidgetTester tester,
     ) async {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
         backup: (int call) => one(normal),
       );
-      final FakeSettingsActions actions = FakeSettingsActions(result: factory);
+      final FakeSettingsActions actions = FakeSettingsActions(
+        result: c.factory,
+      );
 
       await pumpBackup(
         tester,
@@ -403,22 +397,22 @@ void main() {
       await tester.pump();
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-not-accepted'))),
-        firstNa,
+        c.firstNa,
       );
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-result'))),
-        firstRes,
+        c.firstRes,
       );
       await tester.tap(find.byKey(const Key('m9s09-run')));
       await tester.pump();
       await tester.pump();
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-not-accepted'))),
-        secondNa,
+        c.secondNa,
       );
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-result'))),
-        secondRes,
+        c.secondRes,
       );
       expect(actions.ids, <SettingsActionId>[
         ...backupRunIds(normal),
@@ -498,22 +492,24 @@ void main() {
 
   // ── M9S09-07: locked shows label, no button/link; normal shows both ───────────
 
-  for (final (
-        String name,
-        BackupVm v,
-        List<String?> lockedTexts,
-        Matcher buttons,
-        Matcher link,
-        List<Key> chain,
-      )
-      in <(String, BackupVm, List<String?>, Matcher, Matcher, List<Key>)>[
+  for (final c
+      in <
+        ({
+          String name,
+          BackupVm v,
+          List<String?> lockedTexts,
+          Matcher buttons,
+          Matcher link,
+          List<Key> chain,
+        })
+      >[
         (
-          'locked',
-          locked,
-          <String?>[?locked.lockedLabel],
-          findsNothing,
-          findsNothing,
-          <Key>[
+          name: 'locked',
+          v: locked,
+          lockedTexts: <String?>[?locked.lockedLabel],
+          buttons: findsNothing,
+          link: findsNothing,
+          chain: <Key>[
             const Key('m9s09-locked'),
             const Key('m9s09-last'),
             const Key('m9s09-notice'),
@@ -522,12 +518,12 @@ void main() {
           ],
         ),
         (
-          'normal',
-          normal,
-          <String?>[],
-          findsOneWidget,
-          findsOneWidget,
-          <Key>[
+          name: 'normal',
+          v: normal,
+          lockedTexts: <String?>[],
+          buttons: findsOneWidget,
+          link: findsOneWidget,
+          chain: <Key>[
             const Key('m9s09-last'),
             const Key('m9s09-run'),
             const Key('m9s09-notice'),
@@ -537,9 +533,11 @@ void main() {
           ],
         ),
       ]) {
-    testWidgets('M9S09-07 locked vs normal $name', (WidgetTester tester) async {
+    testWidgets('M9S09-07 locked vs normal ${c.name}', (
+      WidgetTester tester,
+    ) async {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
-        backup: (int call) => one(v),
+        backup: (int call) => one(c.v),
       );
       final FakeSettingsActions actions = FakeSettingsActions(
         result: (int call) => Future<ActionResult>.value(results[0]),
@@ -561,17 +559,17 @@ void main() {
       expect(find.byKey(const Key('m9s09-last')), findsOneWidget);
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-locked'))),
-        lockedTexts,
+        c.lockedTexts,
       );
       expect(
         find.byWidgetPredicate((Widget w) => w is ButtonStyleButton),
-        buttons,
+        c.buttons,
       );
-      expect(find.byKey(const Key('m9s09-migration')), link);
-      for (int i = 1; i < chain.length; i++) {
+      expect(find.byKey(const Key('m9s09-migration')), c.link);
+      for (int i = 1; i < c.chain.length; i++) {
         expect(
-          tester.getTopLeft(find.byKey(chain[i - 1])).dy,
-          lessThan(tester.getTopLeft(find.byKey(chain[i])).dy),
+          tester.getTopLeft(find.byKey(c.chain[i - 1])).dy,
+          lessThan(tester.getTopLeft(find.byKey(c.chain[i])).dy),
         );
       }
       expect(actions.ids, <SettingsActionId>[]);
@@ -579,11 +577,11 @@ void main() {
 
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-points'))),
-        backupPointsTexts(v),
+        backupPointsTexts(c.v),
       );
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-last'))),
-        backupLastTexts(v),
+        backupLastTexts(c.v),
       );
       expect(find.text(SettingsLabels.retry), findsNothing);
     });
@@ -591,16 +589,16 @@ void main() {
 
   // ── M9S09-08: viewer (actions null) shows data, link; no button ───────────────
 
-  for (final (String name, BackupVm v) in <(String, BackupVm)>[
-    ('normal', normal),
-    ('age_warn', ageWarn),
-    ('locked', locked),
+  for (final c in <({String name, BackupVm v})>[
+    (name: 'normal', v: normal),
+    (name: 'age_warn', v: ageWarn),
+    (name: 'locked', v: locked),
   ]) {
-    testWidgets('M9S09-08 viewer no button data shown $name', (
+    testWidgets('M9S09-08 viewer no button data shown ${c.name}', (
       WidgetTester tester,
     ) async {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
-        backup: (int call) => one(v),
+        backup: (int call) => one(c.v),
       );
 
       await pumpBackup(
@@ -620,19 +618,19 @@ void main() {
       expect(find.byKey(const Key('m9s09-run')), findsNothing);
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-last'))),
-        backupLastTexts(v),
+        backupLastTexts(c.v),
       );
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-points'))),
-        backupPointsTexts(v),
+        backupPointsTexts(c.v),
       );
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-migration'))),
-        <String?>[?v.migrationLink?.label],
+        <String?>[?c.v.migrationLink?.label],
       );
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-locked'))),
-        <String?>[?v.lockedLabel],
+        <String?>[?c.v.lockedLabel],
       );
       expect(find.byKey(const Key('m9s09-last')), findsOneWidget);
       expect(repo.backupCalls, 1);
@@ -642,22 +640,22 @@ void main() {
 
   // ── M9S09-09: link opens deepLink once, run stays zero ───────────────────────
 
-  for (final (String name, BackupVm v) in <(String, BackupVm)>[
-    ('normal', normal),
-    ('empty', empty),
+  for (final c in <({String name, BackupVm v})>[
+    (name: 'normal', v: normal),
+    (name: 'empty', v: empty),
   ]) {
-    testWidgets('M9S09-09 link opens deeplink run zero $name', (
+    testWidgets('M9S09-09 link opens deeplink run zero ${c.name}', (
       WidgetTester tester,
     ) async {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
-        backup: (int call) => one(v),
+        backup: (int call) => one(c.v),
       );
       final FakeSettingsActions actions = FakeSettingsActions(
         result: (int call) => Future<ActionResult>.value(results[0]),
       );
       final RecordingLinkOpener opener = RecordingLinkOpener();
 
-      expect(v.migrationLink, isNotNull); // pre
+      expect(c.v.migrationLink, isNotNull); // pre
 
       await pumpBackup(
         tester,
@@ -672,7 +670,7 @@ void main() {
       await tester.tap(find.byKey(const Key('m9s09-migration')));
       await tester.pump();
 
-      expect(opener.opened, <String>[?v.migrationLink?.deepLink]);
+      expect(opener.opened, <String>[?c.v.migrationLink?.deepLink]);
       expect(actions.ids, <SettingsActionId>[]);
       expect(find.byKey(const Key('m9s09-result')), findsNothing);
       expect(find.text(SettingsLabels.retry), findsNothing);
@@ -681,40 +679,45 @@ void main() {
 
   // ── M9S09-10: asOf line and stale banner ─────────────────────────────────────
 
-  for (final (
-        String name,
-        BackupVm v,
-        Clock clock,
-        List<String?> staleTexts,
-        List<Key> chain,
-      )
-      in <(String, BackupVm, Clock, List<String?>, List<Key>)>[
+  for (final c
+      in <
+        ({
+          String name,
+          BackupVm v,
+          Clock clock,
+          List<String?> staleTexts,
+          List<Key> chain,
+        })
+      >[
         (
-          'fresh',
-          normal,
-          FixedClock(kGoldenNowUtc),
-          <String?>[],
-          <Key>[const Key('m9s09-last'), const Key('m9s09-asof')],
+          name: 'fresh',
+          v: normal,
+          clock: FixedClock(kGoldenNowUtc),
+          staleTexts: <String?>[],
+          chain: <Key>[const Key('m9s09-last'), const Key('m9s09-asof')],
         ),
         (
-          'stale',
-          stale,
-          FixedClock(
+          name: 'stale',
+          v: stale,
+          clock: FixedClock(
             stale.asOf.observedAt
                 .add(stale.asOf.staleAfter)
                 .add(const Duration(seconds: 1)),
           ),
-          <String?>[SettingsLabels.staleBannerTitle, ?stale.asOf.staleLabel],
-          <Key>[
+          staleTexts: <String?>[
+            SettingsLabels.staleBannerTitle,
+            ?stale.asOf.staleLabel,
+          ],
+          chain: <Key>[
             const Key('m9s09-stale'),
             const Key('m9s09-last'),
             const Key('m9s09-asof'),
           ],
         ),
       ]) {
-    testWidgets('M9S09-10 asof stale $name', (WidgetTester tester) async {
+    testWidgets('M9S09-10 asof stale ${c.name}', (WidgetTester tester) async {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
-        backup: (int call) => one(v),
+        backup: (int call) => one(c.v),
       );
 
       await pumpBackup(
@@ -723,22 +726,22 @@ void main() {
           repo: repo,
           actions: okActions(),
           opener: RecordingLinkOpener(),
-          clock: clock,
+          clock: c.clock,
         ),
       );
 
       expect(find.byKey(const Key('m9s09-asof')), findsOneWidget);
       expect(shownTexts(tester, find.byKey(const Key('m9s09-asof'))), <String?>[
-        v.asOf.label,
+        c.v.asOf.label,
       ]);
       expect(
         shownTexts(tester, find.byKey(const Key('m9s09-stale'))),
-        staleTexts,
+        c.staleTexts,
       );
-      for (int i = 1; i < chain.length; i++) {
+      for (int i = 1; i < c.chain.length; i++) {
         expect(
-          tester.getTopLeft(find.byKey(chain[i - 1])).dy,
-          lessThan(tester.getTopLeft(find.byKey(chain[i])).dy),
+          tester.getTopLeft(find.byKey(c.chain[i - 1])).dy,
+          lessThan(tester.getTopLeft(find.byKey(c.chain[i])).dy),
         );
       }
       expect(find.text(SettingsLabels.retry), findsNothing);
@@ -747,35 +750,36 @@ void main() {
 
   // ── M9S09-11: loading and error states ───────────────────────────────────────
 
-  for (final (
-        String name,
-        Stream<BackupVm> Function(int call) streamFactory,
-        Matcher loading,
-        Matcher fail,
-        Matcher retry,
-      )
+  for (final c
       in <
-        (String, Stream<BackupVm> Function(int call), Matcher, Matcher, Matcher)
+        ({
+          String name,
+          Stream<BackupVm> Function(int call) streamFactory,
+          Matcher loading,
+          Matcher fail,
+          Matcher retry,
+        })
       >[
         (
-          'loading',
-          (int call) =>
+          name: 'loading',
+          streamFactory: (int call) =>
               Stream<BackupVm>.multi((MultiStreamController<BackupVm> m) {}),
-          findsOneWidget,
-          findsNothing,
-          findsNothing,
+          loading: findsOneWidget,
+          fail: findsNothing,
+          retry: findsNothing,
         ),
         (
-          'fail',
-          (int call) => Stream<BackupVm>.error(StateError('fail')),
-          findsNothing,
-          findsOneWidget,
-          findsOneWidget,
+          name: 'fail',
+          streamFactory: (int call) =>
+              Stream<BackupVm>.error(StateError('fail')),
+          loading: findsNothing,
+          fail: findsOneWidget,
+          retry: findsOneWidget,
         ),
       ]) {
-    testWidgets('M9S09-11 stream state $name', (WidgetTester tester) async {
+    testWidgets('M9S09-11 stream state ${c.name}', (WidgetTester tester) async {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
-        backup: streamFactory,
+        backup: c.streamFactory,
       );
 
       await pumpBackup(
@@ -788,9 +792,9 @@ void main() {
         ),
       );
 
-      expect(find.byKey(const Key('m9s09-loading')), loading);
-      expect(find.byKey(const Key('m9s09-fail')), fail);
-      expect(find.text(SettingsLabels.retry), retry);
+      expect(find.byKey(const Key('m9s09-loading')), c.loading);
+      expect(find.byKey(const Key('m9s09-fail')), c.fail);
+      expect(find.text(SettingsLabels.retry), c.retry);
       expect(find.byKey(const Key('m9s09-last')), findsNothing);
       expect(find.byKey(const Key('m9s09-run')), findsNothing);
     });
@@ -827,69 +831,90 @@ void main() {
 
   // ── M9S09-13: all texts within allowed set, large font ───────────────────────
 
-  for (final (
-        String name,
-        BackupVm v,
-        SettingsActions? Function() actionsFactory,
-        Set<String> allowed,
-      )
-      in <(String, BackupVm, SettingsActions? Function(), Set<String>)>[
+  for (final c
+      in <
+        ({
+          String name,
+          BackupVm v,
+          SettingsActions? Function() actionsFactory,
+          Set<String> allowed,
+        })
+      >[
         (
-          'normal_operator',
-          normal,
-          okActions,
-          <String>{...backupAllowed(normal), ...backupControlTexts(normal)},
+          name: 'normal_operator',
+          v: normal,
+          actionsFactory: okActions,
+          allowed: <String>{
+            ...backupAllowed(normal),
+            ...backupControlTexts(normal),
+          },
         ),
         (
-          'age_warn_operator',
-          ageWarn,
-          okActions,
-          <String>{...backupAllowed(ageWarn), ...backupControlTexts(ageWarn)},
+          name: 'age_warn_operator',
+          v: ageWarn,
+          actionsFactory: okActions,
+          allowed: <String>{
+            ...backupAllowed(ageWarn),
+            ...backupControlTexts(ageWarn),
+          },
         ),
         (
-          'sim_operator',
-          sim,
-          okActions,
-          <String>{...backupAllowed(sim), ...backupControlTexts(sim)},
+          name: 'sim_operator',
+          v: sim,
+          actionsFactory: okActions,
+          allowed: <String>{...backupAllowed(sim), ...backupControlTexts(sim)},
         ),
         (
-          'locked_operator',
-          locked,
-          okActions,
-          <String>{...backupAllowed(locked), ...backupControlTexts(locked)},
+          name: 'locked_operator',
+          v: locked,
+          actionsFactory: okActions,
+          allowed: <String>{
+            ...backupAllowed(locked),
+            ...backupControlTexts(locked),
+          },
         ),
-        ('normal_viewer', normal, noActions, backupAllowed(normal)),
-        ('empty_viewer', empty, noActions, backupAllowed(empty)),
+        (
+          name: 'normal_viewer',
+          v: normal,
+          actionsFactory: noActions,
+          allowed: backupAllowed(normal),
+        ),
+        (
+          name: 'empty_viewer',
+          v: empty,
+          actionsFactory: noActions,
+          allowed: backupAllowed(empty),
+        ),
       ]) {
-    testWidgets('M9S09-13 all texts allowed large font $name', (
+    testWidgets('M9S09-13 all texts allowed large font ${c.name}', (
       WidgetTester tester,
     ) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
-        backup: (int call) => one(v),
+        backup: (int call) => one(c.v),
       );
 
       await pumpBackup(
         tester,
         overrides: backupOverrides(
           repo: repo,
-          actions: actionsFactory(),
+          actions: c.actionsFactory(),
           opener: RecordingLinkOpener(),
           clock: FixedClock(kGoldenNowUtc),
         ),
       );
 
       expect(find.byType(EditableText), findsNothing);
-      final Set<String> allowedSet = allowed;
+      final Set<String> allowed = c.allowed;
       final List<String?> shown = tester
           .widgetList<Text>(find.byType(Text))
           .map((Text t) => t.data)
           .toList();
       expect(shown, isNotEmpty);
       for (final String? data in shown) {
-        expect(data, isIn(allowedSet));
+        expect(data, isIn(allowed));
       }
       expect(
         find.byWidgetPredicate((Widget w) => w is IconButton),
