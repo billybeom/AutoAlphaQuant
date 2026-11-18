@@ -8,7 +8,7 @@
 // 🆕 E11p4f(R155) — 둘째 칸 = 모의 개시 가상 초기금(`submitSelfReportBalance(simOpening)` · 01 §21-3 · 06 M5-14 · X6-5 ⓑ):
 //    원문 검사(엔진 `simOpeningWireOf` — 틀리면 큐 적재 없이 `INPUT_INVALID`) → 지금 설정 판 등재(발주자 결정 사람 값 ·
 //    R153 · R154) → 엔진 `declareSimOpening`(sim 파일 · 한 트랜잭션) · 접수증 글자 = 엔진 문구 그대로.
-//    정기 실사(`periodicAudit` · L-3) = 구현 전(오류) · 화면(M5-14) 주입 = 그 화면 조각.
+//    정기 실사(`periodicAudit` · L-3) = 구현 전(오류) · 🆕 R156 화면 주입 = M5-14(`safetySimOpeningCommandApiProvider`).
 // 🔴 기기 id 가 없으면 주입 자체를 하지 않는다(버튼 부재 — 셸 규약) · 화면 상태 없음(온보딩 전) = 오류.
 
 import 'dart:math';

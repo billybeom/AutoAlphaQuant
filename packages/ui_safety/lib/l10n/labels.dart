@@ -11,9 +11,26 @@
 //    플래그마다 해제 경로가 다르므로 문구도 달라야 한다(경보 피로 방지 규칙).
 //    여기에 절차 문장을 적는 순간 그 문장이 규칙보다 뒤처진다.
 //
-// 아직 비어 있다. 화면을 만들면서 실제로 필요한 상수만 추가한다.
+// 화면을 만들면서 실제로 필요한 상수만 추가한다.
 
 /// ui_safety의 정적 UI 라벨 모음. 인스턴스를 만들지 않는다.
 abstract final class SafetyLabels {
-  // 예: static const String close = '닫기';
+  // ── M5-14 가상 초기금(O-04 ⑥ 자동 매매 갈래 · 06 M5-14 · 설계 13 §8 R156) ──
+  // 🔴 결과 문장(넣었다 · 거부 사유)은 접수증 `stateLabel` 그대로다(엔진) — 여기 두지 않는다.
+
+  /// 제목.
+  static const String simOpeningCashTitle = '가상 초기금';
+
+  /// 칸 위 한 줄(무엇을 적는 칸인가 — 절차 문장 아님).
+  static const String simOpeningCashNote =
+      '모의투자를 시작할 가상의 금액입니다 — 실제 돈은 움직이지 않습니다.';
+
+  /// 금액 칸 이름.
+  static const String simOpeningCashField = '금액(원)';
+
+  /// 제출 버튼.
+  static const String simOpeningCashSubmit = '가상 초기금 넣기';
+
+  /// 제출 자체가 실패했다(접수증 없음 — 거부와 다르다).
+  static const String submitNotAccepted = '제출하지 못했습니다 — 잠시 뒤 다시 눌러 주세요.';
 }

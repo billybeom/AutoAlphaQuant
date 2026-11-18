@@ -18,15 +18,17 @@ import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/secret/kis_key_set_field.dart';
 import 'package:core_engine/core_engine.dart'
-    show DeviceRiskFacts, alertInboxOf;
+    show DeviceRiskFacts, P0sHumanInputs, alertInboxOf;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
-import 'package:data_sync/data_sync.dart' show SqliteAlertSink, storedAlerts;
+import 'package:data_sync/data_sync.dart'
+    show P0sHumanDecision, SqliteAlertSink, SqliteOnboardingStore, storedAlerts;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AlertCodes,
         AlertItem,
         AppRoutes,
         BlockFlag,
+        DecisionReasonCodes,
         FlagIds,
         OnboardingSlotIds,
         OperatingMode;
@@ -49,6 +51,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
         journalSafetyRepositoryProvider;
+import 'package:ui_safety/sim_opening.dart' show SimOpeningCash;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -608,6 +611,93 @@ void main() {
       expect(inScreen('등록 전'), findsWidgets);
       expect(inScreen('슬리브 A'), findsOneWidget);
       expect(inScreen('미지정 — 이 슬리브의 주문은 내지 않습니다.'), findsNWidgets(3));
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M5-14 가상 초기금(R156) = 조립 셸에 등록 · 기기 id 없음 = 제출 버튼 부재(칸은 보인다)',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      await open(tester, AppRoutes.m5SimOpeningCash);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(SimOpeningCash), findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(find.byKey(const Key('m5-14-cash')), findsOneWidget);
+      expect(find.byKey(const Key('m5-14-submit')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M5-14(R156) — 온보딩 중 링크로 열어 넣으면 엔진이 계좌별로 나눠 넣는다 · 접수증 = 엔진 문장 · 칸 · 버튼 잠금',
+    (WidgetTester tester) async {
+      container.dispose();
+      rt = OperatorRuntime(
+        files: files,
+        clock: clock,
+        deviceId: '3f2b8c1e-9a4d-4b6f-8e2a-1c5d7f9b0a3e',
+        humanDecision: P0sHumanDecision(
+          inputs: P0sHumanInputs(
+            aSymbol: '229200',
+            accountByStrategy: const <String, String>{
+              'P0S_A': 'isa',
+              'P0S_B': 'pension',
+              'P0S_C': 'general',
+              'P0S_POT': 'isa',
+            },
+          ),
+          accountLabels: const <String, String>{
+            'isa': 'ISA',
+            'pension': '연금저축',
+            'general': '일반 위탁',
+          },
+          decisionRef: 'R153',
+        ),
+      );
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      expect(
+        SqliteOnboardingStore(
+          files.sim,
+          clock: clock,
+        ).selectOperatingMode(OperatingMode.autoTrade).ok,
+        isTrue,
+      );
+      await pumpApp(tester, onboarded: false);
+      await open(tester, AppRoutes.m5SimOpeningCash);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(SimOpeningCash), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('m5-14-cash')), '10,000,000');
+      await tester.tap(find.byKey(const Key('m5-14-submit')));
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.text('가상 초기금 10,000,000원을 계좌 3곳에 나눠 넣었습니다.'), findsOneWidget);
+      expect(
+        files.sim.select(
+          'SELECT COUNT(*) AS n FROM decision_log WHERE reason_code = ?',
+          <Object?>[DecisionReasonCodes.simOpeningBalance],
+        ).first['n'],
+        1,
+      );
+      expect(
+        tester.widget<TextField>(find.byKey(const Key('m5-14-cash'))).enabled,
+        isFalse,
+      );
+      expect(
+        tester
+            .widget<FilledButton>(find.byKey(const Key('m5-14-submit')))
+            .onPressed,
+        isNull,
+      );
+      // 선언 기록이 원장 감시(갱신 훅 · 0초 타이머)를 깨운다 — 가짜 시간을 흘려 보내고 닫는다.
+      await tester.pump(const Duration(milliseconds: 10));
+      await tester.pump(const Duration(milliseconds: 10));
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;
