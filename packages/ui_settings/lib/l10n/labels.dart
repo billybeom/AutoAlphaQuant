@@ -20,4 +20,5 @@ abstract final class SettingsLabels {
   static const String notAccepted = '접수되지 않았습니다';
   static const String confirm = '확인';
   static const String cancel = '취소';
+  static const String contributionInputLabel = '새 월 납입액';
 }
