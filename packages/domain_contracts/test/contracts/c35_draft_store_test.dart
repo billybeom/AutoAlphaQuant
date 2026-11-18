@@ -73,6 +73,8 @@ const Map<String, List<String>> _operatorPaths = <String, List<String>>{
   'ui_journal': <String>['lib/journal_draft.dart', 'lib/src/journal_draft/'],
   // 🆕 v1.4(01 §14-1 · TARGETS T-4) — S7-4 입금 플래너(배럴 밖 · operator 전용).
   'ui_analytics': <String>['lib/planner.dart', 'lib/src/planner/'],
+  // 🆕 설계 13 §8 R156 — M5-14 가상 초기금(`SelfReportInput` · 배럴 밖 · operator 전용 · 뷰어도 ui_safety 를 싣는다).
+  'ui_safety': <String>['lib/sim_opening.dart', 'lib/src/sim_opening/'],
 };
 
 /// operator 조립 앱 — 초안 포트를 주입하는 유일한 곳(01 §12-1-8). 나머지 `appNames` = viewer.
@@ -97,10 +99,16 @@ final RegExp _importsPlanner = RegExp(
   r'''(?:import|export)\s+['"](?:[^'"]*/)?planner(?:\.dart|/)[^'"]*['"]''',
 );
 
+/// 🆕 R156 — M5-14 operator 전용 라이브러리(`sim_opening.dart`·`src/sim_opening/**`)를 import·export 하는가.
+final RegExp _importsSimOpening = RegExp(
+  r'''(?:import|export)\s+['"](?:[^'"]*/)?sim_opening(?:\.dart|/)[^'"]*['"]''',
+);
+
 /// 패키지별 «operator 전용 라이브러리 import» 정규식.
 final Map<String, RegExp> _operatorImportRes = <String, RegExp>{
   'ui_journal': _importsOperator,
   'ui_analytics': _importsPlanner,
+  'ui_safety': _importsSimOpening,
 };
 
 /// [_mentionsPort] 자체 검증 — 반드시 잡혀야 하는 것.
@@ -441,6 +449,30 @@ void main() {
         isTrue,
       );
       expect(_isOperatorPath('ui_analytics', 'lib/ui_analytics.dart'), isFalse);
+      // 🆕 R156 — M5-14 import 정규식 · 경로 자체 검증.
+      for (final String s in <String>[
+        "import 'package:ui_safety/sim_opening.dart';",
+        "export 'src/sim_opening/sim_opening_cash.dart';",
+        "import '../sim_opening/sim_opening_cash.dart';",
+      ]) {
+        expect(_importsSimOpening.hasMatch(s), isTrue, reason: '양성 스니펫: $s');
+      }
+      for (final String s in <String>[
+        "import 'package:ui_safety/ui_safety.dart';",
+        "import 'src/sim_opening_hint.dart';",
+        "import 'package:ui_analytics/planner.dart';",
+      ]) {
+        expect(_importsSimOpening.hasMatch(s), isFalse, reason: '음성 스니펫: $s');
+      }
+      expect(_isOperatorPath('ui_safety', 'lib/sim_opening.dart'), isTrue);
+      expect(
+        _isOperatorPath(
+          'ui_safety',
+          'lib/src/sim_opening/sim_opening_cash.dart',
+        ),
+        isTrue,
+      );
+      expect(_isOperatorPath('ui_safety', 'lib/ui_safety.dart'), isFalse);
       for (final String name in uiPackageNames) {
         for (final File f in dartSourcesIn(
           Directory('${repoRoot.path}/packages/$name/lib'),
@@ -475,6 +507,7 @@ void main() {
           final String source = f.readAsStringSync();
           if (_importsOperator.hasMatch(stripComments(source)) ||
               _importsPlanner.hasMatch(stripComments(source)) ||
+              _importsSimOpening.hasMatch(stripComments(source)) ||
               _mentionsPort.hasMatch(stripCommentsAndStrings(source))) {
             viewerLeaks.add(shortPath(f));
           }

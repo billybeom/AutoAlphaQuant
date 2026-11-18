@@ -49,6 +49,8 @@ import 'package:ui_journal/ui_journal.dart'
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
         journalSafetyRepositoryProvider;
+import 'package:ui_safety/sim_opening.dart'
+    show SimOpeningCash, safetySimOpeningCommandApiProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -201,6 +203,8 @@ Widget _settingsDevices(Map<String, String> _) => const Devices();
 
 Widget _settingsAccounts(Map<String, String> _) => const Accounts();
 
+Widget _simOpeningCash(Map<String, String> _) => const SimOpeningCash();
+
 /// 🆕 R129 — 설정 읽기 모델(첫 칸 = S02 키 목록) · 🆕 R134 설정 홈 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만.
 final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
     Provider<OperatorSettingsRepository>((Ref ref) {
@@ -246,6 +250,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.onboardingStep: _onboardingStep,
   // 🆕 E11p4c(R127) — 마무리(O-04).
   AppRoutes.onboardingFinish: _onboardingFinish,
+  // 🆕 E11p4g(R156) — M5-14 가상 초기금(O-04 ⑥ 자동 매매 갈래 링크 목적지 · 제출 = `OperatorCommandApi` · R155).
+  AppRoutes.m5SimOpeningCash: _simOpeningCash,
   // 🆕 E11p3d-5d(R129) — M9 S02 증권사 키(캡처 막기 = `kSecureRoutePatterns` · 키 칸 = 설정 슬롯 빌더).
   AppRoutes.settingsCredentials: _settingsCredentials,
   // 🆕 E11p3d-5e(R134) — M9 S01 설정 홈(더보기 탭 본문).
@@ -282,6 +288,12 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   // 🆕 R147 — 확인(ack) = 명령 API(한 인스턴스) · 기기 id 없음 = null = 버튼 부재(셸 규약).
   shellAlertCommandApiProvider.overrideWith(
+    (Ref ref) => runtime.deviceId == null
+        ? null
+        : ref.watch(operatorCommandApiProvider) as CommandApi,
+  ),
+  // 🆕 R156 — M5-14 가상 초기금 제출 = 같은 명령 API 인스턴스 · 기기 id 없음 = null = 제출 버튼 부재.
+  safetySimOpeningCommandApiProvider.overrideWith(
     (Ref ref) => runtime.deviceId == null
         ? null
         : ref.watch(operatorCommandApiProvider) as CommandApi,

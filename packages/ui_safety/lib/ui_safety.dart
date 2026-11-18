@@ -13,7 +13,8 @@
 // 🔴 마찰 카운트다운을 로컬 시계로 계산하지 않는다. 신뢰 시각은 Supabase 서버
 //    시각이고, 화면은 SafetyState.releaseProgress를 그대로 표시한다.
 //
-// 아직 비어 있다. 화면 위젯은 lib/src/ 아래로 들어오고 공개할 것만 여기에서
-// export 한다.
+// 화면 위젯은 lib/src/ 아래로 들어오고 공개할 것만 여기에서 export 한다.
+// 🔴 operator 전용 화면은 여기 넣지 않는다 — 🆕 M5-14 가상 초기금 = `package:ui_safety/sim_opening.dart`
+//    (설계 13 §8 R156 · C-35 ⑥ — 뷰어 조립도 이 배럴을 싣는다).
 
 export 'l10n/labels.dart';

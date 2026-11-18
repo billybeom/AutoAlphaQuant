@@ -202,6 +202,13 @@ const List<String> _formFiles = <String>[
   'lib/src/journal_draft/self_report_form.dart',
 ];
 
+/// 🆕 ⑯ 예외 — M5-14 가상 초기금(`ui_safety` · 01 §8 미결 154 · 06 M5-14 · 설계 13 §8 R156): `SelfReportSubmission`
+/// (purpose = simOpening)을 내는 M5 화면. X7 폼 규칙(⑱ = periodicAudit 만)은 이 화면의 목적과 반대라 대상에 넣지 않고,
+/// ⑯b 가 «제출 이름 하나 · simOpening 만 · 와이어·맥락·파싱 0»을 따로 본다(저장소 기준 경로).
+const List<String> _m5SelfReportFiles = <String>[
+  'packages/ui_safety/lib/src/sim_opening/sim_opening_cash.dart',
+];
+
 bool _isRead(String rel) =>
     _readFiles.contains(rel) || rel.startsWith(_readDir);
 
@@ -1354,7 +1361,9 @@ void main() {
       );
       final List<String> bad = <String>[
         for (final MapEntry<String, String> e in _guardSources.entries)
-          if (!_isTarget(e.key) && _x7Name.hasMatch(stripComments(e.value)))
+          if (!_isTarget(e.key) &&
+              !_m5SelfReportFiles.contains(e.key) &&
+              _x7Name.hasMatch(stripComments(e.value)))
             e.key,
       ];
       expect(
@@ -1364,6 +1373,40 @@ void main() {
             'X7 VM·창구·제출 이름을 말하는 `ui_*/lib` 파일은 대상에만 둔다 — 밖에 두면 ⑰~㉖ 가 보지 않는다'
             '(🔵 `J-1` 배지 카드가 오면 그 파일을 대상에 더하는 것이 그 카드의 M2 몫).\n${bad.join('\n')}',
       );
+    });
+
+    test('🆕 C-46 ⑯b M5-14 예외 — 실재 · 제출 이름 = SelfReportSubmission 만 · 목적 = simOpening 만 · 와이어·맥락·파싱 0', () {
+      for (final String path in _m5SelfReportFiles) {
+        final String? src = _guardSources[path];
+        expect(src, isNotNull, reason: '$path 가 없다 — 예외 목록이 낡았다.');
+        final String code = stripComments(src!);
+        final String bare = stripCommentsAndStrings(src);
+        expect(
+          <String>{for (final RegExpMatch m in _x7Name.allMatches(code)) m[0]!},
+          <String>{'SelfReportSubmission'},
+          reason: '$path — M5-14 는 제출 DTO 하나만 말한다(X7 VM·창구 0).',
+        );
+        expect(
+          RegExp(r'SelfReportPurpose\.simOpening\b').hasMatch(code),
+          isTrue,
+          reason: '$path — 목적 = simOpening(공허 방지).',
+        );
+        expect(
+          RegExp(r'SelfReportPurpose\.(?!simOpening\b)').hasMatch(code),
+          isFalse,
+          reason: '$path — 정기 실사(periodicAudit)를 내지 않는다.',
+        );
+        expect(
+          _wire.allMatches(code).map((RegExpMatch m) => m[0]).toList(),
+          isEmpty,
+          reason: '$path — 와이어·맥락은 명령 구현이 싣는다(⑳ · G-19).',
+        );
+        expect(
+          _parse.allMatches(bare).map((RegExpMatch m) => m[0]).toList(),
+          isEmpty,
+          reason: '$path — 화면 검증·파싱 0(⑲ · K4 · 원문 그대로 낸다).',
+        );
+      }
     });
 
     test('C-46 ⑰ 원값·키 0 — 상태·수량·가격·슬리브·코드 · 읽기 화면 종목·방향·id·체결 종류', () {
