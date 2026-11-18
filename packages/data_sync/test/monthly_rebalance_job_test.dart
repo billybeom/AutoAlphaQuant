@@ -913,15 +913,34 @@ void main() {
       <Object?>[day, equity, equity, equity],
     );
 
-    test('기본 = P0S 카드 미등록 → 계획은 만들고 판정 행 0 · 보고 «카드 없음»', () async {
+    test('카드 미등록(주입 null) → 계획은 만들고 판정 행 0 · 보고 «카드 없음»', () async {
       strategies();
-      final MonthlyRebalanceReport r = await job().run(_me);
+      final MonthlyRebalanceReport r = await job(tierBCard: () => null)
+          .run(_me);
       expect(r.created, isTrue);
       expect(r.tierB!.cardMissing, isTrue);
       expect(r.tierB!.judgedMonth, '2026-07');
       expect(r.toString(), contains('카드 없음'));
       expect(_count(db, 'tier_b_judgement'), 0);
     });
+
+    test(
+      '🆕 기본 = P0S 확정 카드(R158) → 판정 · DD −10% 는 B2(−24%) 안 = 전환 0',
+      () async {
+        strategies();
+        snap('2026-06-30', 100);
+        snap('2026-07-31', 90);
+        final MonthlyRebalanceReport r = await job().run(_me);
+        expect(r.created, isTrue);
+        expect(r.tierB!.cardMissing, isFalse);
+        expect(r.tierB!.judged, <String>[
+          P0sStrategyIds.sleeveB,
+          P0sStrategyIds.sleeveC,
+        ]);
+        expect(r.tierB!.transitioned, isEmpty);
+        expect(_count(db, 'tier_b_judgement'), 2);
+      },
+    );
 
     test('카드 등록 → 저장 뒤 판정 · 전 전략 행 · ACTIVE → PROBATION', () async {
       strategies();

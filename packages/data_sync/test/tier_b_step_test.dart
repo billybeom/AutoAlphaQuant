@@ -147,9 +147,13 @@ void main() {
       expect(_count(db, 'tier_b_judgement'), 0);
     });
 
-    test('기본 카드 = P0S(미등록)', () {
+    test('🆕 기본 카드 = P0S 확정 카드(R158) — 등록됨 = 판정한다', () {
+      _history(db);
       _strategy(db, P0sStrategyIds.sleeveB, 'ACTIVE');
-      expect(TierBStep(db, clock: clock).run(_me).cardMissing, isTrue);
+      final TierBStepReport r = TierBStep(db, clock: clock).run(_me);
+      expect(r.cardMissing, isFalse);
+      expect(r.judged, <String>[P0sStrategyIds.sleeveB]);
+      expect(_count(db, 'tier_b_judgement'), 1);
     });
 
     test('전략 없음 = 행 0 · 스냅숏 없어도 실패 아님', () {
