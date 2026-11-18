@@ -197,7 +197,25 @@ void main() {
     });
   });
 
-  test('P0S 카드 = 미등록(R50 T4 · 값은 발주자 확정 뒤)', () {
-    expect(p0sTierBCard(), isNull);
-  });
+  test(
+    '🔴 P0S 카드 = 발주자 확정 값(R158) — B1 −0.19 · B2 −0.24 · B3 38달 · 경계 그대로',
+    () {
+      final TierBCard c = p0sTierBCard()!;
+      expect(c.b1R12mFloor, -0.19);
+      expect(c.b2DdFloor, -0.24);
+      expect(c.b3TuwMonths, 38);
+      // 같은 판정식(B1 < · B2 ≤ · B3 >)을 확정 값에 그대로 건다.
+      expect(judgeTierB(_m(r12m: -0.1901), c).b1, isTrue);
+      expect(judgeTierB(_m(r12m: -0.19), c).b1, isFalse);
+      expect(judgeTierB(_m(dd: -0.24), c).b2, isTrue);
+      expect(judgeTierB(_m(dd: -0.2399), c).b2, isFalse);
+      expect(judgeTierB(_m(tuw: 38.01), c).b3, isTrue);
+      expect(judgeTierB(_m(tuw: 38), c).b3, isFalse);
+      // 정본 26.6년의 실제 극단(보고서 §0 — 최악 1년 −10.86% · MDD −12.60% · 최장 물속 22.1달) = 하나도 걸리지 않는다.
+      expect(
+        judgeTierB(_m(r12m: -0.1086, dd: -0.1260, tuw: 22.1), c).any,
+        isFalse,
+      );
+    },
+  );
 }

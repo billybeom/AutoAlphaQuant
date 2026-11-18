@@ -3,6 +3,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:app_operator_android/app/operator_command_api.dart';
+import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_settings_actions.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/secret/secret_handoff.dart';
@@ -21,18 +23,25 @@ import 'package:broker_gateway/broker_gateway.dart'
 import 'package:core_engine/core_engine.dart'
     show
         OnboardingStepFact,
+        P0sHumanInputs,
         kOnboardingDryRunRolledBackText,
+        kOnboardingDryRunStartedText,
         kOnboardingModeCommittedText,
         kOnboardingModeSelectedText;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
-    show SqliteOnboardingProgressStore, SqliteOnboardingStore;
+    show P0sHumanDecision, SqliteOnboardingProgressStore, SqliteOnboardingStore;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         ActionResult,
         BrokerRawCodes,
+        CommandReceipt,
+        CommandState,
         OnboardingResultCodes,
         OperatingMode,
+        SelfReportInput,
+        SelfReportPurpose,
+        SelfReportSubmission,
         SettingsActionId,
         StepState,
         UiLevel;
@@ -478,6 +487,55 @@ void main() {
         throwsUnsupportedError,
       );
     });
+
+    test(
+      '🆕 R158 — 확정 계층 B 카드 = 모의 개시(가상 초기금) 뒤 «DRY_RUN 시작» 이 커밋된다',
+      () async {
+        await select('AUTO_TRADE');
+        final CommandReceipt opened =
+            await OperatorCommandApi(
+              OperatorRuntime(
+                files: files,
+                clock: clock,
+                deviceId: '3f2b8c1e-9a4d-4b6f-8e2a-1c5d7f9b0a3e',
+                humanDecision: P0sHumanDecision(
+                  inputs: P0sHumanInputs(
+                    aSymbol: '229200',
+                    accountByStrategy: const <String, String>{
+                      'P0S_A': 'isa',
+                      'P0S_B': 'pension',
+                      'P0S_C': 'general',
+                      'P0S_POT': 'isa',
+                    },
+                  ),
+                  accountLabels: const <String, String>{
+                    'isa': 'ISA',
+                    'pension': '연금저축',
+                    'general': '일반 위탁',
+                  },
+                  decisionRef: 'R153',
+                ),
+              ),
+            ).submitSelfReportBalance(
+              const SelfReportSubmission(
+                purpose: SelfReportPurpose.simOpening,
+                input: SelfReportInput(cashKrwText: '10,000,000'),
+                declaredComplete: true,
+              ),
+            );
+        expect(opened.state, CommandState.executed, reason: opened.stateLabel);
+        final ActionResult r = await withSim.run(
+          SettingsActionId.onboardingDryRunStart,
+        );
+        expect(r.level, UiLevel.ok, reason: r.headline);
+        expect(r.reasonCode, isNull);
+        expect(r.headline, kOnboardingDryRunStartedText);
+        expect(
+          SqliteOnboardingStore(files.sim, clock: clock).choice()?.committed,
+          isTrue,
+        );
+      },
+    );
 
     test('🔴 금고 키 «다시 검증»(R129) 통과도 o_02 VERIFIED 로 적는다', () async {
       await storeKisCredentials(vault, KisKeySet.paper, src.value!);

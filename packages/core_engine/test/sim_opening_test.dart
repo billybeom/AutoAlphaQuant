@@ -165,7 +165,8 @@ void main() {
 
     test('🔴 계층 B 카드가 없으면 체험 시작 거부 · 있으면 통과', () {
       expect(simTrialStartReject(card: null), SimOpeningCodes.tierBCardMissing);
-      expect(p0sTierBCard(), isNull);
+      // 🆕 R158 — 확정 카드가 등록돼 체험 시작 문이 열린다.
+      expect(simTrialStartReject(card: p0sTierBCard()), isNull);
       expect(
         simTrialStartReject(
           card: const TierBCard(
