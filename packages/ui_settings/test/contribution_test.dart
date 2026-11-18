@@ -785,16 +785,11 @@ void main() {
   testWidgets('M9S13-13 retry resubscribes first seed preserved', (
     WidgetTester tester,
   ) async {
-    int callCount = 0;
     final FakeSettingsContributionRepository repo =
         FakeSettingsContributionRepository(
-          contribution: (int call) {
-            callCount = callCount + 1;
-            if (call == 0) {
-              return Stream<MonthlyContributionVm>.error(StateError('fail'));
-            }
-            return one(normal);
-          },
+          contribution: (int call) => call == 0
+              ? Stream<MonthlyContributionVm>.error(StateError('fail'))
+              : one(normal),
         );
 
     await pumpContribution(
