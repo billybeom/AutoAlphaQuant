@@ -18,7 +18,7 @@ import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/secret/kis_key_set_field.dart';
 import 'package:core_engine/core_engine.dart'
-    show DeviceRiskFacts, P0sHumanInputs, alertInboxOf;
+    show DeviceRiskFacts, P0sHumanInputs, TrustedClock, alertInboxOf;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show P0sHumanDecision, SqliteAlertSink, SqliteOnboardingStore, storedAlerts;
@@ -52,6 +52,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalLinkOpenerProvider,
         journalSafetyRepositoryProvider;
 import 'package:ui_safety/sim_opening.dart' show SimOpeningCash;
+import 'package:ui_safety/ui_safety.dart' show PledgePanel;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -69,6 +70,16 @@ import 'package:ui_settings/ui_settings.dart'
 import 'package:ui_shell/ui_shell.dart';
 
 import '../engine/support.dart';
+
+/// 🆕 R157 — 고정 신뢰 시각(E11k 전 · 시험만).
+class _FixedTrusted implements TrustedClock {
+  const _FixedTrusted(this.at);
+
+  final DateTime at;
+
+  @override
+  DateTime? trustedNowUtc() => at;
+}
 
 void main() {
   tearDownAll(deleteTempDirs);
@@ -416,7 +427,7 @@ void main() {
     disposed = true;
   });
 
-  test('🔴 온보딩 슬롯 빌더(R115) = 주입됨 · SECRET_KIS_MOCK = 키 세트 칸(실행 묶음의 넘김 · 캡처 막기) · 나머지 = 자리 부재', () {
+  test('🔴 온보딩 슬롯 빌더(R115) = 주입됨 · SECRET_KIS_MOCK = 키 세트 칸(실행 묶음의 넘김 · 캡처 막기) · 🆕 PLEDGE_WRITE = 서약 칸(R157) · 나머지 = 자리 부재', () {
     final ShellSlotBuilder? b = container.read(
       shellOnboardingSlotBuilderProvider,
     );
@@ -429,6 +440,8 @@ void main() {
         expect(identical(f.handoff, rt.secrets), true);
         expect(identical(f.janitor, rt.clipboard), true);
         expect(identical(f.secure, rt.secure), true);
+      } else if (id == OnboardingSlotIds.pledgeWrite) {
+        expect(w, isA<PledgePanel>());
       } else {
         expect(w.key, const Key('m4-slot-absent'), reason: id);
       }
@@ -696,6 +709,60 @@ void main() {
         isNull,
       );
       // 선언 기록이 원장 감시(갱신 훅 · 0초 타이머)를 깨운다 — 가짜 시간을 흘려 보내고 닫는다.
+      await tester.pump(const Duration(milliseconds: 10));
+      await tester.pump(const Duration(milliseconds: 10));
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 O-04 ② 서약(R157) = 마무리 슬롯에 M5-8 칸 · 세 문장 저장 = 엔진 실행(엔진 문장) · 서약 1행',
+    (WidgetTester tester) async {
+      container.dispose();
+      rt = OperatorRuntime(
+        files: files,
+        clock: clock,
+        trusted: _FixedTrusted(DateTime.utc(2026, 11, 19, 0, 30)),
+      );
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      expect(
+        SqliteOnboardingStore(
+          files.sim,
+          clock: clock,
+        ).selectOperatingMode(OperatingMode.autoTrade).ok,
+        isTrue,
+      );
+      await pumpApp(tester, onboarded: false);
+      await open(tester, AppRoutes.onboardingFinish);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(PledgePanel), findsOneWidget);
+      for (final (int i, String t) in <String>[
+        '정한 날에만 산다',
+        '하락에도 규칙을 지킨다',
+        '멈춘 뒤엔 점검부터',
+      ].indexed) {
+        final Finder f = find.byKey(ValueKey<String>('m5-8-input-$i'));
+        await tester.ensureVisible(f);
+        await tester.enterText(f, t);
+      }
+      await tester.ensureVisible(find.byKey(const Key('m5-8-save')));
+      await tester.tap(find.byKey(const Key('m5-8-save')));
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.text('서약 첫 판을 저장했습니다.'), findsOneWidget);
+      expect(
+        files.sim.select('SELECT COUNT(*) AS n FROM pledge').first['n'],
+        1,
+      );
+      // 🔵 «저장 → ② 닫힘»(갱신 훅 = 실제 이벤트 루프 · 가짜 시간 밖) = `operator_pledge_test`(실제 시간)가 지킨다.
       await tester.pump(const Duration(milliseconds: 10));
       await tester.pump(const Duration(milliseconds: 10));
       await tester.pumpWidget(const SizedBox.shrink());

@@ -32,6 +32,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         AppRoutes,
         CommandApi,
         LedgerRepository,
+        OnboardingSlotIds,
         SettingsActions;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,6 +52,8 @@ import 'package:ui_journal/ui_journal.dart'
         journalSafetyRepositoryProvider;
 import 'package:ui_safety/sim_opening.dart'
     show SimOpeningCash, safetySimOpeningCommandApiProvider;
+import 'package:ui_safety/ui_safety.dart'
+    show PledgePanel, safetyActionsProvider, safetyPledgeRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -72,6 +75,7 @@ import 'operator_command_api.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
+import 'operator_pledge.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
 import 'operator_settings_actions.dart';
@@ -146,8 +150,16 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
       );
     });
 
-/// 🆕 R115 — 온보딩 슬롯 빌더(M4-11 ①) — 엔진에 있는 키 세트의 시크릿 칸만 · 나머지 = 자리 부재(크기 0 · 키 `m4-slot-absent`).
+/// 🆕 R157 — 안전 동작(한 인스턴스 — 지금 = 서약).
+final Provider<OperatorSafetyActions> operatorSafetyActionsProvider =
+    Provider<OperatorSafetyActions>(
+      (Ref ref) => OperatorSafetyActions(ref.watch(operatorRuntimeProvider)),
+    );
+
+/// 🆕 R115 — 온보딩 슬롯 빌더(M4-11 ①) — 엔진에 있는 키 세트의 시크릿 칸 · 🆕 R157 O-04 ② 서약(M5-8) ·
+/// 나머지 = 자리 부재(크기 0 · 키 `m4-slot-absent`).
 ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
+  if (slotId == OnboardingSlotIds.pledgeWrite) return const PledgePanel();
   final KisKeySet? set = kisKeySetOfSlot(slotId);
   if (set == null) return const SizedBox.shrink(key: Key('m4-slot-absent'));
   return KisKeySetField(
@@ -291,6 +303,13 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
     (Ref ref) => runtime.deviceId == null
         ? null
         : ref.watch(operatorCommandApiProvider) as CommandApi,
+  ),
+  // 🆕 R157 — M5-8 서약(읽기 = sim 원장 · 쓰기 = 안전 동작 한 인스턴스 · 폰 = 늘 주입).
+  safetyPledgeRepositoryProvider.overrideWith(
+    (Ref ref) => OperatorPledgeRepository(ref.watch(operatorRuntimeProvider)),
+  ),
+  safetyActionsProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorSafetyActionsProvider),
   ),
   // 🆕 R156 — M5-14 가상 초기금 제출 = 같은 명령 API 인스턴스 · 기기 id 없음 = null = 제출 버튼 부재.
   safetySimOpeningCommandApiProvider.overrideWith(

@@ -1069,6 +1069,15 @@ export 'src/safety/pledge.dart'
         pledgeReplayDueOf,
         pledgeSentencesOf,
         pledgeWriteRejectCode;
+// 🆕 E11p4h — 서약 읽기 모델 · 동작 결과(설계 13 §8 R157 · 01 §30 K16).
+export 'src/safety/pledge_view.dart'
+    show
+        PledgeResultTexts,
+        kPledgeStaleAfter,
+        pledgeActionResultOf,
+        pledgeAsOf,
+        pledgeSubmissionDigest,
+        pledgeVmOf;
 // 🆕 E13g1 — 규칙 변경 게이트 · SAF-405 기동 통제(M5-9 · 설계 13 §8 R66).
 export 'src/safety/rule_change.dart'
     show
