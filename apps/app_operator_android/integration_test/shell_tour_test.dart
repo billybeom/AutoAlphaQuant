@@ -15,12 +15,14 @@ import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/engine/system_clock.dart';
 import 'package:app_operator_android/main.dart';
+import 'package:app_operator_android/platform/human_inputs_loader.dart';
 import 'package:app_operator_android/platform/platform.dart';
 import 'package:data_sync/data_sync.dart'
     show HealthchecksClient, ModeAxis, SqliteModeStore;
 import 'package:domain_contracts/domain_contracts.dart'
     show AppRoutes, ExecPolicy, LedgerFile, OperatingMode, RunMode;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -80,6 +82,8 @@ void main() {
       watchdogRemote: HealthchecksClient(http.Client(), AndroidSecretVault()),
       deviceProbe: () => ops.deviceRisk(clock.nowUtc()),
       deviceId: await ops.deviceId(),
+      // 🆕 R154 — 실린 사람 값 자산(발주자 결정 R153) → S03 = 정한 대응표 «모의 개시 전».
+      humanDecision: await loadP0sHumanDecision(rootBundle),
     );
     // 온보딩 확정 + 모의 모드 행을 먼저 둔다 → 루트 = 셸.
     files.sim.execute(
@@ -154,6 +158,7 @@ void main() {
       await _until(tester, find.text('계좌·매핑'));
       await tester.tap(find.descendant(of: home, matching: find.text('계좌·매핑')));
       await _until(tester, find.text('슬리브 A'));
+      expect(find.text('모의 개시 전 — 시작하면 이 계좌로 운영합니다.'), findsNWidgets(3));
       await _at(tester, find.byType(Accounts), 'IT_S03');
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);

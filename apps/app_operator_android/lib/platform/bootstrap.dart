@@ -17,7 +17,7 @@ import 'package:broker_gateway/broker_gateway.dart'
 import 'package:core_engine/core_engine.dart'
     show Market, frozenExchangeCalendar, p0sRegimeConfigHash;
 import 'package:data_sync/data_sync.dart'
-    show FredClient, HealthchecksClient, OfrClient;
+    show FredClient, HealthchecksClient, OfrClient, P0sHumanDecision;
 import 'package:domain_contracts/domain_contracts.dart' show RunMode;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
@@ -39,6 +39,7 @@ import '../engine/system_clock.dart';
 import 'android_ops.dart';
 import 'android_secret_vault.dart';
 import 'engine_host.dart';
+import 'human_inputs_loader.dart' show loadP0sHumanDecision;
 import 'operator_channels.dart';
 
 /// 플랫폼을 띄운다 — Android 가 아니면 null(시험 · 다른 타깃).
@@ -172,6 +173,13 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
     const SystemClock clock = SystemClock();
     final AndroidOps ops = AndroidOps();
     final String dir = (await ops.paths()).engineDir;
+    // 🆕 R154 — 발주자가 정한 사람 값(자산 · 못 읽으면 null — 화면은 선다 · 실린 자산 = data_sync 시험이 지킨다).
+    P0sHumanDecision? human;
+    try {
+      human = await loadP0sHumanDecision(rootBundle);
+    } on Object {
+      human = null;
+    }
     // 🆕 R142 — 이 기기 id(못 얻으면 null — 화면은 그대로 선다 · 기기 id 를 쓰는 칸만 «없음»).
     final String? deviceId = await deviceIdOrNull(ops);
     return OperatorRuntime(
@@ -195,6 +203,7 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       // 🆕 R136 — H-03 기기 측정(값만 · 판정 = 엔진).
       deviceProbe: () => ops.deviceRisk(clock.nowUtc()),
       deviceId: deviceId,
+      humanDecision: human,
     );
   } on Object {
     return null;
