@@ -33,4 +33,23 @@ abstract final class SafetyLabels {
 
   /// 제출 자체가 실패했다(접수증 없음 — 거부와 다르다).
   static const String submitNotAccepted = '제출하지 못했습니다 — 잠시 뒤 다시 눌러 주세요.';
+
+  // ── M5-8 본인 서약 3문장(O-04 ② 슬롯 `PLEDGE_WRITE` · 06 M5-8 · 설계 13 §8 R157) ──
+  // 🔴 예시 문장 · 힌트를 두지 않는다(본인이 쓴 문장이라는 것이 이 장치의 전부 — 04 §9-5 ②).
+  // 🔴 결과 문장(저장했다 · 거부 사유)은 `SafetyActionResult.headline` 그대로다(엔진).
+
+  /// 첫째 칸 이름.
+  static const String pledgeSentence1 = '첫째 문장';
+
+  /// 둘째 칸 이름.
+  static const String pledgeSentence2 = '둘째 문장';
+
+  /// 셋째 칸 이름.
+  static const String pledgeSentence3 = '셋째 문장';
+
+  /// 저장 버튼.
+  static const String pledgeSave = '서약 저장';
+
+  /// 서약을 읽지 못했다(원천 오류 — 빈 서약과 다르다).
+  static const String pledgeReadFailed = '서약을 읽지 못했습니다.';
 }

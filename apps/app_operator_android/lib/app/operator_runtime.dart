@@ -12,6 +12,7 @@ import 'package:core_engine/core_engine.dart'
         ExchangeCalendar,
         Market,
         SecretVault,
+        TrustedClock,
         WatchdogRemote,
         contributionKstDay,
         contributionSettingOf,
@@ -31,6 +32,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
 
+import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import '../engine/ledger_files.dart';
 import '../engine/operator_engine.dart' show EngineWakeReport;
 import '../secret/secret_handoff.dart' show ClipboardJanitor, SecretHandoff;
@@ -57,7 +59,9 @@ class OperatorRuntime {
     this.deviceProbe,
     this.deviceId,
     this.humanDecision,
+    TrustedClock? trusted,
   }) : secure = secure ?? SecureScreen(_noSecure),
+       trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
        clipboard = clipboard ?? ClipboardJanitor(),
        openExternal = openExternal ?? _noExternal,
@@ -102,6 +106,10 @@ class OperatorRuntime {
   /// 🆕 E11p4e(R154) — 발주자가 정한 사람 값(A 종목 · 전략 → 계좌 별칭 · 표시 글자 — R153 · 자산 `p0s_human.json`) ·
   /// 없음 = 못 읽음 · 플랫폼 밖. 🔴 «정한 값»이지 «지금 설정»이 아니다 — 지금 설정 = 모의 개시 판(`currentP0sOpsConfig`).
   final P0sHumanDecision? humanDecision;
+
+  /// 🆕 E11p4h(R157) — 신뢰 시각(서약 쓰기 · 12월 창 판정 — 기기 시계 아님). 🔴 실물(Supabase 서버 `now()` · 시계 차
+  /// 판정) = E11k 가 여기 하나에 넣는다 · 그 전 = «모름»(쓰기는 엔진이 `TRUSTED_TIME_UNKNOWN` 으로 거부한다).
+  final TrustedClock trusted;
 
   /// 🆕 E11p3d-2c(R136) — H-03 기기 측정(저장공간 · 배터리 · 보안 패치 · 온도 — 값만 · 없음 = 기기 리스크 원천 없음).
   final Future<DeviceRiskFacts> Function()? deviceProbe;
