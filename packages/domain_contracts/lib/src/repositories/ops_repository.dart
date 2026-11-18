@@ -6,11 +6,11 @@
 // 🔴 폰 빌드는 로컬에서, viewer 는 `rm_*` 읽기 모델에서 **같은 DTO** 를 받는다(계약 3조 ①).
 
 import '../dto/ops.dart';
-import '../dto/performance.dart';
 import '../primitives/list_result.dart';
 
 /// 워치독·연결·기기·백업·진단·연간 리뷰.
-/// ✅ H-8 — 반환 타입 이름은 `m2-8_naming.md` G-3·G-7·G-8·G-9·G-10·F-6 이 확정한 그대로다.
+/// ✅ H-8 — 반환 타입 이름은 `m2-8_naming.md` G-3·G-7·G-8·G-9·G-10·F-6 이 확정한 그대로다 · 🆕 v1.24 — `watchAnnualReview` 반환 =
+///    F-6 밖 새 타입 `AnnualReviewIndexVm`(K118).
 abstract interface class OpsStatusRepository {
   /// `W-01` — 🆕 v1.15(01 §24 · K3) 반환 = [WatchdogBoardVm](구 `ListResult<WatchdogCheck>`).
   /// 🔴 목록 길이·이름·차례는 서버가 준다 · healthchecks 슬러그·ping URL·키는 이 창구에 오지 않는다(K4 · K17).
@@ -22,19 +22,20 @@ abstract interface class OpsStatusRepository {
   /// `S06` — 🔴 리스는 읽기 전용이다.
   Stream<DeviceAccessVm> watchDeviceAccess();
 
-  /// `S09`.
+  /// `S09` — 🆕 v1.24(01 §33 · K110) 반환 = 교체된 [BackupVm](타입 이름 그대로 · 칸 교체 — 소비자 0 에서) · 🔴 폰 전용(뷰어 원천 0).
   Stream<BackupVm> watchBackup();
 
   /// `S10` — 🔴 칸 수 5 고정은 엔진이 준다(§2-9 `applicable`).
   /// 🆕 v1.13(01 §23) — `H-01` 블록 6(R13b)의 원천도 이 창구다(칸 색 = `DiagnosticCell.level` · `headline` 늘) ·
   ///    뷰어 원천 = 01 §8 미결 128.
+  /// 🆕 v1.24(01 §33 · K113) — M9 `S10` 화면은 `SettingsRepository.watchDiagnosticsScreen()`(감싸개 · 같은 보드 값)을 읽는다 · 이 창구 무변경.
   Stream<DiagnosticsVm> watchDiagnostics();
 
-  /// `S12` — 🔴 화면이 `windowState` 를 «달»로 판정하지 않는다.
-  /// 🆕 v1.6(01 §15-4 · K25 · 결정 8 · §8 미결 95) — 이 창구의 `AnnualReviewVm` 은 `afterTax`·
-  ///    `afterTaxCounterfactual` 을 **null** 로 준다(엔진 의무 · 06 M1-20b) — 세후 수치는 M7 `S7-7`
-  ///    (`PerformanceRepository.annualReview`) 한 자리에만 간다. `S12` 의 표시 범위는 미결 95.
-  Stream<AnnualReviewVm> watchAnnualReview();
+  /// `S12` — 🔴 화면이 창을 «달»로 판정하지 않는다.
+  /// 🆕 v1.24(01 §33 · K118 · §8 미결 95 (b)) — 반환 = **[AnnualReviewIndexVm]**(목차 전용 · 세후·수익률·`lines` 칸 0 — 타입으로 막는다) ·
+  ///    ~~`AnnualReviewVm`(세후 두 필드 null 의무 · v1.6 K25)~~ · 이름 그대로(C-42 `_windowMethods` 가 쥔다) · M7 `S7-7` =
+  ///    `PerformanceRepository.annualReview` 의 `AnnualReviewVm` 그대로.
+  Stream<AnnualReviewIndexVm> watchAnnualReview();
 
   /// 🆕 v1.17(01 §26 · K17 · 01 §8 미결 123) — `H-03` 물리 리스크 점검(측정 = 플랫폼 · 판정·문구 = 엔진 · asOf 있음).
   /// 🔴 Android(operator) 화면이다 — 뷰어 빌드에는 본문이 등록되지 않는다(조립 앱 레지스트리 · 셸 가드 무변경).

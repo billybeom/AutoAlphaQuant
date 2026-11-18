@@ -21,6 +21,8 @@
 //    🆕 v1.20(01 §29) — `S02`·`S06`·`S03` 계약 확정(`CredentialListVm` 추가형 · `DeviceAccessVm` 추가형 + `PairingTicketCard` ·
 //    🆕 `AccountMappingVm` · `watchCredentials`·`watchAccountMapping`).
 //    🆕 v1.23(01 §32) — `S13` 월 납입 계약 확정(`MonthlyContributionVm` 추가형 · `watchContribution` · `ContributionUpdateSubmission` · `runContributionUpdate` · `ContributionResultCodes`).
+//    🆕 v1.24(01 §33) — `S09`·`S10`·`S12` 계약(`BackupVm` 교체 · `RestorePointRow` · `DiagnosticsScreenVm` · `SelfTestCard` · `AnnualReviewIndexVm` ·
+//    `watchDiagnosticsScreen` · `BackupResultCodes` · `LedgerIntegrityResultCodes`).
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/commands.dart';

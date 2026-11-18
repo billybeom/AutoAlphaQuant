@@ -206,6 +206,8 @@ A(primitives·enums)
 
 > 🆕 **v1.23(01 §32 · ✅ 병합 PR #227 squash `e3e8f7a` · 2026-11-17)** — `SettingsActionId` 값 0 추가 · 기존 `settingsContributionUpdate`(`SETTINGS_CONTRIBUTION_UPDATE` · 운영 등급 · 05 `S13`) = 제출 경로 `SettingsActions.runContributionUpdate` 전용(`run` 화이트리스트 밖 · `run(settingsContributionUpdate)` = 구현 `ArgumentError` · K77) — §5-8.
 
+> 🆕 **v1.24(01 §33 · ⬜ PR 대기 · 🔴 병합 = R8a 병합 뒤)** — `SettingsActionId` 값 0 추가 · args 화이트리스트 `backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}` · `backupRestoreStart` = 화면 미호출(args 미정 유지) · calendar 3 = ⏸ R9d · `settingsGeneralUpdate` = ⏸ R9e(K120).
+
 > 🔴 **`SettingsActionId` 는 「05 §7 에 없는 값 4개」를 포함한 상태가 정상이다.** 지우면 G-01·G-03 이 닫은 구멍(위저드·온보딩의 쓰기 경로 부재)이 되살아난다.
 ---
 
@@ -397,6 +399,7 @@ A(primitives·enums)
 | `handover.dart` | `HandoverPlan` | `path` R `HandoverPath` · `pathLabel` R String · `steps` R `List<HandoverStep>` · `adoptionPreview` R `List<AdoptionPreviewRow>` · `handbackBranch` ? String(🔴 엔진이 판정 — B12) · `branchReasonLabel` ? String · `asOf` R `AsOf`(B13 스냅샷 신선도) |
 | `handover.dart` | `HandoverStep` | `stepId` R · `order` R int · `title` R String · `whyLine` R String · `state` R `GateState` · `stateLabel` R String · `blockedReasonCode` ? String |
 | `handover.dart` | `AdoptionPreviewRow` | `symbol` R · `symbolLabel` R · `quantity` R int · `sleeve` R `SleeveId` · `adoptionId` R String(G-03) · `disposition` R String(`'ADOPT'`\|`'EXTERNAL'` — 🔴 **낙관 갱신 금지**, 되돌아온 값을 다시 그린다) · `dispositionLabel` R String |
+| `ops.dart` | 🆕 v1.24 `BackupVm` 교체 · `RestorePointRow` · `DiagnosticsScreenVm` · `SelfTestCard` · `AnnualReviewIndexVm` | `BackupVm{lastBackupText R · ageBadgeText ? · level R · noticeText ? · runAction ? · lockedLabel ? · points R List<RestorePointRow> · pointsEmptyLabel ? · migrationLink ? LinkAction · asOf R}`(옛 7 칸 중 6 칸 삭제 · `asOf` 유지 · 복원 버튼 0 · K110 · K111) · `RestorePointRow{code R(ui 미참조) · label R · chainHashText R(앞 8 · 엔진이 자름) · stateLabel ?}` · `DiagnosticsScreenVm{golden R · integrity R SelfTestCard · board R DiagnosticsVm(무변경) · diffsLink ? · recommendText ? · lockedLabel ? · asOf R}` · `SelfTestCard{title · statusLabel R · level R · lastRunText ? · summaryText ? · runAction ?}` · `AnnualReviewIndexVm{yearLabel · windowStateLabel R · entries R List<LinkAction> · pledgeLink ? · asOf R}`(세후·수치 칸 0 · K118) · 01 §33 · ⬜ PR 대기 · 🔴 병합 = R8a 병합 뒤 |
 
 ### 3-13. 영역 **C** — `lib/src/dto/settings.dart` (01 §4-1 · §2-6)
 
@@ -758,6 +761,8 @@ abstract interface class SettingsActions {
 
 🆕 **v1.23(2026-11-17 · 01 §32 · R8a 선행 · ✅ 병합 PR #227 squash `e3e8f7a` · 2026-11-17)** — `labels/settings_codes.dart` 끝 += 🆕 `ContributionResultCodes`(`contribution_result`) 6 — `blank` `CONTRIBUTION_INPUT_BLANK` · `negative` · `notNumber` · `overMax` · `clockNotAdvanced` · `unchanged`(`labels.dart` `byDomain` +1 · v1.22 행 뒤 · K103) · 엔진 `ContributionRejectCodes` 7 − 공용 `TRUSTED_TIME_UNKNOWN`(`SafetyCommonResultCodes` 한 벌 · 🆕 1.23.0 월 납입 짝 주석 · v1.21 K45) · 🔵 타입 이름 ≠ 엔진(`ambiguous_import` 방지 · K80) · 엔진 참조로 옮기기 = 엔진 숙제.
 
+🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 · ⬜ PR 대기 · 🔴 병합 = R8a 병합 뒤)** — `labels/settings_codes.dart` 끝 += 🆕 `BackupResultCodes`(`backup_result`) 8 = ds `SqliteLedgerSnapshotter.take` 경로 전수(`X1_LIVE_ONLY` · `SNAPSHOT_*` 2 · `RESTORE_*` 5 — SHA·MANIFEST 제외 · K132) · 🆕 `LedgerIntegrityResultCodes`(`ledger_integrity_result`) 7 = core `LedgerIntegrityReason`(E13c1) · 🔴 타입 이름 ≠ 엔진 · C-5 문서 중복 +2(`CHAIN_BROKEN` · `RESTORE_ROLLBACK` ↔ `origin_code`).
+
 ---
 
 ## §7. ⑦ DDL 배치 A~F — 영역 **E** · `ddl/`
@@ -957,6 +962,8 @@ abstract interface class SettingsActions {
 🆕 **v1.22(2026-11-17 · 01 §31 · 엔진 예고 2/2 — E13 나머지 · 사다리 · X2 재개 · simToAuto · F8 · ✅ 병합 PR #214 squash `67630bc` · 2026-11-17)** — **신설 15 · 개정 2 → 298**(나머지 281 봉투 `contract_version` 한 줄만): `m5/` 8 — 사다리 VM 1행 봉투 2(`breaker_ladder_normal` · `_stopped` · 글자 = 엔진 `breakerLadderOf` 출력 · `current` 만 다름) · 목록 봉투 `safety_action_results_e13`(31행 · E13 동작 8) · simToAuto 계획 VM 1행 봉투 4(`handover_sim_to_auto_ready` · `_s3_blocked` · `_cooling` · `_fate_pending` · 단계 글자 = 엔진) · 목록 봉투 `handover_sim_to_auto_action_results`(20행) · 🆕 폴더 `x2/` 6 — 재개 게이트 VM 4(`resume_gate_seasonal_pending` · `_conservative_defer` · `_reevaluation_failed` · `_locked`) · 리포트 2(`resume_report_recovery_full` · `_normal`) · `m6/journal_sim_broker_reject`(J-1 행 1 · 칩 `SIM_INVALID_ORDER`) · 🔧 개정 2 = F8 `resume_report_1`(RECOVERY_DRY 정합 · 엔진 DRY 판정 꼴) · `m9/handover_states` SIM_TO_AUTO 행(3 → 7단계 · UI 소비 0) · 생성기 `tool/gen_v122_fixtures.py`(기준 `4f85259` · 멱등 · 두 번 = 같은 md5 298) · 표 = `fixtures/README.md` «계약 v1.22» 절 · 계약 테스트 🆕 C-56(`c56_e13_resume_sim_test.dart` · 18항) · C-7 표면 8 · C-15 축 +2(+ «fill_origin 합집합» 시험 1) · C-8 `_knownUncovered` += 제출 DTO 5 · C-5 중복 +1 · C-33 84 무수정 · 변이 18/18 · `domain_contracts` +505 → **+524 ~30**(PR 실측 · 설계 기대 +18 에 C-15 1 더함).
 
 🆕 **v1.23(2026-11-17 · 01 §32 · R8a 선행 — M9 `S13` 월 납입 설정 · ✅ 병합 PR #227 squash `e3e8f7a` · 2026-11-17)** — **신설 7 · 개정 0 → 305**(나머지 298 봉투 `contract_version` 한 줄만): `m9/` VM 1행 봉투 6(`monthly_contribution` · `_pending` · `_no_record` · `_no_limit_note` · `_locked` · `_stale` · 글자 = 엔진 `contributionSettingOf` 출력) · 목록 봉투 `m9/contribution_action_results`(9행 · 거부 headline 7 = 엔진 `decideContributionChange` 출력 · 접수 = «(합성)») · 금액 글자 = 10만원 · 0원 · 10억원만(K99 · «9만» = C-32 ⑥ 폐기값) · 기존 `m9/contribution_setting_*` 무수정(S7-4 골든 입력 · PNG 0) · 생성기 `tool/gen_r8_v123_fixtures.py`(기준 `33fe351` · 멱등) · C-57 13항.
+
+🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 — M9 `S09` · `S10` · `S12` · ⬜ PR 대기 · 🔴 병합 = R8a 병합 뒤)** — **신설 17 · 개정 0 → 322**(나머지 305 봉투 `contract_version` 한 줄만): `m9/` VM 1행 봉투 15(`backup*` 6 · `diagnostics_screen*` 5 · `annual_review_index*` 4) · 목록 봉투 2(`backup_action_results` 10행 · `selftest_action_results` 12행) · 생성기 `tool/gen_r9_v124_fixtures.py` · `board` = `m8/recon_board_*` `rows[0]` 복사.
 
 ### 8-5. 로더 — `lib/src/fixtures/fixture_loader.dart`
 

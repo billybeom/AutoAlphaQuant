@@ -17,6 +17,7 @@
 // 🆕 v1.20(01 §29) — M9 `S02`·`S06`·`S03` args 화이트리스트(검증 1단 · 발급 · 폐기 · 매핑 · 전체 검증) · 🔴 시크릿 값 args 0.
 // 🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드 args 화이트리스트(handover +3 · 확정 = 기존 `handoverCommit`).
 // 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 = 원문 제출 DTO `ContributionUpdateSubmission` + `runContributionUpdate`(표면 run·runContributionUpdate·watch 셋 — C-7) · `run` 화이트리스트 밖.
+// 🆕 v1.24(01 §33 · K120) — M9 `S09`·`S10` args 화이트리스트(`backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}`) · `backupRestoreStart` = 화면 미호출 · 두 화면은 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -98,7 +99,19 @@ part 'settings_actions.g.dart';
 ///      🔴 `run` 화이트리스트 **밖**(사람이 친 금액 = 원문 제출 DTO — K7 이 표면 고정을 이긴다 · v1.22 K52 선례 · `run(settingsContributionUpdate)`
 ///      = 구현 `ArgumentError`) · 결과 id = 늘 `settingsContributionUpdate` · `reasonCode` ∈ `ContributionResultCodes` ∪
 ///      {`TRUSTED_TIME_UNKNOWN`, `BIOMETRIC_UNAVAILABLE`} ∪ null(접수) · `handoffRoute` null · `retryable` false
-///      (표본 = `m9/contribution_action_results`) · R9 동작 = 그 창.
+///      (표본 = `m9/contribution_action_results`) · R9 동작 = 🆕 v1.24(아래).
+///    🆕 v1.24(01 §33 · K111 · K112 · K114 · K115 · K120 · K132) — M9 `S09`·`S10`(폰 로컬 · 운영 등급 · 뷰어 경로 0 · 엔진이 `SettingsActionCall` 에 완성):
+///    · `backupRunNow`         = `{}`(`BackupVm.runAction` · 구현 권고 = X1 스냅숏 `take` — live 원장만 · 트랜잭션 밖 · 아카이브 `IN_SYNC` 일 때만 ·
+///      결과 `reasonCode` ∈ `BackupResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`} ∪ null(접수))
+///    · `backupRestoreStart`   = 🔴 화면 미호출(복원 = X1 마법사 · 새 폰 `R-01` — 같은 폰 복원 = 엔진 `X1_LIVE_EXISTS` · args 미정 유지)
+///    · `selftestGoldenRun`    = `{}`(`DiagnosticsScreenVm.golden.runAction` · 실행기 = E11o — 전 = 버튼 부재 · 결과 `reasonCode` ∈
+///      {`BIOMETRIC_UNAVAILABLE`} ∪ null — 통과·불일치 = `headline` 만 · 코드를 지어내지 않는다)
+///    · `selftestIntegrityRun` = `{}`(`DiagnosticsScreenVm.integrity.runAction` · 구현 권고 = 정본 자가 대조(로컬 · 브로커 0) · 🔴 불일치 =
+///      `LEDGER_INTEGRITY` 차단(일일 잡과 같은 fail-closed — 엔진 headline 이 말한다) · 결과 `reasonCode` ∈ `LedgerIntegrityResultCodes` ∪
+///      {`BIOMETRIC_UNAVAILABLE`} ∪ null(일치))
+///    🔴 두 화면은 [ActionResult] 의 `headline` + `reasonCode` 원문만 읽는다 — `handoffRoute`(늘 null)·`retryable`(늘 false)·`level` 분기 0
+///      (표본 = `m9/backup_action_results` · `m9/selftest_action_results`). ⏸ `calendarSyncNow`·`calendarRebackfill`·`calendarReconnect`
+///      = X4(⏸ R9d · 01 §8 미결 5 · 196) · `settingsGeneralUpdate` = S11 창(⏸ R9e · 미결 197) — args 미정 유지.
 ///    🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드(🔒 `ui_safety` · 폰 로컬 · 뷰어 경로 0 · M9 `S05` 는 부르지 않는다):
 ///    · `handoverSimLedgerFate` = `{fate ∈ {KEEP, DISCARD}}`(엔진 `SimLedgerFate.wire` · 🔴 **세션 전** — 5단계는 6단계 생체(세션 열림) 앞이라
 ///      `handover_session_id` 를 넣지 않는다 · 결과 `reasonCode` ∈ {`SIM_LEDGER_FATE_SIM_CLOSED`, `SIM_TO_AUTO_NOT_SIM_AUTO`})
@@ -113,7 +126,8 @@ part 'settings_actions.g.dart';
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
 ///
-/// ⚠️ 나머지 동작의 args 스키마는 **미확정**이다(§4-3 말미 · 05 §7 표가 입력) — 확정 전에는
+/// ⚠️ 나머지 동작(🆕 v1.24 기준 = `strategyPreview`·`strategyApplyRequest`(S04 창) · `credentialRegister`·`backupRestoreStart`(화면 미호출) ·
+///    calendar 3 · `settingsGeneralUpdate`)의 args 스키마는 **미확정**이다(§4-3 말미 · 05 §7 표가 입력) — 확정 전에는
 ///    화면이 키를 지어내지 않는다.
 abstract interface class SettingsActions {
   /// ⚠️ 01 §4-3 원문은 `{Map<String, String> args}` 이지만 Dart 에서 non-nullable 선택

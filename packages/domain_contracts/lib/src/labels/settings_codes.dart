@@ -2,6 +2,7 @@
 // 🆕 계약 v1.19(01 §28 · K14 · K16) — `EngineStopReasonCodes`(S05 엔진 중지 사유 · 사람) · `SettingsResultCodes` +2.
 // 🆕 계약 v1.20(01 §29 · K8 · K9 · K13 · K32) — `CredentialKindCodes`(겹침 몫 · 엔진 `KisKeySet.wire` 1:1) · `SettingsSlotIds` · `SettingsResultCodes` +3.
 // 🆕 계약 v1.23(01 §32 · K80) — `ContributionResultCodes`(S13 월 납입 거부 · 엔진 `ContributionRejectCodes` 7 − 공용 1).
+// 🆕 계약 v1.24(01 §33 · K119 · K132) — `BackupResultCodes`(S09 «지금 백업» = X1 스냅숏 `take` 거부 8) · `LedgerIntegrityResultCodes`(S10 무결성 = E13c1 사유 7).
 //
 // 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 함께 싣는다
 //    (`ConnectionRow.label` · `NotifyChannelOption.label` · `ActionResult.headline`). 화면은 코드로 분기·아이콘·색을 고르지 않는다.
@@ -189,5 +190,88 @@ abstract final class ContributionResultCodes {
     overMax,
     clockNotAdvanced,
     unchanged,
+  };
+}
+
+/// 🆕 v1.24(01 §33 · K119 · K132) — M9 `S09` «지금 백업»(`backupRunNow`) 거부(도메인 `backup_result` · 엔진 = ds
+/// `migration/ledger_snapshot.dart` `SqliteLedgerSnapshotter.take` :250-315 가 낼 수 있는 코드 **전수**).
+/// 🔴 타입 이름 ≠ 엔진(core `SnapshotCodes` · `RestoreReason` · `MigrationStartCodes` — 같으면 엔진 시험이 두 배럴을 함께 import 해
+///    `ambiguous_import` · v1.21 K33 · v1.23 K80 결) · 엔진이 계약 참조로 옮길 때 지역 선언을 지운다.
+/// 🔴 `take` 에서 구조상 나올 수 없는 `RESTORE_SHA_MISMATCH`·`RESTORE_MANIFEST_MISMATCH`(매니페스트 = 같은 사본의 digest·머리)는 싣지 않는다 —
+///    새 폰 복원 검증(X1 마법사)과 `X1_LIVE_EXISTS` 는 E16i 나머지 판(1.25.0+ · K132).
+/// 🔴 같은 글자 다른 축: [rollback] = `OriginCodes.restoreRollback`(C-5 문서 쌍) · [liveOnly] = 다음 판 `MigrationStartCodes` 겹침 예고(K140).
+///    화면은 이 값으로 분기·아이콘·색을 고르지 않는다(결과 줄 = `headline` + `reasonCode` 원문).
+abstract final class BackupResultCodes {
+  /// live 원장이 아니다(모의 원장 — 백업은 실전 원장에서만).
+  static const String liveOnly = 'X1_LIVE_ONLY';
+
+  /// 스탬프(장부 마감)가 없다 — 체인·날을 지어내지 않는다.
+  static const String noStamp = 'SNAPSHOT_NO_STAMP';
+
+  /// 그 이름(시각)의 매니페스트가 이미 있다(덮지 않는다).
+  static const String exists = 'SNAPSHOT_EXISTS';
+
+  /// 만든 사본을 열거나 읽지 못했다(사본 = 지웠다).
+  static const String unreadable = 'RESTORE_UNREADABLE';
+
+  /// 사본 `schema_version` 이 이 앱과 다르다.
+  static const String schemaSkew = 'RESTORE_SCHEMA_SKEW';
+
+  /// 사본 `PRAGMA integrity_check` 가 ok 가 아니다.
+  static const String sqliteIntegrity = 'RESTORE_SQLITE_INTEGRITY';
+
+  /// 사본 스탬프 체인 자가 대조 실패.
+  static const String chainInvalid = 'RESTORE_CHAIN_INVALID';
+
+  /// 아카이브 체크포인트와 같지 않다(없음 · 뒤처짐 · 앞섬 — SPEC ⑧ «같음만» · K133).
+  static const String rollback = 'RESTORE_ROLLBACK';
+
+  static const Set<String> values = <String>{
+    liveOnly,
+    noStamp,
+    exists,
+    unreadable,
+    schemaSkew,
+    sqliteIntegrity,
+    chainInvalid,
+    rollback,
+  };
+}
+
+/// 🆕 v1.24(01 §33 · K115 · K119) — M9 `S10` 무결성 자가진단(`selftestIntegrityRun`) 불일치 사유(도메인 `ledger_integrity_result` ·
+/// 엔진 core `ops/ledger_integrity.dart:16-43` `LedgerIntegrityReason` 7 — E13c1 · 🔴 타입 이름 ≠ 엔진).
+/// 🔴 불일치 = 엔진이 `trading_block` `LEDGER_INTEGRITY` 를 세운다(일치해도 풀지 않는다 — 해제 = X5-3 정정) · 일치 = `reasonCode` null.
+/// 🔴 같은 글자 다른 축: [chainBroken] = `OriginCodes.chainBroken`(C-5 문서 쌍) · [sqliteIntegrity]·[formatVersion] = 다음 판
+///    E16i `BoundaryReason` 겹침 예고(K140).
+abstract final class LedgerIntegrityResultCodes {
+  /// 스탬프의 직렬화 형식 판이 현행과 다르다.
+  static const String formatVersion = 'FORMAT_VERSION';
+
+  /// 스탬프 날이 달력일로 이어지지 않는다.
+  static const String dateGap = 'DATE_GAP';
+
+  /// 체인 칸이 앞 체인 ‖ day_hash 와 다르다.
+  static const String chainBroken = 'CHAIN_BROKEN';
+
+  /// 지금 원장으로 다시 센 day_hash 가 스탬프와 다르다.
+  static const String dayHashMismatch = 'DAY_HASH_MISMATCH';
+
+  /// 첫 스탬프 앞 날에 귀속되는 행이 있다(소급 삽입).
+  static const String rowsBeforeFirstStamp = 'ROWS_BEFORE_FIRST_STAMP';
+
+  /// 행을 날에 귀속하지 못했다(다시 셀 수 없으면 일치를 말할 수 없다 — fail-closed).
+  static const String attribution = 'ATTRIBUTION';
+
+  /// `PRAGMA integrity_check` 가 ok 가 아니다.
+  static const String sqliteIntegrity = 'SQLITE_INTEGRITY';
+
+  static const Set<String> values = <String>{
+    formatVersion,
+    dateGap,
+    chainBroken,
+    dayHashMismatch,
+    rowsBeforeFirstStamp,
+    attribution,
+    sqliteIntegrity,
   };
 }

@@ -38,6 +38,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         AccountMappingVm,
         ContributionSetting,
         CredentialListVm,
+        DiagnosticsScreenVm,
         MonthlyContributionVm,
         OperationsVm,
         RunMode,
@@ -277,4 +278,10 @@ class OperatorSettingsRepository implements SettingsRepository {
   @override
   Stream<MonthlyContributionVm> watchContribution() =>
       _none('watchContribution');
+
+  /// 🆕 계약 v1.24(01 §33 · K113) — `S10` 진단 화면 = 원천 없음(감싸개 VM 생산 = 엔진 `diagnosticsScreenVmOf` · 바인딩 = 06 `M4-12` ⑨ ·
+  ///    그 화면은 레지스트리에 없다).
+  @override
+  Stream<DiagnosticsScreenVm> watchDiagnosticsScreen() =>
+      _none('watchDiagnosticsScreen');
 }

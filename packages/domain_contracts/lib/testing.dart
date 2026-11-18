@@ -60,6 +60,7 @@
 //   `runDiscretionAdjust` · `Future` 에러) · `UnimplementedCommandApi.confirmKillChecklist(KillChecklistSubmission)`(인자 교체 · K60) ·
 //   `UnimplementedBreakerLadderRepository` · `UnimplementedResumeGateRepository` · `UnimplementedResumeRepository`(동기 throw).
 //   🆕 계약 v1.23(01 §32) — `UnimplementedSettingsRepository.watchContribution`(동기 throw) · `UnimplementedSettingsActions.runContributionUpdate`(`Future` 에러).
+//   🆕 계약 v1.24(01 §33) — `UnimplementedSettingsRepository.watchDiagnosticsScreen`(동기 throw) · `UnimplementedOpsStatusRepository.watchAnnualReview` 반환 = `AnnualReviewIndexVm`.
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -214,7 +215,7 @@ class UnimplementedOpsStatusRepository implements OpsStatusRepository {
   Stream<DiagnosticsVm> watchDiagnostics() =>
       throw UnimplementedError('watchDiagnostics');
   @override
-  Stream<AnnualReviewVm> watchAnnualReview() =>
+  Stream<AnnualReviewIndexVm> watchAnnualReview() =>
       throw UnimplementedError('watchAnnualReview');
   @override
   Stream<DeviceRiskVm> watchDeviceRisk() =>
@@ -309,6 +310,11 @@ class UnimplementedSettingsRepository implements SettingsRepository {
   @override
   Stream<MonthlyContributionVm> watchContribution() =>
       throw UnimplementedError('watchContribution');
+
+  /// 🆕 계약 v1.24(01 §33) — `S10` 진단(감싸개).
+  @override
+  Stream<DiagnosticsScreenVm> watchDiagnosticsScreen() =>
+      throw UnimplementedError('watchDiagnosticsScreen');
 }
 
 /// 🆕 계약 v1.12(01 §21 · K9 · K28) — [SettingsActions] 받침대(`L-3` 세션 start·stop 가짜의 받침대).

@@ -19,7 +19,7 @@ import 'package:test/test.dart';
 
 import 'c00_support.dart';
 
-/// 01 §3 사전의 도메인 간 중복 — labels.dart 머리 주석이 밝힌 **네 쌍**.
+/// 01 §3 사전의 도메인 간 중복 — labels.dart 머리 주석이 밝힌 쌍(🆕 v1.24 = 일곱 쌍).
 const Set<String> _documentedCrossDomainDuplicates = <String>{
   'MANUAL_ORDER',
   'PUSH_LAG',
@@ -27,6 +27,9 @@ const Set<String> _documentedCrossDomainDuplicates = <String>{
   'SELF_AUDIT_DUE',
   // 🆕 v1.22(01 §31 · K12) — `flag_id` ↔ `discretion_result` · labels 머리 다섯째 쌍.
   'JOURNAL_MISSING',
+  // 🆕 v1.24(01 §33 · K119) — `origin_code` ↔ `ledger_integrity_result` · `backup_result` · labels 머리 일곱 쌍.
+  'CHAIN_BROKEN',
+  'RESTORE_ROLLBACK',
 };
 
 /// 픽스처의 코드 필드 → 조회할 도메인(빈 값이면 전역 조회).

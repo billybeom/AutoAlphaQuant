@@ -40,7 +40,7 @@ import 'package:data_sync/data_sync.dart'
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
-        AnnualReviewVm,
+        AnnualReviewIndexVm,
         BackupVm,
         ConnectionsVm,
         DeviceAccessVm,
@@ -394,7 +394,7 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
   Stream<BackupVm> watchBackup() => _none('watchBackup');
 
   @override
-  Stream<AnnualReviewVm> watchAnnualReview() => _none('watchAnnualReview');
+  Stream<AnnualReviewIndexVm> watchAnnualReview() => _none('watchAnnualReview');
 
   /// 🆕 R136 — H-03 기기 리스크(화면 상태와 무관 — 온보딩 전에도 잰다).
   @override

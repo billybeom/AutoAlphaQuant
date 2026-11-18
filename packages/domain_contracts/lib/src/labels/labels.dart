@@ -158,7 +158,8 @@ final class UnregisteredContractCodeError extends Error {
 ///   ③ ⏸ `AsOf.staleReasonCode` 4개(M2-8 A-2 · 엔진 확정 대기)
 /// 🔴 도메인이 다르면 **같은 문자열이 두 번 등재될 수 있다**
 ///    (`MANUAL_ORDER`·`RECON_MISMATCH`·`SELF_AUDIT_DUE`·`PUSH_LAG` 네 쌍 + 🆕 v1.22 `JOURNAL_MISSING`(`flag_id` ↔
-///    `discretion_result`) = 다섯 쌍) —
+///    `discretion_result`) = 다섯 쌍 + 🆕 v1.24 `CHAIN_BROKEN`(`origin_code` ↔ `ledger_integrity_result`) ·
+///    `RESTORE_ROLLBACK`(`origin_code` ↔ `backup_result`) = **일곱 쌍** · 🔜 1.25.0 E16i 나머지 = 더 늘어난다 — 01 §33 K140) —
 ///    그래서 [all] 의 크기는 등재 건수보다 작다. 전역 조회보다 [requireRegisteredIn] 을 쓴다.
 abstract final class ContractCodes {
   /// 도메인 → 코드 집합. 🔴 키 이름은 01 §3·§6 의 절 제목에서 따온다.
@@ -257,6 +258,9 @@ abstract final class ContractCodes {
     'sim_to_auto_step': SimToAutoStepIds.values,
     // 🆕 v1.23(01 §32 · K80) — S13 월 납입 거부(엔진 글자 1:1 − 공용)
     'contribution_result': ContributionResultCodes.values,
+    // 🆕 v1.24(01 §33 · K119) — S09 백업 거부 · S10 무결성 사유(엔진 글자 1:1)
+    'backup_result': BackupResultCodes.values,
+    'ledger_integrity_result': LedgerIntegrityResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
