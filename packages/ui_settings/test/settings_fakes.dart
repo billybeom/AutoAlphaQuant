@@ -741,3 +741,93 @@ Set<String> accountMappingControlTexts(AccountMappingVm v) => <String>{
   SettingsLabels.confirm,
   SettingsLabels.cancel,
 };
+
+// ── R8a — M9 S13 fakes ──
+
+class FakeSettingsContributionRepository
+    extends UnimplementedSettingsRepository {
+  FakeSettingsContributionRepository({required this.contribution});
+
+  final Stream<MonthlyContributionVm> Function(int call) contribution;
+  int contributionCalls = 0;
+
+  @override
+  Stream<MonthlyContributionVm> watchContribution() {
+    final int call = contributionCalls;
+    contributionCalls = contributionCalls + 1;
+    return contribution(call);
+  }
+}
+
+class FakeSettingsContributionActions extends FakeSettingsActions {
+  FakeSettingsContributionActions({required super.result});
+
+  final List<String> inputs = <String>[];
+
+  @override
+  Future<ActionResult> runContributionUpdate(
+    ContributionUpdateSubmission submission,
+  ) {
+    final int call = inputs.length;
+    inputs.add(submission.amountInput);
+    return result(call);
+  }
+}
+
+List<Override> contributionOverrides({
+  required FakeSettingsContributionRepository repo,
+  required SettingsActions? actions,
+  required Clock clock,
+}) => <Override>[
+  settingsRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpContribution(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: MonthlyContribution())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> contributionSettingTexts(MonthlyContributionVm v) => <String?>[
+  v.amountText,
+  v.appliesFromText,
+  v.equivalentNoteText,
+  ?v.pensionLimitNoteText,
+  v.lastChangedText,
+];
+
+List<String?> contributionEditTexts(MonthlyContributionVm v) => <String?>[
+  SettingsLabels.contributionInputLabel,
+  ?v.changeLabel,
+];
+
+Set<String> contributionAllowed(MonthlyContributionVm v) => <String>{
+  ?v.lockedLabel,
+  v.amountText,
+  v.appliesFromText,
+  v.equivalentNoteText,
+  ?v.pensionLimitNoteText,
+  v.lastChangedText,
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
+
+Set<String> contributionControlTexts(MonthlyContributionVm v) => <String>{
+  SettingsLabels.contributionInputLabel,
+  ?v.changeLabel,
+};

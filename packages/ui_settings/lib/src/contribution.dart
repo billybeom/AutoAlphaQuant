@@ -3,7 +3,7 @@
 // Monthly contribution setting — M9 S13 (contract v1.23).
 //
 // 🔴 Body only — parent height ListView(padding: EdgeInsets.zero).
-// 🔴 Input field (숫자 input field) = exactly one TextField, first value seeded once.
+// 🔴 Input field (number input field) = exactly one, first value seeded once.
 // 🔴 Write = SettingsActions.runContributionUpdate once per button tap. No link, no handoff.
 
 import 'dart:async';
