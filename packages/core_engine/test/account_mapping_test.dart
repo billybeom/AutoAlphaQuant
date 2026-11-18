@@ -135,6 +135,71 @@ void main() {
     );
   });
 
+  test('🔴 R154 — 정한 대응표만 있고 모의 개시 판 없음 = 그 별칭(표시 글자) · «모의 개시 전» INFO · 개시 판이 있으면 그 판이 이긴다', () {
+    const Map<String, String> decided = <String, String>{
+      'P0S_A': 'isa',
+      'P0S_B': 'pension',
+      'P0S_C': 'general',
+      'P0S_POT': 'isa',
+    };
+    const Map<String, String> labels = <String, String>{
+      'isa': 'ISA',
+      'pension': '연금저축',
+      'general': '일반 위탁',
+    };
+    AccountMappingVm of({Map<String, String>? active}) => accountMappingVmOf(
+      AccountMappingFacts(
+        paper: const PaperAccountFacts(),
+        accountByStrategy: active,
+        decidedByStrategy: decided,
+        accountLabels: labels,
+      ),
+      nowUtc: _now,
+    );
+    final AccountMappingVm pending = of();
+    expect(
+      pending.mappings
+          .map((SleeveMappingRow m) => (m.accountLabel, m.statusLine, m.level))
+          .toList(),
+      <(String?, String?, UiLevel)>[
+        ('ISA', '모의 개시 전 — 시작하면 이 계좌로 운영합니다.', UiLevel.info),
+        ('연금저축', '모의 개시 전 — 시작하면 이 계좌로 운영합니다.', UiLevel.info),
+        ('일반 위탁', '모의 개시 전 — 시작하면 이 계좌로 운영합니다.', UiLevel.info),
+      ],
+    );
+    expect(pending.mappings.first.subbookLine, 'POT 서브북도 이 계좌에서 운용합니다.');
+    expect(pending.mappings.first.options, const <AccountMappingOption>[
+      AccountMappingOption(label: 'ISA', selected: true),
+    ]);
+    expect(pending.accounts.map((AccountRow a) => a.label).toList(), <String>[
+      'ISA',
+      '연금저축',
+      '일반 위탁',
+      '모의투자',
+    ]);
+    // 개시 판(지금 설정)이 있으면 그것 · 상태 줄 없음 · OK.
+    final AccountMappingVm active = of(
+      active: const <String, String>{
+        'P0S_A': 'pension',
+        'P0S_B': 'pension',
+        'P0S_C': 'general',
+        'P0S_POT': 'pension',
+      },
+    );
+    expect(active.mappings.first.accountLabel, '연금저축');
+    expect(active.mappings.first.statusLine, isNull);
+    expect(active.mappings.first.level, UiLevel.ok);
+    // 둘 다 없으면 미지정(R151 그대로).
+    expect(
+      accountMappingVmOf(
+        const AccountMappingFacts(paper: PaperAccountFacts()),
+        nowUtc: _now,
+      ).mappings.first.statusLine,
+      kSleeveUnmappedLine,
+    );
+    expect(kSleevePendingLine, '모의 개시 전 — 시작하면 이 계좌로 운영합니다.');
+  });
+
   test('🔴 버튼 · 잠김 = 없음(동작 · 실전 키 · 생체 전) · 기준 = 지금 · 26시간 · KST', () {
     final AccountMappingVm vm = _vm(map: _map);
     expect(vm.verifyAction, isNull);

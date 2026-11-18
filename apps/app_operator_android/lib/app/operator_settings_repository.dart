@@ -140,6 +140,10 @@ class OperatorSettingsRepository implements SettingsRepository {
         accountByStrategy: cfg is OpsConfigReady
             ? cfg.config.human.accountByStrategy
             : null,
+        // 🆕 R154 — 정한 대응표(모의 개시 전) · 별칭 표시 글자.
+        decidedByStrategy: _rt.humanDecision?.inputs.accountByStrategy,
+        accountLabels:
+            _rt.humanDecision?.accountLabels ?? const <String, String>{},
       ),
       nowUtc: _rt.clock.nowUtc(),
     );

@@ -324,6 +324,7 @@ export 'src/ops/account_mapping.dart'
         PaperAccountFacts,
         accountMappingVmOf,
         kAccountMappingStaleAfter,
+        kSleevePendingLine,
         kSleeveUnmappedLine;
 // 🆕 E11p3d-4a — 알림 수신 확인(ack) 명령 봉투(설계 13 §8 R147).
 export 'src/ops/alert_ack_command.dart'

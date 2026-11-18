@@ -17,7 +17,7 @@ import 'package:core_engine/core_engine.dart'
         contributionSettingOf,
         frozenExchangeCalendar;
 import 'package:data_sync/data_sync.dart'
-    show contributionRowsOf, watchLedgerQuery;
+    show P0sHumanDecision, contributionRowsOf, watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppLinkOpener,
@@ -56,6 +56,7 @@ class OperatorRuntime {
     this.onboardingProbe,
     this.deviceProbe,
     this.deviceId,
+    this.humanDecision,
   }) : secure = secure ?? SecureScreen(_noSecure),
        secrets = secrets ?? SecretHandoff(),
        clipboard = clipboard ?? ClipboardJanitor(),
@@ -97,6 +98,10 @@ class OperatorRuntime {
   /// 🆕 E11p3d-5g(R142) — 이 기기 id(백업 제외 자리 · `AndroidOps.deviceId` · 없음 = 못 얻음 · 플랫폼 밖).
   /// 🔴 X1 «이 기기» 판정 재료 — 엔진 기동 입력(`BootInputs.deviceId`)은 엔진 E16t2b 가 넣는다.
   final String? deviceId;
+
+  /// 🆕 E11p4e(R154) — 발주자가 정한 사람 값(A 종목 · 전략 → 계좌 별칭 · 표시 글자 — R153 · 자산 `p0s_human.json`) ·
+  /// 없음 = 못 읽음 · 플랫폼 밖. 🔴 «정한 값»이지 «지금 설정»이 아니다 — 지금 설정 = 모의 개시 판(`currentP0sOpsConfig`).
+  final P0sHumanDecision? humanDecision;
 
   /// 🆕 E11p3d-2c(R136) — H-03 기기 측정(저장공간 · 배터리 · 보안 패치 · 온도 — 값만 · 없음 = 기기 리스크 원천 없음).
   final Future<DeviceRiskFacts> Function()? deviceProbe;

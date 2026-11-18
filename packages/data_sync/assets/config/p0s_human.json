@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "decision": "설계 13 §8 R153 — 발주자 결정 2026-11-18(P0-① 대응표 · P0-② 슬리브 A 종목)",
+  "sleeve_a_symbol": "229200",
+  "accounts": {
+    "P0S_A": "isa",
+    "P0S_B": "pension",
+    "P0S_C": "general",
+    "P0S_POT": "isa"
+  },
+  "account_labels": {
+    "isa": "ISA",
+    "pension": "연금저축",
+    "general": "일반 위탁"
+  }
+}

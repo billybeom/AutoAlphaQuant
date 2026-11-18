@@ -16,6 +16,7 @@ import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
         SqliteConfigVersionStore,
+        p0sHumanDecisionFromText,
         SqliteOnboardingProgressStore,
         SqliteOnboardingStore;
 import 'package:decimal/decimal.dart';
@@ -467,6 +468,39 @@ void main() {
       expect(got.last.mappings.first.subbookLine, 'POT 서브북도 이 계좌에서 운용합니다.');
     },
   );
+
+  test('🔴 R154 — 정한 사람 값(실행 묶음)이 있고 모의 개시 판 없음 = 슬리브 = 그 별칭 표시 글자 · «모의 개시 전» INFO', () async {
+    final OperatorRuntime withHuman = OperatorRuntime(
+      files: files,
+      clock: clock,
+      vault: vault,
+      humanDecision: p0sHumanDecisionFromText(
+        '{"version": 1, "decision": "R153", "sleeve_a_symbol": "229200", '
+        '"accounts": {"P0S_A": "isa", "P0S_B": "pension", "P0S_C": "general", "P0S_POT": "isa"}, '
+        '"account_labels": {"isa": "ISA", "pension": "연금저축", "general": "일반 위탁"}}',
+      ),
+    );
+    withHuman.view.value = viewOf(files.sim);
+    final AccountMappingVm vm = await OperatorSettingsRepository(withHuman)
+        .accountMapping();
+    expect(
+      vm.mappings
+          .map((SleeveMappingRow m) => (m.accountLabel, m.level))
+          .toList(),
+      <(String?, UiLevel)>[
+        ('ISA', UiLevel.info),
+        ('연금저축', UiLevel.info),
+        ('일반 위탁', UiLevel.info),
+      ],
+    );
+    expect(vm.mappings.first.statusLine, '모의 개시 전 — 시작하면 이 계좌로 운영합니다.');
+    expect(vm.accounts.map((AccountRow a) => a.label).toList(), <String>[
+      'ISA',
+      '연금저축',
+      '일반 위탁',
+      '모의투자',
+    ]);
+  });
 
   test('🔴 나머지 창구 = 원천 없음(오류)', () async {
     final OperatorSettingsRepository r = OperatorSettingsRepository(rt);
