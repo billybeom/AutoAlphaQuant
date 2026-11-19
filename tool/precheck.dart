@@ -8,9 +8,11 @@
 // 무엇을 보나(커밋된 HEAD 를 base 와의 공통 조상부터 비교 — PR 이 바꾼 줄만 · ui_*·apps 의 test/):
 //   [T1] 🔴 else 없는 if — 문장 if 가 else 없이 단언·조용한 건너뛰기·빈 블록·목록 넣기를 품는가
 //              (탭·pump 같은 동작만 하는 if · 값을 돌려주는 가짜 안의 if 는 걸지 않는다)
+//              + null 검사 if 안의 흐름 칸 호출(if (s != null) { await s(tester); }) · C4r14b-3
 //   [T2] 🔴 collection-if 개수 — 목록·집합 안의 if 수가 카드가 정한 수(--collection-if)와 같은가
 //   [T3] 🔴 늘 참 단언 — 코드 모양만으로 결과가 정해지는 expect(…)(anything · 상수끼리 · 같은 식 ·
-//              한 값과 같은 것만 남긴 목록의 any/every …)
+//              한 값과 같은 것만 남긴 목록의 any/every · find.byType(Text·Icon·Padding …) +
+//              findsWidgets/findsAtLeast 단독 — C4r14b-3 · C4r15a-3)
 //   [T4] 🔴 빈 루프 단언 — 화면에서 찾은 목록(widgetList·evaluate …)을 도는 단언 루프 앞에
 //              그 목록의 expect(양성 기준점)가 없는가(픽스처 목록은 ⓗ 몫이라 보지 않는다)
 //   [T5] 🔴 ⓗ 한 줄 — hasLength( 를 품은 expect 가 dart format 뒤 여러 줄
@@ -25,6 +27,8 @@
 //   [R7] 🟡 check:labels 줄 «apps/** N» = head 에서 check_labels.sh 를 Git Bash 로 다시 잰 «/apps/» 줄 수
 //              (bash 를 못 찾으면 세지 않고 알리기만 · --no-labels 로 끔) · C4r9a-6
 //   [R8] 🟡 ② 복사 상자(번호 줄) 바로 뒤 빈 줄 = 정확히 1(«N항 줄 수:» 상자를 붙이는 꼴만) · C4r9c-3
+//   [R9] 🔴 ① «바뀐 파일:»·«커밋 목록:» 블록 줄 수 = git 출력 줄 수 · 깨진 글자(U+FFFD · «쨌») 0
+//              (한자 = 🟡 깨짐일 수 있다) · C4r14b-3
 //   [G1] 🟡 골든 표 «글자 n줄»·덩어리 차례 ↔ PNG 에서 센 글자 행·덩어리(PNG 를 다시 열 신호)
 //
 // 어떻게 부르나(저장소 루트에서 · 카드가 준 줄 그대로):
@@ -538,6 +542,29 @@ const Set<String> constMatchers = <String>{
   'isNotEmpty',
 };
 
+/// 어느 화면을 펌프해도 트리에 있는 틀·글자 위젯 — find.byType(X) + findsWidgets 가 늘 참.
+const Set<String> everywhereWidgets = <String>{
+  'Text',
+  'RichText',
+  'Icon',
+  'Padding',
+  'SizedBox',
+  'Container',
+  'Column',
+  'Row',
+  'Center',
+  'Align',
+  'DecoratedBox',
+  'ColoredBox',
+  'Material',
+  'Semantics',
+  'Directionality',
+  'MediaQuery',
+  'Theme',
+  'DefaultTextStyle',
+  'Builder',
+};
+
 bool hasAssert(Structure s, int from, int to) {
   for (int j = from; j <= to && j < s.toks.length; j++) {
     if (assertCalls.contains(s.t(j)) && s.t(j + 1) == '(') {
@@ -666,6 +693,15 @@ void checkTestFile(TestFile f, {bool factoryIfZero = false}) {
           'else 없는 if 로 목록에 넣는다 — 없는 쪽은 else 에서 findsNothing 으로 단언한다'
               '(사슬 «없는 쪽» 견본 ㉠ · R11b F1)',
         );
+      } else if (f.isTest &&
+          nullSlotCall(s, k + 2, condClose - 1, bodyStart, bodyEnd)) {
+        red(
+          'T1',
+          at(k),
+          'null 검사 if 안의 흐름 칸 호출(if (s != null) { await s(tester); }) — 칸이 null 이면 '
+              '동작도 단언도 없이 지나간다. 칸을 non-null 로 받거나(빈 동작도 함수로) if 없이 '
+              '부른다(C4r14b-3 · R15 nullable steps)',
+        );
       }
       continue;
     }
@@ -746,6 +782,18 @@ void checkTestFile(TestFile f, {bool factoryIfZero = false}) {
             a0.isNotEmpty &&
             a0.first.text == 'find') {
           red('T3', at(k), '늘 참 단언 — Finder 는 null 이 아니다');
+        } else if (a0.length == 6 &&
+            t0.startsWith('find . byType (') &&
+            a0[5].text == ')' &&
+            everywhereWidgets.contains(a0[4].text) &&
+            (t1 == 'findsWidgets' ||
+                RegExp(r'^findsAtLeast(NWidgets)? \( \d+ \)$').hasMatch(t1))) {
+          red(
+            'T3',
+            at(k),
+            '늘 참 단언 — find.byType(${a0[4].text}) 는 어느 화면에나 있다($t1). '
+                'Key·descendant 로 좁히고 글자·수를 단언한다(C4r14b-3 · C4r15a-3)',
+          );
         } else if (a0.length >= 4 &&
             equalityFiltered.containsKey(a0[0].text) &&
             a0[1].text == '.' &&
@@ -777,6 +825,69 @@ void checkTestFile(TestFile f, {bool factoryIfZero = false}) {
       }
     }
   }
+}
+
+/// `X != null`(X = 이름 · a.b 사슬) 조건에 몸이 그 X 를 부르는 한 문장뿐인가
+/// (`await X(…);` · `X!(…);` · `X.call(…);` · `X!.call(…);`).
+bool nullSlotCall(Structure s, int c0, int c1, int b0, int b1) {
+  List<String> chainAt(int from, int to) {
+    final List<String> out = <String>[];
+    for (int j = from; j <= to; j++) {
+      out.add(s.t(j));
+    }
+    return out;
+  }
+
+  bool isChain(List<String> xs) {
+    if (xs.isEmpty || xs.length.isEven) {
+      return false;
+    }
+    for (int i = 0; i < xs.length; i++) {
+      final bool dot = i.isOdd;
+      if (dot ? xs[i] != '.' : !RegExp(r'^[A-Za-z_$][\w$]*$').hasMatch(xs[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  List<String> slot;
+  if (s.t(c1) == 'null' && s.t(c1 - 1) == '!=') {
+    slot = chainAt(c0, c1 - 2);
+  } else if (s.t(c0) == 'null' && s.t(c0 + 1) == '!=') {
+    slot = chainAt(c0 + 2, c1);
+  } else {
+    return false;
+  }
+  if (!isChain(slot)) {
+    return false;
+  }
+  int j = b0;
+  int end = b1;
+  if (s.t(b0) == '{') {
+    j = b0 + 1;
+    end = b1 - 1;
+  }
+  if (s.t(j) == 'await') {
+    j++;
+  }
+  for (final String x in slot) {
+    if (s.t(j) != x) {
+      return false;
+    }
+    j++;
+  }
+  if (s.t(j) == '!') {
+    j++;
+  }
+  if ((s.t(j) == '.' || s.t(j) == '?.') && s.t(j + 1) == 'call') {
+    j += 2;
+  }
+  if (s.t(j) != '(' || s.match[j] <= j) {
+    return false;
+  }
+  j = s.match[j] + 1;
+  return s.t(j) == ';' && j == end;
 }
 
 /// [T6] 가짜 공장 블록 몸 안 if(C4r8a-2 · R8a C4X-1) — `(int call) {` · `name: (int n) {` 꼴의
@@ -1016,7 +1127,12 @@ class GoldenRow {
   final String cell;
 }
 
-List<GoldenRow> checkReport(String path, Options o, String headRev) {
+List<GoldenRow> checkReport(
+  String path,
+  Options o,
+  String headRev,
+  String mergeBase,
+) {
   final File file = File(path);
   if (!file.existsSync()) {
     red('R0', path, '보고 글 파일이 없다');
@@ -1201,7 +1317,96 @@ List<GoldenRow> checkReport(String path, Options o, String headRev) {
 
   // R8 ② 복사 상자(번호 줄) 바로 뒤 빈 줄 = 정확히 1(«N항 줄 수:» 상자 앞 · C4r9c-3 · R9c C4AA-1)
   checkBlankAfterBox(path, lines, inCode);
+
+  // R9 ① 두 블록 줄 수 = git 출력 줄 수 · 깨진 글자(C4r14b-3 · R14b C4H-4)
+  checkSectionOneBlocks(path, lines, inCode, o.base, mergeBase, headRev);
+  checkBrokenText(path, lines);
   return rows;
+}
+
+/// «바뀐 파일:» · «커밋 목록:» 바로 아래 코드 블록의 줄 수 ↔ git 출력 줄 수(한 줄로 이어 붙인 꼴 ·
+/// 빠진 줄). 카드 명령 = git diff --name-status origin/main...HEAD · git log --oneline origin/main..HEAD.
+void checkSectionOneBlocks(
+  String path,
+  List<String> lines,
+  List<bool> inCode,
+  String base,
+  String mergeBase,
+  String head,
+) {
+  int? blockLines(String label) {
+    final int at = lines.indexWhere((String l) => l.trim() == label);
+    if (at < 0 ||
+        at + 1 >= lines.length ||
+        !lines[at + 1].trimLeft().startsWith('```')) {
+      return null;
+    }
+    int n = 0;
+    for (int j = at + 2; j < lines.length; j++) {
+      if (lines[j].trimLeft().startsWith('```')) {
+        return n;
+      }
+      if (lines[j].trim().isNotEmpty) {
+        n++;
+      }
+    }
+    return null;
+  }
+
+  int gitLines(List<String> args) => const LineSplitter()
+      .convert(git(args))
+      .where((String l) => l.trim().isNotEmpty)
+      .length;
+
+  final List<(String, int Function())> blocks = <(String, int Function())>[
+    (
+      '바뀐 파일:',
+      () => gitLines(<String>['diff', '--name-status', mergeBase, head]),
+    ),
+    ('커밋 목록:', () => gitLines(<String>['log', '--oneline', '$base..$head'])),
+  ];
+  for (final (String label, int Function() want) in blocks) {
+    final int? got = blockLines(label);
+    if (got == null) {
+      continue;
+    }
+    final int n = want();
+    if (got != n) {
+      red(
+        'R9',
+        '$path:${lines.indexWhere((String l) => l.trim() == label) + 1}',
+        '① «$label» 블록 $got줄 ≠ git 출력 $n줄 — 출력 파일을 줄 그대로 붙인다'
+            '(PowerShell 은 -join "`n" · 한 줄로 이어 붙이지 않는다 · R14b C4H-4)',
+      );
+    }
+  }
+}
+
+/// 깨진 글자 — U+FFFD(대체 문자) · «쨌»(UTF-8 «·» 를 CP949 로 읽은 꼴) = 🔴 · 한자 = 🟡(깨짐일 수 있다).
+void checkBrokenText(String path, List<String> lines) {
+  final RegExp hanja = RegExp(r'[一-鿿豈-﫿]');
+  int hanjaLine = -1;
+  for (int i = 0; i < lines.length; i++) {
+    final String l = lines[i];
+    if (l.contains('�') || l.contains('쨌')) {
+      red(
+        'R9',
+        '$path:${i + 1}',
+        '깨진 글자(${l.contains('�') ? 'U+FFFD' : '«쨌»'}) — UTF-8 출력을 CP949 로 읽은 꼴. '
+            '[Console]::OutputEncoding = [Text.Encoding]::UTF8 뒤 다시 저장한다(R14b C4H-4)',
+      );
+    } else if (hanjaLine < 0 && hanja.hasMatch(l)) {
+      hanjaLine = i;
+    }
+  }
+  if (hanjaLine >= 0) {
+    yellow(
+      'R9',
+      '$path:${hanjaLine + 1}',
+      '한자 «${hanja.firstMatch(lines[hanjaLine])!.group(0)}» — 깨진 글자(CP949 로 읽은 UTF-8)'
+          '일 수 있다. 그 줄을 다시 본다',
+    );
+  }
 }
 
 void checkBlankAfterBox(String path, List<String> lines, List<bool> inCode) {
@@ -1993,7 +2198,7 @@ void main(List<String> args) {
 
   List<GoldenRow> rows = <GoldenRow>[];
   if (o.report != null) {
-    rows = checkReport(o.report!, o, head);
+    rows = checkReport(o.report!, o, head, mergeBase);
   }
   if (rows.isNotEmpty) {
     final Map<String, String> pngs = <String, String>{};
@@ -2026,6 +2231,7 @@ void main(List<String> args) {
     'R6': 'ⓡ·ⓗ 상자 ↔ 정적 T20·T21',
     'R7': 'check:labels 수',
     'R8': '② 상자 뒤 빈 줄',
+    'R9': '① 블록 줄 수 · 깨진 글자',
     'G1': '골든 표 ↔ PNG 셈',
   };
   say(
@@ -2043,7 +2249,16 @@ void main(List<String> args) {
     'T5',
     'T6',
     'T7',
-    if (o.report != null) ...<String>['R0', 'R1', 'R2', 'R4', 'R5', 'R6', 'R8'],
+    if (o.report != null) ...<String>[
+      'R0',
+      'R1',
+      'R2',
+      'R4',
+      'R5',
+      'R6',
+      'R8',
+      'R9',
+    ],
     if (o.report != null && o.labelsRerun) 'R7',
     if (o.report != null && o.goldenPrefix != null) ...<String>['R3', 'G1'],
   };
