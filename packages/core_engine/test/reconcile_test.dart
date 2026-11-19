@@ -8,8 +8,6 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
-import 'order_path_fixture.dart';
-
 const TradeDate _day = TradeDate('2026-11-02');
 final DateTime _t0 = DateTime.utc(2026, 11, 2, 6, 45); // 15:45 KST
 

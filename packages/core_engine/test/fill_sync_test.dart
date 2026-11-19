@@ -6,8 +6,6 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
-import 'order_path_fixture.dart';
-
 Decimal _d(String s) => Decimal.parse(s);
 
 const TradeDate _day = TradeDate('2026-11-02');

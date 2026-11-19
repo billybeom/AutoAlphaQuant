@@ -28,7 +28,7 @@ GoldenBundle bundleOf(Set<String> names) => GoldenBundle(<String, String>{
 /// 🔴 한 정본 — 계열의 케이스를 lib 판정 그대로 시험 하나씩으로 건다(통과 = null).
 void runFamily(GoldenFamily family) {
   for (final GvCase c in family.cases(bundleOf(family.files))) {
-    test(c.id, () => expect(c.check(), isNull));
+    test(c.id, () async => expect(await c.check(), isNull));
   }
 }
 

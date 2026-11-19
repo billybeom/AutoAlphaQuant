@@ -1,9 +1,22 @@
 // 주문 경로 시험의 공용 받침 — 초안 · 통과하는 한도 입력 · 한도 설정 · 순서기 문맥.
+//
+// 🔁 E11o-b(설계 13 §8 R163): `test/order_path_fixture.dart` 에서 옮겼다 — 골든 실행기 GV-13 «발주 횟수»(05 §GV-13
+//    «mock — submit_order 호출 횟수를 센다»)가 폰에서도 같은 받침으로 돈다(두 벌 0). 시험은 `package:core_engine/testing.dart` 로 읽는다.
+// 🔴 테스트 전용 받침대다 — 운영 주문 경로에 쓰지 않는다(core_engine lib 안에서 `src/testing/` 을 import 하는 곳 =
+//    `testing.dart` · `src/golden/` 뿐 · `test/golden/golden_boundary_test.dart` 가 지킨다).
 
-import 'package:core_engine/core_engine.dart';
-import 'package:core_engine/testing.dart';
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
+
+import '../ops/lease_gate.dart' show LeaseGate;
+import '../orders/execute_intent.dart' show ExecutionContext;
+import '../orders/idempotency.dart' show DecisionIds;
+import '../orders/order_draft.dart'
+    show OrderIntentDraft, OrderTypes, P0sStrategyIds;
+import '../orders/order_ports.dart' show AdviceSink, OrderBroker, OrderLedger;
+import '../risk/limits.dart' show InstrumentKind, LimitConfig, LimitState;
+import 'fake_lease_gate.dart' show FakeLeaseGate;
+import 'fake_order_ledger.dart' show FakeOrderLedger;
 
 /// 집행일.
 const TradeDate kExec = TradeDate('2026-11-02');

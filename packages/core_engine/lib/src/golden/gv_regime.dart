@@ -551,11 +551,3 @@ class Gv4Hysteresis implements GoldenFamily {
     ];
   }
 }
-
-/// 🔴 기기판 G-GV 실행기 — 지금 = GV-1~4 만(E11o-a) · 전 계열 이식 전 = `complete` 거짓(R161 O5).
-const GoldenSuite kDeviceGoldenSuite = GoldenSuite(<GoldenFamily>[
-  Gv1RegimeScore(),
-  Gv2Indicators(),
-  Gv3ExposureGate(),
-  Gv4Hysteresis(),
-], complete: false);

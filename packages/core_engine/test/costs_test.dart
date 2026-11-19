@@ -6,8 +6,6 @@ import 'package:core_engine/core_engine.dart';
 import 'package:decimal/decimal.dart';
 import 'package:test/test.dart';
 
-import 'golden/kr_costs_fixture.dart';
-
 final Decimal _tenMillion = Decimal.parse('10000000');
 final Decimal _bigAdv = Decimal.parse('20000000000');
 

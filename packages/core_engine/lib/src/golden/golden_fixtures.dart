@@ -1,12 +1,14 @@
-// 한국 비용 설정 받침 — 02 §4 `costs.kr`(1423~1437행) 값 그대로 · 05 §GV-11 «설정» 블록과 같다.
+// 골든벡터 설정 받침 — 정답지가 산문으로만 주는 설정(E11o-b · 설계 13 §8 R163 · 옛 `test/golden/kr_costs_fixture.dart`).
 //
-// 🔴 05 GV-11 의 설정은 코드 블록이 아니라 산문(`slippage_tier = { ">=100억": ... }`)이라 정답지 파일로
-//    옮길 수 없다. 그래서 02 §4 의 설정 키를 여기 한 곳에 적고 테스트가 이것만 쓴다.
+// 🔴 02 §4 `costs.kr`(1423~1437행) 값 그대로 · 05 §GV-11 «설정» 블록과 같다. 05 GV-11 의 설정은 코드 블록이 아니라
+//    산문(`slippage_tier = { ">=100억": ... }`)이라 정답지 파일로 옮길 수 없다 — 그래서 여기 한 곳에 적고 시험 · 폰이 이것만 쓴다.
+// 🔴 운영 비용 설정이 아니다 — 골든 판정 입력이다(운영 = 설정 판 · 03 §5-6).
 // 🔴 `tax_rate_sell` 은 v2.10(2026 기준) 0.0020 이다. 05 GV-19 는 그 전 값 0.0018 로 계산돼 있다
-//    (설계 13 §8 R13) — 그 시험만 [kGv19StaleTaxRate] 로 덮는다.
+//    (설계 13 §8 R13) — 그 판정만 [kGv19StaleTaxRate] 로 덮는다.
 
-import 'package:core_engine/core_engine.dart';
 import 'package:decimal/decimal.dart';
+
+import '../costs/trade_costs.dart' show KrCostConfig, SlippageTier;
 
 /// 02 §4 `costs.kr`.
 KrCostConfig krCostsFromSpec({double taxRateSell = 0.0020}) => KrCostConfig(
