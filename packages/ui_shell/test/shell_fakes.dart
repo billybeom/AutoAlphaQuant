@@ -1394,3 +1394,43 @@ Set<String> deviceRiskAllowed(DeviceRiskVm v) => <String>{
   v.guidanceText,
   ShellLabels.staleBannerTitle,
 };
+
+// ── R16d — S-01·S-02 kill switch slot fakes ──
+
+const Size kWebShellSize = Size(1280, 800);
+
+class FakeShellKillSlot {
+  final List<String> slotIds = <String>[];
+  final List<String> taps = <String>[];
+
+  Widget build(String slotId) {
+    slotIds.add(slotId);
+    return TextButton(
+      onPressed: () {
+        taps.add(slotId);
+      },
+      child: Text(slotId),
+    );
+  }
+}
+
+List<Override> killSlotOverrides({
+  required ShellPlatform platform,
+  required FeatureFlags flags,
+  required List<AlertItem> alerts,
+  required ShellSlotBuilder? slots,
+}) => <Override>[
+  ...shellOverrides(
+    platform: platform,
+    config: flagsOf(flags),
+    alerts: alertsOf(alerts),
+    bodies: dummyBodies(AppRoutes.all, <String>[]),
+  ),
+  shellOpsSlotBuilderProvider.overrideWithValue(slots),
+];
+
+bool hasUnackedP0(List<AlertItem> items) => items.any(
+  (AlertItem a) => a.level == AlertLevel.p0 && a.ack?.acked != true,
+);
+
+bool isAnyWidget(Widget w) => true;
