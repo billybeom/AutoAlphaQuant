@@ -91,6 +91,22 @@ export 'src/golden/golden_coverage.dart'
         kGoldenCoverage;
 export 'src/golden/golden_fixtures.dart'
     show kGv19StaleTaxRate, kTradingDaysPerYear, krCostsFromSpec;
+// 🆕 E11o-d — 기기 실행 기록 · 결과 문장 · S10 카드 · O-04 ④ 사실(설계 13 §8 R167).
+export 'src/golden/golden_record.dart'
+    show
+        GoldenCardFacts,
+        GoldenRecordView,
+        GoldenSelfTestTexts,
+        goldenCountText,
+        goldenDiscrepanciesJson,
+        goldenLastRunText,
+        goldenRecordOf,
+        goldenSelfTestCardOf,
+        goldenSelftestFactOf,
+        kGoldenFailed,
+        kGoldenOk,
+        kGoldenReconPrefix,
+        selftestGoldenResultOf;
 export 'src/golden/golden_runner.dart'
     show
         GoldenBundle,

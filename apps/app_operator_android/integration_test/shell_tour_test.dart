@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:app_operator_android/app/operator_golden.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_shell.dart';
 import 'package:app_operator_android/app/operator_view.dart';
@@ -84,6 +85,9 @@ void main() {
       deviceId: await ops.deviceId(),
       // 🆕 R154 — 실린 사람 값 자산(발주자 결정 R153) → S03 = 정한 대응표 «모의 개시 전».
       humanDecision: await loadP0sHumanDecision(rootBundle),
+      // 🆕 R167 — 설정 동작(S10 실행 버튼) · 골든 기기 실행기(실제 엔진 패키지 자산 · 실제 isolate).
+      kisHttp: http.Client(),
+      golden: OperatorGolden(rootBundle.loadString, clock: clock),
     );
     // 온보딩 확정 + 모의 모드 행을 먼저 둔다 → 루트 = 셸.
     files.sim.execute(
@@ -161,14 +165,18 @@ void main() {
       expect(find.text('모의 개시 전 — 시작하면 이 계좌로 운영합니다.'), findsNWidgets(3));
       await _at(tester, find.byType(Accounts), 'IT_S03');
 
-      // 🆕 R160 — S10 진단(설정 홈 «진단» 카드 · 골든 = 판정 보류).
+      // 🆕 R160 — S10 진단(설정 홈 «진단» 카드) · 🆕 R167 골든 = 실제 자산으로 전량 실행 → «통과 · 전량 통과».
       await tester.pageBack();
       await _until(tester, find.text('진단'));
       await tester.ensureVisible(
         find.descendant(of: home, matching: find.text('진단')),
       );
       await tester.tap(find.descendant(of: home, matching: find.text('진단')));
-      await _until(tester, find.text('골든벡터 판정 보류'));
+      await _until(tester, find.text('아직 실행하지 않았습니다'));
+      await tester.tap(find.byKey(const Key('m9s10-golden-run')));
+      await _until(tester, find.text('전량 통과'));
+      expect(find.text('통과'), findsWidgets);
+      expect(find.textContaining('마지막 실행 '), findsWidgets);
       await _at(tester, find.byType(Diagnostics), 'IT_S10');
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);

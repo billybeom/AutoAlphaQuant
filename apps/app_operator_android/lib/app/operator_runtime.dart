@@ -37,6 +37,7 @@ import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import '../engine/ledger_files.dart';
 import '../engine/operator_engine.dart' show EngineWakeReport;
 import '../secret/secret_handoff.dart' show ClipboardJanitor, SecretHandoff;
+import 'operator_golden.dart' show OperatorGolden;
 import 'operator_onboarding.dart' show OnboardingProbe;
 import 'operator_view.dart';
 import 'secure_screen.dart';
@@ -62,6 +63,7 @@ class OperatorRuntime {
     this.humanDecision,
     TrustedClock? trusted,
     this.biometricSign,
+    this.golden,
   }) : secure = secure ?? SecureScreen(_noSecure),
        trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
@@ -112,6 +114,9 @@ class OperatorRuntime {
   /// 🆕 E11p4h(R157) — 신뢰 시각(서약 쓰기 · 12월 창 판정 — 기기 시계 아님). 🔴 실물(Supabase 서버 `now()` · 시계 차
   /// 판정) = E11k 가 여기 하나에 넣는다 · 그 전 = «모름»(쓰기는 엔진이 `TRUSTED_TIME_UNKNOWN` 으로 거부한다).
   final TrustedClock trusted;
+
+  /// 🆕 E11o-d(R167) — 골든 기기 실행기(자산 = 엔진 패키지 · 없음 = 플랫폼 밖 → S10 «판정 보류» · ④ 원천 없음).
+  final OperatorGolden? golden;
 
   /// 🆕 E11p4j(R159) — O-04 ③ 생체 확인(플랫폼 · `AndroidOps.biometricSign` · 없음 = 할 수 없음).
   final Future<BiometricOutcome> Function()? biometricSign;

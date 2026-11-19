@@ -25,3 +25,59 @@ dev_dependencies:
   #    규칙 YAML만 담은 순수 Dart 패키지라 Flutter를 끌어오지 않는다.
   flutter_lints: ^5.0.0
   test: ^1.25.0
+
+# 🆕 E11o-d(설계 13 §8 R167 · R162 A1) — 기기 골든 실행기의 벡터 자산. 🔵 의존이 아니다 — 이 패키지는 순수 Dart 그대로다
+#    (data_sync 운영 설정 자산 선례 · Flutter 앱이 `packages/core_engine/test/golden/vectors/<파일>` 로 읽는다).
+# 🔴 실행기 선언 파일만(`kDeviceGoldenSuite.files`) · 26년 재현 · 세션 달력 · 원천 대조 파일은 싣지 않는다.
+# 🔴 목록 = 시험 `test/golden/golden_assets_test.dart` 가 실행기 선언과 대조한다(빠짐 · 남음 = 실패).
+flutter:
+  assets:
+    - test/golden/vectors/gv01a_all_valid.json
+    - test/golden/vectors/gv01b_two_missing.json
+    - test/golden/vectors/gv01c_category_exclusion.json
+    - test/golden/vectors/gv01d_all_missing.json
+    - test/golden/vectors/gv01e_zero_is_not_missing.json
+    - test/golden/vectors/gv02a_atr_wilder.json
+    - test/golden/vectors/gv02b_chop.json
+    - test/golden/vectors/gv02c_adx_warmup.json
+    - test/golden/vectors/gv02d_tolerance.json
+    - test/golden/vectors/gv02d_wilder_rma.json
+    - test/golden/vectors/gv02e_bbw.json
+    - test/golden/vectors/gv02f_adx_values.json
+    - test/golden/vectors/gv03_exposure_gate.json
+    - test/golden/vectors/gv03c_unknown_fail_closed.json
+    - test/golden/vectors/gv04_hysteresis.json
+    - test/golden/vectors/gv04b_nan_fail_closed.json
+    - test/golden/vectors/gv04c_downward_immediate.json
+    - test/golden/vectors/gv04d_bull_to_neutral.json
+    - test/golden/vectors/gv04e_bear_to_neutral_wait.json
+    - test/golden/vectors/gv04f_trend_deadband.json
+    - test/golden/vectors/gv04fb_trend_strict.json
+    - test/golden/vectors/gv04fn_trend_nan.json
+    - test/golden/vectors/gv04g_boundary_mid.json
+    - test/golden/vectors/gv08_machine_block.json
+    - test/golden/vectors/gv08_sizing.json
+    - test/golden/vectors/gv09_idempotency_key.json
+    - test/golden/vectors/gv11_trade_cost.json
+    - test/golden/vectors/gv11d_participation.json
+    - test/golden/vectors/gv11e_tier_boundary_us.json
+    - test/golden/vectors/gv12_trading_day.json
+    - test/golden/vectors/gv12c_last_session_negative.json
+    - test/golden/vectors/gv13_decision_id.json
+    - test/golden/vectors/gv16_pit_percentile.json
+    - test/golden/vectors/gv17_fail_closed.json
+    - test/golden/vectors/gv18_exposure_multiplier.json
+    - test/golden/vectors/gv19_cost_in_pnl.json
+    - test/golden/vectors/gv20_sleeve_b_tranche.json
+    - test/golden/vectors/gv22_sleeve_c_gold_cap.json
+    - test/golden/vectors/gv23_partial_exit.json
+    - test/golden/vectors/gv24_holding_cost.json
+    - test/golden/vectors/gv28d_deposit.json
+    - test/golden/vectors/gv30_split_execution.json
+    - test/golden/vectors/gv31_breaker_vectors.json
+    - test/golden/vectors/gv31_s_h5_1_J1_stopped.json
+    - test/golden/vectors/gv32_saf_vectors.json
+    - test/golden/vectors/gv35_38_decisions.json
+    - test/golden/vectors/gv39_trace_vectors.json
+    - test/golden/vectors/gv40_saf_warn.json
+    - test/golden/vectors/gv42_allocation.json

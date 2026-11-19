@@ -1,7 +1,7 @@
 // M9 S10 진단 화면 VM(감싸개) · 무결성 자가진단 결과(E11p4k · 설계 13 §8 R160 · 01 §33 K113~K117 · K137 · K138 · K143).
 //
 // 🔴 [diagnosticsScreenVmOf] = 감싸개 — `board` 는 H-01 블록 6 과 같은 값(엔진 `LedgerDiagnosticsSource` 하나 · 두 벌 0).
-// 🔴 골든 카드 = 실행기(E11o) 전 «판정 보류» + 버튼 부재(K114) — 결과를 지어내지 않는다.
+// 🔴 골든 카드 = 🆕 E11o-d(R167) 엔진 `goldenSelfTestCardOf`(기록 · 지문 · 실행 중) — 실행기 «전량» 전 · 사실 없음 = «판정 보류» + 버튼 부재(K114).
 // 🔴 무결성 카드 = 정본 자가 대조(K115) · 상태 = «마지막 검증 …»(`checkpointLabelOf` · K137) · 대조 실패로 막혀 있으면 BLOCKED.
 // 🔴 [selftestIntegrityResultOf] = 결과 문장(표본 `m9/selftest_action_results` 꼴 · 사유 7 = 엔진 `LedgerIntegrityReason`).
 // 🔴 글자 = 엔진 · 총계 · «n/m» 상수 0(05 §8-1).
@@ -21,6 +21,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         TradeDate,
         UiLevel;
 
+import '../golden/golden_record.dart'
+    show GoldenCardFacts, GoldenSelfTestTexts, goldenSelfTestCardOf;
 import '../safety/safety_text.dart' show checkpointLabelOf;
 import 'ledger_integrity.dart' show LedgerIntegrityReason;
 import 'ledger_views.dart' show kstDateText;
@@ -30,14 +32,14 @@ const Duration kDiagnosticsScreenStaleAfter = Duration(hours: 26);
 
 /// S10 글자(엔진).
 abstract final class DiagnosticsScreenTexts {
-  /// 골든 카드 제목.
-  static const String goldenTitle = '골든벡터 셀프테스트';
+  /// 골든 카드 제목(= [GoldenSelfTestTexts.title]).
+  static const String goldenTitle = GoldenSelfTestTexts.title;
 
-  /// 골든 실행기 전 상태.
-  static const String goldenPending = '골든벡터 판정 보류';
+  /// 골든 실행기 전 상태(= [GoldenSelfTestTexts.pending]).
+  static const String goldenPending = GoldenSelfTestTexts.pending;
 
-  /// 골든 실행기 전 요약.
-  static const String goldenPendingSummary = '실행기를 준비하는 중이라 아직 돌릴 수 없습니다.';
+  /// 골든 실행기 전 요약(= [GoldenSelfTestTexts.pendingSummary]).
+  static const String goldenPendingSummary = GoldenSelfTestTexts.pendingSummary;
 
   /// 무결성 카드 제목.
   static const String integrityTitle = '무결성 자가진단';
@@ -83,7 +85,11 @@ class DiagnosticsScreenFacts {
     required this.openDiffs,
     required this.canRun,
     required this.nowUtc,
+    this.golden = const GoldenCardFacts.pending(),
   });
+
+  /// 🆕 E11o-d(R167) — 골든 카드 사실(없음 = 판정 보류).
+  final GoldenCardFacts golden;
 
   /// 5칸 대조 보드(H-01 과 같은 값).
   final DiagnosticsVm board;
@@ -109,12 +115,7 @@ DiagnosticsScreenVm diagnosticsScreenVmOf(DiagnosticsScreenFacts f) {
   final DateTime? ok = f.lastIntegrityOkUtc;
   final String day = kstDateText(f.nowUtc);
   return DiagnosticsScreenVm(
-    golden: const SelfTestCard(
-      title: DiagnosticsScreenTexts.goldenTitle,
-      statusLabel: DiagnosticsScreenTexts.goldenPending,
-      level: UiLevel.watch,
-      summaryText: DiagnosticsScreenTexts.goldenPendingSummary,
-    ),
+    golden: goldenSelfTestCardOf(f.golden),
     integrity: SelfTestCard(
       title: DiagnosticsScreenTexts.integrityTitle,
       statusLabel: ok == null

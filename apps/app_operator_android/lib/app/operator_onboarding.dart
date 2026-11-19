@@ -15,6 +15,8 @@ import 'package:core_engine/core_engine.dart'
     show
         OnboardingFinishFacts,
         OnboardingStepFact,
+        goldenSelftestFactOf,
+        kDeviceGoldenSuite,
         onboardingFinishVmOf,
         onboardingModeChoiceVmOf,
         onboardingStartVmOf,
@@ -46,6 +48,7 @@ import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import 'operator_biometric.dart';
+import 'operator_golden.dart' show OperatorGolden;
 import 'operator_runtime.dart';
 
 /// 온보딩 실측(Android) — 모르면 null.
@@ -128,6 +131,7 @@ class OperatorOnboardingRepository implements OnboardingRepository {
   Stream<T> _live<T>(
     T Function() build, {
     Set<String> tables = SqliteOnboardingProgressStore.watchedTables,
+    bool golden = false,
   }) {
     late final StreamController<T> c;
     StreamSubscription<T>? sub;
@@ -144,6 +148,14 @@ class OperatorOnboardingRepository implements OnboardingRepository {
 
     Future<void> refresh() async {
       await _measure();
+      // 🆕 R167 — 마무리 ④ = 골든 자산 지문 · 전체 수(처음 한 번 · 못 읽으면 원천 없음).
+      if (golden) {
+        try {
+          await _rt.golden?.prepare();
+        } on Object {
+          // 원천 없음 그대로(④ 게이트 UNKNOWN).
+        }
+      }
       if (c.isClosed) return;
       try {
         put(build());
@@ -219,6 +231,8 @@ class OperatorOnboardingRepository implements OnboardingRepository {
     'config_versions',
     // 🆕 R159 — ③ 생체 서명 기록.
     'command_inbox',
+    // 🆕 R167 — ④ 골든 셀프테스트 기록.
+    'reconciliation_log',
   };
 
   /// 🆕 R127 — 마무리 사실(고르기 전 = [StateError]).
@@ -244,6 +258,14 @@ class OperatorOnboardingRepository implements OnboardingRepository {
       configHash: cfg is OpsConfigReady ? cfg.configHash : null,
       // 🆕 R159 — ③ 생체 서명(기기 id 없음 = 원천 없음 · 서약 없음 = 아직).
       biometricSigned: OperatorBiometricSign(_rt).fact(),
+      // 🆕 R167 — ④ 골든 셀프테스트 = 지금 지문과 같은 마지막 기록(없으면 0/전체) · 실행기 «전량» 전 · 자산 전 = 원천 없음.
+      selftest: kDeviceGoldenSuite.complete
+          ? goldenSelftestFactOf(
+              currentDigest: _rt.golden?.prepared?.digest,
+              total: _rt.golden?.prepared?.total,
+              last: OperatorGolden.lastRecord(_db),
+            )
+          : null,
     );
   }
 
@@ -251,6 +273,7 @@ class OperatorOnboardingRepository implements OnboardingRepository {
   Stream<OnboardingFinishVm> watchFinish() => _live<OnboardingFinishVm>(
     () => onboardingFinishVmOf(_finishFacts()),
     tables: finishTables,
+    golden: true,
   );
 
   @override

@@ -16,6 +16,7 @@ import 'package:core_engine/core_engine.dart'
     show
         AccountMappingFacts,
         DiagnosticsScreenFacts,
+        GoldenCardFacts,
         PaperAccountFacts,
         PaperCredentialFacts,
         SecretVault,
@@ -26,6 +27,7 @@ import 'package:core_engine/core_engine.dart'
         contributionSettingOf,
         credentialListVmOf,
         diagnosticsScreenVmOf,
+        kDeviceGoldenSuite,
         settingsHomeVmOf;
 import 'package:data_sync/data_sync.dart'
     show
@@ -53,8 +55,10 @@ import 'package:domain_contracts/domain_contracts.dart'
         SettingsHomeVm,
         SettingsRepository,
         StepState;
+import 'package:flutter/foundation.dart' show Listenable;
 import 'package:sqlite3/sqlite3.dart' show Database, Row;
 
+import 'operator_golden.dart' show GoldenPrepared, OperatorGolden;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
 
@@ -216,6 +220,7 @@ class OperatorSettingsRepository implements SettingsRepository {
   Stream<T> _follow<T>(
     Future<T> Function() read, {
     Set<String> viewTables = const <String>{},
+    Listenable? also,
   }) {
     late final StreamController<T> c;
     StreamSubscription<Object>? progress;
@@ -249,6 +254,9 @@ class OperatorSettingsRepository implements SettingsRepository {
       unawaited(refresh());
     }
 
+    // 🆕 R167 — 장부 밖 사실이 바뀌면(골든 «실행 중») 다시 읽는다.
+    void onAlso() => unawaited(refresh());
+
     c = StreamController<T>(
       onListen: () {
         progress = _touches(_rt.files.sim, const <String>{
@@ -256,11 +264,13 @@ class OperatorSettingsRepository implements SettingsRepository {
         }).listen((_) => unawaited(refresh()));
         followLedger();
         _rt.view.addListener(onView);
+        also?.addListener(onAlso);
         timer = Timer.periodic(tick, (_) => unawaited(refresh()));
         unawaited(refresh());
       },
       onCancel: () async {
         _rt.view.removeListener(onView);
+        also?.removeListener(onAlso);
         timer?.cancel();
         await progress?.cancel();
         await ledger?.cancel();
@@ -298,6 +308,8 @@ class OperatorSettingsRepository implements SettingsRepository {
       'sync_state',
       'trading_block',
     },
+    // 🆕 R167 — 골든 «실행 중»(기록 전 · 장부 밖).
+    also: _rt.golden?.running,
   );
 
   /// 🆕 E11p4k(R160) — M9 S10 진단(감싸개 · 보드 = H-01 과 같은 엔진 원천 · 골든 = 실행기 전 판정 보류 · 화면 상태 없음 = 오류) ·
@@ -308,6 +320,16 @@ class OperatorSettingsRepository implements SettingsRepository {
       throw StateError('진단: 화면 상태 없음(온보딩 전)');
     }
     final Database db = v.db;
+    // 🆕 R167 — 골든 자산(처음 한 번 · 못 읽으면 «판정 보류»).
+    final OperatorGolden? g = _rt.golden;
+    GoldenPrepared? prep;
+    if (g != null) {
+      try {
+        prep = await g.prepare();
+      } on Object {
+        prep = null;
+      }
+    }
     final Row? ok = db.select(
       'SELECT run_at FROM reconciliation_log WHERE action_taken = ? '
       'ORDER BY run_at DESC LIMIT 1',
@@ -332,6 +354,14 @@ class OperatorSettingsRepository implements SettingsRepository {
         ),
         canRun: _rt.vault != null && _rt.kisHttp != null,
         nowUtc: _rt.clock.nowUtc(),
+        // 🆕 R167 — 골든 카드(실행기 «전량» · 자산 지문 · 이 원장의 마지막 기록 · 실행 중).
+        golden: GoldenCardFacts(
+          ready: kDeviceGoldenSuite.complete && prep != null,
+          currentDigest: prep?.digest,
+          last: OperatorGolden.lastRecord(db),
+          running: g?.running.value ?? false,
+          canRun: g != null && _rt.vault != null && _rt.kisHttp != null,
+        ),
       ),
     );
   }
