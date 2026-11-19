@@ -1199,6 +1199,18 @@ export 'src/safety/kill_switch.dart'
         killSwitchViewOf,
         resumeReadinessOf;
 // 🆕 E13g2 — 본인 서약문 · 12월 편집 창 · DD 최초 도달 재생(M5-8 · 설계 13 §8 R67).
+export 'src/safety/kill_switch_screen.dart'
+    show
+        KillCommandTexts,
+        KillSwitchScreenTexts,
+        issueKillCommand,
+        kKillCommandTtl,
+        kKillSwitchStaleAfter,
+        killCommandReceiptOf,
+        killActivationFormVm,
+        killCancelHeadline,
+        killChecklistAnswersOf,
+        killSwitchScreenVmOf;
 export 'src/safety/pledge.dart'
     show
         DrawdownEpisode,

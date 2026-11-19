@@ -23,9 +23,16 @@ import 'package:core_engine/core_engine.dart'
         SimOpeningInputInvalid,
         SimOpeningWireReady,
         SimOpeningWireResult,
+        KillAckAnswers,
+        KillActivationAnswers,
+        KillSwitchScreenTexts,
+        OrderBroker,
         depositTradeDate,
         depositTrustedTimeUnknownReceipt,
         issueDepositRegister,
+        issueKillCommand,
+        killChecklistAnswersOf,
+        killCommandReceiptOf,
         simOpeningWireOf;
 import 'package:data_sync/data_sync.dart'
     show
@@ -35,7 +42,9 @@ import 'package:data_sync/data_sync.dart'
         P0sHumanDecision,
         SqliteAlertSink,
         SqliteConfigVersionStore,
+        KillCommandResult,
         SqliteDepositRegistrar,
+        SqliteKillSwitchStore,
         SqliteLeaseGate,
         SqliteOnboardingStore,
         SqliteWhatIfStateSource,
@@ -124,7 +133,40 @@ class OperatorCommandApi implements CommandApi {
 
   // 🆕 계약 v1.25(01 §34 · K149 · K165) — 인자 0(기기·채널 = 이 구현 · 사유 = 발동 뒤 기록) · 행동 = 조립 레인(E11q-b1).
   @override
-  Future<CommandReceipt> activateKillSwitch() => _none('activateKillSwitch');
+  Future<CommandReceipt> activateKillSwitch() async {
+    // 🆕 E11q-b1a(R178) — 이 폰 로컬 단락(R57 B7): 차단이 먼저(엔진 `activateKillSwitch` — 이미 켜져 있으면 첫 발동 시각 유지) ·
+    //    미체결 취소 = 취소 경로를 넘기지 않는다(모의 가상 취소는 원장에 남지 않는다 → 엔진이 `NO_BROKER` 로 «그대로 남습니다» 보고 ·
+    //    실계좌 취소 경로 = 트랙 C) · 채널 = app · 접수증 글자 = 엔진. 확인 대화 · 인자 0(K149).
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('킬스위치 발동: 화면 상태 없음(온보딩 전)');
+    final String? deviceId = _rt.deviceId;
+    if (deviceId == null) throw StateError('킬스위치 발동: 기기 id 없음');
+    final ({String commandId, String nonce, String payloadDigest}) c =
+        issueKillCommand(payload: const <String, Object?>{}, random: _random);
+    final KillCommandResult r =
+        await SqliteKillSwitchStore(
+          v.db,
+          clock: _rt.clock,
+          trusted: _rt.trusted,
+        ).activateLocal(
+          commandId: c.commandId,
+          payloadDigest: c.payloadDigest,
+          brokers: const <String, OrderBroker>{},
+          channel: 'app', // 원장 채널 규약(`kill_switch_event.channel` — app · viewer · web · messenger · file)
+          deviceLabel: KillSwitchScreenTexts.operatorPhone,
+        );
+    final CommandReceipt receipt = killCommandReceiptOf(
+      kind: CommandKind.killSwitchActivate,
+      commandId: c.commandId,
+      nonce: c.nonce,
+      requestedAtUtc: _rt.clock.nowUtc(),
+      deviceId: deviceId,
+      executed: r.executed,
+      reasonCode: r.reasonCode,
+    );
+    _issued[receipt.commandId] = receipt;
+    return receipt;
+  }
 
   @override
   Future<CommandReceipt> submitJournalDraft(JournalDraft draft) =>
@@ -272,7 +314,45 @@ class OperatorCommandApi implements CommandApi {
   @override
   Future<CommandReceipt> confirmKillChecklist(
     KillChecklistSubmission submission,
-  ) => _none('confirmKillChecklist');
+  ) async {
+    // 🆕 E11q-b1a(R178) — 발동 뒤 기록(48h 기준의 유일한 방아쇠) — 원문 → 엔진 답(파싱 실패 · 빈 선택 = 큐 적재 없는
+    //    `KILL_CHECKLIST_ITEM_MISSING`) → 엔진 `confirmChecklist`(신뢰 시각 · 켜짐 · 판정 · 새 저널 · 한 트랜잭션 — 신뢰 시각을
+    //    모르면 `TRUSTED_TIME_UNKNOWN` · 기기 시계로 대신하지 않는다) · 접수증 글자 = 엔진.
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('킬스위치 기록: 화면 상태 없음(온보딩 전)');
+    final String? deviceId = _rt.deviceId;
+    if (deviceId == null) throw StateError('킬스위치 기록: 기기 id 없음');
+    final ({String commandId, String nonce, String payloadDigest}) c =
+        issueKillCommand(payload: submission.toJson(), random: _random);
+    final (KillActivationAnswers, KillAckAnswers)? parsed =
+        killChecklistAnswersOf(
+          submission,
+          journalDecisionId: 'KS-CHK-${c.commandId}',
+        );
+    final KillCommandResult? r = parsed == null
+        ? null
+        : SqliteKillSwitchStore(
+            v.db,
+            clock: _rt.clock,
+            trusted: _rt.trusted,
+          ).confirmChecklist(
+            commandId: c.commandId,
+            payloadDigest: c.payloadDigest,
+            answers: parsed.$1,
+            ack: parsed.$2,
+          );
+    final CommandReceipt receipt = killCommandReceiptOf(
+      kind: CommandKind.killChecklistConfirm,
+      commandId: c.commandId,
+      nonce: c.nonce,
+      requestedAtUtc: _rt.clock.nowUtc(),
+      deviceId: deviceId,
+      executed: r?.executed ?? false,
+      reasonCode: r == null ? 'KILL_CHECKLIST_ITEM_MISSING' : r.reasonCode,
+    );
+    _issued[receipt.commandId] = receipt;
+    return receipt;
+  }
 
   @override
   Future<CommandReceipt> recordLedgerEvent(LedgerEventRecord record) =>

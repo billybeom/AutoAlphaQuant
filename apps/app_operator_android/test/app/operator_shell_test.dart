@@ -71,7 +71,12 @@ import 'package:ui_journal/ui_journal.dart'
         journalRebalanceRepositoryProvider,
         journalSafetyRepositoryProvider;
 import 'package:ui_safety/sim_opening.dart' show SimOpeningCash;
-import 'package:ui_safety/ui_safety.dart' show PledgePanel;
+import 'package:ui_safety/ui_safety.dart'
+    show
+        KillSwitchScreen,
+        PledgePanel,
+        safetyKillCommandApiProvider,
+        safetyKillSwitchGateRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -402,6 +407,15 @@ void main() {
       container.read(analyticsWhatIfApiProvider),
       isA<OperatorWhatIfApi>(),
     );
+    // 🆕 R178 — M5-1 킬스위치 읽기 = 한 인스턴스 · 명령 = 기기 id 없음 → null(버튼 부재).
+    expect(
+      identical(
+        container.read(safetyKillSwitchGateRepositoryProvider),
+        container.read(operatorKillSwitchGateProvider),
+      ),
+      true,
+    );
+    expect(container.read(safetyKillCommandApiProvider), isNull);
     // 🆕 R174 — S7-4 플래너 칸 = 같은 What-if · 같은 명령 API · 셸 설정 원천(한 인스턴스).
     expect(
       identical(
@@ -943,6 +957,32 @@ void main() {
     container.dispose();
     disposed = true;
   });
+
+  testWidgets(
+    '🔴 M5-1 킬스위치(R178) = 조립 셸에 등록 · 꺼짐 머리 · 기기 id 없음 = 발동 버튼 부재 · 크래시 없음',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      await open(tester, AppRoutes.m5KillSwitch);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(KillSwitchScreen);
+      expect(screen, findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(
+        find.descendant(of: screen, matching: find.text('킬스위치 꺼짐')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('m51-activate')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
 
   testWidgets('🔴 S06 기기 · 접근(R146) = 조립 셸에 등록 · 이 폰 한 행 · 모의 단독 리스 · 캡처 막기', (
     WidgetTester tester,
