@@ -80,6 +80,15 @@ export 'src/decimal_rules.dart'
 // 🆕 E11o-a — 골든벡터 기기 실행기 뼈대 · GV-1~4(설계 13 §8 R161 · R162).
 // 🆕 E11o-b — 실행기 목록 분리 · 비용 · 달력 · 주문 계열 · 골든 설정 받침(설계 13 §8 R163).
 export 'src/golden/device_suite.dart' show kDeviceGoldenSuite;
+// 🆕 E11o-c2 — 05 계열 처리 구분표(설계 13 §8 R165 · §7 P-2).
+export 'src/golden/golden_coverage.dart'
+    show
+        GvCoverage,
+        GvDisposition,
+        goldenCoverageComplete,
+        goldenCoverageGaps,
+        goldenCoverageOfCase,
+        kGoldenCoverage;
 export 'src/golden/golden_fixtures.dart'
     show kGv19StaleTaxRate, kTradingDaysPerYear, krCostsFromSpec;
 export 'src/golden/golden_runner.dart'
@@ -108,6 +117,8 @@ export 'src/golden/gv_gates.dart' show Gv40dStartup, Gv40eDiscretion;
 export 'src/golden/gv_limits.dart' show Gv32Limits;
 export 'src/golden/gv_orders.dart'
     show Gv13SubmitCount, Gv30SplitExecution, Gv8Sizing, Gv9Idempotency;
+// 🆕 E11o-c2 — GV-16 pit_percentile 게이트(설계 13 §8 R165).
+export 'src/golden/gv_pit.dart' show Gv16PitPercentile;
 export 'src/golden/gv_regime.dart'
     show Gv1RegimeScore, Gv2Indicators, Gv3ExposureGate, Gv4Hysteresis;
 export 'src/golden/gv_sleeves.dart'

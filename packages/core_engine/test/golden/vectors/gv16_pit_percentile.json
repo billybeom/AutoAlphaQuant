@@ -1,0 +1,17 @@
+{
+  "input": {
+    "generator": "s[i] = sin(i/17.0)*100.0 + i*0.05,  i = 0..799",
+    "min_periods": 756, "winsor": [0.01, 0.99]
+  },
+  "expected": {
+    "out[754]": null,
+    "out[755]": 71.825397,
+    "out[760]": 85.282523,
+    "out[799]": 58.000000
+  },
+  "invariants": {
+    "truncation": "pit_percentile(s)[755:760] == pit_percentile(s[:760])[755:760]  (절대오차 1e-9)",
+    "warmup":     "len(s) = 40 인 시리즈에서는 pit_percentile(s)가 전부 NaN (유효값 0개)"
+  },
+  "tolerance": 1e-5
+}
