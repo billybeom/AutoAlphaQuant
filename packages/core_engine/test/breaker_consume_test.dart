@@ -15,7 +15,6 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:test/test.dart';
 
 import 'golden/golden_vectors.dart';
-import 'order_path_fixture.dart';
 
 class _DateLedger extends FakeOrderLedger {
   _DateLedger()

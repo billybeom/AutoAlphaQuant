@@ -9,8 +9,6 @@ import 'package:core_engine/testing.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
-import 'order_path_fixture.dart';
-
 /// 두 번째 물음부터 던진다.
 class _ThrowsAfterFirst implements LeaseGate {
   int calls = 0;

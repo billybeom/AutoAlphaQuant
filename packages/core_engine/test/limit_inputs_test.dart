@@ -1,11 +1,10 @@
 // E11p3b-2 — 한도 판정 입력(설계 13 §8 R91 · 02 §2 `PortfolioState` · 04 §1 SAF-301 · 303 · 304 · 403).
 
 import 'package:core_engine/core_engine.dart';
+import 'package:core_engine/testing.dart' show draftOf, kExec;
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:test/test.dart';
-
-import 'order_path_fixture.dart' show draftOf, kExec;
 
 Decimal _d(String s) => Decimal.parse(s);
 

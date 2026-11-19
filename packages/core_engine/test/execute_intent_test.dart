@@ -10,8 +10,6 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
-import 'order_path_fixture.dart';
-
 void main() {
   group('04 §7 안전 시험(포트 수준)', () {
     test(

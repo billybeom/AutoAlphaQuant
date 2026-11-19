@@ -6,9 +6,11 @@
 // 🔴 [GoldenSuite.complete] 가 거짓이면 «전량»이 아니다 — 앱은 버튼을 내지 않고 «판정 보류»(부분 실행으로 통과를 말하지 않는다 · R161 O5).
 // 🔴 순수 — 파일 · 자산 읽기 0([GoldenBundle] 은 이름 → 원문을 받는다 · 시험 = 파일 · 앱 = 자산).
 
+import 'dart:async' show FutureOr;
 import 'dart:convert' show jsonDecode, utf8;
 
 import 'package:crypto/crypto.dart' show sha256;
+import 'package:decimal/decimal.dart' show Decimal;
 
 import '../migration/golden_self_test.dart' show GoldenSelfTest;
 
@@ -61,7 +63,7 @@ class GvFailure {
   String toString() => '$caseId: $detail';
 }
 
-/// 케이스 하나 — [check] 통과 = null · 실패 = 한 줄.
+/// 케이스 하나 — [check] 통과 = null · 실패 = 한 줄(비동기 가능 — GV-13 발주 횟수 = 가짜 브로커 · 원장).
 class GvCase {
   /// 만든다.
   const GvCase(this.id, this.check);
@@ -70,7 +72,7 @@ class GvCase {
   final String id;
 
   /// 판정.
-  final String? Function() check;
+  final FutureOr<String?> Function() check;
 }
 
 /// 계열 하나(GV-1 · GV-2 …).
@@ -132,7 +134,7 @@ class GoldenSuite {
   };
 
   /// 🔴 묶음으로 돈다 — 계열이 케이스를 못 만들면(벡터 없음 · 꼴 틀림) 그 계열 = 실패 1 · 케이스가 던지면 그 케이스 = 실패.
-  GoldenRunResult run(GoldenBundle bundle) {
+  Future<GoldenRunResult> run(GoldenBundle bundle) async {
     final List<GvFailure> failures = <GvFailure>[];
     int total = 0;
     for (final GoldenFamily f in families) {
@@ -148,7 +150,7 @@ class GoldenSuite {
         total++;
         String? bad;
         try {
-          bad = c.check();
+          bad = await c.check();
         } on Object catch (e) {
           bad = '예외 — $e';
         }
@@ -181,7 +183,7 @@ class SuiteGoldenSelfTest implements GoldenSelfTest {
     if (!suite.complete) {
       throw StateError('골든 실행기 미완성 — 판정 보류');
     }
-    return suite.run(await bundle()).allPassed;
+    return (await suite.run(await bundle())).allPassed;
   }
 }
 
@@ -219,6 +221,21 @@ class GvProbe {
     if (!ok) _bad.add(what);
   }
 
+  /// 🔴 던져야 한다 — 안 던지거나 다른 꼴이면 실패(시험 `throwsA(...)` 와 같은 뜻).
+  void throws(
+    void Function() body,
+    bool Function(Object e) expected,
+    String what,
+  ) {
+    try {
+      body();
+    } on Object catch (e) {
+      if (!expected(e)) _bad.add('$what 다른 예외 — $e');
+      return;
+    }
+    _bad.add('$what 던지지 않았다');
+  }
+
   /// 🔴 시리즈 칸마다 — 기대 null = 결측이어야 · 아니면 허용오차 안(시험 하네스 `expectSeries` 와 같은 규칙).
   void series(
     List<double?> actual,
@@ -245,6 +262,9 @@ class GvProbe {
 }
 
 bool _deepEquals(Object? a, Object? b) {
+  if (a is Set<Object?> && b is Set<Object?>) {
+    return a.length == b.length && a.containsAll(b);
+  }
   if (a is List<Object?> && b is List<Object?>) {
     if (a.length != b.length) return false;
     for (int i = 0; i < a.length; i++) {
@@ -308,6 +328,13 @@ List<int> gvIntList(Object? value) {
   if (value is List<Object?>) return value.map(gvInt).toList();
   throw FormatException('정답지에서 정수 목록을 기대했다', value);
 }
+
+/// 금액 · 가격 — 문자열이든 수든 **문자열을 거쳐** Decimal 로(시험 하네스 `asDecimal` 과 같은 규칙).
+Decimal gvDecimal(Object? value) => switch (value) {
+  final String s => Decimal.parse(s),
+  final num n => Decimal.parse(n.toString()),
+  _ => throw FormatException('정답지에서 금액을 기대했다', value),
+};
 
 /// 수 목록(null = 결측).
 List<double?> gvNumList(Object? value) {

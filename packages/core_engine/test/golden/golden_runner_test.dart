@@ -1,12 +1,13 @@
-// 골든벡터 기기 실행기 뼈대(E11o-a · 설계 13 §8 R161 · R162) — 결과 꼴 · 지문 · 실패 집계 · 판정 보류.
+// 골든벡터 기기 실행기(E11o-a · b · 설계 13 §8 R161 · R162 · R163) — 결과 꼴 · 지문 · 실패 집계 · 판정 보류.
 //
-// 🔴 이식 전후 케이스 수를 고정한다(GV-1 7 · GV-2 12 · GV-3 8 · GV-4 13 = 40 — 옛 시험 수 그대로).
+// 🔴 이식 전후 케이스 수를 고정한다([_kCases] — 옛 시험 수 그대로 · 05 총계가 아니다(README 규칙 4 와 다름)).
 // 🔴 정답지 값을 하나 바꾸면 그 케이스만 실패해야 한다(실행기가 «통과»를 지어내지 않는다).
 
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:core_engine/core_engine.dart';
+import 'package:decimal/decimal.dart';
 import 'package:test/test.dart';
 
 import 'golden_vectors.dart';
@@ -26,6 +27,23 @@ GoldenBundle _edited(
   });
 }
 
+/// JSON 안 경로의 객체(문자열 = 키 · 정수 = 목록 자리).
+Map<String, Object?> _at(Map<String, Object?> json, List<Object> path) {
+  Object? cur = json;
+  for (final Object k in path) {
+    cur = k is int
+        ? (cur! as List<Object?>)[k]
+        : (cur! as Map<String, Object?>)[k];
+  }
+  return cur! as Map<String, Object?>;
+}
+
+/// 수 칸에 1 을 더한다.
+void _bump(Map<String, Object?> o, String key) => o[key] = (o[key]! as num) + 1;
+
+/// 참거짓 칸을 뒤집는다.
+void _flip(Map<String, Object?> o, String key) => o[key] = !(o[key]! as bool);
+
 /// 원문 그대로(지문이 바뀐 파일 몫만 달라지게).
 String _text(String name) => File('$kVectorsDir/$name').readAsStringSync();
 
@@ -37,6 +55,23 @@ GoldenBundle _raw(Set<String> names, Map<String, String?> overrides) =>
       for (final MapEntry<String, String?> e in overrides.entries)
         if (e.value != null) e.key: e.value!,
     });
+
+/// 계열별 케이스 수 = 옛 시험 수(GV-3 = 벡터 8 · 코드 규칙 3 은 시험에 남음 · GV-12 = 벡터 14 · 세션 표 머리말 1 은
+/// 시험에 남음 · GV-11 = 11 · 11e · 11d · 19 · 24).
+const Map<String, int> _kCases = <String, int>{
+  'GV-1': 7,
+  'GV-2': 12,
+  'GV-3': 8,
+  'GV-4': 13,
+  'GV-8': 17,
+  'GV-9': 8,
+  'GV-11': 22,
+  'GV-12': 14,
+  'GV-13': 5,
+  'GV-30': 5,
+};
+
+final int _total = _kCases.values.fold(0, (int a, int b) => a + b);
 
 class _Throwing implements GoldenFamily {
   const _Throwing();
@@ -62,11 +97,12 @@ void main() {
   );
 
   group('실제 벡터', () {
-    test('GV-1~4 = 40 케이스 전부 통과 · 아직 «전량» 아님', () {
-      final GoldenRunResult r = kDeviceGoldenSuite.run(bundleOf(files));
+    test('옮긴 계열 전부 통과 · 아직 «전량» 아님', () async {
+      final GoldenRunResult r = await kDeviceGoldenSuite.run(bundleOf(files));
       expect(r.failures, isEmpty);
-      expect(r.total, 40);
-      expect(r.passed, 40);
+      expect(_total, 111);
+      expect(r.total, _total);
+      expect(r.passed, _total);
       expect(r.complete, isFalse);
       expect(r.allPassed, isFalse, reason: '부분 실행으로 «통과»를 말하지 않는다(R161 O5)');
       expect(r.digest, bundleOf(files).digest);
@@ -74,13 +110,10 @@ void main() {
 
     test('계열별 케이스 수 = 옛 시험 수(이식 전후 같음)', () {
       final GoldenBundle b = bundleOf(files);
-      expect(
-        <String, int>{
-          for (final GoldenFamily f in kDeviceGoldenSuite.families)
-            f.id: f.cases(b).length,
-        },
-        <String, int>{'GV-1': 7, 'GV-2': 12, 'GV-3': 8, 'GV-4': 13},
-      );
+      expect(<String, int>{
+        for (final GoldenFamily f in kDeviceGoldenSuite.families)
+          f.id: f.cases(b).length,
+      }, _kCases);
       expect(
         kDeviceGoldenSuite.families.map((GoldenFamily f) => f.id).toSet(),
         hasLength(kDeviceGoldenSuite.families.length),
@@ -88,8 +121,8 @@ void main() {
       );
     });
 
-    test('파일 합 = 계열 선언 합(23) · 케이스 id 겹침 없음', () {
-      expect(files, hasLength(23));
+    test('파일 합 = 계열 선언 합(35) · 케이스 id 겹침 없음', () {
+      expect(files, hasLength(35));
       final List<String> ids = <String>[
         for (final GoldenFamily f in kDeviceGoldenSuite.families)
           for (final GvCase c in f.cases(bundleOf(files))) c.id,
@@ -98,7 +131,7 @@ void main() {
     });
 
     test('완성 표시 실행기 = 전량 통과 · 포트 = 참', () async {
-      expect(completeSuite.run(bundleOf(files)).allPassed, isTrue);
+      expect((await completeSuite.run(bundleOf(files))).allPassed, isTrue);
       expect(
         await SuiteGoldenSelfTest(
           completeSuite,
@@ -208,13 +241,98 @@ void main() {
                         as List<Object?>)[0] =
                     'LOW',
           ),
+          (
+            'gv08_sizing.json',
+            'GV-8a 파일럿1',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['cases', 0, 'expected'])['qty_by_risk'] = 501.0,
+          ),
+          (
+            'gv08_machine_block.json',
+            'GV-8a 기계 채점',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['cases', 0, 'expected'])['notional_value'] =
+                    5000001,
+          ),
+          (
+            'gv09_idempotency_key.json',
+            'GV-9 v1|KR|',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['cases', 0])['expected_key'] = '0' * 64,
+          ),
+          (
+            'gv13_decision_id.json',
+            'GV-13 v1 감시 4회',
+            (Map<String, Object?> j) => _at(j, <Object>[
+              'cases',
+              0,
+              'expected',
+            ])['broker.submit_order_call_count'] = 2,
+          ),
+          (
+            'gv11_trade_cost.json',
+            'GV-11a',
+            (Map<String, Object?> j) => _bump(
+              _at(j, <Object>['cases', 0, 'expected']),
+              'market_impact',
+            ),
+          ),
+          (
+            'gv11e_tier_boundary_us.json',
+            'GV-11e c1',
+            (Map<String, Object?> j) =>
+                _bump(_at(j, <Object>['cases', 0, 'expected']), 'slippage'),
+          ),
+          (
+            'gv19_cost_in_pnl.json',
+            'GV-19 정답지 원문',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['expected'])['net_pnl'] = -140999,
+          ),
+          (
+            'gv24_holding_cost.json',
+            'GV-24 e1',
+            (Map<String, Object?> j) =>
+                _bump(_at(j, <Object>['cases', 0]), 'expected_value'),
+          ),
+          (
+            'gv12_trading_day.json',
+            'GV-12 XKRX 2026-08-31',
+            (Map<String, Object?> j) =>
+                _flip(_at(j, <Object>['cases', 0, 'expected']), 'is_session'),
+          ),
+          (
+            'gv12c_last_session_negative.json',
+            'GV-12c 2026-01-29',
+            (Map<String, Object?> j) => _flip(
+              _at(j, <Object>['cases', 0, 'expected']),
+              'is_last_session_of_month',
+            ),
+          ),
+          (
+            'gv30_split_execution.json',
+            'GV-30 e4',
+            (Map<String, Object?> j) {
+              final List<Object?> q =
+                  _at(j, <Object>['cases', 3, 'expected'])['daily_qty']!
+                      as List<Object?>;
+              q[2] = (q[2]! as int) + 1;
+            },
+          ),
+          (
+            'gv30_split_execution.json',
+            'GV-30 집행일',
+            (Map<String, Object?> j) =>
+                (j['sessions']! as List<Object?>)[0] = '2026-01-02',
+          ),
         ]) {
       test('$file → $caseId', () async {
         final GoldenBundle b = _edited(files, file, edit);
-        final GoldenRunResult r = completeSuite.run(b);
-        expect(r.failures.map((GvFailure f) => f.caseId), <String>[caseId]);
-        expect(r.total, 40);
-        expect(r.passed, 39);
+        final GoldenRunResult r = await completeSuite.run(b);
+        expect(r.failures, hasLength(1), reason: '${r.failures}');
+        expect(r.failures.single.caseId, startsWith(caseId));
+        expect(r.total, _total);
+        expect(r.passed, _total - 1);
         expect(r.allPassed, isFalse);
         expect(r.digest, isNot(bundleOf(files).digest));
         expect(
@@ -226,8 +344,8 @@ void main() {
   });
 
   group('벡터가 없거나 꼴이 틀리면 실패(통과로 세지 않는다)', () {
-    test('계열이 먼저 읽는 파일이 없으면 계열 = 실패 1', () {
-      final GoldenRunResult r = completeSuite.run(
+    test('계열이 먼저 읽는 파일이 없으면 계열 = 실패 1', () async {
+      final GoldenRunResult r = await completeSuite.run(
         _raw(files, <String, String?>{'gv02f_adx_values.json': null}),
       );
       expect(r.failures, hasLength(1));
@@ -236,28 +354,28 @@ void main() {
         r.failures.single.detail,
         contains('벡터 없음: gv02f_adx_values.json'),
       );
-      expect(r.total, 40 - 12 + 1);
+      expect(r.total, _total - 12 + 1);
       expect(r.allPassed, isFalse);
     });
 
-    test('케이스가 읽는 파일이 없으면 그 케이스 = 실패', () {
-      final GoldenRunResult r = completeSuite.run(
+    test('케이스가 읽는 파일이 없으면 그 케이스 = 실패', () async {
+      final GoldenRunResult r = await completeSuite.run(
         _raw(files, <String, String?>{'gv01a_all_valid.json': null}),
       );
       expect(r.failures.map((GvFailure f) => f.caseId), <String>['GV-1a']);
       expect(r.failures.single.detail, contains('벡터 없음'));
-      expect(r.total, 40);
+      expect(r.total, _total);
     });
 
-    test('JSON 이 깨지면 실패', () {
-      final GoldenRunResult r = completeSuite.run(
+    test('JSON 이 깨지면 실패', () async {
+      final GoldenRunResult r = await completeSuite.run(
         _raw(files, <String, String?>{'gv03_exposure_gate.json': '{'}),
       );
       expect(r.failures.map((GvFailure f) => f.caseId), <String>['GV-3']);
     });
 
-    test('꼴이 틀리면(수 자리에 글자) 실패', () {
-      final GoldenRunResult r = completeSuite.run(
+    test('꼴이 틀리면(수 자리에 글자) 실패', () async {
+      final GoldenRunResult r = await completeSuite.run(
         _edited(
           files,
           'gv02d_wilder_rma.json',
@@ -270,8 +388,8 @@ void main() {
       ]);
     });
 
-    test('케이스가 던지면 그 케이스 = 실패 · 나머지는 그대로', () {
-      final GoldenRunResult r = const GoldenSuite(<GoldenFamily>[
+    test('케이스가 던지면 그 케이스 = 실패 · 나머지는 그대로', () async {
+      final GoldenRunResult r = await const GoldenSuite(<GoldenFamily>[
         _Throwing(),
       ], complete: true).run(GoldenBundle(const <String, String>{}));
       expect(r.total, 2);
@@ -280,8 +398,8 @@ void main() {
       expect(r.failures.single.detail, contains('예외'));
     });
 
-    test('케이스 0 = 전량 통과 아님', () {
-      final GoldenRunResult r = const GoldenSuite(
+    test('케이스 0 = 전량 통과 아님', () async {
+      final GoldenRunResult r = await const GoldenSuite(
         <GoldenFamily>[],
         complete: true,
       ).run(GoldenBundle(const <String, String>{}));
@@ -393,6 +511,41 @@ void main() {
         ..truth(false, 'A')
         ..none(1, 'B');
       expect(p.failure, 'A · B 기대 null · 실제 1');
+    });
+
+    test('throws — 맞는 예외 = 통과 · 안 던짐 · 다른 예외 = 실패', () {
+      bool isArg(Object e) => e is ArgumentError;
+      expect(
+        (GvProbe()..throws(() => throw ArgumentError('x'), isArg, 'A')).failure,
+        isNull,
+      );
+      expect(
+        (GvProbe()..throws(() {}, isArg, 'A')).failure,
+        contains('던지지 않았다'),
+      );
+      expect(
+        (GvProbe()..throws(() => throw StateError('x'), isArg, 'A')).failure,
+        contains('다른 예외'),
+      );
+    });
+
+    test('same — 집합은 차례 무관 · 원소가 다르면 실패', () {
+      expect(
+        (GvProbe()..same(<String>{'a', 'b'}, <String>{'b', 'a'})).failure,
+        isNull,
+      );
+      expect(
+        (GvProbe()..same(<String>{'a', 'b'}, <String>{'a', 'c'})).failure,
+        isNotNull,
+      );
+    });
+
+    test('gvDecimal — 문자열을 거친다 · 수 · 글자 · 그 밖 = FormatException', () {
+      expect(gvDecimal(0.0035), Decimal.parse('0.0035'));
+      expect(gvDecimal('174180.5'), Decimal.parse('174180.5'));
+      expect(gvDecimal(5000000), Decimal.parse('5000000'));
+      expect(() => gvDecimal(true), throwsFormatException);
+      expect(() => gvDecimal('1,000'), throwsFormatException);
     });
 
     test('읽기 — 정수 소수부 = 거부 · 결측 = null · 꼴 틀림 = FormatException', () {

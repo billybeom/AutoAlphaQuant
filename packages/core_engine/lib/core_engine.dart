@@ -78,6 +78,10 @@ export 'src/decimal_rules.dart'
         oneMinus,
         promoteRatio;
 // 🆕 E11o-a — 골든벡터 기기 실행기 뼈대 · GV-1~4(설계 13 §8 R161 · R162).
+// 🆕 E11o-b — 실행기 목록 분리 · 비용 · 달력 · 주문 계열 · 골든 설정 받침(설계 13 §8 R163).
+export 'src/golden/device_suite.dart' show kDeviceGoldenSuite;
+export 'src/golden/golden_fixtures.dart'
+    show kGv19StaleTaxRate, kTradingDaysPerYear, krCostsFromSpec;
 export 'src/golden/golden_runner.dart'
     show
         GoldenBundle,
@@ -88,6 +92,7 @@ export 'src/golden/golden_runner.dart'
         GvFailure,
         GvProbe,
         SuiteGoldenSelfTest,
+        gvDecimal,
         gvDouble,
         gvInt,
         gvIntList,
@@ -96,13 +101,11 @@ export 'src/golden/golden_runner.dart'
         gvObjectList,
         gvString,
         gvStringList;
+export 'src/golden/gv_costs_calendar.dart' show Gv11Costs, Gv12Calendar;
+export 'src/golden/gv_orders.dart'
+    show Gv13SubmitCount, Gv30SplitExecution, Gv8Sizing, Gv9Idempotency;
 export 'src/golden/gv_regime.dart'
-    show
-        Gv1RegimeScore,
-        Gv2Indicators,
-        Gv3ExposureGate,
-        Gv4Hysteresis,
-        kDeviceGoldenSuite;
+    show Gv1RegimeScore, Gv2Indicators, Gv3ExposureGate, Gv4Hysteresis;
 // 🆕 E16g2 — X1-2 백업 매니페스트 · 복원 판정 합성(순수 · 설계 13 §8 R135).
 export 'src/migration/backup_manifest.dart'
     show

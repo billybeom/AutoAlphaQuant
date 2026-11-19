@@ -6,8 +6,6 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
-import 'order_path_fixture.dart';
-
 Decimal _d(String s) => Decimal.parse(s);
 
 /// 제출 · 예수금 조회를 한 줄로 기록하는 가짜.
