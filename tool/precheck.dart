@@ -967,6 +967,7 @@ void checkWriteOnlyCounters(TestFile f, Structure s) {
     ';',
     '}',
   };
+  const Set<String> stmtStart = <String>{'{', ';', '}', ')', 'else'};
   const Set<String> writeOps = <String>{
     '=',
     '+=',
@@ -1001,7 +1002,15 @@ void checkWriteOnlyCounters(TestFile f, Structure s) {
     int writes = 0;
     int reads = 0;
     int selfUntil = -1; // `x = x + 1;` 의 오른쪽 x 는 읽기가 아니라 같은 쓰기
+    // 문자열 보간 안($x · ${… x …})은 어휘 분석이 건너뛰므로 글자로 찾는다 = 읽기.
+    final RegExp interp = RegExp(
+      '\\\$(\\{[^}]*\\b$name\\b|$name(?![A-Za-z0-9_]))',
+    );
     for (int j = k + 5; j < s.match[e]; j++) {
+      if (toks[j].kind == TokKind.string && interp.hasMatch(toks[j].text)) {
+        reads++;
+        continue;
+      }
       if (s.t(j) != name || toks[j].kind != TokKind.ident) {
         continue;
       }
@@ -1011,13 +1020,21 @@ void checkWriteOnlyCounters(TestFile f, Structure s) {
       if (s.t(j + 1) == ':' && (s.t(j - 1) == '(' || s.t(j - 1) == ',')) {
         continue; // 이름 붙은 인자 이름
       }
+      // 문장 머리에 선 대입·증감만 쓰기다 — `(m++).toString()` · `x = m++` 처럼 값을 쓰면 읽기.
+      final bool prefix = s.t(j - 1) == '++' || s.t(j - 1) == '--';
+      final String op = s.t(j + 1);
       if (j <= selfUntil) {
         writes++;
-      } else if (writeOps.contains(s.t(j + 1)) ||
-          s.t(j - 1) == '++' ||
-          s.t(j - 1) == '--') {
+      } else if (prefix &&
+          stmtStart.contains(s.t(j - 2)) &&
+          s.t(j + 1) == ';') {
         writes++;
-        if (s.t(j + 1) == '=') {
+      } else if (!prefix &&
+          stmtStart.contains(s.t(j - 1)) &&
+          writeOps.contains(op) &&
+          ((op != '++' && op != '--') || s.t(j + 2) == ';')) {
+        writes++;
+        if (op == '=') {
           selfUntil = s.statementEnd(j + 2);
         }
       } else {
