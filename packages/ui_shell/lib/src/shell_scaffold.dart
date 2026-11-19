@@ -107,6 +107,7 @@ class _PhoneHome extends ConsumerWidget {
             ) ??
         false;
     final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+    final ShellSlotBuilder? place = ref.watch(shellOpsSlotBuilderProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -114,6 +115,13 @@ class _PhoneHome extends ConsumerWidget {
           shellTitle(flags, _tabLabels[index]),
           key: const Key('s01-title'),
         ),
+        actions: <Widget>[
+          if (place != null)
+            KeyedSubtree(
+              key: const Key('s01-kill-slot'),
+              child: place(OpsSlotIds.killSwitch),
+            ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -261,6 +269,7 @@ class _WebFrame extends ConsumerWidget {
     final List<String> modes = flags == null
         ? const <String>[]
         : shellModeLabels(flags);
+    final ShellSlotBuilder? place = ref.watch(shellOpsSlotBuilderProvider);
 
     return Material(
       child: Row(
@@ -303,7 +312,11 @@ class _WebFrame extends ConsumerWidget {
                     },
                   ),
                 const Spacer(),
-                const SizedBox(key: Key('s02-kill-slot'), height: 56),
+                SizedBox(
+                  key: const Key('s02-kill-slot'),
+                  height: 56,
+                  child: place?.call(OpsSlotIds.killSwitch),
+                ),
               ],
             ),
           ),
