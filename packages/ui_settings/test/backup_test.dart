@@ -542,9 +542,7 @@ void main() {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
         backup: (int call) => one(c.v),
       );
-      final FakeSettingsActions actions = FakeSettingsActions(
-        result: (int call) => Future<ActionResult>.value(results[0]),
-      );
+      final FakeSettingsActions actions = okActions();
       final RecordingLinkOpener opener = RecordingLinkOpener();
 
       await pumpBackup(
@@ -653,9 +651,7 @@ void main() {
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
         backup: (int call) => one(c.v),
       );
-      final FakeSettingsActions actions = FakeSettingsActions(
-        result: (int call) => Future<ActionResult>.value(results[0]),
-      );
+      final FakeSettingsActions actions = okActions();
       final RecordingLinkOpener opener = RecordingLinkOpener();
 
       await pumpBackup(
