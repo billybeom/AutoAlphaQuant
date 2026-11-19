@@ -211,6 +211,22 @@ final DtoCodec<Object> _resumeGateVm = DtoCodec<ResumeGateVm>(
   ResumeGateVm.fromJson,
   (ResumeGateVm v) => v.toJson(),
 );
+// 🆕 계약 v1.25(트랙 B · 01 §34) — M5-1 킬스위치 화면 · M5-5 차단 보드 · X2 재개 리포트 감싸개.
+final DtoCodec<Object> _killSwitchScreenVm = DtoCodec<KillSwitchScreenVm>(
+  'KillSwitchScreenVm',
+  KillSwitchScreenVm.fromJson,
+  (KillSwitchScreenVm v) => v.toJson(),
+);
+final DtoCodec<Object> _blockBoardVm = DtoCodec<BlockBoardVm>(
+  'BlockBoardVm',
+  BlockBoardVm.fromJson,
+  (BlockBoardVm v) => v.toJson(),
+);
+final DtoCodec<Object> _resumeReportVm = DtoCodec<ResumeReportVm>(
+  'ResumeReportVm',
+  ResumeReportVm.fromJson,
+  (ResumeReportVm v) => v.toJson(),
+);
 final DtoCodec<Object> _handoverPlan = DtoCodec<HandoverPlan>(
   'HandoverPlan',
   HandoverPlan.fromJson,
@@ -490,6 +506,24 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
 
   // ── m5/ — 🆕 v1.21(01 §30) M5 안전 동작 ─────────────────────────────────
   // 🆕 v1.22(01 §31) — 사다리 2 · simToAuto 계획 4 · 위저드 결과 1 · E13 결과 1.
+  // 🆕 v1.25(01 §34) — 킬스위치 화면 7 · 발동 접수증 1 · 게이트 꺼짐 1 · 차단 보드 4.
+  FixturePaths.m5BlockBoardClear: FixtureBinding(_blockBoardVm),
+  FixturePaths.m5BlockBoardKillActive: FixtureBinding(_blockBoardVm),
+  FixturePaths.m5BlockBoardResumeIncomplete: FixtureBinding(_blockBoardVm),
+  FixturePaths.m5BlockBoardStopped: FixtureBinding(_blockBoardVm),
+  FixturePaths.m5KillResumeGateOff: FixtureBinding(_killResumeGateVm),
+  FixturePaths.m5KillSwitchActivateReceipts: FixtureBinding(_commandReceipt),
+  FixturePaths.m5KillSwitchActiveLocked: FixtureBinding(_killSwitchScreenVm),
+  FixturePaths.m5KillSwitchActiveUnrecorded: FixtureBinding(
+    _killSwitchScreenVm,
+  ),
+  FixturePaths.m5KillSwitchCancelReadFailed: FixtureBinding(
+    _killSwitchScreenVm,
+  ),
+  FixturePaths.m5KillSwitchLocked: FixtureBinding(_killSwitchScreenVm),
+  FixturePaths.m5KillSwitchOff: FixtureBinding(_killSwitchScreenVm),
+  FixturePaths.m5KillSwitchRecordedReady: FixtureBinding(_killSwitchScreenVm),
+  FixturePaths.m5KillSwitchRecordedWaiting: FixtureBinding(_killSwitchScreenVm),
   FixturePaths.m5BreakerLadderNormal: FixtureBinding(_breakerLadderVm),
   FixturePaths.m5BreakerLadderStopped: FixtureBinding(_breakerLadderVm),
   FixturePaths.m5HandoverSimToAutoActionResults: FixtureBinding(_actionResult),
@@ -1023,6 +1057,13 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.x2ResumeGateSeasonalPending: FixtureBinding(_resumeGateVm),
   FixturePaths.x2ResumeReportNormal: FixtureBinding(_resumeReport),
   FixturePaths.x2ResumeReportRecoveryFull: FixtureBinding(_resumeReport),
+  // 🆕 v1.25(01 §34) — 게이트 막힌 것 0 · 리포트 화면 감싸개 3.
+  FixturePaths.x2ResumeGateClear: FixtureBinding(_resumeGateVm),
+  FixturePaths.x2ResumeReportScreenEmpty: FixtureBinding(_resumeReportVm),
+  FixturePaths.x2ResumeReportScreenNormal: FixtureBinding(_resumeReportVm),
+  FixturePaths.x2ResumeReportScreenRecoveryFull: FixtureBinding(
+    _resumeReportVm,
+  ),
 };
 
 /// 🔴 **뷰모델이 아직 계약에 없는 픽스처** — 지우지 않고 사유와 함께 남긴다.
