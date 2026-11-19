@@ -29,6 +29,7 @@ export 'src/jobs/seasonal_a_job.dart';
 export 'src/jobs/tier_b_step.dart';
 export 'src/local/alert_read_model.dart';
 export 'src/local/alert_store.dart';
+export 'src/local/biometric_sign_store.dart';
 export 'src/local/config_version_store.dart';
 export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';

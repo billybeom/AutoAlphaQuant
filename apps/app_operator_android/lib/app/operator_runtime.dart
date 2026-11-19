@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
     show
+        BiometricOutcome,
         DeviceRiskFacts,
         ExchangeCalendar,
         Market,
@@ -60,6 +61,7 @@ class OperatorRuntime {
     this.deviceId,
     this.humanDecision,
     TrustedClock? trusted,
+    this.biometricSign,
   }) : secure = secure ?? SecureScreen(_noSecure),
        trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
@@ -110,6 +112,9 @@ class OperatorRuntime {
   /// 🆕 E11p4h(R157) — 신뢰 시각(서약 쓰기 · 12월 창 판정 — 기기 시계 아님). 🔴 실물(Supabase 서버 `now()` · 시계 차
   /// 판정) = E11k 가 여기 하나에 넣는다 · 그 전 = «모름»(쓰기는 엔진이 `TRUSTED_TIME_UNKNOWN` 으로 거부한다).
   final TrustedClock trusted;
+
+  /// 🆕 E11p4j(R159) — O-04 ③ 생체 확인(플랫폼 · `AndroidOps.biometricSign` · 없음 = 할 수 없음).
+  final Future<BiometricOutcome> Function()? biometricSign;
 
   /// 🆕 E11p3d-2c(R136) — H-03 기기 측정(저장공간 · 배터리 · 보안 패치 · 온도 — 값만 · 없음 = 기기 리스크 원천 없음).
   final Future<DeviceRiskFacts> Function()? deviceProbe;

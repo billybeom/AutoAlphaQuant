@@ -202,6 +202,8 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       },
       // 🆕 R136 — H-03 기기 측정(값만 · 판정 = 엔진).
       deviceProbe: () => ops.deviceRisk(clock.nowUtc()),
+      // 🆕 R159 — O-04 ③ 생체 서명(프레임워크 BiometricPrompt).
+      biometricSign: ops.biometricSign,
       deviceId: deviceId,
       humanDecision: human,
     );

@@ -187,6 +187,13 @@ internal object OpsChannel {
                 r.success(pendingLink)
                 pendingLink = null
             }
+            // 🆕 E11p4j(R159) — O-04 ③ 생체 서명(결과 = OK · CANCELED · UNAVAILABLE · 글자 = Dart 가 넘긴다).
+            "biometricSign" -> {
+                val title = call.argument<String>("title") ?: return r.error("bad_args", null, null)
+                val subtitle = call.argument<String>("subtitle") ?: return r.error("bad_args", null, null)
+                val cancel = call.argument<String>("cancel") ?: return r.error("bad_args", null, null)
+                BiometricGate.authenticate(activityRef?.get(), title, subtitle, cancel) { r.success(it) }
+            }
             else -> r.notImplemented()
         }
     }

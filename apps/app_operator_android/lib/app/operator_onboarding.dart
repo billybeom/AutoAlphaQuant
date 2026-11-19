@@ -45,6 +45,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
+import 'operator_biometric.dart';
 import 'operator_runtime.dart';
 
 /// 온보딩 실측(Android) — 모르면 null.
@@ -216,6 +217,8 @@ class OperatorOnboardingRepository implements OnboardingRepository {
     'pledge',
     'decision_log',
     'config_versions',
+    // 🆕 R159 — ③ 생체 서명 기록.
+    'command_inbox',
   };
 
   /// 🆕 R127 — 마무리 사실(고르기 전 = [StateError]).
@@ -239,6 +242,8 @@ class OperatorOnboardingRepository implements OnboardingRepository {
           null,
       openingDeclared: store.openingDecisionId() != null,
       configHash: cfg is OpsConfigReady ? cfg.configHash : null,
+      // 🆕 R159 — ③ 생체 서명(기기 id 없음 = 원천 없음 · 서약 없음 = 아직).
+      biometricSigned: OperatorBiometricSign(_rt).fact(),
     );
   }
 

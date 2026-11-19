@@ -1,7 +1,8 @@
 // E11p2 · P5 · P8 · P12 — 운영 채널 어댑터 계약(Kotlin `OpsChannel` 흉내).
 
 import 'package:app_operator_android/platform/platform.dart';
-import 'package:core_engine/core_engine.dart' show DeviceRiskFacts;
+import 'package:core_engine/core_engine.dart'
+    show BiometricOutcome, BiometricSignTexts, DeviceRiskFacts;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -141,6 +142,31 @@ void main() {
         AndroidOps().deviceId(),
         throwsA(isA<FormatException>()),
       );
+    },
+  );
+
+  test(
+    '🔴 생체 서명(R159) — 대화상자 글자 = 엔진 · 결과 세 값 · 모르는 값 = 던진다(성공을 지어내지 않는다)',
+    () async {
+      for (final BiometricOutcome o in BiometricOutcome.values) {
+        calls.clear();
+        reply = o.wire;
+        expect(await AndroidOps().biometricSign(), o);
+        expect(calls.single.method, 'biometricSign');
+        expect(calls.single.arguments, <String, String>{
+          'title': BiometricSignTexts.promptTitle,
+          'subtitle': BiometricSignTexts.promptSubtitle,
+          'cancel': BiometricSignTexts.promptCancel,
+        });
+      }
+      for (final Object? bad in <Object?>[null, 'ok', 'FAILED', 1]) {
+        reply = bad;
+        await expectLater(
+          AndroidOps().biometricSign(),
+          throwsA(isA<FormatException>()),
+          reason: '$bad',
+        );
+      }
     },
   );
 

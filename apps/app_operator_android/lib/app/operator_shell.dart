@@ -69,8 +69,10 @@ import 'package:ui_settings/ui_settings.dart'
         settingsSlotBuilderProvider;
 import 'package:ui_shell/ui_shell.dart';
 
+import '../safety/biometric_sign_field.dart';
 import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
+import 'operator_biometric.dart';
 import 'operator_command_api.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
@@ -156,10 +158,14 @@ final Provider<OperatorSafetyActions> operatorSafetyActionsProvider =
       (Ref ref) => OperatorSafetyActions(ref.watch(operatorRuntimeProvider)),
     );
 
-/// 🆕 R115 — 온보딩 슬롯 빌더(M4-11 ①) — 엔진에 있는 키 세트의 시크릿 칸 · 🆕 R157 O-04 ② 서약(M5-8) ·
+/// 🆕 R115 — 온보딩 슬롯 빌더(M4-11 ①) — 엔진에 있는 키 세트의 시크릿 칸 · 🆕 R157 O-04 ② 서약(M5-8) · 🆕 R159 ③ 생체 서명 ·
 /// 나머지 = 자리 부재(크기 0 · 키 `m4-slot-absent`).
 ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
   if (slotId == OnboardingSlotIds.pledgeWrite) return const PledgePanel();
+  // 🆕 R159 — O-04 ③ 생체 서명(플랫폼 몫 · 조립 앱 칸).
+  if (slotId == OnboardingSlotIds.biometricSign) {
+    return BiometricSignField(sign: OperatorBiometricSign(rt).sign);
+  }
   final KisKeySet? set = kisKeySetOfSlot(slotId);
   if (set == null) return const SizedBox.shrink(key: Key('m4-slot-absent'));
   return KisKeySetField(
