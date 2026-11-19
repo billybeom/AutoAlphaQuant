@@ -1,6 +1,6 @@
-# `lib/src/risk/` — 청산 티어·손절선·한도 게이트 (일부 — E1·E3a·E3b)
+# `lib/src/risk/` — 청산 티어·손절선·한도 게이트 (일부 — E1·E3a·E3b·E3c)
 
-> 들어온 것: `position_sizing.dart`(이중 상한 사이징 · GV-8 — v2.31 에서 집행 대상은 아니지만 Decimal 규약의 게이트). `breaker.dart`(드로다운 서킷브레이커 · 재개 자격 · 슬리브별 승수 — E3a). `limits.dart`(한도 판정 · 동시 발동 우선순위 · trace · fail-closed — E3b).
+> 들어온 것: `position_sizing.dart`(이중 상한 사이징 · GV-8 — v2.31 에서 집행 대상은 아니지만 Decimal 규약의 게이트). `breaker.dart`(드로다운 서킷브레이커 · 재개 자격 · 슬리브별 승수 — E3a). `limits.dart`(한도 판정 · 동시 발동 우선순위 · trace · fail-closed — E3b). `warn_limits.dart`(SAF 경고 한도 — 일간 202 · 208 · 302 · 305 · 307 · 월간 201 · 306 · 리밸런싱 204 · 205 · GV-40a~c · fail-closed — E3c · 운영 배선은 밖).
 
 정본: `06_시스템설계/03_알고리즘.md §4` · `04_안전장치.md`
 

@@ -1,6 +1,6 @@
-// 05 GV 계열 처리 구분표(E11o-c2 · 설계 13 §8 R165 · §7 P-2) — 실행기 케이스와 표가 서로 맞는가 · «전량» 표시가 표를 따르는가.
+// 05 GV 계열 처리 구분표(E11o-c2 · E3c · 설계 13 §8 R165 · R166 · §7 P-2) — 실행기 케이스와 표가 서로 맞는가 · «전량» 표시가 표를 따르는가.
 //
-// 🔴 «전량»(`kDeviceGoldenSuite.complete`)은 P-2 범위에 빠진 계열이 0 일 때만 참이다 — 지금은 GV-40a~c(엔진 미구현)가 남아 거짓.
+// 🔴 «전량»(`kDeviceGoldenSuite.complete`)은 P-2 범위에 빠진 계열이 0 일 때만 참이다 — E3c 로 GV-40a~c 가 들어와 참.
 
 import 'package:core_engine/core_engine.dart';
 import 'package:test/test.dart';
@@ -52,14 +52,23 @@ void main() {
     ], isEmpty);
   });
 
-  test('🔴 빠진 계열 = GV-40a~c(엔진 미구현) · «전량» 표시는 표를 따른다', () {
-    expect(goldenCoverageGaps.map((GvCoverage c) => c.id), <String>[
-      'GV-40a',
-      'GV-40b',
-      'GV-40c',
-    ]);
-    expect(goldenCoverageComplete, isFalse);
+  test('🔴 빠진 계열 0 · «전량» 참 · «전량» 표시는 표를 따른다', () {
+    expect(goldenCoverageGaps, isEmpty);
+    expect(goldenCoverageComplete, isTrue);
     expect(kDeviceGoldenSuite.complete, goldenCoverageComplete);
+  });
+
+  test('GV-40a · b · c(AC-B28) = 기기 · 실행기 케이스 = 정답지 12 · 8 · 7 + 건수 1', () {
+    for (final String id in <String>['GV-40a', 'GV-40b', 'GV-40c']) {
+      expect(
+        kGoldenCoverage.firstWhere((GvCoverage c) => c.id == id).disposition,
+        GvDisposition.device,
+        reason: id,
+      );
+    }
+    int of(String id) =>
+        caseIds.where((String c) => goldenCoverageOfCase(c)?.id == id).length;
+    expect(<int>[of('GV-40a'), of('GV-40b'), of('GV-40c')], <int>[13, 9, 8]);
   });
 
   test('P-2 대조 — 05 v2.31 비활성 7 중 GV-8(M1-1 게이트) 밖은 제외 · GV-P0S = CI', () {

@@ -1,4 +1,4 @@
-// 05 GV 계열 처리 구분표 — 기기판 G-GV 의 «전량»이 무엇인지 한 곳에 적는다(E11o-c2 · 설계 13 §8 R165 · §7 P-2).
+// 05 GV 계열 처리 구분표 — 기기판 G-GV 의 «전량»이 무엇인지 한 곳에 적는다(E11o-c2 · 설계 13 §8 R165 · §7 P-2 · E3c R166).
 //
 // 🔴 정본 = 05 v1.23(설계 커밋 `66aad71`) §B 표 · 게이트 표 + 설계 13 §7 **P-2**(Dart G-GV «전량» = 활성 AC-B 179건 +
 //    엔진 관련 AC-S 게이트 + GV-P0S — 빼는 것: 비활성 7행 · P0S 에서 안 도는 25건 · GV-12b · E5b 보류 69건).
@@ -42,7 +42,6 @@ class GvCoverage {
 const GvDisposition _d = GvDisposition.device;
 const GvDisposition _ci = GvDisposition.ciOnly;
 const GvDisposition _x = GvDisposition.excluded;
-const GvDisposition _gap = GvDisposition.gap;
 
 /// 05 v1.23 GV 계열 전부(차례 = 번호).
 const List<GvCoverage> kGoldenCoverage = <GvCoverage>[
@@ -120,16 +119,21 @@ const List<GvCoverage> kGoldenCoverage = <GvCoverage>[
   GvCoverage(
     'GV-40a',
     'AC-B28',
-    _gap,
-    '엔진 미구현 — 일간 경고 한도(SAF 201 · 202 · 204 · 205 · 208) · E3b 잔여 · 05 발주자 대기 세부(208 분모 · 205↔204 순서)',
+    _d,
+    '일간 경고 한도(SAF 202 · 208 · 302 · 305 · 307 · E3c) — 05 대기 세부 = 참조 생성기 판(208 분모 = 새틀 부분 공분산)',
   ),
   GvCoverage(
     'GV-40b',
     'AC-B28',
-    _gap,
-    '엔진 미구현 — 월간 경고 한도(SAF 302 · 305 · 306 · 307) · E3b 잔여 · 05 발주자 대기 세부(306 산식)',
+    _d,
+    '월간 경고 한도(SAF 201 · 306 · E3c) — 05 대기 세부 = 참조 생성기 판(306 = 누계 입력 비교만)',
   ),
-  GvCoverage('GV-40c', 'AC-B28', _gap, '엔진 미구현 — 리밸런싱 경고 한도 · E3b 잔여'),
+  GvCoverage(
+    'GV-40c',
+    'AC-B28',
+    _d,
+    '리밸런싱 경고 한도(SAF 204 · 205 · E3c) — 05 대기 세부 = 참조 생성기 판(205 먼저 → 204)',
+  ),
   GvCoverage('GV-40d', 'AC-S18', _d, '기동 통제(SAF-405)'),
   GvCoverage('GV-40e', 'AC-S18', _d, '재량 예산(SAF-409)'),
   GvCoverage(

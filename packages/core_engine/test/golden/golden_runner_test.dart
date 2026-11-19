@@ -1,4 +1,4 @@
-// 골든벡터 기기 실행기(E11o-a · b · c1 · 설계 13 §8 R161 · R162 · R163 · R164) — 결과 꼴 · 지문 · 실패 집계 · 판정 보류.
+// 골든벡터 기기 실행기(E11o-a · b · c1 · c2 · E3c · 설계 13 §8 R161 · R162 · R163 · R164 · R165 · R166) — 결과 꼴 · 지문 · 실패 집계 · 판정 보류.
 //
 // 🔴 이식 전후 케이스 수를 고정한다([_kCases] — 옛 시험 수 그대로 · 05 총계가 아니다(README 규칙 4 와 다름)).
 // 🔴 정답지 값을 하나 바꾸면 그 케이스만 실패해야 한다(실행기가 «통과»를 지어내지 않는다).
@@ -58,7 +58,7 @@ GoldenBundle _raw(Set<String> names, Map<String, String?> overrides) =>
 
 /// 계열별 케이스 수 = 옛 시험 수(GV-3 = 벡터 8 · 코드 규칙 3 은 시험에 남음 · GV-12 = 벡터 14 · 세션 표 머리말 1 은
 /// 시험에 남음 · GV-11 = 11 · 11e · 11d · 19 · 24 · GV-20 = 20 · 23 · 38 · GV-22 = 22 · 35 · 36 · GV-31 = 31 · s_h5_1 · 18
-/// · GV-32 = 32 · 39 · 17 · GV-37 = 37 · 28d).
+/// · GV-32 = 32 · 39 · 17 · GV-37 = 37 · 28d · GV-40a · b · c = E3c 새로 옮김 — 옛 시험 없음 · 건수 1 + 정답지 12 · 8 · 7).
 const Map<String, int> _kCases = <String, int>{
   'GV-1': 7,
   'GV-2': 12,
@@ -79,6 +79,9 @@ const Map<String, int> _kCases = <String, int>{
   'GV-40e': 10,
   'GV-42': 13,
   'GV-16': 7,
+  'GV-40a': 13,
+  'GV-40b': 9,
+  'GV-40c': 8,
 };
 
 final int _total = _kCases.values.fold(0, (int a, int b) => a + b);
@@ -107,14 +110,15 @@ void main() {
   );
 
   group('실제 벡터', () {
-    test('옮긴 계열 전부 통과 · 아직 «전량» 아님', () async {
+    test('전 계열 통과 · «전량» = 참(E3c — 빠짐 0)', () async {
       final GoldenRunResult r = await kDeviceGoldenSuite.run(bundleOf(files));
       expect(r.failures, isEmpty);
-      expect(_total, 319);
+      expect(_total, 349);
       expect(r.total, _total);
       expect(r.passed, _total);
-      expect(r.complete, isFalse);
-      expect(r.allPassed, isFalse, reason: '부분 실행으로 «통과»를 말하지 않는다(R161 O5)');
+      expect(kDeviceGoldenSuite.complete, isTrue);
+      expect(r.complete, isTrue);
+      expect(r.allPassed, isTrue);
       expect(r.digest, bundleOf(files).digest);
     });
 
@@ -140,23 +144,27 @@ void main() {
       expect(ids.toSet(), hasLength(ids.length));
     });
 
-    test('완성 표시 실행기 = 전량 통과 · 포트 = 참', () async {
+    test('기기판 실행기 = 전량 통과 · 포트 = 참', () async {
       expect((await completeSuite.run(bundleOf(files))).allPassed, isTrue);
       expect(
         await SuiteGoldenSelfTest(
-          completeSuite,
+          kDeviceGoldenSuite,
           () async => bundleOf(files),
         ).run(),
         isTrue,
       );
     });
 
-    test('🔴 미완성 실행기의 포트 = 던진다(게이트에는 «아직»)', () {
+    test('🔴 미완성 실행기의 포트 = 던진다(게이트에는 «아직»)', () async {
+      final GoldenSuite partial = GoldenSuite(
+        kDeviceGoldenSuite.families,
+        complete: false,
+      );
+      final GoldenRunResult r = await partial.run(bundleOf(files));
+      expect(r.failures, isEmpty);
+      expect(r.allPassed, isFalse, reason: '부분 실행으로 «통과»를 말하지 않는다(R161 O5)');
       expect(
-        SuiteGoldenSelfTest(
-          kDeviceGoldenSuite,
-          () async => bundleOf(files),
-        ).run(),
+        SuiteGoldenSelfTest(partial, () async => bundleOf(files)).run(),
         throwsStateError,
       );
     });
@@ -492,6 +500,46 @@ void main() {
               _at(j, <Object>['GV-40e', 0, 'expected', 'metrics']),
               'rolling_12m_count',
             ),
+          ),
+          (
+            'gv40_saf_warn.json',
+            'GV-40a a02',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['GV-40a', 1, 'expected'])['triggered'] =
+                    <Object?>[],
+          ),
+          (
+            'gv40_saf_warn.json',
+            'GV-40a a04',
+            (Map<String, Object?> j) => _at(j, <Object>[
+              'GV-40a',
+              3,
+              'expected',
+              'metrics',
+            ])['sat_rc_share_of_portfolio'] = 0.4000001,
+          ),
+          (
+            'gv40_saf_warn.json',
+            'GV-40b b7',
+            (Map<String, Object?> j) => _at(j, <Object>[
+              'GV-40b',
+              6,
+              'expected',
+              'actions',
+            ])['SAF-306'] = '주문 거부',
+          ),
+          (
+            'gv40_saf_warn.json',
+            'GV-40c c4',
+            (Map<String, Object?> j) {
+              final Map<String, Object?> e = _at(j, <Object>[
+                'GV-40c',
+                3,
+                'expected',
+              ]);
+              e['excluded_204'] = (e['excluded_204']! as List<Object?>).reversed
+                  .toList();
+            },
           ),
         ]) {
       test('$file → $caseId', () async {
