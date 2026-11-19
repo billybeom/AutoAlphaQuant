@@ -19,7 +19,12 @@ import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/safety/biometric_sign_field.dart';
 import 'package:app_operator_android/secret/kis_key_set_field.dart';
 import 'package:core_engine/core_engine.dart'
-    show DeviceRiskFacts, P0sHumanInputs, TrustedClock, alertInboxOf;
+    show
+        DeviceRiskFacts,
+        HoldingsTexts,
+        P0sHumanInputs,
+        TrustedClock,
+        alertInboxOf;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show P0sHumanDecision, SqliteAlertSink, SqliteOnboardingStore, storedAlerts;
@@ -52,6 +57,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalHoldingsRepositoryProvider,
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
+        journalRebalanceRepositoryProvider,
         journalSafetyRepositoryProvider;
 import 'package:ui_safety/sim_opening.dart' show SimOpeningCash;
 import 'package:ui_safety/ui_safety.dart' show PledgePanel;
@@ -245,8 +251,10 @@ void main() {
     expect(find.text('오늘 주문 0건'), findsOneWidget);
     expect(find.text('오늘 오류 0건'), findsOneWidget);
     expect(find.text('신호 일치 판정 보류'), findsOneWidget);
-    // 🔴 원천 없는 셋 — 슬리브 비중 = 다시 시도(지어내지 않는다) · 안내 · 실사 카드 = 부재.
-    expect(find.byKey(const Key('h01-alloc-fail')), findsOneWidget);
+    // 🆕 R172 — 슬리브 비중 = 원장 배분(개시 전 = 엔진 빈 문장) · 🔴 원천 없는 둘(안내 · 실사 카드) = 부재.
+    expect(find.byKey(const Key('h01-alloc-fail')), findsNothing);
+    expect(find.byKey(const Key('h01-alloc')), findsOneWidget);
+    expect(find.text(HoldingsTexts.allocationEmpty), findsOneWidget);
     expect(find.byKey(const Key('h01-fail')), findsNothing);
     await open(tester, AppRoutes.journalTimeline);
     expect(tester.takeException(), isNull);
@@ -361,6 +369,14 @@ void main() {
     expect(
       container.read(shellAdviceRepositoryProvider),
       isA<OperatorAdviceRepository>(),
+    );
+    // 🆕 R172 — 다음 리밸런싱(H6-3 하단) = 한 인스턴스.
+    expect(
+      identical(
+        container.read(journalRebalanceRepositoryProvider),
+        container.read(operatorRebalanceProvider),
+      ),
+      true,
     );
     // 🆕 R171 — 보유 = 셸 홈 · 일지(H6-1) 한 인스턴스.
     final Object holdings = container.read(operatorHoldingsProvider);

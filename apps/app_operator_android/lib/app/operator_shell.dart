@@ -44,6 +44,8 @@ import 'package:ui_analytics/ui_analytics.dart'
         safetyRepositoryProvider;
 import 'package:ui_journal/ui_journal.dart'
     show
+        HoldingDetail,
+        HoldingsAllocation,
         HoldingsOverview,
         LedgerDiffs,
         LedgerRepairs,
@@ -51,6 +53,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalHoldingsRepositoryProvider,
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
+        journalRebalanceRepositoryProvider,
         journalSafetyRepositoryProvider;
 import 'package:ui_safety/sim_opening.dart'
     show SimOpeningCash, safetySimOpeningCommandApiProvider;
@@ -133,6 +136,16 @@ final Provider<OperatorHoldingsRepository> operatorHoldingsProvider =
     Provider<OperatorHoldingsRepository>((Ref ref) {
       final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
       return OperatorHoldingsRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
+
+/// 🆕 R172 — 리밸런싱(다음 회차 · H6-3 하단 · 한 인스턴스 · 미리보기 링크 = 레지스트리에 본문이 있을 때만).
+final Provider<OperatorRebalanceRepository> operatorRebalanceProvider =
+    Provider<OperatorRebalanceRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorRebalanceRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
       );
@@ -256,6 +269,11 @@ Widget _settingsAnnualReview(Map<String, String> _) =>
 
 Widget _holdingsOverview(Map<String, String> _) => const HoldingsOverview();
 
+Widget _holdingDetail(Map<String, String> p) =>
+    HoldingDetail(holdingId: p['holdingId'] ?? '');
+
+Widget _holdingsAllocation(Map<String, String> _) => const HoldingsAllocation();
+
 /// 🆕 R129 — 설정 읽기 모델(첫 칸 = S02 키 목록) · 🆕 R134 설정 홈 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만.
 final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
     Provider<OperatorSettingsRepository>((Ref ref) {
@@ -319,6 +337,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.settingsAnnualReview: _settingsAnnualReview,
   // 🆕 E11q1(R171) — M6 H6-1 보유 현황(원장 · 모의 = 가상 현금 · 상세 · 배분 링크 = 등록되면).
   AppRoutes.holdingsOverview: _holdingsOverview,
+  // 🆕 E11q1b(R172) — H6-2 종목 상세 · H6-3 슬리브 배분(= 홈 블록 4 탭 목적지 · 하단 다음 리밸런싱).
+  AppRoutes.holdingsDetail: _holdingDetail,
+  AppRoutes.holdingsAllocation: _holdingsAllocation,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
   // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).
@@ -435,6 +456,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   journalClockProvider.overrideWithValue(runtime.clock),
   journalHoldingsRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorHoldingsProvider),
+  ),
+  // 🆕 R172 — H6-3 하단 다음 리밸런싱(나머지 = 원천 없음 · q2).
+  journalRebalanceRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorRebalanceProvider),
   ),
   journalLinkOpenerProvider.overrideWith(
     (Ref ref) => ref.watch(shellLinkOpenerProvider),

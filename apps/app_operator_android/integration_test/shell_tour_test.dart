@@ -2,6 +2,7 @@
 // 🆕 E11p3d-5h(R146) — + 기기 · 접근(S06 · 실제 기기 id · 설정 홈 «기기·접근» 카드로 들어간다).
 // 🆕 E11p3d-5i(R151) — + 계좌 · 매핑(S03 · 설정 홈 «계좌·매핑» 카드 · 운영 설정 전 = 슬리브 미지정).
 // 🆕 E11q1(R171) — + M6 H6-1 보유 현황(보유 0 = 빈 문장 → 연습 보유를 원장에 넣으면 같은 화면에 카드가 선다).
+// 🆕 E11q1b(R172) — + H6-3 슬리브 배분 · H6-2 종목 상세(같은 연습 보유).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
 // 실행: `flutter test integration_test/shell_tour_test.dart -d emulator-5554` · 표지 `IT_*` 마다 4초 멈춘다(캡처 자리).
@@ -42,7 +43,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
-import 'package:ui_journal/ui_journal.dart' show HoldingsOverview;
+import 'package:ui_journal/ui_journal.dart'
+    show HoldingDetail, HoldingsAllocation, HoldingsOverview;
 import 'package:ui_settings/ui_settings.dart'
     show
         AnnualReviewEntry,
@@ -288,6 +290,20 @@ void main() {
       await _until(tester, find.text('B · 해외 지수·금 ETF'));
       expect(find.textContaining('잔고 기준 '), findsWidgets);
       await _at(tester, find.byType(HoldingsOverview), 'IT_H61B');
+      await tester.pageBack();
+
+      // 🆕 R172 — H6-3 배분(다섯 행 · 하단 다음 리밸런싱) · H6-2 상세(같은 보유 행 · 매수 결정 링크 · 손절선 없음).
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.holdingsAllocation);
+      await _until(tester, find.text('원화 현금 대기'));
+      await _at(tester, find.byType(HoldingsAllocation), 'IT_H63');
+      await tester.pageBack();
+      container
+          .read(shellLinkOpenerProvider)
+          .open('aaq://holdings/detail/h_${P0sStrategyIds.sleeveB}_133690');
+      await _until(tester, find.text('매수 결정 보기'));
+      await _at(tester, find.byType(HoldingDetail), 'IT_H62');
       await tester.pageBack();
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);

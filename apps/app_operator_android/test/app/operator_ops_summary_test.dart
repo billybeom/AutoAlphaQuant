@@ -107,7 +107,7 @@ void main() {
     await until(() => got.last.nextRebalanceDDayText == 'D-12');
   });
 
-  test('🔴 원천 없는 셋(안내 요약 · 슬리브 비중 · 실사 배지) = «원천 없음» 오류(지어내지 않는다)', () async {
+  test('🔴 원천 없는 셋(안내 요약 · 보유 목록 · 실사 배지) = «원천 없음» 오류(지어내지 않는다)', () async {
     await expectLater(
       const OperatorAdviceRepository().watchSummary(),
       emitsError(isA<UnsupportedError>()),
@@ -116,7 +116,7 @@ void main() {
       OperatorHoldingsRepository(
         rt,
         hasBody: (String _) => true,
-      ).watchAllocation(),
+      ).watchHoldings(),
       emitsError(isA<UnsupportedError>()),
     );
     await expectLater(

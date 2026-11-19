@@ -317,6 +317,52 @@ void main() {
       );
     });
 
+    test('🆕 R172 상세 = 같은 보유 행 · 원 체결 수(REVERSAL · 다른 종목 제외) → «준비 중» 문장', () {
+      final HoldingRow b = src().overview().cards[1].rows.single;
+      expect(src().detail(b.holdingId).holding, b);
+      expect(
+        src().detail(b.holdingId).recentEmptyLabel,
+        HoldingsTexts.recentEmpty,
+      );
+      void fill(String no, String intentId, {String kind = 'ORIGINAL'}) {
+        db.execute(
+          'INSERT OR IGNORE INTO broker_orders (broker_order_no, intent_id, submitted_at, status) '
+          "VALUES (?, ?, '2026-08-03T00:00:00Z', 'FILLED')",
+          <Object?>[no, intentId],
+        );
+        db.execute(
+          'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, fill_kind) '
+          "VALUES (?, ?, '2026-08-03T06:00:00Z', 1, 1, ?)",
+          <Object?>['$no#$kind', no, kind],
+        );
+      }
+
+      fill('2026-08-03:SIM1', 'i1-133690');
+      fill('2026-08-03:SIM2', 'i1-133690');
+      fill('2026-08-03:SIM2', 'i1-133690', kind: 'REVERSAL');
+      fill('2026-08-03:SIM3', 'i2-0085P0');
+      expect(
+        src().detail(b.holdingId).recentEmptyLabel,
+        HoldingsTexts.recentPending(2),
+      );
+      expect(() => src().detail('h_P0S_B_999999'), throwsStateError);
+    });
+
+    test('🆕 R172 배분 = 다섯 행 · 원화 현금 = 개시 현금 합 · 카드 = A · B · C 행 그대로', () {
+      final SleeveAllocationVm a = src().allocation();
+      expect(a.rows, hasLength(5));
+      expect(a.rows.last.parkingText, endsWith('만원'));
+      final HoldingsOverviewVm vm = src().overview();
+      expect(
+        vm.cards.map((HoldingsSleeveCard c) => c.allocation).toList(),
+        <SleeveAllocationRow>[a.rows[0], a.rows[2], a.rows[3]],
+      );
+      expect(
+        src().overview(includePnl: true).cards[1].rows.single.pnl,
+        isNotNull,
+      );
+    });
+
     test('🔴 봉 없는 보유 = 엔진 «종가 없음» 실패', () {
       intent(P0sStrategyIds.sleeveB, '214980', 'D-P');
       position(P0sStrategyIds.sleeveB, '214980', 1, 100000, decision: 'D-P');
@@ -329,5 +375,24 @@ void main() {
     position(P0sStrategyIds.sleeveA, '229200', 1, 1, decision: 'D-A');
     bar('229200', '2026-08-28', 10000);
     expect(() => src().overview(), throwsA(isA<OpsConfigUnavailable>()));
+  });
+
+  group('🆕 R172 배분 — 보유 0', () {
+    test('개시 전(설정 · 현금 0) = 빈 상태', () {
+      final SleeveAllocationVm a = src().allocation();
+      expect(a.rows, isEmpty);
+      expect(a.emptyLabel, HoldingsTexts.allocationEmpty);
+    });
+
+    test('개시 뒤 보유 0 = 원화 현금 대기 100% · 모의 밖 = 원천 없음', () {
+      open();
+      final SleeveAllocationVm a = src().allocation();
+      expect(a.rows.last.bandNoteText, '원화 현금 대기 100.0% — 유휴가 아닙니다');
+      expect(src().overview().cards, isEmpty, reason: 'H6-1 = 빈 보유 그대로');
+      expect(
+        () => src(mode: RunMode.live).allocation(),
+        throwsA(isA<HoldingsSourceUnavailable>()),
+      );
+    });
   });
 }

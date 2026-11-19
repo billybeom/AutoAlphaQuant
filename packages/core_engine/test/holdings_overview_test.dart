@@ -52,6 +52,7 @@ HoldingsOverviewFacts _facts({
   bool integrity = false,
   bool recon = false,
   bool Function(String)? hasBody,
+  Map<(String, String), int> fills = const <(String, String), int>{},
 }) => HoldingsOverviewFacts(
   positions:
       positions ??
@@ -82,6 +83,7 @@ HoldingsOverviewFacts _facts({
   reconSuspect: recon,
   hasBody: hasBody ?? (String _) => false,
   nowUtc: _now,
+  fillCounts: fills,
 );
 
 void main() {
@@ -101,7 +103,7 @@ void main() {
 
   group('회계 = 월말 계획기와 한 원천', () {
     // A 100×10,000 = 100만 · B 200×21,000 = 420만 + 파킹 10×100,000 = 100만 · C 50×10,000 = 50만
-    // · POT 5×21,000 = 10.5만 + POT 현금 0 · 현금 100만(= C 원화) → 총 780.5만.
+    // · POT 5×21,000 = 10.5만 + POT 현금 0 · 현금 100만(= 원화 현금 대기 · R172) → 총 780.5만.
     final HoldingsOverviewVm vm = holdingsOverviewVmOf(_facts());
 
     test('카드 A · B · C 차례 · 제목 = 엔진 이름표', () {
@@ -137,49 +139,24 @@ void main() {
       expect(b.bandNoteText, isNull);
     });
 
-    test('A 줄 = POT 포함 비중 · 계절 슬리브 문장 · C = 목표 잔여 · 밴드 0', () {
+    test('A 줄 = POT 포함 비중 · 계절 슬리브 문장 · 🔴 C = 현금 뺀 목표 잔여(R172) · 밴드 0', () {
       final SleeveAllocationRow a = vm.cards[0].allocation;
-      final Map<String, double> sw = sleeveWeightsOf(
-        monthEndStateFromLedger(
-          holdings: const <LedgerHolding>[
-            LedgerHolding(P0sStrategyIds.sleeveA, '229200', 100),
-            LedgerHolding(P0sStrategyIds.sleeveB, '133690', 200),
-            LedgerHolding(P0sStrategyIds.sleeveB, '214980', 10),
-            LedgerHolding(P0sStrategyIds.sleeveC, '0085P0', 50),
-            LedgerHolding(P0sStrategyIds.pot, '133690', 5),
-          ],
-          closes: <String, Decimal>{
-            '229200': _d('10000'),
-            '133690': _d('21000'),
-            '214980': _d('100000'),
-            '0085P0': _d('10000'),
-            '411060': _d('20000'),
-          },
-          cashKrw: _d('1000000'),
-          potCash: Decimal.zero,
-          reservedKrw: Decimal.zero,
-          pensionUsedThisYear: Decimal.zero,
-          monthIndex: 1,
-          regimeState: null,
-          monthlyCloses: const <String, List<double>>{},
-          hasNextKrSession: false,
-          hasNextUsSession: false,
-          config: WhatIfConfig.defaults.monthEnd,
-          parkingSymbol: WhatIfConfig.defaults.parkingSymbol,
-        ),
+      expect(
+        a.bandNoteText,
+        'A 14.2% · 목표 20.0% — 계절 슬리브 · 밴드 판정 없음',
+        reason: '(100만 + POT 10.5만) / 780.5만',
       );
-      final String aPct =
-          '${(((sw['A'] ?? 0) + (sw['POT'] ?? 0)) * 100).toStringAsFixed(1)}%';
-      expect(a.bandNoteText, 'A $aPct · 목표 20.0% — 계절 슬리브 · 밴드 판정 없음');
       expect(a.sleeveWeight, isNull);
       expect(a.bandState, isNull);
       expect(a.gauge, isNull);
       expect(a.trancheStateText, HoldingsTexts.notApplicable);
       expect(a.engineColumnNote, HoldingsTexts.engineColumnNote);
+      expect(a.sleeveLabel, '슬리브 A');
       final SleeveAllocationRow c = vm.cards[2].allocation;
-      final String cPct = '${((sw['C'] ?? 0) * 100).toStringAsFixed(1)}%';
-      expect(c.bandNoteText, 'C $cPct · 목표 잔여 — 게이지 없음');
-      expect(c.deployedText, '150만원', reason: 'C = 채권 50만 + 원화 100만');
+      expect(c.bandNoteText, 'C 6.4% · 목표 잔여 — 게이지 없음');
+      expect(c.deployedText, '50만원', reason: 'C = 채권 50만(원화 현금 = 따로)');
+      expect(c.parkingText, '0원', reason: '정확히 0 = «0원»(표본)');
+      expect(c.deployedRatio, 1.0);
     });
 
     test('행 = 평가액 내림차순 · POT 는 A 카드 맨 끝 · 서브북 · 표시 글자', () {
@@ -232,12 +209,28 @@ void main() {
     expect(vm.cards[1].rows.first.weightText, HoldingsTexts.hidden);
   });
 
-  test('🔴 RECON_MISMATCH = 끝 «?»', () {
-    final HoldingsOverviewVm vm = holdingsOverviewVmOf(_facts(recon: true));
-    expect(vm.cards[1].allocation.deployedText, '420만원?');
-    expect(vm.cards[1].rows.first.quantityText, '200주?');
-    expect(vm.cards[1].allocation.deployedRatio, isNotNull);
-  });
+  test(
+    '🔴 RECON_MISMATCH = 끝 «?» — 표본 꼴(금액 · 비중 · 수량 · 비중 문장) · 평단 · 트랜치 그대로',
+    () {
+      final HoldingsOverviewVm vm = holdingsOverviewVmOf(
+        _facts(recon: true),
+        includePnl: true,
+      );
+      final SleeveAllocationRow b = vm.cards[1].allocation;
+      expect(b.deployedText, '420만원?');
+      expect(b.deployedPctText, endsWith('%?'));
+      expect(b.sleeveWeight!.label, endsWith(')?'));
+      expect(b.trancheStateText, 'B 트랜치 2/3 — SMA 신호 2개 점등');
+      expect(b.deployedRatio, isNotNull);
+      expect(b.gauge, isNotNull, reason: '기하 유지 · 글자만 «?»');
+      expect(vm.cards[0].allocation.bandNoteText, endsWith('밴드 판정 없음?'));
+      final HoldingRow r = vm.cards[1].rows.first;
+      expect(r.quantityText, '200주?');
+      expect(r.weightText, endsWith('%?'));
+      expect(r.avgPriceText, '20,000원', reason: '평단 = 대사가 다투는 값 아님');
+      expect(r.pnl!.pnlText, '+200,000원?');
+    },
+  );
 
   test('트랜치 = 자산마다 다르면 자산별 · 하나라도 모르면 «모자랍니다»', () {
     expect(
@@ -378,6 +371,237 @@ void main() {
       expect(holdingsManwonText(_d('14150000')), '1,415만원');
       expect(holdingsManwonText(_d('4999')), '0만원');
       expect(holdingsManwonText(_d('5000')), '1만원');
+    });
+  });
+
+  group('🆕 R172 H6-3 배분 = 같은 장부 다섯 행', () {
+    final SleeveAllocationVm a = sleeveAllocationVmOf(_facts());
+
+    test('A → POT → B → C → 원화 현금 대기 · 이름 · POT = A 하위 · 고지 · 기준 줄', () {
+      expect(a.rows.map((SleeveAllocationRow r) => r.sleeve), <SleeveId>[
+        SleeveId.a,
+        SleeveId.pot,
+        SleeveId.b,
+        SleeveId.c,
+        SleeveId.cash,
+      ]);
+      expect(a.rows.map((SleeveAllocationRow r) => r.sleeveLabel), <String>[
+        '슬리브 A',
+        'POT 서브북 (A 하위)',
+        '슬리브 B',
+        '슬리브 C',
+        '원화 현금 대기',
+      ]);
+      expect(a.rows.map((SleeveAllocationRow r) => r.parentSleeve), <SleeveId?>[
+        null,
+        SleeveId.a,
+        null,
+        null,
+        null,
+      ]);
+      expect(a.noticeText, HoldingsTexts.allocationNotice);
+      expect(a.emptyLabel, isNull);
+      expect(a.asOf.label, '배분 기준 2026-08-31 종가');
+    });
+
+    test('POT · 원화 현금 대기 행 = 표본 글자 꼴', () {
+      final SleeveAllocationRow pot = a.rows[1];
+      expect(pot.deployedText, '11만원');
+      expect(pot.parkingText, '0원');
+      expect(pot.bandNoteText, 'POT 1.3% — A 에 포함(회계 기준)');
+      expect(pot.engineColumnNote, HoldingsTexts.potEngineColumnNote);
+      expect(pot.trancheStateText, HoldingsTexts.notApplicable);
+      final SleeveAllocationRow cash = a.rows[4];
+      expect(cash.deployedText, '0원');
+      expect(cash.parkingText, '100만원');
+      expect((cash.deployedRatio, cash.parkingRatio), (0.0, 1.0));
+      expect((cash.deployedPctText, cash.parkingPctText), ('0.0%', '12.8%'));
+      expect(cash.bandNoteText, '원화 현금 대기 12.8% — 유휴가 아닙니다');
+      expect(cash.sleeveWeight, isNull);
+    });
+
+    test(
+      '🔴 H6-1 카드 비중 줄 = H6-3 의 A · B · C 행 그대로(표본 normal ↔ in_band 관계)',
+      () {
+        final HoldingsOverviewVm vm = holdingsOverviewVmOf(_facts());
+        expect(
+          vm.cards.map((HoldingsSleeveCard c) => c.allocation).toList(),
+          <SleeveAllocationRow>[a.rows[0], a.rows[2], a.rows[3]],
+        );
+      },
+    );
+
+    test('🔴 INTEGRITY = 다섯 행 모두 숨김 · 막대 0', () {
+      final SleeveAllocationVm h = sleeveAllocationVmOf(
+        _facts(integrity: true),
+      );
+      expect(h.rows, hasLength(5));
+      for (final SleeveAllocationRow r in h.rows) {
+        expect(
+          (r.deployedText, r.parkingText, r.trancheStateText, r.bandNoteText),
+          (
+            HoldingsTexts.hidden,
+            HoldingsTexts.hidden,
+            HoldingsTexts.hidden,
+            HoldingsTexts.hidden,
+          ),
+          reason: r.sleeveLabel,
+        );
+        expect(r.deployedRatio, isNull);
+      }
+    });
+
+    test('총평가 0 = 빈 상태 · 보유 0 이어도 현금이 있으면 현금 행(H6-1 은 빈 보유 그대로)', () {
+      final SleeveAllocationVm none = sleeveAllocationVmOf(
+        _facts(positions: const <HoldingPositionFact>[], cash: '0'),
+      );
+      expect(none.rows, isEmpty);
+      expect(none.emptyLabel, HoldingsTexts.allocationEmpty);
+      final HoldingsOverviewFacts cashOnly = _facts(
+        positions: const <HoldingPositionFact>[],
+      );
+      final SleeveAllocationVm c = sleeveAllocationVmOf(cashOnly);
+      expect(c.rows.last.bandNoteText, '원화 현금 대기 100.0% — 유휴가 아닙니다');
+      expect(holdingsOverviewVmOf(cashOnly).cards, isEmpty);
+    });
+  });
+
+  group('🆕 R172 H6-2 종목 상세', () {
+    test('보유 행 = H6-1 행 그대로 · 슬리브 이름 · 매수 결정 링크 · 손절선 없음 · 최근 체결 없음', () {
+      final HoldingDetailVm d = holdingDetailVmOf(_facts(), 'h_P0S_B_133690');
+      expect(d.holding, holdingsOverviewVmOf(_facts()).cards[1].rows.first);
+      expect(d.sleeveLabel, 'B · 해외 지수·금 ETF');
+      expect(
+        d.entryDecisionLink,
+        const LinkAction(
+          label: '매수 결정 보기',
+          deepLink: 'aaq://journal/decision/d_P0S_B133690',
+        ),
+      );
+      expect(d.stopLines, isEmpty);
+      expect(d.noStopLineText, HoldingsTexts.noStopRebalance);
+      expect(d.recentEntries, isEmpty);
+      expect(d.recentEmptyLabel, HoldingsTexts.recentEmpty);
+      expect(d.pnlToggleLabel, HoldingsTexts.pnlToggle);
+      expect(d.asOf.label, '잔고 기준 2026-08-31 종가 · 엔진은 일 1회 배치');
+    });
+
+    test('A · POT = 계절 규칙 문장 · POT 슬리브 이름 · 체결이 있으면 «준비 중»(행을 지어내지 않는다)', () {
+      final HoldingDetailVm pot = holdingDetailVmOf(
+        _facts(
+          fills: const <(String, String), int>{
+            (P0sStrategyIds.pot, '133690'): 3,
+          },
+        ),
+        'h_P0S_POT_133690',
+      );
+      expect(pot.sleeveLabel, 'A · 국내 지수 ETF · POT 서브북');
+      expect(pot.noStopLineText, HoldingsTexts.noStopSeasonal);
+      expect(pot.recentEntries, isEmpty);
+      expect(pot.recentEmptyLabel, HoldingsTexts.recentPending(3));
+      expect(
+        holdingDetailVmOf(_facts(), 'h_P0S_A_229200').noStopLineText,
+        HoldingsTexts.noStopSeasonal,
+      );
+      expect(
+        holdingDetailVmOf(_facts(), 'h_P0S_C_0085P0').noStopLineText,
+        HoldingsTexts.noStopRebalance,
+      );
+    });
+
+    test('🔴 없는 보유 = 실패(지어내지 않는다)', () {
+      expect(
+        () => holdingDetailVmOf(_facts(), 'h_P0S_B_999999'),
+        throwsStateError,
+      );
+    });
+  });
+
+  group('🆕 R172 종목 손익 펼침', () {
+    test('평가 손익 = (기준 종가 − 평단) × 수량 · 부호 · 소수 둘째 · 날짜 고지', () {
+      final HoldingRow b = holdingsOverviewVmOf(
+        _facts(),
+        includePnl: true,
+      ).cards[1].rows.first;
+      expect(b.pnl!.unrealizedPnl, _d('200000'));
+      expect(b.pnl!.pnlPct, closeTo(0.05, 1e-12));
+      expect((b.pnl!.pnlText, b.pnl!.pnlPctText), ('+200,000원', '+5.00%'));
+      expect(b.pnl!.disclosureNote, '2026-08-31 종가 기준 · 평가 손익');
+      expect(
+        holdingsOverviewVmOf(_facts()).cards[1].rows.first.pnl,
+        isNull,
+        reason: '펼치지 않으면 손익 0',
+      );
+      final HoldingRow c = holdingsOverviewVmOf(
+        _facts(),
+        includePnl: true,
+      ).cards[2].rows.single;
+      expect((c.pnl!.pnlText, c.pnl!.pnlPctText), ('0원', '0.00%'));
+      final HoldingRow loss = holdingsOverviewVmOf(
+        _facts(
+          positions: <HoldingPositionFact>[
+            _p(P0sStrategyIds.sleeveC, '0085P0', 50, '11000'),
+          ],
+        ),
+        includePnl: true,
+      ).cards[2].rows.single;
+      expect((loss.pnl!.pnlText, loss.pnl!.pnlPctText), ('−50,000원', '−9.09%'));
+      expect(
+        holdingsOverviewVmOf(
+          _facts(integrity: true),
+          includePnl: true,
+        ).cards[1].rows.first.pnl!.pnlText,
+        HoldingsTexts.hidden,
+      );
+    });
+  });
+
+  group('🆕 R172 다음 리밸런싱', () {
+    test(
+      '🔴 표본 m7_next_rebalance_countdown 그대로(08-31 18:00 KST → 09-01 D-1)',
+      () {
+        final Map<String, Object?> d = jsonDecode(
+          File(
+            '../domain_contracts/fixtures/m7/m7_next_rebalance_countdown.json',
+          ).readAsStringSync(),
+        ) as Map<String, Object?>;
+        expect(
+          nextRebalanceVmOf(
+            kr: frozenExchangeCalendar(Market.kr),
+            nowUtc: _now,
+            hasBody: (String _) => true,
+          ),
+          NextRebalanceVm.fromJson(
+            (d['rows']! as List<Object?>).single! as Map<String, Object?>,
+          ),
+        );
+      },
+    );
+
+    test('미리보기 미등록 = 링크 0 · 달력 밖 = «예정 없음» 문장만', () {
+      expect(
+        nextRebalanceVmOf(
+          kr: frozenExchangeCalendar(Market.kr),
+          nowUtc: _now,
+          hasBody: (String _) => false,
+        ).previewRoute,
+        isNull,
+      );
+      final NextRebalanceVm none = nextRebalanceVmOf(
+        kr: frozenExchangeCalendar(Market.kr),
+        nowUtc: DateTime.utc(2099, 1, 1),
+        hasBody: (String _) => true,
+      );
+      expect(none.emptyLabel, NextRebalanceTexts.none);
+      expect(
+        (
+          none.expectedDateText,
+          none.dDayText,
+          none.kindLabel,
+          none.previewRoute,
+        ),
+        (null, null, null, null),
+      );
     });
   });
 }

@@ -6,6 +6,7 @@
 // 🔴 홈의 나머지 셋(안내 요약 · 슬리브 비중 · 원장 실사 배지)은 원천이 없다 — 지어내지 않고 «원천 없음» 오류를 낸다
 //    (안내 · 실사 = 블록 부재 · 비중 = 블록 다시 시도 · 04 §4-1 표시 조건 그대로).
 
+import 'package:core_engine/core_engine.dart' show nextRebalanceVmOf;
 import 'package:data_sync/data_sync.dart'
     show SqliteHoldingsOverviewSource, SqliteOpsHomeSource, watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -23,9 +24,12 @@ import 'package:domain_contracts/domain_contracts.dart'
         LedgerTrustRepository,
         ListResult,
         ManualFillFormSpec,
+        NextRebalanceVm,
         OpsDailySummary,
         OpsRhythmRow,
         OpsSummaryRepository,
+        RebalanceEvent,
+        RebalanceRepository,
         SelfReportSession,
         SleeveAllocationVm,
         TradeJournalEntry;
@@ -115,11 +119,11 @@ class OperatorAdviceRepository implements AdviceRepository {
       _noneNow('fillsOfAdvice');
 }
 
-/// 보유 · 슬리브 비중 — 🆕 E11q1(R171) H6-1 보유 현황 = 원장(모의 = 가상 현금 · 엔진 VM) · 나머지 셋 = 원천 없음
-/// (H6-2 상세 · H6-3 배분 = q1 다음 조각 · 홈 블록 4 = 다시 시도).
+/// 보유 · 슬리브 비중 — 🆕 E11q1(R171) H6-1 보유 현황 · 🆕 E11q1b(R172) H6-2 종목 상세 · H6-3 슬리브 배분(= 홈 블록 4) =
+/// 원장(모의 = 가상 현금 · 엔진 VM · 세 화면 = 한 장부) · 보유 목록(`watchHoldings`) = 원천 없음(계약 경로 · 화면 0).
 ///
-/// 🔴 H6-1 = 화면 상태의 원장 — 원장이 바뀌면 · 1분마다(기준 줄) · 화면 상태가 바뀌면 다시 낸다(`followView`) ·
-///    손익 펼침([includePnl])은 아직 원천이 없어 같은 VM(펼침 글자 = 엔진이 내지 않음) · 링크 = 등록된 화면만([hasBody]).
+/// 🔴 화면 상태의 원장 — 원장이 바뀌면 · 1분마다(기준 줄) · 화면 상태가 바뀌면 다시 낸다(`followView`) ·
+///    [includePnl] = 종목 손익(평단 · 기준 종가) · 링크 = 등록된 화면만([hasBody]).
 class OperatorHoldingsRepository implements HoldingsRepository {
   /// 만든다 — [hasBody] = 셸 레지스트리에 본문이 있나 · [tick] = 기준 줄 갱신 주기.
   OperatorHoldingsRepository(
@@ -151,28 +155,85 @@ class OperatorHoldingsRepository implements HoldingsRepository {
   Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false}) =>
       _none('watchHoldings');
 
+  Stream<T> _follow<T>(
+    T Function(SqliteHoldingsOverviewSource s) read,
+    String what,
+  ) => followView<T>(
+    view: _rt.view,
+    changes: (OperatorView v) => watchLedgerQuery<T>(
+      v.db,
+      SqliteHoldingsOverviewSource.watchedTables,
+      () => read(_src(v)),
+    ),
+    now: (OperatorView v) => read(_src(v)),
+    tick: tick,
+    noView: () => StateError('$what: 화면 상태 없음(온보딩 전)'),
+  );
+
   @override
   Stream<HoldingsOverviewVm> watchHoldingsOverview({bool includePnl = false}) =>
-      followView<HoldingsOverviewVm>(
-        view: _rt.view,
-        changes: (OperatorView v) => watchLedgerQuery<HoldingsOverviewVm>(
-          v.db,
-          SqliteHoldingsOverviewSource.watchedTables,
-          () => _src(v).overview(),
-        ),
-        now: (OperatorView v) => _src(v).overview(),
-        tick: tick,
-        noView: () => StateError('보유 현황: 화면 상태 없음(온보딩 전)'),
+      _follow(
+        (SqliteHoldingsOverviewSource s) => s.overview(includePnl: includePnl),
+        '보유 현황',
       );
 
   @override
   Stream<HoldingDetailVm> watchHoldingDetail(
     String holdingId, {
     bool includePnl = false,
-  }) => _none('watchHoldingDetail');
+  }) => _follow(
+    (SqliteHoldingsOverviewSource s) =>
+        s.detail(holdingId, includePnl: includePnl),
+    '종목 상세',
+  );
 
   @override
-  Stream<SleeveAllocationVm> watchAllocation() => _none('watchAllocation');
+  Stream<SleeveAllocationVm> watchAllocation() =>
+      _follow((SqliteHoldingsOverviewSource s) => s.allocation(), '슬리브 배분');
+}
+
+/// 🆕 E11q1b(R172) — 리밸런싱 — 다음 회차(H6-3 하단 · 엔진 `nextRebalanceVmOf` · 홈 · 리듬과 같은 달력 원천) · 회차 목록 ·
+/// 한 회차 = 원천 없음(q2 몫).
+///
+/// 🔴 시간만 흐르는 값 — 1분마다 다시 셈(같은 값 = 다시 내지 않음) · 미리보기 링크 = 등록된 화면만([hasBody]).
+class OperatorRebalanceRepository implements RebalanceRepository {
+  /// 만든다.
+  OperatorRebalanceRepository(
+    this._rt, {
+    required this.hasBody,
+    this.tick = const Duration(minutes: 1),
+  });
+
+  final OperatorRuntime _rt;
+
+  /// 조립 앱에 이 라우트의 본문이 있나.
+  final bool Function(String route) hasBody;
+
+  /// 다시 셈 주기.
+  final Duration tick;
+
+  NextRebalanceVm _next() => nextRebalanceVmOf(
+    kr: _rt.calendars.kr,
+    nowUtc: _rt.clock.nowUtc(),
+    hasBody: hasBody,
+  );
+
+  @override
+  Stream<NextRebalanceVm> watchNext() => followView<NextRebalanceVm>(
+    view: _rt.view,
+    changes: (OperatorView _) => Stream<NextRebalanceVm>.value(_next()),
+    now: (OperatorView _) => _next(),
+    tick: tick,
+    noView: () => StateError('다음 리밸런싱: 화면 상태 없음(온보딩 전)'),
+  );
+
+  @override
+  Stream<ListResult<RebalanceEvent>> watchEvents({DateRange? range}) =>
+      _none('watchEvents');
+
+  @override
+  Stream<RebalanceEvent> watchEvent(String rebalanceEventId) =>
+      _none('watchEvent');
 }
 
 /// 원장 신뢰 배지 · 실사 — 원천 없음(X7 실사 전 · 홈 블록 9b = 부재).
