@@ -34,10 +34,13 @@
 // 어떻게 부르나(저장소 루트에서 · 카드가 준 줄 그대로):
 //   dart tool/precheck.dart --base origin/main --collection-if 0 \
 //        --report <제출 글 파일> --golden-prefix s710_ --goldens 12
+//   (카드가 «공장 안 if 0» 이면 --factory-if 0 를 더한다 — T6 🟡 → 🔴)
 //   (Windows PowerShell 5.1 은 먼저 [Console]::OutputEncoding = [Text.Encoding]::UTF8)
 // 끝 코드: 0 = 🔴 0건(🟡 는 남을 수 있다) · 1 = 🔴 있음 · 2 = 쓰는 법·git 오류
+// 자가 시험: bash tool/precheck_selftest.sh(새 검사 T1·T3 보강 · T6 · T7 · R6~R9 — 고칠 때마다)
 //
-// 🔵 외부 패키지 없이 dart:io 만 쓴다 — pub get 없이 Git Bash·PowerShell·리눅스 CI 어디서나 돈다.
+// 🔵 외부 패키지 없이 dart:io 만 쓴다 — pub get 없이 Git Bash·PowerShell·리눅스 CI 어디서나 돈다
+//    (R7 만 bash 로 check_labels.sh 를 돌린다 — Windows 는 Git Bash 경로를 찾고, 없으면 세지 않는다).
 // 🔴 이 검사를 통과시키려고 규칙을 줄이지 말 것. 헛경보라고 생각되면 카드·설계 12 §3 을 먼저 고친다.
 // ============================================================================
 
