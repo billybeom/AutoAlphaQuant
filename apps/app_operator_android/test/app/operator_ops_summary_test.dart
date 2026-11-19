@@ -113,7 +113,10 @@ void main() {
       emitsError(isA<UnsupportedError>()),
     );
     await expectLater(
-      const OperatorHoldingsRepository().watchAllocation(),
+      OperatorHoldingsRepository(
+        rt,
+        hasBody: (String _) => true,
+      ).watchAllocation(),
       emitsError(isA<UnsupportedError>()),
     );
     await expectLater(

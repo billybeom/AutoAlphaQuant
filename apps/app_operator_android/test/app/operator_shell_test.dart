@@ -49,6 +49,7 @@ import 'package:ui_journal/ui_journal.dart'
         LedgerDiffs,
         LedgerRepairs,
         journalClockProvider,
+        journalHoldingsRepositoryProvider,
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
         journalSafetyRepositoryProvider;
@@ -361,10 +362,15 @@ void main() {
       container.read(shellAdviceRepositoryProvider),
       isA<OperatorAdviceRepository>(),
     );
-    expect(
+    // 🆕 R171 — 보유 = 셸 홈 · 일지(H6-1) 한 인스턴스.
+    final Object holdings = container.read(operatorHoldingsProvider);
+    expect(holdings, isA<OperatorHoldingsRepository>());
+    for (final Object h in <Object>[
       container.read(shellHoldingsRepositoryProvider),
-      isA<OperatorHoldingsRepository>(),
-    );
+      container.read(journalHoldingsRepositoryProvider),
+    ]) {
+      expect(identical(h, holdings), true);
+    }
     expect(
       container.read(shellLedgerTrustRepositoryProvider),
       isA<OperatorLedgerTrustRepository>(),

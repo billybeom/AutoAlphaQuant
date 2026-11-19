@@ -31,6 +31,34 @@ const String kSimCancelTooLate = 'SIM_CANCEL_TOO_LATE';
 /// 시뮬레이터 주문번호 접두.
 const String kSimOdnoPrefix = 'SIM';
 
+/// 가상 주문 가능 현금(원) — 입출금 합 + 체결(매도 = 대금 − 비용 · 매수 = −(대금 + 비용)) − 판정 전 지정가 매수 예약.
+///
+/// 🔴 브로커(`SimInternalBroker.orderableCashKrw`)와 보유 화면(E11q1 · 설계 13 §8 R171)이 같이 쓰는 한 셈이다.
+/// [cancelled] = 이 브로커가 취소한 주문번호(예약에서 뺀다 · 메모리 — 화면 = 빈 집합 = 새 브로커와 같다).
+Decimal simOrderableCashOf(
+  double cashFlowSum,
+  Iterable<SimExecution> executions,
+  Iterable<SimOrder> openBuys, {
+  Set<String> cancelled = const <String>{},
+}) {
+  Decimal dec(double v) => Decimal.parse('$v');
+  Decimal cash = dec(cashFlowSum);
+  for (final SimExecution e in executions) {
+    final Decimal gross = dec(e.price) * Decimal.fromInt(e.quantity);
+    final Decimal fees = dec(e.commission) + dec(e.tax);
+    cash += switch (e.side) {
+      OrderSide.sell => gross - fees,
+      OrderSide.buy => -(gross + fees),
+    };
+  }
+  for (final SimOrder o in openBuys) {
+    final double? px = o.limitPrice;
+    if (cancelled.contains(o.brokerOrderNo) || px == null) continue;
+    cash -= dec(px) * Decimal.fromInt(o.quantity);
+  }
+  return cash;
+}
+
 /// 원장에 있는 시뮬레이터 주문 하나.
 class SimOrder {
   /// 주문을 만든다.
@@ -254,24 +282,12 @@ class SimInternalBroker implements AccountBroker {
   }
 
   @override
-  Future<Decimal> orderableCashKrw() async {
-    Decimal cash = _dec(await _ledger.cashFlowSum())!;
-    for (final SimExecution e in await _ledger.executions()) {
-      final Decimal gross = _dec(e.price)! * Decimal.fromInt(e.quantity);
-      final Decimal fees = _dec(e.commission)! + _dec(e.tax)!;
-      cash += switch (e.side) {
-        OrderSide.sell => gross - fees,
-        OrderSide.buy => -(gross + fees),
-      };
-    }
-    for (final SimOrder o in await _ledger.openBuys()) {
-      if (_cancelled.contains(o.brokerOrderNo) || o.limitPrice == null) {
-        continue;
-      }
-      cash -= _dec(o.limitPrice)! * Decimal.fromInt(o.quantity);
-    }
-    return cash;
-  }
+  Future<Decimal> orderableCashKrw() async => simOrderableCashOf(
+    await _ledger.cashFlowSum(),
+    await _ledger.executions(),
+    await _ledger.openBuys(),
+    cancelled: _cancelled,
+  );
 
   @override
   Future<BrokerBalance> balance() async => BrokerBalance(

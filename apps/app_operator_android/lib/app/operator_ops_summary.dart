@@ -7,7 +7,7 @@
 //    (안내 · 실사 = 블록 부재 · 비중 = 블록 다시 시도 · 04 §4-1 표시 조건 그대로).
 
 import 'package:data_sync/data_sync.dart'
-    show SqliteOpsHomeSource, watchLedgerQuery;
+    show SqliteHoldingsOverviewSource, SqliteOpsHomeSource, watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AdviceInboxSummary,
@@ -115,10 +115,37 @@ class OperatorAdviceRepository implements AdviceRepository {
       _noneNow('fillsOfAdvice');
 }
 
-/// 보유 · 슬리브 비중 — 원천 없음(보유 읽기 모델 전 · 홈 블록 4 = 다시 시도).
+/// 보유 · 슬리브 비중 — 🆕 E11q1(R171) H6-1 보유 현황 = 원장(모의 = 가상 현금 · 엔진 VM) · 나머지 셋 = 원천 없음
+/// (H6-2 상세 · H6-3 배분 = q1 다음 조각 · 홈 블록 4 = 다시 시도).
+///
+/// 🔴 H6-1 = 화면 상태의 원장 — 원장이 바뀌면 · 1분마다(기준 줄) · 화면 상태가 바뀌면 다시 낸다(`followView`) ·
+///    손익 펼침([includePnl])은 아직 원천이 없어 같은 VM(펼침 글자 = 엔진이 내지 않음) · 링크 = 등록된 화면만([hasBody]).
 class OperatorHoldingsRepository implements HoldingsRepository {
-  /// 만든다.
-  const OperatorHoldingsRepository();
+  /// 만든다 — [hasBody] = 셸 레지스트리에 본문이 있나 · [tick] = 기준 줄 갱신 주기.
+  OperatorHoldingsRepository(
+    this._rt, {
+    required this.hasBody,
+    this.tick = const Duration(minutes: 1),
+  });
+
+  final OperatorRuntime _rt;
+
+  /// 조립 앱에 이 라우트의 본문이 있나.
+  final bool Function(String route) hasBody;
+
+  /// 다시 읽는 주기.
+  final Duration tick;
+
+  SqliteHoldingsOverviewSource _src(OperatorView v) =>
+      SqliteHoldingsOverviewSource(
+        v.db,
+        clock: _rt.clock,
+        kr: _rt.calendars.kr,
+        runMode: v.flags.runMode,
+        accountLabels:
+            _rt.humanDecision?.accountLabels ?? const <String, String>{},
+        hasBody: hasBody,
+      );
 
   @override
   Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false}) =>
@@ -126,7 +153,17 @@ class OperatorHoldingsRepository implements HoldingsRepository {
 
   @override
   Stream<HoldingsOverviewVm> watchHoldingsOverview({bool includePnl = false}) =>
-      _none('watchHoldingsOverview');
+      followView<HoldingsOverviewVm>(
+        view: _rt.view,
+        changes: (OperatorView v) => watchLedgerQuery<HoldingsOverviewVm>(
+          v.db,
+          SqliteHoldingsOverviewSource.watchedTables,
+          () => _src(v).overview(),
+        ),
+        now: (OperatorView v) => _src(v).overview(),
+        tick: tick,
+        noView: () => StateError('보유 현황: 화면 상태 없음(온보딩 전)'),
+      );
 
   @override
   Stream<HoldingDetailVm> watchHoldingDetail(

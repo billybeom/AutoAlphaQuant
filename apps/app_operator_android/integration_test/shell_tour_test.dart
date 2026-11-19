@@ -1,6 +1,7 @@
 // E11p3d-5f 에뮬레이터 종합 확인(설계 13 §8 R140) — 실제 앱 셸에서 홈(H-01) → 더보기 = 설정 홈(S01) → 연결(S07) → H-03.
 // 🆕 E11p3d-5h(R146) — + 기기 · 접근(S06 · 실제 기기 id · 설정 홈 «기기·접근» 카드로 들어간다).
 // 🆕 E11p3d-5i(R151) — + 계좌 · 매핑(S03 · 설정 홈 «계좌·매핑» 카드 · 운영 설정 전 = 슬리브 미지정).
+// 🆕 E11q1(R171) — + M6 H6-1 보유 현황(보유 0 = 빈 문장 → 연습 보유를 원장에 넣으면 같은 화면에 카드가 선다).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
 // 실행: `flutter test integration_test/shell_tour_test.dart -d emulator-5554` · 표지 `IT_*` 마다 4초 멈춘다(캡처 자리).
@@ -18,16 +19,30 @@ import 'package:app_operator_android/engine/system_clock.dart';
 import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/platform/human_inputs_loader.dart';
 import 'package:app_operator_android/platform/platform.dart';
+import 'package:core_engine/core_engine.dart'
+    show P0sHumanInputs, P0sOpsConfig, P0sStrategyIds, kstDateText;
 import 'package:data_sync/data_sync.dart'
-    show HealthchecksClient, ModeAxis, SqliteModeStore;
+    show
+        HealthchecksClient,
+        ModeAxis,
+        SqliteConfigVersionStore,
+        SqliteModeStore;
 import 'package:domain_contracts/domain_contracts.dart'
-    show AppRoutes, ExecPolicy, LedgerFile, OperatingMode, RunMode;
+    show
+        AppRoutes,
+        DecisionReasonCodes,
+        ExecPolicy,
+        LedgerFile,
+        OperatingMode,
+        RunMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:ui_journal/ui_journal.dart' show HoldingsOverview;
 import 'package:ui_settings/ui_settings.dart'
     show
         AnnualReviewEntry,
@@ -69,6 +84,77 @@ Future<void> _until(WidgetTester tester, Finder f) async {
     await Future<void>.delayed(const Duration(milliseconds: 100));
   }
   await tester.pump();
+}
+
+/// 🆕 R171 — 연습 보유(모의 원장 · 실키 0 · 계좌 번호 0 · 바깥 망 0): 개시 판(설정 해시) + 가상 초기금 + 보유 4 + 그날 봉.
+///
+/// 온보딩이 이미 확정된 원장이라 `declareSimOpening` 대신 같은 두 행(개시 결정 · 입금)을 직접 쓴다.
+void _seedPracticeHoldings(Database db, OperatorRuntime rt) {
+  final P0sHumanInputs inputs = rt.humanDecision!.inputs;
+  final String hash = SqliteConfigVersionStore(
+    db,
+    clock: rt.clock,
+  ).register(P0sOpsConfig.of(inputs).content());
+  final String now = rt.clock.nowUtc().toIso8601String();
+  final String day = kstDateText(rt.clock.nowUtc());
+  db.execute(
+    'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, '
+    'reason, reason_code, config_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    <Object?>[
+      'D-IT-OPEN',
+      now,
+      day,
+      RunMode.simInternal.wire,
+      'MANUAL',
+      P0sStrategyIds.deposit,
+      '연습 개시(에뮬레이터 둘러보기)',
+      DecisionReasonCodes.simOpeningBalance,
+      hash,
+    ],
+  );
+  db.execute(
+    'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, account_alias) '
+    "VALUES ('IT-CASH', ?, 2000000, 'KRW', 'DEPOSIT', 'IT', ?, ?)",
+    <Object?>[day, now, inputs.accountByStrategy[P0sStrategyIds.sleeveC]],
+  );
+  for (final (String strategy, String symbol, int qty, int px)
+      in <(String, String, int, int)>[
+        (P0sStrategyIds.sleeveA, inputs.aSymbol, 100, 10000),
+        (P0sStrategyIds.sleeveB, '133690', 30, 120000),
+        (P0sStrategyIds.sleeveB, '214980', 10, 100000),
+        (P0sStrategyIds.sleeveC, '0085P0', 50, 10000),
+      ]) {
+    db.execute(
+      'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+      'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+      "updated_at, mode) VALUES (?, ?, ?, ?, 'KR', ?, ?, ?, ?, 'BUY', 'LIMIT', ?, ?, 'FILLED', ?, ?, ?)",
+      <Object?>[
+        'IT-$symbol',
+        'IT-K-$symbol',
+        now,
+        day,
+        inputs.accountByStrategy[strategy],
+        strategy,
+        'D-IT-$symbol',
+        symbol,
+        qty,
+        px,
+        hash,
+        now,
+        RunMode.simInternal.wire,
+      ],
+    );
+    db.execute(
+      'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, updated_at, '
+      "entry_decision_id) VALUES ('KR', ?, ?, ?, ?, ?, ?, ?)",
+      <Object?>[symbol, strategy, qty, px, day, now, 'D-IT-$symbol'],
+    );
+    db.execute(
+      'INSERT OR REPLACE INTO daily_prices (trade_date, market, symbol, open, high, low, close, '
+      "close_unadj, volume) VALUES (?, 'KR', ?, ?, ?, ?, ?, ?, 0)",
+      <Object?>[day, symbol, px, px, px, px, px],
+    );
+  }
 }
 
 void main() {
@@ -192,6 +278,16 @@ void main() {
       await _until(tester, find.textContaining('연간 점검 창을 확인하지 못했습니다'));
       expect(find.textContaining('년 연간 리뷰'), findsWidgets);
       await _at(tester, find.byType(AnnualReviewEntry), 'IT_S12');
+      await tester.pageBack();
+
+      // 🆕 R171 — M6 H6-1 보유 현황 · 보유 0 = 엔진 빈 문장 → 연습 보유를 넣으면(원장 변경) 같은 화면에 카드 A · B · C.
+      container.read(shellLinkOpenerProvider).open(AppRoutes.holdingsOverview);
+      await _until(tester, find.textContaining('보유 종목이 없습니다'));
+      await _at(tester, find.byType(HoldingsOverview), 'IT_H61');
+      _seedPracticeHoldings(files.sim, rt);
+      await _until(tester, find.text('B · 해외 지수·금 ETF'));
+      expect(find.textContaining('잔고 기준 '), findsWidgets);
+      await _at(tester, find.byType(HoldingsOverview), 'IT_H61B');
       await tester.pageBack();
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);

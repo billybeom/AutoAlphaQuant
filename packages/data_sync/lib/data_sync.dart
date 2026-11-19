@@ -36,6 +36,8 @@ export 'src/local/deposit_registrar.dart';
 export 'src/local/derived_sync_store.dart';
 export 'src/local/discretion_store.dart';
 export 'src/local/handover_session_store.dart';
+// 🆕 E11q1 — M6 H6-1 보유 현황 읽기(설계 13 §8 R171).
+export 'src/local/holdings_overview_source.dart';
 export 'src/local/incident_store.dart';
 export 'src/local/intervention_store.dart';
 export 'src/local/job_run_store.dart';
