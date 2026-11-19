@@ -1029,3 +1029,82 @@ Set<String> diagnosticsControlTexts(DiagnosticsScreenVm v) => <String>{
   ?v.golden.runAction?.label,
   ?v.integrity.runAction?.label,
 };
+
+// ── R9c — M9 S12 fakes ──
+
+class FakeSettingsAnnualReviewRepository
+    extends UnimplementedOpsStatusRepository {
+  FakeSettingsAnnualReviewRepository({required this.annual});
+
+  final Stream<AnnualReviewIndexVm> Function(int call) annual;
+  int annualCalls = 0;
+
+  @override
+  Stream<AnnualReviewIndexVm> watchAnnualReview() {
+    final int call = annualCalls;
+    annualCalls = annualCalls + 1;
+    return annual(call);
+  }
+}
+
+List<Override> annualReviewOverrides({
+  required FakeSettingsAnnualReviewRepository repo,
+  required SettingsActions? actions,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  settingsOpsStatusRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsLinkOpenerProvider.overrideWithValue(opener),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpAnnualReview(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: AnnualReviewEntry())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> annualHeadTexts(AnnualReviewIndexVm v) => <String?>[
+  v.yearLabel,
+  v.windowStateLabel,
+];
+
+List<String?> annualEntryLabels(AnnualReviewIndexVm v) => <String?>[
+  for (final LinkAction e in v.entries) e.label,
+];
+
+List<String?> annualEntryTexts(LinkAction e) => <String?>[e.label];
+
+List<String> annualEntryLinks(AnnualReviewIndexVm v) => <String>[
+  for (final LinkAction e in v.entries) e.deepLink,
+];
+
+bool isAnnualEntryRow(Widget w) {
+  final Key? k = w.key;
+  return k is ValueKey<String> && k.value.startsWith('m9s12-entry-');
+}
+
+bool isAnyButton(Widget w) => w is ButtonStyleButton;
+
+Set<String> annualReviewAllowed(AnnualReviewIndexVm v) => <String>{
+  v.yearLabel,
+  v.windowStateLabel,
+  for (final LinkAction e in v.entries) e.label,
+  ?v.pledgeLink?.label,
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
