@@ -233,6 +233,8 @@ void main() {
     testWidgets('M9S09-03 backup run result ${c.name}', (
       WidgetTester tester,
     ) async {
+      expect(c.r.handoffRoute, isNull); // pre
+
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
         backup: (int call) => one(normal),
       );
@@ -240,8 +242,6 @@ void main() {
         result: (int call) => Future<ActionResult>.value(c.r),
       );
       final RecordingLinkOpener opener = RecordingLinkOpener();
-
-      expect(c.r.handoffRoute, isNull); // pre
 
       await pumpBackup(
         tester,
@@ -295,6 +295,8 @@ void main() {
   testWidgets('M9S09-04 busy blocks second tap link opens', (
     WidgetTester tester,
   ) async {
+    expect(normal.migrationLink, isNotNull); // pre
+
     final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
       backup: (int call) => one(normal),
     );
@@ -302,8 +304,6 @@ void main() {
       result: (int call) => Completer<ActionResult>().future,
     );
     final RecordingLinkOpener opener = RecordingLinkOpener();
-
-    expect(normal.migrationLink, isNotNull); // pre
 
     await pumpBackup(
       tester,
@@ -428,6 +428,9 @@ void main() {
   testWidgets('M9S09-06 result stays vm turns locked', (
     WidgetTester tester,
   ) async {
+    expect(locked.lockedLabel, isNotNull); // pre
+    expect(locked.runAction, isNull); // pre
+
     final StreamController<BackupVm> feed = StreamController<BackupVm>();
     addTearDown(feed.close);
     final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
@@ -436,9 +439,6 @@ void main() {
     final FakeSettingsActions actions = FakeSettingsActions(
       result: (int call) => Future<ActionResult>.value(results[1]),
     );
-
-    expect(locked.lockedLabel, isNotNull); // pre
-    expect(locked.runAction, isNull); // pre
 
     feed.add(normal);
     await pumpBackup(
@@ -537,6 +537,8 @@ void main() {
     testWidgets('M9S09-07 locked vs normal ${c.name}', (
       WidgetTester tester,
     ) async {
+      expect(locked.runAction, isNull); // pre
+
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
         backup: (int call) => one(c.v),
       );
@@ -544,8 +546,6 @@ void main() {
         result: (int call) => Future<ActionResult>.value(results[0]),
       );
       final RecordingLinkOpener opener = RecordingLinkOpener();
-
-      expect(locked.runAction, isNull); // pre
 
       await pumpBackup(
         tester,
@@ -648,6 +648,8 @@ void main() {
     testWidgets('M9S09-09 link opens deeplink run zero ${c.name}', (
       WidgetTester tester,
     ) async {
+      expect(c.v.migrationLink, isNotNull); // pre
+
       final FakeSettingsBackupRepository repo = FakeSettingsBackupRepository(
         backup: (int call) => one(c.v),
       );
@@ -655,8 +657,6 @@ void main() {
         result: (int call) => Future<ActionResult>.value(results[0]),
       );
       final RecordingLinkOpener opener = RecordingLinkOpener();
-
-      expect(c.v.migrationLink, isNotNull); // pre
 
       await pumpBackup(
         tester,
