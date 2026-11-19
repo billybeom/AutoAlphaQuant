@@ -24,6 +24,7 @@
 //   [R6] 🔴 «ⓡ = T20 출력:»·«ⓗ = T21 출력:» 아래 줄 = 같은 글 정적 블록 «## T20»·«## T21» 출력 · C4r9a-6
 //   [R7] 🟡 check:labels 줄 «apps/** N» = head 에서 check_labels.sh 를 Git Bash 로 다시 잰 «/apps/» 줄 수
 //              (bash 를 못 찾으면 세지 않고 알리기만 · --no-labels 로 끔) · C4r9a-6
+//   [R8] 🟡 ② 복사 상자(번호 줄) 바로 뒤 빈 줄 = 정확히 1(«N항 줄 수:» 상자를 붙이는 꼴만) · C4r9c-3
 //   [G1] 🟡 골든 표 «글자 n줄»·덩어리 차례 ↔ PNG 에서 센 글자 행·덩어리(PNG 를 다시 열 신호)
 //
 // 어떻게 부르나(저장소 루트에서 · 카드가 준 줄 그대로):
@@ -1197,7 +1198,45 @@ List<GoldenRow> checkReport(String path, Options o, String headRev) {
   if (o.labelsRerun) {
     checkLabelsCount(path, lines, inCode, headRev);
   }
+
+  // R8 ② 복사 상자(번호 줄) 바로 뒤 빈 줄 = 정확히 1(«N항 줄 수:» 상자 앞 · C4r9c-3 · R9c C4AA-1)
+  checkBlankAfterBox(path, lines, inCode);
   return rows;
+}
+
+void checkBlankAfterBox(String path, List<String> lines, List<bool> inCode) {
+  final int head2 = lines.indexOf(sectionHeads[1]);
+  if (head2 < 0) {
+    return;
+  }
+  final RegExp item = RegExp(r'^ ?\d{1,2}\. ');
+  int i = head2 + 1;
+  while (i < lines.length && (inCode[i] || !item.hasMatch(lines[i]))) {
+    if (lines[i].startsWith('## ')) {
+      return; // ② 안에 번호 줄이 없다
+    }
+    i++;
+  }
+  while (i < lines.length && !inCode[i] && item.hasMatch(lines[i])) {
+    i++;
+  }
+  final int lastItem = i; // 1부터 센 마지막 번호 줄의 행
+  int blanks = 0;
+  while (i < lines.length && lines[i].trim().isEmpty) {
+    blanks++;
+    i++;
+  }
+  if (i >= lines.length || !RegExp(r'^\d+항 줄 수:').hasMatch(lines[i])) {
+    return; // «N항 줄 수:» 상자를 붙이는 카드 꼴이 아니다
+  }
+  if (blanks != 1) {
+    yellow(
+      'R8',
+      '$path:$lastItem',
+      '② 복사 상자 마지막 번호 줄 뒤 빈 줄 $blanks개 — 카드 «빈 줄 한 줄»(C4r15c-6): '
+          '상자 바로 뒤에 빈 줄 하나를 두고 «${lines[i]}» 상자를 붙인다(R9c C4AA-1)',
+    );
+  }
 }
 
 final RegExp grepCountLine = RegExp(r'^\S+:\d+$');
@@ -1986,6 +2025,7 @@ void main(List<String> args) {
     'R5': '12항 괄호 · flutter test 줄',
     'R6': 'ⓡ·ⓗ 상자 ↔ 정적 T20·T21',
     'R7': 'check:labels 수',
+    'R8': '② 상자 뒤 빈 줄',
     'G1': '골든 표 ↔ PNG 셈',
   };
   say(
@@ -2003,7 +2043,7 @@ void main(List<String> args) {
     'T5',
     'T6',
     'T7',
-    if (o.report != null) ...<String>['R0', 'R1', 'R2', 'R4', 'R5', 'R6'],
+    if (o.report != null) ...<String>['R0', 'R1', 'R2', 'R4', 'R5', 'R6', 'R8'],
     if (o.report != null && o.labelsRerun) 'R7',
     if (o.report != null && o.goldenPrefix != null) ...<String>['R3', 'G1'],
   };
