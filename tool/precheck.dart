@@ -21,6 +21,9 @@
 //   [R3] 🔴 골든 표 행 수 = --goldens · «— 잘림 …» 꼬리 행 수가 같다 · 배치·잘림 칸 영문 0 · 금지 말 0
 //   [R4] 🔴 S05 결과 줄 꼴(«<파일>:<줄> — 탭 콜백 안») · 정적 묶음 S05 출력과 같은 줄
 //   [R5] 🔴 12항 괄호 비움 0 · «flutter test: 시작 기준 N → 끝 <끝 줄>» 꼴
+//   [R6] 🔴 «ⓡ = T20 출력:»·«ⓗ = T21 출력:» 아래 줄 = 같은 글 정적 블록 «## T20»·«## T21» 출력 · C4r9a-6
+//   [R7] 🟡 check:labels 줄 «apps/** N» = head 에서 check_labels.sh 를 Git Bash 로 다시 잰 «/apps/» 줄 수
+//              (bash 를 못 찾으면 세지 않고 알리기만 · --no-labels 로 끔) · C4r9a-6
 //   [G1] 🟡 골든 표 «글자 n줄»·덩어리 차례 ↔ PNG 에서 센 글자 행·덩어리(PNG 를 다시 열 신호)
 //
 // 어떻게 부르나(저장소 루트에서 · 카드가 준 줄 그대로):
@@ -50,6 +53,9 @@ class Finding {
 
 final List<Finding> findings = <Finding>[];
 
+/// 판정이 아닌 알림(다시 잰 수 · 건너뛴 까닭) — 결과 머리에 한 줄씩.
+final List<String> notes = <String>[];
+
 void red(String code, String where, String message) =>
     findings.add(Finding(true, code, where, message));
 
@@ -67,6 +73,7 @@ class Options {
   int? collectionIf = 0; // null = 카드가 수를 정하지 않음(세기만)
   bool factoryIfZero = false; // true = 카드가 «공장 안 if 0» 을 정함(T6 🔴)
   String? report;
+  bool labelsRerun = true; // R7 — check:labels 수를 head 에서 다시 잰다
   String? goldenPrefix;
   int? goldens;
 }
@@ -79,6 +86,7 @@ const String usage = '''
   --collection-if <N|any> 테스트 코드의 collection-if 기대 수(기본 0 · any = 세기만)
   --factory-if <0|any>    가짜 공장 몸 안 if 기대(0 = 카드가 «공장 안 if 0» → 🔴 · 기본 any = 🟡)
   --report <파일>         채팅 보고 글(①~⑤)을 저장한 UTF-8 파일
+  --no-labels             R7(check:labels 수 다시 재기 · Git Bash 필요)을 건너뛴다
   --golden-prefix <접두>  골든 이름 접두(예 s710_) — 골든 표·PNG 검사
   --goldens <N>           골든 표 행 수(이름 × 밝기)
 ''';
@@ -118,6 +126,8 @@ Options parseArgs(List<String> args) {
         o.factoryIfZero = v == '0';
       case '--report':
         o.report = next();
+      case '--no-labels':
+        o.labelsRerun = false;
       case '--golden-prefix':
         o.goldenPrefix = next();
       case '--goldens':
@@ -1005,7 +1015,7 @@ class GoldenRow {
   final String cell;
 }
 
-List<GoldenRow> checkReport(String path, Options o) {
+List<GoldenRow> checkReport(String path, Options o, String headRev) {
   final File file = File(path);
   if (!file.existsSync()) {
     red('R0', path, '보고 글 파일이 없다');
@@ -1178,7 +1188,186 @@ List<GoldenRow> checkReport(String path, Options o) {
       );
     }
   }
+
+  // R6 ⓡ·ⓗ 상자 ↔ 같은 글 정적 블록 T20·T21 출력(C4r9a-6 · R9a C4Y-1)
+  checkBoxAgainstStatic(path, lines, inCode, 'ⓡ', 'T20');
+  checkBoxAgainstStatic(path, lines, inCode, 'ⓗ', 'T21');
+
+  // R7 check:labels 줄 «apps/** N» ↔ check_labels.sh 다시 잰 수(C4r9a-6 · R9a C4Y-2)
+  if (o.labelsRerun) {
+    checkLabelsCount(path, lines, inCode, headRev);
+  }
   return rows;
+}
+
+final RegExp grepCountLine = RegExp(r'^\S+:\d+$');
+
+/// «ⓡ = T20 출력:» 아래 줄(들) ↔ 정적 묶음 «## T20 …» 아래 출력 줄(EXIT 앞까지). 둘 다 git grep -c 의
+/// «<파일>:<수>» 줄만 견준다. 정적 출력이 없으면(EXIT:1) 상자에도 «<파일>:<수>» 줄이 없어야 한다.
+void checkBoxAgainstStatic(
+  String path,
+  List<String> lines,
+  List<bool> inCode,
+  String mark,
+  String id,
+) {
+  final String marker = '$mark = $id 출력:';
+  final int boxAt = lines.indexWhere((String l) => l.trim() == marker);
+  int staticAt = -1;
+  for (int i = 0; i < lines.length; i++) {
+    if (inCode[i] && (lines[i] == '## $id' || lines[i].startsWith('## $id '))) {
+      staticAt = i;
+      break;
+    }
+  }
+  if (boxAt < 0 || staticAt < 0) {
+    return; // 이 카드 꼴에 상자나 정적 블록이 없다
+  }
+  final List<String> want = <String>[];
+  for (int j = staticAt + 1; j < lines.length && inCode[j]; j++) {
+    final String l = lines[j].trimRight();
+    if (l.startsWith('EXIT') ||
+        l.startsWith('## ') ||
+        l.trimLeft().startsWith('```')) {
+      break;
+    }
+    if (grepCountLine.hasMatch(l)) {
+      want.add(l);
+    }
+  }
+  final List<String> said = <String>[];
+  int j = boxAt + 1;
+  if (j < lines.length && lines[j].trimLeft().startsWith('```')) {
+    j++; // 상자를 코드 블록으로 감싼 꼴
+  }
+  for (; j < lines.length; j++) {
+    final String l = lines[j].trimRight();
+    if (!grepCountLine.hasMatch(l)) {
+      break;
+    }
+    said.add(l);
+  }
+  if (said.join('\n') != want.join('\n')) {
+    String show(List<String> xs) => xs.isEmpty ? '출력 없음' : xs.join(' · ');
+    red(
+      'R6',
+      '$path:${boxAt + 1}',
+      '«$marker» 아래 «${show(said)}» ≠ 같은 글 정적 블록 «## $id» '
+          '(${staticAt + 1}행) 출력 «${show(want)}» — 정적 출력 파일의 $id 줄을 그대로 옮긴다'
+          '(다른 T 줄을 옮긴 꼴 · R9a C4Y-1)',
+    );
+  }
+}
+
+/// ② 끝 «check:labels = … apps/** N줄 …» 의 N ↔ head 의 check_labels.sh 를 Git Bash 로 다시 돌려
+/// «/apps/» 줄을 센 수(카드 N9 와 같은 셈). bash 를 못 찾거나 돌지 않으면 세지 않고 알리기만 한다.
+void checkLabelsCount(
+  String path,
+  List<String> lines,
+  List<bool> inCode,
+  String head,
+) {
+  final RegExp re = RegExp(r'check:labels = .*apps/\*\* (\d+)줄');
+  int at = -1;
+  int said = 0;
+  for (int i = 0; i < lines.length; i++) {
+    final RegExpMatch? m = inCode[i] ? null : re.firstMatch(lines[i]);
+    if (m != null) {
+      at = i;
+      said = int.parse(m.group(1)!);
+      break;
+    }
+  }
+  if (at < 0) {
+    return; // 줄이 없거나 수가 숫자가 아니다(카드 N9 몫)
+  }
+  final (int? got, String why) = rerunCheckLabels(head);
+  if (got == null) {
+    notes.add('check:labels 다시 재기 안 함 — $why');
+    return;
+  }
+  notes.add('check:labels 다시 잰 수 apps/** $got(보고 $said)');
+  if (got != said) {
+    yellow(
+      'R7',
+      '$path:${at + 1}',
+      'check:labels 줄 «apps/** $said줄» ≠ head 에서 다시 잰 $got — 손으로 세지 말고 '
+          'Git Bash 로 check_labels.sh 를 돌린 출력 파일의 «/apps/» 줄 수를 옮긴다(R9a C4Y-2)',
+    );
+  }
+}
+
+/// head 의 packages/·apps/ lib 와 check_labels.sh 를 임시 폴더에 풀어 Git Bash 로 돌린다.
+(int?, String) rerunCheckLabels(String head) {
+  final String? bash = findBash();
+  if (bash == null) {
+    return (
+      null,
+      'Git Bash 를 못 찾았다(Windows 는 «C:\\Program Files\\Git\\bin\\bash.exe»)',
+    );
+  }
+  final Directory tmp = Directory.systemTemp.createTempSync('precheck_labels_');
+  try {
+    String posix(String p) => p.replaceAll(r'\', '/');
+    final String repo = posix(Directory(repoDir).absolute.path);
+    final String dir = posix(tmp.path);
+    final String script =
+        'set -o pipefail; git -C "$repo" archive --format=tar $head -- '
+        "':(glob)packages/*/lib/**' ':(glob)apps/*/lib/**' "
+        'packages/domain_contracts/tool/check_labels.sh | tar -xf - -C "$dir" '
+        '&& bash "$dir/packages/domain_contracts/tool/check_labels.sh"';
+    final ProcessResult r = Process.runSync(
+      bash,
+      <String>['-c', script],
+      stdoutEncoding: utf8,
+      stderrEncoding: utf8,
+    );
+    final String out = r.stdout as String;
+    if ((r.exitCode != 0 && r.exitCode != 1) || !out.contains('대상')) {
+      return (null, 'check_labels.sh 가 돌지 않았다(rc ${r.exitCode})');
+    }
+    final int n = const LineSplitter()
+        .convert(out)
+        .where((String l) => l.contains('/apps/'))
+        .length;
+    return (n, '');
+  } finally {
+    try {
+      tmp.deleteSync(recursive: true);
+    } on FileSystemException {
+      // 임시 폴더를 못 지워도 검사 결과는 그대로다.
+    }
+  }
+}
+
+/// Windows = Git for Windows 의 bash.exe(그냥 «bash» 는 WSL 일 수 있다 · C4r9a-7) · 그 밖 = bash.
+String? findBash() {
+  if (!Platform.isWindows) {
+    try {
+      return Process.runSync('bash', <String>['-c', 'true']).exitCode == 0
+          ? 'bash'
+          : null;
+    } on ProcessException {
+      return null;
+    }
+  }
+  final List<String> roots = <String>[
+    for (final String k in <String>['ProgramW6432', 'ProgramFiles'])
+      if (Platform.environment[k] != null) '${Platform.environment[k]}\\Git',
+  ];
+  final ProcessResult r = Process.runSync('git', <String>['--exec-path']);
+  final String exec = (r.stdout as String).trim().replaceAll(r'\', '/');
+  final int cut = exec.indexOf('/mingw64/');
+  if (cut > 0) {
+    roots.add(exec.substring(0, cut));
+  }
+  for (final String root in roots) {
+    final File f = File('$root/bin/bash.exe');
+    if (f.existsSync()) {
+      return f.path;
+    }
+  }
+  return null;
 }
 
 /// «`s710_cant` (dark)» · «s76c_none dark» · «s77_december_light» → s710_cant_dark
@@ -1765,7 +1954,7 @@ void main(List<String> args) {
 
   List<GoldenRow> rows = <GoldenRow>[];
   if (o.report != null) {
-    rows = checkReport(o.report!, o);
+    rows = checkReport(o.report!, o, head);
   }
   if (rows.isNotEmpty) {
     final Map<String, String> pngs = <String, String>{};
@@ -1795,12 +1984,17 @@ void main(List<String> args) {
     'R3': '골든 표 꼴',
     'R4': 'S05 결과 줄',
     'R5': '12항 괄호 · flutter test 줄',
+    'R6': 'ⓡ·ⓗ 상자 ↔ 정적 T20·T21',
+    'R7': 'check:labels 수',
     'G1': '골든 표 ↔ PNG 셈',
   };
   say(
     '   테스트 파일 $testFiles개 · collection-if $collectionIfTotal개'
     '(기대 ${wantIf ?? '세기만'})',
   );
+  for (final String n in notes) {
+    say('   $n');
+  }
   final Set<String> ran = <String>{
     'T1',
     'T2',
@@ -1809,7 +2003,8 @@ void main(List<String> args) {
     'T5',
     'T6',
     'T7',
-    if (o.report != null) ...<String>['R0', 'R1', 'R2', 'R4', 'R5'],
+    if (o.report != null) ...<String>['R0', 'R1', 'R2', 'R4', 'R5', 'R6'],
+    if (o.report != null && o.labelsRerun) 'R7',
     if (o.report != null && o.goldenPrefix != null) ...<String>['R3', 'G1'],
   };
   for (final String code in titles.keys) {
