@@ -33,6 +33,7 @@ final WarnLimitConfig _kSaf04 = WarnLimitConfig(
 String _actionText(WarnAction a) => switch (a) {
   WarnAction.warnNextRebalance => '경고+다음 리밸런싱에 반영',
   WarnAction.warn => '경고',
+  WarnAction.record => '기록만(P2)',
   WarnAction.rebalance => '리밸런싱',
   WarnAction.topN => '상위 20개만',
   WarnAction.dropExcess => '초과분 제외',

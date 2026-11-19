@@ -16,8 +16,8 @@
 // 🔵 v2.31 P0S — 201 · 202 · 208 은 «해당 없음(보존)»(새틀 0%). 판정 규칙은 보존한다: 새틀 보유가 없으면(또는 비중이 전부 0)
 //    208 은 건너뛰고 202 몫 = 0 이다(참조는 빈 부분행렬에서 «분산 0» 예외를 낸다 — 벡터 밖 입력 · 04 «해당 없음» 쪽을 따름).
 //    201 은 새틀이 비활성이면 부르는 쪽이 부르지 않는다(밴드 0.15~0.21 에 0 을 넣으면 발동한다).
-// 🔵 SAF-307 조치 = 정답지(v2.23) «경고». 04 v2.30 이 307 을 «한도 없음 — 계측 · 기록만(P2)»으로 재정의했다(50% = 초과 일수
-//    계측 기준선) — 판정(> 기준선)은 같고 조치 문구만 다르다 → 벡터 재생성 대상(설계 13 §8 R166).
+// 🔵 SAF-307 조치 = «기록만(P2)»(04 v2.46 · 발주자 확정 2026-11-19 · 설계 13 §8 R175 · R176 — v2.30 재정의의 글자 반영) ·
+//    GV-40 a11 · a12 재생성(05 v1.24 · 판정 불변). 옛 정답지(v2.23) = «경고».
 // 🔵 운영 배선(일간 · 월간 잡 · 리밸런싱 선정 · 알림 등급)은 이 파일 밖이다 — 여기는 판정 규칙(순수 함수)만.
 
 import 'package:decimal/decimal.dart';
@@ -59,8 +59,11 @@ enum WarnAction {
   /// 경고 + 다음 리밸런싱에 반영(SAF-202 · 208).
   warnNextRebalance,
 
-  /// 경고(SAF-302 · 305 · 306 · 307).
+  /// 경고(SAF-302 · 305 · 306).
   warn,
+
+  /// 기록만(P2 — SAF-307 · 04 v2.30 «한도 없음 — 계측» · v2.46).
+  record,
 
   /// 리밸런싱(SAF-201).
   rebalance,
@@ -82,7 +85,7 @@ const Map<String, WarnAction> kWarnActions = <String, WarnAction>{
   WarnLimitIds.defensiveFloor: WarnAction.warn,
   WarnLimitIds.halfKelly: WarnAction.warn,
   WarnLimitIds.financialIncomeCap: WarnAction.warn,
-  WarnLimitIds.usdExposure: WarnAction.warn,
+  WarnLimitIds.usdExposure: WarnAction.record,
 };
 
 /// 섹터가 없는 종목의 버킷(04 §1 v1.4 — 이 버킷에는 SAF-205 를 걸지 않는다).
@@ -116,7 +119,7 @@ class WarnLimitConfig {
   /// SAF-305 켈리 비율(`kelly_fraction` — 하프 켈리 = 0.5 · 03 §3-6).
   final double kellyFraction;
 
-  /// SAF-307 USD 익스포저 기준선(`risk.max_usd_exposure_pct`).
+  /// SAF-307 USD 익스포저 기준선(`risk.max_usd_exposure_pct` — 한도 아님 · 초과 일수 계측 기준선 · 04 v2.30).
   final double maxUsdExposurePct;
 
   /// SAF-201 밴드 아래 끝(포함).
