@@ -43,6 +43,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:ui_analytics/ui_analytics.dart'
+    show RebalanceEventScreen, RebalancePreviewScreen, RebalanceTimelineScreen;
 import 'package:ui_journal/ui_journal.dart'
     show HoldingDetail, HoldingsAllocation, HoldingsOverview;
 import 'package:ui_settings/ui_settings.dart'
@@ -87,6 +89,21 @@ Future<void> _until(WidgetTester tester, Finder f) async {
   }
   await tester.pump();
 }
+
+/// 🆕 R173 — 연습 리밸런싱 회차 1행(월말 잡이 쓰는 꼴 · 모의 원장 · 비중 = 합성 둥근 값).
+void _seedPracticeRebalance(Database db) => db.execute(
+  'INSERT INTO rebalance_event(event_id, trade_date, mode, kind, decision_id, trigger_snapshot, '
+  "weights_before, weights_after, config_hash, created_at) VALUES ('REB-MONTHLY-IT', '2026-10-30', ?, "
+  "'MONTHLY_REGULAR', 'MONTH-END-IT', '{\"targets\":2,\"sleeve_b_held\":false}', ?, ?, 'cfg_it', "
+  "'2026-11-02T00:00:00Z')",
+  <Object?>[
+    RunMode.simInternal.wire,
+    '[{"sleeve":"A","weight":0.19},{"sleeve":"B","weight":0.47},'
+        '{"sleeve":"C","weight":0.30},{"sleeve":"POT","weight":0.04}]',
+    '[{"sleeve":"A","weight":0.19},{"sleeve":"B","weight":0.42},'
+        '{"sleeve":"C","weight":0.35},{"sleeve":"POT","weight":0.04}]',
+  ],
+);
 
 /// 🆕 R171 — 연습 보유(모의 원장 · 실키 0 · 계좌 번호 0 · 바깥 망 0): 개시 판(설정 해시) + 가상 초기금 + 보유 4 + 그날 봉.
 ///
@@ -273,7 +290,7 @@ void main() {
       expect(find.textContaining('마지막 실행 '), findsWidgets);
       await _at(tester, find.byType(Diagnostics), 'IT_S10');
 
-      // 🆕 R168 — S12 12월 연간 리뷰 목차(신뢰 시각 전 = «확인하지 못했습니다» · 목차 = 등록된 M7 화면 0).
+      // 🆕 R168 — S12 12월 연간 리뷰 목차(신뢰 시각 전 = «확인하지 못했습니다» · 목차 = 등록된 M7 화면만 — 🆕 R173 회차 목록).
       container
           .read(shellLinkOpenerProvider)
           .open(AppRoutes.settingsAnnualReview);
@@ -304,6 +321,38 @@ void main() {
           .open('aaq://holdings/detail/h_${P0sStrategyIds.sleeveB}_133690');
       await _until(tester, find.text('매수 결정 보기'));
       await _at(tester, find.byType(HoldingDetail), 'IT_H62');
+      await tester.pageBack();
+
+      // 🆕 R173 — M7 S7-6a 회차 목록(0 = 엔진 빈 문장 → 연습 회차 1행을 넣으면 같은 화면에 행) · S7-6b 상세 ·
+      //    S7-6c 다음 리밸런싱 + 지금 기준 초안(원장 상태 → 엔진 · 버튼 = 예정이 있을 때만).
+      container.read(shellLinkOpenerProvider).open(AppRoutes.rebalanceHistory);
+      await _until(tester, find.text('아직 리밸런싱 회차가 없습니다'));
+      _seedPracticeRebalance(files.sim);
+      await _until(tester, find.text('월간 정기'));
+      await _at(tester, find.byType(RebalanceTimelineScreen), 'IT_R76A');
+      await tester.pageBack();
+      container
+          .read(shellLinkOpenerProvider)
+          .open('aaq://rebalance/event/REB-MONTHLY-IT');
+      await _until(tester, find.byKey(const Key('s76b-before')));
+      await _at(tester, find.byType(RebalanceEventScreen), 'IT_R76B');
+      await tester.pageBack();
+      container.read(shellLinkOpenerProvider).open(AppRoutes.rebalancePreview);
+      await _until(tester, find.byKey(const Key('s76c-asof')));
+      final Finder draftButton = find.byKey(const Key('s76c-preview-button'));
+      if (draftButton.evaluate().isNotEmpty) {
+        await tester.tap(draftButton);
+        await _until(
+          tester,
+          find.byWidgetPredicate(
+            (Widget w) =>
+                w.key == const Key('s76c-draft') ||
+                w.key == const Key('s76c-blocked') ||
+                w.key == const Key('s76c-notice'),
+          ),
+        );
+      }
+      await _at(tester, find.byType(RebalancePreviewScreen), 'IT_R76C');
       await tester.pageBack();
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);

@@ -221,6 +221,23 @@ RebalancePreviewResult previewRebalancePlan(
 /// 회계 기준 A(POT 포함) · B · C(재분류 파킹 포함) 비중 — 목표 = 설정 비중 · 밴드는 B 에만(코어 밴드).
 List<SleeveWeight> _weights(MonthEndState st, WhatIfConfig cfg) {
   final Decimal total = st.totalEquity;
+  final Map<SleeveId, Decimal> v = accountingSleeveValuesOf(st);
+  Decimal t(SleeveId x) => cfg.targetWeights[x] ?? Decimal.zero;
+  return <SleeveWeight>[
+    _row(SleeveId.a, v[SleeveId.a]!, total, t(SleeveId.a), null),
+    _row(
+      SleeveId.b,
+      v[SleeveId.b]!,
+      total,
+      t(SleeveId.b),
+      cfg.monthEnd.coreBand,
+    ),
+    _row(SleeveId.c, v[SleeveId.c]!, total, t(SleeveId.c), null),
+  ];
+}
+
+/// 회계 슬리브 평가액 — A(POT 포함) · B(자산 + 파킹) · C(원화 현금 · 채권 · 금 · 재분류 파킹) · 🔴 미리보기 전후 비중과 같은 셈.
+Map<SleeveId, Decimal> accountingSleeveValuesOf(MonthEndState st) {
   final Decimal b = st.bAssets.values.fold(
     st.bParking,
     (Decimal a, Decimal? v) => v == null ? a : a + v,
@@ -230,13 +247,11 @@ List<SleeveWeight> _weights(MonthEndState st, WhatIfConfig cfg) {
       st.cBond +
       (st.cGold ?? Decimal.zero) +
       st.bParkingReclassified;
-  final Decimal a = total - b - c;
-  Decimal t(SleeveId x) => cfg.targetWeights[x] ?? Decimal.zero;
-  return <SleeveWeight>[
-    _row(SleeveId.a, a, total, t(SleeveId.a), null),
-    _row(SleeveId.b, b, total, t(SleeveId.b), cfg.monthEnd.coreBand),
-    _row(SleeveId.c, c, total, t(SleeveId.c), null),
-  ];
+  return <SleeveId, Decimal>{
+    SleeveId.a: st.totalEquity - b - c,
+    SleeveId.b: b,
+    SleeveId.c: c,
+  };
 }
 
 SleeveWeight _row(

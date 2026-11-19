@@ -6,16 +6,27 @@
 // 🔴 홈의 나머지 셋(안내 요약 · 슬리브 비중 · 원장 실사 배지)은 원천이 없다 — 지어내지 않고 «원천 없음» 오류를 낸다
 //    (안내 · 실사 = 블록 부재 · 비중 = 블록 다시 시도 · 04 §4-1 표시 조건 그대로).
 
-import 'package:core_engine/core_engine.dart' show nextRebalanceVmOf;
+import 'package:core_engine/core_engine.dart'
+    show EngineWhatIfApi, nextRebalanceVmOf;
 import 'package:data_sync/data_sync.dart'
-    show SqliteHoldingsOverviewSource, SqliteOpsHomeSource, watchLedgerQuery;
+    show
+        SqliteHoldingsOverviewSource,
+        SqliteOpsHomeSource,
+        SqlitePlanSnapshotStore,
+        SqliteRebalanceSource,
+        SqliteSafetyRepository,
+        SqliteWhatIfStateSource,
+        watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AdviceInboxSummary,
         AdviceItem,
         AdviceRepository,
         AdviceStatus,
+        CostEstimate,
         DateRange,
+        DepositPlan,
+        DepositPreviewResult,
         HoldingDetailVm,
         HoldingRow,
         HoldingsOverviewVm,
@@ -29,10 +40,14 @@ import 'package:domain_contracts/domain_contracts.dart'
         OpsRhythmRow,
         OpsSummaryRepository,
         RebalanceEvent,
+        RebalancePreviewResult,
         RebalanceRepository,
         SelfReportSession,
         SleeveAllocationVm,
-        TradeJournalEntry;
+        TradeDate,
+        TradeJournalEntry,
+        WhatIfApi,
+        WithdrawalPlan;
 
 import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import 'operator_runtime.dart';
@@ -141,15 +156,7 @@ class OperatorHoldingsRepository implements HoldingsRepository {
   final Duration tick;
 
   SqliteHoldingsOverviewSource _src(OperatorView v) =>
-      SqliteHoldingsOverviewSource(
-        v.db,
-        clock: _rt.clock,
-        kr: _rt.calendars.kr,
-        runMode: v.flags.runMode,
-        accountLabels:
-            _rt.humanDecision?.accountLabels ?? const <String, String>{},
-        hasBody: hasBody,
-      );
+      _holdingsSourceOf(_rt, v, hasBody);
 
   @override
   Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false}) =>
@@ -192,10 +199,45 @@ class OperatorHoldingsRepository implements HoldingsRepository {
       _follow((SqliteHoldingsOverviewSource s) => s.allocation(), '슬리브 배분');
 }
 
-/// 🆕 E11q1b(R172) — 리밸런싱 — 다음 회차(H6-3 하단 · 엔진 `nextRebalanceVmOf` · 홈 · 리듬과 같은 달력 원천) · 회차 목록 ·
-/// 한 회차 = 원천 없음(q2 몫).
+/// 보유 현황 원천(H6-* · 리밸런싱 미리보기가 같은 장부를 쓴다 · R173).
+SqliteHoldingsOverviewSource _holdingsSourceOf(
+  OperatorRuntime rt,
+  OperatorView v,
+  bool Function(String route) hasBody,
+) => SqliteHoldingsOverviewSource(
+  v.db,
+  clock: rt.clock,
+  kr: rt.calendars.kr,
+  runMode: v.flags.runMode,
+  accountLabels: rt.humanDecision?.accountLabels ?? const <String, String>{},
+  hasBody: hasBody,
+);
+
+/// 🆕 R173 — 리밸런싱 원천(회차 · 미리보기 상태) · 차단 = 안전 읽기 모델과 같은 셈.
+SqliteRebalanceSource _rebalanceSourceOf(
+  OperatorRuntime rt,
+  OperatorView v,
+  bool Function(String route) hasBody,
+) => SqliteRebalanceSource(
+  v.db,
+  clock: rt.clock,
+  kr: rt.calendars.kr,
+  us: rt.calendars.us,
+  holdings: _holdingsSourceOf(rt, v, hasBody),
+  activeFlags: () => SqliteSafetyRepository(
+    v.db,
+    mode: v.flags.runMode,
+    clock: rt.clock,
+    trusted: const UnknownTrustedClock(),
+  ).state().activeFlags,
+  hasBody: hasBody,
+);
+
+/// 🆕 E11q1b(R172) — 리밸런싱 — 다음 회차(H6-3 하단 · 엔진 `nextRebalanceVmOf` · 홈 · 리듬과 같은 달력 원천) ·
+/// 🆕 E11q2(R173) 회차 목록 · 한 회차(원장 `rebalance_event` → 엔진 `rebalanceEventsVmOf`).
 ///
-/// 🔴 시간만 흐르는 값 — 1분마다 다시 셈(같은 값 = 다시 내지 않음) · 미리보기 링크 = 등록된 화면만([hasBody]).
+/// 🔴 다음 회차 = 시간만 흐르는 값 — 1분마다 다시 셈(같은 값 = 다시 내지 않음) · 미리보기 · 상세 링크 = 등록된 화면만([hasBody]).
+/// 🔴 회차 = 원장 변경 · 주기마다 다시 읽음 · 기간 인자 = 원천 없음(R12 화면은 인자 없이 부른다 · 거르기 = 엔진 몫).
 class OperatorRebalanceRepository implements RebalanceRepository {
   /// 만든다.
   OperatorRebalanceRepository(
@@ -227,13 +269,80 @@ class OperatorRebalanceRepository implements RebalanceRepository {
     noView: () => StateError('다음 리밸런싱: 화면 상태 없음(온보딩 전)'),
   );
 
-  @override
-  Stream<ListResult<RebalanceEvent>> watchEvents({DateRange? range}) =>
-      _none('watchEvents');
+  Stream<T> _follow<T>(T Function(SqliteRebalanceSource s) read, String what) =>
+      followView<T>(
+        view: _rt.view,
+        changes: (OperatorView v) => watchLedgerQuery<T>(
+          v.db,
+          SqliteRebalanceSource.watchedTables,
+          () => read(_rebalanceSourceOf(_rt, v, hasBody)),
+        ),
+        now: (OperatorView v) => read(_rebalanceSourceOf(_rt, v, hasBody)),
+        tick: tick,
+        noView: () => StateError('$what: 화면 상태 없음(온보딩 전)'),
+      );
 
   @override
-  Stream<RebalanceEvent> watchEvent(String rebalanceEventId) =>
-      _none('watchEvent');
+  Stream<ListResult<RebalanceEvent>> watchEvents({DateRange? range}) =>
+      range != null
+      ? _none('watchEvents(range)')
+      : _follow((SqliteRebalanceSource s) => s.events(), '리밸런싱 회차');
+
+  @override
+  Stream<RebalanceEvent> watchEvent(String rebalanceEventId) => _follow(
+    (SqliteRebalanceSource s) => s.event(rebalanceEventId),
+    '리밸런싱 회차 상세',
+  );
+}
+
+/// 🆕 E11q2(R173) — What-if 창구(S7-6c «지금 기준 초안 보기») — 엔진 `EngineWhatIfApi` + 원장 상태 어댑터.
+///
+/// 🔴 화면 상태(원장 파일)마다 엔진 창구 하나(계획 id 순번 = 그 창구의 메모리 · 호출마다 새 id).
+/// 🔴 리밸런싱 미리보기만 연다 — 입금 · 비용 · 계획 찾기 · 인출 = q3(월 납입 · 신뢰 시각과 함께) 전엔 원천 없음.
+class OperatorWhatIfApi implements WhatIfApi {
+  /// 만든다.
+  OperatorWhatIfApi(this._rt, {required this.hasBody});
+
+  final OperatorRuntime _rt;
+
+  /// 조립 앱에 이 라우트의 본문이 있나.
+  final bool Function(String route) hasBody;
+
+  final Expando<EngineWhatIfApi> _apis = Expando<EngineWhatIfApi>();
+
+  EngineWhatIfApi _api() {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('리밸런싱 미리보기: 화면 상태 없음(온보딩 전)');
+    return _apis[v.db] ??= EngineWhatIfApi(
+      source: SqliteWhatIfStateSource(_rebalanceSourceOf(_rt, v, hasBody)),
+      store: SqlitePlanSnapshotStore(v.db),
+      clock: _rt.clock,
+    );
+  }
+
+  @override
+  Future<RebalancePreviewResult> previewRebalance({TradeDate? plannedDate}) =>
+      Future<EngineWhatIfApi>(_api).then(
+        (EngineWhatIfApi a) => a.previewRebalance(plannedDate: plannedDate),
+      );
+
+  @override
+  Future<DepositPreviewResult> simulateDeposit({required String amountInput}) =>
+      _q3('simulateDeposit');
+
+  /// 🔴 인자 타입 = 부모에서 추론(`Decimal` — 앱 lib 은 decimal 을 들이지 않는다 · 금액 = core).
+  @override
+  Future<WithdrawalPlan> simulateWithdrawal({required amount}) =>
+      _q3('simulateWithdrawal');
+
+  @override
+  Future<CostEstimate> estimateCosts(String planId) => _q3('estimateCosts');
+
+  @override
+  Future<DepositPlan?> findPlan(String planId) => _q3('findPlan');
+
+  static Future<T> _q3<T>(String what) =>
+      Future<T>.error(UnsupportedError('$what: 원천 없음(q3 — 월 납입 조립 뒤)'));
 }
 
 /// 원장 신뢰 배지 · 실사 — 원천 없음(X7 실사 전 · 홈 블록 9b = 부재).
