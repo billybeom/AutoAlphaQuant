@@ -289,6 +289,7 @@ void main() {
       expect(actions.watchCalls, 0);
       expect(repo.contributionCalls, 1);
       expect(changeOf(tester).enabled, isTrue);
+      expect(fieldOf(tester).enabled, isTrue);
       expect(find.byKey(const Key('m9s13-not-accepted')), findsNothing);
       expect(find.text(SettingsLabels.retry), findsNothing);
     });
