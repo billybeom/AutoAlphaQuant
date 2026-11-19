@@ -17,6 +17,7 @@ export 'src/connections.dart';
 export 'src/contribution.dart';
 export 'src/credentials.dart';
 export 'src/devices.dart';
+export 'src/diagnostics.dart';
 export 'src/operations.dart';
 export 'src/settings_home.dart';
 export 'src/settings_providers.dart';

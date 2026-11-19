@@ -923,3 +923,109 @@ Set<String> backupAllowed(BackupVm v) => <String>{
 };
 
 Set<String> backupControlTexts(BackupVm v) => <String>{?v.runAction?.label};
+
+// ── R9b — M9 S10 fakes ──
+
+class FakeSettingsDiagnosticsRepository
+    extends UnimplementedSettingsRepository {
+  FakeSettingsDiagnosticsRepository({required this.diagnostics});
+
+  final Stream<DiagnosticsScreenVm> Function(int call) diagnostics;
+  int diagnosticsCalls = 0;
+
+  @override
+  Stream<DiagnosticsScreenVm> watchDiagnosticsScreen() {
+    final int call = diagnosticsCalls;
+    diagnosticsCalls = diagnosticsCalls + 1;
+    return diagnostics(call);
+  }
+}
+
+List<Override> diagnosticsOverrides({
+  required FakeSettingsDiagnosticsRepository repo,
+  required SettingsActions? actions,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  settingsRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsLinkOpenerProvider.overrideWithValue(opener),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpDiagnostics(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: Diagnostics())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> selfTestCardTexts(SelfTestCard k) => <String?>[
+  k.title,
+  k.statusLabel,
+  ?k.lastRunText,
+  ?k.summaryText,
+];
+
+List<String?> diagnosticsCellTexts(DiagnosticCell c) => <String?>[
+  c.label,
+  c.stateLabel,
+];
+
+List<String?> diagnosticsBoardTexts(DiagnosticsVm b) => <String?>[
+  for (final DiagnosticCell c in b.cells) ...diagnosticsCellTexts(c),
+  b.headline,
+];
+
+bool isDiagnosticsCellRow(Widget w) {
+  final Key? k = w.key;
+  return k is ValueKey<String> && k.value.startsWith('m9s10-cell-');
+}
+
+List<SettingsActionId> selfTestRunIds(SelfTestCard k) => <SettingsActionId>[
+  ?k.runAction?.id,
+];
+
+List<Map<String, String>> selfTestRunArgs(SelfTestCard k) =>
+    <Map<String, String>>[?k.runAction?.args];
+
+List<String?> diagnosticsRunLabels(DiagnosticsScreenVm v) => <String?>[
+  ?v.golden.runAction?.label,
+  ?v.integrity.runAction?.label,
+];
+
+Set<String> diagnosticsAllowed(DiagnosticsScreenVm v) => <String>{
+  ?v.lockedLabel,
+  ?v.recommendText,
+  v.golden.title,
+  v.golden.statusLabel,
+  ?v.golden.lastRunText,
+  ?v.golden.summaryText,
+  v.integrity.title,
+  v.integrity.statusLabel,
+  ?v.integrity.lastRunText,
+  ?v.integrity.summaryText,
+  for (final DiagnosticCell c in v.board.cells) c.label,
+  for (final DiagnosticCell c in v.board.cells) c.stateLabel,
+  v.board.headline,
+  ?v.diffsLink?.label,
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
+
+Set<String> diagnosticsControlTexts(DiagnosticsScreenVm v) => <String>{
+  ?v.golden.runAction?.label,
+  ?v.integrity.runAction?.label,
+};
