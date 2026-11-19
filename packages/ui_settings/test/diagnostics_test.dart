@@ -253,7 +253,9 @@ void main() {
             diagnostics: (int call) => one(diff),
           );
       final FakeSettingsActions actions = FakeSettingsActions(
-        result: (int call) => Future<ActionResult>.value(c.r),
+        result: (int call) => call == 0
+            ? Future<ActionResult>.value(c.r)
+            : Completer<ActionResult>().future,
       );
       final RecordingLinkOpener opener = RecordingLinkOpener();
       await pumpDiagnostics(
@@ -314,6 +316,15 @@ void main() {
       expect(opener.opened, <String>[]);
       expect(find.byKey(const Key('m9s10-golden-not-accepted')), findsNothing);
       expect(find.text(SettingsLabels.retry), findsNothing);
+
+      // Press again with a result on screen: while waiting, the result stays.
+      await tester.tap(find.byKey(const Key('m9s10-golden-run')));
+      await tester.pump();
+      expect(buttonAt(tester, const Key('m9s10-golden-run')).enabled, isFalse);
+      expect(
+        shownTexts(tester, find.byKey(const Key('m9s10-golden-result'))),
+        <String?>[c.r.headline, ?c.r.reasonCode],
+      );
     });
   }
 

@@ -289,6 +289,7 @@ void main() {
       expect(actions.watchCalls, 0);
       expect(repo.contributionCalls, 1);
       expect(changeOf(tester).enabled, isTrue);
+      expect(fieldOf(tester).enabled, isTrue);
       expect(find.byKey(const Key('m9s13-not-accepted')), findsNothing);
       expect(find.text(SettingsLabels.retry), findsNothing);
     });
@@ -374,8 +375,12 @@ void main() {
     testWidgets('M9S13-06 two direction ${c.name}', (
       WidgetTester tester,
     ) async {
+      final Completer<ActionResult> gate = Completer<ActionResult>();
       final FakeSettingsContributionActions actions =
-          FakeSettingsContributionActions(result: c.resultFactory);
+          FakeSettingsContributionActions(
+            result: (int call) =>
+                call == 0 ? c.resultFactory(call) : gate.future,
+          );
 
       await pumpContribution(
         tester,
@@ -402,6 +407,19 @@ void main() {
       );
 
       await tester.tap(find.byKey(const Key('m9s13-change')));
+      await tester.pump();
+
+      // Second press still waiting: the previous lines stay as they were.
+      expect(
+        shownTexts(tester, find.byKey(const Key('m9s13-not-accepted'))),
+        c.firstNa,
+      );
+      expect(
+        shownTexts(tester, find.byKey(const Key('m9s13-result'))),
+        c.firstRes,
+      );
+
+      gate.complete(c.resultFactory(1));
       await tester.pump();
       await tester.pump();
 
