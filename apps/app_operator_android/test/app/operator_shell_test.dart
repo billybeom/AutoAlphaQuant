@@ -73,6 +73,7 @@ import 'package:ui_journal/ui_journal.dart'
 import 'package:ui_safety/sim_opening.dart' show SimOpeningCash;
 import 'package:ui_safety/ui_safety.dart'
     show
+        KillResumeGateScreen,
         KillSwitchScreen,
         PledgePanel,
         safetyKillCommandApiProvider,
@@ -416,6 +417,21 @@ void main() {
       true,
     );
     expect(container.read(safetyKillCommandApiProvider), isNull);
+    // 🆕 R180 — M5-2 재개판 초안 = 게이트 읽기 · 문항 제출 같은 인스턴스.
+    expect(
+      identical(
+        container.read(operatorKillSwitchGateProvider).draft,
+        container.read(operatorKillResumeDraftProvider),
+      ),
+      true,
+    );
+    expect(
+      identical(
+        container.read(operatorSafetyActionsProvider).draft,
+        container.read(operatorKillResumeDraftProvider),
+      ),
+      true,
+    );
     // 🆕 R174 — S7-4 플래너 칸 = 같은 What-if · 같은 명령 API · 셸 설정 원천(한 인스턴스).
     expect(
       identical(
@@ -978,6 +994,16 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('m51-activate')), findsNothing);
+      // 🆕 R180 — M5-2 재개 게이트 = 등록 · 꺼짐 꼴(받을 문항 0).
+      await open(tester, AppRoutes.m5ReleaseGate);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(KillResumeGateScreen), findsOneWidget);
+      expect(find.byKey(const Key('m52-confirm')), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;

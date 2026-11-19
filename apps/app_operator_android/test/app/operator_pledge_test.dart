@@ -153,10 +153,7 @@ void main() {
       a.run(SafetyActionId.ruleChangeCancel),
       throwsA(isA<UnsupportedError>()),
     );
-    await expectLater(
-      a.runKillResumeItem(const KillResumeItemSubmission(itemNo: 1)),
-      throwsA(isA<UnsupportedError>()),
-    );
+    // 🆕 R180 — 재개 문항 = 구현(`operator_kill_resume_test`).
     expect(pledges(), 0);
   });
 

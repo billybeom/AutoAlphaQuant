@@ -18,6 +18,7 @@
 //    (설계 13 §8 R156 · C-35 ⑥ — 뷰어 조립도 이 배럴을 싣는다).
 
 export 'l10n/labels.dart';
+export 'src/kill_switch/kill_resume_gate_screen.dart' show KillResumeGateScreen;
 export 'src/kill_switch/kill_switch_screen.dart'
     show
         KillSwitchActivateButton,

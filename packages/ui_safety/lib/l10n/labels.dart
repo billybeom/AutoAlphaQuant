@@ -73,4 +73,24 @@ abstract final class SafetyLabels {
 
   /// 기록 제출 버튼.
   static const String killRecordSubmit = '기록 마치기';
+
+  // ── M5-2 재개 게이트(06 M5-2 · 01 §30 K37 · 설계 13 §8 R180) ──
+  // 🔴 문항 · 재생 · 답 · 게이지 · 막힘 · 결과 글자 = 엔진 — 여기는 칸 머리 · 확인 버튼 · 서약 머리 · 읽기 실패만.
+
+  /// 게이트를 읽지 못했다.
+  static const String resumeGateReadFailed = '재개 게이트를 읽지 못했습니다.';
+
+  /// 1번 칸.
+  static const String resumeNowRule = '지금 규칙';
+
+  /// 7번 사전 필드 3.
+  static const String resumeRationale = '사전 근거';
+  static const String resumeExpected = '예상 결과';
+  static const String resumeRuleCited = '인용한 규칙';
+
+  /// 한 문항 확인(제출).
+  static const String resumeConfirm = '확인';
+
+  /// 서약 재생 머리.
+  static const String resumePledgeTitle = '내가 쓴 서약';
 }
