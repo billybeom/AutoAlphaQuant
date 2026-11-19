@@ -16,10 +16,12 @@ import 'package:core_engine/core_engine.dart'
         Market,
         OrderBroker,
         P0sOpsConfig,
+        P0sWarnSetup,
         PriceAdjust,
         QuoteFetch,
         QuoteKind,
-        SimInternalBroker;
+        SimInternalBroker,
+        p0sExposureMap;
 import 'package:data_sync/data_sync.dart'
     show
         DailyDataJob,
@@ -151,7 +153,7 @@ JobRunner dailyDataRunner(JobContext c, JobParts p) =>
           return JobBody<DailyDataReport>(r, alerts: r.alerts);
         });
 
-/// `equity_snapshot`(20:30 KST · 늦은 끝 23:59) — 종가 × 보유 + 현금 → 스냅숏 · 브레이커(설정 값).
+/// `equity_snapshot`(20:30 KST · 늦은 끝 23:59) — 종가 × 보유 + 현금 → 스냅숏 · 브레이커(설정 값) · 🆕 P0S 일간 경고(E3d-2).
 JobRunner equitySnapshotRunner(JobContext c, JobParts p) =>
     (JobOccurrence o) =>
         runOccurrence<EquitySnapshotReport>(c, o, (TradeDate day) async {
@@ -163,6 +165,8 @@ JobRunner equitySnapshotRunner(JobContext c, JobParts p) =>
             holdings: holdingsOf(c),
             clock: c.clock,
             config: cfg.breaker,
+            // 🆕 E3d-2 — P0S 일간 경고(302 · 308 · 원화 유동성 = 넘은 첫날 알림 · 307 계측 · 04 §1 Level 3 v2.46).
+            warn: P0sWarnSetup(map: p0sExposureMap(cfg.monthEnd)),
           ).run(day);
           return JobBody<EquitySnapshotReport>(r, alerts: r.alerts);
         });

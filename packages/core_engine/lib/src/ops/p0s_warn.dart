@@ -12,11 +12,13 @@
 // 🔵 범주 = 운영 설정의 슬리브 종목 표 한 곳([p0sExposureMap]) — 방어 = 슬리브 C 보유(채권 + 금 · 현금 · 파킹 제외) ·
 //    금 = 금 ETF 전부(B 몫 + C 몫) · 달러 = 해외 기초자산 ETF 전부 + 달러 현금 · 원화 유동성 = 원화 현금 + 파킹.
 // 🔵 305 는 P0S 계측 0(04 v2.46 · 판정은 `risk/warn_limits.dart` 에 보존) · 306 = 월간(E3d-3).
+// 🆕 E3d-2 — [p0sDailyWarnStep] = 일간 잡 안 단계(마지막 계측일 = 지금 보유 − 그 뒤 체결 · [holdingsBeforeFills]).
 
 import 'package:decimal/decimal.dart';
 
 import '../orders/order_draft.dart' show P0sStrategyIds;
 import '../orders/reconcile.dart' show LedgerHolding;
+import '../portfolio/month_end_plan.dart' show MonthEndConfig;
 import '../risk/limits.dart' show RiskCheckUnavailable;
 import '../risk/warn_limits.dart' show WarnAction, WarnLimitIds, kWarnActions;
 import '../whatif/what_if_config.dart'
@@ -90,9 +92,10 @@ class P0sExposureMap {
   final Set<String> parkingSymbols;
 }
 
-/// P0S 범주 표 — 운영 설정의 슬리브 종목(B 자산 · C 채권 · C 금 · 파킹)에서 짓는다.
-P0sExposureMap p0sExposureMap() {
-  final m = p0sMonthEndConfig();
+/// P0S 범주 표 — 운영 설정의 슬리브 종목(B 자산 · C 채권 · C 금 · 파킹)에서 짓는다
+/// ([monthEnd] = 운영 설정 `P0sOpsConfig.monthEnd` · 없으면 정본 P0S).
+P0sExposureMap p0sExposureMap([MonthEndConfig? monthEnd]) {
+  final MonthEndConfig m = monthEnd ?? p0sMonthEndConfig();
   return P0sExposureMap(
     defensiveStrategyIds: const <String>{P0sStrategyIds.sleeveC},
     goldSymbols: <String>{m.cGoldSymbol},
@@ -235,3 +238,160 @@ List<String> p0sWarnEdgeAlerts({
   if (today.krwLiquidityLow && !(yesterday?.krwLiquidityLow ?? false))
     kKrwLiquidityAlertCode,
 ]..sort();
+
+// ── 🆕 E3d-2 — 일간 잡 안 단계(04 §1 Level 3 v2.46 «어제 값 = 재계산» · 설계 13 §8 R179) ──
+
+/// 일간 잡이 경고 단계를 켤 때 넘기는 설정(범주 표 · 문턱).
+class P0sWarnSetup {
+  /// 만든다 — 빈 칸 = 정본 P0S([p0sExposureMap] · [p0sWarnConfig]).
+  P0sWarnSetup({P0sExposureMap? map, P0sWarnConfig? config})
+    : map = map ?? p0sExposureMap(),
+      config = config ?? p0sWarnConfig();
+
+  /// 범주 표.
+  final P0sExposureMap map;
+
+  /// 문턱.
+  final P0sWarnConfig config;
+}
+
+/// 🔴 마지막 계측일의 보유 = 지금 보유 − 그 뒤 집행일의 체결(부호 있는 합 — 매수 +, 매도 −, REVERSAL 반대 부호).
+///
+/// [fillsAfter] = (strategy_id · 종목 · 부호 있는 수량) — 같은 칸이 여럿이면 더한다. 결과가 음수 = 원장이 맞지 않는다 =
+/// [RiskCheckUnavailable](그날의 «어제» 계측 없음 — 잡이 받아 «안 넘음»으로 본다). 수량 0 행은 빠진다.
+List<LedgerHolding> holdingsBeforeFills(
+  List<LedgerHolding> now,
+  List<LedgerHolding> fillsAfter,
+) {
+  final Map<(String, String), int> q = <(String, String), int>{};
+  for (final LedgerHolding h in now) {
+    q[(h.strategyId, h.symbol)] =
+        (q[(h.strategyId, h.symbol)] ?? 0) + h.quantity;
+  }
+  for (final LedgerHolding f in fillsAfter) {
+    q[(f.strategyId, f.symbol)] =
+        (q[(f.strategyId, f.symbol)] ?? 0) - f.quantity;
+  }
+  final List<(String, String)> keys = q.keys.toList()
+    ..sort(((String, String) a, (String, String) b) {
+      final int c = a.$1.compareTo(b.$1);
+      return c != 0 ? c : a.$2.compareTo(b.$2);
+    });
+  final List<LedgerHolding> out = <LedgerHolding>[];
+  for (final (String, String) k in keys) {
+    final int v = q[k]!;
+    if (v < 0) {
+      throw RiskCheckUnavailable('원장 재생 — 음수 보유: ${k.$1} ${k.$2} $v');
+    }
+    if (v != 0) out.add(LedgerHolding(k.$1, k.$2, v));
+  }
+  return out;
+}
+
+/// 하루 계측 입력(보유 · 종가 · 원화 현금 · 달러 현금 원화 환산).
+class P0sWarnInputs {
+  /// 만든다.
+  const P0sWarnInputs({
+    required this.holdings,
+    required this.closes,
+    required this.cashKrw,
+    this.cashUsdKrw,
+  });
+
+  /// 저장소 글자로 만든다 — [closeTexts] = 종목 → 원가 종가 글자(못 읽는 글자 = 빠짐 → 셈이 «종가 없음»으로 던진다) ·
+  /// [cashKrw] = 평가 행의 원화 현금(원 단위 정수 — 글자를 거쳐 Decimal).
+  factory P0sWarnInputs.fromTexts({
+    required List<LedgerHolding> holdings,
+    required Map<String, String> closeTexts,
+    required double cashKrw,
+  }) => P0sWarnInputs(
+    holdings: holdings,
+    closes: <String, Decimal>{
+      for (final MapEntry<String, String> e in closeTexts.entries)
+        if (Decimal.tryParse(e.value) case final Decimal v) e.key: v,
+    },
+    cashKrw: Decimal.parse(cashKrw.toString()),
+  );
+
+  /// 보유.
+  final List<LedgerHolding> holdings;
+
+  /// 종목 → 원가 종가.
+  final Map<String, Decimal> closes;
+
+  /// 원화 현금.
+  final Decimal cashKrw;
+
+  /// 달러 현금 원화 환산(P0S 앱 = 없음).
+  final Decimal? cashUsdKrw;
+}
+
+/// 일간 경고 단계 결과.
+class P0sWarnStep {
+  /// 만든다.
+  const P0sWarnStep({
+    required this.today,
+    required this.previous,
+    required this.unavailable,
+    required this.alerts,
+  });
+
+  /// 오늘 판정(셈할 수 없으면 null).
+  final P0sDailyWarn? today;
+
+  /// 마지막 계측일 판정(없거나 셈할 수 없으면 null = «안 넘음»으로 본다).
+  final P0sDailyWarn? previous;
+
+  /// 오늘 셈할 수 없었던 까닭(잡 보고 «계측 불가» 한 줄 · 알림 0).
+  final String? unavailable;
+
+  /// 낼 알림(넘은 첫날 · 오름차순).
+  final List<String> alerts;
+}
+
+P0sDailyWarn _judgeOf(P0sWarnInputs i, P0sWarnSetup s) => judgeP0sDailyWarnings(
+  p0sExposureOf(
+    holdings: i.holdings,
+    closes: i.closes,
+    cashKrw: i.cashKrw,
+    cashUsdKrw: i.cashUsdKrw,
+    map: s.map,
+  ),
+  s.config,
+);
+
+/// 🔴 일간 경고 단계(04 §1 Level 3 v2.46) — 오늘 · 마지막 계측일을 같은 규칙으로 세고 넘은 첫날만 고른다.
+/// 오늘 셈 실패 = 판정 없음 · 알림 0 · [P0sWarnStep.unavailable] · 마지막 계측일 실패 = «안 넘음».
+P0sWarnStep p0sDailyWarnStep({
+  required P0sWarnInputs today,
+  P0sWarnInputs? previous,
+  required P0sWarnSetup setup,
+}) {
+  final P0sDailyWarn t;
+  try {
+    t = _judgeOf(today, setup);
+  } on RiskCheckUnavailable catch (e) {
+    return P0sWarnStep(
+      today: null,
+      previous: null,
+      unavailable: e.message,
+      alerts: const <String>[],
+    );
+  }
+  P0sDailyWarn? p;
+  if (previous != null) {
+    try {
+      p = _judgeOf(previous, setup);
+    } on RiskCheckUnavailable {
+      p = null;
+    }
+  }
+  return P0sWarnStep(
+    today: t,
+    previous: p,
+    unavailable: null,
+    alerts: List<String>.unmodifiable(
+      p0sWarnEdgeAlerts(today: t, yesterday: p),
+    ),
+  );
+}

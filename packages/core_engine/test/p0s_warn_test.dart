@@ -234,4 +234,117 @@ void main() {
       );
     });
   });
+
+  group('🆕 E3d-2 어제 보유 재생 · 일간 단계', () {
+    test('지금 보유 − 뒤 체결(같은 칸 합 · 0 행 빠짐 · 차례 = 전략 · 종목)', () {
+      expect(
+        holdingsBeforeFills(
+          const <LedgerHolding>[
+            LedgerHolding('P0S_C', '411060', 25),
+            LedgerHolding('P0S_B', '133690', 10),
+          ],
+          const <LedgerHolding>[
+            LedgerHolding('P0S_C', '411060', 10),
+            LedgerHolding('P0S_C', '411060', 5),
+            LedgerHolding('P0S_B', '133690', 10),
+            LedgerHolding('P0S_C', '0085P0', -7),
+          ],
+        ).map((LedgerHolding h) => (h.strategyId, h.symbol, h.quantity)),
+        <(String, String, int)>[
+          ('P0S_C', '0085P0', 7),
+          ('P0S_C', '411060', 10),
+        ],
+      );
+    });
+
+    test('🔴 재생 결과 음수 = 원장이 맞지 않는다 = 던진다', () {
+      expect(
+        () => holdingsBeforeFills(
+          const <LedgerHolding>[LedgerHolding('P0S_C', '411060', 3)],
+          const <LedgerHolding>[LedgerHolding('P0S_C', '411060', 5)],
+        ),
+        _unavailable,
+      );
+    });
+
+    test('글자 입력 — 못 읽는 종가 = 빠짐(→ 셈 실패) · 현금 = 글자를 거친 Decimal', () {
+      final P0sWarnInputs i = P0sWarnInputs.fromTexts(
+        holdings: _book,
+        closeTexts: <String, String>{'A_ETF': '20000', '133690': '?'},
+        cashKrw: 500000.0,
+      );
+      expect(i.closes.keys, <String>['A_ETF']);
+      expect(i.cashKrw, _d('500000'));
+    });
+
+    final P0sWarnInputs ok = P0sWarnInputs(
+      holdings: _book,
+      closes: _closes,
+      cashKrw: _d('500000'),
+    );
+    final P0sWarnInputs goldHeavy = P0sWarnInputs(
+      holdings: const <LedgerHolding>[
+        LedgerHolding('P0S_C', '411060', 300),
+        LedgerHolding('P0S_C', '0085P0', 600),
+      ],
+      closes: _closes,
+      cashKrw: _d('1000000'),
+    );
+
+    test('오늘 셈 실패 = 판정 없음 · 알림 0 · 까닭 한 줄', () {
+      final P0sWarnStep s = p0sDailyWarnStep(
+        today: P0sWarnInputs(
+          holdings: _book,
+          closes: const <String, Decimal>{},
+          cashKrw: _d('500000'),
+        ),
+        previous: ok,
+        setup: P0sWarnSetup(),
+      );
+      expect(s.today, isNull);
+      expect(s.previous, isNull);
+      expect(s.alerts, isEmpty);
+      expect(s.unavailable, contains('종가 없음'));
+    });
+
+    test('앞 날 셈 실패 = «안 넘음» → 오늘 넘었으면 알림', () {
+      final P0sWarnStep s = p0sDailyWarnStep(
+        today: goldHeavy,
+        previous: P0sWarnInputs(
+          holdings: _book,
+          closes: const <String, Decimal>{},
+          cashKrw: _d('500000'),
+        ),
+        setup: P0sWarnSetup(),
+      );
+      expect(s.previous, isNull);
+      expect(s.today!.exposure.goldSharePct, 0.3);
+      expect(s.alerts, <String>['GOLD_SHARE_HIGH']);
+    });
+
+    test('앞 날도 넘음 = 0건 · 앞 날 없음 = 1건', () {
+      expect(
+        p0sDailyWarnStep(
+          today: goldHeavy,
+          previous: goldHeavy,
+          setup: P0sWarnSetup(),
+        ).alerts,
+        isEmpty,
+      );
+      expect(
+        p0sDailyWarnStep(today: goldHeavy, setup: P0sWarnSetup()).alerts,
+        <String>['GOLD_SHARE_HIGH'],
+      );
+    });
+
+    test('설정 빈 칸 = 정본 P0S 범주 · 문턱 · 운영 설정 monthEnd 를 받는다', () {
+      final P0sWarnSetup s = P0sWarnSetup();
+      expect(s.map.goldSymbols, p0sExposureMap().goldSymbols);
+      expect(s.config.goldTotalMonitorPct, 0.20);
+      expect(
+        p0sExposureMap(p0sMonthEndConfig()).usdUnderlyingSymbols,
+        p0sExposureMap().usdUnderlyingSymbols,
+      );
+    });
+  });
 }
