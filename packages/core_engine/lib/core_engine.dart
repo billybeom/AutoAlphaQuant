@@ -123,6 +123,9 @@ export 'src/golden/gv_regime.dart'
     show Gv1RegimeScore, Gv2Indicators, Gv3ExposureGate, Gv4Hysteresis;
 export 'src/golden/gv_sleeves.dart'
     show Gv20SleeveSignals, Gv22SleeveC, Gv37CoreBandDeposit, Gv42Allocation;
+// 🆕 E3c — GV-40a · b · c 경고 한도 골든 계열(설계 13 §8 R166).
+export 'src/golden/gv_warn.dart'
+    show Gv40aDailyWarn, Gv40bMonthlyWarn, Gv40cRebalanceWarn;
 // 🆕 E16g2 — X1-2 백업 매니페스트 · 복원 판정 합성(순수 · 설계 13 §8 R135).
 export 'src/migration/backup_manifest.dart'
     show
@@ -1002,6 +1005,22 @@ export 'src/risk/limits.dart'
         checkAllLimits;
 export 'src/risk/position_sizing.dart'
     show SizingBinding, SizingResult, sizePosition;
+// 🆕 E3c — SAF 경고 한도 판정(일간 202 · 208 · 302 · 305 · 307 · 월간 201 · 306 · 리밸런싱 204 · 205 · 설계 13 §8 R166).
+export 'src/risk/warn_limits.dart'
+    show
+        DailyWarnResult,
+        MonthlyWarnResult,
+        SleeveACandidate,
+        SleeveASelection,
+        WarnAction,
+        WarnHolding,
+        WarnLimitConfig,
+        WarnLimitIds,
+        judgeDailyWarnLimits,
+        judgeMonthlyWarnLimits,
+        judgeRebalanceWarnLimits,
+        kUnknownSectorBucket,
+        kWarnActions;
 // 🆕 E13h1 — 알림 등급 · 묶음 · P0 ack 사다리 · 알림 포트(06 M5-15 · 설계 13 §8 R68).
 export 'src/safety/alert_rules.dart'
     show
