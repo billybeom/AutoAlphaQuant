@@ -483,10 +483,8 @@ class UnimplementedConfigRepository implements ConfigRepository {
 ///    `state` 로 골라 돌려준다(`stateLabel` 은 엔진 문구다).
 class UnimplementedCommandApi implements CommandApi {
   @override
-  Future<CommandReceipt> activateKillSwitch({
-    required String reasonFreeText,
-    required String deviceId,
-  }) => throw UnimplementedError('activateKillSwitch');
+  Future<CommandReceipt> activateKillSwitch() =>
+      throw UnimplementedError('activateKillSwitch');
 
   @override
   Future<CommandReceipt> submitJournalDraft(JournalDraft draft) =>
@@ -597,6 +595,11 @@ class UnimplementedKillSwitchGateRepository
   @override
   Stream<KillResumeGateVm> watchResumeGate() =>
       throw UnimplementedError('watchResumeGate');
+
+  /// 🆕 v1.25(01 §34 · K146) — `M5-1` 킬스위치 화면. 🔴 동기로 던진다.
+  @override
+  Stream<KillSwitchScreenVm> watchKillSwitch() =>
+      throw UnimplementedError('watchKillSwitch');
 }
 
 /// 🆕 계약 v1.21(01 §30 · K6) — [PledgeRepository] 받침대(`M5-8`·`O-04` ② 가짜의 받침대). 🔴 동기로 던진다.
@@ -612,10 +615,21 @@ class UnimplementedBreakerLadderRepository implements BreakerLadderRepository {
       throw UnimplementedError('watchLadder');
 }
 
+/// 🆕 계약 v1.25(01 §34 · K154) — [BlockBoardRepository] 받침대(`M5-5` 차단 보드). 🔴 동기로 던진다.
+class UnimplementedBlockBoardRepository implements BlockBoardRepository {
+  @override
+  Stream<BlockBoardVm> watchBoard() => throw UnimplementedError('watchBoard');
+}
+
 /// 🆕 계약 v1.22(01 §31 · K6) — [ResumeGateRepository] 받침대. 🔴 동기로 던진다.
 class UnimplementedResumeGateRepository implements ResumeGateRepository {
   @override
   Stream<ResumeGateVm> watchGate() => throw UnimplementedError('watchGate');
+
+  /// 🆕 v1.25(01 §34 · K156) — X2 재개 리포트 화면(감싸개). 🔴 동기로 던진다.
+  @override
+  Stream<ResumeReportVm> watchReport() =>
+      throw UnimplementedError('watchReport');
 }
 
 /// 🆕 계약 v1.22(01 §31 · 메모 C6) — [ResumeRepository] 받침대(지금까지 0 · 화면 시험 가짜의 받침대). 🔴 동기로 던진다.

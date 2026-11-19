@@ -6,6 +6,7 @@
 // 🔴 재개 리포트는 **M5 소유 화면**이다(안전·마찰) — 다른 AI 는 이 DTO 를 읽을 수는
 //    있으나 원본 화면을 렌더하지 않는다(01 §2-10 소유 표 · §7 C-7).
 // 🔴 **손익 필드 없음**(청사진 X2 화면 · 결정 8).
+// 🆕 v1.25(01 §34 · K156) — 재개 리포트 한 화면 감싸개 `ResumeReportVm`(`ResumeReport` 무변경 — ds 가 짓는다).
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -183,3 +184,27 @@ abstract class ResumeGateRow with _$ResumeGateRow {
       _$ResumeGateRowFromJson(json);
 }
 // JSON 키: work_id · one_line · reason_code · reason_label · level · actions
+
+/// 🆕 v1.25(01 §34 · K156) — X2 재개 리포트 한 화면(`x2ResumeReport` · 창구 = `ResumeGateRepository.watchReport()` · 🔒 `ui_safety`).
+/// 🔴 [report] = 엔진 `ResumeReport` 그대로(가장 최근 **끝난** 회차 · 손익 0) · 화면이 시각·단계·셈 문장을 짓지 않는다.
+/// 🔴 불변식(C-59 ⑭) — [report] null ⇔ [emptyLabel] non-null · [report] non-null ⇒ [periodText]·[phaseLabel] non-null.
+@freezed
+abstract class ResumeReportVm with _$ResumeReportVm {
+  const factory ResumeReportVm({
+    ResumeReport? report,
+
+    /// 회차 시각 «MM-DD HH:mm ~ HH:mm»(엔진 · `startedAt`·`finishedAt` 의 표시 — 01 §1-3).
+    String? periodText,
+
+    /// 단계 글자(엔진 · `ResumePhase` 짝 Label — 01 §1-5).
+    String? phaseLabel,
+
+    /// 회차 0 문장(엔진).
+    String? emptyLabel,
+    required AsOf asOf,
+  }) = _ResumeReportVm;
+
+  factory ResumeReportVm.fromJson(Map<String, dynamic> json) =>
+      _$ResumeReportVmFromJson(json);
+}
+// JSON 키: report · period_text · phase_label · empty_label · as_of

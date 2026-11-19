@@ -261,6 +261,8 @@ abstract final class ContractCodes {
     // 🆕 v1.24(01 §33 · K119) — S09 백업 거부 · S10 무결성 사유(엔진 글자 1:1)
     'backup_result': BackupResultCodes.values,
     'ledger_integrity_result': LedgerIntegrityResultCodes.values,
+    // 🆕 v1.25(01 §34 · K151) — 킬스위치 미체결 취소 결과(엔진 wire 1:1 · 사전 도메인 사이 겹침 0 — 같은 글자는 열거 와이어뿐)
+    'kill_cancel_outcome': KillCancelOutcomeCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

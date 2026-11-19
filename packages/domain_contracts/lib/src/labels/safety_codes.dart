@@ -278,3 +278,31 @@ abstract final class DiscretionResultCodes {
     journalMissing,
   };
 }
+
+/// 🆕 v1.25(01 §34 · K151) — 킬스위치 미체결 취소 결과(도메인 `kill_cancel_outcome` · 엔진 core `KillCancelOutcome` wire 1:1 ·
+/// `safety/kill_activation.dart:50-70` · 🔴 타입 이름 ≠ 엔진 — `ambiguous_import` 회피). 화면 분기 0(`KillCancelRow.outcomeCode` = 시험·Key).
+abstract final class KillCancelOutcomeCodes {
+  /// 취소 접수.
+  static const String cancelled = 'CANCELLED';
+
+  /// 분명한 거절 · 브로커 없음 · 오류.
+  static const String failed = 'FAILED';
+
+  /// 취소 결과 불명(🔴 다시 부르지 않는다 — NR-2).
+  static const String unknown = 'UNKNOWN';
+
+  /// 주문 결과가 불명이라 취소하지 않고 보고만.
+  static const String notCancelledUnknownIntent =
+      'NOT_CANCELLED_UNKNOWN_INTENT';
+
+  /// 제출 중(브로커에 닿지 않았거나 닿는 중) — 보고만.
+  static const String inFlight = 'IN_FLIGHT';
+
+  static const Set<String> values = <String>{
+    cancelled,
+    failed,
+    unknown,
+    notCancelledUnknownIntent,
+    inFlight,
+  };
+}

@@ -40,8 +40,23 @@ abstract final class FixturePaths {
   static const String sleeveCatalog4 = 'sleeve_catalog_4.json';
 
   // ── m5/ — 🆕 v1.21(01 §30) M5 안전 동작 · 폴더 신설 · 게이트 7 · 서약 3 · 결과 1 · 접수증 1 ──
+  //    🆕 v1.25(01 §34) — 킬스위치 화면 7 · 발동 접수증 1 · 게이트 꺼짐 1 · 차단 보드 4(같은 차례 규약).
   //    (파일 이름 바이트 차례 · `all` 도 같은 차례)
   //    🆕 v1.22(01 §31) — 사다리 2 · simToAuto 계획 4 · 위저드 결과 1 · E13 결과 1(같은 차례 규약).
+
+  /// 🆕 v1.25(K154) — `M5-5` 보드 · 막힌 것 0(빈 문장 · 사다리 정상).
+  static const String m5BlockBoardClear = 'm5/block_board_clear.json';
+
+  /// 🆕 v1.25 — `M5-5` 보드 · 킬스위치 행(기록 뒤 대기) · COOLDOWN 게이지.
+  static const String m5BlockBoardKillActive =
+      'm5/block_board_kill_active.json';
+
+  /// 🆕 v1.25(K155) — `M5-5` 보드 · RESUME_INCOMPLETE(→ X2 게이트) + JOURNAL_MISSING.
+  static const String m5BlockBoardResumeIncomplete =
+      'm5/block_board_resume_incomplete.json';
+
+  /// 🆕 v1.25 — `M5-5` 보드 · 정지 단계 · 재개 결정 링크 · 사다리 stopped.
+  static const String m5BlockBoardStopped = 'm5/block_board_stopped.json';
 
   /// 🆕 v1.22(K65) — `M5-4` 사다리 · 지금 = 정상(글자 = 엔진 `breakerLadderOf` 출력).
   static const String m5BreakerLadderNormal = 'm5/breaker_ladder_normal.json';
@@ -78,11 +93,46 @@ abstract final class FixturePaths {
       'm5/kill_resume_gate_locked.json';
   static const String m5KillResumeGateNotConfirmed =
       'm5/kill_resume_gate_not_confirmed.json';
+
+  /// 🆕 v1.25(K153) — `M5-2` 재개를 마친 뒤(«킬스위치 꺼짐» · 다음·막힘 0).
+  static const String m5KillResumeGateOff = 'm5/kill_resume_gate_off.json';
+
   static const String m5KillResumeGateReady = 'm5/kill_resume_gate_ready.json';
   static const String m5KillResumeGateTimeUnknown =
       'm5/kill_resume_gate_time_unknown.json';
   static const String m5KillResumeGateWaiting =
       'm5/kill_resume_gate_waiting.json';
+
+  /// 🆕 v1.25(K149) — `KILL_SWITCH_ACTIVATE` 접수증 2(폰 EXECUTED · 뷰어 REQUESTED · 거부 0).
+  static const String m5KillSwitchActivateReceipts =
+      'm5/kill_switch_activate_receipts.json';
+
+  /// 🆕 v1.25(K150) — `M5-1` 켜짐·기록 전 + 잠김(폼 0).
+  static const String m5KillSwitchActiveLocked =
+      'm5/kill_switch_active_locked.json';
+
+  /// 🆕 v1.25(K146 · K147) — `M5-1` 켜짐·기록 전(취소 보고 3행 · 발동 뒤 기록 폼).
+  static const String m5KillSwitchActiveUnrecorded =
+      'm5/kill_switch_active_unrecorded.json';
+
+  /// 🆕 v1.25(K151) — `M5-1` 켜짐·기록 전 · 미체결 후보 읽기 실패(행 0 · 실패 머리).
+  static const String m5KillSwitchCancelReadFailed =
+      'm5/kill_switch_cancel_read_failed.json';
+
+  /// 🆕 v1.25(K150) — `M5-1` 꺼짐 + 잠김(🔴 발동 버튼 남음).
+  static const String m5KillSwitchLocked = 'm5/kill_switch_locked.json';
+
+  /// 🆕 v1.25(K146) — `M5-1` 꺼짐(발동 버튼 · 3중 경로).
+  static const String m5KillSwitchOff = 'm5/kill_switch_off.json';
+
+  /// 🆕 v1.25 — `M5-1` 기록 뒤 · 해제 가능(게이트 링크).
+  static const String m5KillSwitchRecordedReady =
+      'm5/kill_switch_recorded_ready.json';
+
+  /// 🆕 v1.25 — `M5-1` 기록 뒤 · 48h 대기(ETA · 게이트 링크).
+  static const String m5KillSwitchRecordedWaiting =
+      'm5/kill_switch_recorded_waiting.json';
+
   static const String m5PledgeEditWindow = 'm5/pledge_edit_window.json';
   static const String m5PledgeNotWritten = 'm5/pledge_not_written.json';
   static const String m5PledgeWritten = 'm5/pledge_written.json';
@@ -890,6 +940,10 @@ abstract final class FixturePaths {
   static const String m9SettingsHomeViewer = 'm9/settings_home_viewer.json';
 
   // ── x2/ — 🆕 v1.22(01 §31 · K63 · K64) X2 재개 게이트 4 · 재개 리포트 2 · 폴더 신설(파일 이름 바이트 차례) ──
+  //    🆕 v1.25(01 §34) — 게이트 막힌 것 0 · 리포트 화면 감싸개 3.
+
+  /// 🆕 v1.25(K157) — 재개 게이트 · 막힌 계획 0(행 0 · 리포트 링크).
+  static const String x2ResumeGateClear = 'x2/resume_gate_clear.json';
 
   /// 🆕 v1.22 — 보수 모드 · 보수 이월 1 + 계절 진입 1(3택).
   static const String x2ResumeGateConservativeDefer =
@@ -913,6 +967,18 @@ abstract final class FixturePaths {
   static const String x2ResumeReportRecoveryFull =
       'x2/resume_report_recovery_full.json';
 
+  /// 🆕 v1.25(K156) — 재개 리포트 화면 · 회차 0(빈 문장).
+  static const String x2ResumeReportScreenEmpty =
+      'x2/resume_report_screen_empty.json';
+
+  /// 🆕 v1.25(K156) — 재개 리포트 화면 · `resume_report_normal` 원판 + 시각·단계.
+  static const String x2ResumeReportScreenNormal =
+      'x2/resume_report_screen_normal.json';
+
+  /// 🆕 v1.25(K156) — 재개 리포트 화면 · `resume_report_recovery_full` 원판 + 시각·단계.
+  static const String x2ResumeReportScreenRecoveryFull =
+      'x2/resume_report_screen_recovery_full.json';
+
   /// 전량 목록 — C-14 시크릿 스캔·C-15 열거값 대조가 이 목록을 돈다.
   static const List<String> all = <String>[
     alerts12,
@@ -929,6 +995,10 @@ abstract final class FixturePaths {
     resumeReport1,
     safetyStates,
     sleeveCatalog4,
+    m5BlockBoardClear,
+    m5BlockBoardKillActive,
+    m5BlockBoardResumeIncomplete,
+    m5BlockBoardStopped,
     m5BreakerLadderNormal,
     m5BreakerLadderStopped,
     m5HandoverSimToAutoActionResults,
@@ -941,9 +1011,18 @@ abstract final class FixturePaths {
     m5KillResumeGateInProgress,
     m5KillResumeGateLocked,
     m5KillResumeGateNotConfirmed,
+    m5KillResumeGateOff,
     m5KillResumeGateReady,
     m5KillResumeGateTimeUnknown,
     m5KillResumeGateWaiting,
+    m5KillSwitchActivateReceipts,
+    m5KillSwitchActiveLocked,
+    m5KillSwitchActiveUnrecorded,
+    m5KillSwitchCancelReadFailed,
+    m5KillSwitchLocked,
+    m5KillSwitchOff,
+    m5KillSwitchRecordedReady,
+    m5KillSwitchRecordedWaiting,
     m5PledgeEditWindow,
     m5PledgeNotWritten,
     m5PledgeWritten,
@@ -1231,11 +1310,15 @@ abstract final class FixturePaths {
     m9SettingsHome,
     m9SettingsHomeNoReview,
     m9SettingsHomeViewer,
+    x2ResumeGateClear,
     x2ResumeGateConservativeDefer,
     x2ResumeGateLocked,
     x2ResumeGateReevaluationFailed,
     x2ResumeGateSeasonalPending,
     x2ResumeReportNormal,
     x2ResumeReportRecoveryFull,
+    x2ResumeReportScreenEmpty,
+    x2ResumeReportScreenNormal,
+    x2ResumeReportScreenRecoveryFull,
   ];
 }

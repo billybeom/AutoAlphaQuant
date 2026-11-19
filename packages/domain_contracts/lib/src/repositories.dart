@@ -9,6 +9,7 @@
 
 export 'repositories/advice_repository.dart';
 export 'repositories/alert_repository.dart';
+export 'repositories/block_board_repository.dart';
 export 'repositories/breaker_ladder_repository.dart';
 export 'repositories/calendar_repository.dart';
 export 'repositories/config_repository.dart';
