@@ -327,7 +327,7 @@ void main() {
     }
   });
 
-  test('🆕 R173 지금 기준 초안 = 원장 상태 → 엔진(개시 전 = 실패 · 개시 뒤 = 초안 · 호출마다 새 id) · 입금 · 인출 = 원천 없음', () async {
+  test('🆕 R173 지금 기준 초안 = 원장 상태 → 엔진(개시 전 = 실패 · 개시 뒤 = 초안 · 호출마다 새 id) · 🆕 R174 입금 = 섬 · 인출 = 원천 없음', () async {
     final OperatorWhatIfApi api = OperatorWhatIfApi(
       rt(),
       hasBody: kOperatorRouteBodies.byPattern.containsKey,
@@ -349,12 +349,12 @@ void main() {
     expect(r.preview!.plannedDate, const TradeDate('2026-09-01'));
     expect(r.preview!.planId, 'pv_re_20260901_01');
     expect((await api.previewRebalance()).preview!.planId, 'pv_re_20260901_02');
-    await expectLater(
-      api.simulateDeposit(amountInput: '100000'),
-      throwsA(isA<UnsupportedError>()),
+    expect(
+      (await api.simulateDeposit(amountInput: '100000')).plan,
+      isNotNull,
+      reason: '🆕 R174 입금 미리보기 = 같은 엔진 창구',
     );
-    await expectLater(api.findPlan('x'), throwsA(isA<UnsupportedError>()));
-    await expectLater(api.estimateCosts('x'), throwsA(isA<UnsupportedError>()));
+    expect(await api.findPlan('x'), isNull);
     await expectLater(
       api.simulateWithdrawal(amount: Decimal.one),
       throwsA(isA<UnsupportedError>()),

@@ -44,6 +44,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:ui_analytics/planner.dart'
+    show
+        DepositPlannerScreen,
+        plannerCommandApiProvider,
+        plannerConfigRepositoryProvider,
+        plannerWhatIfApiProvider;
 import 'package:ui_analytics/ui_analytics.dart'
     show
         RebalanceEventScreen,
@@ -73,6 +79,7 @@ import 'package:ui_settings/ui_settings.dart'
         Credentials,
         Devices,
         Diagnostics,
+        MonthlyContribution,
         SettingsHome,
         SettingsSlotBuilder,
         settingsActionsProvider,
@@ -394,6 +401,28 @@ void main() {
     expect(
       container.read(analyticsWhatIfApiProvider),
       isA<OperatorWhatIfApi>(),
+    );
+    // 🆕 R174 — S7-4 플래너 칸 = 같은 What-if · 같은 명령 API · 셸 설정 원천(한 인스턴스).
+    expect(
+      identical(
+        container.read(plannerWhatIfApiProvider),
+        container.read(operatorWhatIfApiProvider),
+      ),
+      true,
+    );
+    expect(
+      identical(
+        container.read(plannerCommandApiProvider),
+        container.read(operatorCommandApiProvider),
+      ),
+      true,
+    );
+    expect(
+      identical(
+        container.read(plannerConfigRepositoryProvider),
+        container.read(shellConfigRepositoryProvider),
+      ),
+      true,
     );
     // 🆕 R171 — 보유 = 셸 홈 · 일지(H6-1) 한 인스턴스.
     final Object holdings = container.read(operatorHoldingsProvider);
@@ -886,6 +915,34 @@ void main() {
       disposed = true;
     },
   );
+
+  testWidgets('🔴 S7-4 납입 플래너 · S13 월 납입(R174) = 조립 셸에 등록 · 크래시 없음', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(tester);
+    await ready(tester);
+    Future<void> settle() async {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+    }
+
+    await open(tester, AppRoutes.planDeposit);
+    await settle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(DepositPlannerScreen), findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    await open(tester, AppRoutes.settingsContribution);
+    await settle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(MonthlyContribution), findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
+  });
 
   testWidgets('🔴 S06 기기 · 접근(R146) = 조립 셸에 등록 · 이 폰 한 행 · 모의 단독 리스 · 캡처 막기', (
     WidgetTester tester,

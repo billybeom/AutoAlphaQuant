@@ -28,6 +28,7 @@ import 'package:core_engine/core_engine.dart'
         credentialListVmOf,
         diagnosticsScreenVmOf,
         kDeviceGoldenSuite,
+        monthlyContributionVmOf,
         settingsHomeVmOf;
 import 'package:data_sync/data_sync.dart'
     show
@@ -294,10 +295,22 @@ class OperatorSettingsRepository implements SettingsRepository {
     viewTables: const <String>{'decision_log', 'config_versions'},
   );
 
-  /// 🆕 계약 v1.23(01 §32 · K92) — `S13` 월 납입 투영 = 원천 없음(투영 + 잠김·버튼 칸 = 06 `M4-12` ⑧ · 그 화면은 레지스트리에 없다).
+  /// 🆕 E11q3(R174) — `S13` 월 납입 = 엔진 투영(`monthlyContributionVmOf` · 원천 = 셸 · 플래너와 같은 `contributionSettingOf`) ·
+  /// 바꾸기 = 이 기기 id 가 있을 때만(쓰기 판정 · 문장 = 엔진 — 신뢰 시각을 모르면 `TRUSTED_TIME_UNKNOWN`) · 기록마다 · 주기마다.
   @override
-  Stream<MonthlyContributionVm> watchContribution() =>
-      _none('watchContribution');
+  Stream<MonthlyContributionVm> watchContribution() => _follow(() async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('월 납입: 화면 상태 없음(온보딩 전)');
+    return monthlyContributionVmOf(
+      contributionSettingOf(
+        rows: contributionRowsOf(v.db),
+        todayKst: contributionKstDay(_rt.clock.nowUtc()),
+        observedAtUtc: _rt.clock.nowUtc(),
+        kr: _rt.calendars.kr,
+      ),
+      canChange: _rt.deviceId != null,
+    );
+  }, viewTables: const <String>{'operating_param_log'});
 
   /// 🆕 계약 v1.24(01 §33 · K113) — `S10` 진단 화면 = 원천 없음(감싸개 VM 생산 = 엔진 `diagnosticsScreenVmOf` · 바인딩 = 06 `M4-12` ⑨ ·
   ///    그 화면은 레지스트리에 없다).
