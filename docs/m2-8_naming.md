@@ -704,3 +704,17 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 🔴 **만들지 않은 이름**(재론 방지): 엔진과 같은 타입 이름 `SnapshotCodes` · `RestoreReason` · `LedgerIntegrityReason` · `SelfTestVm`(05 옛 잠정명과 뜻이 달라 grep 이 섞임 — K113) · `IntegrityVm` · `blocking` · `entriesEmptyLabel`(K139) · 복원 지점 행 동작 칸.
 
 ⏸ **이 창이 닫지 않은 것** — 01 §8 미결 196(S08 · E17) · 197(S11 원천) · 198(골든 실행기 결과 꼴 · E11o) · 199(백업 원천 묶음·바인딩 · 아카이브 IN_SYNC) · 200(무결성 실행 바인딩) · 201(O-04 ④ 슬롯 위젯) · 202(S12 엔진 생산).
+
+## AD. 🆕 계약 v1.25 (2026-11-19 · 트랙 B 선행 — 모의 체험 ④ X2 재개 · ⑤ 킬스위치 필수 화면) — M5-1 화면·폼 VM · M5-5 보드 · X2 리포트 감싸개 · 발동 인자 0 · 슬롯 1 · 표본 17
+
+다섯 경로(`m5KillSwitch` · `m5ReleaseGate` · `m5BlockBoard` · `x2ResumeReport` · `x2ResumeGate`)가 읽는 이름을 한 판으로 닫았다(재개 게이트 둘 = v1.21 · v1.22 그대로). `contractVersion` = **`1.25.0`**(다음 = 1.26.0). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K144~K165 권고대로(정본 = 설계 `10_리뷰/2026-11-19_트랙B선행_계약v1.25_설계서.md` §3 · §4).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AD-1 | 🆕 `KillSwitchScreenVm` · `KillCancelRow` | `dto/safety_gate.dart` · `M5-1` 한 화면 · 발동 버튼 = 꺼짐만 · 🔴 잠김에도 발동 · 취소 보고 = 엔진 wire 코드 + 글자 |
+| AD-2 | 🆕 `KillActivationFormVm` · `KillActivationItemRow` · `KillActivationChoice` | `dto/safety_gate.dart` · 발동 뒤 기록 폼(미결 186) · SPEC 카드 ④ (가) 원문 7 · 2·5 선택지 · 6·7 고정 글자 · 확인 라벨 4 |
+| AD-3 | 🆕 `BlockBoardVm` · `BlockBoardRow` | `dto/safety_gate.dart` · `M5-5` 보드 · 사다리(M5-4)·게이지(M5-7) 감싸기 · 킬스위치 진입 늘 |
+| AD-4 | 🆕 `ResumeReportVm` | `dto/resume.dart` · X2 리포트 감싸개(원판 + 시각·단계·빈 문장) |
+| AD-5 | `KillSwitchGateRepository.watchKillSwitch()` · 🆕 `BlockBoardRepository.watchBoard()` · `ResumeGateRepository.watchReport()` | 받침대만 구현 — 기존 `SafetyRepository`·`BreakerLadderRepository`·`ResumeRepository` 무변경 |
+| AD-6 | `CommandApi.activateKillSwitch()` | 인자 0(구 `{reasonFreeText, deviceId}`) · 기기·채널 = 구현 `CommandContext` |
+| AD-7 | 🆕 `KillCancelOutcomeCodes`(`kill_cancel_outcome` 5) · `OpsSlotIds.killSwitch` | `labels/safety_codes.dart` 끝 · `labels/ops_codes.dart` |

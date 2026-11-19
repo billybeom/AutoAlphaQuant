@@ -206,6 +206,8 @@ A(primitives·enums)
 
 > 🆕 **v1.23(01 §32 · ✅ 병합 PR #227 squash `e3e8f7a` · 2026-11-17)** — `SettingsActionId` 값 0 추가 · 기존 `settingsContributionUpdate`(`SETTINGS_CONTRIBUTION_UPDATE` · 운영 등급 · 05 `S13`) = 제출 경로 `SettingsActions.runContributionUpdate` 전용(`run` 화이트리스트 밖 · `run(settingsContributionUpdate)` = 구현 `ArgumentError` · K77) — §5-8.
 
+> 🆕 **v1.25(01 §34 · ⬜ PR 대기)** — `CommandApi.activateKillSwitch()` 인자 0(구 `{reasonFreeText, deviceId}` · K149) · 창구 `KillSwitchGateRepository.watchKillSwitch()` · 🆕 `BlockBoardRepository.watchBoard()` · `ResumeGateRepository.watchReport()` · `SettingsActionId`·`SafetyActionId` 값 0 추가.
+
 > 🆕 **v1.24(01 §33 · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — `SettingsActionId` 값 0 추가 · args 화이트리스트 `backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}` · `backupRestoreStart` = 화면 미호출(args 미정 유지) · calendar 3 = ⏸ R9d · `settingsGeneralUpdate` = ⏸ R9e(K120).
 
 > 🔴 **`SettingsActionId` 는 「05 §7 에 없는 값 4개」를 포함한 상태가 정상이다.** 지우면 G-01·G-03 이 닫은 구멍(위저드·온보딩의 쓰기 경로 부재)이 되살아난다.
@@ -761,6 +763,8 @@ abstract interface class SettingsActions {
 
 🆕 **v1.23(2026-11-17 · 01 §32 · R8a 선행 · ✅ 병합 PR #227 squash `e3e8f7a` · 2026-11-17)** — `labels/settings_codes.dart` 끝 += 🆕 `ContributionResultCodes`(`contribution_result`) 6 — `blank` `CONTRIBUTION_INPUT_BLANK` · `negative` · `notNumber` · `overMax` · `clockNotAdvanced` · `unchanged`(`labels.dart` `byDomain` +1 · v1.22 행 뒤 · K103) · 엔진 `ContributionRejectCodes` 7 − 공용 `TRUSTED_TIME_UNKNOWN`(`SafetyCommonResultCodes` 한 벌 · 🆕 1.23.0 월 납입 짝 주석 · v1.21 K45) · 🔵 타입 이름 ≠ 엔진(`ambiguous_import` 방지 · K80) · 엔진 참조로 옮기기 = 엔진 숙제.
 
+🆕 **v1.25(2026-11-19 · 01 §34 · 트랙 B 선행 · ⬜ PR 대기)** — `labels/safety_codes.dart` 끝 += 🆕 `KillCancelOutcomeCodes`(`kill_cancel_outcome`) 5 = 엔진 `KillCancelOutcome` wire 1:1(타입 이름 ≠ 엔진) · `labels/ops_codes.dart` `OpsSlotIds` += `KILL_SWITCH` · C-5 도메인 간 중복 추가 0.
+
 🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — `labels/settings_codes.dart` 끝 += 🆕 `BackupResultCodes`(`backup_result`) 8 = ds `SqliteLedgerSnapshotter.take` 경로 전수(`X1_LIVE_ONLY` · `SNAPSHOT_*` 2 · `RESTORE_*` 5 — SHA·MANIFEST 제외 · K132) · 🆕 `LedgerIntegrityResultCodes`(`ledger_integrity_result`) 7 = core `LedgerIntegrityReason`(E13c1) · 🔴 타입 이름 ≠ 엔진 · C-5 문서 중복 +2(`CHAIN_BROKEN` · `RESTORE_ROLLBACK` ↔ `origin_code`).
 
 ---
@@ -962,6 +966,8 @@ abstract interface class SettingsActions {
 🆕 **v1.22(2026-11-17 · 01 §31 · 엔진 예고 2/2 — E13 나머지 · 사다리 · X2 재개 · simToAuto · F8 · ✅ 병합 PR #214 squash `67630bc` · 2026-11-17)** — **신설 15 · 개정 2 → 298**(나머지 281 봉투 `contract_version` 한 줄만): `m5/` 8 — 사다리 VM 1행 봉투 2(`breaker_ladder_normal` · `_stopped` · 글자 = 엔진 `breakerLadderOf` 출력 · `current` 만 다름) · 목록 봉투 `safety_action_results_e13`(31행 · E13 동작 8) · simToAuto 계획 VM 1행 봉투 4(`handover_sim_to_auto_ready` · `_s3_blocked` · `_cooling` · `_fate_pending` · 단계 글자 = 엔진) · 목록 봉투 `handover_sim_to_auto_action_results`(20행) · 🆕 폴더 `x2/` 6 — 재개 게이트 VM 4(`resume_gate_seasonal_pending` · `_conservative_defer` · `_reevaluation_failed` · `_locked`) · 리포트 2(`resume_report_recovery_full` · `_normal`) · `m6/journal_sim_broker_reject`(J-1 행 1 · 칩 `SIM_INVALID_ORDER`) · 🔧 개정 2 = F8 `resume_report_1`(RECOVERY_DRY 정합 · 엔진 DRY 판정 꼴) · `m9/handover_states` SIM_TO_AUTO 행(3 → 7단계 · UI 소비 0) · 생성기 `tool/gen_v122_fixtures.py`(기준 `4f85259` · 멱등 · 두 번 = 같은 md5 298) · 표 = `fixtures/README.md` «계약 v1.22» 절 · 계약 테스트 🆕 C-56(`c56_e13_resume_sim_test.dart` · 18항) · C-7 표면 8 · C-15 축 +2(+ «fill_origin 합집합» 시험 1) · C-8 `_knownUncovered` += 제출 DTO 5 · C-5 중복 +1 · C-33 84 무수정 · 변이 18/18 · `domain_contracts` +505 → **+524 ~30**(PR 실측 · 설계 기대 +18 에 C-15 1 더함).
 
 🆕 **v1.23(2026-11-17 · 01 §32 · R8a 선행 — M9 `S13` 월 납입 설정 · ✅ 병합 PR #227 squash `e3e8f7a` · 2026-11-17)** — **신설 7 · 개정 0 → 305**(나머지 298 봉투 `contract_version` 한 줄만): `m9/` VM 1행 봉투 6(`monthly_contribution` · `_pending` · `_no_record` · `_no_limit_note` · `_locked` · `_stale` · 글자 = 엔진 `contributionSettingOf` 출력) · 목록 봉투 `m9/contribution_action_results`(9행 · 거부 headline 7 = 엔진 `decideContributionChange` 출력 · 접수 = «(합성)») · 금액 글자 = 10만원 · 0원 · 10억원만(K99 · «9만» = C-32 ⑥ 폐기값) · 기존 `m9/contribution_setting_*` 무수정(S7-4 골든 입력 · PNG 0) · 생성기 `tool/gen_r8_v123_fixtures.py`(기준 `33fe351` · 멱등) · C-57 13항.
+
+🆕 **v1.25(2026-11-19 · 01 §34 · 트랙 B 선행 · ⬜ PR 대기)** — **신설 17 · 개정 0 → 339**(나머지 322 봉투 `contract_version` 한 줄만): `m5/` 13(킬스위치 화면 7 · 발동 접수증 1 · 게이트 꺼짐 1 · 차단 보드 4) · `x2/` 4(리포트 화면 감싸개 3 · 게이트 막힌 것 0 1) · 생성기 `tool/gen_trackb_v125_fixtures.py` · 🆕 C-59(17항).
 
 🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 — M9 `S09` · `S10` · `S12` · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — **신설 17 · 개정 0 → 322**(나머지 305 봉투 `contract_version` 한 줄만): `m9/` VM 1행 봉투 15(`backup*` 6 · `diagnostics_screen*` 5 · `annual_review_index*` 4) · 목록 봉투 2(`backup_action_results` 10행 · `selftest_action_results` 12행) · 생성기 `tool/gen_r9_v124_fixtures.py` · `board` = `m8/recon_board_*` `rows[0]` 복사.
 
