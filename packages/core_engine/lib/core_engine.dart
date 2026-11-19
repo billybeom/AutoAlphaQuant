@@ -531,9 +531,12 @@ export 'src/ops/holdings_overview.dart'
         HoldingsOverviewFacts,
         HoldingsTexts,
         bTrancheSignalsOf,
+        holdingDetailVmOf,
+        holdingIdOf,
         holdingsManwonText,
         holdingsOverviewVmOf,
-        kHoldingsStaleAfter;
+        kHoldingsStaleAfter,
+        sleeveAllocationVmOf;
 // 🆕 E14c1 — 잡 실행 기록 포트 · 값 꼴(02 v2.42 `job_run` · 설계 13 §8 R73 K1).
 export 'src/ops/job_run_log.dart'
     show JobRunEntry, JobRunLog, JobRunStatus, successStatusOf;
@@ -643,6 +646,9 @@ export 'src/ops/month_end_inputs.dart'
         monthlyLastCloses,
         sleeveWeightsOf;
 // 🆕 운영 설정 읽기(operations · 설계 13 §8 R148).
+// 🆕 E11q1b — 다음 리밸런싱 회차 VM(설계 13 §8 R172).
+export 'src/ops/next_rebalance_view.dart'
+    show NextRebalanceTexts, nextRebalanceVmOf;
 export 'src/ops/operations_config.dart' show OperationsConfig;
 // 🆕 E11p3d-2b — H-01 오늘 요약 · H-02 운영 리듬(설계 13 §8 R133).
 export 'src/ops/ops_home.dart'

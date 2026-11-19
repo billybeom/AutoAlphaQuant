@@ -169,29 +169,113 @@ void main() {
     expect(vm.emptyLabel, startsWith('보유 종목이 없습니다'));
   });
 
-  test('🔴 원장 → 엔진 VM · 계좌 글자 = 사람 결정 표 · 지금 레지스트리 = 상세 · 배분 링크 0', () async {
+  test(
+    '🔴 원장 → 엔진 VM · 계좌 글자 = 사람 결정 표 · 🆕 R172 레지스트리 = 상세 · 배분 링크가 선다',
+    () async {
+      open();
+      hold(P0sStrategyIds.sleeveA, '229200', 100, 'D-A');
+      hold(P0sStrategyIds.sleeveB, '133690', 200, 'D-B');
+      final HoldingsOverviewVm vm = await repo(rt())
+          .watchHoldingsOverview()
+          .first;
+      expect(vm.cards.map((HoldingsSleeveCard c) => c.sleeve), <SleeveId>[
+        SleeveId.a,
+        SleeveId.b,
+        SleeveId.c,
+      ]);
+      expect(vm.cards[0].rows.single.accountAlias, 'ISA');
+      expect(vm.cards[1].rows.single.accountAlias, '연금저축');
+      expect(vm.cards[1].rows.single.entryDecision.intentId, 'i-133690');
+      expect(
+        vm.cards[1].rows.single.detailDeepLink,
+        'aaq://holdings/detail/h_P0S_B_133690',
+      );
+      expect(vm.allocationLink?.deepLink, AppRoutes.holdingsAllocation);
+      expect(vm.pnlToggleLabel, HoldingsTexts.pnlToggle);
+      expect(vm.cards[2].rowsEmptyText, HoldingsTexts.rowsEmpty);
+      expect(vm.asOf.label, startsWith('잔고 기준 2026-08-28 종가'));
+      expect(
+        kOperatorRouteBodies.byPattern.containsKey(AppRoutes.holdingsOverview),
+        true,
+      );
+      final HoldingsOverviewVm pnl = await repo(rt())
+          .watchHoldingsOverview(includePnl: true)
+          .first;
+      expect(pnl.cards[1].rows.single.pnl, isNotNull, reason: '펼침 = 종목 손익');
+    },
+  );
+
+  test('🆕 R172 상세 = 같은 보유 행 · 매수 결정 링크 · 없는 보유 = 오류', () async {
     open();
-    hold(P0sStrategyIds.sleeveA, '229200', 100, 'D-A');
     hold(P0sStrategyIds.sleeveB, '133690', 200, 'D-B');
-    final HoldingsOverviewVm vm = await repo(rt())
-        .watchHoldingsOverview()
-        .first;
-    expect(vm.cards.map((HoldingsSleeveCard c) => c.sleeve), <SleeveId>[
-      SleeveId.a,
-      SleeveId.b,
-      SleeveId.c,
-    ]);
-    expect(vm.cards[0].rows.single.accountAlias, 'ISA');
-    expect(vm.cards[1].rows.single.accountAlias, '연금저축');
-    expect(vm.cards[1].rows.single.entryDecision.intentId, 'i-133690');
-    expect(vm.cards[1].rows.single.detailDeepLink, isNull);
-    expect(vm.allocationLink, isNull);
-    expect(vm.cards[2].rowsEmptyText, HoldingsTexts.rowsEmpty);
-    expect(vm.asOf.label, startsWith('잔고 기준 2026-08-28 종가'));
+    final OperatorHoldingsRepository r = repo(rt());
+    final HoldingRow row =
+        (await r.watchHoldingsOverview().first).cards[1].rows.single;
+    final HoldingDetailVm d = await r.watchHoldingDetail(row.holdingId).first;
+    expect(d.holding, row);
+    expect(d.entryDecisionLink.deepLink, 'aaq://journal/decision/D-B');
+    expect(d.recentEmptyLabel, HoldingsTexts.recentEmpty);
     expect(
-      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.holdingsOverview),
+      (await r.watchHoldingDetail(row.holdingId, includePnl: true).first)
+          .holding
+          .pnl,
+      isNotNull,
+    );
+    await expectLater(
+      r.watchHoldingDetail('h_P0S_B_999999'),
+      emitsError(isA<StateError>()),
+    );
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.holdingsDetail),
       true,
     );
+  });
+
+  test(
+    '🆕 R172 배분 = 개시 전 빈 문장 → 개시 뒤 원화 현금 대기 → 보유가 서면 다섯 행(원장 변경으로)',
+    () async {
+      final OperatorHoldingsRepository r = repo(
+        rt(),
+        tick: const Duration(hours: 1),
+      );
+      final SleeveAllocationVm none = await r.watchAllocation().first;
+      expect(none.emptyLabel, HoldingsTexts.allocationEmpty);
+      open();
+      final List<SleeveAllocationVm> got = <SleeveAllocationVm>[];
+      final StreamSubscription<SleeveAllocationVm> sub = r
+          .watchAllocation()
+          .listen(got.add);
+      addTearDown(sub.cancel);
+      await until(() => got.isNotEmpty);
+      expect(got.last.rows.last.bandNoteText, '원화 현금 대기 100.0% — 유휴가 아닙니다');
+      hold(P0sStrategyIds.sleeveB, '133690', 200, 'D-B');
+      await until(() => got.last.rows[2].deployedText != '0원');
+      expect(got.last.rows.map((SleeveAllocationRow x) => x.sleeve), <SleeveId>[
+        SleeveId.a,
+        SleeveId.pot,
+        SleeveId.b,
+        SleeveId.c,
+        SleeveId.cash,
+      ]);
+      expect(
+        kOperatorRouteBodies.byPattern.containsKey(
+          AppRoutes.holdingsAllocation,
+        ),
+        true,
+      );
+    },
+  );
+
+  test('🆕 R172 다음 리밸런싱 = 엔진 달력 VM · 미리보기 미등록 = 링크 0 · 다른 둘 = 원천 없음', () async {
+    final OperatorRebalanceRepository r = OperatorRebalanceRepository(
+      rt(),
+      hasBody: kOperatorRouteBodies.byPattern.containsKey,
+    );
+    final NextRebalanceVm n = await r.watchNext().first;
+    expect(n.dDayText, 'D-1', reason: '08-31 18:00 KST → 09-01');
+    expect(n.expectedDateText, '2026년 9월 1일');
+    expect(n.previewRoute, isNull);
+    await expectLater(r.watchEvents(), emitsError(isA<UnsupportedError>()));
   });
 
   test('사람 결정 표가 없으면 계좌 별칭 그대로', () async {

@@ -1,4 +1,4 @@
-// 🆕 E11q1 — M6 H6-1 보유 현황 읽기(operator · 설계 13 §8 R171 · 나눔 계획 R169 q1).
+// 🆕 E11q1 — M6 H6-1 보유 현황 읽기(operator · 설계 13 §8 R171 · 나눔 계획 R169 q1) · 🆕 E11q1b H6-2 상세 · H6-3 배분(R172).
 //
 // 🔴 셈 = 엔진(`holdingsOverviewVmOf` — 회계 = 월말 계획기 원천) · 여기는 원장 원문만 모은다(금액 = 글자 · 01 §1-1 ·
 //    월말 잡 `closeTexts` · `potCashText` 꼴).
@@ -21,13 +21,23 @@ import 'package:core_engine/core_engine.dart'
         P0sOpsConfig,
         WhatIfConfig,
         bTrancheSignalsOf,
+        holdingDetailVmOf,
         holdingsOverviewVmOf,
         kstDateText,
         monthlyLastCloses,
         nextRegularRebalance,
-        potCashOf;
+        potCashOf,
+        sleeveAllocationVmOf;
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, DecisionRef, FlagIds, HoldingsOverviewVm, RunMode, TradeDate;
+    show
+        Clock,
+        DecisionRef,
+        FlagIds,
+        HoldingDetailVm,
+        HoldingsOverviewVm,
+        RunMode,
+        SleeveAllocationVm,
+        TradeDate;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../jobs/seasonal_a_job.dart' show potCashFlowsSinceLiquidation;
@@ -87,19 +97,30 @@ class SqliteHoldingsOverviewSource {
     'config_versions',
   };
 
-  /// 보유 현황 VM.
-  HoldingsOverviewVm overview() => holdingsOverviewVmOf(facts());
+  /// H6-1 보유 현황 VM — [includePnl] = 종목 손익 펼침.
+  HoldingsOverviewVm overview({bool includePnl = false}) =>
+      holdingsOverviewVmOf(facts(), includePnl: includePnl);
 
-  /// 엔진 사실.
-  HoldingsOverviewFacts facts() {
+  /// 🆕 R172 — H6-2 종목 상세 VM(없는 보유 = 엔진 실패).
+  HoldingDetailVm detail(String holdingId, {bool includePnl = false}) =>
+      holdingDetailVmOf(facts(), holdingId, includePnl: includePnl);
+
+  /// 🆕 R172 — H6-3 슬리브 배분 VM(보유 0 이어도 현금을 센다 · 개시 전 = 빈 상태).
+  SleeveAllocationVm allocation() =>
+      sleeveAllocationVmOf(facts(needCash: true));
+
+  /// 엔진 사실 — [needCash] = 보유가 없어도 현금을 센다(H6-3 · 개시 설정이 있을 때만 · 없으면 0 = 개시 전).
+  HoldingsOverviewFacts facts({bool needCash = false}) {
     final DateTime now = _clock.nowUtc();
     final TradeDate today = TradeDate(kstDateText(now));
     final List<HoldingPositionFact> positions = _positions();
     final bool empty = positions.isEmpty;
-    final P0sOpsConfig? cfg = empty ? null : _opsConfig();
-    final Map<String, String> cashTexts = empty
+    final P0sOpsConfig? cfg = !empty
+        ? _opsConfig()
+        : (needCash ? _opsConfigOrNull() : null);
+    final Map<String, String> cashTexts = cfg == null
         ? const <String, String>{}
-        : _cashTexts(cfg!);
+        : _cashTexts(cfg);
     final TradeDate closeDate = _closeDate(positions, today);
     final Set<String> symbols = <String>{
       for (final HoldingPositionFact p in positions) p.symbol,
@@ -118,7 +139,7 @@ class SqliteHoldingsOverviewSource {
       },
       closeDate: closeDate,
       cashTexts: cashTexts,
-      potCashText: empty
+      potCashText: cfg == null
           ? '0'
           : potCashOf(potCashFlowsSinceLiquidation(_db)).toString(),
       config: _config,
@@ -136,8 +157,25 @@ class SqliteHoldingsOverviewSource {
       reconSuspect: flags.contains(FlagIds.reconMismatch),
       hasBody: _hasBody,
       nowUtc: now,
+      fillCounts: _fillCounts(),
     );
   }
+
+  /// (전략, 종목) → 원 체결 건수(브로커 · 가상 체결 — 수기 체결은 주문 없음 = 세지 않는다 · REVERSAL · 정정 제외).
+  Map<(String, String), int> _fillCounts() => <(String, String), int>{
+    for (final Row r in _db.select(
+      'SELECT i.strategy_id, i.symbol, COUNT(*) AS n FROM executions e '
+      'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
+      'JOIN order_intents i ON i.intent_id = b.intent_id '
+      "WHERE i.market = 'KR' AND e.fill_kind = 'ORIGINAL' GROUP BY i.strategy_id, i.symbol",
+    ))
+      (r['strategy_id'] as String, r['symbol'] as String): r['n'] as int,
+  };
+
+  P0sOpsConfig? _opsConfigOrNull() => switch (currentP0sOpsConfig(_db)) {
+    OpsConfigReady(config: final P0sOpsConfig cfg) => cfg,
+    OpsConfigUnavailable() => null,
+  };
 
   List<HoldingPositionFact> _positions() => <HoldingPositionFact>[
     for (final Row r in _db.select(
