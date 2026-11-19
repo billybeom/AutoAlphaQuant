@@ -11,10 +11,17 @@ import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:broker_gateway/broker_gateway.dart'
     show KisCredentials, KisEnvironment, KisKeySet, storeKisCredentials;
 import 'package:core_engine/core_engine.dart'
-    show P0sHumanInputs, P0sOpsConfig, P0sStrategyIds;
+    show
+        DiagnosticsScreenTexts,
+        P0sHumanInputs,
+        P0sOpsConfig,
+        P0sStrategyIds,
+        checkpointLabelOf;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
+        LedgerDiagnosticsSource,
+        LedgerIntegrityCheck,
         SqliteConfigVersionStore,
         p0sHumanDecisionFromText,
         SqliteOnboardingProgressStore,
@@ -28,6 +35,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         CommandContext,
         CredentialCardVm,
         CredentialListVm,
+        DiagnosticsScreenVm,
         FeatureFlags,
         OnboardingResultCodes,
         OnboardingSlotIds,
@@ -38,12 +46,14 @@ import 'package:domain_contracts/domain_contracts.dart'
         SettingsGroup,
         SelfReportBalance,
         SelfReportPurpose,
+        SettingsActionId,
         SettingsHomeVm,
         SleeveMappingRow,
         StepState,
         TradeDate,
         UiLevel;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../engine/support.dart';
@@ -506,4 +516,78 @@ void main() {
     final OperatorSettingsRepository r = OperatorSettingsRepository(rt);
     await expectLater(r.watchOperations(), emitsError(isA<UnsupportedError>()));
   });
+  // ── 🆕 R160 — S10 진단 ─────────────────────────────────────────────────
+
+  test('🔴 S10 — 화면 상태 없음 = 오류 · 골든 = 판정 보류(버튼 부재) · 무결성 기록 없음 = WATCH · 보드 = H-01 과 같은 엔진 값 · 설정 동작 없음 = 버튼 부재', () async {
+    await expectLater(
+      OperatorSettingsRepository(rt).diagnosticsScreen(),
+      throwsA(isA<StateError>()),
+    );
+    rt.view.value = viewOf(files.sim);
+    final DiagnosticsScreenVm vm = await OperatorSettingsRepository(rt)
+        .diagnosticsScreen();
+    expect(vm.golden.statusLabel, DiagnosticsScreenTexts.goldenPending);
+    expect(vm.golden.runAction, isNull);
+    expect(vm.integrity.statusLabel, DiagnosticsScreenTexts.integrityNever);
+    expect(vm.integrity.level, UiLevel.watch);
+    expect(vm.integrity.runAction, isNull);
+    expect(
+      vm.board,
+      LedgerDiagnosticsSource(
+        files.sim,
+        clock: clock,
+        operatingMode: () => OperatingMode.autoTrade,
+      ).diagnostics(),
+    );
+    expect(vm.diffsLink, isNull);
+    expect(vm.recommendText, DiagnosticsScreenTexts.recommend);
+    expect(vm.lockedLabel, isNull);
+    expect(vm.asOf.label, startsWith('진단 기준 '));
+  });
+
+  test(
+    '🔴 S10 — 무결성 검사 일치 뒤 = «마지막 검증 …» OK · 설정 동작 있음 = 무결성 버튼 · 스트림이 다시 낸다',
+    () async {
+      final OperatorRuntime withNet = OperatorRuntime(
+        files: files,
+        clock: clock,
+        vault: vault,
+        kisHttp: http.Client(),
+      );
+      withNet.view.value = viewOf(files.sim);
+      final List<DiagnosticsScreenVm> got = <DiagnosticsScreenVm>[];
+      final StreamSubscription<DiagnosticsScreenVm> sub =
+          OperatorSettingsRepository(withNet)
+              .watchDiagnosticsScreen()
+              .listen(got.add);
+      addTearDown(sub.cancel);
+      for (int i = 0; i < 300 && got.isEmpty; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(
+        got.last.integrity.statusLabel,
+        DiagnosticsScreenTexts.integrityNever,
+      );
+      expect(
+        got.last.integrity.runAction?.id,
+        SettingsActionId.selftestIntegrityRun,
+      );
+      expect(got.last.integrity.runAction?.args, isEmpty);
+      expect(
+        LedgerIntegrityCheck(files.sim, clock: clock).run().verdict.ok,
+        isTrue,
+      );
+      for (
+        int i = 0;
+        i < 300 &&
+            got.last.integrity.statusLabel ==
+                DiagnosticsScreenTexts.integrityNever;
+        i++
+      ) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(got.last.integrity.statusLabel, checkpointLabelOf(clock.nowUtc()));
+      expect(got.last.integrity.level, UiLevel.ok);
+    },
+  );
 }

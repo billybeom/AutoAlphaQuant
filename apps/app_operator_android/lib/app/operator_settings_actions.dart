@@ -32,9 +32,12 @@ import 'package:core_engine/core_engine.dart'
         kOnboardingDryRunStartedText,
         kOnboardingModeCommittedText,
         kOnboardingModeSelectedText,
-        p0sTierBCard;
+        p0sTierBCard,
+        selftestIntegrityResultOf;
 import 'package:data_sync/data_sync.dart'
     show
+        LedgerIntegrityCheck,
+        LedgerIntegrityReport,
         OnboardingOutcome,
         SqliteOnboardingProgressStore,
         SqliteOnboardingStore;
@@ -105,6 +108,7 @@ class OperatorSettingsActions implements SettingsActions {
     required this.clientOf,
     required this.clock,
     this.sim,
+    this.ledger,
   });
 
   /// 🆕 R125 — 온보딩이 쓰는 sim 파일(없음 = 운영 방식 선택 · 진척 기록 없음).
@@ -121,6 +125,36 @@ class OperatorSettingsActions implements SettingsActions {
 
   /// 결과 id 시각.
   final Clock clock;
+
+  /// 🆕 E11p4k(R160) — 지금 화면이 읽는 원장(S10 무결성 자가진단 대상 · 화면 상태 없음 = null).
+  final Database? Function()? ledger;
+
+  /// 🆕 R160 — M9 S10 무결성 자가진단(정본 자가 대조 · 엔진 `LedgerIntegrityCheck.run` · 불일치 = `LEDGER_INTEGRITY` 차단 ·
+  /// 결과 = 엔진 문장 · args = {}).
+  Future<ActionResult> _integrityRun(
+    Database? Function() book,
+    Map<String, String> args,
+  ) {
+    if (args.isNotEmpty) {
+      return Future<ActionResult>.error(
+        ArgumentError('selftestIntegrityRun args = {}'),
+      );
+    }
+    final Database? db = book();
+    if (db == null) {
+      return Future<ActionResult>.error(StateError('무결성: 화면 상태 없음(온보딩 전)'));
+    }
+    final LedgerIntegrityReport rep = LedgerIntegrityCheck(
+      db,
+      clock: clock,
+    ).run();
+    final ActionResult r = selftestIntegrityResultOf(
+      actionRunId: _runId(),
+      reason: rep.verdict.reason,
+    );
+    _results[r.actionRunId] = r;
+    return Future<ActionResult>.value(r);
+  }
 
   final Map<String, ActionResult> _results = <String, ActionResult>{};
   final Map<KisKeySet, Future<ActionResult>> _inFlight =
@@ -162,6 +196,10 @@ class OperatorSettingsActions implements SettingsActions {
     }
     if (id == SettingsActionId.onboardingDryRunStart && db != null) {
       return _dryRunStart(db, args);
+    }
+    final Database? Function()? book = ledger;
+    if (id == SettingsActionId.selftestIntegrityRun && book != null) {
+      return _integrityRun(book, args);
     }
     return Future<ActionResult>.error(
       UnsupportedError('${id.name}: operator 구현 없음(R118)'),

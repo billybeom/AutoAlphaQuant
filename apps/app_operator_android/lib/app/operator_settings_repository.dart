@@ -15,23 +15,29 @@ import 'package:broker_gateway/broker_gateway.dart'
 import 'package:core_engine/core_engine.dart'
     show
         AccountMappingFacts,
+        DiagnosticsScreenFacts,
         PaperAccountFacts,
         PaperCredentialFacts,
         SecretVault,
         SettingsHomeFacts,
+        StoredLedgerDiff,
         accountMappingVmOf,
         contributionKstDay,
         contributionSettingOf,
         credentialListVmOf,
+        diagnosticsScreenVmOf,
         settingsHomeVmOf;
 import 'package:data_sync/data_sync.dart'
     show
+        LedgerDiagnosticsSource,
         OnboardingProgressRecord,
         OpsConfigRead,
         OpsConfigReady,
         SqliteOnboardingProgressStore,
         contributionRowsOf,
         currentP0sOpsConfig,
+        kIntegrityOk,
+        storedLedgerDiffs,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -39,13 +45,15 @@ import 'package:domain_contracts/domain_contracts.dart'
         ContributionSetting,
         CredentialListVm,
         DiagnosticsScreenVm,
+        DiffStatus,
+        FlagIds,
         MonthlyContributionVm,
         OperationsVm,
         RunMode,
         SettingsHomeVm,
         SettingsRepository,
         StepState;
-import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:sqlite3/sqlite3.dart' show Database, Row;
 
 import 'operator_runtime.dart';
 import 'operator_view.dart';
@@ -282,6 +290,49 @@ class OperatorSettingsRepository implements SettingsRepository {
   /// 🆕 계약 v1.24(01 §33 · K113) — `S10` 진단 화면 = 원천 없음(감싸개 VM 생산 = 엔진 `diagnosticsScreenVmOf` · 바인딩 = 06 `M4-12` ⑨ ·
   ///    그 화면은 레지스트리에 없다).
   @override
-  Stream<DiagnosticsScreenVm> watchDiagnosticsScreen() =>
-      _none('watchDiagnosticsScreen');
+  Stream<DiagnosticsScreenVm> watchDiagnosticsScreen() => _follow(
+    diagnosticsScreen,
+    viewTables: const <String>{
+      'ledger_diff',
+      'reconciliation_log',
+      'sync_state',
+      'trading_block',
+    },
+  );
+
+  /// 🆕 E11p4k(R160) — M9 S10 진단(감싸개 · 보드 = H-01 과 같은 엔진 원천 · 골든 = 실행기 전 판정 보류 · 화면 상태 없음 = 오류) ·
+  /// 무결성 버튼 = 설정 동작이 있을 때만(금고 · 검증 HTTP — `operatorSettingsActionsProvider` 와 같은 조건).
+  Future<DiagnosticsScreenVm> diagnosticsScreen() async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) {
+      throw StateError('진단: 화면 상태 없음(온보딩 전)');
+    }
+    final Database db = v.db;
+    final Row? ok = db.select(
+      'SELECT run_at FROM reconciliation_log WHERE action_taken = ? '
+      'ORDER BY run_at DESC LIMIT 1',
+      <Object?>[kIntegrityOk],
+    ).firstOrNull;
+    return diagnosticsScreenVmOf(
+      DiagnosticsScreenFacts(
+        board: LedgerDiagnosticsSource(
+          db,
+          clock: _rt.clock,
+          operatingMode: () => (_rt.view.value ?? v).flags.operatingMode,
+        ).diagnostics(),
+        lastIntegrityOkUtc: ok == null
+            ? null
+            : DateTime.parse(ok['run_at'] as String).toUtc(),
+        integrityBlocked: db.select(
+          'SELECT 1 FROM trading_block WHERE flag_id = ? AND cleared_at IS NULL',
+          <Object?>[FlagIds.ledgerIntegrity],
+        ).isNotEmpty,
+        openDiffs: storedLedgerDiffs(db).any(
+          (StoredLedgerDiff d) => d.status == DiffStatus.open && d.applicable,
+        ),
+        canRun: _rt.vault != null && _rt.kisHttp != null,
+        nowUtc: _rt.clock.nowUtc(),
+      ),
+    );
+  }
 }
