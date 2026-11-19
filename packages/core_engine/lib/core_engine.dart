@@ -101,11 +101,17 @@ export 'src/golden/golden_runner.dart'
         gvObjectList,
         gvString,
         gvStringList;
+// 🆕 E11o-c1 — 슬리브 · 배분 · 브레이커 · 한도 · 기동 · 재량 계열(설계 13 §8 R164).
+export 'src/golden/gv_breaker.dart' show Gv31Breaker;
 export 'src/golden/gv_costs_calendar.dart' show Gv11Costs, Gv12Calendar;
+export 'src/golden/gv_gates.dart' show Gv40dStartup, Gv40eDiscretion;
+export 'src/golden/gv_limits.dart' show Gv32Limits;
 export 'src/golden/gv_orders.dart'
     show Gv13SubmitCount, Gv30SplitExecution, Gv8Sizing, Gv9Idempotency;
 export 'src/golden/gv_regime.dart'
     show Gv1RegimeScore, Gv2Indicators, Gv3ExposureGate, Gv4Hysteresis;
+export 'src/golden/gv_sleeves.dart'
+    show Gv20SleeveSignals, Gv22SleeveC, Gv37CoreBandDeposit, Gv42Allocation;
 // 🆕 E16g2 — X1-2 백업 매니페스트 · 복원 판정 합성(순수 · 설계 13 §8 R135).
 export 'src/migration/backup_manifest.dart'
     show
