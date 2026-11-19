@@ -7,7 +7,7 @@
 // 🔵 상태 칩 = 실행 모드 × 운영 방식(표본 `operations_sim_*` 글자) · 골든벡터 셀프테스트(S10) 원천 없음 →
 //    실전은 «골든벡터 판정 보류»(WATCH) · 모의는 판정 칸 없이 INFO(표본 그대로) · 승격 줄 = dry-run 관찰 원천 전 → 없음.
 // 🔵 운영 묶음 머리 = «운영»(생체 가드 M5 전 — «들어갈 때 생체 인증»을 약속하지 않는다).
-// 🔵 12월 연간 리뷰 카드 = S12 본문 · 창 판정 원천 전 → 부재.
+// 🔵 12월 연간 리뷰 카드 = 🆕 E11p4l(R168) 신뢰 시각 12월 · S12 본문 등록 때만(`annualReviewHomeLinkOf` · 시각 모름 = 부재).
 
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -27,6 +27,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         TradeDate,
         UiLevel;
 
+import 'annual_review_index.dart' show annualReviewHomeLinkOf;
 import 'ledger_views.dart' show kstDateText;
 
 /// 설정 홈 신선도(표본 `stale_after_seconds` 93600 = 26시간).
@@ -84,7 +85,11 @@ class SettingsHomeFacts {
     required this.opsConfigReady,
     required this.hasBody,
     this.contribution,
+    this.trustedNowUtc,
   });
+
+  /// 🆕 R168 — 신뢰 시각(12월 연간 리뷰 카드 · 모르면 null = 카드 부재).
+  final DateTime? trustedNowUtc;
 
   /// 지금 실행 모드.
   final RunMode runMode;
@@ -286,6 +291,10 @@ SettingsHomeVm settingsHomeVmOf(
   final DateTime k = nowUtc.toUtc().add(const Duration(hours: 9));
   return SettingsHomeVm(
     statusChip: settingsStatusChipOf(f.runMode, f.operatingMode),
+    annualReviewLink: annualReviewHomeLinkOf(
+      trustedNowUtc: f.trustedNowUtc,
+      hasBody: f.hasBody,
+    ),
     groups: groups,
     asOf: AsOf(
       observedAt: nowUtc.toUtc(),

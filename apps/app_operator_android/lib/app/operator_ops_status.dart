@@ -19,6 +19,7 @@ import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
     show
+        AnnualReviewIndexFacts,
         ConnectionsFacts,
         DeviceAccessFacts,
         DeviceRiskFacts,
@@ -26,9 +27,11 @@ import 'package:core_engine/core_engine.dart'
         LeaseVerdict,
         RemoteCheck,
         WatchdogRemote,
+        annualReviewIndexVmOf,
         connectionsVmOf,
         deviceAccessVmOf,
-        deviceRiskVmOf;
+        deviceRiskVmOf,
+        kstDateText;
 import 'package:data_sync/data_sync.dart'
     show
         HealthchecksError,
@@ -393,8 +396,53 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
   @override
   Stream<BackupVm> watchBackup() => _none('watchBackup');
 
+  /// 🆕 E11p4l(R168) — M9 S12 연간 리뷰 목차(엔진 `annualReviewIndexVmOf` · 창 = 신뢰 시각 한국 12월 · 목차 = 등록된 화면만 ·
+  /// 운영 시작 해 = 온보딩 확정 시각 · 시간만 흘러도 [tick] 마다 다시 낸다 · 같은 값 = 다시 내지 않음).
   @override
-  Stream<AnnualReviewIndexVm> watchAnnualReview() => _none('watchAnnualReview');
+  Stream<AnnualReviewIndexVm> watchAnnualReview() {
+    late final StreamController<AnnualReviewIndexVm> c;
+    Timer? timer;
+    AnnualReviewIndexVm? last;
+
+    void emit() {
+      try {
+        final AnnualReviewIndexVm v = annualReviewIndexVmOf(
+          AnnualReviewIndexFacts(
+            trustedNowUtc: _rt.trusted.trustedNowUtc(),
+            firstOperatingYear: _firstOperatingYear(),
+            hasBody: hasBody,
+            nowUtc: _rt.clock.nowUtc(),
+          ),
+        );
+        if (c.isClosed || v == last) return;
+        last = v;
+        c.add(v);
+      } on Object catch (e, st) {
+        if (!c.isClosed) c.addError(e, st);
+      }
+    }
+
+    c = StreamController<AnnualReviewIndexVm>(
+      onListen: () {
+        timer = Timer.periodic(tick, (_) => emit());
+        emit();
+      },
+      onCancel: () async {
+        timer?.cancel();
+        await c.close();
+      },
+    );
+    return c.stream;
+  }
+
+  /// 운영을 시작한 해(한국 · `onboarding_choice.committed_at` · 없으면 null = 엔진이 첫 해로 본다).
+  int? _firstOperatingYear() {
+    final Object? at = _rt.files.sim
+        .select('SELECT committed_at FROM onboarding_choice WHERE id = 1')
+        .firstOrNull?['committed_at'];
+    final DateTime? t = at is String ? DateTime.tryParse(at) : null;
+    return t == null ? null : int.parse(kstDateText(t.toUtc()).substring(0, 4));
+  }
 
   /// 🆕 R136 — H-03 기기 리스크(화면 상태와 무관 — 온보딩 전에도 잰다).
   @override

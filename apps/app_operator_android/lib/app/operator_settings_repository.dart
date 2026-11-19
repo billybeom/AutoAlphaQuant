@@ -202,6 +202,8 @@ class OperatorSettingsRepository implements SettingsRepository {
         contribution: _contributionOf(v, now),
         opsConfigReady: v.flags.configHash.isNotEmpty,
         hasBody: hasBody,
+        // 🆕 R168 — 12월 연간 리뷰 카드(신뢰 시각 · 모름 = 카드 부재).
+        trustedNowUtc: _rt.trusted.trustedNowUtc(),
       ),
       nowUtc: now,
     );

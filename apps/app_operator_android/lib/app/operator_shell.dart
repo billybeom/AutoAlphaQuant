@@ -57,6 +57,7 @@ import 'package:ui_safety/ui_safety.dart'
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
+        AnnualReviewEntry,
         Connections,
         Credentials,
         Devices,
@@ -238,6 +239,9 @@ Widget _simOpeningCash(Map<String, String> _) => const SimOpeningCash();
 
 Widget _settingsDiagnostics(Map<String, String> _) => const Diagnostics();
 
+Widget _settingsAnnualReview(Map<String, String> _) =>
+    const AnnualReviewEntry();
+
 /// 🆕 R129 — 설정 읽기 모델(첫 칸 = S02 키 목록) · 🆕 R134 설정 홈 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만.
 final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
     Provider<OperatorSettingsRepository>((Ref ref) {
@@ -297,6 +301,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.settingsAccounts: _settingsAccounts,
   // 🆕 E11p4k(R160) — M9 S10 진단(골든 = 실행기 전 판정 보류 · 무결성 = 정본 자가 대조).
   AppRoutes.settingsDiagnostics: _settingsDiagnostics,
+  // 🆕 R168 — M9 S12 12월 연간 리뷰 목차(S01 카드 = 신뢰 시각 12월 · 목차 = 등록된 M7 화면만).
+  AppRoutes.settingsAnnualReview: _settingsAnnualReview,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
   // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).

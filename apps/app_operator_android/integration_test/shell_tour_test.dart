@@ -29,7 +29,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 import 'package:ui_settings/ui_settings.dart'
-    show Accounts, Connections, Devices, Diagnostics, SettingsHome;
+    show
+        AnnualReviewEntry,
+        Accounts,
+        Connections,
+        Devices,
+        Diagnostics,
+        SettingsHome;
 import 'package:ui_shell/ui_shell.dart'
     show DeviceRiskBoard, OpsHome, ShellRoot, shellLinkOpenerProvider;
 
@@ -178,6 +184,15 @@ void main() {
       expect(find.text('통과'), findsWidgets);
       expect(find.textContaining('마지막 실행 '), findsWidgets);
       await _at(tester, find.byType(Diagnostics), 'IT_S10');
+
+      // 🆕 R168 — S12 12월 연간 리뷰 목차(신뢰 시각 전 = «확인하지 못했습니다» · 목차 = 등록된 M7 화면 0).
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.settingsAnnualReview);
+      await _until(tester, find.textContaining('연간 점검 창을 확인하지 못했습니다'));
+      expect(find.textContaining('년 연간 리뷰'), findsWidgets);
+      await _at(tester, find.byType(AnnualReviewEntry), 'IT_S12');
+      await tester.pageBack();
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
       await _until(tester, find.textContaining('남은 공간'));

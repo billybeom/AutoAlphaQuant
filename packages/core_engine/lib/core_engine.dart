@@ -403,6 +403,17 @@ export 'src/ops/account_mapping.dart'
 // 🆕 E11p3d-4a — 알림 수신 확인(ack) 명령 봉투(설계 13 §8 R147).
 export 'src/ops/alert_ack_command.dart'
     show AlertAckCommand, kAlertAckTtl, newCommandId;
+// 🆕 E11p4l — M9 S12 연간 리뷰 목차 · 12월 창(설계 13 §8 R168 · 미결 202).
+export 'src/ops/annual_review_index.dart'
+    show
+        AnnualReviewIndexFacts,
+        AnnualReviewTexts,
+        AnnualReviewWindow,
+        annualReviewHomeLinkOf,
+        annualReviewIndexVmOf,
+        annualReviewWindowOf,
+        kAnnualReviewEntries,
+        kAnnualReviewStaleAfter;
 export 'src/ops/config_fingerprint.dart'
     show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;
 // 🆕 E11p3d-5f — M9 S07 연결 관리(설계 13 §8 R140).
