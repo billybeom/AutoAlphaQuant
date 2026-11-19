@@ -1567,6 +1567,30 @@ void checkLabelsCount(
       'Git Bash 를 못 찾았다(Windows 는 «C:\\Program Files\\Git\\bin\\bash.exe»)',
     );
   }
+  const String tool = 'packages/domain_contracts/tool/check_labels.sh';
+  // 있는 lib 폴더만 넘긴다 — git archive 는 맞는 파일이 없는 경로가 하나라도 있으면 멈춘다.
+  final Set<String> libs = <String>{};
+  bool hasTool = false;
+  for (final String p in const LineSplitter().convert(
+    git(<String>[
+      'ls-tree',
+      '-r',
+      '--name-only',
+      head,
+      '--',
+      'packages',
+      'apps',
+    ]),
+  )) {
+    final List<String> parts = p.split('/');
+    if (parts.length > 3 && parts[2] == 'lib') {
+      libs.add(parts.sublist(0, 3).join('/'));
+    }
+    hasTool = hasTool || p == tool;
+  }
+  if (!hasTool) {
+    return (null, '$tool 가 head 에 없다');
+  }
   final Directory tmp = Directory.systemTemp.createTempSync('precheck_labels_');
   try {
     String posix(String p) => p.replaceAll(r'\', '/');
@@ -1574,9 +1598,8 @@ void checkLabelsCount(
     final String dir = posix(tmp.path);
     final String script =
         'set -o pipefail; git -C "$repo" archive --format=tar $head -- '
-        "':(glob)packages/*/lib/**' ':(glob)apps/*/lib/**' "
-        'packages/domain_contracts/tool/check_labels.sh | tar -xf - -C "$dir" '
-        '&& bash "$dir/packages/domain_contracts/tool/check_labels.sh"';
+        '${<String>[...libs, tool].map((String p) => '"$p"').join(' ')} '
+        '| tar -xf - -C "$dir" && bash "$dir/$tool"';
     final ProcessResult r = Process.runSync(
       bash,
       <String>['-c', script],
