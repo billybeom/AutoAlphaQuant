@@ -2,6 +2,8 @@
 //
 // 🆕 계약 v1.21(01 §30) — M5-2 킬스위치 재개 게이트 · M5-8/`O-04` ② 서약 표시 VM.
 // 🆕 v1.22(01 §31 · K65) — `M5-4` 브레이커 사다리(문장 = 엔진 `breakerLadderOf` 글자 그대로).
+// 🆕 v1.25(01 §34 · K146 · K147 · K154) — `M5-1` 킬스위치 화면 · 발동 뒤 기록 폼(01 §8 미결 186) ·
+//    `M5-5` 차단 보드(사다리 `M5-4` · 게이지 `M5-7` 감싸기).
 // 🔴 M5 만 렌더한다(`ui_safety` · 01 §2-10 표 · C-7) · 상태를 바꾸는 경로 = `SafetyActions`(포트) 뿐.
 // 🔴 화면은 받은 글자·차례 그대로 그린다 — 단계·남은 시간을 계산하지 않는다(카운트다운 0 · 새 VM 으로만).
 // 🔴 7문항 글자 출처 = SPEC v2.40 04 §3-6 ③ «재개판» 원문(발주자 확정 2026-11-04 · 정규화 = 01 §30 K38) —
@@ -12,6 +14,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../enums/safety.dart';
 import '../enums/ui.dart';
 import '../primitives/as_of.dart';
+import 'common.dart'; // LinkAction(🆕 v1.25)
 import 'safety.dart';
 
 part 'safety_gate.freezed.dart';
@@ -153,3 +156,211 @@ abstract class BreakerLadderRow with _$BreakerLadderRow {
       _$BreakerLadderRowFromJson(json);
 }
 // JSON 키: level · label · trigger_text · release_text · action_text · current
+
+/// 🆕 v1.25(01 §34 · K146) — `M5-1` 킬스위치 한 화면(창구 = `KillSwitchGateRepository.watchKillSwitch()` · 🔒 `ui_safety`).
+/// 🔴 불변식(엔진 의무 · C-59 ②~⑦) — [activateLabel] non-null ⇔ 꺼짐 · 꺼짐 ⇒ [activatedText]·[cancelHeadline]·[checklistStateLabel]·
+///    [form]·[etaText]·[gateLink] null ∧ [cancelRows] 빈 · [pathLines] non-empty ⇒ 꺼짐 · [form] non-null ⇒ 켜짐 ∧ 기록 전 ∧
+///    [lockedLabel] null · [gateLink]·[etaText] non-null ⇒ 기록 뒤 · [lockedLabel] 은 [activateLabel] 을 지우지 않는다(끄기는 등급 밖 · K150).
+/// 🔴 버튼을 누르면 확인 대화 없이 `CommandApi.activateKillSwitch()` — 화면이 대화·지연·두 번 누르기를 더하지 않는다(06 M5-1).
+/// 🔴 카운트다운 0 · 해제 칸·버튼 0(해제 = `m5ReleaseGate` 7번 통과뿐).
+@freezed
+abstract class KillSwitchScreenVm with _$KillSwitchScreenVm {
+  const factory KillSwitchScreenVm({
+    /// 머리 — 엔진 `killSwitchViewOf.stateLabel`(«킬스위치 꺼짐» · «킬스위치 작동 중 — 신규 주문을 막고 있습니다»).
+    required String stateLabel,
+    required UiLevel level,
+
+    /// 발동 줄(켜짐만 · 엔진 — 시각 «MM-DD HH:mm» + 기기 별칭 · 🔴 기기 id 원문 0).
+    String? activatedText,
+
+    /// 발동 버튼 글자(꺼짐만 · 엔진). null = 버튼 부재(이미 켜짐).
+    String? activateLabel,
+
+    /// 3중 경로 안내(꺼짐만 · 엔진 글자 · 받은 차례).
+    @Default(<String>[]) List<String> pathLines,
+
+    /// 미체결 취소 보고 머리(켜짐만 · 엔진 — 건수 문장 · 후보 읽기 실패 문장). null = 보고 부재.
+    String? cancelHeadline,
+
+    /// 건별(엔진 차례 · 금액·수량·주문번호·intent id 0).
+    @Default(<KillCancelRow>[]) List<KillCancelRow> cancelRows,
+
+    /// 기록 상태 — 엔진 `checklistStateLabel`(«체크리스트를 먼저 마치십시오 — …» · «체크리스트 확인 MM-DD HH:mm»). 꺼짐 = null.
+    String? checklistStateLabel,
+
+    /// 발동 뒤 기록 폼(켜짐 ∧ 기록 전 ∧ 잠김 아님 · 폰). 제출 = `CommandApi.confirmKillChecklist(KillChecklistSubmission)`.
+    KillActivationFormVm? form,
+
+    /// 해제 시각 줄 — 엔진 `releaseEtaText`(기록 뒤만).
+    String? etaText,
+
+    /// 재개 게이트로(엔진 완성 · 목적지 `AppRoutes.m5ReleaseGate` · 기록 뒤만).
+    LinkAction? gateLink,
+
+    /// 운영 등급 생체 축소(폼 0 · 🔴 발동 버튼은 남는다).
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _KillSwitchScreenVm;
+
+  factory KillSwitchScreenVm.fromJson(Map<String, dynamic> json) =>
+      _$KillSwitchScreenVmFromJson(json);
+}
+// JSON 키: state_label · level · activated_text · activate_label · path_lines · cancel_headline · cancel_rows ·
+//          checklist_state_label · form · eta_text · gate_link · locked_label · as_of
+
+/// 🆕 v1.25(01 §34 · K151) — 미체결 취소 한 건(엔진 `KillCancelItem` − intent id · 코드 · 🔴 금액·수량·주문번호 0).
+@freezed
+abstract class KillCancelRow with _$KillCancelRow {
+  const factory KillCancelRow({
+    /// 종목 표시(엔진).
+    required String symbolText,
+
+    /// ∈ `KillCancelOutcomeCodes`(🔴 화면 분기 0 — 시험·Key 전용).
+    required String outcomeCode,
+
+    /// 결과 글자(엔진 · «불명»은 다시 부르지 않았다는 뜻까지).
+    required String outcomeLabel,
+    required UiLevel level,
+  }) = _KillCancelRow;
+
+  factory KillCancelRow.fromJson(Map<String, dynamic> json) =>
+      _$KillCancelRowFromJson(json);
+}
+// JSON 키: symbol_text · outcome_code · outcome_label · level
+
+/// 🆕 v1.25(01 §34 · K147 · 01 §8 미결 186) — `M5-1` 발동 뒤 기록 폼(카드 ④ (가) 7 + 확인 3 + 1줄).
+/// 🔴 차단은 이미 걸려 있다(SPEC v2.40 §3-6 ③) — 이 폼은 발동을 늦추지 않는다 · 마친 시각 = 48h 기준(엔진).
+/// 🔴 [items] = 받은 길이(엔진 7) · 입력 칸 꼴(번호별 글·선택·숫자 원문) · 칸 머리 · 제출 버튼 = 카드 정적 라벨(v1.21 K37 결).
+/// 🔴 예시·프리필 0 — 사람이 친 원문이 `KillChecklistSubmission` 에 그대로 간다(파싱 = 구현).
+@freezed
+abstract class KillActivationFormVm with _$KillActivationFormVm {
+  const factory KillActivationFormVm({
+    required List<KillActivationItemRow> items,
+
+    /// 확인 3 · 1줄 — 제출 칸 `openOrdersQueried` · `openOrdersCancelled` · `remainingCountZero` · `note` 와 1:1(엔진 글자).
+    required String ackQueriedLabel,
+    required String ackCancelledLabel,
+    required String ackRemainingZeroLabel,
+    required String noteLabel,
+
+    /// 폼 고지(엔진 — «이 기록은 주문을 내지 않는다 · 전량 청산 = 기록만»). null = 부재.
+    String? noticeText,
+  }) = _KillActivationFormVm;
+
+  factory KillActivationFormVm.fromJson(Map<String, dynamic> json) =>
+      _$KillActivationFormVmFromJson(json);
+}
+// JSON 키: items · ack_queried_label · ack_cancelled_label · ack_remaining_zero_label · note_label · notice_text
+
+/// 🆕 v1.25(01 §34 · K147 · K148) — 카드 ④ (가) 한 문항.
+/// 🔴 [choices] non-empty ⇔ 2번(2) · 5번(2) · [fixedText] non-null ⇔ 6 · 7번(입력 0) · 둘 다 non-null 0.
+@freezed
+abstract class KillActivationItemRow with _$KillActivationItemRow {
+  const factory KillActivationItemRow({
+    /// 1~7 — 🔴 제출 칸 대응은 카드 정적(1 ruleAction · 2 reasonKind·emotion·intensity·sleepHours · 3 scenarioId·scenarioNone ·
+    ///    4 resumeCondition · 5 scope).
+    required int itemNo,
+
+    /// 문항(SPEC 04 §3-6 «카드 ④(발동 뒤 기록)» 원문 · 01 §30 K38 정규화).
+    required String label,
+
+    /// 종이 카드 원문 보탬 줄(03 §7-4 · 3·5번만 — K148). null = 부재.
+    String? hintText,
+
+    /// 입력 없는 문항의 글자(6 = 시작 시각은 엔진이 적는다 · 7 = 저널은 구현이 만든다 — 엔진). null = 입력 문항.
+    String? fixedText,
+
+    /// 고를 것(2번 규칙/감정 · 5번 범위 — 글자·값 = 엔진).
+    @Default(<KillActivationChoice>[]) List<KillActivationChoice> choices,
+  }) = _KillActivationItemRow;
+
+  factory KillActivationItemRow.fromJson(Map<String, dynamic> json) =>
+      _$KillActivationItemRowFromJson(json);
+}
+// JSON 키: item_no · label · hint_text · fixed_text · choices
+
+/// 🆕 v1.25(01 §34 · K147) — 2·5번 선택지 1개 — 🔴 [reasonKind]·[scope] 중 **정확히 하나** non-null ·
+/// 화면은 그 칸을 제출 DTO 에 그대로 옮긴다.
+@freezed
+abstract class KillActivationChoice with _$KillActivationChoice {
+  const factory KillActivationChoice({
+    /// «규칙» · «감정» · «신규 진입 차단만» · «전량 청산»(SPEC 원문).
+    required String label,
+    KillActivationReason? reasonKind,
+    KillActivationScope? scope,
+  }) = _KillActivationChoice;
+
+  factory KillActivationChoice.fromJson(Map<String, dynamic> json) =>
+      _$KillActivationChoiceFromJson(json);
+}
+// JSON 키: label · reason_kind · scope
+
+/// 🆕 v1.25(01 §34 · K154 · 01 §8 미결 188 M5-5 읽기 몫) — `M5-5` 차단 보드 한 화면
+/// (창구 = `BlockBoardRepository.watchBoard()` · 🔒 `ui_safety`).
+/// 🔴 불변식(C-59 ⑩~⑫) — [killSwitchLink] 늘 non-null(목적지 `AppRoutes.m5KillSwitch` · 끄기는 언제나) ·
+///    [emptyLabel] non-null ⇒ [rows] 빈 · [ladder] 의 current 행 라벨 == [breakerLabel] ·
+///    [stoppedDecisionLink] non-null ⇒ 목적지 `AppRoutes.m5StoppedDecision`.
+/// 🔴 화면은 받은 차례 그대로(재정렬·재분류 0) · 행 링크 = 엔진 · 해제 버튼 0(RECON 원인 코드 선택 = 1.26.0+).
+@freezed
+abstract class BlockBoardVm with _$BlockBoardVm {
+  const factory BlockBoardVm({
+    /// 머리(엔진 — 막힌 것 요약 한 줄).
+    required String headline,
+    required UiLevel level,
+
+    /// 지금 단(엔진 `breakerLabelOf` — `SafetyState.breakerLabel` 과 같은 글자).
+    required String breakerLabel,
+
+    /// 막힌 것(켜진 킬스위치 먼저 + 차단 플래그 · 엔진 차례).
+    @Default(<BlockBoardRow>[]) List<BlockBoardRow> rows,
+
+    /// 해제 진행 게이지(M5-7 · `SafetyState.releaseProgress` 와 같은 값 · code ∈ `GaugeCodes`).
+    @Default(<GaugeProgress>[]) List<GaugeProgress> gauges,
+
+    /// 서킷브레이커 사다리(M5-4 · 엔진 `breakerLadderOf` 글자 그대로 — `BreakerLadderVm` 감싸기).
+    required BreakerLadderVm ladder,
+
+    /// STOPPED 재개 결정(엔진 · 자격 때만 · 목적지 `AppRoutes.m5StoppedDecision`).
+    LinkAction? stoppedDecisionLink,
+
+    /// 킬스위치 진입(엔진 · 늘 · 목적지 `AppRoutes.m5KillSwitch`).
+    required LinkAction killSwitchLink,
+
+    /// «막힌 것 없음» 문장(엔진 · 행 0 ∧ 브레이커 정상일 때만).
+    String? emptyLabel,
+    required AsOf asOf,
+  }) = _BlockBoardVm;
+
+  factory BlockBoardVm.fromJson(Map<String, dynamic> json) =>
+      _$BlockBoardVmFromJson(json);
+}
+// JSON 키: headline · level · breaker_label · rows · gauges · ladder · stopped_decision_link · kill_switch_link · empty_label · as_of
+
+/// 🆕 v1.25(01 §34 · K155) — 보드 한 행(막힌 것 하나 · 해제 성격과 경로가 행마다 다르다 — 06 M5-5).
+@freezed
+abstract class BlockBoardRow with _$BlockBoardRow {
+  const factory BlockBoardRow({
+    /// 🔴 화면 미참조(시험·Key) — ∈ `FlagIds.values` ∪ {`KILL_SWITCH`}.
+    required String rowId,
+
+    /// 플래그 = 엔진 플래그 사전 라벨 · 킬스위치 = `killSwitchViewOf.stateLabel`.
+    required String label,
+
+    /// «MM-DD HH:mm부터»(엔진). null = 부재.
+    String? setAtText,
+
+    /// 해제 성격(`ClearRoute` 짝 글자 · 엔진 — 킬스위치 = «재개 게이트로만»).
+    required String clearKindLabel,
+
+    /// 할 일(플래그 = 엔진 사전 해제 문장 · 킬스위치 = 엔진 기록 상태·ETA 문장).
+    required String clearInstruction,
+    required UiLevel level,
+
+    /// 조치 진입(엔진 · 플래그 = `clearDeepLink` · 킬스위치 = `m5KillSwitch`). null = 이동 0.
+    LinkAction? link,
+  }) = _BlockBoardRow;
+
+  factory BlockBoardRow.fromJson(Map<String, dynamic> json) =>
+      _$BlockBoardRowFromJson(json);
+}
+// JSON 키: row_id · label · set_at_text · clear_kind_label · clear_instruction · level · link

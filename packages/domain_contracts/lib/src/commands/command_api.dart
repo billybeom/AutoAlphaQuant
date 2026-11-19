@@ -19,6 +19,8 @@
 // 🆕 v1.15(01 §24 · K12) — `acknowledgeAlert` 인자 = `String alertId`(와이어 `AlertAck` = 구현이 만든다).
 // 🆕 v1.22(01 §31 · K60) — `confirmKillChecklist` 인자 = «화면 제출» `KillChecklistSubmission`(와이어 `KillChecklistAck` =
 //    구현이 만든다 · v1.15 `acknowledgeAlert` 선례).
+// 🆕 v1.25(01 §34 · K149) — `activateKillSwitch()` 인자 0(구 `{reasonFreeText, deviceId}`) — 화면이 기기 id·사유를 짓지 않는다
+//    (기기·채널·시각 = 구현 `CommandContext` · 사유 = 발동 뒤 기록 `confirmKillChecklist` 1·2번).
 
 import 'command_receipt.dart';
 import 'payloads.dart';
@@ -26,10 +28,10 @@ import 'payloads_x7.dart';
 
 /// 명령 발행 창구.
 abstract interface class CommandApi {
-  Future<CommandReceipt> activateKillSwitch({
-    required String reasonFreeText,
-    required String deviceId,
-  });
+  /// 🆕 v1.25(01 §34 · K149) 인자 교체(구 `{required String reasonFreeText, required String deviceId}`) — 🔴 확인 대화 없이 즉시(06 M5-1) ·
+  /// 기기·채널·시각 = 구현 `CommandContext`(`command_context.dart` 머리) · 사유 = 발동 뒤 기록(`confirmKillChecklist`) 1·2번 ·
+  /// 거부 코드 0(엔진 발동 = 멱등 — 이미 켜져 있으면 첫 발동 시각 유지 · 실패 = `Future` 에러 = 접수 실패) · 뷰어 = 같은 메서드(Supabase 명령).
+  Future<CommandReceipt> activateKillSwitch();
 
   /// 사전 저널 제출(폰 · `J-3`). viewer 경로를 그리는 화면은 없다(`J-3` = 폰 전용 · 01 §11-10).
   /// 🔴 🆕 v1.2 부터 «초안»은 제출 **전** 기기 로컬 입력 원문(`DraftStore` · 01 §12-1)을 뜻한다 —

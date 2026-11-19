@@ -305,8 +305,14 @@ abstract final class AppRoutes {
   /// 🆕 v1.20(01 §29 · K12 · K37) — 🔒 06 `M4-4` 키 회전 마법사(`S02` 카드 `rotateLink` 목적지 · 파라미터 0 — 세트는 마법사가 VM 으로 안다) ·
   /// 본문 = 마법사가 생길 때까지 조립 앱 레지스트리 빈 자리(v1.16 `x1MigrationPlan` 선례) · 셸 가드 무변경.
   static const String m4KeyRotation = 'aaq://m4/key-rotation';
+
+  /// 🆕 v1.25(01 §34 · K146 · K152) — 🔒 `M5-1` 본문 = `ui_safety`(VM = `KillSwitchScreenVm` · 셸 자리 = `OpsSlotIds.killSwitch`).
   static const String m5KillSwitch = 'aaq://m5/kill-switch';
+
+  /// 🆕 v1.25(01 §34 · K153) — 🔒 `M5-2` 본문 = `ui_safety`(VM = `KillResumeGateVm` · 서약 재생 = `PledgeRepository`).
   static const String m5ReleaseGate = 'aaq://m5/release-gate';
+
+  /// 🆕 v1.25(01 §34 · K154) — 🔒 `M5-5` 본문 = `ui_safety`(VM = `BlockBoardVm` · 사다리 `M5-4` · 게이지 `M5-7` 포함).
   static const String m5BlockBoard = 'aaq://m5/block-board';
   static const String m5Intervention = 'aaq://m5/intervention';
   static const String m5HandoverGate = 'aaq://m5/handover-gate';
@@ -333,7 +339,11 @@ abstract final class AppRoutes {
 
   /// 🆕 v1.16 — `R-01` 분기 «잃어버렸어요» = X1 비상 경로(복구 코드 → epoch+1 → TTL 대기 · 🔒 X1-3).
   static const String x1MigrationEmergency = 'aaq://x1/migration/emergency';
+
+  /// 🆕 v1.25(01 §34 · K156) — 🔒 X2-6 리포트 본문 = `ui_safety`(VM = `ResumeReportVm`).
   static const String x2ResumeReport = 'aaq://x2/resume-report';
+
+  /// 🆕 v1.25(01 §34 · K157) — 🔒 X2-6 게이트 본문 = `ui_safety`(VM = `ResumeGateVm`).
   static const String x2ResumeGate = 'aaq://x2/resume-gate';
 
   /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.

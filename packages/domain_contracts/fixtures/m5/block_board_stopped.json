@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.25.0",
+    "generated_at": "2026-11-19T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261119,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-11-18T06:00:00Z", "trade_date": "2026-11-18", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안전 기준 2026-11-18 15:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "headline": "(합성) 서킷브레이커 정지 단계 — 신규 주문을 전면 중단했습니다",
+      "level": "BLOCKED",
+      "breaker_label": "정지",
+      "rows": [],
+      "gauges": [
+        { "code": "DD_RECOVERY", "label": "드로다운 회복", "normalized": 1.0, "value_text": "회복 완료" },
+        { "code": "COOLDOWN", "label": "냉각 기간", "normalized": 1.0, "value_text": "냉각 완료" }
+      ],
+      "ladder": {
+        "rows": [
+          { "level": "NORMAL", "label": "정상", "trigger_text": "dd > -15%", "release_text": "—", "action_text": "정상 운용", "current": false },
+          { "level": "ALERT", "label": "경보", "trigger_text": "dd ≤ -15%", "release_text": "dd > -13% · 20거래일 유지", "action_text": "알림 · 새틀라이트 신규 진입 · 증액 중단(지금은 대상 없음)", "current": false },
+          { "level": "REDUCED", "label": "축소 운용", "trigger_text": "dd ≤ -20%", "release_text": "dd ≥ -12% · 방향 점수 50 이상 · 20거래일 유지", "action_text": "새틀라이트 × 0.5(지금은 대상 없음)", "current": false },
+          { "level": "HALTED", "label": "중지", "trigger_text": "dd ≤ -25%", "release_text": "dd ≥ -15% · BULL 3일 연속 · 20거래일 유지", "action_text": "새틀라이트 0%(지금은 대상 없음) · 슬리브 A 신규 매수 정지", "current": false },
+          { "level": "STOPPED", "label": "정지", "trigger_text": "dd ≤ -35%", "release_text": "자동 해제 없음 — 20거래일 · SEV1 postmortem · 가족 합의 · 결정 A/B/C", "action_text": "신규 주문 전면 중단 · 보유 유지 · 자동 청산 없음", "current": true }
+        ],
+        "as_of": { "observed_at": "2026-11-18T06:00:00Z", "trade_date": "2026-11-18", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안전 기준 2026-11-18 15:00" }
+      },
+      "stopped_decision_link": { "label": "(합성) 재개 결정하기", "deep_link": "aaq://m5/stopped-decision" },
+      "kill_switch_link": { "label": "(합성) 킬스위치", "deep_link": "aaq://m5/kill-switch" },
+      "empty_label": null,
+      "as_of": { "observed_at": "2026-11-18T06:00:00Z", "trade_date": "2026-11-18", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "안전 기준 2026-11-18 15:00" }
+    }
+  ]
+}

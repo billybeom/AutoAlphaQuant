@@ -117,11 +117,9 @@ class OperatorCommandApi implements CommandApi {
         : Stream<CommandReceipt>.value(r);
   }
 
+  // 🆕 계약 v1.25(01 §34 · K149 · K165) — 인자 0(기기·채널 = 이 구현 · 사유 = 발동 뒤 기록) · 행동 = 조립 레인(E11q-b1).
   @override
-  Future<CommandReceipt> activateKillSwitch({
-    required String reasonFreeText,
-    required String deviceId,
-  }) => _none('activateKillSwitch');
+  Future<CommandReceipt> activateKillSwitch() => _none('activateKillSwitch');
 
   @override
   Future<CommandReceipt> submitJournalDraft(JournalDraft draft) =>

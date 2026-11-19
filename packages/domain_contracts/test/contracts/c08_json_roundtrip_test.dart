@@ -314,6 +314,8 @@ const Map<String, String> _knownUncovered = <String, String>{
   //    (`L-3` 화면 VM `SelfReportSession` 은 `SymbolOption` 을 싣고 이 행을 싣지 않는다).
   'SelfReportLine': _reasonCommandPayload,
 
+  // 🔵 v1.25(01 §34) — 새 DTO 8(`KillSwitchScreenVm`·`KillCancelRow`·`KillActivationFormVm`·`KillActivationItemRow`·
+  //    `KillActivationChoice`·`BlockBoardVm`·`BlockBoardRow`·`ResumeReportVm`) = m5·x2 신설 표본이 처음부터 덮는다(목록 0).
   // ── M9 설정·기기·연결·백업·셸(05) ────────────────────────────────────────
   // 🔵 v1.24(01 §33) — `BackupVm` 은 m9/backup* 6 이 덮어 목록에서 지웠다(새 DTO 4 = 처음부터 덮임 — `RestorePointRow` ←
   //    `BackupVm.points` · `SelfTestCard` ← 감싸개).

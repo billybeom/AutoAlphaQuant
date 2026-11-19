@@ -217,6 +217,24 @@ void main() {
         FixturePaths.m9AnnualReviewIndexClosed,
         FixturePaths.m9AnnualReviewIndexFirstYear,
         FixturePaths.m9AnnualReviewIndexStale,
+        // 🆕 v1.25(01 §34) — 신설 17(킬스위치 화면 7 · 발동 접수증 1 · 게이트 꺼짐 1 · 보드 4 · 리포트 감싸개 3 · X2 게이트 1).
+        FixturePaths.m5KillSwitchOff,
+        FixturePaths.m5KillSwitchActiveUnrecorded,
+        FixturePaths.m5KillSwitchCancelReadFailed,
+        FixturePaths.m5KillSwitchRecordedWaiting,
+        FixturePaths.m5KillSwitchRecordedReady,
+        FixturePaths.m5KillSwitchLocked,
+        FixturePaths.m5KillSwitchActiveLocked,
+        FixturePaths.m5KillSwitchActivateReceipts,
+        FixturePaths.m5KillResumeGateOff,
+        FixturePaths.m5BlockBoardClear,
+        FixturePaths.m5BlockBoardKillActive,
+        FixturePaths.m5BlockBoardResumeIncomplete,
+        FixturePaths.m5BlockBoardStopped,
+        FixturePaths.x2ResumeReportScreenNormal,
+        FixturePaths.x2ResumeReportScreenRecoveryFull,
+        FixturePaths.x2ResumeReportScreenEmpty,
+        FixturePaths.x2ResumeGateClear,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {

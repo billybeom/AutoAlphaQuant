@@ -46,6 +46,7 @@ enum BreakerLevel {
 /// 01 §2-10·§3-5 — 차단 플래그의 해제 경로.
 /// 🔴 해제 문구는 **플래그마다 다르다**(`BlockFlag.clearInstruction`) — 화면이 경로로
 ///    문구를 고르지 않는다.
+/// 🆕 v1.25(01 §34 · K155) — 짝 글자 = `BlockBoardRow.clearKindLabel`(엔진).
 enum ClearRoute {
   @JsonValue('AUTOMATIC')
   automatic('AUTOMATIC'),
