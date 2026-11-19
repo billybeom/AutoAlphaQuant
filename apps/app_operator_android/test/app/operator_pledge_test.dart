@@ -153,7 +153,7 @@ void main() {
       a.run(SafetyActionId.ruleChangeCancel),
       throwsA(isA<UnsupportedError>()),
     );
-    // 🆕 R179 — 재개 문항 = 구현(`operator_kill_resume_test`).
+    // 🆕 R180 — 재개 문항 = 구현(`operator_kill_resume_test`).
     expect(pledges(), 0);
   });
 

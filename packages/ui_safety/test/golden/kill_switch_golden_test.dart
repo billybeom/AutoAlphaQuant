@@ -1,4 +1,4 @@
-// test/golden/kill_switch_golden_test.dart — M5-1 킬스위치 · M5-2 재개 게이트 골든(설계 13 §8 R179 · README «여기 골든이 지켜야 할 것»).
+// test/golden/kill_switch_golden_test.dart — M5-1 킬스위치 · M5-2 재개 게이트 골든(설계 13 §8 R180 · README «여기 골든이 지켜야 할 것»).
 //
 // 🔴 최초 베이스라인만 이 파일 하나로 찍는다:
 //      flutter test --update-goldens test/golden/kill_switch_golden_test.dart

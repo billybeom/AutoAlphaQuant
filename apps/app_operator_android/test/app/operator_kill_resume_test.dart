@@ -1,4 +1,4 @@
-// E11q-b1b — M5-2 재개 게이트 조립(설계 13 §8 R179) — 실 SQLite(sim 원장) · 발동 → 기록 → 48h → 7문항 → 해제.
+// E11q-b1b — M5-2 재개 게이트 조립(설계 13 §8 R180) — 실 SQLite(sim 원장) · 발동 → 기록 → 48h → 7문항 → 해제.
 //
 // 🔴 준비 판정 = 엔진 차례(꺼짐 · 확인 전 · 시각 모름 · 대기) · 순차 = 엔진 `accept` · 1번 제출 = 초안 비움 ·
 //    4번 미충족 = 막힘 → 다시 열면 1번부터 · 7번 = 엔진 `resume()`(해제 · 재개 저널) · 게이트 읽기 = 같은 초안.
@@ -85,7 +85,7 @@ void main() {
     return r;
   }
 
-  test('🆕 R179 발동 → 기록 → 대기(TOO_SOON) → 순차 7문항(차례 · 빈칸 · 1번 = 처음부터) → 해제 · 게이트 = 같은 초안', () async {
+  test('🆕 R180 발동 → 기록 → 대기(TOO_SOON) → 순차 7문항(차례 · 빈칸 · 1번 = 처음부터) → 해제 · 게이트 = 같은 초안', () async {
     final OperatorRuntime r = rt();
     final OperatorKillResumeDraft draft = OperatorKillResumeDraft();
     addTearDown(draft.dispose);
@@ -201,7 +201,7 @@ void main() {
     expect(await acts.watch(done.actionRunId).first, done);
   });
 
-  test('🆕 R179 4번 미충족 = 막힘(받을 문항 0) → 다시 열면 1번부터', () async {
+  test('🆕 R180 4번 미충족 = 막힘(받을 문항 0) → 다시 열면 1번부터', () async {
     final OperatorRuntime r = rt();
     final OperatorKillResumeDraft draft = OperatorKillResumeDraft();
     addTearDown(draft.dispose);

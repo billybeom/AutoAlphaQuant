@@ -417,7 +417,7 @@ void main() {
       true,
     );
     expect(container.read(safetyKillCommandApiProvider), isNull);
-    // 🆕 R179 — M5-2 재개판 초안 = 게이트 읽기 · 문항 제출 같은 인스턴스.
+    // 🆕 R180 — M5-2 재개판 초안 = 게이트 읽기 · 문항 제출 같은 인스턴스.
     expect(
       identical(
         container.read(operatorKillSwitchGateProvider).draft,
@@ -994,7 +994,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('m51-activate')), findsNothing);
-      // 🆕 R179 — M5-2 재개 게이트 = 등록 · 꺼짐 꼴(받을 문항 0).
+      // 🆕 R180 — M5-2 재개 게이트 = 등록 · 꺼짐 꼴(받을 문항 0).
       await open(tester, AppRoutes.m5ReleaseGate);
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 30)),

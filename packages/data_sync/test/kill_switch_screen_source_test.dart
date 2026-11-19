@@ -191,7 +191,7 @@ void main() {
       expect(vm.etaText, '해제 가능 예정 12-25 10:20');
       expect(vm.gateLink?.deepLink, AppRoutes.m5ReleaseGate);
       expect(src(gate: false).screen().gateLink, isNull);
-      // 🆕 R179 — 재개 게이트 재생 = 이 발동 뒤 기록 원문(같은 번호) · 6번 = 기록 확인 줄 · 7번 = 없음.
+      // 🆕 R180 — 재개 게이트 재생 = 이 발동 뒤 기록 원문(같은 번호) · 6번 = 기록 확인 줄 · 7번 = 없음.
       final KillResumeGateVm g = src().gate(ResumeChecklist.empty);
       expect(g.items[0].replayText, '그때 적은 행동: 규칙대로 신규 진입을 멈춘다');
       expect(g.items[1].replayText, '그때: 규칙이라고 적었다');

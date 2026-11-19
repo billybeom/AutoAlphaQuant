@@ -438,7 +438,7 @@ void main() {
       }
       await tester.pageBack();
 
-      // 🆕 R179 — M5-2 재개 게이트: 켜짐 · 기록 전(신뢰 시각이 없어 기록이 거부됐다) = 막힘 문장 · 받을 문항 0 · 7문항 표.
+      // 🆕 R180 — M5-2 재개 게이트: 켜짐 · 기록 전(신뢰 시각이 없어 기록이 거부됐다) = 막힘 문장 · 받을 문항 0 · 7문항 표.
       container.read(shellLinkOpenerProvider).open(AppRoutes.m5ReleaseGate);
       await _until(tester, find.byKey(const Key('m52-root')));
       expect(find.byKey(const Key('m52-confirm')), findsNothing);

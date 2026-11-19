@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (🆕 2026-11-20 R179 · 하네스 = `ui_analytics` 원본 사본(`../flutter_test_config.dart` · `shift_tolerant_compare.dart` · `golden_support.dart` · `comparator_test.dart` — 글자 그대로 · 바꾸면 원본과 함께) · PNG = M5-1 7꼴 · M5-2 8꼴 × light/dark = 30장)
+# `test/golden/` — 위젯 골든 스냅샷 (🆕 2026-11-20 R180 · 하네스 = `ui_analytics` 원본 사본(`../flutter_test_config.dart` · `shift_tolerant_compare.dart` · `golden_support.dart` · `comparator_test.dart` — 글자 그대로 · 바꾸면 원본과 함께) · PNG = M5-1 7꼴 · M5-2 8꼴 × light/dark = 30장)
 
 정본: 01_M2_도메인계약 **§7** · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 

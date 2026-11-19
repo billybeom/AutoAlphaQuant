@@ -71,7 +71,7 @@ class OperatorSafetyActions implements SafetyActions {
   }) : _random = random ?? Random.secure(),
        draft = draft ?? OperatorKillResumeDraft();
 
-  /// 🆕 R179 — 재개판 초안(게이트 읽기와 같은 인스턴스).
+  /// 🆕 R180 — 재개판 초안(게이트 읽기와 같은 인스턴스).
   final OperatorKillResumeDraft draft;
 
   final OperatorRuntime _rt;
@@ -136,7 +136,7 @@ class OperatorSafetyActions implements SafetyActions {
     Map<String, String> args = const <String, String>{},
   }) => _none('run(${id.wire})');
 
-  /// 🆕 E11q-b1b(R179) — 재개판 한 문항(K36): ① 재개 준비(엔진 차례 그대로 — 꺼짐 · 확인 전 · 시각 모름 · 대기) ·
+  /// 🆕 E11q-b1b(R180) — 재개판 한 문항(K36): ① 재개 준비(엔진 차례 그대로 — 꺼짐 · 확인 전 · 시각 모름 · 대기) ·
   /// ② 생체 = 구현 0(서약 선례 · 운영 등급 공통 관문 밖) · ③ 엔진 `ResumeChecklist.accept`(순차 · 빈칸 · 4번 미충족) ·
   /// ④ 7번 통과 = 엔진 `resume()` 한 트랜잭션(해제 · 저널 id `KS-RES-<명령 id>`) · 1번 제출 = 초안을 비우고 처음부터 ·
   /// 결과 글자 = 엔진(`killResumeResultOf`) · 결과 id = 늘 `killSwitchResume`.

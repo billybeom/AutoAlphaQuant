@@ -175,7 +175,7 @@ final Provider<OperatorRebalanceRepository> operatorRebalanceProvider =
       );
     });
 
-/// 🆕 R179 — M5-2 재개판 초안(이 앱 실행 동안 · 문항 제출과 게이트 읽기가 같이 쓴다).
+/// 🆕 R180 — M5-2 재개판 초안(이 앱 실행 동안 · 문항 제출과 게이트 읽기가 같이 쓴다).
 final Provider<OperatorKillResumeDraft> operatorKillResumeDraftProvider =
     Provider<OperatorKillResumeDraft>((Ref ref) {
       final OperatorKillResumeDraft d = OperatorKillResumeDraft();
@@ -192,7 +192,7 @@ operatorKillSwitchGateProvider = Provider<OperatorKillSwitchGateRepository>((
   return OperatorKillSwitchGateRepository(
     ref.watch(operatorRuntimeProvider),
     hasBody: bodies.byPattern.containsKey,
-    // 🆕 R179 — M5-2 게이트 = 문항 제출과 같은 초안.
+    // 🆕 R180 — M5-2 게이트 = 문항 제출과 같은 초안.
     draft: ref.watch(operatorKillResumeDraftProvider),
   );
 });
@@ -440,7 +440,7 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.planDeposit: _planDeposit,
   // 🆕 E11q-b1a(R178) — M5-1 킬스위치(발동 버튼 · 취소 보고 · 발동 뒤 기록 폼 · 체험 ⑤).
   AppRoutes.m5KillSwitch: _killSwitch,
-  // 🆕 E11q-b1b(R179) — M5-2 재개 게이트(7문항 순차 · 서약 재생 · 7번 = 해제) → M5-1 게이트 링크가 저절로 열린다.
+  // 🆕 E11q-b1b(R180) — M5-2 재개 게이트(7문항 순차 · 서약 재생 · 7번 = 해제) → M5-1 게이트 링크가 저절로 열린다.
   AppRoutes.m5ReleaseGate: _releaseGate,
   AppRoutes.settingsContribution: _settingsContribution,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
