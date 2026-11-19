@@ -12,6 +12,7 @@
 
 export 'l10n/labels.dart';
 export 'src/accounts.dart';
+export 'src/annual_review.dart';
 export 'src/backup.dart';
 export 'src/connections.dart';
 export 'src/contribution.dart';
