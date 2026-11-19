@@ -72,7 +72,14 @@ import 'package:ui_journal/ui_journal.dart'
 import 'package:ui_safety/sim_opening.dart'
     show SimOpeningCash, safetySimOpeningCommandApiProvider;
 import 'package:ui_safety/ui_safety.dart'
-    show PledgePanel, safetyActionsProvider, safetyPledgeRepositoryProvider;
+    show
+        KillSwitchScreen,
+        PledgePanel,
+        safetyActionsProvider,
+        safetyKillCommandApiProvider,
+        safetyKillSwitchGateRepositoryProvider,
+        safetyLinkOpenerProvider,
+        safetyPledgeRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -98,6 +105,7 @@ import '../secret/secret_handoff.dart';
 import 'operator_biometric.dart';
 import 'operator_command_api.dart';
 import 'operator_golden.dart' show OperatorGolden;
+import 'operator_kill_switch.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
@@ -165,6 +173,18 @@ final Provider<OperatorRebalanceRepository> operatorRebalanceProvider =
         hasBody: bodies.byPattern.containsKey,
       );
     });
+
+/// 🆕 R178 — M5-1 킬스위치 읽기(한 인스턴스 · 게이트 링크 = 레지스트리에 본문이 있을 때만).
+final Provider<OperatorKillSwitchGateRepository>
+operatorKillSwitchGateProvider = Provider<OperatorKillSwitchGateRepository>((
+  Ref ref,
+) {
+  final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+  return OperatorKillSwitchGateRepository(
+    ref.watch(operatorRuntimeProvider),
+    hasBody: bodies.byPattern.containsKey,
+  );
+});
 
 /// 🆕 R173 — S7-6c «지금 기준 초안 보기»(엔진 What-if · 원장 상태 어댑터 · 리밸런싱 미리보기만).
 final Provider<OperatorWhatIfApi> operatorWhatIfApiProvider =
@@ -314,6 +334,8 @@ Widget _holdingsAllocation(Map<String, String> _) => const HoldingsAllocation();
 
 Widget _planDeposit(Map<String, String> _) => const DepositPlannerScreen();
 
+Widget _killSwitch(Map<String, String> _) => const KillSwitchScreen();
+
 Widget _settingsContribution(Map<String, String> _) =>
     const MonthlyContribution();
 
@@ -400,6 +422,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.rebalanceEvent: _rebalanceEvent,
   // 🆕 E11q3(R174) — M7 S7-4 납입 플래너(미리보기 = 엔진 What-if · 등록 = 신뢰 시각 관문) · M9 S13 월 납입 설정.
   AppRoutes.planDeposit: _planDeposit,
+  // 🆕 E11q-b1a(R178) — M5-1 킬스위치(발동 버튼 · 취소 보고 · 발동 뒤 기록 폼 · 체험 ⑤).
+  AppRoutes.m5KillSwitch: _killSwitch,
   AppRoutes.settingsContribution: _settingsContribution,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
@@ -437,6 +461,18 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   safetyActionsProvider.overrideWith(
     (Ref ref) => ref.watch(operatorSafetyActionsProvider),
+  ),
+  // 🆕 R178 — M5-1 킬스위치 읽기 · 발동 · 기록 = 같은 명령 API 인스턴스(기기 id 없음 = null = 버튼 · 제출 부재) · 링크 = 셸.
+  safetyKillSwitchGateRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorKillSwitchGateProvider),
+  ),
+  safetyKillCommandApiProvider.overrideWith(
+    (Ref ref) => runtime.deviceId == null
+        ? null
+        : ref.watch(operatorCommandApiProvider) as CommandApi,
+  ),
+  safetyLinkOpenerProvider.overrideWith(
+    (Ref ref) => ref.watch(shellLinkOpenerProvider),
   ),
   // 🆕 R156 — M5-14 가상 초기금 제출 = 같은 명령 API 인스턴스 · 기기 id 없음 = null = 제출 버튼 부재.
   safetySimOpeningCommandApiProvider.overrideWith(

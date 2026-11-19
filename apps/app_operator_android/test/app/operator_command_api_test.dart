@@ -170,10 +170,7 @@ void main() {
 
   test('🔴 나머지 명령 = operator 구현 전(오류 — 지어내지 않는다)', () async {
     final OperatorCommandApi api = OperatorCommandApi(await ready());
-    await expectLater(
-      api.activateKillSwitch(),
-      throwsA(isA<UnsupportedError>()),
-    );
+    // 🆕 R178 — 킬스위치 발동 · 기록 = 구현(`operator_kill_switch_test`).
     await expectLater(
       api.deferAdviceConfirm('a'),
       throwsA(isA<UnsupportedError>()),

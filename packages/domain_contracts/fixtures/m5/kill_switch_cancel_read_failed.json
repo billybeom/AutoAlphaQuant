@@ -16,10 +16,10 @@
     {
       "state_label": "킬스위치 작동 중 — 신규 주문을 막고 있습니다",
       "level": "ACT",
-      "activated_text": "(합성) 발동 12-23 10:02 · 운영 폰",
+      "activated_text": "발동 12-23 10:02 · 운영 폰",
       "activate_label": null,
       "path_lines": [],
-      "cancel_headline": "(합성) 미체결 주문을 읽지 못했습니다 — 신규 주문 차단은 그대로입니다. 증권사 앱에서 미체결을 확인하십시오.",
+      "cancel_headline": "미체결 주문을 읽지 못했습니다 — 신규 주문 차단은 그대로입니다. 증권사 앱에서 미체결을 확인하십시오.",
       "cancel_rows": [],
       "checklist_state_label": "체크리스트를 먼저 마치십시오 — 마친 때부터 48시간을 셉니다",
       "form": {
@@ -69,14 +69,14 @@
             "item_no": 6,
             "label": "재개 최소 대기 시작 시각(48h)",
             "hint_text": null,
-            "fixed_text": "(합성) 이 기록을 마친 시각이 시작 시각입니다 — 앱이 적습니다",
+            "fixed_text": "이 기록을 마친 시각이 시작 시각입니다 — 앱이 적습니다",
             "choices": []
           },
           {
             "item_no": 7,
             "label": "저널 작성 완료(decision_id)",
             "hint_text": null,
-            "fixed_text": "(합성) 기록을 마치면 저널이 함께 만들어집니다",
+            "fixed_text": "기록을 마치면 저널이 함께 만들어집니다",
             "choices": []
           }
         ],
@@ -84,7 +84,7 @@
         "ack_cancelled_label": "전량 취소했다",
         "ack_remaining_zero_label": "잔여 0 을 확인했다",
         "note_label": "1줄",
-        "notice_text": "(합성) 이 기록은 주문을 내지 않습니다. 전량 청산을 골라도 앱은 팔지 않습니다 — 청산은 사람이 2단계로 확인합니다."
+        "notice_text": "이 기록은 주문을 내지 않습니다. 전량 청산을 골라도 앱은 팔지 않습니다 — 청산은 사람이 2단계로 확인합니다."
       },
       "eta_text": null,
       "gate_link": null,

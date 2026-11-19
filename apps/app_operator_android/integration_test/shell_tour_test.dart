@@ -48,6 +48,7 @@ import 'package:ui_analytics/ui_analytics.dart'
     show RebalanceEventScreen, RebalancePreviewScreen, RebalanceTimelineScreen;
 import 'package:ui_journal/ui_journal.dart'
     show HoldingDetail, HoldingsAllocation, HoldingsOverview;
+import 'package:ui_safety/ui_safety.dart' show KillSwitchScreen;
 import 'package:ui_settings/ui_settings.dart'
     show
         AnnualReviewEntry,
@@ -388,6 +389,52 @@ void main() {
         await _until(tester, find.byKey(const Key('m9s13-result')));
       }
       await _at(tester, find.byType(MonthlyContribution), 'IT_S13');
+      await tester.pageBack();
+
+      // 🆕 R178 — M5-1 킬스위치: 꺼짐(버튼 · 경로 3) → 버튼 한 번 = 발동(확인 대화 0 · 모의 원장) → 취소 보고 · 기록 폼 →
+      //    기록 제출 = 신뢰 시각 모름 → 엔진 거부 접수증(48h 는 아직 세지 않는다 · E11k 전).
+      container.read(shellLinkOpenerProvider).open(AppRoutes.m5KillSwitch);
+      await _until(tester, find.text('킬스위치 꺼짐'));
+      await _at(tester, find.byType(KillSwitchScreen), 'IT_M51A');
+      if (find.byKey(const Key('m51-activate')).evaluate().isNotEmpty) {
+        await tester.tap(find.byKey(const Key('m51-activate')));
+        await _until(tester, find.byKey(const Key('m51-form')));
+        expect(find.byType(AlertDialog), findsNothing);
+        await _at(tester, find.byType(KillSwitchScreen), 'IT_M51B');
+        // 탭 먼저(선택 칩 · 확인 칸) — 글자 입력 뒤에는 화상 키보드가 화면을 가려 탭이 빗나간다.
+        Future<void> tapKey(String k) async {
+          await tester.ensureVisible(find.byKey(Key(k)));
+          await tester.pump(const Duration(milliseconds: 300));
+          await tester.tap(find.byKey(Key(k)));
+          await tester.pump(const Duration(milliseconds: 300));
+        }
+
+        await tapKey('m51-choice-2-규칙');
+        await tapKey('m51-choice-5-신규 진입 차단만');
+        for (final String k in <String>[
+          'm51-ack-queried',
+          'm51-ack-cancelled',
+          'm51-ack-zero',
+        ]) {
+          await tapKey(k);
+        }
+        for (final (String k, String v) in <(String, String)>[
+          ('m51-rule-action', '규칙대로 신규 진입을 멈춘다'),
+          ('m51-scenario', 'W3'),
+          ('m51-resume-condition', '체결 오류 0'),
+          ('m51-note', '연습'),
+        ]) {
+          await tester.ensureVisible(find.byKey(Key(k)));
+          await tester.enterText(find.byKey(Key(k)), v);
+          await tester.pump(const Duration(milliseconds: 200));
+        }
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pump(const Duration(milliseconds: 800));
+        await tester.ensureVisible(find.byKey(const Key('m51-record-submit')));
+        await tester.tap(find.byKey(const Key('m51-record-submit')));
+        await _until(tester, find.byKey(const Key('m51-record-receipt')));
+        await _at(tester, find.byType(KillSwitchScreen), 'IT_M51C');
+      }
       await tester.pageBack();
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);

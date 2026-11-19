@@ -41,6 +41,7 @@ export 'src/local/holdings_overview_source.dart';
 export 'src/local/incident_store.dart';
 export 'src/local/intervention_store.dart';
 export 'src/local/job_run_store.dart';
+export 'src/local/kill_switch_screen_source.dart';
 export 'src/local/kill_switch_store.dart';
 export 'src/local/lease_store.dart';
 export 'src/local/ledger_archive_writer.dart';

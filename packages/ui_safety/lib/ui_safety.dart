@@ -18,6 +18,13 @@
 //    (설계 13 §8 R156 · C-35 ⑥ — 뷰어 조립도 이 배럴을 싣는다).
 
 export 'l10n/labels.dart';
+export 'src/kill_switch/kill_switch_screen.dart'
+    show
+        KillSwitchActivateButton,
+        KillSwitchScreen,
+        safetyKillCommandApiProvider,
+        safetyKillSwitchGateRepositoryProvider,
+        safetyLinkOpenerProvider;
 // 🆕 M5-8 서약(설계 13 §8 R157) — 읽기 + 쓰기(쓰기 주입 = 폰만 · 뷰어 null = 컨트롤 부재 → 배럴에 둔다).
 export 'src/pledge/pledge_panel.dart'
     show PledgePanel, safetyActionsProvider, safetyPledgeRepositoryProvider;

@@ -17,7 +17,7 @@
       "command_id": "cmd_ks_01",
       "kind": "KILL_SWITCH_ACTIVATE",
       "state": "EXECUTED",
-      "state_label": "(합성) 켜짐 — 신규 주문을 막았습니다",
+      "state_label": "켜짐 — 신규 주문을 막았습니다",
       "requested_at": "2026-12-23T01:02:00Z",
       "expires_at": "2026-12-23T01:32:00Z",
       "nonce": "n_ks5d0e2a7b01",

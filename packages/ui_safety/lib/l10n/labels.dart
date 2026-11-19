@@ -52,4 +52,25 @@ abstract final class SafetyLabels {
 
   /// 서약을 읽지 못했다(원천 오류 — 빈 서약과 다르다).
   static const String pledgeReadFailed = '서약을 읽지 못했습니다.';
+
+  // ── M5-1 킬스위치(06 M5-1 · 01 §34 K146~K151 · 설계 13 §8 R178) ──
+  // 🔴 상태 · 버튼 · 경로 · 취소 보고 · 폼 문항 · 고지 글자 = 엔진(VM) · 결과 = 접수증 `stateLabel` 원문 — 여기는 칸 머리 · 제출 버튼만.
+
+  /// 킬스위치를 읽지 못했다(원천 오류 — 꺼짐과 다르다).
+  static const String killSwitchReadFailed = '킬스위치 상태를 읽지 못했습니다.';
+
+  /// 2번 감정 칸.
+  static const String killEmotion = '감정';
+
+  /// 2번 강도 칸.
+  static const String killIntensity = '강도';
+
+  /// 2번 수면 칸.
+  static const String killSleepHours = '수면 시간';
+
+  /// 3번 «해당 없음».
+  static const String killScenarioNone = '해당 없음';
+
+  /// 기록 제출 버튼.
+  static const String killRecordSubmit = '기록 마치기';
 }
