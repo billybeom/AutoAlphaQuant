@@ -77,6 +77,32 @@ export 'src/decimal_rules.dart'
         multiply,
         oneMinus,
         promoteRatio;
+// 🆕 E11o-a — 골든벡터 기기 실행기 뼈대 · GV-1~4(설계 13 §8 R161 · R162).
+export 'src/golden/golden_runner.dart'
+    show
+        GoldenBundle,
+        GoldenFamily,
+        GoldenRunResult,
+        GoldenSuite,
+        GvCase,
+        GvFailure,
+        GvProbe,
+        SuiteGoldenSelfTest,
+        gvDouble,
+        gvInt,
+        gvIntList,
+        gvNumList,
+        gvObject,
+        gvObjectList,
+        gvString,
+        gvStringList;
+export 'src/golden/gv_regime.dart'
+    show
+        Gv1RegimeScore,
+        Gv2Indicators,
+        Gv3ExposureGate,
+        Gv4Hysteresis,
+        kDeviceGoldenSuite;
 // 🆕 E16g2 — X1-2 백업 매니페스트 · 복원 판정 합성(순수 · 설계 13 §8 R135).
 export 'src/migration/backup_manifest.dart'
     show
