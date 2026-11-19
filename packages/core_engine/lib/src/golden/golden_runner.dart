@@ -133,6 +133,20 @@ class GoldenSuite {
     for (final GoldenFamily f in families) ...f.files,
   };
 
+  /// 🆕 E11o-d(R167) — 돌리지 않고 센 전체 수([run] 의 `total` 과 같은 셈 — 케이스를 못 만드는 계열 = 1).
+  /// 앱이 아직 돌리기 전 O-04 ④ «통과 0/전체 m» 을 낼 때 쓴다.
+  int caseCount(GoldenBundle bundle) {
+    int total = 0;
+    for (final GoldenFamily f in families) {
+      try {
+        total += f.cases(bundle).length;
+      } on Object {
+        total++;
+      }
+    }
+    return total;
+  }
+
   /// 🔴 묶음으로 돈다 — 계열이 케이스를 못 만들면(벡터 없음 · 꼴 틀림) 그 계열 = 실패 1 · 케이스가 던지면 그 케이스 = 실패.
   Future<GoldenRunResult> run(GoldenBundle bundle) async {
     final List<GvFailure> failures = <GvFailure>[];

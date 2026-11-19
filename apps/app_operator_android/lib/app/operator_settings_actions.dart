@@ -33,6 +33,7 @@ import 'package:core_engine/core_engine.dart'
         kOnboardingModeCommittedText,
         kOnboardingModeSelectedText,
         p0sTierBCard,
+        selftestGoldenResultOf,
         selftestIntegrityResultOf;
 import 'package:data_sync/data_sync.dart'
     show
@@ -56,6 +57,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../secret/secret_handoff.dart';
+import 'operator_golden.dart' show OperatorGolden;
 
 /// 검증 결과 문구(엔진 몫 — 화면은 그대로 그린다).
 abstract final class CredentialVerifyText {
@@ -109,6 +111,7 @@ class OperatorSettingsActions implements SettingsActions {
     required this.clock,
     this.sim,
     this.ledger,
+    this.golden,
   });
 
   /// 🆕 R125 — 온보딩이 쓰는 sim 파일(없음 = 운영 방식 선택 · 진척 기록 없음).
@@ -128,6 +131,26 @@ class OperatorSettingsActions implements SettingsActions {
 
   /// 🆕 E11p4k(R160) — 지금 화면이 읽는 원장(S10 무결성 자가진단 대상 · 화면 상태 없음 = null).
   final Database? Function()? ledger;
+
+  /// 🆕 E11o-d(R167) — 골든 기기 실행기(없음 = 바인딩 없음).
+  final OperatorGolden? golden;
+
+  /// 🆕 R167 — M9 S10 골든벡터 셀프테스트(엔진 실행기 · 백그라운드 · 기록 = 지금 화면 원장 · 결과 = 엔진 문장 · args = {}).
+  Future<ActionResult> _goldenRun(
+    OperatorGolden g,
+    Database? Function() book,
+    Map<String, String> args,
+  ) async {
+    if (args.isNotEmpty) throw ArgumentError('selftestGoldenRun args = {}');
+    final Database? db = book();
+    if (db == null) throw StateError('골든: 화면 상태 없음(온보딩 전)');
+    final ActionResult r = selftestGoldenResultOf(
+      actionRunId: _runId(),
+      result: await g.run(db),
+    );
+    _results[r.actionRunId] = r;
+    return r;
+  }
 
   /// 🆕 R160 — M9 S10 무결성 자가진단(정본 자가 대조 · 엔진 `LedgerIntegrityCheck.run` · 불일치 = `LEDGER_INTEGRITY` 차단 ·
   /// 결과 = 엔진 문장 · args = {}).
@@ -200,6 +223,10 @@ class OperatorSettingsActions implements SettingsActions {
     final Database? Function()? book = ledger;
     if (id == SettingsActionId.selftestIntegrityRun && book != null) {
       return _integrityRun(book, args);
+    }
+    final OperatorGolden? g = golden;
+    if (id == SettingsActionId.selftestGoldenRun && g != null && book != null) {
+      return _goldenRun(g, book, args);
     }
     return Future<ActionResult>.error(
       UnsupportedError('${id.name}: operator 구현 없음(R118)'),

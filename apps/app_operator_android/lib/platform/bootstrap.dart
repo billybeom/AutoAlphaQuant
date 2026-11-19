@@ -24,6 +24,7 @@ import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart'
     show FgsStatus, JobCalendars;
 
+import '../app/operator_golden.dart' show OperatorGolden;
 import '../app/operator_onboarding.dart' show OnboardingProbe;
 import '../app/operator_runtime.dart';
 import '../app/secure_screen.dart' show SecureScreen;
@@ -206,6 +207,8 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       biometricSign: ops.biometricSign,
       deviceId: deviceId,
       humanDecision: human,
+      // 🆕 R167 — 골든 기기 실행기(자산 = 엔진 패키지 · 읽기 · 실행 = 처음 부를 때 · 백그라운드 isolate).
+      golden: OperatorGolden(rootBundle.loadString, clock: clock),
     );
   } on Object {
     return null;
