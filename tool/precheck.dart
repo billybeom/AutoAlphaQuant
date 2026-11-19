@@ -8,7 +8,8 @@
 // 무엇을 보나(커밋된 HEAD 를 base 와의 공통 조상부터 비교 — PR 이 바꾼 줄만 · ui_*·apps 의 test/):
 //   [T1] 🔴 else 없는 if — 문장 if 가 else 없이 단언·조용한 건너뛰기·빈 블록·목록 넣기를 품는가
 //              (탭·pump 같은 동작만 하는 if · 값을 돌려주는 가짜 안의 if 는 걸지 않는다)
-//              + null 검사 if 안의 흐름 칸 호출(if (s != null) { await s(tester); }) · C4r14b-3
+//              + null 검사 if 몸의 첫 문장 = 그 흐름 칸 호출(if (s != null) { await s(tester); … })
+//              · 🟡 «<칸>?.call(tester…)» 한 식 꼴 · C4r14b-3
 //   [T2] 🔴 collection-if 개수 — 목록·집합 안의 if 수가 카드가 정한 수(--collection-if)와 같은가
 //   [T3] 🔴 늘 참 단언 — 코드 모양만으로 결과가 정해지는 expect(…)(anything · 상수끼리 · 같은 식 ·
 //              한 값과 같은 것만 남긴 목록의 any/every · find.byType(Text·Icon·Padding …) +
@@ -16,18 +17,22 @@
 //   [T4] 🔴 빈 루프 단언 — 화면에서 찾은 목록(widgetList·evaluate …)을 도는 단언 루프 앞에
 //              그 목록의 expect(양성 기준점)가 없는가(픽스처 목록은 ⓗ 몫이라 보지 않는다)
 //   [T5] 🔴 ⓗ 한 줄 — hasLength( 를 품은 expect 가 dart format 뒤 여러 줄
-//   [T6] 🟡 가짜 공장 안 if — «(int call) {» 블록 몸 안의 if(--factory-if 0 이면 🔴) · C4r8a-2
-//   [T7] 🟡 쓰기만 하는 셈 변수 — 지역 «int <이름> = 0;» 을 대입·증감만 하고 읽지 않음 · C4r8a-2
+//   [T6] 🟡 가짜 공장 안 if — «(int call) {»·«(call) {» 블록 몸 안의 if(--factory-if 0 이면 🔴)
+//              + 이름 붙은 인자 «name: (int n) {» 몸 안의 if(공장·콜백을 못 가르니 늘 🟡) · C4r8a-2
+//   [T7] 🟡 쓰기만 하는 셈 변수 — 지역 «int <이름> = 0;»·«var <이름> = 0;» 을 대입·증감만 하고
+//              읽지 않음 · C4r8a-2
 //   [R1] 🔴 보고 글 첫 줄 = «## ① …» · 섹션 머리 5줄이 글자 그대로 · 차례대로 한 번씩
 //   [R2] 🔴 색·테마 이름 0(명령 출력 코드 블록 밖)
 //   [R3] 🔴 골든 표 행 수 = --goldens · «— 잘림 …» 꼬리 행 수가 같다 · 배치·잘림 칸 영문 0 · 금지 말 0
 //   [R4] 🔴 S05 결과 줄 꼴(«<파일>:<줄> — 탭 콜백 안») · 정적 묶음 S05 출력과 같은 줄
 //   [R5] 🔴 12항 괄호 비움 0 · «flutter test: 시작 기준 N → 끝 <끝 줄>» 꼴
-//   [R6] 🔴 «ⓡ = T20 출력:»·«ⓗ = T21 출력:» 아래 줄 = 같은 글 정적 블록 «## T20»·«## T21» 출력 · C4r9a-6
+//   [R6] 🔴 «ⓡ = T20 출력:»·«ⓗ = T21 출력:» 아래 줄(같은 줄 뒤 값 · 들여쓰기 포함) = 같은 글 정적 블록
+//              «## T20»·«## T21» 출력 · 표지 꼴을 못 찾으면 🟡 · C4r9a-6
 //   [R7] 🟡 check:labels 줄 «apps/** N» = head 에서 check_labels.sh 를 Git Bash 로 다시 잰 «/apps/» 줄 수
 //              (bash 를 못 찾으면 세지 않고 알리기만 · --no-labels 로 끔) · C4r9a-6
 //   [R8] 🟡 ② 복사 상자(번호 줄) 바로 뒤 빈 줄 = 정확히 1(«N항 줄 수:» 상자를 붙이는 꼴만) · C4r9c-3
-//   [R9] 🔴 ① «바뀐 파일:»·«커밋 목록:» 블록 줄 수 = git 출력 줄 수 · 깨진 글자(U+FFFD · «쨌») 0
+//   [R9] 🔴 ① «바뀐 파일:»·«커밋 목록:» 블록 줄 수 = git 출력 줄 수 · 깨진 글자(U+FFFD · «어» 뒤가
+//              아닌 «쨌») 0
 //              (한자 = 🟡 깨짐일 수 있다) · C4r14b-3
 //   [G1] 🟡 골든 표 «글자 n줄»·덩어리 차례 ↔ PNG 에서 센 글자 행·덩어리(PNG 를 다시 열 신호)
 //
@@ -610,6 +615,7 @@ void checkTestFile(TestFile f, {bool factoryIfZero = false}) {
   String at(int k) => '${f.path}:${toks[k].line}';
   checkFakeFactories(f, s, factoryIfZero: factoryIfZero);
   checkWriteOnlyCounters(f, s);
+  checkNullableSlotCall(f, s);
 
   // 같은 값만 남긴 목록(T3 · R12c C12c-1 꼴): V = ….where((e) => e == '…')
   final Map<String, int> equalityFiltered = <String, int>{};
@@ -830,8 +836,8 @@ void checkTestFile(TestFile f, {bool factoryIfZero = false}) {
   }
 }
 
-/// `X != null`(X = 이름 · a.b 사슬) 조건에 몸이 그 X 를 부르는 한 문장뿐인가
-/// (`await X(…);` · `X!(…);` · `X.call(…);` · `X!.call(…);`).
+/// `X != null`(X = 이름 · a.b 사슬) 조건에 몸의 첫 문장이 그 X 를 부르는가
+/// (`await X(…);` · `X!(…);` · `X.call(…);` · `X!.call(…);` — 뒤에 pump 같은 문장이 더 있어도 같다).
 bool nullSlotCall(Structure s, int c0, int c1, int b0, int b1) {
   List<String> chainAt(int from, int to) {
     final List<String> out = <String>[];
@@ -890,31 +896,71 @@ bool nullSlotCall(Structure s, int c0, int c1, int b0, int b1) {
     return false;
   }
   j = s.match[j] + 1;
-  return s.t(j) == ';' && j == end;
+  return s.t(j) == ';' && j <= end;
 }
 
-/// [T6] 가짜 공장 블록 몸 안 if(C4r8a-2 · R8a C4X-1) — `(int call) {` · `name: (int n) {` 꼴의
-/// 함수 literal 몸 안 `if (` 를 센다. 공장은 받은 call 로 삼항 한 식(C4r4b-7)이라 몸 안 if 는
-/// 경우 가르기·early-return 이다. 카드가 «공장 안 if 0» 이면(--factory-if 0) 🔴 · 아니면 🟡.
+/// [T1 🟡] 테스트 파일의 `<칸>?.call(tester …)` — null 검사 if 와 같은 구멍(칸이 null 이면 동작도
+/// 단언도 없이 지나간다)을 한 식으로 쓴 꼴. 가짜 안의 `onX?.call()` 은 tester 를 넘기지 않아 걸지 않는다.
+void checkNullableSlotCall(TestFile f, Structure s) {
+  if (!f.isTest) {
+    return;
+  }
+  final List<Tok> toks = s.toks;
+  for (int k = 1; k + 3 < toks.length; k++) {
+    if (s.t(k) != '?.' ||
+        s.t(k + 1) != 'call' ||
+        s.t(k + 2) != '(' ||
+        s.t(k + 3) != 'tester' ||
+        toks[k - 1].kind != TokKind.ident ||
+        !f.touched(toks[k].line, toks[k].line)) {
+      continue;
+    }
+    yellow(
+      'T1',
+      '${f.path}:${toks[k].line}',
+      '«${s.t(k - 1)}?.call(tester…)» — 흐름 칸이 null 이면 동작도 단언도 없이 지나간다'
+          '(null 검사 if 와 같은 구멍). 칸을 non-null 로 받거나 if 없이 부른다(C4r14b-3)',
+    );
+  }
+}
+
+/// [T6] 가짜 공장 블록 몸 안 if(C4r8a-2 · R8a C4X-1) — 함수 literal 몸 안 `if (` 를 센다.
+/// 공장 꼴 = 받는 이름이 call(`(int call) {` · 타입 없는 `(call) {`) — 공장은 받은 call 로 삼항 한 식
+/// (C4r4b-7)이라 몸 안 if 는 경우 가르기·early-return 이다. 카드가 «공장 안 if 0» 이면(--factory-if 0)
+/// 🔴 · 아니면 🟡. 이름 붙은 인자 자리의 다른 이름(`load: (int n) {`)은 공장인지 onChanged 같은
+/// 콜백인지 글자로 가를 수 없어 늘 🟡(--factory-if 0 이어도)다.
 void checkFakeFactories(
   TestFile f,
   Structure s, {
   required bool factoryIfZero,
 }) {
   final List<Tok> toks = s.toks;
-  for (int k = 0; k + 4 < toks.length; k++) {
-    if (s.t(k) != '(' ||
-        s.t(k + 1) != 'int' ||
-        toks[k + 2].kind != TokKind.ident ||
-        s.t(k + 3) != ')') {
+  for (int k = 0; k + 3 < toks.length; k++) {
+    if (s.t(k) != '(') {
       continue;
     }
-    // 받는 이름이 call 이거나 이름 붙은 인자 자리(«contribution: (int n) {»)일 때만 — List.generate 같은
-    // 자리 인자 콜백은 가짜 공장이 아니다.
-    if (toks[k + 2].text != 'call' && s.t(k - 1) != ':') {
+    int close;
+    bool callName;
+    if (s.t(k + 1) == 'int' &&
+        toks[k + 2].kind == TokKind.ident &&
+        s.t(k + 3) == ')') {
+      close = k + 3;
+      callName = toks[k + 2].text == 'call';
+      // 받는 이름이 call 이 아니면 이름 붙은 인자 자리(«contribution: (int n) {»)만 — List.generate
+      // 같은 자리 인자 콜백은 가짜 공장이 아니다.
+      if (!callName && s.t(k - 1) != ':') {
+        continue;
+      }
+    } else if (s.t(k + 1) == 'call' &&
+        s.t(k + 2) == ')' &&
+        const <String>{'(', ',', ':', '='}.contains(s.t(k - 1))) {
+      close =
+          k + 2; // 타입 없는 `(call) {` — if (call) {·while (call) { 는 앞 글자로 거른다
+      callName = true;
+    } else {
       continue;
     }
-    int b = k + 4;
+    int b = close + 1;
     if (s.t(b) == 'async' || s.t(b) == 'sync') {
       b++;
       if (s.t(b) == '*') {
@@ -936,17 +982,25 @@ void checkFakeFactories(
       const String how =
           '공장은 받은 call 로 삼항 한 식으로 — (int call) => call == 0 ? <첫 값> : <다음 값> '
           '(C4r4b-7 · R8a C4X-1)';
-      if (factoryIfZero) {
+      if (factoryIfZero && callName) {
         red(
           'T6',
           where,
           '가짜 공장 몸(${f.path}:${toks[k].line}) 안 if — 카드 «공장 안 if 0». $how',
         );
-      } else {
+      } else if (callName) {
         yellow(
           'T6',
           where,
           '가짜 공장 몸(${f.path}:${toks[k].line}) 안 if — 카드가 «공장 안 if 0» 이면 반려 꼴. $how',
+        );
+      } else {
+        yellow(
+          'T6',
+          where,
+          '이름 붙은 인자 «${s.t(k - 2)}: (int ${s.t(k + 2)}) {» 몸(${f.path}:${toks[k].line}) 안 if — '
+              '가짜 공장이면(받은 수로 값을 고르는 칸) 카드 «공장 안 if 0» 에서 반려 꼴이다. '
+              'onChanged 같은 콜백이면 지나간다. $how',
         );
       }
     }
@@ -955,7 +1009,7 @@ void checkFakeFactories(
 }
 
 /// [T7] 쓰기만 하고 읽지 않는 지역 셈 변수(C4r8a-2 · R8a C4X-1 `callCount`) — 함수 몸 안의
-/// `int <이름> = 0;` 이 같은 블록에서 대입·증감으로만 쓰이고 한 번도 읽히지 않는다.
+/// `int <이름> = 0;`(또는 `var <이름> = 0;`) 이 같은 블록에서 대입·증감으로만 쓰이고 한 번도 읽히지 않는다.
 void checkWriteOnlyCounters(TestFile f, Structure s) {
   final List<Tok> toks = s.toks;
   const Set<String> blockOpeners = <String>{
@@ -982,7 +1036,7 @@ void checkWriteOnlyCounters(TestFile f, Structure s) {
     '--',
   };
   for (int k = 1; k + 4 < toks.length; k++) {
-    if (s.t(k) != 'int' ||
+    if ((s.t(k) != 'int' && s.t(k) != 'var') ||
         toks[k + 1].kind != TokKind.ident ||
         s.t(k + 2) != '=' ||
         s.t(k + 3) != '0' ||
@@ -1403,12 +1457,15 @@ void checkSectionOneBlocks(
 }
 
 /// 깨진 글자 — U+FFFD(대체 문자) · «쨌»(UTF-8 «·» 를 CP949 로 읽은 꼴) = 🔴 · 한자 = 🟡(깨짐일 수 있다).
+/// «쨌» 은 정상 말 «어쨌든·어쨌거나» 에도 나오므로 «어» 뒤의 «쨌» 은 세지 않는다.
+final RegExp brokenMiddleDot = RegExp('(?<!어)쨌');
+
 void checkBrokenText(String path, List<String> lines) {
   final RegExp hanja = RegExp(r'[一-鿿豈-﫿]');
   int hanjaLine = -1;
   for (int i = 0; i < lines.length; i++) {
     final String l = lines[i];
-    if (l.contains('�') || l.contains('쨌')) {
+    if (l.contains('�') || brokenMiddleDot.hasMatch(l)) {
       red(
         'R9',
         '$path:${i + 1}',
@@ -1476,7 +1533,24 @@ void checkBoxAgainstStatic(
   String id,
 ) {
   final String marker = '$mark = $id 출력:';
-  final int boxAt = lines.indexWhere((String l) => l.trim() == marker);
+  // 표지는 느슨하게 찾는다(앞 공백·목록 표 · = 와 : 둘레 공백 · 같은 줄 뒤에 붙인 값).
+  final RegExp markerRe = RegExp(
+    r'^\s*(?:[-*]\s+)?'
+    '$mark'
+    r'\s*=\s*'
+    '$id'
+    r'\s*출력\s*:\s*(.*)$',
+  );
+  int boxAt = -1;
+  String inline = '';
+  for (int i = 0; i < lines.length; i++) {
+    final RegExpMatch? m = inCode[i] ? null : markerRe.firstMatch(lines[i]);
+    if (m != null) {
+      boxAt = i;
+      inline = m.group(1)!.trim();
+      break;
+    }
+  }
   int staticAt = -1;
   for (int i = 0; i < lines.length; i++) {
     if (inCode[i] && (lines[i] == '## $id' || lines[i].startsWith('## $id '))) {
@@ -1484,15 +1558,27 @@ void checkBoxAgainstStatic(
       break;
     }
   }
-  if (boxAt < 0 || staticAt < 0) {
-    return; // 이 카드 꼴에 상자나 정적 블록이 없다
+  if (staticAt < 0) {
+    return; // 이 카드 꼴에 정적 블록이 없다
+  }
+  if (boxAt < 0) {
+    final int near = lines.indexWhere(
+      (String l) => l.contains(mark) && l.contains(id) && l.contains('출력'),
+    );
+    if (near >= 0 && !inCode[near]) {
+      yellow(
+        'R6',
+        '$path:${near + 1}',
+        '«$marker» 상자 표지 꼴을 못 찾았다 — 카드 글자 그대로 한 줄에 «$marker» 를 쓰고 그 아래에 '
+            '정적 «## $id» 출력 줄을 옮긴다(대조를 못 했다)',
+      );
+    }
+    return; // 이 카드 꼴에 상자가 없다
   }
   final List<String> want = <String>[];
   for (int j = staticAt + 1; j < lines.length && inCode[j]; j++) {
-    final String l = lines[j].trimRight();
-    if (l.startsWith('EXIT') ||
-        l.startsWith('## ') ||
-        l.trimLeft().startsWith('```')) {
+    final String l = lines[j].trim();
+    if (l.startsWith('EXIT') || l.startsWith('## ') || l.startsWith('```')) {
       break;
     }
     if (grepCountLine.hasMatch(l)) {
@@ -1500,12 +1586,15 @@ void checkBoxAgainstStatic(
     }
   }
   final List<String> said = <String>[];
+  if (grepCountLine.hasMatch(inline)) {
+    said.add(inline); // «ⓡ = T20 출력: <파일>:<수>» 한 줄 꼴
+  }
   int j = boxAt + 1;
   if (j < lines.length && lines[j].trimLeft().startsWith('```')) {
     j++; // 상자를 코드 블록으로 감싼 꼴
   }
   for (; j < lines.length; j++) {
-    final String l = lines[j].trimRight();
+    final String l = lines[j].trim(); // 들여쓴 값 줄도 같은 값이다
     if (!grepCountLine.hasMatch(l)) {
       break;
     }

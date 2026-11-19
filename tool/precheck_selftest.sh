@@ -2,6 +2,7 @@
 # ============================================================================
 # precheck_selftest.sh — 사전검사(tool/precheck.dart) 새 검사 자가 시험
 #   (T1 null 흐름 칸 · T3 어디나 있는 위젯 · T6 · T7 · R6 · R7 · R8 · R9)
+#   경우 A 정상 · B·C·D 반려 꼴 · E~H 비켜 가는 꼴(타입 없는 공장 · 콜백 · var 셈 · ?.call · 표지 흔들기)
 #
 # 무엇을 하나: 임시 폴더에 작은 git 저장소를 만들고(밑동 커밋 + 경우마다 커밋 하나), 합성 테스트
 #   파일·보고 글로 precheck.dart 를 돌린다 — 잡아야 할 꼴은 그 코드·색으로 잡고, 정상 꼴에서는
@@ -185,8 +186,68 @@ has 'D ⓗ 줄 ↔ T21 출력 없음 = 🔴 R6' 'ⓗ = T21 출력:'
 has 'D ② 상자 뒤 빈 줄 0 = 🟡 R8' '빈 줄 0개'
 hasnt 'D --no-labels 면 R7 안 돈다' '[R7]'
 
-printf "%s
-" "$OUT" > /dev/null
+# ── 경우 E: 비켜 가는 꼴(타입 없는 공장 · 콜백 · var 셈 · 칸 호출 뒤 pump · ?.call) ──
+cat > "$REPO/packages/ui_demo/test/demo_test.dart" <<'DART'
+void main() {
+  testWidgets('dodge', (WidgetTester tester) async {
+    var hits = 0;
+    final FakeRepo repo = FakeRepo(
+      load: (call) {
+        hits++;
+        if (call == 0) {
+          return bad();
+        }
+        return one();
+      },
+    );
+    await tester.pumpWidget(Slider(onChanged: (int v) {
+      if (v > 3) {
+        tester.binding.scheduleFrame();
+      }
+    }));
+    final Future<void> Function(WidgetTester t)? steps = repo.steps;
+    if (steps != null) {
+      await steps(tester);
+      await tester.pump();
+    }
+    await repo.more?.call(tester);
+    expect(find.byKey(const Key('x')), findsOneWidget);
+  });
+}
+DART
+g add -A && g commit -q -m 'E dodge'
+OUT=$(run --collection-if 0 --no-labels --factory-if 0)
+N6R=$(printf '%s\n' "$OUT" | grep -cF '🔴 [T6]')
+N6Y=$(printf '%s\n' "$OUT" | grep -cF '🟡 [T6]')
+if [ "$N6R" = 1 ] && [ "$N6Y" = 1 ]; then
+  echo '✓ E 타입 없는 (call) = 🔴 T6 · 콜백 onChanged: (int v) = 🟡 T6'
+else
+  echo "✗ E T6 🔴$N6R 🟡$N6Y ≠ 🔴1 🟡1"; BAD=1
+fi
+has 'E var hits 쓰기만 = 🟡 T7' '셈 변수 «hits»'
+has 'E null 칸 호출 뒤 pump = 🔴 T1' '🔴 [T1]'
+has 'E repo.more?.call(tester) = 🟡 T1' '🟡 [T1]'
+
+# ── 경우 F: 보고 글 꼴 흔들기(«어쨌든» · 들여쓴 값 · 한 줄 표지 · 느슨한 표지 · 못 찾는 표지) ──
+make_report "$WORK/f.md" 'test/demo_test.dart:12' 1 2 0 0
+sed -i -e '/^ⓡ = T20 출력:$/{n;s#^#  #}' -e '/^## ⑤/a 어쨌든 추측은 없다.' "$WORK/f.md"
+OUT=$(run --collection-if any --report "$WORK/f.md" --no-labels)
+hasnt 'F 들여쓴 값 줄 = 🔴 R6 0' '🔴 [R6]'
+hasnt 'F 들여쓴 값 줄 = 🟡 R6 0' '🟡 [R6]'
+hasnt 'F «어쨌든» = 🔴 R9 0' '🔴 [R9]'
+make_report "$WORK/g.md" 'test/demo_test.dart:13' 1 2 0 0
+sed -i '/^ⓡ = T20 출력:$/{N;s/\n/ /}' "$WORK/g.md"
+OUT=$(run --collection-if any --report "$WORK/g.md" --no-labels)
+has 'G 한 줄 표지 «ⓡ = T20 출력: …:13» = 🔴 R6' '🔴 [R6]'
+make_report "$WORK/h.md" 'test/demo_test.dart:12' 1 2 0 0
+sed -i 's#^ⓡ = T20 출력:$#- ⓡ = T20 출력 :#' "$WORK/h.md"
+OUT=$(run --collection-if any --report "$WORK/h.md" --no-labels)
+hasnt 'H 느슨한 표지 «- ⓡ = T20 출력 :» + 같은 값 = 🔴 R6 0' '🔴 [R6]'
+hasnt 'H 느슨한 표지 = 🟡 R6 0' '🟡 [R6]'
+sed -i 's#^- ⓡ = T20 출력 :$#ⓡ(T20) 출력 —#' "$WORK/h.md"
+OUT=$(run --collection-if any --report "$WORK/h.md" --no-labels)
+has 'H 표지 꼴 못 찾음 = 🟡 R6' '🟡 [R6]'
+hasnt 'H 표지 꼴 못 찾음 ≠ 🔴 R6' '🔴 [R6]'
 if [ $BAD -ne 0 ]; then echo "== 자가 시험 실패"; exit 1; fi
 echo "== 자가 시험 통과"
 exit 0
