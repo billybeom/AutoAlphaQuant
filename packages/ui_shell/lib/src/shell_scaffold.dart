@@ -269,6 +269,7 @@ class _WebFrame extends ConsumerWidget {
     final List<String> modes = flags == null
         ? const <String>[]
         : shellModeLabels(flags);
+    final ShellSlotBuilder? place = ref.watch(shellOpsSlotBuilderProvider);
 
     return Material(
       child: Row(
@@ -311,7 +312,11 @@ class _WebFrame extends ConsumerWidget {
                     },
                   ),
                 const Spacer(),
-                const SizedBox(key: Key('s02-kill-slot'), height: 56),
+                SizedBox(
+                  key: const Key('s02-kill-slot'),
+                  height: 56,
+                  child: place?.call(OpsSlotIds.killSwitch),
+                ),
               ],
             ),
           ),
