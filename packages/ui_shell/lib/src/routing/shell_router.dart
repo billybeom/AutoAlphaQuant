@@ -301,9 +301,21 @@ class ShellLinkPage extends ConsumerWidget {
       ref.watch(shellFlagsProvider).valueOrNull,
       null,
     );
+    final ShellSlotBuilder? slots = ref.watch(shellOpsSlotBuilderProvider);
+    final ShellSlotBuilder? place = switch (ref.watch(shellPlatformProvider)) {
+      ShellPlatform.androidOperator || ShellPlatform.iosViewer => slots,
+      ShellPlatform.web => null,
+    };
     return Scaffold(
       appBar: AppBar(
         title: title.isEmpty ? null : Text(title, key: const Key('s01-title')),
+        actions: <Widget>[
+          if (place != null)
+            KeyedSubtree(
+              key: const Key('s01-link-kill-slot'),
+              child: place(OpsSlotIds.killSwitch),
+            ),
+        ],
       ),
       body: ShellRouteBody(link: link),
     );
