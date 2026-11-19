@@ -14,6 +14,8 @@
 //   [T4] 🔴 빈 루프 단언 — 화면에서 찾은 목록(widgetList·evaluate …)을 도는 단언 루프 앞에
 //              그 목록의 expect(양성 기준점)가 없는가(픽스처 목록은 ⓗ 몫이라 보지 않는다)
 //   [T5] 🔴 ⓗ 한 줄 — hasLength( 를 품은 expect 가 dart format 뒤 여러 줄
+//   [T6] 🟡 가짜 공장 안 if — «(int call) {» 블록 몸 안의 if(--factory-if 0 이면 🔴) · C4r8a-2
+//   [T7] 🟡 쓰기만 하는 셈 변수 — 지역 «int <이름> = 0;» 을 대입·증감만 하고 읽지 않음 · C4r8a-2
 //   [R1] 🔴 보고 글 첫 줄 = «## ① …» · 섹션 머리 5줄이 글자 그대로 · 차례대로 한 번씩
 //   [R2] 🔴 색·테마 이름 0(명령 출력 코드 블록 밖)
 //   [R3] 🔴 골든 표 행 수 = --goldens · «— 잘림 …» 꼬리 행 수가 같다 · 배치·잘림 칸 영문 0 · 금지 말 0
@@ -63,6 +65,7 @@ class Options {
   String base = 'origin/main';
   String head = 'HEAD';
   int? collectionIf = 0; // null = 카드가 수를 정하지 않음(세기만)
+  bool factoryIfZero = false; // true = 카드가 «공장 안 if 0» 을 정함(T6 🔴)
   String? report;
   String? goldenPrefix;
   int? goldens;
@@ -74,6 +77,7 @@ const String usage = '''
   --head <rev>            검사할 커밋(기본 HEAD)
   --repo <폴더>           저장소 루트(기본 .)
   --collection-if <N|any> 테스트 코드의 collection-if 기대 수(기본 0 · any = 세기만)
+  --factory-if <0|any>    가짜 공장 몸 안 if 기대(0 = 카드가 «공장 안 if 0» → 🔴 · 기본 any = 🟡)
   --report <파일>         채팅 보고 글(①~⑤)을 저장한 UTF-8 파일
   --golden-prefix <접두>  골든 이름 접두(예 s710_) — 골든 표·PNG 검사
   --goldens <N>           골든 표 행 수(이름 × 밝기)
@@ -105,6 +109,13 @@ Options parseArgs(List<String> args) {
           stderr.writeln('--collection-if 는 숫자 또는 any\n$usage');
           exit(2);
         }
+      case '--factory-if':
+        final String v = next();
+        if (v != '0' && v != 'any') {
+          stderr.writeln('--factory-if 는 0 또는 any\n$usage');
+          exit(2);
+        }
+        o.factoryIfZero = v == '0';
       case '--report':
         o.report = next();
       case '--golden-prefix':
@@ -552,10 +563,12 @@ class TestFile {
 int collectionIfTotal = 0;
 final List<String> collectionIfWhere = <String>[];
 
-void checkTestFile(TestFile f) {
+void checkTestFile(TestFile f, {bool factoryIfZero = false}) {
   final List<Tok> toks = Lexer(f.src).run();
   final Structure s = Structure(toks);
   String at(int k) => '${f.path}:${toks[k].line}';
+  checkFakeFactories(f, s, factoryIfZero: factoryIfZero);
+  checkWriteOnlyCounters(f, s);
 
   // 같은 값만 남긴 목록(T3 · R12c C12c-1 꼴): V = ….where((e) => e == '…')
   final Map<String, int> equalityFiltered = <String, int>{};
@@ -751,6 +764,151 @@ void checkTestFile(TestFile f) {
               '변수나 경우 목록 레코드로 받아 expect(<목록>, hasLength(n)); 한 줄로',
         );
       }
+    }
+  }
+}
+
+/// [T6] 가짜 공장 블록 몸 안 if(C4r8a-2 · R8a C4X-1) — `(int call) {` · `name: (int n) {` 꼴의
+/// 함수 literal 몸 안 `if (` 를 센다. 공장은 받은 call 로 삼항 한 식(C4r4b-7)이라 몸 안 if 는
+/// 경우 가르기·early-return 이다. 카드가 «공장 안 if 0» 이면(--factory-if 0) 🔴 · 아니면 🟡.
+void checkFakeFactories(
+  TestFile f,
+  Structure s, {
+  required bool factoryIfZero,
+}) {
+  final List<Tok> toks = s.toks;
+  for (int k = 0; k + 4 < toks.length; k++) {
+    if (s.t(k) != '(' ||
+        s.t(k + 1) != 'int' ||
+        toks[k + 2].kind != TokKind.ident ||
+        s.t(k + 3) != ')') {
+      continue;
+    }
+    // 받는 이름이 call 이거나 이름 붙은 인자 자리(«contribution: (int n) {»)일 때만 — List.generate 같은
+    // 자리 인자 콜백은 가짜 공장이 아니다.
+    if (toks[k + 2].text != 'call' && s.t(k - 1) != ':') {
+      continue;
+    }
+    int b = k + 4;
+    if (s.t(b) == 'async' || s.t(b) == 'sync') {
+      b++;
+      if (s.t(b) == '*') {
+        b++;
+      }
+    }
+    if (s.t(b) != '{' || s.match[b] <= b) {
+      continue;
+    }
+    final int end = s.match[b];
+    for (int j = b + 1; j < end; j++) {
+      if (s.t(j) != 'if' || s.t(j + 1) != '(') {
+        continue;
+      }
+      if (!f.touched(toks[j].line, toks[j].line)) {
+        continue;
+      }
+      final String where = '${f.path}:${toks[j].line}';
+      const String how =
+          '공장은 받은 call 로 삼항 한 식으로 — (int call) => call == 0 ? <첫 값> : <다음 값> '
+          '(C4r4b-7 · R8a C4X-1)';
+      if (factoryIfZero) {
+        red(
+          'T6',
+          where,
+          '가짜 공장 몸(${f.path}:${toks[k].line}) 안 if — 카드 «공장 안 if 0». $how',
+        );
+      } else {
+        yellow(
+          'T6',
+          where,
+          '가짜 공장 몸(${f.path}:${toks[k].line}) 안 if — 카드가 «공장 안 if 0» 이면 반려 꼴. $how',
+        );
+      }
+    }
+    k = end;
+  }
+}
+
+/// [T7] 쓰기만 하고 읽지 않는 지역 셈 변수(C4r8a-2 · R8a C4X-1 `callCount`) — 함수 몸 안의
+/// `int <이름> = 0;` 이 같은 블록에서 대입·증감으로만 쓰이고 한 번도 읽히지 않는다.
+void checkWriteOnlyCounters(TestFile f, Structure s) {
+  final List<Tok> toks = s.toks;
+  const Set<String> blockOpeners = <String>{
+    ')',
+    'async',
+    '*',
+    'else',
+    'try',
+    'finally',
+    'do',
+    '{',
+    ';',
+    '}',
+  };
+  const Set<String> writeOps = <String>{
+    '=',
+    '+=',
+    '-=',
+    '*=',
+    '/=',
+    '??=',
+    '++',
+    '--',
+  };
+  for (int k = 1; k + 4 < toks.length; k++) {
+    if (s.t(k) != 'int' ||
+        toks[k + 1].kind != TokKind.ident ||
+        s.t(k + 2) != '=' ||
+        s.t(k + 3) != '0' ||
+        s.t(k + 4) != ';' ||
+        !const <String>{'{', ';', '}'}.contains(s.t(k - 1))) {
+      continue;
+    }
+    final int e = s.enclosing[k];
+    if (e < 0 ||
+        s.t(e) != '{' ||
+        s.literalBrace[e] ||
+        !blockOpeners.contains(s.t(e - 1)) ||
+        s.match[e] <= e) {
+      continue; // 맨 위 · 클래스 몸(필드는 다른 파일에서 읽힌다) · 컬렉션
+    }
+    if (!f.touched(toks[k].line, toks[k].line)) {
+      continue;
+    }
+    final String name = toks[k + 1].text;
+    int writes = 0;
+    int reads = 0;
+    int selfUntil = -1; // `x = x + 1;` 의 오른쪽 x 는 읽기가 아니라 같은 쓰기
+    for (int j = k + 5; j < s.match[e]; j++) {
+      if (s.t(j) != name || toks[j].kind != TokKind.ident) {
+        continue;
+      }
+      if (s.t(j - 1) == '.' || s.t(j - 1) == '?.') {
+        continue; // 다른 객체의 같은 이름 칸
+      }
+      if (s.t(j + 1) == ':' && (s.t(j - 1) == '(' || s.t(j - 1) == ',')) {
+        continue; // 이름 붙은 인자 이름
+      }
+      if (j <= selfUntil) {
+        writes++;
+      } else if (writeOps.contains(s.t(j + 1)) ||
+          s.t(j - 1) == '++' ||
+          s.t(j - 1) == '--') {
+        writes++;
+        if (s.t(j + 1) == '=') {
+          selfUntil = s.statementEnd(j + 2);
+        }
+      } else {
+        reads++;
+      }
+    }
+    if (reads == 0) {
+      yellow(
+        'T7',
+        '${f.path}:${toks[k].line}',
+        '셈 변수 «$name» 를 쓰기만 하고($writes번) 읽지 않는다 — 호출 수는 가짜의 호출 수 칸'
+            '(예 repo.contributionCalls)으로 단언하고 이 변수는 지운다(R8a C4X-1)',
+      );
     }
   }
 }
@@ -1592,6 +1750,7 @@ void main(List<String> args) {
     final String src = utf8.decode(gitBytes(head, path), allowMalformed: true);
     checkTestFile(
       TestFile(path, src, st == 'A' ? null : addedLines(mergeBase, head, path)),
+      factoryIfZero: o.factoryIfZero,
     );
   });
   final int? wantIf = o.collectionIf;
@@ -1628,6 +1787,8 @@ void main(List<String> args) {
     'T3': '늘 참 단언',
     'T4': '빈 루프 단언',
     'T5': 'ⓗ 한 줄',
+    'T6': '가짜 공장 안 if',
+    'T7': '쓰기만 하는 셈 변수',
     'R0': '보고 글 파일',
     'R1': '첫 줄 · 섹션 머리',
     'R2': '색·테마 이름',
@@ -1646,6 +1807,8 @@ void main(List<String> args) {
     'T3',
     'T4',
     'T5',
+    'T6',
+    'T7',
     if (o.report != null) ...<String>['R0', 'R1', 'R2', 'R4', 'R5'],
     if (o.report != null && o.goldenPrefix != null) ...<String>['R3', 'G1'],
   };
