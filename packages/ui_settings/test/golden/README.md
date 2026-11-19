@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (~~**아직 비어 있다**~~ → ~~**6장** · R6a 병합 PR #146 `9840603` · 2026-11-14~~ → ~~**14장** · R6b 병합 PR #155 `f58e2f9` · 2026-11-14~~ → ~~**26장** · R6c1 병합 PR #168 `b3b759c` · 2026-11-14~~ → ~~**28장** · R6c2 병합 PR #176 `02099df` · 2026-11-15 · 🏁 R6 · ✅ R6 test-only 병합 뒤 **28장 그대로**(PR #184 `e36a310` · 테스트 파일만 · PNG 0 변경)~~ → ~~**36장** · R7a 병합 PR #197 `18d241b` · 2026-11-15(🔁 통합 대행)~~ → ~~**44장** · R7b 병합 PR #210 `6195b88` · 2026-11-17~~ → ~~**50장** · R7c 병합 PR #216 `2faf253` · 2026-11-17 · 🏁 R7 · ✅ R7 test-only 병합 뒤 **50장 그대로**(PR #219 `5e80280` · #220 `684347d` · 테스트 파일 · lib 주석만 · PNG 0 변경)~~ → ~~**58장** · R8a 병합 PR #236 `9af1e8a` · 2026-11-18(1회차 반려 → 재제출 → 2회차 merge · 기존 50장 무변경)~~ → ~~**66장** · R9a 병합 PR #240 `050c44d` · 2026-11-18(1회차 반려 → 재제출 = 보고 글만 · 커밋 0 → 2회차 merge · 기존 58장 무변경)~~ → **74장** · R9b 병합 PR #243 `f2dbab7` · 2026-11-19(1회차 merge · C4 정정 0 · 기존 66장 무변경))
+# `test/golden/` — 위젯 골든 스냅샷 (~~**아직 비어 있다**~~ → ~~**6장** · R6a 병합 PR #146 `9840603` · 2026-11-14~~ → ~~**14장** · R6b 병합 PR #155 `f58e2f9` · 2026-11-14~~ → ~~**26장** · R6c1 병합 PR #168 `b3b759c` · 2026-11-14~~ → ~~**28장** · R6c2 병합 PR #176 `02099df` · 2026-11-15 · 🏁 R6 · ✅ R6 test-only 병합 뒤 **28장 그대로**(PR #184 `e36a310` · 테스트 파일만 · PNG 0 변경)~~ → ~~**36장** · R7a 병합 PR #197 `18d241b` · 2026-11-15(🔁 통합 대행)~~ → ~~**44장** · R7b 병합 PR #210 `6195b88` · 2026-11-17~~ → ~~**50장** · R7c 병합 PR #216 `2faf253` · 2026-11-17 · 🏁 R7 · ✅ R7 test-only 병합 뒤 **50장 그대로**(PR #219 `5e80280` · #220 `684347d` · 테스트 파일 · lib 주석만 · PNG 0 변경)~~ → ~~**58장** · R8a 병합 PR #236 `9af1e8a` · 2026-11-18(1회차 반려 → 재제출 → 2회차 merge · 기존 50장 무변경)~~ → ~~**66장** · R9a 병합 PR #240 `050c44d` · 2026-11-18(1회차 반려 → 재제출 = 보고 글만 · 커밋 0 → 2회차 merge · 기존 58장 무변경)~~ → ~~**74장** · R9b 병합 PR #243 `f2dbab7` · 2026-11-19(1회차 merge · C4 정정 0 · 기존 66장 무변경)~~ → **80장** · R9c 병합 PR #251 `09003ec` · 2026-11-19(1회차 merge-with-fixes · C4 정정 = PR 본문 표기 기록 1 · 기존 74장 무변경 · 🏁 R9))
 
 정본: 01_M2_도메인계약 **§7** · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 
@@ -142,7 +142,7 @@
 
 ## 🆕 R9(계약 v1.24 전제 · 🔀 3분할) — `S09`(R9a) · `S10`(R9b) · `S12`(R9c · «정확히 N») · ⏸ `S08`(R9d) · ⏸ `S11`(R9e)
 
-카드 = `docs/ai-context/send/_완료/R9a-Bob-M9S09.md`(✅ 병합 PR #240 squash `050c44d` · 2026-11-18 · 1회차 반려(② 거짓 C4Y-1 · C4Y-2 — 보고 글 수 두 줄) → 재제출 `_완료/R9a-Bob-M9S09-재제출.md`(보고 글만 · 커밋 0 · PNG 0) → 2회차 merge · Bob 구현 · PR 대행 게시) · `docs/ai-context/send/_완료/R9b-Bob-M9S10.md`(✅ 병합 PR #243 squash `f2dbab7` · 2026-11-19 · 1회차 merge · C4 정정 0 · 코드 정정 0 · Bob 구현 · PR 대행 게시) · R9c(`S12`) = 조립 대기(밑동 = R9b 병합본 `f2dbab7` · «정확히 N») · ⏸ R9d · R9e = 카드 없음.
+카드 = `docs/ai-context/send/_완료/R9a-Bob-M9S09.md`(✅ 병합 PR #240 squash `050c44d` · 2026-11-18 · 1회차 반려(② 거짓 C4Y-1 · C4Y-2 — 보고 글 수 두 줄) → 재제출 `_완료/R9a-Bob-M9S09-재제출.md`(보고 글만 · 커밋 0 · PNG 0) → 2회차 merge · Bob 구현 · PR 대행 게시) · `docs/ai-context/send/_완료/R9b-Bob-M9S10.md`(✅ 병합 PR #243 squash `f2dbab7` · 2026-11-19 · 1회차 merge · C4 정정 0 · 코드 정정 0 · Bob 구현 · PR 대행 게시) · `docs/ai-context/send/_완료/R9c-Bob-M9S12.md`(✅ 병합 PR #251 squash `09003ec` · 2026-11-19 · 1회차 merge-with-fixes · C4 정정 = PR 본문 표기 기록 1(② 상자 뒤 빈 줄) · 코드 정정 0 · Bob 구현 · PR 대행 게시 · «정확히 N» · 🏁 R9) · ⏸ R9d · R9e = 카드 없음.
 
 ### 10. 골든 이름 — R9a 4이름 × 2 = 8장(✅ 병합 PR #240 `050c44d` · 2026-11-18)
 
@@ -167,3 +167,15 @@
 
 - 공통: 뷰어 골든 0 · 누름 · 결과를 찍는 골든 0(위젯 테스트 `diagnostics_test`) · 높이 한 값 `_kM9s10Tall`(최댓값 580 → 680) · 보드 = 받은 칸 그대로(칸 색 = `level`) · 차이 링크 = 잠김에도 남음(K138).
 - 🆕 **R9b 병합본 실측**(PR #243 squash `f2dbab7` · 2026-11-19 · Bob `b33b20fc`(커밋 4) · 1회차 merge · C4 재실측 일치(이름마다 `--plain-name`) · 병합 기록 재실측 일치(`lessThan(0.0)` 임시 · 되돌림) · light = dark · 머리 dy 0.0): PNG **74**(앞 66 + `m9s10` 8) · `m9s10_default` **512** · `m9s10_diff` **580** · `m9s10_running` **436** · `m9s10_locked` **508**(`test/golden/m9s10_golden_test.dart` · 390×680 `_kM9s10Tall`) — 드라이런 dy 와 같음 · PNG 8 = 드라이런 `c7b77473` 과 바이트 같음 · 기존 66장 무변경(`golden:approved` 없음) · `ui_settings` 테스트 **426**(379 + `diagnostics_test` 39 + 골든 8) · `git ls-tree` PNG **74**(`m9s01` 6 + `m9s07` 8 + `m9s05` 14 + `m9s02` 8 + `m9s06` 8 + `m9s03` 6 + `m9s13` 8 + `m9s09` 8 + `m9s10` 8) · 질문 파일 `docs/ai-context/inbox/M9S10_questions.md` A1~A4 ✅.
+
+### 12. 골든 이름 — R9c 3이름 × 2 = 6장(✅ 병합 PR #251 `09003ec` · 2026-11-19)
+
+| 이름 | 장수 | 테스트 파일 | 입력 · 동작 주입 · 크기 · 흐름 · 위치 전제(맨 아래 · 머리) |
+|---|---|---|---|
+| `m9s12_open` | 2 | `test/golden/m9s12_golden_test.dart` | `m9/annual_review_index_open.json` · ops(`FakeSettingsAnnualReviewRepository`) · operator(`UnimplementedSettingsActions` — 화면 미참조) · 390×400(`_kM9s12Tall` · 카드 확정값) · 흐름 없음(탭 = 위젯 테스트) · 맨 아래 `Key('m9s12-asof')` dy **300** < 400 · 머리 `Key('m9s12-head')` dy 0.0 |
+| `m9s12_closed` | 2 | 〃 | `m9/annual_review_index_closed.json` · 같은 주입 · 390×400 · 흐름 없음 · `m9s12-asof` dy **280** < 400 · 머리 `m9s12-head` 0.0 |
+| `m9s12_first_year` | 2 | 〃 | `m9/annual_review_index_first_year.json` · 같은 주입 · 390×400 · 흐름 없음 · `m9s12-asof` dy **180** < 400 · 머리 `m9s12-head` 0.0 |
+
+- 공통: 뷰어 골든 0 · 탭 · 링크 open 을 찍는 골든 0(위젯 테스트 `annual_review_test`) · 높이 한 값 `_kM9s12Tall`(최댓값 300 → 40 배수 320 + 80) · 버튼 0 · 서약 진입 줄 = OPEN 표본(`m9s12_open`)만 · 오래됨 표본(`annual_review_index_stale`) = 위젯 테스트만.
+- 🆕 **R9c 병합본 실측**(PR #251 squash `09003ec` · 2026-11-19 · Bob `040fbf14`(커밋 4) · 1회차 merge-with-fixes(C4 정정 = PR 본문 표기 기록 1 · 코드 정정 0) · C4 재실측 일치(이름마다 `--plain-name`) · 병합 기록 재실측 일치(`lessThan(0.0)` 임시 · 되돌림) · light = dark · 머리 dy 0.0): PNG **80**(앞 74 + `m9s12` 6) · `m9s12_open` **300** · `m9s12_closed` **280** · `m9s12_first_year` **180**(`test/golden/m9s12_golden_test.dart` · 390×400 `_kM9s12Tall`) — 드라이런 dy 와 같음 · PNG 6 = 드라이런 `30c733ea` 과 바이트 같음 · 기존 74장 무변경(`golden:approved` 없음) · `ui_settings` 테스트 **449**(426 + `annual_review_test` 17 + 골든 6) · `git ls-tree` PNG **80**(`m9s01` 6 + `m9s07` 8 + `m9s05` 14 + `m9s02` 8 + `m9s06` 8 + `m9s03` 6 + `m9s13` 8 + `m9s09` 8 + `m9s10` 8 + `m9s12` 6) · 질문 파일 `docs/ai-context/inbox/M9S12_questions.md` A1~A3 ✅.
+- 🏁 **R9 끝**(2026-11-19 · R9c 병합 PR #251 `09003ec`): R9 3장 = PNG 58 → 80(R9a 8 · R9b 8 · R9c 6) · «정확히» 80(T37) — 다음 M9 카드(R8b · R9d · R9e)의 시작 기준.
