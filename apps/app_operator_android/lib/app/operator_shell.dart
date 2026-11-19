@@ -39,8 +39,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:ui_analytics/ui_analytics.dart'
     show
+        RebalanceEventScreen,
+        RebalancePreviewScreen,
+        RebalanceTimelineScreen,
         analyticsClockProvider,
         analyticsLinkOpenerProvider,
+        analyticsWhatIfApiProvider,
+        rebalanceRepositoryProvider,
         safetyRepositoryProvider;
 import 'package:ui_journal/ui_journal.dart'
     show
@@ -146,6 +151,16 @@ final Provider<OperatorRebalanceRepository> operatorRebalanceProvider =
     Provider<OperatorRebalanceRepository>((Ref ref) {
       final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
       return OperatorRebalanceRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
+
+/// 🆕 R173 — S7-6c «지금 기준 초안 보기»(엔진 What-if · 원장 상태 어댑터 · 리밸런싱 미리보기만).
+final Provider<OperatorWhatIfApi> operatorWhatIfApiProvider =
+    Provider<OperatorWhatIfApi>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorWhatIfApi(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
       );
@@ -274,6 +289,17 @@ Widget _holdingDetail(Map<String, String> p) =>
 
 Widget _holdingsAllocation(Map<String, String> _) => const HoldingsAllocation();
 
+Widget _rebalancePreview(Map<String, String> _) =>
+    const RebalancePreviewScreen();
+
+Widget _rebalanceHistory(Map<String, String> _) =>
+    const RebalanceTimelineScreen();
+
+Widget _rebalanceEvent(Map<String, String> p) {
+  final String id = p['rebalanceEventId'] ?? '';
+  return RebalanceEventScreen(key: ValueKey<String>(id), rebalanceEventId: id);
+}
+
 /// 🆕 R129 — 설정 읽기 모델(첫 칸 = S02 키 목록) · 🆕 R134 설정 홈 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만.
 final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
     Provider<OperatorSettingsRepository>((Ref ref) {
@@ -340,6 +366,10 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   // 🆕 E11q1b(R172) — H6-2 종목 상세 · H6-3 슬리브 배분(= 홈 블록 4 탭 목적지 · 하단 다음 리밸런싱).
   AppRoutes.holdingsDetail: _holdingDetail,
   AppRoutes.holdingsAllocation: _holdingsAllocation,
+  // 🆕 E11q2(R173) — M7 S7-6c 다음 리밸런싱 · 지금 기준 초안 · S7-6a 회차 목록 · S7-6b 회차 상세(원장 `rebalance_event`).
+  AppRoutes.rebalancePreview: _rebalancePreview,
+  AppRoutes.rebalanceHistory: _rebalanceHistory,
+  AppRoutes.rebalanceEvent: _rebalanceEvent,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
   // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).
@@ -475,6 +505,13 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   analyticsClockProvider.overrideWithValue(runtime.clock),
   analyticsLinkOpenerProvider.overrideWith(
     (Ref ref) => ref.watch(shellLinkOpenerProvider),
+  ),
+  // 🆕 R173 — M7 리밸런싱 칸(일지 칸과 한 인스턴스) · 초안 창구.
+  rebalanceRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorRebalanceProvider),
+  ),
+  analyticsWhatIfApiProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorWhatIfApiProvider),
   ),
   settingsClockProvider.overrideWithValue(runtime.clock),
   settingsLinkOpenerProvider.overrideWith(

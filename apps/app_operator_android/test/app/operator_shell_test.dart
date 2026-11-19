@@ -46,8 +46,13 @@ import 'package:http/testing.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:ui_analytics/ui_analytics.dart'
     show
+        RebalanceEventScreen,
+        RebalancePreviewScreen,
+        RebalanceTimelineScreen,
         analyticsClockProvider,
         analyticsLinkOpenerProvider,
+        analyticsWhatIfApiProvider,
+        rebalanceRepositoryProvider,
         safetyRepositoryProvider;
 import 'package:ui_journal/ui_journal.dart'
     show
@@ -377,6 +382,18 @@ void main() {
         container.read(operatorRebalanceProvider),
       ),
       true,
+    );
+    // 🆕 R173 — M7 리밸런싱 칸 = 같은 인스턴스 · 초안 창구 = 엔진 What-if(원장 어댑터).
+    expect(
+      identical(
+        container.read(rebalanceRepositoryProvider),
+        container.read(operatorRebalanceProvider),
+      ),
+      true,
+    );
+    expect(
+      container.read(analyticsWhatIfApiProvider),
+      isA<OperatorWhatIfApi>(),
     );
     // 🆕 R171 — 보유 = 셸 홈 · 일지(H6-1) 한 인스턴스.
     final Object holdings = container.read(operatorHoldingsProvider);
@@ -820,6 +837,55 @@ void main() {
     container.dispose();
     disposed = true;
   });
+
+  testWidgets(
+    '🔴 M7 리밸런싱(R173) = 조립 셸에 등록 · 회차 0 = 엔진 빈 문장 · 다음 회차 · 초안 버튼 = 예정이 있을 때만 · 크래시 없음',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      Future<void> settle() async {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 30)),
+        );
+        await tester.pump();
+        await tester.pump();
+      }
+
+      await open(tester, AppRoutes.rebalanceHistory);
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder history = find.byType(RebalanceTimelineScreen);
+      expect(history, findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(
+        find.descendant(of: history, matching: find.text('아직 리밸런싱 회차가 없습니다')),
+        findsOneWidget,
+      );
+      await open(tester, AppRoutes.rebalancePreview);
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(RebalancePreviewScreen), findsOneWidget);
+      final bool countdown = find
+          .byKey(const Key('s76c-countdown'))
+          .evaluate()
+          .isNotEmpty;
+      expect(
+        countdown || find.byKey(const Key('s76c-empty')).evaluate().isNotEmpty,
+        isTrue,
+      );
+      expect(
+        find.byKey(const Key('s76c-preview-button')),
+        countdown ? findsOneWidget : findsNothing,
+      );
+      await open(tester, 'aaq://rebalance/event/nope');
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(RebalanceEventScreen), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
 
   testWidgets('🔴 S06 기기 · 접근(R146) = 조립 셸에 등록 · 이 폰 한 행 · 모의 단독 리스 · 캡처 막기', (
     WidgetTester tester,

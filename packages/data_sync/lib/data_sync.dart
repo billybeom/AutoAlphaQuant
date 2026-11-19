@@ -69,6 +69,7 @@ export 'src/local/p0s_human_source.dart';
 export 'src/local/plan_snapshot_store.dart';
 export 'src/local/planned_work_store.dart';
 export 'src/local/pledge_store.dart';
+export 'src/local/rebalance_source.dart';
 export 'src/local/resume_read_model.dart';
 export 'src/local/resume_status.dart';
 export 'src/local/resume_store.dart';

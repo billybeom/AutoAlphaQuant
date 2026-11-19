@@ -11,10 +11,16 @@ import 'package:app_operator_android/app/operator_shell.dart';
 import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:core_engine/core_engine.dart'
-    show HoldingsTexts, P0sHumanInputs, P0sOpsConfig, P0sStrategyIds;
+    show
+        HoldingsTexts,
+        P0sHumanInputs,
+        P0sOpsConfig,
+        P0sStrategyIds,
+        p0sKrPlanSymbols;
 import 'package:data_sync/data_sync.dart'
     show
         HoldingsSourceUnavailable,
+        OpsConfigUnavailable,
         P0sHumanDecision,
         SqliteConfigVersionStore,
         SqliteOnboardingStore;
@@ -266,16 +272,93 @@ void main() {
     },
   );
 
-  test('🆕 R172 다음 리밸런싱 = 엔진 달력 VM · 미리보기 미등록 = 링크 0 · 다른 둘 = 원천 없음', () async {
+  test('🆕 R173 다음 리밸런싱 · 미리보기 등록 = 링크 · 회차 = 원장(빈 → 행이 서면 다시 냄) · 상세 = 같은 행 · 기간 인자 = 원천 없음', () async {
     final OperatorRebalanceRepository r = OperatorRebalanceRepository(
       rt(),
       hasBody: kOperatorRouteBodies.byPattern.containsKey,
+      tick: const Duration(hours: 1),
     );
     final NextRebalanceVm n = await r.watchNext().first;
     expect(n.dDayText, 'D-1', reason: '08-31 18:00 KST → 09-01');
     expect(n.expectedDateText, '2026년 9월 1일');
-    expect(n.previewRoute, isNull);
-    await expectLater(r.watchEvents(), emitsError(isA<UnsupportedError>()));
+    expect(n.previewRoute, AppRoutes.rebalancePreview);
+    final List<ListResult<RebalanceEvent>> got = <ListResult<RebalanceEvent>>[];
+    final StreamSubscription<ListResult<RebalanceEvent>> sub = r
+        .watchEvents()
+        .listen(got.add);
+    addTearDown(sub.cancel);
+    await until(() => got.isNotEmpty);
+    expect(got.last.emptyLabel, '아직 리밸런싱 회차가 없습니다');
+    db().execute(
+      'INSERT INTO rebalance_event(event_id, trade_date, mode, kind, decision_id, trigger_snapshot, '
+      "weights_before, weights_after, config_hash, created_at) VALUES ('REB-MONTHLY-2026-07-31', "
+      "'2026-07-31', ?, 'MONTHLY_REGULAR', 'MONTH-END-2026-07-31', '{\"targets\":2}', ?, ?, 'cfg_test', "
+      "'2026-08-02T23:00:00Z')",
+      <Object?>[
+        RunMode.simInternal.wire,
+        '[{"sleeve":"A","weight":0.2},{"sleeve":"B","weight":0.45},'
+            '{"sleeve":"C","weight":0.35},{"sleeve":"POT","weight":0.0}]',
+        '[{"sleeve":"A","weight":0.2},{"sleeve":"B","weight":0.42},'
+            '{"sleeve":"C","weight":0.38},{"sleeve":"POT","weight":0.0}]',
+      ],
+    );
+    await until(() => got.last.rows.isNotEmpty);
+    final RebalanceEvent e = got.last.rows.single;
+    expect(e.detailDeepLink, 'aaq://rebalance/event/REB-MONTHLY-2026-07-31');
+    expect(e.modeLabel, '모의');
+    expect(e.after[1].label, startsWith('B 42.0% '));
+    expect(await r.watchEvent(e.eventId).first, e);
+    await expectLater(r.watchEvent('nope'), emitsError(isA<StateError>()));
+    await expectLater(
+      r.watchEvents(
+        range: const DateRange(
+          from: TradeDate('2026-01-01'),
+          to: TradeDate('2026-08-31'),
+        ),
+      ),
+      emitsError(isA<UnsupportedError>()),
+    );
+    for (final String route in <String>[
+      AppRoutes.rebalancePreview,
+      AppRoutes.rebalanceHistory,
+      AppRoutes.rebalanceEvent,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(route), true);
+    }
+  });
+
+  test('🆕 R173 지금 기준 초안 = 원장 상태 → 엔진(개시 전 = 실패 · 개시 뒤 = 초안 · 호출마다 새 id) · 입금 · 인출 = 원천 없음', () async {
+    final OperatorWhatIfApi api = OperatorWhatIfApi(
+      rt(),
+      hasBody: kOperatorRouteBodies.byPattern.containsKey,
+    );
+    await expectLater(
+      api.previewRebalance(),
+      throwsA(isA<OpsConfigUnavailable>()),
+    );
+    open();
+    for (final String s in p0sKrPlanSymbols()) {
+      db().execute(
+        'INSERT OR IGNORE INTO daily_prices (trade_date, market, symbol, open, high, low, close, close_unadj, '
+        "volume) VALUES ('2026-08-28', 'KR', ?, 10000, 10000, 10000, 10000, 10000, 0)",
+        <Object?>[s],
+      );
+    }
+    final RebalancePreviewResult r = await api.previewRebalance();
+    expect(r.blockedText, isNull);
+    expect(r.preview!.plannedDate, const TradeDate('2026-09-01'));
+    expect(r.preview!.planId, 'pv_re_20260901_01');
+    expect((await api.previewRebalance()).preview!.planId, 'pv_re_20260901_02');
+    await expectLater(
+      api.simulateDeposit(amountInput: '100000'),
+      throwsA(isA<UnsupportedError>()),
+    );
+    await expectLater(api.findPlan('x'), throwsA(isA<UnsupportedError>()));
+    await expectLater(api.estimateCosts('x'), throwsA(isA<UnsupportedError>()));
+    await expectLater(
+      api.simulateWithdrawal(amount: Decimal.one),
+      throwsA(isA<UnsupportedError>()),
+    );
   });
 
   test('사람 결정 표가 없으면 계좌 별칭 그대로', () async {

@@ -118,30 +118,29 @@ void main() {
     expect(first.entries, hasLength(2));
   });
 
-  test(
-    '🔴 지금 레지스트리 = M7 화면 · 서약 화면 미등록 → 목차 행 0 · 서약 링크 0(12월이어도) · S12 는 등록',
-    () async {
-      const ShellRouteBodies bodies = kOperatorRouteBodies;
-      expect(
-        bodies.byPattern.containsKey(AppRoutes.settingsAnnualReview),
-        isTrue,
-      );
-      expect(
-        bodies.byPattern[AppRoutes.settingsAnnualReview]!(
-          const <String, String>{},
-        ),
-        isA<AnnualReviewEntry>(),
-      );
-      commitOnboarding(DateTime.utc(2025, 3, 1));
-      final AnnualReviewIndexVm vm = await index(
-        rt(trusted: DateTime.utc(2026, 12, 2)),
-        hasBody: bodies.byPattern.containsKey,
-      );
-      expect(vm.windowStateLabel, AnnualReviewTexts.open);
-      expect(vm.entries, isEmpty, reason: '없는 화면으로 보내지 않는다(S01 원칙)');
-      expect(vm.pledgeLink, isNull);
-    },
-  );
+  test('🔴 지금 레지스트리 = 🆕 R173 M7 리밸런싱 회차만 등록 → 목차 행 1 · 서약 화면 미등록 → 서약 링크 0(12월이어도) · S12 는 등록', () async {
+    const ShellRouteBodies bodies = kOperatorRouteBodies;
+    expect(
+      bodies.byPattern.containsKey(AppRoutes.settingsAnnualReview),
+      isTrue,
+    );
+    expect(
+      bodies.byPattern[AppRoutes.settingsAnnualReview]!(
+        const <String, String>{},
+      ),
+      isA<AnnualReviewEntry>(),
+    );
+    commitOnboarding(DateTime.utc(2025, 3, 1));
+    final AnnualReviewIndexVm vm = await index(
+      rt(trusted: DateTime.utc(2026, 12, 2)),
+      hasBody: bodies.byPattern.containsKey,
+    );
+    expect(vm.windowStateLabel, AnnualReviewTexts.open);
+    expect(vm.entries.map((LinkAction e) => e.deepLink), <String>[
+      AppRoutes.rebalanceHistory,
+    ], reason: '등록된 화면만(S01 원칙) — R173 회차 목록이 서서 그 행이 열린다');
+    expect(vm.pledgeLink, isNull);
+  });
 
   test('🔴 S01 연간 카드 = 신뢰 시각 12월 · S12 등록 때만 · 모름 = 부재', () async {
     final OperatorRuntime dec = rt(trusted: DateTime.utc(2026, 12, 2))

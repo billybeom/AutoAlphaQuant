@@ -677,6 +677,12 @@ export 'src/ops/p0s_ops_config.dart'
         p0sLimitConfig,
         p0sRegimeConfigHash;
 // 🆕 E11p3d-5e — M9 S01 설정 홈(설계 13 §8 R134).
+export 'src/ops/rebalance_events_view.dart'
+    show
+        RebalanceEventFact,
+        RebalanceEventTexts,
+        rebalanceEventVmOf,
+        rebalanceEventsVmOf;
 export 'src/ops/settings_home.dart'
     show
         SettingsCardCodes,
@@ -1418,11 +1424,16 @@ export 'src/whatif/deposit_register.dart'
         kstYear,
         pensionUsedInYear;
 export 'src/whatif/engine_what_if_api.dart' show EngineWhatIfApi;
+export 'src/whatif/ledger_what_if_state.dart' show whatIfStateFromLedger;
 export 'src/whatif/plan_inputs.dart' show PlanInputs;
 export 'src/whatif/plan_store.dart'
     show InMemoryPlanSnapshotStore, PlanSnapshotStore, depositPlanId, kstDay;
 export 'src/whatif/rebalance_preview.dart'
-    show RebalancePreviewTexts, plannedRebalanceDate, previewRebalancePlan;
+    show
+        RebalancePreviewTexts,
+        accountingSleeveValuesOf,
+        plannedRebalanceDate,
+        previewRebalancePlan;
 export 'src/whatif/what_if_config.dart'
     show WhatIfConfig, kP0sParkingSymbol, p0sKrPlanSymbols, p0sMonthEndConfig;
 export 'src/whatif/what_if_gates.dart'

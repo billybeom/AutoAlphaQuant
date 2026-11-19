@@ -120,6 +120,24 @@ List<Map<String, Object?>> _weightsJson(Map<String, double> w) =>
         <String, Object?>{'sleeve': k, 'weight': w[k]},
     ];
 
+/// [day] 의 국면(같은 날짜 포함 as-of) — (방향 상태 · 쓴 행의 날짜). OK 가 아니거나 UNKNOWN = 상태 null.
+/// 🆕 E11q2 — 월말 잡과 리밸런싱 미리보기(R173)가 같은 함수를 쓴다.
+(DirectionState?, String?) monthEndRegimeAt(Database db, String day) {
+  final ResultSet rs = db.select(
+    'SELECT trade_date, status, direction_state FROM regime_score_daily WHERE trade_date <= ? '
+    'ORDER BY trade_date DESC LIMIT 1',
+    <Object?>[day],
+  );
+  if (rs.isEmpty) return (null, null);
+  final String date = rs.first['trade_date'] as String;
+  if (rs.first['status'] != 'OK') return (null, date);
+  final Object? st = rs.first['direction_state'];
+  for (final DirectionState d in DirectionState.values) {
+    if (d.code == st) return (d, date);
+  }
+  return (null, date);
+}
+
 /// 월말 계획 저장소(`plan_snapshot` REBALANCE · R48 P7).
 class SqliteRebalancePlanStore {
   /// 저장소를 만든다.
@@ -254,22 +272,8 @@ class MonthlyRebalanceJob {
     return out;
   }
 
-  /// [day] 의 국면(같은 날짜 포함 as-of) — (방향 상태 · 쓴 행의 날짜). OK 가 아니거나 UNKNOWN = 상태 null.
-  (DirectionState?, String?) _regimeAt(String day) {
-    final ResultSet rs = _db.select(
-      'SELECT trade_date, status, direction_state FROM regime_score_daily WHERE trade_date <= ? '
-      'ORDER BY trade_date DESC LIMIT 1',
-      <Object?>[day],
-    );
-    if (rs.isEmpty) return (null, null);
-    final String date = rs.first['trade_date'] as String;
-    if (rs.first['status'] != 'OK') return (null, date);
-    final Object? st = rs.first['direction_state'];
-    for (final DirectionState d in DirectionState.values) {
-      if (d.code == st) return (d, date);
-    }
-    return (null, date);
-  }
+  (DirectionState?, String?) _regimeAt(String day) =>
+      monthEndRegimeAt(_db, day);
 
   bool _hasNext(ExchangeCalendar cal, String day) {
     try {
