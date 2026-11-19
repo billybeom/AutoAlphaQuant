@@ -1058,4 +1058,211 @@ void main() {
       other.deleteSync(recursive: true);
     }
   });
+
+  group('🆕 E3d-3 SAF-306 과세연도 금융소득 단계(04 §1 Level 3 v2.46)', () {
+    int seq = 0;
+
+    /// 브로커 체결 1건(의도 · 주문 · 체결) — 체결 id 를 돌려준다.
+    String fill(
+      String day,
+      String symbol,
+      int qty,
+      double price, {
+      String side = 'BUY',
+      String account = 'GEN',
+      String strategy = 'P0S_C',
+    }) {
+      seq++;
+      final String id = 'i$seq';
+      final String no = '$day:$seq';
+      db.execute(
+        'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+        'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+        "updated_at, mode) VALUES (?, ?, '2026-01-01T00:00:00Z', ?, 'KR', ?, ?, ?, ?, ?, 'LIMIT', ?, 1, "
+        "'FILLED', 'cfg', '2026-01-01T00:00:00Z', 'LIVE')",
+        <Object?>[
+          id,
+          'k$seq',
+          day,
+          account,
+          strategy,
+          'd$seq@$day',
+          symbol,
+          side,
+          qty,
+        ],
+      );
+      db.execute(
+        'INSERT INTO broker_orders (broker_order_no, intent_id, submitted_at, status) '
+        "VALUES (?, ?, '2026-01-01T00:00:00Z', 'FILLED')",
+        <Object?>[no, id],
+      );
+      final String exec = '$no#$qty';
+      db.execute(
+        'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price) '
+        "VALUES (?, ?, '2026-01-01T01:00:00Z', ?, ?)",
+        <Object?>[exec, no, qty, price],
+      );
+      return exec;
+    }
+
+    /// 앞 체결을 되돌린다(같은 브로커 주문 · REVERSAL).
+    void reverse(String exec, int qty, double price) {
+      final String no = exec.substring(0, exec.lastIndexOf('#'));
+      db.execute(
+        'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, fill_kind, '
+        "reverses_fill_id) VALUES (?, ?, '2026-01-01T02:00:00Z', ?, ?, 'REVERSAL', ?)",
+        <Object?>['$exec|REV', no, qty, price, exec],
+      );
+    }
+
+    /// 분배금 사실 1건(원 행) — [reversed] 면 되돌림 행도.
+    void distribution(
+      String day,
+      String symbol,
+      double amount, {
+      String account = 'GEN',
+      bool reversed = false,
+    }) {
+      seq++;
+      final String id = 'ev$seq';
+      void row(String eventId, String entry, String? target) => db.execute(
+        'INSERT INTO ledger_event (event_id, kind, entry_kind, reverses_event_id, effective_date, account_alias, '
+        'symbol, amount_krw, tax_withheld_krw, decision_id, command_id, authored_by_device_id, authored_at) '
+        "VALUES (?, 'DISTRIBUTION', ?, ?, ?, ?, ?, ?, NULL, 'dec', ?, 'dev', '2026-07-31T00:00:00Z')",
+        <Object?>[
+          eventId,
+          entry,
+          target,
+          day,
+          account,
+          symbol,
+          amount,
+          'cmd-$eventId',
+        ],
+      );
+      row(id, 'ORIGINAL', null);
+      if (reversed) row('$id|REV', 'REVERSAL', id);
+    }
+
+    MonthlyRebalanceJob incomeJob() => MonthlyRebalanceJob(
+      db,
+      mode: RunMode.live,
+      kr: _kr,
+      us: _us,
+      clock: _Clock(),
+      cash: <String, OrderBroker>{
+        'main': FakeOrderBroker(cashKrw: Decimal.parse('10000000')),
+      },
+      holdings: () async => const <LedgerHolding>[],
+      pensionAlias: 'pension',
+      regimeConfigHash: 'cfg_regime',
+      configHash: 'cfg_plan',
+      incomeWarn: P0sIncomeWarnSetup(taxableAccountAlias: 'GEN'),
+    );
+
+    test('끈 잡 = 단계 없음 · 알림 0', () async {
+      fill('2026-01-05', '0085P0', 2000, 10000);
+      fill('2026-07-15', '0085P0', 1000, 30001, side: 'SELL');
+      final MonthlyRebalanceReport r = await job().run(_me);
+      expect(r.incomeWarn, isNull);
+      expect(r.alerts, isEmpty);
+    });
+
+    test(
+      '🔴 이달 넘은 첫 월 = 알림 1건 — 과세계좌 해외 ETF 이익만(다른 계좌 · 국내 종목 빠짐) · 계획은 그대로',
+      () async {
+        fill('2026-01-05', '0085P0', 2000, 10000);
+        fill(
+          '2026-07-15',
+          '0085P0',
+          1000,
+          30001,
+          side: 'SELL',
+        ); // 1,000 × 20,001
+        fill('2026-01-05', '411060', 10, 1, account: 'ISA', strategy: 'POT');
+        fill(
+          '2026-07-16',
+          '411060',
+          10,
+          90000000,
+          side: 'SELL',
+          account: 'ISA',
+          strategy: 'POT',
+        );
+        fill('2026-01-05', '214980', 1, 100);
+        fill('2026-07-16', '214980', 1, 90000000, side: 'SELL');
+        final MonthlyRebalanceReport r = await incomeJob().run(_me);
+        expect(r.created, true);
+        final P0sIncomeWarnStep s = r.incomeWarn!;
+        expect(s.month, '2026-07');
+        expect(s.unavailable, isNull);
+        expect(s.ytd!.realizedGainKrw, Decimal.parse('20001000'));
+        expect(s.previousYtd!.totalKrw, Decimal.zero);
+        expect(s.exceeded, true);
+        expect(r.alerts, <String>{kFinancialIncomeAlertCode});
+      },
+    );
+
+    test('지난달에 이미 넘었다 = 머묾 · 알림 0', () async {
+      fill('2026-01-05', '0085P0', 2000, 10000);
+      fill('2026-06-15', '0085P0', 1000, 30001, side: 'SELL');
+      final MonthlyRebalanceReport r = await incomeJob().run(_me);
+      expect(r.incomeWarn!.exceeded, true);
+      expect(r.incomeWarn!.previousYtd!.totalKrw, Decimal.parse('20001000'));
+      expect(r.alerts, isEmpty);
+    });
+
+    test('되돌린 매수는 평단에 들지 않는다(REVERSAL 체결)', () async {
+      fill('2026-01-05', '0085P0', 1000, 10000);
+      final String b = fill('2026-01-06', '0085P0', 1000, 30000);
+      reverse(b, 1000, 30000);
+      // 평단 10,000 → 20,001,000(되돌림을 세면 평단 20,000 → 10,001,000 = 안 넘음)
+      fill('2026-07-15', '0085P0', 1000, 30001, side: 'SELL');
+      final MonthlyRebalanceReport r = await incomeJob().run(_me);
+      expect(r.incomeWarn!.ytd!.realizedGainKrw, Decimal.parse('20001000'));
+      expect(r.alerts, <String>{kFinancialIncomeAlertCode});
+    });
+
+    test('분배금(세전) 더함 · 되돌린 분배금 · 다른 계좌 분배금 빠짐 · 상한과 같다 = 통과', () async {
+      fill('2026-01-05', '0085P0', 1000, 10000);
+      fill('2026-07-15', '0085P0', 500, 20000, side: 'SELL'); // 5,000,000
+      distribution('2026-07-10', '411060', 15000000);
+      distribution('2026-03-02', '0085P0', 9000000, reversed: true);
+      distribution('2026-04-02', '133690', 30000000, account: 'ISA');
+      final MonthlyRebalanceReport r = await incomeJob().run(_me);
+      final P0sIncomeWarnStep s = r.incomeWarn!;
+      expect(s.ytd!.realizedGainKrw, Decimal.parse('5000000'));
+      expect(s.ytd!.distributionKrw, Decimal.parse('15000000'));
+      expect(s.ytd!.totalKrw, Decimal.parse('20000000'));
+      expect(s.exceeded, false);
+      expect(r.alerts, isEmpty);
+    });
+
+    test('🔴 셈 실패(평균 단가 모름) = 계측 불가 · 알림 0 · 계획은 그대로', () async {
+      fill('2026-07-15', '0085P0', 10, 30001, side: 'SELL');
+      final MonthlyRebalanceReport r = await incomeJob().run(_me);
+      expect(r.created, true);
+      expect(r.incomeWarn!.ytd, isNull);
+      expect(r.incomeWarn!.unavailable, contains('평균 단가 모름'));
+      expect(r.alerts, isEmpty);
+      expect(r.toString(), contains('306 금융소득'));
+    });
+
+    test('이미 있는 계획 · STOPPED 길도 단계를 싣는다', () async {
+      fill('2026-01-05', '0085P0', 2000, 10000);
+      fill('2026-07-15', '0085P0', 1000, 30001, side: 'SELL');
+      expect((await incomeJob().run(_me)).created, true);
+      final MonthlyRebalanceReport again = await incomeJob().run(_me);
+      expect(again.created, false);
+      expect(again.alerts, <String>{kFinancialIncomeAlertCode});
+      expect(again.toString(), contains('306 넘음'));
+
+      db.execute("DELETE FROM plan_snapshot WHERE kind = 'REBALANCE'");
+      _snapshot(db, '2026-07-30', 'STOPPED');
+      final MonthlyRebalanceReport stopped = await incomeJob().run(_me);
+      expect(stopped.skippedReason, 'BREAKER_STOPPED');
+      expect(stopped.alerts, <String>{kFinancialIncomeAlertCode});
+    });
+  });
 }

@@ -669,6 +669,16 @@ export 'src/ops/ops_home.dart'
         opsHomeAsOf,
         opsRhythmOf,
         opsRhythmRowsOf;
+// 🆕 E3d-3 — P0S 월간 SAF-306 과세연도 금융소득 누계 · 첫 초과 월 알림(04 §1 Level 3 v2.46 · 설계 13 §8 R181).
+export 'src/ops/p0s_income_warn.dart'
+    show
+        P0sDistribution,
+        P0sIncomeTally,
+        P0sIncomeWarnSetup,
+        P0sIncomeWarnStep,
+        p0sFinancialIncomeCapKrw,
+        p0sMonthlyIncomeWarnStep,
+        positiveRealizedGainsOf;
 // 🆕 E11p3b-1 — P0S 운영 설정 원천(SPEC 한도 · 비용 · 지정가 여유 + 사람 값 필수 입력 · 설계 13 §8 R90).
 export 'src/ops/p0s_ops_config.dart'
     show
@@ -1098,6 +1108,7 @@ export 'src/risk/warn_limits.dart'
         WarnHolding,
         WarnLimitConfig,
         WarnLimitIds,
+        financialIncomeCapExceeded,
         judgeDailyWarnLimits,
         judgeMonthlyWarnLimits,
         judgeRebalanceWarnLimits,

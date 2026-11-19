@@ -15,7 +15,9 @@ import 'package:core_engine/core_engine.dart'
         LedgerHolding,
         Market,
         OrderBroker,
+        P0sIncomeWarnSetup,
         P0sOpsConfig,
+        P0sStrategyIds,
         P0sWarnSetup,
         PriceAdjust,
         QuoteFetch,
@@ -220,4 +222,9 @@ MonthlyRebalanceJob monthlyRebalanceJobOf(
   regimeConfigHash: cfg.regimeConfigHash,
   configHash: cfg.configHash,
   config: cfg.monthEnd,
+  // 🆕 E3d-3 — SAF-306 과세연도 금융소득(과세계좌 = 슬리브 C 의 계좌 · 04 §1 Level 3 v2.46 · 설계 13 R153).
+  incomeWarn: P0sIncomeWarnSetup(
+    taxableAccountAlias: cfg.human.accountByStrategy[P0sStrategyIds.sleeveC]!,
+    monthEnd: cfg.monthEnd,
+  ),
 );
