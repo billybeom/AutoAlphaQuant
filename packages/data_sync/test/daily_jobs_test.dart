@@ -675,4 +675,154 @@ void main() {
       );
     });
   });
+
+  group('🆕 E3d-2 P0S 일간 경고 단계(04 §1 Level 3 v2.46)', () {
+    int seq = 0;
+
+    /// 집행일 [day] 의 KR 브로커 체결 1건(의도 → 브로커 주문 → 체결).
+    void fill(
+      String day,
+      String strategy,
+      String symbol,
+      int qty, {
+      String side = 'BUY',
+    }) {
+      seq++;
+      final String id = 'i$seq';
+      final String no = '$day:$seq';
+      db.execute(
+        'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+        'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+        "updated_at, mode) VALUES (?, ?, '2026-11-01T00:00:00Z', ?, 'KR', 'main', ?, ?, ?, ?, 'LIMIT', ?, 1, "
+        "'FILLED', 'cfg', '2026-11-01T00:00:00Z', 'LIVE')",
+        <Object?>[id, 'k$seq', day, strategy, 'd$seq@$day', symbol, side, qty],
+      );
+      db.execute(
+        'INSERT INTO broker_orders (broker_order_no, intent_id, submitted_at, status) '
+        "VALUES (?, ?, '2026-11-01T00:00:00Z', 'FILLED')",
+        <Object?>[no, id],
+      );
+      db.execute(
+        'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price) '
+        "VALUES (?, ?, '2026-11-01T01:00:00Z', ?, 10000)",
+        <Object?>['$no#$qty', no, qty],
+      );
+    }
+
+    EquitySnapshotJob job(
+      List<LedgerHolding> held,
+      String cash, {
+      bool warn = true,
+    }) => EquitySnapshotJob(
+      db,
+      cash: <String, OrderBroker>{
+        'main': FakeOrderBroker(cashKrw: Decimal.parse(cash)),
+      },
+      mode: RunMode.live,
+      holdings: () async => held,
+      clock: clock,
+      warn: warn ? P0sWarnSetup() : null,
+    );
+
+    test('끈 잡 = 단계 없음 · 알림 그대로', () async {
+      _price(db, '133690', '2026-11-04', 10000);
+      final EquitySnapshotReport r = await job(
+        const <LedgerHolding>[LedgerHolding('P0S_B', '133690', 10)],
+        '900000',
+        warn: false,
+      ).run(const TradeDate('2026-11-04'));
+      expect(r.warn, isNull);
+      expect(r.alerts, isEmpty);
+    });
+
+    test('첫날(앞 행 없음) 방어 0% = 넘은 첫날 1건 · 이튿날 그대로면 0건', () async {
+      _price(db, '133690', '2026-11-04', 10000);
+      _price(db, '133690', '2026-11-05', 10000);
+      const List<LedgerHolding> held = <LedgerHolding>[
+        LedgerHolding('P0S_B', '133690', 10),
+      ];
+      final EquitySnapshotReport d1 = await job(
+        held,
+        '900000',
+      ).run(const TradeDate('2026-11-04'));
+      expect(d1.warn!.today!.triggered, <String>['SAF-302']);
+      expect(d1.alerts, <String>{kDefensiveFloorAlertCode});
+      final EquitySnapshotReport d2 = await job(
+        held,
+        '900000',
+      ).run(const TradeDate('2026-11-05'));
+      expect(d2.warn!.previous!.defensiveLow, isTrue);
+      expect(d2.alerts, isEmpty);
+    });
+
+    test(
+      '🔴 오늘 체결로 금 비중이 넘으면 1건 — 어제 = 지금 보유 − 오늘 체결(어제 종가 · 어제 현금)',
+      () async {
+        _price(db, '0085P0', '2026-11-04', 10000);
+        _price(db, '0085P0', '2026-11-05', 10000);
+        _price(db, '411060', '2026-11-04', 10000);
+        _price(db, '411060', '2026-11-05', 12000);
+        // 어제 산 금 10(어제 집행일 — 어제 보유에 이미 들어 있다 · 빼면 안 된다).
+        fill('2026-11-04', 'P0S_C', '411060', 10);
+        // 어제: C 채권 70 · 금 10 · 현금 20만 → 금 10%.
+        await job(const <LedgerHolding>[
+          LedgerHolding('P0S_C', '0085P0', 70),
+          LedgerHolding('P0S_C', '411060', 10),
+        ], '200000').run(const TradeDate('2026-11-04'));
+        // 오늘: 금 15 더 삼(현금 5만) · 금 값 1.2만 → 금 30만 ÷ 105만.
+        fill('2026-11-05', 'P0S_C', '411060', 15);
+        final EquitySnapshotReport r = await job(const <LedgerHolding>[
+          LedgerHolding('P0S_C', '0085P0', 70),
+          LedgerHolding('P0S_C', '411060', 25),
+        ], '50000').run(const TradeDate('2026-11-05'));
+        // 어제 값 = 어제 종가(1만) · 어제 현금(20만) · 25 − 15 = 10 → 정확히 10%.
+        expect(r.warn!.previous!.exposure.goldSharePct, 0.10);
+        expect(r.warn!.today!.exposure.goldSharePct, 300000 / 1050000);
+        expect(r.alerts, <String>{kGoldShareAlertCode});
+      },
+    );
+
+    test('매도 · REVERSAL 부호 — 어제 보유를 되살린다', () async {
+      for (final String d in <String>['2026-11-04', '2026-11-05']) {
+        _price(db, '411060', d, 10000);
+        _price(db, '0085P0', d, 10000);
+      }
+      // 어제: 금 30 · 채권 50 · 현금 20만 → 금 30%(넘음).
+      await job(const <LedgerHolding>[
+        LedgerHolding('P0S_C', '0085P0', 50),
+        LedgerHolding('P0S_C', '411060', 30),
+      ], '200000').run(const TradeDate('2026-11-04'));
+      // 오늘: 금 5 · 15 를 두 번 팔고 앞의 5 를 되돌림(REVERSAL) → 남은 매도 15 · 금 15.
+      fill('2026-11-05', 'P0S_C', '411060', 5, side: 'SELL');
+      final String first = '2026-11-05:$seq';
+      fill('2026-11-05', 'P0S_C', '411060', 15, side: 'SELL');
+      db.execute(
+        'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, fill_kind, '
+        "reverses_fill_id) VALUES ('rev1', ?, '2026-11-01T02:00:00Z', 5, 10000, 'REVERSAL', ?)",
+        <Object?>[first, '$first#5'],
+      );
+      final EquitySnapshotReport r = await job(const <LedgerHolding>[
+        LedgerHolding('P0S_C', '0085P0', 50),
+        LedgerHolding('P0S_C', '411060', 15),
+      ], '350000').run(const TradeDate('2026-11-05'));
+      // 지금 15 − (−5 − 15 + 5) = 30 → 어제 금 30% · 오늘 15% → 알림 0(내려옴).
+      expect(r.warn!.previous!.exposure.goldSharePct, 0.30);
+      expect(r.warn!.today!.goldHigh, isFalse);
+      expect(r.alerts, isEmpty);
+    });
+
+    test('어제 재생이 음수 = «안 넘음»으로 본다(놓치지 않게)', () async {
+      _price(db, '411060', '2026-11-04', 10000);
+      _price(db, '411060', '2026-11-05', 10000);
+      await job(const <LedgerHolding>[
+        LedgerHolding('P0S_C', '411060', 30),
+      ], '700000').run(const TradeDate('2026-11-04'));
+      fill('2026-11-05', 'P0S_C', '411060', 99);
+      final EquitySnapshotReport r = await job(const <LedgerHolding>[
+        LedgerHolding('P0S_C', '411060', 30),
+      ], '700000').run(const TradeDate('2026-11-05'));
+      expect(r.warn!.previous, isNull);
+      expect(r.alerts, contains(kGoldShareAlertCode));
+    });
+  });
 }

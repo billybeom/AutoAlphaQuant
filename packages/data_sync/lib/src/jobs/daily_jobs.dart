@@ -9,6 +9,7 @@ import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 
+import '../local/fill_sign_sql.dart' show signedFillSql;
 import '../market/fetch_log.dart' show FetchOutcome;
 import '../market/gap_store.dart';
 import '../market/macro_collector.dart';
@@ -379,6 +380,7 @@ class EquitySnapshotReport implements DailyJobReport {
     required this.releaseEligibleToday,
     this.stoppedEnteredToday = false,
     this.incidentId,
+    this.warn,
   });
 
   /// 쓴 행.
@@ -393,11 +395,15 @@ class EquitySnapshotReport implements DailyJobReport {
   /// 🆕 E13d1 — 연 SEV1(`incidents.incident_id`).
   final String? incidentId;
 
+  /// 🆕 E3d-2 — P0S 일간 경고 단계(04 §1 Level 3 v2.46 · 끈 잡 = null).
+  final P0sWarnStep? warn;
+
   /// 🆕 E13d1 제안 알림(계약 = E13i1 · R60 B6).
   @override
   Set<String> get alerts => <String>{
     if (stoppedEnteredToday) kBreakerStoppedAlertCode,
     if (releaseEligibleToday) kStoppedReleaseEligibleAlertCode,
+    ...?warn?.alerts,
   };
 
   @override
@@ -414,6 +420,7 @@ class EquitySnapshotJob {
     required this._holdings,
     required this._clock,
     this._config,
+    this._warn,
   }) : _cash = Map<String, OrderBroker>.unmodifiable(cash) {
     if (cash.isEmpty) throw ArgumentError('현금 계좌가 없다');
   }
@@ -424,6 +431,9 @@ class EquitySnapshotJob {
   final Future<List<LedgerHolding>> Function() _holdings;
   final Clock _clock;
   final BreakerConfig? _config;
+
+  /// 🆕 E3d-2 — 켜면 평가 행 뒤 P0S 일간 경고 단계(302 · 307 · 308 · 원화 유동성 — 넘은 첫날 알림)를 돈다.
+  final P0sWarnSetup? _warn;
 
   /// 🆕 E13d1 — 사람의 STOPPED 재개 날(결정 B `breaker_release` · R60 B3).
   List<String> _releaseDates() => <String>[
@@ -446,6 +456,67 @@ class EquitySnapshotJob {
     return out;
   }
 
+  /// 🆕 E3d-2 — [after] 뒤 집행일(`order_intents.trade_date > after`)의 KR 브로커 체결 — (전략 · 종목 · 부호 있는 수량).
+  /// 매수 + · 매도 − · REVERSAL 반대 부호(`signedFillSql`) · 수기 체결(브로커 주문 없음)은 빠진다(포지션 재생과 같은 범위).
+  List<LedgerHolding> _signedFillsAfter(String after) => <LedgerHolding>[
+    for (final Row r in _db.select(
+      "SELECT i.strategy_id, i.symbol, SUM(CASE i.side WHEN 'SELL' THEN -1 ELSE 1 END * "
+      '(${signedFillSql('e', 'quantity')})) AS q FROM executions e '
+      'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
+      'JOIN order_intents i ON i.intent_id = b.intent_id '
+      "WHERE i.market = 'KR' AND i.trade_date > ? "
+      'GROUP BY i.strategy_id, i.symbol ORDER BY i.strategy_id, i.symbol',
+      <Object?>[after],
+    ))
+      LedgerHolding(
+        r['strategy_id'] as String,
+        r['symbol'] as String,
+        (r['q'] as num).toInt(),
+      ),
+  ];
+
+  /// 🆕 E3d-2 — 경고 단계(04 §1 Level 3 v2.46): 오늘 = 지금 보유 · 오늘 종가 · 오늘 행 현금 · 마지막 계측일 = 저장된 바로 앞 행의
+  /// 날 · 현금 + (지금 보유 − 그 뒤 체결) · 그날 종가. 앞 행 없음 · 재생 실패 = «안 넘음»(놓치지 않게).
+  P0sWarnStep _warnStep(
+    String d,
+    List<LedgerHolding> held,
+    List<EquitySnapshotRow> history,
+    EquitySnapshotRow row,
+    P0sWarnSetup setup,
+  ) {
+    P0sWarnInputs? previous;
+    if (history.isNotEmpty) {
+      final EquitySnapshotRow last = history.last;
+      try {
+        final List<LedgerHolding> before = holdingsBeforeFills(
+          held,
+          _signedFillsAfter(last.tradeDate),
+        );
+        previous = P0sWarnInputs.fromTexts(
+          holdings: before,
+          closeTexts: _closeTexts(last.tradeDate, <String>{
+            for (final LedgerHolding h in before) h.symbol,
+          }),
+          cashKrw: last.cashKrw,
+        );
+      } on RiskCheckUnavailable {
+        previous = null;
+      }
+    }
+    return p0sDailyWarnStep(
+      today: P0sWarnInputs.fromTexts(
+        holdings: held,
+        closeTexts: _closeTexts(d, <String>{
+          for (final LedgerHolding h in held)
+            if (h.quantity != 0) h.symbol,
+        }),
+        cashKrw: row.cashKrw,
+      ),
+      previous: previous,
+      setup: setup,
+    );
+  }
+
   /// [day](KR 세션) 의 평가 행을 쓴다 — 실패면 [EquitySnapshotError](쓰지 않음).
   Future<EquitySnapshotReport> run(TradeDate day) async {
     final String d = day.yyyyMmDd;
@@ -454,6 +525,7 @@ class EquitySnapshotJob {
       _db,
       mode: _mode,
     );
+    final List<EquitySnapshotRow> history = store.before(d);
     final EquitySnapshotStep step = await computeEquitySnapshot(
       tradeDate: d,
       holdings: held,
@@ -462,7 +534,7 @@ class EquitySnapshotJob {
           if (h.quantity != 0) h.symbol,
       }),
       cashAccounts: _cash,
-      history: store.before(d),
+      history: history,
       regimeOf: regimeLookupOf(_db),
       config: _config,
       releaseDates: _releaseDates(),
@@ -493,11 +565,13 @@ class EquitySnapshotJob {
         );
       }
     });
+    final P0sWarnSetup? setup = _warn;
     return EquitySnapshotReport(
       step.row,
       releaseEligibleToday: step.releaseEligibleToday,
       stoppedEnteredToday: entered,
       incidentId: incident?.incidentId,
+      warn: setup == null ? null : _warnStep(d, held, history, step.row, setup),
     );
   }
 }
