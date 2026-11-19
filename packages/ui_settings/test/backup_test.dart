@@ -264,6 +264,7 @@ void main() {
         <String?>[c.r.headline, ?c.r.reasonCode],
       );
       expect(runOf(tester).enabled, isTrue);
+      expect(find.byKey(const Key('m9s09-migration')), findsOneWidget);
 
       final ColorScheme cs = colorsOf(tester);
       final Icon ic = tester.widget<Icon>(
