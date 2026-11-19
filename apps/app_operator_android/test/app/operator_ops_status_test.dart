@@ -503,17 +503,14 @@ void main() {
     expect(got.length, n);
   });
 
-  test(
-    '🔴 원천 없는 흐름 = 오류(지어내지 않는다) · 기기 측정기 없음(플랫폼 밖) = 기기 리스크도 원천 없음',
-    () async {
-      final OperatorOpsStatusRepository r = OperatorOpsStatusRepository(rt);
-      for (final Stream<Object?> s in <Stream<Object?>>[
-        r.watchBackup(),
-        r.watchAnnualReview(),
-        r.watchDeviceRisk(),
-      ]) {
-        await expectLater(s, emitsError(isA<UnsupportedError>()));
-      }
-    },
-  );
+  test('🔴 원천 없는 흐름 = 오류(지어내지 않는다) · 기기 측정기 없음(플랫폼 밖) = 기기 리스크도 원천 없음', () async {
+    final OperatorOpsStatusRepository r = OperatorOpsStatusRepository(rt);
+    // 🆕 R168 — S12(`watchAnnualReview`)는 원천이 생겼다(operator_annual_review_test).
+    for (final Stream<Object?> s in <Stream<Object?>>[
+      r.watchBackup(),
+      r.watchDeviceRisk(),
+    ]) {
+      await expectLater(s, emitsError(isA<UnsupportedError>()));
+    }
+  });
 }
