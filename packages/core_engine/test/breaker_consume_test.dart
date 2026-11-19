@@ -149,12 +149,23 @@ void main() {
           for (final (int i, String line) in f.readAsLinesSync().indexed)
             if (line.contains('exposureMultiplier(') &&
                 !line.trimLeft().startsWith('//'))
-              '${f.path}:${i + 1}',
+              '${f.path}:${i + 1}'.replaceAll(r'\', '/'),
     ];
-    expect(hits, hasLength(1));
+    // 🔵 E11o-c1(설계 13 §8 R164) — 기기 골든 실행기의 GV-18 판정(정답지 값 대조)은 소비가 아니다.
+    //    그 한 파일만 따로 세고, 나머지(운영 lib)는 정의 하나뿐이어야 한다.
+    final List<String> golden = <String>[
+      for (final String h in hits)
+        if (h.contains('lib/src/golden/')) h,
+    ];
+    final List<String> rest = <String>[
+      for (final String h in hits)
+        if (!golden.contains(h)) h,
+    ];
+    expect(rest, hasLength(1));
+    expect(rest.single, contains('lib/src/risk/breaker.dart'));
     expect(
-      hits.single.replaceAll(r'\', '/'),
-      contains('lib/src/risk/breaker.dart'),
+      golden.map((String h) => h.substring(0, h.lastIndexOf(':'))).toSet(),
+      <String>{'lib/src/golden/gv_breaker.dart'},
     );
   });
 

@@ -1,4 +1,4 @@
-// 골든벡터 기기 실행기(E11o-a · b · 설계 13 §8 R161 · R162 · R163) — 결과 꼴 · 지문 · 실패 집계 · 판정 보류.
+// 골든벡터 기기 실행기(E11o-a · b · c1 · 설계 13 §8 R161 · R162 · R163 · R164) — 결과 꼴 · 지문 · 실패 집계 · 판정 보류.
 //
 // 🔴 이식 전후 케이스 수를 고정한다([_kCases] — 옛 시험 수 그대로 · 05 총계가 아니다(README 규칙 4 와 다름)).
 // 🔴 정답지 값을 하나 바꾸면 그 케이스만 실패해야 한다(실행기가 «통과»를 지어내지 않는다).
@@ -57,7 +57,8 @@ GoldenBundle _raw(Set<String> names, Map<String, String?> overrides) =>
     });
 
 /// 계열별 케이스 수 = 옛 시험 수(GV-3 = 벡터 8 · 코드 규칙 3 은 시험에 남음 · GV-12 = 벡터 14 · 세션 표 머리말 1 은
-/// 시험에 남음 · GV-11 = 11 · 11e · 11d · 19 · 24).
+/// 시험에 남음 · GV-11 = 11 · 11e · 11d · 19 · 24 · GV-20 = 20 · 23 · 38 · GV-22 = 22 · 35 · 36 · GV-31 = 31 · s_h5_1 · 18
+/// · GV-32 = 32 · 39 · 17 · GV-37 = 37 · 28d).
 const Map<String, int> _kCases = <String, int>{
   'GV-1': 7,
   'GV-2': 12,
@@ -69,6 +70,14 @@ const Map<String, int> _kCases = <String, int>{
   'GV-12': 14,
   'GV-13': 5,
   'GV-30': 5,
+  'GV-20': 18,
+  'GV-22': 15,
+  'GV-31': 36,
+  'GV-32': 87,
+  'GV-37': 18,
+  'GV-40d': 4,
+  'GV-40e': 10,
+  'GV-42': 13,
 };
 
 final int _total = _kCases.values.fold(0, (int a, int b) => a + b);
@@ -100,7 +109,7 @@ void main() {
     test('옮긴 계열 전부 통과 · 아직 «전량» 아님', () async {
       final GoldenRunResult r = await kDeviceGoldenSuite.run(bundleOf(files));
       expect(r.failures, isEmpty);
-      expect(_total, 111);
+      expect(_total, 312);
       expect(r.total, _total);
       expect(r.passed, _total);
       expect(r.complete, isFalse);
@@ -121,8 +130,8 @@ void main() {
       );
     });
 
-    test('파일 합 = 계열 선언 합(35) · 케이스 id 겹침 없음', () {
-      expect(files, hasLength(35));
+    test('파일 합 = 계열 선언 합(48) · 케이스 id 겹침 없음', () {
+      expect(files, hasLength(48));
       final List<String> ids = <String>[
         for (final GoldenFamily f in kDeviceGoldenSuite.families)
           for (final GvCase c in f.cases(bundleOf(files))) c.id,
@@ -324,6 +333,152 @@ void main() {
             'GV-30 집행일',
             (Map<String, Object?> j) =>
                 (j['sessions']! as List<Object?>)[0] = '2026-01-02',
+          ),
+          (
+            'gv20_sleeve_b_tranche.json',
+            'GV-20 b1',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['cases', 0])['expected_ratio'] = 0.5,
+          ),
+          (
+            'gv23_partial_exit.json',
+            'GV-23 r1',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['cases', 0])['expected_exit_fraction'] = 0.5,
+          ),
+          (
+            'gv35_38_decisions.json',
+            'GV-38 38-1',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['GV-38', 0])['expected'] = 0.5,
+          ),
+          (
+            'gv22_sleeve_c_gold_cap.json',
+            'GV-22 q2',
+            (Map<String, Object?> j) =>
+                _bump(_at(j, <Object>['cases', 1, 'expected']), 'IAU'),
+          ),
+          (
+            'gv35_38_decisions.json',
+            'GV-36 36-1',
+            (Map<String, Object?> j) {
+              final List<Object?> pair =
+                  (_at(j, <Object>['GV-36', 0])['expected']!
+                          as List<Object?>)[0]!
+                      as List<Object?>;
+              pair[1] = (pair[1]! as num) + 1;
+            },
+          ),
+          (
+            'gv35_38_decisions.json',
+            'GV-37 37-1',
+            (Map<String, Object?> j) {
+              final List<Object?> e =
+                  _at(j, <Object>['GV-37', 0])['expected']! as List<Object?>;
+              e[1] = (e[1]! as num) + 1;
+            },
+          ),
+          (
+            'gv28d_deposit.json',
+            'GV-28d d1',
+            (Map<String, Object?> j) =>
+                _bump(_at(j, <Object>['GV-28d', 0, 'expected']), 'residual'),
+          ),
+          (
+            'gv42_allocation.json',
+            'GV-42 42-1',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['GV-42', 0, 'expected'])['sleeve_a'] =
+                    (_at(j, <Object>['GV-42', 0, 'expected'])['sleeve_a']!
+                        as num) +
+                    0.001,
+          ),
+          (
+            'gv42_allocation.json',
+            'GV-42 42-6',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['GV-42', 5, 'expected'])['reason_contains'] =
+                    '다른 사유',
+          ),
+          (
+            'gv31_breaker_vectors.json',
+            'GV-31 단발 s01',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['step_cases', 0])['expected'] = 'ALERT',
+          ),
+          (
+            'gv31_breaker_vectors.json',
+            'GV-31 시퀀스 q1_full_descent',
+            (Map<String, Object?> j) {
+              final List<Object?> levels =
+                  _at(j, <Object>[
+                        'sequence_cases',
+                        'q1_full_descent',
+                      ])['expected_levels']!
+                      as List<Object?>;
+              levels[levels.length - 1] = 'BOGUS';
+            },
+          ),
+          (
+            'gv31_s_h5_1_J1_stopped.json',
+            'GV-31 s_h5_1 off',
+            (Map<String, Object?> j) => _at(j, <Object>[
+              'vectorB_deterministic',
+              'off',
+            ])['final_level'] = 'NORMAL',
+          ),
+          (
+            'gv18_exposure_multiplier.json',
+            'GV-18 NORMAL',
+            (Map<String, Object?> j) =>
+                _bump(_at(j, <Object>['cases', 0, 'expected']), 'sleeve_a'),
+          ),
+          (
+            'gv32_saf_vectors.json',
+            'GV-32 s00_pass_kr',
+            (Map<String, Object?> j) =>
+                _flip(_at(j, <Object>['cases', 0, 'expected']), 'allowed'),
+          ),
+          (
+            'gv39_trace_vectors.json',
+            'GV-39 g01',
+            (Map<String, Object?> j) {
+              final Map<String, Object?> e = _at(j, <Object>[
+                'cases',
+                1,
+                'expected',
+              ]);
+              e['trace'] = (e['trace']! as List<Object?>).reversed.toList();
+            },
+          ),
+          (
+            'gv17_fail_closed.json',
+            'GV-17 x1',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['cases', 0])['expected'] = <String, Object?>{
+                  'allowed': true,
+                  'violated': <Object?>['X'],
+                },
+          ),
+          (
+            'gv17_fail_closed.json',
+            'GV-17 x7',
+            (Map<String, Object?> j) =>
+                _flip(_at(j, <Object>['cases', 6, 'expected']), 'allowed'),
+          ),
+          (
+            'gv40_saf_warn.json',
+            'GV-40d d1',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['GV-40d', 0, 'expected'])['action'] = '기동 거부',
+          ),
+          (
+            'gv40_saf_warn.json',
+            'GV-40e e1',
+            (Map<String, Object?> j) => _bump(
+              _at(j, <Object>['GV-40e', 0, 'expected', 'metrics']),
+              'rolling_12m_count',
+            ),
           ),
         ]) {
       test('$file → $caseId', () async {
