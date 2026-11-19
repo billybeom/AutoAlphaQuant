@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:app_operator_android/platform/platform.dart';
+import 'package:core_engine/core_engine.dart' show BiometricOutcome;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trading_runtime/trading_runtime.dart' show FgsChannel;
 
@@ -63,6 +64,7 @@ void main() {
       'takeLaunchLink',
       'deviceRisk',
       'deviceId',
+      'biometricSign',
     ]) {
       expect(c, contains('"$m" ->'), reason: m);
     }
@@ -124,6 +126,7 @@ void main() {
           'android.permission.RECEIVE_BOOT_COMPLETED"',
           'android.permission.USE_EXACT_ALARM"',
           'android.permission.WAKE_LOCK"',
+          'android.permission.USE_BIOMETRIC"',
         ]) {
           expect(m, contains(p), reason: p);
         }
@@ -153,6 +156,20 @@ void main() {
       }
       expect(m, isNot(contains('BROWSABLE')));
     });
+  });
+
+  test('🔴 생체 서명(R159) — 결과 세 값 = Dart 가 읽는 값 · 강한 생체만 · 기기 암호 대체 0 · 글자 = Dart 가 넘긴다', () {
+    final String g = _read('$_kt/ops/BiometricGate.kt');
+    expect(_ktConst(g, 'OK'), BiometricOutcome.ok.wire);
+    expect(_ktConst(g, 'CANCELED'), BiometricOutcome.canceled.wire);
+    expect(_ktConst(g, 'UNAVAILABLE'), BiometricOutcome.unavailable.wire);
+    expect(g, contains('BiometricManager.Authenticators.BIOMETRIC_STRONG'));
+    expect(g, isNot(contains('DEVICE_CREDENTIAL')));
+    expect(g, isNot(contains('setDeviceCredentialAllowed')));
+    final String c = _read('$_kt/ops/OpsChannel.kt');
+    for (final String k in <String>['title', 'subtitle', 'cancel']) {
+      expect(c, contains('call.argument<String>("$k")'), reason: k);
+    }
   });
 
   test('🔴 Kotlin 은 상태 문장을 짓지 않는다(한글 문자열 리터럴 0)', () {

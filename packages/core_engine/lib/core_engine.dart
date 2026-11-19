@@ -292,6 +292,15 @@ export 'src/mode/sim_to_auto_switch.dart'
         pendingOldModePauses,
         repairOldModePauses,
         runSimToAutoSwitch;
+// 🆕 E11p4j — O-04 ③ 생체 서명(설계 13 §8 R159).
+export 'src/onboarding/biometric_sign.dart'
+    show
+        BiometricOutcome,
+        BiometricSignTexts,
+        biometricOutcomeOfWire,
+        biometricSignDigest,
+        biometricSignResultText,
+        kBiometricSignKind;
 // 🆕 E11p3b-1 — 설정 지문(정규 JSON SHA-256 앞 16자 · 설계 13 §8 R90).
 export 'src/onboarding/credential_list.dart'
     show PaperCredentialFacts, credentialListVmOf, kCredentialListStaleAfter;

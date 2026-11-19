@@ -16,6 +16,7 @@ import 'package:app_operator_android/app/secure_screen.dart';
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/main.dart';
+import 'package:app_operator_android/safety/biometric_sign_field.dart';
 import 'package:app_operator_android/secret/kis_key_set_field.dart';
 import 'package:core_engine/core_engine.dart'
     show DeviceRiskFacts, P0sHumanInputs, TrustedClock, alertInboxOf;
@@ -427,7 +428,7 @@ void main() {
     disposed = true;
   });
 
-  test('🔴 온보딩 슬롯 빌더(R115) = 주입됨 · SECRET_KIS_MOCK = 키 세트 칸(실행 묶음의 넘김 · 캡처 막기) · 🆕 PLEDGE_WRITE = 서약 칸(R157) · 나머지 = 자리 부재', () {
+  test('🔴 온보딩 슬롯 빌더(R115) = 주입됨 · SECRET_KIS_MOCK = 키 세트 칸(실행 묶음의 넘김 · 캡처 막기) · 🆕 PLEDGE_WRITE = 서약 칸(R157) · 🆕 BIOMETRIC_SIGN = 생체 서명 칸(R159) · 나머지 = 자리 부재', () {
     final ShellSlotBuilder? b = container.read(
       shellOnboardingSlotBuilderProvider,
     );
@@ -442,6 +443,8 @@ void main() {
         expect(identical(f.secure, rt.secure), true);
       } else if (id == OnboardingSlotIds.pledgeWrite) {
         expect(w, isA<PledgePanel>());
+      } else if (id == OnboardingSlotIds.biometricSign) {
+        expect(w, isA<BiometricSignField>());
       } else {
         expect(w.key, const Key('m4-slot-absent'), reason: id);
       }

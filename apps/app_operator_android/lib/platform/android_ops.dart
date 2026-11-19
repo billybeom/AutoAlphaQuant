@@ -5,7 +5,12 @@
 // 🆕 E11p3d-5g(R142) — 기기 id(`deviceId` · 백업 제외 자리 · 꼴 = UUID v4 소문자 · 꼴이 틀리면 거부 — 정체성을 지어내지 않는다).
 // 🆕 E11p3d-2c(R136) — H-03 기기 측정(`deviceRisk` · 값만 · 임계 · 판정 · 문구 = 엔진 `deviceRiskVmOf`).
 
-import 'package:core_engine/core_engine.dart' show DeviceRiskFacts;
+import 'package:core_engine/core_engine.dart'
+    show
+        BiometricOutcome,
+        BiometricSignTexts,
+        DeviceRiskFacts,
+        biometricOutcomeOfWire;
 import 'package:flutter/services.dart';
 import 'package:trading_runtime/trading_runtime.dart' show FgsNotice;
 
@@ -319,6 +324,15 @@ class AndroidOps {
   /// 🆕 R142 — 기기 id(백업 제외 자리 · 없으면 Kotlin 이 처음 한 번 만든다 · 같은 기기 = 늘 같은 값).
   Future<String> deviceId() async =>
       deviceIdFromWire(await _ch.invokeMethod<Object?>('deviceId'));
+
+  /// 🆕 R159 — O-04 ③ 생체 서명(대화상자 글자 = 엔진 · 결과 = 세 값 · 모르는 값 = [FormatException]).
+  Future<BiometricOutcome> biometricSign() async => biometricOutcomeOfWire(
+    await _ch.invokeMethod<Object?>('biometricSign', <String, String>{
+      'title': BiometricSignTexts.promptTitle,
+      'subtitle': BiometricSignTexts.promptSubtitle,
+      'cancel': BiometricSignTexts.promptCancel,
+    }),
+  );
 
   /// 🆕 R136 — H-03 기기 측정([measuredAtUtc] = 잰 시각 · 기기 시계).
   Future<DeviceRiskFacts> deviceRisk(DateTime measuredAtUtc) async =>
