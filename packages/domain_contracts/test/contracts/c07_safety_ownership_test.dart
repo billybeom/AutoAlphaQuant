@@ -25,6 +25,13 @@ const List<String> _safetyOwnedSymbols = <String>[
   'ResumeReport',
 ];
 
+/// 🆕 v1.25(01 §34 K152 · 12 §3 R16d) — 셸이 **자리 이름**으로만 부르는 슬롯 상수 하나. 셸은 이 이름으로
+/// `shellOpsSlotBuilderProvider` 를 부를 뿐 아무것도 그리지 않는다(위젯 = 조립 앱 슬롯 빌더가 넣는 `ui_safety`
+/// 발동 버튼 · 04 §3-1 · §3-2 «M5 소유 컴포넌트 삽입 자리»). 이 글자 그대로만 걸러내고 같은 파일의 다른
+/// `killSwitch` 는 그대로 잡는다(파일 통째 예외 0). 쓸 수 있는 곳 = `ui_shell` lib 뿐.
+final RegExp _shellSlotIdException = RegExp(r'\bOpsSlotIds\.killSwitch\b');
+const String _shellSlotIdOwner = 'packages/ui_shell/lib/';
+
 /// CODEOWNERS 에 **파일 경로로** 적혀 있어야 하는 Claude 소유 경로(07 §9 기계 검사 3).
 const List<String> _claudeOwnedPaths = <String>[
   '/packages/domain_contracts/',
@@ -314,6 +321,11 @@ void main() {
           .readAsStringSync();
       expect(safetySource, contains('killSwitch'));
       expect(safetySource, contains('releaseProgress'));
+      // 🆕 v1.25 — 예외 글자가 실재하는 상수를 가리킨다(이름이 바뀌면 예외가 공허해진다).
+      expect(
+        File('${libDir.path}/src/labels/ops_codes.dart').readAsStringSync(),
+        contains("static const String killSwitch = 'KILL_SWITCH';"),
+      );
       expect(
         File('${libDir.path}/src/dto/resume.dart').readAsStringSync(),
         contains('ResumeReport'),
@@ -330,7 +342,12 @@ void main() {
         for (final File f in dartSourcesIn(
           Directory('${repoRoot.path}/packages/$name/lib'),
         )) {
-          final String code = stripCommentsAndStrings(f.readAsStringSync());
+          final String raw = stripCommentsAndStrings(f.readAsStringSync());
+          final String code = raw.replaceAll(_shellSlotIdException, '');
+          final String at = shortPath(f).replaceAll(r'\', '/');
+          if (code.length != raw.length && !at.startsWith(_shellSlotIdOwner)) {
+            offenders.add('$at: OpsSlotIds.killSwitch(ui_shell 밖)');
+          }
           for (final String symbol in _safetyOwnedSymbols) {
             if (RegExp('\\b$symbol\\b').hasMatch(code)) {
               offenders.add('${shortPath(f)}: $symbol');
@@ -343,7 +360,8 @@ void main() {
         isEmpty,
         reason:
             '🔴 §2-10 표의 ✅ 항목(배너·읽기 목록·딥링크)은 통과다 — 여기서 잡는 것은 '
-            '**원본 렌더**다(01 §7 C-7).',
+            '**원본 렌더**다(01 §7 C-7). 🆕 v1.25 — 셸 슬롯 이름 `OpsSlotIds.killSwitch` 만 '
+            '`ui_shell` lib 에서 예외(01 §34 K152).',
       );
     });
 
