@@ -3,6 +3,8 @@
 // 정답지: 05 v1.22 의 GV-3(6건) · GV-3c(2건) 블록을 원문 그대로 옮긴 것.
 // 🔴 파일럿1 `GV-3_exposure_gate.json` 은 쓰지 않는다 — 원시 점수(`trendiness`)를
 //    35 와 직접 비교하던 v1.9 이전 의미이고 05 v1.10 이 폐기했다(SOURCES.md).
+// 🔴 한 정본(E11o-a · 설계 13 §8 R162) — 벡터 판정은 엔진 lib `Gv3ExposureGate` 에 있고 폰도 같은 케이스를 돈다.
+//    아래 «코드 읽기 거부» 시험은 벡터가 없는 코드 규칙이라 시험에 남는다.
 
 import 'package:core_engine/core_engine.dart';
 import 'package:test/test.dart';
@@ -10,30 +12,8 @@ import 'package:test/test.dart';
 import 'golden_vectors.dart';
 
 void main() {
-  void runCases(String fileName) {
-    final Map<String, Object?> vector = loadVector(fileName);
-    final double tolerance = asDouble(vector['tolerance']);
-    for (final Map<String, Object?> c in asObjectList(vector['cases'])) {
-      final String direction = asString(c['direction_state']);
-      final String trend = asString(c['trend_state']);
-      test('$direction × $trend', () {
-        expect(
-          exposureGate(
-            DirectionState.fromCode(direction),
-            TrendState.fromCode(trend),
-          ),
-          closeTo(asDouble(c['expected_exposure']), tolerance),
-        );
-      });
-    }
-  }
-
-  group('GV-3 익스포저 = f(방향) × g(추세성)', () {
-    runCases('gv03_exposure_gate.json');
-  });
-
-  group('GV-3c UNKNOWN 은 추세성과 무관하게 0 (fail-closed)', () {
-    runCases('gv03c_unknown_fail_closed.json');
+  group('GV-3 · GV-3c 익스포저 = f(방향) × g(추세성) · UNKNOWN fail-closed', () {
+    runFamily(const Gv3ExposureGate());
   });
 
   group('상태 코드 읽기는 fail-closed 가 아니라 «거부»다', () {

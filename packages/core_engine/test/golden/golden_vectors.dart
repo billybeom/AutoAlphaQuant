@@ -8,6 +8,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:core_engine/core_engine.dart'
+    show GoldenBundle, GoldenFamily, GvCase;
 import 'package:decimal/decimal.dart';
 import 'package:test/test.dart';
 
@@ -17,6 +19,18 @@ const String kVectorsDir = 'test/golden/vectors';
 /// 정답지 하나를 읽는다.
 Map<String, Object?> loadVector(String fileName) =>
     asObject(jsonDecode(File('$kVectorsDir/$fileName').readAsStringSync()));
+
+/// 🔴 계열이 선언한 벡터 파일만 묶는다 — 선언 밖 파일을 읽으면 «벡터 없음»으로 깨진다(앱 자산 목록 = 선언 · E11o-d).
+GoldenBundle bundleOf(Set<String> names) => GoldenBundle(<String, String>{
+  for (final String n in names) n: File('$kVectorsDir/$n').readAsStringSync(),
+});
+
+/// 🔴 한 정본 — 계열의 케이스를 lib 판정 그대로 시험 하나씩으로 건다(통과 = null).
+void runFamily(GoldenFamily family) {
+  for (final GvCase c in family.cases(bundleOf(family.files))) {
+    test(c.id, () => expect(c.check(), isNull));
+  }
+}
 
 /// JSON 객체로 읽는다. 아니면 실패 — 정답지 꼴이 바뀐 것이다.
 Map<String, Object?> asObject(Object? value) {
