@@ -50,9 +50,9 @@ List<Map<String, Object?>> _fixtureItems(String name) {
 }
 
 void main() {
-  test('사전 = 등급 표 코드 32 그대로 · 빈 글자 0 · 링크 = AppRoutes 상수', () {
+  test('사전 = 등급 표 코드 36 그대로 · 빈 글자 0 · 링크 = AppRoutes 상수', () {
     expect(kAlertTexts.keys.toSet(), kAlertLevels.keys.toSet());
-    expect(kAlertTexts, hasLength(32));
+    expect(kAlertTexts, hasLength(36));
     for (final MapEntry<String, AlertText> e in kAlertTexts.entries) {
       expect(
         <String>[

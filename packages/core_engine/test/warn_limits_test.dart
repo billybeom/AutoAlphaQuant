@@ -73,6 +73,7 @@ void main() {
       'SAF-305': WarnAction.warn,
       'SAF-306': WarnAction.warn,
       'SAF-307': WarnAction.record,
+      'SAF-308': WarnAction.warn,
     });
   });
 

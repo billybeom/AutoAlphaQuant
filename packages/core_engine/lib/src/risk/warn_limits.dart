@@ -52,6 +52,9 @@ abstract final class WarnLimitIds {
 
   /// USD 익스포저(일간).
   static const String usdExposure = 'SAF-307';
+
+  /// 금 총자산 비중(일간 · 04 v2.27 · 판정 = `ops/p0s_warn.dart` · E3d-1).
+  static const String goldTotal = 'SAF-308';
 }
 
 /// 경고 한도 조치(04 §1 표 «위반 시» 열) — 주문 거부는 여기 없다.
@@ -59,7 +62,7 @@ enum WarnAction {
   /// 경고 + 다음 리밸런싱에 반영(SAF-202 · 208).
   warnNextRebalance,
 
-  /// 경고(SAF-302 · 305 · 306).
+  /// 경고(SAF-302 · 305 · 306 · 308).
   warn,
 
   /// 기록만(P2 — SAF-307 · 04 v2.30 «한도 없음 — 계측» · v2.46).
@@ -86,6 +89,7 @@ const Map<String, WarnAction> kWarnActions = <String, WarnAction>{
   WarnLimitIds.halfKelly: WarnAction.warn,
   WarnLimitIds.financialIncomeCap: WarnAction.warn,
   WarnLimitIds.usdExposure: WarnAction.record,
+  WarnLimitIds.goldTotal: WarnAction.warn,
 };
 
 /// 섹터가 없는 종목의 버킷(04 §1 v1.4 — 이 버킷에는 SAF-205 를 걸지 않는다).
