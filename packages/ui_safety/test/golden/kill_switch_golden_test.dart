@@ -1,4 +1,4 @@
-// test/golden/kill_switch_golden_test.dart — M5-1 킬스위치 · M5-2 재개 게이트 골든(설계 13 §8 R180 · README «여기 골든이 지켜야 할 것»).
+// test/golden/kill_switch_golden_test.dart — M5-1 킬스위치 · M5-2 재개 게이트 · 🆕 셸 자리(R182) 골든(설계 13 §8 R180 · README «여기 골든이 지켜야 할 것»).
 //
 // 🔴 최초 베이스라인만 이 파일 하나로 찍는다:
 //      flutter test --update-goldens test/golden/kill_switch_golden_test.dart
@@ -69,6 +69,12 @@ const List<String> _screens = <String>[
   'kill_switch_active_locked',
 ];
 
+/// 🆕 R182 — 셸 킬스위치 자리(앱바 끝 · 꺼짐 = 발동 버튼 · 켜짐 = 상태 칩 — 한 줄 말줄임).
+const List<String> _slots = <String>[
+  'kill_switch_off',
+  'kill_switch_active_unrecorded',
+];
+
 const List<String> _gates = <String>[
   'kill_resume_gate_off',
   'kill_resume_gate_not_confirmed',
@@ -98,6 +104,29 @@ void main() {
         await t.pump();
         expect(find.byType(Dialog), findsNothing);
         await expectGolden('m51_$f', b);
+      });
+    }
+    for (final String f in _slots) {
+      testWidgets('KS 자리 $f · ${brightnessSuffix(b)}', (WidgetTester t) async {
+        await pumpForGolden(
+          t,
+          _scope(
+            Scaffold(
+              appBar: AppBar(
+                title: const Text('홈'),
+                actions: const <Widget>[KillSwitchSlot()],
+              ),
+            ),
+            _Repo(
+              screen: singleFixture('m5/$f.json', KillSwitchScreenVm.fromJson),
+            ),
+          ),
+          brightness: b,
+          logicalSize: const Size(390, 120),
+        );
+        await t.pump();
+        expect(t.takeException(), isNull);
+        await expectGolden('ks_slot_$f', b);
       });
     }
     for (final String f in _gates) {

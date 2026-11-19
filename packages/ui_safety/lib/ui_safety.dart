@@ -23,6 +23,7 @@ export 'src/kill_switch/kill_switch_screen.dart'
     show
         KillSwitchActivateButton,
         KillSwitchScreen,
+        KillSwitchSlot,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyLinkOpenerProvider;

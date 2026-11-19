@@ -394,6 +394,18 @@ void main() {
 
       // 🆕 R178 — M5-1 킬스위치: 꺼짐(버튼 · 경로 3) → 버튼 한 번 = 발동(확인 대화 0 · 모의 원장) → 취소 보고 · 기록 폼 →
       //    기록 제출 = 신뢰 시각 모름 → 엔진 거부 접수증(48h 는 아직 세지 않는다 · E11k 전).
+      // 🆕 R182 — 셸 킬스위치 자리(홈 앱바 끝): 꺼짐 = 발동 버튼(화면과 같은 위젯 · 다른 Key · 한 줄 말줄임).
+      //    (다시 돌린 원장이 이미 켜짐이면 칩 — 아래 M5-1 단계와 같은 방어.)
+      await _until(
+        tester,
+        find.byWidgetPredicate(
+          (Widget w) =>
+              w.key == const Key('ks-slot-activate') ||
+              w.key == const Key('ks-slot-active'),
+        ),
+      );
+      await _at(tester, find.byKey(const Key('s01-kill-slot')), 'IT_KS0');
+
       container.read(shellLinkOpenerProvider).open(AppRoutes.m5KillSwitch);
       await _until(tester, find.text('킬스위치 꺼짐'));
       await _at(tester, find.byType(KillSwitchScreen), 'IT_M51A');
@@ -437,6 +449,11 @@ void main() {
         await _at(tester, find.byType(KillSwitchScreen), 'IT_M51C');
       }
       await tester.pageBack();
+
+      // 🆕 R182 — 발동 뒤 홈 앱바 자리 = 상태 칩(원장 변경 → 다시 냄 · 누르면 M5-1).
+      await _until(tester, find.byKey(const Key('ks-slot-active')));
+      expect(find.byKey(const Key('ks-slot-activate')), findsNothing);
+      await _at(tester, find.byKey(const Key('s01-kill-slot')), 'IT_KS1');
 
       // 🆕 R180 — M5-2 재개 게이트: 켜짐 · 기록 전(신뢰 시각이 없어 기록이 거부됐다) = 막힘 문장 · 받을 문항 0 · 7문항 표.
       container.read(shellLinkOpenerProvider).open(AppRoutes.m5ReleaseGate);

@@ -22,6 +22,7 @@ import 'package:core_engine/core_engine.dart'
     show
         DeviceRiskFacts,
         HoldingsTexts,
+        KillSwitchScreenTexts,
         P0sHumanInputs,
         TrustedClock,
         alertInboxOf;
@@ -37,7 +38,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         DecisionReasonCodes,
         FlagIds,
         OnboardingSlotIds,
-        OperatingMode;
+        OperatingMode,
+        OpsSlotIds;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -75,6 +77,7 @@ import 'package:ui_safety/ui_safety.dart'
     show
         KillResumeGateScreen,
         KillSwitchScreen,
+        KillSwitchSlot,
         PledgePanel,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider;
@@ -431,6 +434,16 @@ void main() {
         container.read(operatorKillResumeDraftProvider),
       ),
       true,
+    );
+    // 🆕 R182 — M8 운영 슬롯 빌더 = 셸 킬스위치 자리(ui_safety 자리 위젯) · 인쇄 = 자리 부재.
+    expect(
+      identical(container.read(shellOpsSlotBuilderProvider), operatorOpsSlot),
+      true,
+    );
+    expect(operatorOpsSlot(OpsSlotIds.killSwitch), isA<KillSwitchSlot>());
+    expect(
+      operatorOpsSlot(OpsSlotIds.emergencyCardPrint).key,
+      const Key('m8-slot-absent'),
     );
     // 🆕 R174 — S7-4 플래너 칸 = 같은 What-if · 같은 명령 API · 셸 설정 원천(한 인스턴스).
     expect(
@@ -994,6 +1007,15 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('m51-activate')), findsNothing);
+      // 🆕 R182 — 링크 화면 앱바 자리 = 같은 자리 위젯(기기 id 없음 = 버튼 부재).
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('s01-link-kill-slot')),
+          matching: find.byType(KillSwitchSlot),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('ks-slot-activate')), findsNothing);
       // 🆕 R180 — M5-2 재개 게이트 = 등록 · 꺼짐 꼴(받을 문항 0).
       await open(tester, AppRoutes.m5ReleaseGate);
       await tester.runAsync(
@@ -1004,6 +1026,89 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(KillResumeGateScreen), findsOneWidget);
       expect(find.byKey(const Key('m52-confirm')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 셸 킬스위치 자리(R182) — 홈 앱바 = 발동 버튼(한 번 · 확인 대화 0) → 원장 켜짐 → 상태 칩 → M5-1 화면',
+    (WidgetTester tester) async {
+      // 기기 id 있는 조립(명령 API 주입) — 기본 setUp 컨테이너는 닫고 바꾼다.
+      container.dispose();
+      rt = OperatorRuntime(files: files, clock: clock, deviceId: 'dev-1');
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      await pumpApp(tester);
+      await ready(tester);
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder home = find.byKey(const Key('s01-kill-slot'));
+      expect(home, findsOneWidget);
+      final Finder activate = find.descendant(
+        of: home,
+        matching: find.byKey(const Key('ks-slot-activate')),
+      );
+      expect(activate, findsOneWidget);
+      expect(
+        find.descendant(
+          of: activate,
+          matching: find.text(KillSwitchScreenTexts.activate),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(activate);
+      await settle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(tester.takeException(), isNull);
+      // 원장 = 켜짐(발동 기기 = 운영 폰 별칭 · 해제 전).
+      final List<Map<String, Object?>> ks = files.sim
+          .select(
+            'SELECT activated_at, activated_by, cleared_at FROM kill_switch_state',
+          )
+          .toList();
+      expect(ks.single['activated_at'], isNotNull);
+      expect(ks.single['activated_by'], KillSwitchScreenTexts.operatorPhone);
+      expect(ks.single['cleared_at'], isNull);
+      // 원장 변경 → 다시 냄(SQLite 갱신 훅)은 가짜 시간 밖(위 pumpApp 주석 · 실시간 몫 = operator_kill_switch_test) —
+      // 여기서는 읽기 창구의 1분 주기 다시 읽기로 자리가 바뀌는 것을 본다.
+      await tester.pump(const Duration(minutes: 1));
+      await settle();
+      final Finder chip = find.descendant(
+        of: home,
+        matching: find.byKey(const Key('ks-slot-active')),
+      );
+      expect(chip, findsOneWidget);
+      expect(find.byKey(const Key('ks-slot-activate')), findsNothing);
+
+      await tester.tap(chip);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(KillSwitchScreen);
+      expect(screen, findsOneWidget);
+      expect(
+        find.descendant(of: screen, matching: find.textContaining('킬스위치 작동 중')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('s01-link-kill-slot')),
+          matching: find.byKey(const Key('ks-slot-active')),
+        ),
+        findsOneWidget,
+      );
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;
