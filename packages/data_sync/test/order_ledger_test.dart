@@ -1701,6 +1701,11 @@ void main() {
         reason: '5,000,000 − 판정 전 매수 2 × 5 × 174,180',
       );
       expect(
+        view.orderableCashTextNow(),
+        (await broker.orderableCashKrw()).toString(),
+        reason: '🆕 E11q1 — 보유 화면 동기 셈 = 브로커 셈(예약 포함)',
+      );
+      expect(
         (await broker.dailyFills(_exec))
             .map((DailyFillRow r) => r.remainingQty),
         <int>[5, 5],
@@ -1747,6 +1752,11 @@ void main() {
             Decimal.parse('$fee'),
       );
       expect((await broker.balance()).holdings, <String, int>{'133690': 5});
+      expect(
+        view.orderableCashTextNow(),
+        (await broker.orderableCashKrw()).toString(),
+        reason: '🆕 E11q1 — 체결 뒤(대금 + 비용)도 같은 셈',
+      );
       expect(sdb.select('SELECT * FROM data_gap'), isEmpty);
       final SqliteSimLedgerView other = SqliteSimLedgerView(
         sdb,

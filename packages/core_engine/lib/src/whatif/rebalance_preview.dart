@@ -17,6 +17,7 @@ import 'package:domain_contracts/domain_contracts.dart';
 
 import '../calendar/next_rebalance.dart';
 import '../portfolio/month_end_plan.dart';
+import '../portfolio/sleeve_weight_view.dart' show sleeveWeightOf;
 import 'what_if_config.dart';
 import 'what_if_gates.dart';
 import 'what_if_state.dart';
@@ -244,34 +245,4 @@ SleeveWeight _row(
   Decimal total,
   Decimal target,
   Decimal? band,
-) {
-  final double w = total > Decimal.zero
-      ? (value / total).toDecimal(scaleOnInfinitePrecision: 12).toDouble()
-      : 0.0;
-  final double t = target.toDouble();
-  final double lo = band == null ? 0.0 : (target - band).toDouble();
-  final double hi = band == null ? 1.0 : (target + band).toDouble();
-  String pct(double x) => '${(x * 100).toStringAsFixed(1)}%';
-  String pp(double x) {
-    final String v = (x.abs() * 100).toStringAsFixed(1);
-    if (v == '0.0') return '0.0%p';
-    return '${x > 0 ? '+' : '−'}$v%p';
-  }
-
-  final String bandText = band == null
-      ? ''
-      : w > hi
-      ? ', 밴드 상단 ${((w - hi) * 100).toStringAsFixed(1)}%p 초과'
-      : w < lo
-      ? ', 밴드 하단 ${((lo - w) * 100).toStringAsFixed(1)}%p 미달'
-      : ', 밴드 여유 ${((w - lo < hi - w ? w - lo : hi - w) * 100).toStringAsFixed(1)}%p';
-  return SleeveWeight(
-    sleeve: sleeve,
-    weight: w,
-    targetWeight: t,
-    bandLow: lo,
-    bandHigh: hi,
-    label: '${sleeve.wire} ${pct(w)} (목표 ${pct(t)}, 편차 ${pp(w - t)}$bandText)',
-    basis: AllocationBasis.accounting,
-  );
-}
+) => sleeveWeightOf(sleeve, value, total, target, band);

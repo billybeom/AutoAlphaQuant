@@ -5,7 +5,12 @@
 // 🔴 봉 없음 = `data_gap` 1행(`GAP-SIMBAR-{날짜}-{종목}` · 복구 불가 · 같은 날 · 종목 = 한 번).
 
 import 'package:core_engine/core_engine.dart'
-    show SimExecution, SimLedgerView, SimOrder, kSimOdnoPrefix;
+    show
+        SimExecution,
+        SimLedgerView,
+        SimOrder,
+        kSimOdnoPrefix,
+        simOrderableCashOf;
 import 'package:domain_contracts/domain_contracts.dart'
     show Clock, OrderSide, TradeDate;
 import 'package:sqlite3/sqlite3.dart';
@@ -90,7 +95,24 @@ class SqliteSimLedgerView implements SimLedgerView {
   }
 
   @override
-  Future<double> cashFlowSum() async =>
+  Future<double> cashFlowSum() async => cashFlowSumNow();
+
+  @override
+  Future<List<SimExecution>> executions() async => executionsNow();
+
+  @override
+  Future<List<SimOrder>> openBuys() async => openBuysNow();
+
+  /// 🆕 E11q1 — 가상 주문 가능 현금 글자(동기 · 보유 화면 · 설계 13 §8 R171) — 브로커와 같은 셈(`simOrderableCashOf`) ·
+  /// 취소 기억 없음(= 새 브로커) · 글자 = 이 패키지는 Decimal 을 쓰지 않는다(01 §1-1 · 월말 잡 `potCashText` 꼴).
+  String orderableCashTextNow() => simOrderableCashOf(
+    cashFlowSumNow(),
+    executionsNow(),
+    openBuysNow(),
+  ).toString();
+
+  /// 이 계좌 `cash_flow` 합(동기).
+  double cashFlowSumNow() =>
       (_db.select(
                 'SELECT COALESCE(SUM(amount), 0) AS s FROM cash_flow WHERE account_alias = ?',
                 <Object?>[account],
@@ -98,8 +120,8 @@ class SqliteSimLedgerView implements SimLedgerView {
               as num)
           .toDouble();
 
-  @override
-  Future<List<SimExecution>> executions() async => <SimExecution>[
+  /// 이 계좌 체결(동기 · REVERSAL = 음수).
+  List<SimExecution> executionsNow() => <SimExecution>[
     for (final Row r in _db.select(
       // 🆕 E16f2 — REVERSAL = 수량 · 수수료 · 세금 음수(현금 셈이 정확히 되돌아간다 · R128 K2).
       'SELECT i.side, ${signedFillSql('e', 'quantity')} AS quantity, e.price, '
@@ -119,8 +141,8 @@ class SqliteSimLedgerView implements SimLedgerView {
       ),
   ];
 
-  @override
-  Future<List<SimOrder>> openBuys() async => <SimOrder>[
+  /// 판정 전 매수(동기).
+  List<SimOrder> openBuysNow() => <SimOrder>[
     for (final Row r in _db.select(
       "${_orderCols}WHERE i.account = ? AND i.side = 'BUY' AND i.status IN ('SUBMITTED', 'PARTIAL') "
       'AND b.broker_order_no LIKE ? ORDER BY b.broker_order_no',

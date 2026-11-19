@@ -524,6 +524,16 @@ export 'src/ops/equity_snapshot.dart'
         replayStoredBreaker,
         stoppedIncidentIdOf,
         stoppedIncidentOf;
+// 🆕 E11q1 — M6 H6-1 보유 현황 VM(설계 13 §8 R171).
+export 'src/ops/holdings_overview.dart'
+    show
+        HoldingPositionFact,
+        HoldingsOverviewFacts,
+        HoldingsTexts,
+        bTrancheSignalsOf,
+        holdingsManwonText,
+        holdingsOverviewVmOf,
+        kHoldingsStaleAfter;
 // 🆕 E14c1 — 잡 실행 기록 포트 · 값 꼴(02 v2.42 `job_run` · 설계 13 §8 R73 K1).
 export 'src/ops/job_run_log.dart'
     show JobRunEntry, JobRunLog, JobRunStatus, successStatusOf;
@@ -892,6 +902,13 @@ export 'src/portfolio/sleeve_c.dart'
         SleeveCWeights,
         sleeveCAllocateInflow,
         sleeveCUsdTargets;
+// 🆕 E11q1 — 슬리브 비중 줄 · 밴드 상태 · 목표 막대(미리보기 · 보유 한 생산 · R171).
+export 'src/portfolio/sleeve_weight_view.dart'
+    show
+        kNearEdgeFraction,
+        sleeveBandGaugeOf,
+        sleeveBandStateOf,
+        sleeveWeightOf;
 // 🆕 E16d1 — X5-3 정정 계획 · 역분개 · 새 기준점(순수 · 설계 13 §8 R121).
 export 'src/repair/baseline_plan.dart'
     show
@@ -1300,7 +1317,8 @@ export 'src/sim/sim_internal_broker.dart'
         kSimCancelTooLate,
         kSimInvalidOrder,
         kSimOdnoPrefix,
-        kSimOrderNotFound;
+        kSimOrderNotFound,
+        simOrderableCashOf;
 // 🆕 E15d1 — 모의 개시(가상 초기금 나눔 · 시딩 전략 · 체험 시작 문 · 설계 13 §8 R85 AA3 · AA4).
 export 'src/sim/sim_opening.dart'
     show

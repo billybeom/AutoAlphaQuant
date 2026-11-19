@@ -44,9 +44,11 @@ import 'package:ui_analytics/ui_analytics.dart'
         safetyRepositoryProvider;
 import 'package:ui_journal/ui_journal.dart'
     show
+        HoldingsOverview,
         LedgerDiffs,
         LedgerRepairs,
         journalClockProvider,
+        journalHoldingsRepositoryProvider,
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
         journalSafetyRepositoryProvider;
@@ -125,6 +127,16 @@ final Provider<OperatorCommandApi> operatorCommandApiProvider =
     Provider<OperatorCommandApi>(
       (Ref ref) => OperatorCommandApi(ref.watch(operatorRuntimeProvider)),
     );
+
+/// 🆕 R171 — 보유(H6-1 · 한 인스턴스 · 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만).
+final Provider<OperatorHoldingsRepository> operatorHoldingsProvider =
+    Provider<OperatorHoldingsRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorHoldingsRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
 
 /// 🆕 R133 — 홈 오늘 요약 · 운영 리듬(한 인스턴스).
 final Provider<OperatorOpsSummaryRepository> operatorOpsSummaryProvider =
@@ -242,6 +254,8 @@ Widget _settingsDiagnostics(Map<String, String> _) => const Diagnostics();
 Widget _settingsAnnualReview(Map<String, String> _) =>
     const AnnualReviewEntry();
 
+Widget _holdingsOverview(Map<String, String> _) => const HoldingsOverview();
+
 /// 🆕 R129 — 설정 읽기 모델(첫 칸 = S02 키 목록) · 🆕 R134 설정 홈 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만.
 final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
     Provider<OperatorSettingsRepository>((Ref ref) {
@@ -303,6 +317,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.settingsDiagnostics: _settingsDiagnostics,
   // 🆕 R168 — M9 S12 12월 연간 리뷰 목차(S01 카드 = 신뢰 시각 12월 · 목차 = 등록된 M7 화면만).
   AppRoutes.settingsAnnualReview: _settingsAnnualReview,
+  // 🆕 E11q1(R171) — M6 H6-1 보유 현황(원장 · 모의 = 가상 현금 · 상세 · 배분 링크 = 등록되면).
+  AppRoutes.holdingsOverview: _holdingsOverview,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
   // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).
@@ -384,8 +400,9 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   shellAdviceRepositoryProvider.overrideWithValue(
     const OperatorAdviceRepository(),
   ),
-  shellHoldingsRepositoryProvider.overrideWithValue(
-    const OperatorHoldingsRepository(),
+  // 🆕 R171 — 보유(H6-1 = 원장 · 셸 홈 블록 4 · 일지 패키지 = 한 인스턴스).
+  shellHoldingsRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorHoldingsProvider),
   ),
   shellLedgerTrustRepositoryProvider.overrideWithValue(
     const OperatorLedgerTrustRepository(),
@@ -416,6 +433,9 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
     ) as LedgerRepository,
   ),
   journalClockProvider.overrideWithValue(runtime.clock),
+  journalHoldingsRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorHoldingsProvider),
+  ),
   journalLinkOpenerProvider.overrideWith(
     (Ref ref) => ref.watch(shellLinkOpenerProvider),
   ),
