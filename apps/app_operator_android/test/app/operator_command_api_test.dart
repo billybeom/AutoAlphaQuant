@@ -171,7 +171,7 @@ void main() {
   test('🔴 나머지 명령 = operator 구현 전(오류 — 지어내지 않는다)', () async {
     final OperatorCommandApi api = OperatorCommandApi(await ready());
     await expectLater(
-      api.activateKillSwitch(reasonFreeText: 'x', deviceId: _dev),
+      api.activateKillSwitch(),
       throwsA(isA<UnsupportedError>()),
     );
     await expectLater(
