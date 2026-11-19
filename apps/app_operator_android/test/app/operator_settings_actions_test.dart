@@ -48,6 +48,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../engine/support.dart';
 
@@ -536,6 +537,51 @@ void main() {
         );
       },
     );
+
+    test('🆕 R160 — S10 무결성 자가진단 = 엔진 정본 자가 대조 · 결과 = 엔진 문장 · 기록 1행 · args = {} · 원장 없음 = 오류', () async {
+      Database? book = files.sim;
+      final OperatorSettingsActions withBook = OperatorSettingsActions(
+        secrets: handoff,
+        vault: vault,
+        clientOf: (KisCredentials c) =>
+            KisRestClient(net, c, environment: c.environment),
+        clock: clock,
+        sim: files.sim,
+        ledger: () => book,
+      );
+      final ActionResult r = await withBook.run(
+        SettingsActionId.selftestIntegrityRun,
+      );
+      expect(r.id, SettingsActionId.selftestIntegrityRun);
+      expect(r.level, UiLevel.ok, reason: r.headline);
+      expect(r.headline, '정본 자가 대조가 일치합니다.');
+      expect(r.reasonCode, isNull);
+      expect(
+        files.sim
+            .select(
+              "SELECT COUNT(*) AS n FROM reconciliation_log WHERE action_taken = 'INTEGRITY_OK'",
+            )
+            .first['n'],
+        1,
+      );
+      expect(await withBook.watch(r.actionRunId).first, r);
+      await expectLater(
+        withBook.run(
+          SettingsActionId.selftestIntegrityRun,
+          args: <String, String>{'x': '1'},
+        ),
+        throwsArgumentError,
+      );
+      book = null;
+      await expectLater(
+        withBook.run(SettingsActionId.selftestIntegrityRun),
+        throwsStateError,
+      );
+      await expectLater(
+        withSim.run(SettingsActionId.selftestIntegrityRun),
+        throwsUnsupportedError,
+      );
+    });
 
     test('🔴 금고 키 «다시 검증»(R129) 통과도 o_02 VERIFIED 로 적는다', () async {
       await storeKisCredentials(vault, KisKeySet.paper, src.value!);

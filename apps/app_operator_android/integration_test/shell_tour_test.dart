@@ -28,7 +28,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 import 'package:ui_settings/ui_settings.dart'
-    show Accounts, Connections, Devices, SettingsHome;
+    show Accounts, Connections, Devices, Diagnostics, SettingsHome;
 import 'package:ui_shell/ui_shell.dart'
     show DeviceRiskBoard, OpsHome, ShellRoot, shellLinkOpenerProvider;
 
@@ -160,6 +160,16 @@ void main() {
       await _until(tester, find.text('슬리브 A'));
       expect(find.text('모의 개시 전 — 시작하면 이 계좌로 운영합니다.'), findsNWidgets(3));
       await _at(tester, find.byType(Accounts), 'IT_S03');
+
+      // 🆕 R160 — S10 진단(설정 홈 «진단» 카드 · 골든 = 판정 보류).
+      await tester.pageBack();
+      await _until(tester, find.text('진단'));
+      await tester.ensureVisible(
+        find.descendant(of: home, matching: find.text('진단')),
+      );
+      await tester.tap(find.descendant(of: home, matching: find.text('진단')));
+      await _until(tester, find.text('골든벡터 판정 보류'));
+      await _at(tester, find.byType(Diagnostics), 'IT_S10');
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
       await _until(tester, find.textContaining('남은 공간'));

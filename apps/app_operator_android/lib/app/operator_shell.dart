@@ -60,6 +60,7 @@ import 'package:ui_settings/ui_settings.dart'
         Connections,
         Credentials,
         Devices,
+        Diagnostics,
         SettingsHome,
         settingsActionsProvider,
         settingsClockProvider,
@@ -149,6 +150,8 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
             KisRestClient(net, c, environment: c.environment),
         clock: rt.clock,
         sim: rt.files.sim,
+        // 🆕 R160 — S10 무결성 자가진단 = 지금 화면이 읽는 원장.
+        ledger: () => rt.view.value?.db,
       );
     });
 
@@ -223,6 +226,8 @@ Widget _settingsAccounts(Map<String, String> _) => const Accounts();
 
 Widget _simOpeningCash(Map<String, String> _) => const SimOpeningCash();
 
+Widget _settingsDiagnostics(Map<String, String> _) => const Diagnostics();
+
 /// 🆕 R129 — 설정 읽기 모델(첫 칸 = S02 키 목록) · 🆕 R134 설정 홈 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만.
 final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
     Provider<OperatorSettingsRepository>((Ref ref) {
@@ -280,6 +285,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.settingsDevices: _settingsDevices,
   // 🆕 E11p3d-5i(R151) — M9 S03 계좌 · 매핑.
   AppRoutes.settingsAccounts: _settingsAccounts,
+  // 🆕 E11p4k(R160) — M9 S10 진단(골든 = 실행기 전 판정 보류 · 무결성 = 정본 자가 대조).
+  AppRoutes.settingsDiagnostics: _settingsDiagnostics,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
   // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).

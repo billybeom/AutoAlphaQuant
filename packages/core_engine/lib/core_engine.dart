@@ -420,6 +420,15 @@ export 'src/ops/device_risk.dart'
         kDeviceStorageWatchBytes,
         kDeviceTempActTenths,
         kDeviceTempWatchTenths;
+// 🆕 E11p4k — M9 S10 진단 감싸개 · 무결성 자가진단 결과(설계 13 §8 R160).
+export 'src/ops/diagnostics_screen.dart'
+    show
+        DiagnosticsScreenFacts,
+        DiagnosticsScreenTexts,
+        diagnosticsScreenVmOf,
+        integrityReasonText,
+        kDiagnosticsScreenStaleAfter,
+        selftestIntegrityResultOf;
 // 🆕 E11f1 — 일일 평가 스냅숏 계산(평가 · HWM · 드로다운 · 브레이커 재생 · P0S 브레이커 설정 · 설계 13 §8 R47 F6~F8).
 export 'src/ops/equity_snapshot.dart'
     show

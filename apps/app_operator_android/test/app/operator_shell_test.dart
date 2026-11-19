@@ -60,6 +60,7 @@ import 'package:ui_settings/ui_settings.dart'
         Connections,
         Credentials,
         Devices,
+        Diagnostics,
         SettingsHome,
         SettingsSlotBuilder,
         settingsActionsProvider,
@@ -773,6 +774,30 @@ void main() {
       disposed = true;
     },
   );
+
+  testWidgets('🔴 S10 진단(R160) = 조립 셸에 등록 · 골든 = 판정 보류 · 무결성 카드 · 크래시 없음', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(tester);
+    await ready(tester);
+    await open(tester, AppRoutes.settingsDiagnostics);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 30)),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    final Finder screen = find.byType(Diagnostics);
+    expect(screen, findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    Finder inScreen(String t) =>
+        find.descendant(of: screen, matching: find.text(t));
+    expect(inScreen('골든벡터 판정 보류'), findsOneWidget);
+    expect(inScreen('무결성 자가진단'), findsWidgets);
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
+  });
 
   testWidgets('🔴 S06 기기 · 접근(R146) = 조립 셸에 등록 · 이 폰 한 행 · 모의 단독 리스 · 캡처 막기', (
     WidgetTester tester,
