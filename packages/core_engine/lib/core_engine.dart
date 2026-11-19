@@ -1203,6 +1203,13 @@ export 'src/safety/kill_checklist.dart'
         activationChecklistVerdict,
         tryResume;
 // 🆕 E13a — 킬스위치 활성 판정 · 재개 준비 · 화면 문장(설계 13 §8 R56 K1 · K2).
+export 'src/safety/kill_resume_gate.dart'
+    show
+        KillActivationReplay,
+        KillResumeGateTexts,
+        killResumeGateVmOf,
+        killResumeItemAnswerOf,
+        killResumeResultOf;
 export 'src/safety/kill_switch.dart'
     show
         KillSwitchConfig,

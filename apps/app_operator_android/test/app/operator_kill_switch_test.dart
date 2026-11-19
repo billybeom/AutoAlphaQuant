@@ -130,11 +130,8 @@ void main() {
     expect(yes.stateLabel, KillCommandTexts.confirmed);
     await until(() => got.last.form == null);
     expect(got.last.etaText, '해제 가능 예정 12-25 10:20');
-    expect(got.last.gateLink, isNull, reason: 'M5-2 = b1b(미등록)');
-    await expectLater(
-      repo.watchResumeGate(),
-      emitsError(isA<UnsupportedError>()),
-    );
+    // 🆕 R179 — M5-2 게이트 등록 → 기록 뒤 링크가 선다.
+    expect(got.last.gateLink?.deepLink, AppRoutes.m5ReleaseGate);
     expect(
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5KillSwitch),
       true,

@@ -48,7 +48,8 @@ import 'package:ui_analytics/ui_analytics.dart'
     show RebalanceEventScreen, RebalancePreviewScreen, RebalanceTimelineScreen;
 import 'package:ui_journal/ui_journal.dart'
     show HoldingDetail, HoldingsAllocation, HoldingsOverview;
-import 'package:ui_safety/ui_safety.dart' show KillSwitchScreen;
+import 'package:ui_safety/ui_safety.dart'
+    show KillResumeGateScreen, KillSwitchScreen;
 import 'package:ui_settings/ui_settings.dart'
     show
         AnnualReviewEntry,
@@ -435,6 +436,13 @@ void main() {
         await _until(tester, find.byKey(const Key('m51-record-receipt')));
         await _at(tester, find.byType(KillSwitchScreen), 'IT_M51C');
       }
+      await tester.pageBack();
+
+      // 🆕 R179 — M5-2 재개 게이트: 켜짐 · 기록 전(신뢰 시각이 없어 기록이 거부됐다) = 막힘 문장 · 받을 문항 0 · 7문항 표.
+      container.read(shellLinkOpenerProvider).open(AppRoutes.m5ReleaseGate);
+      await _until(tester, find.byKey(const Key('m52-root')));
+      expect(find.byKey(const Key('m52-confirm')), findsNothing);
+      await _at(tester, find.byType(KillResumeGateScreen), 'IT_M52');
       await tester.pageBack();
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);

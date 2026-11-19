@@ -73,6 +73,7 @@ import 'package:ui_safety/sim_opening.dart'
     show SimOpeningCash, safetySimOpeningCommandApiProvider;
 import 'package:ui_safety/ui_safety.dart'
     show
+        KillResumeGateScreen,
         KillSwitchScreen,
         PledgePanel,
         safetyActionsProvider,
@@ -174,6 +175,14 @@ final Provider<OperatorRebalanceRepository> operatorRebalanceProvider =
       );
     });
 
+/// 🆕 R179 — M5-2 재개판 초안(이 앱 실행 동안 · 문항 제출과 게이트 읽기가 같이 쓴다).
+final Provider<OperatorKillResumeDraft> operatorKillResumeDraftProvider =
+    Provider<OperatorKillResumeDraft>((Ref ref) {
+      final OperatorKillResumeDraft d = OperatorKillResumeDraft();
+      ref.onDispose(d.dispose);
+      return d;
+    });
+
 /// 🆕 R178 — M5-1 킬스위치 읽기(한 인스턴스 · 게이트 링크 = 레지스트리에 본문이 있을 때만).
 final Provider<OperatorKillSwitchGateRepository>
 operatorKillSwitchGateProvider = Provider<OperatorKillSwitchGateRepository>((
@@ -183,6 +192,8 @@ operatorKillSwitchGateProvider = Provider<OperatorKillSwitchGateRepository>((
   return OperatorKillSwitchGateRepository(
     ref.watch(operatorRuntimeProvider),
     hasBody: bodies.byPattern.containsKey,
+    // 🆕 R179 — M5-2 게이트 = 문항 제출과 같은 초안.
+    draft: ref.watch(operatorKillResumeDraftProvider),
   );
 });
 
@@ -246,7 +257,10 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
 /// 🆕 R157 — 안전 동작(한 인스턴스 — 지금 = 서약).
 final Provider<OperatorSafetyActions> operatorSafetyActionsProvider =
     Provider<OperatorSafetyActions>(
-      (Ref ref) => OperatorSafetyActions(ref.watch(operatorRuntimeProvider)),
+      (Ref ref) => OperatorSafetyActions(
+        ref.watch(operatorRuntimeProvider),
+        draft: ref.watch(operatorKillResumeDraftProvider),
+      ),
     );
 
 /// 🆕 R115 — 온보딩 슬롯 빌더(M4-11 ①) — 엔진에 있는 키 세트의 시크릿 칸 · 🆕 R157 O-04 ② 서약(M5-8) · 🆕 R159 ③ 생체 서명 ·
@@ -336,6 +350,8 @@ Widget _planDeposit(Map<String, String> _) => const DepositPlannerScreen();
 
 Widget _killSwitch(Map<String, String> _) => const KillSwitchScreen();
 
+Widget _releaseGate(Map<String, String> _) => const KillResumeGateScreen();
+
 Widget _settingsContribution(Map<String, String> _) =>
     const MonthlyContribution();
 
@@ -424,6 +440,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.planDeposit: _planDeposit,
   // 🆕 E11q-b1a(R178) — M5-1 킬스위치(발동 버튼 · 취소 보고 · 발동 뒤 기록 폼 · 체험 ⑤).
   AppRoutes.m5KillSwitch: _killSwitch,
+  // 🆕 E11q-b1b(R179) — M5-2 재개 게이트(7문항 순차 · 서약 재생 · 7번 = 해제) → M5-1 게이트 링크가 저절로 열린다.
+  AppRoutes.m5ReleaseGate: _releaseGate,
   AppRoutes.settingsContribution: _settingsContribution,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,

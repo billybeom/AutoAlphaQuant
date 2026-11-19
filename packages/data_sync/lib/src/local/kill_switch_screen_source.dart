@@ -8,15 +8,20 @@ import 'dart:convert';
 
 import 'package:core_engine/core_engine.dart'
     show
+        KillActivationReplay,
         KillCancelItem,
         KillCancelOutcome,
         KillCancelReport,
+        KillReasonKind,
+        KillScope,
         KillSwitchRecord,
+        ResumeChecklist,
         TrustedClock,
+        killResumeGateVmOf,
         killSwitchActive,
         killSwitchScreenVmOf;
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, KillSwitchScreenVm;
+    show Clock, KillResumeGateVm, KillSwitchScreenVm;
 import 'package:sqlite3/sqlite3.dart';
 
 import 'kill_switch_store.dart' show readKillSwitchRecord;
@@ -42,6 +47,7 @@ class SqliteKillSwitchScreenSource {
   static const Set<String> watchedTables = <String>{
     'kill_switch_state',
     'kill_switch_event',
+    'decision_journal',
   };
 
   /// M5-1 VM.
@@ -56,6 +62,54 @@ class SqliteKillSwitchScreenSource {
       hasBody: _hasBody,
     );
   }
+}
+
+/// 🆕 E11q-b1b — M5-2 재개 게이트 VM — [checklist] = 지금 초안(구현이 든다).
+extension KillResumeGateSource on SqliteKillSwitchScreenSource {
+  /// M5-2 VM.
+  KillResumeGateVm gate(ResumeChecklist checklist) {
+    final KillSwitchRecord r = readKillSwitchRecord(_db);
+    return killResumeGateVmOf(
+      record: r,
+      trustedNowUtc: _trusted.trustedNowUtc(),
+      nowUtc: _clock.nowUtc(),
+      replay: lastKillActivationReplay(_db, r),
+      checklist: checklist,
+    );
+  }
+}
+
+/// 지금 발동 뒤의 마지막 발동 뒤 기록 원문(`decision_journal` KILL_SWITCH_CHECKLIST · 꺼짐 · 없음 = null).
+KillActivationReplay? lastKillActivationReplay(
+  Database db,
+  KillSwitchRecord r,
+) {
+  final DateTime? at = r.activatedAtUtc;
+  if (at == null || !killSwitchActive(r)) return null;
+  DateTime? best;
+  String? json;
+  for (final Row row in db.select(
+    "SELECT created_at, signal_value FROM decision_journal WHERE kind = 'KILL_SWITCH_CHECKLIST'",
+  )) {
+    final DateTime t = DateTime.parse(row['created_at'] as String).toUtc();
+    if (t.isBefore(at)) continue;
+    if (best == null || !t.isBefore(best)) {
+      best = t;
+      json = row['signal_value'] as String?;
+    }
+  }
+  if (json == null) return null;
+  final Map<String, Object?> j = jsonDecode(json) as Map<String, Object?>;
+  return KillActivationReplay(
+    ruleAction: j['rule_action']! as String,
+    reasonKind: KillReasonKind.values.byName(j['reason']! as String),
+    emotion: j['emotion'] as String?,
+    intensity: (j['intensity'] as num?)?.toInt(),
+    sleepHours: (j['sleep_hours'] as num?)?.toDouble(),
+    scenario: j['scenario'] as String?,
+    resumeCondition: j['resume_condition']! as String,
+    scope: KillScope.values.byName(j['scope']! as String),
+  );
 }
 
 /// 지금 발동 뒤의 마지막 취소 보고(꺼짐 · 보고 없음 = null) — 🔴 시각 비교는 글자가 아니라 시각으로(ISO 소수 자리가 다를 수 있다).

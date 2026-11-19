@@ -11,12 +11,33 @@
 import 'dart:math';
 
 import 'package:core_engine/core_engine.dart'
-    show newCommandId, pledgeActionResultOf, pledgeSubmissionDigest, pledgeVmOf;
+    show
+        KillSwitchRecord,
+        ResumeChecklist,
+        ResumeItemAnswer,
+        ResumeReadiness,
+        ResumeReadinessKind,
+        issueKillCommand,
+        killResumeItemAnswerOf,
+        killResumeResultOf,
+        newCommandId,
+        pledgeActionResultOf,
+        pledgeSubmissionDigest,
+        pledgeVmOf,
+        resumeReadinessOf;
 import 'package:data_sync/data_sync.dart'
-    show PledgeResult, SqlitePledgeStore, watchLedgerQuery;
+    show
+        KillCommandResult,
+        PledgeResult,
+        SqliteKillSwitchStore,
+        SqlitePledgeStore,
+        readKillSwitchRecord,
+        watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart';
 
+import 'operator_kill_switch.dart' show OperatorKillResumeDraft;
 import 'operator_runtime.dart';
+import 'operator_view.dart';
 
 SqlitePledgeStore _store(OperatorRuntime rt) =>
     SqlitePledgeStore(rt.files.sim, clock: rt.clock, trusted: rt.trusted);
@@ -43,8 +64,15 @@ class OperatorPledgeRepository implements PledgeRepository {
 /// 안전 동작(operator) — 지금 = 서약 첫 판 · 편집.
 class OperatorSafetyActions implements SafetyActions {
   /// 만든다 — [random] = 명령 id 원천(기본 = `Random.secure()`).
-  OperatorSafetyActions(this._rt, {Random? random})
-    : _random = random ?? Random.secure();
+  OperatorSafetyActions(
+    this._rt, {
+    Random? random,
+    OperatorKillResumeDraft? draft,
+  }) : _random = random ?? Random.secure(),
+       draft = draft ?? OperatorKillResumeDraft();
+
+  /// 🆕 R179 — 재개판 초안(게이트 읽기와 같은 인스턴스).
+  final OperatorKillResumeDraft draft;
 
   final OperatorRuntime _rt;
   final Random _random;
@@ -108,10 +136,84 @@ class OperatorSafetyActions implements SafetyActions {
     Map<String, String> args = const <String, String>{},
   }) => _none('run(${id.wire})');
 
+  /// 🆕 E11q-b1b(R179) — 재개판 한 문항(K36): ① 재개 준비(엔진 차례 그대로 — 꺼짐 · 확인 전 · 시각 모름 · 대기) ·
+  /// ② 생체 = 구현 0(서약 선례 · 운영 등급 공통 관문 밖) · ③ 엔진 `ResumeChecklist.accept`(순차 · 빈칸 · 4번 미충족) ·
+  /// ④ 7번 통과 = 엔진 `resume()` 한 트랜잭션(해제 · 저널 id `KS-RES-<명령 id>`) · 1번 제출 = 초안을 비우고 처음부터 ·
+  /// 결과 글자 = 엔진(`killResumeResultOf`) · 결과 id = 늘 `killSwitchResume`.
   @override
   Future<SafetyActionResult> runKillResumeItem(
     KillResumeItemSubmission submission,
-  ) => _none('runKillResumeItem');
+  ) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('재개: 화면 상태 없음(온보딩 전)');
+    final ({String commandId, String nonce, String payloadDigest}) c =
+        issueKillCommand(payload: submission.toJson(), random: _random);
+    final String run = c.commandId;
+    SafetyActionResult keep(SafetyActionResult r) => _done[run] = r;
+    final KillSwitchRecord rec = readKillSwitchRecord(v.db);
+    final ResumeReadiness ready = resumeReadinessOf(
+      rec,
+      _rt.trusted.trustedNowUtc(),
+    );
+    final String? gate = switch (ready.kind) {
+      ResumeReadinessKind.inactive => 'KILL_SWITCH_NOT_ACTIVE',
+      ResumeReadinessKind.checklistNotConfirmed =>
+        'RESUME_CHECKLIST_NOT_CONFIRMED',
+      ResumeReadinessKind.trustedTimeUnknown => 'RESUME_TRUSTED_TIME_UNKNOWN',
+      ResumeReadinessKind.waiting => 'RESUME_TOO_SOON',
+      ResumeReadinessKind.ready => null,
+    };
+    if (gate != null) {
+      return keep(
+        killResumeResultOf(actionRunId: run, code: gate, etaUtc: ready.etaUtc),
+      );
+    }
+    if (submission.itemNo == 1) draft.value = ResumeChecklist.empty;
+    final ResumeItemAnswer a = killResumeItemAnswerOf(
+      submission,
+      journalDecisionId: 'KS-RES-$run',
+    );
+    final (ResumeChecklist? next, String? code) = draft.value.accept(a);
+    if (code != null) {
+      return keep(
+        killResumeResultOf(
+          actionRunId: run,
+          code: code,
+          submittedItemNo: submission.itemNo,
+          nextItemNo: draft.value.next,
+        ),
+      );
+    }
+    if (next!.conditionUnmet) {
+      draft.value = next;
+      return keep(
+        killResumeResultOf(actionRunId: run, code: 'RESUME_CONDITION_UNMET'),
+      );
+    }
+    if (!next.complete) {
+      draft.value = next;
+      return keep(
+        killResumeResultOf(actionRunId: run, acceptedItemNo: submission.itemNo),
+      );
+    }
+    final KillCommandResult r = SqliteKillSwitchStore(
+      v.db,
+      clock: _rt.clock,
+      trusted: _rt.trusted,
+    ).resume(commandId: run, payloadDigest: c.payloadDigest, checklist: next);
+    if (r.executed) {
+      draft.value = ResumeChecklist.empty;
+      return keep(killResumeResultOf(actionRunId: run, done: true));
+    }
+    return keep(
+      killResumeResultOf(
+        actionRunId: run,
+        code: r.reasonCode,
+        submittedItemNo: 7,
+        nextItemNo: 7,
+      ),
+    );
+  }
 
   @override
   Future<SafetyActionResult> runStoppedDecision(
