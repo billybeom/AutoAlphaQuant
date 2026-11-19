@@ -213,8 +213,8 @@ SqliteHoldingsOverviewSource _holdingsSourceOf(
   hasBody: hasBody,
 );
 
-/// 🆕 R173 — 리밸런싱 원천(회차 · 미리보기 상태) · 차단 = 안전 읽기 모델과 같은 셈.
-SqliteRebalanceSource _rebalanceSourceOf(
+/// 🆕 R173 — 리밸런싱 원천(회차 · 미리보기 상태) · 차단 = 안전 읽기 모델과 같은 셈 · 🆕 R174 입금 등록 판정 상태도 이것.
+SqliteRebalanceSource operatorRebalanceSourceOf(
   OperatorRuntime rt,
   OperatorView v,
   bool Function(String route) hasBody,
@@ -275,9 +275,10 @@ class OperatorRebalanceRepository implements RebalanceRepository {
         changes: (OperatorView v) => watchLedgerQuery<T>(
           v.db,
           SqliteRebalanceSource.watchedTables,
-          () => read(_rebalanceSourceOf(_rt, v, hasBody)),
+          () => read(operatorRebalanceSourceOf(_rt, v, hasBody)),
         ),
-        now: (OperatorView v) => read(_rebalanceSourceOf(_rt, v, hasBody)),
+        now: (OperatorView v) =>
+            read(operatorRebalanceSourceOf(_rt, v, hasBody)),
         tick: tick,
         noView: () => StateError('$what: 화면 상태 없음(온보딩 전)'),
       );
@@ -298,7 +299,8 @@ class OperatorRebalanceRepository implements RebalanceRepository {
 /// 🆕 E11q2(R173) — What-if 창구(S7-6c «지금 기준 초안 보기») — 엔진 `EngineWhatIfApi` + 원장 상태 어댑터.
 ///
 /// 🔴 화면 상태(원장 파일)마다 엔진 창구 하나(계획 id 순번 = 그 창구의 메모리 · 호출마다 새 id).
-/// 🔴 리밸런싱 미리보기만 연다 — 입금 · 비용 · 계획 찾기 · 인출 = q3(월 납입 · 신뢰 시각과 함께) 전엔 원천 없음.
+/// 🆕 E11q3(R174) — 입금 미리보기 · 계획 찾기 · 비용 = 같은 엔진 창구(읽기 · 계획 스냅숏 = 계산 보관) · 시각 = 기기 시계
+/// (읽기는 신뢰 시각을 모르면 기기 시계 — R54 J6 · 등록 = 명령 API 가 신뢰 시각으로 판정) · 인출 = 원천 없음(인출 규칙 미결 79).
 class OperatorWhatIfApi implements WhatIfApi {
   /// 만든다.
   OperatorWhatIfApi(this._rt, {required this.hasBody});
@@ -314,7 +316,9 @@ class OperatorWhatIfApi implements WhatIfApi {
     final OperatorView? v = _rt.view.value;
     if (v == null) throw StateError('리밸런싱 미리보기: 화면 상태 없음(온보딩 전)');
     return _apis[v.db] ??= EngineWhatIfApi(
-      source: SqliteWhatIfStateSource(_rebalanceSourceOf(_rt, v, hasBody)),
+      source: SqliteWhatIfStateSource(
+        operatorRebalanceSourceOf(_rt, v, hasBody),
+      ),
       store: SqlitePlanSnapshotStore(v.db),
       clock: _rt.clock,
     );
@@ -328,7 +332,9 @@ class OperatorWhatIfApi implements WhatIfApi {
 
   @override
   Future<DepositPreviewResult> simulateDeposit({required String amountInput}) =>
-      _q3('simulateDeposit');
+      Future<EngineWhatIfApi>(_api).then(
+        (EngineWhatIfApi a) => a.simulateDeposit(amountInput: amountInput),
+      );
 
   /// 🔴 인자 타입 = 부모에서 추론(`Decimal` — 앱 lib 은 decimal 을 들이지 않는다 · 금액 = core).
   @override
@@ -336,13 +342,17 @@ class OperatorWhatIfApi implements WhatIfApi {
       _q3('simulateWithdrawal');
 
   @override
-  Future<CostEstimate> estimateCosts(String planId) => _q3('estimateCosts');
+  Future<CostEstimate> estimateCosts(String planId) =>
+      Future<EngineWhatIfApi>(_api)
+          .then((EngineWhatIfApi a) => a.estimateCosts(planId));
 
   @override
-  Future<DepositPlan?> findPlan(String planId) => _q3('findPlan');
+  Future<DepositPlan?> findPlan(String planId) =>
+      Future<EngineWhatIfApi>(_api)
+          .then((EngineWhatIfApi a) => a.findPlan(planId));
 
   static Future<T> _q3<T>(String what) =>
-      Future<T>.error(UnsupportedError('$what: 원천 없음(q3 — 월 납입 조립 뒤)'));
+      Future<T>.error(UnsupportedError('$what: 원천 없음(인출 규칙 미결 79)'));
 }
 
 /// 원장 신뢰 배지 · 실사 — 원천 없음(X7 실사 전 · 홈 블록 9b = 부재).

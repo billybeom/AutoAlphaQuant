@@ -28,6 +28,7 @@ import 'package:broker_gateway/broker_gateway.dart'
 import 'package:core_engine/core_engine.dart'
     show
         SecretVault,
+        contributionUpdateResultOf,
         kOnboardingDryRunRolledBackText,
         kOnboardingDryRunStartedText,
         kOnboardingModeCommittedText,
@@ -37,6 +38,8 @@ import 'package:core_engine/core_engine.dart'
         selftestIntegrityResultOf;
 import 'package:data_sync/data_sync.dart'
     show
+        ContributionChangeResult,
+        ContributionSettingSource,
         LedgerIntegrityCheck,
         LedgerIntegrityReport,
         OnboardingOutcome,
@@ -112,6 +115,7 @@ class OperatorSettingsActions implements SettingsActions {
     this.sim,
     this.ledger,
     this.golden,
+    this.contribution,
   });
 
   /// 🆕 R125 — 온보딩이 쓰는 sim 파일(없음 = 운영 방식 선택 · 진척 기록 없음).
@@ -131,6 +135,9 @@ class OperatorSettingsActions implements SettingsActions {
 
   /// 🆕 E11p4k(R160) — 지금 화면이 읽는 원장(S10 무결성 자가진단 대상 · 화면 상태 없음 = null).
   final Database? Function()? ledger;
+
+  /// 🆕 E11q3(R174) — S13 월 납입 쓰기 창구(지금 화면 원장 · 신뢰 시각 · 이 기기 id · 없으면 null = 화면 상태 · 기기 id 없음).
+  final ContributionSettingSource? Function()? contribution;
 
   /// 🆕 E11o-d(R167) — 골든 기기 실행기(없음 = 바인딩 없음).
   final OperatorGolden? golden;
@@ -237,9 +244,28 @@ class OperatorSettingsActions implements SettingsActions {
   @override
   Future<ActionResult> runContributionUpdate(
     ContributionUpdateSubmission submission,
-  ) => Future<ActionResult>.error(
-    UnsupportedError('runContributionUpdate: operator 구현 없음(v1.23)'),
-  );
+  ) {
+    // 🆕 E11q3(R174) — 판정 · 기록 · 문장 = 엔진(`ContributionSettingSource.change` · `contributionUpdateResultOf`) ·
+    //    입력칸 글자 그대로 · 신뢰 시각을 모르면 `TRUSTED_TIME_UNKNOWN`(기기 시계로 대신 쓰지 않는다).
+    final ContributionSettingSource? src = contribution?.call();
+    if (src == null) {
+      return Future<ActionResult>.error(
+        StateError('월 납입: 쓰기 창구 없음(화면 상태 · 기기 id)'),
+      );
+    }
+    final String run = _runId();
+    final ContributionChangeResult r = src.change(
+      amountInput: submission.amountInput,
+      actionRunId: run,
+    );
+    final ActionResult out = contributionUpdateResultOf(
+      actionRunId: run,
+      reasonCode: r.reasonCode,
+      rejectedText: r.rejectedText,
+    );
+    _results[out.actionRunId] = out;
+    return Future<ActionResult>.value(out);
+  }
 
   @override
   Stream<ActionResult> watch(String actionRunId) {

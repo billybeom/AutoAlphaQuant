@@ -43,6 +43,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:ui_analytics/planner.dart' show DepositPlannerScreen;
 import 'package:ui_analytics/ui_analytics.dart'
     show RebalanceEventScreen, RebalancePreviewScreen, RebalanceTimelineScreen;
 import 'package:ui_journal/ui_journal.dart'
@@ -54,6 +55,7 @@ import 'package:ui_settings/ui_settings.dart'
         Connections,
         Devices,
         Diagnostics,
+        MonthlyContribution,
         SettingsHome;
 import 'package:ui_shell/ui_shell.dart'
     show DeviceRiskBoard, OpsHome, ShellRoot, shellLinkOpenerProvider;
@@ -353,6 +355,39 @@ void main() {
         );
       }
       await _at(tester, find.byType(RebalancePreviewScreen), 'IT_R76C');
+      await tester.pageBack();
+
+      // 🆕 R174 — S7-4 납입 플래너(금액 → 엔진 미리보기) · S13 월 납입(바꾸기 = 신뢰 시각 모름 → 엔진 거부 문장 · 쓰기 0).
+      container.read(shellLinkOpenerProvider).open(AppRoutes.planDeposit);
+      await _until(tester, find.byKey(const Key('s74-amount-field')));
+      await tester.enterText(
+        find.byKey(const Key('s74-amount-field')),
+        '300000',
+      );
+      await tester.ensureVisible(find.byKey(const Key('s74-calculate')));
+      await tester.tap(find.byKey(const Key('s74-calculate')));
+      await _until(
+        tester,
+        find.byWidgetPredicate(
+          (Widget w) =>
+              w.key == const Key('s74-list-allocation') ||
+              w.key == const Key('s74-blocked-card') ||
+              w.key == const Key('s74-input-rejected'),
+        ),
+      );
+      await _at(tester, find.byType(DepositPlannerScreen), 'IT_S74');
+      await tester.pageBack();
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.settingsContribution);
+      await _until(tester, find.byKey(const Key('m9s13-setting')));
+      if (find.byKey(const Key('m9s13-change')).evaluate().isNotEmpty) {
+        await tester.enterText(find.byKey(const Key('m9s13-input')), '200000');
+        await tester.ensureVisible(find.byKey(const Key('m9s13-change')));
+        await tester.tap(find.byKey(const Key('m9s13-change')));
+        await _until(tester, find.byKey(const Key('m9s13-result')));
+      }
+      await _at(tester, find.byType(MonthlyContribution), 'IT_S13');
       await tester.pageBack();
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);

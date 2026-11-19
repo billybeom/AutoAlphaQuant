@@ -647,6 +647,11 @@ export 'src/ops/month_end_inputs.dart'
         sleeveWeightsOf;
 // 🆕 운영 설정 읽기(operations · 설계 13 §8 R148).
 // 🆕 E11q1b — 다음 리밸런싱 회차 VM(설계 13 §8 R172).
+export 'src/ops/monthly_contribution_view.dart'
+    show
+        MonthlyContributionTexts,
+        contributionUpdateResultOf,
+        monthlyContributionVmOf;
 export 'src/ops/next_rebalance_view.dart'
     show NextRebalanceTexts, nextRebalanceVmOf;
 export 'src/ops/operations_config.dart' show OperationsConfig;
@@ -1423,6 +1428,12 @@ export 'src/whatif/deposit_register.dart'
         kDepositStrategyId,
         kstYear,
         pensionUsedInYear;
+export 'src/whatif/deposit_register_issue.dart'
+    show
+        DepositIssueTexts,
+        depositTrustedTimeUnknownReceipt,
+        issueDepositRegister,
+        kDepositRegisterTtl;
 export 'src/whatif/engine_what_if_api.dart' show EngineWhatIfApi;
 export 'src/whatif/ledger_what_if_state.dart' show whatIfStateFromLedger;
 export 'src/whatif/plan_inputs.dart' show PlanInputs;

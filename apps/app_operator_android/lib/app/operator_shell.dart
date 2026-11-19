@@ -25,7 +25,10 @@
 import 'package:broker_gateway/broker_gateway.dart'
     show KisCredentials, KisKeySet, KisRestClient;
 import 'package:data_sync/data_sync.dart'
-    show SqliteAlertRepository, SqliteLedgerRepository;
+    show
+        ContributionSettingSource,
+        SqliteAlertRepository,
+        SqliteLedgerRepository;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AlertRepository,
@@ -37,6 +40,12 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:ui_analytics/planner.dart'
+    show
+        DepositPlannerScreen,
+        plannerCommandApiProvider,
+        plannerConfigRepositoryProvider,
+        plannerWhatIfApiProvider;
 import 'package:ui_analytics/ui_analytics.dart'
     show
         RebalanceEventScreen,
@@ -72,6 +81,7 @@ import 'package:ui_settings/ui_settings.dart'
         Credentials,
         Devices,
         Diagnostics,
+        MonthlyContribution,
         SettingsHome,
         settingsActionsProvider,
         settingsClockProvider,
@@ -197,6 +207,19 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
         ledger: () => rt.view.value?.db,
         // 🆕 R167 — S10 골든벡터 셀프테스트(같은 원장에 기록).
         golden: rt.golden,
+        // 🆕 R174 — S13 월 납입 쓰기(지금 화면 원장 · 신뢰 시각 · 이 기기 id · 없으면 null).
+        contribution: () {
+          final OperatorView? v = rt.view.value;
+          final String? id = rt.deviceId;
+          if (v == null || id == null) return null;
+          return ContributionSettingSource(
+            v.db,
+            trusted: rt.trusted,
+            clock: rt.clock,
+            kr: rt.calendars.kr,
+            deviceId: id,
+          );
+        },
       );
     });
 
@@ -289,6 +312,11 @@ Widget _holdingDetail(Map<String, String> p) =>
 
 Widget _holdingsAllocation(Map<String, String> _) => const HoldingsAllocation();
 
+Widget _planDeposit(Map<String, String> _) => const DepositPlannerScreen();
+
+Widget _settingsContribution(Map<String, String> _) =>
+    const MonthlyContribution();
+
 Widget _rebalancePreview(Map<String, String> _) =>
     const RebalancePreviewScreen();
 
@@ -370,6 +398,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.rebalancePreview: _rebalancePreview,
   AppRoutes.rebalanceHistory: _rebalanceHistory,
   AppRoutes.rebalanceEvent: _rebalanceEvent,
+  // 🆕 E11q3(R174) — M7 S7-4 납입 플래너(미리보기 = 엔진 What-if · 등록 = 신뢰 시각 관문) · M9 S13 월 납입 설정.
+  AppRoutes.planDeposit: _planDeposit,
+  AppRoutes.settingsContribution: _settingsContribution,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
   // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).
@@ -512,6 +543,16 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   analyticsWhatIfApiProvider.overrideWith(
     (Ref ref) => ref.watch(operatorWhatIfApiProvider),
+  ),
+  // 🆕 R174 — S7-4 플래너 칸 = 같은 What-if · 셸 설정 원천 · 명령 API 인스턴스.
+  plannerWhatIfApiProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorWhatIfApiProvider),
+  ),
+  plannerConfigRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(shellConfigRepositoryProvider),
+  ),
+  plannerCommandApiProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorCommandApiProvider),
   ),
   settingsClockProvider.overrideWithValue(runtime.clock),
   settingsLinkOpenerProvider.overrideWith(

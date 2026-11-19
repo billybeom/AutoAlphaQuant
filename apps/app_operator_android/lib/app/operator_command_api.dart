@@ -24,6 +24,8 @@ import 'package:core_engine/core_engine.dart'
         SimOpeningWireReady,
         SimOpeningWireResult,
         depositTradeDate,
+        depositTrustedTimeUnknownReceipt,
+        issueDepositRegister,
         simOpeningWireOf;
 import 'package:data_sync/data_sync.dart'
     show
@@ -33,12 +35,15 @@ import 'package:data_sync/data_sync.dart'
         P0sHumanDecision,
         SqliteAlertSink,
         SqliteConfigVersionStore,
+        SqliteDepositRegistrar,
         SqliteLeaseGate,
         SqliteOnboardingStore,
+        SqliteWhatIfStateSource,
         onboardingRejected;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:sqlite3/sqlite3.dart' show Database, ResultSet;
 
+import 'operator_ops_summary.dart' show operatorRebalanceSourceOf;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
 
@@ -133,9 +138,45 @@ class OperatorCommandApi implements CommandApi {
   Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event) =>
       _none('recordDisclosureView');
 
+  /// 🆕 E11q3(R174) — 실입금 등록(폰 전용 · 01 §14-2) — 만료 판정 시각 = **신뢰 시각**(명령 서버 시각 자리 · R22 D9).
+  /// 모르면 등록하지 않는다: 원장 · 바인딩 · 감사 쓰기 0 · 엔진 거부 접수증 `TRUSTED_TIME_UNKNOWN`(기기 시계로 대신하지 않는다) ·
+  /// 알면 엔진 기록기 `SqliteDepositRegistrar`(한 트랜잭션 · 판정 = `judgeDepositRegistration` · 상태 = 리밸런싱과 같은 원장 어댑터).
   @override
-  Future<CommandReceipt> registerDeposit(DepositRegistration registration) =>
-      _none('registerDeposit');
+  Future<CommandReceipt> registerDeposit(
+    DepositRegistration registration,
+  ) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('실입금 등록: 화면 상태 없음(온보딩 전)');
+    final String? deviceId = _rt.deviceId;
+    if (deviceId == null) throw StateError('실입금 등록: 기기 id 없음');
+    final DateTime? trusted = _rt.trusted.trustedNowUtc();
+    final CommandReceipt receipt = trusted == null
+        ? depositTrustedTimeUnknownReceipt(
+            issueDepositRegister(
+              planId: registration.planId,
+              requestedAtUtc: _rt.clock.nowUtc(),
+              deviceId: deviceId,
+              random: _random,
+            ),
+          )
+        : await SqliteDepositRegistrar(
+            v.db,
+            mode: v.flags.runMode,
+            state: SqliteWhatIfStateSource(
+              operatorRebalanceSourceOf(_rt, v, (String _) => false),
+            ),
+            clock: _rt.clock,
+          ).register(
+            issueDepositRegister(
+              planId: registration.planId,
+              requestedAtUtc: trusted,
+              deviceId: deviceId,
+              random: _random,
+            ),
+          );
+    _issued[receipt.commandId] = receipt;
+    return receipt;
+  }
 
   @override
   Future<CommandReceipt> recordManualFill(ManualFillSubmission submission) =>

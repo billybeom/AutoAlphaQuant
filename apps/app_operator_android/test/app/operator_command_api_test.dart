@@ -178,10 +178,7 @@ void main() {
       api.deferAdviceConfirm('a'),
       throwsA(isA<UnsupportedError>()),
     );
-    await expectLater(
-      api.registerDeposit(const DepositRegistration(planId: 'p')),
-      throwsA(isA<UnsupportedError>()),
-    );
+    // 🆕 R174 — 실입금 등록 = 구현(신뢰 시각 관문 · `operator_contribution_test`).
   });
 
   group('🆕 R155 모의 개시 가상 초기금(submitSelfReportBalance · simOpening)', () {
