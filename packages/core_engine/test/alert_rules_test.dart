@@ -22,7 +22,7 @@ List<int> _due(
 );
 
 void main() {
-  test('🔴 등급 표 = 04 §5-3 그대로 + 계약 잠정 1 + 제안 6', () {
+  test('🔴 등급 표 = 04 §5-3 그대로 + 계약 잠정 1 + 제안 6 + E3d 제안 4(04 §5-3 v2.46)', () {
     List<String> of(AlertLevel l) =>
         (kAlertLevels.entries
             .where((MapEntry<String, AlertLevel> e) => e.value == l)
@@ -47,6 +47,9 @@ void main() {
       'ADVICE_ISSUED',
       'BACKUP_STALE',
       'DATA_SOURCE_DOWN',
+      'DEFENSIVE_FLOOR_BREACHED',
+      'FINANCIAL_INCOME_CAP_EXCEEDED',
+      'GOLD_SHARE_HIGH',
       'HANDOVER_COMMITTED',
       'HANDOVER_COOLING_ACTIVE',
       'LEDGER_TRUST_DOWNGRADE',
@@ -63,6 +66,7 @@ void main() {
       'ADVICE_EXPIRED',
       'CONTRIBUTION_CHANGED',
       'DEPOSIT_REMINDER',
+      'KRW_LIQUIDITY_LOW',
       'REBALANCE_D7',
       'RESUME_DATA_GAP',
       'SELF_AUDIT_DUE',
@@ -72,7 +76,13 @@ void main() {
     expect(AlertCodes.values.every(kAlertLevels.containsKey), isTrue);
     expect(
       kAlertLevels.keys.where((String c) => !AlertCodes.values.contains(c)),
-      <String>[kDerivedForkAlertCode],
+      <String>[
+        kDerivedForkAlertCode,
+        kDefensiveFloorAlertCode,
+        kGoldShareAlertCode,
+        kFinancialIncomeAlertCode,
+        kKrwLiquidityAlertCode,
+      ],
     );
   });
 

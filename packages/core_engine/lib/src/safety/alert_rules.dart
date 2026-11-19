@@ -13,6 +13,12 @@ import '../ops/equity_snapshot.dart'
     show kBreakerStoppedAlertCode, kStoppedReleaseEligibleAlertCode;
 import '../ops/ledger_integrity.dart' show kLedgerIntegrityAlertCode;
 import '../ops/ledger_views.dart' show kstDateText;
+import '../ops/p0s_warn.dart'
+    show
+        kDefensiveFloorAlertCode,
+        kFinancialIncomeAlertCode,
+        kGoldShareAlertCode,
+        kKrwLiquidityAlertCode;
 import '../resume/resume_alerts.dart'
     show
         kResumeCompletedAlertCode,
@@ -60,6 +66,11 @@ const Map<String, AlertLevel> kAlertLevels = <String, AlertLevel>{
   kResumeDataGapAlertCode: AlertLevel.p2,
   // 🆕 E16f3a 파생 FORK 제안 1(04 §5-3 v2.45 · R130 L6 — 계약 등재 = E16i).
   kDerivedForkAlertCode: AlertLevel.p0,
+  // 🆕 E3d-1 SAF 경고 제안 4(04 §5-3 v2.46 · 설계 13 §8 R175 · R177 — 계약 등재 = 계약 창).
+  kDefensiveFloorAlertCode: AlertLevel.p1,
+  kGoldShareAlertCode: AlertLevel.p1,
+  kFinancialIncomeAlertCode: AlertLevel.p1,
+  kKrwLiquidityAlertCode: AlertLevel.p2,
 };
 
 /// 코드의 등급 — 🔴 모르는 코드 = [ArgumentError](지어내지 않는다 · 잡 규약상 fail 핑).

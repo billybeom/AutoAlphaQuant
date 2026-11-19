@@ -231,6 +231,31 @@ const Map<String, AlertText> kAlertTexts = <String, AlertText>{
     '대조 보드에서 어긋남을 확인하십시오. 기기 복원 또는 새 기준점은 사람만 할 수 있습니다.',
     AppRoutes.ledgerDiffs,
   ),
+  // ── 🆕 E3d-1 SAF 경고 제안 4(04 §1 Level 3 · §5-3 v2.46 · R177) — 주문은 막지 않는다 · 넘은 첫날 1건 ──
+  'DEFENSIVE_FLOOR_BREACHED': AlertText(
+    '방어 자산 비중이 하한 밑으로 내려갔습니다',
+    '슬리브 C(채권 · 금)가 총자산의 하한보다 작아졌습니다. 주문은 막지 않습니다.',
+    '슬리브 배분을 확인하고 다음 리밸런싱에서 바로잡을지 검토하십시오.',
+    AppRoutes.holdingsAllocation,
+  ),
+  'GOLD_SHARE_HIGH': AlertText(
+    '금 비중이 감시선을 넘었습니다',
+    '금 ETF(슬리브 B · C 합)가 총자산의 감시선을 넘었습니다. 강제 매도는 하지 않습니다.',
+    '슬리브 배분을 확인하고 안건으로 올릴지 검토하십시오.',
+    AppRoutes.holdingsAllocation,
+  ),
+  'FINANCIAL_INCOME_CAP_EXCEEDED': AlertText(
+    '올해 금융소득이 종합과세 기준을 넘었습니다',
+    '일반계좌의 올해 누계 금융소득이 기준을 넘었습니다. 주문은 막지 않습니다.',
+    '세후 리포트에서 올해 누계를 확인하고 세무 영향을 검토하십시오.',
+    AppRoutes.reportAfterTax,
+  ),
+  'KRW_LIQUIDITY_LOW': AlertText(
+    '원화 유동성이 아주 적습니다',
+    '원화 현금과 파킹 자산을 합친 몫이 총자산의 하한보다 작아졌습니다.',
+    '다음 납입 · 리밸런싱 때 원화 현금이 모자라지 않은지 보십시오.',
+    AppRoutes.holdingsAllocation,
+  ),
 };
 
 /// 코드의 글자 — 🔴 모르는 코드 = [ArgumentError](지어내지 않는다).
