@@ -72,7 +72,7 @@ void main() {
       'SAF-302': WarnAction.warn,
       'SAF-305': WarnAction.warn,
       'SAF-306': WarnAction.warn,
-      'SAF-307': WarnAction.warn,
+      'SAF-307': WarnAction.record,
     });
   });
 
