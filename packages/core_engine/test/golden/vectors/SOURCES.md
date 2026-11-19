@@ -29,6 +29,7 @@
 | `gv32_saf_vectors.json` | `08_파일럿/파일럿4/vectors/saf_vectors.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `6549049dc5711f26d95f90b451902b492e53b6a4eac7f2f968f4b2fede4b57a0`) · 05 §GV-32 가 정본으로 지목 · 63케이스. `_meta.cfg_risk` 의 `circuit_breaker.dd_stop: -0.3` 은 v2.16 이전 값이지만 한도 판정에는 쓰이지 않는다 | 파일 커밋 `b1c85de` | 2026-10-20 |
 | `gv39_trace_vectors.json` | `08_파일럿/파일럿5/vectors/gv39_vectors.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `d6350505848d85216f086db795387b5f8f84f517408b7df11427fc1f5140665b`) · 🆕 E10a **17케이스**(v2.38 재생성판 — `intent.instrument` STOCK|ETF · `g05` trace 15 → 12 · 🆕 `g08b` SELL equity 불요 · 🆕 `g15` ETF BUY 손절가 없음 → ALLOW · 05 v1.23 · 설계 13 §8 R33 D1 · D23) · 구판(15 · 원본 sha256 `cd0702d5…5378d` · 파일 커밋 `b1c85de`)을 덮었다 | 파일 커밋 `66aad71` | 2026-11-03 |
 | `gv40_saf_warn.json` | `08_파일럿/파일럿5/vectors/gv40_saf_warn.json` — 파일 통째, **줄 끝만 CRLF → LF**(원본 sha256 `9f35b462dfa513286087eb185a075fe07b3758be1003082e8cb84caca4ca2f8d`) · 05 AC-S18 이 지목 · 🆕 E13f1 = **GV-40e 9케이스**(SAF-409 재량 예산 — 경계 ±10%p 포함 · 롤링 12개월 경계일 포함 · 저널 미연결 · 사유 오름차순)만 시험한다. 🆕 E13g1 = **GV-40d 3케이스**(SAF-405 live 기동 통제 — 미승인 · 행 없음 = 기동 거부 · 설계 13 §8 R66 Y9) · a·b·c(경고 한도 · AC-B28)는 이 판 밖 · 적대 2(경계 strict · 달력 연도)는 변이 검사로 대신한다(설계 13 §8 R64 W8) | 파일 커밋 `b1c85de` | 2026-11-05 |
+| `gv16_pit_percentile.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-16 코드 블록(2171~2187행) — 🆕 E11o-c2(설계 13 §8 R165): AC-S11 게이트(P-2 «엔진 관련 AC-S 게이트»)인데 Dart 로 옮긴 적이 없어 기기 실행기 «전량» 확인 중 발견 · `pitPercentile`(P0S 국면 경로) 판정 | 05 **v1.23**(설계 커밋 `66aad71`) | 2026-11-19 |
 | `gv17_fail_closed.json` | `06_시스템설계/05_수용기준_골든벡터.md` §GV-17 코드 블록(2209~2225행) — v1.6 상태 모델이라 테스트가 GV-32 이름으로 옮겨 읽는다. x3(`usd_exposure_pct`)은 v2.30 SAF-307 재정의로 판정 입력이 아니게 돼 시험하지 않는다 | 05 **v1.22** | 2026-10-20 |
 | `gv31_breaker_vectors.json` | `08_파일럿/파일럿4/vectors/breaker_vectors.json` — 파일 통째(sha256 원본과 같음 · 05 §GV-31 이 정본으로 지목 · v1.13 재생성판 = 단발 23 + 시퀀스 6 · dd_stop −0.35) | 파일 커밋 `2a699f9` | 2026-10-20 |
 | `gv31_s_h5_1_J1_stopped.json` | `09_백테스트/백테스트6/runs/J1_stopped/J1_stopped.json` — 파일 통째, **줄 끝만 CRLF → LF**(저장소 `.gitattributes` `eol=lf` — 내용 바이트는 그 밖에 같다 · 원본 sha256 `30e050b3bd88dcf9160eb0bf568410982d1208bd3f6a721d497759d8e175845b`) · 테스트는 `vectorB_deterministic` 만 쓴다(05 §GV-31 계열 s_h5_1 정본 실측). 입력 시퀀스는 05 본문 · `exp/J1_stopped_vector.py` 271~277행대로 테스트가 만든다 | 파일 커밋 `2a699f9` | 2026-10-20 |
@@ -91,6 +92,7 @@ e129f3e5c64aeea318c1c1569f46ff99fde2669ff02cf63e984569b99d513ee0  gv09_idempoten
 75bb7bae52c08254637de59b1f9443ef1610abe0544a97beb46ca96d0bf7fb02  gv12c_last_session_negative.json
 bd9716f1e6ce14525e659bafc64d6dd52c429b48517cae8e5b7d8fd85b69f797  gv13_decision_id.json
 0c3d102bb8f1e229a1d38983d0682bcba1270282904e0e8476e7daa23f7f16d8  gv30_split_execution.json
+73ba9af2391bf02099735c079c32115639ccba41a3241554165f6275c2a748e6  gv16_pit_percentile.json
 8b3546977f2280f11a48f20313abd8d0419701ca1432404038d015d9cf632caa  gv17_fail_closed.json
 00ec726fe83e363ab2c79e678c90114310e217737987a58cff4c21e7d01b193a  gv18_exposure_multiplier.json
 ba67b95e245664103a67ff8bd3de7ddacf0bb9f8fc0a7fa52e98e260512a4ebd  gv31_breaker_vectors.json

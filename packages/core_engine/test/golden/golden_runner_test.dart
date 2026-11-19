@@ -78,6 +78,7 @@ const Map<String, int> _kCases = <String, int>{
   'GV-40d': 4,
   'GV-40e': 10,
   'GV-42': 13,
+  'GV-16': 7,
 };
 
 final int _total = _kCases.values.fold(0, (int a, int b) => a + b);
@@ -109,7 +110,7 @@ void main() {
     test('옮긴 계열 전부 통과 · 아직 «전량» 아님', () async {
       final GoldenRunResult r = await kDeviceGoldenSuite.run(bundleOf(files));
       expect(r.failures, isEmpty);
-      expect(_total, 312);
+      expect(_total, 319);
       expect(r.total, _total);
       expect(r.passed, _total);
       expect(r.complete, isFalse);
@@ -130,8 +131,8 @@ void main() {
       );
     });
 
-    test('파일 합 = 계열 선언 합(48) · 케이스 id 겹침 없음', () {
-      expect(files, hasLength(48));
+    test('파일 합 = 계열 선언 합(49) · 케이스 id 겹침 없음', () {
+      expect(files, hasLength(49));
       final List<String> ids = <String>[
         for (final GoldenFamily f in kDeviceGoldenSuite.families)
           for (final GvCase c in f.cases(bundleOf(files))) c.id,
@@ -465,6 +466,18 @@ void main() {
             'GV-17 x7',
             (Map<String, Object?> j) =>
                 _flip(_at(j, <Object>['cases', 6, 'expected']), 'allowed'),
+          ),
+          (
+            'gv16_pit_percentile.json',
+            'GV-16 out[755]',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['expected'])['out[755]'] = 68.5,
+          ),
+          (
+            'gv16_pit_percentile.json',
+            'GV-16 생성식',
+            (Map<String, Object?> j) =>
+                _at(j, <Object>['invariants'])['warmup'] = '다른 산문',
           ),
           (
             'gv40_saf_warn.json',
