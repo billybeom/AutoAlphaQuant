@@ -6,7 +6,8 @@
 // 🔴 수집 실패는 회차를 실패시키지 않는다(본체 규칙 · P1 `DATA_SOURCE_DOWN`). 일봉 원천을 **못 만들면**(KIS 키 없음) 회차 실패.
 
 import 'package:broker_gateway/broker_gateway.dart' show KisPriceFetch;
-import 'package:core_engine/core_engine.dart' show DailyQuoteFeed;
+import 'package:core_engine/core_engine.dart'
+    show AccountBroker, DailyQuoteFeed;
 import 'package:data_sync/data_sync.dart'
     show
         DailySignalJob,
@@ -40,6 +41,7 @@ class JobParts {
     required this.fred,
     required this.ofr,
     required this.regimeConfigHash,
+    this.liveAccountBroker,
   });
 
   /// 🔴 [RunMode] 의 일봉 원천(KIS · 모드 세트) — 못 만들면 던진다(그 회차 실패).
@@ -56,6 +58,10 @@ class JobParts {
 
   /// 국면 설정 지문(`p0sRegimeConfigHash` · 사람 값 없음).
   final String regimeConfigHash;
+
+  /// 🆕 E11q-c1d(R207 · 실전 개시) — 실전 계좌 별칭의 브로커(KIS 계좌 · 별칭 → 세트) — 못 만들면 던진다(그 회차 실패) ·
+  /// null = 실전 브로커 조립 안 함(`cash_broker_LIVE` 미조립 — 조용히 다른 길로 돌지 않는다).
+  final Future<AccountBroker> Function(String alias)? liveAccountBroker;
 }
 
 /// `daily_signal`(20:00 KST) — 저장된 시세 · 계열 → 국면 → `regime_score_daily`(네트워크 0).

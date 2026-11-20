@@ -31,10 +31,17 @@ void main() {
     s = KisSessions(
       vault: vault,
       http: MockClient((http.Request r) async => http.Response('', 500)),
-      clientOf: (http.Client h, KisCredentials c, KisTokenStore t) {
-        made.add(c);
-        return KisRestClient(h, c, environment: c.environment, tokens: t);
-      },
+      clientOf:
+          (http.Client h, KisCredentials c, KisTokenStore t, KisRateGate g) {
+            made.add(c);
+            return KisRestClient(
+              h,
+              c,
+              environment: c.environment,
+              tokens: t,
+              gate: g,
+            );
+          },
     );
   });
 
@@ -98,13 +105,119 @@ void main() {
     expect('$e'.contains('5012345X'), false);
   });
 
-  test('🔴 live = 아직 세트 없음 → KisSessionUnavailable · 금고를 읽지 않는다', () async {
-    await expectLater(
-      s.clientFor(RunMode.live),
-      throwsA(isA<KisSessionUnavailable>()),
-    );
-    expect(vault.calls, isEmpty);
-  });
+  group(
+    '🆕 R207 실전 개시 — 모드 세트(KIS_LIVE) · 계좌 별칭 → 세트(연금저축 22) · 앱키 하나 = 유량 문 하나',
+    () {
+      final String liveKey = 'fakeLiveAppKey${'C' * 22}';
+      final String isaKey = 'fakeIsaAppKey${'D' * 23}';
+      final String liveSecret = 'fakeLiveSecret${'Y' * 166}';
+      const String liveAccount = '87654321';
+      const String isaAccount = '76543210';
+
+      Future<void> putLive({bool isa = true}) async {
+        await storeKisCredentials(
+          vault,
+          KisKeySet.live,
+          KisCredentials(
+            environment: KisEnvironment.live,
+            appKey: liveKey,
+            appSecret: liveSecret,
+            accountNo: liveAccount,
+          ),
+        );
+        if (isa) {
+          await storeKisCredentials(
+            vault,
+            KisKeySet.isa,
+            KisCredentials(
+              environment: KisEnvironment.live,
+              appKey: isaKey,
+              appSecret: liveSecret,
+              accountNo: isaAccount,
+            ),
+          );
+        } else {
+          await deleteKisCredentials(vault, KisKeySet.isa);
+        }
+      }
+
+      test('별칭 → 키(P0S 대응 · 앞뒤 공백 무시 · 모르는 별칭 = null)', () {
+        expect(liveAccountKeyOf('general'), (
+          set: KisKeySet.live,
+          productCode: null,
+        ));
+        expect(liveAccountKeyOf('pension'), (
+          set: KisKeySet.live,
+          productCode: '22',
+        ));
+        expect(liveAccountKeyOf(' isa '), (
+          set: KisKeySet.isa,
+          productCode: null,
+        ));
+        expect(liveAccountKeyOf('brokerage'), isNull);
+      });
+
+      test('🔴 live 모드 세트 = 실전 종합계좌 세트 · 실전 환경', () async {
+        await putLive();
+        final KisRestClient m = await s.clientFor(RunMode.live);
+        expect(m.environment, KisEnvironment.live);
+        expect(made.single.appKey, liveKey);
+        expect(made.single.accountNo, liveAccount);
+        expect(made.single.productCode, '01');
+      });
+
+      test('🔴 general = 모드 세트와 같은 클라이언트 · pension = 상품코드 22 · 같은 앱키 = 같은 유량 문 · isa = 다른 문 · 토큰 금고 한 번', () async {
+        await putLive();
+        final KisRestClient m = await s.clientFor(RunMode.live);
+        final KisRestClient g = await s.liveAccountClient('general');
+        final KisRestClient p = await s.liveAccountClient('pension');
+        final KisRestClient i = await s.liveAccountClient('isa');
+        expect(identical(m, g), true);
+        expect(identical(g, p), false);
+        expect(identical(g.gate, p.gate), true);
+        expect(identical(g.gate, i.gate), false);
+        expect(identical(await s.liveAccountClient('pension'), p), true);
+        expect(identical(await s.liveAccountClient('general'), g), true);
+        expect(
+          (p.credentials.accountNo, p.credentials.productCode),
+          (liveAccount, '22'),
+        );
+        expect(
+          (i.credentials.appKey, i.credentials.accountNo, i.environment),
+          (isaKey, isaAccount, KisEnvironment.live),
+        );
+        expect(made, hasLength(3));
+        expect(
+          vault.calls.where((String c) => c == 'read:kis.tokens'),
+          hasLength(1),
+        );
+      });
+
+      test('🔴 모르는 별칭 = KisSessionUnavailable(별칭만) · 금고를 읽지 않는다', () async {
+        final Object e = await s
+            .liveAccountClient('brokerage')
+            .then<Object>((_) => 'ok', onError: (Object e) => e);
+        expect(e, isA<KisSessionUnavailable>());
+        expect('$e', contains('brokerage'));
+        expect(vault.calls, isEmpty);
+        expect(made, isEmpty);
+      });
+
+      test('🔴 ISA 칸 없음 = KisSessionUnavailable(세트 · 칸 이름만 · 값 0)', () async {
+        await putLive(isa: false);
+        final Object e = await s
+            .liveAccountClient('isa')
+            .then<Object>((_) => 'ok', onError: (Object e) => e);
+        expect(e, isA<KisSessionUnavailable>());
+        expect('$e', contains('KIS_ISA'));
+        expect('$e', contains('kis.isa.app_key'));
+        for (final String v in <String>[liveKey, liveSecret, liveAccount]) {
+          expect('$e'.contains(v), false);
+        }
+        expect(made, isEmpty);
+      });
+    },
+  );
 
   test('🔴 금고를 못 열면 그 오류 그대로(«없음»으로 바꾸지 않는다)', () async {
     vault.failReadsOf.add('kis.paper.account_no');

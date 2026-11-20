@@ -4,7 +4,8 @@
 // 🔴 사람 값(A 종목 · 계좌 넷) = 지금 설정(`currentP0sOpsConfig` — 모의 개시 판 · 다시 지은 지문 대조). 못 얻으면 회차 실패
 //    (`OpsConfigUnavailable` · FAILED + fail 핑) — 지어내지 않는다.
 // 🔴 현금 = 계좌 별칭마다 브로커 하나. simInternal = 엔진 내부 가상 체결(`SimInternalBroker` · 그 계좌 `cash_flow` 합 · R83).
-//    simBroker · live 의 현금(KIS 계좌)은 주문 셋과 함께 E11p3c-3 — 그 전에는 `JobNotAssembled`(조용히 0원으로 돌지 않는다).
+//    🆕 R207 live = 계좌마다 KIS 브로커(별칭 → 세트 · 처음 쓸 때 만든다). simBroker 의 현금(KIS 모의 계좌)은 아직
+//    `JobNotAssembled`(조용히 0원으로 돌지 않는다).
 // 🔴 가상 체결의 봉 원천은 **쓸 때** 만든다(현금만 읽는 잡이 KIS 키를 요구하지 않게 · `_LazyFeed`).
 // 🔴 본체는 data_sync 그대로 — 여기는 부품을 넣고 `runOccurrence` 로 감싸기만 한다.
 
@@ -12,6 +13,7 @@ import 'package:core_engine/core_engine.dart'
     show
         AccountBroker,
         DailyQuoteFeed,
+        LazyAccountBroker,
         LedgerHolding,
         Market,
         OrderBroker,
@@ -90,25 +92,37 @@ class _LazyFeed implements DailyQuoteFeed {
 }
 
 /// 🔴 계좌 별칭 → 브로커(설정의 전략 → 계좌를 뒤집어 계좌마다 전략 묶음 · 현금 · 🆕 c3 주문 · 대사가 같이 쓴다).
+///
+/// 🆕 E11q-c1d(R207 · 실전 개시) live = 계좌마다 KIS 브로커([JobParts.liveAccountBroker] — 별칭 → 세트 · 처음 쓸 때 만든다 ·
+/// 못 만들면 그 호출이 던진다) · 그 자리가 없으면 `cash_broker_LIVE` 미조립 · simBroker = 그대로 미조립.
 Map<String, AccountBroker> cashBrokersOf(
   JobContext c,
   JobParts p,
   P0sOpsConfig cfg,
   String job,
 ) {
-  switch (c.runMode) {
-    case RunMode.simInternal:
-      break;
-    case RunMode.simBroker:
-    case RunMode.live:
-      throw JobNotAssembled(job, <String>['cash_broker_${c.runMode.wire}']);
-  }
   final Map<String, Set<String>> strategiesOf = <String, Set<String>>{};
   cfg.human.accountByStrategy.forEach((String strategy, String alias) {
     (strategiesOf[alias] ??= <String>{}).add(strategy);
   });
-  final DailyQuoteFeed bars = _LazyFeed(() => p.quoteFeed(c.runMode));
   final List<String> aliases = strategiesOf.keys.toList()..sort();
+  switch (c.runMode) {
+    case RunMode.simInternal:
+      break;
+    case RunMode.simBroker:
+      throw JobNotAssembled(job, <String>['cash_broker_${c.runMode.wire}']);
+    case RunMode.live:
+      final Future<AccountBroker> Function(String alias) live =
+          p.liveAccountBroker ??
+          (throw JobNotAssembled(job, <String>[
+            'cash_broker_${c.runMode.wire}',
+          ]));
+      return <String, AccountBroker>{
+        for (final String alias in aliases)
+          alias: LazyAccountBroker(() => live(alias)),
+      };
+  }
+  final DailyQuoteFeed bars = _LazyFeed(() => p.quoteFeed(c.runMode));
   return <String, AccountBroker>{
     for (final String alias in aliases)
       alias: SimInternalBroker(

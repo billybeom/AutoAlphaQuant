@@ -2,8 +2,9 @@
 //
 // 🔴 본체 = trading_runtime `KrOrderJobs` 그대로 — 잡 규약(핑 · 휴장 · 모드 가드 · 잡 앞 재개 가드 · `job_run`)을 **본체가 감싼다**.
 //    여기서 `runOccurrence` 로 다시 감싸지 않는다(기록 두 번 · 핑 두 번).
-// 🔴 이번 조각 = simInternal × 자동 매매만 — 브로커 = 계좌마다 가상 체결(`SimInternalBroker`) · 리스 = 로컬 단독(R71 · simInternal 만 유효).
-//    simBroker · live(KIS 계좌 · 원격 리스) · 투자 안내(안내 받는 쪽) = `JobNotAssembled`(조용히 다른 길로 돌지 않는다).
+// 🔴 브로커 = simInternal 계좌마다 가상 체결(`SimInternalBroker`) · 🆕 E11q-c1d(R207 · 실전 개시) live = 계좌마다 KIS 브로커
+//    (별칭 → 세트) · 실키 검증 = 원장 키 검증 기록. 리스 = 로컬 단독(R71 · simInternal 만 유효) — 🔴 live 는 운영 리스 실물(E11k)
+//    전까지 «모름» = 발주 0(6.9) · 커밋 첫 판 `dryRun` = 주문 0. simBroker · 투자 안내(안내 받는 쪽) = `JobNotAssembled`.
 // 🔴 잡 앞 재개 가드 = `ResumeJob.run`(R77 S2) — 재판정은 월말 본체(c2 와 같은 조립)로.
 // 🔴 본체는 «오늘(KST)» 로 돈다(R42) — 회차의 세션일이 오늘이 아니면 돌리지 않고 그 회차를 실패로 남긴다(지난 날 주문을 오늘 내지 않는다).
 // 🔴 초안 시세 · 한도 현재가 = KIS 국내 현재가(모드 세트) — **쓸 때** 만든다(낼 주문이 없으면 KIS 키를 요구하지 않는다).
@@ -42,6 +43,7 @@ import 'package:trading_runtime/trading_runtime.dart'
         kstDateOf;
 
 import 'data_job_runners.dart' show JobParts;
+import 'engine_boot.dart' show registryLiveKeysVerified;
 import 'job_runners.dart'
     show JobContext, JobNotAssembled, JobRunner, runOccurrence;
 import 'ledger_job_runners.dart'
@@ -156,7 +158,8 @@ KrOrderJobs orderJobsOf(JobContext c, JobParts p, String job) {
     modeFacts: SqliteModeFacts(
       c.db,
       clock: c.clock,
-      liveKeysVerified: () async => false,
+      // 🆕 R207 — 실키 검증 = 그 원장의 키 검증 기록(기동 판정과 같은 원천 · 없음 · 거절 = `LIVE_AWAITING_KEYS` hold).
+      liveKeysVerified: () => registryLiveKeysVerified(c.db),
     ),
     preGuard: (TradeDate day) async {
       // 🔴 봉인이 먼저 — 재구성 전에는 재개 회차도 열지 않는다.

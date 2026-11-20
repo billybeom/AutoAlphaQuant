@@ -68,8 +68,8 @@ class BootInputs {
 }
 
 /// 🆕 R196(미결 207 ⓑ) — 실키 검증 사실(기동 `LIVE_AWAITING_KEYS`) = [db] 의 키 검증 기록에서 P0S 실전 세트(`KIS_LIVE` ·
-/// `KIS_ISA`) 가 모두 조회 검증 통과 · 기록 없음 · 거절 = false(hold 그대로) · 🔴 주문 잡의 실키 사실(`order_job_runners`)은
-/// 그대로 false — 실전 집행 세트 조각(207 ⓖ 뒤)이 같은 원천으로 바꾼다.
+/// `KIS_ISA`) 가 모두 조회 검증 통과 · 기록 없음 · 거절 = false(hold 그대로) · 🆕 R207 주문 잡의 실키 사실(`order_job_runners`)도
+/// 같은 원천(실전 개시).
 Future<bool> registryLiveKeysVerified(Database db) async =>
     liveKeysVerifiedOf(
       required: kP0sLiveKeyKindOfAlias.values.toSet(),

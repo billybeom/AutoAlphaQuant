@@ -12,7 +12,7 @@
 //    · 확정 = 🆕 R202(207 ⓖ) ① 엔진 1단계 관문(시각 → 세션 → 리스 → 이미 → 승인 config(R192) → 재판정 → 계좌 조회)을 조회 0 으로 먼저 본다
 //      (다른 사유 = 그 원문 · 네트워크 · 바깥 감시 0) → ② 대응표 계좌마다 실전 조회(조회 TR 만 · 주문 0) → ③ 관문 다시 →
 //      ④ 통과 때만 엔진 오케스트레이터 `runSimToAutoSwitch`(새 감시 체크 → 실전 커밋 → 모의 마감 → 옛 체크 멈춤) · 감시 원격 없음 = 준비 실패 원문.
-//      🔴 커밋 뒤 실전 잡의 집행 세트(`kisKeySetFor(live)`) = 실전 개시 조각 몫 — 그 전엔 실전 커밋을 하지 않는다(R202 기록).
+//      🆕 R207 커밋 뒤 실전 잡 = 같은 «별칭 → 세트»(`liveAccountKeyOf`)의 KIS 계좌 브로커 · 실주문은 운영 리스(E11k) · dryRun 이 막는다.
 // 🔴 신뢰 시각 = 런타임 시계(E11k 전 = 모름 → 시작 · 확정 = `SIM_TO_AUTO_TRUSTED_TIME_UNAVAILABLE` 원문 · 우회 0 · K176).
 
 import 'dart:async';
@@ -22,7 +22,6 @@ import 'package:broker_gateway/broker_gateway.dart'
         KisCredentialRead,
         KisCredentials,
         KisCredentialsStored,
-        KisKeySet,
         KisOrderBroker,
         KisRestClient,
         KisTokenStore,
@@ -48,8 +47,6 @@ import 'package:core_engine/core_engine.dart'
         handoverSessionHeadline,
         judgeSimToAuto,
         kDeviceGoldenSuite,
-        kP0sLiveKeyKindOfAlias,
-        kP0sLiveProductCodeOfAlias,
         kSimToAutoWatchdogPrepareFailed,
         kSimToAutoWatchdogPrepareFailedHeadline,
         kstDateText,
@@ -94,6 +91,8 @@ import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
     show watchdogCheckSpecsFor;
 
+import '../engine/kis_sessions.dart'
+    show LiveAccountKey, kisCredentialsWithProduct, liveAccountKeyOf;
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
@@ -423,30 +422,21 @@ class OperatorHandover {
         accounts.values.map((String a) => a.trim()).toSet().toList()..sort();
     final List<LiveAccountProbe> out = <LiveAccountProbe>[];
     for (final String alias in aliases) {
-      final String? kind = kP0sLiveKeyKindOfAlias[alias];
-      KisKeySet? set;
-      for (final KisKeySet s in KisKeySet.values) {
-        if (s.wire == kind) set = s;
-      }
-      if (set == null) continue;
+      // 🆕 R207 — 별칭 → 세트 · 상품코드 = 실전 잡과 같은 함수(`liveAccountKeyOf`).
+      final LiveAccountKey? key = liveAccountKeyOf(alias);
+      if (key == null) continue;
       KisCredentials? creds;
       try {
-        final KisCredentialRead read = await readKisCredentials(vault, set);
+        final KisCredentialRead read = await readKisCredentials(vault, key.set);
         if (read is KisCredentialsStored) creds = read.credentials;
       } on Object {
         creds = null;
       }
       if (creds == null) continue;
-      final String? product = kP0sLiveProductCodeOfAlias[alias];
-      final KisCredentials use = product == null
-          ? creds
-          : KisCredentials(
-              environment: creds.environment,
-              appKey: creds.appKey,
-              appSecret: creds.appSecret,
-              accountNo: creds.accountNo,
-              productCode: product,
-            );
+      final KisCredentials use = kisCredentialsWithProduct(
+        creds,
+        key.productCode,
+      );
       final LiveAccountProbe? p = await probeLiveAccount(
         alias: alias,
         broker: KisOrderBroker(clientOf(use, tokens)),

@@ -6,8 +6,9 @@
 // 🔴 세트는 «다 있거나 없다» — 쓰기 = 넷 다 지운 뒤 넷 다 쓴다. 도중에 끊기면 «없음»이지 옛 값 · 새 값이 섞인 세트가 아니다.
 // 🔴 값은 `toString` · 오류 · 결과 어디에도 없다 — 칸 이름 · 사유만.
 // 🔵 모의(`KIS_PAPER`) · 🆕 E11q-c1b(설계 13 §8 R196 · 미결 207 ⓑ) 실전 2(`KIS_LIVE` = 종합계좌 위탁 01 + 연금저축 22 공유 ·
-//    `KIS_ISA` = ISA 종합계좌) — 등록 · 조회 검증(토큰 + 잔고 1회)만 쓴다. 🔴 실전 모드의 집행 세트 고르기([kisKeySetFor] live)는
-//    그대로 null — 실전 집행 클라이언트 = 실전 개시 조각(207 ⓖ 뒤). 대사 전용(`KIS_RECONCILE`)은 X7 창 뒤.
+//    `KIS_ISA` = ISA 종합계좌) — 등록 · 조회 검증(토큰 + 잔고 1회). 🆕 E11q-c1d(R207 · 실전 개시) [kisKeySetFor] live =
+//    `KIS_LIVE`(모드 세트 = 시세 · 현재가 — 계좌와 무관) · 계좌별 주문 세트(별칭 → 세트 · 연금저축 22)는 조립 앱이 고른다.
+//    대사 전용(`KIS_RECONCILE`)은 X7 창 뒤.
 
 import 'package:core_engine/core_engine.dart' show SecretId, SecretVault;
 import 'package:domain_contracts/domain_contracts.dart' show RunMode;
@@ -63,16 +64,18 @@ class KisCredentialSlots {
 }
 
 /// 🔴 [mode] 가 쓰는 키 세트 — SIM 계열 = 모의 세트만(01 §9-3 · 내부 시뮬레이터도 시세는 모의 앱키 · ㉑) ·
-/// live = 아직 없다(null — 🆕 R196 실전 세트 2가 생겼어도 실전 집행 클라이언트 고르기는 실전 개시 조각 몫 · 등록 · 검증만 쓴다).
+/// 🆕 R207 live = 실전 종합계좌 세트(`KIS_LIVE` — 시세 · 현재가는 계좌와 무관 · 계좌별 주문 세트 = 조립 앱의 별칭 대응).
+/// 🔴 실전 세트를 골라도 실주문은 따로 막힌다 — 승인(SAF-405) · 실키 검증(`LIVE_AWAITING_KEYS`) · 운영 리스(E11k 전 «모름») ·
+/// 커밋 첫 판 `dryRun`(주문 0).
 KisKeySet? kisKeySetFor(RunMode mode) => switch (mode) {
   RunMode.simInternal || RunMode.simBroker => KisKeySet.paper,
-  RunMode.live => null,
+  RunMode.live => KisKeySet.live,
 };
 
 /// 🔴 기동 판정 `credentialEnvironmentOk`(R81 V6) — [mode] 가 쓰는 세트의 환경이 모드 환경과 같나.
 ///
-/// 금고를 읽지 않는다 — 세트가 환경을 지니므로 «어느 세트를 고르나»가 곧 판정이다. 세트가 없는 모드(live)는
-/// «어긋남 없음»: live 는 승인(SAF-405) · 실키 검증(`LIVE_AWAITING_KEYS`)이 따로 막고, 키 없음은 실행기에서 드러난다.
+/// 금고를 읽지 않는다 — 세트가 환경을 지니므로 «어느 세트를 고르나»가 곧 판정이다. 세트가 없는 모드(대응 함수가 null)는
+/// «어긋남 없음» — 키 없음은 실행기에서 드러난다.
 /// [setFor] = 시험이 잘못된 대응(live → 모의 세트)을 넣어 거부를 확인하는 자리(조립 앱은 기본값).
 bool kisKeySetFits(
   RunMode mode, {

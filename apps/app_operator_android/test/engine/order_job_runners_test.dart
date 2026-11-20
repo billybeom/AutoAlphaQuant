@@ -10,12 +10,14 @@ import 'package:app_operator_android/engine/order_job_runners.dart';
 import 'package:broker_gateway/broker_gateway.dart' show KisPrice;
 import 'package:core_engine/core_engine.dart'
     show
+        AccountBroker,
         AmountSizing,
         DailyQuoteFeed,
         InstrumentKind,
         JobRunEntry,
         JobRunStatus,
         Market,
+        ModeGuardRejected,
         OperationsConfig,
         OrderTarget,
         P0sHumanInputs,
@@ -30,6 +32,7 @@ import 'package:core_engine/core_engine.dart'
         TierBCard,
         orderTargetToJson,
         p0sRegimeConfigHash;
+import 'package:core_engine/testing.dart' show FakeOrderBroker;
 import 'package:data_sync/data_sync.dart'
     show
         FredClient,
@@ -38,6 +41,7 @@ import 'package:data_sync/data_sync.dart'
         SeedFile,
         SqliteAlertSink,
         SqliteConfigVersionStore,
+        SqliteCredentialRegistry,
         SqliteJobRunLog,
         SqliteOnboardingStore,
         importSeedBundle,
@@ -51,6 +55,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         MarketDataSource,
         OperatingMode,
         RunMode,
+        SafetyHoldCodes,
         SelfReportBalance,
         SelfReportLine,
         SelfReportPurpose,
@@ -117,16 +122,19 @@ void main() {
   late int pricesAsked;
   KisPrice? price;
 
-  JobParts parts() => JobParts(
-    quoteFeed: (RunMode m) async => _DownFeed(),
-    priceFetch: (RunMode m) async {
-      pricesAsked++;
-      return (String code) async => price ?? (throw StateError('현재가 없음(시험)'));
-    },
-    fred: FredClient(down, sleep: (Duration _) async {}),
-    ofr: OfrClient(down, sleep: (Duration _) async {}),
-    regimeConfigHash: p0sRegimeConfigHash(),
-  );
+  JobParts parts({Future<AccountBroker> Function(String alias)? live}) =>
+      JobParts(
+        quoteFeed: (RunMode m) async => _DownFeed(),
+        priceFetch: (RunMode m) async {
+          pricesAsked++;
+          return (String code) async =>
+              price ?? (throw StateError('현재가 없음(시험)'));
+        },
+        fred: FredClient(down, sleep: (Duration _) async {}),
+        ofr: OfrClient(down, sleep: (Duration _) async {}),
+        regimeConfigHash: p0sRegimeConfigHash(),
+        liveAccountBroker: live,
+      );
 
   JobContext ctx({
     RunMode mode = RunMode.simInternal,
@@ -212,8 +220,14 @@ void main() {
   JobOccurrence occ(String job, String fireDay) =>
       occurrenceOn(jobSpecOf(job), TradeDate(fireDay), cals);
 
-  Future<JobRun<Object?>> run(String job, String fireDay, {JobContext? c}) =>
-      composeJobRunners(c ?? ctx(), parts: parts())[job]!(occ(job, fireDay));
+  Future<JobRun<Object?>> run(
+    String job,
+    String fireDay, {
+    JobContext? c,
+    JobParts? p,
+  }) => composeJobRunners(c ?? ctx(), parts: p ?? parts())[job]!(
+    occ(job, fireDay),
+  );
 
   /// 12월 월말(12-30 · 12-31 = KRX 휴장) 계획 · 집행 첫날 2027-01-04 — B 전략 매수 40만 원 하나.
   /// 월말 본체가 쓰는 꼴 그대로. 집행 첫날은 월초 3거래일 유예 안이라 SAF-410(전월 계층 B 판정)을 아직 묻지 않는다.
@@ -384,6 +398,70 @@ void main() {
       c: ctx(mode: RunMode.simBroker),
     );
     expect('${r.error}', 'UNASSEMBLED daily_reconcile: cash_broker_SIM_BROKER');
+  });
+
+  group('🆕 R207 실전 개시 — live 주문 잡 = 계좌마다 KIS 브로커 · 실키 사실 = 원장 키 검증 기록', () {
+    late List<String> made;
+
+    JobParts liveParts() => parts(
+      live: (String alias) async {
+        made.add(alias);
+        return FakeOrderBroker();
+      },
+    );
+
+    void verify(String kind, String ref) =>
+        SqliteCredentialRegistry(files.sim, clock: clock).recordVerification(
+          alias: ref.replaceAll('.', '_'),
+          kind: kind,
+          keystoreRef: ref,
+          passed: true,
+        );
+
+    setUp(() => made = <String>[]);
+
+    test('🔴 실전 계좌 브로커 자리가 없으면 = 미조립(조용히 다른 길로 돌지 않는다)', () async {
+      openSim();
+      clock.now = kst(2026, 12, 22, 7, 10);
+      final JobRun<Object?> r = await run(
+        'daily_reconcile',
+        '2026-12-22',
+        c: ctx(mode: RunMode.live),
+      );
+      expect('${r.error}', 'UNASSEMBLED daily_reconcile: cash_broker_LIVE');
+    });
+
+    test('🔴 키 검증 기록 없음 = LIVE_AWAITING_KEYS 로 막힌다 · 실전 브로커 0', () async {
+      openSim();
+      verify('KIS_LIVE', 'kis.live');
+      clock.now = kst(2026, 12, 22, 7, 10);
+      final JobRun<Object?> r = await run(
+        'daily_reconcile',
+        '2026-12-22',
+        c: ctx(mode: RunMode.live),
+        p: liveParts(),
+      );
+      expect(r.status, JobStatus.failed);
+      expect(r.error, isA<ModeGuardRejected>());
+      expect('${r.error}', contains(SafetyHoldCodes.liveAwaitingKeys));
+      expect(made, isEmpty);
+    });
+
+    test('🔴 실전 세트 둘 다 검증 = 가드 통과 → 계좌 별칭마다 실전 브로커(처음 쓸 때 · 한 번)', () async {
+      openSim();
+      verify('KIS_LIVE', 'kis.live');
+      verify('KIS_ISA', 'kis.isa');
+      clock.now = kst(2026, 12, 22, 7, 10);
+      final JobRun<Object?> r = await run(
+        'daily_reconcile',
+        '2026-12-22',
+        c: ctx(mode: RunMode.live),
+        p: liveParts(),
+      );
+      expect(r.status, JobStatus.success, reason: '${r.error}');
+      expect(made.toSet(), <String>{'general', 'pension'});
+      expect(made, hasLength(2));
+    });
   });
 
   test('🔴 운영 설정(재개 사다리) 없음 = 미조립 — core 기본값으로 조용히 돌지 않는다', () async {
