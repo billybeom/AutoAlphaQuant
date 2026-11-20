@@ -217,10 +217,21 @@ void main() {
         'aaq://m5/stopped-decision',
         'aaq://m5/pledge',
         'aaq://m5/rule-change-gate',
+        // 🆕 v1.26(01 §35 · K173) — `handoverStatus` = M5-11 위저드와 같은 본문(엔진 알림 2종 목적지 · 소유 = M5).
+        'aaq://handover/status',
       ];
       for (final String route in ownedByClaude) {
         expect(AppRoutes.all, contains(route), reason: '06 §3-5 목록의 $route');
       }
+      // 🆕 v1.26(K173) — 위저드 두 경로가 함께 Claude 소유다(한쪽만 빠지면 셸이 «같은 본문»을 다른 소유로 그린다).
+      expect(
+        ownedByClaude,
+        containsAll(<String>[
+          AppRoutes.handoverStatus,
+          AppRoutes.m5HandoverWizard,
+        ]),
+        reason: 'handoverStatus 는 M5-11 위저드와 같은 본문 · 같은 소유(K173)',
+      );
       for (final String pattern in AppRoutes.all) {
         expect(
           pattern,

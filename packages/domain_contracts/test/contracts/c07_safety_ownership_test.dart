@@ -233,11 +233,13 @@ void main() {
     });
 
     test('C-7 넷째 쓰기 창구 SafetyActions 의 표면은 run·runKillResumeItem·runPledge·runStoppedDecision·runPostmortem·'
-        'runRuleChangeApproval·runDiscretionAdjust·watch 여덟이다', () {
+        'runRuleChangeApproval·runDiscretionAdjust·runRuleChangeRequest·runReconClear·watch 열이다', () {
       // 🆕 v1.21(01 §30 · K5 · K31 · K39) — M5 폰 로컬 안전 동작. `CommandApi` 가 **아니다** — 동사 이름 메서드 0
       //    (`submit…` 은 위 «쓰기 이름 파일» 검사에 걸린다) · 제출 DTO 갈래 + 엔진이 완성한 호출 `run` + 결과 구독 `watch`.
       // 🆕 v1.22(01 §31 · K52) — K7(사람 글·수 = 제출 DTO)이 v1.21 K39(표면 고정)를 이긴다 — 제출 메서드 +4
       //    (STOPPED 결정 · postmortem · 규칙 변경 승인 · 재량 조정). 엔진이 완성하는 동작은 여전히 `run` 화이트리스트.
+      // 🆕 v1.26(01 §35 · K178 · K181) — 제출 메서드 +2(규칙 변경 요청 · RECON 해제 — 사전 저널 3필드 = 사람 글 · K7) ·
+      //    `run` 화이트리스트에서 `reconClear` 를 뺐다(C-60 ⑮).
       final String code = stripCommentsAndStrings(
         File('${libDir.path}/src/commands/safety_actions.dart')
             .readAsStringSync(),
@@ -254,6 +256,8 @@ void main() {
         'runPostmortem',
         'runRuleChangeApproval',
         'runDiscretionAdjust',
+        'runRuleChangeRequest',
+        'runReconClear',
         'watch',
       });
     });
