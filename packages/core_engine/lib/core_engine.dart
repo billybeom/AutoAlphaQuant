@@ -422,15 +422,11 @@ export 'src/ops/account_mapping.dart'
 // 🆕 E11p3d-4a — 알림 수신 확인(ack) 명령 봉투(설계 13 §8 R147).
 export 'src/ops/alert_ack_command.dart'
     show AlertAckCommand, kAlertAckTtl, newCommandId;
-// 🆕 미결 192 — M9 S04 배분 화면 첫 판(보기 전용) VM · `rm_config_view` S04 열(설계 13 §8 R190 · 계약 0 — S04 창 전).
+// 🆕 미결 192 — M9 S04 배분 화면 첫 판(보기 전용) VM · `rm_config_view` S04 열(설계 13 §8 R190) ·
+// ✅ E11q-s04a(R211) — 계약 v1.28 `AllocationEditorVm` 을 직접 낸다(엔진 지역 타입 0) · 운영 경로 = 설정 필수 입구.
 export 'src/ops/allocation_view.dart'
     show
-        AllocationView,
-        AllocationViewCard,
-        AllocationViewRow,
-        AllocationViewRowCodes,
-        AllocationViewSection,
-        RmConfigViewAllocationColumns,
+        allocationEditorVmOfConfig,
         allocationViewColumns,
         allocationViewOf,
         kP0sBacktestText,
