@@ -139,7 +139,8 @@ const Set<String> _engineTakeCodes = <String>{
   'RESTORE_ROLLBACK',
 };
 
-/// ⑦ `take` 에서 나올 수 없는 복원 판정 2(core `backup_manifest.dart:139 · 157` — 매니페스트 = 같은 사본의 digest·머리).
+/// ⑦ `take` 에서 나올 수 없는 복원 판정 2(core `backup_manifest.dart:139 · 157` — 매니페스트 = 같은 사본의 digest·머리) ·
+///    🆕 v1.30 = `X1RestoreResultCodes`(새 폰 복원 · 01 §38 · C-63 ⑤ — 단언 무변경).
 const Set<String> _notFromTake = <String>{
   'RESTORE_SHA_MISMATCH',
   'RESTORE_MANIFEST_MISMATCH',
@@ -467,20 +468,35 @@ void main() {
       }
     });
 
-    test('C-58 ⑧ 중복 문서 — CHAIN_BROKEN · RESTORE_ROLLBACK = origin_code 와 한 쌍씩 · 그 밖 새 값 = 도메인 하나', () {
+    test('C-58 ⑧ 중복 문서 — CHAIN_BROKEN · RESTORE_ROLLBACK = origin_code 와 한 쌍씩 · 그 밖 새 값 = 도메인 하나(🆕 v1.30 E16i 짝 셋 예외)', () {
       expect(ContractCodes.domainsOf('CHAIN_BROKEN'), <String>{
         'origin_code',
         'ledger_integrity_result',
       });
+      // 🆕 v1.30(01 §38 · K213 ⓒ · v1.24 K140 예고 실현) — E16i 사전이 셋째 축 · 짝 축을 더했다(C-63 ⑦ 이 전수를 본다).
       expect(ContractCodes.domainsOf('RESTORE_ROLLBACK'), <String>{
         'origin_code',
         'backup_result',
+        'ledger_boundary_reason',
       });
+      const Map<String, String> v129Pairs = <String, String>{
+        'X1_LIVE_ONLY': 'x1_start_result',
+        'SQLITE_INTEGRITY': 'ledger_boundary_reason',
+        'FORMAT_VERSION': 'ledger_boundary_reason',
+      };
       for (final String code in <String>{
         ...BackupResultCodes.values,
         ...LedgerIntegrityResultCodes.values,
       }.difference(<String>{'CHAIN_BROKEN', 'RESTORE_ROLLBACK'})) {
-        expect(ContractCodes.domainsOf(code), hasLength(1), reason: code);
+        final String? pair = v129Pairs[code];
+        expect(
+          ContractCodes.domainsOf(code),
+          hasLength(pair == null ? 1 : 2),
+          reason: code,
+        );
+        if (pair != null) {
+          expect(ContractCodes.domainsOf(code), contains(pair), reason: code);
+        }
       }
     });
 

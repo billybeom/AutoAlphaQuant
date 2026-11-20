@@ -19,7 +19,7 @@ import 'package:test/test.dart';
 
 import 'c00_support.dart';
 
-/// 01 §3 사전의 도메인 간 중복 — labels.dart 머리 주석이 밝힌 쌍(🆕 v1.24 = 일곱 쌍).
+/// 01 §3 사전의 도메인 간 중복 — labels.dart 머리 주석이 밝힌 글자(🆕 v1.24 = 일곱 쌍 · 🆕 v1.30 = 열다섯 글자).
 const Set<String> _documentedCrossDomainDuplicates = <String>{
   'MANUAL_ORDER',
   'PUSH_LAG',
@@ -30,6 +30,16 @@ const Set<String> _documentedCrossDomainDuplicates = <String>{
   // 🆕 v1.24(01 §33 · K119) — `origin_code` ↔ `ledger_integrity_result` · `backup_result` · labels 머리 일곱 쌍.
   'CHAIN_BROKEN',
   'RESTORE_ROLLBACK',
+  // 🆕 v1.30(01 §38 · K213 ⓒ) — E16i 사전과 같은 글자 다른 축 여덟(v1.24 K140 예고 넷 + 열거 글자 넷).
+  //    `RESTORE_ROLLBACK` 은 `ledger_boundary_reason` 까지 세 축(글자 수 무변경).
+  'X1_LIVE_ONLY', // backup_result ↔ x1_start_result
+  'UNKNOWN_ORDERS_REMAIN', // resume_reason ↔ x1_step_block
+  'FAILED', // kill_cancel_outcome ↔ x1_step_state
+  'BLOCKED', // verdict_code ↔ x1_gate_state
+  'OBSERVING', // resume_reason ↔ x1_gate_state
+  'PASSED', // sim_trial_state ↔ x1_gate_state
+  'SQLITE_INTEGRITY', // ledger_integrity_result ↔ ledger_boundary_reason
+  'FORMAT_VERSION', // ledger_integrity_result ↔ ledger_boundary_reason
 };
 
 /// 픽스처의 코드 필드 → 조회할 도메인(빈 값이면 전역 조회).

@@ -759,7 +759,7 @@ void main() {
       });
     });
 
-    test('C-56 ⑧ 사전 — 새 12 값 == 엔진 표 · byDomain 등재 · 도메인 사이 겹침 = JOURNAL_MISSING 뿐 · 이름 2 · 세션 ∌ INVALID', () {
+    test('C-56 ⑧ 사전 — 새 12 값 == 엔진 표 · byDomain 등재 · 도메인 사이 겹침 = JOURNAL_MISSING 뿐(🆕 v1.30 X1 짝 둘 예외) · 이름 2 · 세션 ∌ INVALID', () {
       final Map<String, Set<String>> engine = <String, Set<String>>{
         // core safety/stopped_decision.dart:28 · incident.dart:61 · intervention.dart:47 · rule_change.dart:56 · discretion.dart:19
         'stopped_decision_result': <String>{
@@ -876,8 +876,18 @@ void main() {
             in ContractCodes.byDomain.entries) {
           if (other.key == e.key) continue;
           final Set<String> overlap = e.value.intersection(other.value);
+          // 🆕 v1.30(01 §38 · E16i K213 ⓒ) — `resume_reason` 의 OBSERVING · UNKNOWN_ORDERS_REMAIN 이 X1 사전과 같은 글자
+          //    다른 축(C-5 문서 중복 · C-63 ⑦ 전수). 그 밖 겹침 0 은 그대로.
           expect(
-            overlap.difference(<String>{'JOURNAL_MISSING'}),
+            overlap.difference(<String>{
+              'JOURNAL_MISSING',
+              if (e.key == 'resume_reason' &&
+                  (other.key == 'x1_gate_state' ||
+                      other.key == 'x1_step_block')) ...<String>{
+                'OBSERVING',
+                'UNKNOWN_ORDERS_REMAIN',
+              },
+            }),
             isEmpty,
             reason: '${e.key} ↔ ${other.key} — 같은 글자 두 사전',
           );
