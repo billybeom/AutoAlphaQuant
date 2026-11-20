@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 124개 · 계약 v1.30.0 · 조립일 2026-11-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 124개 · 계약 v1.31.0 · 조립일 2026-11-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -99,7 +99,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -341,12 +341,20 @@ export 'commands/settings_actions.dart';
 //    DTO · VM · 창구 · 라우트 0 · 픽스처 365 그대로(신설 0 · 버전 줄만) — 🆕 tool/gen_e16i_v130_fixtures.py.
 //    다음 판 = 1.31.0(🔴 첫 후보 = E16j 화면 계약 — VM · 정정 명령 · 라우트 인자 · 01 §8 미결 211 · 그 밖 v1.28 예약 목록 그대로) ·
 //    06 변경 이력 «2026-11-2x · 계약 v1.30».
+// 🆕 '1.31.0'(E11k-d2 계약 창 · 01 §40 · 발주자 위임 2026-11-14 — 권고대로 · K237~K246) — o_07 ③ Supabase 로그인:
+//    🆕 `OnboardingSlotIds.supabaseLogin` = `SECRET_SUPABASE_LOGIN`(② 통과 뒤 같은 단계에서 ② 슬롯 대신 · VM 칸 추가 0) ·
+//    🆕 `SettingsActionId.supabaseSignIn`(`SUPABASE_SIGN_IN` · args `{}` · 1단 — 통과 = 새로고침 토큰 금고) ·
+//    🆕 `SupabaseAuthResultCodes` 6(`supabase_auth_result` · 엔진 `SupabaseAuthFailure` 12 가운데 고유 6 · 전송 6 = `SupabaseTimeResultCodes` 한 벌) ·
+//    🔴 o_07 VERIFIED = 쓰기-읽기 왕복 뒤(로그인 통과 = 여전히 `IN_PROGRESS`) · 로그아웃 노출 = 0(미결 216) · 🆕 C-65 ·
+//    픽스처 365 → 367(신설 2 — `m8/onboarding_step_detail_supabase_login` · `m8/onboarding_supabase_signin_results`) —
+//    🆕 tool/gen_e11k_d2_v131_fixtures.py.
+//    다음 판 = 1.32.0(🔴 첫 후보 = E16j 화면 계약 — 01 §8 미결 211 · 그 밖 v1.28 예약 목록 그대로) · 06 변경 이력 «2026-11-2x · 계약 v1.31».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.30.0';
+const String contractVersion = '1.31.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -2009,6 +2017,7 @@ abstract class ReconClearSubmission with _$ReconClearSubmission {
 // 🆕 v1.20(01 §29) — M9 `S02`·`S06`·`S03` args 화이트리스트(검증 1단 · 발급 · 폐기 · 매핑 · 전체 검증) · 🔴 시크릿 값 args 0.
 // 🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드 args 화이트리스트(handover +3 · 확정 = 기존 `handoverCommit`).
 // 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 = 원문 제출 DTO `ContributionUpdateSubmission` + `runContributionUpdate`(표면 run·runContributionUpdate·watch 셋 — C-7) · `run` 화이트리스트 밖.
+// 🆕 v1.31(01 §40 · K239) — 온보딩 검증 +1 `supabaseSignIn` = `{}`(o_07 ③ 로그인 · 결과 = `SupabaseAuthResultCodes` ∪ 전송 6).
 // 🆕 v1.24(01 §33 · K120) — M9 `S09`·`S10` args 화이트리스트(`backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}`) · `backupRestoreStart` = 화면 미호출 · 두 화면은 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -2048,7 +2057,8 @@ part 'settings_actions.g.dart';
 ///    · `onboardingDryRunStart`        = `{}`(O-04 ⑥ · 종착 조합은 엔진이 `onboarding_choice` 로 안다 ·
 ///      첫 `committed_at` 과 같은 트랜잭션 · 실패 = 둘 다 되돌림 `DRY_RUN_START_ROLLED_BACK`)
 ///    · 검증 동작 — `OnboardingAction` 이 id·args 를 **완성해서** 싣는다(🔴 화면은 그대로 넘긴다 · 짓지 않는다):
-///      `credentialVerify` = `{kind}` · `connectionTest` = `{target}` · `accountVerifyMapping` = `{}`
+///      `credentialVerify` = `{kind}` · `connectionTest` = `{target}` · `accountVerifyMapping` = `{}` ·
+///      🆕 v1.31(01 §40 · K239) `supabaseSignIn` = `{}`(o_07 ③ · 값 = 슬롯 `SECRET_SUPABASE_LOGIN` ↔ 구현 사이만 · args · 결과 0)
 ///      (`kind`·`target` 값 = 엔진 표기 — 05 §7 꼴 · 값 사전 = 01 §8 미결 151)
 ///    🔴 `O-00b`·`O-03`·`O-04` 는 [ActionResult] 를 **읽는다** — `headline` + `reasonCode` 원문
 ///      (`O-03` 은 + `retryable` · `O-00b`·`O-04` 는 다시 시도 갈래가 없다 — 표본 `retryable` 전부 false)
@@ -9316,6 +9326,12 @@ enum SettingsActionId {
   @JsonValue('CONNECTION_SYNC_NOW')
   connectionSyncNow('CONNECTION_SYNC_NOW'),
 
+  /// 🆕 v1.31(01 §40 · K239 · E11k-d2) — `o_07` ③ Supabase 로그인(이메일 + 비밀번호 = 슬롯 `SECRET_SUPABASE_LOGIN` ↔ 구현 사이만) · args `{}` ·
+  /// 1단(통과 = 구현이 새로고침 토큰을 금고에) · 결과 `reasonCode` ∈ `SupabaseAuthResultCodes` ∪ `SupabaseTimeResultCodes` 전송 6 ∪ null ·
+  /// 🔴 `connectionTest{SUPABASE}`(o_07 ② 연결)과 다른 동작 — 한 단계 안 두 결과를 섞지 않는다.
+  @JsonValue('SUPABASE_SIGN_IN')
+  supabaseSignIn('SUPABASE_SIGN_IN'),
+
   /// 🆕 v1.18(01 §27 · K-s · 05 §7 C22) — `S07` 알림 채널 선택(운영 등급 · 🔴 `settingsGeneralUpdate` 로 태우지 않는다 —
   /// 채널은 안전장치의 일부). args = `{channel ∈ NotifyChannelCodes}`(엔진이 `NotifyChannelOption.selectAction` 에 완성).
   @JsonValue('NOTIFY_CHANNEL_SELECT')
@@ -11768,6 +11784,11 @@ abstract final class FixturePaths {
   /// 슬롯 `SECRET_SUPABASE_CONNECT` · 🔴 VERIFIED = 쓰기-읽기 왕복 뒤).
   static const String m8OnboardingStepDetailSupabase =
       'm8/onboarding_step_detail_supabase.json';
+
+  /// 🆕 v1.31(01 §40 · E11k-d2) — `o_07` ③ 상세(② 통과 뒤 같은 단계 · `IN_PROGRESS` · 검증 = `SUPABASE_SIGN_IN{}` ·
+  /// 슬롯 `SECRET_SUPABASE_LOGIN` · 🔴 VERIFIED = 쓰기-읽기 왕복 뒤).
+  static const String m8OnboardingStepDetailSupabaseLogin =
+      'm8/onboarding_step_detail_supabase_login.json';
   static const String m8OnboardingStepsAdvisory =
       'm8/onboarding_steps_advisory.json';
   static const String m8OnboardingStepsAllVerifiedLocked =
@@ -11784,6 +11805,10 @@ abstract final class FixturePaths {
   /// 🆕 v1.29(01 §39 · E11k-b) — `o_07` 연결 확인 결과 12행(접수 1 · 입력 문제 6 · 망 실패 5 · `ActionResult`).
   static const String m8OnboardingSupabaseConnectResults =
       'm8/onboarding_supabase_connect_results.json';
+
+  /// 🆕 v1.31(01 §40 · E11k-d2) — `o_07` ③ 로그인 결과 9행(접수 1 · 인증 4 · 전송 4 · `ActionResult`).
+  static const String m8OnboardingSupabaseSigninResults =
+      'm8/onboarding_supabase_signin_results.json';
   static const String m8OpsHomeAdviceOpen = 'm8/ops_home_advice_open.json';
 
   /// 🆕 v1.13(01 §23 · K7 ⓑ) — 억제 + 기한 라벨(`H-01` 3b 억제 갈래 = `headline` 한 줄만 · R13b 참고 변이 표본).
@@ -12351,6 +12376,7 @@ abstract final class FixturePaths {
     m8OnboardingStepDetailMissing,
     m8OnboardingStepDetailNoVerify,
     m8OnboardingStepDetailSupabase,
+    m8OnboardingStepDetailSupabaseLogin,
     m8OnboardingStepsAdvisory,
     m8OnboardingStepsAllVerifiedLocked,
     m8OnboardingStepsEmpty,
@@ -12359,6 +12385,7 @@ abstract final class FixturePaths {
     m8OnboardingStepsFresh,
     m8OnboardingVerifyResults,
     m8OnboardingSupabaseConnectResults,
+    m8OnboardingSupabaseSigninResults,
     m8OpsHomeAdviceOpen,
     m8OpsHomeAdviceSuppressedDue,
     m8OpsHomeAdviceZero,
@@ -13758,6 +13785,8 @@ abstract final class ContractCodes {
     'supabase_input_result': SupabaseInputResultCodes.values,
     'supabase_time_result': SupabaseTimeResultCodes.values,
     'lease_rpc_result': LeaseRpcResultCodes.values,
+    // 🆕 v1.31(01 §40 · E11k-d2) — Supabase 로그인 · 세션 고유 실패(전송 6 = `supabase_time_result` 한 벌)
+    'supabase_auth_result': SupabaseAuthResultCodes.values,
     // 🆕 v1.30(01 §38 · E16i) — X1 기기 이전 · 새 폰 복구 · 유지보수 창(엔진 글자 1:1 − 공용 `TRUSTED_TIME_UNKNOWN`)
     'x1_start_result': X1StartResultCodes.values,
     'x1_step_block': X1StepBlockCodes.values,
@@ -14496,6 +14525,11 @@ abstract final class OnboardingSlotIds {
   ///    (`SupabaseInputResultCodes`) · 통과 = 서버 시각 1회 확인 뒤 금고(`supabase.project_url` · `supabase.publishable_key`).
   static const String supabaseConnect = 'SECRET_SUPABASE_CONNECT';
 
+  /// 🆕 v1.31(01 §40 · K238 · E11k-d2) — `o_07` ③ Supabase 로그인(이메일 + 비밀번호 두 칸 · 붙여넣기만) — 🔒 조립 앱 슬롯(06 M4-11).
+  /// 🔴 같은 `o_07` 단계에서 ② 통과(`IN_PROGRESS`) 뒤 엔진 상세 VM 이 [supabaseConnect] 대신 내준다(한 화면에 슬롯 하나) ·
+  ///    비밀번호 = 슬롯 ↔ `supabaseSignIn` 구현 사이만(필드 · 금고 · 결과 · 로그 0) · 새로고침 토큰만 금고.
+  static const String supabaseLogin = 'SECRET_SUPABASE_LOGIN';
+
   static const Set<String> values = <String>{
     secretKisMock,
     pledgeWrite,
@@ -14505,6 +14539,7 @@ abstract final class OnboardingSlotIds {
     recoveryLogin,
     viewerQrScan,
     supabaseConnect,
+    supabaseLogin,
   };
 }
 ```
@@ -15982,7 +16017,7 @@ abstract final class SimToAutoStepIds {
 ```dart
 // 🆕 계약 v1.29(01 §39 · K223~ · E11k-b 계약 창) — Supabase 연결(o_07 ②) · 신뢰 시각 · operator 리스의 코드 사전.
 //
-// 🔴 타입 이름 ≠ 엔진(data_sync `SupabaseInputProblem` · `SupabaseTimeFailure` — 같으면 엔진 시험이
+// 🔴 타입 이름 ≠ 엔진(data_sync `SupabaseInputProblem` · `SupabaseTimeFailure` · 🆕 v1.31 `SupabaseAuthFailure` — 같으면 엔진 시험이
 //    두 배럴을 함께 import 해 `ambiguous_import` · K80). 엔진 enum 은 와이어 글자가 없다 — enum → 이 글자 매핑 = 엔진 숙제(E11k-c ·
 //    01 §8 미결 213).
 // 🔴 리스 무효 `LEASE_INVALID`(주문 거부 · core `kLeaseInvalidCode`)는 v1.18 `JournalReasonCodes.leaseInvalid` 한 벌 — 여기 다시 두지 않는다.
@@ -16058,6 +16093,41 @@ abstract final class SupabaseTimeResultCodes {
     badResponse,
     noDate,
     network,
+  };
+}
+
+/// 🆕 v1.31(01 §40 · K240 · E11k-d2) — Supabase 로그인 · 세션 고유 실패(도메인 `supabase_auth_result` · data_sync
+/// `supabase/supabase_auth.dart` `SupabaseAuthFailure` 12 가운데 6 · 🔴 타입 이름 ≠ 엔진).
+/// 🔴 전송 6(`notConfigured` · `badConfig` · `unauthorized` · `server` · `badResponse` · `network`) = [SupabaseTimeResultCodes] 글자 한 벌
+///    (같은 사건 · 새 글자 0) · 🔴 금고 = 여기 [vault](읽기 «또는 쓰기» 실패 — 시각 쪽 `SUPABASE_VAULT_UNREADABLE` 은 읽기만이라 다른 뜻).
+/// 🔴 `supabaseSignIn` 결과에 나오는 것 = [badInput] · [invalidCredentials] · [rateLimited] · [vault] + 전송 · [notSignedIn] · [sessionLost] =
+///    토큰 갱신 축(엔진 깨어남 · S07 · 로그).
+abstract final class SupabaseAuthResultCodes {
+  /// 이메일 · 비밀번호 꼴이 아니다(빈칸 등) — 망에 가지 않았다.
+  static const String badInput = 'SUPABASE_AUTH_INPUT_INVALID';
+
+  /// 로그인한 적이 없다(금고에 새로고침 토큰 없음) — 망에 가지 않았다.
+  static const String notSignedIn = 'SUPABASE_NOT_SIGNED_IN';
+
+  /// 이메일 · 비밀번호가 틀렸다(로그인 400).
+  static const String invalidCredentials = 'SUPABASE_CREDENTIALS_REJECTED';
+
+  /// 세션을 잃었다(새로고침 400 — 만료 · 재사용 · 철회) — 금고 칸을 지웠다 · 다시 로그인.
+  static const String sessionLost = 'SUPABASE_SESSION_LOST';
+
+  /// 과속(429).
+  static const String rateLimited = 'SUPABASE_RATE_LIMITED';
+
+  /// 금고를 읽거나 쓰지 못했다.
+  static const String vault = 'SUPABASE_AUTH_VAULT_FAILED';
+
+  static const Set<String> values = <String>{
+    badInput,
+    notSignedIn,
+    invalidCredentials,
+    sessionLost,
+    rateLimited,
+    vault,
   };
 }
 

@@ -782,3 +782,14 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AI-6 | 🆕 `X1StepCodes`(`ordered` 9) · `X1StepStateCodes` · `X1KindCodes` · `X1RoleCodes` · `X1RecoveryStepCodes`(`ordered` 5) · `X1GateStateCodes` · `X1GapViolationCodes` | X1 열거 글자(저장 값) |
 | AI-7 | 🆕 `RepairResultCodes` · `BaselineResultCodes` · `LedgerBoundaryReasonCodes` · `DerivedRelationCodes` | `labels/repair_codes.dart` · X5 정정 · 새 기준점 · 경계 사유 · 파생 관계 |
 | AI-8 | 🆕 `SafetyHoldCodes.migrationInProgress` | `labels/flag_ids.dart` · `MIGRATION_IN_PROGRESS` 표시 hold(막는 정본 = 리스) |
+
+## AJ. 🆕 계약 v1.31 (2026-11-21 · E11k-d2 계약 창 — o_07 ③ Supabase 로그인) — 슬롯 1 · 동작 1 · 인증 사전 1 · 표본 2
+
+`contractVersion` = **`1.31.0`**(다음 = 1.32.0 · 첫 후보 = E16j 화면 계약). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K237~K246 권고대로(정본 = 설계 `10_리뷰/2026-11-21_E11k-d2계약창_계약v1.31_설계서.md` · 01 §40). 🔴 엔진 이름(data_sync `SupabaseAuth` · `SupabaseAuthFailure`)과 겹치지 않는다(K80).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AJ-1 | 🆕 `OnboardingSlotIds.supabaseLogin`(`SECRET_SUPABASE_LOGIN`) | `labels/onboarding_codes.dart` · o_07 ③ 이메일 + 비밀번호 슬롯(조립 앱 · ② 통과 뒤 같은 단계) |
+| AJ-2 | 🆕 `SettingsActionId.supabaseSignIn`(`SUPABASE_SIGN_IN`) | `enums/command.dart` · args `{}` · 1단 |
+| AJ-3 | 🆕 `SupabaseAuthResultCodes`(`supabase_auth_result` 6) | `labels/supabase_codes.dart` · 인증 고유 실패 · 전송 = `SupabaseTimeResultCodes` |
+| AJ-4 | 🆕 `FixturePaths.m8OnboardingStepDetailSupabaseLogin` · `m8OnboardingSupabaseSigninResults` | `fixtures/m8/onboarding_*supabase*.json` |
