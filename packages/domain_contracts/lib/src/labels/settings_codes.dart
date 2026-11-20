@@ -198,8 +198,10 @@ abstract final class ContributionResultCodes {
 /// 🔴 타입 이름 ≠ 엔진(core `SnapshotCodes` · `RestoreReason` · `MigrationStartCodes` — 같으면 엔진 시험이 두 배럴을 함께 import 해
 ///    `ambiguous_import` · v1.21 K33 · v1.23 K80 결) · 엔진이 계약 참조로 옮길 때 지역 선언을 지운다.
 /// 🔴 `take` 에서 구조상 나올 수 없는 `RESTORE_SHA_MISMATCH`·`RESTORE_MANIFEST_MISMATCH`(매니페스트 = 같은 사본의 digest·머리)는 싣지 않는다 —
-///    새 폰 복원 검증(X1 마법사)과 `X1_LIVE_EXISTS` 는 E16i 나머지 판(1.25.0+ · K132).
-/// 🔴 같은 글자 다른 축: [rollback] = `OriginCodes.restoreRollback`(C-5 문서 쌍) · [liveOnly] = 다음 판 `MigrationStartCodes` 겹침 예고(K140).
+///    새 폰 복원 검증(X1 마법사)의 남은 둘과 `X1_LIVE_EXISTS` = 🆕 v1.30 `X1RestoreResultCodes`(01 §38 · 복원 거부 전집 = 그 셋 ∪ 이 사전의
+///    [liveOnly] · [unreadable] · [schemaSkew] · [sqliteIntegrity] · [chainInvalid] · [rollback] — 같은 엔진 상수 = 한 벌 · K132).
+/// 🔴 같은 글자 다른 축: [rollback] = `OriginCodes.restoreRollback` · `LedgerBoundaryReasonCodes.restoreRollback` · [liveOnly] =
+///    `X1StartResultCodes.liveOnly`(C-5 문서 쌍 · v1.24 K140 예고 → v1.30 실현).
 ///    화면은 이 값으로 분기·아이콘·색을 고르지 않는다(결과 줄 = `headline` + `reasonCode` 원문).
 abstract final class BackupResultCodes {
   /// live 원장이 아니다(모의 원장 — 백업은 실전 원장에서만).
@@ -241,8 +243,8 @@ abstract final class BackupResultCodes {
 /// 🆕 v1.24(01 §33 · K115 · K119) — M9 `S10` 무결성 자가진단(`selftestIntegrityRun`) 불일치 사유(도메인 `ledger_integrity_result` ·
 /// 엔진 core `ops/ledger_integrity.dart:16-43` `LedgerIntegrityReason` 7 — E13c1 · 🔴 타입 이름 ≠ 엔진).
 /// 🔴 불일치 = 엔진이 `trading_block` `LEDGER_INTEGRITY` 를 세운다(일치해도 풀지 않는다 — 해제 = X5-3 정정) · 일치 = `reasonCode` null.
-/// 🔴 같은 글자 다른 축: [chainBroken] = `OriginCodes.chainBroken`(C-5 문서 쌍) · [sqliteIntegrity]·[formatVersion] = 다음 판
-///    E16i `BoundaryReason` 겹침 예고(K140).
+/// 🔴 같은 글자 다른 축: [chainBroken] = `OriginCodes.chainBroken`(C-5 문서 쌍) · [sqliteIntegrity]·[formatVersion] =
+///    `LedgerBoundaryReasonCodes`(C-5 문서 쌍 · v1.24 K140 예고 → v1.30 실현).
 abstract final class LedgerIntegrityResultCodes {
   /// 스탬프의 직렬화 형식 판이 현행과 다르다.
   static const String formatVersion = 'FORMAT_VERSION';

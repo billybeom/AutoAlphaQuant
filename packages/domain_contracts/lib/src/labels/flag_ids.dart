@@ -100,6 +100,16 @@ abstract final class SafetyHoldCodes {
   ///    걸면 배치가 무기한 중단되고 안내가 영영 나오지 않는다(«침묵이 안전으로 위장되는» 상태).
   static const String liveAwaitingKeys = 'LIVE_AWAITING_KEYS';
 
-  /// 전량 1종.
-  static const Set<String> values = <String>{liveAwaitingKeys};
+  /// 🆕 v1.30(01 §38 · SPEC v2.45 04 §3-1 ① · E16i) — 기기 이전 진행 중(**표시** hold).
+  ///
+  /// 🔴 막는 정본은 이 글자가 아니라 엔진 리스 판정이다 — 이전 세션이 «신규 주문 동결»에 들어서면 NR-1 0단계 리스 = 무효
+  ///    (`LEASE_INVALID` · 막는 것은 주문뿐 · 백업 커밋 · 아카이브는 원래 리스 판정 그대로). 이 hold 는 그 상태를 보여 줄 뿐이다.
+  ///    엔진 생산(`SafetyState.holds` 에 싣기) = 엔진 숙제(01 §8 미결 212).
+  static const String migrationInProgress = 'MIGRATION_IN_PROGRESS';
+
+  /// 전량 2종.
+  static const Set<String> values = <String>{
+    liveAwaitingKeys,
+    migrationInProgress,
+  };
 }
