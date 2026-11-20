@@ -18,7 +18,11 @@ create table if not exists app_device (
   platform      text,
   paired_at     timestamptz not null default now(),
   last_seen_at  timestamptz,
-  owner_uid     uuid not null references auth.users(id)
+  owner_uid     uuid not null references auth.users(id),
+  -- 🆕 v1.29(01 §39 · 지도 D5) 기기마다 Auth 사용자 1명 — 이 기기의 로그인 사용자(`owner_uid` = 소유자 = operator 사용자).
+  --    리스 · 페어링 RPC 는 `auth_uid = auth.uid()` 로 부르는 기기를 판정한다(JWT `app_metadata` 에 기대지 않음).
+  --    🔴 not null 승격 · RLS «`app_device` 조인» 재작성 = E11k-d(로그인) · E11m(페어링 RPC) 판이 부트스트랩 SQL 을 확정할 때(01 §8 미결 214).
+  auth_uid      uuid unique references auth.users(id)
 );
 -- 🔴 최초 INSERT 는 role='viewer' · status='PENDING' 강제. operator 승격은 리스 RPC(서버)만
 alter table app_device enable row level security;
@@ -38,6 +42,17 @@ create table if not exists operator_lease (
 alter table operator_lease enable row level security;
 create policy lease_select on operator_lease for select to authenticated using (true);
 -- 🔴 claim/renew/revoke 는 security definer RPC. 클라이언트 UPDATE·DELETE 정책은 만들지 않는다
+-- 🆕 v1.29(01 §39 · §6-4 RPC 표 · 지도 X18) — 이름 · 인자 · 반환 칸 = 계약 `schema/supabase_rpc.dart` · 거부 = `LeaseRpcResultCodes`.
+--    본문(SQL)은 E11k-e 부트스트랩 묶음이 이 자리에 넣는다(지금 = 서명만 · 🔴 `server_now` 0 — 신뢰 시각 = 게이트웨이 `Date`).
+--    반환 = 한 행 (code text, epoch bigint, expires_at timestamptz) · code = 거부 코드 또는 null · T = 30분(서버 상수 · R43 D3).
+--    lease_claim (p_device_id text, p_recovery_code_hash text default null)
+--      · 빈 행 = 첫 클레임 → 🔴 p_recovery_code_hash 필수(없으면 RECOVERY_CODE_REQUIRED) · recovery_secret 같은 트랜잭션 · epoch 1
+--      · 만료 ∨ 같은 기기 → 이 기기(다른 기기에서 넘어옴 = epoch+1) · 다른 기기 유효 = LEASE_HELD_BY_OTHER
+--      · 성공 = 그 기기 role='operator' · status='ACTIVE' · 부른 사용자 ≠ 그 기기 auth_uid ∨ REVOKED · RETIRED = LEASE_DEVICE_NOT_ELIGIBLE
+--    lease_renew (p_device_id text, p_epoch bigint) — 보유 ∧ epoch 같음 ∧ 만료 전 → expires_at = now() + T · 아니면 LEASE_LOST
+--    lease_revoke (p_device_id text, p_recovery_code text, p_new_recovery_code_hash text) — 비상(X1-3 ①)
+--      · 복구 코드 대조(틀림 = RECOVERY_CODE_INVALID) → 같은 트랜잭션: epoch+1 · device_id = 부른 기기 · expires_at = now()(즉시 만료 —
+--        새 폰은 펜싱 대기 뒤 lease_claim) · 옛 보유 기기 status='REVOKED' · recovery_secret 해시 교체(쓴 코드 = 그 뒤 «틀림»)
 
 -- ── 복구 코드 (X3) — 🔴 해시만. 평문은 종이(복구 카드)에만 존재 ─────────────────────
 create table if not exists recovery_secret (

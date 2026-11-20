@@ -68,11 +68,18 @@ abstract final class OnboardingSlotIds {
   /// `O-04` ⑤ 복구 카드 체크섬 입력 — 🔒 M9 입력 위젯(06 M4-10 · 결정 ②).
   static const String recoveryChecksum = 'RECOVERY_CHECKSUM';
 
-  /// `R-01` ① 복구 카드 로그인(매직링크/OTP) — 플랫폼(06 M4-11).
+  /// `R-01` ① 복구 카드 로그인 — 플랫폼(06 M4-11) · 🆕 v1.29(01 §39 · E11k T8) 방식 = 이메일 + 비밀번호(새로고침 토큰만 금고 ·
+  /// 공개 가입 끔 = o_07 ④) — ~~매직링크/OTP~~ 정정.
   static const String recoveryLogin = 'RECOVERY_LOGIN';
 
   /// `V-01` QR 스캔·토큰 클레임 — 플랫폼(06 M4-11 · 01 §8 미결 13).
   static const String viewerQrScan = 'VIEWER_QR_SCAN';
+
+  /// 🆕 v1.29(01 §39 · E11k-b) — `o_07` ② Supabase 연결 값 붙여넣기(프로젝트 주소 + 공개 키 두 칸) — 🔒 조립 앱 슬롯(06 M4-11 ·
+  /// `secretSlotId` 자리 = `SECRET_` 접두 · C-50 ⑮).
+  /// 🔴 값 = 슬롯 ↔ `connectionTest{target: SUPABASE}` 구현 사이만(VM · args · 결과 · 로그 0) · 비밀 키 · service_role = 거부
+  ///    (`SupabaseInputResultCodes`) · 통과 = 서버 시각 1회 확인 뒤 금고(`supabase.project_url` · `supabase.publishable_key`).
+  static const String supabaseConnect = 'SECRET_SUPABASE_CONNECT';
 
   static const Set<String> values = <String>{
     secretKisMock,
@@ -82,5 +89,6 @@ abstract final class OnboardingSlotIds {
     recoveryChecksum,
     recoveryLogin,
     viewerQrScan,
+    supabaseConnect,
   };
 }
