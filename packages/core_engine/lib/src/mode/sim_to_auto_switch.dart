@@ -152,7 +152,8 @@ Future<void> _undoResumes(
   }
 }
 
-const String _prepareFailedHeadline =
+/// 🆕 R202 — 새 체크 준비 실패 문구(감시 원격이 없는 조립도 같은 글자로 거부한다).
+const String kSimToAutoWatchdogPrepareFailedHeadline =
     '바깥 감시를 준비하지 못해 전환하지 않았습니다 — 바뀐 것은 없습니다. 잠시 뒤 다시 확정해 주세요.';
 const String _commitUnknownHeadline =
     '확정 결과를 확인하지 못했습니다 — 앱을 다시 열어 상태를 확인해 주세요.';
@@ -194,7 +195,7 @@ Future<SimToAutoSwitchResult> runSimToAutoSwitch({
       committed: false,
       stage: SimToAutoSwitchStage.prepare,
       code: kSimToAutoWatchdogPrepareFailed,
-      headline: _prepareFailedHeadline,
+      headline: kSimToAutoWatchdogPrepareFailedHeadline,
     );
   }
 

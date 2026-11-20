@@ -5,6 +5,7 @@
 //    확정 = 엔진 1단계 관문(조회 포트 0 → 쓰기 0) · args 꼴이 틀리면 [ArgumentError].
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:app_operator_android/app/operator_handover.dart';
@@ -14,7 +15,15 @@ import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/secret/secret_handoff.dart';
 import 'package:broker_gateway/broker_gateway.dart'
-    show KisCredentials, KisRestClient;
+    show
+        KisCredentials,
+        KisEnvironment,
+        KisKeySet,
+        KisRateGate,
+        KisRestClient,
+        KisTokenStore,
+        deleteKisCredentials,
+        storeKisCredentials;
 import 'package:core_engine/core_engine.dart'
     show
         BiometricOutcome,
@@ -31,10 +40,14 @@ import 'package:core_engine/core_engine.dart'
         SimToAutoCommitCodes,
         TierBCard,
         TrustedClock,
+        WatchdogRemote,
         kHandoverCancelledHeadline,
         kNoApprovedConfig,
+        kSimToAutoWatchdogPrepareFailed,
+        kSimToAutoWatchdogPrepareFailedHeadline,
         simToAutoCommitHeadline;
-import 'package:core_engine/testing.dart' show MemorySecretVault;
+import 'package:core_engine/testing.dart'
+    show FakeWatchdogRemote, MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
         SqliteConfigVersionStore,
@@ -250,12 +263,16 @@ void main() {
     Future<BiometricOutcome> Function()? bio,
     bool noBio = false,
     String? device = 'dev-1',
+    MemorySecretVault? vault,
+    WatchdogRemote? remote,
   }) {
     final OperatorRuntime r = OperatorRuntime(
       files: files,
       clock: clock,
       trusted: withTrusted ? trusted : null,
       deviceId: device,
+      vault: vault,
+      watchdogRemote: remote,
       biometricSign: noBio ? null : (bio ?? () async => BiometricOutcome.ok),
       liveObservation: observation
           ? LiveObservationConfig(requiredTradingDays: 2)
@@ -691,5 +708,242 @@ void main() {
       expect(id.wire, startsWith('HANDOVER_'));
     }
     expect(kOperatorHandoverActions, hasLength(4));
+  });
+
+  group('🆕 R202(207 ⓖ) 확정 배선 — 관문(조회 0) → 실전 조회(조회만) → 관문 → 오케스트레이터', () {
+    late MemorySecretVault vault;
+    late FakeWatchdogRemote remote;
+    late List<http.Request> reqs;
+    late int holdings;
+
+    http.Response json(Object body) => http.Response.bytes(
+      utf8.encode(jsonEncode(body)),
+      200,
+      headers: <String, String>{
+        'content-type': 'application/json; charset=utf-8',
+      },
+    );
+
+    KisRestClient client(KisCredentials c, KisTokenStore t) => KisRestClient(
+      MockClient((http.Request r) async {
+        reqs.add(r);
+        if (r.url.path == '/oauth2/tokenP') {
+          return json(<String, Object>{
+            'access_token': 'eyFAKE-TOKEN',
+            'token_type': 'Bearer',
+            'expires_in': 86400,
+          });
+        }
+        if (r.url.path.endsWith('/inquire-daily-ccld')) {
+          return json(<String, Object>{'rt_cd': '0', 'output1': <Object>[]});
+        }
+        return json(<String, Object>{
+          'rt_cd': '0',
+          'output1': <Object>[
+            for (int i = 0; i < holdings; i++)
+              <String, String>{'pdno': '00000$i', 'hldg_qty': '3'},
+          ],
+          'output2': <Object>[
+            <String, String>{
+              'prvs_rcdl_excc_amt': '1000000',
+              'dnca_tot_amt': '1000000',
+            },
+          ],
+        });
+      }),
+      c,
+      environment: c.environment,
+      tokens: t,
+      sleep: (_) async {},
+      gate: KisRateGate(Duration.zero, sleep: (_) async {}),
+    );
+
+    setUp(() async {
+      vault = MemorySecretVault();
+      remote = FakeWatchdogRemote();
+      reqs = <http.Request>[];
+      holdings = 0;
+      await storeKisCredentials(
+        vault,
+        KisKeySet.live,
+        KisCredentials(
+          environment: KisEnvironment.live,
+          appKey: 'PSTESTAPPKEY0000000000001',
+          appSecret: 'TESTSECRETVALUEabcdefghijklmnop9876',
+          accountNo: '87654321',
+        ),
+      );
+    });
+
+    /// 세션 열고 냉각 뒤(01-09 13:00)까지 — 승인 config 는 [approve] 일 때만.
+    Future<(OperatorHandover, String)> opened({
+      bool approve = true,
+      bool withRemote = true,
+    }) async {
+      final OperatorRuntime r = rt(
+        vault: vault,
+        remote: withRemote ? remote : null,
+      );
+      await trialDone();
+      final OperatorHandover h = OperatorHandover(
+        r,
+        goldenPassed: () => true,
+        liveKeysVerified: () => true,
+        clientOf: client,
+      );
+      await h.run(
+        SettingsActionId.handoverSimLedgerFate,
+        const <String, String>{'fate': 'KEEP'},
+      );
+      if (approve) approveConfig();
+      final ActionResult s0 = await h.run(
+        SettingsActionId.handoverSessionStart,
+        const <String, String>{'path': 'SIM_TO_AUTO'},
+      );
+      expect(s0.reasonCode, isNull);
+      final String sid =
+          files
+                  .liveIfExists()!
+                  .select('SELECT handover_session_id FROM handover_session')
+                  .single
+                  .values
+                  .single!
+              as String;
+      trusted.at = _k('2027-01-09', 13);
+      return (h, sid);
+    }
+
+    int liveRuns() =>
+        files
+                .liveIfExists()!
+                .select(
+                  "SELECT COUNT(*) AS n FROM mode_transition WHERE axis = 'RUN_MODE'",
+                )
+                .first['n']!
+            as int;
+
+    test('🔴 통과 = 새 감시 체크 → 실전 커밋(live × dryRun) → 모의 CLOSE → 운영 화면으로 · 조회 TR 만 · 토큰 1회 · 연금저축 = 상품코드 22', () async {
+      final (OperatorHandover h, String sid) = await opened();
+      final ActionResult r = await h.run(
+        SettingsActionId.handoverCommit,
+        <String, String>{'handover_session_id': sid},
+      );
+      expect(
+        (r.reasonCode, r.level, r.handoffRoute),
+        (null, UiLevel.ok, AppRoutes.settingsOperations),
+      );
+      expect(r.headline, startsWith('실전 자동 매매로 옮겼습니다 — 계좌 2곳'));
+      expect(liveRuns(), 1);
+      expect(
+        files
+            .liveIfExists()!
+            .select(
+              "SELECT exec_policy FROM mode_transition WHERE axis = 'RUN_MODE'",
+            )
+            .single
+            .values
+            .single,
+        'DRY_RUN',
+      );
+      expect(
+        files.sim
+            .select(
+              "SELECT COUNT(*) AS n FROM mode_transition WHERE axis = 'CLOSE'",
+            )
+            .first['n'],
+        1,
+      );
+      expect(
+        remote.calls.where((String c) => c.startsWith('ensure:live-auto-')),
+        isNotEmpty,
+      );
+      // 🔴 조회만 — 주문 · 정정 · 취소 TR 0 · 토큰 = 같은 앱키 한 번.
+      final Set<String?> trs = <String?>{
+        for (final http.Request q in reqs) q.headers['tr_id'],
+      }..remove(null);
+      expect(trs, <String>{'TTTC8434R', 'TTTC0081R'});
+      final List<http.Request> tokens = reqs
+          .where((http.Request q) => q.url.path == '/oauth2/tokenP')
+          .toList();
+      expect(tokens, hasLength(1));
+      final Set<String?> products = reqs
+          .where((http.Request q) => q.url.path.endsWith('/inquire-balance'))
+          .map((http.Request q) => q.url.queryParameters['ACNT_PRDT_CD'])
+          .toSet();
+      expect(products, <String>{'01', '22'});
+      expect(
+        <String>{for (final http.Request q in reqs) q.url.host},
+        <String>{'openapi.koreainvestment.com'},
+      );
+    });
+
+    test('🔴 보유가 있으면 = 관문 거부 원문 · 바깥 감시 0 · 실전 쓰기 0', () async {
+      holdings = 1;
+      final (OperatorHandover h, String sid) = await opened();
+      final ActionResult r = await h.run(
+        SettingsActionId.handoverCommit,
+        <String, String>{'handover_session_id': sid},
+      );
+      expect(
+        (r.reasonCode, r.headline),
+        (
+          SimToAutoCommitCodes.holdingsNotZero,
+          simToAutoCommitHeadline(SimToAutoCommitCodes.holdingsNotZero),
+        ),
+      );
+      expect(remote.calls, isEmpty);
+      expect(liveRuns(), 0);
+    });
+
+    test('🔴 승인 config 없음 = 조회 · 감시 전에 거부(네트워크 0)', () async {
+      final (OperatorHandover h, String sid) = await opened(approve: false);
+      final ActionResult r = await h.run(
+        SettingsActionId.handoverCommit,
+        <String, String>{'handover_session_id': sid},
+      );
+      expect(r.reasonCode, SimToAutoCommitCodes.configNotApproved);
+      expect(reqs, isEmpty);
+      expect(remote.calls, isEmpty);
+    });
+
+    test(
+      '감시 원격 없음 = 준비 실패 원문(쓰기 0) · 금고에 키 없음 = 조회 0 → PROBE_MISSING',
+      () async {
+        final (OperatorHandover h, String sid) = await opened(
+          withRemote: false,
+        );
+        final ActionResult r = await h.run(
+          SettingsActionId.handoverCommit,
+          <String, String>{'handover_session_id': sid},
+        );
+        expect(
+          (r.reasonCode, r.headline),
+          (
+            kSimToAutoWatchdogPrepareFailed,
+            kSimToAutoWatchdogPrepareFailedHeadline,
+          ),
+        );
+        expect(liveRuns(), 0);
+        await deleteKisCredentials(vault, KisKeySet.live);
+        reqs.clear();
+        final ActionResult m = await h.run(
+          SettingsActionId.handoverCommit,
+          <String, String>{'handover_session_id': sid},
+        );
+        expect(m.reasonCode, SimToAutoCommitCodes.probeMissing);
+        expect(reqs, isEmpty);
+      },
+    );
+
+    test('바깥 감시 준비가 실패하면 = 커밋 0 · 엔진 원문', () async {
+      remote.failOn[('ensure', '*')] = Exception('down');
+      final (OperatorHandover h, String sid) = await opened();
+      final ActionResult r = await h.run(
+        SettingsActionId.handoverCommit,
+        <String, String>{'handover_session_id': sid},
+      );
+      expect(r.reasonCode, kSimToAutoWatchdogPrepareFailed);
+      expect(liveRuns(), 0);
+    });
   });
 }
