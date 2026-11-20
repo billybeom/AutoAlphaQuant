@@ -81,6 +81,11 @@ abstract final class OnboardingSlotIds {
   ///    (`SupabaseInputResultCodes`) · 통과 = 서버 시각 1회 확인 뒤 금고(`supabase.project_url` · `supabase.publishable_key`).
   static const String supabaseConnect = 'SECRET_SUPABASE_CONNECT';
 
+  /// 🆕 v1.31(01 §40 · K238 · E11k-d2) — `o_07` ③ Supabase 로그인(이메일 + 비밀번호 두 칸 · 붙여넣기만) — 🔒 조립 앱 슬롯(06 M4-11).
+  /// 🔴 같은 `o_07` 단계에서 ② 통과(`IN_PROGRESS`) 뒤 엔진 상세 VM 이 [supabaseConnect] 대신 내준다(한 화면에 슬롯 하나) ·
+  ///    비밀번호 = 슬롯 ↔ `supabaseSignIn` 구현 사이만(필드 · 금고 · 결과 · 로그 0) · 새로고침 토큰만 금고.
+  static const String supabaseLogin = 'SECRET_SUPABASE_LOGIN';
+
   static const Set<String> values = <String>{
     secretKisMock,
     pledgeWrite,
@@ -90,5 +95,6 @@ abstract final class OnboardingSlotIds {
     recoveryLogin,
     viewerQrScan,
     supabaseConnect,
+    supabaseLogin,
   };
 }

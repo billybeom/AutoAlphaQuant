@@ -213,6 +213,12 @@ enum SettingsActionId {
   @JsonValue('CONNECTION_SYNC_NOW')
   connectionSyncNow('CONNECTION_SYNC_NOW'),
 
+  /// 🆕 v1.31(01 §40 · K239 · E11k-d2) — `o_07` ③ Supabase 로그인(이메일 + 비밀번호 = 슬롯 `SECRET_SUPABASE_LOGIN` ↔ 구현 사이만) · args `{}` ·
+  /// 1단(통과 = 구현이 새로고침 토큰을 금고에) · 결과 `reasonCode` ∈ `SupabaseAuthResultCodes` ∪ `SupabaseTimeResultCodes` 전송 6 ∪ null ·
+  /// 🔴 `connectionTest{SUPABASE}`(o_07 ② 연결)과 다른 동작 — 한 단계 안 두 결과를 섞지 않는다.
+  @JsonValue('SUPABASE_SIGN_IN')
+  supabaseSignIn('SUPABASE_SIGN_IN'),
+
   /// 🆕 v1.18(01 §27 · K-s · 05 §7 C22) — `S07` 알림 채널 선택(운영 등급 · 🔴 `settingsGeneralUpdate` 로 태우지 않는다 —
   /// 채널은 안전장치의 일부). args = `{channel ∈ NotifyChannelCodes}`(엔진이 `NotifyChannelOption.selectAction` 에 완성).
   @JsonValue('NOTIFY_CHANNEL_SELECT')
