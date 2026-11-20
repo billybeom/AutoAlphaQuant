@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.26.0",
+    "generated_at": "2026-11-20T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261120,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-12-20T03:00:00Z", "trade_date": "2026-12-20", "source": "LOCAL_SQLITE", "stale_after_seconds": 300, "label": "전환 판정 2026-12-20 12:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "headline": "모의투자 자동 매매 중일 때만 실전으로 옮길 수 있습니다.",
+      "level": "INFO",
+      "reason_code": "SIM_TO_AUTO_NOT_SIM_AUTO",
+      "path_label": "모의투자 → 실전 자동 매매(관찰부터)",
+      "rows": [],
+      "trial": null,
+      "cooling_text": null,
+      "deadline_text": null,
+      "window_text": null,
+      "notice_text": null,
+      "done_label": null,
+      "locked_label": null,
+      "as_of": { "observed_at": "2026-12-20T03:00:00Z", "trade_date": "2026-12-20", "source": "LOCAL_SQLITE", "stale_after_seconds": 300, "label": "전환 판정 2026-12-20 12:00" }
+    }
+  ]
+}

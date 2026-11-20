@@ -421,7 +421,8 @@ abstract class RuleChangeGateVm with _$RuleChangeGateVm {
     String? windowText,
 
     /// 요청할 수 있는 후보(엔진 · v1 = 0 또는 1). 빈 목록 = 요청 버튼 0.
-    @Default(<RuleChangeCandidateRow>[]) List<RuleChangeCandidateRow> candidates,
+    @Default(<RuleChangeCandidateRow>[])
+    List<RuleChangeCandidateRow> candidates,
 
     /// 열린 요청(엔진 `queue()` 차례).
     @Default(<RuleChangeQueueRow>[]) List<RuleChangeQueueRow> rows,

@@ -43,6 +43,7 @@ abstract final class FixturePaths {
   //    🆕 v1.25(01 §34) — 킬스위치 화면 7 · 발동 접수증 1 · 게이트 꺼짐 1 · 차단 보드 4(같은 차례 규약).
   //    (파일 이름 바이트 차례 · `all` 도 같은 차례)
   //    🆕 v1.22(01 §31) — 사다리 2 · simToAuto 계획 4 · 위저드 결과 1 · E13 결과 1(같은 차례 규약).
+  //    🆕 v1.26(01 §35) — 보드 RECON 1 · 위저드 12 · RECON 결과 1 · 규칙 변경 게이트 5 · 요청 결과 1(같은 차례 규약).
 
   /// 🆕 v1.25(K154) — `M5-5` 보드 · 막힌 것 0(빈 문장 · 사다리 정상).
   static const String m5BlockBoardClear = 'm5/block_board_clear.json';
@@ -50,6 +51,10 @@ abstract final class FixturePaths {
   /// 🆕 v1.25 — `M5-5` 보드 · 킬스위치 행(기록 뒤 대기) · COOLDOWN 게이지.
   static const String m5BlockBoardKillActive =
       'm5/block_board_kill_active.json';
+
+  /// 🆕 v1.26 — `M5-5` 보드 · RECON 행 해제 폼(원인 코드 6 · K181) + JOURNAL_MISSING(폼 0).
+  static const String m5BlockBoardReconMismatch =
+      'm5/block_board_recon_mismatch.json';
 
   /// 🆕 v1.25(K155) — `M5-5` 보드 · RESUME_INCOMPLETE(→ X2 게이트) + JOURNAL_MISSING.
   static const String m5BlockBoardResumeIncomplete =
@@ -83,6 +88,54 @@ abstract final class FixturePaths {
   /// 🆕 v1.22 — simToAuto 계획 · 3단계 실전 키 조회 실패(`SIM_TO_AUTO_LIVE_KEYS_FAILED`).
   static const String m5HandoverSimToAutoS3Blocked =
       'm5/handover_sim_to_auto_s3_blocked.json';
+
+  /// 🆕 v1.26 — `M5-11` 확정 가능(S7 통과 · 확정 + 취소 · 커밋 창 글자 · 머리 OK).
+  static const String m5HandoverWizardCommitReady =
+      'm5/handover_wizard_commit_ready.json';
+
+  /// 🆕 v1.26 — `M5-11` 확정됨(상태 문장 · 동작 0).
+  static const String m5HandoverWizardCommitted =
+      'm5/handover_wizard_committed.json';
+
+  /// 🆕 v1.26 — `M5-11` 냉각 중(S7 막힘 WATCH · 취소 1 · 냉각 끝·확정 기한 글자).
+  static const String m5HandoverWizardCooling =
+      'm5/handover_wizard_cooling.json';
+
+  /// 🆕 v1.26 — `M5-11` 확정 기한 지남(S7 막힘 · S6 다시 시작 1).
+  static const String m5HandoverWizardExpired =
+      'm5/handover_wizard_expired.json';
+
+  /// 🆕 v1.26 — `M5-11` S5 고르기(동작 2 · 세션 전 · 머리 code = 단계 id).
+  static const String m5HandoverWizardFatePending =
+      'm5/handover_wizard_fate_pending.json';
+
+  /// 🆕 v1.26 — `M5-11` 확정 가능 + 잠김(모든 동작 0).
+  static const String m5HandoverWizardLocked = 'm5/handover_wizard_locked.json';
+
+  /// 🆕 v1.26 — `M5-11` 전제 밖(모의 자동 매매 아님 · 행 0).
+  static const String m5HandoverWizardNotApplicable =
+      'm5/handover_wizard_not_applicable.json';
+
+  /// 🆕 v1.26 — `M5-11` S3 막힘(S2·S3·S4 링크).
+  static const String m5HandoverWizardS3Blocked =
+      'm5/handover_wizard_s3_blocked.json';
+
+  /// 🆕 v1.26 — `M5-11` S6 시작(동작 1 · 승인 config 고지).
+  static const String m5HandoverWizardStartReady =
+      'm5/handover_wizard_start_ready.json';
+
+  /// 🆕 v1.26 — `M5-11` 신뢰 시각 모름(S7 UNKNOWN WATCH · 취소 자리 그대로 — K176).
+  static const String m5HandoverWizardTimeUnknown =
+      'm5/handover_wizard_time_unknown.json';
+
+  /// 🆕 v1.26 — `M5-11` 체험 미완(S1 막힘 · 체험 카드 · 동작 0).
+  static const String m5HandoverWizardTrialIncomplete =
+      'm5/handover_wizard_trial_incomplete.json';
+
+  /// 🆕 v1.26 — `M5-11` 커밋 창 막힘(7 통과 · 머리 = 창 라벨 · 확정 0).
+  static const String m5HandoverWizardWindowBlocked =
+      'm5/handover_wizard_window_blocked.json';
+
   static const String m5KillChecklistReceipts =
       'm5/kill_checklist_receipts.json';
   static const String m5KillResumeGateConditionUnmet =
@@ -136,6 +189,33 @@ abstract final class FixturePaths {
   static const String m5PledgeEditWindow = 'm5/pledge_edit_window.json';
   static const String m5PledgeNotWritten = 'm5/pledge_not_written.json';
   static const String m5PledgeWritten = 'm5/pledge_written.json';
+
+  /// 🆕 v1.26 — `runReconClear` 결과 6행(성공 · `ReconClearResultCodes` 3 · 공용 2 · K182).
+  static const String m5ReconClearResults = 'm5/recon_clear_results.json';
+
+  /// 🆕 v1.26 — `M5-9` 냉각 끝(승인 폼 · 취소).
+  static const String m5RuleChangeGateApprovable =
+      'm5/rule_change_gate_approvable.json';
+
+  /// 🆕 v1.26 — `M5-9` 첫 승인 요청 냉각 중(승인 0 · 취소 1).
+  static const String m5RuleChangeGateCooling =
+      'm5/rule_change_gate_cooling.json';
+
+  /// 🆕 v1.26 — `M5-9` 승인된 설정 · 후보 0 · 큐 0(빈 문장).
+  static const String m5RuleChangeGateEmpty = 'm5/rule_change_gate_empty.json';
+
+  /// 🆕 v1.26 — `M5-9` 승인 config 0 · 후보 1(첫 승인 요청).
+  static const String m5RuleChangeGateFirstCandidate =
+      'm5/rule_change_gate_first_candidate.json';
+
+  /// 🆕 v1.26 — `M5-9` 잠김(후보 0 · 승인·취소 0).
+  static const String m5RuleChangeGateLocked =
+      'm5/rule_change_gate_locked.json';
+
+  /// 🆕 v1.26 — `runRuleChangeRequest` 결과 7행(성공 · 사전 3 · 공용 2 · 생체 · K178).
+  static const String m5RuleChangeRequestResults =
+      'm5/rule_change_request_results.json';
+
   static const String m5SafetyActionResults = 'm5/safety_action_results.json';
 
   /// 🆕 v1.22(K52~K55) — E13 나머지 동작 8 결과 31행(`SafetyActionResult` · RECON 해제 = 생체 코드만 · K55).
@@ -997,6 +1077,7 @@ abstract final class FixturePaths {
     sleeveCatalog4,
     m5BlockBoardClear,
     m5BlockBoardKillActive,
+    m5BlockBoardReconMismatch,
     m5BlockBoardResumeIncomplete,
     m5BlockBoardStopped,
     m5BreakerLadderNormal,
@@ -1006,6 +1087,18 @@ abstract final class FixturePaths {
     m5HandoverSimToAutoFatePending,
     m5HandoverSimToAutoReady,
     m5HandoverSimToAutoS3Blocked,
+    m5HandoverWizardCommitReady,
+    m5HandoverWizardCommitted,
+    m5HandoverWizardCooling,
+    m5HandoverWizardExpired,
+    m5HandoverWizardFatePending,
+    m5HandoverWizardLocked,
+    m5HandoverWizardNotApplicable,
+    m5HandoverWizardS3Blocked,
+    m5HandoverWizardStartReady,
+    m5HandoverWizardTimeUnknown,
+    m5HandoverWizardTrialIncomplete,
+    m5HandoverWizardWindowBlocked,
     m5KillChecklistReceipts,
     m5KillResumeGateConditionUnmet,
     m5KillResumeGateInProgress,
@@ -1026,6 +1119,13 @@ abstract final class FixturePaths {
     m5PledgeEditWindow,
     m5PledgeNotWritten,
     m5PledgeWritten,
+    m5ReconClearResults,
+    m5RuleChangeGateApprovable,
+    m5RuleChangeGateCooling,
+    m5RuleChangeGateEmpty,
+    m5RuleChangeGateFirstCandidate,
+    m5RuleChangeGateLocked,
+    m5RuleChangeRequestResults,
     m5SafetyActionResults,
     m5SafetyActionResultsE13,
     m6Advice12,

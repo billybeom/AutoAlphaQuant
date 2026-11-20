@@ -257,8 +257,7 @@ abstract class DiscretionAdjustSubmission with _$DiscretionAdjustSubmission {
 /// 🔴 사람 글 5칸 = 원문 그대로(빈칸 = 엔진 `RULE_CHANGE_FIELDS_MISSING` · 저널 3칸 빈칸 = `RULE_CHANGE_JOURNAL_MISSING`) ·
 ///    화면은 검증·파싱하지 않는다.
 @freezed
-abstract class RuleChangeRequestSubmission
-    with _$RuleChangeRequestSubmission {
+abstract class RuleChangeRequestSubmission with _$RuleChangeRequestSubmission {
   const factory RuleChangeRequestSubmission({
     /// 엔진 후보 행 값 그대로(`RuleChangeCandidateRow.candidateId`).
     required String candidateId,

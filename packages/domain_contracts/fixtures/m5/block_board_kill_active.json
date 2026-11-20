@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.25.0",
+    "contract_version": "1.26.0",
     "generated_at": "2026-11-19T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -18,7 +18,7 @@
       "level": "BLOCKED",
       "breaker_label": "정상",
       "rows": [
-        { "row_id": "KILL_SWITCH", "label": "킬스위치 작동 중 — 신규 주문을 막고 있습니다", "set_at_text": "(합성) 12-23 10:02부터", "clear_kind_label": "(합성) 재개 게이트로만 풀립니다", "clear_instruction": "해제 가능 예정 12-25 10:20", "level": "BLOCKED", "link": { "label": "(합성) 킬스위치 보기", "deep_link": "aaq://m5/kill-switch" } }
+        { "row_id": "KILL_SWITCH", "label": "킬스위치 작동 중 — 신규 주문을 막고 있습니다", "set_at_text": "(합성) 12-23 10:02부터", "clear_kind_label": "(합성) 재개 게이트로만 풀립니다", "clear_instruction": "해제 가능 예정 12-25 10:20", "level": "BLOCKED", "link": { "label": "(합성) 킬스위치 보기", "deep_link": "aaq://m5/kill-switch" }, "recon_clear": null }
       ],
       "gauges": [
         { "code": "COOLDOWN", "label": "냉각 기간", "normalized": 0.4, "value_text": "(합성) 남은 29시간" }
