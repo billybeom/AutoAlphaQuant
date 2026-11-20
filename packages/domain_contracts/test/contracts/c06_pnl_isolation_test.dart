@@ -137,6 +137,8 @@ void main() {
         FixturePaths.m9ConnectionsLocked,
         FixturePaths.m9SettingsActionResults,
         FixturePaths.m8AlertsSafetyResume,
+        // 🆕 v1.27(01 §36) — 엔진 등재형 알림 5.
+        FixturePaths.m8AlertsEngineProposalsV127,
         // 🆕 v1.19(01 §28) — S05 7 · 결과 1.
         FixturePaths.m9OperationsSimAuto,
         FixturePaths.m9OperationsSimComplete,

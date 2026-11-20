@@ -591,7 +591,7 @@ void main() {
       }
     });
 
-    test('C-52 ⑩ 엔진 등재형 — safety 3 · resume 3 · values 31 · 알림 표본 6 · LEASE_INVALID', () {
+    test('C-52 ⑩ 엔진 등재형 — safety 3 · resume 3 · values 36(🆕 v1.27 +5 = C-61) · 알림 표본 6 · LEASE_INVALID', () {
       expect(AlertCodes.safety, <String>{
         'BREAKER_STOPPED',
         'LEDGER_INTEGRITY_BROKEN',
@@ -602,7 +602,10 @@ void main() {
         'RESUME_COMPLETED',
         'RESUME_DATA_GAP',
       });
-      expect(AlertCodes.values, hasLength(31));
+      expect(
+        AlertCodes.values,
+        hasLength(36),
+      ); // 🆕 v1.27(01 §36) — safetyWarn 4 · derivedSync 1(C-61).
       expect(AlertCodes.values.containsAll(AlertCodes.safety), isTrue);
       expect(AlertCodes.values.containsAll(AlertCodes.resume), isTrue);
       final List<String> codes = <String>[

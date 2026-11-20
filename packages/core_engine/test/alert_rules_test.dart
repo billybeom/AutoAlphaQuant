@@ -22,69 +22,72 @@ List<int> _due(
 );
 
 void main() {
-  test('🔴 등급 표 = 04 §5-3 그대로 + 계약 잠정 1 + 제안 6 + E3d 제안 4(04 §5-3 v2.46)', () {
-    List<String> of(AlertLevel l) =>
-        (kAlertLevels.entries
-            .where((MapEntry<String, AlertLevel> e) => e.value == l)
-            .map((MapEntry<String, AlertLevel> e) => e.key)
-            .toList()
-          ..sort());
-    expect(of(AlertLevel.p0), <String>[
-      'ADVICE_EXIT_URGENT',
-      'ADVICE_REVOKED',
-      'ADVICE_SUPPRESSED',
-      'BREAKER_STOPPED',
-      'BROKER_AUTH_FAILED',
-      'DERIVED_FORK',
-      'LEDGER_INTEGRITY_BROKEN',
-      'MAINTENANCE_RESUME_FAILED',
-      'ORDER_OUTCOME_UNKNOWN',
-      'RECON_MISMATCH',
-      'RESUME_TRADING_HALTED',
-    ]);
-    expect(of(AlertLevel.p1), <String>[
-      'ADVICE_DUE_SOON',
-      'ADVICE_ISSUED',
-      'BACKUP_STALE',
-      'DATA_SOURCE_DOWN',
-      'DEFENSIVE_FLOOR_BREACHED',
-      'FINANCIAL_INCOME_CAP_EXCEEDED',
-      'GOLD_SHARE_HIGH',
-      'HANDOVER_COMMITTED',
-      'HANDOVER_COOLING_ACTIVE',
-      'LEDGER_TRUST_DOWNGRADE',
-      'MAINTENANCE_WINDOW_OVERDUE',
-      'MANUAL_FILL_REJECTED',
-      'ORDER_REJECTED',
-      'REBALANCE_D1',
-      'RESUME_COMPLETED',
-      'STALE_ORDERS_HELD',
-      'STOPPED_RELEASE_ELIGIBLE',
-      'WATCHDOG_LATE',
-    ]);
-    expect(of(AlertLevel.p2), <String>[
-      'ADVICE_EXPIRED',
-      'CONTRIBUTION_CHANGED',
-      'DEPOSIT_REMINDER',
-      'KRW_LIQUIDITY_LOW',
-      'REBALANCE_D7',
-      'RESUME_DATA_GAP',
-      'SELF_AUDIT_DUE',
-    ]);
-    // 계약 코드 전부 등급이 있다 · 🆕 v1.18(앱 01 §27 · K-z) — 제안 6 = 계약 등재 → 표 밖 0.
-    // 🆕 E16f3a — 등재 대기 제안 1 = `DERIVED_FORK`(R130 L6 · 계약 등재 = E16i).
-    expect(AlertCodes.values.every(kAlertLevels.containsKey), isTrue);
-    expect(
-      kAlertLevels.keys.where((String c) => !AlertCodes.values.contains(c)),
-      <String>[
-        kDerivedForkAlertCode,
-        kDefensiveFloorAlertCode,
-        kGoldShareAlertCode,
-        kFinancialIncomeAlertCode,
-        kKrwLiquidityAlertCode,
-      ],
-    );
-  });
+  test(
+    '🔴 등급 표 = 04 §5-3 그대로 + 계약 잠정 1 + 제안 6 + 🆕 v1.27 등재 5(파생 FORK 1 · E3d 4)',
+    () {
+      List<String> of(AlertLevel l) =>
+          (kAlertLevels.entries
+              .where((MapEntry<String, AlertLevel> e) => e.value == l)
+              .map((MapEntry<String, AlertLevel> e) => e.key)
+              .toList()
+            ..sort());
+      expect(of(AlertLevel.p0), <String>[
+        'ADVICE_EXIT_URGENT',
+        'ADVICE_REVOKED',
+        'ADVICE_SUPPRESSED',
+        'BREAKER_STOPPED',
+        'BROKER_AUTH_FAILED',
+        'DERIVED_FORK',
+        'LEDGER_INTEGRITY_BROKEN',
+        'MAINTENANCE_RESUME_FAILED',
+        'ORDER_OUTCOME_UNKNOWN',
+        'RECON_MISMATCH',
+        'RESUME_TRADING_HALTED',
+      ]);
+      expect(of(AlertLevel.p1), <String>[
+        'ADVICE_DUE_SOON',
+        'ADVICE_ISSUED',
+        'BACKUP_STALE',
+        'DATA_SOURCE_DOWN',
+        'DEFENSIVE_FLOOR_BREACHED',
+        'FINANCIAL_INCOME_CAP_EXCEEDED',
+        'GOLD_SHARE_HIGH',
+        'HANDOVER_COMMITTED',
+        'HANDOVER_COOLING_ACTIVE',
+        'LEDGER_TRUST_DOWNGRADE',
+        'MAINTENANCE_WINDOW_OVERDUE',
+        'MANUAL_FILL_REJECTED',
+        'ORDER_REJECTED',
+        'REBALANCE_D1',
+        'RESUME_COMPLETED',
+        'STALE_ORDERS_HELD',
+        'STOPPED_RELEASE_ELIGIBLE',
+        'WATCHDOG_LATE',
+      ]);
+      expect(of(AlertLevel.p2), <String>[
+        'ADVICE_EXPIRED',
+        'CONTRIBUTION_CHANGED',
+        'DEPOSIT_REMINDER',
+        'KRW_LIQUIDITY_LOW',
+        'REBALANCE_D7',
+        'RESUME_DATA_GAP',
+        'SELF_AUDIT_DUE',
+      ]);
+      // 계약 코드 전부 등급이 있다 · 🆕 v1.18(앱 01 §27 · K-z) — 제안 6 = 계약 등재 → 표 밖 0.
+      // 🆕 E16f3a — 등재 대기 제안 1 = `DERIVED_FORK`(R130 L6) · E3d 제안 4(R177) — 🆕 계약 v1.27(01 §36 K188) 등재 → 표 밖 0.
+      expect(AlertCodes.values.every(kAlertLevels.containsKey), isTrue);
+      expect(
+        kAlertLevels.keys.where((String c) => !AlertCodes.values.contains(c)),
+        isEmpty,
+      );
+      // 엔진 상수 = 계약 상수 글자(K190 — 엔진은 제 상수를 그대로 둔다).
+      expect(kDerivedForkAlertCode, AlertCodes.derivedFork);
+      expect(kDefensiveFloorAlertCode, AlertCodes.defensiveFloorBreached);
+      expect(kGoldShareAlertCode, AlertCodes.goldShareHigh);
+      expect(kFinancialIncomeAlertCode, AlertCodes.financialIncomeCapExceeded);
+      expect(kKrwLiquidityAlertCode, AlertCodes.krwLiquidityLow);
+    },
+  );
 
   test('🔴 모르는 코드 = 오류(등급을 지어내지 않는다)', () {
     expect(alertLevelOf('ORDER_REJECTED'), AlertLevel.p1);

@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 117개 · 계약 v1.26.0 · 조립일 2026-11-20(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 117개 · 계약 v1.27.0 · 조립일 2026-11-20(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -304,12 +304,21 @@ export 'commands/settings_actions.dart';
 //    다음 판 = 1.27.0(서약 편집(01 §8 미결 208 뒤) · 규칙 변경 CHANGELOG · `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 · 개입 ·
 //    재량 · postmortem 목록 · M5-3 STOPPED VM · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 보기 VM(192 뒤) · E16i/E16j ·
 //    이름 없는 알림 · PNG F1·F2·F4~F7 중 먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-20 · 계약 v1.26».
+// 🆕 '1.27.0'(E3d 계약 창 · 01 §36 · 발주자 위임 2026-11-14 — 권고대로 · K187~K195) — 엔진 등재 대기 알림 5 등재(`kAlertLevels` 표 밖 0):
+//    🆕 `AlertCodes.safetyWarn` 4(`DEFENSIVE_FLOOR_BREACHED` · `GOLD_SHARE_HIGH` · `FINANCIAL_INCOME_CAP_EXCEEDED` · `KRW_LIQUIDITY_LOW` —
+//    04 §1 Level 3 · §5-3 v2.46 · 엔진 E3d) · 🆕 `AlertCodes.derivedSync` 1(`DERIVED_FORK` — 04 §5-3 v2.45 · E16i 의 알림 몫만) ·
+//    `values` 31 → 36 · 등급 = 주석 «잠정»(등급 사전 0 조문 그대로) · SAF-307 «초과 일수» = 계약 칸 0(월간 리포트 `D2_ALLOCATION`
+//    메모 = 엔진 문자열 · 13항목 불변 C-25 · 01 §8 미결 209) · 🆕 C-61 · 픽스처 359 → 360(신설 1) — 🆕 tool/gen_e3d_v127_fixtures.py.
+//    다음 판 = 1.28.0(v1.26 예고 «다음 판 = 1.27.0» 목록을 그대로 이어받는다 — 서약 편집(미결 208 뒤) · 규칙 변경 CHANGELOG ·
+//    `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 · 개입 · 재량 · postmortem 목록 · M5-3 STOPPED VM ·
+//    `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 보기 VM(192 뒤) · E16i 나머지/E16j · 이름 없는 알림 · PNG F1·F2·F4~F7 중
+//    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-20 · 계약 v1.27».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.26.0';
+const String contractVersion = '1.27.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -11551,6 +11560,11 @@ abstract final class FixturePaths {
   /// 등급 = 엔진 `kAlertLevels` · 등급 순).
   static const String m8AlertsSafetyResume = 'm8/alerts_safety_resume.json';
 
+  /// 🆕 v1.27(01 §36 · K191) — 엔진 등재형 5(`AlertCodes.safetyWarn` 4 · `derivedSync` 1) 각 1행(글자 = 엔진 `alert_text.dart` ·
+  /// 등급 = 엔진 `kAlertLevels` · 등급 순).
+  static const String m8AlertsEngineProposalsV127 =
+      'm8/alerts_engine_proposals_v127.json';
+
   /// 🆕 v1.17(01 §26 · 엔진 D11 · K27) — `STALE_ORDERS_HELD`(P1 · 다음 날 가드 보류) 알림 1행.
   static const String m8AlertsStaleOrdersHeld =
       'm8/alerts_stale_orders_held.json';
@@ -12150,6 +12164,7 @@ abstract final class FixturePaths {
     m8AlertDetailNoLink,
     m8AlertsAdvice9codes,
     m8AlertsDigest,
+    m8AlertsEngineProposalsV127,
     m8AlertsP0Ack,
     m8AlertsSafetyResume,
     m8AlertsStaleOrdersHeld,
@@ -12573,8 +12588,9 @@ abstract final class SeasonalEntryGateCodes {
 ## `packages/domain_contracts/lib/src/labels/alert_codes.dart`
 
 ```dart
-// 알림 코드 31종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11) ·
-// 🆕 v1.18 안전 3(E13 · 04 §5-3 v2.40·v2.41 제안) · 재개 3(E14 · 04 §5-3 v2.42 제안).
+// 알림 코드 36종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11) ·
+// 🆕 v1.18 안전 3(E13 · 04 §5-3 v2.40·v2.41 제안) · 재개 3(E14 · 04 §5-3 v2.42 제안) ·
+// 🆕 v1.27 SAF 경고 4(E3d · 04 §1 Level 3 · §5-3 v2.46 제안) · 파생 동기 1(E16 · 04 §5-3 v2.45 제안 · 01 §36).
 // 인벤토리 §6-9 의 분류를 그대로 쓴다.
 //
 // 🔴 **등급(P0/P1/P2)을 이 파일에 사전으로 만들지 않는다.** 등급의 런타임 정본은
@@ -12701,6 +12717,27 @@ abstract final class AlertCodes {
   /// 잠정 P2 · 되살릴 수 없는 기록 공백(복구 불가 갭이 있을 때 더한다).
   static const String resumeDataGap = 'RESUME_DATA_GAP';
 
+  // ── 🆕 v1.27 SAF 경고 4 (01 §36 K189 · 04 §1 Level 3 · §5-3 v2.46 · 엔진 E3d `p0s_warn.dart` · 주문을 막지 않는다) ──────────
+  /// 잠정 P1 · SAF-302 방어 자산(슬리브 C) 비중이 하한 밑 — 넘은 첫날 1건(엣지 · 머무는 동안 다시 내지 않는다 ·
+  /// 엔진 `kDefensiveFloorAlertCode`).
+  static const String defensiveFloorBreached = 'DEFENSIVE_FLOOR_BREACHED';
+
+  /// 잠정 P1 · SAF-308 금 총비중이 감시선을 넘음 — 넘은 첫날 1건 · 강제 매도 0(엔진 `kGoldShareAlertCode`).
+  static const String goldShareHigh = 'GOLD_SHARE_HIGH';
+
+  /// 잠정 P1 · SAF-306 일반계좌 과세연도 금융소득 누계가 기준을 넘음 — 첫 초과 월 1건(월간 잡 · 엔진 `kFinancialIncomeAlertCode`).
+  static const String financialIncomeCapExceeded =
+      'FINANCIAL_INCOME_CAP_EXCEEDED';
+
+  /// 잠정 P2 · SAF-307 부속 원화 유동성(원화 현금 + 파킹)이 하한 밑 — 넘은 첫날 1건(엔진 `kKrwLiquidityAlertCode`).
+  /// 🔴 SAF-307 의 달러 노출 기준선 초과는 알림 코드가 없다 — 월간 리포트 `D2_ALLOCATION` 메모(01 §36 K192).
+  static const String krwLiquidityLow = 'KRW_LIQUIDITY_LOW';
+
+  // ── 🆕 v1.27 파생 동기 1 (01 §36 K188 · 04 §5-3 v2.45 · 엔진 E16 `derived_sync.dart` · E16i 의 알림 몫) ──────────
+  /// 잠정 P0 · 사본(아카이브 등)이 원장과 갈라져 그 사본 쓰기를 멈춤 — 대상마다 1건(끈적) · 주문은 막지 않는다 ·
+  /// 할 일 = X1 복원 또는 새 기준점(사람만 · 엔진 `kDerivedForkAlertCode`).
+  static const String derivedFork = 'DERIVED_FORK';
+
   /// X7 안내 9종.
   static const Set<String> x7Advice = <String>{
     adviceIssued,
@@ -12758,7 +12795,18 @@ abstract final class AlertCodes {
     resumeDataGap,
   };
 
-  /// 전량 31종.
+  /// 🆕 v1.27 SAF 경고 4종.
+  static const Set<String> safetyWarn = <String>{
+    defensiveFloorBreached,
+    goldShareHigh,
+    financialIncomeCapExceeded,
+    krwLiquidityLow,
+  };
+
+  /// 🆕 v1.27 파생 동기 1종.
+  static const Set<String> derivedSync = <String>{derivedFork};
+
+  /// 전량 36종.
   static const Set<String> values = <String>{
     ...x7Advice,
     ...handover,
@@ -12767,6 +12815,8 @@ abstract final class AlertCodes {
     ...operatingParam,
     ...safety,
     ...resume,
+    ...safetyWarn,
+    ...derivedSync,
   };
 }
 ```

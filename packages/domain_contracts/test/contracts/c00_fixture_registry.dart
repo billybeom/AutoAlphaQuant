@@ -856,6 +856,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8AlertsP0Ack: FixtureBinding(_alertItem),
   // 🆕 v1.18(01 §27 · 엔진 등재형 K-z) — `AlertCodes.safety` 3 · `resume` 3 알림 6행.
   FixturePaths.m8AlertsSafetyResume: FixtureBinding(_alertItem),
+  // 🆕 v1.27(01 §36 · K191) — 엔진 등재형 5(`safetyWarn` 4 · `derivedSync` 1) 알림 5행.
+  FixturePaths.m8AlertsEngineProposalsV127: FixtureBinding(_alertItem),
   // 🆕 v1.17(01 §26 · 엔진 D11) — `STALE_ORDERS_HELD` 알림 1행.
   FixturePaths.m8AlertsStaleOrdersHeld: FixtureBinding(_alertItem),
   // 🆕 v1.17(01 §26 · R16c) — `H-03` 기기 리스크 2.
