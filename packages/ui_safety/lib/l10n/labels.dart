@@ -93,4 +93,26 @@ abstract final class SafetyLabels {
 
   /// 서약 재생 머리.
   static const String resumePledgeTitle = '내가 쓴 서약';
+
+  // ── 🆕 M5-5 차단 보드(설계 13 §8 R185) — 칸 이름 · 실패 문장만(머리 · 행 · 게이지 · 사다리 글자 = 엔진) ──
+
+  /// 보드를 읽지 못했다(원천 오류 — «막힌 것 없음»과 다르다).
+  static const String blockBoardReadFailed = '차단 보드를 읽지 못했습니다.';
+
+  /// 읽기 실패에도 남는 킬스위치 진입(끄는 길은 언제나 — 목적지 = 계약 `killSwitchLink` 와 같은 화면).
+  static const String blockBoardKillFallback = '킬스위치 화면 열기';
+
+  /// 해제 진행 머리.
+  static const String blockBoardGauges = '해제 진행';
+
+  /// 사다리 머리.
+  static const String blockBoardLadder = '서킷브레이커 사다리';
+
+  /// 사다리 지금 단 표지(색만으로 말하지 않는다).
+  static const String blockBoardLadderNow = '지금 단계';
+
+  /// 사다리 칸 이름.
+  static const String blockBoardLadderTrigger = '들어가는 조건';
+  static const String blockBoardLadderRelease = '풀리는 조건';
+  static const String blockBoardLadderAction = '조치';
 }

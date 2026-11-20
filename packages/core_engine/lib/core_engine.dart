@@ -1143,6 +1143,9 @@ export 'src/safety/alert_text.dart'
         kAlertMissingLabel,
         kAlertTexts,
         kAlertWindowDays;
+// 🆕 E11q-b3 — M5-5 차단 보드 VM(설계 13 §8 R185 · 01 §34 K154 · K155).
+export 'src/safety/block_board.dart'
+    show BlockBoardTexts, blockBoardVmOf, breakerLadderVmOf, routePatternOf;
 // 🆕 E13e2 — 브레이커 사다리 원천(M5-4 · 설계 13 §8 R63 V4).
 export 'src/safety/breaker_ladder.dart'
     show BreakerLadderStep, breakerLadderOf, ladderPercent;

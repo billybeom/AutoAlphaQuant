@@ -49,7 +49,7 @@ import 'package:ui_analytics/ui_analytics.dart'
 import 'package:ui_journal/ui_journal.dart'
     show HoldingDetail, HoldingsAllocation, HoldingsOverview;
 import 'package:ui_safety/ui_safety.dart'
-    show KillResumeGateScreen, KillSwitchScreen;
+    show BlockBoardScreen, KillResumeGateScreen, KillSwitchScreen;
 import 'package:ui_settings/ui_settings.dart'
     show
         AnnualReviewEntry,
@@ -460,6 +460,18 @@ void main() {
       await _until(tester, find.byKey(const Key('m52-root')));
       expect(find.byKey(const Key('m52-confirm')), findsNothing);
       await _at(tester, find.byType(KillResumeGateScreen), 'IT_M52');
+      await tester.pageBack();
+
+      // 🆕 R185 — M5-5 차단 보드(홈 블록 1 · 3 · 알림 목적지 — 홈 탭 진입은 앱 위젯 시험 몫 · 여기는 더보기 탭 위 링크):
+      //    켜진 킬스위치 행(엔진 글자 · 선 시각 · 해제 성격) · 킬스위치 진입 · 사다리(지금 단 = 정상 표지).
+      container.read(shellLinkOpenerProvider).open(AppRoutes.m5BlockBoard);
+      await _until(tester, find.byKey(const Key('m55-row-KILL_SWITCH')));
+      expect(find.byKey(const Key('m55-kill')), findsOneWidget);
+      await _at(tester, find.byType(BlockBoardScreen), 'IT_M55A');
+      await tester.ensureVisible(find.byKey(const Key('m55-ladder-NORMAL')));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byKey(const Key('m55-ladder-now')), findsOneWidget);
+      await _at(tester, find.byType(BlockBoardScreen), 'IT_M55B');
       await tester.pageBack();
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);

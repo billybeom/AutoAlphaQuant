@@ -153,7 +153,7 @@ void main() {
           FlagIds.journalMissing: 'aaq://journal/draft/J-9',
           FlagIds.tierBUnjudged: null,
           FlagIds.dstWeek: null,
-          FlagIds.resumeIncomplete: null,
+          FlagIds.resumeIncomplete: 'aaq://x2/resume-gate',
           FlagIds.ledgerFix: null,
           FlagIds.ledgerIntegrity: 'aaq://x5/repair-wizard',
           FlagIds.adviceLedgerUnverified: 'aaq://m5/self-audit-resolve',

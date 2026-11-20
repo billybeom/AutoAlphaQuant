@@ -20,6 +20,7 @@ import 'package:app_operator_android/safety/biometric_sign_field.dart';
 import 'package:app_operator_android/secret/kis_key_set_field.dart';
 import 'package:core_engine/core_engine.dart'
     show
+        BlockBoardTexts,
         DeviceRiskFacts,
         HoldingsTexts,
         KillSwitchScreenTexts,
@@ -75,10 +76,12 @@ import 'package:ui_journal/ui_journal.dart'
 import 'package:ui_safety/sim_opening.dart' show SimOpeningCash;
 import 'package:ui_safety/ui_safety.dart'
     show
+        BlockBoardScreen,
         KillResumeGateScreen,
         KillSwitchScreen,
         KillSwitchSlot,
         PledgePanel,
+        safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
@@ -433,6 +436,18 @@ void main() {
         container.read(operatorSafetyActionsProvider).draft,
         container.read(operatorKillResumeDraftProvider),
       ),
+      true,
+    );
+    // 🆕 R185 — M5-5 차단 보드 읽기 = 한 인스턴스 · 레지스트리 등록.
+    expect(
+      identical(
+        container.read(safetyBlockBoardRepositoryProvider),
+        container.read(operatorBlockBoardProvider),
+      ),
+      true,
+    );
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5BlockBoard),
       true,
     );
     // 🆕 R182 — M8 운영 슬롯 빌더 = 셸 킬스위치 자리(ui_safety 자리 위젯) · 인쇄 = 자리 부재.
@@ -1026,6 +1041,33 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(KillResumeGateScreen), findsOneWidget);
       expect(find.byKey(const Key('m52-confirm')), findsNothing);
+      // 🆕 R185 — M5-5 차단 보드 = 등록 · 막힌 것 0 · 빈 문장 · 사다리 지금 단 = 정상 · 킬스위치 진입.
+      await open(tester, AppRoutes.m5BlockBoard);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final Finder board = find.byType(BlockBoardScreen);
+      expect(board, findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(
+        find.descendant(
+          of: board,
+          matching: find.text(BlockBoardTexts.clearHeadline),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('m55-empty')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('m55-ladder-NORMAL')),
+          matching: find.byKey(const Key('m55-ladder-now')),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('m55-kill')), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;
@@ -1107,6 +1149,102 @@ void main() {
           of: find.byKey(const Key('s01-link-kill-slot')),
           matching: find.byKey(const Key('ks-slot-active')),
         ),
+        findsOneWidget,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M5-5 차단 보드(R185) — 홈 블록 3 탭 → 보드 · 켜진 킬스위치 먼저 + 원장 플래그(엔진 차례 · 표식 제외) · 대사 불일치 = 행 링크 0 · 킬스위치 행 → M5-1',
+    (WidgetTester tester) async {
+      // 켜진 킬스위치 + 활성 플래그 셋(대사 불일치 · 재개 미완 · 표식 DST) — 화면이 서기 전에 원장에 둔다.
+      files.sim.execute(
+        'INSERT OR REPLACE INTO kill_switch_state (id, activated_at, activated_by) VALUES (1, ?, ?)',
+        <Object?>[
+          '2026-11-18T01:02:00.000Z',
+          KillSwitchScreenTexts.operatorPhone,
+        ],
+      );
+      for (final (String id, String at, String? origin)
+          in <(String, String, String?)>[
+            (FlagIds.resumeIncomplete, '2026-11-18T00:12:00.000Z', null),
+            (FlagIds.dstWeek, '2026-11-17T00:00:00.000Z', null),
+            (FlagIds.reconMismatch, '2026-11-18T03:30:00.000Z', 'FILL_LAG'),
+          ]) {
+        files.sim.execute(
+          'INSERT INTO trading_block (flag_id, set_at, reason, origin_code) VALUES (?, ?, ?, ?)',
+          <Object?>[id, at, 'test', origin],
+        );
+      }
+      await pumpApp(tester);
+      await ready(tester);
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder blocked = find.byKey(const Key('h01-blocked'));
+      expect(blocked, findsOneWidget);
+      await tester.ensureVisible(blocked);
+      await tester.tap(blocked);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder board = find.byType(BlockBoardScreen);
+      expect(board, findsOneWidget);
+      expect(
+        find.descendant(
+          of: board,
+          matching: find.text('막힌 것 3 — 킬스위치 · 브로커 대사 · 재개 점검'),
+        ),
+        findsOneWidget,
+      );
+      final List<String> rows = <String>[
+        for (final Element e
+            in find
+                .descendant(of: board, matching: find.byType(Card))
+                .evaluate())
+          (e.widget.key! as ValueKey<String>).value,
+      ];
+      expect(rows, <String>[
+        'm55-row-KILL_SWITCH',
+        'm55-row-${FlagIds.reconMismatch}',
+        'm55-row-${FlagIds.resumeIncomplete}',
+      ]);
+      // 대사 불일치 = 이 보드 자신 → 링크 0 · 재개 화면(X2) = 아직 미등록 → 링크 0(없는 화면으로 보내지 않는다).
+      expect(
+        find.byKey(const Key('m55-row-link-RECON_MISMATCH')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('m55-row-link-RESUME_INCOMPLETE')),
+        findsNothing,
+      );
+      expect(find.byKey(const Key('m55-empty')), findsNothing);
+
+      expect(find.byKey(const Key('m55-kill')), findsOneWidget);
+      // 킬스위치 행 링크 = 레지스트리에 본문이 있는 M5-1(조립 앱 hasBody) → 켜짐 화면.
+      final Finder ksLink = find.byKey(const Key('m55-row-link-KILL_SWITCH'));
+      await tester.ensureVisible(ksLink);
+      await tester.tap(ksLink);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder ks = find.byType(KillSwitchScreen);
+      expect(ks, findsOneWidget);
+      expect(
+        find.descendant(of: ks, matching: find.textContaining('킬스위치 작동 중')),
         findsOneWidget,
       );
       await tester.pumpWidget(const SizedBox.shrink());
