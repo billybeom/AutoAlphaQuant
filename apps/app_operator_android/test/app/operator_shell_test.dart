@@ -456,7 +456,7 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5BlockBoard),
       true,
     );
-    // 🆕 R186 — X2 재개 리포트 · 게이트 읽기 = 한 인스턴스 · 레지스트리 둘 · 🆕 R194 계절 3택 쓰기 = 켜짐.
+    // 🆕 R186 — X2 재개 리포트 · 게이트 읽기 = 한 인스턴스 · 레지스트리 둘 · 🆕 R195 계절 3택 쓰기 = 켜짐.
     expect(
       identical(
         container.read(safetyResumeGateRepositoryProvider),
@@ -1287,7 +1287,7 @@ void main() {
   );
 
   testWidgets(
-    '🔴 X2 재개(R186 · R194) — 차단 보드 재개 미완 행 링크 → 게이트(막힌 계획 · 계절 3택 = 사람 결정 행에만 · 누르면 엔진 결과) → 리포트(항목 차례)',
+    '🔴 X2 재개(R186 · R195) — 차단 보드 재개 미완 행 링크 → 게이트(막힌 계획 · 계절 3택 = 사람 결정 행에만 · 누르면 엔진 결과) → 리포트(항목 차례)',
     (WidgetTester tester) async {
       // 끝난 재개 회차(계절 대기 · 기한 지남 · 집행 예정) + 재개 미완 플래그 — 화면이 서기 전에 원장에 둔다.
       files.sim.execute(
@@ -1380,7 +1380,7 @@ void main() {
         ],
         <String>['x2g-row-w_season', 'x2g-row-w_due'],
       );
-      // 🆕 R194 — 계절 3택 = 사람 결정 행에만(기한 지난 행 = 0) · 누르면 엔진 판정(이 원장엔 계획 행이 없어 PLANNED_WORK_UNKNOWN 원문).
+      // 🆕 R195 — 계절 3택 = 사람 결정 행에만(기한 지난 행 = 0) · 누르면 엔진 판정(이 원장엔 계획 행이 없어 PLANNED_WORK_UNKNOWN 원문).
       expect(
         find.descendant(
           of: find.byKey(const Key('x2g-row-w_season')),

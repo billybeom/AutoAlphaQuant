@@ -271,7 +271,7 @@ ResumeGateVm resumeGateVmOf({
 /// 생체 확인 불가(계약 `BIOMETRIC_UNAVAILABLE` · 계절 선택 결과 사전).
 const String _kBiometricUnavailable = 'BIOMETRIC_UNAVAILABLE';
 
-/// 🆕 E11q-b2b(R194 · K54) — 계절 3택 결과 글자(표본 `m5/safety_action_results_e13` 제안 문장 · «(합성)» 뗌) — (수준, 문장) ·
+/// 🆕 E11q-b2b(R195 · K54) — 계절 3택 결과 글자(표본 `m5/safety_action_results_e13` 제안 문장 · «(합성)» 뗌) — (수준, 문장) ·
 /// 거부 = `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ 멈춤 사유 7 ∪ 생체 · 모르는 코드 = 오류(지어내지 않는다).
 (UiLevel, String) _seasonalText(String? code) => switch (code) {
   null => (UiLevel.ok, '고른 대로 기록했습니다 — 다음 주문 회차가 이어 갑니다.'),

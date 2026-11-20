@@ -449,7 +449,7 @@ void main() {
         }
         FocusManager.instance.primaryFocus?.unfocus();
         await tester.pump(const Duration(milliseconds: 800));
-        // 🔧 R194 — 버튼이 화면 맨 아래(하단 탭 아래)에 걸리면 탭이 빗나간다 → 가운데로 올린 뒤 누른다.
+        // 🔧 R195 — 버튼이 화면 맨 아래(하단 탭 아래)에 걸리면 탭이 빗나간다 → 가운데로 올린 뒤 누른다.
         await Scrollable.ensureVisible(
           tester.element(find.byKey(const Key('m51-record-submit'))),
           alignment: 0.5,

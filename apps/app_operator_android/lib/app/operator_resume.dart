@@ -2,7 +2,7 @@
 //
 // 🔴 화면 상태의 원장 → data_sync 원천 → 엔진 VM(`resumeReportVmOf` · `resumeGateVmOf`) · 원장 변경(재개 표 · 차단 플래그) ·
 //    주기마다 다시 낸다(관측 시각) · 같은 값 = 다시 내지 않음.
-// 🔴 계절 3택 = 🆕 E11q-b2b(R194) 부터 켠다([canChoose] = true — 쓰기 = 안전 동작 `run(seasonalWindowChoice)` → 엔진
+// 🔴 계절 3택 = 🆕 E11q-b2b(R195) 부터 켠다([canChoose] = true — 쓰기 = 안전 동작 `run(seasonalWindowChoice)` → 엔진
 //    `SqliteSeasonalChoice.apply` · 고른 뒤 행 = 사람 결정 사유로 비친다 · 3택 다시 0).
 // 🔴 리포트 링크 = 레지스트리에 본문이 있을 때만.
 

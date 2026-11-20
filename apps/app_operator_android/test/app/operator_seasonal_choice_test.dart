@@ -1,4 +1,4 @@
-// E11q-b2b — X2 계절 3택 operator 판(설계 13 §8 R194 · 01 §31 K54) — 실 SQLite(sim 원장) · 엔진 `SqliteSeasonalChoice` ·
+// E11q-b2b — X2 계절 3택 operator 판(설계 13 §8 R195 · 01 §31 K54) — 실 SQLite(sim 원장) · 엔진 `SqliteSeasonalChoice` ·
 // 결과 = 엔진 글자.
 //
 // 🔴 행의 동작 그대로(`seasonalWindowChoice{work_id, choice}`) · 결정 id = `SEA-<명령 id>` · 같은 작업 두 번 = 이미 결정 ·

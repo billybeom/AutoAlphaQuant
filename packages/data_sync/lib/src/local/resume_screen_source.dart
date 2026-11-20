@@ -48,7 +48,7 @@ class SqliteResumeScreenSource {
   static const Set<String> watchedTables = <String>{
     ...SqliteResumeRepository.watchedTables,
     'trading_block',
-    // 🆕 E11q-b2b(R194) — 계절 선택 = 전이 행 + 결정 행(사람 결정 사유를 행에 비춘다).
+    // 🆕 E11q-b2b(R195) — 계절 선택 = 전이 행 + 결정 행(사람 결정 사유를 행에 비춘다).
     'planned_work_transition',
   };
 
@@ -102,7 +102,7 @@ class SqliteResumeScreenSource {
     );
   }
 
-  /// 🆕 E11q-b2b(R194) — 사람 결정 대기 행에 그 뒤 사람이 고른 것이 있으면 그 사유 · 엔진 사유 글자로 비춘다(회차 기록은 그대로 ·
+  /// 🆕 E11q-b2b(R195) — 사람 결정 대기 행에 그 뒤 사람이 고른 것이 있으면 그 사유 · 엔진 사유 글자로 비춘다(회차 기록은 그대로 ·
   /// 행은 남는다 — 고른 뒤에도 무엇을 골랐는지 보이고 3택은 다시 서지 않는다).
   ResumeGateItem _withHumanChoice(ResumeGateItem i) {
     if (i.reasonCode != ResumeItemReasonCodes.humanDecision) return i;

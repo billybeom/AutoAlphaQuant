@@ -142,7 +142,7 @@ class OperatorSafetyActions implements SafetyActions {
         : Stream<SafetyActionResult>.value(r);
   }
 
-  /// 🆕 E11q-c0(R188) — `run` = 규칙 변경 취소(`ruleChangeCancel{request_id}` — 행의 `cancel` 그대로) · 🆕 E11q-b2b(R194) 계절
+  /// 🆕 E11q-c0(R188) — `run` = 규칙 변경 취소(`ruleChangeCancel{request_id}` — 행의 `cancel` 그대로) · 🆕 E11q-b2b(R195) 계절
   /// 3택(`seasonalWindowChoice{work_id, choice}` — 게이트 행의 동작 그대로)만 연다 · 그 밖 id = 그대로 구현 전(오류 — 지어내지
   /// 않는다 · `reconClear` = 화이트리스트 밖 → `runReconClear`).
   @override
@@ -162,7 +162,7 @@ class OperatorSafetyActions implements SafetyActions {
     return _ruleChangeDone(SafetyActionId.ruleChangeCancel, run, r);
   }
 
-  /// 🆕 E11q-b2b(R194 · K54) — 계절 A 진입 3택: 엔진 `SqliteSeasonalChoice.apply`(재개 실행기와 같은 판정 · 같은 원장 · 결정 id =
+  /// 🆕 E11q-b2b(R195 · K54) — 계절 A 진입 3택: 엔진 `SqliteSeasonalChoice.apply`(재개 실행기와 같은 판정 · 같은 원장 · 결정 id =
   /// 구현 `SEA-<명령 id>`) · 오늘 = 기기 시각의 한국 날짜(재개 실행기 선례) · 생체 = 구현 0(미결 169) · 결과 글자 = 엔진.
   Future<SafetyActionResult> _seasonalChoice(Map<String, String> args) async {
     final String? workId = args['work_id'];

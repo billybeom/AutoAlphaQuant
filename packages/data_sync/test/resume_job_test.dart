@@ -553,7 +553,7 @@ void main() {
     );
   });
 
-  test('🆕 E11q-b2b(R194) — 계절 선택 단독 적용(재개 실행기 없이) = 같은 판정 · X2 게이트 행 = 사람 결정 사유 · 3택 다시 0', () async {
+  test('🆕 E11q-b2b(R195) — 계절 선택 단독 적용(재개 실행기 없이) = 같은 판정 · X2 게이트 행 = 사람 결정 사유 · 3택 다시 0', () async {
     await lastSuccess('2026-11-11');
     seasonalPlan('AAA-SEAS-IN', 'BUY');
     await job().run(_today);

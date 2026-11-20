@@ -344,7 +344,7 @@ void main() {
     );
   });
 
-  group('🆕 계절 3택 결과(R194 · K54)', () {
+  group('🆕 계절 3택 결과(R195 · K54)', () {
     test('표본 m5/safety_action_results_e13 의 계절 행 = 글자 · 수준 · 코드 그대로', () {
       final List<Object?> rows =
           (jsonDecode(
