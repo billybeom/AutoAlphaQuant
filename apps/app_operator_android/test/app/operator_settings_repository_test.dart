@@ -602,14 +602,17 @@ void main() {
     P0sStrategyIds.pot: 'general',
   };
 
+  /// 운영 설정 판을 등재한다(`config_versions`) — 지문.
+  String registerS04() =>
+      SqliteConfigVersionStore(files.sim, clock: clock).register(
+        P0sOpsConfig.of(
+          P0sHumanInputs(aSymbol: '999990', accountByStrategy: s04Accounts),
+        ).content(),
+      );
+
   /// 모의 개시 판(운영 설정 등재 + 개시 결정)을 세운다.
-  void openSimS04() {
-    final String hash = SqliteConfigVersionStore(files.sim, clock: clock)
-        .register(
-          P0sOpsConfig.of(
-            P0sHumanInputs(aSymbol: '999990', accountByStrategy: s04Accounts),
-          ).content(),
-        );
+  void openSimS04([String? registered]) {
+    final String hash = registered ?? registerS04();
     final SqliteOnboardingStore s = SqliteOnboardingStore(
       files.sim,
       clock: clock,
@@ -697,7 +700,7 @@ void main() {
     expect(got, isEmpty);
   });
 
-  test('🔴 S04 — 개시 판이 나중에 서면 다시 읽어 VM 을 낸다(같은 원장 · decision_log · config_versions 감시)', () async {
+  test('🔴 S04 — 판 등재(config_versions) · 개시 결정(decision_log)이 따로 서도 각각 다시 읽어 VM 을 낸다', () async {
     rt.view.value = viewOf(files.sim);
     final List<AllocationEditorVm> got = <AllocationEditorVm>[];
     final List<Object> errors = <Object>[];
@@ -708,7 +711,13 @@ void main() {
     addTearDown(sub.cancel);
     await until(() => errors.isNotEmpty);
     expect(got, isEmpty);
-    openSimS04();
+    // 등재만 = 다시 읽지만 개시 결정이 없어 여전히 오류(값 0).
+    final String hash = registerS04();
+    await until(() => errors.length >= 2);
+    expect(errors, hasLength(2));
+    expect(got, isEmpty);
+    // 개시 결정 = 그 표 감시로 다시 읽어 VM.
+    openSimS04(hash);
     await until(() => got.isNotEmpty);
     expect(got.single.current.label, kSettingsAllocationLabel);
   });
