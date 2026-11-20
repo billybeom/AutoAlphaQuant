@@ -3,7 +3,8 @@
 // 🔴 판정은 엔진이 한다 — `bootModeOf` · `repairHalfCommit`(data_sync) · `modeStartupGate`(core). 여기는 차례만 잇는다.
 // 🔴 차례: 모드 해석 → 온보딩 미완이면 잡 0 → 반쯤 끝난 커밋 복구 → 운영 방식 → 기동 판정(거부 = 잡 0).
 // 🔵 p3a 의 빈 입력(설계 Q3):
-//    · approved = 설정 지문 원천이 아직 없다(p3b) → 기본 null → live 는 SAF-405 로 거부 · sim 은 무관.
+//    · approved = 🆕 R192(미결 205 ⓔ · 13 R102 S8 닫음) 실물 — 기본 = data_sync `startupConfigApprovalOf`(그 원장 개시 결정이
+//      붙인 판의 `config_versions.approved` · live = simToAuto 커밋이 옮긴 승인 판) · 없음 = null → live 는 SAF-405 로 거부.
 //    · 자격증명 환경 = 기본 «어긋남 없음»(없음은 실행기 미조립으로 드러난다) · 🆕 E11p3b-4 조립 앱 = `kisKeySetFits`(R95).
 //    · 실키 검증 = 기본 false(live × 자동 매매면 `LIVE_AWAITING_KEYS` hold).
 
@@ -22,7 +23,8 @@ import 'package:data_sync/data_sync.dart'
         SqliteModeFacts,
         SqliteModeStore,
         bootModeOf,
-        repairHalfCommit;
+        repairHalfCommit,
+        startupConfigApprovalOf;
 import 'package:domain_contracts/domain_contracts.dart'
     show Clock, ExecPolicy, LedgerFile, OperatingMode, RunMode;
 import 'package:sqlite3/sqlite3.dart' show Database;
@@ -35,14 +37,14 @@ import 'x1_wiring.dart' show X1Wiring;
 class BootInputs {
   /// 만든다 — 기본값 = p3a 의 안전한 빈 입력(설계 Q3).
   const BootInputs({
-    this.approvedOf = _noApproval,
+    this.approvedOf = startupConfigApprovalOf,
     this.credentialEnvironmentOk = _noMismatch,
     this.liveKeysVerified = _notVerified,
     this.deviceId,
     this.trusted = const UnknownTrustedClock(),
   });
 
-  /// 지금 설정의 SAF-405 승인(행 없음 = null).
+  /// 지금 설정의 SAF-405 승인(행 없음 = null) — 기본 = 원장 개시 판의 `config_versions.approved`(R192).
   final int? Function(Database db, RunMode mode) approvedOf;
 
   /// 자격증명 환경이 모드에 맞나.
@@ -57,7 +59,6 @@ class BootInputs {
   /// 🆕 E16t2a — 신뢰 시각(기본 = 모름 · 실물 = E11k).
   final TrustedClock trusted;
 
-  static int? _noApproval(Database db, RunMode mode) => null;
   static bool _noMismatch(RunMode mode) => true;
   static Future<bool> _notVerified() async => false;
 }

@@ -3,8 +3,12 @@
 //
 // 🔴 실전 파일만(모의 파일 = [StateError] — `SqliteModeStore` 의 식별 검사).
 // 🔴 게이트(신뢰 시각 · 세션 · 재판정 · 계좌 조회)를 트랜잭션 안에서 다시 본다 · 거부 = 쓰기 0 · 세션 그대로.
-// 🔴 쓰기 = 개시 결정 → 계좌별 입금 → 전략 시딩 4 → 운영 방식 행 → RUN_MODE live × dryRun → 세션 COMMITTED →
-//    `HANDOVER_COMMITTED` 알림 · 시각 = 신뢰 시각 하나 · 실패 = 전부 되돌린 뒤 세션 `ROLLED_BACK`(AG6).
+// 🔴 쓰기 = 🆕 승인 config · 승인 기록 · 서약 옮김(R192) → 개시 결정 → 계좌별 입금 → 전략 시딩 4 → 운영 방식 행 →
+//    RUN_MODE live × dryRun → 세션 COMMITTED → `HANDOVER_COMMITTED` 알림 · 시각 = 신뢰 시각 하나 ·
+//    실패 = 전부 되돌린 뒤 세션 `ROLLED_BACK`(AG6).
+// 🔴 🆕 R192(미결 205 ⓒⓓ · 208) — 모의 파일의 승인 config 가 지금 설정과 같아야 개시한다(아니면
+//    `SIM_TO_AUTO_CONFIG_NOT_APPROVED` · 쓰기 0) · 그 판 · 승인 기록 · 서약을 같은 트랜잭션으로 실전 파일에 넣는다
+//    (실전 기동 SAF-405 = `approved == 1` · S5 DISCARD 가 모의 파일을 지워도 서약 원문이 남는다).
 // 🔴 두 파일을 한 트랜잭션에 묶지 않는다(01 :3388) — 모의 CLOSE · 지움 · 복구 = f3b(이 저장 뒤 · WAL 체크포인트 뒤).
 
 import 'package:core_engine/core_engine.dart'
@@ -47,6 +51,8 @@ import '../market/market_store.dart' show inLedgerTransaction;
 import 'alert_store.dart' show SqliteAlertSink;
 import 'handover_session_store.dart' show SqliteHandoverSessionStore;
 import 'mode_store.dart' show ModeAxis, SqliteModeStore;
+import 'sim_to_auto_carry.dart'
+    show SimToAutoCarry, writeSimToAutoCarryInTransaction;
 
 class _At implements Clock {
   const _At(this._t);
@@ -117,6 +123,8 @@ class SqliteSimToAutoCommitStore {
   /// 🔴 실전 개시 1단계 — [simFacts] = 모의 파일 · 포트 · 설정에서 모은 판정 입력(시각 · 세션 칸은 버린다) ·
   /// [probes] = 대응 계좌의 브로커 잔고 조회(5분 안) · [configHash] = 지금 설정의 해시 ·
   /// 🆕 E15f4a [lease] = 운영 중인 파일의 리스 스냅숏(트랜잭션 앞에서 잡는다 · R103 AI3).
+  /// 🆕 R192 [carry] = 모의 파일에서 읽은 승인 config · 승인 기록 · 서약(`readSimToAutoCarry` — 커밋 직전에 읽는다) ·
+  /// 승인 config ≠ [configHash] 또는 없음 = `SIM_TO_AUTO_CONFIG_NOT_APPROVED`(쓰기 0 · 세션 그대로).
   SimToAutoCommitOutcome commit({
     required String sessionId,
     required SimToAutoFacts simFacts,
@@ -125,6 +133,7 @@ class SqliteSimToAutoCommitStore {
     required List<LiveAccountProbe> probes,
     required String configHash,
     required LeaseSnapshot lease,
+    required SimToAutoCarry carry,
   }) {
     final DateTime? now = _trusted.trustedNowUtc()?.toUtc();
     // 빈 별칭은 재판정 S4(`SIM_TO_AUTO_ACCOUNT_UNMAPPED`)가 먼저 막는다.
@@ -150,12 +159,16 @@ class SqliteSimToAutoCommitStore {
           session: s,
           lease: lease,
           liveModeRows: rows,
+          approvedConfigHash: carry.approvedConfigHash,
+          configHash: configHash,
           report: report,
           aliases: aliases,
           probes: probes,
         );
         if (code != null) return;
         final DateTime at = now!;
+        // 🆕 R192 — 승인 config · 승인 기록 · 서약을 먼저(개시 결정의 `config_hash` 가 가리키는 판이 실전 파일에 있게).
+        writeSimToAutoCarryInTransaction(_db, carry);
         final String d = liveOpeningDecisionId(at);
         final String iso = at.toIso8601String();
         final String day = kstDateText(at);

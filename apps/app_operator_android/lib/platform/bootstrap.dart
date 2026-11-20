@@ -133,7 +133,8 @@ Future<OperatorEngine> _assemble(
 }
 
 /// 조립 앱의 기동 판정 입력 — 🔴 자격증명 환경 = 모드가 고르는 키 세트의 환경(R95 · SIM = 모의 세트만).
-/// 승인(SAF-405) · 실키 검증은 아직 빈 입력(live = 거부 · `LIVE_AWAITING_KEYS` · p3c · 계약 창 뒤).
+/// 승인(SAF-405) = 🆕 R192 기본 실물(`startupConfigApprovalOf` — 원장 개시 판의 `approved`) · 실키 검증은 아직 빈 입력
+/// (`LIVE_AWAITING_KEYS` · p3c · 계약 창 뒤).
 const BootInputs kOperatorBootInputs = BootInputs(
   credentialEnvironmentOk: kisKeySetFits,
 );

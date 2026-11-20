@@ -344,6 +344,7 @@ export 'src/mode/sim_to_auto_commit.dart'
         simLedgerFateReasonCode,
         simToAutoCommitHeadline,
         simToAutoCommitReject,
+        simToAutoConfigApprovalReject,
         simToAutoLeaseReject,
         simToAutoSessionUsable;
 // 🆕 E15f4b2 — simToAuto 전환 오케스트레이션(새 체크 → 커밋 → 마감 → 옛 멈춤 · 보상 · 기동 보정 · 설계 13 §8 R106).

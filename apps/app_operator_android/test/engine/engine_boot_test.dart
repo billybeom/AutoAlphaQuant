@@ -8,9 +8,16 @@ import 'package:app_operator_android/platform/bootstrap.dart'
     show kOperatorBootInputs;
 import 'package:core_engine/core_engine.dart'
     show kCredentialEnvMismatch, kSaf405;
-import 'package:data_sync/data_sync.dart' show SqliteModeStore;
+import 'package:data_sync/data_sync.dart'
+    show SqliteModeStore, startupConfigApprovalOf;
 import 'package:domain_contracts/domain_contracts.dart'
-    show ExecPolicy, LedgerFile, OperatingMode, RunMode, SafetyHoldCodes;
+    show
+        DecisionReasonCodes,
+        ExecPolicy,
+        LedgerFile,
+        OperatingMode,
+        RunMode,
+        SafetyHoldCodes;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 
@@ -93,7 +100,7 @@ void main() {
     },
   );
 
-  test('🔴 live 는 승인 원천이 없으면(p3a 기본) SAF-405 로 거부', () async {
+  test('🔴 live 는 승인 판이 없으면(기본 = 실물 · 개시 판 없음) SAF-405 로 거부', () async {
     final Directory dir = tempLedgerDir();
     final LedgerFiles f = openFiles(dir, clock);
     addTearDown(f.close);
@@ -103,6 +110,37 @@ void main() {
     final EngineBoot b = await bootEngine(f, clock: clock);
     expect((b as EngineRejected).triggered, <String>[kSaf405]);
     expect(b.runMode, RunMode.live);
+  });
+
+  test('🆕 R192 기본 승인 원천 = 실전 파일 config_versions(개시 판) — 1 = 준비 · 0 = SAF-405 · 조립 앱 입력도 같다', () async {
+    final Directory dir = tempLedgerDir();
+    final LedgerFiles f = openFiles(dir, clock);
+    addTearDown(f.close);
+    writeSimMode(f.sim, clock, committed: OperatingMode.autoTrade);
+    final Database live = writeLiveMode(dir, clock);
+    addTearDown(live.close);
+    // simToAuto 커밋이 남기는 꼴 — 옮긴 승인 판 + 실전 개시 결정(같은 지문).
+    live.execute(
+      "INSERT INTO config_versions (config_hash, created_at, content, approved) VALUES ('cfg-ok', 't', '{}', 1)",
+    );
+    live.execute(
+      'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, reason_code, '
+      "config_hash) VALUES ('LIVEOPEN-1', 't', '2026-11-16', 'LIVE', 'MANUAL', 'P0S', 'x', ?, 'cfg-ok')",
+      <Object?>[DecisionReasonCodes.openingBalance],
+    );
+    expect(startupConfigApprovalOf(live, RunMode.live), 1);
+    for (final BootInputs inputs in <BootInputs>[
+      const BootInputs(),
+      kOperatorBootInputs,
+    ]) {
+      final EngineReady r =
+          await bootEngine(f, clock: clock, inputs: inputs) as EngineReady;
+      expect(r.runMode, RunMode.live);
+      expect(r.holds, <String>{SafetyHoldCodes.liveAwaitingKeys});
+    }
+    live.execute('UPDATE config_versions SET approved = 0');
+    final EngineBoot b = await bootEngine(f, clock: clock);
+    expect((b as EngineRejected).triggered, <String>[kSaf405]);
   });
 
   test('live 승인이 있으면 준비 — 실키 미검증 = LIVE_AWAITING_KEYS hold', () async {

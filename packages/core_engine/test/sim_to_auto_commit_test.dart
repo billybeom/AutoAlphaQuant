@@ -105,11 +105,15 @@ String? _reject({
   Set<String> aliases = _aliases,
   List<LiveAccountProbe>? probes,
   LeaseSnapshot lease = _lease,
+  String? approved = 'cfg-1',
+  String config = 'cfg-1',
 }) => simToAutoCommitReject(
   trustedNowUtc: noNow ? null : (now ?? _now),
   session: noSession ? null : (session ?? _session()),
   lease: lease,
   liveModeRows: rows,
+  approvedConfigHash: approved,
+  configHash: config,
   report: noReport ? null : (report ?? _report(now: now)),
   aliases: aliases,
   probes: probes ?? <LiveAccountProbe>[_p('general'), _p('pension')],
@@ -180,7 +184,7 @@ void main() {
     );
   });
 
-  test('게이트 차례 — 시각 → 세션 → 이미 커밋 → 재판정 → 조회 → 신선도 → 보유 → 활동 → 예수금 → 합계', () {
+  test('게이트 차례 — 시각 → 세션 → 이미 커밋 → (승인 config) → 재판정 → 조회 → 신선도 → 보유 → 활동 → 예수금 → 합계', () {
     expect(
       _reject(noNow: true, noSession: true, rows: 1),
       SimToAutoCodes.trustedTimeUnavailable,
@@ -319,6 +323,71 @@ void main() {
     expect(texts, hasLength(3));
   });
 
+  test('🆕 R192 승인 config(미결 205 ⓓ) — 없음 · 다른 판 = CONFIG_NOT_APPROVED · 이미 커밋 뒤 · 재판정 앞 · 엔진 예약 코드', () {
+    expect(
+      SimToAutoCommitCodes.configNotApproved,
+      'SIM_TO_AUTO_CONFIG_NOT_APPROVED',
+    );
+    expect(
+      simToAutoConfigApprovalReject(approvedConfigHash: 'h', configHash: 'h'),
+      isNull,
+    );
+    expect(
+      simToAutoConfigApprovalReject(approvedConfigHash: null, configHash: 'h'),
+      SimToAutoCommitCodes.configNotApproved,
+    );
+    expect(
+      simToAutoConfigApprovalReject(approvedConfigHash: 'g', configHash: 'h'),
+      SimToAutoCommitCodes.configNotApproved,
+    );
+    expect(_reject(approved: null), SimToAutoCommitCodes.configNotApproved);
+    expect(_reject(approved: 'cfg-0'), SimToAutoCommitCodes.configNotApproved);
+    // 차례 — 시각 · 세션 · 리스 · 이미 커밋이 먼저 · 재판정(냉각) · 계좌 조회보다 먼저.
+    expect(
+      _reject(noNow: true, approved: null),
+      SimToAutoCodes.trustedTimeUnavailable,
+    );
+    expect(
+      _reject(noSession: true, approved: null),
+      HandoverSessionCodes.sessionInvalid,
+    );
+    expect(
+      _reject(
+        approved: null,
+        lease: const LeaseSnapshot(
+          verdict: LeaseVerdict.unknown,
+          epoch: 1,
+          deviceId: 'device-1',
+        ),
+      ),
+      'LEASE_INVALID',
+    );
+    expect(
+      _reject(rows: 1, approved: null),
+      SimToAutoCommitCodes.alreadyCommitted,
+    );
+    final DateTime cool = _k('2027-01-12', 20);
+    expect(
+      _reject(
+        now: cool,
+        report: _report(now: cool),
+        approved: null,
+      ),
+      SimToAutoCommitCodes.configNotApproved,
+    );
+    expect(
+      _reject(
+        approved: null,
+        probes: <LiveAccountProbe>[_p('general', holdings: 1), _p('pension')],
+      ),
+      SimToAutoCommitCodes.configNotApproved,
+    );
+    expect(
+      simToAutoCommitHeadline(SimToAutoCommitCodes.configNotApproved),
+      '지금 설정이 규칙 변경 승인을 받지 않아 확정하지 않았습니다 — 규칙 변경 게이트에서 승인(냉각 30일)을 받은 뒤 확정해 주세요.',
+    );
+  });
+
   test('통과 — 5분 정각 조회 · 대응 밖 계좌의 보유는 보지 않는다 · 한 계좌만 현금', () {
     expect(_reject(), isNull);
     expect(
@@ -359,6 +428,7 @@ void main() {
       SimToAutoCommitCodes.cashUnknown,
       SimToAutoCommitCodes.zeroCash,
       SimToAutoCommitCodes.rolledBack,
+      SimToAutoCommitCodes.configNotApproved,
       SimToAutoCodes.cooling,
     ];
     final Set<String> texts = <String>{
