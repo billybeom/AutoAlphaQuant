@@ -132,8 +132,14 @@ void _seedPracticeJournal(Database db, OperatorRuntime rt) {
       rt.humanDecision!.inputs.accountByStrategy[P0sStrategyIds.sleeveB]!;
   db.execute(
     'INSERT INTO plan_snapshot (plan_id, kind, computed_at, as_of_trade_date, expires_at, inputs, outputs, '
-    "config_hash) VALUES ('REBAL-2026-10-30', 'REBALANCE', ?, '2026-10-30', '2026-11-30', '{}', ?, 'cfg_it')",
-    <Object?>[now, '{"targets":[{"logical_decision_id":"B-SMA-2026-10-30"}]}'],
+    "config_hash) VALUES ('REBAL-2026-10-30', 'REBALANCE', ?, '2026-10-30', '2026-11-03', '{}', ?, 'cfg_it')",
+    <Object?>[
+      now,
+      // 월말 잡이 쓰는 꼴(회차 번호 · 집행일 — 납입 플래너가 «지난 계획의 회차 번호»를 읽는다) · 만료 = 지난 날
+      // (주문 대상 원천이 이 연습 계획으로 주문을 내지 않게).
+      '{"targets":[{"logical_decision_id":"B-SMA-2026-10-30"}],'
+          '"execution_day":"2026-11-02","month_index":1}',
+    ],
   );
   db.execute(
     'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, '
