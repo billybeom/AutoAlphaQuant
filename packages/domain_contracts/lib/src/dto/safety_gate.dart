@@ -4,6 +4,8 @@
 // 🆕 v1.22(01 §31 · K65) — `M5-4` 브레이커 사다리(문장 = 엔진 `breakerLadderOf` 글자 그대로).
 // 🆕 v1.25(01 §34 · K146 · K147 · K154) — `M5-1` 킬스위치 화면 · 발동 뒤 기록 폼(01 §8 미결 186) ·
 //    `M5-5` 차단 보드(사다리 `M5-4` · 게이지 `M5-7` 감싸기).
+// 🆕 v1.26(01 §35 · K179 · K181) — `M5-9` 규칙 변경 게이트 «첫 승인 최소판»(후보 · 큐) · `M5-5` RECON 행 해제 폼
+//    (`BlockBoardRow.reconClear` 추가형).
 // 🔴 M5 만 렌더한다(`ui_safety` · 01 §2-10 표 · C-7) · 상태를 바꾸는 경로 = `SafetyActions`(포트) 뿐.
 // 🔴 화면은 받은 글자·차례 그대로 그린다 — 단계·남은 시간을 계산하지 않는다(카운트다운 0 · 새 VM 으로만).
 // 🔴 7문항 글자 출처 = SPEC v2.40 04 §3-6 ③ «재개판» 원문(발주자 확정 2026-11-04 · 정규화 = 01 §30 K38) —
@@ -11,6 +13,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../commands/safety_actions.dart'; // SafetyActionCall(🆕 v1.26 — 규칙 변경 큐 행 취소 · resume.dart 선례)
 import '../enums/safety.dart';
 import '../enums/ui.dart';
 import '../primitives/as_of.dart';
@@ -300,7 +303,8 @@ abstract class KillActivationChoice with _$KillActivationChoice {
 /// 🔴 불변식(C-59 ⑩~⑫) — [killSwitchLink] 늘 non-null(목적지 `AppRoutes.m5KillSwitch` · 끄기는 언제나) ·
 ///    [emptyLabel] non-null ⇒ [rows] 빈 · [ladder] 의 current 행 라벨 == [breakerLabel] ·
 ///    [stoppedDecisionLink] non-null ⇒ 목적지 `AppRoutes.m5StoppedDecision`.
-/// 🔴 화면은 받은 차례 그대로(재정렬·재분류 0) · 행 링크 = 엔진 · 해제 버튼 0(RECON 원인 코드 선택 = 1.26.0+).
+/// 🔴 화면은 받은 차례 그대로(재정렬·재분류 0) · 행 링크 = 엔진 · 🆕 v1.26 — RECON 행만 해제 폼(`BlockBoardRow.reconClear` ·
+///    01 §35 K181) · 그 밖 해제 = 링크.
 @freezed
 abstract class BlockBoardVm with _$BlockBoardVm {
   const factory BlockBoardVm({
@@ -358,9 +362,139 @@ abstract class BlockBoardRow with _$BlockBoardRow {
 
     /// 조치 진입(엔진 · 플래그 = `clearDeepLink` · 킬스위치 = `m5KillSwitch`). null = 이동 0.
     LinkAction? link,
+
+    /// 🆕 v1.26(01 §35 · K181) — `RECON_MISMATCH` 행만 · 해제 폼(엔진). null = 해제 동작 0(그 밖 행 · 막힘 없음 · 잠김).
+    ReconClearForm? reconClear,
   }) = _BlockBoardRow;
 
   factory BlockBoardRow.fromJson(Map<String, dynamic> json) =>
       _$BlockBoardRowFromJson(json);
 }
-// JSON 키: row_id · label · set_at_text · clear_kind_label · clear_instruction · level · link
+// JSON 키: row_id · label · set_at_text · clear_kind_label · clear_instruction · level · link · recon_clear(🆕 v1.26)
+
+/// 🆕 v1.26(01 §35 · K181) — 차단 보드 RECON 행의 해제 폼(`BlockBoardRow.reconClear`).
+/// 🔴 제출 = `SafetyActions.runReconClear(ReconClearSubmission)` — `run(reconClear, …)` 은 받지 않는다(구현 `ArgumentError`).
+@freezed
+abstract class ReconClearForm with _$ReconClearForm {
+  const factory ReconClearForm({
+    /// 원인 코드 선택지(엔진 쓰기 화이트리스트 ∩ 자동 갈래 · 차례 = 엔진). 🔴 빈 목록 금지(C-60 ⑨).
+    required List<ReconOriginChoice> choices,
+
+    /// 고지(엔진 · 예: «해제는 저널과 함께 기록됩니다 — 주문을 내지 않습니다»). null = 부재.
+    String? noticeText,
+  }) = _ReconClearForm;
+
+  factory ReconClearForm.fromJson(Map<String, dynamic> json) =>
+      _$ReconClearFormFromJson(json);
+}
+// JSON 키: choices · notice_text
+
+/// 🆕 v1.26(01 §35 · K181) — RECON 원인 코드 선택지 하나.
+@freezed
+abstract class ReconOriginChoice with _$ReconOriginChoice {
+  const factory ReconOriginChoice({
+    /// ∈ `OriginCodes.writable` — 제출 `ReconClearSubmission.originCode` 로 그대로.
+    required String originCode,
+
+    /// 엔진 글자.
+    required String label,
+  }) = _ReconOriginChoice;
+
+  factory ReconOriginChoice.fromJson(Map<String, dynamic> json) =>
+      _$ReconOriginChoiceFromJson(json);
+}
+// JSON 키: origin_code · label
+
+/// 🆕 v1.26(01 §35 · K177 · K179) — `M5-9` 규칙 변경 게이트 «첫 승인 최소판»(`AppRoutes.m5RuleChangeGate` ·
+/// 창구 = `RuleChangeGateRepository.watchGate()` · 🔒 `ui_safety`).
+/// 🔴 1.26.0 = 후보(첫 승인할 지금 config) + 큐(요청 · 냉각 · 승인 · 취소). CHANGELOG · 창 밖 안내 · DD 락 글자 = 1.27.0+.
+/// 🔴 냉각 30일 · SAF-405 · 12월 창 면제 규칙 = SPEC·엔진 그대로(글자로만 싣는다 — 새 수치 0).
+/// 🔴 불변식(C-60 ⑦) — [lockedLabel] non-null ⇒ [candidates] 빈 ∧ 모든 행 `cancel`·`approveLabel` null.
+@freezed
+abstract class RuleChangeGateVm with _$RuleChangeGateVm {
+  const factory RuleChangeGateVm({
+    /// 엔진 머리(예: «승인된 설정이 없습니다 — 실전 기동 전에 첫 승인이 필요합니다»).
+    required String headline,
+    required UiLevel level,
+
+    /// 창 글자(엔진 · 첫 승인 = 창 면제 문장 · 둘째부터 = 12월 창). null = 부재.
+    String? windowText,
+
+    /// 요청할 수 있는 후보(엔진 · v1 = 0 또는 1). 빈 목록 = 요청 버튼 0.
+    @Default(<RuleChangeCandidateRow>[])
+    List<RuleChangeCandidateRow> candidates,
+
+    /// 열린 요청(엔진 `queue()` 차례).
+    @Default(<RuleChangeQueueRow>[]) List<RuleChangeQueueRow> rows,
+
+    /// 후보 0 ∧ 큐 0 일 때 문장(엔진). null = 부재.
+    String? emptyLabel,
+
+    /// 잠김(01 §8 미결 169) · non-null ⇒ 요청·승인·취소 0.
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _RuleChangeGateVm;
+
+  factory RuleChangeGateVm.fromJson(Map<String, dynamic> json) =>
+      _$RuleChangeGateVmFromJson(json);
+}
+// JSON 키: headline · level · window_text · candidates · rows · empty_label · locked_label · as_of
+
+/// 🆕 v1.26(01 §35 · K178 · K179) — 요청할 수 있는 config 후보 한 행(유형·해시 = 엔진 · 자기 신고 0 — 03운 §6-3).
+@freezed
+abstract class RuleChangeCandidateRow with _$RuleChangeCandidateRow {
+  const factory RuleChangeCandidateRow({
+    /// 🔴 화면 미참조(제출용) — `RuleChangeRequestSubmission.candidateId` 로 그대로 되돌린다.
+    required String candidateId,
+
+    /// 후보 이름(엔진 · 예: «지금 쓰는 설정 — 첫 승인»).
+    required String label,
+
+    /// 변경 유형 글자(엔진 분류).
+    required String categoryLabel,
+
+    /// 해시 글자(엔진 · 앞 8자).
+    required String hashText,
+
+    /// 요청 버튼 글자(엔진).
+    required String requestLabel,
+
+    /// 고지(엔진 · 예: «요청 뒤 30일 냉각이 끝나야 승인할 수 있습니다»). null = 부재.
+    String? noticeText,
+  }) = _RuleChangeCandidateRow;
+
+  factory RuleChangeCandidateRow.fromJson(Map<String, dynamic> json) =>
+      _$RuleChangeCandidateRowFromJson(json);
+}
+// JSON 키: candidate_id · label · category_label · hash_text · request_label · notice_text
+
+/// 🆕 v1.26(01 §35 · K179) — 열린 규칙 변경 요청 한 행(엔진 `rule_change_store.queue()`).
+@freezed
+abstract class RuleChangeQueueRow with _$RuleChangeQueueRow {
+  const factory RuleChangeQueueRow({
+    /// 🔴 화면 미참조(제출용) — `RuleChangeApprovalSubmission.requestId` 로 그대로.
+    required String requestId,
+    required String categoryLabel,
+    required String hashText,
+
+    /// «MM-DD HH:mm 요청»(엔진).
+    required String requestedText,
+
+    /// 냉각 글자(엔진 · «냉각 중 — MM-DD HH:mm 이후 승인» · «냉각 끝»).
+    required String coolingText,
+
+    /// 상태 글자(엔진).
+    required String stateLabel,
+    required UiLevel level,
+
+    /// 승인 폼 버튼 글자(엔진 · non-null ⇔ 지금 승인 판정이 냉각·창·DD 에 걸리지 않음). null = 승인 폼 0.
+    String? approveLabel,
+
+    /// 취소(엔진 완성 `run(ruleChangeCancel{request_id})`). null = 취소 0.
+    SafetyActionCall? cancel,
+  }) = _RuleChangeQueueRow;
+
+  factory RuleChangeQueueRow.fromJson(Map<String, dynamic> json) =>
+      _$RuleChangeQueueRowFromJson(json);
+}
+// JSON 키: request_id · category_label · hash_text · requested_text · cooling_text · state_label · level · approve_label · cancel

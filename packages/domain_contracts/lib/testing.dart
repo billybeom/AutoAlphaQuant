@@ -61,6 +61,8 @@
 //   `UnimplementedBreakerLadderRepository` · `UnimplementedResumeGateRepository` · `UnimplementedResumeRepository`(동기 throw).
 //   🆕 계약 v1.23(01 §32) — `UnimplementedSettingsRepository.watchContribution`(동기 throw) · `UnimplementedSettingsActions.runContributionUpdate`(`Future` 에러).
 //   🆕 계약 v1.24(01 §33) — `UnimplementedSettingsRepository.watchDiagnosticsScreen`(동기 throw) · `UnimplementedOpsStatusRepository.watchAnnualReview` 반환 = `AnnualReviewIndexVm`.
+//   🆕 계약 v1.26(01 §35 · K183) — `UnimplementedHandoverRepository` · `UnimplementedRuleChangeGateRepository`(동기 throw) ·
+//   `UnimplementedSafetyActions` +2(`runRuleChangeRequest` · `runReconClear` · `Future` 에러).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -621,6 +623,20 @@ class UnimplementedBlockBoardRepository implements BlockBoardRepository {
   Stream<BlockBoardVm> watchBoard() => throw UnimplementedError('watchBoard');
 }
 
+/// 🆕 계약 v1.26(01 §35 · K167) — [HandoverRepository] 받침대(`M5-11` 위저드 · `handoverStatus`). 🔴 동기로 던진다.
+class UnimplementedHandoverRepository implements HandoverRepository {
+  @override
+  Stream<HandoverWizardVm> watchWizard() =>
+      throw UnimplementedError('watchWizard');
+}
+
+/// 🆕 계약 v1.26(01 §35 · K179) — [RuleChangeGateRepository] 받침대(`M5-9` 첫 승인 최소판). 🔴 동기로 던진다.
+class UnimplementedRuleChangeGateRepository
+    implements RuleChangeGateRepository {
+  @override
+  Stream<RuleChangeGateVm> watchGate() => throw UnimplementedError('watchGate');
+}
+
 /// 🆕 계약 v1.22(01 §31 · K6) — [ResumeGateRepository] 받침대. 🔴 동기로 던진다.
 class UnimplementedResumeGateRepository implements ResumeGateRepository {
   @override
@@ -679,6 +695,19 @@ class UnimplementedSafetyActions implements SafetyActions {
   ) => Future<SafetyActionResult>.error(
     UnimplementedError('runDiscretionAdjust'),
   );
+
+  /// 🆕 v1.26(01 §35 · K178).
+  @override
+  Future<SafetyActionResult> runRuleChangeRequest(
+    RuleChangeRequestSubmission submission,
+  ) => Future<SafetyActionResult>.error(
+    UnimplementedError('runRuleChangeRequest'),
+  );
+
+  /// 🆕 v1.26(01 §35 · K181).
+  @override
+  Future<SafetyActionResult> runReconClear(ReconClearSubmission submission) =>
+      Future<SafetyActionResult>.error(UnimplementedError('runReconClear'));
   @override
   Stream<SafetyActionResult> watch(String actionRunId) =>
       Stream<SafetyActionResult>.error(UnimplementedError('watch'));

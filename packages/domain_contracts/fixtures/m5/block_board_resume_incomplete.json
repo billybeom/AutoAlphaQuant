@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.25.0",
+    "contract_version": "1.26.0",
     "generated_at": "2026-11-19T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -18,8 +18,8 @@
       "level": "BLOCKED",
       "breaker_label": "정상",
       "rows": [
-        { "row_id": "RESUME_INCOMPLETE", "label": "재개 점검이 끝나지 않았습니다", "set_at_text": "(합성) 12-22 09:12부터", "clear_kind_label": "(합성) 자동으로 풀립니다", "clear_instruction": "재개 점검이 끝나면 자동으로 풀립니다.", "level": "BLOCKED", "link": { "label": "(합성) 재개 화면 보기", "deep_link": "aaq://x2/resume-gate" } },
-        { "row_id": "JOURNAL_MISSING", "label": "일지가 비어 있습니다", "set_at_text": "(합성) 12-22 06:30부터", "clear_kind_label": "(합성) 자동으로 풀립니다", "clear_instruction": "일지를 채우면 자동으로 풀립니다.", "level": "ACT", "link": { "label": "(합성) 일지 쓰기", "deep_link": "aaq://journal/draft/dj_x2_01" } }
+        { "row_id": "RESUME_INCOMPLETE", "label": "재개 점검이 끝나지 않았습니다", "set_at_text": "(합성) 12-22 09:12부터", "clear_kind_label": "(합성) 자동으로 풀립니다", "clear_instruction": "재개 점검이 끝나면 자동으로 풀립니다.", "level": "BLOCKED", "link": { "label": "(합성) 재개 화면 보기", "deep_link": "aaq://x2/resume-gate" }, "recon_clear": null },
+        { "row_id": "JOURNAL_MISSING", "label": "일지가 비어 있습니다", "set_at_text": "(합성) 12-22 06:30부터", "clear_kind_label": "(합성) 자동으로 풀립니다", "clear_instruction": "일지를 채우면 자동으로 풀립니다.", "level": "ACT", "link": { "label": "(합성) 일지 쓰기", "deep_link": "aaq://journal/draft/dj_x2_01" }, "recon_clear": null }
       ],
       "gauges": [],
       "ladder": {

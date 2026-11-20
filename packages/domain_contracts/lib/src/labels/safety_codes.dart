@@ -306,3 +306,24 @@ abstract final class KillCancelOutcomeCodes {
     inFlight,
   };
 }
+
+/// 🆕 v1.26(01 §35 · K182) — `M5-5` RECON 해제 거부(도메인 `recon_clear_result` · 🔵 **엔진 예고** — 엔진 «저널 함께 쓰기» 판
+/// (01 §8 미결 206)이 지금의 예외(ds `order_ledger.dart` `clearReconBlock` — 원인 코드 밖 = `ArgumentError` · 막힘 없음 =
+/// `StateError`)를 이 코드로 바꾼다 · 글자 같음 시험 = 엔진 PR). 공용 `JOURNAL_ID_TAKEN`(`SafetyCommonResultCodes`) ·
+/// `BIOMETRIC_UNAVAILABLE`(`SettingsResultCodes`)은 따로 — 다시 적지 않는다.
+abstract final class ReconClearResultCodes {
+  /// 풀 RECON_MISMATCH 가 서 있지 않다.
+  static const String notBlocked = 'RECON_NOT_BLOCKED';
+
+  /// 원인 코드가 쓰기 화이트리스트 밖.
+  static const String originNotAllowed = 'RECON_ORIGIN_NOT_ALLOWED';
+
+  /// 사전 저널 3칸 중 빈칸.
+  static const String journalMissing = 'RECON_JOURNAL_MISSING';
+
+  static const Set<String> values = <String>{
+    notBlocked,
+    originNotAllowed,
+    journalMissing,
+  };
+}

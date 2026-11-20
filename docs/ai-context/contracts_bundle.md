@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 115개 · 계약 v1.25.0 · 조립일 2026-11-19(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 117개 · 계약 v1.26.0 · 조립일 2026-11-20(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -292,12 +292,24 @@ export 'commands/settings_actions.dart';
 //    다음 판 = 1.26.0(M5-11 위저드 VM(미결 187 · 01-08 전 창) · RECON 해제 동작·E13 원천 VM(188 남은 몫) · E13i2 VM 3 ·
 //    E16i 나머지 + E16j · S04 창(190~194) · 이름 없는 알림 · 승격 세션 종류 · PNG F1·F2·F4~F7 · `RuleChangeCategory` 중
 //    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-19 · 계약 v1.25».
+// 🆕 '1.26.0'(트랙 C 선행 · 01 §35 · 발주자 위임 2026-11-14 — 권고대로 · K166~K186) — 실전 커밋 필수 3묶음 + 사전 저널 꼴:
+//    🆕 `M5-11` `HandoverWizardVm`·`HandoverWizardStepRow`(`HandoverStep` 감싸기 · 동작 = 기존 `SettingsActionId` · 세션 id = 엔진이 args 에 ·
+//    01 §8 미결 187 닫음) + 🆕 `HandoverRepository.watchWizard()` · `handoverStatus` = 같은 본문(C-33 소유 +1) ·
+//    🔴 SAF-405 첫 승인 최소판 `M5-9` 🆕 `RuleChangeGateVm`·`RuleChangeCandidateRow`·`RuleChangeQueueRow` + 🆕 `RuleChangeGateRepository` ·
+//    🆕 `SafetyActionId.ruleChangeRequest` · `RuleChangeRequestSubmission` · `SafetyActions.runRuleChangeRequest`(냉각 30일·SAF-405 무변경) ·
+//    🔴 RECON 해제 `BlockBoardRow.reconClear`(추가형) · 🆕 `ReconClearForm`·`ReconOriginChoice` · `ReconClearSubmission` ·
+//    `SafetyActions.runReconClear`(표면 8 → 10) · `run` 화이트리스트에서 `reconClear` 뺌 · 🆕 `ReconClearResultCodes` 3(엔진 예고) ·
+//    사전 저널 꼴 ⓐ(제출 DTO 3필드 + 구현이 id + 한 트랜잭션) · 받침대 +2 · 🆕 C-60 · 픽스처 339 → 359(신설 20) —
+//    🆕 tool/gen_trackc_v126_fixtures.py.
+//    다음 판 = 1.27.0(서약 편집(01 §8 미결 208 뒤) · 규칙 변경 CHANGELOG · `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 · 개입 ·
+//    재량 · postmortem 목록 · M5-3 STOPPED VM · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 보기 VM(192 뒤) · E16i/E16j ·
+//    이름 없는 알림 · PNG F1·F2·F4~F7 중 먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-20 · 계약 v1.26».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.25.0';
+const String contractVersion = '1.26.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -509,6 +521,7 @@ export 'repositories/calendar_repository.dart';
 export 'repositories/config_repository.dart';
 export 'repositories/execution_gap_repository.dart';
 export 'repositories/handbook_repository.dart';
+export 'repositories/handover_repository.dart';
 export 'repositories/holdings_repository.dart';
 export 'repositories/incident_repository.dart';
 export 'repositories/journal_repository.dart';
@@ -523,6 +536,7 @@ export 'repositories/pledge_repository.dart';
 export 'repositories/rebalance_repository.dart';
 export 'repositories/resume_gate_repository.dart';
 export 'repositories/resume_repository.dart';
+export 'repositories/rule_change_gate_repository.dart';
 export 'repositories/runbook_repository.dart';
 export 'repositories/safety_repository.dart';
 export 'repositories/settings_repository.dart';
@@ -1674,8 +1688,8 @@ part 'safety_actions.g.dart';
 /// 🆕 v1.22(01 §31 · K52~K55) — `run(id, args)` 화이트리스트(엔진이 [SafetyActionCall] 에 완성 · 🔴 화면은 그대로 넘긴다 · 키 = snake_case):
 ///    · `interventionStep`     = `{session_id, stage /* '1'~'5' */, outcome ∈ InterventionStepOutcome.wire, decision_id?}`
 ///    · `ruleChangeCancel`     = `{request_id}`
-///    · `reconClear`           = `{origin_code ∈ OriginCodes(대사 해제 쓰기 화이트리스트), decision_id /* 사전 저널 RECON_CLEAR */}` ·
-///                               결과 `reasonCode` = null 또는 `BIOMETRIC_UNAVAILABLE`(엔진 거부 = 예외 · 코드 사전 0 — K55)
+///    · ~~`reconClear`~~ — 🆕 v1.26(01 §35 · K181) 화이트리스트에서 뺐다: `run(reconClear, …)` = 구현 `ArgumentError` ·
+///                               해제 = [SafetyActions.runReconClear](사람 글 = 제출 DTO · K7) · `SafetyActionId.reconClear` = 결과 id 로 남는다.
 ///    · `seasonalWindowChoice` = `{work_id, choice ∈ SeasonalEntryChoice.wire}`(`decision_id` = 구현이 짓는다 — K54 · 거부 =
 ///                               `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ 멈춤 사유 7(`ResumeItemReasonCodes`))
 ///  그 밖 id 를 `run` 으로 부르면 구현 `ArgumentError`(`Future` 에러 · 결과 코드 0).
@@ -1685,6 +1699,14 @@ part 'safety_actions.g.dart';
 /// · `runDiscretionAdjust` — 재량 조정(조정폭 원문 · 파싱 실패 = `DELTA_EXCEEDED` · 여러 사유 = 엔진 정렬 첫째 · 거부 =
 ///   `DiscretionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`).
 /// 🔴 결과 id = 늘 그 동작의 id · 생체 = 구현(K11) · 화면은 `headline` + `reasonCode` 원문만 그린다(분기 0).
+/// 🆕 v1.26(01 §35 · K178 · K180 · K181 · 표면 열 — C-7):
+/// · `runRuleChangeRequest` — `M5-9` 규칙 변경 요청(첫 승인 포함 · 유형·`hashBefore`·`hashAfter` = 엔진 후보 행(`candidateId`) ·
+///   자기 신고 0 · `decision_id` = 구현이 짓는 새 저널 id · 저널 + 요청 한 트랜잭션 · 거부 = `RuleChangeResultCodes` ∪
+///   `TRUSTED_TIME_UNKNOWN` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.ruleChangeRequest].
+/// · `runReconClear` — `M5-5` RECON 해제(`decision_id` = 구현 · `cleared_by` = 구현(기기 별칭) · 저널 `RECON_CLEAR` + 해제 한
+///   트랜잭션 · 신뢰 시각 비의존 · 거부 = `ReconClearResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.reconClear].
+/// 🔴 사전 저널 꼴 ⓐ(K180) — 사람 글 3필드(`rationaleBefore` · `expectedOutcome` · `ruleCited` 원문)는 제출 DTO 에 · 저널 id 는
+///    구현 · 저널 행과 동작은 한 트랜잭션(고아 저널 0 · 엔진 «저널 함께 쓰기» 판 = 01 §8 미결 206).
 abstract interface class SafetyActions {
   /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
   Future<SafetyActionResult> run(
@@ -1712,6 +1734,14 @@ abstract interface class SafetyActions {
     DiscretionAdjustSubmission submission,
   );
 
+  /// 🆕 v1.26(01 §35 · K178) — `M5-9` 규칙 변경 요청(첫 승인 포함).
+  Future<SafetyActionResult> runRuleChangeRequest(
+    RuleChangeRequestSubmission submission,
+  );
+
+  /// 🆕 v1.26(01 §35 · K181) — `M5-5` 차단 보드 RECON 해제.
+  Future<SafetyActionResult> runReconClear(ReconClearSubmission submission);
+
   Stream<SafetyActionResult> watch(String actionRunId);
 }
 
@@ -1728,8 +1758,8 @@ abstract class SafetyActionResult with _$SafetyActionResult {
 
     /// 값 ∈ `KillSwitchResultCodes` ∪ `SafetyCommonResultCodes` ∪ `PledgeResultCodes` ∪ 🆕 v1.22 `StoppedDecisionResultCodes` ∪
     /// `PostmortemResultCodes` ∪ `InterventionResultCodes` ∪ `RuleChangeResultCodes` ∪ `DiscretionResultCodes` ∪
-    /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ {`BIOMETRIC_UNAVAILABLE`}
-    /// (C-55 ② · C-56 ②).
+    /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
+    /// `ReconClearResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).
@@ -1875,6 +1905,46 @@ abstract class DiscretionAdjustSubmission with _$DiscretionAdjustSubmission {
       _$DiscretionAdjustSubmissionFromJson(json);
 }
 // JSON 키: delta_pct · decision_id
+
+/// 🆕 v1.26(01 §35 · K178 · K180) — `M5-9` 규칙 변경 요청 제출(ds `rule_change_store.dart` `request` 인자 − 유형·해시(엔진 후보) −
+/// `decisionId`(구현)).
+/// 🔴 사람 글 5칸 = 원문 그대로(빈칸 = 엔진 `RULE_CHANGE_FIELDS_MISSING` · 저널 3칸 빈칸 = `RULE_CHANGE_JOURNAL_MISSING`) ·
+///    화면은 검증·파싱하지 않는다.
+@freezed
+abstract class RuleChangeRequestSubmission with _$RuleChangeRequestSubmission {
+  const factory RuleChangeRequestSubmission({
+    /// 엔진 후보 행 값 그대로(`RuleChangeCandidateRow.candidateId`).
+    required String candidateId,
+    required String reason,
+    required String rollbackMethod,
+    required String rationaleBefore,
+    required String expectedOutcome,
+
+    /// 근거 규칙(원문 · 01 §8 미결 184 ③ 결).
+    required String ruleCited,
+  }) = _RuleChangeRequestSubmission;
+
+  factory RuleChangeRequestSubmission.fromJson(Map<String, dynamic> json) =>
+      _$RuleChangeRequestSubmissionFromJson(json);
+}
+// JSON 키: candidate_id · reason · rollback_method · rationale_before · expected_outcome · rule_cited
+
+/// 🆕 v1.26(01 §35 · K180 · K181) — `M5-5` RECON 해제 제출(ds `order_ledger.dart` `clearReconBlock` −
+/// `clearedBy`·`decisionId`·시각(구현)).
+/// 🔴 [originCode] = 고른 `ReconOriginChoice.originCode` 그대로 · 저널 3칸 = 원문(빈칸 = `RECON_JOURNAL_MISSING`).
+@freezed
+abstract class ReconClearSubmission with _$ReconClearSubmission {
+  const factory ReconClearSubmission({
+    required String originCode,
+    required String rationaleBefore,
+    required String expectedOutcome,
+    required String ruleCited,
+  }) = _ReconClearSubmission;
+
+  factory ReconClearSubmission.fromJson(Map<String, dynamic> json) =>
+      _$ReconClearSubmissionFromJson(json);
+}
+// JSON 키: origin_code · rationale_before · expected_outcome · rule_cited
 ```
 
 ---
@@ -2005,7 +2075,7 @@ part 'settings_actions.g.dart';
 ///    · `handoverCommit`(simToAuto) = 위 그대로 `{handover_session_id}` · 결과 `reasonCode` ∈ `SimToAutoCommitResultCodes` ∪ `SimToAutoResultCodes` ∪
 ///      `SimToAutoStepIds` ∪ {`HANDOVER_SESSION_INVALID`, `LEASE_INVALID`}(구현 = 엔진 오케스트레이터 `SimToAutoSwitchResult`)
 ///    🔴 위 «세 동작 모두 필수»(`handover_session_id`)는 adoption·external·commit 셋의 조문이다 — `handoverSimLedgerFate` 는 그 밖.
-///    🔴 결과 문구 = 엔진 `headline`(확정 성공 문장 = 금액을 품는다 → 표본 0) · 위저드 읽기 창구·VM = 1.23.0+(01 §8 미결 187).
+///    🔴 결과 문구 = 엔진 `headline`(확정 성공 문장 = 금액을 품는다 → 표본 0) · 🆕 v1.26 위저드 읽기 창구·VM = `HandoverRepository.watchWizard` · `HandoverWizardVm`(01 §35 · K167~K169 · 미결 187 닫음 · 단계별 허용 id = 행 머리).
 ///
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
@@ -3003,6 +3073,8 @@ abstract class HandbookLiveValue with _$HandbookLiveValue {
 // 🔒 전환 위저드는 M5 소유 화면이다 — 다른 화면은 읽을 수는 있으나 렌더하지 않는다.
 // 🆕 v1.19(01 §28 · K8) — `S05` 는 `OperationsVm.operatingMode` 로 이 타입을 받는다(창구 = `SettingsRepository.watchOperations`) ·
 //    전환 버튼 = [OperatingModeView.switchActions].
+// 🆕 v1.26(01 §35 · K167~K175) — `M5-11` simToAuto 위저드 한 화면 [HandoverWizardVm] · 단계 행 [HandoverWizardStepRow]
+//    (창구 = `HandoverRepository.watchWizard()` · `handoverStatus` = 같은 본문 · 🔒 `ui_safety`) · [HandoverPlan]·[HandoverStep] 무변경.
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/advice.dart';
@@ -3012,6 +3084,7 @@ import '../enums/ui.dart';
 import '../primitives/as_of.dart';
 import 'common.dart';
 import 'ledger_trust.dart';
+import 'operations.dart'; // 🆕 v1.26 — SimTrialCard(S1 상세 · K171)
 import 'settings.dart'; // 🆕 v1.19 — SettingsActionCall
 
 part 'handover.freezed.dart';
@@ -3124,6 +3197,83 @@ abstract class AdoptionPreviewRow with _$AdoptionPreviewRow {
   factory AdoptionPreviewRow.fromJson(Map<String, dynamic> json) =>
       _$AdoptionPreviewRowFromJson(json);
 }
+
+/// 🆕 v1.26(01 §35 · K168) — `M5-11` simToAuto 위저드 한 화면(`AppRoutes.m5HandoverWizard` · `handoverStatus` 같은 본문 — K173).
+/// 🔴 머리·단계·시각 글자 = 엔진(`judgeSimToAuto` · `simToAutoPlan` 감싸기) · 화면은 분기 0 · 카운트다운 0(시각이 지나면 새 VM).
+/// 🔴 1.26.0 = `HandoverPath.simToAuto` 하나(다른 경로 = 추가형 나중).
+/// 🔴 불변식(C-60 ②~⑥) — [rows] 길이 ∈ {0, 7}(0 ⇔ 전제 밖) · 7 이면 `step.stepId` 차례 = `SimToAutoStepIds.ordered` ·
+///    [lockedLabel] 또는 [doneLabel] non-null ⇒ 모든 행 `actions` 빈 목록.
+@freezed
+abstract class HandoverWizardVm with _$HandoverWizardVm {
+  const factory HandoverWizardVm({
+    /// 판정 머리(엔진 `SimToAutoReport.headline` · 전제 밖 = 엔진 전제 문장).
+    required String headline,
+
+    /// 머리 색(엔진 짝 — 확정 가능 = OK · 막힘 = BLOCKED · 냉각·시각 모름 = WATCH · 진행 중 = INFO).
+    required UiLevel level,
+
+    /// 🔴 화면 미참조(시험·로그) — 엔진 `SimToAutoReport.code`(∈ `SimToAutoResultCodes`) · null = 막힘 0.
+    String? reasonCode,
+
+    /// 경로 글자(엔진 · «모의투자 → 실전 자동 매매(관찰부터)»).
+    required String pathLabel,
+
+    /// 7단계(엔진 차례 = `SimToAutoStepIds.ordered`) · 🔴 전제 밖 = 0.
+    @Default(<HandoverWizardStepRow>[]) List<HandoverWizardStepRow> rows,
+
+    /// S1 상세(체험 5항목 · 04 :1222 같은 그릇 · K171). null = 부재.
+    SimTrialCard? trial,
+
+    /// 냉각 끝 글자(엔진 · 세션 열린 뒤만). null = 부재.
+    String? coolingText,
+
+    /// 확정 기한 글자(엔진 · 세션 열린 뒤만). null = 부재.
+    String? deadlineText,
+
+    /// 커밋 창 글자(엔진 `SimToAutoCommitWindow.label` — 허용 때도 · K170). null = 부재.
+    String? windowText,
+
+    /// 고지 한 줄(엔진 · 예: 경고 후 진행 · 승인 config 없음). null = 부재.
+    String? noticeText,
+
+    /// 확정됨 상태 문장(엔진 · non-null ⇔ 확정 뒤 — 그때 `rows` 는 그대로 · 동작 0 · K175).
+    String? doneLabel,
+
+    /// 잠김(운영 등급 생체 · 다른 기기 리스 — 01 §8 미결 169) · non-null ⇒ 모든 행 `actions` 0.
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _HandoverWizardVm;
+
+  factory HandoverWizardVm.fromJson(Map<String, dynamic> json) =>
+      _$HandoverWizardVmFromJson(json);
+}
+// JSON 키: headline · level · reason_code · path_label · rows · trial · cooling_text · deadline_text · window_text ·
+//          notice_text · done_label · locked_label · as_of
+
+/// 🆕 v1.26(01 §35 · K168 · K169 · K172) — 위저드 한 단계(기존 [HandoverStep] 무변경 감싸기).
+/// 🔴 단계별 허용 동작(K169 · C-60 ③) — S2 ⊆ {`selftestGoldenRun`} · S5 ⊆ {`handoverSimLedgerFate`} ·
+///    S6 ⊆ {`handoverSessionStart`} · S7 ⊆ {`handoverSessionCancel`, `handoverCommit`} · 그 밖 단계 = 0 ·
+///    세션 id = 엔진이 `handover_session_id` args 에 넣는다(화면 읽기 0) · `handoverCommit` = S7 PASS 일 때만.
+@freezed
+abstract class HandoverWizardStepRow with _$HandoverWizardStepRow {
+  const factory HandoverWizardStepRow({
+    /// 엔진 `simToAutoPlan` 단계 그대로(제목 · 왜 · 상태 · 상태 글자 · 막힘 코드).
+    required HandoverStep step,
+
+    /// 🔴 색의 유일한 근거(K172) — `step.state` 가 UNKNOWN 이어도 «아직»은 INFO · 시각 모름 = WATCH.
+    required UiLevel level,
+
+    /// 다른 화면으로(엔진 · S2 → `settingsDiagnostics` · S3 → `settingsCredentials` · S4 → `settingsAccounts`). null = 이동 0.
+    LinkAction? link,
+
+    /// 단계 안 엔진 완성 호출(`SettingsActions.run` · 허용 id = 위 표). 빈 목록 = 버튼 0.
+    @Default(<SettingsActionCall>[]) List<SettingsActionCall> actions,
+  }) = _HandoverWizardStepRow;
+
+  factory HandoverWizardStepRow.fromJson(Map<String, dynamic> json) =>
+      _$HandoverWizardStepRowFromJson(json);
+}
+// JSON 키: step · level · link · actions
 ```
 
 ---
@@ -7747,6 +7897,8 @@ abstract class EntryRampSleeveState with _$EntryRampSleeveState {
 // 🆕 v1.22(01 §31 · K65) — `M5-4` 브레이커 사다리(문장 = 엔진 `breakerLadderOf` 글자 그대로).
 // 🆕 v1.25(01 §34 · K146 · K147 · K154) — `M5-1` 킬스위치 화면 · 발동 뒤 기록 폼(01 §8 미결 186) ·
 //    `M5-5` 차단 보드(사다리 `M5-4` · 게이지 `M5-7` 감싸기).
+// 🆕 v1.26(01 §35 · K179 · K181) — `M5-9` 규칙 변경 게이트 «첫 승인 최소판»(후보 · 큐) · `M5-5` RECON 행 해제 폼
+//    (`BlockBoardRow.reconClear` 추가형).
 // 🔴 M5 만 렌더한다(`ui_safety` · 01 §2-10 표 · C-7) · 상태를 바꾸는 경로 = `SafetyActions`(포트) 뿐.
 // 🔴 화면은 받은 글자·차례 그대로 그린다 — 단계·남은 시간을 계산하지 않는다(카운트다운 0 · 새 VM 으로만).
 // 🔴 7문항 글자 출처 = SPEC v2.40 04 §3-6 ③ «재개판» 원문(발주자 확정 2026-11-04 · 정규화 = 01 §30 K38) —
@@ -7754,6 +7906,7 @@ abstract class EntryRampSleeveState with _$EntryRampSleeveState {
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../commands/safety_actions.dart'; // SafetyActionCall(🆕 v1.26 — 규칙 변경 큐 행 취소 · resume.dart 선례)
 import '../enums/safety.dart';
 import '../enums/ui.dart';
 import '../primitives/as_of.dart';
@@ -8043,7 +8196,8 @@ abstract class KillActivationChoice with _$KillActivationChoice {
 /// 🔴 불변식(C-59 ⑩~⑫) — [killSwitchLink] 늘 non-null(목적지 `AppRoutes.m5KillSwitch` · 끄기는 언제나) ·
 ///    [emptyLabel] non-null ⇒ [rows] 빈 · [ladder] 의 current 행 라벨 == [breakerLabel] ·
 ///    [stoppedDecisionLink] non-null ⇒ 목적지 `AppRoutes.m5StoppedDecision`.
-/// 🔴 화면은 받은 차례 그대로(재정렬·재분류 0) · 행 링크 = 엔진 · 해제 버튼 0(RECON 원인 코드 선택 = 1.26.0+).
+/// 🔴 화면은 받은 차례 그대로(재정렬·재분류 0) · 행 링크 = 엔진 · 🆕 v1.26 — RECON 행만 해제 폼(`BlockBoardRow.reconClear` ·
+///    01 §35 K181) · 그 밖 해제 = 링크.
 @freezed
 abstract class BlockBoardVm with _$BlockBoardVm {
   const factory BlockBoardVm({
@@ -8101,12 +8255,142 @@ abstract class BlockBoardRow with _$BlockBoardRow {
 
     /// 조치 진입(엔진 · 플래그 = `clearDeepLink` · 킬스위치 = `m5KillSwitch`). null = 이동 0.
     LinkAction? link,
+
+    /// 🆕 v1.26(01 §35 · K181) — `RECON_MISMATCH` 행만 · 해제 폼(엔진). null = 해제 동작 0(그 밖 행 · 막힘 없음 · 잠김).
+    ReconClearForm? reconClear,
   }) = _BlockBoardRow;
 
   factory BlockBoardRow.fromJson(Map<String, dynamic> json) =>
       _$BlockBoardRowFromJson(json);
 }
-// JSON 키: row_id · label · set_at_text · clear_kind_label · clear_instruction · level · link
+// JSON 키: row_id · label · set_at_text · clear_kind_label · clear_instruction · level · link · recon_clear(🆕 v1.26)
+
+/// 🆕 v1.26(01 §35 · K181) — 차단 보드 RECON 행의 해제 폼(`BlockBoardRow.reconClear`).
+/// 🔴 제출 = `SafetyActions.runReconClear(ReconClearSubmission)` — `run(reconClear, …)` 은 받지 않는다(구현 `ArgumentError`).
+@freezed
+abstract class ReconClearForm with _$ReconClearForm {
+  const factory ReconClearForm({
+    /// 원인 코드 선택지(엔진 쓰기 화이트리스트 ∩ 자동 갈래 · 차례 = 엔진). 🔴 빈 목록 금지(C-60 ⑨).
+    required List<ReconOriginChoice> choices,
+
+    /// 고지(엔진 · 예: «해제는 저널과 함께 기록됩니다 — 주문을 내지 않습니다»). null = 부재.
+    String? noticeText,
+  }) = _ReconClearForm;
+
+  factory ReconClearForm.fromJson(Map<String, dynamic> json) =>
+      _$ReconClearFormFromJson(json);
+}
+// JSON 키: choices · notice_text
+
+/// 🆕 v1.26(01 §35 · K181) — RECON 원인 코드 선택지 하나.
+@freezed
+abstract class ReconOriginChoice with _$ReconOriginChoice {
+  const factory ReconOriginChoice({
+    /// ∈ `OriginCodes.writable` — 제출 `ReconClearSubmission.originCode` 로 그대로.
+    required String originCode,
+
+    /// 엔진 글자.
+    required String label,
+  }) = _ReconOriginChoice;
+
+  factory ReconOriginChoice.fromJson(Map<String, dynamic> json) =>
+      _$ReconOriginChoiceFromJson(json);
+}
+// JSON 키: origin_code · label
+
+/// 🆕 v1.26(01 §35 · K177 · K179) — `M5-9` 규칙 변경 게이트 «첫 승인 최소판»(`AppRoutes.m5RuleChangeGate` ·
+/// 창구 = `RuleChangeGateRepository.watchGate()` · 🔒 `ui_safety`).
+/// 🔴 1.26.0 = 후보(첫 승인할 지금 config) + 큐(요청 · 냉각 · 승인 · 취소). CHANGELOG · 창 밖 안내 · DD 락 글자 = 1.27.0+.
+/// 🔴 냉각 30일 · SAF-405 · 12월 창 면제 규칙 = SPEC·엔진 그대로(글자로만 싣는다 — 새 수치 0).
+/// 🔴 불변식(C-60 ⑦) — [lockedLabel] non-null ⇒ [candidates] 빈 ∧ 모든 행 `cancel`·`approveLabel` null.
+@freezed
+abstract class RuleChangeGateVm with _$RuleChangeGateVm {
+  const factory RuleChangeGateVm({
+    /// 엔진 머리(예: «승인된 설정이 없습니다 — 실전 기동 전에 첫 승인이 필요합니다»).
+    required String headline,
+    required UiLevel level,
+
+    /// 창 글자(엔진 · 첫 승인 = 창 면제 문장 · 둘째부터 = 12월 창). null = 부재.
+    String? windowText,
+
+    /// 요청할 수 있는 후보(엔진 · v1 = 0 또는 1). 빈 목록 = 요청 버튼 0.
+    @Default(<RuleChangeCandidateRow>[])
+    List<RuleChangeCandidateRow> candidates,
+
+    /// 열린 요청(엔진 `queue()` 차례).
+    @Default(<RuleChangeQueueRow>[]) List<RuleChangeQueueRow> rows,
+
+    /// 후보 0 ∧ 큐 0 일 때 문장(엔진). null = 부재.
+    String? emptyLabel,
+
+    /// 잠김(01 §8 미결 169) · non-null ⇒ 요청·승인·취소 0.
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _RuleChangeGateVm;
+
+  factory RuleChangeGateVm.fromJson(Map<String, dynamic> json) =>
+      _$RuleChangeGateVmFromJson(json);
+}
+// JSON 키: headline · level · window_text · candidates · rows · empty_label · locked_label · as_of
+
+/// 🆕 v1.26(01 §35 · K178 · K179) — 요청할 수 있는 config 후보 한 행(유형·해시 = 엔진 · 자기 신고 0 — 03운 §6-3).
+@freezed
+abstract class RuleChangeCandidateRow with _$RuleChangeCandidateRow {
+  const factory RuleChangeCandidateRow({
+    /// 🔴 화면 미참조(제출용) — `RuleChangeRequestSubmission.candidateId` 로 그대로 되돌린다.
+    required String candidateId,
+
+    /// 후보 이름(엔진 · 예: «지금 쓰는 설정 — 첫 승인»).
+    required String label,
+
+    /// 변경 유형 글자(엔진 분류).
+    required String categoryLabel,
+
+    /// 해시 글자(엔진 · 앞 8자).
+    required String hashText,
+
+    /// 요청 버튼 글자(엔진).
+    required String requestLabel,
+
+    /// 고지(엔진 · 예: «요청 뒤 30일 냉각이 끝나야 승인할 수 있습니다»). null = 부재.
+    String? noticeText,
+  }) = _RuleChangeCandidateRow;
+
+  factory RuleChangeCandidateRow.fromJson(Map<String, dynamic> json) =>
+      _$RuleChangeCandidateRowFromJson(json);
+}
+// JSON 키: candidate_id · label · category_label · hash_text · request_label · notice_text
+
+/// 🆕 v1.26(01 §35 · K179) — 열린 규칙 변경 요청 한 행(엔진 `rule_change_store.queue()`).
+@freezed
+abstract class RuleChangeQueueRow with _$RuleChangeQueueRow {
+  const factory RuleChangeQueueRow({
+    /// 🔴 화면 미참조(제출용) — `RuleChangeApprovalSubmission.requestId` 로 그대로.
+    required String requestId,
+    required String categoryLabel,
+    required String hashText,
+
+    /// «MM-DD HH:mm 요청»(엔진).
+    required String requestedText,
+
+    /// 냉각 글자(엔진 · «냉각 중 — MM-DD HH:mm 이후 승인» · «냉각 끝»).
+    required String coolingText,
+
+    /// 상태 글자(엔진).
+    required String stateLabel,
+    required UiLevel level,
+
+    /// 승인 폼 버튼 글자(엔진 · non-null ⇔ 지금 승인 판정이 냉각·창·DD 에 걸리지 않음). null = 승인 폼 0.
+    String? approveLabel,
+
+    /// 취소(엔진 완성 `run(ruleChangeCancel{request_id})`). null = 취소 0.
+    SafetyActionCall? cancel,
+  }) = _RuleChangeQueueRow;
+
+  factory RuleChangeQueueRow.fromJson(Map<String, dynamic> json) =>
+      _$RuleChangeQueueRowFromJson(json);
+}
+// JSON 키: request_id · category_label · hash_text · requested_text · cooling_text · state_label · level · approve_label · cancel
 ```
 
 ---
@@ -8956,6 +9240,8 @@ enum SettingsActionId {
 ///    (화이트리스트 = 1.22.0 · K39). 개수를 숫자로 적지 않는다(G-91).
 /// 🆕 v1.22(01 §31 · K52) — `run(id, args)` 화이트리스트 = `interventionStep` · `ruleChangeCancel` · `reconClear` ·
 ///    `seasonalWindowChoice`(엔진이 `SafetyActionCall` 에 완성) · 그 밖 값 = 제출 DTO 경로(`run…` 메서드).
+/// 🆕 v1.26(01 §35 · K178 · K181) — `reconClear` 를 `run` 화이트리스트에서 뺐다(`runReconClear` · 값은 결과 id 로 남는다) ·
+///    `ruleChangeRequest` 추가(`runRuleChangeRequest` 전용).
 enum SafetyActionId {
   /// 킬스위치 재개 게이트(M5-2) 문항 제출의 결과 id — 7번 통과 = 해제.
   @JsonValue('KILL_SWITCH_RESUME')
@@ -8990,6 +9276,11 @@ enum SafetyActionId {
   /// 🆕 v1.22 — `M5-6`·`M5-7` 재량 조정(제출 `runDiscretionAdjust` · ds `discretion_store.dart:15`).
   @JsonValue('DISCRETION_ADJUST')
   discretionAdjust('DISCRETION_ADJUST'),
+
+  /// 🆕 v1.26(01 §35 · K178) — `M5-9` 규칙 변경 요청(첫 승인 포함 · 제출 `runRuleChangeRequest` 전용 — `run` 으로 받지 않는다 ·
+  /// ds `rule_change_store.dart` `kRuleChangeRequestKind` 와 같은 글자).
+  @JsonValue('RULE_CHANGE_REQUEST')
+  ruleChangeRequest('RULE_CHANGE_REQUEST'),
 
   /// 🆕 v1.22 — `M5-9` 규칙 변경 요청 취소(`run{request_id}` · ds `rule_change_store.dart:17` · 요청 = M9 `strategyApplyRequest`).
   @JsonValue('RULE_CHANGE_CANCEL')
@@ -10623,6 +10914,7 @@ abstract final class FixturePaths {
   //    🆕 v1.25(01 §34) — 킬스위치 화면 7 · 발동 접수증 1 · 게이트 꺼짐 1 · 차단 보드 4(같은 차례 규약).
   //    (파일 이름 바이트 차례 · `all` 도 같은 차례)
   //    🆕 v1.22(01 §31) — 사다리 2 · simToAuto 계획 4 · 위저드 결과 1 · E13 결과 1(같은 차례 규약).
+  //    🆕 v1.26(01 §35) — 보드 RECON 1 · 위저드 12 · RECON 결과 1 · 규칙 변경 게이트 5 · 요청 결과 1(같은 차례 규약).
 
   /// 🆕 v1.25(K154) — `M5-5` 보드 · 막힌 것 0(빈 문장 · 사다리 정상).
   static const String m5BlockBoardClear = 'm5/block_board_clear.json';
@@ -10630,6 +10922,10 @@ abstract final class FixturePaths {
   /// 🆕 v1.25 — `M5-5` 보드 · 킬스위치 행(기록 뒤 대기) · COOLDOWN 게이지.
   static const String m5BlockBoardKillActive =
       'm5/block_board_kill_active.json';
+
+  /// 🆕 v1.26 — `M5-5` 보드 · RECON 행 해제 폼(원인 코드 6 · K181) + JOURNAL_MISSING(폼 0).
+  static const String m5BlockBoardReconMismatch =
+      'm5/block_board_recon_mismatch.json';
 
   /// 🆕 v1.25(K155) — `M5-5` 보드 · RESUME_INCOMPLETE(→ X2 게이트) + JOURNAL_MISSING.
   static const String m5BlockBoardResumeIncomplete =
@@ -10663,6 +10959,54 @@ abstract final class FixturePaths {
   /// 🆕 v1.22 — simToAuto 계획 · 3단계 실전 키 조회 실패(`SIM_TO_AUTO_LIVE_KEYS_FAILED`).
   static const String m5HandoverSimToAutoS3Blocked =
       'm5/handover_sim_to_auto_s3_blocked.json';
+
+  /// 🆕 v1.26 — `M5-11` 확정 가능(S7 통과 · 확정 + 취소 · 커밋 창 글자 · 머리 OK).
+  static const String m5HandoverWizardCommitReady =
+      'm5/handover_wizard_commit_ready.json';
+
+  /// 🆕 v1.26 — `M5-11` 확정됨(상태 문장 · 동작 0).
+  static const String m5HandoverWizardCommitted =
+      'm5/handover_wizard_committed.json';
+
+  /// 🆕 v1.26 — `M5-11` 냉각 중(S7 막힘 WATCH · 취소 1 · 냉각 끝·확정 기한 글자).
+  static const String m5HandoverWizardCooling =
+      'm5/handover_wizard_cooling.json';
+
+  /// 🆕 v1.26 — `M5-11` 확정 기한 지남(S7 막힘 · S6 다시 시작 1).
+  static const String m5HandoverWizardExpired =
+      'm5/handover_wizard_expired.json';
+
+  /// 🆕 v1.26 — `M5-11` S5 고르기(동작 2 · 세션 전 · 머리 code = 단계 id).
+  static const String m5HandoverWizardFatePending =
+      'm5/handover_wizard_fate_pending.json';
+
+  /// 🆕 v1.26 — `M5-11` 확정 가능 + 잠김(모든 동작 0).
+  static const String m5HandoverWizardLocked = 'm5/handover_wizard_locked.json';
+
+  /// 🆕 v1.26 — `M5-11` 전제 밖(모의 자동 매매 아님 · 행 0).
+  static const String m5HandoverWizardNotApplicable =
+      'm5/handover_wizard_not_applicable.json';
+
+  /// 🆕 v1.26 — `M5-11` S3 막힘(S2·S3·S4 링크).
+  static const String m5HandoverWizardS3Blocked =
+      'm5/handover_wizard_s3_blocked.json';
+
+  /// 🆕 v1.26 — `M5-11` S6 시작(동작 1 · 승인 config 고지).
+  static const String m5HandoverWizardStartReady =
+      'm5/handover_wizard_start_ready.json';
+
+  /// 🆕 v1.26 — `M5-11` 신뢰 시각 모름(S7 UNKNOWN WATCH · 취소 자리 그대로 — K176).
+  static const String m5HandoverWizardTimeUnknown =
+      'm5/handover_wizard_time_unknown.json';
+
+  /// 🆕 v1.26 — `M5-11` 체험 미완(S1 막힘 · 체험 카드 · 동작 0).
+  static const String m5HandoverWizardTrialIncomplete =
+      'm5/handover_wizard_trial_incomplete.json';
+
+  /// 🆕 v1.26 — `M5-11` 커밋 창 막힘(7 통과 · 머리 = 창 라벨 · 확정 0).
+  static const String m5HandoverWizardWindowBlocked =
+      'm5/handover_wizard_window_blocked.json';
+
   static const String m5KillChecklistReceipts =
       'm5/kill_checklist_receipts.json';
   static const String m5KillResumeGateConditionUnmet =
@@ -10716,6 +11060,33 @@ abstract final class FixturePaths {
   static const String m5PledgeEditWindow = 'm5/pledge_edit_window.json';
   static const String m5PledgeNotWritten = 'm5/pledge_not_written.json';
   static const String m5PledgeWritten = 'm5/pledge_written.json';
+
+  /// 🆕 v1.26 — `runReconClear` 결과 6행(성공 · `ReconClearResultCodes` 3 · 공용 2 · K182).
+  static const String m5ReconClearResults = 'm5/recon_clear_results.json';
+
+  /// 🆕 v1.26 — `M5-9` 냉각 끝(승인 폼 · 취소).
+  static const String m5RuleChangeGateApprovable =
+      'm5/rule_change_gate_approvable.json';
+
+  /// 🆕 v1.26 — `M5-9` 첫 승인 요청 냉각 중(승인 0 · 취소 1).
+  static const String m5RuleChangeGateCooling =
+      'm5/rule_change_gate_cooling.json';
+
+  /// 🆕 v1.26 — `M5-9` 승인된 설정 · 후보 0 · 큐 0(빈 문장).
+  static const String m5RuleChangeGateEmpty = 'm5/rule_change_gate_empty.json';
+
+  /// 🆕 v1.26 — `M5-9` 승인 config 0 · 후보 1(첫 승인 요청).
+  static const String m5RuleChangeGateFirstCandidate =
+      'm5/rule_change_gate_first_candidate.json';
+
+  /// 🆕 v1.26 — `M5-9` 잠김(후보 0 · 승인·취소 0).
+  static const String m5RuleChangeGateLocked =
+      'm5/rule_change_gate_locked.json';
+
+  /// 🆕 v1.26 — `runRuleChangeRequest` 결과 7행(성공 · 사전 3 · 공용 2 · 생체 · K178).
+  static const String m5RuleChangeRequestResults =
+      'm5/rule_change_request_results.json';
+
   static const String m5SafetyActionResults = 'm5/safety_action_results.json';
 
   /// 🆕 v1.22(K52~K55) — E13 나머지 동작 8 결과 31행(`SafetyActionResult` · RECON 해제 = 생체 코드만 · K55).
@@ -11577,6 +11948,7 @@ abstract final class FixturePaths {
     sleeveCatalog4,
     m5BlockBoardClear,
     m5BlockBoardKillActive,
+    m5BlockBoardReconMismatch,
     m5BlockBoardResumeIncomplete,
     m5BlockBoardStopped,
     m5BreakerLadderNormal,
@@ -11586,6 +11958,18 @@ abstract final class FixturePaths {
     m5HandoverSimToAutoFatePending,
     m5HandoverSimToAutoReady,
     m5HandoverSimToAutoS3Blocked,
+    m5HandoverWizardCommitReady,
+    m5HandoverWizardCommitted,
+    m5HandoverWizardCooling,
+    m5HandoverWizardExpired,
+    m5HandoverWizardFatePending,
+    m5HandoverWizardLocked,
+    m5HandoverWizardNotApplicable,
+    m5HandoverWizardS3Blocked,
+    m5HandoverWizardStartReady,
+    m5HandoverWizardTimeUnknown,
+    m5HandoverWizardTrialIncomplete,
+    m5HandoverWizardWindowBlocked,
     m5KillChecklistReceipts,
     m5KillResumeGateConditionUnmet,
     m5KillResumeGateInProgress,
@@ -11606,6 +11990,13 @@ abstract final class FixturePaths {
     m5PledgeEditWindow,
     m5PledgeNotWritten,
     m5PledgeWritten,
+    m5ReconClearResults,
+    m5RuleChangeGateApprovable,
+    m5RuleChangeGateCooling,
+    m5RuleChangeGateEmpty,
+    m5RuleChangeGateFirstCandidate,
+    m5RuleChangeGateLocked,
+    m5RuleChangeRequestResults,
     m5SafetyActionResults,
     m5SafetyActionResultsE13,
     m6Advice12,
@@ -13068,6 +13459,8 @@ abstract final class ContractCodes {
     'ledger_integrity_result': LedgerIntegrityResultCodes.values,
     // 🆕 v1.25(01 §34 · K151) — 킬스위치 미체결 취소 결과(엔진 wire 1:1 · 사전 도메인 사이 겹침 0 — 같은 글자는 열거 와이어뿐)
     'kill_cancel_outcome': KillCancelOutcomeCodes.values,
+    // 🆕 v1.26(01 §35 · K182) — RECON 해제 거부(엔진 예고 · 공용 2 따로)
+    'recon_clear_result': ReconClearResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -13974,6 +14367,27 @@ abstract final class KillCancelOutcomeCodes {
     unknown,
     notCancelledUnknownIntent,
     inFlight,
+  };
+}
+
+/// 🆕 v1.26(01 §35 · K182) — `M5-5` RECON 해제 거부(도메인 `recon_clear_result` · 🔵 **엔진 예고** — 엔진 «저널 함께 쓰기» 판
+/// (01 §8 미결 206)이 지금의 예외(ds `order_ledger.dart` `clearReconBlock` — 원인 코드 밖 = `ArgumentError` · 막힘 없음 =
+/// `StateError`)를 이 코드로 바꾼다 · 글자 같음 시험 = 엔진 PR). 공용 `JOURNAL_ID_TAKEN`(`SafetyCommonResultCodes`) ·
+/// `BIOMETRIC_UNAVAILABLE`(`SettingsResultCodes`)은 따로 — 다시 적지 않는다.
+abstract final class ReconClearResultCodes {
+  /// 풀 RECON_MISMATCH 가 서 있지 않다.
+  static const String notBlocked = 'RECON_NOT_BLOCKED';
+
+  /// 원인 코드가 쓰기 화이트리스트 밖.
+  static const String originNotAllowed = 'RECON_ORIGIN_NOT_ALLOWED';
+
+  /// 사전 저널 3칸 중 빈칸.
+  static const String journalMissing = 'RECON_JOURNAL_MISSING';
+
+  static const Set<String> values = <String>{
+    notBlocked,
+    originNotAllowed,
+    journalMissing,
   };
 }
 ```
@@ -15151,6 +15565,10 @@ abstract final class AppRoutes {
   /// 🆕 v1.18 — `S12` 12월 연간 리뷰 진입(M9 목차 · `SettingsHomeVm.annualReviewLink` 목적지 · M7 `reportAnnual` 과 다른 화면 ·
   /// 🆕 v1.24 R9c · `AnnualReviewIndexVm` · v1 뷰어 = 레지스트리 빈 자리 · 미결 95·170 닫음).
   static const String settingsAnnualReview = 'aaq://settings/annual-review';
+
+  /// 🆕 v1.26(01 §35 · K173) — 🔒 `M5-11` 위저드와 **같은 본문·같은 VM**(`HandoverRepository.watchWizard` · 본문 = `ui_safety` ·
+  /// 조립 = 레지스트리 두 칸에 같은 위젯) · 엔진 알림 `HANDOVER_COOLING_ACTIVE` · `HANDOVER_COMMITTED` 목적지(냉각 끝 재진입 길) ·
+  /// 소유 = M5(Claude · C-33).
   static const String handoverStatus = 'aaq://handover/status';
 
   // ── M4 · M5 · X1 · X2 · X5 소유(06 §3-5 목록 — 위젯은 Claude, 등록은 셸) ────────
@@ -15167,7 +15585,12 @@ abstract final class AppRoutes {
   /// 🆕 v1.25(01 §34 · K154) — 🔒 `M5-5` 본문 = `ui_safety`(VM = `BlockBoardVm` · 사다리 `M5-4` · 게이지 `M5-7` 포함).
   static const String m5BlockBoard = 'aaq://m5/block-board';
   static const String m5Intervention = 'aaq://m5/intervention';
+
+  /// `M5-10` 안내 개시 게이트(advisory) — 🆕 v1.26(01 §35 · K174) 범위 밖 · 레지스트리 빈 자리.
   static const String m5HandoverGate = 'aaq://m5/handover-gate';
+
+  /// 🆕 v1.26(01 §35 · K167 · K168) — 🔒 `M5-11` simToAuto 위저드 본문 = `ui_safety`(VM = `HandoverWizardVm` ·
+  /// 창구 = `HandoverRepository.watchWizard` · `handoverStatus` = 같은 본문).
   static const String m5HandoverWizard = 'aaq://m5/handover-wizard';
 
   /// `M5-13` 원장 실사 해소·격리 검토.
@@ -15878,6 +16301,27 @@ abstract interface class HandbookRepository {
 
 ---
 
+## `packages/domain_contracts/lib/src/repositories/handover_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 계약 v1.26(01 §35 · K167) — `M5-11` simToAuto 위저드 읽기 창구(폰 전용 · `ui_safety` 만 · 구현 = 조립 앱 — 엔진 VM 생산).
+//
+// 🔴 `SettingsRepository` 를 넓히지 않는다(05 «7단계 전부 M5 소유» · M9/M5 경계 · v1.25 `BlockBoardRepository` 선례).
+// 🔴 `handoverStatus` = 같은 본문 · 같은 스트림(K173).
+// 🔴 시각이 지나면(냉각 끝 · 확정 기한 · 커밋 창) 새 VM 을 낸다 — 화면 카운트다운 0.
+// 🔴 세션 저장 = 실전 파일(ds `handover_session_store.dart`) — 열기·여는 때는 구현 몫(01 §8 미결 207).
+// 🔴 쓰기 = `SettingsActions.run`(행의 `actions` 그대로 · K169).
+
+import '../dto/handover.dart';
+
+/// 위저드 한 화면.
+abstract interface class HandoverRepository {
+  Stream<HandoverWizardVm> watchWizard();
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/repositories/holdings_repository.dart`
 
 ```dart
@@ -16424,6 +16868,24 @@ abstract interface class ResumeRepository {
   Stream<ResumeReport?> watchLatest();
 
   Stream<List<PlannedWorkSummary>> watchPlannedWork();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/rule_change_gate_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 계약 v1.26(01 §35 · K179) — `M5-9` 규칙 변경 게이트 «첫 승인 최소판» 읽기 창구(폰 전용 · `ui_safety` 만).
+//
+// 🔴 냉각이 끝나면 새 VM(`approveLabel` 생김) — 화면 카운트다운 0.
+// 🔴 쓰기 = `SafetyActions.runRuleChangeRequest`(요청) · `runRuleChangeApproval`(승인) · `run(ruleChangeCancel)`(행의 `cancel` 그대로).
+
+import '../dto/safety_gate.dart';
+
+/// 규칙 변경 게이트 한 화면.
+abstract interface class RuleChangeGateRepository {
+  Stream<RuleChangeGateVm> watchGate();
 }
 ```
 

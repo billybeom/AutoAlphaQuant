@@ -233,4 +233,15 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runDiscretionAdjust(
     DiscretionAdjustSubmission submission,
   ) => _none('runDiscretionAdjust');
+
+  /// 🆕 계약 v1.26(01 §35 · K178) — 규칙 변경 요청(첫 승인 포함). 실물 = 카드 E11q-c0(엔진 «저널 함께 쓰기» 판 뒤).
+  @override
+  Future<SafetyActionResult> runRuleChangeRequest(
+    RuleChangeRequestSubmission submission,
+  ) => _none('runRuleChangeRequest');
+
+  /// 🆕 계약 v1.26(01 §35 · K181) — RECON 해제. 실물 = 카드 E11q-c4(b3 보드 뒤).
+  @override
+  Future<SafetyActionResult> runReconClear(ReconClearSubmission submission) =>
+      _none('runReconClear');
 }

@@ -235,6 +235,27 @@ void main() {
         FixturePaths.x2ResumeReportScreenRecoveryFull,
         FixturePaths.x2ResumeReportScreenEmpty,
         FixturePaths.x2ResumeGateClear,
+        // 🆕 v1.26(01 §35) — 신설 20(위저드 12 · 규칙 변경 게이트 5 · 결과 2 · 보드 RECON 1).
+        FixturePaths.m5HandoverWizardTrialIncomplete,
+        FixturePaths.m5HandoverWizardS3Blocked,
+        FixturePaths.m5HandoverWizardFatePending,
+        FixturePaths.m5HandoverWizardStartReady,
+        FixturePaths.m5HandoverWizardCooling,
+        FixturePaths.m5HandoverWizardCommitReady,
+        FixturePaths.m5HandoverWizardWindowBlocked,
+        FixturePaths.m5HandoverWizardExpired,
+        FixturePaths.m5HandoverWizardTimeUnknown,
+        FixturePaths.m5HandoverWizardNotApplicable,
+        FixturePaths.m5HandoverWizardCommitted,
+        FixturePaths.m5HandoverWizardLocked,
+        FixturePaths.m5RuleChangeGateFirstCandidate,
+        FixturePaths.m5RuleChangeGateCooling,
+        FixturePaths.m5RuleChangeGateApprovable,
+        FixturePaths.m5RuleChangeGateEmpty,
+        FixturePaths.m5RuleChangeGateLocked,
+        FixturePaths.m5RuleChangeRequestResults,
+        FixturePaths.m5BlockBoardReconMismatch,
+        FixturePaths.m5ReconClearResults,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {

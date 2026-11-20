@@ -316,6 +316,11 @@ const Map<String, String> _knownUncovered = <String, String>{
 
   // 🔵 v1.25(01 §34) — 새 DTO 8(`KillSwitchScreenVm`·`KillCancelRow`·`KillActivationFormVm`·`KillActivationItemRow`·
   //    `KillActivationChoice`·`BlockBoardVm`·`BlockBoardRow`·`ResumeReportVm`) = m5·x2 신설 표본이 처음부터 덮는다(목록 0).
+  // 🆕 v1.26(01 §35 · K178 · K181) — M5 제출 DTO 2(포트 인자 · 표본 0) · C-60 ⑪ 이 시험 안에서 왕복한다.
+  //    새 VM 7(`HandoverWizardVm`·`HandoverWizardStepRow`·`RuleChangeGateVm`·`RuleChangeCandidateRow`·`RuleChangeQueueRow`·
+  //    `ReconClearForm`·`ReconOriginChoice`) = m5 신설 표본이 처음부터 덮는다(목록 0).
+  'RuleChangeRequestSubmission': _reasonCommandPayload,
+  'ReconClearSubmission': _reasonCommandPayload,
   // ── M9 설정·기기·연결·백업·셸(05) ────────────────────────────────────────
   // 🔵 v1.24(01 §33) — `BackupVm` 은 m9/backup* 6 이 덮어 목록에서 지웠다(새 DTO 4 = 처음부터 덮임 — `RestorePointRow` ←
   //    `BackupVm.points` · `SelfTestCard` ← 감싸개).

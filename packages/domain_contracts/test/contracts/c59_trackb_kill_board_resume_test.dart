@@ -115,6 +115,8 @@ const List<String> _bbRowKeys = <String>[
   'clear_instruction',
   'level',
   'link',
+  // 🆕 v1.26(01 §35 · K181) — RECON 행 해제 폼(추가형 · 그 밖 행 = null · 표본 개정 2 = 생성기 gen_trackc_v126 · C-60 ⑨).
+  'recon_clear',
 ];
 const List<String> _rrKeys = <String>[
   'report',

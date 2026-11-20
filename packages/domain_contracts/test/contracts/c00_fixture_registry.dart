@@ -227,6 +227,17 @@ final DtoCodec<Object> _resumeReportVm = DtoCodec<ResumeReportVm>(
   ResumeReportVm.fromJson,
   (ResumeReportVm v) => v.toJson(),
 );
+// 🆕 계약 v1.26(트랙 C 선행 · 01 §35) — M5-11 위저드 · M5-9 첫 승인 최소판(보드 RECON = `_blockBoardVm` · 결과 = `_safetyActionResult`).
+final DtoCodec<Object> _handoverWizardVm = DtoCodec<HandoverWizardVm>(
+  'HandoverWizardVm',
+  HandoverWizardVm.fromJson,
+  (HandoverWizardVm v) => v.toJson(),
+);
+final DtoCodec<Object> _ruleChangeGateVm = DtoCodec<RuleChangeGateVm>(
+  'RuleChangeGateVm',
+  RuleChangeGateVm.fromJson,
+  (RuleChangeGateVm v) => v.toJson(),
+);
 final DtoCodec<Object> _handoverPlan = DtoCodec<HandoverPlan>(
   'HandoverPlan',
   HandoverPlan.fromJson,
@@ -547,6 +558,31 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m5PledgeWritten: FixtureBinding(_pledgeVm),
   FixturePaths.m5SafetyActionResults: FixtureBinding(_safetyActionResult),
   FixturePaths.m5SafetyActionResultsE13: FixtureBinding(_safetyActionResult),
+  // 🆕 v1.26(01 §35) — 보드 RECON 1 · 위저드 12 · 규칙 변경 게이트 5 · 결과 2.
+  FixturePaths.m5BlockBoardReconMismatch: FixtureBinding(_blockBoardVm),
+  FixturePaths.m5HandoverWizardCommitReady: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardCommitted: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardCooling: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardExpired: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardFatePending: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardLocked: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardNotApplicable: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardS3Blocked: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardStartReady: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardTimeUnknown: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5HandoverWizardTrialIncomplete: FixtureBinding(
+    _handoverWizardVm,
+  ),
+  FixturePaths.m5HandoverWizardWindowBlocked: FixtureBinding(_handoverWizardVm),
+  FixturePaths.m5RuleChangeGateApprovable: FixtureBinding(_ruleChangeGateVm),
+  FixturePaths.m5RuleChangeGateCooling: FixtureBinding(_ruleChangeGateVm),
+  FixturePaths.m5RuleChangeGateEmpty: FixtureBinding(_ruleChangeGateVm),
+  FixturePaths.m5RuleChangeGateFirstCandidate: FixtureBinding(
+    _ruleChangeGateVm,
+  ),
+  FixturePaths.m5RuleChangeGateLocked: FixtureBinding(_ruleChangeGateVm),
+  FixturePaths.m5RuleChangeRequestResults: FixtureBinding(_safetyActionResult),
+  FixturePaths.m5ReconClearResults: FixtureBinding(_safetyActionResult),
 
   // ── m6/ — 안내·수기 체결(01 §2-11) ───────────────────────────────────────
   FixturePaths.m6Advice12: FixtureBinding(

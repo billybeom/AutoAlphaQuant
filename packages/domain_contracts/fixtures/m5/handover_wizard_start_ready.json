@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.26.0",
+    "generated_at": "2026-11-20T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261120,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2027-01-08T03:00:00Z", "trade_date": "2027-01-08", "source": "LOCAL_SQLITE", "stale_after_seconds": 300, "label": "전환 판정 2027-01-08 12:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "headline": "생체 확인 — 생체 확인 전",
+      "level": "INFO",
+      "reason_code": "SIM_TO_AUTO_S6",
+      "path_label": "모의투자 → 실전 자동 매매(관찰부터)",
+      "rows": [
+        {
+          "step": { "step_id": "SIM_TO_AUTO_S1", "order": 1, "title": "모의 체험 확인", "why_line": "체험 5항목을 채웠는지 엔진이 확인합니다", "state": "PASS", "state_label": "체험 5항목 완료", "blocked_reason_code": null },
+          "level": "OK",
+          "link": null,
+          "actions": []
+        },
+        {
+          "step": { "step_id": "SIM_TO_AUTO_S2", "order": 2, "title": "계산 자가검사", "why_line": "실전과 같은 계산인지 골든 벡터로 다시 확인합니다", "state": "PASS", "state_label": "골든 벡터 통과", "blocked_reason_code": null },
+          "level": "OK",
+          "link": null,
+          "actions": []
+        },
+        {
+          "step": { "step_id": "SIM_TO_AUTO_S3", "order": 3, "title": "실전 키 확인", "why_line": "실전 키를 등록하고 조회만으로 확인합니다 — 주문은 내지 않습니다", "state": "PASS", "state_label": "실전 키 조회 확인", "blocked_reason_code": null },
+          "level": "OK",
+          "link": null,
+          "actions": []
+        },
+        {
+          "step": { "step_id": "SIM_TO_AUTO_S4", "order": 4, "title": "계좌 연결", "why_line": "전략 넷이 모두 실전 계좌에 연결됐는지 확인합니다", "state": "PASS", "state_label": "전략 4개 모두 계좌 연결", "blocked_reason_code": null },
+          "level": "OK",
+          "link": null,
+          "actions": []
+        },
+        {
+          "step": { "step_id": "SIM_TO_AUTO_S5", "order": 5, "title": "모의 기록 처리", "why_line": "모의 기록을 보관할지 지울지 고릅니다 — 실전 원장에는 남지 않습니다", "state": "PASS", "state_label": "모의 기록을 앱 밖 보관본으로 남깁니다", "blocked_reason_code": null },
+          "level": "OK",
+          "link": null,
+          "actions": []
+        },
+        {
+          "step": { "step_id": "SIM_TO_AUTO_S6", "order": 6, "title": "생체 확인", "why_line": "생체 확인 1회로 전환을 시작합니다", "state": "UNKNOWN", "state_label": "생체 확인 전", "blocked_reason_code": null },
+          "level": "INFO",
+          "link": null,
+          "actions": [
+            { "id": "HANDOVER_SESSION_START", "args": { "path": "SIM_TO_AUTO" }, "label": "(합성) 생체 확인하고 전환 시작" }
+          ]
+        },
+        {
+          "step": { "step_id": "SIM_TO_AUTO_S7", "order": 7, "title": "24시간 냉각", "why_line": "생체 확인 뒤 24시간을 기다립니다 — 건너뛸 수 없습니다", "state": "UNKNOWN", "state_label": "생체 확인 뒤 시작합니다", "blocked_reason_code": null },
+          "level": "INFO",
+          "link": null,
+          "actions": []
+        }
+      ],
+      "trial": null,
+      "cooling_text": null,
+      "deadline_text": null,
+      "window_text": null,
+      "notice_text": "(합성) 승인된 설정이 없으면 확정할 수 없습니다 — 규칙 변경 게이트에서 첫 승인을 먼저 요청하십시오",
+      "done_label": null,
+      "locked_label": null,
+      "as_of": { "observed_at": "2027-01-08T03:00:00Z", "trade_date": "2027-01-08", "source": "LOCAL_SQLITE", "stale_after_seconds": 300, "label": "전환 판정 2027-01-08 12:00" }
+    }
+  ]
+}

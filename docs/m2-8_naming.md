@@ -718,3 +718,18 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AD-5 | `KillSwitchGateRepository.watchKillSwitch()` · 🆕 `BlockBoardRepository.watchBoard()` · `ResumeGateRepository.watchReport()` | 받침대만 구현 — 기존 `SafetyRepository`·`BreakerLadderRepository`·`ResumeRepository` 무변경 |
 | AD-6 | `CommandApi.activateKillSwitch()` | 인자 0(구 `{reasonFreeText, deviceId}`) · 기기·채널 = 구현 `CommandContext` |
 | AD-7 | 🆕 `KillCancelOutcomeCodes`(`kill_cancel_outcome` 5) · `OpsSlotIds.killSwitch` | `labels/safety_codes.dart` 끝 · `labels/ops_codes.dart` |
+
+## AE. 🆕 계약 v1.26 (2026-11-20 · 트랙 C 선행 — 실전 커밋 필수 3묶음) — M5-11 위저드 VM · M5-9 SAF-405 첫 승인 최소판 · M5-5 RECON 해제 · 사전 저널 꼴 · 표본 20
+
+세 경로(`m5HandoverWizard`(+ `handoverStatus` 같은 본문) · `m5RuleChangeGate` · `m5BlockBoard` RECON 행)가 읽고 쓰는 이름을 한 판으로 닫았다. `contractVersion` = **`1.26.0`**(다음 = 1.27.0). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K166~K186 권고대로(정본 = 설계 `10_리뷰/2026-11-20_트랙C선행_계약v1.26_설계서.md` · 01 §35). 🔴 엔진 이름과 겹치지 않는다(`SimToAutoReport` · `RuleChangeQueueItem` · `ReconClearance` 등 피함 — `ambiguous_import` · K49 결).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AE-1 | 🆕 `HandoverWizardVm` · `HandoverWizardStepRow` | `dto/handover.dart` · `M5-11` 한 화면 · 엔진 7단계(`HandoverStep` 무변경) 감싸기 · 행 `level` = 색의 유일한 근거 · 동작 = 기존 `SettingsActionId`(단계별 허용 표 K169) · 세션 id = 엔진이 args 에 |
+| AE-2 | 🆕 `HandoverRepository.watchWizard()` | `repositories/handover_repository.dart` · 폰 전용 · `ui_safety` 만 · `handoverStatus` = 같은 스트림 |
+| AE-3 | 🆕 `RuleChangeGateVm` · `RuleChangeCandidateRow` · `RuleChangeQueueRow` | `dto/safety_gate.dart` · `M5-9` 첫 승인 최소판(후보 = 엔진 · 유형·해시 자기 신고 0 · 큐 취소 = `run(ruleChangeCancel)`) |
+| AE-4 | 🆕 `RuleChangeGateRepository.watchGate()` | `repositories/rule_change_gate_repository.dart` · 냉각이 끝나면 새 VM(카운트다운 0) |
+| AE-5 | 🆕 `RuleChangeRequestSubmission` · `SafetyActions.runRuleChangeRequest` · `SafetyActionId.ruleChangeRequest` | `commands/safety_actions.dart` · `enums/command.dart` · 사람 글 5칸 원문 · `decision_id` = 구현 |
+| AE-6 | 🆕 `ReconClearForm` · `ReconOriginChoice` · `BlockBoardRow.reconClear` | `dto/safety_gate.dart` · RECON 행만 · 선택지 ⊆ `OriginCodes.writable` |
+| AE-7 | 🆕 `ReconClearSubmission` · `SafetyActions.runReconClear` · 🆕 `ReconClearResultCodes`(`recon_clear_result` 3) | `commands/safety_actions.dart` · `labels/safety_codes.dart` 끝 · `run(reconClear)` = 화이트리스트 밖 · 사전 = 엔진 예고 |
+

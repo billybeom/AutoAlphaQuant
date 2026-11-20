@@ -34,8 +34,8 @@ part 'safety_actions.g.dart';
 /// 🆕 v1.22(01 §31 · K52~K55) — `run(id, args)` 화이트리스트(엔진이 [SafetyActionCall] 에 완성 · 🔴 화면은 그대로 넘긴다 · 키 = snake_case):
 ///    · `interventionStep`     = `{session_id, stage /* '1'~'5' */, outcome ∈ InterventionStepOutcome.wire, decision_id?}`
 ///    · `ruleChangeCancel`     = `{request_id}`
-///    · `reconClear`           = `{origin_code ∈ OriginCodes(대사 해제 쓰기 화이트리스트), decision_id /* 사전 저널 RECON_CLEAR */}` ·
-///                               결과 `reasonCode` = null 또는 `BIOMETRIC_UNAVAILABLE`(엔진 거부 = 예외 · 코드 사전 0 — K55)
+///    · ~~`reconClear`~~ — 🆕 v1.26(01 §35 · K181) 화이트리스트에서 뺐다: `run(reconClear, …)` = 구현 `ArgumentError` ·
+///                               해제 = [SafetyActions.runReconClear](사람 글 = 제출 DTO · K7) · `SafetyActionId.reconClear` = 결과 id 로 남는다.
 ///    · `seasonalWindowChoice` = `{work_id, choice ∈ SeasonalEntryChoice.wire}`(`decision_id` = 구현이 짓는다 — K54 · 거부 =
 ///                               `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ 멈춤 사유 7(`ResumeItemReasonCodes`))
 ///  그 밖 id 를 `run` 으로 부르면 구현 `ArgumentError`(`Future` 에러 · 결과 코드 0).
@@ -45,6 +45,14 @@ part 'safety_actions.g.dart';
 /// · `runDiscretionAdjust` — 재량 조정(조정폭 원문 · 파싱 실패 = `DELTA_EXCEEDED` · 여러 사유 = 엔진 정렬 첫째 · 거부 =
 ///   `DiscretionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`).
 /// 🔴 결과 id = 늘 그 동작의 id · 생체 = 구현(K11) · 화면은 `headline` + `reasonCode` 원문만 그린다(분기 0).
+/// 🆕 v1.26(01 §35 · K178 · K180 · K181 · 표면 열 — C-7):
+/// · `runRuleChangeRequest` — `M5-9` 규칙 변경 요청(첫 승인 포함 · 유형·`hashBefore`·`hashAfter` = 엔진 후보 행(`candidateId`) ·
+///   자기 신고 0 · `decision_id` = 구현이 짓는 새 저널 id · 저널 + 요청 한 트랜잭션 · 거부 = `RuleChangeResultCodes` ∪
+///   `TRUSTED_TIME_UNKNOWN` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.ruleChangeRequest].
+/// · `runReconClear` — `M5-5` RECON 해제(`decision_id` = 구현 · `cleared_by` = 구현(기기 별칭) · 저널 `RECON_CLEAR` + 해제 한
+///   트랜잭션 · 신뢰 시각 비의존 · 거부 = `ReconClearResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.reconClear].
+/// 🔴 사전 저널 꼴 ⓐ(K180) — 사람 글 3필드(`rationaleBefore` · `expectedOutcome` · `ruleCited` 원문)는 제출 DTO 에 · 저널 id 는
+///    구현 · 저널 행과 동작은 한 트랜잭션(고아 저널 0 · 엔진 «저널 함께 쓰기» 판 = 01 §8 미결 206).
 abstract interface class SafetyActions {
   /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
   Future<SafetyActionResult> run(
@@ -72,6 +80,14 @@ abstract interface class SafetyActions {
     DiscretionAdjustSubmission submission,
   );
 
+  /// 🆕 v1.26(01 §35 · K178) — `M5-9` 규칙 변경 요청(첫 승인 포함).
+  Future<SafetyActionResult> runRuleChangeRequest(
+    RuleChangeRequestSubmission submission,
+  );
+
+  /// 🆕 v1.26(01 §35 · K181) — `M5-5` 차단 보드 RECON 해제.
+  Future<SafetyActionResult> runReconClear(ReconClearSubmission submission);
+
   Stream<SafetyActionResult> watch(String actionRunId);
 }
 
@@ -88,8 +104,8 @@ abstract class SafetyActionResult with _$SafetyActionResult {
 
     /// 값 ∈ `KillSwitchResultCodes` ∪ `SafetyCommonResultCodes` ∪ `PledgeResultCodes` ∪ 🆕 v1.22 `StoppedDecisionResultCodes` ∪
     /// `PostmortemResultCodes` ∪ `InterventionResultCodes` ∪ `RuleChangeResultCodes` ∪ `DiscretionResultCodes` ∪
-    /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ {`BIOMETRIC_UNAVAILABLE`}
-    /// (C-55 ② · C-56 ②).
+    /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
+    /// `ReconClearResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).
@@ -235,3 +251,43 @@ abstract class DiscretionAdjustSubmission with _$DiscretionAdjustSubmission {
       _$DiscretionAdjustSubmissionFromJson(json);
 }
 // JSON 키: delta_pct · decision_id
+
+/// 🆕 v1.26(01 §35 · K178 · K180) — `M5-9` 규칙 변경 요청 제출(ds `rule_change_store.dart` `request` 인자 − 유형·해시(엔진 후보) −
+/// `decisionId`(구현)).
+/// 🔴 사람 글 5칸 = 원문 그대로(빈칸 = 엔진 `RULE_CHANGE_FIELDS_MISSING` · 저널 3칸 빈칸 = `RULE_CHANGE_JOURNAL_MISSING`) ·
+///    화면은 검증·파싱하지 않는다.
+@freezed
+abstract class RuleChangeRequestSubmission with _$RuleChangeRequestSubmission {
+  const factory RuleChangeRequestSubmission({
+    /// 엔진 후보 행 값 그대로(`RuleChangeCandidateRow.candidateId`).
+    required String candidateId,
+    required String reason,
+    required String rollbackMethod,
+    required String rationaleBefore,
+    required String expectedOutcome,
+
+    /// 근거 규칙(원문 · 01 §8 미결 184 ③ 결).
+    required String ruleCited,
+  }) = _RuleChangeRequestSubmission;
+
+  factory RuleChangeRequestSubmission.fromJson(Map<String, dynamic> json) =>
+      _$RuleChangeRequestSubmissionFromJson(json);
+}
+// JSON 키: candidate_id · reason · rollback_method · rationale_before · expected_outcome · rule_cited
+
+/// 🆕 v1.26(01 §35 · K180 · K181) — `M5-5` RECON 해제 제출(ds `order_ledger.dart` `clearReconBlock` −
+/// `clearedBy`·`decisionId`·시각(구현)).
+/// 🔴 [originCode] = 고른 `ReconOriginChoice.originCode` 그대로 · 저널 3칸 = 원문(빈칸 = `RECON_JOURNAL_MISSING`).
+@freezed
+abstract class ReconClearSubmission with _$ReconClearSubmission {
+  const factory ReconClearSubmission({
+    required String originCode,
+    required String rationaleBefore,
+    required String expectedOutcome,
+    required String ruleCited,
+  }) = _ReconClearSubmission;
+
+  factory ReconClearSubmission.fromJson(Map<String, dynamic> json) =>
+      _$ReconClearSubmissionFromJson(json);
+}
+// JSON 키: origin_code · rationale_before · expected_outcome · rule_cited

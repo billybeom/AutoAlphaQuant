@@ -203,12 +203,24 @@
 //    다음 판 = 1.26.0(M5-11 위저드 VM(미결 187 · 01-08 전 창) · RECON 해제 동작·E13 원천 VM(188 남은 몫) · E13i2 VM 3 ·
 //    E16i 나머지 + E16j · S04 창(190~194) · 이름 없는 알림 · 승격 세션 종류 · PNG F1·F2·F4~F7 · `RuleChangeCategory` 중
 //    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-19 · 계약 v1.25».
+// 🆕 '1.26.0'(트랙 C 선행 · 01 §35 · 발주자 위임 2026-11-14 — 권고대로 · K166~K186) — 실전 커밋 필수 3묶음 + 사전 저널 꼴:
+//    🆕 `M5-11` `HandoverWizardVm`·`HandoverWizardStepRow`(`HandoverStep` 감싸기 · 동작 = 기존 `SettingsActionId` · 세션 id = 엔진이 args 에 ·
+//    01 §8 미결 187 닫음) + 🆕 `HandoverRepository.watchWizard()` · `handoverStatus` = 같은 본문(C-33 소유 +1) ·
+//    🔴 SAF-405 첫 승인 최소판 `M5-9` 🆕 `RuleChangeGateVm`·`RuleChangeCandidateRow`·`RuleChangeQueueRow` + 🆕 `RuleChangeGateRepository` ·
+//    🆕 `SafetyActionId.ruleChangeRequest` · `RuleChangeRequestSubmission` · `SafetyActions.runRuleChangeRequest`(냉각 30일·SAF-405 무변경) ·
+//    🔴 RECON 해제 `BlockBoardRow.reconClear`(추가형) · 🆕 `ReconClearForm`·`ReconOriginChoice` · `ReconClearSubmission` ·
+//    `SafetyActions.runReconClear`(표면 8 → 10) · `run` 화이트리스트에서 `reconClear` 뺌 · 🆕 `ReconClearResultCodes` 3(엔진 예고) ·
+//    사전 저널 꼴 ⓐ(제출 DTO 3필드 + 구현이 id + 한 트랜잭션) · 받침대 +2 · 🆕 C-60 · 픽스처 339 → 359(신설 20) —
+//    🆕 tool/gen_trackc_v126_fixtures.py.
+//    다음 판 = 1.27.0(서약 편집(01 §8 미결 208 뒤) · 규칙 변경 CHANGELOG · `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 · 개입 ·
+//    재량 · postmortem 목록 · M5-3 STOPPED VM · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 보기 VM(192 뒤) · E16i/E16j ·
+//    이름 없는 알림 · PNG F1·F2·F4~F7 중 먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-20 · 계약 v1.26».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.25.0';
+const String contractVersion = '1.26.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

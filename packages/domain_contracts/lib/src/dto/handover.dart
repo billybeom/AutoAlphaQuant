@@ -7,6 +7,8 @@
 // 🔒 전환 위저드는 M5 소유 화면이다 — 다른 화면은 읽을 수는 있으나 렌더하지 않는다.
 // 🆕 v1.19(01 §28 · K8) — `S05` 는 `OperationsVm.operatingMode` 로 이 타입을 받는다(창구 = `SettingsRepository.watchOperations`) ·
 //    전환 버튼 = [OperatingModeView.switchActions].
+// 🆕 v1.26(01 §35 · K167~K175) — `M5-11` simToAuto 위저드 한 화면 [HandoverWizardVm] · 단계 행 [HandoverWizardStepRow]
+//    (창구 = `HandoverRepository.watchWizard()` · `handoverStatus` = 같은 본문 · 🔒 `ui_safety`) · [HandoverPlan]·[HandoverStep] 무변경.
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/advice.dart';
@@ -16,6 +18,7 @@ import '../enums/ui.dart';
 import '../primitives/as_of.dart';
 import 'common.dart';
 import 'ledger_trust.dart';
+import 'operations.dart'; // 🆕 v1.26 — SimTrialCard(S1 상세 · K171)
 import 'settings.dart'; // 🆕 v1.19 — SettingsActionCall
 
 part 'handover.freezed.dart';
@@ -128,3 +131,80 @@ abstract class AdoptionPreviewRow with _$AdoptionPreviewRow {
   factory AdoptionPreviewRow.fromJson(Map<String, dynamic> json) =>
       _$AdoptionPreviewRowFromJson(json);
 }
+
+/// 🆕 v1.26(01 §35 · K168) — `M5-11` simToAuto 위저드 한 화면(`AppRoutes.m5HandoverWizard` · `handoverStatus` 같은 본문 — K173).
+/// 🔴 머리·단계·시각 글자 = 엔진(`judgeSimToAuto` · `simToAutoPlan` 감싸기) · 화면은 분기 0 · 카운트다운 0(시각이 지나면 새 VM).
+/// 🔴 1.26.0 = `HandoverPath.simToAuto` 하나(다른 경로 = 추가형 나중).
+/// 🔴 불변식(C-60 ②~⑥) — [rows] 길이 ∈ {0, 7}(0 ⇔ 전제 밖) · 7 이면 `step.stepId` 차례 = `SimToAutoStepIds.ordered` ·
+///    [lockedLabel] 또는 [doneLabel] non-null ⇒ 모든 행 `actions` 빈 목록.
+@freezed
+abstract class HandoverWizardVm with _$HandoverWizardVm {
+  const factory HandoverWizardVm({
+    /// 판정 머리(엔진 `SimToAutoReport.headline` · 전제 밖 = 엔진 전제 문장).
+    required String headline,
+
+    /// 머리 색(엔진 짝 — 확정 가능 = OK · 막힘 = BLOCKED · 냉각·시각 모름 = WATCH · 진행 중 = INFO).
+    required UiLevel level,
+
+    /// 🔴 화면 미참조(시험·로그) — 엔진 `SimToAutoReport.code`(∈ `SimToAutoResultCodes`) · null = 막힘 0.
+    String? reasonCode,
+
+    /// 경로 글자(엔진 · «모의투자 → 실전 자동 매매(관찰부터)»).
+    required String pathLabel,
+
+    /// 7단계(엔진 차례 = `SimToAutoStepIds.ordered`) · 🔴 전제 밖 = 0.
+    @Default(<HandoverWizardStepRow>[]) List<HandoverWizardStepRow> rows,
+
+    /// S1 상세(체험 5항목 · 04 :1222 같은 그릇 · K171). null = 부재.
+    SimTrialCard? trial,
+
+    /// 냉각 끝 글자(엔진 · 세션 열린 뒤만). null = 부재.
+    String? coolingText,
+
+    /// 확정 기한 글자(엔진 · 세션 열린 뒤만). null = 부재.
+    String? deadlineText,
+
+    /// 커밋 창 글자(엔진 `SimToAutoCommitWindow.label` — 허용 때도 · K170). null = 부재.
+    String? windowText,
+
+    /// 고지 한 줄(엔진 · 예: 경고 후 진행 · 승인 config 없음). null = 부재.
+    String? noticeText,
+
+    /// 확정됨 상태 문장(엔진 · non-null ⇔ 확정 뒤 — 그때 `rows` 는 그대로 · 동작 0 · K175).
+    String? doneLabel,
+
+    /// 잠김(운영 등급 생체 · 다른 기기 리스 — 01 §8 미결 169) · non-null ⇒ 모든 행 `actions` 0.
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _HandoverWizardVm;
+
+  factory HandoverWizardVm.fromJson(Map<String, dynamic> json) =>
+      _$HandoverWizardVmFromJson(json);
+}
+// JSON 키: headline · level · reason_code · path_label · rows · trial · cooling_text · deadline_text · window_text ·
+//          notice_text · done_label · locked_label · as_of
+
+/// 🆕 v1.26(01 §35 · K168 · K169 · K172) — 위저드 한 단계(기존 [HandoverStep] 무변경 감싸기).
+/// 🔴 단계별 허용 동작(K169 · C-60 ③) — S2 ⊆ {`selftestGoldenRun`} · S5 ⊆ {`handoverSimLedgerFate`} ·
+///    S6 ⊆ {`handoverSessionStart`} · S7 ⊆ {`handoverSessionCancel`, `handoverCommit`} · 그 밖 단계 = 0 ·
+///    세션 id = 엔진이 `handover_session_id` args 에 넣는다(화면 읽기 0) · `handoverCommit` = S7 PASS 일 때만.
+@freezed
+abstract class HandoverWizardStepRow with _$HandoverWizardStepRow {
+  const factory HandoverWizardStepRow({
+    /// 엔진 `simToAutoPlan` 단계 그대로(제목 · 왜 · 상태 · 상태 글자 · 막힘 코드).
+    required HandoverStep step,
+
+    /// 🔴 색의 유일한 근거(K172) — `step.state` 가 UNKNOWN 이어도 «아직»은 INFO · 시각 모름 = WATCH.
+    required UiLevel level,
+
+    /// 다른 화면으로(엔진 · S2 → `settingsDiagnostics` · S3 → `settingsCredentials` · S4 → `settingsAccounts`). null = 이동 0.
+    LinkAction? link,
+
+    /// 단계 안 엔진 완성 호출(`SettingsActions.run` · 허용 id = 위 표). 빈 목록 = 버튼 0.
+    @Default(<SettingsActionCall>[]) List<SettingsActionCall> actions,
+  }) = _HandoverWizardStepRow;
+
+  factory HandoverWizardStepRow.fromJson(Map<String, dynamic> json) =>
+      _$HandoverWizardStepRowFromJson(json);
+}
+// JSON 키: step · level · link · actions
