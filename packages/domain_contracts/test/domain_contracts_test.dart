@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 //    껍데기로 남는다 — C-1·C-15 는 봉투와 상수를 대조할 뿐 배럴 노출 여부를 보지 않는다.
 void main() {
   test('배럴이 계약 버전을 노출하고, 값이 확정판이다', () {
-    // 🔴 이 상수와 전 픽스처 봉투(v1.30 = 365건 — v1.29 그대로 · 신설 0)의 `meta.contract_version` 은
+    // 🔴 이 상수와 전 픽스처 봉투(v1.31 = 367건 — v1.30 365 + v1.31 신설 2)의 `meta.contract_version` 은
     //    같은 축이며 한쪽만 올리지 않는다(C-1 · C-15 ④ 가 전량 대조한다).
     // 🔵 '1.1.0'(2026-09-17 · M2 보강) — 내비게이션 계약·표시 문자열·J-2/J-3/J-5 읽기 창구.
     // 🔵 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore` · `watchDecisionJournal` ·
@@ -66,7 +66,9 @@ void main() {
     //    C-64 · 다음 판 = 1.30.0(E16i 사전 · 01 §38).
     // 🔵 '1.30.0'(E16i 계약 창 · 01 §38) — X1 · X5 엔진 글자 사전 25무리 · 103 · hold `MIGRATION_IN_PROGRESS` · 픽스처 365(신설 0) ·
     //    C-63 · 다음 판 = 1.31.0(E16j 화면 계약 첫 후보).
-    expect(contractVersion, '1.30.0');
+    // 🔵 '1.31.0'(E11k-d2 계약 창 · 01 §40) — o_07 ③ 로그인 슬롯 · `supabaseSignIn` · 인증 사전 6 · 픽스처 367 · C-65 ·
+    //    다음 판 = 1.32.0(E16j 화면 계약 첫 후보).
+    expect(contractVersion, '1.31.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.
