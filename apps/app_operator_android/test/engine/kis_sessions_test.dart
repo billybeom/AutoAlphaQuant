@@ -187,10 +187,10 @@ void main() {
           (isaKey, isaAccount, KisEnvironment.live),
         );
         expect(made, hasLength(3));
-        expect(
-          vault.calls.where((String c) => c == 'read:kis.tokens'),
-          hasLength(1),
-        );
+        final List<String> tokenReads = vault.calls
+            .where((String c) => c == 'read:kis.tokens')
+            .toList();
+        expect(tokenReads, hasLength(1));
       });
 
       test('🔴 모르는 별칭 = KisSessionUnavailable(별칭만) · 금고를 읽지 않는다', () async {

@@ -428,7 +428,10 @@ void main() {
         '2026-12-22',
         c: ctx(mode: RunMode.live),
       );
-      expect('${r.error}', 'UNASSEMBLED daily_reconcile: cash_broker_LIVE');
+      expect(
+        r.error.toString(),
+        'UNASSEMBLED daily_reconcile: cash_broker_LIVE',
+      );
     });
 
     test('🔴 키 검증 기록 없음 = LIVE_AWAITING_KEYS 로 막힌다 · 실전 브로커 0', () async {
@@ -443,7 +446,7 @@ void main() {
       );
       expect(r.status, JobStatus.failed);
       expect(r.error, isA<ModeGuardRejected>());
-      expect('${r.error}', contains(SafetyHoldCodes.liveAwaitingKeys));
+      expect(r.error.toString(), contains(SafetyHoldCodes.liveAwaitingKeys));
       expect(made, isEmpty);
     });
 
