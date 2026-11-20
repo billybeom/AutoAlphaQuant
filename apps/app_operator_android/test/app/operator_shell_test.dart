@@ -456,7 +456,7 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5BlockBoard),
       true,
     );
-    // 🆕 R186 — X2 재개 리포트 · 게이트 읽기 = 한 인스턴스 · 레지스트리 둘 · 계절 3택 쓰기 = b2b 전 0.
+    // 🆕 R186 — X2 재개 리포트 · 게이트 읽기 = 한 인스턴스 · 레지스트리 둘 · 🆕 R194 계절 3택 쓰기 = 켜짐.
     expect(
       identical(
         container.read(safetyResumeGateRepositoryProvider),
@@ -464,7 +464,7 @@ void main() {
       ),
       true,
     );
-    expect(container.read(operatorResumeGateProvider).canChoose, false);
+    expect(container.read(operatorResumeGateProvider).canChoose, true);
     for (final String r in <String>[
       AppRoutes.x2ResumeReport,
       AppRoutes.x2ResumeGate,
@@ -1287,7 +1287,7 @@ void main() {
   );
 
   testWidgets(
-    '🔴 X2 재개(R186) — 차단 보드 재개 미완 행 링크 → 게이트(막힌 계획 · 계절 3택 버튼 0 = b2b 전) → 리포트(항목 차례)',
+    '🔴 X2 재개(R186 · R194) — 차단 보드 재개 미완 행 링크 → 게이트(막힌 계획 · 계절 3택 = 사람 결정 행에만 · 누르면 엔진 결과) → 리포트(항목 차례)',
     (WidgetTester tester) async {
       // 끝난 재개 회차(계절 대기 · 기한 지남 · 집행 예정) + 재개 미완 플래그 — 화면이 서기 전에 원장에 둔다.
       files.sim.execute(
@@ -1380,10 +1380,28 @@ void main() {
         ],
         <String>['x2g-row-w_season', 'x2g-row-w_due'],
       );
-      // 계절 3택 쓰기 = b2b 전 → 버튼 0(눌러도 실패만 나오는 버튼을 세우지 않는다).
+      // 🆕 R194 — 계절 3택 = 사람 결정 행에만(기한 지난 행 = 0) · 누르면 엔진 판정(이 원장엔 계획 행이 없어 PLANNED_WORK_UNKNOWN 원문).
       expect(
-        find.descendant(of: gate, matching: find.byType(OutlinedButton)),
+        find.descendant(
+          of: find.byKey(const Key('x2g-row-w_season')),
+          matching: find.byType(OutlinedButton),
+        ),
+        findsNWidgets(3),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('x2g-row-w_due')),
+          matching: find.byType(OutlinedButton),
+        ),
         findsNothing,
+      );
+      await tester.tap(find.byKey(const Key('x2g-act-w_season-SKIP')));
+      await tester.pump();
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(
+        find.text('그 작업을 찾지 못했습니다. (PLANNED_WORK_UNKNOWN)'),
+        findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('x2g-report')));
       await tester.pump();

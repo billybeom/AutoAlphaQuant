@@ -18,6 +18,7 @@ import '../local/planned_work_store.dart'
 import '../local/resume_store.dart' show ResumeRunRow, SqliteResumeStore;
 import 'daily_jobs.dart' show DailyJobReport;
 import 'resume_reevaluator.dart' show resumeChildDecisionIdOf;
+import 'seasonal_choice.dart' show SqliteSeasonalChoice;
 
 /// 재개 회차 보고.
 class ResumeJobReport implements DailyJobReport {
@@ -130,6 +131,14 @@ class ResumeJob {
   final int? _backupGapDays;
   final Duration _recheckDelay;
   final Future<void> Function(Duration) _sleep;
+
+  late final SqliteSeasonalChoice _seasonal = SqliteSeasonalChoice(
+    _db,
+    runMode: _runMode,
+    operatingMode: _operatingMode,
+    clock: _clock,
+    ledger: _ledger,
+  );
 
   bool get _sim => _runMode == RunMode.simInternal;
   bool get _advisory => _operatingMode == OperatingMode.advisory;
@@ -338,21 +347,8 @@ class ResumeJob {
     );
   }
 
-  // child 전제(R3 · R4 결과 · simInternal = 자동 충족).
-  Future<ResumePreconditions> _preconditions() async => _sim
-      ? ResumePreconditions(
-          reconMismatches: 0,
-          unknownOrders: 0,
-          residualOrders: 0,
-        )
-      : ResumePreconditions(
-          reconMismatches:
-              (await _ledger.activeBlockFlags()).contains(FlagIds.reconMismatch)
-              ? 1
-              : 0,
-          unknownOrders: _ledger.unknownCount(),
-          residualOrders: _ledger.residualCount(),
-        );
+  // child 전제(R3 · R4 결과 · simInternal = 자동 충족) — 🆕 E11q-b2b: 계절 선택 적용과 한 원천(`SqliteSeasonalChoice`).
+  Future<ResumePreconditions> _preconditions() => _seasonal.preconditions();
 
   /// 소급 불가 공백 id(R77 S1).
   static String unrecoverableGapIdOf(String resumeRunId) =>
@@ -392,70 +388,19 @@ class ResumeJob {
           ).first['n']!
           as int;
 
-  /// 🆕 E14d2b(R77 S3) — 계절 A 진입 사람 선택 적용 — 거부 코드(쓰기 0) · null = 적용.
-  ///
-  /// 모드 = 마지막 재개 회차의 모드(없으면 NORMAL) · 전제 = R6 과 같은 셈. 허용이면 결정 행(kind ENTRY ·
-  /// reason_code = HUMAN_* · parent = 계절 판정)을 먼저 남기고(같은 id 두 번 = 무시) 전이(사람 결정 id)를 한다.
+  /// 🆕 E14d2b(R77 S3) — 계절 A 진입 사람 선택 적용 — 거부 코드(쓰기 0) · null = 적용 · 🆕 E11q-b2b: 판정 · 쓰기 =
+  /// `SqliteSeasonalChoice.apply`(같은 코드를 옮김 — 조립 앱 안전 동작이 주문 잡 조립 없이 부른다).
   Future<String?> applySeasonalChoice({
     required String workId,
     required SeasonalWindowChoice choice,
     required String decisionId,
     required TradeDate today,
-  }) async {
-    final SqlitePlannedWorkStore planned = SqlitePlannedWorkStore(
-      _db,
-      carry: _ledger,
-      clock: _clock,
-    );
-    final PlannedWorkRow? row = planned
-        .rows()
-        .where((PlannedWorkRow w) => w.workId == workId)
-        .firstOrNull;
-    if (row == null) return PlannedWorkCodes.unknown;
-    final ResumeWorkItem? item = _itemOf(row);
-    if (item == null) {
-      return SeasonalChoiceCodes.notSeasonalEntry;
-    }
-    final ResultSet last = _db.select(
-      'SELECT mode FROM resume_run ORDER BY started_at DESC, resume_run_id DESC LIMIT 1',
-    );
-    final ResumeMode mode = last.isEmpty
-        ? ResumeMode.normal
-        : ResumeMode.values.firstWhere(
-            (ResumeMode m) => m.wire == last.first['mode'],
-          );
-    final String? code = seasonalChoiceRejectCode(
-      item: item,
-      choice: choice,
-      decisionId: decisionId,
-      today: today,
-      mode: mode,
-      advisory: _advisory,
-      preconditions: await _preconditions(),
-    );
-    if (code != null) return code;
-    final ResumeItemJudgement j = seasonalChoiceJudgement(choice);
-    _db.execute(
-      'INSERT OR IGNORE INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, '
-      "reason_code, config_hash, parent_decision_id) SELECT ?, ?, ?, mode, 'ENTRY', strategy_id, ?, ?, "
-      'config_hash, decision_id FROM decision_log WHERE decision_id = ?',
-      <Object?>[
-        decisionId,
-        _clock.nowUtc().toUtc().toIso8601String(),
-        today.yyyyMmDd,
-        '계절 A 진입 사람 선택 — ${choice.name}',
-        j.reasonCode,
-        row.decisionId,
-      ],
-    );
-    return planned.transition(
-      workId,
-      j.nextState,
-      today: today,
-      verdictCode: j.verdictCode,
-      decisionId: decisionId,
-    );
-  }
+  }) => _seasonal.apply(
+    workId: workId,
+    choice: choice,
+    decisionId: decisionId,
+    today: today,
+  );
 
   /// child 결정 id(D15 — 원 결정의 RESUME 자식 · 같은 날 다시 = 같은 id).
   static String _childIdOf(ResumeWorkItem item, TradeDate today) =>
@@ -487,44 +432,6 @@ class ResumeJob {
     return rs.isEmpty ? null : rs.first['decision_id'] as String?;
   }
 
-  // `planned_work` 행 → 판정 입력(방향 · 매도 = kind · 원 계획에서 짓는다 · 모르는 kind = null).
-  ResumeWorkItem? _itemOf(PlannedWorkRow w) {
-    final (ResumeDirection, bool)? dir = switch (w.kind) {
-      ResumeWorkKinds.monthlyPlan => (ResumeDirection.rebalance, false),
-      ResumeWorkKinds.seasonalWindow => _seasonalDirection(w.decisionId),
-      _ => null,
-    };
-    if (dir == null) return null;
-    final ResultSet rs = _db.select(
-      'SELECT created_at FROM planned_work WHERE work_id = ?',
-      <Object?>[w.workId],
-    );
-    return ResumeWorkItem(
-      workId: w.workId,
-      kind: w.kind,
-      oneLine: w.oneLine,
-      state: w.state,
-      plannedOn: TradeDate(
-        kstDateText(DateTime.parse(rs.first['created_at'] as String)),
-      ),
-      dueBy: w.dueBy,
-      direction: dir.$1,
-      sell: dir.$2,
-    );
-  }
-
-  (ResumeDirection, bool)? _seasonalDirection(String? decisionId) {
-    if (decisionId == null) return null;
-    final ResultSet rs = _db.select(
-      "SELECT json_extract(trigger_snapshot, '\$.side') AS side FROM rebalance_event "
-      "WHERE decision_id = ? AND kind = 'SEASONAL'",
-      <Object?>[decisionId],
-    );
-    if (rs.isEmpty) return null;
-    return switch (rs.first['side']) {
-      'BUY' => (ResumeDirection.entry, false),
-      'SELL' => (ResumeDirection.defensive, true),
-      _ => null,
-    };
-  }
+  // `planned_work` 행 → 판정 입력(🆕 E11q-b2b: `SqliteSeasonalChoice.itemOf` 와 한 원천).
+  ResumeWorkItem? _itemOf(PlannedWorkRow w) => _seasonal.itemOf(w);
 }

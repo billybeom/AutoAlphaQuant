@@ -13,6 +13,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         AsOf,
         AsOfSource,
         LinkAction,
+        PlannedWorkRejectCodes,
         ResumeGateRow,
         ResumeGateVm,
         ResumeItemReasonCodes,
@@ -22,6 +23,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         ResumeReportVm,
         SafetyActionCall,
         SafetyActionId,
+        SafetyActionResult,
+        SeasonalChoiceResultCodes,
         SeasonalEntryChoice,
         TradeDate,
         UiLevel,
@@ -262,5 +265,80 @@ ResumeGateVm resumeGateVmOf({
     reportLink: report,
     lockedLabel: lockedLabel,
     asOf: resumeScreenAsOf(nowUtc),
+  );
+}
+
+/// 생체 확인 불가(계약 `BIOMETRIC_UNAVAILABLE` · 계절 선택 결과 사전).
+const String _kBiometricUnavailable = 'BIOMETRIC_UNAVAILABLE';
+
+/// 🆕 E11q-b2b(R194 · K54) — 계절 3택 결과 글자(표본 `m5/safety_action_results_e13` 제안 문장 · «(합성)» 뗌) — (수준, 문장) ·
+/// 거부 = `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ 멈춤 사유 7 ∪ 생체 · 모르는 코드 = 오류(지어내지 않는다).
+(UiLevel, String) _seasonalText(String? code) => switch (code) {
+  null => (UiLevel.ok, '고른 대로 기록했습니다 — 다음 주문 회차가 이어 갑니다.'),
+  SeasonalChoiceResultCodes.pastDue ||
+  PlannedWorkRejectCodes.pastDue => (UiLevel.act, '고를 수 있는 기한이 지났습니다.'),
+  SeasonalChoiceResultCodes.notPending ||
+  PlannedWorkRejectCodes.terminal ||
+  PlannedWorkRejectCodes.unchanged => (UiLevel.info, '이미 결정된 작업입니다.'),
+  SeasonalChoiceResultCodes.notSeasonalEntry => (
+    UiLevel.info,
+    '계절 진입 작업이 아닙니다.',
+  ),
+  SeasonalChoiceResultCodes.decisionMissing => (
+    UiLevel.blocked,
+    '결정 번호가 없어 기록하지 않았습니다.',
+  ),
+  PlannedWorkRejectCodes.unknown => (UiLevel.info, '그 작업을 찾지 못했습니다.'),
+  PlannedWorkRejectCodes.notDue => (UiLevel.info, '아직 고를 때가 아닙니다.'),
+  PlannedWorkRejectCodes.illegal => (
+    UiLevel.blocked,
+    '이 작업은 지금 그렇게 바꿀 수 없습니다.',
+  ),
+  ResumeItemReasonCodes.reconMismatch => (
+    UiLevel.blocked,
+    '대사 불일치가 남아 있어 진입을 고르지 않았습니다.',
+  ),
+  ResumeItemReasonCodes.unknownOrders => (
+    UiLevel.blocked,
+    '결과를 모르는 주문이 남아 있어 진입을 고르지 않았습니다.',
+  ),
+  ResumeItemReasonCodes.residualOrders => (
+    UiLevel.blocked,
+    '처리 중인 주문이 남아 있어 진입을 고르지 않았습니다.',
+  ),
+  ResumeItemReasonCodes.safetyStop => (
+    UiLevel.blocked,
+    '안전 정지 중이라 진입을 고르지 않았습니다.',
+  ),
+  ResumeItemReasonCodes.reevaluationFailed => (
+    UiLevel.blocked,
+    '재판정을 마치지 못해 진입을 고르지 않았습니다.',
+  ),
+  ResumeItemReasonCodes.observing => (UiLevel.watch, '관찰 회차라 진입을 고르지 않았습니다.'),
+  ResumeItemReasonCodes.advisoryPending => (
+    UiLevel.act,
+    '안내 모드 재개 조건 결정을 기다려 진입을 고르지 않았습니다.',
+  ),
+  _kBiometricUnavailable => (UiLevel.blocked, '생체 확인을 할 수 없어 진행하지 않았습니다.'),
+  final String other => throw ArgumentError.value(
+    other,
+    'code',
+    '모르는 계절 선택 결과 코드',
+  ),
+};
+
+/// 계절 3택 동작 결과 — [code] null = 기록됨 · 글자 = 엔진.
+SafetyActionResult seasonalChoiceResultOf({
+  required String actionRunId,
+  String? code,
+}) {
+  final (UiLevel level, String headline) = _seasonalText(code);
+  return SafetyActionResult(
+    actionRunId: actionRunId,
+    id: SafetyActionId.seasonalWindowChoice,
+    level: level,
+    headline: headline,
+    reasonCode: code,
+    retryable: false,
   );
 }

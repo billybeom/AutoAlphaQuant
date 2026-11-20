@@ -449,7 +449,12 @@ void main() {
         }
         FocusManager.instance.primaryFocus?.unfocus();
         await tester.pump(const Duration(milliseconds: 800));
-        await tester.ensureVisible(find.byKey(const Key('m51-record-submit')));
+        // 🔧 R194 — 버튼이 화면 맨 아래(하단 탭 아래)에 걸리면 탭이 빗나간다 → 가운데로 올린 뒤 누른다.
+        await Scrollable.ensureVisible(
+          tester.element(find.byKey(const Key('m51-record-submit'))),
+          alignment: 0.5,
+        );
+        await tester.pump(const Duration(milliseconds: 300));
         await tester.tap(find.byKey(const Key('m51-record-submit')));
         await _until(tester, find.byKey(const Key('m51-record-receipt')));
         await _at(tester, find.byType(KillSwitchScreen), 'IT_M51C');
