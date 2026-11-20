@@ -79,12 +79,15 @@ import 'package:ui_safety/ui_safety.dart'
         KillSwitchScreen,
         KillSwitchSlot,
         PledgePanel,
+        ResumeGateScreen,
+        ResumeReportScreen,
         safetyActionsProvider,
         safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyLinkOpenerProvider,
-        safetyPledgeRepositoryProvider;
+        safetyPledgeRepositoryProvider,
+        safetyResumeGateRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -116,6 +119,7 @@ import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
 import 'operator_pledge.dart';
+import 'operator_resume.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
 import 'operator_settings_actions.dart';
@@ -207,6 +211,16 @@ final Provider<OperatorBlockBoardRepository> operatorBlockBoardProvider =
     Provider<OperatorBlockBoardRepository>((Ref ref) {
       final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
       return OperatorBlockBoardRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
+
+/// 🆕 R186 — X2 재개 리포트 · 게이트 읽기(한 인스턴스 · 리포트 링크 = 레지스트리에 본문이 있을 때만 · 계절 3택 = b2b 전 0).
+final Provider<OperatorResumeGateRepository> operatorResumeGateProvider =
+    Provider<OperatorResumeGateRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorResumeGateRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
       );
@@ -377,6 +391,10 @@ Widget _releaseGate(Map<String, String> _) => const KillResumeGateScreen();
 
 Widget _blockBoard(Map<String, String> _) => const BlockBoardScreen();
 
+Widget _resumeReport(Map<String, String> _) => const ResumeReportScreen();
+
+Widget _resumeGate(Map<String, String> _) => const ResumeGateScreen();
+
 Widget _settingsContribution(Map<String, String> _) =>
     const MonthlyContribution();
 
@@ -469,6 +487,10 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.m5ReleaseGate: _releaseGate,
   // 🆕 E11q-b3(R185) — M5-5 차단 보드(홈 블록 1 · 3 · 알림 3종 · 대사 불일치 목적지 · 킬스위치 둘째 길 · 읽기만).
   AppRoutes.m5BlockBoard: _blockBoard,
+  // 🆕 E11q-b2a(R186) — X2 재개 리포트 · 게이트(재개 미완 배너 · 차단 보드 재개 미완 행 · 알림 RESUME_COMPLETED 목적지 · 읽기 —
+  //    계절 3택 쓰기 = b2b).
+  AppRoutes.x2ResumeReport: _resumeReport,
+  AppRoutes.x2ResumeGate: _resumeGate,
   AppRoutes.settingsContribution: _settingsContribution,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
@@ -522,6 +544,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 R185 — M5-5 차단 보드 읽기(링크 = 위 셸 링크 열기 그대로).
   safetyBlockBoardRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorBlockBoardProvider),
+  ),
+  // 🆕 R186 — X2 재개 리포트 · 게이트 읽기(링크 = 위 셸 링크 열기 · 계절 3택 쓰기 = 위 안전 동작 인스턴스 — b2b 에서 연다).
+  safetyResumeGateRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorResumeGateProvider),
   ),
   // 🆕 R156 — M5-14 가상 초기금 제출 = 같은 명령 API 인스턴스 · 기기 id 없음 = null = 제출 버튼 부재.
   safetySimOpeningCommandApiProvider.overrideWith(

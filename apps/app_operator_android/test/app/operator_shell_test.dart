@@ -81,9 +81,12 @@ import 'package:ui_safety/ui_safety.dart'
         KillSwitchScreen,
         KillSwitchSlot,
         PledgePanel,
+        ResumeGateScreen,
+        ResumeReportScreen,
         safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
-        safetyKillSwitchGateRepositoryProvider;
+        safetyKillSwitchGateRepositoryProvider,
+        safetyResumeGateRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -450,6 +453,21 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5BlockBoard),
       true,
     );
+    // 🆕 R186 — X2 재개 리포트 · 게이트 읽기 = 한 인스턴스 · 레지스트리 둘 · 계절 3택 쓰기 = b2b 전 0.
+    expect(
+      identical(
+        container.read(safetyResumeGateRepositoryProvider),
+        container.read(operatorResumeGateProvider),
+      ),
+      true,
+    );
+    expect(container.read(operatorResumeGateProvider).canChoose, false);
+    for (final String r in <String>[
+      AppRoutes.x2ResumeReport,
+      AppRoutes.x2ResumeGate,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+    }
     // 🆕 R182 — M8 운영 슬롯 빌더 = 셸 킬스위치 자리(ui_safety 자리 위젯) · 인쇄 = 자리 부재.
     expect(
       identical(container.read(shellOpsSlotBuilderProvider), operatorOpsSlot),
@@ -1221,14 +1239,14 @@ void main() {
         'm55-row-${FlagIds.reconMismatch}',
         'm55-row-${FlagIds.resumeIncomplete}',
       ]);
-      // 대사 불일치 = 이 보드 자신 → 링크 0 · 재개 화면(X2) = 아직 미등록 → 링크 0(없는 화면으로 보내지 않는다).
+      // 대사 불일치 = 이 보드 자신 → 링크 0 · 🆕 R186 재개 화면(X2 게이트) 등록 → 재개 미완 행 링크가 선다.
       expect(
         find.byKey(const Key('m55-row-link-RECON_MISMATCH')),
         findsNothing,
       );
       expect(
         find.byKey(const Key('m55-row-link-RESUME_INCOMPLETE')),
-        findsNothing,
+        findsOneWidget,
       );
       expect(find.byKey(const Key('m55-empty')), findsNothing);
 
@@ -1247,6 +1265,129 @@ void main() {
         find.descendant(of: ks, matching: find.textContaining('킬스위치 작동 중')),
         findsOneWidget,
       );
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 X2 재개(R186) — 차단 보드 재개 미완 행 링크 → 게이트(막힌 계획 · 계절 3택 버튼 0 = b2b 전) → 리포트(항목 차례)',
+    (WidgetTester tester) async {
+      // 끝난 재개 회차(계절 대기 · 기한 지남 · 집행 예정) + 재개 미완 플래그 — 화면이 서기 전에 원장에 둔다.
+      files.sim.execute(
+        'INSERT INTO resume_run (resume_run_id, started_at, finished_at, gap_trading_days, mode, phase, counts, headline) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        <Object?>[
+          'RR-2026-11-18-1',
+          '2026-11-18T00:12:00.000Z',
+          '2026-11-18T00:41:00.000Z',
+          2,
+          'NORMAL',
+          'R8',
+          '{"executed":1,"expired":1,"superseded":0,"blocked":1,"unrecoverable":0}',
+          '2거래일 미실행: 재판정 1 / 만료 1 / 대체 0 / 차단 1 / 복구 불가 0. 주문은 다음 주문 회차가 냅니다.',
+        ],
+      );
+      for (final (int seq, String work, String reason, String verdict)
+          in <(int, String, String, String)>[
+            (0, 'w_done', 'REEVALUATED', 'EXECUTED_AS_REEVALUATED'),
+            (1, 'w_season', 'HUMAN_DECISION', 'BLOCKED'),
+            (2, 'w_due', 'DUE_PASSED', 'EXPIRED'),
+          ]) {
+        files.sim.execute(
+          'INSERT INTO resume_item (resume_run_id, work_id, seq, one_line, planned_line, reevaluated_line, '
+          'verdict_code, verdict_label, reason_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          <Object?>[
+            'RR-2026-11-18-1',
+            work,
+            seq,
+            '$work 한 줄',
+            '11월 14일 계획됨',
+            '$reason 글자',
+            verdict,
+            '$verdict 글자',
+            reason,
+          ],
+        );
+      }
+      files.sim.execute(
+        'INSERT INTO trading_block (flag_id, set_at, reason) VALUES (?, ?, ?)',
+        <Object?>[
+          FlagIds.resumeIncomplete,
+          '2026-11-18T00:12:00.000Z',
+          '재개 회차 RR-2026-11-18-1',
+        ],
+      );
+      await pumpApp(tester);
+      await ready(tester);
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      await open(tester, AppRoutes.m5BlockBoard);
+      await settle();
+      expect(tester.takeException(), isNull);
+      // 🔴 R185 의 재개 미완 행 링크가 이제 선다(X2 게이트 등록 → 보드 hasBody).
+      final Finder rowLink = find.byKey(
+        const Key('m55-row-link-RESUME_INCOMPLETE'),
+      );
+      expect(rowLink, findsOneWidget);
+      await tester.ensureVisible(rowLink);
+      await tester.tap(rowLink);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder gate = find.byType(ResumeGateScreen);
+      expect(gate, findsOneWidget);
+      expect(
+        find.descendant(
+          of: gate,
+          matching: find.text(
+            '2거래일 미실행: 재판정 1 / 만료 1 / 대체 0 / 차단 1 / 복구 불가 0. 주문은 다음 주문 회차가 냅니다.',
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        <String>[
+          for (final Element e
+              in find
+                  .descendant(of: gate, matching: find.byType(Card))
+                  .evaluate())
+            (e.widget.key! as ValueKey<String>).value,
+        ],
+        <String>['x2g-row-w_season', 'x2g-row-w_due'],
+      );
+      // 계절 3택 쓰기 = b2b 전 → 버튼 0(눌러도 실패만 나오는 버튼을 세우지 않는다).
+      expect(
+        find.descendant(of: gate, matching: find.byType(OutlinedButton)),
+        findsNothing,
+      );
+      await tester.tap(find.byKey(const Key('x2g-report')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder report = find.byType(ResumeReportScreen);
+      expect(report, findsOneWidget);
+      expect(
+        <String>[
+          for (final Element e
+              in find
+                  .descendant(of: report, matching: find.byType(Card))
+                  .evaluate())
+            (e.widget.key! as ValueKey<String>).value,
+        ],
+        <String>['x2r-item-w_done', 'x2r-item-w_season', 'x2r-item-w_due'],
+      );
+      expect(find.text('11-18 09:12 ~ 09:41'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;
