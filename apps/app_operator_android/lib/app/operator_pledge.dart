@@ -311,6 +311,22 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runPostmortem(PostmortemSubmission submission) =>
       _none('runPostmortem');
 
+  /// 🆕 계약 v1.32(01 §41 · K262) — X5 정정 마법사 제출 3 = operator 구현 전(오류 — 지어내지 않는다 · 엔진 결속 = 01 §8 미결 217).
+  @override
+  Future<SafetyActionResult> runRepairCorrect(
+    RepairCorrectSubmission submission,
+  ) => _none('runRepairCorrect');
+
+  @override
+  Future<SafetyActionResult> runRepairBaseline(
+    RepairBaselineSubmission submission,
+  ) => _none('runRepairBaseline');
+
+  @override
+  Future<SafetyActionResult> runInterventionJournal(
+    InterventionJournalSubmission submission,
+  ) => _none('runInterventionJournal');
+
   /// 🆕 E11q-c0(R188) — 규칙 변경 승인(v1.22 꼴 · 판정 = 엔진 `approve` — 냉각 30일 · 창 · DD · 신뢰 시각 · 사람 칸 · 제3자) ·
   /// 생체 = 구현 0(서약 · 재개판 선례 · 운영 등급 공통 관문 = 미결 169) · 결과 글자 = 엔진.
   @override

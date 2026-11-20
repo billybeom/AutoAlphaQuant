@@ -61,6 +61,8 @@
 //   `UnimplementedBreakerLadderRepository` · `UnimplementedResumeGateRepository` · `UnimplementedResumeRepository`(동기 throw).
 //   🆕 계약 v1.23(01 §32) — `UnimplementedSettingsRepository.watchContribution`(동기 throw) · `UnimplementedSettingsActions.runContributionUpdate`(`Future` 에러).
 //   🆕 계약 v1.24(01 §33) — `UnimplementedSettingsRepository.watchDiagnosticsScreen`(동기 throw) · `UnimplementedOpsStatusRepository.watchAnnualReview` 반환 = `AnnualReviewIndexVm`.
+//   🆕 계약 v1.32(01 §41 · K249 · K262) — `UnimplementedRepairWizardRepository`(동기 throw) · `UnimplementedSafetyActions` +3
+//   (`runRepairCorrect` · `runRepairBaseline` · `runInterventionJournal` · `Future` 에러).
 //   🆕 계약 v1.28(01 §37 · K199) — `UnimplementedSettingsRepository.watchAllocationEditor`(동기 throw).
 //   🆕 계약 v1.26(01 §35 · K183) — `UnimplementedHandoverRepository` · `UnimplementedRuleChangeGateRepository`(동기 throw) ·
 //   `UnimplementedSafetyActions` +2(`runRuleChangeRequest` · `runReconClear` · `Future` 에러).
@@ -636,6 +638,13 @@ class UnimplementedHandoverRepository implements HandoverRepository {
       throw UnimplementedError('watchWizard');
 }
 
+/// 🆕 계약 v1.32(01 §41 · K249) — [RepairWizardRepository] 받침대(X5 정정 마법사). 🔴 동기로 던진다.
+class UnimplementedRepairWizardRepository implements RepairWizardRepository {
+  @override
+  Stream<RepairWizardVm> watchRepair({String? targetId}) =>
+      throw UnimplementedError('watchRepair');
+}
+
 /// 🆕 계약 v1.26(01 §35 · K179) — [RuleChangeGateRepository] 받침대(`M5-9` 첫 승인 최소판). 🔴 동기로 던진다.
 class UnimplementedRuleChangeGateRepository
     implements RuleChangeGateRepository {
@@ -714,6 +723,27 @@ class UnimplementedSafetyActions implements SafetyActions {
   @override
   Future<SafetyActionResult> runReconClear(ReconClearSubmission submission) =>
       Future<SafetyActionResult>.error(UnimplementedError('runReconClear'));
+
+  /// 🆕 v1.32(01 §41 · K255).
+  @override
+  Future<SafetyActionResult> runRepairCorrect(
+    RepairCorrectSubmission submission,
+  ) => Future<SafetyActionResult>.error(UnimplementedError('runRepairCorrect'));
+
+  /// 🆕 v1.32(01 §41 · K256).
+  @override
+  Future<SafetyActionResult> runRepairBaseline(
+    RepairBaselineSubmission submission,
+  ) =>
+      Future<SafetyActionResult>.error(UnimplementedError('runRepairBaseline'));
+
+  /// 🆕 v1.32(01 §41 · K252).
+  @override
+  Future<SafetyActionResult> runInterventionJournal(
+    InterventionJournalSubmission submission,
+  ) => Future<SafetyActionResult>.error(
+    UnimplementedError('runInterventionJournal'),
+  );
   @override
   Stream<SafetyActionResult> watch(String actionRunId) =>
       Stream<SafetyActionResult>.error(UnimplementedError('watch'));

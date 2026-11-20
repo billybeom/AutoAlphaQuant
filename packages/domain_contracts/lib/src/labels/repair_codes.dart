@@ -63,6 +63,15 @@ abstract final class BaselineResultCodes {
   static const Set<String> values = <String>{notX5, firstBadDateUnknown};
 }
 
+/// 🆕 v1.32(01 §41 · K257 · E16j-a) — 새 기준점 저장 쪽 거부(도메인 `baseline_apply_result` · data_sync `local/ledger_repair_store.dart:33-40`
+/// `BaselineStoreCodes` 2 − 공용 `TRUSTED_TIME_UNKNOWN` · 🔴 타입 이름 ≠ 엔진). 정정 중 겹침(`LedgerFixBusy`)은 코드 0 — 구현이 «잠시 뒤 다시» 결과.
+abstract final class BaselineApplyResultCodes {
+  /// `LEDGER_INTEGRITY` 가 서 있지 않다.
+  static const String flagNotSet = 'BASELINE_FLAG_NOT_SET';
+
+  static const Set<String> values = <String>{flagNotSet};
+}
+
 /// X1/X5 경계 사유(도메인 `ledger_boundary_reason` · 엔진 core `ops/ledger_boundary.dart:17-41` `BoundaryReason.wire` 8 ·
 /// 나쁜 쪽이 이긴다 — 파일 → PRAGMA → 스탬프 사슬 → 아카이브 → 내용 → 형식 판 → 깨끗).
 /// 🔴 X1 길 다섯([dbOpenFailed] · [sqliteIntegrity] · [stampChainBroken] · [restoreRollback] · [archiveDiverged])은 기동 거부 글자로도
