@@ -48,6 +48,15 @@ void main() {
       expect(_time.values.toSet(), hasLength(_time.length));
     });
 
+    test('🆕 E11k-c(R206 · 미결 213) — 엔진 `wire` = 위 표(입력 6 · 시각 8)', () {
+      for (final SupabaseInputProblem p in SupabaseInputProblem.values) {
+        expect(p.wire, _input[p], reason: p.name);
+      }
+      for (final SupabaseTimeFailure f in SupabaseTimeFailure.values) {
+        expect(f.wire, _time[f], reason: f.name);
+      }
+    });
+
     test(
       '금고 칸 이름 = 계약 밖(엔진 SecretId) · 연결 대상 = ConnectionTargetCodes.supabase',
       () {

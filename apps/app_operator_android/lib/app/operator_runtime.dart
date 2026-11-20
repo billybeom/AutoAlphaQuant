@@ -20,7 +20,11 @@ import 'package:core_engine/core_engine.dart'
         contributionSettingOf,
         frozenExchangeCalendar;
 import 'package:data_sync/data_sync.dart'
-    show P0sHumanDecision, contributionRowsOf, watchLedgerQuery;
+    show
+        P0sHumanDecision,
+        SupabaseServerTime,
+        contributionRowsOf,
+        watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppLinkOpener,
@@ -64,6 +68,7 @@ class OperatorRuntime {
     this.humanDecision,
     TrustedClock? trusted,
     this.refreshTrusted,
+    this.supabaseTime,
     this.biometricSign,
     this.golden,
     this.liveObservation,
@@ -122,6 +127,9 @@ class OperatorRuntime {
   /// 🆕 E11k-a(R197) — [trusted] 를 서버 시각으로 한 번 다시 잰다(새 기준점 = true · 던지지 않는다) · 없음 = 잴 것 없음
   /// (시험 · 플랫폼 밖). 부르는 곳 = 앞 화면 갱신(`TrustedTimeKeeper`) · 엔진 깨어남.
   final Future<bool> Function()? refreshTrusted;
+
+  /// 🆕 E11k-c(R206) — o_07 ② 연결 확인의 서버 시각(붙여 넣은 값으로 잼 · 없음 = 연결 확인 구현 없음 · 시험 · 플랫폼 밖).
+  final SupabaseServerTime? supabaseTime;
 
   /// 🆕 E11o-d(R167) — 골든 기기 실행기(자산 = 엔진 패키지 · 없음 = 플랫폼 밖 → S10 «판정 보류» · ④ 원천 없음).
   final OperatorGolden? golden;

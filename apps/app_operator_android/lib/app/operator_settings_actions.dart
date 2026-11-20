@@ -10,6 +10,10 @@
 //    키 검증 결과를 온보딩 진척에 적는다(통과 = o_02 VERIFIED · 거절 = FAILED `CREDENTIAL_REJECTED` · 재시도 갈래 = 그대로).
 //    결과 문장 = 표본 글자(core `kOnboardingMode*Text`) — sim 파일이 없으면(시험 · 화면 없는 조립) 이 두 몫은 빠진다.
 // 🆕 E11q-c2(R201) — M9 S09 «지금 백업»(`backupRunNow{}`) = X1 스냅숏 `take`(`OperatorBackup` · 기기 안만) · 결과 = 엔진 글자.
+// 🆕 E11k-c(R206 · 계약 v1.29 01 §39) — `connectionTest{target: SUPABASE}` = o_07 ② 연결 확인 1단: 슬롯 칸
+//    (`SupabaseConnectField`)의 주소 · 공개 키를 넘김으로 받아 서버 시각 1회(data_sync `checkSupabaseConnection`) →
+//    통과 = 금고 저장 → 칸 비움 → o_07 IN_PROGRESS(VERIFIED = 쓰기-읽기 왕복 뒤) → 신뢰 시각 바로 한 번 잼.
+//    🔴 결과 글자 · 사유 코드 = 엔진(표본 그대로) · 금고 쓰기 = 통과 뒤에만 · 그 밖 대상 = 그대로 구현 없음.
 
 import 'dart:async';
 
@@ -43,6 +47,10 @@ import 'package:data_sync/data_sync.dart'
     show
         ContributionChangeResult,
         ContributionSettingSource,
+        SupabaseConnectOutcome,
+        SupabaseServerTime,
+        checkSupabaseConnection,
+        storeSupabaseConnection,
         LedgerIntegrityCheck,
         LedgerIntegrityReport,
         OnboardingOutcome,
@@ -54,6 +62,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         ActionResult,
         BrokerRawCodes,
         Clock,
+        ConnectionTargetCodes,
         ContributionUpdateSubmission,
         OnboardingResultCodes,
         OperatingMode,
@@ -136,7 +145,15 @@ class OperatorSettingsActions implements SettingsActions {
     this.contribution,
     this.handover,
     this.backup,
+    this.supabaseTime,
+    this.refreshTrusted,
   });
+
+  /// 🆕 E11k-c(R206) — o_07 ② 연결 확인의 서버 시각(붙여 넣은 값으로 잼 · 없음 = 연결 확인 구현 없음).
+  final SupabaseServerTime? supabaseTime;
+
+  /// 🆕 R206 — 저장 뒤 신뢰 시각을 바로 한 번 잰다(실행 묶음 `refreshTrusted` · 없음 = 다음 주기에).
+  final Future<bool> Function()? refreshTrusted;
 
   /// 🆕 R125 — 온보딩이 쓰는 sim 파일(없음 = 운영 방식 선택 · 진척 기록 없음).
   final Database? sim;
@@ -226,6 +243,49 @@ class OperatorSettingsActions implements SettingsActions {
   final Map<String, ActionResult> _results = <String, ActionResult>{};
   final Map<KisKeySet, Future<ActionResult>> _inFlight =
       <KisKeySet, Future<ActionResult>>{};
+  Future<ActionResult>? _supabaseInFlight;
+
+  /// 🆕 R206 — o_07 ② 연결 확인(입력 문제 = 망 0 · 통과 = 저장 → 칸 비움 → IN_PROGRESS → 신뢰 시각 잼).
+  Future<ActionResult> _supabaseConnect(SupabaseServerTime time) async {
+    const SettingsActionId id = SettingsActionId.connectionTest;
+    final ({String? url, String? key})? draft = secrets.supabaseDraft();
+    final SupabaseConnectOutcome o = await checkSupabaseConnection(
+      time,
+      url: draft?.url,
+      key: draft?.key,
+    );
+    if (o.level == UiLevel.ok) {
+      try {
+        await storeSupabaseConnection(vault, url: draft!.url!, key: draft.key!);
+      } on Object {
+        return _result(
+          id,
+          UiLevel.blocked,
+          CredentialVerifyText.saveFailed,
+          retryable: true,
+        );
+      }
+      secrets.clearSupabaseAfterSave();
+      final Database? db = sim;
+      if (db != null) {
+        final SqliteOnboardingProgressStore store =
+            SqliteOnboardingProgressStore(db, clock: clock);
+        // 🔴 이미 VERIFIED(쓰기-읽기 왕복 — E11k-d · e 뒤)면 진행 중으로 내리지 않는다.
+        if (store.lastRecord('o_07')?.state != StepState.verified) {
+          store.record('o_07', StepState.inProgress);
+        }
+      }
+      await refreshTrusted?.call();
+    }
+    return _result(
+      id,
+      o.level,
+      o.headline,
+      reasonCode: o.reasonCode,
+      retryable: o.retryable,
+    );
+  }
+
   int _seq = 0;
 
   String _runId() => 'ar_op_${clock.nowUtc().microsecondsSinceEpoch}_${++_seq}';
@@ -256,6 +316,20 @@ class OperatorSettingsActions implements SettingsActions {
   }) {
     if (id == SettingsActionId.credentialVerify) {
       return _credentialVerify(args);
+    }
+    final SupabaseServerTime? supa = supabaseTime;
+    if (id == SettingsActionId.connectionTest &&
+        args['target'] == ConnectionTargetCodes.supabase &&
+        supa != null) {
+      if (args.length != 1) {
+        return Future<ActionResult>.error(
+          ArgumentError('connectionTest args = {target} 하나'),
+        );
+      }
+      // 🔴 블록 몸통(KIS 와 같은 까닭 — 지운 Future 를 돌려주면 자기를 기다린다).
+      return _supabaseInFlight ??= _supabaseConnect(supa).whenComplete(() {
+        _supabaseInFlight = null;
+      });
     }
     final Database? db = sim;
     if (id == SettingsActionId.onboardingOperatingModeSelect && db != null) {

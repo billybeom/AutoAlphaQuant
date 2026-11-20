@@ -24,25 +24,31 @@ abstract final class SupabaseSecretIds {
   static final SecretId publishableKey = SecretId('supabase.publishable_key');
 }
 
-/// 🆕 붙여넣은 연결 값의 문제(o_07 ② 입력 판정 · 문제 없음 = null).
+/// 🆕 붙여넣은 연결 값의 문제(o_07 ② 입력 판정 · 문제 없음 = null) · 🆕 E11k-c [wire] = 계약 v1.29 `SupabaseInputResultCodes`
+/// (01 §8 미결 213 — 엔진 글자 1:1 · 대조 = `test/e11k_contract_parity_test.dart`).
 enum SupabaseInputProblem {
   /// 비었다.
-  empty,
+  empty('SUPABASE_INPUT_EMPTY'),
 
   /// 빈칸 · 줄바꿈 · 따옴표가 섞였다.
-  whitespace,
+  whitespace('SUPABASE_INPUT_WHITESPACE'),
 
   /// 프로젝트 주소 꼴(`https://<ref>.supabase.co`)이 아니다.
-  notProjectUrl,
+  notProjectUrl('SUPABASE_URL_INVALID'),
 
   /// 🔴 비밀 키(`sb_secret_…`)다.
-  secretKey,
+  secretKey('SUPABASE_SECRET_KEY_REJECTED'),
 
   /// 🔴 service_role JWT 다.
-  serviceRoleKey,
+  serviceRoleKey('SUPABASE_SERVICE_ROLE_REJECTED'),
 
   /// 공개 키 꼴이 아니다.
-  notPublishableKey,
+  notPublishableKey('SUPABASE_KEY_INVALID');
+
+  const SupabaseInputProblem(this.wire);
+
+  /// 와이어 글자(`ActionResult.reasonCode`).
+  final String wire;
 }
 
 final RegExp _space = RegExp(r'''[\s"'`]''');
@@ -106,31 +112,36 @@ String? _jwtRole(String jwt) {
   }
 }
 
-/// 🆕 서버 시각 읽기 실패 종류.
+/// 🆕 서버 시각 읽기 실패 종류 · 🆕 E11k-c [wire] = 계약 v1.29 `SupabaseTimeResultCodes`(미결 213).
 enum SupabaseTimeFailure {
   /// 금고에 주소 · 키가 없다(o_07 ② 전) — 망에 가지 않았다.
-  notConfigured,
+  notConfigured('SUPABASE_NOT_CONFIGURED'),
 
   /// 금고 값이 꼴이 아니다(주소 · 키) — 망에 가지 않았다.
-  badConfig,
+  badConfig('SUPABASE_CONFIG_INVALID'),
 
   /// 금고를 읽지 못했다.
-  vault,
+  vault('SUPABASE_VAULT_UNREADABLE'),
 
   /// 키가 틀렸다(401 · 403).
-  unauthorized,
+  unauthorized('SUPABASE_UNAUTHORIZED'),
 
   /// 서버 오류(5xx).
-  server,
+  server('SUPABASE_SERVER_ERROR'),
 
   /// 그 밖의 HTTP 상태.
-  badResponse,
+  badResponse('SUPABASE_BAD_RESPONSE'),
 
   /// 2xx 인데 `Date` 머리가 없거나 읽을 수 없다.
-  noDate,
+  noDate('SUPABASE_DATE_MISSING'),
 
   /// 망 · 시간 초과.
-  network,
+  network('SUPABASE_NETWORK');
+
+  const SupabaseTimeFailure(this.wire);
+
+  /// 와이어 글자(`ActionResult.reasonCode`).
+  final String wire;
 }
 
 /// 🆕 서버 시각 한 번 읽은 결과 — 🔴 주소 · 키 없음(종류 · HTTP 상태만).
@@ -193,6 +204,12 @@ class SupabaseServerTime implements ServerTimeSource {
     if (url == null || url.isEmpty || key == null || key.isEmpty) {
       return const SupabaseTimeRead.failed(SupabaseTimeFailure.notConfigured);
     }
+    return probe(url, key);
+  }
+
+  /// 🆕 E11k-c — 주어진 주소 · 키로 한 번 읽는다(금고를 읽지도 쓰지도 않는다 — o_07 ② «검증 뒤 저장»의 검증) ·
+  /// 꼴이 아니면 망에 가지 않고 [SupabaseTimeFailure.badConfig] · 🔴 던지지 않는다.
+  Future<SupabaseTimeRead> probe(String url, String key) async {
     final Uri? base = supabaseProjectUri(url);
     if (base == null || supabasePublishableKeyProblem(key) != null) {
       return const SupabaseTimeRead.failed(SupabaseTimeFailure.badConfig);
@@ -230,4 +247,22 @@ class SupabaseServerTime implements ServerTimeSource {
 
   @override
   Future<DateTime?> serverTimeUtc() async => (await read()).serverUtc;
+}
+
+/// 🆕 E11k-c — 연결 값을 금고에 둔다(o_07 ② 검증 통과 뒤에만 부른다) · 주소 = 끝 `/` 없는 바탕 주소 · 키 = 앞뒤 빈칸 뗌.
+/// 🔴 꼴이 아니면 [ArgumentError](값 0 · 금고에 아무것도 쓰지 않는다) · 금고 실패 = 그대로 던진다.
+Future<void> storeSupabaseConnection(
+  SecretVault vault, {
+  required String url,
+  required String key,
+}) async {
+  final Uri? base = supabaseProjectUri(url);
+  if (base == null) {
+    throw ArgumentError('프로젝트 주소 꼴이 아니다(값 생략)');
+  }
+  if (supabasePublishableKeyProblem(key) != null) {
+    throw ArgumentError('공개 키 꼴이 아니다(값 생략)');
+  }
+  await vault.write(SupabaseSecretIds.projectUrl, base.toString());
+  await vault.write(SupabaseSecretIds.publishableKey, key.trim());
 }
