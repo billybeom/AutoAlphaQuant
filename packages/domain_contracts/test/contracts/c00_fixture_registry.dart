@@ -248,6 +248,12 @@ final DtoCodec<Object> _resumeReport = DtoCodec<ResumeReport>(
   ResumeReport.fromJson,
   (ResumeReport v) => v.toJson(),
 );
+// 🆕 계약 v1.28(S04 첫 판 · 01 §37) — M9 `S04` 배분 화면(보기 전용).
+final DtoCodec<Object> _allocationEditorVm = DtoCodec<AllocationEditorVm>(
+  'AllocationEditorVm',
+  AllocationEditorVm.fromJson,
+  (AllocationEditorVm v) => v.toJson(),
+);
 // 🆕 계약 v1.24(R9 선행 · 01 §33) — M9 `S09` 백업 · `S10` 진단 감싸개 · `S12` 연간 리뷰 목차 VM.
 final DtoCodec<Object> _backupVm = DtoCodec<BackupVm>(
   'BackupVm',
@@ -1006,6 +1012,9 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9AccountMappingActionResults: FixtureBinding(_actionResult),
   FixturePaths.m9AccountMappingLocked: FixtureBinding(_accountMappingVm),
   FixturePaths.m9AccountMappingUnmapped: FixtureBinding(_accountMappingVm),
+  // 🆕 v1.28(01 §37) — S04 첫 판 2.
+  FixturePaths.m9AllocationEditor: FixtureBinding(_allocationEditorVm),
+  FixturePaths.m9AllocationEditorStale: FixtureBinding(_allocationEditorVm),
   // 🆕 v1.24(01 §33 · R9c) — `S12` 연간 리뷰 목차 4벌.
   FixturePaths.m9AnnualReviewIndexClosed: FixtureBinding(_annualReviewIndexVm),
   FixturePaths.m9AnnualReviewIndexFirstYear: FixtureBinding(
