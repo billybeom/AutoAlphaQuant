@@ -61,6 +61,7 @@
 //   `UnimplementedBreakerLadderRepository` · `UnimplementedResumeGateRepository` · `UnimplementedResumeRepository`(동기 throw).
 //   🆕 계약 v1.23(01 §32) — `UnimplementedSettingsRepository.watchContribution`(동기 throw) · `UnimplementedSettingsActions.runContributionUpdate`(`Future` 에러).
 //   🆕 계약 v1.24(01 §33) — `UnimplementedSettingsRepository.watchDiagnosticsScreen`(동기 throw) · `UnimplementedOpsStatusRepository.watchAnnualReview` 반환 = `AnnualReviewIndexVm`.
+//   🆕 계약 v1.28(01 §37 · K199) — `UnimplementedSettingsRepository.watchAllocationEditor`(동기 throw).
 //   🆕 계약 v1.26(01 §35 · K183) — `UnimplementedHandoverRepository` · `UnimplementedRuleChangeGateRepository`(동기 throw) ·
 //   `UnimplementedSafetyActions` +2(`runRuleChangeRequest` · `runReconClear` · `Future` 에러).
 //
@@ -317,6 +318,11 @@ class UnimplementedSettingsRepository implements SettingsRepository {
   @override
   Stream<DiagnosticsScreenVm> watchDiagnosticsScreen() =>
       throw UnimplementedError('watchDiagnosticsScreen');
+
+  /// 🆕 v1.28(01 §37 · K199) — `S04` 첫 판. 🔴 동기로 던진다.
+  @override
+  Stream<AllocationEditorVm> watchAllocationEditor() =>
+      throw UnimplementedError('watchAllocationEditor');
 }
 
 /// 🆕 계약 v1.12(01 §21 · K9 · K28) — [SettingsActions] 받침대(`L-3` 세션 start·stop 가짜의 받침대).

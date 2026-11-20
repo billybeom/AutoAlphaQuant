@@ -33,6 +33,7 @@
 
 import 'advice_codes.dart';
 import 'alert_codes.dart';
+import 'allocation_codes.dart'; // 🆕 v1.28
 import 'deviation_kind_codes.dart';
 import 'disclosure_codes.dart';
 import 'exit_kind.dart';
@@ -51,6 +52,7 @@ import 'verdict_codes.dart';
 
 export 'advice_codes.dart';
 export 'alert_codes.dart';
+export 'allocation_codes.dart'; // 🆕 v1.28
 export 'deviation_kind_codes.dart';
 export 'disclosure_codes.dart';
 export 'exit_kind.dart';
@@ -265,6 +267,8 @@ abstract final class ContractCodes {
     'kill_cancel_outcome': KillCancelOutcomeCodes.values,
     // 🆕 v1.26(01 §35 · K182) — RECON 해제 거부(엔진 예고 · 공용 2 따로)
     'recon_clear_result': ReconClearResultCodes.values,
+    // 🆕 v1.28(01 §37 · K200) — S04 읽기 행 코드(엔진 글자 1:1 · 화면 미참조)
+    'allocation_row': AllocationRowCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

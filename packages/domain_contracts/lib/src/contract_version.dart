@@ -224,12 +224,20 @@
 //    `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 · 개입 · 재량 · postmortem 목록 · M5-3 STOPPED VM ·
 //    `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 보기 VM(192 뒤) · E16i 나머지/E16j · 이름 없는 알림 · PNG F1·F2·F4~F7 중
 //    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-20 · 계약 v1.27».
+// 🆕 '1.28.0'(S04 첫 판 · 01 §37 · 발주자 위임 2026-11-14 — 권고대로 · K196~K207) — M9 `S04` 배분 화면 보기 전용:
+//    🆕 `AllocationEditorVm`·`AllocationProfileCard`·`AllocationReadOnlySection`·`AllocationReadOnlyRow`(엔진 `AllocationView` 칸 1:1 ·
+//    판정·잠김·빈 칸 0) · 🆕 `SettingsRepository.watchAllocationEditor()`(폰 · 뷰어) · 🆕 `AllocationRowCodes` 10(`allocation_row`) ·
+//    🆕 `AllocationReadModelColumns` 7(`rm_config_view` 배분 열 · 01 §6-4 · 🔴 타입 이름 ≠ 엔진) · 받침대 +1 · 🆕 C-62 ·
+//    픽스처 360 → 362(신설 2 — `m9/allocation_editor` · `_stale`) — 🆕 tool/gen_s04_v128_fixtures.py.
+//    다음 판 = 1.29.0(v1.27 예약 목록 그대로 — 서약 편집(미결 208 뒤) · 규칙 변경 CHANGELOG · `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 ·
+//    개입 · 재량 · postmortem 목록 · M5-3 VM · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 편집기 판(미결 190 · 191 · 194) · E16i/E16j ·
+//    이름 없는 알림 · PNG F1·F2·F4~F7 중 먼저 굳는 쪽) · 06 변경 이력 «2026-11-20 · 계약 v1.28».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.27.0';
+const String contractVersion = '1.28.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

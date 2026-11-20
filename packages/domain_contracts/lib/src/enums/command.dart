@@ -311,7 +311,7 @@ enum SafetyActionId {
   @JsonValue('RULE_CHANGE_REQUEST')
   ruleChangeRequest('RULE_CHANGE_REQUEST'),
 
-  /// 🆕 v1.22 — `M5-9` 규칙 변경 요청 취소(`run{request_id}` · ds `rule_change_store.dart:17` · 요청 = M9 `strategyApplyRequest`).
+  /// 🆕 v1.22 — `M5-9` 규칙 변경 요청 취소(`run{request_id}` · ds `rule_change_store.dart:17` · 요청 = 🆕 v1.26 M5-9 `ruleChangeRequest`(`runRuleChangeRequest`) · M9 `strategyApplyRequest` = S04 편집기 판).
   @JsonValue('RULE_CHANGE_CANCEL')
   ruleChangeCancel('RULE_CHANGE_CANCEL'),
 

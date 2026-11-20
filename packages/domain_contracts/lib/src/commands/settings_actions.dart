@@ -126,7 +126,7 @@ part 'settings_actions.g.dart';
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
 ///
-/// ⚠️ 나머지 동작(🆕 v1.24 기준 = `strategyPreview`·`strategyApplyRequest`(S04 창) · `credentialRegister`·`backupRestoreStart`(화면 미호출) ·
+/// ⚠️ 나머지 동작(🆕 v1.24 기준 = `strategyPreview`·`strategyApplyRequest`(S04 편집기 판 — v1.28 첫 판 = 보기 전용 · 호출 0) · `credentialRegister`·`backupRestoreStart`(화면 미호출) ·
 ///    calendar 3 · `settingsGeneralUpdate`)의 args 스키마는 **미확정**이다(§4-3 말미 · 05 §7 표가 입력) — 확정 전에는
 ///    화면이 키를 지어내지 않는다.
 abstract interface class SettingsActions {

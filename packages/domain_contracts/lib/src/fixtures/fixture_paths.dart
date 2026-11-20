@@ -836,6 +836,14 @@ abstract final class FixturePaths {
   static const String m9AccountMappingUnmapped =
       'm9/account_mapping_unmapped.json';
 
+  // 🆕 v1.28(01 §37) — S04 첫 판 VM 2(파일 이름 바이트 차례 · all 도 같은 차례).
+  /// 🆕 v1.28(K197 · K202) — `S04` 정본 P0S(카드 · 묶음 셋 · 바꾸는 길 · 엔진 시험 글자 그대로).
+  static const String m9AllocationEditor = 'm9/allocation_editor.json';
+
+  /// 🆕 v1.28(K202) — `S04` 같은 VM · 낡음(`as_of.stale_label` · 봉투 `as_of` 에는 없음).
+  static const String m9AllocationEditorStale =
+      'm9/allocation_editor_stale.json';
+
   // 🆕 v1.24(01 §33) — S09 VM 6 · 결과 1 · S10 VM 5 · 결과 1 · S12 VM 4(파일 이름 바이트 차례 · all 도 같은 차례).
   /// 🆕 v1.24(K118) — `S12` 닫힘(2025년 · 창 닫힘 글자 = `m7_annual_offwindow` · 목차 4 · 서약 링크 null).
   static const String m9AnnualReviewIndexClosed =
@@ -1363,6 +1371,8 @@ abstract final class FixturePaths {
     m9AccountMappingActionResults,
     m9AccountMappingLocked,
     m9AccountMappingUnmapped,
+    m9AllocationEditor,
+    m9AllocationEditorStale,
     m9AnnualReviewIndexClosed,
     m9AnnualReviewIndexFirstYear,
     m9AnnualReviewIndexOpen,
