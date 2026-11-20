@@ -9,7 +9,7 @@
 //    · 세션 시작 = 생체 1회(런타임 · 없음 = 할 수 없음) → 엔진 사전 판정(생체 → 신뢰 시각 → 전제 → S1~S5 → 이미 세션) →
 //      통과 뒤에만 실전 파일을 연다(없으면 만든다 · 미결 207 ⓒ) → 엔진 저장이 신뢰 시각으로 다시 판정해 연다.
 //    · 취소 = 실전 파일(없음 = `HANDOVER_SESSION_INVALID`).
-//    · 확정 = 엔진 1단계 관문(시각 → 세션 → 리스 → 이미 → 재판정 → 계좌 조회) — 🔴 실전 계좌 조회 포트 · 오케스트레이터
+//    · 확정 = 엔진 1단계 관문(시각 → 세션 → 리스 → 이미 → 승인 config(R192) → 재판정 → 계좌 조회) — 🔴 실전 계좌 조회 포트 · 오케스트레이터
 //      `runSimToAutoSwitch` 배선 = 207 ⓖ 다음 조각 → 지금 확정은 관문의 거부 원문으로 끝난다(조회 0 = `…_ACCOUNT_PROBE_MISSING` · 쓰기 0).
 // 🔴 신뢰 시각 = 런타임 시계(E11k 전 = 모름 → 시작 · 확정 = `SIM_TO_AUTO_TRUSTED_TIME_UNAVAILABLE` 원문 · 우회 0 · K176).
 
@@ -45,6 +45,7 @@ import 'package:data_sync/data_sync.dart'
         SqliteLeaseGate,
         SqliteSimLedgerFateStore,
         currentP0sOpsConfig,
+        readSimToAutoCarry,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -272,6 +273,7 @@ class OperatorHandover {
       mode: f.simRunMode ?? RunMode.simInternal,
       clock: _rt.clock,
     );
+    final OpsConfigRead cfg = currentP0sOpsConfig(_rt.files.sim);
     final int liveRows = live == null
         ? 0
         : live.select('SELECT COUNT(*) AS n FROM mode_transition').first['n']!
@@ -286,6 +288,10 @@ class OperatorHandover {
             deviceId: _rt.deviceId ?? '',
           ),
           liveModeRows: liveRows,
+          // 🆕 R192 — 승인 판(승인 기록과 맞는 것만) = 지금 설정이어야 한다(SAF-405 · 없음 = `…_CONFIG_NOT_APPROVED`).
+          approvedConfigHash: readSimToAutoCarry(_rt.files.sim)
+              .approvedConfigHash,
+          configHash: cfg is OpsConfigReady ? cfg.configHash : '',
           report: now == null || session == null ? null : _judge(f),
           aliases: f.accountByStrategy.values.toSet(),
           // 🔴 실전 계좌 조회 포트 = 207 ⓖ 다음 조각 — 그 전 = 조회 0(관문이 `…_ACCOUNT_PROBE_MISSING` 로 거부 · 쓰기 0).

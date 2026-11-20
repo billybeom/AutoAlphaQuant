@@ -11,13 +11,15 @@ import 'package:core_engine/core_engine.dart'
         HandoverCommitted,
         HandoverWizardTexts,
         LiveObservationConfig,
+        RuleChangeType,
         Market,
         P0sStrategyIds,
         SimLedgerFate,
         SimToAutoCodes,
         TrustedClock,
         frozenExchangeCalendar,
-        kHandoverSessionTtl;
+        kHandoverSessionTtl,
+        kNoApprovedConfig;
 import 'package:data_sync/data_sync.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
@@ -279,14 +281,56 @@ void main() {
     expect(vm.coolingText, isNull);
   });
 
-  test('🔴 SAF-405 — 지금 지문이 승인 지문일 때만 고지 0 · 승인 0 · 다른 지문 · 지문 없음 = 고지', () {
+  test('🔴 SAF-405 — 승인 기록과 맞는 승인 지문 = 지금 지문일 때만 고지 0(커밋 관문과 한 원천 · R192)', () {
     simStarted();
     expect(src().configApproved(), isFalse);
     expect(src().wizard().noticeText, HandoverWizardTexts.configNotApproved);
+    // 승인 기록 없이 목록만 바뀐 지문 = 승인 아님(커밋이 옮길 판이 없다).
     sim.execute(
       'UPDATE config_versions SET approved = 1 WHERE config_hash = ?',
       <Object?>[hash],
     );
+    expect(src().configApproved(), isFalse);
+    sim.execute('UPDATE config_versions SET approved = 0');
+    final SqliteRuleChangeStore rc = SqliteRuleChangeStore(
+      sim,
+      clock: clock,
+      trusted: trusted,
+    );
+    trusted.at = _k('2026-12-01', 9);
+    expect(
+      rc
+          .requestWithJournal(
+            commandId: 'rq-1',
+            payloadDigest: 'dg',
+            changeType: RuleChangeType.strategyRule,
+            hashBefore: kNoApprovedConfig,
+            hashAfter: hash,
+            reason: '첫 승인',
+            rollbackMethod: '이전 설정으로',
+            journalId: 'J-RC1',
+            rationaleBefore: '모의 체험 결과',
+            expectedOutcome: '실전 기동 조건',
+            ruleCited: '04 §1 SAF-405',
+          )
+          .executed,
+      isTrue,
+    );
+    trusted.at = _k('2027-01-02', 9);
+    expect(
+      rc
+          .approve(
+            commandId: 'ap-1',
+            payloadDigest: 'dg',
+            requestId: 'RC-J-RC1',
+            goldenChanged: false,
+            approver: '본인',
+            thirdPartyNotified: true,
+          )
+          .executed,
+      isTrue,
+    );
+    trusted.at = _t0;
     expect(src().configApproved(), isTrue);
     expect(src().wizard().noticeText, isNull);
     expect(src(current: 'other').configApproved(), isFalse);

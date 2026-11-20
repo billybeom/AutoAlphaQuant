@@ -25,8 +25,8 @@ import 'package:core_engine/core_engine.dart'
         handoverWizardVmOf,
         judgeSimToAuto,
         judgeSimTrial,
-        kNoApprovedConfig,
-        killSwitchActive;
+        killSwitchActive,
+        simToAutoConfigApprovalReject;
 import 'package:domain_contracts/domain_contracts.dart'
     show Clock, FlagIds, HandoverPath, HandoverWizardVm, LedgerFile;
 import 'package:sqlite3/sqlite3.dart';
@@ -34,8 +34,8 @@ import 'package:sqlite3/sqlite3.dart';
 import 'handover_session_store.dart' show SqliteHandoverSessionStore;
 import 'kill_switch_store.dart' show readKillSwitchRecord;
 import 'mode_store.dart' show SqliteModeStore;
-import 'rule_change_store.dart' show SqliteRuleChangeStore;
 import 'sim_ledger_fate_store.dart' show SqliteSimLedgerFateStore;
+import 'sim_to_auto_carry.dart' show readSimToAutoCarry;
 import 'sim_trial_facts.dart' show SqliteSimTrialFacts;
 
 final RegExp _offset = RegExp(r'(Z|[+-]\d\d:?\d\d)$');
@@ -165,16 +165,16 @@ class SqliteHandoverWizardSource {
     observation: _observation,
   );
 
-  /// SAF-405 — 지금 설정이 승인된 설정인가(모의 기간 = 모의 파일의 `config_versions`).
+  /// SAF-405 — 지금 설정이 승인된 설정인가 = 커밋이 옮길 승인 판(승인 기록과 맞는 것만 · R192 `readSimToAutoCarry`)과
+  /// 커밋 관문의 같은 판정(`simToAutoConfigApprovalReject`) — 위저드 고지와 확정 거부가 한 원천.
   bool configApproved() {
     final String? h = _configHash;
     if (h == null) return false;
-    final String approved = SqliteRuleChangeStore(
-      _sim,
-      clock: _clock,
-      trusted: _trusted,
-    ).approvedConfigHash();
-    return approved != kNoApprovedConfig && approved == h.trim();
+    return simToAutoConfigApprovalReject(
+          approvedConfigHash: readSimToAutoCarry(_sim).approvedConfigHash,
+          configHash: h.trim(),
+        ) ==
+        null;
   }
 
   /// 확정 뒤인가(실전 파일 RUN_MODE 행 있음) — 확정 세션 시각(없으면 null).

@@ -26,15 +26,21 @@ import 'package:core_engine/core_engine.dart'
         P0sHumanInputs,
         P0sOpsConfig,
         P0sStrategyIds,
+        RuleChangeType,
         SimToAutoCodes,
         SimToAutoCommitCodes,
         TierBCard,
         TrustedClock,
         kHandoverCancelledHeadline,
+        kNoApprovedConfig,
         simToAutoCommitHeadline;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
-    show SqliteConfigVersionStore, SqliteJobRunLog, SqliteOnboardingStore;
+    show
+        SqliteConfigVersionStore,
+        SqliteJobRunLog,
+        SqliteOnboardingStore,
+        SqliteRuleChangeStore;
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -99,6 +105,50 @@ void main() {
   late String hash;
 
   Database sim() => files.sim;
+
+  /// SAF-405 첫 승인(규칙 변경 요청 → 냉각 30일 → 승인 · 엔진 저장) — 신뢰 시각을 돌려 놓는다.
+  void approveConfig() {
+    final DateTime? keep = trusted.at;
+    final SqliteRuleChangeStore rc = SqliteRuleChangeStore(
+      sim(),
+      clock: clock,
+      trusted: trusted,
+    );
+    trusted.at = _k('2026-12-01', 9);
+    expect(
+      rc
+          .requestWithJournal(
+            commandId: 'rq-1',
+            payloadDigest: 'dg',
+            changeType: RuleChangeType.strategyRule,
+            hashBefore: kNoApprovedConfig,
+            hashAfter: hash,
+            reason: '첫 승인',
+            rollbackMethod: '이전 설정으로',
+            journalId: 'J-RC1',
+            rationaleBefore: '모의 체험 결과',
+            expectedOutcome: '실전 기동 조건',
+            ruleCited: '04 §1 SAF-405',
+          )
+          .executed,
+      isTrue,
+    );
+    trusted.at = _k('2027-01-02', 9);
+    expect(
+      rc
+          .approve(
+            commandId: 'ap-1',
+            payloadDigest: 'dg',
+            requestId: 'RC-J-RC1',
+            goldenChanged: false,
+            approver: '본인',
+            thirdPartyNotified: true,
+          )
+          .executed,
+      isTrue,
+    );
+    trusted.at = keep;
+  }
 
   /// 온보딩(운영 방식 · 모의 개시 · 드라이런 시작) → 체험 5항목 기록 — 엔진이 «체험 완료»로 판정할 원 기록.
   Future<void> trialDone() async {
@@ -436,7 +486,23 @@ void main() {
       HandoverWizardTexts.coolingEnds(_k('2027-01-09', 12)),
     );
 
-    // 확정 — 냉각 중 = 엔진 관문의 재판정 거부 · 냉각 뒤 = 계좌 조회 0 → `…_ACCOUNT_PROBE_MISSING`(조회 포트 = 207 ⓖ) · 쓰기 0.
+    // 확정 — 승인 config 없음 = `…_CONFIG_NOT_APPROVED`(R192 · SAF-405) → 첫 승인(요청 → 냉각 30일 → 승인) 뒤 고지 0 →
+    //    냉각 중 = 재판정 거부 · 냉각 뒤 = 계좌 조회 0 → `…_ACCOUNT_PROBE_MISSING`(조회 포트 = 207 ⓖ) · 쓰기 0.
+    final ActionResult na = await h.run(
+      SettingsActionId.handoverCommit,
+      <String, String>{'handover_session_id': sid},
+    );
+    expect(
+      (na.reasonCode, na.level, na.headline),
+      (
+        SimToAutoCommitCodes.configNotApproved,
+        UiLevel.blocked,
+        simToAutoCommitHeadline(SimToAutoCommitCodes.configNotApproved),
+      ),
+    );
+    expect(vm.noticeText, HandoverWizardTexts.configNotApproved);
+    approveConfig();
+    expect((await wizard(h, r)).noticeText, isNull);
     final ActionResult c = await h.run(
       SettingsActionId.handoverCommit,
       <String, String>{'handover_session_id': sid},
