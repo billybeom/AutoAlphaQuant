@@ -269,6 +269,8 @@ enum SettingsActionId {
 ///    (화이트리스트 = 1.22.0 · K39). 개수를 숫자로 적지 않는다(G-91).
 /// 🆕 v1.22(01 §31 · K52) — `run(id, args)` 화이트리스트 = `interventionStep` · `ruleChangeCancel` · `reconClear` ·
 ///    `seasonalWindowChoice`(엔진이 `SafetyActionCall` 에 완성) · 그 밖 값 = 제출 DTO 경로(`run…` 메서드).
+/// 🆕 v1.26(01 §35 · K178 · K181) — `reconClear` 를 `run` 화이트리스트에서 뺐다(`runReconClear` · 값은 결과 id 로 남는다) ·
+///    `ruleChangeRequest` 추가(`runRuleChangeRequest` 전용).
 enum SafetyActionId {
   /// 킬스위치 재개 게이트(M5-2) 문항 제출의 결과 id — 7번 통과 = 해제.
   @JsonValue('KILL_SWITCH_RESUME')
@@ -303,6 +305,11 @@ enum SafetyActionId {
   /// 🆕 v1.22 — `M5-6`·`M5-7` 재량 조정(제출 `runDiscretionAdjust` · ds `discretion_store.dart:15`).
   @JsonValue('DISCRETION_ADJUST')
   discretionAdjust('DISCRETION_ADJUST'),
+
+  /// 🆕 v1.26(01 §35 · K178) — `M5-9` 규칙 변경 요청(첫 승인 포함 · 제출 `runRuleChangeRequest` 전용 — `run` 으로 받지 않는다 ·
+  /// ds `rule_change_store.dart` `kRuleChangeRequestKind` 와 같은 글자).
+  @JsonValue('RULE_CHANGE_REQUEST')
+  ruleChangeRequest('RULE_CHANGE_REQUEST'),
 
   /// 🆕 v1.22 — `M5-9` 규칙 변경 요청 취소(`run{request_id}` · ds `rule_change_store.dart:17` · 요청 = M9 `strategyApplyRequest`).
   @JsonValue('RULE_CHANGE_CANCEL')

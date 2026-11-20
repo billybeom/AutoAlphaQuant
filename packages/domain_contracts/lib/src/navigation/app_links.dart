@@ -299,6 +299,10 @@ abstract final class AppRoutes {
   /// 🆕 v1.18 — `S12` 12월 연간 리뷰 진입(M9 목차 · `SettingsHomeVm.annualReviewLink` 목적지 · M7 `reportAnnual` 과 다른 화면 ·
   /// 🆕 v1.24 R9c · `AnnualReviewIndexVm` · v1 뷰어 = 레지스트리 빈 자리 · 미결 95·170 닫음).
   static const String settingsAnnualReview = 'aaq://settings/annual-review';
+
+  /// 🆕 v1.26(01 §35 · K173) — 🔒 `M5-11` 위저드와 **같은 본문·같은 VM**(`HandoverRepository.watchWizard` · 본문 = `ui_safety` ·
+  /// 조립 = 레지스트리 두 칸에 같은 위젯) · 엔진 알림 `HANDOVER_COOLING_ACTIVE` · `HANDOVER_COMMITTED` 목적지(냉각 끝 재진입 길) ·
+  /// 소유 = M5(Claude · C-33).
   static const String handoverStatus = 'aaq://handover/status';
 
   // ── M4 · M5 · X1 · X2 · X5 소유(06 §3-5 목록 — 위젯은 Claude, 등록은 셸) ────────
@@ -315,7 +319,12 @@ abstract final class AppRoutes {
   /// 🆕 v1.25(01 §34 · K154) — 🔒 `M5-5` 본문 = `ui_safety`(VM = `BlockBoardVm` · 사다리 `M5-4` · 게이지 `M5-7` 포함).
   static const String m5BlockBoard = 'aaq://m5/block-board';
   static const String m5Intervention = 'aaq://m5/intervention';
+
+  /// `M5-10` 안내 개시 게이트(advisory) — 🆕 v1.26(01 §35 · K174) 범위 밖 · 레지스트리 빈 자리.
   static const String m5HandoverGate = 'aaq://m5/handover-gate';
+
+  /// 🆕 v1.26(01 §35 · K167 · K168) — 🔒 `M5-11` simToAuto 위저드 본문 = `ui_safety`(VM = `HandoverWizardVm` ·
+  /// 창구 = `HandoverRepository.watchWizard` · `handoverStatus` = 같은 본문).
   static const String m5HandoverWizard = 'aaq://m5/handover-wizard';
 
   /// `M5-13` 원장 실사 해소·격리 검토.

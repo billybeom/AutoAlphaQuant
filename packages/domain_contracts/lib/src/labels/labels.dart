@@ -263,6 +263,8 @@ abstract final class ContractCodes {
     'ledger_integrity_result': LedgerIntegrityResultCodes.values,
     // 🆕 v1.25(01 §34 · K151) — 킬스위치 미체결 취소 결과(엔진 wire 1:1 · 사전 도메인 사이 겹침 0 — 같은 글자는 열거 와이어뿐)
     'kill_cancel_outcome': KillCancelOutcomeCodes.values,
+    // 🆕 v1.26(01 §35 · K182) — RECON 해제 거부(엔진 예고 · 공용 2 따로)
+    'recon_clear_result': ReconClearResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
