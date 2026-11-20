@@ -22,3 +22,4 @@ export 'src/diagnostics.dart';
 export 'src/operations.dart';
 export 'src/settings_home.dart';
 export 'src/settings_providers.dart';
+export 'src/strategy_allocation.dart';
