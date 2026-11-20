@@ -403,6 +403,19 @@ export 'src/ops/account_mapping.dart'
 // 🆕 E11p3d-4a — 알림 수신 확인(ack) 명령 봉투(설계 13 §8 R147).
 export 'src/ops/alert_ack_command.dart'
     show AlertAckCommand, kAlertAckTtl, newCommandId;
+// 🆕 미결 192 — M9 S04 배분 화면 첫 판(보기 전용) VM · `rm_config_view` S04 열(설계 13 §8 R190 · 계약 0 — S04 창 전).
+export 'src/ops/allocation_view.dart'
+    show
+        AllocationView,
+        AllocationViewCard,
+        AllocationViewRow,
+        AllocationViewRowCodes,
+        AllocationViewSection,
+        RmConfigViewAllocationColumns,
+        allocationViewColumns,
+        allocationViewOf,
+        kP0sBacktestText,
+        kP0sHonestExpectationLine;
 // 🆕 E11p4l — M9 S12 연간 리뷰 목차 · 12월 창(설계 13 §8 R168 · 미결 202).
 export 'src/ops/annual_review_index.dart'
     show
