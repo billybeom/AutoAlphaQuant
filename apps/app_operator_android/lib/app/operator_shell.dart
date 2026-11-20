@@ -74,11 +74,13 @@ import 'package:ui_safety/sim_opening.dart'
     show SimOpeningCash, safetySimOpeningCommandApiProvider;
 import 'package:ui_safety/ui_safety.dart'
     show
+        BlockBoardScreen,
         KillResumeGateScreen,
         KillSwitchScreen,
         KillSwitchSlot,
         PledgePanel,
         safetyActionsProvider,
+        safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyLinkOpenerProvider,
@@ -106,6 +108,7 @@ import '../safety/golden_selftest_field.dart';
 import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
 import 'operator_biometric.dart';
+import 'operator_block_board.dart';
 import 'operator_command_api.dart';
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_kill_switch.dart';
@@ -198,6 +201,16 @@ operatorKillSwitchGateProvider = Provider<OperatorKillSwitchGateRepository>((
     draft: ref.watch(operatorKillResumeDraftProvider),
   );
 });
+
+/// 🆕 R185 — M5-5 차단 보드 읽기(한 인스턴스 · 행 링크 · 재개 결정 링크 = 레지스트리에 본문이 있을 때만).
+final Provider<OperatorBlockBoardRepository> operatorBlockBoardProvider =
+    Provider<OperatorBlockBoardRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorBlockBoardRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
 
 /// 🆕 R173 — S7-6c «지금 기준 초안 보기»(엔진 What-if · 원장 상태 어댑터 · 리밸런싱 미리보기만).
 final Provider<OperatorWhatIfApi> operatorWhatIfApiProvider =
@@ -362,6 +375,8 @@ Widget _killSwitch(Map<String, String> _) => const KillSwitchScreen();
 
 Widget _releaseGate(Map<String, String> _) => const KillResumeGateScreen();
 
+Widget _blockBoard(Map<String, String> _) => const BlockBoardScreen();
+
 Widget _settingsContribution(Map<String, String> _) =>
     const MonthlyContribution();
 
@@ -452,6 +467,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.m5KillSwitch: _killSwitch,
   // 🆕 E11q-b1b(R180) — M5-2 재개 게이트(7문항 순차 · 서약 재생 · 7번 = 해제) → M5-1 게이트 링크가 저절로 열린다.
   AppRoutes.m5ReleaseGate: _releaseGate,
+  // 🆕 E11q-b3(R185) — M5-5 차단 보드(홈 블록 1 · 3 · 알림 3종 · 대사 불일치 목적지 · 킬스위치 둘째 길 · 읽기만).
+  AppRoutes.m5BlockBoard: _blockBoard,
   AppRoutes.settingsContribution: _settingsContribution,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
@@ -501,6 +518,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   safetyLinkOpenerProvider.overrideWith(
     (Ref ref) => ref.watch(shellLinkOpenerProvider),
+  ),
+  // 🆕 R185 — M5-5 차단 보드 읽기(링크 = 위 셸 링크 열기 그대로).
+  safetyBlockBoardRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorBlockBoardProvider),
   ),
   // 🆕 R156 — M5-14 가상 초기금 제출 = 같은 명령 API 인스턴스 · 기기 id 없음 = null = 제출 버튼 부재.
   safetySimOpeningCommandApiProvider.overrideWith(

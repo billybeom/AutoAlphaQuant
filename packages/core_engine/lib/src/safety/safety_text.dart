@@ -167,6 +167,8 @@ List<BlockFlag> blockFlagsOf(
           FlagIds.reconMismatch => AppRoutes.m5BlockBoard,
           FlagIds.ledgerIntegrity => AppRoutes.x5RepairWizard,
           FlagIds.adviceLedgerUnverified => AppRoutes.m5SelfAuditResolve,
+          // 🆕 E11q-b3(R185 · 01 §34 K155) — 재개 미완 = X2 재개 화면(06 라우트 표 «x2/resume-gate 주 진입점 = 재개 미완 배너»).
+          FlagIds.resumeIncomplete => AppRoutes.x2ResumeGate,
           FlagIds.journalMissing when journalDraftId != null =>
             AppRoutes.journalDraft.replaceFirst(':decisionId', journalDraftId),
           _ => null,

@@ -18,6 +18,9 @@
 //    (설계 13 §8 R156 · C-35 ⑥ — 뷰어 조립도 이 배럴을 싣는다).
 
 export 'l10n/labels.dart';
+// 🆕 M5-5 차단 보드(설계 13 §8 R185 · 읽기만 — 해제 동작 = 1.26.0+).
+export 'src/block_board/block_board_screen.dart'
+    show BlockBoardScreen, safetyBlockBoardRepositoryProvider;
 export 'src/kill_switch/kill_resume_gate_screen.dart' show KillResumeGateScreen;
 export 'src/kill_switch/kill_switch_screen.dart'
     show
