@@ -17,6 +17,8 @@ import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/app/secure_screen.dart';
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
+import 'package:app_operator_android/engine/operations_loader.dart'
+    show loadOperationsConfig;
 import 'package:app_operator_android/engine/system_clock.dart';
 import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/platform/human_inputs_loader.dart';
@@ -268,6 +270,8 @@ void main() {
       // 🆕 R167 — 설정 동작(S10 실행 버튼) · 골든 기기 실행기(실제 엔진 패키지 자산 · 실제 isolate).
       kisHttp: http.Client(),
       golden: OperatorGolden(rootBundle.loadString, clock: clock),
+      // 🆕 E11q-q4a — M5-11 위저드 관찰 일수(앱 기동과 같은 운영 설정 자산 · R191 단계가 이것 없이 «읽지 못했습니다»로 멈췄다).
+      liveObservation: (await loadOperationsConfig(rootBundle)).liveObservation,
     );
     // 온보딩 확정 + 모의 모드 행을 먼저 둔다 → 루트 = 셸.
     files.sim.execute(
