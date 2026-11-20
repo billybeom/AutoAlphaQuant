@@ -743,3 +743,17 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AF-1 | 🆕 `AlertCodes.safetyWarn`{`defensiveFloorBreached` · `goldShareHigh` · `financialIncomeCapExceeded` · `krwLiquidityLow`} | `labels/alert_codes.dart` · SAF-302 · 308 · 306 · 307 부속(04 §1 Level 3 · §5-3 v2.46) · 등급 = 주석 «잠정»만 · 엔진 상수 글자 = 계약 글자 |
 | AF-2 | 🆕 `AlertCodes.derivedSync`{`derivedFork`} | `labels/alert_codes.dart` · 파생 FORK(04 §5-3 v2.45) · E16i 의 알림 몫 |
 | AF-3 | 🆕 `FixturePaths.m8AlertsEngineProposalsV127` | `fixtures/m8/alerts_engine_proposals_v127.json` · 알림 목록 봉투 5행 |
+
+## AG. 🆕 계약 v1.28 (2026-11-20 · S04 첫 판 — M9 배분 화면 보기 전용) — VM 4 · 창구 1 · 행 코드 사전 · 뷰어 열 이름 · 표본 2
+
+`settingsAllocation`(S04) 첫 판이 읽는 이름을 닫았다. `contractVersion` = **`1.28.0`**(다음 = 1.29.0). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K196~K207 권고대로(정본 = 설계 `10_리뷰/2026-11-20_S04첫판_계약v1.28_설계서.md` · 01 §37). 🔴 엔진 이름(`AllocationView` · `AllocationViewCard` · `AllocationViewRow` · `AllocationViewSection` · `AllocationViewRowCodes` · `RmConfigViewAllocationColumns`)과 겹치지 않는다(`ambiguous_import` · K80).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AG-1 | 🆕 `AllocationEditorVm` | `dto/allocation.dart` · S04 한 화면(M2-8 예약 이름 · 첫 판 = 보기 칸만 · 편집 칸 = 편집기 판 추가형) |
+| AG-2 | 🆕 `AllocationProfileCard` · `AllocationReadOnlySection` · `AllocationReadOnlyRow` | 같은 파일 · 카드 4칸 · 묶음 · 행(`code` = 화면 미참조 · Key = 순번) |
+| AG-3 | `SettingsRepository.watchAllocationEditor()` | 폰 · 뷰어 공통 · 못 읽으면 스트림 오류(K206) |
+| AG-4 | 🆕 `AllocationRowCodes`(`allocation_row` 10) | `labels/allocation_codes.dart` · 엔진 글자 1:1 |
+| AG-5 | 🆕 `AllocationReadModelColumns`(7) | `schema/read_model_columns.dart` · `rm_config_view` 배분 열 · 01 §6-4 |
+| AG-6 | 🆕 `FixturePaths.m9AllocationEditor` · `m9AllocationEditorStale` | `fixtures/m9/allocation_editor*.json` |
+
