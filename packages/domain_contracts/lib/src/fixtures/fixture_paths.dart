@@ -1094,6 +1094,31 @@ abstract final class FixturePaths {
   static const String x2ResumeReportScreenRecoveryFull =
       'x2/resume_report_screen_recovery_full.json';
 
+  // ── x5/ — 🆕 v1.32(01 §41 · K260 · E16j-a) X5 정정 마법사 `RepairWizardVm` 7 · 결과 1 · 폴더 신설(파일 이름 바이트 차례) ──
+  /// 🆕 v1.32 — 결과 11행(`SafetyActionResult` · 동작 4 · 거부 사전 합집합).
+  static const String x5RepairActionResults = 'x5/repair_action_results.json';
+
+  /// 🆕 v1.32 — 경계 X1(원장 불신 · `x1GuideLink` · 동작 0).
+  static const String x5RepairBoundaryX1 = 'x5/repair_boundary_x1.json';
+
+  /// 🆕 v1.32 — diff 갈래 기본(FILL_LAG = 아무것도 안 하기 · 1단계 차례).
+  static const String x5RepairDiffDefault = 'x5/repair_diff_default.json';
+
+  /// 🆕 v1.32 — diff 갈래 실행 준비(5단계 통과 · 정정 폼).
+  static const String x5RepairDiffReady = 'x5/repair_diff_ready.json';
+
+  /// 🆕 v1.32 — diff 갈래 3단계(사전 저널 폼).
+  static const String x5RepairDiffStage3 = 'x5/repair_diff_stage3.json';
+
+  /// 🆕 v1.32 — 허브 빈(열린 대상 0 · `doneLabel`).
+  static const String x5RepairHubEmpty = 'x5/repair_hub_empty.json';
+
+  /// 🆕 v1.32 — 허브 대상 2(→ `x5RepairTarget` · diff · 무결성).
+  static const String x5RepairHubTargets = 'x5/repair_hub_targets.json';
+
+  /// 🆕 v1.32 — 무결성 갈래 새 기준점 준비.
+  static const String x5RepairIntegrityReady = 'x5/repair_integrity_ready.json';
+
   /// 전량 목록 — C-14 시크릿 스캔·C-15 열거값 대조가 이 목록을 돈다.
   static const List<String> all = <String>[
     alerts12,
@@ -1463,5 +1488,13 @@ abstract final class FixturePaths {
     x2ResumeReportScreenEmpty,
     x2ResumeReportScreenNormal,
     x2ResumeReportScreenRecoveryFull,
+    x5RepairActionResults,
+    x5RepairBoundaryX1,
+    x5RepairDiffDefault,
+    x5RepairDiffReady,
+    x5RepairDiffStage3,
+    x5RepairHubEmpty,
+    x5RepairHubTargets,
+    x5RepairIntegrityReady,
   ];
 }
