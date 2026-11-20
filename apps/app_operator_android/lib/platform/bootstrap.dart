@@ -15,7 +15,7 @@
 import 'dart:io' show Platform;
 
 import 'package:broker_gateway/broker_gateway.dart'
-    show KisQuoteFeed, KisQuotes, kisKeySetFits;
+    show KisOrderBroker, KisQuoteFeed, KisQuotes, kisKeySetFits;
 import 'package:core_engine/core_engine.dart'
     show
         AnchoredTrustedClock,
@@ -209,7 +209,8 @@ Future<String?> deviceIdOrNull(AndroidOps ops) async {
   }
 }
 
-/// 조립 앱의 실물 잡 부품(R97) — 일봉 원천 = 모드 세트의 KIS 클라이언트(하나) · FRED 는 키 없이 CSV.
+/// 조립 앱의 실물 잡 부품(R97) — 일봉 원천 = 모드 세트의 KIS 클라이언트(하나) · FRED 는 키 없이 CSV ·
+/// 🆕 E11q-c1d(R207 · 실전 개시) 실전 계좌 브로커 = 별칭 → 세트의 KIS 계좌 클라이언트(같은 앱키 = 유량 문 · 토큰 하나).
 JobParts operatorJobParts(KisSessions kis, http.Client net) => JobParts(
   quoteFeed: (RunMode mode) async => KisQuoteFeed(await kis.clientFor(mode)),
   priceFetch: (RunMode mode) async =>
@@ -217,6 +218,8 @@ JobParts operatorJobParts(KisSessions kis, http.Client net) => JobParts(
   fred: FredClient(net),
   ofr: OfrClient(net),
   regimeConfigHash: p0sRegimeConfigHash(),
+  liveAccountBroker: (String alias) async =>
+      KisOrderBroker(await kis.liveAccountClient(alias)),
 );
 
 /// 🔴 화면 · 엔진 공용 실행 묶음을 연다 — Android 가 아니거나 폴더를 못 얻으면 null(엔진은 깨어날 때 다시 시도한다).

@@ -6,9 +6,16 @@ import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/engine/kis_sessions.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/platform/platform.dart';
-import 'package:broker_gateway/broker_gateway.dart' show KisQuoteFeed;
+import 'package:broker_gateway/broker_gateway.dart'
+    show
+        KisCredentials,
+        KisEnvironment,
+        KisKeySet,
+        KisOrderBroker,
+        KisQuoteFeed,
+        storeKisCredentials;
 import 'package:core_engine/core_engine.dart'
-    show AnchoredTrustedClock, kSaf405, p0sRegimeConfigHash;
+    show AccountBroker, AnchoredTrustedClock, kSaf405, p0sRegimeConfigHash;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:domain_contracts/domain_contracts.dart'
     show LedgerFile, OperatingMode, RunMode, UiLevel;
@@ -142,10 +149,28 @@ void main() {
     final p = operatorJobParts(KisSessions(vault: vault, http: net), net);
     expect(p.regimeConfigHash, p0sRegimeConfigHash());
     expect(await p.quoteFeed(RunMode.simInternal), isA<KisQuoteFeed>());
-    await expectLater(
-      p.quoteFeed(RunMode.live),
-      throwsA(isA<KisSessionUnavailable>()),
+    // 🆕 R207 — live = 실전 종합계좌 세트(칸 없음 = 그 세트 칸 이름) · 계좌 브로커 = 별칭 → 세트.
+    final Object e = await p
+        .quoteFeed(RunMode.live)
+        .then<Object>((_) => 'ok', onError: (Object e) => e);
+    expect(e, isA<KisSessionUnavailable>());
+    expect('$e', contains('KIS_LIVE'));
+    await storeKisCredentials(
+      vault,
+      KisKeySet.live,
+      KisCredentials(
+        environment: KisEnvironment.live,
+        appKey: 'fakeLiveAppKey${'C' * 22}',
+        appSecret: 'fakeLiveSecret${'Y' * 166}',
+        accountNo: '87654321',
+      ),
     );
+    expect(await p.quoteFeed(RunMode.live), isA<KisQuoteFeed>());
+    final Future<AccountBroker> Function(String alias) live =
+        p.liveAccountBroker!;
+    expect(await live('pension'), isA<KisOrderBroker>());
+    await expectLater(live('isa'), throwsA(isA<KisSessionUnavailable>()));
+    await expectLater(live('brokerage'), throwsA(isA<KisSessionUnavailable>()));
   });
 
   group('E16t2b — 이 기기 id → 엔진 기동 입력(R144)', () {

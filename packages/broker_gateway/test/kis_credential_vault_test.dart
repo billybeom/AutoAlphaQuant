@@ -208,10 +208,11 @@ void main() {
   });
 
   group('모드 → 세트 · 기동 판정', () {
-    test('🔴 SIM 계열 = 모의 세트 · live = 아직 없음', () {
+    test('🔴 SIM 계열 = 모의 세트 · 🆕 R207 live = 실전 종합계좌 세트(실전 환경)', () {
       expect(kisKeySetFor(RunMode.simInternal), KisKeySet.paper);
       expect(kisKeySetFor(RunMode.simBroker), KisKeySet.paper);
-      expect(kisKeySetFor(RunMode.live), isNull);
+      expect(kisKeySetFor(RunMode.live), KisKeySet.live);
+      expect(KisKeySet.live.environment, KisEnvironment.live);
     });
 
     test('🔴 세트 환경 = 모드 환경(모든 모드)', () {
