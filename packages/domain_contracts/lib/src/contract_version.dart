@@ -215,12 +215,21 @@
 //    다음 판 = 1.27.0(서약 편집(01 §8 미결 208 뒤) · 규칙 변경 CHANGELOG · `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 · 개입 ·
 //    재량 · postmortem 목록 · M5-3 STOPPED VM · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 보기 VM(192 뒤) · E16i/E16j ·
 //    이름 없는 알림 · PNG F1·F2·F4~F7 중 먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-20 · 계약 v1.26».
+// 🆕 '1.27.0'(E3d 계약 창 · 01 §36 · 발주자 위임 2026-11-14 — 권고대로 · K187~K195) — 엔진 등재 대기 알림 5 등재(`kAlertLevels` 표 밖 0):
+//    🆕 `AlertCodes.safetyWarn` 4(`DEFENSIVE_FLOOR_BREACHED` · `GOLD_SHARE_HIGH` · `FINANCIAL_INCOME_CAP_EXCEEDED` · `KRW_LIQUIDITY_LOW` —
+//    04 §1 Level 3 · §5-3 v2.46 · 엔진 E3d) · 🆕 `AlertCodes.derivedSync` 1(`DERIVED_FORK` — 04 §5-3 v2.45 · E16i 의 알림 몫만) ·
+//    `values` 31 → 36 · 등급 = 주석 «잠정»(등급 사전 0 조문 그대로) · SAF-307 «초과 일수» = 계약 칸 0(월간 리포트 `D2_ALLOCATION`
+//    메모 = 엔진 문자열 · 13항목 불변 C-25 · 01 §8 미결 209) · 🆕 C-61 · 픽스처 359 → 360(신설 1) — 🆕 tool/gen_e3d_v127_fixtures.py.
+//    다음 판 = 1.28.0(v1.26 예고 «다음 판 = 1.27.0» 목록을 그대로 이어받는다 — 서약 편집(미결 208 뒤) · 규칙 변경 CHANGELOG ·
+//    `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 · 개입 · 재량 · postmortem 목록 · M5-3 STOPPED VM ·
+//    `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 보기 VM(192 뒤) · E16i 나머지/E16j · 이름 없는 알림 · PNG F1·F2·F4~F7 중
+//    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-20 · 계약 v1.27».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.26.0';
+const String contractVersion = '1.27.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

@@ -733,3 +733,13 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AE-6 | 🆕 `ReconClearForm` · `ReconOriginChoice` · `BlockBoardRow.reconClear` | `dto/safety_gate.dart` · RECON 행만 · 선택지 ⊆ `OriginCodes.writable` |
 | AE-7 | 🆕 `ReconClearSubmission` · `SafetyActions.runReconClear` · 🆕 `ReconClearResultCodes`(`recon_clear_result` 3) | `commands/safety_actions.dart` · `labels/safety_codes.dart` 끝 · `run(reconClear)` = 화이트리스트 밖 · 사전 = 엔진 예고 |
 
+
+## AF. 🆕 계약 v1.27 (2026-11-20 · E3d 계약 창) — 엔진 등재 대기 알림 5 등재 · 표본 1
+
+엔진이 이미 내던 «등재 대기 제안» 알림 다섯의 이름을 계약에 닫았다(`kAlertLevels` 표 밖 0). `contractVersion` = **`1.27.0`**(다음 = 1.28.0). 상태 = ⬜ PR 대기. 정본 = 01 §36 · 설계서 `10_리뷰/2026-11-20_E3d계약창_계약v1.27_설계서.md`.
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AF-1 | 🆕 `AlertCodes.safetyWarn`{`defensiveFloorBreached` · `goldShareHigh` · `financialIncomeCapExceeded` · `krwLiquidityLow`} | `labels/alert_codes.dart` · SAF-302 · 308 · 306 · 307 부속(04 §1 Level 3 · §5-3 v2.46) · 등급 = 주석 «잠정»만 · 엔진 상수 글자 = 계약 글자 |
+| AF-2 | 🆕 `AlertCodes.derivedSync`{`derivedFork`} | `labels/alert_codes.dart` · 파생 FORK(04 §5-3 v2.45) · E16i 의 알림 몫 |
+| AF-3 | 🆕 `FixturePaths.m8AlertsEngineProposalsV127` | `fixtures/m8/alerts_engine_proposals_v127.json` · 알림 목록 봉투 5행 |

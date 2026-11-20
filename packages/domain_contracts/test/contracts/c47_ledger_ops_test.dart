@@ -96,6 +96,12 @@ const Map<String, String> _engineLevel = <String, String>{
   'STOPPED_RELEASE_ELIGIBLE': 'P1',
   'RESUME_COMPLETED': 'P1',
   'RESUME_DATA_GAP': 'P2',
+  // 🆕 v1.27(엔진 등재형 · 01 §36 K188~K190) — 엔진 `kAlertLevels` 그대로 · SPEC 04 §5-3 v2.45 · v2.46 «제안 → 정본» = 엔진 다음 SPEC 판.
+  'DERIVED_FORK': 'P0',
+  'DEFENSIVE_FLOOR_BREACHED': 'P1',
+  'GOLD_SHARE_HIGH': 'P1',
+  'FINANCIAL_INCOME_CAP_EXCEEDED': 'P1',
+  'KRW_LIQUIDITY_LOW': 'P2',
 };
 
 const Set<String> _levels = <String>{'P0', 'P1', 'P2'};
@@ -530,7 +536,11 @@ void main() {
       for (final String v in _engineLevel.values) {
         count[v] = count[v]! + 1;
       }
-      expect(count, <String, int>{'P0': 10, 'P1': 15, 'P2': 6});
+      expect(count, <String, int>{
+        'P0': 11,
+        'P1': 18,
+        'P2': 7,
+      }); // 🆕 v1.27 +1 · +3 · +1
       int seen = 0;
       final List<String> bad = <String>[];
       for (final String path in FixturePaths.all) {

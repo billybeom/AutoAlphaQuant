@@ -229,6 +229,8 @@ void main() {
         FixturePaths.m8AlertsStaleOrdersHeld,
         // 🆕 v1.18(01 §27 · K-z) — 엔진 등재형 6코드.
         FixturePaths.m8AlertsSafetyResume,
+        // 🆕 v1.27(01 §36 · K191) — 엔진 등재형 5코드.
+        FixturePaths.m8AlertsEngineProposalsV127,
       ];
       for (final String path in alertFixtures) {
         final FixtureEnvelope envelope = decodeEnvelope(readFixture(path));

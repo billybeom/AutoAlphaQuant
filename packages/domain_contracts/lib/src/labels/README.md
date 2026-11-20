@@ -23,7 +23,7 @@
 | `origin_codes.dart` | `OriginCodes` 20(브로커 7 · 파생 7 · X7 6) | §3-4 |
 | `flag_ids.dart` | `FlagIds` 12 · `SafetyHoldCodes` 1 | §3-5 · §9-5 ③ |
 | `advice_codes.dart` | `AdviceRejectCodes` 18(🆕 v1.12 +3 `INPUT_INVALID`·`SELF_REPORT_OUTSIDE_SESSION`·`DEFER_ALREADY_USED`) · `AdviceTransitionCauseCodes` 9 · `DecisionReasonCodes` 12(🆕 v1.10 ㊲ +5 · v1.11 `DEPOSIT_REGISTERED` · 🆕 v1.19 `LIVE_EXECUTE_PROMOTION` — 엔진 E15e2 · 🆕 v1.22 `SIM_LEDGER_KEEP`·`SIM_LEDGER_DISCARD` — `LIVE_OPENING` 미등재 · K57) · `SeasonalEntryGateCodes` 3(+픽스처값 1) · 🆕 **v1.12** `AdviceRetryCodes` 2(`advice_retry`) · `ManualFillPrefillFields` 1(`manual_fill_prefill`) | §3-8 · §6-6 · §3-7 · §21 |
-| `alert_codes.dart` | `AlertCodes` 31(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11 · 🆕 v1.18 엔진 등재형 `safety` 3 · `resume` 3) | 04 §5-1b·§5-1c·§5-1d·§5-3 · §27 |
+| `alert_codes.dart` | `AlertCodes` 36(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11 · 🆕 v1.18 엔진 등재형 `safety` 3 · `resume` 3 · 🆕 v1.27 엔진 등재형 `safetyWarn` 4 · `derivedSync` 1) | 04 §5-1b·§5-1c·§5-1d·§5-3 · §27 |
 | `deviation_kind_codes.dart` | `DeviationKindCodes` 13 | §2-2 |
 | `ledger_event_codes.dart` | `LedgerEventCodes` 1 · `OperatingParamKeys` 1 | §3-6 · §6-2 |
 | `journal_codes.dart` | **v1.1** `DecisionChainStageCodes` 8 · `SafetyCheckLevelCodes` 4 · `UnknownResolutionStageCodes` 4 · `JournalBadgeCodes` 2 · `JournalDraftRejectCodes` 1 · 🆕 **v1.17** `JournalReasonCodes` 3(`journal_reason` · 엔진 D11 2 · 🆕 v1.18 `LEASE_INVALID` · 전수 아님) | §11 · 02 §3-2 · §26 · §27 |

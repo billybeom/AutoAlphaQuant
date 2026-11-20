@@ -22,7 +22,7 @@ List<int> _due(
 );
 
 void main() {
-  test('🔴 등급 표 = 04 §5-3 그대로 + 계약 잠정 1 + 제안 6 + E3d 제안 4(04 §5-3 v2.46)', () {
+  test('🔴 등급 표 = 04 §5-3 그대로 + 계약 잠정 1 + 제안 6 + 🆕 v1.27 등재 5(파생 FORK 1 · E3d 4)', () {
     List<String> of(AlertLevel l) =>
         (kAlertLevels.entries
             .where((MapEntry<String, AlertLevel> e) => e.value == l)
@@ -72,18 +72,18 @@ void main() {
       'SELF_AUDIT_DUE',
     ]);
     // 계약 코드 전부 등급이 있다 · 🆕 v1.18(앱 01 §27 · K-z) — 제안 6 = 계약 등재 → 표 밖 0.
-    // 🆕 E16f3a — 등재 대기 제안 1 = `DERIVED_FORK`(R130 L6 · 계약 등재 = E16i).
+    // 🆕 E16f3a — 등재 대기 제안 1 = `DERIVED_FORK`(R130 L6) · E3d 제안 4(R177) — 🆕 계약 v1.27(01 §36 K188) 등재 → 표 밖 0.
     expect(AlertCodes.values.every(kAlertLevels.containsKey), isTrue);
     expect(
       kAlertLevels.keys.where((String c) => !AlertCodes.values.contains(c)),
-      <String>[
-        kDerivedForkAlertCode,
-        kDefensiveFloorAlertCode,
-        kGoldShareAlertCode,
-        kFinancialIncomeAlertCode,
-        kKrwLiquidityAlertCode,
-      ],
+      isEmpty,
     );
+    // 엔진 상수 = 계약 상수 글자(K190 — 엔진은 제 상수를 그대로 둔다).
+    expect(kDerivedForkAlertCode, AlertCodes.derivedFork);
+    expect(kDefensiveFloorAlertCode, AlertCodes.defensiveFloorBreached);
+    expect(kGoldShareAlertCode, AlertCodes.goldShareHigh);
+    expect(kFinancialIncomeAlertCode, AlertCodes.financialIncomeCapExceeded);
+    expect(kKrwLiquidityAlertCode, AlertCodes.krwLiquidityLow);
   });
 
   test('🔴 모르는 코드 = 오류(등급을 지어내지 않는다)', () {

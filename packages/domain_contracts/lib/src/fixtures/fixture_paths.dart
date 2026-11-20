@@ -680,6 +680,11 @@ abstract final class FixturePaths {
   /// 등급 = 엔진 `kAlertLevels` · 등급 순).
   static const String m8AlertsSafetyResume = 'm8/alerts_safety_resume.json';
 
+  /// 🆕 v1.27(01 §36 · K191) — 엔진 등재형 5(`AlertCodes.safetyWarn` 4 · `derivedSync` 1) 각 1행(글자 = 엔진 `alert_text.dart` ·
+  /// 등급 = 엔진 `kAlertLevels` · 등급 순).
+  static const String m8AlertsEngineProposalsV127 =
+      'm8/alerts_engine_proposals_v127.json';
+
   /// 🆕 v1.17(01 §26 · 엔진 D11 · K27) — `STALE_ORDERS_HELD`(P1 · 다음 날 가드 보류) 알림 1행.
   static const String m8AlertsStaleOrdersHeld =
       'm8/alerts_stale_orders_held.json';
@@ -1279,6 +1284,7 @@ abstract final class FixturePaths {
     m8AlertDetailNoLink,
     m8AlertsAdvice9codes,
     m8AlertsDigest,
+    m8AlertsEngineProposalsV127,
     m8AlertsP0Ack,
     m8AlertsSafetyResume,
     m8AlertsStaleOrdersHeld,
