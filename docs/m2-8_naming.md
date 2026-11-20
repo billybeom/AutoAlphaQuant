@@ -721,7 +721,7 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 
 ## AE. 🆕 계약 v1.26 (2026-11-20 · 트랙 C 선행 — 실전 커밋 필수 3묶음) — M5-11 위저드 VM · M5-9 SAF-405 첫 승인 최소판 · M5-5 RECON 해제 · 사전 저널 꼴 · 표본 20
 
-세 경로(`m5HandoverWizard`(+ `handoverStatus` 같은 본문) · `m5RuleChangeGate` · `m5BlockBoard` RECON 행)가 읽고 쓰는 이름을 한 판으로 닫았다. `contractVersion` = **`1.26.0`**(다음 = 1.27.0). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K166~K186 권고대로(정본 = 설계 `10_리뷰/2026-11-20_트랙C선행_계약v1.26_설계서.md` · 01 §35). 🔴 엔진 이름과 겹치지 않는다(`SimToAutoReport` · `RuleChangeQueueItem` · `ReconClearance` 등 피함 — `ambiguous_import` · K49 결).
+세 경로(`m5HandoverWizard`(+ `handoverStatus` 같은 본문) · `m5RuleChangeGate` · `m5BlockBoard` RECON 행)가 읽고 쓰는 이름을 한 판으로 닫았다. `contractVersion` = **`1.26.0`**(다음 = 1.27.0). 상태 = ~~⬜ PR 대기~~ ✅ 병합 PR #270 squash `09d3580d`(2026-11-20 · CI 3/3). 결정 = 발주자 위임 2026-11-14 — K166~K186 권고대로(정본 = 설계 `10_리뷰/2026-11-20_트랙C선행_계약v1.26_설계서.md` · 01 §35). 🔴 엔진 이름과 겹치지 않는다(`SimToAutoReport` · `RuleChangeQueueItem` · `ReconClearance` 등 피함 — `ambiguous_import` · K49 결).
 
 | # | 이름 | 뜻 · 위치 |
 |---|---|---|

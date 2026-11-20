@@ -208,7 +208,7 @@ A(primitives·enums)
 
 > 🆕 **v1.25(01 §34 · ~~⬜ PR 대기~~ ✅ 병합 PR #256 squash `233adda8`(2026-11-19 · CI 3/3))** — `CommandApi.activateKillSwitch()` 인자 0(구 `{reasonFreeText, deviceId}` · K149) · 창구 `KillSwitchGateRepository.watchKillSwitch()` · 🆕 `BlockBoardRepository.watchBoard()` · `ResumeGateRepository.watchReport()` · `SettingsActionId`·`SafetyActionId` 값 0 추가.
 >
-> 🆕 **v1.26(01 §35 · ⬜ PR 대기)** — 🆕 `HandoverRepository.watchWizard()`(`M5-11` · `handoverStatus` 같은 본문) · 🆕 `RuleChangeGateRepository.watchGate()`(`M5-9` 첫 승인 최소판) · `SafetyActions` 표면 8 → 10(`runRuleChangeRequest` · `runReconClear`) · `run` 화이트리스트 4 → 3(`reconClear` 뺌) · `BlockBoardRow` += `reconClear` · 사전 저널 꼴(제출 DTO 3필드 + 구현이 id).
+> 🆕 **v1.26(01 §35 · ~~⬜ PR 대기~~ ✅ 병합 PR #270 squash `09d3580d`(2026-11-20 · CI 3/3))** — 🆕 `HandoverRepository.watchWizard()`(`M5-11` · `handoverStatus` 같은 본문) · 🆕 `RuleChangeGateRepository.watchGate()`(`M5-9` 첫 승인 최소판) · `SafetyActions` 표면 8 → 10(`runRuleChangeRequest` · `runReconClear`) · `run` 화이트리스트 4 → 3(`reconClear` 뺌) · `BlockBoardRow` += `reconClear` · 사전 저널 꼴(제출 DTO 3필드 + 구현이 id).
 
 > 🆕 **v1.24(01 §33 · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — `SettingsActionId` 값 0 추가 · args 화이트리스트 `backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}` · `backupRestoreStart` = 화면 미호출(args 미정 유지) · calendar 3 = ⏸ R9d · `settingsGeneralUpdate` = ⏸ R9e(K120).
 
@@ -767,7 +767,7 @@ abstract interface class SettingsActions {
 
 🆕 **v1.25(2026-11-19 · 01 §34 · 트랙 B 선행 · ~~⬜ PR 대기~~ ✅ 병합 PR #256 squash `233adda8`(2026-11-19 · CI 3/3))** — `labels/safety_codes.dart` 끝 += 🆕 `KillCancelOutcomeCodes`(`kill_cancel_outcome`) 5 = 엔진 `KillCancelOutcome` wire 1:1(타입 이름 ≠ 엔진) · `labels/ops_codes.dart` `OpsSlotIds` += `KILL_SWITCH` · C-5 도메인 간 중복 추가 0.
 
-🆕 **v1.26(2026-11-20 · 01 §35 · 트랙 C 선행 · ⬜ PR 대기)** — `labels/safety_codes.dart` 끝 += 🆕 `ReconClearResultCodes`(`recon_clear_result`) 3 = 엔진 예고(«저널 함께 쓰기» 판이 예외를 코드로 · 공용 `JOURNAL_ID_TAKEN`·`BIOMETRIC_UNAVAILABLE` 따로) · `SafetyActionId` += `ruleChangeRequest`(`RULE_CHANGE_REQUEST` = ds `kRuleChangeRequestKind`) · C-5 도메인 간 중복 추가 0.
+🆕 **v1.26(2026-11-20 · 01 §35 · 트랙 C 선행 · ~~⬜ PR 대기~~ ✅ 병합 PR #270 squash `09d3580d`(2026-11-20 · CI 3/3))** — `labels/safety_codes.dart` 끝 += 🆕 `ReconClearResultCodes`(`recon_clear_result`) 3 = 엔진 예고(«저널 함께 쓰기» 판이 예외를 코드로 · 공용 `JOURNAL_ID_TAKEN`·`BIOMETRIC_UNAVAILABLE` 따로) · `SafetyActionId` += `ruleChangeRequest`(`RULE_CHANGE_REQUEST` = ds `kRuleChangeRequestKind`) · C-5 도메인 간 중복 추가 0.
 
 🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — `labels/settings_codes.dart` 끝 += 🆕 `BackupResultCodes`(`backup_result`) 8 = ds `SqliteLedgerSnapshotter.take` 경로 전수(`X1_LIVE_ONLY` · `SNAPSHOT_*` 2 · `RESTORE_*` 5 — SHA·MANIFEST 제외 · K132) · 🆕 `LedgerIntegrityResultCodes`(`ledger_integrity_result`) 7 = core `LedgerIntegrityReason`(E13c1) · 🔴 타입 이름 ≠ 엔진 · C-5 문서 중복 +2(`CHAIN_BROKEN` · `RESTORE_ROLLBACK` ↔ `origin_code`).
 
@@ -973,7 +973,7 @@ abstract interface class SettingsActions {
 
 🆕 **v1.25(2026-11-19 · 01 §34 · 트랙 B 선행 · ~~⬜ PR 대기~~ ✅ 병합 PR #256 squash `233adda8`(2026-11-19 · CI 3/3))** — **신설 17 · 개정 0 → 339**(나머지 322 봉투 `contract_version` 한 줄만): `m5/` 13(킬스위치 화면 7 · 발동 접수증 1 · 게이트 꺼짐 1 · 차단 보드 4) · `x2/` 4(리포트 화면 감싸개 3 · 게이트 막힌 것 0 1) · 생성기 `tool/gen_trackb_v125_fixtures.py` · 🆕 C-59(17항).
 
-🆕 **v1.26(2026-11-20 · 01 §35 · 트랙 C 선행 · ⬜ PR 대기)** — **신설 20 · 개정 2 → 359**(나머지 337 봉투 `contract_version` 한 줄만 · 개정 2 = `m5/block_board_kill_active` · `_resume_incomplete` 보드 행 끝 `"recon_clear": null`): `m5/` 20(위저드 12 · 규칙 변경 게이트 5 · 요청·해제 결과 2 · 보드 RECON 1) · 생성기 `tool/gen_trackc_v126_fixtures.py` · 🆕 C-60(17항).
+🆕 **v1.26(2026-11-20 · 01 §35 · 트랙 C 선행 · ~~⬜ PR 대기~~ ✅ 병합 PR #270 squash `09d3580d`(2026-11-20 · CI 3/3))** — **신설 20 · 개정 2 → 359**(나머지 337 봉투 `contract_version` 한 줄만 · 개정 2 = `m5/block_board_kill_active` · `_resume_incomplete` 보드 행 끝 `"recon_clear": null`): `m5/` 20(위저드 12 · 규칙 변경 게이트 5 · 요청·해제 결과 2 · 보드 RECON 1) · 생성기 `tool/gen_trackc_v126_fixtures.py` · 🆕 C-60(17항).
 
 🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 — M9 `S09` · `S10` · `S12` · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — **신설 17 · 개정 0 → 322**(나머지 305 봉투 `contract_version` 한 줄만): `m9/` VM 1행 봉투 15(`backup*` 6 · `diagnostics_screen*` 5 · `annual_review_index*` 4) · 목록 봉투 2(`backup_action_results` 10행 · `selftest_action_results` 12행) · 생성기 `tool/gen_r9_v124_fixtures.py` · `board` = `m8/recon_board_*` `rows[0]` 복사.
 
