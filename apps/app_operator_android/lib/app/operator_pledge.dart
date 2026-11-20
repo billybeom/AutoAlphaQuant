@@ -45,7 +45,6 @@ import 'package:data_sync/data_sync.dart'
         SqliteRuleChangeStore,
         SqliteSeasonalChoice,
         SqliteKillSwitchStore,
-        SqliteOrderLedger,
         SqlitePledgeStore,
         readKillSwitchRecord,
         watchLedgerQuery;
