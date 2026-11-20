@@ -39,3 +39,6 @@ export 'src/resume/resume_screens.dart'
         ResumeGateScreen,
         ResumeReportScreen,
         safetyResumeGateRepositoryProvider;
+// 🆕 M5-9 규칙 변경 게이트 «첫 승인 최소판»(설계 13 §8 R188 · 요청 · 승인 · 취소 = 안전 동작 창구).
+export 'src/rule_change/rule_change_gate_screen.dart'
+    show RuleChangeGateScreen, safetyRuleChangeGateRepositoryProvider;

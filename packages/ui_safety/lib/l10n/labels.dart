@@ -129,4 +129,27 @@ abstract final class SafetyLabels {
 
   /// 리포트 복구 불가 자료 머리.
   static const String resumeReportGaps = '복구 불가 자료';
+
+  // ── 🆕 M5-9 규칙 변경 게이트 «첫 승인 최소판»(설계 13 §8 R188 · v1.26 K179 — 폼 입력 머리 · 확인 · 골든 영향 두 버튼 = 카드 정적
+  //    라벨) — 머리 · 후보 · 큐 · 결과 글자 = 엔진 ──
+
+  /// 게이트를 읽지 못했다.
+  static const String ruleChangeReadFailed = '규칙 변경 화면을 읽지 못했습니다.';
+
+  /// 요청 폼 칸(사람 글 5 — 원문 · 화면 검증 0).
+  static const String ruleChangeReason = '사유';
+  static const String ruleChangeRollback = '되돌리는 방법';
+  static const String ruleChangeRationale = '실행 전 근거';
+  static const String ruleChangeExpected = '기대 결과';
+  static const String ruleChangeRuleCited = '근거 규칙';
+
+  /// 폼 제출.
+  static const String ruleChangeConfirm = '확인';
+
+  /// 승인 폼 — 골든파일 영향(두 버튼) · 승인자 · 제3자 통지.
+  static const String ruleChangeGolden = '골든파일 영향';
+  static const String ruleChangeGoldenYes = '영향 있음';
+  static const String ruleChangeGoldenNo = '영향 없음';
+  static const String ruleChangeApprover = '승인자';
+  static const String ruleChangeThirdParty = '제3자에게 알렸습니다';
 }

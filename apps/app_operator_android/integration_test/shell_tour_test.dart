@@ -54,7 +54,8 @@ import 'package:ui_safety/ui_safety.dart'
         KillResumeGateScreen,
         KillSwitchScreen,
         ResumeGateScreen,
-        ResumeReportScreen;
+        ResumeReportScreen,
+        RuleChangeGateScreen;
 import 'package:ui_settings/ui_settings.dart'
     show
         AnnualReviewEntry,
@@ -496,6 +497,41 @@ void main() {
       // 전환이 끝나야 아래 화면이 무대 밖으로 간다(뒤로 버튼이 하나).
       await tester.pump(const Duration(seconds: 1));
       await tester.pageBack();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pageBack();
+      await tester.pump(const Duration(seconds: 1));
+
+      // 🆕 R188 — M5-9 규칙 변경 게이트 «첫 승인 최소판»: 후보가 서 있으면 첫 승인 요청 1회 → (E11k 전) 엔진
+      //    `TRUSTED_TIME_UNKNOWN` 원문(우회 0) · 후보가 없으면(설정 미등재) 엔진 머리만.
+      container.read(shellLinkOpenerProvider).open(AppRoutes.m5RuleChangeGate);
+      await _until(tester, find.byKey(const Key('m59-root')));
+      await _at(tester, find.byType(RuleChangeGateScreen), 'IT_M59A');
+      final Finder reqOpen = find.byWidgetPredicate(
+        (Widget w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith('m59-req-open-'),
+      );
+      if (reqOpen.evaluate().isNotEmpty) {
+        await tester.tap(reqOpen.first);
+        await tester.pump(const Duration(milliseconds: 300));
+        for (final (String k, String v) in <(String, String)>[
+          ('m59-reason', '첫 승인'),
+          ('m59-rollback', '이전 설정으로'),
+          ('m59-rationale', '모의 체험 결과'),
+          ('m59-expected', '실전 기동 조건'),
+          ('m59-rule', '03 §6-4'),
+        ]) {
+          await tester.ensureVisible(find.byKey(Key(k)));
+          await tester.enterText(find.byKey(Key(k)), v);
+          await tester.pump(const Duration(milliseconds: 200));
+        }
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pump(const Duration(milliseconds: 800));
+        await tester.ensureVisible(find.byKey(const Key('m59-req-submit')));
+        await tester.tap(find.byKey(const Key('m59-req-submit')));
+        await _until(tester, find.textContaining('TRUSTED_TIME_UNKNOWN'));
+        await _at(tester, find.byType(RuleChangeGateScreen), 'IT_M59B');
+      }
       await tester.pump(const Duration(seconds: 1));
       await tester.pageBack();
       await tester.pump(const Duration(seconds: 1));

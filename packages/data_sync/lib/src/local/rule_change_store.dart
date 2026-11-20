@@ -6,6 +6,8 @@
 // 🔴 승인 = 한 트랜잭션: 결정 행 + 승인 목록 = 후 hash 하나(나머지 0) + 명령 · 자동 적용 0.
 // 🔴 같은 command_id 재전달 = 처음 결과 그대로(command_inbox 멱등).
 
+import 'dart:convert';
+
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' show Clock, RunMode;
 import 'package:sqlite3/sqlite3.dart';
@@ -294,6 +296,111 @@ class SqliteRuleChangeStore {
     return RuleChangeResult(executed: true, requestId: id);
   }
 
+  /// 🆕 E11q-c0(설계 13 §8 R188 · 01 §35 K180 · 미결 206 요청 몫) — 규칙 변경 요청 + 사전 저널을 **한 트랜잭션**으로 쓴다
+  /// («저널 함께 쓰기» 판 — [request] 는 이미 있는 저널을 요구하고 둘 다 `BEGIN IMMEDIATE` 라 겹쳐 부를 수 없다).
+  /// 저널 id = 구현([journalId] · 겹치면 `JOURNAL_ID_TAKEN`) · 저널 세 칸 빈칸 = `RULE_CHANGE_JOURNAL_MISSING` · 그 밖 판정 =
+  /// [request] 와 같다(`ruleChangeRequestRejectCode` — 신뢰 시각 모름이 맨 먼저) · 거부 = 쓰기 0(명령 행만).
+  RuleChangeResult requestWithJournal({
+    required String commandId,
+    required String payloadDigest,
+    required RuleChangeType changeType,
+    required String hashBefore,
+    required String hashAfter,
+    required String reason,
+    required String rollbackMethod,
+    required String journalId,
+    required String rationaleBefore,
+    required String expectedOutcome,
+    required String ruleCited,
+  }) {
+    final RuleChangeResult? again = _replay(commandId);
+    if (again != null) return again;
+    final DateTime? now = _trusted.trustedNowUtc()?.toUtc();
+    final String? code =
+        ruleChangeRequestRejectCode(
+          nowUtc: now,
+          hashBefore: hashBefore,
+          hashAfter: hashAfter,
+          reason: reason,
+          rollbackMethod: rollbackMethod,
+          currentApproved: approvedConfigHash(),
+          afterKnown: _db.select(
+            'SELECT 1 FROM config_versions WHERE config_hash = ?',
+            <Object?>[hashAfter],
+          ).isNotEmpty,
+          journalLinked: ruleChangeJournalLinked(
+            exists: true,
+            rationaleBefore: rationaleBefore,
+            expectedOutcome: expectedOutcome,
+            ruleCited: ruleCited,
+            alreadyUsed: false,
+          ),
+        ) ??
+        (_db.select(
+              'SELECT 1 FROM decision_journal WHERE journal_id = ?',
+              <Object?>[journalId],
+            ).isNotEmpty
+            ? kJournalIdTaken
+            : null);
+    if (code != null) {
+      return _reject(
+        kRuleChangeRequestKind,
+        commandId,
+        payloadDigest,
+        code,
+        null,
+      );
+    }
+    final String id = 'RC-$journalId';
+    inLedgerTransaction(_db, () {
+      _db.execute(
+        'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
+        'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
+        "VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, 'RULE_CHANGE_REQUEST', NULL, ?)",
+        <Object?>[
+          journalId,
+          kstDateText(now!),
+          P0sStrategyIds.deposit,
+          jsonEncode(<String, Object?>{
+            'change_type': changeType.wire,
+            'config_hash_before': hashBefore,
+            'config_hash_after': hashAfter,
+          }),
+          jsonEncode(<String, Object?>{
+            'request_id': id,
+            'reason': reason.trim(),
+            'rollback_method': rollbackMethod.trim(),
+          }),
+          rationaleBefore.trim(),
+          expectedOutcome.trim(),
+          ruleCited.trim(),
+          now.toIso8601String(),
+        ],
+      );
+      _db.execute(
+        'INSERT INTO rule_change_request(request_id, requested_at, change_type, config_hash_before, '
+        'config_hash_after, reason, rollback_method, decision_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        <Object?>[
+          id,
+          now.toIso8601String(),
+          changeType.wire,
+          hashBefore,
+          hashAfter,
+          reason.trim(),
+          rollbackMethod.trim(),
+          journalId,
+        ],
+      );
+      _command(
+        kRuleChangeRequestKind,
+        commandId,
+        payloadDigest,
+        decisionId: journalId,
+      );
+    });
+    return RuleChangeResult(executed: true, requestId: id);
+  }
+
   _Req? _request(String requestId) {
     final ResultSet rs = _db.select(
       'SELECT r.requested_at, r.config_hash_before, r.config_hash_after, r.decision_id, '
@@ -351,6 +458,9 @@ class SqliteRuleChangeStore {
     });
     return RuleChangeResult(executed: true, requestId: requestId);
   }
+
+  /// 🆕 E11q-c0 — 게이트 «승인할 수 있나» 판정이 쓰는 지금 DD(승인과 같은 원천).
+  double currentDrawdown() => _drawdown();
 
   /// 최근 스냅숏의 DD — 없으면 0(R66 Y4 · E13e1 U2 와 같은 원천).
   double _drawdown() {

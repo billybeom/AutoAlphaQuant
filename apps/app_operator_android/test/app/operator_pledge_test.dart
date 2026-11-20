@@ -149,8 +149,9 @@ void main() {
       ),
       throwsArgumentError,
     );
+    // 🆕 R188 — `run` 의 규칙 변경 취소 = 구현(`operator_rule_change_test`) · 그 밖 id = 구현 전.
     await expectLater(
-      a.run(SafetyActionId.ruleChangeCancel),
+      a.run(SafetyActionId.reconClear),
       throwsA(isA<UnsupportedError>()),
     );
     // 🆕 R180 — 재개 문항 = 구현(`operator_kill_resume_test`).

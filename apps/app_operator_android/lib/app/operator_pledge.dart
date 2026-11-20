@@ -6,7 +6,8 @@
 //    `pledgeActionResultOf`(등급 · 문장) — 앱이 문장을 짓지 않는다.
 // 🔴 첫 판 저널 id = 명령 id(R67 Z1) · 편집 저널 id = 제출 그대로(사전 저널 원천 = 01 §8 미결 185 · 없으면 엔진 거부).
 // 🔴 신뢰 시각 = `OperatorRuntime.trusted`(E11k 전 = 모름 → 엔진 `TRUSTED_TIME_UNKNOWN`).
-// 🔴 서약 밖 안전 동작(재개 · STOPPED 결정 · 사후 검토 · 규칙 변경 · 재량 조정 · `run`) = operator 구현 전(오류 — 지어내지 않는다).
+// 🔴 서약 밖 안전 동작 — 재개판(R180) · 🆕 규칙 변경 요청 · 승인 · 취소(R188 — `run` 은 `ruleChangeCancel` 만) = 구현 ·
+//    STOPPED 결정 · 사후 검토 · 재량 조정 · RECON 해제 = operator 구현 전(오류 — 지어내지 않는다).
 
 import 'dart:math';
 
@@ -17,6 +18,8 @@ import 'package:core_engine/core_engine.dart'
         ResumeItemAnswer,
         ResumeReadiness,
         ResumeReadinessKind,
+        RuleChangeCandidate,
+        RuleChangeCodes,
         issueKillCommand,
         killResumeItemAnswerOf,
         killResumeResultOf,
@@ -24,11 +27,14 @@ import 'package:core_engine/core_engine.dart'
         pledgeActionResultOf,
         pledgeSubmissionDigest,
         pledgeVmOf,
-        resumeReadinessOf;
+        resumeReadinessOf,
+        ruleChangeActionResultOf;
 import 'package:data_sync/data_sync.dart'
     show
         KillCommandResult,
         PledgeResult,
+        RuleChangeResult,
+        SqliteRuleChangeStore,
         SqliteKillSwitchStore,
         SqlitePledgeStore,
         readKillSwitchRecord,
@@ -36,6 +42,7 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart';
 
 import 'operator_kill_switch.dart' show OperatorKillResumeDraft;
+import 'operator_rule_change.dart' show operatorRuleChangeGateSourceOf;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
 
@@ -130,11 +137,49 @@ class OperatorSafetyActions implements SafetyActions {
         : Stream<SafetyActionResult>.value(r);
   }
 
+  /// 🆕 E11q-c0(R188) — `run` = 규칙 변경 취소(`ruleChangeCancel{request_id}` — 행의 `cancel` 그대로)만 연다 · 그 밖 id =
+  /// 그대로 구현 전(오류 — 지어내지 않는다 · `reconClear` = 화이트리스트 밖 → `runReconClear` · 카드 c4).
   @override
   Future<SafetyActionResult> run(
     SafetyActionId id, {
     Map<String, String> args = const <String, String>{},
-  }) => _none('run(${id.wire})');
+  }) async {
+    if (id != SafetyActionId.ruleChangeCancel) return _none('run(${id.wire})');
+    final String? requestId = args['request_id'];
+    if (requestId == null || requestId.trim().isEmpty) {
+      throw ArgumentError.value(args, 'args', 'request_id 없음');
+    }
+    final (OperatorView v, String run, String digest) = _ruleChangeCommand(
+      args,
+    );
+    final RuleChangeResult r = _ruleChangeStore(v)
+        .cancel(commandId: run, payloadDigest: digest, requestId: requestId);
+    return _ruleChangeDone(SafetyActionId.ruleChangeCancel, run, r);
+  }
+
+  /// 규칙 변경 명령 봉투(명령 id · 페이로드 요약 — 킬스위치 명령과 같은 꼴) · 화면 상태 없음 = 오류.
+  (OperatorView, String, String) _ruleChangeCommand(
+    Map<String, Object?> payload,
+  ) {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('규칙 변경: 화면 상태 없음(온보딩 전)');
+    final ({String commandId, String nonce, String payloadDigest}) c =
+        issueKillCommand(payload: payload, random: _random);
+    return (v, c.commandId, c.payloadDigest);
+  }
+
+  SqliteRuleChangeStore _ruleChangeStore(OperatorView v) =>
+      SqliteRuleChangeStore(v.db, clock: _rt.clock, trusted: _rt.trusted);
+
+  SafetyActionResult _ruleChangeDone(
+    SafetyActionId id,
+    String run,
+    RuleChangeResult r,
+  ) => _done[run] = ruleChangeActionResultOf(
+    id: id,
+    actionRunId: run,
+    code: r.executed ? null : r.reasonCode,
+  );
 
   /// 🆕 E11q-b1b(R180) — 재개판 한 문항(K36): ① 재개 준비(엔진 차례 그대로 — 꺼짐 · 확인 전 · 시각 모름 · 대기) ·
   /// ② 생체 = 구현 0(서약 선례 · 운영 등급 공통 관문 밖) · ③ 엔진 `ResumeChecklist.accept`(순차 · 빈칸 · 4번 미충족) ·
@@ -224,21 +269,67 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runPostmortem(PostmortemSubmission submission) =>
       _none('runPostmortem');
 
+  /// 🆕 E11q-c0(R188) — 규칙 변경 승인(v1.22 꼴 · 판정 = 엔진 `approve` — 냉각 30일 · 창 · DD · 신뢰 시각 · 사람 칸 · 제3자) ·
+  /// 생체 = 구현 0(서약 · 재개판 선례 · 운영 등급 공통 관문 = 미결 169) · 결과 글자 = 엔진.
   @override
   Future<SafetyActionResult> runRuleChangeApproval(
     RuleChangeApprovalSubmission submission,
-  ) => _none('runRuleChangeApproval');
+  ) async {
+    final (OperatorView v, String run, String digest) = _ruleChangeCommand(
+      submission.toJson(),
+    );
+    final RuleChangeResult r = _ruleChangeStore(v).approve(
+      commandId: run,
+      payloadDigest: digest,
+      requestId: submission.requestId,
+      goldenChanged: submission.goldenChanged,
+      approver: submission.approver,
+      thirdPartyNotified: submission.thirdPartyNotified,
+    );
+    return _ruleChangeDone(SafetyActionId.ruleChangeApprove, run, r);
+  }
 
   @override
   Future<SafetyActionResult> runDiscretionAdjust(
     DiscretionAdjustSubmission submission,
   ) => _none('runDiscretionAdjust');
 
-  /// 🆕 계약 v1.26(01 §35 · K178) — 규칙 변경 요청(첫 승인 포함). 실물 = 카드 E11q-c0(엔진 «저널 함께 쓰기» 판 뒤).
+  /// 🆕 E11q-c0(R188 · 01 §35 K178 · K180) — 규칙 변경 요청(첫 승인) — ① 후보를 같은 원천으로 다시 셈해 제출 `candidateId` 와
+  /// 맞춰 본다(다르면 `RULE_CHANGE_BASE_STALE` — 유형 · 해시는 엔진 후보에서만) ② 엔진 «저널 함께 쓰기» 판(요청 + 사전 저널 한
+  /// 트랜잭션 · 저널 id = `JRC-<명령 id>`) · 신뢰 시각 모름 = 엔진 `TRUSTED_TIME_UNKNOWN` 원문(우회 0 · K176) · 결과 글자 = 엔진.
   @override
   Future<SafetyActionResult> runRuleChangeRequest(
     RuleChangeRequestSubmission submission,
-  ) => _none('runRuleChangeRequest');
+  ) async {
+    final (OperatorView v, String run, String digest) = _ruleChangeCommand(
+      submission.toJson(),
+    );
+    final RuleChangeCandidate? cand = operatorRuleChangeGateSourceOf(
+      _rt,
+      v,
+    ).candidate();
+    if (cand == null || cand.candidateId != submission.candidateId) {
+      return _done[run] = ruleChangeActionResultOf(
+        id: SafetyActionId.ruleChangeRequest,
+        actionRunId: run,
+        code: RuleChangeCodes.baseStale,
+      );
+    }
+    final RuleChangeResult r = _ruleChangeStore(v).requestWithJournal(
+      commandId: run,
+      payloadDigest: digest,
+      changeType: cand.changeType,
+      hashBefore: cand.hashBefore,
+      hashAfter: cand.hashAfter,
+      reason: submission.reason,
+      rollbackMethod: submission.rollbackMethod,
+      journalId: 'JRC-$run',
+      rationaleBefore: submission.rationaleBefore,
+      expectedOutcome: submission.expectedOutcome,
+      ruleCited: submission.ruleCited,
+    );
+    return _ruleChangeDone(SafetyActionId.ruleChangeRequest, run, r);
+  }
 
   /// 🆕 계약 v1.26(01 §35 · K181) — RECON 해제. 실물 = 카드 E11q-c4(b3 보드 뒤).
   @override

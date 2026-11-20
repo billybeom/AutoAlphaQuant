@@ -1310,6 +1310,20 @@ export 'src/safety/rule_change.dart'
         ruleChangeJournalLinked,
         ruleChangeRequestRejectCode,
         startupConfigGate;
+// 🆕 E11q-c0 — M5-9 규칙 변경 게이트 «첫 승인 최소판» VM · 후보 · 결과(설계 13 §8 R188 · 01 §35 K177~K180).
+export 'src/safety/rule_change_gate.dart'
+    show
+        RuleChangeCandidate,
+        RuleChangeGateItem,
+        RuleChangeGateTexts,
+        kBiometricUnavailable,
+        kJournalIdTaken,
+        kRuleChangeGateStaleAfter,
+        ruleChangeActionResultOf,
+        ruleChangeApprovable,
+        ruleChangeCandidateOf,
+        ruleChangeGateAsOf,
+        ruleChangeGateVmOf;
 // 🆕 E13e1 — 안전 상태 조립(플래그 12 사전 · 정렬 · 게이지 · 램프 · 설계 13 §8 R62).
 export 'src/safety/safety_text.dart'
     show
