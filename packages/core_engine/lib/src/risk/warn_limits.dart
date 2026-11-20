@@ -423,6 +423,11 @@ DailyWarnResult judgeDailyWarnLimits({
   );
 }
 
+/// 🆕 E3d-3 — SAF-306 판정 한 줄(상한 포함 · == 통과). [judgeMonthlyWarnLimits](GV-40b)와 P0S 월간 단계가 같이 쓴다
+/// (P0S 는 201 · 202 · 204 · 205 · 208 이 해당 없어 [WarnLimitConfig] 전체를 지을 수 없다 — 판정식을 둘로 만들지 않는다).
+bool financialIncomeCapExceeded(Decimal ytdKrw, Decimal capKrw) =>
+    ytdKrw > capKrw;
+
 /// 04 §1 월간 경고(SAF-201 · 306) — 참조 `gv40b_monthly`. 밴드 양끝 · 소득 상한 포함(== 통과).
 MonthlyWarnResult judgeMonthlyWarnLimits({
   required double satelliteAllocPct,
@@ -435,7 +440,10 @@ MonthlyWarnResult judgeMonthlyWarnLimits({
       satelliteAllocPct > config.satelliteBandHigh) {
     triggered.add(WarnLimitIds.satelliteBand);
   }
-  if (ytdFinancialIncomeKrw > config.annualFinancialIncomeCapKrw) {
+  if (financialIncomeCapExceeded(
+    ytdFinancialIncomeKrw,
+    config.annualFinancialIncomeCapKrw,
+  )) {
     triggered.add(WarnLimitIds.financialIncomeCap);
   }
   final List<String> ids = _sorted(triggered);

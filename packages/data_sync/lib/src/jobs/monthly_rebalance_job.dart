@@ -8,6 +8,9 @@
 // 🔴 계층 B 판정(E11g)은 저장 뒤에 건다 — 이 판에는 자리만 있다.
 // 🆕 E13d1 — 월말 이하 마지막 스냅숏이 STOPPED 면 계획 행 0(SPEC v2.40 04 §2 «리밸런싱 모두 중단» · R60 B2) ·
 //    계층 B 판정은 그대로 · 🔴 `exposureMultiplier` 를 곱하지 않는다(곱하면 B · C 가 팔린다 = 청산).
+// 🆕 E3d-3 — SAF-306 과세연도 금융소득 단계(04 §1 Level 3 v2.46 · [P0sIncomeWarnSetup] 을 넘길 때만) — 과세계좌의 해외 ETF
+//    브로커 체결(처음부터 · 평균 단가) + 살아 있는 분배금 → 이달 말 누계 · 과세연도 첫 초과 월 = 알림 1건(보고 `alerts`).
+//    계획 · 계층 B 와 무관하게 세 길(새로 · 이미 있음 · STOPPED) 모두 보고에 싣는다 · 셈 실패 = «계측 불가» 한 줄 · 알림 0.
 
 import 'dart:convert';
 
@@ -18,6 +21,8 @@ import 'package:sqlite3/sqlite3.dart';
 import '../local/deposit_ledger.dart';
 import '../local/planned_work_store.dart'
     show monthlyPlanOneLine, plannedWorkIdOf, registerPlannedWork;
+import '../local/position_replay_sql.dart'
+    show kLedgerFillColumnsSql, ledgerFillRowOf;
 import '../market/market_store.dart';
 import '../market/regime_store.dart';
 import 'daily_jobs.dart';
@@ -77,6 +82,7 @@ class MonthlyRebalanceReport implements DailyJobReport {
     required this.monthIndex,
     this.tierB,
     this.skippedReason,
+    this.incomeWarn,
   });
 
   /// 계획 id.
@@ -106,12 +112,16 @@ class MonthlyRebalanceReport implements DailyJobReport {
   /// 🆕 E13d1 — 계획을 만들지 않은 까닭(STOPPED = `BREAKER_STOPPED` · 만들었으면 null).
   final String? skippedReason;
 
+  /// 🆕 E3d-3 — SAF-306 과세연도 금융소득 단계(단계를 켜지 않았으면 null).
+  final P0sIncomeWarnStep? incomeWarn;
+
   @override
-  Set<String> get alerts => const <String>{};
+  Set<String> get alerts => <String>{...?incomeWarn?.alerts};
 
   @override
   String toString() =>
-      'MonthlyRebalanceReport($planId · ${created ? '새로' : '이미 있음'} · 대상 ${targets.length} · 집행 $executionDay · $tierB)';
+      'MonthlyRebalanceReport($planId · ${created ? '새로' : '이미 있음'} · 대상 ${targets.length} · 집행 $executionDay · $tierB'
+      '${incomeWarn == null ? '' : ' · 306 ${incomeWarn!.unavailable ?? (incomeWarn!.exceeded ? '넘음' : '안 넘음')}'})';
 }
 
 List<Map<String, Object?>> _weightsJson(Map<String, double> w) =>
@@ -231,6 +241,7 @@ class MonthlyRebalanceJob {
     MonthEndConfig? config,
     this._parkingSymbol = kP0sParkingSymbol,
     this._tierBCard = p0sTierBCard,
+    this._incomeWarn,
   }) : _cash = Map<String, OrderBroker>.unmodifiable(cash),
        _pensionOutside = pensionDeclaredOutsideText,
        _config = config ?? p0sMonthEndConfig() {
@@ -251,6 +262,7 @@ class MonthlyRebalanceJob {
   final MonthEndConfig _config;
   final String _parkingSymbol;
   final TierBCard? Function() _tierBCard;
+  final P0sIncomeWarnSetup? _incomeWarn;
 
   List<String> get _planSymbols => <String>{
     for (final (String s, _) in _config.bAssets) s,
@@ -313,11 +325,70 @@ class MonthlyRebalanceJob {
     }
   }
 
+  /// 🆕 E3d-3 — SAF-306 단계(켜지 않았으면 null). 과세계좌([P0sIncomeWarnSetup.taxableAccountAlias])의
+  /// 해외 ETF 브로커 체결(종목별 · 입력 차례 · 처음부터 — 수기 체결은 포지션 재생과 같이 빠진다) · 살아 있는 분배금
+  /// (`ledger_event` DISTRIBUTION 원 행 중 되돌려지지 않은 것 · 세전).
+  P0sIncomeWarnStep? _incomeStep(String monthEnd) {
+    final P0sIncomeWarnSetup? s = _incomeWarn;
+    if (s == null) return null;
+    final String month = monthEnd.substring(0, 7);
+    final List<String> symbols = s.taxableSymbols.toList()..sort();
+    final String marks = List<String>.filled(symbols.length, '?').join(', ');
+    final Map<String, List<LedgerFillRow>> fills =
+        <String, List<LedgerFillRow>>{};
+    final List<P0sDistribution> dist = <P0sDistribution>[];
+    try {
+      for (final Row r in _db.select(
+        'SELECT i.symbol AS fill_symbol, $kLedgerFillColumnsSql FROM executions e '
+        'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
+        'JOIN order_intents i ON i.intent_id = b.intent_id '
+        "WHERE i.market = 'KR' AND i.account = ? AND i.symbol IN ($marks) ORDER BY e.rowid",
+        <Object?>[s.taxableAccountAlias, ...symbols],
+      )) {
+        (fills[r['fill_symbol'] as String] ??= <LedgerFillRow>[]).add(
+          ledgerFillRowOf(r),
+        );
+      }
+      for (final Row r in _db.select(
+        'SELECT l.effective_date, l.symbol, l.amount_krw FROM ledger_event l '
+        "WHERE l.kind = 'DISTRIBUTION' AND l.entry_kind = 'ORIGINAL' AND l.account_alias = ? "
+        'AND l.symbol IS NOT NULL AND l.amount_krw IS NOT NULL AND NOT EXISTS ('
+        "SELECT 1 FROM ledger_event v WHERE v.entry_kind = 'REVERSAL' AND v.reverses_event_id = l.event_id) "
+        'ORDER BY l.effective_date, l.event_id',
+        <Object?>[s.taxableAccountAlias],
+      )) {
+        dist.add(
+          P0sDistribution.fromLedger(
+            effectiveDate: r['effective_date'] as String,
+            symbol: r['symbol'] as String,
+            amountKrw: (r['amount_krw'] as num).toDouble(),
+          ),
+        );
+      }
+    } on ArgumentError catch (e) {
+      return P0sIncomeWarnStep(
+        month: month,
+        ytd: null,
+        previousYtd: null,
+        exceeded: false,
+        unavailable: '금융소득 — 원장 행: ${e.message}',
+        alerts: const <String>[],
+      );
+    }
+    return p0sMonthlyIncomeWarnStep(
+      month: month,
+      fillsBySymbol: fills,
+      distributions: dist,
+      setup: s,
+    );
+  }
+
   MonthlyRebalanceReport _report(
     String monthEnd,
     Map<String, Object?> o, {
     required bool created,
     required TierBStepReport tierB,
+    required P0sIncomeWarnStep? incomeWarn,
   }) => MonthlyRebalanceReport(
     planId: rebalancePlanIdOf(monthEnd),
     created: created,
@@ -327,6 +398,7 @@ class MonthlyRebalanceJob {
     sleeveBHeld: o['sleeve_b_held'] == true,
     monthIndex: o['month_index']! as int,
     tierB: tierB,
+    incomeWarn: incomeWarn,
   );
 
   /// 🆕 E14d2a(R76 Q1 · 🔴 발주자 결정 2026-11-13 «M 의 판정 + T 의 금액») — 낡은 월말 계획 [monthEnd] 의 재개일
@@ -469,10 +541,17 @@ class MonthlyRebalanceJob {
     if (!_kr.isLastSessionOfMonth(monthEnd)) {
       throw ArgumentError.value(d, 'monthEnd', '월 마지막 KR 세션이 아니다');
     }
+    final P0sIncomeWarnStep? income = _incomeStep(d);
     final SqliteRebalancePlanStore plans = SqliteRebalancePlanStore(_db);
     final Map<String, Object?>? existing = plans.outputsOf(d);
     if (existing != null) {
-      return _report(d, existing, created: false, tierB: _tierB(monthEnd));
+      return _report(
+        d,
+        existing,
+        created: false,
+        tierB: _tierB(monthEnd),
+        incomeWarn: income,
+      );
     }
     if (_breakerAt(d) == BreakerLevel.stopped) {
       return MonthlyRebalanceReport(
@@ -485,6 +564,7 @@ class MonthlyRebalanceJob {
         monthIndex: 0,
         tierB: _tierB(monthEnd),
         skippedReason: kBreakerStoppedAlertCode,
+        incomeWarn: income,
       );
     }
 
@@ -627,7 +707,13 @@ class MonthlyRebalanceJob {
       );
     });
     // 🆕 E11g — 계층 B 판정(저장 뒤 · 실패해도 계획은 남는다 → 다시 돌리면 판정만 · R50 T1 · T8).
-    return _report(d, outputs, created: true, tierB: _tierB(monthEnd));
+    return _report(
+      d,
+      outputs,
+      created: true,
+      tierB: _tierB(monthEnd),
+      incomeWarn: income,
+    );
   }
 }
 
