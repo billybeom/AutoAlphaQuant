@@ -263,6 +263,18 @@ export 'src/mode/handover_session.dart'
         kHandoverCoolingCheck,
         kHandoverSessionTtl,
         simToAutoOpenReject;
+// 🆕 E11q-c1 — M5-11 simToAuto 위저드 VM · S1 체험 카드 · 동작 결과 글자(설계 13 §8 R191 · 미결 207 ⓓ).
+export 'src/mode/handover_wizard.dart'
+    show
+        HandoverCommitted,
+        HandoverWizardTexts,
+        handoverActionResultOf,
+        handoverResultLevel,
+        handoverWizardLevelOf,
+        handoverWizardVmOf,
+        simLedgerFateResultText,
+        simTrialCardOf,
+        simTrialStateLevel;
 // 🆕 E15f4a — 커밋 직전 계좌 조회 어댑터(브로커 포트 → LiveAccountProbe · 설계 13 §8 R103 AI6).
 export 'src/mode/live_account_probe.dart' show probeLiveAccount;
 // 🆕 E15e1 — M1-22 실전 드라이런 관찰 창(연속 무결 거래일 · 승격 가능 판정 · 설계 13 §8 R89).

@@ -11,6 +11,7 @@ import 'package:core_engine/core_engine.dart'
         BiometricOutcome,
         DeviceRiskFacts,
         ExchangeCalendar,
+        LiveObservationConfig,
         Market,
         SecretVault,
         TrustedClock,
@@ -64,6 +65,7 @@ class OperatorRuntime {
     TrustedClock? trusted,
     this.biometricSign,
     this.golden,
+    this.liveObservation,
   }) : secure = secure ?? SecureScreen(_noSecure),
        trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
@@ -117,6 +119,10 @@ class OperatorRuntime {
 
   /// 🆕 E11o-d(R167) — 골든 기기 실행기(자산 = 엔진 패키지 · 없음 = 플랫폼 밖 → S10 «판정 보류» · ④ 원천 없음).
   final OperatorGolden? golden;
+
+  /// 🆕 E11q-c1(R191) — M5-11 위저드 커밋 창 판정의 관찰 일수(운영 설정 `live_dry_run_observation_trading_days` ·
+  /// 없음 = 못 읽음 · 플랫폼 밖 → 위저드 = «운영 설정 없음» 오류 · 지어내지 않는다).
+  final LiveObservationConfig? liveObservation;
 
   /// 🆕 E11p4j(R159) — O-04 ③ 생체 확인(플랫폼 · `AndroidOps.biometricSign` · 없음 = 할 수 없음).
   final Future<BiometricOutcome> Function()? biometricSign;

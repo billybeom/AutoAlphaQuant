@@ -2,7 +2,8 @@
 //
 // 🔴 sim 파일은 늘 연다(온보딩 · 모의 개시가 여기서 시작한다).
 // 🔴 live 파일은 **이미 있을 때만** 연다 — `openLocalLedger` 는 없으면 만들기 때문에 먼저 존재를 본다
-//    (live 파일이 생기는 것은 simToAuto 커밋뿐이다 · E15f).
+//    (live 파일이 생기는 것은 simToAuto 뿐이다 · E15f — 🆕 E11q-c1(R191 · 미결 207 ⓒ) 세션 시작(6단계 · 엔진 사전 판정 통과 뒤 ·
+//    [LedgerFiles.openLive]) · 커밋. 빈 live 파일 = 모드 행 0 → 기동 판정은 그대로 sim(`resolveBootMode`)).
 // 🔵 연결은 프로세스 수명 동안 열어 둔다 — 깨어날 때마다 모드는 다시 판정하지만(Q4) 파일은 다시 열지 않는다.
 
 import 'dart:io' show Directory, File;
@@ -51,6 +52,9 @@ class LedgerFiles {
     }
     return _live = _opener(directory, RunMode.live);
   }
+
+  /// 🆕 E11q-c1(R191 · 미결 207 ⓒ) — live 원장을 연다(없으면 만든다) — 🔴 simToAuto 세션 시작(엔진 사전 판정 통과 뒤)만 부른다.
+  Database openLive() => _live ??= _opener(directory, RunMode.live);
 
   /// 닫는다(시험).
   void close() {
