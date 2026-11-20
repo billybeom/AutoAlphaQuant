@@ -5,8 +5,9 @@
 // 🔴 행 = 켜진 킬스위치 먼저 + 표식 아닌 플래그(홈 블록 3 과 같은 거름 · 엔진 차례 그대로) · 행 레벨 = 주문 판정 묶음
 //    (`BlockBundles` — 전 주문 = BLOCKED · 신규 매수 · 진입 안내 = ACT · 정정 뮤텍스 = WATCH).
 // 🔴 링크 = 엔진 목적지 중 조립 앱에 본문이 있는 것만(`hasBody` — 없는 화면으로 보내지 않는다) · 대사 불일치 = 이 보드 자신 → 행 링크 0
-//    (원인 코드 고르기 = 1.26.0+) · 킬스위치 진입 = 늘(끄는 길은 언제나).
-// 🔴 해제 버튼 0 · 카운트다운 0(게이지 = `releaseProgress` 글자 그대로).
+//    · 킬스위치 진입 = 늘(끄는 길은 언제나).
+// 🔴 해제 버튼 0 · 카운트다운 0(게이지 = `releaseProgress` 글자 그대로) — 🆕 E11q-c4(R189 · 01 §35 K181) 하나 예외: RECON_MISMATCH 행만
+//    해제 폼(`reconClear` = `reconClearFormOf` · 원인 코드 선택지 = 엔진) · 쓰기 창구 ∧ 잠김 아님(`reconClearable`)일 때만 · 그 밖 행 = null.
 // 🔵 엔진 글자(미결 203) = 계약 표본이 제안한 문장(«(합성)» 표지 뗌 · 발주자 위임 — 권고대로) · 브레이커 머리 = 사다리 조치 글자.
 
 import 'package:domain_contracts/domain_contracts.dart' as c show BreakerLevel;
@@ -27,6 +28,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import '../orders/block_bundles.dart' show BlockBundles;
 import '../risk/breaker.dart';
 import 'breaker_ladder.dart' show BreakerLadderStep, breakerLadderOf;
+import 'recon_clear.dart' show reconClearFormOf;
 
 /// M5-5 글자(표본 제안 문장 · 엔진 사전 밖 몫).
 abstract final class BlockBoardTexts {
@@ -81,7 +83,7 @@ abstract final class BlockBoardTexts {
   /// 머리 짧은 이름(플래그 — 표본 «재개 점검 · 일지» 꼴).
   static const Map<String, String> flagShort = <String, String>{
     FlagIds.ledgerIntegrity: '원장 무결성',
-    FlagIds.reconMismatch: '브로커 대사',
+    FlagIds.reconMismatch: '대사 불일치',
     FlagIds.resumeIncomplete: '재개 점검',
     FlagIds.ledgerFix: '정정',
     FlagIds.adviceLedgerUnverified: '원장 실사',
@@ -154,12 +156,14 @@ BreakerLadderVm breakerLadderVmOf(
 );
 
 /// M5-5 한 화면 — [state] = 홈과 같은 안전 상태 · [hasBody] = 조립 앱에 그 라우트 본문이 있나 ·
-/// [config] · [satelliteActive] = 사다리 글자(`breakerLadderOf` 와 같은 뜻).
+/// [config] · [satelliteActive] = 사다리 글자(`breakerLadderOf` 와 같은 뜻) ·
+/// 🆕 [reconClearable] = RECON 해제를 낼 쓰기 창구가 있고 잠김이 아닌가(R189 — 거짓 = 폼 0 · 뷰어 · 잠김).
 BlockBoardVm blockBoardVmOf({
   required SafetyState state,
   required bool Function(String route) hasBody,
   BreakerConfig? config,
   bool satelliteActive = false,
+  bool reconClearable = false,
 }) {
   final BreakerLevel level = BreakerLevel.fromCode(state.breakerLevel.wire);
   final List<BreakerLadderStep> steps = breakerLadderOf(
@@ -198,6 +202,9 @@ BlockBoardVm blockBoardVmOf({
           clearInstruction: f.clearInstruction,
           level: _flagLevel(f.flagId),
           link: _rowLink(f, hasBody),
+          reconClear: reconClearable && f.flagId == FlagIds.reconMismatch
+              ? reconClearFormOf()
+              : null,
         ),
   ];
   final bool normal = level == BreakerLevel.normal;
@@ -245,7 +252,7 @@ BlockBoardVm blockBoardVmOf({
 
 /// 행 링크 — 엔진 목적지 · 본문 없음 = 0 · 계약 밖 목적지 · 글자 없는 목적지 = 0(던지지 않는다 — 보드는 킬스위치 둘째 길이라
 /// 읽기 실패로 사라지면 안 된다 · 보드 밖 엔진 목적지마다 글자가 있음은 시험이 지킨다) · 🔴 이 보드 자신(대사 불일치) = 글자 표에
-/// 없음 → 0(원인 코드 고르기 = 1.26.0+).
+/// 없음 → 0(해제 = 행 폼 `reconClear` · R189).
 LinkAction? _rowLink(BlockFlag f, bool Function(String route) hasBody) {
   final String? link = f.clearDeepLink;
   if (link == null) return null;

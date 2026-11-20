@@ -54,6 +54,7 @@ import 'package:ui_safety/ui_safety.dart'
         KillResumeGateScreen,
         KillSwitchScreen,
         ResumeGateScreen,
+        HandoverWizardScreen,
         ResumeReportScreen,
         RuleChangeGateScreen;
 import 'package:ui_settings/ui_settings.dart'
@@ -540,6 +541,19 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pageBack();
       await tester.pump(const Duration(seconds: 1));
+
+      // 🆕 R191 — M5-11 simToAuto 위저드(엔진 머리 · 단계 · 엔진이 준 버튼만) · `handoverStatus` = 같은 본문(K173).
+      for (final (String route, String shot) in <(String, String)>[
+        (AppRoutes.m5HandoverWizard, 'IT_M511A'),
+        (AppRoutes.handoverStatus, 'IT_M511B'),
+      ]) {
+        container.read(shellLinkOpenerProvider).open(route);
+        await _until(tester, find.byKey(const Key('m511-root')));
+        await _at(tester, find.byType(HandoverWizardScreen), shot);
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pageBack();
+        await tester.pump(const Duration(seconds: 1));
+      }
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
       await _until(tester, find.textContaining('남은 공간'));

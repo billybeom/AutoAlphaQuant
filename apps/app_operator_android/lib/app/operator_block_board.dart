@@ -4,6 +4,8 @@
 //    (`blockBoardVmOf`) · 원장 변경 · 주기마다 다시 낸다(냉각 게이지 · 관측 시각) · 같은 값 = 다시 내지 않음.
 // 🔴 신뢰 시각 = 런타임 시계(M5-1 과 같은 원천 — 보드 냉각 게이지와 킬스위치 화면 해제 시각 줄이 어긋나지 않게).
 // 🔴 행 링크 · 재개 결정 링크 = 레지스트리에 본문이 있을 때만(없는 화면으로 보내지 않는다) · 킬스위치 진입 = 늘.
+// 🆕 E11q-c4(R189) — RECON 행 해제 폼 = 쓰기 창구 ∧ 잠김 아님(`reconClearable` — 폰 = 안전 동작 한 인스턴스 늘 주입 · 잠김 = 미결 169 ·
+//    지금 조립 = 참) · 해제 쓰기 = `OperatorSafetyActions.runReconClear`(같은 원장).
 
 import 'package:core_engine/core_engine.dart' show blockBoardVmOf;
 import 'package:data_sync/data_sync.dart'
@@ -21,6 +23,7 @@ class OperatorBlockBoardRepository implements BlockBoardRepository {
   OperatorBlockBoardRepository(
     this._rt, {
     required this.hasBody,
+    required this.reconClearable,
     this.tick = const Duration(minutes: 1),
   });
 
@@ -28,6 +31,9 @@ class OperatorBlockBoardRepository implements BlockBoardRepository {
 
   /// 조립 앱에 이 라우트의 본문이 있나.
   final bool Function(String route) hasBody;
+
+  /// 🆕 R189 — RECON 해제를 낼 쓰기 창구가 있고 잠김이 아닌가(거짓 = 폼 0).
+  final bool reconClearable;
 
   /// 다시 읽는 주기.
   final Duration tick;
@@ -40,6 +46,7 @@ class OperatorBlockBoardRepository implements BlockBoardRepository {
       trusted: _rt.trusted,
     ).state(),
     hasBody: hasBody,
+    reconClearable: reconClearable,
   );
 
   @override

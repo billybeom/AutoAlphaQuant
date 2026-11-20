@@ -75,6 +75,7 @@ import 'package:ui_safety/sim_opening.dart'
 import 'package:ui_safety/ui_safety.dart'
     show
         BlockBoardScreen,
+        HandoverWizardScreen,
         KillResumeGateScreen,
         KillSwitchScreen,
         KillSwitchSlot,
@@ -84,12 +85,14 @@ import 'package:ui_safety/ui_safety.dart'
         RuleChangeGateScreen,
         safetyActionsProvider,
         safetyBlockBoardRepositoryProvider,
+        safetyHandoverRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyLinkOpenerProvider,
         safetyPledgeRepositoryProvider,
         safetyResumeGateRepositoryProvider,
-        safetyRuleChangeGateRepositoryProvider;
+        safetyRuleChangeGateRepositoryProvider,
+        safetySettingsActionsProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -116,6 +119,7 @@ import 'operator_biometric.dart';
 import 'operator_block_board.dart';
 import 'operator_command_api.dart';
 import 'operator_golden.dart' show OperatorGolden;
+import 'operator_handover.dart';
 import 'operator_kill_switch.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
@@ -216,6 +220,8 @@ final Provider<OperatorBlockBoardRepository> operatorBlockBoardProvider =
       return OperatorBlockBoardRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
+        // 🆕 R189 — 폰 = 안전 동작 창구 늘 주입(`safetyActionsProvider`) · 잠김(미결 169) = 아직 0 → RECON 해제 폼을 낸다.
+        reconClearable: true,
       );
     });
 
@@ -235,6 +241,26 @@ operatorRuleChangeGateProvider = Provider<OperatorRuleChangeGateRepository>(
   (Ref ref) =>
       OperatorRuleChangeGateRepository(ref.watch(operatorRuntimeProvider)),
 );
+
+/// 🆕 R191 — M5-11 위저드 원천 · 동작(한 인스턴스 — 읽기 · 설정 동작 인스턴스가 같은 것을 쓴다).
+final Provider<OperatorHandover> operatorHandoverProvider =
+    Provider<OperatorHandover>((Ref ref) {
+      final OperatorHandover h = OperatorHandover(
+        ref.watch(operatorRuntimeProvider),
+      );
+      ref.onDispose(h.close);
+      return h;
+    });
+
+/// 🆕 R191 — M5-11 위저드 읽기(`m5HandoverWizard` · `handoverStatus` 같은 흐름 · 쓰기 창구 없음 = 행 동작 0).
+final Provider<OperatorHandoverRepository> operatorHandoverRepositoryProvider =
+    Provider<OperatorHandoverRepository>(
+      (Ref ref) => OperatorHandoverRepository(
+        ref.watch(operatorRuntimeProvider),
+        ref.watch(operatorHandoverProvider),
+        canAct: ref.watch(operatorSettingsActionsProvider) != null,
+      ),
+    );
 
 /// 🆕 R173 — S7-6c «지금 기준 초안 보기»(엔진 What-if · 원장 상태 어댑터 · 리밸런싱 미리보기만).
 final Provider<OperatorWhatIfApi> operatorWhatIfApiProvider =
@@ -290,6 +316,8 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
             deviceId: id,
           );
         },
+        // 🆕 R191 — M5-11 위저드 동작 4(S5 고름 · 세션 시작 · 취소 · 확정 관문).
+        handover: ref.watch(operatorHandoverProvider),
       );
     });
 
@@ -407,6 +435,8 @@ Widget _resumeGate(Map<String, String> _) => const ResumeGateScreen();
 
 Widget _ruleChangeGate(Map<String, String> _) => const RuleChangeGateScreen();
 
+Widget _handoverWizard(Map<String, String> _) => const HandoverWizardScreen();
+
 Widget _settingsContribution(Map<String, String> _) =>
     const MonthlyContribution();
 
@@ -505,6 +535,10 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.x2ResumeGate: _resumeGate,
   // 🆕 E11q-c0(R188) — M5-9 규칙 변경 게이트 «첫 승인 최소판»(SAF-405 첫 승인 요청 · 냉각 · 승인 · 취소).
   AppRoutes.m5RuleChangeGate: _ruleChangeGate,
+  // 🆕 E11q-c1(R191) — M5-11 simToAuto 위저드 · `handoverStatus` = 같은 본문(K173 · 알림 냉각 · 확정 목적지) ·
+  //    M5-10 `m5HandoverGate` = 범위 밖 빈 자리(K174).
+  AppRoutes.m5HandoverWizard: _handoverWizard,
+  AppRoutes.handoverStatus: _handoverWizard,
   AppRoutes.settingsContribution: _settingsContribution,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
@@ -566,6 +600,13 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 R188 — M5-9 규칙 변경 게이트 읽기(요청 · 승인 · 취소 = 위 안전 동작 인스턴스).
   safetyRuleChangeGateRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorRuleChangeGateProvider),
+  ),
+  // 🆕 R191 — M5-11 위저드 읽기 · 동작(= 설정 동작 인스턴스 — 없으면 null = 버튼 부재 · 링크 = 위 셸 링크 열기).
+  safetyHandoverRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorHandoverRepositoryProvider),
+  ),
+  safetySettingsActionsProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorSettingsActionsProvider),
   ),
   // 🆕 R156 — M5-14 가상 초기금 제출 = 같은 명령 API 인스턴스 · 기기 id 없음 = null = 제출 버튼 부재.
   safetySimOpeningCommandApiProvider.overrideWith(

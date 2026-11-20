@@ -25,7 +25,9 @@ import 'package:core_engine/core_engine.dart'
         RuleChangeGateTexts,
         HoldingsTexts,
         KillSwitchScreenTexts,
+        LiveObservationConfig,
         P0sHumanInputs,
+        ReconClearTexts,
         TrustedClock,
         alertInboxOf;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
@@ -83,13 +85,16 @@ import 'package:ui_safety/ui_safety.dart'
         KillSwitchSlot,
         PledgePanel,
         ResumeGateScreen,
+        HandoverWizardScreen,
         ResumeReportScreen,
         RuleChangeGateScreen,
         safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
+        safetyHandoverRepositoryProvider,
         safetyResumeGateRepositoryProvider,
-        safetyRuleChangeGateRepositoryProvider;
+        safetyRuleChangeGateRepositoryProvider,
+        safetySettingsActionsProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -456,6 +461,8 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5BlockBoard),
       true,
     );
+    // 🆕 R189 — 폰 = RECON 해제 폼을 낸다(쓰기 창구 늘 · 잠김 0).
+    expect(container.read(operatorBlockBoardProvider).reconClearable, true);
     // 🆕 R186 — X2 재개 리포트 · 게이트 읽기 = 한 인스턴스 · 레지스트리 둘 · 🆕 R195 계절 3택 쓰기 = 켜짐.
     expect(
       identical(
@@ -482,6 +489,33 @@ void main() {
     expect(
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5RuleChangeGate),
       true,
+    );
+    // 🆕 R191 — M5-11 위저드 읽기 = 한 인스턴스 · 동작 = 설정 동작 인스턴스(시험 조립 = 금고 0 → null) ·
+    //    레지스트리 둘(`handoverStatus` = 같은 본문 · K173) · M5-10 게이트 = 빈 자리(K174).
+    expect(
+      identical(
+        container.read(safetyHandoverRepositoryProvider),
+        container.read(operatorHandoverRepositoryProvider),
+      ),
+      true,
+    );
+    expect(
+      identical(
+        container.read(safetySettingsActionsProvider),
+        container.read(operatorSettingsActionsProvider),
+      ),
+      true,
+    );
+    expect(container.read(operatorHandoverRepositoryProvider).canAct, false);
+    for (final String r in <String>[
+      AppRoutes.m5HandoverWizard,
+      AppRoutes.handoverStatus,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+    }
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5HandoverGate),
+      false,
     );
     // 🆕 R182 — M8 운영 슬롯 빌더 = 셸 킬스위치 자리(ui_safety 자리 위젯) · 인쇄 = 자리 부재.
     expect(
@@ -1191,7 +1225,7 @@ void main() {
   );
 
   testWidgets(
-    '🔴 M5-5 차단 보드(R185) — 홈 블록 3 탭 → 보드 · 켜진 킬스위치 먼저 + 원장 플래그(엔진 차례 · 표식 제외) · 대사 불일치 = 행 링크 0 · 킬스위치 행 → M5-1',
+    '🔴 M5-5 차단 보드(R185) — 홈 블록 3 탭 → 보드 · 켜진 킬스위치 먼저 + 원장 플래그(엔진 차례 · 표식 제외) · 대사 불일치 = 행 링크 0 · 🆕 R189 RECON 해제 폼 → 엔진 저널 함께 쓰기 → 행 빠짐 · 킬스위치 행 → M5-1',
     (WidgetTester tester) async {
       // 켜진 킬스위치 + 활성 플래그 셋(대사 불일치 · 재개 미완 · 표식 DST) — 화면이 서기 전에 원장에 둔다.
       files.sim.execute(
@@ -1238,7 +1272,7 @@ void main() {
       expect(
         find.descendant(
           of: board,
-          matching: find.text('막힌 것 3 — 킬스위치 · 브로커 대사 · 재개 점검'),
+          matching: find.text('막힌 것 3 — 킬스위치 · 대사 불일치 · 재개 점검'),
         ),
         findsOneWidget,
       );
@@ -1264,6 +1298,62 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('m55-empty')), findsNothing);
+
+      // 🆕 R189 — RECON 행만 해제 폼(폰 = 쓰기 창구) → 원인 코드 + 사전 저널 세 칸 → 확인 = 엔진 «저널 함께 쓰기» →
+      //    행이 빠지고 결과 = 엔진 글자 · 원장 = 해제 한 사람 «운영 폰» · 저널 RECON_CLEAR(신뢰 시각 없이도).
+      expect(
+        find.descendant(
+          of: find.byKey(Key('m55-row-${FlagIds.reconMismatch}')),
+          matching: find.byKey(const Key('m55-recon-form')),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('m55-recon-form')), findsOneWidget);
+      final Finder openForm = find.byKey(const Key('m55-recon-open'));
+      await tester.ensureVisible(openForm);
+      await tester.tap(openForm);
+      await tester.pump();
+      final Finder chip = find.byKey(const Key('m55-recon-origin-FILL_LAG'));
+      await tester.ensureVisible(chip);
+      await tester.tap(chip);
+      await tester.pump();
+      await tester.enterText(
+        find.byKey(const Key('m55-recon-rationale')),
+        '체결 보고가 늦게 왔다',
+      );
+      await tester.enterText(
+        find.byKey(const Key('m55-recon-expected')),
+        '다음 대사에서 맞는다',
+      );
+      await tester.enterText(
+        find.byKey(const Key('m55-recon-rule')),
+        '04 §3-5 ②',
+      );
+      final Finder clear = find.byKey(const Key('m55-recon-submit'));
+      await tester.ensureVisible(clear);
+      await tester.tap(clear);
+      await tester.pump();
+      // 원장 감시 = 다음 이벤트 루프 차례(Timer.run)로 다시 읽는다 → 시계를 조금 흘린다.
+      await tester.pump(const Duration(milliseconds: 50));
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.text(ReconClearTexts.cleared), findsOneWidget);
+      expect(find.byKey(Key('m55-row-${FlagIds.reconMismatch}')), findsNothing);
+      expect(find.byKey(const Key('m55-recon-form')), findsNothing);
+      final Map<String, Object?> cleared = files.sim
+          .select(
+            "SELECT cleared_by, decision_id, origin_code FROM trading_block WHERE flag_id = 'RECON_MISMATCH'",
+          )
+          .single;
+      expect(cleared['cleared_by'], KillSwitchScreenTexts.operatorPhone);
+      expect(cleared['origin_code'], 'FILL_LAG');
+      expect(
+        files.sim.select(
+          'SELECT kind FROM decision_journal WHERE journal_id = ?',
+          <Object?>[cleared['decision_id']],
+        ).single['kind'],
+        'RECON_CLEAR',
+      );
 
       expect(find.byKey(const Key('m55-kill')), findsOneWidget);
       // 킬스위치 행 링크 = 레지스트리에 본문이 있는 M5-1(조립 앱 hasBody) → 켜짐 화면.
@@ -1454,6 +1544,48 @@ void main() {
     container.dispose();
     disposed = true;
   });
+
+  for (final String route in <String>[
+    AppRoutes.m5HandoverWizard,
+    AppRoutes.handoverStatus,
+  ]) {
+    testWidgets('🔴 M5-11 위저드(R191) — $route = 같은 본문 · 엔진 머리 · 크래시 없음', (
+      WidgetTester tester,
+    ) async {
+      container.dispose();
+      rt = OperatorRuntime(
+        files: files,
+        clock: clock,
+        liveObservation: LiveObservationConfig(requiredTradingDays: 2),
+      );
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      await pumpApp(tester);
+      await ready(tester);
+      await open(tester, route);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(HandoverWizardScreen), findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(find.byKey(const Key('m511-read-failed')), findsNothing);
+      expect(find.byKey(const Key('m511-headline')), findsOneWidget);
+      // 시험 조립 = 설정 동작 인스턴스 없음(금고 0) → 버튼 0.
+      expect(
+        find.byWidgetPredicate(
+          (Widget w) =>
+              w.key is ValueKey<String> &&
+              (w.key! as ValueKey<String>).value.startsWith('m511-act-'),
+        ),
+        findsNothing,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    });
+  }
 
   testWidgets('🔴 S06 기기 · 접근(R146) = 조립 셸에 등록 · 이 폰 한 행 · 모의 단독 리스 · 캡처 막기', (
     WidgetTester tester,

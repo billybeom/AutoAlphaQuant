@@ -1611,6 +1611,288 @@ void main() {
       expect(await ledger.reconBlocked(), isTrue);
       expect(await ledger.activeBlockFlags(), contains(FlagIds.reconMismatch));
     });
+
+    // ── 🆕 E11q-c4 RECON 해제 «저널 함께 쓰기»(설계 13 §8 R189 · 01 §35 K180~K182 · 미결 206 RECON 몫) ─────────────
+
+    ReconClearWriteResult clearWith({
+      String cmd = 'cmd-1',
+      String origin = OriginCodes.fillLag,
+      String? jid,
+      String by = '운영 폰',
+      String rationale = '  체결 보고가 늦게 왔다  ',
+      String expected = '다음 대사에서 맞는다',
+      String rule = '04 §3-5 ②',
+    }) => ledger.clearReconWithJournal(
+      commandId: cmd,
+      payloadDigest: 'dg-$cmd',
+      originCode: origin,
+      journalId: jid ?? 'JRCL-$cmd',
+      clearedBy: by,
+      rationaleBefore: rationale,
+      expectedOutcome: expected,
+      ruleCited: rule,
+    );
+
+    int count(String table) =>
+        db.select('SELECT COUNT(*) AS n FROM $table').single['n'] as int;
+
+    Row command(String id) => db.select(
+      'SELECT * FROM command_inbox WHERE command_id = ?',
+      <Object?>[id],
+    ).single;
+
+    test('🆕 R189 🔴 해제 + 사전 저널 = 한 트랜잭션 — 저널(RECON_CLEAR · 이탈 · 세 칸) · 플래그 · RESOLVED · 해제 로그 · 명령 행 · 시각 = 기기 시계', () async {
+      position('133690', 5);
+      await recon(FakeOrderBroker()..holdings['133690'] = 3);
+      final DateTime cAt = DateTime.utc(2026, 11, 2, 15, 30); // KST 11-03 00:30
+      clock.at = cAt;
+      final ReconClearWriteResult r = clearWith();
+      expect((r.executed, r.replayed, r.reasonCode), (true, false, null));
+      final Row j = db
+          .select(
+            "SELECT * FROM decision_journal WHERE journal_id = 'JRCL-cmd-1'",
+          )
+          .single;
+      expect(
+        (
+          j['kind'],
+          j['is_deviation'],
+          j['trade_date'],
+          j['strategy_id'],
+          j['rationale_before'],
+          j['expected_outcome'],
+          j['rule_cited'],
+          j['note'],
+          j['created_at'],
+        ),
+        (
+          'RECON_CLEAR',
+          1,
+          '2026-11-03',
+          P0sStrategyIds.deposit,
+          '체결 보고가 늦게 왔다',
+          '다음 대사에서 맞는다',
+          '04 §3-5 ②',
+          null,
+          cAt.toIso8601String(),
+        ),
+      );
+      expect(jsonDecode(j['signal_value'] as String), <String, Object?>{
+        'flag_id': 'RECON_MISMATCH',
+        'origin_code': 'FILL_LAG',
+      });
+      expect(jsonDecode(j['action_taken'] as String), <String, Object?>{
+        'recon_mismatch': 'CLEARED',
+        'cleared_by': '운영 폰',
+      });
+      final Row f = flag();
+      expect(
+        (f['cleared_at'], f['cleared_by'], f['decision_id'], f['origin_code']),
+        (cAt.toIso8601String(), '운영 폰', 'JRCL-cmd-1', 'FILL_LAG'),
+      );
+      final Row d = db.select('SELECT * FROM ledger_diff').single;
+      expect((d['status'], d['origin_code']), ('RESOLVED', 'FILL_LAG'));
+      final Row log = db
+          .select(
+            "SELECT * FROM reconciliation_log WHERE action_taken = 'CLEARED'",
+          )
+          .single;
+      expect(log['run_at'], cAt.toIso8601String());
+      expect(jsonDecode(log['discrepancies'] as String), <String, Object?>{
+        'origin_code': 'FILL_LAG',
+        'decision_id': 'JRCL-cmd-1',
+        'cleared_by': '운영 폰',
+        'resolved': 1,
+      });
+      final Row c = command('cmd-1');
+      expect(
+        (
+          c['kind'],
+          c['state'],
+          c['state_label'],
+          c['reject_reason_code'],
+          c['decision_id'],
+          c['payload_digest'],
+          c['ingested_at'],
+        ),
+        (
+          'RECON_CLEAR',
+          'EXECUTED',
+          '실행됨',
+          null,
+          'JRCL-cmd-1',
+          'dg-cmd-1',
+          cAt.toIso8601String(),
+        ),
+      );
+      expect(await ledger.reconBlocked(), isFalse);
+      // 옛 판(core `clearRecon`)이 보는 저널 꼴과 같다 · 세 칸이 차 있어 SAF-408 에 걸리지 않는다 · 건 0(FILL_LAG).
+      expect(await ledger.reconClearJournalExists('JRCL-cmd-1'), isTrue);
+      expect(await ledger.journalMissing(), isFalse);
+      expect(count('incidents'), 0);
+      expect(db.autocommit, isTrue);
+    });
+
+    test('🆕 R189 🔴 거부 차례 = 막힘 없음 → 원인 코드 → 저널 세 칸 → 저널 id 겹침 · 거부 = 명령 행만(해제 · 저널 · 로그 0)', () async {
+      final ReconClearWriteResult none = clearWith(
+        cmd: 'c0',
+        origin: 'NOPE',
+        rationale: '',
+      );
+      expect(
+        (none.executed, none.reasonCode),
+        (false, ReconClearResultCodes.notBlocked),
+      );
+      expect(count('decision_journal'), 0);
+
+      position('133690', 5);
+      await recon(FakeOrderBroker()..holdings['133690'] = 3);
+      journal('J-taken', 'DISCRETION');
+      final int logs = count('reconciliation_log');
+      final List<(ReconClearWriteResult, String)> cases =
+          <(ReconClearWriteResult, String)>[
+            for (final String o in <String>[
+              OriginCodes.corpActionLegacy,
+              OriginCodes.advisoryFill,
+              OriginCodes.pushLag,
+              '',
+            ])
+              (
+                clearWith(cmd: 'o-$o', origin: o, rationale: ''),
+                ReconClearResultCodes.originNotAllowed,
+              ),
+            (
+              clearWith(cmd: 'j1', rationale: ' ', jid: 'J-taken'),
+              ReconClearResultCodes.journalMissing,
+            ),
+            (
+              clearWith(cmd: 'j2', expected: ''),
+              ReconClearResultCodes.journalMissing,
+            ),
+            (
+              clearWith(cmd: 'j3', rule: '\n'),
+              ReconClearResultCodes.journalMissing,
+            ),
+            (
+              clearWith(cmd: 't1', jid: 'J-taken'),
+              SafetyCommonResultCodes.journalIdTaken,
+            ),
+          ];
+      for (final (ReconClearWriteResult r, String want) in cases) {
+        expect((r.executed, r.replayed, r.reasonCode), (false, false, want));
+      }
+      expect(flag()['cleared_at'], isNull);
+      expect(
+        db.select('SELECT status FROM ledger_diff').single['status'],
+        'OPEN',
+      );
+      expect(count('reconciliation_log'), logs);
+      expect(
+        db
+            .select('SELECT journal_id FROM decision_journal')
+            .single['journal_id'],
+        'J-taken',
+      );
+      expect(
+        db
+            .select(
+              "SELECT COUNT(*) AS n FROM command_inbox WHERE kind = 'RECON_CLEAR' "
+              "AND state = 'REJECTED' AND decision_id IS NULL",
+            )
+            .single['n'],
+        cases.length + 1,
+      );
+      final Row t = command('t1');
+      expect(
+        (t['state_label'], t['reject_reason_code']),
+        ('거부됨 — JOURNAL_ID_TAKEN', 'JOURNAL_ID_TAKEN'),
+      );
+      expect(await ledger.reconBlocked(), isTrue);
+      expect(db.autocommit, isTrue);
+    });
+
+    test('🆕 R189 같은 command_id 재전달 = 처음 결과(replayed) · 쓰기 0', () async {
+      final ReconClearWriteResult first = clearWith(cmd: 'r1');
+      expect(first.reasonCode, ReconClearResultCodes.notBlocked);
+      position('133690', 5);
+      await recon(FakeOrderBroker()..holdings['133690'] = 3);
+      final ReconClearWriteResult again = clearWith(cmd: 'r1');
+      expect(
+        (again.executed, again.replayed, again.reasonCode),
+        (false, true, ReconClearResultCodes.notBlocked),
+      );
+      expect(await ledger.reconBlocked(), isTrue);
+      expect(clearWith(cmd: 'r2').executed, isTrue);
+      final int journals = count('decision_journal');
+      final int commands = count('command_inbox');
+      final ReconClearWriteResult replay = clearWith(cmd: 'r2', origin: 'NOPE');
+      expect(
+        (replay.executed, replay.replayed, replay.reasonCode),
+        (true, true, null),
+      );
+      expect(count('decision_journal'), journals);
+      expect(count('command_inbox'), commands);
+    });
+
+    test('🆕 R189 🔴 MANUAL_ORDER = 같은 트랜잭션에 SEV2 7일 — 건 · 명령 쓰기 실패 = 저널 · 해제 · 명령 전부 0', () async {
+      position('133690', 5);
+      await recon(FakeOrderBroker()..holdings['133690'] = 3);
+      final DateTime cAt = at.add(const Duration(minutes: 3));
+      clock.at = cAt;
+      for (final String table in <String>['incidents', 'command_inbox']) {
+        db.execute(
+          'CREATE TRIGGER no_w BEFORE INSERT ON $table '
+          "BEGIN SELECT RAISE(ABORT, 'x'); END",
+        );
+        expect(
+          () => clearWith(cmd: 'm-$table', origin: OriginCodes.manualOrder),
+          throwsA(isA<SqliteException>()),
+          reason: table,
+        );
+        db.execute('DROP TRIGGER no_w');
+        expect(flag()['cleared_at'], isNull, reason: table);
+        expect(count('decision_journal'), 0, reason: table);
+        expect(count('incidents'), 0, reason: table);
+        expect(
+          db.select(
+            "SELECT 1 FROM reconciliation_log WHERE action_taken = 'CLEARED'",
+          ),
+          isEmpty,
+          reason: table,
+        );
+        expect(db.autocommit, isTrue);
+      }
+      expect(count('command_inbox'), 0);
+      expect(
+        clearWith(cmd: 'm', origin: OriginCodes.manualOrder).executed,
+        isTrue,
+      );
+      final Row i = db.select('SELECT * FROM incidents').single;
+      expect(
+        (i['incident_id'], i['severity'], i['category'], i['due_at']),
+        (
+          'SEV2-MANUAL_ORDER-JRCL-m',
+          'SEV2',
+          'MANUAL_ORDER',
+          cAt.add(const Duration(days: 7)).toIso8601String(),
+        ),
+      );
+      expect(flag()['origin_code'], OriginCodes.manualOrder);
+    });
+
+    test(
+      '🆕 R189 저널 id · 해제한 사람 빈칸 = ArgumentError(구현 오류 · 아무것도 안 씀)',
+      () async {
+        position('133690', 5);
+        await recon(FakeOrderBroker()..holdings['133690'] = 3);
+        expect(() => clearWith(jid: ' '), throwsArgumentError);
+        expect(() => clearWith(by: ''), throwsArgumentError);
+        expect(count('command_inbox'), 0);
+        expect(count('decision_journal'), 0);
+        expect(await ledger.reconBlocked(), isTrue);
+        expect(db.autocommit, isTrue);
+      },
+    );
   });
 
   group('🆕 E15c1 가상 체결 브로커 × sim 원장(R83 Y3 · Y5 · Y6)', () {

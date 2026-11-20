@@ -18,9 +18,15 @@
 //    (설계 13 §8 R156 · C-35 ⑥ — 뷰어 조립도 이 배럴을 싣는다).
 
 export 'l10n/labels.dart';
-// 🆕 M5-5 차단 보드(설계 13 §8 R185 · 읽기만 — 해제 동작 = 1.26.0+).
+// 🆕 M5-5 차단 보드(설계 13 §8 R185 · 🆕 R189 RECON 행 해제 폼 — 쓰기 = 안전 동작 창구 `runReconClear`).
 export 'src/block_board/block_board_screen.dart'
     show BlockBoardScreen, safetyBlockBoardRepositoryProvider;
+// 🆕 M5-11 simToAuto 위저드 · handoverStatus 같은 본문(설계 13 §8 R191 · 동작 = SettingsActions.run · 행에 엔진이 준 것만).
+export 'src/handover/handover_wizard_screen.dart'
+    show
+        HandoverWizardScreen,
+        safetyHandoverRepositoryProvider,
+        safetySettingsActionsProvider;
 export 'src/kill_switch/kill_resume_gate_screen.dart' show KillResumeGateScreen;
 export 'src/kill_switch/kill_switch_screen.dart'
     show
