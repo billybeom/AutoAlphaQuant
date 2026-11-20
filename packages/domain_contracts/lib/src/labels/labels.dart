@@ -40,10 +40,12 @@ import 'exit_kind.dart';
 import 'flag_ids.dart';
 import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
+import 'migration_codes.dart'; // 🆕 v1.30
 import 'onboarding_codes.dart';
 import 'ops_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
+import 'repair_codes.dart'; // 🆕 v1.30
 import 'saf_codes.dart';
 import 'safety_codes.dart';
 import 'settings_codes.dart';
@@ -60,10 +62,12 @@ export 'exit_kind.dart';
 export 'flag_ids.dart';
 export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
+export 'migration_codes.dart'; // 🆕 v1.30
 export 'onboarding_codes.dart';
 export 'ops_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
+export 'repair_codes.dart'; // 🆕 v1.30
 export 'saf_codes.dart';
 export 'safety_codes.dart';
 export 'settings_codes.dart';
@@ -163,7 +167,12 @@ final class UnregisteredContractCodeError extends Error {
 /// 🔴 도메인이 다르면 **같은 문자열이 두 번 등재될 수 있다**
 ///    (`MANUAL_ORDER`·`RECON_MISMATCH`·`SELF_AUDIT_DUE`·`PUSH_LAG` 네 쌍 + 🆕 v1.22 `JOURNAL_MISSING`(`flag_id` ↔
 ///    `discretion_result`) = 다섯 쌍 + 🆕 v1.24 `CHAIN_BROKEN`(`origin_code` ↔ `ledger_integrity_result`) ·
-///    `RESTORE_ROLLBACK`(`origin_code` ↔ `backup_result`) = **일곱 쌍** · 🔜 1.25.0 E16i 나머지 = 더 늘어난다 — 01 §33 K140) —
+///    `RESTORE_ROLLBACK`(`origin_code` ↔ `backup_result`) = 일곱 쌍 + 🆕 v1.30 E16i(01 §38 · v1.24 K140 예고 실현 + 열거 글자) 여덟 —
+///    `X1_LIVE_ONLY`(`backup_result` ↔ `x1_start_result`) · `UNKNOWN_ORDERS_REMAIN`(`resume_reason` ↔ `x1_step_block`) ·
+///    `FAILED`(`kill_cancel_outcome` ↔ `x1_step_state`) · `BLOCKED`(`verdict_code` ↔ `x1_gate_state`) ·
+///    `OBSERVING`(`resume_reason` ↔ `x1_gate_state`) · `PASSED`(`sim_trial_state` ↔ `x1_gate_state`) ·
+///    `SQLITE_INTEGRITY`·`FORMAT_VERSION`(`ledger_integrity_result` ↔ `ledger_boundary_reason`) = **열다섯 글자**
+///    (`RESTORE_ROLLBACK` 은 `ledger_boundary_reason` 까지 세 축)) —
 ///    그래서 [all] 의 크기는 등재 건수보다 작다. 전역 조회보다 [requireRegisteredIn] 을 쓴다.
 abstract final class ContractCodes {
   /// 도메인 → 코드 집합. 🔴 키 이름은 01 §3·§6 의 절 제목에서 따온다.
@@ -275,6 +284,33 @@ abstract final class ContractCodes {
     'supabase_input_result': SupabaseInputResultCodes.values,
     'supabase_time_result': SupabaseTimeResultCodes.values,
     'lease_rpc_result': LeaseRpcResultCodes.values,
+    // 🆕 v1.30(01 §38 · E16i) — X1 기기 이전 · 새 폰 복구 · 유지보수 창(엔진 글자 1:1 − 공용 `TRUSTED_TIME_UNKNOWN`)
+    'x1_start_result': X1StartResultCodes.values,
+    'x1_step_block': X1StepBlockCodes.values,
+    'x1_journal_result': X1JournalResultCodes.values,
+    'x1_boot_refusal': X1BootRefusalCodes.values,
+    'x1_restore_result': X1RestoreResultCodes.values,
+    'x1_fencing_result': X1FencingResultCodes.values,
+    'x1_reissue_result': X1ReissueResultCodes.values,
+    'x1_reissue_item': X1ReissueItemCodes.values,
+    'x1_recovery_result': X1RecoveryResultCodes.values,
+    'x1_order_seal': X1OrderSealCodes.values,
+    'x1_gate_reason': X1GateReasonCodes.values,
+    'maintenance_window_result': MaintenanceWindowResultCodes.values,
+    'x1_intent_reason': X1IntentReasonCodes.values,
+    'x1_plan_step': X1StepCodes.values,
+    'x1_step_state': X1StepStateCodes.values,
+    'x1_kind': X1KindCodes.values,
+    'x1_role': X1RoleCodes.values,
+    'x1_recovery_step': X1RecoveryStepCodes.values,
+    'x1_gate_state': X1GateStateCodes.values,
+    'x1_gap_violation': X1GapViolationCodes.values,
+    'maintenance_window_event': MaintenanceWindowEventCodes.values,
+    // 🆕 v1.30(01 §38 · E16i) — X5 정정 · 새 기준점 · X1/X5 경계 · 파생 관계(엔진 글자 1:1)
+    'repair_result': RepairResultCodes.values,
+    'baseline_result': BaselineResultCodes.values,
+    'ledger_boundary_reason': LedgerBoundaryReasonCodes.values,
+    'derived_relation': DerivedRelationCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
