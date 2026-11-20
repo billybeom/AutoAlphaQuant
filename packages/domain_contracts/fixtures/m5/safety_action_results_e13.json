@@ -116,7 +116,7 @@
       "action_run_id": "ar_e13_12",
       "id": "RECON_CLEAR",
       "level": "OK",
-      "headline": "(합성) 대사 불일치 표시를 풀었습니다.",
+      "headline": "(합성) 대사 불일치 표시를 풀었습니다 — 결정 저널이 함께 남았습니다.",
       "reason_code": null,
       "handoff_route": null,
       "retryable": false
