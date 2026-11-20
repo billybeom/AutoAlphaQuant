@@ -7,8 +7,9 @@
 // 🔴 정렬 = 거래일 내림차순(같은 날 = 기록 시각 · id 내림차순) · 모의 배지 = LIVE 밖 · 머리글 = 첫 행에만(한 원장 = 한 모드).
 // 🔴 asOf = 읽기 모델 관측 시각(지금 — 봉투와 행이 같은 값 · C-41 ④) · 기준일 = 원장의 마지막 KR 봉 날 · «자료 기준 ‹날›».
 // 🔴 상세 링크 = 조립 앱에 본문이 등록됐을 때만(S01 원칙).
-// 🔵 주문 의도 id · 일지 링크(«이 회차의 주문 n건») = q4(매매일지 조립 — 회차 ↔ 주문 묶음과 일지 행 수의 원천) · 지금 = 빈 목록 ·
-//    null(버튼 부재). 실행 품질 = null(패널 부재) · 임계 대조 = 등록 임계 없음 → 0행.
+// 🆕 E11q-q4a — 주문 의도 id · 일지 링크(«이 회차의 주문 n건») = 일지와 같은 묶음(`journalEventIdOf` · 원천이 의도 id 를
+//    넣는다) · 묶인 행 0 · `journalRebalance` 미등록 = null(버튼 부재). 실행 품질 = null(패널 부재) · 임계 대조 = 등록 임계
+//    없음 → 0행.
 
 import 'dart:convert';
 
@@ -32,6 +33,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import '../portfolio/seasonal_a.dart' show SeasonalAOutcome;
 import '../portfolio/sleeve_weight_view.dart' show sleeveWeightOf;
 import '../whatif/what_if_config.dart' show WhatIfConfig;
+import 'journal_view.dart' show journalTimelineLinkOf;
 import 'ops_home.dart' show kOpsHomeStaleAfter;
 
 /// 회차 글자(표본에 있는 것은 글자 그대로).
@@ -69,6 +71,7 @@ class RebalanceEventFact {
     required this.weightsAfter,
     required this.createdAt,
     this.executionDate,
+    this.journalIntentIds = const <String>[],
   });
 
   /// 회차 id.
@@ -97,6 +100,9 @@ class RebalanceEventFact {
 
   /// 월말 회차의 집행일(다음 KR 세션 · 모르면 null).
   final String? executionDate;
+
+  /// 🆕 E11q-q4a — 이 회차에 묶인 주문 의도(= 일지 행 · `journalEventIdOf` 묶음 · 원장 순).
+  final List<String> journalIntentIds;
 }
 
 /// `S7-6a` 회차 목록 — [dataDate] = 원장의 마지막 KR 봉 날 · [hasBody] = 조립 앱 등록 화면.
@@ -202,11 +208,16 @@ RebalanceEvent _event(
       },
       summary: summary,
     ),
-    orderIntentIds: const <String>[],
+    orderIntentIds: List<String>.unmodifiable(f.journalIntentIds),
     asOf: asOf,
     thresholds: const <ThresholdCompare>[],
     modeLabel: sim ? RebalanceEventTexts.simBadge : null,
     sectionLabel: sim && first ? RebalanceEventTexts.simSection : null,
+    journalTimelineLink: journalTimelineLinkOf(
+      f.eventId,
+      f.journalIntentIds.length,
+      hasBody: hasBody,
+    ),
     detailDeepLink: hasBody(AppRoutes.rebalanceEvent)
         ? '${AppRoutes.rebalanceEvent.split('/:').first}/${f.eventId}'
         : null,

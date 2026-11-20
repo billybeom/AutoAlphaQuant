@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:app_operator_android/app/operator_journal.dart';
 import 'package:app_operator_android/app/operator_ops_status.dart';
 import 'package:app_operator_android/app/operator_ops_summary.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
@@ -74,12 +75,15 @@ import 'package:ui_journal/ui_journal.dart'
     show
         LedgerDiffs,
         LedgerRepairs,
+        JournalTimeline,
         journalClockProvider,
+        journalConfigRepositoryProvider,
         journalHoldingsRepositoryProvider,
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
         journalRebalanceRepositoryProvider,
-        journalSafetyRepositoryProvider;
+        journalSafetyRepositoryProvider,
+        journalTimelineRepositoryProvider;
 import 'package:ui_safety/sim_opening.dart' show SimOpeningCash;
 import 'package:ui_safety/ui_safety.dart'
     show
@@ -296,9 +300,12 @@ void main() {
     expect(find.byKey(const Key('h01-alloc')), findsOneWidget);
     expect(find.text(HoldingsTexts.allocationEmpty), findsOneWidget);
     expect(find.byKey(const Key('h01-fail')), findsNothing);
+    // 🆕 E11q-q4a — J-1 등록(자리표시자 → 일지 본문 · 빈 원장 = 엔진 빈 문장).
     await open(tester, AppRoutes.journalTimeline);
     expect(tester.takeException(), isNull);
-    expect(find.byKey(const Key('s01-placeholder')), findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    expect(find.byType(JournalTimeline), findsWidgets);
+    expect(find.textContaining('아직 기록된 거래가 없습니다'), findsWidgets);
     // 홈 흐름의 1분 타이머는 컨테이너가 닫힐 때 멈춘다 — 시험 안에서 닫는다.
     await tester.pumpWidget(const SizedBox.shrink());
     container.dispose();
@@ -566,6 +573,20 @@ void main() {
     expect(
       identical(
         container.read(plannerConfigRepositoryProvider),
+        container.read(shellConfigRepositoryProvider),
+      ),
+      true,
+    );
+    // 🆕 E11q-q4a — 일지 읽기 = 한 인스턴스 · 기간 프리셋 · 슬리브 = 셸 설정 원천 한 인스턴스.
+    final Object journal = container.read(operatorJournalProvider);
+    expect(journal, isA<OperatorJournalRepository>());
+    expect(
+      identical(container.read(journalTimelineRepositoryProvider), journal),
+      true,
+    );
+    expect(
+      identical(
+        container.read(journalConfigRepositoryProvider),
         container.read(shellConfigRepositoryProvider),
       ),
       true,

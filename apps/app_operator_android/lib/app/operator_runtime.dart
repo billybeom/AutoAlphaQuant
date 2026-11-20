@@ -16,14 +16,18 @@ import 'package:core_engine/core_engine.dart'
         SecretVault,
         TrustedClock,
         WatchdogRemote,
+        WhatIfConfig,
         contributionKstDay,
         contributionSettingOf,
-        frozenExchangeCalendar;
+        frozenExchangeCalendar,
+        journalSleeveCatalogOf;
 import 'package:data_sync/data_sync.dart'
     show
         P0sHumanDecision,
+        SqliteJournalSource,
         SupabaseServerTime,
         contributionRowsOf,
+        journalRangePresetsFromLedger,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -162,7 +166,8 @@ class OperatorRuntime {
   }
 }
 
-/// 🔴 셸 설정 원천 — 플래그 = 화면 상태 · 🆕 월 납입 = 엔진 운영값(R120) · 위성 목록 · 기간 프리셋 = 아직 원천 없음(R104 — 지어내지 않는다).
+/// 🔴 셸 설정 원천 — 플래그 = 화면 상태 · 🆕 월 납입 = 엔진 운영값(R120) · 🆕 E11q-q4a 슬리브 목록 = 엔진 P0S 이름표(새틀라이트 행 0) ·
+/// 기간 프리셋 = 엔진 거래일 달력(전체 = 원장 첫 의도 날 · 날이 바뀌면 주기가 다시 낸다).
 class OperatorConfigRepository implements ConfigRepository {
   /// 만든다 — [clock] · [kr] = 월 납입 읽기(오늘 · 적용 회차) · [tick] = 시간만 흐를 때 다시 계산하는 주기.
   OperatorConfigRepository(
@@ -204,15 +209,31 @@ class OperatorConfigRepository implements ConfigRepository {
     return c.stream;
   }
 
+  /// 🆕 E11q-q4a — 슬리브 목록(엔진 P0S 이름표 · A · B · C · POT(A 소속) — 원장 무관 · 한 번).
   @override
   Stream<List<SleeveCatalogEntry>> watchSleeves() =>
-      Stream<List<SleeveCatalogEntry>>.error(
-        UnsupportedError('watchSleeves: 엔진 원천 없음(R104)'),
+      Stream<List<SleeveCatalogEntry>>.value(
+        journalSleeveCatalogOf(WhatIfConfig.defaults),
       );
 
+  List<DateRange> _presetsOf(OperatorView v) =>
+      journalRangePresetsFromLedger(v.db, kr: kr, nowUtc: clock.nowUtc());
+
+  /// 🆕 E11q-q4a — 기간 프리셋(엔진 · 거래일 달력) — 의도가 쌓이면(전체 = 첫 날) · 주기마다(날이 바뀜) · 화면 상태마다 ·
+  /// 🔴 바뀐 목록만(목록은 값 비교 — 같은 프리셋을 다시 내면 J-1 기본 조건이 다시 서 목록이 뼈대로 깜빡인다) ·
+  /// 화면 상태 없음 = 오류.
   @override
-  Stream<List<DateRange>> watchRangePresets() => Stream<List<DateRange>>.error(
-    UnsupportedError('watchRangePresets: 엔진 원천 없음(R104)'),
+  Stream<List<DateRange>> watchRangePresets() => followView<List<DateRange>>(
+    view: _view,
+    changes: (OperatorView v) => watchLedgerQuery<List<DateRange>>(
+      v.db,
+      SqliteJournalSource.presetTables,
+      () => _presetsOf(v),
+    ),
+    now: _presetsOf,
+    tick: tick,
+    noView: () => StateError('기간 프리셋: 화면 상태 없음(온보딩 전)'),
+    equals: listEquals,
   );
 
   /// 🆕 R120 — 화면 상태 원장의 월 납입(엔진 `contributionSettingOf` · 기록 없음 = P0S 기본값).

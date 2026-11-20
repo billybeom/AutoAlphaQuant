@@ -19,7 +19,9 @@
 // 🆕 E11p3d-5f(R140) — M9 S07 연결 본문(`OperatorOpsStatusRepository.watchConnections` · 링크 = 레지스트리에 본문이 있는 화면만).
 // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검 본문(기기 측정 = `OperatorRuntime.deviceProbe` · 판정 = 엔진) — Android 전용 = 이 레지스트리.
 // 🆕 E11p3d-5e(R134) — 더보기 본문 = M9 S01 설정 홈(`OperatorSettingsRepository.watchHome` · 링크 = 레지스트리에 본문이 있는 화면만).
-// 🔵 일지 · 보유 · 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
+// 🆕 E11q-q4a — M6 매매일지 «읽기» 넷(J-1 타임라인 = «일지» 탭 본문 · J-2 거래 상세 · J-3R 사전 저널 읽기 · J-1 회차 조건) ·
+//    읽기 = `OperatorJournalRepository`(원장 한 파일) · 기간 프리셋 · 슬리브 = 셸 설정 원천 한 인스턴스 · 쓰기 · 보드 = q4b.
+// 🔵 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
 import 'package:broker_gateway/broker_gateway.dart'
@@ -62,14 +64,19 @@ import 'package:ui_journal/ui_journal.dart'
         HoldingDetail,
         HoldingsAllocation,
         HoldingsOverview,
+        JournalDecisionDetail,
+        JournalReadView,
+        JournalTimeline,
         LedgerDiffs,
         LedgerRepairs,
         journalClockProvider,
+        journalConfigRepositoryProvider,
         journalHoldingsRepositoryProvider,
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
         journalRebalanceRepositoryProvider,
-        journalSafetyRepositoryProvider;
+        journalSafetyRepositoryProvider,
+        journalTimelineRepositoryProvider;
 import 'package:ui_safety/sim_opening.dart'
     show SimOpeningCash, safetySimOpeningCommandApiProvider;
 import 'package:ui_safety/ui_safety.dart'
@@ -123,6 +130,7 @@ import 'operator_block_board.dart';
 import 'operator_command_api.dart';
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_handover.dart';
+import 'operator_journal.dart';
 import 'operator_kill_switch.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
@@ -191,6 +199,16 @@ final Provider<OperatorHoldingsRepository> operatorHoldingsProvider =
     Provider<OperatorHoldingsRepository>((Ref ref) {
       final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
       return OperatorHoldingsRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
+
+/// 🆕 E11q-q4a — 매매일지 읽기(J-1 · J-2 · J-3R · 회차 범위 · 한 인스턴스 · 링크 = 레지스트리에 본문이 있을 때만).
+final Provider<OperatorJournalRepository> operatorJournalProvider =
+    Provider<OperatorJournalRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorJournalRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
       );
@@ -453,6 +471,19 @@ Widget _holdingsAllocation(Map<String, String> _) => const HoldingsAllocation();
 
 Widget _planDeposit(Map<String, String> _) => const DepositPlannerScreen();
 
+Widget _journalTimeline(Map<String, String> _) => const JournalTimeline();
+
+Widget _journalDecision(Map<String, String> p) =>
+    JournalDecisionDetail(decisionId: p['decisionId'] ?? '');
+
+Widget _journalRead(Map<String, String> p) =>
+    JournalReadView(decisionId: p['decisionId'] ?? '');
+
+Widget _journalRebalance(Map<String, String> p) {
+  final String id = p['rebalanceEventId'] ?? '';
+  return JournalTimeline(key: ValueKey<String>(id), rebalanceEventId: id);
+}
+
 Widget _killSwitch(Map<String, String> _) => const KillSwitchScreen();
 
 Widget _releaseGate(Map<String, String> _) => const KillResumeGateScreen();
@@ -554,6 +585,12 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.rebalancePreview: _rebalancePreview,
   AppRoutes.rebalanceHistory: _rebalanceHistory,
   AppRoutes.rebalanceEvent: _rebalanceEvent,
+  // 🆕 E11q-q4a — M6 매매일지 읽기 넷(J-1 = «일지» 탭 본문 · J-2 = 일지 행 · H6-2 «매수 결정 보기» 목적지 ·
+  //    J-3R = J-2 «저널 보기» 목적지 · J-1 회차 조건 = S7-6b «이 회차의 주문 n건» 목적지).
+  AppRoutes.journalTimeline: _journalTimeline,
+  AppRoutes.journalDecision: _journalDecision,
+  AppRoutes.journalRead: _journalRead,
+  AppRoutes.journalRebalance: _journalRebalance,
   // 🆕 E11q3(R174) — M7 S7-4 납입 플래너(미리보기 = 엔진 What-if · 등록 = 신뢰 시각 관문) · M9 S13 월 납입 설정.
   AppRoutes.planDeposit: _planDeposit,
   // 🆕 E11q-b1a(R178) — M5-1 킬스위치(발동 버튼 · 취소 보고 · 발동 뒤 기록 폼 · 체험 ⑤).
@@ -720,6 +757,13 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
     ) as LedgerRepository,
   ),
   journalClockProvider.overrideWithValue(runtime.clock),
+  // 🆕 E11q-q4a — 일지 읽기(J-1 · J-2 · J-3R · 회차 범위) · 기간 프리셋 · 슬리브 = 셸 설정 원천 한 인스턴스.
+  journalTimelineRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorJournalProvider),
+  ),
+  journalConfigRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(shellConfigRepositoryProvider),
+  ),
   journalHoldingsRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorHoldingsProvider),
   ),

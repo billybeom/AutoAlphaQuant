@@ -138,7 +138,7 @@ void main() {
       expect(e.trigger.rawValues['regime_state'], 'BULL');
       expect(e.trigger.rawValues['month_index'], '2');
       expect(e.detailDeepLink, 'aaq://rebalance/event/REB-MONTHLY-2026-07-31');
-      expect(e.orderIntentIds, isEmpty, reason: '회차 ↔ 주문 묶음 = q4');
+      expect(e.orderIntentIds, isEmpty, reason: '묶인 의도 0 = 빈 목록(q4a)');
       expect(e.journalTimelineLink, isNull);
       expect(e.quality, isNull);
     },

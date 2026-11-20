@@ -35,6 +35,7 @@ import '../jobs/monthly_rebalance_job.dart'
 import '../market/market_store.dart' show PriceBar, SqliteMarketStore;
 import 'deposit_ledger.dart' show SqliteDepositLedger;
 import 'holdings_overview_source.dart' show SqliteHoldingsOverviewSource;
+import 'journal_source.dart' show journalIntentIdsByEvent;
 import 'ops_config_source.dart'
     show OpsConfigReady, OpsConfigUnavailable, currentP0sOpsConfig;
 import 'resume_status.dart' show SqliteResumeStatus;
@@ -67,6 +68,9 @@ class SqliteRebalanceSource {
   static const Set<String> watchedTables = <String>{
     'rebalance_event',
     'daily_prices',
+    // 🆕 E11q-q4a — «이 회차의 주문 n건»(회차 ↔ 주문 묶음).
+    'order_intents',
+    'plan_snapshot',
   };
 
   /// `S7-6a` 회차 목록(엔진 정렬 · 시간 역순).
@@ -133,27 +137,34 @@ class SqliteRebalanceSource {
     );
   }
 
-  List<RebalanceEventFact> _facts() => <RebalanceEventFact>[
-    for (final Row r in _db.select(
-      'SELECT event_id, trade_date, mode, kind, trigger_snapshot, weights_before, weights_after, '
-      'config_hash, created_at FROM rebalance_event',
-    ))
-      RebalanceEventFact(
-        eventId: r['event_id'] as String,
-        tradeDate: TradeDate(r['trade_date'] as String),
-        modeWire: r['mode'] as String,
-        kindWire: r['kind'] as String,
-        configHash: r['config_hash'] as String,
-        trigger:
-            jsonDecode(r['trigger_snapshot'] as String) as Map<String, Object?>,
-        weightsBefore: _weights(r['weights_before'] as String),
-        weightsAfter: _weights(r['weights_after'] as String),
-        createdAt: r['created_at'] as String,
-        executionDate: r['kind'] == 'MONTHLY_REGULAR'
-            ? _nextKr(r['trade_date'] as String)
-            : null,
-      ),
-  ];
+  List<RebalanceEventFact> _facts() {
+    // 🆕 E11q-q4a — 회차 ↔ 주문 의도 = 일지와 같은 묶음(«이 회차의 주문 n건» · 일지 행 수와 같은 셈).
+    final Map<String, List<String>> intents = journalIntentIdsByEvent(_db);
+    return <RebalanceEventFact>[
+      for (final Row r in _db.select(
+        'SELECT event_id, trade_date, mode, kind, trigger_snapshot, weights_before, weights_after, '
+        'config_hash, created_at FROM rebalance_event',
+      ))
+        RebalanceEventFact(
+          eventId: r['event_id'] as String,
+          tradeDate: TradeDate(r['trade_date'] as String),
+          modeWire: r['mode'] as String,
+          kindWire: r['kind'] as String,
+          configHash: r['config_hash'] as String,
+          trigger: jsonDecode(
+            r['trigger_snapshot'] as String,
+          ) as Map<String, Object?>,
+          weightsBefore: _weights(r['weights_before'] as String),
+          weightsAfter: _weights(r['weights_after'] as String),
+          createdAt: r['created_at'] as String,
+          executionDate: r['kind'] == 'MONTHLY_REGULAR'
+              ? _nextKr(r['trade_date'] as String)
+              : null,
+          journalIntentIds:
+              intents[r['event_id'] as String] ?? const <String>[],
+        ),
+    ];
+  }
 
   /// 저장한 비중 JSON `[{sleeve, weight}]` → 맵(비중 없는 행 = 엔진이 실패한다 · 여기서 0 을 채우지 않는다).
   static Map<String, double> _weights(String json) => <String, double>{

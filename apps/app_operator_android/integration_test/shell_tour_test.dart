@@ -3,6 +3,7 @@
 // 🆕 E11p3d-5i(R151) — + 계좌 · 매핑(S03 · 설정 홈 «계좌·매핑» 카드 · 운영 설정 전 = 슬리브 미지정).
 // 🆕 E11q1(R171) — + M6 H6-1 보유 현황(보유 0 = 빈 문장 → 연습 보유를 원장에 넣으면 같은 화면에 카드가 선다).
 // 🆕 E11q1b(R172) — + H6-3 슬리브 배분 · H6-2 종목 상세(같은 연습 보유).
+// 🆕 E11q-q4a — + M6 일지 읽기 J-1 · J-2 · J-3R · S7-6b «이 회차의 주문 n건» → J-1 회차 조건(연습 일지 묶음).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
 // 실행: `flutter test integration_test/shell_tour_test.dart -d emulator-5554` · 표지 `IT_*` 마다 4초 멈춘다(캡처 자리).
@@ -47,7 +48,13 @@ import 'package:ui_analytics/planner.dart' show DepositPlannerScreen;
 import 'package:ui_analytics/ui_analytics.dart'
     show RebalanceEventScreen, RebalancePreviewScreen, RebalanceTimelineScreen;
 import 'package:ui_journal/ui_journal.dart'
-    show HoldingDetail, HoldingsAllocation, HoldingsOverview;
+    show
+        HoldingDetail,
+        HoldingsAllocation,
+        HoldingsOverview,
+        JournalDecisionDetail,
+        JournalReadView,
+        JournalTimeline;
 import 'package:ui_safety/ui_safety.dart'
     show
         BlockBoardScreen,
@@ -115,6 +122,51 @@ void _seedPracticeRebalance(Database db) => db.execute(
         '{"sleeve":"C","weight":0.35},{"sleeve":"POT","weight":0.04}]',
   ],
 );
+
+/// 🆕 E11q-q4a — 연습 일지 묶음(연습 회차 `REB-MONTHLY-IT` 의 계획 대상 1 · 그 논리 id 의 의도 1 · 가상 체결 1 ·
+/// 회차 판정 결정 1 — 모의 원장 · 합성 값 · 실키 0 · 바깥 망 0).
+void _seedPracticeJournal(Database db, OperatorRuntime rt) {
+  final String now = rt.clock.nowUtc().toIso8601String();
+  final String day = kstDateText(rt.clock.nowUtc());
+  final String account =
+      rt.humanDecision!.inputs.accountByStrategy[P0sStrategyIds.sleeveB]!;
+  db.execute(
+    'INSERT INTO plan_snapshot (plan_id, kind, computed_at, as_of_trade_date, expires_at, inputs, outputs, '
+    "config_hash) VALUES ('REBAL-2026-10-30', 'REBALANCE', ?, '2026-10-30', '2026-11-30', '{}', ?, 'cfg_it')",
+    <Object?>[now, '{"targets":[{"logical_decision_id":"B-SMA-2026-10-30"}]}'],
+  );
+  db.execute(
+    'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, '
+    "reason_code, config_hash) VALUES ('MONTH-END-IT', ?, '2026-10-30', ?, 'REBALANCE', ?, "
+    "'월말 정기 리밸런싱 — 대상 2건(연습)', 'MONTHLY_REGULAR', 'cfg_it')",
+    <Object?>[now, RunMode.simInternal.wire, P0sStrategyIds.deposit],
+  );
+  db.execute(
+    'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+    'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+    "updated_at, mode) VALUES ('IT-RB', 'IT-K-RB', ?, ?, 'KR', ?, ?, ?, '133690', 'BUY', 'LIMIT', 3, "
+    "120000, 'FILLED', 'cfg_it', ?, ?)",
+    <Object?>[
+      now,
+      day,
+      account,
+      P0sStrategyIds.sleeveB,
+      'B-SMA-2026-10-30@$day',
+      now,
+      RunMode.simInternal.wire,
+    ],
+  );
+  db.execute(
+    'INSERT INTO broker_orders (broker_order_no, intent_id, submitted_at, status, filled_qty, remaining_qty) '
+    "VALUES (?, 'IT-RB', ?, 'FILLED', 3, 0)",
+    <Object?>['$day:IT0001', now],
+  );
+  db.execute(
+    'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, commission, tax, '
+    "authored_at, fill_origin, cost_source) VALUES (?, ?, ?, 3, 120000, 54, 0, ?, 'SIMULATED', 'ESTIMATED')",
+    <Object?>['$day:IT0001#3', '$day:IT0001', now, now],
+  );
+}
 
 /// 🆕 R171 — 연습 보유(모의 원장 · 실키 0 · 계좌 번호 0 · 바깥 망 0): 개시 판(설정 해시) + 가상 초기금 + 보유 4 + 그날 봉.
 ///
@@ -364,6 +416,42 @@ void main() {
         );
       }
       await _at(tester, find.byType(RebalancePreviewScreen), 'IT_R76C');
+      await tester.pageBack();
+
+      // 🆕 E11q-q4a — M6 일지 읽기: J-1(연습 보유 의도 + 연습 회차 의도 1 · 모의 배지) → J-2(체인 6단계) → J-3R(미작성) →
+      //    S7-6b «이 회차의 주문 1건» → J-1 회차 조건(칩 = 회차 글자 · 씨앗 기간).
+      _seedPracticeJournal(files.sim, rt);
+      container.read(shellLinkOpenerProvider).open(AppRoutes.journalTimeline);
+      await _until(tester, find.textContaining('133690'));
+      await _at(tester, find.byType(JournalTimeline).last, 'IT_J1');
+      await tester.pageBack();
+      container
+          .read(shellLinkOpenerProvider)
+          .open(
+            'aaq://journal/decision/B-SMA-2026-10-30@${kstDateText(rt.clock.nowUtc())}',
+          );
+      await _until(tester, find.text('브로커 주문'));
+      expect(find.text('3주 전량 체결'), findsWidgets);
+      await _at(tester, find.byType(JournalDecisionDetail), 'IT_J2');
+      await tester.pageBack();
+      container
+          .read(shellLinkOpenerProvider)
+          .open(
+            'aaq://journal/read/B-SMA-2026-10-30@${kstDateText(rt.clock.nowUtc())}',
+          );
+      await _until(tester, find.text('저널 미작성'));
+      await _at(tester, find.byType(JournalReadView), 'IT_J3R');
+      await tester.pageBack();
+      container
+          .read(shellLinkOpenerProvider)
+          .open('aaq://rebalance/event/REB-MONTHLY-IT');
+      await _until(tester, find.text('이 회차의 주문 1건'));
+      await _at(tester, find.byType(RebalanceEventScreen), 'IT_R76B_J');
+      await tester.ensureVisible(find.text('이 회차의 주문 1건'));
+      await tester.tap(find.text('이 회차의 주문 1건'));
+      await _until(tester, find.textContaining('2026-10-30 월간 정기 회차'));
+      await _at(tester, find.byType(JournalTimeline).last, 'IT_J1R');
+      await tester.pageBack();
       await tester.pageBack();
 
       // 🆕 R174 — S7-4 납입 플래너(금액 → 엔진 미리보기) · S13 월 납입(바꾸기 = 신뢰 시각 모름 → 엔진 거부 문장 · 쓰기 0).

@@ -124,17 +124,15 @@ void main() {
       );
     });
 
-    test('🔴 원천 없는 흐름 = 오류(지어내지 않는다)', () async {
+    // 🆕 E11q-q4a — 슬리브 · 기간 프리셋 = 엔진 원천이 섰다(오류 → 값 · 기간 = 화면 상태 원장 · 없으면 오류).
+    test('🔴 슬리브 = 엔진 P0S 목록 · 기간 프리셋 = 화면 상태가 없으면 오류(지어내지 않는다)', () async {
       final LedgerFiles f = openFiles(tempLedgerDir(), clock);
       addTearDown(f.close);
       final OperatorConfigRepository c = configOf(
         OperatorRuntime(files: f, clock: clock),
       );
-      await expectLater(c.watchSleeves(), emitsError(isA<UnsupportedError>()));
-      await expectLater(
-        c.watchRangePresets(),
-        emitsError(isA<UnsupportedError>()),
-      );
+      expect((await c.watchSleeves().first).length, 4);
+      await expectLater(c.watchRangePresets(), emitsError(isA<StateError>()));
     });
 
     group('🆕 월 납입(R120 — 엔진 운영값)', () {
