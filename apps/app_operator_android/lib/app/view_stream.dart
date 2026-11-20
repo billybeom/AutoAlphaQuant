@@ -11,13 +11,14 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 
 import 'operator_view.dart';
 
-/// 화면 상태를 따라가는 흐름.
+/// 화면 상태를 따라가는 흐름 — 🆕 E11q-q4a [equals] = 값 비교(목록처럼 `==` 가 같은 것을 못 알아보는 값 · 없으면 `==`).
 Stream<T> followView<T>({
   required ValueListenable<OperatorView?> view,
   required Stream<T> Function(OperatorView v) changes,
   required T Function(OperatorView v) now,
   required Duration tick,
   required Object Function() noView,
+  bool Function(T a, T b)? equals,
 }) {
   late final StreamController<T> c;
   StreamSubscription<T>? sub;
@@ -26,7 +27,7 @@ Stream<T> followView<T>({
   bool has = false;
 
   void put(T value) {
-    if (c.isClosed || (has && value == last)) return;
+    if (c.isClosed || (has && (equals ?? _same<T>)(value, last as T))) return;
     has = true;
     last = value;
     c.add(value);
@@ -74,3 +75,5 @@ Stream<T> followView<T>({
   );
   return c.stream;
 }
+
+bool _same<T>(T a, T b) => a == b;

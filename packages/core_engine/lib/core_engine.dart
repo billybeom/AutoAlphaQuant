@@ -584,6 +584,31 @@ export 'src/ops/holdings_overview.dart'
 // 🆕 E14c1 — 잡 실행 기록 포트 · 값 꼴(02 v2.42 `job_run` · 설계 13 §8 R73 K1).
 export 'src/ops/job_run_log.dart'
     show JobRunEntry, JobRunLog, JobRunStatus, successStatusOf;
+// 🆕 E11q-q4a — M6 매매일지 읽기 VM(J-1 · 필터 · 배지 · J-2 · J-3R · 회차 범위) · 기간 프리셋 · 슬리브 목록.
+export 'src/ops/journal_view.dart'
+    show
+        JournalDecisionFact,
+        JournalEventFact,
+        JournalFacts,
+        JournalFillFact,
+        JournalIntentFact,
+        JournalNoteFact,
+        JournalOrderFact,
+        JournalStepTexts,
+        JournalTexts,
+        decisionDetailVmOf,
+        decisionJournalVmOf,
+        journalEntriesOf,
+        journalEventIdOf,
+        journalFilterCatalogOf,
+        journalKeyOf,
+        journalRangePresetsOf,
+        journalRebalanceScopeOf,
+        journalSleeveCatalogOf,
+        journalTimelineBadgesOf,
+        journalTimelineLinkOf,
+        journalTimelineOf,
+        kJournalStaleAfter;
 // 🆕 E14a — 리스 포트 · 3상 · 상수(SPEC v2.42 NR-1 0 · 6.9 · 설계 13 §8 R71).
 export 'src/ops/lease_gate.dart'
     show
