@@ -52,6 +52,8 @@ class KillSwitchActivateButton extends ConsumerStatefulWidget {
     super.key,
     required this.label,
     this.onReceipt,
+    this.buttonKey = const Key('m51-activate'),
+    this.compact = false,
   });
 
   /// 버튼 글자(엔진 `activateLabel`).
@@ -59,6 +61,12 @@ class KillSwitchActivateButton extends ConsumerStatefulWidget {
 
   /// 접수증(또는 접수 실패 = null).
   final void Function(CommandReceipt? receipt)? onReceipt;
+
+  /// 버튼 Key — 화면 = `m51-activate` · 셸 슬롯 = `ks-slot-activate`(링크 화면 앱바에 둘이 같이 선다).
+  final Key buttonKey;
+
+  /// 🆕 R182 — 셸 자리(앱바 · 사이드바) = 한 줄 말줄임 + 전체 글자 툴팁(글자 = 엔진 그대로 · 자르지 않는다).
+  final bool compact;
 
   @override
   ConsumerState<KillSwitchActivateButton> createState() =>
@@ -82,14 +90,87 @@ class _KillSwitchActivateButtonState
   Widget build(BuildContext context) {
     final CommandApi? api = ref.watch(safetyKillCommandApiProvider);
     if (api == null) return const SizedBox.shrink();
-    return FilledButton(
-      key: const Key('m51-activate'),
+    final Widget button = FilledButton(
+      key: widget.buttonKey,
       style: FilledButton.styleFrom(
         backgroundColor: Theme.of(context).colorScheme.error,
         foregroundColor: Theme.of(context).colorScheme.onError,
       ),
       onPressed: () => unawaited(_activate(api)),
-      child: Text(widget.label),
+      child: widget.compact
+          ? Text(widget.label, maxLines: 1, overflow: TextOverflow.ellipsis)
+          : Text(widget.label),
+    );
+    if (!widget.compact) return button;
+    return Tooltip(message: widget.label, child: button);
+  }
+}
+
+/// 셸 자리 최대 너비(폰 앱바 끝 · 웹 사이드바) — 제목을 밀어내지 않게.
+const double _kSlotMaxWidth = 176;
+
+/// 자리 끝 여백 — 앱바 끝(화면 가장자리)에 붙지 않게(에뮬레이터 실측 · R182).
+const EdgeInsetsDirectional _kSlotPadding = EdgeInsetsDirectional.only(end: 8);
+
+/// 🆕 R182 — 셸 킬스위치 자리(`OpsSlotIds.killSwitch` · 조립 앱 슬롯 빌더가 그린다 · 01 §34 K152).
+/// 꺼짐 = 발동 버튼(화면과 같은 위젯 · 확인 대화 0 · 접수증 = 스낵바) · 켜짐 = 상태 칩 → M5-1 화면 ·
+/// 읽는 중 · 읽기 실패 = 그리지 않음(실패 문장 = M5-1 화면 몫) · 🔴 잠김(운영 등급 생체)이어도 발동 버튼은 남는다.
+class KillSwitchSlot extends ConsumerWidget {
+  /// 만든다.
+  const KillSwitchSlot({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final KillSwitchScreenVm? vm = ref.watch(_screenProvider).valueOrNull;
+    if (vm == null) return const SizedBox.shrink(key: Key('ks-slot-none'));
+    final String? activate = vm.activateLabel;
+    if (activate != null) {
+      return Padding(
+        padding: _kSlotPadding,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _kSlotMaxWidth),
+          child: KillSwitchActivateButton(
+            label: activate,
+            buttonKey: const Key('ks-slot-activate'),
+            compact: true,
+            // 성공 = 원장이 바뀌어 칩으로 바뀐다(버튼이 먼저 내려가면 접수증은 오지 않는다 — 칩이 곧 결과) ·
+            // 거부 · 접수 실패 = 버튼이 남아 접수증 글자를 스낵바로.
+            onReceipt: (CommandReceipt? r) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                SnackBar(
+                  key: const Key('ks-slot-receipt'),
+                  content: Text(
+                    r?.stateLabel ?? SafetyLabels.submitNotAccepted,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: _kSlotPadding,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _kSlotMaxWidth),
+        child: Tooltip(
+          message: vm.stateLabel,
+          child: ActionChip(
+            key: const Key('ks-slot-active'),
+            side: BorderSide(color: cs.error),
+            labelStyle: TextStyle(color: cs.error),
+            label: Text(
+              vm.stateLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onPressed: () =>
+                ref.read(safetyLinkOpenerProvider).open(AppRoutes.m5KillSwitch),
+          ),
+        ),
+      ),
     );
   }
 }

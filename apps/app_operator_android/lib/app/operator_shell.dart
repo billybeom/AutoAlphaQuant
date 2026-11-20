@@ -36,6 +36,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         CommandApi,
         LedgerRepository,
         OnboardingSlotIds,
+        OpsSlotIds,
         SettingsActions;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -75,6 +76,7 @@ import 'package:ui_safety/ui_safety.dart'
     show
         KillResumeGateScreen,
         KillSwitchScreen,
+        KillSwitchSlot,
         PledgePanel,
         safetyActionsProvider,
         safetyKillCommandApiProvider,
@@ -286,6 +288,14 @@ ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
     secure: rt.secure,
   );
 };
+
+/// 🆕 R182 — M8 운영 슬롯 빌더(01 §26 K19 · §34 K152) — 셸 킬스위치 자리(폰 홈 앱바 · 링크 화면 앱바) = `ui_safety`
+/// `KillSwitchSlot`(꺼짐 = 발동 버튼 · 켜짐 = 상태 칩 → M5-1) · 🔴 셸은 자리만(확인 대화 · 핸들러 감싸기 0 — 04 §3-2) ·
+/// 긴급정지 카드 인쇄(`emergencyCardPrint`) = 이 폰에 인쇄 원천 없음 → 자리 부재(크기 0 · 키 `m8-slot-absent`).
+Widget operatorOpsSlot(String slotId) {
+  if (slotId == OpsSlotIds.killSwitch) return const KillSwitchSlot();
+  return const SizedBox.shrink(key: Key('m8-slot-absent'));
+}
 
 /// 🆕 R125 — 온보딩 읽기 모델(한 인스턴스 — 실측 캐시를 같이 쓴다).
 final Provider<OperatorOnboardingRepository> operatorOnboardingProvider =
@@ -502,6 +512,8 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   shellOpsStatusRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorOpsStatusProvider),
   ),
+  // 🆕 R182 — M8 운영 슬롯 빌더(셸 킬스위치 자리 = `ui_safety` 발동 버튼 · 켜짐 칩 — 위 R178 주입을 그대로 쓴다).
+  shellOpsSlotBuilderProvider.overrideWithValue(operatorOpsSlot),
   // 🆕 R115 — 온보딩 슬롯 빌더(본문 = 온보딩 원천이 서는 조각에서 등록 · 빌더는 미리).
   shellOnboardingSlotBuilderProvider.overrideWithValue(
     operatorSlotBuilder(runtime),
