@@ -33,3 +33,9 @@ export 'src/kill_switch/kill_switch_screen.dart'
 // 🆕 M5-8 서약(설계 13 §8 R157) — 읽기 + 쓰기(쓰기 주입 = 폰만 · 뷰어 null = 컨트롤 부재 → 배럴에 둔다).
 export 'src/pledge/pledge_panel.dart'
     show PledgePanel, safetyActionsProvider, safetyPledgeRepositoryProvider;
+// 🆕 X2 재개 리포트 · 게이트(설계 13 §8 R186 · 읽기 + 계절 3택 — 동작 = 엔진이 행에 준 것만).
+export 'src/resume/resume_screens.dart'
+    show
+        ResumeGateScreen,
+        ResumeReportScreen,
+        safetyResumeGateRepositoryProvider;

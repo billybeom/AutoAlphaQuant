@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/labels.dart';
+import '../common/level_look.dart';
 import '../kill_switch/kill_switch_screen.dart' show safetyLinkOpenerProvider;
 
 /// M5-5 읽기 창구(조립 앱이 주입).
@@ -24,15 +25,6 @@ final AutoDisposeStreamProvider<BlockBoardVm> _boardProvider =
     StreamProvider.autoDispose<BlockBoardVm>(
       (Ref ref) => ref.watch(safetyBlockBoardRepositoryProvider).watchBoard(),
     );
-
-/// 수준 → 아이콘 · 색(홈 셀과 같은 짝).
-(IconData, Color) _look(ColorScheme cs, UiLevel l) => switch (l) {
-  UiLevel.ok => (Icons.check_circle_outline, cs.primary),
-  UiLevel.info => (Icons.info_outline, cs.onSurfaceVariant),
-  UiLevel.watch => (Icons.visibility_outlined, cs.tertiary),
-  UiLevel.act => (Icons.error_outline, cs.secondary),
-  UiLevel.blocked => (Icons.block, cs.error),
-};
 
 /// M5-5 차단 보드 한 화면.
 class BlockBoardScreen extends ConsumerWidget {
@@ -69,7 +61,7 @@ class BlockBoardScreen extends ConsumerWidget {
     }
     final ThemeData theme = Theme.of(context);
     final ColorScheme cs = theme.colorScheme;
-    final (IconData icon, Color tone) = _look(cs, vm.level);
+    final (IconData icon, Color tone) = safetyLevelLook(cs, vm.level);
     return ListView(
       key: const Key('m55-root'),
       padding: const EdgeInsets.all(16),
@@ -179,7 +171,10 @@ class _RowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final (IconData icon, Color tone) = _look(theme.colorScheme, row.level);
+    final (IconData icon, Color tone) = safetyLevelLook(
+      theme.colorScheme,
+      row.level,
+    );
     return Card(
       key: Key('m55-row-${row.rowId}'),
       margin: const EdgeInsets.only(top: 12),

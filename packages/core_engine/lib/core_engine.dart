@@ -1061,6 +1061,18 @@ export 'src/resume/resume_judge.dart'
         seasonalReducedShares;
 // 🆕 E14d1 — 재판정 포트(설계 13 §8 R75 N7 · 실물 = E14d2).
 export 'src/resume/resume_reevaluator.dart' show ResumeReevaluator;
+// 🆕 E11q-b2a — X2 재개 화면 VM 두 장(리포트 · 게이트 — 설계 13 §8 R186 · 01 §31 K64 · §34 K156).
+export 'src/resume/resume_screens.dart'
+    show
+        ResumeGateItem,
+        ResumeGateRun,
+        ResumeScreenTexts,
+        kResumeScreenStaleAfter,
+        resumeGateRowLevel,
+        resumeGateVmOf,
+        resumePeriodText,
+        resumeReportVmOf,
+        resumeScreenAsOf;
 export 'src/resume/resume_text.dart'
     show
         plannedWorkStateLabel,

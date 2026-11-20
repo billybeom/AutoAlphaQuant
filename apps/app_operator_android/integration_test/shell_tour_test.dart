@@ -49,7 +49,12 @@ import 'package:ui_analytics/ui_analytics.dart'
 import 'package:ui_journal/ui_journal.dart'
     show HoldingDetail, HoldingsAllocation, HoldingsOverview;
 import 'package:ui_safety/ui_safety.dart'
-    show BlockBoardScreen, KillResumeGateScreen, KillSwitchScreen;
+    show
+        BlockBoardScreen,
+        KillResumeGateScreen,
+        KillSwitchScreen,
+        ResumeGateScreen,
+        ResumeReportScreen;
 import 'package:ui_settings/ui_settings.dart'
     show
         AnnualReviewEntry,
@@ -473,6 +478,27 @@ void main() {
       expect(find.byKey(const Key('m55-ladder-now')), findsOneWidget);
       await _at(tester, find.byType(BlockBoardScreen), 'IT_M55B');
       await tester.pageBack();
+
+      // 🆕 R186 — X2 재개 게이트 → 리포트 링크(모의 원장 = 재개 회차 0 → 엔진 빈 문장 · 계절 3택 버튼 0 = b2b 전).
+      container.read(shellLinkOpenerProvider).open(AppRoutes.x2ResumeGate);
+      await _until(tester, find.byKey(const Key('x2g-root')));
+      expect(
+        find.descendant(
+          of: find.byType(ResumeGateScreen),
+          matching: find.byType(OutlinedButton),
+        ),
+        findsNothing,
+      );
+      await _at(tester, find.byType(ResumeGateScreen), 'IT_X2G');
+      await tester.tap(find.byKey(const Key('x2g-report')));
+      await _until(tester, find.byKey(const Key('x2r-root')));
+      await _at(tester, find.byType(ResumeReportScreen), 'IT_X2R');
+      // 전환이 끝나야 아래 화면이 무대 밖으로 간다(뒤로 버튼이 하나).
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pageBack();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pageBack();
+      await tester.pump(const Duration(seconds: 1));
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
       await _until(tester, find.textContaining('남은 공간'));

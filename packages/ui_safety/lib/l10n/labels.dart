@@ -115,4 +115,18 @@ abstract final class SafetyLabels {
   static const String blockBoardLadderTrigger = '들어가는 조건';
   static const String blockBoardLadderRelease = '풀리는 조건';
   static const String blockBoardLadderAction = '조치';
+
+  // ── 🆕 X2 재개 리포트 · 게이트(설계 13 §8 R186) — 칸 이름 · 실패 문장만(머리 · 줄 · 사유 · 버튼 글자 = 엔진) ──
+
+  /// 리포트를 읽지 못했다(원천 오류 — «재개한 적 없음»과 다르다).
+  static const String resumeReportReadFailed = '재개 리포트를 읽지 못했습니다.';
+
+  /// 게이트를 읽지 못했다.
+  static const String x2GateReadFailed = '재개 화면을 읽지 못했습니다.';
+
+  /// 리포트 항목 머리.
+  static const String resumeReportItems = '계획별 결과';
+
+  /// 리포트 복구 불가 자료 머리.
+  static const String resumeReportGaps = '복구 불가 자료';
 }
