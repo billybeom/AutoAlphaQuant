@@ -214,7 +214,7 @@ A(primitives·enums)
 >
 > 🆕 **v1.28(01 §37 · ~~⬜ PR 대기~~ ✅ 병합 PR #282 squash `9c7ff349`(2026-11-20 · CI 3/3))** — `SettingsRepository.watchAllocationEditor()`(S04 첫 판 · 폰 · 뷰어 공통 · 받침대 동기 throw) · 🆕 DTO 4(`AllocationEditorVm` · `AllocationProfileCard` · `AllocationReadOnlySection` · `AllocationReadOnlyRow` · `dto/allocation.dart`) · 쓰기 0.
 >
-> 🆕 **v1.29(01 §39 · E11k-b 계약 창 · ⬜ PR 대기)** — 창구 · DTO · 동작 0 · o_07 ② = 슬롯 🆕 `SECRET_SUPABASE_CONNECT` + 기존 `connectionTest{target: SUPABASE}`(1단 · 결과 `reasonCode` ∈ `SupabaseInputResultCodes` ∪ `SupabaseTimeResultCodes` 망 5 ∪ null) · 🔴 o_07 VERIFIED = 쓰기-읽기 왕복 뒤 · 🆕 `schema/supabase_rpc.dart` 리스 RPC 표 · DDL `app_device.auth_uid`.
+> 🆕 **v1.29(01 §39 · E11k-b 계약 창 · ~~⬜ PR 대기~~ ✅ 병합 PR #288 squash `b979ae33`(2026-11-21 · CI 3/3))** — 창구 · DTO · 동작 0 · o_07 ② = 슬롯 🆕 `SECRET_SUPABASE_CONNECT` + 기존 `connectionTest{target: SUPABASE}`(1단 · 결과 `reasonCode` ∈ `SupabaseInputResultCodes` ∪ `SupabaseTimeResultCodes` 망 5 ∪ null) · 🔴 o_07 VERIFIED = 쓰기-읽기 왕복 뒤 · 🆕 `schema/supabase_rpc.dart` 리스 RPC 표 · DDL `app_device.auth_uid`.
 
 > 🆕 **v1.24(01 §33 · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — `SettingsActionId` 값 0 추가 · args 화이트리스트 `backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}` · `backupRestoreStart` = 화면 미호출(args 미정 유지) · calendar 3 = ⏸ R9d · `settingsGeneralUpdate` = ⏸ R9e(K120).
 
@@ -719,7 +719,7 @@ abstract interface class SettingsActions {
 - 🆕 **v1.27 SAF 경고 4**(`AlertCodes.safetyWarn` · 01 §36 K188~K190 · 엔진 E3d 상수 = 등재 · 04 §1 Level 3 · §5-3 v2.46 · 주문을 막지 않는다) — `DEFENSIVE_FLOOR_BREACHED`(잠정 P1 · SAF-302 · 넘은 첫날) · `GOLD_SHARE_HIGH`(잠정 P1 · SAF-308 · 넘은 첫날 · 강제 매도 0) · `FINANCIAL_INCOME_CAP_EXCEEDED`(잠정 P1 · SAF-306 · 과세연도 첫 초과 월) · `KRW_LIQUIDITY_LOW`(잠정 P2 · SAF-307 부속 · 넘은 첫날) · 🔴 SAF-307 달러 노출 기준선 초과 = 코드 0(월간 리포트 «초과 일수» 메모 · K192) · C-61 · 표본 `m8/alerts_engine_proposals_v127`.
 - 🆕 **v1.27 파생 동기 1**(`AlertCodes.derivedSync` · 01 §36 K188 · 엔진 E16 상수 = 등재 · 04 §5-3 v2.45 · E16i 의 알림 몫만) — `DERIVED_FORK`(잠정 P0 · 사본이 원장과 갈라져 그 사본 쓰기 멈춤 · 대상마다 1건 · 끈적 · 할 일 = X1 복원 또는 새 기준점(사람만)).
 - 🆕 **v1.28 S04 행 코드 10**(✅ 병합 #282)(`AllocationRowCodes` · 도메인 `allocation_row` · 01 §37 K200 · 엔진 `AllocationViewRowCodes` 글자 1:1 · 타입 이름 ≠ 엔진 · 화면 미참조) · 🆕 `AllocationReadModelColumns` 7(`lib/src/schema/read_model_columns.dart` · `rm_config_view` 배분 열 · 01 §6-4 · K201).
-- 🆕 **v1.29 E11k-b 사전 3**(01 §39 K227 · K229 · 🔴 타입 이름 ≠ 엔진) — `labels/supabase_codes.dart` `SupabaseInputResultCodes` 6(`supabase_input_result` · data_sync `SupabaseInputProblem` 1:1) · `SupabaseTimeResultCodes` 8(`supabase_time_result` · `SupabaseTimeFailure` 1:1) · `LeaseRpcResultCodes` 5(`lease_rpc_result` · RPC 표 거부) · `OnboardingSlotIds` +1 `SECRET_SUPABASE_CONNECT` · `LEASE_INVALID` = v1.18 `JournalReasonCodes` 한 벌(새 0) · 🆕 `schema/supabase_rpc.dart` `LeaseRpcNames` 3 · `LeaseRpcParams` 5 · `LeaseRpcColumns` 3 · C-64.
+- 🆕 **v1.29 E11k-b 사전 3**(✅ 병합 #288)(01 §39 K227 · K229 · 🔴 타입 이름 ≠ 엔진) — `labels/supabase_codes.dart` `SupabaseInputResultCodes` 6(`supabase_input_result` · data_sync `SupabaseInputProblem` 1:1) · `SupabaseTimeResultCodes` 8(`supabase_time_result` · `SupabaseTimeFailure` 1:1) · `LeaseRpcResultCodes` 5(`lease_rpc_result` · RPC 표 거부) · `OnboardingSlotIds` +1 `SECRET_SUPABASE_CONNECT` · `LEASE_INVALID` = v1.18 `JournalReasonCodes` 한 벌(새 0) · 🆕 `schema/supabase_rpc.dart` `LeaseRpcNames` 3 · `LeaseRpcParams` 5 · `LeaseRpcColumns` 3 · C-64.
 
 🔴 **알림을 만들지 않는 것** — 키 미등록 · `ADVICE_SELECTIVE_EXECUTION` · `SELF_AUDIT_PATTERN_UNVERIFIED`(전부 상태 표식·월간 리포트로만).
 🔴 **등급의 최종 정본은 엔진 `04_안전장치` notify 등급**이며 «앱 알림 코드 ↔ 엔진 등급 대조 1회» 를 통과한 값만 유효하다.
@@ -989,7 +989,7 @@ abstract interface class SettingsActions {
 
 🆕 **v1.28(2026-11-20 · 01 §37 · S04 첫 판 · ~~⬜ PR 대기~~ ✅ 병합 PR #282 squash `9c7ff349`(2026-11-20 · CI 3/3))** — **신설 2 · 개정 0 → 362**(나머지 360 봉투 `contract_version` 한 줄만): `m9/allocation_editor` · `_stale`(글자 = 엔진 시험 원문) · 생성기 `tool/gen_s04_v128_fixtures.py` · 🆕 C-62(12항) · C-57 ⑦ 주문 한도 행 예외 1.
 
-🆕 **v1.29(2026-11-20 · 01 §39 · E11k-b 계약 창 · ⬜ PR 대기)** — **신설 2 · 개정 0 → 365**(나머지 363 봉투 `contract_version` 한 줄만): `m8/onboarding_step_detail_supabase` · `m8/onboarding_supabase_connect_results` · 생성기 `tool/gen_e11k_v129_fixtures.py` · 🆕 C-64(8항) · 엔진 대조 data_sync 1.
+🆕 **v1.29(2026-11-20 · 01 §39 · E11k-b 계약 창 · ~~⬜ PR 대기~~ ✅ 병합 PR #288 squash `b979ae33`(2026-11-21 · CI 3/3))** — **신설 2 · 개정 0 → 365**(나머지 363 봉투 `contract_version` 한 줄만): `m8/onboarding_step_detail_supabase` · `m8/onboarding_supabase_connect_results` · 생성기 `tool/gen_e11k_v129_fixtures.py` · 🆕 C-64(8항) · 엔진 대조 data_sync 1.
 
 🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 — M9 `S09` · `S10` · `S12` · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — **신설 17 · 개정 0 → 322**(나머지 305 봉투 `contract_version` 한 줄만): `m9/` VM 1행 봉투 15(`backup*` 6 · `diagnostics_screen*` 5 · `annual_review_index*` 4) · 목록 봉투 2(`backup_action_results` 10행 · `selftest_action_results` 12행) · 생성기 `tool/gen_r9_v124_fixtures.py` · `board` = `m8/recon_board_*` `rows[0]` 복사.
 
