@@ -1247,6 +1247,15 @@ POT 행 0 · 전 표본 `CREDENTIAL_VERIFY` kind ∈ 사전 · 키 조각 꼴·8
 
 `packages/domain_contracts/tool/gen_e3d_v127_fixtures.py` — 기준 커밋(`c1a755b3`) 원문에서 멱등 생성 · 행 글자 · 링크는 엔진 소스(`alert_text.dart` `kAlertTexts`) · 라우트 상수(`app_links.dart`)에서 읽고, 등급은 엔진 `alert_rules.dart` `kAlertLevels` 줄 · 계약 상수 글자와 같은지 쓰기 전에 확인.
 
+### 🆕 정정 1건 (2026-11-20 · E11q-c4 RECON 해제 뒤 · 설계 13 §8 R189 · 계약 1.27.0 유지 · 파일 수 360 그대로)
+
+| 파일 | 무엇이 바뀌었나 |
+|---|---|
+| `m5/safety_action_results_e13.json` | RECON 해제 성공 행(`ar_e13_12` · `RECON_CLEAR` · 코드 null) `headline` «(합성) 대사 불일치 표시를 풀었습니다.»(v1.22 합성) → «(합성) 대사 불일치 표시를 풀었습니다 — 결정 저널이 함께 남았습니다.»(v1.26 `m5/recon_clear_results` `ar_rcl_01` 글자 · 엔진 `ReconClearTexts.cleared`) — 같은 (id, 코드 null) 결과가 두 표본에서 달랐던 것을 하나로. 다른 줄 · 키 · `meta` 불변 |
+
+생성 = `packages/domain_contracts/tool/gen_e11q_c4_e13_fix.py` — 기준 커밋(`e83361b3`) 원문에서 그 한 줄만 바이트 치환(다시 직렬화 0) · 쓰기 전에 ① 옛 줄이 그 행에 한 번 ② 새 글자 == v1.26 성공 행 ③ «(합성)» 뗀 글자 == 엔진 상수 ④ 바뀐 줄 1 · 행 수 · 키 · `meta` 불변을 확인 · 멱등.
+엔진 대조 = core `recon_clear_test` 가 e13 RECON 2행(성공 · 생체) 모두를 엔진 `reconClearActionResultOf` 와 맞댄다(정정 전 = 거부 행만).
+
 ## 계약 v1.26 (2026-11-20 · 트랙 C 선행 — M5-11 simToAuto 위저드 · M5-9 SAF-405 첫 승인 최소판 · M5-5 RECON 해제 · 사전 저널 꼴 · 01 §35 · ~~⬜ PR 대기~~ ✅ 병합 PR #270 squash `09d3580d`(2026-11-20 · CI 3/3))
 
 설계 = `10_리뷰/2026-11-20_트랙C선행_계약v1.26_설계서.md` §5(결정 K166~K186 · 발주자 위임 2026-11-14 — 권고대로).

@@ -170,31 +170,34 @@ void main() {
       }
     });
 
-    test(
-      '표본 safety_action_results_e13 RECON 거부 행도 같다(성공 행 = v1.26 표본이 정본)',
-      () {
-        int n = 0;
-        for (final Map<String, Object?> row in _rows(
-          'safety_action_results_e13',
-        )) {
-          final SafetyActionResult fx = SafetyActionResult.fromJson(row);
-          // 🔵 R189 — e13(v1.22) 성공 글자 «…풀었습니다.» 는 v1.26 `recon_clear_results` 성공 글자로 갈음(저널을 함께 쓴다).
-          if (fx.id != SafetyActionId.reconClear || fx.reasonCode == null) {
-            continue;
-          }
-          final SafetyActionResult got = reconClearActionResultOf(
-            actionRunId: fx.actionRunId,
-            code: fx.reasonCode,
-          );
-          expect(
-            (got.level, got.headline, got.reasonCode),
-            (fx.level, _plain(fx.headline), fx.reasonCode),
-          );
-          n++;
-        }
-        expect(n, greaterThan(0));
-      },
-    );
+    test('표본 safety_action_results_e13 RECON 2행(성공 · 생체)도 같다 — 🆕 성공 글자 정정(gen_e11q_c4_e13_fix · v1.26 글자로 하나)', () {
+      final List<SafetyActionResult> recon =
+          <SafetyActionResult>[
+                for (final Map<String, Object?> row in _rows(
+                  'safety_action_results_e13',
+                ))
+                  SafetyActionResult.fromJson(row),
+              ]
+              .where(
+                (SafetyActionResult r) => r.id == SafetyActionId.reconClear,
+              )
+              .toList();
+      expect(recon, hasLength(2));
+      expect(
+        <String?>[for (final SafetyActionResult r in recon) r.reasonCode],
+        <String?>[null, SettingsResultCodes.biometricUnavailable],
+      );
+      for (final SafetyActionResult fx in recon) {
+        final SafetyActionResult got = reconClearActionResultOf(
+          actionRunId: fx.actionRunId,
+          code: fx.reasonCode,
+        );
+        expect(
+          (got.level, got.headline, got.reasonCode, got.retryable),
+          (fx.level, _plain(fx.headline), fx.reasonCode, fx.retryable),
+        );
+      }
+    });
 
     test('🔴 사전 = 계약 RECON 코드 3 ∪ 저널 id 겹침 ∪ 생체 · 모르는 코드 = 오류', () {
       for (final String c in <String>{
