@@ -45,6 +45,7 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AccountMappingVm,
+        AllocationEditorVm,
         ContributionSetting,
         CredentialListVm,
         DiagnosticsScreenVm,
