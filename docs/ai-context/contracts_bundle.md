@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 124개 · 계약 v1.31.0 · 조립일 2026-11-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 126개 · 계약 v1.32.0 · 조립일 2026-11-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -99,7 +99,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -349,12 +349,19 @@ export 'commands/settings_actions.dart';
 //    픽스처 365 → 367(신설 2 — `m8/onboarding_step_detail_supabase_login` · `m8/onboarding_supabase_signin_results`) —
 //    🆕 tool/gen_e11k_d2_v131_fixtures.py.
 //    다음 판 = 1.32.0(🔴 첫 후보 = E16j 화면 계약 — 01 §8 미결 211 · 그 밖 v1.28 예약 목록 그대로) · 06 변경 이력 «2026-11-2x · 계약 v1.31».
+// 🆕 '1.32.0'(E16j-a 계약 창 · 01 §41 · 발주자 위임 2026-11-14 — 권고대로 · K247~K263) — X5 정정 마법사(E16j 나눔 a · X1 = 1.33.0):
+//    🆕 `RepairWizardVm` · `RepairOriginChoice` · `RepairStageRow` · `RepairCorrectionForm` · `RepairFillChoice`(`dto/repair.dart`) ·
+//    🆕 `RepairWizardRepository.watchRepair({targetId})` · 🆕 라우트 `x5RepairTarget`(`/:targetId` · 84 → 85 · 허브 `x5RepairWizard` 그대로) ·
+//    `SafetyActions` +3(`runRepairCorrect` · `runRepairBaseline` · `runInterventionJournal`) + 제출 DTO 3 · `SafetyActionId` +4
+//    (`repairAccept` = `run{diff_id}` 화이트리스트 · 나머지 = 결과 id) · 🆕 `BaselineApplyResultCodes` 1 · 받침대 +4 · op stub 3 · 🆕 C-66 ·
+//    픽스처 367 → 375(신설 8 — 🆕 폴더 `x5/`) — 🆕 tool/gen_e16j_a_v132_fixtures.py · 🔴 엔진 결속 · 후보 · 재대사 · VM 생산 = 미결 217.
+//    다음 판 = 1.33.0(🔴 첫 후보 = E16j-b X1 화면 계약 — 미결 211 남은 몫 · 그 밖 v1.28 예약 목록 그대로) · 06 변경 이력 «2026-11-2x · 계약 v1.32».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.31.0';
+const String contractVersion = '1.32.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -427,6 +434,7 @@ export 'dto/ops.dart';
 export 'dto/performance.dart';
 export 'dto/plan.dart';
 export 'dto/rebalance.dart';
+export 'dto/repair.dart'; // 🆕 v1.32 — X5 정정 마법사(01 §41)
 export 'dto/resume.dart';
 export 'dto/safety.dart';
 export 'dto/safety_gate.dart';
@@ -580,6 +588,7 @@ export 'repositories/pairing_repository.dart';
 export 'repositories/performance_repository.dart';
 export 'repositories/pledge_repository.dart';
 export 'repositories/rebalance_repository.dart';
+export 'repositories/repair_wizard_repository.dart'; // 🆕 v1.32 — X5 정정 마법사(01 §41)
 export 'repositories/resume_gate_repository.dart';
 export 'repositories/resume_repository.dart';
 export 'repositories/rule_change_gate_repository.dart';
@@ -1753,6 +1762,16 @@ part 'safety_actions.g.dart';
 ///   트랜잭션 · 신뢰 시각 비의존 · 거부 = `ReconClearResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.reconClear].
 /// 🔴 사전 저널 꼴 ⓐ(K180) — 사람 글 3필드(`rationaleBefore` · `expectedOutcome` · `ruleCited` 원문)는 제출 DTO 에 · 저널 id 는
 ///    구현 · 저널 행과 동작은 한 트랜잭션(고아 저널 0 · 엔진 «저널 함께 쓰기» 판 = 01 §8 미결 206).
+/// 🆕 v1.32(01 §41 · K251~K259 · E16j-a · X5 정정 마법사 `RepairWizardVm`):
+/// · `run` 화이트리스트 +1 — `repairAccept` = `{diff_id}`(아무것도 안 하기 · 구현 = 살아 있는 개입 세션 `DO_NOTHING` + diff ACCEPTED ·
+///   무결성 갈래 0 · 결과 id = [SafetyActionId.repairAccept]).
+/// · `runRepairCorrect` — 정본 정정(diff 갈래 · 5단계 통과 뒤 · 원문 4칸 파싱 = 구현 · 직전 재대사 = 구현 · `decision_id` = 개입 세션 저널 ·
+///   거부 = `RepairResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪ `InterventionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairCorrect].
+/// · `runRepairBaseline` — 새 기준점(무결성 갈래 · 거부 = `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `InterventionResultCodes` ∪
+///   `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairBaseline].
+/// · `runInterventionJournal` — 개입 3단계 사전 저널(K180 꼴 3칸 · 구현 = 살아 있는 세션 하나에 붙인다 · 저널 + 3단계 한 트랜잭션 · M5-6 재사용 ·
+///   거부 = `InterventionResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.interventionJournal].
+/// 🔴 정정 · 새 기준점 커밋이 개입 세션 5단계 · 실행 창 · `decision == journalId` 를 보게 하는 결속 = 엔진 숙제(01 §8 미결 217).
 abstract interface class SafetyActions {
   /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
   Future<SafetyActionResult> run(
@@ -1788,6 +1807,21 @@ abstract interface class SafetyActions {
   /// 🆕 v1.26(01 §35 · K181) — `M5-5` 차단 보드 RECON 해제.
   Future<SafetyActionResult> runReconClear(ReconClearSubmission submission);
 
+  /// 🆕 v1.32(01 §41 · K255) — X5 정본 정정(diff 갈래).
+  Future<SafetyActionResult> runRepairCorrect(
+    RepairCorrectSubmission submission,
+  );
+
+  /// 🆕 v1.32(01 §41 · K256) — X5 새 기준점(무결성 갈래).
+  Future<SafetyActionResult> runRepairBaseline(
+    RepairBaselineSubmission submission,
+  );
+
+  /// 🆕 v1.32(01 §41 · K252) — 개입 3단계 사전 저널(X5 마찰 · M5-6 공용).
+  Future<SafetyActionResult> runInterventionJournal(
+    InterventionJournalSubmission submission,
+  );
+
   Stream<SafetyActionResult> watch(String actionRunId);
 }
 
@@ -1805,7 +1839,8 @@ abstract class SafetyActionResult with _$SafetyActionResult {
     /// 값 ∈ `KillSwitchResultCodes` ∪ `SafetyCommonResultCodes` ∪ `PledgeResultCodes` ∪ 🆕 v1.22 `StoppedDecisionResultCodes` ∪
     /// `PostmortemResultCodes` ∪ `InterventionResultCodes` ∪ `RuleChangeResultCodes` ∪ `DiscretionResultCodes` ∪
     /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
-    /// `ReconClearResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩).
+    /// `ReconClearResultCodes` ∪ 🆕 v1.32 `RepairResultCodes` ∪ `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪
+    /// {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ · C-66).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).
@@ -1991,6 +2026,55 @@ abstract class ReconClearSubmission with _$ReconClearSubmission {
       _$ReconClearSubmissionFromJson(json);
 }
 // JSON 키: origin_code · rationale_before · expected_outcome · rule_cited
+
+/// 🆕 v1.32(01 §41 · K255) — X5 정본 정정 제출(ds `correctFill` 칸 − 구현 몫(정정 id · 직전 재대사 diff · 결정 id · 체인 상한)).
+/// 🔴 [targetId] · [fillRef] · [originCode] = VM 이 실은 값 그대로 · 수량 · 가격 · 수수료 · 세금 = 사람이 친 **원문**(파싱 = 구현 ·
+///    거부 코드 = 엔진이 먼저 정한다 — 그 전 표본 0) · [voidFill] true = 무효(네 칸 무시).
+@freezed
+abstract class RepairCorrectSubmission with _$RepairCorrectSubmission {
+  const factory RepairCorrectSubmission({
+    required String targetId,
+    required String fillRef,
+    required String originCode,
+    required bool voidFill,
+    String? quantityText,
+    String? priceText,
+    String? commissionText,
+    String? taxText,
+  }) = _RepairCorrectSubmission;
+
+  factory RepairCorrectSubmission.fromJson(Map<String, dynamic> json) =>
+      _$RepairCorrectSubmissionFromJson(json);
+}
+// JSON 키: target_id · fill_ref · origin_code · void_fill · quantity_text · price_text · commission_text · tax_text
+
+/// 🆕 v1.32(01 §41 · K256) — X5 새 기준점 제출(ds `applyBaseline` · [targetId] = 무결성 합성 id `li-…` · 원인 = 3종 ∩ 경계 후보).
+@freezed
+abstract class RepairBaselineSubmission with _$RepairBaselineSubmission {
+  const factory RepairBaselineSubmission({
+    required String targetId,
+    required String originCode,
+  }) = _RepairBaselineSubmission;
+
+  factory RepairBaselineSubmission.fromJson(Map<String, dynamic> json) =>
+      _$RepairBaselineSubmissionFromJson(json);
+}
+// JSON 키: target_id · origin_code
+
+/// 🆕 v1.32(01 §41 · K252) — 개입 3단계 사전 저널 제출(K180 꼴 · 사람 글 3칸 원문 · 저널 id = 구현 · 세션 = 살아 있는 하나).
+@freezed
+abstract class InterventionJournalSubmission
+    with _$InterventionJournalSubmission {
+  const factory InterventionJournalSubmission({
+    required String rationaleBefore,
+    required String expectedOutcome,
+    required String ruleCited,
+  }) = _InterventionJournalSubmission;
+
+  factory InterventionJournalSubmission.fromJson(Map<String, dynamic> json) =>
+      _$InterventionJournalSubmissionFromJson(json);
+}
+// JSON 키: rationale_before · expected_outcome · rule_cited
 ```
 
 ---
@@ -7415,6 +7499,172 @@ abstract class NextRebalanceVm with _$NextRebalanceVm {
 
 ---
 
+## `packages/domain_contracts/lib/src/dto/repair.dart`
+
+```dart
+// 🆕 계약 v1.32(01 §41 · K247~K263 · E16j-a) — X5 정정 마법사(`X5-3` · 🔒 `ui_safety`) 한 화면.
+//
+// 허브(`x5RepairWizard` · 열린 대상 고르기)와 대상 화면(`x5RepairTarget/:targetId` · 시작 → 원인 → 마찰 1~5 → 실행 / 아무것도 안 하기)이
+// 같은 VM 을 쓴다(창구 = `RepairWizardRepository.watchRepair({targetId})` · 폰 전용).
+// 🔴 문장 · 라벨 · 시각 글자 = 엔진 · `code`/`reasonCode` 칸 = 화면 미참조(표본 · 사전 검사용) · 색 = `level` 하나.
+// 🔴 동작 = 엔진이 완성한 `SafetyActionCall`(그대로 `SafetyActions.run`) 또는 제출 DTO(`runRepairCorrect` · `runRepairBaseline` ·
+//    `runInterventionJournal`) — 화면은 id · args 를 짓지 않는다.
+// 🔴 발주자 수치(냉각 24h · 정정 체인 상한 · 실행 창) = 엔진 글자로만(칸 0) · 정정은 되돌리지 않는다(정정의 정정만 · 엔진 문장).
+// 🔴 정정 커밋 ↔ 개입 세션 5단계 결속 · 체결 후보 목록 · 직전 재대사 = 엔진 숙제(01 §8 미결 217) — 그 전에는 엔진이 이 VM 을 내지 않는다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../commands/safety_actions.dart'; // SafetyActionCall
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import 'common.dart'; // LinkAction
+import 'ledger.dart'; // LedgerDiffRow
+
+part 'repair.freezed.dart';
+part 'repair.g.dart';
+
+/// X5 정정 마법사 한 화면(허브 · 대상 공용).
+///
+/// 🔴 허브 = [targetLinks] 비지 않음 · 그때 [diff] · [stages] · [origins] · 동작 0.
+/// 🔴 [lockedLabel] · [doneLabel] · [x1GuideLink] 가 non-null 이면 동작 0([doNothingAction] · [correction] · [baselineLabel] · [stages] 의 동작).
+/// 🔴 [correction](정본 정정 · diff 갈래)과 [baselineLabel](새 기준점 · 무결성 갈래)은 동시에 non-null 이 아니다.
+@freezed
+abstract class RepairWizardVm with _$RepairWizardVm {
+  const factory RepairWizardVm({
+    /// 허브 문장 · diff 요약 · 경계 문장 — 엔진.
+    required String headline,
+    required UiLevel level,
+
+    /// 🔴 화면 미참조 — ∈ `LedgerBoundaryReasonCodes` ∪ `RepairResultCodes` ∪ `BaselineResultCodes` ∪ `BaselineApplyResultCodes`.
+    String? reasonCode,
+
+    /// 허브만 — 열린 대상마다 하나(→ `x5RepairTarget` · 엔진이 인자를 완성). 대상 화면 = 빈 목록.
+    required List<LinkAction> targetLinks,
+
+    /// 탐지 시점 근거(L-1 행 재사용 · 🔴 그 안의 `actionLink` = null). 무결성 갈래 · 허브 = null.
+    LedgerDiffRow? diff,
+
+    /// 대상 요약 — 무결성 첫 어긋난 날 · 사유 · 대상 체결 요약(엔진 글자).
+    required List<String> targetLines,
+
+    /// 처음 고른 칸이 «아무것도 안 하기»인가(FILL_LAG · 현금 축 — 엔진 `defaultRepairChoiceOf`). 🔴 글자를 고르는 데 쓰지 않는다.
+    required bool doNothingDefault,
+
+    /// 고를 수 있는 원인 — 정정 = 쌍 쓰기 목록 · 새 기준점 = 3종 ∩ 경계 후보(엔진). 🔴 자유 서술 0.
+    required List<RepairOriginChoice> origins,
+
+    /// 마찰 1~5(개입 세션 · 길이 ∈ {0, 5}).
+    required List<RepairStageRow> stages,
+
+    /// 아무것도 안 하기(`repairAccept{diff_id}` · 엔진 완성). 무결성 갈래 · 허브 = null.
+    SafetyActionCall? doNothingAction,
+
+    /// 정본 정정 폼 — non-null ⇔ 5단계 실행 가능(diff 갈래). 제출 = `runRepairCorrect`.
+    RepairCorrectionForm? correction,
+
+    /// 새 기준점 버튼 글자 — non-null ⇔ 실행 가능(무결성 갈래). 제출 = `runRepairBaseline`.
+    String? baselineLabel,
+
+    /// «정정은 되돌리지 않습니다 — 정정의 정정만» 류 — 엔진.
+    String? noticeText,
+
+    /// 끝난 뒤 문장. non-null ⇒ 동작 0.
+    String? doneLabel,
+
+    /// 정정 이력(→ `ledgerRepairs`).
+    LinkAction? historyLink,
+
+    /// 경계 X1(원장을 믿을 수 없음 → `x1MigrationEmergency`). non-null ⇒ 동작 0.
+    LinkAction? x1GuideLink,
+
+    /// 생체 · 리스 · 뷰어 잠김 — non-null ⇒ 동작 0.
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _RepairWizardVm;
+
+  factory RepairWizardVm.fromJson(Map<String, dynamic> json) =>
+      _$RepairWizardVmFromJson(json);
+}
+// JSON 키: headline · level · reason_code · target_links · diff · target_lines · do_nothing_default · origins · stages ·
+//          do_nothing_action · correction · baseline_label · notice_text · done_label · history_link · x1_guide_link ·
+//          locked_label · as_of
+
+/// 원인 한 칸(`ReconOriginChoice` 와 같은 꼴 · 정정 · 새 기준점 공용).
+@freezed
+abstract class RepairOriginChoice with _$RepairOriginChoice {
+  const factory RepairOriginChoice({
+    /// ∈ `OriginCodes` — 제출 DTO 의 `originCode` 로 그대로.
+    required String originCode,
+
+    /// 칩 글자 — 엔진.
+    required String label,
+  }) = _RepairOriginChoice;
+
+  factory RepairOriginChoice.fromJson(Map<String, dynamic> json) =>
+      _$RepairOriginChoiceFromJson(json);
+}
+// JSON 키: origin_code · label
+
+/// 마찰 한 단계(개입 세션 재사용 — 1 규칙 대비 · 2 카드 + 서약 재생 · 3 저널 · 4 냉각 · 5 실행 창).
+@freezed
+abstract class RepairStageRow with _$RepairStageRow {
+  const factory RepairStageRow({
+    required String title,
+    required String stateLabel,
+    required UiLevel level,
+
+    /// 규칙 대비 · 서약 3문장 재생 · 냉각 끝 «MM-DD HH:mm 부터» — 엔진 글자.
+    required List<String> lines,
+
+    /// 기존 `interventionStep{session_id, stage, outcome, decision_id?}` — 엔진 완성 · 그대로 `run`.
+    required List<SafetyActionCall> actions,
+
+    /// 3단계만 true — 저널 3칸 폼(제출 = `runInterventionJournal`).
+    required bool journalForm,
+  }) = _RepairStageRow;
+
+  factory RepairStageRow.fromJson(Map<String, dynamic> json) =>
+      _$RepairStageRowFromJson(json);
+}
+// JSON 키: title · state_label · level · lines · actions · journal_form
+
+/// 정본 정정 폼(diff 갈래 · 5단계 통과 뒤).
+@freezed
+abstract class RepairCorrectionForm with _$RepairCorrectionForm {
+  const factory RepairCorrectionForm({
+    /// 정정할 브로커 체결 후보(빈 목록 금지 — 엔진 숙제 미결 217).
+    required List<RepairFillChoice> fills,
+
+    /// 수량 · 가격 재기재가 허용되나(아니면 무효만).
+    required bool amendAllowed,
+
+    /// 폼 머리 문장 — 엔진.
+    String? noticeText,
+  }) = _RepairCorrectionForm;
+
+  factory RepairCorrectionForm.fromJson(Map<String, dynamic> json) =>
+      _$RepairCorrectionFormFromJson(json);
+}
+// JSON 키: fills · amend_allowed · notice_text
+
+/// 정정 대상 체결 한 칸.
+@freezed
+abstract class RepairFillChoice with _$RepairFillChoice {
+  const factory RepairFillChoice({
+    /// 🔴 화면 미참조 — 체결 id(제출 DTO 의 `fillRef` 로 그대로).
+    required String fillRef,
+
+    /// 체결 요약 — 엔진(날 · 종목 · 수량 · 가격 글자).
+    required String label,
+  }) = _RepairFillChoice;
+
+  factory RepairFillChoice.fromJson(Map<String, dynamic> json) =>
+      _$RepairFillChoiceFromJson(json);
+}
+// JSON 키: fill_ref · label
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/dto/resume.dart`
 
 ```dart
@@ -9441,7 +9691,23 @@ enum SafetyActionId {
   /// 🆕 v1.22(K54) — X2 재개 게이트 계절 A 진입 3택(`run{work_id, choice}` · 🔵 엔진 명령 kind 0 → 계약이 짓는다 ·
   /// ds `jobs/resume_job.dart:399` `applySeasonalChoice` · `decision_id` = 구현이 짓는다).
   @JsonValue('SEASONAL_WINDOW_CHOICE')
-  seasonalWindowChoice('SEASONAL_WINDOW_CHOICE');
+  seasonalWindowChoice('SEASONAL_WINDOW_CHOICE'),
+
+  /// 🆕 v1.32(01 §41 · K254 · E16j-a) — X5 아무것도 안 하기(`run{diff_id}` · 화이트리스트 · ACCEPTED).
+  @JsonValue('REPAIR_ACCEPT')
+  repairAccept('REPAIR_ACCEPT'),
+
+  /// 🆕 v1.32(K255) — X5 정본 정정(제출 `runRepairCorrect` · 결과 id).
+  @JsonValue('REPAIR_CORRECT')
+  repairCorrect('REPAIR_CORRECT'),
+
+  /// 🆕 v1.32(K256) — X5 새 기준점(제출 `runRepairBaseline` · 결과 id).
+  @JsonValue('REPAIR_BASELINE')
+  repairBaseline('REPAIR_BASELINE'),
+
+  /// 🆕 v1.32(K252) — 개입 3단계 사전 저널(제출 `runInterventionJournal` · 결과 id · M5-6 공용).
+  @JsonValue('INTERVENTION_JOURNAL')
+  interventionJournal('INTERVENTION_JOURNAL');
 
   const SafetyActionId(this.wire);
 
@@ -12113,6 +12379,31 @@ abstract final class FixturePaths {
   static const String x2ResumeReportScreenRecoveryFull =
       'x2/resume_report_screen_recovery_full.json';
 
+  // ── x5/ — 🆕 v1.32(01 §41 · K260 · E16j-a) X5 정정 마법사 `RepairWizardVm` 7 · 결과 1 · 폴더 신설(파일 이름 바이트 차례) ──
+  /// 🆕 v1.32 — 결과 11행(`SafetyActionResult` · 동작 4 · 거부 사전 합집합).
+  static const String x5RepairActionResults = 'x5/repair_action_results.json';
+
+  /// 🆕 v1.32 — 경계 X1(원장 불신 · `x1GuideLink` · 동작 0).
+  static const String x5RepairBoundaryX1 = 'x5/repair_boundary_x1.json';
+
+  /// 🆕 v1.32 — diff 갈래 기본(FILL_LAG = 아무것도 안 하기 · 1단계 차례).
+  static const String x5RepairDiffDefault = 'x5/repair_diff_default.json';
+
+  /// 🆕 v1.32 — diff 갈래 실행 준비(5단계 통과 · 정정 폼).
+  static const String x5RepairDiffReady = 'x5/repair_diff_ready.json';
+
+  /// 🆕 v1.32 — diff 갈래 3단계(사전 저널 폼).
+  static const String x5RepairDiffStage3 = 'x5/repair_diff_stage3.json';
+
+  /// 🆕 v1.32 — 허브 빈(열린 대상 0 · `doneLabel`).
+  static const String x5RepairHubEmpty = 'x5/repair_hub_empty.json';
+
+  /// 🆕 v1.32 — 허브 대상 2(→ `x5RepairTarget` · diff · 무결성).
+  static const String x5RepairHubTargets = 'x5/repair_hub_targets.json';
+
+  /// 🆕 v1.32 — 무결성 갈래 새 기준점 준비.
+  static const String x5RepairIntegrityReady = 'x5/repair_integrity_ready.json';
+
   /// 전량 목록 — C-14 시크릿 스캔·C-15 열거값 대조가 이 목록을 돈다.
   static const List<String> all = <String>[
     alerts12,
@@ -12482,6 +12773,14 @@ abstract final class FixturePaths {
     x2ResumeReportScreenEmpty,
     x2ResumeReportScreenNormal,
     x2ResumeReportScreenRecoveryFull,
+    x5RepairActionResults,
+    x5RepairBoundaryX1,
+    x5RepairDiffDefault,
+    x5RepairDiffReady,
+    x5RepairDiffStage3,
+    x5RepairHubEmpty,
+    x5RepairHubTargets,
+    x5RepairIntegrityReady,
   ];
 }
 ```
@@ -13814,6 +14113,8 @@ abstract final class ContractCodes {
     'baseline_result': BaselineResultCodes.values,
     'ledger_boundary_reason': LedgerBoundaryReasonCodes.values,
     'derived_relation': DerivedRelationCodes.values,
+    // 🆕 v1.32(01 §41 · E16j-a) — 새 기준점 저장 쪽 거부(ds `BaselineStoreCodes` − 공용)
+    'baseline_apply_result': BaselineApplyResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -14874,6 +15175,15 @@ abstract final class BaselineResultCodes {
   static const String firstBadDateUnknown = 'BASELINE_FIRST_BAD_DATE_UNKNOWN';
 
   static const Set<String> values = <String>{notX5, firstBadDateUnknown};
+}
+
+/// 🆕 v1.32(01 §41 · K257 · E16j-a) — 새 기준점 저장 쪽 거부(도메인 `baseline_apply_result` · data_sync `local/ledger_repair_store.dart:33-40`
+/// `BaselineStoreCodes` 2 − 공용 `TRUSTED_TIME_UNKNOWN` · 🔴 타입 이름 ≠ 엔진). 정정 중 겹침(`LedgerFixBusy`)은 코드 0 — 구현이 «잠시 뒤 다시» 결과.
+abstract final class BaselineApplyResultCodes {
+  /// `LEDGER_INTEGRITY` 가 서 있지 않다.
+  static const String flagNotSet = 'BASELINE_FLAG_NOT_SET';
+
+  static const Set<String> values = <String>{flagNotSet};
 }
 
 /// X1/X5 경계 사유(도메인 `ledger_boundary_reason` · 엔진 core `ops/ledger_boundary.dart:17-41` `BoundaryReason.wire` 8 ·
@@ -16762,8 +17072,12 @@ abstract final class AppRoutes {
   /// 🆕 v1.25(01 §34 · K157) — 🔒 X2-6 게이트 본문 = `ui_safety`(VM = `ResumeGateVm`).
   static const String x2ResumeGate = 'aaq://x2/resume-gate';
 
-  /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.
+  /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사 — 🆕 v1.32(01 §41 · K248) = **허브**(열린 대상 고르기 · 파라미터 0 · 엔진 링크 그대로).
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
+
+  /// 🆕 v1.32(01 §41 · K248 · E16j-a) — 🔒 X5 정정 마법사 **대상 화면**(`:targetId` = `ld-…` diff id 또는 `li-…` 무결성 합성 id ·
+  /// 엔진이 완성 · 5조각 = 허브 4조각과 겹침 0 · 본문 = `ui_safety` · VM = `RepairWizardVm` · 01 §8 미결 115 닫음).
+  static const String x5RepairTarget = 'aaq://x5/repair-wizard/:targetId';
 
   /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance` ·
   /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory` · 🆕 v1.8 = 48 · `holdingsOverview`·
@@ -16861,6 +17175,7 @@ abstract final class AppRoutes {
     x2ResumeReport,
     x2ResumeGate,
     x5RepairWizard,
+    x5RepairTarget, // 🆕 v1.32 = 85(01 §41 · K248)
   ];
 
   /// [link] 가 [all] 의 패턴 하나와 일치하는가.
@@ -17969,6 +18284,26 @@ abstract interface class RebalanceRepository {
   ///    문구가 `emptyLabel` 이다. null 을 허용하면 화면이 「예정된 회차 없음」을 스스로
   ///    쓰게 되어 계약 3조 ③(빈 상태 문구도 엔진 생성)이 깨진다.
   Stream<NextRebalanceVm> watchNext();
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/repair_wizard_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 계약 v1.32(01 §41 · K249 · E16j-a) — X5 정정 마법사 읽기 창구(폰 전용 · `ui_safety` 만 · 구현 = 조립 앱 — 엔진 VM 생산).
+//
+// 🔴 [targetId] null = 허브(열린 대상 고르기 · `x5RepairWizard`) · 값 = 대상 화면(`x5RepairTarget/:targetId` · `ld-…` diff id 또는 `li-…`
+//    무결성 합성 id — 라우트 인자 그대로 · 화면은 해석하지 않는다).
+// 🔴 모르는 · 닫힌 대상 = 엔진 문장 VM(스트림 에러가 아니다 · `doneLabel` 또는 `headline`).
+// 🔴 쓰기 = `SafetyActions`(행 · VM 의 동작 그대로 · 제출 DTO 3).
+
+import '../dto/repair.dart';
+
+/// X5 정정 마법사 한 화면.
+abstract interface class RepairWizardRepository {
+  Stream<RepairWizardVm> watchRepair({String? targetId});
 }
 ```
 
