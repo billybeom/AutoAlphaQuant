@@ -359,4 +359,28 @@ void main() {
       (fx['status_chip']! as Map<String, Object?>).keys.toSet(),
     );
   });
+
+  test('🆕 R196 — 키 카드 여러 벌: 확인 필요 0 이어도 미등록이 있으면 «n벌 중 k벌 미등록»(SIM 실전 · ISA = INFO · 색 = 가장 나쁜 카드)', () {
+    final CredentialListVm list = credentialListVmOf(
+      runMode: RunMode.simInternal,
+      paper: PaperCredentialFacts(
+        stored: true,
+        lastState: StepState.verified,
+        lastAtUtc: DateTime.utc(2026, 12, 21),
+      ),
+      nowUtc: DateTime.utc(2026, 12, 22),
+      live: const <LiveCredentialFacts>[
+        LiveCredentialFacts(kind: CredentialKindCodes.kisLive, stored: false),
+        LiveCredentialFacts(kind: CredentialKindCodes.kisIsa, stored: false),
+      ],
+    );
+    final SettingsCard? c = settingsCredentialsCardOf(
+      list,
+      route: AppRoutes.settingsCredentials,
+    );
+    expect(
+      (c?.statusLabel, c?.level, c?.attentionText),
+      ('3벌 중 2벌 미등록', UiLevel.ok, null),
+    );
+  });
 }

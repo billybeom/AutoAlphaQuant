@@ -154,6 +154,10 @@ SettingsCard? settingsCredentialsCardOf(
   final List<CredentialCardVm> cards = list.cards;
   if (cards.isEmpty && route == null) return null;
   final int attention = cards.where(_needsAttention).length;
+  // 🆕 R196 — 확인 필요 0 이어도 미등록(SIM 실전 · ISA = INFO)이 있으면 «모두 확인됨»이라 하지 않는다.
+  final int unregistered = cards
+      .where((CredentialCardVm c) => c.healthCode == 'NOT_REGISTERED')
+      .length;
   UiLevel level = UiLevel.info;
   for (final CredentialCardVm c in cards) {
     if (_rank(c.level) > _rank(level)) level = c.level;
@@ -162,6 +166,8 @@ SettingsCard? settingsCredentialsCardOf(
       ? null
       : cards.length == 1
       ? '${cards.single.kindLabel} ${cards.single.healthLabel}'
+      : attention == 0 && unregistered > 0
+      ? '${cards.length}벌 중 $unregistered벌 미등록'
       : attention == 0
       ? '${cards.length}벌 모두 확인됨'
       : '${cards.length}벌 중 $attention벌 확인 필요';

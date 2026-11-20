@@ -1049,6 +1049,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9CredentialsAdvisory: FixtureBinding(_credentialListVm),
   FixturePaths.m9CredentialsLocked: FixtureBinding(_credentialListVm),
   FixturePaths.m9CredentialsSimSealed: FixtureBinding(_credentialListVm),
+  // 🆕 v1.28 K208(R196) — SIM 실전 미등록 카드(봉인 + 칸 + 검증).
+  FixturePaths.m9CredentialsSimUnregistered: FixtureBinding(_credentialListVm),
   FixturePaths.m9DeviceAccess: FixtureBinding(_deviceAccessVm),
   FixturePaths.m9DeviceAccessLocked: FixtureBinding(_deviceAccessVm),
   FixturePaths.m9DeviceAccessNoViewers: FixtureBinding(_deviceAccessVm),

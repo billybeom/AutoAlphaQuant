@@ -39,6 +39,7 @@ import 'package:data_sync/data_sync.dart'
     show
         SqliteConfigVersionStore,
         SqliteJobRunLog,
+        SqliteCredentialRegistry,
         SqliteOnboardingStore,
         SqliteRuleChangeStore;
 import 'package:decimal/decimal.dart';
@@ -315,6 +316,42 @@ void main() {
     expect(vm.rows[1].step.stateLabel, '아직 확인 전');
     expect(vm.rows[2].step.stateLabel, '아직 확인 전');
     expect(vm.rows[5].actions, isEmpty);
+    expect(vm.rows[2].link?.deepLink, AppRoutes.settingsCredentials);
+  });
+
+  test('🆕 R196(207 ⓑ) S3 = 대응표가 쓰는 세트의 조회 검증 기록(모의 파일) — 다 OK 통과 · 거절 = 막힘 · 대응표 밖 세트 = 판정 밖', () async {
+    await trialDone();
+    final OperatorRuntime r = rt();
+    final OperatorHandover h = OperatorHandover(r, goldenPassed: () => true);
+    final SqliteCredentialRegistry reg = SqliteCredentialRegistry(
+      sim(),
+      clock: clock,
+    );
+    void rec(String alias, String kind, {required bool passed}) =>
+        reg.recordVerification(
+          alias: alias,
+          kind: kind,
+          keystoreRef: alias.replaceAll('_', '.'),
+          passed: passed,
+        );
+    // 이 시험의 대응표 = 위탁 · 연금저축뿐 → 필요한 세트 = KIS_LIVE 하나(ISA 기록은 판정 밖).
+    HandoverWizardVm vm = await wizard(h, r);
+    expect(vm.rows[2].step.stateLabel, '아직 확인 전');
+    rec('kis_isa', 'KIS_ISA', passed: true);
+    vm = await wizard(h, r);
+    expect(vm.rows[2].step.stateLabel, '아직 확인 전');
+    rec('kis_live', 'KIS_LIVE', passed: true);
+    vm = await wizard(h, r);
+    expect(
+      (vm.rows[2].step.state, vm.rows[2].step.stateLabel, vm.rows[2].link),
+      (GateState.pass, '실전 키 조회 확인', null),
+    );
+    rec('kis_live', 'KIS_LIVE', passed: false);
+    vm = await wizard(h, r);
+    expect(
+      (vm.rows[2].step.state, vm.rows[2].step.blockedReasonCode),
+      (GateState.block, SimToAutoCodes.liveKeysFailed),
+    );
     expect(vm.rows[2].link?.deepLink, AppRoutes.settingsCredentials);
   });
 

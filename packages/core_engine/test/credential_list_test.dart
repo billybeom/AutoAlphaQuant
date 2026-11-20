@@ -128,4 +128,243 @@ void main() {
     expect(vm.asOf.staleAfter, kCredentialListStaleAfter);
     expect(vm.asOf.source, AsOfSource.localSqlite);
   });
+
+  group('🆕 R196 · K208 — 실전 세트 카드(실전 · ISA · 표본 차례)', () {
+    CredentialCardVm cardOf(String name, String kind) {
+      final Map<String, Object?> env = jsonDecode(
+        File('../domain_contracts/fixtures/m9/$name.json').readAsStringSync(),
+      ) as Map<String, Object?>;
+      return CredentialListVm.fromJson(
+        (env['rows']! as List<Object?>).first! as Map<String, Object?>,
+      ).cards.singleWhere((CredentialCardVm c) => c.kind == kind);
+    }
+
+    // 표본 «08-31 08:40»(KST) = 2026-08-30 23:40Z.
+    final DateTime at40 = DateTime.utc(2026, 8, 30, 23, 40);
+    CredentialHealthRecord rec(String kind, String h) =>
+        CredentialHealthRecord(kind: kind, health: h, lastVerifiedAtUtc: at40);
+    CredentialListVm list(
+      RunMode m,
+      List<LiveCredentialFacts> live, {
+      OperatingMode? op,
+    }) => credentialListVmOf(
+      runMode: m,
+      paper: const PaperCredentialFacts(stored: false),
+      nowUtc: _now,
+      live: live,
+      operatingMode: op,
+    );
+    LiveCredentialFacts ok(String kind) => LiveCredentialFacts(
+      kind: kind,
+      stored: true,
+      record: rec(kind, CredentialHealthCodes.ok),
+    );
+
+    test('실전 모드 통과 = 표본 `credentials` 실전 카드(만료 = 원천 0 · 비교 밖) · 차례 = 실전 → ISA → 모의', () {
+      final CredentialListVm vm = list(RunMode.live, <LiveCredentialFacts>[
+        ok(CredentialKindCodes.kisLive),
+        ok(CredentialKindCodes.kisIsa),
+      ]);
+      expect(
+        vm.cards.first,
+        cardOf(
+          'credentials',
+          CredentialKindCodes.kisLive,
+        ).copyWith(expiresText: null),
+      );
+      expect(
+        <String>[for (final CredentialCardVm c in vm.cards) c.kind],
+        <String>[
+          CredentialKindCodes.kisLive,
+          CredentialKindCodes.kisIsa,
+          CredentialKindCodes.kisPaper,
+        ],
+      );
+      expect(vm.cards[1].kindLabel, 'ISA 중개형');
+      expect(vm.cards[1].alias, 'kis_isa');
+      expect(vm.modeNotice, isNull);
+    });
+
+    test(
+      '🔴 SIM 통과 = 표본 `credentials_sim_sealed` 실전 카드(봉인 · 동작 0) · 머리 줄 = 표본 글자',
+      () {
+        final CredentialListVm vm = list(
+          RunMode.simInternal,
+          <LiveCredentialFacts>[ok(CredentialKindCodes.kisLive)],
+        );
+        expect(
+          vm.cards.first,
+          cardOf(
+            'credentials_sim_sealed',
+            CredentialKindCodes.kisLive,
+          ).copyWith(expiresText: null),
+        );
+        final Map<String, Object?> env = jsonDecode(
+          File('../domain_contracts/fixtures/m9/credentials_sim_sealed.json')
+              .readAsStringSync(),
+        ) as Map<String, Object?>;
+        expect(
+          vm.modeNotice,
+          ((env['rows']! as List<Object?>).first!
+              as Map<String, Object?>)['mode_notice'],
+        );
+      },
+    );
+
+    test(
+      '안내 모드 미등록 = 표본 `credentials_advisory` 실전 카드(선택 · 한 줄 · 칸 + «검증 후 저장»)',
+      () {
+        final CredentialListVm vm = list(
+          RunMode.live,
+          const <LiveCredentialFacts>[
+            LiveCredentialFacts(
+              kind: CredentialKindCodes.kisLive,
+              stored: false,
+            ),
+          ],
+          op: OperatingMode.advisory,
+        );
+        expect(
+          vm.cards.first,
+          cardOf('credentials_advisory', CredentialKindCodes.kisLive),
+        );
+      },
+    );
+
+    test('🔴 K208 — SIM 미등록 · 실패 = 봉인 그대로 + 칸 + «검증 후 저장»(조회만) · 기록 없음 = «다시 검증»', () {
+      final CredentialListVm vm = list(
+        RunMode.simInternal,
+        <LiveCredentialFacts>[
+          const LiveCredentialFacts(
+            kind: CredentialKindCodes.kisLive,
+            stored: false,
+          ),
+          LiveCredentialFacts(
+            kind: CredentialKindCodes.kisIsa,
+            stored: true,
+            record: rec(
+              CredentialKindCodes.kisIsa,
+              CredentialHealthCodes.invalid,
+            ),
+          ),
+        ],
+      );
+      final CredentialCardVm live = vm.cards[0];
+      // 표본 = v1.28 K208 `credentials_sim_unregistered` 실전 카드(글자 · 칸 · 검증 그대로).
+      expect(
+        live,
+        cardOf('credentials_sim_unregistered', CredentialKindCodes.kisLive),
+      );
+      expect(
+        (
+          live.healthCode,
+          live.level,
+          live.sealLabel,
+          live.requirementLabel,
+          live.credentialSlotId,
+        ),
+        (
+          'NOT_REGISTERED',
+          UiLevel.info,
+          LiveCredentialTexts.seal,
+          LiveCredentialTexts.requiredOnSwitch,
+          SettingsSlotIds.secretKisLive,
+        ),
+      );
+      expect(
+        (
+          live.verifyAction?.id,
+          live.verifyAction?.label,
+          live.lastVerifiedText,
+        ),
+        (SettingsActionId.credentialVerify, '검증 후 저장', null),
+      );
+      expect(live.verifyAction?.args, <String, String>{
+        'kind': CredentialKindCodes.kisLive,
+      });
+      final CredentialCardVm isa = vm.cards[1];
+      expect(
+        (
+          isa.healthCode,
+          isa.level,
+          isa.credentialSlotId,
+          isa.verifyAction?.label,
+          isa.lastVerifiedText,
+        ),
+        (
+          'INVALID',
+          UiLevel.watch,
+          SettingsSlotIds.secretKisIsa,
+          '검증 후 저장',
+          '마지막 검증 08-31 08:40 · 거절(CREDENTIAL_REJECTED)',
+        ),
+      );
+      final CredentialCardVm unk = list(
+        RunMode.simInternal,
+        const <LiveCredentialFacts>[
+          LiveCredentialFacts(kind: CredentialKindCodes.kisLive, stored: true),
+        ],
+      ).cards.first;
+      expect(
+        (
+          unk.healthCode,
+          unk.level,
+          unk.credentialSlotId,
+          unk.verifyAction?.label,
+        ),
+        ('UNKNOWN', UiLevel.info, null, '다시 검증'),
+      );
+    });
+
+    test('실전 모드 — 기록 없음 = WATCH «다시 검증» · 미등록 = ACT(필수) · 실패 = ACT · 통과 기록이 있어도 금고에 키가 없으면 미등록', () {
+      String look(LiveCredentialFacts f) {
+        final CredentialCardVm c = list(RunMode.live, <LiveCredentialFacts>[
+          f,
+        ]).cards.first;
+        return '${c.healthCode}/${c.level.wire}/${c.credentialSlotId}/${c.verifyAction?.label}/${c.sealLabel}';
+      }
+
+      expect(
+        look(
+          const LiveCredentialFacts(
+            kind: CredentialKindCodes.kisLive,
+            stored: true,
+          ),
+        ),
+        'UNKNOWN/WATCH/null/다시 검증/null',
+      );
+      expect(
+        look(
+          const LiveCredentialFacts(
+            kind: CredentialKindCodes.kisLive,
+            stored: false,
+          ),
+        ),
+        'NOT_REGISTERED/ACT/SECRET_KIS_LIVE/검증 후 저장/null',
+      );
+      expect(
+        look(
+          LiveCredentialFacts(
+            kind: CredentialKindCodes.kisLive,
+            stored: false,
+            record: rec(CredentialKindCodes.kisLive, CredentialHealthCodes.ok),
+          ),
+        ),
+        'NOT_REGISTERED/ACT/SECRET_KIS_LIVE/검증 후 저장/null',
+      );
+      expect(
+        look(
+          LiveCredentialFacts(
+            kind: CredentialKindCodes.kisLive,
+            stored: true,
+            record: rec(
+              CredentialKindCodes.kisLive,
+              CredentialHealthCodes.invalid,
+            ),
+          ),
+        ),
+        'INVALID/ACT/SECRET_KIS_LIVE/검증 후 저장/null',
+      );
+    });
+  });
 }

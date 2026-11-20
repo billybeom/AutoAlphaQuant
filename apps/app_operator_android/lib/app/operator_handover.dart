@@ -2,7 +2,7 @@
 //
 // 🔴 읽기 = 모의 파일 + 실전 파일(있을 때만) → data_sync 원천 → 엔진 VM(`handoverWizardVmOf`) · 원장 변경 · 동작 뒤 · 주기마다
 //    다시 낸다(냉각 끝 · 확정 기한 = 새 VM — 화면 카운트다운 0) · 같은 값 = 다시 내지 않음 · `handoverStatus` = 같은 흐름(K173).
-// 🔴 바깥 사실 — 골든 = 지금 지문과 같은 마지막 기록(없음 = 아직) · 실전 키 = 아직(이 빌드에 실전 키 조회 검증 경로 0 · 미결 207 ⓑ) ·
+// 🔴 바깥 사실 — 골든 = 지금 지문과 같은 마지막 기록(없음 = 아직) · 🆕 R196 실전 키 = 대응표 세트의 조회 검증 기록(207 ⓑ) ·
 //    계좌 별칭 · 설정 지문 = 모의 개시 판(`currentP0sOpsConfig`) · 관찰 일수 = 운영 설정(`live_dry_run_observation_trading_days`).
 // 🔴 쓰기(`SettingsActions.run` 의 handover 4 · args = 엔진이 행에 완성한 그대로 — 꼴이 틀리면 [ArgumentError]):
 //    · S5 고름 = 모의 파일(엔진 저장 · 세션 전).
@@ -31,6 +31,8 @@ import 'package:core_engine/core_engine.dart'
         handoverSessionHeadline,
         judgeSimToAuto,
         kDeviceGoldenSuite,
+        liveKeysVerifiedOf,
+        requiredLiveKeyKindsOf,
         simLedgerFateResultText,
         simToAutoCommitHeadline,
         simToAutoCommitReject,
@@ -44,6 +46,7 @@ import 'package:data_sync/data_sync.dart'
         SqliteHandoverWizardSource,
         SqliteLeaseGate,
         SqliteSimLedgerFateStore,
+        credentialRecordsOf,
         currentP0sOpsConfig,
         readSimToAutoCarry,
         watchLedgerQuery;
@@ -82,8 +85,8 @@ bool? operatorGoldenPassedOf(OperatorGolden? golden, Database db) {
 
 /// M5-11 위저드 operator 판(읽기 원천 + handover 동작 4).
 class OperatorHandover {
-  /// 만든다 — [goldenPassed] · [liveKeysVerified] = 바깥 사실 원천(기본 = 런타임 골든 기록 · 실전 키 «아직» — 이 빌드에 실전 키
-  /// 조회 검증 경로 0 · 미결 207 ⓑ — 그 조각이 여기에 넣는다).
+  /// 만든다 — [goldenPassed] · [liveKeysVerified] = 바깥 사실 원천을 갈음하는 자리(시험) · 기본 = 런타임 골든 기록 ·
+  /// 🆕 R196 실전 키 = 대응표 세트의 조회 검증 기록(모의 파일 `credential_registry` · 207 ⓑ).
   OperatorHandover(
     this._rt, {
     this._goldenPassed,
@@ -110,6 +113,9 @@ class OperatorHandover {
     }
     final Database sim = _rt.files.sim;
     final OpsConfigRead cfg = currentP0sOpsConfig(sim);
+    final Map<String, String> accounts = cfg is OpsConfigReady
+        ? cfg.config.human.accountByStrategy
+        : const <String, String>{};
     return SqliteHandoverWizardSource(
       sim: sim,
       live: _rt.files.liveIfExists(),
@@ -119,10 +125,14 @@ class OperatorHandover {
       observation: observation,
       goldenVectorPassed:
           _goldenPassed?.call() ?? operatorGoldenPassedOf(_rt.golden, sim),
-      liveKeysVerified: _liveKeys?.call(),
-      accountByStrategy: cfg is OpsConfigReady
-          ? cfg.config.human.accountByStrategy
-          : const <String, String>{},
+      // 🆕 R196(207 ⓑ) — 대응표가 쓰는 실전 세트가 모두 조회 검증 통과(모의 파일 `credential_registry`).
+      liveKeysVerified: _liveKeys != null
+          ? _liveKeys()
+          : liveKeysVerifiedOf(
+              required: requiredLiveKeyKindsOf(accounts),
+              records: credentialRecordsOf(sim),
+            ),
+      accountByStrategy: accounts,
       currentConfigHash: cfg is OpsConfigReady ? cfg.configHash : null,
       canAct: canAct,
     );

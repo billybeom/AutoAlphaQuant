@@ -33,7 +33,7 @@ import '../app/operator_onboarding.dart' show OnboardingProbe;
 import '../app/operator_runtime.dart';
 import '../app/secure_screen.dart' show SecureScreen;
 import '../engine/data_job_runners.dart' show JobParts;
-import '../engine/engine_boot.dart' show BootInputs;
+import '../engine/engine_boot.dart' show BootInputs, registryLiveKeysVerified;
 import '../engine/job_runners.dart' show JobContext, composeJobRunners;
 import '../engine/kis_sessions.dart';
 import '../engine/ledger_files.dart';
@@ -137,15 +137,20 @@ Future<OperatorEngine> _assemble(
 }
 
 /// 조립 앱의 기동 판정 입력 — 🔴 자격증명 환경 = 모드가 고르는 키 세트의 환경(R95 · SIM = 모의 세트만).
-/// 승인(SAF-405) = 🆕 R192 기본 실물(`startupConfigApprovalOf` — 원장 개시 판의 `approved`) · 실키 검증은 아직 빈 입력
-/// (`LIVE_AWAITING_KEYS` · p3c · 계약 창 뒤).
+/// 승인(SAF-405) = 🆕 R192 기본 실물(`startupConfigApprovalOf` — 원장 개시 판의 `approved`) · 🆕 R196 실키 검증 = 그 원장의
+/// 키 검증 기록(`registryLiveKeysVerified` — 없음 · 거절 = `LIVE_AWAITING_KEYS` hold).
 const BootInputs kOperatorBootInputs = BootInputs(
   credentialEnvironmentOk: kisKeySetFits,
+  // 🆕 R196(207 ⓑ) — 실키 검증 = 그 원장의 키 검증 기록(P0S 실전 세트 둘 다 통과).
+  liveKeysVerified: registryLiveKeysVerified,
 );
 
 /// 🆕 E16t2b(R144 X2) — 조립 앱의 기동 입력 + 이 기기 id(null = X1 끼울 자리 꺼짐 · 그 밖 = [kOperatorBootInputs] 와 같다).
-BootInputs operatorBootInputs({String? deviceId}) =>
-    BootInputs(credentialEnvironmentOk: kisKeySetFits, deviceId: deviceId);
+BootInputs operatorBootInputs({String? deviceId}) => BootInputs(
+  credentialEnvironmentOk: kisKeySetFits,
+  liveKeysVerified: registryLiveKeysVerified,
+  deviceId: deviceId,
+);
 
 /// 🆕 E16t3b(R149 AA6) — 깨어남 → (부팅인가 · 부팅 id) — 부팅(`WakeReason.boot`)만 · id = `boot-{울린 ms}`.
 ({bool booting, String? bootId}) wakeBootOf(WakeEvent e) =>

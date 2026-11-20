@@ -151,6 +151,8 @@ void main() {
         // 🆕 v1.20(01 §29) — S02 4 · S06 5 · S03 3 · 결과 3.
         FixturePaths.m9Credentials,
         FixturePaths.m9CredentialsSimSealed,
+        // 🆕 v1.28 K208(R196).
+        FixturePaths.m9CredentialsSimUnregistered,
         FixturePaths.m9CredentialsAdvisory,
         FixturePaths.m9CredentialsLocked,
         FixturePaths.m9CredentialActionResults,

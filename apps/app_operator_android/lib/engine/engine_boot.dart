@@ -6,7 +6,8 @@
 //    · approved = 🆕 R192(미결 205 ⓔ · 13 R102 S8 닫음) 실물 — 기본 = data_sync `startupConfigApprovalOf`(그 원장 개시 결정이
 //      붙인 판의 `config_versions.approved` · live = simToAuto 커밋이 옮긴 승인 판) · 없음 = null → live 는 SAF-405 로 거부.
 //    · 자격증명 환경 = 기본 «어긋남 없음»(없음은 실행기 미조립으로 드러난다) · 🆕 E11p3b-4 조립 앱 = `kisKeySetFits`(R95).
-//    · 실키 검증 = 기본 false(live × 자동 매매면 `LIVE_AWAITING_KEYS` hold).
+//    · 실키 검증 = 기본 false(live × 자동 매매면 `LIVE_AWAITING_KEYS` hold) · 🆕 R196(207 ⓑ) 조립 앱 = [registryLiveKeysVerified]
+//      (그 원장의 키 검증 기록 — P0S 실전 세트 둘 다 통과 · simToAuto 커밋이 모의 파일 기록을 옮긴다).
 
 import 'package:core_engine/core_engine.dart'
     show
@@ -16,6 +17,8 @@ import 'package:core_engine/core_engine.dart'
         ModeFacts,
         ModeStartupGate,
         TrustedClock,
+        kP0sLiveKeyKindOfAlias,
+        liveKeysVerifiedOf,
         modeStartupGate;
 import 'package:data_sync/data_sync.dart'
     show
@@ -23,6 +26,7 @@ import 'package:data_sync/data_sync.dart'
         SqliteModeFacts,
         SqliteModeStore,
         bootModeOf,
+        credentialRecordsOf,
         repairHalfCommit,
         startupConfigApprovalOf;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -50,8 +54,8 @@ class BootInputs {
   /// 자격증명 환경이 모드에 맞나.
   final bool Function(RunMode mode) credentialEnvironmentOk;
 
-  /// 실키 검증을 마쳤나.
-  final Future<bool> Function() liveKeysVerified;
+  /// 실키 검증을 마쳤나 — 🆕 R196 [db] = 기동이 고른 원장.
+  final Future<bool> Function(Database db) liveKeysVerified;
 
   /// 🆕 E16t2a(R141 V2) — 이 기기 id(null = X1 끼울 자리 꺼짐 · 원천 = E16t2b).
   final String? deviceId;
@@ -60,8 +64,18 @@ class BootInputs {
   final TrustedClock trusted;
 
   static bool _noMismatch(RunMode mode) => true;
-  static Future<bool> _notVerified() async => false;
+  static Future<bool> _notVerified(Database db) async => false;
 }
+
+/// 🆕 R196(미결 207 ⓑ) — 실키 검증 사실(기동 `LIVE_AWAITING_KEYS`) = [db] 의 키 검증 기록에서 P0S 실전 세트(`KIS_LIVE` ·
+/// `KIS_ISA`) 가 모두 조회 검증 통과 · 기록 없음 · 거절 = false(hold 그대로) · 🔴 주문 잡의 실키 사실(`order_job_runners`)은
+/// 그대로 false — 실전 집행 세트 조각(207 ⓖ 뒤)이 같은 원천으로 바꾼다.
+Future<bool> registryLiveKeysVerified(Database db) async =>
+    liveKeysVerifiedOf(
+      required: kP0sLiveKeyKindOfAlias.values.toSet(),
+      records: credentialRecordsOf(db),
+    ) ==
+    true;
 
 /// 기동 판정 결과.
 sealed class EngineBoot {
@@ -167,7 +181,7 @@ Future<EngineBoot> bootEngine(
   final ModeFacts facts = await SqliteModeFacts(
     db,
     clock: clock,
-    liveKeysVerified: inputs.liveKeysVerified,
+    liveKeysVerified: () => inputs.liveKeysVerified(db),
   ).facts();
   final ModeStartupGate gate = modeStartupGate(
     runMode: resolved.runMode,
