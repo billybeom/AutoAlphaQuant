@@ -760,6 +760,11 @@ abstract final class FixturePaths {
       'm8/onboarding_step_detail_missing.json';
   static const String m8OnboardingStepDetailNoVerify =
       'm8/onboarding_step_detail_no_verify.json';
+
+  /// 🆕 v1.29(01 §39 · E11k-b) — `o_07` 상세 «연결됨 · 서버 시각 확인» 중간 상태(`IN_PROGRESS` · 검증 = `CONNECTION_TEST{target: SUPABASE}` ·
+  /// 슬롯 `SECRET_SUPABASE_CONNECT` · 🔴 VERIFIED = 쓰기-읽기 왕복 뒤).
+  static const String m8OnboardingStepDetailSupabase =
+      'm8/onboarding_step_detail_supabase.json';
   static const String m8OnboardingStepsAdvisory =
       'm8/onboarding_steps_advisory.json';
   static const String m8OnboardingStepsAllVerifiedLocked =
@@ -772,6 +777,10 @@ abstract final class FixturePaths {
   static const String m8OnboardingStepsFresh = 'm8/onboarding_steps_fresh.json';
   static const String m8OnboardingVerifyResults =
       'm8/onboarding_verify_results.json';
+
+  /// 🆕 v1.29(01 §39 · E11k-b) — `o_07` 연결 확인 결과 12행(접수 1 · 입력 문제 6 · 망 실패 5 · `ActionResult`).
+  static const String m8OnboardingSupabaseConnectResults =
+      'm8/onboarding_supabase_connect_results.json';
   static const String m8OpsHomeAdviceOpen = 'm8/ops_home_advice_open.json';
 
   /// 🆕 v1.13(01 §23 · K7 ⓑ) — 억제 + 기한 라벨(`H-01` 3b 억제 갈래 = `headline` 한 줄만 · R13b 참고 변이 표본).
@@ -1338,6 +1347,7 @@ abstract final class FixturePaths {
     m8OnboardingStepDetailKisMock,
     m8OnboardingStepDetailMissing,
     m8OnboardingStepDetailNoVerify,
+    m8OnboardingStepDetailSupabase,
     m8OnboardingStepsAdvisory,
     m8OnboardingStepsAllVerifiedLocked,
     m8OnboardingStepsEmpty,
@@ -1345,6 +1355,7 @@ abstract final class FixturePaths {
     m8OnboardingStepsFinishReadyWarn,
     m8OnboardingStepsFresh,
     m8OnboardingVerifyResults,
+    m8OnboardingSupabaseConnectResults,
     m8OpsHomeAdviceOpen,
     m8OpsHomeAdviceSuppressedDue,
     m8OpsHomeAdviceZero,

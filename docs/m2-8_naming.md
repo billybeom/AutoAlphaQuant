@@ -757,3 +757,14 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AG-5 | 🆕 `AllocationReadModelColumns`(7) | `schema/read_model_columns.dart` · `rm_config_view` 배분 열 · 01 §6-4 |
 | AG-6 | 🆕 `FixturePaths.m9AllocationEditor` · `m9AllocationEditorStale` | `fixtures/m9/allocation_editor*.json` |
 
+## AH. 🆕 계약 v1.29 (2026-11-20 · E11k-b 계약 창 — o_07 Supabase 연결 · 신뢰 시각 · operator 리스) — 슬롯 1 · 사전 3 · RPC 이름 3무리 · 표본 2
+
+`contractVersion` = **`1.29.0`**(다음 = 1.30.0 · E16i 사전). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K223~K236 권고대로(정본 = 설계 `10_리뷰/2026-11-20_E11k계약창_계약v1.29_설계서.md` · 01 §39). 🔴 엔진 이름(data_sync `SupabaseInputProblem` · `SupabaseTimeFailure` · core `kLeaseInvalidCode`)과 겹치지 않는다(`ambiguous_import` · K80).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AH-1 | 🆕 `OnboardingSlotIds.supabaseConnect`(`SECRET_SUPABASE_CONNECT`) | `labels/onboarding_codes.dart` · o_07 ② 주소 + 공개 키 슬롯(조립 앱 · `secretSlotId` 자리) |
+| AH-2 | 🆕 `SupabaseInputResultCodes`(`supabase_input_result` 6) · `SupabaseTimeResultCodes`(`supabase_time_result` 8) | `labels/supabase_codes.dart` · `connectionTest{SUPABASE}` 결과 · 기준점 실패 |
+| AH-3 | 🆕 `LeaseRpcResultCodes`(`lease_rpc_result` 5) | 같은 파일 · 리스 RPC 거부 |
+| AH-4 | 🆕 `LeaseRpcNames` · `LeaseRpcParams` · `LeaseRpcColumns` | `schema/supabase_rpc.dart` · 01 §6-4 리스 RPC 표 |
+| AH-5 | 🆕 `FixturePaths.m8OnboardingStepDetailSupabase` · `m8OnboardingSupabaseConnectResults` | `fixtures/m8/onboarding_*supabase*.json` |

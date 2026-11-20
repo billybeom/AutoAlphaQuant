@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 120개 · 계약 v1.28.0 · 조립일 2026-11-20(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 122개 · 계약 v1.29.0 · 조립일 2026-11-20(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -54,6 +54,7 @@ export 'src/primitives.dart';
 export 'src/repositories.dart';
 export 'src/schema/ledger_file.dart';
 export 'src/schema/read_model_columns.dart'; // 🆕 v1.28 — rm_config_view S04 배분 7열(01 §37 K201)
+export 'src/schema/supabase_rpc.dart'; // 🆕 v1.29 — operator 리스 RPC 표(01 §39 K228 · 지도 X18)
 ```
 
 ---
@@ -98,7 +99,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -322,12 +323,23 @@ export 'commands/settings_actions.dart';
 //    다음 판 = 1.29.0(v1.27 예약 목록 그대로 — 서약 편집(미결 208 뒤) · 규칙 변경 CHANGELOG · `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 ·
 //    개입 · 재량 · postmortem 목록 · M5-3 VM · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 편집기 판(미결 190 · 191 · 194) · E16i/E16j ·
 //    이름 없는 알림 · PNG F1·F2·F4~F7 중 먼저 굳는 쪽) · 06 변경 이력 «2026-11-20 · 계약 v1.28».
+// 🆕 '1.29.0'(E11k-b 계약 창 · 01 §39 · 발주자 위임 2026-11-14 — 권고대로 · K223~K236 · 🔴 E16i 사전(01 §38)보다 먼저 —
+//    12-08 SAF-405 첫 승인 요청 창 전 신뢰 시각) — Supabase 연결 · 신뢰 시각 · 리스:
+//    🆕 `OnboardingSlotIds.supabaseConnect` = `SECRET_SUPABASE_CONNECT`(o_07 ② · 검증 = 기존 `connectionTest{target: SUPABASE}` · 1단 — 통과 = 금고) ·
+//    🆕 `labels/supabase_codes.dart` `SupabaseInputResultCodes` 6 · `SupabaseTimeResultCodes` 8(엔진 enum 1:1 · 와이어 = 계약) ·
+//    `LeaseRpcResultCodes` 5(`LEASE_INVALID` = v1.18 `JournalReasonCodes` 한 벌 · 새 사전 0) · 🆕 `schema/supabase_rpc.dart`
+//    리스 RPC 표(이름 3 · 인자 5 · 반환 칸 3 · 🔴 `server_now` 0) · DDL `app_device.auth_uid`(D5) · RPC 서명 주석 · R-01 로그인 주석 정정 ·
+//    🔴 o_07 VERIFIED = 쓰기-읽기 왕복 뒤(첫 판 = `IN_PROGRESS` 중간 상태) · 알림 · config 키 = 엔진 E11k-f 제안 뒤 · 🆕 C-64 ·
+//    픽스처 363 → 365(신설 2 — `m8/onboarding_step_detail_supabase` · `m8/onboarding_supabase_connect_results`) —
+//    🆕 tool/gen_e11k_v129_fixtures.py.
+//    다음 판 = 1.30.0(🔴 E16i 계약 창 — 01 §38 · 설계 끝 · 이 판 병합 뒤 번호만 1.30.0) · 그다음 = E16j 화면 계약(01 §8 미결 211) ·
+//    v1.28 예약 목록 나머지 · 06 변경 이력 «2026-11-2x · 계약 v1.29».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.28.0';
+const String contractVersion = '1.29.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -5227,7 +5239,7 @@ abstract class RestartVm with _$RestartVm {
   const factory RestartVm({
     required String headline,
 
-    /// ① 복구 카드 로그인 자리(매직링크/OTP = 플랫폼). null = 이미 로그인.
+    /// ① 복구 카드 로그인 자리(이메일 + 비밀번호 = 플랫폼 · 🆕 v1.29 E11k T8 — ~~매직링크/OTP~~ 정정). null = 이미 로그인.
     String? loginSlotId,
 
     /// ② 기기 원장 요약(구 폰 라벨 · 마지막 접속 · 리스 잔여 — 엔진 글자). null = 로그인 전(원장을 아직 못 읽음).
@@ -11744,6 +11756,11 @@ abstract final class FixturePaths {
       'm8/onboarding_step_detail_missing.json';
   static const String m8OnboardingStepDetailNoVerify =
       'm8/onboarding_step_detail_no_verify.json';
+
+  /// 🆕 v1.29(01 §39 · E11k-b) — `o_07` 상세 «연결됨 · 서버 시각 확인» 중간 상태(`IN_PROGRESS` · 검증 = `CONNECTION_TEST{target: SUPABASE}` ·
+  /// 슬롯 `SECRET_SUPABASE_CONNECT` · 🔴 VERIFIED = 쓰기-읽기 왕복 뒤).
+  static const String m8OnboardingStepDetailSupabase =
+      'm8/onboarding_step_detail_supabase.json';
   static const String m8OnboardingStepsAdvisory =
       'm8/onboarding_steps_advisory.json';
   static const String m8OnboardingStepsAllVerifiedLocked =
@@ -11756,6 +11773,10 @@ abstract final class FixturePaths {
   static const String m8OnboardingStepsFresh = 'm8/onboarding_steps_fresh.json';
   static const String m8OnboardingVerifyResults =
       'm8/onboarding_verify_results.json';
+
+  /// 🆕 v1.29(01 §39 · E11k-b) — `o_07` 연결 확인 결과 12행(접수 1 · 입력 문제 6 · 망 실패 5 · `ActionResult`).
+  static const String m8OnboardingSupabaseConnectResults =
+      'm8/onboarding_supabase_connect_results.json';
   static const String m8OpsHomeAdviceOpen = 'm8/ops_home_advice_open.json';
 
   /// 🆕 v1.13(01 §23 · K7 ⓑ) — 억제 + 기한 라벨(`H-01` 3b 억제 갈래 = `headline` 한 줄만 · R13b 참고 변이 표본).
@@ -11905,6 +11926,10 @@ abstract final class FixturePaths {
 
   /// 🆕 v1.20 — `S02` `simInternal × autoTrade` · 봉인 머리 줄 · 봉인 배지 2 · 모의 키 만료(BLOCKED).
   static const String m9CredentialsSimSealed = 'm9/credentials_sim_sealed.json';
+
+  /// 🆕 v1.28 K208(R196) — `S02` SIM · 실전 미등록 카드 = 봉인 표시 그대로 + 칸 + «검증 후 저장»(조회만) · ISA 통과 = 동작 0.
+  static const String m9CredentialsSimUnregistered =
+      'm9/credentials_sim_unregistered.json';
 
   /// 🆕 v1.20 — `S06` 정상(이 폰 + viewer 3 · 리스 유효 · X1 링크 · 발급 버튼).
   static const String m9DeviceAccess = 'm9/device_access.json';
@@ -12318,6 +12343,7 @@ abstract final class FixturePaths {
     m8OnboardingStepDetailKisMock,
     m8OnboardingStepDetailMissing,
     m8OnboardingStepDetailNoVerify,
+    m8OnboardingStepDetailSupabase,
     m8OnboardingStepsAdvisory,
     m8OnboardingStepsAllVerifiedLocked,
     m8OnboardingStepsEmpty,
@@ -12325,6 +12351,7 @@ abstract final class FixturePaths {
     m8OnboardingStepsFinishReadyWarn,
     m8OnboardingStepsFresh,
     m8OnboardingVerifyResults,
+    m8OnboardingSupabaseConnectResults,
     m8OpsHomeAdviceOpen,
     m8OpsHomeAdviceSuppressedDue,
     m8OpsHomeAdviceZero,
@@ -12379,6 +12406,7 @@ abstract final class FixturePaths {
     m9CredentialsAdvisory,
     m9CredentialsLocked,
     m9CredentialsSimSealed,
+    m9CredentialsSimUnregistered,
     m9DeviceAccess,
     m9DeviceAccessLocked,
     m9DeviceAccessNoViewers,
@@ -13477,6 +13505,7 @@ import 'saf_codes.dart';
 import 'safety_codes.dart';
 import 'settings_codes.dart';
 import 'sim_codes.dart';
+import 'supabase_codes.dart'; // 🆕 v1.29
 import 'verdict_codes.dart';
 
 export 'advice_codes.dart';
@@ -13496,6 +13525,7 @@ export 'saf_codes.dart';
 export 'safety_codes.dart';
 export 'settings_codes.dart';
 export 'sim_codes.dart';
+export 'supabase_codes.dart'; // 🆕 v1.29
 export 'verdict_codes.dart';
 
 /// 세후 사다리 층 코드 6종(01 §2-4 `AfterTaxStep.stepCode` · M2-8 A-7).
@@ -13698,6 +13728,10 @@ abstract final class ContractCodes {
     'recon_clear_result': ReconClearResultCodes.values,
     // 🆕 v1.28(01 §37 · K200) — S04 읽기 행 코드(엔진 글자 1:1 · 화면 미참조)
     'allocation_row': AllocationRowCodes.values,
+    // 🆕 v1.29(01 §39 · E11k-b) — Supabase 연결 · 신뢰 시각 · 리스(엔진 enum 1:1 · 와이어 글자 = 계약 · 🔴 타입 이름 ≠ 엔진)
+    'supabase_input_result': SupabaseInputResultCodes.values,
+    'supabase_time_result': SupabaseTimeResultCodes.values,
+    'lease_rpc_result': LeaseRpcResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -13920,11 +13954,18 @@ abstract final class OnboardingSlotIds {
   /// `O-04` ⑤ 복구 카드 체크섬 입력 — 🔒 M9 입력 위젯(06 M4-10 · 결정 ②).
   static const String recoveryChecksum = 'RECOVERY_CHECKSUM';
 
-  /// `R-01` ① 복구 카드 로그인(매직링크/OTP) — 플랫폼(06 M4-11).
+  /// `R-01` ① 복구 카드 로그인 — 플랫폼(06 M4-11) · 🆕 v1.29(01 §39 · E11k T8) 방식 = 이메일 + 비밀번호(새로고침 토큰만 금고 ·
+  /// 공개 가입 끔 = o_07 ④) — ~~매직링크/OTP~~ 정정.
   static const String recoveryLogin = 'RECOVERY_LOGIN';
 
   /// `V-01` QR 스캔·토큰 클레임 — 플랫폼(06 M4-11 · 01 §8 미결 13).
   static const String viewerQrScan = 'VIEWER_QR_SCAN';
+
+  /// 🆕 v1.29(01 §39 · E11k-b) — `o_07` ② Supabase 연결 값 붙여넣기(프로젝트 주소 + 공개 키 두 칸) — 🔒 조립 앱 슬롯(06 M4-11 ·
+  /// `secretSlotId` 자리 = `SECRET_` 접두 · C-50 ⑮).
+  /// 🔴 값 = 슬롯 ↔ `connectionTest{target: SUPABASE}` 구현 사이만(VM · args · 결과 · 로그 0) · 비밀 키 · service_role = 거부
+  ///    (`SupabaseInputResultCodes`) · 통과 = 서버 시각 1회 확인 뒤 금고(`supabase.project_url` · `supabase.publishable_key`).
+  static const String supabaseConnect = 'SECRET_SUPABASE_CONNECT';
 
   static const Set<String> values = <String>{
     secretKisMock,
@@ -13934,6 +13975,7 @@ abstract final class OnboardingSlotIds {
     recoveryChecksum,
     recoveryLogin,
     viewerQrScan,
+    supabaseConnect,
   };
 }
 ```
@@ -15251,6 +15293,120 @@ abstract final class SimToAutoStepIds {
     simLedger,
     biometric,
     cooling,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/supabase_codes.dart`
+
+```dart
+// 🆕 계약 v1.29(01 §39 · K223~ · E11k-b 계약 창) — Supabase 연결(o_07 ②) · 신뢰 시각 · operator 리스의 코드 사전.
+//
+// 🔴 타입 이름 ≠ 엔진(data_sync `SupabaseInputProblem` · `SupabaseTimeFailure` — 같으면 엔진 시험이
+//    두 배럴을 함께 import 해 `ambiguous_import` · K80). 엔진 enum 은 와이어 글자가 없다 — enum → 이 글자 매핑 = 엔진 숙제(E11k-c ·
+//    01 §8 미결 213).
+// 🔴 리스 무효 `LEASE_INVALID`(주문 거부 · core `kLeaseInvalidCode`)는 v1.18 `JournalReasonCodes.leaseInvalid` 한 벌 — 여기 다시 두지 않는다.
+// 🔴 화면은 이 글자로 분기 · 아이콘 · 색 · 문구를 고르지 않는다 — 결과 줄 = `ActionResult.headline` + `reasonCode` 원문.
+// 🔴 주소 · 키 · 토큰 값은 어떤 코드 · 결과 · 로그에도 싣지 않는다(종류만).
+
+/// o_07 ② 연결 값 입력 문제(도메인 `supabase_input_result` · data_sync `supabase/supabase_server_time.dart` `SupabaseInputProblem` 6 1:1 ·
+/// `connectionTest{target: SUPABASE}` 의 `ActionResult.reasonCode` · 🔴 망에 가기 전 판정).
+abstract final class SupabaseInputResultCodes {
+  /// 비었다.
+  static const String empty = 'SUPABASE_INPUT_EMPTY';
+
+  /// 빈칸 · 줄바꿈 · 따옴표가 섞였다.
+  static const String whitespace = 'SUPABASE_INPUT_WHITESPACE';
+
+  /// 프로젝트 주소 꼴(`https://<ref>.supabase.co`)이 아니다.
+  static const String notProjectUrl = 'SUPABASE_URL_INVALID';
+
+  /// 🔴 비밀 키(`sb_secret_…`)다 — 앱은 받지 않는다.
+  static const String secretKey = 'SUPABASE_SECRET_KEY_REJECTED';
+
+  /// 🔴 service_role JWT 다 — 앱은 받지 않는다.
+  static const String serviceRoleKey = 'SUPABASE_SERVICE_ROLE_REJECTED';
+
+  /// 공개 키(publishable · 옛 anon) 꼴이 아니다.
+  static const String notPublishableKey = 'SUPABASE_KEY_INVALID';
+
+  static const Set<String> values = <String>{
+    empty,
+    whitespace,
+    notProjectUrl,
+    secretKey,
+    serviceRoleKey,
+    notPublishableKey,
+  };
+}
+
+/// 서버 시각 읽기 실패(도메인 `supabase_time_result` · data_sync `supabase/supabase_server_time.dart` `SupabaseTimeFailure` 8 1:1).
+/// 🔴 o_07 ② 연결 검증(`connectionTest{target: SUPABASE}`)에서 나오는 것 = 망 다섯([unauthorized] · [server] · [badResponse] ·
+///    [noDate] · [network]) · 금고 셋([notConfigured] · [badConfig] · [vault]) = 신뢰 시각 기준점(엔진 깨어남 · 앞 화면 주기)이 금고를
+///    읽을 때만(연결 진단 · S07 줄 · 로그 축).
+abstract final class SupabaseTimeResultCodes {
+  /// 금고에 주소 · 키가 없다(o_07 ② 전) — 망에 가지 않았다.
+  static const String notConfigured = 'SUPABASE_NOT_CONFIGURED';
+
+  /// 금고 값이 꼴이 아니다 — 망에 가지 않았다.
+  static const String badConfig = 'SUPABASE_CONFIG_INVALID';
+
+  /// 금고를 읽지 못했다.
+  static const String vault = 'SUPABASE_VAULT_UNREADABLE';
+
+  /// 키가 틀렸다(401 · 403).
+  static const String unauthorized = 'SUPABASE_UNAUTHORIZED';
+
+  /// 서버 오류(5xx).
+  static const String server = 'SUPABASE_SERVER_ERROR';
+
+  /// 그 밖의 HTTP 상태.
+  static const String badResponse = 'SUPABASE_BAD_RESPONSE';
+
+  /// 2xx 인데 `Date` 머리가 없거나 읽을 수 없다.
+  static const String noDate = 'SUPABASE_DATE_MISSING';
+
+  /// 망 · 시간 초과.
+  static const String network = 'SUPABASE_NETWORK';
+
+  static const Set<String> values = <String>{
+    notConfigured,
+    badConfig,
+    vault,
+    unauthorized,
+    server,
+    badResponse,
+    noDate,
+    network,
+  };
+}
+
+/// 리스 RPC 거부(도메인 `lease_rpc_result` · RPC 표 = 01 §6-4 · `schema/supabase_rpc.dart` · 본문 = E11k-e · 🔴 SQL 이 이 글자를
+/// 돌려주고 data_sync 클라이언트가 그대로 읽는다 — 클라이언트가 HTTP 상태로 코드를 짓지 않는다).
+abstract final class LeaseRpcResultCodes {
+  /// 다른 기기가 유효한 리스를 가졌다(`lease_claim` CAS 실패).
+  static const String heldByOther = 'LEASE_HELD_BY_OTHER';
+
+  /// 이 기기가 보유자가 아니거나 epoch 가 다르거나 만료됐다(`lease_renew` · 자발 반납).
+  static const String lost = 'LEASE_LOST';
+
+  /// 이 기기를 쓸 수 없다(이 인증 사용자의 기기가 아님 · `REVOKED` · `RETIRED`).
+  static const String deviceNotEligible = 'LEASE_DEVICE_NOT_ELIGIBLE';
+
+  /// 첫 클레임인데 복구 코드 해시가 없다(M4-3 — 첫 클레임과 같은 트랜잭션에서 발급).
+  static const String recoveryCodeRequired = 'RECOVERY_CODE_REQUIRED';
+
+  /// 복구 코드가 맞지 않는다(`lease_revoke` · 🔴 쓴 코드도 여기 — 같은 트랜잭션에서 새 해시로 갈아 끼워 옛 코드는 «틀림»이 된다).
+  static const String recoveryCodeInvalid = 'RECOVERY_CODE_INVALID';
+
+  static const Set<String> values = <String>{
+    heldByOther,
+    lost,
+    deviceNotEligible,
+    recoveryCodeRequired,
+    recoveryCodeInvalid,
   };
 }
 ```
@@ -17462,6 +17618,74 @@ abstract final class AllocationReadModelColumns {
     changePathLines,
     asOf,
   ];
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/schema/supabase_rpc.dart`
+
+```dart
+// 영역 H — 🆕 계약 v1.29(01 §39 · §6-4 · K228 · 지도 X18 · D15) operator 리스 RPC 표(이름 · 인자 · 반환 칸).
+//
+// 🔴 RPC 본문(SQL · security definer)은 여기 없다 — E11k-e 부트스트랩 SQL 묶음(E11l1 `rm_*` 생성기와 같은 판). 여기는 **글자만** 둔다:
+//    data_sync 클라이언트와 SQL 이 같은 이름 · 인자 · 반환 칸을 쓰게 하는 자리다(엔진 · SQL 이 각자 짓지 않는다 — X18).
+// 🔴 모든 RPC 의 반환 = 한 행(`code` · `epoch` · `expires_at`) — `code` = `LeaseRpcResultCodes` ∪ null(성공). 클라이언트는 HTTP 상태 ·
+//    오류 문장으로 코드를 짓지 않는다. 시각 = 서버 `now()` 기준(🔴 `server_now` RPC 0 — 신뢰 시각 원천 = 게이트웨이 `Date` · T1).
+// 🔴 리스 수명 T(30분) · 갱신 T/3 = 서버 상수 · 엔진 상수(`kLeaseTtl` · R43 D3) — 클라이언트 인자 0.
+
+/// 리스 RPC 이름 3(06 M4-3 · 배치 D `operator_lease` 단일 행 · 조건부 쓰기(CAS)만).
+abstract final class LeaseRpcNames {
+  /// 클레임 — 빈 행(첫 클레임 · 🔴 복구 코드 해시 필수 · 같은 트랜잭션) · 만료 · 같은 기기 → 이 기기(다른 기기에서 넘어옴 = epoch+1).
+  static const String claim = 'lease_claim';
+
+  /// 갱신 — 보유 ∧ epoch 같음 ∧ 만료 전 → `expires_at` = 서버 `now()` + T.
+  static const String renew = 'lease_renew';
+
+  /// 비상 회수(X1-3 ①) — 복구 코드 대조 → 같은 트랜잭션: epoch+1 · 옛 보유 기기 `REVOKED` · 즉시 만료 · 복구 코드 해시 교체.
+  static const String revoke = 'lease_revoke';
+
+  static const Set<String> values = <String>{claim, renew, revoke};
+}
+
+/// 리스 RPC 인자 이름(PostgREST `rpc/<이름>` 본문 키).
+abstract final class LeaseRpcParams {
+  /// 부르는 기기(`app_device.device_id` · 🔴 그 기기의 `auth_uid` = `auth.uid()` 여야 한다 — D5).
+  static const String deviceId = 'p_device_id';
+
+  /// 지금 보유 epoch(`lease_renew`).
+  static const String epoch = 'p_epoch';
+
+  /// 첫 클레임 때 복구 코드 해시(`lease_claim` · 평문 0 · 그 밖 클레임 = null).
+  static const String recoveryCodeHash = 'p_recovery_code_hash';
+
+  /// 복구 코드 평문(`lease_revoke` · 서버가 해시와 대조 · 🔴 저장 · 로그 0).
+  static const String recoveryCode = 'p_recovery_code';
+
+  /// 새 복구 코드 해시(`lease_revoke` · 같은 트랜잭션에서 교체).
+  static const String newRecoveryCodeHash = 'p_new_recovery_code_hash';
+
+  static const Set<String> values = <String>{
+    deviceId,
+    epoch,
+    recoveryCodeHash,
+    recoveryCode,
+    newRecoveryCodeHash,
+  };
+}
+
+/// 리스 RPC 반환 칸(한 행).
+abstract final class LeaseRpcColumns {
+  /// 거부 코드(`LeaseRpcResultCodes`) · 성공 = null.
+  static const String code = 'code';
+
+  /// 리스 epoch(성공 = 그 뒤 값 · 거부 = 지금 값 또는 null).
+  static const String epoch = 'epoch';
+
+  /// 리스 만료 시각(서버 `now()` 기준 · `lease_revoke` = 즉시 만료 시각).
+  static const String expiresAt = 'expires_at';
+
+  static const Set<String> values = <String>{code, epoch, expiresAt};
 }
 ```
 

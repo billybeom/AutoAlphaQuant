@@ -934,6 +934,10 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8OnboardingStepDetailNoVerify: FixtureBinding(
     _onboardingStepDetailVm,
   ),
+  // 🆕 v1.29(01 §39 · E11k-b) — o_07 상세 · 연결 확인 결과.
+  FixturePaths.m8OnboardingStepDetailSupabase: FixtureBinding(
+    _onboardingStepDetailVm,
+  ),
   FixturePaths.m8OnboardingStepsAdvisory: FixtureBinding(_onboardingStepsVm),
   FixturePaths.m8OnboardingStepsAllVerifiedLocked: FixtureBinding(
     _onboardingStepsVm,
@@ -945,6 +949,9 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   ),
   FixturePaths.m8OnboardingStepsFresh: FixtureBinding(_onboardingStepsVm),
   FixturePaths.m8OnboardingVerifyResults: FixtureBinding(_actionResult),
+  FixturePaths.m8OnboardingSupabaseConnectResults: FixtureBinding(
+    _actionResult,
+  ),
   // 🆕 v1.13(01 §23 K9) — 형제 키 `advice_summary` 를 C-1·C-8 이 연다(3벌 · 옛 2벌은 행만 묶었다).
   FixturePaths.m8OpsHomeAdviceOpen: FixtureBinding(
     _opsDailySummary,

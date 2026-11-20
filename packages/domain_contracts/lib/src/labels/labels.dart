@@ -48,6 +48,7 @@ import 'saf_codes.dart';
 import 'safety_codes.dart';
 import 'settings_codes.dart';
 import 'sim_codes.dart';
+import 'supabase_codes.dart'; // 🆕 v1.29
 import 'verdict_codes.dart';
 
 export 'advice_codes.dart';
@@ -67,6 +68,7 @@ export 'saf_codes.dart';
 export 'safety_codes.dart';
 export 'settings_codes.dart';
 export 'sim_codes.dart';
+export 'supabase_codes.dart'; // 🆕 v1.29
 export 'verdict_codes.dart';
 
 /// 세후 사다리 층 코드 6종(01 §2-4 `AfterTaxStep.stepCode` · M2-8 A-7).
@@ -269,6 +271,10 @@ abstract final class ContractCodes {
     'recon_clear_result': ReconClearResultCodes.values,
     // 🆕 v1.28(01 §37 · K200) — S04 읽기 행 코드(엔진 글자 1:1 · 화면 미참조)
     'allocation_row': AllocationRowCodes.values,
+    // 🆕 v1.29(01 §39 · E11k-b) — Supabase 연결 · 신뢰 시각 · 리스(엔진 enum 1:1 · 와이어 글자 = 계약 · 🔴 타입 이름 ≠ 엔진)
+    'supabase_input_result': SupabaseInputResultCodes.values,
+    'supabase_time_result': SupabaseTimeResultCodes.values,
+    'lease_rpc_result': LeaseRpcResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

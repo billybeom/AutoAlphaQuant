@@ -1,6 +1,6 @@
 > **사본 · 정본은 `packages/domain_contracts/fixtures/README.md`.** 부록의 파일 목록은 조립 시점 실측입니다.
 
-# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.28 · 362파일**(🆕 v1.28 S04 첫 판 — M9 `S04` 배분 화면 보기 전용 · 2026-11-20 · ~~⬜ PR 대기~~ ✅ 병합 PR #282 squash `9c7ff349`(2026-11-20 · CI 3/3) · 신설 2 · 개정 0) · ~~계약 v1.27 · 360파일~~(🆕 v1.27 E3d 계약 창 — 엔진 등재 대기 알림 5(SAF 경고 4 · `DERIVED_FORK`) · 2026-11-20 · ~~⬜ PR 대기~~ ✅ 병합 PR #274 squash `551282e0`(2026-11-20 · CI 3/3) · 신설 1 · 개정 0) · ~~계약 v1.26 · 359파일~~(🆕 v1.26 트랙 C 선행 — M5-11 simToAuto 위저드 · M5-9 SAF-405 첫 승인 최소판 · M5-5 RECON 해제 · 2026-11-20 · ~~⬜ PR 대기~~ ✅ 병합 PR #270 squash `09d3580d`(2026-11-20 · CI 3/3) · 신설 20 · 개정 2) · ~~계약 v1.25 · 339파일~~(🆕 v1.25 트랙 B 선행 — M5-1 킬스위치 화면 · 발동 뒤 기록 폼 · M5-5 차단 보드 · X2 재개 리포트 감싸개 · 2026-11-19 · ~~⬜ PR 대기~~ ✅ 병합 PR #256 squash `233adda8`(2026-11-19 · CI 3/3) · 신설 17 · 개정 0) · ~~계약 v1.24 · 322파일~~(🆕 v1.24 R9 선행 — M9 `S09` 백업·복원 · `S10` 진단 · `S12` 연간 리뷰 목차 · 2026-11-18 · ~~⬜ 로컬 커밋 — PR 대기(🔴 병합 = R8a 병합 뒤)~~ ✅ 병합 PR #235 squash `bbed5ef`(2026-11-18 · R8a 병합 뒤) · 신설 17 · 개정 0) · ~~계약 v1.23 · 305파일~~(v1.23 R8a 선행 — M9 `S13` 월 납입 설정 · 2026-11-17 · ✅ 병합 PR #227 squash `e3e8f7a`(2026-11-17) · 신설 7 · 개정 0) · ~~계약 v1.22 · 298파일~~(🆕 v1.22 엔진 예고 2/2 — E13 나머지 · 사다리 · X2 재개 · simToAuto · F8 · 2026-11-17 · ~~⬜ 로컬 커밋 — PR 대기~~ ✅ 병합 PR #214 squash `67630bc`(2026-11-17) · 신설 15 · 개정 2) · ~~계약 v1.21 · 283파일~~(v1.21 엔진 예고 1/2 — M5 안전 쓰기 포트 + 체험 길 · 2026-11-15 · ~~⬜ 로컬 커밋 — PR 대기(🔴 R7a 병합 뒤 병합)~~ ✅ 병합 PR #189 squash `81bf79c`(2026-11-16 · R7a 병합 뒤) · 신설 12 · 개정 1) · ~~계약 v1.20 · 271파일~~(R7 선행 + 엔진 겹침 몫 · 2026-11-15 · ✅ 병합 PR #187 squash `52f2fc9` · 신설 15 · 개정 1) · ~~계약 v1.19 · 256파일~~(R6c 선행 + 엔진 E15i 굳은 몫 · 2026-11-14 · ✅ 병합 PR #163 squash `6b8ed02` · 신설 8 · 개정 0) · ~~계약 v1.18 · 248파일~~(R6 선행 + 엔진 등재형 7 · 2026-11-13 · ✅ 병합 PR #142 squash `b582c49` · 신설 8 · 개정 1) · ~~계약 v1.17 · 240파일~~(R16 선행 + 엔진 E10 D11 · 2026-11-04 · ✅ 병합 PR #123 squash `0249f61` · 신설 21 · 개정 3) · ~~계약 v1.16 · 219파일~~(R15 선행 · 2026-11-03 · ✅ 병합 PR #96 squash `dd9e162` · 신설 32 · 개정 6) · ~~계약 v1.15 · 187파일~~(R14 선행 · 2026-10-30 · ✅ 병합 PR #86 squash `e9e71c8` · 신설 11 · 개정 5) · ~~계약 v1.13 · 176파일~~(✅ 병합 PR #72 squash `638fca4` · v1.14 = 봉투 버전 줄만) · ~~계약 v1.12 · 174파일~~(v1.12 R5·R13 선행 15 · 2026-10-22 · ✅ 병합 PR #68 squash `fb67caf` · v1.9~v1.11 = 봉투 버전 줄만) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ✅ 병합 PR #48 squash `dcac7ec` + 🆕 v1.12 R5·R13 선행 15(X7 `A-*`·`L-3` · X5 `L-1`·`L-2` · 리듬) · 2026-10-22 + 🆕 v1.13 R13b 선행 2(대조 보드 전부 일치 · 억제 + 기한) · 2026-10-26)
+# `fixtures/` — 모의 데이터 픽스처 (**계약 v1.29 · 365파일**(🆕 v1.29 E11k-b 계약 창 — o_07 Supabase 연결 · 리스 RPC 표 · 2026-11-20 · ⬜ PR 대기 · 신설 2 · 개정 0) · ~~계약 v1.28 · 363파일~~(🆕 v1.28 S04 첫 판 — M9 `S04` 배분 화면 보기 전용 · 2026-11-20 · ~~⬜ PR 대기~~ ✅ 병합 PR #282 squash `9c7ff349`(2026-11-20 · CI 3/3) · 신설 2 · 개정 0 · 🆕 K208(R196) +1 `m9/credentials_sim_unregistered`) · ~~계약 v1.27 · 360파일~~(🆕 v1.27 E3d 계약 창 — 엔진 등재 대기 알림 5(SAF 경고 4 · `DERIVED_FORK`) · 2026-11-20 · ~~⬜ PR 대기~~ ✅ 병합 PR #274 squash `551282e0`(2026-11-20 · CI 3/3) · 신설 1 · 개정 0) · ~~계약 v1.26 · 359파일~~(🆕 v1.26 트랙 C 선행 — M5-11 simToAuto 위저드 · M5-9 SAF-405 첫 승인 최소판 · M5-5 RECON 해제 · 2026-11-20 · ~~⬜ PR 대기~~ ✅ 병합 PR #270 squash `09d3580d`(2026-11-20 · CI 3/3) · 신설 20 · 개정 2) · ~~계약 v1.25 · 339파일~~(🆕 v1.25 트랙 B 선행 — M5-1 킬스위치 화면 · 발동 뒤 기록 폼 · M5-5 차단 보드 · X2 재개 리포트 감싸개 · 2026-11-19 · ~~⬜ PR 대기~~ ✅ 병합 PR #256 squash `233adda8`(2026-11-19 · CI 3/3) · 신설 17 · 개정 0) · ~~계약 v1.24 · 322파일~~(🆕 v1.24 R9 선행 — M9 `S09` 백업·복원 · `S10` 진단 · `S12` 연간 리뷰 목차 · 2026-11-18 · ~~⬜ 로컬 커밋 — PR 대기(🔴 병합 = R8a 병합 뒤)~~ ✅ 병합 PR #235 squash `bbed5ef`(2026-11-18 · R8a 병합 뒤) · 신설 17 · 개정 0) · ~~계약 v1.23 · 305파일~~(v1.23 R8a 선행 — M9 `S13` 월 납입 설정 · 2026-11-17 · ✅ 병합 PR #227 squash `e3e8f7a`(2026-11-17) · 신설 7 · 개정 0) · ~~계약 v1.22 · 298파일~~(🆕 v1.22 엔진 예고 2/2 — E13 나머지 · 사다리 · X2 재개 · simToAuto · F8 · 2026-11-17 · ~~⬜ 로컬 커밋 — PR 대기~~ ✅ 병합 PR #214 squash `67630bc`(2026-11-17) · 신설 15 · 개정 2) · ~~계약 v1.21 · 283파일~~(v1.21 엔진 예고 1/2 — M5 안전 쓰기 포트 + 체험 길 · 2026-11-15 · ~~⬜ 로컬 커밋 — PR 대기(🔴 R7a 병합 뒤 병합)~~ ✅ 병합 PR #189 squash `81bf79c`(2026-11-16 · R7a 병합 뒤) · 신설 12 · 개정 1) · ~~계약 v1.20 · 271파일~~(R7 선행 + 엔진 겹침 몫 · 2026-11-15 · ✅ 병합 PR #187 squash `52f2fc9` · 신설 15 · 개정 1) · ~~계약 v1.19 · 256파일~~(R6c 선행 + 엔진 E15i 굳은 몫 · 2026-11-14 · ✅ 병합 PR #163 squash `6b8ed02` · 신설 8 · 개정 0) · ~~계약 v1.18 · 248파일~~(R6 선행 + 엔진 등재형 7 · 2026-11-13 · ✅ 병합 PR #142 squash `b582c49` · 신설 8 · 개정 1) · ~~계약 v1.17 · 240파일~~(R16 선행 + 엔진 E10 D11 · 2026-11-04 · ✅ 병합 PR #123 squash `0249f61` · 신설 21 · 개정 3) · ~~계약 v1.16 · 219파일~~(R15 선행 · 2026-11-03 · ✅ 병합 PR #96 squash `dd9e162` · 신설 32 · 개정 6) · ~~계약 v1.15 · 187파일~~(R14 선행 · 2026-10-30 · ✅ 병합 PR #86 squash `e9e71c8` · 신설 11 · 개정 5) · ~~계약 v1.13 · 176파일~~(✅ 병합 PR #72 squash `638fca4` · v1.14 = 봉투 버전 줄만) · ~~계약 v1.12 · 174파일~~(v1.12 R5·R13 선행 15 · 2026-10-22 · ✅ 병합 PR #68 squash `fb67caf` · v1.9~v1.11 = 봉투 버전 줄만) — G4 77 + `m6/journal_empty.json` + 🆕 v1.1 신규 18 · 2026-09-17 + 🆕 R2 준비 1(`m6/journal_draft_receipts_5.json`) · 2026-09-23 + 🆕 v1.2 R2b 선행 7 · 2026-09-25 + 🆕 v1.3 R10 선행 11 · 2026-09-28 + 🆕 v1.4 R11 선행 7 · 2026-09-30 + 🆕 v1.5 R12 선행 4 · 2026-10-07 + 🆕 v1.6 R12 선행 9 · 2026-10-08 · ✅ 병합 PR #25 squash `995c1f4` + 🆕 v1.7 J-4 선행 6 · 2026-10-20 · ✅ 병합 PR #32 squash `0905377` + 🆕 v1.8 R4 선행 18(보유 `H6-1`~`H6-3`) · 2026-10-21 · ✅ 병합 PR #48 squash `dcac7ec` + 🆕 v1.12 R5·R13 선행 15(X7 `A-*`·`L-3` · X5 `L-1`·`L-2` · 리듬) · 2026-10-22 + 🆕 v1.13 R13b 선행 2(대조 보드 전부 일치 · 억제 + 기한) · 2026-10-26)
 
 정본: `11_앱설계/01_M2_도메인계약_초안.md` **§5** · `docs/contracts_inventory.md` **§8** ·
 화면 명세 02 «모의 데이터» · 03 §15 · 04 §10.
@@ -14,7 +14,7 @@
   아래 «픽스처 계좌 별칭 표»가 정본이다.
 - 티커는 실제 국내 ETF를 쓰되 **수량·가격은 가공값**이다. **가짜 데이터만** 넣는다.
 - 위반은 §7 **C-14**가 잡는다. 판정부는 `lib/src/fixtures/fixture_loader.dart` 의
-  `scanForSecrets` 이며 현재 362파일(🆕 2026-11-20 v1.28) 전량 **적발 0건**이다.
+  `scanForSecrets` 이며 현재 365파일(🆕 2026-11-20 v1.29 · 신설 2) 전량 **적발 0건**이다.
 - 어떤 AI에게도 실키를 붙여넣지 않는다. 실키는 완성된 M9 화면에서 발주자가 직접 입력한다.
 
 ## 🔴 누가 고치나
@@ -59,7 +59,9 @@
    (`docs/toolchain_notes.md` §4-1). ⚠️ 01 §5 봉투 예시의 `"38250.00"` 은 「문자열이다」가 요점이며
    자릿수 규약이 아니다. 숫자 리터럴로 쓰면 C-8이 실패한다.
 2. **`meta.contract_version` 은 `lib/src/contract_version.dart` 상수와 같은 축**이다.
-   🆕 **지금 값은 `1.28.0`**(2026-11-20 S04 첫 판 · 01 §37) — 상수와 기존 360개 + 신규 2개 = **362개**를 **함께** 올렸다.
+   🆕 **지금 값은 `1.29.0`**(2026-11-20 E11k-b 계약 창 · 01 §39) — 상수와 기존 363개(v1.28 362 + K208 1) + 신규 2개 = **365개**를 **함께** 올렸다.
+   (v1.29 — 기존 363개는 `"contract_version"` 한 줄만 · 개정 0 · K223 · 다음 판 = 1.30.0(E16i) — 아래 «계약 v1.29» 절.)
+   그 앞 ~~`1.28.0`~~(2026-11-20 S04 첫 판 · 01 §37) — 상수와 기존 360개 + 신규 2개 = **362개**를 **함께** 올렸다.
    (v1.28 — 기존 360개는 `"contract_version"` 한 줄만 · 개정 0 · K196 · 다음 판 = 1.29.0 — 아래 «계약 v1.28» 절.)
    그 앞 ~~`1.27.0`~~(2026-11-20 E3d 계약 창 · 01 §36) — 상수와 기존 359개 + 신규 1개 = **360개**를 **함께** 올렸다.
    (v1.27 — 기존 359개는 `"contract_version"` 한 줄만 · 개정 0 · K187 · 다음 판 = 1.28.0 — 아래 «계약 v1.27» 절.)
@@ -171,7 +173,7 @@
 
 ---
 
-## 파일 목록 (362)
+## 파일 목록 (365)
 
 ### 계약 코어 14 — `fixtures/` 바로 아래 (01 §5 · 인벤토리 §8-2·§8-3)
 
@@ -349,7 +351,9 @@ state `REQUESTED`·`EXECUTED`·`REJECTED`·`EXPIRED`·`HELD_FOR_INTEGRITY` — *
 ~~`m7_next_rebalance_d6`~~ 🆕 v1.6 개명 `m7_next_rebalance_countdown`(«2026년 9월 1일 · D-1») · `m7_rebalance_detail_band`(🆕 v1.5 버튼·행 링크 · 🆕 v1.6 대조 행·관측 시각) · `m7_annual_2026`·`_first_year`(🆕 v1.6 `year_label` · 세후 사본 2블록) ·
 `m7_goal_path_on`·`_hold`·`_realworld`(🆕 v1.4 `GoalPathVm` 재설계 — 생성 스크립트).
 
-### `m8/` 86 — 셸·운영 홈·알림·온보딩·장애·핸드북·기기 리스크 (04 §10)
+### `m8/` 88 — 셸·운영 홈·알림·온보딩·장애·핸드북·기기 리스크 (04 §10)
+
+🆕 **계약 v1.29 2건**(E11k-b · 01 §39) — `onboarding_step_detail_supabase`(o_07 «서버 시각 확인됨» 중간 상태 `IN_PROGRESS` · 검증 `CONNECTION_TEST{target: SUPABASE}` · 슬롯 `SECRET_SUPABASE_CONNECT` · 🔴 VERIFIED = 쓰기-읽기 왕복 뒤) · `onboarding_supabase_connect_results`(`ActionResult` 12행 = 접수 1 + 입력 문제 6(`SupabaseInputResultCodes` 전수) + 망 실패 5) · 🔴 주소 · 키 · 토큰 값 0.
 
 🆕 **계약 v1.27 1건**(엔진 등재형 · 01 §36 K188~K191 · 알림 목록 봉투) — `alerts_engine_proposals_v127`(`AlertCodes.derivedSync` 1 · `safetyWarn` 4 각 1행 · 글자 = 엔진 `alert_text.dart` `kAlertTexts` 원문 · 등급 = 엔진 `kAlertLevels` · 등급 순 · 봉투 `as_of` = `alerts_safety_resume` 와 같음).
 
@@ -393,7 +397,7 @@ R15d 7 `restart_vm_lost_phone`(분기 X1 계획·비상) · `restart_vm_logged_o
 > ⚠️ 04 §10 목록의 `onboarding_fresh.json` 은 **코어의 같은 이름 파일이 정본**이라
 > `m8/` 에 다시 두지 않았다(같은 데이터가 두 벌이 되면 한쪽만 갱신된다).
 
-### `m9/` 59 — 설정·운영 모드 전환 (05)
+### `m9/` 60 — 설정·운영 모드 전환 (05)
 
 🆕 **계약 v1.28 2건**(S04 첫 판 · 01 §37 · VM 1행 봉투 2 · 글자 = 엔진 시험 `allocation_view_test.dart` 원문 그대로 — 생성기가 대조) — `allocation_editor`(정본 P0S 카드 · 읽기 묶음 셋 = 리밸런싱 밴드 3 · 리스크 한도 5 · 금 상한 2 · 바꾸는 길 3 · `stale_label` null) · `allocation_editor_stale`(같은 VM · `as_of` 30시간 전 · VM `as_of.stale_label` — 봉투 `as_of` 에는 없음 · `m9/backup_stale` 선례). 🔴 쓰기 · 판정 · 잠김 · 빈 · 프리셋 칸 0(193 ⓐ · 194 ⓐ) · 주문 한도 행 «한 건 N만원» = 안전 한도 글자(C-57 ⑦ 예외 1행).
 
@@ -415,7 +419,7 @@ S13 `monthly_contribution`(10만원 · 예정 없음 · 버튼 «바꾸기») ·
 
 🆕 **계약 v1.20 15건**(R7 선행 · 01 §29 · VM 1행 봉투 12 · 동작 결과 목록 봉투 3 · 골든 ↔ 입력 = 05 §10) —
 S02 `credentials`(`live × autoTrade` · 검증됨 · 만료 임박 + 회전 링크 · 검증 실패 + 슬롯 + 검증 버튼 · 레벨 OK·WATCH·ACT) ·
-`credentials_sim_sealed`(봉인 머리 줄 · 봉인 배지 2 · 모의 키 만료 BLOCKED) · `credentials_advisory`(실전 «선택»·대사 «권장» 미등록 = info + `why_line`) ·
+`credentials_sim_sealed`(봉인 머리 줄 · 봉인 배지 2 · 모의 키 만료 BLOCKED) · 🆕 v1.28 K208 `credentials_sim_unregistered`(SIM · 실전 미등록 = 봉인 그대로 + 칸 + «검증 후 저장»(조회만) · ISA 통과 = 동작 0) · `credentials_advisory`(실전 «선택»·대사 «권장» 미등록 = info + `why_line`) ·
 `credentials_locked`(잠김 · 슬롯·검증·회전 0 · 런북 링크 유지) · `credential_action_results`(`ActionResult` 6 · 레벨 5값) ·
 S06 `device_access`(이 폰 + viewer 3 · 리스 유효 · X1 링크 · 발급 버튼) · `device_access_ticket`(QR 자리 · 유효 시각 글자) ·
 `device_access_no_viewers`(viewer 0 줄 · 리스 대기 BLOCKED) · `device_access_stale`(VM `as_of.stale_label` 만 다른 판) ·
@@ -1240,13 +1244,30 @@ POT 행 0 · 전 표본 `CREDENTIAL_VERIFY` kind ∈ 사전 · 키 조각 꼴·8
 - 7문항 5번 «UNKNOWN» · 7번 «decision_id» 같은 기계 낱말 = 발주자 확정 문구 그대로(다듬기 = 엔진 먼저 정할 것 ② · 01 §8 미결 184).
 - 봉투 `meta.mode` = `LIVE`(v1.19·v1.20 선례).
 
+## 계약 v1.29 (2026-11-20 · E11k-b 계약 창 — o_07 Supabase 연결 · 신뢰 시각 결과 사전 · 리스 RPC 표 · 01 §39 · ⬜ PR 대기)
+
+설계 = `10_리뷰/2026-11-20_E11k계약창_계약v1.29_설계서.md`(결정 K223~K236 · 발주자 위임 2026-11-14 — 권고대로).
+
+### 신설 2건 · 개정 0 · 버전 줄만 363
+
+- `m8/` 2 — `onboarding_step_detail_supabase` · `onboarding_supabase_connect_results`(위 «`m8/` 88» 절).
+
+### 🔴 생성 스크립트가 만든다 (손 계산 금지)
+
+`packages/domain_contracts/tool/gen_e11k_v129_fixtures.py` — 기준 커밋(`04453b5a` · 픽스처 트리 = `d1f7e096` 와 같음) 원문에서 멱등 생성 · 틀 = v1.16 `m8/onboarding_step_detail_kis_mock` · `m8/onboarding_verify_results`(같은 봉투 · 줄 꼴) · 쓰기 전 확인(키 · 주소 글자 0).
+
 ## 계약 v1.28 (2026-11-20 · S04 첫 판 — M9 `S04` 배분 화면 보기 전용 · 01 §37 · ~~⬜ PR 대기~~ ✅ 병합 PR #282 squash `9c7ff349`(2026-11-20 · CI 3/3))
 
 설계 = `10_리뷰/2026-11-20_S04첫판_계약v1.28_설계서.md` §5(결정 K196~K207 · 발주자 위임 2026-11-14 — 권고대로).
 
 ### 신설 2건 · 개정 0 · 버전 줄만 360
 
-- `m9/` 2 — `allocation_editor` · `allocation_editor_stale`(위 «`m9/` 59» 절).
+- `m9/` 2 — `allocation_editor` · `allocation_editor_stale`(위 «`m9/` 60» 절).
+
+### 🆕 K208 신설 1건(설계 13 §8 R196 · 통합 담당 결정 «봉인 = 주문 경로만» · 계약 버전 1.28.0 유지)
+
+- `m9/credentials_sim_unregistered` — `credentials_sim_sealed` 원문에서 실전 카드 한 줄만 «SIM 미등록 = 봉인 표시 그대로 + 칸(`SECRET_KIS_LIVE`) + «검증 후 저장»(`credentialVerify{KIS_LIVE}` · 토큰 + 잔고 1회 · 주문 0)» 으로 바꾼 판 · 봉투 `generated_at` · `seed` = 이 판. 🔴 `credentials_sim_sealed` 는 그대로(ui_settings 골든 · 위젯 시험이 그린다).
+- 생성 = `packages/domain_contracts/tool/gen_e11q_c1b_k208_fixture.py`(손편집 0 · 쓰기 전 확인 · 멱등) · C-54 ⑥ SIM 단언 = «통과 카드 = 동작 0 · 미등록 · 실패 = 칸 + 조회 검증 · 봉인 글자 유지» 로 좁힘 · 엔진 대조 = `packages/core_engine/test/credential_list_test.dart`.
 
 ### 🔴 생성 스크립트가 만든다 (손 계산 금지)
 
@@ -1456,7 +1477,7 @@ simToAuto 단계 7 차례·제목·이유 == 엔진 · BLOCK ⇒ 코드 ∈ `sim
 - `test/` 의 계약 회귀 ~~C-1~C-37~~ ~~C-1~C-40(🆕 v1.5 C-40 회차↔일지 링크 정합)~~ ~~C-1~C-42(🆕 v1.6 C-41 R12 표시 계약 — 이 절의 픽스처끼리 맞대는 불변식 · C-42 R12 화면 소스 스캔)~~ ~~C-1~C-43(🆕 v1.7 C-43 J-4 blind 리뷰 — 픽스처 불변식 ①~⑨ + 화면 소스 스캔 ⑩~⑰)~~ ~~C-1~C-44(🆕 v1.8 C-44 보유현황 `H6-*` — 픽스처 불변식 ①~⑪ + 화면 소스 스캔 ⑫~⑳)~~ C-1~C-47(🆕 v1.12 C-46 X7 안내·기록·실사 · C-47 원장 차이·정정·리듬·알림 등급) — 영역 F 의 다른 몫이며 이 README 의 범위가 아니다.
   C-1 골든(`*.golden.json`)도 아직 없다.
 
-## 부록 — 실제 픽스처 파일 목록 (362개, 2026-11-20 실측)
+## 부록 — 실제 픽스처 파일 목록 (365개, 2026-11-20 실측)
 
 경로 기준 `packages/domain_contracts/fixtures/`. 이 목록은 조립 시점의 실물이며, 명세가 부르는 파일명과 다르면 **실물이 맞습니다**.
 
@@ -1687,7 +1708,7 @@ simToAuto 단계 7 차례·제목·이유 == 엔진 · BLOCK ⇒ 코드 ∈ `sim
 | `m7/m7_withdrawal_shortfall.json` | 2,304 |
 | `m7/realized_alloc_S7.json` | 2,819 |
 
-### m8 — 86개
+### m8 — 88개
 
 | 파일 | 바이트 |
 |---|---:|
@@ -1744,12 +1765,14 @@ simToAuto 단계 7 차례·제목·이유 == 엔진 · BLOCK ⇒ 코드 ∈ `sim
 | `m8/onboarding_step_detail_kis_mock.json` | 1,706 |
 | `m8/onboarding_step_detail_missing.json` | 760 |
 | `m8/onboarding_step_detail_no_verify.json` | 1,409 |
+| `m8/onboarding_step_detail_supabase.json` | 1,774 |
 | `m8/onboarding_steps_advisory.json` | 6,466 |
 | `m8/onboarding_steps_all_verified_locked.json` | 2,708 |
 | `m8/onboarding_steps_empty.json` | 764 |
 | `m8/onboarding_steps_finish_ready.json` | 2,548 |
 | `m8/onboarding_steps_finish_ready_warn.json` | 3,152 |
 | `m8/onboarding_steps_fresh.json` | 8,205 |
+| `m8/onboarding_supabase_connect_results.json` | 4,252 |
 | `m8/onboarding_verify_results.json` | 1,435 |
 | `m8/ops_home_advice_open.json` | 2,348 |
 | `m8/ops_home_advice_suppressed_due.json` | 2,415 |
@@ -1778,7 +1801,7 @@ simToAuto 단계 7 차례·제목·이유 == 엔진 · BLOCK ⇒ 코드 ∈ `sim
 | `m8/watchdog_holiday.json` | 1,975 |
 | `m8/watchdog_paused.json` | 1,998 |
 
-### m9 — 59개
+### m9 — 60개
 
 | 파일 | 바이트 |
 |---|---:|
@@ -1810,6 +1833,7 @@ simToAuto 단계 7 차례·제목·이유 == 엔진 · BLOCK ⇒ 코드 ∈ `sim
 | `m9/credentials_advisory.json` | 3,259 |
 | `m9/credentials_locked.json` | 2,463 |
 | `m9/credentials_sim_sealed.json` | 2,879 |
+| `m9/credentials_sim_unregistered.json` | 2,943 |
 | `m9/device_access.json` | 2,998 |
 | `m9/device_access_locked.json` | 2,317 |
 | `m9/device_access_no_viewers.json` | 1,833 |
@@ -1857,4 +1881,4 @@ simToAuto 단계 7 차례·제목·이유 == 엔진 · BLOCK ⇒ 코드 ∈ `sim
 | `x2/resume_report_screen_normal.json` | 2,351 |
 | `x2/resume_report_screen_recovery_full.json` | 2,554 |
 
-**합계 362개 · 1,256,885 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).
+**합계 365개 · 1,265,854 바이트.** `fixtures/README.md` 1부는 이 표에 세지 않습니다 (JSON 픽스처만 셉니다).

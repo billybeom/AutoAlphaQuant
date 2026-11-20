@@ -231,7 +231,7 @@ abstract class RestartVm with _$RestartVm {
   const factory RestartVm({
     required String headline,
 
-    /// ① 복구 카드 로그인 자리(매직링크/OTP = 플랫폼). null = 이미 로그인.
+    /// ① 복구 카드 로그인 자리(이메일 + 비밀번호 = 플랫폼 · 🆕 v1.29 E11k T8 — ~~매직링크/OTP~~ 정정). null = 이미 로그인.
     String? loginSlotId,
 
     /// ② 기기 원장 요약(구 폰 라벨 · 마지막 접속 · 리스 잔여 — 엔진 글자). null = 로그인 전(원장을 아직 못 읽음).
