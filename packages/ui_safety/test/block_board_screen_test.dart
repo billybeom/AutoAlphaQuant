@@ -356,10 +356,9 @@ void main() {
           t,
           repo,
           vm.copyWith(
-            rows: <BlockBoardRow>[
-              for (final BlockBoardRow r in vm.rows)
-                if (r.rowId != FlagIds.reconMismatch) r,
-            ],
+            rows: vm.rows
+                .where((BlockBoardRow r) => r.rowId != FlagIds.reconMismatch)
+                .toList(),
           ),
         );
         expect(find.byKey(const Key('m55-recon-form')), findsNothing);

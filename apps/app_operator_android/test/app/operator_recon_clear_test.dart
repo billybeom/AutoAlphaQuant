@@ -205,10 +205,10 @@ void main() {
       (BlockBoardRow x) => x.rowId == FlagIds.reconMismatch,
     );
     expect(row.reconClear, reconClearFormOf());
-    expect(
-      got.last.rows.where((BlockBoardRow x) => x.reconClear != null),
-      hasLength(1),
-    );
+    final List<BlockBoardRow> withForm = got.last.rows
+        .where((BlockBoardRow x) => x.reconClear != null)
+        .toList();
+    expect(withForm, hasLength(1));
 
     final List<BlockBoardVm> ro = <BlockBoardVm>[];
     final StreamSubscription<BlockBoardVm> sub2 = OperatorBlockBoardRepository(
