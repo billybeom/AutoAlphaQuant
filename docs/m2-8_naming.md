@@ -768,3 +768,17 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AH-3 | 🆕 `LeaseRpcResultCodes`(`lease_rpc_result` 5) | 같은 파일 · 리스 RPC 거부 |
 | AH-4 | 🆕 `LeaseRpcNames` · `LeaseRpcParams` · `LeaseRpcColumns` | `schema/supabase_rpc.dart` · 01 §6-4 리스 RPC 표 |
 | AH-5 | 🆕 `FixturePaths.m8OnboardingStepDetailSupabase` · `m8OnboardingSupabaseConnectResults` | `fixtures/m8/onboarding_*supabase*.json` |
+## AI. 🆕 계약 v1.30 (2026-11-20 · E16i 계약 창 — X1 기기 이전 · X5 정정) — 엔진 글자 사전 25무리 · 103 · 표시 hold 1
+
+엔진(E16b~E16t3a)이 «계약 등재 = E16i 전 문자열»로 쓰던 글자를 사전에 올렸다. `contractVersion` = **`1.30.0`**(다음 = 1.31.0 · 첫 후보 = E16j 화면 계약). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K209~K222 권고대로(정본 = 설계 `10_리뷰/2026-11-20_E16i계약창_계약v1.30_설계서.md` · 01 §38). 🔴 엔진 이름 26(core `MigrationStartCodes` · `PlanBlockCodes` · `SnapshotCodes` · `RestoreReason` · `FencingCodes` · `ReissueCodes` · `ReissueItem` · `RecoverySealCodes` · `MigrationGateCodes` · `PlanStep` · `MigrationStepState` · `MigrationKind` · `MigrationRole` · `RecoveryStep` · `MigrationGateState` · `GapViolationKind` · `WindowEvent` · `RepairCodes` · `BaselineCodes` · `BoundaryReason` · `DerivedRelation` · ds `MigrationStoreCodes` · `MigrationBootCodes` · `RecoveryCodes` · `WindowStoreCodes` · `LedgerRestoreCodes`)과 겹치지 않는다(`ambiguous_import` · K80).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AI-1 | 🆕 `X1StartResultCodes` · `X1StepBlockCodes` · `X1JournalResultCodes` · `X1BootRefusalCodes` | `labels/migration_codes.dart` · 이전 시작 · 단계 막음 · 저널 · 기동 거부 |
+| AI-2 | 🆕 `X1RestoreResultCodes` | 새 폰 복원 거부 중 v1.24 에 없던 3(전집 = ∪ `BackupResultCodes` 여섯) |
+| AI-3 | 🆕 `X1FencingResultCodes` · `X1ReissueResultCodes` · `X1ReissueItemCodes` | 비상 펜싱 · 재발급 거부 · 재발급 항목 6(`ordered`) |
+| AI-4 | 🆕 `X1RecoveryResultCodes` · `X1OrderSealCodes` · `X1GateReasonCodes` · `X1IntentReasonCodes` | 새 폰 복구 · 주문 봉인 · 재개 게이트 막음 · 복구 의도 표지 |
+| AI-5 | 🆕 `MaintenanceWindowResultCodes` · `MaintenanceWindowEventCodes` | 감시 유지보수 창 거부 · 사건 |
+| AI-6 | 🆕 `X1StepCodes`(`ordered` 9) · `X1StepStateCodes` · `X1KindCodes` · `X1RoleCodes` · `X1RecoveryStepCodes`(`ordered` 5) · `X1GateStateCodes` · `X1GapViolationCodes` | X1 열거 글자(저장 값) |
+| AI-7 | 🆕 `RepairResultCodes` · `BaselineResultCodes` · `LedgerBoundaryReasonCodes` · `DerivedRelationCodes` | `labels/repair_codes.dart` · X5 정정 · 새 기준점 · 경계 사유 · 파생 관계 |
+| AI-8 | 🆕 `SafetyHoldCodes.migrationInProgress` | `labels/flag_ids.dart` · `MIGRATION_IN_PROGRESS` 표시 hold(막는 정본 = 리스) |

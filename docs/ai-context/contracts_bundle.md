@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 122개 · 계약 v1.29.0 · 조립일 2026-11-20(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 124개 · 계약 v1.30.0 · 조립일 2026-11-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -99,7 +99,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -334,12 +334,19 @@ export 'commands/settings_actions.dart';
 //    🆕 tool/gen_e11k_v129_fixtures.py.
 //    다음 판 = 1.30.0(🔴 E16i 계약 창 — 01 §38 · 설계 끝 · 이 판 병합 뒤 번호만 1.30.0) · 그다음 = E16j 화면 계약(01 §8 미결 211) ·
 //    v1.28 예약 목록 나머지 · 06 변경 이력 «2026-11-2x · 계약 v1.29».
+// 🆕 '1.30.0'(E16i 계약 창 · 01 §38 · 발주자 위임 2026-11-14 — 권고대로 · K209~K222 · 설계가 v1.29 보다 먼저 · 번호 = 병합 차례) —
+//    X1 기기 이전 · X5 정정의 엔진 글자 사전: 🆕 `labels/migration_codes.dart` 21무리 · `labels/repair_codes.dart` 4무리 = 상수 103
+//    (거부 · 막음 44 · 열거 글자 59 · 엔진 1:1 − 공용 `TRUSTED_TIME_UNKNOWN` − `BackupResultCodes` 한 벌 · 🔴 타입 이름 ≠ 엔진) ·
+//    `byDomain` 76 → 101 · 🆕 `SafetyHoldCodes` `MIGRATION_IN_PROGRESS`(표시 hold) · C-5 문서 중복 7 → 15 · 🆕 C-63 · 엔진 대조 시험 2 ·
+//    DTO · VM · 창구 · 라우트 0 · 픽스처 365 그대로(신설 0 · 버전 줄만) — 🆕 tool/gen_e16i_v130_fixtures.py.
+//    다음 판 = 1.31.0(🔴 첫 후보 = E16j 화면 계약 — VM · 정정 명령 · 라우트 인자 · 01 §8 미결 211 · 그 밖 v1.28 예약 목록 그대로) ·
+//    06 변경 이력 «2026-11-2x · 계약 v1.30».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.29.0';
+const String contractVersion = '1.30.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -13296,8 +13303,18 @@ abstract final class SafetyHoldCodes {
   ///    걸면 배치가 무기한 중단되고 안내가 영영 나오지 않는다(«침묵이 안전으로 위장되는» 상태).
   static const String liveAwaitingKeys = 'LIVE_AWAITING_KEYS';
 
-  /// 전량 1종.
-  static const Set<String> values = <String>{liveAwaitingKeys};
+  /// 🆕 v1.30(01 §38 · SPEC v2.45 04 §3-1 ① · E16i) — 기기 이전 진행 중(**표시** hold).
+  ///
+  /// 🔴 막는 정본은 이 글자가 아니라 엔진 리스 판정이다 — 이전 세션이 «신규 주문 동결»에 들어서면 NR-1 0단계 리스 = 무효
+  ///    (`LEASE_INVALID` · 막는 것은 주문뿐 · 백업 커밋 · 아카이브는 원래 리스 판정 그대로). 이 hold 는 그 상태를 보여 줄 뿐이다.
+  ///    엔진 생산(`SafetyState.holds` 에 싣기) = 엔진 숙제(01 §8 미결 212).
+  static const String migrationInProgress = 'MIGRATION_IN_PROGRESS';
+
+  /// 전량 2종.
+  static const Set<String> values = <String>{
+    liveAwaitingKeys,
+    migrationInProgress,
+  };
 }
 ```
 
@@ -13497,10 +13514,12 @@ import 'exit_kind.dart';
 import 'flag_ids.dart';
 import 'journal_codes.dart';
 import 'ledger_event_codes.dart';
+import 'migration_codes.dart'; // 🆕 v1.30
 import 'onboarding_codes.dart';
 import 'ops_codes.dart';
 import 'origin_codes.dart';
 import 'plan_codes.dart';
+import 'repair_codes.dart'; // 🆕 v1.30
 import 'saf_codes.dart';
 import 'safety_codes.dart';
 import 'settings_codes.dart';
@@ -13517,10 +13536,12 @@ export 'exit_kind.dart';
 export 'flag_ids.dart';
 export 'journal_codes.dart';
 export 'ledger_event_codes.dart';
+export 'migration_codes.dart'; // 🆕 v1.30
 export 'onboarding_codes.dart';
 export 'ops_codes.dart';
 export 'origin_codes.dart';
 export 'plan_codes.dart';
+export 'repair_codes.dart'; // 🆕 v1.30
 export 'saf_codes.dart';
 export 'safety_codes.dart';
 export 'settings_codes.dart';
@@ -13620,7 +13641,12 @@ final class UnregisteredContractCodeError extends Error {
 /// 🔴 도메인이 다르면 **같은 문자열이 두 번 등재될 수 있다**
 ///    (`MANUAL_ORDER`·`RECON_MISMATCH`·`SELF_AUDIT_DUE`·`PUSH_LAG` 네 쌍 + 🆕 v1.22 `JOURNAL_MISSING`(`flag_id` ↔
 ///    `discretion_result`) = 다섯 쌍 + 🆕 v1.24 `CHAIN_BROKEN`(`origin_code` ↔ `ledger_integrity_result`) ·
-///    `RESTORE_ROLLBACK`(`origin_code` ↔ `backup_result`) = **일곱 쌍** · 🔜 1.25.0 E16i 나머지 = 더 늘어난다 — 01 §33 K140) —
+///    `RESTORE_ROLLBACK`(`origin_code` ↔ `backup_result`) = 일곱 쌍 + 🆕 v1.30 E16i(01 §38 · v1.24 K140 예고 실현 + 열거 글자) 여덟 —
+///    `X1_LIVE_ONLY`(`backup_result` ↔ `x1_start_result`) · `UNKNOWN_ORDERS_REMAIN`(`resume_reason` ↔ `x1_step_block`) ·
+///    `FAILED`(`kill_cancel_outcome` ↔ `x1_step_state`) · `BLOCKED`(`verdict_code` ↔ `x1_gate_state`) ·
+///    `OBSERVING`(`resume_reason` ↔ `x1_gate_state`) · `PASSED`(`sim_trial_state` ↔ `x1_gate_state`) ·
+///    `SQLITE_INTEGRITY`·`FORMAT_VERSION`(`ledger_integrity_result` ↔ `ledger_boundary_reason`) = **열다섯 글자**
+///    (`RESTORE_ROLLBACK` 은 `ledger_boundary_reason` 까지 세 축)) —
 ///    그래서 [all] 의 크기는 등재 건수보다 작다. 전역 조회보다 [requireRegisteredIn] 을 쓴다.
 abstract final class ContractCodes {
   /// 도메인 → 코드 집합. 🔴 키 이름은 01 §3·§6 의 절 제목에서 따온다.
@@ -13732,6 +13758,33 @@ abstract final class ContractCodes {
     'supabase_input_result': SupabaseInputResultCodes.values,
     'supabase_time_result': SupabaseTimeResultCodes.values,
     'lease_rpc_result': LeaseRpcResultCodes.values,
+    // 🆕 v1.30(01 §38 · E16i) — X1 기기 이전 · 새 폰 복구 · 유지보수 창(엔진 글자 1:1 − 공용 `TRUSTED_TIME_UNKNOWN`)
+    'x1_start_result': X1StartResultCodes.values,
+    'x1_step_block': X1StepBlockCodes.values,
+    'x1_journal_result': X1JournalResultCodes.values,
+    'x1_boot_refusal': X1BootRefusalCodes.values,
+    'x1_restore_result': X1RestoreResultCodes.values,
+    'x1_fencing_result': X1FencingResultCodes.values,
+    'x1_reissue_result': X1ReissueResultCodes.values,
+    'x1_reissue_item': X1ReissueItemCodes.values,
+    'x1_recovery_result': X1RecoveryResultCodes.values,
+    'x1_order_seal': X1OrderSealCodes.values,
+    'x1_gate_reason': X1GateReasonCodes.values,
+    'maintenance_window_result': MaintenanceWindowResultCodes.values,
+    'x1_intent_reason': X1IntentReasonCodes.values,
+    'x1_plan_step': X1StepCodes.values,
+    'x1_step_state': X1StepStateCodes.values,
+    'x1_kind': X1KindCodes.values,
+    'x1_role': X1RoleCodes.values,
+    'x1_recovery_step': X1RecoveryStepCodes.values,
+    'x1_gate_state': X1GateStateCodes.values,
+    'x1_gap_violation': X1GapViolationCodes.values,
+    'maintenance_window_event': MaintenanceWindowEventCodes.values,
+    // 🆕 v1.30(01 §38 · E16i) — X5 정정 · 새 기준점 · X1/X5 경계 · 파생 관계(엔진 글자 1:1)
+    'repair_result': RepairResultCodes.values,
+    'baseline_result': BaselineResultCodes.values,
+    'ledger_boundary_reason': LedgerBoundaryReasonCodes.values,
+    'derived_relation': DerivedRelationCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -13875,6 +13928,482 @@ abstract final class LedgerEventRejectCodes {
     corporateActionSymbolNotHeld,
     voidTargetNotActive,
     duplicateSuspected,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/migration_codes.dart`
+
+```dart
+// 🆕 계약 v1.30(01 §38 · K209~ · E16i 계약 창) — X1 기기 이전 · 새 폰 복구 · 감시 유지보수 창의 **엔진 글자 사전**.
+//
+// 엔진(E16b~E16t3a)이 «계약 등재 = E16i 전 문자열»로 이미 쓰는 거부 · 막음 · 단계 · 상태 글자를 1:1 로 등재한다.
+// 🔴 타입 이름 ≠ 엔진(core `MigrationStartCodes` · `PlanBlockCodes` · `FencingCodes` · `ReissueCodes` · `ReissueItem` ·
+//    `RecoverySealCodes` · `MigrationGateCodes` · `PlanStep` · `MigrationStepState` · `MigrationKind` · `MigrationRole` ·
+//    `RecoveryStep` · `MigrationGateState` · `GapViolationKind` · `WindowEvent` · data_sync `MigrationStoreCodes` ·
+//    `MigrationBootCodes` · `RecoveryCodes` · `WindowStoreCodes` · `LedgerRestoreCodes` — 같으면 엔진 시험이 두 배럴을 함께
+//    import 해 `ambiguous_import` · v1.21 K33 · v1.23 K80 결). 엔진이 계약 참조로 옮길 때 지역 선언을 지운다(엔진 숙제).
+// 🔴 공용 `TRUSTED_TIME_UNKNOWN` 은 싣지 않는다 — `SafetyCommonResultCodes` 한 벌(K45). 이전 시작 · 펜싱 · 재발급 · 유지보수 창
+//    거부 전집 = 이 사전 ∪ 공용.
+// 🔴 이 글자로 화면이 분기 · 아이콘 · 색 · 문구를 고르지 않는다 — 문구 · 레벨 · 단계 표시는 엔진이 VM 에 실어 준다(E16j 화면 계약 =
+//    다음 판 · 01 §8 미결 211). 이 사전의 쓰임 = 픽스처 · 엔진 대조(C-63) · 미등록 코드 조기 실패.
+// 🔴 수치 0 — 관찰 일수 · 넘김 시간 · 펜싱 마진 · 재생성 상한 = 엔진 운영 설정 `operations.migration`(⬜ 발주자 수치 · 잠정) 그대로.
+
+/// 이전 시작 거부(도메인 `x1_start_result` · 엔진 core `migration/migration_plan.dart:112-127` 5 − 공용 1).
+/// 🔴 [liveOnly] = `BackupResultCodes.liveOnly` 와 같은 글자 다른 축(C-5 문서 쌍 · v1.24 K140 예고 실현).
+abstract final class X1StartResultCodes {
+  /// live 파일이 아니다(체험 중 폰 교체 = 모의 폐기 + 새 개시).
+  static const String liveOnly = 'X1_LIVE_ONLY';
+
+  /// 안내 모드 기기 이전 = 조건 결정 대기.
+  static const String advisoryPending = 'X1_ADVISORY_PENDING';
+
+  /// 계획 교체인데 `D-03` 확인 결정이 없다.
+  static const String d03NotConfirmed = 'D03_NOT_CONFIRMED';
+
+  /// 비상인데 선언 결정이 없다.
+  static const String emergencyNotDeclared = 'EMERGENCY_NOT_DECLARED';
+
+  static const Set<String> values = <String>{
+    liveOnly,
+    advisoryPending,
+    d03NotConfirmed,
+    emergencyNotDeclared,
+  };
+}
+
+/// 계획 교체 단계 막음(도메인 `x1_step_block` · 엔진 core `migration_plan.dart:348-363` 5).
+/// 🔴 [unknownOrders] = `ResumeItemReasonCodes.unknownOrders` 와 같은 글자 다른 축(C-5 문서 쌍).
+abstract final class X1StepBlockCodes {
+  /// 미체결 주문이 남았다.
+  static const String openOrders = 'OPEN_ORDERS_REMAIN';
+
+  /// 결과 모름(UNKNOWN) 주문이 남았다.
+  static const String unknownOrders = 'UNKNOWN_ORDERS_REMAIN';
+
+  /// 최종 대사가 0오차가 아니다.
+  static const String reconNotZero = 'RECON_NOT_ZERO';
+
+  /// 체크섬 백업이 없다.
+  static const String backupMissing = 'BACKUP_MISSING';
+
+  /// 백업 매니페스트 체인이 지금 체인과 다르다.
+  static const String backupChainMismatch = 'BACKUP_CHAIN_MISMATCH';
+
+  static const Set<String> values = <String>{
+    openOrders,
+    unknownOrders,
+    reconNotZero,
+    backupMissing,
+    backupChainMismatch,
+  };
+}
+
+/// 이전 저널 저장 거부(도메인 `x1_journal_result` · 엔진 data_sync `migration/migration_journal_store.dart:22-31` 3).
+abstract final class X1JournalResultCodes {
+  /// 이 파일에 진행 중인 이전이 이미 있다.
+  static const String runExists = 'X1_RUN_EXISTS';
+
+  /// 단계 차례가 어긋났다.
+  static const String stepOutOfOrder = 'X1_STEP_OUT_OF_ORDER';
+
+  /// 되돌릴 수 없는 점(DEMOTED)을 지났다.
+  static const String pastNoReturn = 'X1_PAST_NO_RETURN';
+
+  static const Set<String> values = <String>{
+    runExists,
+    stepOutOfOrder,
+    pastNoReturn,
+  };
+}
+
+/// 이전 기동 거부(도메인 `x1_boot_refusal` · 엔진 data_sync `migration/migration_lease_gate.dart:13-19` 2).
+/// 🔴 기동 거부 전집(data_sync `migration/x1_startup.dart:39-49`) = 이 사전 ∪ X1 길 경계 사유([LedgerBoundaryReasonCodes] 가운데
+///    `DB_OPEN_FAILED` · `SQLITE_INTEGRITY` · `STAMP_CHAIN_BROKEN` · `RESTORE_ROLLBACK` · `ARCHIVE_DIVERGED`).
+abstract final class X1BootRefusalCodes {
+  /// 이 기기는 강등됐다(DEMOTED 들어감).
+  static const String demoted = 'X1_DEMOTED';
+
+  /// 이전 저널을 읽을 수 없다.
+  static const String journalBroken = 'X1_JOURNAL_BROKEN';
+
+  static const Set<String> values = <String>{demoted, journalBroken};
+}
+
+/// 새 폰 복원 검증 · 적용 거부 중 v1.24 에 없던 몫(도메인 `x1_restore_result` · 엔진 core `migration/backup_manifest.dart:137-160`
+/// `RestoreReason` 7 가운데 2 + data_sync `migration/ledger_restore.dart:21-24` 1).
+/// 🔴 복원 거부 전집 = 이 사전 ∪ `BackupResultCodes` 의 `liveOnly` · `unreadable` · `schemaSkew` · `sqliteIntegrity` ·
+///    `chainInvalid` · `rollback`(같은 엔진 상수 = 한 벌 · v1.24 K132 나눔을 잇는다 — 두 번 등재하지 않는다).
+abstract final class X1RestoreResultCodes {
+  /// 사본 sha256 이 매니페스트와 다르다.
+  static const String shaMismatch = 'RESTORE_SHA_MISMATCH';
+
+  /// 사본 머리가 매니페스트와 다르다.
+  static const String manifestMismatch = 'RESTORE_MANIFEST_MISMATCH';
+
+  /// 이 폰에 live 원장이 이미 있다(같은 폰 복원 금지 · 덮지 않는다).
+  static const String liveExists = 'X1_LIVE_EXISTS';
+
+  static const Set<String> values = <String>{
+    shaMismatch,
+    manifestMismatch,
+    liveExists,
+  };
+}
+
+/// 비상 펜싱 대기(도메인 `x1_fencing_result` · 엔진 core `migration/fencing.dart:44-53` 3 − 공용 1).
+abstract final class X1FencingResultCodes {
+  /// REVOKED 가 아직 없다(대기 시작 전).
+  static const String notStarted = 'FENCING_NOT_STARTED';
+
+  /// 펜싱 대기 중(끝 시각 = 엔진 · 마진 = ⬜ 발주자 수치).
+  static const String waiting = 'FENCING_WAIT';
+
+  static const Set<String> values = <String>{notStarted, waiting};
+}
+
+/// 비상 재발급 거부(도메인 `x1_reissue_result` · 엔진 core `migration/reissue_checklist.dart:43-61` 6 − 공용 1).
+abstract final class X1ReissueResultCodes {
+  /// 새 값의 지문이 옛 지문 가운데 하나다(보관한 옛 문자열 재입력 0).
+  static const String keyReused = 'KEY_REUSED';
+
+  /// 이 항목은 «해당 없음»으로 둘 수 없다(KIS 앱키 = 늘 필수).
+  static const String notApplicable = 'REISSUE_NOT_APPLICABLE';
+
+  /// 이미 기록한 항목이다.
+  static const String duplicate = 'REISSUE_DUPLICATE';
+
+  /// 값이 있는 항목인데 새 지문이 없다.
+  static const String fingerprintRequired = 'REISSUE_FINGERPRINT_REQUIRED';
+
+  /// 값이 없는 항목(철회 · 재로그인 확인)인데 지문이 왔다.
+  static const String fingerprintUnexpected = 'REISSUE_FINGERPRINT_UNEXPECTED';
+
+  static const Set<String> values = <String>{
+    keyReused,
+    notApplicable,
+    duplicate,
+    fingerprintRequired,
+    fingerprintUnexpected,
+  };
+}
+
+/// 비상 재발급 항목(도메인 `x1_reissue_item` · 엔진 core `reissue_checklist.dart:11-29` `ReissueItem.wire` 6 · 차례 = 06 X1-3).
+/// 🔴 항목 문구(«증권사 앱키» 등)는 엔진 글자 — 계약은 싣지 않는다(VM = 다음 판).
+abstract final class X1ReissueItemCodes {
+  /// KIS 앱키(새 키 지문 · 늘 필수).
+  static const String kisAppKey = 'KIS_APP_KEY';
+
+  /// 메신저 토큰.
+  static const String messengerToken = 'MESSENGER_TOKEN';
+
+  /// 워치독 핑 키.
+  static const String watchdogPingKey = 'WATCHDOG_PING_KEY';
+
+  /// GitHub PAT.
+  static const String githubPat = 'GITHUB_PAT';
+
+  /// 원격 세션 철회(값 없음 — 확인만).
+  static const String supabaseSession = 'SUPABASE_SESSION';
+
+  /// 옛 기기 Google 액세스 철회(값 없음 — 확인만).
+  static const String googleAccess = 'GOOGLE_ACCESS';
+
+  /// 차례 = 엔진 선언 차례(06 X1-3).
+  static const List<String> ordered = <String>[
+    kisAppKey,
+    messengerToken,
+    watchdogPingKey,
+    githubPat,
+    supabaseSession,
+    googleAccess,
+  ];
+
+  static const Set<String> values = <String>{
+    kisAppKey,
+    messengerToken,
+    watchdogPingKey,
+    githubPat,
+    supabaseSession,
+    googleAccess,
+  };
+}
+
+/// 새 폰 복구 저널 거부(도메인 `x1_recovery_result` · 엔진 data_sync `migration/recovery_journal_store.dart:21-27` 2).
+abstract final class X1RecoveryResultCodes {
+  /// 아직 복원(RESTORED)하지 않았다.
+  static const String notRestored = 'X1_NOT_RESTORED';
+
+  /// 리스 epoch 가 매니페스트보다 앞서지 않았다.
+  static const String epochNotAdvanced = 'X1_EPOCH_NOT_ADVANCED';
+
+  static const Set<String> values = <String>{notRestored, epochNotAdvanced};
+}
+
+/// 새 폰 복구 주문 봉인(도메인 `x1_order_seal` · 엔진 core `migration/gap_rebuild.dart:393-399` 2 ·
+/// 앱 `engine/x1_wiring.dart:20` `X1OrderSealed(code)` 의 code).
+abstract final class X1OrderSealCodes {
+  /// 갭 재구성이 끝나지 않았다 — 주문 봉인.
+  static const String inProgress = 'X1_RECOVERY_IN_PROGRESS';
+
+  /// RECOVERY_FULL — 사람의 R-01 «잔고 승계 새 시작»까지 안전 정지.
+  static const String full = 'X1_RECOVERY_FULL';
+
+  static const Set<String> values = <String>{inProgress, full};
+}
+
+/// X1-5 LIVE 재개 게이트 막음(도메인 `x1_gate_reason` · 엔진 core `migration/migration_gate.dart:62-86` 8).
+abstract final class X1GateReasonCodes {
+  /// 골든 자가검사 아직.
+  static const String goldenNotRun = 'X1_GOLDEN_NOT_RUN';
+
+  /// 골든 자가검사 실패.
+  static const String goldenFailed = 'X1_GOLDEN_FAILED';
+
+  /// 대사가 0오차가 아니다.
+  static const String reconNotZero = 'X1_RECON_NOT_ZERO';
+
+  /// 결과 모름(UNKNOWN) 주문이 남았다.
+  static const String unknownOrders = 'X1_UNKNOWN_ORDERS_REMAIN';
+
+  /// 미체결 주문이 남았다.
+  static const String openOrders = 'X1_OPEN_ORDERS_REMAIN';
+
+  /// 관찰 중(n/m · 관찰 일수 = ⬜ 발주자 수치).
+  static const String observing = 'X1_OBSERVING';
+
+  /// 체크리스트 확인 대기.
+  static const String checklistPending = 'X1_CHECKLIST_PENDING';
+
+  /// 생체 확인 대기.
+  static const String biometricPending = 'X1_BIOMETRIC_PENDING';
+
+  static const Set<String> values = <String>{
+    goldenNotRun,
+    goldenFailed,
+    reconNotZero,
+    unknownOrders,
+    openOrders,
+    observing,
+    checklistPending,
+    biometricPending,
+  };
+}
+
+/// 감시 유지보수 창 열기 거부(도메인 `maintenance_window_result` · 엔진 data_sync
+/// `migration/maintenance_window_store.dart:19-25` 2 − 공용 1).
+abstract final class MaintenanceWindowResultCodes {
+  /// 이미 열린 창이 있다.
+  static const String alreadyOpen = 'MW_ALREADY_OPEN';
+
+  static const Set<String> values = <String>{alreadyOpen};
+}
+
+/// 복구 주문 의도 표지(도메인 `x1_intent_reason` · 엔진 core `migration/gap_rebuild.dart:40` `kX1RecoveredReason` ·
+/// `order_intents.error_message` — 갭 재구성이 지은 의도 · authored = 복구).
+abstract final class X1IntentReasonCodes {
+  /// 새 폰 복구가 지은 의도.
+  static const String recovered = 'X1_RECOVERED';
+
+  static const Set<String> values = <String>{recovered};
+}
+
+// ── 열거 글자(와이어 · 저장 값) ─────────────────────────────────────────────
+
+/// 옛 폰 계획 교체 단계(도메인 `x1_plan_step` · 엔진 core `migration_plan.dart:68-95` `PlanStep.wire` 9 · `migration_step.step`).
+abstract final class X1StepCodes {
+  /// 신규 주문 동결.
+  static const String freeze = 'FREEZE';
+
+  /// 미체결 0 ∧ UNKNOWN 0.
+  static const String ordersCleared = 'ORDERS_CLEARED';
+
+  /// 최종 대사 0오차.
+  static const String reconZero = 'RECON_ZERO';
+
+  /// 체크섬 백업.
+  static const String backupChecksum = 'BACKUP_CHECKSUM';
+
+  /// 🔴 로컬 강등 표시 — 되돌릴 수 없는 점.
+  static const String demoted = 'DEMOTED';
+
+  /// 키 삭제.
+  static const String keysDeleted = 'KEYS_DELETED';
+
+  /// RETIRED 서명.
+  static const String retired = 'RETIRED';
+
+  /// 서비스 종료.
+  static const String serviceStopped = 'SERVICE_STOPPED';
+
+  /// 이전 티켓 발급(강등 끝난 뒤에만).
+  static const String ticketIssued = 'TICKET_ISSUED';
+
+  /// 차례 = 엔진 선언 차례(R117 B3).
+  static const List<String> ordered = <String>[
+    freeze,
+    ordersCleared,
+    reconZero,
+    backupChecksum,
+    demoted,
+    keysDeleted,
+    retired,
+    serviceStopped,
+    ticketIssued,
+  ];
+
+  static const Set<String> values = <String>{
+    freeze,
+    ordersCleared,
+    reconZero,
+    backupChecksum,
+    demoted,
+    keysDeleted,
+    retired,
+    serviceStopped,
+    ticketIssued,
+  };
+}
+
+/// 이전 단계 행 상태(도메인 `x1_step_state` · 엔진 core `migration_plan.dart:45-54` `MigrationStepState.wire` 3 ·
+/// `migration_step.state`).
+/// 🔴 [failed] = `KillCancelOutcomeCodes.failed` 와 같은 글자 다른 축(C-5 문서 쌍).
+abstract final class X1StepStateCodes {
+  /// 들어감.
+  static const String entered = 'ENTERED';
+
+  /// 끝남.
+  static const String done = 'DONE';
+
+  /// 실패(DEMOTED 앞에서만).
+  static const String failed = 'FAILED';
+
+  static const Set<String> values = <String>{entered, done, failed};
+}
+
+/// 이전 갈래(도메인 `x1_kind` · 엔진 core `migration_plan.dart:17-23` `MigrationKind.wire` 2 · `migration_run.kind`).
+abstract final class X1KindCodes {
+  /// 계획 교체(옛 폰이 옆에 있다).
+  static const String plan = 'PLAN';
+
+  /// 비상(옛 폰을 잃었다).
+  static const String emergency = 'EMERGENCY';
+
+  static const Set<String> values = <String>{plan, emergency};
+}
+
+/// 이 파일 기기의 이전 역할(도메인 `x1_role` · 엔진 core `migration_plan.dart:31-37` `MigrationRole.wire` 2 ·
+/// `migration_run.role`).
+abstract final class X1RoleCodes {
+  /// 옛 폰.
+  static const String oldDevice = 'OLD_DEVICE';
+
+  /// 새 폰.
+  static const String newDevice = 'NEW_DEVICE';
+
+  static const Set<String> values = <String>{oldDevice, newDevice};
+}
+
+/// 새 폰 복구 단계(도메인 `x1_recovery_step` · 엔진 core `migration/recovery_steps.dart:7-22` `RecoveryStep.wire` 5).
+abstract final class X1RecoveryStepCodes {
+  /// 백업 복원.
+  static const String restored = 'RESTORED';
+
+  /// 갭 재구성 끝.
+  static const String gapRebuilt = 'GAP_REBUILT';
+
+  /// 골든 자가 시험.
+  static const String goldenSelfTest = 'GOLDEN_SELF_TEST';
+
+  /// 체크리스트 확인.
+  static const String checklistConfirmed = 'CHECKLIST_CONFIRMED';
+
+  /// 생체 확인.
+  static const String biometricConfirmed = 'BIOMETRIC_CONFIRMED';
+
+  /// 차례 = 엔진 선언 차례.
+  static const List<String> ordered = <String>[
+    restored,
+    gapRebuilt,
+    goldenSelfTest,
+    checklistConfirmed,
+    biometricConfirmed,
+  ];
+
+  static const Set<String> values = <String>{
+    restored,
+    gapRebuilt,
+    goldenSelfTest,
+    checklistConfirmed,
+    biometricConfirmed,
+  };
+}
+
+/// X1-5 LIVE 재개 게이트 상태(도메인 `x1_gate_state` · 엔진 core `migration_gate.dart:42-54` `MigrationGateState.wire` 4).
+/// 🔴 [blocked] = `VerdictCodes.blocked` · [observing] = `ResumeItemReasonCodes.observing` · [passed] =
+///    `SimTrialItemStateCodes.passed` 와 같은 글자 다른 축(C-5 문서 쌍 셋). 관찰 n/m = 엔진 글자(다음 판 VM).
+abstract final class X1GateStateCodes {
+  /// 막힘(매매 없는 안전 정지 그대로 · 막음 코드 = [X1GateReasonCodes]).
+  static const String blocked = 'BLOCKED';
+
+  /// 관찰 중(dryRun).
+  static const String observing = 'OBSERVING';
+
+  /// 승인 대기(체크리스트 → 생체).
+  static const String awaitingApproval = 'AWAITING_APPROVAL';
+
+  /// 통과(LIVE 재개 가능).
+  static const String passed = 'PASSED';
+
+  static const Set<String> values = <String>{
+    blocked,
+    observing,
+    awaitingApproval,
+    passed,
+  };
+}
+
+/// 갭 재구성 위반(도메인 `x1_gap_violation` · 엔진 core `migration/gap_rebuild.dart:275-284` `GapViolationKind.wire` 3 ·
+/// 위반 = 대사 차단 · «봇 전용 계좌» 위반).
+abstract final class X1GapViolationCodes {
+  /// 복원 보유 + 갭 체결 ≠ 브로커 보유.
+  static const String holdingMismatch = 'GAP_HOLDING_MISMATCH';
+
+  /// 보유보다 많이 팔았다(중간 음수).
+  static const String oversold = 'GAP_OVERSOLD';
+
+  /// 전략 대응이 없다(복구 의도를 지을 수 없다).
+  static const String unmappedStrategy = 'GAP_UNMAPPED_STRATEGY';
+
+  static const Set<String> values = <String>{
+    holdingMismatch,
+    oversold,
+    unmappedStrategy,
+  };
+}
+
+/// 감시 유지보수 창 사건(도메인 `maintenance_window_event` · 엔진 core `migration/maintenance_window.dart:15-27`
+/// `WindowEvent.wire` 4). 알림 = `AlertCodes.maintenanceWindowOverdue` · `maintenanceResumeFailed`(다른 글자 · 겹침 0).
+abstract final class MaintenanceWindowEventCodes {
+  /// 열림(감시 일시정지).
+  static const String opened = 'OPENED';
+
+  /// 넘김(P1 · 창당 1건 · 넘김 시간 = ⬜ 발주자 수치).
+  static const String overdue = 'OVERDUE';
+
+  /// 닫힘(감시 재개).
+  static const String closed = 'CLOSED';
+
+  /// 부팅 때 재개 실패(P0 · 부팅당 1건).
+  static const String resumeFailed = 'RESUME_FAILED';
+
+  static const Set<String> values = <String>{
+    opened,
+    overdue,
+    closed,
+    resumeFailed,
   };
 }
 ```
@@ -14238,6 +14767,153 @@ abstract final class DepositRegisterRejectCodes {
     ledgerFixPending,
     planExpired,
     pensionQuotaChanged,
+  };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/repair_codes.dart`
+
+```dart
+// 🆕 계약 v1.30(01 §38 · E16i 계약 창) — X5 정합 복구 · 새 기준점 · X1/X5 경계 · 파생 관계의 **엔진 글자 사전**.
+//
+// 🔴 타입 이름 ≠ 엔진(core `RepairCodes` · `BaselineCodes` · `BoundaryReason` · `DerivedRelation` — `ambiguous_import` 회피 K80).
+// 🔴 화면은 이 글자로 분기 · 색 · 문구를 고르지 않는다 — 정정 마법사 VM · 경계 안내 = 다음 판(01 §8 미결 211).
+// 🔴 같은 글자 다른 축(C-5 문서 쌍): [LedgerBoundaryReasonCodes.sqliteIntegrity] · [LedgerBoundaryReasonCodes.formatVersion] =
+//    `LedgerIntegrityResultCodes` · [LedgerBoundaryReasonCodes.restoreRollback] = `OriginCodes.restoreRollback` ·
+//    `BackupResultCodes.rollback`(v1.24 K140 예고 실현).
+
+/// X5 정정 거부(도메인 `repair_result` · 엔진 core `repair/repair_plan.dart:49-79` 10).
+abstract final class RepairResultCodes {
+  /// 탐지 때 차이(diff)가 재대사에 없다(delta 가 바뀌었다).
+  static const String deltaChanged = 'REPAIR_DELTA_CHANGED';
+
+  /// 불변 스트림이 아닌 표.
+  static const String targetNotImmutable = 'REPAIR_TARGET_NOT_IMMUTABLE';
+
+  /// 이 방향 · 쌍에 쓸 수 없는 원인 코드.
+  static const String originNotAllowed = 'REPAIR_ORIGIN_NOT_ALLOWED';
+
+  /// 정본 정정인데 결정이 없다.
+  static const String decisionRequired = 'REPAIR_DECISION_REQUIRED';
+
+  /// 바뀌는 게 없다.
+  static const String noChange = 'REPAIR_NO_CHANGE';
+
+  /// 고를 차이가 OPEN `CANON_BROKER` 가 아니다.
+  static const String diffNotOpen = 'REPAIR_DIFF_NOT_OPEN';
+
+  /// 브로커 체결이 아니거나 없다.
+  static const String fillNotBroker = 'REPAIR_FILL_NOT_BROKER';
+
+  /// 주문이 아직 열려 있다(체결 동기가 누적을 다시 센다).
+  static const String orderOpen = 'REPAIR_ORDER_OPEN';
+
+  /// 정정 전 재생이 저장 포지션과 다르다.
+  static const String positionDrift = 'REPAIR_POSITION_DRIFT';
+
+  /// 정정 뒤 포지션이 중간에 음수가 된다.
+  static const String positionNegative = 'REPAIR_POSITION_NEGATIVE';
+
+  static const Set<String> values = <String>{
+    deltaChanged,
+    targetNotImmutable,
+    originNotAllowed,
+    decisionRequired,
+    noChange,
+    diffNotOpen,
+    fillNotBroker,
+    orderOpen,
+    positionDrift,
+    positionNegative,
+  };
+}
+
+/// X5 새 기준점 거부(도메인 `baseline_result` · 엔진 core `repair/baseline_plan.dart:23-29` 2).
+abstract final class BaselineResultCodes {
+  /// 경계가 X5 가 아니다(X1 비상 경로 · 또는 깨끗함).
+  static const String notX5 = 'BASELINE_NOT_X5';
+
+  /// 첫 어긋난 날을 모른다.
+  static const String firstBadDateUnknown = 'BASELINE_FIRST_BAD_DATE_UNKNOWN';
+
+  static const Set<String> values = <String>{notX5, firstBadDateUnknown};
+}
+
+/// X1/X5 경계 사유(도메인 `ledger_boundary_reason` · 엔진 core `ops/ledger_boundary.dart:17-41` `BoundaryReason.wire` 8 ·
+/// 나쁜 쪽이 이긴다 — 파일 → PRAGMA → 스탬프 사슬 → 아카이브 → 내용 → 형식 판 → 깨끗).
+/// 🔴 X1 길 다섯([dbOpenFailed] · [sqliteIntegrity] · [stampChainBroken] · [restoreRollback] · [archiveDiverged])은 기동 거부 글자로도
+///    나간다(data_sync `migration/x1_startup.dart:39-41` → FGS 머리말) · X5 길 = [contentMismatch] · [formatVersion] · 할 일 없음 = [clean].
+abstract final class LedgerBoundaryReasonCodes {
+  /// 원장 파일이 열리지 않았다.
+  static const String dbOpenFailed = 'DB_OPEN_FAILED';
+
+  /// `PRAGMA integrity_check` 가 ok 가 아니다.
+  static const String sqliteIntegrity = 'SQLITE_INTEGRITY';
+
+  /// 스탬프 사슬이 끊겼다.
+  static const String stampChainBroken = 'STAMP_CHAIN_BROKEN';
+
+  /// 정본이 아카이브보다 과거(아카이브 AHEAD).
+  static const String restoreRollback = 'RESTORE_ROLLBACK';
+
+  /// 아카이브와 갈라졌다.
+  static const String archiveDiverged = 'ARCHIVE_DIVERGED';
+
+  /// 지난 기록이 스탬프와 다르다.
+  static const String contentMismatch = 'CONTENT_MISMATCH';
+
+  /// 스탬프 형식 판이 다르다.
+  static const String formatVersion = 'FORMAT_VERSION';
+
+  /// 깨끗하다.
+  static const String clean = 'CLEAN';
+
+  static const Set<String> values = <String>{
+    dbOpenFailed,
+    sqliteIntegrity,
+    stampChainBroken,
+    restoreRollback,
+    archiveDiverged,
+    contentMismatch,
+    formatVersion,
+    clean,
+  };
+}
+
+/// 파생(아카이브 · 뷰어) 관계(도메인 `derived_relation` · 엔진 core `ops/derived_sync.dart:210-231` `DerivedRelation.wire` 7 ·
+/// FORK 알림 = `AlertCodes.derivedFork`).
+abstract final class DerivedRelationCodes {
+  /// 같다.
+  static const String inSync = 'IN_SYNC';
+
+  /// 파생이 비었다.
+  static const String empty = 'EMPTY';
+
+  /// 파생이 뒤처졌다(같은 사슬).
+  static const String behind = 'BEHIND';
+
+  /// 새 기준점 전 기록(재생성).
+  static const String rebased = 'REBASED';
+
+  /// 파생이 정본보다 앞섰다(FORK · RESTORE_ROLLBACK).
+  static const String ahead = 'AHEAD';
+
+  /// 갈라졌다(FORK).
+  static const String diverged = 'DIVERGED';
+
+  /// 더 새 기기의 기록(FORK).
+  static const String epochAhead = 'EPOCH_AHEAD';
+
+  static const Set<String> values = <String>{
+    inSync,
+    empty,
+    behind,
+    rebased,
+    ahead,
+    diverged,
+    epochAhead,
   };
 }
 ```
@@ -14876,8 +15552,10 @@ abstract final class ContributionResultCodes {
 /// 🔴 타입 이름 ≠ 엔진(core `SnapshotCodes` · `RestoreReason` · `MigrationStartCodes` — 같으면 엔진 시험이 두 배럴을 함께 import 해
 ///    `ambiguous_import` · v1.21 K33 · v1.23 K80 결) · 엔진이 계약 참조로 옮길 때 지역 선언을 지운다.
 /// 🔴 `take` 에서 구조상 나올 수 없는 `RESTORE_SHA_MISMATCH`·`RESTORE_MANIFEST_MISMATCH`(매니페스트 = 같은 사본의 digest·머리)는 싣지 않는다 —
-///    새 폰 복원 검증(X1 마법사)과 `X1_LIVE_EXISTS` 는 E16i 나머지 판(1.25.0+ · K132).
-/// 🔴 같은 글자 다른 축: [rollback] = `OriginCodes.restoreRollback`(C-5 문서 쌍) · [liveOnly] = 다음 판 `MigrationStartCodes` 겹침 예고(K140).
+///    새 폰 복원 검증(X1 마법사)의 남은 둘과 `X1_LIVE_EXISTS` = 🆕 v1.30 `X1RestoreResultCodes`(01 §38 · 복원 거부 전집 = 그 셋 ∪ 이 사전의
+///    [liveOnly] · [unreadable] · [schemaSkew] · [sqliteIntegrity] · [chainInvalid] · [rollback] — 같은 엔진 상수 = 한 벌 · K132).
+/// 🔴 같은 글자 다른 축: [rollback] = `OriginCodes.restoreRollback` · `LedgerBoundaryReasonCodes.restoreRollback` · [liveOnly] =
+///    `X1StartResultCodes.liveOnly`(C-5 문서 쌍 · v1.24 K140 예고 → v1.30 실현).
 ///    화면은 이 값으로 분기·아이콘·색을 고르지 않는다(결과 줄 = `headline` + `reasonCode` 원문).
 abstract final class BackupResultCodes {
   /// live 원장이 아니다(모의 원장 — 백업은 실전 원장에서만).
@@ -14919,8 +15597,8 @@ abstract final class BackupResultCodes {
 /// 🆕 v1.24(01 §33 · K115 · K119) — M9 `S10` 무결성 자가진단(`selftestIntegrityRun`) 불일치 사유(도메인 `ledger_integrity_result` ·
 /// 엔진 core `ops/ledger_integrity.dart:16-43` `LedgerIntegrityReason` 7 — E13c1 · 🔴 타입 이름 ≠ 엔진).
 /// 🔴 불일치 = 엔진이 `trading_block` `LEDGER_INTEGRITY` 를 세운다(일치해도 풀지 않는다 — 해제 = X5-3 정정) · 일치 = `reasonCode` null.
-/// 🔴 같은 글자 다른 축: [chainBroken] = `OriginCodes.chainBroken`(C-5 문서 쌍) · [sqliteIntegrity]·[formatVersion] = 다음 판
-///    E16i `BoundaryReason` 겹침 예고(K140).
+/// 🔴 같은 글자 다른 축: [chainBroken] = `OriginCodes.chainBroken`(C-5 문서 쌍) · [sqliteIntegrity]·[formatVersion] =
+///    `LedgerBoundaryReasonCodes`(C-5 문서 쌍 · v1.24 K140 예고 → v1.30 실현).
 abstract final class LedgerIntegrityResultCodes {
   /// 스탬프의 직렬화 형식 판이 현행과 다르다.
   static const String formatVersion = 'FORMAT_VERSION';
