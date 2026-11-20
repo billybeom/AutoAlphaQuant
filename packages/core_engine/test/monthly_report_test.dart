@@ -1,4 +1,4 @@
-// 🆕 미결 209 — 월간 리포트 빌더 첫 판 · A1 · A2 · C1 · C2(설계 13 §8 R199 · R205 · 앱 01 §36 K192 · K193 · 03 §3).
+// 🆕 미결 209 — 월간 리포트 빌더 첫 판 · A1 · A2 · C1 · C2 · D4 · E1(설계 13 §8 R199 · R205 · R208 · 앱 01 §36 K192 · K193 · 03 §3).
 //
 // 🔴 13칸 = 표본 `m7/m7_monthly_2026_08` 의 code · order · section · title 그대로(C-25) · 원천 없는 칸 = «산출 불가» ·
 //    `D2_ALLOCATION` = 월말 회계 비중 세 줄 + SAF-307 · 원화 유동성 월 집계 메모(문턱 = 집계가 쓴 문턱).
@@ -66,6 +66,8 @@ MonthlyReport _report({
   bool noTally = false,
   String? footnote,
   MonthlyEquityFacts? equity,
+  List<String>? discretionUseDates,
+  MonthlyStrategyFacts? strategy,
 }) => monthlyReportOf(
   yyyyMm: yyyyMm,
   monthEnd: monthEnd,
@@ -77,6 +79,8 @@ MonthlyReport _report({
   exposureTally: noTally ? null : (tally ?? _tally()),
   backdateFootnote: footnote,
   equity: equity,
+  discretionUseDates: discretionUseDates,
+  strategy: strategy,
 );
 
 /// 비중 가드가 낸 [ArgumentError](이름 `weights` — 범위 밖 색인 [RangeError] 와 가른다).
@@ -652,6 +656,216 @@ void main() {
           '2026-08-31',
         ]),
         g,
+      );
+    });
+  });
+
+  // ── 🆕 R208 — D4 재량 예산 · E1 전략 상태 ──
+  group('D4 · E1(R208)', () {
+    ReportItem item(MonthlyReport r, String code) =>
+        r.items.singleWhere((ReportItem i) => i.code == code);
+
+    List<Map<String, Object?>> rowsOf(String path) =>
+        ((jsonDecode(File(path).readAsStringSync())
+                    as Map<String, Object?>)['rows']!
+                as List<Object?>)
+            .cast<Map<String, Object?>>();
+
+    SafetyState safety(int row) => SafetyState.fromJson(
+      rowsOf('../domain_contracts/fixtures/safety_states.json')[row],
+    );
+
+    MonthlyReport d4(List<String> uses) =>
+        _report(noTally: true, discretionUseDates: uses);
+
+    MonthlyReport e1(
+      List<String> states,
+      int safetyRow, {
+      TierBVerdict? tierB,
+    }) => _report(
+      noTally: true,
+      strategy: MonthlyStrategyFacts(
+        strategyStates: states,
+        safety: safety(safetyRow),
+        tierB: tierB,
+      ),
+    );
+
+    test('🔴 D4 = 월말 기준 롤링 12개월(게이지와 같은 머리) · 이번 달 · 다음 회복 · 월말 뒤 사용 뺌', () {
+      final ReportItem a = item(
+        d4(const <String>['2026-08-10', '2026-09-01']),
+        'D4_DISCRETION_BUDGET',
+      );
+      expect(a.valueText, '12개월 4회 중 1회 사용');
+      expect(a.noteText, '이번 달 1회 사용 · 다음 회복 2027-08-11');
+      expect(a.detailDeepLink, isNull);
+      final ReportItem b = item(
+        d4(const <String>['2026-03-05']),
+        'D4_DISCRETION_BUDGET',
+      );
+      expect(b.valueText, '12개월 4회 중 1회 사용');
+      expect(b.noteText, '다음 회복 2027-03-06');
+      final ReportItem c = item(
+        d4(const <String>['2025-08-30']),
+        'D4_DISCRETION_BUDGET',
+      ); // 창 첫날 = 2025-08-31(포함) 앞
+      expect(c.valueText, '12개월 4회 중 0회 사용');
+      expect(c.noteText, isNull);
+      expect(
+        item(
+          d4(const <String>['2025-08-31']),
+          'D4_DISCRETION_BUDGET',
+        ).valueText,
+        '12개월 4회 중 1회 사용',
+      ); // 창 첫날 포함
+      expect(
+        item(d4(const <String>[]), 'D4_DISCRETION_BUDGET').valueText,
+        '12개월 4회 중 0회 사용',
+      );
+      final ReportItem endDay = item(
+        d4(const <String>['2026-08-31']),
+        'D4_DISCRETION_BUDGET',
+      ); // 월말 세션 당일 사용 = 포함
+      expect(endDay.valueText, '12개월 4회 중 1회 사용');
+      expect(endDay.noteText, '이번 달 1회 사용 · 다음 회복 2027-09-01');
+    });
+
+    test('D4 소진 · X7 예산 사건으로 상한 넘음', () {
+      final ReportItem a = item(
+        d4(const <String>[
+          '2025-09-15',
+          '2026-01-10',
+          '2026-05-20',
+          '2026-08-03',
+        ]),
+        'D4_DISCRETION_BUDGET',
+      );
+      expect(a.valueText, '소진 — 12개월 4회 중 4회 사용');
+      expect(a.noteText, '이번 달 1회 사용 · 다음 회복 2026-09-16');
+      final ReportItem b = item(
+        d4(const <String>[
+          '2025-09-15',
+          '2026-01-10',
+          '2026-05-20',
+          '2026-08-03',
+          '2026-08-04',
+        ]),
+        'D4_DISCRETION_BUDGET',
+      );
+      expect(b.valueText, '소진 — 12개월 4회 중 5회 사용');
+      expect(b.noteText, '이번 달 2회 사용 · 다음 회복 2027-01-11');
+    });
+
+    test('D4 가드 · 없음 = «산출 불가»', () {
+      expect(
+        () => d4(const <String>['2026-8-1']),
+        throwsA(
+          isA<ArgumentError>().having(
+            (ArgumentError e) => e.name,
+            'name',
+            'discretionUseDates',
+          ),
+        ),
+      );
+      expect(
+        item(_report(noTally: true), 'D4_DISCRETION_BUDGET').valueText,
+        MonthlyReportTexts.notComputed,
+      );
+    });
+
+    test('🔴 E1 정상 = 표본 m7_monthly_2026_08 글자 그대로 · 표식 플래그는 거른다', () {
+      final List<Object?> fx =
+          rowsOf('../domain_contracts/fixtures/m7/m7_monthly_2026_08.json')
+                  .single['items']!
+              as List<Object?>;
+      final Map<String, Object?> f =
+          fx.singleWhere(
+                (Object? x) => (x! as Map)['code'] == 'E1_STRATEGY_STATE',
+              )!
+              as Map<String, Object?>;
+      final ReportItem a = item(
+        e1(const <String>['ACTIVE', 'ACTIVE'], 0),
+        'E1_STRATEGY_STATE',
+      );
+      expect(a.valueText, f['value_text']);
+      expect(a.noteText, f['note_text']);
+      expect(a.detailDeepLink, isNull);
+      final ReportItem m = item(
+        e1(const <String>['ACTIVE'], 1),
+        'E1_STRATEGY_STATE',
+      ); // SELF_AUDIT_DUE = 표식
+      expect(m.valueText, '정상 · 차단 플래그 없음');
+      expect(m.noteText, isNull);
+    });
+
+    test('🔴 E1 보호관찰 · 이 달 계층 B 충족 · 차단 플래그 수 · 이름 메모(엔진 차례)', () {
+      final ReportItem a = item(
+        e1(
+          const <String>['ACTIVE', 'PROBATION'],
+          3,
+          tierB: const TierBVerdict(b1: false, b2: true, b3: true),
+        ),
+        'E1_STRATEGY_STATE',
+      );
+      expect(a.valueText, '보호관찰 · 계층 B B2 · B3 충족 · 차단 플래그 2개');
+      expect(a.noteText, '브로커 원장과 어긋납니다 · 일지가 비어 있습니다');
+      expect(
+        item(
+          e1(
+            const <String>['ACTIVE'],
+            0,
+            tierB: const TierBVerdict(b1: true, b2: false, b3: false),
+          ),
+          'E1_STRATEGY_STATE',
+        ).valueText,
+        '정상 · 계층 B B1 충족 · 차단 플래그 없음',
+      );
+      expect(
+        item(
+          e1(
+            const <String>['ACTIVE'],
+            0,
+            tierB: const TierBVerdict(b1: false, b2: true, b3: false),
+          ),
+          'E1_STRATEGY_STATE',
+        ).valueText,
+        '정상 · 계층 B B2 충족 · 차단 플래그 없음',
+      );
+      expect(
+        item(
+          e1(
+            const <String>['ACTIVE'],
+            0,
+            tierB: const TierBVerdict(b1: false, b2: false, b3: false),
+          ),
+          'E1_STRATEGY_STATE',
+        ).valueText,
+        '정상 · 차단 플래그 없음',
+      );
+    });
+
+    test('E1 킬스위치 켜짐 = 상태 글자 붙임', () {
+      final ReportItem a = item(
+        e1(const <String>['ACTIVE'], 4),
+        'E1_STRATEGY_STATE',
+      );
+      expect(a.valueText, '정상 · 킬스위치 작동 중 · 차단 플래그 1개');
+      expect(a.noteText, '원장 무결성 점검이 필요합니다');
+    });
+
+    test('E1 가드 · 없음 = «산출 불가»', () {
+      final Matcher g = throwsA(
+        isA<ArgumentError>().having(
+          (ArgumentError e) => e.name,
+          'name',
+          'strategy',
+        ),
+      );
+      expect(() => e1(const <String>[], 0), g);
+      expect(() => e1(const <String>['ACTIVE', 'RETIRED'], 0), g);
+      expect(
+        item(_report(noTally: true), 'E1_STRATEGY_STATE').valueText,
+        MonthlyReportTexts.notComputed,
       );
     });
   });

@@ -9,7 +9,9 @@
 //    계측 한 줄 = 부기이지 14번째 항목이 아니다» · 새 계약 칸 0 — K192). 문턱 글자 = 집계가 쓴 문턱(지어내지 않는다).
 // 🆕 R205(나눔 ⓐ) — A1 · A2 · C1 · C2 = 계층 B 와 같은 TWR 시리즈([EquityPoint] · 개시 이후 · 입출금 = 외부 흐름 —
 //    data_sync `tierBSeries`) + 그 달 KR 세션([MonthlyEquityFacts]). 그 달 결측 세션 = 표본 `m7_monthly_gap` 글자 그대로.
-// 🔴 나머지 8칸 = 원천이 생기는 창마다 타입 있는 입력 하나씩(설계 13 §8 R199 나눔표) — 지금은 받는 칸이 없다(호출자가 글자를
+// 🆕 R208(나눔 ⓑ) — D4 = 재량 예산 셈(`discretionBudgetOf` · 월말 기준 · 게이지와 같은 머리 글자) · E1 = 전략 상태
+//    (ACTIVE · PROBATION) + 이 달 계층 B 판정 + 홈 · 차단 보드와 같은 `SafetyState` 한 장(킬스위치 · 표식 아닌 차단 플래그).
+// 🔴 나머지 6칸 = 원천이 생기는 창마다 타입 있는 입력 하나씩(설계 13 §8 R199 나눔표) — 지금은 받는 칸이 없다(호출자가 글자를
 //    밀어 넣는 길 0 · 글자 = 엔진).
 // 🔴 미생성 · 가림(무결성 · 대사) = 읽기 경로 몫(01 §2-10 · 생성일 규칙 미정) — 이 빌더는 «마감된 달» 한 갈래만 짓는다
 //    (생성 날 < 월말 세션 = 실패). 마감된 달을 다시 짓지 않는 것(03 §3 금지 ③ · G-97)도 읽기 경로 · 저장의 몫이다.
@@ -22,16 +24,20 @@ import 'package:domain_contracts/domain_contracts.dart'
         AllocationBasis,
         AsOf,
         AsOfSource,
+        BlockFlag,
+        FlagIds,
         LedgerTrustBadge,
         MonthlyReport,
         ReportItem,
+        SafetyState,
         SleeveId,
         SleeveWeight,
         TradeDate;
 
+import '../safety/discretion.dart' show DiscretionBudget, discretionBudgetOf;
 import 'ledger_views.dart' show kstDateText;
 import 'p0s_warn.dart' show P0sExposureTally;
-import 'tier_b.dart' show EquityPoint, twrIndex;
+import 'tier_b.dart' show EquityPoint, TierBVerdict, twrIndex;
 
 /// 월간 리포트 기준 유효 시간(표본 `m7_monthly_*` 93600초).
 const Duration kMonthlyReportStaleAfter = Duration(hours: 26);
@@ -135,6 +141,35 @@ abstract final class MonthlyReportTexts {
 
   /// 한 달 = 30.4375일(계층 B TUW 와 같은 환산).
   static const double monthDays = 30.4375;
+
+  /// 🆕 R208 — 재량 예산 값 «12개월 4회 중 1회 사용»(게이지 `discretionBudgetText` 머리와 같은 글자) · 소진 = «소진 — » 앞붙임.
+  static String discretionValue(DiscretionBudget b) =>
+      '${b.exhausted ? '소진 — ' : ''}12개월 ${b.max}회 중 ${b.used}회 사용';
+
+  /// 🆕 R208 — 재량 메모 «이번 달 1회 사용».
+  static String discretionThisMonth(int n) => '이번 달 $n회 사용';
+
+  /// 🆕 R208 — 재량 메모 «다음 회복 2027-08-03»(게이지와 같은 글자).
+  static String discretionRecovery(String date) => '다음 회복 $date';
+
+  /// 🆕 R208 — 전략 상태 ACTIVE(표본 `m7_monthly_2026_08` E1 «정상»).
+  static const String strategyActive = '정상';
+
+  /// 🆕 R208 — 전략 상태 PROBATION(03_운영 §1-5 상태기계 «보호관찰»).
+  static const String strategyProbation = '보호관찰';
+
+  /// 🆕 R208 — 이 달 계층 B 판정 충족 «계층 B B2 충족».
+  static String tierBBreached(List<String> codes) =>
+      '계층 B ${codes.join(' · ')} 충족';
+
+  /// 🆕 R208 — 킬스위치 켜짐 «킬스위치 작동 중»(상태 글자 = 엔진 `KillSwitchView.stateLabel`).
+  static String killSwitch(String stateLabel) => '킬스위치 $stateLabel';
+
+  /// 🆕 R208 — 차단 플래그 없음(표본 `m7_monthly_2026_08` E1).
+  static const String noBlockFlags = '차단 플래그 없음';
+
+  /// 🆕 R208 — 차단 플래그 수 «차단 플래그 2개»(이름 = 메모).
+  static String blockFlags(int n) => '차단 플래그 $n개';
 }
 
 /// 🆕 R205 — A1 · A2 · C1 · C2 원천.
@@ -147,6 +182,98 @@ class MonthlyEquityFacts {
 
   /// 그 달 KR 세션 전부(날짜 순 · 마지막 = 월말 세션) — 개시 날 이후인데 스냅숏이 없는 세션 = 결측.
   final List<String> monthSessions;
+}
+
+/// 🆕 R208 — E1 원천.
+class MonthlyStrategyFacts {
+  /// 만든다.
+  const MonthlyStrategyFacts({
+    required this.strategyStates,
+    required this.safety,
+    this.tierB,
+  });
+
+  /// `strategy_state_current.state` 전부(전략마다) — ACTIVE · PROBATION 밖 · 빈 목록 = 실패.
+  final List<String> strategyStates;
+
+  /// 홈 · 차단 보드와 같은 안전 상태 한 장(리포트를 짓는 때 = 마감 직후 — 킬스위치 · 차단 플래그).
+  final SafetyState safety;
+
+  /// 이 달 계층 B 판정(판정 안 됨 = null — 미판정은 `TIER_B_UNJUDGED` 플래그가 말한다).
+  final TierBVerdict? tierB;
+}
+
+final RegExp _ymd = RegExp(r'^\d{4}-\d\d-\d\d$');
+
+/// 🔴 D4 (값 · 메모) — 사용 날(한국 날 · 조정 + X7 예산 사건 = 한 목록 D24) 중 월말까지만 · 월말 기준 롤링 12개월.
+(String, String?) _discretionItemOf(
+  List<String> useDates,
+  String yyyyMm,
+  String monthEnd,
+) {
+  for (final String d in useDates) {
+    if (!_ymd.hasMatch(d)) {
+      throw ArgumentError.value(d, 'discretionUseDates', 'YYYY-MM-DD 가 아니다');
+    }
+  }
+  final List<String> upTo = <String>[
+    for (final String d in useDates)
+      if (d.compareTo(monthEnd) <= 0) d,
+  ];
+  final DiscretionBudget b = discretionBudgetOf(upTo, monthEnd);
+  final int thisMonth = upTo
+      .where((String d) => d.startsWith('$yyyyMm-'))
+      .length;
+  final List<String> note = <String>[
+    if (thisMonth > 0) MonthlyReportTexts.discretionThisMonth(thisMonth),
+    if (b.nextRecoveryDate != null)
+      MonthlyReportTexts.discretionRecovery(b.nextRecoveryDate!),
+  ];
+  return (
+    MonthlyReportTexts.discretionValue(b),
+    note.isEmpty ? null : note.join(' · '),
+  );
+}
+
+/// 🔴 E1 (값 · 메모) — «정상 · 차단 플래그 없음»(표본) 꼴 · 표식 플래그(`FlagIds.markerOnly`)는 홈 블록 3 · 보드처럼 거른다 ·
+/// 메모 = 차단 플래그 이름(엔진 차례 그대로).
+(String, String?) _strategyItemOf(MonthlyStrategyFacts f) {
+  if (f.strategyStates.isEmpty) {
+    throw ArgumentError.value(0, 'strategy', '전략 상태 없음');
+  }
+  bool probation = false;
+  for (final String st in f.strategyStates) {
+    if (st == 'PROBATION') {
+      probation = true;
+    } else if (st != 'ACTIVE') {
+      throw ArgumentError.value(st, 'strategy', 'ACTIVE · PROBATION 밖의 상태');
+    }
+  }
+  final TierBVerdict? v = f.tierB;
+  final List<String> codes = <String>[
+    if (v != null && v.b1) 'B1',
+    if (v != null && v.b2) 'B2',
+    if (v != null && v.b3) 'B3',
+  ];
+  final List<BlockFlag> flags = <BlockFlag>[
+    for (final BlockFlag x in f.safety.activeFlags)
+      if (!FlagIds.markerOnly.contains(x.flagId)) x,
+  ];
+  final String value = <String>[
+    probation
+        ? MonthlyReportTexts.strategyProbation
+        : MonthlyReportTexts.strategyActive,
+    if (codes.isNotEmpty) MonthlyReportTexts.tierBBreached(codes),
+    if (f.safety.killSwitch.active)
+      MonthlyReportTexts.killSwitch(f.safety.killSwitch.stateLabel),
+    flags.isEmpty
+        ? MonthlyReportTexts.noBlockFlags
+        : MonthlyReportTexts.blockFlags(flags.length),
+  ].join(' · ');
+  return (
+    value,
+    flags.isEmpty ? null : flags.map((BlockFlag x) => x.label).join(' · '),
+  );
 }
 
 /// 같은 높이 허용(계층 B 최고점 판정과 같은 상대 오차 — 곱셈 누적 오차로 회복을 놓치지 않는다).
@@ -339,13 +466,14 @@ String monthlyExposureNoteOf(P0sExposureTally t) {
       '계측 없음 ${t.unmeasuredDays}일';
 }
 
-/// 🔴 마감된 달의 월간 리포트를 짓는다 — 13칸 고정 · 원천이 있는 칸(A1 · A2 · C1 · C2 · D2)만 · 나머지 = «산출 불가».
+/// 🔴 마감된 달의 월간 리포트를 짓는다 — 13칸 고정 · 원천이 있는 칸(A1 · A2 · C1 · C2 · D2 · D4 · E1)만 · 나머지 = «산출 불가».
 ///
 /// [monthEnd] = 그 달 마지막 KR 세션(기준일) · [generatedAtUtc] = 생성 시각(한국 날 < [monthEnd] = 미생성 → [ArgumentError]) ·
 /// [trust] = 그 달 마감 시점 원장 신뢰 등급(읽기 경로가 준다 — 스트림의 «지금» 등급이 아니다 · 03 §3) ·
 /// [disclosureViewCount] = 그 달 탐색 열람 수(명령 집계 · 음수 = [ArgumentError]) ·
 /// [allocation] null · 빈 목록 = D2 값 «산출 불가» · [exposureTally] null = D2 메모 없음(달이 다르면 [ArgumentError]) ·
-/// 🆕 [equity] null = A1 · A2 · C1 · C2 «산출 불가»(R205).
+/// 🆕 [equity] null = A1 · A2 · C1 · C2 «산출 불가»(R205) · 🆕 [discretionUseDates] null = D4 · [strategy] null = E1
+/// «산출 불가»(R208).
 MonthlyReport monthlyReportOf({
   required String yyyyMm,
   required TradeDate monthEnd,
@@ -356,6 +484,8 @@ MonthlyReport monthlyReportOf({
   List<SleeveWeight>? allocation,
   P0sExposureTally? exposureTally,
   MonthlyEquityFacts? equity,
+  List<String>? discretionUseDates,
+  MonthlyStrategyFacts? strategy,
   String? backdateFootnote,
 }) {
   if (!_yyyyMm.hasMatch(yyyyMm)) {
@@ -394,6 +524,14 @@ MonthlyReport monthlyReportOf({
       <MonthlyReportSlot, (String, String?)>{
         if (equity != null) ..._equityItemsOf(equity, yyyyMm, end),
         MonthlyReportSlot.allocation: (allocationValue, allocationNote),
+        if (discretionUseDates != null)
+          MonthlyReportSlot.discretionBudget: _discretionItemOf(
+            discretionUseDates,
+            yyyyMm,
+            end,
+          ),
+        if (strategy != null)
+          MonthlyReportSlot.strategyState: _strategyItemOf(strategy),
       };
   return MonthlyReport(
     yyyyMm: yyyyMm,
