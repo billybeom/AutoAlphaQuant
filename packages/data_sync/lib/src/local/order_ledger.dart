@@ -16,6 +16,9 @@
 // 🆕 E10f — 대사 원장(`ReconLedger` · 설계 13 §8 R40 A2 · A7 · A8): `reconciliation_log` + `ledger_diff`(CANON_BROKER) +
 //    `trading_block(RECON_MISMATCH)` 를 한 트랜잭션. 🔴 대사는 플래그를 세우기만 한다(풀기 = `clearReconBlock` 뿐 ·
 //    저널 `RECON_CLEAR` 확인은 core `clearRecon`). 🔴 positions · executions 를 고치지 않는다(자동 수정 금지).
+// 🆕 E11q-c4 — RECON 해제 «저널 함께 쓰기» 판(`clearReconWithJournal` · 설계 13 §8 R189 · 01 §35 K180~K182 · 미결 206 RECON 몫):
+//    사전 저널(`RECON_CLEAR` · 이탈 행) + 해제(플래그 · OPEN 차단 행 RESOLVED · 해제 로그 · MANUAL_ORDER SEV2) + 명령 행 = 한 트랜잭션 ·
+//    판정(core `reconClearRejectCode`)도 그 안 · 거부 = 명령 행만 · 같은 command_id = 처음 결과 · 시각 = 기기 시계(신뢰 시각 비의존).
 
 import 'dart:convert' show jsonEncode;
 
@@ -35,6 +38,7 @@ import 'package:core_engine/core_engine.dart'
         LedgerOrderFill,
         OpenIntent,
         OrderPathLedger,
+        P0sStrategyIds,
         ReconClearance,
         ReconDiff,
         ReconRecord,
@@ -47,10 +51,13 @@ import 'package:core_engine/core_engine.dart'
         demoteToDouble,
         diffSeverityFor,
         kUnknownNotFoundPrefix,
+        kstDateText,
         ledgerDiffIdOf,
         logicalIdOf,
+        manualOrderIncidentOf,
         parseRecordedCancelJson,
         parseRecordedFillJson,
+        reconClearRejectCode,
         recordedFillJson,
         writableOriginCodesFor;
 import 'package:core_engine/core_engine.dart' as core show killSwitchActive;
@@ -62,15 +69,39 @@ import 'package:domain_contracts/domain_contracts.dart'
         FlagIds,
         LedgerPair,
         OrderSide,
+        OriginCodes,
         RunMode,
         TradeDate;
 import 'package:sqlite3/sqlite3.dart';
 
+import '../market/market_store.dart' show inLedgerTransaction;
 import 'fill_sign_sql.dart' show signedFillSql;
 import 'kill_switch_store.dart' show readKillSwitchRecord;
 
 /// 브로커 거절의 `error_message` 접두(R36 W5).
 const String kBrokerRejectedPrefix = 'BROKER: ';
+
+/// 🆕 E11q-c4 — `command_inbox.kind` · `decision_journal.kind`(RECON 해제 · 계약 `SafetyActionId.reconClear` 와 같은 글자).
+const String kReconClearKind = 'RECON_CLEAR';
+
+/// 🆕 E11q-c4 — RECON 해제 «저널 함께 쓰기» 결과.
+class ReconClearWriteResult {
+  /// 결과를 만든다.
+  const ReconClearWriteResult({
+    required this.executed,
+    this.replayed = false,
+    this.reasonCode,
+  });
+
+  /// 풀었나(재전달이면 처음 결과).
+  final bool executed;
+
+  /// 같은 command_id 재전달이었나.
+  final bool replayed;
+
+  /// 거부 코드(`ReconClearResultCodes` ∪ `JOURNAL_ID_TAKEN`).
+  final String? reasonCode;
+}
 
 /// orders_today 가 세는 상태 — 7단계(SUBMITTING)에 들어선 것(R33 D22).
 const List<IntentStatus> _submittedOrLater = <IntentStatus>[
@@ -967,68 +998,178 @@ final class SqliteOrderLedger implements OrderPathLedger {
         '대사 해제에 쓸 수 없는 원인 코드',
       );
     }
+    inLedgerTransaction(_db, () => _clearReconRows(clearance));
+  }
+
+  /// 해제 행들(열린 트랜잭션 안에서 부른다) — 플래그 · OPEN 차단 행 RESOLVED · (MANUAL_ORDER) SEV2 · 해제 로그.
+  void _clearReconRows(ReconClearance clearance) {
     final String at = clearance.clearedAtUtc.toUtc().toIso8601String();
-    _db.execute('BEGIN IMMEDIATE');
-    try {
+    _db.execute(
+      'UPDATE trading_block SET cleared_at = ?, cleared_by = ?, decision_id = ?, origin_code = ? '
+      'WHERE flag_id = ? AND cleared_at IS NULL',
+      <Object?>[
+        at,
+        clearance.clearedBy,
+        clearance.decisionId,
+        clearance.originCode,
+        FlagIds.reconMismatch,
+      ],
+    );
+    if (_db.updatedRows != 1) {
+      throw StateError('RECON_MISMATCH 가 서 있지 않다');
+    }
+    _db.execute(
+      'UPDATE ledger_diff SET status = ?, origin_code = ? WHERE pair = ? AND status = ?',
+      <Object?>[
+        DiffStatus.resolved.wire,
+        clearance.originCode,
+        LedgerPair.canonBroker.wire,
+        DiffStatus.open.wire,
+      ],
+    );
+    final int resolved = _db.updatedRows;
+    // 🆕 E13e2 — MANUAL_ORDER = 같은 트랜잭션에 SEV2 postmortem 7일(04 §3-5 ④ · R63 V1 · 다시 = 1건).
+    final SafetyIncident? incident = clearance.incident;
+    if (incident != null) {
       _db.execute(
-        'UPDATE trading_block SET cleared_at = ?, cleared_by = ?, decision_id = ?, origin_code = ? '
-        'WHERE flag_id = ? AND cleared_at IS NULL',
+        'INSERT OR IGNORE INTO incidents (incident_id, occurred_at, severity, category, description, '
+        'resolved_at, postmortem, due_at) VALUES (?, ?, ?, ?, ?, NULL, NULL, ?)',
         <Object?>[
-          at,
-          clearance.clearedBy,
-          clearance.decisionId,
-          clearance.originCode,
-          FlagIds.reconMismatch,
+          incident.incidentId,
+          incident.occurredAtUtc.toIso8601String(),
+          incident.severity,
+          incident.category,
+          incident.description,
+          incident.dueAtUtc.toIso8601String(),
         ],
       );
-      if (_db.updatedRows != 1) {
-        throw StateError('RECON_MISMATCH 가 서 있지 않다');
-      }
-      _db.execute(
-        'UPDATE ledger_diff SET status = ?, origin_code = ? WHERE pair = ? AND status = ?',
-        <Object?>[
-          DiffStatus.resolved.wire,
-          clearance.originCode,
-          LedgerPair.canonBroker.wire,
-          DiffStatus.open.wire,
-        ],
+    }
+    // 해제도 로그 한 행(원인 코드를 남긴다 — 04 §3-5 ②). matched = 0 — 대사 판이 아니다.
+    _db.execute(
+      'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+      "VALUES (?, ?, 0, ?, 'CLEARED')",
+      <Object?>[
+        _reconLogId('rc-clear-', at),
+        at,
+        jsonEncode(<String, Object?>{
+          'origin_code': clearance.originCode,
+          'decision_id': clearance.decisionId,
+          'cleared_by': clearance.clearedBy,
+          'resolved': resolved,
+        }),
+      ],
+    );
+  }
+
+  /// 🆕 E11q-c4(설계 13 §8 R189 · 01 §35 K180~K182 · 미결 206 RECON 몫) — RECON 해제 + 사전 저널을 **한 트랜잭션**으로 쓴다
+  /// («저널 함께 쓰기» 판 — [clearReconBlock] 은 이미 있는 저널을 전제하고 `BEGIN IMMEDIATE` 라 겹쳐 부를 수 없다).
+  /// 판정 = core `reconClearRejectCode`(막힘 없음 → 선택지 밖 원인 코드 → 저널 세 칸 → 저널 id 겹침 · 트랜잭션 안) ·
+  /// 저널 = `kind RECON_CLEAR` · 이탈 행(`is_deviation 1` — 세 칸이 차 있어 SAF-408 에 걸리지 않는다) · 저널 id = 구현([journalId]) ·
+  /// [clearedBy] = 구현(기기 별칭) · 시각 = 기기 시계([clock] · 신뢰 시각 비의존) · 거부 = 명령 행만 · 같은 command_id = 처음 결과.
+  ReconClearWriteResult clearReconWithJournal({
+    required String commandId,
+    required String payloadDigest,
+    required String originCode,
+    required String journalId,
+    required String clearedBy,
+    required String rationaleBefore,
+    required String expectedOutcome,
+    required String ruleCited,
+  }) {
+    if (journalId.trim().isEmpty) {
+      throw ArgumentError.value(journalId, 'journalId', '비었다');
+    }
+    if (clearedBy.trim().isEmpty) {
+      throw ArgumentError.value(clearedBy, 'clearedBy', '비었다');
+    }
+    return inLedgerTransaction(_db, () {
+      final ResultSet seen = _db.select(
+        'SELECT state, reject_reason_code FROM command_inbox WHERE command_id = ?',
+        <Object?>[commandId],
       );
-      final int resolved = _db.updatedRows;
-      // 🆕 E13e2 — MANUAL_ORDER = 같은 트랜잭션에 SEV2 postmortem 7일(04 §3-5 ④ · R63 V1 · 다시 = 1건).
-      final SafetyIncident? incident = clearance.incident;
-      if (incident != null) {
-        _db.execute(
-          'INSERT OR IGNORE INTO incidents (incident_id, occurred_at, severity, category, description, '
-          'resolved_at, postmortem, due_at) VALUES (?, ?, ?, ?, ?, NULL, NULL, ?)',
-          <Object?>[
-            incident.incidentId,
-            incident.occurredAtUtc.toIso8601String(),
-            incident.severity,
-            incident.category,
-            incident.description,
-            incident.dueAtUtc.toIso8601String(),
-          ],
+      if (seen.isNotEmpty) {
+        return ReconClearWriteResult(
+          executed: seen.first['state'] == 'EXECUTED',
+          replayed: true,
+          reasonCode: seen.first['reject_reason_code'] as String?,
         );
       }
-      // 해제도 로그 한 행(원인 코드를 남긴다 — 04 §3-5 ②). matched = 0 — 대사 판이 아니다.
+      final DateTime at = clock.nowUtc().toUtc();
+      final String? code = reconClearRejectCode(
+        blocked: _reconActive(),
+        originCode: originCode,
+        rationaleBefore: rationaleBefore,
+        expectedOutcome: expectedOutcome,
+        ruleCited: ruleCited,
+        journalIdTaken: _exists(
+          'SELECT 1 FROM decision_journal WHERE journal_id = ?',
+          <Object?>[journalId],
+        ),
+      );
+      if (code != null) {
+        _reconCommand(commandId, payloadDigest, at, rejectCode: code);
+        return ReconClearWriteResult(executed: false, reasonCode: code);
+      }
       _db.execute(
-        'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
-        "VALUES (?, ?, 0, ?, 'CLEARED')",
+        'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
+        'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
+        'VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, NULL, ?)',
         <Object?>[
-          _reconLogId('rc-clear-', at),
-          at,
+          journalId,
+          kstDateText(at),
+          P0sStrategyIds.deposit,
           jsonEncode(<String, Object?>{
-            'origin_code': clearance.originCode,
-            'decision_id': clearance.decisionId,
-            'cleared_by': clearance.clearedBy,
-            'resolved': resolved,
+            'flag_id': FlagIds.reconMismatch,
+            'origin_code': originCode,
           }),
+          jsonEncode(<String, Object?>{
+            'recon_mismatch': 'CLEARED',
+            'cleared_by': clearedBy.trim(),
+          }),
+          rationaleBefore.trim(),
+          expectedOutcome.trim(),
+          ruleCited.trim(),
+          kReconClearKind,
+          at.toIso8601String(),
         ],
       );
-      _db.execute('COMMIT');
-    } catch (_) {
-      if (!_db.autocommit) _db.execute('ROLLBACK');
-      rethrow;
-    }
+      _clearReconRows(
+        ReconClearance(
+          originCode: originCode,
+          decisionId: journalId,
+          clearedBy: clearedBy.trim(),
+          clearedAtUtc: at,
+          // 04 §3-5 ④ — MANUAL_ORDER 면 SEV2 postmortem(7일)을 같은 트랜잭션에(core `clearRecon` 과 같은 규칙).
+          incident: originCode == OriginCodes.manualOrder
+              ? manualOrderIncidentOf(decisionId: journalId, clearedAtUtc: at)
+              : null,
+        ),
+      );
+      _reconCommand(commandId, payloadDigest, at, decisionId: journalId);
+      return const ReconClearWriteResult(executed: true);
+    });
   }
+
+  /// RECON 해제 명령 행(`command_inbox` · 규칙 변경 · 서약 저장과 같은 꼴).
+  void _reconCommand(
+    String commandId,
+    String digest,
+    DateTime at, {
+    String? rejectCode,
+    String? decisionId,
+  }) => _db.execute(
+    'INSERT INTO command_inbox(command_id, kind, ingested_at, state, state_label, reject_reason_code, '
+    'decision_id, run_mode, operating_mode, lease_epoch, payload_digest) '
+    'VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?)',
+    <Object?>[
+      commandId,
+      kReconClearKind,
+      at.toIso8601String(),
+      rejectCode == null ? 'EXECUTED' : 'REJECTED',
+      rejectCode == null ? '실행됨' : '거부됨 — $rejectCode',
+      rejectCode,
+      decisionId,
+      digest,
+    ],
+  );
 }

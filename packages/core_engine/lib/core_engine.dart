@@ -1306,6 +1306,14 @@ export 'src/safety/pledge_view.dart'
         pledgeAsOf,
         pledgeSubmissionDigest,
         pledgeVmOf;
+// 🆕 E11q-c4 — M5-5 RECON 해제 폼 · 판정 · 결과 글자(설계 13 §8 R189 · 01 §35 K181 · K182).
+export 'src/safety/recon_clear.dart'
+    show
+        ReconClearTexts,
+        kReconClearChoiceCodes,
+        reconClearActionResultOf,
+        reconClearFormOf,
+        reconClearRejectCode;
 // 🆕 E13g1 — 규칙 변경 게이트 · SAF-405 기동 통제(M5-9 · 설계 13 §8 R66).
 export 'src/safety/rule_change.dart'
     show
