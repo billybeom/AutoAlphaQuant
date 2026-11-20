@@ -258,6 +258,9 @@ void main() {
         FixturePaths.m5RuleChangeRequestResults,
         FixturePaths.m5BlockBoardReconMismatch,
         FixturePaths.m5ReconClearResults,
+        // 🆕 v1.28(01 §37) — S04 첫 판 2(백테스트 한 줄 = 05 원칙 3 예외 · 손익·금액 키 0).
+        FixturePaths.m9AllocationEditor,
+        FixturePaths.m9AllocationEditorStale,
       ];
       final List<String> offenders = <String>[];
       for (final String path in homeFixtures) {
