@@ -1098,7 +1098,8 @@ export 'src/resume/resume_screens.dart'
         resumeGateVmOf,
         resumePeriodText,
         resumeReportVmOf,
-        resumeScreenAsOf;
+        resumeScreenAsOf,
+        seasonalChoiceResultOf;
 export 'src/resume/resume_text.dart'
     show
         plannedWorkStateLabel,

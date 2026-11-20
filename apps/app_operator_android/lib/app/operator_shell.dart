@@ -225,7 +225,7 @@ final Provider<OperatorBlockBoardRepository> operatorBlockBoardProvider =
       );
     });
 
-/// 🆕 R186 — X2 재개 리포트 · 게이트 읽기(한 인스턴스 · 리포트 링크 = 레지스트리에 본문이 있을 때만 · 계절 3택 = b2b 전 0).
+/// 🆕 R186 — X2 재개 리포트 · 게이트 읽기(한 인스턴스 · 리포트 링크 = 레지스트리에 본문이 있을 때만 · 🆕 R195 계절 3택 = 켜짐).
 final Provider<OperatorResumeGateRepository> operatorResumeGateProvider =
     Provider<OperatorResumeGateRepository>((Ref ref) {
       final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
@@ -529,8 +529,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.m5ReleaseGate: _releaseGate,
   // 🆕 E11q-b3(R185) — M5-5 차단 보드(홈 블록 1 · 3 · 알림 3종 · 대사 불일치 목적지 · 킬스위치 둘째 길 · 읽기만).
   AppRoutes.m5BlockBoard: _blockBoard,
-  // 🆕 E11q-b2a(R186) — X2 재개 리포트 · 게이트(재개 미완 배너 · 차단 보드 재개 미완 행 · 알림 RESUME_COMPLETED 목적지 · 읽기 —
-  //    계절 3택 쓰기 = b2b).
+  // 🆕 E11q-b2a(R186) — X2 재개 리포트 · 게이트(재개 미완 배너 · 차단 보드 재개 미완 행 · 알림 RESUME_COMPLETED 목적지 ·
+  //    🆕 R195 계절 3택 쓰기 = 안전 동작 `run(seasonalWindowChoice)`).
   AppRoutes.x2ResumeReport: _resumeReport,
   AppRoutes.x2ResumeGate: _resumeGate,
   // 🆕 E11q-c0(R188) — M5-9 규칙 변경 게이트 «첫 승인 최소판»(SAF-405 첫 승인 요청 · 냉각 · 승인 · 취소).
@@ -593,7 +593,7 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   safetyBlockBoardRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorBlockBoardProvider),
   ),
-  // 🆕 R186 — X2 재개 리포트 · 게이트 읽기(링크 = 위 셸 링크 열기 · 계절 3택 쓰기 = 위 안전 동작 인스턴스 — b2b 에서 연다).
+  // 🆕 R186 — X2 재개 리포트 · 게이트 읽기(링크 = 위 셸 링크 열기 · 계절 3택 쓰기 = 위 안전 동작 인스턴스 — R195).
   safetyResumeGateRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorResumeGateProvider),
   ),

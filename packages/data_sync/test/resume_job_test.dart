@@ -553,6 +553,69 @@ void main() {
     );
   });
 
+  test('🆕 E11q-b2b(R195) — 계절 선택 단독 적용(재개 실행기 없이) = 같은 판정 · X2 게이트 행 = 사람 결정 사유 · 3택 다시 0', () async {
+    await lastSuccess('2026-11-11');
+    seasonalPlan('AAA-SEAS-IN', 'BUY');
+    await job().run(_today);
+    SqliteResumeScreenSource src({bool canChoose = true}) =>
+        SqliteResumeScreenSource(
+          db,
+          clock: _Clock(),
+          canChoose: canChoose,
+          hasBody: (String _) => true,
+        );
+    ResumeGateRow row() => src().gate().rows.singleWhere(
+      (ResumeGateRow r) => r.workId == 'PW-AAA-SEAS-IN',
+    );
+    expect(row().reasonCode, ResumeItemReasonCodes.humanDecision);
+    expect(
+      row().actions.map((SafetyActionCall a) => a.args['choice']).toList(),
+      <String>['SKIP', 'REDUCED', 'AS_IS'],
+    );
+    expect(src(canChoose: false).gate().rows.single.actions, isEmpty);
+    final SqliteSeasonalChoice s = SqliteSeasonalChoice(
+      db,
+      runMode: runMode,
+      operatingMode: OperatingMode.autoTrade,
+      clock: _Clock(),
+      ledger: ledger,
+    );
+    expect(
+      await s.apply(
+        workId: 'PW-AAA-SEAS-IN',
+        choice: SeasonalWindowChoice.reduced,
+        decisionId: 'SEA-1',
+        today: _today,
+      ),
+      isNull,
+    );
+    final ResumeGateRow after = row();
+    expect(
+      (after.reasonCode, after.reasonLabel, after.level),
+      (ResumeItemReasonCodes.humanReduced, '직접 축소 진입을 골랐습니다', UiLevel.info),
+    );
+    expect(after.actions, isEmpty);
+    // 같은 행 두 번 = 이미 결정(재개 실행기 위임과 같은 코드).
+    expect(
+      await s.apply(
+        workId: 'PW-AAA-SEAS-IN',
+        choice: SeasonalWindowChoice.skip,
+        decisionId: 'SEA-2',
+        today: _today,
+      ),
+      SeasonalChoiceCodes.notPending,
+    );
+    expect(
+      await job().applySeasonalChoice(
+        workId: 'PW-AAA-SEAS-IN',
+        choice: SeasonalWindowChoice.skip,
+        decisionId: 'SEA-3',
+        today: _today,
+      ),
+      SeasonalChoiceCodes.notPending,
+    );
+  });
+
   test('🆕 E14d2b 실행 기록이 없어도(기준 없음) 플래그만으로 연 회차 = R5 건너뜀 · 끝까지', () async {
     db.execute(
       "INSERT INTO trading_block(flag_id, set_at, reason) VALUES ('RESUME_INCOMPLETE', 'x', 'y')",

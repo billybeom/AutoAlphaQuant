@@ -6,9 +6,22 @@
 // 🔴 다시 판정 0 · 손익 0 · 관측 시각 = 기기 시계.
 
 import 'package:core_engine/core_engine.dart'
-    show ResumeGateItem, ResumeGateRun, resumeGateVmOf, resumeReportVmOf;
+    show
+        ResumeGateItem,
+        ResumeGateRun,
+        kstDateText,
+        resumeGateVmOf,
+        resumeReevaluatedLine,
+        resumeReportVmOf;
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, FlagIds, ResumeGateVm, ResumeMode, ResumeReportVm;
+    show
+        Clock,
+        FlagIds,
+        ResumeGateVm,
+        ResumeItemReasonCodes,
+        ResumeMode,
+        ResumeReportVm,
+        TradeDate;
 import 'package:sqlite3/sqlite3.dart';
 
 import 'resume_read_model.dart' show SqliteResumeRepository;
@@ -35,6 +48,8 @@ class SqliteResumeScreenSource {
   static const Set<String> watchedTables = <String>{
     ...SqliteResumeRepository.watchedTables,
     'trading_block',
+    // 🆕 E11q-b2b(R195) — 계절 선택 = 전이 행 + 결정 행(사람 결정 사유를 행에 비춘다).
+    'planned_work_transition',
   };
 
   /// X2 리포트 한 화면.
@@ -74,14 +89,46 @@ class SqliteResumeScreenSource {
           'WHERE resume_run_id = ? ORDER BY seq',
           <Object?>[r['resume_run_id']],
         ))
-          ResumeGateItem(
-            workId: i['work_id'] as String,
-            oneLine: i['one_line'] as String,
-            reasonCode: i['reason_code'] as String,
-            reasonLine: i['reevaluated_line'] as String,
-            verdictCode: i['verdict_code'] as String,
+          _withHumanChoice(
+            ResumeGateItem(
+              workId: i['work_id'] as String,
+              oneLine: i['one_line'] as String,
+              reasonCode: i['reason_code'] as String,
+              reasonLine: i['reevaluated_line'] as String,
+              verdictCode: i['verdict_code'] as String,
+            ),
           ),
       ],
+    );
+  }
+
+  /// 🆕 E11q-b2b(R195) — 사람 결정 대기 행에 그 뒤 사람이 고른 것이 있으면 그 사유 · 엔진 사유 글자로 비춘다(회차 기록은 그대로 ·
+  /// 행은 남는다 — 고른 뒤에도 무엇을 골랐는지 보이고 3택은 다시 서지 않는다).
+  ResumeGateItem _withHumanChoice(ResumeGateItem i) {
+    if (i.reasonCode != ResumeItemReasonCodes.humanDecision) return i;
+    final ResultSet rs = _db.select(
+      'SELECT d.reason_code FROM planned_work_transition t JOIN decision_log d ON d.decision_id = t.decision_id '
+      'WHERE t.work_id = ? AND d.reason_code IN (?, ?, ?) ORDER BY t.occurred_at DESC, t.transition_id DESC LIMIT 1',
+      <Object?>[
+        i.workId,
+        ResumeItemReasonCodes.humanSkip,
+        ResumeItemReasonCodes.humanReduced,
+        ResumeItemReasonCodes.humanAsIs,
+      ],
+    );
+    if (rs.isEmpty) return i;
+    final String code = rs.first['reason_code'] as String;
+    final TradeDate today = TradeDate(kstDateText(_clock.nowUtc()));
+    return ResumeGateItem(
+      workId: i.workId,
+      oneLine: i.oneLine,
+      reasonCode: code,
+      reasonLine: resumeReevaluatedLine(
+        reasonCode: code,
+        dueBy: today,
+        today: today,
+      ),
+      verdictCode: i.verdictCode,
     );
   }
 }

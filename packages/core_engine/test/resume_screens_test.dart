@@ -343,4 +343,63 @@ void main() {
       },
     );
   });
+
+  group('🆕 계절 3택 결과(R195 · K54)', () {
+    test('표본 m5/safety_action_results_e13 의 계절 행 = 글자 · 수준 · 코드 그대로', () {
+      final List<Object?> rows =
+          (jsonDecode(
+                File(
+                  '../domain_contracts/fixtures/m5/safety_action_results_e13.json',
+                ).readAsStringSync(),
+              ) as Map<String, Object?>)['rows']!
+              as List<Object?>;
+      int n = 0;
+      for (final Object? r in rows) {
+        final SafetyActionResult fx = SafetyActionResult.fromJson(
+          r! as Map<String, dynamic>,
+        );
+        if (fx.id != SafetyActionId.seasonalWindowChoice) continue;
+        final SafetyActionResult got = seasonalChoiceResultOf(
+          actionRunId: fx.actionRunId,
+          code: fx.reasonCode,
+        );
+        expect(
+          (got.id, got.level, got.headline, got.reasonCode, got.retryable),
+          (fx.id, fx.level, _plain(fx.headline), fx.reasonCode, fx.retryable),
+          reason: '${fx.reasonCode}',
+        );
+        n++;
+      }
+      expect(n, 4);
+    });
+
+    test(
+      '🔴 거부 사전 = 계절 결과 코드 ∪ 계획 전이 코드 ∪ 멈춤 사유 7 ∪ 생체 전부 짝 · 모르는 코드 = 오류',
+      () {
+        for (final String c in <String>{
+          ...SeasonalChoiceResultCodes.values,
+          ...PlannedWorkRejectCodes.values,
+          ResumeItemReasonCodes.advisoryPending,
+          ResumeItemReasonCodes.safetyStop,
+          ResumeItemReasonCodes.observing,
+          ResumeItemReasonCodes.reconMismatch,
+          ResumeItemReasonCodes.unknownOrders,
+          ResumeItemReasonCodes.residualOrders,
+          ResumeItemReasonCodes.reevaluationFailed,
+          'BIOMETRIC_UNAVAILABLE',
+        }) {
+          expect(
+            () => seasonalChoiceResultOf(actionRunId: 'r', code: c),
+            returnsNormally,
+            reason: c,
+          );
+        }
+        expect(
+          () => seasonalChoiceResultOf(actionRunId: 'r', code: 'NOPE'),
+          throwsArgumentError,
+        );
+        expect(seasonalChoiceResultOf(actionRunId: 'r').level, UiLevel.ok);
+      },
+    );
+  });
 }

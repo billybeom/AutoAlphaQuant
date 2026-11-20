@@ -22,7 +22,9 @@ import 'package:core_engine/core_engine.dart'
         ResumeReadinessKind,
         RuleChangeCandidate,
         RuleChangeCodes,
+        SeasonalWindowChoice,
         issueKillCommand,
+        kstDateText,
         killResumeItemAnswerOf,
         killResumeResultOf,
         newCommandId,
@@ -31,16 +33,18 @@ import 'package:core_engine/core_engine.dart'
         pledgeVmOf,
         reconClearActionResultOf,
         resumeReadinessOf,
-        ruleChangeActionResultOf;
+        ruleChangeActionResultOf,
+        seasonalChoiceResultOf;
 import 'package:data_sync/data_sync.dart'
     show
         KillCommandResult,
         PledgeResult,
         ReconClearWriteResult,
         RuleChangeResult,
-        SqliteRuleChangeStore,
-        SqliteKillSwitchStore,
         SqliteOrderLedger,
+        SqliteRuleChangeStore,
+        SqliteSeasonalChoice,
+        SqliteKillSwitchStore,
         SqlitePledgeStore,
         readKillSwitchRecord,
         watchLedgerQuery;
@@ -142,8 +146,9 @@ class OperatorSafetyActions implements SafetyActions {
         : Stream<SafetyActionResult>.value(r);
   }
 
-  /// 🆕 E11q-c0(R188) — `run` = 규칙 변경 취소(`ruleChangeCancel{request_id}` — 행의 `cancel` 그대로)만 연다 · 그 밖 id =
-  /// 그대로 구현 전(오류 — 지어내지 않는다) · 🆕 R189 `reconClear` = 화이트리스트 밖(계약 K181) → ArgumentError(`runReconClear` 로).
+  /// 🆕 E11q-c0(R188) — `run` = 규칙 변경 취소(`ruleChangeCancel{request_id}` — 행의 `cancel` 그대로) · 🆕 E11q-b2b(R195) 계절
+  /// 3택(`seasonalWindowChoice{work_id, choice}` — 게이트 행의 동작 그대로)만 연다 · 그 밖 id = 그대로 구현 전(오류 — 지어내지
+  /// 않는다) · 🆕 R189 `reconClear` = 화이트리스트 밖(계약 K181) → ArgumentError(`runReconClear` 로).
   @override
   Future<SafetyActionResult> run(
     SafetyActionId id, {
@@ -152,23 +157,52 @@ class OperatorSafetyActions implements SafetyActions {
     if (id == SafetyActionId.reconClear) {
       throw ArgumentError.value(id, 'id', 'RECON 해제 = runReconClear(K181)');
     }
+    if (id == SafetyActionId.seasonalWindowChoice) return _seasonalChoice(args);
     if (id != SafetyActionId.ruleChangeCancel) return _none('run(${id.wire})');
     final String? requestId = args['request_id'];
     if (requestId == null || requestId.trim().isEmpty) {
       throw ArgumentError.value(args, 'args', 'request_id 없음');
     }
-    final (OperatorView v, String run, String digest) = _ruleChangeCommand(
-      args,
-    );
+    final (OperatorView v, String run, String digest) = _safetyCommand(args);
     final RuleChangeResult r = _ruleChangeStore(v)
         .cancel(commandId: run, payloadDigest: digest, requestId: requestId);
     return _ruleChangeDone(SafetyActionId.ruleChangeCancel, run, r);
   }
 
-  /// 규칙 변경 명령 봉투(명령 id · 페이로드 요약 — 킬스위치 명령과 같은 꼴) · 화면 상태 없음 = 오류.
-  (OperatorView, String, String) _ruleChangeCommand(
-    Map<String, Object?> payload,
-  ) {
+  /// 🆕 E11q-b2b(R195 · K54) — 계절 A 진입 3택: 엔진 `SqliteSeasonalChoice.apply`(재개 실행기와 같은 판정 · 같은 원장 · 결정 id =
+  /// 구현 `SEA-<명령 id>`) · 오늘 = 기기 시각의 한국 날짜(재개 실행기 선례) · 생체 = 구현 0(미결 169) · 결과 글자 = 엔진.
+  Future<SafetyActionResult> _seasonalChoice(Map<String, String> args) async {
+    final String? workId = args['work_id'];
+    final SeasonalEntryChoice? choice = SeasonalEntryChoice.values
+        .where((SeasonalEntryChoice c) => c.wire == args['choice'])
+        .firstOrNull;
+    if (workId == null || workId.trim().isEmpty || choice == null) {
+      throw ArgumentError.value(args, 'args', 'work_id · choice 필요');
+    }
+    final (OperatorView v, String run, String _) = _safetyCommand(args);
+    final String? code =
+        await SqliteSeasonalChoice(
+          v.db,
+          runMode: v.flags.runMode,
+          operatingMode: v.flags.operatingMode,
+          clock: _rt.clock,
+          ledger: SqliteOrderLedger(
+            v.db,
+            mode: v.flags.runMode,
+            clock: _rt.clock,
+            kr: _rt.calendars.kr,
+          ),
+        ).apply(
+          workId: workId,
+          choice: SeasonalWindowChoice.values.byName(choice.name),
+          decisionId: 'SEA-$run',
+          today: TradeDate(kstDateText(_rt.clock.nowUtc())),
+        );
+    return _done[run] = seasonalChoiceResultOf(actionRunId: run, code: code);
+  }
+
+  /// 안전 명령 봉투(명령 id · 페이로드 요약 — 킬스위치 명령과 같은 꼴) · 화면 상태 없음 = 오류.
+  (OperatorView, String, String) _safetyCommand(Map<String, Object?> payload) {
     final OperatorView? v = _rt.view.value;
     if (v == null) throw StateError('규칙 변경: 화면 상태 없음(온보딩 전)');
     final ({String commandId, String nonce, String payloadDigest}) c =
@@ -283,7 +317,7 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runRuleChangeApproval(
     RuleChangeApprovalSubmission submission,
   ) async {
-    final (OperatorView v, String run, String digest) = _ruleChangeCommand(
+    final (OperatorView v, String run, String digest) = _safetyCommand(
       submission.toJson(),
     );
     final RuleChangeResult r = _ruleChangeStore(v).approve(
@@ -309,7 +343,7 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runRuleChangeRequest(
     RuleChangeRequestSubmission submission,
   ) async {
-    final (OperatorView v, String run, String digest) = _ruleChangeCommand(
+    final (OperatorView v, String run, String digest) = _safetyCommand(
       submission.toJson(),
     );
     final RuleChangeCandidate? cand = operatorRuleChangeGateSourceOf(

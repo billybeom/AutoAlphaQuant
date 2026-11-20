@@ -2,8 +2,8 @@
 //
 // 🔴 화면 상태의 원장 → data_sync 원천 → 엔진 VM(`resumeReportVmOf` · `resumeGateVmOf`) · 원장 변경(재개 표 · 차단 플래그) ·
 //    주기마다 다시 낸다(관측 시각) · 같은 값 = 다시 내지 않음.
-// 🔴 계절 3택 = 이번 조각에서는 내지 않는다([canChoose] = false — 고르는 쓰기(`SafetyActions.run(seasonalWindowChoice)` →
-//    엔진 `ResumeJob.applySeasonalChoice`)는 다음 조각 E11q-b2b · 버튼이 서는데 눌러도 «제출하지 못했습니다»만 나오는 일을 막는다).
+// 🔴 계절 3택 = 🆕 E11q-b2b(R195) 부터 켠다([canChoose] = true — 쓰기 = 안전 동작 `run(seasonalWindowChoice)` → 엔진
+//    `SqliteSeasonalChoice.apply` · 고른 뒤 행 = 사람 결정 사유로 비친다 · 3택 다시 0).
 // 🔴 리포트 링크 = 레지스트리에 본문이 있을 때만.
 
 import 'package:data_sync/data_sync.dart'
@@ -22,7 +22,7 @@ class OperatorResumeGateRepository implements ResumeGateRepository {
   OperatorResumeGateRepository(
     this._rt, {
     required this.hasBody,
-    this.canChoose = false,
+    this.canChoose = true,
     this.tick = const Duration(minutes: 1),
   });
 
@@ -31,7 +31,7 @@ class OperatorResumeGateRepository implements ResumeGateRepository {
   /// 조립 앱에 이 라우트의 본문이 있나.
   final bool Function(String route) hasBody;
 
-  /// 계절 선택 쓰기 창구가 있나(E11q-b2b 전 = false).
+  /// 계절 선택 쓰기 창구가 있나(E11q-b2b 부터 = true).
   final bool canChoose;
 
   /// 다시 읽는 주기.
