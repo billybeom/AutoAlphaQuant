@@ -203,9 +203,11 @@ void main() {
         throwsArgumentError,
       );
       await expectLater(
-        a.run(SafetyActionId.reconClear),
+        a.run(SafetyActionId.interventionStep),
         throwsA(isA<UnsupportedError>()),
       );
+      // 🆕 R189 — RECON 해제 = 화이트리스트 밖(`runReconClear` 로).
+      await expectLater(a.run(SafetyActionId.reconClear), throwsArgumentError);
     },
   );
 }

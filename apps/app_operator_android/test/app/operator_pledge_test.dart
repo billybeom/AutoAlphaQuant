@@ -149,11 +149,12 @@ void main() {
       ),
       throwsArgumentError,
     );
-    // 🆕 R188 — `run` 의 규칙 변경 취소 = 구현(`operator_rule_change_test`) · 그 밖 id = 구현 전.
+    // 🆕 R188 — `run` 의 규칙 변경 취소 = 구현(`operator_rule_change_test`) · 그 밖 id = 구현 전 · 🆕 R189 RECON = 화이트리스트 밖.
     await expectLater(
-      a.run(SafetyActionId.reconClear),
+      a.run(SafetyActionId.interventionStep),
       throwsA(isA<UnsupportedError>()),
     );
+    await expectLater(a.run(SafetyActionId.reconClear), throwsArgumentError);
     // 🆕 R180 — 재개 문항 = 구현(`operator_kill_resume_test`).
     expect(pledges(), 0);
   });

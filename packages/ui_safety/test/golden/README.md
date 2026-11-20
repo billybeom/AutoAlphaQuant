@@ -1,4 +1,4 @@
-# `test/golden/` — 위젯 골든 스냅샷 (🆕 2026-11-20 R180 · 하네스 = `ui_analytics` 원본 사본(`../flutter_test_config.dart` · `shift_tolerant_compare.dart` · `golden_support.dart` · `comparator_test.dart` — 글자 그대로 · 바꾸면 원본과 함께) · PNG = M5-1 7꼴 · M5-2 8꼴 · 셸 자리 2꼴(R182) · M5-5 차단 보드 4꼴(R185 · `block_board_golden_test.dart`) · X2 리포트 3꼴 · 게이트 2꼴(R186 · `resume_golden_test.dart`) · 🆕 M5-9 규칙 변경 게이트 3꼴(R188 · `rule_change_golden_test.dart`) × light/dark = 58장)
+# `test/golden/` — 위젯 골든 스냅샷 (🆕 2026-11-20 R180 · 하네스 = `ui_analytics` 원본 사본(`../flutter_test_config.dart` · `shift_tolerant_compare.dart` · `golden_support.dart` · `comparator_test.dart` — 글자 그대로 · 바꾸면 원본과 함께) · PNG = M5-1 7꼴 · M5-2 8꼴 · 셸 자리 2꼴(R182) · M5-5 차단 보드 4꼴(R185 · `block_board_golden_test.dart`) · X2 리포트 3꼴 · 게이트 2꼴(R186 · `resume_golden_test.dart`) · M5-9 규칙 변경 게이트 3꼴(R188 · `rule_change_golden_test.dart`) · 🆕 M5-5 RECON 해제 폼 1꼴(R189 · `block_board_recon_golden_test.dart`) × light/dark = 60장)
 
 정본: 01_M2_도메인계약 **§7** · 07_AI어시스턴트_배포프롬프트 **§9** 기계 검사 4
 

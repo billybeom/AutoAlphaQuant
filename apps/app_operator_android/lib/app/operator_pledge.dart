@@ -6,14 +6,16 @@
 //    `pledgeActionResultOf`(등급 · 문장) — 앱이 문장을 짓지 않는다.
 // 🔴 첫 판 저널 id = 명령 id(R67 Z1) · 편집 저널 id = 제출 그대로(사전 저널 원천 = 01 §8 미결 185 · 없으면 엔진 거부).
 // 🔴 신뢰 시각 = `OperatorRuntime.trusted`(E11k 전 = 모름 → 엔진 `TRUSTED_TIME_UNKNOWN`).
-// 🔴 서약 밖 안전 동작 — 재개판(R180) · 🆕 규칙 변경 요청 · 승인 · 취소(R188 — `run` 은 `ruleChangeCancel` 만) = 구현 ·
-//    STOPPED 결정 · 사후 검토 · 재량 조정 · RECON 해제 = operator 구현 전(오류 — 지어내지 않는다).
+// 🔴 서약 밖 안전 동작 — 재개판(R180) · 규칙 변경 요청 · 승인 · 취소(R188 — `run` 은 `ruleChangeCancel` 만) · 🆕 RECON 해제(R189 ·
+//    `runReconClear` — `run(reconClear)` = ArgumentError) = 구현 · STOPPED 결정 · 사후 검토 · 재량 조정 = operator 구현 전(오류 — 지어내지
+//    않는다).
 
 import 'dart:math';
 
 import 'package:core_engine/core_engine.dart'
     show
         KillSwitchRecord,
+        KillSwitchScreenTexts,
         ResumeChecklist,
         ResumeItemAnswer,
         ResumeReadiness,
@@ -27,15 +29,18 @@ import 'package:core_engine/core_engine.dart'
         pledgeActionResultOf,
         pledgeSubmissionDigest,
         pledgeVmOf,
+        reconClearActionResultOf,
         resumeReadinessOf,
         ruleChangeActionResultOf;
 import 'package:data_sync/data_sync.dart'
     show
         KillCommandResult,
         PledgeResult,
+        ReconClearWriteResult,
         RuleChangeResult,
         SqliteRuleChangeStore,
         SqliteKillSwitchStore,
+        SqliteOrderLedger,
         SqlitePledgeStore,
         readKillSwitchRecord,
         watchLedgerQuery;
@@ -138,12 +143,15 @@ class OperatorSafetyActions implements SafetyActions {
   }
 
   /// 🆕 E11q-c0(R188) — `run` = 규칙 변경 취소(`ruleChangeCancel{request_id}` — 행의 `cancel` 그대로)만 연다 · 그 밖 id =
-  /// 그대로 구현 전(오류 — 지어내지 않는다 · `reconClear` = 화이트리스트 밖 → `runReconClear` · 카드 c4).
+  /// 그대로 구현 전(오류 — 지어내지 않는다) · 🆕 R189 `reconClear` = 화이트리스트 밖(계약 K181) → ArgumentError(`runReconClear` 로).
   @override
   Future<SafetyActionResult> run(
     SafetyActionId id, {
     Map<String, String> args = const <String, String>{},
   }) async {
+    if (id == SafetyActionId.reconClear) {
+      throw ArgumentError.value(id, 'id', 'RECON 해제 = runReconClear(K181)');
+    }
     if (id != SafetyActionId.ruleChangeCancel) return _none('run(${id.wire})');
     final String? requestId = args['request_id'];
     if (requestId == null || requestId.trim().isEmpty) {
@@ -331,8 +339,41 @@ class OperatorSafetyActions implements SafetyActions {
     return _ruleChangeDone(SafetyActionId.ruleChangeRequest, run, r);
   }
 
-  /// 🆕 계약 v1.26(01 §35 · K181) — RECON 해제. 실물 = 카드 E11q-c4(b3 보드 뒤).
+  /// 🆕 E11q-c4(R189 · 01 §35 K180~K182 · 미결 206 RECON 몫) — RECON 해제: 엔진 «저널 함께 쓰기» 판(사전 저널 `RECON_CLEAR` + 해제 +
+  /// 명령 행 한 트랜잭션 · 저널 id = `JRCL-<명령 id>` · 판정 = 엔진 — 막힘 없음 · 선택지 밖 원인 코드 · 저널 세 칸 · id 겹침) ·
+  /// `clearedBy` = 기기 별칭 «운영 폰»(R178 발동 선례 · 기기 id 원문 0) · 신뢰 시각 비의존(시각 = 기기 시계) · 생체 = 구현 0(미결 169) ·
+  /// 원장 = 화면 상태의 원장(보드가 읽는 파일) · 결과 글자 = 엔진(`reconClearActionResultOf`).
   @override
-  Future<SafetyActionResult> runReconClear(ReconClearSubmission submission) =>
-      _none('runReconClear');
+  Future<SafetyActionResult> runReconClear(
+    ReconClearSubmission submission,
+  ) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('RECON 해제: 화면 상태 없음(온보딩 전)');
+    final ({String commandId, String nonce, String payloadDigest}) c =
+        issueKillCommand(payload: submission.toJson(), random: _random);
+    final String run = c.commandId;
+    final ReconClearWriteResult r =
+        SqliteOrderLedger(
+          v.db,
+          mode: v.flags.runMode,
+          clock: _rt.clock,
+          kr: _rt.calendars.kr,
+        ).clearReconWithJournal(
+          commandId: run,
+          payloadDigest: c.payloadDigest,
+          originCode: submission.originCode,
+          journalId: 'JRCL-$run',
+          clearedBy: KillSwitchScreenTexts.operatorPhone,
+          rationaleBefore: submission.rationaleBefore,
+          expectedOutcome: submission.expectedOutcome,
+          ruleCited: submission.ruleCited,
+        );
+    if (!r.executed && r.reasonCode == null) {
+      throw StateError('RECON 해제: 엔진이 사유 없이 거부했다');
+    }
+    return _done[run] = reconClearActionResultOf(
+      actionRunId: run,
+      code: r.executed ? null : r.reasonCode,
+    );
+  }
 }

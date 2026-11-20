@@ -216,6 +216,8 @@ final Provider<OperatorBlockBoardRepository> operatorBlockBoardProvider =
       return OperatorBlockBoardRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
+        // 🆕 R189 — 폰 = 안전 동작 창구 늘 주입(`safetyActionsProvider`) · 잠김(미결 169) = 아직 0 → RECON 해제 폼을 낸다.
+        reconClearable: true,
       );
     });
 

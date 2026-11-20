@@ -152,4 +152,20 @@ abstract final class SafetyLabels {
   static const String ruleChangeGoldenNo = '영향 없음';
   static const String ruleChangeApprover = '승인자';
   static const String ruleChangeThirdParty = '제3자에게 알렸습니다';
+
+  // ── 🆕 M5-5 RECON 해제 폼(설계 13 §8 R189 · v1.26 K181 — 폼 입력 머리 · 확인 = 카드 정적 라벨) — 선택지 · 고지 · 결과 글자 = 엔진 ──
+
+  /// 폼 여는 버튼(행 안 · 다시 누르면 닫힌다).
+  static const String reconClearOpen = '원인 코드 고르기';
+
+  /// 원인 코드 고르기 머리(선택지 글자 = 엔진).
+  static const String reconClearOrigin = '원인 코드';
+
+  /// 사전 저널 세 칸(원문 · 화면 검증 0).
+  static const String reconClearRationale = '실행 전 근거';
+  static const String reconClearExpected = '기대 결과';
+  static const String reconClearRuleCited = '근거 규칙';
+
+  /// 폼 제출.
+  static const String reconClearConfirm = '확인';
 }

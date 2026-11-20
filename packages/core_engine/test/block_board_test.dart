@@ -68,6 +68,15 @@ void _same(BlockBoardVm vm, BlockBoardVm fx, {bool headline = true}) {
     expect(g.level, r.level, reason: r.rowId);
     expect(g.link?.deepLink, r.link?.deepLink, reason: r.rowId);
     expect(g.link?.label, r.link == null ? null : _plain(r.link!.label));
+    // 🆕 R189 — RECON 해제 폼(선택지 = 엔진 · 차례 그대로 · 고지 = «(합성)» 뗌).
+    expect(g.reconClear == null, r.reconClear == null, reason: r.rowId);
+    expect(g.reconClear?.choices, r.reconClear?.choices, reason: r.rowId);
+    expect(
+      g.reconClear?.noticeText,
+      r.reconClear?.noticeText == null
+          ? null
+          : _plain(r.reconClear!.noticeText!),
+    );
   }
   expect(vm.gauges, fx.gauges);
   expect(vm.ladder, fx.ladder);
@@ -199,6 +208,80 @@ void main() {
         state: _state(level: BreakerLevel.halted, eligible: true),
         hasBody: _all,
       ).stoppedDecisionLink,
+      isNull,
+    );
+  });
+
+  test('🆕 R189 대사 불일치 + 일지 = 표본 block_board_recon_mismatch(RECON 행만 해제 폼 · 선택지 = 브로커 6)', () {
+    final BlockBoardVm fx = BlockBoardVm.fromJson(
+      _row('block_board_recon_mismatch.json'),
+    );
+    SafetyState st() => _state(
+      flags: <StoredBlockFlag>[
+        StoredBlockFlag(
+          FlagIds.journalMissing,
+          DateTime.utc(2027, 1, 13, 7, 30),
+        ),
+        StoredBlockFlag(
+          FlagIds.reconMismatch,
+          DateTime.utc(2027, 1, 13, 22, 5),
+        ),
+      ],
+      journalDraftId: 'dj_rc_01',
+      asOf: fx.asOf,
+    );
+    final BlockBoardVm vm = blockBoardVmOf(
+      state: st(),
+      hasBody: _all,
+      reconClearable: true,
+    );
+    _same(vm, fx);
+    _invariants(vm);
+    expect(vm.rows.first.reconClear, reconClearFormOf());
+    // 🔴 쓰기 창구 없음 · 잠김(기본 거짓) = 폼 0 · 그 밖은 같다.
+    final BlockBoardVm ro = blockBoardVmOf(state: st(), hasBody: _all);
+    expect(
+      <ReconClearForm?>[for (final BlockBoardRow r in ro.rows) r.reconClear],
+      <ReconClearForm?>[null, null],
+    );
+    expect(
+      ro.copyWith(rows: const <BlockBoardRow>[]),
+      vm.copyWith(rows: const <BlockBoardRow>[]),
+    );
+    expect(<BlockBoardRow>[
+      for (final BlockBoardRow r in vm.rows) r.copyWith(reconClear: null),
+    ], ro.rows);
+  });
+
+  test('🔴 R189 해제 폼 = RECON_MISMATCH 행만(전 플래그 · 킬스위치 켜짐에서도)', () {
+    final DateTime t = DateTime.utc(2026, 11, 1);
+    final BlockBoardVm vm = blockBoardVmOf(
+      state: _state(
+        flags: <StoredBlockFlag>[
+          for (final String f in FlagIds.values) StoredBlockFlag(f, t),
+        ],
+        journalDraftId: 'J-9',
+        ks: KillSwitchRecord(activatedAtUtc: _at),
+      ),
+      hasBody: _all,
+      reconClearable: true,
+    );
+    expect(
+      <String>[
+        for (final BlockBoardRow r in vm.rows)
+          if (r.reconClear != null) r.rowId,
+      ],
+      <String>[FlagIds.reconMismatch],
+    );
+    // RECON 이 서 있지 않으면 폼 0.
+    expect(
+      blockBoardVmOf(
+        state: _state(
+          flags: <StoredBlockFlag>[StoredBlockFlag(FlagIds.journalMissing, t)],
+        ),
+        hasBody: _all,
+        reconClearable: true,
+      ).rows.single.reconClear,
       isNull,
     );
   });
