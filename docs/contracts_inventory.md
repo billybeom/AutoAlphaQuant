@@ -210,7 +210,7 @@ A(primitives·enums)
 >
 > 🆕 **v1.26(01 §35 · ~~⬜ PR 대기~~ ✅ 병합 PR #270 squash `09d3580d`(2026-11-20 · CI 3/3))** — 🆕 `HandoverRepository.watchWizard()`(`M5-11` · `handoverStatus` 같은 본문) · 🆕 `RuleChangeGateRepository.watchGate()`(`M5-9` 첫 승인 최소판) · `SafetyActions` 표면 8 → 10(`runRuleChangeRequest` · `runReconClear`) · `run` 화이트리스트 4 → 3(`reconClear` 뺌) · `BlockBoardRow` += `reconClear` · 사전 저널 꼴(제출 DTO 3필드 + 구현이 id).
 >
-> 🆕 **v1.27(01 §36 · ⬜ PR 대기)** — 계약 창구 · DTO 0 · 🆕 `AlertCodes.safetyWarn` 4 · `derivedSync` 1(엔진 등재형 · `values` 31 → 36 · 아래 §6-9 알림 절) · 픽스처 359 → 360(신설 1 `m8/alerts_engine_proposals_v127`) · 🆕 C-61 · SAF-307 «초과 일수» = 계약 칸 0(월간 리포트 `D2_ALLOCATION` 메모 · 01 §8 미결 209).
+> 🆕 **v1.27(01 §36 · ~~⬜ PR 대기~~ ✅ 병합 PR #274 squash `551282e0`(2026-11-20 · CI 3/3))** — 계약 창구 · DTO 0 · 🆕 `AlertCodes.safetyWarn` 4 · `derivedSync` 1(엔진 등재형 · `values` 31 → 36 · 아래 §6-9 알림 절) · 픽스처 359 → 360(신설 1 `m8/alerts_engine_proposals_v127`) · 🆕 C-61 · SAF-307 «초과 일수» = 계약 칸 0(월간 리포트 `D2_ALLOCATION` 메모 · 01 §8 미결 209).
 
 > 🆕 **v1.24(01 §33 · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — `SettingsActionId` 값 0 추가 · args 화이트리스트 `backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}` · `backupRestoreStart` = 화면 미호출(args 미정 유지) · calendar 3 = ⏸ R9d · `settingsGeneralUpdate` = ⏸ R9e(K120).
 
@@ -979,7 +979,7 @@ abstract interface class SettingsActions {
 
 🆕 **v1.26(2026-11-20 · 01 §35 · 트랙 C 선행 · ~~⬜ PR 대기~~ ✅ 병합 PR #270 squash `09d3580d`(2026-11-20 · CI 3/3))** — **신설 20 · 개정 2 → 359**(나머지 337 봉투 `contract_version` 한 줄만 · 개정 2 = `m5/block_board_kill_active` · `_resume_incomplete` 보드 행 끝 `"recon_clear": null`): `m5/` 20(위저드 12 · 규칙 변경 게이트 5 · 요청·해제 결과 2 · 보드 RECON 1) · 생성기 `tool/gen_trackc_v126_fixtures.py` · 🆕 C-60(17항).
 
-🆕 **v1.27(2026-11-20 · 01 §36 · E3d 계약 창 · ⬜ PR 대기)** — **신설 1 · 개정 0 → 360**(나머지 359 봉투 `contract_version` 한 줄만): `m8/alerts_engine_proposals_v127`(`AlertItem` 5행 · 글자 = 엔진 `kAlertTexts` · 등급 = 엔진 `kAlertLevels` · 등급 순) — 🆕 tool/gen_e3d_v127_fixtures.py.
+🆕 **v1.27(2026-11-20 · 01 §36 · E3d 계약 창 · ~~⬜ PR 대기~~ ✅ 병합 PR #274 squash `551282e0`(2026-11-20 · CI 3/3))** — **신설 1 · 개정 0 → 360**(나머지 359 봉투 `contract_version` 한 줄만): `m8/alerts_engine_proposals_v127`(`AlertItem` 5행 · 글자 = 엔진 `kAlertTexts` · 등급 = 엔진 `kAlertLevels` · 등급 순) — 🆕 tool/gen_e3d_v127_fixtures.py.
 
 🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 — M9 `S09` · `S10` · `S12` · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — **신설 17 · 개정 0 → 322**(나머지 305 봉투 `contract_version` 한 줄만): `m9/` VM 1행 봉투 15(`backup*` 6 · `diagnostics_screen*` 5 · `annual_review_index*` 4) · 목록 봉투 2(`backup_action_results` 10행 · `selftest_action_results` 12행) · 생성기 `tool/gen_r9_v124_fixtures.py` · `board` = `m8/recon_board_*` `rows[0]` 복사.
 
