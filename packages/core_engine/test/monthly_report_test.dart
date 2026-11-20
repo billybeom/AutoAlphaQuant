@@ -1,4 +1,4 @@
-// 🆕 미결 209 — 월간 리포트 빌더 첫 판 · A1 · A2 · C1 · C2 · D4 · E1(설계 13 §8 R199 · R205 · R208 · 앱 01 §36 K192 · K193 · 03 §3).
+// 🆕 미결 209 — 월간 리포트 빌더 첫 판 · A1 · A2 · C1 · C2 · D3 · D4 · E1(설계 13 §8 R199 · R205 · R208 · R210 · 앱 01 §36 K192 · K193 · 03 §3).
 //
 // 🔴 13칸 = 표본 `m7/m7_monthly_2026_08` 의 code · order · section · title 그대로(C-25) · 원천 없는 칸 = «산출 불가» ·
 //    `D2_ALLOCATION` = 월말 회계 비중 세 줄 + SAF-307 · 원화 유동성 월 집계 메모(문턱 = 집계가 쓴 문턱).
@@ -68,6 +68,7 @@ MonthlyReport _report({
   MonthlyEquityFacts? equity,
   List<String>? discretionUseDates,
   MonthlyStrategyFacts? strategy,
+  MonthlyExecutionFacts? execution,
 }) => monthlyReportOf(
   yyyyMm: yyyyMm,
   monthEnd: monthEnd,
@@ -81,6 +82,7 @@ MonthlyReport _report({
   equity: equity,
   discretionUseDates: discretionUseDates,
   strategy: strategy,
+  execution: execution,
 );
 
 /// 비중 가드가 낸 [ArgumentError](이름 `weights` — 범위 밖 색인 [RangeError] 와 가른다).
@@ -865,6 +867,96 @@ void main() {
       expect(() => e1(const <String>['ACTIVE', 'RETIRED'], 0), g);
       expect(
         item(_report(noTally: true), 'E1_STRATEGY_STATE').valueText,
+        MonthlyReportTexts.notComputed,
+      );
+    });
+  });
+
+  // ── 🆕 R210 — D3 규칙 이행(자동매매 · 03_운영 §3-5) ──
+  group('D3(R210)', () {
+    ReportItem d3(List<String> kinds, int deviations) => _report(
+      noTally: true,
+      execution: MonthlyExecutionFacts(
+        decisionKinds: kinds,
+        deviationJournals: deviations,
+      ),
+    ).items.singleWhere((ReportItem i) => i.code == 'D3_EXECUTION');
+
+    test('🔴 표본 꼴 «규칙대로 N건 · 재량 M건 · 이행률 P%» · 매매 규칙 결정만 센다', () {
+      final List<String> kinds = <String>[
+        for (int i = 0; i < 7; i++) ...<String>['ENTRY', 'EXIT', 'REBALANCE'],
+        'DEPOSIT',
+        'SAFETY',
+        'MANUAL',
+      ];
+      final ReportItem a = d3(kinds, 1);
+      expect(a.valueText, '규칙대로 21건 · 재량 1건 · 이행률 95%');
+      expect(a.noteText, isNull);
+      expect(a.detailDeepLink, isNull);
+      final Map<String, Object?> d = jsonDecode(
+        File('../domain_contracts/fixtures/m7/m7_monthly_2026_08.json')
+            .readAsStringSync(),
+      ) as Map<String, Object?>;
+      final Map<String, Object?> f =
+          (((d['rows']! as List<Object?>).single!
+                          as Map<String, Object?>)['items']!
+                      as List<Object?>)
+                  .singleWhere(
+                    (Object? x) => (x! as Map)['code'] == 'D3_EXECUTION',
+                  )!
+              as Map<String, Object?>;
+      // 표본 «… · 이행률 88%» 의 앞 두 조각(셈 글자)이 같다 — 이행률 수는 표본이 가짜(21 ÷ 22 ≠ 88%).
+      expect(
+        a.valueText.split(' · ').take(2).toList(),
+        (f['value_text']! as String).split(' · ').take(2).toList(),
+      );
+    });
+
+    test('결정 종류 — ENTRY · EXIT · REBALANCE 만 규칙대로 · 나머지 6종은 셈 밖', () {
+      expect(
+        d3(const <String>['ENTRY', 'EXIT', 'REBALANCE'], 0).valueText,
+        '규칙대로 3건 · 재량 0건 · 이행률 100%',
+      );
+      expect(
+        d3(const <String>[
+          'DEPOSIT',
+          'WITHDRAWAL',
+          'SAFETY',
+          'RESUME',
+          'LEDGER_FIX',
+          'MANUAL',
+        ], 0).valueText,
+        '규칙대로 0건 · 재량 0건',
+      );
+    });
+
+    test('🔴 이행률 = 내림(이탈 1건이면 100% 가 아니다) · 전체 0 = 이행률 조각 없음', () {
+      expect(
+        d3(List<String>.filled(199, 'REBALANCE'), 1).valueText,
+        '규칙대로 199건 · 재량 1건 · 이행률 99%',
+      );
+      expect(
+        d3(const <String>['ENTRY', 'EXIT'], 1).valueText,
+        '규칙대로 2건 · 재량 1건 · 이행률 66%',
+      );
+      expect(d3(const <String>[], 2).valueText, '규칙대로 0건 · 재량 2건 · 이행률 0%');
+      expect(d3(const <String>[], 0).valueText, '규칙대로 0건 · 재량 0건');
+    });
+
+    test('가드 · 없음 = «산출 불가»', () {
+      final Matcher g = throwsA(
+        isA<ArgumentError>().having(
+          (ArgumentError e) => e.name,
+          'name',
+          'execution',
+        ),
+      );
+      expect(() => d3(const <String>['ENTRY', 'BUY'], 0), g);
+      expect(() => d3(const <String>['ENTRY'], -1), g);
+      expect(
+        _report(noTally: true).items
+            .singleWhere((ReportItem i) => i.code == 'D3_EXECUTION')
+            .valueText,
         MonthlyReportTexts.notComputed,
       );
     });

@@ -11,7 +11,10 @@
 //    data_sync `tierBSeries`) + 그 달 KR 세션([MonthlyEquityFacts]). 그 달 결측 세션 = 표본 `m7_monthly_gap` 글자 그대로.
 // 🆕 R208(나눔 ⓑ) — D4 = 재량 예산 셈(`discretionBudgetOf` · 월말 기준 · 게이지와 같은 머리 글자) · E1 = 전략 상태
 //    (ACTIVE · PROBATION) + 이 달 계층 B 판정 + 홈 · 차단 보드와 같은 `SafetyState` 한 장(킬스위치 · 표식 아닌 차단 플래그).
-// 🔴 나머지 6칸 = 원천이 생기는 창마다 타입 있는 입력 하나씩(설계 13 §8 R199 나눔표) — 지금은 받는 칸이 없다(호출자가 글자를
+// 🆕 R210(나눔 ⓒ) — D3 = 자동매매의 규칙 이행(03_운영 §3-5 이탈률) — «규칙대로» = 그 달 원장 `decision_log` 매매 규칙
+//    결정(ENTRY · EXIT · REBALANCE) · «재량» = 그 달 이탈 저널(`decision_journal.is_deviation = 1` — 규칙 이탈은 이탈 저널을
+//    남긴다 · SAF-408) · 이행률 = 규칙대로 ÷ 전체(내림 — 이탈 1건이면 100% 가 되지 않는다). 안내 모드(X7)의 이행 갭 = 다음 창.
+// 🔴 나머지 5칸 = 원천이 생기는 창마다 타입 있는 입력 하나씩(설계 13 §8 R199 나눔표) — 지금은 받는 칸이 없다(호출자가 글자를
 //    밀어 넣는 길 0 · 글자 = 엔진).
 // 🔴 미생성 · 가림(무결성 · 대사) = 읽기 경로 몫(01 §2-10 · 생성일 규칙 미정) — 이 빌더는 «마감된 달» 한 갈래만 짓는다
 //    (생성 날 < 월말 세션 = 실패). 마감된 달을 다시 짓지 않는 것(03 §3 금지 ③ · G-97)도 읽기 경로 · 저장의 몫이다.
@@ -170,6 +173,13 @@ abstract final class MonthlyReportTexts {
 
   /// 🆕 R208 — 차단 플래그 수 «차단 플래그 2개»(이름 = 메모).
   static String blockFlags(int n) => '차단 플래그 $n개';
+
+  /// 🆕 R210 — 규칙 이행 «규칙대로 21건 · 재량 1건»(표본 `m7_monthly_2026_08` D3 꼴) · 이행률 조각 = [executionRate].
+  static String executionCounts(int rule, int deviation) =>
+      '규칙대로 $rule건 · 재량 $deviation건';
+
+  /// 🆕 R210 — «이행률 95%»(표본 꼴 · 내림).
+  static String executionRate(int pct) => '이행률 $pct%';
 }
 
 /// 🆕 R205 — A1 · A2 · C1 · C2 원천.
@@ -273,6 +283,60 @@ final RegExp _ymd = RegExp(r'^\d{4}-\d\d-\d\d$');
   return (
     value,
     flags.isEmpty ? null : flags.map((BlockFlag x) => x.label).join(' · '),
+  );
+}
+
+/// 🆕 R210 — D3 원천(그 달 · 거래일 기준).
+class MonthlyExecutionFacts {
+  /// 만든다.
+  const MonthlyExecutionFacts({
+    required this.decisionKinds,
+    required this.deviationJournals,
+  });
+
+  /// 그 달 `decision_log.kind` 전부(행마다) — 02 CHECK 밖 = 실패.
+  final List<String> decisionKinds;
+
+  /// 그 달 `decision_journal.is_deviation = 1` 행 수(음수 = 실패).
+  final int deviationJournals;
+}
+
+/// `decision_log.kind` 전부(02 CHECK).
+const Set<String> _kDecisionKinds = <String>{
+  'ENTRY',
+  'EXIT',
+  'REBALANCE',
+  'DEPOSIT',
+  'WITHDRAWAL',
+  'SAFETY',
+  'RESUME',
+  'LEDGER_FIX',
+  'MANUAL',
+};
+
+/// 매매 규칙 결정(엔진 규칙이 낸 매매) — 입출금 · 안전 · 재개 · 원장 고침 · 사람 등록(MANUAL)은 이행 셈 밖.
+const Set<String> _kRuleKinds = <String>{'ENTRY', 'EXIT', 'REBALANCE'};
+
+/// 🔴 D3 (값 · 메모) — «규칙대로 N건 · 재량 M건 · 이행률 P%» · 전체 0 = 이행률 조각 없음.
+(String, String?) _executionItemOf(MonthlyExecutionFacts f) {
+  int rule = 0;
+  for (final String k in f.decisionKinds) {
+    if (!_kDecisionKinds.contains(k)) {
+      throw ArgumentError.value(k, 'execution', 'decision_log.kind 밖');
+    }
+    if (_kRuleKinds.contains(k)) rule++;
+  }
+  final int dev = f.deviationJournals;
+  if (dev < 0) {
+    throw ArgumentError.value(dev, 'execution', '이탈 저널 수 음수');
+  }
+  final String counts = MonthlyReportTexts.executionCounts(rule, dev);
+  final int total = rule + dev;
+  return (
+    total == 0
+        ? counts
+        : '$counts · ${MonthlyReportTexts.executionRate(rule * 100 ~/ total)}',
+    null,
   );
 }
 
@@ -466,14 +530,14 @@ String monthlyExposureNoteOf(P0sExposureTally t) {
       '계측 없음 ${t.unmeasuredDays}일';
 }
 
-/// 🔴 마감된 달의 월간 리포트를 짓는다 — 13칸 고정 · 원천이 있는 칸(A1 · A2 · C1 · C2 · D2 · D4 · E1)만 · 나머지 = «산출 불가».
+/// 🔴 마감된 달의 월간 리포트를 짓는다 — 13칸 고정 · 원천이 있는 칸(A1 · A2 · C1 · C2 · D2 · D3 · D4 · E1)만 · 나머지 = «산출 불가».
 ///
 /// [monthEnd] = 그 달 마지막 KR 세션(기준일) · [generatedAtUtc] = 생성 시각(한국 날 < [monthEnd] = 미생성 → [ArgumentError]) ·
 /// [trust] = 그 달 마감 시점 원장 신뢰 등급(읽기 경로가 준다 — 스트림의 «지금» 등급이 아니다 · 03 §3) ·
 /// [disclosureViewCount] = 그 달 탐색 열람 수(명령 집계 · 음수 = [ArgumentError]) ·
 /// [allocation] null · 빈 목록 = D2 값 «산출 불가» · [exposureTally] null = D2 메모 없음(달이 다르면 [ArgumentError]) ·
 /// 🆕 [equity] null = A1 · A2 · C1 · C2 «산출 불가»(R205) · 🆕 [discretionUseDates] null = D4 · [strategy] null = E1
-/// «산출 불가»(R208).
+/// «산출 불가»(R208) · 🆕 [execution] null = D3 «산출 불가»(R210 · 안내 모드 = 이행 갭 창 전까지 null).
 MonthlyReport monthlyReportOf({
   required String yyyyMm,
   required TradeDate monthEnd,
@@ -486,6 +550,7 @@ MonthlyReport monthlyReportOf({
   MonthlyEquityFacts? equity,
   List<String>? discretionUseDates,
   MonthlyStrategyFacts? strategy,
+  MonthlyExecutionFacts? execution,
   String? backdateFootnote,
 }) {
   if (!_yyyyMm.hasMatch(yyyyMm)) {
@@ -532,6 +597,8 @@ MonthlyReport monthlyReportOf({
           ),
         if (strategy != null)
           MonthlyReportSlot.strategyState: _strategyItemOf(strategy),
+        if (execution != null)
+          MonthlyReportSlot.execution: _executionItemOf(execution),
       };
   return MonthlyReport(
     yyyyMm: yyyyMm,
