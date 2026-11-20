@@ -227,4 +227,6 @@ MonthlyRebalanceJob monthlyRebalanceJobOf(
     taxableAccountAlias: cfg.human.accountByStrategy[P0sStrategyIds.sleeveC]!,
     monthEnd: cfg.monthEnd,
   ),
+  // 🆕 E3d-4 — SAF-307 · 원화 유동성 월 집계(범주 표 · 문턱 = 일간 잡과 같은 것 · 알림 0 · 앱 01 §36 K193).
+  exposureTally: P0sWarnSetup(map: p0sExposureMap(cfg.monthEnd)),
 );

@@ -395,3 +395,95 @@ P0sWarnStep p0sDailyWarnStep({
     ),
   );
 }
+
+// ── 🆕 E3d-4 — 월 잡 안 SAF-307 · 원화 유동성 월 집계(04 §1 Level 3 v2.46 «307 월간 보고(초과 일수)» ·
+//    앱 01 §36 K192 · K193 · 설계 13 §8 R187) — 알림 0 · 경계 = 일간 판정 그대로 ──
+
+/// 하루 집계 입력 — [inputs] null = 그날 계측 없음(평가 행 없음 · 원장 재생 실패 — 까닭 = [reason]).
+typedef P0sTallyDay = ({String date, P0sWarnInputs? inputs, String? reason});
+
+/// 지난달 노출 집계(월 리밸런싱 잡 보고 · 월간 리포트 `D2_ALLOCATION` 메모의 원천 — 앱 01 §8 미결 209).
+class P0sExposureTally {
+  /// 만든다.
+  const P0sExposureTally({
+    required this.month,
+    required this.tradingDays,
+    required this.usdOverDays,
+    required this.krwLowDays,
+    required this.unmeasured,
+  });
+
+  /// 집계한 달(YYYY-MM).
+  final String month;
+
+  /// 그 달 KR 거래일 수(계측 없는 날 포함).
+  final int tradingDays;
+
+  /// SAF-307 — 경제적 달러 노출이 기준선을 넘은 날(엄격 · 일간 판정 그대로).
+  final int usdOverDays;
+
+  /// SAF-307 부속 — 원화 유동성이 하한 밑인 날(엄격).
+  final int krwLowDays;
+
+  /// 계측 없는 날(날짜 · 까닭 — 날짜 순).
+  final List<(String, String)> unmeasured;
+
+  /// 계측 없는 날 수.
+  int get unmeasuredDays => unmeasured.length;
+
+  /// 잡 보고 한 줄.
+  String get line =>
+      '307 초과 $usdOverDays/$tradingDays일 · 원화 유동성 밑 $krwLowDays일 · 계측 없음 $unmeasuredDays일';
+}
+
+final RegExp _yyyyMm = RegExp(r'^\d{4}-(0[1-9]|1[0-2])$');
+
+/// 🔴 지난달 각 KR 거래일의 노출을 일간 판정([judgeP0sDailyWarnings])과 같은 규칙으로 세어 넘은 날 · 밑 날을 센다.
+///
+/// [days] = 그 달 KR 거래일 전부(날짜 순 · 겹침 없음 · 전부 [month] 안 — 어기면 [ArgumentError]). 하루 셈 실패
+/// ([RiskCheckUnavailable] — 종가 없음 · 총자산 0 이하) = 그날 계측 없음(까닭 기록) · 알림 0 · 주문 무관.
+P0sExposureTally p0sMonthlyExposureTally({
+  required String month,
+  required List<P0sTallyDay> days,
+  required P0sWarnSetup setup,
+}) {
+  if (!_yyyyMm.hasMatch(month)) {
+    throw ArgumentError.value(month, 'month', 'YYYY-MM 이 아니다');
+  }
+  String? last;
+  for (final P0sTallyDay x in days) {
+    if (!x.date.startsWith('$month-') || x.date.length != 10) {
+      throw ArgumentError.value(x.date, 'days', '$month 밖의 날');
+    }
+    if (last != null && x.date.compareTo(last) <= 0) {
+      throw ArgumentError.value(x.date, 'days', '날짜 순이 아니거나 겹친다');
+    }
+    last = x.date;
+  }
+  int usd = 0;
+  int krw = 0;
+  final List<(String, String)> none = <(String, String)>[];
+  for (final P0sTallyDay x in days) {
+    final P0sWarnInputs? i = x.inputs;
+    if (i == null) {
+      none.add((x.date, x.reason ?? '계측 없음'));
+      continue;
+    }
+    final P0sDailyWarn j;
+    try {
+      j = _judgeOf(i, setup);
+    } on RiskCheckUnavailable catch (e) {
+      none.add((x.date, e.message));
+      continue;
+    }
+    if (j.triggered.contains(WarnLimitIds.usdExposure)) usd++;
+    if (j.krwLiquidityLow) krw++;
+  }
+  return P0sExposureTally(
+    month: month,
+    tradingDays: days.length,
+    usdOverDays: usd,
+    krwLowDays: krw,
+    unmeasured: List<(String, String)>.unmodifiable(none),
+  );
+}

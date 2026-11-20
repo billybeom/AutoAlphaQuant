@@ -1265,4 +1265,138 @@ void main() {
       expect(stopped.alerts, <String>{kFinancialIncomeAlertCode});
     });
   });
+
+  group(
+    '🆕 E3d-4 SAF-307 · 원화 유동성 월 집계(04 §1 Level 3 v2.46 · 앱 01 §36 K193)',
+    () {
+      int seq = 0;
+
+      /// 브로커 체결 1건(의도 · 주문 · 체결).
+      void fill(String day, String strategy, String symbol, int qty) {
+        seq++;
+        final String id = 't$seq';
+        final String no = '$day:t$seq';
+        db.execute(
+          'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+          'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+          "updated_at, mode) VALUES (?, ?, '2026-01-01T00:00:00Z', ?, 'KR', 'main', ?, ?, ?, 'BUY', 'LIMIT', ?, 1, "
+          "'FILLED', 'cfg', '2026-01-01T00:00:00Z', 'LIVE')",
+          <Object?>[id, 'tk$seq', day, strategy, 'td$seq@$day', symbol, qty],
+        );
+        db.execute(
+          'INSERT INTO broker_orders (broker_order_no, intent_id, submitted_at, status) '
+          "VALUES (?, ?, '2026-01-01T00:00:00Z', 'FILLED')",
+          <Object?>[no, id],
+        );
+        db.execute(
+          'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price) '
+          "VALUES (?, ?, '2026-01-01T01:00:00Z', ?, 1)",
+          <Object?>['$no#$qty', no, qty],
+        );
+      }
+
+      /// 평가 행 — 원화 현금 [cash](총자산 칸은 집계가 읽지 않는다).
+      void snap(String day, double cash, {String level = 'NORMAL'}) =>
+          db.execute(
+            'INSERT OR REPLACE INTO equity_snapshot(trade_date, total_equity, cash_krw, cash_usd, fx_rate, '
+            "positions_value, high_water_mark, drawdown, breaker_level, mode) VALUES (?, ?, ?, 0, NULL, 0, ?, 0, ?, 'LIVE')",
+            <Object?>[day, cash, cash, cash, level],
+          );
+
+      List<String> julySessions() => <String>[
+        for (int k = 1; k <= 31; k++)
+          if (_kr.isSession(
+            TradeDate('2026-07-${k.toString().padLeft(2, '0')}'),
+          ))
+            '2026-07-${k.toString().padLeft(2, '0')}',
+      ];
+
+      const List<LedgerHolding> held = <LedgerHolding>[
+        LedgerHolding('P0S_B', '133690', 10),
+      ];
+
+      MonthlyRebalanceJob tallyJob() => MonthlyRebalanceJob(
+        db,
+        mode: RunMode.live,
+        kr: _kr,
+        us: _us,
+        clock: _Clock(),
+        cash: <String, OrderBroker>{
+          'main': FakeOrderBroker(cashKrw: Decimal.parse('10000000')),
+        },
+        holdings: () async => held,
+        pensionAlias: 'pension',
+        regimeConfigHash: 'cfg_regime',
+        configHash: 'cfg_plan',
+        exposureTally: P0sWarnSetup(),
+      );
+
+      /// 7월 마지막 주 — 27 재생 실패 · 28 종가 없음 · 29 넘음 · 30 기준선과 같음 · 31 넘음 + 원화 밑.
+      void lastWeek({String level31 = 'NORMAL'}) {
+        fill('2026-07-28', 'P0S_A', 'A_GONE', 7); // 27 기준 = 0 − 7 → 음수 보유
+        fill('2026-07-30', 'P0S_B', '133690', 5); // 29 이전 보유 = 10 − 5
+        snap('2026-07-27', 1000);
+        snap('2026-07-28', 1000);
+        snap('2026-07-29', 400000); // 5 × 100,000 ÷ 900,000 = 0.556 넘음
+        snap('2026-07-30', 1000000); // 10 × 100,000 ÷ 2,000,000 = 0.50 통과
+        snap(
+          '2026-07-31',
+          10000,
+          level: level31,
+        ); // 10 × 120,000 · 원화 10,000 ÷ 1,210,000 < 1%
+        _bar(db, '133690', '2026-07-29', 100000);
+        _bar(db, '133690', '2026-07-30', 100000);
+      }
+
+      test('끈 잡 = 집계 없음', () async {
+        lastWeek();
+        final MonthlyRebalanceReport r = await job(held: held).run(_me);
+        expect(r.exposureTally, isNull);
+        expect(r.toString(), isNot(contains('307 초과')));
+      });
+
+      test(
+        '🔴 그 달 KR 세션마다 다시 센다 — 넘은 날 · 밑 날 · 계측 없는 날(까닭) · 알림 0 · 계획은 그대로',
+        () async {
+          lastWeek();
+          final List<String> sessions = julySessions();
+          final MonthlyRebalanceReport r = await tallyJob().run(_me);
+          expect(r.created, true);
+          final P0sExposureTally t = r.exposureTally!;
+          expect(t.month, '2026-07');
+          expect(t.tradingDays, sessions.length);
+          expect(t.usdOverDays, 2);
+          expect(t.krwLowDays, 1);
+          expect(t.unmeasuredDays, sessions.length - 3);
+          final Map<String, String> why = <String, String>{
+            for (final (String d, String w) in t.unmeasured) d: w,
+          };
+          expect(why.keys.toList(), <String>[
+            for (final String d in sessions)
+              if (d.compareTo('2026-07-29') < 0) d,
+          ]);
+          expect(why['2026-07-01'], '평가 행 없음');
+          expect(why['2026-07-27'], contains('음수 보유'));
+          expect(why['2026-07-28'], contains('종가 없음'));
+          expect(r.alerts, isEmpty);
+          expect(r.toString(), contains(t.line));
+        },
+      );
+
+      test('이미 있는 계획 · STOPPED 길도 집계를 싣는다', () async {
+        lastWeek();
+        expect((await tallyJob().run(_me)).created, true);
+        final MonthlyRebalanceReport again = await tallyJob().run(_me);
+        expect(again.created, false);
+        expect(again.exposureTally!.usdOverDays, 2);
+
+        db.execute("DELETE FROM plan_snapshot WHERE kind = 'REBALANCE'");
+        snap('2026-07-31', 10000, level: 'STOPPED');
+        final MonthlyRebalanceReport stopped = await tallyJob().run(_me);
+        expect(stopped.skippedReason, 'BREAKER_STOPPED');
+        expect(stopped.exposureTally!.krwLowDays, 1);
+        expect(stopped.alerts, isEmpty);
+      });
+    },
+  );
 }

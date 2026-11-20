@@ -4,15 +4,38 @@
 // 🔴 쓰기 = 0 = 지움 · 남음 = 수량 · 평단 · 진입 갱신(ATR 등 그대로) · 새로 생김 = 넣음 — 부르는 쪽 트랜잭션 안.
 
 import 'package:core_engine/core_engine.dart'
-    show LedgerFillRow, ReplayedPosition;
+    show LedgerFillRow, LedgerHolding, ReplayedPosition;
 import 'package:domain_contracts/domain_contracts.dart'
     show FillKind, OrderSide;
 import 'package:sqlite3/sqlite3.dart';
+
+import 'fill_sign_sql.dart' show signedFillSql;
 
 /// 브로커 체결 행의 열(`e` = executions · `i` = order_intents) — [ledgerFillRowOf] 가 읽는다.
 const String kLedgerFillColumnsSql =
     'e.execution_id, e.fill_kind, e.reverses_fill_id, e.restates_fill_id, e.quantity, '
     'e.price, e.broker_order_no, i.side, i.trade_date, i.decision_id';
+
+/// [after] 뒤 집행일(`order_intents.trade_date > after`)의 KR 브로커 체결 — (전략 · 종목 · 부호 있는 수량).
+/// 매수 + · 매도 − · REVERSAL 반대 부호(`signedFillSql`) · 수기 체결(브로커 주문 없음)은 빠진다(포지션 재생과 같은 범위).
+/// 🆕 E3d-4 — E3d-2 일간 잡(`EquitySnapshotJob`)에서 꺼냄(동작 0 변경) · 월 잡 307 집계도 같이 쓴다.
+List<LedgerHolding> krSignedFillsAfter(Database db, String after) =>
+    <LedgerHolding>[
+      for (final Row r in db.select(
+        "SELECT i.strategy_id, i.symbol, SUM(CASE i.side WHEN 'SELL' THEN -1 ELSE 1 END * "
+        '(${signedFillSql('e', 'quantity')})) AS q FROM executions e '
+        'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
+        'JOIN order_intents i ON i.intent_id = b.intent_id '
+        "WHERE i.market = 'KR' AND i.trade_date > ? "
+        'GROUP BY i.strategy_id, i.symbol ORDER BY i.strategy_id, i.symbol',
+        <Object?>[after],
+      ))
+        LedgerHolding(
+          r['strategy_id'] as String,
+          r['symbol'] as String,
+          (r['q'] as num).toInt(),
+        ),
+    ];
 
 /// [kLedgerFillColumnsSql] 한 행 → 재생 입력(🆕 E3d-3 — 월간 306 단계도 같이 쓴다).
 LedgerFillRow ledgerFillRowOf(Row r) => LedgerFillRow(
