@@ -4,7 +4,7 @@
 //    (`SqliteRuleChangeStore` · 냉각 · 제3자 · 승인 목록 = 하나 · R66).
 // 🔴 같은 지문 = 같은 내용 — 이미 있는 지문에 다른 내용이 오면 StateError(덮어쓰지 않는다 · 지문 충돌 또는 판 섞임).
 // 🔵 내용 = 정규 JSON(`canonicalConfigJson`) — DDL 주석은 «YAML 원문»이라 적었다(SPEC 정합 메모 · R90).
-// 🆕 R189(미결 205 ⓔ · 13 R102 S8 닫음) — 기동 판정 입력 `startupConfigApprovalOf`(operator `BootInputs.approvedOf` 실물).
+// 🆕 R192(미결 205 ⓔ · 13 R102 S8 닫음) — 기동 판정 입력 `startupConfigApprovalOf`(operator `BootInputs.approvedOf` 실물).
 
 import 'package:core_engine/core_engine.dart'
     show canonicalConfigJson, configFingerprint;
@@ -54,7 +54,7 @@ class SqliteConfigVersionStore {
           as int?;
 }
 
-/// 🆕 R189(미결 205 ⓔ) — SAF-405 기동 입력: 이 원장의 «지금 돌 설정»(개시 결정이 붙인 판)의 `approved`
+/// 🆕 R192(미결 205 ⓔ) — SAF-405 기동 입력: 이 원장의 «지금 돌 설정»(개시 결정이 붙인 판)의 `approved`
 /// (개시 없음 · 판 없음 = null → live 기동 거부 · 경고 강등 0).
 ///
 /// 🔴 live = 실전 개시 결정(`OPENING_BALANCE` — simToAuto 커밋이 승인 config 를 옮겨 붙인 판) · 그 밖 = 모의 개시

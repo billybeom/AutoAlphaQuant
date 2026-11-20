@@ -112,7 +112,7 @@ void main() {
     expect(b.runMode, RunMode.live);
   });
 
-  test('🆕 R189 기본 승인 원천 = 실전 파일 config_versions(개시 판) — 1 = 준비 · 0 = SAF-405 · 조립 앱 입력도 같다', () async {
+  test('🆕 R192 기본 승인 원천 = 실전 파일 config_versions(개시 판) — 1 = 준비 · 0 = SAF-405 · 조립 앱 입력도 같다', () async {
     final Directory dir = tempLedgerDir();
     final LedgerFiles f = openFiles(dir, clock);
     addTearDown(f.close);

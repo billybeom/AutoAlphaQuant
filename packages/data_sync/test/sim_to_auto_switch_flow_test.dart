@@ -1,5 +1,5 @@
 // 🆕 E15f4b2 — simToAuto 전환 흐름 끝까지(가짜 감시 + 실물 저장: 세션 → 커밋 → 마감 → 옛 멈춤 · 설계 13 §8 R106).
-// 🆕 R189 — 모의 파일 첫 승인 · 서약 → 커밋이 실전 파일로 옮김 → S5 DISCARD 로 모의 파일을 지워도 실전 기동(SAF-405) · 서약.
+// 🆕 R192 — 모의 파일 첫 승인 · 서약 → 커밋이 실전 파일로 옮김 → S5 DISCARD 로 모의 파일을 지워도 실전 기동(SAF-405) · 서약.
 
 import 'dart:io';
 
@@ -114,7 +114,7 @@ int _n(Database db, String table, [String where = '1=1']) =>
     db.select('SELECT COUNT(*) AS n FROM $table WHERE $where').first['n']!
         as int;
 
-/// 🆕 R189 — 모의 파일에 서약 첫 판 · 첫 승인(요청 12-01 → 냉각 30일 → 승인 01-02)을 실물 경로로 → 승인 판 지문.
+/// 🆕 R192 — 모의 파일에 서약 첫 판 · 첫 승인(요청 12-01 → 냉각 30일 → 승인 01-02)을 실물 경로로 → 승인 판 지문.
 String _seedApproval(Database sim, _Clock clock, _Trusted trusted) {
   final String hash = SqliteConfigVersionStore(
     sim,
@@ -271,7 +271,7 @@ void main() {
             ],
             configHash: approvedHash,
             lease: _lease,
-            // 🆕 R189 — 커밋 직전에 모의 파일에서 읽는다(쓰기 = 실전 커밋 트랜잭션 안).
+            // 🆕 R192 — 커밋 직전에 모의 파일에서 읽는다(쓰기 = 실전 커밋 트랜잭션 안).
             carry: readSimToAutoCarry(sim),
           );
       return c.ok
@@ -309,7 +309,7 @@ void main() {
   });
 
   test(
-    '🆕 R189 S5 DISCARD — 모의 파일을 지워도 실전 파일에 승인 판 · 승인 기록 · 서약 · 실전 기동 게이트 통과',
+    '🆕 R192 S5 DISCARD — 모의 파일을 지워도 실전 파일에 승인 판 · 승인 기록 · 서약 · 실전 기동 게이트 통과',
     () async {
       expect(
         SqliteSimLedgerFateStore(
@@ -370,7 +370,7 @@ void main() {
     },
   );
 
-  test('🆕 R189 승인 config 없는 모의 파일 = 커밋 거부 CONFIG_NOT_APPROVED · 실전 쓰기 0 · 옛 체크 그대로 · 마감 0', () async {
+  test('🆕 R192 승인 config 없는 모의 파일 = 커밋 거부 CONFIG_NOT_APPROVED · 실전 쓰기 0 · 옛 체크 그대로 · 마감 0', () async {
     sim.execute('UPDATE config_versions SET approved = 0');
     final SimToAutoSwitchResult x = await run();
     expect((x.committed, x.stage), (false, SimToAutoSwitchStage.commit));

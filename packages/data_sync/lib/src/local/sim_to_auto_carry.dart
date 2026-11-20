@@ -1,5 +1,5 @@
 // 🆕 simToAuto 커밋이 모의 파일에서 실전 파일로 옮기는 행 — 승인 config · 그 승인 기록 · 서약
-// (설계 13 §8 R189 · 01 §8 미결 205 ⓒ · 208 · 01 §35 K177 · 02 §2 `config_versions` · `rule_change_*` · `pledge`).
+// (설계 13 §8 R192 · 01 §8 미결 205 ⓒ · 208 · 01 §35 K177 · 02 §2 `config_versions` · `rule_change_*` · `pledge`).
 //
 // 🔴 읽기 = 모의 파일(커밋 트랜잭션 앞 · 읽기만) · 쓰기 = 실전 파일 커밋 트랜잭션 안(`SqliteSimToAutoCommitStore.commit`).
 //    두 파일을 한 트랜잭션에 묶지 않는다(01 :3388) — 모의 파일은 고치지 않는다(마감 · 지움 = f3b · S5 고름).
@@ -26,7 +26,7 @@ class SimToAutoCarriedRow {
   final Map<String, Object?> values;
 }
 
-/// 🆕 R189 — simToAuto 커밋이 실전 파일로 옮길 것.
+/// 🆕 R192 — simToAuto 커밋이 실전 파일로 옮길 것.
 class SimToAutoCarry {
   /// 만든다(시험 · [readSimToAutoCarry]).
   const SimToAutoCarry({required this.approvedConfigHash, required this.rows});

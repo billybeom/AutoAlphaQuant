@@ -1,5 +1,5 @@
 // 🆕 E15f3a — simToAuto 2단 커밋 1단계(실전 파일 한 트랜잭션 · 게이트 · 되돌림 · S5 고름 · 커밋 알림 · 설계 13 §8 R98).
-// 🆕 R189(미결 205 ⓒⓓⓔ · 208) — 승인 config · 승인 기록 · 서약 = 실전 파일로(같은 트랜잭션) · 승인 없음 = 거부 · 기동 게이트.
+// 🆕 R192(미결 205 ⓒⓓⓔ · 208) — 승인 config · 승인 기록 · 서약 = 실전 파일로(같은 트랜잭션) · 승인 없음 = 거부 · 기동 게이트.
 
 import 'dart:io';
 
@@ -113,7 +113,7 @@ int _n(Database db, String table, [String where = '1=1']) =>
     db.select('SELECT COUNT(*) AS n FROM $table WHERE $where').first['n']!
         as int;
 
-/// 🆕 R189 — 모의 파일에 서약(첫 판 11-25 · 12월 편집 + 저널) · 첫 승인(요청 12-01 → 냉각 30일 → 승인 01-02)을
+/// 🆕 R192 — 모의 파일에 서약(첫 판 11-25 · 12월 편집 + 저널) · 첫 승인(요청 12-01 → 냉각 30일 → 승인 01-02)을
 /// 실물 저장 경로로 쓴다 → 승인 판 지문.
 String _seedSim(Database sim, _Clock clock, _Trusted trusted) {
   final String hash = SqliteConfigVersionStore(
@@ -362,7 +362,7 @@ void main() {
     expect(a['source'], 'handover-commit');
     expect(a['level'], 'P1');
     expect(a['raised_at'], at);
-    // 모의 파일은 건드리지 않는다(f3b · 🆕 R189 옮김 = 읽기만).
+    // 모의 파일은 건드리지 않는다(f3b · 🆕 R192 옮김 = 읽기만).
     expect(_n(sim, 'mode_transition'), 0);
     expect(_n(sim, 'config_versions', 'approved = 1'), 1);
     expect(_n(sim, 'pledge'), 2);
@@ -445,7 +445,7 @@ void main() {
     );
   });
 
-  test('🆕 R189 승인 config · 승인 기록 · 서약 = 실전 파일로(같은 트랜잭션 · 모의 행 그대로) · 실전 기동 게이트 통과', () {
+  test('🆕 R192 승인 config · 승인 기록 · 서약 = 실전 파일로(같은 트랜잭션 · 모의 행 그대로) · 실전 기동 게이트 통과', () {
     expect(
       startupConfigApprovalOf(live, RunMode.live),
       isNull,
@@ -504,7 +504,7 @@ void main() {
     );
   });
 
-  test('🆕 R189 승인 config 없음 · 다른 판 승인 · 승인 기록 없는 approved = 거부 CONFIG_NOT_APPROVED · 쓰기 0 · 세션 그대로', () {
+  test('🆕 R192 승인 config 없음 · 다른 판 승인 · 승인 기록 없는 approved = 거부 CONFIG_NOT_APPROVED · 쓰기 0 · 세션 그대로', () {
     void same(SimToAutoCommitOutcome o) {
       expect(o.reasonCode, SimToAutoCommitCodes.configNotApproved);
       expect(o.headline, contains('규칙 변경 승인'));
@@ -557,7 +557,7 @@ void main() {
   });
 
   test(
-    '🆕 R189 실전 파일에 같은 지문 · 같은 내용이 이미 있음 = 그대로 두고 승인 1 · 다른 판 승인 = 0(승인 목록 하나)',
+    '🆕 R192 실전 파일에 같은 지문 · 같은 내용이 이미 있음 = 그대로 두고 승인 1 · 다른 판 승인 = 0(승인 목록 하나)',
     () {
       final Row cfg = sim.select(
         'SELECT content, created_at FROM config_versions WHERE config_hash = ?',
@@ -584,7 +584,7 @@ void main() {
     },
   );
 
-  test('🆕 R189 옮김 충돌(실전 파일에 같은 지문 · 다른 내용) = 전부 되돌림 + 세션 ROLLED_BACK', () {
+  test('🆕 R192 옮김 충돌(실전 파일에 같은 지문 · 다른 내용) = 전부 되돌림 + 세션 ROLLED_BACK', () {
     live.execute(
       "INSERT INTO config_versions (config_hash, created_at, content, approved) VALUES (?, 't', 'x', 0)",
       <Object?>[approvedHash],
@@ -636,7 +636,7 @@ void main() {
     expect(_n(live, 'operating_mode_transition'), 0);
     expect(_n(live, 'mode_transition'), 0);
     expect(_n(live, 'alert_event'), 0);
-    // 🆕 R189 — 옮긴 행도 되돌린다.
+    // 🆕 R192 — 옮긴 행도 되돌린다.
     expect(_n(live, 'config_versions'), 0);
     expect(_n(live, 'rule_change_request'), 0);
     expect(_n(live, 'decision_journal'), 0);

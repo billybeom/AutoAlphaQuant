@@ -126,7 +126,7 @@ void main() {
     expect(rows(), 2);
   });
 
-  test('🆕 R189 기동 입력 — 개시 결정이 붙인 판의 approved · live = OPENING_BALANCE · 그 밖 = SIM_OPENING_BALANCE · 없음 = null', () {
+  test('🆕 R192 기동 입력 — 개시 결정이 붙인 판의 approved · live = OPENING_BALANCE · 그 밖 = SIM_OPENING_BALANCE · 없음 = null', () {
     void opening(String id, String code, String hash, String at) => db.execute(
       'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, reason_code, '
       "config_hash) VALUES (?, ?, '2027-01-13', 'LIVE', 'MANUAL', 'P0S', 'x', ?, ?)",

@@ -323,7 +323,7 @@ void main() {
     expect(texts, hasLength(3));
   });
 
-  test('🆕 R189 승인 config(미결 205 ⓓ) — 없음 · 다른 판 = CONFIG_NOT_APPROVED · 이미 커밋 뒤 · 재판정 앞 · 엔진 예약 코드', () {
+  test('🆕 R192 승인 config(미결 205 ⓓ) — 없음 · 다른 판 = CONFIG_NOT_APPROVED · 이미 커밋 뒤 · 재판정 앞 · 엔진 예약 코드', () {
     expect(
       SimToAutoCommitCodes.configNotApproved,
       'SIM_TO_AUTO_CONFIG_NOT_APPROVED',
