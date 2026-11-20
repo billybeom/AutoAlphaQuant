@@ -693,11 +693,14 @@ export 'src/ops/p0s_ops_config.dart'
         p0sRegimeConfigHash;
 // 🆕 E11p3d-5e — M9 S01 설정 홈(설계 13 §8 R134).
 // 🆕 E3d-1 — P0S 일간 경고(302 · 307 · 308 · 원화 유동성) · 넘은 첫날 알림(04 §1 Level 3 v2.46 · 설계 13 §8 R177).
+// 🆕 E3d-4 — 월 잡 307 · 원화 유동성 월 집계(`p0sMonthlyExposureTally` · 앱 01 §36 K193 · 설계 13 §8 R187).
 export 'src/ops/p0s_warn.dart'
     show
         P0sDailyWarn,
         P0sExposure,
         P0sExposureMap,
+        P0sExposureTally,
+        P0sTallyDay,
         P0sWarnConfig,
         P0sWarnInputs,
         P0sWarnSetup,
@@ -711,6 +714,7 @@ export 'src/ops/p0s_warn.dart'
         p0sDailyWarnStep,
         p0sExposureMap,
         p0sExposureOf,
+        p0sMonthlyExposureTally,
         p0sWarnConfig,
         p0sWarnEdgeAlerts;
 export 'src/ops/rebalance_events_view.dart'

@@ -11,6 +11,9 @@
 // 🆕 E3d-3 — SAF-306 과세연도 금융소득 단계(04 §1 Level 3 v2.46 · [P0sIncomeWarnSetup] 을 넘길 때만) — 과세계좌의 해외 ETF
 //    브로커 체결(처음부터 · 평균 단가) + 살아 있는 분배금 → 이달 말 누계 · 과세연도 첫 초과 월 = 알림 1건(보고 `alerts`).
 //    계획 · 계층 B 와 무관하게 세 길(새로 · 이미 있음 · STOPPED) 모두 보고에 싣는다 · 셈 실패 = «계측 불가» 한 줄 · 알림 0.
+// 🆕 E3d-4 — SAF-307 · 원화 유동성 월 집계(04 §1 Level 3 v2.46 «307 월간 보고(초과 일수)» · 앱 01 §36 K193 · [P0sWarnSetup] 을
+//    넘길 때만) — 그 달 KR 세션마다 일간 잡과 같은 방식으로 노출을 다시 센다(지금 보유 − 그 뒤 체결 · 그날 종가 · 그날 평가 행 현금 ·
+//    R176 «저장 0 · 재계산»). 기준선 넘은 날 · 원화 유동성 밑 날 · 계측 없는 날 → 보고 한 줄 · 알림 0 · 세 길 모두.
 
 import 'dart:convert';
 
@@ -22,7 +25,7 @@ import '../local/deposit_ledger.dart';
 import '../local/planned_work_store.dart'
     show monthlyPlanOneLine, plannedWorkIdOf, registerPlannedWork;
 import '../local/position_replay_sql.dart'
-    show kLedgerFillColumnsSql, ledgerFillRowOf;
+    show kLedgerFillColumnsSql, krSignedFillsAfter, ledgerFillRowOf;
 import '../market/market_store.dart';
 import '../market/regime_store.dart';
 import 'daily_jobs.dart';
@@ -83,6 +86,7 @@ class MonthlyRebalanceReport implements DailyJobReport {
     this.tierB,
     this.skippedReason,
     this.incomeWarn,
+    this.exposureTally,
   });
 
   /// 계획 id.
@@ -115,13 +119,17 @@ class MonthlyRebalanceReport implements DailyJobReport {
   /// 🆕 E3d-3 — SAF-306 과세연도 금융소득 단계(단계를 켜지 않았으면 null).
   final P0sIncomeWarnStep? incomeWarn;
 
+  /// 🆕 E3d-4 — SAF-307 · 원화 유동성 월 집계(단계를 켜지 않았으면 null · 알림 0).
+  final P0sExposureTally? exposureTally;
+
   @override
   Set<String> get alerts => <String>{...?incomeWarn?.alerts};
 
   @override
   String toString() =>
       'MonthlyRebalanceReport($planId · ${created ? '새로' : '이미 있음'} · 대상 ${targets.length} · 집행 $executionDay · $tierB'
-      '${incomeWarn == null ? '' : ' · 306 ${incomeWarn!.unavailable ?? (incomeWarn!.exceeded ? '넘음' : '안 넘음')}'})';
+      '${incomeWarn == null ? '' : ' · 306 ${incomeWarn!.unavailable ?? (incomeWarn!.exceeded ? '넘음' : '안 넘음')}'}'
+      '${exposureTally == null ? '' : ' · ${exposureTally!.line}'})';
 }
 
 List<Map<String, Object?>> _weightsJson(Map<String, double> w) =>
@@ -242,6 +250,7 @@ class MonthlyRebalanceJob {
     this._parkingSymbol = kP0sParkingSymbol,
     this._tierBCard = p0sTierBCard,
     this._incomeWarn,
+    this._exposureTally,
   }) : _cash = Map<String, OrderBroker>.unmodifiable(cash),
        _pensionOutside = pensionDeclaredOutsideText,
        _config = config ?? p0sMonthEndConfig() {
@@ -263,6 +272,9 @@ class MonthlyRebalanceJob {
   final String _parkingSymbol;
   final TierBCard? Function() _tierBCard;
   final P0sIncomeWarnSetup? _incomeWarn;
+
+  /// 🆕 E3d-4 — 켜면 SAF-307 · 원화 유동성 월 집계를 보고에 싣는다(범주 표 · 문턱 = 일간 잡과 같은 것).
+  final P0sWarnSetup? _exposureTally;
 
   List<String> get _planSymbols => <String>{
     for (final (String s, _) in _config.bAssets) s,
@@ -383,12 +395,76 @@ class MonthlyRebalanceJob {
     );
   }
 
+  /// 🆕 E3d-4 — [monthEnd] 의 달 KR 세션마다 노출을 다시 센다(04 §1 Level 3 v2.46 · R176 «저장 0 · 재계산»):
+  /// 그날 보유 = [held] − 그 뒤 집행일의 체결([holdingsBeforeFills]) · 종가 = 그날 저장 종가 · 현금 = 그날 평가 행.
+  /// 평가 행 없음 · 원장 재생 실패 · 종가 없음 = 그날 계측 없음(까닭) · 알림 0.
+  P0sExposureTally _tallyStep(
+    TradeDate monthEnd,
+    List<LedgerHolding> held,
+    P0sWarnSetup setup,
+  ) {
+    final String month = monthEnd.yyyyMmDd.substring(0, 7);
+    final List<String> sessions = <String>[monthEnd.yyyyMmDd];
+    TradeDate d = monthEnd;
+    while (true) {
+      final TradeDate p;
+      try {
+        p = _kr.nthSessionBefore(d, 1);
+      } on StateError {
+        break; // 달력 범위 시작 — 그 앞 세션은 모른다
+      }
+      if (!p.yyyyMmDd.startsWith('$month-')) break;
+      sessions.insert(0, p.yyyyMmDd);
+      d = p;
+    }
+    final SqliteEquitySnapshotStore store = SqliteEquitySnapshotStore(
+      _db,
+      mode: _mode,
+    );
+    return p0sMonthlyExposureTally(
+      month: month,
+      days: <P0sTallyDay>[
+        for (final String day in sessions) _tallyDay(day, held, store),
+      ],
+      setup: setup,
+    );
+  }
+
+  P0sTallyDay _tallyDay(
+    String day,
+    List<LedgerHolding> held,
+    SqliteEquitySnapshotStore store,
+  ) {
+    final EquitySnapshotRow? row = store.at(day);
+    if (row == null) return (date: day, inputs: null, reason: '평가 행 없음');
+    try {
+      final List<LedgerHolding> before = holdingsBeforeFills(
+        held,
+        krSignedFillsAfter(_db, day),
+      );
+      return (
+        date: day,
+        inputs: P0sWarnInputs.fromTexts(
+          holdings: before,
+          closeTexts: _closeTexts(day, <String>{
+            for (final LedgerHolding h in before) h.symbol,
+          }),
+          cashKrw: row.cashKrw,
+        ),
+        reason: null,
+      );
+    } on RiskCheckUnavailable catch (e) {
+      return (date: day, inputs: null, reason: e.message);
+    }
+  }
+
   MonthlyRebalanceReport _report(
     String monthEnd,
     Map<String, Object?> o, {
     required bool created,
     required TierBStepReport tierB,
     required P0sIncomeWarnStep? incomeWarn,
+    required P0sExposureTally? exposureTally,
   }) => MonthlyRebalanceReport(
     planId: rebalancePlanIdOf(monthEnd),
     created: created,
@@ -399,6 +475,7 @@ class MonthlyRebalanceJob {
     monthIndex: o['month_index']! as int,
     tierB: tierB,
     incomeWarn: incomeWarn,
+    exposureTally: exposureTally,
   );
 
   /// 🆕 E14d2a(R76 Q1 · 🔴 발주자 결정 2026-11-13 «M 의 판정 + T 의 금액») — 낡은 월말 계획 [monthEnd] 의 재개일
@@ -542,6 +619,10 @@ class MonthlyRebalanceJob {
       throw ArgumentError.value(d, 'monthEnd', '월 마지막 KR 세션이 아니다');
     }
     final P0sIncomeWarnStep? income = _incomeStep(d);
+    final P0sWarnSetup? tallySetup = _exposureTally;
+    final P0sExposureTally? tally = tallySetup == null
+        ? null
+        : _tallyStep(monthEnd, await _holdings(), tallySetup);
     final SqliteRebalancePlanStore plans = SqliteRebalancePlanStore(_db);
     final Map<String, Object?>? existing = plans.outputsOf(d);
     if (existing != null) {
@@ -551,6 +632,7 @@ class MonthlyRebalanceJob {
         created: false,
         tierB: _tierB(monthEnd),
         incomeWarn: income,
+        exposureTally: tally,
       );
     }
     if (_breakerAt(d) == BreakerLevel.stopped) {
@@ -565,6 +647,7 @@ class MonthlyRebalanceJob {
         tierB: _tierB(monthEnd),
         skippedReason: kBreakerStoppedAlertCode,
         incomeWarn: income,
+        exposureTally: tally,
       );
     }
 
@@ -713,6 +796,7 @@ class MonthlyRebalanceJob {
       created: true,
       tierB: _tierB(monthEnd),
       incomeWarn: income,
+      exposureTally: tally,
     );
   }
 }

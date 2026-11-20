@@ -9,7 +9,7 @@ import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 
-import '../local/fill_sign_sql.dart' show signedFillSql;
+import '../local/position_replay_sql.dart' show krSignedFillsAfter;
 import '../market/fetch_log.dart' show FetchOutcome;
 import '../market/gap_store.dart';
 import '../market/macro_collector.dart';
@@ -458,22 +458,8 @@ class EquitySnapshotJob {
 
   /// 🆕 E3d-2 — [after] 뒤 집행일(`order_intents.trade_date > after`)의 KR 브로커 체결 — (전략 · 종목 · 부호 있는 수량).
   /// 매수 + · 매도 − · REVERSAL 반대 부호(`signedFillSql`) · 수기 체결(브로커 주문 없음)은 빠진다(포지션 재생과 같은 범위).
-  List<LedgerHolding> _signedFillsAfter(String after) => <LedgerHolding>[
-    for (final Row r in _db.select(
-      "SELECT i.strategy_id, i.symbol, SUM(CASE i.side WHEN 'SELL' THEN -1 ELSE 1 END * "
-      '(${signedFillSql('e', 'quantity')})) AS q FROM executions e '
-      'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
-      'JOIN order_intents i ON i.intent_id = b.intent_id '
-      "WHERE i.market = 'KR' AND i.trade_date > ? "
-      'GROUP BY i.strategy_id, i.symbol ORDER BY i.strategy_id, i.symbol',
-      <Object?>[after],
-    ))
-      LedgerHolding(
-        r['strategy_id'] as String,
-        r['symbol'] as String,
-        (r['q'] as num).toInt(),
-      ),
-  ];
+  List<LedgerHolding> _signedFillsAfter(String after) =>
+      krSignedFillsAfter(_db, after);
 
   /// 🆕 E3d-2 — 경고 단계(04 §1 Level 3 v2.46): 오늘 = 지금 보유 · 오늘 종가 · 오늘 행 현금 · 마지막 계측일 = 저장된 바로 앞 행의
   /// 날 · 현금 + (지금 보유 − 그 뒤 체결) · 그날 종가. 앞 행 없음 · 재생 실패 = «안 넘음»(놓치지 않게).
