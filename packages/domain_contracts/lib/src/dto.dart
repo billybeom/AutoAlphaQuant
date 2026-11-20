@@ -9,6 +9,7 @@
 
 export 'dto/accounts.dart';
 export 'dto/advice.dart';
+export 'dto/allocation.dart'; // 🆕 v1.28 — S04 첫 판(01 §37)
 export 'dto/calendar.dart';
 export 'dto/common.dart';
 export 'dto/handbook.dart';

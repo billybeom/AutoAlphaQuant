@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.28.0",
+    "generated_at": "2026-11-20T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261120,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-11-20T09:30:00Z", "trade_date": "2026-11-20", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "설정 기준 2026-11-20 18:30" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "current": { "label": "balanced(P0S)", "weights_text": "A 20% · B 42% · C 38%(나머지) · 새틀라이트 0%(꺼짐)", "backtest_text": "백테스트 26.6년(2000~2026 · 세금 전) 연 11.13% · 최대 낙폭 −12.60%", "honest_note_text": "백테스트 점추정이며 앞으로의 약속이 아닙니다. 규칙을 지켰을 때의 기대치는 전 계좌 세후 10.2% 안팎(최악 9.7%)입니다." },
+      "sections": [
+        {
+          "title": "리밸런싱 밴드",
+          "rows": [
+            { "code": "BAND_CORE_B", "label": "슬리브 B 코어 밴드", "value_text": "목표 42% ± 3%p", "note_text": "월 1회 판정합니다. 밴드를 벗어나면 목표 비중으로 되돌립니다. 처음 6개월 적립 기간에는 판정하지 않습니다." },
+            { "code": "BAND_SLEEVE_C", "label": "슬리브 C 안 리밸런싱 문턱", "value_text": "종목 목표의 ±16.7%", "note_text": "채권 · 금이 각자 목표에서 이 폭 안에 있으면 사고팔지 않습니다." },
+            { "code": "BAND_SATELLITE", "label": "새틀라이트 밴드", "value_text": "해당 없음", "note_text": "새틀라이트를 쓰지 않아(0%) 밴드를 판정하지 않습니다." }
+          ]
+        },
+        {
+          "title": "리스크 한도",
+          "rows": [
+            { "code": "RISK_DRAWDOWN", "label": "낙폭 단계(서킷브레이커)", "value_text": "경보 −15% · 축소 운용 −20% · 중지 −25% · 정지 −35%", "note_text": "고점 대비 총자산 낙폭 기준입니다." },
+            { "code": "RISK_DAILY_LOSS", "label": "하루 손실 한도", "value_text": "−3%", "note_text": "그날 손실이 이 선에 닿으면 그날 새 매수를 막습니다." },
+            { "code": "RISK_EXPOSURE", "label": "위험자산 비중 상한", "value_text": "85%", "note_text": "매수 뒤 위험자산 비중이 이 선을 넘으면 그 매수를 막습니다." },
+            { "code": "RISK_DEFENSIVE_FLOOR", "label": "방어 비중 하한", "value_text": "10%", "note_text": "방어 자산(슬리브 C) 비중이 이 선 밑으로 내려가면 알림을 냅니다. 주문은 막지 않습니다." },
+            { "code": "RISK_ORDER_CAPS", "label": "주문 한도", "value_text": "하루 60건 · 한 건 2,000만원", "note_text": "넘는 주문은 보내지 않습니다." }
+          ]
+        },
+        {
+          "title": "금 상한",
+          "rows": [
+            { "code": "GOLD_SLEEVE_C_CAP", "label": "금 상한 — 슬리브 C 안", "value_text": "총자산의 8%", "note_text": "하드 캡입니다. 넘는 몫은 금 대신 원화 현금성으로 둡니다. 슬리브 B 의 금은 세지 않습니다." },
+            { "code": "GOLD_TOTAL_MONITOR", "label": "금 총비중 감시선", "value_text": "총자산의 20%", "note_text": "하드 캡이 아니라 감시선입니다. 슬리브 B 몫까지 합친 금 전체가 이 선을 넘으면 알림을 냅니다. 주문은 막지 않습니다." }
+          ]
+        }
+      ],
+      "change_path_lines": [
+        "배분은 이 화면에서 바꾸지 않습니다. 12월 연간 리뷰에서 PC 백테스트 근거로 바꿉니다.",
+        "바꾼 설정은 규칙 변경 승인을 거쳐야 쓰입니다(냉각 30일 · 12월 승인 창).",
+        "급한 노출 조정은 배분이 아니라 재량 예산으로 합니다(한 번 ±10%p · 12개월에 4회)."
+      ],
+      "as_of": { "observed_at": "2026-11-20T09:30:00Z", "trade_date": "2026-11-20", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "설정 기준 2026-11-20 18:30" }
+    }
+  ]
+}

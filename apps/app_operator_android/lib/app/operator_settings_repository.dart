@@ -45,6 +45,7 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AccountMappingVm,
+        AllocationEditorVm,
         ContributionSetting,
         CredentialListVm,
         DiagnosticsScreenVm,
@@ -288,6 +289,12 @@ class OperatorSettingsRepository implements SettingsRepository {
 
   @override
   Stream<OperationsVm> watchOperations() => _none('watchOperations');
+
+  /// 🆕 계약 v1.28(01 §37 · K199) — S04 첫 판. 실물 = 엔진·조립 카드(엔진 `allocationViewOf` → 계약 VM · 운영 설정 객체 ·
+  /// 못 읽으면 오류 — K206).
+  @override
+  Stream<AllocationEditorVm> watchAllocationEditor() =>
+      _none('watchAllocationEditor');
 
   @override
   Stream<AccountMappingVm> watchAccountMapping() => _follow(

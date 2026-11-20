@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 117개 · 계약 v1.27.0 · 조립일 2026-11-20(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 120개 · 계약 v1.28.0 · 조립일 2026-11-20(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -31,7 +31,7 @@
 //    사항에 사유와 함께 적혀 있다. 대표적으로 `LedgerEventKind`/
 //    `LedgerEventRecord`(결정 ㊲ 대기 · M2-8 A-15·J-6) · `SplitExecutionLeg`
 //    (M2-8 C-11) · `AllocationEditorVm`
-//    (M2-8 §G 표 미등재 · S04 창 — 엔진 결정 대기 · 01 §8 미결 190~194)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
+//    (~~M2-8 §G 표 미등재 · S04 창 — 엔진 결정 대기 · 01 §8 미결 190~194~~ → 🆕 v1.28 01 §37 등재 — 첫 판 보기 전용 · 편집 칸 = 편집기 판)이다. 🆕 v1.17(01 §26) — `IncidentBanner`·`Runbook`·긴급정지 카드는 이름이 확정돼
 //    들어왔다(`dto/incident.dart`).
 //    🆕 v1.18(01 §27) — `S01`·`S07` 계약 확정(`SettingsHomeVm` 교체 · `SettingsRepository`).
 //    🆕 v1.19(01 §28) — `S05` 계약 확정(`OperationsVm` · 부품 8 · `watchOperations`).
@@ -53,6 +53,7 @@ export 'src/navigation.dart';
 export 'src/primitives.dart';
 export 'src/repositories.dart';
 export 'src/schema/ledger_file.dart';
+export 'src/schema/read_model_columns.dart'; // 🆕 v1.28 — rm_config_view S04 배분 7열(01 §37 K201)
 ```
 
 ---
@@ -313,12 +314,20 @@ export 'commands/settings_actions.dart';
 //    `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 · 개입 · 재량 · postmortem 목록 · M5-3 STOPPED VM ·
 //    `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 보기 VM(192 뒤) · E16i 나머지/E16j · 이름 없는 알림 · PNG F1·F2·F4~F7 중
 //    먼저 굳는 쪽 · 나머지 = 그 다음 번호) · 06 변경 이력 «2026-11-20 · 계약 v1.27».
+// 🆕 '1.28.0'(S04 첫 판 · 01 §37 · 발주자 위임 2026-11-14 — 권고대로 · K196~K207) — M9 `S04` 배분 화면 보기 전용:
+//    🆕 `AllocationEditorVm`·`AllocationProfileCard`·`AllocationReadOnlySection`·`AllocationReadOnlyRow`(엔진 `AllocationView` 칸 1:1 ·
+//    판정·잠김·빈 칸 0) · 🆕 `SettingsRepository.watchAllocationEditor()`(폰 · 뷰어) · 🆕 `AllocationRowCodes` 10(`allocation_row`) ·
+//    🆕 `AllocationReadModelColumns` 7(`rm_config_view` 배분 열 · 01 §6-4 · 🔴 타입 이름 ≠ 엔진) · 받침대 +1 · 🆕 C-62 ·
+//    픽스처 360 → 362(신설 2 — `m9/allocation_editor` · `_stale`) — 🆕 tool/gen_s04_v128_fixtures.py.
+//    다음 판 = 1.29.0(v1.27 예약 목록 그대로 — 서약 편집(미결 208 뒤) · 규칙 변경 CHANGELOG · `RuleChangeCategory` · 둘째 승인부터 창·DD 글자 ·
+//    개입 · 재량 · postmortem 목록 · M5-3 VM · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` 등재 · S04 편집기 판(미결 190 · 191 · 194) · E16i/E16j ·
+//    이름 없는 알림 · PNG F1·F2·F4~F7 중 먼저 굳는 쪽) · 06 변경 이력 «2026-11-20 · 계약 v1.28».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.27.0';
+const String contractVersion = '1.28.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -375,6 +384,7 @@ const int hashFormatVersion = 1;
 
 export 'dto/accounts.dart';
 export 'dto/advice.dart';
+export 'dto/allocation.dart'; // 🆕 v1.28 — S04 첫 판(01 §37)
 export 'dto/calendar.dart';
 export 'dto/common.dart';
 export 'dto/handbook.dart';
@@ -2089,7 +2099,7 @@ part 'settings_actions.g.dart';
 /// 🔴 **`Config.fx_overlay` 계열 키를 `strategyPreview`·`strategyApplyRequest` 의 args 에
 ///    넣지 않는다** — 영구 기각된 규칙의 부활 경로다(P 회차 실측: 반사실 부호 역전).
 ///
-/// ⚠️ 나머지 동작(🆕 v1.24 기준 = `strategyPreview`·`strategyApplyRequest`(S04 창) · `credentialRegister`·`backupRestoreStart`(화면 미호출) ·
+/// ⚠️ 나머지 동작(🆕 v1.24 기준 = `strategyPreview`·`strategyApplyRequest`(S04 편집기 판 — v1.28 첫 판 = 보기 전용 · 호출 0) · `credentialRegister`·`backupRestoreStart`(화면 미호출) ·
 ///    calendar 3 · `settingsGeneralUpdate`)의 args 스키마는 **미확정**이다(§4-3 말미 · 05 §7 표가 입력) — 확정 전에는
 ///    화면이 키를 지어내지 않는다.
 abstract interface class SettingsActions {
@@ -2675,6 +2685,100 @@ abstract class ReasonOption with _$ReasonOption {
   factory ReasonOption.fromJson(Map<String, dynamic> json) =>
       _$ReasonOptionFromJson(json);
 }
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/allocation.dart`
+
+```dart
+// 01 §37 — 🆕 계약 v1.28 · M9 `S04` 배분 화면 첫 판(보기 전용 · 2026-11-19 발주자 결정 193 ⓐ 프리셋 부재 · 194 ⓐ 앱 첫 판 custom 0).
+//
+// 🔴 쓰기 0 · 판정 0 · 화면은 받은 글자·차례 그대로(묶음·행 재정렬 0) — 색(`level`) · 잠김 · 빈 상태 칸 0(K198).
+// 🔴 폰 · 뷰어 같은 값(창구 = `SettingsRepository.watchAllocationEditor()` · 뷰어 원천 = `rm_config_view` 배분 7열 ·
+//    `AllocationReadModelColumns` · 01 §6-4).
+// 🔴 엔진 원천 = core `ops/allocation_view.dart`(PR #276 · 엔진 지역 꼴 `AllocationView` — 🔴 이 파일의 이름은 엔진과 다르다 ·
+//    `ambiguous_import` 회피 K80). 편집 칸(초안 · 슬라이더 · 미리보기 · 적용 · 프리셋) = 편집기 판 추가형(01 §8 미결 190 · 191 · 194).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../primitives/as_of.dart';
+
+part 'allocation.freezed.dart';
+part 'allocation.g.dart';
+
+/// 🆕 v1.28(01 §37 · K197) — `S04` 한 화면. 이름 = M2-8 예약(`AllocationEditorVm`) · 첫 판 = 보기 칸만.
+@freezed
+abstract class AllocationEditorVm with _$AllocationEditorVm {
+  const factory AllocationEditorVm({
+    /// 지금 배분(정본 하나 — 193 ⓐ 프리셋 부재).
+    required AllocationProfileCard current,
+
+    /// 읽기 묶음(엔진 차례 · 첫 판 = 리밸런싱 밴드 · 리스크 한도 · 금 상한).
+    @Default(<AllocationReadOnlySection>[])
+    List<AllocationReadOnlySection> sections,
+
+    /// «바꾸는 길» 안내(엔진 차례 · 🔴 링크 0).
+    @Default(<String>[]) List<String> changePathLines,
+    required AsOf asOf,
+  }) = _AllocationEditorVm;
+
+  factory AllocationEditorVm.fromJson(Map<String, dynamic> json) =>
+      _$AllocationEditorVmFromJson(json);
+}
+// JSON 키: current · sections · change_path_lines · as_of
+
+/// 🆕 v1.28(K197) — 지금 배분 카드(엔진 글자 · 백테스트 줄 = M9 손익 금지의 유일한 예외(05 원칙 3) · 🔴 정직 기대 줄과 함께만).
+@freezed
+abstract class AllocationProfileCard with _$AllocationProfileCard {
+  const factory AllocationProfileCard({
+    /// 프로파일 글자(S01 카드 상태 줄과 같은 글자 — 엔진).
+    required String label,
+
+    /// 비중 한 줄(엔진 · 잔여 C 표기 포함).
+    required String weightsText,
+
+    /// 백테스트 근거 한 줄(엔진 · 세금 전 점추정).
+    required String backtestText,
+
+    /// 정직 기대 줄(엔진 · 온보딩과 같은 글자).
+    required String honestNoteText,
+  }) = _AllocationProfileCard;
+
+  factory AllocationProfileCard.fromJson(Map<String, dynamic> json) =>
+      _$AllocationProfileCardFromJson(json);
+}
+// JSON 키: label · weights_text · backtest_text · honest_note_text
+
+/// 🆕 v1.28(K197) — 읽기 묶음(묶음 = 엔진이 짓는다 · 화면이 묶지 않는다).
+@freezed
+abstract class AllocationReadOnlySection with _$AllocationReadOnlySection {
+  const factory AllocationReadOnlySection({
+    required String title,
+    @Default(<AllocationReadOnlyRow>[]) List<AllocationReadOnlyRow> rows,
+  }) = _AllocationReadOnlySection;
+
+  factory AllocationReadOnlySection.fromJson(Map<String, dynamic> json) =>
+      _$AllocationReadOnlySectionFromJson(json);
+}
+// JSON 키: title · rows
+
+/// 🆕 v1.28(K197 · K200) — 읽기 행 하나.
+@freezed
+abstract class AllocationReadOnlyRow with _$AllocationReadOnlyRow {
+  const factory AllocationReadOnlyRow({
+    /// 🔴 화면 미참조(시험 · 열 대조) — ∈ `AllocationRowCodes.values` · Key = 순번.
+    required String code,
+    required String label,
+    required String valueText,
+
+    /// 덧붙임 한 줄(엔진). null = 부재.
+    String? noteText,
+  }) = _AllocationReadOnlyRow;
+
+  factory AllocationReadOnlyRow.fromJson(Map<String, dynamic> json) =>
+      _$AllocationReadOnlyRowFromJson(json);
+}
+// JSON 키: code · label · value_text · note_text (= `rm_config_view.allocation_sections` 행 키 · K201)
 ```
 
 ---
@@ -9291,7 +9395,7 @@ enum SafetyActionId {
   @JsonValue('RULE_CHANGE_REQUEST')
   ruleChangeRequest('RULE_CHANGE_REQUEST'),
 
-  /// 🆕 v1.22 — `M5-9` 규칙 변경 요청 취소(`run{request_id}` · ds `rule_change_store.dart:17` · 요청 = M9 `strategyApplyRequest`).
+  /// 🆕 v1.22 — `M5-9` 규칙 변경 요청 취소(`run{request_id}` · ds `rule_change_store.dart:17` · 요청 = 🆕 v1.26 M5-9 `ruleChangeRequest`(`runRuleChangeRequest`) · M9 `strategyApplyRequest` = S04 편집기 판).
   @JsonValue('RULE_CHANGE_CANCEL')
   ruleChangeCancel('RULE_CHANGE_CANCEL'),
 
@@ -11716,6 +11820,14 @@ abstract final class FixturePaths {
   static const String m9AccountMappingUnmapped =
       'm9/account_mapping_unmapped.json';
 
+  // 🆕 v1.28(01 §37) — S04 첫 판 VM 2(파일 이름 바이트 차례 · all 도 같은 차례).
+  /// 🆕 v1.28(K197 · K202) — `S04` 정본 P0S(카드 · 묶음 셋 · 바꾸는 길 · 엔진 시험 글자 그대로).
+  static const String m9AllocationEditor = 'm9/allocation_editor.json';
+
+  /// 🆕 v1.28(K202) — `S04` 같은 VM · 낡음(`as_of.stale_label` · 봉투 `as_of` 에는 없음).
+  static const String m9AllocationEditorStale =
+      'm9/allocation_editor_stale.json';
+
   // 🆕 v1.24(01 §33) — S09 VM 6 · 결과 1 · S10 VM 5 · 결과 1 · S12 VM 4(파일 이름 바이트 차례 · all 도 같은 차례).
   /// 🆕 v1.24(K118) — `S12` 닫힘(2025년 · 창 닫힘 글자 = `m7_annual_offwindow` · 목차 4 · 서약 링크 null).
   static const String m9AnnualReviewIndexClosed =
@@ -12243,6 +12355,8 @@ abstract final class FixturePaths {
     m9AccountMappingActionResults,
     m9AccountMappingLocked,
     m9AccountMappingUnmapped,
+    m9AllocationEditor,
+    m9AllocationEditorStale,
     m9AnnualReviewIndexClosed,
     m9AnnualReviewIndexFirstYear,
     m9AnnualReviewIndexOpen,
@@ -12823,6 +12937,75 @@ abstract final class AlertCodes {
 
 ---
 
+## `packages/domain_contracts/lib/src/labels/allocation_codes.dart`
+
+```dart
+// 🆕 계약 v1.28(01 §37 · K200) — M9 `S04` 읽기 행 코드. 엔진 `AllocationViewRowCodes`(core `ops/allocation_view.dart`) 글자 1:1 ·
+// 🔴 타입 이름 ≠ 엔진(`ambiguous_import` 회피 K80). 🔴 화면 미참조(시험 · 열 대조 · Key = 순번) — 코드로 분기·색을 고르지 않는다.
+
+/// S04 읽기 행 코드(도메인 `allocation_row` · 차례 = 엔진 묶음 차례).
+abstract final class AllocationRowCodes {
+  /// 슬리브 B 코어 밴드.
+  static const String bandCoreB = 'BAND_CORE_B';
+
+  /// 슬리브 C 안 리밸런싱 문턱.
+  static const String bandSleeveC = 'BAND_SLEEVE_C';
+
+  /// 새틀라이트 밴드(P0S = 해당 없음).
+  static const String bandSatellite = 'BAND_SATELLITE';
+
+  /// 낙폭 단계(서킷브레이커).
+  static const String riskDrawdown = 'RISK_DRAWDOWN';
+
+  /// 하루 손실 한도(SAF-403).
+  static const String riskDailyLoss = 'RISK_DAILY_LOSS';
+
+  /// 위험자산 비중 상한(SAF-301).
+  static const String riskExposure = 'RISK_EXPOSURE';
+
+  /// 방어 비중 하한(SAF-302 · 경고).
+  static const String riskDefensiveFloor = 'RISK_DEFENSIVE_FLOOR';
+
+  /// 주문 한도(SAF-401 · 402).
+  static const String riskOrderCaps = 'RISK_ORDER_CAPS';
+
+  /// 금 상한 — 슬리브 C 안 하드 캡.
+  static const String goldSleeveCCap = 'GOLD_SLEEVE_C_CAP';
+
+  /// 금 총비중 감시선(SAF-308 · 감시선 — 하드 캡 아님).
+  static const String goldTotalMonitor = 'GOLD_TOTAL_MONITOR';
+
+  /// 차례 = 엔진 묶음 차례(밴드 3 · 한도 5 · 금 2).
+  static const List<String> ordered = <String>[
+    bandCoreB,
+    bandSleeveC,
+    bandSatellite,
+    riskDrawdown,
+    riskDailyLoss,
+    riskExposure,
+    riskDefensiveFloor,
+    riskOrderCaps,
+    goldSleeveCCap,
+    goldTotalMonitor,
+  ];
+
+  static const Set<String> values = <String>{
+    bandCoreB,
+    bandSleeveC,
+    bandSatellite,
+    riskDrawdown,
+    riskDailyLoss,
+    riskExposure,
+    riskDefensiveFloor,
+    riskOrderCaps,
+    goldSleeveCCap,
+    goldTotalMonitor,
+  };
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/labels/deviation_kind_codes.dart`
 
 ```dart
@@ -13279,6 +13462,7 @@ abstract final class JournalReasonCodes {
 
 import 'advice_codes.dart';
 import 'alert_codes.dart';
+import 'allocation_codes.dart'; // 🆕 v1.28
 import 'deviation_kind_codes.dart';
 import 'disclosure_codes.dart';
 import 'exit_kind.dart';
@@ -13297,6 +13481,7 @@ import 'verdict_codes.dart';
 
 export 'advice_codes.dart';
 export 'alert_codes.dart';
+export 'allocation_codes.dart'; // 🆕 v1.28
 export 'deviation_kind_codes.dart';
 export 'disclosure_codes.dart';
 export 'exit_kind.dart';
@@ -13511,6 +13696,8 @@ abstract final class ContractCodes {
     'kill_cancel_outcome': KillCancelOutcomeCodes.values,
     // 🆕 v1.26(01 §35 · K182) — RECON 해제 거부(엔진 예고 · 공용 2 따로)
     'recon_clear_result': ReconClearResultCodes.values,
+    // 🆕 v1.28(01 §37 · K200) — S04 읽기 행 코드(엔진 글자 1:1 · 화면 미참조)
+    'allocation_row': AllocationRowCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -16987,13 +17174,14 @@ abstract interface class SafetyRepository {
 ```dart
 // 01 §4-1 · 🆕 계약 v1.18(01 §27 · K-c · K-v) — M9 설정 화면 읽기 창구.
 //
-// 🔴 뒤 카드가 **추가형**으로 늘린다(✅ v1.19 R6c `watchOperations` · ✅ v1.20 R7 `watchCredentials`·`watchAccountMapping` · ✅ v1.23 R8a `watchContribution` · ✅ v1.24 R9 `watchDiagnosticsScreen` · S04 창 `watchAllocationEditor`(엔진 결정 대기 — 01 §8 미결 190~194) · S11 `watchGeneral` = ⏸ R9e 창(엔진 원천 뒤 — 01 §8 미결 197)) — 받침대 `UnimplementedSettingsRepository` 를 같은 커밋에서 고친다.
+// 🔴 뒤 카드가 **추가형**으로 늘린다(✅ v1.19 R6c `watchOperations` · ✅ v1.20 R7 `watchCredentials`·`watchAccountMapping` · ✅ v1.23 R8a `watchContribution` · ✅ v1.24 R9 `watchDiagnosticsScreen` · ✅ v1.28 S04 `watchAllocationEditor`(첫 판 보기 전용 · 01 §37) · S11 `watchGeneral` = ⏸ R9e 창(엔진 원천 뒤 — 01 §8 미결 197)) — 받침대 `UnimplementedSettingsRepository` 를 같은 커밋에서 고친다.
 // 🔴 `S07` 은 이 창구가 아니라 [OpsStatusRepository.watchConnections] 다(v1.0 부터 · 두 벌 0).
 // 🔴 `S06` 은 이 창구가 아니라 [OpsStatusRepository.watchDeviceAccess] 다(v1.0 부터 · 두 벌 0 · v1.20 K14).
 // 🔴 `S13` 의 값은 `ConfigRepository.watchContributionSetting()` 과 **같은 값 하나**(엔진 `contributionSettingOf`)의 화면 투영이다 — 두 벌 0(🆕 v1.23 K78).
 // 🔴 `S10` 의 보드는 `OpsStatusRepository.watchDiagnostics()`(H-01)와 **같은 값 하나**(엔진 `diagnosticsOf`)를 감싸개 칸으로 싣는다 — 두 벌 0(🆕 v1.24 K113).
 
 import '../dto/accounts.dart';
+import '../dto/allocation.dart'; // 🆕 v1.28
 import '../dto/operations.dart';
 import '../dto/ops.dart';
 import '../dto/settings.dart';
@@ -17018,6 +17206,10 @@ abstract interface class SettingsRepository {
   /// 🆕 v1.24(01 §33 · K113) — `S10` 진단(🔴 폰 전용 · 뷰어 원천 0 · 감싸개 한 스트림 — 보드 = `OpsStatusRepository.watchDiagnostics()`
   ///    와 같은 값(엔진 `diagnosticsOf` 하나) · `watchDiagnostics` 는 무변경(H-01 몫)).
   Stream<DiagnosticsScreenVm> watchDiagnosticsScreen();
+
+  /// 🆕 v1.28(01 §37 · K199) — `S04` 배분 화면 첫 판(보기 전용 · 🔴 폰 · 뷰어 공통 — 뷰어 원천 = `rm_config_view` 배분 7열 ·
+  /// `AllocationReadModelColumns`). 🔴 운영 설정을 못 읽으면 스트림 오류(구현 · 엔진 기본값 대입 0 — K206).
+  Stream<AllocationEditorVm> watchAllocationEditor();
 }
 ```
 
@@ -17222,6 +17414,54 @@ String ledgerDdlFor(LedgerFile file, String liveSql) {
     lines[i] = lines[i].replaceFirst(kind.liveExpr, kind.exprFor(file));
   }
   return lines.join('\n');
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/schema/read_model_columns.dart`
+
+```dart
+// 영역 H — 🆕 계약 v1.28(01 §37 · §6-4 · K201) 읽기 모델 열 이름.
+//
+// 🔴 `rm_*` DDL 은 손으로 적지 않는다(파생 생성기 06 M4-1 · `ddl/batch_d_supabase.sql` §읽기 모델) — 여기는 **열 이름만** 둔다.
+//    뷰어 «열 → VM» 함수(`read_model_client` · 계약만 의존 — 엔진 상수를 못 본다)와 엔진 push 가 같은 글자를 쓰게 하는 자리다.
+// 🔴 G-22 — 읽기 모델 열 ⊇ DTO 필수 칸.
+
+/// `rm_config_view` S04 배분 7열(엔진 `RmConfigViewAllocationColumns` 글자 1:1 · 🔴 타입 이름 ≠ 엔진).
+/// 규칙 5조 4칸(`row_version` · `lease_epoch` · `pushed_at` · `mode`) · 버전 스탬프 3 = push 층.
+abstract final class AllocationReadModelColumns {
+  /// 카드 프로파일 글자(text) — `AllocationProfileCard.label`.
+  static const String label = 'allocation_label';
+
+  /// 카드 비중 한 줄(text) — `AllocationProfileCard.weightsText`.
+  static const String weightsText = 'allocation_weights_text';
+
+  /// 카드 백테스트 한 줄(text) — `AllocationProfileCard.backtestText`.
+  static const String backtestText = 'allocation_backtest_text';
+
+  /// 카드 정직 기대 줄(text) — `AllocationProfileCard.honestNoteText`.
+  static const String honestNoteText = 'allocation_honest_note_text';
+
+  /// 읽기 묶음(jsonb — `[AllocationReadOnlySection.toJson()]` · 받은 순서).
+  static const String sections = 'allocation_sections';
+
+  /// 바꾸는 길 안내(jsonb — 글자 목록 · 받은 순서).
+  static const String changePathLines = 'allocation_change_path_lines';
+
+  /// 기준 시각(jsonb — `AsOf.toJson()`).
+  static const String asOf = 'allocation_as_of';
+
+  /// 전부(이 차례).
+  static const List<String> all = <String>[
+    label,
+    weightsText,
+    backtestText,
+    honestNoteText,
+    sections,
+    changePathLines,
+    asOf,
+  ];
 }
 ```
 

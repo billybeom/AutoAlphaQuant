@@ -38,6 +38,12 @@ const List<String> _new = <String>[
 ];
 
 /// ⑦ 금액 글자가 있어도 되는 m9 표본(신설 7 + 기존 `contribution_setting_*` 2 — S7-4 입력).
+/// 🆕 v1.28(01 §37) — S04 첫 판 2(⑦ 주문 한도 행 값 글자만 예외).
+const Set<String> _s04 = <String>{
+  FixturePaths.m9AllocationEditor,
+  FixturePaths.m9AllocationEditorStale,
+};
+
 const Set<String> _moneyOk = <String>{
   ..._new,
   FixturePaths.m9ContributionSettingDefault,
@@ -279,8 +285,28 @@ void main() {
         for (final String path in FixturePaths.all.where(
           (String p) => p.startsWith('m9/'),
         )) {
+          // 🆕 v1.28(01 §37) — S04 첫 판의 주문 한도 행(`RISK_ORDER_CAPS` · SAF-401·402 «한 건 N만원») 값 글자 하나만 예외 —
+          //    손익·잔고가 아닌 안전 한도 글자(엔진 운영 설정 그대로) · 그 밖 S04 글자의 금액 = 여전히 0.
+          final Map<String, Object?> env = _env(path);
+          if (_s04.contains(path)) {
+            int caps = 0;
+            for (final Object? sec
+                in ((env['rows']! as List).single
+                        as Map<String, Object?>)['sections']!
+                    as List) {
+              for (final Object? r
+                  in (sec! as Map<String, Object?>)['rows']! as List) {
+                final Map<String, Object?> row = r! as Map<String, Object?>;
+                if (row['code'] == 'RISK_ORDER_CAPS') {
+                  caps++;
+                  row['value_text'] = '';
+                }
+              }
+            }
+            expect(caps, 1, reason: '$path — 주문 한도 행 1');
+          }
           final List<String> found = <String>[
-            for (final String s in _strings(_env(path)))
+            for (final String s in _strings(env))
               ..._money.allMatches(s).map((RegExpMatch m) => m[0]!),
           ];
           if (!_moneyOk.contains(path) && found.isNotEmpty) {
