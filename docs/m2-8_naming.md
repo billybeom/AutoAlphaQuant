@@ -746,7 +746,7 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 
 ## AG. 🆕 계약 v1.28 (2026-11-20 · S04 첫 판 — M9 배분 화면 보기 전용) — VM 4 · 창구 1 · 행 코드 사전 · 뷰어 열 이름 · 표본 2
 
-`settingsAllocation`(S04) 첫 판이 읽는 이름을 닫았다. `contractVersion` = **`1.28.0`**(다음 = 1.29.0). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K196~K207 권고대로(정본 = 설계 `10_리뷰/2026-11-20_S04첫판_계약v1.28_설계서.md` · 01 §37). 🔴 엔진 이름(`AllocationView` · `AllocationViewCard` · `AllocationViewRow` · `AllocationViewSection` · `AllocationViewRowCodes` · `RmConfigViewAllocationColumns`)과 겹치지 않는다(`ambiguous_import` · K80).
+`settingsAllocation`(S04) 첫 판이 읽는 이름을 닫았다. `contractVersion` = **`1.28.0`**(다음 = 1.29.0). 상태 = ~~⬜ PR 대기~~ ✅ 병합 PR #282 squash `9c7ff349`(2026-11-20 · CI 3/3). 결정 = 발주자 위임 2026-11-14 — K196~K207 권고대로(정본 = 설계 `10_리뷰/2026-11-20_S04첫판_계약v1.28_설계서.md` · 01 §37). 🔴 엔진 이름(`AllocationView` · `AllocationViewCard` · `AllocationViewRow` · `AllocationViewSection` · `AllocationViewRowCodes` · `RmConfigViewAllocationColumns`)과 겹치지 않는다(`ambiguous_import` · K80).
 
 | # | 이름 | 뜻 · 위치 |
 |---|---|---|
