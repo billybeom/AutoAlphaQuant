@@ -34,8 +34,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FX = os.path.normpath(os.path.join(HERE, '..', 'fixtures')).replace(os.sep, '/')
 ROOT = os.path.normpath(os.path.join(HERE, '..', '..', '..')).replace(os.sep, '/')
 FX_REL = os.path.relpath(FX, ROOT).replace(os.sep, '/')
-# 계약 1.27.0 · 픽스처 360 의 기준 커밋(origin/main · E11q-c4 #278 — 계약 패키지 = PR #274 병합 기록 이후 무변경).
-BASE = 'e83361b3dc9261134df60a781d885daa1ceda333'
+# 계약 1.27.0 · 픽스처 360 의 기준 커밋(origin/main · #280 e13 표본 정정 — RECON 성공 글자 v1.26 글자로).
+BASE = 'ccd88f3180235e0fd9ded9b774714d35544e2a71'
 
 OLD_VER = '"contract_version": "1.27.0"'
 NEW_VER = '"contract_version": "1.28.0"'
