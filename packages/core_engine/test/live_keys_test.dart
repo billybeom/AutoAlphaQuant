@@ -28,6 +28,12 @@ void main() {
       'pension': CredentialKindCodes.kisLive,
       'isa': CredentialKindCodes.kisIsa,
     });
+    // 🆕 R202 — 같은 종합계좌의 연금저축 = 상품코드 22(그 밖 = 저장된 세트 값).
+    expect(kP0sLiveProductCodeOfAlias, <String, String>{'pension': '22'});
+    expect(
+      kSimToAutoWatchdogPrepareFailedHeadline,
+      startsWith('바깥 감시를 준비하지 못해 전환하지 않았습니다'),
+    );
     expect(kLiveKeyRegistryAlias, <String, String>{
       CredentialKindCodes.kisLive: 'kis_live',
       CredentialKindCodes.kisIsa: 'kis_isa',

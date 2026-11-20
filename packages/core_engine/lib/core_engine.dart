@@ -367,6 +367,7 @@ export 'src/mode/sim_to_auto_switch.dart'
         SimToAutoSwitchStage,
         kSimToAutoCommitUnknown,
         kSimToAutoWatchdogPrepareFailed,
+        kSimToAutoWatchdogPrepareFailedHeadline,
         pendingOldModePauses,
         repairOldModePauses,
         runSimToAutoSwitch;
@@ -669,6 +670,7 @@ export 'src/ops/live_keys.dart'
         CredentialHealthRecord,
         kLiveKeyRegistryAlias,
         kP0sLiveKeyKindOfAlias,
+        kP0sLiveProductCodeOfAlias,
         liveKeysVerifiedOf,
         requiredLiveKeyKindsOf;
 // 🆕 E15g — 모드 표지(OS 알림 제목 접두 · 표지 글자 · 설계 13 §8 R110 AO7).

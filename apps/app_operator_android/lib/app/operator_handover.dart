@@ -9,12 +9,25 @@
 //    · 세션 시작 = 생체 1회(런타임 · 없음 = 할 수 없음) → 엔진 사전 판정(생체 → 신뢰 시각 → 전제 → S1~S5 → 이미 세션) →
 //      통과 뒤에만 실전 파일을 연다(없으면 만든다 · 미결 207 ⓒ) → 엔진 저장이 신뢰 시각으로 다시 판정해 연다.
 //    · 취소 = 실전 파일(없음 = `HANDOVER_SESSION_INVALID`).
-//    · 확정 = 엔진 1단계 관문(시각 → 세션 → 리스 → 이미 → 승인 config(R192) → 재판정 → 계좌 조회) — 🔴 실전 계좌 조회 포트 · 오케스트레이터
-//      `runSimToAutoSwitch` 배선 = 207 ⓖ 다음 조각 → 지금 확정은 관문의 거부 원문으로 끝난다(조회 0 = `…_ACCOUNT_PROBE_MISSING` · 쓰기 0).
+//    · 확정 = 🆕 R202(207 ⓖ) ① 엔진 1단계 관문(시각 → 세션 → 리스 → 이미 → 승인 config(R192) → 재판정 → 계좌 조회)을 조회 0 으로 먼저 본다
+//      (다른 사유 = 그 원문 · 네트워크 · 바깥 감시 0) → ② 대응표 계좌마다 실전 조회(조회 TR 만 · 주문 0) → ③ 관문 다시 →
+//      ④ 통과 때만 엔진 오케스트레이터 `runSimToAutoSwitch`(새 감시 체크 → 실전 커밋 → 모의 마감 → 옛 체크 멈춤) · 감시 원격 없음 = 준비 실패 원문.
+//      🔴 커밋 뒤 실전 잡의 집행 세트(`kisKeySetFor(live)`) = 실전 개시 조각 몫 — 그 전엔 실전 커밋을 하지 않는다(R202 기록).
 // 🔴 신뢰 시각 = 런타임 시계(E11k 전 = 모름 → 시작 · 확정 = `SIM_TO_AUTO_TRUSTED_TIME_UNAVAILABLE` 원문 · 우회 0 · K176).
 
 import 'dart:async';
 
+import 'package:broker_gateway/broker_gateway.dart'
+    show
+        KisCredentialRead,
+        KisCredentials,
+        KisCredentialsStored,
+        KisKeySet,
+        KisOrderBroker,
+        KisRestClient,
+        KisTokenStore,
+        MemoryKisTokenStore,
+        readKisCredentials;
 import 'package:core_engine/core_engine.dart'
     show
         BiometricOutcome,
@@ -23,31 +36,47 @@ import 'package:core_engine/core_engine.dart'
         HandoverSessionRecord,
         LeaseSnapshot,
         LiveAccountProbe,
+        SecretVault,
         SimLedgerFate,
         SimToAutoCommitCodes,
         SimToAutoFacts,
         SimToAutoReport,
+        SimToAutoSwitchCommit,
+        SimToAutoSwitchResult,
+        WatchdogRemote,
         handoverActionResultOf,
         handoverSessionHeadline,
         judgeSimToAuto,
         kDeviceGoldenSuite,
+        kP0sLiveKeyKindOfAlias,
+        kP0sLiveProductCodeOfAlias,
+        kSimToAutoWatchdogPrepareFailed,
+        kSimToAutoWatchdogPrepareFailedHeadline,
+        kstDateText,
         liveKeysVerifiedOf,
+        probeLiveAccount,
         requiredLiveKeyKindsOf,
         simLedgerFateResultText,
         simToAutoCommitHeadline,
         simToAutoCommitReject,
-        simToAutoOpenReject;
+        simToAutoOpenReject,
+        runSimToAutoSwitch,
+        watchdogCheckPrefix;
 import 'package:data_sync/data_sync.dart'
     show
         HandoverSessionOutcome,
         OpsConfigRead,
         OpsConfigReady,
+        SimToAutoCarry,
+        SimToAutoCommitOutcome,
         SqliteHandoverSessionStore,
         SqliteHandoverWizardSource,
         SqliteLeaseGate,
         SqliteSimLedgerFateStore,
+        SqliteSimToAutoCommitStore,
         credentialRecordsOf,
         currentP0sOpsConfig,
+        finishSimToAuto,
         readSimToAutoCarry,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -56,14 +85,25 @@ import 'package:domain_contracts/domain_contracts.dart'
         HandoverPath,
         HandoverRepository,
         HandoverWizardVm,
+        OperatingMode,
         RunMode,
-        SettingsActionId;
+        SettingsActionId,
+        TradeDate;
+import 'package:http/http.dart' as http;
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:trading_runtime/trading_runtime.dart'
+    show watchdogCheckSpecsFor;
 
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
 import 'view_stream.dart';
+
+/// 🆕 R202 — 실전 조회 클라이언트(세트 자격증명 · 공유 토큰 저장소 — 시험 = 가짜 HTTP).
+typedef KisProbeClientOf = KisRestClient Function(
+  KisCredentials credentials,
+  KisTokenStore tokens,
+);
 
 /// 위저드 동작 id(이 판이 받는 넷).
 const Set<SettingsActionId> kOperatorHandoverActions = <SettingsActionId>{
@@ -91,11 +131,13 @@ class OperatorHandover {
     this._rt, {
     this._goldenPassed,
     bool? Function()? liveKeysVerified,
+    this._clientOf,
   }) : _liveKeys = liveKeysVerified;
 
   final OperatorRuntime _rt;
   final bool? Function()? _goldenPassed;
   final bool? Function()? _liveKeys;
+  final KisProbeClientOf? _clientOf;
   final StreamController<void> _bump = StreamController<void>.broadcast();
   int _seq = 0;
 
@@ -268,47 +310,159 @@ class OperatorHandover {
     _args(args, 'handover_session_id', id);
     final SqliteHandoverWizardSource src = source(canAct: true);
     final DateTime? now = _rt.trusted.trustedNowUtc()?.toUtc();
+    final Database sim = _rt.files.sim;
     final Database? live = _rt.files.liveIfExists();
+    final String sessionId = args['handover_session_id']!;
     final HandoverSessionRecord? session = live == null
         ? null
         : SqliteHandoverSessionStore(
             live,
             clock: _rt.clock,
             trusted: _rt.trusted,
-          ).session(args['handover_session_id']!);
+          ).session(sessionId);
     final SimToAutoFacts f = src.facts(trustedNowUtc: now, session: session);
     // 리스 = 운영 중인 파일(모의) — 모드 행이 없으면 관문이 시각 · 세션 · 재판정에서 먼저 거부한다.
-    final SqliteLeaseGate gate = SqliteLeaseGate(
-      _rt.files.sim,
+    final SqliteLeaseGate leaseGate = SqliteLeaseGate(
+      sim,
       mode: f.simRunMode ?? RunMode.simInternal,
       clock: _rt.clock,
     );
-    final OpsConfigRead cfg = currentP0sOpsConfig(_rt.files.sim);
+    final LeaseSnapshot lease = LeaseSnapshot(
+      verdict: await leaseGate.check(),
+      epoch: leaseGate.epoch(),
+      deviceId: _rt.deviceId ?? '',
+    );
+    final OpsConfigRead cfg = currentP0sOpsConfig(sim);
+    final String configHash = cfg is OpsConfigReady ? cfg.configHash : '';
+    // 🆕 R192 — 승인 판(승인 기록과 맞는 것만) = 지금 설정이어야 한다(SAF-405 · 없음 = `…_CONFIG_NOT_APPROVED`).
+    final SimToAutoCarry carry = readSimToAutoCarry(sim);
     final int liveRows = live == null
         ? 0
         : live.select('SELECT COUNT(*) AS n FROM mode_transition').first['n']!
               as int;
-    final String code =
-        simToAutoCommitReject(
-          trustedNowUtc: now,
-          session: session,
-          lease: LeaseSnapshot(
-            verdict: await gate.check(),
-            epoch: gate.epoch(),
-            deviceId: _rt.deviceId ?? '',
-          ),
-          liveModeRows: liveRows,
-          // 🆕 R192 — 승인 판(승인 기록과 맞는 것만) = 지금 설정이어야 한다(SAF-405 · 없음 = `…_CONFIG_NOT_APPROVED`).
-          approvedConfigHash: readSimToAutoCarry(_rt.files.sim)
-              .approvedConfigHash,
-          configHash: cfg is OpsConfigReady ? cfg.configHash : '',
-          report: now == null || session == null ? null : _judge(f),
-          aliases: f.accountByStrategy.values.toSet(),
-          // 🔴 실전 계좌 조회 포트 = 207 ⓖ 다음 조각 — 그 전 = 조회 0(관문이 `…_ACCOUNT_PROBE_MISSING` 로 거부 · 쓰기 0).
-          probes: const <LiveAccountProbe>[],
-        ) ??
-        SimToAutoCommitCodes.probeMissing;
-    return _done(id, code, simToAutoCommitHeadline(code));
+    String? gate(List<LiveAccountProbe> probes) => simToAutoCommitReject(
+      trustedNowUtc: now,
+      session: session,
+      lease: lease,
+      liveModeRows: liveRows,
+      approvedConfigHash: carry.approvedConfigHash,
+      configHash: configHash,
+      report: now == null || session == null ? null : _judge(f),
+      aliases: f.accountByStrategy.values.toSet(),
+      probes: probes,
+    );
+    // 🆕 R202(207 ⓖ) ① 엔진 관문(조회 0) — 계좌 조회 말고 다른 사유로 막히면 네트워크 · 바깥 감시를 건드리지 않는다.
+    final String? before = gate(const <LiveAccountProbe>[]);
+    if (before != SimToAutoCommitCodes.probeMissing) {
+      final String code = before ?? SimToAutoCommitCodes.probeMissing;
+      return _done(id, code, simToAutoCommitHeadline(code));
+    }
+    // ② 실전 계좌 조회(조회만 · 신뢰 시각 = 조회 시각 · 5분 신선도) → ③ 관문 다시.
+    final List<LiveAccountProbe> probes = await _probes(
+      f.accountByStrategy,
+      at: now!,
+    );
+    final String? after = gate(probes);
+    if (after != null) return _done(id, after, simToAutoCommitHeadline(after));
+    // ④ 통과 = 엔진 오케스트레이터(새 감시 체크 → 실전 커밋(저장이 트랜잭션 안에서 관문을 다시 본다) → 모의 마감 → 옛 체크 멈춤).
+    final WatchdogRemote? remote = _rt.watchdogRemote;
+    if (remote == null) {
+      return _done(
+        id,
+        kSimToAutoWatchdogPrepareFailed,
+        kSimToAutoWatchdogPrepareFailedHeadline,
+      );
+    }
+    final SimToAutoSwitchResult r = await runSimToAutoSwitch(
+      remote: remote,
+      newSpecs: watchdogCheckSpecsFor(RunMode.live, OperatingMode.autoTrade),
+      newPrefix: watchdogCheckPrefix(RunMode.live, OperatingMode.autoTrade),
+      oldPrefix: watchdogCheckPrefix(
+        f.simRunMode ?? RunMode.simInternal,
+        OperatingMode.autoTrade,
+      ),
+      commit: () async {
+        final SimToAutoCommitOutcome c =
+            SqliteSimToAutoCommitStore(
+              live!,
+              clock: _rt.clock,
+              trusted: _rt.trusted,
+            ).commit(
+              sessionId: sessionId,
+              simFacts: f,
+              kr: _rt.calendars.kr,
+              observation: _rt.liveObservation!,
+              probes: probes,
+              configHash: configHash,
+              lease: lease,
+              carry: carry,
+            );
+        return c.ok
+            ? SimToAutoSwitchCommit.ok(c.decisionId!, c.headline)
+            : SimToAutoSwitchCommit.no(c.reasonCode!, c.headline);
+      },
+      // 🔴 모의 마감 = CLOSE 행 · 지움(S5 DISCARD)은 모의 파일 연결을 닫은 뒤 = 기동 복구 몫(`deleteClosedSimLedger` · 다음 조각).
+      finish: () async {
+        finishSimToAuto(liveDb: live!, simDb: sim, clock: _rt.clock);
+      },
+    );
+    return _done(id, r.committed ? null : r.code, r.headline);
+  }
+
+  /// 🆕 R202(207 ⓖ) — 대응표 계좌마다 실전 조회(별칭 → 세트 · 연금저축 = 상품코드 22 · 같은 앱키 = 같은 토큰 저장소 — 1분 1회 발급) ·
+  /// 금고 · 검증 HTTP 없음 · 키 없음 · 조회 실패 = 그 계좌 조회 0(관문 `PROBE_MISSING` · fail-closed) · 🔴 조회 TR 만(주문 0).
+  Future<List<LiveAccountProbe>> _probes(
+    Map<String, String> accounts, {
+    required DateTime at,
+  }) async {
+    final SecretVault? vault = _rt.vault;
+    final KisProbeClientOf? clientOf = _clientOf ?? _defaultClientOf();
+    if (vault == null || clientOf == null) return const <LiveAccountProbe>[];
+    final KisTokenStore tokens = MemoryKisTokenStore();
+    final List<String> aliases =
+        accounts.values.map((String a) => a.trim()).toSet().toList()..sort();
+    final List<LiveAccountProbe> out = <LiveAccountProbe>[];
+    for (final String alias in aliases) {
+      final String? kind = kP0sLiveKeyKindOfAlias[alias];
+      KisKeySet? set;
+      for (final KisKeySet s in KisKeySet.values) {
+        if (s.wire == kind) set = s;
+      }
+      if (set == null) continue;
+      KisCredentials? creds;
+      try {
+        final KisCredentialRead read = await readKisCredentials(vault, set);
+        if (read is KisCredentialsStored) creds = read.credentials;
+      } on Object {
+        creds = null;
+      }
+      if (creds == null) continue;
+      final String? product = kP0sLiveProductCodeOfAlias[alias];
+      final KisCredentials use = product == null
+          ? creds
+          : KisCredentials(
+              environment: creds.environment,
+              appKey: creds.appKey,
+              appSecret: creds.appSecret,
+              accountNo: creds.accountNo,
+              productCode: product,
+            );
+      final LiveAccountProbe? p = await probeLiveAccount(
+        alias: alias,
+        broker: KisOrderBroker(clientOf(use, tokens)),
+        today: TradeDate(kstDateText(at)),
+        fetchedAtUtc: at,
+      );
+      if (p != null) out.add(p);
+    }
+    return out;
+  }
+
+  KisProbeClientOf? _defaultClientOf() {
+    final http.Client? net = _rt.kisHttp;
+    if (net == null) return null;
+    return (KisCredentials c, KisTokenStore tokens) =>
+        KisRestClient(net, c, environment: c.environment, tokens: tokens);
   }
 
   /// 닫는다(시험).

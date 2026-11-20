@@ -16,6 +16,12 @@ const Map<String, String> kP0sLiveKeyKindOfAlias = <String, String>{
   'isa': CredentialKindCodes.kisIsa,
 };
 
+/// 🆕 R202(207 ⓖ) — 계좌 별칭 → 상품코드 갈음(같은 종합계좌의 다른 상품 — 연금저축 = 22 · 그 밖 = 저장된 세트 값) ·
+/// 🟡 연금저축 잔고 조회 TR 이 위탁과 같은지 = 실측 전(실험 16) — 다르면 그 계좌 조회 실패 → 커밋 관문 `PROBE_MISSING`(fail-closed).
+const Map<String, String> kP0sLiveProductCodeOfAlias = <String, String>{
+  'pension': '22',
+};
+
 /// 실전 세트 → 기록 별칭(`credential_registry.alias` · 표본 `m9/credentials` 와 같은 글자).
 const Map<String, String> kLiveKeyRegistryAlias = <String, String>{
   CredentialKindCodes.kisLive: 'kis_live',
