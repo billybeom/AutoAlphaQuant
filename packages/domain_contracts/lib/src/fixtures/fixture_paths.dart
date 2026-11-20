@@ -922,6 +922,10 @@ abstract final class FixturePaths {
   /// 🆕 v1.20 — `S02` `simInternal × autoTrade` · 봉인 머리 줄 · 봉인 배지 2 · 모의 키 만료(BLOCKED).
   static const String m9CredentialsSimSealed = 'm9/credentials_sim_sealed.json';
 
+  /// 🆕 v1.28 K208(R196) — `S02` SIM · 실전 미등록 카드 = 봉인 표시 그대로 + 칸 + «검증 후 저장»(조회만) · ISA 통과 = 동작 0.
+  static const String m9CredentialsSimUnregistered =
+      'm9/credentials_sim_unregistered.json';
+
   /// 🆕 v1.20 — `S06` 정상(이 폰 + viewer 3 · 리스 유효 · X1 링크 · 발급 버튼).
   static const String m9DeviceAccess = 'm9/device_access.json';
 
@@ -1395,6 +1399,7 @@ abstract final class FixturePaths {
     m9CredentialsAdvisory,
     m9CredentialsLocked,
     m9CredentialsSimSealed,
+    m9CredentialsSimUnregistered,
     m9DeviceAccess,
     m9DeviceAccessLocked,
     m9DeviceAccessNoViewers,

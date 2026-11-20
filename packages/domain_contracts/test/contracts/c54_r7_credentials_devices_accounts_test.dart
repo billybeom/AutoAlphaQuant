@@ -22,10 +22,11 @@ import 'package:test/test.dart';
 
 import 'c00_support.dart';
 
-/// S02 `CredentialListVm` 4벌.
+/// S02 `CredentialListVm` 4벌 · 🆕 v1.28 K208 +1 = 5벌.
 const List<String> _s02 = <String>[
   FixturePaths.m9Credentials,
   FixturePaths.m9CredentialsSimSealed,
+  FixturePaths.m9CredentialsSimUnregistered,
   FixturePaths.m9CredentialsAdvisory,
   FixturePaths.m9CredentialsLocked,
 ];
@@ -546,22 +547,39 @@ void main() {
             );
           }
         }
-        if (path != FixturePaths.m9CredentialsSimSealed) {
+        if (path != FixturePaths.m9CredentialsSimSealed &&
+            path != FixturePaths.m9CredentialsSimUnregistered) {
           expect(vm.modeNotice, isNull, reason: path);
         }
       }
       expect(levels, _allLevels);
-      final CredentialListVm sim = _cred(FixturePaths.m9CredentialsSimSealed);
-      expect(sim.modeNotice, isNotNull);
-      for (final CredentialCardVm c in sim.cards) {
-        if (c.kind == CredentialKindCodes.kisLive ||
-            c.kind == CredentialKindCodes.kisIsa) {
-          expect(c.sealLabel, isNotNull, reason: c.alias);
-          expect(c.credentialSlotId, isNull, reason: c.alias);
-          expect(c.verifyAction, isNull, reason: c.alias);
-          expect(c.rotateLink, isNull, reason: c.alias);
+      // 🔵 v1.28 K208 — SIM 봉인 = 주문 경로만: 실전 · ISA 카드 = 봉인 글자 · 회전 0 · 통과(OK) = 동작 0 ·
+      //    미등록 · 실패 = 칸 + 조회 검증(`credentialVerify{kind}` · 토큰 + 잔고 1회 · 주문 0).
+      int openCards = 0;
+      for (final String path in <String>[
+        FixturePaths.m9CredentialsSimSealed,
+        FixturePaths.m9CredentialsSimUnregistered,
+      ]) {
+        final CredentialListVm sim = _cred(path);
+        expect(sim.modeNotice, isNotNull, reason: path);
+        for (final CredentialCardVm c in sim.cards) {
+          if (c.kind == CredentialKindCodes.kisLive ||
+              c.kind == CredentialKindCodes.kisIsa) {
+            expect(c.sealLabel, isNotNull, reason: c.alias);
+            expect(c.rotateLink, isNull, reason: c.alias);
+            if (c.healthCode == 'OK') {
+              expect(c.credentialSlotId, isNull, reason: c.alias);
+              expect(c.verifyAction, isNull, reason: c.alias);
+            } else {
+              openCards++;
+              expect(c.credentialSlotId, isNotNull, reason: c.alias);
+              expect(c.verifyAction?.id, SettingsActionId.credentialVerify);
+              expect(c.verifyAction?.args, <String, String>{'kind': c.kind});
+            }
+          }
         }
       }
+      expect(openCards, 1);
       final CredentialListVm adv = _cred(FixturePaths.m9CredentialsAdvisory);
       const Set<UiLevel> warn = <UiLevel>{UiLevel.act, UiLevel.blocked};
       final CredentialCardVm recon = adv.cards.singleWhere(

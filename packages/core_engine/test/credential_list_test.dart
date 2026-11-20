@@ -231,91 +231,90 @@ void main() {
       },
     );
 
-    test(
-      '🔴 K208 — SIM 미등록 · 실패 = 봉인 그대로 + 칸 + «검증 후 저장»(조회만) · 기록 없음 = «다시 검증»',
-      () {
-        final CredentialListVm vm = list(
-          RunMode.simInternal,
-          <LiveCredentialFacts>[
-            const LiveCredentialFacts(
-              kind: CredentialKindCodes.kisLive,
-              stored: false,
+    test('🔴 K208 — SIM 미등록 · 실패 = 봉인 그대로 + 칸 + «검증 후 저장»(조회만) · 기록 없음 = «다시 검증»', () {
+      final CredentialListVm vm = list(
+        RunMode.simInternal,
+        <LiveCredentialFacts>[
+          const LiveCredentialFacts(
+            kind: CredentialKindCodes.kisLive,
+            stored: false,
+          ),
+          LiveCredentialFacts(
+            kind: CredentialKindCodes.kisIsa,
+            stored: true,
+            record: rec(
+              CredentialKindCodes.kisIsa,
+              CredentialHealthCodes.invalid,
             ),
-            LiveCredentialFacts(
-              kind: CredentialKindCodes.kisIsa,
-              stored: true,
-              record: rec(
-                CredentialKindCodes.kisIsa,
-                CredentialHealthCodes.invalid,
-              ),
-            ),
-          ],
-        );
-        final CredentialCardVm live = vm.cards[0];
-        expect(
-          (
-            live.healthCode,
-            live.level,
-            live.sealLabel,
-            live.requirementLabel,
-            live.credentialSlotId,
           ),
-          (
-            'NOT_REGISTERED',
-            UiLevel.info,
-            LiveCredentialTexts.seal,
-            LiveCredentialTexts.requiredOnSwitch,
-            SettingsSlotIds.secretKisLive,
-          ),
-        );
-        expect(
-          (
-            live.verifyAction?.id,
-            live.verifyAction?.label,
-            live.lastVerifiedText,
-          ),
-          (SettingsActionId.credentialVerify, '검증 후 저장', null),
-        );
-        expect(live.verifyAction?.args, <String, String>{
-          'kind': CredentialKindCodes.kisLive,
-        });
-        final CredentialCardVm isa = vm.cards[1];
-        expect(
-          (
-            isa.healthCode,
-            isa.level,
-            isa.credentialSlotId,
-            isa.verifyAction?.label,
-            isa.lastVerifiedText,
-          ),
-          (
-            'INVALID',
-            UiLevel.watch,
-            SettingsSlotIds.secretKisIsa,
-            '검증 후 저장',
-            '마지막 검증 08-31 08:40 · 거절(CREDENTIAL_REJECTED)',
-          ),
-        );
-        final CredentialCardVm unk = list(
-          RunMode.simInternal,
-          const <LiveCredentialFacts>[
-            LiveCredentialFacts(
-              kind: CredentialKindCodes.kisLive,
-              stored: true,
-            ),
-          ],
-        ).cards.first;
-        expect(
-          (
-            unk.healthCode,
-            unk.level,
-            unk.credentialSlotId,
-            unk.verifyAction?.label,
-          ),
-          ('UNKNOWN', UiLevel.info, null, '다시 검증'),
-        );
-      },
-    );
+        ],
+      );
+      final CredentialCardVm live = vm.cards[0];
+      // 표본 = v1.28 K208 `credentials_sim_unregistered` 실전 카드(글자 · 칸 · 검증 그대로).
+      expect(
+        live,
+        cardOf('credentials_sim_unregistered', CredentialKindCodes.kisLive),
+      );
+      expect(
+        (
+          live.healthCode,
+          live.level,
+          live.sealLabel,
+          live.requirementLabel,
+          live.credentialSlotId,
+        ),
+        (
+          'NOT_REGISTERED',
+          UiLevel.info,
+          LiveCredentialTexts.seal,
+          LiveCredentialTexts.requiredOnSwitch,
+          SettingsSlotIds.secretKisLive,
+        ),
+      );
+      expect(
+        (
+          live.verifyAction?.id,
+          live.verifyAction?.label,
+          live.lastVerifiedText,
+        ),
+        (SettingsActionId.credentialVerify, '검증 후 저장', null),
+      );
+      expect(live.verifyAction?.args, <String, String>{
+        'kind': CredentialKindCodes.kisLive,
+      });
+      final CredentialCardVm isa = vm.cards[1];
+      expect(
+        (
+          isa.healthCode,
+          isa.level,
+          isa.credentialSlotId,
+          isa.verifyAction?.label,
+          isa.lastVerifiedText,
+        ),
+        (
+          'INVALID',
+          UiLevel.watch,
+          SettingsSlotIds.secretKisIsa,
+          '검증 후 저장',
+          '마지막 검증 08-31 08:40 · 거절(CREDENTIAL_REJECTED)',
+        ),
+      );
+      final CredentialCardVm unk = list(
+        RunMode.simInternal,
+        const <LiveCredentialFacts>[
+          LiveCredentialFacts(kind: CredentialKindCodes.kisLive, stored: true),
+        ],
+      ).cards.first;
+      expect(
+        (
+          unk.healthCode,
+          unk.level,
+          unk.credentialSlotId,
+          unk.verifyAction?.label,
+        ),
+        ('UNKNOWN', UiLevel.info, null, '다시 검증'),
+      );
+    });
 
     test('실전 모드 — 기록 없음 = WATCH «다시 검증» · 미등록 = ACT(필수) · 실패 = ACT · 통과 기록이 있어도 금고에 키가 없으면 미등록', () {
       String look(LiveCredentialFacts f) {
