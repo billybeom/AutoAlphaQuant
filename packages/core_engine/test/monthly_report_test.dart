@@ -1,4 +1,4 @@
-// 🆕 미결 209 — 월간 리포트 빌더 첫 판(설계 13 §8 R199 · 앱 01 §36 K192 · K193 · 03 §3).
+// 🆕 미결 209 — 월간 리포트 빌더 첫 판 · A1 · A2 · C1 · C2(설계 13 §8 R199 · R205 · 앱 01 §36 K192 · K193 · 03 §3).
 //
 // 🔴 13칸 = 표본 `m7/m7_monthly_2026_08` 의 code · order · section · title 그대로(C-25) · 원천 없는 칸 = «산출 불가» ·
 //    `D2_ALLOCATION` = 월말 회계 비중 세 줄 + SAF-307 · 원화 유동성 월 집계 메모(문턱 = 집계가 쓴 문턱).
@@ -65,6 +65,7 @@ MonthlyReport _report({
   P0sExposureTally? tally,
   bool noTally = false,
   String? footnote,
+  MonthlyEquityFacts? equity,
 }) => monthlyReportOf(
   yyyyMm: yyyyMm,
   monthEnd: monthEnd,
@@ -75,6 +76,7 @@ MonthlyReport _report({
   allocation: allocation,
   exposureTally: noTally ? null : (tally ?? _tally()),
   backdateFootnote: footnote,
+  equity: equity,
 );
 
 /// 비중 가드가 낸 [ArgumentError](이름 `weights` — 범위 밖 색인 [RangeError] 와 가른다).
@@ -367,6 +369,289 @@ void main() {
       expect(
         () => _report(tally: _tally(month: '2026-07')),
         throwsArgumentError,
+      );
+    });
+  });
+
+  // ── 🆕 R205 — A1 · A2 · C1 · C2(계층 B 와 같은 TWR 시리즈 + 그 달 KR 세션) ──
+  group('A1 · A2 · C1 · C2(R205)', () {
+    ReportItem item(MonthlyReport r, String code) =>
+        r.items.singleWhere((ReportItem i) => i.code == code);
+
+    MonthlyReport withEquity(List<EquityPoint> series, List<String> sessions) =>
+        _report(
+          noTally: true,
+          equity: MonthlyEquityFacts(series: series, monthSessions: sessions),
+        );
+
+    const List<String> aug = <String>[
+      '2026-08-03',
+      '2026-08-04',
+      '2026-08-05',
+      '2026-08-19',
+      '2026-08-20',
+      '2026-08-21',
+      '2026-08-24',
+      '2026-08-31',
+    ];
+
+    test('🔴 그 달 결측 = 표본 m7_monthly_gap 의 A1 · A2 · C1 · C2 글자 그대로', () {
+      final Map<String, Object?> d = jsonDecode(
+        File('../domain_contracts/fixtures/m7/m7_monthly_gap.json')
+            .readAsStringSync(),
+      ) as Map<String, Object?>;
+      final List<Object?> fx =
+          ((d['rows']! as List<Object?>).single!
+                  as Map<String, Object?>)['items']!
+              as List<Object?>;
+      final MonthlyReport r = withEquity(<EquityPoint>[
+        const EquityPoint('2026-07-31', 100),
+        for (final String s in aug)
+          if (s != '2026-08-20' && s != '2026-08-21') EquityPoint(s, 101),
+      ], aug);
+      for (final String code in <String>[
+        'A1_PERIOD_RETURN',
+        'A2_CUMULATIVE_RETURN',
+        'C1_MAX_DRAWDOWN',
+        'C2_TIME_UNDER_WATER',
+      ]) {
+        final Map<String, Object?> f =
+            fx.singleWhere((Object? x) => (x! as Map)['code'] == code)!
+                as Map<String, Object?>;
+        expect(item(r, code).valueText, f['value_text'], reason: code);
+        expect(item(r, code).noteText, f['note_text'], reason: code);
+        expect(item(r, code).detailDeepLink, isNull, reason: code);
+      }
+    });
+
+    test('결측 날 메모 = 세션 목록에서 이어진 묶음(주말 건너 이어짐) · 개수', () {
+      final MonthlyReport r = withEquity(<EquityPoint>[
+        const EquityPoint('2026-07-31', 100),
+        const EquityPoint('2026-08-04', 100),
+        const EquityPoint('2026-08-05', 100),
+        const EquityPoint('2026-08-19', 100),
+        const EquityPoint('2026-08-20', 100),
+      ], aug); // 결측 = 3 · 21 · 24 · 31
+      expect(item(r, 'A1_PERIOD_RETURN').valueText, '산출 불가 — 4거래일이 결측입니다');
+      expect(item(r, 'A1_PERIOD_RETURN').noteText, '8월 3일 · 21~31일 스냅샷이 없습니다.');
+    });
+
+    test('🔴 개시 날 앞 세션 = 결측 아님 · 개시가 이 달이면 A1 = 첫 점부터', () {
+      final MonthlyReport r = withEquity(<EquityPoint>[
+        const EquityPoint('2026-08-24', 100),
+        const EquityPoint('2026-08-31', 101),
+      ], aug);
+      expect(item(r, 'A1_PERIOD_RETURN').valueText, '+1.00%');
+      expect(item(r, 'A1_PERIOD_RETURN').noteText, isNull);
+      expect(item(r, 'A2_CUMULATIVE_RETURN').valueText, '+1.00%');
+    });
+
+    test('🔴 TWR — 입금은 수익이 아니다 · 낙폭 · 회복(같은 높이 허용) · 물속 기간', () {
+      // 지수: 1 · 1.1 · 0.99 · 1.045 · 1.1(입금 50 · 회복) · 1.155
+      final MonthlyReport r = withEquity(
+        <EquityPoint>[
+          const EquityPoint('2026-06-30', 100),
+          const EquityPoint('2026-07-01', 110),
+          const EquityPoint('2026-07-31', 99),
+          const EquityPoint('2026-08-03', 104.5),
+          const EquityPoint('2026-08-14', 160, flow: 50),
+          const EquityPoint('2026-08-31', 168),
+        ],
+        const <String>['2026-08-03', '2026-08-14', '2026-08-31'],
+      );
+      expect(item(r, 'A1_PERIOD_RETURN').valueText, '+16.67%'); // 1.155 ÷ 0.99
+      expect(item(r, 'A2_CUMULATIVE_RETURN').valueText, '+15.50%');
+      expect(item(r, 'C1_MAX_DRAWDOWN').valueText, '−10.0%'); // 0.99 ÷ 1.1
+      expect(
+        item(r, 'C2_TIME_UNDER_WATER').valueText,
+        '최장 1개월',
+      ); // 07-01 → 08-14 = 44일
+      for (final String c in <String>[
+        'A1_PERIOD_RETURN',
+        'A2_CUMULATIVE_RETURN',
+        'C1_MAX_DRAWDOWN',
+        'C2_TIME_UNDER_WATER',
+      ]) {
+        expect(item(r, c).noteText, isNull, reason: c);
+        expect(item(r, c).detailDeepLink, isNull, reason: c);
+      }
+      expect(item(r, 'B1_BENCHMARK').valueText, MonthlyReportTexts.notComputed);
+      expect(r.items, hasLength(13));
+    });
+
+    test('물속 진행 중 = 월말까지 · 가장 긴 것 · 음수 수익률 «−»', () {
+      final MonthlyReport r = withEquity(
+        <EquityPoint>[
+          const EquityPoint('2026-05-29', 100),
+          const EquityPoint('2026-05-30', 90),
+          const EquityPoint('2026-05-31', 100), // 짧은 물속(2일) 뒤 회복
+          const EquityPoint('2026-06-01', 120),
+          const EquityPoint('2026-08-31', 90), // 06-01 → 08-31 = 91일 진행 중
+        ],
+        const <String>['2026-08-31'],
+      );
+      expect(
+        item(r, 'A1_PERIOD_RETURN').valueText,
+        '−25.00%',
+      ); // 앞 달 마지막 점 06-01
+      expect(item(r, 'A2_CUMULATIVE_RETURN').valueText, '−10.00%');
+      expect(item(r, 'C1_MAX_DRAWDOWN').valueText, '−25.0%');
+      expect(item(r, 'C2_TIME_UNDER_WATER').valueText, '최장 2개월');
+    });
+
+    test('물속 0 · 1달 미만 · 0 수익 글자', () {
+      final MonthlyReport up = withEquity(
+        <EquityPoint>[
+          const EquityPoint('2026-08-03', 100),
+          const EquityPoint('2026-08-31', 100),
+        ],
+        const <String>['2026-08-03', '2026-08-31'],
+      );
+      expect(item(up, 'A1_PERIOD_RETURN').valueText, '0.00%');
+      expect(item(up, 'C1_MAX_DRAWDOWN').valueText, '0.0%');
+      expect(item(up, 'C2_TIME_UNDER_WATER').valueText, '전고점 아래 구간 없음');
+      final MonthlyReport tiny = withEquity(
+        <EquityPoint>[
+          const EquityPoint('2026-08-03', 100),
+          const EquityPoint('2026-08-04', 99.999),
+          const EquityPoint('2026-08-31', 99.999),
+        ],
+        const <String>['2026-08-03', '2026-08-04', '2026-08-31'],
+      );
+      expect(
+        item(tiny, 'A1_PERIOD_RETURN').valueText,
+        '0.00%',
+      ); // −0.001% → 반올림 0
+      expect(item(tiny, 'C1_MAX_DRAWDOWN').valueText, '0.0%');
+      expect(item(tiny, 'C2_TIME_UNDER_WATER').valueText, '최장 1개월 미만');
+      expect(MonthlyReportTexts.longestUnderWater(30), '최장 1개월 미만');
+      expect(MonthlyReportTexts.longestUnderWater(31), '최장 1개월');
+      expect(MonthlyReportTexts.longestUnderWater(61), '최장 2개월');
+      expect(MonthlyReportTexts.longestUnderWater(60), '최장 1개월');
+    });
+
+    test('🔴 물속 기간 = 회복된 것까지 통틀어 가장 긴 것 · 회복 뒤 오르는 구간은 물속 아님', () {
+      final MonthlyReport longFirst = withEquity(
+        <EquityPoint>[
+          const EquityPoint('2026-06-01', 100),
+          const EquityPoint('2026-06-02', 90),
+          const EquityPoint('2026-08-03', 100), // 63일 뒤 회복
+          const EquityPoint('2026-08-04', 90),
+          const EquityPoint('2026-08-05', 100), // 1일 뒤 회복
+          const EquityPoint('2026-08-31', 101),
+        ],
+        const <String>['2026-08-03', '2026-08-04', '2026-08-05', '2026-08-31'],
+      );
+      expect(item(longFirst, 'C2_TIME_UNDER_WATER').valueText, '최장 2개월');
+      final MonthlyReport riseAfter = withEquity(
+        <EquityPoint>[
+          const EquityPoint('2026-06-01', 100),
+          const EquityPoint('2026-06-02', 99),
+          const EquityPoint('2026-06-03', 100), // 2일 뒤 회복
+          const EquityPoint('2026-08-31', 110), // 89일 오름 = 물속 아님
+        ],
+        const <String>['2026-08-31'],
+      );
+      expect(item(riseAfter, 'C2_TIME_UNDER_WATER').valueText, '최장 1개월 미만');
+      expect(item(riseAfter, 'C1_MAX_DRAWDOWN').valueText, '−1.0%');
+      // 부동소수 오차가 아래로 나는 회복(110 → 91 → 110 = 지수 1.0999999999999999) = 같은 높이(허용 1e-9 · 계층 B)
+      final MonthlyReport noisy = withEquity(
+        <EquityPoint>[
+          const EquityPoint('2026-06-01', 100),
+          const EquityPoint('2026-06-02', 110),
+          const EquityPoint('2026-06-03', 91),
+          const EquityPoint('2026-06-04', 110), // 2일 뒤 회복
+          const EquityPoint('2026-08-31', 111),
+        ],
+        const <String>['2026-08-31'],
+      );
+      expect(item(noisy, 'C2_TIME_UNDER_WATER').valueText, '최장 1개월 미만');
+    });
+
+    test('결측 1일도 산출 불가', () {
+      final MonthlyReport r = withEquity(<EquityPoint>[
+        const EquityPoint('2026-07-31', 100),
+        for (final String s in aug)
+          if (s != '2026-08-05') EquityPoint(s, 100),
+      ], aug);
+      expect(item(r, 'A1_PERIOD_RETURN').valueText, '산출 불가 — 1거래일이 결측입니다');
+      expect(item(r, 'A1_PERIOD_RETURN').noteText, '8월 5일 스냅샷이 없습니다.');
+      expect(
+        item(r, 'C2_TIME_UNDER_WATER').valueText,
+        MonthlyReportTexts.gapInHistory,
+      );
+    });
+
+    test('equity 없음 = 네 칸 «산출 불가»', () {
+      final MonthlyReport r = _report(noTally: true);
+      for (final String c in <String>[
+        'A1_PERIOD_RETURN',
+        'A2_CUMULATIVE_RETURN',
+        'C1_MAX_DRAWDOWN',
+        'C2_TIME_UNDER_WATER',
+      ]) {
+        expect(item(r, c).valueText, MonthlyReportTexts.notComputed);
+        expect(item(r, c).noteText, isNull);
+      }
+    });
+
+    test('가드 — 시리즈 · 세션', () {
+      final Matcher g = throwsA(
+        isA<ArgumentError>().having(
+          (ArgumentError e) => e.name,
+          'name',
+          'equity',
+        ),
+      );
+      const List<String> s = <String>['2026-08-31'];
+      expect(() => withEquity(const <EquityPoint>[], s), g);
+      expect(
+        () => withEquity(const <EquityPoint>[
+          EquityPoint('2026-08-31', 1),
+          EquityPoint('2026-08-30', 1),
+        ], s),
+        g,
+      );
+      expect(
+        () => withEquity(const <EquityPoint>[
+          EquityPoint('2026-08-30', 1),
+          EquityPoint('2026-08-30', 1),
+        ], s),
+        g,
+      );
+      expect(
+        () => withEquity(const <EquityPoint>[
+          EquityPoint('2026-08-31', 1),
+          EquityPoint('2026-09-01', 1),
+        ], s),
+        g,
+      );
+      const List<EquityPoint> one = <EquityPoint>[EquityPoint('2026-08-31', 1)];
+      expect(() => withEquity(one, const <String>[]), g);
+      expect(() => withEquity(one, const <String>['2026-08-28']), g);
+      expect(
+        () => withEquity(one, const <String>['2026-07-31', '2026-08-31']),
+        g,
+      );
+      expect(
+        () => withEquity(one, const <String>['2026-08-3', '2026-08-31']),
+        g,
+      );
+      expect(
+        () => withEquity(one, const <String>[
+          '2026-08-28',
+          '2026-08-28',
+          '2026-08-31',
+        ]),
+        g,
+      );
+      expect(
+        () => withEquity(one, const <String>[
+          '2026-08-29',
+          '2026-08-28',
+          '2026-08-31',
+        ]),
+        g,
       );
     });
   });
