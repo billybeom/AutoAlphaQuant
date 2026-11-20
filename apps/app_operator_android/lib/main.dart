@@ -7,6 +7,7 @@
 //   2) ✅ E11p3a~c — 엔진 조립 · 잡 실물 · FGS 상태
 //   3) 🆕 E11p3d-1(설계 13 §8 R104) — 셸 뼈대: 엔진과 같은 원장(`OperatorRuntime`) · 실물 있는 칸만 주입 ·
 //      실물 있는 화면만 등록(알림 센터 · 상세) · 딥링크(FGS 탭) → 셸 링크 열기. 나머지 화면 = 셸 «자리 부재».
+//   4) 🆕 E11k-a(설계 13 §8 R197 T7) — 앞 화면일 때 신뢰 시각을 주기적으로 다시 잰다(`TrustedTimeKeeper` · 생명주기).
 
 import 'dart:async';
 
@@ -17,6 +18,7 @@ import 'package:ui_shell/ui_shell.dart';
 import 'app/operator_root.dart';
 import 'app/operator_runtime.dart';
 import 'app/operator_shell.dart';
+import 'app/trusted_time_keeper.dart';
 import 'platform/platform.dart';
 
 Future<void> main() async {
@@ -37,6 +39,12 @@ Future<void> main() async {
   }
 
   runtime?.view.addListener(retry);
+  final Future<bool> Function()? refreshTrusted = runtime?.refreshTrusted;
+  if (refreshTrusted != null) {
+    final TrustedTimeKeeper keeper = TrustedTimeKeeper(refreshTrusted)..start();
+    // 🔵 앱이 살아 있는 동안 하나 — 떼어 낼 일이 없다(프로세스와 함께 사라진다).
+    AppLifecycleListener(onStateChange: keeper.onLifecycle);
+  }
   runApp(
     UncontrolledProviderScope(
       container: container,

@@ -5,7 +5,8 @@
 // 🔴 기동 거부 = BLOCKED · 문구 = 엔진 거부 코드 그대로(`SAF-405` 등) — 앞 깨어남의 «정상»이 남지 않게. 사람이 읽는 거부
 //    문장은 엔진 몫(코어 글자 표 · 여기서 짓지 않는다).
 // 🔴 온보딩 미완 = 띄우지 않는다(아직 아무것도 돌지 않았다 · Kotlin 이 앱 이름만 띄운다 · E11p2).
-// 🔵 신뢰 시각 = 모름(E11k 전) — 해제 진행 게이지가 «모름»으로 나온다(지어내지 않는다).
+// 🔵 신뢰 시각 = 🆕 E11k-a(R197) 엔진과 같은 것(`BootInputs.trusted`) — 연결 전 · 못 잼 = 모름(해제 진행 게이지가 «모름» ·
+//    지어내지 않는다).
 
 import 'package:core_engine/core_engine.dart' show TrustedClock, alertInboxOf;
 import 'package:data_sync/data_sync.dart'
@@ -48,11 +49,12 @@ AlertItem? earliestOpenP0(Iterable<AlertItem> inbox) {
   return best;
 }
 
-/// 🔴 준비된 원장의 FGS 상태(R94 재료 그대로).
+/// 🔴 준비된 원장의 FGS 상태(R94 재료 그대로) · 🆕 [trusted] = 엔진 신뢰 시각(R197 · 기본 = 모름).
 FgsStatus fgsStatusForReady(
   EngineReady ready, {
   required JobCalendars calendars,
   required Clock clock,
+  TrustedClock trusted = const UnknownTrustedClock(),
 }) {
   final DateTime now = clock.nowUtc();
   return fgsStatusOf(
@@ -63,7 +65,7 @@ FgsStatus fgsStatusForReady(
         ready.db,
         mode: ready.runMode,
         clock: clock,
-        trusted: const UnknownTrustedClock(),
+        trusted: trusted,
       ).state(),
       openP0: earliestOpenP0(
         alertInboxOf(

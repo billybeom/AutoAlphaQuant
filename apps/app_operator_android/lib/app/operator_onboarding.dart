@@ -46,7 +46,6 @@ import 'package:domain_contracts/domain_contracts.dart'
         StepState;
 import 'package:sqlite3/sqlite3.dart' show Database;
 
-import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import 'operator_biometric.dart';
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_runtime.dart';
@@ -251,7 +250,7 @@ class OperatorOnboardingRepository implements OnboardingRepository {
           SqlitePledgeStore(
             _db,
             clock: _rt.clock,
-            trusted: const UnknownTrustedClock(),
+            trusted: _rt.trusted,
           ).currentPledge() !=
           null,
       openingDeclared: store.openingDecisionId() != null,

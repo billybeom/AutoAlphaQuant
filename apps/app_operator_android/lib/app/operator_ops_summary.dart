@@ -2,7 +2,7 @@
 //
 // 🔴 오늘 요약 · 리듬 = 화면 상태(마지막 깨어남의 원장 · 모드)의 `SqliteOpsHomeSource` — 원장이 바뀌면 · 1분마다(날짜 ·
 //    D-day 넘어감) · 화면 상태가 바뀌면 다시 낸다(`followView`).
-// 🔴 신뢰 시각 = 아직 없음(Supabase 리스 전 · E11k) → 재량 예산 = 엔진 문장 «신뢰 시각 확인 중».
+// 🔴 신뢰 시각 = 실행 묶음의 것(🆕 E11k-a R197) — 연결 전 · 못 잼 = 모름 → 재량 예산 = 엔진 문장 «신뢰 시각 확인 중».
 // 🔴 홈의 나머지 셋(안내 요약 · 슬리브 비중 · 원장 실사 배지)은 원천이 없다 — 지어내지 않고 «원천 없음» 오류를 낸다
 //    (안내 · 실사 = 블록 부재 · 비중 = 블록 다시 시도 · 04 §4-1 표시 조건 그대로).
 
@@ -49,7 +49,6 @@ import 'package:domain_contracts/domain_contracts.dart'
         WhatIfApi,
         WithdrawalPlan;
 
-import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
 import 'view_stream.dart';
@@ -70,7 +69,7 @@ class OperatorOpsSummaryRepository implements OpsSummaryRepository {
   SqliteOpsHomeSource _src(OperatorView v) => SqliteOpsHomeSource(
     v.db,
     clock: _rt.clock,
-    trusted: const UnknownTrustedClock(),
+    trusted: _rt.trusted,
     kr: _rt.calendars.kr,
     runMode: v.flags.runMode,
     operatingMode: v.flags.operatingMode,
@@ -228,7 +227,7 @@ SqliteRebalanceSource operatorRebalanceSourceOf(
     v.db,
     mode: v.flags.runMode,
     clock: rt.clock,
-    trusted: const UnknownTrustedClock(),
+    trusted: rt.trusted,
   ).state().activeFlags,
   hasBody: hasBody,
 );

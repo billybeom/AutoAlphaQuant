@@ -1,6 +1,6 @@
 // 안전 상태 원천 operator 판(E11p3d-3b · 설계 13 §8 R113 · 앱 01 §2-10 `SafetyRepository` · 엔진 R62 U1~U9).
 //
-// 🔴 원장 = 화면 상태가 고른 원장(엔진과 같은 연결) · 모드 = 그 원장의 실행 모드 · 신뢰 시각 = 모름(E11k 전 · R102 선례).
+// 🔴 원장 = 화면 상태가 고른 원장(엔진과 같은 연결) · 모드 = 그 원장의 실행 모드 · 신뢰 시각 = 실행 묶음의 것(🆕 E11k-a R197 · 연결 전 · 못 잼 = 모름).
 // 🔴 다시 낸다 = `followView`(R120 — 들을 때 · 감시 표 변경(`SqliteSafetyRepository.watchState`) · [OperatorSafetyRepository.tick] ·
 //    화면 상태 변경 · 바뀐 값만) — 시간만 흐르는 몫 = R62 U9 «조립 앱의 주기 신호».
 // 🔴 화면 상태가 없으면(온보딩 전) 오류 — 지어내지 않는다(일지 · 분석 = 배너 부재).
@@ -11,7 +11,6 @@ import 'package:data_sync/data_sync.dart' show SqliteSafetyRepository;
 import 'package:domain_contracts/domain_contracts.dart'
     show SafetyRepository, SafetyState;
 
-import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
 import 'view_stream.dart';
@@ -30,7 +29,7 @@ class OperatorSafetyRepository implements SafetyRepository {
     v.db,
     mode: v.flags.runMode,
     clock: _rt.clock,
-    trusted: const UnknownTrustedClock(),
+    trusted: _rt.trusted,
   );
 
   /// 지금 값 — 화면 상태 없음 = [StateError].
