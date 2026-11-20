@@ -9,6 +9,7 @@
 // 🆕 E11p4b(R125) — `onboardingOperatingModeSelect{operating_mode}`(sim 파일 `onboarding_choice` · 확정 뒤 = 거부) ·
 //    키 검증 결과를 온보딩 진척에 적는다(통과 = o_02 VERIFIED · 거절 = FAILED `CREDENTIAL_REJECTED` · 재시도 갈래 = 그대로).
 //    결과 문장 = 표본 글자(core `kOnboardingMode*Text`) — sim 파일이 없으면(시험 · 화면 없는 조립) 이 두 몫은 빠진다.
+// 🆕 E11q-c2(R201) — M9 S09 «지금 백업»(`backupRunNow{}`) = X1 스냅숏 `take`(`OperatorBackup` · 기기 안만) · 결과 = 엔진 글자.
 
 import 'dart:async';
 
@@ -63,6 +64,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../secret/secret_handoff.dart';
+import 'operator_backup.dart' show OperatorBackup;
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_handover.dart' show OperatorHandover, kOperatorHandoverActions;
 
@@ -133,6 +135,7 @@ class OperatorSettingsActions implements SettingsActions {
     this.golden,
     this.contribution,
     this.handover,
+    this.backup,
   });
 
   /// 🆕 R125 — 온보딩이 쓰는 sim 파일(없음 = 운영 방식 선택 · 진척 기록 없음).
@@ -161,6 +164,20 @@ class OperatorSettingsActions implements SettingsActions {
 
   /// 🆕 E11q-c1(R191) — M5-11 위저드 동작 4(S5 고름 · 세션 시작 · 취소 · 확정 관문 · 없음 = 바인딩 없음).
   final OperatorHandover? handover;
+
+  /// 🆕 E11q-c2(R201) — M9 S09 «지금 백업»(없음 = 바인딩 없음).
+  final OperatorBackup? backup;
+
+  /// 🆕 R201 — «지금 백업»(X1 `take` · 결과 = 엔진 문장 · args = {} · 기록해 두고 `watch` 로 다시 준다).
+  Future<ActionResult> _backupRun(OperatorBackup b, Map<String, String> args) {
+    try {
+      final ActionResult r = b.run(_runId(), args);
+      _results[r.actionRunId] = r;
+      return Future<ActionResult>.value(r);
+    } on Object catch (e, st) {
+      return Future<ActionResult>.error(e, st);
+    }
+  }
 
   /// 🆕 R167 — M9 S10 골든벡터 셀프테스트(엔진 실행기 · 백그라운드 · 기록 = 지금 화면 원장 · 결과 = 엔진 문장 · args = {}).
   Future<ActionResult> _goldenRun(
@@ -258,6 +275,10 @@ class OperatorSettingsActions implements SettingsActions {
     final OperatorHandover? h = handover;
     if (kOperatorHandoverActions.contains(id) && h != null) {
       return _handoverRun(h, id, args);
+    }
+    final OperatorBackup? bk = backup;
+    if (id == SettingsActionId.backupRunNow && bk != null) {
+      return _backupRun(bk, args);
     }
     return Future<ActionResult>.error(
       UnsupportedError('${id.name}: operator 구현 없음(R118)'),

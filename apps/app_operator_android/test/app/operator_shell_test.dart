@@ -21,6 +21,7 @@ import 'package:app_operator_android/secret/kis_key_set_field.dart';
 import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
 import 'package:core_engine/core_engine.dart'
     show
+        BackupScreenTexts,
         BlockBoardTexts,
         DeviceRiskFacts,
         RuleChangeGateTexts,
@@ -99,6 +100,7 @@ import 'package:ui_safety/ui_safety.dart'
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
+        BackupRestore,
         Connections,
         Credentials,
         Devices,
@@ -516,6 +518,22 @@ void main() {
     }
     expect(
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5HandoverGate),
+      false,
+    );
+    // 🆕 R201 — M9 S09 백업 = 한 인스턴스(읽기 · «지금 백업»이 같은 것) · 레지스트리 · X1 기기 이전 = 빈 자리(링크 부재).
+    expect(
+      identical(
+        container.read(operatorOpsStatusProvider).backup,
+        container.read(operatorBackupProvider),
+      ),
+      true,
+    );
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.settingsBackup),
+      true,
+    );
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.x1Migration),
       false,
     );
     // 🆕 R182 — M8 운영 슬롯 빌더 = 셸 킬스위치 자리(ui_safety 자리 위젯) · 인쇄 = 자리 부재.
@@ -996,6 +1014,32 @@ void main() {
     container.dispose();
     disposed = true;
   });
+
+  testWidgets(
+    '🔴 S09 백업(R201) = 조립 셸에 등록 · 모의 원장 = 엔진 고지 · 버튼 · 링크 부재 · 크래시 없음',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      await open(tester, AppRoutes.settingsBackup);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(BackupRestore);
+      expect(screen, findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      Finder inScreen(String t) =>
+          find.descendant(of: screen, matching: find.text(t));
+      expect(inScreen(BackupScreenTexts.simNever), findsOneWidget);
+      expect(inScreen(BackupScreenTexts.simNotice), findsOneWidget);
+      expect(find.byKey(const Key('m9s09-run')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
 
   testWidgets(
     '🔴 M7 리밸런싱(R173) = 조립 셸에 등록 · 회차 0 = 엔진 빈 문장 · 다음 회차 · 초안 버튼 = 예정이 있을 때만 · 크래시 없음',

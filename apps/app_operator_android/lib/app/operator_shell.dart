@@ -97,6 +97,7 @@ import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
         AnnualReviewEntry,
+        BackupRestore,
         Connections,
         Credentials,
         Devices,
@@ -115,6 +116,7 @@ import '../safety/biometric_sign_field.dart';
 import '../safety/golden_selftest_field.dart';
 import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
+import 'operator_backup.dart';
 import 'operator_biometric.dart';
 import 'operator_block_board.dart';
 import 'operator_command_api.dart';
@@ -155,6 +157,16 @@ final Provider<Database> operatorDbProvider = Provider<Database>(
       ref.watch(operatorRuntimeProvider).files.sim,
 );
 
+/// 🆕 E11q-c2(R201) — M9 S09 백업(한 인스턴스 — 읽기 · «지금 백업» 동작이 같은 것을 쓴다 · 만들면 읽기가 다시 낸다).
+final Provider<OperatorBackup> operatorBackupProvider =
+    Provider<OperatorBackup>((Ref ref) {
+      final OperatorBackup b = OperatorBackup(
+        ref.watch(operatorRuntimeProvider),
+      );
+      ref.onDispose(b.dispose);
+      return b;
+    });
+
 /// 🆕 R113 — 운영 상태(셸 · 설정 = 한 인스턴스 — 바깥 목록 캐시를 같이 쓴다).
 final Provider<OperatorOpsStatusRepository> operatorOpsStatusProvider =
     Provider<OperatorOpsStatusRepository>((Ref ref) {
@@ -162,6 +174,8 @@ final Provider<OperatorOpsStatusRepository> operatorOpsStatusProvider =
       return OperatorOpsStatusRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
+        // 🆕 R201 — S09 백업.
+        backup: ref.watch(operatorBackupProvider),
       );
     });
 
@@ -318,6 +332,8 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
         },
         // 🆕 R191 — M5-11 위저드 동작 4(S5 고름 · 세션 시작 · 취소 · 확정 관문).
         handover: ref.watch(operatorHandoverProvider),
+        // 🆕 R201 — S09 «지금 백업»(X1 `take` · 기기 안만).
+        backup: ref.watch(operatorBackupProvider),
       );
     });
 
@@ -410,6 +426,8 @@ Widget _settingsAccounts(Map<String, String> _) => const Accounts();
 Widget _simOpeningCash(Map<String, String> _) => const SimOpeningCash();
 
 Widget _settingsDiagnostics(Map<String, String> _) => const Diagnostics();
+
+Widget _settingsBackup(Map<String, String> _) => const BackupRestore();
 
 Widget _settingsAnnualReview(Map<String, String> _) =>
     const AnnualReviewEntry();
@@ -510,6 +528,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.settingsAccounts: _settingsAccounts,
   // 🆕 E11p4k(R160) — M9 S10 진단(골든 = 실행기 전 판정 보류 · 무결성 = 정본 자가 대조).
   AppRoutes.settingsDiagnostics: _settingsDiagnostics,
+  // 🆕 E11q-c2(R201) — M9 S09 백업·복원(«지금 백업» = X1 스냅숏 `take` · 기기 안만 · 바깥 올리기 = D9 미정 ·
+  //    아카이브 IN_SYNC 전 = 엔진이 버튼을 비운다 K133 · 복원 = X1 마법사 몫 — 링크는 본문이 생기면).
+  AppRoutes.settingsBackup: _settingsBackup,
   // 🆕 R168 — M9 S12 12월 연간 리뷰 목차(S01 카드 = 신뢰 시각 12월 · 목차 = 등록된 M7 화면만).
   AppRoutes.settingsAnnualReview: _settingsAnnualReview,
   // 🆕 E11q1(R171) — M6 H6-1 보유 현황(원장 · 모의 = 가상 현금 · 상세 · 배분 링크 = 등록되면).

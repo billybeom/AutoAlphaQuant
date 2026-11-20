@@ -506,6 +506,7 @@ void main() {
   test('🔴 원천 없는 흐름 = 오류(지어내지 않는다) · 기기 측정기 없음(플랫폼 밖) = 기기 리스크도 원천 없음', () async {
     final OperatorOpsStatusRepository r = OperatorOpsStatusRepository(rt);
     // 🆕 R168 — S12(`watchAnnualReview`)는 원천이 생겼다(operator_annual_review_test).
+    // 🆕 R201 — S09(`watchBackup`)는 백업 주입 때만 원천(operator_backup_test) — 주입 없는 조립 = 원천 없음 그대로.
     for (final Stream<Object?> s in <Stream<Object?>>[
       r.watchBackup(),
       r.watchDeviceRisk(),
