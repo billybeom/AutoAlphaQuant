@@ -168,4 +168,10 @@ abstract final class SafetyLabels {
 
   /// 폼 제출.
   static const String reconClearConfirm = '확인';
+
+  // ── 🆕 M5-11 simToAuto 위저드 · `handoverStatus`(설계 13 §8 R191 · v1.26 K167~K176) — 읽기 실패만
+  //    (머리 · 경로 · 단계 · 시각 · 체험 · 링크 · 버튼 · 결과 글자 = 엔진 · 제출 자체 실패 = [submitNotAccepted]) ──
+
+  /// 위저드를 읽지 못했다(원천 오류 — «전제 밖»과 다르다).
+  static const String handoverWizardReadFailed = '실전 전환 화면을 읽지 못했습니다.';
 }

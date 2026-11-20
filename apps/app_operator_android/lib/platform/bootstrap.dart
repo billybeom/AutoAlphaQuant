@@ -15,7 +15,11 @@ import 'dart:io' show Platform;
 import 'package:broker_gateway/broker_gateway.dart'
     show KisQuoteFeed, KisQuotes, kisKeySetFits;
 import 'package:core_engine/core_engine.dart'
-    show Market, frozenExchangeCalendar, p0sRegimeConfigHash;
+    show
+        LiveObservationConfig,
+        Market,
+        frozenExchangeCalendar,
+        p0sRegimeConfigHash;
 import 'package:data_sync/data_sync.dart'
     show FredClient, HealthchecksClient, OfrClient, P0sHumanDecision;
 import 'package:domain_contracts/domain_contracts.dart' show RunMode;
@@ -184,6 +188,13 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
     }
     // 🆕 R142 — 이 기기 id(못 얻으면 null — 화면은 그대로 선다 · 기기 id 를 쓰는 칸만 «없음»).
     final String? deviceId = await deviceIdOrNull(ops);
+    // 🆕 R191 — M5-11 위저드 관찰 일수(운영 설정 자산 · 못 읽으면 null — 위저드만 «운영 설정 없음»).
+    LiveObservationConfig? observation;
+    try {
+      observation = (await loadOperationsConfig(rootBundle)).liveObservation;
+    } on Object {
+      observation = null;
+    }
     return OperatorRuntime(
       files: LedgerFiles.open(dir, clock: clock),
       clock: clock,
@@ -210,6 +221,7 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       humanDecision: human,
       // 🆕 R167 — 골든 기기 실행기(자산 = 엔진 패키지 · 읽기 · 실행 = 처음 부를 때 · 백그라운드 isolate).
       golden: OperatorGolden(rootBundle.loadString, clock: clock),
+      liveObservation: observation,
     );
   } on Object {
     return null;

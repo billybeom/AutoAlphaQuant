@@ -25,6 +25,7 @@ import 'package:core_engine/core_engine.dart'
         RuleChangeGateTexts,
         HoldingsTexts,
         KillSwitchScreenTexts,
+        LiveObservationConfig,
         P0sHumanInputs,
         ReconClearTexts,
         TrustedClock,
@@ -84,13 +85,16 @@ import 'package:ui_safety/ui_safety.dart'
         KillSwitchSlot,
         PledgePanel,
         ResumeGateScreen,
+        HandoverWizardScreen,
         ResumeReportScreen,
         RuleChangeGateScreen,
         safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
+        safetyHandoverRepositoryProvider,
         safetyResumeGateRepositoryProvider,
-        safetyRuleChangeGateRepositoryProvider;
+        safetyRuleChangeGateRepositoryProvider,
+        safetySettingsActionsProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -485,6 +489,33 @@ void main() {
     expect(
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5RuleChangeGate),
       true,
+    );
+    // 🆕 R191 — M5-11 위저드 읽기 = 한 인스턴스 · 동작 = 설정 동작 인스턴스(시험 조립 = 금고 0 → null) ·
+    //    레지스트리 둘(`handoverStatus` = 같은 본문 · K173) · M5-10 게이트 = 빈 자리(K174).
+    expect(
+      identical(
+        container.read(safetyHandoverRepositoryProvider),
+        container.read(operatorHandoverRepositoryProvider),
+      ),
+      true,
+    );
+    expect(
+      identical(
+        container.read(safetySettingsActionsProvider),
+        container.read(operatorSettingsActionsProvider),
+      ),
+      true,
+    );
+    expect(container.read(operatorHandoverRepositoryProvider).canAct, false);
+    for (final String r in <String>[
+      AppRoutes.m5HandoverWizard,
+      AppRoutes.handoverStatus,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+    }
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5HandoverGate),
+      false,
     );
     // 🆕 R182 — M8 운영 슬롯 빌더 = 셸 킬스위치 자리(ui_safety 자리 위젯) · 인쇄 = 자리 부재.
     expect(
@@ -1495,6 +1526,48 @@ void main() {
     container.dispose();
     disposed = true;
   });
+
+  for (final String route in <String>[
+    AppRoutes.m5HandoverWizard,
+    AppRoutes.handoverStatus,
+  ]) {
+    testWidgets('🔴 M5-11 위저드(R191) — $route = 같은 본문 · 엔진 머리 · 크래시 없음', (
+      WidgetTester tester,
+    ) async {
+      container.dispose();
+      rt = OperatorRuntime(
+        files: files,
+        clock: clock,
+        liveObservation: LiveObservationConfig(requiredTradingDays: 2),
+      );
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      await pumpApp(tester);
+      await ready(tester);
+      await open(tester, route);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(HandoverWizardScreen), findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(find.byKey(const Key('m511-read-failed')), findsNothing);
+      expect(find.byKey(const Key('m511-headline')), findsOneWidget);
+      // 시험 조립 = 설정 동작 인스턴스 없음(금고 0) → 버튼 0.
+      expect(
+        find.byWidgetPredicate(
+          (Widget w) =>
+              w.key is ValueKey<String> &&
+              (w.key! as ValueKey<String>).value.startsWith('m511-act-'),
+        ),
+        findsNothing,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    });
+  }
 
   testWidgets('🔴 S06 기기 · 접근(R146) = 조립 셸에 등록 · 이 폰 한 행 · 모의 단독 리스 · 캡처 막기', (
     WidgetTester tester,

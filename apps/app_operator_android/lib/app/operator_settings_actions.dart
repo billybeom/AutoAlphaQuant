@@ -61,6 +61,7 @@ import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../secret/secret_handoff.dart';
 import 'operator_golden.dart' show OperatorGolden;
+import 'operator_handover.dart' show OperatorHandover, kOperatorHandoverActions;
 
 /// 검증 결과 문구(엔진 몫 — 화면은 그대로 그린다).
 abstract final class CredentialVerifyText {
@@ -116,6 +117,7 @@ class OperatorSettingsActions implements SettingsActions {
     this.ledger,
     this.golden,
     this.contribution,
+    this.handover,
   });
 
   /// 🆕 R125 — 온보딩이 쓰는 sim 파일(없음 = 운영 방식 선택 · 진척 기록 없음).
@@ -141,6 +143,9 @@ class OperatorSettingsActions implements SettingsActions {
 
   /// 🆕 E11o-d(R167) — 골든 기기 실행기(없음 = 바인딩 없음).
   final OperatorGolden? golden;
+
+  /// 🆕 E11q-c1(R191) — M5-11 위저드 동작 4(S5 고름 · 세션 시작 · 취소 · 확정 관문 · 없음 = 바인딩 없음).
+  final OperatorHandover? handover;
 
   /// 🆕 R167 — M9 S10 골든벡터 셀프테스트(엔진 실행기 · 백그라운드 · 기록 = 지금 화면 원장 · 결과 = 엔진 문장 · args = {}).
   Future<ActionResult> _goldenRun(
@@ -235,9 +240,24 @@ class OperatorSettingsActions implements SettingsActions {
     if (id == SettingsActionId.selftestGoldenRun && g != null && book != null) {
       return _goldenRun(g, book, args);
     }
+    final OperatorHandover? h = handover;
+    if (kOperatorHandoverActions.contains(id) && h != null) {
+      return _handoverRun(h, id, args);
+    }
     return Future<ActionResult>.error(
       UnsupportedError('${id.name}: operator 구현 없음(R118)'),
     );
+  }
+
+  /// 🆕 R191 — 위저드 동작(결과 = 엔진 글자 · 기록해 두고 `watch` 로 다시 준다).
+  Future<ActionResult> _handoverRun(
+    OperatorHandover h,
+    SettingsActionId id,
+    Map<String, String> args,
+  ) async {
+    final ActionResult r = await h.run(id, args);
+    _results[r.actionRunId] = r;
+    return r;
   }
 
   /// 🆕 계약 v1.23(01 §32 · K92) — `S13` 월 납입 제출 = 구현 없음(바인딩 = 06 `M4-12` ⑧ · 지어내지 않는다).
