@@ -601,6 +601,7 @@ export 'src/ops/journal_view.dart'
         journalEntriesOf,
         journalEventIdOf,
         journalFilterCatalogOf,
+        journalKeyOf,
         journalRangePresetsOf,
         journalRebalanceScopeOf,
         journalSleeveCatalogOf,

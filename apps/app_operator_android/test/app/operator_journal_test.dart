@@ -16,6 +16,7 @@ import 'package:data_sync/data_sync.dart' show SqliteJournalSource;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:ui_shell/ui_shell.dart' show ShellRouteMatch, matchShellRoute;
 
 import '../engine/support.dart';
 
@@ -254,6 +255,24 @@ void main() {
       final JournalTimelineBadge b =
           (await r.watchTimelineBadges().first).single;
       expect((b.label, b.deepLink), ('확인 중 1건', null));
+    },
+  );
+
+  test(
+    '🔴 재개 child 결정 id(`#`) — 셸 라우터가 링크를 맞추고 그 조각으로 J-2 · J-3R 이 열린다',
+    () async {
+      intent('iR', 'B-SMA-2026-07-31#R2026-08-05@2026-08-05');
+      final OperatorJournalRepository r = repo(rt());
+      final TradeJournalEntry row =
+          (await r.watchTimeline(range: _all).first).rows.single;
+      final ShellRouteMatch m = matchShellRoute(row.detailDeepLink!)!;
+      expect(m.pattern, AppRoutes.journalDecision);
+      final String param = m.params['decisionId']!;
+      expect((await r.watchDecisionDetail(param).first).entry, row);
+      expect(
+        (await r.watchDecisionJournal(param).first).decisionId,
+        'B-SMA-2026-07-31#R2026-08-05@2026-08-05',
+      );
     },
   );
 

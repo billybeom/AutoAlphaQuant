@@ -1004,6 +1004,38 @@ void main() {
     );
   });
 
+  test('🔴 재개 child 결정 id(`#`) — 링크 = `#` · `?` · `/` · `%` 만 퍼센트 꼴 · 라우트 조각으로 열면 같은 결정', () {
+    const String id = 'B-SMA-2026-07-31#R2026-08-05@2026-08-05';
+    final JournalFacts f = _facts(
+      intents: <JournalIntentFact>[_intent('iR', decision: id)],
+      events: const <JournalEventFact>[
+        JournalEventFact(
+          eventId: 'REB-MONTHLY-2026-07-31',
+          tradeDate: TradeDate('2026-07-31'),
+          kindWire: 'MONTHLY_REGULAR',
+          decisionId: 'MONTH-END-2026-07-31',
+          logicalIds: <String>{
+            'MONTH-END-2026-07-31',
+            'B-SMA-2026-07-31#R2026-08-05',
+          },
+        ),
+      ],
+    );
+    final TradeJournalEntry e = journalEntriesOf(f).single;
+    const String link =
+        'aaq://journal/decision/B-SMA-2026-07-31%23R2026-08-05@2026-08-05';
+    expect(e.detailDeepLink, link);
+    expect(e.rebalanceEventId, 'REB-MONTHLY-2026-07-31');
+    final String param = link.split('/').last;
+    expect(param.contains('#'), false);
+    expect(journalKeyOf(param), id);
+    expect(decisionDetailVmOf(f, param).entry, e);
+    expect(decisionJournalVmOf(f, param).decisionId, id);
+    expect(decisionJournalVmOf(f, param).decisionLink!.deepLink, link);
+    expect(journalKeyOf('100%'), '100%');
+    expect(journalKeyOf('a%2Fb%3Fc%25'), 'a/b?c%');
+  });
+
   group('회차 묶음 · 범위', () {
     const JournalEventFact seasonal = JournalEventFact(
       eventId: 'SEAS-2026-10-30',

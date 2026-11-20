@@ -695,6 +695,10 @@ ListResult<TradeJournalEntry> journalTimelineOf(
   int limit = 100,
 }) {
   if (limit < 0) throw ArgumentError.value(limit, 'limit', '0 이상이어야 한다');
+  final String? eventKey = switch (rebalanceEventId) {
+    final String id => journalKeyOf(id),
+    null => null,
+  };
   final _Book b = _Book(f);
   final List<TradeJournalEntry> all = <TradeJournalEntry>[
     for (final JournalIntentFact i in b.sortedIntents) b.entry(i),
@@ -709,7 +713,7 @@ ListResult<TradeJournalEntry> journalTimelineOf(
           (symbol == null || e.symbol == symbol) &&
           (status == null || e.status == status) &&
           (origin == null || e.fillOrigin == origin) &&
-          (rebalanceEventId == null || e.rebalanceEventId == rebalanceEventId))
+          (eventKey == null || e.rebalanceEventId == eventKey))
         e,
   ];
   final String? emptyLabel = hit.isNotEmpty
@@ -821,7 +825,8 @@ List<JournalTimelineBadge> journalTimelineBadgesOf(JournalFacts f) {
 }
 
 /// J-2 거래 상세 — 모르는 결정 = 실패(잠정 규칙 · 01 §8 미결 50 ③).
-DecisionDetailVm decisionDetailVmOf(JournalFacts f, String decisionId) {
+DecisionDetailVm decisionDetailVmOf(JournalFacts f, String routeDecisionId) {
+  final String decisionId = journalKeyOf(routeDecisionId);
   final _Book b = _Book(f);
   final List<JournalIntentFact> mine = b.intentsOf(decisionId);
   if (mine.isEmpty) throw StateError('결정이 없다: $decisionId');
@@ -884,7 +889,8 @@ DecisionDetailVm decisionDetailVmOf(JournalFacts f, String decisionId) {
 }
 
 /// J-3R 사전 저널 읽기 — 결정은 있는데 저널이 없으면 `body == null`(«미작성»도 값) · 모르는 결정 = 실패.
-DecisionJournalVm decisionJournalVmOf(JournalFacts f, String decisionId) {
+DecisionJournalVm decisionJournalVmOf(JournalFacts f, String routeDecisionId) {
+  final String decisionId = journalKeyOf(routeDecisionId);
   final _Book b = _Book(f);
   final bool known =
       b.intentsOf(decisionId).isNotEmpty || f.decisions.containsKey(decisionId);
@@ -918,8 +924,9 @@ DecisionJournalVm decisionJournalVmOf(JournalFacts f, String decisionId) {
 /// 그 회차에 묶인 행 전부를 덮는 기간(행 0 = 회차 거래일 하루).
 JournalRebalanceScope? journalRebalanceScopeOf(
   JournalFacts f,
-  String rebalanceEventId,
+  String routeEventId,
 ) {
+  final String rebalanceEventId = journalKeyOf(routeEventId);
   JournalEventFact? event;
   for (final JournalEventFact e in f.events) {
     if (e.eventId == rebalanceEventId) event = e;
@@ -1841,7 +1848,19 @@ Decimal _dec(String text, String what) {
   return d;
 }
 
-String _route(String pattern, String id) => '${pattern.split('/:').first}/$id';
+/// 🔴 링크 = 패턴 앞 + id(셸 라우터는 `#` · `?` 가 든 조각을 맞추지 않는다 — 재개 child 결정 id `…#R{날}@{날}` 꼴)
+/// → `%` · `#` · `?` · `/` 만 퍼센트 꼴로 감싼다(`@` · `+` 는 그대로 — H6-2 링크와 같은 글자).
+String _route(String pattern, String id) =>
+    '${pattern.split('/:').first}/${id.replaceAll('%', '%25').replaceAll('#', '%23').replaceAll('?', '%3F').replaceAll('/', '%2F')}';
+
+/// 라우트 조각 → 키(링크가 감싼 것을 푼다 · 풀 수 없는 글자 = 그대로).
+String journalKeyOf(String routeParam) {
+  try {
+    return Uri.decodeComponent(routeParam);
+  } on ArgumentError {
+    return routeParam;
+  }
+}
 
 /// 브로커 주문 번호의 ODNO(`{주문일}:{ODNO}` 꼴이면 뒤 · 아니면 그대로).
 String _odno(String no) {
