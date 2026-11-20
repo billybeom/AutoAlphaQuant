@@ -4,7 +4,9 @@
 // 🔴 판정만 한다 — 실전 파일 쓰기는 data_sync `SqliteSimToAutoCommitStore` · 모의 CLOSE · 지움 · 복구 = f3b.
 // 🔴 보유 0 · 오늘 브로커 활동 0 · 5분 안 조회만 개시한다(커밋 당일 매도분이 대사에서 «원장에 없는 주문»이 되지 않게).
 // 🔴 개시 현금 = D+2 주문가능 예수금(AG4 · ⬜ 발주자 확인) · 원 단위 · 0원 계좌 행 없음.
-// 🔵 코드 · 문구 = 엔진 문자열(계약 등재 = 1.20.0 후보).
+// 🔴 🆕 R189(미결 205 ⓓ · 01 §35 K177) — 지금 설정이 모의 파일에서 규칙 변경 승인을 받지 않았으면 개시하지 않는다
+//    (실전 기동 = `approved == 1` · SAF-405 — 승인 없는 실전 원장을 만들지 않는다 · 냉각 30일 · SAF-405 수치 무변경).
+// 🔵 코드 · 문구 = 엔진 문자열(계약 등재 = 1.20.0 후보 · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` = 1.27.0+ 창).
 
 import 'package:domain_contracts/domain_contracts.dart' show HandoverPath;
 
@@ -76,7 +78,23 @@ abstract final class SimToAutoCommitCodes {
 
   /// 닫힌 모의 파일에는 S5 고름을 적지 않는다.
   static const String simClosed = 'SIM_LEDGER_FATE_SIM_CLOSED';
+
+  /// 🆕 미결 205 ⓓ(설계 13 §8 R189 · 01 §35 K177) — 지금 설정(실전 개시에 붙일 판)이 규칙 변경 승인을 받지 않았다
+  /// (모의 파일 승인 config 0 · 승인 기록 없음 · 다른 판이 승인됨).
+  /// 🔵 엔진 안 예약 — 계약 `SimToAutoCommitResultCodes` 등재 = 다음 계약 창(1.27.0+) · 그 전 화면 = headline 만.
+  static const String configNotApproved = 'SIM_TO_AUTO_CONFIG_NOT_APPROVED';
 }
+
+/// 🆕 미결 205 ⓓ — SAF-405 승인 config 재확인(R189) — 통과 = null.
+///
+/// [approvedConfigHash] = 모의 파일의 승인 config(승인 기록과 맞는 것만 · 없음 = null) ·
+/// [configHash] = 실전 개시 결정에 붙일 지금 설정. 🔴 둘이 같아야 실전 기동(SAF-405 · `approved == 1`)이 선다.
+String? simToAutoConfigApprovalReject({
+  required String? approvedConfigHash,
+  required String configHash,
+}) => approvedConfigHash != null && approvedConfigHash == configHash
+    ? null
+    : SimToAutoCommitCodes.configNotApproved;
 
 /// 실전 개시 결정의 `decision_log.reason`(엔진 문구).
 const String kLiveOpeningReason = '실전 개시 — 보유 0 확인 · 주문가능 예수금 기록';
@@ -181,15 +199,19 @@ String? simToAutoLeaseReject(
   return null;
 }
 
-/// 1단계 게이트(AG3 · 🆕 리스 = R103 AI4) — 통과 = null · 아니면 거부 코드.
+/// 1단계 게이트(AG3 · 🆕 리스 = R103 AI4 · 🆕 승인 config = R189) — 통과 = null · 아니면 거부 코드.
 ///
 /// [report] = 실전 세션 시각 · 신뢰 시각으로 다시 낸 판정(세션 · 시각이 없으면 null).
 /// [aliases] = 설정 `accountByStrategy` 의 값들.
+/// 🆕 [approvedConfigHash] · [configHash] = [simToAutoConfigApprovalReject](차례 = 이미 커밋 뒤 · 재판정 앞 —
+/// 냉각 30일이 걸리는 막힘이라 24h 냉각 · 계좌 조회보다 먼저 말한다).
 String? simToAutoCommitReject({
   required DateTime? trustedNowUtc,
   required HandoverSessionRecord? session,
   required LeaseSnapshot lease,
   required int liveModeRows,
+  required String? approvedConfigHash,
+  required String configHash,
   required SimToAutoReport? report,
   required Set<String> aliases,
   required List<LiveAccountProbe> probes,
@@ -202,6 +224,11 @@ String? simToAutoCommitReject({
   final String? leaseCode = simToAutoLeaseReject(lease, session);
   if (leaseCode != null) return leaseCode;
   if (liveModeRows > 0) return SimToAutoCommitCodes.alreadyCommitted;
+  final String? configCode = simToAutoConfigApprovalReject(
+    approvedConfigHash: approvedConfigHash,
+    configHash: configHash,
+  );
+  if (configCode != null) return configCode;
   if (report == null || !report.readyToCommit) {
     return report?.code ?? SimToAutoCodes.notSimAuto;
   }
@@ -276,6 +303,7 @@ String simToAutoCommitHeadline(String? code, {Map<String, int>? cash}) {
     kLeaseInvalidCode => '이 기기의 발주권(리스)을 확인할 수 없어 확정하지 않았습니다.',
     SimToAutoCommitCodes.leaseMismatch =>
       '전환을 시작한 기기 · 발주권이 지금과 달라 확정하지 않았습니다 — 처음부터 다시 진행해 주세요.',
+    SimToAutoCommitCodes.configNotApproved => '지금 설정이 규칙 변경 승인을 받지 않아 확정하지 않았습니다 — 규칙 변경 게이트에서 승인(냉각 30일)을 받은 뒤 확정해 주세요.',
     _ => '아직 확정할 수 없습니다 — 전환 단계를 확인해 주세요.',
   };
 }

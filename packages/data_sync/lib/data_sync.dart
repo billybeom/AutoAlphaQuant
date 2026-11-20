@@ -80,6 +80,7 @@ export 'src/local/rule_change_store.dart';
 export 'src/local/safety_read_model.dart';
 export 'src/local/sim_ledger_fate_store.dart';
 export 'src/local/sim_ledger_view.dart';
+export 'src/local/sim_to_auto_carry.dart';
 export 'src/local/sim_to_auto_commit_store.dart';
 export 'src/local/sim_to_auto_finish.dart';
 export 'src/local/sim_trial_facts.dart';
