@@ -14,6 +14,7 @@
 // 🆕 E11f2 — `monthly_rebalance` 본체 · 계획 보관 · `StoredPlanTargetSource`(설계 13 §8 R48).
 // 🆕 E11f1 — 아침 · 저녁 잡 본체 넷(`DailyDataJob` · `UsDataJob` · `DailySignalJob` · `EquitySnapshotJob` · 설계 13 §8 R47).
 // 🆕 E11e — 기기 로컬 암호화 저장소(`DeviceLocal` · 초안 `DeviceDraftStore` = `DraftStore` 구현 · 큐 ⓐ `LocalCommandQueue` · 설계 13 §8 R46).
+// 🆕 E11k-a — Supabase 서버 시각(`SupabaseServerTime` = core `ServerTimeSource` 구현 · 연결 칸 · 입력 판정 · 설계 13 §8 R197).
 // 🆕 E11c — healthchecks 어댑터(`HealthchecksClient` = core `JobHeartbeat` · `WatchdogRemote` 구현 · 설계 13 §8 R45).
 // 🆕 E11d — 시크릿 스캔(정확 값 · 접두 · 시크릿 필드 · 8자리 숫자 패턴 없음). 금고 포트 · 마스킹은 core_engine `security/`.
 
@@ -114,4 +115,5 @@ export 'src/migration/recovery_journal_store.dart';
 export 'src/migration/x1_startup.dart';
 // 🆕 E11d — 시크릿 스캔 게이트(설계 13 §8 R44 E7 · 06 M4-6).
 export 'src/security/secret_scan.dart';
+export 'src/supabase/supabase_server_time.dart';
 export 'src/watchdog/healthchecks_client.dart';

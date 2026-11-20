@@ -7,6 +7,7 @@ import 'package:app_operator_android/app/operator_safety.dart';
 import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
+import 'package:core_engine/core_engine.dart' show TrustedClock;
 import 'package:domain_contracts/domain_contracts.dart'
     show BlockFlag, FlagIds, OperatingMode, RunMode, SafetyState;
 import 'package:flutter_test/flutter_test.dart';
@@ -115,4 +116,37 @@ void main() {
     await pumpEventQueue();
     expect(flagIds(got.last as SafetyState), contains(FlagIds.ledgerIntegrity));
   });
+
+  test(
+    '🆕 E11k-a(R197) 신뢰 시각 = 실행 묶음의 것 — 모름 = «셀 수 없음» · 앎 = 해제 예정 시각',
+    () async {
+      final OperatorView v = await ready();
+      final String at = clock.nowUtc().toIso8601String();
+      files.sim.execute(
+        'INSERT INTO kill_switch_state(id, activated_at, activated_by, checklist_confirmed_at, '
+        'cleared_at, decision_id) VALUES (1, ?, ?, ?, NULL, NULL)',
+        <Object?>[at, '시험 기기', at],
+      );
+      expect(
+        OperatorSafetyRepository(rt).state().killSwitch.releaseEtaText,
+        '서버 시각을 확인하지 못해 해제 시각을 셀 수 없습니다',
+      );
+      final OperatorRuntime known = OperatorRuntime(
+        files: files,
+        clock: clock,
+        trusted: _At(clock.nowUtc()),
+      )..view.value = v;
+      expect(
+        OperatorSafetyRepository(known).state().killSwitch.releaseEtaText,
+        startsWith('해제 가능 예정 '),
+      );
+    },
+  );
+}
+
+class _At implements TrustedClock {
+  _At(this.at);
+  final DateTime at;
+  @override
+  DateTime? trustedNowUtc() => at;
 }

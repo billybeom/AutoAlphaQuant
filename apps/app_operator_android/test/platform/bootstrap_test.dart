@@ -7,7 +7,8 @@ import 'package:app_operator_android/engine/kis_sessions.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/platform/platform.dart';
 import 'package:broker_gateway/broker_gateway.dart' show KisQuoteFeed;
-import 'package:core_engine/core_engine.dart' show kSaf405, p0sRegimeConfigHash;
+import 'package:core_engine/core_engine.dart'
+    show AnchoredTrustedClock, kSaf405, p0sRegimeConfigHash;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:domain_contracts/domain_contracts.dart'
     show LedgerFile, OperatingMode, RunMode, UiLevel;
@@ -276,6 +277,127 @@ void main() {
         await headline(deviceId: '1f8fad5b-d9cb-469f-a165-70867728950e'),
         kSaf405,
       );
+    });
+  });
+
+  group('E11k-a — 신뢰 시각 조립(R197 T6)', () {
+    final String ref = 'q' * 12 + '7' * 8;
+    final String pub = 'sb_${'publishable'}_${'K' * 12}${'4' * 10}';
+    const String date = 'Tue, 08 Dec 2026 00:00:07 GMT';
+    final DateTime dateUtc = DateTime.utc(2026, 12, 8, 0, 0, 7);
+
+    MemorySecretVault connected() => MemorySecretVault(<String, String>{
+      'supabase.project_url': 'https://$ref.supabase.co',
+      'supabase.publishable_key': pub,
+    });
+
+    test('operatorBootInputs — 신뢰 시각 기본 = 모름 · 넣으면 그것', () {
+      expect(operatorBootInputs().trusted.trustedNowUtc(), isNull);
+      final AnchoredTrustedClock c = operatorTrustedClock(
+        http: MockClient((_) async => http.Response('', 500)),
+        vault: MemorySecretVault(),
+      );
+      expect(identical(operatorBootInputs(trusted: c).trusted, c), isTrue);
+    });
+
+    test('🔴 연결 칸 없음 = 망에 가지 않고 모름(지금과 같다)', () async {
+      int calls = 0;
+      final AnchoredTrustedClock c = operatorTrustedClock(
+        http: MockClient((_) async {
+          calls++;
+          return http.Response(
+            '',
+            200,
+            headers: <String, String>{'date': date},
+          );
+        }),
+        vault: MemorySecretVault(),
+      );
+      expect(await c.refresh(), isFalse);
+      expect(c.trustedNowUtc(), isNull);
+      expect(calls, 0);
+    });
+
+    test('연결 칸 있음 = 서버 Date 가 신뢰 시각(기기 시계 아님)', () async {
+      final FakeClock wall = FakeClock(DateTime.utc(2027, 1, 1));
+      final AnchoredTrustedClock c = operatorTrustedClock(
+        http: MockClient(
+          (_) async =>
+              http.Response('{}', 200, headers: <String, String>{'date': date}),
+        ),
+        vault: connected(),
+        wall: wall,
+      );
+      expect(await c.refresh(), isTrue);
+      final DateTime? now = c.trustedNowUtc();
+      expect(now, isNotNull);
+      expect(now!.difference(dateUtc).inSeconds, lessThan(2));
+    });
+
+    test('🔴 깨어날 때마다 잰다 — 실행 묶음의 갱신 · 조립 실패여도 먼저 잰다', () async {
+      final Directory root = tempLedgerDir();
+      final FakeClock clock = FakeClock(DateTime.now().toUtc());
+      final LedgerFiles f = openFiles(root, clock);
+      addTearDown(f.close);
+      writeSimMode(f.sim, clock, committed: OperatingMode.autoTrade);
+      final Database live = writeLiveMode(root, clock);
+      live.close();
+      int refreshed = 0;
+      final OperatorRuntime rt = OperatorRuntime(
+        files: f,
+        clock: clock,
+        refreshTrusted: () async {
+          refreshed++;
+          return false;
+        },
+      );
+      final WakeHandler h = engineWakeHandler(
+        ops: AndroidOps(),
+        calendars: calendars(),
+        runtime: rt,
+      );
+      final WakeEvent e = WakeEvent.fromWire(<String, Object?>{
+        'reason': 'start',
+        'firedAtMs': 1,
+      })!;
+      await h(e);
+      await h(e);
+      expect(refreshed, 2);
+    });
+
+    test('🔴 실행 묶음 없음 = 넣은 시계를 깨어날 때마다 잰다(조립이 실패해도)', () async {
+      int asked = 0;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(_ch, (MethodCall c) async {
+            if (c.method == 'paths') asked++;
+            throw PlatformException(code: 'io');
+          });
+      int sourced = 0;
+      final AnchoredTrustedClock own = operatorTrustedClock(
+        http: MockClient((_) async {
+          sourced++;
+          return http.Response(
+            '{}',
+            200,
+            headers: <String, String>{'date': date},
+          );
+        }),
+        vault: connected(),
+      );
+      final WakeHandler h = engineWakeHandler(
+        ops: AndroidOps(),
+        calendars: calendars(),
+        trusted: own,
+      );
+      final WakeEvent e = WakeEvent.fromWire(<String, Object?>{
+        'reason': 'start',
+        'firedAtMs': 1,
+      })!;
+      await expectLater(h(e), throwsA(isA<PlatformException>()));
+      await expectLater(h(e), throwsA(isA<PlatformException>()));
+      expect(asked, 2);
+      expect(sourced, 2);
+      expect(own.trustedNowUtc(), isNotNull);
     });
   });
 }

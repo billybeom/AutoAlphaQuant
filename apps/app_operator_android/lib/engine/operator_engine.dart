@@ -182,7 +182,14 @@ class OperatorEngine {
       runs.add(await run(o));
     }
     // 🔴 회차가 끝난 뒤의 상태 — 상태를 못 만들면 이 깨어남이 실패한다(앞 문구를 «정상»으로 남겨 두지 않게 크게 드러낸다).
-    await _fgs?.call(fgsStatusForReady(ready, calendars: _cals, clock: _clock));
+    await _fgs?.call(
+      fgsStatusForReady(
+        ready,
+        calendars: _cals,
+        clock: _clock,
+        trusted: _bootInputs.trusted,
+      ),
+    );
     return EngineWakeReport(
       boot: boot,
       plan: plan,

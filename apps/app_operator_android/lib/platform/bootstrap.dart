@@ -9,6 +9,8 @@
 // 🆕 E11p3c-1(설계 13 §8 R97) — 실물 잡 부품(`JobParts`): KIS 일봉 원천(금고 키 → 클라이언트 하나) · FRED · OFR · 국면 지문.
 // 🆕 E11p3c-4(설계 13 §8 R102) — 깨어남이 끝나면 엔진 상태를 FGS 에 띄운다(호스트 `fgs.show` · 전이 때만 다시 띄움).
 // 🆕 E11p3d-1(설계 13 §8 R104) — 화면과 엔진이 원장 하나를 함께 쓴다(`OperatorRuntime`) · 깨어남 보고 → 화면 상태.
+// 🆕 E11k-a(설계 13 §8 R197 T6) — 신뢰 시각 = Supabase 서버 시각 기준점 하나(`operatorTrustedClock`) — 화면 · 엔진이 같이 쓰고,
+//    깨어날 때마다 한 번 잰다. 금고에 연결 칸(o_07 ②)이 없으면 망에 가지 않고 늘 «모름»(지금과 같다).
 
 import 'dart:io' show Platform;
 
@@ -16,13 +18,21 @@ import 'package:broker_gateway/broker_gateway.dart'
     show KisQuoteFeed, KisQuotes, kisKeySetFits;
 import 'package:core_engine/core_engine.dart'
     show
+        AnchoredTrustedClock,
         LiveObservationConfig,
         Market,
+        SecretVault,
+        TrustedClock,
         frozenExchangeCalendar,
         p0sRegimeConfigHash;
 import 'package:data_sync/data_sync.dart'
-    show FredClient, HealthchecksClient, OfrClient, P0sHumanDecision;
-import 'package:domain_contracts/domain_contracts.dart' show RunMode;
+    show
+        FredClient,
+        HealthchecksClient,
+        OfrClient,
+        P0sHumanDecision,
+        SupabaseServerTime;
+import 'package:domain_contracts/domain_contracts.dart' show Clock, RunMode;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart'
@@ -34,6 +44,7 @@ import '../app/operator_runtime.dart';
 import '../app/secure_screen.dart' show SecureScreen;
 import '../engine/data_job_runners.dart' show JobParts;
 import '../engine/engine_boot.dart' show BootInputs, registryLiveKeysVerified;
+import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import '../engine/job_runners.dart' show JobContext, composeJobRunners;
 import '../engine/kis_sessions.dart';
 import '../engine/ledger_files.dart';
@@ -79,19 +90,37 @@ Future<OperatorEngineHost?> startOperatorPlatform({
 }
 
 /// 깨어남 → 엔진(처음 깨어날 때 조립 · 실패하면 다음 깨어남에 다시).
+///
+/// 🆕 E11k-a(R197 T6) — 신뢰 시각 = 실행 묶음의 것(화면과 하나) · 묶음이 없으면(엔진만 뜬 프로세스) [trusted] · 그것도
+/// 없으면 여기서 하나 만든다. 깨어날 때마다 조립 · 잡 앞에서 한 번 잰다(잠든 사이 기준점이 낡았다 · 실패 = 모름 그대로).
 WakeHandler engineWakeHandler({
   required AndroidOps ops,
   required JobCalendars calendars,
   FgsSink? fgs,
   OperatorRuntime? runtime,
+  AnchoredTrustedClock? trusted,
 }) {
   OperatorEngine? engine;
+  final TrustedClock clock;
+  final Future<bool> Function()? refresh;
+  if (runtime != null) {
+    clock = runtime.trusted;
+    refresh = runtime.refreshTrusted;
+  } else {
+    final AnchoredTrustedClock own =
+        trusted ??
+        operatorTrustedClock(http: http.Client(), vault: AndroidSecretVault());
+    clock = own;
+    refresh = own.refresh;
+  }
   return (WakeEvent event) async {
+    if (refresh != null) await refresh();
     final OperatorEngine e = engine ??= await _assemble(
       ops,
       calendars,
       fgs,
       runtime,
+      clock,
     );
     final ({bool booting, String? bootId}) b = wakeBootOf(event);
     final EngineWakeReport r = await e.wake(
@@ -107,6 +136,7 @@ Future<OperatorEngine> _assemble(
   JobCalendars cals,
   FgsSink? fgs,
   OperatorRuntime? runtime,
+  TrustedClock trusted,
 ) async {
   // 🔴 화면과 같은 원장(실행 묶음이 있으면 그 연결) — 없으면 엔진이 연다(시험 · 화면 없는 조립).
   final String? dir = runtime == null ? (await ops.paths()).engineDir : null;
@@ -129,7 +159,7 @@ Future<OperatorEngine> _assemble(
     // 🆕 E16t3b(R149 AA5) — 같은 감시 클라이언트 = 창 재개 · 운영 설정 = data_sync 자산(SPEC 02 §4).
     watchdog: watch,
     operations: await loadOperationsConfig(rootBundle),
-    bootInputs: operatorBootInputs(deviceId: deviceId),
+    bootInputs: operatorBootInputs(deviceId: deviceId, trusted: trusted),
     runners: (JobContext c) => composeJobRunners(c, parts: parts),
     seed: () => loadSeedAssets(rootBundle),
     fgs: fgs,
@@ -145,12 +175,24 @@ const BootInputs kOperatorBootInputs = BootInputs(
   liveKeysVerified: registryLiveKeysVerified,
 );
 
-/// 🆕 E16t2b(R144 X2) — 조립 앱의 기동 입력 + 이 기기 id(null = X1 끼울 자리 꺼짐 · 그 밖 = [kOperatorBootInputs] 와 같다).
-BootInputs operatorBootInputs({String? deviceId}) => BootInputs(
+/// 🆕 E16t2b(R144 X2) — 조립 앱의 기동 입력 + 이 기기 id(null = X1 끼울 자리 꺼짐 · 그 밖 = [kOperatorBootInputs] 와 같다) ·
+/// 🆕 E11k-a(R197) [trusted] = 신뢰 시각(기본 = 모름).
+BootInputs operatorBootInputs({
+  String? deviceId,
+  TrustedClock trusted = const UnknownTrustedClock(),
+}) => BootInputs(
   credentialEnvironmentOk: kisKeySetFits,
   liveKeysVerified: registryLiveKeysVerified,
   deviceId: deviceId,
+  trusted: trusted,
 );
+
+/// 🆕 E11k-a(R197 T6) — 조립 앱의 신뢰 시각(Supabase 서버 시각 기준점 · 연결 칸 = [vault] · 없으면 망에 가지 않고 모름).
+AnchoredTrustedClock operatorTrustedClock({
+  required http.Client http,
+  required SecretVault vault,
+  Clock wall = const SystemClock(),
+}) => AnchoredTrustedClock(source: SupabaseServerTime(http, vault), wall: wall);
 
 /// 🆕 E16t3b(R149 AA6) — 깨어남 → (부팅인가 · 부팅 id) — 부팅(`WakeReason.boot`)만 · id = `boot-{울린 ms}`.
 ({bool booting, String? bootId}) wakeBootOf(WakeEvent e) =>
@@ -200,6 +242,12 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
     } on Object {
       observation = null;
     }
+    // 🆕 E11k-a(R197 T6) — 신뢰 시각 하나(화면 · 엔진 공용 · 잼 = 앞 화면 갱신기 · 엔진 깨어남).
+    final AnchoredTrustedClock trusted = operatorTrustedClock(
+      http: http.Client(),
+      vault: AndroidSecretVault(),
+      wall: clock,
+    );
     return OperatorRuntime(
       files: LedgerFiles.open(dir, clock: clock),
       clock: clock,
@@ -227,6 +275,8 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       // 🆕 R167 — 골든 기기 실행기(자산 = 엔진 패키지 · 읽기 · 실행 = 처음 부를 때 · 백그라운드 isolate).
       golden: OperatorGolden(rootBundle.loadString, clock: clock),
       liveObservation: observation,
+      trusted: trusted,
+      refreshTrusted: trusted.refresh,
     );
   } on Object {
     return null;

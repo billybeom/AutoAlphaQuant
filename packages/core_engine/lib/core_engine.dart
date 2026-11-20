@@ -800,8 +800,18 @@ export 'src/ops/tier_b.dart'
         tierBMetrics,
         tierBTrigger,
         twrIndex;
-// 🆕 E11j — 신뢰 시각 포트(M1-13 · 실물 = E11k · 설계 13 §8 R54 J1).
-export 'src/ops/trusted_clock.dart' show TrustedClock;
+// 🆕 E11j — 신뢰 시각 포트(M1-13 · 실물 = E11k · 설계 13 §8 R54 J1) · 🆕 E11k-a 서버 시각 기준점(R197).
+export 'src/ops/trusted_clock.dart'
+    show
+        AnchoredTrustedClock,
+        ServerTimeSource,
+        TrustedClock,
+        TrustedTimeAnchor,
+        anchoredTrustedNow,
+        kTrustedTimeClockAgreement,
+        kTrustedTimeMaxAge,
+        kTrustedTimeMaxRoundTrip,
+        trustedTimeAnchorOf;
 // 🆕 E11c — 워치독 포트 · 값 꼴(설계 13 §8 R45 C1 — 구현 = data_sync · 보드 = trading_runtime).
 export 'src/ops/watchdog_ports.dart'
     show

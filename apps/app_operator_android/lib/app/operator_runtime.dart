@@ -63,6 +63,7 @@ class OperatorRuntime {
     this.deviceId,
     this.humanDecision,
     TrustedClock? trusted,
+    this.refreshTrusted,
     this.biometricSign,
     this.golden,
     this.liveObservation,
@@ -113,9 +114,14 @@ class OperatorRuntime {
   /// 없음 = 못 읽음 · 플랫폼 밖. 🔴 «정한 값»이지 «지금 설정»이 아니다 — 지금 설정 = 모의 개시 판(`currentP0sOpsConfig`).
   final P0sHumanDecision? humanDecision;
 
-  /// 🆕 E11p4h(R157) — 신뢰 시각(서약 쓰기 · 12월 창 판정 — 기기 시계 아님). 🔴 실물(Supabase 서버 `now()` · 시계 차
-  /// 판정) = E11k 가 여기 하나에 넣는다 · 그 전 = «모름»(쓰기는 엔진이 `TRUSTED_TIME_UNKNOWN` 으로 거부한다).
+  /// 🆕 E11p4h(R157) — 신뢰 시각(서약 쓰기 · 12월 창 판정 — 기기 시계 아님). 🔴 실물 = 🆕 E11k-a(R197) Supabase 서버 시각
+  /// 기준점(`AnchoredTrustedClock` · 조립 = `platform/bootstrap.dart`) — 연결 전(o_07 ②) · 못 잼 = «모름»(쓰기는 엔진이
+  /// `TRUSTED_TIME_UNKNOWN` 으로 거부한다). 🔴 화면 · 엔진이 이 하나를 같이 쓴다(프로세스에 하나).
   final TrustedClock trusted;
+
+  /// 🆕 E11k-a(R197) — [trusted] 를 서버 시각으로 한 번 다시 잰다(새 기준점 = true · 던지지 않는다) · 없음 = 잴 것 없음
+  /// (시험 · 플랫폼 밖). 부르는 곳 = 앞 화면 갱신(`TrustedTimeKeeper`) · 엔진 깨어남.
+  final Future<bool> Function()? refreshTrusted;
 
   /// 🆕 E11o-d(R167) — 골든 기기 실행기(자산 = 엔진 패키지 · 없음 = 플랫폼 밖 → S10 «판정 보류» · ④ 원천 없음).
   final OperatorGolden? golden;
