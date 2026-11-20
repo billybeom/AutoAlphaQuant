@@ -27,8 +27,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FX = os.path.normpath(os.path.join(HERE, '..', 'fixtures')).replace(os.sep, '/')
 ROOT = os.path.normpath(os.path.join(HERE, '..', '..', '..')).replace(os.sep, '/')
 FX_REL = os.path.relpath(FX, ROOT).replace(os.sep, '/')
-# 계약 1.29.0 · 픽스처 365 의 기준 커밋(origin/main · #288 E11k-b squash — v1.29 신설 2 뒤).
-BASE = 'b979ae33'
+# 계약 1.29.0 · 픽스처 365 의 기준 커밋(origin/main · #288 뒤 병합 기록 1a774189 — 픽스처 JSON = b979ae33 과 같음).
+BASE = '1a774189'
 
 OLD_VER = '"contract_version": "1.29.0"'
 NEW_VER = '"contract_version": "1.30.0"'
