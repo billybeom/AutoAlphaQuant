@@ -81,13 +81,15 @@ import 'package:ui_safety/ui_safety.dart'
         PledgePanel,
         ResumeGateScreen,
         ResumeReportScreen,
+        RuleChangeGateScreen,
         safetyActionsProvider,
         safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyLinkOpenerProvider,
         safetyPledgeRepositoryProvider,
-        safetyResumeGateRepositoryProvider;
+        safetyResumeGateRepositoryProvider,
+        safetyRuleChangeGateRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -120,6 +122,7 @@ import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
 import 'operator_pledge.dart';
 import 'operator_resume.dart';
+import 'operator_rule_change.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
 import 'operator_settings_actions.dart';
@@ -225,6 +228,13 @@ final Provider<OperatorResumeGateRepository> operatorResumeGateProvider =
         hasBody: bodies.byPattern.containsKey,
       );
     });
+
+/// 🆕 R188 — M5-9 규칙 변경 게이트 읽기(한 인스턴스 · 쓰기 = 안전 동작 인스턴스 — 요청 · 승인 · 취소).
+final Provider<OperatorRuleChangeGateRepository>
+operatorRuleChangeGateProvider = Provider<OperatorRuleChangeGateRepository>(
+  (Ref ref) =>
+      OperatorRuleChangeGateRepository(ref.watch(operatorRuntimeProvider)),
+);
 
 /// 🆕 R173 — S7-6c «지금 기준 초안 보기»(엔진 What-if · 원장 상태 어댑터 · 리밸런싱 미리보기만).
 final Provider<OperatorWhatIfApi> operatorWhatIfApiProvider =
@@ -395,6 +405,8 @@ Widget _resumeReport(Map<String, String> _) => const ResumeReportScreen();
 
 Widget _resumeGate(Map<String, String> _) => const ResumeGateScreen();
 
+Widget _ruleChangeGate(Map<String, String> _) => const RuleChangeGateScreen();
+
 Widget _settingsContribution(Map<String, String> _) =>
     const MonthlyContribution();
 
@@ -491,6 +503,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   //    계절 3택 쓰기 = b2b).
   AppRoutes.x2ResumeReport: _resumeReport,
   AppRoutes.x2ResumeGate: _resumeGate,
+  // 🆕 E11q-c0(R188) — M5-9 규칙 변경 게이트 «첫 승인 최소판»(SAF-405 첫 승인 요청 · 냉각 · 승인 · 취소).
+  AppRoutes.m5RuleChangeGate: _ruleChangeGate,
   AppRoutes.settingsContribution: _settingsContribution,
   // 🆕 E11p3d-2b(R133) — H-02 운영 리듬(홈 블록 8 탭).
   AppRoutes.opsRhythm: _opsRhythm,
@@ -548,6 +562,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 R186 — X2 재개 리포트 · 게이트 읽기(링크 = 위 셸 링크 열기 · 계절 3택 쓰기 = 위 안전 동작 인스턴스 — b2b 에서 연다).
   safetyResumeGateRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorResumeGateProvider),
+  ),
+  // 🆕 R188 — M5-9 규칙 변경 게이트 읽기(요청 · 승인 · 취소 = 위 안전 동작 인스턴스).
+  safetyRuleChangeGateRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorRuleChangeGateProvider),
   ),
   // 🆕 R156 — M5-14 가상 초기금 제출 = 같은 명령 API 인스턴스 · 기기 id 없음 = null = 제출 버튼 부재.
   safetySimOpeningCommandApiProvider.overrideWith(

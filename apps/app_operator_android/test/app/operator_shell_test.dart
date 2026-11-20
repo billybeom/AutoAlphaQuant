@@ -22,6 +22,7 @@ import 'package:core_engine/core_engine.dart'
     show
         BlockBoardTexts,
         DeviceRiskFacts,
+        RuleChangeGateTexts,
         HoldingsTexts,
         KillSwitchScreenTexts,
         P0sHumanInputs,
@@ -83,10 +84,12 @@ import 'package:ui_safety/ui_safety.dart'
         PledgePanel,
         ResumeGateScreen,
         ResumeReportScreen,
+        RuleChangeGateScreen,
         safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
-        safetyResumeGateRepositoryProvider;
+        safetyResumeGateRepositoryProvider,
+        safetyRuleChangeGateRepositoryProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -468,6 +471,18 @@ void main() {
     ]) {
       expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
     }
+    // 🆕 R188 — M5-9 규칙 변경 게이트 읽기 = 한 인스턴스 · 레지스트리.
+    expect(
+      identical(
+        container.read(safetyRuleChangeGateRepositoryProvider),
+        container.read(operatorRuleChangeGateProvider),
+      ),
+      true,
+    );
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5RuleChangeGate),
+      true,
+    );
     // 🆕 R182 — M8 운영 슬롯 빌더 = 셸 킬스위치 자리(ui_safety 자리 위젯) · 인쇄 = 자리 부재.
     expect(
       identical(container.read(shellOpsSlotBuilderProvider), operatorOpsSlot),
@@ -1393,6 +1408,34 @@ void main() {
       disposed = true;
     },
   );
+
+  testWidgets('🔴 M5-9 규칙 변경 게이트(R188) = 조립 셸에 등록 · 엔진 머리(승인 0) · 크래시 없음', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(tester);
+    await ready(tester);
+    await open(tester, AppRoutes.m5RuleChangeGate);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 30)),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    final Finder screen = find.byType(RuleChangeGateScreen);
+    expect(screen, findsOneWidget);
+    expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+    final String headline = tester
+        .widget<Text>(find.byKey(const Key('m59-headline')))
+        .data!;
+    expect(<String>[
+      RuleChangeGateTexts.headlineFirst,
+      RuleChangeGateTexts.headlineNoConfig,
+    ], contains(headline));
+    expect(find.byKey(const Key('m59-window')), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    disposed = true;
+  });
 
   testWidgets('🔴 S06 기기 · 접근(R146) = 조립 셸에 등록 · 이 폰 한 행 · 모의 단독 리스 · 캡처 막기', (
     WidgetTester tester,
