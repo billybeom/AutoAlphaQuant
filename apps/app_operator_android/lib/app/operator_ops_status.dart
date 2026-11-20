@@ -6,6 +6,7 @@
 //    바깥 목록은 5분 동안 다시 묻지 않는다(호출 아끼기).
 // 🔴 화면 상태가 없으면(온보딩 전) 체크도 없다 — 빈 보드(«등록된 워치독 체크가 아직 없습니다»).
 // 🔵 진단 = 원장 진단 원천(E13c2) · 연결 · 기기 접근 · 백업 · 연간 = 원천 없음(R109 — 지어내지 않는다).
+// 🆕 E11q-c2(R201) — 백업(S09) = 엔진 `backupVmOf`(사실 = `OperatorBackup` · 화면 원장 · 백업 폴더 · 아카이브 체크포인트 — E11n 전 없음).
 // 🆕 E11p3d-5h(R146) — 기기 · 접근(S06) = 엔진 `deviceAccessVmOf` · 사실 = 이 기기 id(실행 묶음 · R142) · 화면 상태 원장의 리스 판정
 //    (`SqliteLeaseGate.check` — 주문을 막는 그 판정) · 다시 냄 = 들을 때 · 1분 · 리스 표(`sync_state`) · 화면 상태 변경(새 원장으로 감시를 옮긴다) ·
 //    바뀐 값만 · 화면 상태 없음 · 기기 id 없음 = 오류(지어내지 않는다).
@@ -28,6 +29,7 @@ import 'package:core_engine/core_engine.dart'
         RemoteCheck,
         WatchdogRemote,
         annualReviewIndexVmOf,
+        backupVmOf,
         connectionsVmOf,
         deviceAccessVmOf,
         deviceRiskVmOf,
@@ -53,9 +55,11 @@ import 'package:domain_contracts/domain_contracts.dart'
         RunMode,
         TradeDate,
         WatchdogBoardVm;
+import 'package:flutter/foundation.dart' show Listenable;
 import 'package:trading_runtime/trading_runtime.dart'
     show buildWatchdogBoard, kstDateOf, watchdogBoardInputsFor;
 
+import 'operator_backup.dart';
 import 'operator_runtime.dart';
 import 'operator_settings_repository.dart';
 import 'operator_view.dart';
@@ -71,9 +75,13 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
     this.remoteTtl = const Duration(minutes: 5),
     this.riskTick = const Duration(minutes: 5),
     this.hasBody = _noBody,
+    this.backup,
   });
 
   final OperatorRuntime _rt;
+
+  /// 🆕 E11q-c2(R201) — M9 S09 백업(없음 = 원천 없음 · 시험 · 화면 없는 조립).
+  final OperatorBackup? backup;
 
   /// 다시 내는 주기.
   final Duration tick;
@@ -338,8 +346,12 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
       _followView(deviceAccess, const <String>{'sync_state'});
 
   /// 읽기 하나를 따라간다 — 들을 때 · [tick] · 화면 상태 원장의 [tables](화면 상태가 바뀌면 새 원장으로 옮긴다) ·
-  /// 화면 상태 변경 · 바뀐 값만 · 읽기 실패 = 오류 한 번(다음 계기에 다시 읽는다).
-  Stream<T> _followView<T>(Future<T> Function() read, Set<String> tables) {
+  /// 화면 상태 변경 · 🆕 R201 [also](장부 밖 계기 — 백업 폴더) · 바뀐 값만 · 읽기 실패 = 오류 한 번(다음 계기에 다시 읽는다).
+  Stream<T> _followView<T>(
+    Future<T> Function() read,
+    Set<String> tables, {
+    Listenable? also,
+  }) {
     late final StreamController<T> c;
     StreamSubscription<Object>? ledger;
     Timer? timer;
@@ -376,15 +388,19 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
       unawaited(refresh());
     }
 
+    void onAlso() => unawaited(refresh());
+
     c = StreamController<T>(
       onListen: () {
         followLedger();
         _rt.view.addListener(onView);
+        also?.addListener(onAlso);
         timer = Timer.periodic(tick, (_) => unawaited(refresh()));
         unawaited(refresh());
       },
       onCancel: () async {
         _rt.view.removeListener(onView);
+        also?.removeListener(onAlso);
         timer?.cancel();
         await ledger?.cancel();
         await c.close();
@@ -393,8 +409,18 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
     return c.stream;
   }
 
+  /// 🆕 E11q-c2(R201) — M9 S09 백업·복원(엔진 `backupVmOf` · 사실 = 화면 원장 · 백업 폴더 · 아카이브 체크포인트) ·
+  /// 다시 냄 = 들을 때 · [tick](나이) · 스탬프 · 리스 표 · 화면 상태 변경 · 백업을 만들 때 · 바뀐 값만 · 화면 상태 없음 = 오류.
   @override
-  Stream<BackupVm> watchBackup() => _none('watchBackup');
+  Stream<BackupVm> watchBackup() {
+    final OperatorBackup? b = backup;
+    if (b == null) return _none('watchBackup');
+    return _followView(
+      () async => backupVmOf(b.facts(hasBody: hasBody)),
+      const <String>{'ledger_daily_hash', 'ledger_repair', 'sync_state'},
+      also: b.revision,
+    );
+  }
 
   /// 🆕 E11p4l(R168) — M9 S12 연간 리뷰 목차(엔진 `annualReviewIndexVmOf` · 창 = 신뢰 시각 한국 12월 · 목차 = 등록된 화면만 ·
   /// 운영 시작 해 = 온보딩 확정 시각 · 시간만 흘러도 [tick] 마다 다시 낸다 · 같은 값 = 다시 내지 않음).

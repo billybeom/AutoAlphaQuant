@@ -445,6 +445,18 @@ export 'src/ops/annual_review_index.dart'
         annualReviewWindowOf,
         kAnnualReviewEntries,
         kAnnualReviewStaleAfter;
+// 🆕 E11q-c2 — M9 S09 백업·복원 VM · «지금 백업» 결과 · 스냅숏 이름(설계 13 §8 R201 · 미결 199).
+export 'src/ops/backup_screen.dart'
+    show
+        BackupPointFacts,
+        BackupRunTexts,
+        BackupScreenFacts,
+        BackupScreenTexts,
+        backupRunResultOf,
+        backupSnapshotNameOf,
+        backupSnapshotTimeOf,
+        backupVmOf,
+        kBackupScreenStaleAfter;
 export 'src/ops/config_fingerprint.dart'
     show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;
 // 🆕 E11p3d-5f — M9 S07 연결 관리(설계 13 §8 R140).
