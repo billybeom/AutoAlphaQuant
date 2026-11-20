@@ -411,6 +411,7 @@ class P0sExposureTally {
     required this.usdOverDays,
     required this.krwLowDays,
     required this.unmeasured,
+    required this.config,
   });
 
   /// 집계한 달(YYYY-MM).
@@ -427,6 +428,9 @@ class P0sExposureTally {
 
   /// 계측 없는 날(날짜 · 까닭 — 날짜 순).
   final List<(String, String)> unmeasured;
+
+  /// 🆕 미결 209 — 이 집계가 쓴 문턱(월간 리포트 메모의 기준선 글자 = 센 문턱 그대로 · R199).
+  final P0sWarnConfig config;
 
   /// 계측 없는 날 수.
   int get unmeasuredDays => unmeasured.length;
@@ -485,5 +489,6 @@ P0sExposureTally p0sMonthlyExposureTally({
     usdOverDays: usd,
     krwLowDays: krw,
     unmeasured: List<(String, String)>.unmodifiable(none),
+    config: setup.config,
   );
 }

@@ -678,6 +678,15 @@ export 'src/ops/monthly_contribution_view.dart'
         MonthlyContributionTexts,
         contributionUpdateResultOf,
         monthlyContributionVmOf;
+// 🆕 미결 209 — 월간 리포트 빌더 첫 판(13칸 고정 · D2 값 · SAF-307 메모 · 설계 13 §8 R199).
+export 'src/ops/monthly_report.dart'
+    show
+        MonthlyReportSlot,
+        MonthlyReportTexts,
+        kMonthlyReportStaleAfter,
+        monthlyAllocationValueOf,
+        monthlyExposureNoteOf,
+        monthlyReportOf;
 export 'src/ops/next_rebalance_view.dart'
     show NextRebalanceTexts, nextRebalanceVmOf;
 export 'src/ops/operations_config.dart' show OperationsConfig;
