@@ -381,7 +381,12 @@ export 'src/onboarding/biometric_sign.dart'
         kBiometricSignKind;
 // 🆕 E11p3b-1 — 설정 지문(정규 JSON SHA-256 앞 16자 · 설계 13 §8 R90).
 export 'src/onboarding/credential_list.dart'
-    show PaperCredentialFacts, credentialListVmOf, kCredentialListStaleAfter;
+    show
+        LiveCredentialFacts,
+        LiveCredentialTexts,
+        PaperCredentialFacts,
+        credentialListVmOf,
+        kCredentialListStaleAfter;
 export 'src/onboarding/onboarding_choice.dart'
     show
         kOnboardingModeCommittedText,
@@ -657,6 +662,15 @@ export 'src/ops/ledger_views.dart'
         selfReportCellOf,
         severityLabelOf,
         statusLabelOf;
+// 🆕 E11q-c1b — 실전 키 검증 사실(별칭 → 세트 · S3 · 기동 · 설계 13 §8 R196 · 미결 207 ⓑ).
+export 'src/ops/live_keys.dart'
+    show
+        CredentialHealthCodes,
+        CredentialHealthRecord,
+        kLiveKeyRegistryAlias,
+        kP0sLiveKeyKindOfAlias,
+        liveKeysVerifiedOf,
+        requiredLiveKeyKindsOf;
 // 🆕 E15g — 모드 표지(OS 알림 제목 접두 · 표지 글자 · 설계 13 §8 R110 AO7).
 export 'src/ops/mode_marker.dart'
     show alertOsTitlePrefix, kAdvisoryMarker, kSimMarker;

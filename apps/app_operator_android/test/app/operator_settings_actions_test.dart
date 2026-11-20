@@ -22,6 +22,7 @@ import 'package:broker_gateway/broker_gateway.dart'
         storeKisCredentials;
 import 'package:core_engine/core_engine.dart'
     show
+        CredentialHealthRecord,
         OnboardingStepFact,
         P0sHumanInputs,
         kOnboardingDryRunRolledBackText,
@@ -30,7 +31,11 @@ import 'package:core_engine/core_engine.dart'
         kOnboardingModeSelectedText;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
-    show P0sHumanDecision, SqliteOnboardingProgressStore, SqliteOnboardingStore;
+    show
+        P0sHumanDecision,
+        SqliteOnboardingProgressStore,
+        SqliteOnboardingStore,
+        credentialRecordsOf;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         ActionResult,
@@ -313,7 +318,8 @@ void main() {
   });
 
   test('🔴 아직 없는 세트 = 막힘 문구 · args 꼴 위반 = 오류 · 다른 동작 = 구현 없음', () async {
-    final ActionResult live = await verify('KIS_LIVE');
+    // 🆕 R196 — 실전 · ISA 는 이제 엔진 세트 · 대사 전용 = 아직 없는 세트.
+    final ActionResult live = await verify('KIS_RECONCILE');
     expect(live.headline, CredentialVerifyText.setNotYet);
     expect(paths, isEmpty);
     await expectLater(
@@ -605,6 +611,163 @@ void main() {
         args: <String, String>{'kind': 'KIS_PAPER'},
       );
       expect(progress()['o_02']?.state, StepState.failed);
+    });
+  });
+
+  group('🆕 R196(207 ⓑ) — 실전 세트 검증 = 조회만 · 실전 서버 · 키 검증 기록(지금 원장)', () {
+    late LedgerFiles files;
+    late List<Uri> urls;
+    late List<String?> trs;
+    late _Src liveSrc;
+    late OperatorSettingsActions withLedger;
+    late bool ledgerOn;
+
+    setUp(() {
+      files = openFiles(tempLedgerDir(), FakeClock(kst(2026, 12, 22, 9, 30)));
+      urls = <Uri>[];
+      trs = <String?>[];
+      ledgerOn = true;
+      liveSrc = _Src()
+        ..value = KisCredentials(
+          environment: KisEnvironment.live,
+          appKey: _key,
+          appSecret: _secret,
+          accountNo: '87654321',
+          productCode: '01',
+        );
+      handoff.attach(KisKeySet.live, liveSrc);
+      final MockClient net = MockClient((http.Request r) async {
+        urls.add(r.url);
+        trs.add(r.headers['tr_id']);
+        return r.url.path == '/oauth2/tokenP' ? token() : balance();
+      });
+      withLedger = OperatorSettingsActions(
+        secrets: handoff,
+        vault: vault,
+        clientOf: (KisCredentials c) => KisRestClient(
+          net,
+          c,
+          environment: c.environment,
+          sleep: (_) async {},
+          gate: KisRateGate(Duration.zero, sleep: (_) async {}),
+        ),
+        clock: FakeClock(kst(2026, 12, 22, 9, 30)),
+        ledger: () => ledgerOn ? files.sim : null,
+      );
+    });
+    tearDown(() => files.close());
+
+    Future<ActionResult> live([String kind = 'KIS_LIVE']) => withLedger.run(
+      SettingsActionId.credentialVerify,
+      args: <String, String>{'kind': kind},
+    );
+
+    List<String> registry() => <String>[
+      for (final CredentialHealthRecord r in credentialRecordsOf(files.sim))
+        '${r.kind}:${r.health}',
+    ];
+
+    test('🔴 통과 = 실전 서버 · 실전 잔고 TR(조회만) · 저장 · 기록 OK(kis_live)', () async {
+      final ActionResult r = await live();
+      expect((r.headline, r.reasonCode), (CredentialVerifyText.saved, null));
+      expect(
+        <String>{for (final Uri u in urls) u.host},
+        <String>{'openapi.koreainvestment.com'},
+      );
+      expect(
+        <String>[for (final Uri u in urls) u.path],
+        <String>[
+          '/oauth2/tokenP',
+          '/uapi/domestic-stock/v1/trading/inquire-balance',
+        ],
+      );
+      expect(trs.last, 'TTTC8434R');
+      expect(
+        await readKisCredentials(vault, KisKeySet.live),
+        isA<KisCredentialsStored>(),
+      );
+      expect(registry(), <String>['KIS_LIVE:OK']);
+      expect(
+        files.sim
+            .select('SELECT alias, keystore_ref FROM credential_registry')
+            .single
+            .values,
+        <Object?>['kis_live', 'kis.live'],
+      );
+    });
+
+    test('🔴 계좌 거절 = 실전 글자 · 기록 INVALID · 저장 0 · ISA = kis_isa', () async {
+      balance = () => _json(<String, String>{
+        'rt_cd': '1',
+        'msg_cd': 'OPSQ2000',
+        'msg1': 'ERROR : INPUT_FIELD_NAME CANO',
+      });
+      final _Src isaSrc = _Src()
+        ..value = KisCredentials(
+          environment: KisEnvironment.live,
+          appKey: _key,
+          appSecret: _secret,
+          accountNo: '11223344',
+          productCode: '01',
+        );
+      handoff.attach(KisKeySet.isa, isaSrc);
+      final ActionResult r = await live('KIS_ISA');
+      expect(
+        (r.headline, r.reasonCode),
+        (
+          CredentialVerifyText.accountRejectedLive,
+          OnboardingResultCodes.credentialRejected,
+        ),
+      );
+      expect(registry(), <String>['KIS_ISA:INVALID']);
+      expect(
+        await readKisCredentials(vault, KisKeySet.isa),
+        isA<KisCredentialsMissing>(),
+      );
+      expect(
+        files.sim.select('SELECT alias FROM credential_registry').single.values,
+        <Object?>['kis_isa'],
+      );
+    });
+
+    test('실전 서버에 닿지 못함 · 응답을 읽지 못함 = 실전 글자 · 기록 0', () async {
+      token = () => throw http.ClientException('연결 실패');
+      expect((await live()).headline, CredentialVerifyText.unreachableLive);
+      token = () => _json(<String, Object>{
+        'access_token': 'eyFAKE-TOKEN',
+        'token_type': 'Bearer',
+        'expires_in': 86400,
+      });
+      balance = () =>
+          _json(<String, Object>{'rt_cd': '0', 'output1': <Object>[]});
+      expect((await live()).headline, CredentialVerifyText.unreadableLive);
+      expect(registry(), isEmpty);
+    });
+
+    test('토큰 거절 = 기록 INVALID · 화면 원장 없음 = 기록 0(결과 글자는 그대로)', () async {
+      token = () => _json(<String, String>{
+        'error_description': '유효하지 않은 AppKey입니다.',
+        'error_code': 'EGW00103',
+      }, 403);
+      ledgerOn = false;
+      expect((await live()).headline, CredentialVerifyText.keyRejected);
+      expect(registry(), isEmpty);
+      ledgerOn = true;
+      expect((await live()).headline, CredentialVerifyText.keyRejected);
+      expect(registry(), <String>['KIS_LIVE:INVALID']);
+    });
+
+    test('금고 키 다시 검증(칸 비움) = 기록 OK · 모의 세트 검증 = 기록 0', () async {
+      expect((await live()).headline, CredentialVerifyText.saved);
+      liveSrc.value = null;
+      expect((await live()).headline, CredentialVerifyText.reverified);
+      expect(registry(), <String>['KIS_LIVE:OK']);
+      final ActionResult p = await withLedger.run(
+        SettingsActionId.credentialVerify,
+        args: const <String, String>{'kind': 'KIS_PAPER'},
+      );
+      expect(p.headline, CredentialVerifyText.saved);
+      expect(registry(), <String>['KIS_LIVE:OK']);
     });
   });
 }

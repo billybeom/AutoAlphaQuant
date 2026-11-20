@@ -5,8 +5,9 @@
 // 🔴 칸 묶음이 환경을 정한다 — `kis.paper.*` 에서 읽은 키는 늘 모의 환경이다. SIM 기동은 이 묶음만 쓴다(01 §9-3).
 // 🔴 세트는 «다 있거나 없다» — 쓰기 = 넷 다 지운 뒤 넷 다 쓴다. 도중에 끊기면 «없음»이지 옛 값 · 새 값이 섞인 세트가 아니다.
 // 🔴 값은 `toString` · 오류 · 결과 어디에도 없다 — 칸 이름 · 사유만.
-// 🔵 이번 조각 = 모의(`KIS_PAPER`)만. 실전 · ISA · 대사 전용(`KIS_LIVE` · `KIS_ISA` · `KIS_RECONCILE`)은 계약 창(R7 · E15i) 뒤 —
-//    [KisKeySet] 에 값을 더하면 [kisKeySetFor] 의 망라 switch 가 고칠 곳을 알려 준다.
+// 🔵 모의(`KIS_PAPER`) · 🆕 E11q-c1b(설계 13 §8 R196 · 미결 207 ⓑ) 실전 2(`KIS_LIVE` = 종합계좌 위탁 01 + 연금저축 22 공유 ·
+//    `KIS_ISA` = ISA 종합계좌) — 등록 · 조회 검증(토큰 + 잔고 1회)만 쓴다. 🔴 실전 모드의 집행 세트 고르기([kisKeySetFor] live)는
+//    그대로 null — 실전 집행 클라이언트 = 실전 개시 조각(207 ⓖ 뒤). 대사 전용(`KIS_RECONCILE`)은 X7 창 뒤.
 
 import 'package:core_engine/core_engine.dart' show SecretId, SecretVault;
 import 'package:domain_contracts/domain_contracts.dart' show RunMode;
@@ -17,7 +18,13 @@ import 'kis_run_mode.dart' show kisEnvironmentFor;
 /// KIS 키 세트(표기 = 05 S02 `CredentialCardVm.kind`).
 enum KisKeySet {
   /// 모의투자 — `KIS_PAPER`.
-  paper('KIS_PAPER', 'kis.paper', KisEnvironment.mock);
+  paper('KIS_PAPER', 'kis.paper', KisEnvironment.mock),
+
+  /// 🆕 R196 — 실전 종합계좌(위탁 01 · 연금저축 22 공유) — `KIS_LIVE`.
+  live('KIS_LIVE', 'kis.live', KisEnvironment.live),
+
+  /// 🆕 R196 — 실전 ISA 종합계좌 — `KIS_ISA`.
+  isa('KIS_ISA', 'kis.isa', KisEnvironment.live);
 
   const KisKeySet(this.wire, this.slotPrefix, this.environment);
 
@@ -56,7 +63,7 @@ class KisCredentialSlots {
 }
 
 /// 🔴 [mode] 가 쓰는 키 세트 — SIM 계열 = 모의 세트만(01 §9-3 · 내부 시뮬레이터도 시세는 모의 앱키 · ㉑) ·
-/// live = 아직 없다(계약 창 뒤 · null).
+/// live = 아직 없다(null — 🆕 R196 실전 세트 2가 생겼어도 실전 집행 클라이언트 고르기는 실전 개시 조각 몫 · 등록 · 검증만 쓴다).
 KisKeySet? kisKeySetFor(RunMode mode) => switch (mode) {
   RunMode.simInternal || RunMode.simBroker => KisKeySet.paper,
   RunMode.live => null,

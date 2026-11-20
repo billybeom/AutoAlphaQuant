@@ -3,7 +3,8 @@
 import 'package:app_operator_android/secret/secret_handoff.dart';
 import 'package:broker_gateway/broker_gateway.dart'
     show KisCredentials, KisEnvironment, KisKeySet;
-import 'package:domain_contracts/domain_contracts.dart' show OnboardingSlotIds;
+import 'package:domain_contracts/domain_contracts.dart'
+    show OnboardingSlotIds, SettingsSlotIds;
 import 'package:flutter_test/flutter_test.dart';
 
 const String _key = 'PSTESTAPPKEY0000000000001';
@@ -99,7 +100,10 @@ void main() {
       if (s == OnboardingSlotIds.secretKisMock) continue;
       expect(kisKeySetOfSlot(s), isNull, reason: s);
     }
-    expect(kisKeySetOfSlot('SECRET_KIS_LIVE'), isNull);
+    // 🆕 R196 — 실전 2 세트 칸 · 대사 전용 = 아직 없음.
+    expect(kisKeySetOfSlot(SettingsSlotIds.secretKisLive), KisKeySet.live);
+    expect(kisKeySetOfSlot(SettingsSlotIds.secretKisIsa), KisKeySet.isa);
+    expect(kisKeySetOfSlot(SettingsSlotIds.secretKisReconcile), isNull);
   });
 
   group('🔴 넘김(원칙 3 — 값을 복사해 두지 않는다)', () {

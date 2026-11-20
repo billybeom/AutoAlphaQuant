@@ -12,12 +12,17 @@ import 'dart:async';
 import 'package:broker_gateway/broker_gateway.dart'
     show KisCredentials, KisKeySet;
 import 'package:core_engine/core_engine.dart' show secretFingerprint;
-import 'package:domain_contracts/domain_contracts.dart' show OnboardingSlotIds;
+import 'package:domain_contracts/domain_contracts.dart'
+    show OnboardingSlotIds, SettingsSlotIds;
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 
-/// 🔴 슬롯 이름 → KIS 키 세트(엔진에 있는 세트만 · 없으면 null = 자리 부재).
-KisKeySet? kisKeySetOfSlot(String slotId) =>
-    slotId == OnboardingSlotIds.secretKisMock ? KisKeySet.paper : null;
+/// 🔴 슬롯 이름 → KIS 키 세트(엔진에 있는 세트만 · 없으면 null = 자리 부재) · 🆕 R196 실전 2(`SECRET_KIS_LIVE` · `SECRET_KIS_ISA`).
+KisKeySet? kisKeySetOfSlot(String slotId) {
+  if (slotId == OnboardingSlotIds.secretKisMock) return KisKeySet.paper;
+  if (slotId == SettingsSlotIds.secretKisLive) return KisKeySet.live;
+  if (slotId == SettingsSlotIds.secretKisIsa) return KisKeySet.isa;
+  return null;
+}
 
 /// 붙여넣은 값의 원천 — 값은 이 원천(위젯 상태) 안에만 있다.
 abstract interface class KisDraftSource {

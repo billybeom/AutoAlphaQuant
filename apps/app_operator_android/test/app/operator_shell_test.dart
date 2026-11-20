@@ -18,6 +18,7 @@ import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/safety/biometric_sign_field.dart';
 import 'package:app_operator_android/secret/kis_key_set_field.dart';
+import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
 import 'package:core_engine/core_engine.dart'
     show
         BlockBoardTexts,
@@ -643,7 +644,10 @@ void main() {
         expect(w.key, const Key('m4-slot-absent'), reason: id);
       }
     }
-    expect(b!('SECRET_KIS_LIVE').key, const Key('m4-slot-absent'));
+    // 🆕 R196 — 실전 세트 칸 = 키 세트 칸(실전 · ISA) · 대사 전용 = 아직 자리 부재.
+    expect((b!('SECRET_KIS_LIVE') as KisKeySetField).set, KisKeySet.live);
+    expect((b('SECRET_KIS_ISA') as KisKeySetField).set, KisKeySet.isa);
+    expect(b('SECRET_KIS_RECONCILE').key, const Key('m4-slot-absent'));
   });
 
   test(
@@ -710,7 +714,8 @@ void main() {
     final Widget w = b!(OnboardingSlotIds.secretKisMock);
     expect(w, isA<KisKeySetField>());
     expect(identical((w as KisKeySetField).handoff, rt.secrets), true);
-    expect(b('SECRET_KIS_LIVE').key, const Key('m4-slot-absent'));
+    expect((b('SECRET_KIS_LIVE') as KisKeySetField).set, KisKeySet.live);
+    expect(b('SECRET_KIS_RECONCILE').key, const Key('m4-slot-absent'));
     expect(
       container.read(settingsRepositoryProvider),
       isA<OperatorSettingsRepository>(),
@@ -1717,7 +1722,8 @@ void main() {
       Finder inHome(String t) =>
           find.descendant(of: home, matching: find.text(t));
       expect(inHome('모의 · 내부 가상 체결 · 자동 매매'), findsOneWidget);
-      expect(inHome('모의투자 미등록'), findsOneWidget);
+      // 🆕 R196 — 키 3벌(실전 · ISA = SIM 봉인 INFO · 모의 = 필수 미등록 ACT).
+      expect(inHome('3벌 중 1벌 확인 필요'), findsOneWidget);
       expect(inHome('모의 · 자동 매매'), findsOneWidget);
       expect(inHome('월 10만원'), findsOneWidget);
       // 시험 원장 = 운영 설정 없음(지문 '') → 전략 카드는 P0S 를 지어내지 않는다.

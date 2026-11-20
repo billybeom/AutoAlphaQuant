@@ -32,6 +32,8 @@ export 'src/local/alert_read_model.dart';
 export 'src/local/alert_store.dart';
 export 'src/local/biometric_sign_store.dart';
 export 'src/local/config_version_store.dart';
+// 🆕 E11q-c1b — 키 세트 검증 기록(값 0 · 설계 13 §8 R196).
+export 'src/local/credential_registry_store.dart';
 export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
 export 'src/local/derived_sync_store.dart';

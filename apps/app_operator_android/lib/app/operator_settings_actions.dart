@@ -17,6 +17,7 @@ import 'package:broker_gateway/broker_gateway.dart'
         KisCredentialRead,
         KisCredentials,
         KisCredentialsStored,
+        KisEnvironment,
         KisKeySet,
         KisOrderBroker,
         KisRejected,
@@ -29,6 +30,7 @@ import 'package:core_engine/core_engine.dart'
     show
         SecretVault,
         contributionUpdateResultOf,
+        kLiveKeyRegistryAlias,
         kOnboardingDryRunRolledBackText,
         kOnboardingDryRunStartedText,
         kOnboardingModeCommittedText,
@@ -43,6 +45,7 @@ import 'package:data_sync/data_sync.dart'
         LedgerIntegrityCheck,
         LedgerIntegrityReport,
         OnboardingOutcome,
+        SqliteCredentialRegistry,
         SqliteOnboardingProgressStore,
         SqliteOnboardingStore;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -70,6 +73,18 @@ abstract final class CredentialVerifyText {
 
   /// 🆕 R129 — 금고 키 다시 검증 통과(표본 `m9/credential_action_results` ar_s02_02).
   static const String reverified = '다시 검증했습니다 — 바뀐 것이 없습니다.';
+
+  /// 🆕 R196 — 실전 계좌 거절(실전 세트).
+  static const String accountRejectedLive =
+      '계좌번호가 이 키와 맞지 않습니다. 실전 종합계좌번호(8자리)를 다시 확인하십시오.';
+
+  /// 🆕 R196 — 실전 서버에 닿지 못함(실전 세트).
+  static const String unreachableLive =
+      'KIS 실전 서버에 닿지 못했습니다 — 연결을 확인한 뒤 다시 시도하십시오.';
+
+  /// 🆕 R196 — 실전 서버 응답을 읽지 못함(실전 세트).
+  static const String unreadableLive =
+      'KIS 실전 서버의 응답을 읽지 못했습니다 — 잠시 뒤 다시 시도하십시오.';
 
   /// 칸이 화면에 없다.
   static const String noField = '키 입력 칸이 화면에 없습니다 — 키를 붙여넣는 화면에서 검증하십시오.';
@@ -350,12 +365,7 @@ class OperatorSettingsActions implements SettingsActions {
         );
       }
       if (e.status == null) {
-        return _result(
-          id,
-          UiLevel.blocked,
-          CredentialVerifyText.unreachable,
-          retryable: true,
-        );
+        return _result(id, UiLevel.blocked, _unreachable(set), retryable: true);
       }
       _progress(
         set,
@@ -380,30 +390,15 @@ class OperatorSettingsActions implements SettingsActions {
       return _result(
         id,
         UiLevel.blocked,
-        CredentialVerifyText.accountRejected,
+        _accountRejected(set),
         reasonCode: OnboardingResultCodes.credentialRejected,
       );
     } on KisTokenError {
-      return _result(
-        id,
-        UiLevel.blocked,
-        CredentialVerifyText.unreachable,
-        retryable: true,
-      );
+      return _result(id, UiLevel.blocked, _unreachable(set), retryable: true);
     } on KisUnavailable {
-      return _result(
-        id,
-        UiLevel.blocked,
-        CredentialVerifyText.unreachable,
-        retryable: true,
-      );
+      return _result(id, UiLevel.blocked, _unreachable(set), retryable: true);
     } on FormatException {
-      return _result(
-        id,
-        UiLevel.blocked,
-        CredentialVerifyText.unreadable,
-        retryable: true,
-      );
+      return _result(id, UiLevel.blocked, _unreadable(set), retryable: true);
     }
     if (draft == null) {
       // 금고 키 다시 검증 — 저장 · 칸 비움 없음.
@@ -438,9 +433,25 @@ class OperatorSettingsActions implements SettingsActions {
   /// 🆕 R125 — 세트 → 온보딩 단계(모의 = o_02 · 그 밖 = 단계 없음).
   static String? _stepOf(KisKeySet set) => switch (set) {
     KisKeySet.paper => 'o_02',
+    KisKeySet.live || KisKeySet.isa => null,
   };
 
+  /// 🆕 R196 — 세트 환경별 글자(모의 = 기존 표본 글자 그대로 · 실전 = 실전 글자).
+  static String _accountRejected(KisKeySet set) =>
+      set.environment == KisEnvironment.live
+      ? CredentialVerifyText.accountRejectedLive
+      : CredentialVerifyText.accountRejected;
+  static String _unreachable(KisKeySet set) =>
+      set.environment == KisEnvironment.live
+      ? CredentialVerifyText.unreachableLive
+      : CredentialVerifyText.unreachable;
+  static String _unreadable(KisKeySet set) =>
+      set.environment == KisEnvironment.live
+      ? CredentialVerifyText.unreadableLive
+      : CredentialVerifyText.unreadable;
+
   void _progress(KisKeySet set, StepState state, String? code) {
+    _registry(set, state);
     final Database? db = sim;
     final String? step = _stepOf(set);
     if (db == null || step == null) return;
@@ -448,6 +459,20 @@ class OperatorSettingsActions implements SettingsActions {
       db,
       clock: clock,
     ).record(step, state, failureReasonCode: code);
+  }
+
+  /// 🆕 R196(미결 207 ⓑ) — 실전 세트 검증 결과 = 지금 운영 원장의 `credential_registry`(값 0 · 통과 = OK · 거절 = INVALID) ·
+  /// 화면 원장 없음 = 적지 않는다(검증 결과 글자는 그대로).
+  void _registry(KisKeySet set, StepState state) {
+    final String? alias = kLiveKeyRegistryAlias[set.wire];
+    final Database? db = ledger?.call();
+    if (alias == null || db == null) return;
+    SqliteCredentialRegistry(db, clock: clock).recordVerification(
+      alias: alias,
+      kind: set.wire,
+      keystoreRef: set.slotPrefix,
+      passed: state == StepState.verified,
+    );
   }
 
   Future<ActionResult> _modeSelect(Database db, Map<String, String> args) {

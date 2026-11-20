@@ -5,11 +5,11 @@ import 'dart:io';
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/platform/bootstrap.dart'
-    show kOperatorBootInputs;
+    show kOperatorBootInputs, operatorBootInputs;
 import 'package:core_engine/core_engine.dart'
     show kCredentialEnvMismatch, kSaf405;
 import 'package:data_sync/data_sync.dart'
-    show SqliteModeStore, startupConfigApprovalOf;
+    show SqliteCredentialRegistry, SqliteModeStore, startupConfigApprovalOf;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         DecisionReasonCodes,
@@ -161,6 +161,61 @@ void main() {
     expect(r.runMode, RunMode.live);
     expect(r.execPolicy, ExecPolicy.dryRun);
     expect(r.holds, <String>{SafetyHoldCodes.liveAwaitingKeys});
+  });
+
+  test('🆕 R196(207 ⓑ) 실키 검증 = 그 원장의 키 검증 기록 — 실전 세트 둘 다 OK 일 때만 hold 0 · 조립 앱 입력 = 기록 원천', () async {
+    final Directory dir = tempLedgerDir();
+    final LedgerFiles f = openFiles(dir, clock);
+    addTearDown(f.close);
+    writeSimMode(f.sim, clock, committed: OperatingMode.autoTrade);
+    final Database live = writeLiveMode(dir, clock);
+    addTearDown(live.close);
+    final SqliteCredentialRegistry reg = SqliteCredentialRegistry(
+      live,
+      clock: clock,
+    );
+    Future<Set<String>> holds() async => ((await bootEngine(
+      f,
+      clock: clock,
+      inputs: BootInputs(
+        approvedOf: (Database _, RunMode m) => 1,
+        liveKeysVerified: kOperatorBootInputs.liveKeysVerified,
+      ),
+    )) as EngineReady).holds;
+    expect(await registryLiveKeysVerified(live), isFalse);
+    expect(await holds(), <String>{SafetyHoldCodes.liveAwaitingKeys});
+    reg.recordVerification(
+      alias: 'kis_live',
+      kind: 'KIS_LIVE',
+      keystoreRef: 'kis.live',
+      passed: true,
+    );
+    expect(await registryLiveKeysVerified(live), isFalse);
+    reg.recordVerification(
+      alias: 'kis_isa',
+      kind: 'KIS_ISA',
+      keystoreRef: 'kis.isa',
+      passed: true,
+    );
+    expect(await registryLiveKeysVerified(live), isTrue);
+    expect(await holds(), isEmpty);
+    // 🔴 기록은 기동이 고른 원장 것만 — 모의 파일 기록은 실전 기동을 풀지 않는다.
+    expect(await registryLiveKeysVerified(f.sim), isFalse);
+    reg.recordVerification(
+      alias: 'kis_isa',
+      kind: 'KIS_ISA',
+      keystoreRef: 'kis.isa',
+      passed: false,
+    );
+    expect(await registryLiveKeysVerified(live), isFalse);
+    expect(await holds(), <String>{SafetyHoldCodes.liveAwaitingKeys});
+    expect(
+      identical(
+        operatorBootInputs(deviceId: 'd').liveKeysVerified,
+        registryLiveKeysVerified,
+      ),
+      isTrue,
+    );
   });
 
   test('🔴 반쯤 끝난 2단 커밋(live 행 · sim 안 닫힘)을 고친다 — sim CLOSE 1행', () async {

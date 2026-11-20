@@ -6,12 +6,14 @@
 // 🔴 승인 config = `config_versions.approved == 1` 하나 ∧ 그것을 승인한 규칙 변경 기록(마지막 APPROVED 결정의 «후» hash 와
 //    같다). 승인 기록이 없거나 어긋나면 «승인 아님»(null) → 커밋 거부 `SIM_TO_AUTO_CONFIG_NOT_APPROVED`
 //    (승인의 길 = 규칙 변경 승인뿐 · SAF-405 · 냉각 30일 수치 무변경).
-// 🔴 옮기는 것 = 설정 판 1(approved 1 그대로) · 그 승인 요청 · 결정 · 요청 저널 · 서약 전 판 · 서약 편집 저널(208).
+// 🔴 옮기는 것 = 설정 판 1(approved 1 그대로) · 그 승인 요청 · 결정 · 요청 저널 · 서약 전 판 · 서약 편집 저널(208) ·
+//    🆕 R196 실전 키 세트 검증 기록(`credential_registry` 의 `KIS_LIVE` · `KIS_ISA` 행 — 값 0 · 실전 기동 «실키 검증» 원천 · 207 ⓑ).
 //    큐(미결정 요청) · 승인 안 된 판 · 취소 · 명령 행(`command_inbox` — 파일마다 멱등) · 서약 재생 = 옮기지 않는다.
 // 🔵 열 = 모의 파일 행 그대로(같은 스키마 — `openLocalLedger`) · 표 = 아래 고정 목록뿐.
 
 import 'package:core_engine/core_engine.dart' show kNoApprovedConfig;
-import 'package:domain_contracts/domain_contracts.dart' show LedgerFile;
+import 'package:domain_contracts/domain_contracts.dart'
+    show CredentialKindCodes, LedgerFile;
 import 'package:sqlite3/sqlite3.dart';
 
 /// 옮기는 행 하나(표 · 열 이름 → 값).
@@ -37,13 +39,14 @@ class SimToAutoCarry {
     rows: <SimToAutoCarriedRow>[],
   );
 
-  /// 🔴 넣는 차례(참조 먼저) — 저널 → 규칙 변경 요청 → 결정 → 설정 판 → 서약.
+  /// 🔴 넣는 차례(참조 먼저) — 저널 → 규칙 변경 요청 → 결정 → 설정 판 → 서약 → 🆕 실전 키 검증 기록(R196).
   static const List<String> tables = <String>[
     'decision_journal',
     'rule_change_request',
     'rule_change_decision',
     'config_versions',
     'pledge',
+    'credential_registry',
   ];
 
   /// 승인 기록과 맞는 승인 config(없음 = null).
@@ -120,6 +123,12 @@ SimToAutoCarry readSimToAutoCarry(Database sim) {
         SimToAutoCarriedRow('config_versions', _values(cfg!)),
       ],
       for (final Row p in pledges) SimToAutoCarriedRow('pledge', _values(p)),
+      // 🆕 R196 — 실전 키 세트 검증 기록(값 0).
+      for (final Row k in sim.select(
+        'SELECT * FROM credential_registry WHERE kind IN (?, ?) ORDER BY alias',
+        <Object?>[CredentialKindCodes.kisLive, CredentialKindCodes.kisIsa],
+      ))
+        SimToAutoCarriedRow('credential_registry', _values(k)),
     ],
   );
 }
@@ -127,7 +136,8 @@ SimToAutoCarry readSimToAutoCarry(Database sim) {
 /// 🔴 커밋 트랜잭션 안에서만 — [carry] 의 행을 실전 파일 [live] 에 넣는다(실패 = 던짐 → 커밋 전부 되돌림).
 ///
 /// 설정 판: 같은 지문이 이미 있으면 내용이 같아야 한다(다르면 [StateError]) · 넣은 뒤 승인 목록 = 그 판 하나(R66 ⓐ).
-/// 그 밖 표: 그대로 넣는다(같은 id 가 이미 있으면 SQLite 오류 = 되돌림 — 실전 파일엔 커밋 전 이 행들이 없다).
+/// 그 밖 표: 그대로 넣는다(같은 id 가 이미 있으면 SQLite 오류 = 되돌림 — 실전 파일엔 커밋 전 이 행들이 없다) ·
+/// 🆕 R196 키 검증 기록 = 같은 별칭이면 모의 파일 행이 이긴다(값 0 · 커밋을 되돌릴 일이 아니다).
 void writeSimToAutoCarryInTransaction(Database live, SimToAutoCarry carry) {
   if (live.autocommit) {
     throw StateError('승인 config 옮김은 바깥 트랜잭션 안에서만');
@@ -153,8 +163,11 @@ void writeSimToAutoCarryInTransaction(Database live, SimToAutoCarry carry) {
         }
       }
       final List<String> cols = r.values.keys.toList();
+      final String verb = table == 'credential_registry'
+          ? 'INSERT OR REPLACE'
+          : 'INSERT';
       live.execute(
-        'INSERT INTO $table (${cols.join(', ')}) '
+        '$verb INTO $table (${cols.join(', ')}) '
         'VALUES (${List<String>.filled(cols.length, '?').join(', ')})',
         <Object?>[for (final String c in cols) r.values[c]],
       );

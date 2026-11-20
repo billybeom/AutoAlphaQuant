@@ -15,8 +15,10 @@ import 'package:broker_gateway/broker_gateway.dart'
 import 'package:core_engine/core_engine.dart'
     show
         AccountMappingFacts,
+        CredentialHealthRecord,
         DiagnosticsScreenFacts,
         GoldenCardFacts,
+        LiveCredentialFacts,
         PaperAccountFacts,
         PaperCredentialFacts,
         SecretVault,
@@ -36,8 +38,10 @@ import 'package:data_sync/data_sync.dart'
         OnboardingProgressRecord,
         OpsConfigRead,
         OpsConfigReady,
+        SqliteCredentialRegistry,
         SqliteOnboardingProgressStore,
         contributionRowsOf,
+        credentialRecordsOf,
         currentP0sOpsConfig,
         kIntegrityOk,
         storedLedgerDiffs,
@@ -110,6 +114,34 @@ class OperatorSettingsRepository implements SettingsRepository {
     );
   }
 
+  /// 🆕 R196(207 ⓑ · K208) — 실전 세트 사실(금고 저장 여부 + 지금 화면 원장의 마지막 조회 검증 기록 · 값 0).
+  Future<List<LiveCredentialFacts>> liveFacts() async {
+    final SecretVault? vault = _rt.vault;
+    final Database? db = _rt.view.value?.db;
+    final List<CredentialHealthRecord> records = db == null
+        ? const <CredentialHealthRecord>[]
+        : credentialRecordsOf(db);
+    final List<LiveCredentialFacts> out = <LiveCredentialFacts>[];
+    for (final KisKeySet set in <KisKeySet>[KisKeySet.live, KisKeySet.isa]) {
+      bool stored = false;
+      if (vault != null) {
+        try {
+          stored = await readKisCredentials(vault, set) is KisCredentialsStored;
+        } on Object {
+          stored = false;
+        }
+      }
+      CredentialHealthRecord? last;
+      for (final CredentialHealthRecord r in records) {
+        if (r.kind == set.wire) last = r;
+      }
+      out.add(
+        LiveCredentialFacts(kind: set.wire, stored: stored, record: last),
+      );
+    }
+    return out;
+  }
+
   /// 🆕 R151 — 모의 계좌 사실(금고의 모의 키 세트 번호 · 마지막 검증 통과 = 모의 서버 잔고 조회).
   Future<PaperAccountFacts> paperAccount() async {
     final SecretVault? vault = _rt.vault;
@@ -169,10 +201,14 @@ class OperatorSettingsRepository implements SettingsRepository {
     runMode: _rt.view.value?.flags.runMode ?? RunMode.simInternal,
     paper: await paperFacts(),
     nowUtc: _rt.clock.nowUtc(),
+    // 🆕 R196 · K208 — 실전 · ISA 카드(SIM = 봉인 표시 + 미등록 · 실패 카드에 조회 검증 자리).
+    live: await liveFacts(),
+    operatingMode: _rt.view.value?.flags.operatingMode,
   );
 
   @override
-  Stream<CredentialListVm> watchCredentials() => _follow(credentials);
+  Stream<CredentialListVm> watchCredentials() =>
+      _follow(credentials, viewTables: SqliteCredentialRegistry.watchedTables);
 
   /// 🆕 R134 — 월 납입 운영값(엔진 `contributionSettingOf` · 읽기 실패 = 카드 상태 줄 없음 · 설정 홈 전체를 막지 않는다).
   ContributionSetting? _contributionOf(OperatorView v, DateTime now) {

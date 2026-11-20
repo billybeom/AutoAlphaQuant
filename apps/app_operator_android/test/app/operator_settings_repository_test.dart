@@ -23,6 +23,7 @@ import 'package:data_sync/data_sync.dart'
         LedgerDiagnosticsSource,
         LedgerIntegrityCheck,
         SqliteConfigVersionStore,
+        SqliteCredentialRegistry,
         p0sHumanDecisionFromText,
         SqliteOnboardingProgressStore,
         SqliteOnboardingStore;
@@ -34,6 +35,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         AppRoutes,
         CommandContext,
         CredentialCardVm,
+        CredentialKindCodes,
         CredentialListVm,
         DiagnosticsScreenVm,
         FeatureFlags,
@@ -42,12 +44,13 @@ import 'package:domain_contracts/domain_contracts.dart'
         OperatingMode,
         OperatingParamKeys,
         RunMode,
-        SettingsCard,
-        SettingsGroup,
         SelfReportBalance,
         SelfReportPurpose,
         SettingsActionId,
+        SettingsCard,
+        SettingsGroup,
         SettingsHomeVm,
+        SettingsSlotIds,
         SleeveMappingRow,
         StepState,
         TradeDate,
@@ -84,7 +87,10 @@ void main() {
   SqliteOnboardingProgressStore progress() =>
       SqliteOnboardingProgressStore(files.sim, clock: clock);
 
-  CredentialCardVm card(CredentialListVm v) => v.cards.single;
+  // 🆕 R196 — 목록 = 실전 · ISA · 모의 3벌(표본 차례) → 모의 카드는 종류로 고른다.
+  CredentialCardVm card(CredentialListVm v) => v.cards.singleWhere(
+    (CredentialCardVm c) => c.kind == CredentialKindCodes.kisPaper,
+  );
 
   test('🔴 금고 비었음 · 기록 없음 = 미등록(모의 = 필수 · 할 일) · 칸 + «검증 후 저장»', () async {
     final CredentialCardVm c = card(
@@ -213,6 +219,68 @@ void main() {
 
   bool onlyS02(String r) => r == AppRoutes.settingsCredentials;
 
+  test('🆕 R196 · K208 — S02 실전 · ISA 카드 = 금고 + 지금 원장 키 검증 기록 · SIM 미등록 = 봉인 + 칸 + «검증 후 저장» · 기록이 바뀌면 다시 낸다', () async {
+    rt.view.value = viewOf(files.sim);
+    final List<CredentialListVm> got = <CredentialListVm>[];
+    final StreamSubscription<CredentialListVm> sub = OperatorSettingsRepository(
+      rt,
+    ).watchCredentials().listen(got.add);
+    addTearDown(sub.cancel);
+    await until(() => got.isNotEmpty);
+    expect(
+      <String>[for (final CredentialCardVm c in got.last.cards) c.kind],
+      <String>[
+        CredentialKindCodes.kisLive,
+        CredentialKindCodes.kisIsa,
+        CredentialKindCodes.kisPaper,
+      ],
+    );
+    final CredentialCardVm live0 = got.last.cards.first;
+    expect(
+      (
+        live0.healthCode,
+        live0.sealLabel != null,
+        live0.credentialSlotId,
+        live0.verifyAction?.label,
+      ),
+      ('NOT_REGISTERED', true, SettingsSlotIds.secretKisLive, '검증 후 저장'),
+    );
+    expect(got.last.modeNotice, isNotNull);
+    await storeKisCredentials(
+      vault,
+      KisKeySet.live,
+      KisCredentials(
+        environment: KisEnvironment.live,
+        appKey: 'PSTESTAPPKEY0000000000001',
+        appSecret: 'TESTSECRETVALUEabcdefghijklmnop9876',
+        accountNo: '87654321',
+      ),
+    );
+    SqliteCredentialRegistry(files.sim, clock: clock).recordVerification(
+      alias: 'kis_live',
+      kind: CredentialKindCodes.kisLive,
+      keystoreRef: 'kis.live',
+      passed: true,
+    );
+    await until(() => got.last.cards.first.healthCode == 'OK');
+    final CredentialCardVm live1 = got.last.cards.first;
+    // SIM 통과 = 봉인 그대로 · 동작 0(봉인 해제 컨트롤 0).
+    expect(
+      (
+        live1.level,
+        live1.credentialSlotId,
+        live1.verifyAction,
+        live1.lastVerifiedText,
+      ),
+      (UiLevel.info, null, null, '마지막 검증 12-01 09:00 · 통과'),
+    );
+    // ISA 카드는 실전 세트 기록을 집지 않는다(세트별 기록).
+    expect(
+      (got.last.cards[1].healthCode, got.last.cards[1].lastVerifiedText),
+      ('NOT_REGISTERED', null),
+    );
+  });
+
   test('🔴 설정 홈 — 화면 상태 없음(온보딩 전) = 오류(지어내지 않는다)', () async {
     await expectLater(
       OperatorSettingsRepository(rt).watchHome(),
@@ -239,7 +307,7 @@ void main() {
         code: 'SET_CREDENTIALS',
         title: '증권사 키',
         level: UiLevel.act,
-        statusLabel: '모의투자 미등록',
+        statusLabel: '3벌 중 1벌 확인 필요',
         attentionText: '1',
         route: AppRoutes.settingsCredentials,
       ),
@@ -310,22 +378,25 @@ void main() {
         () => cardOf(got.last, 'SET_CONTRIBUTION')?.statusLabel == '월 20만원',
       );
       expect(cardOf(got.last, 'SET_CONTRIBUTION')?.statusLabel, '월 20만원');
-      progress().record(
-        'o_02',
-        StepState.failed,
-        failureReasonCode: OnboardingResultCodes.credentialRejected,
+      // 🆕 R196 — 모의 키 저장 + 통과 기록 → 확인 필요 0 · 실전 2벌 미등록(SIM = INFO).
+      await storeKisCredentials(
+        vault,
+        KisKeySet.paper,
+        KisCredentials(
+          environment: KisEnvironment.mock,
+          appKey: 'PSTESTAPPKEY0000000000001',
+          appSecret: 'TESTSECRETVALUEabcdefghijklmnop9876',
+          accountNo: '12345678',
+        ),
       );
+      progress().record('o_02', StepState.verified);
       await until(
-        () => cardOf(got.last, 'SET_CREDENTIALS')?.statusLabel == '모의투자 검증 실패',
+        () => cardOf(got.last, 'SET_CREDENTIALS')?.statusLabel == '3벌 중 2벌 미등록',
       );
-      expect(cardOf(got.last, 'SET_CREDENTIALS')?.statusLabel, '모의투자 검증 실패');
+      expect(cardOf(got.last, 'SET_CREDENTIALS')?.statusLabel, '3벌 중 2벌 미등록');
       final int n = got.length;
       // 다른 표 · 같은 값 = 다시 내지 않는다.
-      progress().record(
-        'o_02',
-        StepState.failed,
-        failureReasonCode: OnboardingResultCodes.credentialRejected,
-      );
+      progress().record('o_02', StepState.verified);
       await Future<void>.delayed(const Duration(milliseconds: 200));
       expect(got.length, n);
     },
