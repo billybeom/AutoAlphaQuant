@@ -296,6 +296,66 @@ void main() {
       },
     );
 
+    test('🆕 E11k-c(R206) o_07 진행 중 = 표본 `_step_detail_supabase` 의 글자 · 연결 확인 동작 · 슬롯 · 진행 중 확인 글자', () {
+      final OnboardingStepDetailVm want = OnboardingStepDetailVm.fromJson(
+        _row('onboarding_step_detail_supabase'),
+      );
+      final OnboardingStepDetailVm got = onboardingStepDetailVmOf(
+        stepId: 'o_07',
+        mode: OperatingMode.autoTrade,
+        facts: <String, OnboardingStepFact>{
+          ...facts,
+          'o_07': const OnboardingStepFact(state: StepState.inProgress),
+        },
+        nowUtc: _now,
+      );
+      expect(got.whereText, want.whereText);
+      expect(got.howText, want.howText);
+      expect(got.verify, want.verify);
+      expect(got.secretSlotId, want.secretSlotId);
+      expect(got.secretSlotId, OnboardingSlotIds.supabaseConnect);
+      expect(got.step!.state, StepState.inProgress);
+      expect(got.step!.verificationLabel, want.step!.verificationLabel);
+      expect(got.step!.title, want.step!.title);
+      expect(got.step!.whyLine, want.step!.whyLine);
+    });
+
+    test(
+      '🆕 R206 o_07 확인 글자 = 진행 중만 · 시작 전 = 없음 · 그 밖 상태 = 카탈로그 기본(아직 없음)',
+      () {
+        String? label(StepState? st) =>
+            onboardingStepsVmOf(
+                  mode: OperatingMode.autoTrade,
+                  facts: <String, OnboardingStepFact>{
+                    'o_07': st == null
+                        ? const OnboardingStepFact.unknown()
+                        : OnboardingStepFact(state: st),
+                  },
+                  nowUtc: _now,
+                ).rows
+                .singleWhere((OnboardingStep s) => s.stepId == 'o_07')
+                .verificationLabel;
+        expect(label(StepState.inProgress), '서버 시각 확인됨 — 로그인과 SQL 단계가 남았습니다');
+        expect(label(StepState.notStarted), isNull);
+        expect(label(null), isNull);
+        expect(label(StepState.verified), isNull);
+        expect(label(StepState.failed), isNull);
+        // 다른 단계의 진행 중 = 그 단계의 기본 확인 글자 그대로(o_02).
+        expect(
+          onboardingStepsVmOf(
+                mode: OperatingMode.autoTrade,
+                facts: const <String, OnboardingStepFact>{
+                  'o_02': OnboardingStepFact(state: StepState.inProgress),
+                },
+                nowUtc: _now,
+              ).rows
+              .singleWhere((OnboardingStep s) => s.stepId == 'o_02')
+              .verificationLabel,
+          '토큰 발급 + 모의 잔고 조회 1회',
+        );
+      },
+    );
+
     test('o_06 = 표본 `_step_detail_no_verify`(글자 · 동작 0 · 슬롯 0)', () {
       final OnboardingStepDetailVm want = OnboardingStepDetailVm.fromJson(
         _row('onboarding_step_detail_no_verify'),

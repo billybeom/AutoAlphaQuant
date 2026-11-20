@@ -277,6 +277,8 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       liveObservation: observation,
       trusted: trusted,
       refreshTrusted: trusted.refresh,
+      // 🆕 E11k-c(R206) — o_07 ② 연결 확인(붙여 넣은 값으로 서버 시각 1회 · 통과 = 금고).
+      supabaseTime: SupabaseServerTime(http.Client(), AndroidSecretVault()),
     );
   } on Object {
     return null;

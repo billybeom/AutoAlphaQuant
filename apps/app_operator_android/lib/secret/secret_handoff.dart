@@ -33,9 +33,33 @@ abstract interface class KisDraftSource {
   void clear();
 }
 
+/// 🆕 E11k-c(R206) — o_07 ② Supabase 연결 칸의 원천(값 = 위젯 상태에만 · 꼴 검사를 지난 값만 쥔다).
+abstract interface class SupabaseDraftSource {
+  /// 지금 값 — 빈 칸 = null.
+  ({String? url, String? key}) current();
+
+  /// 값을 비운다(저장 뒤 · 취소).
+  void clear();
+}
+
 /// 🔴 위젯 ↔ 검증 동작 사이의 넘김(조립 앱 내부 · 계약 칸 0 · 01 §29 K5).
 class SecretHandoff {
   final Map<KisKeySet, KisDraftSource> _live = <KisKeySet, KisDraftSource>{};
+  SupabaseDraftSource? _supabase;
+
+  /// 🆕 R206 — Supabase 칸이 설 때 붙는다(나중 것이 이긴다).
+  void attachSupabase(SupabaseDraftSource source) => _supabase = source;
+
+  /// 🆕 R206 — Supabase 칸이 내려갈 때 떨어진다(자기 자리일 때만).
+  void detachSupabase(SupabaseDraftSource source) {
+    if (identical(_supabase, source)) _supabase = null;
+  }
+
+  /// 🆕 R206 — 연결 확인 직전 — 지금 칸의 값(칸 없음 = null) · 🔴 복사해 두지 않는다.
+  ({String? url, String? key})? supabaseDraft() => _supabase?.current();
+
+  /// 🆕 R206 — 저장 뒤 — 칸을 비운다.
+  void clearSupabaseAfterSave() => _supabase?.clear();
 
   /// 위젯이 설 때 붙는다(같은 세트 = 나중 것이 이긴다).
   void attach(KisKeySet set, KisDraftSource source) => _live[set] = source;

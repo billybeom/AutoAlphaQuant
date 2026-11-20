@@ -10,6 +10,7 @@
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppRoutes,
+        ConnectionTargetCodes,
         CredentialKindCodes,
         GateBadge,
         GateState,
@@ -74,6 +75,7 @@ class _Spec {
     this.auto,
     this.advisory,
     this.verificationLabel,
+    this.inProgressLabel,
     this.unknownGate,
     this.after,
     this.hasDetail = true,
@@ -92,6 +94,9 @@ class _Spec {
   final _Place? auto;
   final _Place? advisory;
   final String? verificationLabel;
+
+  /// 🆕 E11k-c(R206) — 진행 중(`IN_PROGRESS`)일 때의 확인 글자(없음 = [verificationLabel]).
+  final String? inProgressLabel;
 
   /// 원천 없음 게이트(code, label) — 필수일 때만 붙는다.
   final (String, String)? unknownGate;
@@ -190,6 +195,17 @@ const List<_Spec> _catalogue = <_Spec>[
     estimatedText: '약 10분',
     auto: _Place(StepRequirement.required_, 6),
     advisory: _Place(StepRequirement.required_, 6),
+    // 🆕 E11k-c(R206 · 계약 v1.29 01 §39 · 표본 `m8/onboarding_step_detail_supabase`) — 첫 판 = ② 주소 · 공개 키 → 서버 시각
+    //    1회(진행 중 · VERIFIED = 쓰기-읽기 왕복 뒤 — 로그인 · SQL = E11k-d · e · 그때 VERIFIED 글자를 단다).
+    inProgressLabel: '서버 시각 확인됨 — 로그인과 SQL 단계가 남았습니다',
+    whereText: 'Supabase 프로젝트 설정의 API Keys 화면에서 프로젝트 주소와 publishable 키를 복사합니다. 비밀 키와 service_role 키는 넣지 않습니다.',
+    howText: '서버 시각을 한 번 읽어 연결을 확인합니다. 로그인과 SQL 실행은 다음 단계에서 합니다.',
+    verify: OnboardingAction(
+      id: SettingsActionId.connectionTest,
+      args: <String, String>{'target': ConnectionTargetCodes.supabase},
+      label: '연결 확인',
+    ),
+    secretSlotId: OnboardingSlotIds.supabaseConnect,
     unknownGate: _conn,
   ),
   _Spec(
@@ -372,9 +388,11 @@ OnboardingStep _stepOf(
     estimatedText: s.estimatedText,
     requirement: p.need,
     state: state,
-    verificationLabel: state == StepState.notStarted
-        ? null
-        : s.verificationLabel,
+    verificationLabel: switch (state) {
+      StepState.notStarted => null,
+      StepState.inProgress => s.inProgressLabel ?? s.verificationLabel,
+      _ => s.verificationLabel,
+    },
     verifiedUntil: until,
     failureReasonCode: code,
     requirementLabel: _needLabel(p.need),

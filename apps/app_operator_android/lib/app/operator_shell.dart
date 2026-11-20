@@ -116,6 +116,7 @@ import '../safety/biometric_sign_field.dart';
 import '../safety/golden_selftest_field.dart';
 import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
+import '../secret/supabase_connect_field.dart';
 import 'operator_backup.dart';
 import 'operator_biometric.dart';
 import 'operator_block_board.dart';
@@ -334,6 +335,9 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
         handover: ref.watch(operatorHandoverProvider),
         // 🆕 R201 — S09 «지금 백업»(X1 `take` · 기기 안만).
         backup: ref.watch(operatorBackupProvider),
+        // 🆕 E11k-c(R206) — o_07 ② 연결 확인 · 저장 뒤 신뢰 시각 바로 잼.
+        supabaseTime: rt.supabaseTime,
+        refreshTrusted: rt.refreshTrusted,
       );
     });
 
@@ -347,10 +351,18 @@ final Provider<OperatorSafetyActions> operatorSafetyActionsProvider =
     );
 
 /// 🆕 R115 — 온보딩 슬롯 빌더(M4-11 ①) — 엔진에 있는 키 세트의 시크릿 칸 · 🆕 R157 O-04 ② 서약(M5-8) · 🆕 R159 ③ 생체 서명 ·
-/// 🆕 R167 ④ 골든벡터 셀프테스트 ·
+/// 🆕 R167 ④ 골든벡터 셀프테스트 · 🆕 R206 o_07 ② Supabase 연결 칸 ·
 /// 나머지 = 자리 부재(크기 0 · 키 `m4-slot-absent`).
 ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
   if (slotId == OnboardingSlotIds.pledgeWrite) return const PledgePanel();
+  // 🆕 R206 — o_07 ② 주소 · 공개 키 붙여넣기(KIS 칸과 같은 넘김 · 클립보드 정리 · 캡처 막기).
+  if (slotId == OnboardingSlotIds.supabaseConnect) {
+    return SupabaseConnectField(
+      handoff: rt.secrets,
+      janitor: rt.clipboard,
+      secure: rt.secure,
+    );
+  }
   // 🆕 R167 — O-04 ④ 골든벡터 셀프테스트(조립 앱 칸 · S10 과 같은 실행기 · 기록 = sim 파일).
   final OperatorGolden? golden = rt.golden;
   if (slotId == OnboardingSlotIds.selftestRun && golden != null) {
