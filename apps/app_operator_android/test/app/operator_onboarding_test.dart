@@ -10,13 +10,20 @@ import 'package:core_engine/core_engine.dart'
         P0sHumanInputs,
         P0sOpsConfig,
         P0sStrategyIds,
+        RecoveryCardTexts,
         onboardingModeChoiceVmOf,
         onboardingStartVmOf;
+import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
+        RecoveryCardState,
         SqliteConfigVersionStore,
         SqliteOnboardingProgressStore,
-        SqliteOnboardingStore;
+        SqliteOnboardingStore,
+        SqliteRecoveryCardStore,
+        SupabaseAuth,
+        SupabaseFirstClaim,
+        SupabaseLeaseRpc;
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -38,6 +45,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         StepState,
         TradeDate;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 import '../engine/support.dart';
 
@@ -276,6 +285,55 @@ void main() {
     // ② 끝 → ③ = 원천 없음(UNKNOWN · 슬롯 없음).
     expect(got.last.stages[2].gate?.state, GateState.unknown);
     expect(got.last.stages[2].slotId, isNull);
+  });
+
+  test('🆕 R229 마무리 ⑤ = 첫 클레임 흐름 사실 — 흐름 있음 = 원천 있음(④ 앞 = 차례 막힘 · 발급 0) · 실행됨 기록 = 끝(코드 없는 줄)', () async {
+    final List<http.Request> net = <http.Request>[];
+    final http.Client client = MockClient((http.Request q) async {
+      net.add(q);
+      return http.Response('', 500);
+    });
+    final MemorySecretVault vault = MemorySecretVault(<String, String>{});
+    final SupabaseFirstClaim claim = SupabaseFirstClaim(
+      SupabaseLeaseRpc(
+        client,
+        vault,
+        SupabaseAuth(client, vault, clock: clock),
+      ),
+      files.sim,
+      deviceId: '0f1e2d3c-4b5a-4978-8a6b-5c4d3e2f1a0b',
+      clock: clock,
+    );
+    final OperatorRuntime with5 = OperatorRuntime(
+      files: files,
+      clock: clock,
+      firstClaim: claim,
+    );
+    store().selectOperatingMode(OperatingMode.autoTrade);
+    final OnboardingFinishVm open = await OperatorOnboardingRepository(with5)
+        .watchFinish()
+        .first;
+    // ④(셀프테스트) 원천 없음 → ⑤ = 차례 막힘 · 줄 0 · 슬롯 0 · 카드 발급 0.
+    expect(open.stages[4].gate?.code, 'STAGE_ORDER');
+    expect(open.stages[4].lines, isEmpty);
+    expect(open.stages[4].slotId, isNull);
+    // 흐름 없음 = 원천 없음(R127 그대로).
+    final OnboardingFinishVm none = await OperatorOnboardingRepository(rt)
+        .watchFinish()
+        .first;
+    expect(none.stages[4].gate?.state, GateState.unknown);
+    SqliteRecoveryCardStore(files.sim, clock: clock).append(
+      commandId: 'rc-1',
+      state: RecoveryCardState.claimed,
+      hash: 'sha256:${'a' * 32}:${'b' * 64}',
+      epoch: 1,
+    );
+    final OnboardingFinishVm done = await OperatorOnboardingRepository(with5)
+        .watchFinish()
+        .first;
+    expect(done.stages[4].state, StepState.verified);
+    expect(done.stages[4].lines, <String>[RecoveryCardTexts.doneLine]);
+    expect(net, isEmpty);
   });
 
   test(

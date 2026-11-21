@@ -16,6 +16,7 @@ import 'package:ui_shell/ui_shell.dart' show ShellBodyBuilder, ShellRouteBodies;
 import '../platform/android_ops.dart' show isExternalHttps;
 
 /// 🔴 FLAG_SECURE 라우트(R107) — S02 자격증명 · S06 기기 · 접근(QR) · V-01 페어링(QR) · X1 새 폰 받기(QR) · X1 비상(복구 코드) ·
+/// 🆕 R229 O-04 마무리(⑤ 복구 카드 줄) ·
 /// 🆕 E16j-b X1 옛 폰 마법사(티켓 QR — 01 §42 K265 «x1Migration = 옛 폰» · 논스 = 리스 클레임 재료).
 const Set<String> kSecureRoutePatterns = <String>{
   AppRoutes.settingsCredentials,
@@ -24,6 +25,8 @@ const Set<String> kSecureRoutePatterns = <String>{
   AppRoutes.x1Migration,
   AppRoutes.x1MigrationPlan,
   AppRoutes.x1MigrationEmergency,
+  // 🆕 E11k-e3(R229 F9) — O-04 마무리(⑤ 복구 카드 줄 = 복구 코드 평문 · 단계 `lines` 라 슬롯 밖에 보인다 → 라우트 통째).
+  AppRoutes.onboardingFinish,
 };
 
 /// 캡처 막기 겹침 세기.

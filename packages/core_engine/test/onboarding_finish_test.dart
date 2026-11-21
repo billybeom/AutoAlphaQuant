@@ -259,4 +259,123 @@ void main() {
     expect(r[1].headline, kOnboardingDryRunRolledBackText);
     expect(r[1].reasonCode, OnboardingResultCodes.dryRunStartRolledBack);
   });
+
+  group('🆕 R229 ⑤ 복구 카드(E11k-e3)', () {
+    const String code = 'ABCD-EFGH-JKMN-PQRS-TUVW';
+    OnboardingFinishFacts facts({
+      bool? card = false,
+      bool pending = false,
+      List<String> lines = const <String>[],
+      (int, int)? st = (12, 12),
+      List<String> Function()? issue,
+      bool committed = false,
+    }) => OnboardingFinishFacts(
+      mode: OperatingMode.autoTrade,
+      committed: committed,
+      pledged: true,
+      openingDeclared: false,
+      configHash: _hash,
+      biometricSigned: true,
+      selftest: st,
+      recoveryCardDone: card,
+      recoveryCardPending: pending,
+      recoveryCardLines: lines,
+      recoveryCardIssue: issue,
+    );
+
+    test('🔴 열림 = 그때 카드 줄을 부른다(발급) · 슬롯 · 시작 전 · 코드 = 그 줄에만', () {
+      int calls = 0;
+      List<String> issue() {
+        calls++;
+        return recoveryCardIssueLines(code);
+      }
+
+      final OnboardingFinishStage s5 = onboardingFinishVmOf(facts(issue: issue))
+          .stages[4];
+      expect(calls, 1);
+      expect(s5.state, StepState.notStarted);
+      expect(s5.slotId, OnboardingSlotIds.recoveryChecksum);
+      expect(s5.gate, isNull);
+      expect(s5.lines, recoveryCardIssueLines(code));
+      expect(s5.lines.where((String l) => l.contains(code)), hasLength(1));
+    });
+
+    test('🔴 닫힘(④ 미완 · 원천 없음) = 카드 줄을 부르지 않는다(발급 0) · 줄 0 · 슬롯 0', () {
+      int calls = 0;
+      List<String> issue() {
+        calls++;
+        return recoveryCardIssueLines(code);
+      }
+
+      final OnboardingFinishStage order = onboardingFinishVmOf(
+        facts(st: (3, 12), issue: issue),
+      ).stages[4];
+      expect(order.gate?.code, 'STAGE_ORDER');
+      expect(order.lines, isEmpty);
+      expect(order.slotId, isNull);
+      final OnboardingFinishStage none = onboardingFinishVmOf(
+        facts(card: null, issue: issue, lines: <String>['x']),
+      ).stages[4];
+      expect(none.gate?.state, GateState.unknown);
+      expect(none.lines, isEmpty);
+      expect(calls, 0);
+    });
+
+    test('🔴 대기(종이 확인 · 등록 남음) = 진행 중 · 슬롯 그대로 · 대기 줄 · 카드 줄 0', () {
+      int calls = 0;
+      final OnboardingFinishStage s5 = onboardingFinishVmOf(
+        facts(
+          pending: true,
+          lines: <String>[RecoveryCardTexts.pendingLine],
+          issue: () {
+            calls++;
+            return recoveryCardIssueLines(code);
+          },
+        ),
+      ).stages[4];
+      expect(s5.state, StepState.inProgress);
+      expect(s5.slotId, OnboardingSlotIds.recoveryChecksum);
+      expect(s5.lines, <String>[RecoveryCardTexts.pendingLine]);
+      expect(calls, 0);
+    });
+
+    test('🔴 끝 = 확인됨 · 슬롯 0 · 코드 없는 줄 · ⑥ 열림', () {
+      final OnboardingFinishVm vm = onboardingFinishVmOf(
+        facts(
+          card: true,
+          lines: <String>[RecoveryCardTexts.doneLine],
+          issue: () => throw StateError('끝난 단계에서 발급'),
+        ),
+      );
+      final OnboardingFinishStage s5 = vm.stages[4];
+      expect(s5.state, StepState.verified);
+      expect(s5.slotId, isNull);
+      expect(s5.lines, <String>[RecoveryCardTexts.doneLine]);
+      expect(vm.stages[5].link, isNotNull);
+    });
+
+    test('글자 — 결과 8 전부 문장 · 카드 줄(새로 냄 = 머리 줄) · 종류 이름', () {
+      for (final FirstClaimOutcome o in FirstClaimOutcome.values) {
+        expect(firstClaimResultText(o), isNotEmpty, reason: o.name);
+      }
+      expect(
+        firstClaimResultText(FirstClaimOutcome.claimed),
+        RecoveryCardTexts.claimed,
+      );
+      expect(
+        recoveryCardIssueLines(code, reissued: true).first,
+        RecoveryCardTexts.reissuedLine,
+      );
+      expect(recoveryCardIssueLines(code).first, '복구 코드: $code');
+      expect(kRecoveryCardKind, 'ONBOARDING_RECOVERY_CARD');
+      expect(kRecoveryCardKind, isNot(kBiometricSignKind));
+      for (final String t in <String>[
+        RecoveryCardTexts.doneLine,
+        RecoveryCardTexts.existingLine,
+        RecoveryCardTexts.pendingLine,
+      ]) {
+        expect(t, isNot(contains(code)));
+      }
+    });
+  });
 }

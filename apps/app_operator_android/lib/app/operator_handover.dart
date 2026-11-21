@@ -93,6 +93,7 @@ import 'package:trading_runtime/trading_runtime.dart'
 
 import '../engine/kis_sessions.dart'
     show LiveAccountKey, kisCredentialsWithProduct, liveAccountKeyOf;
+import '../engine/lease_wiring.dart' show operatorLeaseGate;
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
@@ -321,10 +322,12 @@ class OperatorHandover {
           ).session(sessionId);
     final SimToAutoFacts f = src.facts(trustedNowUtc: now, session: session);
     // 리스 = 운영 중인 파일(모의) — 모드 행이 없으면 관문이 시각 · 세션 · 재판정에서 먼저 거부한다.
-    final SqliteLeaseGate leaseGate = SqliteLeaseGate(
+    // 🆕 R229 — 원격 = simBroker 원장일 때만(simInternal = 로컬 단독 그대로).
+    final SqliteLeaseGate leaseGate = operatorLeaseGate(
       sim,
       mode: f.simRunMode ?? RunMode.simInternal,
       clock: _rt.clock,
+      remote: _rt.leaseRemote,
     );
     final LeaseSnapshot lease = LeaseSnapshot(
       verdict: await leaseGate.check(),
