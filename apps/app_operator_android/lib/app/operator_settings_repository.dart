@@ -7,6 +7,8 @@
 //    키 목록(위와 같은 VM) + 월 납입 운영값(`operating_param_log`) + 레지스트리 본문 유무([hasBody] — 없는 화면으로 링크하지 않는다).
 //    다시 낸다 = 키 목록과 같은 때 + 월 납입 기록 · 화면 상태 없음(온보딩 전) = 오류.
 // 🔴 나머지 창구(운영 · 계좌 매핑) = 원천 없음(오류 — 지어내지 않는다 · 그 화면은 미등록).
+// 🆕 E11q-s04a(R211) — M9 S04 배분 첫 판 = 엔진 `allocationEditorVmOfConfig`(운영 설정 판 · 못 읽으면 스트림 오류 —
+//    엔진 기본값 대입 0 · K206) · 다시 낸다 = 모의 개시 판이 바뀔 때(`decision_log` · `config_versions`) · 주기 · 화면 상태 변경.
 
 import 'dart:async';
 
@@ -25,6 +27,7 @@ import 'package:core_engine/core_engine.dart'
         SettingsHomeFacts,
         StoredLedgerDiff,
         accountMappingVmOf,
+        allocationEditorVmOfConfig,
         contributionKstDay,
         contributionSettingOf,
         credentialListVmOf,
@@ -38,6 +41,7 @@ import 'package:data_sync/data_sync.dart'
         OnboardingProgressRecord,
         OpsConfigRead,
         OpsConfigReady,
+        OpsConfigUnavailable,
         SqliteCredentialRegistry,
         SqliteOnboardingProgressStore,
         contributionRowsOf,
@@ -196,6 +200,25 @@ class OperatorSettingsRepository implements SettingsRepository {
     );
   }
 
+  /// 🆕 E11q-s04a — S04 배분 첫 판(보기 전용) = 지금 운영 설정 판으로 엔진 VM.
+  ///
+  /// 🔴 화면 상태 없음(온보딩 전) = [StateError] · 설정 판을 못 읽음 = 그 [OpsConfigUnavailable] 를 던진다 — 정본 P0S 기본값을
+  /// «읽은 것처럼» 보이지 않는다(K206 · 엔진 기본값 갈래 `allocationViewOf` 를 부르지 않는다).
+  Future<AllocationEditorVm> allocationEditor() async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) {
+      throw StateError('배분: 화면 상태 없음(온보딩 전)');
+    }
+    final OpsConfigRead cfg = currentP0sOpsConfig(v.db);
+    return switch (cfg) {
+      OpsConfigReady(:final config) => allocationEditorVmOfConfig(
+        config,
+        nowUtc: _rt.clock.nowUtc(),
+      ),
+      OpsConfigUnavailable() => throw cfg,
+    };
+  }
+
   /// 지금 키 목록.
   Future<CredentialListVm> credentials() async => credentialListVmOf(
     runMode: _rt.view.value?.flags.runMode ?? RunMode.simInternal,
@@ -326,11 +349,13 @@ class OperatorSettingsRepository implements SettingsRepository {
   @override
   Stream<OperationsVm> watchOperations() => _none('watchOperations');
 
-  /// 🆕 계약 v1.28(01 §37 · K199) — S04 첫 판. 실물 = 엔진·조립 카드(엔진 `allocationViewOf` → 계약 VM · 운영 설정 객체 ·
-  /// 못 읽으면 오류 — K206).
+  /// 🆕 계약 v1.28(01 §37 · K199) — S04 첫 판 · ✅ E11q-s04a = [allocationEditor](운영 설정 판 · 못 읽으면 오류 — K206) ·
+  /// 다시 읽음 = S03 매핑과 같은 원천 표(모의 개시 판이 바뀌면).
   @override
-  Stream<AllocationEditorVm> watchAllocationEditor() =>
-      _none('watchAllocationEditor');
+  Stream<AllocationEditorVm> watchAllocationEditor() => _follow(
+    allocationEditor,
+    viewTables: const <String>{'decision_log', 'config_versions'},
+  );
 
   @override
   Stream<AccountMappingVm> watchAccountMapping() => _follow(

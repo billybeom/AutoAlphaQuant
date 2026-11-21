@@ -16,12 +16,16 @@ import 'package:core_engine/core_engine.dart'
         P0sHumanInputs,
         P0sOpsConfig,
         P0sStrategyIds,
-        checkpointLabelOf;
+        allocationEditorVmOfConfig,
+        checkpointLabelOf,
+        kSettingsAllocationLabel;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
         LedgerDiagnosticsSource,
         LedgerIntegrityCheck,
+        OpsConfigCodes,
+        OpsConfigUnavailable,
         SqliteConfigVersionStore,
         SqliteCredentialRegistry,
         p0sHumanDecisionFromText,
@@ -32,6 +36,7 @@ import 'package:domain_contracts/domain_contracts.dart'
     show
         AccountMappingVm,
         AccountRow,
+        AllocationEditorVm,
         AppRoutes,
         CommandContext,
         CredentialCardVm,
@@ -586,6 +591,135 @@ void main() {
   test('🔴 나머지 창구 = 원천 없음(오류)', () async {
     final OperatorSettingsRepository r = OperatorSettingsRepository(rt);
     await expectLater(r.watchOperations(), emitsError(isA<UnsupportedError>()));
+  });
+
+  // ── 🆕 E11q-s04a — S04 배분 첫 판(운영 설정 판 · 못 읽으면 오류 — K206) ──────────────
+
+  const Map<String, String> s04Accounts = <String, String>{
+    P0sStrategyIds.sleeveA: 'general',
+    P0sStrategyIds.sleeveB: 'pension',
+    P0sStrategyIds.sleeveC: 'general',
+    P0sStrategyIds.pot: 'general',
+  };
+
+  /// 운영 설정 판을 등재한다(`config_versions`) — 지문.
+  String registerS04() =>
+      SqliteConfigVersionStore(files.sim, clock: clock).register(
+        P0sOpsConfig.of(
+          P0sHumanInputs(aSymbol: '999990', accountByStrategy: s04Accounts),
+        ).content(),
+      );
+
+  /// 모의 개시 판(운영 설정 등재 + 개시 결정)을 세운다.
+  void openSimS04([String? registered]) {
+    final String hash = registered ?? registerS04();
+    final SqliteOnboardingStore s = SqliteOnboardingStore(
+      files.sim,
+      clock: clock,
+    );
+    expect(s.selectOperatingMode(OperatingMode.autoTrade).ok, true);
+    expect(
+      s
+          .declareSimOpening(
+            SelfReportBalance(
+              asOfTradeDate: const TradeDate('2026-12-01'),
+              purpose: SelfReportPurpose.simOpening,
+              sessionStartedAt: clock.now,
+              lines: const [],
+              cashKrw: Decimal.parse('10000000'),
+              accountAlias: 'general',
+              declaredComplete: true,
+              context: const CommandContext(
+                runMode: RunMode.simInternal,
+                operatingMode: OperatingMode.autoTrade,
+                leaseEpoch: 0,
+                deviceId: 'dev-1',
+              ),
+            ),
+            accountByStrategy: s04Accounts,
+            configHash: hash,
+          )
+          .ok,
+      true,
+    );
+  }
+
+  test(
+    '🔴 S04 — 모의 개시 판이 있으면 첫 값 = 그 판으로 지은 엔진 VM(카드 = S01 카드 상태 줄과 같은 글자)',
+    () async {
+      openSimS04();
+      rt.view.value = viewOf(files.sim);
+      final AllocationEditorVm vm = await OperatorSettingsRepository(rt)
+          .watchAllocationEditor()
+          .first;
+      expect(
+        vm,
+        allocationEditorVmOfConfig(
+          P0sOpsConfig.of(
+            P0sHumanInputs(aSymbol: '999990', accountByStrategy: s04Accounts),
+          ),
+          nowUtc: clock.nowUtc(),
+        ),
+      );
+      expect(vm.current.label, kSettingsAllocationLabel);
+      expect(vm.sections, hasLength(3));
+      expect(vm.asOf.observedAt, clock.nowUtc());
+    },
+  );
+
+  test('🔴 S04 — 모의 개시 결정 없음 = 스트림 오류 OPS_CONFIG_NO_OPENING · 값 0(정본 기본값을 읽은 것처럼 보이지 않는다 · K206)', () async {
+    rt.view.value = viewOf(files.sim);
+    final List<AllocationEditorVm> got = <AllocationEditorVm>[];
+    final List<Object> errors = <Object>[];
+    final StreamSubscription<AllocationEditorVm> sub =
+        OperatorSettingsRepository(rt)
+            .watchAllocationEditor()
+            .listen(got.add, onError: errors.add);
+    addTearDown(sub.cancel);
+    await until(() => errors.isNotEmpty);
+    expect(errors.first, isA<OpsConfigUnavailable>());
+    expect(
+      (errors.first as OpsConfigUnavailable).code,
+      OpsConfigCodes.noOpening,
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    expect(got, isEmpty);
+  });
+
+  test('🔴 S04 — 화면 상태 없음(온보딩 전) = 오류 · 값 0', () async {
+    final OperatorSettingsRepository r = OperatorSettingsRepository(rt);
+    await expectLater(r.allocationEditor(), throwsA(isA<StateError>()));
+    final List<AllocationEditorVm> got = <AllocationEditorVm>[];
+    final List<Object> errors = <Object>[];
+    final StreamSubscription<AllocationEditorVm> sub = r
+        .watchAllocationEditor()
+        .listen(got.add, onError: errors.add);
+    addTearDown(sub.cancel);
+    await until(() => errors.isNotEmpty);
+    expect(errors.first, isA<StateError>());
+    expect(got, isEmpty);
+  });
+
+  test('🔴 S04 — 판 등재(config_versions) · 개시 결정(decision_log)이 따로 서도 각각 다시 읽어 VM 을 낸다', () async {
+    rt.view.value = viewOf(files.sim);
+    final List<AllocationEditorVm> got = <AllocationEditorVm>[];
+    final List<Object> errors = <Object>[];
+    final StreamSubscription<AllocationEditorVm> sub =
+        OperatorSettingsRepository(rt)
+            .watchAllocationEditor()
+            .listen(got.add, onError: errors.add);
+    addTearDown(sub.cancel);
+    await until(() => errors.isNotEmpty);
+    expect(got, isEmpty);
+    // 등재만 = 다시 읽지만 개시 결정이 없어 여전히 오류(값 0).
+    final String hash = registerS04();
+    await until(() => errors.length >= 2);
+    expect(errors, hasLength(2));
+    expect(got, isEmpty);
+    // 개시 결정 = 그 표 감시로 다시 읽어 VM.
+    openSimS04(hash);
+    await until(() => got.isNotEmpty);
+    expect(got.single.current.label, kSettingsAllocationLabel);
   });
   // ── 🆕 R160 — S10 진단 ─────────────────────────────────────────────────
 
