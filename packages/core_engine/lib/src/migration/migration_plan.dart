@@ -8,7 +8,16 @@
 // 🔴 시각 = 신뢰 시각 · 모르면 시작하지 않는다.
 
 import 'package:domain_contracts/domain_contracts.dart'
-    show OperatingMode, RunMode;
+    show
+        OperatingMode,
+        RunMode,
+        SafetyCommonResultCodes,
+        X1KindCodes,
+        X1RoleCodes,
+        X1StartResultCodes,
+        X1StepBlockCodes,
+        X1StepCodes,
+        X1StepStateCodes;
 
 import '../ops/lease_gate.dart' show LeaseVerdict;
 import '../ops/ledger_views.dart' show kstDateText;
@@ -16,10 +25,10 @@ import '../ops/ledger_views.dart' show kstDateText;
 /// 이전 갈래(02 `migration_run.kind`).
 enum MigrationKind {
   /// 계획 교체(X1-2 — 옛 폰이 옆에 있다).
-  plan('PLAN'),
+  plan(X1KindCodes.plan),
 
   /// 비상(X1-3 — 옛 폰을 잃었다 · E16c).
-  emergency('EMERGENCY');
+  emergency(X1KindCodes.emergency);
 
   const MigrationKind(this.wire);
 
@@ -30,10 +39,10 @@ enum MigrationKind {
 /// 이 파일 기기의 역할(02 `migration_run.role`).
 enum MigrationRole {
   /// 옛 폰.
-  oldDevice('OLD_DEVICE'),
+  oldDevice(X1RoleCodes.oldDevice),
 
   /// 새 폰.
-  newDevice('NEW_DEVICE');
+  newDevice(X1RoleCodes.newDevice);
 
   const MigrationRole(this.wire);
 
@@ -44,13 +53,13 @@ enum MigrationRole {
 /// 단계 행 상태(02 `migration_step.state`).
 enum MigrationStepState {
   /// 들어감.
-  entered('ENTERED'),
+  entered(X1StepStateCodes.entered),
 
   /// 끝남.
-  done('DONE'),
+  done(X1StepStateCodes.done),
 
   /// 실패(DEMOTED 앞에서만).
-  failed('FAILED');
+  failed(X1StepStateCodes.failed);
 
   const MigrationStepState(this.wire);
 
@@ -67,31 +76,31 @@ enum MigrationStepState {
 /// 옛 폰 계획 교체 단계(R117 B3 — 차례 = 선언 차례).
 enum PlanStep {
   /// 신규 주문 동결(리스 합성 무효 · 감시 유지보수 창 개시).
-  freeze('FREEZE'),
+  freeze(X1StepCodes.freeze),
 
   /// 미체결 0 ∧ UNKNOWN 0(터미널 상태 도달까지 잠금).
-  ordersCleared('ORDERS_CLEARED'),
+  ordersCleared(X1StepCodes.ordersCleared),
 
   /// 최종 대사 0오차.
-  reconZero('RECON_ZERO'),
+  reconZero(X1StepCodes.reconZero),
 
   /// 체크섬 백업(매니페스트 chain = 지금 체인).
-  backupChecksum('BACKUP_CHECKSUM'),
+  backupChecksum(X1StepCodes.backupChecksum),
 
   /// 🔴 로컬 DEMOTED 표시(최선두 · 되돌릴 수 없는 점).
-  demoted('DEMOTED'),
+  demoted(X1StepCodes.demoted),
 
   /// 키 삭제.
-  keysDeleted('KEYS_DELETED'),
+  keysDeleted(X1StepCodes.keysDeleted),
 
   /// RETIRED 서명.
-  retired('RETIRED'),
+  retired(X1StepCodes.retired),
 
   /// 서비스 종료.
-  serviceStopped('SERVICE_STOPPED'),
+  serviceStopped(X1StepCodes.serviceStopped),
 
   /// 이전 티켓 발급(강등 끝난 뒤에만).
-  ticketIssued('TICKET_ISSUED');
+  ticketIssued(X1StepCodes.ticketIssued);
 
   const PlanStep(this.wire);
 
@@ -108,22 +117,24 @@ enum PlanStep {
   );
 }
 
-/// 이전 시작 거부 코드(R117 B2 · B5 — 계약 등재 = E16i 전 문자열).
+/// 이전 시작 거부 코드(R117 B2 · B5 — 글자 = 계약 `X1StartResultCodes` ∪ 공용 `SafetyCommonResultCodes` 참조 · 미결 212).
 abstract final class MigrationStartCodes {
   /// live 파일이 아니다(D17 — 체험 중 폰 교체 = 모의 폐기 + 새 개시).
-  static const String liveOnly = 'X1_LIVE_ONLY';
+  static const String liveOnly = X1StartResultCodes.liveOnly;
 
   /// 안내 모드 기기 이전 = 조건 결정 대기 hold(D15).
-  static const String advisoryPending = 'X1_ADVISORY_PENDING';
+  static const String advisoryPending = X1StartResultCodes.advisoryPending;
 
   /// 계획 교체인데 `D-03` 확인 결정이 없다.
-  static const String d03NotConfirmed = 'D03_NOT_CONFIRMED';
+  static const String d03NotConfirmed = X1StartResultCodes.d03NotConfirmed;
 
   /// 비상인데 선언 결정이 없다.
-  static const String emergencyNotDeclared = 'EMERGENCY_NOT_DECLARED';
+  static const String emergencyNotDeclared =
+      X1StartResultCodes.emergencyNotDeclared;
 
   /// 신뢰 시각 모름.
-  static const String trustedTimeUnknown = 'TRUSTED_TIME_UNKNOWN';
+  static const String trustedTimeUnknown =
+      SafetyCommonResultCodes.trustedTimeUnknown;
 }
 
 /// 🔴 이전 시작 판정 — 거부 코드(차례대로 첫 하나) · 통과 = null.
@@ -347,19 +358,20 @@ class PlanStepFacts {
 /// 단계 완료를 막는 이유 코드.
 abstract final class PlanBlockCodes {
   /// 미체결이 남았다.
-  static const String openOrders = 'OPEN_ORDERS_REMAIN';
+  static const String openOrders = X1StepBlockCodes.openOrders;
 
   /// UNKNOWN 이 남았다.
-  static const String unknownOrders = 'UNKNOWN_ORDERS_REMAIN';
+  static const String unknownOrders = X1StepBlockCodes.unknownOrders;
 
   /// 대사가 0오차가 아니다.
-  static const String reconNotZero = 'RECON_NOT_ZERO';
+  static const String reconNotZero = X1StepBlockCodes.reconNotZero;
 
   /// 백업이 없다.
-  static const String backupMissing = 'BACKUP_MISSING';
+  static const String backupMissing = X1StepBlockCodes.backupMissing;
 
   /// 백업 체인이 지금 체인과 다르다.
-  static const String backupChainMismatch = 'BACKUP_CHAIN_MISMATCH';
+  static const String backupChainMismatch =
+      X1StepBlockCodes.backupChainMismatch;
 }
 
 /// 🔴 [step] 을 DONE 으로 적어도 되나 — 막는 이유(없음 = null). 사실이 필요 없는 단계 = 늘 null.

@@ -9,19 +9,24 @@ import 'dart:convert' show jsonDecode, jsonEncode;
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
-    show OperatingMode, RunMode;
+    show
+        MaintenanceWindowResultCodes,
+        OperatingMode,
+        RunMode,
+        SafetyCommonResultCodes;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../local/alert_store.dart' show SqliteAlertSink;
 import '../market/market_store.dart' show inLedgerTransaction;
 
-/// 창 저장 거부 코드(계약 등재 = E16i 전 문자열).
+/// 창 저장 거부 코드(글자 = 계약 `MaintenanceWindowResultCodes` ∪ 공용 `SafetyCommonResultCodes` 참조 · 미결 212).
 abstract final class WindowStoreCodes {
   /// 이미 열린 창이 있다.
-  static const String alreadyOpen = 'MW_ALREADY_OPEN';
+  static const String alreadyOpen = MaintenanceWindowResultCodes.alreadyOpen;
 
   /// 신뢰 시각 모름.
-  static const String trustedTimeUnknown = 'TRUSTED_TIME_UNKNOWN';
+  static const String trustedTimeUnknown =
+      SafetyCommonResultCodes.trustedTimeUnknown;
 }
 
 /// 알림을 내는 곳 이름(묶음 키).

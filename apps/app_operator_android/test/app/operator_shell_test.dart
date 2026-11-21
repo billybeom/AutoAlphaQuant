@@ -111,6 +111,7 @@ import 'package:ui_safety/ui_safety.dart'
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyHandoverRepositoryProvider,
+        safetyMigrationRepositoryProvider,
         safetyResumeGateRepositoryProvider,
         safetyRuleChangeGateRepositoryProvider,
         safetySettingsActionsProvider;
@@ -586,7 +587,7 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5HandoverGate),
       false,
     );
-    // 🆕 R201 — M9 S09 백업 = 한 인스턴스(읽기 · «지금 백업»이 같은 것) · 레지스트리 · X1 기기 이전 = 빈 자리(링크 부재).
+    // 🆕 R201 — M9 S09 백업 = 한 인스턴스(읽기 · «지금 백업»이 같은 것) · 레지스트리 · 🆕 E16j-b X1 기기 이전 = 본문 셋(링크가 열린다).
     expect(
       identical(
         container.read(operatorOpsStatusProvider).backup,
@@ -598,9 +599,19 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.settingsBackup),
       true,
     );
+    for (final String r in <String>[
+      AppRoutes.x1Migration,
+      AppRoutes.x1MigrationPlan,
+      AppRoutes.x1MigrationEmergency,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+    }
     expect(
-      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.x1Migration),
-      false,
+      identical(
+        container.read(safetyMigrationRepositoryProvider),
+        container.read(operatorMigrationProvider),
+      ),
+      true,
     );
     // 🆕 R182 — M8 운영 슬롯 빌더 = 셸 킬스위치 자리(ui_safety 자리 위젯) · 인쇄 = 자리 부재.
     expect(

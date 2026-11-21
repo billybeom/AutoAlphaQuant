@@ -4,6 +4,9 @@
 // 🔴 실패 기본값 = 매매 없는 안전 정지 그대로 — 이 게이트에는 롤백 · 옛 폰 재승격 상태가 없다.
 // 🔴 관찰 일수 = 설정(계획 · 비상 — M1-22 키와 별개 · lib 리터럴 0) · 일수 세기는 호출자(E16h).
 
+import 'package:domain_contracts/domain_contracts.dart'
+    show X1GateReasonCodes, X1GateStateCodes;
+
 import 'migration_plan.dart' show MigrationKind;
 
 /// 재개 게이트 관찰 일수(값 = 02 §4 `operations.migration.observation_trading_days` — 잠정 · ⬜ 발주자 확정).
@@ -41,16 +44,16 @@ class MigrationObservationConfig {
 /// 게이트 상태 — 🔴 넷뿐(롤백 · 재승격 0).
 enum MigrationGateState {
   /// 막힘(매매 없는 안전 정지 그대로).
-  blocked('BLOCKED'),
+  blocked(X1GateStateCodes.blocked),
 
   /// 관찰 중(dryRun).
-  observing('OBSERVING'),
+  observing(X1GateStateCodes.observing),
 
   /// 승인 대기(체크리스트 → 생체).
-  awaitingApproval('AWAITING_APPROVAL'),
+  awaitingApproval(X1GateStateCodes.awaitingApproval),
 
   /// 통과(LIVE 재개 가능).
-  passed('PASSED');
+  passed(X1GateStateCodes.passed);
 
   const MigrationGateState(this.wire);
 
@@ -58,31 +61,31 @@ enum MigrationGateState {
   final String wire;
 }
 
-/// 게이트 사유 코드(계약 등재 = E16i 전 문자열).
+/// 게이트 사유 코드(글자 = 계약 `X1GateReasonCodes` 참조 · 미결 212).
 abstract final class MigrationGateCodes {
   /// 골든 자가검사 아직.
-  static const String goldenNotRun = 'X1_GOLDEN_NOT_RUN';
+  static const String goldenNotRun = X1GateReasonCodes.goldenNotRun;
 
   /// 골든 자가검사 실패.
-  static const String goldenFailed = 'X1_GOLDEN_FAILED';
+  static const String goldenFailed = X1GateReasonCodes.goldenFailed;
 
   /// 대사 0오차 아님.
-  static const String reconNotZero = 'X1_RECON_NOT_ZERO';
+  static const String reconNotZero = X1GateReasonCodes.reconNotZero;
 
   /// UNKNOWN 남음.
-  static const String unknownOrders = 'X1_UNKNOWN_ORDERS_REMAIN';
+  static const String unknownOrders = X1GateReasonCodes.unknownOrders;
 
   /// 미체결 남음.
-  static const String openOrders = 'X1_OPEN_ORDERS_REMAIN';
+  static const String openOrders = X1GateReasonCodes.openOrders;
 
   /// 관찰 중.
-  static const String observing = 'X1_OBSERVING';
+  static const String observing = X1GateReasonCodes.observing;
 
   /// 체크리스트 확인 대기.
-  static const String checklistPending = 'X1_CHECKLIST_PENDING';
+  static const String checklistPending = X1GateReasonCodes.checklistPending;
 
   /// 생체 확인 대기.
-  static const String biometricPending = 'X1_BIOMETRIC_PENDING';
+  static const String biometricPending = X1GateReasonCodes.biometricPending;
 }
 
 /// 게이트 사실(엔진 · 저장 · 화면이 모은다).

@@ -174,4 +174,16 @@ abstract final class SafetyLabels {
 
   /// 위저드를 읽지 못했다(원천 오류 — «전제 밖»과 다르다).
   static const String handoverWizardReadFailed = '실전 전환 화면을 읽지 못했습니다.';
+
+  // ── 🆕 X1 기기 이전(E16j-b · 01 §42) — 읽기 실패 · 칸 이름만(머리 · 단계 · 상태 · 줄 · 버튼 · 시각 · 해시 · 결과 = 엔진 ·
+  //    제출 자체 실패 = [submitNotAccepted]) ──
+
+  /// 이전 화면을 읽지 못했다.
+  static const String x1ReadFailed = '기기 이전 화면을 읽지 못했습니다.';
+
+  /// 단계 칸 이름.
+  static const String x1Steps = '단계';
+
+  /// 재발급 칸 이름.
+  static const String x1Reissue = '다시 받을 키';
 }

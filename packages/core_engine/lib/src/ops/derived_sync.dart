@@ -12,15 +12,21 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:domain_contracts/domain_contracts.dart'
-    show DiffSeverity, LedgerAxis, LedgerPair, OriginCodes;
+    show
+        AlertCodes,
+        DerivedRelationCodes,
+        DiffSeverity,
+        LedgerAxis,
+        LedgerPair,
+        OriginCodes;
 
 import '../orders/ledger_pairs.dart' show diffSeverityFor;
 import 'lease_gate.dart' show LeaseVerdict;
 import 'ledger_archive.dart' show ArchiveCheckpoint;
 import 'ledger_integrity.dart' show StoredDayStamp;
 
-/// 파생 FORK 알림 코드(P0 제안 · 계약 등재 = E16i).
-const String kDerivedForkAlertCode = 'DERIVED_FORK';
+/// 파생 FORK 알림 코드(P0 · 글자 = 계약 `AlertCodes.derivedFork` 참조 · 미결 212).
+const String kDerivedForkAlertCode = AlertCodes.derivedFork;
 
 final RegExp _day = RegExp(r'^\d{4}-\d{2}-\d{2}$');
 final RegExp _hex64 = RegExp(r'^[0-9a-f]{64}$');
@@ -209,25 +215,25 @@ class CanonChain {
 /// 파생 ↔ 정본 관계.
 enum DerivedRelation {
   /// 같다.
-  inSync('IN_SYNC'),
+  inSync(DerivedRelationCodes.inSync),
 
   /// 파생이 비었다.
-  empty('EMPTY'),
+  empty(DerivedRelationCodes.empty),
 
   /// 파생이 뒤처졌다(같은 사슬).
-  behind('BEHIND'),
+  behind(DerivedRelationCodes.behind),
 
   /// 새 기준점 전 기록(재생성).
-  rebased('REBASED'),
+  rebased(DerivedRelationCodes.rebased),
 
   /// 파생이 정본보다 앞섰다(FORK · RESTORE_ROLLBACK).
-  ahead('AHEAD'),
+  ahead(DerivedRelationCodes.ahead),
 
   /// 갈라졌다(FORK).
-  diverged('DIVERGED'),
+  diverged(DerivedRelationCodes.diverged),
 
   /// 더 새 기기의 기록(FORK).
-  epochAhead('EPOCH_AHEAD');
+  epochAhead(DerivedRelationCodes.epochAhead);
 
   const DerivedRelation(this.wire);
 

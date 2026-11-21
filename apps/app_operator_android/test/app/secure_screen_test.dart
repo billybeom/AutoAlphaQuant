@@ -80,15 +80,19 @@ void main() {
       expect(identical(b.home, home), true);
     });
 
-    test('캡처 막기 라우트 다섯(S02 · S06 · V-01 · X1 계획 · X1 비상)', () {
-      expect(kSecureRoutePatterns, <String>{
-        AppRoutes.settingsCredentials,
-        AppRoutes.settingsDevices,
-        AppRoutes.onboardingPairing,
-        AppRoutes.x1MigrationPlan,
-        AppRoutes.x1MigrationEmergency,
-      });
-    });
+    test(
+      '캡처 막기 라우트 여섯(S02 · S06 · V-01 · 🆕 X1 옛 폰 티켓 QR · X1 새 폰 받기 · X1 비상)',
+      () {
+        expect(kSecureRoutePatterns, <String>{
+          AppRoutes.settingsCredentials,
+          AppRoutes.settingsDevices,
+          AppRoutes.onboardingPairing,
+          AppRoutes.x1Migration,
+          AppRoutes.x1MigrationPlan,
+          AppRoutes.x1MigrationEmergency,
+        });
+      },
+    );
   });
 
   group('링크 열기', () {

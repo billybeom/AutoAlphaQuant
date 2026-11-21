@@ -51,6 +51,7 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart';
 
 import 'operator_kill_switch.dart' show OperatorKillResumeDraft;
+import 'operator_migration.dart' show OperatorMigrationActions, kX1ActionIds;
 import 'operator_rule_change.dart' show operatorRuleChangeGateSourceOf;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
@@ -85,7 +86,12 @@ class OperatorSafetyActions implements SafetyActions {
     Random? random,
     OperatorKillResumeDraft? draft,
   }) : _random = random ?? Random.secure(),
-       draft = draft ?? OperatorKillResumeDraft();
+       draft = draft ?? OperatorKillResumeDraft() {
+    _x1 = OperatorMigrationActions(_rt, _random);
+  }
+
+  /// 🆕 E16j-b — X1 기기 이전 동작 6(`run` 화이트리스트 · K273).
+  late final OperatorMigrationActions _x1;
 
   /// 🆕 R180 — 재개판 초안(게이트 읽기와 같은 인스턴스).
   final OperatorKillResumeDraft draft;
@@ -156,6 +162,11 @@ class OperatorSafetyActions implements SafetyActions {
   }) async {
     if (id == SafetyActionId.reconClear) {
       throw ArgumentError.value(id, 'id', 'RECON 해제 = runReconClear(K181)');
+    }
+    // 🆕 E16j-b — X1 id 6 = 기기 이전 동작(결과 글자 = 엔진 · 막힌 동작 = 오류).
+    if (kX1ActionIds.contains(id)) {
+      final SafetyActionResult r = await _x1.run(id, args);
+      return _done[r.actionRunId] = r;
     }
     if (id == SafetyActionId.seasonalWindowChoice) return _seasonalChoice(args);
     if (id != SafetyActionId.ruleChangeCancel) return _none('run(${id.wire})');

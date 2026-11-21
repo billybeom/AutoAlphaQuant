@@ -73,7 +73,9 @@ import 'package:ui_safety/ui_safety.dart'
         ResumeGateScreen,
         HandoverWizardScreen,
         ResumeReportScreen,
-        RuleChangeGateScreen;
+        RuleChangeGateScreen,
+        X1PlanWizardScreen,
+        X1RecoveryScreen;
 import 'package:ui_settings/ui_settings.dart'
     show
         AnnualReviewEntry,
@@ -754,6 +756,35 @@ void main() {
         container.read(shellLinkOpenerProvider).open(route);
         await _until(tester, find.byKey(const Key('m511-root')));
         await _at(tester, find.byType(HandoverWizardScreen), shot);
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pageBack();
+        await tester.pump(const Duration(seconds: 1));
+      }
+
+      // 🆕 E16j-b — X1 기기 이전 셋(모의 원장 = 옛 폰 엔진 `X1_LIVE_ONLY` 문장 · 버튼 0 · 새 폰 = live 원장 없음 → 막힘 문장 · 버튼 0).
+      for (final (String route, Type screen, String root, String shot)
+          in <(String, Type, String, String)>[
+            (AppRoutes.x1Migration, X1PlanWizardScreen, 'x1p-root', 'IT_X1P'),
+            (AppRoutes.x1MigrationPlan, X1RecoveryScreen, 'x1r-root', 'IT_X1R'),
+            (
+              AppRoutes.x1MigrationEmergency,
+              X1RecoveryScreen,
+              'x1r-root',
+              'IT_X1E',
+            ),
+          ]) {
+        container.read(shellLinkOpenerProvider).open(route);
+        await _until(tester, find.byKey(Key(root)));
+        expect(
+          find.descendant(
+            of: find.byType(screen),
+            matching: find.byWidgetPredicate(
+              (Widget w) => w is OutlinedButton || w is FilledButton,
+            ),
+          ),
+          findsNothing,
+        );
+        await _at(tester, find.byType(screen), shot);
         await tester.pump(const Duration(seconds: 1));
         await tester.pageBack();
         await tester.pump(const Duration(seconds: 1));

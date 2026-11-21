@@ -30,6 +30,8 @@ class OperatorSafetyRepository implements SafetyRepository {
     mode: v.flags.runMode,
     clock: _rt.clock,
     trusted: _rt.trusted,
+    // 🆕 E16j-b(미결 212 ②) — 표시 hold `MIGRATION_IN_PROGRESS`(이 기기 이전 · live 만).
+    deviceId: _rt.deviceId,
   );
 
   /// 지금 값 — 화면 상태 없음 = [StateError].

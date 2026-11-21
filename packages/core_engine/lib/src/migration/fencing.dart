@@ -4,6 +4,9 @@
 //    옛 폰이 리스 갱신에 실패해 스스로 봉인하는 것이 «시간상» 보장된 뒤에만 다음으로 간다.
 // 🔴 건너뛰는 인자 · 경로 0 · REVOKED 모름 · 신뢰 시각 모름 = 대기(통과 아님).
 
+import 'package:domain_contracts/domain_contracts.dart'
+    show SafetyCommonResultCodes, X1FencingResultCodes;
+
 import '../ops/lease_gate.dart' show kLeaseTtl;
 
 /// 브로커 토큰 잔존을 모를 때의 가정(SPEC 04 §3-1 v2.45 ③ — KIS 접근토큰 유효 24h · 실험 1 뒤 값으로 바꾼다).
@@ -40,16 +43,17 @@ class FencingConfig {
 DateTime fencingWaitEndOf(DateTime revokedAtUtc, FencingConfig c) =>
     revokedAtUtc.toUtc().add(c.wait);
 
-/// 펜싱 대기 사유 코드(계약 등재 = E16i 전 문자열).
+/// 펜싱 대기 사유 코드(글자 = 계약 `X1FencingResultCodes` ∪ 공용 `SafetyCommonResultCodes` 참조 · 미결 212).
 abstract final class FencingCodes {
   /// REVOKED 가 아직 없다(대기 시작 전).
-  static const String notStarted = 'FENCING_NOT_STARTED';
+  static const String notStarted = X1FencingResultCodes.notStarted;
 
   /// 신뢰 시각 모름.
-  static const String trustedTimeUnknown = 'TRUSTED_TIME_UNKNOWN';
+  static const String trustedTimeUnknown =
+      SafetyCommonResultCodes.trustedTimeUnknown;
 
   /// 대기 중.
-  static const String waiting = 'FENCING_WAIT';
+  static const String waiting = X1FencingResultCodes.waiting;
 }
 
 /// 펜싱 대기 판정.

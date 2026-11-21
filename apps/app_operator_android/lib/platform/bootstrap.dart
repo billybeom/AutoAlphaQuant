@@ -21,6 +21,7 @@ import 'package:core_engine/core_engine.dart'
         AnchoredTrustedClock,
         LiveObservationConfig,
         Market,
+        OperationsConfig,
         SecretVault,
         TrustedClock,
         frozenExchangeCalendar,
@@ -240,11 +241,15 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
     // 🆕 R142 — 이 기기 id(못 얻으면 null — 화면은 그대로 선다 · 기기 id 를 쓰는 칸만 «없음»).
     final String? deviceId = await deviceIdOrNull(ops);
     // 🆕 R191 — M5-11 위저드 관찰 일수(운영 설정 자산 · 못 읽으면 null — 위저드만 «운영 설정 없음»).
+    // 🆕 E16j-b — 같은 운영 설정을 실행 묶음에도 싣는다(X1 관찰 일수 · 재개 사다리).
     LiveObservationConfig? observation;
+    OperationsConfig? operations;
     try {
-      observation = (await loadOperationsConfig(rootBundle)).liveObservation;
+      operations = await loadOperationsConfig(rootBundle);
+      observation = operations.liveObservation;
     } on Object {
       observation = null;
+      operations = null;
     }
     // 🆕 E11k-a(R197 T6) — 신뢰 시각 하나(화면 · 엔진 공용 · 잼 = 앞 화면 갱신기 · 엔진 깨어남).
     // 🆕 E11k-d2(R216) — Supabase 로그인 · 세션 하나(o_07 ③ · 실측 «로그인됨» · 리스 RPC 의 접근 토큰 원천).
@@ -287,6 +292,7 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       // 🆕 R167 — 골든 기기 실행기(자산 = 엔진 패키지 · 읽기 · 실행 = 처음 부를 때 · 백그라운드 isolate).
       golden: OperatorGolden(rootBundle.loadString, clock: clock),
       liveObservation: observation,
+      operations: operations,
       trusted: trusted,
       refreshTrusted: trusted.refresh,
       // 🆕 E11k-c(R206) — o_07 ② 연결 확인(붙여 넣은 값으로 서버 시각 1회 · 통과 = 금고).

@@ -3,24 +3,27 @@
 // 🔴 글자 · 차례 · 게이지 = core `safety_text.dart` · 여기는 SQL 로 재료만 모은다.
 // 🔴 브레이커 = 최근 스냅숏(주문 경로 1.5 와 같은 원천) · 자격 · 유지 봉 · bull = 저장 역사를 지금 다시 재생(E13d2).
 // 🔴 갱신 = 같은 연결 `db.updates`(E13c2 `watchLedgerQuery`) · 시간만 흐를 때의 다시 냄 = 조립 앱의 주기 신호(이 판 밖).
+// 🆕 E16j-b(미결 212 ②) — `holds` 에 표시 hold `MIGRATION_IN_PROGRESS`(live ∧ 기기 id 있음 · 판정 = `migrationInProgressOf`).
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../jobs/daily_jobs.dart' show SqliteEquitySnapshotStore, regimeLookupOf;
+import '../migration/x1_screen_source.dart' show migrationInProgressOf;
 import 'kill_switch_store.dart' show readKillSwitchRecord;
 import 'ledger_read_model.dart' show watchLedgerQuery;
 
 /// `SafetyRepository` operator 판(R62 U1).
 class SqliteSafetyRepository implements SafetyRepository {
-  /// 저장소를 만든다 — [mode] = 이 원장 파일의 실행 모드.
+  /// 저장소를 만든다 — [mode] = 이 원장 파일의 실행 모드 · 🆕 [deviceId] = 이 기기(없음 = X1 hold 0).
   SqliteSafetyRepository(
     this._db, {
     required this._mode,
     required this._clock,
     required this._trusted,
     this._config,
+    this._deviceId,
   });
 
   final Database _db;
@@ -28,6 +31,7 @@ class SqliteSafetyRepository implements SafetyRepository {
   final Clock _clock;
   final TrustedClock _trusted;
   final BreakerConfig? _config;
+  final String? _deviceId;
 
   /// 다시 낼 표(R62 U9).
   static const Set<String> watchedTables = <String>{
@@ -38,6 +42,8 @@ class SqliteSafetyRepository implements SafetyRepository {
     'breaker_release',
     'reconciliation_log',
     'decision_journal',
+    'migration_run',
+    'migration_step',
   };
 
   /// 지금 값.
@@ -112,6 +118,12 @@ class SqliteSafetyRepository implements SafetyRepository {
         lastSnapshotDate: last?.tradeDate,
         nowUtc: _clock.nowUtc(),
       ),
+      holds: <String>[
+        if (_mode == RunMode.live &&
+            _deviceId != null &&
+            migrationInProgressOf(_db, _deviceId))
+          SafetyHoldCodes.migrationInProgress,
+      ],
     );
   }
 

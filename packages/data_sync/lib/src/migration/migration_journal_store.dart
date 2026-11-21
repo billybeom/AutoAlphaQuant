@@ -11,23 +11,23 @@ import 'dart:convert' show jsonEncode;
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
-    show LedgerFile, OperatingMode, RunMode;
+    show LedgerFile, OperatingMode, RunMode, X1JournalResultCodes;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../local/lease_store.dart' show SqliteLeaseGate;
 import '../market/market_store.dart' show inLedgerTransaction;
 import 'maintenance_window_store.dart' show closeOpenWindowsOfRun;
 
-/// 이전 저널 거부 코드(core 코드 밖 · 계약 등재 = E16i 전 문자열).
+/// 이전 저널 거부 코드(core 코드 밖 · 글자 = 계약 `X1JournalResultCodes` 참조 · 미결 212).
 abstract final class MigrationStoreCodes {
   /// 이 기기에 중단되지 않은 이전이 있다.
-  static const String runExists = 'X1_RUN_EXISTS';
+  static const String runExists = X1JournalResultCodes.runExists;
 
   /// 단계 차례가 아니다.
-  static const String stepOutOfOrder = 'X1_STEP_OUT_OF_ORDER';
+  static const String stepOutOfOrder = X1JournalResultCodes.stepOutOfOrder;
 
   /// DEMOTED 뒤 = 실패를 적을 수 없다.
-  static const String pastNoReturn = 'X1_PAST_NO_RETURN';
+  static const String pastNoReturn = X1JournalResultCodes.pastNoReturn;
 }
 
 /// 옛 폰 이전 저널(live 원장).
