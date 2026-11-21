@@ -7,6 +7,8 @@
 //    ④ 거부 = 쓰기 0(신뢰 시각 · 결정 · 원인 · diff · delta · 체결 · 열린 주문 · 되돌려진 대상 · 바뀌는 것 없음 ·
 //       재생 앞 어긋남 · 재생 뒤 음수) · 다른 정정 중 = Busy ⑤ 매도 무효 = 포지션 되살림 · 행 다시 넣기
 //    ⑥ 모의 장부 보기 = REVERSAL 음수.
+//    🆕 E16j-a(01 §8 미결 217 ⓐ) — 커밋 = 개입 세션 5단계: 결정 = 그 세션의 3단계 저널 · 세션 없음 · 차례 아님 · 만료 · 닫힘 = 거부 ·
+//       통과 = 5단계 통과 행이 같은 트랜잭션에 남는다(세션이 닫힌다).
 import 'dart:convert';
 import 'dart:io';
 
@@ -17,6 +19,8 @@ import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
+
+import 'support/intervention_seed.dart';
 
 final DateTime _t0 = DateTime.utc(2026, 11, 2, 0, 10); // KST 11-02 09:10
 const TradeDate _exec = TradeDate('2026-11-02');
@@ -184,25 +188,48 @@ void main() {
     <Object?>[id, _delta],
   );
 
+  int sessions = 0;
+
+  /// 정정 — [session] null = 실행 창 안 새 세션을 심고(결정 = [decision]) 그 세션으로 커밋한다.
   FillCorrectionResult correct(
     String fillId, {
     FillRestatement? to,
     String repairId = 'rp-1',
     String diffId = 'd-1',
     Iterable<String>? fresh,
-    String? decision = 'DEC-1',
+    String decision = 'DEC-1',
+    String? session,
     String origin = OriginCodes.misrecordedFill,
     int chainLimit = 3,
-  }) => store.correctFill(
-    repairId: repairId,
-    diffId: diffId,
-    freshDiffIds: fresh ?? <String>[diffId],
-    fillId: fillId,
-    decisionId: decision,
-    originCode: origin,
-    chainLimit: chainLimit,
-    restatement: to,
-  );
+  }) {
+    final String sid = session ?? 'x5:$diffId:${++sessions}';
+    if (session == null) {
+      seedExecutableSession(
+        db,
+        sid,
+        nowUtc: trusted.at ?? _now,
+        journalId: decision,
+      );
+    }
+    return store.correctFill(
+      repairId: repairId,
+      diffId: diffId,
+      freshDiffIds: fresh ?? <String>[diffId],
+      fillId: fillId,
+      sessionId: sid,
+      originCode: origin,
+      chainLimit: chainLimit,
+      restatement: to,
+    );
+  }
+
+  List<Map<String, Object?>> steps(String sessionId) => <Map<String, Object?>>[
+    for (final Row r in db.select(
+      'SELECT stage, outcome, decision_id, occurred_at FROM intervention_step WHERE session_id = ? ORDER BY stage',
+      <Object?>[sessionId],
+    ))
+      <String, Object?>{for (final String k in r.keys) k: r[k]},
+  ];
 
   Map<String, Object?> one(String sql, [List<Object?> args = const []]) {
     final Row r = db.select(sql, args).single;
@@ -317,6 +344,13 @@ void main() {
       (await ledger.orderFills(_exec)).map((LedgerOrderFill f) => f.filledQty),
       <int>[3],
     );
+    // 🆕 E16j-a — 5단계 통과가 같은 커밋에 남는다(결정 = 3단계 저널 · 세션 닫힘).
+    expect(steps('x5:d-1:1').last, <String, Object?>{
+      'stage': 5,
+      'outcome': 'PASSED',
+      'decision_id': 'DEC-1',
+      'occurred_at': _now.toIso8601String(),
+    });
     expect(one('SELECT * FROM ledger_repair'), <String, Object?>{
       'repair_id': 'rp-1',
       'diff_id': 'd-1',
@@ -664,26 +698,55 @@ void main() {
       before = dump();
     });
 
+    int fives() =>
+        db.select('SELECT 1 FROM intervention_step WHERE stage = 5').length;
+
     void rejects(FillCorrectionResult Function() call, String code) {
+      final int closedBefore = fives();
       final FillCorrectionResult r = call();
       expect((r.applied, r.rejectCode, r.row), (false, code, null));
       expect(r.fillIds, isEmpty);
       expect(dump(), before);
       expect(fixVisible(), isFalse);
+      // 🆕 E16j-a — 거부 = 5단계 통과 행도 0(세션이 닫히지 않는다).
+      expect(fives(), closedBefore);
     }
 
     test('신뢰 시각 모름', () {
       trusted.at = null;
       rejects(() => correct('$_o1#5'), BaselineStoreCodes.trustedTimeUnknown);
     });
-    test('결정 없음 · 빈 결정', () {
+    test('🆕 E16j-a 세션 없음 · 차례 아님(냉각 단계) = 차례 밖', () {
       rejects(
-        () => correct('$_o1#5', decision: null),
-        RepairCodes.decisionRequired,
+        () => correct('$_o1#5', session: 'x5:d-1:none'),
+        InterventionCodes.outOfOrder,
+      );
+      seedSessionSteps(db, 'x5:d-1:cool', <(int, DateTime, String?)>[
+        (1, _now.subtract(const Duration(hours: 3)), null),
+        (2, _now.subtract(const Duration(hours: 2)), null),
+        (3, _now.subtract(const Duration(hours: 1)), 'DEC-1'),
+      ]);
+      rejects(
+        () => correct('$_o1#5', session: 'x5:d-1:cool'),
+        InterventionCodes.outOfOrder,
+      );
+    });
+    test('🆕 E16j-a 실행 창이 지났다 · 이미 닫힌 세션', () {
+      seedExecutableSession(
+        db,
+        'x5:d-1:old',
+        nowUtc: _now.subtract(const Duration(hours: 24)),
       );
       rejects(
-        () => correct('$_o1#5', decision: '  '),
-        RepairCodes.decisionRequired,
+        () => correct('$_o1#5', session: 'x5:d-1:old'),
+        InterventionCodes.expired,
+      );
+      seedSessionSteps(db, 'x5:d-1:gone', <(int, DateTime, String?)>[
+        (1, _now.subtract(const Duration(hours: 1)), null),
+      ], last: InterventionOutcome.abandoned);
+      rejects(
+        () => correct('$_o1#5', session: 'x5:d-1:gone'),
+        InterventionCodes.closed,
       );
     });
     test('원인 밖(파생 계열 · 모르는 코드)', () {
@@ -860,5 +923,102 @@ void main() {
         ),
       ],
     );
+  });
+
+  group('🆕 E16j-a 정정 후보(repairFillCandidatesOf · 01 §8 미결 217 ⓑ)', () {
+    StoredLedgerDiff diffOf(String delta) => StoredLedgerDiff(
+      diffId: 'd-1',
+      pair: LedgerPair.canonBroker,
+      axis: LedgerAxis.quantity,
+      authoredDate: const TradeDate('2026-11-03'),
+      delta: delta,
+      deltaLabel: '',
+      severity: DiffSeverity.blocking,
+      status: DiffStatus.open,
+      detectedAtUtc: _now,
+      applicable: true,
+    );
+    List<String> ids(String delta) => <String>[
+      for (final RepairFillCandidate c in repairFillCandidatesOf(
+        db,
+        diffOf(delta),
+      ))
+        c.fillId,
+    ];
+    const String qty = '{"kind":"QTY","account":"pension","key":"133690"}';
+
+    test('보유 수량 = 그 종목 체결(최근 먼저) · 되돌린 것 · REVERSAL 빠짐 · 정정본 들어감', () async {
+      await boughtFive();
+      expect(ids(qty), <String>['$_o1#5', '$_o1#3']);
+      final RepairFillCandidate first = repairFillCandidatesOf(
+        db,
+        diffOf(qty),
+      ).first;
+      expect(repairFillLabelOf(first), '11-02 매수 133690 2주 · 175,000원');
+      openDiff('d-1');
+      expect(
+        correct(
+          '$_o1#5',
+          to: FillRestatement(
+            quantity: 1,
+            price: 175000,
+            commission: 0,
+            tax: 0,
+          ),
+        ).applied,
+        isTrue,
+      );
+      final List<RepairFillCandidate> after = repairFillCandidatesOf(
+        db,
+        diffOf(qty),
+      );
+      expect(after.map((RepairFillCandidate c) => c.fillId), <String>[
+        '$_o1#5|RST',
+        '$_o1#3',
+      ]);
+      expect(after.first.restated, isTrue);
+      expect(ids('{"kind":"QTY","account":"pension","key":"999999"}'), isEmpty);
+    });
+
+    test('체결 건 = 그 주문만 · 🔴 열린 주문 빠짐 · 원장에 없는 주문 · 엉뚱한 delta = 0', () async {
+      await boughtFive();
+      await submit(_draft(symbol: '411060'));
+      await fill(
+        '0000000002',
+        cum: 3,
+        amount: '30000',
+        symbol: '411060',
+        minute: 9,
+      );
+      expect(
+        ids('{"kind":"FILL_COUNT","account":"pension","key":"$_o1"}'),
+        <String>['$_o1#5', '$_o1#3'],
+      );
+      expect(
+        ids('{"kind":"GHOST_FILL","account":"pension","key":"$_o2"}'),
+        isEmpty,
+      );
+      expect(ids('{"kind":"QTY","account":"pension","key":"411060"}'), isEmpty);
+      expect(
+        ids('{"kind":"UNKNOWN_ORDER","account":"pension","key":"$_o1"}'),
+        isEmpty,
+      );
+      expect(ids('{"kind":"QTY","account":"pension"}'), isEmpty);
+      expect(ids('[]'), isEmpty);
+    });
+
+    test('계좌 모르는 전략 = 그 전략의 그 종목만', () async {
+      await boughtFive();
+      expect(
+        ids(
+          '{"kind":"UNMAPPED_STRATEGY","account":"?${P0sStrategyIds.sleeveB}","key":"133690"}',
+        ),
+        <String>['$_o1#5', '$_o1#3'],
+      );
+      expect(
+        ids('{"kind":"UNMAPPED_STRATEGY","account":"?P0S_C","key":"133690"}'),
+        isEmpty,
+      );
+    });
   });
 }

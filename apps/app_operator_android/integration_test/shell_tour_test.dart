@@ -74,6 +74,7 @@ import 'package:ui_safety/ui_safety.dart'
         ResumeGateScreen,
         HandoverWizardScreen,
         ResumeReportScreen,
+        RepairWizardScreen,
         RuleChangeGateScreen,
         X1PlanWizardScreen,
         X1RecoveryScreen;
@@ -794,6 +795,21 @@ void main() {
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
       await _until(tester, find.textContaining('남은 공간'));
       await _at(tester, find.byType(DeviceRiskBoard), 'IT_H03');
+
+      // 🆕 E16j-a(R227) — X5 정정 마법사 허브 · 대상(모의 원장 = 열린 차이 0 · 무결성 표시 0 → 빈 허브 · 모르는 대상 = 끝 문장 · 동작 0).
+      for (final (String link, String shot) in <(String, String)>[
+        (AppRoutes.x5RepairWizard, 'IT_X5H'),
+        ('aaq://x5/repair-wizard/ld-none', 'IT_X5T'),
+      ]) {
+        container.read(shellLinkOpenerProvider).open(link);
+        await _until(tester, find.byKey(const Key('x5-headline')));
+        expect(find.byKey(const Key('x5-do-nothing')), findsNothing);
+        expect(find.byKey(const Key('x5-stage-0')), findsNothing);
+        await _at(tester, find.byType(RepairWizardScreen), shot);
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pageBack();
+        await tester.pump(const Duration(seconds: 1));
+      }
 
       // 🆕 R226 — S7-3 드로다운(맨 끝 — 연습 마감 스냅숏이 앞 단계에 섞이지 않게): 연습 개시 = 오늘이라 개시 이전 = 성과 밖 →
       //    오늘 마감 스냅숏 하나 → 엔진 문장 셋(낙폭 0 · 전고점 아래 구간 없음) · 기준 줄.

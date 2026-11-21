@@ -44,7 +44,8 @@ import 'package:data_sync/data_sync.dart'
         SqliteSimLedgerView,
         currentP0sOpsConfig;
 import 'package:domain_contracts/domain_contracts.dart'
-    show MarketDataSource, RunMode, TradeDate;
+    show Clock, MarketDataSource, RunMode, TradeDate;
+import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
     show JobBody, JobOccurrence;
 
@@ -100,40 +101,55 @@ Map<String, AccountBroker> cashBrokersOf(
   JobParts p,
   P0sOpsConfig cfg,
   String job,
-) {
+) => cashBrokersFor(
+  db: c.db,
+  runMode: c.runMode,
+  clock: c.clock,
+  parts: p,
+  cfg: cfg,
+  job: job,
+);
+
+/// 🆕 E16j-a(01 §8 미결 217 ⓒ) — [cashBrokersOf] 의 몸(잡 문맥 없이 — 화면의 정정 직전 재대사가 같은 조립을 쓴다 · 동작 0 변경).
+Map<String, AccountBroker> cashBrokersFor({
+  required Database db,
+  required RunMode runMode,
+  required Clock clock,
+  required JobParts parts,
+  required P0sOpsConfig cfg,
+  required String job,
+}) {
   final Map<String, Set<String>> strategiesOf = <String, Set<String>>{};
   cfg.human.accountByStrategy.forEach((String strategy, String alias) {
     (strategiesOf[alias] ??= <String>{}).add(strategy);
   });
   final List<String> aliases = strategiesOf.keys.toList()..sort();
-  switch (c.runMode) {
+  switch (runMode) {
     case RunMode.simInternal:
       break;
     case RunMode.simBroker:
-      throw JobNotAssembled(job, <String>['cash_broker_${c.runMode.wire}']);
+      throw JobNotAssembled(job, <String>['cash_broker_${runMode.wire}']);
     case RunMode.live:
       final Future<AccountBroker> Function(String alias) live =
-          p.liveAccountBroker ??
-          (throw JobNotAssembled(job, <String>[
-            'cash_broker_${c.runMode.wire}',
-          ]));
+          parts.liveAccountBroker ??
+          (throw JobNotAssembled(job, <String>['cash_broker_${runMode.wire}']));
       return <String, AccountBroker>{
         for (final String alias in aliases)
           alias: LazyAccountBroker(() => live(alias)),
       };
   }
-  final DailyQuoteFeed bars = _LazyFeed(() => p.quoteFeed(c.runMode));
+  final DailyQuoteFeed bars = _LazyFeed(() => parts.quoteFeed(runMode));
   return <String, AccountBroker>{
     for (final String alias in aliases)
       alias: SimInternalBroker(
         ledger: SqliteSimLedgerView(
-          c.db,
+          db,
           account: alias,
           strategies: strategiesOf[alias]!,
-          clock: c.clock,
+          clock: clock,
         ),
         bars: bars,
-        nowUtc: c.clock.nowUtc,
+        nowUtc: clock.nowUtc,
       ),
   };
 }

@@ -101,6 +101,7 @@ import 'package:ui_safety/ui_safety.dart'
         KillSwitchScreen,
         KillSwitchSlot,
         PledgePanel,
+        RepairWizardScreen,
         ResumeGateScreen,
         ResumeReportScreen,
         RuleChangeGateScreen,
@@ -115,6 +116,7 @@ import 'package:ui_safety/ui_safety.dart'
         safetyLinkOpenerProvider,
         safetyMigrationRepositoryProvider,
         safetyPledgeRepositoryProvider,
+        safetyRepairWizardRepositoryProvider,
         safetyResumeGateRepositoryProvider,
         safetyRuleChangeGateRepositoryProvider,
         safetySettingsActionsProvider;
@@ -157,6 +159,7 @@ import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
 import 'operator_performance.dart';
 import 'operator_pledge.dart';
+import 'operator_repair.dart';
 import 'operator_resume.dart';
 import 'operator_rule_change.dart';
 import 'operator_runtime.dart';
@@ -312,6 +315,17 @@ final Provider<OperatorMigrationRepository> operatorMigrationProvider =
       (Ref ref) =>
           OperatorMigrationRepository(ref.watch(operatorRuntimeProvider)),
     );
+
+/// 🆕 E16j-a(R227) — X5 정정 마법사 읽기(한 인스턴스 · 대상 · 이력 · X1 안내 링크 = 레지스트리에 본문이 있을 때만 ·
+/// 쓰기 = 안전 동작 인스턴스 — 단계 · 아무것도 안 하기 · 저널 · 정정 · 새 기준점).
+final Provider<OperatorRepairWizardRepository> operatorRepairWizardProvider =
+    Provider<OperatorRepairWizardRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorRepairWizardRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
 
 /// 🆕 R188 — M5-9 규칙 변경 게이트 읽기(한 인스턴스 · 쓰기 = 안전 동작 인스턴스 — 요청 · 승인 · 취소).
 final Provider<OperatorRuleChangeGateRepository>
@@ -564,6 +578,14 @@ Widget _x1Emergency(Map<String, String> _) =>
 
 Widget _handoverWizard(Map<String, String> _) => const HandoverWizardScreen();
 
+/// 🆕 E16j-a(R227) — 허브 · 대상 = 한 위젯(대상 id = 받은 인자 그대로 · 화면은 해석하지 않는다).
+Widget _repairHub(Map<String, String> _) => const RepairWizardScreen();
+
+Widget _repairTarget(Map<String, String> p) {
+  final String id = p['targetId'] ?? '';
+  return RepairWizardScreen(key: ValueKey<String>(id), targetId: id);
+}
+
 Widget _settingsContribution(Map<String, String> _) =>
     const MonthlyContribution();
 
@@ -704,6 +726,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.x1Migration: _x1Plan,
   AppRoutes.x1MigrationPlan: _x1Receive,
   AppRoutes.x1MigrationEmergency: _x1Emergency,
+  // 🆕 E16j-a(R227) — X5 정정 마법사 허브 · 대상(L-1 «정정하기» · 차단 보드 · 배너 링크가 여기로 · 01 §8 미결 217).
+  AppRoutes.x5RepairWizard: _repairHub,
+  AppRoutes.x5RepairTarget: _repairTarget,
   // 🆕 E11q-c1(R191) — M5-11 simToAuto 위저드 · `handoverStatus` = 같은 본문(K173 · 알림 냉각 · 확정 목적지) ·
   //    M5-10 `m5HandoverGate` = 범위 밖 빈 자리(K174).
   AppRoutes.m5HandoverWizard: _handoverWizard,
@@ -769,6 +794,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 E16j-b — X1 기기 이전 읽기(시작 · 단계 · 그만두기 · 복구 단계 = 위 안전 동작 인스턴스 · 슬롯 빌더 = 주입 0 = 자리 부재).
   safetyMigrationRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorMigrationProvider),
+  ),
+  // 🆕 R227 — X5 정정 마법사 읽기(쓰기 = 위 안전 동작 인스턴스 · 링크 = 위 셸 링크 열기).
+  safetyRepairWizardRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorRepairWizardProvider),
   ),
   // 🆕 R188 — M5-9 규칙 변경 게이트 읽기(요청 · 승인 · 취소 = 위 안전 동작 인스턴스).
   safetyRuleChangeGateRepositoryProvider.overrideWith(

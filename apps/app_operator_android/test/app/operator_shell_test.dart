@@ -39,6 +39,7 @@ import 'package:core_engine/core_engine.dart'
         LiveObservationConfig,
         P0sHumanInputs,
         ReconClearTexts,
+        RepairWizardTexts,
         TrustedClock,
         alertInboxOf;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
@@ -108,12 +109,14 @@ import 'package:ui_safety/ui_safety.dart'
         ResumeGateScreen,
         HandoverWizardScreen,
         ResumeReportScreen,
+        RepairWizardScreen,
         RuleChangeGateScreen,
         safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyHandoverRepositoryProvider,
         safetyMigrationRepositoryProvider,
+        safetyRepairWizardRepositoryProvider,
         safetyResumeGateRepositoryProvider,
         safetyRuleChangeGateRepositoryProvider,
         safetySettingsActionsProvider;
@@ -573,6 +576,20 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5RuleChangeGate),
       true,
     );
+    // 🆕 R227 — X5 정정 마법사 읽기 = 한 인스턴스 · 레지스트리 둘(허브 · 대상 = 같은 위젯).
+    expect(
+      identical(
+        container.read(safetyRepairWizardRepositoryProvider),
+        container.read(operatorRepairWizardProvider),
+      ),
+      true,
+    );
+    for (final String r in <String>[
+      AppRoutes.x5RepairWizard,
+      AppRoutes.x5RepairTarget,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+    }
     // 🆕 R191 — M5-11 위저드 읽기 = 한 인스턴스 · 동작 = 설정 동작 인스턴스(시험 조립 = 금고 0 → null) ·
     //    레지스트리 둘(`handoverStatus` = 같은 본문 · K173) · M5-10 게이트 = 빈 자리(K174).
     expect(
@@ -1877,6 +1894,37 @@ void main() {
     container.dispose();
     disposed = true;
   });
+
+  // 🆕 E16j-a(R227) — X5 정정 마법사 허브 · 대상 = 조립 셸에 등록 · 대상 인자 = 받은 그대로 · 엔진 머리 · 크래시 없음.
+  for (final (String link, String? target) in <(String, String?)>[
+    (AppRoutes.x5RepairWizard, null),
+    ('aaq://x5/repair-wizard/ld-none', 'ld-none'),
+  ]) {
+    testWidgets('🔴 X5 정정 마법사(R227) — $link', (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      await open(tester, link);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(RepairWizardScreen);
+      expect(screen, findsOneWidget);
+      expect(tester.widget<RepairWizardScreen>(screen).targetId, target);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('x5-headline'))).data,
+        target == null
+            ? RepairWizardTexts.hubEmpty
+            : RepairWizardTexts.unknownTarget,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    });
+  }
 
   for (final String route in <String>[
     AppRoutes.m5HandoverWizard,

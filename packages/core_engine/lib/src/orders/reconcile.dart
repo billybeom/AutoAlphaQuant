@@ -493,6 +493,30 @@ Future<_Pass> _pass({
   return _Pass(diffs, unavailable, cash);
 }
 
+/// 🆕 E16j-a(01 §8 미결 217 ⓒ) — 직전 재대사 한 판(재확인 대기 0 · 쓰기 0) → 그 집행일의 diff id 들(«delta 같음» 재료).
+///
+/// [tradeDate] = 정정할 diff 의 집행일(diff id 가 그 날로 만들어진다) · 🔴 조회 못 한 계좌가 하나라도 있으면 null
+/// (모름 — 같다고 말하지 않는다 · 정정 쪽이 «잠시 뒤 다시»).
+Future<Set<String>?> freshReconDiffIds({
+  required ReconLedger ledger,
+  required Map<String, OrderBroker> brokers,
+  required Map<String, BrokerBalanceSource> balances,
+  required Map<String, String> accountByStrategy,
+  required TradeDate tradeDate,
+}) async {
+  final _Pass p = await _pass(
+    ledger: ledger,
+    brokers: brokers,
+    balances: balances,
+    accountByStrategy: accountByStrategy,
+    tradeDate: tradeDate,
+  );
+  if (p.unavailable.isNotEmpty) return null;
+  return <String>{
+    for (final ReconDiff d in p.diffs) ledgerDiffIdOf(tradeDate, d),
+  };
+}
+
 /// 일일 대사 실행(R40 A6 · A7) — 장 시작 전 1회 + 주문 배치 직후(배선 = E11).
 ///
 /// 첫 판에 어긋남이 있으면 [recheckDelay] 뒤 한 번 더 읽고, 두 판에 같은 값으로 남은 것만 차단한다.

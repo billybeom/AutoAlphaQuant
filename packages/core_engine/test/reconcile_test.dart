@@ -206,6 +206,40 @@ void main() {
       broker.holdings['133690'] = brokerQty;
     }
 
+    // 🆕 E16j-a(01 §8 미결 217 ⓒ) — 직전 재대사 한 판: 재확인 대기 0 · 쓰기 0 · diff id = 그 집행일 · 조회 실패 = 모름(null).
+    test(
+      '🆕 직전 재대사 — 같은 어긋남 = 같은 id(그 날) · 대기 0 · 쓰기 0 · 조회 실패 = null',
+      () async {
+        held(5, 3);
+        Future<Set<String>?> fresh(TradeDate day) => freshReconDiffIds(
+          ledger: ledger,
+          brokers: <String, OrderBroker>{'pension': broker},
+          balances: <String, BrokerBalanceSource>{'pension': broker},
+          accountByStrategy: const <String, String>{
+            P0sStrategyIds.sleeveB: 'pension',
+          },
+          tradeDate: day,
+        );
+        final ReconReport r = await run();
+        final Set<String> detected = <String>{
+          for (final ReconDiff d in r.blocking) ledgerDiffIdOf(_day, d),
+        };
+        expect(detected, hasLength(1));
+        final List<String> flagsBefore = List<String>.of(ledger.flags);
+        expect(await fresh(_day), detected);
+        expect(
+          await fresh(const TradeDate('2026-11-03')),
+          isNot(contains(detected.single)),
+          reason: 'id = 집행일 + 정체성 — 다른 날로 다시 대사하면 다른 id',
+        );
+        expect(ledger.flags, flagsBefore, reason: '쓰기 0');
+        held(5, 5);
+        expect(await fresh(_day), isEmpty, reason: '어긋남이 사라졌다');
+        broker.balanceError = StateError('조회 실패');
+        expect(await fresh(_day), isNull);
+      },
+    );
+
     test('일치 = MATCHED · 재대사 없음 · 플래그 없음 · 기록 1', () async {
       held(5, 5);
       final ReconReport r = await run();

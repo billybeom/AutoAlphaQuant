@@ -39,7 +39,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         ContributionSetting,
         DateRange,
         FeatureFlags,
-        SleeveCatalogEntry;
+        SleeveCatalogEntry,
+        TradeDate;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
@@ -80,6 +81,7 @@ class OperatorRuntime {
     this.golden,
     this.liveObservation,
     this.operations,
+    this.freshRecon,
   }) : secure = secure ?? SecureScreen(_noSecure),
        trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
@@ -152,6 +154,11 @@ class OperatorRuntime {
   /// 🆕 E16j-b — 운영 설정(자산 `operations.json` · X1 관찰 일수 · 재개 사다리 — 🔴 잠정 값 그대로 읽기만 · 없음 = 못 읽음 ·
   /// 플랫폼 밖 → X1 게이트 · RECOVERY_FULL 판정 0).
   final OperationsConfig? operations;
+
+  /// 🆕 E16j-a(R227 · 01 §8 미결 217 ⓒ) — 정정 직전 재대사(화면 상태의 원장 · 그 집행일 → diff id 들 · 못 하면 null ·
+  /// 없음 = 플랫폼 밖 → 정정 = «잠시 뒤 다시» · 지어내지 않는다).
+  final Future<Set<String>?> Function(OperatorView view, TradeDate tradeDate)?
+  freshRecon;
 
   /// 🆕 E11p4j(R159) — O-04 ③ 생체 확인(플랫폼 · `AndroidOps.biometricSign` · 없음 = 할 수 없음).
   final Future<BiometricOutcome> Function()? biometricSign;
