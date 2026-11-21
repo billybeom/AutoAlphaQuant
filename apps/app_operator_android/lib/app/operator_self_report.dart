@@ -418,17 +418,15 @@ class OperatorSelfReportActions implements SettingsActions {
     Map<String, String> args = const <String, String>{},
   }) {
     try {
-      final ActionResult r = switch (id) {
-        SettingsActionId.selfReportSessionStart => _selfReport.start(
-          _runId(),
-          args,
-        ),
-        SettingsActionId.selfReportSessionStop => _selfReport.stop(
-          _runId(),
-          args,
-        ),
-        _ => throw UnsupportedError('${id.name}: 실사 화면 주입 밖'),
-      };
+      // 🔴 `switch` 의 전부 받기(`_`) 금지(C-12) — 두 동작만 가르고 그 밖 = 구현 없음.
+      final ActionResult r;
+      if (id == SettingsActionId.selfReportSessionStart) {
+        r = _selfReport.start(_runId(), args);
+      } else if (id == SettingsActionId.selfReportSessionStop) {
+        r = _selfReport.stop(_runId(), args);
+      } else {
+        throw UnsupportedError('${id.name}: 실사 화면 주입 밖');
+      }
       _results[r.actionRunId] = r;
       return Future<ActionResult>.value(r);
     } on Object catch (e, st) {
