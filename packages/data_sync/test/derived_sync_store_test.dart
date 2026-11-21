@@ -12,6 +12,7 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
+import 'support/intervention_seed.dart';
 import 'support/ledger_golden.dart';
 
 class _Clock implements Clock {
@@ -403,13 +404,20 @@ void main() {
       final DailyArchiveReport bad = job().run();
       expect((bad.skipped, bad.relation), (ArchiveSkip.integrity, null));
       expect(bad.toString(), contains('건너뜀 무결성'));
+      // 🆕 E16j-a — 커밋 = 개입 세션 5단계(결정 = 세션 저널).
+      seedExecutableSession(
+        db,
+        'x5:li-1:1',
+        nowUtc: clock.at,
+        journalId: 'dec-x5',
+      );
       final BaselineResult b =
           SqliteLedgerRepairStore(
             db,
             trusted: _Trusted(clock.at),
           ).applyBaseline(
             repairId: 'rp-1',
-            decisionId: 'dec-x5',
+            sessionId: 'x5:li-1:1',
             originCode: OriginCodes.chainBroken,
             clearedBy: 'operator',
           );

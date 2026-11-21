@@ -4,9 +4,16 @@
 // 🔴 살아 있는 세션은 한 번에 하나 · 실행 창 24h(발주자 결정 2026-11-05).
 // 🔴 3단계 저널 연결의 «예산 소진» = 재량 예산 셈 하나(E13f1 · 지도 D24).
 // 🔴 같은 command_id 재전달 = 처음 결과 그대로(command_inbox 멱등).
+// 🆕 E16j-a(01 §8 미결 217 ⓖ · 계약 v1.32 K252) — 3단계 사전 저널 쓰기(`writeJournalStage`): 살아 있는 세션 하나에 붙인다 ·
+//    이탈 저널(사전 3칸 원문 · 저널 id = 호출자) + 3단계 통과 + 명령 행 = 한 트랜잭션 · 판정 = 기존 3단계 규칙 그대로(저널 연결 ·
+//    예산 소진이면 메모 필요 — 이 제출에는 메모가 없어 거부) · 🔵 `decision_journal.kind` = 비움(J-3 저널 키 = 계약 창 몫).
+//    정정 · 새 기준점의 5단계 통과는 정정 트랜잭션 안에서 쓴다(`insertInterventionStep` · ledger_repair_store).
+
+import 'dart:convert' show jsonEncode;
 
 import 'package:core_engine/core_engine.dart';
-import 'package:domain_contracts/domain_contracts.dart' show Clock;
+import 'package:domain_contracts/domain_contracts.dart'
+    show Clock, SafetyActionId, SafetyCommonResultCodes;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
@@ -24,6 +31,83 @@ DateTime _instant(String v) {
   if (!_offset.hasMatch(v)) throw FormatException('시각에 오프셋 없음', v);
   return DateTime.parse(v).toUtc();
 }
+
+/// 🆕 E16j-a — 저장 행 → 세션별 단계 행([sessionId] = 그 세션만).
+Map<String, List<InterventionStep>> interventionStepRowsOf(
+  Database db, {
+  String? sessionId,
+}) {
+  final Map<String, List<InterventionStep>> out =
+      <String, List<InterventionStep>>{};
+  for (final Row r in db.select(
+    sessionId == null
+        ? 'SELECT * FROM intervention_step'
+        : 'SELECT * FROM intervention_step WHERE session_id = ?',
+    <Object?>[?sessionId],
+  )) {
+    (out[r['session_id'] as String] ??= <InterventionStep>[]).add(
+      InterventionStep(
+        stage: r['stage'] as int,
+        occurredAtUtc: _instant(r['occurred_at'] as String),
+        outcome: InterventionOutcome.fromWire(r['outcome'] as String),
+        decisionId: r['decision_id'] as String?,
+      ),
+    );
+  }
+  return out;
+}
+
+/// 🆕 E16j-a — 세션 상태 전부(id → 상태 · 닫힌 것 포함).
+Map<String, InterventionState> interventionSessionsOf(Database db) =>
+    <String, InterventionState>{
+      for (final MapEntry<String, List<InterventionStep>> e
+          in interventionStepRowsOf(db).entries)
+        e.key: interventionStateOf(e.key, e.value)!,
+    };
+
+/// 🆕 E16j-a — 세션 하나의 상태(행 없음 = null).
+InterventionState? interventionSessionOf(Database db, String sessionId) =>
+    interventionStateOf(
+      sessionId,
+      interventionStepRowsOf(db, sessionId: sessionId)[sessionId] ??
+          const <InterventionStep>[],
+    );
+
+/// 🆕 E16j-a — 마법사 대상([targetId])의 닫히지 않은 세션 가운데 가장 늦게 연 것의 id(없음 = null · 만료 판정 = 커밋 관문).
+String? x5OpenSessionIdOf(Database db, String targetId) {
+  final String prefix = x5SessionPrefixOf(targetId);
+  InterventionState? best;
+  for (final InterventionState s in interventionSessionsOf(db).values) {
+    if (!s.sessionId.startsWith(prefix) || s.closed) continue;
+    if (best == null ||
+        s.steps.first.occurredAtUtc.isAfter(best.steps.first.occurredAtUtc) ||
+        (s.steps.first.occurredAtUtc == best.steps.first.occurredAtUtc &&
+            s.sessionId.compareTo(best.sessionId) > 0)) {
+      best = s;
+    }
+  }
+  return best?.sessionId;
+}
+
+/// 🆕 E16j-a — 단계 행 하나를 넣는다(🔴 부르는 쪽 트랜잭션 안 · 판정은 부르는 쪽).
+void insertInterventionStep(
+  Database db, {
+  required String sessionId,
+  required int stage,
+  required DateTime atUtc,
+  required InterventionOutcome outcome,
+  String? decisionId,
+}) => db.execute(
+  'INSERT INTO intervention_step(session_id, stage, occurred_at, outcome, decision_id) '
+  'VALUES (?, ?, ?, ?, ?)',
+  <Object?>[
+    sessionId,
+    stage,
+    atUtc.toUtc().toIso8601String(),
+    outcome.wire,
+    decisionId,
+  ],
+);
 
 /// 한 단계 쓰기 결과.
 class InterventionStepResult {
@@ -64,26 +148,8 @@ class SqliteInterventionStore {
   final TrustedClock _trusted;
   final SqliteDiscretionStore _discretion;
 
-  Map<String, List<InterventionStep>> _rows({String? sessionId}) {
-    final Map<String, List<InterventionStep>> out =
-        <String, List<InterventionStep>>{};
-    for (final Row r in _db.select(
-      sessionId == null
-          ? 'SELECT * FROM intervention_step'
-          : 'SELECT * FROM intervention_step WHERE session_id = ?',
-      <Object?>[?sessionId],
-    )) {
-      (out[r['session_id'] as String] ??= <InterventionStep>[]).add(
-        InterventionStep(
-          stage: r['stage'] as int,
-          occurredAtUtc: _instant(r['occurred_at'] as String),
-          outcome: InterventionOutcome.fromWire(r['outcome'] as String),
-          decisionId: r['decision_id'] as String?,
-        ),
-      );
-    }
-    return out;
-  }
+  Map<String, List<InterventionStep>> _rows({String? sessionId}) =>
+      interventionStepRowsOf(_db, sessionId: sessionId);
 
   /// 세션 상태 — 행 없음 = null.
   InterventionState? session(String sessionId) => interventionStateOf(
@@ -113,13 +179,14 @@ class SqliteInterventionStore {
     String? rejectCode,
     String? decisionId,
     bool closed = false,
+    String kind = kInterventionCommandKind,
   }) => _db.execute(
     'INSERT INTO command_inbox(command_id, kind, ingested_at, state, state_label, reject_reason_code, '
     'decision_id, run_mode, operating_mode, lease_epoch, payload_digest) '
     'VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?)',
     <Object?>[
       commandId,
-      kInterventionCommandKind,
+      kind,
       _clock.nowUtc().toUtc().toIso8601String(),
       rejectCode == null ? 'EXECUTED' : 'REJECTED',
       rejectCode == null
@@ -220,16 +287,13 @@ class SqliteInterventionStore {
     final bool closes =
         outcome != InterventionOutcome.passed || stage == kExecuteStage;
     inLedgerTransaction(_db, () {
-      _db.execute(
-        'INSERT INTO intervention_step(session_id, stage, occurred_at, outcome, decision_id) '
-        'VALUES (?, ?, ?, ?, ?)',
-        <Object?>[
-          sessionId,
-          stage,
-          now!.toIso8601String(),
-          outcome.wire,
-          decisionId,
-        ],
+      insertInterventionStep(
+        _db,
+        sessionId: sessionId,
+        stage: stage,
+        atUtc: now!,
+        outcome: outcome,
+        decisionId: decisionId,
       );
       _command(
         commandId,
@@ -239,5 +303,114 @@ class SqliteInterventionStore {
       );
     });
     return InterventionStepResult(executed: true, closed: closes);
+  }
+
+  /// 🆕 E16j-a(01 §8 미결 217 ⓖ · 계약 v1.32 K252) — 3단계 사전 저널: 살아 있는 세션(없음 = 차례 밖) 하나에 이탈 저널을 붙여
+  /// 3단계를 통과시킨다 — 저널 + 단계 + 명령 행 한 트랜잭션 · 거부 = 명령 행만(저널 0) · 같은 command_id = 처음 결과.
+  ///
+  /// 판정 차례 = 신뢰 시각 → 저널 id 겹침 → 기존 3단계 규칙(닫힘 · 차례 · 만료 · 저널 연결 — 예산 소진 = 메모 필요).
+  InterventionStepResult writeJournalStage({
+    required String commandId,
+    required String payloadDigest,
+    required String journalId,
+    required String rationaleBefore,
+    required String expectedOutcome,
+    required String ruleCited,
+  }) {
+    if (journalId.trim().isEmpty) {
+      throw ArgumentError.value(journalId, 'journalId', '비었다');
+    }
+    return inLedgerTransaction(_db, () {
+      final ResultSet again = _db.select(
+        'SELECT state, reject_reason_code FROM command_inbox WHERE command_id = ?',
+        <Object?>[commandId],
+      );
+      if (again.isNotEmpty) {
+        return InterventionStepResult(
+          executed: again.first['state'] == 'EXECUTED',
+          replayed: true,
+          reasonCode: again.first['reject_reason_code'] as String?,
+        );
+      }
+      InterventionStepResult reject(String code) {
+        _command(
+          commandId,
+          payloadDigest,
+          rejectCode: code,
+          kind: SafetyActionId.interventionJournal.wire,
+        );
+        return InterventionStepResult(executed: false, reasonCode: code);
+      }
+
+      final DateTime? now = _trusted.trustedNowUtc()?.toUtc();
+      if (now == null) {
+        return reject(SafetyCommonResultCodes.trustedTimeUnknown);
+      }
+      if (_db.select(
+        'SELECT 1 FROM decision_journal WHERE journal_id = ?',
+        <Object?>[journalId],
+      ).isNotEmpty) {
+        return reject(SafetyCommonResultCodes.journalIdTaken);
+      }
+      InterventionState? live;
+      for (final InterventionState s in interventionSessionsOf(_db).values) {
+        if (s.liveAt(now)) live = s;
+      }
+      final String? code = interventionRejectCode(
+        session: live,
+        otherLiveSession: false,
+        stage: kJournalStage,
+        outcome: InterventionOutcome.passed,
+        nowUtc: now,
+        journalLinked: interventionJournalLinked(
+          InterventionJournalFacts(
+            isDeviation: true,
+            rationaleBefore: rationaleBefore,
+            expectedOutcome: expectedOutcome,
+            ruleCited: ruleCited,
+            note: null,
+            alreadyUsed: false,
+          ),
+          budgetExhausted: discretionBudgetOf(
+            _discretion.useDates(),
+            kstDateText(now),
+          ).exhausted,
+        ),
+        decisionId: journalId,
+      );
+      if (code != null) return reject(code);
+      final String iso = now.toIso8601String();
+      _db.execute(
+        'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
+        'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
+        'VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, NULL, NULL, ?)',
+        <Object?>[
+          journalId,
+          kstDateText(now),
+          P0sStrategyIds.deposit,
+          jsonEncode(<String, Object?>{'session_id': live!.sessionId}),
+          jsonEncode(<String, Object?>{'intervention_stage': kJournalStage}),
+          rationaleBefore.trim(),
+          expectedOutcome.trim(),
+          ruleCited.trim(),
+          iso,
+        ],
+      );
+      insertInterventionStep(
+        _db,
+        sessionId: live.sessionId,
+        stage: kJournalStage,
+        atUtc: now,
+        outcome: InterventionOutcome.passed,
+        decisionId: journalId,
+      );
+      _command(
+        commandId,
+        payloadDigest,
+        decisionId: journalId,
+        kind: SafetyActionId.interventionJournal.wire,
+      );
+      return const InterventionStepResult(executed: true);
+    });
   }
 }

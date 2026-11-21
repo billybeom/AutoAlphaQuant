@@ -233,9 +233,16 @@ LedgerDiffRow ledgerDiffRowOf(StoredLedgerDiff d, {bool phone = true}) {
       for (final String c in candidates) originChipOf(c),
     ],
     detectedAtText: '탐지 ${kstMinuteText(d.detectedAtUtc)}',
+    // 🆕 E16j-a(01 §8 미결 217 ⓕ · 계약 v1.32 K248) — 대상 라우트(어느 차이인지 싣는다 · 허브 = 목록).
     actionLink:
         phone && d.status == DiffStatus.open && route == RepairRoute.approval
-        ? const LinkAction(label: '정정하기', deepLink: AppRoutes.x5RepairWizard)
+        ? LinkAction(
+            label: '정정하기',
+            deepLink: AppRoutes.x5RepairTarget.replaceFirst(
+              ':targetId',
+              d.diffId,
+            ),
+          )
         : null,
   );
 }

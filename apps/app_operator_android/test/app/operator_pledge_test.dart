@@ -150,8 +150,13 @@ void main() {
       throwsArgumentError,
     );
     // 🆕 R188 — `run` 의 규칙 변경 취소 = 구현(`operator_rule_change_test`) · 그 밖 id = 구현 전 · 🆕 R189 RECON = 화이트리스트 밖.
+    // 🆕 E16j-a(R227) — 개입 단계 = 구현(`operator_repair_test` · args 없음 = ArgumentError) · 그 밖 id = 구현 전.
     await expectLater(
       a.run(SafetyActionId.interventionStep),
+      throwsArgumentError,
+    );
+    await expectLater(
+      a.run(SafetyActionId.stoppedDecision),
       throwsA(isA<UnsupportedError>()),
     );
     await expectLater(a.run(SafetyActionId.reconClear), throwsArgumentError);

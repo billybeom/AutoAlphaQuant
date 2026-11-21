@@ -8,6 +8,8 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:domain_contracts/domain_contracts.dart'
+    show BaselineResultCodes;
 
 import '../ops/ledger_boundary.dart' show BoundaryPath, LedgerBoundaryVerdict;
 import '../ops/ledger_integrity.dart' show StoredDayStamp;
@@ -19,13 +21,14 @@ import 'repair_plan.dart'
         RepairDirection,
         kBaselineOriginCodes;
 
-/// 새 기준점 거부 코드(계약 등재 = E16i 전 문자열).
+/// 새 기준점 거부 코드 — 🆕 E16j-a(01 §8 미결 212 ① repair 몫) 계약 사전 `BaselineResultCodes`(01 §38 · v1.30) 참조.
 abstract final class BaselineCodes {
   /// 경계가 X5 가 아니다(X1 비상 경로 · 또는 깨끗함).
-  static const String notX5 = 'BASELINE_NOT_X5';
+  static const String notX5 = BaselineResultCodes.notX5;
 
   /// 첫 어긋난 날을 모른다.
-  static const String firstBadDateUnknown = 'BASELINE_FIRST_BAD_DATE_UNKNOWN';
+  static const String firstBadDateUnknown =
+      BaselineResultCodes.firstBadDateUnknown;
 }
 
 /// 무결성 diff id — `li-` + sha256(`LEDGER_INTEGRITY|날|사유`) 앞 24(합성 · 행 없음).

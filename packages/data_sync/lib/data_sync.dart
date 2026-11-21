@@ -81,6 +81,8 @@ export 'src/local/plan_snapshot_store.dart';
 export 'src/local/planned_work_store.dart';
 export 'src/local/pledge_store.dart';
 export 'src/local/rebalance_source.dart';
+// 🆕 E16j-a — X5 정정 마법사 원천(설계 13 §8 R227 · 01 §8 미결 217).
+export 'src/local/repair_wizard_source.dart';
 export 'src/local/resume_read_model.dart';
 export 'src/local/resume_screen_source.dart';
 export 'src/local/resume_status.dart';

@@ -1040,6 +1040,7 @@ export 'src/orders/reconcile.dart'
         clearRecon,
         kReconClearOriginCodes,
         kReconRecheckDelay,
+        freshReconDiffIds,
         ledgerDiffIdOf,
         reconcileAccount,
         runReconciliation;
@@ -1157,6 +1158,32 @@ export 'src/repair/repair_rows.dart'
         ledgerRepairRowsOf,
         repairLabelOf,
         repairTargetTextOf;
+// 🆕 E16j-a — X5 정정 마법사 VM 생산자 · 단계 문구 · 결과 글자 · 원문 파싱(설계 13 §8 R227 · 01 §8 미결 217).
+export 'src/repair/repair_wizard.dart'
+    show
+        RepairFillCandidate,
+        RepairInputCodes,
+        RepairResultTexts,
+        RepairRunHold,
+        RepairWizardFacts,
+        RepairWizardTexts,
+        integrityTargetIdOf,
+        interventionStepOutcomeOf,
+        kRepairAmendChainLimit,
+        kRepairBaselineOriginOrder,
+        kRepairCorrectOriginCodes,
+        kRepairOriginLabels,
+        parseRepairAmounts,
+        repairAsOf,
+        repairBoundaryOf,
+        repairFillLabelOf,
+        repairStageRowsOf,
+        repairWizardResultOf,
+        repairWizardVmOf,
+        repairableDiffsOf,
+        x5SessionIdOf,
+        x5SessionPrefixOf,
+        x5TargetOfSession;
 export 'src/repair/reversal_plan.dart'
     show
         FillSnapshot,

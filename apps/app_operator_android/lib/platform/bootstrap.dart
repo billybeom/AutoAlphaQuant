@@ -34,7 +34,8 @@ import 'package:data_sync/data_sync.dart'
         P0sHumanDecision,
         SupabaseAuth,
         SupabaseServerTime;
-import 'package:domain_contracts/domain_contracts.dart' show Clock, RunMode;
+import 'package:domain_contracts/domain_contracts.dart'
+    show Clock, RunMode, TradeDate;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart'
@@ -43,6 +44,7 @@ import 'package:trading_runtime/trading_runtime.dart'
 import '../app/operator_golden.dart' show OperatorGolden;
 import '../app/operator_onboarding.dart' show OnboardingProbe;
 import '../app/operator_runtime.dart';
+import '../app/operator_view.dart' show OperatorView;
 import '../app/secure_screen.dart' show SecureScreen;
 import '../engine/data_job_runners.dart' show JobParts;
 import '../engine/engine_boot.dart' show BootInputs, registryLiveKeysVerified;
@@ -52,6 +54,7 @@ import '../engine/kis_sessions.dart';
 import '../engine/ledger_files.dart';
 import '../engine/operations_loader.dart' show loadOperationsConfig;
 import '../engine/operator_engine.dart';
+import '../engine/repair_recon.dart' show operatorFreshReconIds;
 import '../engine/seed_loader.dart';
 import '../engine/system_clock.dart';
 import 'android_ops.dart';
@@ -298,6 +301,21 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       // 🆕 E11k-c(R206) — o_07 ② 연결 확인(붙여 넣은 값으로 서버 시각 1회 · 통과 = 금고).
       supabaseTime: SupabaseServerTime(http.Client(), AndroidSecretVault()),
       supabaseAuth: supabaseAuth,
+      // 🆕 E16j-a(R227 · 미결 217 ⓒ) — 정정 직전 재대사(주문 잡과 같은 브로커 조립 · 쓰기 0 · 못 하면 null).
+      freshRecon: (OperatorView v, TradeDate day) => operatorFreshReconIds(
+        db: v.db,
+        runMode: v.flags.runMode,
+        clock: clock,
+        calendars: JobCalendars(
+          kr: frozenExchangeCalendar(Market.kr),
+          us: frozenExchangeCalendar(Market.us),
+        ),
+        parts: operatorJobParts(
+          KisSessions(vault: AndroidSecretVault(), http: http.Client()),
+          http.Client(),
+        ),
+        tradeDate: day,
+      ),
     );
   } on Object {
     return null;

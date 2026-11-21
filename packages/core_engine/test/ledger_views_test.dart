@@ -84,8 +84,25 @@ void main() {
           final LedgerDiffRow expected = LedgerDiffRow.fromJson(fx);
           final LedgerDiffRow got = ledgerDiffRowOf(_storedOf(fx));
           expect(got.evidenceHash, matches(RegExp(r'^ev_[0-9a-f]{12}$')));
+          // 🆕 E16j-a(01 §8 미결 217 ⓕ) — 조치 링크 = 대상 라우트(표본은 v1.12 허브 글자 · 표본 개정 = 계약 창 몫).
+          if (expected.actionLink != null) {
+            expect(expected.actionLink!.deepLink, AppRoutes.x5RepairWizard);
+            expect(
+              got.actionLink,
+              LinkAction(
+                label: expected.actionLink!.label,
+                deepLink: AppRoutes.x5RepairTarget.replaceFirst(
+                  ':targetId',
+                  expected.diffId,
+                ),
+              ),
+            );
+          }
           expect(
-            got.copyWith(evidenceHash: expected.evidenceHash),
+            got.copyWith(
+              evidenceHash: expected.evidenceHash,
+              actionLink: expected.actionLink,
+            ),
             expected,
             reason: fx['diff_id'] as String,
           );
@@ -95,9 +112,14 @@ void main() {
 
     test('뷰어(폰 아님) = 조치 링크 없음 · 닫힌 시각 모름 = 날짜 없는 «해소됨»', () {
       final StoredLedgerDiff open = _diff('a', detected: _now);
+      // 🆕 E16j-a(01 §8 미결 217 ⓕ) — 대상 라우트(diff id 를 싣는다 · 허브가 아니다).
       expect(
         ledgerDiffRowOf(open).actionLink?.deepLink,
-        AppRoutes.x5RepairWizard,
+        AppRoutes.x5RepairTarget.replaceFirst(':targetId', open.diffId),
+      );
+      expect(
+        AppRoutes.isRegistered(ledgerDiffRowOf(open).actionLink!.deepLink),
+        isTrue,
       );
       expect(ledgerDiffRowOf(open, phone: false).actionLink, isNull);
       expect(

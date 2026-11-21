@@ -48,6 +48,9 @@ export 'src/migration/x1_screens.dart'
 // 🆕 M5-8 서약(설계 13 §8 R157) — 읽기 + 쓰기(쓰기 주입 = 폰만 · 뷰어 null = 컨트롤 부재 → 배럴에 둔다).
 export 'src/pledge/pledge_panel.dart'
     show PledgePanel, safetyActionsProvider, safetyPledgeRepositoryProvider;
+// 🆕 X5 정정 마법사(설계 13 §8 R227 · 허브 · 대상 한 화면 — 동작 = 엔진이 준 것 · 제출 3 = 안전 동작 창구).
+export 'src/repair/repair_wizard_screen.dart'
+    show RepairWizardScreen, safetyRepairWizardRepositoryProvider;
 // 🆕 X2 재개 리포트 · 게이트(설계 13 §8 R186 · 읽기 + 계절 3택 — 동작 = 엔진이 행에 준 것만).
 export 'src/resume/resume_screens.dart'
     show

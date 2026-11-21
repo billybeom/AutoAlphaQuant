@@ -4,6 +4,8 @@
 //    ② 거부(신뢰 시각 · 플래그 없음 · X1 경계 · 결정 · 원인 밖) = 쓰기 0 ③ LEDGER_FIX 는 끝나면 없다 · 다른 정정 중 = Busy
 //    ④ 다시 쓴 스탬프로 대조가 다시 통과 · 다음 날 스탬프가 이어진다 ⑤ 아무것도 안 하기 = OPEN → ACCEPTED 그 행만
 //    ⑥ watchRepairs = 실물 행 · 상세 없는 행 = 스트림 오류.
+//    🆕 E16j-a(01 §8 미결 217 ⓐ · K254) — 커밋 = 개입 세션 5단계(결정 = 3단계 저널 · 차례 밖 = 거부 · 통과 = 5단계 행) ·
+//       아무것도 안 하기 = 이 diff 의 마법사 세션 DO_NOTHING + ACCEPTED 한 트랜잭션.
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,6 +15,7 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
+import 'support/intervention_seed.dart';
 import 'support/ledger_golden.dart';
 
 class _Clock implements Clock {
@@ -79,17 +82,32 @@ void main() {
   int count(String table) =>
       db.select('SELECT count(*) AS n FROM $table').first['n'] as int;
 
+  int sessions = 0;
+
+  /// 새 기준점 — [session] null = 실행 창 안 새 세션을 심고(결정 = [decision]) 그 세션으로 커밋한다.
   BaselineResult apply({
-    String? decision = 'dec-x5',
+    String decision = 'dec-x5',
+    String? session,
     String origin = 'CHAIN_BROKEN',
     DerivedRelation? archive,
-  }) => store.applyBaseline(
-    repairId: 'rp-1',
-    decisionId: decision,
-    originCode: origin,
-    clearedBy: 'operator',
-    archiveRelation: archive,
-  );
+  }) {
+    final String sid = session ?? 'x5:li-test:${++sessions}';
+    if (session == null) {
+      seedExecutableSession(
+        db,
+        sid,
+        nowUtc: trusted.at ?? _t0,
+        journalId: decision,
+      );
+    }
+    return store.applyBaseline(
+      repairId: 'rp-1',
+      sessionId: sid,
+      originCode: origin,
+      clearedBy: 'operator',
+      archiveRelation: archive,
+    );
+  }
 
   test('🔴 새 기준점 — 그 날 이후 다시 스탬프 · 대조 통과 · 정정 행 + 상세 · 플래그 해제', () {
     broken();
@@ -134,6 +152,13 @@ void main() {
     );
     expect(f['cleared_at'], isNotNull);
     expect(ledgerFixVisible(db), isFalse);
+    // 🆕 E16j-a — 5단계 통과(결정 = 세션 저널) 가 같은 커밋에 남는다.
+    final Row s5 = db
+        .select(
+          "SELECT * FROM intervention_step WHERE session_id = 'x5:li-test:1' AND stage = 5",
+        )
+        .single;
+    expect((s5['outcome'], s5['decision_id']), ('PASSED', 'dec-x5'));
   });
 
   test('🔴 첫 어긋난 날이 뒤쪽(11-04) — 앞 스탬프는 그대로 · 그 날만 앞 체인에서 이어 다시', () {
@@ -200,7 +225,11 @@ void main() {
         apply(archive: DerivedRelation.ahead).rejectCode,
         BaselineCodes.notX5,
       );
-      expect(apply(decision: null).rejectCode, RepairCodes.decisionRequired);
+      expect(
+        apply(session: 'x5:li-test:none').rejectCode,
+        InterventionCodes.outOfOrder,
+        reason: '🆕 E16j-a 세션 없음 = 차례 밖(결정 = 세션 저널)',
+      );
       expect(
         apply(origin: 'SCHEMA_SKEW').rejectCode,
         RepairCodes.originNotAllowed,
@@ -251,6 +280,79 @@ void main() {
           ('ld-b', 'OPEN'),
           ('ld-c', 'RESOLVED'),
         ],
+      );
+    });
+
+    // 🆕 E16j-a(계약 v1.32 K254) — 마법사 세션 DO_NOTHING + ACCEPTED 한 트랜잭션.
+    List<(Object?, Object?, Object?)> steps() => <(Object?, Object?, Object?)>[
+      for (final Row r in db.select(
+        'SELECT session_id, stage, outcome FROM intervention_step ORDER BY session_id, stage',
+      ))
+        (r['session_id'], r['stage'], r['outcome']),
+    ];
+
+    test(
+      '🆕 세션 없음 = 시각 없이 받아들임 · OPEN CANON_BROKER 아님 = REPAIR_DIFF_NOT_OPEN',
+      () {
+        diff('ld-a', 'OPEN');
+        diff('ld-c', 'RESOLVED');
+        trusted.at = null;
+        expect(store.acceptWithSession('ld-a'), isNull);
+        expect(store.acceptWithSession('ld-a'), 'REPAIR_DIFF_NOT_OPEN');
+        expect(store.acceptWithSession('ld-c'), 'REPAIR_DIFF_NOT_OPEN');
+        expect(store.acceptWithSession('ld-none'), 'REPAIR_DIFF_NOT_OPEN');
+        db.execute(
+          "UPDATE ledger_diff SET status = 'OPEN', pair = 'CANON_GITHUB' WHERE diff_id = 'ld-c'",
+        );
+        expect(store.acceptWithSession('ld-c'), 'REPAIR_DIFF_NOT_OPEN');
+        expect(steps(), isEmpty);
+      },
+    );
+
+    test('🆕 이 diff 의 열린 세션 = 다음 단계 DO_NOTHING(닫힘) · 다른 대상 세션 · 닫힌 세션 그대로', () {
+      diff('ld-a', 'OPEN');
+      final DateTime t = trusted.at!;
+      seedSessionSteps(db, 'x5:ld-a:1', <(int, DateTime, String?)>[
+        (1, t.subtract(const Duration(hours: 2)), null),
+      ], last: InterventionOutcome.abandoned);
+      seedSessionSteps(db, 'x5:ld-a:2', <(int, DateTime, String?)>[
+        (1, t.subtract(const Duration(hours: 1)), null),
+        (2, t.subtract(const Duration(minutes: 30)), null),
+      ]);
+      seedSessionSteps(db, 'x5:ld-b:1', <(int, DateTime, String?)>[
+        (1, t.subtract(const Duration(hours: 1)), null),
+      ]);
+      expect(store.acceptWithSession('ld-a'), isNull);
+      expect(steps(), <(Object?, Object?, Object?)>[
+        ('x5:ld-a:1', 1, 'ABANDONED'),
+        ('x5:ld-a:2', 1, 'PASSED'),
+        ('x5:ld-a:2', 2, 'PASSED'),
+        ('x5:ld-a:2', 3, 'DO_NOTHING'),
+        ('x5:ld-b:1', 1, 'PASSED'),
+      ]);
+      expect(
+        db
+            .select("SELECT status FROM ledger_diff WHERE diff_id = 'ld-a'")
+            .single['status'],
+        'ACCEPTED',
+      );
+    });
+
+    test('🆕 🔴 닫을 세션이 있는데 신뢰 시각 모름 = 거부 · 쓰기 0', () {
+      diff('ld-a', 'OPEN');
+      seedSessionSteps(db, 'x5:ld-a:1', <(int, DateTime, String?)>[
+        (1, trusted.at!, null),
+      ]);
+      trusted.at = null;
+      expect(store.acceptWithSession('ld-a'), 'TRUSTED_TIME_UNKNOWN');
+      expect(steps(), <(Object?, Object?, Object?)>[
+        ('x5:ld-a:1', 1, 'PASSED'),
+      ]);
+      expect(
+        db
+            .select("SELECT status FROM ledger_diff WHERE diff_id = 'ld-a'")
+            .single['status'],
+        'OPEN',
       );
     });
   });
