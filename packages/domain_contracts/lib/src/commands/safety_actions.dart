@@ -54,8 +54,9 @@ part 'safety_actions.g.dart';
 /// 🔴 사전 저널 꼴 ⓐ(K180) — 사람 글 3필드(`rationaleBefore` · `expectedOutcome` · `ruleCited` 원문)는 제출 DTO 에 · 저널 id 는
 ///    구현 · 저널 행과 동작은 한 트랜잭션(고아 저널 0 · 엔진 «저널 함께 쓰기» 판 = 01 §8 미결 206).
 /// 🆕 v1.32(01 §41 · K251~K259 · E16j-a · X5 정정 마법사 `RepairWizardVm`):
-/// · `run` 화이트리스트 +1 — `repairAccept` = `{diff_id}`(아무것도 안 하기 · 구현 = 살아 있는 개입 세션 `DO_NOTHING` + diff ACCEPTED ·
-///   무결성 갈래 0 · 결과 id = [SafetyActionId.repairAccept]).
+/// · `run` 화이트리스트 +1(🆕 v1.33 에 표 꼴로 맞춤 — C-60 ⑮):
+///    · `repairAccept`     = `{diff_id}`(아무것도 안 하기 · 구현 = 살아 있는 개입 세션 `DO_NOTHING` + diff ACCEPTED ·
+///                           무결성 갈래 0 · 결과 id = [SafetyActionId.repairAccept]).
 /// · `runRepairCorrect` — 정본 정정(diff 갈래 · 5단계 통과 뒤 · 원문 4칸 파싱 = 구현 · 직전 재대사 = 구현 · `decision_id` = 개입 세션 저널 ·
 ///   거부 = `RepairResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪ `InterventionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairCorrect].
 /// · `runRepairBaseline` — 새 기준점(무결성 갈래 · 거부 = `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `InterventionResultCodes` ∪
@@ -63,6 +64,16 @@ part 'safety_actions.g.dart';
 /// · `runInterventionJournal` — 개입 3단계 사전 저널(K180 꼴 3칸 · 구현 = 살아 있는 세션 하나에 붙인다 · 저널 + 3단계 한 트랜잭션 · M5-6 재사용 ·
 ///   거부 = `InterventionResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.interventionJournal].
 /// 🔴 정정 · 새 기준점 커밋이 개입 세션 5단계 · 실행 창 · `decision == journalId` 를 보게 하는 결속 = 엔진 숙제(01 §8 미결 217).
+/// 🆕 v1.33(01 §42 · K273 · E16j-b · X1 기기 이전 `X1PlanWizardVm` · `X1RecoveryVm`) — `run` 화이트리스트 +6(표면 무변경 · 제출 DTO 0 ·
+///    시크릿 = 슬롯 ↔ 구현 사이만 · `run_id` = 엔진이 args 에 싣는다):
+///    · `x1PlanStart`      = `{}`(옛 폰 «봤습니다 — 이전 시작» · D-03 확인 결정 + 저널 시작 = 구현 · 거부 = `X1StartResultCodes` ∪ `X1JournalResultCodes` ∪ 공용)
+///    · `x1PlanStep`       = `{run_id, step ∈ X1StepCodes}`(거부 = `X1StepBlockCodes` ∪ `X1JournalResultCodes` ∪ 공용)
+///    · `x1PlanAbort`      = `{run_id, step}`(DEMOTED 앞만 · 거부 = `X1JournalResultCodes`)
+///    · `x1EmergencyStart` = `{}`(비상 선언 결정 + 복구 코드 슬롯 → epoch+1 = 구현 · 거부 = `X1StartResultCodes` ∪ `X1RecoveryResultCodes` ∪ 공용)
+///    · `x1ReissueRecord`  = `{run_id, item ∈ X1ReissueItemCodes}`(값 = 슬롯 · 지문만 엔진 · 거부 = `X1ReissueResultCodes`)
+///    · `x1RecoveryStep`   = `{run_id, step ∈ X1RecoveryStepCodes}`(골든 · 체크리스트 · 생체 = 구현이 가른다 · 거부 = `X1GateReasonCodes` ∪
+///                           `X1RestoreResultCodes` ∪ `BackupResultCodes` ∪ `X1OrderSealCodes` ∪ `X1RecoveryResultCodes` ∪ `BIOMETRIC_UNAVAILABLE`)
+/// 🔴 VM 생산 · 단계 진행기 · REVOKED · 재발급 저장 · 백업 바이트 원천 = 엔진 · 조립 숙제(01 §8 미결 218) — 그 전 운영 앱 = 모르는 id 오류.
 abstract interface class SafetyActions {
   /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
   Future<SafetyActionResult> run(

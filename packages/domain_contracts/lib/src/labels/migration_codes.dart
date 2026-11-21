@@ -467,3 +467,26 @@ abstract final class MaintenanceWindowEventCodes {
     resumeFailed,
   };
 }
+
+/// 🆕 v1.33(01 §42 · K274 · E16j-b) — X1 이전 화면의 🔒 슬롯 이름(도메인 `x1_slot` · 화면은 해석하지 않고 주입된 슬롯 빌더에 넘긴다).
+/// 시크릿 자리 = `SECRET_` 접두(v1.20 K31 선례) · 값은 슬롯 ↔ 구현 사이만(동작 args 0).
+abstract final class X1SlotIds {
+  /// 옛 폰 — 이전 티켓 QR 표시(`X1TicketCard.ticketSlotId` · FLAG_SECURE = 슬롯 위젯).
+  static const String ticketQrDisplay = 'X1_TICKET_QR_DISPLAY';
+
+  /// 새 폰 받기 — 티켓 QR 스캔(`X1RecoveryVm.scanSlotId`).
+  static const String ticketQrScan = 'X1_TICKET_QR_SCAN';
+
+  /// 새 폰 비상 — 복구 코드 입력(`X1RecoveryVm.recoveryCodeSlotId` · 시크릿).
+  static const String recoveryCode = 'SECRET_X1_RECOVERY_CODE';
+
+  /// 새 폰 비상 — 재발급한 키 · 토큰 값 입력(`X1ReissueRow.reissueSlotId` · 시크릿 · 지문만 엔진).
+  static const String reissueSecret = 'SECRET_X1_REISSUE';
+
+  static const Set<String> values = <String>{
+    ticketQrDisplay,
+    ticketQrScan,
+    recoveryCode,
+    reissueSecret,
+  };
+}

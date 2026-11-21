@@ -315,6 +315,8 @@ abstract final class ContractCodes {
     'derived_relation': DerivedRelationCodes.values,
     // 🆕 v1.32(01 §41 · E16j-a) — 새 기준점 저장 쪽 거부(ds `BaselineStoreCodes` − 공용)
     'baseline_apply_result': BaselineApplyResultCodes.values,
+    // 🆕 v1.33(01 §42 · E16j-b) — X1 이전 화면 🔒 슬롯 이름
+    'x1_slot': X1SlotIds.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

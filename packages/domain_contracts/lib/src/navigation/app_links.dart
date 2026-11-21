@@ -341,12 +341,16 @@ abstract final class AppRoutes {
 
   /// 🆕 v1.21 — 🔒 `M5-9` 규칙 변경 게이트(M9 `S04` «적용» `ActionResult.handoffRoute` 목적지 · R8) · 본문 = 빈 자리(E13m).
   static const String m5RuleChangeGate = 'aaq://m5/rule-change-gate';
+
+  /// 🔒 X1 **옛 폰 계획 교체 마법사**(`X1-2` · S06 리스 카드 · S09 «폰을 바꾸시나요?» 진입) — 🆕 v1.33(01 §42 · K265) VM = `X1PlanWizardVm`.
   static const String x1Migration = 'aaq://x1/migration';
 
-  /// 🆕 v1.16(01 §25 · K5) — `R-01` 분기 «구 폰이 옆에 있어요» = X1 계획 경로(QR · 🔒 X1-2).
+  /// 🆕 v1.16(01 §25 · K5) — `R-01` 분기 «구 폰이 옆에 있어요» = X1 **새 폰 받기**(QR 스캔 · 🔒 X1-4 · X1-5) — 🆕 v1.33(K265) 정정:
+  /// 옛 «X1-2» 표기는 옛 폰 몫(`x1Migration`)이다 · VM = `X1RecoveryVm`(`MigrationRepository.watchPlanRecovery`).
   static const String x1MigrationPlan = 'aaq://x1/migration/plan';
 
-  /// 🆕 v1.16 — `R-01` 분기 «잃어버렸어요» = X1 비상 경로(복구 코드 → epoch+1 → TTL 대기 · 🔒 X1-3).
+  /// 🆕 v1.16 — `R-01` 분기 «잃어버렸어요» = X1 비상 경로(복구 코드 → epoch+1 → TTL 대기 · 🔒 X1-3) · 경계 X1 안내(X1-G) —
+  /// 🆕 v1.33(K265) VM = `X1RecoveryVm`(`MigrationRepository.watchEmergencyRecovery`).
   static const String x1MigrationEmergency = 'aaq://x1/migration/emergency';
 
   /// 🆕 v1.25(01 §34 · K156) — 🔒 X2-6 리포트 본문 = `ui_safety`(VM = `ResumeReportVm`).
