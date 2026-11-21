@@ -29,6 +29,7 @@ import 'package:core_engine/core_engine.dart'
         AnnualReviewVmTexts,
         BackupScreenTexts,
         DisclosureGateTexts,
+        DrawdownContextTexts,
         PerfSeriesTexts,
         BlockBoardTexts,
         DeviceRiskFacts,
@@ -69,6 +70,7 @@ import 'package:ui_analytics/planner.dart'
 import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
+        DrawdownContextScreen,
         ExecutionGapScreen,
         PerformanceExploreScreen,
         RebalanceEventScreen,
@@ -492,6 +494,17 @@ void main() {
         container.read(analyticsCommandApiProvider),
         container.read(operatorCommandApiProvider),
       ),
+      true,
+    );
+    // 🆕 R226 — S7-3 드로다운 등록(S7-2 «낙폭 맥락 보기» · S12 목차 행 목적지).
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.performanceDrawdown),
+      true,
+    );
+    expect(
+      container
+          .read(operatorPerformanceProvider)
+          .hasBody(AppRoutes.performanceDrawdown),
       true,
     );
     // 🆕 R178 — M5-1 킬스위치 읽기 = 한 인스턴스 · 명령 = 기기 id 없음 → null(버튼 부재).
@@ -1296,6 +1309,54 @@ void main() {
       );
       expect(find.text('이번 달 1번 열어 보셨습니다'), findsOneWidget);
       expect(find.text(DisclosureGateTexts.friction), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M7 S7-3 드로다운(R226) = 조립 셸에 등록 · 원장 스냅숏 → 엔진 문장 셋 · 기준 줄 · 크래시 없음',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      for (final (String d, double e) in <(String, double)>[
+        ('2026-12-16', 100),
+        ('2026-12-17', 95),
+        ('2026-12-18', 97),
+      ]) {
+        files.sim.execute(
+          'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+          "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+          <Object?>[d, e, e, e],
+        );
+      }
+      Future<void> settle() async {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 30)),
+        );
+        await tester.pump();
+        await tester.pump();
+      }
+
+      await open(tester, AppRoutes.performanceDrawdown);
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(DrawdownContextScreen);
+      expect(screen, findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      for (final String t in <String>[
+        '현재 낙폭 −3.0%',
+        '최대 낙폭 −5.0%',
+        DrawdownContextTexts.tuw(1),
+        '드로다운 기준 2026-12-18',
+      ]) {
+        expect(
+          find.descendant(of: screen, matching: find.textContaining(t)),
+          findsWidgets,
+          reason: t,
+        );
+      }
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;

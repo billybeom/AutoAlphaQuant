@@ -36,7 +36,11 @@ import 'package:flutter/widgets.dart' show Key, ValueKey;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database, Row;
 import 'package:ui_analytics/ui_analytics.dart'
-    show AnnualReviewScreen, ExecutionGapScreen, PerformanceExploreScreen;
+    show
+        AnnualReviewScreen,
+        DrawdownContextScreen,
+        ExecutionGapScreen,
+        PerformanceExploreScreen;
 
 import '../engine/support.dart';
 
@@ -253,7 +257,6 @@ void main() {
         p.monthlyReport('2026-10'),
         p.afterTaxLadder(fiscalYear: '2026'),
         p.reportArchive(),
-        p.drawdownContext(),
         p.contribution(range: range),
         p.goalPath(yyyyMm: '2026-10'),
       ]) {
@@ -406,6 +409,46 @@ void main() {
     });
   });
 
+  group('🆕 S7-3 드로다운(R226)', () {
+    void snap(String day, double equity) => files.sim.execute(
+      'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+      "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+      <Object?>[day, equity, equity, equity],
+    );
+
+    test('🔴 화면 상태의 원장 · KR 달력(주말 = 결측 아님) · 원천과 같은 값 · 화면 상태 없음 / 임의 구간 / 스냅숏 0 = 실패', () async {
+      final OperatorRuntime r = rt();
+      final OperatorPerformanceRepository p = OperatorPerformanceRepository(
+        r,
+        hasBody: _all,
+      );
+      await expectLater(p.drawdownContext(), throwsStateError);
+      r.view.value = _viewOf(files.sim, OperatingMode.autoTrade);
+      await expectLater(p.drawdownContext(), throwsStateError);
+      snap('2026-11-13', 100); // 금
+      snap('2026-11-16', 94); // 월 — 주말 = 세션 아님(결측 고지 0)
+      snap('2026-11-18', 97); // 17 결측
+      final DrawdownContextVm v = await p.drawdownContext();
+      expect(v.maxDdText, '최대 낙폭 −6.0% (결측 1거래일 제외)');
+      expect(v.currentDdText, '현재 낙폭 −3.0%');
+      expect(
+        v,
+        SqlitePerformanceSource(files.sim, clock: clock).drawdownContext(
+          isSession: (String d) => r.calendars.kr.isSession(TradeDate(d)),
+        ),
+      );
+      await expectLater(
+        p.drawdownContext(
+          range: DateRange(
+            from: TradeDate('2026-11-01'),
+            to: TradeDate('2026-11-18'),
+          ),
+        ),
+        throwsUnsupportedError,
+      );
+    });
+  });
+
   group('S7-10 이행 갭', () {
     test('🔴 화면 상태 없음(운용 전) = 발행된 안내 0 · 자동 매매 = 해당 없음 · 안내 = 원천 없음', () async {
       final OperatorRuntime r = rt();
@@ -457,6 +500,11 @@ void main() {
         ),
         isA<PerformanceExploreScreen>(),
       );
+      // 🆕 R226 — S7-3 드로다운 = 엔진 기본 구간(인자 없음).
+      final Object dd = kOperatorRouteBodies
+          .byPattern[AppRoutes.performanceDrawdown]!(const <String, String>{});
+      expect(dd, isA<DrawdownContextScreen>());
+      expect((dd as DrawdownContextScreen).range, isNull);
     });
   });
 }

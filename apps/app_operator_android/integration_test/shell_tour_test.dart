@@ -51,6 +51,7 @@ import 'package:ui_analytics/planner.dart' show DepositPlannerScreen;
 import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
+        DrawdownContextScreen,
         ExecutionGapScreen,
         PerformanceExploreScreen,
         RebalanceEventScreen,
@@ -762,6 +763,22 @@ void main() {
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
       await _until(tester, find.textContaining('남은 공간'));
       await _at(tester, find.byType(DeviceRiskBoard), 'IT_H03');
+
+      // 🆕 R226 — S7-3 드로다운(맨 끝 — 연습 마감 스냅숏이 앞 단계에 섞이지 않게): 연습 개시 = 오늘이라 개시 이전 = 성과 밖 →
+      //    오늘 마감 스냅숏 하나 → 엔진 문장 셋(낙폭 0 · 전고점 아래 구간 없음) · 기준 줄.
+      final String d0 = kstDateText(rt.clock.nowUtc());
+      files.sim.execute(
+        'INSERT OR IGNORE INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, '
+        "high_water_mark, drawdown, mode) VALUES (?, 10000000, 10000000, 0, 10000000, 0, 'SIM_INTERNAL')",
+        <Object?>[d0],
+      );
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.performanceDrawdown);
+      await _until(tester, find.textContaining('최대 낙폭 0.0%'));
+      expect(find.textContaining('현재 낙폭 0.0%'), findsWidgets);
+      expect(find.textContaining('드로다운 기준 $d0'), findsWidgets);
+      await _at(tester, find.byType(DrawdownContextScreen), 'IT_S73');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();

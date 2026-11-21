@@ -1,4 +1,5 @@
-// 🆕 E11q-q5b — M7 `S7-2` 성과 탐색 시리즈 · `S7-2G` 열람 게이트 · 열람 기록의 원장 원천(설계 13 §8 R223).
+// 🆕 E11q-q5b — M7 `S7-2` 성과 탐색 시리즈 · `S7-2G` 열람 게이트 · 열람 기록의 원장 원천(설계 13 §8 R223) ·
+// 🆕 E11q-q5c `S7-3` 드로다운 맥락(같은 점 · R226).
 //
 // 🔴 시리즈 = 계층 B · 월간 리포트와 같은 점(`tierBSeries` — 개시 뒤 마감 스냅숏 + 그 사이 입출금) → 엔진 `performanceSeriesOf`.
 // 🔴 무결성 가림 = `LEDGER_INTEGRITY` 깃발(풀리지 않은 차단) — 보유 · 일지와 같은 판정.
@@ -11,6 +12,7 @@ import 'package:core_engine/core_engine.dart'
         EquityPoint,
         disclosureGateVmOf,
         disclosureMonthOf,
+        drawdownContextVmOf,
         kstDateText,
         performanceSeriesOf;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -19,6 +21,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         CommandKind,
         CommandReceipt,
         DisclosureGateVm,
+        DrawdownContextVm,
         FlagIds,
         OperatingMode,
         PerfGranularity,
@@ -75,6 +78,19 @@ class SqlitePerformanceSource {
       viewCountThisMonth: disclosureViews(disclosureMonthOf(now)),
       integrityHidden: integrityHidden(),
       nowUtc: now,
+    );
+  }
+
+  /// 🆕 E11q-q5c — `S7-3` 드로다운 맥락(같은 점 · 운용 전체) — [isSession] = 한국 세션(결측 셈).
+  DrawdownContextVm drawdownContext({
+    required bool Function(String ymd) isSession,
+  }) {
+    final DateTime now = _clock.nowUtc();
+    return drawdownContextVmOf(
+      equity: equity(kstDateText(now)),
+      isSession: isSession,
+      nowUtc: now,
+      integrityHidden: integrityHidden(),
     );
   }
 

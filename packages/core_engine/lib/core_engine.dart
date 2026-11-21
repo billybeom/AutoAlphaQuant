@@ -567,6 +567,9 @@ export 'src/ops/disclosure_view.dart'
         kDisclosureFrequentViews,
         kDisclosureGateStaleAfter,
         kDisclosureViewTtl;
+// 🆕 E11q-q5c — M7 S7-3 드로다운 · TUW 맥락 VM(월간 리포트 C1 · C2 와 같은 셈 · 설계 13 §8 R226).
+export 'src/ops/drawdown_context_view.dart'
+    show DrawdownContextTexts, drawdownContextVmOf, kDrawdownContextStaleAfter;
 // 🆕 E11f1 — 일일 평가 스냅숏 계산(평가 · HWM · 드로다운 · 브레이커 재생 · P0S 브레이커 설정 · 설계 13 §8 R47 F6~F8).
 export 'src/ops/equity_snapshot.dart'
     show

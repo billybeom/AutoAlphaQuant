@@ -1,4 +1,4 @@
-// E11q-q5b — M7 S7-2 시리즈 · S7-2G 게이트 · 열람 기록 원장 원천(설계 13 §8 R223) — 실 SQLite(모의 원장).
+// E11q-q5b — M7 S7-2 시리즈 · S7-2G 게이트 · 열람 기록 원장 원천(설계 13 §8 R223) · 🆕 E11q-q5c S7-3 드로다운(R226) — 실 SQLite(모의 원장).
 //
 // 🔴 시리즈 = 계층 B 와 같은 점(입출금 = 수익 아님) → 엔진 · 무결성 = `LEDGER_INTEGRITY` 깃발 · 열람 기록 = `command_inbox` 한 행 ·
 //    집계 = 접수 시각의 한국 달 · 무결성 점검 중 = 보류 행(집계에 든다).
@@ -118,6 +118,30 @@ void main() {
       final PerformanceSeries masked = daily();
       expect(masked.points, isEmpty);
       expect(masked.unavailableLabel, PerfSeriesTexts.integrityMasked);
+    });
+  });
+
+  group('🆕 드로다운(R226)', () {
+    test('같은 원장 점 → 엔진과 같은 값 · 스냅숏 0 / 무결성 = 실패', () {
+      bool kr(String d) => _weekday(d);
+      expect(() => src().drawdownContext(isSession: kr), throwsStateError);
+      snap('2026-08-03', 100);
+      snap('2026-08-04', 95);
+      snap('2026-08-05', 97);
+      final DrawdownContextVm v = src().drawdownContext(isSession: kr);
+      expect(v.maxDdText, '최대 낙폭 −5.0%');
+      expect(v.currentDdText, '현재 낙폭 −3.0%');
+      expect(
+        v,
+        drawdownContextVmOf(
+          equity: tierBSeries(db, '2026-08-05'),
+          isSession: kr,
+          nowUtc: clock.at,
+          integrityHidden: false,
+        ),
+      );
+      integrity();
+      expect(() => src().drawdownContext(isSession: kr), throwsStateError);
     });
   });
 
