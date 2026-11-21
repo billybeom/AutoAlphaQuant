@@ -50,6 +50,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         WithdrawalPlan;
 
 import 'operator_runtime.dart';
+import 'operator_self_report.dart'
+    show OperatorSelfReport, OperatorSelfReportSessions, mergeKicks;
 import 'operator_view.dart';
 import 'view_stream.dart';
 
@@ -144,6 +146,7 @@ class OperatorHoldingsRepository implements HoldingsRepository {
     this._rt, {
     required this.hasBody,
     this.tick = const Duration(minutes: 1),
+    this.selfReportSessions,
   });
 
   final OperatorRuntime _rt;
@@ -154,8 +157,15 @@ class OperatorHoldingsRepository implements HoldingsRepository {
   /// 다시 읽는 주기.
   final Duration tick;
 
-  SqliteHoldingsOverviewSource _src(OperatorView v) =>
-      _holdingsSourceOf(_rt, v, hasBody);
+  /// 🆕 E11q-q6 — `L-3` 실사 세션 장부(열린 동안 = «숨김» · 바뀌면 곧바로 다시 읽는다 · 없음 = 가림 0).
+  final OperatorSelfReportSessions? selfReportSessions;
+
+  SqliteHoldingsOverviewSource _src(OperatorView v) => _holdingsSourceOf(
+    _rt,
+    v,
+    hasBody,
+    selfReportSessionOpen: selfReportSessions?.anyOpen,
+  );
 
   @override
   Stream<ListResult<HoldingRow>> watchHoldings({bool includePnl = false}) =>
@@ -166,9 +176,13 @@ class OperatorHoldingsRepository implements HoldingsRepository {
     String what,
   ) => followView<T>(
     view: _rt.view,
-    changes: (OperatorView v) => watchLedgerQuery<T>(
-      v.db,
-      SqliteHoldingsOverviewSource.watchedTables,
+    changes: (OperatorView v) => mergeKicks<T>(
+      watchLedgerQuery<T>(
+        v.db,
+        SqliteHoldingsOverviewSource.watchedTables,
+        () => read(_src(v)),
+      ),
+      selfReportSessions?.changes ?? const Stream<void>.empty(),
       () => read(_src(v)),
     ),
     now: (OperatorView v) => read(_src(v)),
@@ -202,14 +216,16 @@ class OperatorHoldingsRepository implements HoldingsRepository {
 SqliteHoldingsOverviewSource _holdingsSourceOf(
   OperatorRuntime rt,
   OperatorView v,
-  bool Function(String route) hasBody,
-) => SqliteHoldingsOverviewSource(
+  bool Function(String route) hasBody, {
+  bool Function()? selfReportSessionOpen,
+}) => SqliteHoldingsOverviewSource(
   v.db,
   clock: rt.clock,
   kr: rt.calendars.kr,
   runMode: v.flags.runMode,
   accountLabels: rt.humanDecision?.accountLabels ?? const <String, String>{},
   hasBody: hasBody,
+  selfReportSessionOpen: selfReportSessionOpen,
 );
 
 /// 🆕 R173 — 리밸런싱 원천(회차 · 미리보기 상태) · 차단 = 안전 읽기 모델과 같은 셈 · 🆕 R174 입금 등록 판정 상태도 이것.
@@ -354,10 +370,14 @@ class OperatorWhatIfApi implements WhatIfApi {
       Future<T>.error(UnsupportedError('$what: 원천 없음(인출 규칙 미결 79)'));
 }
 
-/// 원장 신뢰 배지 · 실사 — 원천 없음(X7 실사 전 · 홈 블록 9b = 부재).
+/// 원장 신뢰 배지 · 실사 — 배지 = 원천 없음(등급 엔진 전 · 홈 블록 9b = 부재) · 🆕 E11q-q6 `L-3` 세션 = [selfReport]
+/// (없음 = 원천 없음).
 class OperatorLedgerTrustRepository implements LedgerTrustRepository {
   /// 만든다.
-  const OperatorLedgerTrustRepository();
+  const OperatorLedgerTrustRepository({this.selfReport});
+
+  /// 🆕 E11q-q6 — 정기 실사(세션 VM 흐름).
+  final OperatorSelfReport? selfReport;
 
   @override
   Stream<LedgerTrustBadge> watchGrade() => _none('watchGrade');
@@ -366,5 +386,7 @@ class OperatorLedgerTrustRepository implements LedgerTrustRepository {
   Stream<SelfReportSession> watchSelfReportSession(
     String yyyyMm,
     String accountAlias,
-  ) => _none('watchSelfReportSession');
+  ) =>
+      selfReport?.watch(yyyyMm, accountAlias) ??
+      _none('watchSelfReportSession');
 }

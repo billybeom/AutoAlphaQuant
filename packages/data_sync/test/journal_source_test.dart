@@ -393,6 +393,35 @@ void main() {
     expect((b().quantityText, b().priceText), ('10주', '20,060원'));
   });
 
+  test(
+    '🆕 E11q-q6 — L-3 실사 세션(그 폰)이 열린 동안 = «숨김» · 닫히면 원래 글자 · 판정 함수 없음 = 가림 0',
+    () {
+      seedMonthly();
+      bool open = true;
+      final SqliteJournalSource masked = SqliteJournalSource(
+        db,
+        clock: clock,
+        kr: frozenExchangeCalendar(Market.kr),
+        runMode: RunMode.simInternal,
+        accountLabels: const <String, String>{'pension': '연금저축'},
+        hasBody: (String _) => true,
+        selfReportSessionOpen: () => open,
+      );
+      TradeJournalEntry b() => masked.timeline(range: _all).rows.last;
+      expect((b().quantityText, b().priceText), ('숨김', '숨김'));
+      open = false;
+      expect((b().quantityText, b().priceText), ('10주', '20,060원'));
+      open = true;
+      expect(
+        (
+          src().timeline(range: _all).rows.last.quantityText,
+          src().timeline(range: _all).rows.last.priceText,
+        ),
+        ('10주', '20,060원'),
+      );
+    },
+  );
+
   test('빈 원장 = 엔진 빈 문장 · 프리셋 전체 = 끝 날', () {
     final ListResult<TradeJournalEntry> r = src().timeline(range: _all);
     expect(r.rows, isEmpty);

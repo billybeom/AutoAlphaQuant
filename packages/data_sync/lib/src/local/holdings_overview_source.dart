@@ -10,7 +10,7 @@
 //    종가 = 그날 이전 마지막 원가 종가(월말 잡 평가와 같은 열) · 보유 0 = KR 마지막 봉 날 · 봉도 없으면 오늘(한국).
 // 🔴 B 트랜치 = 기준일까지 달마다 마지막 종가(`close` · 월말 잡과 같은 열) → 월말 계획기 함수 · 다음 판정일 = 다음 정기
 //    리밸런싱 판정일(KR 달력).
-// 🔴 가림 = 서 있는 차단 — `LEDGER_INTEGRITY` = «숨김» · `RECON_MISMATCH` = «?».
+// 🔴 가림 = 서 있는 차단 — `LEDGER_INTEGRITY` = «숨김» · `RECON_MISMATCH` = «?» · 🆕 E11q-q6 `L-3` 실사 세션(그 폰) = «숨김».
 // 🔴 계좌 = 확정 운영 설정(`currentP0sOpsConfig` — 잡이 현금을 셀 때 쓰는 그 별칭) · 표시 이름 = 사람 결정 표(없으면 별칭 그대로).
 
 import 'package:core_engine/core_engine.dart'
@@ -72,8 +72,10 @@ class SqliteHoldingsOverviewSource {
     required Map<String, String> accountLabels,
     required this._hasBody,
     WhatIfConfig? config,
+    bool Function()? selfReportSessionOpen,
   }) : _labels = accountLabels,
-       _config = config ?? WhatIfConfig.defaults;
+       _config = config ?? WhatIfConfig.defaults,
+       _selfReportSessionOpen = selfReportSessionOpen ?? _never;
 
   final Database _db;
   final Clock _clock;
@@ -82,6 +84,11 @@ class SqliteHoldingsOverviewSource {
   final Map<String, String> _labels;
   final bool Function(String route) _hasBody;
   final WhatIfConfig _config;
+
+  /// 🆕 E11q-q6 — `L-3` 실사 세션이 이 폰에서 열려 있나(열린 동안 = `LEDGER_INTEGRITY` 와 같은 «숨김» · K9 · 02 §3-10 G-47).
+  final bool Function() _selfReportSessionOpen;
+
+  static bool _never() => false;
 
   /// 다시 낼 표.
   static const Set<String> watchedTables = <String>{
@@ -153,7 +160,8 @@ class SqliteHoldingsOverviewSource {
           s: monthlyLastCloses(_adjustedBars(s, closeDate.yyyyMmDd), month),
       }, _config),
       nextTrancheDate: nextRegularRebalance(_kr, today)?.judgment,
-      integrityHidden: flags.contains(FlagIds.ledgerIntegrity),
+      integrityHidden:
+          flags.contains(FlagIds.ledgerIntegrity) || _selfReportSessionOpen(),
       reconSuspect: flags.contains(FlagIds.reconMismatch),
       hasBody: _hasBody,
       nowUtc: now,
