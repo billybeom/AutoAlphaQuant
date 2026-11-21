@@ -1,5 +1,6 @@
 // E11q-q5a — M7 S7-7 연간 리뷰 · S7-10 이행 갭 조립(설계 13 §8 R220) · 🆕 E11q-q5b S7-2 시리즈 · S7-2G 게이트 · 열람 기록(R223)
-// — 실 SQLite(sim 원장) · 🆕 E11q-q5c S7-3 드로다운(R226) · 🆕 E11q-q5c2 S7-3b 슬리브 기여(R228).
+// — 실 SQLite(sim 원장) · 🆕 E11q-q5c S7-3 드로다운(R226) · 🆕 E11q-q5c2 S7-3b 슬리브 기여(R228) ·
+// 🆕 E11q-q5e S7-1 월간 리포트(R231 — 읽을 때 짓기 · 신뢰 배지 = 브로커 대사 · 「자세히」 = 본문 있을 때).
 //
 // 🔴 연도 · 창 = S12 목차와 같은 원천(신뢰 시각 · 온보딩 확정 해) · 판 지문 = 모의 개시 판(전 = 빈 글자) ·
 //    A 행 탐색 링크 = 레지스트리에 본문이 있을 때만 · 이행 갭 운영 방식 = 화면 상태 · 나머지 M7 창구 = «원천 없음».
@@ -21,18 +22,26 @@ import 'package:core_engine/core_engine.dart'
         AnnualReviewVmTexts,
         DisclosureGateTexts,
         ContributionTexts,
+        LedgerHolding,
         P0sHumanInputs,
+        P0sWarnSetup,
         PerfSeriesTexts,
         TrustedClock,
-        contributionDefaultRange;
+        contributionDefaultRange,
+        p0sExposureMap;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
+        OpsConfigRead,
         OpsConfigReady,
         P0sHumanDecision,
+        SqliteMonthlyReportSource,
         SqliteOnboardingStore,
         SqlitePerformanceSource,
-        currentP0sOpsConfig;
+        SqliteSafetyRepository,
+        currentP0sOpsConfig,
+        krMonthEndOf,
+        krMonthSessionsOf;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/widgets.dart' show Key, ValueKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart' show ConsumerWidget;
@@ -43,6 +52,7 @@ import 'package:ui_analytics/ui_analytics.dart'
         AnnualReviewScreen,
         DrawdownContextScreen,
         ExecutionGapScreen,
+        MonthlyReportScreen,
         PerformanceExploreScreen;
 
 import '../engine/support.dart';
@@ -253,8 +263,8 @@ void main() {
         hasBody: _all,
       );
       // 🆕 R228 — 기여 = 원장 원천(뒤집은 단언 — 아래 «S7-3b» 무리).
+      // 🆕 R231 — 월간 리포트 = 원장 원천(뒤집은 단언 — 아래 «S7-1» 무리).
       for (final Future<Object?> f in <Future<Object?>>[
-        p.monthlyReport('2026-10'),
         p.afterTaxLadder(fiscalYear: '2026'),
         p.reportArchive(),
         p.goalPath(yyyyMm: '2026-10'),
@@ -512,6 +522,115 @@ void main() {
     );
   });
 
+  group('🆕 S7-1 월간 리포트(R231)', () {
+    // 오늘 = 2026-11-19(한국) · 닫힌 달 = 10월(월말 세션 10-30 · 금).
+    void snap(String day) => files.sim.execute(
+      'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+      "VALUES (?, 1000000, 1000000, 0, 1000000, 0, 'SIM_INTERNAL')",
+      <Object?>[day],
+    );
+
+    void opening(String day) => files.sim.execute(
+      'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, account_alias) '
+      "VALUES ('IT-OPEN', ?, 1000000, 'KRW', 'DEPOSIT', ?, '2026-10-01T00:00:00Z', NULL)",
+      <Object?>[day, DecisionReasonCodes.simOpeningBalance],
+    );
+
+    test('🔴 화면 상태의 원장 · 자동 매매만 · 닫힌 달 = 원천과 같은 값(생성 = 지금 · 배지 = 그 달 대사) · 링크 = 본문 있을 때', () async {
+      final OperatorRuntime r = rt();
+      final OperatorPerformanceRepository p = OperatorPerformanceRepository(
+        r,
+        hasBody: _all,
+      );
+      await expectLater(p.monthlyReport('2026-10'), throwsStateError);
+      r.view.value = _viewOf(files.sim, OperatingMode.advisory);
+      await expectLater(
+        p.monthlyReport('2026-10'),
+        throwsA(isA<UnsupportedError>()),
+      );
+      r.view.value = _viewOf(files.sim, OperatingMode.autoTrade);
+      await expectLater(p.monthlyReport('2026-10'), throwsStateError); // 개시 0
+      opening('2026-10-01');
+      for (final String d in krMonthSessionsOf(
+        r.calendars.kr,
+        krMonthEndOf(r.calendars.kr, '2026-10'),
+      )) {
+        snap(d);
+      }
+      files.sim.execute(
+        'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+        "VALUES ('rc-2026-10-29T22:05:00.000Z#1', '2026-10-29T22:05:00.000Z', 1, '{}', 'MATCHED')",
+      );
+      await expectLater(
+        p.monthlyReport('2026-11'),
+        throwsUnsupportedError,
+      ); // 미생성
+      await expectLater(p.monthlyReport('2026-09'), throwsStateError); // 개시 전
+      final MonthlyReport m = await p.monthlyReport('2026-10');
+      expect(m.yyyyMm, '2026-10');
+      expect(m.items, hasLength(13));
+      expect(m.generatedAtText, '2026-11-19 생성');
+      expect(m.asOf.label, '리포트 기준 2026-10-30');
+      expect(m.trust.grade, LedgerTrustGrade.reconciled);
+      expect(m.trust.lastVerifiedOn, const TradeDate('2026-10-30'));
+      expect(m.disclosureViewCountText, '이번 달 0번 열어 보셨습니다');
+      expect(
+        m.items
+            .singleWhere((ReportItem i) => i.code == 'A1_PERIOD_RETURN')
+            .valueText,
+        '0.00%',
+      );
+      final OpsConfigRead cfg = currentP0sOpsConfig(files.sim);
+      final String hash = cfg is OpsConfigReady ? cfg.configHash : '';
+      expect(m.configHash, hash);
+      expect(
+        m,
+        await SqliteMonthlyReportSource(
+          files.sim,
+          mode: RunMode.simInternal,
+          kr: r.calendars.kr,
+          holdings: () async => const <LedgerHolding>[],
+          safety: SqliteSafetyRepository(
+            files.sim,
+            mode: RunMode.simInternal,
+            clock: clock,
+            trusted: r.trusted,
+            deviceId: _dev,
+          ).state,
+          discretionUseDates: () => const <String>[],
+          exposure: cfg is OpsConfigReady
+              ? P0sWarnSetup(map: p0sExposureMap(cfg.config.monthEnd))
+              : null,
+        ).reportOnRead(
+          '2026-10',
+          nowUtc: clock.nowUtc(),
+          configHash: hash,
+          hasBody: _all,
+        ),
+      );
+      // 「자세히」 = S7-3 · S7-10 그 달 — 본문 없음 = 0.
+      expect(
+        m.items
+            .singleWhere((ReportItem i) => i.code == 'C1_MAX_DRAWDOWN')
+            .detailDeepLink,
+        AppRoutes.performanceDrawdown,
+      );
+      expect(
+        m.items
+            .singleWhere((ReportItem i) => i.code == 'D3_EXECUTION')
+            .detailDeepLink,
+        'aaq://ledger/execution-gap/2026-10',
+      );
+      final MonthlyReport bare = await OperatorPerformanceRepository(
+        r,
+        hasBody: (String _) => false,
+      ).monthlyReport('2026-10');
+      for (final ReportItem i in bare.items) {
+        expect(i.detailDeepLink, isNull, reason: i.code);
+      }
+    });
+  });
+
   group('S7-10 이행 갭', () {
     test('🔴 화면 상태 없음(운용 전) = 발행된 안내 0 · 자동 매매 = 해당 없음 · 안내 = 원천 없음', () async {
       final OperatorRuntime r = rt();
@@ -575,6 +694,17 @@ void main() {
         ),
         isA<ConsumerWidget>(),
       );
+      // 🆕 R231 — S7-1 월간 리포트 = 받은 달 그대로 · 키(달 해석 · 검사 = 엔진).
+      final MonthlyReportScreen report =
+          kOperatorRouteBodies.byPattern[AppRoutes.reportMonthly]!(
+            const <String, String>{'yyyyMm': '2026-10'},
+          ) as MonthlyReportScreen;
+      expect(report.yyyyMm, '2026-10');
+      expect(report.key, const ValueKey<String>('2026-10') as Key);
+      expect(
+        kOperatorRouteBodies.byPattern.containsKey(AppRoutes.reportArchive),
+        isFalse,
+      ); // 아카이브 = 209 ⓔ-4
     });
   });
 }

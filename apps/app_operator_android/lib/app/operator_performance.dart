@@ -8,16 +8,23 @@
 //    세션 = KR 달력 · 게이트 = 원장 변경 · [tick] 마다 다시 — 달이 바뀌면 열람 수 0) · 임의 구간 = 원천 없음(화면은 인자 없이 부른다).
 // 🆕 E11q-q5c(R226) — `S7-3` 드로다운 맥락 = 같은 원천(운용 전체 · 결측 = KR 달력).
 // 🆕 E11q-q5c2(R228) — `S7-3b` 슬리브 기여 = 같은 원천(받은 구간 = 셸이 넘긴 엔진 기본 구간 · 체결 + 원가 종가로 슬리브 손익 재구성).
-// 🔴 나머지 M7 창구(월간 리포트 · 아카이브 · 목표 경로 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류
-//    (월간 리포트 = 미결 209 ⓔ 레인 · 목표 경로 = q5d).
+// 🆕 E11q-q5e(R231 · 미결 209 ⓔ-2 · ⓔ-3 · ⓔ-5) — `S7-1` 월간 리포트 = 화면 상태의 원장 `SqliteMonthlyReportSource.reportOnRead`
+//    (읽을 때 짓기 · 자동 매매만 — 신뢰 배지 = 브로커 대사 · 보유 · 안전 상태 · 재량 · 노출 집계 = 잡 · 셸과 같은 원천 ·
+//    「자세히」 = 등록된 화면만). 안내 모드 = 원천 없음(X7 신뢰 등급 사다리 · 이행 갭 조각 전).
+// 🔴 나머지 M7 창구(아카이브 · 목표 경로 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류
+//    (아카이브 = 209 ⓔ-4 스냅숏 뒤 · 목표 경로 = q5d).
 
 import 'package:core_engine/core_engine.dart'
-    show annualReviewVmOf, executionGapResultOf;
+    show P0sWarnSetup, annualReviewVmOf, executionGapResultOf, p0sExposureMap;
 import 'package:data_sync/data_sync.dart'
     show
         OpsConfigRead,
         OpsConfigReady,
+        SqliteDiscretionStore,
+        SqliteMonthlyReportSource,
+        SqliteOrderLedger,
         SqlitePerformanceSource,
+        SqliteSafetyRepository,
         currentP0sOpsConfig,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -33,11 +40,13 @@ import 'package:domain_contracts/domain_contracts.dart'
         ExecutionGapResult,
         GoalPathVm,
         MonthlyReport,
+        OperatingMode,
         PerfGranularity,
         PerfMetric,
         PerformanceRepository,
         PerformanceSeries,
         ReportArchiveVm,
+        RunMode,
         TradeDate;
 
 import 'operator_ops_status.dart' show operatorFirstOperatingYear;
@@ -45,7 +54,7 @@ import 'operator_runtime.dart' show OperatorRuntime;
 import 'operator_view.dart' show OperatorView;
 import 'view_stream.dart' show followView;
 
-/// M7 성과 · 리포트 창구 — `S7-7` 연간 리뷰 · 🆕 `S7-2` 시리즈 · `S7-2G` 게이트 · `S7-3` 드로다운 · `S7-3b` 기여.
+/// M7 성과 · 리포트 창구 — `S7-7` 연간 리뷰 · 🆕 `S7-2` 시리즈 · `S7-2G` 게이트 · `S7-3` 드로다운 · `S7-3b` 기여 · `S7-1` 월간 리포트.
 class OperatorPerformanceRepository implements PerformanceRepository {
   /// 만든다.
   OperatorPerformanceRepository(
@@ -98,9 +107,51 @@ class OperatorPerformanceRepository implements PerformanceRepository {
     );
   }
 
+  /// 🆕 E11q-q5e(R231) — `S7-1` 월간 리포트(받은 달 · 읽을 때 짓기 · 생성 시각 = 지금 · 판 지문 = 지금 설정).
+  /// 화면 상태 없음 = [StateError] · 안내 모드 = [UnsupportedError](원천 없음) · 닫히지 않은 달 · 개시 전 달 = 원천의 실패.
   @override
-  Future<MonthlyReport> monthlyReport(String yyyyMm) =>
-      _noneNow('monthlyReport');
+  Future<MonthlyReport> monthlyReport(String yyyyMm) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('월간 리포트: 화면 상태 없음(온보딩 전)');
+    if (v.flags.operatingMode != OperatingMode.autoTrade) {
+      throw UnsupportedError('월간 리포트: 안내 모드 = 원천 없음(X7 신뢰 등급 사다리 · 이행 갭 조각 전)');
+    }
+    final OpsConfigRead cfg = currentP0sOpsConfig(v.db);
+    final RunMode mode = v.flags.runMode;
+    return SqliteMonthlyReportSource(
+      v.db,
+      mode: mode,
+      kr: _rt.calendars.kr,
+      // 월 잡과 같은 보유(원장 KR) · 셸과 같은 안전 상태 · 재량 사용 날.
+      holdings: SqliteOrderLedger(
+        v.db,
+        mode: mode,
+        clock: _rt.clock,
+        kr: _rt.calendars.kr,
+      ).krHoldings,
+      safety: SqliteSafetyRepository(
+        v.db,
+        mode: mode,
+        clock: _rt.clock,
+        trusted: _rt.trusted,
+        deviceId: _rt.deviceId,
+      ).state,
+      discretionUseDates: SqliteDiscretionStore(
+        v.db,
+        clock: _rt.clock,
+        trusted: _rt.trusted,
+      ).useDates,
+      // D2 메모 = 월 잡과 같은 노출 집계 설정(지금 설정 · 못 얻으면 메모 없음).
+      exposure: cfg is OpsConfigReady
+          ? P0sWarnSetup(map: p0sExposureMap(cfg.config.monthEnd))
+          : null,
+    ).reportOnRead(
+      yyyyMm,
+      nowUtc: _rt.clock.nowUtc(),
+      configHash: cfg is OpsConfigReady ? cfg.configHash : '',
+      hasBody: hasBody,
+    );
+  }
 
   @override
   Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear}) =>
@@ -170,4 +221,4 @@ class OperatorExecutionGapRepository implements ExecutionGapRepository {
 }
 
 Future<T> _noneNow<T>(String what) =>
-    Future<T>.error(UnsupportedError('$what: 원천 없음(R223 · q5d · 209 ⓔ)'));
+    Future<T>.error(UnsupportedError('$what: 원천 없음(R223 · q5d · 209 ⓔ-4)'));

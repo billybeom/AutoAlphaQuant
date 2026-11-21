@@ -781,19 +781,25 @@ export 'src/ops/monthly_contribution_view.dart'
         MonthlyContributionTexts,
         contributionUpdateResultOf,
         monthlyContributionVmOf;
-// 🆕 미결 209 — 월간 리포트 빌더 첫 판(13칸 고정 · D2 값 · SAF-307 메모 · 설계 13 §8 R199) · 🆕 A1 · A2 · C1 · C2(R205) · D4 · E1(R208) · D3(R210) · D1 · G1 · G2(R214).
+// 🆕 미결 209 — 월간 리포트 빌더 첫 판(13칸 고정 · D2 값 · SAF-307 메모 · 설계 13 §8 R199) · 🆕 A1 · A2 · C1 · C2(R205) · D4 · E1(R208) · D3(R210) · D1 · G1 · G2(R214) ·
+// 🆕 신뢰 배지 · 무결성 가림 · 읽을 때 짓기 판정 · 「자세히」(R231).
 export 'src/ops/monthly_report.dart'
     show
         MonthlyEquityFacts,
         MonthlyExecutionFacts,
         MonthlyRegimeFacts,
+        MonthlyReportReadiness,
         MonthlyReportSlot,
         MonthlyReportTexts,
         MonthlyStrategyFacts,
+        MonthlyTrustTexts,
         kMonthlyReportStaleAfter,
         monthlyAllocationValueOf,
         monthlyExposureNoteOf,
-        monthlyReportOf;
+        monthlyLedgerTrustOf,
+        monthlyReportIntegrityMaskedOf,
+        monthlyReportOf,
+        monthlyReportReadinessOf;
 export 'src/ops/next_rebalance_view.dart'
     show NextRebalanceTexts, nextRebalanceVmOf;
 export 'src/ops/operations_config.dart' show OperationsConfig;

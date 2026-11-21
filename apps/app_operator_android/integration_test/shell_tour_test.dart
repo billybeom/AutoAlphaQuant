@@ -5,6 +5,7 @@
 // 🆕 E11q1b(R172) — + H6-3 슬리브 배분 · H6-2 종목 상세(같은 연습 보유).
 // 🆕 E11q-q4a — + M6 일지 읽기 J-1 · J-2 · J-3R · S7-6b «이 회차의 주문 n건» → J-1 회차 조건(연습 일지 묶음).
 // 🆕 E11q-q4b — + J-5 미해소 보드(연습 UNKNOWN 의도 1 → 카드 → «찾지 못함» 거부로 풀면 같은 화면이 빈 문장).
+// 🆕 E11q-q5e(R231) — + M7 S7-1 월간 리포트(지난달 · 배지 «대사 완료» · 「자세히」 → S7-3).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
 // 실행: `flutter test integration_test/shell_tour_test.dart -d emulator-5554` · 표지 `IT_*` 마다 4초 멈춘다(캡처 자리).
@@ -28,6 +29,7 @@ import 'package:core_engine/core_engine.dart'
     show
         P0sHumanInputs,
         P0sOpsConfig,
+        MonthlyTrustTexts,
         P0sStrategyIds,
         contributionDefaultRange,
         kstDateText;
@@ -36,7 +38,9 @@ import 'package:data_sync/data_sync.dart'
         HealthchecksClient,
         ModeAxis,
         SqliteConfigVersionStore,
-        SqliteModeStore;
+        SqliteModeStore,
+        krMonthEndOf,
+        krMonthSessionsOf;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppRoutes,
@@ -44,7 +48,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         ExecPolicy,
         LedgerFile,
         OperatingMode,
-        RunMode;
+        RunMode,
+        TradeDate;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,6 +64,7 @@ import 'package:ui_analytics/ui_analytics.dart'
         ContributionScreen,
         DrawdownContextScreen,
         ExecutionGapScreen,
+        MonthlyReportScreen,
         PerformanceExploreScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
@@ -844,6 +850,65 @@ void main() {
       );
       expect(find.text('C · 방어 자산'), findsWidgets);
       await _at(tester, find.byType(ContributionScreen), 'IT_S73B');
+
+      // 🆕 R231 — S7-1 월간 리포트(맨 끝 — 연습 개시를 지난달 첫 세션으로 옮긴다: 지난달 세션마다 마감 스냅숏 · 월말 대사
+      //    MATCHED 1) → 닫힌 달 = 원장 리포트 · 배지 «대사 완료» · 「자세히」(C1 최대 낙폭) → S7-3 드로다운.
+      final int y = int.parse(d0.substring(0, 4));
+      final int mo = int.parse(d0.substring(5, 7));
+      final String prev = mo == 1
+          ? '${y - 1}-12'
+          : '$y-${(mo - 1).toString().padLeft(2, '0')}';
+      final TradeDate prevEnd = krMonthEndOf(rt.calendars.kr, prev);
+      final List<String> prevSessions = krMonthSessionsOf(
+        rt.calendars.kr,
+        prevEnd,
+      );
+      files.sim.execute(
+        'UPDATE cash_flow SET trade_date = ? WHERE note IN (?, ?)',
+        <Object?>[
+          prevSessions.first,
+          DecisionReasonCodes.simOpeningBalance,
+          DecisionReasonCodes.openingBalance,
+        ],
+      );
+      files.sim.execute(
+        'INSERT OR IGNORE INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, '
+        "account_alias) VALUES ('IT-OPEN-S71', ?, 10000000, 'KRW', 'DEPOSIT', ?, ?, NULL)",
+        <Object?>[
+          prevSessions.first,
+          DecisionReasonCodes.simOpeningBalance,
+          rt.clock.nowUtc().toIso8601String(),
+        ],
+      );
+      for (final String d in prevSessions) {
+        files.sim.execute(
+          'INSERT OR IGNORE INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, '
+          "high_water_mark, drawdown, mode) VALUES (?, 10000000, 10000000, 0, 10000000, 0, 'SIM_INTERNAL')",
+          <Object?>[d],
+        );
+      }
+      final String reconAt = DateTime.parse(
+        '${prevEnd.yyyyMmDd}T07:05:00+09:00',
+      ).toUtc().toIso8601String();
+      files.sim.execute(
+        'INSERT OR IGNORE INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+        "VALUES (?, ?, 1, '{}', 'MATCHED')",
+        <Object?>['rc-$reconAt#1', reconAt],
+      );
+      container.read(shellLinkOpenerProvider).open('aaq://report/$prev');
+      await _until(tester, find.text('리포트 기준 ${prevEnd.yyyyMmDd}'));
+      expect(find.text(MonthlyTrustTexts.reconciledLabel), findsWidgets);
+      expect(find.text('$d0 생성'), findsWidgets);
+      await _at(tester, find.byType(MonthlyReportScreen), 'IT_S71');
+      final Finder c1 = find.descendant(
+        of: find.ancestor(of: find.text('최대 낙폭'), matching: find.byType(Card)),
+        matching: find.widgetWithText(TextButton, '자세히'),
+      );
+      await tester.ensureVisible(c1);
+      await tester.tap(c1);
+      await _until(tester, find.textContaining('드로다운 기준'));
+      expect(find.byType(DrawdownContextScreen), findsOneWidget);
+      await _at(tester, find.byType(DrawdownContextScreen), 'IT_S71_DD');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
