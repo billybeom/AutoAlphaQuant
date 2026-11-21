@@ -6,6 +6,7 @@
 // 🆕 E11q-q4a — + M6 일지 읽기 J-1 · J-2 · J-3R · S7-6b «이 회차의 주문 n건» → J-1 회차 조건(연습 일지 묶음).
 // 🆕 E11q-q4b — + J-5 미해소 보드(연습 UNKNOWN 의도 1 → 카드 → «찾지 못함» 거부로 풀면 같은 화면이 빈 문장).
 // 🆕 E11q-q5e(R231) — + M7 S7-1 월간 리포트(지난달 · 배지 «대사 완료» · 「자세히」 → S7-3).
+// 🆕 E11q-d1 — + M8 문서(D-02 런북 목록 → 상세 · D-03 긴급 카드 · B-01 핸드북 목차 → B-02 슬리브 B 쪽 · 맨 끝).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
 // 실행: `flutter test integration_test/shell_tour_test.dart -d emulator-5554` · 표지 `IT_*` 마다 4초 멈춘다(캡처 자리).
@@ -100,7 +101,16 @@ import 'package:ui_settings/ui_settings.dart'
         MonthlyContribution,
         SettingsHome;
 import 'package:ui_shell/ui_shell.dart'
-    show DeviceRiskBoard, OpsHome, ShellRoot, shellLinkOpenerProvider;
+    show
+        DeviceRiskBoard,
+        EmergencyStopCard,
+        HandbookContents,
+        HandbookPageView,
+        OpsHome,
+        RunbookDetail,
+        RunbookList,
+        ShellRoot,
+        shellLinkOpenerProvider;
 
 void _mark(String m) {
   // ignore: avoid_print
@@ -909,6 +919,26 @@ void main() {
       await _until(tester, find.textContaining('드로다운 기준'));
       expect(find.byType(DrawdownContextScreen), findsOneWidget);
       await _at(tester, find.byType(DrawdownContextScreen), 'IT_S71_DD');
+
+      // 🆕 E11q-d1 — M8 문서 다섯 길(엔진 원고 번들 · 원장 0): 런북 목록 여섯 행 → 상세(host-lost 단계) · 긴급 카드(인쇄 자리 부재) ·
+      //    핸드북 목차(원고 없는 장 = 준비 중) → 슬리브 B 쪽(별칭 · live 값 원천 0 = 블록 뺌).
+      container.read(shellLinkOpenerProvider).open(AppRoutes.opsRunbooks);
+      await _until(tester, find.byKey(const Key('d02-list-row-5')));
+      await _at(tester, find.byType(RunbookList), 'IT_D02');
+      await tester.tap(find.text('운영 폰을 잃어버렸거나 고장 났을 때'));
+      await _until(tester, find.byKey(const Key('d02-intro')));
+      await _at(tester, find.byType(RunbookDetail), 'IT_D02D');
+      container.read(shellLinkOpenerProvider).open(AppRoutes.opsEmergencyCard);
+      await _until(tester, find.byKey(const Key('d03-notice')));
+      expect(find.byKey(const Key('d03-print')), findsNothing);
+      await _at(tester, find.byType(EmergencyStopCard), 'IT_D03');
+      container.read(shellLinkOpenerProvider).open(AppRoutes.handbookIndex);
+      await _until(tester, find.byKey(const Key('b01-entry-7')));
+      await _at(tester, find.byType(HandbookContents), 'IT_B01');
+      await tester.tap(find.text('슬리브 B — 해외 지수·금 ETF'));
+      await _until(tester, find.byKey(const Key('b02-title')));
+      expect(find.byKey(const Key('b02-asof')), findsNothing);
+      await _at(tester, find.byType(HandbookPageView), 'IT_B02');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();

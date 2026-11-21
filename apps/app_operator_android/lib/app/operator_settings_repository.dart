@@ -9,6 +9,7 @@
 // 🔴 나머지 창구(운영 · 계좌 매핑) = 원천 없음(오류 — 지어내지 않는다 · 그 화면은 미등록).
 // 🆕 E11q-s04a(R211) — M9 S04 배분 첫 판 = 엔진 `allocationEditorVmOfConfig`(운영 설정 판 · 못 읽으면 스트림 오류 —
 //    엔진 기본값 대입 0 · K206) · 다시 낸다 = 모의 개시 판이 바뀔 때(`decision_log` · `config_versions`) · 주기 · 화면 상태 변경.
+// 🆕 E11q-d1 — S02 유출 런북 링크 = 엔진 `runbookLinkOf`(그 런북 원고 ∧ 상세 본문 · 지금 원고 준비 중 → 링크 없음).
 
 import 'dart:async';
 
@@ -34,6 +35,7 @@ import 'package:core_engine/core_engine.dart'
         diagnosticsScreenVmOf,
         kDeviceGoldenSuite,
         monthlyContributionVmOf,
+        runbookLinkOf,
         settingsHomeVmOf;
 import 'package:data_sync/data_sync.dart'
     show
@@ -73,6 +75,9 @@ import 'operator_runtime.dart';
 import 'operator_view.dart';
 
 bool _noBody(String _) => false;
+
+/// S02 «키가 새어 나갔을 때» 런북 id(표본 `m9/credentials` 링크 · `m8/runbook_index` 행).
+const String _kLeakRunbookId = 'secret-leak';
 
 /// 설정 읽기 모델(operator).
 class OperatorSettingsRepository implements SettingsRepository {
@@ -227,6 +232,8 @@ class OperatorSettingsRepository implements SettingsRepository {
     // 🆕 R196 · K208 — 실전 · ISA 카드(SIM = 봉인 표시 + 미등록 · 실패 카드에 조회 검증 자리).
     live: await liveFacts(),
     operatingMode: _rt.view.value?.flags.operatingMode,
+    // 🆕 E11q-d1 — 유출 런북 링크(그 런북 원고 · 상세 본문이 있을 때만 — 지금 준비 중 → 없음).
+    leakRunbookLink: runbookLinkOf(_kLeakRunbookId, hasBody: hasBody),
   );
 
   @override

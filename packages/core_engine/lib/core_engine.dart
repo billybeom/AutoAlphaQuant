@@ -624,6 +624,20 @@ export 'src/ops/equity_snapshot.dart'
         replayStoredBreaker,
         stoppedIncidentIdOf,
         stoppedIncidentOf;
+// 🆕 E11q-d1 — M8 B-01·B-02 핸드북 원고 번들 · 목차 · 쪽(표본 글자 · 원고 없는 장 = 준비 중 · 뒤처짐 = 규칙 지문).
+export 'src/ops/handbook_catalog.dart'
+    show
+        HandbookBlockKinds,
+        HandbookChapter,
+        HandbookLiveKeys,
+        HandbookLiveReading,
+        HandbookManuscript,
+        HandbookManuscriptBlock,
+        HandbookManuscriptPage,
+        HandbookTexts,
+        handbookIndexOf,
+        handbookPageOf,
+        kHandbookManuscript;
 // 🆕 E11q1 — M6 H6-1 보유 현황 VM(설계 13 §8 R171).
 export 'src/ops/holdings_overview.dart'
     show
@@ -847,7 +861,8 @@ export 'src/ops/p0s_ops_config.dart'
         kP0sLimitOffsetPct,
         kP0sMappedStrategies,
         p0sLimitConfig,
-        p0sRegimeConfigHash;
+        p0sRegimeConfigHash,
+        p0sRuleFingerprint;
 // 🆕 E11p3d-5e — M9 S01 설정 홈(설계 13 §8 R134).
 // 🆕 E3d-1 — P0S 일간 경고(302 · 307 · 308 · 원화 유동성) · 넘은 첫날 알림(04 §1 Level 3 v2.46 · 설계 13 §8 R177).
 // 🆕 E3d-4 — 월 잡 307 · 원화 유동성 월 집계(`p0sMonthlyExposureTally` · 앱 01 §36 K193 · 설계 13 §8 R187).
@@ -888,6 +903,18 @@ export 'src/ops/rebalance_events_view.dart'
         rebalanceEventVmOf,
         rebalanceEventsVmOf,
         rebalanceWeightLinesOf;
+// 🆕 E11q-d1 — M8 D-02 런북 · D-03 긴급 카드 원고 번들(표본 글자 · 원고 없는 런북 = 준비 중 · 인쇄 = 빌드가 할 수 있을 때만).
+export 'src/ops/runbook_catalog.dart'
+    show
+        EmergencyCardTexts,
+        RunbookBody,
+        RunbookEntry,
+        RunbookTexts,
+        emergencyCardVmOf,
+        kRunbookCatalog,
+        runbookIndexVmOf,
+        runbookLinkOf,
+        runbookVmOf;
 export 'src/ops/settings_home.dart'
     show
         SettingsCardCodes,
