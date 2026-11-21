@@ -7,7 +7,8 @@
 //    `mode` 인자는 쓰지 않는다: J-1 이 인자를 넘기지 않아 늘 LIVE 로 오고(01 §8 미결 89), 거르면 모의 체험의 일지가 빈다.
 //    행마다 `mode` 가 모의 배지를 말한다(02 §3-1).
 // 🔴 링크 = 셸 레지스트리에 본문이 있는 화면만(엔진 `hasBody`).
-// 🔵 쓰기 · 보드(사전 저널 폼 스펙 · 미해소 보드 · blind 리뷰) = q4b · 실전 전 — 원천 없음 오류(화면 = 공통 오류 · 지어내지 않는다).
+// 🆕 E11q-q4b — J-5 미해소 보드(같은 원천 · 같은 감시 표).
+// 🔵 쓰기(사전 저널 폼 스펙) = 계약 창 · M5-6 조립 뒤 · blind 리뷰 = 실전 전 — 원천 없음 오류(화면 = 공통 오류 · 지어내지 않는다).
 //    조각 조회 셋(`findByDecisionId` · `chainOf` · `fillChain`)은 J-2 가 쓰지 않는다(그 화면은 상세 하나만 구독) → 원천 없음.
 
 import 'package:data_sync/data_sync.dart'
@@ -132,7 +133,7 @@ class OperatorJournalRepository implements JournalRepository {
         '회차 범위',
       );
 
-  // ── 원천 없음(q4b · 실전 전 · J-2 가 쓰지 않는 조각 조회) ──
+  // ── 원천 없음(사전 저널 쓰기 = 계약 창 · blind 리뷰 = 실전 전 · J-2 가 쓰지 않는 조각 조회) ──
 
   @override
   Future<TradeJournalEntry?> findByDecisionId(String decisionId) =>
@@ -150,8 +151,10 @@ class OperatorJournalRepository implements JournalRepository {
   Future<JournalDraftFormSpec> draftFormSpec(String decisionId) =>
       _noneNow('draftFormSpec');
 
+  /// 🆕 E11q-q4b — J-5 미해소 보드.
   @override
-  Stream<UnknownBoardVm> watchUnknownBoard() => _none('watchUnknownBoard');
+  Stream<UnknownBoardVm> watchUnknownBoard() =>
+      _follow((SqliteJournalSource s) => s.unknownBoard(), '미해소 보드');
 
   @override
   Stream<ListResult<BlindReviewCard>> watchBlindReviewQueue({
@@ -164,7 +167,7 @@ class OperatorJournalRepository implements JournalRepository {
 }
 
 Stream<T> _none<T>(String what) =>
-    Stream<T>.error(UnsupportedError('$what: 원천 없음(q4b · 실전 전)'));
+    Stream<T>.error(UnsupportedError('$what: 원천 없음(계약 창 · 실전 전)'));
 
 Future<T> _noneNow<T>(String what) =>
-    Future<T>.error(UnsupportedError('$what: 원천 없음(q4b · 실전 전)'));
+    Future<T>.error(UnsupportedError('$what: 원천 없음(계약 창 · 실전 전)'));

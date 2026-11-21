@@ -592,6 +592,7 @@ export 'src/ops/journal_view.dart'
         JournalOrderFact,
         JournalStepTexts,
         JournalTexts,
+        UnknownBoardTexts,
         decisionDetailVmOf,
         decisionJournalVmOf,
         journalEntriesOf,
@@ -604,7 +605,9 @@ export 'src/ops/journal_view.dart'
         journalTimelineBadgesOf,
         journalTimelineLinkOf,
         journalTimelineOf,
-        kJournalStaleAfter;
+        kJournalStaleAfter,
+        kUnknownLongSessions,
+        unknownBoardVmOf;
 // 🆕 E14a — 리스 포트 · 3상 · 상수(SPEC v2.42 NR-1 0 · 6.9 · 설계 13 §8 R71).
 export 'src/ops/lease_gate.dart'
     show

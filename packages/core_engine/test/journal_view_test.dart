@@ -1036,6 +1036,134 @@ void main() {
     expect(journalKeyOf('a%2Fb%3Fc%25'), 'a/b?c%');
   });
 
+  group('🆕 E11q-q4b J-5 미해소 보드', () {
+    Map<String, Object?> board(String file) => _rows('m6/$file').single;
+
+    JournalIntentFact unknown(
+      String id, {
+      required String trade,
+      required String sent,
+      String created = '2026-08-20T23:41:00Z',
+    }) => _intent(
+      id,
+      decision: 'D-$id@$trade',
+      status: 'UNKNOWN',
+      strategy: P0sStrategyIds.sleeveA,
+      symbol: '069500',
+      qty: 70,
+      trade: trade,
+      created: created,
+      orders: <JournalOrderFact>[_order('B-$id', sent)],
+    );
+
+    test('빈 보드 = unknown_board_empty 그대로(빈 문장 · 고지 부재 · 기준)', () {
+      expect(
+        unknownBoardVmOf(_facts(intents: <JournalIntentFact>[_je0002()])),
+        UnknownBoardVm.fromJson(board('unknown_board_empty.json')),
+      );
+    });
+
+    test('카드 = 표본 unknown_board_2 je_0015 꼴(경과 · 효과 · 4단계 · 강조 아님 · 링크 부재) · 고지 · 기준', () {
+      final Map<String, Object?> fx = board('unknown_board_2.json');
+      final Map<String, Object?> item =
+          (fx['items']! as List<Object?>)[1]! as Map<String, Object?>;
+      final UnknownBoardVm vm = unknownBoardVmOf(
+        _facts(
+          intents: <JournalIntentFact>[
+            unknown(
+              'i_0015',
+              trade: '2026-08-21',
+              sent: '2026-08-21T05:02:00Z',
+            ),
+            _je0002(),
+          ],
+        ),
+      );
+      final UnknownResolutionItem got = vm.items.single;
+      expect(got.elapsedText, item['elapsed_text']);
+      expect(got.effectLine, item['effect_line']);
+      expect(got.steps, <UnknownResolutionStep>[
+        for (final Object? s in item['steps']! as List<Object?>)
+          UnknownResolutionStep.fromJson(s! as Map<String, Object?>),
+      ]);
+      expect((got.emphasized, got.escalationLink), (false, null));
+      expect(got.entry.status, JournalStatus.unknown);
+      expect(got.entry.statusLabel, '확인 필요');
+      expect(
+        vm.nextBatchNoticeText,
+        (fx['next_batch_notice_text']! as String).replaceFirst('(18:10)', ''),
+      );
+      expect(vm.emptyLabel, isNull);
+      expect(vm.asOf.label, '일지 기준 2026-08-31');
+    });
+
+    test(
+      '🔴 장기(발생 뒤 KR 세션 ≥ 임계) = 강조 + 차단 보드 링크(표본 글자 · 등록됐을 때만) · 오래된 것부터',
+      () {
+        final Map<String, Object?> long =
+            (board('unknown_board_2.json')['items']! as List<Object?>)[0]!
+                as Map<String, Object?>;
+        final JournalFacts f = _facts(
+          intents: <JournalIntentFact>[
+            unknown('new', trade: '2026-08-21', sent: '2026-08-21T05:02:00Z'),
+            unknown(
+              'old',
+              trade: '2026-08-07',
+              sent: '2026-08-07T05:05:00Z',
+              created: '2026-08-06T23:41:00Z',
+            ),
+          ],
+        );
+        final UnknownBoardVm vm = unknownBoardVmOf(f);
+        expect(
+          <String>[
+            for (final UnknownResolutionItem i in vm.items) i.entry.entryId,
+          ],
+          <String>['old', 'new'],
+        );
+        final UnknownResolutionItem old = vm.items.first;
+        expect(old.emphasized, true);
+        expect(
+          old.escalationLink,
+          LinkAction.fromJson(long['escalation_link']! as Map<String, Object?>),
+        );
+        expect(old.elapsedText, startsWith('발생 08-07 14:05 · '));
+        final UnknownBoardVm hidden = unknownBoardVmOf(
+          _facts(
+            intents: f.intents,
+            hasBody: (String r) => r != AppRoutes.m5BlockBoard,
+          ),
+        );
+        expect(
+          (hidden.items.first.emphasized, hidden.items.first.escalationLink),
+          (true, null),
+        );
+      },
+    );
+
+    test('임계 경계 — 세션 수 = 임계 - 1 = 강조 아님 · 임계 = 강조 · 주문 전송 없음 = 의도 기록 시각', () {
+      // 2026-08-31 기준 세션 9 = 08-18 거래(뒤 08-19 · 20 · 21 · 24 · 25 · 26 · 27 · 28 · 31).
+      UnknownResolutionItem one(String trade) => unknownBoardVmOf(
+        _facts(
+          intents: <JournalIntentFact>[
+            _intent(
+              'u',
+              decision: 'U@$trade',
+              status: 'UNKNOWN',
+              trade: trade,
+              created: '2026-08-10T00:00:00Z',
+            ),
+          ],
+        ),
+      ).items.single;
+      expect(one('2026-08-18').elapsedText, '발생 08-10 09:00 · 9영업일 경과');
+      expect(one('2026-08-18').emphasized, false);
+      expect(one('2026-08-14').elapsedText, endsWith(' · 10영업일 경과'));
+      expect(one('2026-08-14').emphasized, true);
+      expect(kUnknownLongSessions, 10);
+    });
+  });
+
   group('회차 묶음 · 범위', () {
     const JournalEventFact seasonal = JournalEventFact(
       eventId: 'SEAS-2026-10-30',

@@ -1,7 +1,8 @@
 // E11q-q4a — M6 매매일지 «읽기» 조립(J-1 · J-2 · J-3R · 회차 범위 · 기간 프리셋 · 슬리브) — 실 SQLite(sim 원장).
 //
 // 🔴 화면 상태의 원장 → data_sync 원천 → 엔진 VM · 🔴 감시 표 빠짐 없이(표마다 쓰면 다시 낸다) · 링크 = 셸이 실제로 쓰는
-//    레지스트리에 본문이 있는 화면만 · 원장 한 파일(모드 인자 무시 · 01 §8 미결 89) · 쓰기 · 보드 = 원천 없음(q4b).
+//    레지스트리에 본문이 있는 화면만 · 원장 한 파일(모드 인자 무시 · 01 §8 미결 89) · 쓰기 = 원천 없음(계약 창).
+// 🆕 E11q-q4b — J-5 미해소 보드(등록 · 배지 링크가 선다 · UNKNOWN 이 풀리면 카드가 빠진다).
 
 import 'dart:async';
 
@@ -86,18 +87,18 @@ void main() {
     <Object?>[id, 'k-$id', trade, P0sStrategyIds.sleeveB, decision, status],
   );
 
-  test('🔴 레지스트리 = 일지 읽기 넷(J-1 · J-2 · J-3R · 회차 조건) · 쓰기 · 보드 = 아직(q4b)', () {
+  test('🔴 레지스트리 = 일지 읽기 넷 + 🆕 J-5 미해소 보드 · 사전 저널 쓰기 · blind 리뷰 = 아직', () {
     for (final String r in <String>[
       AppRoutes.journalTimeline,
       AppRoutes.journalDecision,
       AppRoutes.journalRead,
       AppRoutes.journalRebalance,
+      AppRoutes.journalUnknownBoard,
     ]) {
       expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
     }
     for (final String r in <String>[
       AppRoutes.journalDraft,
-      AppRoutes.journalUnknownBoard,
       AppRoutes.journalBlindReview,
     ]) {
       expect(kOperatorRouteBodies.byPattern.containsKey(r), false, reason: r);
@@ -251,10 +252,37 @@ void main() {
         emitsError(isA<StateError>()),
       );
       expect(await r.watchRebalanceScope('none').first, isNull);
-      // 미해소 보드(q4b) 미등록 = 배지 탭 반응 없음.
+      // 🆕 q4b — 미해소 보드 등록 = 배지 탭이 J-5 로 간다.
       final JournalTimelineBadge b =
           (await r.watchTimelineBadges().first).single;
-      expect((b.label, b.deepLink), ('확인 중 1건', null));
+      expect((b.label, b.deepLink), ('확인 중 1건', AppRoutes.journalUnknownBoard));
+    },
+  );
+
+  test(
+    '🆕 q4b J-5 미해소 보드 — UNKNOWN 의도 = 카드(J-2 링크) · 풀리면 같은 흐름에서 빠지고 빈 문장',
+    () async {
+      intent('iU', 'B-SMA-2026-07-31@2026-08-03', status: 'UNKNOWN');
+      intent('iB', 'C-REBAL-2026-07-31@2026-08-03');
+      final List<UnknownBoardVm> got = <UnknownBoardVm>[];
+      final StreamSubscription<UnknownBoardVm> sub = repo(rt())
+          .watchUnknownBoard()
+          .listen(got.add);
+      addTearDown(sub.cancel);
+      await until(() => got.isNotEmpty, 'first');
+      final UnknownResolutionItem item = got.last.items.single;
+      expect(item.entry.entryId, 'iU');
+      expect(
+        item.entry.detailDeepLink,
+        'aaq://journal/decision/B-SMA-2026-07-31@2026-08-03',
+      );
+      expect(item.elapsedText, startsWith('발생 08-03 09:10 · '));
+      expect(got.last.emptyLabel, isNull);
+      db().execute(
+        "UPDATE order_intents SET status = 'FILLED' WHERE intent_id = 'iU'",
+      );
+      await until(() => got.last.items.isEmpty, 'resolved');
+      expect(got.last.emptyLabel, '미해소 건이 없습니다');
     },
   );
 
@@ -294,10 +322,7 @@ void main() {
       emitsError(isA<StateError>()),
     );
     final OperatorJournalRepository r = repo(rt());
-    await expectLater(
-      r.watchUnknownBoard(),
-      emitsError(isA<UnsupportedError>()),
-    );
+    await expectLater(none.watchUnknownBoard(), emitsError(isA<StateError>()));
     await expectLater(
       r.watchBlindReviewQueue(),
       emitsError(isA<UnsupportedError>()),

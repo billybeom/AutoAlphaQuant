@@ -29,7 +29,8 @@ import 'package:core_engine/core_engine.dart'
         journalRebalanceScopeOf,
         journalSleeveCatalogOf,
         journalTimelineBadgesOf,
-        journalTimelineOf;
+        journalTimelineOf,
+        unknownBoardVmOf;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         Clock,
@@ -47,7 +48,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         SleeveCatalogEntry,
         SleeveId,
         TradeDate,
-        TradeJournalEntry;
+        TradeJournalEntry,
+        UnknownBoardVm;
 import 'package:sqlite3/sqlite3.dart';
 
 /// 매매일지 읽기(동기 — 화면 흐름이 원장 변경 · 주기마다 다시 부른다).
@@ -116,6 +118,9 @@ class SqliteJournalSource {
   /// J-2 거래 상세(모르는 결정 = 엔진 실패).
   DecisionDetailVm decisionDetail(String decisionId) =>
       decisionDetailVmOf(facts(), decisionId);
+
+  /// 🆕 E11q-q4b — J-5 미해소 보드(UNKNOWN 의도 · 같은 감시 표).
+  UnknownBoardVm unknownBoard() => unknownBoardVmOf(facts());
 
   /// J-3R 사전 저널 읽기(모르는 결정 = 엔진 실패).
   DecisionJournalVm decisionJournal(String decisionId) =>
