@@ -7,8 +7,10 @@
 //    통과 카드 = 동작 0(봉인 해제 컨트롤 0).
 // 🔴 글자 = v1.20 표본(`m9/credentials*`) 그대로 · 상태 = 금고 저장 여부 + 마지막 검증 기록(온보딩 진척 o_02) ·
 //    키 조각 칸 0(K7 — 마스킹은 슬롯 위젯 안) · 저장 동작 칸 0(K6 — 검증 통과 = 구현이 저장).
-// 🔴 만료 = 원천 0(KIS 앱키 기한 기록 없음) → 줄 없음 · 키 회전 = 마법사(M4-4) 전 → 링크 없음 · 유출 런북 = 런북 원천 전 → 링크 없음 ·
+// 🔴 만료 = 원천 0(KIS 앱키 기한 기록 없음) → 줄 없음 · 키 회전 = 마법사(M4-4) 전 → 링크 없음 · 유출 런북 = 부르는 쪽이 넘긴다(🆕 아래) ·
 //    잠김 = 생체 가드(M5) 전 → 없음.
+// 🆕 E11q-d1 — 유출 런북 링크 = 부르는 쪽이 엔진 `runbookLinkOf('secret-leak')` 로 넘긴다(그 런북 원고 · 상세 본문이 있을 때만 ·
+//    지금 = 준비 중 → null · 원고가 생기면 저절로 선다 · 읽기 문서라 잠김에도 남는다).
 
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -18,6 +20,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         CredentialKindCodes,
         CredentialListVm,
         CredentialUse,
+        LinkAction,
         OnboardingResultCodes,
         OnboardingSlotIds,
         OperatingMode,
@@ -117,6 +120,7 @@ CredentialListVm credentialListVmOf({
   required DateTime nowUtc,
   List<LiveCredentialFacts> live = const <LiveCredentialFacts>[],
   OperatingMode? operatingMode,
+  LinkAction? leakRunbookLink,
 }) {
   final bool failed = paper.lastState == StepState.failed;
   final bool ok = paper.stored && paper.lastState == StepState.verified;
@@ -166,6 +170,7 @@ CredentialListVm credentialListVmOf({
     modeNotice: runMode.isSim && live.isNotEmpty
         ? LiveCredentialTexts.simNotice
         : null,
+    leakRunbookLink: leakRunbookLink,
     asOf: AsOf(
       observedAt: nowUtc.toUtc(),
       tradeDate: TradeDate(kstDateText(nowUtc)),
