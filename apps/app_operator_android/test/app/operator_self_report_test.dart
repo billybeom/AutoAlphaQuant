@@ -160,8 +160,15 @@ void main() {
         expect(vm.trust.grade, LedgerTrustGrade.selfReported);
         expect(vm.trust.lastVerifiedOn, isNull);
 
+        // 주기 = 1시간(주기로는 다시 읽지 않는다 — 세션 바뀜 kick 만이 다시 낸다).
+        final OperatorSelfReport slow = OperatorSelfReport(
+          rt,
+          hasBody: (String _) => true,
+          sessions: sr.sessions,
+          tick: const Duration(hours: 1),
+        );
         final List<SelfReportSession> seen = <SelfReportSession>[];
-        final StreamSubscription<SelfReportSession> sub = sr
+        final StreamSubscription<SelfReportSession> sub = slow
             .watch('2026-08', '연금저축')
             .listen(seen.add);
         await until(() => seen.isNotEmpty);
