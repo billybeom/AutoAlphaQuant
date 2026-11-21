@@ -22,6 +22,9 @@ abstract final class SupabaseSecretIds {
 
   /// 공개 키(publishable `sb_publishable_…` 또는 옛 anon JWT).
   static final SecretId publishableKey = SecretId('supabase.publishable_key');
+
+  /// 🆕 E11k-d1(R209) — Auth 새로고침 토큰(로그인 · 회전마다 덮어씀 · 접근 토큰 = 메모리만).
+  static final SecretId refreshToken = SecretId('supabase.refresh_token');
 }
 
 /// 🆕 붙여넣은 연결 값의 문제(o_07 ② 입력 판정 · 문제 없음 = null) · 🆕 E11k-c [wire] = 계약 v1.29 `SupabaseInputResultCodes`

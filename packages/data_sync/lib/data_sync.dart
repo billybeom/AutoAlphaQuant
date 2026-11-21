@@ -118,6 +118,7 @@ export 'src/migration/recovery_journal_store.dart';
 export 'src/migration/x1_startup.dart';
 // 🆕 E11d — 시크릿 스캔 게이트(설계 13 §8 R44 E7 · 06 M4-6).
 export 'src/security/secret_scan.dart';
+export 'src/supabase/supabase_auth.dart';
 export 'src/supabase/supabase_connect.dart';
 export 'src/supabase/supabase_server_time.dart';
 export 'src/watchdog/healthchecks_client.dart';
