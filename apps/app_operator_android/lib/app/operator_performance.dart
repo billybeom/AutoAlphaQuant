@@ -6,8 +6,9 @@
 // 🔴 이행 갭 = 엔진 `executionGapResultOf` — 운영 방식 = 화면 상태(마지막 깨어남의 원장 표지) · 화면 상태 없음 = 운용 전.
 // 🆕 E11q-q5b(R223) — `S7-2` 성과 탐색 시리즈 · `S7-2G` 열람 게이트 = 원장 원천 `SqlitePerformanceSource`(화면 상태의 원장 ·
 //    세션 = KR 달력 · 게이트 = 원장 변경 · [tick] 마다 다시 — 달이 바뀌면 열람 수 0) · 임의 구간 = 원천 없음(화면은 인자 없이 부른다).
-// 🔴 나머지 M7 창구(월간 리포트 · 아카이브 · 드로다운 · 기여 · 목표 경로 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류
-//    (월간 리포트 = 미결 209 ⓔ 레인 · 나머지 = q5c · q5d).
+// 🆕 E11q-q5c(R226) — `S7-3` 드로다운 맥락 = 같은 원천(운용 전체 · 결측 = KR 달력).
+// 🔴 나머지 M7 창구(월간 리포트 · 아카이브 · 기여 · 목표 경로 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류
+//    (월간 리포트 = 미결 209 ⓔ 레인 · 기여 = q5c 다음 조각 · 목표 경로 = q5d).
 
 import 'package:core_engine/core_engine.dart'
     show annualReviewVmOf, executionGapResultOf;
@@ -121,9 +122,18 @@ class OperatorPerformanceRepository implements PerformanceRepository {
         noView: () => StateError('열람 게이트: 화면 상태 없음(온보딩 전)'),
       );
 
+  /// 🆕 E11q-q5c(R226) — `S7-3` 드로다운 맥락(운용 전체 · KR 달력 = 결측 셈) · 임의 구간 = 원천 없음.
   @override
-  Future<DrawdownContextVm> drawdownContext({DateRange? range}) =>
-      _noneNow('drawdownContext');
+  Future<DrawdownContextVm> drawdownContext({DateRange? range}) async {
+    if (range != null) {
+      throw UnsupportedError('드로다운: 임의 구간 = 원천 없음(엔진 기본 구간만)');
+    }
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('드로다운: 화면 상태 없음(온보딩 전)');
+    return _src(v).drawdownContext(
+      isSession: (String d) => _rt.calendars.kr.isSession(TradeDate(d)),
+    );
+  }
 
   @override
   Future<ContributionVm> contribution({required DateRange range}) =>
