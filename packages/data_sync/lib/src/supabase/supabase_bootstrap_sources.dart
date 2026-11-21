@@ -1,8 +1,8 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_supabase_bootstrap.py` 로 다시 만든다.
 //
 // o_07 ① Supabase 부트스트랩 묶음의 원문 조각(설계 13 §8 R221 · E11k-e2) — 묶음 = `supabase_bootstrap.dart`.
-//    packages/domain_contracts/ddl/batch_d_supabase.sql sha256 `65d255b87921dea0f8766d7c177fed8ee23010f6e88fa6e1c8d547c00e209035`
-//    packages/data_sync/sql/supabase_lease_rpc.sql sha256 `5e28cae9f5a7839b88774deb23ff1c8286c81b223ddecbc14c883d2c21189947`
+//    packages/domain_contracts/ddl/batch_d_supabase.sql sha256 `a45a188920e663ac995799471af31733a6bfa910af8ee250986721499aaadb32`
+//    packages/data_sync/sql/supabase_lease_rpc.sql sha256 `3015d1608dcff73eff122d4f13df2871e3be834dc4e1b930d433d1ed8f85e0f4`
 // 🔴 data_sync 시험이 두 원문과 바이트 대조한다(갈라지면 시험이 실패).
 
 /// ① 배치 D — 계약 사본(01 §6-4) 원문 그대로 — `packages/domain_contracts/ddl/batch_d_supabase.sql`.
@@ -30,15 +30,22 @@ create table if not exists app_device (
   owner_uid     uuid not null references auth.users(id),
   -- 🆕 v1.29(01 §39 · 지도 D5) 기기마다 Auth 사용자 1명 — 이 기기의 로그인 사용자(`owner_uid` = 소유자 = operator 사용자).
   --    리스 · 페어링 RPC 는 `auth_uid = auth.uid()` 로 부르는 기기를 판정한다(JWT `app_metadata` 에 기대지 않음).
-  --    🔴 not null 승격 · RLS «`app_device` 조인» 재작성 = E11k-d(로그인) · E11m(페어링 RPC) 판이 부트스트랩 SQL 을 확정할 때(01 §8 미결 214).
-  auth_uid      uuid unique references auth.users(id)
+  -- 🆕 v1.34(01 §43 · 미결 214 닫음) not null · 🔴 **unique 아님** — X1 새 폰은 같은 운영 사용자로 로그인한다(설계 13 R197 T8 ·
+  --    이메일 + 비밀번호) → 옛 폰 · 새 폰 두 행의 `auth_uid` 가 같다(unique 면 새 폰 행을 못 넣는다 · PGlite 실증 13 R221).
+  --    기기 하나 = 행 하나는 `device_id` 가 지킨다. 뷰어 기기(`auth_uid` ≠ `owner_uid`) 행 = 페어링 RPC(E11m · 서버)만 넣는다.
+  auth_uid      uuid not null references auth.users(id)
 );
+-- 🆕 v1.34 — RLS · 리스 RPC 가 `auth_uid = auth.uid()` 로 기기 행을 찾는다(unique 를 뺀 자리의 색인).
+create index if not exists ix_app_device_auth_uid on app_device(auth_uid);
 -- 🔴 최초 INSERT 는 role='viewer' · status='PENDING' 강제. operator 승격은 리스 RPC(서버)만
+-- 🆕 v1.34 — 클라이언트가 넣는 행 = 운영 사용자 자기 기기(`auth_uid` = `owner_uid` = 부른 사용자)뿐이다.
+--    뷰어 기기 행(소유자 ≠ 로그인 사용자)은 클라이언트가 못 넣는다 — 페어링 RPC(서버 · E11m) 몫.
 alter table app_device enable row level security;
 create policy device_insert_viewer_only on app_device for insert to authenticated
-  with check (owner_uid = auth.uid() and role = 'viewer' and status = 'PENDING');
+  with check (auth_uid = auth.uid() and owner_uid = auth.uid() and role = 'viewer' and status = 'PENDING');
+-- 🆕 v1.34 — 소유자 = 자기 기기 전부 · 뷰어 = 자기 행만.
 create policy device_select_own on app_device for select to authenticated
-  using (owner_uid = auth.uid());
+  using (owner_uid = auth.uid() or auth_uid = auth.uid());
 
 -- ── operator 리스 (X1·X3) — 🔴 단일 행. 쓰기는 RPC(CAS)만, 직접 UPDATE 정책 없음 ─────
 create table if not exists operator_lease (
@@ -67,7 +74,8 @@ create policy lease_select on operator_lease for select to authenticated using (
 create table if not exists recovery_secret (
   owner_uid     uuid primary key references auth.users(id),
   code_hash     text not null,
-  algo          text not null default 'argon2id',
+  -- 🆕 v1.34(01 §43) 기본값 = 리스 RPC 가 적는 값(해시 꼴 `sha256:<소금>:<요약>` · 설계 13 R221 S6 · 확장 0) · 옛 기본값 argon2id 폐기.
+  algo          text not null default 'sha256',
   created_at    timestamptz not null default now(),
   used_at       timestamptz
 );
@@ -106,8 +114,12 @@ create table if not exists command_queue (
   unique (kind, nonce)
 );
 alter table command_queue enable row level security;
--- 🔴 RLS 는 **소유자가 아니라 `role` 클레임 기준**이다(청사진 X3 보강). owner_uid 만 보면 뷰어가
+-- 🔴 RLS 는 **소유자가 아니라 `role` 기준**이다(청사진 X3 보강). owner_uid 만 보면 뷰어가
 --    승인된 4종(Q-C: 킬스위치·저널 초안·blind 리뷰·열람 이벤트) 밖인 DEPOSIT_REGISTER 까지 넣을 수 있다.
+-- 🆕 v1.34(01 §43 · 미결 214 · 13 닫음) `role` 자리 = **`app_device` 행**(JWT `app_metadata` 클레임 0) — 명령을 낸 기기
+--    (`issued_by_device`)가 부른 사용자의 기기(`auth_uid = auth.uid()`) · 명령 `owner_uid` 의 기기 · ACTIVE 여야 한다.
+--    뷰어 기기 = 소유자 ≠ 로그인 사용자라 `owner_uid = auth.uid()` 를 쓸 수 없다(기기마다 Auth 사용자 · 지도 D5).
+--    행의 role = 페어링 RPC(뷰어 · E11m) · 리스 RPC(operator 승격)만 정한다 — 클라이언트 쓰기는 viewer · PENDING 뿐.
 --    🔴 DEPOSIT_REGISTER 는 **폰(operator) 전용**이다 — 입금 등록은 계획 스냅샷 바인딩이라 뷰어 경로가 없다.
 -- 🔴 신규 X7 7종 + 🆕 v1.10 `LEDGER_EVENT_RECORD`(㉕ 폰 전용) + 🆕 v1.12 `DEFER_ADVICE_CONFIRM`(K14 ⓐ 폰 전용)은
 --    **`command_insert_operator` 정책에만** 들어간다.
@@ -115,20 +127,30 @@ alter table command_queue enable row level security;
 --    (⚠️ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이며 m2-8_naming J-3 은 «허용하지 않는다» ⏸ 권고).
 create policy command_insert_viewer on command_queue for insert to authenticated
   with check (
-    owner_uid = auth.uid() and expires_at > now()
-    and (auth.jwt() -> 'app_metadata' ->> 'role') = 'viewer'
+    expires_at > now()
     and kind in ('KILL_SWITCH_ACTIVATE','JOURNAL_DRAFT','BLIND_REVIEW_SCORE','DISCLOSURE_VIEW')
+    and exists (select 1 from app_device d
+                 where d.device_id = command_queue.issued_by_device
+                   and d.auth_uid = auth.uid() and d.owner_uid = command_queue.owner_uid
+                   and d.role = 'viewer' and d.status = 'ACTIVE')
   );
 create policy command_insert_operator on command_queue for insert to authenticated
   with check (
-    owner_uid = auth.uid() and expires_at > now()
-    and (auth.jwt() -> 'app_metadata' ->> 'role') = 'operator'
+    expires_at > now()
+    and exists (select 1 from app_device d
+                 where d.device_id = command_queue.issued_by_device
+                   and d.auth_uid = auth.uid() and d.owner_uid = command_queue.owner_uid
+                   and d.role = 'operator' and d.status = 'ACTIVE')
   );
+-- 🆕 v1.34 — 읽기 = 부른 사용자의 ACTIVE 기기가 그 명령 소유자의 기기일 때(뷰어 = 소유자의 명령 · PENDING 폰 = 0).
 create policy command_select_own on command_queue for select to authenticated
-  using (owner_uid = auth.uid());
+  using (exists (select 1 from app_device d
+                  where d.auth_uid = auth.uid() and d.owner_uid = command_queue.owner_uid
+                    and d.status = 'ACTIVE'));
 -- 🔴 UPDATE·DELETE 정책 없음 = append-only 가 DB 로 강제된다
--- ⚠️ `role` 클레임을 어디에 싣는가(app_metadata vs 커스텀 클레임 RPC)는 M4-2 에서 확정한다.
---    확정 전까지 이 두 정책의 **분리 자체**가 계약이며, 하나로 합치면 Q-C 범위가 무너진다.
+-- 🔴 두 INSERT 정책의 **분리 자체**가 계약이다 — 하나로 합치면 Q-C 범위(뷰어 4종)가 무너진다.
+--    ~~⚠️ `role` 클레임을 어디에 싣는가(app_metadata vs 커스텀 클레임 RPC)는 M4-2 에서 확정한다.~~
+--    ✅ v1.34 = `app_device` 행(위 · 01 §8 미결 13 닫음).
 
 create table if not exists command_ack (           -- 엔진(operator)만 INSERT
   ack_id            uuid primary key,
@@ -147,9 +169,9 @@ create table if not exists command_ack (           -- 엔진(operator)만 INSERT
 -- 🆕 G-10 — 🔴 `command_ack` 위조는 「집행됨」을 조작한다. RLS 없이 부트스트랩 SQL 을 붙여넣으면
 --    그 구멍이 그대로 운영 DB 가 된다.
 alter table command_ack enable row level security;
+-- 🆕 v1.34 — 보이는 명령(위 `command_select_own` 이 걸린 `command_queue`)의 ack 만 — 뷰어 = 소유자 명령의 ack.
 create policy command_ack_select on command_ack for select to authenticated
-  using (exists (select 1 from command_queue q
-                 where q.command_id = command_ack.command_id and q.owner_uid = auth.uid()));
+  using (exists (select 1 from command_queue q where q.command_id = command_ack.command_id));
 
 -- ── 작업 원장 미러 (X2) — 🔴 계획 원문 금지. digest + 한 줄 요약만 ────────────────────
 create table if not exists planned_work_mirror (
@@ -308,7 +330,7 @@ const String kSupabaseLeaseRpcSql = r'''
 --   · 🔴 Postgres 내장 sha256() 만 쓴다(확장 0 — pgsodium = Supabase 폐기 예정 · pgcrypto 에는 argon2 가 없다).
 --     빠른 해시로 충분한 까닭 = 복구 코드는 사람이 고른 낱말이 아니라 기기가 뽑는 무작위 ≥ 100비트(E11k-e3 몫)이고
 --     recovery_secret 에는 SELECT 정책이 없다(검증은 이 RPC 안에서만).
---   · recovery_secret.algo = 'sha256' 을 RPC 가 적는다(DDL 기본값 'argon2id' 는 쓰이지 않는다 — 계약 창 정리 제안).
+--   · recovery_secret.algo = 'sha256' 을 RPC 가 적는다(DDL 기본값도 'sha256' — 계약 v1.34 · 01 §43 · 미결 214).
 
 -- ── lease_claim ──────────────────────────────────────────────────────────────
 -- 빈 행 = 첫 클레임 → p_recovery_code_hash 필수(없음 · 꼴 아님 = RECOVERY_CODE_REQUIRED) · 리스 행 + recovery_secret 를
