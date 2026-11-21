@@ -14,7 +14,10 @@
 // 🆕 R210(나눔 ⓒ) — D3 = 자동매매의 규칙 이행(03_운영 §3-5 이탈률) — «규칙대로» = 그 달 원장 `decision_log` 매매 규칙
 //    결정(ENTRY · EXIT · REBALANCE) · «재량» = 그 달 이탈 저널(`decision_journal.is_deviation = 1` — 규칙 이탈은 이탈 저널을
 //    남긴다 · SAF-408) · 이행률 = 규칙대로 ÷ 전체(내림 — 이탈 1건이면 100% 가 되지 않는다). 안내 모드(X7)의 이행 갭 = 다음 창.
-// 🔴 나머지 5칸 = 원천이 생기는 창마다 타입 있는 입력 하나씩(설계 13 §8 R199 나눔표) — 지금은 받는 칸이 없다(호출자가 글자를
+// 🆕 R214(나눔 ⓓ) — D1 = 원장 `regime_score_daily.direction_state` 의 그 달 전환 수([MonthlyRegimeFacts]) · G1 = TWR
+//    시리즈의 관측 길이(표본 글자 두 갈래 — 한 달 미만 = 거래일 · 그 뒤 = 개월) · G2 = 홈과 같은 `SafetyState.rampLevel`
+//    (E1 과 같은 안전 상태 한 장). B1 벤치마크(지수 시계열 · 구성 정의 없음) · F1 2×2(01 §8 미결 98) = 원천 0 그대로.
+// 🔴 나머지 2칸(B1 · F1) = 원천이 생기는 창마다 타입 있는 입력 하나씩(설계 13 §8 R199 나눔표) — 지금은 받는 칸이 없다(호출자가 글자를
 //    밀어 넣는 길 0 · 글자 = 엔진).
 // 🔴 미생성 · 가림(무결성 · 대사) = 읽기 경로 몫(01 §2-10 · 생성일 규칙 미정) — 이 빌더는 «마감된 달» 한 갈래만 짓는다
 //    (생성 날 < 월말 세션 = 실패). 마감된 달을 다시 짓지 않는 것(03 §3 금지 ③ · G-97)도 읽기 경로 · 저장의 몫이다.
@@ -31,6 +34,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         FlagIds,
         LedgerTrustBadge,
         MonthlyReport,
+        RampLevel,
         ReportItem,
         SafetyState,
         SleeveId,
@@ -180,6 +184,23 @@ abstract final class MonthlyReportTexts {
 
   /// 🆕 R210 — «이행률 95%»(표본 꼴 · 내림).
   static String executionRate(int pct) => '이행률 $pct%';
+
+  /// 🆕 R214 — 국면 전환 «이번 달 1회»(표본).
+  static String regimeSwitches(int n) => '이번 달 $n회';
+
+  /// 🆕 R214 — 국면 메모 «국면을 판정할 수 없던 날 2일».
+  static String regimeUnknownDays(int n) => '국면을 판정할 수 없던 날 $n일';
+
+  /// 🆕 R214 — 표본 고지(한 달 이상) «관측 표본은 24개월입니다. 이 길이로는 규칙의 우열을 가릴 수 없습니다.»(표본 글자).
+  static String sampleMonths(int months) =>
+      '관측 표본은 $months개월입니다. 이 길이로는 규칙의 우열을 가릴 수 없습니다.';
+
+  /// 🆕 R214 — 표본 고지(한 달 미만) «관측 표본은 21거래일입니다. 이 길이로는 아무것도 판정할 수 없습니다.»(표본 글자).
+  static String sampleDays(int days) =>
+      '관측 표본은 $days거래일입니다. 이 길이로는 아무것도 판정할 수 없습니다.';
+
+  /// 🆕 R214 — 운영 램프 «운영 램프 L3»(표본).
+  static String opsRamp(RampLevel l) => '운영 램프 ${l.name.toUpperCase()}';
 }
 
 /// 🆕 R205 — A1 · A2 · C1 · C2 원천.
@@ -283,6 +304,56 @@ final RegExp _ymd = RegExp(r'^\d{4}-\d\d-\d\d$');
   return (
     value,
     flags.isEmpty ? null : flags.map((BlockFlag x) => x.label).join(' · '),
+  );
+}
+
+/// 🆕 R214 — D1 원천.
+class MonthlyRegimeFacts {
+  /// 만든다.
+  const MonthlyRegimeFacts({
+    required this.previousState,
+    required this.monthStates,
+  });
+
+  /// 앞 달 마지막으로 판정된 국면(BULL · NEUTRAL · BEAR — 없으면 null = 첫 판정은 전환이 아니다).
+  final String? previousState;
+
+  /// 그 달 `regime_score_daily.direction_state`(날짜 순 · UNKNOWN · null = 판정 못 한 날 — 앞 판정 그대로 잇는다).
+  final List<String?> monthStates;
+}
+
+const Set<String> _kRegimeKnown = <String>{'BULL', 'NEUTRAL', 'BEAR'};
+
+/// 🔴 D1 (값 · 메모) — 판정된 날끼리 이웃한 상태가 다르면 전환 1회(판정 못 한 날은 건너뛴다) · 빈 달 = 실패.
+(String, String?) _regimeItemOf(MonthlyRegimeFacts f) {
+  final String? prev = f.previousState;
+  if (prev != null && !_kRegimeKnown.contains(prev)) {
+    throw ArgumentError.value(
+      prev,
+      'regime',
+      '앞 달 국면이 BULL · NEUTRAL · BEAR 가 아니다',
+    );
+  }
+  if (f.monthStates.isEmpty) {
+    throw ArgumentError.value(0, 'regime', '그 달 국면 기록 없음 — regime 을 비울 것');
+  }
+  String? last = prev;
+  int switches = 0;
+  int unknown = 0;
+  for (final String? st in f.monthStates) {
+    if (st == null || st == 'UNKNOWN') {
+      unknown++;
+      continue;
+    }
+    if (!_kRegimeKnown.contains(st)) {
+      throw ArgumentError.value(st, 'regime', 'direction_state 밖');
+    }
+    if (last != null && st != last) switches++;
+    last = st;
+  }
+  return (
+    MonthlyReportTexts.regimeSwitches(switches),
+    unknown > 0 ? MonthlyReportTexts.regimeUnknownDays(unknown) : null,
   );
 }
 
@@ -418,8 +489,19 @@ Map<MonthlyReportSlot, (String, String?)> _equityItemsOf(
     }
   }
   if (runStart != null) runs.add((runStart, runEnd));
+  // 🆕 R214 — G1 = 개시 날 → 월말 길이(한 달 미만 = 관측 거래일 수 · 그 뒤 = 개월 내림 — C2 와 같은 환산).
+  final int span = _daysBetween(opened, monthEnd);
+  final (String, String?) sample = (
+    span < MonthlyReportTexts.monthDays
+        ? MonthlyReportTexts.sampleDays(pts.length)
+        : MonthlyReportTexts.sampleMonths(
+            (span / MonthlyReportTexts.monthDays).floor(),
+          ),
+    null,
+  );
   if (missing > 0) {
     return <MonthlyReportSlot, (String, String?)>{
+      MonthlyReportSlot.sampleNotice: sample,
       MonthlyReportSlot.periodReturn: (
         MonthlyReportTexts.missingSessions(missing),
         MonthlyReportTexts.missingDatesNote(
@@ -477,6 +559,7 @@ Map<MonthlyReportSlot, (String, String?)> _equityItemsOf(
       MonthlyReportTexts.longestUnderWater(longest),
       null,
     ),
+    MonthlyReportSlot.sampleNotice: sample,
   };
 }
 
@@ -530,14 +613,16 @@ String monthlyExposureNoteOf(P0sExposureTally t) {
       '계측 없음 ${t.unmeasuredDays}일';
 }
 
-/// 🔴 마감된 달의 월간 리포트를 짓는다 — 13칸 고정 · 원천이 있는 칸(A1 · A2 · C1 · C2 · D2 · D3 · D4 · E1)만 · 나머지 = «산출 불가».
+/// 🔴 마감된 달의 월간 리포트를 짓는다 — 13칸 고정 · 원천이 있는 칸(A1 · A2 · C1 · C2 · D1 · D2 · D3 · D4 · E1 · G1 · G2)만 ·
+/// 나머지(B1 · F1) = «산출 불가».
 ///
 /// [monthEnd] = 그 달 마지막 KR 세션(기준일) · [generatedAtUtc] = 생성 시각(한국 날 < [monthEnd] = 미생성 → [ArgumentError]) ·
 /// [trust] = 그 달 마감 시점 원장 신뢰 등급(읽기 경로가 준다 — 스트림의 «지금» 등급이 아니다 · 03 §3) ·
 /// [disclosureViewCount] = 그 달 탐색 열람 수(명령 집계 · 음수 = [ArgumentError]) ·
 /// [allocation] null · 빈 목록 = D2 값 «산출 불가» · [exposureTally] null = D2 메모 없음(달이 다르면 [ArgumentError]) ·
 /// 🆕 [equity] null = A1 · A2 · C1 · C2 «산출 불가»(R205) · 🆕 [discretionUseDates] null = D4 · [strategy] null = E1
-/// «산출 불가»(R208) · 🆕 [execution] null = D3 «산출 불가»(R210 · 안내 모드 = 이행 갭 창 전까지 null).
+/// «산출 불가»(R208) · 🆕 [execution] null = D3 «산출 불가»(R210 · 안내 모드 = 이행 갭 창 전까지 null) ·
+/// 🆕 [regime] null = D1 «산출 불가» · G1 = [equity] 를 따른다 · G2 = [strategy] 의 안전 상태를 따른다(R214).
 MonthlyReport monthlyReportOf({
   required String yyyyMm,
   required TradeDate monthEnd,
@@ -551,6 +636,7 @@ MonthlyReport monthlyReportOf({
   List<String>? discretionUseDates,
   MonthlyStrategyFacts? strategy,
   MonthlyExecutionFacts? execution,
+  MonthlyRegimeFacts? regime,
   String? backdateFootnote,
 }) {
   if (!_yyyyMm.hasMatch(yyyyMm)) {
@@ -597,6 +683,13 @@ MonthlyReport monthlyReportOf({
           ),
         if (strategy != null)
           MonthlyReportSlot.strategyState: _strategyItemOf(strategy),
+        if (strategy != null)
+          MonthlyReportSlot.opsRamp: (
+            MonthlyReportTexts.opsRamp(strategy.safety.rampLevel),
+            null,
+          ),
+        if (regime != null)
+          MonthlyReportSlot.regimeSwitches: _regimeItemOf(regime),
         if (execution != null)
           MonthlyReportSlot.execution: _executionItemOf(execution),
       };
