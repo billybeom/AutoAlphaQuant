@@ -793,3 +793,17 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AJ-2 | 🆕 `SettingsActionId.supabaseSignIn`(`SUPABASE_SIGN_IN`) | `enums/command.dart` · args `{}` · 1단 |
 | AJ-3 | 🆕 `SupabaseAuthResultCodes`(`supabase_auth_result` 6) | `labels/supabase_codes.dart` · 인증 고유 실패 · 전송 = `SupabaseTimeResultCodes` |
 | AJ-4 | 🆕 `FixturePaths.m8OnboardingStepDetailSupabaseLogin` · `m8OnboardingSupabaseSigninResults` | `fixtures/m8/onboarding_*supabase*.json` |
+
+## AK. 🆕 계약 v1.32 (2026-11-21 · E16j-a 계약 창 — X5 정정 마법사) — VM 5 · 창구 1 · 제출 3 · 동작 4 · 라우트 1 · 사전 1 · 표본 8
+
+`contractVersion` = **`1.32.0`**(다음 = 1.33.0 · 첫 후보 = E16j-b X1). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K247~K263 권고대로(정본 = 설계 `10_리뷰/2026-11-21_E16j-a계약창_계약v1.32_설계서.md` · 01 §41). 🔴 엔진 이름(core `RepairChoice` · `RepairCodes` · `BaselineCodes` · `InterventionStep` · `InterventionOutcome` · ds `BaselineStoreCodes` · `BaselineResult` · `FillRestatement`)과 겹치지 않는다(K80 · C-66 ⑪ · data_sync 대조 시험).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AK-1 | 🆕 `RepairWizardVm` · `RepairOriginChoice` · `RepairStageRow` · `RepairCorrectionForm` · `RepairFillChoice` | `dto/repair.dart` · X5 정정 마법사 허브 · 대상 공용 |
+| AK-2 | 🆕 `RepairWizardRepository.watchRepair({targetId})` | `repositories/repair_wizard_repository.dart` · 폰 전용 · `ui_safety` 만 |
+| AK-3 | 🆕 `SafetyActions.runRepairCorrect` · `runRepairBaseline` · `runInterventionJournal` + `RepairCorrectSubmission` · `RepairBaselineSubmission` · `InterventionJournalSubmission` | `commands/safety_actions.dart` · 사람 수 · 글 = 제출 DTO(K7) |
+| AK-4 | 🆕 `SafetyActionId.repairAccept`(`REPAIR_ACCEPT` · `run{diff_id}`) · `repairCorrect` · `repairBaseline` · `interventionJournal` | `enums/command.dart` |
+| AK-5 | 🆕 `AppRoutes.x5RepairTarget`(`aaq://x5/repair-wizard/:targetId`) | `navigation/app_links.dart` · `all` 85 |
+| AK-6 | 🆕 `BaselineApplyResultCodes`(`baseline_apply_result` 1) | `labels/repair_codes.dart` · ds `BaselineStoreCodes` 와 다른 이름 |
+| AK-7 | 🆕 `FixturePaths.x5Repair*` 8 | `fixtures/x5/repair_*.json` |

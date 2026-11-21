@@ -313,6 +313,8 @@ abstract final class ContractCodes {
     'baseline_result': BaselineResultCodes.values,
     'ledger_boundary_reason': LedgerBoundaryReasonCodes.values,
     'derived_relation': DerivedRelationCodes.values,
+    // 🆕 v1.32(01 §41 · E16j-a) — 새 기준점 저장 쪽 거부(ds `BaselineStoreCodes` − 공용)
+    'baseline_apply_result': BaselineApplyResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

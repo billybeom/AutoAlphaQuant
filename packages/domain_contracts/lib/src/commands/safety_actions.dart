@@ -53,6 +53,16 @@ part 'safety_actions.g.dart';
 ///   트랜잭션 · 신뢰 시각 비의존 · 거부 = `ReconClearResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.reconClear].
 /// 🔴 사전 저널 꼴 ⓐ(K180) — 사람 글 3필드(`rationaleBefore` · `expectedOutcome` · `ruleCited` 원문)는 제출 DTO 에 · 저널 id 는
 ///    구현 · 저널 행과 동작은 한 트랜잭션(고아 저널 0 · 엔진 «저널 함께 쓰기» 판 = 01 §8 미결 206).
+/// 🆕 v1.32(01 §41 · K251~K259 · E16j-a · X5 정정 마법사 `RepairWizardVm`):
+/// · `run` 화이트리스트 +1 — `repairAccept` = `{diff_id}`(아무것도 안 하기 · 구현 = 살아 있는 개입 세션 `DO_NOTHING` + diff ACCEPTED ·
+///   무결성 갈래 0 · 결과 id = [SafetyActionId.repairAccept]).
+/// · `runRepairCorrect` — 정본 정정(diff 갈래 · 5단계 통과 뒤 · 원문 4칸 파싱 = 구현 · 직전 재대사 = 구현 · `decision_id` = 개입 세션 저널 ·
+///   거부 = `RepairResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪ `InterventionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairCorrect].
+/// · `runRepairBaseline` — 새 기준점(무결성 갈래 · 거부 = `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `InterventionResultCodes` ∪
+///   `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairBaseline].
+/// · `runInterventionJournal` — 개입 3단계 사전 저널(K180 꼴 3칸 · 구현 = 살아 있는 세션 하나에 붙인다 · 저널 + 3단계 한 트랜잭션 · M5-6 재사용 ·
+///   거부 = `InterventionResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.interventionJournal].
+/// 🔴 정정 · 새 기준점 커밋이 개입 세션 5단계 · 실행 창 · `decision == journalId` 를 보게 하는 결속 = 엔진 숙제(01 §8 미결 217).
 abstract interface class SafetyActions {
   /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
   Future<SafetyActionResult> run(
@@ -88,6 +98,21 @@ abstract interface class SafetyActions {
   /// 🆕 v1.26(01 §35 · K181) — `M5-5` 차단 보드 RECON 해제.
   Future<SafetyActionResult> runReconClear(ReconClearSubmission submission);
 
+  /// 🆕 v1.32(01 §41 · K255) — X5 정본 정정(diff 갈래).
+  Future<SafetyActionResult> runRepairCorrect(
+    RepairCorrectSubmission submission,
+  );
+
+  /// 🆕 v1.32(01 §41 · K256) — X5 새 기준점(무결성 갈래).
+  Future<SafetyActionResult> runRepairBaseline(
+    RepairBaselineSubmission submission,
+  );
+
+  /// 🆕 v1.32(01 §41 · K252) — 개입 3단계 사전 저널(X5 마찰 · M5-6 공용).
+  Future<SafetyActionResult> runInterventionJournal(
+    InterventionJournalSubmission submission,
+  );
+
   Stream<SafetyActionResult> watch(String actionRunId);
 }
 
@@ -105,7 +130,8 @@ abstract class SafetyActionResult with _$SafetyActionResult {
     /// 값 ∈ `KillSwitchResultCodes` ∪ `SafetyCommonResultCodes` ∪ `PledgeResultCodes` ∪ 🆕 v1.22 `StoppedDecisionResultCodes` ∪
     /// `PostmortemResultCodes` ∪ `InterventionResultCodes` ∪ `RuleChangeResultCodes` ∪ `DiscretionResultCodes` ∪
     /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
-    /// `ReconClearResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩).
+    /// `ReconClearResultCodes` ∪ 🆕 v1.32 `RepairResultCodes` ∪ `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪
+    /// {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ · C-66).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).
@@ -291,3 +317,52 @@ abstract class ReconClearSubmission with _$ReconClearSubmission {
       _$ReconClearSubmissionFromJson(json);
 }
 // JSON 키: origin_code · rationale_before · expected_outcome · rule_cited
+
+/// 🆕 v1.32(01 §41 · K255) — X5 정본 정정 제출(ds `correctFill` 칸 − 구현 몫(정정 id · 직전 재대사 diff · 결정 id · 체인 상한)).
+/// 🔴 [targetId] · [fillRef] · [originCode] = VM 이 실은 값 그대로 · 수량 · 가격 · 수수료 · 세금 = 사람이 친 **원문**(파싱 = 구현 ·
+///    거부 코드 = 엔진이 먼저 정한다 — 그 전 표본 0) · [voidFill] true = 무효(네 칸 무시).
+@freezed
+abstract class RepairCorrectSubmission with _$RepairCorrectSubmission {
+  const factory RepairCorrectSubmission({
+    required String targetId,
+    required String fillRef,
+    required String originCode,
+    required bool voidFill,
+    String? quantityText,
+    String? priceText,
+    String? commissionText,
+    String? taxText,
+  }) = _RepairCorrectSubmission;
+
+  factory RepairCorrectSubmission.fromJson(Map<String, dynamic> json) =>
+      _$RepairCorrectSubmissionFromJson(json);
+}
+// JSON 키: target_id · fill_ref · origin_code · void_fill · quantity_text · price_text · commission_text · tax_text
+
+/// 🆕 v1.32(01 §41 · K256) — X5 새 기준점 제출(ds `applyBaseline` · [targetId] = 무결성 합성 id `li-…` · 원인 = 3종 ∩ 경계 후보).
+@freezed
+abstract class RepairBaselineSubmission with _$RepairBaselineSubmission {
+  const factory RepairBaselineSubmission({
+    required String targetId,
+    required String originCode,
+  }) = _RepairBaselineSubmission;
+
+  factory RepairBaselineSubmission.fromJson(Map<String, dynamic> json) =>
+      _$RepairBaselineSubmissionFromJson(json);
+}
+// JSON 키: target_id · origin_code
+
+/// 🆕 v1.32(01 §41 · K252) — 개입 3단계 사전 저널 제출(K180 꼴 · 사람 글 3칸 원문 · 저널 id = 구현 · 세션 = 살아 있는 하나).
+@freezed
+abstract class InterventionJournalSubmission
+    with _$InterventionJournalSubmission {
+  const factory InterventionJournalSubmission({
+    required String rationaleBefore,
+    required String expectedOutcome,
+    required String ruleCited,
+  }) = _InterventionJournalSubmission;
+
+  factory InterventionJournalSubmission.fromJson(Map<String, dynamic> json) =>
+      _$InterventionJournalSubmissionFromJson(json);
+}
+// JSON 키: rationale_before · expected_outcome · rule_cited

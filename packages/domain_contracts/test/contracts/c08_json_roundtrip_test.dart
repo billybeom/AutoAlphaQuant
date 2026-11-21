@@ -323,6 +323,11 @@ const Map<String, String> _knownUncovered = <String, String>{
   //    = m9 신설 표본이 처음부터 덮는다(목록 0).
   'RuleChangeRequestSubmission': _reasonCommandPayload,
   'ReconClearSubmission': _reasonCommandPayload,
+  // 🆕 v1.32(01 §41 · K255 · K256) — X5 제출 DTO 3(정정 · 새 기준점 · 3단계 저널 — 포트 인자 · 표본 0) · C-66 ⑫ 가 이 시험 밖에서 왕복한다.
+  //    새 VM 5(`RepairWizardVm`·`RepairOriginChoice`·`RepairStageRow`·`RepairCorrectionForm`·`RepairFillChoice`) = x5 신설 표본이 처음부터 덮는다(목록 0).
+  'RepairCorrectSubmission': _reasonCommandPayload,
+  'RepairBaselineSubmission': _reasonCommandPayload,
+  'InterventionJournalSubmission': _reasonCommandPayload,
   // ── M9 설정·기기·연결·백업·셸(05) ────────────────────────────────────────
   // 🔵 v1.24(01 §33) — `BackupVm` 은 m9/backup* 6 이 덮어 목록에서 지웠다(새 DTO 4 = 처음부터 덮임 — `RestorePointRow` ←
   //    `BackupVm.points` · `SelfTestCard` ← 감싸개).

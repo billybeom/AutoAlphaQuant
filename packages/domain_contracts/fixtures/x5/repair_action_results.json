@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.32.0",
+    "generated_at": "2026-11-21T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261121,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "정정 기준 2026-08-31 18:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "action_run_id": "ar_rpr_01",
+      "id": "REPAIR_ACCEPT",
+      "level": "OK",
+      "headline": "(합성) 받아들였습니다 — 차이를 그대로 둡니다",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_02",
+      "id": "REPAIR_CORRECT",
+      "level": "OK",
+      "headline": "(합성) 정정을 기록했습니다 — 포지션을 다시 셌습니다",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_03",
+      "id": "REPAIR_CORRECT",
+      "level": "BLOCKED",
+      "headline": "(합성) 방금 다시 대사한 결과가 달라졌습니다 — 처음부터 다시 보십시오",
+      "reason_code": "REPAIR_DELTA_CHANGED",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_04",
+      "id": "REPAIR_CORRECT",
+      "level": "BLOCKED",
+      "headline": "(합성) 종목이나 매수 · 매도는 바꿀 수 없습니다",
+      "reason_code": "AMEND_SYMBOL_OR_SIDE_CHANGE",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_05",
+      "id": "REPAIR_CORRECT",
+      "level": "WATCH",
+      "headline": "(합성) 냉각이 끝나지 않았습니다",
+      "reason_code": "INTERVENTION_COOLING",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_06",
+      "id": "REPAIR_BASELINE",
+      "level": "OK",
+      "headline": "(합성) 새 기준점을 만들었습니다 — 무결성 표시를 풀었습니다",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_07",
+      "id": "REPAIR_BASELINE",
+      "level": "BLOCKED",
+      "headline": "(합성) 무결성 표시가 서 있지 않습니다",
+      "reason_code": "BASELINE_FLAG_NOT_SET",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_08",
+      "id": "REPAIR_BASELINE",
+      "level": "BLOCKED",
+      "headline": "(합성) 처음 어긋난 날을 알 수 없습니다",
+      "reason_code": "BASELINE_FIRST_BAD_DATE_UNKNOWN",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_09",
+      "id": "INTERVENTION_JOURNAL",
+      "level": "OK",
+      "headline": "(합성) 사전 저널을 남겼습니다",
+      "reason_code": null,
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_10",
+      "id": "INTERVENTION_JOURNAL",
+      "level": "BLOCKED",
+      "headline": "(합성) 지금은 저널 단계가 아닙니다",
+      "reason_code": "INTERVENTION_STAGE_OUT_OF_ORDER",
+      "handoff_route": null,
+      "retryable": false
+    },
+    {
+      "action_run_id": "ar_rpr_11",
+      "id": "REPAIR_CORRECT",
+      "level": "BLOCKED",
+      "headline": "(합성) 생체 확인을 쓸 수 없습니다",
+      "reason_code": "BIOMETRIC_UNAVAILABLE",
+      "handoff_route": null,
+      "retryable": false
+    }
+  ]
+}

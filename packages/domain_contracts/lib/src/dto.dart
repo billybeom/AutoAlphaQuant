@@ -25,6 +25,7 @@ export 'dto/ops.dart';
 export 'dto/performance.dart';
 export 'dto/plan.dart';
 export 'dto/rebalance.dart';
+export 'dto/repair.dart'; // 🆕 v1.32 — X5 정정 마법사(01 §41)
 export 'dto/resume.dart';
 export 'dto/safety.dart';
 export 'dto/safety_gate.dart';

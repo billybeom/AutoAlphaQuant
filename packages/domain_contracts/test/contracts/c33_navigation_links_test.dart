@@ -145,12 +145,13 @@ void main() {
       // 🆕 v1.18 — 69 → 80(M9 11 · `settingsHome` … `settingsAnnualReview` · 01 §27).
       // 🆕 v1.20 — 80 → 81(`m4KeyRotation` · 01 §29).
       // 🆕 v1.21 — 81 → 84(M5 3 · 01 §30).
+      // 🆕 v1.32 — 84 → 85(`x5RepairTarget` · X5 정정 대상 · 01 §41 K248).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(84),
-        reason: '라우트 수가 계약(01 §30 · v1.21 = 84)과 다르다.',
+        hasLength(85),
+        reason: '라우트 수가 계약(01 §41 · v1.32 = 85)과 다르다.',
       );
       expect(AppRoutes.all, contains(AppRoutes.m5StoppedDecision));
       expect(AppRoutes.all, contains(AppRoutes.m5Pledge));

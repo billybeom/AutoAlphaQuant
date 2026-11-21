@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.32.0",
+    "generated_at": "2026-11-21T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261121,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "정정 기준 2026-08-31 18:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "headline": "(합성) 체결 보고가 늦은 것으로 보입니다 — 기본은 아무것도 안 하기입니다",
+      "level": "WATCH",
+      "reason_code": null,
+      "target_links": [],
+      "diff": { "diff_id": "ld_0001", "pair": "CANON_BROKER", "axis": "QUANTITY", "authored_date": "2026-08-28", "delta_label": "069500 수량이 12주 적습니다", "severity": "BLOCKING", "candidate_origin_codes": ["FILL_LAG", "MANUAL_ORDER"], "status": "OPEN", "route": "APPROVAL", "evidence_hash": "ev_8f21c0a4b7d3", "applicable": true, "pair_label": "브로커 대조", "axis_label": "수량", "severity_label": "주문 차단", "status_label": "열림", "route_label": "승인 필요", "candidate_origins": [{ "code": "FILL_LAG", "label": "체결 반영 지연", "tone": "NEUTRAL", "detail_deep_link": "handbook://unknown/resolve" }, { "code": "MANUAL_ORDER", "label": "수동 주문", "tone": "NEUTRAL" }], "detected_at_text": "탐지 2026-08-28 09:00", "action_link": null },
+      "target_lines": ["(합성) 08-28 체결 1건 — 증권사 9주 · 장부 10주"],
+      "do_nothing_default": true,
+      "origins": [{ "origin_code": "MISRECORDED_FILL", "label": "(합성) 잘못 기록된 체결" }, { "origin_code": "MANUAL_ORDER", "label": "(합성) 앱 밖 수동 주문" }, { "origin_code": "BROKER_ERROR", "label": "(합성) 증권사 오류" }],
+      "stages": [{ "title": "(합성) 1 규칙 대비", "state_label": "(합성) 차례", "level": "ACT", "lines": ["(합성) 규칙 대비 — 이 정정은 체결 기록을 바꿉니다"], "actions": [{ "id": "INTERVENTION_STEP", "args": { "session_id": "iv_0001", "stage": "1", "outcome": "PASSED" }, "label": "(합성) 확인했습니다" }], "journal_form": false }, { "title": "(합성) 2 카드 · 서약 다시 읽기", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "actions": [], "journal_form": false }, { "title": "(합성) 3 사전 저널", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "actions": [], "journal_form": false }, { "title": "(합성) 4 냉각", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "actions": [], "journal_form": false }, { "title": "(합성) 5 실행 창", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "actions": [], "journal_form": false }],
+      "do_nothing_action": { "id": "REPAIR_ACCEPT", "args": { "diff_id": "ld_0001" }, "label": "(합성) 아무것도 안 하기" },
+      "correction": null,
+      "baseline_label": null,
+      "notice_text": "(합성) 정정은 되돌리지 않습니다 — 잘못 고치면 정정의 정정만 남습니다.",
+      "done_label": null,
+      "history_link": { "label": "(합성) 정정 이력 보기", "deep_link": "aaq://ledger/repairs" },
+      "x1_guide_link": null,
+      "locked_label": null,
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "정정 기준 2026-08-31 18:00" }
+    }
+  ]
+}

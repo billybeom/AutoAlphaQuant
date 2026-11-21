@@ -206,6 +206,12 @@ final DtoCodec<Object> _breakerLadderVm = DtoCodec<BreakerLadderVm>(
   BreakerLadderVm.fromJson,
   (BreakerLadderVm v) => v.toJson(),
 );
+// 🆕 계약 v1.32(E16j-a · 01 §41) — X5 정정 마법사.
+final DtoCodec<Object> _repairWizardVm = DtoCodec<RepairWizardVm>(
+  'RepairWizardVm',
+  RepairWizardVm.fromJson,
+  (RepairWizardVm v) => v.toJson(),
+);
 final DtoCodec<Object> _resumeGateVm = DtoCodec<ResumeGateVm>(
   'ResumeGateVm',
   ResumeGateVm.fromJson,
@@ -1125,6 +1131,16 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.x2ResumeReportScreenRecoveryFull: FixtureBinding(
     _resumeReportVm,
   ),
+
+  // ── x5/ — 🆕 v1.32(01 §41 · K260) X5 정정 마법사 7 · 결과 1 ──────────────
+  FixturePaths.x5RepairActionResults: FixtureBinding(_safetyActionResult),
+  FixturePaths.x5RepairBoundaryX1: FixtureBinding(_repairWizardVm),
+  FixturePaths.x5RepairDiffDefault: FixtureBinding(_repairWizardVm),
+  FixturePaths.x5RepairDiffReady: FixtureBinding(_repairWizardVm),
+  FixturePaths.x5RepairDiffStage3: FixtureBinding(_repairWizardVm),
+  FixturePaths.x5RepairHubEmpty: FixtureBinding(_repairWizardVm),
+  FixturePaths.x5RepairHubTargets: FixtureBinding(_repairWizardVm),
+  FixturePaths.x5RepairIntegrityReady: FixtureBinding(_repairWizardVm),
 };
 
 /// 🔴 **뷰모델이 아직 계약에 없는 픽스처** — 지우지 않고 사유와 함께 남긴다.

@@ -465,7 +465,8 @@ void main() {
           expect(m.group(1), matches(wire), reason: '$name ${m.group(0)}');
         }
       }
-      expect(n, 103);
+      // 🆕 v1.32(01 §41 · K259) — repair_codes.dart 에 `BaselineApplyResultCodes` 1 이 더해졌다(103 → 104 · C-66 ⑪).
+      expect(n, 104);
     });
   });
 }

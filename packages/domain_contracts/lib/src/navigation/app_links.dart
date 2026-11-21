@@ -355,8 +355,12 @@ abstract final class AppRoutes {
   /// 🆕 v1.25(01 §34 · K157) — 🔒 X2-6 게이트 본문 = `ui_safety`(VM = `ResumeGateVm`).
   static const String x2ResumeGate = 'aaq://x2/resume-gate';
 
-  /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사.
+  /// `X5-3`·`M5-12` 정합 복구·수기 체결 정정 마법사 — 🆕 v1.32(01 §41 · K248) = **허브**(열린 대상 고르기 · 파라미터 0 · 엔진 링크 그대로).
   static const String x5RepairWizard = 'aaq://x5/repair-wizard';
+
+  /// 🆕 v1.32(01 §41 · K248 · E16j-a) — 🔒 X5 정정 마법사 **대상 화면**(`:targetId` = `ld-…` diff id 또는 `li-…` 무결성 합성 id ·
+  /// 엔진이 완성 · 5조각 = 허브 4조각과 겹침 0 · 본문 = `ui_safety` · VM = `RepairWizardVm` · 01 §8 미결 115 닫음).
+  static const String x5RepairTarget = 'aaq://x5/repair-wizard/:targetId';
 
   /// 전량 — 셸 라우트 테이블과 C-33 의 모집단(🆕 v1.5 = 43 · `journalRebalance` ·
   /// 🆕 v1.6 = 45 · `ledgerExecutionGapMonth`·`rebalanceHistory` · 🆕 v1.8 = 48 · `holdingsOverview`·
@@ -454,6 +458,7 @@ abstract final class AppRoutes {
     x2ResumeReport,
     x2ResumeGate,
     x5RepairWizard,
+    x5RepairTarget, // 🆕 v1.32 = 85(01 §41 · K248)
   ];
 
   /// [link] 가 [all] 의 패턴 하나와 일치하는가.

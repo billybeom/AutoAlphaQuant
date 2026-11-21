@@ -328,7 +328,23 @@ enum SafetyActionId {
   /// 🆕 v1.22(K54) — X2 재개 게이트 계절 A 진입 3택(`run{work_id, choice}` · 🔵 엔진 명령 kind 0 → 계약이 짓는다 ·
   /// ds `jobs/resume_job.dart:399` `applySeasonalChoice` · `decision_id` = 구현이 짓는다).
   @JsonValue('SEASONAL_WINDOW_CHOICE')
-  seasonalWindowChoice('SEASONAL_WINDOW_CHOICE');
+  seasonalWindowChoice('SEASONAL_WINDOW_CHOICE'),
+
+  /// 🆕 v1.32(01 §41 · K254 · E16j-a) — X5 아무것도 안 하기(`run{diff_id}` · 화이트리스트 · ACCEPTED).
+  @JsonValue('REPAIR_ACCEPT')
+  repairAccept('REPAIR_ACCEPT'),
+
+  /// 🆕 v1.32(K255) — X5 정본 정정(제출 `runRepairCorrect` · 결과 id).
+  @JsonValue('REPAIR_CORRECT')
+  repairCorrect('REPAIR_CORRECT'),
+
+  /// 🆕 v1.32(K256) — X5 새 기준점(제출 `runRepairBaseline` · 결과 id).
+  @JsonValue('REPAIR_BASELINE')
+  repairBaseline('REPAIR_BASELINE'),
+
+  /// 🆕 v1.32(K252) — 개입 3단계 사전 저널(제출 `runInterventionJournal` · 결과 id · M5-6 공용).
+  @JsonValue('INTERVENTION_JOURNAL')
+  interventionJournal('INTERVENTION_JOURNAL');
 
   const SafetyActionId(this.wire);
 
