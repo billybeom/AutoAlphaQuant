@@ -24,6 +24,8 @@
 // 🆕 E11q-q4b — J-5 미해소 보드(같은 저장소) · J-3 사전 저널 쓰기 = 계약 창 · M5-6 조립 뒤(지금 엔진이 J-3 로 보내는 길 0).
 // 🆕 E11q-q5a(R220) — M7 S7-7 연간 리뷰 · S7-10 이행 갭(인자 없음 · 그 달 = 한 위젯) = `OperatorPerformanceRepository` ·
 //    `OperatorExecutionGapRepository` → S12 목차 두 행 · 월간 리포트 ⑧ 링크 목적지가 열린다.
+// 🆕 E11q-q5b(R223) — M7 S7-2 성과 탐색(게이트 S7-2G → 같은 위젯 안 시리즈) · 열람 기록 = 분석 칸 명령 API(셸과 한 인스턴스) →
+//    S7-7 연간 리뷰 A 행 «탐색» 링크가 저절로 열린다.
 // 🔵 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
@@ -56,10 +58,12 @@ import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
         ExecutionGapScreen,
+        PerformanceExploreScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
         RebalanceTimelineScreen,
         analyticsClockProvider,
+        analyticsCommandApiProvider,
         analyticsLinkOpenerProvider,
         analyticsWhatIfApiProvider,
         executionGapRepositoryProvider,
@@ -554,6 +558,10 @@ Widget _rebalanceEvent(Map<String, String> p) {
 
 Widget _reportAnnual(Map<String, String> _) => const AnnualReviewScreen();
 
+/// S7-2 — 언제나 게이트부터(통과 사실 = 위젯 상태에만 · 03 §5 S7-2G ⓓ).
+Widget _performanceExplore(Map<String, String> _) =>
+    const PerformanceExploreScreen();
+
 Widget _executionGap(Map<String, String> _) => const ExecutionGapScreen();
 
 /// 두 라우트 · 한 위젯(계약 v1.6 — 그 달 = 받은 달 그대로).
@@ -639,6 +647,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.reportAnnual: _reportAnnual,
   AppRoutes.ledgerExecutionGap: _executionGap,
   AppRoutes.ledgerExecutionGapMonth: _executionGapMonth,
+  // 🆕 E11q-q5b(R223) — M7 S7-2 성과 탐색(게이트 → 시리즈 · S7-7 A 행 «탐색» 목적지).
+  AppRoutes.performanceExplore: _performanceExplore,
   // 🆕 E11q-q4a — M6 매매일지 읽기 넷(J-1 = «일지» 탭 본문 · J-2 = 일지 행 · H6-2 «매수 결정 보기» 목적지 ·
   //    J-3R = J-2 «저널 보기» 목적지 · J-1 회차 조건 = S7-6b «이 회차의 주문 n건» 목적지).
   AppRoutes.journalTimeline: _journalTimeline,
@@ -855,6 +865,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   analyticsWhatIfApiProvider.overrideWith(
     (Ref ref) => ref.watch(operatorWhatIfApiProvider),
+  ),
+  // 🆕 R223 — S7-2G 「그래도 보기」 열람 기록 = 셸 명령 API 한 인스턴스.
+  analyticsCommandApiProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorCommandApiProvider),
   ),
   // 🆕 R174 — S7-4 플래너 칸 = 같은 What-if · 셸 설정 원천 · 명령 API 인스턴스.
   plannerWhatIfApiProvider.overrideWith(

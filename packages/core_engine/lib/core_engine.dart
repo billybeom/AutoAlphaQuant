@@ -556,6 +556,17 @@ export 'src/ops/diagnostics_screen.dart'
         integrityReasonText,
         kDiagnosticsScreenStaleAfter,
         selftestIntegrityResultOf;
+// 🆕 E11q-q5b — M7 S7-2G 열람 게이트 VM · 열람 기록 명령 봉투(설계 13 §8 R223).
+export 'src/ops/disclosure_view.dart'
+    show
+        DisclosureGateTexts,
+        DisclosureViewCommand,
+        disclosureGateVmOf,
+        disclosureMonthOf,
+        disclosureViewCountText,
+        kDisclosureFrequentViews,
+        kDisclosureGateStaleAfter,
+        kDisclosureViewTtl;
 // 🆕 E11f1 — 일일 평가 스냅숏 계산(평가 · HWM · 드로다운 · 브레이커 재생 · P0S 브레이커 설정 · 설계 13 §8 R47 F6~F8).
 export 'src/ops/equity_snapshot.dart'
     show
@@ -819,6 +830,13 @@ export 'src/ops/p0s_warn.dart'
         p0sMonthlyExposureTally,
         p0sWarnConfig,
         p0sWarnEdgeAlerts;
+// 🆕 E11q-q5b — M7 S7-2 성과 탐색 시리즈 VM(시간가중 · 일 · 월 · 연 · 누적/기간별 · 설계 13 §8 R223).
+export 'src/ops/perf_series_view.dart'
+    show
+        PerfSeriesTexts,
+        kPerfGapSnapshotMissing,
+        kPerfSeriesStaleAfter,
+        performanceSeriesOf;
 export 'src/ops/rebalance_events_view.dart'
     show
         RebalanceEventFact,

@@ -1,8 +1,10 @@
-// E11q-q5a — M7 S7-7 연간 리뷰 · S7-10 이행 갭 조립(설계 13 §8 R220) — 실 SQLite(sim 원장).
+// E11q-q5a — M7 S7-7 연간 리뷰 · S7-10 이행 갭 조립(설계 13 §8 R220) · 🆕 E11q-q5b S7-2 시리즈 · S7-2G 게이트 · 열람 기록(R223)
+// — 실 SQLite(sim 원장).
 //
 // 🔴 연도 · 창 = S12 목차와 같은 원천(신뢰 시각 · 온보딩 확정 해) · 판 지문 = 모의 개시 판(전 = 빈 글자) ·
 //    A 행 탐색 링크 = 레지스트리에 본문이 있을 때만 · 이행 갭 운영 방식 = 화면 상태 · 나머지 M7 창구 = «원천 없음».
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:app_operator_android/app/operator_command_api.dart';
@@ -17,7 +19,9 @@ import 'package:core_engine/core_engine.dart'
         AnnualReviewCodes,
         AnnualReviewTexts,
         AnnualReviewVmTexts,
+        DisclosureGateTexts,
         P0sHumanInputs,
+        PerfSeriesTexts,
         TrustedClock;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
@@ -25,13 +29,14 @@ import 'package:data_sync/data_sync.dart'
         OpsConfigReady,
         P0sHumanDecision,
         SqliteOnboardingStore,
+        SqlitePerformanceSource,
         currentP0sOpsConfig;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/widgets.dart' show Key, ValueKey;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:sqlite3/sqlite3.dart' show Database, Row;
 import 'package:ui_analytics/ui_analytics.dart'
-    show AnnualReviewScreen, ExecutionGapScreen;
+    show AnnualReviewScreen, ExecutionGapScreen, PerformanceExploreScreen;
 
 import '../engine/support.dart';
 
@@ -206,20 +211,26 @@ void main() {
       expect(hash, isNot(''));
     });
 
-    test('🔴 A 행 탐색 링크 = 지금 레지스트리(탐색 = 아직) → 0 · 등록되면 → 탐색', () async {
-      commitOnboarding(DateTime.utc(2025, 3, 1));
-      final OperatorRuntime r = rt(trusted: DateTime.utc(2026, 12, 2));
-      final AnnualReviewVm now = await annual(
-        r,
-        hasBody: kOperatorRouteBodies.byPattern.containsKey,
-      );
-      expect(
-        now.sections.map((AnnualReviewSection s) => s.route).toSet(),
-        <String?>{null},
-      );
-      final AnnualReviewVm all = await annual(r);
-      expect(all.sections.first.route, AppRoutes.performanceExplore);
-    });
+    test(
+      '🔴 A 행 탐색 링크 = 지금 레지스트리(🆕 R223 탐색 등록 — 뒤집은 단언) → 탐색 · 등록 안 됨 → 0',
+      () async {
+        commitOnboarding(DateTime.utc(2025, 3, 1));
+        final OperatorRuntime r = rt(trusted: DateTime.utc(2026, 12, 2));
+        final AnnualReviewVm now = await annual(
+          r,
+          hasBody: kOperatorRouteBodies.byPattern.containsKey,
+        );
+        expect(now.sections.first.route, AppRoutes.performanceExplore);
+        final AnnualReviewVm none = await annual(
+          r,
+          hasBody: (String _) => false,
+        );
+        expect(
+          none.sections.map((AnnualReviewSection s) => s.route).toSet(),
+          <String?>{null},
+        );
+      },
+    );
 
     test('명시 연도 = 엔진에 그대로(끝난 해 · 범위 밖 = 실패)', () async {
       commitOnboarding(DateTime.utc(2024, 3, 1));
@@ -239,11 +250,6 @@ void main() {
         to: TradeDate('2026-11-19'),
       );
       for (final Future<Object?> f in <Future<Object?>>[
-        p.series(
-          metric: PerfMetric.twr,
-          granularity: PerfGranularity.monthly,
-          cumulative: true,
-        ),
         p.monthlyReport('2026-10'),
         p.afterTaxLadder(fiscalYear: '2026'),
         p.reportArchive(),
@@ -253,9 +259,149 @@ void main() {
       ]) {
         await expectLater(f, throwsA(isA<UnsupportedError>()));
       }
+    });
+  });
+
+  group('🆕 S7-2 시리즈 · S7-2G 게이트 · 열람 기록(R223)', () {
+    void snap(String day, double equity) => files.sim.execute(
+      'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+      "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+      <Object?>[day, equity, equity, equity],
+    );
+
+    DisclosureViewEvent event() => DisclosureViewEvent(
+      surfaceCode: DisclosureSurfaceCodes.performanceExplore,
+      viewedAt: clock.nowUtc(),
+    );
+
+    test(
+      '🔴 시리즈 = 화면 상태의 원장 · KR 달력 · 원천과 같은 값 · 화면 상태 없음 / 임의 구간 = 실패',
+      () async {
+        final OperatorRuntime r = rt();
+        final OperatorPerformanceRepository p = OperatorPerformanceRepository(
+          r,
+          hasBody: _all,
+        );
+        Future<PerformanceSeries> daily({DateRange? range}) => p.series(
+          metric: PerfMetric.twr,
+          granularity: PerfGranularity.daily,
+          cumulative: true,
+          range: range,
+        );
+        await expectLater(daily(), throwsStateError);
+        r.view.value = _viewOf(files.sim, OperatingMode.autoTrade);
+        expect((await daily()).unavailableLabel, PerfSeriesTexts.noSnapshot);
+        snap('2026-11-13', 100); // 금
+        snap('2026-11-16', 100); // 월 — 주말 = 점 아님(KR 달력)
+        snap('2026-11-17', 100);
+        snap('2026-11-18', 101);
+        final PerformanceSeries got = await daily();
+        expect(
+          got.points
+              .map((PerfPoint x) => (x.date.yyyyMmDd, x.valueText))
+              .toList(),
+          <(String, String)>[
+            ('2026-11-13', '0.00%'),
+            ('2026-11-16', '0.00%'),
+            ('2026-11-17', '0.00%'),
+            ('2026-11-18', '1.00%'),
+          ],
+          reason: '오늘(11-19) = 스냅숏 전 → 점 아님 · 주말 = 세션 아님',
+        );
+        expect(
+          got,
+          SqlitePerformanceSource(files.sim, clock: clock).series(
+            metric: PerfMetric.twr,
+            granularity: PerfGranularity.daily,
+            cumulative: true,
+            isSession: (String d) => r.calendars.kr.isSession(TradeDate(d)),
+          ),
+        );
+        await expectLater(
+          daily(
+            range: DateRange(
+              from: TradeDate('2026-11-01'),
+              to: TradeDate('2026-11-18'),
+            ),
+          ),
+          throwsUnsupportedError,
+        );
+      },
+    );
+
+    test(
+      '🔴 게이트 흐름 = 0회 → 「그래도 보기」 기록 → 같은 흐름에서 «1번» · 무결성 = 닫힘 · 화면 상태 없음 = 오류',
+      () async {
+        final OperatorRuntime r = rt();
+        final OperatorPerformanceRepository p = OperatorPerformanceRepository(
+          r,
+          hasBody: _all,
+        );
+        await expectLater(p.watchDisclosureGate(), emitsError(isStateError));
+        r.view.value = _viewOf(files.sim, OperatingMode.autoTrade);
+        final List<DisclosureGateVm> seen = <DisclosureGateVm>[];
+        final StreamSubscription<DisclosureGateVm> sub = p
+            .watchDisclosureGate()
+            .listen(seen.add);
+        addTearDown(sub.cancel);
+        await pumpEventQueue();
+        expect(seen.last.gateOpen, isTrue);
+        expect(seen.last.viewCountText, DisclosureGateTexts.noViewsYet);
+        expect(seen.last.route, AppRoutes.performanceExplore);
+        final CommandReceipt receipt = await OperatorCommandApi(
+          r,
+          random: Random(7),
+        ).recordDisclosureView(event());
+        expect(receipt.state, CommandState.executed);
+        expect(receipt.stateLabel, DisclosureGateTexts.recorded);
+        await Future<void>.delayed(const Duration(milliseconds: 120));
+        expect(seen.last.viewCountText, '이번 달 1번 열어 보셨습니다');
+        expect(seen.last.frictionLine, DisclosureGateTexts.friction);
+        files.sim.execute(
+          "INSERT INTO trading_block (flag_id, set_at, reason) VALUES ('LEDGER_INTEGRITY', '2026-11-19T00:00:00.000Z', 'x')",
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 120));
+        expect(seen.last.gateOpen, isFalse);
+        expect(seen.last.headline, DisclosureGateTexts.closedHeadline);
+      },
+    );
+
+    test('🔴 열람 기록 — 기기 id · 화면 상태 없음 = 실패(기록 0) · 접수증 = watchCommand · 무결성 = 보류 행', () async {
+      final OperatorRuntime noDevice = OperatorRuntime(
+        files: files,
+        clock: clock,
+        trusted: const _Trusted(null),
+        vault: MemorySecretVault(),
+      )..view.value = _viewOf(files.sim, OperatingMode.autoTrade);
       await expectLater(
-        p.watchDisclosureGate(),
-        emitsError(isA<UnsupportedError>()),
+        OperatorCommandApi(noDevice).recordDisclosureView(event()),
+        throwsStateError,
+      );
+      final OperatorRuntime r = rt();
+      final OperatorCommandApi api = OperatorCommandApi(r, random: Random(9));
+      await expectLater(api.recordDisclosureView(event()), throwsStateError);
+      expect(
+        files.sim.select('SELECT 1 FROM command_inbox'),
+        isEmpty,
+        reason: '실패 = 기록 0',
+      );
+      r.view.value = _viewOf(files.sim, OperatingMode.autoTrade);
+      final CommandReceipt ok = await api.recordDisclosureView(event());
+      await expectLater(api.watchCommand(ok.commandId), emits(ok));
+      files.sim.execute(
+        "INSERT INTO trading_block (flag_id, set_at, reason) VALUES ('LEDGER_INTEGRITY', '2026-11-19T00:00:00.000Z', 'x')",
+      );
+      final CommandReceipt held = await api.recordDisclosureView(event());
+      expect(held.state, CommandState.heldForIntegrity);
+      expect(held.stateLabel, DisclosureGateTexts.held);
+      expect(
+        files.sim
+            .select(
+              "SELECT state FROM command_inbox WHERE kind = 'DISCLOSURE_VIEW' ORDER BY rowid",
+            )
+            .map((Row x) => x['state'])
+            .toList(),
+        <Object?>['EXECUTED', 'HELD_FOR_INTEGRITY'],
       );
     });
   });
@@ -304,11 +450,12 @@ void main() {
           ) as ExecutionGapScreen;
       expect(month.yyyyMm, '2026-10');
       expect(month.key, const ValueKey<String>('2026-10') as Key);
+      // 🆕 R223 — S7-2 탐색 = 게이트로 시작하는 한 위젯(뒤집은 단언 — R220 = 아직).
       expect(
-        kOperatorRouteBodies.byPattern.containsKey(
-          AppRoutes.performanceExplore,
+        kOperatorRouteBodies.byPattern[AppRoutes.performanceExplore]!(
+          const <String, String>{},
         ),
-        isFalse,
+        isA<PerformanceExploreScreen>(),
       );
     });
   });

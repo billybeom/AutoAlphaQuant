@@ -17,6 +17,7 @@ import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
 import 'package:core_engine/core_engine.dart'
     show
         AlertAckCommand,
+        DisclosureViewCommand,
         P0sOpsConfig,
         SimOpeningCodes,
         SimOpeningCommand,
@@ -47,6 +48,7 @@ import 'package:data_sync/data_sync.dart'
         SqliteKillSwitchStore,
         SqliteLeaseGate,
         SqliteOnboardingStore,
+        SqlitePerformanceSource,
         SqliteWhatIfStateSource,
         onboardingRejected;
 import 'package:domain_contracts/domain_contracts.dart';
@@ -176,9 +178,34 @@ class OperatorCommandApi implements CommandApi {
   Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score) =>
       _none('submitBlindReviewScore');
 
+  /// 🆕 E11q-q5b(R223) — `S7-2G` 「그래도 보기」 열람 기록(폰 안 · 같은 원장 한 행 · 무결성 점검 중 = 보류 행) ·
+  /// 접수증 글자 = 엔진 글자 그대로 · 화면 상태 · 기기 id 가 없으면 실패(게이트에 머문다 · 접수 실패 1줄).
   @override
-  Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event) =>
-      _none('recordDisclosureView');
+  Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('열람 기록: 화면 상태 없음(온보딩 전)');
+    final String? deviceId = _rt.deviceId;
+    if (deviceId == null) throw StateError('열람 기록: 기기 id 없음');
+    final DisclosureViewCommand c = DisclosureViewCommand.issue(
+      event: event,
+      deviceId: deviceId,
+      nowUtc: _rt.clock.nowUtc(),
+      random: _random,
+    );
+    final CommandReceipt receipt =
+        SqlitePerformanceSource(v.db, clock: _rt.clock).record(
+          c,
+          runMode: v.flags.runMode,
+          operatingMode: v.flags.operatingMode,
+          leaseEpoch: SqliteLeaseGate(
+            v.db,
+            mode: v.flags.runMode,
+            clock: _rt.clock,
+          ).epoch(),
+        );
+    _issued[receipt.commandId] = receipt;
+    return receipt;
+  }
 
   /// 🆕 E11q3(R174) — 실입금 등록(폰 전용 · 01 §14-2) — 만료 판정 시각 = **신뢰 시각**(명령 서버 시각 자리 · R22 D9).
   /// 모르면 등록하지 않는다: 원장 · 바인딩 · 감사 쓰기 0 · 엔진 거부 접수증 `TRUSTED_TIME_UNKNOWN`(기기 시계로 대신하지 않는다) ·

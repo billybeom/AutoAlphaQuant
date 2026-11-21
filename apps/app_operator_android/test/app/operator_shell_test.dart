@@ -28,6 +28,8 @@ import 'package:core_engine/core_engine.dart'
     show
         AnnualReviewVmTexts,
         BackupScreenTexts,
+        DisclosureGateTexts,
+        PerfSeriesTexts,
         BlockBoardTexts,
         DeviceRiskFacts,
         RuleChangeGateTexts,
@@ -68,10 +70,12 @@ import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
         ExecutionGapScreen,
+        PerformanceExploreScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
         RebalanceTimelineScreen,
         analyticsClockProvider,
+        analyticsCommandApiProvider,
         analyticsLinkOpenerProvider,
         analyticsWhatIfApiProvider,
         executionGapRepositoryProvider,
@@ -471,16 +475,24 @@ void main() {
         reason: '탐색 링크 판단 = 셸이 쓰는 레지스트리 — $r',
       );
     }
+    // 🆕 R223 — S7-2 탐색 등록(뒤집은 단언 — R220 = 아직) · 열람 기록 = 셸 명령 API 한 인스턴스.
     expect(
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.performanceExplore),
-      false,
-      reason: 'S7-2 탐색 = q5 뒤 조각(A 행 링크 0)',
+      true,
+      reason: 'S7-2 탐색 = R223(A 행 링크가 선다)',
     );
     expect(
       container
           .read(operatorPerformanceProvider)
           .hasBody(AppRoutes.performanceExplore),
-      false,
+      true,
+    );
+    expect(
+      identical(
+        container.read(analyticsCommandApiProvider),
+        container.read(operatorCommandApiProvider),
+      ),
+      true,
     );
     // 🆕 R178 — M5-1 킬스위치 읽기 = 한 인스턴스 · 명령 = 기기 id 없음 → null(버튼 부재).
     expect(
@@ -1224,6 +1236,66 @@ void main() {
             .isNotEmpty;
         expect(na || none, isTrue, reason: '$gap — 엔진 문장 카드 하나');
       }
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M7 S7-2 성과 탐색(R223) — 게이트(0회 · 마찰 0) → 「그래도 보기」 = 원장 열람 기록 1행 → 같은 위젯 안 본문(기록 줄 · 스냅숏 0 문장) · 다시 열면 게이트 · «1번»',
+    (WidgetTester tester) async {
+      container.dispose();
+      rt = OperatorRuntime(files: files, clock: clock, deviceId: 'dev-1');
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      await pumpApp(tester);
+      await ready(tester);
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      int views() =>
+          files.sim
+                  .select(
+                    "SELECT COUNT(*) AS n FROM command_inbox WHERE kind = 'DISCLOSURE_VIEW'",
+                  )
+                  .first['n']
+              as int;
+
+      await open(tester, AppRoutes.performanceExplore);
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(PerformanceExploreScreen), findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(find.text(DisclosureGateTexts.noViewsYet), findsOneWidget);
+      expect(find.byKey(const Key('s72g-friction')), findsNothing);
+      expect(find.byKey(const Key('s72-record-line')), findsNothing);
+      expect(views(), 0, reason: '게이트만 = 명령 0');
+      await tester.ensureVisible(find.byKey(const Key('s72g-continue')));
+      await tester.tap(find.byKey(const Key('s72g-continue')));
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(views(), 1, reason: '진입 1회 = 명령 1건');
+      expect(
+        tester.widget<Text>(find.byKey(const Key('s72-record-line'))).data,
+        DisclosureGateTexts.recorded,
+        reason: '기록 줄 = 엔진 접수증 글자 그대로',
+      );
+      expect(find.text(PerfSeriesTexts.noSnapshot), findsOneWidget);
+      // 다시 열면 = 게이트부터(통과 사실 = 위젯 상태에만) · 이번 달 1번.
+      await open(tester, AppRoutes.performanceExplore);
+      await settle();
+      expect(
+        find.byKey(const Key('s72g-continue')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(find.text('이번 달 1번 열어 보셨습니다'), findsOneWidget);
+      expect(find.text(DisclosureGateTexts.friction), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;
