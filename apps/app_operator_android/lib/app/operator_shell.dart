@@ -27,11 +27,14 @@
 // 🆕 E11q-q5b(R223) — M7 S7-2 성과 탐색(게이트 S7-2G → 같은 위젯 안 시리즈) · 열람 기록 = 분석 칸 명령 API(셸과 한 인스턴스) →
 //    S7-7 연간 리뷰 A 행 «탐색» 링크가 저절로 열린다.
 // 🆕 E11q-q5c(R226) — M7 S7-3 드로다운 맥락(같은 성과 창구 · 엔진 기본 구간) → S12 목차 «하락 구간 맥락» 행 · S7-2 링크가 열린다.
+// 🆕 E11q-q5c2(R228) — M7 S7-3b 슬리브 기여(라우트 인자 0 · 화면은 구간 필수 → 본문이 런타임 시계로 엔진 기본 구간
+//    `contributionDefaultRange`(이번 달 1일 ~ 오늘 · 한국)를 넘긴다 · 계약 무변경) → S7-2 «슬리브 기여 보기» 가 열린다.
 // 🔵 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
 import 'package:broker_gateway/broker_gateway.dart'
     show KisCredentials, KisKeySet, KisRestClient;
+import 'package:core_engine/core_engine.dart' show contributionDefaultRange;
 import 'package:data_sync/data_sync.dart'
     show
         ContributionSettingSource,
@@ -58,6 +61,7 @@ import 'package:ui_analytics/planner.dart'
 import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
+        ContributionScreen,
         DrawdownContextScreen,
         ExecutionGapScreen,
         PerformanceExploreScreen,
@@ -607,6 +611,22 @@ Widget _reportAnnual(Map<String, String> _) => const AnnualReviewScreen();
 Widget _performanceDrawdown(Map<String, String> _) =>
     const DrawdownContextScreen();
 
+/// 🆕 R228 — S7-3b(라우트 인자 0 · 화면은 구간 필수 → 엔진 기본 구간).
+Widget _performanceContribution(Map<String, String> _) =>
+    const _ContributionBody();
+
+/// S7-3b 본문 — 런타임 시계 → 엔진 기본 구간(이번 달 · 한국) → 화면. 🔴 날짜 산술 = 엔진(`contributionDefaultRange`).
+class _ContributionBody extends ConsumerWidget {
+  const _ContributionBody();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ContributionScreen(
+    range: contributionDefaultRange(
+      ref.watch(operatorRuntimeProvider).clock.nowUtc(),
+    ),
+  );
+}
+
 Widget _performanceExplore(Map<String, String> _) =>
     const PerformanceExploreScreen();
 
@@ -699,6 +719,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.performanceExplore: _performanceExplore,
   // 🆕 E11q-q5c(R226) — M7 S7-3 드로다운 맥락(S7-2 «낙폭 맥락 보기» · S12 목차 «하락 구간 맥락» 목적지).
   AppRoutes.performanceDrawdown: _performanceDrawdown,
+  // 🆕 E11q-q5c2(R228) — M7 S7-3b 슬리브 기여(S7-2 «슬리브 기여 보기» 목적지 · 구간 = 엔진 기본).
+  AppRoutes.performanceContribution: _performanceContribution,
   // 🆕 E11q-q4a — M6 매매일지 읽기 넷(J-1 = «일지» 탭 본문 · J-2 = 일지 행 · H6-2 «매수 결정 보기» 목적지 ·
   //    J-3R = J-2 «저널 보기» 목적지 · J-1 회차 조건 = S7-6b «이 회차의 주문 n건» 목적지).
   AppRoutes.journalTimeline: _journalTimeline,

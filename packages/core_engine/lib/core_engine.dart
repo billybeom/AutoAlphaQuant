@@ -512,6 +512,17 @@ export 'src/ops/contribution_setting.dart'
         nextContributionDay,
         p0sContributionConfig,
         splitContributionRows;
+// 🆕 E11q-q5c2 — M7 S7-3b 슬리브 기여 분해 VM(같은 TWR 지수 · 체결 + 원가 종가로 슬리브 손익 재구성 · 설계 13 §8 R228).
+export 'src/ops/contribution_view.dart'
+    show
+        ContributionEvent,
+        ContributionEventKind,
+        ContributionFill,
+        ContributionTexts,
+        contributionDefaultRange,
+        contributionVmOf,
+        kContributionDefaultPreset,
+        kContributionStaleAfter;
 // 🆕 E16a — X5-4 파생 관계 · 동기 조치 · 체인 diff(순수 · 설계 13 §8 R112).
 export 'src/ops/derived_sync.dart'
     show

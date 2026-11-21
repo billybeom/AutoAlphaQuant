@@ -7,8 +7,9 @@
 // 🆕 E11q-q5b(R223) — `S7-2` 성과 탐색 시리즈 · `S7-2G` 열람 게이트 = 원장 원천 `SqlitePerformanceSource`(화면 상태의 원장 ·
 //    세션 = KR 달력 · 게이트 = 원장 변경 · [tick] 마다 다시 — 달이 바뀌면 열람 수 0) · 임의 구간 = 원천 없음(화면은 인자 없이 부른다).
 // 🆕 E11q-q5c(R226) — `S7-3` 드로다운 맥락 = 같은 원천(운용 전체 · 결측 = KR 달력).
-// 🔴 나머지 M7 창구(월간 리포트 · 아카이브 · 기여 · 목표 경로 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류
-//    (월간 리포트 = 미결 209 ⓔ 레인 · 기여 = q5c 다음 조각 · 목표 경로 = q5d).
+// 🆕 E11q-q5c2(R228) — `S7-3b` 슬리브 기여 = 같은 원천(받은 구간 = 셸이 넘긴 엔진 기본 구간 · 체결 + 원가 종가로 슬리브 손익 재구성).
+// 🔴 나머지 M7 창구(월간 리포트 · 아카이브 · 목표 경로 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류
+//    (월간 리포트 = 미결 209 ⓔ 레인 · 목표 경로 = q5d).
 
 import 'package:core_engine/core_engine.dart'
     show annualReviewVmOf, executionGapResultOf;
@@ -44,7 +45,7 @@ import 'operator_runtime.dart' show OperatorRuntime;
 import 'operator_view.dart' show OperatorView;
 import 'view_stream.dart' show followView;
 
-/// M7 성과 · 리포트 창구 — `S7-7` 연간 리뷰 · 🆕 `S7-2` 시리즈 · `S7-2G` 게이트.
+/// M7 성과 · 리포트 창구 — `S7-7` 연간 리뷰 · 🆕 `S7-2` 시리즈 · `S7-2G` 게이트 · `S7-3` 드로다운 · `S7-3b` 기여.
 class OperatorPerformanceRepository implements PerformanceRepository {
   /// 만든다.
   OperatorPerformanceRepository(
@@ -135,9 +136,13 @@ class OperatorPerformanceRepository implements PerformanceRepository {
     );
   }
 
+  /// 🆕 E11q-q5c2(R228) — `S7-3b` 슬리브 기여(받은 구간 — 셸 = 엔진 기본 구간 `contributionDefaultRange`).
   @override
-  Future<ContributionVm> contribution({required DateRange range}) =>
-      _noneNow('contribution');
+  Future<ContributionVm> contribution({required DateRange range}) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('기여: 화면 상태 없음(온보딩 전)');
+    return _src(v).contribution(range: range);
+  }
 
   @override
   Future<GoalPathVm> goalPath({required String yyyyMm}) => _noneNow('goalPath');
@@ -165,4 +170,4 @@ class OperatorExecutionGapRepository implements ExecutionGapRepository {
 }
 
 Future<T> _noneNow<T>(String what) =>
-    Future<T>.error(UnsupportedError('$what: 원천 없음(R223 · q5c · q5d · 209 ⓔ)'));
+    Future<T>.error(UnsupportedError('$what: 원천 없음(R223 · q5d · 209 ⓔ)'));

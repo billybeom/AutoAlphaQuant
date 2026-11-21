@@ -28,6 +28,7 @@ import 'package:core_engine/core_engine.dart'
     show
         AnnualReviewVmTexts,
         BackupScreenTexts,
+        ContributionTexts,
         DisclosureGateTexts,
         DrawdownContextTexts,
         PerfSeriesTexts,
@@ -41,7 +42,8 @@ import 'package:core_engine/core_engine.dart'
         ReconClearTexts,
         RepairWizardTexts,
         TrustedClock,
-        alertInboxOf;
+        alertInboxOf,
+        contributionDefaultRange;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show P0sHumanDecision, SqliteAlertSink, SqliteOnboardingStore, storedAlerts;
@@ -71,6 +73,7 @@ import 'package:ui_analytics/planner.dart'
 import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
+        ContributionScreen,
         DrawdownContextScreen,
         ExecutionGapScreen,
         PerformanceExploreScreen,
@@ -509,6 +512,19 @@ void main() {
       container
           .read(operatorPerformanceProvider)
           .hasBody(AppRoutes.performanceDrawdown),
+      true,
+    );
+    // 🆕 R228 — S7-3b 슬리브 기여 등록(S7-2 «슬리브 기여 보기» 목적지).
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(
+        AppRoutes.performanceContribution,
+      ),
+      true,
+    );
+    expect(
+      container
+          .read(operatorPerformanceProvider)
+          .hasBody(AppRoutes.performanceContribution),
       true,
     );
     // 🆕 R178 — M5-1 킬스위치 읽기 = 한 인스턴스 · 명령 = 기기 id 없음 → null(버튼 부재).
@@ -1385,6 +1401,111 @@ void main() {
           reason: t,
         );
       }
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M7 S7-3b 슬리브 기여(R228) = 조립 셸에 등록 · 구간 = 엔진 기본(이번 달) · 원장 → 행 셋 · 주석 · S7-2 링크가 연다',
+    (WidgetTester tester) async {
+      // S7-2 게이트 통과 = 열람 기록(기기 id 필요 — 탐색 시험과 같은 꼴).
+      container.dispose();
+      rt = OperatorRuntime(files: files, clock: clock, deviceId: 'dev-1');
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      await pumpApp(tester);
+      await ready(tester);
+      // 12월 마감 셋 = S7-2 시리즈가 선다(링크 버튼 = 본문 갈래) · 시작 기준 = 11월 말.
+      for (final (String d, double e) in <(String, double)>[
+        ('2026-11-30', 1000000),
+        ('2026-12-16', 1000000),
+        ('2026-12-17', 1000000),
+        ('2026-12-18', 1010000),
+      ]) {
+        files.sim.execute(
+          'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+          "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+          <Object?>[d, e, e, e],
+        );
+      }
+      files.sim.execute(
+        'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, updated_at) '
+        "VALUES ('KR', '0085P0', 'P0S_C', 100, 10000, '2026-11-02', '2026-11-02T00:00:00Z')",
+      );
+      for (final (String d, double c) in <(String, double)>[
+        ('2026-11-30', 10000),
+        ('2026-12-16', 10000),
+        ('2026-12-17', 10000),
+        ('2026-12-18', 10100),
+      ]) {
+        files.sim.execute(
+          'INSERT INTO daily_prices (trade_date, market, symbol, open, high, low, close, close_unadj, volume) '
+          "VALUES (?, 'KR', '0085P0', ?, ?, ?, ?, ?, 0)",
+          <Object?>[d, c, c, c, c, c],
+        );
+      }
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      void sees() {
+        // 앞 화면이 스택에 남는다 — 맨 위(마지막)를 본다.
+        final Finder screen = find.byType(ContributionScreen).last;
+        expect(screen, findsOneWidget);
+        expect(
+          tester.widget<ContributionScreen>(screen).range,
+          contributionDefaultRange(clock.nowUtc()),
+          reason: '구간 = 엔진 기본(이번 달 1일 ~ 오늘 · 한국)',
+        );
+        for (final String t in <String>[
+          '2026년 12월',
+          'A · 국내 지수 ETF',
+          'C · 방어 자산',
+          '+1.00%p',
+          ContributionTexts.methodFull,
+          ContributionTexts.fxNote,
+          '기여 분해 기준 2026-12-18',
+        ]) {
+          expect(
+            find.descendant(of: screen, matching: find.textContaining(t)),
+            findsWidgets,
+            reason: t,
+          );
+        }
+      }
+
+      await open(tester, AppRoutes.performanceContribution);
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      sees();
+      // S7-2 «슬리브 기여 보기» = 같은 화면(링크 목적지가 선다).
+      await open(tester, AppRoutes.performanceExplore);
+      await settle();
+      await tester.ensureVisible(find.byKey(const Key('s72g-continue')));
+      await tester.tap(find.byKey(const Key('s72g-continue')));
+      await settle();
+      // 링크 = 본문 맨 아래(지연 목록 — 스크롤해야 만들어진다).
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('s72-link-contribution')),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(PerformanceExploreScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(find.byKey(const Key('s72-link-contribution')));
+      await settle();
+      expect(tester.takeException(), isNull);
+      sees();
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;
