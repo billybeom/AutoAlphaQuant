@@ -25,7 +25,12 @@ import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/platform/human_inputs_loader.dart';
 import 'package:app_operator_android/platform/platform.dart';
 import 'package:core_engine/core_engine.dart'
-    show P0sHumanInputs, P0sOpsConfig, P0sStrategyIds, kstDateText;
+    show
+        P0sHumanInputs,
+        P0sOpsConfig,
+        P0sStrategyIds,
+        contributionDefaultRange,
+        kstDateText;
 import 'package:data_sync/data_sync.dart'
     show
         HealthchecksClient,
@@ -51,6 +56,7 @@ import 'package:ui_analytics/planner.dart' show DepositPlannerScreen;
 import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
+        ContributionScreen,
         DrawdownContextScreen,
         ExecutionGapScreen,
         PerformanceExploreScreen,
@@ -826,6 +832,18 @@ void main() {
       expect(find.textContaining('현재 낙폭 0.0%'), findsWidgets);
       expect(find.textContaining('드로다운 기준 $d0'), findsWidgets);
       await _at(tester, find.byType(DrawdownContextScreen), 'IT_S73');
+
+      // 🆕 R228 — S7-3b 슬리브 기여(같은 오늘 마감 하나 = 개시 날만 → 구간 0): 구간 = 엔진 기본(이번 달) · 행 셋 · 기준 줄.
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.performanceContribution);
+      await _until(tester, find.textContaining('기여 분해 기준 $d0'));
+      expect(
+        find.text(contributionDefaultRange(rt.clock.nowUtc()).label!),
+        findsWidgets,
+      );
+      expect(find.text('C · 방어 자산'), findsWidgets);
+      await _at(tester, find.byType(ContributionScreen), 'IT_S73B');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();

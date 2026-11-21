@@ -1,5 +1,5 @@
 // E11q-q5a — M7 S7-7 연간 리뷰 · S7-10 이행 갭 조립(설계 13 §8 R220) · 🆕 E11q-q5b S7-2 시리즈 · S7-2G 게이트 · 열람 기록(R223)
-// — 실 SQLite(sim 원장).
+// — 실 SQLite(sim 원장) · 🆕 E11q-q5c S7-3 드로다운(R226) · 🆕 E11q-q5c2 S7-3b 슬리브 기여(R228).
 //
 // 🔴 연도 · 창 = S12 목차와 같은 원천(신뢰 시각 · 온보딩 확정 해) · 판 지문 = 모의 개시 판(전 = 빈 글자) ·
 //    A 행 탐색 링크 = 레지스트리에 본문이 있을 때만 · 이행 갭 운영 방식 = 화면 상태 · 나머지 M7 창구 = «원천 없음».
@@ -20,9 +20,11 @@ import 'package:core_engine/core_engine.dart'
         AnnualReviewTexts,
         AnnualReviewVmTexts,
         DisclosureGateTexts,
+        ContributionTexts,
         P0sHumanInputs,
         PerfSeriesTexts,
-        TrustedClock;
+        TrustedClock,
+        contributionDefaultRange;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
@@ -33,6 +35,7 @@ import 'package:data_sync/data_sync.dart'
         currentP0sOpsConfig;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/widgets.dart' show Key, ValueKey;
+import 'package:flutter_riverpod/flutter_riverpod.dart' show ConsumerWidget;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database, Row;
 import 'package:ui_analytics/ui_analytics.dart'
@@ -249,15 +252,11 @@ void main() {
         rt(),
         hasBody: _all,
       );
-      final DateRange range = DateRange(
-        from: TradeDate('2026-01-02'),
-        to: TradeDate('2026-11-19'),
-      );
+      // 🆕 R228 — 기여 = 원장 원천(뒤집은 단언 — 아래 «S7-3b» 무리).
       for (final Future<Object?> f in <Future<Object?>>[
         p.monthlyReport('2026-10'),
         p.afterTaxLadder(fiscalYear: '2026'),
         p.reportArchive(),
-        p.contribution(range: range),
         p.goalPath(yyyyMm: '2026-10'),
       ]) {
         await expectLater(f, throwsA(isA<UnsupportedError>()));
@@ -449,6 +448,70 @@ void main() {
     });
   });
 
+  group('🆕 S7-3b 기여(R228)', () {
+    void snap(String day, double equity) => files.sim.execute(
+      'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+      "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+      <Object?>[day, equity, equity, equity],
+    );
+
+    test(
+      '🔴 화면 상태의 원장 · 받은 구간(기본 = 이번 달) · 원천과 같은 값 · 화면 상태 없음 / 마감 0 = 실패',
+      () async {
+        final OperatorRuntime r = rt();
+        final OperatorPerformanceRepository p = OperatorPerformanceRepository(
+          r,
+          hasBody: _all,
+        );
+        final DateRange range = contributionDefaultRange(clock.nowUtc());
+        expect(
+          (range.from, range.to, range.label),
+          (
+            const TradeDate('2026-11-01'),
+            const TradeDate('2026-11-19'),
+            '2026년 11월',
+          ),
+        );
+        await expectLater(p.contribution(range: range), throwsStateError);
+        r.view.value = _viewOf(files.sim, OperatingMode.autoTrade);
+        await expectLater(p.contribution(range: range), throwsStateError);
+        snap('2026-10-30', 1000000);
+        snap('2026-11-18', 1010000);
+        files.sim.execute(
+          'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, updated_at) '
+          "VALUES ('KR', '0085P0', 'P0S_C', 100, 10000, '2026-10-01', '2026-10-01T00:00:00Z')",
+        );
+        for (final (String d, double c) in <(String, double)>[
+          ('2026-10-30', 10000),
+          ('2026-11-18', 10100),
+        ]) {
+          files.sim.execute(
+            'INSERT INTO daily_prices (trade_date, market, symbol, open, high, low, close, close_unadj, volume) '
+            "VALUES (?, 'KR', '0085P0', ?, ?, ?, ?, ?, 0)",
+            <Object?>[d, c, c, c, c, c],
+          );
+        }
+        final ContributionVm v = await p.contribution(range: range);
+        expect(v.periodLabel, '2026년 11월');
+        expect(
+          <String>[
+            for (final ContributionRow row in v.rows) row.contributionText,
+          ],
+          <String>['0.00%p', '0.00%p', '+1.00%p'],
+        );
+        expect(v.methodNoteText, ContributionTexts.methodFull);
+        expect(v.asOf.label, '기여 분해 기준 2026-11-18');
+        expect(
+          v,
+          SqlitePerformanceSource(
+            files.sim,
+            clock: clock,
+          ).contribution(range: range),
+        );
+      },
+    );
+  });
+
   group('S7-10 이행 갭', () {
     test('🔴 화면 상태 없음(운용 전) = 발행된 안내 0 · 자동 매매 = 해당 없음 · 안내 = 원천 없음', () async {
       final OperatorRuntime r = rt();
@@ -505,6 +568,13 @@ void main() {
           .byPattern[AppRoutes.performanceDrawdown]!(const <String, String>{});
       expect(dd, isA<DrawdownContextScreen>());
       expect((dd as DrawdownContextScreen).range, isNull);
+      // 🆕 R228 — S7-3b 기여 = 본문이 런타임 시계로 엔진 기본 구간을 넘긴다(화면 = 셸 위젯 시험).
+      expect(
+        kOperatorRouteBodies.byPattern[AppRoutes.performanceContribution]!(
+          const <String, String>{},
+        ),
+        isA<ConsumerWidget>(),
+      );
     });
   });
 }

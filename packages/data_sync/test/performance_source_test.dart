@@ -1,4 +1,5 @@
-// E11q-q5b — M7 S7-2 시리즈 · S7-2G 게이트 · 열람 기록 원장 원천(설계 13 §8 R223) · 🆕 E11q-q5c S7-3 드로다운(R226) — 실 SQLite(모의 원장).
+// E11q-q5b — M7 S7-2 시리즈 · S7-2G 게이트 · 열람 기록 원장 원천(설계 13 §8 R223) · 🆕 E11q-q5c S7-3 드로다운(R226) ·
+// 🆕 E11q-q5c2 S7-3b 슬리브 기여(R228) — 실 SQLite(모의 원장).
 //
 // 🔴 시리즈 = 계층 B 와 같은 점(입출금 = 수익 아님) → 엔진 · 무결성 = `LEDGER_INTEGRITY` 깃발 · 열람 기록 = `command_inbox` 한 행 ·
 //    집계 = 접수 시각의 한국 달 · 무결성 점검 중 = 보류 행(집계에 든다).
@@ -142,6 +143,180 @@ void main() {
       );
       integrity();
       expect(() => src().drawdownContext(isSession: kr), throwsStateError);
+    });
+  });
+
+  group('🆕 기여(R228)', () {
+    const DateRange aug = DateRange(
+      from: TradeDate('2026-08-01'),
+      to: TradeDate('2026-08-31'),
+    );
+    int seq = 0;
+
+    void bar(String symbol, String day, double unadj) => db.execute(
+      'INSERT INTO daily_prices (trade_date, market, symbol, open, high, low, close, close_unadj, volume) '
+      "VALUES (?, 'KR', ?, 1, 1, 1, 1, ?, 0)",
+      <Object?>[day, symbol, unadj],
+    );
+
+    void position(String strategy, String symbol, int qty) => db.execute(
+      'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, updated_at) '
+      "VALUES ('KR', ?, ?, ?, 1, '2026-08-03', '2026-08-03T00:00:00Z')",
+      <Object?>[symbol, strategy, qty],
+    );
+
+    /// 주문 의도 + 브로커 주문 + 체결 한 벌(집행일 = [day]).
+    void fill(
+      String strategy,
+      String symbol,
+      String day,
+      int qty,
+      double price, {
+      String side = 'BUY',
+      double commission = 0,
+    }) {
+      seq++;
+      db.execute(
+        'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+        'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+        "updated_at, mode) VALUES (?, ?, '2026-08-01T00:00:00Z', ?, 'KR', 'acc', ?, ?, ?, ?, 'LIMIT', ?, ?, "
+        "'FILLED', 'cfg', '2026-08-01T00:00:00Z', ?)",
+        <Object?>[
+          'i$seq',
+          'k$seq',
+          day,
+          strategy,
+          'd$seq@$day',
+          symbol,
+          side,
+          qty,
+          price,
+          RunMode.simInternal.wire,
+        ],
+      );
+      db.execute(
+        'INSERT INTO broker_orders (broker_order_no, intent_id, submitted_at, status) '
+        "VALUES (?, ?, '2026-08-01T00:00:00Z', 'FILLED')",
+        <Object?>['$day:SIM$seq', 'i$seq'],
+      );
+      db.execute(
+        'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, commission, '
+        "fill_origin) VALUES (?, ?, ?, ?, ?, ?, 'SIMULATED')",
+        <Object?>[
+          '$day:SIM$seq#$qty',
+          '$day:SIM$seq',
+          '${day}T06:00:00Z',
+          qty,
+          price,
+          commission,
+        ],
+      );
+    }
+
+    void ledger() {
+      clock.at = DateTime.utc(2026, 8, 31, 9);
+      snap('2026-07-31', 10000000);
+      // 8월 3일 A 100주 · B 200주 매수(수수료) · 8월 31일 마감.
+      fill('P0S_A', 'AAA', '2026-08-03', 100, 10000, commission: 150);
+      fill('P0S_B', 'BBB', '2026-08-03', 200, 20000, commission: 600);
+      position('P0S_A', 'AAA', 100);
+      position('P0S_B', 'BBB', 200);
+      bar('AAA', '2026-08-31', 10420);
+      bar('BBB', '2026-08-31', 19800);
+      snap('2026-08-31', 10000000 - 1000150 - 4000600 + 1042000 + 3960000);
+    }
+
+    test('원장(스냅숏 · 보유 · 체결 · 원가 종가) → 엔진과 같은 값 · 수수료 = 손익', () {
+      expect(() => src().contribution(range: aug), throwsStateError);
+      ledger();
+      final ContributionVm v = src().contribution(range: aug);
+      // A = (1,042,000 − 1,000,150) ÷ 1,000만 = +0.42%p · B = (3,960,000 − 4,000,600) ÷ 1,000만 = −0.41%p.
+      expect(
+        <String>[for (final ContributionRow r in v.rows) r.contributionText],
+        <String>['+0.42%p', '−0.41%p', '0.00%p'],
+      );
+      expect(v.periodLabel, '2026년 8월');
+      expect(v.asOf.label, '기여 분해 기준 2026-08-31');
+      expect(
+        v,
+        contributionVmOf(
+          range: aug,
+          equity: tierBSeries(db, '2026-08-31'),
+          holdingsNow: const <LedgerHolding>[
+            LedgerHolding('P0S_A', 'AAA', 100),
+            LedgerHolding('P0S_B', 'BBB', 200),
+          ],
+          fills: const <ContributionFill>[
+            ContributionFill(
+              strategyId: 'P0S_A',
+              symbol: 'AAA',
+              tradeDate: '2026-08-03',
+              side: OrderSide.buy,
+              kind: FillKind.original,
+              quantity: 100,
+              price: 10000,
+              commission: 150,
+            ),
+            ContributionFill(
+              strategyId: 'P0S_B',
+              symbol: 'BBB',
+              tradeDate: '2026-08-03',
+              side: OrderSide.buy,
+              kind: FillKind.original,
+              quantity: 200,
+              price: 20000,
+              commission: 600,
+            ),
+          ],
+          closes: const <String, Map<String, double>>{
+            'AAA': <String, double>{'2026-08-31': 10420},
+            'BBB': <String, double>{'2026-08-31': 19800},
+          },
+          nowUtc: clock.at,
+          integrityHidden: false,
+        ),
+      );
+      integrity();
+      expect(() => src().contribution(range: aug), throwsStateError);
+    });
+
+    test('종가 결측 = 그 슬리브 «산출 불가»(표본 partial 꼴) · 원가 종가 없음 = 결측', () {
+      ledger();
+      db.execute(
+        "UPDATE daily_prices SET close_unadj = NULL WHERE symbol = 'BBB' AND trade_date = '2026-08-31'",
+      );
+      final ContributionVm v = src().contribution(range: aug);
+      expect(v.rows[0].contributionText, '+0.42%p');
+      expect(v.rows[1].contributionText, '산출 불가');
+      expect(v.rows[1].unavailableLabel, '8월 31일 가격 결측 — 이 슬리브는 산출할 수 없습니다');
+      expect(v.methodNoteText, ContributionTexts.methodPartial);
+    });
+
+    test('🔴 귀속 규칙 전 원장 사건 = 전 행 — 분배금(현금 흐름) · 기업행위(원장 사건) · 수기 체결', () {
+      ledger();
+      Set<String?> why() => <String?>{
+        for (final ContributionRow r in src().contribution(range: aug).rows)
+          r.unavailableLabel,
+      };
+      expect(why(), <String?>{null});
+      db.execute(
+        "INSERT INTO cash_flow(flow_id, trade_date, kind, amount, currency) VALUES ('dv', '2026-08-20', 'DISTRIBUTION', 100, 'KRW')",
+      );
+      expect(why(), <String?>{'8월 20일 분배금 기록(슬리브 귀속 전) — 이 슬리브는 산출할 수 없습니다'});
+      db.execute("DELETE FROM cash_flow WHERE flow_id = 'dv'");
+      db.execute(
+        'INSERT INTO ledger_event (event_id, kind, entry_kind, effective_date, account_alias, symbol, '
+        'action_type, ratio_from, ratio_to, decision_id, command_id, authored_by_device_id, authored_at) '
+        "VALUES ('ca', 'CORPORATE_ACTION', 'ORIGINAL', '2026-09-03', 'acc', 'AAA', 'SPLIT', 1, 2, 'd', 'c', 'dev', "
+        "'2026-09-03T00:00:00Z')",
+      );
+      expect(why(), <String?>{'9월 3일 기업행위 기록(슬리브 귀속 전) — 이 슬리브는 산출할 수 없습니다'});
+      db.execute("DELETE FROM ledger_event WHERE event_id = 'ca'");
+      db.execute(
+        'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, fill_origin) '
+        "VALUES ('m1', NULL, '2026-08-24T05:00:00Z', 1, 100, 'MANUAL')",
+      );
+      expect(why(), <String?>{'8월 24일 수기 체결 기록(슬리브 귀속 전) — 이 슬리브는 산출할 수 없습니다'});
     });
   });
 
