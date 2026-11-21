@@ -332,6 +332,61 @@ void main() {
     ]);
   });
 
+  testWidgets('🔴 고른 체결 = VM 이 다시 와 차례가 바뀌어도 그 체결 · 사라지면 꺼짐', (
+    WidgetTester t,
+  ) async {
+    final _Actions actions = _Actions();
+    final (_Repo repo, _) = await _pump(
+      t,
+      targetId: 'ld_0001',
+      actions: actions,
+    );
+    final RepairWizardVm vm = _vm('repair_diff_ready');
+    const RepairFillChoice older = RepairFillChoice(
+      fillRef: 'ex_old',
+      label: 'old',
+    );
+    final RepairFillChoice mine = vm.correction!.fills.single;
+    repo.vm.add(
+      vm.copyWith(
+        correction: vm.correction!.copyWith(
+          fills: <RepairFillChoice>[mine, older],
+        ),
+      ),
+    );
+    await t.pump();
+    await t.pump();
+    await t.tap(find.byKey(const Key('x5-origin-0')));
+    await t.tap(find.byKey(const Key('x5-fill-0')));
+    await t.tap(find.byKey(const Key('x5-void')));
+    await t.pump();
+    // 새 체결이 앞에 끼어 차례가 바뀐다.
+    repo.vm.add(
+      vm.copyWith(
+        correction: vm.correction!.copyWith(
+          fills: <RepairFillChoice>[older, mine],
+        ),
+      ),
+    );
+    await t.pump();
+    await t.pump();
+    await t.tap(find.byKey(const Key('x5-correct-submit')));
+    await t.pump();
+    expect(
+      (actions.calls.single as RepairCorrectSubmission).fillRef,
+      mine.fillRef,
+    );
+    // 고른 체결이 사라지면 고름이 풀린다.
+    repo.vm.add(
+      vm.copyWith(
+        correction: vm.correction!.copyWith(fills: <RepairFillChoice>[older]),
+      ),
+    );
+    await t.pump();
+    await t.pump();
+    expect(_enabled(t, 'x5-correct-submit'), isFalse);
+  });
+
   testWidgets('새 기준점 — 원인 고르기 전 꺼짐 · 대상 id = 라우트 인자 · 아무것도 안 하기 0', (
     WidgetTester t,
   ) async {

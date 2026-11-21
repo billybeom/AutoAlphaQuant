@@ -6,7 +6,8 @@
 //    쓰기 주입 null(뷰어) = 컨트롤 부재 · 확인 대화 0 · 결과 = 엔진 `headline` + `reasonCode` 원문(머리 아래 · 맨 위로 스크롤) ·
 //    제출 자체 실패 = 정적 문장(접수증 아님).
 // 🔴 `doNothingDefault` = 처음 고른 칸(아무것도 안 하기 버튼을 채운 버튼으로)만 정한다 — 글자를 고르지 않는다.
-// 🔴 원인 = 실행 칸(고르기 전 = 정정 · 새 기준점 확인 꺼짐) · 체결 후보 = 받은 차례 · `fillRef` = 제출에만.
+// 🔴 원인 = 실행 칸(고르기 전 = 정정 · 새 기준점 확인 꺼짐) · 체결 후보 = 받은 차례 · `fillRef` = 제출 · 고른 칸 기억에만(해석 0 —
+//    VM 이 다시 와 차례가 바뀌어도 고른 체결이 바뀌지 않게 · 사라지면 고름 풀림).
 // 🔴 대상 id = 라우트 인자 그대로(엔진이 완성한 링크) — 화면은 해석하지 않는다.
 
 import 'package:domain_contracts/domain_contracts.dart';
@@ -51,7 +52,7 @@ class _RepairWizardScreenState extends ConsumerState<RepairWizardScreen> {
   bool _hasResult = false;
   SafetyActionResult? _result;
   String? _origin;
-  int? _fill;
+  String? _fillRef;
   bool _void = false;
   final TextEditingController _rationale = TextEditingController();
   final TextEditingController _expected = TextEditingController();
@@ -400,9 +401,10 @@ class _RepairWizardScreenState extends ConsumerState<RepairWizardScreen> {
     String? origin,
   ) {
     final ThemeData theme = Theme.of(context);
-    final int? fill = _fill != null && _fill! < form.fills.length
-        ? _fill
-        : null;
+    final int fill = _fillRef == null
+        ? -1
+        : form.fills.indexWhere((RepairFillChoice f) => f.fillRef == _fillRef);
+    final int? chosen = fill < 0 ? null : fill;
     final bool voidFill = !form.amendAllowed || _void;
     final String? target = widget.targetId ?? vm.diff?.diffId;
     return Column(
@@ -430,8 +432,10 @@ class _RepairWizardScreenState extends ConsumerState<RepairWizardScreen> {
               ChoiceChip(
                 key: Key('x5-fill-$i'),
                 label: Text(form.fills[i].label),
-                selected: fill == i,
-                onSelected: (bool on) => setState(() => _fill = on ? i : null),
+                selected: chosen == i,
+                onSelected: (bool on) => setState(
+                  () => _fillRef = on ? form.fills[i].fillRef : null,
+                ),
               ),
           ],
         ),
@@ -453,14 +457,15 @@ class _RepairWizardScreenState extends ConsumerState<RepairWizardScreen> {
           padding: const EdgeInsets.only(top: 8),
           child: FilledButton(
             key: const Key('x5-correct-submit'),
-            onPressed: _busy || origin == null || fill == null || target == null
+            onPressed:
+                _busy || origin == null || chosen == null || target == null
                 ? null
                 : () => _run(
                     actions,
                     (SafetyActions a) => a.runRepairCorrect(
                       RepairCorrectSubmission(
                         targetId: target,
-                        fillRef: form.fills[fill].fillRef,
+                        fillRef: form.fills[chosen].fillRef,
                         originCode: origin,
                         voidFill: voidFill,
                         quantityText: voidFill ? null : _quantity.text,
