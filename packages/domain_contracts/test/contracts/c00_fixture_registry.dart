@@ -938,6 +938,10 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8OnboardingStepDetailSupabase: FixtureBinding(
     _onboardingStepDetailVm,
   ),
+  // 🆕 v1.31(01 §40 · E11k-d2) — o_07 ③ 상세 · 로그인 결과.
+  FixturePaths.m8OnboardingStepDetailSupabaseLogin: FixtureBinding(
+    _onboardingStepDetailVm,
+  ),
   FixturePaths.m8OnboardingStepsAdvisory: FixtureBinding(_onboardingStepsVm),
   FixturePaths.m8OnboardingStepsAllVerifiedLocked: FixtureBinding(
     _onboardingStepsVm,
@@ -952,6 +956,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8OnboardingSupabaseConnectResults: FixtureBinding(
     _actionResult,
   ),
+  FixturePaths.m8OnboardingSupabaseSigninResults: FixtureBinding(_actionResult),
   // 🆕 v1.13(01 §23 K9) — 형제 키 `advice_summary` 를 C-1·C-8 이 연다(3벌 · 옛 2벌은 행만 묶었다).
   FixturePaths.m8OpsHomeAdviceOpen: FixtureBinding(
     _opsDailySummary,

@@ -284,6 +284,8 @@ abstract final class ContractCodes {
     'supabase_input_result': SupabaseInputResultCodes.values,
     'supabase_time_result': SupabaseTimeResultCodes.values,
     'lease_rpc_result': LeaseRpcResultCodes.values,
+    // 🆕 v1.31(01 §40 · E11k-d2) — Supabase 로그인 · 세션 고유 실패(전송 6 = `supabase_time_result` 한 벌)
+    'supabase_auth_result': SupabaseAuthResultCodes.values,
     // 🆕 v1.30(01 §38 · E16i) — X1 기기 이전 · 새 폰 복구 · 유지보수 창(엔진 글자 1:1 − 공용 `TRUSTED_TIME_UNKNOWN`)
     'x1_start_result': X1StartResultCodes.values,
     'x1_step_block': X1StepBlockCodes.values,

@@ -198,6 +198,8 @@ const Set<String> _fixedSegments = <String>{
 const Map<String, Set<String>> _argsWhitelist = <String, Set<String>>{
   'CREDENTIAL_VERIFY': <String>{'kind'},
   'CONNECTION_TEST': <String>{'target'},
+  // 🆕 v1.31(01 §40 · K239) — o_07 ③ 로그인(값 = 슬롯 ↔ 구현 사이만).
+  'SUPABASE_SIGN_IN': <String>{},
   'ACCOUNT_VERIFY_MAPPING': <String>{},
   'ONBOARDING_DRY_RUN_START': <String>{},
 };

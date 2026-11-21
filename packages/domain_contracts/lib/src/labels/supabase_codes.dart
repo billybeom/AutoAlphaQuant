@@ -1,6 +1,6 @@
 // 🆕 계약 v1.29(01 §39 · K223~ · E11k-b 계약 창) — Supabase 연결(o_07 ②) · 신뢰 시각 · operator 리스의 코드 사전.
 //
-// 🔴 타입 이름 ≠ 엔진(data_sync `SupabaseInputProblem` · `SupabaseTimeFailure` — 같으면 엔진 시험이
+// 🔴 타입 이름 ≠ 엔진(data_sync `SupabaseInputProblem` · `SupabaseTimeFailure` · 🆕 v1.31 `SupabaseAuthFailure` — 같으면 엔진 시험이
 //    두 배럴을 함께 import 해 `ambiguous_import` · K80). 엔진 enum 은 와이어 글자가 없다 — enum → 이 글자 매핑 = 엔진 숙제(E11k-c ·
 //    01 §8 미결 213).
 // 🔴 리스 무효 `LEASE_INVALID`(주문 거부 · core `kLeaseInvalidCode`)는 v1.18 `JournalReasonCodes.leaseInvalid` 한 벌 — 여기 다시 두지 않는다.
@@ -76,6 +76,41 @@ abstract final class SupabaseTimeResultCodes {
     badResponse,
     noDate,
     network,
+  };
+}
+
+/// 🆕 v1.31(01 §40 · K240 · E11k-d2) — Supabase 로그인 · 세션 고유 실패(도메인 `supabase_auth_result` · data_sync
+/// `supabase/supabase_auth.dart` `SupabaseAuthFailure` 12 가운데 6 · 🔴 타입 이름 ≠ 엔진).
+/// 🔴 전송 6(`notConfigured` · `badConfig` · `unauthorized` · `server` · `badResponse` · `network`) = [SupabaseTimeResultCodes] 글자 한 벌
+///    (같은 사건 · 새 글자 0) · 🔴 금고 = 여기 [vault](읽기 «또는 쓰기» 실패 — 시각 쪽 `SUPABASE_VAULT_UNREADABLE` 은 읽기만이라 다른 뜻).
+/// 🔴 `supabaseSignIn` 결과에 나오는 것 = [badInput] · [invalidCredentials] · [rateLimited] · [vault] + 전송 · [notSignedIn] · [sessionLost] =
+///    토큰 갱신 축(엔진 깨어남 · S07 · 로그).
+abstract final class SupabaseAuthResultCodes {
+  /// 이메일 · 비밀번호 꼴이 아니다(빈칸 등) — 망에 가지 않았다.
+  static const String badInput = 'SUPABASE_AUTH_INPUT_INVALID';
+
+  /// 로그인한 적이 없다(금고에 새로고침 토큰 없음) — 망에 가지 않았다.
+  static const String notSignedIn = 'SUPABASE_NOT_SIGNED_IN';
+
+  /// 이메일 · 비밀번호가 틀렸다(로그인 400).
+  static const String invalidCredentials = 'SUPABASE_CREDENTIALS_REJECTED';
+
+  /// 세션을 잃었다(새로고침 400 — 만료 · 재사용 · 철회) — 금고 칸을 지웠다 · 다시 로그인.
+  static const String sessionLost = 'SUPABASE_SESSION_LOST';
+
+  /// 과속(429).
+  static const String rateLimited = 'SUPABASE_RATE_LIMITED';
+
+  /// 금고를 읽거나 쓰지 못했다.
+  static const String vault = 'SUPABASE_AUTH_VAULT_FAILED';
+
+  static const Set<String> values = <String>{
+    badInput,
+    notSignedIn,
+    invalidCredentials,
+    sessionLost,
+    rateLimited,
+    vault,
   };
 }
 

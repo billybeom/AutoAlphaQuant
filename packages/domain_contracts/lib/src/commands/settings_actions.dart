@@ -17,6 +17,7 @@
 // 🆕 v1.20(01 §29) — M9 `S02`·`S06`·`S03` args 화이트리스트(검증 1단 · 발급 · 폐기 · 매핑 · 전체 검증) · 🔴 시크릿 값 args 0.
 // 🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드 args 화이트리스트(handover +3 · 확정 = 기존 `handoverCommit`).
 // 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 = 원문 제출 DTO `ContributionUpdateSubmission` + `runContributionUpdate`(표면 run·runContributionUpdate·watch 셋 — C-7) · `run` 화이트리스트 밖.
+// 🆕 v1.31(01 §40 · K239) — 온보딩 검증 +1 `supabaseSignIn` = `{}`(o_07 ③ 로그인 · 결과 = `SupabaseAuthResultCodes` ∪ 전송 6).
 // 🆕 v1.24(01 §33 · K120) — M9 `S09`·`S10` args 화이트리스트(`backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}`) · `backupRestoreStart` = 화면 미호출 · 두 화면은 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -56,7 +57,8 @@ part 'settings_actions.g.dart';
 ///    · `onboardingDryRunStart`        = `{}`(O-04 ⑥ · 종착 조합은 엔진이 `onboarding_choice` 로 안다 ·
 ///      첫 `committed_at` 과 같은 트랜잭션 · 실패 = 둘 다 되돌림 `DRY_RUN_START_ROLLED_BACK`)
 ///    · 검증 동작 — `OnboardingAction` 이 id·args 를 **완성해서** 싣는다(🔴 화면은 그대로 넘긴다 · 짓지 않는다):
-///      `credentialVerify` = `{kind}` · `connectionTest` = `{target}` · `accountVerifyMapping` = `{}`
+///      `credentialVerify` = `{kind}` · `connectionTest` = `{target}` · `accountVerifyMapping` = `{}` ·
+///      🆕 v1.31(01 §40 · K239) `supabaseSignIn` = `{}`(o_07 ③ · 값 = 슬롯 `SECRET_SUPABASE_LOGIN` ↔ 구현 사이만 · args · 결과 0)
 ///      (`kind`·`target` 값 = 엔진 표기 — 05 §7 꼴 · 값 사전 = 01 §8 미결 151)
 ///    🔴 `O-00b`·`O-03`·`O-04` 는 [ActionResult] 를 **읽는다** — `headline` + `reasonCode` 원문
 ///      (`O-03` 은 + `retryable` · `O-00b`·`O-04` 는 다시 시도 갈래가 없다 — 표본 `retryable` 전부 false)
