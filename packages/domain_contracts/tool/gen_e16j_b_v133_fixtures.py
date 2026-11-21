@@ -33,9 +33,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FX = os.path.normpath(os.path.join(HERE, '..', 'fixtures')).replace(os.sep, '/')
 ROOT = os.path.normpath(os.path.join(HERE, '..', '..', '..')).replace(os.sep, '/')
 FX_REL = os.path.relpath(FX, ROOT).replace(os.sep, '/')
-# 계약 1.32.0 · 픽스처 375 의 기준 커밋(E16j-a 가지 `m2/v132-e16j-a` 머리 — 🔴 그 판 병합 뒤 main 커밋으로 바꾼다).
-BASE = '08a4c565'
-BASE_FRESH_REF = 'origin/m2/v132-e16j-a'   # 🔴 v1.32 병합 뒤 'origin/main'
+# 계약 1.32.0 · 픽스처 375 의 기준 커밋(origin/main · v1.32 병합 PR #299 squash 268d6bff).
+BASE = '268d6bff'
+BASE_FRESH_REF = 'origin/main'
 
 OLD_VER = '"contract_version": "1.32.0"'
 NEW_VER = '"contract_version": "1.33.0"'

@@ -1293,7 +1293,7 @@ POT 행 0 · 전 표본 `CREDENTIAL_VERIFY` kind ∈ 사전 · 키 조각 꼴·8
 
 ### 🔴 생성 스크립트가 만든다 (손 계산 금지)
 
-`packages/domain_contracts/tool/gen_e16j_b_v133_fixtures.py` — 기준 커밋(v1.32 판 · 🔴 v1.32 병합 뒤 main 커밋으로 바꾼다) 원문에서 멱등 생성 · D-03 카드 = `m8/emergency_card` 첫 행 · 쓰기 전 확인(시크릿 꼴 · 기기 id · sha256 글자 0).
+`packages/domain_contracts/tool/gen_e16j_b_v133_fixtures.py` — 기준 커밋(`268d6bff` · v1.32 병합 PR #299 squash) 원문에서 멱등 생성 · D-03 카드 = `m8/emergency_card` 첫 행 · 쓰기 전 확인(시크릿 꼴 · 기기 id · sha256 글자 0).
 
 ## 계약 v1.32 (2026-11-21 · E16j-a 계약 창 — X5 정정 마법사 · 01 §41 · ~~⬜ PR 대기~~ ✅ 병합 PR #299 squash `268d6bff`(2026-11-21 · CI 3/3))
 
