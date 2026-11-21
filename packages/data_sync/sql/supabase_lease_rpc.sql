@@ -26,7 +26,7 @@
 --   · 🔴 Postgres 내장 sha256() 만 쓴다(확장 0 — pgsodium = Supabase 폐기 예정 · pgcrypto 에는 argon2 가 없다).
 --     빠른 해시로 충분한 까닭 = 복구 코드는 사람이 고른 낱말이 아니라 기기가 뽑는 무작위 ≥ 100비트(E11k-e3 몫)이고
 --     recovery_secret 에는 SELECT 정책이 없다(검증은 이 RPC 안에서만).
---   · recovery_secret.algo = 'sha256' 을 RPC 가 적는다(DDL 기본값 'argon2id' 는 쓰이지 않는다 — 계약 창 정리 제안).
+--   · recovery_secret.algo = 'sha256' 을 RPC 가 적는다(DDL 기본값도 'sha256' — 계약 v1.34 · 01 §43 · 미결 214).
 
 -- ── lease_claim ──────────────────────────────────────────────────────────────
 -- 빈 행 = 첫 클레임 → p_recovery_code_hash 필수(없음 · 꼴 아님 = RECOVERY_CODE_REQUIRED) · 리스 행 + recovery_secret 를

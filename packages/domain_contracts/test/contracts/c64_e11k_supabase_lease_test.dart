@@ -5,6 +5,9 @@
 //        와이어 = 계약) · 🔴 VERIFIED = 쓰기-읽기 왕복 뒤(첫 판 = IN_PROGRESS 중간 상태) · 리스 RPC 표 3(이름 · 인자 · 반환 칸 · 거부
 //        사전 · 🔴 `server_now` 0) · `LEASE_INVALID` = v1.18 한 벌 · `app_device.auth_uid`」.
 //   ① 사전 3 ② 슬롯 ③ RPC 표 ↔ DDL ④ o_07 상세 표본 ⑤ 연결 결과 표본 ⑥ 리스 두 축 ⑦ R-01 로그인 주석 ⑧ 글자 꼴.
+// 🆕 계약 v1.34(01 §43 · 미결 214 · 13 닫음 · 발주자 위임 — 권고대로 · K282~K289) — ③ `auth_uid` = not null · 🔴 unique 0
+//   (X1 새 폰 = 같은 운영 사용자) · 색인 · `recovery_secret.algo` 기본값 'sha256' · ⑨ RLS «`app_device` 조인»(JWT 클레임 0 ·
+//   두 INSERT 정책 분리 유지 · 정책 6 꼴).
 
 import 'dart:convert';
 import 'dart:io';
@@ -62,6 +65,28 @@ const Set<String> _networkFailures = <String>{
 
 String _ddl() => File('${ddlDir.path}/batch_d_supabase.sql').readAsStringSync();
 
+/// 정책 한 줄 — 표 · 동작 · 공백 하나로 접은 본문.
+typedef _Policy = ({String table, String op, String body});
+
+/// 줄주석을 지운 SQL 본문.
+String _sqlOnly() => _ddl().replaceAll(RegExp(r'--[^\n]*'), '');
+
+/// `create policy <이름> on <표> for <동작> to authenticated <본문>;` → 이름 → (표 · 동작 · 공백 하나로 접은 본문).
+Map<String, _Policy> _policies() {
+  final Map<String, _Policy> out = <String, _Policy>{};
+  for (final RegExpMatch m in RegExp(
+    r'create policy (\w+) on (\w+) for (\w+) to authenticated\s+([^;]*);',
+  ).allMatches(_sqlOnly())) {
+    expect(out.containsKey(m[1]), isFalse, reason: '${m[1]} — 정책 이름이 두 번');
+    out[m[1]!] = (
+      table: m[2]!,
+      op: m[3]!,
+      body: m[4]!.replaceAll(RegExp(r'\s+'), ' ').trim(),
+    );
+  }
+  return out;
+}
+
 void main() {
   group('C-64 E11k-b Supabase 연결 · 신뢰 시각 · 리스 (01 §39)', () {
     test('C-64 ① 사전 3 — 글자 · byDomain 등재 · 다른 도메인과 겹침 0 · 이름 ≠ 엔진', () {
@@ -98,7 +123,7 @@ void main() {
       expect(ConnectionTargetCodes.supabase, 'SUPABASE');
     });
 
-    test('C-64 ③ RPC 표 — 이름 3 · 인자 5 · 반환 칸 3 · DDL 서명 주석과 같은 글자 · server_now 0 · auth_uid', () {
+    test('C-64 ③ RPC 표 — 이름 3 · 인자 5 · 반환 칸 3 · DDL 서명 주석과 같은 글자 · server_now 0 · auth_uid not null · unique 0 · 색인 · algo sha256', () {
       expect(LeaseRpcNames.values, <String>{
         'lease_claim',
         'lease_renew',
@@ -117,10 +142,31 @@ void main() {
       // 🔴 SQL 본문(주석 뺀 것)에 `server_now` 0 — 신뢰 시각 원천 = 게이트웨이 `Date`(T1).
       final String sqlOnly = ddl.replaceAll(RegExp(r'--[^\n]*'), '');
       expect(sqlOnly, isNot(contains('server_now')));
+      // 🆕 v1.34(미결 214) not null · 🔴 unique 0 — X1 새 폰은 같은 운영 사용자로 로그인한다(옛 폰 · 새 폰 = 같은 auth_uid).
       expect(
-        ddl,
-        matches(RegExp(r'auth_uid\s+uuid unique references auth\.users\(id\)')),
+        sqlOnly,
+        matches(
+          RegExp(
+            r'auth_uid\s+uuid not null references auth\.users\(id\)\s*\n\);',
+          ),
+        ),
       );
+      final String device = RegExp(
+        r'create table if not exists app_device \(([^;]*?)\n\);',
+      ).firstMatch(sqlOnly)![1]!;
+      expect(device, isNot(contains('unique')));
+      expect(
+        sqlOnly,
+        contains(
+          'create index if not exists ix_app_device_auth_uid on app_device(auth_uid);',
+        ),
+      );
+      // 🆕 v1.34 — 기본값 = 리스 RPC 가 적는 값(13 R221 S6) · 옛 argon2id 0.
+      expect(
+        sqlOnly,
+        matches(RegExp(r"\n\s+algo\s+text not null default 'sha256',\n")),
+      );
+      expect(sqlOnly, isNot(contains('argon2')));
       for (final String n in LeaseRpcNames.values) {
         expect(n, isNot(contains('server_now')));
       }
@@ -209,6 +255,74 @@ void main() {
       }) {
         expect(n, matches(sql));
       }
+    });
+
+    test('C-64 ⑨ 미결 214(v1.34 · 01 §43) — RLS «app_device 조인» · JWT 클레임 0 · INSERT 정책 3(두 명령 정책 분리) · UPDATE · DELETE 0', () {
+      final String sqlOnly = _sqlOnly();
+      // `role` 자리 = app_device 행(미결 13 닫음) — JWT `app_metadata` · `auth.jwt()` 를 읽는 정책 0.
+      expect(sqlOnly, isNot(contains('app_metadata')));
+      expect(sqlOnly, isNot(contains('auth.jwt()')));
+      final Map<String, _Policy> p = _policies();
+      // 쓰기 정책 = INSERT 셋뿐(append-only · 리스 · 미러 · 스탬프 쓰기 = RPC) · 두 명령 정책은 합치지 않는다(Q-C).
+      expect(p.values.map((_Policy e) => e.op).toSet(), <String>{
+        'select',
+        'insert',
+      });
+      expect(
+        <String>{
+          for (final MapEntry<String, _Policy> e in p.entries)
+            if (e.value.op == 'insert') e.key,
+        },
+        <String>{
+          'device_insert_viewer_only',
+          'command_insert_viewer',
+          'command_insert_operator',
+        },
+      );
+
+      // 기기 — 클라이언트 = 운영 사용자 자기 기기(viewer · PENDING)만 · 뷰어 기기 행 = 페어링 RPC(서버).
+      expect(p['device_insert_viewer_only']!.table, 'app_device');
+      expect(
+        p['device_insert_viewer_only']!.body,
+        "with check (auth_uid = auth.uid() and owner_uid = auth.uid() and role = 'viewer' and status = 'PENDING')",
+      );
+      expect(
+        p['device_select_own']!.body,
+        'using (owner_uid = auth.uid() or auth_uid = auth.uid())',
+      );
+
+      // 명령 INSERT — 낸 기기 = 부른 사용자의 기기 · 명령 소유자의 기기 · 그 role · ACTIVE(`owner_uid = auth.uid()` 0).
+      const String viewerKinds =
+          "kind in ('KILL_SWITCH_ACTIVATE','JOURNAL_DRAFT','BLIND_REVIEW_SCORE','DISCLOSURE_VIEW')";
+      for (final String role in <String>['viewer', 'operator']) {
+        final _Policy c = p['command_insert_$role']!;
+        expect(c.table, 'command_queue', reason: role);
+        for (final String part in <String>[
+          'expires_at > now()',
+          'exists (select 1 from app_device d where d.device_id = command_queue.issued_by_device',
+          'd.auth_uid = auth.uid() and d.owner_uid = command_queue.owner_uid',
+          "d.role = '$role' and d.status = 'ACTIVE')",
+        ]) {
+          expect(c.body, contains(part), reason: '$role — $part');
+        }
+        expect(c.body, isNot(contains('owner_uid = auth.uid()')), reason: role);
+        expect(
+          c.body.contains(viewerKinds),
+          role == 'viewer',
+          reason: '$role — 뷰어 4종 화이트리스트는 뷰어 정책에만',
+        );
+      }
+      expect(p['command_insert_operator']!.body, isNot(contains('kind')));
+
+      // 명령 읽기 = 부른 사용자의 ACTIVE 기기가 그 소유자의 기기 · ack = 보이는 명령.
+      expect(
+        p['command_select_own']!.body,
+        "using (exists (select 1 from app_device d where d.auth_uid = auth.uid() and d.owner_uid = command_queue.owner_uid and d.status = 'ACTIVE'))",
+      );
+      expect(
+        p['command_ack_select']!.body,
+        'using (exists (select 1 from command_queue q where q.command_id = command_ack.command_id))',
+      );
     });
   });
 }
