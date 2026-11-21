@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.35.0",
+    "generated_at": "2026-11-21T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261121,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "저널 기준 2026-08-31" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "command_id": "cmd_20261121_0101",
+      "kind": "JOURNAL_DRAFT",
+      "state": "REJECTED",
+      "state_label": "거부됨 — 이 저널 대상을 찾을 수 없습니다. 입력값은 그대로 남아 있습니다",
+      "requested_at": "2026-08-31T09:40:00Z",
+      "expires_at": "2026-08-31T10:10:00Z",
+      "nonce": "n_5b0d2e7c91a4",
+      "issued_by_device_id": "dev_operator_01",
+      "reject_reason_code": "JOURNAL_TARGET_UNKNOWN"
+    },
+    {
+      "command_id": "cmd_20261121_0102",
+      "kind": "JOURNAL_DRAFT",
+      "state": "REJECTED",
+      "state_label": "거부됨 — 근거 · 기대 결과 · 인용 규칙 · 메모 조건을 다시 확인하십시오. 입력값은 그대로 남아 있습니다",
+      "requested_at": "2026-08-31T09:40:00Z",
+      "expires_at": "2026-08-31T10:10:00Z",
+      "nonce": "n_8e13f6a2d07b",
+      "issued_by_device_id": "dev_operator_01",
+      "reject_reason_code": "JOURNAL_INPUT_INVALID"
+    }
+  ]
+}

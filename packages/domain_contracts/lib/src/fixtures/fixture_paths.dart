@@ -36,6 +36,9 @@ abstract final class FixturePaths {
   static const String resumeReport1 = 'resume_report_1.json';
   static const String safetyStates = 'safety_states.json';
 
+  /// 🆕 v1.35(01 §44 · K295) — `SafetyState` hold 짝 문장 2행(`LIVE_AWAITING_KEYS` · `MIGRATION_IN_PROGRESS` — `holds[i]` ↔ `holdLabels[i]`).
+  static const String safetyStatesHolds = 'safety_states_holds.json';
+
   /// 🆕 v1.1 — `ConfigRepository.watchSleeves()` 의 입력(P0S — 새틀라이트 행 없음).
   static const String sleeveCatalog4 = 'sleeve_catalog_4.json';
 
@@ -426,6 +429,10 @@ abstract final class FixturePaths {
   ///    갈래이며 테스트는 `state` 로 골라 쓴다. 🔴 사유까지 실린 문구는 `state_label` 하나다.
   static const String m6JournalDraftReceipts5 =
       'm6/journal_draft_receipts_5.json';
+
+  /// 🆕 v1.35(01 §44 · K298) — `J-3` 거부 접수증 2행(`JOURNAL_TARGET_UNKNOWN` · `JOURNAL_INPUT_INVALID` · 명령 2 · `receipts_5` 무변경).
+  static const String m6JournalDraftReceiptsReject2 =
+      'm6/journal_draft_receipts_reject_2.json';
   static const String m6JournalDraftSpecDiscretion =
       'm6/journal_draft_spec_discretion.json';
   static const String m6JournalDraftSpecReconClear =
@@ -1167,6 +1174,9 @@ abstract final class FixturePaths {
   /// 🆕 v1.32 — 허브 대상 2(→ `x5RepairTarget` · diff · 무결성).
   static const String x5RepairHubTargets = 'x5/repair_hub_targets.json';
 
+  /// 🆕 v1.35(01 §44 · K291) — 정정 원문 파싱 거부 결과 1행(`REPAIR_CORRECT` · `REPAIR_AMOUNT_INVALID`).
+  static const String x5RepairInputResults = 'x5/repair_input_results.json';
+
   /// 🆕 v1.32 — 무결성 갈래 새 기준점 준비.
   static const String x5RepairIntegrityReady = 'x5/repair_integrity_ready.json';
 
@@ -1185,6 +1195,7 @@ abstract final class FixturePaths {
     rebalance6,
     resumeReport1,
     safetyStates,
+    safetyStatesHolds,
     sleeveCatalog4,
     m5BlockBoardClear,
     m5BlockBoardKillActive,
@@ -1301,6 +1312,7 @@ abstract final class FixturePaths {
     m6JournalExpired1,
     m6JournalBadges2,
     m6JournalDraftReceipts5,
+    m6JournalDraftReceiptsReject2,
     m6JournalDraftSpecDiscretion,
     m6JournalDraftSpecReconClear,
     m6JournalFilterCatalog,
@@ -1561,6 +1573,7 @@ abstract final class FixturePaths {
     x5RepairDiffStage3,
     x5RepairHubEmpty,
     x5RepairHubTargets,
+    x5RepairInputResults,
     x5RepairIntegrityReady,
   ];
 }
