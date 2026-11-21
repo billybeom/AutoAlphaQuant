@@ -796,7 +796,7 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 
 ## AK. 🆕 계약 v1.32 (2026-11-21 · E16j-a 계약 창 — X5 정정 마법사) — VM 5 · 창구 1 · 제출 3 · 동작 4 · 라우트 1 · 사전 1 · 표본 8
 
-`contractVersion` = **`1.32.0`**(다음 = 1.33.0 · 첫 후보 = E16j-b X1). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K247~K263 권고대로(정본 = 설계 `10_리뷰/2026-11-21_E16j-a계약창_계약v1.32_설계서.md` · 01 §41). 🔴 엔진 이름(core `RepairChoice` · `RepairCodes` · `BaselineCodes` · `InterventionStep` · `InterventionOutcome` · ds `BaselineStoreCodes` · `BaselineResult` · `FillRestatement`)과 겹치지 않는다(K80 · C-66 ⑪ · data_sync 대조 시험).
+`contractVersion` = **`1.32.0`**(다음 = 1.33.0 · 첫 후보 = E16j-b X1). 상태 = ~~⬜ PR 대기~~ ✅ 병합 PR #299 squash `268d6bff`(2026-11-21 · CI 3/3). 결정 = 발주자 위임 2026-11-14 — K247~K263 권고대로(정본 = 설계 `10_리뷰/2026-11-21_E16j-a계약창_계약v1.32_설계서.md` · 01 §41). 🔴 엔진 이름(core `RepairChoice` · `RepairCodes` · `BaselineCodes` · `InterventionStep` · `InterventionOutcome` · ds `BaselineStoreCodes` · `BaselineResult` · `FillRestatement`)과 겹치지 않는다(K80 · C-66 ⑪ · data_sync 대조 시험).
 
 | # | 이름 | 뜻 · 위치 |
 |---|---|---|
