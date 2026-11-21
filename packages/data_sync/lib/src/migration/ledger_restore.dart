@@ -12,15 +12,16 @@ import 'dart:typed_data';
 import 'package:core_engine/core_engine.dart'
     show ArchiveCheckpoint, RestoreReason, RestoreVerdict;
 import 'package:crypto/crypto.dart' as crypto;
-import 'package:domain_contracts/domain_contracts.dart' show LedgerFile;
+import 'package:domain_contracts/domain_contracts.dart'
+    show LedgerFile, X1RestoreResultCodes;
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import 'ledger_snapshot.dart' show LedgerSnapshot, verifySnapshotBytes;
 
-/// 복원 적용 거부 코드(계약 등재 = E16i 노트).
+/// 복원 적용 거부 코드(글자 = 계약 `X1RestoreResultCodes` 참조 · 미결 212).
 abstract final class LedgerRestoreCodes {
   /// live 원장이 이미 있다(덮어쓰지 않는다).
-  static const String liveExists = 'X1_LIVE_EXISTS';
+  static const String liveExists = X1RestoreResultCodes.liveExists;
 }
 
 /// 복원 적용 결과 — 통과 = [livePath] · 거부 = [rejectCode](검증 거부면 [verdict] 도).

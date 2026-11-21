@@ -13,6 +13,7 @@ import 'package:core_engine/core_engine.dart'
         ExchangeCalendar,
         LiveObservationConfig,
         Market,
+        OperationsConfig,
         SecretVault,
         TrustedClock,
         WatchdogRemote,
@@ -78,6 +79,7 @@ class OperatorRuntime {
     this.biometricSign,
     this.golden,
     this.liveObservation,
+    this.operations,
   }) : secure = secure ?? SecureScreen(_noSecure),
        trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
@@ -146,6 +148,10 @@ class OperatorRuntime {
   /// 🆕 E11q-c1(R191) — M5-11 위저드 커밋 창 판정의 관찰 일수(운영 설정 `live_dry_run_observation_trading_days` ·
   /// 없음 = 못 읽음 · 플랫폼 밖 → 위저드 = «운영 설정 없음» 오류 · 지어내지 않는다).
   final LiveObservationConfig? liveObservation;
+
+  /// 🆕 E16j-b — 운영 설정(자산 `operations.json` · X1 관찰 일수 · 재개 사다리 — 🔴 잠정 값 그대로 읽기만 · 없음 = 못 읽음 ·
+  /// 플랫폼 밖 → X1 게이트 · RECOVERY_FULL 판정 0).
+  final OperationsConfig? operations;
 
   /// 🆕 E11p4j(R159) — O-04 ③ 생체 확인(플랫폼 · `AndroidOps.biometricSign` · 없음 = 할 수 없음).
   final Future<BiometricOutcome> Function()? biometricSign;

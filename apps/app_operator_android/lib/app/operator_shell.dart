@@ -102,12 +102,16 @@ import 'package:ui_safety/ui_safety.dart'
         ResumeGateScreen,
         ResumeReportScreen,
         RuleChangeGateScreen,
+        X1PlanWizardScreen,
+        X1RecoveryRoute,
+        X1RecoveryScreen,
         safetyActionsProvider,
         safetyBlockBoardRepositoryProvider,
         safetyHandoverRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyLinkOpenerProvider,
+        safetyMigrationRepositoryProvider,
         safetyPledgeRepositoryProvider,
         safetyResumeGateRepositoryProvider,
         safetyRuleChangeGateRepositoryProvider,
@@ -145,6 +149,7 @@ import 'operator_golden.dart' show OperatorGolden;
 import 'operator_handover.dart';
 import 'operator_journal.dart';
 import 'operator_kill_switch.dart';
+import 'operator_migration.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
@@ -298,6 +303,13 @@ final Provider<OperatorResumeGateRepository> operatorResumeGateProvider =
         hasBody: bodies.byPattern.containsKey,
       );
     });
+
+/// 🆕 E16j-b — X1 기기 이전 읽기(한 인스턴스 · 쓰기 = 안전 동작 인스턴스 `run` X1 id 6 · 슬롯 = 이 폰에 원천 없음 → 자리 부재).
+final Provider<OperatorMigrationRepository> operatorMigrationProvider =
+    Provider<OperatorMigrationRepository>(
+      (Ref ref) =>
+          OperatorMigrationRepository(ref.watch(operatorRuntimeProvider)),
+    );
 
 /// 🆕 R188 — M5-9 규칙 변경 게이트 읽기(한 인스턴스 · 쓰기 = 안전 동작 인스턴스 — 요청 · 승인 · 취소).
 final Provider<OperatorRuleChangeGateRepository>
@@ -540,6 +552,14 @@ Widget _resumeGate(Map<String, String> _) => const ResumeGateScreen();
 
 Widget _ruleChangeGate(Map<String, String> _) => const RuleChangeGateScreen();
 
+Widget _x1Plan(Map<String, String> _) => const X1PlanWizardScreen();
+
+Widget _x1Receive(Map<String, String> _) =>
+    const X1RecoveryScreen(route: X1RecoveryRoute.plan);
+
+Widget _x1Emergency(Map<String, String> _) =>
+    const X1RecoveryScreen(route: X1RecoveryRoute.emergency);
+
 Widget _handoverWizard(Map<String, String> _) => const HandoverWizardScreen();
 
 Widget _settingsContribution(Map<String, String> _) =>
@@ -671,6 +691,11 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.x2ResumeGate: _resumeGate,
   // 🆕 E11q-c0(R188) — M5-9 규칙 변경 게이트 «첫 승인 최소판»(SAF-405 첫 승인 요청 · 냉각 · 승인 · 취소).
   AppRoutes.m5RuleChangeGate: _ruleChangeGate,
+  // 🆕 E16j-b — X1 기기 이전(옛 폰 마법사 = S06 · S09 `migrationLink` 목적지 · 새 폰 받기 · 비상 = R-01 분기 · 진행 = 1~3단계까지 ·
+  //    4단계 이후 · 새 폰 복원 · 비상 = 엔진 막힘 문장 — 미결 218).
+  AppRoutes.x1Migration: _x1Plan,
+  AppRoutes.x1MigrationPlan: _x1Receive,
+  AppRoutes.x1MigrationEmergency: _x1Emergency,
   // 🆕 E11q-c1(R191) — M5-11 simToAuto 위저드 · `handoverStatus` = 같은 본문(K173 · 알림 냉각 · 확정 목적지) ·
   //    M5-10 `m5HandoverGate` = 범위 밖 빈 자리(K174).
   AppRoutes.m5HandoverWizard: _handoverWizard,
@@ -732,6 +757,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 R186 — X2 재개 리포트 · 게이트 읽기(링크 = 위 셸 링크 열기 · 계절 3택 쓰기 = 위 안전 동작 인스턴스 — R195).
   safetyResumeGateRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorResumeGateProvider),
+  ),
+  // 🆕 E16j-b — X1 기기 이전 읽기(시작 · 단계 · 그만두기 · 복구 단계 = 위 안전 동작 인스턴스 · 슬롯 빌더 = 주입 0 = 자리 부재).
+  safetyMigrationRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorMigrationProvider),
   ),
   // 🆕 R188 — M5-9 규칙 변경 게이트 읽기(요청 · 승인 · 취소 = 위 안전 동작 인스턴스).
   safetyRuleChangeGateRepositoryProvider.overrideWith(

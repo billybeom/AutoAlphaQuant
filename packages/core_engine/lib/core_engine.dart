@@ -241,6 +241,21 @@ export 'src/migration/transfer_ticket.dart'
         demotionReceiptOf,
         kTransferTicketKeys,
         transferTicketValid;
+// 🆕 E16j-b — X1 기기 이전 화면 VM · 결과 글자(01 §42 · 미결 218 ⓐ).
+export 'src/migration/x1_screens.dart'
+    show
+        X1PlanWizardFacts,
+        X1RecoveryFacts,
+        X1RecoveryRunFacts,
+        X1ScreenTexts,
+        X1TicketFacts,
+        kX1D03Card,
+        kX1PlanOpenThrough,
+        kX1ScreenStaleAfter,
+        x1ActionResultOf,
+        x1PlanStepOpen,
+        x1PlanWizardVmOf,
+        x1RecoveryVmOf;
 // 🆕 E15b — 기동 해석(어느 파일 · 어느 조합 · 반쯤 끝난 커밋 · SPEC v2.44 · 설계 13 §8 R82).
 export 'src/mode/boot_mode.dart'
     show

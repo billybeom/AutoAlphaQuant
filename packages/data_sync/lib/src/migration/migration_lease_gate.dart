@@ -6,16 +6,17 @@
 // 🟡 기동 합성 = E16t.
 
 import 'package:core_engine/core_engine.dart';
+import 'package:domain_contracts/domain_contracts.dart' show X1BootRefusalCodes;
 
 import 'migration_journal_store.dart' show SqliteMigrationJournal;
 
-/// 기동 거부 코드(계약 등재 = E16i 전 문자열).
+/// 기동 거부 코드(글자 = 계약 `X1BootRefusalCodes` 참조 · 미결 212).
 abstract final class MigrationBootCodes {
   /// DEMOTED 에 들어갔다 — 이 기기 엔진은 다시 서지 않는다.
-  static const String demoted = 'X1_DEMOTED';
+  static const String demoted = X1BootRefusalCodes.demoted;
 
   /// 이전 저널이 깨졌다.
-  static const String journalBroken = 'X1_JOURNAL_BROKEN';
+  static const String journalBroken = X1BootRefusalCodes.journalBroken;
 }
 
 /// 🔴 기동 거부 원천 — DEMOTED 들어감 = `X1_DEMOTED` · 저널 깨짐 = `X1_JOURNAL_BROKEN` · 그 밖 = null.

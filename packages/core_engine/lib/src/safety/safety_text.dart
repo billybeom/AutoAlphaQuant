@@ -320,7 +320,8 @@ AsOf safetyAsOf({required String? lastSnapshotDate, required DateTime nowUtc}) {
   );
 }
 
-/// `SafetyState` 조립(R62 U2 · U6) — `alertBlockSatEntry` = 레벨 ≥ ALERT(P0 스위치 켜짐).
+/// `SafetyState` 조립(R62 U2 · U6) — `alertBlockSatEntry` = 레벨 ≥ ALERT(P0 스위치 켜짐) · 🆕 E16j-b [holds] = 표시 hold(미결 212 ② ·
+/// 막지 않는다 · 막는 정본 = 리스 · 모드 판정).
 SafetyState safetyStateOf({
   required BreakerLevel level,
   required double drawdown,
@@ -331,6 +332,7 @@ SafetyState safetyStateOf({
   required RampLevel rampLevel,
   required RunMode mode,
   required AsOf asOf,
+  List<String> holds = const <String>[],
 }) => SafetyState(
   breakerLevel: contractBreakerLevelOf(level),
   breakerLabel: breakerLabelOf(level),
@@ -343,4 +345,5 @@ SafetyState safetyStateOf({
   rampLevel: rampLevel,
   mode: mode,
   asOf: asOf,
+  holds: holds,
 );

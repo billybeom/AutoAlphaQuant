@@ -5,27 +5,42 @@
 //    값은 받지 않는다(지문만 · core `secretFingerprint` = sha256 앞 8).
 // 🔴 시각 = 신뢰 시각 · 모르면 받지 않는다.
 
+import 'package:domain_contracts/domain_contracts.dart'
+    show SafetyCommonResultCodes, X1ReissueItemCodes, X1ReissueResultCodes;
+
 final RegExp _fp = RegExp(r'^[0-9a-f]{8}$');
 
 /// 재발급 항목(차례 = 06 X1-3 차례).
 enum ReissueItem {
   /// KIS 앱키(새 키 지문 필수 · 늘 필수).
-  kisAppKey('KIS_APP_KEY', '증권사 앱키', hasSecret: true),
+  kisAppKey(X1ReissueItemCodes.kisAppKey, '증권사 앱키', hasSecret: true),
 
   /// 메신저 토큰.
-  messengerToken('MESSENGER_TOKEN', '메신저 토큰', hasSecret: true),
+  messengerToken(X1ReissueItemCodes.messengerToken, '메신저 토큰', hasSecret: true),
 
   /// 워치독 핑 키(문서 «워치독 슬러그» — 슬러그만 바꿔서는 옛 폰 핑이 막히지 않는다).
-  watchdogPingKey('WATCHDOG_PING_KEY', '워치독 핑 키', hasSecret: true),
+  watchdogPingKey(
+    X1ReissueItemCodes.watchdogPingKey,
+    '워치독 핑 키',
+    hasSecret: true,
+  ),
 
   /// GitHub PAT.
-  githubPat('GITHUB_PAT', 'GitHub 토큰', hasSecret: true),
+  githubPat(X1ReissueItemCodes.githubPat, 'GitHub 토큰', hasSecret: true),
 
   /// Supabase 세션 철회(값 없음 — 확인만).
-  supabaseSession('SUPABASE_SESSION', '원격 세션 철회', hasSecret: false),
+  supabaseSession(
+    X1ReissueItemCodes.supabaseSession,
+    '원격 세션 철회',
+    hasSecret: false,
+  ),
 
   /// 구 기기 Google 액세스 철회 + 새 기기 재인증(값 없음 — 확인만).
-  googleAccess('GOOGLE_ACCESS', 'Google 액세스 철회', hasSecret: false);
+  googleAccess(
+    X1ReissueItemCodes.googleAccess,
+    'Google 액세스 철회',
+    hasSecret: false,
+  );
 
   const ReissueItem(this.wire, this.label, {required this.hasSecret});
 
@@ -39,25 +54,28 @@ enum ReissueItem {
   final bool hasSecret;
 }
 
-/// 재발급 거부 코드(계약 등재 = E16i 전 문자열).
+/// 재발급 거부 코드(글자 = 계약 `X1ReissueResultCodes` ∪ 공용 `SafetyCommonResultCodes` 참조 · 미결 212).
 abstract final class ReissueCodes {
   /// 🔴 옛 값과 같은 값.
-  static const String keyReused = 'KEY_REUSED';
+  static const String keyReused = X1ReissueResultCodes.keyReused;
 
   /// 이 계정에서 쓰지 않는 항목.
-  static const String notApplicable = 'REISSUE_NOT_APPLICABLE';
+  static const String notApplicable = X1ReissueResultCodes.notApplicable;
 
   /// 이미 받은 항목.
-  static const String duplicate = 'REISSUE_DUPLICATE';
+  static const String duplicate = X1ReissueResultCodes.duplicate;
 
   /// 값이 필요한 항목인데 지문이 없다 · 꼴이 틀렸다.
-  static const String fingerprintRequired = 'REISSUE_FINGERPRINT_REQUIRED';
+  static const String fingerprintRequired =
+      X1ReissueResultCodes.fingerprintRequired;
 
   /// 확인만 하는 항목에 지문이 왔다.
-  static const String fingerprintUnexpected = 'REISSUE_FINGERPRINT_UNEXPECTED';
+  static const String fingerprintUnexpected =
+      X1ReissueResultCodes.fingerprintUnexpected;
 
   /// 신뢰 시각 모름.
-  static const String trustedTimeUnknown = 'TRUSTED_TIME_UNKNOWN';
+  static const String trustedTimeUnknown =
+      SafetyCommonResultCodes.trustedTimeUnknown;
 }
 
 /// 받은 항목 하나.
