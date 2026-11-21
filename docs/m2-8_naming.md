@@ -807,3 +807,16 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AK-5 | 🆕 `AppRoutes.x5RepairTarget`(`aaq://x5/repair-wizard/:targetId`) | `navigation/app_links.dart` · `all` 85 |
 | AK-6 | 🆕 `BaselineApplyResultCodes`(`baseline_apply_result` 1) | `labels/repair_codes.dart` · ds `BaselineStoreCodes` 와 다른 이름 |
 | AK-7 | 🆕 `FixturePaths.x5Repair*` 8 | `fixtures/x5/repair_*.json` |
+
+## AL. 🆕 계약 v1.33 (2026-11-21 · E16j-b 계약 창 — X1 기기 이전 화면) — VM 2 · 행 1 · 카드 5 · 창구 1 · 동작 6 · 슬롯 사전 1 · 표본 15
+
+`contractVersion` = **`1.33.0`**(다음 = 1.34.0). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K264~K281 권고대로(정본 = 설계 `10_리뷰/2026-11-21_E16j-b계약창_계약v1.33_설계서.md` · 01 §42). 🔴 엔진 이름(core `PlanStep` · `RecoveryStep` · `ReissueItem` · `ReissueChecklist` · `TransferTicket` · `FencingVerdict` · `RestoreVerdict` · `MigrationGateVerdict` · `MigrationStepRow` · `PlanProgress` · ds `RecoveryRun`)과 겹치지 않는다(K80 · C-67 ⑭ · core 대조 시험).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AL-1 | 🆕 `X1PlanWizardVm` · `X1RecoveryVm` · `X1StepRow` | `dto/migration.dart` · 옛 폰 마법사 · 새 폰 받기 · 비상 공용 · 행(9 · 5) |
+| AL-2 | 🆕 `X1TicketCard` · `X1FencingCard` · `X1ReissueRow` · `X1RestoreCard` · `X1GateCard` | `dto/migration.dart` · 카드 |
+| AL-3 | 🆕 `MigrationRepository`(`watchPlanWizard` · `watchPlanRecovery` · `watchEmergencyRecovery`) | `repositories/migration_repository.dart` · 폰 전용 · `ui_safety` 만 |
+| AL-4 | 🆕 `SafetyActionId.x1PlanStart` · `x1PlanStep` · `x1PlanAbort` · `x1EmergencyStart` · `x1ReissueRecord` · `x1RecoveryStep` | `enums/command.dart` · 전부 `run` 화이트리스트 |
+| AL-5 | 🆕 `X1SlotIds`(`x1_slot` 4) | `labels/migration_codes.dart` · 시크릿 = `SECRET_` 접두 |
+| AL-6 | 🆕 `FixturePaths.x1*` 15 | `fixtures/x1/*.json` |

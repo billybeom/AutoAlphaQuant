@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 126개 · 계약 v1.32.0 · 조립일 2026-11-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 128개 · 계약 v1.33.0 · 조립일 2026-11-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -356,12 +356,19 @@ export 'commands/settings_actions.dart';
 //    (`repairAccept` = `run{diff_id}` 화이트리스트 · 나머지 = 결과 id) · 🆕 `BaselineApplyResultCodes` 1 · 받침대 +4 · op stub 3 · 🆕 C-66 ·
 //    픽스처 367 → 375(신설 8 — 🆕 폴더 `x5/`) — 🆕 tool/gen_e16j_a_v132_fixtures.py · 🔴 엔진 결속 · 후보 · 재대사 · VM 생산 = 미결 217.
 //    다음 판 = 1.33.0(🔴 첫 후보 = E16j-b X1 화면 계약 — 미결 211 남은 몫 · 그 밖 v1.28 예약 목록 그대로) · 06 변경 이력 «2026-11-2x · 계약 v1.32».
+// 🆕 '1.33.0'(E16j-b 계약 창 · 01 §42 · 발주자 위임 2026-11-14 — 권고대로 · K264~K281) — X1 기기 이전 화면(미결 211 닫음):
+//    🆕 `X1PlanWizardVm` · `X1RecoveryVm` · `X1StepRow` · `X1TicketCard` · `X1FencingCard` · `X1ReissueRow` · `X1RestoreCard` · `X1GateCard`
+//    (`dto/migration.dart` · D-03 = `EmergencyCardVm` 재사용) · 🆕 `MigrationRepository`(3 스트림) · 라우트 신설 0 · 인자 0(주석 정정만) ·
+//    `SafetyActionId` +6(`x1PlanStart` · `x1PlanStep` · `x1PlanAbort` · `x1EmergencyStart` · `x1ReissueRecord` · `x1RecoveryStep` — 전부 `run`
+//    화이트리스트 · 표면 무변경) · 🆕 `X1SlotIds` 4(`x1_slot`) · 받침대 +1 · 🆕 C-67 · C-5 필드 규칙 +4 ·
+//    픽스처 375 → 390(신설 15 — 🆕 폴더 `x1/`) — 🆕 tool/gen_e16j_b_v133_fixtures.py · 🔴 VM 생산 · 단계 진행기 · 저장 · 백업 원천 = 미결 218.
+//    다음 판 = 1.34.0(첫 후보 = v1.28 예약 목록 그대로) · 06 변경 이력 «2026-11-2x · 계약 v1.33».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.32.0';
+const String contractVersion = '1.33.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -428,6 +435,7 @@ export 'dto/incident.dart';
 export 'dto/journal.dart';
 export 'dto/ledger.dart';
 export 'dto/ledger_trust.dart';
+export 'dto/migration.dart'; // 🆕 v1.33 — X1 기기 이전(01 §42)
 export 'dto/onboarding.dart';
 export 'dto/operations.dart';
 export 'dto/ops.dart';
@@ -582,6 +590,7 @@ export 'repositories/journal_repository.dart';
 export 'repositories/kill_switch_gate_repository.dart';
 export 'repositories/ledger_repository.dart';
 export 'repositories/ledger_trust_repository.dart';
+export 'repositories/migration_repository.dart'; // 🆕 v1.33 — X1 기기 이전(01 §42)
 export 'repositories/onboarding_repository.dart';
 export 'repositories/ops_repository.dart';
 export 'repositories/pairing_repository.dart';
@@ -1763,8 +1772,9 @@ part 'safety_actions.g.dart';
 /// 🔴 사전 저널 꼴 ⓐ(K180) — 사람 글 3필드(`rationaleBefore` · `expectedOutcome` · `ruleCited` 원문)는 제출 DTO 에 · 저널 id 는
 ///    구현 · 저널 행과 동작은 한 트랜잭션(고아 저널 0 · 엔진 «저널 함께 쓰기» 판 = 01 §8 미결 206).
 /// 🆕 v1.32(01 §41 · K251~K259 · E16j-a · X5 정정 마법사 `RepairWizardVm`):
-/// · `run` 화이트리스트 +1 — `repairAccept` = `{diff_id}`(아무것도 안 하기 · 구현 = 살아 있는 개입 세션 `DO_NOTHING` + diff ACCEPTED ·
-///   무결성 갈래 0 · 결과 id = [SafetyActionId.repairAccept]).
+/// · `run` 화이트리스트 +1(🆕 v1.33 에 표 꼴로 맞춤 — C-60 ⑮):
+///    · `repairAccept`     = `{diff_id}`(아무것도 안 하기 · 구현 = 살아 있는 개입 세션 `DO_NOTHING` + diff ACCEPTED ·
+///                           무결성 갈래 0 · 결과 id = [SafetyActionId.repairAccept]).
 /// · `runRepairCorrect` — 정본 정정(diff 갈래 · 5단계 통과 뒤 · 원문 4칸 파싱 = 구현 · 직전 재대사 = 구현 · `decision_id` = 개입 세션 저널 ·
 ///   거부 = `RepairResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪ `InterventionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairCorrect].
 /// · `runRepairBaseline` — 새 기준점(무결성 갈래 · 거부 = `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `InterventionResultCodes` ∪
@@ -1772,6 +1782,16 @@ part 'safety_actions.g.dart';
 /// · `runInterventionJournal` — 개입 3단계 사전 저널(K180 꼴 3칸 · 구현 = 살아 있는 세션 하나에 붙인다 · 저널 + 3단계 한 트랜잭션 · M5-6 재사용 ·
 ///   거부 = `InterventionResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.interventionJournal].
 /// 🔴 정정 · 새 기준점 커밋이 개입 세션 5단계 · 실행 창 · `decision == journalId` 를 보게 하는 결속 = 엔진 숙제(01 §8 미결 217).
+/// 🆕 v1.33(01 §42 · K273 · E16j-b · X1 기기 이전 `X1PlanWizardVm` · `X1RecoveryVm`) — `run` 화이트리스트 +6(표면 무변경 · 제출 DTO 0 ·
+///    시크릿 = 슬롯 ↔ 구현 사이만 · `run_id` = 엔진이 args 에 싣는다):
+///    · `x1PlanStart`      = `{}`(옛 폰 «봤습니다 — 이전 시작» · D-03 확인 결정 + 저널 시작 = 구현 · 거부 = `X1StartResultCodes` ∪ `X1JournalResultCodes` ∪ 공용)
+///    · `x1PlanStep`       = `{run_id, step ∈ X1StepCodes}`(거부 = `X1StepBlockCodes` ∪ `X1JournalResultCodes` ∪ 공용)
+///    · `x1PlanAbort`      = `{run_id, step}`(DEMOTED 앞만 · 거부 = `X1JournalResultCodes`)
+///    · `x1EmergencyStart` = `{}`(비상 선언 결정 + 복구 코드 슬롯 → epoch+1 = 구현 · 거부 = `X1StartResultCodes` ∪ `X1RecoveryResultCodes` ∪ 공용)
+///    · `x1ReissueRecord`  = `{run_id, item ∈ X1ReissueItemCodes}`(값 = 슬롯 · 지문만 엔진 · 거부 = `X1ReissueResultCodes`)
+///    · `x1RecoveryStep`   = `{run_id, step ∈ X1RecoveryStepCodes}`(골든 · 체크리스트 · 생체 = 구현이 가른다 · 거부 = `X1GateReasonCodes` ∪
+///                           `X1RestoreResultCodes` ∪ `BackupResultCodes` ∪ `X1OrderSealCodes` ∪ `X1RecoveryResultCodes` ∪ `BIOMETRIC_UNAVAILABLE`)
+/// 🔴 VM 생산 · 단계 진행기 · REVOKED · 재발급 저장 · 백업 바이트 원천 = 엔진 · 조립 숙제(01 §8 미결 218) — 그 전 운영 앱 = 모르는 id 오류.
 abstract interface class SafetyActions {
   /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
   Future<SafetyActionResult> run(
@@ -5100,6 +5120,282 @@ abstract class SelfReportLine with _$SelfReportLine {
   factory SelfReportLine.fromJson(Map<String, dynamic> json) =>
       _$SelfReportLineFromJson(json);
 }
+```
+
+---
+
+## `packages/domain_contracts/lib/src/dto/migration.dart`
+
+```dart
+// 🆕 계약 v1.33(01 §42 · K264~K281 · E16j-b) — X1 기기 이전 화면(`X1-2`~`X1-6` · 🔒 `ui_safety`) VM.
+//
+// 옛 폰 계획 마법사(`x1Migration`) = [X1PlanWizardVm] · 새 폰 받기(`x1MigrationPlan`) · 새 폰 비상 복구(`x1MigrationEmergency`) =
+// [X1RecoveryVm](같은 꼴 · 엔진이 갈래를 고른다). 창구 = `MigrationRepository`(폰 전용 · 라우트 인자 0 — 한 기기 한 이전 · 엔진이 마지막 run 을 안다).
+// 🔴 문장 · 라벨 · 시각 · 해시 글자 = 엔진 · `code`/`reasonCode`/`blockCode`/`gateStateCode` 칸 = 화면 미참조(표본 · 사전 검사용) · 색 = `level` 하나.
+// 🔴 동작 = 엔진이 완성한 `SafetyActionCall`(그대로 `SafetyActions.run` · args 의 `run_id` = 엔진) — 화면은 id · args 를 짓지 않는다.
+// 🔴 발주자 수치(관찰 일수 · 넘김 시간 · 펜싱 마진 · 재생성 상한 · 티켓 TTL) = 엔진 글자로만(칸 0) · 카운트다운 0(절대 시각 글자).
+// 🔴 시크릿(복구 코드 · 재발급 키 값) = 슬롯 ↔ 구현 사이만(동작 args 0 · v1.31 `supabaseSignIn` 선례) · 기기 id 원문 · sha256 전체 0.
+// 🔴 VM 생산 · 단계 진행기 · 저장(REVOKED · 재발급) · 백업 바이트 원천 = 엔진 · 조립 숙제(01 §8 미결 218) — 그 전에는 엔진이 이 VM 을 내지 않는다.
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../commands/safety_actions.dart'; // SafetyActionCall
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import 'common.dart'; // LinkAction
+import 'incident.dart'; // EmergencyCardVm
+
+part 'migration.freezed.dart';
+part 'migration.g.dart';
+
+/// 옛 폰 계획 교체 마법사(`x1Migration` · 06 X1-2 · 08 그림 9-1).
+///
+/// 🔴 시작 전 = [d03Card] 한 장(건너뛰기 0) + [startAction] «봤습니다 — 이전 시작» · 그때 [rows] 빈 목록.
+/// 🔴 [lockedLabel] · [doneLabel] 가 non-null 이면 동작 0([startAction] · 행 동작) · 슬롯 0.
+@freezed
+abstract class X1PlanWizardVm with _$X1PlanWizardVm {
+  const factory X1PlanWizardVm({
+    /// 머리 문장(시작 전 · 단계 · 강등 뒤 · 끝) — 엔진.
+    required String headline,
+    required UiLevel level,
+
+    /// 🔴 화면 미참조 — ∈ `X1StartResultCodes` ∪ `X1StepBlockCodes` ∪ `X1JournalResultCodes` ∪ `X1BootRefusalCodes` ∪ 공용.
+    String? reasonCode,
+
+    /// `D-03` 긴급정지 카드 한 장(기존 VM 재사용) — 시작 전만.
+    EmergencyCardVm? d03Card,
+
+    /// 엔진이 완성한 `x1PlanStart{}` — [d03Card] non-null ⇔ non-null(잠김 · 거부 제외).
+    SafetyActionCall? startAction,
+
+    /// 단계 9(`X1StepCodes.ordered` 차례) 또는 빈 목록(시작 전 · 거부).
+    required List<X1StepRow> rows,
+
+    /// 감시 유지보수 창 글자(열림 시각 · 넘김 — 엔진 글자 · 시간 칸 0).
+    String? windowText,
+
+    /// 보내지 않은 기록 · 초안 · 유예 경고 줄(D18 · D6) — 엔진(원천 = 미결 218 ⓐ).
+    required List<String> warningLines,
+
+    /// 티켓 QR 카드 — `TICKET_ISSUED` 뒤만.
+    X1TicketCard? ticket,
+
+    /// 끝난 뒤 문장. non-null ⇒ 동작 0.
+    String? doneLabel,
+
+    /// 생체 · 리스 · 뷰어 잠김. non-null ⇒ 동작 0.
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _X1PlanWizardVm;
+
+  factory X1PlanWizardVm.fromJson(Map<String, dynamic> json) =>
+      _$X1PlanWizardVmFromJson(json);
+}
+// JSON 키: headline · level · reason_code · d03_card · start_action · rows · window_text · warning_lines · ticket · done_label ·
+//          locked_label · as_of
+
+/// 단계 한 행 — 옛 폰 9 · 새 폰 5 공용.
+@freezed
+abstract class X1StepRow with _$X1StepRow {
+  const factory X1StepRow({
+    /// 🔴 화면 미참조 — ∈ `X1StepCodes` ∪ `X1RecoveryStepCodes`.
+    required String code,
+    required String title,
+
+    /// 상태 글자(원천 = 저널 `X1StepStateCodes`) — 엔진.
+    required String stateLabel,
+    required UiLevel level,
+
+    /// 막힘 이유 · DEMOTED «여기부터 되돌릴 수 없음» · 갭 위반 줄 — 엔진.
+    required List<String> lines,
+
+    /// 🔴 화면 미참조 — ∈ `X1StepBlockCodes` ∪ `X1GapViolationCodes` ∪ `X1GateReasonCodes`.
+    String? blockCode,
+
+    /// 엔진 완성 — 옛 폰 `x1PlanStep{run_id, step}` · `x1PlanAbort{run_id, step}`(DEMOTED 앞만) · 새 폰 `x1RecoveryStep{run_id, step}`.
+    required List<SafetyActionCall> actions,
+  }) = _X1StepRow;
+
+  factory X1StepRow.fromJson(Map<String, dynamic> json) =>
+      _$X1StepRowFromJson(json);
+}
+// JSON 키: code · title · state_label · level · lines · block_code · actions
+
+/// 이전 티켓 QR 카드(옛 폰 · 강등 뒤). 🔴 페이로드 칸 0 — QR 은 슬롯 위젯이 구현에서 받아 그린다(`PairingTicketCard` 꼴).
+@freezed
+abstract class X1TicketCard with _$X1TicketCard {
+  const factory X1TicketCard({
+    required String headline,
+
+    /// QR 표시 자리 이름(`X1SlotIds.ticketQrDisplay`). null = 자리 부재.
+    String? ticketSlotId,
+
+    /// «09:15 까지 유효» — 엔진 절대 시각 글자(🔴 남은 초를 세지 않는다).
+    String? expiresText,
+
+    /// 백업 날 · 체인 8자 등 — 엔진.
+    required List<String> lines,
+  }) = _X1TicketCard;
+
+  factory X1TicketCard.fromJson(Map<String, dynamic> json) =>
+      _$X1TicketCardFromJson(json);
+}
+// JSON 키: headline · ticket_slot_id · expires_text · lines
+
+/// 새 폰 복구(받기 · 비상 공용 · 06 X1-3~X1-5 · 08 그림 9-2).
+///
+/// 🔴 받기 = [scanSlotId] · [startAction] null · [reissue] 빈 목록 / 비상 = [startAction] `x1EmergencyStart{}` · [recoveryCodeSlotId] ·
+///    [fencing] · [reissue] 6행.
+/// 🔴 [lockedLabel] · [doneLabel] 가 non-null 이면 동작 0 · 슬롯 0. [restartLink] non-null ⇔ `X1_RECOVERY_FULL`(그때 동작 0).
+@freezed
+abstract class X1RecoveryVm with _$X1RecoveryVm {
+  const factory X1RecoveryVm({
+    required String headline,
+    required UiLevel level,
+
+    /// 🔴 화면 미참조 — ∈ `X1RecoveryResultCodes` ∪ `X1RestoreResultCodes` ∪ `BackupResultCodes` ∪ `X1OrderSealCodes` ∪
+    ///    `X1FencingResultCodes` ∪ `X1ReissueResultCodes` ∪ `X1StartResultCodes` ∪ `X1GateReasonCodes` ∪ 공용.
+    String? reasonCode,
+
+    /// «계획 이전» · «비상 이전» — 엔진.
+    required String kindLabel,
+
+    /// 비상 = 엔진 완성 `x1EmergencyStart{}`(선언 결정 + 복구 코드 슬롯 → epoch+1 = 구현) · 받기 = null.
+    SafetyActionCall? startAction,
+
+    /// 복구 코드 입력 자리(`X1SlotIds.recoveryCode` · 비상 시작 전만).
+    String? recoveryCodeSlotId,
+
+    /// 펜싱 대기(비상만).
+    X1FencingCard? fencing,
+
+    /// 재발급 6행(`X1ReissueItemCodes.ordered` 차례 · 비상만) 또는 빈 목록.
+    required List<X1ReissueRow> reissue,
+
+    /// 티켓 QR 스캔 자리(`X1SlotIds.ticketQrScan` · 받기 시작 전만).
+    String? scanSlotId,
+
+    /// 복원 판정 카드.
+    X1RestoreCard? restore,
+
+    /// 복구 단계 5(`X1RecoveryStepCodes.ordered` 차례) 또는 빈 목록.
+    required List<X1StepRow> steps,
+
+    /// LIVE 재개 게이트(GAP_REBUILT 뒤).
+    X1GateCard? gate,
+
+    /// RECOVERY_FULL → `onboardingRestart`(잔고 승계 새 시작 · 엔진 완성).
+    LinkAction? restartLink,
+
+    /// 감시 창 글자 — 엔진.
+    String? windowText,
+
+    /// «정정 · 재발급은 되돌리지 않습니다» 류 — 엔진.
+    String? noticeText,
+    String? doneLabel,
+    String? lockedLabel,
+    required AsOf asOf,
+  }) = _X1RecoveryVm;
+
+  factory X1RecoveryVm.fromJson(Map<String, dynamic> json) =>
+      _$X1RecoveryVmFromJson(json);
+}
+// JSON 키: headline · level · reason_code · kind_label · start_action · recovery_code_slot_id · fencing · reissue · scan_slot_id ·
+//          restore · steps · gate · restart_link · window_text · notice_text · done_label · locked_label · as_of
+
+/// 펜싱 대기 카드(비상 · 옛 리스 만료까지).
+@freezed
+abstract class X1FencingCard with _$X1FencingCard {
+  const factory X1FencingCard({
+    required String headline,
+    required UiLevel level,
+
+    /// 대기 끝 절대 시각 글자(«11-22 09:15 부터») — 엔진(🔴 카운트다운 0 · 마진 칸 0).
+    String? endsAtText,
+
+    /// 🔴 화면 미참조 — ∈ `X1FencingResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`.
+    String? code,
+    required List<String> lines,
+  }) = _X1FencingCard;
+
+  factory X1FencingCard.fromJson(Map<String, dynamic> json) =>
+      _$X1FencingCardFromJson(json);
+}
+// JSON 키: headline · level · ends_at_text · code · lines
+
+/// 재발급 체크리스트 한 행(비상).
+@freezed
+abstract class X1ReissueRow with _$X1ReissueRow {
+  const factory X1ReissueRow({
+    /// 🔴 화면 미참조 — ∈ `X1ReissueItemCodes`.
+    required String code,
+
+    /// 항목 이름 — 엔진(`ReissueItem.label`).
+    required String label,
+
+    /// «받음» · «남음» · «해당 없음» — 엔진.
+    required String stateLabel,
+    required UiLevel level,
+
+    /// 새 값 입력 자리(`X1SlotIds.reissueSecret` · 시크릿 항목만). null = 자리 부재.
+    String? reissueSlotId,
+
+    /// 엔진 완성 `x1ReissueRecord{run_id, item}` — 값 = 슬롯 ↔ 구현 · 지문만 엔진. null = 끝 · 해당 없음.
+    SafetyActionCall? recordAction,
+  }) = _X1ReissueRow;
+
+  factory X1ReissueRow.fromJson(Map<String, dynamic> json) =>
+      _$X1ReissueRowFromJson(json);
+}
+// JSON 키: code · label · state_label · level · reissue_slot_id · record_action
+
+/// 복원 판정 카드(매니페스트 요약 · 거부 사유).
+@freezed
+abstract class X1RestoreCard with _$X1RestoreCard {
+  const factory X1RestoreCard({
+    required String headline,
+    required UiLevel level,
+
+    /// 🔴 화면 미참조 — ∈ `X1RestoreResultCodes` ∪ `BackupResultCodes`.
+    String? code,
+
+    /// 매니페스트 날 · 스키마 · 해시 판 · epoch + 판정 사유 — 엔진 문장(🔴 sha256 전체 · 기기 id 0).
+    required List<String> lines,
+
+    /// 체인 해시 8자 — 엔진이 자른다(`RestorePointRow.chainHashText` 선례).
+    String? chainHashText,
+  }) = _X1RestoreCard;
+
+  factory X1RestoreCard.fromJson(Map<String, dynamic> json) =>
+      _$X1RestoreCardFromJson(json);
+}
+// JSON 키: headline · level · code · lines · chain_hash_text
+
+/// LIVE 재개 게이트 카드(`X1-5` · 녹/황/적 · 왜 막혔는지 + 지금 할 조치).
+@freezed
+abstract class X1GateCard with _$X1GateCard {
+  const factory X1GateCard({
+    required String stateLabel,
+    required UiLevel level,
+
+    /// 🔴 화면 미참조 — ∈ `X1GateStateCodes`.
+    required String gateStateCode,
+
+    /// 🔴 화면 미참조 — ∈ `X1GateReasonCodes`.
+    String? code,
+
+    /// 관찰 «n/m 거래일» — 엔진 글자(🔴 일수 칸 0).
+    String? observeText,
+    required String whyLine,
+    String? actionLine,
+
+    /// 확인 항목 — 엔진(문안 = 발주자 · 원천 = 미결 218 ⓗ).
+    required List<String> checklistLines,
+  }) = _X1GateCard;
+
+  factory X1GateCard.fromJson(Map<String, dynamic> json) =>
+      _$X1GateCardFromJson(json);
+}
+// JSON 키: state_label · level · gate_state_code · code · observe_text · why_line · action_line · checklist_lines
 ```
 
 ---
@@ -9707,7 +10003,31 @@ enum SafetyActionId {
 
   /// 🆕 v1.32(K252) — 개입 3단계 사전 저널(제출 `runInterventionJournal` · 결과 id · M5-6 공용).
   @JsonValue('INTERVENTION_JOURNAL')
-  interventionJournal('INTERVENTION_JOURNAL');
+  interventionJournal('INTERVENTION_JOURNAL'),
+
+  /// 🆕 v1.33(01 §42 · K273 · E16j-b) — X1 옛 폰 «봤습니다 — 이전 시작»(`run{}` · D-03 확인 결정 = 구현).
+  @JsonValue('X1_PLAN_START')
+  x1PlanStart('X1_PLAN_START'),
+
+  /// 🆕 v1.33(K273) — X1 옛 폰 단계 진행(`run{run_id, step}`).
+  @JsonValue('X1_PLAN_STEP')
+  x1PlanStep('X1_PLAN_STEP'),
+
+  /// 🆕 v1.33(K273) — X1 옛 폰 이전 그만두기(`run{run_id, step}` · DEMOTED 앞 행만).
+  @JsonValue('X1_PLAN_ABORT')
+  x1PlanAbort('X1_PLAN_ABORT'),
+
+  /// 🆕 v1.33(K273) — X1 새 폰 비상 시작(`run{}` · 선언 결정 + 복구 코드 슬롯 → epoch+1 = 구현).
+  @JsonValue('X1_EMERGENCY_START')
+  x1EmergencyStart('X1_EMERGENCY_START'),
+
+  /// 🆕 v1.33(K273) — X1 재발급 한 항목 기록(`run{run_id, item}` · 값 = 슬롯 ↔ 구현 · 지문만 엔진).
+  @JsonValue('X1_REISSUE_RECORD')
+  x1ReissueRecord('X1_REISSUE_RECORD'),
+
+  /// 🆕 v1.33(K273) — X1 새 폰 복구 단계(`run{run_id, step}` · 골든 · 체크리스트 · 생체 = 구현이 가른다 · 생체 = 구현 K11).
+  @JsonValue('X1_RECOVERY_STEP')
+  x1RecoveryStep('X1_RECOVERY_STEP');
 
   const SafetyActionId(this.wire);
 
@@ -12339,6 +12659,57 @@ abstract final class FixturePaths {
   /// 🆕 v1.18 — `S01` 뷰어 판(폰 전용 행을 엔진이 뺀 VM).
   static const String m9SettingsHomeViewer = 'm9/settings_home_viewer.json';
 
+  // ── x1/ — 🆕 v1.33(01 §42 · K279 · E16j-b) X1 기기 이전 `X1PlanWizardVm` 6 · `X1RecoveryVm` 8 · 결과 1 · 폴더 신설(파일 이름 바이트 차례) ──
+  /// 🆕 v1.33 — 옛 폰 단계 막힘(ORDERS_CLEARED · `OPEN_ORDERS_REMAIN` · 되돌리기 동작).
+  static const String x1PlanWizardBlocked = 'x1/plan_wizard_blocked.json';
+
+  /// 🆕 v1.33 — 옛 폰 시작 전(D-03 한 장 + `X1_PLAN_START{}` · 행 0).
+  static const String x1PlanWizardD03 = 'x1/plan_wizard_d03.json';
+
+  /// 🆕 v1.33 — 옛 폰 강등 뒤(DEMOTED 끝 · 되돌리기 0 · 경고 줄).
+  static const String x1PlanWizardDemoted = 'x1/plan_wizard_demoted.json';
+
+  /// 🆕 v1.33 — 옛 폰 모의 거부(`X1_LIVE_ONLY` · 동작 0).
+  static const String x1PlanWizardLiveOnly = 'x1/plan_wizard_live_only.json';
+
+  /// 🆕 v1.33 — 옛 폰 잠김(`locked_label` · 동작 0).
+  static const String x1PlanWizardLocked = 'x1/plan_wizard_locked.json';
+
+  /// 🆕 v1.33 — 옛 폰 티켓 발급 뒤(9단계 끝 · QR 카드).
+  static const String x1PlanWizardTicket = 'x1/plan_wizard_ticket.json';
+
+  /// 🆕 v1.33 — 새 폰 비상 펜싱 대기 · 재발급 6행.
+  static const String x1RecoveryEmergencyFencing =
+      'x1/recovery_emergency_fencing.json';
+
+  /// 🆕 v1.33 — 새 폰 비상 시작 전(복구 코드 자리 + `X1_EMERGENCY_START{}`).
+  static const String x1RecoveryEmergencyStart =
+      'x1/recovery_emergency_start.json';
+
+  /// 🆕 v1.33 — 새 폰 RECOVERY_FULL(`restart_link` → `onboardingRestart` · 동작 0).
+  static const String x1RecoveryFull = 'x1/recovery_full.json';
+
+  /// 🆕 v1.33 — 새 폰 공백 재구성 막힘(`GAP_OVERSOLD`).
+  static const String x1RecoveryGapViolation = 'x1/recovery_gap_violation.json';
+
+  /// 🆕 v1.33 — 새 폰 게이트 생체 대기(`X1_RECOVERY_STEP{BIOMETRIC_CONFIRMED}`).
+  static const String x1RecoveryGateBiometric =
+      'x1/recovery_gate_biometric.json';
+
+  /// 🆕 v1.33 — 새 폰 게이트 관찰 n/m.
+  static const String x1RecoveryGateObserving =
+      'x1/recovery_gate_observing.json';
+
+  /// 🆕 v1.33 — 새 폰 받기 시작 전(QR 스캔 자리).
+  static const String x1RecoveryPlanScan = 'x1/recovery_plan_scan.json';
+
+  /// 🆕 v1.33 — 새 폰 복원 거부(`RESTORE_ROLLBACK`).
+  static const String x1RecoveryRestoreRejected =
+      'x1/recovery_restore_rejected.json';
+
+  /// 🆕 v1.33 — 결과 14행(`SafetyActionResult` · 동작 6 · 거부 사전 합집합).
+  static const String x1X1ActionResults = 'x1/x1_action_results.json';
+
   // ── x2/ — 🆕 v1.22(01 §31 · K63 · K64) X2 재개 게이트 4 · 재개 리포트 2 · 폴더 신설(파일 이름 바이트 차례) ──
   //    🆕 v1.25(01 §34) — 게이트 막힌 것 0 · 리포트 화면 감싸개 3.
 
@@ -12763,6 +13134,21 @@ abstract final class FixturePaths {
     m9SettingsHome,
     m9SettingsHomeNoReview,
     m9SettingsHomeViewer,
+    x1PlanWizardBlocked,
+    x1PlanWizardD03,
+    x1PlanWizardDemoted,
+    x1PlanWizardLiveOnly,
+    x1PlanWizardLocked,
+    x1PlanWizardTicket,
+    x1RecoveryEmergencyFencing,
+    x1RecoveryEmergencyStart,
+    x1RecoveryFull,
+    x1RecoveryGapViolation,
+    x1RecoveryGateBiometric,
+    x1RecoveryGateObserving,
+    x1RecoveryPlanScan,
+    x1RecoveryRestoreRejected,
+    x1X1ActionResults,
     x2ResumeGateClear,
     x2ResumeGateConservativeDefer,
     x2ResumeGateLocked,
@@ -14115,6 +14501,8 @@ abstract final class ContractCodes {
     'derived_relation': DerivedRelationCodes.values,
     // 🆕 v1.32(01 §41 · E16j-a) — 새 기준점 저장 쪽 거부(ds `BaselineStoreCodes` − 공용)
     'baseline_apply_result': BaselineApplyResultCodes.values,
+    // 🆕 v1.33(01 §42 · E16j-b) — X1 이전 화면 🔒 슬롯 이름
+    'x1_slot': X1SlotIds.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -14734,6 +15122,29 @@ abstract final class MaintenanceWindowEventCodes {
     overdue,
     closed,
     resumeFailed,
+  };
+}
+
+/// 🆕 v1.33(01 §42 · K274 · E16j-b) — X1 이전 화면의 🔒 슬롯 이름(도메인 `x1_slot` · 화면은 해석하지 않고 주입된 슬롯 빌더에 넘긴다).
+/// 시크릿 자리 = `SECRET_` 접두(v1.20 K31 선례) · 값은 슬롯 ↔ 구현 사이만(동작 args 0).
+abstract final class X1SlotIds {
+  /// 옛 폰 — 이전 티켓 QR 표시(`X1TicketCard.ticketSlotId` · FLAG_SECURE = 슬롯 위젯).
+  static const String ticketQrDisplay = 'X1_TICKET_QR_DISPLAY';
+
+  /// 새 폰 받기 — 티켓 QR 스캔(`X1RecoveryVm.scanSlotId`).
+  static const String ticketQrScan = 'X1_TICKET_QR_SCAN';
+
+  /// 새 폰 비상 — 복구 코드 입력(`X1RecoveryVm.recoveryCodeSlotId` · 시크릿).
+  static const String recoveryCode = 'SECRET_X1_RECOVERY_CODE';
+
+  /// 새 폰 비상 — 재발급한 키 · 토큰 값 입력(`X1ReissueRow.reissueSlotId` · 시크릿 · 지문만 엔진).
+  static const String reissueSecret = 'SECRET_X1_REISSUE';
+
+  static const Set<String> values = <String>{
+    ticketQrDisplay,
+    ticketQrScan,
+    recoveryCode,
+    reissueSecret,
   };
 }
 ```
@@ -17058,12 +17469,16 @@ abstract final class AppRoutes {
 
   /// 🆕 v1.21 — 🔒 `M5-9` 규칙 변경 게이트(M9 `S04` «적용» `ActionResult.handoffRoute` 목적지 · R8) · 본문 = 빈 자리(E13m).
   static const String m5RuleChangeGate = 'aaq://m5/rule-change-gate';
+
+  /// 🔒 X1 **옛 폰 계획 교체 마법사**(`X1-2` · S06 리스 카드 · S09 «폰을 바꾸시나요?» 진입) — 🆕 v1.33(01 §42 · K265) VM = `X1PlanWizardVm`.
   static const String x1Migration = 'aaq://x1/migration';
 
-  /// 🆕 v1.16(01 §25 · K5) — `R-01` 분기 «구 폰이 옆에 있어요» = X1 계획 경로(QR · 🔒 X1-2).
+  /// 🆕 v1.16(01 §25 · K5) — `R-01` 분기 «구 폰이 옆에 있어요» = X1 **새 폰 받기**(QR 스캔 · 🔒 X1-4 · X1-5) — 🆕 v1.33(K265) 정정:
+  /// 옛 «X1-2» 표기는 옛 폰 몫(`x1Migration`)이다 · VM = `X1RecoveryVm`(`MigrationRepository.watchPlanRecovery`).
   static const String x1MigrationPlan = 'aaq://x1/migration/plan';
 
-  /// 🆕 v1.16 — `R-01` 분기 «잃어버렸어요» = X1 비상 경로(복구 코드 → epoch+1 → TTL 대기 · 🔒 X1-3).
+  /// 🆕 v1.16 — `R-01` 분기 «잃어버렸어요» = X1 비상 경로(복구 코드 → epoch+1 → TTL 대기 · 🔒 X1-3) · 경계 X1 안내(X1-G) —
+  /// 🆕 v1.33(K265) VM = `X1RecoveryVm`(`MigrationRepository.watchEmergencyRecovery`).
   static const String x1MigrationEmergency = 'aaq://x1/migration/emergency';
 
   /// 🆕 v1.25(01 §34 · K156) — 🔒 X2-6 리포트 본문 = `ui_safety`(VM = `ResumeReportVm`).
@@ -18027,6 +18442,32 @@ abstract interface class LedgerTrustRepository {
     String yyyyMm,
     String accountAlias,
   );
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/repositories/migration_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 계약 v1.33(01 §42 · K266 · E16j-b) — X1 기기 이전 읽기 창구(폰 전용 · `ui_safety` 만 · 구현 = 조립 앱 — 엔진 VM 생산).
+//
+// 🔴 라우트 인자 0 — 한 기기 한 이전 · 열린 창 하나(엔진이 마지막 run 을 안다 · 동작 args 의 `run_id` = 엔진).
+// 🔴 시작 전 · 끝난 뒤 · 거부 = 엔진 문장 VM(스트림 에러가 아니다).
+// 🔴 쓰기 = `SafetyActions.run`(VM · 행의 동작 그대로 · X1 id 6 · 제출 DTO 0).
+
+import '../dto/migration.dart';
+
+/// X1 기기 이전 화면 셋.
+abstract interface class MigrationRepository {
+  /// 옛 폰 계획 교체 마법사(`x1Migration`).
+  Stream<X1PlanWizardVm> watchPlanWizard();
+
+  /// 새 폰 받기(`x1MigrationPlan` · QR 스캔 → 복원 → 복구 단계 → 게이트).
+  Stream<X1RecoveryVm> watchPlanRecovery();
+
+  /// 새 폰 비상 복구(`x1MigrationEmergency` · 복구 코드 → 펜싱 → 재발급 → 복원 → 이하 받기와 같음).
+  Stream<X1RecoveryVm> watchEmergencyRecovery();
 }
 ```
 
