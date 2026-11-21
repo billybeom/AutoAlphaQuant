@@ -65,6 +65,8 @@ export 'src/local/live_observation_facts.dart';
 export 'src/local/live_promotion_store.dart';
 export 'src/local/mode_anchor.dart';
 export 'src/local/mode_store.dart';
+// 🆕 미결 209 ⓔ-1 — 월간 리포트 원천(원장 → 엔진 입력 · 월 잡과 같은 노출 집계 · 설계 13 §8 R218).
+export 'src/local/monthly_report_source.dart';
 export 'src/local/onboarding_progress_store.dart';
 export 'src/local/onboarding_store.dart';
 export 'src/local/operating_param_store.dart';

@@ -22,10 +22,12 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../local/deposit_ledger.dart';
+import '../local/monthly_report_source.dart'
+    show ledgerCloseTextsOf, ledgerExposureTallyOf;
 import '../local/planned_work_store.dart'
     show monthlyPlanOneLine, plannedWorkIdOf, registerPlannedWork;
 import '../local/position_replay_sql.dart'
-    show kLedgerFillColumnsSql, krSignedFillsAfter, ledgerFillRowOf;
+    show kLedgerFillColumnsSql, ledgerFillRowOf;
 import '../market/market_store.dart';
 import '../market/regime_store.dart';
 import 'daily_jobs.dart';
@@ -283,18 +285,8 @@ class MonthlyRebalanceJob {
     _parkingSymbol,
   }.toList()..sort();
 
-  Map<String, String> _closeTexts(String day, Iterable<String> symbols) {
-    final Map<String, String> out = <String, String>{};
-    for (final String s in symbols) {
-      final ResultSet rs = _db.select(
-        "SELECT close_unadj FROM daily_prices WHERE market = 'KR' AND symbol = ? AND trade_date = ?",
-        <Object?>[s, day],
-      );
-      final Object? v = rs.isEmpty ? null : rs.first['close_unadj'];
-      if (v is num && v > 0) out[s] = v.toString();
-    }
-    return out;
-  }
+  Map<String, String> _closeTexts(String day, Iterable<String> symbols) =>
+      ledgerCloseTextsOf(_db, day, symbols);
 
   (DirectionState?, String?) _regimeAt(String day) =>
       monthEndRegimeAt(_db, day);
@@ -402,61 +394,14 @@ class MonthlyRebalanceJob {
     TradeDate monthEnd,
     List<LedgerHolding> held,
     P0sWarnSetup setup,
-  ) {
-    final String month = monthEnd.yyyyMmDd.substring(0, 7);
-    final List<String> sessions = <String>[monthEnd.yyyyMmDd];
-    TradeDate d = monthEnd;
-    while (true) {
-      final TradeDate p;
-      try {
-        p = _kr.nthSessionBefore(d, 1);
-      } on StateError {
-        break; // 달력 범위 시작 — 그 앞 세션은 모른다
-      }
-      if (!p.yyyyMmDd.startsWith('$month-')) break;
-      sessions.insert(0, p.yyyyMmDd);
-      d = p;
-    }
-    final SqliteEquitySnapshotStore store = SqliteEquitySnapshotStore(
-      _db,
-      mode: _mode,
-    );
-    return p0sMonthlyExposureTally(
-      month: month,
-      days: <P0sTallyDay>[
-        for (final String day in sessions) _tallyDay(day, held, store),
-      ],
-      setup: setup,
-    );
-  }
-
-  P0sTallyDay _tallyDay(
-    String day,
-    List<LedgerHolding> held,
-    SqliteEquitySnapshotStore store,
-  ) {
-    final EquitySnapshotRow? row = store.at(day);
-    if (row == null) return (date: day, inputs: null, reason: '평가 행 없음');
-    try {
-      final List<LedgerHolding> before = holdingsBeforeFills(
-        held,
-        krSignedFillsAfter(_db, day),
-      );
-      return (
-        date: day,
-        inputs: P0sWarnInputs.fromTexts(
-          holdings: before,
-          closeTexts: _closeTexts(day, <String>{
-            for (final LedgerHolding h in before) h.symbol,
-          }),
-          cashKrw: row.cashKrw,
-        ),
-        reason: null,
-      );
-    } on RiskCheckUnavailable catch (e) {
-      return (date: day, inputs: null, reason: e.message);
-    }
-  }
+  ) => ledgerExposureTallyOf(
+    _db,
+    mode: _mode,
+    kr: _kr,
+    monthEnd: monthEnd,
+    held: held,
+    setup: setup,
+  );
 
   MonthlyRebalanceReport _report(
     String monthEnd,
