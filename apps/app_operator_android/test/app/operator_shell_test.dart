@@ -24,6 +24,7 @@ import 'package:app_operator_android/secret/supabase_connect_field.dart'
 import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
 import 'package:core_engine/core_engine.dart'
     show
+        AnnualReviewVmTexts,
         BackupScreenTexts,
         BlockBoardTexts,
         DeviceRiskFacts,
@@ -63,12 +64,16 @@ import 'package:ui_analytics/planner.dart'
         plannerWhatIfApiProvider;
 import 'package:ui_analytics/ui_analytics.dart'
     show
+        AnnualReviewScreen,
+        ExecutionGapScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
         RebalanceTimelineScreen,
         analyticsClockProvider,
         analyticsLinkOpenerProvider,
         analyticsWhatIfApiProvider,
+        executionGapRepositoryProvider,
+        performanceRepositoryProvider,
         rebalanceRepositoryProvider,
         safetyRepositoryProvider;
 import 'package:ui_journal/ui_journal.dart'
@@ -436,6 +441,44 @@ void main() {
     expect(
       container.read(analyticsWhatIfApiProvider),
       isA<OperatorWhatIfApi>(),
+    );
+    // 🆕 R220 — M7 성과 창구 · 이행 갭 = 같은 인스턴스 · 레지스트리 셋(S7-7 · S7-10 · 그 달).
+    expect(
+      identical(
+        container.read(performanceRepositoryProvider),
+        container.read(operatorPerformanceProvider),
+      ),
+      true,
+    );
+    expect(
+      identical(
+        container.read(executionGapRepositoryProvider),
+        container.read(operatorExecutionGapProvider),
+      ),
+      true,
+    );
+    for (final String r in <String>[
+      AppRoutes.reportAnnual,
+      AppRoutes.ledgerExecutionGap,
+      AppRoutes.ledgerExecutionGapMonth,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+      expect(
+        container.read(operatorPerformanceProvider).hasBody(r),
+        true,
+        reason: '탐색 링크 판단 = 셸이 쓰는 레지스트리 — $r',
+      );
+    }
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.performanceExplore),
+      false,
+      reason: 'S7-2 탐색 = q5 뒤 조각(A 행 링크 0)',
+    );
+    expect(
+      container
+          .read(operatorPerformanceProvider)
+          .hasBody(AppRoutes.performanceExplore),
+      false,
     );
     // 🆕 R178 — M5-1 킬스위치 읽기 = 한 인스턴스 · 명령 = 기기 id 없음 → null(버튼 부재).
     expect(
@@ -1113,6 +1156,66 @@ void main() {
       await settle();
       expect(tester.takeException(), isNull);
       expect(find.byType(RebalanceEventScreen), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M7 S7-7 연간 리뷰 · S7-10 이행 갭(R220) = 조립 셸에 등록 · 엔진 연도 줄 · 갭 = 엔진 문장 · 그 달 = 같은 위젯 · 크래시 없음',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      Future<void> settle() async {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 30)),
+        );
+        await tester.pump();
+        await tester.pump();
+      }
+
+      await open(tester, AppRoutes.reportAnnual);
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder annual = find.byType(AnnualReviewScreen);
+      expect(annual, findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(
+        find.descendant(of: annual, matching: find.textContaining('년 연간 리뷰')),
+        findsWidgets,
+      );
+      for (final String gap in <String>[
+        AppRoutes.ledgerExecutionGap,
+        'aaq://ledger/execution-gap/2026-10',
+      ]) {
+        await open(tester, gap);
+        await settle();
+        expect(tester.takeException(), isNull, reason: gap);
+        // 앞 화면이 스택에 남는다 — 맨 위(마지막)를 본다.
+        final Finder screen = find.byType(ExecutionGapScreen).last;
+        expect(screen, findsOneWidget, reason: gap);
+        expect(
+          tester.widget<ExecutionGapScreen>(screen).yyyyMm,
+          gap == AppRoutes.ledgerExecutionGap ? isNull : '2026-10',
+          reason: '받은 달 그대로',
+        );
+        final bool na = find
+            .descendant(
+              of: screen,
+              matching: find.text(AnnualReviewVmTexts.gapNotApplicable),
+            )
+            .evaluate()
+            .isNotEmpty;
+        final bool none = find
+            .descendant(
+              of: screen,
+              matching: find.text(AnnualReviewVmTexts.gapNoData),
+            )
+            .evaluate()
+            .isNotEmpty;
+        expect(na || none, isTrue, reason: '$gap — 엔진 문장 카드 하나');
+      }
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;

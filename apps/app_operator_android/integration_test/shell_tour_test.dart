@@ -49,7 +49,12 @@ import 'package:integration_test/integration_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:ui_analytics/planner.dart' show DepositPlannerScreen;
 import 'package:ui_analytics/ui_analytics.dart'
-    show RebalanceEventScreen, RebalancePreviewScreen, RebalanceTimelineScreen;
+    show
+        AnnualReviewScreen,
+        ExecutionGapScreen,
+        RebalanceEventScreen,
+        RebalancePreviewScreen,
+        RebalanceTimelineScreen;
 import 'package:ui_journal/ui_journal.dart'
     show
         HoldingDetail,
@@ -105,6 +110,19 @@ Future<void> _until(WidgetTester tester, Finder f) async {
   while (f.evaluate().isEmpty) {
     if (DateTime.now().isAfter(end)) {
       throw TestFailure('기다린 위젯이 안 나타났다: $f');
+    }
+    await tester.pump(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+  }
+  await tester.pump();
+}
+
+/// 🆕 R220 — 위젯이 사라질 때까지(뒤로 간 화면의 전환이 끝날 때까지 — 앞 화면은 아래에 늘 남아 있다).
+Future<void> _gone(WidgetTester tester, Finder f) async {
+  final DateTime end = DateTime.now().add(const Duration(seconds: 20));
+  while (f.evaluate().isNotEmpty) {
+    if (DateTime.now().isAfter(end)) {
+      throw TestFailure('사라지길 기다린 위젯이 남았다: $f');
     }
     await tester.pump(const Duration(milliseconds: 100));
     await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -365,14 +383,46 @@ void main() {
       expect(find.textContaining('마지막 실행 '), findsWidgets);
       await _at(tester, find.byType(Diagnostics), 'IT_S10');
 
-      // 🆕 R168 — S12 12월 연간 리뷰 목차(신뢰 시각 전 = «확인하지 못했습니다» · 목차 = 등록된 M7 화면만 — 🆕 R173 회차 목록).
+      // 🆕 R168 — S12 12월 연간 리뷰 목차(신뢰 시각 전 = «확인하지 못했습니다» · 목차 = 등록된 M7 화면만 — 🆕 R173 회차 목록 · 🆕 R220 S7-7 · S7-10).
       container
           .read(shellLinkOpenerProvider)
           .open(AppRoutes.settingsAnnualReview);
       await _until(tester, find.textContaining('연간 점검 창을 확인하지 못했습니다'));
       expect(find.textContaining('년 연간 리뷰'), findsWidgets);
       await _at(tester, find.byType(AnnualReviewEntry), 'IT_S12');
+      // 🆕 R220 — 목차 행 → M7 S7-7 연간 리뷰(같은 해 · 같은 «모름» 글자 · 세후 참고치) · S7-10 이행 갭(자동 매매 = 해당 없음).
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AnnualReviewEntry),
+          matching: find.text('한 해의 결과 — 연간 리뷰'),
+        ),
+      );
+      await _until(tester, find.byType(AnnualReviewScreen));
+      await _until(
+        tester,
+        find.descendant(
+          of: find.byType(AnnualReviewScreen),
+          matching: find.textContaining('연간 점검 창을 확인하지 못했습니다'),
+        ),
+      );
+      await _at(tester, find.byType(AnnualReviewScreen), 'IT_S77');
       await tester.pageBack();
+      await _gone(tester, find.byType(AnnualReviewScreen));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AnnualReviewEntry),
+          matching: find.text('이행 갭'),
+        ),
+      );
+      await _until(
+        tester,
+        find.text('자동 매매 구간이라 안내 이행 리포트가 없습니다. 지난 안내 구간의 리포트는 그대로 남습니다.'),
+      );
+      await _at(tester, find.byType(ExecutionGapScreen), 'IT_S710');
+      await tester.pageBack();
+      await _gone(tester, find.byType(ExecutionGapScreen));
+      await tester.pageBack();
+      await _gone(tester, find.byType(AnnualReviewEntry));
 
       // 🆕 R171 — M6 H6-1 보유 현황 · 보유 0 = 엔진 빈 문장 → 연습 보유를 넣으면(원장 변경) 같은 화면에 카드 A · B · C.
       container.read(shellLinkOpenerProvider).open(AppRoutes.holdingsOverview);

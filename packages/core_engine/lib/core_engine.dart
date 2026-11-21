@@ -440,8 +440,18 @@ export 'src/ops/annual_review_index.dart'
         annualReviewHomeLinkOf,
         annualReviewIndexVmOf,
         annualReviewWindowOf,
+        annualReviewYearOf,
         kAnnualReviewEntries,
         kAnnualReviewStaleAfter;
+// 🆕 E11q-q5a — M7 S7-7 연간 리뷰 VM(S12 와 같은 연도 · 창) · S7-10 이행 갭 결과 · 세후 골든 참고치(설계 13 §8 R220).
+export 'src/ops/annual_review_view.dart'
+    show
+        AnnualReviewCodes,
+        AnnualReviewVmTexts,
+        annualReviewVmOf,
+        executionGapResultOf,
+        kP0sAfterTaxFullS7Golden,
+        p0sAfterTaxFullS7;
 // 🆕 E11q-c2 — M9 S09 백업·복원 VM · «지금 백업» 결과 · 스냅숏 이름(설계 13 §8 R201 · 미결 199).
 export 'src/ops/backup_screen.dart'
     show
