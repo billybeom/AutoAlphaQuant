@@ -810,7 +810,7 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 
 ## AL. 🆕 계약 v1.33 (2026-11-21 · E16j-b 계약 창 — X1 기기 이전 화면) — VM 2 · 행 1 · 카드 5 · 창구 1 · 동작 6 · 슬롯 사전 1 · 표본 15
 
-`contractVersion` = **`1.33.0`**(다음 = 1.34.0). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K264~K281 권고대로(정본 = 설계 `10_리뷰/2026-11-21_E16j-b계약창_계약v1.33_설계서.md` · 01 §42). 🔴 엔진 이름(core `PlanStep` · `RecoveryStep` · `ReissueItem` · `ReissueChecklist` · `TransferTicket` · `FencingVerdict` · `RestoreVerdict` · `MigrationGateVerdict` · `MigrationStepRow` · `PlanProgress` · ds `RecoveryRun`)과 겹치지 않는다(K80 · C-67 ⑭ · core 대조 시험).
+`contractVersion` = **`1.33.0`**(다음 = 1.34.0). 상태 = ~~⬜ PR 대기~~ ✅ 병합 PR #305 squash `ec203163`(2026-11-21 · CI 3/3). 결정 = 발주자 위임 2026-11-14 — K264~K281 권고대로(정본 = 설계 `10_리뷰/2026-11-21_E16j-b계약창_계약v1.33_설계서.md` · 01 §42). 🔴 엔진 이름(core `PlanStep` · `RecoveryStep` · `ReissueItem` · `ReissueChecklist` · `TransferTicket` · `FencingVerdict` · `RestoreVerdict` · `MigrationGateVerdict` · `MigrationStepRow` · `PlanProgress` · ds `RecoveryRun`)과 겹치지 않는다(K80 · C-67 ⑭ · core 대조 시험).
 
 | # | 이름 | 뜻 · 위치 |
 |---|---|---|
