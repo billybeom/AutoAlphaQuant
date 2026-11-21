@@ -219,10 +219,11 @@ void main() {
         );
         expect(b.anchor, 'sleeve-b');
         expect(b.asOf, isNull);
-        expect(b.blocks, <HandbookBlock>[
-          for (final HandbookBlock x in fx.blocks)
-            if (x.live == null) x,
-        ]);
+        expect(
+          b.blocks,
+          fx.blocks.where((HandbookBlock x) => x.live == null).toList(),
+        );
+        expect(b.blocks, hasLength(fx.blocks.length - 1));
         final HandbookPage missing = await repo
             .watchPage('rebalance/monthly')
             .first;
