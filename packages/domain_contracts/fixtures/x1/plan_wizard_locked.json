@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.33.0",
+    "generated_at": "2026-11-21T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261121,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "이전 기준 2026-08-31 18:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "headline": "(합성) 미체결 주문이 남아 있습니다",
+      "level": "BLOCKED",
+      "reason_code": "OPEN_ORDERS_REMAIN",
+      "d03_card": null,
+      "start_action": null,
+      "rows": [{ "code": "FREEZE", "title": "(합성) 1 주문 동결", "state_label": "(합성) 끝", "level": "OK", "lines": [], "block_code": null, "actions": [] }, { "code": "ORDERS_CLEARED", "title": "(합성) 2 미체결 정리", "state_label": "(합성) 막힘", "level": "BLOCKED", "lines": ["(합성) 미체결 1건 — 체결 또는 취소를 기다립니다"], "block_code": "OPEN_ORDERS_REMAIN", "actions": [] }, { "code": "RECON_ZERO", "title": "(합성) 3 대사 0", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "block_code": null, "actions": [] }, { "code": "BACKUP_CHECKSUM", "title": "(합성) 4 백업 · 체크섬", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "block_code": null, "actions": [] }, { "code": "DEMOTED", "title": "(합성) 5 강등", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "block_code": null, "actions": [] }, { "code": "KEYS_DELETED", "title": "(합성) 6 키 삭제", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "block_code": null, "actions": [] }, { "code": "RETIRED", "title": "(합성) 7 은퇴 서명", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "block_code": null, "actions": [] }, { "code": "SERVICE_STOPPED", "title": "(합성) 8 서비스 종료", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "block_code": null, "actions": [] }, { "code": "TICKET_ISSUED", "title": "(합성) 9 티켓 발급", "state_label": "(합성) 대기", "level": "INFO", "lines": [], "block_code": null, "actions": [] }],
+      "window_text": "(합성) 감시 일시정지 — 08-31 18:00 열림 · 넘기면 알림",
+      "warning_lines": [],
+      "ticket": null,
+      "done_label": null,
+      "locked_label": "(합성) 생체 확인 뒤에 진행할 수 있습니다",
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "이전 기준 2026-08-31 18:00" }
+    }
+  ]
+}

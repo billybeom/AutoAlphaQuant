@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.33.0",
+    "generated_at": "2026-11-21T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261121,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "이전 기준 2026-08-31 18:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    {
+      "headline": "(합성) 마지막으로 생체 확인을 합니다",
+      "level": "ACT",
+      "reason_code": "X1_BIOMETRIC_PENDING",
+      "kind_label": "(합성) 계획 이전",
+      "start_action": null,
+      "recovery_code_slot_id": null,
+      "fencing": null,
+      "reissue": [],
+      "scan_slot_id": null,
+      "restore": { "headline": "(합성) 백업을 복원했습니다", "level": "OK", "code": null, "lines": ["(합성) 백업 08-31 18:00 · 스키마 판 7 · 해시 판 2 · epoch 4"], "chain_hash_text": "3f9a1c07" },
+      "steps": [{ "code": "RESTORED", "title": "(합성) 1 복원", "state_label": "(합성) 끝", "level": "OK", "lines": [], "block_code": null, "actions": [] }, { "code": "GAP_REBUILT", "title": "(합성) 2 공백 다시 세기", "state_label": "(합성) 끝", "level": "OK", "lines": [], "block_code": null, "actions": [] }, { "code": "GOLDEN_SELF_TEST", "title": "(합성) 3 골든 자가시험", "state_label": "(합성) 끝", "level": "OK", "lines": [], "block_code": null, "actions": [] }, { "code": "CHECKLIST_CONFIRMED", "title": "(합성) 4 확인 목록", "state_label": "(합성) 끝", "level": "OK", "lines": [], "block_code": null, "actions": [] }, { "code": "BIOMETRIC_CONFIRMED", "title": "(합성) 5 생체 확인", "state_label": "(합성) 차례", "level": "ACT", "lines": [], "block_code": null, "actions": [{ "id": "X1_RECOVERY_STEP", "args": { "run_id": "rec-20260901-1", "step": "BIOMETRIC_CONFIRMED" }, "label": "(합성) 이 단계 진행" }] }],
+      "gate": { "state_label": "(합성) 승인 대기", "level": "ACT", "gate_state_code": "AWAITING_APPROVAL", "code": "X1_BIOMETRIC_PENDING", "observe_text": "(합성) 5/5 거래일", "why_line": "(합성) 관찰과 확인 목록을 마쳤습니다", "action_line": "(합성) 생체 확인으로 실거래를 다시 엽니다", "checklist_lines": ["(합성) 보유 종목이 증권사와 같다", "(합성) 미체결 주문이 없다"] },
+      "restart_link": null,
+      "window_text": null,
+      "notice_text": null,
+      "done_label": null,
+      "locked_label": null,
+      "as_of": { "observed_at": "2026-08-31T09:00:00Z", "trade_date": "2026-08-31", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "이전 기준 2026-08-31 18:00" }
+    }
+  ]
+}

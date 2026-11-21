@@ -1054,6 +1054,57 @@ abstract final class FixturePaths {
   /// 🆕 v1.18 — `S01` 뷰어 판(폰 전용 행을 엔진이 뺀 VM).
   static const String m9SettingsHomeViewer = 'm9/settings_home_viewer.json';
 
+  // ── x1/ — 🆕 v1.33(01 §42 · K279 · E16j-b) X1 기기 이전 `X1PlanWizardVm` 6 · `X1RecoveryVm` 8 · 결과 1 · 폴더 신설(파일 이름 바이트 차례) ──
+  /// 🆕 v1.33 — 옛 폰 단계 막힘(ORDERS_CLEARED · `OPEN_ORDERS_REMAIN` · 되돌리기 동작).
+  static const String x1PlanWizardBlocked = 'x1/plan_wizard_blocked.json';
+
+  /// 🆕 v1.33 — 옛 폰 시작 전(D-03 한 장 + `X1_PLAN_START{}` · 행 0).
+  static const String x1PlanWizardD03 = 'x1/plan_wizard_d03.json';
+
+  /// 🆕 v1.33 — 옛 폰 강등 뒤(DEMOTED 끝 · 되돌리기 0 · 경고 줄).
+  static const String x1PlanWizardDemoted = 'x1/plan_wizard_demoted.json';
+
+  /// 🆕 v1.33 — 옛 폰 모의 거부(`X1_LIVE_ONLY` · 동작 0).
+  static const String x1PlanWizardLiveOnly = 'x1/plan_wizard_live_only.json';
+
+  /// 🆕 v1.33 — 옛 폰 잠김(`locked_label` · 동작 0).
+  static const String x1PlanWizardLocked = 'x1/plan_wizard_locked.json';
+
+  /// 🆕 v1.33 — 옛 폰 티켓 발급 뒤(9단계 끝 · QR 카드).
+  static const String x1PlanWizardTicket = 'x1/plan_wizard_ticket.json';
+
+  /// 🆕 v1.33 — 새 폰 비상 펜싱 대기 · 재발급 6행.
+  static const String x1RecoveryEmergencyFencing =
+      'x1/recovery_emergency_fencing.json';
+
+  /// 🆕 v1.33 — 새 폰 비상 시작 전(복구 코드 자리 + `X1_EMERGENCY_START{}`).
+  static const String x1RecoveryEmergencyStart =
+      'x1/recovery_emergency_start.json';
+
+  /// 🆕 v1.33 — 새 폰 RECOVERY_FULL(`restart_link` → `onboardingRestart` · 동작 0).
+  static const String x1RecoveryFull = 'x1/recovery_full.json';
+
+  /// 🆕 v1.33 — 새 폰 공백 재구성 막힘(`GAP_OVERSOLD`).
+  static const String x1RecoveryGapViolation = 'x1/recovery_gap_violation.json';
+
+  /// 🆕 v1.33 — 새 폰 게이트 생체 대기(`X1_RECOVERY_STEP{BIOMETRIC_CONFIRMED}`).
+  static const String x1RecoveryGateBiometric =
+      'x1/recovery_gate_biometric.json';
+
+  /// 🆕 v1.33 — 새 폰 게이트 관찰 n/m.
+  static const String x1RecoveryGateObserving =
+      'x1/recovery_gate_observing.json';
+
+  /// 🆕 v1.33 — 새 폰 받기 시작 전(QR 스캔 자리).
+  static const String x1RecoveryPlanScan = 'x1/recovery_plan_scan.json';
+
+  /// 🆕 v1.33 — 새 폰 복원 거부(`RESTORE_ROLLBACK`).
+  static const String x1RecoveryRestoreRejected =
+      'x1/recovery_restore_rejected.json';
+
+  /// 🆕 v1.33 — 결과 14행(`SafetyActionResult` · 동작 6 · 거부 사전 합집합).
+  static const String x1X1ActionResults = 'x1/x1_action_results.json';
+
   // ── x2/ — 🆕 v1.22(01 §31 · K63 · K64) X2 재개 게이트 4 · 재개 리포트 2 · 폴더 신설(파일 이름 바이트 차례) ──
   //    🆕 v1.25(01 §34) — 게이트 막힌 것 0 · 리포트 화면 감싸개 3.
 
@@ -1478,6 +1529,21 @@ abstract final class FixturePaths {
     m9SettingsHome,
     m9SettingsHomeNoReview,
     m9SettingsHomeViewer,
+    x1PlanWizardBlocked,
+    x1PlanWizardD03,
+    x1PlanWizardDemoted,
+    x1PlanWizardLiveOnly,
+    x1PlanWizardLocked,
+    x1PlanWizardTicket,
+    x1RecoveryEmergencyFencing,
+    x1RecoveryEmergencyStart,
+    x1RecoveryFull,
+    x1RecoveryGapViolation,
+    x1RecoveryGateBiometric,
+    x1RecoveryGateObserving,
+    x1RecoveryPlanScan,
+    x1RecoveryRestoreRejected,
+    x1X1ActionResults,
     x2ResumeGateClear,
     x2ResumeGateConservativeDefer,
     x2ResumeGateLocked,
