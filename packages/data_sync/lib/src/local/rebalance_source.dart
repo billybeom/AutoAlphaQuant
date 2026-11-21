@@ -166,12 +166,8 @@ class SqliteRebalanceSource {
     ];
   }
 
-  /// 저장한 비중 JSON `[{sleeve, weight}]` → 맵(비중 없는 행 = 엔진이 실패한다 · 여기서 0 을 채우지 않는다).
-  static Map<String, double> _weights(String json) => <String, double>{
-    for (final Object? e in jsonDecode(json) as List<Object?>)
-      if (e case {'sleeve': final String s, 'weight': final num w})
-        s: w.toDouble(),
-  };
+  static Map<String, double> _weights(String json) =>
+      storedRebalanceWeightsOf(json);
 
   String? _nextKr(String day) {
     try {
@@ -212,3 +208,11 @@ class SqliteWhatIfStateSource implements WhatIfStateSource {
   @override
   Future<WhatIfState> load() => Future<WhatIfState>(_source.whatIfState);
 }
+
+/// 저장한 비중 JSON `[{sleeve, weight}]` → 맵(비중 없는 행 = 엔진이 실패한다 · 여기서 0 을 채우지 않는다).
+/// 🆕 미결 209 ⓔ-1(R218) — 공개: 월간 리포트 원천도 같은 읽기.
+Map<String, double> storedRebalanceWeightsOf(String json) => <String, double>{
+  for (final Object? e in jsonDecode(json) as List<Object?>)
+    if (e case {'sleeve': final String s, 'weight': final num w})
+      s: w.toDouble(),
+};

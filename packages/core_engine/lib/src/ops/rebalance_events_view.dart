@@ -197,8 +197,8 @@ RebalanceEvent _event(
     tradeDate: f.tradeDate,
     kind: kind,
     kindLabel: label,
-    before: _weights(f.weightsBefore, cfg),
-    after: _weights(f.weightsAfter, cfg),
+    before: rebalanceWeightLinesOf(f.weightsBefore, cfg),
+    after: rebalanceWeightLinesOf(f.weightsAfter, cfg),
     trigger: TriggerSnapshot(
       configHash: f.configHash,
       rawValues: <String, String>{
@@ -262,7 +262,11 @@ String _seasonalSummary(Map<String, Object?> t) {
 }
 
 /// 저장한 회계 비중 → 미리보기와 같은 세 줄(A = POT 포함 · 밴드 = B 코어 밴드) · 빈 맵 = 빈 줄.
-List<SleeveWeight> _weights(Map<String, double> w, WhatIfConfig cfg) {
+/// 🆕 미결 209 ⓔ-1(R218) — 공개: 월간 리포트 `D2_ALLOCATION` 값(월말 회차의 앞 비중)도 같은 세 줄.
+List<SleeveWeight> rebalanceWeightLinesOf(
+  Map<String, double> w,
+  WhatIfConfig cfg,
+) {
   if (w.isEmpty) return const <SleeveWeight>[];
   Decimal d(String k) {
     final double? v = w[k];

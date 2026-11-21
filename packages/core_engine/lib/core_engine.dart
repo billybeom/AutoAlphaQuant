@@ -813,7 +813,8 @@ export 'src/ops/rebalance_events_view.dart'
         RebalanceEventFact,
         RebalanceEventTexts,
         rebalanceEventVmOf,
-        rebalanceEventsVmOf;
+        rebalanceEventsVmOf,
+        rebalanceWeightLinesOf;
 export 'src/ops/settings_home.dart'
     show
         SettingsCardCodes,
