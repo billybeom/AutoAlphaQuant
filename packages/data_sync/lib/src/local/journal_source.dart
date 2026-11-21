@@ -5,7 +5,7 @@
 // 🔴 행 = `order_intents`(KR) · 브로커 주문 · 체결(브로커 주문을 거친 것 — 수기 체결 = 안내 갈래 · 이 판 밖) ·
 //    결정 = `decision_log` · 저널 = `decision_journal` · 회차 = `rebalance_event` + 묶는 논리 id
 //    (월말 = 그 달 계획 스냅샷(재개 child 포함)의 대상 · 계절 = 판정 결정 · POT 청산).
-// 🔴 가림 = 서 있는 차단(`LEDGER_INTEGRITY` · `RECON_MISMATCH` — q1 과 같은 읽기).
+// 🔴 가림 = 서 있는 차단(`LEDGER_INTEGRITY` · `RECON_MISMATCH` — q1 과 같은 읽기) · 🆕 E11q-q6 `L-3` 실사 세션(그 폰) = «숨김».
 // 🔴 원장 한 파일 = 그 파일의 행 전부(파일이 모드 경계 · 01 §9-1) — 모드 인자로 거르지 않는다(01 §8 미결 89).
 
 import 'dart:convert';
@@ -63,8 +63,10 @@ class SqliteJournalSource {
     required Map<String, String> accountLabels,
     required this._hasBody,
     WhatIfConfig? config,
+    bool Function()? selfReportSessionOpen,
   }) : _labels = accountLabels,
-       _config = config ?? WhatIfConfig.defaults;
+       _config = config ?? WhatIfConfig.defaults,
+       _selfReportSessionOpen = selfReportSessionOpen ?? _never;
 
   final Database _db;
   final Clock _clock;
@@ -73,6 +75,11 @@ class SqliteJournalSource {
   final Map<String, String> _labels;
   final bool Function(String route) _hasBody;
   final WhatIfConfig _config;
+
+  /// 🆕 E11q-q6 — `L-3` 실사 세션이 이 폰에서 열려 있나(열린 동안 = `LEDGER_INTEGRITY` 와 같은 «숨김» · K9 · 02 §3-10 G-47).
+  final bool Function() _selfReportSessionOpen;
+
+  static bool _never() => false;
 
   /// 다시 낼 표(행 · 결정 · 저널 · 회차 묶음 · 가림).
   static const Set<String> watchedTables = <String>{
@@ -191,7 +198,8 @@ class SqliteJournalSource {
       kr: _kr,
       accountLabelOf: (String alias) => _labels[alias] ?? alias,
       hasBody: _hasBody,
-      integrityHidden: flags.contains(FlagIds.ledgerIntegrity),
+      integrityHidden:
+          flags.contains(FlagIds.ledgerIntegrity) || _selfReportSessionOpen(),
       reconSuspect: flags.contains(FlagIds.reconMismatch),
       config: _config,
     );

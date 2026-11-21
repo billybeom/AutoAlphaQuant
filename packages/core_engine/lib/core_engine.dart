@@ -888,6 +888,43 @@ export 'src/ops/rebalance_events_view.dart'
         rebalanceEventVmOf,
         rebalanceEventsVmOf,
         rebalanceWeightLinesOf;
+// 🆕 E11q-q6 — `L-3` 정기 실사(세션 판정 · 원문 → 와이어 · 수량 대조 · 결과 · 세션 VM · 접수증 · 01 §21-3 · §21-4).
+export 'src/ops/self_report.dart'
+    show
+        SelfReportDiffRow,
+        SelfReportInputInvalid,
+        SelfReportOpenSession,
+        SelfReportOutcome,
+        SelfReportQuantityDiff,
+        SelfReportStartOpen,
+        SelfReportStartRefused,
+        SelfReportStartVerdict,
+        SelfReportTexts,
+        SelfReportTrustTexts,
+        SelfReportWireReady,
+        SelfReportWireResult,
+        kSelfReportDiffCandidates,
+        kSelfReportStaleAfter,
+        selfReportAccountOfDelta,
+        selfReportAccountsOf,
+        selfReportAsOfOf,
+        selfReportDeltaOf,
+        selfReportDiffIdOf,
+        selfReportDiffRowsOf,
+        selfReportLinkOf,
+        selfReportMonthOf,
+        selfReportNextAccountOf,
+        selfReportPayloadDigestOf,
+        selfReportQuantityDiffsOf,
+        selfReportReceiptOf,
+        selfReportResultOf,
+        selfReportSessionVmOf,
+        selfReportSleeveOfStrategy,
+        selfReportStartOf,
+        selfReportStrategiesOf,
+        selfReportSymbolsOf,
+        selfReportTrustBadgeOf,
+        selfReportWireOf;
 export 'src/ops/settings_home.dart'
     show
         SettingsCardCodes,

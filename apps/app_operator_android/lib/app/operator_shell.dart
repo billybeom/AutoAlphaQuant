@@ -32,12 +32,16 @@
 // 🔵 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
+import 'dart:async' show unawaited;
+
 import 'package:broker_gateway/broker_gateway.dart'
     show KisCredentials, KisKeySet, KisRestClient;
 import 'package:core_engine/core_engine.dart' show contributionDefaultRange;
 import 'package:data_sync/data_sync.dart'
     show
         ContributionSettingSource,
+        DeviceDraftStore,
+        DeviceLocal,
         SqliteAlertRepository,
         SqliteLedgerRepository,
         SupabaseFirstClaim;
@@ -46,9 +50,12 @@ import 'package:domain_contracts/domain_contracts.dart'
         AlertRepository,
         AppRoutes,
         CommandApi,
+        DraftStore,
         LedgerRepository,
+        LedgerTrustRepository,
         OnboardingSlotIds,
         OpsSlotIds,
+        RunModeIsSim,
         SettingsActions;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -78,6 +85,12 @@ import 'package:ui_analytics/ui_analytics.dart'
         performanceRepositoryProvider,
         rebalanceRepositoryProvider,
         safetyRepositoryProvider;
+import 'package:ui_journal/journal_draft.dart'
+    show
+        SelfReportForm,
+        journalCommandApiProvider,
+        journalDraftStoreProvider,
+        journalSettingsActionsProvider;
 import 'package:ui_journal/ui_journal.dart'
     show
         HoldingDetail,
@@ -93,6 +106,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalConfigRepositoryProvider,
         journalHoldingsRepositoryProvider,
         journalLedgerRepositoryProvider,
+        journalLedgerTrustRepositoryProvider,
         journalLinkOpenerProvider,
         journalRebalanceRepositoryProvider,
         journalSafetyRepositoryProvider,
@@ -145,6 +159,7 @@ import 'package:ui_settings/ui_settings.dart'
         settingsSlotBuilderProvider;
 import 'package:ui_shell/ui_shell.dart';
 
+import '../platform/platform.dart' show AndroidSealedBox;
 import '../safety/biometric_sign_field.dart';
 import '../safety/golden_selftest_field.dart';
 import '../safety/recovery_checksum_field.dart';
@@ -171,6 +186,7 @@ import 'operator_resume.dart';
 import 'operator_rule_change.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
+import 'operator_self_report.dart';
 import 'operator_settings_actions.dart';
 import 'operator_settings_repository.dart';
 import 'operator_view.dart';
@@ -222,8 +238,40 @@ final Provider<OperatorOpsStatusRepository> operatorOpsStatusProvider =
 /// 🆕 R147 — 명령 API(알림 화면 주입 · 한 인스턴스 — 낸 명령의 접수증을 쥔다).
 final Provider<OperatorCommandApi> operatorCommandApiProvider =
     Provider<OperatorCommandApi>(
-      (Ref ref) => OperatorCommandApi(ref.watch(operatorRuntimeProvider)),
+      (Ref ref) => OperatorCommandApi(
+        ref.watch(operatorRuntimeProvider),
+        // 🆕 E11q-q6 — 정기 실사 제출(L-3 · 같은 세션 장부).
+        selfReport: ref.watch(operatorSelfReportProvider),
+      ),
     );
+
+/// 🆕 E11q-q6 — `L-3` 정기 실사(세션 장부 · 세션 VM · 제출 — 한 인스턴스: 보유 · 일지 가림이 같은 장부를 읽는다 ·
+/// 해소 링크 = 레지스트리에 `M5-13` 본문이 있을 때만).
+final Provider<OperatorSelfReport> operatorSelfReportProvider =
+    Provider<OperatorSelfReport>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      final OperatorSelfReport sr = OperatorSelfReport(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+      ref.onDispose(sr.sessions.dispose);
+      return sr;
+    });
+
+/// 🆕 E11q-q6 — 입력 초안(`DraftStore` = 기기 로컬 봉함 · 원장 밖 별도 파일 · 계열 = 화면 상태의 실행 모드 ·
+/// 처음 읽을 때 연다).
+final Provider<DraftStore> operatorDraftStoreProvider = Provider<DraftStore>((
+  Ref ref,
+) {
+  final OperatorRuntime rt = ref.watch(operatorRuntimeProvider);
+  final DeviceLocal local = DeviceLocal.open(
+    directory: rt.files.directory,
+    box: AndroidSealedBox(),
+    isSim: () => rt.view.value?.flags.runMode.isSim ?? true,
+  );
+  ref.onDispose(() => unawaited(local.close()));
+  return DeviceDraftStore(local);
+});
 
 /// 🆕 R171 — 보유(H6-1 · 한 인스턴스 · 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만).
 final Provider<OperatorHoldingsRepository> operatorHoldingsProvider =
@@ -232,6 +280,8 @@ final Provider<OperatorHoldingsRepository> operatorHoldingsProvider =
       return OperatorHoldingsRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
+        // 🆕 E11q-q6 — `L-3` 실사 세션 중 = «숨김»(같은 장부).
+        selfReportSessions: ref.watch(operatorSelfReportProvider).sessions,
       );
     });
 
@@ -242,6 +292,8 @@ final Provider<OperatorJournalRepository> operatorJournalProvider =
       return OperatorJournalRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
+        // 🆕 E11q-q6 — `L-3` 실사 세션 중 = «숨김»(같은 장부).
+        selfReportSessions: ref.watch(operatorSelfReportProvider).sessions,
       );
     });
 
@@ -685,6 +737,16 @@ Widget _ledgerDiffs(Map<String, String> _) => const LedgerDiffs();
 
 Widget _ledgerRepairs(Map<String, String> _) => const LedgerRepairs();
 
+Widget _ledgerSelfReport(Map<String, String> p) {
+  final String m = p['yyyyMm'] ?? '';
+  final String alias = p['accountAlias'] ?? '';
+  return SelfReportForm(
+    key: ValueKey<String>('$m/$alias'),
+    yyyyMm: m,
+    accountAlias: alias,
+  );
+}
+
 /// 🔴 본문 레지스트리 — 실물이 있는 화면만(R104 d1).
 const ShellRouteBodies
 kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
@@ -695,6 +757,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   // 🆕 E11p3d-3a(R111) — 원장 대조 · 수리 기록(실물 = `SqliteLedgerRepository` · 같은 원장).
   AppRoutes.ledgerDiffs: _ledgerDiffs,
   AppRoutes.ledgerRepairs: _ledgerRepairs,
+  // 🆕 E11q-q6 — M6 L-3 정기 실사(그 달 · 그 계좌 · 세션 = 이 폰 · 가드 = 투자 안내 전용 — `SELF_AUDIT_DUE` 알림 ·
+  //    L-1 자가 보고 대조 행 · 실사 결과 «다음 계좌» 목적지).
+  AppRoutes.ledgerSelfReport: _ledgerSelfReport,
   // 🆕 E11p4b(R125) — 온보딩 넷(첫 화면 · 운영 방식 · 단계 목록 · 단계 상세 — 키 칸 = 슬롯 빌더 · 캡처 막기 = 칸이 스스로).
   AppRoutes.onboardingStart: _onboardingStart,
   AppRoutes.onboardingModePick: _onboardingMode,
@@ -904,8 +969,11 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   shellHoldingsRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorHoldingsProvider),
   ),
-  shellLedgerTrustRepositoryProvider.overrideWithValue(
-    const OperatorLedgerTrustRepository(),
+  // 🆕 E11q-q6 — 배지 = 원천 없음(그대로) · `L-3` 세션 = 정기 실사 한 인스턴스.
+  shellLedgerTrustRepositoryProvider.overrideWith(
+    (Ref ref) => OperatorLedgerTrustRepository(
+      selfReport: ref.watch(operatorSelfReportProvider),
+    ) as LedgerTrustRepository,
   ),
   // 🆕 R113 — 안전 상태 = 셸(H-01) · 일지 · 분석 한 인스턴스.
   shellSafetyRepositoryProvider.overrideWith(
@@ -949,6 +1017,24 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   journalLinkOpenerProvider.overrideWith(
     (Ref ref) => ref.watch(shellLinkOpenerProvider),
+  ),
+  // 🆕 E11q-q6 — L-3 정기 실사 칸: 세션 VM · 세션 여닫기(이 폰 메모리) · 제출(명령 API 한 인스턴스) · 초안(기기 로컬).
+  journalLedgerTrustRepositoryProvider.overrideWith(
+    (Ref ref) => OperatorLedgerTrustRepository(
+      selfReport: ref.watch(operatorSelfReportProvider),
+    ) as LedgerTrustRepository,
+  ),
+  journalSettingsActionsProvider.overrideWith(
+    (Ref ref) => OperatorSelfReportActions(
+      ref.watch(operatorSelfReportProvider),
+      clock: runtime.clock,
+    ) as SettingsActions,
+  ),
+  journalCommandApiProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorCommandApiProvider) as CommandApi,
+  ),
+  journalDraftStoreProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorDraftStoreProvider),
   ),
   // 🆕 R113 — 일지 화면의 차단 배너(원장 대조 · 수리 기록이 이미 읽는다).
   journalSafetyRepositoryProvider.overrideWith(

@@ -305,6 +305,34 @@ void main() {
       expect(src().overview().cards[1].rows.single.quantityText, '200주?');
     });
 
+    test('🆕 E11q-q6 — L-3 실사 세션(그 폰)이 열린 동안 = LEDGER_INTEGRITY 와 같은 «숨김» · 닫히면 원래 글자', () {
+      bool open = true;
+      final SqliteHoldingsOverviewSource masked = SqliteHoldingsOverviewSource(
+        db,
+        clock: clock,
+        kr: frozenExchangeCalendar(Market.kr),
+        runMode: RunMode.simInternal,
+        accountLabels: _labels,
+        hasBody: (String _) => false,
+        selfReportSessionOpen: () => open,
+      );
+      expect(
+        masked.overview().cards[1].allocation.deployedText,
+        HoldingsTexts.hidden,
+      );
+      expect(
+        masked.overview().cards[1].rows.single.quantityText,
+        HoldingsTexts.hidden,
+      );
+      open = false;
+      expect(masked.overview().cards[1].rows.single.quantityText, '200주');
+      expect(
+        src().overview().cards[1].rows.single.quantityText,
+        '200주',
+        reason: '판정 함수 없음 = 가림 0',
+      );
+    });
+
     test('🔴 진입 결정을 못 찾으면 실패(행을 지어내지 않는다)', () {
       position(P0sStrategyIds.pot, '133690', 1, 20000, decision: 'D-NONE');
       expect(() => src().overview(), throwsStateError);

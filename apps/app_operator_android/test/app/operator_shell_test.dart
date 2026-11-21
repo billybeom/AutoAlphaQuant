@@ -9,6 +9,7 @@ import 'package:app_operator_android/app/operator_ops_status.dart';
 import 'package:app_operator_android/app/operator_ops_summary.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_safety.dart';
+import 'package:app_operator_android/app/operator_self_report.dart';
 import 'package:app_operator_android/app/operator_settings_actions.dart';
 import 'package:app_operator_android/app/operator_settings_repository.dart';
 import 'package:app_operator_android/app/operator_shell.dart';
@@ -49,6 +50,7 @@ import 'package:core_engine/core_engine.dart'
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
+        DeviceDraftStore,
         P0sHumanDecision,
         SqliteAlertSink,
         SqliteOnboardingStore,
@@ -63,6 +65,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         BlockFlag,
         DecisionReasonCodes,
         FlagIds,
+        LedgerTrustRepository,
         OnboardingSlotIds,
         OperatingMode,
         OpsSlotIds;
@@ -97,6 +100,11 @@ import 'package:ui_analytics/ui_analytics.dart'
         performanceRepositoryProvider,
         rebalanceRepositoryProvider,
         safetyRepositoryProvider;
+import 'package:ui_journal/journal_draft.dart'
+    show
+        journalCommandApiProvider,
+        journalDraftStoreProvider,
+        journalSettingsActionsProvider;
 import 'package:ui_journal/ui_journal.dart'
     show
         LedgerDiffs,
@@ -105,6 +113,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalClockProvider,
         journalConfigRepositoryProvider,
         journalHoldingsRepositoryProvider,
+        journalLedgerTrustRepositoryProvider,
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
         journalRebalanceRepositoryProvider,
@@ -548,6 +557,52 @@ void main() {
         reason: r,
       );
     }
+    // 🆕 E11q-q6 — L-3 정기 실사 등록(뒤집은 단언 — R228 까지 = 자리 부재 · `SELF_AUDIT_DUE` 링크가 선다) ·
+    //    세션 VM · 여닫기 · 제출 · 초안 = 주입 · 보유 · 일지 가림 = 같은 세션 장부 · 명령 API = 한 인스턴스.
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.ledgerSelfReport),
+      true,
+    );
+    final OperatorSelfReport sr = container.read(operatorSelfReportProvider);
+    for (final LedgerTrustRepository t in <LedgerTrustRepository>[
+      container.read(journalLedgerTrustRepositoryProvider),
+      container.read(shellLedgerTrustRepositoryProvider),
+    ]) {
+      expect(
+        identical((t as OperatorLedgerTrustRepository).selfReport, sr),
+        true,
+      );
+    }
+    expect(
+      container.read(journalSettingsActionsProvider),
+      isA<OperatorSelfReportActions>(),
+    );
+    expect(
+      identical(
+        container.read(journalCommandApiProvider),
+        container.read(operatorCommandApiProvider),
+      ),
+      true,
+    );
+    expect(
+      identical(container.read(operatorCommandApiProvider).selfReport, sr),
+      true,
+    );
+    expect(
+      identical(
+        container.read(operatorHoldingsProvider).selfReportSessions,
+        sr.sessions,
+      ),
+      true,
+    );
+    expect(
+      identical(
+        container.read(operatorJournalProvider).selfReportSessions,
+        sr.sessions,
+      ),
+      true,
+    );
+    expect(container.read(journalDraftStoreProvider), isA<DeviceDraftStore>());
     // 🆕 R178 — M5-1 킬스위치 읽기 = 한 인스턴스 · 명령 = 기기 id 없음 → null(버튼 부재).
     expect(
       identical(
