@@ -39,7 +39,8 @@ import 'package:data_sync/data_sync.dart'
     show
         ContributionSettingSource,
         SqliteAlertRepository,
-        SqliteLedgerRepository;
+        SqliteLedgerRepository,
+        SupabaseFirstClaim;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AlertRepository,
@@ -145,6 +146,7 @@ import 'package:ui_shell/ui_shell.dart';
 
 import '../safety/biometric_sign_field.dart';
 import '../safety/golden_selftest_field.dart';
+import '../safety/recovery_checksum_field.dart';
 import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
 import '../secret/supabase_connect_field.dart';
@@ -434,7 +436,7 @@ final Provider<OperatorSafetyActions> operatorSafetyActionsProvider =
     );
 
 /// 🆕 R115 — 온보딩 슬롯 빌더(M4-11 ①) — 엔진에 있는 키 세트의 시크릿 칸 · 🆕 R157 O-04 ② 서약(M5-8) · 🆕 R159 ③ 생체 서명 ·
-/// 🆕 R167 ④ 골든벡터 셀프테스트 · 🆕 R206 o_07 ② Supabase 연결 칸 · 🆕 R216 ③ 로그인 칸 ·
+/// 🆕 R167 ④ 골든벡터 셀프테스트 · 🆕 R206 o_07 ② Supabase 연결 칸 · 🆕 R216 ③ 로그인 칸 · 🆕 R229 ⑤ 복구 카드 체크섬 ·
 /// 나머지 = 자리 부재(크기 0 · 키 `m4-slot-absent`).
 ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
   if (slotId == OnboardingSlotIds.pledgeWrite) return const PledgePanel();
@@ -462,6 +464,16 @@ ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
   // 🆕 R159 — O-04 ③ 생체 서명(플랫폼 몫 · 조립 앱 칸).
   if (slotId == OnboardingSlotIds.biometricSign) {
     return BiometricSignField(sign: OperatorBiometricSign(rt).sign);
+  }
+  // 🆕 R229 — O-04 ⑤ 복구 카드 체크섬(M4-10 · 종이 코드 다시 입력 → 첫 클레임 · 캡처 막기) · 흐름 없음 = 자리 부재.
+  final SupabaseFirstClaim? claim = rt.firstClaim;
+  if (slotId == OnboardingSlotIds.recoveryChecksum && claim != null) {
+    return RecoveryChecksumField(
+      confirm: claim.confirm,
+      retry: claim.retry,
+      pending: () => claim.fact().pending,
+      secure: rt.secure,
+    );
   }
   final KisKeySet? set = kisKeySetOfSlot(slotId);
   if (set == null) return const SizedBox.shrink(key: Key('m4-slot-absent'));

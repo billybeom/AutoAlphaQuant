@@ -6,6 +6,8 @@
 // 🔴 K23 — 기대치 줄 = ①만 · 슬롯 = ②~⑤ 이고 그 단계가 열려 있을 때만 · 링크 · 동작 = ⑥만(링크 ⇒ 동작 없음 · 동작 ⇒ ①~⑤ VERIFIED) ·
 //    끝(committed_at) ⇔ 점검 목록 있음 · 끝 = 전 단계 VERIFIED · 링크 · 동작 · 슬롯 0.
 // 🔴 사실이 없는 단계(③ 생체 · ④ 셀프테스트 · ⑤ 복구 카드 — 원천 0) = 게이트(앞 단계 막힘 > 원천 없음) — 지어내지 않는다.
+// 🆕 E11k-e3(R229) — ⑤ 복구 카드 = 열린 동안에만 카드 줄을 부른다(🔴 부를 때 발급 · 평문 = 그 줄에만) · 종이 확인 뒤 등록 남음 =
+//    진행 중(칸 그대로 — «등록 다시 시도») · 끝 = 코드 없는 줄.
 
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -34,6 +36,9 @@ class OnboardingFinishFacts {
     this.biometricSigned,
     this.selftest,
     this.recoveryCardDone,
+    this.recoveryCardPending = false,
+    this.recoveryCardLines = const <String>[],
+    this.recoveryCardIssue,
     this.advisoryOpeningAlias,
   });
 
@@ -60,6 +65,15 @@ class OnboardingFinishFacts {
 
   /// ⑤ 복구 카드(null = 원천 없음).
   final bool? recoveryCardDone;
+
+  /// 🆕 R229 — ⑤ 종이 확인됨 · 서버 등록 남음(진행 중 · 칸 = 다시 시도).
+  final bool recoveryCardPending;
+
+  /// 🆕 R229 — ⑤ 끝 · 진행 중 줄(엔진 `RecoveryCardTexts` · 🔴 코드 0).
+  final List<String> recoveryCardLines;
+
+  /// 🆕 R229 — ⑤ 가 열려 있고 진행 중이 아닐 때만 부르는 카드 줄(🔴 부를 때 발급 · 메모리 · 코드 = 이 줄에만) · null = 줄 없음.
+  final List<String> Function()? recoveryCardIssue;
 
   /// 투자 안내 ⑥ 시작 선언 계좌(null = 계좌 대응 원천 없음).
   final String? advisoryOpeningAlias;
@@ -144,11 +158,16 @@ OnboardingFinishVm onboardingFinishVmOf(OnboardingFinishFacts f) {
     lines: <String>[if (st != null) '통과 ${st.$1}/전체 ${st.$2}'],
     slotId: !v4 && st != null && v3 ? OnboardingSlotIds.selftestRun : null,
   );
-  // ⑤ 복구 카드 — 원천 없음 = 게이트 UNKNOWN.
+  // ⑤ 복구 카드 — 원천 없음 = 게이트 UNKNOWN · 🆕 R229 열림 = 카드 줄(그때 발급) · 진행 중 = 등록 남음.
   final bool v5 = done || (f.recoveryCardDone ?? false);
+  final bool open5 = !v5 && f.recoveryCardDone != null && v4;
   final OnboardingFinishStage s5 = OnboardingFinishStage(
     title: '복구 카드 발급',
-    state: v5 ? StepState.verified : StepState.notStarted,
+    state: v5
+        ? StepState.verified
+        : open5 && f.recoveryCardPending
+        ? StepState.inProgress
+        : StepState.notStarted,
     gate: v5
         ? null
         : f.recoveryCardDone == null
@@ -156,10 +175,13 @@ OnboardingFinishVm onboardingFinishVmOf(OnboardingFinishFacts f) {
         : !v4
         ? _order
         : null,
-    lines: const <String>[],
-    slotId: !v5 && f.recoveryCardDone != null && v4
-        ? OnboardingSlotIds.recoveryChecksum
-        : null,
+    // 🔴 닫힌 단계엔 줄 0(코드를 미리 내지 않는다).
+    lines: open5 && !f.recoveryCardPending
+        ? (f.recoveryCardIssue?.call() ?? const <String>[])
+        : v5 || open5
+        ? f.recoveryCardLines
+        : const <String>[],
+    slotId: open5 ? OnboardingSlotIds.recoveryChecksum : null,
   );
   // ⑥ 모의 운영 시작 — ①~⑤ 전부 VERIFIED 일 때만 링크 · 동작.
   final bool ready = v2 && v3 && v4 && v5;

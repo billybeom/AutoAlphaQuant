@@ -426,6 +426,15 @@ export 'src/onboarding/onboarding_steps.dart'
         onboardingStepDetailVmOf,
         onboardingStepIds,
         onboardingStepsVmOf;
+// 🆕 E11k-e3 — O-04 ⑤ 복구 카드 · 첫 클레임 글자(설계 13 §8 R229).
+export 'src/onboarding/recovery_card.dart'
+    show
+        FirstClaimOutcome,
+        RecoveryCardTexts,
+        firstClaimResultText,
+        kOperatorDeviceLabel,
+        kRecoveryCardKind,
+        recoveryCardIssueLines;
 // 🆕 E11p3d-5i — M9 S03 계좌 · 슬리브 매핑(설계 13 §8 R151).
 export 'src/ops/account_mapping.dart'
     show

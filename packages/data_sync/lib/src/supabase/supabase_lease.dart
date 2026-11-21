@@ -11,6 +11,11 @@
 //    · 성공 = 유효 + sync_state SUPABASE 행(epoch · `last_ok_at` · OK) · 서버 거부 = 무효 · 망 · 인증 · 꼴 = 모름(🔴 둘 다 막는다).
 // 🔴 이 판정은 실전 · 브로커 모의만 쓴다(`simInternal` = 로컬 단독 리스 그대로 · R70 D8) — 배선 = E11k-e3.
 // 🔴 토큰 · 주소 · 키 · 복구 코드는 어떤 문자열(`toString` · 오류 · 기록)에도 나오지 않는다.
+// 🆕 E11k-e3(설계 13 §8 R229) — ① 운영 기기 행 등록(`POST /rest/v1/app_device` · 계약 v1.34 RLS `device_insert_viewer_only` —
+//    `auth_uid = owner_uid = 로그인 사용자` · viewer · PENDING · 201 = 넣음 · 409 = 이미 있음 → 둘 다 다음 · 승격 = 리스 RPC) ·
+//    ② «쥔 epoch» = sync_state 행이 없거나 0 이면 이 기기의 첫 클레임 기록(`claimedEpoch` · 복구 카드 — 실전 원장은 simToAuto
+//    때 처음 생겨 온보딩 첫 클레임을 그 원장에 적을 수 없다) · 🔴 기록이 0 이면 여전히 자동 클레임 0 ·
+//    ③ 성공 기록이 SUPABASE 행의 상태(파생 FORK · PUSH_*)를 덮지 않는다(새 행만 OK · 같은 행 = 파생 대상 · 끈적 FORK).
 
 import 'dart:async';
 import 'dart:convert';
@@ -129,6 +134,48 @@ class SupabaseLeaseRpc {
     LeaseRpcParams.epoch: epoch,
   });
 
+  /// 🆕 E11k-e3(R229) — 운영 기기 행 등록(자기 기기 · viewer · PENDING — 승격 = [claim] 성공 때 서버) ·
+  /// null = 넣음 · 이미 있음(409) · 그 밖 = 실패 종류(로그인 사용자 id 없음 = [LeaseRpcFailure.notSignedIn]).
+  Future<LeaseRpcFailure?> registerDevice({
+    required String deviceId,
+    required String label,
+    required String platform,
+  }) async {
+    final (Uri, String)? cfg = await _config();
+    if (cfg == null) return LeaseRpcFailure.config;
+    final Uri uri = cfg.$1.replace(
+      pathSegments: const <String>['rest', 'v1', 'app_device'],
+    );
+    Map<String, Object?>? row(String? uid) => uid == null
+        ? null
+        : <String, Object?>{
+            'device_id': deviceId,
+            'label': label,
+            'role': 'viewer',
+            'status': 'PENDING',
+            'platform': platform,
+            'owner_uid': uid,
+            'auth_uid': uid,
+          };
+    String? token = await _auth.accessToken();
+    Map<String, Object?>? body = row(_auth.userId);
+    if (token == null || body == null) return LeaseRpcFailure.notSignedIn;
+    http.Response? r = await _post(uri, cfg.$2, token, body, minimal: true);
+    if (r != null && (r.statusCode == 401 || r.statusCode == 403)) {
+      token = await _auth.accessToken(forceRefresh: true);
+      body = row(_auth.userId);
+      if (token == null || body == null) return LeaseRpcFailure.notSignedIn;
+      r = await _post(uri, cfg.$2, token, body, minimal: true);
+    }
+    if (r == null) return LeaseRpcFailure.network;
+    final int c = r.statusCode;
+    // 201 = 넣음 · 409 = 같은 기기 id 행이 이미 있다(기기 하나 = 행 하나 · 자격 판정 = 리스 RPC).
+    if (c == 201 || c == 409) return null;
+    if (c == 401 || c == 403) return LeaseRpcFailure.unauthorized;
+    if (c >= 500) return LeaseRpcFailure.server;
+    return LeaseRpcFailure.badResponse;
+  }
+
   /// 비상 회수(X1-3 ① · 🔴 [recoveryCode] = 평문 — 이 호출에만 · 쥐지 않는다).
   Future<LeaseRpcResult> revoke({
     required String deviceId,
@@ -159,8 +206,9 @@ class SupabaseLeaseRpc {
     Uri uri,
     String key,
     String token,
-    Object body,
-  ) async {
+    Object body, {
+    bool minimal = false,
+  }) async {
     try {
       return await _http
           .post(
@@ -169,6 +217,8 @@ class SupabaseLeaseRpc {
               'apikey': key,
               'authorization': 'Bearer $token',
               'content-type': 'application/json',
+              // 넣은 행을 돌려받지 않는다(SELECT 정책과 무관하게 201).
+              if (minimal) 'prefer': 'return=minimal',
             },
             body: jsonEncode(body),
           )
@@ -253,17 +303,20 @@ class SupabaseLeaseRpc {
 
 /// 🆕 원격 리스 판정(당겨 쓰는 리스 — `SqliteLeaseGate(remote:)` 자리 · R71 L3).
 class SupabaseLeaseGate implements LeaseGate {
-  /// 만든다 — [db] = 이 모드의 원장(sync_state SUPABASE 행) · [deviceId] = 이 기기(`app_device.device_id`).
+  /// 만든다 — [db] = 이 모드의 원장(sync_state SUPABASE 행) · [deviceId] = 이 기기(`app_device.device_id`) ·
+  /// 🆕 R229 [claimedEpoch] = 이 기기의 첫 클레임 기록 epoch(복구 카드 · 없음 = 0 · 원장 행이 없을 때만 읽는다).
   SupabaseLeaseGate(
     this._rpc,
     this._db, {
     required this.deviceId,
     required this._clock,
+    this._claimedEpoch,
   });
 
   final SupabaseLeaseRpc _rpc;
   final Database _db;
   final Clock _clock;
+  final int Function()? _claimedEpoch;
 
   /// 이 기기 id.
   final String deviceId;
@@ -276,17 +329,22 @@ class SupabaseLeaseGate implements LeaseGate {
       'SELECT operator_epoch FROM sync_state WHERE target = ?',
       <Object?>[kLeaseSyncTarget],
     );
-    return rs.isEmpty ? 0 : rs.first['operator_epoch'] as int;
+    final int held = rs.isEmpty ? 0 : rs.first['operator_epoch'] as int;
+    if (held > 0) return held;
+    // 🆕 R229 — 이 원장에 쥔 기록이 없으면 이 기기의 첫 클레임 기록(복구 카드) · 없음 = 0(자동 클레임 0 그대로).
+    final int Function()? claimed = _claimedEpoch;
+    return claimed == null ? 0 : claimed();
   }
 
   void _record(int epoch) {
     final String now = _clock.nowUtc().toUtc().toIso8601String();
     // 🔴 봉인된 행은 바꾸지 않는다(봉인 해제 = X1 재클레임 흐름).
+    // 🆕 R229 — 있는 행의 상태는 그대로(SUPABASE = 파생 대상 — FORK · PUSH_* 를 리스 성공이 지우지 않는다) · 새 행만 OK.
     _db.execute(
       'INSERT INTO sync_state (target, last_ok_at, status, operator_epoch, updated_at) '
       "VALUES (?, ?, 'OK', ?, ?) "
       'ON CONFLICT(target) DO UPDATE SET last_ok_at = excluded.last_ok_at, '
-      "status = 'OK', operator_epoch = excluded.operator_epoch, updated_at = excluded.updated_at "
+      'operator_epoch = excluded.operator_epoch, updated_at = excluded.updated_at '
       "WHERE sync_state.status <> 'SEALED'",
       <Object?>[kLeaseSyncTarget, now, epoch, now],
     );

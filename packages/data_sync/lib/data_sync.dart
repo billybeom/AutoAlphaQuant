@@ -81,6 +81,8 @@ export 'src/local/plan_snapshot_store.dart';
 export 'src/local/planned_work_store.dart';
 export 'src/local/pledge_store.dart';
 export 'src/local/rebalance_source.dart';
+// 🆕 E11k-e3 — O-04 ⑤ 복구 카드 첫 클레임 기록(command_inbox · 해시만 · 설계 13 §8 R229).
+export 'src/local/recovery_card_store.dart';
 // 🆕 E16j-a — X5 정정 마법사 원천(설계 13 §8 R227 · 01 §8 미결 217).
 export 'src/local/repair_wizard_source.dart';
 export 'src/local/resume_read_model.dart';
@@ -128,6 +130,8 @@ export 'src/supabase/supabase_auth.dart';
 // 🆕 E11k-e2(설계 13 §8 R221) — o_07 ① 부트스트랩 SQL 묶음 · 복구 코드 해시 꼴(원문 조각 = 내부 생성 파일).
 export 'src/supabase/supabase_bootstrap.dart';
 export 'src/supabase/supabase_connect.dart';
+// 🆕 E11k-e3 — O-04 ⑤ 첫 클레임 명시 흐름(복구 코드 발급 · 기기 행 · lease_claim · 설계 13 §8 R229).
+export 'src/supabase/supabase_first_claim.dart';
 export 'src/supabase/supabase_lease.dart';
 export 'src/supabase/supabase_recovery_code.dart';
 export 'src/supabase/supabase_server_time.dart';

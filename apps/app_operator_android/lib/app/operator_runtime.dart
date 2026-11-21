@@ -27,6 +27,7 @@ import 'package:data_sync/data_sync.dart'
         P0sHumanDecision,
         SqliteJournalSource,
         SupabaseAuth,
+        SupabaseFirstClaim,
         SupabaseServerTime,
         contributionRowsOf,
         journalRangePresetsFromLedger,
@@ -46,6 +47,7 @@ import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
 
 import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
+import '../engine/lease_wiring.dart' show LeaseRemoteOf;
 import '../engine/ledger_files.dart';
 import '../engine/operator_engine.dart' show EngineWakeReport;
 import '../secret/secret_handoff.dart' show ClipboardJanitor, SecretHandoff;
@@ -77,6 +79,8 @@ class OperatorRuntime {
     this.refreshTrusted,
     this.supabaseTime,
     this.supabaseAuth,
+    this.firstClaim,
+    this.leaseRemote,
     this.biometricSign,
     this.golden,
     this.liveObservation,
@@ -143,6 +147,13 @@ class OperatorRuntime {
 
   /// 🆕 E11k-d2(R216) — o_07 ③ 로그인 · 세션(접근 토큰 = 메모리 · 새로고침 토큰 = 금고 · 없음 = 로그인 구현 없음).
   final SupabaseAuth? supabaseAuth;
+
+  /// 🆕 E11k-e3(R229) — O-04 ⑤ 복구 카드 · 첫 클레임 흐름(프로세스에 하나 — 발급한 카드를 메모리에 쥔다 · 없음 = 기기 id 없음 ·
+  /// 플랫폼 밖 → ⑤ 원천 없음).
+  final SupabaseFirstClaim? firstClaim;
+
+  /// 🆕 E11k-e3(R229 F8) — 원격 리스 원천(live · simBroker 판정에만 끼운다 · 엔진과 같은 하나 · 없음 = 실물 전과 같다).
+  final LeaseRemoteOf? leaseRemote;
 
   /// 🆕 E11o-d(R167) — 골든 기기 실행기(자산 = 엔진 패키지 · 없음 = 플랫폼 밖 → S10 «판정 보류» · ④ 원천 없음).
   final OperatorGolden? golden;
