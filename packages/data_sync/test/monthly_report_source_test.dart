@@ -2,6 +2,8 @@
 //
 // 🔴 셈은 엔진 — 여기는 모으기만 한다: 그 달 범위(첫날 ~ 월말 세션) · 월말 정기 회차의 앞 비중 · 전략 · 계층 B 판정 ·
 //    결정 종류 · 이탈 저널 · 국면(판정 OK 만) · 앞 달 마지막 판정 · 집계 = 월 잡과 같은 함수.
+// 🆕 R231 — 읽을 때 짓기(`reportOnRead` — 닫힌 달 · 개시 달부터 · 신뢰 배지 = 브로커 대사 원장 · 열람 수 = 접수 한국 달 ·
+//    무결성 점검 중 = 가림 꼴) · 대사 원장 읽기(`brokerReconChecksOf`).
 
 import 'dart:convert';
 import 'dart:io';
@@ -365,5 +367,259 @@ void main() {
         '${july.length}거래일 중 달러 노출 50% 넘은 날 0일 · 원화 유동성 1% 밑 0일 · 계측 없음 1일',
       );
     });
+  });
+
+  group('🆕 읽을 때 짓기(R231 · 209 ⓔ-2 · ⓔ-3)', () {
+    bool all(String _) => true;
+
+    void opening(String day) => db.execute(
+      'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, account_alias) '
+      "VALUES (?, ?, 1000000, 'KRW', 'DEPOSIT', ?, '2026-06-30T00:00:00Z', NULL)",
+      <Object?>['OPEN-$day', day, DecisionReasonCodes.openingBalance],
+    );
+
+    void recon(String id, String runAt, String action) => db.execute(
+      'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+      "VALUES (?, ?, ?, '{}', ?)",
+      <Object?>[id, runAt, action == 'MATCHED' ? 1 : 0, action],
+    );
+
+    void view(String ingestedAt) => db.execute(
+      'INSERT INTO command_inbox (command_id, kind, ingested_at, state, state_label, reject_reason_code, '
+      'decision_id, run_mode, operating_mode, lease_epoch, payload_digest) '
+      "VALUES (?, ?, ?, 'EXECUTED', '실행됨', NULL, NULL, NULL, NULL, NULL, 'd')",
+      <Object?>['V-${seq++}', CommandKind.disclosureView.wire, ingestedAt],
+    );
+
+    void julySnaps() {
+      for (final String d in krMonthSessionsOf(
+        _kr,
+        const TradeDate('2026-07-31'),
+      )) {
+        snap(d, 100);
+      }
+    }
+
+    test('🔴 개시 전 = StateError · 닫히지 않은 달 = UnsupportedError(미생성 = ⓔ-4) · 달 꼴 = 엔진 가드', () async {
+      await expectLater(
+        src().reportOnRead('2026-07', nowUtc: _t0, configHash: 'cfg_t'),
+        throwsStateError,
+      ); // 개시 0
+      opening('2026-07-01');
+      await expectLater(
+        src().reportOnRead('2026-06', nowUtc: _t0, configHash: 'cfg_t'),
+        throwsStateError,
+      );
+      await expectLater(
+        src().reportOnRead('2026-08', nowUtc: _t0, configHash: 'cfg_t'),
+        throwsUnsupportedError,
+      );
+      await expectLater(
+        src().reportOnRead(
+          '2026-07',
+          nowUtc: DateTime.utc(2026, 7, 31, 14, 59), // 한국 07-31 23:59 = 월말 세션 날
+          configHash: 'cfg_t',
+        ),
+        throwsUnsupportedError,
+      );
+      await expectLater(
+        src().reportOnRead('2026-7', nowUtc: _t0, configHash: 'cfg_t'),
+        throwsArgumentError,
+      );
+    });
+
+    test(
+      '🔴 닫힌 달 = 원장 리포트 + 신뢰 배지(그 달 마감 시점 대사) + 열람 수(접수 한국 달) · 생성 = 지금',
+      () async {
+        opening('2026-07-01');
+        julySnaps();
+        recon(
+          'rc-2026-07-31T00:05:00.000Z#1',
+          '2026-07-31T00:05:00.000Z',
+          'MATCHED',
+        );
+        recon(
+          'rc-clear-2026-07-31T01:00:00.000Z#1',
+          '2026-07-31T01:00:00.000Z',
+          'CLEARED',
+        );
+        recon(
+          'li-2026-07-31T02:00:00.000Z#1',
+          '2026-07-31T02:00:00.000Z',
+          'INTEGRITY_MISMATCH',
+        );
+        recon(
+          'rc-2026-07-31T22:05:00.000Z#1',
+          '2026-07-31T22:05:00.000Z',
+          'BLOCKED',
+        ); // 한국 08-01 = 다음 달
+        view('2026-07-15T03:00:00.000Z');
+        view('2026-07-20T03:00:00.000Z');
+        view('2026-07-31T15:30:00.000Z'); // 한국 08-01
+        view('2026-06-30T14:59:00.000Z'); // 한국 06-30
+        final MonthlyReport r = await src().reportOnRead(
+          '2026-07',
+          nowUtc: _t0,
+          configHash: 'cfg_t',
+          hasBody: all,
+        );
+        expect(r.trust.grade, LedgerTrustGrade.reconciled);
+        expect(r.trust.lastVerifiedOn, const TradeDate('2026-07-31'));
+        expect(r.trust.consequenceLine, MonthlyTrustTexts.reconciledLine);
+        expect(r.disclosureViewCountText, '이번 달 2번 열어 보셨습니다');
+        expect(r.generatedAtText, '2026-08-01 생성');
+        expect(r.asOf.label, '리포트 기준 2026-07-31');
+        expect(r.configHash, 'cfg_t');
+        expect(item(r, 'A1_PERIOD_RETURN').valueText, '0.00%');
+        expect(
+          item(r, 'C1_MAX_DRAWDOWN').detailDeepLink,
+          AppRoutes.performanceDrawdown,
+        );
+        expect(
+          item(r, 'D3_EXECUTION').detailDeepLink,
+          'aaq://ledger/execution-gap/2026-07',
+        );
+        expect(
+          r,
+          await src().monthlyReport(
+            '2026-07',
+            generatedAtUtc: _t0,
+            configHash: 'cfg_t',
+            trust: monthlyLedgerTrustOf(
+              checks: brokerReconChecksOf(db),
+              monthEnd: const TradeDate('2026-07-31'),
+              hasBody: all,
+            ),
+            disclosureViewCount: 2,
+            hasBody: all,
+          ),
+        );
+        // 링크 목적지 없음 = 「자세히」 0 · 배지 링크 0.
+        final MonthlyReport bare = await src().reportOnRead(
+          '2026-07',
+          nowUtc: _t0,
+          configHash: '',
+        );
+        for (final ReportItem i in bare.items) {
+          expect(i.detailDeepLink, isNull, reason: i.code);
+        }
+      },
+    );
+
+    test('🔴 그 달 마지막 대사 BLOCKED = 어긋남 배지 · D2 표지(월말 회차 비중)', () async {
+      opening('2026-07-01');
+      julySnaps();
+      event(
+        'M-07',
+        '2026-07-31',
+        before: jsonEncode(<Map<String, Object?>>[
+          <String, Object?>{'sleeve': 'A', 'weight': 0.16},
+          <String, Object?>{'sleeve': 'POT', 'weight': 0.04},
+          <String, Object?>{'sleeve': 'B', 'weight': 0.42},
+          <String, Object?>{'sleeve': 'C', 'weight': 0.38},
+        ]),
+      );
+      recon(
+        'rc-2026-07-30T22:05:00.000Z#1',
+        '2026-07-30T22:05:00.000Z',
+        'BLOCKED',
+      );
+      final MonthlyReport r = await src().reportOnRead(
+        '2026-07',
+        nowUtc: _t0,
+        configHash: 'cfg_t',
+        hasBody: all,
+      );
+      expect(r.trust.grade, LedgerTrustGrade.drifting);
+      expect(r.trust.actionDeepLink, AppRoutes.m5BlockBoard);
+      expect(
+        item(r, 'D2_ALLOCATION').valueText,
+        '회계 기준 A 20.0%? · B 42.0%? · C 38.0%?',
+      );
+      expect(
+        item(r, 'D2_ALLOCATION').noteText,
+        MonthlyReportTexts.allocationUnsettled,
+      );
+    });
+
+    test('🔴 무결성 점검 중 = 가림 꼴(원장 수치 0) · 열람 수 그대로 · 풀린 깃발 = 보통', () async {
+      opening('2026-07-01');
+      julySnaps();
+      view('2026-07-15T03:00:00.000Z');
+      db.execute(
+        "INSERT INTO trading_block (flag_id, set_at, reason) VALUES ('LEDGER_INTEGRITY', ?, '점검')",
+        <Object?>['2026-07-31T23:00:00.000Z'],
+      );
+      final MonthlyReport m = await src().reportOnRead(
+        '2026-07',
+        nowUtc: _t0,
+        configHash: 'cfg_t',
+        hasBody: all,
+      );
+      for (final ReportItem i in m.items) {
+        expect(i.valueText, MonthlyReportTexts.integrityHidden, reason: i.code);
+        expect(i.detailDeepLink, isNull);
+      }
+      expect(m.goalLine, MonthlyReportTexts.integrityGoal);
+      expect(m.trust.label, MonthlyTrustTexts.integrityLabel);
+      expect(m.trust.actionDeepLink, AppRoutes.x5RepairWizard);
+      expect(m.disclosureViewCountText, '이번 달 1번 열어 보셨습니다');
+      db.execute(
+        "UPDATE trading_block SET cleared_at = '2026-08-01T00:00:00.000Z' WHERE flag_id = 'LEDGER_INTEGRITY'",
+      );
+      final MonthlyReport n = await src().reportOnRead(
+        '2026-07',
+        nowUtc: _t0,
+        configHash: 'cfg_t',
+      );
+      expect(item(n, 'A1_PERIOD_RETURN').valueText, '0.00%');
+    });
+
+    test(
+      '🔴 대사 원장 = rc- 행만(해제 · 무결성 · 골든 제외) · 시각 값 순(소수 자릿수 섞여도) · 결과 밖 = 실패',
+      () {
+        recon(
+          'rc-2026-07-31T00:05:00.123456Z#1',
+          '2026-07-31T00:05:00.123456Z',
+          'MATCHED',
+        );
+        recon(
+          'rc-2026-07-31T00:05:00.123Z#1',
+          '2026-07-31T00:05:00.123Z',
+          'BLOCKED',
+        );
+        recon(
+          'rc-2026-07-30T00:05:00.000Z#1',
+          '2026-07-30T00:05:00.000Z',
+          'UNAVAILABLE',
+        );
+        recon(
+          'rc-clear-2026-07-31T01:00:00.000Z#1',
+          '2026-07-31T01:00:00.000Z',
+          'CLEARED',
+        );
+        recon(
+          'li-2026-07-31T02:00:00.000Z#1',
+          '2026-07-31T02:00:00.000Z',
+          'INTEGRITY_OK',
+        );
+        recon(
+          'gv-2026-07-31T03:00:00.000Z#1',
+          '2026-07-31T03:00:00.000Z',
+          'GOLDEN_PASS',
+        );
+        expect(brokerReconChecksOf(db), <(DateTime, ReconAction)>[
+          (DateTime.utc(2026, 7, 30, 0, 5), ReconAction.unavailable),
+          (DateTime.utc(2026, 7, 31, 0, 5, 0, 123), ReconAction.blocked),
+          (DateTime.utc(2026, 7, 31, 0, 5, 0, 123, 456), ReconAction.matched),
+        ]);
+        recon(
+          'rc-2026-07-31T04:00:00.000Z#1',
+          '2026-07-31T04:00:00.000Z',
+          'WEIRD',
+        );
+        expect(() => brokerReconChecksOf(db), throwsStateError);
+      },
+    );
   });
 }

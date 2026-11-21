@@ -9,6 +9,11 @@
 // 🔴 원천 0 = 호출자 인자로 남긴다: 원장 신뢰 배지(생산자 0) · 탐색 열람 수(`DISCLOSURE_VIEW` 저장 0) · 설정 지문 · 생성 시각 ·
 //    소급 각주. 🔴 스냅숏 저장(마감된 달 재계산 금지 · G-97) · 미생성 · 가림(01 §2-10) = 다음 조각 — 이 원천은 부를 때마다
 //    원장에서 다시 모은다.
+// 🆕 R231(미결 209 ⓔ-2 · ⓔ-3 · ⓔ-5) — [SqliteMonthlyReportSource.reportOnRead] = 읽을 때 짓기(저장 0): 닫힌 달 · 개시 달부터
+//    (엔진 [monthlyReportReadinessOf] — 그 밖 = 실패) · 신뢰 배지 = 브로커 대사 원장([brokerReconChecksOf] → 엔진
+//    [monthlyLedgerTrustOf] · 그 달 마감 시점) · 열람 수 = 탐색 게이트와 같은 셈([ledgerDisclosureViewsOf]) · 무결성 점검 중 =
+//    엔진 가림 꼴([monthlyReportIntegrityMaskedOf]) · 생성 시각 = 지금(지금 지었다 — 정직) · 「자세히」 = 본문이 있는 화면만.
+//    🔵 ⓔ-4 남김 = 스냅숏 저장(`rm_monthly_report` · G-97) · 미생성 문장(생성일 규칙 · 미결 40) · 아카이브(S7-1b) · 소급 각주.
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
@@ -16,6 +21,9 @@ import 'package:sqlite3/sqlite3.dart';
 
 import '../jobs/daily_jobs.dart' show SqliteEquitySnapshotStore;
 import '../jobs/tier_b_step.dart' show tierBSeries;
+import 'deposit_ledger.dart' show openingCashTradeDate;
+import 'performance_source.dart'
+    show ledgerDisclosureViewsOf, ledgerIntegrityHidden;
 import 'position_replay_sql.dart' show krSignedFillsAfter;
 import 'rebalance_source.dart' show storedRebalanceWeightsOf;
 
@@ -120,6 +128,39 @@ P0sExposureTally ledgerExposureTallyOf(
     ],
     setup: setup,
   );
+}
+
+/// 🆕 R231 — 브로커 대사 원장(`reconciliation_log` 의 `rc-` 행 · 해제 행 `rc-clear-` 제외) → (시각 · 결과) 시각 순.
+/// 🔴 순서 = 시각 값(글자 정렬은 소수 초 자릿수가 다르면 틀린다) · 같은 시각 = 기록 id 순 · 결과 글자가 [ReconAction] 밖 =
+/// [StateError](지어내지 않는다).
+List<(DateTime, ReconAction)> brokerReconChecksOf(Database db) {
+  final List<(DateTime, ReconAction, int)> rows =
+      <(DateTime, ReconAction, int)>[
+        for (final (int i, Row r)
+            in db
+                .select(
+                  "SELECT run_at, action_taken FROM reconciliation_log WHERE recon_id GLOB 'rc-*' "
+                  "AND recon_id NOT GLOB 'rc-clear-*' ORDER BY recon_id",
+                )
+                .indexed)
+          (
+            DateTime.parse(r['run_at'] as String).toUtc(),
+            ReconAction.values.firstWhere(
+              (ReconAction a) => a.code == r['action_taken'],
+              orElse: () => throw StateError(
+                'reconciliation_log 대사 결과 밖: ${r['action_taken']}',
+              ),
+            ),
+            i,
+          ),
+      ];
+  rows.sort(
+    ((DateTime, ReconAction, int) a, (DateTime, ReconAction, int) b) =>
+        a.$1 == b.$1 ? a.$3.compareTo(b.$3) : a.$1.compareTo(b.$1),
+  );
+  return <(DateTime, ReconAction)>[
+    for (final (DateTime at, ReconAction a, int _) in rows) (at, a),
+  ];
 }
 
 /// 월간 리포트 칸마다 엔진 입력(원장에서 모은 것 — null = 그 칸 원천 없음 → «산출 불가»).
@@ -240,7 +281,8 @@ class SqliteMonthlyReportSource {
     );
   }
 
-  /// 월간 리포트 — 원천 0 인 머리 값([trust] · [disclosureViewCount] · [configHash] · [backdateFootnote])은 부르는 쪽이 준다.
+  /// 월간 리포트 — 원천 0 인 머리 값([trust] · [disclosureViewCount] · [configHash] · [backdateFootnote])은 부르는 쪽이 준다 ·
+  /// 🆕 R231 [hasBody] = 「자세히」 목적지 본문(null = 링크 0).
   Future<MonthlyReport> monthlyReport(
     String yyyyMm, {
     required DateTime generatedAtUtc,
@@ -248,6 +290,7 @@ class SqliteMonthlyReportSource {
     required LedgerTrustBadge trust,
     required int disclosureViewCount,
     String? backdateFootnote,
+    bool Function(String route)? hasBody,
   }) async {
     final MonthlyReportInputs i = await inputs(yyyyMm);
     return monthlyReportOf(
@@ -265,6 +308,59 @@ class SqliteMonthlyReportSource {
       execution: i.execution,
       regime: i.regime,
       backdateFootnote: backdateFootnote,
+      hasBody: hasBody,
+    );
+  }
+
+  /// 🆕 R231 — 읽을 때 짓는 월간 리포트(저장 0 · 자동 매매 — 신뢰 배지 = 브로커 대사).
+  ///
+  /// [nowUtc] = 생성 시각(지금 지었다) · [configHash] = 지금 설정 지문(못 얻으면 빈 글자) · [hasBody] = 「자세히」 · 배지 링크 목적지.
+  /// 🔴 아직 닫히지 않은 달 = [UnsupportedError](미생성 문장 = ⓔ-4) · 개시 전 달 = [StateError](지어내지 않는다) ·
+  /// 달 꼴 · 달력 밖 = [krMonthEndOf] 의 실패 그대로.
+  Future<MonthlyReport> reportOnRead(
+    String yyyyMm, {
+    required DateTime nowUtc,
+    required String configHash,
+    bool Function(String route)? hasBody,
+  }) async {
+    final TradeDate monthEnd = krMonthEndOf(_kr, yyyyMm);
+    switch (monthlyReportReadinessOf(
+      yyyyMm: yyyyMm,
+      monthEnd: monthEnd,
+      openingDate: openingCashTradeDate(_db),
+      nowUtc: nowUtc,
+    )) {
+      case MonthlyReportReadiness.pending:
+        throw UnsupportedError(
+          '월간 리포트 $yyyyMm: 미생성 — 아직 닫히지 않은 달(미생성 문장 = 209 ⓔ-4)',
+        );
+      case MonthlyReportReadiness.beforeOpening:
+        throw StateError('월간 리포트 $yyyyMm: 개시 전 달 — 리포트 없음');
+      case MonthlyReportReadiness.closed:
+        break;
+    }
+    final int views = ledgerDisclosureViewsOf(_db, yyyyMm);
+    if (ledgerIntegrityHidden(_db)) {
+      return monthlyReportIntegrityMaskedOf(
+        yyyyMm: yyyyMm,
+        monthEnd: monthEnd,
+        generatedAtUtc: nowUtc,
+        configHash: configHash,
+        disclosureViewCount: views,
+        hasBody: hasBody,
+      );
+    }
+    return monthlyReport(
+      yyyyMm,
+      generatedAtUtc: nowUtc,
+      configHash: configHash,
+      trust: monthlyLedgerTrustOf(
+        checks: brokerReconChecksOf(_db),
+        monthEnd: monthEnd,
+        hasBody: hasBody,
+      ),
+      disclosureViewCount: views,
+      hasBody: hasBody,
     );
   }
 

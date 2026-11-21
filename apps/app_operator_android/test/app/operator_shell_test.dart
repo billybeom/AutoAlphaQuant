@@ -38,6 +38,8 @@ import 'package:core_engine/core_engine.dart'
         HoldingsTexts,
         KillSwitchScreenTexts,
         LiveObservationConfig,
+        MonthlyReportTexts,
+        MonthlyTrustTexts,
         P0sHumanInputs,
         ReconClearTexts,
         RepairWizardTexts,
@@ -46,7 +48,13 @@ import 'package:core_engine/core_engine.dart'
         contributionDefaultRange;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
-    show P0sHumanDecision, SqliteAlertSink, SqliteOnboardingStore, storedAlerts;
+    show
+        P0sHumanDecision,
+        SqliteAlertSink,
+        SqliteOnboardingStore,
+        krMonthEndOf,
+        krMonthSessionsOf,
+        storedAlerts;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AlertCodes,
@@ -76,6 +84,7 @@ import 'package:ui_analytics/ui_analytics.dart'
         ContributionScreen,
         DrawdownContextScreen,
         ExecutionGapScreen,
+        MonthlyReportScreen,
         PerformanceExploreScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
@@ -527,6 +536,18 @@ void main() {
           .hasBody(AppRoutes.performanceContribution),
       true,
     );
+    // 🆕 R231 — S7-1 월간 리포트 등록 · 리포트의 「자세히」 목적지(S7-3 · S7-10 그 달)도 본문이 있다.
+    for (final String r in <String>[
+      AppRoutes.reportMonthly,
+      AppRoutes.performanceDrawdown,
+      AppRoutes.ledgerExecutionGapMonth,
+    ]) {
+      expect(
+        container.read(operatorPerformanceProvider).hasBody(r),
+        true,
+        reason: r,
+      );
+    }
     // 🆕 R178 — M5-1 킬스위치 읽기 = 한 인스턴스 · 명령 = 기기 id 없음 → null(버튼 부재).
     expect(
       identical(
@@ -1506,6 +1527,109 @@ void main() {
       await settle();
       expect(tester.takeException(), isNull);
       sees();
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M7 S7-1 월간 리포트(R231) = 조립 셸에 등록 · 닫힌 달 = 원장 리포트 · 신뢰 배지 · 「자세히」 → S7-3 · 닫히지 않은 달 = 오류 칸(크래시 없음)',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      // 오늘 = 2026-12-22 → 닫힌 달 = 11월(월말 세션 11-30) · 개시 = 11-02.
+      files.sim.execute(
+        'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, account_alias) '
+        "VALUES ('S71-OPEN', '2026-11-02', 1000000, 'KRW', 'DEPOSIT', ?, '2026-11-02T00:00:00Z', NULL)",
+        <Object?>[DecisionReasonCodes.simOpeningBalance],
+      );
+      final List<String> nov = krMonthSessionsOf(
+        rt.calendars.kr,
+        krMonthEndOf(rt.calendars.kr, '2026-11'),
+      );
+      expect(nov.first, '2026-11-02'); // 11월 첫 세션 = 개시 날(결측 0)
+      for (final String d in nov) {
+        files.sim.execute(
+          'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+          "VALUES (?, 1000000, 1000000, 0, 1000000, 0, 'SIM_INTERNAL')",
+          <Object?>[d],
+        );
+      }
+      files.sim.execute(
+        'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+        "VALUES ('rc-2026-11-29T22:05:00.000Z#1', '2026-11-29T22:05:00.000Z', 1, '{}', 'MATCHED')",
+      );
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      await open(tester, 'aaq://report/2026-11');
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      final Finder screen = find.byType(MonthlyReportScreen);
+      expect(screen, findsOneWidget);
+      expect(tester.widget<MonthlyReportScreen>(screen).yyyyMm, '2026-11');
+      for (final String t in <String>[
+        '2026-11',
+        '리포트 기준 2026-11-30',
+        '2026-12-22 생성',
+        MonthlyTrustTexts.reconciledLabel,
+        MonthlyTrustTexts.reconciledLine,
+        '0.00%',
+      ]) {
+        expect(
+          find.descendant(of: screen, matching: find.text(t)),
+          findsWidgets,
+          reason: t,
+        );
+      }
+      final Finder list = find
+          .descendant(of: screen, matching: find.byType(Scrollable))
+          .first;
+      // 바닥글 = 지연 목록 끝(스크롤해야 지어진다) — 목표 줄 · 열람 수.
+      for (final String t in <String>[
+        MonthlyReportTexts.goalWithheld,
+        '이번 달 0번 열어 보셨습니다',
+      ]) {
+        await tester.scrollUntilVisible(find.text(t), 300, scrollable: list);
+        expect(find.text(t), findsOneWidget, reason: t);
+      }
+      // 「자세히」 — C1(최대 낙폭) 카드의 버튼 = S7-3 드로다운.
+      await tester.scrollUntilVisible(
+        find.text('최대 낙폭'),
+        -300,
+        scrollable: list,
+      );
+      final Finder c1 = find.descendant(
+        of: find.ancestor(of: find.text('최대 낙폭'), matching: find.byType(Card)),
+        matching: find.widgetWithText(TextButton, '자세히'),
+      );
+      expect(c1, findsOneWidget);
+      await tester.ensureVisible(c1);
+      await tester.tap(c1);
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(DrawdownContextScreen), findsOneWidget);
+      // 닫히지 않은 달 = 원천의 실패 → 화면 오류 칸(지어낸 칸 0).
+      await open(tester, 'aaq://report/2026-12');
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder pending = find.byType(MonthlyReportScreen).last;
+      expect(
+        find.descendant(of: pending, matching: find.text('다시 시도')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: pending, matching: find.text('리포트 기준 2026-12-31')),
+        findsNothing,
+      );
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;

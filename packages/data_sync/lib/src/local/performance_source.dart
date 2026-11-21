@@ -44,6 +44,25 @@ import 'package:sqlite3/sqlite3.dart' show Database, Row;
 
 import '../jobs/tier_b_step.dart' show tierBSeries;
 
+/// 원장 무결성 점검 중인가(`LEDGER_INTEGRITY` 풀리지 않은 차단) — 🆕 R231 월간 리포트도 같은 판정.
+bool ledgerIntegrityHidden(Database db) => db.select(
+  'SELECT 1 FROM trading_block WHERE flag_id = ? AND cleared_at IS NULL',
+  <Object?>[FlagIds.ledgerIntegrity],
+).isNotEmpty;
+
+/// [yyyyMm](한국 달) 열람 기록 수 — 접수 시각 기준(G-42) · 🆕 R231 월간 리포트 «이번 달 n번»도 같은 셈(미결 209 ⓔ-3).
+int ledgerDisclosureViewsOf(Database db, String yyyyMm) {
+  int n = 0;
+  for (final Row r in db.select(
+    'SELECT ingested_at FROM command_inbox WHERE kind = ?',
+    <Object?>[CommandKind.disclosureView.wire],
+  )) {
+    final DateTime? at = DateTime.tryParse(r['ingested_at'] as String);
+    if (at != null && disclosureMonthOf(at.toUtc()) == yyyyMm) n++;
+  }
+  return n;
+}
+
 /// 성과 탐색 · 열람 게이트 원천(같은 원장 한 파일).
 class SqlitePerformanceSource {
   /// 만든다.
@@ -65,23 +84,10 @@ class SqlitePerformanceSource {
   List<EquityPoint> equity(String today) => tierBSeries(_db, today);
 
   /// 원장 무결성 점검 중인가.
-  bool integrityHidden() => _db.select(
-    'SELECT 1 FROM trading_block WHERE flag_id = ? AND cleared_at IS NULL',
-    <Object?>[FlagIds.ledgerIntegrity],
-  ).isNotEmpty;
+  bool integrityHidden() => ledgerIntegrityHidden(_db);
 
   /// [yyyyMm](한국 달) 열람 기록 수 — 접수 시각 기준.
-  int disclosureViews(String yyyyMm) {
-    int n = 0;
-    for (final Row r in _db.select(
-      'SELECT ingested_at FROM command_inbox WHERE kind = ?',
-      <Object?>[CommandKind.disclosureView.wire],
-    )) {
-      final DateTime? at = DateTime.tryParse(r['ingested_at'] as String);
-      if (at != null && disclosureMonthOf(at.toUtc()) == yyyyMm) n++;
-    }
-    return n;
-  }
+  int disclosureViews(String yyyyMm) => ledgerDisclosureViewsOf(_db, yyyyMm);
 
   /// `S7-2G` 게이트.
   DisclosureGateVm gate() {
