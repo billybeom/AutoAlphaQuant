@@ -52,6 +52,7 @@ import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
         ExecutionGapScreen,
+        PerformanceExploreScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
         RebalanceTimelineScreen;
@@ -423,6 +424,29 @@ void main() {
       await _gone(tester, find.byType(ExecutionGapScreen));
       await tester.pageBack();
       await _gone(tester, find.byType(AnnualReviewEntry));
+
+      // 🆕 R223 — S7-2 성과 탐색: 게이트(이번 달 열람 수 · 마찰) → 「그래도 보기」 = 원장 열람 기록 1행 → 같은 위젯 안 본문
+      //    (기록 줄 = 엔진 접수증 글자 · 시리즈 또는 엔진 문장 카드).
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.performanceExplore);
+      await _until(tester, find.byKey(const Key('s72g-continue')));
+      await _at(tester, find.byType(PerformanceExploreScreen), 'IT_S72G');
+      await tester.ensureVisible(find.byKey(const Key('s72g-continue')));
+      await tester.tap(find.byKey(const Key('s72g-continue')));
+      await _until(tester, find.byKey(const Key('s72-record-line')));
+      await _until(tester, find.byKey(const Key('s72-asof')));
+      expect(
+        files.sim
+            .select(
+              "SELECT COUNT(*) AS n FROM command_inbox WHERE kind = 'DISCLOSURE_VIEW'",
+            )
+            .first['n'],
+        1,
+      );
+      await _at(tester, find.byType(PerformanceExploreScreen), 'IT_S72');
+      await tester.pageBack();
+      await _gone(tester, find.byType(PerformanceExploreScreen));
 
       // 🆕 R171 — M6 H6-1 보유 현황 · 보유 0 = 엔진 빈 문장 → 연습 보유를 넣으면(원장 변경) 같은 화면에 카드 A · B · C.
       container.read(shellLinkOpenerProvider).open(AppRoutes.holdingsOverview);

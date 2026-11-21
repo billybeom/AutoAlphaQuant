@@ -76,6 +76,7 @@ export 'src/local/ops_config_source.dart';
 export 'src/local/ops_home_source.dart';
 export 'src/local/order_ledger.dart';
 export 'src/local/p0s_human_source.dart';
+export 'src/local/performance_source.dart';
 export 'src/local/plan_snapshot_store.dart';
 export 'src/local/planned_work_store.dart';
 export 'src/local/pledge_store.dart';
