@@ -58,11 +58,18 @@ part 'safety_actions.g.dart';
 ///    · `repairAccept`     = `{diff_id}`(아무것도 안 하기 · 구현 = 살아 있는 개입 세션 `DO_NOTHING` + diff ACCEPTED ·
 ///                           무결성 갈래 0 · 결과 id = [SafetyActionId.repairAccept]).
 /// · `runRepairCorrect` — 정본 정정(diff 갈래 · 5단계 통과 뒤 · 원문 4칸 파싱 = 구현 · 직전 재대사 = 구현 · `decision_id` = 개입 세션 저널 ·
-///   거부 = `RepairResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪ `InterventionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairCorrect].
+///   거부 = `RepairResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪ `InterventionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN` ∪ 🆕 v1.35
+///   `RepairInputResultCodes`(원문 파싱 · K291)). 결과 id = [SafetyActionId.repairCorrect].
+///   🆕 v1.35(K292) — 정정 체인 상한 = 운영 설정 `operations.amend_chain_max`(SPEC 02 §4 · 값 = 01 §10-3 B6 · 계약 상수 0 · C-32).
 /// · `runRepairBaseline` — 새 기준점(무결성 갈래 · 거부 = `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `InterventionResultCodes` ∪
 ///   `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairBaseline].
 /// · `runInterventionJournal` — 개입 3단계 사전 저널(K180 꼴 3칸 · 구현 = 살아 있는 세션 하나에 붙인다 · 저널 + 3단계 한 트랜잭션 · M5-6 재사용 ·
 ///   거부 = `InterventionResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.interventionJournal].
+///   🆕 v1.35(01 §44 · K294) — 그 저널 행 `kind` = `DecisionJournalKinds.interventionJournal`(`INTERVENTION_JOURNAL` · 지금 엔진 NULL → 미결 220 ⓒ).
+/// 🆕 v1.35(01 §44 · K296) — 🔴 **저널 키 한 벌**: 이 표면의 `decision_id`(재개 7번 · STOPPED · RECON 해제 · 규칙 변경 요청 · 개입 3단계 ·
+///    재량 조정 `DiscretionAdjustSubmission.decisionId` · 서약 편집 `PledgeSubmission.decisionId`) = `decision_journal.journal_id` 이고,
+///    `J-3` 키(`AppRoutes.journalDraft` `:decisionId` · `JournalDraft.decisionId`)도 같은 저널 id 다. 재량 · 서약 편집은 저널을 J-3 가 먼저
+///    쓰고(새 행 갈래 · kind = `DISCRETION` · `PLEDGE_EDIT`) 동작이 그 id 를 받는다 · 나머지는 동작이 저널 + 동작을 한 트랜잭션으로 쓴다(K180 ⓐ).
 /// 🔴 정정 · 새 기준점 커밋이 개입 세션 5단계 · 실행 창 · `decision == journalId` 를 보게 하는 결속 = 엔진 숙제(01 §8 미결 217).
 /// 🆕 v1.33(01 §42 · K273 · E16j-b · X1 기기 이전 `X1PlanWizardVm` · `X1RecoveryVm`) — `run` 화이트리스트 +6(표면 무변경 · 제출 DTO 0 ·
 ///    시크릿 = 슬롯 ↔ 구현 사이만 · `run_id` = 엔진이 args 에 싣는다):
@@ -142,7 +149,7 @@ abstract class SafetyActionResult with _$SafetyActionResult {
     /// `PostmortemResultCodes` ∪ `InterventionResultCodes` ∪ `RuleChangeResultCodes` ∪ `DiscretionResultCodes` ∪
     /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
     /// `ReconClearResultCodes` ∪ 🆕 v1.32 `RepairResultCodes` ∪ `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪
-    /// {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ · C-66).
+    /// 🆕 v1.35 `RepairInputResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ · C-66 · C-68).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).

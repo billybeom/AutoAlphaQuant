@@ -38,12 +38,15 @@ abstract class DepositRegistration with _$DepositRegistration {
 @freezed
 abstract class JournalDraft with _$JournalDraft {
   const factory JournalDraft({
+    /// 🆕 v1.35(01 §44 · K296) — 🔴 값 = **저널 id**(이름은 그대로 · 화면은 `JournalDraftFormSpec.decisionId` 를 그대로 넣는다).
+    /// 갈래(K297) = 엔진이 이 키로 가른다 — ⓐ 채우기(사전 3칸이 빈 있는 저널 행 · SAF-408 자동 해제) · ⓑ 새 행(엔진이 J-3 링크에
+    /// 실어 발급한 새 저널 id · 목적 `DISCRETION` · `PLEDGE_EDIT`) · 둘 다 아님 = `JOURNAL_TARGET_UNKNOWN`.
     required String decisionId,
     required String rationaleBefore,
     required String expectedOutcome,
 
     /// 🔴 **엔진 제공 목록의 코드**다(자유 입력 금지). 선택지는
-    ///    `JournalDraftFormSpec.ruleCitedOptions`(E-4)가 준다.
+    ///    `JournalDraftFormSpec.ruleCitedOptions`(E-4)가 준다. 🆕 v1.35(K300) — 값 ∈ `JournalRuleCitedCodes`(목록 밖 = `JOURNAL_INPUT_INVALID`).
     required String ruleCited,
     String? note,
   }) = _JournalDraft;

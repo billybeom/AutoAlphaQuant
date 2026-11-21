@@ -40,6 +40,10 @@ const Set<String> _documentedCrossDomainDuplicates = <String>{
   'PASSED', // sim_trial_state ↔ x1_gate_state
   'SQLITE_INTEGRITY', // ledger_integrity_result ↔ ledger_boundary_reason
   'FORMAT_VERSION', // ledger_integrity_result ↔ ledger_boundary_reason
+  // 🆕 v1.35(01 §44 · K294) — 원장 저널 kind ↔ 배지 종류(같은 글자 다른 축 셋 · 15 → 18 글자).
+  'DISCRETION', // deviation_kind ↔ decision_journal_kind
+  'RECON_CLEAR', // deviation_kind ↔ decision_journal_kind
+  'KILL_SWITCH_RESUME', // deviation_kind ↔ decision_journal_kind
 };
 
 /// 픽스처의 코드 필드 → 조회할 도메인(빈 값이면 전역 조회).

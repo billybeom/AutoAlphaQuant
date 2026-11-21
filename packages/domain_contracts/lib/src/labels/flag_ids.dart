@@ -92,6 +92,9 @@ abstract final class FlagIds {
 /// `SafetyState` 의 배치 보류 사유 코드(01 §9-5 ③ · M2-8 A-17).
 ///
 /// 🔴 `trading_block.flag_id` 가 **아니다** — 안전 상태의 hold 사유다.
+/// 🆕 v1.35(01 §44 · K295 · 미결 219 닫음) — 짝 문장 = `SafetyState.holdLabels`(같은 차례 · 같은 길이) · 화면은 이 코드를 보지 않는다.
+///    엔진 생산: `MIGRATION_IN_PROGRESS` = ds 안전 읽기 모델(미결 212 ② ✅) · `LIVE_AWAITING_KEYS` = 기동 게이트 → `SafetyState` 싣기 +
+///    짝 문장 = 미결 220 ⓓ.
 abstract final class SafetyHoldCodes {
   /// 실키 검증 전 보류.
   ///
@@ -104,7 +107,7 @@ abstract final class SafetyHoldCodes {
   ///
   /// 🔴 막는 정본은 이 글자가 아니라 엔진 리스 판정이다 — 이전 세션이 «신규 주문 동결»에 들어서면 NR-1 0단계 리스 = 무효
   ///    (`LEASE_INVALID` · 막는 것은 주문뿐 · 백업 커밋 · 아카이브는 원래 리스 판정 그대로). 이 hold 는 그 상태를 보여 줄 뿐이다.
-  ///    엔진 생산(`SafetyState.holds` 에 싣기) = 엔진 숙제(01 §8 미결 212).
+  ///    엔진 생산(`SafetyState.holds` 에 싣기) = 엔진 숙제(01 §8 미결 212 ② — ✅ R225 #312).
   static const String migrationInProgress = 'MIGRATION_IN_PROGRESS';
 
   /// 전량 2종.

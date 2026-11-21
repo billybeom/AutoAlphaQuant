@@ -247,6 +247,8 @@ abstract class RejectTrace with _$RejectTrace {
 ///    `decisionId`(제출 `JournalDraft.decisionId` 에 그대로 넣는 값) · `pledgeLines`(본인
 ///    서약문 — 🔴 편집 불가 · 0줄이면 서약 블록 자체가 없다) · `contextChips`(문맥 칩) ·
 ///    `deviation`(표시만 — 🔴 화면이 이탈 여부를 판정하지 않는다).
+/// 🆕 v1.35(01 §44 · K296 · K300) — [decisionId] 값 = **저널 id**(이름 그대로) · `pledgeLines` = 지금 서약 판을 재량 예산을 쓰는
+///    목적(`DISCRETION` · 채우기 갈래의 `MANUAL_ORDER` · `MANUAL_ENTRY`)에만 · 그 밖 0줄 · `ruleCitedOptions[].code` ∈ `JournalRuleCitedCodes`.
 @freezed
 abstract class JournalDraftFormSpec with _$JournalDraftFormSpec {
   const factory JournalDraftFormSpec({

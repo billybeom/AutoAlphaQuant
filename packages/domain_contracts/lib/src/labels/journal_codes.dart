@@ -94,12 +94,96 @@ abstract final class JournalBadgeCodes {
 /// 🔴 X7 명령의 거부 사유(`AdviceRejectCodes`)와 **다른 도메인**이다 — 섞어 조회하지 않는다
 ///    (`ContractCodes.byDomain` 키 `journal_draft_reject`).
 /// ⏸ 픽스처가 쓰는 1종에서 시작한다. 엔진(M1)이 새 사유를 내면 **여기와 픽스처를 함께** 넓힌다.
+/// 🆕 v1.35(01 §44 · K296 ~ K298) — J-3 키 = **저널 id**(`decision_journal.journal_id` · 안전 동작의 `decision_id` 와 한 벌) ·
+///    제출 갈래 = 엔진이 키로 가른다(ⓐ 채우기 = 사전 3칸이 빈 있는 행 · ⓑ 새 행 = 엔진이 J-3 링크에 실어 발급한 새 저널 id) ·
+///    1종 → 3종(키 · 입력 거부). 🔴 화면은 이 코드로 분기 · 문구 · 표시를 하지 않는다(위 머리 그대로 — 문구 = `stateLabel`).
 abstract final class JournalDraftRejectCodes {
-  /// 이 결정(`decisionId`)의 사전 저널이 이미 접수돼 있다 — 같은 결정에 두 번째 사전 저널.
+  /// 이 키의 사전 저널이 이미 접수돼 있다 — 채우기 갈래의 행이 이미 세 칸 다 찼거나 새 행 갈래의 키로 이미 썼다.
   static const String journalAlreadyExists = 'JOURNAL_ALREADY_EXISTS';
 
-  /// 전량(⏸ 1종).
-  static const Set<String> values = <String>{journalAlreadyExists};
+  /// 🆕 v1.35(K298) — 키가 저널 대상이 아니다(모르는 id · 결정 id 를 넣었다 · 엔진이 발급하지 않은 새 키).
+  static const String journalTargetUnknown = 'JOURNAL_TARGET_UNKNOWN';
+
+  /// 🆕 v1.35(K298) — 입력이 폼 조건을 못 채운다(근거 앞뒤 공백 뺀 글자 < `rationaleMinChars` · 기대 결과 빈칸 ·
+  /// 인용 규칙 ∉ 그 폼 `ruleCitedOptions` · `requiresNote` 인데 메모 빈칸) — 화면 «제출 가능 조건»과 같은 판정을 엔진이 다시 한다.
+  static const String journalInputInvalid = 'JOURNAL_INPUT_INVALID';
+
+  /// 전량(🆕 v1.35 3종).
+  static const Set<String> values = <String>{
+    journalAlreadyExists,
+    journalTargetUnknown,
+    journalInputInvalid,
+  };
+}
+
+/// 🆕 v1.35(01 §44 · K300) — `J-3` 인용 규칙 선택지 코드(`JournalDraftFormSpec.ruleCitedOptions[].code` · `JournalDraft.ruleCited` ·
+/// J-3 가 쓴 `decision_journal.rule_cited`) — 도메인 `journal_rule_cited` · 표본 3 = 엔진 첫 목록.
+/// 🔴 다른 안전 동작의 `ruleCited`(재개 7번 · 개입 3단계 · RECON 해제 · 규칙 변경 요청)는 **원문**이다 — 이 사전과 축이 다르다(01 §8 미결 184 ③).
+/// 🔴 선택지 글자(`label`) · 메모 필수(`requiresNote`) = 엔진 VM 칸 · 화면은 이 코드로 분기 · 문구를 고르지 않는다.
+/// 엔진이 새 규칙을 내면 **여기와 픽스처를 함께** 넓힌다.
+abstract final class JournalRuleCitedCodes {
+  /// 재량 예산(롤링 12개월) 안에서 조정.
+  static const String discretionBudget = 'RULE_DISCRETION_BUDGET';
+
+  /// 대사 불일치 — 원인 코드 확인 뒤 해소.
+  static const String reconCause = 'RULE_RECON_CAUSE';
+
+  /// 그 밖의 규칙(메모 필수).
+  static const String other = 'RULE_OTHER';
+
+  static const Set<String> values = <String>{
+    discretionBudget,
+    reconCause,
+    other,
+  };
+}
+
+/// 🆕 v1.35(01 §44 · K294 · 미결 206 꼬리 · 217 ④) — 로컬 원장 `decision_journal.kind` 열의 값(도메인 `decision_journal_kind` ·
+/// SPEC 02D `decision_journal` 주석과 한 벌). 🔴 표시 칸이 아니다 — 화면은 이 글자를 받지도 그리지도 않는다(배지 = `DeviationBadge.kindCode`).
+/// 규칙: 글자 = 그 저널을 쓰는 안전 동작의 id 와이어(`SafetyActionId`) — 예외 둘([killSwitchChecklist] · [discretion] = 기존 엔진 · SPEC 글자).
+/// 🔴 같은 글자 다른 축 셋 — [discretion] · [reconClear] · [killSwitchResume] = `DeviationKindCodes`(배지 종류 · C-5 문서 쌍).
+/// 🔴 NULL = 옛 행(읽기 호환 · SAF-408 판정은 kind 를 보지 않는다) — 새로 쓰는 행은 이 사전 값만(엔진 숙제 = 01 §8 미결 220 ⓒ).
+/// X1 D-03 · 비상 선언 결정(01 §8 미결 218 ⓖ) = 이전 저널 표 칸이라 이 사전 밖이다.
+abstract final class DecisionJournalKinds {
+  /// 킬스위치 발동 뒤 기록(M5-1 · `confirmKillChecklist` · ds `kill_switch_store` — 🔵 예외: 명령 와이어 `KILL_CHECKLIST_CONFIRM` 와 다르다).
+  static const String killSwitchChecklist = 'KILL_SWITCH_CHECKLIST';
+
+  /// 킬스위치 재개 7번(M5-2 · `SafetyActionId.killSwitchResume`).
+  static const String killSwitchResume = 'KILL_SWITCH_RESUME';
+
+  /// STOPPED 결정 A · B · C(M5-3 · `SafetyActionId.stoppedDecision`).
+  static const String stoppedDecision = 'STOPPED_DECISION';
+
+  /// 대사 불일치 해제(M5-5 · `SafetyActionId.reconClear`).
+  static const String reconClear = 'RECON_CLEAR';
+
+  /// 규칙 변경 요청(M5-9 · `SafetyActionId.ruleChangeRequest`).
+  static const String ruleChangeRequest = 'RULE_CHANGE_REQUEST';
+
+  /// 수동 개입 3단계 사전 저널(M5-6 · X5 마찰 · `SafetyActionId.interventionJournal` · 🔵 지금 엔진 = NULL → 미결 220 ⓒ).
+  static const String interventionJournal = 'INTERVENTION_JOURNAL';
+
+  /// 재량 조정의 사전 저널(M5-7 · J-3 새 행 갈래 · `DiscretionAdjustSubmission.decisionId` 가 가리킨다 · 🔵 예외: SPEC v2.15 ·
+  /// 엔진 `kDiscretionJournalKind` 글자 — 동작 와이어 `DISCRETION_ADJUST` 와 다르다).
+  static const String discretion = 'DISCRETION';
+
+  /// 서약 편집의 사전 저널(M5-8 · J-3 새 행 갈래 · `SafetyActionId.pledgeEdit` · `PledgeSubmission.decisionId` 가 가리킨다).
+  static const String pledgeEdit = 'PLEDGE_EDIT';
+
+  /// 전량 8종.
+  static const Set<String> values = <String>{
+    killSwitchChecklist,
+    killSwitchResume,
+    stoppedDecision,
+    reconClear,
+    ruleChangeRequest,
+    interventionJournal,
+    discretion,
+    pledgeEdit,
+  };
+
+  /// J-3 새 행 갈래의 목적(K297 ⓑ) — 저널을 먼저 쓰고 동작이 그 id 를 받는 둘.
+  static const Set<String> draftPurposes = <String>{discretion, pledgeEdit};
 }
 
 /// 🆕 v1.7(01 §16) — `J-4` blind 리뷰 점수 제출(`CommandKind.blindReviewScore`)의 거부 사유.

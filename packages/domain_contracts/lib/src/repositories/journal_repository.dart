@@ -62,6 +62,8 @@ abstract interface class JournalRepository {
 
   /// `J-3` 사전 저널 폼 스펙(서약문·문맥 칩·규칙 인용 선택지).
   /// 🔴 제출은 `CommandApi.submitJournalDraft` — 여기는 읽기뿐이다.
+  /// 🆕 v1.35(01 §44 · K296 · K300) — 인자 = **저널 id**(`AppRoutes.journalDraft` 의 `:decisionId` 그대로) · 모르는 키 = `Future` 에러 ·
+  /// 서약 줄 = 재량 예산을 쓰는 목적에만(그 밖 0줄) · 인용 규칙 선택지 코드 ∈ `JournalRuleCitedCodes`.
   Future<JournalDraftFormSpec> draftFormSpec(String decisionId);
 
   /// `J-5` UNKNOWN 해소 보드. 🔴 이 화면에서 `CommandApi` 호출은 0건이다(02 §3-5 수용 a).
@@ -75,6 +77,9 @@ abstract interface class JournalRepository {
   /// 결정 자체가 없으면 스트림 에러 — `watchDecisionDetail` 의 **잠정** 규칙(01 §8 미결 50 ③ · ⬜ 확인
   /// 대기)과 같게 둔다. 50 ③ 이 확정되면 두 메서드를 함께 고친다(화면은 어느 쪽이든 공통 에러 상태).
   /// 🔴 화면은 `findByDecisionId`·`chainOf` 로 조립하지 않는다 — 이 스트림 하나만 구독한다.
+  /// 🆕 v1.35(01 §44 · K296) — 인자 = 결정 id(J-2 «작성됨» 링크 `journalRead`) **또는** 저널 id(`J-3` executed 뒤 끼워 넣기 ·
+  /// 안전 저널) 둘 다 받는다 — 해석(저널 id 먼저 · 없으면 결정 id → `decision_log.journal_id`) = 엔진 · 저널 id 로 열리면
+  /// `decisionLink` = 그 저널이 붙은 결정이 있을 때만(없으면 null — 기존 «null = 부재») · 둘 다 아니면 스트림 에러(위 규칙 그대로).
   Stream<DecisionJournalVm> watchDecisionJournal(String decisionId);
 
   // ── 🆕 계약 v1.5(R12 선행 M2 보강 · 01 §15-3 · §8 미결 49) ─────────────────────

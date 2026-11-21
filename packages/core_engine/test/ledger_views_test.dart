@@ -84,25 +84,19 @@ void main() {
           final LedgerDiffRow expected = LedgerDiffRow.fromJson(fx);
           final LedgerDiffRow got = ledgerDiffRowOf(_storedOf(fx));
           expect(got.evidenceHash, matches(RegExp(r'^ev_[0-9a-f]{12}$')));
-          // 🆕 E16j-a(01 §8 미결 217 ⓕ) — 조치 링크 = 대상 라우트(표본은 v1.12 허브 글자 · 표본 개정 = 계약 창 몫).
+          // 🆕 E16j-a(01 §8 미결 217 ⓕ) — 조치 링크 = 대상 라우트 · 🆕 계약 v1.35(01 §44 K293) — 표본도 대상 라우트 글자라
+          //    조치 링크까지 표본 글자 그대로(증거 해시만 엔진 몫).
           if (expected.actionLink != null) {
-            expect(expected.actionLink!.deepLink, AppRoutes.x5RepairWizard);
             expect(
-              got.actionLink,
-              LinkAction(
-                label: expected.actionLink!.label,
-                deepLink: AppRoutes.x5RepairTarget.replaceFirst(
-                  ':targetId',
-                  expected.diffId,
-                ),
+              expected.actionLink!.deepLink,
+              AppRoutes.x5RepairTarget.replaceFirst(
+                ':targetId',
+                expected.diffId,
               ),
             );
           }
           expect(
-            got.copyWith(
-              evidenceHash: expected.evidenceHash,
-              actionLink: expected.actionLink,
-            ),
+            got.copyWith(evidenceHash: expected.evidenceHash),
             expected,
             reason: fx['diff_id'] as String,
           );

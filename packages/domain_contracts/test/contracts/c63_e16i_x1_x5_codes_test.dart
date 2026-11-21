@@ -467,7 +467,8 @@ void main() {
       }
       // 🆕 v1.32(01 §41 · K259) — repair_codes.dart 에 `BaselineApplyResultCodes` 1 이 더해졌다(103 → 104 · C-66 ⑪).
       // 🆕 v1.33(01 §42 · K274) — migration_codes.dart 에 `X1SlotIds` 4 가 더해졌다(104 → 108 · C-67 ⑭).
-      expect(n, 108);
+      // 🆕 v1.35(01 §44 · K291) — repair_codes.dart 에 `RepairInputResultCodes` 1 이 더해졌다(108 → 109 · C-68 ②).
+      expect(n, 109);
     });
   });
 }

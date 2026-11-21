@@ -34,9 +34,10 @@ const List<String> _vms = <String>[
 
 RepairWizardVm _vm(String path) => RepairWizardVm.fromJson(_rows(path).single);
 
-/// 결과 `reasonCode` 합집합(K259).
+/// 결과 `reasonCode` 합집합(K259 · 🆕 v1.35 K291 += 정정 원문 파싱 거부).
 final Set<String> _resultCodes = <String>{
   ...RepairResultCodes.values,
+  ...RepairInputResultCodes.values,
   ...BaselineResultCodes.values,
   ...BaselineApplyResultCodes.values,
   AdviceRejectCodes.amendTargetNotActive,
