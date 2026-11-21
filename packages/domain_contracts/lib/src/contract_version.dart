@@ -265,12 +265,19 @@
 //    (`repairAccept` = `run{diff_id}` 화이트리스트 · 나머지 = 결과 id) · 🆕 `BaselineApplyResultCodes` 1 · 받침대 +4 · op stub 3 · 🆕 C-66 ·
 //    픽스처 367 → 375(신설 8 — 🆕 폴더 `x5/`) — 🆕 tool/gen_e16j_a_v132_fixtures.py · 🔴 엔진 결속 · 후보 · 재대사 · VM 생산 = 미결 217.
 //    다음 판 = 1.33.0(🔴 첫 후보 = E16j-b X1 화면 계약 — 미결 211 남은 몫 · 그 밖 v1.28 예약 목록 그대로) · 06 변경 이력 «2026-11-2x · 계약 v1.32».
+// 🆕 '1.33.0'(E16j-b 계약 창 · 01 §42 · 발주자 위임 2026-11-14 — 권고대로 · K264~K281) — X1 기기 이전 화면(미결 211 닫음):
+//    🆕 `X1PlanWizardVm` · `X1RecoveryVm` · `X1StepRow` · `X1TicketCard` · `X1FencingCard` · `X1ReissueRow` · `X1RestoreCard` · `X1GateCard`
+//    (`dto/migration.dart` · D-03 = `EmergencyCardVm` 재사용) · 🆕 `MigrationRepository`(3 스트림) · 라우트 신설 0 · 인자 0(주석 정정만) ·
+//    `SafetyActionId` +6(`x1PlanStart` · `x1PlanStep` · `x1PlanAbort` · `x1EmergencyStart` · `x1ReissueRecord` · `x1RecoveryStep` — 전부 `run`
+//    화이트리스트 · 표면 무변경) · 🆕 `X1SlotIds` 4(`x1_slot`) · 받침대 +1 · 🆕 C-67 · C-5 필드 규칙 +4 ·
+//    픽스처 375 → 390(신설 15 — 🆕 폴더 `x1/`) — 🆕 tool/gen_e16j_b_v133_fixtures.py · 🔴 VM 생산 · 단계 진행기 · 저장 · 백업 원천 = 미결 218.
+//    다음 판 = 1.34.0(첫 후보 = v1.28 예약 목록 그대로) · 06 변경 이력 «2026-11-2x · 계약 v1.33».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.32.0';
+const String contractVersion = '1.33.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

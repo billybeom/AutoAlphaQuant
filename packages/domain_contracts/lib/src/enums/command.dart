@@ -344,7 +344,31 @@ enum SafetyActionId {
 
   /// 🆕 v1.32(K252) — 개입 3단계 사전 저널(제출 `runInterventionJournal` · 결과 id · M5-6 공용).
   @JsonValue('INTERVENTION_JOURNAL')
-  interventionJournal('INTERVENTION_JOURNAL');
+  interventionJournal('INTERVENTION_JOURNAL'),
+
+  /// 🆕 v1.33(01 §42 · K273 · E16j-b) — X1 옛 폰 «봤습니다 — 이전 시작»(`run{}` · D-03 확인 결정 = 구현).
+  @JsonValue('X1_PLAN_START')
+  x1PlanStart('X1_PLAN_START'),
+
+  /// 🆕 v1.33(K273) — X1 옛 폰 단계 진행(`run{run_id, step}`).
+  @JsonValue('X1_PLAN_STEP')
+  x1PlanStep('X1_PLAN_STEP'),
+
+  /// 🆕 v1.33(K273) — X1 옛 폰 이전 그만두기(`run{run_id, step}` · DEMOTED 앞 행만).
+  @JsonValue('X1_PLAN_ABORT')
+  x1PlanAbort('X1_PLAN_ABORT'),
+
+  /// 🆕 v1.33(K273) — X1 새 폰 비상 시작(`run{}` · 선언 결정 + 복구 코드 슬롯 → epoch+1 = 구현).
+  @JsonValue('X1_EMERGENCY_START')
+  x1EmergencyStart('X1_EMERGENCY_START'),
+
+  /// 🆕 v1.33(K273) — X1 재발급 한 항목 기록(`run{run_id, item}` · 값 = 슬롯 ↔ 구현 · 지문만 엔진).
+  @JsonValue('X1_REISSUE_RECORD')
+  x1ReissueRecord('X1_REISSUE_RECORD'),
+
+  /// 🆕 v1.33(K273) — X1 새 폰 복구 단계(`run{run_id, step}` · 골든 · 체크리스트 · 생체 = 구현이 가른다 · 생체 = 구현 K11).
+  @JsonValue('X1_RECOVERY_STEP')
+  x1RecoveryStep('X1_RECOVERY_STEP');
 
   const SafetyActionId(this.wire);
 

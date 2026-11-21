@@ -61,6 +61,7 @@
 //   `UnimplementedBreakerLadderRepository` · `UnimplementedResumeGateRepository` · `UnimplementedResumeRepository`(동기 throw).
 //   🆕 계약 v1.23(01 §32) — `UnimplementedSettingsRepository.watchContribution`(동기 throw) · `UnimplementedSettingsActions.runContributionUpdate`(`Future` 에러).
 //   🆕 계약 v1.24(01 §33) — `UnimplementedSettingsRepository.watchDiagnosticsScreen`(동기 throw) · `UnimplementedOpsStatusRepository.watchAnnualReview` 반환 = `AnnualReviewIndexVm`.
+//   🆕 계약 v1.33(01 §42 · K266) — `UnimplementedMigrationRepository`(동기 throw · 3).
 //   🆕 계약 v1.32(01 §41 · K249 · K262) — `UnimplementedRepairWizardRepository`(동기 throw) · `UnimplementedSafetyActions` +3
 //   (`runRepairCorrect` · `runRepairBaseline` · `runInterventionJournal` · `Future` 에러).
 //   🆕 계약 v1.28(01 §37 · K199) — `UnimplementedSettingsRepository.watchAllocationEditor`(동기 throw).
@@ -636,6 +637,21 @@ class UnimplementedHandoverRepository implements HandoverRepository {
   @override
   Stream<HandoverWizardVm> watchWizard() =>
       throw UnimplementedError('watchWizard');
+}
+
+/// 🆕 계약 v1.33(01 §42 · K266) — [MigrationRepository] 받침대(X1 기기 이전). 🔴 동기로 던진다.
+class UnimplementedMigrationRepository implements MigrationRepository {
+  @override
+  Stream<X1PlanWizardVm> watchPlanWizard() =>
+      throw UnimplementedError('watchPlanWizard');
+
+  @override
+  Stream<X1RecoveryVm> watchPlanRecovery() =>
+      throw UnimplementedError('watchPlanRecovery');
+
+  @override
+  Stream<X1RecoveryVm> watchEmergencyRecovery() =>
+      throw UnimplementedError('watchEmergencyRecovery');
 }
 
 /// 🆕 계약 v1.32(01 §41 · K249) — [RepairWizardRepository] 받침대(X5 정정 마법사). 🔴 동기로 던진다.

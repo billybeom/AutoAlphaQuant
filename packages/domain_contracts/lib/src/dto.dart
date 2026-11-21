@@ -19,6 +19,7 @@ export 'dto/incident.dart';
 export 'dto/journal.dart';
 export 'dto/ledger.dart';
 export 'dto/ledger_trust.dart';
+export 'dto/migration.dart'; // 🆕 v1.33 — X1 기기 이전(01 §42)
 export 'dto/onboarding.dart';
 export 'dto/operations.dart';
 export 'dto/ops.dart';

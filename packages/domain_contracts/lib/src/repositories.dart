@@ -22,6 +22,7 @@ export 'repositories/journal_repository.dart';
 export 'repositories/kill_switch_gate_repository.dart';
 export 'repositories/ledger_repository.dart';
 export 'repositories/ledger_trust_repository.dart';
+export 'repositories/migration_repository.dart'; // 🆕 v1.33 — X1 기기 이전(01 §42)
 export 'repositories/onboarding_repository.dart';
 export 'repositories/ops_repository.dart';
 export 'repositories/pairing_repository.dart';

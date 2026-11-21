@@ -206,6 +206,17 @@ final DtoCodec<Object> _breakerLadderVm = DtoCodec<BreakerLadderVm>(
   BreakerLadderVm.fromJson,
   (BreakerLadderVm v) => v.toJson(),
 );
+// 🆕 계약 v1.33(E16j-b · 01 §42) — X1 기기 이전.
+final DtoCodec<Object> _x1PlanWizardVm = DtoCodec<X1PlanWizardVm>(
+  'X1PlanWizardVm',
+  X1PlanWizardVm.fromJson,
+  (X1PlanWizardVm v) => v.toJson(),
+);
+final DtoCodec<Object> _x1RecoveryVm = DtoCodec<X1RecoveryVm>(
+  'X1RecoveryVm',
+  X1RecoveryVm.fromJson,
+  (X1RecoveryVm v) => v.toJson(),
+);
 // 🆕 계약 v1.32(E16j-a · 01 §41) — X5 정정 마법사.
 final DtoCodec<Object> _repairWizardVm = DtoCodec<RepairWizardVm>(
   'RepairWizardVm',
@@ -1116,6 +1127,23 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m9SettingsHome: FixtureBinding(_settingsHomeVm),
   FixturePaths.m9SettingsHomeNoReview: FixtureBinding(_settingsHomeVm),
   FixturePaths.m9SettingsHomeViewer: FixtureBinding(_settingsHomeVm),
+
+  // ── x1/ — 🆕 v1.33(01 §42 · K279) X1 기기 이전 옛 폰 6 · 새 폰 8 · 결과 1 ──────
+  FixturePaths.x1PlanWizardBlocked: FixtureBinding(_x1PlanWizardVm),
+  FixturePaths.x1PlanWizardD03: FixtureBinding(_x1PlanWizardVm),
+  FixturePaths.x1PlanWizardDemoted: FixtureBinding(_x1PlanWizardVm),
+  FixturePaths.x1PlanWizardLiveOnly: FixtureBinding(_x1PlanWizardVm),
+  FixturePaths.x1PlanWizardLocked: FixtureBinding(_x1PlanWizardVm),
+  FixturePaths.x1PlanWizardTicket: FixtureBinding(_x1PlanWizardVm),
+  FixturePaths.x1RecoveryEmergencyFencing: FixtureBinding(_x1RecoveryVm),
+  FixturePaths.x1RecoveryEmergencyStart: FixtureBinding(_x1RecoveryVm),
+  FixturePaths.x1RecoveryFull: FixtureBinding(_x1RecoveryVm),
+  FixturePaths.x1RecoveryGapViolation: FixtureBinding(_x1RecoveryVm),
+  FixturePaths.x1RecoveryGateBiometric: FixtureBinding(_x1RecoveryVm),
+  FixturePaths.x1RecoveryGateObserving: FixtureBinding(_x1RecoveryVm),
+  FixturePaths.x1RecoveryPlanScan: FixtureBinding(_x1RecoveryVm),
+  FixturePaths.x1RecoveryRestoreRejected: FixtureBinding(_x1RecoveryVm),
+  FixturePaths.x1X1ActionResults: FixtureBinding(_safetyActionResult),
 
   // ── x2/ — 🆕 v1.22(01 §31 · K63 · K64) X2 재개 게이트 · 리포트 ──────────────
   FixturePaths.x2ResumeGateConservativeDefer: FixtureBinding(_resumeGateVm),
