@@ -64,5 +64,54 @@ void main() {
         expect(OnboardingSlotIds.supabaseConnect, startsWith('SECRET_'));
       },
     );
+
+    test('🆕 E11k-d2(R216 · 미결 215 · 계약 v1.31 K240) — SupabaseAuthFailure 12 wire = 전송 6(시각 사전 한 벌) + 인증 6(인증 사전)', () {
+      const Set<SupabaseAuthFailure> transport = <SupabaseAuthFailure>{
+        SupabaseAuthFailure.notConfigured,
+        SupabaseAuthFailure.badConfig,
+        SupabaseAuthFailure.unauthorized,
+        SupabaseAuthFailure.server,
+        SupabaseAuthFailure.badResponse,
+        SupabaseAuthFailure.network,
+      };
+      const Map<SupabaseAuthFailure, String>
+      auth = <SupabaseAuthFailure, String>{
+        SupabaseAuthFailure.badInput: SupabaseAuthResultCodes.badInput,
+        SupabaseAuthFailure.notSignedIn: SupabaseAuthResultCodes.notSignedIn,
+        SupabaseAuthFailure.invalidCredentials:
+            SupabaseAuthResultCodes.invalidCredentials,
+        SupabaseAuthFailure.sessionLost: SupabaseAuthResultCodes.sessionLost,
+        SupabaseAuthFailure.rateLimited: SupabaseAuthResultCodes.rateLimited,
+        SupabaseAuthFailure.vault: SupabaseAuthResultCodes.vault,
+      };
+      expect(transport.length + auth.length, SupabaseAuthFailure.values.length);
+      for (final SupabaseAuthFailure f in SupabaseAuthFailure.values) {
+        if (transport.contains(f)) {
+          expect(
+            SupabaseTimeResultCodes.values,
+            contains(f.wire),
+            reason: f.name,
+          );
+          // 같은 이름의 시각 실패와 같은 글자(같은 사건 = 한 벌).
+          expect(
+            f.wire,
+            SupabaseTimeFailure.values
+                .singleWhere((SupabaseTimeFailure t) => t.name == f.name)
+                .wire,
+            reason: f.name,
+          );
+        } else {
+          expect(f.wire, auth[f], reason: f.name);
+        }
+      }
+      expect(auth.values.toSet(), SupabaseAuthResultCodes.values);
+      // 🔴 금고 = 인증 쪽 글자(읽기 또는 쓰기) — 시각 쪽 «읽기만»과 다르다.
+      expect(
+        SupabaseAuthFailure.vault.wire,
+        isNot(SupabaseTimeFailure.vault.wire),
+      );
+      expect(OnboardingSlotIds.supabaseLogin, startsWith('SECRET_'));
+      expect(SettingsActionId.supabaseSignIn.name, 'supabaseSignIn');
+    });
   });
 }

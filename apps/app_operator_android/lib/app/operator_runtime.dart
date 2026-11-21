@@ -25,6 +25,7 @@ import 'package:data_sync/data_sync.dart'
     show
         P0sHumanDecision,
         SqliteJournalSource,
+        SupabaseAuth,
         SupabaseServerTime,
         contributionRowsOf,
         journalRangePresetsFromLedger,
@@ -73,6 +74,7 @@ class OperatorRuntime {
     TrustedClock? trusted,
     this.refreshTrusted,
     this.supabaseTime,
+    this.supabaseAuth,
     this.biometricSign,
     this.golden,
     this.liveObservation,
@@ -134,6 +136,9 @@ class OperatorRuntime {
 
   /// 🆕 E11k-c(R206) — o_07 ② 연결 확인의 서버 시각(붙여 넣은 값으로 잼 · 없음 = 연결 확인 구현 없음 · 시험 · 플랫폼 밖).
   final SupabaseServerTime? supabaseTime;
+
+  /// 🆕 E11k-d2(R216) — o_07 ③ 로그인 · 세션(접근 토큰 = 메모리 · 새로고침 토큰 = 금고 · 없음 = 로그인 구현 없음).
+  final SupabaseAuth? supabaseAuth;
 
   /// 🆕 E11o-d(R167) — 골든 기기 실행기(자산 = 엔진 패키지 · 없음 = 플랫폼 밖 → S10 «판정 보류» · ④ 원천 없음).
   final OperatorGolden? golden;

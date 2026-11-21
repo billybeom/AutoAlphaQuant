@@ -31,6 +31,7 @@ import 'package:data_sync/data_sync.dart'
         HealthchecksClient,
         OfrClient,
         P0sHumanDecision,
+        SupabaseAuth,
         SupabaseServerTime;
 import 'package:domain_contracts/domain_contracts.dart' show Clock, RunMode;
 import 'package:flutter/services.dart' show rootBundle;
@@ -246,6 +247,12 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       observation = null;
     }
     // 🆕 E11k-a(R197 T6) — 신뢰 시각 하나(화면 · 엔진 공용 · 잼 = 앞 화면 갱신기 · 엔진 깨어남).
+    // 🆕 E11k-d2(R216) — Supabase 로그인 · 세션 하나(o_07 ③ · 실측 «로그인됨» · 리스 RPC 의 접근 토큰 원천).
+    final SupabaseAuth supabaseAuth = SupabaseAuth(
+      http.Client(),
+      AndroidSecretVault(),
+      clock: clock,
+    );
     final AnchoredTrustedClock trusted = operatorTrustedClock(
       http: http.Client(),
       vault: AndroidSecretVault(),
@@ -267,6 +274,8 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
         return OnboardingProbe(
           notificationsEnabled: f.notificationsEnabled,
           batteryExempt: f.batteryExempt,
+          // 🆕 R216 — o_07 ③ 로그인됨(금고 새로고침 토큰 · 망 0).
+          supabaseSignedIn: await supabaseAuth.hasSession(),
         );
       },
       // 🆕 R136 — H-03 기기 측정(값만 · 판정 = 엔진).
@@ -282,6 +291,7 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       refreshTrusted: trusted.refresh,
       // 🆕 E11k-c(R206) — o_07 ② 연결 확인(붙여 넣은 값으로 서버 시각 1회 · 통과 = 금고).
       supabaseTime: SupabaseServerTime(http.Client(), AndroidSecretVault()),
+      supabaseAuth: supabaseAuth,
     );
   } on Object {
     return null;

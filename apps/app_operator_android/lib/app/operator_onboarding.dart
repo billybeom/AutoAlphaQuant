@@ -15,6 +15,7 @@ import 'package:core_engine/core_engine.dart'
     show
         OnboardingFinishFacts,
         OnboardingStepFact,
+        kOnboardingStageSignedIn,
         goldenSelftestFactOf,
         kDeviceGoldenSuite,
         onboardingFinishVmOf,
@@ -56,6 +57,7 @@ class OnboardingProbe {
   const OnboardingProbe({
     required this.notificationsEnabled,
     required this.batteryExempt,
+    this.supabaseSignedIn = false,
   });
 
   /// 알림 권한(o_05).
@@ -63,6 +65,9 @@ class OnboardingProbe {
 
   /// 배터리 최적화 예외(o_06).
   final bool batteryExempt;
+
+  /// 🆕 E11k-d2(R216) — 이 기기에 Supabase Auth 세션이 있다(금고 새로고침 토큰 · o_07 ③ 로그인됨).
+  final bool supabaseSignedIn;
 }
 
 /// 🔴 첫 실행 판정 — 온보딩이 끝났나(`onboarding_choice.committed_at`) · 같은 연결로 바뀔 때마다.
@@ -111,6 +116,19 @@ class OperatorOnboardingRepository implements OnboardingRepository {
       );
       f['o_06'] = OnboardingStepFact(
         state: p.batteryExempt ? StepState.verified : StepState.notStarted,
+      );
+    }
+    // 🆕 E11k-d2(R216) — o_07 진행 중(② 통과)에서 로그인됨 = 안쪽 지점만(상태 · 슬롯 그대로 · 확인 글자 = 엔진).
+    //    원천 = 실측(금고 세션) 또는 이 프로세스의 로그인(실측 주기 전에도 바로 보이게).
+    final OnboardingStepFact? o7 = f['o_07'];
+    final bool signedIn =
+        (p?.supabaseSignedIn ?? false) || _rt.supabaseAuth?.userId != null;
+    if (o7 != null && o7.state == StepState.inProgress && signedIn) {
+      f['o_07'] = OnboardingStepFact(
+        state: o7.state,
+        verifiedUntil: o7.verifiedUntil,
+        failureReasonCode: o7.failureReasonCode,
+        stage: kOnboardingStageSignedIn,
       );
     }
     return f;

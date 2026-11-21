@@ -34,13 +34,15 @@ class OnboardingStepFact {
     required this.state,
     this.verifiedUntil,
     this.failureReasonCode,
+    this.stage,
   });
 
   /// 🔴 원천이 없다(확인할 길이 아직 없다) — 필수면 게이트 UNKNOWN.
   const OnboardingStepFact.unknown()
     : state = null,
       verifiedUntil = null,
-      failureReasonCode = null;
+      failureReasonCode = null,
+      stage = null;
 
   /// 상태(null = 원천 없음).
   final StepState? state;
@@ -50,6 +52,27 @@ class OnboardingStepFact {
 
   /// 실패 원문 코드.
   final String? failureReasonCode;
+
+  /// 🆕 E11k-d2(R216) — 진행 중 단계의 안쪽 지점(카탈로그 `stageLabels` 의 키 · 예 [kOnboardingStageSignedIn]) · 없음 = null.
+  /// 🔴 상태를 바꾸지 않는다 — 확인 글자만 고른다(슬롯 · 동작은 상태로 고른다 · 계약 v1.31 K241).
+  final String? stage;
+}
+
+/// 🆕 E11k-d2(R216) — o_07 로그인을 마친 지점(조립 앱 = 이 기기 Auth 세션이 있다).
+const String kOnboardingStageSignedIn = 'SIGNED_IN';
+
+/// 🆕 E11k-d2 — 진행 중일 때 바꿔 끼우는 상세(안내 · 동작 · 슬롯 · 계약 v1.31 K241 «단계 안 슬롯 바뀜»).
+class _Phase {
+  const _Phase({
+    required this.whereText,
+    required this.howText,
+    required this.verify,
+    required this.secretSlotId,
+  });
+  final String whereText;
+  final String howText;
+  final OnboardingAction verify;
+  final String secretSlotId;
 }
 
 /// 방식 하나에서의 자리(필수도 · 차례).
@@ -76,6 +99,8 @@ class _Spec {
     this.advisory,
     this.verificationLabel,
     this.inProgressLabel,
+    this.stageLabels = const <String, String>{},
+    this.inProgressPhase,
     this.unknownGate,
     this.after,
     this.hasDetail = true,
@@ -97,6 +122,12 @@ class _Spec {
 
   /// 🆕 E11k-c(R206) — 진행 중(`IN_PROGRESS`)일 때의 확인 글자(없음 = [verificationLabel]).
   final String? inProgressLabel;
+
+  /// 🆕 E11k-d2(R216) — 진행 중 안쪽 지점별 확인 글자(사실 `stage` → 글자 · 없는 키 = [inProgressLabel]).
+  final Map<String, String> stageLabels;
+
+  /// 🆕 E11k-d2(R216) — 진행 중일 때의 상세(안내 · 동작 · 슬롯 · 없음 = 기본 칸 그대로).
+  final _Phase? inProgressPhase;
 
   /// 원천 없음 게이트(code, label) — 필수일 때만 붙는다.
   final (String, String)? unknownGate;
@@ -206,6 +237,21 @@ const List<_Spec> _catalogue = <_Spec>[
       label: '연결 확인',
     ),
     secretSlotId: OnboardingSlotIds.supabaseConnect,
+    // 🆕 E11k-d2(R216 · 계약 v1.31 01 §40 K241 · 표본 `m8/onboarding_step_detail_supabase_login`) — ② 통과(진척 IN_PROGRESS) 뒤
+    //    같은 단계에서 ③ 로그인 칸 · `supabaseSignIn{}` · 로그인 통과 = 여전히 진행 중 + 확인 글자만 바뀜(VERIFIED = 왕복 뒤).
+    stageLabels: <String, String>{
+      kOnboardingStageSignedIn: '로그인됨 — SQL 단계가 남았습니다',
+    },
+    inProgressPhase: _Phase(
+      whereText: 'Supabase 프로젝트의 Authentication 화면에서 만든 계정의 이메일과 비밀번호를 비밀번호 관리자에서 복사합니다.',
+      howText: '이메일과 비밀번호로 한 번 로그인합니다. 비밀번호는 저장하지 않고 로그인 상태만 이 기기에 둡니다. SQL 실행은 다음 단계에서 합니다.',
+      verify: OnboardingAction(
+        id: SettingsActionId.supabaseSignIn,
+        args: <String, String>{},
+        label: '로그인',
+      ),
+      secretSlotId: OnboardingSlotIds.supabaseLogin,
+    ),
     unknownGate: _conn,
   ),
   _Spec(
@@ -390,7 +436,8 @@ OnboardingStep _stepOf(
     state: state,
     verificationLabel: switch (state) {
       StepState.notStarted => null,
-      StepState.inProgress => s.inProgressLabel ?? s.verificationLabel,
+      StepState.inProgress =>
+        s.stageLabels[fact.stage] ?? s.inProgressLabel ?? s.verificationLabel,
       _ => s.verificationLabel,
     },
     verifiedUntil: until,
@@ -474,11 +521,15 @@ OnboardingStepDetailVm onboardingStepDetailVmOf({
   }
   final _Spec s = _catalogue.singleWhere((_Spec x) => x.id == stepId);
   final bool blocked = step.gate?.state == GateState.block;
+  // 🆕 R216 — 진행 중이면 그 단계의 진행 중 상세(K241 · 사실 = 상태 하나).
+  final _Phase? phase = step.state == StepState.inProgress
+      ? s.inProgressPhase
+      : null;
   return OnboardingStepDetailVm(
     step: step,
-    whereText: s.whereText,
-    howText: s.howText,
-    verify: blocked ? null : s.verify,
-    secretSlotId: blocked ? null : s.secretSlotId,
+    whereText: phase?.whereText ?? s.whereText,
+    howText: phase?.howText ?? s.howText,
+    verify: blocked ? null : (phase?.verify ?? s.verify),
+    secretSlotId: blocked ? null : (phase?.secretSlotId ?? s.secretSlotId),
   );
 }

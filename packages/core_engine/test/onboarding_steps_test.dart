@@ -296,9 +296,53 @@ void main() {
       },
     );
 
-    test('🆕 E11k-c(R206) o_07 진행 중 = 표본 `_step_detail_supabase` 의 글자 · 연결 확인 동작 · 슬롯 · 진행 중 확인 글자', () {
+    test('🆕 E11k-c(R206) · d2(R216) o_07 ② 전 = 표본 `_step_detail_supabase` 의 글자 · 연결 확인 동작 · 연결 슬롯', () {
       final OnboardingStepDetailVm want = OnboardingStepDetailVm.fromJson(
         _row('onboarding_step_detail_supabase'),
+      );
+      final OnboardingStepDetailVm got = onboardingStepDetailVmOf(
+        stepId: 'o_07',
+        mode: OperatingMode.autoTrade,
+        facts: <String, OnboardingStepFact>{
+          ...facts,
+          'o_07': const OnboardingStepFact(state: StepState.notStarted),
+        },
+        nowUtc: _now,
+      );
+      expect(got.whereText, want.whereText);
+      expect(got.howText, want.howText);
+      expect(got.verify, want.verify);
+      expect(got.secretSlotId, want.secretSlotId);
+      expect(got.secretSlotId, OnboardingSlotIds.supabaseConnect);
+      expect(got.step!.title, want.step!.title);
+      expect(got.step!.whyLine, want.step!.whyLine);
+    });
+
+    test('R216 o_07 원천 없음 · 실패 = 연결 칸 그대로(진행 중만 로그인 칸)', () {
+      OnboardingStepDetailVm of(Map<String, OnboardingStepFact> f) =>
+          onboardingStepDetailVmOf(
+            stepId: 'o_07',
+            mode: OperatingMode.autoTrade,
+            facts: f,
+            nowUtc: _now,
+          );
+      final OnboardingStepDetailVm none = of(
+        const <String, OnboardingStepFact>{},
+      );
+      expect(none.secretSlotId, OnboardingSlotIds.supabaseConnect);
+      expect(none.verify!.id, SettingsActionId.connectionTest);
+      final OnboardingStepDetailVm failed = of(
+        const <String, OnboardingStepFact>{
+          'o_07': OnboardingStepFact(state: StepState.failed),
+        },
+      );
+      expect(failed.secretSlotId, OnboardingSlotIds.supabaseConnect);
+      expect(failed.verify!.id, SettingsActionId.connectionTest);
+    });
+
+    test('🆕 E11k-d2(R216) o_07 진행 중(② 통과) = 표본 `_step_detail_supabase_login` 의 글자 · 로그인 동작 · 로그인 슬롯 · 확인 글자', () {
+      final OnboardingStepDetailVm want = OnboardingStepDetailVm.fromJson(
+        _row('onboarding_step_detail_supabase_login'),
       );
       final OnboardingStepDetailVm got = onboardingStepDetailVmOf(
         stepId: 'o_07',
@@ -313,11 +357,66 @@ void main() {
       expect(got.howText, want.howText);
       expect(got.verify, want.verify);
       expect(got.secretSlotId, want.secretSlotId);
-      expect(got.secretSlotId, OnboardingSlotIds.supabaseConnect);
+      expect(got.secretSlotId, OnboardingSlotIds.supabaseLogin);
       expect(got.step!.state, StepState.inProgress);
       expect(got.step!.verificationLabel, want.step!.verificationLabel);
-      expect(got.step!.title, want.step!.title);
-      expect(got.step!.whyLine, want.step!.whyLine);
+    });
+
+    test('🆕 R216 로그인됨(사실 stage SIGNED_IN) = 확인 글자만 바뀜 · 상태 · 슬롯 · 동작 그대로', () {
+      final OnboardingStepDetailVm got = onboardingStepDetailVmOf(
+        stepId: 'o_07',
+        mode: OperatingMode.autoTrade,
+        facts: <String, OnboardingStepFact>{
+          ...facts,
+          'o_07': const OnboardingStepFact(
+            state: StepState.inProgress,
+            stage: kOnboardingStageSignedIn,
+          ),
+        },
+        nowUtc: _now,
+      );
+      expect(got.step!.state, StepState.inProgress);
+      expect(got.step!.verificationLabel, '로그인됨 — SQL 단계가 남았습니다');
+      expect(got.secretSlotId, OnboardingSlotIds.supabaseLogin);
+      expect(got.verify!.id, SettingsActionId.supabaseSignIn);
+      String? label(String id, OnboardingStepFact f) =>
+          onboardingStepsVmOf(
+                mode: OperatingMode.autoTrade,
+                facts: <String, OnboardingStepFact>{id: f},
+                nowUtc: _now,
+              ).rows
+              .singleWhere((OnboardingStep s) => s.stepId == id)
+              .verificationLabel;
+      // 모르는 stage = 기본 진행 중 글자.
+      expect(
+        label(
+          'o_07',
+          const OnboardingStepFact(state: StepState.inProgress, stage: 'X'),
+        ),
+        '서버 시각 확인됨 — 로그인과 SQL 단계가 남았습니다',
+      );
+      // 진행 중이 아니면 stage 를 보지 않는다.
+      expect(
+        label(
+          'o_07',
+          const OnboardingStepFact(
+            state: StepState.failed,
+            stage: kOnboardingStageSignedIn,
+          ),
+        ),
+        isNull,
+      );
+      // 다른 단계에 stage 를 붙여도 그 단계 글자 그대로(o_02).
+      expect(
+        label(
+          'o_02',
+          const OnboardingStepFact(
+            state: StepState.inProgress,
+            stage: kOnboardingStageSignedIn,
+          ),
+        ),
+        '토큰 발급 + 모의 잔고 조회 1회',
+      );
     });
 
     test(

@@ -42,10 +42,35 @@ abstract interface class SupabaseDraftSource {
   void clear();
 }
 
+/// 🆕 E11k-d2(R216) — o_07 ③ 로그인 칸의 원천(🔴 비밀번호 = 위젯 상태에만 · 동작이 한 번 쓰고 칸을 비운다).
+abstract interface class SupabaseLoginDraftSource {
+  /// 지금 값 — 빈 칸 = null.
+  ({String? email, String? password}) current();
+
+  /// 값을 비운다(로그인 뒤 · 취소).
+  void clear();
+}
+
 /// 🔴 위젯 ↔ 검증 동작 사이의 넘김(조립 앱 내부 · 계약 칸 0 · 01 §29 K5).
 class SecretHandoff {
   final Map<KisKeySet, KisDraftSource> _live = <KisKeySet, KisDraftSource>{};
   SupabaseDraftSource? _supabase;
+  SupabaseLoginDraftSource? _login;
+
+  /// 🆕 R216 — 로그인 칸이 설 때 붙는다(나중 것이 이긴다).
+  void attachSupabaseLogin(SupabaseLoginDraftSource source) => _login = source;
+
+  /// 🆕 R216 — 로그인 칸이 내려갈 때 떨어진다(자기 자리일 때만).
+  void detachSupabaseLogin(SupabaseLoginDraftSource source) {
+    if (identical(_login, source)) _login = null;
+  }
+
+  /// 🆕 R216 — 로그인 직전 — 지금 칸의 값(칸 없음 = null) · 🔴 복사해 두지 않는다.
+  ({String? email, String? password})? supabaseLoginDraft() =>
+      _login?.current();
+
+  /// 🆕 R216 — 로그인 뒤 — 칸을 비운다(통과 · 실패 모두 — 비밀번호를 오래 쥐지 않는다).
+  void clearSupabaseLogin() => _login?.clear();
 
   /// 🆕 R206 — Supabase 칸이 설 때 붙는다(나중 것이 이긴다).
   void attachSupabase(SupabaseDraftSource source) => _supabase = source;

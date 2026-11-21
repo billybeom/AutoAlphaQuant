@@ -185,6 +185,49 @@ void main() {
     expect(m.missingLabel, isNotNull);
   });
 
+  test('🆕 E11k-d2(R216) o_07 — 진행 중 = 로그인 칸 · 실측 «로그인됨» = 확인 글자만 바뀜 · 진행 중 아니면 로그인됨이어도 연결 칸', () async {
+    store().selectOperatingMode(OperatingMode.autoTrade);
+    final List<OnboardingStepDetailVm> got = <OnboardingStepDetailVm>[];
+    final StreamSubscription<OnboardingStepDetailVm> sub =
+        OperatorOnboardingRepository(
+          rt,
+          tick: const Duration(milliseconds: 20),
+        ).watchStep('o_07').listen(got.add);
+    addTearDown(sub.cancel);
+    probe = const OnboardingProbe(
+      notificationsEnabled: false,
+      batteryExempt: false,
+      supabaseSignedIn: true,
+    );
+    await until(() => got.isNotEmpty);
+    // ② 전(진척 없음) = 로그인됨이어도 연결 칸(K241 — 상태 하나로 고른다).
+    await until(
+      () => got.last.secretSlotId == OnboardingSlotIds.supabaseConnect,
+    );
+    expect(got.last.secretSlotId, OnboardingSlotIds.supabaseConnect);
+    SqliteOnboardingProgressStore(
+      files.sim,
+      clock: clock,
+    ).record('o_07', StepState.inProgress);
+    await until(
+      () => got.last.step?.verificationLabel == '로그인됨 — SQL 단계가 남았습니다',
+    );
+    expect(got.last.step!.verificationLabel, '로그인됨 — SQL 단계가 남았습니다');
+    expect(got.last.step!.state, StepState.inProgress);
+    expect(got.last.secretSlotId, OnboardingSlotIds.supabaseLogin);
+    expect(got.last.verify?.id, SettingsActionId.supabaseSignIn);
+    probe = const OnboardingProbe(
+      notificationsEnabled: false,
+      batteryExempt: false,
+    );
+    await until(
+      () =>
+          got.last.step?.verificationLabel == '서버 시각 확인됨 — 로그인과 SQL 단계가 남았습니다',
+    );
+    expect(got.last.step!.verificationLabel, '서버 시각 확인됨 — 로그인과 SQL 단계가 남았습니다');
+    expect(got.last.secretSlotId, OnboardingSlotIds.supabaseLogin);
+  });
+
   test('🔴 재시작 · 옛 창구 = 오류(4d 전 · 지어내지 않는다)', () async {
     final OperatorOnboardingRepository r = OperatorOnboardingRepository(rt);
     await expectLater(r.watchRestart(), emitsError(isA<UnsupportedError>()));
