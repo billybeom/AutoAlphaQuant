@@ -14,6 +14,9 @@
 //    (`SupabaseConnectField`)의 주소 · 공개 키를 넘김으로 받아 서버 시각 1회(data_sync `checkSupabaseConnection`) →
 //    통과 = 금고 저장 → 칸 비움 → o_07 IN_PROGRESS(VERIFIED = 쓰기-읽기 왕복 뒤) → 신뢰 시각 바로 한 번 잼.
 //    🔴 결과 글자 · 사유 코드 = 엔진(표본 그대로) · 금고 쓰기 = 통과 뒤에만 · 그 밖 대상 = 그대로 구현 없음.
+// 🆕 E11k-d2(R216 · 계약 v1.31 01 §40) — `supabaseSignIn{}` = o_07 ③ 로그인 1단: 슬롯 칸(`SupabaseLoginPanel`)의 이메일 ·
+//    비밀번호를 넘김으로 받아 `SupabaseAuth.signIn` → 🔴 통과 · 실패 모두 칸을 비운다(비밀번호를 오래 쥐지 않는다) ·
+//    통과 = o_07 진행 중 그대로(VERIFIED 는 내리지 않음 · 확인 글자 «로그인됨» = 엔진 · 사실 = 세션) · 결과 = 엔진 표본 글자.
 
 import 'dart:async';
 
@@ -47,9 +50,13 @@ import 'package:data_sync/data_sync.dart'
     show
         ContributionChangeResult,
         ContributionSettingSource,
+        SupabaseAuth,
+        SupabaseAuthResult,
         SupabaseConnectOutcome,
         SupabaseServerTime,
         checkSupabaseConnection,
+        kSupabaseSignInOk,
+        supabaseSignInOutcome,
         storeSupabaseConnection,
         LedgerIntegrityCheck,
         LedgerIntegrityReport,
@@ -147,7 +154,11 @@ class OperatorSettingsActions implements SettingsActions {
     this.backup,
     this.supabaseTime,
     this.refreshTrusted,
+    this.supabaseAuth,
   });
+
+  /// 🆕 E11k-d2(R216) — o_07 ③ 로그인(없음 = 로그인 구현 없음).
+  final SupabaseAuth? supabaseAuth;
 
   /// 🆕 E11k-c(R206) — o_07 ② 연결 확인의 서버 시각(붙여 넣은 값으로 잼 · 없음 = 연결 확인 구현 없음).
   final SupabaseServerTime? supabaseTime;
@@ -244,6 +255,40 @@ class OperatorSettingsActions implements SettingsActions {
   final Map<KisKeySet, Future<ActionResult>> _inFlight =
       <KisKeySet, Future<ActionResult>>{};
   Future<ActionResult>? _supabaseInFlight;
+  Future<ActionResult>? _signInInFlight;
+
+  /// 🆕 R216 — o_07 ③ 로그인(🔴 비밀번호 = 이 호출에만 · 칸은 통과 · 실패 모두 비운다).
+  Future<ActionResult> _supabaseSignIn(SupabaseAuth auth) async {
+    const SettingsActionId id = SettingsActionId.supabaseSignIn;
+    final ({String? email, String? password})? draft = secrets
+        .supabaseLoginDraft();
+    final SupabaseAuthResult r = await auth.signIn(
+      email: draft?.email ?? '',
+      password: draft?.password ?? '',
+    );
+    secrets.clearSupabaseLogin();
+    final SupabaseConnectOutcome o = r.ok
+        ? kSupabaseSignInOk
+        : supabaseSignInOutcome(r.failure!);
+    if (r.ok) {
+      final Database? db = sim;
+      if (db != null) {
+        final SqliteOnboardingProgressStore store =
+            SqliteOnboardingProgressStore(db, clock: clock);
+        // 진행 중 그대로 다시 적는다(읽기 모델이 다시 짓게) — 🔴 VERIFIED 는 내리지 않는다.
+        if (store.lastRecord('o_07')?.state != StepState.verified) {
+          store.record('o_07', StepState.inProgress);
+        }
+      }
+    }
+    return _result(
+      id,
+      o.level,
+      o.headline,
+      reasonCode: o.reasonCode,
+      retryable: o.retryable,
+    );
+  }
 
   /// 🆕 R206 — o_07 ② 연결 확인(입력 문제 = 망 0 · 통과 = 저장 → 칸 비움 → IN_PROGRESS → 신뢰 시각 잼).
   Future<ActionResult> _supabaseConnect(SupabaseServerTime time) async {
@@ -316,6 +361,17 @@ class OperatorSettingsActions implements SettingsActions {
   }) {
     if (id == SettingsActionId.credentialVerify) {
       return _credentialVerify(args);
+    }
+    final SupabaseAuth? auth = supabaseAuth;
+    if (id == SettingsActionId.supabaseSignIn && auth != null) {
+      if (args.isNotEmpty) {
+        return Future<ActionResult>.error(
+          ArgumentError('supabaseSignIn args = {}'),
+        );
+      }
+      return _signInInFlight ??= _supabaseSignIn(auth).whenComplete(() {
+        _signInInFlight = null;
+      });
     }
     final SupabaseServerTime? supa = supabaseTime;
     if (id == SettingsActionId.connectionTest &&

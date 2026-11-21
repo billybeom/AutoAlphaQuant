@@ -404,6 +404,7 @@ export 'src/onboarding/onboarding_steps.dart'
     show
         OnboardingStepFact,
         kOnboardingFailureFallback,
+        kOnboardingStageSignedIn,
         kOnboardingRecommendedWarning,
         kOnboardingStepMissingLabel,
         kOnboardingStepsEmptyLabel,

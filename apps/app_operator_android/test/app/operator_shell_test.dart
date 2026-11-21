@@ -21,6 +21,8 @@ import 'package:app_operator_android/safety/biometric_sign_field.dart';
 import 'package:app_operator_android/secret/kis_key_set_field.dart';
 import 'package:app_operator_android/secret/supabase_connect_field.dart'
     show SupabaseConnectField;
+import 'package:app_operator_android/secret/supabase_login_field.dart'
+    show SupabaseLoginPanel;
 import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
 import 'package:core_engine/core_engine.dart'
     show
@@ -664,7 +666,7 @@ void main() {
     disposed = true;
   });
 
-  test('🔴 온보딩 슬롯 빌더(R115) = 주입됨 · SECRET_KIS_MOCK = 키 세트 칸(실행 묶음의 넘김 · 캡처 막기) · 🆕 PLEDGE_WRITE = 서약 칸(R157) · 🆕 BIOMETRIC_SIGN = 생체 서명 칸(R159) · 🆕 SECRET_SUPABASE_CONNECT = Supabase 연결 칸(R206) · 나머지 = 자리 부재', () {
+  test('🔴 온보딩 슬롯 빌더(R115) = 주입됨 · SECRET_KIS_MOCK = 키 세트 칸(실행 묶음의 넘김 · 캡처 막기) · 🆕 PLEDGE_WRITE = 서약 칸(R157) · 🆕 BIOMETRIC_SIGN = 생체 서명 칸(R159) · 🆕 SECRET_SUPABASE_CONNECT = Supabase 연결 칸(R206) · 🆕 SECRET_SUPABASE_LOGIN = 로그인 칸(R216) · 나머지 = 자리 부재', () {
     final ShellSlotBuilder? b = container.read(
       shellOnboardingSlotBuilderProvider,
     );
@@ -681,6 +683,12 @@ void main() {
         expect(w, isA<PledgePanel>());
       } else if (id == OnboardingSlotIds.biometricSign) {
         expect(w, isA<BiometricSignField>());
+      } else if (id == OnboardingSlotIds.supabaseLogin) {
+        expect(w, isA<SupabaseLoginPanel>());
+        final SupabaseLoginPanel l = w as SupabaseLoginPanel;
+        expect(identical(l.handoff, rt.secrets), true);
+        expect(identical(l.janitor, rt.clipboard), true);
+        expect(identical(l.secure, rt.secure), true);
       } else if (id == OnboardingSlotIds.supabaseConnect) {
         expect(w, isA<SupabaseConnectField>());
         final SupabaseConnectField s = w as SupabaseConnectField;

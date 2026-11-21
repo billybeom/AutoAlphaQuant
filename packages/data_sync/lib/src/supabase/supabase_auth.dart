@@ -9,7 +9,7 @@
 // 🔴 새로고침은 겹쳐 부르지 않는다(한 번만 날림) — 같은 새로고침 토큰을 두 번 쓰면 서버가 재사용으로 보고 세션 전체를 끊는다.
 // 🔴 새로고침 거부(400) = 세션 잃음 → 금고 칸을 지운다(다시 로그인) · 로그아웃 = 서버 결과와 무관하게 금고 칸을 지운다.
 // 🔴 이메일 · 비밀번호 · 토큰 · 주소 · 키는 어떤 문자열(`toString` · 오류 · 기록)에도 나오지 않는다 — 종류 · HTTP 상태만.
-// 🔵 결과 와이어 글자 · 화면(o_07 ③ 로그인 칸 · 결과 줄) = 계약 창 뒤(E11k-d2) — 여기는 엔진 enum 만.
+// 🆕 E11k-d2(R216) — 와이어 = enum `wire`(계약 v1.31) · 로그인 결과 글자 = `supabase_connect.dart` `supabaseSignInOutcome`.
 
 import 'dart:async';
 import 'dart:convert';
@@ -20,43 +20,49 @@ import 'package:http/http.dart' as http;
 
 import 'supabase_server_time.dart';
 
-/// 🆕 인증 실패 종류(E11k-d1 · 와이어 = 계약 창 E11k-d2).
+/// 🆕 인증 실패 종류(E11k-d1) · 🆕 E11k-d2 [wire] = 계약 v1.31(01 §40 K240 · 미결 215): 전송 6 = `SupabaseTimeResultCodes` 글자 한 벌 ·
+/// 인증 고유 6 = `SupabaseAuthResultCodes`(대조 = `test/e11k_contract_parity_test.dart`).
 enum SupabaseAuthFailure {
   /// 금고에 주소 · 공개 키가 없다(o_07 ② 전) — 망에 가지 않았다.
-  notConfigured,
+  notConfigured('SUPABASE_NOT_CONFIGURED'),
 
   /// 금고 값이 꼴이 아니다 — 망에 가지 않았다.
-  badConfig,
+  badConfig('SUPABASE_CONFIG_INVALID'),
 
-  /// 금고를 읽거나 쓰지 못했다.
-  vault,
+  /// 금고를 읽거나 쓰지 못했다(🔴 시각 쪽 «읽기만»과 다른 글자).
+  vault('SUPABASE_AUTH_VAULT_FAILED'),
 
   /// 이메일 · 비밀번호 꼴이 아니다(빈칸 등) — 망에 가지 않았다.
-  badInput,
+  badInput('SUPABASE_AUTH_INPUT_INVALID'),
 
   /// 로그인한 적이 없다(금고에 새로고침 토큰 없음) — 망에 가지 않았다.
-  notSignedIn,
+  notSignedIn('SUPABASE_NOT_SIGNED_IN'),
 
   /// 이메일 · 비밀번호가 틀렸다(로그인 400).
-  invalidCredentials,
+  invalidCredentials('SUPABASE_CREDENTIALS_REJECTED'),
 
   /// 세션을 잃었다(새로고침 400 — 만료 · 재사용 · 철회) — 금고 칸을 지웠다 · 다시 로그인.
-  sessionLost,
+  sessionLost('SUPABASE_SESSION_LOST'),
 
   /// 공개 키가 거절됐다(401 · 403).
-  unauthorized,
+  unauthorized('SUPABASE_UNAUTHORIZED'),
 
   /// 과속(429).
-  rateLimited,
+  rateLimited('SUPABASE_RATE_LIMITED'),
 
   /// 서버 오류(5xx).
-  server,
+  server('SUPABASE_SERVER_ERROR'),
 
   /// 그 밖의 HTTP · 응답 꼴이 틀렸다.
-  badResponse,
+  badResponse('SUPABASE_BAD_RESPONSE'),
 
   /// 망 · 시간 초과.
-  network,
+  network('SUPABASE_NETWORK');
+
+  const SupabaseAuthFailure(this.wire);
+
+  /// 와이어 글자(`ActionResult.reasonCode`).
+  final String wire;
 }
 
 /// 🆕 인증 한 번의 결과 — 🔴 이메일 · 토큰 없음(종류 · HTTP 상태 · 사용자 id 만).
@@ -103,6 +109,9 @@ class _Session {
 }
 
 final RegExp _email = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+
+/// 🆕 E11k-d2(R216) — 이메일 꼴인가(앞뒤 빈칸은 떼고 본다 · 로그인 칸의 붙여넣기 판정 = [SupabaseAuth.signIn] 과 같은 꼴).
+bool supabaseEmailLooksValid(String raw) => _email.hasMatch(raw.trim());
 
 /// 🆕 Supabase Auth — 이메일 + 비밀번호 · 새로고침 토큰 회전 · 로그아웃(E11k-d1).
 class SupabaseAuth {

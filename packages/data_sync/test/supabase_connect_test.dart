@@ -259,4 +259,68 @@ void main() {
       );
     });
   });
+
+  group('🆕 E11k-d2(R216) 로그인 결과 = 표본 9줄', () {
+    List<Map<String, Object?>> rows() =>
+        ((jsonDecode(
+                  File(
+                    '../domain_contracts/fixtures/m8/onboarding_supabase_signin_results.json',
+                  ).readAsStringSync(),
+                ) as Map<String, Object?>)['rows']!
+                as List<Object?>)
+            .cast<Map<String, Object?>>();
+
+    SupabaseConnectOutcome engineFor(String? code) => code == null
+        ? kSupabaseSignInOk
+        : supabaseSignInOutcome(
+            SupabaseAuthFailure.values.singleWhere(
+              (SupabaseAuthFailure f) => f.wire == code,
+            ),
+          );
+
+    test('줄 수 9 = 접수 1 + 인증 4 + 망 4', () {
+      expect(rows(), hasLength(9));
+      expect(
+        rows().map((Map<String, Object?> r) => r['reason_code']).toSet(),
+        <String?>{
+          null,
+          SupabaseAuthFailure.badInput.wire,
+          SupabaseAuthFailure.invalidCredentials.wire,
+          SupabaseAuthFailure.rateLimited.wire,
+          SupabaseAuthFailure.vault.wire,
+          SupabaseAuthFailure.unauthorized.wire,
+          SupabaseAuthFailure.server.wire,
+          SupabaseAuthFailure.badResponse.wire,
+          SupabaseAuthFailure.network.wire,
+        },
+      );
+    });
+
+    for (final Map<String, Object?> row in rows()) {
+      test(
+        '${row['action_run_id']} ${row['reason_code'] ?? 'OK'} — 등급 · 글자 · 재시도 그대로',
+        () {
+          final SupabaseConnectOutcome got = engineFor(
+            row['reason_code'] as String?,
+          );
+          expect(got.level.wire, row['level']);
+          expect(got.headline, row['headline']);
+          expect(got.reasonCode, row['reason_code']);
+          expect(got.retryable, row['retryable']);
+          expect(row['id'], 'SUPABASE_SIGN_IN');
+        },
+      );
+    }
+
+    for (final SupabaseAuthFailure f in <SupabaseAuthFailure>[
+      SupabaseAuthFailure.notConfigured,
+      SupabaseAuthFailure.badConfig,
+      SupabaseAuthFailure.notSignedIn,
+      SupabaseAuthFailure.sessionLost,
+    ]) {
+      test('🔴 ${f.name} = 로그인에서 나올 수 없음(StateError · 글자를 짓지 않는다)', () {
+        expect(() => supabaseSignInOutcome(f), throwsStateError);
+      });
+    }
+  });
 }

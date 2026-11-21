@@ -8,6 +8,7 @@
 
 import 'package:domain_contracts/domain_contracts.dart' show UiLevel;
 
+import 'supabase_auth.dart';
 import 'supabase_server_time.dart';
 
 /// 연결 확인 한 줄(등급 · 글자 · 사유 코드 · 다시 해 볼 만한가).
@@ -119,4 +120,71 @@ Future<SupabaseConnectOutcome> checkSupabaseConnection(
   final SupabaseTimeRead r = await time.probe(url!, key!);
   final SupabaseTimeFailure? f = r.failure;
   return f == null ? kSupabaseConnectOk : supabaseTimeOutcome(f);
+}
+
+// ── 🆕 E11k-d2(R216 · 계약 v1.31 01 §40 · 표본 `m8/onboarding_supabase_signin_results` 9행) — o_07 ③ 로그인 결과 ──────────
+// 🔴 로그인에서 나오는 것 = 접수 1 + 인증 4(입력 · 자격 · 과속 · 금고) + 망 4(키 · 서버 · 응답 · 망) — 표본 글자 그대로.
+// 🔴 나올 수 없는 넷(`notConfigured` · `badConfig` = 로그인 칸은 ② 통과 뒤에만 선다 · `notSignedIn` · `sessionLost` = 새로고침 축) =
+//    [StateError](표본에 없는 글자를 짓지 않는다).
+
+/// 로그인 통과(o_07 = 여전히 진행 중 · SQL 남음).
+const SupabaseConnectOutcome kSupabaseSignInOk = (
+  level: UiLevel.ok,
+  headline: '로그인했습니다. SQL 단계가 남았습니다.',
+  reasonCode: null,
+  retryable: false,
+);
+
+/// 로그인 실패 → 결과(표본 8줄 · 🔴 나올 수 없는 넷 = [StateError]).
+SupabaseConnectOutcome supabaseSignInOutcome(SupabaseAuthFailure f) {
+  SupabaseConnectOutcome row(UiLevel level, String text, bool retry) =>
+      (level: level, headline: text, reasonCode: f.wire, retryable: retry);
+  return switch (f) {
+    SupabaseAuthFailure.badInput => row(
+      UiLevel.blocked,
+      '이메일과 비밀번호를 모두 붙여 넣으십시오.',
+      false,
+    ),
+    SupabaseAuthFailure.invalidCredentials => row(
+      UiLevel.blocked,
+      '이메일 또는 비밀번호가 맞지 않습니다. 비밀번호 관리자의 값을 다시 확인하십시오.',
+      false,
+    ),
+    SupabaseAuthFailure.rateLimited => row(
+      UiLevel.watch,
+      '시도가 너무 잦습니다. 잠시 뒤 다시 로그인하십시오.',
+      true,
+    ),
+    SupabaseAuthFailure.vault => row(
+      UiLevel.blocked,
+      '로그인 상태를 이 기기에 저장하지 못했습니다. 다시 로그인하십시오.',
+      false,
+    ),
+    SupabaseAuthFailure.unauthorized => row(
+      UiLevel.blocked,
+      '연결 키가 거절되었습니다. 연결 단계를 다시 확인하십시오.',
+      false,
+    ),
+    SupabaseAuthFailure.server => row(
+      UiLevel.watch,
+      '서버가 응답하지 못했습니다. 잠시 뒤 다시 로그인하십시오.',
+      true,
+    ),
+    SupabaseAuthFailure.badResponse => row(
+      UiLevel.blocked,
+      '예상하지 못한 응답입니다. 잠시 뒤 다시 로그인하십시오.',
+      false,
+    ),
+    SupabaseAuthFailure.network => row(
+      UiLevel.watch,
+      '연결되지 않았습니다. 망을 확인한 뒤 다시 로그인하십시오.',
+      true,
+    ),
+    SupabaseAuthFailure.notConfigured ||
+    SupabaseAuthFailure.badConfig ||
+    SupabaseAuthFailure.notSignedIn ||
+    SupabaseAuthFailure.sessionLost => throw StateError(
+      '로그인에서 나올 수 없는 실패: ${f.name}',
+    ),
+  };
 }
