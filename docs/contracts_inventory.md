@@ -226,7 +226,7 @@ A(primitives·enums)
 >
 > 🆕 **v1.34(01 §43 · 미결 214 작은 계약 창 · ~~⬜ PR 대기~~ ✅ 병합 PR #311 squash `3dfe0dad`(2026-11-21 · CI 3/3 · 병합 직전 main `2d2eeb34`(#312 · #313 · #314 — 겹침 0 · 합친 검사 통과)))** — Dart 공개 API 0 · `ddl/batch_d_supabase.sql` 만: `app_device.auth_uid` not null · 🔴 unique 0(X1 새 폰 = 같은 운영 사용자) + 색인 · RLS 6 «`app_device` 조인»(JWT 클레임 0 · 미결 13 닫음) · `recovery_secret.algo` `sha256` · 아래 §7-4.
 >
-> 🆕 **v1.35(01 §44 · 쌓인 계약 숙제 창 · ⬜ PR 대기)** — 새 DTO · 창구 · 라우트 · 동작 0 · `SafetyState` += `holdLabels`(짝 문장 · 같은 차례 · 같은 길이 · 미결 219 닫음) · 🔴 J-3 키 = **저널 id**(안전 동작 `decision_id` 한 벌 · 칸 이름 `decisionId` 유지) · 갈래 채우기 · 새 행 = 엔진이 키로 가른다 · `JournalDraftRejectCodes` 1 → 3 · 사전 3(아래 §6) · 정정 체인 상한 = 운영 설정 `operations.amend_chain_max`(계약 상수 0) · 🔴 엔진 · 조립 몫 = 01 §8 미결 220 · 화면(Bob) = 221.
+> 🆕 **v1.35(01 §44 · 쌓인 계약 숙제 창 · ~~⬜ PR 대기~~ ✅ 병합 PR #319 squash `e26760a0`(2026-11-21 · CI 3/3 · 병합 직전 main `269aeb4c`(#316 · #318 — 계약 0줄 · 합친 트리 재시험 통과)))** — 새 DTO · 창구 · 라우트 · 동작 0 · `SafetyState` += `holdLabels`(짝 문장 · 같은 차례 · 같은 길이 · 미결 219 닫음) · 🔴 J-3 키 = **저널 id**(안전 동작 `decision_id` 한 벌 · 칸 이름 `decisionId` 유지) · 갈래 채우기 · 새 행 = 엔진이 키로 가른다 · `JournalDraftRejectCodes` 1 → 3 · 사전 3(아래 §6) · 정정 체인 상한 = 운영 설정 `operations.amend_chain_max`(계약 상수 0) · 🔴 엔진 · 조립 몫 = 01 §8 미결 220 · 화면(Bob) = 221.
 
 > 🆕 **v1.24(01 §33 · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — `SettingsActionId` 값 0 추가 · args 화이트리스트 `backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}` · `backupRestoreStart` = 화면 미호출(args 미정 유지) · calendar 3 = ⏸ R9d · `settingsGeneralUpdate` = ⏸ R9e(K120).
 
@@ -1019,7 +1019,7 @@ abstract interface class SettingsActions {
 
 🆕 **v1.34(2026-11-21 · 01 §43 · 미결 214 작은 계약 창 · ~~⬜ PR 대기~~ ✅ 병합 PR #311 squash `3dfe0dad`(2026-11-21 · CI 3/3 · 병합 직전 main `2d2eeb34`(#312 · #313 · #314 — 겹침 0 · 합친 검사 통과)))** — **신설 0 · 개정 0 · 390**(전 봉투 `contract_version` 한 줄만 · 생성 `tool/gen_e11k_214_v134_fixtures.py`).
 
-🆕 **v1.35(2026-11-21 · 01 §44 · 쌓인 계약 숙제 창 · ⬜ PR 대기)** — **신설 3 · 개정 1 → 393**(나머지 389 봉투 `contract_version` 한 줄만): `safety_states_holds`(2행 · hold 짝 문장) · `m6/journal_draft_receipts_reject_2`(2행) · `x5/repair_input_results`(1행) · 개정 = `ledger_diffs_4` `ld_0001` 조치 링크 → 대상 라우트 · 생성기 `tool/gen_v135_contract_debts_fixtures.py` · 🆕 C-68(9항) · 개정 C-5 · C-47 ③ · C-63 ⑩ · C-66 · 엔진 시험 1곳(core `ledger_views_test`).
+🆕 **v1.35(2026-11-21 · 01 §44 · 쌓인 계약 숙제 창 · ~~⬜ PR 대기~~ ✅ 병합 PR #319 squash `e26760a0`(2026-11-21 · CI 3/3 · 병합 직전 main `269aeb4c`(#316 · #318 — 계약 0줄 · 합친 트리 재시험 통과)))** — **신설 3 · 개정 1 → 393**(나머지 389 봉투 `contract_version` 한 줄만): `safety_states_holds`(2행 · hold 짝 문장) · `m6/journal_draft_receipts_reject_2`(2행) · `x5/repair_input_results`(1행) · 개정 = `ledger_diffs_4` `ld_0001` 조치 링크 → 대상 라우트 · 생성기 `tool/gen_v135_contract_debts_fixtures.py` · 🆕 C-68(9항) · 개정 C-5 · C-47 ③ · C-63 ⑩ · C-66 · 엔진 시험 1곳(core `ledger_views_test`).
 
 🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 — M9 `S09` · `S10` · `S12` · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — **신설 17 · 개정 0 → 322**(나머지 305 봉투 `contract_version` 한 줄만): `m9/` VM 1행 봉투 15(`backup*` 6 · `diagnostics_screen*` 5 · `annual_review_index*` 4) · 목록 봉투 2(`backup_action_results` 10행 · `selftest_action_results` 12행) · 생성기 `tool/gen_r9_v124_fixtures.py` · `board` = `m8/recon_board_*` `rows[0]` 복사.
 
