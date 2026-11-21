@@ -1,4 +1,4 @@
-// 🆕 미결 209 — 월간 리포트 빌더 첫 판 · A1 · A2 · C1 · C2 · D3 · D4 · E1(설계 13 §8 R199 · R205 · R208 · R210 · 앱 01 §36 K192 · K193 · 03 §3).
+// 🆕 미결 209 — 월간 리포트 빌더 첫 판 · A1 · A2 · C1 · C2 · D1 · D3 · D4 · E1 · G1 · G2(설계 13 §8 R199 · R205 · R208 · R210 · R214 · 앱 01 §36 K192 · K193 · 03 §3).
 //
 // 🔴 13칸 = 표본 `m7/m7_monthly_2026_08` 의 code · order · section · title 그대로(C-25) · 원천 없는 칸 = «산출 불가» ·
 //    `D2_ALLOCATION` = 월말 회계 비중 세 줄 + SAF-307 · 원화 유동성 월 집계 메모(문턱 = 집계가 쓴 문턱).
@@ -69,6 +69,7 @@ MonthlyReport _report({
   List<String>? discretionUseDates,
   MonthlyStrategyFacts? strategy,
   MonthlyExecutionFacts? execution,
+  MonthlyRegimeFacts? regime,
 }) => monthlyReportOf(
   yyyyMm: yyyyMm,
   monthEnd: monthEnd,
@@ -83,6 +84,7 @@ MonthlyReport _report({
   discretionUseDates: discretionUseDates,
   strategy: strategy,
   execution: execution,
+  regime: regime,
 );
 
 /// 비중 가드가 낸 [ArgumentError](이름 `weights` — 범위 밖 색인 [RangeError] 와 가른다).
@@ -957,6 +959,221 @@ void main() {
         _report(noTally: true).items
             .singleWhere((ReportItem i) => i.code == 'D3_EXECUTION')
             .valueText,
+        MonthlyReportTexts.notComputed,
+      );
+    });
+  });
+
+  // ── 🆕 R214 — D1 국면 전환 · G1 표본 고지 · G2 운영 램프 ──
+  group('D1 · G1 · G2(R214)', () {
+    ReportItem item(MonthlyReport r, String code) =>
+        r.items.singleWhere((ReportItem i) => i.code == code);
+
+    Map<String, String> fixtureValues(String path) {
+      final Map<String, Object?> d =
+          jsonDecode(File(path).readAsStringSync()) as Map<String, Object?>;
+      final List<Object?> rows = d['rows']! as List<Object?>;
+      final Map<String, Object?> row = rows.single! as Map<String, Object?>;
+      return <String, String>{
+        for (final Object? x in row['items']! as List<Object?>)
+          (x! as Map<String, Object?>)['code']! as String:
+              (x as Map<String, Object?>)['value_text']! as String,
+      };
+    }
+
+    final Map<String, String> normal = fixtureValues(
+      '../domain_contracts/fixtures/m7/m7_monthly_2026_08.json',
+    );
+
+    ReportItem d1(String? prev, List<String?> states) => item(
+      _report(
+        noTally: true,
+        regime: MonthlyRegimeFacts(previousState: prev, monthStates: states),
+      ),
+      'D1_REGIME_SWITCHES',
+    );
+
+    ReportItem g1(List<EquityPoint> series, List<String> sessions) => item(
+      _report(
+        noTally: true,
+        equity: MonthlyEquityFacts(series: series, monthSessions: sessions),
+      ),
+      'G1_SAMPLE_NOTICE',
+    );
+
+    test('🔴 D1 = 판정된 날끼리 이웃 상태가 다르면 1회(표본 «이번 달 1회»)', () {
+      final ReportItem a = d1('NEUTRAL', const <String?>[
+        'NEUTRAL',
+        'NEUTRAL',
+        'BULL',
+        'BULL',
+      ]);
+      expect(a.valueText, normal['D1_REGIME_SWITCHES']);
+      expect(a.valueText, '이번 달 1회');
+      expect(a.noteText, isNull);
+      expect(a.detailDeepLink, isNull);
+    });
+
+    test('D1 판정 못 한 날 = 건너뛰고 앞 판정을 잇는다 · 메모 = 그 날 수', () {
+      final ReportItem a = d1('BULL', const <String?>[
+        'BULL',
+        'UNKNOWN',
+        null,
+        'BEAR',
+        'BEAR',
+        'NEUTRAL',
+        'UNKNOWN',
+        'NEUTRAL',
+      ]);
+      expect(a.valueText, '이번 달 2회');
+      expect(a.noteText, '국면을 판정할 수 없던 날 3일');
+      final ReportItem b = d1('BULL', const <String?>['UNKNOWN', 'BULL']);
+      expect(b.valueText, '이번 달 0회');
+      expect(b.noteText, '국면을 판정할 수 없던 날 1일');
+      expect(
+        d1('BEAR', const <String?>['BULL']).valueText,
+        '이번 달 1회',
+      ); // 앞 달 마지막 판정 → 첫날
+    });
+
+    test('D1 앞 달 판정 없음 = 첫 판정은 전환이 아니다', () {
+      expect(d1(null, const <String?>['BEAR', 'BULL']).valueText, '이번 달 1회');
+      expect(d1(null, const <String?>['BEAR']).valueText, '이번 달 0회');
+    });
+
+    test('D1 가드 · 없음 = «산출 불가»', () {
+      final Matcher g = throwsA(
+        isA<ArgumentError>().having(
+          (ArgumentError e) => e.name,
+          'name',
+          'regime',
+        ),
+      );
+      expect(() => d1('UNKNOWN', const <String?>['BULL']), g);
+      expect(() => d1('BULL', const <String?>[]), g);
+      expect(() => d1('BULL', const <String?>['UP']), g);
+      expect(
+        item(_report(noTally: true), 'D1_REGIME_SWITCHES').valueText,
+        MonthlyReportTexts.notComputed,
+      );
+    });
+
+    test('🔴 G1 한 달 이상 = 개월(내림) — 표본 «관측 표본은 24개월입니다. …» 그대로', () {
+      final ReportItem a = g1(
+        const <EquityPoint>[
+          EquityPoint('2024-08-30', 100),
+          EquityPoint('2026-08-31', 110),
+        ],
+        const <String>['2026-08-31'],
+      ); // 731일
+      expect(a.valueText, normal['G1_SAMPLE_NOTICE']);
+      expect(a.noteText, isNull);
+      expect(
+        g1(
+          const <EquityPoint>[
+            EquityPoint('2026-07-31', 100),
+            EquityPoint('2026-08-31', 100),
+          ],
+          const <String>['2026-08-31'],
+        ).valueText,
+        '관측 표본은 1개월입니다. 이 길이로는 규칙의 우열을 가릴 수 없습니다.',
+      ); // 31일
+      expect(
+        g1(
+          const <EquityPoint>[
+            EquityPoint('2026-07-15', 100),
+            EquityPoint('2026-08-31', 100),
+          ],
+          const <String>['2026-08-31'],
+        ).valueText,
+        '관측 표본은 1개월입니다. 이 길이로는 규칙의 우열을 가릴 수 없습니다.',
+      ); // 47일 = 1.54개월 → 내림
+    });
+
+    test('🔴 G1 한 달 미만 = 관측 거래일 수 — 표본 «관측 표본은 21거래일입니다. …» 그대로', () {
+      final List<String> aug = <String>[
+        for (final int day in <int>[
+          3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21, //
+          24, 25, 26, 27, 28, 31,
+        ])
+          '2026-08-${day.toString().padLeft(2, '0')}',
+      ];
+      final ReportItem a = g1(<EquityPoint>[
+        for (final String s in aug) EquityPoint(s, 100),
+      ], aug); // 08-03 → 08-31 = 28일
+      final Map<String, Object?> pf = jsonDecode(
+        File('../domain_contracts/fixtures/m7/m7_perf_daily_gap.json')
+            .readAsStringSync(),
+      ) as Map<String, Object?>;
+      expect(jsonEncode(pf), contains(a.valueText));
+      expect(a.valueText, '관측 표본은 21거래일입니다. 이 길이로는 아무것도 판정할 수 없습니다.');
+      expect(
+        g1(
+          const <EquityPoint>[
+            EquityPoint('2026-08-01', 100),
+            EquityPoint('2026-08-31', 100),
+          ],
+          const <String>['2026-08-31'],
+        ).valueText,
+        '관측 표본은 2거래일입니다. 이 길이로는 아무것도 판정할 수 없습니다.',
+      ); // 30일 = 한 달 미만
+    });
+
+    test('G1 = 그 달 결측이 있어도 낸다 · equity 없음 = «산출 불가»', () {
+      final ReportItem a = g1(
+        const <EquityPoint>[
+          EquityPoint('2024-08-30', 100),
+          EquityPoint('2026-08-28', 100),
+        ],
+        const <String>['2026-08-28', '2026-08-31'],
+      ); // 08-31 결측
+      expect(a.valueText, normal['G1_SAMPLE_NOTICE']);
+      expect(
+        item(_report(noTally: true), 'G1_SAMPLE_NOTICE').valueText,
+        MonthlyReportTexts.notComputed,
+      );
+    });
+
+    test('🔴 G2 = 안전 상태의 운영 램프(표본 «운영 램프 L3») · 전략 사실 없음 = «산출 불가»', () {
+      SafetyState safety(int row) => SafetyState.fromJson(
+        ((jsonDecode(
+                  File('../domain_contracts/fixtures/safety_states.json')
+                      .readAsStringSync(),
+                ) as Map<String, Object?>)['rows']!
+                as List<Object?>)[row]!
+            as Map<String, dynamic>,
+      );
+      ReportItem g2(int row) => item(
+        _report(
+          noTally: true,
+          strategy: MonthlyStrategyFacts(
+            strategyStates: const <String>['ACTIVE'],
+            safety: safety(row),
+          ),
+        ),
+        'G2_OPS_RAMP',
+      );
+      expect(g2(0).valueText, normal['G2_OPS_RAMP']); // L3
+      expect(g2(2).valueText, '운영 램프 L2');
+      expect(g2(3).valueText, '운영 램프 L1');
+      expect(g2(0).noteText, isNull);
+      expect(
+        item(_report(noTally: true), 'G2_OPS_RAMP').valueText,
+        MonthlyReportTexts.notComputed,
+      );
+    });
+
+    test('B1 · F1 = 원천 0 그대로 «산출 불가»', () {
+      final MonthlyReport r = _report(
+        noTally: true,
+        equity: const MonthlyEquityFacts(
+          series: <EquityPoint>[EquityPoint('2026-08-31', 100)],
+          monthSessions: <String>['2026-08-31'],
+        ),
+      );
+      expect(item(r, 'B1_BENCHMARK').valueText, MonthlyReportTexts.notComputed);
+      expect(
+        item(r, 'F1_SCORING_2X2').valueText,
         MonthlyReportTexts.notComputed,
       );
     });
