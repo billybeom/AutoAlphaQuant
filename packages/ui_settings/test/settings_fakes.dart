@@ -1108,3 +1108,106 @@ Set<String> annualReviewAllowed(AnnualReviewIndexVm v) => <String>{
   v.asOf.label,
   ?v.asOf.staleLabel,
 };
+
+// ── R8b — M9 S04 fakes ──
+
+class FakeSettingsAllocationRepository extends UnimplementedSettingsRepository {
+  FakeSettingsAllocationRepository({required this.allocation});
+
+  final Stream<AllocationEditorVm> Function(int call) allocation;
+  int allocationCalls = 0;
+
+  @override
+  Stream<AllocationEditorVm> watchAllocationEditor() {
+    final int call = allocationCalls;
+    allocationCalls = allocationCalls + 1;
+    return allocation(call);
+  }
+}
+
+List<Override> allocationOverrides({
+  required FakeSettingsAllocationRepository repo,
+  required SettingsActions? actions,
+  required RecordingLinkOpener opener,
+  required Clock clock,
+}) => <Override>[
+  settingsRepositoryProvider.overrideWithValue(repo),
+  settingsActionsProvider.overrideWithValue(actions),
+  settingsLinkOpenerProvider.overrideWithValue(opener),
+  settingsClockProvider.overrideWithValue(clock),
+];
+
+Future<void> pumpAllocation(
+  WidgetTester tester, {
+  required List<Override> overrides,
+}) async {
+  tester.view.physicalSize = const Size(390, 6000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(home: Scaffold(body: StrategyAllocation())),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
+
+List<String?> allocationCardTexts(AllocationEditorVm v) => <String?>[
+  v.current.label,
+  v.current.weightsText,
+  v.current.backtestText,
+  v.current.honestNoteText,
+];
+
+List<String?> allocationRowTexts(AllocationReadOnlyRow r) => <String?>[
+  r.label,
+  r.valueText,
+  ?r.noteText,
+];
+
+List<String?> allocationSectionTexts(AllocationReadOnlySection s) => <String?>[
+  s.title,
+  for (final AllocationReadOnlyRow r in s.rows) ...allocationRowTexts(r),
+];
+
+List<String?> allocationSectionsTexts(AllocationEditorVm v) => <String?>[
+  for (final AllocationReadOnlySection s in v.sections)
+    ...allocationSectionTexts(s),
+];
+
+List<String?> allocationPathTexts(AllocationEditorVm v) => <String?>[
+  ...v.changePathLines,
+];
+
+List<AllocationReadOnlyRow> allocationRows(AllocationEditorVm v) =>
+    <AllocationReadOnlyRow>[
+      for (final AllocationReadOnlySection s in v.sections) ...s.rows,
+    ];
+
+bool isAllocationSection(Widget w) {
+  final Key? k = w.key;
+  return k is ValueKey<String> && k.value.startsWith('m9s04-section-');
+}
+
+bool isAllocationRow(Widget w) {
+  final Key? k = w.key;
+  return k is ValueKey<String> && k.value.startsWith('m9s04-row-');
+}
+
+Set<String> allocationAllowed(AllocationEditorVm v) => <String>{
+  v.current.label,
+  v.current.weightsText,
+  v.current.backtestText,
+  v.current.honestNoteText,
+  for (final AllocationReadOnlySection s in v.sections) s.title,
+  for (final AllocationReadOnlyRow r in allocationRows(v)) r.label,
+  for (final AllocationReadOnlyRow r in allocationRows(v)) r.valueText,
+  for (final AllocationReadOnlyRow r in allocationRows(v)) ?r.noteText,
+  ...v.changePathLines,
+  v.asOf.label,
+  ?v.asOf.staleLabel,
+};
