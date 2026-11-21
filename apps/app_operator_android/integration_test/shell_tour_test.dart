@@ -4,6 +4,7 @@
 // 🆕 E11q1(R171) — + M6 H6-1 보유 현황(보유 0 = 빈 문장 → 연습 보유를 원장에 넣으면 같은 화면에 카드가 선다).
 // 🆕 E11q1b(R172) — + H6-3 슬리브 배분 · H6-2 종목 상세(같은 연습 보유).
 // 🆕 E11q-q4a — + M6 일지 읽기 J-1 · J-2 · J-3R · S7-6b «이 회차의 주문 n건» → J-1 회차 조건(연습 일지 묶음).
+// 🆕 E11q-q4b — + J-5 미해소 보드(연습 UNKNOWN 의도 1 → 카드 → «찾지 못함» 거부로 풀면 같은 화면이 빈 문장).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
 // 실행: `flutter test integration_test/shell_tour_test.dart -d emulator-5554` · 표지 `IT_*` 마다 4초 멈춘다(캡처 자리).
@@ -56,7 +57,8 @@ import 'package:ui_journal/ui_journal.dart'
         HoldingsOverview,
         JournalDecisionDetail,
         JournalReadView,
-        JournalTimeline;
+        JournalTimeline,
+        JournalUnknownBoard;
 import 'package:ui_safety/ui_safety.dart'
     show
         BlockBoardScreen,
@@ -462,6 +464,36 @@ void main() {
       await _until(tester, find.textContaining('2026-10-30 월간 정기 회차'));
       await _at(tester, find.byType(JournalTimeline).last, 'IT_J1R');
       await tester.pageBack();
+      await tester.pageBack();
+
+      // 🆕 E11q-q4b — J-5 미해소 보드: 연습 UNKNOWN 의도 1(합성 · 모의 원장) → 카드 · 4단계 → 해소(«찾지 못함» 거부 —
+      //    해소 잡이 쓰는 꼴) → 같은 화면이 빈 문장. 뒤 단계에 UNKNOWN 을 남기지 않는다.
+      files.sim.execute(
+        'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+        'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+        "updated_at, mode) VALUES ('IT-UK', 'IT-K-UK', ?, ?, 'KR', ?, ?, ?, '0085P0', 'BUY', 'LIMIT', 5, "
+        "10000, 'UNKNOWN', 'cfg_it', ?, ?)",
+        <Object?>[
+          rt.clock.nowUtc().toIso8601String(),
+          kstDateText(rt.clock.nowUtc()),
+          rt.humanDecision!.inputs.accountByStrategy[P0sStrategyIds.sleeveC],
+          P0sStrategyIds.sleeveC,
+          'C-REBAL-IT@${kstDateText(rt.clock.nowUtc())}',
+          rt.clock.nowUtc().toIso8601String(),
+          RunMode.simInternal.wire,
+        ],
+      );
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.journalUnknownBoard);
+      await _until(tester, find.text('이 종목의 신규 주문이 막혀 있습니다'));
+      await _at(tester, find.byType(JournalUnknownBoard), 'IT_J5');
+      files.sim.execute(
+        "UPDATE order_intents SET status = 'REJECTED', error_message = 'UNKNOWN_NOT_FOUND: 연습' "
+        "WHERE intent_id = 'IT-UK'",
+      );
+      await _until(tester, find.text('미해소 건이 없습니다'));
+      await _at(tester, find.byType(JournalUnknownBoard), 'IT_J5E');
       await tester.pageBack();
 
       // 🆕 R174 — S7-4 납입 플래너(금액 → 엔진 미리보기) · S13 월 납입(바꾸기 = 신뢰 시각 모름 → 엔진 거부 문장 · 쓰기 0).

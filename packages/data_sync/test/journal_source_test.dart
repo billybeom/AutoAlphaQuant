@@ -336,6 +336,11 @@ void main() {
       ('ALL', const TradeDate('2026-08-03')),
     );
     expect(src().badges().single.label, '확인 중 1건');
+    // 🆕 q4b — J-5 미해소 보드 = 같은 사실(UNKNOWN 의도 iR · 발생 = 첫 브로커 주문 전송 · 오래됨 = 강조).
+    final UnknownBoardVm board = src().unknownBoard();
+    expect(board.items.single.entry.entryId, 'iR');
+    expect(board.items.single.elapsedText, startsWith('발생 08-05 09:20 · '));
+    expect(board.items.single.emphasized, true);
     expect(
       src().filterCatalog().originOptions.single.origin,
       FillOrigin.simulated,
@@ -394,5 +399,6 @@ void main() {
     expect(r.emptyLabel, startsWith('아직 기록된 거래가 없습니다'));
     expect(src().rangePresets().last.from, const TradeDate('2026-08-31'));
     expect(src().badges(), isEmpty);
+    expect(src().unknownBoard().emptyLabel, '미해소 건이 없습니다');
   });
 }

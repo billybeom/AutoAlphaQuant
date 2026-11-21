@@ -20,7 +20,8 @@
 // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검 본문(기기 측정 = `OperatorRuntime.deviceProbe` · 판정 = 엔진) — Android 전용 = 이 레지스트리.
 // 🆕 E11p3d-5e(R134) — 더보기 본문 = M9 S01 설정 홈(`OperatorSettingsRepository.watchHome` · 링크 = 레지스트리에 본문이 있는 화면만).
 // 🆕 E11q-q4a — M6 매매일지 «읽기» 넷(J-1 타임라인 = «일지» 탭 본문 · J-2 거래 상세 · J-3R 사전 저널 읽기 · J-1 회차 조건) ·
-//    읽기 = `OperatorJournalRepository`(원장 한 파일) · 기간 프리셋 · 슬리브 = 셸 설정 원천 한 인스턴스 · 쓰기 · 보드 = q4b.
+//    읽기 = `OperatorJournalRepository`(원장 한 파일) · 기간 프리셋 · 슬리브 = 셸 설정 원천 한 인스턴스.
+// 🆕 E11q-q4b — J-5 미해소 보드(같은 저장소) · J-3 사전 저널 쓰기 = 계약 창 · M5-6 조립 뒤(지금 엔진이 J-3 로 보내는 길 0).
 // 🔵 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
@@ -67,6 +68,7 @@ import 'package:ui_journal/ui_journal.dart'
         JournalDecisionDetail,
         JournalReadView,
         JournalTimeline,
+        JournalUnknownBoard,
         LedgerDiffs,
         LedgerRepairs,
         journalClockProvider,
@@ -479,6 +481,9 @@ Widget _journalDecision(Map<String, String> p) =>
 Widget _journalRead(Map<String, String> p) =>
     JournalReadView(decisionId: p['decisionId'] ?? '');
 
+Widget _journalUnknownBoard(Map<String, String> _) =>
+    const JournalUnknownBoard();
+
 Widget _journalRebalance(Map<String, String> p) {
   final String id = p['rebalanceEventId'] ?? '';
   return JournalTimeline(key: ValueKey<String>(id), rebalanceEventId: id);
@@ -591,6 +596,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.journalDecision: _journalDecision,
   AppRoutes.journalRead: _journalRead,
   AppRoutes.journalRebalance: _journalRebalance,
+  // 🆕 E11q-q4b — J-5 미해소 보드(J-1 «확인 중 n건» 배지 · `ORDER_OUTCOME_UNKNOWN` 알림 목적지 · 읽기만).
+  AppRoutes.journalUnknownBoard: _journalUnknownBoard,
   // 🆕 E11q3(R174) — M7 S7-4 납입 플래너(미리보기 = 엔진 What-if · 등록 = 신뢰 시각 관문) · M9 S13 월 납입 설정.
   AppRoutes.planDeposit: _planDeposit,
   // 🆕 E11q-b1a(R178) — M5-1 킬스위치(발동 버튼 · 취소 보고 · 발동 뒤 기록 폼 · 체험 ⑤).

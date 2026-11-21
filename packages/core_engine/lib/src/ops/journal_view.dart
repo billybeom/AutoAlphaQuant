@@ -12,6 +12,7 @@
 // 🔴 가림 = 엔진이 글자 안에서 끝낸다 — `LEDGER_INTEGRITY` = 수량 · 가격 · 비용 «숨김» · `RECON_MISMATCH` = 수량 끝 «?»(01 §2-10 · q1 꼴).
 // 🔴 링크 = 조립 앱에 본문이 등록된 화면만(S01 원칙) — 상세 · 회차 · 저널 읽기 · 미해소 보드.
 // 🔴 글자 = 계약 표본 문장 그대로(«(합성)»만 뺀다 · 표본 개정 0) · 표본에 없는 갈래(진행 중 · 취소 · 건너뜀 · 거부 머리)는 이 파일의 글자표.
+// 🆕 E11q-q4b — J-5 미해소 보드(`unknownBoardVmOf` · UNKNOWN 의도 = 카드 · 4단계 · 경과 = 거래일 달력 · 장기 강조 = 엔진 임계).
 // 🔵 운영 폰의 일지 = 엔진이 지금 쓰는 원장 한 파일(모의 기간 = 모의 원장 · 파일이 모드 경계 · 01 §9-1) — 행마다 `mode` 가
 //    모의 배지를 말한다. `watchTimeline(mode:)` 인자는 J-1 이 넘기지 않는다(01 §8 미결 89) → 조립 앱이 원장 축을 따른다.
 
@@ -40,6 +41,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         FillOrigin,
         FillOriginOption,
         FillVisibility,
+        GateState,
         JournalBadgeCodes,
         JournalFilterCatalog,
         JournalReasonCodes,
@@ -60,7 +62,11 @@ import 'package:domain_contracts/domain_contracts.dart'
         ThresholdCompare,
         TradeDate,
         TradeJournalEntry,
-        TriggerSnapshot;
+        TriggerSnapshot,
+        UnknownBoardVm,
+        UnknownResolutionItem,
+        UnknownResolutionStageCodes,
+        UnknownResolutionStep;
 
 import '../calendar/exchange_calendar.dart' show ExchangeCalendar;
 import '../calendar/next_rebalance.dart' show nextRegularExecutionSession;
@@ -243,6 +249,62 @@ abstract final class JournalTexts {
   /// 미해소 고지(표본에서 시각만 뺌 — 확정 배치 시각은 엔진 일정이 정한다).
   static const String pendingNotice = '브로커 결과 확인 중 — 다음 배치에서 조회로 확정됩니다';
 }
+
+/// 🆕 E11q-q4b — J-5 미해소 보드 글자(표본 `unknown_board_2` · `unknown_board_empty` · «(18:10)» 뺌 — 엔진 일정에 없는 시각).
+abstract final class UnknownBoardTexts {
+  /// 빈 보드(표본).
+  static const String empty = '미해소 건이 없습니다';
+
+  /// 다음 배치 고지(표본에서 시각만 뺌).
+  static const String nextBatch = '다음 배치에서 조회로 확정됩니다';
+
+  /// 효과 한 줄(표본 — NR-1 2.5단계 = 그 종목 · 전략의 새 주문만 막는다).
+  static const String effect = '이 종목의 신규 주문이 막혀 있습니다';
+
+  /// 장기 미해소 링크(표본).
+  static const String escalation = '장기 미해소 안내 보기';
+
+  /// 경과(표본 «발생 08-21 14:02 · 6영업일 경과»).
+  static String elapsed(String mmddHhmm, int sessions) =>
+      '발생 $mmddHhmm · $sessions영업일 경과';
+
+  /// 단계 제목 · 까닭(표본).
+  static const String recorded = '기록됨';
+
+  /// 표본.
+  static const String recordedWhy = '결과를 모르는 주문으로 기록했습니다';
+
+  /// 표본.
+  static const String queryPending = '조회 대기';
+
+  /// 표본.
+  static const String queryPendingWhy = '다음 배치에서 브로커에 체결 여부를 묻습니다';
+
+  /// 표본.
+  static const String brokerConfirmed = '브로커 확인';
+
+  /// 표본.
+  static const String brokerConfirmedWhy = '브로커 답으로 체결·미체결을 확정합니다';
+
+  /// 표본.
+  static const String resolved = '해소';
+
+  /// 표본.
+  static const String resolvedWhy = '원장에 반영하고 이 종목의 주문 차단을 풉니다';
+
+  /// 단계 상태 글자(표본).
+  static const String done = '완료';
+
+  /// 표본.
+  static const String inProgress = '진행 중';
+
+  /// 표본.
+  static const String waiting = '대기';
+}
+
+/// 🆕 E11q-q4b — 장기 미해소 강조 임계(발생 뒤 KR 세션 수 · 이 값 이상 = 강조 + M5 안내 링크) — 표본(6 = 아님 · 16 = 강조) 사이 ·
+/// 🟡 표시 강조일 뿐 차단 · 주문과 무관(차단 = NR-1 2.5단계가 늘 한다) — 모의 운영 실측으로 다시 본다.
+const int kUnknownLongSessions = 10;
 
 /// J-2 체인 단계 글자(표본 `decision_detail_*`).
 abstract final class JournalStepTexts {
@@ -1015,6 +1077,103 @@ List<SleeveCatalogEntry> journalSleeveCatalogOf(WhatIfConfig config) =>
         order: 4,
       ),
     ];
+
+/// 🆕 E11q-q4b — J-5 미해소 보드: 원장 UNKNOWN 의도 = 카드(오래된 것부터) · 4단계(기록됨 완료 · 조회 대기 진행 중 · 나머지 대기 —
+/// 해소되면 의도가 UNKNOWN 을 벗어나 카드가 빠진다) · 경과 = 발생(첫 브로커 주문 전송 · 없으면 의도 기록) 뒤 KR 세션 수 ·
+/// 장기([kUnknownLongSessions] 이상) = 강조 + 차단 보드 링크(등록됐을 때만) · 비면 엔진 빈 문장.
+UnknownBoardVm unknownBoardVmOf(JournalFacts f) {
+  final _Book b = _Book(f);
+  final List<JournalIntentFact> open =
+      <JournalIntentFact>[
+        for (final JournalIntentFact i in f.intents)
+          if (i.statusWire == 'UNKNOWN') i,
+      ]..sort((JournalIntentFact x, JournalIntentFact y) {
+        int c = x.tradeDate.yyyyMmDd.compareTo(y.tradeDate.yyyyMmDd);
+        if (c != 0) return c;
+        c = x.createdAt.compareTo(y.createdAt);
+        return c != 0 ? c : x.intentId.compareTo(y.intentId);
+      });
+  final String today = _onOrBefore(f.kr, f.today);
+  return UnknownBoardVm(
+    items: <UnknownResolutionItem>[
+      for (final JournalIntentFact i in open) _unknownItem(b, i, today),
+    ],
+    nextBatchNoticeText: open.isEmpty ? null : UnknownBoardTexts.nextBatch,
+    emptyLabel: open.isEmpty ? UnknownBoardTexts.empty : null,
+    asOf: b.asOf,
+  );
+}
+
+UnknownResolutionItem _unknownItem(_Book b, JournalIntentFact i, String today) {
+  final DateTime at = i.orders.isEmpty
+      ? i.createdAt
+      : i.orders.first.submittedAt;
+  final int n = _sessionsAfter(b.f.kr, i.tradeDate.yyyyMmDd, today);
+  final bool long = n >= kUnknownLongSessions;
+  return UnknownResolutionItem(
+    entry: b.entry(i),
+    elapsedText: UnknownBoardTexts.elapsed(kstMinuteText(at).substring(5), n),
+    effectLine: UnknownBoardTexts.effect,
+    steps: const <UnknownResolutionStep>[
+      UnknownResolutionStep(
+        stepId: UnknownResolutionStageCodes.recorded,
+        order: 1,
+        title: UnknownBoardTexts.recorded,
+        whyLine: UnknownBoardTexts.recordedWhy,
+        state: GateState.pass,
+        stateLabel: UnknownBoardTexts.done,
+      ),
+      UnknownResolutionStep(
+        stepId: UnknownResolutionStageCodes.queryPending,
+        order: 2,
+        title: UnknownBoardTexts.queryPending,
+        whyLine: UnknownBoardTexts.queryPendingWhy,
+        state: GateState.unknown,
+        stateLabel: UnknownBoardTexts.inProgress,
+      ),
+      UnknownResolutionStep(
+        stepId: UnknownResolutionStageCodes.brokerConfirmed,
+        order: 3,
+        title: UnknownBoardTexts.brokerConfirmed,
+        whyLine: UnknownBoardTexts.brokerConfirmedWhy,
+        state: GateState.notApplicable,
+        stateLabel: UnknownBoardTexts.waiting,
+      ),
+      UnknownResolutionStep(
+        stepId: UnknownResolutionStageCodes.resolved,
+        order: 4,
+        title: UnknownBoardTexts.resolved,
+        whyLine: UnknownBoardTexts.resolvedWhy,
+        state: GateState.notApplicable,
+        stateLabel: UnknownBoardTexts.waiting,
+      ),
+    ],
+    emphasized: long,
+    escalationLink: long && b.f.hasBody(AppRoutes.m5BlockBoard)
+        ? const LinkAction(
+            label: UnknownBoardTexts.escalation,
+            deepLink: AppRoutes.m5BlockBoard,
+          )
+        : null,
+  );
+}
+
+/// [from] 뒤(같은 날 제외) [to] 까지의 KR 세션 수(달력 밖 = 그 앞에서 멈춘다 — 지어내지 않는다).
+int _sessionsAfter(ExchangeCalendar kr, String from, String to) {
+  int n = 0;
+  TradeDate d = TradeDate(from);
+  while (true) {
+    final TradeDate next;
+    try {
+      next = kr.nextSession(d);
+    } on StateError {
+      return n;
+    }
+    if (next.yyyyMmDd.compareTo(to) > 0) return n;
+    n++;
+    d = next;
+  }
+}
 
 // ── 내부 ──────────────────────────────────────────────────────────────────────
 
