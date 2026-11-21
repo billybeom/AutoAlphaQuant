@@ -933,7 +933,9 @@ void main() {
       expect(find.byKey(const Key('d03-print')), findsNothing);
       await _at(tester, find.byType(EmergencyStopCard), 'IT_D03');
       container.read(shellLinkOpenerProvider).open(AppRoutes.handbookIndex);
-      await _until(tester, find.byKey(const Key('b01-entry-7')));
+      // 목록은 게으르게 짓는다 — 화면 밖 항목은 아직 없다(첫 항목 · 슬리브 B 자식이 서면 충분).
+      await _until(tester, find.byKey(const Key('b01-entry-0')));
+      expect(find.text('슬리브 B — 해외 지수·금 ETF'), findsOneWidget);
       await _at(tester, find.byType(HandbookContents), 'IT_B01');
       await tester.tap(find.text('슬리브 B — 해외 지수·금 ETF'));
       await _until(tester, find.byKey(const Key('b02-title')));
