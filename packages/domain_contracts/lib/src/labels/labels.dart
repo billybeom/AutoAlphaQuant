@@ -172,7 +172,8 @@ final class UnregisteredContractCodeError extends Error {
 ///    `FAILED`(`kill_cancel_outcome` ↔ `x1_step_state`) · `BLOCKED`(`verdict_code` ↔ `x1_gate_state`) ·
 ///    `OBSERVING`(`resume_reason` ↔ `x1_gate_state`) · `PASSED`(`sim_trial_state` ↔ `x1_gate_state`) ·
 ///    `SQLITE_INTEGRITY`·`FORMAT_VERSION`(`ledger_integrity_result` ↔ `ledger_boundary_reason`) = **열다섯 글자**
-///    (`RESTORE_ROLLBACK` 은 `ledger_boundary_reason` 까지 세 축)) —
+///    (`RESTORE_ROLLBACK` 은 `ledger_boundary_reason` 까지 세 축) + 🆕 v1.35(01 §44 · K294) 저널 kind 셋 —
+///    `DISCRETION` · `RECON_CLEAR` · `KILL_SWITCH_RESUME`(`deviation_kind` ↔ `decision_journal_kind`) = **열여덟 글자**) —
 ///    그래서 [all] 의 크기는 등재 건수보다 작다. 전역 조회보다 [requireRegisteredIn] 을 쓴다.
 abstract final class ContractCodes {
   /// 도메인 → 코드 집합. 🔴 키 이름은 01 §3·§6 의 절 제목에서 따온다.
@@ -317,6 +318,10 @@ abstract final class ContractCodes {
     'baseline_apply_result': BaselineApplyResultCodes.values,
     // 🆕 v1.33(01 §42 · E16j-b) — X1 이전 화면 🔒 슬롯 이름
     'x1_slot': X1SlotIds.values,
+    // 🆕 v1.35(01 §44) — X5 정정 원문 거부(K291) · 원장 저널 kind(K294) · J-3 인용 규칙(K300)
+    'repair_input_result': RepairInputResultCodes.values,
+    'decision_journal_kind': DecisionJournalKinds.values,
+    'journal_rule_cited': JournalRuleCitedCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

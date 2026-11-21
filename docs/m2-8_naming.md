@@ -828,3 +828,16 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | # | 이름 | 뜻 · 위치 |
 |---|---|---|
 | AM-1 | 🆕 `ix_app_device_auth_uid` | `ddl/batch_d_supabase.sql` · `app_device(auth_uid)` 색인(unique 아님 — X1 새 폰 = 같은 운영 사용자) |
+
+## AN. 🆕 계약 v1.35 (2026-11-21 · 쌓인 계약 숙제 창) — Dart 이름 4 · 칸 1
+
+`contractVersion` = **`1.35.0`**(다음 = 1.36.0 · D15 읽기 모델 열 표). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K290~K302 권고대로(정본 = 설계 01 §44 · 13 §8 R232). 🔴 `JournalDraft.decisionId` · `AppRoutes.journalDraft` `:decisionId` 이름은 **그대로** — 값의 뜻만 «저널 id» 로 고정(K296).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AN-1 | 🆕 `RepairInputResultCodes`(`repair_input_result` 1) | `labels/repair_codes.dart` · X5 정정 원문 파싱 거부 · 엔진 `RepairInputCodes` 1:1(이름 ≠ 엔진) |
+| AN-2 | 🆕 `DecisionJournalKinds`(`decision_journal_kind` 8 · `draftPurposes` 2) | `labels/journal_codes.dart` · 원장 `decision_journal.kind` · 글자 = 쓰는 동작 id(예외 둘) |
+| AN-3 | 🆕 `JournalRuleCitedCodes`(`journal_rule_cited` 3) | `labels/journal_codes.dart` · J-3 인용 규칙 선택지 코드 |
+| AN-4 | 🆕 `JournalDraftRejectCodes.journalTargetUnknown` · `journalInputInvalid` | `labels/journal_codes.dart` · J-3 거부 1 → 3 |
+| AN-5 | 🆕 `SafetyState.holdLabels`(JSON `hold_labels`) | `dto/safety.dart` · hold 짝 문장(같은 차례 · 같은 길이) |
+| AN-6 | 🆕 `FixturePaths.safetyStatesHolds` · `m6JournalDraftReceiptsReject2` · `x5RepairInputResults` | `fixtures/` 신설 3 |

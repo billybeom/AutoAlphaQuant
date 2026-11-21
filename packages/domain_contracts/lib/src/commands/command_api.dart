@@ -36,6 +36,10 @@ abstract interface class CommandApi {
   /// 사전 저널 제출(폰 · `J-3`). viewer 경로를 그리는 화면은 없다(`J-3` = 폰 전용 · 01 §11-10).
   /// 🔴 🆕 v1.2 부터 «초안»은 제출 **전** 기기 로컬 입력 원문(`DraftStore` · 01 §12-1)을 뜻한다 —
   ///    이 메서드는 그것이 아니라 **제출**이다(인자 이름 `JournalDraft` 는 그대로).
+  /// 🆕 v1.35(01 §44 · K296 ~ K299) — 키 = 저널 id · 갈래(채우기 · 새 행) = 엔진이 키로 가른다 · 거부 = `JournalDraftRejectCodes` 3 ·
+  ///    🔴 신뢰 시각 비의존(RECON 해제 선례 · 저널 시각 = 기기 시계) · 같은 `commandId` 재제출 = 같은 접수증(기존 수신함 규칙) ·
+  ///    `LEDGER_INTEGRITY` 가 서 있으면 `heldForIntegrity`(보관 · 해제 뒤 집행 — 01 §3-8 «접수하되 보관» · 02 §3-3 R2 ⓕ) ·
+  ///    저널 쓰기와 접수는 한 트랜잭션(고아 저널 0).
   Future<CommandReceipt> submitJournalDraft(JournalDraft draft);
 
   /// 사후 blind 리뷰(결정 9b).

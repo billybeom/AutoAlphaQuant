@@ -529,6 +529,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.rebalance6: FixtureBinding(_rebalanceEvent),
   FixturePaths.resumeReport1: FixtureBinding(_resumeReport),
   FixturePaths.safetyStates: FixtureBinding(_safetyState),
+  // 🆕 v1.35(01 §44 · K295) — hold 짝 문장 2행.
+  FixturePaths.safetyStatesHolds: FixtureBinding(_safetyState),
   // 🆕 v1.1 — 슬리브 카탈로그(01 §2-1 — 목록의 유일한 창구).
   FixturePaths.sleeveCatalog4: FixtureBinding(
     DtoCodec<SleeveCatalogEntry>(
@@ -742,6 +744,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   ),
   // 🆕 v1.1 R2 준비(2026-09-23) — J-3 제출 결과 5상태(한 명령의 갈래).
   FixturePaths.m6JournalDraftReceipts5: FixtureBinding(_commandReceipt),
+  // 🆕 v1.35(01 §44 · K298) — J-3 거부 접수증 2(키 · 입력).
+  FixturePaths.m6JournalDraftReceiptsReject2: FixtureBinding(_commandReceipt),
   FixturePaths.m6JournalDraftSpecDiscretion: FixtureBinding(
     _journalDraftFormSpec,
   ),
@@ -1168,6 +1172,8 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.x5RepairDiffStage3: FixtureBinding(_repairWizardVm),
   FixturePaths.x5RepairHubEmpty: FixtureBinding(_repairWizardVm),
   FixturePaths.x5RepairHubTargets: FixtureBinding(_repairWizardVm),
+  // 🆕 v1.35(01 §44 · K291) — 정정 원문 파싱 거부 결과 1.
+  FixturePaths.x5RepairInputResults: FixtureBinding(_safetyActionResult),
   FixturePaths.x5RepairIntegrityReady: FixtureBinding(_repairWizardVm),
 };
 
