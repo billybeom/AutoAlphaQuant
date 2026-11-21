@@ -1275,7 +1275,7 @@ POT 행 0 · 전 표본 `CREDENTIAL_VERIFY` kind ∈ 사전 · 키 조각 꼴·8
 
 ### 🔴 생성 스크립트가 만든다 (손 계산 금지)
 
-`packages/domain_contracts/tool/gen_e16j_a_v132_fixtures.py` — 기준 커밋(`a3022970` · v1.31 가지 머리 — 🔴 v1.31 병합 뒤 main 위로 다시 얹을 때 기준을 바꾼다) 원문에서 멱등 생성 · diff 근거 = `ledger_diffs_4` 첫 행 꼴 · 쓰기 전 확인(숫자 칸 · 금액 · 계좌 글자 0).
+`packages/domain_contracts/tool/gen_e16j_a_v132_fixtures.py` — 기준 커밋(`06621fa1` · v1.31 병합 기록 — #298 squash `922df462` 뒤) 원문에서 멱등 생성 · diff 근거 = `ledger_diffs_4` 첫 행 꼴 · 쓰기 전 확인(숫자 칸 · 금액 · 계좌 글자 0).
 
 ## 계약 v1.31 (2026-11-21 · E11k-d2 계약 창 — o_07 ③ Supabase 로그인 · 01 §40 · ~~⬜ PR 대기~~ ✅ 병합 PR #298 squash `922df462`(2026-11-21 · CI 3/3))
 
