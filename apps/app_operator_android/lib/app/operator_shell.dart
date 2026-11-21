@@ -119,6 +119,7 @@ import 'package:ui_settings/ui_settings.dart'
         Diagnostics,
         MonthlyContribution,
         SettingsHome,
+        StrategyAllocation,
         settingsActionsProvider,
         settingsClockProvider,
         settingsLinkOpenerProvider,
@@ -490,6 +491,8 @@ Widget _settingsDevices(Map<String, String> _) => const Devices();
 
 Widget _settingsAccounts(Map<String, String> _) => const Accounts();
 
+Widget _settingsAllocation(Map<String, String> _) => const StrategyAllocation();
+
 Widget _simOpeningCash(Map<String, String> _) => const SimOpeningCash();
 
 Widget _settingsDiagnostics(Map<String, String> _) => const Diagnostics();
@@ -619,6 +622,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.settingsDevices: _settingsDevices,
   // 🆕 E11p3d-5i(R151) — M9 S03 계좌 · 매핑.
   AppRoutes.settingsAccounts: _settingsAccounts,
+  // 🆕 E11q-s04b — M9 S04 배분 첫 판(보기 전용 · Bob R8b #307 `StrategyAllocation` · VM = R211 운영 설정 판 ·
+  //    설정 판을 못 읽으면 공용 오류 화면 — 정본 기본값을 «읽은 것처럼» 보이지 않는다 K206).
+  AppRoutes.settingsAllocation: _settingsAllocation,
   // 🆕 E11p4k(R160) — M9 S10 진단(골든 = 실행기 전 판정 보류 · 무결성 = 정본 자가 대조).
   AppRoutes.settingsDiagnostics: _settingsDiagnostics,
   // 🆕 E11q-c2(R201) — M9 S09 백업·복원(«지금 백업» = X1 스냅숏 `take` · 기기 안만 · 바깥 올리기 = D9 미정 ·
