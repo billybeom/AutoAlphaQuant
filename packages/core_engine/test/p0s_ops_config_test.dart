@@ -164,6 +164,33 @@ void main() {
       );
     });
 
+    test(
+      '🆕 E11q-d1 — 규칙 지문 = 사람 값 · SPEC 판 · 종목 구분을 뺀 같은 내용(핸드북 정합 게이트 · 04 §8)',
+      () {
+        Map<String, Object?> ruleOf(P0sOpsConfig c) =>
+            Map<String, Object?>.of(c.content())
+              ..remove('spec')
+              ..remove('accounts')
+              ..remove('sleeve_a_symbol')
+              ..remove('instruments');
+        final Map<String, Object?> rule = ruleOf(P0sOpsConfig.of(_human()));
+        expect(p0sRuleFingerprint(), configFingerprint(rule));
+        // 사람 값이 달라도 같다(원장 · 온보딩 전에도 셈한다).
+        expect(
+          configFingerprint(
+            ruleOf(P0sOpsConfig.of(_human(a: '999991', accountC: 'acct_irp'))),
+          ),
+          p0sRuleFingerprint(),
+        );
+        // 규칙 한 칸이 바뀌면 바뀐다 · 고정값(규칙이 바뀌는 것이 의도라면 핸드북 원고를 다시 읽고 원고 지문과 함께 고친다).
+        expect(
+          configFingerprint(<String, Object?>{...rule, 'draft': 'x'}),
+          isNot(p0sRuleFingerprint()),
+        );
+        expect(p0sRuleFingerprint(), '35aaa3719a81591a');
+      },
+    );
+
     test('🔴 사람 값 리터럴 0 — 원천 파일에 종목 · 계좌 리터럴이 없다', () {
       final String src = File('lib/src/ops/p0s_ops_config.dart')
           .readAsStringSync();
