@@ -823,7 +823,7 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 
 ## AM. 🆕 계약 v1.34 (2026-11-21 · 미결 214 작은 계약 창 — Supabase 신원 모델 DDL) — Dart 이름 0 · SQL 이름 1
 
-`contractVersion` = **`1.34.0`**(다음 = 1.35.0). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K282~K289 권고대로(정본 = 설계 01 §43 · 13 §8 R224). 정책 이름 6(`device_insert_viewer_only` · `device_select_own` · `command_insert_viewer` · `command_insert_operator` · `command_select_own` · `command_ack_select`)은 **그대로** — 본문만 «`app_device` 조인»으로 바뀐다.
+`contractVersion` = **`1.34.0`**(다음 = 1.35.0). 상태 = ~~⬜ PR 대기~~ ✅ 병합 PR #311 squash `3dfe0dad`(2026-11-21 · CI 3/3). 결정 = 발주자 위임 2026-11-14 — K282~K289 권고대로(정본 = 설계 01 §43 · 13 §8 R224). 정책 이름 6(`device_insert_viewer_only` · `device_select_own` · `command_insert_viewer` · `command_insert_operator` · `command_select_own` · `command_ack_select`)은 **그대로** — 본문만 «`app_device` 조인»으로 바뀐다.
 
 | # | 이름 | 뜻 · 위치 |
 |---|---|---|
