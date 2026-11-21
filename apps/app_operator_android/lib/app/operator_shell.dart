@@ -22,6 +22,8 @@
 // 🆕 E11q-q4a — M6 매매일지 «읽기» 넷(J-1 타임라인 = «일지» 탭 본문 · J-2 거래 상세 · J-3R 사전 저널 읽기 · J-1 회차 조건) ·
 //    읽기 = `OperatorJournalRepository`(원장 한 파일) · 기간 프리셋 · 슬리브 = 셸 설정 원천 한 인스턴스.
 // 🆕 E11q-q4b — J-5 미해소 보드(같은 저장소) · J-3 사전 저널 쓰기 = 계약 창 · M5-6 조립 뒤(지금 엔진이 J-3 로 보내는 길 0).
+// 🆕 E11q-q5a(R220) — M7 S7-7 연간 리뷰 · S7-10 이행 갭(인자 없음 · 그 달 = 한 위젯) = `OperatorPerformanceRepository` ·
+//    `OperatorExecutionGapRepository` → S12 목차 두 행 · 월간 리포트 ⑧ 링크 목적지가 열린다.
 // 🔵 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
 //    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
 
@@ -52,12 +54,16 @@ import 'package:ui_analytics/planner.dart'
         plannerWhatIfApiProvider;
 import 'package:ui_analytics/ui_analytics.dart'
     show
+        AnnualReviewScreen,
+        ExecutionGapScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
         RebalanceTimelineScreen,
         analyticsClockProvider,
         analyticsLinkOpenerProvider,
         analyticsWhatIfApiProvider,
+        executionGapRepositoryProvider,
+        performanceRepositoryProvider,
         rebalanceRepositoryProvider,
         safetyRepositoryProvider;
 import 'package:ui_journal/ui_journal.dart'
@@ -137,6 +143,7 @@ import 'operator_kill_switch.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
+import 'operator_performance.dart';
 import 'operator_pledge.dart';
 import 'operator_resume.dart';
 import 'operator_rule_change.dart';
@@ -225,6 +232,23 @@ final Provider<OperatorRebalanceRepository> operatorRebalanceProvider =
         hasBody: bodies.byPattern.containsKey,
       );
     });
+
+/// 🆕 E11q-q5a(R220) — M7 성과 창구(S7-7 연간 리뷰 · A 행 탐색 링크 = 레지스트리에 본문이 있을 때만).
+final Provider<OperatorPerformanceRepository> operatorPerformanceProvider =
+    Provider<OperatorPerformanceRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorPerformanceRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
+
+/// 🆕 E11q-q5a(R220) — S7-10 이행 갭(운영 방식 = 화면 상태).
+final Provider<OperatorExecutionGapRepository> operatorExecutionGapProvider =
+    Provider<OperatorExecutionGapRepository>(
+      (Ref ref) =>
+          OperatorExecutionGapRepository(ref.watch(operatorRuntimeProvider)),
+    );
 
 /// 🆕 R180 — M5-2 재개판 초안(이 앱 실행 동안 · 문항 제출과 게이트 읽기가 같이 쓴다).
 final Provider<OperatorKillResumeDraft> operatorKillResumeDraftProvider =
@@ -517,6 +541,16 @@ Widget _rebalanceEvent(Map<String, String> p) {
   return RebalanceEventScreen(key: ValueKey<String>(id), rebalanceEventId: id);
 }
 
+Widget _reportAnnual(Map<String, String> _) => const AnnualReviewScreen();
+
+Widget _executionGap(Map<String, String> _) => const ExecutionGapScreen();
+
+/// 두 라우트 · 한 위젯(계약 v1.6 — 그 달 = 받은 달 그대로).
+Widget _executionGapMonth(Map<String, String> p) {
+  final String m = p['yyyyMm'] ?? '';
+  return ExecutionGapScreen(key: ValueKey<String>(m), yyyyMm: m);
+}
+
 /// 🆕 R129 — 설정 읽기 모델(첫 칸 = S02 키 목록) · 🆕 R134 설정 홈 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만.
 final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
     Provider<OperatorSettingsRepository>((Ref ref) {
@@ -590,6 +624,10 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.rebalancePreview: _rebalancePreview,
   AppRoutes.rebalanceHistory: _rebalanceHistory,
   AppRoutes.rebalanceEvent: _rebalanceEvent,
+  // 🆕 E11q-q5a(R220) — M7 S7-7 연간 리뷰(S12 목차 «한 해의 결과» 목적지) · S7-10 이행 갭(S12 목차 · 월간 리포트 ⑧ 그 달).
+  AppRoutes.reportAnnual: _reportAnnual,
+  AppRoutes.ledgerExecutionGap: _executionGap,
+  AppRoutes.ledgerExecutionGapMonth: _executionGapMonth,
   // 🆕 E11q-q4a — M6 매매일지 읽기 넷(J-1 = «일지» 탭 본문 · J-2 = 일지 행 · H6-2 «매수 결정 보기» 목적지 ·
   //    J-3R = J-2 «저널 보기» 목적지 · J-1 회차 조건 = S7-6b «이 회차의 주문 n건» 목적지).
   AppRoutes.journalTimeline: _journalTimeline,
@@ -796,6 +834,13 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 R173 — M7 리밸런싱 칸(일지 칸과 한 인스턴스) · 초안 창구.
   rebalanceRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorRebalanceProvider),
+  ),
+  // 🆕 E11q-q5a(R220) — M7 성과 창구(연간 리뷰만 원천 · 나머지 = «원천 없음») · 이행 갭.
+  performanceRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorPerformanceProvider),
+  ),
+  executionGapRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorExecutionGapProvider),
   ),
   analyticsWhatIfApiProvider.overrideWith(
     (Ref ref) => ref.watch(operatorWhatIfApiProvider),

@@ -435,7 +435,7 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
         final AnnualReviewIndexVm v = annualReviewIndexVmOf(
           AnnualReviewIndexFacts(
             trustedNowUtc: _rt.trusted.trustedNowUtc(),
-            firstOperatingYear: _firstOperatingYear(),
+            firstOperatingYear: operatorFirstOperatingYear(_rt),
             hasBody: hasBody,
             nowUtc: _rt.clock.nowUtc(),
           ),
@@ -459,15 +459,6 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
       },
     );
     return c.stream;
-  }
-
-  /// 운영을 시작한 해(한국 · `onboarding_choice.committed_at` · 없으면 null = 엔진이 첫 해로 본다).
-  int? _firstOperatingYear() {
-    final Object? at = _rt.files.sim
-        .select('SELECT committed_at FROM onboarding_choice WHERE id = 1')
-        .firstOrNull?['committed_at'];
-    final DateTime? t = at is String ? DateTime.tryParse(at) : null;
-    return t == null ? null : int.parse(kstDateText(t.toUtc()).substring(0, 4));
   }
 
   /// 🆕 R136 — H-03 기기 리스크(화면 상태와 무관 — 온보딩 전에도 잰다).
@@ -505,4 +496,14 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
     );
     return c.stream;
   }
+}
+
+/// 운영을 시작한 해(한국 · `onboarding_choice.committed_at` · 없으면 null = 엔진이 첫 해로 본다) —
+/// S12 목차 · 🆕 E11q-q5a M7 `S7-7` 연간 리뷰가 같은 원천(목차가 말한 해 = 본문의 해).
+int? operatorFirstOperatingYear(OperatorRuntime rt) {
+  final Object? at = rt.files.sim
+      .select('SELECT committed_at FROM onboarding_choice WHERE id = 1')
+      .firstOrNull?['committed_at'];
+  final DateTime? t = at is String ? DateTime.tryParse(at) : null;
+  return t == null ? null : int.parse(kstDateText(t.toUtc()).substring(0, 4));
 }

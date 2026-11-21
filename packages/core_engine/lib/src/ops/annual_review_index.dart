@@ -122,18 +122,40 @@ class AnnualReviewIndexFacts {
   final DateTime nowUtc;
 }
 
-/// 🔴 S12 목차 VM.
-AnnualReviewIndexVm annualReviewIndexVmOf(AnnualReviewIndexFacts f) {
-  final AnnualReviewWindow w = annualReviewWindowOf(f.trustedNowUtc);
-  // 연도 = 12월 → 그해 · 그 밖 → 지난해(신뢰 시각 모름 = 기기 시각으로 연도 줄만 · 창은 «모름»).
-  final DateTime basis = f.trustedNowUtc ?? f.nowUtc;
+/// 🆕 E11q-q5a — 엔진 기본 연도 · 창 · 첫 해(S12 목차 · M7 `S7-7` 이 같은 함수를 부른다 — 목차가 말한 해 = 본문의 해).
+/// 연도 = 12월 → 그해 · 그 밖 → 지난해(신뢰 시각 모름 = 기기 시각으로 연도만 · 창은 «모름») · 그 해가 운영 첫 해보다
+/// 앞이면(모르면 = 운영 전) 첫 해 = 그해(비교 대상 없음 · 창이 열린 12월은 첫 해가 아니다).
+({int year, bool firstYear, AnnualReviewWindow window}) annualReviewYearOf({
+  required DateTime? trustedNowUtc,
+  required DateTime nowUtc,
+  required int? firstOperatingYear,
+}) {
+  final AnnualReviewWindow w = annualReviewWindowOf(trustedNowUtc);
+  final DateTime basis = trustedNowUtc ?? nowUtc;
   final int shown = _kstMonth(basis) == kRuleChangeWindowMonth
       ? _kstYear(basis)
       : _kstYear(basis) - 1;
-  final int? first = f.firstOperatingYear;
+  final int? first = firstOperatingYear;
   final bool firstYear =
       w != AnnualReviewWindow.open && (first == null || shown < first);
-  final int year = firstYear ? _kstYear(basis) : shown;
+  return (
+    year: firstYear ? _kstYear(basis) : shown,
+    firstYear: firstYear,
+    window: w,
+  );
+}
+
+/// 🔴 S12 목차 VM.
+AnnualReviewIndexVm annualReviewIndexVmOf(AnnualReviewIndexFacts f) {
+  final (
+    :int year,
+    :bool firstYear,
+    window: AnnualReviewWindow w,
+  ) = annualReviewYearOf(
+    trustedNowUtc: f.trustedNowUtc,
+    nowUtc: f.nowUtc,
+    firstOperatingYear: f.firstOperatingYear,
+  );
   final String state = switch (w) {
     AnnualReviewWindow.open => AnnualReviewTexts.open,
     AnnualReviewWindow.unknown => AnnualReviewTexts.unknown,
