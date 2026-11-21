@@ -722,6 +722,15 @@ void main() {
         'interventionStep',
         'ruleChangeCancel',
         'seasonalWindowChoice',
+        // 🆕 v1.32(01 §41 · K254) — X5 아무것도 안 하기(v1.33 에 표 꼴로 맞춤).
+        'repairAccept',
+        // 🆕 v1.33(01 §42 · K273) — X1 기기 이전 6(전부 엔진 완성 · 시크릿 = 슬롯).
+        'x1PlanStart',
+        'x1PlanStep',
+        'x1PlanAbort',
+        'x1EmergencyStart',
+        'x1ReissueRecord',
+        'x1RecoveryStep',
       });
       for (final String path in FixturePaths.all) {
         walkJson(jsonDecode(readFixture(path)), (

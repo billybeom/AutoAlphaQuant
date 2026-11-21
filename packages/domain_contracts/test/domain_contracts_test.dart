@@ -70,7 +70,9 @@ void main() {
     //    다음 판 = 1.32.0(E16j 화면 계약 첫 후보).
     // 🔵 '1.32.0'(E16j-a 계약 창 · 01 §41) — X5 정정 마법사 VM 5 · 창구 · 라우트 85 · 제출 3 · 동작 4 · 픽스처 375 · C-66 ·
     //    다음 판 = 1.33.0(E16j-b X1).
-    expect(contractVersion, '1.32.0');
+    // 🔵 '1.33.0'(E16j-b 계약 창 · 01 §42) — X1 기기 이전 VM 2 · 카드 6 · 창구 · 동작 6 · 슬롯 사전 · 픽스처 390 · C-67 ·
+    //    다음 판 = 1.34.0.
+    expect(contractVersion, '1.33.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.

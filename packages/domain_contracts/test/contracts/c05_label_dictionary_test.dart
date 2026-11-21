@@ -84,6 +84,11 @@ const Map<String, String> _fixtureCodeFields = <String, String>{
   //    좁힘 = C-54 ④) · `S06` QR 자리. 🔴 `secret_slot_id` 키를 쓰지 않는다(위 온보딩 사전 고정 · C-50 ⑮).
   'credential_slot_id': '',
   'qr_slot_id': 'settings_slot',
+  // 🆕 v1.33(01 §42 · K274) — X1 이전 화면 🔒 슬롯 이름 4칸(`X1SlotIds` · `slot_id` · `qr_slot_id` 키는 다른 사전에 묶여 있어 피했다).
+  'ticket_slot_id': 'x1_slot',
+  'scan_slot_id': 'x1_slot',
+  'recovery_code_slot_id': 'x1_slot',
+  'reissue_slot_id': 'x1_slot',
 };
 
 /// 🔴 **사전에 없는 코드 축** — 01 §3 이 열거하지 않은 값이라 검사 대상이 아니다.
