@@ -122,5 +122,6 @@ export 'src/migration/x1_startup.dart';
 export 'src/security/secret_scan.dart';
 export 'src/supabase/supabase_auth.dart';
 export 'src/supabase/supabase_connect.dart';
+export 'src/supabase/supabase_lease.dart';
 export 'src/supabase/supabase_server_time.dart';
 export 'src/watchdog/healthchecks_client.dart';
