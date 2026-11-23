@@ -184,3 +184,8 @@
 ### 2. 장수(계획)
 
 - R16 시작 **70장**(R15 test-only 병합본 `69afd33` · `git ls-tree` 70) → R16a 병합 뒤 **80장**(+ `d01_*` 4 · `d02_*` 4 · `d03_*` 2 · ✅ 2026-11-05 PR #126 `1e113ef` · `git ls-tree` 80) → R16b 병합 뒤 **88장**(+ `b01_*` 2 · `b02_*` 6 · ✅ 2026-11-06 PR #132 `8af4722` · `git ls-tree` 88) → R16c 뒤 **92장**(+ `h03_*` 4 · ✅ 2026-11-13 PR #135 `4db3ddf` · `git ls-tree` 92 · 🔴 «정확히» = R16c 정적 T37 · 순서대로 · 병합본 위 가벼운 확인 92). 🏁 **R16** = `d01_*`·`d02_*`·`d03_*`·`b01_*`·`b02_*`·`h03_*` 11이름 22장(70 → 92) → R16 test-only PR 병합 뒤 **92장 그대로**(✅ 2026-11-13 PR #137 `9e17613` · 테스트 파일만 · 장수 변화 0 · `git ls-tree` 92). 질문 파일 = `docs/ai-context/inbox/D01D03_questions.md`(R16a) · `B01B02_questions.md`(R16b) · `H03_questions.md`(R16c).
+
+## 🆕 R16d · R16e(R16 뒤 추가 2장 · 2026-11-20 · 2026-11-23)
+
+- R16d `ks_s01_appbar`(390×844 · 자리 위 dy 4.0) · `ks_s02_sidebar`(1280×800 · 744.0) × light/dark = 4장 — PR #265 `ea4b40e7` · 92 → **96장**
+- R16e `hl_h01_keys`(hold 한 줄 · 배너 아래 dy 104.0) · `hl_h01_two`(hold 두 줄 · 164.0) × light/dark = 4장 · 크기 `kGoldenPhoneSize` 390×844 · 입력 = 표본 `safety_states_holds` 행 0 · 행 0+1 이어 붙임 — PR #325 `b17cdcb8` · 96 → **100장** · 재생성 0
