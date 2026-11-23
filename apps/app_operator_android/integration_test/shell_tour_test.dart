@@ -42,6 +42,8 @@ import 'package:data_sync/data_sync.dart'
         ModeAxis,
         SqliteConfigVersionStore,
         SqliteModeStore,
+        SupabaseAuth,
+        SupabaseLeaseRpc,
         krMonthEndOf,
         krMonthSessionsOf;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -307,6 +309,7 @@ void main() {
     final AndroidOps ops = AndroidOps();
     final Directory dir = Directory.systemTemp.createTempSync('aaq_it_tour_');
     final LedgerFiles files = LedgerFiles.open(dir.path, clock: clock);
+    final String deviceId = await ops.deviceId();
     final OperatorRuntime rt = OperatorRuntime(
       files: files,
       clock: clock,
@@ -314,7 +317,18 @@ void main() {
       vault: AndroidSecretVault(),
       watchdogRemote: HealthchecksClient(http.Client(), AndroidSecretVault()),
       deviceProbe: () => ops.deviceRisk(clock.nowUtc()),
-      deviceId: await ops.deviceId(),
+      deviceId: deviceId,
+      // 🆕 E16t3c(R244) — X1-3 비상 시작 흐름(앱 기동과 같은 조립 · 시작을 누르지 않는다 = 망 0 · 카드 줄 = 이 폰 메모리).
+      x1Emergency: operatorX1Emergency(
+        rpc: SupabaseLeaseRpc(
+          http.Client(),
+          AndroidSecretVault(),
+          SupabaseAuth(http.Client(), AndroidSecretVault(), clock: clock),
+        ),
+        sim: files.sim,
+        deviceId: deviceId,
+        clock: clock,
+      ),
       // 🆕 R154 — 실린 사람 값 자산(발주자 결정 R153) → S03 = 정한 대응표 «모의 개시 전».
       humanDecision: await loadP0sHumanDecision(rootBundle),
       // 🆕 R167 — 설정 동작(S10 실행 버튼) · 골든 기기 실행기(실제 엔진 패키지 자산 · 실제 isolate).
