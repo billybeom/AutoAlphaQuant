@@ -400,6 +400,23 @@ void main() {
           operatingMode: OperatingMode.autoTrade,
         );
         expect(state().holds, <String>[SafetyHoldCodes.migrationInProgress]);
+        // 🆕 미결 220 ⓓ — 짝 문장(같은 차례 · 같은 길이) · 기동 hold 와 함께 = 사전 차례(키 → 이전).
+        expect(state().holdLabels, <String>[
+          '기기 이전 중입니다 — 새 주문을 멈췄습니다. 이전을 마치거나 그만두면 다시 돕니다.',
+        ]);
+        final SafetyState both = SqliteSafetyRepository(
+          db,
+          mode: RunMode.live,
+          clock: clock,
+          trusted: trusted,
+          deviceId: _dev,
+          startupHolds: const <String>{SafetyHoldCodes.liveAwaitingKeys},
+        ).state();
+        expect(both.holds, <String>[
+          SafetyHoldCodes.liveAwaitingKeys,
+          SafetyHoldCodes.migrationInProgress,
+        ]);
+        expect(both.holdLabels, hasLength(2));
         expect(state(device: null).holds, isEmpty);
         expect(state(mode: RunMode.simInternal).holds, isEmpty);
         expect(

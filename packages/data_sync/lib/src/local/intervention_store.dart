@@ -6,14 +6,14 @@
 // 🔴 같은 command_id 재전달 = 처음 결과 그대로(command_inbox 멱등).
 // 🆕 E16j-a(01 §8 미결 217 ⓖ · 계약 v1.32 K252) — 3단계 사전 저널 쓰기(`writeJournalStage`): 살아 있는 세션 하나에 붙인다 ·
 //    이탈 저널(사전 3칸 원문 · 저널 id = 호출자) + 3단계 통과 + 명령 행 = 한 트랜잭션 · 판정 = 기존 3단계 규칙 그대로(저널 연결 ·
-//    예산 소진이면 메모 필요 — 이 제출에는 메모가 없어 거부) · 🔵 `decision_journal.kind` = 비움(J-3 저널 키 = 계약 창 몫).
+//    예산 소진이면 메모 필요 — 이 제출에는 메모가 없어 거부) · 🆕 `decision_journal.kind` = `INTERVENTION_JOURNAL`(미결 220 ⓒ · 계약 v1.35 K294 · 옛 행 = NULL).
 //    정정 · 새 기준점의 5단계 통과는 정정 트랜잭션 안에서 쓴다(`insertInterventionStep` · ledger_repair_store).
 
 import 'dart:convert' show jsonEncode;
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, SafetyActionId, SafetyCommonResultCodes;
+    show Clock, DecisionJournalKinds, SafetyActionId, SafetyCommonResultCodes;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
@@ -383,7 +383,7 @@ class SqliteInterventionStore {
       _db.execute(
         'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
         'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
-        'VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, NULL, NULL, ?)',
+        'VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, NULL, ?)',
         <Object?>[
           journalId,
           kstDateText(now),
@@ -393,6 +393,8 @@ class SqliteInterventionStore {
           rationaleBefore.trim(),
           expectedOutcome.trim(),
           ruleCited.trim(),
+          // 🆕 미결 220 ⓒ(계약 v1.35 §44 K294) — 개입 3단계 저널 kind(옛 행 = NULL · 읽기 호환 · SAF-408 은 kind 를 보지 않는다).
+          DecisionJournalKinds.interventionJournal,
           iso,
         ],
       );

@@ -6,7 +6,8 @@
 // 🔴 마찰 1~5 = 개입 세션(`intervention_step`) 재사용 — 표에 종류 칸이 없어 세션 id 에 대상을 싣는다(`x5:<대상 id>:<차례>`).
 //    살아 있는 세션은 한 번에 하나(R65) · 단계 진행 = `interventionStep` · 3단계 = 저널 폼 · 5단계 = 정정 · 새 기준점 제출.
 // 🔴 시각 = 신뢰 시각 — 모르면 단계 동작을 내지 않는다(엔진 거부를 화면에 미리 그리지 않는다).
-// 🔴 글자 = 표본 문장에서 «(합성)»만 뗀 것 + 표본 밖 문장(엔진) · 냉각 · 실행 창 수치 = 엔진 상수(R65) · 체인 상한 = 01 §10-3 B6.
+// 🔴 글자 = 표본 문장에서 «(합성)»만 뗀 것 + 표본 밖 문장(엔진) · 냉각 · 실행 창 수치 = 엔진 상수(R65) · 체인 상한 = 운영 설정
+//    `operations.amend_chain_max`(01 §10-3 B6 · 🆕 미결 220 ⓑ — 조립이 읽어 넘긴다).
 
 import 'dart:convert' show jsonDecode;
 
@@ -26,6 +27,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         OriginCodes,
         RepairCorrectionForm,
         RepairFillChoice,
+        RepairInputResultCodes,
         RepairOriginChoice,
         RepairResultCodes,
         RepairRoute,
@@ -70,13 +72,15 @@ import 'repair_plan.dart'
         kBaselineOriginCodes,
         repairOriginCodesFor;
 
-/// 정정 체인 상한(01 §10-3 B6 · 08 그림 13-2 :748 «2회» — 🟡 운영 설정 키 = SPEC 창 몫 · 값은 문서 그대로).
-const int kRepairAmendChainLimit = 2;
-
-/// 🔴 정정 원문 거부 코드 — 계약 등재 전(01 §8 미결 217 ⓓ · 등재 = 다음 계약 창).
+/// 🔴 정정 원문 거부 코드 — 🆕 미결 220 ⓐ(계약 v1.35 §44 K291) 계약 `RepairInputResultCodes` 참조(엔진 글자 0 · 대조 시험
+/// `v135_contract_parity_test`) · 계획 판정 거울 `RepairResultCodes` 와 축이 다르다.
+/// 🔵 정정 체인 상한 = 운영 설정 `operations.amend_chain_max`(K292 · 미결 220 ⓑ · 엔진 상수 0 — `OperationsConfig.amendChainMax`).
 abstract final class RepairInputCodes {
   /// 수량 · 가격 · 수수료 · 세금 원문을 읽을 수 없다(빈칸 · 숫자 아님 · 범위 밖).
-  static const String amountInvalid = 'REPAIR_AMOUNT_INVALID';
+  static const String amountInvalid = RepairInputResultCodes.amountInvalid;
+
+  /// 전량(계약 사전과 같은 벌).
+  static const Set<String> values = <String>{amountInvalid};
 }
 
 /// 정정(diff 갈래) 원인 칩 — 표본 `repair_diff_*` 의 세 칩(앱 밖 주문 · 잘못 기록 · 증권사 오류) ∩ 엔진 쓰기 목록.

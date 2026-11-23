@@ -64,6 +64,7 @@ import 'package:core_engine/core_engine.dart' as core show killSwitchActive;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         Clock,
+        DecisionJournalKinds,
         DiffStatus,
         ExecPolicy,
         FlagIds,
@@ -81,8 +82,9 @@ import 'kill_switch_store.dart' show readKillSwitchRecord;
 /// 브로커 거절의 `error_message` 접두(R36 W5).
 const String kBrokerRejectedPrefix = 'BROKER: ';
 
-/// 🆕 E11q-c4 — `command_inbox.kind` · `decision_journal.kind`(RECON 해제 · 계약 `SafetyActionId.reconClear` 와 같은 글자).
-const String kReconClearKind = 'RECON_CLEAR';
+/// 🆕 E11q-c4 — `command_inbox.kind` · `decision_journal.kind`(RECON 해제 · 계약 `SafetyActionId.reconClear` 와 같은 글자 ·
+/// 🆕 미결 220 ⓒ — 계약 `DecisionJournalKinds` 참조 · K294).
+const String kReconClearKind = DecisionJournalKinds.reconClear;
 
 /// 🆕 E11q-c4 — RECON 해제 «저널 함께 쓰기» 결과.
 class ReconClearWriteResult {
@@ -983,8 +985,8 @@ final class SqliteOrderLedger implements OrderPathLedger {
 
   @override
   Future<bool> reconClearJournalExists(String decisionId) async => _exists(
-    "SELECT 1 FROM decision_journal WHERE journal_id = ? AND kind = 'RECON_CLEAR'",
-    <Object?>[decisionId],
+    'SELECT 1 FROM decision_journal WHERE journal_id = ? AND kind = ?',
+    <Object?>[decisionId, DecisionJournalKinds.reconClear],
   );
 
   @override

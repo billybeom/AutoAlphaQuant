@@ -7,7 +7,8 @@
 import 'dart:convert';
 
 import 'package:core_engine/core_engine.dart';
-import 'package:domain_contracts/domain_contracts.dart' show Clock;
+import 'package:domain_contracts/domain_contracts.dart'
+    show Clock, DecisionJournalKinds;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
@@ -294,7 +295,7 @@ class SqliteKillSwitchStore implements KillSwitchStore {
       _db.execute(
         'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
         'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'KILL_SWITCH_CHECKLIST', ?, ?)",
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         <Object?>[
           jid,
           _kstDay(at),
@@ -323,6 +324,8 @@ class SqliteKillSwitchStore implements KillSwitchStore {
               : '규칙: ${answers.ruleAction.trim()}',
           answers.resumeCondition.trim(),
           answers.scenarioNone ? '해당 없음' : answers.scenarioId!.trim(),
+          // 🆕 미결 220 ⓒ — 저널 kind = 계약 사전(명령 와이어 `KILL_CHECKLIST_CONFIRM` 과 다르다 · K294 예외).
+          DecisionJournalKinds.killSwitchChecklist,
           ack.note.trim(),
           at.toIso8601String(),
         ],
@@ -369,7 +372,7 @@ class SqliteKillSwitchStore implements KillSwitchStore {
       _db.execute(
         'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
         'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
-        "VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, 'KILL_SWITCH_RESUME', NULL, ?)",
+        'VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, NULL, ?)',
         <Object?>[
           jid,
           _kstDay(at),
@@ -392,6 +395,8 @@ class SqliteKillSwitchStore implements KillSwitchStore {
           j.rationaleBefore!.trim(),
           j.expectedOutcome!.trim(),
           j.ruleCited!.trim(),
+          // 🆕 미결 220 ⓒ — 저널 kind = 계약 사전(명령 kind 는 위 지역 글자 — 축이 다르다).
+          DecisionJournalKinds.killSwitchResume,
           at.toIso8601String(),
         ],
       );

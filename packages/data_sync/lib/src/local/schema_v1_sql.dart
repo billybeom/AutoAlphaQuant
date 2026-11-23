@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `a5f7fc28d891eae6d42a76194a39e900aa35d1364e858c37adf98c878d6b2b6c`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `1f8ff77ec4a6c81d1972aef857b92aa2b59062d4436d1b605bb4193fad10faf2`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
@@ -347,7 +347,7 @@ CREATE TABLE IF NOT EXISTS decision_journal (
     rationale_before TEXT,                            -- 실행 전 근거
     expected_outcome TEXT,                            -- 기대 결과
     rule_cited       TEXT,                            -- 인용 규칙 (예: '03 §4-1 TIER 1B')
-    kind             TEXT,                            -- 🔴 v2.15 — 'KILL_SWITCH_RESUME' | 'RECON_CLEAR' | 'DISCRETION' | NULL(일반)
+    kind             TEXT,                            -- 🔴 v2.15 — 🆕 v2.45 정정(앱 계약 v1.35 `DecisionJournalKinds` 8 · 앱 01 §44 K294) — 'KILL_SWITCH_CHECKLIST' | 'KILL_SWITCH_RESUME' | 'STOPPED_DECISION' | 'RECON_CLEAR' | 'RULE_CHANGE_REQUEST' | 'INTERVENTION_JOURNAL' | 'DISCRETION' | 'PLEDGE_EDIT' | NULL(옛 행 · 새 쓰기 0)
     note         TEXT,
     created_at   TEXT NOT NULL
 );

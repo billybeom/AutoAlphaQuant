@@ -9,14 +9,15 @@
 import 'dart:convert';
 
 import 'package:core_engine/core_engine.dart';
-import 'package:domain_contracts/domain_contracts.dart' show Clock, RunMode;
+import 'package:domain_contracts/domain_contracts.dart'
+    show Clock, DecisionJournalKinds, RunMode;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../jobs/daily_jobs.dart' show SqliteEquitySnapshotStore, regimeLookupOf;
 import '../market/market_store.dart' show inLedgerTransaction;
 
-/// `decision_journal.kind` · `command_inbox.kind`.
-const String kStoppedDecisionKind = 'STOPPED_DECISION';
+/// `decision_journal.kind` · `command_inbox.kind`(🆕 미결 220 ⓒ — 계약 `DecisionJournalKinds` 참조 · 글자 = 동작 와이어 K294).
+const String kStoppedDecisionKind = DecisionJournalKinds.stoppedDecision;
 
 /// 저널 id 중복.
 const String kStoppedJournalTaken = 'JOURNAL_ID_TAKEN';

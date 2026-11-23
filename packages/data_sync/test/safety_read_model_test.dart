@@ -110,6 +110,35 @@ void main() {
     expect((s.asOf.label, s.asOf.observedAt), ('안전 상태 기준 2026-10-01', _t0));
   });
 
+  test(
+    '🆕 미결 220 ⓓ 기동 hold — 넘긴 hold 를 싣고 짝 문장을 같은 차례 · 같은 길이로(엔진 사전) · 빈 = 0',
+    () {
+      expect(repo.state().holds, isEmpty);
+      expect(repo.state().holdLabels, isEmpty);
+      final SafetyState s = SqliteSafetyRepository(
+        db,
+        mode: RunMode.live,
+        clock: clock,
+        trusted: trusted,
+        startupHolds: const <String>{SafetyHoldCodes.liveAwaitingKeys},
+      ).state();
+      expect(s.holds, <String>[SafetyHoldCodes.liveAwaitingKeys]);
+      expect(s.holdLabels, <String>[
+        '실키 검증 전 — 배치를 멈췄습니다. 키 관리에서 검증하면 다시 돕니다.',
+      ]);
+      expect(
+        () => SqliteSafetyRepository(
+          db,
+          mode: RunMode.live,
+          clock: clock,
+          trusted: trusted,
+          startupHolds: const <String>{'NOPE'},
+        ).state(),
+        throwsArgumentError,
+      );
+    },
+  );
+
   test('채운 원장 — 최근 스냅숏 · 재생 자격 · 활성 플래그만 · 링크 · 검증 시각 · 킬스위치 냉각 · 램프', () {
     seed(
       <double>[
