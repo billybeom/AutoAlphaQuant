@@ -32,8 +32,8 @@
 // 🆕 E11q-d1 — M8 문서 다섯 길: D-02 런북 목록 · 상세 · D-03 긴급 카드 · B-01 핸드북 목차 = 레지스트리 · B-02 `handbook://` 쪽 =
 //    셸 라우터가 직접(같은 창구) · 원천 = 엔진 원고 번들(원장 · 키 0 — 온보딩 전에도 열린다) · 🔴 M4-12 ① 핸드북 override 의무 = 지킴
 //    (비-null 단언 시험) · 긴급 카드 인쇄 = 이 폰에 인쇄 원천 없음 → 엔진이 슬롯 이름을 비운다(버튼 부재).
-// 🔵 장애 배너(D-01)는 원천(엔진 `incidents` · 읽기 모델)이 서는 조각에서 더한다(R104 나눔) — 🔴 M4-12 ① «장애 override 의무» =
-//    아직 못 지킨다(실물 저장소 없음 · R104 남김 · d6).
+// 🆕 E11q-d2 — M8 D-01 장애 배너 = `OperatorIncidentRepository`(화면 원장의 열린 사건 → 엔진 `incidentBannerVmOf` · 온보딩 전 =
+//    sim 원장 · 조치 링크 = 레지스트리에 본문이 있을 때만) · 🔴 M4-12 ① «장애 override 의무» = 지킴(비-null 단언 시험 — R104 d6 닫음).
 
 import 'dart:async' show unawaited;
 
@@ -179,6 +179,7 @@ import 'operator_command_api.dart';
 import 'operator_documents.dart';
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_handover.dart';
+import 'operator_incident.dart';
 import 'operator_journal.dart';
 import 'operator_kill_switch.dart';
 import 'operator_migration.dart';
@@ -448,6 +449,16 @@ final Provider<OperatorHandbookRepository> operatorHandbookProvider =
       (Ref ref) =>
           OperatorHandbookRepository(ref.watch(operatorRuntimeProvider)),
     );
+
+/// 🆕 E11q-d2 — M8 D-01 장애 배너(화면 원장의 열린 사건 · 조치 링크 = 레지스트리에 본문이 있을 때만).
+final Provider<OperatorIncidentRepository> operatorIncidentProvider =
+    Provider<OperatorIncidentRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorIncidentRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
 
 /// 🆕 R113 — 안전 상태(셸 · 일지 · 분석 = 한 인스턴스).
 final Provider<OperatorSafetyRepository> operatorSafetyProvider =
@@ -987,6 +998,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   shellHandbookRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorHandbookProvider),
+  ),
+  // 🆕 E11q-d2 — M8 D-01 장애 배너(🔴 M4-12 ① 장애 override 의무 — 기본 null = 배너가 소리 없이 없다).
+  shellIncidentRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorIncidentProvider),
   ),
   // 🆕 R115 — 온보딩 슬롯 빌더(본문 = 온보딩 원천이 서는 조각에서 등록 · 빌더는 미리).
   shellOnboardingSlotBuilderProvider.overrideWithValue(
