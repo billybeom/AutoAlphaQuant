@@ -856,3 +856,19 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AO-6 | 🆕 `ReadModelListCodes`(8) | 같은 파일 · `rm_list_envelope.list_code` = «저장소.메서드» |
 | AO-7 | 🆕 SQL 표 `rm_watchdog` · `rm_list_envelope` | 01 §6-4 · W-01 원천(미결 142) · ListResult 봉투 |
 
+## AP. 🆕 계약 v1.37 (2026-11-24 · M5 판 — `M5-13` · `L-3` 현금 축 · X1 리스 넘김) — Dart 이름 12 · SQL 이름 4
+
+`contractVersion` = **`1.37.0`**(다음 = 1.38.0 · postmortem 쓰기). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K317~K329 권고대로(정본 = 설계 01 §46 · 13 §8 R249).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AP-1 | 🆕 `SelfAuditResolveVm` · `HeldCommandRow` | `dto/self_audit.dart` · `M5-13` 한 화면 · 보관 명령 한 행 |
+| AP-2 | 🆕 `SelfAuditResolveRepository.watchResolve()` · `UnimplementedSelfAuditResolveRepository` | `repositories/` · `testing.dart` |
+| AP-3 | 🆕 `SafetyActionId.heldCommandsConfirm`(`HELD_COMMANDS_CONFIRM`) | `enums/command.dart` · `run{review_id}` |
+| AP-4 | 🆕 `HeldReviewResultCodes`(3 · `held_review_result`) | `labels/safety_codes.dart` |
+| AP-5 | 🆕 `LeaseHandoverResultCodes`(3 · `lease_handover_result`) | `labels/supabase_codes.dart` |
+| AP-6 | 🆕 `LeaseHandoverRpcNames` · `LeaseHandoverRpcParams` | `schema/supabase_rpc.dart` · `device_retire` · `p_ticket_nonce_hash` · `p_ticket_ttl_minutes` · `p_ticket_nonce` |
+| AP-7 | 🆕 `DecisionReasonCodes.x1D03Confirmed` · `x1EmergencyDeclared` | `labels/advice_codes.dart` · `decision_log.kind='SAFETY'` 사유 |
+| AP-8 | 🆕 SQL 열 `operator_lease.ticket_hash` · `ticket_expires_at` | `ddl/batch_d_supabase.sql` · 넘김 티켓 |
+| AP-9 | 🆕 `FixturePaths.m5SelfAuditResolveOpen` · `m5SelfAuditResolveHeldBlocked` · `m5SelfAuditResolveClear` · `m5HeldReviewResults` · `m6SelfReportCash2` | `fixtures/` 신설 5 |
+| AP-10 | 🆕 운영 설정 키 이름 `operations.self_report_cash_tolerance_krw`(계약 상수 0 · SPEC 02 §4 등재 = 엔진 미결 227 · 값 = 발주자 수치 대기) | 01 §46 K323 |

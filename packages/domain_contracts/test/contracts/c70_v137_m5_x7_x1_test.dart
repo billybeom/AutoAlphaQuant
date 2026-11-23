@@ -386,7 +386,8 @@ void main() {
         r'kind\s+TEXT\s+NOT NULL CHECK \(kind IN\s*\(([^)]*)\)\)',
       ).firstMatch(a);
       expect(m, isNotNull);
-      final Set<String> kinds = RegExp(r"'([A-Z_]+)'")
+      // 숫자 낀 글자(`X1_…`)도 잡는다 — 변이 M18(첫 판 정규식이 놓쳤다).
+      final Set<String> kinds = RegExp(r"'([A-Z0-9_]+)'")
           .allMatches(m!.group(1)!)
           .map((RegExpMatch e) => e.group(1)!)
           .toSet();
