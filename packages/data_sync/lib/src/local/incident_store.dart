@@ -2,6 +2,7 @@
 //
 // 🔴 postmortem = 한 번만(덮지 않는다) · SEV2 · SEV3 = 같은 트랜잭션에서 건을 닫는다 · SEV1(STOPPED) = 결정이 닫는다(E13d2).
 // 🔴 같은 command_id 재전달 = 처음 결과 그대로(command_inbox 멱등).
+// 🆕 E11q-d2 — 열린 사건 읽기(`D-01` 장애 배너 원천 · 06 M4-12 ①) · 지켜보는 표.
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' show Clock;
@@ -51,6 +52,27 @@ class OverduePostmortem {
   /// 기한.
   final DateTime dueAtUtc;
 }
+
+/// 🆕 E11q-d2 — `D-01` 장애 배너가 지켜보는 표(같은 연결의 `db.updates` · 건이 열리고 닫히는 곳 하나).
+const Set<String> kIncidentWatchedTables = <String>{'incidents'};
+
+/// 🆕 E11q-d2 — 열린 사건(`resolved_at` 빈칸 · 배너 원천 · 차례 = 엔진 `incidentBannerVmOf` 몫 — 여기선 id 차례).
+List<OpenIncident> openIncidentsOf(Database db) => <OpenIncident>[
+  for (final Row r in db.select(
+    'SELECT incident_id, occurred_at, severity, category, due_at FROM incidents '
+    'WHERE resolved_at IS NULL ORDER BY incident_id',
+  ))
+    OpenIncident(
+      incidentId: r['incident_id'] as String,
+      severity: r['severity'] as String,
+      category: r['category'] as String,
+      occurredAtUtc: DateTime.parse(r['occurred_at'] as String).toUtc(),
+      dueAtUtc: switch (r['due_at']) {
+        final String due => DateTime.parse(due).toUtc(),
+        _ => null,
+      },
+    ),
+];
 
 /// 안전 사건 저장(R63).
 class SqliteIncidentStore {
