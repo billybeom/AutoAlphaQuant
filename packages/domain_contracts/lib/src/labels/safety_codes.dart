@@ -327,3 +327,25 @@ abstract final class ReconClearResultCodes {
     journalMissing,
   };
 }
+
+/// 🆕 v1.37(01 §46 · K319 · 01 §8 미결 224 ⓑ) — `M5-13` 보관 명령 일괄 확정 거부(도메인 `held_review_result` · 🔵 **엔진 예고** —
+/// 생산 = 01 §8 미결 226). 확정 = 엔진 완성 `SafetyActionCall`(`heldCommandsConfirm` · `{review_id}`)을 그대로 넘긴 것만 받는다.
+/// 공용 `BIOMETRIC_UNAVAILABLE`(`SettingsResultCodes`)은 따로 — 다시 적지 않는다.
+/// 🔴 버림(DISCARD) 코드 0 — 보관 명령은 사람이 낸 사실이라 버리지 않는다(01 §10-8) · 확정 뒤 판정 = 보통 소비 규칙
+///    (`staleContext` · 접수증 거부 사전 그대로).
+abstract final class HeldReviewResultCodes {
+  /// `review_id` 가 지금 보관 묶음과 다르다(그 사이 새 보관 · 이미 확정) — 화면을 다시 읽고 다시 누른다.
+  static const String stale = 'HELD_REVIEW_STALE';
+
+  /// `LEDGER_INTEGRITY` 가 아직 서 있다(무결성 점검이 끝나야 확정 — B18).
+  static const String integrityActive = 'HELD_REVIEW_INTEGRITY_ACTIVE';
+
+  /// 인자가 `{review_id}` 꼴이 아니다(모르는 키 · 열거형 밖 자유 서술 — 06 M5-13 검증 게이트).
+  static const String argsInvalid = 'HELD_REVIEW_ARGS_INVALID';
+
+  static const Set<String> values = <String>{
+    stale,
+    integrityActive,
+    argsInvalid,
+  };
+}

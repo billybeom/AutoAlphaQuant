@@ -140,3 +140,25 @@ abstract final class LeaseRpcResultCodes {
     recoveryCodeInvalid,
   };
 }
+
+/// 🆕 v1.37(01 §46 · K324 · K325 · 01 §8 미결 218 ⓕ) — X1 계획 이전 리스 넘김 거부(도메인 `lease_handover_result` · 🔵 **엔진 예고** —
+/// SQL 본문 · 클라이언트 = 01 §8 미결 228). `device_retire` · `lease_claim`(티켓 논스) 이 돌려준다.
+/// 🔴 [LeaseRpcResultCodes] 와 따로 둔다 — 그 사전 5 = 지금 SQL(E11k-e2) 이 쓰는 글자 전부라는 data_sync 부트스트랩 대조 시험이
+///    서 있다(K291 결 · 엔진이 SQL 을 지을 때 두 사전 합집합으로 시험을 넓힌다). 공용 거부(`LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE`)는
+///    [LeaseRpcResultCodes] 그대로 — 다시 적지 않는다.
+abstract final class LeaseHandoverResultCodes {
+  /// 티켓이 있어야 한다(`device_retire` 에 논스 해시 없음 · 넘김 대기 중 `lease_claim` 에 논스 없음).
+  static const String ticketRequired = 'LEASE_TICKET_REQUIRED';
+
+  /// 논스가 대기 티켓 해시와 맞지 않는다.
+  static const String ticketInvalid = 'LEASE_TICKET_INVALID';
+
+  /// 대기 티켓이 만료됐다(서버 `now()` 기준) — 옛 폰이 `device_retire` 를 다시 불러 티켓을 바꾸거나(재발급) 비상 경로.
+  static const String ticketExpired = 'LEASE_TICKET_EXPIRED';
+
+  static const Set<String> values = <String>{
+    ticketRequired,
+    ticketInvalid,
+    ticketExpired,
+  };
+}

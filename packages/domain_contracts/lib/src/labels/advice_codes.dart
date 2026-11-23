@@ -217,7 +217,16 @@ abstract final class DecisionReasonCodes {
   /// 🆕 v1.22 — 위저드 5단계 모의 기록 지움.
   static const String simLedgerDiscard = 'SIM_LEDGER_DISCARD';
 
-  /// 전량 12종(🆕 v1.22 +2).
+  /// 🆕 v1.37(01 §46 · K326 · 01 §8 미결 218 ⓖ · 13 §8 R244 넘김 (라)) — X1 계획 이전 `D-03` 오프라인 긴급정지 카드 확인
+  /// (옛 폰 · 이전 시작 전 · `decision_log.kind='SAFETY'` · 결정 id = `migration_run.decision_id` 와 같은 값 · 전략 `P0S` ·
+  /// 백업 체크섬 앞이라 새 폰으로 함께 넘어간다). 🔴 `decision_log.kind` 새 값 0(CHECK 9 그대로 · 스키마 0).
+  static const String x1D03Confirmed = 'X1_D03_CONFIRMED';
+
+  /// 🆕 v1.37(K326) — X1 비상 선언(새 폰 · `decision_log.kind='SAFETY'` · 결정 id = 회수 행 `decision_id`(`X1EMG-<명령 id>` ·
+  /// R244 W6) · 복원 전엔 live 원장이 없으니 복원 뒤 그 원장에 같은 id 로 1행 — R244 W2 sim `command_inbox` 기록이 원천).
+  static const String x1EmergencyDeclared = 'X1_EMERGENCY_DECLARED';
+
+  /// 전량 14종(🆕 v1.22 +2 · 🆕 v1.37 +2).
   static const Set<String> values = <String>{
     openingBalance,
     simOpeningBalance,
@@ -231,6 +240,8 @@ abstract final class DecisionReasonCodes {
     livePromotion,
     simLedgerKeep,
     simLedgerDiscard,
+    x1D03Confirmed,
+    x1EmergencyDeclared,
   };
 }
 

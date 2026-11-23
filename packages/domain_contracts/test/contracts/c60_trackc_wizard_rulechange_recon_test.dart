@@ -731,6 +731,8 @@ void main() {
         'x1EmergencyStart',
         'x1ReissueRecord',
         'x1RecoveryStep',
+        // 🆕 v1.37(01 §46 · K319) — M5-13 보관 명령 일괄 확정(엔진 완성 · `{review_id}`).
+        'heldCommandsConfirm',
       });
       for (final String path in FixturePaths.all) {
         walkJson(jsonDecode(readFixture(path)), (

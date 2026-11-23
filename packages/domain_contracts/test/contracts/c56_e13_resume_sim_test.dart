@@ -1328,7 +1328,8 @@ void main() {
         'MONTHLY_PLAN',
         'CARRY_OVER',
       });
-      expect(DecisionReasonCodes.values, hasLength(12));
+      // 🔵 v1.37(01 §46 · K326) — 추가형 사전 · +2(X1) → 수 고정 = C-70 ⑩.
+      expect(DecisionReasonCodes.values.length, greaterThanOrEqualTo(12));
       expect(
         DecisionReasonCodes.values,
         containsAll(<String>['SIM_LEDGER_KEEP', 'SIM_LEDGER_DISCARD']),

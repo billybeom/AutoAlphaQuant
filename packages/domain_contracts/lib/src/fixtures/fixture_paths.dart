@@ -225,6 +225,22 @@ abstract final class FixturePaths {
   static const String m5SafetyActionResultsE13 =
       'm5/safety_action_results_e13.json';
 
+  /// 🆕 v1.37(01 §46 · K318 · K321) — `M5-13` 해소 게이트: 플래그 섬 · 카운터 2 · 열린 자가 보고 차이 2(수량 · 현금) · 실사 링크 1 ·
+  /// 보관 1 · 일괄 확정(`SelfAuditResolveVm`).
+  static const String m5SelfAuditResolveOpen =
+      'm5/self_audit_resolve_open.json';
+
+  /// 🆕 v1.37(K319) — `M5-13` 보관 2 · 무결성 점검 중(확정 null · 막힘 문장) · 차이 0.
+  static const String m5SelfAuditResolveHeldBlocked =
+      'm5/self_audit_resolve_held_blocked.json';
+
+  /// 🆕 v1.37 — `M5-13` 표식 없음 · 차이 0 · 보관 0(빈 문장들).
+  static const String m5SelfAuditResolveClear =
+      'm5/self_audit_resolve_clear.json';
+
+  /// 🆕 v1.37(K319) — 보관 명령 일괄 확정 결과 4행(`HELD_COMMANDS_CONFIRM` · 확정 1 · 거부 3 = `HeldReviewResultCodes`).
+  static const String m5HeldReviewResults = 'm5/held_review_results.json';
+
   // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
   static const String m6Advice12 = 'm6/advice_12.json';
   static const String m6AdviceBlocked = 'm6/advice_blocked.json';
@@ -479,6 +495,10 @@ abstract final class FixturePaths {
   /// 🆕 v1.12 — `SELF_REPORT_BALANCE` 접수증 5행(REQUESTED · EXECUTED · REJECTED `SELF_REPORT_OUTSIDE_SESSION` ·
   ///    REJECTED `INPUT_INVALID` · HELD_FOR_INTEGRITY) — `L-3` 위젯 테스트.
   static const String m6SelfReportReceipts5 = 'm6/self_report_receipts_5.json';
+
+  /// 🆕 v1.37(01 §46 · K323 · 미결 225) — `L-3` 현금 축: ① 현금 차이 1(`CANON_SELF_REPORT` · `CASH` · 관측) ② 차이 0 · 현금 미대조 문장
+  /// (허용 오차 값 없음 · `SelfReportSession` 2행).
+  static const String m6SelfReportCash2 = 'm6/self_report_cash_2.json';
 
   /// 🆕 v1.12(N12) — `a1_blocked` 의 안전 배너 입력(`journalSafetyStateProvider`) — `safety_states` rows[1] 꼴(ALERT) +
   ///    `active_flags` = `advice_blocked` 의 형제 키 블록 그대로(`ADVICE_LEDGER_UNVERIFIED`).
@@ -1250,6 +1270,10 @@ abstract final class FixturePaths {
     m5RuleChangeRequestResults,
     m5SafetyActionResults,
     m5SafetyActionResultsE13,
+    m5SelfAuditResolveOpen,
+    m5SelfAuditResolveHeldBlocked,
+    m5SelfAuditResolveClear,
+    m5HeldReviewResults,
     m6Advice12,
     m6AdviceBlocked,
     m6AdviceDetailOnhold,
@@ -1328,6 +1352,7 @@ abstract final class FixturePaths {
     m6SelfReportDiffResult,
     m6SelfReportSessionClosed,
     m6SelfReportReceipts5,
+    m6SelfReportCash2,
     m6SafetyAdviceBlocked,
     m6UnknownBoard2,
     m6UnknownBoardEmpty,

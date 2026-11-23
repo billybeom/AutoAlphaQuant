@@ -368,7 +368,12 @@ enum SafetyActionId {
 
   /// 🆕 v1.33(K273) — X1 새 폰 복구 단계(`run{run_id, step}` · 골든 · 체크리스트 · 생체 = 구현이 가른다 · 생체 = 구현 K11).
   @JsonValue('X1_RECOVERY_STEP')
-  x1RecoveryStep('X1_RECOVERY_STEP');
+  x1RecoveryStep('X1_RECOVERY_STEP'),
+
+  /// 🆕 v1.37(01 §46 · K319) — `M5-13` 보관 명령 일괄 확정(`run{review_id}` · 엔진 완성 `SelfAuditResolveVm.confirmHeld` ·
+  /// 거부 = `HeldReviewResultCodes` ∪ `BIOMETRIC_UNAVAILABLE` · 생체 = 구현 K11 · 버림 동작 0).
+  @JsonValue('HELD_COMMANDS_CONFIRM')
+  heldCommandsConfirm('HELD_COMMANDS_CONFIRM');
 
   const SafetyActionId(this.wire);
 
