@@ -1434,3 +1434,72 @@ bool hasUnackedP0(List<AlertItem> items) => items.any(
 );
 
 bool isAnyWidget(Widget w) => true;
+
+// ── R16e — H-01 hold banner fakes ──
+
+typedef HoldHomeInputs = ({
+  OpsDailySummary today,
+  AdviceInboxSummary advice,
+  SleeveAllocationVm alloc,
+  DiagnosticsVm diag,
+  LedgerTrustBadge trust,
+});
+
+HoldHomeInputs holdHomeInputs() => (
+  today: singleFixture(FixturePaths.m8OpsHomeNormal, OpsDailySummary.fromJson),
+  advice: extraFixture(
+    FixturePaths.m8OpsHomeAdviceZero,
+    'advice_summary',
+    AdviceInboxSummary.fromJson,
+  ).copyWith(hasSuppressedNotice: false),
+  alloc: singleFixture(
+    FixturePaths.m6AllocationInBand,
+    SleeveAllocationVm.fromJson,
+  ),
+  diag: singleFixture(FixturePaths.m8ReconBoardOk, DiagnosticsVm.fromJson),
+  trust: singleFixture(
+    FixturePaths.m7LedgerTrustSelfAuditDue,
+    LedgerTrustBadge.fromJson,
+  ),
+);
+
+SafetyState holdRow(int index) => SafetyState.fromJson(
+  decodeEnvelope(fixtureText(FixturePaths.safetyStatesHolds)).rows[index],
+);
+
+SafetyState holdPair(SafetyState a, SafetyState b) => a.copyWith(
+  holds: <String>[...a.holds, ...b.holds],
+  holdLabels: <String>[...a.holdLabels, ...b.holdLabels],
+);
+
+List<Override> holdHomeOverrides({
+  required HoldHomeInputs inputs,
+  required Stream<SafetyState> Function(int call) safety,
+  required RecordingLinkOpener opener,
+}) => homeOverrides(
+  safety: FakeShellSafetyRepository(state: safety),
+  today: FakeShellOpsTodayRepository(today: (int call) => one(inputs.today)),
+  advice: FakeShellAdviceRepository(summary: (int call) => one(inputs.advice)),
+  alloc: FakeShellHoldingsRepository(
+    allocation: (int call) => one(inputs.alloc),
+  ),
+  diag: FakeShellOpsStatusRepository(
+    diagnostics: (int call) => one(inputs.diag),
+  ),
+  trust: FakeShellLedgerTrustRepository(grade: (int call) => one(inputs.trust)),
+  opener: opener,
+  clock: FixedClock(kGoldenNowUtc),
+);
+
+Set<String> holdHomeAllowed(HoldHomeInputs inputs, SafetyState safety) =>
+    <String>{
+      ...homeAllowed(
+        today: inputs.today,
+        safety: safety,
+        advice: inputs.advice,
+        alloc: inputs.alloc,
+        diag: inputs.diag,
+        trust: inputs.trust,
+      ),
+      ...safety.holdLabels,
+    };
