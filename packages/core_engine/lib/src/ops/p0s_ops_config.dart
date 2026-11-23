@@ -169,47 +169,7 @@ class P0sOpsConfig {
       for (final MapEntry<String, InstrumentKind> e in instruments.entries)
         e.key: e.value.code,
     },
-    'limits': <String, Object?>{
-      'max_notional_pct': limits.maxNotionalPct,
-      'risk_budget_pct': limits.riskBudgetPct,
-      'satellite_max_positions': limits.satelliteMaxPositions,
-      'satellite_max_per_sector': limits.satelliteMaxPerSector,
-      'max_risk_exposure': limits.maxRiskExposure,
-      'max_leverage': limits.maxLeverage,
-      'max_positions': limits.maxPositions,
-      'max_orders_per_day': limits.maxOrdersPerDay,
-      'max_order_value_krw': limits.maxOrderValueKrw,
-      'max_daily_loss_pct': limits.maxDailyLossPct,
-      'order_type_whitelist': limits.orderTypeWhitelist.toList()..sort(),
-    },
-    'costs': <String, Object?>{
-      'commission_rate': fillCosts.commissionRate,
-      'sell_tax_rate': fillCosts.sellTaxRate,
-      'buy_cost_rate': buyCostRate,
-    },
-    'draft': <String, Object?>{'limit_offset_pct': kP0sLimitOffsetPct},
-    'month_end': _monthEndContent(monthEnd),
-    'seasonal_a': <String, Object?>{
-      'entry_month': seasonalA.entryMonth,
-      'exit_month': seasonalA.exitMonth,
-      'gate_score': seasonalA.gateScore,
-      'defer_max': seasonalA.deferMax,
-      'ramp_months': seasonalA.rampMonths,
-      'split_days': seasonalA.splitDays,
-    },
-    'breaker': <String, Object?>{
-      'alert_dd': breaker.alertDd,
-      'reduce_dd': breaker.reduceDd,
-      'halt_dd': breaker.haltDd,
-      'stop_dd': breaker.stopDd,
-      'alert_release_dd': breaker.alertReleaseDd,
-      'reduce_release_dd': breaker.reduceReleaseDd,
-      'halt_release_dd': breaker.haltReleaseDd,
-      'recover_hold_bars': breaker.recoverHoldBars,
-      'halt_release_bull_streak': breaker.haltReleaseBullStreak,
-      'stop_release_dd': breaker.stopReleaseDd,
-      'stop_release_bull_streak': breaker.stopReleaseBullStreak,
-    },
+    ..._ruleContent(limits, monthEnd, seasonalA, breaker),
   };
 
   /// 🔴 설정 지문(`config_hash` — 주문 · 결정 기록에 붙는다 · SAF-405 승인 단위).
@@ -225,6 +185,68 @@ String p0sRegimeConfigHash() => configFingerprint(<String, Object?>{
   'spec': kP0sConfigSpecVersion,
   'regime_pipeline': 'computeRegime',
 });
+
+/// 🆕 E11q-d1 — 규칙 지문(설계 13 §8 · 04 §8 핸드북 정합 게이트 · 01 §26 K14) = [P0sOpsConfig.content] 에서 사람 값
+/// (계좌 · 슬리브 A 종목 · 종목 구분) · SPEC 판을 뺀 규칙 내용의 지문. 🔴 사람 값 · 원장이 없어도 셈한다(규칙 = 코드 상수) ·
+/// SPEC 판만 오르고 규칙이 그대로면 같다(경보 피로 0) · [P0sOpsConfig.configHash] 는 그대로(같은 칸 · 같은 값).
+String p0sRuleFingerprint() => configFingerprint(
+  _ruleContent(
+    p0sLimitConfig(),
+    p0sMonthEndConfig(),
+    const SeasonalAConfig(),
+    p0sBreakerConfig(),
+  ),
+);
+
+/// 규칙 내용(한도 · 비용 · 초안 · 월말 · 계절 A · 브레이커) — [P0sOpsConfig.content] · [p0sRuleFingerprint] 한 곳.
+Map<String, Object?> _ruleContent(
+  LimitConfig limits,
+  MonthEndConfig monthEnd,
+  SeasonalAConfig seasonalA,
+  BreakerConfig breaker,
+) => <String, Object?>{
+  'limits': <String, Object?>{
+    'max_notional_pct': limits.maxNotionalPct,
+    'risk_budget_pct': limits.riskBudgetPct,
+    'satellite_max_positions': limits.satelliteMaxPositions,
+    'satellite_max_per_sector': limits.satelliteMaxPerSector,
+    'max_risk_exposure': limits.maxRiskExposure,
+    'max_leverage': limits.maxLeverage,
+    'max_positions': limits.maxPositions,
+    'max_orders_per_day': limits.maxOrdersPerDay,
+    'max_order_value_krw': limits.maxOrderValueKrw,
+    'max_daily_loss_pct': limits.maxDailyLossPct,
+    'order_type_whitelist': limits.orderTypeWhitelist.toList()..sort(),
+  },
+  'costs': <String, Object?>{
+    'commission_rate': kP0sFillCostRates.commissionRate,
+    'sell_tax_rate': kP0sFillCostRates.sellTaxRate,
+    'buy_cost_rate': kP0sBuyCostRate,
+  },
+  'draft': <String, Object?>{'limit_offset_pct': kP0sLimitOffsetPct},
+  'month_end': _monthEndContent(monthEnd),
+  'seasonal_a': <String, Object?>{
+    'entry_month': seasonalA.entryMonth,
+    'exit_month': seasonalA.exitMonth,
+    'gate_score': seasonalA.gateScore,
+    'defer_max': seasonalA.deferMax,
+    'ramp_months': seasonalA.rampMonths,
+    'split_days': seasonalA.splitDays,
+  },
+  'breaker': <String, Object?>{
+    'alert_dd': breaker.alertDd,
+    'reduce_dd': breaker.reduceDd,
+    'halt_dd': breaker.haltDd,
+    'stop_dd': breaker.stopDd,
+    'alert_release_dd': breaker.alertReleaseDd,
+    'reduce_release_dd': breaker.reduceReleaseDd,
+    'halt_release_dd': breaker.haltReleaseDd,
+    'recover_hold_bars': breaker.recoverHoldBars,
+    'halt_release_bull_streak': breaker.haltReleaseBullStreak,
+    'stop_release_dd': breaker.stopReleaseDd,
+    'stop_release_bull_streak': breaker.stopReleaseBullStreak,
+  },
+};
 
 Map<String, Object?> _monthEndContent(MonthEndConfig m) => <String, Object?>{
   'alloc_b': m.allocB,

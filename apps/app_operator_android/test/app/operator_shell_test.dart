@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:app_operator_android/app/operator_documents.dart';
 import 'package:app_operator_android/app/operator_journal.dart';
 import 'package:app_operator_android/app/operator_ops_status.dart';
 import 'package:app_operator_android/app/operator_ops_summary.dart';
@@ -32,6 +33,8 @@ import 'package:core_engine/core_engine.dart'
         ContributionTexts,
         DisclosureGateTexts,
         DrawdownContextTexts,
+        EmergencyCardTexts,
+        HandbookTexts,
         PerfSeriesTexts,
         BlockBoardTexts,
         DeviceRiskFacts,
@@ -44,6 +47,7 @@ import 'package:core_engine/core_engine.dart'
         P0sHumanInputs,
         ReconClearTexts,
         RepairWizardTexts,
+        RunbookTexts,
         TrustedClock,
         alertInboxOf,
         contributionDefaultRange;
@@ -65,6 +69,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         BlockFlag,
         DecisionReasonCodes,
         FlagIds,
+        HandbookRepository,
         LedgerTrustRepository,
         OnboardingSlotIds,
         OperatingMode,
@@ -2375,6 +2380,94 @@ void main() {
     container.dispose();
     disposed = true;
   });
+
+  test('🆕 E11q-d1 — M8 문서 창구 주입(🔴 M4-12 ① 핸드북 override 비-null · ② 런북) = 한 인스턴스 · 레지스트리 넷', () {
+    final HandbookRepository? hb = container.read(
+      shellHandbookRepositoryProvider,
+    );
+    expect(hb, isNotNull);
+    expect(hb, isA<OperatorHandbookRepository>());
+    expect(identical(hb, container.read(operatorHandbookProvider)), true);
+    expect(
+      identical(
+        container.read(shellRunbookRepositoryProvider),
+        container.read(operatorRunbookProvider),
+      ),
+      true,
+    );
+    for (final String r in <String>[
+      AppRoutes.opsRunbooks,
+      AppRoutes.opsRunbook,
+      AppRoutes.opsEmergencyCard,
+      AppRoutes.handbookIndex,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+    }
+    // 인쇄 = 이 폰 빌드 몫 없음 — 카드 VM 이 슬롯 이름을 비우고 슬롯 빌더도 자리 부재(둘이 어긋나지 않는다).
+    expect(kOperatorEmergencyCardPrintable, isFalse);
+  });
+
+  testWidgets(
+    '🆕 E11q-d1 — M8 문서 다섯 길(런북 목록 → 상세 · 준비 중 · 긴급 카드 · 핸드북 목차 → 쪽 · 없는 쪽) = 조립 셸 · 크래시 없음',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      Future<void> settle() async {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 30)),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      }
+
+      // D-02 목록(표본 여섯 행) → 행 탭 = 엔진 링크 그대로 상세.
+      await open(tester, AppRoutes.opsRunbooks);
+      await settle();
+      expect(find.byType(RunbookList), findsOneWidget);
+      expect(find.byKey(const Key('d02-list-row-5')), findsOneWidget);
+      await tester.tap(find.text('운영 폰을 잃어버렸거나 고장 났을 때'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle();
+      expect(find.byType(RunbookDetail), findsOneWidget);
+      expect(find.text('증권사 앱키를 새 폰의 키 금고에 다시 넣습니다.'), findsOneWidget);
+      expect(find.byKey(const Key('d02-missing')), findsNothing);
+      // 원고 없는 런북 = 엔진 «준비 중» 문장(단계를 지어내지 않는다).
+      await open(tester, 'aaq://ops/runbooks/secret-leak');
+      await settle();
+      expect(find.text(RunbookTexts.preparingLabel), findsOneWidget);
+      // D-03 = 인쇄 자리 부재(이 폰 빌드).
+      await open(tester, AppRoutes.opsEmergencyCard);
+      await settle();
+      expect(find.byType(EmergencyStopCard), findsOneWidget);
+      expect(find.text(EmergencyCardTexts.keepOnPaperNotice), findsOneWidget);
+      expect(find.byKey(const Key('d03-print')), findsNothing);
+      // B-01 목차 → 슬리브 B 탭 = handbook 쪽(별칭 · 셸 라우터가 직접).
+      await open(tester, AppRoutes.handbookIndex);
+      await settle();
+      expect(find.byType(HandbookContents), findsOneWidget);
+      expect(find.text('① 전략 구조'), findsOneWidget);
+      await tester.tap(find.text('슬리브 B — 해외 지수·금 ETF'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle();
+      expect(find.byType(HandbookPageView), findsOneWidget);
+      expect(
+        find.text('환헤지를 하지 않습니다. 원화 환산 결과에는 환율이 섞여 있습니다.'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('b02-asof')), findsNothing);
+      // 엔진 사유 칩의 handbook 링크(보유 «월말 리밸런싱») = 원고 없는 앵커 → 엔진 문장(자리표시자 아님).
+      await open(tester, 'handbook://rebalance/monthly');
+      await settle();
+      expect(find.text(HandbookTexts.missingLabel), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
 
   testWidgets(
     '🔴 더보기 = S01 설정 홈(R134) · 원천 있는 카드 · 링크 = 등록된 화면만(키 → S02 · 운용 = 탭 부재)',

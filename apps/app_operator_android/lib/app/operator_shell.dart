@@ -29,8 +29,11 @@
 // 🆕 E11q-q5c(R226) — M7 S7-3 드로다운 맥락(같은 성과 창구 · 엔진 기본 구간) → S12 목차 «하락 구간 맥락» 행 · S7-2 링크가 열린다.
 // 🆕 E11q-q5c2(R228) — M7 S7-3b 슬리브 기여(라우트 인자 0 · 화면은 구간 필수 → 본문이 런타임 시계로 엔진 기본 구간
 //    `contributionDefaultRange`(이번 달 1일 ~ 오늘 · 한국)를 넘긴다 · 계약 무변경) → S7-2 «슬리브 기여 보기» 가 열린다.
-// 🔵 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
-//    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
+// 🆕 E11q-d1 — M8 문서 다섯 길: D-02 런북 목록 · 상세 · D-03 긴급 카드 · B-01 핸드북 목차 = 레지스트리 · B-02 `handbook://` 쪽 =
+//    셸 라우터가 직접(같은 창구) · 원천 = 엔진 원고 번들(원장 · 키 0 — 온보딩 전에도 열린다) · 🔴 M4-12 ① 핸드북 override 의무 = 지킴
+//    (비-null 단언 시험) · 긴급 카드 인쇄 = 이 폰에 인쇄 원천 없음 → 엔진이 슬롯 이름을 비운다(버튼 부재).
+// 🔵 장애 배너(D-01)는 원천(엔진 `incidents` · 읽기 모델)이 서는 조각에서 더한다(R104 나눔) — 🔴 M4-12 ① «장애 override 의무» =
+//    아직 못 지킨다(실물 저장소 없음 · R104 남김 · d6).
 
 import 'dart:async' show unawaited;
 
@@ -171,6 +174,7 @@ import 'operator_backup.dart';
 import 'operator_biometric.dart';
 import 'operator_block_board.dart';
 import 'operator_command_api.dart';
+import 'operator_documents.dart';
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_handover.dart';
 import 'operator_journal.dart';
@@ -430,6 +434,19 @@ final Provider<OperatorOpsSummaryRepository> operatorOpsSummaryProvider =
           OperatorOpsSummaryRepository(ref.watch(operatorRuntimeProvider)),
     );
 
+/// 🆕 E11q-d1 — M8 런북 · 긴급 카드(엔진 원고 번들 · 인쇄 = 이 폰 빌드 몫 없음).
+final Provider<OperatorRunbookRepository> operatorRunbookProvider =
+    Provider<OperatorRunbookRepository>(
+      (Ref ref) => const OperatorRunbookRepository(),
+    );
+
+/// 🆕 E11q-d1 — M8 핸드북(엔진 원고 번들 · 설정 지문 = 화면이 읽는 원장 · 뒤처짐 = 엔진 규칙 지문 판정).
+final Provider<OperatorHandbookRepository> operatorHandbookProvider =
+    Provider<OperatorHandbookRepository>(
+      (Ref ref) =>
+          OperatorHandbookRepository(ref.watch(operatorRuntimeProvider)),
+    );
+
 /// 🆕 R113 — 안전 상태(셸 · 일지 · 분석 = 한 인스턴스).
 final Provider<OperatorSafetyRepository> operatorSafetyProvider =
     Provider<OperatorSafetyRepository>(
@@ -540,7 +557,8 @@ ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
 
 /// 🆕 R182 — M8 운영 슬롯 빌더(01 §26 K19 · §34 K152) — 셸 킬스위치 자리(폰 홈 앱바 · 링크 화면 앱바) = `ui_safety`
 /// `KillSwitchSlot`(꺼짐 = 발동 버튼 · 켜짐 = 상태 칩 → M5-1) · 🔴 셸은 자리만(확인 대화 · 핸들러 감싸기 0 — 04 §3-2) ·
-/// 긴급정지 카드 인쇄(`emergencyCardPrint`) = 이 폰에 인쇄 원천 없음 → 자리 부재(크기 0 · 키 `m8-slot-absent`).
+/// 긴급정지 카드 인쇄(`emergencyCardPrint`) = 이 폰에 인쇄 원천 없음 → 자리 부재(크기 0 · 키 `m8-slot-absent`) ·
+/// 🆕 E11q-d1 — 카드 VM 도 슬롯 이름을 비운다([kOperatorEmergencyCardPrintable] = false → 이 자리를 부르지 않는다).
 Widget operatorOpsSlot(String slotId) {
   if (slotId == OpsSlotIds.killSwitch) return const KillSwitchSlot();
   return const SizedBox.shrink(key: Key('m8-slot-absent'));
@@ -735,6 +753,18 @@ Widget _home(BuildContext _) => const OpsHome();
 
 Widget _ledgerDiffs(Map<String, String> _) => const LedgerDiffs();
 
+Widget _runbooks(Map<String, String> _) => const RunbookList();
+
+/// 런북 상세(id = 받은 인자 그대로 · 모르는 id = 엔진 문장).
+Widget _runbook(Map<String, String> p) {
+  final String id = p['runbookId'] ?? '';
+  return RunbookDetail(key: ValueKey<String>(id), runbookId: id);
+}
+
+Widget _emergencyCard(Map<String, String> _) => const EmergencyStopCard();
+
+Widget _handbookIndex(Map<String, String> _) => const HandbookContents();
+
 Widget _ledgerRepairs(Map<String, String> _) => const LedgerRepairs();
 
 Widget _ledgerSelfReport(Map<String, String> p) {
@@ -847,6 +877,11 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.opsRhythm: _opsRhythm,
   // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).
   AppRoutes.opsDeviceRisk: _deviceRisk,
+  // 🆕 E11q-d1 — M8 D-02 런북 목록 · 상세 · D-03 긴급 카드 · B-01 핸드북 목차(원고 번들 · `handbook://` 쪽 = 셸 라우터가 직접).
+  AppRoutes.opsRunbooks: _runbooks,
+  AppRoutes.opsRunbook: _runbook,
+  AppRoutes.opsEmergencyCard: _emergencyCard,
+  AppRoutes.handbookIndex: _handbookIndex,
 }, home: _home);
 
 /// 🔴 operator 셸 주입 — 실물 있는 칸.
@@ -931,6 +966,13 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   // 🆕 R182 — M8 운영 슬롯 빌더(셸 킬스위치 자리 = `ui_safety` 발동 버튼 · 켜짐 칩 — 위 R178 주입을 그대로 쓴다).
   shellOpsSlotBuilderProvider.overrideWithValue(operatorOpsSlot),
+  // 🆕 E11q-d1 — M8 런북 · 긴급 카드 · 핸드북(🔴 M4-12 ① 핸드북 override 의무 · ② 런북 주입 — 엔진 원고 번들).
+  shellRunbookRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorRunbookProvider),
+  ),
+  shellHandbookRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorHandbookProvider),
+  ),
   // 🆕 R115 — 온보딩 슬롯 빌더(본문 = 온보딩 원천이 서는 조각에서 등록 · 빌더는 미리).
   shellOnboardingSlotBuilderProvider.overrideWithValue(
     operatorSlotBuilder(runtime),
