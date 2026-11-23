@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:app_operator_android/app/operator_documents.dart';
+import 'package:app_operator_android/app/operator_incident.dart';
 import 'package:app_operator_android/app/operator_journal.dart';
 import 'package:app_operator_android/app/operator_ops_status.dart';
 import 'package:app_operator_android/app/operator_ops_summary.dart';
@@ -78,6 +79,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         DecisionReasonCodes,
         FlagIds,
         HandbookRepository,
+        IncidentRepository,
         LedgerTrustRepository,
         OnboardingSlotIds,
         OperatingMode,
@@ -2643,6 +2645,79 @@ void main() {
     // 인쇄 = 이 폰 빌드 몫 없음 — 카드 VM 이 슬롯 이름을 비우고 슬롯 빌더도 자리 부재(둘이 어긋나지 않는다).
     expect(kOperatorEmergencyCardPrintable, isFalse);
   });
+
+  test('🆕 E11q-d2 — M8 D-01 장애 배너 주입(🔴 M4-12 ① 장애 override 비-null) = 한 인스턴스 · 조치 목적지 본문 있음', () {
+    final IncidentRepository? inc = container.read(
+      shellIncidentRepositoryProvider,
+    );
+    expect(inc, isNotNull);
+    expect(inc, isA<OperatorIncidentRepository>());
+    expect(identical(inc, container.read(operatorIncidentProvider)), true);
+    // 번들의 조치 목적지(토큰 만료 · 주문 거부) = 레지스트리에 본문 있음 → 그 종류가 서는 날 버튼이 저절로 선다.
+    // 🔴 창구의 본문 판정 = 셸 레지스트리 그대로(없는 라우트 = 아니다).
+    final OperatorIncidentRepository repo = inc! as OperatorIncidentRepository;
+    for (final String r in <String>[
+      AppRoutes.settingsCredentials,
+      AppRoutes.alertsInbox,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+      expect(repo.hasBody(r), true, reason: r);
+    }
+    expect(repo.hasBody('aaq://no/such/route'), false);
+  });
+
+  testWidgets(
+    '🆕 E11q-d2 — 장애 배너 = 조립 셸 탭 위 · 열린 사건이면 서고(가장 무거운 건 하나) 닫히면 사라진다 · 닫기 0 · 오류 0',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      // 원장 쓰기 → 갱신 훅(비동기 전달) → 0초 타이머(한 트랜잭션 묶음) → 셸 흐름 — 가짜 시간을 흘려 보낸다.
+      Future<void> settle() async {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 30)),
+        );
+        for (int i = 0; i < 4; i++) {
+          await tester.pump(const Duration(milliseconds: 10));
+        }
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const Key('d01-fail')), findsNothing);
+      }
+
+      await settle();
+      expect(find.byKey(const Key('d01-banner')), findsNothing);
+      // STOPPED 진입 SEV1(엔진이 쓰는 꼴 그대로) + 대사 해제 SEV2 — 배너는 하나(SEV1).
+      for (final (String id, String sev, String cat)
+          in <(String, String, String)>[
+            ('SEV1-BREAKER_STOPPED-20261123', 'SEV1', 'BREAKER_STOPPED'),
+            ('SEV2-MANUAL_ORDER-d1', 'SEV2', 'MANUAL_ORDER'),
+          ]) {
+        files.sim.execute(
+          'INSERT INTO incidents(incident_id, occurred_at, severity, category, description, resolved_at, postmortem, due_at) '
+          "VALUES (?, ?, ?, ?, '설명', NULL, NULL, NULL)",
+          <Object?>[id, clock.nowUtc().toIso8601String(), sev, cat],
+        );
+      }
+      await settle();
+      expect(find.byKey(const Key('d01-banner')), findsOneWidget);
+      expect(find.text('확인이 필요한 일이 있습니다'), findsOneWidget);
+      expect(find.text('자세한 내용은 운영 화면에서 확인하세요.'), findsOneWidget);
+      expect(find.byKey(const Key('d01-action')), findsNothing);
+      // 다른 탭에서도 같은 자리.
+      await open(tester, AppRoutes.alertsInbox);
+      await settle();
+      expect(find.byKey(const Key('d01-banner')), findsOneWidget);
+      // 원인 해소 = 건이 닫히면 사라진다(둘 다).
+      files.sim.execute(
+        "UPDATE incidents SET resolved_at = ?, postmortem = '정리'",
+        <Object?>[clock.nowUtc().toIso8601String()],
+      );
+      await settle();
+      expect(find.byKey(const Key('d01-banner')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
 
   testWidgets(
     '🆕 E11q-d1 — M8 문서 다섯 길(런북 목록 → 상세 · 🆕 d1b 유출 런북 원고 · 긴급 카드 · 핸드북 목차 → 쪽 · 없는 쪽) = 조립 셸 · 크래시 없음',

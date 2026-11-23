@@ -2,9 +2,10 @@
 //
 // 🔵 잡는 것: ① 거부 = 명령 기록만(없음 · 빈칸 · 이미) ② 통과 = 한 트랜잭션: 글(앞뒤 공백 뺌) + SEV2 · SEV3 닫음 + 명령 ·
 //    SEV1 = 열린 채(STOPPED 결정이 닫는다) · 이미 닫힌 건의 닫힌 시각은 그대로 ③ 🔴 한 번만 ④ 명령 재전달 = 처음 결과
-//    ⑤ 한 트랜잭션 ⑥ 기한 넘김 = 빈칸 ∧ 기한 < 지금 · 기한 오름차순.
+//    ⑤ 한 트랜잭션 ⑥ 기한 넘김 = 빈칸 ∧ 기한 < 지금 · 기한 오름차순 ⑦ 🆕 E11q-d2 열린 사건(`D-01` 배너 원천).
 import 'dart:io';
 
+import 'package:core_engine/core_engine.dart' show OpenIncident;
 import 'package:data_sync/data_sync.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
@@ -202,5 +203,56 @@ void main() {
       store.overduePostmortems().map((OverduePostmortem x) => x.incidentId),
       <String>['late-1', 'late-2', 'now', 'future'],
     );
+  });
+
+  test(
+    '🆕 E11q-d2 — 열린 사건(배너 원천) = 닫히지 않은 건만 · 칸 그대로 · 기한 없음 = null · 지켜보는 표',
+    () {
+      incident('S2', 'SEV2', due: '2026-11-08T00:00:00.000Z');
+      incident('S1', 'SEV1', due: '2026-11-04T00:00:00.000Z');
+      incident('closed', 'SEV2', resolved: '2026-11-02T00:00:00.000Z');
+      incident('S3', 'SEV3');
+      expect(
+        openIncidentsOf(db).map(
+          (OpenIncident x) => (
+            x.incidentId,
+            x.severity,
+            x.category,
+            x.occurredAtUtc,
+            x.dueAtUtc,
+          ),
+        ),
+        <(String, String, String, DateTime, DateTime?)>[
+          (
+            'S1',
+            'SEV1',
+            'C',
+            DateTime.utc(2026, 11),
+            DateTime.utc(2026, 11, 4),
+          ),
+          (
+            'S2',
+            'SEV2',
+            'C',
+            DateTime.utc(2026, 11),
+            DateTime.utc(2026, 11, 8),
+          ),
+          ('S3', 'SEV3', 'C', DateTime.utc(2026, 11), null),
+        ],
+      );
+      expect(openIncidentsOf(db).first.occurredAtUtc.isUtc, isTrue);
+      // 🔴 원인 해소 = 배너가 사라진다 — SEV2 · SEV3 = postmortem 이 닫는다 · SEV1 = 열린 채(STOPPED 결정이 닫는다).
+      write('S2', '원인 정리', cmd: 'p2');
+      write('S1', '원인 정리', cmd: 'p1');
+      expect(
+        openIncidentsOf(db).map((OpenIncident x) => x.incidentId),
+        <String>['S1', 'S3'],
+      );
+      expect(kIncidentWatchedTables, <String>{'incidents'});
+    },
+  );
+
+  test('🆕 E11q-d2 — 빈 원장 = 열린 사건 0', () {
+    expect(openIncidentsOf(db), isEmpty);
   });
 }
