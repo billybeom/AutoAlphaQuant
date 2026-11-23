@@ -52,6 +52,46 @@ class ShellStaleBanner extends StatelessWidget {
   }
 }
 
+// ── Hold banner ────────────────────────────────────────────────────────────────
+
+/// hold 줄 — 엔진 문장(SafetyState.holdLabels)을 받은 차례대로 · 줄마다 같은 꼴(01 §44 K295).
+class ShellHoldBanner extends StatelessWidget {
+  const ShellHoldBanner({super.key, required this.labels});
+
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Card(
+      color: cs.tertiaryContainer,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            for (final (int i, String l) in labels.indexed)
+              Row(
+                key: ValueKey<String>('hold-line-$i'),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Icon(
+                    Icons.pause_circle_outline,
+                    color: cs.onTertiaryContainer,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(l)),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ── Skeleton ───────────────────────────────────────────────────────────────────
 
 /// 로딩 스켈레톤 — 스피너 없음.
