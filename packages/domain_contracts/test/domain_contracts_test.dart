@@ -76,7 +76,9 @@ void main() {
     //    C-64 ③ · ⑨ · 픽스처 390(버전 줄만) · 다음 판 = 1.35.0.
     // 🔵 '1.35.0'(쌓인 계약 숙제 창 · 01 §44) — 217 꼬리 4 · hold 짝 문장 · J-3 키 = 저널 id · 거부 3 · 저널 kind 8 · 인용 규칙 3 ·
     //    픽스처 393(신설 3 · 개정 1) · C-68 · 다음 판 = 1.36.0(D15 읽기 모델 열 표).
-    expect(contractVersion, '1.35.0');
+    // 🔵 '1.36.0'(D15 읽기 모델 열 표 · 01 §45) — `ReadModelTables` 22 · 열 = 결속 DTO toJson 키 · 목록 봉투 표 · RLS 본문 ·
+    //    픽스처 393(버전 줄만) · C-69 · 다음 판 = 1.37.0(M5-13 해소 게이트 · L-3 현금 축 — 미결 224 · 225).
+    expect(contractVersion, '1.36.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.
