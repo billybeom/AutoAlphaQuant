@@ -136,6 +136,13 @@ class _OpsHomeState extends ConsumerState<OpsHome> with WidgetsBindingObserver {
         ShellAsOfHeader(key: const Key('h01-asof'), asOf: today.asOf),
         if (stale) ShellStaleBanner(asOf: today.asOf),
 
+        // hold 배너 — 블록 아님(배너 층 · 01 §44 K295)
+        if (safety != null && safety.holdLabels.isNotEmpty)
+          ShellHoldBanner(
+            key: const Key('h01-holds'),
+            labels: safety.holdLabels,
+          ),
+
         // 블록 1 — 안전 상태
         if (safetyAv.hasError && safety == null)
           _BlockRetry(
