@@ -5,13 +5,18 @@
 // 🔴 옛 폰 진행 = [kX1PlanOpenThrough](3단계 «대사 0»)까지만 연다 — 4단계(체크섬 백업)가 끝나면 그만두기 길이 사라지고(저널 R117 B4 ·
 //    DEMOTED 앞 FAILED 만) 5단계 DEMOTED = 되돌릴 수 없는 점인데 그 뒤 길(새 폰이 백업 바이트를 받는 곳 D9 · RETIRED 서명 E11k ·
 //    티켓 논스 ↔ `lease_claim` 미결 218 ⓕ)이 아직 없다 → 4단계 행 = 막힘 문장 + 그만두기만.
-// 🔴 새 폰 = 복원 원천(D9) · 비상 펜싱 · 재발급 저장(E16t3c) · 새 복구 코드(E11k-e3) 전 = 막힘 문장 VM(시작 동작 · 슬롯 0).
+// 🔴 새 폰 받기 = 복원 원천(D9) 전 = 막힘 문장 VM(시작 동작 · 슬롯 0).
+// 🆕 E16t3c(R244) — 새 폰 비상 앞쪽이 열렸다: 시작 전 = 복구 코드 자리 + `x1EmergencyStart{}`(표본 `recovery_emergency_start`) ·
+//    시작 뒤(복원 전) = 펜싱 대기 카드(REVOKED 서버 시각 + 펜싱 설정 · 신뢰 시각) + 재발급 6행(표본 `recovery_emergency_fencing` ·
+//    시크릿 자리 = 남은 시크릿 항목 하나씩 · 같은 슬롯 이름이라 행이 둘이면 값이 어느 행 것인지 모른다) · 펜싱 통과 ∧ 재발급 끝 =
+//    복원 막힘 문장(새 폰이 백업 바이트를 받을 곳 D9 전). 이 폰에 live 원장이 있으면 시작 0(`X1_LIVE_EXISTS`).
 // 🔴 동작 = 엔진이 완성한 `SafetyActionCall`(args 의 `run_id` = 저널) · 잠김 · 끝 = 동작 · 슬롯 0.
 
 import 'package:domain_contracts/domain_contracts.dart';
 
 import '../ops/ledger_views.dart' show kstDateText, kstMinuteText;
 import 'backup_manifest.dart' show BackupManifest;
+import 'fencing.dart' show FencingConfig, FencingVerdict, fencingVerdictOf;
 import 'migration_gate.dart' show MigrationGateState, MigrationGateVerdict;
 import 'migration_plan.dart'
     show
@@ -27,6 +32,8 @@ import 'migration_plan.dart'
         planNextOf,
         planStepBlockCode;
 import 'recovery_steps.dart' show RecoveryStep;
+import 'reissue_checklist.dart' show ReissueChecklist, ReissueItem;
+import 'x1_emergency.dart' show X1EmergencyFacts;
 
 /// 🔴 옛 폰에서 지금 열린 마지막 단계(그 뒤 = 막힘 행 · 동작 = 그만두기만).
 ///
@@ -156,6 +163,9 @@ abstract final class X1ScreenTexts {
   /// 기준 글자.
   static String asOf(String minute) => '이전 기준 $minute';
 
+  /// 신뢰 시각 모름(거부 · 펜싱 줄).
+  static const String trustedUnknownLine = '믿을 수 있는 시각을 모릅니다 — 연결 뒤 다시 하십시오';
+
   // ── 새 폰 ──
   /// 계획 갈래.
   static const String planKind = '계획 이전';
@@ -173,9 +183,81 @@ abstract final class X1ScreenTexts {
   /// 비상 막힘 머리.
   static const String emergencyBlocked = '비상 복구는 아직 열리지 않았습니다';
 
-  /// 비상 막힘 고지.
+  /// 비상 막힘 고지(🆕 E16t3c — 시작 조립이 없을 때만 · 기기 id · Supabase 연결 원천 0).
   static const String emergencyBlockedNotice =
-      '옛 폰 권한 회수 · 새 복구 코드 · 키 재발급 기록을 이을 곳과 백업을 받아 올 길이 아직 없습니다';
+      '이 폰에는 비상 복구를 시작할 기기 id 나 Supabase 연결 조립이 없습니다';
+
+  // 🆕 E16t3c — 비상 앞쪽(표본 `recovery_emergency_start` · `recovery_emergency_fencing` 에서 «(합성)»만 뺀 것 + 막힘 사실 문장).
+  /// 비상 시작 전 머리.
+  static const String emergencyStart = '옛 폰을 잃어버렸을 때의 복구입니다 — 복구 코드를 붙여 넣으십시오';
+
+  /// 비상 시작 버튼.
+  static const String emergencyStartButton = '비상 복구 시작';
+
+  /// 비상 시작 전 고지.
+  static const String emergencyStartNotice = '시작하면 옛 폰은 더 이상 주문할 수 없습니다';
+
+  /// 펜싱 대기 · 재발급 남음 머리.
+  static const String emergencyFencing = '옛 폰의 권한이 끝나기를 기다리는 동안 키를 다시 받으십시오';
+
+  /// 펜싱 대기 · 재발급 끝 머리.
+  static const String emergencyFencingOnly = '옛 폰 권한이 끝나기를 기다립니다';
+
+  /// 펜싱 통과 · 재발급 남음 머리.
+  static const String emergencyReissue = '남은 키를 다시 받으십시오';
+
+  /// 펜싱 통과 · 재발급 끝 · 복원 막힘 머리.
+  static const String emergencyRestoreBlocked = '복원은 아직 열리지 않았습니다';
+
+  /// 펜싱 카드 머리(대기).
+  static const String fencingHeadline = '옛 폰 권한 만료 대기';
+
+  /// 펜싱 카드 머리(통과).
+  static const String fencingPassedHeadline = '옛 폰 권한이 끝났습니다';
+
+  /// 펜싱 끝 절대 시각(«MM-dd HH:mm 부터»).
+  static String fencingEnds(String monthMinute) => '$monthMinute 부터';
+
+  /// 펜싱 대기 줄.
+  static const String fencingLine = '그 전에는 복원을 시작하지 않습니다';
+
+  /// 펜싱 설정 없음 줄.
+  static const String fencingConfigMissing =
+      '운영 설정을 읽지 못해 권한이 끝나는 시각을 셀 수 없습니다';
+
+  /// 재발급 상태 — 받음.
+  static const String reissueDone = '받음';
+
+  /// 재발급 상태 — 남음.
+  static const String reissueRemaining = '남음';
+
+  /// 재발급 상태 — 해당 없음.
+  static const String reissueNotApplicable = '해당 없음';
+
+  /// 재발급 기록 버튼.
+  static const String reissueRecord = '새 값 기록';
+
+  // 🆕 E16t3c — 조립 앱 슬롯 칸 글자(복구 코드 `SECRET_X1_RECOVERY_CODE` · 재발급 `SECRET_X1_REISSUE`).
+  /// 옛 종이 코드 칸 이름.
+  static const String oldCodeLabel = '옛 종이의 복구 코드';
+
+  /// 새 카드 머리(서버가 회수와 같은 트랜잭션에서 옛 해시를 새 해시로 바꾼다).
+  static const String newCardHeadline = '새 복구 카드 — 시작하면 옛 종이 대신 이 코드가 유효합니다';
+
+  /// 새 카드 확인 칸 이름.
+  static const String newCardInputLabel = '새 종이에 적은 복구 코드';
+
+  /// 새 카드 확인 버튼.
+  static const String newCardConfirmButton = '새 카드 확인';
+
+  /// 새 카드 확인됨.
+  static const String newCardConfirmed = '새 복구 카드를 확인했습니다';
+
+  /// 재발급 값 칸 이름.
+  static const String reissueInputLabel = '새로 받은 값';
+
+  /// 재발급 값 칸 안내.
+  static const String reissueInputGuide = '값은 지문만 남기고 저장하지 않습니다';
 
   /// 복원 카드 머리.
   static const String restored = '백업을 복원했습니다';
@@ -285,8 +367,19 @@ abstract final class X1ScreenTexts {
     X1StartResultCodes.advisoryPending => advisoryPending,
     X1StartResultCodes.d03NotConfirmed => '긴급정지 카드 확인이 없습니다',
     X1StartResultCodes.emergencyNotDeclared => '비상 선언이 확인되지 않았습니다',
-    SafetyCommonResultCodes.trustedTimeUnknown =>
-      '믿을 수 있는 시각을 모릅니다 — 연결 뒤 다시 하십시오',
+    SafetyCommonResultCodes.trustedTimeUnknown => trustedUnknownLine,
+    // 🆕 E16t3c — 비상 시작(`lease_revoke` 계약 글자 · 연결 · 인증 · 전송 = 계약 Supabase 사전 글자 그대로).
+    LeaseRpcResultCodes.recoveryCodeInvalid => '복구 코드가 맞지 않습니다',
+    LeaseRpcResultCodes.recoveryCodeRequired => '새 복구 카드를 종이에 적고 확인한 뒤 시작하십시오',
+    LeaseRpcResultCodes.deviceNotEligible => '이 기기는 운영 기기로 쓸 수 없습니다',
+    LeaseRpcResultCodes.heldByOther => '다른 요청이 먼저 리스를 바꿨습니다 — 다시 하십시오',
+    SupabaseAuthResultCodes.notSignedIn ||
+    SupabaseTimeResultCodes.notConfigured ||
+    SupabaseTimeResultCodes.badConfig => 'Supabase 연결과 로그인을 먼저 마치십시오',
+    SupabaseTimeResultCodes.network ||
+    SupabaseTimeResultCodes.server ||
+    SupabaseTimeResultCodes.badResponse ||
+    SupabaseTimeResultCodes.unauthorized => '서버에 닿지 못했습니다 — 다시 하십시오',
     X1JournalResultCodes.runExists => '이 폰에 끝나지 않은 이전이 있습니다',
     X1JournalResultCodes.stepOutOfOrder => '지금 차례의 단계가 아닙니다',
     X1JournalResultCodes.pastNoReturn => '강등 뒤에는 되돌릴 수 없습니다',
@@ -689,6 +782,11 @@ class X1RecoveryFacts {
     this.goldenRunnable = false,
     this.biometricRunnable = false,
     this.lockedLabel,
+    this.emergency,
+    this.emergencyRunnable = false,
+    this.liveExists = false,
+    this.fencing,
+    this.trustedNowUtc,
   });
 
   /// 들어온 라우트의 갈래(복구가 있으면 복구 갈래가 이긴다).
@@ -720,6 +818,21 @@ class X1RecoveryFacts {
 
   /// 잠김 문장.
   final String? lockedLabel;
+
+  /// 🆕 E16t3c — 이 기기 비상 회수 기록(복원 전 · 없음 = 시작 전).
+  final X1EmergencyFacts? emergency;
+
+  /// 🆕 E16t3c — 비상 시작 흐름이 조립돼 있나(기기 id · Supabase RPC — 없으면 시작 · 자리 0 · 막힘 문장).
+  final bool emergencyRunnable;
+
+  /// 🆕 E16t3c — 이 폰에 live 원장이 이미 있다(비상 시작 0 · 복원 = live 없음일 때만).
+  final bool liveExists;
+
+  /// 🆕 E16t3c — 펜싱 설정(운영 설정 잠정 값 · 없음 = 끝 시각을 셀 수 없다 → 대기).
+  final FencingConfig? fencing;
+
+  /// 🆕 E16t3c — 신뢰 시각(모름 = null → 펜싱 대기).
+  final DateTime? trustedNowUtc;
 }
 
 X1StepRow _recoveryRow(
@@ -770,6 +883,9 @@ X1RecoveryVm x1RecoveryVmOf(X1RecoveryFacts f) {
       lockedLabel: f.lockedLabel,
       asOf: asOf,
     );
+  }
+  if (r == null && kind == MigrationKind.emergency) {
+    return _emergencyVm(f, kindLabel, asOf);
   }
   if (r == null) {
     final bool plan = kind == MigrationKind.plan;
@@ -935,6 +1051,191 @@ X1RecoveryVm x1RecoveryVmOf(X1RecoveryFacts f) {
   );
 }
 
+/// 🆕 E16t3c — 새 폰 비상 앞쪽(복원 전) VM.
+///
+/// 차례 = 기록 없음 → (live 있음 = 시작 0 · 조립 없음 = 막힘 문장 · 아니면 복구 코드 자리 + 시작) · 기록 있음 → 펜싱 카드 + 재발급 6행 ·
+/// 머리 = 펜싱 × 재발급.
+X1RecoveryVm _emergencyVm(X1RecoveryFacts f, String kindLabel, AsOf asOf) {
+  final bool act = f.lockedLabel == null;
+  final X1EmergencyFacts? e = f.emergency;
+  if (e == null) {
+    if (f.liveExists) {
+      return X1RecoveryVm(
+        headline: X1ScreenTexts.rejected(X1RestoreResultCodes.liveExists),
+        level: UiLevel.blocked,
+        reasonCode: X1RestoreResultCodes.liveExists,
+        kindLabel: kindLabel,
+        reissue: const <X1ReissueRow>[],
+        steps: const <X1StepRow>[],
+        lockedLabel: f.lockedLabel,
+        asOf: asOf,
+      );
+    }
+    if (!f.emergencyRunnable) {
+      return X1RecoveryVm(
+        headline: X1ScreenTexts.emergencyBlocked,
+        level: UiLevel.blocked,
+        kindLabel: kindLabel,
+        reissue: const <X1ReissueRow>[],
+        steps: const <X1StepRow>[],
+        noticeText: X1ScreenTexts.emergencyBlockedNotice,
+        lockedLabel: f.lockedLabel,
+        asOf: asOf,
+      );
+    }
+    return X1RecoveryVm(
+      headline: X1ScreenTexts.emergencyStart,
+      level: UiLevel.act,
+      kindLabel: kindLabel,
+      startAction: act
+          ? const SafetyActionCall(
+              id: SafetyActionId.x1EmergencyStart,
+              args: <String, String>{},
+              label: X1ScreenTexts.emergencyStartButton,
+            )
+          : null,
+      recoveryCodeSlotId: act ? X1SlotIds.recoveryCode : null,
+      reissue: const <X1ReissueRow>[],
+      steps: const <X1StepRow>[],
+      noticeText: X1ScreenTexts.emergencyStartNotice,
+      lockedLabel: f.lockedLabel,
+      asOf: asOf,
+    );
+  }
+  final FencingConfig? cfg = f.fencing;
+  final FencingVerdict? v = cfg == null
+      ? null
+      : fencingVerdictOf(
+          revokedAtUtc: e.revokedAtUtc,
+          trustedNowUtc: f.trustedNowUtc,
+          config: cfg,
+        );
+  final bool passed = v?.passed ?? false;
+  final String? fencingCode = v == null ? X1FencingResultCodes.waiting : v.code;
+  final bool reissued = e.checklist.complete;
+  final (String headline, UiLevel level, String? code) = switch ((
+    passed,
+    reissued,
+  )) {
+    (false, false) => (
+      X1ScreenTexts.emergencyFencing,
+      UiLevel.watch,
+      fencingCode,
+    ),
+    (false, true) => (
+      X1ScreenTexts.emergencyFencingOnly,
+      UiLevel.watch,
+      fencingCode,
+    ),
+    (true, false) => (X1ScreenTexts.emergencyReissue, UiLevel.act, null),
+    (true, true) => (
+      X1ScreenTexts.emergencyRestoreBlocked,
+      UiLevel.blocked,
+      null,
+    ),
+  };
+  return X1RecoveryVm(
+    headline: headline,
+    level: level,
+    reasonCode: code,
+    kindLabel: kindLabel,
+    fencing: _fencingCard(v),
+    reissue: x1ReissueRowsOf(e.runId, e.checklist, act: act),
+    steps: const <X1StepRow>[],
+    noticeText: passed && reissued ? X1ScreenTexts.planBlockedNotice : null,
+    lockedLabel: f.lockedLabel,
+    asOf: asOf,
+  );
+}
+
+X1FencingCard _fencingCard(FencingVerdict? v) {
+  if (v == null) {
+    return const X1FencingCard(
+      headline: X1ScreenTexts.fencingHeadline,
+      level: UiLevel.blocked,
+      code: X1FencingResultCodes.waiting,
+      lines: <String>[X1ScreenTexts.fencingConfigMissing],
+    );
+  }
+  final DateTime? end = v.endsAtUtc;
+  final String? ends = end == null
+      ? null
+      : X1ScreenTexts.fencingEnds(_monthMinute(end));
+  if (v.passed) {
+    return X1FencingCard(
+      headline: X1ScreenTexts.fencingPassedHeadline,
+      level: UiLevel.ok,
+      endsAtText: ends,
+      lines: const <String>[],
+    );
+  }
+  return X1FencingCard(
+    headline: X1ScreenTexts.fencingHeadline,
+    level: UiLevel.watch,
+    endsAtText: ends,
+    code: v.code,
+    lines: <String>[
+      v.code == SafetyCommonResultCodes.trustedTimeUnknown
+          ? X1ScreenTexts.trustedUnknownLine
+          : X1ScreenTexts.fencingLine,
+    ],
+  );
+}
+
+/// 🆕 E16t3c — 재발급 6행(`X1ReissueItemCodes.ordered` 차례 = [ReissueItem] 정의 차례).
+///
+/// 🔴 시크릿 자리 = 남은 시크릿 항목 가운데 첫 하나만(같은 슬롯 이름 — 둘을 함께 열면 값이 어느 행 것인지 모른다) · 확인만 항목 =
+/// 기록 동작만 · 받음 · 해당 없음 = 동작 0 · 잠김 = 동작 · 자리 0.
+List<X1ReissueRow> x1ReissueRowsOf(
+  String runId,
+  ReissueChecklist c, {
+  required bool act,
+}) {
+  final List<ReissueItem> remaining = c.remaining;
+  final ReissueItem? secretTurn = remaining
+      .where((ReissueItem i) => i.hasSecret)
+      .firstOrNull;
+  X1ReissueRow row(
+    ReissueItem i,
+    String state,
+    UiLevel level, {
+    bool slot = false,
+    bool record = false,
+  }) => X1ReissueRow(
+    code: i.wire,
+    label: i.label,
+    stateLabel: state,
+    level: level,
+    reissueSlotId: act && slot ? X1SlotIds.reissueSecret : null,
+    recordAction: act && record
+        ? SafetyActionCall(
+            id: SafetyActionId.x1ReissueRecord,
+            args: <String, String>{'run_id': runId, 'item': i.wire},
+            label: X1ScreenTexts.reissueRecord,
+          )
+        : null,
+  );
+  return <X1ReissueRow>[
+    for (final ReissueItem i in ReissueItem.values)
+      if (!c.applicable.contains(i))
+        row(i, X1ScreenTexts.reissueNotApplicable, UiLevel.info)
+      else if (c.entries.containsKey(i))
+        row(i, X1ScreenTexts.reissueDone, UiLevel.ok)
+      else if (!i.hasSecret)
+        row(i, X1ScreenTexts.reissueRemaining, UiLevel.act, record: true)
+      else if (i == secretTurn)
+        row(
+          i,
+          X1ScreenTexts.reissueRemaining,
+          UiLevel.act,
+          slot: true,
+          record: true,
+        )
+      else
+        row(i, X1ScreenTexts.reissueRemaining, UiLevel.info),
+  ];
+}
+
 X1GateCard _gateCard(MigrationGateVerdict g) => X1GateCard(
   stateLabel: X1ScreenTexts.gateStateLabel(g.state),
   level: switch (g.state) {
@@ -964,6 +1265,12 @@ const Set<String> _retryable = <String>{
   X1StepBlockCodes.unknownOrders,
   X1StepBlockCodes.reconNotZero,
   SafetyCommonResultCodes.trustedTimeUnknown,
+  // 🆕 E16t3c — 비상 시작의 경합 · 전송(서버가 바꾸지 않았거나 같은 손 · 다시 = 같은 새 카드).
+  LeaseRpcResultCodes.heldByOther,
+  SupabaseTimeResultCodes.network,
+  SupabaseTimeResultCodes.server,
+  SupabaseTimeResultCodes.badResponse,
+  SupabaseTimeResultCodes.unauthorized,
 };
 
 /// 🔴 X1 동작 결과 — 접수(코드 null) · 거부(코드 · 글자 = 엔진) · 모의 거부 = INFO.

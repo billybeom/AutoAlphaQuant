@@ -127,6 +127,8 @@ export 'src/migration/migration_journal_store.dart';
 export 'src/migration/migration_lease_gate.dart';
 export 'src/migration/recovery_gate_store.dart';
 export 'src/migration/recovery_journal_store.dart';
+// 🆕 E16t3c(설계 13 §8 R244) — X1-3 비상 앞쪽 복원 전 기록(sim `command_inbox`) · 재발급 기록.
+export 'src/migration/x1_emergency_store.dart';
 export 'src/migration/x1_screen_source.dart';
 export 'src/migration/x1_startup.dart';
 // 🆕 E11d — 시크릿 스캔 게이트(설계 13 §8 R44 E7 · 06 M4-6).
@@ -140,4 +142,6 @@ export 'src/supabase/supabase_first_claim.dart';
 export 'src/supabase/supabase_lease.dart';
 export 'src/supabase/supabase_recovery_code.dart';
 export 'src/supabase/supabase_server_time.dart';
+// 🆕 E16t3c(설계 13 §8 R244) — X1-3 ① 비상 시작(새 복구 카드 · 종이 확인 · 기기 행 · lease_revoke).
+export 'src/supabase/supabase_x1_emergency.dart';
 export 'src/watchdog/healthchecks_client.dart';

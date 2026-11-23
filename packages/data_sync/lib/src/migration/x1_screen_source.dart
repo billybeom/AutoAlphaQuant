@@ -7,6 +7,8 @@
 // 🔴 그만두기 = 그 단계에 들어가 있지 않으면 들어간 뒤 FAILED(DEMOTED 앞만 · 저널 R117 B4) · 같은 트랜잭션에 이 이전의 창 닫기(저널).
 // 🔴 강등 뒤 기동 거부와 독립 — 엔진 깨어남(`bootEngine`)을 거치지 않고 원장에 바로 쓴다(미결 218 ⓑ).
 // 🔴 hold `MIGRATION_IN_PROGRESS` = 표시만(막는 정본 = 리스 · 동결 합성) — 옛 폰 동결 ~ 끝 전 · 새 폰 복구 ~ 생체 승인 전 · 저널 깨짐 = 켬.
+// 🆕 E16t3c(R244) — 새 폰 비상 앞쪽(복원 전) 재료 = sim 원장 `command_inbox` 회수 · 재발급 기록(`SqliteX1EmergencyStore`) · 펜싱 설정
+//    (운영 설정 잠정 값) · 신뢰 시각 — 복구 저널(live)이 있으면 그쪽이 이긴다.
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
@@ -28,6 +30,7 @@ import 'migration_facts.dart' show migrationPlanFactsOf;
 import 'migration_journal_store.dart' show SqliteMigrationJournal;
 import 'recovery_gate_store.dart' show RecoveryGateView, SqliteRecoveryGate;
 import 'recovery_journal_store.dart' show RecoveryRun, latestRecoveryOf;
+import 'x1_emergency_store.dart' show SqliteX1EmergencyStore;
 
 /// 화면을 다시 낼 표(저널 · 창 · 단계 사실 · 관찰 원천).
 const Set<String> kX1WatchedTables = <String>{
@@ -167,7 +170,9 @@ class SqliteX1Screens {
     );
   }
 
-  /// 🔴 새 폰 복구(`x1MigrationPlan` · `x1MigrationEmergency`) — [observation] · [ladder] = 운영 설정(없음 = 게이트 · RECOVERY_FULL 판정 0).
+  /// 🔴 새 폰 복구(`x1MigrationPlan` · `x1MigrationEmergency`) — [observation] · [ladder] = 운영 설정(없음 = 게이트 · RECOVERY_FULL 판정 0) ·
+  /// 🆕 E16t3c [sim] = 비상 앞쪽 기록 원장(없음 = 기록 0) · [fencing] = 펜싱 설정(없음 = 끝 시각을 셀 수 없다) ·
+  /// [emergencyRunnable] = 비상 시작 흐름 조립 있음.
   X1RecoveryVm recovery(
     MigrationKind routeKind, {
     required ExchangeCalendar kr,
@@ -176,6 +181,9 @@ class SqliteX1Screens {
     bool goldenRunnable = false,
     bool biometricRunnable = false,
     String? lockedLabel,
+    Database? sim,
+    FencingConfig? fencing,
+    bool emergencyRunnable = false,
   }) {
     final Database? db = _db;
     final String? id = deviceId;
@@ -185,6 +193,16 @@ class SqliteX1Screens {
     if (db != null && id != null) {
       try {
         run = latestRecoveryOf(db, id);
+      } on StateError {
+        broken = true;
+      } on FormatException {
+        broken = true;
+      }
+    }
+    X1EmergencyFacts? emergency;
+    if (!broken && run == null && routeKind == MigrationKind.emergency) {
+      try {
+        emergency = sim == null ? null : SqliteX1EmergencyStore(sim).facts();
       } on StateError {
         broken = true;
       } on FormatException {
@@ -234,6 +252,11 @@ class SqliteX1Screens {
         goldenRunnable: goldenRunnable,
         biometricRunnable: biometricRunnable,
         lockedLabel: lockedLabel,
+        emergency: emergency,
+        emergencyRunnable: emergencyRunnable,
+        liveExists: db != null,
+        fencing: fencing,
+        trustedNowUtc: _trusted.trustedNowUtc(),
       ),
     );
   }

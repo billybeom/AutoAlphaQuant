@@ -13,41 +13,41 @@ final RegExp _fp = RegExp(r'^[0-9a-f]{8}$');
 /// 재발급 항목(차례 = 06 X1-3 차례).
 enum ReissueItem {
   /// KIS 앱키(새 키 지문 필수 · 늘 필수).
-  kisAppKey(X1ReissueItemCodes.kisAppKey, '증권사 앱키', hasSecret: true),
+  kisAppKey(X1ReissueItemCodes.kisAppKey, '한국투자증권 앱키', hasSecret: true),
 
   /// 메신저 토큰.
-  messengerToken(X1ReissueItemCodes.messengerToken, '메신저 토큰', hasSecret: true),
+  messengerToken(
+    X1ReissueItemCodes.messengerToken,
+    '알림 메신저 토큰',
+    hasSecret: true,
+  ),
 
   /// 워치독 핑 키(문서 «워치독 슬러그» — 슬러그만 바꿔서는 옛 폰 핑이 막히지 않는다).
   watchdogPingKey(
     X1ReissueItemCodes.watchdogPingKey,
-    '워치독 핑 키',
+    '감시 핑 키',
     hasSecret: true,
   ),
 
   /// GitHub PAT.
-  githubPat(X1ReissueItemCodes.githubPat, 'GitHub 토큰', hasSecret: true),
+  githubPat(X1ReissueItemCodes.githubPat, '깃허브 접근 토큰', hasSecret: true),
 
   /// Supabase 세션 철회(값 없음 — 확인만).
   supabaseSession(
     X1ReissueItemCodes.supabaseSession,
-    '원격 세션 철회',
+    'Supabase 로그인',
     hasSecret: false,
   ),
 
   /// 구 기기 Google 액세스 철회 + 새 기기 재인증(값 없음 — 확인만).
-  googleAccess(
-    X1ReissueItemCodes.googleAccess,
-    'Google 액세스 철회',
-    hasSecret: false,
-  );
+  googleAccess(X1ReissueItemCodes.googleAccess, '구글 접근', hasSecret: false);
 
   const ReissueItem(this.wire, this.label, {required this.hasSecret});
 
   /// 글자.
   final String wire;
 
-  /// 문구.
+  /// 문구(🆕 E16t3c — 표본 `x1/recovery_emergency_fencing` 글자에서 «(합성)»만 뺀 것 · 화면 `X1ReissueRow.label`).
   final String label;
 
   /// 새 값 지문이 필요한가(아니면 철회 · 재로그인 확인만).

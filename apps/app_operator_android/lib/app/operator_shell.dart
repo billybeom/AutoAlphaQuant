@@ -47,7 +47,8 @@ import 'package:data_sync/data_sync.dart'
         DeviceLocal,
         SqliteAlertRepository,
         SqliteLedgerRepository,
-        SupabaseFirstClaim;
+        SupabaseFirstClaim,
+        SupabaseX1Emergency;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AlertRepository,
@@ -58,6 +59,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         LedgerTrustRepository,
         OnboardingSlotIds,
         OpsSlotIds,
+        X1SlotIds,
         RunModeIsSim,
         SettingsActions;
 import 'package:flutter/widgets.dart';
@@ -129,6 +131,7 @@ import 'package:ui_safety/ui_safety.dart'
         ResumeGateScreen,
         ResumeReportScreen,
         RuleChangeGateScreen,
+        SafetyX1SlotBuilder,
         X1PlanWizardScreen,
         X1RecoveryRoute,
         X1RecoveryScreen,
@@ -143,7 +146,8 @@ import 'package:ui_safety/ui_safety.dart'
         safetyRepairWizardRepositoryProvider,
         safetyResumeGateRepositoryProvider,
         safetyRuleChangeGateRepositoryProvider,
-        safetySettingsActionsProvider;
+        safetySettingsActionsProvider,
+        safetyX1SlotBuilderProvider;
 import 'package:ui_settings/ui_settings.dart'
     show
         Accounts,
@@ -168,6 +172,8 @@ import '../platform/platform.dart' show AndroidSealedBox;
 import '../safety/biometric_sign_field.dart';
 import '../safety/golden_selftest_field.dart';
 import '../safety/recovery_checksum_field.dart';
+import '../safety/x1_recovery_code_field.dart';
+import '../safety/x1_reissue_field.dart';
 import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
 import '../secret/supabase_connect_field.dart';
@@ -568,6 +574,26 @@ ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
   );
 };
 
+/// 🆕 E16t3c(R244) — X1 슬롯 빌더(01 §42 K274) — `SECRET_X1_RECOVERY_CODE` = 옛 종이 코드 + 새 복구 카드(비상 흐름 없음 = 자리 부재) ·
+/// `SECRET_X1_REISSUE` = 재발급 값(지문만) · 티켓 QR 표시 · 스캔 = 옛 폰 4~9단계 · 새 폰 받기(D9 · 계약 창) 전이라 자리 부재
+/// (크기 0 · 키 `x1-slot-absent`).
+SafetyX1SlotBuilder operatorX1Slot(OperatorRuntime rt) => (String slotId) {
+  final SupabaseX1Emergency? e = rt.x1Emergency;
+  if (slotId == X1SlotIds.recoveryCode && e != null) {
+    return X1RecoveryCodeField(
+      cardLines: e.cardLines,
+      confirmCard: e.confirmCard,
+      confirmed: () => e.cardConfirmed,
+      handoff: rt.secrets,
+      secure: rt.secure,
+    );
+  }
+  if (slotId == X1SlotIds.reissueSecret) {
+    return X1ReissueField(handoff: rt.secrets, secure: rt.secure);
+  }
+  return const SizedBox.shrink(key: Key('x1-slot-absent'));
+};
+
 /// 🆕 R182 — M8 운영 슬롯 빌더(01 §26 K19 · §34 K152) — 셸 킬스위치 자리(폰 홈 앱바 · 링크 화면 앱바) = `ui_safety`
 /// `KillSwitchSlot`(꺼짐 = 발동 버튼 · 켜짐 = 상태 칩 → M5-1) · 🔴 셸은 자리만(확인 대화 · 핸들러 감싸기 0 — 04 §3-2) ·
 /// 긴급정지 카드 인쇄(`emergencyCardPrint`) = 이 폰에 인쇄 원천 없음 → 자리 부재(크기 0 · 키 `m8-slot-absent`) ·
@@ -887,7 +913,7 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   // 🆕 E11q-c0(R188) — M5-9 규칙 변경 게이트 «첫 승인 최소판»(SAF-405 첫 승인 요청 · 냉각 · 승인 · 취소).
   AppRoutes.m5RuleChangeGate: _ruleChangeGate,
   // 🆕 E16j-b — X1 기기 이전(옛 폰 마법사 = S06 · S09 `migrationLink` 목적지 · 새 폰 받기 · 비상 = R-01 분기 · 진행 = 1~3단계까지 ·
-  //    4단계 이후 · 새 폰 복원 · 비상 = 엔진 막힘 문장 — 미결 218).
+  //    4단계 이후 · 새 폰 복원 = 엔진 막힘 문장 — 미결 218) · 🆕 E16t3c 비상 앞쪽(시작 · 펜싱 · 재발급) 열림.
   AppRoutes.x1Migration: _x1Plan,
   AppRoutes.x1MigrationPlan: _x1Receive,
   AppRoutes.x1MigrationEmergency: _x1Emergency,
@@ -961,10 +987,12 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   safetyResumeGateRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorResumeGateProvider),
   ),
-  // 🆕 E16j-b — X1 기기 이전 읽기(시작 · 단계 · 그만두기 · 복구 단계 = 위 안전 동작 인스턴스 · 슬롯 빌더 = 주입 0 = 자리 부재).
+  // 🆕 E16j-b — X1 기기 이전 읽기(시작 · 단계 · 그만두기 · 복구 단계 = 위 안전 동작 인스턴스).
   safetyMigrationRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorMigrationProvider),
   ),
+  // 🆕 E16t3c(R244) — X1 슬롯 빌더(비상 복구 코드 · 재발급 값 · 티켓 QR 표시 · 스캔 = 자리 부재).
+  safetyX1SlotBuilderProvider.overrideWithValue(operatorX1Slot(runtime)),
   // 🆕 R227 — X5 정정 마법사 읽기(쓰기 = 위 안전 동작 인스턴스 · 링크 = 위 셸 링크 열기).
   safetyRepairWizardRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorRepairWizardProvider),
