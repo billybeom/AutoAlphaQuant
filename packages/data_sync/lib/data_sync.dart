@@ -142,6 +142,7 @@ export 'src/supabase/supabase_connect.dart';
 // 🆕 E11k-e3 — O-04 ⑤ 첫 클레임 명시 흐름(복구 코드 발급 · 기기 행 · lease_claim · 설계 13 §8 R229).
 export 'src/supabase/supabase_first_claim.dart';
 export 'src/supabase/supabase_lease.dart';
+export 'src/supabase/supabase_read_models.dart'; // 🆕 E11l1 — 읽기 모델 rm_* DDL + RLS 생성기(13 R246 · 01 §8 미결 222 ⓐ)
 export 'src/supabase/supabase_recovery_code.dart';
 export 'src/supabase/supabase_server_time.dart';
 // 🆕 E16t3c(설계 13 §8 R244) — X1-3 ① 비상 시작(새 복구 카드 · 종이 확인 · 기기 행 · lease_revoke).
