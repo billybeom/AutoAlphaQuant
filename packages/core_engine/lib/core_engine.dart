@@ -1496,6 +1496,17 @@ export 'src/safety/incident.dart'
         postmortemClosesIncident,
         postmortemOverdue,
         postmortemRejectCode;
+// 🆕 E11q-d2 — M8 `D-01` 장애 배너(열린 사건 → VM · 종류 = 아이콘 · 등급 = 심각도 · 글자 = 표본 · 06 M4-12 ①).
+export 'src/safety/incident_banner.dart'
+    show
+        IncidentBannerCopy,
+        IncidentBannerTexts,
+        OpenIncident,
+        compareIncidentUrgency,
+        incidentBannerOf,
+        incidentBannerVmOf,
+        incidentKindOf,
+        incidentLevelOf;
 // 🆕 E13f2 — 수동 개입 5단계 상태기계(M5-6 · 설계 13 §8 R65).
 export 'src/safety/intervention.dart'
     show
