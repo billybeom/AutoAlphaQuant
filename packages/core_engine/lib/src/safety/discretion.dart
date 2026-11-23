@@ -6,14 +6,18 @@
 // 🔴 예산 셈은 하나(지도 D24) — 조정 요청 · X7 예산 사건(E18)이 같은 목록에 든다.
 //    예산 0 이 막는 것은 «조정 요청» 뿐이다(01 §3-8 G-24 — 기록 · 미이행은 막지 않는다).
 
+import 'package:domain_contracts/domain_contracts.dart'
+    show DecisionJournalKinds;
+
 /// 1회 조정폭 상한(±10%p · 04 §1 SAF-409 표 · 02 DDL CHECK — 경계 포함).
 const double kDiscretionMaxDelta = 0.10;
 
 /// 롤링 12개월 사용 상한(04 §1 SAF-409 표).
 const int kDiscretionMaxUses = 4;
 
-/// `decision_journal.kind` 의 재량 조정 저널(02 §2).
-const String kDiscretionJournalKind = 'DISCRETION';
+/// `decision_journal.kind` 의 재량 조정 저널(02 §2 · 🆕 미결 220 ⓒ — 계약 `DecisionJournalKinds` 참조 · K294 예외 = 동작 와이어
+/// `DISCRETION_ADJUST` 와 다르다).
+const String kDiscretionJournalKind = DecisionJournalKinds.discretion;
 
 /// SAF-409 거부 코드(GV-40e · 오름차순 = 이 선언 차례).
 abstract final class DiscretionCodes {

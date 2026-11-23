@@ -12,15 +12,19 @@ import 'package:app_operator_android/app/operator_repair.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
+import 'package:app_operator_android/engine/operations_loader.dart';
 import 'package:core_engine/core_engine.dart'
     show
         InterventionOutcome,
+        OperationsConfig,
+        P0sStrategyIds,
         RepairResultTexts,
         RepairWizardTexts,
         TrustedClock,
         kInterventionCooling;
 import 'package:data_sync/data_sync.dart' show insertInterventionStep;
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../engine/support.dart';
@@ -33,7 +37,11 @@ class _Trusted implements TrustedClock {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   tearDownAll(deleteTempDirs);
+  // 🆕 미결 220 ⓑ — 운영 설정 = 앱 자산 그대로(체인 상한 `operations.amend_chain_max`).
+  late OperationsConfig assetOps;
+  setUpAll(() async => assetOps = await loadOperationsConfig(rootBundle));
   late FakeClock clock;
   late _Trusted trusted;
   late LedgerFiles files;
@@ -48,12 +56,18 @@ void main() {
       <(OperatorView, TradeDate)>[];
   Set<String>? reconAnswer;
 
-  OperatorRuntime rt({bool view = true, bool recon = true}) {
+  OperatorRuntime rt({
+    bool view = true,
+    bool recon = true,
+    bool ops = true,
+    OperationsConfig? operations,
+  }) {
     reconAsked.clear();
     final OperatorRuntime r = OperatorRuntime(
       files: files,
       clock: clock,
       trusted: trusted,
+      operations: ops ? (operations ?? assetOps) : null,
       freshRecon: recon
           ? (OperatorView v, TradeDate d) async {
               reconAsked.add((v, d));
@@ -325,6 +339,62 @@ void main() {
       expect(noHook.headline, RepairResultTexts.reconUnavailable);
     },
   );
+
+  test('🆕 미결 220 ⓑ 체인 상한 = 운영 설정 — 자산 값 · 못 읽음 = 정정 0(증권사 0 · 5단계 0) · 값 그대로 엔진에(0 = 엔진 검사)', () async {
+    expect(assetOps.amendChainMax, 2, reason: '01 §10-3 B6 문서값 = 자산');
+    diff('ld-a');
+    // 정정 대상 체결(브로커 체결 한 건 · 끝난 주문 · 포지션 = 그 체결).
+    files.sim.execute(
+      'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+      'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+      "updated_at, mode) VALUES ('iA', 'k-iA', '2027-01-13T00:10:00.000Z', '2027-01-13', 'KR', 'pension', ?, "
+      "'dA', '133690', 'BUY', 'LIMIT', 5, 20000, 'FILLED', 'cfg', '2027-01-13T00:10:00.000Z', 'SIM_INTERNAL')",
+      <Object?>[P0sStrategyIds.sleeveB],
+    );
+    files.sim.execute(
+      'INSERT INTO broker_orders (broker_order_no, intent_id, submitted_at, status) '
+      "VALUES ('2027-01-13:0001', 'iA', '2027-01-13T00:20:00.000Z', 'FILLED')",
+    );
+    files.sim.execute(
+      'INSERT INTO executions (execution_id, broker_order_no, executed_at, quantity, price, commission, tax, '
+      "fill_origin, cost_source) VALUES ('X#5', '2027-01-13:0001', '2027-01-13T01:00:00.000Z', 5, 20000, 0, 0, "
+      "'SIMULATED', 'ESTIMATED')",
+    );
+    executable('x5:ld-a:1');
+    reconAnswer = <String>{'ld-a'};
+    RepairCorrectSubmission ask() => const RepairCorrectSubmission(
+      targetId: 'ld-a',
+      fillRef: 'X#5',
+      originCode: OriginCodes.manualOrder,
+      voidFill: false,
+      quantityText: '4',
+      priceText: '20,000',
+      commissionText: '0',
+      taxText: '0',
+    );
+    // 못 읽음 = 오류(지어내지 않음) · 증권사에 가지 않는다 · 세션은 그대로.
+    await expectLater(
+      actions(rt(ops: false)).runRepairCorrect(ask()),
+      throwsStateError,
+    );
+    expect(reconAsked, isEmpty, reason: '설정 없음 = 증권사 0');
+    // 값은 그대로 엔진에 간다 — 0 = 엔진 검사(1 미만 = ArgumentError · 되돌림).
+    await expectLater(
+      actions(
+        rt(
+          operations: OperationsConfig.fromJson(<String, Object?>{
+            'amend_chain_max': 0,
+          }),
+        ),
+      ).runRepairCorrect(ask()),
+      throwsArgumentError,
+    );
+    expect(reconAsked.single.$2, const TradeDate('2027-01-13'));
+    expect(
+      steps().where(((Object?, Object?, Object?) s) => s.$2 == 5),
+      isEmpty,
+    );
+  });
 
   test('🔴 새 기준점 — 세션 없음 · 표시 없음 · 깨끗한 판정 = 엔진 코드 · 다른 정정 중 = 다시 시도', () async {
     final OperatorSafetyActions a = actions(rt());

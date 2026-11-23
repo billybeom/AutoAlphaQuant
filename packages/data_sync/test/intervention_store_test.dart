@@ -348,7 +348,7 @@ void main() {
           '근거',
           '기대',
           'RULE_X5',
-          null,
+          'INTERVENTION_JOURNAL', // 🆕 미결 220 ⓒ — 개입 3단계 저널 kind(K294)
           null,
           'P0S',
           '2026-11-05',

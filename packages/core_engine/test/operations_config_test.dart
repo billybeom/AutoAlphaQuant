@@ -104,6 +104,33 @@ void main() {
     );
   });
 
+  test('🆕 미결 220 ⓑ 정정 체인 상한 = 최상위 amend_chain_max(정수 · 없음 = null · 꼴 틀림 = FormatException)', () {
+    expect(OperationsConfig.fromJson(_full()).amendChainMax, isNull);
+    expect(
+      OperationsConfig.fromJson(<String, Object?>{'amend_chain_max': 3})
+          .amendChainMax,
+      3,
+    );
+    expect(
+      OperationsConfig.fromJson(<String, Object?>{'amend_chain_max': null})
+          .amendChainMax,
+      isNull,
+    );
+    // 다른 블록 안의 같은 이름은 읽지 않는다(최상위 키 하나 — X5 · X7 공용).
+    expect(
+      OperationsConfig.fromJson(<String, Object?>{
+        'migration': <String, Object?>{'amend_chain_max': 2},
+      }).amendChainMax,
+      isNull,
+    );
+    expect(
+      () =>
+          OperationsConfig.fromJson(<String, Object?>{'amend_chain_max': '2'})
+              .amendChainMax,
+      throwsFormatException,
+    );
+  });
+
   test('🔴 키 없음 · 값 null = null(기능 꺼짐 · 지어내지 않음)', () {
     final OperationsConfig empty = OperationsConfig.fromJson(
       <String, Object?>{},

@@ -32,6 +32,8 @@ class OperatorSafetyRepository implements SafetyRepository {
     trusted: _rt.trusted,
     // 🆕 E16j-b(미결 212 ②) — 표시 hold `MIGRATION_IN_PROGRESS`(이 기기 이전 · live 만).
     deviceId: _rt.deviceId,
+    // 🆕 미결 220 ⓓ — 기동 게이트 hold(`LIVE_AWAITING_KEYS` · 마지막 깨어남 판정) → `holds` · `holdLabels`.
+    startupHolds: v.holds,
   );
 
   /// 지금 값 — 화면 상태 없음 = [StateError].

@@ -68,6 +68,11 @@ final class OperationsConfig {
     return v;
   }
 
+  /// 🆕 미결 220 ⓑ(계약 v1.35 §44 K292 · SPEC 02 §4 v2.45 정정) — 정정 체인 길이 상한(X5 정정 · X7 정정 공용 ·
+  /// 초과 = `AMEND_LIMIT_EXCEEDED` · 값 = 01 §10-3 B6 문서값 · 🔴 새 수치 0) · 없음 = null(조립 = 정정 안 함 — 지어내지 않음) ·
+  /// 1 미만 = core 판정(`amendFillRejectCode`)의 [ArgumentError] 그대로.
+  int? get amendChainMax => _int(const <String>['amend_chain_max']);
+
   /// M1-22 live × dryRun 관찰 거래일.
   int? get liveDryRunObservationTradingDays =>
       _int(const <String>['live_dry_run_observation_trading_days']);

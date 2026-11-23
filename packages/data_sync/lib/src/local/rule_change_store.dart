@@ -9,7 +9,8 @@
 import 'dart:convert';
 
 import 'package:core_engine/core_engine.dart';
-import 'package:domain_contracts/domain_contracts.dart' show Clock, RunMode;
+import 'package:domain_contracts/domain_contracts.dart'
+    show Clock, DecisionJournalKinds, RunMode;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
@@ -356,7 +357,7 @@ class SqliteRuleChangeStore {
       _db.execute(
         'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
         'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
-        "VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, 'RULE_CHANGE_REQUEST', NULL, ?)",
+        'VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, NULL, ?)',
         <Object?>[
           journalId,
           kstDateText(now!),
@@ -374,6 +375,8 @@ class SqliteRuleChangeStore {
           rationaleBefore.trim(),
           expectedOutcome.trim(),
           ruleCited.trim(),
+          // 🆕 미결 220 ⓒ — 저널 kind = 계약 사전(명령 kind `kRuleChangeRequestKind` 와 같은 글자 · 축이 다르다).
+          DecisionJournalKinds.ruleChangeRequest,
           now.toIso8601String(),
         ],
       );

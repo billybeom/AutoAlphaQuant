@@ -332,8 +332,24 @@ AsOf safetyAsOf({required String? lastSnapshotDate, required DateTime nowUtc}) {
   );
 }
 
+/// 🆕 미결 220 ⓓ(계약 v1.35 §44 K295) — hold 짝 문장 사전(엔진 한 벌 · 차례 = 이 선언 차례 = `SafetyHoldCodes` 차례).
+/// 🔴 S05 `RunModeCard.holdLabel` 과 같은 문장(표본 `m9/operations_live_hold_keys` · `safety_states_holds` 글자 그대로) ·
+///    화면은 코드를 보지 않고 이 문장만 차례대로 그린다(C-68 ⑧) · 키 = `SafetyHoldCodes.values` 전량(대조 시험).
+const Map<String, String> kSafetyHoldLabels = <String, String>{
+  SafetyHoldCodes.liveAwaitingKeys: '실키 검증 전 — 배치를 멈췄습니다. 키 관리에서 검증하면 다시 돕니다.',
+  SafetyHoldCodes.migrationInProgress:
+      '기기 이전 중입니다 — 새 주문을 멈췄습니다. 이전을 마치거나 그만두면 다시 돕니다.',
+};
+
+/// hold 코드 → 짝 문장(모르는 코드 = [ArgumentError] — 지어내지 않는다).
+String safetyHoldLabelOf(String code) =>
+    kSafetyHoldLabels[code] ??
+    (throw ArgumentError.value(code, 'code', '모르는 hold 코드'));
+
 /// `SafetyState` 조립(R62 U2 · U6) — `alertBlockSatEntry` = 레벨 ≥ ALERT(P0 스위치 켜짐) · 🆕 E16j-b [holds] = 표시 hold(미결 212 ② ·
 /// 막지 않는다 · 막는 정본 = 리스 · 모드 판정).
+/// 🆕 미결 220 ⓓ — [holds] 는 사전 차례로 줄 세우고 겹침을 없앤다 · `holdLabels[i]` = `holds[i]` 의 짝 문장(같은 차례 · 같은 길이 ·
+/// K295 · C-68 ⑥) · 모르는 코드 = [ArgumentError].
 SafetyState safetyStateOf({
   required BreakerLevel level,
   required double drawdown,
@@ -344,18 +360,28 @@ SafetyState safetyStateOf({
   required RampLevel rampLevel,
   required RunMode mode,
   required AsOf asOf,
-  List<String> holds = const <String>[],
-}) => SafetyState(
-  breakerLevel: contractBreakerLevelOf(level),
-  breakerLabel: breakerLabelOf(level),
-  drawdown: drawdown,
-  activeFlags: flags,
-  killSwitch: killSwitch,
-  stoppedReleaseEligible: stoppedReleaseEligible,
-  releaseProgress: releaseProgress,
-  alertBlockSatEntry: level.index >= BreakerLevel.alert.index,
-  rampLevel: rampLevel,
-  mode: mode,
-  asOf: asOf,
-  holds: holds,
-);
+  Iterable<String> holds = const <String>[],
+}) {
+  for (final String h in holds) {
+    safetyHoldLabelOf(h);
+  }
+  final List<String> ordered = <String>[
+    for (final String code in kSafetyHoldLabels.keys)
+      if (holds.contains(code)) code,
+  ];
+  return SafetyState(
+    breakerLevel: contractBreakerLevelOf(level),
+    breakerLabel: breakerLabelOf(level),
+    drawdown: drawdown,
+    activeFlags: flags,
+    killSwitch: killSwitch,
+    stoppedReleaseEligible: stoppedReleaseEligible,
+    releaseProgress: releaseProgress,
+    alertBlockSatEntry: level.index >= BreakerLevel.alert.index,
+    rampLevel: rampLevel,
+    mode: mode,
+    asOf: asOf,
+    holds: ordered,
+    holdLabels: <String>[for (final String h in ordered) safetyHoldLabelOf(h)],
+  );
+}

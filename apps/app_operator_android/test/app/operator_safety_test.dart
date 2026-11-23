@@ -7,10 +7,18 @@ import 'package:app_operator_android/app/operator_safety.dart';
 import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
-import 'package:core_engine/core_engine.dart' show TrustedClock;
+import 'package:core_engine/core_engine.dart'
+    show TrustedClock, kSafetyHoldLabels;
 import 'package:domain_contracts/domain_contracts.dart'
-    show BlockFlag, FlagIds, OperatingMode, RunMode, SafetyState;
+    show
+        BlockFlag,
+        FlagIds,
+        OperatingMode,
+        RunMode,
+        SafetyHoldCodes,
+        SafetyState;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../engine/support.dart';
 
@@ -57,6 +65,43 @@ void main() {
     final SafetyState s = await OperatorSafetyRepository(rt).watchState().first;
     expect(s.mode, RunMode.simInternal);
     expect(s.activeFlags, isEmpty);
+  });
+
+  test('🆕 미결 220 ⓓ 기동 hold → 화면 상태 → 안전 상태 holds · holdLabels(같은 차례 · 짝 문장) · 거부 · 모의 = 0', () async {
+    final OperatorView sim = await ready();
+    expect(sim.holds, isEmpty);
+    expect(OperatorSafetyRepository(rt).state().holdLabels, isEmpty);
+    final dir = tempLedgerDir();
+    final LedgerFiles f = openFiles(dir, clock);
+    addTearDown(f.close);
+    writeSimMode(f.sim, clock, committed: OperatingMode.autoTrade);
+    final Database live = writeLiveMode(dir, clock);
+    addTearDown(live.close);
+    // 승인 없음 = 기동 거부 → hold 0(거부 배너는 다른 축).
+    final OperatorView rejected = operatorViewOf(
+      await bootEngine(f, clock: clock),
+      f,
+    )!;
+    expect(rejected.holds, isEmpty);
+    // 승인 · 실키 미검증 = 준비 + LIVE_AWAITING_KEYS.
+    final OperatorView v = operatorViewOf(
+      await bootEngine(
+        f,
+        clock: clock,
+        inputs: BootInputs(approvedOf: (Database _, RunMode m) => 1),
+      ),
+      f,
+    )!;
+    expect(v.holds, <String>{SafetyHoldCodes.liveAwaitingKeys});
+    final OperatorRuntime liveRt = OperatorRuntime(files: f, clock: clock)
+      ..view.value = v;
+    final SafetyState s = await OperatorSafetyRepository(liveRt)
+        .watchState()
+        .first;
+    expect(s.holds, <String>[SafetyHoldCodes.liveAwaitingKeys]);
+    expect(s.holdLabels, <String>[
+      kSafetyHoldLabels[SafetyHoldCodes.liveAwaitingKeys]!,
+    ]);
   });
 
   test('🔴 차단 행이 생기면 다시 낸다(같은 연결)', () async {

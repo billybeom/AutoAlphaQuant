@@ -8,7 +8,8 @@
 // 🔴 쓰기(`OperatorRepairActions` — 안전 동작 창구가 부른다) = 엔진 data_sync 그대로 · 결과 글자 = 엔진 `repairWizardResultOf`:
 //    단계 = `SqliteInterventionStore.advance` · 3단계 저널 = `writeJournalStage`(저널 id = `JIV-<명령 id>`) · 아무것도 안 하기 =
 //    `acceptWithSession` · 정정 = 원문 파싱(엔진) → 대상의 열린 세션 → 실행 창 안이면 직전 재대사(런타임 `freshRecon` · 못 하면
-//    «잠시 뒤 다시») → `correctFill`(정정 id = `RPR-<명령 id>` · 체인 상한 = 엔진 상수) · 새 기준점 = 지금 무결성 대상과 같을 때만
+//    «잠시 뒤 다시») → `correctFill`(정정 id = `RPR-<명령 id>` · 체인 상한 = 운영 설정 `operations.amend_chain_max` — 🆕 미결 220 ⓑ ·
+//    못 읽음 = 정정 0(오류 · 증권사 0 · 지어내지 않음)) · 새 기준점 = 지금 무결성 대상과 같을 때만
 //    `applyBaseline`(정정 id = `RBL-<명령 id>` · 해제자 = 기기 별칭 · 아카이브 관계 = 모름) · 다른 정정 중(`LedgerFixBusy`) = «잠시 뒤 다시».
 // 🔴 생체 = 구현 0(운영 등급 공통 관문 = 미결 169 · 서약 · RECON 해제 선례).
 
@@ -21,7 +22,6 @@ import 'package:core_engine/core_engine.dart'
         StoredLedgerDiff,
         integrityTargetIdOf,
         interventionExecutable,
-        kRepairAmendChainLimit,
         parseRepairAmounts,
         repairWizardResultOf;
 import 'package:data_sync/data_sync.dart'
@@ -234,6 +234,11 @@ class OperatorRepairActions {
     }
     final String? sid = x5OpenSessionIdOf(v.db, s.targetId);
     if (sid == null) return out(code: InterventionResultCodes.outOfOrder);
+    // 🆕 미결 220 ⓑ — 체인 상한 = 운영 설정(X5 · X7 공용 키) · 못 읽음 = 정정 0(증권사에 가기 전 · 지어내지 않음).
+    final int? chainLimit = _rt.operations?.amendChainMax;
+    if (chainLimit == null) {
+      throw StateError('정정: 운영 설정 없음(operations.amend_chain_max)');
+    }
     Iterable<String> fresh = const <String>[];
     // 실행 창 안일 때만 증권사에 간다(아니면 커밋 관문이 개입 코드로 거부한다 — 망 0).
     if (interventionExecutable(
@@ -258,7 +263,7 @@ class OperatorRepairActions {
             fillId: s.fillRef,
             sessionId: sid,
             originCode: s.originCode,
-            chainLimit: kRepairAmendChainLimit,
+            chainLimit: chainLimit,
             restatement: amounts == null
                 ? null
                 : FillRestatement(

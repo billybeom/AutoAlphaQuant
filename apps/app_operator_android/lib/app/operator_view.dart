@@ -19,13 +19,21 @@ import '../engine/ledger_files.dart';
 /// 화면이 보는 상태.
 class OperatorView {
   /// 만든다.
-  const OperatorView({required this.db, required this.flags});
+  const OperatorView({
+    required this.db,
+    required this.flags,
+    this.holds = const <String>{},
+  });
 
   /// 화면이 읽는 원장(엔진과 같은 연결).
   final Database db;
 
   /// 셸 플래그.
   final FeatureFlags flags;
+
+  /// 🆕 미결 220 ⓓ(계약 v1.35 §44 K295) — 기동은 하되 배치를 멈추는 hold(마지막 깨어남의 기동 판정 `EngineReady.holds` ·
+  /// 거부 · 온보딩 = 0 · 안전 상태 `holds` · `holdLabels` 원천 — 다음 깨어남에 다시 판정한다).
+  final Set<String> holds;
 }
 
 /// 🔴 기동 판정 → 화면 상태(온보딩 미완 = null).
@@ -34,7 +42,12 @@ OperatorView? operatorViewOf(EngineBoot boot, LedgerFiles files) {
     case EngineOnboardingIncomplete():
       return null;
     case EngineReady():
-      return _view(boot.db, boot.runMode, boot.operatingMode);
+      return _view(
+        boot.db,
+        boot.runMode,
+        boot.operatingMode,
+        holds: boot.holds,
+      );
     case EngineRejected():
       final Database? db = boot.runMode == RunMode.live
           ? files.liveIfExists()
@@ -43,10 +56,16 @@ OperatorView? operatorViewOf(EngineBoot boot, LedgerFiles files) {
   }
 }
 
-OperatorView _view(Database db, RunMode runMode, OperatingMode operating) {
+OperatorView _view(
+  Database db,
+  RunMode runMode,
+  OperatingMode operating, {
+  Set<String> holds = const <String>{},
+}) {
   final OpsConfigRead cfg = currentP0sOpsConfig(db);
   return OperatorView(
     db: db,
+    holds: Set<String>.unmodifiable(holds),
     flags: FeatureFlags(
       satelliteEnabled: false,
       webViewerEnabled: false,

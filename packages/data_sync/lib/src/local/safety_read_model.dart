@@ -4,6 +4,8 @@
 // 🔴 브레이커 = 최근 스냅숏(주문 경로 1.5 와 같은 원천) · 자격 · 유지 봉 · bull = 저장 역사를 지금 다시 재생(E13d2).
 // 🔴 갱신 = 같은 연결 `db.updates`(E13c2 `watchLedgerQuery`) · 시간만 흐를 때의 다시 냄 = 조립 앱의 주기 신호(이 판 밖).
 // 🆕 E16j-b(미결 212 ②) — `holds` 에 표시 hold `MIGRATION_IN_PROGRESS`(live ∧ 기기 id 있음 · 판정 = `migrationInProgressOf`).
+// 🆕 미결 220 ⓓ(계약 v1.35 §44 K295) — 기동 게이트 hold(`ModeStartupGate.holds` — 조립이 마지막 기동 판정을 넘긴다 ·
+//    `LIVE_AWAITING_KEYS`)도 싣는다 · 짝 문장 `holdLabels` = core 사전(`safetyStateOf` — 같은 차례 · 같은 길이).
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
@@ -16,7 +18,8 @@ import 'ledger_read_model.dart' show watchLedgerQuery;
 
 /// `SafetyRepository` operator 판(R62 U1).
 class SqliteSafetyRepository implements SafetyRepository {
-  /// 저장소를 만든다 — [mode] = 이 원장 파일의 실행 모드 · 🆕 [deviceId] = 이 기기(없음 = X1 hold 0).
+  /// 저장소를 만든다 — [mode] = 이 원장 파일의 실행 모드 · 🆕 [deviceId] = 이 기기(없음 = X1 hold 0) ·
+  /// 🆕 [startupHolds] = 마지막 기동 판정의 hold(미결 220 ⓓ · 없음 = 0 · 값 ⊆ `SafetyHoldCodes`).
   SqliteSafetyRepository(
     this._db, {
     required this._mode,
@@ -24,6 +27,7 @@ class SqliteSafetyRepository implements SafetyRepository {
     required this._trusted,
     this._config,
     this._deviceId,
+    this._startupHolds = const <String>{},
   });
 
   final Database _db;
@@ -32,6 +36,7 @@ class SqliteSafetyRepository implements SafetyRepository {
   final TrustedClock _trusted;
   final BreakerConfig? _config;
   final String? _deviceId;
+  final Set<String> _startupHolds;
 
   /// 다시 낼 표(R62 U9).
   static const Set<String> watchedTables = <String>{
@@ -121,6 +126,7 @@ class SqliteSafetyRepository implements SafetyRepository {
         nowUtc: _clock.nowUtc(),
       ),
       holds: <String>[
+        ..._startupHolds,
         if (_mode == RunMode.live &&
             _deviceId != null &&
             migrationInProgressOf(_db, _deviceId))

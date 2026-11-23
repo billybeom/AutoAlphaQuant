@@ -1015,9 +1015,5 @@ void main() {
       );
       expect(repairFillLabelOf(_fill), '08-28 매수 069500 10주 · 9,850원');
     });
-
-    test('체인 상한 = 문서 값 2(01 §10-3 B6)', () {
-      expect(kRepairAmendChainLimit, 2);
-    });
   });
 }

@@ -21,7 +21,7 @@ import 'package:core_engine/core_engine.dart'
         killSwitchActive,
         killSwitchScreenVmOf;
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, KillResumeGateVm, KillSwitchScreenVm;
+    show Clock, DecisionJournalKinds, KillResumeGateVm, KillSwitchScreenVm;
 import 'package:sqlite3/sqlite3.dart';
 
 import 'kill_switch_store.dart' show readKillSwitchRecord;
@@ -89,7 +89,8 @@ KillActivationReplay? lastKillActivationReplay(
   DateTime? best;
   String? json;
   for (final Row row in db.select(
-    "SELECT created_at, signal_value FROM decision_journal WHERE kind = 'KILL_SWITCH_CHECKLIST'",
+    'SELECT created_at, signal_value FROM decision_journal WHERE kind = ?',
+    <Object?>[DecisionJournalKinds.killSwitchChecklist],
   )) {
     final DateTime t = DateTime.parse(row['created_at'] as String).toUtc();
     if (t.isBefore(at)) continue;

@@ -1294,7 +1294,6 @@ export 'src/repair/repair_wizard.dart'
         RepairWizardTexts,
         integrityTargetIdOf,
         interventionStepOutcomeOf,
-        kRepairAmendChainLimit,
         kRepairBaselineOriginOrder,
         kRepairCorrectOriginCodes,
         kRepairOriginLabels,
@@ -1657,9 +1656,11 @@ export 'src/safety/safety_text.dart'
         checkpointLabelOf,
         contractBreakerLevelOf,
         kFlagDictionary,
+        kSafetyHoldLabels,
         rampLevelOf,
         releaseProgressOf,
         safetyAsOf,
+        safetyHoldLabelOf,
         safetyStateOf;
 // 🆕 E13d2 — STOPPED 결정 A/B/C 판정(SPEC v2.40 04 §2 · 03_운영 §6-4b · 설계 13 §8 R61).
 export 'src/safety/stopped_decision.dart'
