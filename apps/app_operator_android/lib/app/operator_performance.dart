@@ -11,8 +11,10 @@
 // 🆕 E11q-q5e(R231 · 미결 209 ⓔ-2 · ⓔ-3 · ⓔ-5) — `S7-1` 월간 리포트 = 화면 상태의 원장 `SqliteMonthlyReportSource.reportOnRead`
 //    (읽을 때 짓기 · 자동 매매만 — 신뢰 배지 = 브로커 대사 · 보유 · 안전 상태 · 재량 · 노출 집계 = 잡 · 셸과 같은 원천 ·
 //    「자세히」 = 등록된 화면만). 안내 모드 = 원천 없음(X7 신뢰 등급 사다리 · 이행 갭 조각 전).
-// 🔴 나머지 M7 창구(아카이브 · 목표 경로 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류
-//    (아카이브 = 209 ⓔ-4 스냅숏 뒤 · 목표 경로 = q5d).
+// 🆕 E11q-q5d(R238) — `S7-9` 목표 경로 = 같은 원장 `ledgerGoalPathOnRead`(읽을 때 짓기 · 월간 리포트와 같은 판정 — 닫힌 달 ·
+//    개시 달부터 · 무결성 점검 중 = 실패 · 자동 매매만 — 진입점 = 월간 리포트 「목표 경로 보기」 하나).
+// 🔴 나머지 M7 창구(아카이브 · 세후 사다리 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류
+//    (아카이브 = 209 ⓔ-4 스냅숏 뒤).
 
 import 'package:core_engine/core_engine.dart'
     show P0sWarnSetup, annualReviewVmOf, executionGapResultOf, p0sExposureMap;
@@ -26,6 +28,7 @@ import 'package:data_sync/data_sync.dart'
         SqlitePerformanceSource,
         SqliteSafetyRepository,
         currentP0sOpsConfig,
+        ledgerGoalPathOnRead,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -54,7 +57,8 @@ import 'operator_runtime.dart' show OperatorRuntime;
 import 'operator_view.dart' show OperatorView;
 import 'view_stream.dart' show followView;
 
-/// M7 성과 · 리포트 창구 — `S7-7` 연간 리뷰 · 🆕 `S7-2` 시리즈 · `S7-2G` 게이트 · `S7-3` 드로다운 · `S7-3b` 기여 · `S7-1` 월간 리포트.
+/// M7 성과 · 리포트 창구 — `S7-7` 연간 리뷰 · 🆕 `S7-2` 시리즈 · `S7-2G` 게이트 · `S7-3` 드로다운 · `S7-3b` 기여 · `S7-1` 월간 리포트 ·
+/// `S7-9` 목표 경로.
 class OperatorPerformanceRepository implements PerformanceRepository {
   /// 만든다.
   OperatorPerformanceRepository(
@@ -195,8 +199,23 @@ class OperatorPerformanceRepository implements PerformanceRepository {
     return _src(v).contribution(range: range);
   }
 
+  /// 🆕 E11q-q5d(R238) — `S7-9` 목표 경로(받은 달 · 읽을 때 짓기 · KR 달력 · 기준 관측 = 지금).
+  /// 화면 상태 없음 = [StateError] · 안내 모드 = [UnsupportedError](월간 리포트와 같은 갈래 — 진입점이 없다) ·
+  /// 닫히지 않은 달 · 개시 전 달 · 무결성 점검 중 = 원천의 실패.
   @override
-  Future<GoalPathVm> goalPath({required String yyyyMm}) => _noneNow('goalPath');
+  Future<GoalPathVm> goalPath({required String yyyyMm}) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('목표 경로: 화면 상태 없음(온보딩 전)');
+    if (v.flags.operatingMode != OperatingMode.autoTrade) {
+      throw UnsupportedError('목표 경로: 안내 모드 = 원천 없음(월간 리포트와 같은 갈래)');
+    }
+    return ledgerGoalPathOnRead(
+      v.db,
+      kr: _rt.calendars.kr,
+      yyyyMm: yyyyMm,
+      nowUtc: _rt.clock.nowUtc(),
+    );
+  }
 }
 
 /// `S7-10` 이행 갭 창구 — 자동 매매 = 해당 없음 · 운용 전 = 발행된 안내 0 · 안내 모드 = 원천 없음(X7 조각 전).
@@ -221,4 +240,4 @@ class OperatorExecutionGapRepository implements ExecutionGapRepository {
 }
 
 Future<T> _noneNow<T>(String what) =>
-    Future<T>.error(UnsupportedError('$what: 원천 없음(R223 · q5d · 209 ⓔ-4)'));
+    Future<T>.error(UnsupportedError('$what: 원천 없음(R223 · 209 ⓔ-4)'));

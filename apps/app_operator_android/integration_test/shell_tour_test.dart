@@ -28,6 +28,7 @@ import 'package:app_operator_android/platform/human_inputs_loader.dart';
 import 'package:app_operator_android/platform/platform.dart';
 import 'package:core_engine/core_engine.dart'
     show
+        GoalPathTexts,
         P0sHumanInputs,
         P0sOpsConfig,
         MonthlyTrustTexts,
@@ -65,6 +66,7 @@ import 'package:ui_analytics/ui_analytics.dart'
         ContributionScreen,
         DrawdownContextScreen,
         ExecutionGapScreen,
+        GoalPathScreen,
         MonthlyReportScreen,
         PerformanceExploreScreen,
         RebalanceEventScreen,
@@ -919,6 +921,27 @@ void main() {
       await _until(tester, find.textContaining('드로다운 기준'));
       expect(find.byType(DrawdownContextScreen), findsOneWidget);
       await _at(tester, find.byType(DrawdownContextScreen), 'IT_S71_DD');
+
+      // 🆕 R238 — S7-9 목표 경로(진입점 = 월간 리포트 「목표 경로 보기」 하나): 연습 개시 = 지난달 첫 세션 → 개시 달부터 0개월 =
+      //    판정 유보(표본 hold 꼴 · 불가 카드 · 기준 줄 = 지난달 월말 세션).
+      await tester.pageBack();
+      await _gone(tester, find.byType(DrawdownContextScreen));
+      final Finder goalLink = find.byKey(const Key('s71-goal-link'));
+      await tester.scrollUntilVisible(
+        goalLink,
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(MonthlyReportScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(goalLink);
+      await _until(tester, find.text(GoalPathTexts.withheld));
+      expect(find.byKey(const Key('s79-unavailable')), findsOneWidget);
+      expect(find.text('목표 경로 기준 ${prevEnd.yyyyMmDd}'), findsOneWidget);
+      await _at(tester, find.byType(GoalPathScreen), 'IT_S79');
 
       // 🆕 E11q-d1 — M8 문서 다섯 길(엔진 원고 번들 · 원장 0): 런북 목록 여섯 행 → 상세(host-lost 단계) · 긴급 카드(인쇄 자리 부재) ·
       //    핸드북 목차(원고 없는 장 = 준비 중) → 슬리브 B 쪽(별칭 · live 값 원천 0 = 블록 뺌).

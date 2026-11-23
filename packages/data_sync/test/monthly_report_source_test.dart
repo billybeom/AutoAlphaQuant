@@ -4,6 +4,8 @@
 //    결정 종류 · 이탈 저널 · 국면(판정 OK 만) · 앞 달 마지막 판정 · 집계 = 월 잡과 같은 함수.
 // 🆕 R231 — 읽을 때 짓기(`reportOnRead` — 닫힌 달 · 개시 달부터 · 신뢰 배지 = 브로커 대사 원장 · 열람 수 = 접수 한국 달 ·
 //    무결성 점검 중 = 가림 꼴) · 대사 원장 읽기(`brokerReconChecksOf`).
+// 🆕 R238 — 목표 경로 원천(`ledgerGoalPathOnRead` · 같은 시리즈 + 월 납입 설정 기록 → 엔진 `goalPathOf`) · 월간 리포트 목표 줄 ·
+//    「목표 경로 보기」 = 같은 판정.
 
 import 'dart:convert';
 import 'dart:io';
@@ -619,6 +621,149 @@ void main() {
           'WEIRD',
         );
         expect(() => brokerReconChecksOf(db), throwsStateError);
+      },
+    );
+  });
+
+  group('🆕 목표 경로 원천(R238 · S7-9)', () {
+    bool all(String _) => true;
+
+    void opening(String day) => db.execute(
+      'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, account_alias) '
+      "VALUES (?, ?, 10000000, 'KRW', 'DEPOSIT', ?, '2026-03-31T00:00:00Z', NULL)",
+      <Object?>['OPEN-$day', day, DecisionReasonCodes.openingBalance],
+    );
+
+    void contribution(String amount, String changedAt, String from) =>
+        db.execute(
+          'INSERT INTO operating_param_log(param_key, value_text, changed_at, effective_from, action_run_id, device_id) '
+          "VALUES (?, ?, ?, ?, 'run-t', 'dev-t')",
+          <Object?>[
+            OperatingParamKeys.monthlyContribution,
+            amount,
+            changedAt,
+            from,
+          ],
+        );
+
+    /// 개시 04-01 · 달마다 월말 세션 스냅숏 — [jul] = 7월 말 평가액.
+    void ledger({double jul = 11000000}) {
+      opening('2026-04-01');
+      snap('2026-04-01', 10000000);
+      for (final (String m, double v) in <(String, double)>[
+        ('2026-04', 10050000),
+        ('2026-05', 10200000),
+        ('2026-06', 10400000),
+        ('2026-07', jul),
+      ]) {
+        snap(krMonthEndOf(_kr, m).yyyyMmDd, v);
+      }
+    }
+
+    GoalPathVm read(String m, {DateTime? now}) =>
+        ledgerGoalPathOnRead(db, kr: _kr, yyyyMm: m, nowUtc: now ?? _t0);
+
+    test('🔴 개시 전 = StateError · 닫히지 않은 달 = UnsupportedError · 무결성 점검 중 = StateError · 달 꼴 = 실패', () {
+      expect(() => read('2026-07'), throwsStateError); // 개시 0
+      ledger();
+      expect(() => read('2026-03'), throwsStateError);
+      expect(() => read('2026-08'), throwsUnsupportedError);
+      expect(() => read('2026-7'), throwsArgumentError);
+      db.execute(
+        "INSERT INTO trading_block (flag_id, set_at, reason) VALUES ('LEDGER_INTEGRITY', ?, '점검')",
+        <Object?>['2026-07-31T23:00:00.000Z'],
+      );
+      expect(() => read('2026-07'), throwsStateError);
+      db.execute(
+        "UPDATE trading_block SET cleared_at = '2026-08-01T00:00:00.000Z' WHERE flag_id = 'LEDGER_INTEGRITY'",
+      );
+      expect(read('2026-07').yyyyMm, '2026-07');
+    });
+
+    test(
+      '🔴 원장 → 엔진 — 같은 시리즈(tierBSeries) · 월 납입 기록 · KR 달력 = goalPathOf 그대로',
+      () {
+        ledger();
+        contribution('200000', '2026-05-20T01:00:00.000Z', '2026-06-01');
+        final GoalPathVm v = read('2026-07');
+        final TradeDate end = krMonthEndOf(_kr, '2026-07');
+        final GoalPathVm want = goalPathOf(
+          yyyyMm: '2026-07',
+          monthEnd: end,
+          equity: tierBSeries(db, end.yyyyMmDd),
+          isSession: (String d) => _kr.isSession(TradeDate(d)),
+          contributionRows: contributionRowsOf(db),
+          contributionConfig: p0sContributionConfig(),
+          nowUtc: _t0,
+        ).vm;
+        expect(v, want);
+        expect(v.actual.first.date, const TradeDate('2026-04-01'));
+        expect(v.actual.last.date, end);
+        expect(v.actual.last.value, 11000000);
+        expect(v.planned.first.value, 10000000);
+        // 기록 = 6월부터 20만원(5월 = 기본 10만원) — 기록 없는 판보다 크다.
+        db.execute('DELETE FROM operating_param_log');
+        expect(
+          read('2026-07').planned.last.value,
+          lessThan(v.planned.last.value!),
+        );
+      },
+    );
+
+    test(
+      '🔴 월간 리포트 목표 줄 · 「목표 경로 보기」 = 같은 판정(앞섬 · 이탈 · 유보) · 대사 어긋남 = 버튼 부재',
+      () async {
+        ledger();
+        MonthlyReport m = await src().reportOnRead(
+          '2026-07',
+          nowUtc: _t0,
+          configHash: 'cfg_t',
+          hasBody: all,
+        );
+        expect(m.goalLine, GoalPathTexts.reportAhead);
+        expect(m.goalDeepLink, 'aaq://report/goal/2026-07');
+        m = await src().reportOnRead(
+          '2026-07',
+          nowUtc: _t0,
+          configHash: 'cfg_t',
+        );
+        expect(m.goalDeepLink, isNull); // 본문 없음
+        m = await src().reportOnRead(
+          '2026-05',
+          nowUtc: _t0,
+          configHash: 'cfg_t',
+          hasBody: all,
+        );
+        expect(m.goalLine, MonthlyReportTexts.goalWithheld); // 개시 달부터 1개월
+        expect(m.goalDeepLink, 'aaq://report/goal/2026-05');
+        db.execute(
+          'DELETE FROM equity_snapshot WHERE trade_date = ?',
+          <Object?>[krMonthEndOf(_kr, '2026-07').yyyyMmDd],
+        );
+        snap(krMonthEndOf(_kr, '2026-07').yyyyMmDd, 8000000);
+        m = await src().reportOnRead(
+          '2026-07',
+          nowUtc: _t0,
+          configHash: 'cfg_t',
+          hasBody: all,
+        );
+        expect(m.goalLine, GoalPathTexts.offTrack);
+        expect(read('2026-07').deviationText, GoalPathTexts.deviation);
+        final MonthlyReport d = await src().monthlyReport(
+          '2026-07',
+          generatedAtUtc: _t0,
+          configHash: 'cfg_t',
+          trust: const LedgerTrustBadge(
+            grade: LedgerTrustGrade.drifting,
+            level: UiLevel.watch,
+            label: '어긋남 확인 중',
+            consequenceLine: '어긋남',
+          ),
+          disclosureViewCount: 0,
+          hasBody: all,
+        );
+        expect(d.goalLine, GoalPathTexts.offTrack);
+        expect(d.goalDeepLink, isNull);
       },
     );
   });

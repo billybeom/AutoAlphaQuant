@@ -34,6 +34,7 @@ import 'package:core_engine/core_engine.dart'
         DisclosureGateTexts,
         DrawdownContextTexts,
         EmergencyCardTexts,
+        GoalPathTexts,
         HandbookTexts,
         PerfSeriesTexts,
         BlockBoardTexts,
@@ -92,6 +93,7 @@ import 'package:ui_analytics/ui_analytics.dart'
         ContributionScreen,
         DrawdownContextScreen,
         ExecutionGapScreen,
+        GoalPathScreen,
         MonthlyReportScreen,
         PerformanceExploreScreen,
         RebalanceEventScreen,
@@ -1688,6 +1690,117 @@ void main() {
       );
       expect(
         find.descendant(of: pending, matching: find.text('리포트 기준 2026-12-31')),
+        findsNothing,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M7 S7-9 목표 경로(R238) = 조립 셸에 등록 · 월간 리포트 「목표 경로 보기」 → 원장 경로 · 유보 = 불가 카드 · 닫히지 않은 달 = 오류 칸',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      // 오늘 = 2026-12-22 → 닫힌 달 = 11월 · 개시 = 08-03(월) → 11월 = 개시 달부터 3개월(판정).
+      files.sim.execute(
+        'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, account_alias) '
+        "VALUES ('S79-OPEN', '2026-08-03', 10000000, 'KRW', 'DEPOSIT', ?, '2026-08-03T00:00:00Z', NULL)",
+        <Object?>[DecisionReasonCodes.simOpeningBalance],
+      );
+      void snap(String d, int v) => files.sim.execute(
+        'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+        "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+        <Object?>[d, v, v, v],
+      );
+      snap('2026-08-03', 10000000);
+      for (final (String m, int v) in <(String, int)>[
+        ('2026-08', 10100000),
+        ('2026-09', 10300000),
+        ('2026-10', 10600000),
+        ('2026-11', 11000000),
+      ]) {
+        snap(krMonthEndOf(rt.calendars.kr, m).yyyyMmDd, v);
+      }
+      files.sim.execute(
+        'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+        "VALUES ('rc-2026-11-29T22:05:00.000Z#1', '2026-11-29T22:05:00.000Z', 1, '{}', 'MATCHED')",
+      );
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      await open(tester, 'aaq://report/2026-11');
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder report = find.byType(MonthlyReportScreen);
+      final Finder list = find
+          .descendant(of: report, matching: find.byType(Scrollable))
+          .first;
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('s71-goal-link')),
+        300,
+        scrollable: list,
+      );
+      expect(find.text(GoalPathTexts.reportAhead), findsOneWidget);
+      await tester.tap(find.byKey(const Key('s71-goal-link')));
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      final Finder screen = find.byType(GoalPathScreen);
+      expect(screen, findsOneWidget);
+      expect(tester.widget<GoalPathScreen>(screen).yyyyMm, '2026-11');
+      for (final String t in <String>[
+        '목표 경로 기준 2026-11-30',
+        GoalPathTexts.onTrack,
+        GoalPathTexts.basisWithin(11),
+        '2026년 8월 ~ 2026년 11월',
+      ]) {
+        expect(
+          find.descendant(of: screen, matching: find.text(t)),
+          findsOneWidget,
+          reason: t,
+        );
+      }
+      expect(find.byKey(const Key('s79-chart')), findsOneWidget);
+      expect(find.byKey(const Key('s79-unavailable')), findsNothing);
+      expect(find.byKey(const Key('s79-deviation')), findsNothing);
+      // 개시 달부터 1개월 = 판정 유보 → 불가 카드(차트 0).
+      await open(tester, 'aaq://report/goal/2026-09');
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder hold = find.byType(GoalPathScreen).last;
+      expect(
+        find.descendant(of: hold, matching: find.text(GoalPathTexts.withheld)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: hold,
+          matching: find.byKey(const Key('s79-unavailable')),
+        ),
+        findsOneWidget,
+      );
+      // 닫히지 않은 달 = 원천의 실패 → 화면 오류 칸(지어낸 경로 0).
+      await open(tester, 'aaq://report/goal/2026-12');
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder pending = find.byType(GoalPathScreen).last;
+      expect(
+        find.descendant(of: pending, matching: find.text('다시 시도')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: pending,
+          matching: find.byKey(const Key('s79-asof')),
+        ),
         findsNothing,
       );
       await tester.pumpWidget(const SizedBox.shrink());
