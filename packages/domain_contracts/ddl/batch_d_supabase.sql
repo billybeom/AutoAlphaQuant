@@ -44,7 +44,12 @@ create table if not exists operator_lease (
   device_id     text not null references app_device(device_id),
   epoch         bigint not null,                  -- 🔴 세대번호. 비상 펜싱 시 강제 +1
   expires_at    timestamptz not null,             -- TTL (Q-B 권고 T=30분)
-  updated_at    timestamptz not null default now()
+  updated_at    timestamptz not null default now(),
+  -- 🆕 v1.37(01 §46 · K324 · K325 · 미결 218 ⓕ) X1 계획 이전 넘김 티켓 — `device_retire` 가 쓰고 `lease_claim`(논스 대조) · `lease_revoke` 가 지운다.
+  --    해시 = 티켓 논스 sha256(16진 64 · 평문 0) · 만료 = 서버 now() + 운영 설정 `migration.ticket_ttl_minutes`(잠정 값 · 서버 상수 0).
+  ticket_hash        text,
+  ticket_expires_at  timestamptz,
+  check ((ticket_hash is null) = (ticket_expires_at is null))
 );
 alter table operator_lease enable row level security;
 create policy lease_select on operator_lease for select to authenticated using (true);
@@ -60,6 +65,16 @@ create policy lease_select on operator_lease for select to authenticated using (
 --    lease_revoke (p_device_id text, p_recovery_code text, p_new_recovery_code_hash text) — 비상(X1-3 ①)
 --      · 복구 코드 대조(틀림 = RECOVERY_CODE_INVALID) → 같은 트랜잭션: epoch+1 · device_id = 부른 기기 · expires_at = now()(즉시 만료 —
 --        새 폰은 펜싱 대기 뒤 lease_claim) · 옛 보유 기기 status='REVOKED' · recovery_secret 해시 교체(쓴 코드 = 그 뒤 «틀림»)
+-- 🆕 v1.37(01 §46 · K324 · K325 · 13 §8 R244 넘김 (가)(나)(다)) X1 계획 이전 리스 넘김 — 🔵 엔진 예고(본문 = 01 §8 미결 228) ·
+--    이름 · 인자 = 계약 `LeaseHandoverRpcNames` · `LeaseHandoverRpcParams` · 거부 += `LeaseHandoverResultCodes` · 반환 꼴 = 위와 같은 한 행.
+--    device_retire (p_device_id text, p_epoch bigint, p_ticket_nonce_hash text, p_ticket_ttl_minutes int) — 옛 폰 «RETIRED 서명» 단계
+--      · 부른 사용자 = 그 기기 auth_uid ∧ 리스 행 = 그 기기 ∧ epoch 같음(만료됐어도 그 뒤 아무도 안 가져갔으면) → 한 트랜잭션:
+--        app_device.status='RETIRED' · operator_lease.expires_at = now()(즉시 만료) · ticket_hash · ticket_expires_at = now() + ttl
+--      · 반환 expires_at = 티켓 만료 시각 · 다른 기기 · epoch 다름 = LEASE_LOST · 남의 기기 · REVOKED = LEASE_DEVICE_NOT_ELIGIBLE ·
+--        해시 없음 = LEASE_TICKET_REQUIRED · 이미 RETIRED ∧ 같은 epoch ∧ 아직 클레임 없음 = 티켓 교체(재발급 · 멱등 재시도)
+--    lease_claim 셋째 인자 p_ticket_nonce text default null — ticket_hash 가 있으면: 없음 = LEASE_TICKET_REQUIRED ·
+--      sha256 다름 = LEASE_TICKET_INVALID · 만료 = LEASE_TICKET_EXPIRED · 맞음 = 클레임(epoch+1 · 티켓 지움) · 티켓 없음 = 위 규칙 그대로
+--    lease_revoke — 같은 트랜잭션에서 ticket_hash · ticket_expires_at 도 지운다(비상이 넘김 대기를 이긴다)
 
 -- ── 복구 코드 (X3) — 🔴 해시만. 평문은 종이(복구 카드)에만 존재 ─────────────────────
 create table if not exists recovery_secret (

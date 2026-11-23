@@ -239,6 +239,12 @@ final DtoCodec<Object> _blockBoardVm = DtoCodec<BlockBoardVm>(
   BlockBoardVm.fromJson,
   (BlockBoardVm v) => v.toJson(),
 );
+// 🆕 계약 v1.37(01 §46) — M5-13 원장 실사 해소 게이트.
+final DtoCodec<Object> _selfAuditResolveVm = DtoCodec<SelfAuditResolveVm>(
+  'SelfAuditResolveVm',
+  SelfAuditResolveVm.fromJson,
+  (SelfAuditResolveVm v) => v.toJson(),
+);
 final DtoCodec<Object> _resumeReportVm = DtoCodec<ResumeReportVm>(
   'ResumeReportVm',
   ResumeReportVm.fromJson,
@@ -583,6 +589,12 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m5PledgeWritten: FixtureBinding(_pledgeVm),
   FixturePaths.m5SafetyActionResults: FixtureBinding(_safetyActionResult),
   FixturePaths.m5SafetyActionResultsE13: FixtureBinding(_safetyActionResult),
+  FixturePaths.m5SelfAuditResolveOpen: FixtureBinding(_selfAuditResolveVm),
+  FixturePaths.m5SelfAuditResolveHeldBlocked: FixtureBinding(
+    _selfAuditResolveVm,
+  ),
+  FixturePaths.m5SelfAuditResolveClear: FixtureBinding(_selfAuditResolveVm),
+  FixturePaths.m5HeldReviewResults: FixtureBinding(_safetyActionResult),
   // 🆕 v1.26(01 §35) — 보드 RECON 1 · 위저드 12 · 규칙 변경 게이트 5 · 결과 2.
   FixturePaths.m5BlockBoardReconMismatch: FixtureBinding(_blockBoardVm),
   FixturePaths.m5HandoverWizardCommitReady: FixtureBinding(_handoverWizardVm),
@@ -694,6 +706,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m6ManualFillReceipts7: FixtureBinding(_commandReceipt),
   FixturePaths.m6SelfReport1: FixtureBinding(_selfReportSession),
   FixturePaths.m6SelfReportDiffResult: FixtureBinding(_selfReportSession),
+  FixturePaths.m6SelfReportCash2: FixtureBinding(_selfReportSession),
   FixturePaths.m6SelfReportSessionClosed: FixtureBinding(_selfReportSession),
   FixturePaths.m6SelfReportReceipts5: FixtureBinding(_commandReceipt),
   FixturePaths.m6SafetyAdviceBlocked: FixtureBinding(_safetyState),

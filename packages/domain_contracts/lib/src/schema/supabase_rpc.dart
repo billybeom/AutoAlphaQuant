@@ -59,3 +59,43 @@ abstract final class LeaseRpcColumns {
 
   static const Set<String> values = <String>{code, epoch, expiresAt};
 }
+
+// ── 🆕 계약 v1.37(01 §46 · K324 · K325 · 01 §8 미결 218 ⓕ · 13 §8 R244 넘김 (가)(나)(다)) X1 계획 이전 리스 넘김 ──────────
+// 🔴 **엔진 예고** — SQL 본문 · data_sync 클라이언트 · 부트스트랩 대조 시험 = 01 §8 미결 228. 위 세 표(`LeaseRpcNames` · `Params` ·
+//    `Columns`)는 지금 SQL 이 쓰는 글자 그대로 둔다(부트스트랩 시험 «계약 밖 함수 0» · «거부 글자 = 사전 5» 가 깨지지 않게 · K291 결) —
+//    엔진이 SQL 을 지을 때 두 표의 합집합으로 넓힌다.
+// 🔴 반환 = 같은 한 행(`LeaseRpcColumns` 셋) · 거부 = `LeaseRpcResultCodes` ∪ `LeaseHandoverResultCodes` · 시각 = 서버 `now()`.
+// 🔴 티켓 TTL 값 = 운영 설정 `migration.ticket_ttl_minutes`(SPEC 02 §4 · 잠정 값 · 발주자 확정 대기 — 서버 상수 0 · 계약 수치 0).
+
+/// 계획 이전 리스 넘김 RPC 이름(06 X1-2 «RETIRED 서명» 단계).
+abstract final class LeaseHandoverRpcNames {
+  /// 옛 폰 은퇴 — **한 트랜잭션**: 그 기기 `app_device.status = 'RETIRED'` · 리스 즉시 만료(`expires_at = now()`) · 넘김 티켓
+  /// 해시 · 만료 기록(`operator_lease.ticket_hash` · `ticket_expires_at`). 조건 = 부른 사용자 = 그 기기 `auth_uid` ∧ 리스 행 =
+  /// 그 기기 ∧ epoch 같음(만료됐어도 그 뒤 다른 기기가 안 가져갔으면) · 거부 = 다른 기기 · epoch 다름 `LEASE_LOST` · 남의 기기 ·
+  /// `REVOKED` `LEASE_DEVICE_NOT_ELIGIBLE` · 해시 없음 `LEASE_TICKET_REQUIRED`. 🔵 이미 `RETIRED` ∧ 같은 epoch ∧ 아직 아무도
+  /// 클레임 안 함 = 티켓 교체(재발급 · 멱등 재시도). 반환 `expires_at` = **티켓 만료 시각**(리스는 이미 끝났다 · 엔진 티켓 `exp` 원천).
+  /// 🔴 RETIRED 쓰기 · 리스 놓기를 둘로 나누지 않는다 — «RETIRED 인데 리스 보유» 중간 상태 0(K324).
+  static const String retire = 'device_retire';
+
+  static const Set<String> values = <String>{retire};
+}
+
+/// 계획 이전 리스 넘김 RPC 인자 이름.
+abstract final class LeaseHandoverRpcParams {
+  /// 넘김 티켓 논스의 sha256(16진 64 · `device_retire` · 평문 0 — 평문은 QR 페이로드에만(엔진 `TransferTicket.nonce`)).
+  static const String ticketNonceHash = 'p_ticket_nonce_hash';
+
+  /// 티켓 수명(분 · `device_retire` · 값 = 운영 설정 `migration.ticket_ttl_minutes` · 0 이하 = 서버가 받지 않는다).
+  static const String ticketTtlMinutes = 'p_ticket_ttl_minutes';
+
+  /// 넘김 티켓 논스 평문(`lease_claim` 셋째 인자 · `text default null` · 서버가 sha256 으로 대조 · 🔴 저장 · 로그 0).
+  /// 대기 티켓이 있으면: 없음 `LEASE_TICKET_REQUIRED` · 다름 `LEASE_TICKET_INVALID` · 만료 `LEASE_TICKET_EXPIRED` · 맞음 = 클레임
+  /// (epoch+1 · 그 기기 operator `ACTIVE` · 티켓 지움). 대기 티켓 없음 = 기존 규칙(논스 무시). `lease_revoke`(비상) = 대기 티켓도 지운다.
+  static const String ticketNonce = 'p_ticket_nonce';
+
+  static const Set<String> values = <String>{
+    ticketNonceHash,
+    ticketTtlMinutes,
+    ticketNonce,
+  };
+}

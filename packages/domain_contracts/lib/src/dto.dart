@@ -30,4 +30,5 @@ export 'dto/repair.dart'; // 🆕 v1.32 — X5 정정 마법사(01 §41)
 export 'dto/resume.dart';
 export 'dto/safety.dart';
 export 'dto/safety_gate.dart';
+export 'dto/self_audit.dart'; // 🆕 v1.37 — M5-13 원장 실사 해소 게이트(01 §46)
 export 'dto/settings.dart';

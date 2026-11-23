@@ -37,8 +37,9 @@ void main() {
             _env(path)['meta']! as Map<String, Object?>;
         expect(meta['contract_version'], contractVersion, reason: path);
       }
-      expect(FixturePaths.all, hasLength(393));
-      expect(allFixtureFilesOnDisk(), hasLength(393));
+      // 🔵 v1.37(01 §46) — 표본 수 고정 = 최신 창 시험(C-70 ①)만 · 여기는 «신설 3 이 목록 · 디스크에 있다».
+      expect(FixturePaths.all.length, greaterThanOrEqualTo(393));
+      expect(allFixtureFilesOnDisk().length, FixturePaths.all.length);
     });
 
     test('C-68 ② 정정 원문 거부 — 사전 1 · 도메인 · 계획 판정 거울과 서로소 · 결과 표본 · 이름 ≠ 엔진', () {

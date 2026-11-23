@@ -81,6 +81,11 @@ part 'safety_actions.g.dart';
 ///    · `x1RecoveryStep`   = `{run_id, step ∈ X1RecoveryStepCodes}`(골든 · 체크리스트 · 생체 = 구현이 가른다 · 거부 = `X1GateReasonCodes` ∪
 ///                           `X1RestoreResultCodes` ∪ `BackupResultCodes` ∪ `X1OrderSealCodes` ∪ `X1RecoveryResultCodes` ∪ `BIOMETRIC_UNAVAILABLE`)
 /// 🔴 VM 생산 · 단계 진행기 · REVOKED · 재발급 저장 · 백업 바이트 원천 = 엔진 · 조립 숙제(01 §8 미결 218) — 그 전 운영 앱 = 모르는 id 오류.
+/// 🆕 v1.37(01 §46 · K319 · `M5-13` 원장 실사 해소 게이트) — `run` 화이트리스트 +1(표면 무변경 · 제출 DTO 0 · 운영 앱 받침 0):
+///    · `heldCommandsConfirm` = `{review_id}`(엔진 완성 `SelfAuditResolveVm.confirmHeld` · 보관 묶음 스냅숏 id · 구현 = 그 묶음의
+///                              `HELD_FOR_INTEGRITY` 전부 → `RECEIVED`(그 뒤 판정 = 보통 소비 규칙) · 버림 동작 0 · 거부 =
+///                              `HeldReviewResultCodes` ∪ `BIOMETRIC_UNAVAILABLE` · 신뢰 시각 비의존 · 결과 id = 같은 id).
+/// 🔴 `ADVICE_LEDGER_UNVERIFIED` 해제 동작은 없다(해제 = 실사 0오차를 본 엔진이 스스로 · 06 M5-13 · C-70 ③) — 생산 = 01 §8 미결 226.
 abstract interface class SafetyActions {
   /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
   Future<SafetyActionResult> run(
@@ -149,7 +154,8 @@ abstract class SafetyActionResult with _$SafetyActionResult {
     /// `PostmortemResultCodes` ∪ `InterventionResultCodes` ∪ `RuleChangeResultCodes` ∪ `DiscretionResultCodes` ∪
     /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
     /// `ReconClearResultCodes` ∪ 🆕 v1.32 `RepairResultCodes` ∪ `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪
-    /// 🆕 v1.35 `RepairInputResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ · C-66 · C-68).
+    /// 🆕 v1.35 `RepairInputResultCodes` ∪ 🆕 v1.37 `HeldReviewResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ ·
+    /// C-66 · C-68 · C-70 ④).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).

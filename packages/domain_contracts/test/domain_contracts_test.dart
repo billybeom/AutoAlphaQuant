@@ -78,7 +78,9 @@ void main() {
     //    픽스처 393(신설 3 · 개정 1) · C-68 · 다음 판 = 1.36.0(D15 읽기 모델 열 표).
     // 🔵 '1.36.0'(D15 읽기 모델 열 표 · 01 §45) — `ReadModelTables` 22 · 열 = 결속 DTO toJson 키 · 목록 봉투 표 · RLS 본문 ·
     //    픽스처 393(버전 줄만) · C-69 · 다음 판 = 1.37.0(M5-13 해소 게이트 · L-3 현금 축 — 미결 224 · 225).
-    expect(contractVersion, '1.36.0');
+    // 🔵 '1.37.0'(M5 판 · 01 §46) — `M5-13` 해소 게이트 VM · 보관 일괄 확정 · L-3 현금 축 · X1 리스 넘김 · 결정 사유 2 ·
+    //    픽스처 398(신설 5) · C-70 · 다음 판 = 1.38.0(postmortem 쓰기 — 미결 188 · 13 R243).
+    expect(contractVersion, '1.37.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.

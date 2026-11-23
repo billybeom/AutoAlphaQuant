@@ -205,10 +205,11 @@ String _repoSources() =>
 
 void main() {
   group('C-69 읽기 모델 열 표 (01 §45)', () {
-    test('C-69 ① 판 · 표본 — 1.36.0 · 표본 393(버전 줄만)', () {
-      expect(contractVersion, '1.36.0');
-      expect(FixturePaths.all, hasLength(393));
-      expect(allFixtureFilesOnDisk(), hasLength(393));
+    // 🔵 v1.37(01 §46) — 판 글자 · 표본 수 고정 = 최신 창 시험(C-70 ①)만 · 여기는 판 무관.
+    test('C-69 ① 판 · 표본 — 1.36.0 이상 · 표본 393 이상(목록 = 디스크)', () {
+      expect(contractVersion.compareTo('1.36.0'), greaterThanOrEqualTo(0));
+      expect(FixturePaths.all.length, greaterThanOrEqualTo(393));
+      expect(allFixtureFilesOnDisk().length, FixturePaths.all.length);
     });
 
     test('C-69 ② 표 22 — 이름 · 차례 · `rm_` 접두 · 유일', () {

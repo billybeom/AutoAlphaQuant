@@ -35,5 +35,6 @@ export 'repositories/resume_repository.dart';
 export 'repositories/rule_change_gate_repository.dart';
 export 'repositories/runbook_repository.dart';
 export 'repositories/safety_repository.dart';
+export 'repositories/self_audit_resolve_repository.dart'; // 🆕 v1.37 — M5-13(01 §46)
 export 'repositories/settings_repository.dart';
 export 'repositories/what_if_api.dart';

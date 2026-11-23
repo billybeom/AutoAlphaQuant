@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 129개 · 계약 v1.36.0 · 조립일 2026-11-23(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 131개 · 계약 v1.37.0 · 조립일 2026-11-24(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -100,7 +100,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개 · 1.33.0 상향 때 390개 · 1.34.0 상향 때 390개 · 1.35.0 상향 때 393개 · 1.36.0 상향 때 393개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개 · 1.33.0 상향 때 390개 · 1.34.0 상향 때 390개 · 1.35.0 상향 때 393개 · 1.36.0 상향 때 393개 · 1.37.0 상향 때 398개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -386,12 +386,20 @@ export 'commands/settings_actions.dart';
 //    목록 VM = 모드별 1행 · `ReadModelListCodes` 8 · RLS = select 전용 `app_device` ACTIVE 조인 · 🆕 C-69 · 픽스처 393(버전 줄만) —
 //    🆕 tool/gen_v136_read_model_fixtures.py · `ddl/batch_d_supabase.sql` 주석(표 22 · 정본 = 이 상수) + data_sync 부트스트랩 사본 재생성.
 //    🔴 엔진 · 조립 = 미결 222(E11l1 생성기 · E11l2 push) · 뷰어 조립 = 미결 223 · 다음 판 = 1.37.0(M5-13 · L-3 현금 축 — 미결 224 · 225).
+// 🆕 '1.37.0'(M5 판 · 01 §46 · 13 §8 R249 · 발주자 위임 2026-11-14 — 권고대로 · K317~K329) — 미결 224 · 225 · 218 ⓕⓖ(X1 넘김 4):
+//    🆕 `M5-13` 원장 실사 해소 게이트 `SelfAuditResolveVm` · `HeldCommandRow` · 창구 `SelfAuditResolveRepository.watchResolve()`(라우트 =
+//    기존 `m5SelfAuditResolve` · 수동 해제 필드 0) · `SafetyActionId.heldCommandsConfirm`(`run{review_id}` · 표면 무변경) · 🆕
+//    `HeldReviewResultCodes` 3(`held_review_result`) · `CANON_SELF_REPORT` = X5 정정 대상 아님(해소 = 다시 실사 0오차) · L-3 현금 축
+//    (원천 = 계좌 별칭 두 갈래 · 허용 오차 = 운영 설정 키 · 값 = 발주자 수치 대기 · 계약 수치 0) · X1 🆕 `LeaseHandoverRpcNames`
+//    (`device_retire`) · `LeaseHandoverRpcParams` 3 · 🆕 `LeaseHandoverResultCodes` 3(`lease_handover_result`) · `operator_lease` 티켓 2열 ·
+//    `DecisionReasonCodes` +2(`X1_D03_CONFIRMED` · `X1_EMERGENCY_DECLARED` · kind = `SAFETY` · 스키마 0) · `byDomain` +2 · 🆕 C-70 ·
+//    픽스처 393 → 398(신설 5) — 🆕 tool/gen_v137_m5_x7_x1_fixtures.py · 🔴 엔진 · 조립 = 미결 226 · 227 · 228 · postmortem = 1.38.0.
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.36.0';
+const String contractVersion = '1.37.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -469,6 +477,7 @@ export 'dto/repair.dart'; // 🆕 v1.32 — X5 정정 마법사(01 §41)
 export 'dto/resume.dart';
 export 'dto/safety.dart';
 export 'dto/safety_gate.dart';
+export 'dto/self_audit.dart'; // 🆕 v1.37 — M5-13 원장 실사 해소 게이트(01 §46)
 export 'dto/settings.dart';
 ```
 
@@ -626,6 +635,7 @@ export 'repositories/resume_repository.dart';
 export 'repositories/rule_change_gate_repository.dart';
 export 'repositories/runbook_repository.dart';
 export 'repositories/safety_repository.dart';
+export 'repositories/self_audit_resolve_repository.dart'; // 🆕 v1.37 — M5-13(01 §46)
 export 'repositories/settings_repository.dart';
 export 'repositories/what_if_api.dart';
 ```
@@ -1829,6 +1839,11 @@ part 'safety_actions.g.dart';
 ///    · `x1RecoveryStep`   = `{run_id, step ∈ X1RecoveryStepCodes}`(골든 · 체크리스트 · 생체 = 구현이 가른다 · 거부 = `X1GateReasonCodes` ∪
 ///                           `X1RestoreResultCodes` ∪ `BackupResultCodes` ∪ `X1OrderSealCodes` ∪ `X1RecoveryResultCodes` ∪ `BIOMETRIC_UNAVAILABLE`)
 /// 🔴 VM 생산 · 단계 진행기 · REVOKED · 재발급 저장 · 백업 바이트 원천 = 엔진 · 조립 숙제(01 §8 미결 218) — 그 전 운영 앱 = 모르는 id 오류.
+/// 🆕 v1.37(01 §46 · K319 · `M5-13` 원장 실사 해소 게이트) — `run` 화이트리스트 +1(표면 무변경 · 제출 DTO 0 · 운영 앱 받침 0):
+///    · `heldCommandsConfirm` = `{review_id}`(엔진 완성 `SelfAuditResolveVm.confirmHeld` · 보관 묶음 스냅숏 id · 구현 = 그 묶음의
+///                              `HELD_FOR_INTEGRITY` 전부 → `RECEIVED`(그 뒤 판정 = 보통 소비 규칙) · 버림 동작 0 · 거부 =
+///                              `HeldReviewResultCodes` ∪ `BIOMETRIC_UNAVAILABLE` · 신뢰 시각 비의존 · 결과 id = 같은 id).
+/// 🔴 `ADVICE_LEDGER_UNVERIFIED` 해제 동작은 없다(해제 = 실사 0오차를 본 엔진이 스스로 · 06 M5-13 · C-70 ③) — 생산 = 01 §8 미결 226.
 abstract interface class SafetyActions {
   /// ⚠️ `SettingsActions.run` 과 같은 최소 보정 — non-nullable 선택 명명 인자에 `const {}` 기본값.
   Future<SafetyActionResult> run(
@@ -1897,7 +1912,8 @@ abstract class SafetyActionResult with _$SafetyActionResult {
     /// `PostmortemResultCodes` ∪ `InterventionResultCodes` ∪ `RuleChangeResultCodes` ∪ `DiscretionResultCodes` ∪
     /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
     /// `ReconClearResultCodes` ∪ 🆕 v1.32 `RepairResultCodes` ∪ `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪
-    /// 🆕 v1.35 `RepairInputResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ · C-66 · C-68).
+    /// 🆕 v1.35 `RepairInputResultCodes` ∪ 🆕 v1.37 `HeldReviewResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ ·
+    /// C-66 · C-68 · C-70 ④).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).
@@ -9129,6 +9145,110 @@ abstract class RuleChangeQueueRow with _$RuleChangeQueueRow {
 
 ---
 
+## `packages/domain_contracts/lib/src/dto/self_audit.dart`
+
+```dart
+// packages/domain_contracts/lib/src/dto/self_audit.dart
+//
+// 🆕 계약 v1.37(01 §46 · K318~K323 · 01 §8 미결 224) — `M5-13` 원장 실사 «해소» 게이트 한 화면
+//    (창구 = `SelfAuditResolveRepository.watchResolve()` · 라우트 = `AppRoutes.m5SelfAuditResolve`(파라미터 0) · 🔒 `ui_safety`).
+// 🔴 해제 경로 = **실사 0오차 통과 하나**(06 M5-13 · D8) — 수동 해제 버튼 · 필드 · 동작 0(M5-5 꼴 · C-70 ③).
+//    플래그 `ADVICE_LEDGER_UNVERIFIED` 는 엔진이 0오차 실사를 본 순간 스스로 내린다(화면이 부르는 동작 없음).
+// 🔴 `CANON_SELF_REPORT` 차이는 X5 정정 마법사 대상이 아니다(K320) — 행 조치 = «다시 실사하기»(그 달 · 그 계좌 `L-3`) ·
+//    차이를 없애는 길 = 기록(`A-3` · `M5-6`) · 정정(`M5-12`) 뒤 다시 실사 · 닫힘 = RESOLVED(ACCEPTED 갈래 0).
+// 🔴 보관 명령(`CommandState.heldForIntegrity` · B18) 검토 = **일괄 확정** 하나(K319) — 버림 동작 0(«명령은 사실을 잃지 않는다» 01 §10-8) ·
+//    확정 = 엔진 완성 `SafetyActionCall`(`heldCommandsConfirm` · `{review_id}`) 을 화면이 그대로 넘긴다.
+// 🔴 폰 전용 · 읽기 모델 열 0(v1.36 `ReadModelTables` 무변경 · K321 ⑤) · 화면은 받은 글자 · 차례 그대로(분기 0).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../commands/safety_actions.dart'; // SafetyActionCall
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import 'common.dart'; // LinkAction
+import 'ledger.dart'; // LedgerDiffRow
+
+part 'self_audit.freezed.dart';
+part 'self_audit.g.dart';
+
+/// `M5-13` 원장 실사 해소 게이트 한 화면.
+/// 🔴 불변식(엔진 의무 · C-70 ②) — [diffsEmptyLabel] non-null ⇔ [diffs] 빈 · [heldEmptyLabel] non-null ⇔ [heldCommands] 빈 ·
+///    [confirmHeld] non-null ⇒ [heldCommands] 비지 않음 ∧ [heldBlockedText] null ∧ id = `heldCommandsConfirm` ∧ args 키 = {`review_id`} ·
+///    [heldBlockedText] non-null ⇒ [confirmHeld] null ∧ [heldCommands] 비지 않음 · [counterLines] 길이 ∈ {0, 2}(투자 안내 모드 = 2 ·
+///    미처리 갭 → 실사 갭 차례 · 그 밖 = 0) · [diffs] 행 = `CANON_SELF_REPORT` ∧ 열림 · [auditLinks] 목적지 = `L-3`(그 달 · 그 계좌).
+@freezed
+abstract class SelfAuditResolveVm with _$SelfAuditResolveVm {
+  const factory SelfAuditResolveVm({
+    /// 머리(엔진 — «신규 진입 안내가 멈춰 있습니다» · «원장 미검증 표식이 없습니다»).
+    required String headline,
+    required UiLevel level,
+
+    /// 플래그 상태 한 줄(엔진 — 언제부터 · 무엇을 막는지 · 청산 · 방어 안내는 그대로라는 사실).
+    required String flagLine,
+
+    /// 해제 규칙 문장(엔진 — «대응 계좌의 실사가 0오차로 통과하면 풀립니다 · 수동 해제는 없습니다»).
+    required String releaseRuleText,
+
+    /// 두 카운터(B22 · X7-3) — 받은 차례 = [미처리 갭, 실사 갭] · 엔진 완성 문장 · 투자 안내 모드가 아니면 빈 목록.
+    @Default(<String>[]) List<String> counterLines,
+
+    /// 열린 `CANON_SELF_REPORT` 차이(`L-1` 과 같은 엔진 사전 · 받은 차례) — 행 `actionLink` = «다시 실사하기»(폰 · 그 달 · 그 계좌 `L-3`).
+    @Default(<LedgerDiffRow>[]) List<LedgerDiffRow> diffs,
+
+    /// «열린 차이가 없습니다»(엔진) — non-null ⇔ [diffs] 빈.
+    String? diffsEmptyLabel,
+
+    /// 0오차 실사가 아직 필요한 계좌(엔진 차례) — «연금저축 계좌 실사 하기» → `aaq://ledger/self-report/<yyyy-MM>/<별칭>`.
+    @Default(<LinkAction>[]) List<LinkAction> auditLinks,
+
+    /// 보관 명령(`HELD_FOR_INTEGRITY` · 받은 차례 = 접수 차례).
+    @Default(<HeldCommandRow>[]) List<HeldCommandRow> heldCommands,
+
+    /// «보관된 명령이 없습니다»(엔진) — non-null ⇔ [heldCommands] 빈.
+    String? heldEmptyLabel,
+
+    /// 일괄 확정(엔진 완성 · `SafetyActionId.heldCommandsConfirm` · `{review_id}`) — null = 확정할 것 없음 또는 무결성 점검 중.
+    SafetyActionCall? confirmHeld,
+
+    /// «원장 무결성 점검이 끝나야 확정할 수 있습니다»(엔진) — non-null ⇒ [confirmHeld] null.
+    String? heldBlockedText,
+    required AsOf asOf,
+  }) = _SelfAuditResolveVm;
+
+  factory SelfAuditResolveVm.fromJson(Map<String, dynamic> json) =>
+      _$SelfAuditResolveVmFromJson(json);
+}
+// JSON 키: headline · level · flag_line · release_rule_text · counter_lines · diffs · diffs_empty_label · audit_links ·
+//         held_commands · held_empty_label · confirm_held · held_blocked_text · as_of
+
+/// 🆕 v1.37(K318) — 보관 명령 한 행(사람이 낸 사실 — 엔진이 계산한 값이 아니라 가림 대상 아님 · 01 §10-8 B18).
+@freezed
+abstract class HeldCommandRow with _$HeldCommandRow {
+  const factory HeldCommandRow({
+    /// 🔴 화면 미참조(시험 · Key) — `command_inbox.command_id`.
+    required String commandId,
+
+    /// «수기 체결 기록» · «실입금 등록» · «정기 실사 제출»(엔진 — 명령 종류 글자).
+    required String kindLabel,
+
+    /// 한 줄 요약(엔진 — «069500 매수 3주 · 2026-09-02 체결» 꼴).
+    required String summaryText,
+
+    /// «2026-09-02 10:14 접수»(엔진).
+    required String receivedAtText,
+
+    /// «보관 — 무결성 점검 뒤 확정»(엔진 · `CommandState` 짝 글자).
+    required String stateLabel,
+  }) = _HeldCommandRow;
+
+  factory HeldCommandRow.fromJson(Map<String, dynamic> json) =>
+      _$HeldCommandRowFromJson(json);
+}
+// JSON 키: command_id · kind_label · summary_text · received_at_text · state_label
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/dto/settings.dart`
 
 ```dart
@@ -10073,7 +10193,12 @@ enum SafetyActionId {
 
   /// 🆕 v1.33(K273) — X1 새 폰 복구 단계(`run{run_id, step}` · 골든 · 체크리스트 · 생체 = 구현이 가른다 · 생체 = 구현 K11).
   @JsonValue('X1_RECOVERY_STEP')
-  x1RecoveryStep('X1_RECOVERY_STEP');
+  x1RecoveryStep('X1_RECOVERY_STEP'),
+
+  /// 🆕 v1.37(01 §46 · K319) — `M5-13` 보관 명령 일괄 확정(`run{review_id}` · 엔진 완성 `SelfAuditResolveVm.confirmHeld` ·
+  /// 거부 = `HeldReviewResultCodes` ∪ `BIOMETRIC_UNAVAILABLE` · 생체 = 구현 K11 · 버림 동작 0).
+  @JsonValue('HELD_COMMANDS_CONFIRM')
+  heldCommandsConfirm('HELD_COMMANDS_CONFIRM');
 
   const SafetyActionId(this.wire);
 
@@ -11876,6 +12001,22 @@ abstract final class FixturePaths {
   static const String m5SafetyActionResultsE13 =
       'm5/safety_action_results_e13.json';
 
+  /// 🆕 v1.37(01 §46 · K318 · K321) — `M5-13` 해소 게이트: 플래그 섬 · 카운터 2 · 열린 자가 보고 차이 2(수량 · 현금) · 실사 링크 1 ·
+  /// 보관 1 · 일괄 확정(`SelfAuditResolveVm`).
+  static const String m5SelfAuditResolveOpen =
+      'm5/self_audit_resolve_open.json';
+
+  /// 🆕 v1.37(K319) — `M5-13` 보관 2 · 무결성 점검 중(확정 null · 막힘 문장) · 차이 0.
+  static const String m5SelfAuditResolveHeldBlocked =
+      'm5/self_audit_resolve_held_blocked.json';
+
+  /// 🆕 v1.37 — `M5-13` 표식 없음 · 차이 0 · 보관 0(빈 문장들).
+  static const String m5SelfAuditResolveClear =
+      'm5/self_audit_resolve_clear.json';
+
+  /// 🆕 v1.37(K319) — 보관 명령 일괄 확정 결과 4행(`HELD_COMMANDS_CONFIRM` · 확정 1 · 거부 3 = `HeldReviewResultCodes`).
+  static const String m5HeldReviewResults = 'm5/held_review_results.json';
+
   // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
   static const String m6Advice12 = 'm6/advice_12.json';
   static const String m6AdviceBlocked = 'm6/advice_blocked.json';
@@ -12130,6 +12271,10 @@ abstract final class FixturePaths {
   /// 🆕 v1.12 — `SELF_REPORT_BALANCE` 접수증 5행(REQUESTED · EXECUTED · REJECTED `SELF_REPORT_OUTSIDE_SESSION` ·
   ///    REJECTED `INPUT_INVALID` · HELD_FOR_INTEGRITY) — `L-3` 위젯 테스트.
   static const String m6SelfReportReceipts5 = 'm6/self_report_receipts_5.json';
+
+  /// 🆕 v1.37(01 §46 · K323 · 미결 225) — `L-3` 현금 축: ① 현금 차이 1(`CANON_SELF_REPORT` · `CASH` · 관측) ② 차이 0 · 현금 미대조 문장
+  /// (허용 오차 값 없음 · `SelfReportSession` 2행).
+  static const String m6SelfReportCash2 = 'm6/self_report_cash_2.json';
 
   /// 🆕 v1.12(N12) — `a1_blocked` 의 안전 배너 입력(`journalSafetyStateProvider`) — `safety_states` rows[1] 꼴(ALERT) +
   ///    `active_flags` = `advice_blocked` 의 형제 키 블록 그대로(`ADVICE_LEDGER_UNVERIFIED`).
@@ -12901,6 +13046,10 @@ abstract final class FixturePaths {
     m5RuleChangeRequestResults,
     m5SafetyActionResults,
     m5SafetyActionResultsE13,
+    m5SelfAuditResolveOpen,
+    m5SelfAuditResolveHeldBlocked,
+    m5SelfAuditResolveClear,
+    m5HeldReviewResults,
     m6Advice12,
     m6AdviceBlocked,
     m6AdviceDetailOnhold,
@@ -12979,6 +13128,7 @@ abstract final class FixturePaths {
     m6SelfReportDiffResult,
     m6SelfReportSessionClosed,
     m6SelfReportReceipts5,
+    m6SelfReportCash2,
     m6SafetyAdviceBlocked,
     m6UnknownBoard2,
     m6UnknownBoardEmpty,
@@ -13454,7 +13604,16 @@ abstract final class DecisionReasonCodes {
   /// 🆕 v1.22 — 위저드 5단계 모의 기록 지움.
   static const String simLedgerDiscard = 'SIM_LEDGER_DISCARD';
 
-  /// 전량 12종(🆕 v1.22 +2).
+  /// 🆕 v1.37(01 §46 · K326 · 01 §8 미결 218 ⓖ · 13 §8 R244 넘김 (라)) — X1 계획 이전 `D-03` 오프라인 긴급정지 카드 확인
+  /// (옛 폰 · 이전 시작 전 · `decision_log.kind='SAFETY'` · 결정 id = `migration_run.decision_id` 와 같은 값 · 전략 `P0S` ·
+  /// 백업 체크섬 앞이라 새 폰으로 함께 넘어간다). 🔴 `decision_log.kind` 새 값 0(CHECK 9 그대로 · 스키마 0).
+  static const String x1D03Confirmed = 'X1_D03_CONFIRMED';
+
+  /// 🆕 v1.37(K326) — X1 비상 선언(새 폰 · `decision_log.kind='SAFETY'` · 결정 id = 회수 행 `decision_id`(`X1EMG-<명령 id>` ·
+  /// R244 W6) · 복원 전엔 live 원장이 없으니 복원 뒤 그 원장에 같은 id 로 1행 — R244 W2 sim `command_inbox` 기록이 원천).
+  static const String x1EmergencyDeclared = 'X1_EMERGENCY_DECLARED';
+
+  /// 전량 14종(🆕 v1.22 +2 · 🆕 v1.37 +2).
   static const Set<String> values = <String>{
     openingBalance,
     simOpeningBalance,
@@ -13468,6 +13627,8 @@ abstract final class DecisionReasonCodes {
     livePromotion,
     simLedgerKeep,
     simLedgerDiscard,
+    x1D03Confirmed,
+    x1EmergencyDeclared,
   };
 }
 
@@ -14654,6 +14815,9 @@ abstract final class ContractCodes {
     'repair_input_result': RepairInputResultCodes.values,
     'decision_journal_kind': DecisionJournalKinds.values,
     'journal_rule_cited': JournalRuleCitedCodes.values,
+    // 🆕 v1.37(01 §46) — M5-13 보관 명령 일괄 확정 거부(K319) · X1 계획 이전 리스 넘김 거부(K324 · K325)
+    'held_review_result': HeldReviewResultCodes.values,
+    'lease_handover_result': LeaseHandoverResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -16263,6 +16427,28 @@ abstract final class ReconClearResultCodes {
     journalMissing,
   };
 }
+
+/// 🆕 v1.37(01 §46 · K319 · 01 §8 미결 224 ⓑ) — `M5-13` 보관 명령 일괄 확정 거부(도메인 `held_review_result` · 🔵 **엔진 예고** —
+/// 생산 = 01 §8 미결 226). 확정 = 엔진 완성 `SafetyActionCall`(`heldCommandsConfirm` · `{review_id}`)을 그대로 넘긴 것만 받는다.
+/// 공용 `BIOMETRIC_UNAVAILABLE`(`SettingsResultCodes`)은 따로 — 다시 적지 않는다.
+/// 🔴 버림(DISCARD) 코드 0 — 보관 명령은 사람이 낸 사실이라 버리지 않는다(01 §10-8) · 확정 뒤 판정 = 보통 소비 규칙
+///    (`staleContext` · 접수증 거부 사전 그대로).
+abstract final class HeldReviewResultCodes {
+  /// `review_id` 가 지금 보관 묶음과 다르다(그 사이 새 보관 · 이미 확정) — 화면을 다시 읽고 다시 누른다.
+  static const String stale = 'HELD_REVIEW_STALE';
+
+  /// `LEDGER_INTEGRITY` 가 아직 서 있다(무결성 점검이 끝나야 확정 — B18).
+  static const String integrityActive = 'HELD_REVIEW_INTEGRITY_ACTIVE';
+
+  /// 인자가 `{review_id}` 꼴이 아니다(모르는 키 · 열거형 밖 자유 서술 — 06 M5-13 검증 게이트).
+  static const String argsInvalid = 'HELD_REVIEW_ARGS_INVALID';
+
+  static const Set<String> values = <String>{
+    stale,
+    integrityActive,
+    argsInvalid,
+  };
+}
 ```
 
 ---
@@ -17038,6 +17224,28 @@ abstract final class LeaseRpcResultCodes {
     deviceNotEligible,
     recoveryCodeRequired,
     recoveryCodeInvalid,
+  };
+}
+
+/// 🆕 v1.37(01 §46 · K324 · K325 · 01 §8 미결 218 ⓕ) — X1 계획 이전 리스 넘김 거부(도메인 `lease_handover_result` · 🔵 **엔진 예고** —
+/// SQL 본문 · 클라이언트 = 01 §8 미결 228). `device_retire` · `lease_claim`(티켓 논스) 이 돌려준다.
+/// 🔴 [LeaseRpcResultCodes] 와 따로 둔다 — 그 사전 5 = 지금 SQL(E11k-e2) 이 쓰는 글자 전부라는 data_sync 부트스트랩 대조 시험이
+///    서 있다(K291 결 · 엔진이 SQL 을 지을 때 두 사전 합집합으로 시험을 넓힌다). 공용 거부(`LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE`)는
+///    [LeaseRpcResultCodes] 그대로 — 다시 적지 않는다.
+abstract final class LeaseHandoverResultCodes {
+  /// 티켓이 있어야 한다(`device_retire` 에 논스 해시 없음 · 넘김 대기 중 `lease_claim` 에 논스 없음).
+  static const String ticketRequired = 'LEASE_TICKET_REQUIRED';
+
+  /// 논스가 대기 티켓 해시와 맞지 않는다.
+  static const String ticketInvalid = 'LEASE_TICKET_INVALID';
+
+  /// 대기 티켓이 만료됐다(서버 `now()` 기준) — 옛 폰이 `device_retire` 를 다시 불러 티켓을 바꾸거나(재발급) 비상 경로.
+  static const String ticketExpired = 'LEASE_TICKET_EXPIRED';
+
+  static const Set<String> values = <String>{
+    ticketRequired,
+    ticketInvalid,
+    ticketExpired,
   };
 }
 ```
@@ -19018,6 +19226,25 @@ abstract interface class SafetyRepository {
 
 ---
 
+## `packages/domain_contracts/lib/src/repositories/self_audit_resolve_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 계약 v1.37(01 §46 · K318 · 01 §8 미결 224) — `M5-13` 원장 실사 해소 게이트 읽기 창구(`ui_safety` 만 · 상태를 바꾸는 경로 0 — C-7).
+//
+// 🔴 기존 `LedgerTrustRepository`(배지 · `L-3` 세션) · `LedgerRepository`(`L-1`) · `BlockBoardRepository`(`M5-5`) 무변경 —
+//    해소 게이트는 플래그 · 두 카운터 · 열린 자가 보고 차이 · 보관 명령을 한 스트림으로 감싼다(v1.25 K154 결).
+// 🔴 쓰기 = `SafetyActions.run(heldCommandsConfirm, {review_id})`(엔진 완성 `SelfAuditResolveVm.confirmHeld`) 하나 · 플래그 해제 동작 0.
+
+import '../dto/self_audit.dart';
+
+/// `M5-13` 한 화면.
+abstract interface class SelfAuditResolveRepository {
+  Stream<SelfAuditResolveVm> watchResolve();
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/repositories/settings_repository.dart`
 
 ```dart
@@ -20519,6 +20746,46 @@ abstract final class LeaseRpcColumns {
   static const String expiresAt = 'expires_at';
 
   static const Set<String> values = <String>{code, epoch, expiresAt};
+}
+
+// ── 🆕 계약 v1.37(01 §46 · K324 · K325 · 01 §8 미결 218 ⓕ · 13 §8 R244 넘김 (가)(나)(다)) X1 계획 이전 리스 넘김 ──────────
+// 🔴 **엔진 예고** — SQL 본문 · data_sync 클라이언트 · 부트스트랩 대조 시험 = 01 §8 미결 228. 위 세 표(`LeaseRpcNames` · `Params` ·
+//    `Columns`)는 지금 SQL 이 쓰는 글자 그대로 둔다(부트스트랩 시험 «계약 밖 함수 0» · «거부 글자 = 사전 5» 가 깨지지 않게 · K291 결) —
+//    엔진이 SQL 을 지을 때 두 표의 합집합으로 넓힌다.
+// 🔴 반환 = 같은 한 행(`LeaseRpcColumns` 셋) · 거부 = `LeaseRpcResultCodes` ∪ `LeaseHandoverResultCodes` · 시각 = 서버 `now()`.
+// 🔴 티켓 TTL 값 = 운영 설정 `migration.ticket_ttl_minutes`(SPEC 02 §4 · 잠정 값 · 발주자 확정 대기 — 서버 상수 0 · 계약 수치 0).
+
+/// 계획 이전 리스 넘김 RPC 이름(06 X1-2 «RETIRED 서명» 단계).
+abstract final class LeaseHandoverRpcNames {
+  /// 옛 폰 은퇴 — **한 트랜잭션**: 그 기기 `app_device.status = 'RETIRED'` · 리스 즉시 만료(`expires_at = now()`) · 넘김 티켓
+  /// 해시 · 만료 기록(`operator_lease.ticket_hash` · `ticket_expires_at`). 조건 = 부른 사용자 = 그 기기 `auth_uid` ∧ 리스 행 =
+  /// 그 기기 ∧ epoch 같음(만료됐어도 그 뒤 다른 기기가 안 가져갔으면) · 거부 = 다른 기기 · epoch 다름 `LEASE_LOST` · 남의 기기 ·
+  /// `REVOKED` `LEASE_DEVICE_NOT_ELIGIBLE` · 해시 없음 `LEASE_TICKET_REQUIRED`. 🔵 이미 `RETIRED` ∧ 같은 epoch ∧ 아직 아무도
+  /// 클레임 안 함 = 티켓 교체(재발급 · 멱등 재시도). 반환 `expires_at` = **티켓 만료 시각**(리스는 이미 끝났다 · 엔진 티켓 `exp` 원천).
+  /// 🔴 RETIRED 쓰기 · 리스 놓기를 둘로 나누지 않는다 — «RETIRED 인데 리스 보유» 중간 상태 0(K324).
+  static const String retire = 'device_retire';
+
+  static const Set<String> values = <String>{retire};
+}
+
+/// 계획 이전 리스 넘김 RPC 인자 이름.
+abstract final class LeaseHandoverRpcParams {
+  /// 넘김 티켓 논스의 sha256(16진 64 · `device_retire` · 평문 0 — 평문은 QR 페이로드에만(엔진 `TransferTicket.nonce`)).
+  static const String ticketNonceHash = 'p_ticket_nonce_hash';
+
+  /// 티켓 수명(분 · `device_retire` · 값 = 운영 설정 `migration.ticket_ttl_minutes` · 0 이하 = 서버가 받지 않는다).
+  static const String ticketTtlMinutes = 'p_ticket_ttl_minutes';
+
+  /// 넘김 티켓 논스 평문(`lease_claim` 셋째 인자 · `text default null` · 서버가 sha256 으로 대조 · 🔴 저장 · 로그 0).
+  /// 대기 티켓이 있으면: 없음 `LEASE_TICKET_REQUIRED` · 다름 `LEASE_TICKET_INVALID` · 만료 `LEASE_TICKET_EXPIRED` · 맞음 = 클레임
+  /// (epoch+1 · 그 기기 operator `ACTIVE` · 티켓 지움). 대기 티켓 없음 = 기존 규칙(논스 무시). `lease_revoke`(비상) = 대기 티켓도 지운다.
+  static const String ticketNonce = 'p_ticket_nonce';
+
+  static const Set<String> values = <String>{
+    ticketNonceHash,
+    ticketTtlMinutes,
+    ticketNonce,
+  };
 }
 ```
 
