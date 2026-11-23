@@ -336,6 +336,58 @@ void main() {
       );
     });
 
+    test('원소 칸 null = 던지거나 null 그대로(원소 DTO 기본 값으로 메우지 않는다)', () {
+      int n = 0;
+      for (final (
+            String col,
+            List<Map<String, dynamic>> Function(Map<String, Object?>) read,
+            Map<String, Object?> row,
+          )
+          in <
+            (
+              String,
+              List<Map<String, dynamic>> Function(Map<String, Object?>),
+              Map<String, Object?>,
+            )
+          >[
+            (
+              'sleeve_catalog',
+              (Map<String, Object?> r) => <Map<String, dynamic>>[
+                for (final SleeveCatalogEntry e in sleeveCatalogOfRow(r))
+                  e.toJson(),
+              ],
+              rowOf(ReadModelTables.configView),
+            ),
+            (
+              'rhythm',
+              (Map<String, Object?> r) => <Map<String, dynamic>>[
+                for (final OpsRhythmRow e in opsRhythmOfRow(r)) e.toJson(),
+              ],
+              rowOf(ReadModelTables.opsSummary),
+            ),
+          ]) {
+        final Map<String, Object?> first =
+            (row[col]! as List<Object?>).first! as Map<String, Object?>;
+        for (final String k in first.keys) {
+          final Map<String, Object?> bad = <String, Object?>{
+            ...row,
+            col: <Object?>[
+              <String, Object?>{...first, k: null},
+            ],
+          };
+          final List<Map<String, dynamic>> got;
+          try {
+            got = read(bad);
+          } on FormatException {
+            n++;
+            continue;
+          }
+          expect(got.single[k], isNull, reason: '$col[0].$k 메움');
+        }
+      }
+      expect(n, greaterThan(3));
+    });
+
     test('열 없음 · 목록 아님 · 원소 객체 아님 · 원소 꼴 틀림 = FormatException', () {
       final Map<String, Object?> cfg = rowOf(ReadModelTables.configView);
       expect(
