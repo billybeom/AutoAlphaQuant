@@ -895,6 +895,25 @@ LedgerTrustBadge monthlyLedgerTrustOf({
   if (!_ymd.hasMatch(end)) {
     throw ArgumentError.value(end, 'monthEnd', 'YYYY-MM-DD 가 아니다');
   }
+  return reconLedgerTrustOf(
+    checks: checks,
+    throughDay: end,
+    noReconLine: MonthlyTrustTexts.noReconLine,
+    hasBody: hasBody,
+  );
+}
+
+/// 🆕 E11q-q6c — 브로커 대사 결과 → 원장 신뢰 배지(한 판정 · as-of 만 다르다): 월간 리포트 = 그 달 마감([monthlyLedgerTrustOf]) ·
+/// 지금 등급(`LedgerTrustRepository.watchGrade` · 자동 매매) = 지금까지([throughDay] null = 전부).
+///
+/// 갈래 · 글자 = [monthlyLedgerTrustOf] 그대로 — 다른 것은 대사 0 줄([noReconLine] · 그 달 마감까지 / 아직)뿐이다.
+/// [throughDay] = 실행 시각의 한국 날 상한(포함). 시각 순이 아니면 [ArgumentError].
+LedgerTrustBadge reconLedgerTrustOf({
+  required List<(DateTime, ReconAction)> checks,
+  required String? throughDay,
+  required String noReconLine,
+  bool Function(String route)? hasBody,
+}) {
   DateTime? prev;
   ReconAction? last;
   String? verified;
@@ -904,7 +923,7 @@ LedgerTrustBadge monthlyLedgerTrustOf({
     }
     prev = at;
     final String day = kstDateText(at);
-    if (day.compareTo(end) > 0) continue;
+    if (throughDay != null && day.compareTo(throughDay) > 0) continue;
     last = a;
     if (a == ReconAction.matched || a == ReconAction.transient) verified = day;
   }
@@ -932,7 +951,7 @@ LedgerTrustBadge monthlyLedgerTrustOf({
       level: UiLevel.watch,
       label: MonthlyTrustTexts.unverifiableLabel,
       consequenceLine: last == null
-          ? MonthlyTrustTexts.noReconLine
+          ? noReconLine
           : MonthlyTrustTexts.reconUnavailableLine,
       lastVerifiedOn: on,
     ),

@@ -15,15 +15,17 @@ import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:core_engine/core_engine.dart'
     show
+        LedgerTrustTexts,
         P0sHumanInputs,
         P0sStrategyIds,
         SelfReportTexts,
         TrustedClock,
-        routePatternOf;
+        routePatternOf,
+        selfReportTrustBadgeOf;
 import 'package:data_sync/data_sync.dart' show P0sHumanDecision;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:sqlite3/sqlite3.dart' show Database, Row;
 
 import '../engine/support.dart';
 
@@ -423,6 +425,81 @@ void main() {
     );
   });
 
+  group('🆕 E11q-q6c 신뢰 등급 · 실사 표식', () {
+    void audit(String alias, String asOf) => files.sim.execute(
+      'INSERT INTO self_report_balance (report_id, as_of_trade_date, account_alias, session_started_at, cash_krw, '
+      'declared_complete, device_id, command_id, reported_at) VALUES (?, ?, ?, ?, 0, 1, ?, ?, ?)',
+      <Object?>[
+        'sr-$alias-$asOf',
+        asOf,
+        alias,
+        '2026-08-01T00:00:00Z',
+        _dev,
+        'c-$alias-$asOf',
+        '2026-08-01T00:00:00Z',
+      ],
+    );
+
+    Map<String, String> flags() => <String, String>{
+      for (final Row r in files.sim.select(
+        'SELECT flag_id, reason FROM trading_block WHERE cleared_at IS NULL',
+      ))
+        r['flag_id'] as String: r['reason'] as String,
+    };
+
+    test(
+      '🔴 배지 = 실사 갭(신뢰 시각) · 모르면 갭 0 · 자동 매매 = 브로커 대사 · 원장이 바뀌면 다시 낸다',
+      () async {
+        audit('일반', '2026-08-31');
+        audit('연금저축', '2026-07-31');
+        final List<LedgerTrustBadge> seen = <LedgerTrustBadge>[];
+        final StreamSubscription<LedgerTrustBadge> sub = sr.watchGrade().listen(
+          seen.add,
+        );
+        await until(() => seen.isNotEmpty);
+        expect(
+          (
+            seen.last.grade,
+            seen.last.consequenceLine,
+            seen.last.actionDeepLink,
+          ),
+          (
+            LedgerTrustGrade.selfReported,
+            '마지막 실사 후 33일 경과 — 이번 달 실사 1회로 등급이 유지됩니다',
+            'aaq://ledger/self-report/2026-08/연금저축',
+          ),
+        );
+        audit('연금저축', '2026-08-31');
+        await until(
+          () => seen.last == selfReportTrustBadgeOf(TradeDate('2026-08-31')),
+        );
+        await sub.cancel();
+        trusted.at = null;
+        expect(
+          sr.gradeOf(rt.view.value!),
+          selfReportTrustBadgeOf(TradeDate('2026-08-31')),
+        );
+        rt.view.value = _viewOf(files.sim, OperatingMode.autoTrade);
+        expect(
+          sr.gradeOf(rt.view.value!).consequenceLine,
+          LedgerTrustTexts.noReconNowLine,
+        );
+      },
+    );
+
+    test('🔴 실사 기록 뒤 = 표식을 곧바로 맞춘다(그 계좌 갭이 기준일부터 다시)', () {
+      audit('일반', '2026-08-31');
+      audit('연금저축', '2026-06-30');
+      sr.refreshSelfAudit(rt.view.value!, trusted.at!);
+      expect(flags(), <String, String>{
+        FlagIds.selfAuditOverdue: 'aaq://ledger/self-report/2026-08/연금저축',
+      });
+      sr.start('ar1', _args);
+      expect(sr.submit(_sub(), random: Random(5)).state, CommandState.executed);
+      expect(flags(), isEmpty);
+    });
+  });
+
   group('주입', () {
     test('🔴 설정 동작(실사 화면 주입) = 세션 둘만 · 결과 기록 · 그 밖 = 오류', () async {
       final OperatorSelfReportActions a = OperatorSelfReportActions(
@@ -449,7 +526,7 @@ void main() {
       await expectLater(a.watch('없음').first, throwsStateError);
     });
 
-    test('🔴 신뢰 창구 = 배지 원천 없음 그대로 · 실사 세션 = 이 조립', () async {
+    test('🔴 신뢰 창구 = 🆕 E11q-q6c 배지 · 실사 세션 = 이 조립(없으면 둘 다 원천 없음)', () async {
       final OperatorLedgerTrustRepository t = OperatorLedgerTrustRepository(
         selfReport: sr,
       );
@@ -459,13 +536,16 @@ void main() {
             .sessionClosedText,
         isNull,
       );
-      await expectLater(t.watchGrade().first, throwsA(isA<UnsupportedError>()));
-      await expectLater(
-        const OperatorLedgerTrustRepository()
-            .watchSelfReportSession('2026-08', '연금저축')
-            .first,
-        throwsA(isA<UnsupportedError>()),
-      );
+      expect(await t.watchGrade().first, selfReportTrustBadgeOf(null));
+      for (final Stream<Object?> s in <Stream<Object?>>[
+        const OperatorLedgerTrustRepository().watchGrade(),
+        const OperatorLedgerTrustRepository().watchSelfReportSession(
+          '2026-08',
+          '연금저축',
+        ),
+      ]) {
+        await expectLater(s.first, throwsA(isA<UnsupportedError>()));
+      }
     });
 
     test('🔴 레지스트리 = L-3 본문(뒤집은 단언 — R228 까지 = 자리 부재) · `SELF_AUDIT_DUE` 링크 꼴이 본문으로 간다', () {

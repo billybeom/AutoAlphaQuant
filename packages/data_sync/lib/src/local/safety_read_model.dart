@@ -78,12 +78,14 @@ class SqliteSafetyRepository implements SafetyRepository {
     final List<BlockFlag> flags = blockFlagsOf(
       <StoredBlockFlag>[
         for (final Row r in _db.select(
-          'SELECT flag_id, set_at, origin_code FROM trading_block WHERE cleared_at IS NULL',
+          'SELECT flag_id, set_at, origin_code, reason FROM trading_block WHERE cleared_at IS NULL',
         ))
           StoredBlockFlag(
             r['flag_id'] as String,
             DateTime.parse(r['set_at'] as String).toUtc(),
             originCode: r['origin_code'] as String?,
+            // 🆕 E11q-q6c — 실사 표식의 해제 목적지(그 달 · 그 계좌 `L-3`) 원천.
+            reason: r['reason'] as String?,
           ),
       ],
       journalDraftId: draft.isEmpty

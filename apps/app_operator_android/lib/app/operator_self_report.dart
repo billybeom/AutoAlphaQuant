@@ -42,6 +42,7 @@ import 'package:data_sync/data_sync.dart'
     show
         P0sHumanDecision,
         SqliteLeaseGate,
+        SqliteLedgerTrustSource,
         SqliteSelfReportSource,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -52,6 +53,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         CommandContext,
         CommandReceipt,
         ContributionUpdateSubmission,
+        LedgerTrustBadge,
         OperatingMode,
         SelfReportBalance,
         SelfReportPurpose,
@@ -394,8 +396,49 @@ class OperatorSelfReport {
       leaseEpoch: epoch,
     );
     sessions.close(m, alias);
+    // 🆕 E11q-q6c(R240) — 실사 1회 = 그 계좌 갭이 기준일부터 다시 센다 → 표식을 곧바로 맞춘다(엔진 일정과 같은 판정).
+    refreshSelfAudit(v, trusted);
     return done;
   }
+
+  /// 🆕 E11q-q6c(R240) — 실사 예정 · 기한 표식 · 알림을 맞춘다(신뢰 시각 · 운영 방식 · 계좌 차례 = 엔진 판정).
+  void refreshSelfAudit(OperatorView v, DateTime trustedNowUtc) =>
+      SqliteLedgerTrustSource(v.db, clock: _rt.clock).refreshSelfAuditFor(
+        operatingMode: v.flags.operatingMode,
+        accounts: selfReportAccountsOf(_accounts()),
+        trustedNowUtc: trustedNowUtc,
+        kr: _rt.calendars.kr,
+      );
+
+  /// 🆕 E11q-q6c(R240) — 지금 신뢰 배지(01 §4-1 `watchGrade` · 홈 9b) — 투자 안내 = 실사 갭(엔진 · 신뢰 시각 · 모르면 갭을
+  /// 세지 않는다) · 그 밖 = 브로커 대사 한 판정(월간 리포트와 같은 함수 · 지금까지). 읽기 = 부작용 0.
+  LedgerTrustBadge gradeOf(OperatorView v) {
+    final SqliteLedgerTrustSource src = SqliteLedgerTrustSource(
+      v.db,
+      clock: _rt.clock,
+    );
+    if (v.flags.operatingMode != OperatingMode.advisory) {
+      return src.reconBadge(hasBody: hasBody);
+    }
+    return src.selfAuditBadge(
+      accounts: selfReportAccountsOf(_accounts()),
+      trustedNowUtc: _rt.trusted.trustedNowUtc(),
+      kr: _rt.calendars.kr,
+    );
+  }
+
+  /// 🆕 E11q-q6c — 배지 흐름(원장 변경 · 주기 — 갭은 시간만 흘러도 바뀐다 · 같은 값 = 다시 내지 않음).
+  Stream<LedgerTrustBadge> watchGrade() => followView<LedgerTrustBadge>(
+    view: _rt.view,
+    changes: (OperatorView v) => watchLedgerQuery<LedgerTrustBadge>(
+      v.db,
+      SqliteLedgerTrustSource.watchedTables,
+      () => gradeOf(v),
+    ),
+    now: gradeOf,
+    tick: tick,
+    noView: () => StateError('원장 신뢰 등급: 화면 상태 없음(온보딩 전)'),
+  );
 }
 
 /// 🔴 `L-3` 화면 주입용 설정 동작 — 실사 세션 둘(`selfReportSessionStart` · `Stop`)만 · 그 밖 = 구현 없음(오류).

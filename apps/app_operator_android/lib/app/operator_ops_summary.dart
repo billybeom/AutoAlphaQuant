@@ -370,8 +370,8 @@ class OperatorWhatIfApi implements WhatIfApi {
       Future<T>.error(UnsupportedError('$what: 원천 없음(인출 규칙 미결 79)'));
 }
 
-/// 원장 신뢰 배지 · 실사 — 배지 = 원천 없음(등급 엔진 전 · 홈 블록 9b = 부재) · 🆕 E11q-q6 `L-3` 세션 = [selfReport]
-/// (없음 = 원천 없음).
+/// 원장 신뢰 배지 · 실사 — 🆕 E11q-q6c 배지 = [selfReport] 의 지금 등급(투자 안내 = 실사 갭 · 그 밖 = 브로커 대사 · 홈 블록 9b) ·
+/// E11q-q6 `L-3` 세션 = [selfReport](없음 = 둘 다 원천 없음).
 class OperatorLedgerTrustRepository implements LedgerTrustRepository {
   /// 만든다.
   const OperatorLedgerTrustRepository({this.selfReport});
@@ -380,7 +380,8 @@ class OperatorLedgerTrustRepository implements LedgerTrustRepository {
   final OperatorSelfReport? selfReport;
 
   @override
-  Stream<LedgerTrustBadge> watchGrade() => _none('watchGrade');
+  Stream<LedgerTrustBadge> watchGrade() =>
+      selfReport?.watchGrade() ?? _none('watchGrade');
 
   @override
   Stream<SelfReportSession> watchSelfReportSession(

@@ -3,8 +3,12 @@
 import 'dart:io';
 
 import 'package:app_operator_android/engine/data_job_runners.dart';
+import 'package:app_operator_android/engine/fgs_status_source.dart'
+    show UnknownTrustedClock;
 import 'package:app_operator_android/engine/job_runners.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
+import 'package:app_operator_android/engine/ledger_job_runners.dart'
+    show refreshSelfAuditOf;
 import 'package:core_engine/core_engine.dart'
     show
         DailyQuoteFeed,
@@ -17,6 +21,7 @@ import 'package:core_engine/core_engine.dart'
         QuoteFeedDown,
         QuoteFetch,
         QuoteKind,
+        TrustedClock,
         p0sRegimeConfigHash;
 import 'package:data_sync/data_sync.dart'
     show
@@ -41,6 +46,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         ExecPolicy,
         AlertCodes,
         CommandContext,
+        FlagIds,
         MarketDataSource,
         OperatingMode,
         RunMode,
@@ -51,6 +57,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:sqlite3/sqlite3.dart' show Row;
 import 'package:trading_runtime/trading_runtime.dart'
     show
         JobCalendars,
@@ -81,6 +88,13 @@ class _DownFeed implements DailyQuoteFeed {
     calls++;
     throw const QuoteFeedDown('시험', attempts: 1);
   }
+}
+
+class _Trusted implements TrustedClock {
+  _Trusted(this.at);
+  final DateTime at;
+  @override
+  DateTime? trustedNowUtc() => at;
 }
 
 const Map<String, String> _accounts = <String, String>{
@@ -275,6 +289,66 @@ void main() {
       expect(feedsMade, 1);
     },
   );
+
+  test('🆕 E11q-q6c daily_data = 먼저 X7 실사 표식(투자 안내 · 신뢰 시각) — 시세 원천이 죽어도 · 신뢰 시각 모름 = 손대지 않음 · 자동 매매 = 내림', () async {
+    openSim();
+    files.sim.execute(
+      'INSERT INTO self_report_balance (report_id, as_of_trade_date, account_alias, session_started_at, cash_krw, '
+      "declared_complete, device_id, command_id, reported_at) VALUES ('sr-1', '2026-10-30', 'pension', "
+      "'2026-11-01T00:00:00Z', 0, 1, 'dev-1', 'c-1', '2026-11-01T00:00:00Z')",
+    );
+    clock.now = kst(2026, 12, 21, 18, 35);
+    JobContext of(OperatingMode m, TrustedClock t) => JobContext(
+      db: files.sim,
+      runMode: RunMode.simInternal,
+      operatingMode: m,
+      execPolicy: ExecPolicy.execute,
+      calendars: cals,
+      heartbeat: hb,
+      alerts: SqliteAlertSink(files.sim, clock: clock),
+      runLog: log,
+      clock: clock,
+      trusted: t,
+    );
+    Map<String, String> flags() => <String, String>{
+      for (final Row r in files.sim.select(
+        'SELECT flag_id, reason FROM trading_block WHERE cleared_at IS NULL',
+      ))
+        r['flag_id'] as String: r['reason'] as String,
+    };
+    expect(
+      refreshSelfAuditOf(
+        of(OperatingMode.advisory, const UnknownTrustedClock()),
+        cfg,
+      ),
+      isFalse,
+    );
+    expect(flags(), isEmpty);
+    // 10/30 실사 · 12/21 = 52일 · 닫힌 달 = 11월 → 재고지 구간 · 표식 + 알림 1 — 시세 원천이 죽어 회차는 실패해도.
+    final JobRun<Object?> r = await run(
+      'daily_data',
+      '2026-12-21',
+      c: of(OperatingMode.advisory, _Trusted(clock.now)),
+      p: parts(feedFails: true),
+    );
+    expect(r.status, JobStatus.failed);
+    expect(flags(), <String, String>{
+      FlagIds.selfAuditDue: 'aaq://ledger/self-report/2026-11/pension',
+    });
+    expect(
+      files.sim
+          .select('SELECT source FROM alert_event WHERE code = ?', <Object?>[
+            AlertCodes.selfAuditDue,
+          ])
+          .map((Row x) => x['source']),
+      <Object?>['self_audit'],
+    );
+    expect(
+      refreshSelfAuditOf(of(OperatingMode.autoTrade, _Trusted(clock.now)), cfg),
+      isTrue,
+    );
+    expect(flags(), isEmpty);
+  });
 
   test('seasonal_a = 설정의 A 종목으로 본체가 돈다(판정 날이 아니면 아무것도 쓰지 않음)', () async {
     openSim();

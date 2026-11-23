@@ -741,6 +741,23 @@ export 'src/ops/ledger_integrity.dart'
         StoredDayStamp,
         kLedgerIntegrityAlertCode,
         verifyLedgerChain;
+// 🆕 E11q-q6c(R240) — X7 신뢰 등급 사다리(실사 갭) · 실사 예정 · 기한 표식 계획.
+export 'src/ops/ledger_trust.dart'
+    show
+        LedgerTrustTexts,
+        SelfAuditFlagPlan,
+        SelfAuditStage,
+        SelfAuditVerdict,
+        kSelfAuditCheck,
+        kSelfAuditOverdueDays,
+        kSelfAuditRenoticeDays,
+        selfAuditClosedMonthOf,
+        selfAuditFlagPlanOf,
+        selfAuditLinkOfReason,
+        selfAuditReasonOf,
+        selfAuditRenoticeStartUtc,
+        selfAuditTrustBadgeOf,
+        selfAuditVerdictOf;
 // 🆕 E13c2 — X5 읽기 쪽(L-1 최근 차이 · 5칸 대조 보드 · 설계 13 §8 R59).
 export 'src/ops/ledger_views.dart'
     show
@@ -805,7 +822,7 @@ export 'src/ops/monthly_contribution_view.dart'
         contributionUpdateResultOf,
         monthlyContributionVmOf;
 // 🆕 미결 209 — 월간 리포트 빌더 첫 판(13칸 고정 · D2 값 · SAF-307 메모 · 설계 13 §8 R199) · 🆕 A1 · A2 · C1 · C2(R205) · D4 · E1(R208) · D3(R210) · D1 · G1 · G2(R214) ·
-// 🆕 신뢰 배지 · 무결성 가림 · 읽을 때 짓기 판정 · 「자세히」(R231).
+// 🆕 신뢰 배지 · 무결성 가림 · 읽을 때 짓기 판정 · 「자세히」(R231) · 🆕 대사 → 배지 한 판정(`reconLedgerTrustOf` · R240 — 지금 등급과 같이 쓴다).
 export 'src/ops/monthly_report.dart'
     show
         MonthlyEquityFacts,
@@ -822,7 +839,8 @@ export 'src/ops/monthly_report.dart'
         monthlyLedgerTrustOf,
         monthlyReportIntegrityMaskedOf,
         monthlyReportOf,
-        monthlyReportReadinessOf;
+        monthlyReportReadinessOf,
+        reconLedgerTrustOf;
 export 'src/ops/next_rebalance_view.dart'
     show NextRebalanceTexts, nextRebalanceVmOf;
 export 'src/ops/operations_config.dart' show OperationsConfig;

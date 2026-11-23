@@ -25,7 +25,8 @@ import 'package:core_engine/core_engine.dart'
         QuoteFetch,
         QuoteKind,
         SimInternalBroker,
-        p0sExposureMap;
+        p0sExposureMap,
+        selfReportAccountsOf;
 import 'package:data_sync/data_sync.dart'
     show
         DailyDataJob,
@@ -40,6 +41,7 @@ import 'package:data_sync/data_sync.dart'
         QuoteCollector,
         SeasonalAJob,
         SeasonalAReport,
+        SqliteLedgerTrustSource,
         SqliteOrderLedger,
         SqliteSimLedgerView,
         currentP0sOpsConfig;
@@ -164,10 +166,13 @@ Future<List<LedgerHolding>> Function() holdingsOf(JobContext c) =>
     ).krHoldings;
 
 /// `daily_data`(18:30 KST) — KR 국면 대상 + 계획 종목(설정) 일봉 → KR 하루 판정 → `data_gap`.
+/// 🆕 E11q-q6c(R240) — 먼저 X7 실사 예정 · 기한 표식을 맞춘다(종가 확정 18:00 뒤 · 안내 배치 앞 · 원장만 — 시세 원천이 죽어도 돈다) ·
+/// 신뢰 시각 모름 = 손대지 않는다(기기 시계로 대신하지 않는다).
 JobRunner dailyDataRunner(JobContext c, JobParts p) =>
     (JobOccurrence o) =>
         runOccurrence<DailyDataReport>(c, o, (TradeDate day) async {
           final P0sOpsConfig cfg = opsConfigOf(c);
+          refreshSelfAuditOf(c, cfg);
           final DailyQuoteFeed feed = await p.quoteFeed(c.runMode);
           final DailyDataReport r = await DailyDataJob(
             c.db,
@@ -184,6 +189,19 @@ JobRunner dailyDataRunner(JobContext c, JobParts p) =>
           ).run(day);
           return JobBody<DailyDataReport>(r, alerts: r.alerts);
         });
+
+/// 🆕 E11q-q6c(R240) — 실사 예정 · 기한 표식(엔진 일정) — 신뢰 시각 모름 = 0(돌려준 값 = 맞췄나).
+bool refreshSelfAuditOf(JobContext c, P0sOpsConfig cfg) {
+  final DateTime? trusted = c.trusted.trustedNowUtc();
+  if (trusted == null) return false;
+  SqliteLedgerTrustSource(c.db, clock: c.clock).refreshSelfAuditFor(
+    operatingMode: c.operatingMode,
+    accounts: selfReportAccountsOf(cfg.human.accountByStrategy),
+    trustedNowUtc: trusted,
+    kr: c.calendars.kr,
+  );
+  return true;
+}
 
 /// `equity_snapshot`(20:30 KST · 늦은 끝 23:59) — 종가 × 보유 + 현금 → 스냅숏 · 브레이커(설정 값) · 🆕 P0S 일간 경고(E3d-2).
 JobRunner equitySnapshotRunner(JobContext c, JobParts p) =>

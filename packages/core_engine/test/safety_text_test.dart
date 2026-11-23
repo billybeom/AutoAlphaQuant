@@ -48,18 +48,21 @@ void main() {
         final List<BlockFlag> got = blockFlagsOf(
           <StoredBlockFlag>[
             for (final BlockFlag f in want.activeFlags)
-              StoredBlockFlag(f.flagId, f.setAt, originCode: f.originCode),
+              StoredBlockFlag(
+                f.flagId,
+                f.setAt,
+                originCode: f.originCode,
+                // 🆕 E11q-q6c(R240) — 실사 표식 reason = 엔진이 세울 때 적은 그 달 · 그 계좌 `L-3`(표본 목적지 그대로).
+                reason: f.flagId == FlagIds.selfAuditDue
+                    ? f.clearDeepLink
+                    : '표본 밖 사유',
+              ),
           ],
           journalDraftId: 'd_20260810_b_27',
           lastIntegrityOkUtc: DateTime.utc(2026, 8, 30, 9, 10),
         );
         for (final (int i, BlockFlag f) in want.activeFlags.indexed) {
-          final BlockFlag g = got[i];
-          // 🟡 실사 목적지(yyyy-MM · 별칭)는 생산자 판(E18) — 지금은 null.
-          final String? link = f.flagId == FlagIds.selfAuditDue
-              ? null
-              : f.clearDeepLink;
-          expect(g, f.copyWith(clearDeepLink: link), reason: f.flagId);
+          expect(got[i], f, reason: f.flagId);
           checked++;
         }
       }
@@ -119,6 +122,38 @@ void main() {
         kFlagDictionary[FlagIds.ledgerFix]!.route,
         ClearRoute.noManualPath,
       );
+    });
+
+    test('🆕 E11q-q6c 실사 표식 목적지 = reason 의 L-3 링크(꼴 밖 = 부재 · 다른 플래그는 reason 을 읽지 않는다)', () {
+      final DateTime t = DateTime.utc(2026, 9, 1);
+      const String l3 = 'aaq://ledger/self-report/2026-08/연금저축';
+      Map<String, String?> links(String reason) => <String, String?>{
+        for (final BlockFlag f in blockFlagsOf(<StoredBlockFlag>[
+          for (final String id in <String>[
+            FlagIds.selfAuditDue,
+            FlagIds.selfAuditOverdue,
+            FlagIds.tierBUnjudged,
+            FlagIds.selfAuditPatternUnverified,
+          ])
+            StoredBlockFlag(id, t, reason: reason),
+        ]))
+          f.flagId: f.clearDeepLink,
+      };
+      expect(links(l3), <String, String?>{
+        FlagIds.selfAuditOverdue: l3,
+        FlagIds.selfAuditDue: l3,
+        FlagIds.tierBUnjudged: null,
+        FlagIds.selfAuditPatternUnverified: null,
+      });
+      for (final String bad in <String>[
+        '원장 실사 기한(목적지 없음 · 달 모름)',
+        'aaq://ledger/self-report/2026-13/연금저축',
+        'aaq://ledger/self-report/2026-08/연금/저축',
+        'aaq://ledger/self-report/2026-08/',
+        'aaq://ledger/trust',
+      ]) {
+        expect(links(bad).values.toSet(), <String?>{null}, reason: bad);
+      }
     });
 
     test('목적지 · 검증 시각 · 원인 코드', () {

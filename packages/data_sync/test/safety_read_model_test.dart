@@ -215,6 +215,31 @@ void main() {
     );
   });
 
+  test('🆕 E11q-q6c 실사 표식 목적지 = reason 의 그 달 · 그 계좌 L-3(꼴 밖 = 부재)', () {
+    const String l3 = 'aaq://ledger/self-report/2026-08/연금저축';
+    db.execute(
+      'INSERT INTO trading_block(flag_id, set_at, reason) VALUES (?, ?, ?), (?, ?, ?)',
+      <Object?>[
+        FlagIds.selfAuditDue,
+        '2026-09-30T09:30:00.000Z',
+        l3,
+        FlagIds.selfAuditOverdue,
+        '2026-09-30T09:30:00.000Z',
+        '원장 실사 기한(목적지 없음 · 달 모름)',
+      ],
+    );
+    expect(
+      <String, String?>{
+        for (final BlockFlag f in repo.state().activeFlags)
+          f.flagId: f.clearDeepLink,
+      },
+      <String, String?>{
+        FlagIds.selfAuditOverdue: null,
+        FlagIds.selfAuditDue: l3,
+      },
+    );
+  });
+
   test('모르는 플래그 행 = 스트림 오류', () async {
     flag('WHAT', '2026-09-01T00:00:00.000Z');
     await expectLater(repo.watchState().first, throwsStateError);

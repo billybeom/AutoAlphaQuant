@@ -9,6 +9,7 @@ import 'package:domain_contracts/domain_contracts.dart' as c show BreakerLevel;
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 
 import '../ops/equity_snapshot.dart' show BreakerReplay, p0sBreakerConfig;
+import '../ops/ledger_trust.dart' show selfAuditLinkOfReason;
 import '../ops/ledger_views.dart' show kstDateText, kReconStaleAfter;
 import '../risk/breaker.dart';
 import 'kill_switch.dart';
@@ -110,7 +111,12 @@ const Map<String, FlagEntry> kFlagDictionary = <String, FlagEntry>{
 /// 저장된 `trading_block` 활성 행.
 class StoredBlockFlag {
   /// 행을 만든다.
-  const StoredBlockFlag(this.flagId, this.setAtUtc, {this.originCode});
+  const StoredBlockFlag(
+    this.flagId,
+    this.setAtUtc, {
+    this.originCode,
+    this.reason,
+  });
 
   /// 플래그.
   final String flagId;
@@ -120,6 +126,9 @@ class StoredBlockFlag {
 
   /// 원인 코드(있으면).
   final String? originCode;
+
+  /// 🆕 E11q-q6c — `trading_block.reason`(실사 표식 = 그 달 · 그 계좌 `L-3` 링크 · 그 밖 = 읽지 않는다).
+  final String? reason;
 }
 
 String _two(int n) => n.toString().padLeft(2, '0');
@@ -169,6 +178,9 @@ List<BlockFlag> blockFlagsOf(
           FlagIds.adviceLedgerUnverified => AppRoutes.m5SelfAuditResolve,
           // 🆕 E11q-b3(R185 · 01 §34 K155) — 재개 미완 = X2 재개 화면(06 라우트 표 «x2/resume-gate 주 진입점 = 재개 미완 배너»).
           FlagIds.resumeIncomplete => AppRoutes.x2ResumeGate,
+          // 🆕 E11q-q6c(R240 · K45 · 02 §3-10) — 실사 예정 · 기한 = 엔진이 세울 때 적은 그 달 · 그 계좌 `L-3`(꼴 밖 = 부재).
+          FlagIds.selfAuditDue ||
+          FlagIds.selfAuditOverdue => selfAuditLinkOfReason(r.reason),
           FlagIds.journalMissing when journalDraftId != null =>
             AppRoutes.journalDraft.replaceFirst(':decisionId', journalDraftId),
           _ => null,
