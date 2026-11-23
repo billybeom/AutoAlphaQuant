@@ -47,6 +47,7 @@ import 'package:data_sync/data_sync.dart'
         DeviceLocal,
         SqliteAlertRepository,
         SqliteLedgerRepository,
+        SupabaseDeviceLedger,
         SupabaseFirstClaim,
         SupabaseX1Emergency;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -57,6 +58,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         DraftStore,
         LedgerRepository,
         LedgerTrustRepository,
+        OnboardingAction,
         OnboardingSlotIds,
         OpsSlotIds,
         X1SlotIds,
@@ -176,6 +178,7 @@ import '../safety/recovery_checksum_field.dart';
 import '../safety/x1_recovery_code_field.dart';
 import '../safety/x1_reissue_field.dart';
 import '../secret/kis_key_set_field.dart';
+import '../secret/restart_login_slot.dart';
 import '../secret/secret_handoff.dart';
 import '../secret/supabase_connect_field.dart';
 import '../secret/supabase_login_field.dart';
@@ -530,6 +533,26 @@ final Provider<OperatorSafetyActions> operatorSafetyActionsProvider =
 /// 나머지 = 자리 부재(크기 0 · 키 `m4-slot-absent`).
 ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
   if (slotId == OnboardingSlotIds.pledgeWrite) return const PledgePanel();
+  // 🆕 R248 — R-01 로그인 자리(연결 → 로그인 두 지점 · 칸 = 아래 o_07 ② · ③ 칸 그대로 · 제출 = 설정 동작 · 끝 = R-01 다시 읽기) ·
+  //    기기 원장 읽기 없음 = 자리 부재(첫 화면 링크도 없다).
+  final SupabaseDeviceLedger? ledger = rt.deviceLedger;
+  if (slotId == OnboardingSlotIds.recoveryLogin && ledger != null) {
+    return Consumer(
+      builder: (BuildContext _, WidgetRef ref, Widget? _) {
+        final SettingsActions? actions = ref.watch(
+          operatorSettingsActionsProvider,
+        );
+        return RestartLoginSlot(
+          connected: ledger.connected,
+          field: operatorSlotBuilder(rt),
+          run: actions == null
+              ? null
+              : (OnboardingAction a) => actions.run(a.id, args: a.args),
+          onSettled: ref.read(operatorOnboardingProvider).poke,
+        );
+      },
+    );
+  }
   // 🆕 R206 — o_07 ② 주소 · 공개 키 붙여넣기(KIS 칸과 같은 넘김 · 클립보드 정리 · 캡처 막기).
   if (slotId == OnboardingSlotIds.supabaseConnect) {
     return SupabaseConnectField(
@@ -638,6 +661,8 @@ Widget _onboardingMode(Map<String, String> _) => const OnboardingModePick();
 Widget _onboardingSteps(Map<String, String> _) => const OnboardingStepList();
 
 Widget _onboardingFinish(Map<String, String> _) => const OnboardingFinish();
+
+Widget _onboardingRestart(Map<String, String> _) => const OnboardingRestart();
 
 Widget _settingsCredentials(Map<String, String> _) => const Credentials();
 
@@ -851,6 +876,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.onboardingStep: _onboardingStep,
   // 🆕 E11p4c(R127) — 마무리(O-04).
   AppRoutes.onboardingFinish: _onboardingFinish,
+  // 🆕 R248 — R-01 기존 계정에서 다시 시작(O-00 링크 = 기기 원장 읽기 조립 있음 · 분기 = 새 폰 받기 · 비상 · 신규 온보딩).
+  AppRoutes.onboardingRestart: _onboardingRestart,
   // 🆕 E11p4g(R156) — M5-14 가상 초기금(O-04 ⑥ 자동 매매 갈래 링크 목적지 · 제출 = `OperatorCommandApi` · R155).
   AppRoutes.m5SimOpeningCash: _simOpeningCash,
   // 🆕 E11p3d-5d(R129) — M9 S02 증권사 키(캡처 막기 = `kSecureRoutePatterns` · 키 칸 = 설정 슬롯 빌더).

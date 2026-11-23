@@ -36,6 +36,7 @@ import 'package:core_engine/core_engine.dart'
         P0sStrategyIds,
         contributionDefaultRange,
         kstDateText;
+import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
         HealthchecksClient,
@@ -43,6 +44,7 @@ import 'package:data_sync/data_sync.dart'
         SqliteConfigVersionStore,
         SqliteModeStore,
         SupabaseAuth,
+        SupabaseDeviceLedger,
         SupabaseLeaseRpc,
         krMonthEndOf,
         krMonthSessionsOf;
@@ -111,6 +113,7 @@ import 'package:ui_shell/ui_shell.dart'
         EmergencyStopCard,
         HandbookContents,
         HandbookPageView,
+        OnboardingRestart,
         OpsHome,
         RunbookDetail,
         RunbookList,
@@ -310,6 +313,8 @@ void main() {
     final Directory dir = Directory.systemTemp.createTempSync('aaq_it_tour_');
     final LedgerFiles files = LedgerFiles.open(dir.path, clock: clock);
     final String deviceId = await ops.deviceId();
+    // 🆕 R248 — R-01 기기 원장 읽기 금고 = 빈 메모리(연결 전 → 로그인 자리 ② 지점 · 이 폰 금고 · 망 0).
+    final MemorySecretVault r01Vault = MemorySecretVault();
     final OperatorRuntime rt = OperatorRuntime(
       files: files,
       clock: clock,
@@ -328,6 +333,11 @@ void main() {
         sim: files.sim,
         deviceId: deviceId,
         clock: clock,
+      ),
+      deviceLedger: SupabaseDeviceLedger(
+        http.Client(),
+        r01Vault,
+        SupabaseAuth(http.Client(), r01Vault, clock: clock),
       ),
       // 🆕 R154 — 실린 사람 값 자산(발주자 결정 R153) → S03 = 정한 대응표 «모의 개시 전».
       humanDecision: await loadP0sHumanDecision(rootBundle),
@@ -837,6 +847,17 @@ void main() {
         await tester.pageBack();
         await tester.pump(const Duration(seconds: 1));
       }
+
+      // 🆕 R248 — R-01 기존 계정에서 다시 시작(빈 금고 = 로그인 자리 ② 지점 · «연결 확인» — 누르지 않는다 = 망 0).
+      container.read(shellLinkOpenerProvider).open(AppRoutes.onboardingRestart);
+      await _until(tester, find.byKey(const Key('r01-login-submit')));
+      expect(find.byKey(const Key('r01-headline')), findsOneWidget);
+      expect(find.text('연결 확인'), findsOneWidget);
+      expect(find.byKey(const Key('r01-branch-0')), findsNothing);
+      await _at(tester, find.byType(OnboardingRestart), 'IT_R01');
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pageBack();
+      await tester.pump(const Duration(seconds: 1));
 
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
       await _until(tester, find.textContaining('남은 공간'));

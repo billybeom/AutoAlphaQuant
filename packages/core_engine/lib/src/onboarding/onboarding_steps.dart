@@ -533,3 +533,39 @@ OnboardingStepDetailVm onboardingStepDetailVmOf({
     secretSlotId: blocked ? null : (phase?.secretSlotId ?? s.secretSlotId),
   );
 }
+
+/// 🆕 R248 — Supabase 로그인 한 지점(o_07 ② 연결 · ③ 로그인)의 칸 이름 · 안내 · 동작(카탈로그 한 원천).
+class SupabaseSignInStage {
+  /// 만든다.
+  const SupabaseSignInStage({
+    required this.slotId,
+    required this.whereText,
+    required this.howText,
+    required this.submit,
+  });
+
+  /// 칸 이름(`SECRET_SUPABASE_CONNECT` · `SECRET_SUPABASE_LOGIN`).
+  final String slotId;
+
+  /// «어디서 받나».
+  final String whereText;
+
+  /// «어떻게 확인하나».
+  final String howText;
+
+  /// 제출 동작(`connectionTest{SUPABASE}` · `supabaseSignIn{}` — 글자 그대로).
+  final OnboardingAction submit;
+}
+
+/// 🆕 R248 — R-01 로그인 자리(조립 앱 `RECOVERY_LOGIN` 칸)가 그릴 지점 — 연결 전 = o_07 ②(주소 · 공개 키) ·
+/// 연결 뒤 = ③(이메일 · 비밀번호) · 🔴 o_07 상세와 같은 글자 · 동작(새 폰은 금고가 비어 있다 → 연결 먼저).
+SupabaseSignInStage supabaseSignInStageOf({required bool connected}) {
+  final _Spec s = _catalogue.singleWhere((_Spec x) => x.id == 'o_07');
+  final _Phase? p = connected ? s.inProgressPhase : null;
+  return SupabaseSignInStage(
+    slotId: p?.secretSlotId ?? s.secretSlotId!,
+    whereText: p?.whereText ?? s.whereText!,
+    howText: p?.howText ?? s.howText!,
+    submit: p?.verify ?? s.verify!,
+  );
+}

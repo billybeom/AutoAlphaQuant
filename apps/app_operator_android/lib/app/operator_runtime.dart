@@ -27,6 +27,7 @@ import 'package:data_sync/data_sync.dart'
         P0sHumanDecision,
         SqliteJournalSource,
         SupabaseAuth,
+        SupabaseDeviceLedger,
         SupabaseFirstClaim,
         SupabaseX1Emergency,
         SupabaseServerTime,
@@ -82,6 +83,7 @@ class OperatorRuntime {
     this.supabaseAuth,
     this.firstClaim,
     this.x1Emergency,
+    this.deviceLedger,
     this.leaseRemote,
     this.biometricSign,
     this.golden,
@@ -157,6 +159,10 @@ class OperatorRuntime {
   /// 🆕 E16t3c(R244) — X1-3 비상 시작 흐름(새 복구 카드를 메모리에 쥔다 · 프로세스에 하나 · 없음 = 기기 id 없음 · 플랫폼 밖 →
   /// 비상 시작 = 오류 · 복구 코드 자리 부재).
   final SupabaseX1Emergency? x1Emergency;
+
+  /// 🆕 R248 — R-01 기기 원장 읽기(`app_device` · `operator_lease` · 같은 로그인 세션 · 읽기만 · 없음 = 로그인 구현 없음 ·
+  /// 플랫폼 밖 → O-00 «기존 계정에서 다시 시작하기» 링크 없음).
+  final SupabaseDeviceLedger? deviceLedger;
 
   /// 🆕 E11k-e3(R229 F8) — 원격 리스 원천(live · simBroker 판정에만 끼운다 · 엔진과 같은 하나 · 없음 = 실물 전과 같다).
   final LeaseRemoteOf? leaseRemote;
