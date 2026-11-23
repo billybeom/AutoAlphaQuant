@@ -2,7 +2,8 @@
 //
 // 🔴 원천 = 엔진 원고 번들 그대로(원장 · 키 0) · 긴급 카드 = 이 폰 빌드 인쇄 자리 없음(슬롯 이름 null) ·
 //    핸드북 설정 지문 = 화면이 읽는 원장의 모의 개시 판(전 · 못 읽음 = 빈 글자) · 화면 상태가 바뀌면 다시 낸다 ·
-//    S02 유출 런북 링크 = 그 런북 원고 전 → 없음.
+//    🆕 E11q-d1b(R236) — 런북 넷 원고 · S02 유출 런북 링크가 선다 · 핸드북 «현재 상태»(금 상한) = 화면 상태의 원장에서
+//    읽을 때 짓기(평가 행 · 보유 · 종가 — 원천 없음 = 블록 부재) · 원장 표가 바뀌면 쪽을 다시 낸다.
 
 import 'dart:convert';
 import 'dart:io';
@@ -16,12 +17,15 @@ import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:core_engine/core_engine.dart'
     show
+        HandbookLiveKeys,
         HandbookTexts,
         P0sHumanInputs,
-        RunbookTexts,
         handbookIndexOf,
+        handbookPageOf,
+        p0sExposureMap,
         p0sRuleFingerprint,
-        runbookIndexVmOf;
+        runbookIndexVmOf,
+        runbookVmOf;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
@@ -116,29 +120,33 @@ void main() {
   );
 
   group('D-02 · D-03', () {
-    test(
-      '🔴 목록 · 상세 = 엔진 원고 번들(표본 글자) · 원고 없는 런북 = 준비 중 · 모르는 id = 값',
-      () async {
-        const OperatorRunbookRepository repo = OperatorRunbookRepository();
-        expect(await repo.watchRunbookIndex().first, runbookIndexVmOf());
-        expect(
-          await repo.watchRunbookIndex().first,
-          RunbookIndexVm.fromJson(_row('m8/runbook_index.json')),
-        );
-        expect(
-          await repo.watchRunbook('host-lost').first,
-          RunbookVm.fromJson(_row('m8/runbook_host_lost.json')),
-        );
-        expect(
-          (await repo.watchRunbook('broker-outage').first).missingLabel,
-          RunbookTexts.preparingLabel,
-        );
-        expect(
-          await repo.watchRunbook('nope').first,
-          RunbookVm.fromJson(_row('m8/runbook_missing.json')),
-        );
-      },
-    );
+    test('🔴 목록 · 상세 = 엔진 원고 번들(표본 글자 · 🆕 런북 넷 원고) · 모르는 id = 값', () async {
+      const OperatorRunbookRepository repo = OperatorRunbookRepository();
+      expect(await repo.watchRunbookIndex().first, runbookIndexVmOf());
+      expect(
+        await repo.watchRunbookIndex().first,
+        RunbookIndexVm.fromJson(_row('m8/runbook_index.json')),
+      );
+      expect(
+        await repo.watchRunbook('host-lost').first,
+        RunbookVm.fromJson(_row('m8/runbook_host_lost.json')),
+      );
+      for (final String id in <String>[
+        'db-corrupt',
+        'broker-outage',
+        'account-access',
+        'secret-leak',
+      ]) {
+        final RunbookVm vm = await repo.watchRunbook(id).first;
+        expect(vm, runbookVmOf(id), reason: id);
+        expect(vm.missingLabel, isNull, reason: id);
+        expect(vm.steps, isNotEmpty, reason: id);
+      }
+      expect(
+        await repo.watchRunbook('nope').first,
+        RunbookVm.fromJson(_row('m8/runbook_missing.json')),
+      );
+    });
 
     test('🔴 긴급 카드 = 이 폰 빌드 인쇄 자리 없음 → 표본 `emergency_card_no_print`(버튼 부재) · 인쇄 빌드 = 슬롯 이름', () async {
       expect(kOperatorEmergencyCardPrintable, isFalse);
@@ -208,7 +216,7 @@ void main() {
     });
 
     test(
-      '🔴 쪽 = 별칭 풀이 · live 값 원천 0 → 블록째 뺌(asOf null) · 없는 쪽 = 표본 문장',
+      '🔴 쪽 = 별칭 풀이 · 온보딩 전 = live 값 원천 0 → 블록째 뺌(asOf null) · 없는 쪽 = 표본 문장',
       () async {
         final OperatorHandbookRepository repo = OperatorHandbookRepository(
           rt(),
@@ -220,9 +228,14 @@ void main() {
         expect(b.anchor, 'sleeve-b');
         expect(b.asOf, isNull);
         expect(
-          b.blocks,
-          fx.blocks.where((HandbookBlock x) => x.live == null).toList(),
+          b,
+          handbookPageOf(
+            'sleeves/sleeve-b',
+            configHash: '',
+            ruleFingerprint: p0sRuleFingerprint(),
+          ),
         );
+        expect(b.blocks.where((HandbookBlock x) => x.live != null), isEmpty);
         expect(b.blocks, hasLength(fx.blocks.length - 1));
         final HandbookPage missing = await repo
             .watchPage('rebalance/monthly')
@@ -231,13 +244,75 @@ void main() {
         expect(missing.configHash, '');
       },
     );
+
+    test('🆕 E11q-d1b — 모의 개시 뒤 «현재 상태»(금 상한) = 화면 상태의 원장(평가 행 · 보유 · 종가) · 원장 표가 바뀌면 다시 낸다', () async {
+      final OperatorRuntime r = rt(human: human());
+      await openSim(r);
+      r.view.value = _viewOf(files.sim);
+      final OperatorHandbookRepository repo = OperatorHandbookRepository(r);
+      final List<HandbookPage> got = <HandbookPage>[];
+      final sub = repo.watchPage('sleeves/sleeve-b').listen(got.add);
+      await pumpEventQueue();
+      // 평가 행 전 = 블록 부재.
+      expect(got.last.asOf, isNull);
+      expect(
+        got.last.blocks.where((HandbookBlock b) => b.live != null),
+        isEmpty,
+      );
+      final String gold = p0sExposureMap(
+        (currentP0sOpsConfig(files.sim) as OpsConfigReady).config.monthEnd,
+      ).goldSymbols.single;
+      files.sim
+        ..execute(
+          'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, updated_at) '
+          "VALUES ('KR', ?, 'P0S_C', 10, 1, '2026-11-02', '2026-11-21T00:00:00Z')",
+          <Object?>[gold],
+        )
+        ..execute(
+          'INSERT INTO daily_prices (trade_date, market, symbol, open, high, low, close, close_unadj, volume) '
+          "VALUES ('2026-11-20', 'KR', ?, 30000, 30000, 30000, 30000, 30000, 0)",
+          <Object?>[gold],
+        )
+        ..execute(
+          'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, '
+          "drawdown, mode) VALUES ('2026-11-20', 1000000, 700000, 300000, 1000000, 0, ?)",
+          <Object?>[RunMode.simInternal.wire],
+        );
+      await pumpEventQueue();
+      final HandbookPage p = got.last;
+      final HandbookBlock live = p.blocks.singleWhere(
+        (HandbookBlock b) => b.live != null,
+      );
+      expect(
+        live.live,
+        const HandbookLiveValue(
+          label: '금 비중 30% — 감시선 20%를 넘었습니다. 알림만 하고 주문은 막지 않습니다.',
+          level: UiLevel.watch,
+        ),
+      );
+      expect(p.asOf!.tradeDate, const TradeDate('2026-11-20'));
+      expect(p.asOf!.label, '현재 상태 기준 2026-11-20 종가');
+      expect(HandbookLiveKeys.goldCap, 'GOLD_CAP');
+      await sub.cancel();
+    });
   });
 
-  test('🔴 S02 유출 런북 링크 = 그 런북 원고 전 → 없음(본문이 있어도)', () async {
-    final CredentialListVm vm = await OperatorSettingsRepository(
-      rt(),
-      hasBody: (_) => true,
-    ).credentials();
-    expect(vm.leakRunbookLink, isNull);
-  });
+  test(
+    '🔴 🆕 E11q-d1b S02 유출 런북 링크 = 원고 있음 ∧ 상세 본문 있음 → 표본 링크(본문 없으면 없음)',
+    () async {
+      final CredentialListVm vm = await OperatorSettingsRepository(
+        rt(),
+        hasBody: (_) => true,
+      ).credentials();
+      expect(
+        vm.leakRunbookLink,
+        CredentialListVm.fromJson(_row('m9/credentials.json')).leakRunbookLink,
+      );
+      final CredentialListVm none = await OperatorSettingsRepository(
+        rt(),
+        hasBody: (_) => false,
+      ).credentials();
+      expect(none.leakRunbookLink, isNull);
+    },
+  );
 }

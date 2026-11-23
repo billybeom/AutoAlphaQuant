@@ -39,6 +39,8 @@ export 'src/local/deposit_ledger.dart';
 export 'src/local/deposit_registrar.dart';
 export 'src/local/derived_sync_store.dart';
 export 'src/local/discretion_store.dart';
+// 🆕 E11q-d1b — M8 핸드북 «현재 상태» 값(금 상한 · 읽을 때 짓기 · 설계 13 §8 R236).
+export 'src/local/handbook_live_source.dart';
 export 'src/local/handover_session_store.dart';
 // 🆕 E11q-c1 — M5-11 simToAuto 위저드 원천(설계 13 §8 R191).
 export 'src/local/handover_wizard_source.dart';

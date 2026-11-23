@@ -2521,7 +2521,7 @@ void main() {
   });
 
   testWidgets(
-    '🆕 E11q-d1 — M8 문서 다섯 길(런북 목록 → 상세 · 준비 중 · 긴급 카드 · 핸드북 목차 → 쪽 · 없는 쪽) = 조립 셸 · 크래시 없음',
+    '🆕 E11q-d1 — M8 문서 다섯 길(런북 목록 → 상세 · 🆕 d1b 유출 런북 원고 · 긴급 카드 · 핸드북 목차 → 쪽 · 없는 쪽) = 조립 셸 · 크래시 없음',
     (WidgetTester tester) async {
       await pumpApp(tester);
       await ready(tester);
@@ -2547,10 +2547,16 @@ void main() {
       expect(find.byType(RunbookDetail), findsOneWidget);
       expect(find.text('증권사 앱키를 새 폰의 키 금고에 다시 넣습니다.'), findsOneWidget);
       expect(find.byKey(const Key('d02-missing')), findsNothing);
-      // 원고 없는 런북 = 엔진 «준비 중» 문장(단계를 지어내지 않는다).
+      // 🆕 E11q-d1b — 키 유출 런북 = 원고 단계(먼저 멈춘다) · «준비 중» 문장 0.
       await open(tester, 'aaq://ops/runbooks/secret-leak');
       await settle();
-      expect(find.text(RunbookTexts.preparingLabel), findsOneWidget);
+      expect(
+        find.text(
+          '앱의 킬스위치를 먼저 켭니다. 이 폰을 쓸 수 없으면 다른 기기의 킬스위치나 긴급 정지 카드 절차를 씁니다.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text(RunbookTexts.preparingLabel), findsNothing);
       // D-03 = 인쇄 자리 부재(이 폰 빌드).
       await open(tester, AppRoutes.opsEmergencyCard);
       await settle();
@@ -2572,6 +2578,11 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('b02-asof')), findsNothing);
+      // 🆕 E11q-d1b — 목차 ④ 안전장치 = 원고 쪽(탭 링크).
+      await open(tester, 'handbook://safety');
+      await settle();
+      expect(find.text('④ 안전장치 설명'), findsWidgets);
+      expect(find.text(HandbookTexts.preparingLabel), findsNothing);
       // 엔진 사유 칩의 handbook 링크(보유 «월말 리밸런싱») = 원고 없는 앵커 → 엔진 문장(자리표시자 아님).
       await open(tester, 'handbook://rebalance/monthly');
       await settle();

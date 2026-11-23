@@ -945,6 +945,8 @@ void main() {
 
       // 🆕 E11q-d1 — M8 문서 다섯 길(엔진 원고 번들 · 원장 0): 런북 목록 여섯 행 → 상세(host-lost 단계) · 긴급 카드(인쇄 자리 부재) ·
       //    핸드북 목차(원고 없는 장 = 준비 중) → 슬리브 B 쪽(별칭 · live 값 원천 0 = 블록 뺌).
+      // 🆕 E11q-d1b(R236) — 장 여섯 쪽 원고 · live «현재 상태»(금 상한) = 원장에 마지막 평가 행의 날 종가가 다 있을 때만 선다
+      //    (선 때만 기준 줄 `b02-asof`).
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsRunbooks);
       await _until(tester, find.byKey(const Key('d02-list-row-5')));
       await _at(tester, find.byType(RunbookList), 'IT_D02');
@@ -962,7 +964,11 @@ void main() {
       await _at(tester, find.byType(HandbookContents), 'IT_B01');
       await tester.tap(find.text('슬리브 B — 해외 지수·금 ETF'));
       await _until(tester, find.byKey(const Key('b02-title')));
-      expect(find.byKey(const Key('b02-asof')), findsNothing);
+      expect(find.byKey(const Key('b02-missing')), findsNothing);
+      expect(
+        find.byKey(const Key('b02-asof')).evaluate().isNotEmpty,
+        find.textContaining('금 비중 ').evaluate().isNotEmpty,
+      );
       await _at(tester, find.byType(HandbookPageView), 'IT_B02');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
