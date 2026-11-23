@@ -1,7 +1,8 @@
 // 🆕 미결 220 ⓒ(계약 v1.35 · 01 §44 K294) — 원장 `decision_journal.kind` 쓰기 · 읽기 = 계약 `DecisionJournalKinds` 참조.
 //
 // 🔵 잡는 것: ① data_sync lib 의 SQL 글자(큰따옴표 문자열) 안에 저널 kind 글자 0 — INSERT · SELECT 가 계약 상수를 바인딩한다
-//    ② 저널을 쓰는 여섯 곳(킬스위치 2 · STOPPED · RECON 해제 · 규칙 변경 요청 · 개입 3단계)이 계약 상수를 쓴다(파일마다) ·
+//    ② 저널을 쓰는 일곱 곳(킬스위치 2 · STOPPED · RECON 해제 · 규칙 변경 요청 · 개입 3단계 · 🆕 J-3 새 행 — 미결 220 ⓔ)이
+//    계약 상수를 쓴다(파일마다) ·
 //    `VALUES (…, NULL, NULL, ?)` 꼴(kind 비움) 0 ③ 스키마 사본 주석 = 사전 8 전량(SPEC 02D v2.45 정정 · 재생성).
 // 🔴 명령 수신함 `command_inbox.kind` 지역 글자(같은 글자 · 다른 축)는 이 시험 밖 — 단일 따옴표 Dart 상수.
 
@@ -33,7 +34,7 @@ void main() {
     expect(hits, isEmpty);
   });
 
-  test('② 저널을 쓰는 여섯 곳 = 계약 상수 · kind 비운 INSERT 0', () {
+  test('② 저널을 쓰는 일곱 곳 = 계약 상수 · kind 비운 INSERT 0', () {
     final Map<String, List<String>> writers = <String, List<String>>{
       'local/kill_switch_store.dart': <String>[
         'DecisionJournalKinds.killSwitchChecklist',
@@ -48,6 +49,10 @@ void main() {
       ],
       'local/intervention_store.dart': <String>[
         'DecisionJournalKinds.interventionJournal',
+      ],
+      // 🆕 미결 220 ⓔ — J-3 새 행 = 계약 사전의 새 행 목적(키에 실린 목적 · 저장 전 다시 검사).
+      'local/journal_draft_store.dart': <String>[
+        'DecisionJournalKinds.draftPurposes',
       ],
     };
     int inserts = 0;
@@ -71,7 +76,7 @@ void main() {
         expect(stmt, isNot(contains('NULL, NULL, ?)')), reason: '$rel kind 비움');
       }
     }
-    expect(inserts, 6);
+    expect(inserts, 7);
   });
 
   test('③ 스키마 사본 주석 = 사전 8 전량(재생성 · 뜻 0)', () {

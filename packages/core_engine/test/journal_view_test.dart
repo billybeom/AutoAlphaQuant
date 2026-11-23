@@ -941,7 +941,14 @@ void main() {
         ],
         events: const <JournalEventFact>[_monthly],
         notes: <JournalNoteFact>[
-          JournalNoteFact(journalId: 'J', createdAt: _now, isDeviation: false),
+          JournalNoteFact(
+            journalId: 'J',
+            createdAt: _now,
+            isDeviation: false,
+            rationaleBefore: 'r',
+            expectedOutcome: 'e',
+            ruleCited: 'c',
+          ),
         ],
         hasBody: (String _) => false,
       );
@@ -1003,6 +1010,114 @@ void main() {
       },
     );
   });
+
+  group(
+    '🆕 미결 220 ⓔⓖ — 저널 id 해석 · 미완성 = 미작성 · «저널 작성» 링크(K296 · K297 · K300)',
+    () {
+      JournalFacts facts({
+        String? rationale,
+        String? rule,
+        bool Function(String)? hasBody,
+        List<JournalNoteFact> extra = const <JournalNoteFact>[],
+      }) => _facts(
+        intents: <JournalIntentFact>[_je0002()],
+        decisions: <JournalDecisionFact>[
+          _decision('MONTH-END-2026-07-31'),
+          _decision('B-SMA-2026-07-31', journal: 'J-9'),
+        ],
+        events: const <JournalEventFact>[_monthly],
+        notes: <JournalNoteFact>[
+          JournalNoteFact(
+            journalId: 'J-9',
+            createdAt: _now,
+            isDeviation: true,
+            kind: 'INTERVENTION_JOURNAL',
+            rationaleBefore: rationale,
+            expectedOutcome: rationale == null ? null : '기대',
+            ruleCited: rule,
+          ),
+          ...extra,
+        ],
+        hasBody: hasBody ?? (String _) => true,
+      );
+
+      test('J-2 — 미완성 = «저널 미작성» + «저널 작성» → J-3(키 = 저널 id) · 등록 안 됨 = 부재 · 다 참 = 읽기 링크', () {
+        final DecisionDetailVm d = decisionDetailVmOf(
+          facts(),
+          'B-SMA-2026-07-31@2026-08-04',
+        );
+        expect(d.journalStateLabel, '저널 미작성');
+        expect(
+          d.journalLink,
+          const LinkAction(label: '저널 작성', deepLink: 'aaq://journal/draft/J-9'),
+        );
+        expect(
+          decisionDetailVmOf(
+            facts(hasBody: (String r) => r != AppRoutes.journalDraft),
+            'B-SMA-2026-07-31@2026-08-04',
+          ).journalLink,
+          isNull,
+        );
+        final DecisionDetailVm w = decisionDetailVmOf(
+          facts(rationale: '근거', rule: 'RULE_OTHER'),
+          'B-SMA-2026-07-31@2026-08-04',
+        );
+        expect(w.journalStateLabel, '저널 작성됨');
+        expect(
+          w.journalLink!.deepLink,
+          'aaq://journal/read/B-SMA-2026-07-31@2026-08-04',
+        );
+      });
+
+      test('J-3R — 저널 id 먼저 · 미완성 = 본문 부재 · 코드 인용 = 선택지 글자 · 붙은 결정 없음 = «이 결정 보기» 부재 · 모름 = 실패', () {
+        final DecisionJournalVm open = decisionJournalVmOf(facts(), 'J-9');
+        expect(open.decisionId, 'J-9');
+        expect(open.journalStateLabel, '저널 미작성');
+        expect(open.body, isNull);
+        expect(
+          open.decisionLink!.deepLink,
+          'aaq://journal/decision/B-SMA-2026-07-31@2026-08-04',
+        );
+        final DecisionJournalVm done = decisionJournalVmOf(
+          facts(rationale: '근거', rule: 'RULE_OTHER'),
+          'J-9',
+        );
+        expect(done.journalStateLabel, '저널 작성됨');
+        expect(done.body!.ruleCitedLabel, '그 밖의 규칙(메모 필수)');
+        expect(
+          decisionJournalVmOf(
+            facts(rationale: '근거', rule: '03 §4-1 원문'),
+            'J-9',
+          ).body!.ruleCitedLabel,
+          '03 §4-1 원문',
+        );
+        final DecisionJournalVm lone = decisionJournalVmOf(
+          facts(
+            extra: <JournalNoteFact>[
+              JournalNoteFact(
+                journalId: 'JD-DISCRETION-0011223344556677',
+                createdAt: _now,
+                isDeviation: true,
+                kind: 'DISCRETION',
+                rationaleBefore: '근거',
+                expectedOutcome: '기대',
+                ruleCited: 'RULE_DISCRETION_BUDGET',
+              ),
+            ],
+          ),
+          'JD-DISCRETION-0011223344556677',
+        );
+        expect(lone.decisionLink, isNull);
+        expect(lone.body!.ruleCitedLabel, '재량 예산(롤링 12개월 4회) 안에서 조정');
+        // 결정 id 로 열면 그 결정의 저널(기존 길).
+        expect(
+          decisionJournalVmOf(facts(), 'B-SMA-2026-07-31').journalStateLabel,
+          '저널 미작성',
+        );
+        expect(() => decisionJournalVmOf(facts(), 'nope'), throwsStateError);
+      });
+    },
+  );
 
   test('🔴 재개 child 결정 id(`#`) — 링크 = `#` · `?` · `/` · `%` 만 퍼센트 꼴 · 라우트 조각으로 열면 같은 결정', () {
     const String id = 'B-SMA-2026-07-31#R2026-08-05@2026-08-05';

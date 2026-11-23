@@ -671,6 +671,28 @@ export 'src/ops/holdings_overview.dart'
 // 🆕 E14c1 — 잡 실행 기록 포트 · 값 꼴(02 v2.42 `job_run` · 설계 13 §8 R73 K1).
 export 'src/ops/job_run_log.dart'
     show JobRunEntry, JobRunLog, JobRunStatus, successStatusOf;
+// 🆕 미결 220 ⓔⓕ — J-3 사전 저널 쓰기(키 = 저널 id · 갈래 채우기 · 새 행 · 거부 3 · 폼 스펙 · 명령 · 설계 13 §8 R245).
+export 'src/ops/journal_draft.dart'
+    show
+        JournalDraftCommand,
+        JournalDraftFill,
+        JournalDraftNew,
+        JournalDraftTarget,
+        JournalDraftTexts,
+        issueJournalDraft,
+        issueJournalDraftKey,
+        journalDraftFormSpecOf,
+        journalDraftInputRejectOf,
+        journalDraftPurposeOfKey,
+        journalDraftRejectOf,
+        journalDraftStateLabelOf,
+        journalDraftTargetOf,
+        journalRuleCitedLabelOf,
+        kJournalDraftKeyPrefix,
+        kJournalDraftTtl,
+        kJournalPledgePurposes,
+        kJournalRationaleMinChars,
+        kJournalRuleCitedOptions;
 // 🆕 E11q-q4a — M6 매매일지 읽기 VM(J-1 · 필터 · 배지 · J-2 · J-3R · 회차 범위) · 기간 프리셋 · 슬리브 목록.
 export 'src/ops/journal_view.dart'
     show
