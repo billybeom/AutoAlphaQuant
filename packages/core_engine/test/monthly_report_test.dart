@@ -866,10 +866,34 @@ void main() {
         ),
       );
       expect(() => e1(const <String>[], 0), g);
-      expect(() => e1(const <String>['ACTIVE', 'RETIRED'], 0), g);
+      expect(() => e1(const <String>['ACTIVE', 'CANDIDATE'], 0), g);
       expect(
         item(_report(noTally: true), 'E1_STRATEGY_STATE').valueText,
         MonthlyReportTexts.notComputed,
+      );
+    });
+
+    test('🆕 R247 — RETIRED(만료 = 자동 · 네 전략 함께) = «은퇴»가 보호관찰 · 정상보다 앞선다', () {
+      expect(
+        item(
+          e1(const <String>['RETIRED', 'RETIRED'], 0),
+          'E1_STRATEGY_STATE',
+        ).valueText,
+        '은퇴 · 차단 플래그 없음',
+      );
+      expect(
+        item(
+          e1(const <String>['PROBATION', 'RETIRED'], 0),
+          'E1_STRATEGY_STATE',
+        ).valueText,
+        '은퇴 · 차단 플래그 없음',
+      );
+      expect(
+        item(
+          e1(const <String>['ACTIVE', 'PROBATION'], 0),
+          'E1_STRATEGY_STATE',
+        ).valueText,
+        '보호관찰 · 차단 플래그 없음',
       );
     });
   });

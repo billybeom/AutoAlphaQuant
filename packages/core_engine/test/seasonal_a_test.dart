@@ -19,6 +19,7 @@ SeasonalADecision _go({
   String close = '10000',
   int held = 0,
   int monthCount = 6,
+  Decimal? capA,
 }) => decideSeasonalA(
   SeasonalAInput(
     month: month,
@@ -30,6 +31,7 @@ SeasonalADecision _go({
     aPrevClose: _d(close),
     aHeldShares: held,
     monthCount: monthCount,
+    capA: capA,
   ),
 );
 
@@ -49,6 +51,31 @@ OrderTarget _t(String id) => OrderTarget(
 );
 
 void main() {
+  // ── 🆕 R247(R50 T10) — 계층 B 상한 × 진입 금액 ──
+  group('🆕 R247 진입 금액 × 상한', () {
+    test('상한 null · 1 = 옛 금액 그대로 · 0.5 = 목표 절반까지 · 0 = 사지 않음(POT 청산은 그대로 → 원화 = C)', () {
+      expect(_go(a: '500000').deltaKrw, _d('1500000'));
+      expect(_go(a: '500000', capA: Decimal.one).deltaKrw, _d('1500000'));
+      final SeasonalADecision half = _go(a: '500000', capA: _d('0.5'));
+      expect(half.deltaKrw, _d('500000'));
+      expect((half.side, half.targetShares), (OrderSide.buy, 50));
+      final SeasonalADecision zero = _go(a: '500000', capA: Decimal.zero);
+      expect(zero.outcome, SeasonalAOutcome.enter);
+      expect(
+        (zero.side, zero.targetShares, zero.liquidatePot),
+        (null, 0, true),
+      );
+    });
+
+    test('청산(4월)은 상한과 무관하게 보유 전부', () {
+      final SeasonalADecision d = _go(month: 4, held: 7, capA: _d('0.5'));
+      expect(
+        (d.outcome, d.side, d.targetShares),
+        (SeasonalAOutcome.exit, OrderSide.sell, 7),
+      );
+    });
+  });
+
   group('판정 규칙(하네스 그대로)', () {
     test('10월 점수 ≥ 60 = 진입 · POT 청산 · 목표 주수 = ⌊(평가 × 0.2 × 램프 − A) ÷ 종가⌋', () {
       final SeasonalADecision d = _go(a: '500000');

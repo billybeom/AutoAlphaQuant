@@ -212,6 +212,180 @@ void main() {
       expect(_of(p, MonthEndActionKind.sleeveCOrder), isEmpty);
     });
   });
+
+  // ── 🆕 R247(R50 T10 · 03 §1-5) — 계층 B 자금 상한(B · POT · C = 회수처) ──
+  group('🆕 R247 상한', () {
+    /// B 자산 3,000만 + 800만 · B 파킹 [bPark] · 총 1억 · 월봉 [closes](없으면 신호 0).
+    MonthEndState held({
+      required int month,
+      String a1 = '30000000',
+      String a2 = '8000000',
+      String bPark = '4000000',
+      String potCash = '0',
+      String bParkC = '0',
+      String used = '0',
+      Map<String, List<double>> closes = const <String, List<double>>{},
+    }) => MonthEndState(
+      totalEquity: _d('100000000'),
+      bAssets: <String, Decimal?>{'133690': _d(a1), '411060': _d(a2)},
+      bParking: _d(bPark),
+      bParkingReclassified: _d(bParkC),
+      krwCash: _d('8000000'),
+      reservedKrw: Decimal.zero,
+      cBond: _d('30000000'),
+      cGold: _d('8000000'),
+      potCash: _d(potCash),
+      potAssets: <String, Decimal?>{
+        '133690': Decimal.zero,
+        '411060': Decimal.zero,
+      },
+      pensionUsedThisYear: _d(used),
+      monthIndex: month,
+      regimeState: DirectionState.neutral,
+      monthlyCloses: closes,
+      hasNextKrSession: true,
+      hasNextUsSession: true,
+    );
+    Decimal bValue(MonthEndState x) => x.bAssets.values.fold(
+      x.bParking,
+      (Decimal a, Decimal? v) => v == null ? a : a + v,
+    );
+    String acts(MonthEndPlan p) => p.actions.join(' | ');
+
+    test('🔴 상한 없음(null) = 상한 1 = 옛 계획 그대로(골든 경로 불변)', () {
+      for (final int m in <int>[3, 7]) {
+        final MonthEndState st = held(month: m, a1: '34000000');
+        final MonthEndPlan base = planMonthEnd(st, _cfg());
+        expect(acts(planMonthEnd(st, _cfg(), capB: Decimal.one)), acts(base));
+        expect(
+          acts(planMonthEnd(st, _cfg(), capB: _d('1.5'), capPot: _d('2'))),
+          acts(base),
+        );
+      }
+    });
+
+    test('PROBATION 0.5 — B 를 중심 21% 로 내림: 모자란 파킹은 B 자산 비례 매도 → 21% 를 C 로 재분류(같은 계좌)', () {
+      final MonthEndPlan p = planMonthEnd(
+        held(month: 7),
+        _cfg(),
+        capB: _d('0.5'),
+      );
+      final List<MonthEndAction> sells = _of(
+        p,
+        MonthEndActionKind.sleeveBFundingSell,
+      );
+      expect(sells.map((MonthEndAction a) => a.symbol), <String>[
+        '133690',
+        '411060',
+      ]);
+      final MonthEndAction re = _of(
+        p,
+        MonthEndActionKind.coreBandReclassify,
+      ).single;
+      expect(re.amount, closeToDecimal(_d('21000000')));
+      expect(p.after.bParkingReclassified, closeToDecimal(_d('21000000')));
+      expect(bValue(p.after) < _d('21000000'), isTrue); // 매도 비용만큼 아래
+      expect(bValue(p.after) > _d('20900000'), isTrue);
+      // 상한 없음이면 B 42% = 밴드 안 → 이동 0.
+      final MonthEndPlan none = planMonthEnd(held(month: 7), _cfg());
+      expect(_of(none, MonthEndActionKind.coreBandReclassify), isEmpty);
+      expect(_of(none, MonthEndActionKind.sleeveBFundingSell), isEmpty);
+    });
+
+    test('PROBATION 중 밴드 — 중심 21% ± 3%p 안이면 이동 0 · 24% 를 넘으면 내림', () {
+      // B = 2,300만(23%) — 밴드 안.
+      final MonthEndPlan inBand = planMonthEnd(
+        held(month: 9, a1: '15000000', a2: '4000000', bPark: '4000000'),
+        _cfg(),
+        capB: _d('0.5'),
+      );
+      expect(_of(inBand, MonthEndActionKind.coreBandReclassify), isEmpty);
+      expect(_of(inBand, MonthEndActionKind.coreBandContribution), isEmpty);
+      // B = 2,500만(25%) — 밖 → 400만 재분류(파킹 넉넉 · 매도 0).
+      final MonthEndPlan over = planMonthEnd(
+        held(month: 9, a1: '15000000', a2: '4000000', bPark: '6000000'),
+        _cfg(),
+        capB: _d('0.5'),
+      );
+      expect(_of(over, MonthEndActionKind.sleeveBFundingSell), isEmpty);
+      expect(
+        _of(over, MonthEndActionKind.coreBandReclassify).single.amount,
+        _d('4000000'),
+      );
+    });
+
+    test(
+      '🔴 RETIRED 0 — 밴드와 무관하게 B 전부(자산 전량 매도 · 파킹 전부 C 재분류) · B 신호 주문 0',
+      () {
+        final MonthEndPlan p = planMonthEnd(
+          held(month: 9, a1: '1000000', a2: '500000', bPark: '300000'),
+          _cfg(),
+          capB: Decimal.zero,
+        );
+        expect(_of(p, MonthEndActionKind.sleeveBFundingSell), hasLength(2));
+        expect(bValue(p.after), Decimal.zero);
+        expect(p.after.bAssets.values, everyElement(Decimal.zero));
+        expect(_of(p, MonthEndActionKind.sleeveBOrder), isEmpty);
+        expect(_of(p, MonthEndActionKind.rampContribution), isEmpty);
+      },
+    );
+
+    test('램프 중(3번째 달 · 진행 ½)에 상한 = 줄이는 쪽만 돈다(중심 42% × ½ × ½) · 상한 없으면 램프 중 코어 밴드 0', () {
+      final MonthEndState st = held(
+        month: 3,
+        a1: '15000000',
+        a2: '4000000',
+        bPark: '2000000',
+      ); // B 21% = 램프 목표 그대로
+      expect(
+        _of(planMonthEnd(st, _cfg()), MonthEndActionKind.coreBandReclassify),
+        isEmpty,
+      );
+      final MonthEndPlan p = planMonthEnd(st, _cfg(), capB: _d('0.5'));
+      expect(_of(p, MonthEndActionKind.rampContribution), isEmpty);
+      expect(
+        _of(p, MonthEndActionKind.coreBandReclassify).single.amount,
+        closeToDecimal(_d('10500000')),
+      );
+      // 램프 중 미달이어도 코어 밴드 환원 · 납입은 안 한다(램프 몫) — C 재분류분 500만이 있고 연금 한도가 찼어도.
+      final MonthEndPlan low = planMonthEnd(
+        held(
+          month: 3,
+          a1: '0',
+          a2: '0',
+          bPark: '1000000',
+          bParkC: '5000000',
+          used: '18000000',
+        ),
+        _cfg(),
+        capB: _d('0.5'),
+      );
+      expect(low.after.bParkingReclassified, _d('5000000'));
+      expect(_of(low, MonthEndActionKind.coreBandContribution), isEmpty);
+      expect(_of(low, MonthEndActionKind.coreBandReclaim), isEmpty);
+    });
+
+    test('POT — 트랜치 목표 × 상한(판 돈 = POT 현금) · 상한 0 = 사지 않음', () {
+      final Map<String, List<double>> up = <String, List<double>>{
+        for (final String t in <String>['133690', '411060'])
+          t: <double>[for (int k = 1; k <= 14; k++) k.toDouble()],
+      };
+      List<MonthEndAction> pot(Decimal? cap) => _of(
+        planMonthEnd(
+          held(month: 9, potCash: '10000000', closes: up),
+          _cfg(),
+          capPot: cap,
+        ),
+        MonthEndActionKind.potTrade,
+      );
+      expect(pot(null).first.amount, _d('8000000')); // 상한 없음 = 1억 × 0.8
+      final List<MonthEndAction> half = pot(_d('0.5'));
+      expect(half.first.symbol, '133690');
+      expect(half.first.amount, _d('4000000'));
+      expect(half[1].amount, _d('1000000'));
+      expect(pot(Decimal.zero), isEmpty);
+    });
+  });
 }
 
 /// Decimal 근사 비교(원 미만 1e-6).

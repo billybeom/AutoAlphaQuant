@@ -1061,12 +1061,21 @@ export 'src/ops/sim_opening_command.dart'
 export 'src/ops/tier_b.dart'
     show
         EquityPoint,
+        P0sRiskCaps,
+        TierBCaps,
         TierBCard,
         TierBError,
         TierBMetrics,
+        TierBProbationOutcome,
+        TierBProbationRule,
         TierBVerdict,
+        judgeProbation,
         judgeTierB,
+        p0sProbationRule,
         p0sTierBCard,
+        plannerCapOf,
+        sleeveACapTrim,
+        tierBCapReceiver,
         tierBMetrics,
         tierBTrigger,
         twrIndex;

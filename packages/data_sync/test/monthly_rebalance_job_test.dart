@@ -991,6 +991,126 @@ void main() {
     });
   });
 
+  // ── 🆕 R247(R50 T10) — 판정이 계획 앞 · 전이 달 계획부터 상한 · A 축소 매도 ──
+  group('🆕 R247 계층 B 상한 → 계획', () {
+    const TierBCard breach = TierBCard(
+      b1R12mFloor: -0.15,
+      b2DdFloor: -0.05,
+      b3TuwMonths: 31,
+    );
+    void seed() {
+      for (final String id in <String>[
+        P0sStrategyIds.sleeveA,
+        P0sStrategyIds.sleeveB,
+        P0sStrategyIds.sleeveC,
+        P0sStrategyIds.pot,
+      ]) {
+        db.execute(
+          'INSERT INTO strategy_state_current(strategy_id, state, since, capital_cap) VALUES (?, ?, ?, 1.0)',
+          <Object?>[id, 'ACTIVE', '2026-01-02'],
+        );
+      }
+      for (final (String day, double eq) in <(String, double)>[
+        ('2026-06-30', 100),
+        ('2026-07-31', 90),
+      ]) {
+        db.execute(
+          'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+          "VALUES (?, ?, 0, ?, ?, 0, 'LIVE')",
+          <Object?>[day, eq, eq, eq],
+        );
+      }
+    }
+
+    const List<LedgerHolding> held = <LedgerHolding>[
+      LedgerHolding('P0S_A', '0085P0', 7),
+      LedgerHolding('P0S_B', '133690', 100),
+    ];
+    Map<String, Object?> outputs() => jsonDecode(
+      db
+              .select(
+                "SELECT outputs FROM plan_snapshot WHERE kind = 'REBALANCE'",
+              )
+              .single['outputs']
+          as String,
+    ) as Map<String, Object?>;
+
+    test('🔴 판정이 계획 앞 — 전이한 달의 계획에 상한(risk_caps) · B 축소 · A 축소 매도(RISK-P0S_A · 보유 7 → 4주 매도)', () async {
+      seed();
+      final MonthlyRebalanceReport r = await job(
+        held: held,
+        tierBCard: () => breach,
+      ).run(_me);
+      expect(r.created, isTrue);
+      expect(r.tierB!.transitioned, hasLength(4));
+      expect(outputs()['risk_caps'], <String, Object?>{
+        'A': 0.5,
+        'B': 0.5,
+        'POT': 0.5,
+      });
+      final OrderTarget trim = r.targets.singleWhere(
+        (OrderTarget t) => t.strategyId == P0sStrategyIds.sleeveA,
+      );
+      expect(
+        (trim.logicalDecisionId, trim.symbol, trim.side),
+        ('RISK-P0S_A-0085P0-2026-07-31', '0085P0', OrderSide.sell),
+      );
+      expect((trim.sizing as ShareSizing).shares, 4);
+      expect(
+        r.targets.where(
+          (OrderTarget t) =>
+              t.logicalDecisionId == 'BAND-B-2026-07-31' &&
+              t.side == OrderSide.sell,
+        ),
+        isNotEmpty,
+      );
+      // 저장된 대상 = 보고 대상(축소 매도 포함) · 행 1개씩.
+      expect((outputs()['targets']! as List<Object?>).length, r.targets.length);
+      expect(_count(db, 'plan_snapshot'), 1);
+    });
+
+    test(
+      '상한 없음(판정은 했으나 안 걸림) = risk_caps 없음 · A 축소 0 · B 축소 0(램프 중)',
+      () async {
+        seed();
+        final MonthlyRebalanceReport r = await job(held: held)
+            .run(_me); // P0S 카드 = −10% 안 걸림
+        expect(r.tierB!.transitioned, isEmpty);
+        expect(outputs().containsKey('risk_caps'), isFalse);
+        expect(
+          r.targets.where(
+            (OrderTarget t) =>
+                t.strategyId == P0sStrategyIds.sleeveA ||
+                t.logicalDecisionId.startsWith('BAND-B-'),
+          ),
+          isEmpty,
+        );
+      },
+    );
+
+    test('카드 없음 = 판정 0 · 상한 1 · 계획은 평소대로', () async {
+      seed();
+      final MonthlyRebalanceReport r = await job(
+        held: held,
+        tierBCard: () => null,
+      ).run(_me);
+      expect(r.tierB!.cardMissing, isTrue);
+      expect(outputs().containsKey('risk_caps'), isFalse);
+    });
+
+    test('🔴 판정 실패여도 계획은 저장(상한 = 이미 있던 값) 뒤 실패 · 다시 돌리면 판정만', () async {
+      seed();
+      db.execute("DELETE FROM equity_snapshot WHERE trade_date = '2026-07-31'");
+      await expectLater(
+        job(held: held, tierBCard: () => breach).run(_me),
+        throwsA(isA<MonthlyRebalanceError>()),
+      );
+      expect(_count(db, 'plan_snapshot'), 1);
+      expect(outputs().containsKey('risk_caps'), isFalse);
+      expect(_count(db, 'tier_b_judgement'), 0);
+    });
+  });
+
   test('🆕 E11j — 🔴 월 납입 운영값은 config_hash 밖: 기록이 있어도 월말 계획 바이트 불변(06 M3-6 ⓕ · R54 J7)', () async {
     // 같은 시작 원장 사본 둘 — 하나에만 월 납입 변경 2건.
     final Directory other = Directory.systemTemp.createTempSync('aaq_me_b_');

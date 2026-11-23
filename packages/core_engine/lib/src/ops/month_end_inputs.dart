@@ -18,6 +18,7 @@ import '../portfolio/month_end_plan.dart';
 import '../risk/limits.dart' show InstrumentKind;
 import '../signals/regime_states.dart' show DirectionState;
 import '../whatif/deposit_register.dart' show LedgerCashRow, pensionUsedInYear;
+import 'tier_b.dart' show P0sRiskCaps;
 
 /// 조립 실패 — 🔴 사유 = 전략 · 종목만(금액 0).
 class MonthEndInputError implements Exception {
@@ -250,6 +251,7 @@ class MonthEndRun {
 /// [pensionRows] · [pensionAlias] · [pensionOutsideText] = 연금 한도 사용액 계산 입력 · [potCashText] = POT 현금(🆕 E11f3 —
 /// 체결에서 다시 센 값 · 음수 = 실패) · 예약 원화 = 0(S7 · R49).
 /// 종가 · 귀속 · 현금 조회 실패 = [MonthEndInputError](금액 0).
+/// 🆕 R247 — [caps] = 계층 B 위험 슬리브 상한(B · POT 를 계획기로 · A 는 계절 잡 · 기본 = 상한 없음).
 Future<MonthEndRun> computeMonthEndRun({
   required TradeDate monthEnd,
   required List<LedgerHolding> holdings,
@@ -267,6 +269,7 @@ Future<MonthEndRun> computeMonthEndRun({
   required Map<String, InstrumentKind> instruments,
   String pensionOutsideText = '0',
   String potCashText = '0',
+  P0sRiskCaps caps = P0sRiskCaps.full,
 }) async {
   if (cashAccounts.isEmpty) throw ArgumentError('현금 계좌가 없다');
   final Decimal? outside = Decimal.tryParse(pensionOutsideText);
@@ -309,7 +312,13 @@ Future<MonthEndRun> computeMonthEndRun({
     config: config,
     parkingSymbol: parkingSymbol,
   );
-  final MonthEndPlan plan = planMonthEnd(state, config);
+  Decimal? capOf(double c) => c >= 1.0 ? null : Decimal.parse(c.toString());
+  final MonthEndPlan plan = planMonthEnd(
+    state,
+    config,
+    capB: capOf(caps.b),
+    capPot: capOf(caps.pot),
+  );
   return MonthEndRun(
     state: state,
     plan: plan,

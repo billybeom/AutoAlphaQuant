@@ -186,6 +186,9 @@ abstract final class MonthlyReportTexts {
   /// 🆕 R208 — 전략 상태 PROBATION(03_운영 §1-5 상태기계 «보호관찰»).
   static const String strategyProbation = '보호관찰';
 
+  /// 🆕 R247 — 전략 상태 RETIRED(03_운영 §1-5 «은퇴» · PROBATION 24개월 만료 = 자동 · 엔진 글 · 계약 0).
+  static const String strategyRetired = '은퇴';
+
   /// 🆕 R208 — 이 달 계층 B 판정 충족 «계층 B B2 충족».
   static String tierBBreached(List<String> codes) =>
       '계층 B ${codes.join(' · ')} 충족';
@@ -336,11 +339,19 @@ final RegExp _ymd = RegExp(r'^\d{4}-\d\d-\d\d$');
     throw ArgumentError.value(0, 'strategy', '전략 상태 없음');
   }
   bool probation = false;
+  bool retired = false;
   for (final String st in f.strategyStates) {
     if (st == 'PROBATION') {
       probation = true;
+    } else if (st == 'RETIRED') {
+      // 🆕 R247 — 만료 = 자동 RETIRED(네 전략 함께) · 하나라도 은퇴면 «은퇴»가 앞선다.
+      retired = true;
     } else if (st != 'ACTIVE') {
-      throw ArgumentError.value(st, 'strategy', 'ACTIVE · PROBATION 밖의 상태');
+      throw ArgumentError.value(
+        st,
+        'strategy',
+        'ACTIVE · PROBATION · RETIRED 밖의 상태',
+      );
     }
   }
   final TierBVerdict? v = f.tierB;
@@ -354,7 +365,9 @@ final RegExp _ymd = RegExp(r'^\d{4}-\d\d-\d\d$');
       if (!FlagIds.markerOnly.contains(x.flagId)) x,
   ];
   final String value = <String>[
-    probation
+    retired
+        ? MonthlyReportTexts.strategyRetired
+        : probation
         ? MonthlyReportTexts.strategyProbation
         : MonthlyReportTexts.strategyActive,
     if (codes.isNotEmpty) MonthlyReportTexts.tierBBreached(codes),

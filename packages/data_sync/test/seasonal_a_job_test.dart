@@ -208,6 +208,46 @@ void main() {
     expect(_count(db, 'planned_work_transition'), 1);
   });
 
+  test('🆕 R247 — P0S_A PROBATION(상한 0.5) = 목표 주수 절반(200 → 100) · 판정에 cap_a · RETIRED = 사지 않음(POT 청산만)', () async {
+    _kq(db, '2025-10-28', up: true);
+    db.execute(
+      'INSERT INTO plan_snapshot(plan_id, kind, computed_at, as_of_trade_date, expires_at, inputs, outputs, config_hash) '
+      "VALUES ('REBAL-2025-09-30', 'REBALANCE', 'x', '2025-09-30', '2025-11-03', '{}', ?, 'c')",
+      <Object?>[
+        jsonEncode(<String, Object?>{
+          'month_index': 6,
+          'targets': <Object?>[],
+          'execution_day': '2025-10-01',
+        }),
+      ],
+    );
+    db.execute(
+      "INSERT INTO strategy_state_current(strategy_id, state, since, capital_cap) VALUES ('P0S_A', 'PROBATION', '2025-09-01', 0.5)",
+    );
+    final SeasonalAReport r = await job().run(const TradeDate('2025-10-29'));
+    expect(r.targetShares, 100);
+    final Map<String, Object?> t = jsonDecode(
+      db
+              .select('SELECT trigger_snapshot FROM rebalance_event')
+              .single['trigger_snapshot']
+          as String,
+    ) as Map<String, Object?>;
+    expect(t['cap_a'], 0.5);
+
+    db.execute('DELETE FROM rebalance_event');
+    db.execute('DELETE FROM decision_log');
+    db.execute('DELETE FROM planned_work_transition');
+    db.execute('DELETE FROM planned_work');
+    db.execute(
+      "UPDATE strategy_state_current SET state = 'RETIRED', capital_cap = 0 WHERE strategy_id = 'P0S_A'",
+    );
+    final SeasonalAReport z = await job().run(const TradeDate('2025-10-29'));
+    expect(
+      (z.outcome, z.targetShares, z.liquidatePot),
+      (SeasonalAOutcome.enter, 0, true),
+    );
+  });
+
   test('10월 내림세 = 연기 · 11월 판정 날 재시도(연기 계수 1 → 내림세면 2)', () async {
     _kq(db, '2025-10-28', up: false);
     final SeasonalAReport oct = await job().run(const TradeDate('2025-10-29'));

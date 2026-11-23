@@ -1,5 +1,7 @@
 // E11g — 계층 B 계산(설계 13 §8 R50 T2~T4).
 import 'package:core_engine/core_engine.dart';
+import 'package:domain_contracts/domain_contracts.dart'
+    show OrderSide, TradeDate;
 import 'package:test/test.dart';
 
 const TierBCard _card = TierBCard(
@@ -218,4 +220,148 @@ void main() {
       );
     },
   );
+
+  // ── 🆕 R247(R50 T10 · 03 §1-5 «P0S 등록») ──
+  group('🆕 R247 PROBATION 복귀 · 만료 · 상한', () {
+    TierBMetrics m(double? r12) => TierBMetrics(
+      asOf: '2026-07-31',
+      r12m: r12,
+      dd: -0.05,
+      tuwMonths: 2,
+      peakDate: '2026-05-29',
+    );
+    const TierBVerdict ok = TierBVerdict(b1: false, b2: false, b3: false);
+    const TierBProbationRule rule = TierBProbationRule(
+      returnR12mFloor: 0.05,
+      maxJudgements: 24,
+    );
+
+    test('P0S 규칙 = 발주자 위임 값(+5% · 24회)', () {
+      expect(
+        (p0sProbationRule().returnR12mFloor, p0sProbationRule().maxJudgements),
+        (0.05, 24),
+      );
+    });
+
+    test('복귀 = r12 ≥ 문턱 AND 안 걸림 · 경계 같음 = 복귀 · r12 없음 = 아님', () {
+      expect(
+        judgeProbation(m(0.05), ok, observations: 1, rule: rule),
+        TierBProbationOutcome.returned,
+      );
+      expect(
+        judgeProbation(m(0.0499999), ok, observations: 1, rule: rule),
+        TierBProbationOutcome.stay,
+      );
+      expect(
+        judgeProbation(m(null), ok, observations: 1, rule: rule),
+        TierBProbationOutcome.stay,
+      );
+      for (final TierBVerdict v in const <TierBVerdict>[
+        TierBVerdict(b1: true, b2: false, b3: false),
+        TierBVerdict(b1: false, b2: true, b3: false),
+        TierBVerdict(b1: false, b2: false, b3: true),
+      ]) {
+        expect(
+          judgeProbation(m(0.3), v, observations: 1, rule: rule),
+          TierBProbationOutcome.stay,
+        );
+      }
+    });
+
+    test('만료 = 24번째 판정에서도 복귀 못 함 · 23번째 = 그대로 · 24번째 복귀 = 복귀가 먼저', () {
+      expect(
+        judgeProbation(m(0), ok, observations: 23, rule: rule),
+        TierBProbationOutcome.stay,
+      );
+      expect(
+        judgeProbation(m(0), ok, observations: 24, rule: rule),
+        TierBProbationOutcome.expired,
+      );
+      expect(
+        judgeProbation(m(0.2), ok, observations: 24, rule: rule),
+        TierBProbationOutcome.returned,
+      );
+      expect(
+        () => judgeProbation(m(0), ok, observations: 0, rule: rule),
+        throwsArgumentError,
+      );
+    });
+
+    test(
+      '계획기 상한 읽기 — ACTIVE · PROBATION = 값(0~1) · RETIRED = 0 · 그 밖 · 없음 = 1',
+      () {
+        expect(plannerCapOf('ACTIVE', 1.0), 1.0);
+        expect(plannerCapOf('PROBATION', 0.5), 0.5);
+        expect(plannerCapOf('PROBATION', 1.7), 1.0);
+        expect(plannerCapOf('PROBATION', -1), 0.0);
+        expect(plannerCapOf('RETIRED', 1.0), 0.0);
+        expect(plannerCapOf('CANDIDATE', 0.0), 1.0);
+        expect(plannerCapOf('PILOT', 0.1), 1.0);
+        expect(plannerCapOf(null, null), 1.0);
+        expect(tierBCapReceiver(P0sStrategyIds.sleeveC), isTrue);
+        for (final String id in <String>[
+          P0sStrategyIds.sleeveA,
+          P0sStrategyIds.sleeveB,
+          P0sStrategyIds.pot,
+        ]) {
+          expect(tierBCapReceiver(id), isFalse);
+        }
+      },
+    );
+
+    test('상한 JSON 왕복 · 없음 = full', () {
+      const P0sRiskCaps c = P0sRiskCaps(a: 0.5, b: 0, pot: 0.5);
+      expect(P0sRiskCaps.fromJson(c.toJson()), c);
+      expect(P0sRiskCaps.fromJson(null), P0sRiskCaps.full);
+      expect(P0sRiskCaps.full.isFull, isTrue);
+      expect(c.isFull, isFalse);
+    });
+
+    test('A 축소 매도 — 0.5 = 보유 − ⌊보유 × 0.5⌋ · 0 = 전량 · 1 · 보유 0 = 없음 · 논리 id = 한도 청산 꼴', () {
+      const TradeDate me = TradeDate('2026-07-31');
+      final OrderTarget t = sleeveACapTrim(
+        symbol: '229200',
+        heldShares: 7,
+        capA: 0.5,
+        judgmentDate: me,
+      )!;
+      expect(
+        (t.logicalDecisionId, t.strategyId, t.side, t.instrument),
+        (
+          'RISK-P0S_A-229200-2026-07-31',
+          P0sStrategyIds.sleeveA,
+          OrderSide.sell,
+          InstrumentKind.etf,
+        ),
+      );
+      expect((t.sizing as ShareSizing).shares, 4);
+      expect(
+        sleeveACapTrim(
+          symbol: '229200',
+          heldShares: 7,
+          capA: 0,
+          judgmentDate: me,
+        )!.sizing,
+        isA<AllHeldSizing>(),
+      );
+      expect(
+        sleeveACapTrim(
+          symbol: '229200',
+          heldShares: 7,
+          capA: 1,
+          judgmentDate: me,
+        ),
+        isNull,
+      );
+      expect(
+        sleeveACapTrim(
+          symbol: '229200',
+          heldShares: 0,
+          capA: 0.5,
+          judgmentDate: me,
+        ),
+        isNull,
+      );
+    });
+  });
 }
