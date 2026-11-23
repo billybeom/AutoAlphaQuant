@@ -99,9 +99,15 @@ class _Net {
 
 Map<String, String> _vault({bool connected = true, bool session = true}) =>
     <String, String>{
-      if (connected) 'supabase.project_url': _url,
-      if (connected) 'supabase.publishable_key': _pub,
-      if (session) 'supabase.refresh_token': 'ref-${'R' * 10}-0',
+      ...connected
+          ? <String, String>{
+              'supabase.project_url': _url,
+              'supabase.publishable_key': _pub,
+            }
+          : const <String, String>{},
+      ...session
+          ? <String, String>{'supabase.refresh_token': 'ref-${'R' * 10}-0'}
+          : const <String, String>{},
     };
 
 Map<String, Object?> _device(
