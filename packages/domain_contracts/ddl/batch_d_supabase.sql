@@ -223,21 +223,24 @@ alter table calendar_sync_status enable row level security;
 create policy calendar_sync_status_select on calendar_sync_status for select to authenticated using (true);
 
 -- ════════════════════════════════════════════════════════════════════════════
--- 읽기 모델 `rm_*` 18표 — 🔴 이 파일에 손으로 적지 않는다
+-- 읽기 모델 `rm_*` 22표 — 🔴 이 파일에 손으로 적지 않는다
 -- ════════════════════════════════════════════════════════════════════════════
--- 01 §6-4 는 「개별 DDL 은 아래 **규칙을 따라 로컬 표에서 기계적으로 파생**한다」고 정했고,
--- 18표 중 컬럼 목록이 문서에 실린 것은 `rm_config_view`·`rm_advice`·`rm_advice_summary` 뿐이다.
--- 🔴 나머지를 손으로 적으면 **문서에 없는 컬럼을 지어내는 것**이 되고, 그 순간 이 파일이
---    두 번째 정본이 된다. 파생 생성기(06 M4-1)가 만들 때까지 여기는 **계약만** 적는다.
+-- 01 §6-4 는 「개별 DDL 은 아래 **규칙을 따라 로컬 표에서 기계적으로 파생**한다」고 정했다.
+-- ✅ v1.36(01 §45 · K303 · 지도 D15 · 13 R230 L2) — 열 표의 정본 = 계약 Dart 상수
+--    `lib/src/schema/read_model_tables.dart` `ReadModelTables`(표 · 키 · 열 · 형 · 결속 DTO · 제외 키 · RLS 본문).
+--    열 = 결속 DTO `toJson()` 최상위 키(접두 · 제외 · 펼침 한 겹) + DTO 밖 열 + 아래 규칙 5조 4칸 — C-69 가 표본으로 대조한다.
+-- 🔴 DDL 문장은 생성기(data_sync E11l1 · Dart 순수 함수 · 골든 `packages/data_sync/sql/supabase_read_models.sql`)가
+--    그 상수에서 낸다 — 여기에 손으로 적으면 **두 번째 정본**이 된다.
 --
--- 표 18: rm_journal · rm_holding · rm_performance_point · rm_rebalance_event · rm_alert ·
---        rm_safety_state · rm_config_view · rm_advice · rm_advice_summary · rm_monthly_report ·
---        rm_report_archive · rm_ledger_diff · rm_sleeve_allocation · rm_perf_context ·
---        rm_disclosure_view · rm_ops_summary · rm_ledger_trust · rm_execution_gap
--- 🔵 v1 필수 4표 = rm_monthly_report · rm_report_archive · rm_ledger_diff · rm_advice_summary.
---    rm_sleeve_allocation·rm_perf_context 는 조건부.
---    ✅ rm_ops_summary = **v1 필수**(발주자 결정 N-07 · 2026-10-22 · m2-8_naming J-4 ✅ · 01 §6-4) — 홈 블록 5·7 과
---       🆕 계약 v1.12 `H-02` 전체 리듬 목록(`OpsSummaryRepository.watchRhythm` · K29)·`resume_line`(K44)의 뷰어 원천.
+-- 표 22: rm_journal · rm_holding · rm_performance_point · rm_performance_series · rm_rebalance_event ·
+--        rm_alert · rm_safety_state · rm_config_view · rm_advice · rm_advice_summary · rm_monthly_report ·
+--        rm_report_archive · rm_ledger_diff · rm_sleeve_allocation · rm_perf_context · rm_disclosure_view ·
+--        rm_ops_summary · rm_ledger_trust · rm_execution_gap · rm_blind_review · rm_watchdog · rm_list_envelope
+--   (~~18~~ · 06 M4-1 «19» · 01 §6-4 20 + `rm_watchdog`(미결 142) + 🆕 `rm_list_envelope`(ListResult 봉투 — K310))
+-- 🔵 v1 필수(push 우선) = rm_monthly_report · rm_report_archive · rm_ledger_diff · rm_advice_summary ·
+--    rm_sleeve_allocation(v1.8) · rm_ops_summary(N-07) · rm_list_envelope(목록 봉투) — 🔴 부트스트랩은 22표 **전부**(K314).
+--    ✅ rm_ops_summary = 홈 블록 5·7 과 계약 v1.12 `H-02` 전체 리듬 목록(`OpsStatusRepository.watchRhythm` · K29 → 열 `rhythm`)·
+--       `resume_line`(K44)의 뷰어 원천.
 --
 -- **규칙 5조(+⑥)** — 파생 생성기가 표마다 반드시 지키는 것:
 --   ① 전 `rm_*` 에 `row_version bigint` · `lease_epoch bigint` · `pushed_at timestamptz`
@@ -252,6 +255,7 @@ create policy calendar_sync_status_select on calendar_sync_status for select to 
 --   ④ 🔴 RLS: 인증 사용자 `select` 전용, insert/update 는 operator 리스 epoch 보유자만(RPC).
 --      🆕 **`rm_*` 도 예외가 아니다**(G-10) — 생성기는 표마다 `enable row level security` +
 --      select 전용 정책을 **함께** 낸다. **RLS 미적용 표가 하나라도 있으면 부트스트랩 검수는 실패**다.
+--      ✅ v1.36(K311) select 본문 = 부른 사용자의 ACTIVE 기기 행(`app_device` 조인 · JWT 클레임 0 — `ReadModelRls`).
 --   ⑤ 🔴 **시크릿·계좌 전체번호·손익 원장 금지** — push 전 시크릿 스캔 게이트 통과.
 --      🔵 예외(rm_monthly_report·rm_perf_context)의 성립 조건 4가지: 월 마감 스냅샷만 ·
 --      종목 단위 행 0건 · 뷰어도 `S7-2G` 게이트를 그대로 통과 · 시크릿 스캔 통과.
@@ -263,7 +267,7 @@ create policy calendar_sync_status_select on calendar_sync_status for select to 
 -- 🔴 **읽기 모델 컬럼 목록은 DTO 필수 필드의 상위집합이어야 한다**(G-22). 필수 필드에 대응 컬럼이
 --    없으면 viewer 구현체가 컴파일되지 않고, 그때 구현자는 축약 타입을 만들어 계약 3조 ①을 우회한다.
 -- 🔴 `rm_advice` 는 **A6 마스킹** — `symbol`·`quantity`·`price_low/high/ref`·`recorded_quantity`·
---    `actions` 를 **싣지 않는다**(C-27).
+--    `actions` 를 **싣지 않는다**(C-27). ✅ v1.36(K307) — 종목 · 방향 · 수량 · 가격 칸 10 = 열 0(뷰어 판 null · `actions` = []).
 -- 🔴 **이 정책은 push 경로 변경을 동반한다**(§6-4 말미) — `rm_*`·명령 표 쓰기는 전량
 --    security definer RPC(operator lease epoch 검사) **1개 창구**이고 클라이언트 upsert 0건이다.
 --    정책만 넣고 push 를 RPC 로 바꾸지 않으면 부트스트랩 직후 동기화가 **전면 실패**한다.
