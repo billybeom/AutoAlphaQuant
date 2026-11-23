@@ -52,6 +52,9 @@ dependencies:
 
 dev_dependencies:
   # 🔴 알파벳 순 — flutter_lints가 flutter_test보다 앞이다.
+  # 🆕 E11-viewer-223 — 시험이 `RunMode` 를 짓는다(계약 = 뷰어 허용 · tool/check_boundaries.sh [8] 금지 목록 밖).
+  domain_contracts:
+    path: ../../packages/domain_contracts
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
