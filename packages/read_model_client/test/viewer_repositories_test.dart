@@ -145,6 +145,26 @@ void main() {
       }
     });
 
+    test('묶음 화면 모드 = 그 모드 행(SIM 묶음은 SIM 행 · LIVE 행 무시)', () async {
+      final ReadModelRow sim = _row(
+        ReadModelTables.safetyState,
+        mode: RunMode.simInternal,
+        over: <String, Object?>{'breaker_label': '모의'},
+      );
+      src.put(ReadModelTables.safetyState.name, <ReadModelRow>[
+        _row(ReadModelTables.safetyState),
+        sim,
+      ]);
+      final ViewerReadModels simModels = ViewerReadModels(
+        source: src,
+        mode: RunMode.simInternal,
+      );
+      final SafetyState s = await simModels.safety.watchState().first;
+      expect(s, ReadModelReaders.safetyState.fromRow(sim));
+      expect(s.breakerLabel, '모의');
+      expect(src.queries.last.equals['mode'], RunMode.simInternal.wire);
+    });
+
     test('watchSleeves = sleeve_catalog 받은 순서', () async {
       final ReadModelRow row = _row(ReadModelTables.configView);
       src.put(ReadModelTables.configView.name, <ReadModelRow>[row]);
