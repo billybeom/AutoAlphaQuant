@@ -29,11 +29,13 @@ import 'package:core_engine/core_engine.dart'
         SimOpeningWireResult,
         KillAckAnswers,
         KillActivationAnswers,
+        JournalDraftCommand,
         KillSwitchScreenTexts,
         OrderBroker,
         depositTradeDate,
         depositTrustedTimeUnknownReceipt,
         issueDepositRegister,
+        issueJournalDraft,
         issueKillCommand,
         killChecklistAnswersOf,
         killCommandReceiptOf,
@@ -47,7 +49,9 @@ import 'package:data_sync/data_sync.dart'
         SqliteAlertSink,
         SqliteConfigVersionStore,
         KillCommandResult,
+        JournalDraftWriteResult,
         SqliteDepositRegistrar,
+        SqliteJournalDraftStore,
         SqliteKillSwitchStore,
         SqliteLeaseGate,
         SqliteOnboardingStore,
@@ -177,9 +181,41 @@ class OperatorCommandApi implements CommandApi {
     return receipt;
   }
 
+  /// 🆕 미결 220 ⓔ — `J-3` 사전 저널(키 = 저널 id · 갈래 · 판정 · 보관 · 멱등 = 엔진 `SqliteJournalDraftStore` · 화면 상태의 원장 ·
+  /// 시각 = 기기 시계 — 신뢰 시각 비의존 K299 · 접수증 글자 = 엔진).
   @override
-  Future<CommandReceipt> submitJournalDraft(JournalDraft draft) =>
-      _none('submitJournalDraft');
+  Future<CommandReceipt> submitJournalDraft(JournalDraft draft) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('사전 저널: 화면 상태 없음(온보딩 전)');
+    final String? deviceId = _rt.deviceId;
+    if (deviceId == null) throw StateError('사전 저널: 기기 id 없음');
+    final JournalDraftCommand c = issueJournalDraft(
+      draft: draft,
+      nowUtc: _rt.clock.nowUtc(),
+      deviceId: deviceId,
+      random: _random,
+    );
+    final JournalDraftWriteResult r =
+        SqliteJournalDraftStore(v.db, clock: _rt.clock).submit(
+          commandId: c.commandId,
+          payloadDigest: c.payloadDigest,
+          draft: draft,
+          runMode: v.flags.runMode,
+          operatingMode: v.flags.operatingMode,
+          leaseEpoch: SqliteLeaseGate(
+            v.db,
+            mode: v.flags.runMode,
+            clock: _rt.clock,
+          ).epoch(),
+        );
+    final CommandReceipt receipt = c.receipt(
+      state: r.state,
+      stateLabel: r.stateLabel,
+      rejectReasonCode: r.rejectCode,
+    );
+    _issued[c.commandId] = receipt;
+    return receipt;
+  }
 
   @override
   Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score) =>

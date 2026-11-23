@@ -73,6 +73,7 @@ import '../calendar/next_rebalance.dart' show nextRegularExecutionSession;
 import '../orders/order_draft.dart' show P0sStrategyIds;
 import '../whatif/what_if_config.dart' show WhatIfConfig;
 import '../whatif/what_if_text.dart' show commaWonText;
+import 'journal_draft.dart' show journalRuleCitedLabelOf;
 import 'ledger_views.dart' show kstDateText, kstMinuteText;
 import 'ops_home.dart' show opsDDayText;
 import 'rebalance_events_view.dart' show RebalanceEventTexts;
@@ -227,6 +228,9 @@ abstract final class JournalTexts {
 
   /// 저널 보기(J-2 → J-3R).
   static const String journalReadLink = '저널 보기';
+
+  /// 🆕 미결 220 ⓖ — 저널 작성(J-2 → J-3 · 표본 `m6/decision_detail_journal_draft_link`).
+  static const String journalDraftLink = '저널 작성';
 
   /// 저널 작성됨(표본).
   static const String journalWritten = '저널 작성됨';
@@ -939,45 +943,79 @@ DecisionDetailVm decisionDetailVmOf(JournalFacts f, String routeDecisionId) {
         : null,
     journalStateLabel: note == null
         ? JournalTexts.journalNotTarget
-        : JournalTexts.journalWritten,
-    journalLink: note != null && f.hasBody(AppRoutes.journalRead)
-        ? LinkAction(
-            label: JournalTexts.journalReadLink,
-            deepLink: _route(AppRoutes.journalRead, decisionId),
-          )
-        : null,
+        : _written(note)
+        ? JournalTexts.journalWritten
+        : JournalTexts.journalNotWritten,
+    // 🆕 미결 220 ⓖ(K296) — 미완성 저널(사전 3칸 중 빈 칸) = «저널 작성» → J-3(키 = 저널 id · 결정 id 를 넣지 않는다).
+    journalLink: note == null
+        ? null
+        : _written(note)
+        ? (f.hasBody(AppRoutes.journalRead)
+              ? LinkAction(
+                  label: JournalTexts.journalReadLink,
+                  deepLink: _route(AppRoutes.journalRead, decisionId),
+                )
+              : null)
+        : (f.hasBody(AppRoutes.journalDraft)
+              ? LinkAction(
+                  label: JournalTexts.journalDraftLink,
+                  deepLink: _route(AppRoutes.journalDraft, note.journalId),
+                )
+              : null),
     asOf: b.asOf,
   );
 }
 
+/// 사전 3칸이 다 찼나(SAF-408 판정과 같은 칸 — 하나라도 비면 미완성 · J-3 채우기 갈래).
+bool _written(JournalNoteFact n) =>
+    n.rationaleBefore != null &&
+    n.expectedOutcome != null &&
+    n.ruleCited != null;
+
 /// J-3R 사전 저널 읽기 — 결정은 있는데 저널이 없으면 `body == null`(«미작성»도 값) · 모르는 결정 = 실패.
+/// 🆕 미결 220 ⓔ(K296) — 키 = 저널 id **먼저**(J-3 executed 뒤 · 안전 저널) · 없으면 결정 id → `decision_log.journal_id` ·
+/// 저널 id 로 열리면 «이 결정 보기» = 그 저널이 붙은 결정(주문이 있는)이 있을 때만 · 미완성 저널 = «미작성»(본문 부재) ·
+/// 인용 규칙 글자 = 코드면 J-3 선택지 글자 · 원문이면 원문(K300).
 DecisionJournalVm decisionJournalVmOf(JournalFacts f, String routeDecisionId) {
-  final String decisionId = journalKeyOf(routeDecisionId);
+  final String key = journalKeyOf(routeDecisionId);
   final _Book b = _Book(f);
-  final bool known =
-      b.intentsOf(decisionId).isNotEmpty || f.decisions.containsKey(decisionId);
-  if (!known) throw StateError('결정이 없다: $decisionId');
-  final JournalNoteFact? note = b.noteOf(decisionId);
+  final JournalNoteFact? byJournal = f.notes[key];
+  final String? decisionId;
+  final JournalNoteFact? note;
+  if (byJournal != null) {
+    note = byJournal;
+    // 그 저널이 붙은 결정 = 주문(의도)의 결정 id 중 `noteOf` 가 이 저널을 주는 것(논리 id 조각 포함 · 같은 길).
+    final List<String> owners = <String>{
+      for (final JournalIntentFact i in f.intents)
+        if (b.noteOf(i.decisionId)?.journalId == key) i.decisionId,
+    }.toList()..sort();
+    decisionId = owners.firstOrNull;
+  } else {
+    final bool known =
+        b.intentsOf(key).isNotEmpty || f.decisions.containsKey(key);
+    if (!known) throw StateError('결정 · 저널이 없다: $key');
+    note = b.noteOf(key);
+    decisionId = b.intentsOf(key).isEmpty ? null : key;
+  }
+  final bool written = note != null && _written(note);
   final AsOf asOf = b.asOfWith(JournalTexts.journalAsOfLabel(f.today));
   return DecisionJournalVm(
-    decisionId: decisionId,
-    journalStateLabel: note == null
-        ? JournalTexts.journalNotWritten
-        : JournalTexts.journalWritten,
-    body: note == null
+    decisionId: key,
+    journalStateLabel: written
+        ? JournalTexts.journalWritten
+        : JournalTexts.journalNotWritten,
+    body: !written
         ? null
         : DecisionJournalBody(
             writtenAtText: JournalTexts.writtenAt(
               kstMinuteText(note.createdAt),
             ),
-            ruleCitedLabel: note.ruleCited ?? '',
-            rationaleBefore: note.rationaleBefore ?? '',
-            expectedOutcome: note.expectedOutcome ?? '',
+            ruleCitedLabel: journalRuleCitedLabelOf(note.ruleCited),
+            rationaleBefore: note.rationaleBefore!,
+            expectedOutcome: note.expectedOutcome!,
             note: note.note,
           ),
-    decisionLink: b.intentsOf(decisionId).isEmpty
-        ? null
-        : b.decisionLink(decisionId, JournalTexts.decisionLink),
+    decisionLink: b.decisionLink(decisionId, JournalTexts.decisionLink),
     asOf: asOf,
   );
 }

@@ -8,11 +8,20 @@
 //    행마다 `mode` 가 모의 배지를 말한다(02 §3-1).
 // 🔴 링크 = 셸 레지스트리에 본문이 있는 화면만(엔진 `hasBody`).
 // 🆕 E11q-q4b — J-5 미해소 보드(같은 원천 · 같은 감시 표).
-// 🔵 쓰기(사전 저널 폼 스펙) = 계약 창 · M5-6 조립 뒤 · blind 리뷰 = 실전 전 — 원천 없음 오류(화면 = 공통 오류 · 지어내지 않는다).
+// 🆕 미결 220 ⓔ — J-3 사전 저널 폼 스펙(키 = 저널 id · 갈래 = 엔진 `SqliteJournalDraftStore.targetOf` · 모르는 키 = 오류 ·
+//    서약 줄 = sim 원장의 지금 서약(R157 · 재량 예산을 쓰는 목적에만 — 엔진) · 재량 배지 = 재량 예산(신뢰 시각 모름 = 머리만)) ·
+//    J-3R = 저널 id 먼저(엔진 `decisionJournalVmOf`). blind 리뷰 = 실전 전 — 원천 없음 오류(화면 = 공통 오류 · 지어내지 않는다).
 //    조각 조회 셋(`findByDecisionId` · `chainOf` · `fillChain`)은 J-2 가 쓰지 않는다(그 화면은 상세 하나만 구독) → 원천 없음.
 
+import 'package:core_engine/core_engine.dart'
+    show JournalDraftTarget, journalDraftFormSpecOf, journalKeyOf;
 import 'package:data_sync/data_sync.dart'
-    show SqliteJournalSource, watchLedgerQuery;
+    show
+        SqliteDiscretionStore,
+        SqliteJournalDraftStore,
+        SqliteJournalSource,
+        SqlitePledgeStore,
+        watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         BlindReviewCard,
@@ -157,9 +166,32 @@ class OperatorJournalRepository implements JournalRepository {
   Future<List<TradeJournalEntry>> fillChain(String entryId) =>
       _noneNow('fillChain');
 
+  /// 🆕 미결 220 ⓔ — J-3 폼 스펙(키 = 저널 id · 모르는 키 · 화면 상태 없음 = 오류).
   @override
-  Future<JournalDraftFormSpec> draftFormSpec(String decisionId) =>
-      _noneNow('draftFormSpec');
+  Future<JournalDraftFormSpec> draftFormSpec(String decisionId) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('사전 저널 폼: 화면 상태 없음(온보딩 전)');
+    final String key = journalKeyOf(decisionId);
+    final JournalDraftTarget? t = SqliteJournalDraftStore(
+      v.db,
+      clock: _rt.clock,
+    ).targetOf(key);
+    if (t == null) throw StateError('사전 저널 폼: 모르는 키 $key');
+    return journalDraftFormSpecOf(
+      t,
+      pledgeLines: SqlitePledgeStore(
+        _rt.files.sim,
+        clock: _rt.clock,
+        trusted: _rt.trusted,
+      ).pledgeLines(),
+      budget: SqliteDiscretionStore(
+        v.db,
+        clock: _rt.clock,
+        trusted: _rt.trusted,
+      ).budget(),
+      nowUtc: _rt.clock.nowUtc(),
+    );
+  }
 
   /// 🆕 E11q-q4b — J-5 미해소 보드.
   @override

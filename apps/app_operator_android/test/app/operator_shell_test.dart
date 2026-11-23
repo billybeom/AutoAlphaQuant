@@ -37,6 +37,7 @@ import 'package:core_engine/core_engine.dart'
         EmergencyCardTexts,
         GoalPathTexts,
         HandbookTexts,
+        JournalDraftTexts,
         PerfSeriesTexts,
         BlockBoardTexts,
         DeviceRiskFacts,
@@ -122,6 +123,7 @@ import 'package:ui_analytics/ui_analytics.dart'
         safetyRepositoryProvider;
 import 'package:ui_journal/journal_draft.dart'
     show
+        JournalDraftForm,
         journalCommandApiProvider,
         journalDraftStoreProvider,
         journalSettingsActionsProvider;
@@ -2469,6 +2471,36 @@ void main() {
       disposed = true;
     });
   }
+
+  testWidgets(
+    '🆕 미결 220 ⓔ J-3 사전 저널(키 = 저널 id) = 조립 셸에 등록 · 엔진 폼 스펙(배지 · 고지 · 서약 블록 부재) · 크래시 없음',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      files.sim.execute(
+        'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
+        'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
+        "VALUES ('JIV-9', '2026-12-22', 'P0S', '{}', '{}', 1, NULL, NULL, NULL, 'INTERVENTION_JOURNAL', NULL, "
+        "'2026-12-22T00:00:00.000Z')",
+      );
+      await open(tester, 'aaq://journal/draft/JIV-9');
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final Finder form = find.byType(JournalDraftForm);
+      expect(form, findsOneWidget);
+      expect(tester.widget<JournalDraftForm>(form).decisionId, 'JIV-9');
+      expect(find.text(JournalDraftTexts.fillBadge), findsOneWidget);
+      expect(find.text(JournalDraftTexts.notice), findsOneWidget);
+      expect(find.byKey(const Key('j3-pledge-block')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
 
   for (final String route in <String>[
     AppRoutes.m5HandoverWizard,

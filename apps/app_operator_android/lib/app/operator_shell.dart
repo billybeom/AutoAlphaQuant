@@ -93,6 +93,7 @@ import 'package:ui_analytics/ui_analytics.dart'
         safetyRepositoryProvider;
 import 'package:ui_journal/journal_draft.dart'
     show
+        JournalDraftForm,
         SelfReportForm,
         journalCommandApiProvider,
         journalDraftStoreProvider,
@@ -676,6 +677,12 @@ Widget _journalDecision(Map<String, String> p) =>
 Widget _journalRead(Map<String, String> p) =>
     JournalReadView(decisionId: p['decisionId'] ?? '');
 
+/// 🆕 미결 220 ⓔ — J-3 사전 저널(키 = 저널 id · 생성자 인자 그대로 · 키가 바뀌면 폼 상태를 새로).
+Widget _journalDraft(Map<String, String> p) {
+  final String id = p['decisionId'] ?? '';
+  return JournalDraftForm(key: ValueKey<String>(id), decisionId: id);
+}
+
 Widget _journalUnknownBoard(Map<String, String> _) =>
     const JournalUnknownBoard();
 
@@ -895,6 +902,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.journalTimeline: _journalTimeline,
   AppRoutes.journalDecision: _journalDecision,
   AppRoutes.journalRead: _journalRead,
+  // 🆕 미결 220 ⓔ — J-3 사전 저널 쓰기(키 = 저널 id · v1.35 K296 — `JOURNAL_MISSING` 배너 · 차단 보드 · J-2 «저널 작성» 목적지).
+  AppRoutes.journalDraft: _journalDraft,
   AppRoutes.journalRebalance: _journalRebalance,
   // 🆕 E11q-q4b — J-5 미해소 보드(J-1 «확인 중 n건» 배지 · `ORDER_OUTCOME_UNKNOWN` 알림 목적지 · 읽기만).
   AppRoutes.journalUnknownBoard: _journalUnknownBoard,

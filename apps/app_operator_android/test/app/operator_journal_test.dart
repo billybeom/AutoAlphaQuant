@@ -5,14 +5,21 @@
 // 🆕 E11q-q4b — J-5 미해소 보드(등록 · 배지 링크가 선다 · UNKNOWN 이 풀리면 카드가 빠진다).
 
 import 'dart:async';
+import 'dart:math';
 
+import 'package:app_operator_android/app/operator_command_api.dart';
 import 'package:app_operator_android/app/operator_journal.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_shell.dart';
 import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:core_engine/core_engine.dart'
-    show Market, P0sStrategyIds, frozenExchangeCalendar, routePatternOf;
+    show
+        Market,
+        P0sStrategyIds,
+        frozenExchangeCalendar,
+        issueJournalDraftKey,
+        routePatternOf;
 import 'package:data_sync/data_sync.dart' show SqliteJournalSource;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -87,22 +94,21 @@ void main() {
     <Object?>[id, 'k-$id', trade, P0sStrategyIds.sleeveB, decision, status],
   );
 
-  test('🔴 레지스트리 = 일지 읽기 넷 + 🆕 J-5 미해소 보드 · 사전 저널 쓰기 · blind 리뷰 = 아직', () {
+  test('🔴 레지스트리 = 일지 읽기 넷 + J-5 미해소 보드 + 🆕 J-3 사전 저널 쓰기(미결 220 ⓔ) · blind 리뷰 = 아직', () {
     for (final String r in <String>[
       AppRoutes.journalTimeline,
       AppRoutes.journalDecision,
       AppRoutes.journalRead,
       AppRoutes.journalRebalance,
       AppRoutes.journalUnknownBoard,
+      AppRoutes.journalDraft,
     ]) {
       expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
     }
-    for (final String r in <String>[
-      AppRoutes.journalDraft,
-      AppRoutes.journalBlindReview,
-    ]) {
-      expect(kOperatorRouteBodies.byPattern.containsKey(r), false, reason: r);
-    }
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.journalBlindReview),
+      false,
+    );
   });
 
   test('빈 원장 = 엔진 빈 문장 · 필터 출처 = 모의 · 배지 없음', () async {
@@ -331,13 +337,92 @@ void main() {
       r.watchBlindReviewCard('d'),
       emitsError(isA<UnsupportedError>()),
     );
-    await expectLater(r.draftFormSpec('d'), throwsA(isA<UnsupportedError>()));
+    // 🆕 미결 220 ⓔ — 폼 스펙 원천이 섰다: 모르는 키 · 화면 상태 없음 = 오류(지어내지 않는다).
+    await expectLater(r.draftFormSpec('d'), throwsA(isA<StateError>()));
+    await expectLater(none.draftFormSpec('d'), throwsA(isA<StateError>()));
     await expectLater(
       r.findByDecisionId('d'),
       throwsA(isA<UnsupportedError>()),
     );
     await expectLater(r.chainOf('d'), throwsA(isA<UnsupportedError>()));
     await expectLater(r.fillChain('e'), throwsA(isA<UnsupportedError>()));
+  });
+
+  test('🆕 미결 220 ⓔⓕ J-3 — 미완성 저널 폼 스펙 → 제출(엔진 · 접수증) → J-3R(저널 id) 작성됨 · 다시 = 이미 있음 · 새 행 키 · 모르는 키', () async {
+    db().execute(
+      'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
+      'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
+      "VALUES ('JIV-1', '2026-08-31', 'P0S', '{}', '{}', 1, NULL, NULL, NULL, 'INTERVENTION_JOURNAL', NULL, "
+      "'2026-08-31T08:00:00.000Z')",
+    );
+    final OperatorRuntime r = OperatorRuntime(
+      files: files,
+      clock: clock,
+      deviceId: 'dev-1',
+    )..view.value = _viewOf(db());
+    final OperatorJournalRepository j = repo(r);
+    final OperatorCommandApi api = OperatorCommandApi(r, random: Random(4));
+    final JournalDraftFormSpec spec = await j.draftFormSpec('JIV-1');
+    expect(spec.decisionId, 'JIV-1');
+    expect(spec.pledgeLines, isEmpty);
+    expect(spec.ruleCitedOptions, hasLength(3));
+    expect(
+      (await j.watchDecisionJournal('JIV-1').first).journalStateLabel,
+      '저널 미작성',
+    );
+    JournalDraft draft(String key) => JournalDraft(
+      decisionId: key,
+      rationaleBefore: '근' * spec.rationaleMinChars,
+      expectedOutcome: '기대',
+      ruleCited: spec.ruleCitedOptions.first.code,
+    );
+    final CommandReceipt ok = await api.submitJournalDraft(draft('JIV-1'));
+    expect(
+      (ok.kind, ok.state, ok.issuedByDeviceId, ok.rejectReasonCode),
+      (CommandKind.journalDraft, CommandState.executed, 'dev-1', null),
+    );
+    expect(ok.stateLabel, '저장됨 — 사전 저널이 기록되었습니다');
+    expect(await api.watchCommand(ok.commandId).first, ok);
+    final DecisionJournalVm read = await j.watchDecisionJournal('JIV-1').first;
+    expect(read.journalStateLabel, '저널 작성됨');
+    expect(read.body!.ruleCitedLabel, spec.ruleCitedOptions.first.label);
+    expect(
+      (await api.submitJournalDraft(draft('JIV-1'))).rejectReasonCode,
+      'JOURNAL_ALREADY_EXISTS',
+    );
+    expect(
+      (await api.submitJournalDraft(draft('nope'))).rejectReasonCode,
+      'JOURNAL_TARGET_UNKNOWN',
+    );
+    final String key = issueJournalDraftKey(
+      purpose: 'DISCRETION',
+      random: Random(8),
+    );
+    final JournalDraftFormSpec disc = await j.draftFormSpec(key);
+    expect(
+      (disc.deviation.kindCode, disc.deviation.label),
+      ('DISCRETION', '재량 조정'),
+    );
+    expect(
+      (await api.submitJournalDraft(draft(key))).state,
+      CommandState.executed,
+    );
+    expect(
+      db()
+          .select(
+            'SELECT kind, is_deviation FROM decision_journal WHERE journal_id = ?',
+            <Object?>[key],
+          )
+          .single
+          .values,
+      <Object?>['DISCRETION', 1],
+    );
+    await expectLater(
+      OperatorCommandApi(
+        OperatorRuntime(files: files, clock: clock)..view.value = _viewOf(db()),
+      ).submitJournalDraft(draft(key)),
+      throwsStateError,
+    );
   });
 
   group('셸 설정 원천 — 기간 프리셋 · 슬리브', () {

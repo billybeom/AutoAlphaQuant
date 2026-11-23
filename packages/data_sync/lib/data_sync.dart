@@ -49,6 +49,8 @@ export 'src/local/holdings_overview_source.dart';
 export 'src/local/incident_store.dart';
 export 'src/local/intervention_store.dart';
 export 'src/local/job_run_store.dart';
+// 🆕 미결 220 ⓔⓕ — J-3 사전 저널 쓰기(`JOURNAL_DRAFT` · 채우기 · 새 행 · 거부 3 · 보관 · 멱등 · 설계 13 §8 R245).
+export 'src/local/journal_draft_store.dart';
 export 'src/local/journal_source.dart';
 export 'src/local/kill_switch_screen_source.dart';
 export 'src/local/kill_switch_store.dart';
