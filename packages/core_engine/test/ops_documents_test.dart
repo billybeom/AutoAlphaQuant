@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:core_engine/core_engine.dart';
+import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:test/test.dart';
 
@@ -28,42 +29,29 @@ String _metaHash(String file) =>
 
 const String _cfg = 'cfg_fake_0000000000000000';
 
-/// 표본 목차가 READY 로 둔 장마다 쪽이 있는 시험 번들(표본 = «원고가 다 있는» 그림 · ⑥⑦⑧ = 준비 중).
-HandbookManuscript _fullManuscript() {
-  const Set<String> preparing = <String>{
-    'after-tax',
-    'rejected-ideas',
-    'rule-value',
-  };
-  final List<HandbookManuscriptPage> pages = <HandbookManuscriptPage>[
-    ...kHandbookManuscript.pages,
-  ];
-  void walk(List<HandbookChapter> cs) {
-    for (final HandbookChapter c in cs) {
-      final bool has = pages.any(
-        (HandbookManuscriptPage p) => p.anchor == c.anchor,
+/// 슬리브 B 표본 쪽 — 🆕 E11q-d1b 주의 블록 = 정정한 원고 글(표본 글자 «상한에 닿으면 신규 매수가 멈춥니다» 는 SAF-308
+/// 경고만 규약과 달라 원고가 고쳤다 · 표본 정정 = 계약 창 몫). 표본이 고쳐지면 이 갈래가 먼저 깨져 알린다.
+HandbookPage _sleeveBFixture() {
+  final HandbookPage fx = HandbookPage.fromJson(
+    _row('m8/handbook_page_sleeve_b.json'),
+  );
+  final HandbookManuscriptBlock fixed = kHandbookManuscript.pages
+      .firstWhere((HandbookManuscriptPage p) => p.anchor == 'sleeve-b')
+      .blocks
+      .firstWhere(
+        (HandbookManuscriptBlock b) => b.kind == HandbookBlockKinds.caution,
       );
-      if (!has && !preparing.contains(c.anchor)) {
-        pages.add(
-          HandbookManuscriptPage(
-            anchor: c.anchor,
-            title: c.title,
-            blocks: const <HandbookManuscriptBlock>[
-              HandbookManuscriptBlock(HandbookBlockKinds.paragraph, '시험 원고'),
-            ],
-          ),
-        );
-      }
-      walk(c.children);
-    }
-  }
-
-  walk(kHandbookManuscript.chapters);
-  return HandbookManuscript(
-    ruleFingerprint: kHandbookManuscript.ruleFingerprint,
-    chapters: kHandbookManuscript.chapters,
-    pages: pages,
-    aliases: kHandbookManuscript.aliases,
+  return fx.copyWith(
+    blocks: <HandbookBlock>[
+      for (final HandbookBlock b in fx.blocks)
+        if (b.kind == HandbookBlockKinds.caution)
+          () {
+            expect(b.text, '금은 상한이 있습니다. 상한에 닿으면 신규 매수가 멈춥니다.');
+            return b.copyWith(text: fixed.text, deepLink: fixed.deepLink);
+          }()
+        else
+          b,
+    ],
   );
 }
 
@@ -112,30 +100,74 @@ void main() {
       },
     );
 
-    test(
-      '🔴 목록에 있으나 원고 없는 넷 = «준비 중»(단계 0 · 머리 0 · 지어내지 않는다 · 모르는 id 문장과 다르다)',
-      () {
-        final Map<String, String> titles = <String, String>{
-          'db-corrupt': '기록이 깨졌을 때',
-          'broker-outage': '증권사 연결이 오래 끊겼을 때',
-          'account-access': '계좌에 접근할 수 없을 때',
-          'secret-leak': '키가 새어 나갔을 때',
-        };
-        for (final MapEntry<String, String> e in titles.entries) {
-          expect(
-            runbookVmOf(e.key),
-            RunbookVm(
-              title: e.value,
-              steps: const <RunbookStep>[],
-              localCheckNotice: RunbookTexts.localCheckNotice,
-              missingLabel: RunbookTexts.preparingLabel,
-            ),
-            reason: e.key,
-          );
+    test('🆕 E11q-d1b — 런북 넷 원고(머리 · 번호 단계 · «준비 중» 0) · 목록 행 제목 = 상세 제목', () {
+      final Map<String, String> titles = <String, String>{
+        'db-corrupt': '기록이 깨졌을 때',
+        'broker-outage': '증권사 연결이 오래 끊겼을 때',
+        'account-access': '계좌에 접근할 수 없을 때',
+        'secret-leak': '키가 새어 나갔을 때',
+      };
+      for (final MapEntry<String, String> e in titles.entries) {
+        final RunbookVm vm = runbookVmOf(e.key);
+        expect(vm.title, e.value, reason: e.key);
+        expect(vm.missingLabel, isNull, reason: e.key);
+        expect(vm.introText, isNotNull, reason: e.key);
+        expect(vm.steps, isNotEmpty, reason: e.key);
+        expect(vm.steps.first.orderText, '1.', reason: e.key);
+        // 번호 글자 = «n.» · «n-m.» 꼴 · 겹침 0.
+        final List<String> orders = <String>[
+          for (final RunbookStep s in vm.steps) s.orderText,
+        ];
+        expect(orders.toSet().length, orders.length, reason: e.key);
+        for (final String o in orders) {
+          expect(RegExp(r'^\d+(-\d+)?\.$').hasMatch(o), true, reason: o);
         }
+      }
+      // 지금 번들 = 원고 없는 런북 0(긴급 카드 행은 카드로 연다).
+      for (final RunbookEntry e in kRunbookCatalog) {
+        final String? id = e.runbookId;
+        if (id == null) continue;
+        expect(runbookVmOf(id).missingLabel, isNull, reason: e.title);
+      }
+    });
+
+    test(
+      '🔴 목록에 있으나 원고 없는 런북 = «준비 중»(단계 0 · 머리 0 · 지어내지 않는다 · 모르는 id 문장과 다르다)',
+      () {
+        final List<RunbookEntry> noBody = <RunbookEntry>[
+          for (final RunbookEntry e in kRunbookCatalog)
+            RunbookEntry(
+              title: e.title,
+              summaryText: e.summaryText,
+              deepLink: e.deepLink,
+              runbookId: e.runbookId,
+            ),
+        ];
+        expect(
+          runbookVmOf('db-corrupt', noBody),
+          const RunbookVm(
+            title: '기록이 깨졌을 때',
+            steps: <RunbookStep>[],
+            localCheckNotice: RunbookTexts.localCheckNotice,
+            missingLabel: RunbookTexts.preparingLabel,
+          ),
+        );
         expect(RunbookTexts.preparingLabel, isNot(RunbookTexts.missingLabel));
       },
     );
+
+    test('🔴 런북 원고 글자에 숫자 0(번호 글자 빼고 — 계좌번호 · 앱키 · 문턱 수치를 적지 않는다)', () {
+      for (final RunbookEntry e in kRunbookCatalog) {
+        final RunbookBody? b = e.body;
+        if (b == null) continue;
+        for (final String t in <String>[
+          ?b.introText,
+          for (final RunbookStep s in b.steps) s.text,
+        ]) {
+          expect(RegExp(r'\d').hasMatch(t), false, reason: t);
+        }
+      }
+    });
 
     test('🔴 계약 불변식 — missingLabel non-null ⇔ 단계 0 ∧ 머리 null · 고지 = 늘', () {
       for (final RunbookEntry e in kRunbookCatalog) {
@@ -162,8 +194,15 @@ void main() {
       }
     });
 
-    test('🔴 런북 링크(S02 유출 런북) = 원고 있음 ∧ 상세 본문 있음일 때만 · 지금 secret-leak = 준비 중 → null', () {
-      expect(runbookLinkOf('secret-leak', hasBody: (_) => true), isNull);
+    test('🔴 런북 링크(S02 유출 런북) = 원고 있음 ∧ 상세 본문 있음일 때만 · 🆕 E11q-d1b secret-leak 원고 → 표본 링크가 선다', () {
+      expect(
+        runbookLinkOf(
+          'secret-leak',
+          hasBody: (String r) => r == AppRoutes.opsRunbook,
+        ),
+        CredentialListVm.fromJson(_row('m9/credentials.json')).leakRunbookLink,
+      );
+      expect(runbookLinkOf('secret-leak', hasBody: (_) => false), isNull);
       expect(
         runbookLinkOf('host-lost', hasBody: (_) => true),
         const LinkAction(
@@ -229,12 +268,11 @@ void main() {
   });
 
   group('B-01 목차', () {
-    test('🔴 원고가 다 있는 번들 = 표본 `handbook_index` DTO 째로(설정 지문 = 봉투 meta)', () {
+    test('🔴 🆕 E11q-d1b 지금 번들 = 표본 `handbook_index` DTO 째로(⑥⑦⑧ 만 준비 중 · 설정 지문 = 봉투 meta)', () {
       expect(
         handbookIndexOf(
           configHash: _metaHash('m8/handbook_index.json'),
           ruleFingerprint: _fp,
-          manuscript: _fullManuscript(),
         ),
         HandbookIndex.fromJson(_row('m8/handbook_index.json')),
       );
@@ -242,57 +280,33 @@ void main() {
 
     test('🔴 규칙 지문이 다르면 = 표본 `handbook_index_outdated`(엔진 판정 · 글자 그대로)', () {
       expect(
-        handbookIndexOf(
-          configHash: _cfg,
-          ruleFingerprint: 'ffffffffffffffff',
-          manuscript: _fullManuscript(),
-        ),
+        handbookIndexOf(configHash: _cfg, ruleFingerprint: 'ffffffffffffffff'),
         HandbookIndex.fromJson(_row('m8/handbook_index_outdated.json')),
       );
     });
 
-    test('🔴 지금 번들 = 표본 목차에서 원고 없는 일곱 장만 «준비 중»(링크 0) — 슬리브 B READY · 새틀라이트 ARCHIVED', () {
-      const Set<String> written = <String>{'sleeve-b', 'satellite'};
-      HandbookEntry downgrade(HandbookEntry e) {
-        final List<HandbookEntry> kids = <HandbookEntry>[
-          for (final HandbookEntry k in e.children) downgrade(k),
-        ];
-        if (e.state != HandbookEntryState.ready || written.contains(e.anchor)) {
-          return e.copyWith(children: kids);
-        }
-        return e.copyWith(
-          state: HandbookEntryState.preparing,
-          stateLabel: HandbookTexts.preparing,
-          deepLink: null,
-          children: kids,
+    test(
+      '🔴 준비 중 = HB-1~HB-3 원고 전 세 장뿐(링크 0) — 슬리브 B 묶음 READY · 새틀라이트 ARCHIVED',
+      () {
+        final HandbookIndex got = handbookIndexOf(
+          configHash: _cfg,
+          ruleFingerprint: _fp,
         );
-      }
-
-      final HandbookIndex fx = HandbookIndex.fromJson(
-        _row('m8/handbook_index.json'),
-      );
-      final HandbookIndex got = handbookIndexOf(
-        configHash: _cfg,
-        ruleFingerprint: _fp,
-      );
-      expect(
-        got,
-        fx.copyWith(
-          entries: <HandbookEntry>[
-            for (final HandbookEntry e in fx.entries) downgrade(e),
-          ],
-        ),
-      );
-      final List<String> ready = <String>[
-        for (final HandbookEntry e in got.entries)
-          ...<HandbookEntry>[e, ...e.children]
-              .where(
-                (HandbookEntry x) => x.state != HandbookEntryState.preparing,
-              )
-              .map((HandbookEntry x) => x.anchor),
-      ];
-      expect(ready, <String>['sleeve-b', 'satellite']);
-    });
+        final List<String> preparing = <String>[
+          for (final HandbookEntry e in got.entries)
+            ...<HandbookEntry>[e, ...e.children]
+                .where(
+                  (HandbookEntry x) => x.state == HandbookEntryState.preparing,
+                )
+                .map((HandbookEntry x) => x.anchor),
+        ];
+        expect(preparing, <String>[
+          'after-tax',
+          'rejected-ideas',
+          'rule-value',
+        ]);
+      },
+    );
 
     test('🔴 탭 가능한 항목은 전부 원고 쪽이 선다(없는 쪽 · 준비 중 쪽 0)', () {
       final HandbookIndex idx = handbookIndexOf(
@@ -332,10 +346,8 @@ void main() {
       live: live,
     );
 
-    test('🔴 별칭 `sleeves/sleeve-b` + live 값 = 표본 `handbook_page_sleeve_b` DTO 째로(asOf = 그 값의 기준)', () {
-      final HandbookPage want = HandbookPage.fromJson(
-        _row('m8/handbook_page_sleeve_b.json'),
-      );
+    test('🔴 별칭 `sleeves/sleeve-b` + live 값 = 표본 `handbook_page_sleeve_b` DTO 째로(asOf = 그 값의 기준 · 주의 블록 = 정정 원고)', () {
+      final HandbookPage want = _sleeveBFixture();
       final HandbookBlock liveBlock = want.blocks.firstWhere(
         (HandbookBlock b) => b.live != null,
       );
@@ -353,9 +365,7 @@ void main() {
     test(
       '🔴 live 값이 없으면 그 블록째 뺀다 · asOf null(지어내지 않는다 — 지금 operator = 원천 0)',
       () {
-        final HandbookPage fx = HandbookPage.fromJson(
-          _row('m8/handbook_page_sleeve_b.json'),
-        );
+        final HandbookPage fx = _sleeveBFixture();
         expect(
           pageOf('sleeves/sleeve-b'),
           fx.copyWith(
@@ -401,10 +411,10 @@ void main() {
       '🔴 목차에 있으나 원고 없는 장 = «준비 중» 쪽(장 이름 · 블록 0 · 고지 0 · 없는 쪽 문장과 다르다)',
       () {
         expect(
-          pageOf('safety', fp: 'ffffffffffffffff'),
+          pageOf('after-tax', fp: 'ffffffffffffffff'),
           const HandbookPage(
-            anchor: 'safety',
-            title: '④ 안전장치 설명',
+            anchor: 'after-tax',
+            title: '⑥ 세후 표기 규약',
             blocks: <HandbookBlock>[],
             configHash: _cfg,
             missingLabel: HandbookTexts.preparingLabel,
@@ -448,6 +458,111 @@ void main() {
           expect(RegExp(r'\d').hasMatch(b.text), false, reason: b.text);
         }
       }
+    });
+
+    test(
+      '🆕 E11q-d1b — 쪽 제목 = 목차 장 이름 · 블록 링크는 전부 원고 쪽으로 열린다(준비 중 · 없는 쪽 0)',
+      () {
+        for (final HandbookManuscriptPage p in kHandbookManuscript.pages) {
+          final HandbookPage got = pageOf(p.anchor);
+          expect(got.missingLabel, isNull, reason: p.anchor);
+          expect(got.title, p.title, reason: p.anchor);
+          for (final HandbookManuscriptBlock b in p.blocks) {
+            final String? link = b.deepLink;
+            if (link == null) continue;
+            expect(link, startsWith('handbook://'), reason: link);
+            final HandbookPage to = pageOf(
+              link.substring('handbook://'.length),
+            );
+            expect(to.missingLabel, isNull, reason: '${p.anchor} → $link');
+            expect(to.blocks, isNotEmpty, reason: '${p.anchor} → $link');
+          }
+        }
+        // 목차의 장(보관 제외)마다 같은 이름의 쪽.
+        final HandbookIndex idx = handbookIndexOf(
+          configHash: _cfg,
+          ruleFingerprint: _fp,
+        );
+        for (final HandbookEntry e in <HandbookEntry>[
+          for (final HandbookEntry x in idx.entries) ...<HandbookEntry>[
+            x,
+            ...x.children,
+          ],
+        ]) {
+          if (e.state != HandbookEntryState.ready) continue;
+          expect(pageOf(e.anchor).title, e.title, reason: e.anchor);
+        }
+      },
+    );
+  });
+
+  group('🆕 E11q-d1b 금 상한 «현재 상태»(SAF-308 — 경고만)', () {
+    P0sExposure exposure(double gold) => P0sExposure(
+      totalKrw: Decimal.fromInt(100000000),
+      defensivePct: 0.4,
+      goldSharePct: gold,
+      usdExposurePct: 0.5,
+      krwLiquidityPct: 0.05,
+    );
+    final DateTime now = DateTime.utc(2026, 11, 23, 3);
+    const TradeDate day = TradeDate('2026-11-20');
+    HandbookLiveReading readingOf(double gold) => goldCapLiveReadingOf(
+      exposure: exposure(gold),
+      config: p0sWarnConfig(),
+      closeDate: day,
+      nowUtc: now,
+    );
+
+    test('🔴 감시선 안쪽 = OK · 넘음(엄격) = WATCH · 감시선과 같으면 안쪽(일간 판정과 같은 경계)', () {
+      expect(
+        readingOf(0.141).value,
+        const HandbookLiveValue(
+          label: '금 비중 14.1% — 감시선 20% 안쪽입니다.',
+          level: UiLevel.ok,
+        ),
+      );
+      expect(
+        readingOf(0.2477).value,
+        const HandbookLiveValue(
+          label: '금 비중 24.8% — 감시선 20%를 넘었습니다. 알림만 하고 주문은 막지 않습니다.',
+          level: UiLevel.watch,
+        ),
+      );
+      expect(readingOf(0.20).value.level, UiLevel.ok);
+      for (final double g in <double>[0.0, 0.199, 0.20, 0.2001, 0.5]) {
+        expect(
+          readingOf(g).value.level == UiLevel.watch,
+          judgeP0sDailyWarnings(exposure(g), p0sWarnConfig()).goldHigh,
+          reason: '$g',
+        );
+      }
+    });
+
+    test('🔴 기준 = 그 종가 날 · 표본 신선도 문장 · 쪽 asOf = 그 값의 기준', () {
+      final HandbookLiveReading r = readingOf(0.141);
+      expect(
+        r.asOf,
+        AsOf(
+          observedAt: now,
+          tradeDate: day,
+          source: AsOfSource.localSqlite,
+          staleAfter: kHandbookLiveStaleAfter,
+          label: '현재 상태 기준 2026-11-20 종가',
+          staleLabel: kHandbookLiveStaleLabel,
+        ),
+      );
+      expect(kHandbookLiveStaleLabel, _sleeveBFixture().asOf!.staleLabel);
+      final HandbookPage p = handbookPageOf(
+        'sleeves/sleeve-b',
+        configHash: _cfg,
+        ruleFingerprint: _fp,
+        live: <String, HandbookLiveReading>{HandbookLiveKeys.goldCap: r},
+      );
+      expect(p.asOf, r.asOf);
+      expect(
+        p.blocks.where((HandbookBlock b) => b.live != null).single.live,
+        r.value,
+      );
     });
   });
 }

@@ -649,8 +649,11 @@ export 'src/ops/handbook_catalog.dart'
         HandbookManuscriptBlock,
         HandbookManuscriptPage,
         HandbookTexts,
+        goldCapLiveReadingOf,
         handbookIndexOf,
         handbookPageOf,
+        kHandbookLiveStaleAfter,
+        kHandbookLiveStaleLabel,
         kHandbookManuscript;
 // 🆕 E11q1 — M6 H6-1 보유 현황 VM(설계 13 §8 R171).
 export 'src/ops/holdings_overview.dart'

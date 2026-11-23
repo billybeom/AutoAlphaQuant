@@ -5,21 +5,32 @@
 // 🔴 긴급 카드 인쇄 = 이 폰 빌드에 인쇄 · PDF 위젯이 없다([kOperatorEmergencyCardPrintable] = false) → 엔진이 슬롯 이름을
 //    비운다(버튼 부재 · 운영 슬롯 빌더의 `EMERGENCY_CARD_PRINT` = 자리 부재 그대로).
 // 🔴 핸드북 설정 지문 = 화면이 읽는 원장(깨어남 전 = sim 파일)의 모의 개시 판(없음 · 못 읽음 = 빈 글자 — 화면은 이 칸을 쓰지
-//    않는다) · 뒤처짐 = 엔진(원고 규칙 지문 ↔ 지금 규칙 지문) · live «현재 상태» 값 = 원천 0(엔진 금 상한 감시 VM 전) →
-//    엔진이 그 블록을 뺀다(지어내지 않는다).
+//    않는다) · 뒤처짐 = 엔진(원고 규칙 지문 ↔ 지금 규칙 지문).
+// 🆕 E11q-d1b(R236) — live «현재 상태»(금 상한) = 화면 상태의 원장에서 읽을 때 짓는다(data_sync `ledgerHandbookLiveOf` —
+//    가장 최근 평가 행의 날 · 일간 잡 경고 단계와 같은 셈) · 원천 없음(온보딩 전 · 평가 행 없음 · 셈 불가 · 설정 못 읽음) =
+//    엔진이 그 블록을 뺀다(지어내지 않는다) · 쪽 = 원장 표가 바뀌면 다시 낸다.
 
 import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
     show
+        HandbookLiveReading,
+        P0sWarnSetup,
         emergencyCardVmOf,
         handbookIndexOf,
         handbookPageOf,
+        p0sExposureMap,
         p0sRuleFingerprint,
         runbookIndexVmOf,
         runbookVmOf;
 import 'package:data_sync/data_sync.dart'
-    show OpsConfigRead, OpsConfigReady, currentP0sOpsConfig;
+    show
+        OpsConfigRead,
+        OpsConfigReady,
+        currentP0sOpsConfig,
+        kHandbookLiveWatchedTables,
+        ledgerHandbookLiveOf,
+        watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         EmergencyCardVm,
@@ -88,18 +99,91 @@ class OperatorHandbookRepository implements HandbookRepository {
     ),
   );
 
+  /// 🆕 E11q-d1b — «현재 상태» 값(화면 상태의 원장 · 없음 · 못 읽음 = 빈 맵 → 엔진이 블록을 뺀다).
+  Map<String, HandbookLiveReading> _live() {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) return const <String, HandbookLiveReading>{};
+    try {
+      final OpsConfigRead cfg = currentP0sOpsConfig(v.db);
+      return ledgerHandbookLiveOf(
+        v.db,
+        mode: v.flags.runMode,
+        setup: cfg is OpsConfigReady
+            ? P0sWarnSetup(map: p0sExposureMap(cfg.config.monthEnd))
+            : null,
+        nowUtc: _rt.clock.nowUtc(),
+      );
+    } on Object {
+      // 문서는 원장이 망가져도 연다 — «현재 상태» 블록만 뺀다(지어내지 않는다).
+      return const <String, HandbookLiveReading>{};
+    }
+  }
+
   @override
-  Stream<HandbookPage> watchPage(String anchor) => _follow(
+  Stream<HandbookPage> watchPage(String anchor) => _followLedger(
     () => handbookPageOf(
       anchor,
       configHash: _configHash(),
       ruleFingerprint: p0sRuleFingerprint(),
+      live: _live(),
     ),
   );
 
   /// 들을 때 한 번 · 화면 상태가 바뀔 때마다(바뀐 값만).
   Stream<T> _follow<T>(T Function() now) =>
       _followListenable<OperatorView?, T>(_rt.view, now);
+
+  /// 🆕 E11q-d1b — [_follow] + 화면 상태의 원장 표([kHandbookLiveWatchedTables])가 바뀔 때마다(바뀐 값만).
+  Stream<T> _followLedger<T>(T Function() now) {
+    late final StreamController<T> c;
+    StreamSubscription<T>? sub;
+    T? last;
+    bool has = false;
+
+    void put(T v) {
+      if (c.isClosed || (has && v == last)) return;
+      has = true;
+      last = v;
+      c.add(v);
+    }
+
+    void fail(Object e, StackTrace st) {
+      if (!c.isClosed) c.addError(e, st);
+    }
+
+    void follow() {
+      unawaited(sub?.cancel());
+      sub = null;
+      final OperatorView? v = _rt.view.value;
+      if (v == null) {
+        // 온보딩 전 = 원장 없음 — 번들 글자만(한 번).
+        try {
+          put(now());
+        } on Object catch (e, st) {
+          fail(e, st);
+        }
+        return;
+      }
+      sub = watchLedgerQuery<T>(
+        v.db,
+        kHandbookLiveWatchedTables,
+        now,
+      ).listen(put, onError: fail);
+    }
+
+    c = StreamController<T>(
+      onListen: () {
+        _rt.view.addListener(follow);
+        follow();
+      },
+      onCancel: () async {
+        _rt.view.removeListener(follow);
+        await sub?.cancel();
+        await c.close();
+      },
+    );
+    return c.stream;
+  }
 }
 
 Stream<T> _followListenable<L, T>(ValueListenable<L> on, T Function() now) {

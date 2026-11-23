@@ -331,6 +331,14 @@ class SqliteEquitySnapshotStore {
       _row(r),
   ];
 
+  /// 🆕 E11q-d1b — 가장 최근 날의 행(없으면 null).
+  EquitySnapshotRow? latest() {
+    final ResultSet rs = _db.select(
+      'SELECT * FROM equity_snapshot ORDER BY trade_date DESC LIMIT 1',
+    );
+    return rs.isEmpty ? null : _row(rs.first);
+  }
+
   /// 한 날(없으면 null).
   EquitySnapshotRow? at(String tradeDate) {
     final ResultSet rs = _db.select(
