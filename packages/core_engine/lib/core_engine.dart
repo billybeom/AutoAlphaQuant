@@ -624,6 +624,20 @@ export 'src/ops/equity_snapshot.dart'
         replayStoredBreaker,
         stoppedIncidentIdOf,
         stoppedIncidentOf;
+// 🆕 E11q-q5d — M7 S7-9 목표 경로 VM(계획선 = 개시 평가 + 월 납입 설정 · 정직 기대 복리 · 판정 = 그 달 한 점 · 설계 13 §8 R238).
+export 'src/ops/goal_path_view.dart'
+    show
+        GoalPathChart,
+        GoalPathFact,
+        GoalPathOutcome,
+        GoalPathTexts,
+        GoalVerdict,
+        goalPathChartOf,
+        goalPathOf,
+        kGoalPathHonestAnnualRate,
+        kGoalPathHonestWorstAnnualRate,
+        kGoalPathMinMonths,
+        kGoalPathStaleAfter;
 // 🆕 E11q-d1 — M8 B-01·B-02 핸드북 원고 번들 · 목차 · 쪽(표본 글자 · 원고 없는 장 = 준비 중 · 뒤처짐 = 규칙 지문).
 export 'src/ops/handbook_catalog.dart'
     show

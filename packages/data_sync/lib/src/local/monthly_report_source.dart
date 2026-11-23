@@ -14,6 +14,9 @@
 //    [monthlyLedgerTrustOf] · 그 달 마감 시점) · 열람 수 = 탐색 게이트와 같은 셈([ledgerDisclosureViewsOf]) · 무결성 점검 중 =
 //    엔진 가림 꼴([monthlyReportIntegrityMaskedOf]) · 생성 시각 = 지금(지금 지었다 — 정직) · 「자세히」 = 본문이 있는 화면만.
 //    🔵 ⓔ-4 남김 = 스냅숏 저장(`rm_monthly_report` · G-97) · 미생성 문장(생성일 규칙 · 미결 40) · 아카이브(S7-1b) · 소급 각주.
+// 🆕 R238(E11q-q5d) — `S7-9` 목표 경로 원천([ledgerGoalPathOutcomeOf] · [ledgerGoalPathOnRead]) = 같은 마감 평가 시리즈
+//    (`tierBSeries`) + 월 납입 설정 기록(`operating_param_log` · [contributionRowsOf]) + KR 달력 → 엔진 `goalPathOf` ·
+//    월간 리포트 목표 줄 · 「목표 경로 보기」 = 같은 판정(리포트를 지을 때 한 번 — 두 벌로 갈리지 않는다).
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
@@ -22,6 +25,7 @@ import 'package:sqlite3/sqlite3.dart';
 import '../jobs/daily_jobs.dart' show SqliteEquitySnapshotStore;
 import '../jobs/tier_b_step.dart' show tierBSeries;
 import 'deposit_ledger.dart' show openingCashTradeDate;
+import 'operating_param_store.dart' show contributionRowsOf;
 import 'performance_source.dart'
     show ledgerDisclosureViewsOf, ledgerIntegrityHidden;
 import 'position_replay_sql.dart' show krSignedFillsAfter;
@@ -293,6 +297,15 @@ class SqliteMonthlyReportSource {
     bool Function(String route)? hasBody,
   }) async {
     final MonthlyReportInputs i = await inputs(yyyyMm);
+    // 🆕 R238 — 목표 줄 · 링크 = 같은 시리즈의 목표 경로 판정(스냅숏 0 = 유보).
+    final GoalVerdict goal = ledgerGoalPathOutcomeOf(
+      _db,
+      kr: _kr,
+      yyyyMm: yyyyMm,
+      monthEnd: i.monthEnd,
+      nowUtc: generatedAtUtc,
+      series: i.equity?.series ?? const <EquityPoint>[],
+    ).verdict;
     return monthlyReportOf(
       yyyyMm: yyyyMm,
       monthEnd: i.monthEnd,
@@ -309,6 +322,7 @@ class SqliteMonthlyReportSource {
       regime: i.regime,
       backdateFootnote: backdateFootnote,
       hasBody: hasBody,
+      goal: goal,
     );
   }
 
@@ -423,4 +437,61 @@ class SqliteMonthlyReportSource {
       monthStates: month,
     );
   }
+}
+
+/// 🆕 R238 — [yyyyMm] 목표 경로(엔진 `goalPathOf`) — [series] null = 원장에서 다시 모은다(`tierBSeries` · 월말까지) ·
+/// 월 납입 = `operating_param_log` 기록(없으면 [config] 기본값) · 판정 머리 검사 없음(읽기 경로 · 리포트가 정한다).
+GoalPathOutcome ledgerGoalPathOutcomeOf(
+  Database db, {
+  required ExchangeCalendar kr,
+  required String yyyyMm,
+  required TradeDate monthEnd,
+  required DateTime nowUtc,
+  List<EquityPoint>? series,
+  ContributionConfig? config,
+}) => goalPathOf(
+  yyyyMm: yyyyMm,
+  monthEnd: monthEnd,
+  equity: series ?? tierBSeries(db, monthEnd.yyyyMmDd),
+  isSession: (String d) => kr.isSession(TradeDate(d)),
+  contributionRows: contributionRowsOf(db),
+  contributionConfig: config ?? p0sContributionConfig(),
+  nowUtc: nowUtc,
+);
+
+/// 🆕 R238 — 읽을 때 짓는 `S7-9` 목표 경로(저장 0 · [nowUtc] = 읽은 시각).
+///
+/// 🔴 월간 리포트와 같은 판정: 아직 닫히지 않은 달 = [UnsupportedError] · 개시 전 달 = [StateError](지어내지 않는다) ·
+/// 원장 무결성 점검 중 = [StateError](숫자 가림 — 가림 표본 없음 · R226 드로다운 선례 · 리포트 링크도 부재) ·
+/// 달 꼴 · 달력 밖 = [krMonthEndOf] 의 실패 그대로.
+GoalPathVm ledgerGoalPathOnRead(
+  Database db, {
+  required ExchangeCalendar kr,
+  required String yyyyMm,
+  required DateTime nowUtc,
+}) {
+  final TradeDate monthEnd = krMonthEndOf(kr, yyyyMm);
+  switch (monthlyReportReadinessOf(
+    yyyyMm: yyyyMm,
+    monthEnd: monthEnd,
+    openingDate: openingCashTradeDate(db),
+    nowUtc: nowUtc,
+  )) {
+    case MonthlyReportReadiness.pending:
+      throw UnsupportedError('목표 경로 $yyyyMm: 아직 닫히지 않은 달(월간 리포트 미생성)');
+    case MonthlyReportReadiness.beforeOpening:
+      throw StateError('목표 경로 $yyyyMm: 개시 전 달 — 경로 없음');
+    case MonthlyReportReadiness.closed:
+      break;
+  }
+  if (ledgerIntegrityHidden(db)) {
+    throw StateError('목표 경로 $yyyyMm: 원장 무결성 점검 중 — 숫자를 보여 주지 않는다');
+  }
+  return ledgerGoalPathOutcomeOf(
+    db,
+    kr: kr,
+    yyyyMm: yyyyMm,
+    monthEnd: monthEnd,
+    nowUtc: nowUtc,
+  ).vm;
 }

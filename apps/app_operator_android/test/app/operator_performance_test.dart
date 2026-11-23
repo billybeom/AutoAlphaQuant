@@ -1,6 +1,7 @@
 // E11q-q5a — M7 S7-7 연간 리뷰 · S7-10 이행 갭 조립(설계 13 §8 R220) · 🆕 E11q-q5b S7-2 시리즈 · S7-2G 게이트 · 열람 기록(R223)
 // — 실 SQLite(sim 원장) · 🆕 E11q-q5c S7-3 드로다운(R226) · 🆕 E11q-q5c2 S7-3b 슬리브 기여(R228) ·
-// 🆕 E11q-q5e S7-1 월간 리포트(R231 — 읽을 때 짓기 · 신뢰 배지 = 브로커 대사 · 「자세히」 = 본문 있을 때).
+// 🆕 E11q-q5e S7-1 월간 리포트(R231 — 읽을 때 짓기 · 신뢰 배지 = 브로커 대사 · 「자세히」 = 본문 있을 때) ·
+// 🆕 E11q-q5d S7-9 목표 경로(R238 — 같은 원장 · 월간 리포트와 같은 판정 · 「목표 경로 보기」 = 본문 있을 때).
 //
 // 🔴 연도 · 창 = S12 목차와 같은 원천(신뢰 시각 · 온보딩 확정 해) · 판 지문 = 모의 개시 판(전 = 빈 글자) ·
 //    A 행 탐색 링크 = 레지스트리에 본문이 있을 때만 · 이행 갭 운영 방식 = 화면 상태 · 나머지 M7 창구 = «원천 없음».
@@ -22,6 +23,7 @@ import 'package:core_engine/core_engine.dart'
         AnnualReviewVmTexts,
         DisclosureGateTexts,
         ContributionTexts,
+        GoalPathTexts,
         LedgerHolding,
         P0sHumanInputs,
         P0sWarnSetup,
@@ -41,7 +43,8 @@ import 'package:data_sync/data_sync.dart'
         SqliteSafetyRepository,
         currentP0sOpsConfig,
         krMonthEndOf,
-        krMonthSessionsOf;
+        krMonthSessionsOf,
+        ledgerGoalPathOnRead;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter/widgets.dart' show Key, ValueKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart' show ConsumerWidget;
@@ -52,6 +55,7 @@ import 'package:ui_analytics/ui_analytics.dart'
         AnnualReviewScreen,
         DrawdownContextScreen,
         ExecutionGapScreen,
+        GoalPathScreen,
         MonthlyReportScreen,
         PerformanceExploreScreen;
 
@@ -264,10 +268,10 @@ void main() {
       );
       // 🆕 R228 — 기여 = 원장 원천(뒤집은 단언 — 아래 «S7-3b» 무리).
       // 🆕 R231 — 월간 리포트 = 원장 원천(뒤집은 단언 — 아래 «S7-1» 무리).
+      // 🆕 R238 — 목표 경로 = 원장 원천(뒤집은 단언 — 아래 «S7-9» 무리).
       for (final Future<Object?> f in <Future<Object?>>[
         p.afterTaxLadder(fiscalYear: '2026'),
         p.reportArchive(),
-        p.goalPath(yyyyMm: '2026-10'),
       ]) {
         await expectLater(f, throwsA(isA<UnsupportedError>()));
       }
@@ -631,6 +635,97 @@ void main() {
     });
   });
 
+  group('🆕 S7-9 목표 경로(R238)', () {
+    // 오늘 = 2026-11-19(한국) · 닫힌 달 = 10월 · 개시 = 07-01(수) → 10월 = 개시 달부터 3개월(판정).
+    void snap(String day, int equity) => files.sim.execute(
+      'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+      "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+      <Object?>[day, equity, equity, equity],
+    );
+
+    test(
+      '🔴 화면 상태의 원장 · 자동 매매만 · 닫힌 달 = 원천과 같은 값 · 월간 리포트 「목표 경로 보기」 = 같은 달',
+      () async {
+        final OperatorRuntime r = rt();
+        final OperatorPerformanceRepository p = OperatorPerformanceRepository(
+          r,
+          hasBody: _all,
+        );
+        await expectLater(p.goalPath(yyyyMm: '2026-10'), throwsStateError);
+        r.view.value = _viewOf(files.sim, OperatingMode.advisory);
+        await expectLater(
+          p.goalPath(yyyyMm: '2026-10'),
+          throwsA(isA<UnsupportedError>()),
+        );
+        r.view.value = _viewOf(files.sim, OperatingMode.autoTrade);
+        await expectLater(
+          p.goalPath(yyyyMm: '2026-10'),
+          throwsStateError,
+        ); // 개시 0
+        files.sim.execute(
+          'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, account_alias) '
+          "VALUES ('IT-OPEN', '2026-07-01', 10000000, 'KRW', 'DEPOSIT', ?, '2026-07-01T00:00:00Z', NULL)",
+          <Object?>[DecisionReasonCodes.simOpeningBalance],
+        );
+        snap('2026-07-01', 10000000);
+        for (final (String m, int v) in <(String, int)>[
+          ('2026-07', 10100000),
+          ('2026-08', 10300000),
+          ('2026-09', 10500000),
+          ('2026-10', 10900000),
+        ]) {
+          snap(krMonthEndOf(r.calendars.kr, m).yyyyMmDd, v);
+        }
+        await expectLater(
+          p.goalPath(yyyyMm: '2026-11'),
+          throwsUnsupportedError,
+        ); // 닫히지 않은 달
+        await expectLater(
+          p.goalPath(yyyyMm: '2026-06'),
+          throwsStateError,
+        ); // 개시 전
+        final GoalPathVm v = await p.goalPath(yyyyMm: '2026-10');
+        expect(
+          v,
+          ledgerGoalPathOnRead(
+            files.sim,
+            kr: r.calendars.kr,
+            yyyyMm: '2026-10',
+            nowUtc: clock.nowUtc(),
+          ),
+        );
+        expect(v.judgementText, GoalPathTexts.onTrack);
+        expect(v.basisText, GoalPathTexts.basisWithin(10));
+        expect(v.periodLabel, '2026년 7월 ~ 2026년 10월');
+        expect(v.asOf.label, '목표 경로 기준 2026-10-30');
+        expect(v.actual.last.value, 10900000);
+        expect(v.chartUnavailableLabel, isNull);
+        // 개시 달부터 1개월 = 판정 유보(표본 hold 꼴).
+        final GoalPathVm hold = await p.goalPath(yyyyMm: '2026-08');
+        expect(hold.judgementText, GoalPathTexts.withheld);
+        expect(hold.planned, isEmpty);
+        // 월간 리포트 = 같은 판정 · 「목표 경로 보기」 = 그 달(본문 없음 = 부재).
+        final MonthlyReport m = await p.monthlyReport('2026-10');
+        expect(m.goalLine, GoalPathTexts.reportAhead);
+        expect(m.goalDeepLink, 'aaq://report/goal/2026-10');
+        expect(
+          (await OperatorPerformanceRepository(
+            r,
+            hasBody: (String route) => route != AppRoutes.reportGoalPath,
+          ).monthlyReport('2026-10')).goalDeepLink,
+          isNull,
+        );
+        // 무결성 점검 중 = 원천의 실패(숫자 가림 · 리포트 = 가림 꼴 · 링크 부재).
+        files.sim.execute(
+          "INSERT INTO trading_block (flag_id, set_at, reason) VALUES ('LEDGER_INTEGRITY', ?, '점검')",
+          <Object?>['2026-11-19T00:00:00.000Z'],
+        );
+        await expectLater(p.goalPath(yyyyMm: '2026-10'), throwsStateError);
+        expect((await p.monthlyReport('2026-10')).goalDeepLink, isNull);
+      },
+    );
+  });
+
   group('S7-10 이행 갭', () {
     test('🔴 화면 상태 없음(운용 전) = 발행된 안내 0 · 자동 매매 = 해당 없음 · 안내 = 원천 없음', () async {
       final OperatorRuntime r = rt();
@@ -705,6 +800,13 @@ void main() {
         kOperatorRouteBodies.byPattern.containsKey(AppRoutes.reportArchive),
         isFalse,
       ); // 아카이브 = 209 ⓔ-4
+      // 🆕 R238 — S7-9 목표 경로 = 받은 달 그대로 · 키(뒤집은 단언 — R231 = 아직).
+      final GoalPathScreen goal =
+          kOperatorRouteBodies.byPattern[AppRoutes.reportGoalPath]!(
+            const <String, String>{'yyyyMm': '2026-10'},
+          ) as GoalPathScreen;
+      expect(goal.yyyyMm, '2026-10');
+      expect(goal.key, const ValueKey<String>('2026-10') as Key);
     });
   });
 }

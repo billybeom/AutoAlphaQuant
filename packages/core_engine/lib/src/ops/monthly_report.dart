@@ -21,13 +21,16 @@
 //    밀어 넣는 길 0 · 글자 = 엔진).
 // 🔴 미생성 = 읽기 경로 몫(생성일 규칙 미정 · 미결 40 — ⓔ-4) — 이 빌더는 «마감된 달» 한 갈래만 짓는다
 //    (생성 날 < 월말 세션 = 실패). 마감된 달을 다시 짓지 않는 것(03 §3 금지 ③ · G-97)도 읽기 경로 · 저장의 몫이다.
-// 🔴 세후 = 월간에 없다(03 §3 · `afterTax` null) · 목표 경로 엔진 없음 = «판정 보류» 문장 · 버튼 부재.
+// 🔴 세후 = 월간에 없다(03 §3 · `afterTax` null).
 // 🆕 R231(미결 209 ⓔ-2 · ⓔ-5) — ① 신뢰 배지 = 자동 매매의 그 달 마감 시점 브로커 대사([monthlyLedgerTrustOf] · 마지막 대사 결과 ·
 //    표본 `m7_monthly_2026_08` · `_masked_recon` 글자 · 현금 축 = 관측만이라 «수량·현금» 대신 «수량» — 과장 금지) ② 가림 둘 =
 //    무결성 점검 중([monthlyReportIntegrityMaskedOf] · 표본 `_masked_integrity` 꼴 그대로) · 대사 어긋남(배지 DRIFTING → D2 퍼센트
 //    «?» + 표본 메모) ③ 「자세히」 = 값이 있는 칸 · 본문이 있는 화면만([hasBody] — C1 · C2 → `S7-3` · D3 → `S7-10` 그 달 · K1)
 //    — 값이 없는 칸(«산출 불가»)에서 상세 화면으로 보내지 않는다 ④ 읽을 때 짓기 판정([monthlyReportReadinessOf] — 닫힌 달 ·
 //    개시 달부터).
+// 🆕 R238(E11q-q5d) — 목표 줄 · 「목표 경로 보기」 = 목표 경로 판정([GoalVerdict] · `goalPathOf` 와 같은 셈 — 읽기 경로가 준다):
+//    유보 = 표본 `m7_monthly_gap` · 앞섬 = `_2026_08` · 유지 · 이탈 = 목표 경로 판정 문장 · 판정 없음(null) = 유보 줄 · 링크 0.
+//    링크 = 판정이 있고 본문이 있을 때 · 대사 어긋남(DRIFTING)이면 부재(표본 `_masked_recon` — 가림 달 = 버튼 부재).
 
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
@@ -51,6 +54,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 
 import '../orders/reconcile.dart' show ReconAction;
 import '../safety/discretion.dart' show DiscretionBudget, discretionBudgetOf;
+import 'goal_path_view.dart' show GoalPathTexts, GoalVerdict;
 import 'ledger_views.dart' show kstDateText;
 import 'p0s_warn.dart' show P0sExposureTally;
 import 'tier_b.dart' show EquityPoint, TierBVerdict, twrIndex;
@@ -119,8 +123,16 @@ abstract final class MonthlyReportTexts {
   /// 엔진 원천이 아직 없는 칸(🆕 R199 — 03 §3 «산출 불가» 꼴).
   static const String notComputed = '산출 불가 — 아직 계산하지 않는 항목입니다';
 
-  /// 목표 경로 판정 보류(표본 `m7_monthly_gap` · 목표 경로 엔진 없음).
+  /// 목표 경로 판정 보류(표본 `m7_monthly_gap`).
   static const String goalWithheld = '목표 경로 대비 판정을 보류합니다.';
+
+  /// 🆕 R238 — 목표 줄(판정 갈래마다 · 유보 = [goalWithheld] · 앞섬 = 표본 `_2026_08` · 유지 · 이탈 = 목표 경로 판정 문장).
+  static String goalLine(GoalVerdict? v) => switch (v) {
+    null || GoalVerdict.withheld => goalWithheld,
+    GoalVerdict.ahead => GoalPathTexts.reportAhead,
+    GoalVerdict.onTrack => GoalPathTexts.onTrack,
+    GoalVerdict.offTrack => GoalPathTexts.offTrack,
+  };
 
   /// «이번 달 2번 열어 보셨습니다»(표본).
   static String disclosureViews(int n) => '이번 달 $n번 열어 보셨습니다';
@@ -722,6 +734,8 @@ bool _computed((String, String?)? v) =>
 /// 🆕 [regime] null = D1 «산출 불가» · G1 = [equity] 를 따른다 · G2 = [strategy] 의 안전 상태를 따른다(R214) ·
 /// 🆕 R231 [hasBody] = 조립 앱에 그 라우트(패턴)의 본문이 있나 — null = 「자세히」 0 · 값이 있는 C1 · C2 → `S7-3` ·
 /// D3 → `S7-10` 그 달(K1) · [trust] 가 DRIFTING 이면 D2 값 퍼센트마다 «?» + 메모 머리(표본 `m7_monthly_masked_recon`).
+/// 🆕 R238 [goal] = 그 달 목표 경로 판정(null = 판정 없음 → 유보 줄 · 링크 0) · 「목표 경로 보기」 = [goal] non-null ·
+/// `S7-9` 본문 · [trust] ≠ DRIFTING 일 때 그 달 `aaq://report/goal/<달>`.
 MonthlyReport monthlyReportOf({
   required String yyyyMm,
   required TradeDate monthEnd,
@@ -738,6 +752,7 @@ MonthlyReport monthlyReportOf({
   MonthlyRegimeFacts? regime,
   String? backdateFootnote,
   bool Function(String route)? hasBody,
+  GoalVerdict? goal,
 }) {
   final String generated = _checkedGenerated(
     yyyyMm,
@@ -817,7 +832,7 @@ MonthlyReport monthlyReportOf({
           detailDeepLink: links[s],
         ),
     ]),
-    goalLine: MonthlyReportTexts.goalWithheld,
+    goalLine: MonthlyReportTexts.goalLine(goal),
     disclosureViewCountText: MonthlyReportTexts.disclosureViews(
       disclosureViewCount,
     ),
@@ -826,6 +841,12 @@ MonthlyReport monthlyReportOf({
     backdateFootnote: backdateFootnote,
     generatedAtText: MonthlyReportTexts.generatedAt(generated),
     configHash: configHash,
+    goalDeepLink:
+        goal != null &&
+            trust.grade != LedgerTrustGrade.drifting &&
+            open(AppRoutes.reportGoalPath)
+        ? AppRoutes.reportGoalPath.replaceFirst(':yyyyMm', yyyyMm)
+        : null,
   );
 }
 
