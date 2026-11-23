@@ -152,6 +152,22 @@ void main() {
     expect((s2.acked, s2.ackedAt, s2.escalationStep), (false, null, 2));
   });
 
+  test('🆕 E11q-q6c 목적지 = 저장소가 붙인 링크 먼저 · 없으면 문구 사전', () {
+    const String l3 = 'aaq://ledger/self-report/2026-08/연금저축';
+    final StoredAlert plain = _a('AL-9', 'SELF_AUDIT_DUE', AlertLevel.p2, _now);
+    expect(alertItemOf(plain).deepLink, AppRoutes.ledgerTrust);
+    final AlertItem linked = alertItemOf(
+      StoredAlert(
+        alertId: 'AL-9',
+        code: 'SELF_AUDIT_DUE',
+        level: AlertLevel.p2,
+        raisedAtUtc: _now,
+        deepLink: l3,
+      ),
+    );
+    expect(linked, alertItemOf(plain).copyWith(deepLink: l3));
+  });
+
   test('행 글자 — 한국 HH:mm · 묶음 1 · 상세 링크 · 근거 링크', () {
     final AlertItem it = alertItemOf(
       _a(

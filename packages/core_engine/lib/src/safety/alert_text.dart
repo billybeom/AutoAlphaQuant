@@ -284,10 +284,15 @@ class StoredAlert {
     required this.raisedAtUtc,
     this.ackedAtUtc,
     this.escalationSteps = 0,
+    this.deepLink,
   });
 
   /// id · 코드.
   final String alertId, code;
+
+  /// 🆕 E11q-q6c(R240 · 02 §3-10 · K45) — 이 알림의 목적지(null = 문구 사전의 링크). 저장소가 붙인다:
+  /// `SELF_AUDIT_DUE` = 지금 서 있는 실사 표식의 그 달 · 그 계좌 `L-3`.
+  final String? deepLink;
 
   /// 등급(저장 값).
   final AlertLevel level;
@@ -333,7 +338,7 @@ AlertItem alertItemOf(StoredAlert a) {
     bodyText: t.body,
     actionLine: t.action,
     groupedCount: 1,
-    deepLink: t.deepLink,
+    deepLink: a.deepLink ?? t.deepLink,
     ack: ackStateOf(a),
     raisedAtText: kstMinuteText(a.raisedAtUtc).substring(11),
     detailDeepLink: AppRoutes.alertDetail.replaceFirst(':alertId', a.alertId),

@@ -7,6 +7,7 @@ import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AlertCenterVm,
+        AlertCodes,
         AlertDetailVm,
         AlertItem,
         AlertLevel,
@@ -15,6 +16,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:sqlite3/sqlite3.dart';
 
 import 'ledger_read_model.dart' show watchLedgerQuery;
+import 'ledger_trust_source.dart' show selfAuditFlagLinkOf;
 
 final RegExp _offset = RegExp(r'(Z|[+-]\d\d:?\d\d)$');
 
@@ -30,24 +32,29 @@ AlertLevel _level(String wire) {
   throw FormatException('모르는 알림 등급', wire);
 }
 
-/// 알림 저장 행 전부(+ 확인 시각 · 적힌 사다리 단계 수).
-List<StoredAlert> storedAlerts(Database db) => <StoredAlert>[
-  for (final Row r in db.select(
-    'SELECT e.alert_id, e.code, e.level, e.raised_at, a.acked_at, '
-    '(SELECT COUNT(*) FROM alert_escalation x WHERE x.alert_id = e.alert_id) AS steps '
-    'FROM alert_event e LEFT JOIN alert_ack a ON a.alert_id = e.alert_id',
-  ))
-    StoredAlert(
-      alertId: r['alert_id'] as String,
-      code: r['code'] as String,
-      level: _level(r['level'] as String),
-      raisedAtUtc: _instant(r['raised_at'] as String),
-      ackedAtUtc: r['acked_at'] == null
-          ? null
-          : _instant(r['acked_at'] as String),
-      escalationSteps: r['steps'] as int,
-    ),
-];
+/// 알림 저장 행 전부(+ 확인 시각 · 적힌 사다리 단계 수 · 🆕 E11q-q6c `SELF_AUDIT_DUE` 목적지 = 지금 서 있는 실사 표식의 그 달 ·
+/// 그 계좌 `L-3` — 표식이 없으면 문구 사전 링크).
+List<StoredAlert> storedAlerts(Database db) {
+  final String? audit = selfAuditFlagLinkOf(db);
+  return <StoredAlert>[
+    for (final Row r in db.select(
+      'SELECT e.alert_id, e.code, e.level, e.raised_at, a.acked_at, '
+      '(SELECT COUNT(*) FROM alert_escalation x WHERE x.alert_id = e.alert_id) AS steps '
+      'FROM alert_event e LEFT JOIN alert_ack a ON a.alert_id = e.alert_id',
+    ))
+      StoredAlert(
+        alertId: r['alert_id'] as String,
+        code: r['code'] as String,
+        level: _level(r['level'] as String),
+        raisedAtUtc: _instant(r['raised_at'] as String),
+        ackedAtUtc: r['acked_at'] == null
+            ? null
+            : _instant(r['acked_at'] as String),
+        escalationSteps: r['steps'] as int,
+        deepLink: r['code'] == AlertCodes.selfAuditDue ? audit : null,
+      ),
+  ];
+}
 
 /// 운영 기기 알림 읽기(R69).
 class SqliteAlertRepository implements AlertRepository {
@@ -62,6 +69,8 @@ class SqliteAlertRepository implements AlertRepository {
     'alert_event',
     'alert_ack',
     'alert_escalation',
+    // 🆕 E11q-q6c — 실사 표식이 바뀌면 `SELF_AUDIT_DUE` 목적지가 바뀐다.
+    'trading_block',
   };
 
   @override

@@ -157,11 +157,12 @@ void main() {
     );
   });
 
-  test('다시 낼 표 = 알림 3표', () {
+  test('다시 낼 표 = 알림 3표 + 🆕 E11q-q6c 실사 표식(목적지)', () {
     expect(SqliteAlertRepository.watchedTables, <String>{
       'alert_event',
       'alert_ack',
       'alert_escalation',
+      'trading_block',
     });
   });
 }

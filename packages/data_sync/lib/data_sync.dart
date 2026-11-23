@@ -62,6 +62,8 @@ export 'src/local/ledger_read_model.dart';
 // 🆕 E16f1 — X5 새 기준점 · 아무것도 안 하기(설계 13 §8 R126).
 export 'src/local/ledger_repair_store.dart';
 export 'src/local/ledger_schema.dart';
+// 🆕 E11q-q6c(R240) — X7 신뢰 등급 · 실사 예정 · 기한 표식 원천.
+export 'src/local/ledger_trust_source.dart';
 export 'src/local/limit_inputs_source.dart';
 export 'src/local/live_observation_facts.dart';
 export 'src/local/live_promotion_store.dart';
