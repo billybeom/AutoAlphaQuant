@@ -429,6 +429,7 @@ export 'src/onboarding/onboarding_finish.dart'
 export 'src/onboarding/onboarding_steps.dart'
     show
         OnboardingStepFact,
+        SupabaseSignInStage,
         kOnboardingFailureFallback,
         kOnboardingStageSignedIn,
         kOnboardingRecommendedWarning,
@@ -436,7 +437,8 @@ export 'src/onboarding/onboarding_steps.dart'
         kOnboardingStepsEmptyLabel,
         onboardingStepDetailVmOf,
         onboardingStepIds,
-        onboardingStepsVmOf;
+        onboardingStepsVmOf,
+        supabaseSignInStageOf;
 // 🆕 E11k-e3 — O-04 ⑤ 복구 카드 · 첫 클레임 글자(설계 13 §8 R229).
 export 'src/onboarding/recovery_card.dart'
     show
@@ -446,6 +448,17 @@ export 'src/onboarding/recovery_card.dart'
         kOperatorDeviceLabel,
         kRecoveryCardKind,
         recoveryCardIssueLines;
+// 🆕 R248 — R-01 기존 계정에서 다시 시작(`RestartVm` 생산 · 기기 원장 요약 · 분기).
+export 'src/onboarding/restart.dart'
+    show
+        RestartDevice,
+        RestartFacts,
+        RestartLease,
+        RestartLedger,
+        RestartTexts,
+        kDeviceStatusRevoked,
+        kRestartLeaseGateCode,
+        restartVmOf;
 // 🆕 E11p3d-5i — M9 S03 계좌 · 슬리브 매핑(설계 13 §8 R151).
 export 'src/ops/account_mapping.dart'
     show

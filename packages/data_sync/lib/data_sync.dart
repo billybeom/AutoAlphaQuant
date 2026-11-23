@@ -139,6 +139,8 @@ export 'src/supabase/supabase_auth.dart';
 // 🆕 E11k-e2(설계 13 §8 R221) — o_07 ① 부트스트랩 SQL 묶음 · 복구 코드 해시 꼴(원문 조각 = 내부 생성 파일).
 export 'src/supabase/supabase_bootstrap.dart';
 export 'src/supabase/supabase_connect.dart';
+// 🆕 R248 — R-01 기기 원장 읽기(`app_device` · `operator_lease` · 읽기만).
+export 'src/supabase/supabase_device_ledger.dart';
 // 🆕 E11k-e3 — O-04 ⑤ 첫 클레임 명시 흐름(복구 코드 발급 · 기기 행 · lease_claim · 설계 13 §8 R229).
 export 'src/supabase/supabase_first_claim.dart';
 export 'src/supabase/supabase_lease.dart';

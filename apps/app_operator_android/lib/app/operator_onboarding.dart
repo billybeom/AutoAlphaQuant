@@ -4,7 +4,9 @@
 // 🔴 VM 짓기 · 글자 = 엔진(core `onboardingStartVmOf` · `onboardingModeChoiceVmOf` · `onboardingStepsVmOf` · `onboardingStepDetailVmOf`)
 //    · 여기는 사실만 모은다 — 진척 행(`SqliteOnboardingProgressStore`) + Android 실측(알림 권한 o_05 · 배터리 예외 o_06).
 // 🔴 다시 낸다 = 들을 때 · 진척 · 선택 표 변경(같은 연결) · [OperatorOnboardingRepository.tick] 마다(실측 다시 · 날짜 넘김) · 바뀐 값만.
-// 🔴 재시작(R-01) = 다음 조각(4d) — 그 전 = 오류(라우트도 미등록 · 재시작 카드 링크 없음).
+// 🆕 R248 — 재시작(R-01) = 엔진 `restartVmOf` · 사실 = Supabase 기기 원장 읽기(`SupabaseDeviceLedger` · 읽기만) + 신뢰 시각 +
+//    재개 사다리 백업 기준(운영 설정) + 이 폰의 비상 회수 기록(sim `X1_EMERGENCY_REVOKE`) · 첫 화면 링크 = 읽기 조립이 있을 때만.
+//    다시 읽기 = 진척 · 받은편지 표 변경(연결 · 로그인 · 비상 기록) · 로그인 자리의 `poke` · 주기(리스 남은 시간).
 // 🆕 E11p4c(R127) — 마무리(O-04) = 엔진 `onboardingFinishVmOf` · 사실 = 선택 · 서약(`pledge`) · 시작 선언(개시 결정) ·
 //    설정 해시(모의 개시 뒤) · ③ 생체 · ④ 셀프테스트 · ⑤ 복구 카드 = 원천 0(null — 엔진이 막힘으로 그린다) · 고르기 전 = 오류.
 // 🔴 첫 실행 판정(미결 158) = [watchOnboardingDone] — `committed_at` 전이면 조립 앱 루트가 온보딩을 띄운다.
@@ -18,13 +20,16 @@ import 'package:core_engine/core_engine.dart'
         kOnboardingStageSignedIn,
         goldenSelftestFactOf,
         kDeviceGoldenSuite,
+        RestartFacts,
         onboardingFinishVmOf,
         onboardingModeChoiceVmOf,
         onboardingStartVmOf,
         onboardingStepDetailVmOf,
-        onboardingStepsVmOf;
+        onboardingStepsVmOf,
+        restartVmOf;
 import 'package:data_sync/data_sync.dart'
     show
+        DeviceLedgerRead,
         OnboardingChoice,
         OpsConfigRead,
         OpsConfigReady,
@@ -32,6 +37,8 @@ import 'package:data_sync/data_sync.dart'
         SqliteOnboardingProgressStore,
         SqliteOnboardingStore,
         SqlitePledgeStore,
+        SqliteX1EmergencyStore,
+        SupabaseDeviceLedger,
         SupabaseFirstClaim,
         currentP0sOpsConfig,
         watchLedgerQuery;
@@ -204,8 +211,11 @@ class OperatorOnboardingRepository implements OnboardingRepository {
 
   @override
   Stream<OnboardingStartVm> watchStart() => Stream<OnboardingStartVm>.value(
-    // 🔴 재시작(R-01) = 4d 전 → 그 카드의 링크 없음 · 조회 전용 카드 = operator 앱엔 없음.
-    onboardingStartVmOf(reconnectReady: false, viewerTrack: false),
+    // 🆕 R248 — 재시작(R-01) 링크 = 기기 원장 읽기가 조립돼 있을 때만(생산자 있음) · 조회 전용 카드 = operator 앱엔 없음.
+    onboardingStartVmOf(
+      reconnectReady: _rt.deviceLedger != null,
+      viewerTrack: false,
+    ),
   );
 
   @override
@@ -302,9 +312,114 @@ class OperatorOnboardingRepository implements OnboardingRepository {
     golden: true,
   );
 
+  /// 🆕 R248 — R-01 이 다시 읽는 표(o_07 진척 = 연결 · 로그인 · 비상 회수 기록 = 받은편지).
+  static const Set<String> restartTables = <String>{
+    ...SqliteOnboardingProgressStore.watchedTables,
+    'command_inbox',
+  };
+
+  final StreamController<void> _pokes = StreamController<void>.broadcast();
+
+  /// 🆕 R248 — R-01 을 지금 다시 읽게 한다(로그인 자리의 연결 · 로그인 동작이 끝난 뒤).
+  void poke() => _pokes.add(null);
+
+  /// 🆕 R248 — R-01 사실(망 = 기기 원장 읽기 · 원장을 읽었는데 신뢰 시각 모름 = 한 번 다시 잰다).
+  Future<RestartFacts> restartFacts(SupabaseDeviceLedger ledger) async {
+    final DeviceLedgerRead read = await ledger.read();
+    if (!read.signedIn) return const RestartFacts(signedIn: false);
+    DateTime? now = _rt.trusted.trustedNowUtc();
+    final Future<bool> Function()? measure = _rt.refreshTrusted;
+    if (now == null && read.ledger != null && measure != null) {
+      try {
+        await measure();
+      } on Object {
+        // 못 잼 = 모름 그대로(엔진이 게이트 UNKNOWN).
+      }
+      now = _rt.trusted.trustedNowUtc();
+    }
+    bool emergency;
+    try {
+      emergency = SqliteX1EmergencyStore(_db).latest() != null;
+    } on FormatException {
+      // 기록은 있는데 꼴이 깨졌다 — 이어 하기 링크를 주고 X1 화면이 깨짐을 말한다.
+      emergency = true;
+    }
+    return RestartFacts(
+      signedIn: true,
+      ledger: read.ledger,
+      thisDeviceId: _rt.deviceId,
+      trustedNowUtc: now,
+      backupGapDays: _rt.operations?.resumeLadder?.backupGapDays,
+      emergencyStarted: emergency,
+    );
+  }
+
   @override
-  Stream<RestartVm> watchRestart() =>
-      Stream<RestartVm>.error(UnsupportedError('watchRestart: 4d 전(R125)'));
+  Stream<RestartVm> watchRestart() {
+    final SupabaseDeviceLedger? ledger = _rt.deviceLedger;
+    if (ledger == null) {
+      // 첫 화면 링크도 없다(같은 조건) — 지어내지 않는다.
+      return Stream<RestartVm>.error(
+        UnsupportedError('watchRestart: 기기 원장 읽기 조립 없음'),
+      );
+    }
+    late final StreamController<RestartVm> c;
+    StreamSubscription<int>? changes;
+    StreamSubscription<void>? pokes;
+    Timer? timer;
+    bool running = false;
+    bool again = false;
+    bool has = false;
+    RestartVm? last;
+    int seq = 0;
+
+    // 겹쳐 부르면 한 번 더만(망 읽기는 한 줄로).
+    Future<void> refresh() async {
+      if (running) {
+        again = true;
+        return;
+      }
+      running = true;
+      try {
+        do {
+          again = false;
+          try {
+            final RestartVm vm = restartVmOf(await restartFacts(ledger));
+            if (c.isClosed) return;
+            if (!has || vm != last) {
+              has = true;
+              last = vm;
+              c.add(vm);
+            }
+          } on Object catch (e, st) {
+            if (!c.isClosed) c.addError(e, st);
+          }
+        } while (again && !c.isClosed);
+      } finally {
+        running = false;
+      }
+    }
+
+    c = StreamController<RestartVm>(
+      onListen: () {
+        // 처음 한 번(들을 때) + 표 변경마다.
+        changes = watchLedgerQuery<int>(
+          _db,
+          restartTables,
+          () => seq++,
+        ).listen((_) => unawaited(refresh()), onError: c.addError);
+        pokes = _pokes.stream.listen((_) => unawaited(refresh()));
+        timer = Timer.periodic(tick, (_) => unawaited(refresh()));
+      },
+      onCancel: () async {
+        timer?.cancel();
+        await changes?.cancel();
+        await pokes?.cancel();
+        await c.close();
+      },
+    );
+    return c.stream;
+  }
 
   @override
   Stream<List<OnboardingStep>> watchSteps(OnboardingTrack track) =>

@@ -35,6 +35,7 @@ import 'package:data_sync/data_sync.dart'
         OfrClient,
         P0sHumanDecision,
         SupabaseAuth,
+        SupabaseDeviceLedger,
         SupabaseFirstClaim,
         SupabaseLeaseGate,
         SupabaseLeaseRpc,
@@ -374,6 +375,12 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
         sim: files.sim,
         deviceId: deviceId,
         clock: clock,
+      ),
+      // 🆕 R248 — R-01 기기 원장 읽기(같은 로그인 세션 · 읽기만).
+      deviceLedger: SupabaseDeviceLedger(
+        http.Client(),
+        AndroidSecretVault(),
+        supabaseAuth,
       ),
       leaseRemote: lease.leaseRemote,
       // 🆕 E16j-a(R227 · 미결 217 ⓒ) — 정정 직전 재대사(주문 잡과 같은 브로커 조립 · 쓰기 0 · 못 하면 null).
