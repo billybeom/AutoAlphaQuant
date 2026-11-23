@@ -37,4 +37,5 @@ export 'src/primitives.dart';
 export 'src/repositories.dart';
 export 'src/schema/ledger_file.dart';
 export 'src/schema/read_model_columns.dart'; // 🆕 v1.28 — rm_config_view S04 배분 7열(01 §37 K201)
+export 'src/schema/read_model_tables.dart'; // 🆕 v1.36 — 읽기 모델 rm_* 표 22 · 열 · 키 · 형 · 결속 DTO(01 §45 K303 · 지도 D15)
 export 'src/schema/supabase_rpc.dart'; // 🆕 v1.29 — operator 리스 RPC 표(01 §39 K228 · 지도 X18)

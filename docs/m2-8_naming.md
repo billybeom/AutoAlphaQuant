@@ -841,3 +841,18 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AN-4 | 🆕 `JournalDraftRejectCodes.journalTargetUnknown` · `journalInputInvalid` | `labels/journal_codes.dart` · J-3 거부 1 → 3 |
 | AN-5 | 🆕 `SafetyState.holdLabels`(JSON `hold_labels`) | `dto/safety.dart` · hold 짝 문장(같은 차례 · 같은 길이) |
 | AN-6 | 🆕 `FixturePaths.safetyStatesHolds` · `m6JournalDraftReceiptsReject2` · `x5RepairInputResults` | `fixtures/` 신설 3 |
+
+## AO. 🆕 계약 v1.36 (2026-11-23 · D15 읽기 모델 열 표) — Dart 이름 11 · SQL 표 이름 2
+
+`contractVersion` = **`1.36.0`**(다음 = 1.37.0 · M5-13 해소 게이트 · L-3 현금 축). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K303~K316 권고대로(정본 = 설계 01 §45 · 13 §8 R242). 🔴 열 이름 = DTO 와이어 키 그대로(새 이름 0) — 아래는 명세 타입 · 표 이름만.
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AO-1 | 🆕 `ReadModelTables`(22 · `all`) | `schema/read_model_tables.dart` · `rm_*` 표 · 키 · 열 · 결속의 정본 |
+| AO-2 | 🆕 `ReadModelTable` · `ReadModelColumn` · `ReadModelColumnType`(상수 6) | 같은 파일 · 표 하나 · 열 하나 · 형(와이어 열거 아님) |
+| AO-3 | 🆕 `ReadModelBinding` · `ReadModelExclusion` · `ReadModelExtraColumn` · `ReadModelViewerVariant` | 같은 파일 · DTO 결속(접두 · 펼침) · 제외 키(뷰어 판 값) · DTO 밖 열(출처) · 뷰어 판 열 |
+| AO-4 | 🆕 `ReadModelPushColumns`(4) | 같은 파일 · 규칙 5조 ① `row_version` · `lease_epoch` · `pushed_at` · `mode` |
+| AO-5 | 🆕 `ReadModelRls` | 같은 파일 · select 정책 이름 `<표>_select` · 본문(`app_device` ACTIVE 조인) |
+| AO-6 | 🆕 `ReadModelListCodes`(8) | 같은 파일 · `rm_list_envelope.list_code` = «저장소.메서드» |
+| AO-7 | 🆕 SQL 표 `rm_watchdog` · `rm_list_envelope` | 01 §6-4 · W-01 원천(미결 142) · ListResult 봉투 |
+

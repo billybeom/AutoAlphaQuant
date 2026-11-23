@@ -28,14 +28,14 @@ const List<String> _newFixtures = <String>[
 
 void main() {
   group('C-68 쌓인 계약 숙제 창 (01 §44)', () {
-    test('C-68 ① 판 · 표본 — 1.35.0 · 신설 3 = 전량 목록 · 디스크 · 봉투 판 · 393', () {
-      expect(contractVersion, '1.35.0');
+    // 🔵 v1.36(01 §45) — 판 글자 고정 = 최신 창 시험(C-69 ①)만 · 여기는 «봉투 판 = 계약 판».
+    test('C-68 ① 판 · 표본 — 신설 3 = 전량 목록 · 디스크 · 봉투 판 · 393', () {
       for (final String path in _newFixtures) {
         expect(FixturePaths.all, contains(path));
         expect(fixtureExists(path), isTrue, reason: path);
         final Map<String, Object?> meta =
             _env(path)['meta']! as Map<String, Object?>;
-        expect(meta['contract_version'], '1.35.0', reason: path);
+        expect(meta['contract_version'], contractVersion, reason: path);
       }
       expect(FixturePaths.all, hasLength(393));
       expect(allFixtureFilesOnDisk(), hasLength(393));
