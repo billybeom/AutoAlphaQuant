@@ -46,35 +46,46 @@ import 'package:core_engine/core_engine.dart'
         MonthlyReportTexts,
         MonthlyTrustTexts,
         P0sHumanInputs,
+        P0sOpsConfig,
+        P0sStrategyIds,
         ReconClearTexts,
         RepairWizardTexts,
         RunbookTexts,
         TrustedClock,
         alertInboxOf,
-        contributionDefaultRange;
+        contributionDefaultRange,
+        kP0sBacktestText,
+        kSettingsAllocationLabel;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
         DeviceDraftStore,
         P0sHumanDecision,
         SqliteAlertSink,
+        SqliteConfigVersionStore,
         SqliteOnboardingStore,
         krMonthEndOf,
         krMonthSessionsOf,
         storedAlerts;
+import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AlertCodes,
         AlertItem,
         AppRoutes,
         BlockFlag,
+        CommandContext,
         DecisionReasonCodes,
         FlagIds,
         HandbookRepository,
         LedgerTrustRepository,
         OnboardingSlotIds,
         OperatingMode,
-        OpsSlotIds;
+        OpsSlotIds,
+        RunMode,
+        SelfReportBalance,
+        SelfReportPurpose,
+        TradeDate;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -159,6 +170,7 @@ import 'package:ui_settings/ui_settings.dart'
         MonthlyContribution,
         SettingsHome,
         SettingsSlotBuilder,
+        StrategyAllocation,
         settingsActionsProvider,
         settingsClockProvider,
         settingsLinkOpenerProvider,
@@ -728,6 +740,11 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.settingsBackup),
       true,
     );
+    // 🆕 E11q-s04b — M9 S04 배분 첫 판 = 레지스트리(Bob R8b 위젯 · VM = R211).
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.settingsAllocation),
+      true,
+    );
     for (final String r in <String>[
       AppRoutes.x1Migration,
       AppRoutes.x1MigrationPlan,
@@ -1076,6 +1093,113 @@ void main() {
       expect(inScreen('등록 전'), findsWidgets);
       expect(inScreen('슬리브 A'), findsOneWidget);
       expect(inScreen('미지정 — 이 슬리브의 주문은 내지 않습니다.'), findsNWidgets(3));
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  // ── 🆕 E11q-s04b — M9 S04 배분 첫 판(Bob R8b `StrategyAllocation` · VM = R211 운영 설정 판) ─────────
+
+  Future<void> openS04(WidgetTester tester) async {
+    await open(tester, AppRoutes.settingsAllocation);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 30)),
+    );
+    await tester.pump();
+    await tester.pump();
+  }
+
+  testWidgets(
+    '🔴 S04 배분(s04b) = 조립 셸에 등록 · 모의 개시 판 없음 = 공용 오류 화면(정본 기본값을 «읽은 것처럼» 보이지 않는다 · K206)',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      await openS04(tester);
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(StrategyAllocation);
+      expect(screen, findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(
+        find.descendant(
+          of: screen,
+          matching: find.byKey(const Key('m9s04-fail')),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('m9s04-current')), findsNothing);
+      expect(find.text(kP0sBacktestText), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 S04 배분(s04b) — 모의 개시 판이 있으면 엔진 VM 글자 그대로(카드 · 묶음 셋 · 바꾸는 길)',
+    (WidgetTester tester) async {
+      // 개시 결정은 확정 전에만 쓸 수 있다 → 고름 · 판 등재 · 개시 → 확정 → 셸.
+      const Map<String, String> accounts = <String, String>{
+        P0sStrategyIds.sleeveA: 'general',
+        P0sStrategyIds.sleeveB: 'pension',
+        P0sStrategyIds.sleeveC: 'general',
+        P0sStrategyIds.pot: 'general',
+      };
+      final SqliteOnboardingStore s = SqliteOnboardingStore(
+        files.sim,
+        clock: clock,
+      );
+      expect(s.selectOperatingMode(OperatingMode.autoTrade).ok, true);
+      final String hash = SqliteConfigVersionStore(files.sim, clock: clock)
+          .register(
+            P0sOpsConfig.of(
+              P0sHumanInputs(aSymbol: '999990', accountByStrategy: accounts),
+            ).content(),
+          );
+      expect(
+        s
+            .declareSimOpening(
+              SelfReportBalance(
+                asOfTradeDate: const TradeDate('2026-12-22'),
+                purpose: SelfReportPurpose.simOpening,
+                sessionStartedAt: clock.now,
+                lines: const [],
+                cashKrw: Decimal.parse('10000000'),
+                accountAlias: 'general',
+                declaredComplete: true,
+                context: const CommandContext(
+                  runMode: RunMode.simInternal,
+                  operatingMode: OperatingMode.autoTrade,
+                  leaseEpoch: 0,
+                  deviceId: 'dev-1',
+                ),
+              ),
+              accountByStrategy: accounts,
+              configHash: hash,
+            )
+            .ok,
+        true,
+      );
+      files.sim.execute(
+        'UPDATE onboarding_choice SET committed_at = ?',
+        <Object?>[clock.nowUtc().toIso8601String()],
+      );
+      await pumpApp(tester, onboarded: false);
+      await ready(tester);
+      await openS04(tester);
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(StrategyAllocation);
+      expect(screen, findsOneWidget);
+      expect(find.byKey(const Key('m9s04-fail')), findsNothing);
+      Finder inScreen(String t) =>
+          find.descendant(of: screen, matching: find.text(t));
+      expect(inScreen(kSettingsAllocationLabel), findsOneWidget);
+      expect(
+        inScreen('A 20% · B 42% · C 38%(나머지) · 새틀라이트 0%(꺼짐)'),
+        findsOneWidget,
+      );
+      expect(inScreen(kP0sBacktestText), findsOneWidget);
+      expect(inScreen('리밸런싱 밴드'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();
       disposed = true;
