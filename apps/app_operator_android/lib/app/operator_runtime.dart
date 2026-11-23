@@ -28,6 +28,7 @@ import 'package:data_sync/data_sync.dart'
         SqliteJournalSource,
         SupabaseAuth,
         SupabaseFirstClaim,
+        SupabaseX1Emergency,
         SupabaseServerTime,
         contributionRowsOf,
         journalRangePresetsFromLedger,
@@ -80,6 +81,7 @@ class OperatorRuntime {
     this.supabaseTime,
     this.supabaseAuth,
     this.firstClaim,
+    this.x1Emergency,
     this.leaseRemote,
     this.biometricSign,
     this.golden,
@@ -151,6 +153,10 @@ class OperatorRuntime {
   /// 🆕 E11k-e3(R229) — O-04 ⑤ 복구 카드 · 첫 클레임 흐름(프로세스에 하나 — 발급한 카드를 메모리에 쥔다 · 없음 = 기기 id 없음 ·
   /// 플랫폼 밖 → ⑤ 원천 없음).
   final SupabaseFirstClaim? firstClaim;
+
+  /// 🆕 E16t3c(R244) — X1-3 비상 시작 흐름(새 복구 카드를 메모리에 쥔다 · 프로세스에 하나 · 없음 = 기기 id 없음 · 플랫폼 밖 →
+  /// 비상 시작 = 오류 · 복구 코드 자리 부재).
+  final SupabaseX1Emergency? x1Emergency;
 
   /// 🆕 E11k-e3(R229 F8) — 원격 리스 원천(live · simBroker 판정에만 끼운다 · 엔진과 같은 하나 · 없음 = 실물 전과 같다).
   final LeaseRemoteOf? leaseRemote;

@@ -393,25 +393,37 @@ void main() {
   });
 
   group('새 폰', () {
-    test('🔴 복구 없음 = 갈래별 막힘 문장 · 시작 · 슬롯 · 행 0', () {
-      for (final MigrationKind k in MigrationKind.values) {
-        final X1RecoveryVm vm = x1RecoveryVmOf(
-          X1RecoveryFacts(routeKind: k, nowUtc: _now),
-        );
-        expect(vm.level, UiLevel.blocked);
-        expect(vm.startAction, isNull);
-        expect(vm.recoveryCodeSlotId, isNull);
-        expect(vm.scanSlotId, isNull);
-        expect(vm.reissue, isEmpty);
-        expect(vm.steps, isEmpty);
-        expect(vm.noticeText, isNotNull);
-        expect(
-          vm.kindLabel,
-          k == MigrationKind.plan
-              ? X1ScreenTexts.planKind
-              : X1ScreenTexts.emergencyKind,
-        );
-      }
+    test('🔴 받기 · 복구 없음 = 막힘 문장 · 시작 · 슬롯 · 행 0(D9) · 🆕 비상 = 시작 전 VM', () {
+      final X1RecoveryVm vm = x1RecoveryVmOf(
+        X1RecoveryFacts(routeKind: MigrationKind.plan, nowUtc: _now),
+      );
+      expect(vm.level, UiLevel.blocked);
+      expect(vm.headline, X1ScreenTexts.planBlocked);
+      expect(vm.startAction, isNull);
+      expect(vm.recoveryCodeSlotId, isNull);
+      expect(vm.scanSlotId, isNull);
+      expect(vm.reissue, isEmpty);
+      expect(vm.steps, isEmpty);
+      expect(vm.noticeText, X1ScreenTexts.planBlockedNotice);
+      expect(vm.kindLabel, X1ScreenTexts.planKind);
+      final X1RecoveryVm e = x1RecoveryVmOf(
+        X1RecoveryFacts(
+          routeKind: MigrationKind.emergency,
+          nowUtc: _now,
+          emergencyRunnable: true,
+        ),
+      );
+      expect(e.kindLabel, X1ScreenTexts.emergencyKind);
+      expect(e.startAction?.id, SafetyActionId.x1EmergencyStart);
+      // 조립 없음(기기 id · Supabase) = 막힘 문장 · 시작 · 자리 0.
+      final X1RecoveryVm none = x1RecoveryVmOf(
+        X1RecoveryFacts(routeKind: MigrationKind.emergency, nowUtc: _now),
+      );
+      expect(none.headline, X1ScreenTexts.emergencyBlocked);
+      expect(none.noticeText, X1ScreenTexts.emergencyBlockedNotice);
+      expect(none.level, UiLevel.blocked);
+      expect(none.startAction, isNull);
+      expect(none.recoveryCodeSlotId, isNull);
       expect(
         X1ScreenTexts.planKind,
         _plain(_fixtureRow('recovery_plan_scan')['kind_label']),
@@ -623,6 +635,321 @@ void main() {
       expect(<SafetyActionCall>[
         for (final X1StepRow r in locked.steps) ...r.actions,
       ], isEmpty);
+    });
+  });
+
+  group('🆕 E16t3c 새 폰 비상 앞쪽', () {
+    final DateTime revoked = DateTime.utc(2026, 11, 21, 3); // 한국 12:00
+    final FencingConfig cfg = FencingConfig(
+      margin: const Duration(minutes: 10),
+    ); // 잔존 모름 = 24h 가정 → 끝 = 11-22 12:00(한국)
+    const String rec = 'rec-2026-11-21-1';
+
+    X1EmergencyFacts emergency(List<X1ReissueRecord> done) => X1EmergencyFacts(
+      runId: rec,
+      operatorEpoch: 4,
+      revokedAtUtc: revoked,
+      checklist: reissueChecklistOf(done),
+    );
+
+    X1ReissueRecord got(ReissueItem i) => X1ReissueRecord(
+      item: i,
+      fingerprint: i.hasSecret ? 'abcdef0${i.index}' : null,
+      atUtc: revoked,
+    );
+
+    X1RecoveryVm vmOf({
+      X1EmergencyFacts? e,
+      DateTime? trusted,
+      FencingConfig? fencing,
+      bool live = false,
+      String? locked,
+    }) => x1RecoveryVmOf(
+      X1RecoveryFacts(
+        routeKind: MigrationKind.emergency,
+        nowUtc: _now,
+        emergency: e,
+        emergencyRunnable: true,
+        liveExists: live,
+        fencing: fencing,
+        trustedNowUtc: trusted,
+        lockedLabel: locked,
+      ),
+    );
+
+    test(
+      '🔴 시작 전 = 표본(recovery_emergency_start) 글자 · 복구 코드 자리 · 시작 `{}` · 행 0',
+      () {
+        final Map<String, Object?> fx = _fixtureRow('recovery_emergency_start');
+        final X1RecoveryVm vm = vmOf();
+        expect(vm.headline, _plain(fx['headline']));
+        expect(vm.level, UiLevel.act);
+        expect(vm.noticeText, _plain(fx['notice_text']));
+        expect(vm.recoveryCodeSlotId, X1SlotIds.recoveryCode);
+        final Map<String, Object?> sa =
+            fx['start_action']! as Map<String, Object?>;
+        expect(vm.startAction!.id.wire, sa['id']);
+        expect(vm.startAction!.args, isEmpty);
+        expect(vm.startAction!.label, _plain(sa['label']));
+        expect(vm.fencing, isNull);
+        expect(vm.reissue, isEmpty);
+        expect(vm.steps, isEmpty);
+        expect(vm.restore, isNull);
+        expect(vm.scanSlotId, isNull);
+      },
+    );
+
+    test('잠김 = 시작 · 자리 0 · 🔴 live 있음 = 시작 0 · X1_LIVE_EXISTS', () {
+      final X1RecoveryVm l = vmOf(locked: '잠김');
+      expect(l.startAction, isNull);
+      expect(l.recoveryCodeSlotId, isNull);
+      final X1RecoveryVm live = vmOf(live: true);
+      expect(live.level, UiLevel.blocked);
+      expect(live.reasonCode, X1RestoreResultCodes.liveExists);
+      expect(live.startAction, isNull);
+      expect(live.recoveryCodeSlotId, isNull);
+      expect(live.headline, '이 폰에 이미 실전 기록이 있습니다');
+    });
+
+    test('🔴 펜싱 대기 = 표본(recovery_emergency_fencing) 글자 · 끝 절대 시각 · 재발급 6행(차례 · 기록 args)', () {
+      final Map<String, Object?> fx = _fixtureRow('recovery_emergency_fencing');
+      final X1RecoveryVm vm = vmOf(
+        e: emergency(<X1ReissueRecord>[got(ReissueItem.kisAppKey)]),
+        trusted: _now,
+        fencing: cfg,
+      );
+      expect(vm.headline, _plain(fx['headline']));
+      expect(vm.level, UiLevel.watch);
+      expect(vm.reasonCode, X1FencingResultCodes.waiting);
+      expect(vm.startAction, isNull);
+      expect(vm.recoveryCodeSlotId, isNull);
+      expect(vm.noticeText, isNull);
+      final Map<String, Object?> ff = fx['fencing']! as Map<String, Object?>;
+      expect(vm.fencing!.headline, _plain(ff['headline']));
+      expect(vm.fencing!.level, UiLevel.watch);
+      expect(vm.fencing!.code, X1FencingResultCodes.waiting);
+      expect(vm.fencing!.lines, <String>[
+        _plain((ff['lines']! as List<Object?>).single),
+      ]);
+      expect(vm.fencing!.endsAtText, '11-22 12:00 부터');
+      // 표본 끝 글자와 같은 꼴(숫자만 다르다).
+      expect(
+        vm.fencing!.endsAtText!.replaceAll(RegExp(r'\d'), '0'),
+        _plain(ff['ends_at_text']).replaceAll(RegExp(r'\d'), '0'),
+      );
+      expect(
+        vm.reissue.map((X1ReissueRow r) => r.code).toList(),
+        X1ReissueItemCodes.ordered,
+      );
+      final List<Object?> fr = fx['reissue']! as List<Object?>;
+      for (int i = 0; i < 6; i++) {
+        final Map<String, Object?> f = fr[i]! as Map<String, Object?>;
+        expect(
+          vm.reissue[i].label,
+          _plain(f['label']),
+          reason: f['code']! as String,
+        );
+      }
+      expect(
+        <String>{
+          for (final Object? f in fr)
+            _plain((f! as Map<String, Object?>)['state_label']),
+        },
+        <String>{
+          X1ScreenTexts.reissueDone,
+          X1ScreenTexts.reissueRemaining,
+          X1ScreenTexts.reissueNotApplicable,
+        },
+      );
+      final Map<String, Object?> recordFx =
+          (fr[2]! as Map<String, Object?>)['record_action']!
+              as Map<String, Object?>;
+      expect(X1ScreenTexts.reissueRecord, _plain(recordFx['label']));
+      for (final X1ReissueRow r in vm.reissue) {
+        final SafetyActionCall? c = r.recordAction;
+        if (c == null) continue;
+        expect(c.id, SafetyActionId.x1ReissueRecord);
+        expect(c.args, <String, String>{'run_id': rec, 'item': r.code});
+      }
+      final Map<String, X1ReissueRow> by = <String, X1ReissueRow>{
+        for (final X1ReissueRow r in vm.reissue) r.code: r,
+      };
+      final X1ReissueRow kis = by[X1ReissueItemCodes.kisAppKey]!;
+      expect(kis.stateLabel, X1ScreenTexts.reissueDone);
+      expect(kis.level, UiLevel.ok);
+      expect(kis.recordAction, isNull);
+      expect(kis.reissueSlotId, isNull);
+      for (final String na in <String>[
+        X1ReissueItemCodes.messengerToken,
+        X1ReissueItemCodes.githubPat,
+        X1ReissueItemCodes.googleAccess,
+      ]) {
+        expect(by[na]!.stateLabel, X1ScreenTexts.reissueNotApplicable);
+        expect(by[na]!.level, UiLevel.info);
+        expect(by[na]!.recordAction, isNull);
+        expect(by[na]!.reissueSlotId, isNull);
+      }
+      final X1ReissueRow w = by[X1ReissueItemCodes.watchdogPingKey]!;
+      expect(w.reissueSlotId, X1SlotIds.reissueSecret);
+      expect(w.recordAction, isNotNull);
+      expect(w.level, UiLevel.act);
+      final X1ReissueRow sb = by[X1ReissueItemCodes.supabaseSession]!;
+      expect(sb.reissueSlotId, isNull);
+      expect(sb.recordAction, isNotNull);
+      expect(sb.level, UiLevel.act);
+    });
+
+    test('🔴 시크릿 자리 = 남은 시크릿 항목 첫 하나만(같은 슬롯 이름) · 다음 시크릿 = 남음 · 동작 0', () {
+      final X1RecoveryVm vm = vmOf(
+        e: emergency(const <X1ReissueRecord>[]),
+        trusted: _now,
+        fencing: cfg,
+      );
+      final List<X1ReissueRow> slots = vm.reissue
+          .where((X1ReissueRow r) => r.reissueSlotId != null)
+          .toList();
+      expect(slots.single.code, X1ReissueItemCodes.kisAppKey);
+      final X1ReissueRow w = vm.reissue.firstWhere(
+        (X1ReissueRow r) => r.code == X1ReissueItemCodes.watchdogPingKey,
+      );
+      expect(w.stateLabel, X1ScreenTexts.reissueRemaining);
+      expect(w.level, UiLevel.info);
+      expect(w.recordAction, isNull);
+      expect(w.reissueSlotId, isNull);
+    });
+
+    test('신뢰 시각 모름 = 대기 · 줄 · 코드 · 🔴 펜싱 설정 없음 = 끝 시각 0 · 막힘 줄', () {
+      final X1RecoveryVm u = vmOf(
+        e: emergency(const <X1ReissueRecord>[]),
+        fencing: cfg,
+      );
+      expect(u.reasonCode, SafetyCommonResultCodes.trustedTimeUnknown);
+      expect(u.fencing!.code, SafetyCommonResultCodes.trustedTimeUnknown);
+      expect(u.fencing!.lines, <String>[X1ScreenTexts.trustedUnknownLine]);
+      expect(u.fencing!.endsAtText, '11-22 12:00 부터');
+      final X1RecoveryVm n = vmOf(
+        e: emergency(const <X1ReissueRecord>[]),
+        trusted: _now.add(const Duration(days: 3)),
+      );
+      expect(n.reasonCode, X1FencingResultCodes.waiting);
+      expect(n.level, UiLevel.watch);
+      expect(n.fencing!.level, UiLevel.blocked);
+      expect(n.fencing!.endsAtText, isNull);
+      expect(n.fencing!.lines, <String>[X1ScreenTexts.fencingConfigMissing]);
+    });
+
+    test('🔴 머리 = 펜싱 × 재발급 · 통과 ∧ 끝 = 복원 막힘(D9 사실) · 동작 0', () {
+      final List<X1ReissueRecord> all = <X1ReissueRecord>[
+        got(ReissueItem.kisAppKey),
+        got(ReissueItem.watchdogPingKey),
+        got(ReissueItem.supabaseSession),
+      ];
+      final DateTime after = revoked.add(const Duration(hours: 24));
+      final X1RecoveryVm onlyWait = vmOf(
+        e: emergency(all),
+        trusted: _now,
+        fencing: cfg,
+      );
+      expect(onlyWait.headline, X1ScreenTexts.emergencyFencingOnly);
+      expect(onlyWait.level, UiLevel.watch);
+      final X1RecoveryVm reissue = vmOf(
+        e: emergency(<X1ReissueRecord>[got(ReissueItem.kisAppKey)]),
+        trusted: after,
+        fencing: cfg,
+      );
+      expect(reissue.headline, X1ScreenTexts.emergencyReissue);
+      expect(reissue.level, UiLevel.act);
+      expect(reissue.reasonCode, isNull);
+      expect(reissue.fencing!.headline, X1ScreenTexts.fencingPassedHeadline);
+      expect(reissue.fencing!.level, UiLevel.ok);
+      expect(reissue.fencing!.code, isNull);
+      expect(reissue.fencing!.lines, isEmpty);
+      final X1RecoveryVm done = vmOf(
+        e: emergency(all),
+        trusted: after,
+        fencing: cfg,
+      );
+      expect(done.headline, X1ScreenTexts.emergencyRestoreBlocked);
+      expect(done.level, UiLevel.blocked);
+      expect(done.noticeText, X1ScreenTexts.planBlockedNotice);
+      expect(
+        done.reissue.every(
+          (X1ReissueRow r) => r.recordAction == null && r.reissueSlotId == null,
+        ),
+        isTrue,
+      );
+      expect(done.steps, isEmpty);
+      expect(done.restore, isNull);
+    });
+
+    test('잠김 = 재발급 자리 · 동작 0(C-67 잠김 규칙)', () {
+      final X1RecoveryVm vm = vmOf(
+        e: emergency(const <X1ReissueRecord>[]),
+        trusted: _now,
+        fencing: cfg,
+        locked: '잠김',
+      );
+      expect(
+        vm.reissue.every(
+          (X1ReissueRow r) => r.recordAction == null && r.reissueSlotId == null,
+        ),
+        isTrue,
+      );
+    });
+
+    test('복구 기록이 있으면 복구 갈래가 이긴다(비상 기록 무시)', () {
+      final X1RecoveryVm vm = x1RecoveryVmOf(
+        X1RecoveryFacts(
+          routeKind: MigrationKind.emergency,
+          nowUtc: _now,
+          run: X1RecoveryRunFacts(
+            runId: _run,
+            kind: MigrationKind.emergency,
+            manifest: _manifest,
+            gapRebuilt: false,
+          ),
+          emergency: emergency(const <X1ReissueRecord>[]),
+          fencing: cfg,
+          trustedNowUtc: _now,
+        ),
+      );
+      expect(vm.reissue, isEmpty);
+      expect(vm.fencing, isNull);
+      expect(vm.restore, isNotNull);
+    });
+
+    test('🔴 비상 시작 거부 글자 · 다시 가능 = 경합 · 전송만', () {
+      SafetyActionResult res(String? code) => x1ActionResultOf(
+        id: SafetyActionId.x1EmergencyStart,
+        actionRunId: 'c',
+        code: code,
+      );
+      expect(
+        res(LeaseRpcResultCodes.recoveryCodeInvalid).headline,
+        '복구 코드가 맞지 않습니다',
+      );
+      expect(res(LeaseRpcResultCodes.recoveryCodeInvalid).retryable, isFalse);
+      expect(res(LeaseRpcResultCodes.recoveryCodeRequired).retryable, isFalse);
+      expect(res(LeaseRpcResultCodes.deviceNotEligible).retryable, isFalse);
+      expect(res(LeaseRpcResultCodes.heldByOther).retryable, isTrue);
+      for (final String c in <String>[
+        SupabaseTimeResultCodes.network,
+        SupabaseTimeResultCodes.server,
+        SupabaseTimeResultCodes.badResponse,
+        SupabaseTimeResultCodes.unauthorized,
+      ]) {
+        expect(res(c).retryable, isTrue, reason: c);
+        expect(res(c).headline, '서버에 닿지 못했습니다 — 다시 하십시오');
+      }
+      for (final String c in <String>[
+        SupabaseAuthResultCodes.notSignedIn,
+        SupabaseTimeResultCodes.notConfigured,
+        SupabaseTimeResultCodes.badConfig,
+      ]) {
+        expect(res(c).headline, 'Supabase 연결과 로그인을 먼저 마치십시오');
+        expect(res(c).retryable, isFalse);
+      }
+      expect(res(null).headline, '비상 복구를 시작했습니다');
     });
   });
 

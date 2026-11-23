@@ -38,7 +38,8 @@ import 'package:data_sync/data_sync.dart'
         SupabaseFirstClaim,
         SupabaseLeaseGate,
         SupabaseLeaseRpc,
-        SupabaseServerTime;
+        SupabaseServerTime,
+        SupabaseX1Emergency;
 import 'package:domain_contracts/domain_contracts.dart'
     show Clock, RunMode, TradeDate;
 import 'package:flutter/services.dart' show rootBundle;
@@ -234,6 +235,16 @@ operatorLeaseParts({
   );
 }
 
+/// 🆕 E16t3c(R244) — X1-3 비상 시작 흐름(기기 id 없음 = null) — [sim] = 늘 열린 원장(회수 · 재발급 기록) · [rpc] = 첫 클레임과 같은 것.
+SupabaseX1Emergency? operatorX1Emergency({
+  required SupabaseLeaseRpc rpc,
+  required Database sim,
+  required String? deviceId,
+  required Clock clock,
+}) => deviceId == null
+    ? null
+    : SupabaseX1Emergency(rpc, sim, deviceId: deviceId, clock: clock);
+
 /// 🆕 E11k-a(R197 T6) — 조립 앱의 신뢰 시각(Supabase 서버 시각 기준점 · 연결 칸 = [vault] · 없으면 망에 가지 않고 모름).
 AnchoredTrustedClock operatorTrustedClock({
   required http.Client http,
@@ -309,14 +320,15 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       wall: clock,
     );
     final LedgerFiles files = LedgerFiles.open(dir, clock: clock);
-    // 🆕 E11k-e3(R229) — 리스 RPC(같은 로그인 세션) · ⑤ 첫 클레임 · 원격 리스 원천.
+    // 🆕 E11k-e3(R229) — 리스 RPC(같은 로그인 세션) · ⑤ 첫 클레임 · 원격 리스 원천 · 🆕 E16t3c X1-3 비상 시작(같은 RPC).
+    final SupabaseLeaseRpc leaseRpc = SupabaseLeaseRpc(
+      http.Client(),
+      AndroidSecretVault(),
+      supabaseAuth,
+    );
     final ({SupabaseFirstClaim? firstClaim, LeaseRemoteOf? leaseRemote}) lease =
         operatorLeaseParts(
-          rpc: SupabaseLeaseRpc(
-            http.Client(),
-            AndroidSecretVault(),
-            supabaseAuth,
-          ),
+          rpc: leaseRpc,
           sim: files.sim,
           deviceId: deviceId,
           clock: clock,
@@ -357,6 +369,12 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       supabaseTime: SupabaseServerTime(http.Client(), AndroidSecretVault()),
       supabaseAuth: supabaseAuth,
       firstClaim: lease.firstClaim,
+      x1Emergency: operatorX1Emergency(
+        rpc: leaseRpc,
+        sim: files.sim,
+        deviceId: deviceId,
+        clock: clock,
+      ),
       leaseRemote: lease.leaseRemote,
       // 🆕 E16j-a(R227 · 미결 217 ⓒ) — 정정 직전 재대사(주문 잡과 같은 브로커 조립 · 쓰기 0 · 못 하면 null).
       freshRecon: (OperatorView v, TradeDate day) => operatorFreshReconIds(

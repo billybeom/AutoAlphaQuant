@@ -51,11 +51,50 @@ abstract interface class SupabaseLoginDraftSource {
   void clear();
 }
 
+/// 🆕 E16t3c(R244) — X1 비상 복구 코드 칸 · 재발급 값 칸의 원천(🔴 값 = 위젯 상태에만 · 동작이 한 번 쓰고 칸을 비운다).
+abstract interface class X1SecretDraftSource {
+  /// 지금 값 — 빈 칸 = null.
+  String? current();
+
+  /// 값을 비운다(동작 뒤 — 통과 · 거부 모두).
+  void clear();
+}
+
 /// 🔴 위젯 ↔ 검증 동작 사이의 넘김(조립 앱 내부 · 계약 칸 0 · 01 §29 K5).
 class SecretHandoff {
   final Map<KisKeySet, KisDraftSource> _live = <KisKeySet, KisDraftSource>{};
   SupabaseDraftSource? _supabase;
   SupabaseLoginDraftSource? _login;
+  X1SecretDraftSource? _x1Code;
+  X1SecretDraftSource? _x1Reissue;
+
+  /// 🆕 E16t3c — X1 비상 «옛 종이의 복구 코드» 칸이 설 때 붙는다(나중 것이 이긴다).
+  void attachX1RecoveryCode(X1SecretDraftSource source) => _x1Code = source;
+
+  /// 🆕 E16t3c — 그 칸이 내려갈 때 떨어진다(자기 자리일 때만).
+  void detachX1RecoveryCode(X1SecretDraftSource source) {
+    if (identical(_x1Code, source)) _x1Code = null;
+  }
+
+  /// 🆕 E16t3c — 비상 시작 직전 — 지금 칸의 값(칸 없음 = null) · 🔴 복사해 두지 않는다.
+  String? x1RecoveryCodeDraft() => _x1Code?.current();
+
+  /// 🆕 E16t3c — 비상 시작 뒤 — 칸을 비운다(통과 · 거부 모두 — 평문을 오래 쥐지 않는다).
+  void clearX1RecoveryCode() => _x1Code?.clear();
+
+  /// 🆕 E16t3c — X1 재발급 값 칸이 설 때 붙는다(엔진이 한 번에 한 행에만 자리를 준다 · 나중 것이 이긴다).
+  void attachX1Reissue(X1SecretDraftSource source) => _x1Reissue = source;
+
+  /// 🆕 E16t3c — 그 칸이 내려갈 때 떨어진다(자기 자리일 때만).
+  void detachX1Reissue(X1SecretDraftSource source) {
+    if (identical(_x1Reissue, source)) _x1Reissue = null;
+  }
+
+  /// 🆕 E16t3c — 재발급 기록 직전 — 지금 칸의 값(칸 없음 = null) · 🔴 복사해 두지 않는다(지문만 남긴다).
+  String? x1ReissueDraft() => _x1Reissue?.current();
+
+  /// 🆕 E16t3c — 재발급 기록 뒤 — 칸을 비운다.
+  void clearX1Reissue() => _x1Reissue?.clear();
 
   /// 🆕 R216 — 로그인 칸이 설 때 붙는다(나중 것이 이긴다).
   void attachSupabaseLogin(SupabaseLoginDraftSource source) => _login = source;

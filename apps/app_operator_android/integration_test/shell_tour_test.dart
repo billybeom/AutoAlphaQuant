@@ -42,6 +42,8 @@ import 'package:data_sync/data_sync.dart'
         ModeAxis,
         SqliteConfigVersionStore,
         SqliteModeStore,
+        SupabaseAuth,
+        SupabaseLeaseRpc,
         krMonthEndOf,
         krMonthSessionsOf;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -307,6 +309,7 @@ void main() {
     final AndroidOps ops = AndroidOps();
     final Directory dir = Directory.systemTemp.createTempSync('aaq_it_tour_');
     final LedgerFiles files = LedgerFiles.open(dir.path, clock: clock);
+    final String deviceId = await ops.deviceId();
     final OperatorRuntime rt = OperatorRuntime(
       files: files,
       clock: clock,
@@ -314,7 +317,18 @@ void main() {
       vault: AndroidSecretVault(),
       watchdogRemote: HealthchecksClient(http.Client(), AndroidSecretVault()),
       deviceProbe: () => ops.deviceRisk(clock.nowUtc()),
-      deviceId: await ops.deviceId(),
+      deviceId: deviceId,
+      // 🆕 E16t3c(R244) — X1-3 비상 시작 흐름(앱 기동과 같은 조립 · 시작을 누르지 않는다 = 망 0 · 카드 줄 = 이 폰 메모리).
+      x1Emergency: operatorX1Emergency(
+        rpc: SupabaseLeaseRpc(
+          http.Client(),
+          AndroidSecretVault(),
+          SupabaseAuth(http.Client(), AndroidSecretVault(), clock: clock),
+        ),
+        sim: files.sim,
+        deviceId: deviceId,
+        clock: clock,
+      ),
       // 🆕 R154 — 실린 사람 값 자산(발주자 결정 R153) → S03 = 정한 대응표 «모의 개시 전».
       humanDecision: await loadP0sHumanDecision(rootBundle),
       // 🆕 R167 — 설정 동작(S10 실행 버튼) · 골든 기기 실행기(실제 엔진 패키지 자산 · 실제 isolate).
@@ -788,7 +802,8 @@ void main() {
         await tester.pump(const Duration(seconds: 1));
       }
 
-      // 🆕 E16j-b — X1 기기 이전 셋(모의 원장 = 옛 폰 엔진 `X1_LIVE_ONLY` 문장 · 버튼 0 · 새 폰 = live 원장 없음 → 막힘 문장 · 버튼 0).
+      // 🆕 E16j-b — X1 기기 이전 셋(모의 원장 = 옛 폰 엔진 `X1_LIVE_ONLY` 문장 · 버튼 0 · 새 폰 받기 = live 원장 없음 → 막힘 문장 · 버튼 0) ·
+      // 🆕 E16t3c(R244) 비상 = 기기 id 있음 → 시작 전 VM(복구 코드 칸 = 조립 앱 슬롯 · «비상 복구 시작») — 누르지 않는다(망 0).
       for (final (String route, Type screen, String root, String shot)
           in <(String, Type, String, String)>[
             (AppRoutes.x1Migration, X1PlanWizardScreen, 'x1p-root', 'IT_X1P'),
@@ -802,15 +817,21 @@ void main() {
           ]) {
         container.read(shellLinkOpenerProvider).open(route);
         await _until(tester, find.byKey(Key(root)));
-        expect(
-          find.descendant(
-            of: find.byType(screen),
-            matching: find.byWidgetPredicate(
-              (Widget w) => w is OutlinedButton || w is FilledButton,
+        final bool emergency = route == AppRoutes.x1MigrationEmergency;
+        if (emergency) {
+          expect(find.byKey(const Key('x1-rc')), findsOneWidget);
+          expect(find.byKey(const Key('x1r-start')), findsOneWidget);
+        } else {
+          expect(
+            find.descendant(
+              of: find.byType(screen),
+              matching: find.byWidgetPredicate(
+                (Widget w) => w is OutlinedButton || w is FilledButton,
+              ),
             ),
-          ),
-          findsNothing,
-        );
+            findsNothing,
+          );
+        }
         await _at(tester, find.byType(screen), shot);
         await tester.pump(const Duration(seconds: 1));
         await tester.pageBack();

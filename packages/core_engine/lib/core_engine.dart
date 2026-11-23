@@ -242,6 +242,16 @@ export 'src/migration/transfer_ticket.dart'
         kTransferTicketKeys,
         transferTicketValid;
 // 🆕 E16j-b — X1 기기 이전 화면 VM · 결과 글자(01 §42 · 미결 218 ⓐ).
+// 🆕 E16t3c(R244) — X1-3 비상 앞쪽 복원 전 기록 재료 · 재발급 적용 항목 · 체크리스트 다시 세우기.
+export 'src/migration/x1_emergency.dart'
+    show
+        X1EmergencyFacts,
+        X1ReissueRecord,
+        kX1EmergencyRevokeKind,
+        kX1ReissueRecordKind,
+        kX1ReissueUsedServices,
+        reissueChecklistOf,
+        x1EmergencyRunIdOf;
 export 'src/migration/x1_screens.dart'
     show
         X1PlanWizardFacts,
@@ -255,7 +265,8 @@ export 'src/migration/x1_screens.dart'
         x1ActionResultOf,
         x1PlanStepOpen,
         x1PlanWizardVmOf,
-        x1RecoveryVmOf;
+        x1RecoveryVmOf,
+        x1ReissueRowsOf;
 // 🆕 E15b — 기동 해석(어느 파일 · 어느 조합 · 반쯤 끝난 커밋 · SPEC v2.44 · 설계 13 §8 R82).
 export 'src/mode/boot_mode.dart'
     show
