@@ -8,7 +8,7 @@
 //       → [_noOrder](계약 창 대기 · 미결 223 꼬리) · 봉투 · limit+1 · 필터 빈 문장 규칙은 `listResultOf` 에 이미 있다.
 //    ② 한 표가 아닌 조립 VM · 폰 전용 창구 → [_noSource](미결 223 ⓒ).
 //    ③ 사용자 지정 구간 · 구간 지정 시리즈 → [_noRange](미결 223 ⓓ — 행 = 프리셋 · 엔진 기본 구간뿐).
-// 🔴 모드 = 창구 인자가 있으면 그 값 · 없으면 [ViewerReadModels.mode](조립 앱이 정한다 — 화면 상태 모드).
+// 🔴 모드 = [ViewerReadModels.mode](조립 앱이 정한다 — 화면 상태 모드 · 모드 인자가 있는 창구는 지금 서지 않는다).
 // 🔴 쓰기 0 — 뷰어 명령(INSERT)은 E11m(`CommandApi`) 몫이다.
 
 import 'dart:async';
@@ -194,14 +194,15 @@ final class ViewerReadModels {
         ),
       );
 
+  /// 조회 — 이 묶음의 화면 모드 행만(🔵 모드 인자가 있는 창구 = 일지 · 배지 · blind 대기 = 지금 서지 않는다 ·
+  /// 서면 그 인자를 여기로 넘긴다).
   ReadModelQuery _query(
     ReadModelTable table, {
     Map<String, Object?> where = const <String, Object?>{},
-    RunMode? mode,
     List<ReadModelOrder> orderBy = const <ReadModelOrder>[],
   }) => ReadModelQuery(
     table,
-    equals: <String, Object?>{'mode': (mode ?? this.mode).wire, ...where},
+    equals: <String, Object?>{'mode': mode.wire, ...where},
     orderBy: orderBy,
   );
 
