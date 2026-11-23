@@ -4,11 +4,13 @@
 
 import 'dart:io';
 
+import 'package:app_operator_android/app/operator_documents.dart';
 import 'package:app_operator_android/app/operator_journal.dart';
 import 'package:app_operator_android/app/operator_ops_status.dart';
 import 'package:app_operator_android/app/operator_ops_summary.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_safety.dart';
+import 'package:app_operator_android/app/operator_self_report.dart';
 import 'package:app_operator_android/app/operator_settings_actions.dart';
 import 'package:app_operator_android/app/operator_settings_repository.dart';
 import 'package:app_operator_android/app/operator_shell.dart';
@@ -28,27 +30,41 @@ import 'package:core_engine/core_engine.dart'
     show
         AnnualReviewVmTexts,
         BackupScreenTexts,
+        ContributionTexts,
+        DisclosureGateTexts,
+        DrawdownContextTexts,
+        EmergencyCardTexts,
+        HandbookTexts,
+        PerfSeriesTexts,
         BlockBoardTexts,
         DeviceRiskFacts,
         RuleChangeGateTexts,
         HoldingsTexts,
         KillSwitchScreenTexts,
         LiveObservationConfig,
+        MonthlyReportTexts,
+        MonthlyTrustTexts,
         P0sHumanInputs,
         P0sOpsConfig,
         P0sStrategyIds,
         ReconClearTexts,
+        RepairWizardTexts,
+        RunbookTexts,
         TrustedClock,
         alertInboxOf,
+        contributionDefaultRange,
         kP0sBacktestText,
         kSettingsAllocationLabel;
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
+        DeviceDraftStore,
         P0sHumanDecision,
         SqliteAlertSink,
         SqliteConfigVersionStore,
         SqliteOnboardingStore,
+        krMonthEndOf,
+        krMonthSessionsOf,
         storedAlerts;
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
@@ -60,6 +76,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         CommandContext,
         DecisionReasonCodes,
         FlagIds,
+        HandbookRepository,
+        LedgerTrustRepository,
         OnboardingSlotIds,
         OperatingMode,
         OpsSlotIds,
@@ -82,17 +100,27 @@ import 'package:ui_analytics/planner.dart'
 import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
+        ContributionScreen,
+        DrawdownContextScreen,
         ExecutionGapScreen,
+        MonthlyReportScreen,
+        PerformanceExploreScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
         RebalanceTimelineScreen,
         analyticsClockProvider,
+        analyticsCommandApiProvider,
         analyticsLinkOpenerProvider,
         analyticsWhatIfApiProvider,
         executionGapRepositoryProvider,
         performanceRepositoryProvider,
         rebalanceRepositoryProvider,
         safetyRepositoryProvider;
+import 'package:ui_journal/journal_draft.dart'
+    show
+        journalCommandApiProvider,
+        journalDraftStoreProvider,
+        journalSettingsActionsProvider;
 import 'package:ui_journal/ui_journal.dart'
     show
         LedgerDiffs,
@@ -101,6 +129,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalClockProvider,
         journalConfigRepositoryProvider,
         journalHoldingsRepositoryProvider,
+        journalLedgerTrustRepositoryProvider,
         journalLedgerRepositoryProvider,
         journalLinkOpenerProvider,
         journalRebalanceRepositoryProvider,
@@ -117,11 +146,14 @@ import 'package:ui_safety/ui_safety.dart'
         ResumeGateScreen,
         HandoverWizardScreen,
         ResumeReportScreen,
+        RepairWizardScreen,
         RuleChangeGateScreen,
         safetyBlockBoardRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyHandoverRepositoryProvider,
+        safetyMigrationRepositoryProvider,
+        safetyRepairWizardRepositoryProvider,
         safetyResumeGateRepositoryProvider,
         safetyRuleChangeGateRepositoryProvider,
         safetySettingsActionsProvider;
@@ -487,17 +519,107 @@ void main() {
         reason: '탐색 링크 판단 = 셸이 쓰는 레지스트리 — $r',
       );
     }
+    // 🆕 R223 — S7-2 탐색 등록(뒤집은 단언 — R220 = 아직) · 열람 기록 = 셸 명령 API 한 인스턴스.
     expect(
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.performanceExplore),
-      false,
-      reason: 'S7-2 탐색 = q5 뒤 조각(A 행 링크 0)',
+      true,
+      reason: 'S7-2 탐색 = R223(A 행 링크가 선다)',
     );
     expect(
       container
           .read(operatorPerformanceProvider)
           .hasBody(AppRoutes.performanceExplore),
-      false,
+      true,
     );
+    expect(
+      identical(
+        container.read(analyticsCommandApiProvider),
+        container.read(operatorCommandApiProvider),
+      ),
+      true,
+    );
+    // 🆕 R226 — S7-3 드로다운 등록(S7-2 «낙폭 맥락 보기» · S12 목차 행 목적지).
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.performanceDrawdown),
+      true,
+    );
+    expect(
+      container
+          .read(operatorPerformanceProvider)
+          .hasBody(AppRoutes.performanceDrawdown),
+      true,
+    );
+    // 🆕 R228 — S7-3b 슬리브 기여 등록(S7-2 «슬리브 기여 보기» 목적지).
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(
+        AppRoutes.performanceContribution,
+      ),
+      true,
+    );
+    expect(
+      container
+          .read(operatorPerformanceProvider)
+          .hasBody(AppRoutes.performanceContribution),
+      true,
+    );
+    // 🆕 R231 — S7-1 월간 리포트 등록 · 리포트의 「자세히」 목적지(S7-3 · S7-10 그 달)도 본문이 있다.
+    for (final String r in <String>[
+      AppRoutes.reportMonthly,
+      AppRoutes.performanceDrawdown,
+      AppRoutes.ledgerExecutionGapMonth,
+    ]) {
+      expect(
+        container.read(operatorPerformanceProvider).hasBody(r),
+        true,
+        reason: r,
+      );
+    }
+    // 🆕 E11q-q6 — L-3 정기 실사 등록(뒤집은 단언 — R228 까지 = 자리 부재 · `SELF_AUDIT_DUE` 링크가 선다) ·
+    //    세션 VM · 여닫기 · 제출 · 초안 = 주입 · 보유 · 일지 가림 = 같은 세션 장부 · 명령 API = 한 인스턴스.
+    expect(
+      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.ledgerSelfReport),
+      true,
+    );
+    final OperatorSelfReport sr = container.read(operatorSelfReportProvider);
+    for (final LedgerTrustRepository t in <LedgerTrustRepository>[
+      container.read(journalLedgerTrustRepositoryProvider),
+      container.read(shellLedgerTrustRepositoryProvider),
+    ]) {
+      expect(
+        identical((t as OperatorLedgerTrustRepository).selfReport, sr),
+        true,
+      );
+    }
+    expect(
+      container.read(journalSettingsActionsProvider),
+      isA<OperatorSelfReportActions>(),
+    );
+    expect(
+      identical(
+        container.read(journalCommandApiProvider),
+        container.read(operatorCommandApiProvider),
+      ),
+      true,
+    );
+    expect(
+      identical(container.read(operatorCommandApiProvider).selfReport, sr),
+      true,
+    );
+    expect(
+      identical(
+        container.read(operatorHoldingsProvider).selfReportSessions,
+        sr.sessions,
+      ),
+      true,
+    );
+    expect(
+      identical(
+        container.read(operatorJournalProvider).selfReportSessions,
+        sr.sessions,
+      ),
+      true,
+    );
+    expect(container.read(journalDraftStoreProvider), isA<DeviceDraftStore>());
     // 🆕 R178 — M5-1 킬스위치 읽기 = 한 인스턴스 · 명령 = 기기 id 없음 → null(버튼 부재).
     expect(
       identical(
@@ -563,6 +685,20 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5RuleChangeGate),
       true,
     );
+    // 🆕 R227 — X5 정정 마법사 읽기 = 한 인스턴스 · 레지스트리 둘(허브 · 대상 = 같은 위젯).
+    expect(
+      identical(
+        container.read(safetyRepairWizardRepositoryProvider),
+        container.read(operatorRepairWizardProvider),
+      ),
+      true,
+    );
+    for (final String r in <String>[
+      AppRoutes.x5RepairWizard,
+      AppRoutes.x5RepairTarget,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+    }
     // 🆕 R191 — M5-11 위저드 읽기 = 한 인스턴스 · 동작 = 설정 동작 인스턴스(시험 조립 = 금고 0 → null) ·
     //    레지스트리 둘(`handoverStatus` = 같은 본문 · K173) · M5-10 게이트 = 빈 자리(K174).
     expect(
@@ -590,7 +726,7 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.m5HandoverGate),
       false,
     );
-    // 🆕 R201 — M9 S09 백업 = 한 인스턴스(읽기 · «지금 백업»이 같은 것) · 레지스트리 · X1 기기 이전 = 빈 자리(링크 부재).
+    // 🆕 R201 — M9 S09 백업 = 한 인스턴스(읽기 · «지금 백업»이 같은 것) · 레지스트리 · 🆕 E16j-b X1 기기 이전 = 본문 셋(링크가 열린다).
     expect(
       identical(
         container.read(operatorOpsStatusProvider).backup,
@@ -607,9 +743,19 @@ void main() {
       kOperatorRouteBodies.byPattern.containsKey(AppRoutes.settingsAllocation),
       true,
     );
+    for (final String r in <String>[
+      AppRoutes.x1Migration,
+      AppRoutes.x1MigrationPlan,
+      AppRoutes.x1MigrationEmergency,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+    }
     expect(
-      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.x1Migration),
-      false,
+      identical(
+        container.read(safetyMigrationRepositoryProvider),
+        container.read(operatorMigrationProvider),
+      ),
+      true,
     );
     // 🆕 R182 — M8 운영 슬롯 빌더 = 셸 킬스위치 자리(ui_safety 자리 위젯) · 인쇄 = 자리 부재.
     expect(
@@ -1358,6 +1504,322 @@ void main() {
     },
   );
 
+  testWidgets(
+    '🔴 M7 S7-2 성과 탐색(R223) — 게이트(0회 · 마찰 0) → 「그래도 보기」 = 원장 열람 기록 1행 → 같은 위젯 안 본문(기록 줄 · 스냅숏 0 문장) · 다시 열면 게이트 · «1번»',
+    (WidgetTester tester) async {
+      container.dispose();
+      rt = OperatorRuntime(files: files, clock: clock, deviceId: 'dev-1');
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      await pumpApp(tester);
+      await ready(tester);
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      int views() =>
+          files.sim
+                  .select(
+                    "SELECT COUNT(*) AS n FROM command_inbox WHERE kind = 'DISCLOSURE_VIEW'",
+                  )
+                  .first['n']
+              as int;
+
+      await open(tester, AppRoutes.performanceExplore);
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(PerformanceExploreScreen), findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(find.text(DisclosureGateTexts.noViewsYet), findsOneWidget);
+      expect(find.byKey(const Key('s72g-friction')), findsNothing);
+      expect(find.byKey(const Key('s72-record-line')), findsNothing);
+      expect(views(), 0, reason: '게이트만 = 명령 0');
+      await tester.ensureVisible(find.byKey(const Key('s72g-continue')));
+      await tester.tap(find.byKey(const Key('s72g-continue')));
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(views(), 1, reason: '진입 1회 = 명령 1건');
+      expect(
+        tester.widget<Text>(find.byKey(const Key('s72-record-line'))).data,
+        DisclosureGateTexts.recorded,
+        reason: '기록 줄 = 엔진 접수증 글자 그대로',
+      );
+      expect(find.text(PerfSeriesTexts.noSnapshot), findsOneWidget);
+      // 다시 열면 = 게이트부터(통과 사실 = 위젯 상태에만) · 이번 달 1번.
+      await open(tester, AppRoutes.performanceExplore);
+      await settle();
+      expect(
+        find.byKey(const Key('s72g-continue')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(find.text('이번 달 1번 열어 보셨습니다'), findsOneWidget);
+      expect(find.text(DisclosureGateTexts.friction), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M7 S7-3 드로다운(R226) = 조립 셸에 등록 · 원장 스냅숏 → 엔진 문장 셋 · 기준 줄 · 크래시 없음',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      for (final (String d, double e) in <(String, double)>[
+        ('2026-12-16', 100),
+        ('2026-12-17', 95),
+        ('2026-12-18', 97),
+      ]) {
+        files.sim.execute(
+          'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+          "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+          <Object?>[d, e, e, e],
+        );
+      }
+      Future<void> settle() async {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 30)),
+        );
+        await tester.pump();
+        await tester.pump();
+      }
+
+      await open(tester, AppRoutes.performanceDrawdown);
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(DrawdownContextScreen);
+      expect(screen, findsOneWidget);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      for (final String t in <String>[
+        '현재 낙폭 −3.0%',
+        '최대 낙폭 −5.0%',
+        DrawdownContextTexts.tuw(1),
+        '드로다운 기준 2026-12-18',
+      ]) {
+        expect(
+          find.descendant(of: screen, matching: find.textContaining(t)),
+          findsWidgets,
+          reason: t,
+        );
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M7 S7-3b 슬리브 기여(R228) = 조립 셸에 등록 · 구간 = 엔진 기본(이번 달) · 원장 → 행 셋 · 주석 · S7-2 링크가 연다',
+    (WidgetTester tester) async {
+      // S7-2 게이트 통과 = 열람 기록(기기 id 필요 — 탐색 시험과 같은 꼴).
+      container.dispose();
+      rt = OperatorRuntime(files: files, clock: clock, deviceId: 'dev-1');
+      container = ProviderContainer(overrides: operatorShellOverrides(rt));
+      await pumpApp(tester);
+      await ready(tester);
+      // 12월 마감 셋 = S7-2 시리즈가 선다(링크 버튼 = 본문 갈래) · 시작 기준 = 11월 말.
+      for (final (String d, double e) in <(String, double)>[
+        ('2026-11-30', 1000000),
+        ('2026-12-16', 1000000),
+        ('2026-12-17', 1000000),
+        ('2026-12-18', 1010000),
+      ]) {
+        files.sim.execute(
+          'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+          "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+          <Object?>[d, e, e, e],
+        );
+      }
+      files.sim.execute(
+        'INSERT INTO positions (market, symbol, strategy_id, quantity, avg_price, entry_date, updated_at) '
+        "VALUES ('KR', '0085P0', 'P0S_C', 100, 10000, '2026-11-02', '2026-11-02T00:00:00Z')",
+      );
+      for (final (String d, double c) in <(String, double)>[
+        ('2026-11-30', 10000),
+        ('2026-12-16', 10000),
+        ('2026-12-17', 10000),
+        ('2026-12-18', 10100),
+      ]) {
+        files.sim.execute(
+          'INSERT INTO daily_prices (trade_date, market, symbol, open, high, low, close, close_unadj, volume) '
+          "VALUES (?, 'KR', '0085P0', ?, ?, ?, ?, ?, 0)",
+          <Object?>[d, c, c, c, c, c],
+        );
+      }
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      void sees() {
+        // 앞 화면이 스택에 남는다 — 맨 위(마지막)를 본다.
+        final Finder screen = find.byType(ContributionScreen).last;
+        expect(screen, findsOneWidget);
+        expect(
+          tester.widget<ContributionScreen>(screen).range,
+          contributionDefaultRange(clock.nowUtc()),
+          reason: '구간 = 엔진 기본(이번 달 1일 ~ 오늘 · 한국)',
+        );
+        for (final String t in <String>[
+          '2026년 12월',
+          'A · 국내 지수 ETF',
+          'C · 방어 자산',
+          '+1.00%p',
+          ContributionTexts.methodFull,
+          ContributionTexts.fxNote,
+          '기여 분해 기준 2026-12-18',
+        ]) {
+          expect(
+            find.descendant(of: screen, matching: find.textContaining(t)),
+            findsWidgets,
+            reason: t,
+          );
+        }
+      }
+
+      await open(tester, AppRoutes.performanceContribution);
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      sees();
+      // S7-2 «슬리브 기여 보기» = 같은 화면(링크 목적지가 선다).
+      await open(tester, AppRoutes.performanceExplore);
+      await settle();
+      await tester.ensureVisible(find.byKey(const Key('s72g-continue')));
+      await tester.tap(find.byKey(const Key('s72g-continue')));
+      await settle();
+      // 링크 = 본문 맨 아래(지연 목록 — 스크롤해야 만들어진다).
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('s72-link-contribution')),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(PerformanceExploreScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(find.byKey(const Key('s72-link-contribution')));
+      await settle();
+      expect(tester.takeException(), isNull);
+      sees();
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
+  testWidgets(
+    '🔴 M7 S7-1 월간 리포트(R231) = 조립 셸에 등록 · 닫힌 달 = 원장 리포트 · 신뢰 배지 · 「자세히」 → S7-3 · 닫히지 않은 달 = 오류 칸(크래시 없음)',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      // 오늘 = 2026-12-22 → 닫힌 달 = 11월(월말 세션 11-30) · 개시 = 11-02.
+      files.sim.execute(
+        'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, account_alias) '
+        "VALUES ('S71-OPEN', '2026-11-02', 1000000, 'KRW', 'DEPOSIT', ?, '2026-11-02T00:00:00Z', NULL)",
+        <Object?>[DecisionReasonCodes.simOpeningBalance],
+      );
+      final List<String> nov = krMonthSessionsOf(
+        rt.calendars.kr,
+        krMonthEndOf(rt.calendars.kr, '2026-11'),
+      );
+      expect(nov.first, '2026-11-02'); // 11월 첫 세션 = 개시 날(결측 0)
+      for (final String d in nov) {
+        files.sim.execute(
+          'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+          "VALUES (?, 1000000, 1000000, 0, 1000000, 0, 'SIM_INTERNAL')",
+          <Object?>[d],
+        );
+      }
+      files.sim.execute(
+        'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+        "VALUES ('rc-2026-11-29T22:05:00.000Z#1', '2026-11-29T22:05:00.000Z', 1, '{}', 'MATCHED')",
+      );
+      Future<void> settle() async {
+        for (int i = 0; i < 3; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 30)),
+          );
+          await tester.pump();
+        }
+      }
+
+      await open(tester, 'aaq://report/2026-11');
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      final Finder screen = find.byType(MonthlyReportScreen);
+      expect(screen, findsOneWidget);
+      expect(tester.widget<MonthlyReportScreen>(screen).yyyyMm, '2026-11');
+      for (final String t in <String>[
+        '2026-11',
+        '리포트 기준 2026-11-30',
+        '2026-12-22 생성',
+        MonthlyTrustTexts.reconciledLabel,
+        MonthlyTrustTexts.reconciledLine,
+        '0.00%',
+      ]) {
+        expect(
+          find.descendant(of: screen, matching: find.text(t)),
+          findsWidgets,
+          reason: t,
+        );
+      }
+      final Finder list = find
+          .descendant(of: screen, matching: find.byType(Scrollable))
+          .first;
+      // 바닥글 = 지연 목록 끝(스크롤해야 지어진다) — 목표 줄 · 열람 수.
+      for (final String t in <String>[
+        MonthlyReportTexts.goalWithheld,
+        '이번 달 0번 열어 보셨습니다',
+      ]) {
+        await tester.scrollUntilVisible(find.text(t), 300, scrollable: list);
+        expect(find.text(t), findsOneWidget, reason: t);
+      }
+      // 「자세히」 — C1(최대 낙폭) 카드의 버튼 = S7-3 드로다운.
+      await tester.scrollUntilVisible(
+        find.text('최대 낙폭'),
+        -300,
+        scrollable: list,
+      );
+      final Finder c1 = find.descendant(
+        of: find.ancestor(of: find.text('최대 낙폭'), matching: find.byType(Card)),
+        matching: find.widgetWithText(TextButton, '자세히'),
+      );
+      expect(c1, findsOneWidget);
+      await tester.ensureVisible(c1);
+      await tester.tap(c1);
+      await settle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(DrawdownContextScreen), findsOneWidget);
+      // 닫히지 않은 달 = 원천의 실패 → 화면 오류 칸(지어낸 칸 0).
+      await open(tester, 'aaq://report/2026-12');
+      await settle();
+      expect(tester.takeException(), isNull);
+      final Finder pending = find.byType(MonthlyReportScreen).last;
+      expect(
+        find.descendant(of: pending, matching: find.text('다시 시도')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: pending, matching: find.text('리포트 기준 2026-12-31')),
+        findsNothing,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
+
   testWidgets('🔴 S7-4 납입 플래너 · S13 월 납입(R174) = 조립 셸에 등록 · 크래시 없음', (
     WidgetTester tester,
   ) async {
@@ -1862,6 +2324,37 @@ void main() {
     disposed = true;
   });
 
+  // 🆕 E16j-a(R227) — X5 정정 마법사 허브 · 대상 = 조립 셸에 등록 · 대상 인자 = 받은 그대로 · 엔진 머리 · 크래시 없음.
+  for (final (String link, String? target) in <(String, String?)>[
+    (AppRoutes.x5RepairWizard, null),
+    ('aaq://x5/repair-wizard/ld-none', 'ld-none'),
+  ]) {
+    testWidgets('🔴 X5 정정 마법사(R227) — $link', (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      await open(tester, link);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final Finder screen = find.byType(RepairWizardScreen);
+      expect(screen, findsOneWidget);
+      expect(tester.widget<RepairWizardScreen>(screen).targetId, target);
+      expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('x5-headline'))).data,
+        target == null
+            ? RepairWizardTexts.hubEmpty
+            : RepairWizardTexts.unknownTarget,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    });
+  }
+
   for (final String route in <String>[
     AppRoutes.m5HandoverWizard,
     AppRoutes.handoverStatus,
@@ -2011,6 +2504,94 @@ void main() {
     container.dispose();
     disposed = true;
   });
+
+  test('🆕 E11q-d1 — M8 문서 창구 주입(🔴 M4-12 ① 핸드북 override 비-null · ② 런북) = 한 인스턴스 · 레지스트리 넷', () {
+    final HandbookRepository? hb = container.read(
+      shellHandbookRepositoryProvider,
+    );
+    expect(hb, isNotNull);
+    expect(hb, isA<OperatorHandbookRepository>());
+    expect(identical(hb, container.read(operatorHandbookProvider)), true);
+    expect(
+      identical(
+        container.read(shellRunbookRepositoryProvider),
+        container.read(operatorRunbookProvider),
+      ),
+      true,
+    );
+    for (final String r in <String>[
+      AppRoutes.opsRunbooks,
+      AppRoutes.opsRunbook,
+      AppRoutes.opsEmergencyCard,
+      AppRoutes.handbookIndex,
+    ]) {
+      expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
+    }
+    // 인쇄 = 이 폰 빌드 몫 없음 — 카드 VM 이 슬롯 이름을 비우고 슬롯 빌더도 자리 부재(둘이 어긋나지 않는다).
+    expect(kOperatorEmergencyCardPrintable, isFalse);
+  });
+
+  testWidgets(
+    '🆕 E11q-d1 — M8 문서 다섯 길(런북 목록 → 상세 · 준비 중 · 긴급 카드 · 핸드북 목차 → 쪽 · 없는 쪽) = 조립 셸 · 크래시 없음',
+    (WidgetTester tester) async {
+      await pumpApp(tester);
+      await ready(tester);
+      Future<void> settle() async {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 30)),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      }
+
+      // D-02 목록(표본 여섯 행) → 행 탭 = 엔진 링크 그대로 상세.
+      await open(tester, AppRoutes.opsRunbooks);
+      await settle();
+      expect(find.byType(RunbookList), findsOneWidget);
+      expect(find.byKey(const Key('d02-list-row-5')), findsOneWidget);
+      await tester.tap(find.text('운영 폰을 잃어버렸거나 고장 났을 때'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle();
+      expect(find.byType(RunbookDetail), findsOneWidget);
+      expect(find.text('증권사 앱키를 새 폰의 키 금고에 다시 넣습니다.'), findsOneWidget);
+      expect(find.byKey(const Key('d02-missing')), findsNothing);
+      // 원고 없는 런북 = 엔진 «준비 중» 문장(단계를 지어내지 않는다).
+      await open(tester, 'aaq://ops/runbooks/secret-leak');
+      await settle();
+      expect(find.text(RunbookTexts.preparingLabel), findsOneWidget);
+      // D-03 = 인쇄 자리 부재(이 폰 빌드).
+      await open(tester, AppRoutes.opsEmergencyCard);
+      await settle();
+      expect(find.byType(EmergencyStopCard), findsOneWidget);
+      expect(find.text(EmergencyCardTexts.keepOnPaperNotice), findsOneWidget);
+      expect(find.byKey(const Key('d03-print')), findsNothing);
+      // B-01 목차 → 슬리브 B 탭 = handbook 쪽(별칭 · 셸 라우터가 직접).
+      await open(tester, AppRoutes.handbookIndex);
+      await settle();
+      expect(find.byType(HandbookContents), findsOneWidget);
+      expect(find.text('① 전략 구조'), findsOneWidget);
+      await tester.tap(find.text('슬리브 B — 해외 지수·금 ETF'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle();
+      expect(find.byType(HandbookPageView), findsOneWidget);
+      expect(
+        find.text('환헤지를 하지 않습니다. 원화 환산 결과에는 환율이 섞여 있습니다.'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('b02-asof')), findsNothing);
+      // 엔진 사유 칩의 handbook 링크(보유 «월말 리밸런싱») = 원고 없는 앵커 → 엔진 문장(자리표시자 아님).
+      await open(tester, 'handbook://rebalance/monthly');
+      await settle();
+      expect(find.text(HandbookTexts.missingLabel), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      disposed = true;
+    },
+  );
 
   testWidgets(
     '🔴 더보기 = S01 설정 홈(R134) · 원천 있는 카드 · 링크 = 등록된 화면만(키 → S02 · 운용 = 탭 부재)',

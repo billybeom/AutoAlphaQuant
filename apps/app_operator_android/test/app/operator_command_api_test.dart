@@ -328,7 +328,7 @@ void main() {
       },
     );
 
-    test('🔴 투자 안내 갈래 = 엔진 거부(E18) · 정기 실사 = 구현 전 · 기기 id 없음 = 오류', () async {
+    test('🔴 투자 안내 갈래 = 엔진 거부(E18) · 정기 실사 = 바인딩 없으면 구현 없음(🆕 E11q-q6 셸 바인딩 = operator_self_report_test) · 기기 id 없음 = 오류', () async {
       choose(OperatingMode.advisory);
       final CommandReceipt adv = await api().submitSelfReportBalance(
         sub('1000000'),

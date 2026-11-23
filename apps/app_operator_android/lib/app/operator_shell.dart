@@ -24,24 +24,41 @@
 // 🆕 E11q-q4b — J-5 미해소 보드(같은 저장소) · J-3 사전 저널 쓰기 = 계약 창 · M5-6 조립 뒤(지금 엔진이 J-3 로 보내는 길 0).
 // 🆕 E11q-q5a(R220) — M7 S7-7 연간 리뷰 · S7-10 이행 갭(인자 없음 · 그 달 = 한 위젯) = `OperatorPerformanceRepository` ·
 //    `OperatorExecutionGapRepository` → S12 목차 두 행 · 월간 리포트 ⑧ 링크 목적지가 열린다.
-// 🔵 장애 배너 · 핸드북은 원천(읽기 모델 · 명령)이 서는 조각에서 더한다(R104 나눔).
-//    🔴 M4-12 ① «장애 · 핸드북 override 의무»는 아직 못 지킨다 — 실물 저장소가 없다(R104 남김 · d6).
+// 🆕 E11q-q5b(R223) — M7 S7-2 성과 탐색(게이트 S7-2G → 같은 위젯 안 시리즈) · 열람 기록 = 분석 칸 명령 API(셸과 한 인스턴스) →
+//    S7-7 연간 리뷰 A 행 «탐색» 링크가 저절로 열린다.
+// 🆕 E11q-q5c(R226) — M7 S7-3 드로다운 맥락(같은 성과 창구 · 엔진 기본 구간) → S12 목차 «하락 구간 맥락» 행 · S7-2 링크가 열린다.
+// 🆕 E11q-q5c2(R228) — M7 S7-3b 슬리브 기여(라우트 인자 0 · 화면은 구간 필수 → 본문이 런타임 시계로 엔진 기본 구간
+//    `contributionDefaultRange`(이번 달 1일 ~ 오늘 · 한국)를 넘긴다 · 계약 무변경) → S7-2 «슬리브 기여 보기» 가 열린다.
+// 🆕 E11q-d1 — M8 문서 다섯 길: D-02 런북 목록 · 상세 · D-03 긴급 카드 · B-01 핸드북 목차 = 레지스트리 · B-02 `handbook://` 쪽 =
+//    셸 라우터가 직접(같은 창구) · 원천 = 엔진 원고 번들(원장 · 키 0 — 온보딩 전에도 열린다) · 🔴 M4-12 ① 핸드북 override 의무 = 지킴
+//    (비-null 단언 시험) · 긴급 카드 인쇄 = 이 폰에 인쇄 원천 없음 → 엔진이 슬롯 이름을 비운다(버튼 부재).
+// 🔵 장애 배너(D-01)는 원천(엔진 `incidents` · 읽기 모델)이 서는 조각에서 더한다(R104 나눔) — 🔴 M4-12 ① «장애 override 의무» =
+//    아직 못 지킨다(실물 저장소 없음 · R104 남김 · d6).
+
+import 'dart:async' show unawaited;
 
 import 'package:broker_gateway/broker_gateway.dart'
     show KisCredentials, KisKeySet, KisRestClient;
+import 'package:core_engine/core_engine.dart' show contributionDefaultRange;
 import 'package:data_sync/data_sync.dart'
     show
         ContributionSettingSource,
+        DeviceDraftStore,
+        DeviceLocal,
         SqliteAlertRepository,
-        SqliteLedgerRepository;
+        SqliteLedgerRepository,
+        SupabaseFirstClaim;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AlertRepository,
         AppRoutes,
         CommandApi,
+        DraftStore,
         LedgerRepository,
+        LedgerTrustRepository,
         OnboardingSlotIds,
         OpsSlotIds,
+        RunModeIsSim,
         SettingsActions;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,17 +72,28 @@ import 'package:ui_analytics/planner.dart'
 import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
+        ContributionScreen,
+        DrawdownContextScreen,
         ExecutionGapScreen,
+        MonthlyReportScreen,
+        PerformanceExploreScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
         RebalanceTimelineScreen,
         analyticsClockProvider,
+        analyticsCommandApiProvider,
         analyticsLinkOpenerProvider,
         analyticsWhatIfApiProvider,
         executionGapRepositoryProvider,
         performanceRepositoryProvider,
         rebalanceRepositoryProvider,
         safetyRepositoryProvider;
+import 'package:ui_journal/journal_draft.dart'
+    show
+        SelfReportForm,
+        journalCommandApiProvider,
+        journalDraftStoreProvider,
+        journalSettingsActionsProvider;
 import 'package:ui_journal/ui_journal.dart'
     show
         HoldingDetail,
@@ -81,6 +109,7 @@ import 'package:ui_journal/ui_journal.dart'
         journalConfigRepositoryProvider,
         journalHoldingsRepositoryProvider,
         journalLedgerRepositoryProvider,
+        journalLedgerTrustRepositoryProvider,
         journalLinkOpenerProvider,
         journalRebalanceRepositoryProvider,
         journalSafetyRepositoryProvider,
@@ -95,16 +124,22 @@ import 'package:ui_safety/ui_safety.dart'
         KillSwitchScreen,
         KillSwitchSlot,
         PledgePanel,
+        RepairWizardScreen,
         ResumeGateScreen,
         ResumeReportScreen,
         RuleChangeGateScreen,
+        X1PlanWizardScreen,
+        X1RecoveryRoute,
+        X1RecoveryScreen,
         safetyActionsProvider,
         safetyBlockBoardRepositoryProvider,
         safetyHandoverRepositoryProvider,
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyLinkOpenerProvider,
+        safetyMigrationRepositoryProvider,
         safetyPledgeRepositoryProvider,
+        safetyRepairWizardRepositoryProvider,
         safetyResumeGateRepositoryProvider,
         safetyRuleChangeGateRepositoryProvider,
         safetySettingsActionsProvider;
@@ -128,8 +163,10 @@ import 'package:ui_settings/ui_settings.dart'
         settingsSlotBuilderProvider;
 import 'package:ui_shell/ui_shell.dart';
 
+import '../platform/platform.dart' show AndroidSealedBox;
 import '../safety/biometric_sign_field.dart';
 import '../safety/golden_selftest_field.dart';
+import '../safety/recovery_checksum_field.dart';
 import '../secret/kis_key_set_field.dart';
 import '../secret/secret_handoff.dart';
 import '../secret/supabase_connect_field.dart';
@@ -138,19 +175,23 @@ import 'operator_backup.dart';
 import 'operator_biometric.dart';
 import 'operator_block_board.dart';
 import 'operator_command_api.dart';
+import 'operator_documents.dart';
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_handover.dart';
 import 'operator_journal.dart';
 import 'operator_kill_switch.dart';
+import 'operator_migration.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
 import 'operator_performance.dart';
 import 'operator_pledge.dart';
+import 'operator_repair.dart';
 import 'operator_resume.dart';
 import 'operator_rule_change.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
+import 'operator_self_report.dart';
 import 'operator_settings_actions.dart';
 import 'operator_settings_repository.dart';
 import 'operator_view.dart';
@@ -202,8 +243,40 @@ final Provider<OperatorOpsStatusRepository> operatorOpsStatusProvider =
 /// 🆕 R147 — 명령 API(알림 화면 주입 · 한 인스턴스 — 낸 명령의 접수증을 쥔다).
 final Provider<OperatorCommandApi> operatorCommandApiProvider =
     Provider<OperatorCommandApi>(
-      (Ref ref) => OperatorCommandApi(ref.watch(operatorRuntimeProvider)),
+      (Ref ref) => OperatorCommandApi(
+        ref.watch(operatorRuntimeProvider),
+        // 🆕 E11q-q6 — 정기 실사 제출(L-3 · 같은 세션 장부).
+        selfReport: ref.watch(operatorSelfReportProvider),
+      ),
     );
+
+/// 🆕 E11q-q6 — `L-3` 정기 실사(세션 장부 · 세션 VM · 제출 — 한 인스턴스: 보유 · 일지 가림이 같은 장부를 읽는다 ·
+/// 해소 링크 = 레지스트리에 `M5-13` 본문이 있을 때만).
+final Provider<OperatorSelfReport> operatorSelfReportProvider =
+    Provider<OperatorSelfReport>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      final OperatorSelfReport sr = OperatorSelfReport(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+      ref.onDispose(sr.sessions.dispose);
+      return sr;
+    });
+
+/// 🆕 E11q-q6 — 입력 초안(`DraftStore` = 기기 로컬 봉함 · 원장 밖 별도 파일 · 계열 = 화면 상태의 실행 모드 ·
+/// 처음 읽을 때 연다).
+final Provider<DraftStore> operatorDraftStoreProvider = Provider<DraftStore>((
+  Ref ref,
+) {
+  final OperatorRuntime rt = ref.watch(operatorRuntimeProvider);
+  final DeviceLocal local = DeviceLocal.open(
+    directory: rt.files.directory,
+    box: AndroidSealedBox(),
+    isSim: () => rt.view.value?.flags.runMode.isSim ?? true,
+  );
+  ref.onDispose(() => unawaited(local.close()));
+  return DeviceDraftStore(local);
+});
 
 /// 🆕 R171 — 보유(H6-1 · 한 인스턴스 · 링크 = 셸이 실제로 쓰는 레지스트리에 본문이 있는 화면만).
 final Provider<OperatorHoldingsRepository> operatorHoldingsProvider =
@@ -212,6 +285,8 @@ final Provider<OperatorHoldingsRepository> operatorHoldingsProvider =
       return OperatorHoldingsRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
+        // 🆕 E11q-q6 — `L-3` 실사 세션 중 = «숨김»(같은 장부).
+        selfReportSessions: ref.watch(operatorSelfReportProvider).sessions,
       );
     });
 
@@ -222,6 +297,8 @@ final Provider<OperatorJournalRepository> operatorJournalProvider =
       return OperatorJournalRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
+        // 🆕 E11q-q6 — `L-3` 실사 세션 중 = «숨김»(같은 장부).
+        selfReportSessions: ref.watch(operatorSelfReportProvider).sessions,
       );
     });
 
@@ -296,6 +373,24 @@ final Provider<OperatorResumeGateRepository> operatorResumeGateProvider =
       );
     });
 
+/// 🆕 E16j-b — X1 기기 이전 읽기(한 인스턴스 · 쓰기 = 안전 동작 인스턴스 `run` X1 id 6 · 슬롯 = 이 폰에 원천 없음 → 자리 부재).
+final Provider<OperatorMigrationRepository> operatorMigrationProvider =
+    Provider<OperatorMigrationRepository>(
+      (Ref ref) =>
+          OperatorMigrationRepository(ref.watch(operatorRuntimeProvider)),
+    );
+
+/// 🆕 E16j-a(R227) — X5 정정 마법사 읽기(한 인스턴스 · 대상 · 이력 · X1 안내 링크 = 레지스트리에 본문이 있을 때만 ·
+/// 쓰기 = 안전 동작 인스턴스 — 단계 · 아무것도 안 하기 · 저널 · 정정 · 새 기준점).
+final Provider<OperatorRepairWizardRepository> operatorRepairWizardProvider =
+    Provider<OperatorRepairWizardRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorRepairWizardRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
+
 /// 🆕 R188 — M5-9 규칙 변경 게이트 읽기(한 인스턴스 · 쓰기 = 안전 동작 인스턴스 — 요청 · 승인 · 취소).
 final Provider<OperatorRuleChangeGateRepository>
 operatorRuleChangeGateProvider = Provider<OperatorRuleChangeGateRepository>(
@@ -338,6 +433,19 @@ final Provider<OperatorOpsSummaryRepository> operatorOpsSummaryProvider =
     Provider<OperatorOpsSummaryRepository>(
       (Ref ref) =>
           OperatorOpsSummaryRepository(ref.watch(operatorRuntimeProvider)),
+    );
+
+/// 🆕 E11q-d1 — M8 런북 · 긴급 카드(엔진 원고 번들 · 인쇄 = 이 폰 빌드 몫 없음).
+final Provider<OperatorRunbookRepository> operatorRunbookProvider =
+    Provider<OperatorRunbookRepository>(
+      (Ref ref) => const OperatorRunbookRepository(),
+    );
+
+/// 🆕 E11q-d1 — M8 핸드북(엔진 원고 번들 · 설정 지문 = 화면이 읽는 원장 · 뒤처짐 = 엔진 규칙 지문 판정).
+final Provider<OperatorHandbookRepository> operatorHandbookProvider =
+    Provider<OperatorHandbookRepository>(
+      (Ref ref) =>
+          OperatorHandbookRepository(ref.watch(operatorRuntimeProvider)),
     );
 
 /// 🆕 R113 — 안전 상태(셸 · 일지 · 분석 = 한 인스턴스).
@@ -399,7 +507,7 @@ final Provider<OperatorSafetyActions> operatorSafetyActionsProvider =
     );
 
 /// 🆕 R115 — 온보딩 슬롯 빌더(M4-11 ①) — 엔진에 있는 키 세트의 시크릿 칸 · 🆕 R157 O-04 ② 서약(M5-8) · 🆕 R159 ③ 생체 서명 ·
-/// 🆕 R167 ④ 골든벡터 셀프테스트 · 🆕 R206 o_07 ② Supabase 연결 칸 · 🆕 R216 ③ 로그인 칸 ·
+/// 🆕 R167 ④ 골든벡터 셀프테스트 · 🆕 R206 o_07 ② Supabase 연결 칸 · 🆕 R216 ③ 로그인 칸 · 🆕 R229 ⑤ 복구 카드 체크섬 ·
 /// 나머지 = 자리 부재(크기 0 · 키 `m4-slot-absent`).
 ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
   if (slotId == OnboardingSlotIds.pledgeWrite) return const PledgePanel();
@@ -428,6 +536,16 @@ ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
   if (slotId == OnboardingSlotIds.biometricSign) {
     return BiometricSignField(sign: OperatorBiometricSign(rt).sign);
   }
+  // 🆕 R229 — O-04 ⑤ 복구 카드 체크섬(M4-10 · 종이 코드 다시 입력 → 첫 클레임 · 캡처 막기) · 흐름 없음 = 자리 부재.
+  final SupabaseFirstClaim? claim = rt.firstClaim;
+  if (slotId == OnboardingSlotIds.recoveryChecksum && claim != null) {
+    return RecoveryChecksumField(
+      confirm: claim.confirm,
+      retry: claim.retry,
+      pending: () => claim.fact().pending,
+      secure: rt.secure,
+    );
+  }
   final KisKeySet? set = kisKeySetOfSlot(slotId);
   if (set == null) return const SizedBox.shrink(key: Key('m4-slot-absent'));
   return KisKeySetField(
@@ -440,7 +558,8 @@ ShellSlotBuilder operatorSlotBuilder(OperatorRuntime rt) => (String slotId) {
 
 /// 🆕 R182 — M8 운영 슬롯 빌더(01 §26 K19 · §34 K152) — 셸 킬스위치 자리(폰 홈 앱바 · 링크 화면 앱바) = `ui_safety`
 /// `KillSwitchSlot`(꺼짐 = 발동 버튼 · 켜짐 = 상태 칩 → M5-1) · 🔴 셸은 자리만(확인 대화 · 핸들러 감싸기 0 — 04 §3-2) ·
-/// 긴급정지 카드 인쇄(`emergencyCardPrint`) = 이 폰에 인쇄 원천 없음 → 자리 부재(크기 0 · 키 `m8-slot-absent`).
+/// 긴급정지 카드 인쇄(`emergencyCardPrint`) = 이 폰에 인쇄 원천 없음 → 자리 부재(크기 0 · 키 `m8-slot-absent`) ·
+/// 🆕 E11q-d1 — 카드 VM 도 슬롯 이름을 비운다([kOperatorEmergencyCardPrintable] = false → 이 자리를 부르지 않는다).
 Widget operatorOpsSlot(String slotId) {
   if (slotId == OpsSlotIds.killSwitch) return const KillSwitchSlot();
   return const SizedBox.shrink(key: Key('m8-slot-absent'));
@@ -539,7 +658,23 @@ Widget _resumeGate(Map<String, String> _) => const ResumeGateScreen();
 
 Widget _ruleChangeGate(Map<String, String> _) => const RuleChangeGateScreen();
 
+Widget _x1Plan(Map<String, String> _) => const X1PlanWizardScreen();
+
+Widget _x1Receive(Map<String, String> _) =>
+    const X1RecoveryScreen(route: X1RecoveryRoute.plan);
+
+Widget _x1Emergency(Map<String, String> _) =>
+    const X1RecoveryScreen(route: X1RecoveryRoute.emergency);
+
 Widget _handoverWizard(Map<String, String> _) => const HandoverWizardScreen();
+
+/// 🆕 E16j-a(R227) — 허브 · 대상 = 한 위젯(대상 id = 받은 인자 그대로 · 화면은 해석하지 않는다).
+Widget _repairHub(Map<String, String> _) => const RepairWizardScreen();
+
+Widget _repairTarget(Map<String, String> p) {
+  final String id = p['targetId'] ?? '';
+  return RepairWizardScreen(key: ValueKey<String>(id), targetId: id);
+}
 
 Widget _settingsContribution(Map<String, String> _) =>
     const MonthlyContribution();
@@ -556,6 +691,36 @@ Widget _rebalanceEvent(Map<String, String> p) {
 }
 
 Widget _reportAnnual(Map<String, String> _) => const AnnualReviewScreen();
+
+/// 🆕 R231 — S7-1 월간 리포트(그 달 = 받은 달 그대로 · 키 — 해석 · 검사 = 엔진).
+Widget _reportMonthly(Map<String, String> p) {
+  final String m = p['yyyyMm'] ?? '';
+  return MonthlyReportScreen(key: ValueKey<String>(m), yyyyMm: m);
+}
+
+/// S7-2 — 언제나 게이트부터(통과 사실 = 위젯 상태에만 · 03 §5 S7-2G ⓓ).
+/// S7-3 — 엔진 기본 구간(인자 없음).
+Widget _performanceDrawdown(Map<String, String> _) =>
+    const DrawdownContextScreen();
+
+/// 🆕 R228 — S7-3b(라우트 인자 0 · 화면은 구간 필수 → 엔진 기본 구간).
+Widget _performanceContribution(Map<String, String> _) =>
+    const _ContributionBody();
+
+/// S7-3b 본문 — 런타임 시계 → 엔진 기본 구간(이번 달 · 한국) → 화면. 🔴 날짜 산술 = 엔진(`contributionDefaultRange`).
+class _ContributionBody extends ConsumerWidget {
+  const _ContributionBody();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ContributionScreen(
+    range: contributionDefaultRange(
+      ref.watch(operatorRuntimeProvider).clock.nowUtc(),
+    ),
+  );
+}
+
+Widget _performanceExplore(Map<String, String> _) =>
+    const PerformanceExploreScreen();
 
 Widget _executionGap(Map<String, String> _) => const ExecutionGapScreen();
 
@@ -591,7 +756,29 @@ Widget _home(BuildContext _) => const OpsHome();
 
 Widget _ledgerDiffs(Map<String, String> _) => const LedgerDiffs();
 
+Widget _runbooks(Map<String, String> _) => const RunbookList();
+
+/// 런북 상세(id = 받은 인자 그대로 · 모르는 id = 엔진 문장).
+Widget _runbook(Map<String, String> p) {
+  final String id = p['runbookId'] ?? '';
+  return RunbookDetail(key: ValueKey<String>(id), runbookId: id);
+}
+
+Widget _emergencyCard(Map<String, String> _) => const EmergencyStopCard();
+
+Widget _handbookIndex(Map<String, String> _) => const HandbookContents();
+
 Widget _ledgerRepairs(Map<String, String> _) => const LedgerRepairs();
+
+Widget _ledgerSelfReport(Map<String, String> p) {
+  final String m = p['yyyyMm'] ?? '';
+  final String alias = p['accountAlias'] ?? '';
+  return SelfReportForm(
+    key: ValueKey<String>('$m/$alias'),
+    yyyyMm: m,
+    accountAlias: alias,
+  );
+}
 
 /// 🔴 본문 레지스트리 — 실물이 있는 화면만(R104 d1).
 const ShellRouteBodies
@@ -603,6 +790,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   // 🆕 E11p3d-3a(R111) — 원장 대조 · 수리 기록(실물 = `SqliteLedgerRepository` · 같은 원장).
   AppRoutes.ledgerDiffs: _ledgerDiffs,
   AppRoutes.ledgerRepairs: _ledgerRepairs,
+  // 🆕 E11q-q6 — M6 L-3 정기 실사(그 달 · 그 계좌 · 세션 = 이 폰 · 가드 = 투자 안내 전용 — `SELF_AUDIT_DUE` 알림 ·
+  //    L-1 자가 보고 대조 행 · 실사 결과 «다음 계좌» 목적지).
+  AppRoutes.ledgerSelfReport: _ledgerSelfReport,
   // 🆕 E11p4b(R125) — 온보딩 넷(첫 화면 · 운영 방식 · 단계 목록 · 단계 상세 — 키 칸 = 슬롯 빌더 · 캡처 막기 = 칸이 스스로).
   AppRoutes.onboardingStart: _onboardingStart,
   AppRoutes.onboardingModePick: _onboardingMode,
@@ -645,6 +835,15 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.reportAnnual: _reportAnnual,
   AppRoutes.ledgerExecutionGap: _executionGap,
   AppRoutes.ledgerExecutionGapMonth: _executionGapMonth,
+  // 🆕 E11q-q5b(R223) — M7 S7-2 성과 탐색(게이트 → 시리즈 · S7-7 A 행 «탐색» 목적지).
+  AppRoutes.performanceExplore: _performanceExplore,
+  // 🆕 E11q-q5c(R226) — M7 S7-3 드로다운 맥락(S7-2 «낙폭 맥락 보기» · S12 목차 «하락 구간 맥락» 목적지).
+  AppRoutes.performanceDrawdown: _performanceDrawdown,
+  // 🆕 E11q-q5c2(R228) — M7 S7-3b 슬리브 기여(S7-2 «슬리브 기여 보기» 목적지 · 구간 = 엔진 기본).
+  AppRoutes.performanceContribution: _performanceContribution,
+  // 🆕 E11q-q5e(R231) — M7 S7-1 월간 리포트(읽을 때 짓기 · 신뢰 배지 = 브로커 대사 · 「자세히」 = S7-3 · S7-10 그 달 ·
+  //    아카이브 · 목표 경로 = 본문 생기면 — 209 ⓔ-4 · q5d).
+  AppRoutes.reportMonthly: _reportMonthly,
   // 🆕 E11q-q4a — M6 매매일지 읽기 넷(J-1 = «일지» 탭 본문 · J-2 = 일지 행 · H6-2 «매수 결정 보기» 목적지 ·
   //    J-3R = J-2 «저널 보기» 목적지 · J-1 회차 조건 = S7-6b «이 회차의 주문 n건» 목적지).
   AppRoutes.journalTimeline: _journalTimeline,
@@ -667,6 +866,14 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.x2ResumeGate: _resumeGate,
   // 🆕 E11q-c0(R188) — M5-9 규칙 변경 게이트 «첫 승인 최소판»(SAF-405 첫 승인 요청 · 냉각 · 승인 · 취소).
   AppRoutes.m5RuleChangeGate: _ruleChangeGate,
+  // 🆕 E16j-b — X1 기기 이전(옛 폰 마법사 = S06 · S09 `migrationLink` 목적지 · 새 폰 받기 · 비상 = R-01 분기 · 진행 = 1~3단계까지 ·
+  //    4단계 이후 · 새 폰 복원 · 비상 = 엔진 막힘 문장 — 미결 218).
+  AppRoutes.x1Migration: _x1Plan,
+  AppRoutes.x1MigrationPlan: _x1Receive,
+  AppRoutes.x1MigrationEmergency: _x1Emergency,
+  // 🆕 E16j-a(R227) — X5 정정 마법사 허브 · 대상(L-1 «정정하기» · 차단 보드 · 배너 링크가 여기로 · 01 §8 미결 217).
+  AppRoutes.x5RepairWizard: _repairHub,
+  AppRoutes.x5RepairTarget: _repairTarget,
   // 🆕 E11q-c1(R191) — M5-11 simToAuto 위저드 · `handoverStatus` = 같은 본문(K173 · 알림 냉각 · 확정 목적지) ·
   //    M5-10 `m5HandoverGate` = 범위 밖 빈 자리(K174).
   AppRoutes.m5HandoverWizard: _handoverWizard,
@@ -676,6 +883,11 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.opsRhythm: _opsRhythm,
   // 🆕 E11p3d-2c(R136) — H-03 물리 리스크 점검(Android 전용 · 진입 = 딥링크 · 홈 블록 9 = 화면 레인 다음 홈 카드).
   AppRoutes.opsDeviceRisk: _deviceRisk,
+  // 🆕 E11q-d1 — M8 D-02 런북 목록 · 상세 · D-03 긴급 카드 · B-01 핸드북 목차(원고 번들 · `handbook://` 쪽 = 셸 라우터가 직접).
+  AppRoutes.opsRunbooks: _runbooks,
+  AppRoutes.opsRunbook: _runbook,
+  AppRoutes.opsEmergencyCard: _emergencyCard,
+  AppRoutes.handbookIndex: _handbookIndex,
 }, home: _home);
 
 /// 🔴 operator 셸 주입 — 실물 있는 칸.
@@ -729,6 +941,14 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   safetyResumeGateRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorResumeGateProvider),
   ),
+  // 🆕 E16j-b — X1 기기 이전 읽기(시작 · 단계 · 그만두기 · 복구 단계 = 위 안전 동작 인스턴스 · 슬롯 빌더 = 주입 0 = 자리 부재).
+  safetyMigrationRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorMigrationProvider),
+  ),
+  // 🆕 R227 — X5 정정 마법사 읽기(쓰기 = 위 안전 동작 인스턴스 · 링크 = 위 셸 링크 열기).
+  safetyRepairWizardRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorRepairWizardProvider),
+  ),
   // 🆕 R188 — M5-9 규칙 변경 게이트 읽기(요청 · 승인 · 취소 = 위 안전 동작 인스턴스).
   safetyRuleChangeGateRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorRuleChangeGateProvider),
@@ -752,6 +972,13 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   // 🆕 R182 — M8 운영 슬롯 빌더(셸 킬스위치 자리 = `ui_safety` 발동 버튼 · 켜짐 칩 — 위 R178 주입을 그대로 쓴다).
   shellOpsSlotBuilderProvider.overrideWithValue(operatorOpsSlot),
+  // 🆕 E11q-d1 — M8 런북 · 긴급 카드 · 핸드북(🔴 M4-12 ① 핸드북 override 의무 · ② 런북 주입 — 엔진 원고 번들).
+  shellRunbookRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorRunbookProvider),
+  ),
+  shellHandbookRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorHandbookProvider),
+  ),
   // 🆕 R115 — 온보딩 슬롯 빌더(본문 = 온보딩 원천이 서는 조각에서 등록 · 빌더는 미리).
   shellOnboardingSlotBuilderProvider.overrideWithValue(
     operatorSlotBuilder(runtime),
@@ -790,8 +1017,11 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   shellHoldingsRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorHoldingsProvider),
   ),
-  shellLedgerTrustRepositoryProvider.overrideWithValue(
-    const OperatorLedgerTrustRepository(),
+  // 🆕 E11q-q6 — 배지 = 원천 없음(그대로) · `L-3` 세션 = 정기 실사 한 인스턴스.
+  shellLedgerTrustRepositoryProvider.overrideWith(
+    (Ref ref) => OperatorLedgerTrustRepository(
+      selfReport: ref.watch(operatorSelfReportProvider),
+    ) as LedgerTrustRepository,
   ),
   // 🆕 R113 — 안전 상태 = 셸(H-01) · 일지 · 분석 한 인스턴스.
   shellSafetyRepositoryProvider.overrideWith(
@@ -836,6 +1066,24 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   journalLinkOpenerProvider.overrideWith(
     (Ref ref) => ref.watch(shellLinkOpenerProvider),
   ),
+  // 🆕 E11q-q6 — L-3 정기 실사 칸: 세션 VM · 세션 여닫기(이 폰 메모리) · 제출(명령 API 한 인스턴스) · 초안(기기 로컬).
+  journalLedgerTrustRepositoryProvider.overrideWith(
+    (Ref ref) => OperatorLedgerTrustRepository(
+      selfReport: ref.watch(operatorSelfReportProvider),
+    ) as LedgerTrustRepository,
+  ),
+  journalSettingsActionsProvider.overrideWith(
+    (Ref ref) => OperatorSelfReportActions(
+      ref.watch(operatorSelfReportProvider),
+      clock: runtime.clock,
+    ) as SettingsActions,
+  ),
+  journalCommandApiProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorCommandApiProvider) as CommandApi,
+  ),
+  journalDraftStoreProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorDraftStoreProvider),
+  ),
   // 🆕 R113 — 일지 화면의 차단 배너(원장 대조 · 수리 기록이 이미 읽는다).
   journalSafetyRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorSafetyProvider),
@@ -861,6 +1109,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   ),
   analyticsWhatIfApiProvider.overrideWith(
     (Ref ref) => ref.watch(operatorWhatIfApiProvider),
+  ),
+  // 🆕 R223 — S7-2G 「그래도 보기」 열람 기록 = 셸 명령 API 한 인스턴스.
+  analyticsCommandApiProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorCommandApiProvider),
   ),
   // 🆕 R174 — S7-4 플래너 칸 = 같은 What-if · 셸 설정 원천 · 명령 API 인스턴스.
   plannerWhatIfApiProvider.overrideWith(

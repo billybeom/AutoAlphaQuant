@@ -5,6 +5,8 @@
 // 🆕 E11q1b(R172) — + H6-3 슬리브 배분 · H6-2 종목 상세(같은 연습 보유).
 // 🆕 E11q-q4a — + M6 일지 읽기 J-1 · J-2 · J-3R · S7-6b «이 회차의 주문 n건» → J-1 회차 조건(연습 일지 묶음).
 // 🆕 E11q-q4b — + J-5 미해소 보드(연습 UNKNOWN 의도 1 → 카드 → «찾지 못함» 거부로 풀면 같은 화면이 빈 문장).
+// 🆕 E11q-q5e(R231) — + M7 S7-1 월간 리포트(지난달 · 배지 «대사 완료» · 「자세히」 → S7-3).
+// 🆕 E11q-d1 — + M8 문서(D-02 런북 목록 → 상세 · D-03 긴급 카드 · B-01 핸드북 목차 → B-02 슬리브 B 쪽 · 맨 끝).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
 // 실행: `flutter test integration_test/shell_tour_test.dart -d emulator-5554` · 표지 `IT_*` 마다 4초 멈춘다(캡처 자리).
@@ -25,13 +27,21 @@ import 'package:app_operator_android/main.dart';
 import 'package:app_operator_android/platform/human_inputs_loader.dart';
 import 'package:app_operator_android/platform/platform.dart';
 import 'package:core_engine/core_engine.dart'
-    show P0sHumanInputs, P0sOpsConfig, P0sStrategyIds, kstDateText;
+    show
+        P0sHumanInputs,
+        P0sOpsConfig,
+        MonthlyTrustTexts,
+        P0sStrategyIds,
+        contributionDefaultRange,
+        kstDateText;
 import 'package:data_sync/data_sync.dart'
     show
         HealthchecksClient,
         ModeAxis,
         SqliteConfigVersionStore,
-        SqliteModeStore;
+        SqliteModeStore,
+        krMonthEndOf,
+        krMonthSessionsOf;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppRoutes,
@@ -39,7 +49,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         ExecPolicy,
         LedgerFile,
         OperatingMode,
-        RunMode;
+        RunMode,
+        TradeDate;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,7 +62,11 @@ import 'package:ui_analytics/planner.dart' show DepositPlannerScreen;
 import 'package:ui_analytics/ui_analytics.dart'
     show
         AnnualReviewScreen,
+        ContributionScreen,
+        DrawdownContextScreen,
         ExecutionGapScreen,
+        MonthlyReportScreen,
+        PerformanceExploreScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
         RebalanceTimelineScreen;
@@ -72,7 +87,10 @@ import 'package:ui_safety/ui_safety.dart'
         ResumeGateScreen,
         HandoverWizardScreen,
         ResumeReportScreen,
-        RuleChangeGateScreen;
+        RepairWizardScreen,
+        RuleChangeGateScreen,
+        X1PlanWizardScreen,
+        X1RecoveryScreen;
 import 'package:ui_settings/ui_settings.dart'
     show
         AnnualReviewEntry,
@@ -83,7 +101,16 @@ import 'package:ui_settings/ui_settings.dart'
         MonthlyContribution,
         SettingsHome;
 import 'package:ui_shell/ui_shell.dart'
-    show DeviceRiskBoard, OpsHome, ShellRoot, shellLinkOpenerProvider;
+    show
+        DeviceRiskBoard,
+        EmergencyStopCard,
+        HandbookContents,
+        HandbookPageView,
+        OpsHome,
+        RunbookDetail,
+        RunbookList,
+        ShellRoot,
+        shellLinkOpenerProvider;
 
 void _mark(String m) {
   // ignore: avoid_print
@@ -424,6 +451,29 @@ void main() {
       await tester.pageBack();
       await _gone(tester, find.byType(AnnualReviewEntry));
 
+      // 🆕 R223 — S7-2 성과 탐색: 게이트(이번 달 열람 수 · 마찰) → 「그래도 보기」 = 원장 열람 기록 1행 → 같은 위젯 안 본문
+      //    (기록 줄 = 엔진 접수증 글자 · 시리즈 또는 엔진 문장 카드).
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.performanceExplore);
+      await _until(tester, find.byKey(const Key('s72g-continue')));
+      await _at(tester, find.byType(PerformanceExploreScreen), 'IT_S72G');
+      await tester.ensureVisible(find.byKey(const Key('s72g-continue')));
+      await tester.tap(find.byKey(const Key('s72g-continue')));
+      await _until(tester, find.byKey(const Key('s72-record-line')));
+      await _until(tester, find.byKey(const Key('s72-asof')));
+      expect(
+        files.sim
+            .select(
+              "SELECT COUNT(*) AS n FROM command_inbox WHERE kind = 'DISCLOSURE_VIEW'",
+            )
+            .first['n'],
+        1,
+      );
+      await _at(tester, find.byType(PerformanceExploreScreen), 'IT_S72');
+      await tester.pageBack();
+      await _gone(tester, find.byType(PerformanceExploreScreen));
+
       // 🆕 R171 — M6 H6-1 보유 현황 · 보유 0 = 엔진 빈 문장 → 연습 보유를 넣으면(원장 변경) 같은 화면에 카드 A · B · C.
       container.read(shellLinkOpenerProvider).open(AppRoutes.holdingsOverview);
       await _until(tester, find.textContaining('보유 종목이 없습니다'));
@@ -735,9 +785,162 @@ void main() {
         await tester.pump(const Duration(seconds: 1));
       }
 
+      // 🆕 E16j-b — X1 기기 이전 셋(모의 원장 = 옛 폰 엔진 `X1_LIVE_ONLY` 문장 · 버튼 0 · 새 폰 = live 원장 없음 → 막힘 문장 · 버튼 0).
+      for (final (String route, Type screen, String root, String shot)
+          in <(String, Type, String, String)>[
+            (AppRoutes.x1Migration, X1PlanWizardScreen, 'x1p-root', 'IT_X1P'),
+            (AppRoutes.x1MigrationPlan, X1RecoveryScreen, 'x1r-root', 'IT_X1R'),
+            (
+              AppRoutes.x1MigrationEmergency,
+              X1RecoveryScreen,
+              'x1r-root',
+              'IT_X1E',
+            ),
+          ]) {
+        container.read(shellLinkOpenerProvider).open(route);
+        await _until(tester, find.byKey(Key(root)));
+        expect(
+          find.descendant(
+            of: find.byType(screen),
+            matching: find.byWidgetPredicate(
+              (Widget w) => w is OutlinedButton || w is FilledButton,
+            ),
+          ),
+          findsNothing,
+        );
+        await _at(tester, find.byType(screen), shot);
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pageBack();
+        await tester.pump(const Duration(seconds: 1));
+      }
+
       container.read(shellLinkOpenerProvider).open(AppRoutes.opsDeviceRisk);
       await _until(tester, find.textContaining('남은 공간'));
       await _at(tester, find.byType(DeviceRiskBoard), 'IT_H03');
+
+      // 🆕 E16j-a(R227) — X5 정정 마법사 허브 · 대상(모의 원장 = 열린 차이 0 · 무결성 표시 0 → 빈 허브 · 모르는 대상 = 끝 문장 · 동작 0).
+      for (final (String link, String shot) in <(String, String)>[
+        (AppRoutes.x5RepairWizard, 'IT_X5H'),
+        ('aaq://x5/repair-wizard/ld-none', 'IT_X5T'),
+      ]) {
+        container.read(shellLinkOpenerProvider).open(link);
+        await _until(tester, find.byKey(const Key('x5-headline')));
+        expect(find.byKey(const Key('x5-do-nothing')), findsNothing);
+        expect(find.byKey(const Key('x5-stage-0')), findsNothing);
+        await _at(tester, find.byType(RepairWizardScreen), shot);
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pageBack();
+        await tester.pump(const Duration(seconds: 1));
+      }
+
+      // 🆕 R226 — S7-3 드로다운(맨 끝 — 연습 마감 스냅숏이 앞 단계에 섞이지 않게): 연습 개시 = 오늘이라 개시 이전 = 성과 밖 →
+      //    오늘 마감 스냅숏 하나 → 엔진 문장 셋(낙폭 0 · 전고점 아래 구간 없음) · 기준 줄.
+      final String d0 = kstDateText(rt.clock.nowUtc());
+      files.sim.execute(
+        'INSERT OR IGNORE INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, '
+        "high_water_mark, drawdown, mode) VALUES (?, 10000000, 10000000, 0, 10000000, 0, 'SIM_INTERNAL')",
+        <Object?>[d0],
+      );
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.performanceDrawdown);
+      await _until(tester, find.textContaining('최대 낙폭 0.0%'));
+      expect(find.textContaining('현재 낙폭 0.0%'), findsWidgets);
+      expect(find.textContaining('드로다운 기준 $d0'), findsWidgets);
+      await _at(tester, find.byType(DrawdownContextScreen), 'IT_S73');
+
+      // 🆕 R228 — S7-3b 슬리브 기여(같은 오늘 마감 하나 = 개시 날만 → 구간 0): 구간 = 엔진 기본(이번 달) · 행 셋 · 기준 줄.
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.performanceContribution);
+      await _until(tester, find.textContaining('기여 분해 기준 $d0'));
+      expect(
+        find.text(contributionDefaultRange(rt.clock.nowUtc()).label!),
+        findsWidgets,
+      );
+      expect(find.text('C · 방어 자산'), findsWidgets);
+      await _at(tester, find.byType(ContributionScreen), 'IT_S73B');
+
+      // 🆕 R231 — S7-1 월간 리포트(맨 끝 — 연습 개시를 지난달 첫 세션으로 옮긴다: 지난달 세션마다 마감 스냅숏 · 월말 대사
+      //    MATCHED 1) → 닫힌 달 = 원장 리포트 · 배지 «대사 완료» · 「자세히」(C1 최대 낙폭) → S7-3 드로다운.
+      final int y = int.parse(d0.substring(0, 4));
+      final int mo = int.parse(d0.substring(5, 7));
+      final String prev = mo == 1
+          ? '${y - 1}-12'
+          : '$y-${(mo - 1).toString().padLeft(2, '0')}';
+      final TradeDate prevEnd = krMonthEndOf(rt.calendars.kr, prev);
+      final List<String> prevSessions = krMonthSessionsOf(
+        rt.calendars.kr,
+        prevEnd,
+      );
+      files.sim.execute(
+        'UPDATE cash_flow SET trade_date = ? WHERE note IN (?, ?)',
+        <Object?>[
+          prevSessions.first,
+          DecisionReasonCodes.simOpeningBalance,
+          DecisionReasonCodes.openingBalance,
+        ],
+      );
+      files.sim.execute(
+        'INSERT OR IGNORE INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, '
+        "account_alias) VALUES ('IT-OPEN-S71', ?, 10000000, 'KRW', 'DEPOSIT', ?, ?, NULL)",
+        <Object?>[
+          prevSessions.first,
+          DecisionReasonCodes.simOpeningBalance,
+          rt.clock.nowUtc().toIso8601String(),
+        ],
+      );
+      for (final String d in prevSessions) {
+        files.sim.execute(
+          'INSERT OR IGNORE INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, '
+          "high_water_mark, drawdown, mode) VALUES (?, 10000000, 10000000, 0, 10000000, 0, 'SIM_INTERNAL')",
+          <Object?>[d],
+        );
+      }
+      final String reconAt = DateTime.parse(
+        '${prevEnd.yyyyMmDd}T07:05:00+09:00',
+      ).toUtc().toIso8601String();
+      files.sim.execute(
+        'INSERT OR IGNORE INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+        "VALUES (?, ?, 1, '{}', 'MATCHED')",
+        <Object?>['rc-$reconAt#1', reconAt],
+      );
+      container.read(shellLinkOpenerProvider).open('aaq://report/$prev');
+      await _until(tester, find.text('리포트 기준 ${prevEnd.yyyyMmDd}'));
+      expect(find.text(MonthlyTrustTexts.reconciledLabel), findsWidgets);
+      expect(find.text('$d0 생성'), findsWidgets);
+      await _at(tester, find.byType(MonthlyReportScreen), 'IT_S71');
+      final Finder c1 = find.descendant(
+        of: find.ancestor(of: find.text('최대 낙폭'), matching: find.byType(Card)),
+        matching: find.widgetWithText(TextButton, '자세히'),
+      );
+      await tester.ensureVisible(c1);
+      await tester.tap(c1);
+      await _until(tester, find.textContaining('드로다운 기준'));
+      expect(find.byType(DrawdownContextScreen), findsOneWidget);
+      await _at(tester, find.byType(DrawdownContextScreen), 'IT_S71_DD');
+
+      // 🆕 E11q-d1 — M8 문서 다섯 길(엔진 원고 번들 · 원장 0): 런북 목록 여섯 행 → 상세(host-lost 단계) · 긴급 카드(인쇄 자리 부재) ·
+      //    핸드북 목차(원고 없는 장 = 준비 중) → 슬리브 B 쪽(별칭 · live 값 원천 0 = 블록 뺌).
+      container.read(shellLinkOpenerProvider).open(AppRoutes.opsRunbooks);
+      await _until(tester, find.byKey(const Key('d02-list-row-5')));
+      await _at(tester, find.byType(RunbookList), 'IT_D02');
+      await tester.tap(find.text('운영 폰을 잃어버렸거나 고장 났을 때'));
+      await _until(tester, find.byKey(const Key('d02-intro')));
+      await _at(tester, find.byType(RunbookDetail), 'IT_D02D');
+      container.read(shellLinkOpenerProvider).open(AppRoutes.opsEmergencyCard);
+      await _until(tester, find.byKey(const Key('d03-notice')));
+      expect(find.byKey(const Key('d03-print')), findsNothing);
+      await _at(tester, find.byType(EmergencyStopCard), 'IT_D03');
+      container.read(shellLinkOpenerProvider).open(AppRoutes.handbookIndex);
+      // 목록은 게으르게 짓는다 — 화면 밖 항목은 아직 없다(첫 항목 · 슬리브 B 자식이 서면 충분).
+      await _until(tester, find.byKey(const Key('b01-entry-0')));
+      expect(find.text('슬리브 B — 해외 지수·금 ETF'), findsOneWidget);
+      await _at(tester, find.byType(HandbookContents), 'IT_B01');
+      await tester.tap(find.text('슬리브 B — 해외 지수·금 ETF'));
+      await _until(tester, find.byKey(const Key('b02-title')));
+      expect(find.byKey(const Key('b02-asof')), findsNothing);
+      await _at(tester, find.byType(HandbookPageView), 'IT_B02');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
       container.dispose();

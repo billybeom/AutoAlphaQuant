@@ -31,7 +31,7 @@ part 'drafts.g.dart';
 /// 초안 하나의 자리 = (종류, 대상 id).
 ///
 /// 🔴 화면은 [targetId] 를 **위젯 생성자 인자 그대로** 넣는다(셸이 라우트 파라미터에서 꺼낸 값 —
-///    01 §11-10). 링크 조립이 아니다. 대상 id 표(01 §12-1): `journalDraft` = `decisionId` ·
+///    01 §11-10). 링크 조립이 아니다. 대상 id 표(01 §12-1): `journalDraft` = `decisionId`(🆕 v1.35 K296 — 값 = 저널 id) ·
 ///    `manualFillRecord`·`adviceSkip` = `adviceId`(라우트) · 🆕 v1.12 `selfReportBalance` = `L-3` 라우트 `:yyyyMm` 과
 ///    `:accountAlias` 를 `/` 로 이은 글자(`2026-08/연금저축` — «생성자 인자 그대로»의 2인자 판 · K7 · K36 ⓐ) ·
 ///    `O-04` 시작 상태 선언(🆕 v1.16 `AppRoutes.ledgerSimOpening` · 계좌마다) = `SIM_OPENING/<accountAlias>`

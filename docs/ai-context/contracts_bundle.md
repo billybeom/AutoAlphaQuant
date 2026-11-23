@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 128개 · 계약 v1.33.0 · 조립일 2026-11-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 128개 · 계약 v1.35.0 · 조립일 2026-11-21(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -99,7 +99,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개 · 1.33.0 상향 때 390개 · 1.34.0 상향 때 390개 · 1.35.0 상향 때 393개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -363,12 +363,26 @@ export 'commands/settings_actions.dart';
 //    화이트리스트 · 표면 무변경) · 🆕 `X1SlotIds` 4(`x1_slot`) · 받침대 +1 · 🆕 C-67 · C-5 필드 규칙 +4 ·
 //    픽스처 375 → 390(신설 15 — 🆕 폴더 `x1/`) — 🆕 tool/gen_e16j_b_v133_fixtures.py · 🔴 VM 생산 · 단계 진행기 · 저장 · 백업 원천 = 미결 218.
 //    다음 판 = 1.34.0(첫 후보 = v1.28 예약 목록 그대로) · 06 변경 이력 «2026-11-2x · 계약 v1.33».
+// 🆕 '1.34.0'(미결 214 작은 계약 창 · 01 §43 · 발주자 위임 2026-11-14 — 권고대로 · K282~K289) — Supabase 신원 모델(D5) DDL 만:
+//    `ddl/batch_d_supabase.sql` `app_device.auth_uid` = not null · 🔴 unique 0(X1 새 폰 = 같은 운영 사용자 · 13 R221 PGlite 실증) +
+//    색인 `ix_app_device_auth_uid` · RLS 6 «`app_device` 조인»(JWT `app_metadata` 클레임 0 · 미결 13 닫음 · 두 명령 INSERT 정책 분리 유지) ·
+//    `recovery_secret.algo` 기본값 'sha256' · C-64 ③ 정정 + ⑨ · Dart 공개 API · 픽스처 내용 0(버전 줄만 390) ·
+//    🔴 data_sync 부트스트랩 사본 재생성(`tool/make_supabase_bootstrap.py`). 다음 판 = 1.35.0(첫 후보 = v1.28 예약 목록 그대로) ·
+//    06 변경 이력 «2026-11-21 · 계약 v1.34».
+// 🆕 '1.35.0'(쌓인 계약 숙제 창 · 01 §44 · 발주자 위임 2026-11-14 — 권고대로 · K290~K302) — 미결 217 꼬리 4 · 219 · J-3 쓰기 · 저널 kind:
+//    🆕 `RepairInputResultCodes` 1(`repair_input_result` · `REPAIR_AMOUNT_INVALID` · `runRepairCorrect` 거부 합집합) ·
+//    정정 체인 상한 = 운영 설정 `operations.amend_chain_max`(SPEC 02 §4 · 계약 상수 0) · 표본 `ledger_diffs_4` L-1 조치 링크 = 대상 라우트 ·
+//    🆕 `DecisionJournalKinds` 8(`decision_journal_kind` · 개입 3단계 = `INTERVENTION_JOURNAL` · C-5 문서 중복 15 → 18) ·
+//    `SafetyState` += `holdLabels`(짝 문장 · 같은 차례 · 같은 길이 · 미결 219 닫음) · J-3 키 = 저널 id(안전 동작 `decision_id` 한 벌) ·
+//    갈래 채우기 · 새 행 · `JournalDraftRejectCodes` 1 → 3 · 🆕 `JournalRuleCitedCodes` 3(`journal_rule_cited`) · `byDomain` +3 · 🆕 C-68 ·
+//    픽스처 390 → 393(신설 3 · 개정 1) — 🆕 tool/gen_v135_contract_debts_fixtures.py · 🔴 엔진 · 조립 몫 = 미결 220 · 화면(Bob) = 미결 221.
+//    다음 판 = 1.36.0(🔴 첫 후보 = D15 읽기 모델 열 표 — 13 §8 R230 L2 · E11l1 선행) · 06 변경 이력 «2026-11-21 · 계약 v1.35».
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.33.0';
+const String contractVersion = '1.35.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -650,6 +664,10 @@ abstract interface class CommandApi {
   /// 사전 저널 제출(폰 · `J-3`). viewer 경로를 그리는 화면은 없다(`J-3` = 폰 전용 · 01 §11-10).
   /// 🔴 🆕 v1.2 부터 «초안»은 제출 **전** 기기 로컬 입력 원문(`DraftStore` · 01 §12-1)을 뜻한다 —
   ///    이 메서드는 그것이 아니라 **제출**이다(인자 이름 `JournalDraft` 는 그대로).
+  /// 🆕 v1.35(01 §44 · K296 ~ K299) — 키 = 저널 id · 갈래(채우기 · 새 행) = 엔진이 키로 가른다 · 거부 = `JournalDraftRejectCodes` 3 ·
+  ///    🔴 신뢰 시각 비의존(RECON 해제 선례 · 저널 시각 = 기기 시계) · 같은 `commandId` 재제출 = 같은 접수증(기존 수신함 규칙) ·
+  ///    `LEDGER_INTEGRITY` 가 서 있으면 `heldForIntegrity`(보관 · 해제 뒤 집행 — 01 §3-8 «접수하되 보관» · 02 §3-3 R2 ⓕ) ·
+  ///    저널 쓰기와 접수는 한 트랜잭션(고아 저널 0).
   Future<CommandReceipt> submitJournalDraft(JournalDraft draft);
 
   /// 사후 blind 리뷰(결정 9b).
@@ -1020,7 +1038,7 @@ part 'drafts.g.dart';
 /// 초안 하나의 자리 = (종류, 대상 id).
 ///
 /// 🔴 화면은 [targetId] 를 **위젯 생성자 인자 그대로** 넣는다(셸이 라우트 파라미터에서 꺼낸 값 —
-///    01 §11-10). 링크 조립이 아니다. 대상 id 표(01 §12-1): `journalDraft` = `decisionId` ·
+///    01 §11-10). 링크 조립이 아니다. 대상 id 표(01 §12-1): `journalDraft` = `decisionId`(🆕 v1.35 K296 — 값 = 저널 id) ·
 ///    `manualFillRecord`·`adviceSkip` = `adviceId`(라우트) · 🆕 v1.12 `selfReportBalance` = `L-3` 라우트 `:yyyyMm` 과
 ///    `:accountAlias` 를 `/` 로 이은 글자(`2026-08/연금저축` — «생성자 인자 그대로»의 2인자 판 · K7 · K36 ⓐ) ·
 ///    `O-04` 시작 상태 선언(🆕 v1.16 `AppRoutes.ledgerSimOpening` · 계좌마다) = `SIM_OPENING/<accountAlias>`
@@ -1218,12 +1236,15 @@ abstract class DepositRegistration with _$DepositRegistration {
 @freezed
 abstract class JournalDraft with _$JournalDraft {
   const factory JournalDraft({
+    /// 🆕 v1.35(01 §44 · K296) — 🔴 값 = **저널 id**(이름은 그대로 · 화면은 `JournalDraftFormSpec.decisionId` 를 그대로 넣는다).
+    /// 갈래(K297) = 엔진이 이 키로 가른다 — ⓐ 채우기(사전 3칸이 빈 있는 저널 행 · SAF-408 자동 해제) · ⓑ 새 행(엔진이 J-3 링크에
+    /// 실어 발급한 새 저널 id · 목적 `DISCRETION` · `PLEDGE_EDIT`) · 둘 다 아님 = `JOURNAL_TARGET_UNKNOWN`.
     required String decisionId,
     required String rationaleBefore,
     required String expectedOutcome,
 
     /// 🔴 **엔진 제공 목록의 코드**다(자유 입력 금지). 선택지는
-    ///    `JournalDraftFormSpec.ruleCitedOptions`(E-4)가 준다.
+    ///    `JournalDraftFormSpec.ruleCitedOptions`(E-4)가 준다. 🆕 v1.35(K300) — 값 ∈ `JournalRuleCitedCodes`(목록 밖 = `JOURNAL_INPUT_INVALID`).
     required String ruleCited,
     String? note,
   }) = _JournalDraft;
@@ -1776,11 +1797,18 @@ part 'safety_actions.g.dart';
 ///    · `repairAccept`     = `{diff_id}`(아무것도 안 하기 · 구현 = 살아 있는 개입 세션 `DO_NOTHING` + diff ACCEPTED ·
 ///                           무결성 갈래 0 · 결과 id = [SafetyActionId.repairAccept]).
 /// · `runRepairCorrect` — 정본 정정(diff 갈래 · 5단계 통과 뒤 · 원문 4칸 파싱 = 구현 · 직전 재대사 = 구현 · `decision_id` = 개입 세션 저널 ·
-///   거부 = `RepairResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪ `InterventionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairCorrect].
+///   거부 = `RepairResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪ `InterventionResultCodes` ∪ `TRUSTED_TIME_UNKNOWN` ∪ 🆕 v1.35
+///   `RepairInputResultCodes`(원문 파싱 · K291)). 결과 id = [SafetyActionId.repairCorrect].
+///   🆕 v1.35(K292) — 정정 체인 상한 = 운영 설정 `operations.amend_chain_max`(SPEC 02 §4 · 값 = 01 §10-3 B6 · 계약 상수 0 · C-32).
 /// · `runRepairBaseline` — 새 기준점(무결성 갈래 · 거부 = `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `InterventionResultCodes` ∪
 ///   `TRUSTED_TIME_UNKNOWN`). 결과 id = [SafetyActionId.repairBaseline].
 /// · `runInterventionJournal` — 개입 3단계 사전 저널(K180 꼴 3칸 · 구현 = 살아 있는 세션 하나에 붙인다 · 저널 + 3단계 한 트랜잭션 · M5-6 재사용 ·
 ///   거부 = `InterventionResultCodes` ∪ `JOURNAL_ID_TAKEN`). 결과 id = [SafetyActionId.interventionJournal].
+///   🆕 v1.35(01 §44 · K294) — 그 저널 행 `kind` = `DecisionJournalKinds.interventionJournal`(`INTERVENTION_JOURNAL` · 지금 엔진 NULL → 미결 220 ⓒ).
+/// 🆕 v1.35(01 §44 · K296) — 🔴 **저널 키 한 벌**: 이 표면의 `decision_id`(재개 7번 · STOPPED · RECON 해제 · 규칙 변경 요청 · 개입 3단계 ·
+///    재량 조정 `DiscretionAdjustSubmission.decisionId` · 서약 편집 `PledgeSubmission.decisionId`) = `decision_journal.journal_id` 이고,
+///    `J-3` 키(`AppRoutes.journalDraft` `:decisionId` · `JournalDraft.decisionId`)도 같은 저널 id 다. 재량 · 서약 편집은 저널을 J-3 가 먼저
+///    쓰고(새 행 갈래 · kind = `DISCRETION` · `PLEDGE_EDIT`) 동작이 그 id 를 받는다 · 나머지는 동작이 저널 + 동작을 한 트랜잭션으로 쓴다(K180 ⓐ).
 /// 🔴 정정 · 새 기준점 커밋이 개입 세션 5단계 · 실행 창 · `decision == journalId` 를 보게 하는 결속 = 엔진 숙제(01 §8 미결 217).
 /// 🆕 v1.33(01 §42 · K273 · E16j-b · X1 기기 이전 `X1PlanWizardVm` · `X1RecoveryVm`) — `run` 화이트리스트 +6(표면 무변경 · 제출 DTO 0 ·
 ///    시크릿 = 슬롯 ↔ 구현 사이만 · `run_id` = 엔진이 args 에 싣는다):
@@ -1860,7 +1888,7 @@ abstract class SafetyActionResult with _$SafetyActionResult {
     /// `PostmortemResultCodes` ∪ `InterventionResultCodes` ∪ `RuleChangeResultCodes` ∪ `DiscretionResultCodes` ∪
     /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
     /// `ReconClearResultCodes` ∪ 🆕 v1.32 `RepairResultCodes` ∪ `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪
-    /// {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ · C-66).
+    /// 🆕 v1.35 `RepairInputResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ · C-66 · C-68).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).
@@ -4262,6 +4290,8 @@ abstract class RejectTrace with _$RejectTrace {
 ///    `decisionId`(제출 `JournalDraft.decisionId` 에 그대로 넣는 값) · `pledgeLines`(본인
 ///    서약문 — 🔴 편집 불가 · 0줄이면 서약 블록 자체가 없다) · `contextChips`(문맥 칩) ·
 ///    `deviation`(표시만 — 🔴 화면이 이탈 여부를 판정하지 않는다).
+/// 🆕 v1.35(01 §44 · K296 · K300) — [decisionId] 값 = **저널 id**(이름 그대로) · `pledgeLines` = 지금 서약 판을 재량 예산을 쓰는
+///    목적(`DISCRETION` · 채우기 갈래의 `MANUAL_ORDER` · `MANUAL_ENTRY`)에만 · 그 밖 0줄 · `ruleCitedOptions[].code` ∈ `JournalRuleCitedCodes`.
 @freezed
 abstract class JournalDraftFormSpec with _$JournalDraftFormSpec {
   const factory JournalDraftFormSpec({
@@ -8395,7 +8425,14 @@ abstract class SafetyState with _$SafetyState {
 
     /// 🆕 v1.19(01 §28 · K21 · 엔진 E15b R82 W7) — 기동은 하되 배치를 멈추는 hold 사유(값 ⊆ `SafetyHoldCodes` ·
     /// 읽을 때 파생 = 엔진 `ModeStartupGate.holds`). 빈 = hold 없음. 🔴 기동 거부(`ModeStartupCodes`)는 여기 오지 않는다.
+    /// 🆕 v1.35(01 §44 · K295 · 미결 219) — 🔴 **화면 미참조**(코드 축 · 표시는 [holdLabels]).
     @Default(<String>[]) List<String> holds,
+
+    /// 🆕 v1.35(01 §44 · K295 · 미결 219 · 01 §1-5 «열거값에는 짝 Label») — hold 한 줄 문장(엔진 완성 · 예 «실전 키 검증 전 —
+    /// 자동 매매 배치를 멈췄습니다»). 🔴 `holds[i]` ↔ `holdLabels[i]` **같은 차례 · 같은 길이**(C-68 ⑥) · 화면은 이 문장을
+    /// 차례대로 그대로 그린다(hold 줄 한 꼴 · 색 · 아이콘을 코드로 고르지 않는다 · 빈 = 줄 없음) · 문장 사전 = 엔진 한 벌
+    /// (S05 `RunModeCard.holdLabel` 과 같은 문장 — 미결 220 ⓓ).
+    @Default(<String>[]) List<String> holdLabels,
     required AsOf asOf,
   }) = _SafetyState;
 
@@ -11641,6 +11678,9 @@ abstract final class FixturePaths {
   static const String resumeReport1 = 'resume_report_1.json';
   static const String safetyStates = 'safety_states.json';
 
+  /// 🆕 v1.35(01 §44 · K295) — `SafetyState` hold 짝 문장 2행(`LIVE_AWAITING_KEYS` · `MIGRATION_IN_PROGRESS` — `holds[i]` ↔ `holdLabels[i]`).
+  static const String safetyStatesHolds = 'safety_states_holds.json';
+
   /// 🆕 v1.1 — `ConfigRepository.watchSleeves()` 의 입력(P0S — 새틀라이트 행 없음).
   static const String sleeveCatalog4 = 'sleeve_catalog_4.json';
 
@@ -12031,6 +12071,10 @@ abstract final class FixturePaths {
   ///    갈래이며 테스트는 `state` 로 골라 쓴다. 🔴 사유까지 실린 문구는 `state_label` 하나다.
   static const String m6JournalDraftReceipts5 =
       'm6/journal_draft_receipts_5.json';
+
+  /// 🆕 v1.35(01 §44 · K298) — `J-3` 거부 접수증 2행(`JOURNAL_TARGET_UNKNOWN` · `JOURNAL_INPUT_INVALID` · 명령 2 · `receipts_5` 무변경).
+  static const String m6JournalDraftReceiptsReject2 =
+      'm6/journal_draft_receipts_reject_2.json';
   static const String m6JournalDraftSpecDiscretion =
       'm6/journal_draft_spec_discretion.json';
   static const String m6JournalDraftSpecReconClear =
@@ -12772,6 +12816,9 @@ abstract final class FixturePaths {
   /// 🆕 v1.32 — 허브 대상 2(→ `x5RepairTarget` · diff · 무결성).
   static const String x5RepairHubTargets = 'x5/repair_hub_targets.json';
 
+  /// 🆕 v1.35(01 §44 · K291) — 정정 원문 파싱 거부 결과 1행(`REPAIR_CORRECT` · `REPAIR_AMOUNT_INVALID`).
+  static const String x5RepairInputResults = 'x5/repair_input_results.json';
+
   /// 🆕 v1.32 — 무결성 갈래 새 기준점 준비.
   static const String x5RepairIntegrityReady = 'x5/repair_integrity_ready.json';
 
@@ -12790,6 +12837,7 @@ abstract final class FixturePaths {
     rebalance6,
     resumeReport1,
     safetyStates,
+    safetyStatesHolds,
     sleeveCatalog4,
     m5BlockBoardClear,
     m5BlockBoardKillActive,
@@ -12906,6 +12954,7 @@ abstract final class FixturePaths {
     m6JournalExpired1,
     m6JournalBadges2,
     m6JournalDraftReceipts5,
+    m6JournalDraftReceiptsReject2,
     m6JournalDraftSpecDiscretion,
     m6JournalDraftSpecReconClear,
     m6JournalFilterCatalog,
@@ -13166,6 +13215,7 @@ abstract final class FixturePaths {
     x5RepairDiffStage3,
     x5RepairHubEmpty,
     x5RepairHubTargets,
+    x5RepairInputResults,
     x5RepairIntegrityReady,
   ];
 }
@@ -14007,6 +14057,9 @@ abstract final class FlagIds {
 /// `SafetyState` 의 배치 보류 사유 코드(01 §9-5 ③ · M2-8 A-17).
 ///
 /// 🔴 `trading_block.flag_id` 가 **아니다** — 안전 상태의 hold 사유다.
+/// 🆕 v1.35(01 §44 · K295 · 미결 219 닫음) — 짝 문장 = `SafetyState.holdLabels`(같은 차례 · 같은 길이) · 화면은 이 코드를 보지 않는다.
+///    엔진 생산: `MIGRATION_IN_PROGRESS` = ds 안전 읽기 모델(미결 212 ② ✅) · `LIVE_AWAITING_KEYS` = 기동 게이트 → `SafetyState` 싣기 +
+///    짝 문장 = 미결 220 ⓓ.
 abstract final class SafetyHoldCodes {
   /// 실키 검증 전 보류.
   ///
@@ -14019,7 +14072,7 @@ abstract final class SafetyHoldCodes {
   ///
   /// 🔴 막는 정본은 이 글자가 아니라 엔진 리스 판정이다 — 이전 세션이 «신규 주문 동결»에 들어서면 NR-1 0단계 리스 = 무효
   ///    (`LEASE_INVALID` · 막는 것은 주문뿐 · 백업 커밋 · 아카이브는 원래 리스 판정 그대로). 이 hold 는 그 상태를 보여 줄 뿐이다.
-  ///    엔진 생산(`SafetyState.holds` 에 싣기) = 엔진 숙제(01 §8 미결 212).
+  ///    엔진 생산(`SafetyState.holds` 에 싣기) = 엔진 숙제(01 §8 미결 212 ② — ✅ R225 #312).
   static const String migrationInProgress = 'MIGRATION_IN_PROGRESS';
 
   /// 전량 2종.
@@ -14131,12 +14184,96 @@ abstract final class JournalBadgeCodes {
 /// 🔴 X7 명령의 거부 사유(`AdviceRejectCodes`)와 **다른 도메인**이다 — 섞어 조회하지 않는다
 ///    (`ContractCodes.byDomain` 키 `journal_draft_reject`).
 /// ⏸ 픽스처가 쓰는 1종에서 시작한다. 엔진(M1)이 새 사유를 내면 **여기와 픽스처를 함께** 넓힌다.
+/// 🆕 v1.35(01 §44 · K296 ~ K298) — J-3 키 = **저널 id**(`decision_journal.journal_id` · 안전 동작의 `decision_id` 와 한 벌) ·
+///    제출 갈래 = 엔진이 키로 가른다(ⓐ 채우기 = 사전 3칸이 빈 있는 행 · ⓑ 새 행 = 엔진이 J-3 링크에 실어 발급한 새 저널 id) ·
+///    1종 → 3종(키 · 입력 거부). 🔴 화면은 이 코드로 분기 · 문구 · 표시를 하지 않는다(위 머리 그대로 — 문구 = `stateLabel`).
 abstract final class JournalDraftRejectCodes {
-  /// 이 결정(`decisionId`)의 사전 저널이 이미 접수돼 있다 — 같은 결정에 두 번째 사전 저널.
+  /// 이 키의 사전 저널이 이미 접수돼 있다 — 채우기 갈래의 행이 이미 세 칸 다 찼거나 새 행 갈래의 키로 이미 썼다.
   static const String journalAlreadyExists = 'JOURNAL_ALREADY_EXISTS';
 
-  /// 전량(⏸ 1종).
-  static const Set<String> values = <String>{journalAlreadyExists};
+  /// 🆕 v1.35(K298) — 키가 저널 대상이 아니다(모르는 id · 결정 id 를 넣었다 · 엔진이 발급하지 않은 새 키).
+  static const String journalTargetUnknown = 'JOURNAL_TARGET_UNKNOWN';
+
+  /// 🆕 v1.35(K298) — 입력이 폼 조건을 못 채운다(근거 앞뒤 공백 뺀 글자 < `rationaleMinChars` · 기대 결과 빈칸 ·
+  /// 인용 규칙 ∉ 그 폼 `ruleCitedOptions` · `requiresNote` 인데 메모 빈칸) — 화면 «제출 가능 조건»과 같은 판정을 엔진이 다시 한다.
+  static const String journalInputInvalid = 'JOURNAL_INPUT_INVALID';
+
+  /// 전량(🆕 v1.35 3종).
+  static const Set<String> values = <String>{
+    journalAlreadyExists,
+    journalTargetUnknown,
+    journalInputInvalid,
+  };
+}
+
+/// 🆕 v1.35(01 §44 · K300) — `J-3` 인용 규칙 선택지 코드(`JournalDraftFormSpec.ruleCitedOptions[].code` · `JournalDraft.ruleCited` ·
+/// J-3 가 쓴 `decision_journal.rule_cited`) — 도메인 `journal_rule_cited` · 표본 3 = 엔진 첫 목록.
+/// 🔴 다른 안전 동작의 `ruleCited`(재개 7번 · 개입 3단계 · RECON 해제 · 규칙 변경 요청)는 **원문**이다 — 이 사전과 축이 다르다(01 §8 미결 184 ③).
+/// 🔴 선택지 글자(`label`) · 메모 필수(`requiresNote`) = 엔진 VM 칸 · 화면은 이 코드로 분기 · 문구를 고르지 않는다.
+/// 엔진이 새 규칙을 내면 **여기와 픽스처를 함께** 넓힌다.
+abstract final class JournalRuleCitedCodes {
+  /// 재량 예산(롤링 12개월) 안에서 조정.
+  static const String discretionBudget = 'RULE_DISCRETION_BUDGET';
+
+  /// 대사 불일치 — 원인 코드 확인 뒤 해소.
+  static const String reconCause = 'RULE_RECON_CAUSE';
+
+  /// 그 밖의 규칙(메모 필수).
+  static const String other = 'RULE_OTHER';
+
+  static const Set<String> values = <String>{
+    discretionBudget,
+    reconCause,
+    other,
+  };
+}
+
+/// 🆕 v1.35(01 §44 · K294 · 미결 206 꼬리 · 217 ④) — 로컬 원장 `decision_journal.kind` 열의 값(도메인 `decision_journal_kind` ·
+/// SPEC 02D `decision_journal` 주석과 한 벌). 🔴 표시 칸이 아니다 — 화면은 이 글자를 받지도 그리지도 않는다(배지 = `DeviationBadge.kindCode`).
+/// 규칙: 글자 = 그 저널을 쓰는 안전 동작의 id 와이어(`SafetyActionId`) — 예외 둘([killSwitchChecklist] · [discretion] = 기존 엔진 · SPEC 글자).
+/// 🔴 같은 글자 다른 축 셋 — [discretion] · [reconClear] · [killSwitchResume] = `DeviationKindCodes`(배지 종류 · C-5 문서 쌍).
+/// 🔴 NULL = 옛 행(읽기 호환 · SAF-408 판정은 kind 를 보지 않는다) — 새로 쓰는 행은 이 사전 값만(엔진 숙제 = 01 §8 미결 220 ⓒ).
+/// X1 D-03 · 비상 선언 결정(01 §8 미결 218 ⓖ) = 이전 저널 표 칸이라 이 사전 밖이다.
+abstract final class DecisionJournalKinds {
+  /// 킬스위치 발동 뒤 기록(M5-1 · `confirmKillChecklist` · ds `kill_switch_store` — 🔵 예외: 명령 와이어 `KILL_CHECKLIST_CONFIRM` 와 다르다).
+  static const String killSwitchChecklist = 'KILL_SWITCH_CHECKLIST';
+
+  /// 킬스위치 재개 7번(M5-2 · `SafetyActionId.killSwitchResume`).
+  static const String killSwitchResume = 'KILL_SWITCH_RESUME';
+
+  /// STOPPED 결정 A · B · C(M5-3 · `SafetyActionId.stoppedDecision`).
+  static const String stoppedDecision = 'STOPPED_DECISION';
+
+  /// 대사 불일치 해제(M5-5 · `SafetyActionId.reconClear`).
+  static const String reconClear = 'RECON_CLEAR';
+
+  /// 규칙 변경 요청(M5-9 · `SafetyActionId.ruleChangeRequest`).
+  static const String ruleChangeRequest = 'RULE_CHANGE_REQUEST';
+
+  /// 수동 개입 3단계 사전 저널(M5-6 · X5 마찰 · `SafetyActionId.interventionJournal` · 🔵 지금 엔진 = NULL → 미결 220 ⓒ).
+  static const String interventionJournal = 'INTERVENTION_JOURNAL';
+
+  /// 재량 조정의 사전 저널(M5-7 · J-3 새 행 갈래 · `DiscretionAdjustSubmission.decisionId` 가 가리킨다 · 🔵 예외: SPEC v2.15 ·
+  /// 엔진 `kDiscretionJournalKind` 글자 — 동작 와이어 `DISCRETION_ADJUST` 와 다르다).
+  static const String discretion = 'DISCRETION';
+
+  /// 서약 편집의 사전 저널(M5-8 · J-3 새 행 갈래 · `SafetyActionId.pledgeEdit` · `PledgeSubmission.decisionId` 가 가리킨다).
+  static const String pledgeEdit = 'PLEDGE_EDIT';
+
+  /// 전량 8종.
+  static const Set<String> values = <String>{
+    killSwitchChecklist,
+    killSwitchResume,
+    stoppedDecision,
+    reconClear,
+    ruleChangeRequest,
+    interventionJournal,
+    discretion,
+    pledgeEdit,
+  };
+
+  /// J-3 새 행 갈래의 목적(K297 ⓑ) — 저널을 먼저 쓰고 동작이 그 id 를 받는 둘.
+  static const Set<String> draftPurposes = <String>{discretion, pledgeEdit};
 }
 
 /// 🆕 v1.7(01 §16) — `J-4` blind 리뷰 점수 제출(`CommandKind.blindReviewScore`)의 거부 사유.
@@ -14358,7 +14495,8 @@ final class UnregisteredContractCodeError extends Error {
 ///    `FAILED`(`kill_cancel_outcome` ↔ `x1_step_state`) · `BLOCKED`(`verdict_code` ↔ `x1_gate_state`) ·
 ///    `OBSERVING`(`resume_reason` ↔ `x1_gate_state`) · `PASSED`(`sim_trial_state` ↔ `x1_gate_state`) ·
 ///    `SQLITE_INTEGRITY`·`FORMAT_VERSION`(`ledger_integrity_result` ↔ `ledger_boundary_reason`) = **열다섯 글자**
-///    (`RESTORE_ROLLBACK` 은 `ledger_boundary_reason` 까지 세 축)) —
+///    (`RESTORE_ROLLBACK` 은 `ledger_boundary_reason` 까지 세 축) + 🆕 v1.35(01 §44 · K294) 저널 kind 셋 —
+///    `DISCRETION` · `RECON_CLEAR` · `KILL_SWITCH_RESUME`(`deviation_kind` ↔ `decision_journal_kind`) = **열여덟 글자**) —
 ///    그래서 [all] 의 크기는 등재 건수보다 작다. 전역 조회보다 [requireRegisteredIn] 을 쓴다.
 abstract final class ContractCodes {
   /// 도메인 → 코드 집합. 🔴 키 이름은 01 §3·§6 의 절 제목에서 따온다.
@@ -14503,6 +14641,10 @@ abstract final class ContractCodes {
     'baseline_apply_result': BaselineApplyResultCodes.values,
     // 🆕 v1.33(01 §42 · E16j-b) — X1 이전 화면 🔒 슬롯 이름
     'x1_slot': X1SlotIds.values,
+    // 🆕 v1.35(01 §44) — X5 정정 원문 거부(K291) · 원장 저널 kind(K294) · J-3 인용 규칙(K300)
+    'repair_input_result': RepairInputResultCodes.values,
+    'decision_journal_kind': DecisionJournalKinds.values,
+    'journal_rule_cited': JournalRuleCitedCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -15595,6 +15737,17 @@ abstract final class BaselineApplyResultCodes {
   static const String flagNotSet = 'BASELINE_FLAG_NOT_SET';
 
   static const Set<String> values = <String>{flagNotSet};
+}
+
+/// 🆕 v1.35(01 §44 · K291 · 미결 217 ①) — X5 정정 원문 4칸(수량 · 가격 · 수수료 · 세금) 파싱 거부(도메인 `repair_input_result` ·
+/// 엔진 core `repair/repair_wizard.dart` `RepairInputCodes` 1:1 · 🔴 타입 이름 ≠ 엔진 K80).
+/// 🔴 [RepairResultCodes](엔진 `repair_plan` 판정 10 의 거울)에 넣지 않는다 — 축이 다르다(계획 판정 ↔ 원문 파싱 · 대조 한 벌씩).
+/// 결과 `SafetyActionResult.reasonCode`(id = `REPAIR_CORRECT`)로만 나간다 · 화면은 분기 · 표시 0(`headline` 만).
+abstract final class RepairInputResultCodes {
+  /// 원문을 읽을 수 없다(빈칸 · 숫자 아님 · 범위 밖).
+  static const String amountInvalid = 'REPAIR_AMOUNT_INVALID';
+
+  static const Set<String> values = <String>{amountInvalid};
 }
 
 /// X1/X5 경계 사유(도메인 `ledger_boundary_reason` · 엔진 core `ops/ledger_boundary.dart:17-41` `BoundaryReason.wire` 8 ·
@@ -17195,6 +17348,8 @@ abstract final class AppRoutes {
   static const String journalDecision = 'aaq://journal/decision/:decisionId';
 
   /// `J-3` 사전 저널 작성(폰 전용) — `DecisionDetailVm.journalLink` 등이 준다.
+  /// 🆕 v1.35(01 §44 · K296) — 🔴 `:decisionId` 의 값 = **저널 id**(`decision_journal.journal_id` · 안전 동작의 `decision_id` 와 한 벌 ·
+  /// 이름은 그대로) — 엔진이 링크에 싣는 불투명 id(`JOURNAL_MISSING` 배너 · 차단 보드 · M5 게이트 · J-2 «저널 작성») · 화면 조립 0.
   static const String journalDraft = 'aaq://journal/draft/:decisionId';
 
   /// `J-3` 사전 저널 **읽기**(`J-3R` · 🆕 v1.2) — `DecisionDetailVm.journalLink`(작성됨)가 준다.
@@ -18319,6 +18474,8 @@ abstract interface class JournalRepository {
 
   /// `J-3` 사전 저널 폼 스펙(서약문·문맥 칩·규칙 인용 선택지).
   /// 🔴 제출은 `CommandApi.submitJournalDraft` — 여기는 읽기뿐이다.
+  /// 🆕 v1.35(01 §44 · K296 · K300) — 인자 = **저널 id**(`AppRoutes.journalDraft` 의 `:decisionId` 그대로) · 모르는 키 = `Future` 에러 ·
+  /// 서약 줄 = 재량 예산을 쓰는 목적에만(그 밖 0줄) · 인용 규칙 선택지 코드 ∈ `JournalRuleCitedCodes`.
   Future<JournalDraftFormSpec> draftFormSpec(String decisionId);
 
   /// `J-5` UNKNOWN 해소 보드. 🔴 이 화면에서 `CommandApi` 호출은 0건이다(02 §3-5 수용 a).
@@ -18332,6 +18489,9 @@ abstract interface class JournalRepository {
   /// 결정 자체가 없으면 스트림 에러 — `watchDecisionDetail` 의 **잠정** 규칙(01 §8 미결 50 ③ · ⬜ 확인
   /// 대기)과 같게 둔다. 50 ③ 이 확정되면 두 메서드를 함께 고친다(화면은 어느 쪽이든 공통 에러 상태).
   /// 🔴 화면은 `findByDecisionId`·`chainOf` 로 조립하지 않는다 — 이 스트림 하나만 구독한다.
+  /// 🆕 v1.35(01 §44 · K296) — 인자 = 결정 id(J-2 «작성됨» 링크 `journalRead`) **또는** 저널 id(`J-3` executed 뒤 끼워 넣기 ·
+  /// 안전 저널) 둘 다 받는다 — 해석(저널 id 먼저 · 없으면 결정 id → `decision_log.journal_id`) = 엔진 · 저널 id 로 열리면
+  /// `decisionLink` = 그 저널이 붙은 결정이 있을 때만(없으면 null — 기존 «null = 부재») · 둘 다 아니면 스트림 에러(위 규칙 그대로).
   Stream<DecisionJournalVm> watchDecisionJournal(String decisionId);
 
   // ── 🆕 계약 v1.5(R12 선행 M2 보강 · 01 §15-3 · §8 미결 49) ─────────────────────

@@ -22,7 +22,6 @@ import 'package:core_engine/core_engine.dart'
         modeStartupGate;
 import 'package:data_sync/data_sync.dart'
     show
-        SqliteLeaseGate,
         SqliteModeFacts,
         SqliteModeStore,
         bootModeOf,
@@ -34,6 +33,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import 'fgs_status_source.dart' show UnknownTrustedClock;
+import 'lease_wiring.dart' show LeaseRemoteOf, operatorLeaseGate;
 import 'ledger_files.dart';
 import 'x1_wiring.dart' show X1Wiring;
 
@@ -46,6 +46,7 @@ class BootInputs {
     this.liveKeysVerified = _notVerified,
     this.deviceId,
     this.trusted = const UnknownTrustedClock(),
+    this.leaseRemote,
   });
 
   /// 지금 설정의 SAF-405 승인(행 없음 = null) — 기본 = 원장 개시 판의 `config_versions.approved`(R192).
@@ -62,6 +63,9 @@ class BootInputs {
 
   /// 🆕 E16t2a — 신뢰 시각(기본 = 모름 · 실물 = E11k).
   final TrustedClock trusted;
+
+  /// 🆕 E11k-e3(R229 F8) — 원격 리스 원천(live · simBroker 만 끼운다 · 없음 = 실물 전과 같다).
+  final LeaseRemoteOf? leaseRemote;
 
   static bool _noMismatch(RunMode mode) => true;
   static Future<bool> _notVerified(Database db) async => false;
@@ -198,7 +202,13 @@ Future<EngineBoot> bootEngine(
     runMode: resolved.runMode,
     deviceId: inputs.deviceId,
     trusted: inputs.trusted,
-    lease: SqliteLeaseGate(db, mode: resolved.runMode, clock: clock),
+    // 🆕 R229 — 원격 리스 = 조립 앱 원천(live · simBroker 만).
+    lease: operatorLeaseGate(
+      db,
+      mode: resolved.runMode,
+      clock: clock,
+      remote: inputs.leaseRemote,
+    ),
   ).bootRefusals();
   if (!gate.start || x1.isNotEmpty) {
     return EngineRejected(

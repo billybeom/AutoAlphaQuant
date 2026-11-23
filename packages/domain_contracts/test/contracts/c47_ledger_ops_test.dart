@@ -379,15 +379,27 @@ void main() {
       }
     });
 
-    test('C-47 ③ 조치 링크 — 승인 → 정정 마법사 ∨ 자가보고 → L-3 · 그 밖 = 부재', () {
+    // 🆕 v1.35(01 §44 · K293 · 미결 217 ③) — 승인 → 정정 마법사 **대상 라우트**(그 행 `diff_id` · 허브 글자 = 0).
+    test('C-47 ③ 조치 링크 — 승인 → 정정 마법사 대상(그 diff) ∨ 자가보고 → L-3 · 그 밖 = 부재', () {
       for (final (String path, Map<String, Object?> r) in _diffRows()) {
         final Object? link = r['action_link'];
         if (link is! Map<String, Object?>) {
           continue;
         }
         final String deep = link['deep_link']! as String;
+        expect(
+          deep,
+          isNot(AppRoutes.x5RepairWizard),
+          reason: '$path ${r['diff_id']} — 허브 글자는 «어느 차이»를 싣지 못한다(K293).',
+        );
         final bool repair =
-            r['route'] == 'APPROVAL' && deep == AppRoutes.x5RepairWizard;
+            r['route'] == 'APPROVAL' &&
+            deep ==
+                AppRoutes.x5RepairTarget.replaceFirst(
+                  ':targetId',
+                  r['diff_id']! as String,
+                ) &&
+            AppRoutes.isRegistered(deep);
         final bool audit =
             r['pair'] == 'CANON_SELF_REPORT' && _selfReportLink.hasMatch(deep);
         expect(

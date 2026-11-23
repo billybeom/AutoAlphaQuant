@@ -5,9 +5,10 @@
 //    → 비상 경로 «안내까지만» · 자동 기동 0 · 이 파일에는 기동 · 복원 · 리스 조작 멤버가 없다.
 // 🔴 X5 = 파일은 믿되 지난 기록이 스탬프와 다르다 → 정정 마법사(원인을 사람이 고른다).
 // 🔴 아카이브 AHEAD = RESTORE_ROLLBACK(06 :290) = 파생 쪽 FORK(06 :289)와 같은 관측(D4).
+// 🆕 E16j-a(01 §8 미결 212 ① repair 몫) — 사유 글자 = 계약 사전 `LedgerBoundaryReasonCodes`(01 §38 · v1.30) 참조.
 
 import 'package:domain_contracts/domain_contracts.dart'
-    show AppRoutes, OriginCodes, RepairRoute;
+    show AppRoutes, LedgerBoundaryReasonCodes, OriginCodes, RepairRoute;
 
 import 'derived_sync.dart' show DerivedRelation;
 import 'ledger_integrity.dart'
@@ -16,32 +17,32 @@ import 'ledger_integrity.dart'
 /// 경계 사유.
 enum BoundaryReason {
   /// 원장 파일이 열리지 않았다.
-  dbOpenFailed('DB_OPEN_FAILED'),
+  dbOpenFailed(LedgerBoundaryReasonCodes.dbOpenFailed),
 
   /// `PRAGMA integrity_check` 가 ok 가 아니다.
-  sqliteIntegrity('SQLITE_INTEGRITY'),
+  sqliteIntegrity(LedgerBoundaryReasonCodes.sqliteIntegrity),
 
   /// 스탬프 사슬이 끊겼다(DATE_GAP · CHAIN_BROKEN).
-  stampChainBroken('STAMP_CHAIN_BROKEN'),
+  stampChainBroken(LedgerBoundaryReasonCodes.stampChainBroken),
 
   /// 정본이 아카이브보다 과거(아카이브 AHEAD).
-  restoreRollback('RESTORE_ROLLBACK'),
+  restoreRollback(LedgerBoundaryReasonCodes.restoreRollback),
 
   /// 아카이브와 갈라졌다(DIVERGED · EPOCH_AHEAD).
-  archiveDiverged('ARCHIVE_DIVERGED'),
+  archiveDiverged(LedgerBoundaryReasonCodes.archiveDiverged),
 
   /// 지난 기록이 스탬프와 다르다(DAY_HASH_MISMATCH · ROWS_BEFORE_FIRST_STAMP · ATTRIBUTION).
-  contentMismatch('CONTENT_MISMATCH'),
+  contentMismatch(LedgerBoundaryReasonCodes.contentMismatch),
 
   /// 스탬프 형식 판이 다르다.
-  formatVersion('FORMAT_VERSION'),
+  formatVersion(LedgerBoundaryReasonCodes.formatVersion),
 
   /// 깨끗하다.
-  clean('CLEAN');
+  clean(LedgerBoundaryReasonCodes.clean);
 
   const BoundaryReason(this.wire);
 
-  /// 글자.
+  /// 글자(계약 `LedgerBoundaryReasonCodes`).
   final String wire;
 }
 

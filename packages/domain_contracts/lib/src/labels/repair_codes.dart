@@ -72,6 +72,17 @@ abstract final class BaselineApplyResultCodes {
   static const Set<String> values = <String>{flagNotSet};
 }
 
+/// 🆕 v1.35(01 §44 · K291 · 미결 217 ①) — X5 정정 원문 4칸(수량 · 가격 · 수수료 · 세금) 파싱 거부(도메인 `repair_input_result` ·
+/// 엔진 core `repair/repair_wizard.dart` `RepairInputCodes` 1:1 · 🔴 타입 이름 ≠ 엔진 K80).
+/// 🔴 [RepairResultCodes](엔진 `repair_plan` 판정 10 의 거울)에 넣지 않는다 — 축이 다르다(계획 판정 ↔ 원문 파싱 · 대조 한 벌씩).
+/// 결과 `SafetyActionResult.reasonCode`(id = `REPAIR_CORRECT`)로만 나간다 · 화면은 분기 · 표시 0(`headline` 만).
+abstract final class RepairInputResultCodes {
+  /// 원문을 읽을 수 없다(빈칸 · 숫자 아님 · 범위 밖).
+  static const String amountInvalid = 'REPAIR_AMOUNT_INVALID';
+
+  static const Set<String> values = <String>{amountInvalid};
+}
+
 /// X1/X5 경계 사유(도메인 `ledger_boundary_reason` · 엔진 core `ops/ledger_boundary.dart:17-41` `BoundaryReason.wire` 8 ·
 /// 나쁜 쪽이 이긴다 — 파일 → PRAGMA → 스탬프 사슬 → 아카이브 → 내용 → 형식 판 → 깨끗).
 /// 🔴 X1 길 다섯([dbOpenFailed] · [sqliteIntegrity] · [stampChainBroken] · [restoreRollback] · [archiveDiverged])은 기동 거부 글자로도

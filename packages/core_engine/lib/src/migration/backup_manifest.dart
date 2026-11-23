@@ -6,6 +6,9 @@
 //    매니페스트 ↔ 스냅숏 머리 → 아카이브 관계(IN_SYNC 만 — SPEC ⑧ «같음만», EMPTY · BEHIND 도 거부).
 // 🔴 앞이 실패하면 뒤 사실은 묻지 않는다(사본을 더 읽지 않는다) · 탐침 없음 = 열 수 없음.
 
+import 'package:domain_contracts/domain_contracts.dart'
+    show BackupResultCodes, X1RestoreResultCodes;
+
 import '../ops/derived_sync.dart' show DerivedRelation;
 import '../ops/ledger_hash.dart' show canonicalRow;
 import '../ops/ledger_integrity.dart'
@@ -29,13 +32,13 @@ const List<String> kBackupManifestKeys = <String>[
   'writer_device_id',
 ];
 
-/// 스냅숏 거부 코드(계약 등재 = E16i 전 문자열).
+/// 스냅숏 거부 코드(글자 = 계약 `BackupResultCodes` 참조 · 미결 212).
 abstract final class SnapshotCodes {
   /// 스탬프가 없다 — 체인 · 날을 지어내지 않는다.
-  static const String noStamp = 'SNAPSHOT_NO_STAMP';
+  static const String noStamp = BackupResultCodes.noStamp;
 
   /// 그 이름의 매니페스트가 이미 있다(덮지 않는다).
-  static const String exists = 'SNAPSHOT_EXISTS';
+  static const String exists = BackupResultCodes.exists;
 }
 
 /// 백업 매니페스트(SPEC ⑧).
@@ -136,28 +139,28 @@ final class BackupManifest {
 /// 복원 거부 사유(차례 = 판정 차례).
 enum RestoreReason {
   /// 바이트 sha256 이 매니페스트와 다르다.
-  shaMismatch('RESTORE_SHA_MISMATCH'),
+  shaMismatch(X1RestoreResultCodes.shaMismatch),
 
   /// 사본을 열거나 읽지 못했다.
-  unreadable('RESTORE_UNREADABLE'),
+  unreadable(BackupResultCodes.unreadable),
 
   /// live 원장 파일이 아니다.
   notLive(MigrationStartCodes.liveOnly),
 
   /// `schema_version` 이 이 앱과 다르다.
-  schemaSkew('RESTORE_SCHEMA_SKEW'),
+  schemaSkew(BackupResultCodes.schemaSkew),
 
   /// `PRAGMA integrity_check` 가 ok 가 아니다.
-  sqliteIntegrity('RESTORE_SQLITE_INTEGRITY'),
+  sqliteIntegrity(BackupResultCodes.sqliteIntegrity),
 
   /// 스탬프 체인 자가 대조 실패.
-  chainInvalid('RESTORE_CHAIN_INVALID'),
+  chainInvalid(BackupResultCodes.chainInvalid),
 
   /// 매니페스트가 스냅숏 머리(마지막 스탬프 · schema)와 다르다.
-  manifestMismatch('RESTORE_MANIFEST_MISMATCH'),
+  manifestMismatch(X1RestoreResultCodes.manifestMismatch),
 
   /// 아카이브 체크포인트와 같지 않다(SPEC ⑧ — 같음만).
-  rollback('RESTORE_ROLLBACK');
+  rollback(BackupResultCodes.rollback);
 
   const RestoreReason(this.wire);
 

@@ -46,6 +46,7 @@ import 'data_job_runners.dart' show JobParts;
 import 'engine_boot.dart' show registryLiveKeysVerified;
 import 'job_runners.dart'
     show JobContext, JobNotAssembled, JobRunner, runOccurrence;
+import 'lease_wiring.dart' show operatorLeaseGate;
 import 'ledger_job_runners.dart'
     show cashBrokersOf, monthlyRebalanceJobOf, opsConfigOf;
 import 'x1_wiring.dart' show X1Wiring;
@@ -82,10 +83,12 @@ KrOrderJobs orderJobsOf(JobContext c, JobParts p, String job) {
     clock: c.clock,
     kr: c.calendars.kr,
   );
-  final SqliteLeaseGate lease = SqliteLeaseGate(
+  // 🆕 E11k-e3(R229) — 주문 직전 판정 = 원격 리스(live · simBroker) · simInternal = 로컬 단독 그대로.
+  final SqliteLeaseGate lease = operatorLeaseGate(
     c.db,
     mode: c.runMode,
     clock: c.clock,
+    remote: c.leaseRemote,
   );
   // 🆕 E16t2a(R141 V4 · V5) — X1 끼울 자리(기기 id ∧ live 일 때만 · 꺼짐 = 지금과 같다).
   final X1Wiring x1 = X1Wiring.of(

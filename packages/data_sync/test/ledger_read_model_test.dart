@@ -128,10 +128,12 @@ void main() {
         '체결 반영 지연',
         '수동 주문',
       ]);
+      // 🆕 E16j-a(01 §8 미결 217 ⓕ) — 대상 라우트(어느 차이인지 싣는다).
       expect(
         q.actionLink,
-        const LinkAction(label: '정정하기', deepLink: AppRoutes.x5RepairWizard),
+        const LinkAction(label: '정정하기', deepLink: 'aaq://x5/repair-wizard/qty'),
       );
+      expect(AppRoutes.isRegistered(q.actionLink!.deepLink), isTrue);
       expect(r.rows.last.actionLink, isNull);
       expect(r.asOf.observedAt, DateTime.utc(2026, 11, 4, 0, 30));
       expect(r.asOf.label, '대조 기준 2026-11-04');

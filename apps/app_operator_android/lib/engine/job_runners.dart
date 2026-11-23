@@ -28,6 +28,7 @@ import 'package:trading_runtime/trading_runtime.dart'
 
 import 'data_job_runners.dart' show JobParts, kAssembledRunners;
 import 'fgs_status_source.dart' show UnknownTrustedClock;
+import 'lease_wiring.dart' show LeaseRemoteOf;
 
 /// 회차 하나를 돌린다.
 typedef JobRunner = Future<JobRun<Object?>> Function(JobOccurrence occurrence);
@@ -51,6 +52,7 @@ class JobContext {
     this.deviceId,
     this.trusted = const UnknownTrustedClock(),
     this.operations,
+    this.leaseRemote,
   });
 
   /// 🆕 E11p3c-1 — 이 모드의 원장(기동 판정이 고른 파일).
@@ -88,6 +90,9 @@ class JobContext {
 
   /// 🆕 R150 — 운영 설정(SPEC 02 §4 `operations` · 없음 = 그 값을 쓰는 잡은 조립하지 않는다).
   final OperationsConfig? operations;
+
+  /// 🆕 E11k-e3(R229 F8) — 원격 리스 원천(기동 입력 그대로 · live · simBroker 만 끼운다).
+  final LeaseRemoteOf? leaseRemote;
 }
 
 /// 🔴 회차를 잡 규약으로 감싼다 — 세션일 · 달력 · 마감 = 회차 값.

@@ -5,7 +5,7 @@
 // 🔴 넘김 판정 = 신뢰 시각 − 열림 ≥ T(인자 · 값 = `maintenance_overdue_hours`) · 시각 모름 = 판정하지 않는다.
 
 import 'package:domain_contracts/domain_contracts.dart'
-    show AlertCodes, OperatingMode, RunMode;
+    show AlertCodes, MaintenanceWindowEventCodes, OperatingMode, RunMode;
 
 import '../ops/ledger_views.dart' show kstDateText;
 import '../ops/watchdog_ports.dart'
@@ -14,16 +14,16 @@ import '../ops/watchdog_ports.dart'
 /// 창 사건(02 `maintenance_window.event`).
 enum WindowEvent {
   /// 열림.
-  opened('OPENED'),
+  opened(MaintenanceWindowEventCodes.opened),
 
   /// 넘김(P1 · 창당 1건).
-  overdue('OVERDUE'),
+  overdue(MaintenanceWindowEventCodes.overdue),
 
   /// 닫힘.
-  closed('CLOSED'),
+  closed(MaintenanceWindowEventCodes.closed),
 
   /// 부팅 때 재개 실패(P0 · 부팅당 1건).
-  resumeFailed('RESUME_FAILED');
+  resumeFailed(MaintenanceWindowEventCodes.resumeFailed);
 
   const WindowEvent(this.wire);
 

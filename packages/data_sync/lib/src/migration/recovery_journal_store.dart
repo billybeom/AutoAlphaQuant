@@ -11,19 +11,19 @@ import 'dart:convert' show jsonEncode;
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
-    show LedgerFile, OperatingMode, RunMode;
+    show LedgerFile, OperatingMode, RunMode, X1RecoveryResultCodes;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
 import 'migration_journal_store.dart' show MigrationStoreCodes;
 
-/// 복구 거부 코드(계약 등재 = E16i 전 문자열).
+/// 복구 거부 코드(글자 = 계약 `X1RecoveryResultCodes` 참조 · 미결 212).
 abstract final class RecoveryCodes {
   /// 복원(RESTORED) 기록이 없다.
-  static const String notRestored = 'X1_NOT_RESTORED';
+  static const String notRestored = X1RecoveryResultCodes.notRestored;
 
   /// 새 epoch 이 매니페스트 epoch 보다 크지 않다.
-  static const String epochNotAdvanced = 'X1_EPOCH_NOT_ADVANCED';
+  static const String epochNotAdvanced = X1RecoveryResultCodes.epochNotAdvanced;
 }
 
 /// 복구 한 판(이 기기의 마지막 복구).

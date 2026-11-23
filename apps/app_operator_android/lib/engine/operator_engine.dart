@@ -162,6 +162,7 @@ class OperatorEngine {
       deviceId: _bootInputs.deviceId,
       trusted: _bootInputs.trusted,
       operations: _operations,
+      leaseRemote: _bootInputs.leaseRemote,
     );
     final Map<String, JobRunner> table = _runners(ctx);
     final WakePlan plan = planWake(

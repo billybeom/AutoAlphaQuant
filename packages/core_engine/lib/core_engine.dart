@@ -241,6 +241,21 @@ export 'src/migration/transfer_ticket.dart'
         demotionReceiptOf,
         kTransferTicketKeys,
         transferTicketValid;
+// 🆕 E16j-b — X1 기기 이전 화면 VM · 결과 글자(01 §42 · 미결 218 ⓐ).
+export 'src/migration/x1_screens.dart'
+    show
+        X1PlanWizardFacts,
+        X1RecoveryFacts,
+        X1RecoveryRunFacts,
+        X1ScreenTexts,
+        X1TicketFacts,
+        kX1D03Card,
+        kX1PlanOpenThrough,
+        kX1ScreenStaleAfter,
+        x1ActionResultOf,
+        x1PlanStepOpen,
+        x1PlanWizardVmOf,
+        x1RecoveryVmOf;
 // 🆕 E15b — 기동 해석(어느 파일 · 어느 조합 · 반쯤 끝난 커밋 · SPEC v2.44 · 설계 13 §8 R82).
 export 'src/mode/boot_mode.dart'
     show
@@ -411,6 +426,15 @@ export 'src/onboarding/onboarding_steps.dart'
         onboardingStepDetailVmOf,
         onboardingStepIds,
         onboardingStepsVmOf;
+// 🆕 E11k-e3 — O-04 ⑤ 복구 카드 · 첫 클레임 글자(설계 13 §8 R229).
+export 'src/onboarding/recovery_card.dart'
+    show
+        FirstClaimOutcome,
+        RecoveryCardTexts,
+        firstClaimResultText,
+        kOperatorDeviceLabel,
+        kRecoveryCardKind,
+        recoveryCardIssueLines;
 // 🆕 E11p3d-5i — M9 S03 계좌 · 슬리브 매핑(설계 13 §8 R151).
 export 'src/ops/account_mapping.dart'
     show
@@ -497,6 +521,17 @@ export 'src/ops/contribution_setting.dart'
         nextContributionDay,
         p0sContributionConfig,
         splitContributionRows;
+// 🆕 E11q-q5c2 — M7 S7-3b 슬리브 기여 분해 VM(같은 TWR 지수 · 체결 + 원가 종가로 슬리브 손익 재구성 · 설계 13 §8 R228).
+export 'src/ops/contribution_view.dart'
+    show
+        ContributionEvent,
+        ContributionEventKind,
+        ContributionFill,
+        ContributionTexts,
+        contributionDefaultRange,
+        contributionVmOf,
+        kContributionDefaultPreset,
+        kContributionStaleAfter;
 // 🆕 E16a — X5-4 파생 관계 · 동기 조치 · 체인 diff(순수 · 설계 13 §8 R112).
 export 'src/ops/derived_sync.dart'
     show
@@ -556,6 +591,20 @@ export 'src/ops/diagnostics_screen.dart'
         integrityReasonText,
         kDiagnosticsScreenStaleAfter,
         selftestIntegrityResultOf;
+// 🆕 E11q-q5b — M7 S7-2G 열람 게이트 VM · 열람 기록 명령 봉투(설계 13 §8 R223).
+export 'src/ops/disclosure_view.dart'
+    show
+        DisclosureGateTexts,
+        DisclosureViewCommand,
+        disclosureGateVmOf,
+        disclosureMonthOf,
+        disclosureViewCountText,
+        kDisclosureFrequentViews,
+        kDisclosureGateStaleAfter,
+        kDisclosureViewTtl;
+// 🆕 E11q-q5c — M7 S7-3 드로다운 · TUW 맥락 VM(월간 리포트 C1 · C2 와 같은 셈 · 설계 13 §8 R226).
+export 'src/ops/drawdown_context_view.dart'
+    show DrawdownContextTexts, drawdownContextVmOf, kDrawdownContextStaleAfter;
 // 🆕 E11f1 — 일일 평가 스냅숏 계산(평가 · HWM · 드로다운 · 브레이커 재생 · P0S 브레이커 설정 · 설계 13 §8 R47 F6~F8).
 export 'src/ops/equity_snapshot.dart'
     show
@@ -575,6 +624,20 @@ export 'src/ops/equity_snapshot.dart'
         replayStoredBreaker,
         stoppedIncidentIdOf,
         stoppedIncidentOf;
+// 🆕 E11q-d1 — M8 B-01·B-02 핸드북 원고 번들 · 목차 · 쪽(표본 글자 · 원고 없는 장 = 준비 중 · 뒤처짐 = 규칙 지문).
+export 'src/ops/handbook_catalog.dart'
+    show
+        HandbookBlockKinds,
+        HandbookChapter,
+        HandbookLiveKeys,
+        HandbookLiveReading,
+        HandbookManuscript,
+        HandbookManuscriptBlock,
+        HandbookManuscriptPage,
+        HandbookTexts,
+        handbookIndexOf,
+        handbookPageOf,
+        kHandbookManuscript;
 // 🆕 E11q1 — M6 H6-1 보유 현황 VM(설계 13 §8 R171).
 export 'src/ops/holdings_overview.dart'
     show
@@ -741,19 +804,25 @@ export 'src/ops/monthly_contribution_view.dart'
         MonthlyContributionTexts,
         contributionUpdateResultOf,
         monthlyContributionVmOf;
-// 🆕 미결 209 — 월간 리포트 빌더 첫 판(13칸 고정 · D2 값 · SAF-307 메모 · 설계 13 §8 R199) · 🆕 A1 · A2 · C1 · C2(R205) · D4 · E1(R208) · D3(R210) · D1 · G1 · G2(R214).
+// 🆕 미결 209 — 월간 리포트 빌더 첫 판(13칸 고정 · D2 값 · SAF-307 메모 · 설계 13 §8 R199) · 🆕 A1 · A2 · C1 · C2(R205) · D4 · E1(R208) · D3(R210) · D1 · G1 · G2(R214) ·
+// 🆕 신뢰 배지 · 무결성 가림 · 읽을 때 짓기 판정 · 「자세히」(R231).
 export 'src/ops/monthly_report.dart'
     show
         MonthlyEquityFacts,
         MonthlyExecutionFacts,
         MonthlyRegimeFacts,
+        MonthlyReportReadiness,
         MonthlyReportSlot,
         MonthlyReportTexts,
         MonthlyStrategyFacts,
+        MonthlyTrustTexts,
         kMonthlyReportStaleAfter,
         monthlyAllocationValueOf,
         monthlyExposureNoteOf,
-        monthlyReportOf;
+        monthlyLedgerTrustOf,
+        monthlyReportIntegrityMaskedOf,
+        monthlyReportOf,
+        monthlyReportReadinessOf;
 export 'src/ops/next_rebalance_view.dart'
     show NextRebalanceTexts, nextRebalanceVmOf;
 export 'src/ops/operations_config.dart' show OperationsConfig;
@@ -792,7 +861,8 @@ export 'src/ops/p0s_ops_config.dart'
         kP0sLimitOffsetPct,
         kP0sMappedStrategies,
         p0sLimitConfig,
-        p0sRegimeConfigHash;
+        p0sRegimeConfigHash,
+        p0sRuleFingerprint;
 // 🆕 E11p3d-5e — M9 S01 설정 홈(설계 13 §8 R134).
 // 🆕 E3d-1 — P0S 일간 경고(302 · 307 · 308 · 원화 유동성) · 넘은 첫날 알림(04 §1 Level 3 v2.46 · 설계 13 §8 R177).
 // 🆕 E3d-4 — 월 잡 307 · 원화 유동성 월 집계(`p0sMonthlyExposureTally` · 앱 01 §36 K193 · 설계 13 §8 R187).
@@ -819,6 +889,13 @@ export 'src/ops/p0s_warn.dart'
         p0sMonthlyExposureTally,
         p0sWarnConfig,
         p0sWarnEdgeAlerts;
+// 🆕 E11q-q5b — M7 S7-2 성과 탐색 시리즈 VM(시간가중 · 일 · 월 · 연 · 누적/기간별 · 설계 13 §8 R223).
+export 'src/ops/perf_series_view.dart'
+    show
+        PerfSeriesTexts,
+        kPerfGapSnapshotMissing,
+        kPerfSeriesStaleAfter,
+        performanceSeriesOf;
 export 'src/ops/rebalance_events_view.dart'
     show
         RebalanceEventFact,
@@ -826,6 +903,55 @@ export 'src/ops/rebalance_events_view.dart'
         rebalanceEventVmOf,
         rebalanceEventsVmOf,
         rebalanceWeightLinesOf;
+// 🆕 E11q-d1 — M8 D-02 런북 · D-03 긴급 카드 원고 번들(표본 글자 · 원고 없는 런북 = 준비 중 · 인쇄 = 빌드가 할 수 있을 때만).
+export 'src/ops/runbook_catalog.dart'
+    show
+        EmergencyCardTexts,
+        RunbookBody,
+        RunbookEntry,
+        RunbookTexts,
+        emergencyCardVmOf,
+        kRunbookCatalog,
+        runbookIndexVmOf,
+        runbookLinkOf,
+        runbookVmOf;
+// 🆕 E11q-q6 — `L-3` 정기 실사(세션 판정 · 원문 → 와이어 · 수량 대조 · 결과 · 세션 VM · 접수증 · 01 §21-3 · §21-4).
+export 'src/ops/self_report.dart'
+    show
+        SelfReportDiffRow,
+        SelfReportInputInvalid,
+        SelfReportOpenSession,
+        SelfReportOutcome,
+        SelfReportQuantityDiff,
+        SelfReportStartOpen,
+        SelfReportStartRefused,
+        SelfReportStartVerdict,
+        SelfReportTexts,
+        SelfReportTrustTexts,
+        SelfReportWireReady,
+        SelfReportWireResult,
+        kSelfReportDiffCandidates,
+        kSelfReportStaleAfter,
+        selfReportAccountOfDelta,
+        selfReportAccountsOf,
+        selfReportAsOfOf,
+        selfReportDeltaOf,
+        selfReportDiffIdOf,
+        selfReportDiffRowsOf,
+        selfReportLinkOf,
+        selfReportMonthOf,
+        selfReportNextAccountOf,
+        selfReportPayloadDigestOf,
+        selfReportQuantityDiffsOf,
+        selfReportReceiptOf,
+        selfReportResultOf,
+        selfReportSessionVmOf,
+        selfReportSleeveOfStrategy,
+        selfReportStartOf,
+        selfReportStrategiesOf,
+        selfReportSymbolsOf,
+        selfReportTrustBadgeOf,
+        selfReportWireOf;
 export 'src/ops/settings_home.dart'
     show
         SettingsCardCodes,
@@ -1004,6 +1130,7 @@ export 'src/orders/reconcile.dart'
         clearRecon,
         kReconClearOriginCodes,
         kReconRecheckDelay,
+        freshReconDiffIds,
         ledgerDiffIdOf,
         reconcileAccount,
         runReconciliation;
@@ -1121,6 +1248,32 @@ export 'src/repair/repair_rows.dart'
         ledgerRepairRowsOf,
         repairLabelOf,
         repairTargetTextOf;
+// 🆕 E16j-a — X5 정정 마법사 VM 생산자 · 단계 문구 · 결과 글자 · 원문 파싱(설계 13 §8 R227 · 01 §8 미결 217).
+export 'src/repair/repair_wizard.dart'
+    show
+        RepairFillCandidate,
+        RepairInputCodes,
+        RepairResultTexts,
+        RepairRunHold,
+        RepairWizardFacts,
+        RepairWizardTexts,
+        integrityTargetIdOf,
+        interventionStepOutcomeOf,
+        kRepairAmendChainLimit,
+        kRepairBaselineOriginOrder,
+        kRepairCorrectOriginCodes,
+        kRepairOriginLabels,
+        parseRepairAmounts,
+        repairAsOf,
+        repairBoundaryOf,
+        repairFillLabelOf,
+        repairStageRowsOf,
+        repairWizardResultOf,
+        repairWizardVmOf,
+        repairableDiffsOf,
+        x5SessionIdOf,
+        x5SessionPrefixOf,
+        x5TargetOfSession;
 export 'src/repair/reversal_plan.dart'
     show
         FillSnapshot,

@@ -8,7 +8,10 @@
 // 🆕 E11p4f(R155) — 둘째 칸 = 모의 개시 가상 초기금(`submitSelfReportBalance(simOpening)` · 01 §21-3 · 06 M5-14 · X6-5 ⓑ):
 //    원문 검사(엔진 `simOpeningWireOf` — 틀리면 큐 적재 없이 `INPUT_INVALID`) → 지금 설정 판 등재(발주자 결정 사람 값 ·
 //    R153 · R154) → 엔진 `declareSimOpening`(sim 파일 · 한 트랜잭션) · 접수증 글자 = 엔진 문구 그대로.
-//    정기 실사(`periodicAudit` · L-3) = 구현 전(오류) · 🆕 R156 화면 주입 = M5-14(`safetySimOpeningCommandApiProvider`).
+//    🆕 R156 화면 주입 = M5-14(`safetySimOpeningCommandApiProvider`).
+// 🆕 E11q-q6 — 셋째 칸 = 정기 실사(`submitSelfReportBalance(periodicAudit)` · `L-3` · 01 §21-3 · §21-4): 세션(이 폰) →
+//    엔진 원문 검사(`INPUT_INVALID` 칸 글자 · 세션 밖 `SELF_REPORT_OUTSIDE_SESSION`) → 신뢰 시각 · 리스 · 무결성(보관) →
+//    원장 한 트랜잭션(실사 · 줄 · `ledger_diff` CANON_SELF_REPORT · `command_inbox`) · 접수증 글자 = 엔진.
 // 🔴 기기 id 가 없으면 주입 자체를 하지 않는다(버튼 부재 — 셸 규약) · 화면 상태 없음(온보딩 전) = 오류.
 
 import 'dart:math';
@@ -17,6 +20,7 @@ import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
 import 'package:core_engine/core_engine.dart'
     show
         AlertAckCommand,
+        DisclosureViewCommand,
         P0sOpsConfig,
         SimOpeningCodes,
         SimOpeningCommand,
@@ -47,6 +51,7 @@ import 'package:data_sync/data_sync.dart'
         SqliteKillSwitchStore,
         SqliteLeaseGate,
         SqliteOnboardingStore,
+        SqlitePerformanceSource,
         SqliteWhatIfStateSource,
         onboardingRejected;
 import 'package:domain_contracts/domain_contracts.dart';
@@ -54,16 +59,20 @@ import 'package:sqlite3/sqlite3.dart' show Database, ResultSet;
 
 import 'operator_ops_summary.dart' show operatorRebalanceSourceOf;
 import 'operator_runtime.dart';
+import 'operator_self_report.dart' show OperatorSelfReport;
 import 'operator_view.dart';
 
 /// 명령 API(operator) — 지금 = 알림 수신 확인 · 모의 개시 가상 초기금.
 class OperatorCommandApi implements CommandApi {
   /// 만든다 — [random] = 명령 id · nonce 원천(기본 = `Random.secure()`).
-  OperatorCommandApi(this._rt, {Random? random})
+  OperatorCommandApi(this._rt, {Random? random, this.selfReport})
     : _random = random ?? Random.secure();
 
   final OperatorRuntime _rt;
   final Random _random;
+
+  /// 🆕 E11q-q6 — `L-3` 정기 실사(없음 = 정기 실사 구현 없음 · 오류).
+  final OperatorSelfReport? selfReport;
 
   /// 이 인스턴스가 낸 명령의 접수증(명령 id → 접수증).
   final Map<String, CommandReceipt> _issued = <String, CommandReceipt>{};
@@ -176,9 +185,34 @@ class OperatorCommandApi implements CommandApi {
   Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score) =>
       _none('submitBlindReviewScore');
 
+  /// 🆕 E11q-q5b(R223) — `S7-2G` 「그래도 보기」 열람 기록(폰 안 · 같은 원장 한 행 · 무결성 점검 중 = 보류 행) ·
+  /// 접수증 글자 = 엔진 글자 그대로 · 화면 상태 · 기기 id 가 없으면 실패(게이트에 머문다 · 접수 실패 1줄).
   @override
-  Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event) =>
-      _none('recordDisclosureView');
+  Future<CommandReceipt> recordDisclosureView(DisclosureViewEvent event) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('열람 기록: 화면 상태 없음(온보딩 전)');
+    final String? deviceId = _rt.deviceId;
+    if (deviceId == null) throw StateError('열람 기록: 기기 id 없음');
+    final DisclosureViewCommand c = DisclosureViewCommand.issue(
+      event: event,
+      deviceId: deviceId,
+      nowUtc: _rt.clock.nowUtc(),
+      random: _random,
+    );
+    final CommandReceipt receipt =
+        SqlitePerformanceSource(v.db, clock: _rt.clock).record(
+          c,
+          runMode: v.flags.runMode,
+          operatingMode: v.flags.operatingMode,
+          leaseEpoch: SqliteLeaseGate(
+            v.db,
+            mode: v.flags.runMode,
+            clock: _rt.clock,
+          ).epoch(),
+        );
+    _issued[receipt.commandId] = receipt;
+    return receipt;
+  }
 
   /// 🆕 E11q3(R174) — 실입금 등록(폰 전용 · 01 §14-2) — 만료 판정 시각 = **신뢰 시각**(명령 서버 시각 자리 · R22 D9).
   /// 모르면 등록하지 않는다: 원장 · 바인딩 · 감사 쓰기 0 · 엔진 거부 접수증 `TRUSTED_TIME_UNKNOWN`(기기 시계로 대신하지 않는다) ·
@@ -236,13 +270,17 @@ class OperatorCommandApi implements CommandApi {
   Future<CommandReceipt> skipAdvice(AdviceSkipSubmission submission) =>
       _none('skipAdvice');
 
-  /// 🆕 R155 — 모의 개시 가상 초기금(자동 매매 갈래) · 정기 실사 = 구현 전.
+  /// 🆕 R155 — 모의 개시 가상 초기금(자동 매매 갈래) · 🆕 E11q-q6 정기 실사(`periodicAudit` · `L-3` — [selfReport]).
   @override
   Future<CommandReceipt> submitSelfReportBalance(
     SelfReportSubmission submission,
   ) async {
     if (submission.purpose != SelfReportPurpose.simOpening) {
-      return _none('submitSelfReportBalance(정기 실사)');
+      final OperatorSelfReport? sr = selfReport;
+      if (sr == null) return _none('submitSelfReportBalance(정기 실사)');
+      final CommandReceipt r = sr.submit(submission, random: _random);
+      _issued[r.commandId] = r;
+      return r;
     }
     final String? deviceId = _rt.deviceId;
     if (deviceId == null) {

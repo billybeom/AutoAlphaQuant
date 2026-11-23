@@ -212,7 +212,14 @@ abstract class SafetyState with _$SafetyState {
 
     /// 🆕 v1.19(01 §28 · K21 · 엔진 E15b R82 W7) — 기동은 하되 배치를 멈추는 hold 사유(값 ⊆ `SafetyHoldCodes` ·
     /// 읽을 때 파생 = 엔진 `ModeStartupGate.holds`). 빈 = hold 없음. 🔴 기동 거부(`ModeStartupCodes`)는 여기 오지 않는다.
+    /// 🆕 v1.35(01 §44 · K295 · 미결 219) — 🔴 **화면 미참조**(코드 축 · 표시는 [holdLabels]).
     @Default(<String>[]) List<String> holds,
+
+    /// 🆕 v1.35(01 §44 · K295 · 미결 219 · 01 §1-5 «열거값에는 짝 Label») — hold 한 줄 문장(엔진 완성 · 예 «실전 키 검증 전 —
+    /// 자동 매매 배치를 멈췄습니다»). 🔴 `holds[i]` ↔ `holdLabels[i]` **같은 차례 · 같은 길이**(C-68 ⑥) · 화면은 이 문장을
+    /// 차례대로 그대로 그린다(hold 줄 한 꼴 · 색 · 아이콘을 코드로 고르지 않는다 · 빈 = 줄 없음) · 문장 사전 = 엔진 한 벌
+    /// (S05 `RunModeCard.holdLabel` 과 같은 문장 — 미결 220 ⓓ).
+    @Default(<String>[]) List<String> holdLabels,
     required AsOf asOf,
   }) = _SafetyState;
 

@@ -174,4 +174,55 @@ abstract final class SafetyLabels {
 
   /// 위저드를 읽지 못했다(원천 오류 — «전제 밖»과 다르다).
   static const String handoverWizardReadFailed = '실전 전환 화면을 읽지 못했습니다.';
+
+  // ── 🆕 X1 기기 이전(E16j-b · 01 §42) — 읽기 실패 · 칸 이름만(머리 · 단계 · 상태 · 줄 · 버튼 · 시각 · 해시 · 결과 = 엔진 ·
+  //    제출 자체 실패 = [submitNotAccepted]) ──
+
+  /// 이전 화면을 읽지 못했다.
+  static const String x1ReadFailed = '기기 이전 화면을 읽지 못했습니다.';
+
+  /// 단계 칸 이름.
+  static const String x1Steps = '단계';
+
+  /// 재발급 칸 이름.
+  static const String x1Reissue = '다시 받을 키';
+
+  // ── 🆕 X5 정정 마법사(설계 13 §8 R227 · 01 §41 K247~K263) — 칸 머리 · 버튼만
+  //    (머리 · 근거 · 원인 칩 · 단계 · 시각 · 후보 · 동작 · 결과 글자 = 엔진 · 제출 자체 실패 = [submitNotAccepted]) ──
+
+  /// 마법사를 읽지 못했다(원천 오류).
+  static const String repairReadFailed = '정정 마법사를 읽지 못했습니다.';
+
+  /// 탐지 근거 머리.
+  static const String repairDiff = '탐지 근거';
+
+  /// 원인 고르기 머리(칩 글자 = 엔진).
+  static const String repairOrigin = '원인';
+
+  /// 마찰 단계 머리.
+  static const String repairStages = '마찰 단계';
+
+  /// 사전 저널 세 칸(원문 · 화면 검증 0).
+  static const String repairJournalRationale = '실행 전 근거';
+  static const String repairJournalExpected = '기대 결과';
+  static const String repairJournalRuleCited = '근거 규칙';
+
+  /// 저널 제출.
+  static const String repairJournalSubmit = '저널 남기기';
+
+  /// 정정 폼 머리 · 고칠 체결 머리.
+  static const String repairCorrection = '정정';
+  static const String repairFill = '고칠 체결';
+
+  /// 무효로 하기(끄면 네 칸을 다시 적는다).
+  static const String repairVoid = '무효로 하기';
+
+  /// 다시 적는 네 칸(원문 · 화면 검증 0).
+  static const String repairQuantity = '수량';
+  static const String repairPrice = '가격';
+  static const String repairCommission = '수수료';
+  static const String repairTax = '세금';
+
+  /// 정정 제출.
+  static const String repairCorrectSubmit = '정정 실행';
 }

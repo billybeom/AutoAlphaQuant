@@ -4,6 +4,8 @@
 //    ③ 🔴 한 번에 한 세션 · 만료 세션은 새 세션을 막지 않는다 ④ 3단계 저널 6갈래(없음 · 이탈 아님 ·
 //    사전 필드 빈칸 · 다른 세션이 씀 · 🔴 예산 소진 = 메모) ⑤ 신뢰 시각 모름 = 닫기도 거부
 //    ⑥ 재전달 = 처음 결과(닫힘 포함) ⑦ 한 트랜잭션 ⑧ 최근 열린 세션.
+//    🆕 E16j-a(01 §8 미결 217 ⓖ) ⑨ 3단계 사전 저널 쓰기 — 살아 있는 세션에 붙임 · 저널 + 단계 + 명령 한 트랜잭션 ·
+//       거부 = 명령 행만(신뢰 시각 · 저널 id 겹침 · 세션 없음 · 차례 아님 · 빈칸 · 예산 소진) · 재전달 = 처음 결과.
 import 'dart:io';
 
 import 'package:core_engine/core_engine.dart'
@@ -286,5 +288,188 @@ void main() {
       "INSERT INTO intervention_step(session_id, stage, occurred_at, outcome, decision_id) VALUES ('x', 1, '2026-11-05T00:00:00', 'PASSED', NULL)",
     );
     expect(() => store.session('x'), throwsFormatException);
+  });
+
+  group('🆕 E16j-a ⑨ 3단계 사전 저널 쓰기(writeJournalStage)', () {
+    int k = 0;
+    InterventionStepResult write({
+      String journalId = 'JIV-1',
+      String before = '근거',
+      String expected = '기대',
+      String rule = 'RULE_X5',
+      String? cmd,
+    }) => store.writeJournalStage(
+      commandId: cmd ?? 'jc-${k++}',
+      payloadDigest: 'dg',
+      journalId: journalId,
+      rationaleBefore: before,
+      expectedOutcome: expected,
+      ruleCited: rule,
+    );
+
+    int count(String sql) => db.select(sql).length;
+
+    Map<String, Object?> command(String id) {
+      final Row r = db.select(
+        'SELECT * FROM command_inbox WHERE command_id = ?',
+        <Object?>[id],
+      ).single;
+      return <String, Object?>{
+        'kind': r['kind'],
+        'state': r['state'],
+        'reject': r['reject_reason_code'],
+        'decision': r['decision_id'],
+      };
+    }
+
+    test('살아 있는 세션 2단계 뒤 = 저널(이탈 · 사전 3칸 원문) + 3단계 통과 + 명령 행 · 냉각 시작', () {
+      expect(step('x5:ld-1:1', 1).executed, isTrue);
+      expect(step('x5:ld-1:1', 2).executed, isTrue);
+      at(const Duration(hours: 1));
+      final InterventionStepResult r = write(before: ' 근거 ', cmd: 'jc-ok');
+      expect((r.executed, r.reasonCode, r.replayed), (true, null, false));
+      final Row j = db
+          .select("SELECT * FROM decision_journal WHERE journal_id = 'JIV-1'")
+          .single;
+      expect(
+        (
+          j['is_deviation'],
+          j['rationale_before'],
+          j['expected_outcome'],
+          j['rule_cited'],
+          j['kind'],
+          j['note'],
+          j['strategy_id'],
+          j['trade_date'],
+          j['signal_value'],
+        ),
+        (
+          1,
+          '근거',
+          '기대',
+          'RULE_X5',
+          null,
+          null,
+          'P0S',
+          '2026-11-05',
+          '{"session_id":"x5:ld-1:1"}',
+        ),
+      );
+      final InterventionState s = store.session('x5:ld-1:1')!;
+      expect((s.nextStage, s.journalId), (4, 'JIV-1'));
+      expect(
+        s.coolingEndsAtUtc,
+        _t0.add(const Duration(hours: 25)),
+        reason: '냉각 = 3단계 통과 시각 + 24h',
+      );
+      expect(command('jc-ok'), <String, Object?>{
+        'kind': 'INTERVENTION_JOURNAL',
+        'state': 'EXECUTED',
+        'reject': null,
+        'decision': 'JIV-1',
+      });
+      // 같은 명령 = 처음 결과(쓰기 0).
+      final InterventionStepResult again = write(
+        journalId: 'JIV-9',
+        cmd: 'jc-ok',
+      );
+      expect((again.executed, again.replayed), (true, true));
+      expect(
+        count("SELECT 1 FROM decision_journal WHERE journal_id = 'JIV-9'"),
+        0,
+      );
+    });
+
+    test('🔴 거부 = 명령 행만(저널 0 · 단계 0)', () {
+      void rejects(String code, InterventionStepResult Function() call) {
+        final int journals = count('SELECT 1 FROM decision_journal');
+        final int steps = count('SELECT 1 FROM intervention_step');
+        final InterventionStepResult r = call();
+        expect((r.executed, r.reasonCode), (false, code));
+        expect(count('SELECT 1 FROM decision_journal'), journals);
+        expect(count('SELECT 1 FROM intervention_step'), steps);
+      }
+
+      rejects('INTERVENTION_STAGE_OUT_OF_ORDER', write); // 세션 없음
+      expect(step('x5:ld-1:1', 1).executed, isTrue);
+      rejects('INTERVENTION_STAGE_OUT_OF_ORDER', write); // 2단계 차례
+      expect(step('x5:ld-1:1', 2).executed, isTrue);
+      rejects('INTERVENTION_JOURNAL_MISSING', () => write(before: '  '));
+      rejects('INTERVENTION_JOURNAL_MISSING', () => write(rule: ''));
+      journal('JIV-1');
+      rejects('JOURNAL_ID_TAKEN', write);
+      trusted.at = null;
+      rejects('TRUSTED_TIME_UNKNOWN', () => write(journalId: 'JIV-2'));
+      trusted.at = _t0;
+      // 예산 소진(12개월 4회) = 메모 필요 → 이 제출(메모 0)은 미연결.
+      for (int i = 0; i < 4; i++) {
+        db.execute(
+          "INSERT INTO discretion_adjustment(adjustment_id, applied_at, delta_pct, decision_id, reason) VALUES (?, '2026-0${i + 1}-01T00:00:00.000Z', 0.05, ?, '근거')",
+          <Object?>['a$i', 'd$i'],
+        );
+      }
+      rejects('INTERVENTION_JOURNAL_MISSING', () => write(journalId: 'JIV-3'));
+      expect(
+        count(
+          "SELECT 1 FROM command_inbox WHERE kind = 'INTERVENTION_JOURNAL' AND state = 'REJECTED'",
+        ),
+        7,
+      );
+      expect(() => write(journalId: ' '), throwsArgumentError);
+    });
+
+    test('🔴 살아 있는 세션 = 만료 세션이 뒤에 저장돼도 살아 있는 쪽에 붙인다(행 차례와 무관)', () {
+      // 살아 있는 세션 A(2단계 통과)를 먼저 넣고, 실행 창이 지난 세션 B 를 뒤에 넣는다.
+      for (final (String sid, int stage, Duration ago, String? d)
+          in <(String, int, Duration, String?)>[
+            ('x5:ld-a:1', 1, const Duration(minutes: 2), null),
+            ('x5:ld-a:1', 2, const Duration(minutes: 1), null),
+            ('x5:ld-b:1', 1, const Duration(hours: 52), null),
+            ('x5:ld-b:1', 2, const Duration(hours: 51), null),
+            ('x5:ld-b:1', 3, const Duration(hours: 50), 'J-old'),
+          ]) {
+        insertInterventionStep(
+          db,
+          sessionId: sid,
+          stage: stage,
+          atUtc: _t0.subtract(ago),
+          outcome: _pass,
+          decisionId: d,
+        );
+      }
+      final InterventionStepResult r = write(journalId: 'JIV-a');
+      expect((r.executed, r.reasonCode), (true, null));
+      expect(store.session('x5:ld-a:1')!.journalId, 'JIV-a');
+      expect(store.session('x5:ld-b:1')!.nextStage, 4);
+    });
+
+    test('🆕 대상의 열린 세션 id = 닫히지 않은 것 가운데 늦게 연 것(다른 대상 · 닫힌 것 빠짐)', () {
+      expect(x5OpenSessionIdOf(db, 'ld-1'), isNull);
+      expect(step('x5:ld-1:1', 1).executed, isTrue);
+      expect(
+        step('x5:ld-1:1', 2, outcome: InterventionOutcome.abandoned).closed,
+        isTrue,
+      );
+      expect(x5OpenSessionIdOf(db, 'ld-1'), isNull);
+      at(const Duration(minutes: 1));
+      expect(step('x5:ld-1:2', 1).executed, isTrue);
+      expect(x5OpenSessionIdOf(db, 'ld-1'), 'x5:ld-1:2');
+      expect(x5OpenSessionIdOf(db, 'ld-'), isNull, reason: '접두가 대상 id 째로');
+      expect(x5OpenSessionIdOf(db, 'ld-2'), isNull);
+    });
+
+    test('만료 · 닫힌 세션에는 붙이지 않는다(살아 있는 세션만)', () {
+      toJournal('x5:ld-1:1');
+      at(const Duration(hours: 49)); // 만료
+      expect(
+        write(journalId: 'JIV-x').reasonCode,
+        'INTERVENTION_STAGE_OUT_OF_ORDER',
+      );
+      expect(step('x5:ld-2:1', 1).executed, isTrue);
+      expect(step('x5:ld-2:1', 2).executed, isTrue);
+      expect(write(journalId: 'JIV-y').executed, isTrue);
+      expect(store.session('x5:ld-2:1')!.journalId, 'JIV-y');
+      expect(store.session('x5:ld-1:1')!.journalId, 'J');
+    });
   });
 }

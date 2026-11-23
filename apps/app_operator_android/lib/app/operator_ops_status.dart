@@ -40,7 +40,6 @@ import 'package:data_sync/data_sync.dart'
         HealthchecksErrorKind,
         LedgerDiagnosticsSource,
         SqliteJobRunLog,
-        SqliteLeaseGate,
         modeStartedAtUtc,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -59,6 +58,7 @@ import 'package:flutter/foundation.dart' show Listenable;
 import 'package:trading_runtime/trading_runtime.dart'
     show buildWatchdogBoard, kstDateOf, watchdogBoardInputsFor;
 
+import '../engine/lease_wiring.dart' show operatorLeaseGate;
 import 'operator_backup.dart';
 import 'operator_runtime.dart';
 import 'operator_settings_repository.dart';
@@ -324,10 +324,12 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
     if (id == null) {
       throw StateError('기기: 기기 id 없음');
     }
-    final LeaseVerdict lease = await SqliteLeaseGate(
+    // 🆕 R229 — 주문을 막는 그 판정(원격 = live · simBroker).
+    final LeaseVerdict lease = await operatorLeaseGate(
       v.db,
       mode: v.flags.runMode,
       clock: _rt.clock,
+      remote: _rt.leaseRemote,
     ).check();
     return deviceAccessVmOf(
       DeviceAccessFacts(

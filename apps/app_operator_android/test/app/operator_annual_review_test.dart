@@ -118,7 +118,7 @@ void main() {
     expect(first.entries, hasLength(2));
   });
 
-  test('🔴 지금 레지스트리 = 🆕 R220 S7-7 연간 리뷰 · S7-10 이행 갭 · R173 리밸런싱 회차 등록 → 목차 행 3(드로다운 = 아직) · 서약 화면 미등록 → 서약 링크 0(12월이어도) · S12 는 등록', () async {
+  test('🔴 지금 레지스트리 = 🆕 R220 S7-7 연간 리뷰 · S7-10 이행 갭 · R173 리밸런싱 회차 등록 · 🆕 R226 드로다운 → 목차 행 4(전부) · 서약 화면 미등록 → 서약 링크 0(12월이어도) · S12 는 등록', () async {
     const ShellRouteBodies bodies = kOperatorRouteBodies;
     expect(
       bodies.byPattern.containsKey(AppRoutes.settingsAnnualReview),
@@ -142,8 +142,9 @@ void main() {
         AppRoutes.reportAnnual,
         AppRoutes.ledgerExecutionGap,
         AppRoutes.rebalanceHistory,
+        AppRoutes.performanceDrawdown,
       ],
-      reason: '등록된 화면만(S01 원칙) — R220 S7-7 · S7-10 · R173 회차 목록이 서서 그 행들이 열린다',
+      reason: '등록된 화면만(S01 원칙) — R220 S7-7 · S7-10 · R173 회차 목록 · 🆕 R226 드로다운이 서서 그 행들이 열린다',
     );
     expect(vm.pledgeLink, isNull);
   });

@@ -28,9 +28,11 @@ import 'package:data_sync/data_sync.dart'
         OnboardingChoice,
         OpsConfigRead,
         OpsConfigReady,
+        RecoveryCardFact,
         SqliteOnboardingProgressStore,
         SqliteOnboardingStore,
         SqlitePledgeStore,
+        SupabaseFirstClaim,
         currentP0sOpsConfig,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -261,6 +263,9 @@ class OperatorOnboardingRepository implements OnboardingRepository {
     final OnboardingChoice? c = store.choice();
     if (c == null) throw StateError('마무리: 운영 방식을 먼저 고르십시오');
     final OpsConfigRead cfg = currentP0sOpsConfig(_db);
+    // 🆕 E11k-e3(R229) — ⑤ 복구 카드 = 첫 클레임 흐름(없음 = 원천 없음 · 카드 줄 = 열렸을 때만 엔진이 부른다 — 그때 발급).
+    final SupabaseFirstClaim? claim = _rt.firstClaim;
+    final RecoveryCardFact? card = claim?.fact();
     return OnboardingFinishFacts(
       mode: c.operatingMode,
       committed: c.committed,
@@ -283,6 +288,10 @@ class OperatorOnboardingRepository implements OnboardingRepository {
               last: OperatorGolden.lastRecord(_db),
             )
           : null,
+      recoveryCardDone: card?.done,
+      recoveryCardPending: card?.pending ?? false,
+      recoveryCardLines: card?.lines ?? const <String>[],
+      recoveryCardIssue: claim?.issueLines,
     );
   }
 

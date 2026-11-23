@@ -13,6 +13,7 @@ import 'package:core_engine/core_engine.dart'
         ExchangeCalendar,
         LiveObservationConfig,
         Market,
+        OperationsConfig,
         SecretVault,
         TrustedClock,
         WatchdogRemote,
@@ -26,6 +27,7 @@ import 'package:data_sync/data_sync.dart'
         P0sHumanDecision,
         SqliteJournalSource,
         SupabaseAuth,
+        SupabaseFirstClaim,
         SupabaseServerTime,
         contributionRowsOf,
         journalRangePresetsFromLedger,
@@ -38,12 +40,14 @@ import 'package:domain_contracts/domain_contracts.dart'
         ContributionSetting,
         DateRange,
         FeatureFlags,
-        SleeveCatalogEntry;
+        SleeveCatalogEntry,
+        TradeDate;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
 
 import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
+import '../engine/lease_wiring.dart' show LeaseRemoteOf;
 import '../engine/ledger_files.dart';
 import '../engine/operator_engine.dart' show EngineWakeReport;
 import '../secret/secret_handoff.dart' show ClipboardJanitor, SecretHandoff;
@@ -75,9 +79,13 @@ class OperatorRuntime {
     this.refreshTrusted,
     this.supabaseTime,
     this.supabaseAuth,
+    this.firstClaim,
+    this.leaseRemote,
     this.biometricSign,
     this.golden,
     this.liveObservation,
+    this.operations,
+    this.freshRecon,
   }) : secure = secure ?? SecureScreen(_noSecure),
        trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
@@ -140,12 +148,28 @@ class OperatorRuntime {
   /// 🆕 E11k-d2(R216) — o_07 ③ 로그인 · 세션(접근 토큰 = 메모리 · 새로고침 토큰 = 금고 · 없음 = 로그인 구현 없음).
   final SupabaseAuth? supabaseAuth;
 
+  /// 🆕 E11k-e3(R229) — O-04 ⑤ 복구 카드 · 첫 클레임 흐름(프로세스에 하나 — 발급한 카드를 메모리에 쥔다 · 없음 = 기기 id 없음 ·
+  /// 플랫폼 밖 → ⑤ 원천 없음).
+  final SupabaseFirstClaim? firstClaim;
+
+  /// 🆕 E11k-e3(R229 F8) — 원격 리스 원천(live · simBroker 판정에만 끼운다 · 엔진과 같은 하나 · 없음 = 실물 전과 같다).
+  final LeaseRemoteOf? leaseRemote;
+
   /// 🆕 E11o-d(R167) — 골든 기기 실행기(자산 = 엔진 패키지 · 없음 = 플랫폼 밖 → S10 «판정 보류» · ④ 원천 없음).
   final OperatorGolden? golden;
 
   /// 🆕 E11q-c1(R191) — M5-11 위저드 커밋 창 판정의 관찰 일수(운영 설정 `live_dry_run_observation_trading_days` ·
   /// 없음 = 못 읽음 · 플랫폼 밖 → 위저드 = «운영 설정 없음» 오류 · 지어내지 않는다).
   final LiveObservationConfig? liveObservation;
+
+  /// 🆕 E16j-b — 운영 설정(자산 `operations.json` · X1 관찰 일수 · 재개 사다리 — 🔴 잠정 값 그대로 읽기만 · 없음 = 못 읽음 ·
+  /// 플랫폼 밖 → X1 게이트 · RECOVERY_FULL 판정 0).
+  final OperationsConfig? operations;
+
+  /// 🆕 E16j-a(R227 · 01 §8 미결 217 ⓒ) — 정정 직전 재대사(화면 상태의 원장 · 그 집행일 → diff id 들 · 못 하면 null ·
+  /// 없음 = 플랫폼 밖 → 정정 = «잠시 뒤 다시» · 지어내지 않는다).
+  final Future<Set<String>?> Function(OperatorView view, TradeDate tradeDate)?
+  freshRecon;
 
   /// 🆕 E11p4j(R159) — O-04 ③ 생체 확인(플랫폼 · `AndroidOps.biometricSign` · 없음 = 할 수 없음).
   final Future<BiometricOutcome> Function()? biometricSign;

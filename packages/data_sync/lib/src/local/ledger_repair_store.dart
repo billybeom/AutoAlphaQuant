@@ -9,33 +9,44 @@
 //    🔴 재생 앞 = 저장 포지션 → 재생 뒤 음수 없음 → 행 넣기 → 주문 합 · 포지션 다시 셈 → `ledger_repair` + 상세 → diff RESOLVED.
 //    🔴 `RECON_MISMATCH` 플래그는 그대로(해제 = 사람 `clearReconBlock`).
 // 🟡 파생 FORK 기록 · 아카이브 재생성 = E16f3.
+// 🆕 E16j-a(01 §8 미결 217 ⓐ · 계약 v1.32 K252~K256) — 🔴 정정 · 새 기준점 커밋 = 개입 세션 5단계: 같은 트랜잭션 안에서 세션이
+//    실행 창 안인지(`interventionExecutable`) · 결정 = 3단계 저널(`decision == journalId` — 호출자가 결정 id 를 넘기지 않는다)을 보고,
+//    통과하면 쓰기 끝에 5단계 통과 행을 함께 쓴다(세션이 닫힌다) · 아니면 개입 거부 코드(쓰기 0).
+//    아무것도 안 하기(`acceptWithSession`) = 이 diff 의 마법사 세션 DO_NOTHING + diff ACCEPTED 한 트랜잭션.
+//    거부 사전 = 계약(`BaselineApplyResultCodes` · 공용 신뢰 시각 — 01 §8 미결 212 ① repair 몫).
 
-import 'dart:convert' show jsonEncode;
+import 'dart:convert' show jsonDecode, jsonEncode;
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AdviceRejectCodes,
+        BaselineApplyResultCodes,
         CostSource,
         DiffStatus,
         FillKind,
         FlagIds,
         LedgerPair,
+        SafetyCommonResultCodes,
         hashFormatVersion;
 import 'package:sqlite3/sqlite3.dart';
 
+import '../market/market_store.dart' show inLedgerTransaction;
 import 'derived_sync_store.dart' show storedDayStampsOf;
+import 'intervention_store.dart'
+    show insertInterventionStep, interventionSessionOf, interventionSessionsOf;
 import 'ledger_fix.dart' show withLedgerFix;
 import 'ledger_hash_stamper.dart' show ledgerLinesByDay;
 import 'position_replay_sql.dart' show ledgerFillRowsOf, writeReplayedPosition;
 
-/// 새 기준점 거부 코드(core `BaselineCodes` 밖의 저장 쪽 사유).
+/// 새 기준점 거부 코드(core `BaselineCodes` 밖의 저장 쪽 사유 · 글자 = 계약 사전 참조 — 01 §8 미결 212 ①).
 abstract final class BaselineStoreCodes {
   /// 신뢰 시각 모름.
-  static const String trustedTimeUnknown = 'TRUSTED_TIME_UNKNOWN';
+  static const String trustedTimeUnknown =
+      SafetyCommonResultCodes.trustedTimeUnknown;
 
   /// `LEDGER_INTEGRITY` 가 서 있지 않다.
-  static const String flagNotSet = 'BASELINE_FLAG_NOT_SET';
+  static const String flagNotSet = BaselineApplyResultCodes.flagNotSet;
 }
 
 /// 새 기준점 결과.
@@ -119,6 +130,130 @@ String correctionFillIdOf(String targetFillId, FillKind kind) => switch (kind) {
   FillKind.original => throw ArgumentError.value(kind, 'kind', '정정 행이 아니다'),
 };
 
+/// 🆕 E16j-a — 지금 자가 대조 판정(PRAGMA → 스탬프 사슬 · 마법사 원천 · 새 기준점 저장이 같이 쓴다 · 귀속 실패 = 불일치).
+LedgerIntegrityVerdict ledgerIntegrityVerdictOf(Database db) {
+  final List<String> pragma = <String>[
+    for (final Row r in db.select('PRAGMA integrity_check'))
+      r.values.first.toString(),
+  ];
+  if (pragma.length != 1 || pragma.single != 'ok') {
+    return const LedgerIntegrityVerdict.failed(
+      LedgerIntegrityReason.sqliteIntegrity,
+      daysChecked: 0,
+    );
+  }
+  final List<StoredDayStamp> stamps = storedDayStampsOf(db);
+  if (stamps.isEmpty) {
+    return const LedgerIntegrityVerdict.ok(
+      daysChecked: 0,
+      checkedThrough: null,
+    );
+  }
+  try {
+    return verifyLedgerChain(stamps, ledgerLinesByDay(db));
+  } on LedgerHashError {
+    return const LedgerIntegrityVerdict.failed(
+      LedgerIntegrityReason.attribution,
+      daysChecked: 0,
+    );
+  }
+}
+
+/// 🆕 E16j-a(01 §8 미결 217 ⓑ) — diff → 정정할 체결 후보(🔴 `correctFill` 이 받는 것만 — 브로커 체결 · 주문 끝남 · REVERSAL 아님 ·
+/// 되돌려지지 않음 · 최근 것 먼저).
+///
+/// 고르는 열쇠 = diff `delta` — 보유 수량(`QTY`) = 그 종목(KR · 전략 전부 — 계좌 맵은 원장 밖) · 계좌 모르는 전략
+/// (`UNMAPPED_STRATEGY`) = 그 전략의 그 종목 · 체결 건(`FILL_COUNT` · `GHOST_FILL`) = 그 주문 · 원장에 없는 주문(`UNKNOWN_ORDER`) = 0.
+List<RepairFillCandidate> repairFillCandidatesOf(
+  Database db,
+  StoredLedgerDiff d,
+) {
+  final Object? j = jsonDecode(d.delta);
+  if (j is! Map<String, Object?>) return const <RepairFillCandidate>[];
+  final String? kind = j['kind'] as String?;
+  final String? key = j['key'] as String?;
+  final String account = (j['account'] as String?) ?? '';
+  if (key == null) return const <RepairFillCandidate>[];
+  final String? order =
+      kind == ReconKind.fillCount.code || kind == ReconKind.ghostFill.code
+      ? key
+      : null;
+  final String? symbol =
+      kind == ReconKind.quantity.code || kind == ReconKind.unmappedStrategy.code
+      ? key
+      : null;
+  if (order == null && symbol == null) return const <RepairFillCandidate>[];
+  final String? strategy =
+      kind == ReconKind.unmappedStrategy.code && account.startsWith('?')
+      ? account.substring(1)
+      : null;
+  final ResultSet groups = order != null
+      ? db.select(
+          'SELECT DISTINCT i.market, i.symbol, i.strategy_id FROM broker_orders b '
+          'JOIN order_intents i ON i.intent_id = b.intent_id WHERE b.broker_order_no = ?',
+          <Object?>[order],
+        )
+      : db.select(
+          'SELECT DISTINCT i.market, i.symbol, i.strategy_id FROM executions e '
+          'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
+          'JOIN order_intents i ON i.intent_id = b.intent_id '
+          "WHERE i.market = 'KR' AND i.symbol = ?${strategy == null ? '' : ' AND i.strategy_id = ?'} "
+          'ORDER BY i.strategy_id',
+          <Object?>[symbol, ?strategy],
+        );
+  final Map<String, String> statusOf = <String, String>{
+    for (final Row r in db.select(
+      'SELECT b.broker_order_no, i.status FROM broker_orders b '
+      'JOIN order_intents i ON i.intent_id = b.intent_id',
+    ))
+      r['broker_order_no'] as String: r['status'] as String,
+  };
+  final List<({RepairFillCandidate c, int at})> out =
+      <({RepairFillCandidate c, int at})>[];
+  int seq = 0;
+  for (final Row g in groups) {
+    final String market = g['market'] as String;
+    final String sym = g['symbol'] as String;
+    final List<LedgerFillRow> rows = ledgerFillRowsOf(
+      db,
+      market,
+      sym,
+      g['strategy_id'] as String,
+    );
+    final Set<String> reversed = reversedFillIdsOf(rows);
+    for (final LedgerFillRow r in rows) {
+      seq++;
+      if (r.kind == FillKind.reversal || reversed.contains(r.executionId)) {
+        continue;
+      }
+      if (order != null && r.brokerOrderNo != order) continue;
+      if (_openIntentStatuses.contains(statusOf[r.brokerOrderNo])) continue;
+      out.add((
+        c: RepairFillCandidate(
+          fillId: r.executionId,
+          tradeDate: r.tradeDate,
+          side: r.side.wire,
+          symbol: sym,
+          quantity: r.quantity,
+          price: r.price,
+          restated: r.kind == FillKind.restatement,
+        ),
+        at: seq,
+      ));
+    }
+  }
+  out.sort((
+    ({RepairFillCandidate c, int at}) a,
+    ({RepairFillCandidate c, int at}) b,
+  ) {
+    final int t = b.c.tradeDate.compareTo(a.c.tradeDate);
+    return t != 0 ? t : b.at.compareTo(a.at);
+  });
+  return <RepairFillCandidate>[
+    for (final ({RepairFillCandidate c, int at}) x in out) x.c,
+  ];
+}
+
 /// `ledger_repair` 쓰기 저장소(operator 원장).
 class SqliteLedgerRepairStore {
   /// 만든다.
@@ -134,40 +269,49 @@ class SqliteLedgerRepairStore {
 
   List<StoredDayStamp> _stamps() => storedDayStampsOf(_db);
 
-  LedgerIntegrityVerdict _verdict() {
-    final List<String> pragma = <String>[
-      for (final Row r in _db.select('PRAGMA integrity_check'))
-        r.values.first.toString(),
-    ];
-    if (pragma.length != 1 || pragma.single != 'ok') {
-      return const LedgerIntegrityVerdict.failed(
-        LedgerIntegrityReason.sqliteIntegrity,
-        daysChecked: 0,
-      );
+  LedgerIntegrityVerdict _verdict() => ledgerIntegrityVerdictOf(_db);
+
+  /// 🆕 E16j-a(미결 217 ⓐ) — 커밋 관문: 세션 [sessionId] 가 5단계 차례 ∧ 실행 창 안 ∧ 결정 = 3단계 저널 · 아니면 개입 거부 코드.
+  /// 🔴 트랜잭션 안에서 부른다(판정과 쓰기 사이에 세션이 바뀌지 않게).
+  ({String? rejectCode, String? decisionId}) _executeGate(
+    String sessionId,
+    DateTime nowUtc,
+  ) {
+    final InterventionState? s = interventionSessionOf(_db, sessionId);
+    final String? code = interventionRejectCode(
+      session: s,
+      otherLiveSession: false,
+      stage: kExecuteStage,
+      outcome: InterventionOutcome.passed,
+      nowUtc: nowUtc,
+      journalLinked: false,
+      decisionId: s?.journalId,
+    );
+    if (code != null) return (rejectCode: code, decisionId: null);
+    if (!interventionExecutable(s, nowUtc)) {
+      throw StateError('개입 판정이 엇갈린다: $sessionId');
     }
-    final List<StoredDayStamp> stamps = _stamps();
-    if (stamps.isEmpty) {
-      return const LedgerIntegrityVerdict.ok(
-        daysChecked: 0,
-        checkedThrough: null,
-      );
-    }
-    try {
-      return verifyLedgerChain(stamps, ledgerLinesByDay(_db));
-    } on LedgerHashError {
-      return const LedgerIntegrityVerdict.failed(
-        LedgerIntegrityReason.attribution,
-        daysChecked: 0,
-      );
-    }
+    return (rejectCode: null, decisionId: s!.journalId);
   }
+
+  /// 5단계 통과(세션이 닫힌다) — 커밋 트랜잭션 안.
+  void _executeStep(String sessionId, DateTime at, String decisionId) =>
+      insertInterventionStep(
+        _db,
+        sessionId: sessionId,
+        stage: kExecuteStage,
+        atUtc: at,
+        outcome: InterventionOutcome.passed,
+        decisionId: decisionId,
+      );
 
   /// 🔴 새 기준점 선언 — 거부면 쓰기 0 · 다른 정정 중 = `LedgerFixBusy` · 다시 쓴 뒤 대조 실패 = [StateError](되돌림).
   ///
+  /// [sessionId] = 개입 세션(5단계 커밋 · 결정 = 그 세션의 3단계 저널 — 미결 217 ⓐ) ·
   /// [archiveRelation] = 아카이브 체크포인트 ↔ 정본 관계(모름 = null · 호출자가 판정).
   BaselineResult applyBaseline({
     required String repairId,
-    required String? decisionId,
+    required String sessionId,
     required String originCode,
     required String clearedBy,
     DerivedRelation? archiveRelation,
@@ -187,6 +331,14 @@ class SqliteLedgerRepairStore {
       reason: 'X5 새 기준점 $repairId',
       atUtc: at,
       body: () {
+        final ({String? rejectCode, String? decisionId}) gate = _executeGate(
+          sessionId,
+          at,
+        );
+        if (gate.rejectCode != null) {
+          return BaselineResult._(rejectCode: gate.rejectCode);
+        }
+        final String? decisionId = gate.decisionId;
         final LedgerIntegrityVerdict verdict = _verdict();
         final LedgerBoundaryVerdict boundary = ledgerBoundaryOf(
           dbOpened: true,
@@ -256,6 +408,7 @@ class SqliteLedgerRepairStore {
         if (_db.updatedRows != 1) {
           throw StateError('LEDGER_INTEGRITY 해제가 1행이 아니다: ${_db.updatedRows}');
         }
+        _executeStep(sessionId, at, plan.decisionId!);
         return BaselineResult._(
           row: LedgerRepairPlanRow(
             repairId: plan.repairId,
@@ -316,6 +469,40 @@ class SqliteLedgerRepairStore {
         '${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
+  /// 🆕 E16j-a(계약 v1.32 K254) — 아무것도 안 하기: 이 diff 의 마법사 세션(`x5:<diff id>:` · 닫히지 않은 것 전부) = 다음 단계
+  /// DO_NOTHING + diff OPEN → ACCEPTED 한 트랜잭션 · 거부 코드(쓰기 0) 또는 null.
+  ///
+  /// OPEN `CANON_BROKER` 가 아니면 `REPAIR_DIFF_NOT_OPEN` · 닫을 세션이 있는데 신뢰 시각 모름 = `TRUSTED_TIME_UNKNOWN` ·
+  /// 세션이 없으면 시각 없이 받아들인다(«아무것도 안 하기»는 나아가기보다 쉽다).
+  String? acceptWithSession(String diffId) => inLedgerTransaction(_db, () {
+    if (_db.select(
+      'SELECT 1 FROM ledger_diff WHERE diff_id = ? AND pair = ? AND status = ?',
+      <Object?>[diffId, LedgerPair.canonBroker.wire, DiffStatus.open.wire],
+    ).isEmpty) {
+      return RepairCodes.diffNotOpen;
+    }
+    final String prefix = x5SessionPrefixOf(diffId);
+    final List<InterventionState> open = <InterventionState>[
+      for (final InterventionState s in interventionSessionsOf(_db).values)
+        if (s.sessionId.startsWith(prefix) && !s.closed) s,
+    ];
+    final DateTime? now = _trusted.trustedNowUtc()?.toUtc();
+    if (open.isNotEmpty && now == null) {
+      return BaselineStoreCodes.trustedTimeUnknown;
+    }
+    for (final InterventionState s in open) {
+      insertInterventionStep(
+        _db,
+        sessionId: s.sessionId,
+        stage: s.nextStage!,
+        atUtc: now!,
+        outcome: InterventionOutcome.doNothing,
+      );
+    }
+    if (!acceptDiff(diffId)) throw StateError('diff 받아들임이 1행이 아니다: $diffId');
+    return null;
+  });
+
   /// 🔴 아무것도 안 하기 — 그 diff 하나 OPEN → ACCEPTED(OPEN 아님 = false · 플래그 그대로).
   bool acceptDiff(String diffId) {
     _db.execute(
@@ -328,13 +515,14 @@ class SqliteLedgerRepairStore {
   /// 🔴 정본 정정 — 브로커 체결 [fillId] 하나를 무효([restatement] = null) 또는 정정한다 · 거부 = 쓰기 0 ·
   /// 다른 정정 중 = `LedgerFixBusy` · 앞뒤가 안 맞는 원장 = [StateError](되돌림).
   ///
+  /// [sessionId] = 개입 세션(5단계 커밋 · 결정 = 그 세션의 3단계 저널 — 미결 217 ⓐ) ·
   /// [freshDiffIds] = 호출자가 방금 다시 대사한 diff id 들 · [chainLimit] = 정정 체인 상한(config · 기본값 없음).
   FillCorrectionResult correctFill({
     required String repairId,
     required String diffId,
     required Iterable<String> freshDiffIds,
     required String fillId,
-    required String? decisionId,
+    required String sessionId,
     required String originCode,
     required int chainLimit,
     FillRestatement? restatement,
@@ -354,6 +542,12 @@ class SqliteLedgerRepairStore {
       body: () {
         FillCorrectionResult reject(String code) =>
             FillCorrectionResult._(rejectCode: code);
+        final ({String? rejectCode, String? decisionId}) gate = _executeGate(
+          sessionId,
+          at,
+        );
+        if (gate.rejectCode != null) return reject(gate.rejectCode!);
+        final String? decisionId = gate.decisionId;
         if (decisionId == null || decisionId.trim().isEmpty) {
           return reject(RepairCodes.decisionRequired);
         }
@@ -605,6 +799,7 @@ class SqliteLedgerRepairStore {
         if (_db.updatedRows != 1) {
           throw StateError('diff 해소가 1행이 아니다: ${_db.updatedRows}');
         }
+        _executeStep(sessionId, at, decisionId);
         return FillCorrectionResult._(
           row: row,
           fillIds: <String>[for (final LedgerFillRow r in added) r.executionId],

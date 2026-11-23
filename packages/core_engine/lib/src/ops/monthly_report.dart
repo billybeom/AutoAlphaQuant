@@ -19,28 +19,37 @@
 //    (E1 과 같은 안전 상태 한 장). B1 벤치마크(지수 시계열 · 구성 정의 없음) · F1 2×2(01 §8 미결 98) = 원천 0 그대로.
 // 🔴 나머지 2칸(B1 · F1) = 원천이 생기는 창마다 타입 있는 입력 하나씩(설계 13 §8 R199 나눔표) — 지금은 받는 칸이 없다(호출자가 글자를
 //    밀어 넣는 길 0 · 글자 = 엔진).
-// 🔴 미생성 · 가림(무결성 · 대사) = 읽기 경로 몫(01 §2-10 · 생성일 규칙 미정) — 이 빌더는 «마감된 달» 한 갈래만 짓는다
+// 🔴 미생성 = 읽기 경로 몫(생성일 규칙 미정 · 미결 40 — ⓔ-4) — 이 빌더는 «마감된 달» 한 갈래만 짓는다
 //    (생성 날 < 월말 세션 = 실패). 마감된 달을 다시 짓지 않는 것(03 §3 금지 ③ · G-97)도 읽기 경로 · 저장의 몫이다.
-// 🔴 세후 = 월간에 없다(03 §3 · `afterTax` null) · 목표 경로 엔진 없음 = «판정 보류» 문장 · 버튼 부재 · 「자세히」 링크 0
-//    (값이 없는 칸에서 상세 화면으로 보내지 않는다).
+// 🔴 세후 = 월간에 없다(03 §3 · `afterTax` null) · 목표 경로 엔진 없음 = «판정 보류» 문장 · 버튼 부재.
+// 🆕 R231(미결 209 ⓔ-2 · ⓔ-5) — ① 신뢰 배지 = 자동 매매의 그 달 마감 시점 브로커 대사([monthlyLedgerTrustOf] · 마지막 대사 결과 ·
+//    표본 `m7_monthly_2026_08` · `_masked_recon` 글자 · 현금 축 = 관측만이라 «수량·현금» 대신 «수량» — 과장 금지) ② 가림 둘 =
+//    무결성 점검 중([monthlyReportIntegrityMaskedOf] · 표본 `_masked_integrity` 꼴 그대로) · 대사 어긋남(배지 DRIFTING → D2 퍼센트
+//    «?» + 표본 메모) ③ 「자세히」 = 값이 있는 칸 · 본문이 있는 화면만([hasBody] — C1 · C2 → `S7-3` · D3 → `S7-10` 그 달 · K1)
+//    — 값이 없는 칸(«산출 불가»)에서 상세 화면으로 보내지 않는다 ④ 읽을 때 짓기 판정([monthlyReportReadinessOf] — 닫힌 달 ·
+//    개시 달부터).
 
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AllocationBasis,
+        AppRoutes,
         AsOf,
         AsOfSource,
         BlockFlag,
         FlagIds,
         LedgerTrustBadge,
+        LedgerTrustGrade,
         MonthlyReport,
         RampLevel,
         ReportItem,
         SafetyState,
         SleeveId,
         SleeveWeight,
-        TradeDate;
+        TradeDate,
+        UiLevel;
 
+import '../orders/reconcile.dart' show ReconAction;
 import '../safety/discretion.dart' show DiscretionBudget, discretionBudgetOf;
 import 'ledger_views.dart' show kstDateText;
 import 'p0s_warn.dart' show P0sExposureTally;
@@ -201,6 +210,48 @@ abstract final class MonthlyReportTexts {
 
   /// 🆕 R214 — 운영 램프 «운영 램프 L3»(표본).
   static String opsRamp(RampLevel l) => '운영 램프 ${l.name.toUpperCase()}';
+
+  /// 🆕 R231 — «산출 불가» 글자 머리(값이 없는 칸 — 「자세히」 링크를 달지 않는다).
+  static const String notComputedHead = '산출 불가';
+
+  /// 🆕 R231 — 무결성 점검 중 칸(표본 `m7_monthly_masked_integrity`).
+  static const String integrityHidden = '숨김 — 원장 무결성 점검 중';
+
+  /// 🆕 R231 — 무결성 점검 중 목표 줄(표본).
+  static const String integrityGoal = '원장 무결성 점검이 끝날 때까지 표시하지 않습니다.';
+
+  /// 🆕 R231 — 대사 어긋남 D2 메모(표본 `m7_monthly_masked_recon`).
+  static const String allocationUnsettled = '브로커 원장과 어긋난 종목이 있어 비중이 미확정입니다.';
+}
+
+/// 🆕 R231 — 월간 리포트 머리 신뢰 배지 글자(자동 매매 · 브로커 대사 · 표본에 있는 것은 글자 그대로).
+abstract final class MonthlyTrustTexts {
+  /// 대사 완료(표본 `m7_monthly_2026_08` 라벨).
+  static const String reconciledLabel = '대사 완료';
+
+  /// 🔴 표본 «브로커 원장과 수량·현금이 맞습니다.» 대신 — 대사의 현금 축은 관측만(`reconcile.dart` 머리 · 결제일 모델 전).
+  static const String reconciledLine = '브로커 원장과 수량이 맞습니다. 현금은 아직 대조하지 않습니다.';
+
+  /// 어긋남(표본 `m7_monthly_masked_recon`).
+  static const String driftingLabel = '어긋남 확인 중';
+
+  /// 어긋남 결과 줄(표본).
+  static const String driftingLine = '브로커 원장과 수량이 어긋난 종목이 있습니다.';
+
+  /// 확인 불가(표본 `ledger_trust_4` 라벨).
+  static const String unverifiableLabel = '확인 불가';
+
+  /// 🆕 그 달 마감까지 브로커 대사 0.
+  static const String noReconLine = '그 달 마감까지 브로커 대사 기록이 없습니다.';
+
+  /// 🆕 마지막 대사 = 대조 못 한 계좌 있음(`UNAVAILABLE`).
+  static const String reconUnavailableLine = '마지막 대사에서 대조하지 못한 계좌가 있습니다.';
+
+  /// 무결성 점검 중(표본 `m7_monthly_masked_integrity` 라벨).
+  static const String integrityLabel = '검증 불가';
+
+  /// 무결성 점검 중 결과 줄(표본).
+  static const String integrityLine = '원장을 믿을 수 없어 수치를 숨겼습니다.';
 }
 
 /// 🆕 R205 — A1 · A2 · C1 · C2 원천.
@@ -581,7 +632,11 @@ String _thresholdPct(double ratio) =>
 ///
 /// 🔴 [weights] = 월말 회계 비중 세 줄(A = POT 포함 · B · C 순 — 회차 화면과 같은 세 줄). 순서 · 슬리브 · 기준이 다르면
 /// [ArgumentError](두 기준을 바꿔 적지 않는다 — 03 §3 금지 ②).
-String monthlyAllocationValueOf(List<SleeveWeight> weights) {
+/// 🆕 R231 — [unsettled] = 그 달 마감 시점 대사 어긋남 → 퍼센트마다 «?»(표본 `m7_monthly_masked_recon` 꼴).
+String monthlyAllocationValueOf(
+  List<SleeveWeight> weights, {
+  bool unsettled = false,
+}) {
   if (weights.length != _allocationOrder.length) {
     throw ArgumentError.value(weights.length, 'weights', 'A · B · C 세 줄이 아니다');
   }
@@ -594,7 +649,9 @@ String monthlyAllocationValueOf(List<SleeveWeight> weights) {
     if (w.basis != AllocationBasis.accounting) {
       throw ArgumentError.value(w.basis, 'weights', '회계 기준이 아니다');
     }
-    parts.add('${w.sleeve.wire} ${(w.weight * 100).toStringAsFixed(1)}%');
+    parts.add(
+      '${w.sleeve.wire} ${(w.weight * 100).toStringAsFixed(1)}%${unsettled ? '?' : ''}',
+    );
   }
   return '회계 기준 ${parts.join(' · ')}';
 }
@@ -613,32 +670,13 @@ String monthlyExposureNoteOf(P0sExposureTally t) {
       '계측 없음 ${t.unmeasuredDays}일';
 }
 
-/// 🔴 마감된 달의 월간 리포트를 짓는다 — 13칸 고정 · 원천이 있는 칸(A1 · A2 · C1 · C2 · D1 · D2 · D3 · D4 · E1 · G1 · G2)만 ·
-/// 나머지(B1 · F1) = «산출 불가».
-///
-/// [monthEnd] = 그 달 마지막 KR 세션(기준일) · [generatedAtUtc] = 생성 시각(한국 날 < [monthEnd] = 미생성 → [ArgumentError]) ·
-/// [trust] = 그 달 마감 시점 원장 신뢰 등급(읽기 경로가 준다 — 스트림의 «지금» 등급이 아니다 · 03 §3) ·
-/// [disclosureViewCount] = 그 달 탐색 열람 수(명령 집계 · 음수 = [ArgumentError]) ·
-/// [allocation] null · 빈 목록 = D2 값 «산출 불가» · [exposureTally] null = D2 메모 없음(달이 다르면 [ArgumentError]) ·
-/// 🆕 [equity] null = A1 · A2 · C1 · C2 «산출 불가»(R205) · 🆕 [discretionUseDates] null = D4 · [strategy] null = E1
-/// «산출 불가»(R208) · 🆕 [execution] null = D3 «산출 불가»(R210 · 안내 모드 = 이행 갭 창 전까지 null) ·
-/// 🆕 [regime] null = D1 «산출 불가» · G1 = [equity] 를 따른다 · G2 = [strategy] 의 안전 상태를 따른다(R214).
-MonthlyReport monthlyReportOf({
-  required String yyyyMm,
-  required TradeDate monthEnd,
-  required DateTime generatedAtUtc,
-  required String configHash,
-  required LedgerTrustBadge trust,
-  required int disclosureViewCount,
-  List<SleeveWeight>? allocation,
-  P0sExposureTally? exposureTally,
-  MonthlyEquityFacts? equity,
-  List<String>? discretionUseDates,
-  MonthlyStrategyFacts? strategy,
-  MonthlyExecutionFacts? execution,
-  MonthlyRegimeFacts? regime,
-  String? backdateFootnote,
-}) {
+/// 머리 검사(달 꼴 · 월말 세션 · 생성 날 ≥ 월말 · 열람 수 ≥ 0) — 생성 날(한국) 글자.
+String _checkedGenerated(
+  String yyyyMm,
+  TradeDate monthEnd,
+  DateTime generatedAtUtc,
+  int disclosureViewCount,
+) {
   if (!_yyyyMm.hasMatch(yyyyMm)) {
     throw ArgumentError.value(yyyyMm, 'yyyyMm', 'YYYY-MM 이 아니다');
   }
@@ -657,6 +695,57 @@ MonthlyReport monthlyReportOf({
   if (disclosureViewCount < 0) {
     throw ArgumentError.value(disclosureViewCount, 'disclosureViewCount', '음수');
   }
+  return generated;
+}
+
+AsOf _reportAsOf(DateTime generatedAtUtc, TradeDate monthEnd) => AsOf(
+  observedAt: generatedAtUtc.toUtc(),
+  tradeDate: monthEnd,
+  source: AsOfSource.localSqlite,
+  staleAfter: kMonthlyReportStaleAfter,
+  label: MonthlyReportTexts.asOfLabel(monthEnd.yyyyMmDd),
+);
+
+/// 값이 있는 칸인가(«산출 불가» 아님).
+bool _computed((String, String?)? v) =>
+    v != null && !v.$1.startsWith(MonthlyReportTexts.notComputedHead);
+
+/// 🔴 마감된 달의 월간 리포트를 짓는다 — 13칸 고정 · 원천이 있는 칸(A1 · A2 · C1 · C2 · D1 · D2 · D3 · D4 · E1 · G1 · G2)만 ·
+/// 나머지(B1 · F1) = «산출 불가».
+///
+/// [monthEnd] = 그 달 마지막 KR 세션(기준일) · [generatedAtUtc] = 생성 시각(한국 날 < [monthEnd] = 미생성 → [ArgumentError]) ·
+/// [trust] = 그 달 마감 시점 원장 신뢰 등급(읽기 경로가 준다 — 스트림의 «지금» 등급이 아니다 · 03 §3) ·
+/// [disclosureViewCount] = 그 달 탐색 열람 수(명령 집계 · 음수 = [ArgumentError]) ·
+/// [allocation] null · 빈 목록 = D2 값 «산출 불가» · [exposureTally] null = D2 메모 없음(달이 다르면 [ArgumentError]) ·
+/// 🆕 [equity] null = A1 · A2 · C1 · C2 «산출 불가»(R205) · 🆕 [discretionUseDates] null = D4 · [strategy] null = E1
+/// «산출 불가»(R208) · 🆕 [execution] null = D3 «산출 불가»(R210 · 안내 모드 = 이행 갭 창 전까지 null) ·
+/// 🆕 [regime] null = D1 «산출 불가» · G1 = [equity] 를 따른다 · G2 = [strategy] 의 안전 상태를 따른다(R214) ·
+/// 🆕 R231 [hasBody] = 조립 앱에 그 라우트(패턴)의 본문이 있나 — null = 「자세히」 0 · 값이 있는 C1 · C2 → `S7-3` ·
+/// D3 → `S7-10` 그 달(K1) · [trust] 가 DRIFTING 이면 D2 값 퍼센트마다 «?» + 메모 머리(표본 `m7_monthly_masked_recon`).
+MonthlyReport monthlyReportOf({
+  required String yyyyMm,
+  required TradeDate monthEnd,
+  required DateTime generatedAtUtc,
+  required String configHash,
+  required LedgerTrustBadge trust,
+  required int disclosureViewCount,
+  List<SleeveWeight>? allocation,
+  P0sExposureTally? exposureTally,
+  MonthlyEquityFacts? equity,
+  List<String>? discretionUseDates,
+  MonthlyStrategyFacts? strategy,
+  MonthlyExecutionFacts? execution,
+  MonthlyRegimeFacts? regime,
+  String? backdateFootnote,
+  bool Function(String route)? hasBody,
+}) {
+  final String generated = _checkedGenerated(
+    yyyyMm,
+    monthEnd,
+    generatedAtUtc,
+    disclosureViewCount,
+  );
+  final String end = monthEnd.yyyyMmDd;
   if (exposureTally != null && exposureTally.month != yyyyMm) {
     throw ArgumentError.value(
       exposureTally.month,
@@ -665,12 +754,20 @@ MonthlyReport monthlyReportOf({
     );
   }
   final List<SleeveWeight>? w = allocation;
+  final bool unsettled =
+      trust.grade == LedgerTrustGrade.drifting && w != null && w.isNotEmpty;
   final String allocationValue = w == null || w.isEmpty
       ? MonthlyReportTexts.notComputed
-      : monthlyAllocationValueOf(w);
-  final String? allocationNote = exposureTally == null
+      : monthlyAllocationValueOf(w, unsettled: unsettled);
+  final String? exposureNote = exposureTally == null
       ? null
       : monthlyExposureNoteOf(exposureTally);
+  final String? allocationNote = unsettled
+      ? <String>[
+          MonthlyReportTexts.allocationUnsettled,
+          if (exposureNote != null) exposureNote,
+        ].join(' ')
+      : exposureNote;
   final Map<MonthlyReportSlot, (String, String?)> filled =
       <MonthlyReportSlot, (String, String?)>{
         if (equity != null) ..._equityItemsOf(equity, yyyyMm, end),
@@ -693,6 +790,19 @@ MonthlyReport monthlyReportOf({
         if (execution != null)
           MonthlyReportSlot.execution: _executionItemOf(execution),
       };
+  bool open(String route) => hasBody?.call(route) ?? false;
+  final Map<MonthlyReportSlot, String> links = <MonthlyReportSlot, String>{
+    if (open(AppRoutes.performanceDrawdown))
+      for (final MonthlyReportSlot s in <MonthlyReportSlot>[
+        MonthlyReportSlot.maxDrawdown,
+        MonthlyReportSlot.timeUnderWater,
+      ])
+        if (_computed(filled[s])) s: AppRoutes.performanceDrawdown,
+    if (open(AppRoutes.ledgerExecutionGapMonth) &&
+        _computed(filled[MonthlyReportSlot.execution]))
+      MonthlyReportSlot.execution: AppRoutes.ledgerExecutionGapMonth
+          .replaceFirst(':yyyyMm', yyyyMm),
+  };
   return MonthlyReport(
     yyyyMm: yyyyMm,
     items: List<ReportItem>.unmodifiable(<ReportItem>[
@@ -704,6 +814,7 @@ MonthlyReport monthlyReportOf({
           title: s.title,
           valueText: filled[s]?.$1 ?? MonthlyReportTexts.notComputed,
           noteText: filled[s]?.$2,
+          detailDeepLink: links[s],
         ),
     ]),
     goalLine: MonthlyReportTexts.goalWithheld,
@@ -711,15 +822,160 @@ MonthlyReport monthlyReportOf({
       disclosureViewCount,
     ),
     trust: trust,
-    asOf: AsOf(
-      observedAt: generatedAtUtc.toUtc(),
-      tradeDate: monthEnd,
-      source: AsOfSource.localSqlite,
-      staleAfter: kMonthlyReportStaleAfter,
-      label: MonthlyReportTexts.asOfLabel(end),
-    ),
+    asOf: _reportAsOf(generatedAtUtc, monthEnd),
     backdateFootnote: backdateFootnote,
     generatedAtText: MonthlyReportTexts.generatedAt(generated),
     configHash: configHash,
   );
+}
+
+/// 🆕 R231 — 원장 무결성 점검 중(`LEDGER_INTEGRITY` 깃발 · 01 §2-10)의 월간 리포트 — 표본 `m7_monthly_masked_integrity` 꼴 그대로:
+/// 13칸 «숨김 — 원장 무결성 점검 중»(메모 · 링크 0) · 목표 줄 · 배지 UNVERIFIABLE · BLOCKED(«검증 불가» · X5 정정 마법사 =
+/// 본문이 있을 때) · 열람 수 = 그대로(보류 행도 열람이다 — R223 S7). 머리 검사 = [monthlyReportOf] 와 같다.
+MonthlyReport monthlyReportIntegrityMaskedOf({
+  required String yyyyMm,
+  required TradeDate monthEnd,
+  required DateTime generatedAtUtc,
+  required String configHash,
+  required int disclosureViewCount,
+  bool Function(String route)? hasBody,
+}) {
+  final String generated = _checkedGenerated(
+    yyyyMm,
+    monthEnd,
+    generatedAtUtc,
+    disclosureViewCount,
+  );
+  return MonthlyReport(
+    yyyyMm: yyyyMm,
+    items: List<ReportItem>.unmodifiable(<ReportItem>[
+      for (final MonthlyReportSlot s in MonthlyReportSlot.values)
+        ReportItem(
+          code: s.code,
+          order: s.order,
+          sectionCode: s.sectionCode,
+          title: s.title,
+          valueText: MonthlyReportTexts.integrityHidden,
+        ),
+    ]),
+    goalLine: MonthlyReportTexts.integrityGoal,
+    disclosureViewCountText: MonthlyReportTexts.disclosureViews(
+      disclosureViewCount,
+    ),
+    trust: LedgerTrustBadge(
+      grade: LedgerTrustGrade.unverifiable,
+      level: UiLevel.blocked,
+      label: MonthlyTrustTexts.integrityLabel,
+      consequenceLine: MonthlyTrustTexts.integrityLine,
+      actionDeepLink: (hasBody?.call(AppRoutes.x5RepairWizard) ?? false)
+          ? AppRoutes.x5RepairWizard
+          : null,
+    ),
+    asOf: _reportAsOf(generatedAtUtc, monthEnd),
+    generatedAtText: MonthlyReportTexts.generatedAt(generated),
+    configHash: configHash,
+  );
+}
+
+/// 🆕 R231 — 자동 매매의 그 달 마감 시점 원장 신뢰 배지(미결 209 ⓔ-2 · 03 §3 «리포트 = 그 달 마감 시점»).
+///
+/// [checks] = 브로커 대사 원장(`reconciliation_log` 의 브로커 대사 행 · 해제 행 제외) 시각 순 — 실행 시각의 한국 날 ≤ [monthEnd]
+/// 만 본다(append-only → 다시 지어도 같은 배지). 🔴 등급 = **그 달 마지막 대사의 결과**:
+/// BLOCKED = DRIFTING · WATCH(표본 `m7_monthly_masked_recon` 글자 · 차단 보드 = 본문이 있을 때) ·
+/// MATCHED · TRANSIENT(재대사에서 사라짐) = RECONCILED · OK(표본 라벨 · 결과 줄 = 현금 축 관측만) ·
+/// UNAVAILABLE · 대사 0 = UNVERIFIABLE · WATCH(자동 매매에서 주문을 막는 결과가 아니다 — 표본 BLOCKED 는 안내 모드 청산 안내를
+/// 비우는 결과). [LedgerTrustBadge.lastVerifiedOn] = 마지막 MATCHED · TRANSIENT 의 한국 날(없으면 null).
+/// 시각 순이 아니면 [ArgumentError].
+LedgerTrustBadge monthlyLedgerTrustOf({
+  required List<(DateTime, ReconAction)> checks,
+  required TradeDate monthEnd,
+  bool Function(String route)? hasBody,
+}) {
+  final String end = monthEnd.yyyyMmDd;
+  if (!_ymd.hasMatch(end)) {
+    throw ArgumentError.value(end, 'monthEnd', 'YYYY-MM-DD 가 아니다');
+  }
+  DateTime? prev;
+  ReconAction? last;
+  String? verified;
+  for (final (DateTime at, ReconAction a) in checks) {
+    if (prev != null && at.isBefore(prev)) {
+      throw ArgumentError.value(at, 'checks', '대사가 시각 순이 아니다');
+    }
+    prev = at;
+    final String day = kstDateText(at);
+    if (day.compareTo(end) > 0) continue;
+    last = a;
+    if (a == ReconAction.matched || a == ReconAction.transient) verified = day;
+  }
+  final TradeDate? on = verified == null ? null : TradeDate(verified);
+  return switch (last) {
+    ReconAction.blocked => LedgerTrustBadge(
+      grade: LedgerTrustGrade.drifting,
+      level: UiLevel.watch,
+      label: MonthlyTrustTexts.driftingLabel,
+      consequenceLine: MonthlyTrustTexts.driftingLine,
+      lastVerifiedOn: on,
+      actionDeepLink: (hasBody?.call(AppRoutes.m5BlockBoard) ?? false)
+          ? AppRoutes.m5BlockBoard
+          : null,
+    ),
+    ReconAction.matched || ReconAction.transient => LedgerTrustBadge(
+      grade: LedgerTrustGrade.reconciled,
+      level: UiLevel.ok,
+      label: MonthlyTrustTexts.reconciledLabel,
+      consequenceLine: MonthlyTrustTexts.reconciledLine,
+      lastVerifiedOn: on,
+    ),
+    ReconAction.unavailable || null => LedgerTrustBadge(
+      grade: LedgerTrustGrade.unverifiable,
+      level: UiLevel.watch,
+      label: MonthlyTrustTexts.unverifiableLabel,
+      consequenceLine: last == null
+          ? MonthlyTrustTexts.noReconLine
+          : MonthlyTrustTexts.reconUnavailableLine,
+      lastVerifiedOn: on,
+    ),
+  };
+}
+
+/// 🆕 R231 — 읽을 때 짓는 월간 리포트의 갈래(저장 0 — 스냅숏 · 미생성 문장 = ⓔ-4).
+enum MonthlyReportReadiness {
+  /// 닫힌 달(한국 오늘 > 월말 세션) · 개시 달부터 — 짓는다.
+  closed,
+
+  /// 아직 닫히지 않은 달(오늘 ≤ 월말 세션 · 미래 달) — 미생성 문장 = ⓔ-4(생성일 규칙 · 미결 40).
+  pending,
+
+  /// 개시 전 달 · 개시 0 — 그 달의 리포트는 없다(지어내지 않는다).
+  beforeOpening,
+}
+
+/// 🆕 R231 — [yyyyMm] 을 지금 지을 수 있나 — [openingDate] = 개시 날(`openingCashTradeDate` · null = 개시 0) ·
+/// [monthEnd] = 그 달 마지막 KR 세션. 🔴 닫힘 = 한국 오늘 > 월말 세션(월말 세션 날 = 마감 평가 전일 수 있다 — 결측으로 잘못
+/// 말하지 않는다). 개시 판정이 먼저(개시 0 이면 미래 달도 «개시 전»).
+MonthlyReportReadiness monthlyReportReadinessOf({
+  required String yyyyMm,
+  required TradeDate monthEnd,
+  required String? openingDate,
+  required DateTime nowUtc,
+}) {
+  if (!_yyyyMm.hasMatch(yyyyMm)) {
+    throw ArgumentError.value(yyyyMm, 'yyyyMm', 'YYYY-MM 이 아니다');
+  }
+  final String end = monthEnd.yyyyMmDd;
+  if (end.length != 10 || !end.startsWith('$yyyyMm-')) {
+    throw ArgumentError.value(end, 'monthEnd', '$yyyyMm 의 날이 아니다');
+  }
+  final String? o = openingDate;
+  if (o != null && !_ymd.hasMatch(o)) {
+    throw ArgumentError.value(o, 'openingDate', 'YYYY-MM-DD 가 아니다');
+  }
+  if (o == null || yyyyMm.compareTo(o.substring(0, 7)) < 0) {
+    return MonthlyReportReadiness.beforeOpening;
+  }
+  if (kstDateText(nowUtc).compareTo(end) <= 0) {
+    return MonthlyReportReadiness.pending;
+  }
+  return MonthlyReportReadiness.closed;
 }

@@ -9,6 +9,8 @@
 // 🔴 서약 밖 안전 동작 — 재개판(R180) · 규칙 변경 요청 · 승인 · 취소(R188 — `run` 은 `ruleChangeCancel` 만) · 🆕 RECON 해제(R189 ·
 //    `runReconClear` — `run(reconClear)` = ArgumentError) = 구현 · STOPPED 결정 · 사후 검토 · 재량 조정 = operator 구현 전(오류 — 지어내지
 //    않는다).
+// 🆕 E16j-a(R227 · 01 §41 K252~K256 · 미결 217) — X5 정정 마법사: `run(interventionStep)` · `run(repairAccept)` · `runInterventionJournal` ·
+//    `runRepairCorrect` · `runRepairBaseline` = 구현(`OperatorRepairActions` — 같은 원장 · 결과 글자 = 엔진).
 
 import 'dart:math';
 
@@ -51,6 +53,8 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart';
 
 import 'operator_kill_switch.dart' show OperatorKillResumeDraft;
+import 'operator_migration.dart' show OperatorMigrationActions, kX1ActionIds;
+import 'operator_repair.dart' show OperatorRepairActions;
 import 'operator_rule_change.dart' show operatorRuleChangeGateSourceOf;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
@@ -85,7 +89,12 @@ class OperatorSafetyActions implements SafetyActions {
     Random? random,
     OperatorKillResumeDraft? draft,
   }) : _random = random ?? Random.secure(),
-       draft = draft ?? OperatorKillResumeDraft();
+       draft = draft ?? OperatorKillResumeDraft() {
+    _x1 = OperatorMigrationActions(_rt, _random);
+  }
+
+  /// 🆕 E16j-b — X1 기기 이전 동작 6(`run` 화이트리스트 · K273).
+  late final OperatorMigrationActions _x1;
 
   /// 🆕 R180 — 재개판 초안(게이트 읽기와 같은 인스턴스).
   final OperatorKillResumeDraft draft;
@@ -157,7 +166,22 @@ class OperatorSafetyActions implements SafetyActions {
     if (id == SafetyActionId.reconClear) {
       throw ArgumentError.value(id, 'id', 'RECON 해제 = runReconClear(K181)');
     }
+    // 🆕 E16j-b — X1 id 6 = 기기 이전 동작(결과 글자 = 엔진 · 막힌 동작 = 오류).
+    if (kX1ActionIds.contains(id)) {
+      final SafetyActionResult r = await _x1.run(id, args);
+      return _done[r.actionRunId] = r;
+    }
     if (id == SafetyActionId.seasonalWindowChoice) return _seasonalChoice(args);
+    // 🆕 E16j-a(R227) — 개입 단계 · 아무것도 안 하기 = 엔진이 완성한 args 그대로(명령 id = 킬스위치 명령과 같은 꼴).
+    if (id == SafetyActionId.interventionStep ||
+        id == SafetyActionId.repairAccept) {
+      final ({String commandId, String nonce, String payloadDigest}) c =
+          issueKillCommand(payload: args, random: _random);
+      final OperatorRepairActions repair = OperatorRepairActions(_rt);
+      return _done[c.commandId] = id == SafetyActionId.interventionStep
+          ? repair.step(c.commandId, c.payloadDigest, args)
+          : repair.accept(c.commandId, args);
+    }
     if (id != SafetyActionId.ruleChangeCancel) return _none('run(${id.wire})');
     final String? requestId = args['request_id'];
     if (requestId == null || requestId.trim().isEmpty) {
@@ -311,21 +335,38 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runPostmortem(PostmortemSubmission submission) =>
       _none('runPostmortem');
 
-  /// 🆕 계약 v1.32(01 §41 · K262) — X5 정정 마법사 제출 3 = operator 구현 전(오류 — 지어내지 않는다 · 엔진 결속 = 01 §8 미결 217).
+  /// 🆕 E16j-a(R227 · 01 §41 K255 · 미결 217 ⓐⓒⓓ) — X5 정본 정정: 원문 파싱(엔진) → 대상의 열린 세션 → 직전 재대사 → 정정 커밋(5단계).
   @override
   Future<SafetyActionResult> runRepairCorrect(
     RepairCorrectSubmission submission,
-  ) => _none('runRepairCorrect');
+  ) async {
+    final ({String commandId, String nonce, String payloadDigest}) c =
+        issueKillCommand(payload: submission.toJson(), random: _random);
+    return _done[c.commandId] = await OperatorRepairActions(_rt)
+        .correct(c.commandId, submission);
+  }
 
+  /// 🆕 E16j-a(R227 · 01 §41 K256 · 미결 217 ⓐ) — X5 새 기준점(무결성 갈래 · 5단계 커밋).
   @override
   Future<SafetyActionResult> runRepairBaseline(
     RepairBaselineSubmission submission,
-  ) => _none('runRepairBaseline');
+  ) async {
+    final ({String commandId, String nonce, String payloadDigest}) c =
+        issueKillCommand(payload: submission.toJson(), random: _random);
+    return _done[c.commandId] = OperatorRepairActions(_rt)
+        .baseline(c.commandId, submission);
+  }
 
+  /// 🆕 E16j-a(R227 · 01 §41 K252 · 미결 217 ⓖ) — 개입 3단계 사전 저널(살아 있는 세션 · 저널 + 단계 한 트랜잭션).
   @override
   Future<SafetyActionResult> runInterventionJournal(
     InterventionJournalSubmission submission,
-  ) => _none('runInterventionJournal');
+  ) async {
+    final ({String commandId, String nonce, String payloadDigest}) c =
+        issueKillCommand(payload: submission.toJson(), random: _random);
+    return _done[c.commandId] = OperatorRepairActions(_rt)
+        .journal(c.commandId, c.payloadDigest, submission);
+  }
 
   /// 🆕 E11q-c0(R188) — 규칙 변경 승인(v1.22 꼴 · 판정 = 엔진 `approve` — 냉각 30일 · 창 · DD · 신뢰 시각 · 사람 칸 · 제3자) ·
   /// 생체 = 구현 0(서약 · 재개판 선례 · 운영 등급 공통 관문 = 미결 169) · 결과 글자 = 엔진.

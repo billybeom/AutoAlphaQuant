@@ -11,7 +11,13 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
-    show OrderSide, ResumeMode, TradeDate;
+    show
+        OrderSide,
+        ResumeMode,
+        TradeDate,
+        X1GapViolationCodes,
+        X1IntentReasonCodes,
+        X1OrderSealCodes;
 
 import '../calendar/exchange_calendar.dart' show ExchangeCalendar;
 import '../ops/ledger_views.dart' show kstDateText;
@@ -36,8 +42,8 @@ DateTime _date(String d) {
 String _text(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-/// 복구 사유 코드(`order_intents.error_message` · 계약 등재 = E16i 전 문자열).
-const String kX1RecoveredReason = 'X1_RECOVERED';
+/// 복구 사유 코드(`order_intents.error_message` · 글자 = 계약 `X1IntentReasonCodes` 참조 · 미결 212).
+const String kX1RecoveredReason = X1IntentReasonCodes.recovered;
 
 /// 갭 창(양 끝 포함 · 한국 날).
 class GapWindow {
@@ -274,13 +280,13 @@ RecoveredFillPlan recoveredFillPlanOf(
 /// «봇 전용 계좌» 위반 종류.
 enum GapViolationKind {
   /// 복원 보유 + 갭 체결 ≠ 브로커 보유.
-  mismatch('GAP_HOLDING_MISMATCH'),
+  mismatch(X1GapViolationCodes.holdingMismatch),
 
   /// 보유보다 많이 팔았다(중간 음수).
-  oversold('GAP_OVERSOLD'),
+  oversold(X1GapViolationCodes.oversold),
 
   /// 전략 대응이 없다(복구 의도를 지을 수 없다).
-  unmapped('GAP_UNMAPPED_STRATEGY');
+  unmapped(X1GapViolationCodes.unmappedStrategy);
 
   const GapViolationKind(this.wire);
 
@@ -389,13 +395,13 @@ BreakerLevel conservativeBreakerLevel(
   BreakerLevel replayed,
 ) => replayed.index > beforeGap.index ? replayed : beforeGap;
 
-/// 복구 봉인 코드(계약 등재 = E16i 전 문자열).
+/// 복구 봉인 코드(글자 = 계약 `X1OrderSealCodes` 참조 · 미결 212).
 abstract final class RecoverySealCodes {
   /// 갭 재구성이 끝나지 않았다.
-  static const String inProgress = 'X1_RECOVERY_IN_PROGRESS';
+  static const String inProgress = X1OrderSealCodes.inProgress;
 
   /// RECOVERY_FULL — 사람의 R-01 «잔고 승계 새 시작»까지 안전 정지.
-  static const String full = 'X1_RECOVERY_FULL';
+  static const String full = X1OrderSealCodes.full;
 }
 
 /// 🔴 복구 봉인 — 재구성 전 · RECOVERY_FULL = 주문 거부 · 그 밖 = null(RECOVERY_DRY 는 dryRun 이 주문 0 을 보장).

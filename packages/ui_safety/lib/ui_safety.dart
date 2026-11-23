@@ -36,9 +36,21 @@ export 'src/kill_switch/kill_switch_screen.dart'
         safetyKillCommandApiProvider,
         safetyKillSwitchGateRepositoryProvider,
         safetyLinkOpenerProvider;
+// 🆕 X1 기기 이전(E16j-b · 01 §42 · 옛 폰 마법사 · 새 폰 받기 · 비상 — 동작 = 엔진이 VM · 행에 준 것만 · 슬롯 = 조립 앱).
+export 'src/migration/x1_screens.dart'
+    show
+        SafetyX1SlotBuilder,
+        X1PlanWizardScreen,
+        X1RecoveryRoute,
+        X1RecoveryScreen,
+        safetyMigrationRepositoryProvider,
+        safetyX1SlotBuilderProvider;
 // 🆕 M5-8 서약(설계 13 §8 R157) — 읽기 + 쓰기(쓰기 주입 = 폰만 · 뷰어 null = 컨트롤 부재 → 배럴에 둔다).
 export 'src/pledge/pledge_panel.dart'
     show PledgePanel, safetyActionsProvider, safetyPledgeRepositoryProvider;
+// 🆕 X5 정정 마법사(설계 13 §8 R227 · 허브 · 대상 한 화면 — 동작 = 엔진이 준 것 · 제출 3 = 안전 동작 창구).
+export 'src/repair/repair_wizard_screen.dart'
+    show RepairWizardScreen, safetyRepairWizardRepositoryProvider;
 // 🆕 X2 재개 리포트 · 게이트(설계 13 §8 R186 · 읽기 + 계절 3택 — 동작 = 엔진이 행에 준 것만).
 export 'src/resume/resume_screens.dart'
     show

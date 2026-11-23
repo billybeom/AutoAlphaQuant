@@ -11,6 +11,8 @@
 // 🆕 E11p3d-1(설계 13 §8 R104) — 화면과 엔진이 원장 하나를 함께 쓴다(`OperatorRuntime`) · 깨어남 보고 → 화면 상태.
 // 🆕 E11k-a(설계 13 §8 R197 T6) — 신뢰 시각 = Supabase 서버 시각 기준점 하나(`operatorTrustedClock`) — 화면 · 엔진이 같이 쓰고,
 //    깨어날 때마다 한 번 잰다. 금고에 연결 칸(o_07 ②)이 없으면 망에 가지 않고 늘 «모름»(지금과 같다).
+// 🆕 E11k-e3(설계 13 §8 R229) — 리스 RPC 클라이언트 · O-04 ⑤ 첫 클레임 흐름 · 원격 리스 원천을 실행 묶음에 하나씩 — 엔진은 실행 묶음의
+//    원천을 그대로 쓴다(같은 로그인 세션 · 같은 첫 클레임 기록) · 기기 id 가 없으면 셋 다 없음(⑤ 원천 없음 · 원격 0 = 지금과 같다).
 
 import 'dart:io' show Platform;
 
@@ -21,6 +23,7 @@ import 'package:core_engine/core_engine.dart'
         AnchoredTrustedClock,
         LiveObservationConfig,
         Market,
+        OperationsConfig,
         SecretVault,
         TrustedClock,
         frozenExchangeCalendar,
@@ -32,25 +35,33 @@ import 'package:data_sync/data_sync.dart'
         OfrClient,
         P0sHumanDecision,
         SupabaseAuth,
+        SupabaseFirstClaim,
+        SupabaseLeaseGate,
+        SupabaseLeaseRpc,
         SupabaseServerTime;
-import 'package:domain_contracts/domain_contracts.dart' show Clock, RunMode;
+import 'package:domain_contracts/domain_contracts.dart'
+    show Clock, RunMode, TradeDate;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
+import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
     show FgsStatus, JobCalendars;
 
 import '../app/operator_golden.dart' show OperatorGolden;
 import '../app/operator_onboarding.dart' show OnboardingProbe;
 import '../app/operator_runtime.dart';
+import '../app/operator_view.dart' show OperatorView;
 import '../app/secure_screen.dart' show SecureScreen;
 import '../engine/data_job_runners.dart' show JobParts;
 import '../engine/engine_boot.dart' show BootInputs, registryLiveKeysVerified;
 import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
 import '../engine/job_runners.dart' show JobContext, composeJobRunners;
 import '../engine/kis_sessions.dart';
+import '../engine/lease_wiring.dart' show LeaseRemoteOf;
 import '../engine/ledger_files.dart';
 import '../engine/operations_loader.dart' show loadOperationsConfig;
 import '../engine/operator_engine.dart';
+import '../engine/repair_recon.dart' show operatorFreshReconIds;
 import '../engine/seed_loader.dart';
 import '../engine/system_clock.dart';
 import 'android_ops.dart';
@@ -160,7 +171,12 @@ Future<OperatorEngine> _assemble(
     // 🆕 E16t3b(R149 AA5) — 같은 감시 클라이언트 = 창 재개 · 운영 설정 = data_sync 자산(SPEC 02 §4).
     watchdog: watch,
     operations: await loadOperationsConfig(rootBundle),
-    bootInputs: operatorBootInputs(deviceId: deviceId, trusted: trusted),
+    // 🆕 R229 — 원격 리스 원천 = 실행 묶음의 것(화면과 같은 세션 · 첫 클레임 기록).
+    bootInputs: operatorBootInputs(
+      deviceId: deviceId,
+      trusted: trusted,
+      leaseRemote: runtime?.leaseRemote,
+    ),
     runners: (JobContext c) => composeJobRunners(c, parts: parts),
     seed: () => loadSeedAssets(rootBundle),
     fgs: fgs,
@@ -177,16 +193,46 @@ const BootInputs kOperatorBootInputs = BootInputs(
 );
 
 /// 🆕 E16t2b(R144 X2) — 조립 앱의 기동 입력 + 이 기기 id(null = X1 끼울 자리 꺼짐 · 그 밖 = [kOperatorBootInputs] 와 같다) ·
-/// 🆕 E11k-a(R197) [trusted] = 신뢰 시각(기본 = 모름).
+/// 🆕 E11k-a(R197) [trusted] = 신뢰 시각(기본 = 모름) · 🆕 E11k-e3(R229) [leaseRemote] = 원격 리스 원천(없음 = 실물 전).
 BootInputs operatorBootInputs({
   String? deviceId,
   TrustedClock trusted = const UnknownTrustedClock(),
+  LeaseRemoteOf? leaseRemote,
 }) => BootInputs(
   credentialEnvironmentOk: kisKeySetFits,
   liveKeysVerified: registryLiveKeysVerified,
   deviceId: deviceId,
   trusted: trusted,
+  leaseRemote: leaseRemote,
 );
+
+/// 🆕 E11k-e3(R229) — 첫 클레임 흐름 · 원격 리스 원천(기기 id 없음 = 둘 다 null) — [sim] = 온보딩 원장(첫 클레임 기록) ·
+/// 🔴 원격 판정의 «쥔 epoch» = 그 원장 행 · 없으면 첫 클레임 기록(같은 흐름 객체).
+({SupabaseFirstClaim? firstClaim, LeaseRemoteOf? leaseRemote})
+operatorLeaseParts({
+  required SupabaseLeaseRpc rpc,
+  required Database sim,
+  required String? deviceId,
+  required Clock clock,
+}) {
+  if (deviceId == null) return (firstClaim: null, leaseRemote: null);
+  final SupabaseFirstClaim flow = SupabaseFirstClaim(
+    rpc,
+    sim,
+    deviceId: deviceId,
+    clock: clock,
+  );
+  return (
+    firstClaim: flow,
+    leaseRemote: (Database db) => SupabaseLeaseGate(
+      rpc,
+      db,
+      deviceId: deviceId,
+      clock: clock,
+      claimedEpoch: flow.claimedEpoch,
+    ),
+  );
+}
 
 /// 🆕 E11k-a(R197 T6) — 조립 앱의 신뢰 시각(Supabase 서버 시각 기준점 · 연결 칸 = [vault] · 없으면 망에 가지 않고 모름).
 AnchoredTrustedClock operatorTrustedClock({
@@ -240,11 +286,15 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
     // 🆕 R142 — 이 기기 id(못 얻으면 null — 화면은 그대로 선다 · 기기 id 를 쓰는 칸만 «없음»).
     final String? deviceId = await deviceIdOrNull(ops);
     // 🆕 R191 — M5-11 위저드 관찰 일수(운영 설정 자산 · 못 읽으면 null — 위저드만 «운영 설정 없음»).
+    // 🆕 E16j-b — 같은 운영 설정을 실행 묶음에도 싣는다(X1 관찰 일수 · 재개 사다리).
     LiveObservationConfig? observation;
+    OperationsConfig? operations;
     try {
-      observation = (await loadOperationsConfig(rootBundle)).liveObservation;
+      operations = await loadOperationsConfig(rootBundle);
+      observation = operations.liveObservation;
     } on Object {
       observation = null;
+      operations = null;
     }
     // 🆕 E11k-a(R197 T6) — 신뢰 시각 하나(화면 · 엔진 공용 · 잼 = 앞 화면 갱신기 · 엔진 깨어남).
     // 🆕 E11k-d2(R216) — Supabase 로그인 · 세션 하나(o_07 ③ · 실측 «로그인됨» · 리스 RPC 의 접근 토큰 원천).
@@ -258,8 +308,21 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       vault: AndroidSecretVault(),
       wall: clock,
     );
+    final LedgerFiles files = LedgerFiles.open(dir, clock: clock);
+    // 🆕 E11k-e3(R229) — 리스 RPC(같은 로그인 세션) · ⑤ 첫 클레임 · 원격 리스 원천.
+    final ({SupabaseFirstClaim? firstClaim, LeaseRemoteOf? leaseRemote}) lease =
+        operatorLeaseParts(
+          rpc: SupabaseLeaseRpc(
+            http.Client(),
+            AndroidSecretVault(),
+            supabaseAuth,
+          ),
+          sim: files.sim,
+          deviceId: deviceId,
+          clock: clock,
+        );
     return OperatorRuntime(
-      files: LedgerFiles.open(dir, clock: clock),
+      files: files,
       clock: clock,
       secure: SecureScreen(ops.setSecure),
       openExternal: ops.openExternalUrl,
@@ -287,11 +350,29 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       // 🆕 R167 — 골든 기기 실행기(자산 = 엔진 패키지 · 읽기 · 실행 = 처음 부를 때 · 백그라운드 isolate).
       golden: OperatorGolden(rootBundle.loadString, clock: clock),
       liveObservation: observation,
+      operations: operations,
       trusted: trusted,
       refreshTrusted: trusted.refresh,
       // 🆕 E11k-c(R206) — o_07 ② 연결 확인(붙여 넣은 값으로 서버 시각 1회 · 통과 = 금고).
       supabaseTime: SupabaseServerTime(http.Client(), AndroidSecretVault()),
       supabaseAuth: supabaseAuth,
+      firstClaim: lease.firstClaim,
+      leaseRemote: lease.leaseRemote,
+      // 🆕 E16j-a(R227 · 미결 217 ⓒ) — 정정 직전 재대사(주문 잡과 같은 브로커 조립 · 쓰기 0 · 못 하면 null).
+      freshRecon: (OperatorView v, TradeDate day) => operatorFreshReconIds(
+        db: v.db,
+        runMode: v.flags.runMode,
+        clock: clock,
+        calendars: JobCalendars(
+          kr: frozenExchangeCalendar(Market.kr),
+          us: frozenExchangeCalendar(Market.us),
+        ),
+        parts: operatorJobParts(
+          KisSessions(vault: AndroidSecretVault(), http: http.Client()),
+          http.Client(),
+        ),
+        tradeDate: day,
+      ),
     );
   } on Object {
     return null;

@@ -34,6 +34,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:flutter/foundation.dart' show listEquals;
 
 import 'operator_runtime.dart';
+import 'operator_self_report.dart' show OperatorSelfReportSessions, mergeKicks;
 import 'operator_view.dart';
 import 'view_stream.dart';
 
@@ -44,6 +45,7 @@ class OperatorJournalRepository implements JournalRepository {
     this._rt, {
     required this.hasBody,
     this.tick = const Duration(minutes: 1),
+    this.selfReportSessions,
   });
 
   final OperatorRuntime _rt;
@@ -54,6 +56,9 @@ class OperatorJournalRepository implements JournalRepository {
   /// 다시 읽는 주기.
   final Duration tick;
 
+  /// 🆕 E11q-q6 — `L-3` 실사 세션 장부(열린 동안 = «숨김» · 바뀌면 곧바로 다시 읽는다 · 없음 = 가림 0).
+  final OperatorSelfReportSessions? selfReportSessions;
+
   SqliteJournalSource _src(OperatorView v) => SqliteJournalSource(
     v.db,
     clock: _rt.clock,
@@ -61,6 +66,7 @@ class OperatorJournalRepository implements JournalRepository {
     runMode: v.flags.runMode,
     accountLabels: _rt.humanDecision?.accountLabels ?? const <String, String>{},
     hasBody: hasBody,
+    selfReportSessionOpen: selfReportSessions?.anyOpen,
   );
 
   Stream<T> _follow<T>(
@@ -69,9 +75,13 @@ class OperatorJournalRepository implements JournalRepository {
     bool Function(T a, T b)? equals,
   }) => followView<T>(
     view: _rt.view,
-    changes: (OperatorView v) => watchLedgerQuery<T>(
-      v.db,
-      SqliteJournalSource.watchedTables,
+    changes: (OperatorView v) => mergeKicks<T>(
+      watchLedgerQuery<T>(
+        v.db,
+        SqliteJournalSource.watchedTables,
+        () => read(_src(v)),
+      ),
+      selfReportSessions?.changes ?? const Stream<void>.empty(),
       () => read(_src(v)),
     ),
     now: (OperatorView v) => read(_src(v)),

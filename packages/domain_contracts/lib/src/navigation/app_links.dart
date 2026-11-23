@@ -67,6 +67,8 @@ abstract final class AppRoutes {
   static const String journalDecision = 'aaq://journal/decision/:decisionId';
 
   /// `J-3` 사전 저널 작성(폰 전용) — `DecisionDetailVm.journalLink` 등이 준다.
+  /// 🆕 v1.35(01 §44 · K296) — 🔴 `:decisionId` 의 값 = **저널 id**(`decision_journal.journal_id` · 안전 동작의 `decision_id` 와 한 벌 ·
+  /// 이름은 그대로) — 엔진이 링크에 싣는 불투명 id(`JOURNAL_MISSING` 배너 · 차단 보드 · M5 게이트 · J-2 «저널 작성») · 화면 조립 0.
   static const String journalDraft = 'aaq://journal/draft/:decisionId';
 
   /// `J-3` 사전 저널 **읽기**(`J-3R` · 🆕 v1.2) — `DecisionDetailVm.journalLink`(작성됨)가 준다.
