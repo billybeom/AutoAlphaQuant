@@ -117,3 +117,10 @@ ReadModelGate readModelGate(
 /// 행 지도에서 곧장 판정한다(못 읽음 = incompatible).
 ReadModelGate readModelGateOfRow(Map<String, Object?>? row) =>
     readModelGate(ReadModelVersionStamp.fromRow(row));
+
+/// 🆕 E11-viewer-223(01 §8 미결 223 ⓔ) — 창구가 행을 못 읽었을 때의 게이트.
+///
+/// 🔴 [FormatException](열 없음 · 형 틀림 · 모르는 와이어 값 — `read_model_rows.dart`)= 스키마가 이 빌드와 어긋남 →
+///    `incompatible`(잘못 그리는 것보다 안 그리는 것이 안전하다). 그 밖(행 없음 · 전송)은 게이트를 바꾸지 않는다.
+ReadModelGate readModelGateAfter(ReadModelGate gate, Object error) =>
+    error is FormatException ? ReadModelGate.incompatible : gate;
