@@ -31,9 +31,11 @@ create index if not exists ix_app_device_auth_uid on app_device(auth_uid);
 -- 🔴 최초 INSERT 는 role='viewer' · status='PENDING' 강제. operator 승격은 리스 RPC(서버)만
 -- 🆕 v1.34 — 클라이언트가 넣는 행 = 운영 사용자 자기 기기(`auth_uid` = `owner_uid` = 부른 사용자)뿐이다.
 --    뷰어 기기 행(소유자 ≠ 로그인 사용자)은 클라이언트가 못 넣는다 — 페어링 RPC(서버 · E11m) 몫.
+-- 🆕 v1.39(01 §48 K349 ② · 13 R267 L4 · 리뷰 3차 C-2 = I-U2) — 첫 클레임 뒤(리스 행 있음)에는 운영 사용자만 넣는다:
+--    리스를 쥔 기기 행이 부른 사용자 소유(`owner_uid = auth.uid()` — `device_select_own` 으로 보인다)일 때만 · 리스 행 없음(첫 클레임 전) =
+--    아무 인증 사용자(그 틈 = 17 §3-7 공개 가입 끄기 · o_07 확인 `SUPABASE_SIGNUP_OPEN`). 공개 가입 사용자 = 자기 PENDING 행도 못 넣는다.
 alter table app_device enable row level security;
-create policy device_insert_viewer_only on app_device for insert to authenticated
-  with check (auth_uid = auth.uid() and owner_uid = auth.uid() and role = 'viewer' and status = 'PENDING');
+-- 🆕 v1.39 — 정책 `device_insert_viewer_only` 는 `operator_lease` 를 읽어 그 표 뒤(아래 리스 절)에서 만든다.
 -- 🆕 v1.34 — 소유자 = 자기 기기 전부 · 뷰어 = 자기 행만.
 create policy device_select_own on app_device for select to authenticated
   using (owner_uid = auth.uid() or auth_uid = auth.uid());
@@ -53,14 +55,23 @@ create table if not exists operator_lease (
 );
 alter table operator_lease enable row level security;
 create policy lease_select on operator_lease for select to authenticated using (true);
+-- 🆕 v1.39(01 §48 K349 ②) — `app_device` 넣기 정책(위 기기 원장 절 주석) — 리스 표를 읽으니 여기서 만든다.
+create policy device_insert_viewer_only on app_device for insert to authenticated
+  with check (auth_uid = auth.uid() and owner_uid = auth.uid() and role = 'viewer' and status = 'PENDING'
+              and (not exists (select 1 from operator_lease)
+                   or exists (select 1 from operator_lease l join app_device h on h.device_id = l.device_id
+                              where h.owner_uid = auth.uid())));
 -- 🔴 claim/renew/revoke 는 security definer RPC. 클라이언트 UPDATE·DELETE 정책은 만들지 않는다
 -- 🆕 v1.29(01 §39 · §6-4 RPC 표 · 지도 X18) — 이름 · 인자 · 반환 칸 = 계약 `schema/supabase_rpc.dart` · 거부 = `LeaseRpcResultCodes`.
 --    본문(SQL)은 E11k-e 부트스트랩 묶음이 이 자리에 넣는다(지금 = 서명만 · 🔴 `server_now` 0 — 신뢰 시각 = 게이트웨이 `Date`).
 --    반환 = 한 행 (code text, epoch bigint, expires_at timestamptz) · code = 거부 코드 또는 null · T = 30분(서버 상수 · R43 D3).
 --    lease_claim (p_device_id text, p_recovery_code_hash text default null)
 --      · 빈 행 = 첫 클레임 → 🔴 p_recovery_code_hash 필수(없으면 RECOVERY_CODE_REQUIRED) · recovery_secret 같은 트랜잭션 · epoch 1
---      · 만료 ∨ 같은 기기 → 이 기기(다른 기기에서 넘어옴 = epoch+1) · 다른 기기 유효 = LEASE_HELD_BY_OTHER
+--      · 같은 기기 → 이 기기(epoch 그대로) · 🆕 v1.39(01 §48 K349 ① · 13 R267 L1 · 리뷰 3차 C-1 = D-01) 다른 기기 보유 ∧ 만료 →
+--        그 기기가 REVOKED · RETIRED 일 때만 이 기기(epoch+1) · 아직 자격 = LEASE_HELD_BY_OTHER(지금 epoch · 만료 시각) — 옛 «만료 ∨ 같은 기기»
+--        정정(다른 기기 인계 = 첫 클레임 · 비상 회수 `lease_revoke` · 계획 이전 은퇴 `device_retire` 뒤에만) · 다른 기기 유효 = LEASE_HELD_BY_OTHER
 --      · 성공 = 그 기기 role='operator' · status='ACTIVE' · 부른 사용자 ≠ 그 기기 auth_uid ∨ REVOKED · RETIRED = LEASE_DEVICE_NOT_ELIGIBLE
+--      · 🆕 v1.39(13 R267 L4 · 리뷰 3차 C-2) 첫 클레임 뒤 세 RPC = 부른 사용자 ≠ `recovery_secret.owner_uid` = LEASE_DEVICE_NOT_ELIGIBLE(운영 사용자 고정)
 --    lease_renew (p_device_id text, p_epoch bigint) — 보유 ∧ epoch 같음 ∧ 만료 전 → expires_at = now() + T · 아니면 LEASE_LOST
 --    lease_revoke (p_device_id text, p_recovery_code text, p_new_recovery_code_hash text) — 비상(X1-3 ①)
 --      · 복구 코드 대조(틀림 = RECOVERY_CODE_INVALID) → 같은 트랜잭션: epoch+1 · device_id = 부른 기기 · expires_at = now()(즉시 만료 —
@@ -254,7 +265,7 @@ create policy calendar_sync_status_select on calendar_sync_status for select to 
 --   (~~18~~ · 06 M4-1 «19» · 01 §6-4 20 + `rm_watchdog`(미결 142) + 🆕 `rm_list_envelope`(ListResult 봉투 — K310))
 -- 🔵 v1 필수(push 우선) = rm_monthly_report · rm_report_archive · rm_ledger_diff · rm_advice_summary ·
 --    rm_sleeve_allocation(v1.8) · rm_ops_summary(N-07) · rm_list_envelope(목록 봉투) — 🔴 부트스트랩은 22표 **전부**(K314).
---    ✅ rm_ops_summary = 홈 블록 5·7 과 계약 v1.12 `H-02` 전체 리듬 목록(`OpsStatusRepository.watchRhythm` · K29 → 열 `rhythm`)·
+--    ✅ rm_ops_summary = 홈 블록 5·7 과 계약 v1.12 `H-02` 전체 리듬 목록(`OpsSummaryRepository.watchRhythm` · K29 → 열 `rhythm`)·
 --       `resume_line`(K44)의 뷰어 원천.
 --
 -- **규칙 5조(+⑥)** — 파생 생성기가 표마다 반드시 지키는 것:

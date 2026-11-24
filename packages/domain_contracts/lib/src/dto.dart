@@ -25,6 +25,7 @@ export 'dto/operations.dart';
 export 'dto/ops.dart';
 export 'dto/performance.dart';
 export 'dto/plan.dart';
+export 'dto/postmortem.dart'; // 🆕 v1.39 — M5-4 postmortem 목록(01 §48 K345)
 export 'dto/rebalance.dart';
 export 'dto/repair.dart'; // 🆕 v1.32 — X5 정정 마법사(01 §41)
 export 'dto/resume.dart';

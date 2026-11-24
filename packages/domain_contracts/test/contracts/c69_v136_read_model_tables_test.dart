@@ -278,11 +278,14 @@ void main() {
           ...t.extraColumns
               .where((ReadModelExtraColumn x) => !t.keyColumns.contains(x.name))
               .map((ReadModelExtraColumn x) => x.name),
+          // 🆕 v1.39(01 §48 K339) — 목록 열은 표 맨 끝(결속 · DTO 밖 열 아님 · C-72 ②).
+          ...t.listColumns.map((ReadModelListColumn x) => x.name),
         ];
         expect(
           t.columns.map((ReadModelColumn c) => c.name).toList(),
           expected,
-          reason: '${t.name} — 열 차례 = 키 DTO 밖 → 결속(toJson 차례) → 나머지 DTO 밖',
+          reason:
+              '${t.name} — 열 차례 = 키 DTO 밖 → 결속(toJson 차례) → 나머지 DTO 밖 → 목록 열',
         );
         for (final ReadModelBinding b in t.bindings) {
           final Set<String> keys = _samples(b.dto).first.keys.toSet();
@@ -387,6 +390,9 @@ void main() {
           ('as_of', ReadModelColumnType.jsonb),
           ('empty_kind', ReadModelColumnType.text),
           ('empty_label', ReadModelColumnType.text),
+          // 🆕 v1.39(01 §48 K340) — 목록 열 2(필터 · 회차 빈 문장).
+          ('filtered_empty_label', ReadModelColumnType.text),
+          ('scope_empty_label', ReadModelColumnType.text),
         ],
       );
     });

@@ -80,8 +80,12 @@ abstract final class LiveObservationBlockCodes {
 }
 
 /// 🆕 E15e2(#161) — 승격 커밋 거부·결과(도메인 `live_promotion_result` · 엔진 `LivePromotionCodes` 글자 그대로) —
-/// `runtimeLivePromotion` 결과 `ActionResult.reasonCode`(사전 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → 재판정).
-/// 🔴 생체 없음 = `SettingsResultCodes.biometricUnavailable`(한 벌 — 이 사전에 다시 싣지 않는다) · 재판정 막힘 = [LiveObservationBlockCodes].
+/// `runtimeLivePromotion` 결과 `ActionResult.reasonCode`.
+/// 🆕 v1.39(01 §48 · K346) 사전 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → **리스 → 설정 → 재판정**
+/// (core `livePromotionReject` · 리스 = E15f5 R108 · 설정 = 리뷰 3차 H2-02 · 13 §8 R265 — 설정을 못 읽으면 잡이 실패해 무결일이 0 이라
+/// «일수 부족»이 진짜 사유를 가린다 → 재판정보다 먼저).
+/// 🔴 생체 없음 = `SettingsResultCodes.biometricUnavailable` · 리스 무효 = `JournalReasonCodes.leaseInvalid`(`LEASE_INVALID` · core
+///    `kLeaseInvalidCode`) — 둘 다 한 벌(이 사전에 다시 싣지 않는다) · 재판정 막힘 = [LiveObservationBlockCodes].
 abstract final class LivePromotionResultCodes {
   /// 준 세션이 없거나 닫혔거나 만료.
   static const String sessionInvalid = 'HANDOVER_SESSION_INVALID';
@@ -98,12 +102,17 @@ abstract final class LivePromotionResultCodes {
   /// 저장 실패 — 전부 되돌렸다.
   static const String rolledBack = 'LIVE_PROMOTION_ROLLED_BACK';
 
+  /// 🆕 v1.39(01 §48 · K346 · 13 §8 R265 S3) — 실전 파일의 지금 설정(실전 개시 판)을 못 읽었다(빈 지문으로 실주문을 켜지 않는다 ·
+  /// 쓰기 0 · 다시 시도 0 · 화면 = headline 그대로).
+  static const String configUnavailable = 'LIVE_PROMOTION_CONFIG_UNAVAILABLE';
+
   static const Set<String> values = <String>{
     sessionInvalid,
     notObserving,
     notAutoTrade,
     clockBehind,
     rolledBack,
+    configUnavailable,
   };
 }
 
@@ -220,7 +229,11 @@ abstract final class SimToAutoResultCodes {
 }
 
 /// 🆕 v1.22(K58) — simToAuto 확정 1단계 · 오케스트레이터 결과(도메인 `sim_to_auto_commit_result` ·
-/// core `SimToAutoCommitCodes` `mode/sim_to_auto_commit.dart:49-79` 10 + `mode/sim_to_auto_switch.dart:21-25` 2).
+/// core `SimToAutoCommitCodes`(`mode/sim_to_auto_commit.dart`) 전부 + `mode/sim_to_auto_switch.dart` 2).
+/// 🆕 v1.39(01 §48 · K346) 엔진 안 예약 3 등재 — [fateConfigUnavailable](13 R265 S4) · [configNotApproved](13 R192 AA4) ·
+/// [accountDuplicate](13 R262 D3) · 🔴 엔진 `SimToAutoCommitCodes` ⊆ 이 사전(C-72 ⑧ 원천 대조 — 리뷰 3차 I-2).
+/// 판정 차례(core `simToAutoCommitReject` · 13 R192 · R262) = 신뢰 시각 → 세션 → 리스 → 이미 커밋 → **승인 config** → 재판정(냉각) →
+/// 계좌 조회 없음 → **별칭 중복** → 신선도 → 보유 → 활동 → 예수금(모름 · 0원).
 abstract final class SimToAutoCommitResultCodes {
   /// 실전 파일에 이미 모드 행이 있다.
   static const String alreadyCommitted = 'SIM_TO_AUTO_ALREADY_COMMITTED';
@@ -259,6 +272,19 @@ abstract final class SimToAutoCommitResultCodes {
   /// 오케스트레이터 — 커밋 콜백 결과 모름(보상 0 · 🔴 상수 이름 ≠ 엔진 `kSimToAutoCommitUnknown` — C-7 · K51).
   static const String outcomeUnknown = 'SIM_TO_AUTO_COMMIT_UNKNOWN';
 
+  /// 🆕 v1.39(13 R265 S4 · 리뷰 3차 H2-02) — 모의 파일의 지금 설정(모의 개시 판)을 못 읽어 5단계 고름을 적지 않았다(쓰기 0 · 빈 지문 결정 0) ·
+  /// 축 = `handoverSimLedgerFate` 결과(S5 · [simClosed] 와 같은 자리).
+  static const String fateConfigUnavailable =
+      'SIM_LEDGER_FATE_CONFIG_UNAVAILABLE';
+
+  /// 🆕 v1.39(13 R192 AA4 · 미결 205 ⓓ) — 지금 설정(실전 개시에 붙일 판)이 규칙 변경 승인을 받지 않았다(승인 config 0 · 승인 기록 없음 ·
+  /// 다른 판 승인) — 쓰기 0 · 세션 그대로(SAF-405 · 실전 기동 = 승인 config 필수).
+  static const String configNotApproved = 'SIM_TO_AUTO_CONFIG_NOT_APPROVED';
+
+  /// 🆕 v1.39(13 R262 D3 · 리뷰 3차 A-2) — 서로 다른 별칭이 같은 실전 계좌(종합계좌 · 상품코드)를 가리킨다 — 쓰기 0 · 세션 그대로
+  /// (한 계좌 예수금을 두 번 개시 현금으로 적지 않는다).
+  static const String accountDuplicate = 'SIM_TO_AUTO_ACCOUNT_DUPLICATE';
+
   static const Set<String> values = <String>{
     alreadyCommitted,
     probeMissing,
@@ -272,7 +298,22 @@ abstract final class SimToAutoCommitResultCodes {
     simClosed,
     watchdogPrepareFailed,
     outcomeUnknown,
+    fateConfigUnavailable,
+    configNotApproved,
+    accountDuplicate,
   };
+}
+
+/// 🆕 v1.39(01 §48 · K347 · 13 §8 R261 H5 · 리뷰 3차 H1-2) — 닫힌 원장 쓰기 거부(도메인 `ledger_write_gate`).
+/// 축 = `CommandReceipt.rejectReasonCode`(모든 명령 종류) · `ActionResult.reasonCode` · `SafetyActionResult.reasonCode`(원장에 쓰는 동작).
+/// 🔴 뜻 = 화면 상태가 가리키는 원장이 닫혔다(simToAuto 커밋으로 CLOSE 된 모의 원장 · 커밋 ~ 깨어남 끝 몇 초 틈) → 쓰기 0 · 접수증 = rejected ·
+///    다시 누르면 깨어남 뒤 새 원장에 적힌다(`retryable` true · 글자 = 엔진 headline · `stateLabel`).
+/// 🔴 `runMode` 불일치 거부(01 §5-3 · 파일 경계)와 다른 축 — 같은 모드라도 원장 행이 CLOSE 면 이 글자.
+abstract final class LedgerWriteGateCodes {
+  /// 닫힌(CLOSE) 원장에는 쓰지 않는다.
+  static const String ledgerClosed = 'LEDGER_CLOSED';
+
+  static const Set<String> values = <String>{ledgerClosed};
 }
 
 /// 🆕 v1.22(K21) — 전환 세션 결과(도메인 `handover_session_result` · core `HandoverSessionCodes` `mode/handover_session.dart:75-88`

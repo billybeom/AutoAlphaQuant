@@ -1,7 +1,7 @@
 {
   "meta": {
     "fixture_version": "0.1.0-draft",
-    "contract_version": "1.38.0",
+    "contract_version": "1.39.0",
     "generated_at": "2026-11-03T09:00:00Z",
     "mode": "LIVE",
     "config_hash": "cfg_fake_0000000000000000",
@@ -23,9 +23,9 @@
       ],
       "lease_gate": { "code": "X3_LEASE", "label": "리스가 끝나 이 경로로는 이어받을 수 없습니다", "state": "BLOCK", "blocked_reason_code": null },
       "branches": [
-        { "label": "신규 온보딩으로 진행하고 잔고 이어받기", "deep_link": "aaq://onboarding/mode" }
+        { "label": "먼저 비상 이전으로 옛 폰을 끊고 새로 시작하기", "deep_link": "aaq://x1/migration/emergency" }
       ],
-      "inherit_notice": "킬스위치와 차단 플래그는 켜진 그대로 이어받습니다."
+      "inherit_notice": "새로 시작하면 옛 폰의 킬스위치 · 차단 플래그 · 기록을 이어받지 않습니다 — 온보딩을 처음부터 다시 합니다."
     }
   ]
 }

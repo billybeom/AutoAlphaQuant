@@ -12,10 +12,11 @@ import 'c00_support.dart';
 
 void main() {
   group('C-71 읽기 모델 push RPC 표 (01 §47)', () {
-    test('C-71 ① 판 · 표본 — 1.38.0 · 398(버전 줄만)', () {
-      expect(contractVersion, '1.38.0');
-      expect(FixturePaths.all, hasLength(398));
-      expect(allFixtureFilesOnDisk(), hasLength(398));
+    // 🔵 v1.39(01 §48) — 판 글자 · 수 고정 = 최신 창 시험(C-72 ①)만 · 여기는 «1.38.0 이상 · 398 이상».
+    test('C-71 ① 판 · 표본 — 1.38.0 이상 · 398 이상', () {
+      expect(contractVersion, isNot('1.37.0'));
+      expect(FixturePaths.all.length, greaterThanOrEqualTo(398));
+      expect(allFixtureFilesOnDisk().length, FixturePaths.all.length);
     });
 
     test('C-71 ② 이름 — rm_push 하나 · 리스 RPC 와 겹침 0', () {

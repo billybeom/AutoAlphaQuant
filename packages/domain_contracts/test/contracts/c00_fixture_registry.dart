@@ -245,6 +245,13 @@ final DtoCodec<Object> _selfAuditResolveVm = DtoCodec<SelfAuditResolveVm>(
   SelfAuditResolveVm.fromJson,
   (SelfAuditResolveVm v) => v.toJson(),
 );
+
+// 🆕 v1.39(01 §48 · K345) — `M5-4` postmortem 목록.
+final DtoCodec<Object> _postmortemListVm = DtoCodec<PostmortemListVm>(
+  'PostmortemListVm',
+  PostmortemListVm.fromJson,
+  (PostmortemListVm v) => v.toJson(),
+);
 final DtoCodec<Object> _resumeReportVm = DtoCodec<ResumeReportVm>(
   'ResumeReportVm',
   ResumeReportVm.fromJson,
@@ -594,6 +601,11 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
     _selfAuditResolveVm,
   ),
   FixturePaths.m5SelfAuditResolveClear: FixtureBinding(_selfAuditResolveVm),
+  FixturePaths.m5PostmortemListEmpty: FixtureBinding(_postmortemListVm),
+  FixturePaths.m5PostmortemListDue: FixtureBinding(_postmortemListVm),
+  FixturePaths.m5PostmortemListWrittenOverdue: FixtureBinding(
+    _postmortemListVm,
+  ),
   FixturePaths.m5HeldReviewResults: FixtureBinding(_safetyActionResult),
   // 🆕 v1.26(01 §35) — 보드 RECON 1 · 위저드 12 · 규칙 변경 게이트 5 · 결과 2.
   FixturePaths.m5BlockBoardReconMismatch: FixtureBinding(_blockBoardVm),
@@ -918,6 +930,7 @@ final Map<String, FixtureBinding> fixtureBindings = <String, FixtureBinding>{
   FixturePaths.m8IncidentBannerNone: FixtureBinding(_incidentBannerVm),
   FixturePaths.m8IncidentBannerOrderRejected: FixtureBinding(_incidentBannerVm),
   FixturePaths.m8IncidentBannerOther: FixtureBinding(_incidentBannerVm),
+  FixturePaths.m8IncidentBannerPostmortemDue: FixtureBinding(_incidentBannerVm),
   FixturePaths.m8IncidentBannerPhoneDown: FixtureBinding(_incidentBannerVm),
   FixturePaths.m8IncidentBannerTokenExpired: FixtureBinding(_incidentBannerVm),
   // 🆕 v1.18(01 §27 · 미결 165 해소) — 연결 4행 = `ConnectionsVm`(형제 키 `incident_alert` = 곁 블록 · [unboundSiblingKeys]).

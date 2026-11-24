@@ -282,9 +282,12 @@ void main() {
 
       // 기기 — 클라이언트 = 운영 사용자 자기 기기(viewer · PENDING)만 · 뷰어 기기 행 = 페어링 RPC(서버).
       expect(p['device_insert_viewer_only']!.table, 'app_device');
+      // 🔵 v1.39(01 §48 K349 ②) — 첫 클레임 뒤 = 운영 사용자만(리스 쥔 기기 소유) — 뒤 조건 전문 = C-72 ⑩.
       expect(
         p['device_insert_viewer_only']!.body,
-        "with check (auth_uid = auth.uid() and owner_uid = auth.uid() and role = 'viewer' and status = 'PENDING')",
+        startsWith(
+          "with check (auth_uid = auth.uid() and owner_uid = auth.uid() and role = 'viewer' and status = 'PENDING'",
+        ),
       );
       expect(
         p['device_select_own']!.body,

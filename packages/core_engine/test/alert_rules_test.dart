@@ -75,7 +75,16 @@ void main() {
       ]);
       // 계약 코드 전부 등급이 있다 · 🆕 v1.18(앱 01 §27 · K-z) — 제안 6 = 계약 등재 → 표 밖 0.
       // 🆕 E16f3a — 등재 대기 제안 1 = `DERIVED_FORK`(R130 L6) · E3d 제안 4(R177) — 🆕 계약 v1.27(01 §36 K188) 등재 → 표 밖 0.
-      expect(AlertCodes.values.every(kAlertLevels.containsKey), isTrue);
+      // 🆕 계약 v1.39(앱 01 §48 K344 · K348) — 계약 먼저 등재한 묶음 2(킬스위치 확인 · push) = 엔진 등급 · 글자 대기(미결 243).
+      expect(
+        AlertCodes.values
+            .difference(<String>{
+              ...AlertCodes.killSwitch,
+              ...AlertCodes.readModelPush,
+            })
+            .every(kAlertLevels.containsKey),
+        isTrue,
+      );
       expect(
         kAlertLevels.keys.where((String c) => !AlertCodes.values.contains(c)),
         isEmpty,

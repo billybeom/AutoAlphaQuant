@@ -292,6 +292,10 @@ Map<String, Object?> rowOf(
   for (final ReadModelExtraColumn e in table.extraColumns) {
     row[e.name] = extraValue(table.name, e.name);
   }
+  // 🆕 계약 v1.39(01 §48 K339) — 목록 열 = 엔진이 채우기 전(null · 결속 밖 · push 빌더 비요구).
+  for (final ReadModelListColumn l in table.listColumns) {
+    row[l.name] = null;
+  }
   final Set<String> want = <String>{
     for (final ReadModelColumn c in ReadModelPushColumns.all) c.name,
     for (final ReadModelColumn c in table.columns) c.name,

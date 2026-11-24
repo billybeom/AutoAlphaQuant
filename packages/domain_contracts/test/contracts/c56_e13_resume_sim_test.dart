@@ -861,6 +861,10 @@ void main() {
           'SIM_LEDGER_FATE_SIM_CLOSED',
           'SIM_TO_AUTO_WATCHDOG_PREPARE_FAILED',
           'SIM_TO_AUTO_COMMIT_UNKNOWN',
+          // 🆕 v1.39(01 §48 K346) — 엔진 안 예약 3 등재(13 R265 · R192 · R262).
+          'SIM_LEDGER_FATE_CONFIG_UNAVAILABLE',
+          'SIM_TO_AUTO_CONFIG_NOT_APPROVED',
+          'SIM_TO_AUTO_ACCOUNT_DUPLICATE',
         },
         'handover_session_result': <String>{
           'HANDOVER_SESSION_OPEN',
@@ -938,7 +942,11 @@ void main() {
         SimToAutoCommitResultCodes.outcomeUnknown,
         'SIM_TO_AUTO_COMMIT_UNKNOWN',
       );
-      expect(SimToAutoCommitResultCodes.values, hasLength(12));
+      // 🔵 v1.39(01 §48 K346) — 엔진 예약 3 등재 → 15(전량 고정 = C-72 ⑦).
+      expect(
+        SimToAutoCommitResultCodes.values,
+        hasLength(greaterThanOrEqualTo(12)),
+      );
       expect(
         HandoverSessionResultCodes.values,
         isNot(contains(LivePromotionResultCodes.sessionInvalid)),

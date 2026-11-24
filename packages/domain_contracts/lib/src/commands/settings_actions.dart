@@ -18,6 +18,8 @@
 // 🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드 args 화이트리스트(handover +3 · 확정 = 기존 `handoverCommit`).
 // 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 = 원문 제출 DTO `ContributionUpdateSubmission` + `runContributionUpdate`(표면 run·runContributionUpdate·watch 셋 — C-7) · `run` 화이트리스트 밖.
 // 🆕 v1.31(01 §40 · K239) — 온보딩 검증 +1 `supabaseSignIn` = `{}`(o_07 ③ 로그인 · 결과 = `SupabaseAuthResultCodes` ∪ 전송 6).
+// 🆕 v1.39(01 §48 · K349 ④) — `supabaseSignIn` 통과 뒤 공개 가입 확인 1회(`/auth/v1/settings` `disable_signup`) · 열림 = `SUPABASE_SIGNUP_OPEN`
+//    (`SupabaseSignupResultCodes` · o_07 VERIFIED 아님 · 새로고침 토큰은 금고에 둔다 · 다시 누르면 다시 확인).
 // 🆕 v1.24(01 §33 · K120) — M9 `S09`·`S10` args 화이트리스트(`backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}`) · `backupRestoreStart` = 화면 미호출 · 두 화면은 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -80,7 +82,9 @@ part 'settings_actions.g.dart';
 ///      `AdviceRejectCodes.modeCombinationDenied`)
 ///    · `runtimeEngineStop`                 = `{reason_code ∈ EngineStopReasonCodes}`(`EngineControl.stopActions` — 사유마다 1)
 ///    · 🆕 `runtimeLivePromotion`           = `{}`(`RunModeCard.promotionAction` · 생체 1회 = 구현 · 결과 `reasonCode` ∈
-///      `LiveObservationBlockCodes` ∪ `LivePromotionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`})
+///      `LiveObservationBlockCodes` ∪ `LivePromotionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`, 🆕 v1.39 `LEASE_INVALID`}
+///      · 🆕 v1.39(01 §48 K346) 사전 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → 리스 → 설정(`LIVE_PROMOTION_CONFIG_UNAVAILABLE`) → 재판정 ·
+///      생체 대화상자 목적 = `BiometricPurpose.livePromotion`(01 §48 K350))
 ///    🔴 키 `target` 을 쓰지 않는다(C-5 `connection_target` 사전 키). `S05` 는 [ActionResult] 를 읽는다 — `headline` + `reasonCode`
 ///      원문 · `handoffRoute` 가 있으면 `AppLinkOpener.open(handoffRoute)` 하고 끝 · `retryable` 전부 false(버튼 = VM 의 호출뿐)
 ///      (표본 = `m9/operations_action_results`).
@@ -116,12 +120,15 @@ part 'settings_actions.g.dart';
 ///      = X4(⏸ R9d · 01 §8 미결 5 · 196) · `settingsGeneralUpdate` = S11 창(⏸ R9e · 미결 197) — args 미정 유지.
 ///    🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드(🔒 `ui_safety` · 폰 로컬 · 뷰어 경로 0 · M9 `S05` 는 부르지 않는다):
 ///    · `handoverSimLedgerFate` = `{fate ∈ {KEEP, DISCARD}}`(엔진 `SimLedgerFate.wire` · 🔴 **세션 전** — 5단계는 6단계 생체(세션 열림) 앞이라
-///      `handover_session_id` 를 넣지 않는다 · 결과 `reasonCode` ∈ {`SIM_LEDGER_FATE_SIM_CLOSED`, `SIM_TO_AUTO_NOT_SIM_AUTO`})
+///      `handover_session_id` 를 넣지 않는다 · 결과 `reasonCode` ∈ {`SIM_LEDGER_FATE_SIM_CLOSED`, `SIM_TO_AUTO_NOT_SIM_AUTO`,
+///      🆕 v1.39 `SIM_LEDGER_FATE_CONFIG_UNAVAILABLE`(01 §48 K346 · 모의 파일 지금 설정 못 읽음 = 쓰기 0)})
 ///    · `handoverSessionStart`  = `{path ∈ {SIM_TO_AUTO}}`(1.22.0 화이트리스트 = 하나 · 생체 1회 = 구현 · 결과 `reasonCode` ∈
-///      `SimToAutoResultCodes` ∪ `SimToAutoStepIds` ∪ `HandoverSessionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`})
+///      `SimToAutoResultCodes` ∪ `SimToAutoStepIds` ∪ `HandoverSessionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`} · 🆕 v1.39 생체 대화상자
+///      목적 = `BiometricPurpose.handoverStart`(«실전 전환 시작» — 서약 글자 0 · 01 §48 K350))
 ///    · `handoverSessionCancel` = `{handover_session_id}`(결과 = 정상 · `HANDOVER_SESSION_INVALID`)
 ///    · `handoverCommit`(simToAuto) = 위 그대로 `{handover_session_id}` · 결과 `reasonCode` ∈ `SimToAutoCommitResultCodes` ∪ `SimToAutoResultCodes` ∪
-///      `SimToAutoStepIds` ∪ {`HANDOVER_SESSION_INVALID`, `LEASE_INVALID`}(구현 = 엔진 오케스트레이터 `SimToAutoSwitchResult`)
+///      `SimToAutoStepIds` ∪ {`HANDOVER_SESSION_INVALID`, `LEASE_INVALID`}(구현 = 엔진 오케스트레이터 `SimToAutoSwitchResult` · 🆕 v1.39 엔진 예약
+///      3 등재 = `SIM_TO_AUTO_CONFIG_NOT_APPROVED` · `SIM_TO_AUTO_ACCOUNT_DUPLICATE` · `SIM_LEDGER_FATE_CONFIG_UNAVAILABLE` — 사전 안)
 ///    🔴 위 «세 동작 모두 필수»(`handover_session_id`)는 adoption·external·commit 셋의 조문이다 — `handoverSimLedgerFate` 는 그 밖.
 ///    🔴 결과 문구 = 엔진 `headline`(확정 성공 문장 = 금액을 품는다 → 표본 0) · 🆕 v1.26 위저드 읽기 창구·VM = `HandoverRepository.watchWizard` · `HandoverWizardVm`(01 §35 · K167~K169 · 미결 187 닫음 · 단계별 허용 id = 행 머리).
 ///

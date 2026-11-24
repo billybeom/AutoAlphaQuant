@@ -1,4 +1,4 @@
-// 알림 코드 36종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11) ·
+// 알림 코드 39종(🆕 v1.39 킬스위치 확인 1 · 읽기 모델 push 2 — 01 §48 K344 · K348) — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11) ·
 // 🆕 v1.18 안전 3(E13 · 04 §5-3 v2.40·v2.41 제안) · 재개 3(E14 · 04 §5-3 v2.42 제안) ·
 // 🆕 v1.27 SAF 경고 4(E3d · 04 §1 Level 3 · §5-3 v2.46 제안) · 파생 동기 1(E16 · 04 §5-3 v2.45 제안 · 01 §36).
 // 인벤토리 §6-9 의 분류를 그대로 쓴다.
@@ -148,6 +148,23 @@ abstract final class AlertCodes {
   /// 할 일 = X1 복원 또는 새 기준점(사람만 · 엔진 `kDerivedForkAlertCode`).
   static const String derivedFork = 'DERIVED_FORK';
 
+  // ── 🆕 v1.39 킬스위치 확인 1 (01 §48 K348 · 13 §8 R261 H7 · 리뷰 3차 B-03 · 04 §5-3 등급 행 = 이 판 제안) ──────────
+  /// 🔴 계약 먼저 등재 — 엔진 등급(`kAlertLevels`) · 글자(`kAlertTexts`) · 내는 자리 = 미결 243(그 전 = 알림 0).
+  /// 잠정 P0 · 킬스위치 발동 뒤 기록 확인이 엔진이 본 미체결 수와 어긋남(core `KillChecklistVerdict` `KILL_ACK_MISMATCH` · `p0: true` —
+  /// 조립이 이 코드로 P0 경보 1건 · 🔴 알림 코드 ≠ 확인 결과 코드(`KillSwitchResultCodes.ackMismatch` = 화면 결과 축) — 같은 사건 두 축).
+  static const String killSwitchAckMismatch = 'KILL_SWITCH_ACK_MISMATCH';
+
+  // ── 🆕 v1.39 읽기 모델 push 2 (01 §48 K344 · 13 §8 R263 C3 · C7 · 미결 230 ⓓ · 04 §5-3 등급 행 = 이 판 제안) ──────────
+  /// 🔴 계약 먼저 등재 — 엔진 등급 · 글자 · 내는 자리(push 보고서 실패 목록 → 알림) = 미결 243(그 전 = 알림 0).
+  /// 잠정 P1 · push 가 시크릿 꼴 글자를 찾아 그 표를 보내지 않았다(PUSH_FAILED · 시크릿 차단 — 뷰어 사본이 멈춘다 · 조치 = 원인 확인).
+  /// 🔴 본문에 찾은 글자 · 값 0(표 이름 · 종류만).
+  static const String readModelPushSecretBlocked =
+      'READ_MODEL_PUSH_SECRET_BLOCKED';
+
+  /// 잠정 P1 · 서버 표와 앱이 어긋나 push 가 거부됐다(PUSH_FAILED · `READ_MODEL_ROWS_INVALID` · `READ_MODEL_TABLE_UNKNOWN` · 응답 꼴 ·
+  /// 행을 못 만듦 — 조치 = 앱 업데이트 · 부트스트랩 다시). 🔴 망 · 서버 · 로그인 · 리스(PUSH_LAG)는 알림 0(다음 깨우기에 다시 — 경보 피로).
+  static const String readModelPushRejected = 'READ_MODEL_PUSH_REJECTED';
+
   /// X7 안내 9종.
   static const Set<String> x7Advice = <String>{
     adviceIssued,
@@ -216,7 +233,16 @@ abstract final class AlertCodes {
   /// 🆕 v1.27 파생 동기 1종.
   static const Set<String> derivedSync = <String>{derivedFork};
 
-  /// 전량 36종.
+  /// 🆕 v1.39 킬스위치 확인 1종.
+  static const Set<String> killSwitch = <String>{killSwitchAckMismatch};
+
+  /// 🆕 v1.39 읽기 모델 push 2종.
+  static const Set<String> readModelPush = <String>{
+    readModelPushSecretBlocked,
+    readModelPushRejected,
+  };
+
+  /// 전량 39종(🆕 v1.39 +3).
   static const Set<String> values = <String>{
     ...x7Advice,
     ...handover,
@@ -227,5 +253,7 @@ abstract final class AlertCodes {
     ...resume,
     ...safetyWarn,
     ...derivedSync,
+    ...killSwitch,
+    ...readModelPush,
   };
 }

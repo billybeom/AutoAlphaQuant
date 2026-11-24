@@ -262,7 +262,7 @@ void main() {
     );
   });
 
-  test('🔴 리스 끝남 + 마지막 접속 갭 ≥ 운영 설정 기준(자산 7일) = 신규 온보딩 + 잔고 승계', () async {
+  test('🔴 리스 끝남 + 마지막 접속 갭 ≥ 운영 설정 기준(자산 7일) = 비상 이전 먼저(계약 v1.39 · 옛 폰 회수 뒤 새로 시작)', () async {
     final DateTime now = clock.nowUtc();
     expect(ops.resumeLadder!.backupGapDays, 7);
     net
@@ -277,7 +277,8 @@ void main() {
         .first;
     expect(vm.leaseGate!.state, GateState.block);
     expect(vm.ledgerLines!.last, '마지막 접속 뒤 7일이 지났습니다');
-    expect(_links(vm), <String>[AppRoutes.onboardingModePick]);
+    expect(_links(vm), <String>[AppRoutes.x1MigrationEmergency]);
+    expect(vm.inheritNotice, RestartTexts.freshNotice);
   });
 
   test('🔴 신뢰 시각 모름 = 한 번 다시 잰다(잰 뒤 판정) · 못 재면 모름', () async {

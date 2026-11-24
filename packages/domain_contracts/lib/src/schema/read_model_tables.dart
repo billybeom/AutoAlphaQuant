@@ -122,6 +122,33 @@ final class ReadModelExtraColumn {
   final String source;
 }
 
+/// 🆕 v1.39(01 §48 · K339~K341 · 미결 230 ⓐ ⓔ · 13 §8 R250 V3) 목록 열 — 행 표 목록의 엔진 차례 · 소속(+ 봉투 글자 · 기간 프리셋).
+///
+/// 🔴 차례 열 `<목록>_rank bigint` = 그 창구 **기본 호출**(필터 · 구간 인자 없음 — 엔진 기본)의 차례 · **상한(limit) 없이** 1부터 빈틈 없이 ·
+///    null = 그 목록 밖 → 뷰어 `hasMore` = limit+1(v1.36 K310 그대로 · 봉투 `has_more` 열 0).
+///    엔진 push = 목록 전부 + 목록에서 빠진 행(같은 키 · 큰 판 · rank null)을 다시 보낸다(삭제 0 · K335) — 시간이 지나 빠지는 행
+///    (원장 차이 30일 · 알림 7일 · 안내 만료)도 깨어남마다 다시 판정한다. 직전 소속 = 엔진 로컬 push 상태가 안다(뷰어는 모른다).
+/// 🔴 뷰어 = `rank is not null order by rank asc` · 인자 = 같은 행 열과 같음만(일지 `sleeve` · `symbol` · `status` · `fill_origin` ·
+///    `rebalance_event_id`(= `routeParamKeyOf` 한 번) · 구간 = `trade_date` 양끝 포함 · 알림 `min` = `AlertLevel` 선언 차례 앞쪽까지) ·
+///    그 밖 인자(안내 `status` · 안내 이력 구간 · 회차 `range` · 시리즈 구간) = `UnsupportedError`(엔진 의미 0 — 지어내지 않는다).
+/// 🔴 push 빌더(`readModelRow`)는 목록 열을 요구하지 않는다 — 엔진이 채우기 전 = null(01 §8 미결 242) · 뷰어 목록 창구는 그때까지
+///    `UnsupportedError` 그대로(뷰어 V3 카드 = 엔진 채움 뒤). 결속 열 아님(DTO `fromJson` 에 넘기지 않는다 — C-72 ②).
+final class ReadModelListColumn {
+  const ReadModelListColumn(this.name, this.window, this.rule);
+
+  /// 열 이름(`ReadModelTable.columns` 안 · 표 맨 끝).
+  final String name;
+
+  /// 이 열이 섬기는 창구 «저장소.메서드» · 봉투 열 = [everyList].
+  final String window;
+
+  /// 규칙(문서 글자).
+  final String rule;
+
+  /// 봉투 열의 [window] — 모든 `list_code` 행.
+  static const String everyList = '*';
+}
+
 /// 뷰어 판 열 — 열은 있다 · 엔진 push 가 뷰어 판 값을 싣는다(K309).
 final class ReadModelViewerVariant {
   const ReadModelViewerVariant(this.keyPath, this.rule);
@@ -141,6 +168,7 @@ final class ReadModelTable {
     required this.columns,
     this.bindings = const <ReadModelBinding>[],
     this.extraColumns = const <ReadModelExtraColumn>[],
+    this.listColumns = const <ReadModelListColumn>[],
     this.viewerVariants = const <ReadModelViewerVariant>[],
     this.listCodes = const <String>[],
   });
@@ -159,6 +187,9 @@ final class ReadModelTable {
 
   /// DTO 밖 열.
   final List<ReadModelExtraColumn> extraColumns;
+
+  /// 🆕 v1.39 목록 열(K339) — 이름은 [columns] 맨 끝에도 있다(차례 그대로).
+  final List<ReadModelListColumn> listColumns;
 
   /// 뷰어 판 열.
   final List<ReadModelViewerVariant> viewerVariants;
@@ -238,8 +269,13 @@ abstract final class ReadModelListCodes {
   /// `LedgerRepository.watchOpenDiffs` — 행 = `rm_ledger_diff`.
   static const String ledgerWatchOpenDiffs = 'LedgerRepository.watchOpenDiffs';
 
-  /// `OpsStatusRepository.watchRhythm` — 행 = `rm_ops_summary`.
-  static const String opsStatusWatchRhythm = 'OpsStatusRepository.watchRhythm';
+  /// `OpsSummaryRepository.watchRhythm` — 행 = `rm_ops_summary`(🆕 v1.39 글자 정정 · 01 §48 K343 · 미결 230 ⓒ — 옛 값
+  /// `OpsStatusRepository.watchRhythm` 은 그 메서드가 없는 저장소 이름이었다 · 첫 판 전이라 이주 0).
+  static const String opsSummaryWatchRhythm =
+      'OpsSummaryRepository.watchRhythm';
+
+  /// 옛 이름(값 = [opsSummaryWatchRhythm]) — 부르는 곳(뷰어 `watchRhythm`)이 옮기면 지운다.
+  static const String opsStatusWatchRhythm = opsSummaryWatchRhythm;
 
   /// `JournalRepository.watchBlindReviewQueue` — 행 = `rm_blind_review`.
   static const String journalWatchBlindReviewQueue =
@@ -253,7 +289,7 @@ abstract final class ReadModelListCodes {
     adviceWatchInbox,
     adviceWatchHistory,
     ledgerWatchOpenDiffs,
-    opsStatusWatchRhythm,
+    opsSummaryWatchRhythm,
     journalWatchBlindReviewQueue,
   ];
 }
@@ -300,6 +336,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('rebalance_event_id', ReadModelColumnType.text),
       ReadModelColumn('detail_deep_link', ReadModelColumnType.text),
       ReadModelColumn('as_of', ReadModelColumnType.jsonb),
+      ReadModelColumn('timeline_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -311,6 +348,13 @@ abstract final class ReadModelTables {
           'JournalRepository.fillChain',
           'AdviceRepository.fillsOfAdvice',
         ],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'timeline_rank',
+        'JournalRepository.watchTimeline',
+        '무필터 · 전 기간 타임라인 차례(엔진 = 거래일 ↓ · 의도 생성 시각 ↓ · 의도 id ↓) — 필터 = 열 같음 · 구간 = trade_date 양끝 포함',
       ),
     ],
     listCodes: <String>['JournalRepository.watchTimeline'],
@@ -345,6 +389,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('pending_text', ReadModelColumnType.text),
       ReadModelColumn('sub_book_label', ReadModelColumnType.text),
       ReadModelColumn('detail_deep_link', ReadModelColumnType.text),
+      ReadModelColumn('holdings_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -362,6 +407,13 @@ abstract final class ReadModelTables {
       ReadModelExtraColumn(
         'trade_date',
         'push 스냅숏 거래일 — 그 행 `as_of.trade_date` 와 같은 값(엔진)',
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'holdings_rank',
+        'HoldingsRepository.watchHoldings',
+        '지금 보유(수량 > 0 · 마지막 스냅숏 거래일) 차례 = 엔진 · 옛 거래일 행 = null',
       ),
     ],
     listCodes: <String>['HoldingsRepository.watchHoldings'],
@@ -382,6 +434,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('y_normalized', ReadModelColumnType.doublePrecision),
       ReadModelColumn('value', ReadModelColumnType.doublePrecision),
       ReadModelColumn('gap_reason_code', ReadModelColumnType.text),
+      ReadModelColumn('series_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -401,6 +454,13 @@ abstract final class ReadModelTables {
       ReadModelExtraColumn(
         'cumulative',
         '부모 시리즈 `PerformanceSeries.cumulative`',
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'series_rank',
+        'PerformanceRepository.series',
+        '그 시리즈 기본 구간(일별 = 이번 달 · 월별 · 연별 = 처음부터)의 점 차례(date 오름차순) — 구간 밖으로 밀려난 옛 점 = null(230 ⓔ · 13 R268 D7)',
       ),
     ],
   );
@@ -460,6 +520,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('detail_deep_link', ReadModelColumnType.text),
       ReadModelColumn('scope_label', ReadModelColumnType.text),
       ReadModelColumn('scope_range', ReadModelColumnType.jsonb),
+      ReadModelColumn('events_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -480,6 +541,13 @@ abstract final class ReadModelTables {
           ),
         ],
         feeds: <String>['JournalRepository.watchRebalanceScope'],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'events_rank',
+        'RebalanceRepository.watchEvents',
+        '회차 차례(엔진 = 거래일 ↓ · 생성 시각 ↓ · 회차 id ↓) — range 인자 = 엔진 의미 0(뷰어 UnsupportedError)',
       ),
     ],
     listCodes: <String>['RebalanceRepository.watchEvents'],
@@ -503,11 +571,19 @@ abstract final class ReadModelTables {
       ReadModelColumn('raised_at_text', ReadModelColumnType.text),
       ReadModelColumn('grouped_text', ReadModelColumnType.text),
       ReadModelColumn('detail_deep_link', ReadModelColumnType.text),
+      ReadModelColumn('inbox_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
         'AlertItem',
         feeds: <String>['AlertRepository.watchInbox'],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'inbox_rank',
+        'AlertRepository.watchInbox',
+        'min 없음 수신함 차례(엔진 = 확인 안 한 P0 → 확인한 P0 → P1 → P2 · 각 발생 시각 ↓) · 소속 = 안 확인 P0 늘 · 나머지 7일 — min = AlertLevel 선언 차례 앞쪽까지',
       ),
     ],
   );
@@ -590,6 +666,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('schema_version', ReadModelColumnType.bigint),
       ReadModelColumn('hash_format_version', ReadModelColumnType.bigint),
       ReadModelColumn('contract_version', ReadModelColumnType.text),
+      ReadModelColumn('range_presets', ReadModelColumnType.jsonb),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -624,6 +701,13 @@ abstract final class ReadModelTables {
       ReadModelExtraColumn(
         'contract_version',
         '버전 스탬프(G-36) — 계약 `contractVersion`(push 층)',
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'range_presets',
+        'ConfigRepository.watchRangePresets',
+        '[DateRange.toJson()] 엔진 차례 그대로(지금 = 30일(기본) · 이번 달 · 올해 · 전체) — null = 아직 안 채움',
       ),
     ],
   );
@@ -665,6 +749,8 @@ abstract final class ReadModelTables {
       ReadModelColumn('expired_confirm_label', ReadModelColumnType.text),
       ReadModelColumn('decision_link', ReadModelColumnType.jsonb),
       ReadModelColumn('close_reason_label', ReadModelColumnType.text),
+      ReadModelColumn('inbox_rank', ReadModelColumnType.bigint),
+      ReadModelColumn('history_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -722,6 +808,18 @@ abstract final class ReadModelTables {
     viewerVariants: <ReadModelViewerVariant>[
       ReadModelViewerVariant('sizing_label', '뷰어 판 글자(수량 0 — A6 · v1.12)'),
       ReadModelViewerVariant('progress_label', '뷰어 판 글자(수량 0 — A6)'),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'inbox_rank',
+        'AdviceRepository.watchInbox',
+        '무인자 수신함 차례(엔진 = 확인 카드 → 급함 → 나머지) · 미분류 만료(확인 카드 밖) = null — status 인자 = 엔진 의미 0(뷰어 UnsupportedError)',
+      ),
+      ReadModelListColumn(
+        'history_rank',
+        'AdviceRepository.watchHistory',
+        '엔진 기본 구간 이력 차례 — 다른 구간 = 엔진 의미 0(뷰어 UnsupportedError)',
+      ),
     ],
     listCodes: <String>[
       'AdviceRepository.watchInbox',
@@ -836,6 +934,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('route_label', ReadModelColumnType.text),
       ReadModelColumn('candidate_origins', ReadModelColumnType.jsonb),
       ReadModelColumn('detected_at_text', ReadModelColumnType.text),
+      ReadModelColumn('open_diffs_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -847,6 +946,13 @@ abstract final class ReadModelTables {
           ),
         ],
         feeds: <String>['LedgerRepository.watchOpenDiffs'],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'open_diffs_rank',
+        'LedgerRepository.watchOpenDiffs',
+        '열린 차단 → 열린 관측 → 닫힌 것(30일) 차례 = 엔진(상한 50 없이 전부) · 30일 지난 닫힌 차이 = null',
       ),
     ],
     listCodes: <String>['LedgerRepository.watchOpenDiffs'],
@@ -970,16 +1076,16 @@ abstract final class ReadModelTables {
     bindings: <ReadModelBinding>[
       ReadModelBinding(
         'OpsDailySummary',
-        feeds: <String>['OpsStatusRepository.watchToday'],
+        feeds: <String>['OpsSummaryRepository.watchToday'],
       ),
     ],
     extraColumns: <ReadModelExtraColumn>[
       ReadModelExtraColumn(
         'rhythm',
-        '`OpsStatusRepository.watchRhythm` 전체 목록 — `[OpsRhythmRow.toJson()]` 받은 순서(엔진 · v1.12 K29)',
+        '`OpsSummaryRepository.watchRhythm` 전체 목록 — `[OpsRhythmRow.toJson()]` 받은 순서(엔진 · v1.12 K29)',
       ),
     ],
-    listCodes: <String>['OpsStatusRepository.watchRhythm'],
+    listCodes: <String>['OpsSummaryRepository.watchRhythm'],
   );
 
   /// `rm_ledger_trust`.
@@ -1048,6 +1154,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('questions', ReadModelColumnType.jsonb),
       ReadModelColumn('result', ReadModelColumnType.jsonb),
       ReadModelColumn('as_of', ReadModelColumnType.jsonb),
+      ReadModelColumn('queue_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -1056,6 +1163,13 @@ abstract final class ReadModelTables {
           'JournalRepository.watchBlindReviewQueue',
           'JournalRepository.watchBlindReviewCard',
         ],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'queue_rank',
+        'JournalRepository.watchBlindReviewQueue',
+        '채점 대기 차례(엔진 = 결정 시각 ↑ · 결정 id ↑) · 채점한 카드 = null(카드 창구는 그 행 그대로)',
       ),
     ],
     listCodes: <String>['JournalRepository.watchBlindReviewQueue'],
@@ -1090,6 +1204,8 @@ abstract final class ReadModelTables {
       ReadModelColumn('as_of', ReadModelColumnType.jsonb),
       ReadModelColumn('empty_kind', ReadModelColumnType.text),
       ReadModelColumn('empty_label', ReadModelColumnType.text),
+      ReadModelColumn('filtered_empty_label', ReadModelColumnType.text),
+      ReadModelColumn('scope_empty_label', ReadModelColumnType.text),
     ],
     extraColumns: <ReadModelExtraColumn>[
       ReadModelExtraColumn(
@@ -1101,6 +1217,18 @@ abstract final class ReadModelTables {
       ReadModelExtraColumn(
         'empty_label',
         '`ListResult.emptyLabel`(엔진 · 없으면 null)',
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'filtered_empty_label',
+        ReadModelListColumn.everyList,
+        '필터를 건 조회가 빈 때 엔진 문장(일지 «조건에 맞는 기록이 없습니다») · null = 그 목록에 필터 문장 없음 — 차례: 회차 필터 → scope_empty_label · 목록 전체가 빔 → empty_label · 그 밖 → 이 열',
+      ),
+      ReadModelListColumn(
+        'scope_empty_label',
+        ReadModelListColumn.everyList,
+        '일지 회차 필터(rebalance_event_id)가 빈 때 엔진 문장 · 목록 전체가 비어도 이 글자가 먼저',
       ),
     ],
   );

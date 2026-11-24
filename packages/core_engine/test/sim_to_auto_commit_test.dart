@@ -344,10 +344,10 @@ void main() {
       SimToAutoCommitCodes.accountDuplicate,
       'SIM_TO_AUTO_ACCOUNT_DUPLICATE',
     );
-    // 🔵 엔진 예약 — 계약 사전 등재 = 다음 계약 창(그 전 화면 = headline 만).
+    // 🆕 계약 v1.39(앱 01 §48 K346) — 계약 사전 등재(엔진 예약 끝).
     expect(
       SimToAutoCommitResultCodes.values,
-      isNot(contains(SimToAutoCommitCodes.accountDuplicate)),
+      contains(SimToAutoCommitCodes.accountDuplicate),
     );
     final String h = simToAutoCommitHeadline(
       SimToAutoCommitCodes.accountDuplicate,

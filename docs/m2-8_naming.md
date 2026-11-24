@@ -884,3 +884,23 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AQ-3 | 🆕 `ReadModelPushRpcColumns`(`code` · `epoch` · `accepted` · `skipped`) | 같은 파일 · 반환 한 행 |
 | AQ-4 | 🆕 `ReadModelPushResultCodes`(`read_model_push_result` 2) | `labels/supabase_codes.dart` · 표 모름 · 행 묶음 못 넣음 |
 
+## AR. 🆕 계약 v1.39 (2026-11-25 · 뷰어 목록 열 · postmortem 목록 · 리뷰 3차 등재 · 생체 목적) — Dart 이름 14 · 와이어 글자 9 · 라우트 1
+
+`contractVersion` = **`1.39.0`**(다음 = 1.40.0 · 미결 229 `op_push`). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K338~K352 권고대로(정본 = 설계 01 §48 · 13 §8 R269).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AR-1 | 🆕 `ReadModelListColumn`(`everyList` = `*`) · `ReadModelTable.listColumns` | `schema/read_model_tables.dart` · 목록 차례 · 소속 열(push 빌더 · 결속 밖) |
+| AR-2 | 🆕 열 `timeline_rank` · `holdings_rank` · `series_rank` · `events_rank` · `inbox_rank`(rm_alert · rm_advice) · `history_rank` · `open_diffs_rank` · `queue_rank` | 같은 파일 · bigint · null = 그 목록 밖 |
+| AR-3 | 🆕 열 `filtered_empty_label` · `scope_empty_label` · `range_presets` | 봉투 빈 문장 2 · `rm_config_view` 기간 프리셋 |
+| AR-4 | 🆕 `ReadModelListCodes.opsSummaryWatchRhythm`(`OpsSummaryRepository.watchRhythm`) | 230 ⓒ · 옛 이름 `opsStatusWatchRhythm` = 같은 값 별칭 |
+| AR-5 | 🆕 `routeParamKeyOf` | `navigation/app_links.dart` · 라우트 조각 → 키(퍼센트 한 번) |
+| AR-6 | 🆕 `AppRoutes.m5Postmortem`(`aaq://m5/postmortem`) | M5-4 postmortem 목록 + 쓰기 · 86번째 |
+| AR-7 | 🆕 `PostmortemListVm` · `PostmortemRow` · `PostmortemForm`(`button_label`) · `PostmortemRepository.watchPostmortems` | `dto/postmortem.dart` · `repositories/postmortem_repository.dart` |
+| AR-8 | 🆕 `LedgerWriteGateCodes`(`ledger_write_gate` · `LEDGER_CLOSED`) | `labels/sim_codes.dart` · 닫힌 원장 쓰기 거부 |
+| AR-9 | `LivePromotionResultCodes.configUnavailable` · `SimToAutoCommitResultCodes.fateConfigUnavailable` · `configNotApproved` · `accountDuplicate` | 엔진 예약 등재 |
+| AR-10 | 🆕 `AlertCodes.killSwitchAckMismatch`(`KILL_SWITCH_ACK_MISMATCH`) · `readModelPushSecretBlocked` · `readModelPushRejected` · 묶음 `killSwitch` · `readModelPush` | `labels/alert_codes.dart` · 계약 먼저 등재 |
+| AR-11 | 🆕 `SupabaseSignupResultCodes`(`supabase_signup_result` · `SUPABASE_SIGNUP_OPEN`) | `labels/supabase_codes.dart` · o_07 공개 가입 확인 |
+| AR-12 | 🆕 `BiometricPurpose`(`PLEDGE_SIGN` · `HANDOVER_START` · `LIVE_PROMOTION` · `X1_MIGRATION`) | `enums/biometric.dart` |
+| AR-13 | 🆕 `BiometricPromptText` · `BiometricPrompt` | `biometric_prompt_text.dart` · 목적마다 제목 · 설명 |
+| AR-14 | 🆕 `UnimplementedPostmortemRepository` | `testing.dart` 받침대 |

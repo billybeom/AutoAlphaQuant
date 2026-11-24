@@ -102,6 +102,10 @@ const Map<String, String> _engineLevel = <String, String>{
   'GOLD_SHARE_HIGH': 'P1',
   'FINANCIAL_INCOME_CAP_EXCEEDED': 'P1',
   'KRW_LIQUIDITY_LOW': 'P2',
+  // 🆕 v1.39(01 §48 K344 · K348 · 04 §5-3 등급 행 제안 · 엔진 `kAlertLevels` 같은 줄).
+  'KILL_SWITCH_ACK_MISMATCH': 'P0',
+  'READ_MODEL_PUSH_SECRET_BLOCKED': 'P1',
+  'READ_MODEL_PUSH_REJECTED': 'P1',
 };
 
 const Set<String> _levels = <String>{'P0', 'P1', 'P2'};
@@ -549,10 +553,10 @@ void main() {
         count[v] = count[v]! + 1;
       }
       expect(count, <String, int>{
-        'P0': 11,
-        'P1': 18,
+        'P0': 12,
+        'P1': 20,
         'P2': 7,
-      }); // 🆕 v1.27 +1 · +3 · +1
+      }); // 🆕 v1.27 +1 · +3 · +1 · 🆕 v1.39 +1 · +2
       int seen = 0;
       final List<String> bad = <String>[];
       for (final String path in FixturePaths.all) {

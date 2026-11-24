@@ -241,6 +241,16 @@ abstract final class FixturePaths {
   /// 🆕 v1.37(K319) — 보관 명령 일괄 확정 결과 4행(`HELD_COMMANDS_CONFIRM` · 확정 1 · 거부 3 = `HeldReviewResultCodes`).
   static const String m5HeldReviewResults = 'm5/held_review_results.json';
 
+  /// 🆕 v1.39(01 §48 · K345 · 미결 188 · 13 R243 P3 ⓔ) — `M5-4` postmortem 목록 빈 상태(행 0 · `empty_label`).
+  static const String m5PostmortemListEmpty = 'm5/postmortem_list_empty.json';
+
+  /// 🆕 v1.39 — `M5-4` SEV2 수동 주문 1건 쓸 차례(기한 전 · 쓰기 칸).
+  static const String m5PostmortemListDue = 'm5/postmortem_list_due.json';
+
+  /// 🆕 v1.39 — `M5-4` SEV1 STOPPED 씀(읽기 전용 · STOPPED 결정 링크) + SEV2 기한 넘김(쓰기 칸) · 차례 = 심각도 → 기한.
+  static const String m5PostmortemListWrittenOverdue =
+      'm5/postmortem_list_written_overdue.json';
+
   // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
   static const String m6Advice12 = 'm6/advice_12.json';
   static const String m6AdviceBlocked = 'm6/advice_blocked.json';
@@ -741,6 +751,11 @@ abstract final class FixturePaths {
   static const String m8IncidentBannerOrderRejected =
       'm8/incident_banner_order_rejected.json';
   static const String m8IncidentBannerOther = 'm8/incident_banner_other.json';
+
+  /// 🆕 v1.39(01 §48 · K345 · 13 R243 P3 ⓔ) — `D-01` postmortem 기한 배너(종류 OTHER · 조치 «postmortem 쓰기» → `m5Postmortem`) ·
+  /// 기존 `other` 표본(조치 0) 무변경.
+  static const String m8IncidentBannerPostmortemDue =
+      'm8/incident_banner_postmortem_due.json';
   static const String m8IncidentBannerPhoneDown =
       'm8/incident_banner_phone_down.json';
   static const String m8IncidentBannerTokenExpired =
@@ -1274,6 +1289,9 @@ abstract final class FixturePaths {
     m5SelfAuditResolveHeldBlocked,
     m5SelfAuditResolveClear,
     m5HeldReviewResults,
+    m5PostmortemListEmpty,
+    m5PostmortemListDue,
+    m5PostmortemListWrittenOverdue,
     m6Advice12,
     m6AdviceBlocked,
     m6AdviceDetailOnhold,
@@ -1445,6 +1463,7 @@ abstract final class FixturePaths {
     m8IncidentBannerNone,
     m8IncidentBannerOrderRejected,
     m8IncidentBannerOther,
+    m8IncidentBannerPostmortemDue,
     m8IncidentBannerPhoneDown,
     m8IncidentBannerTokenExpired,
     m8IncidentTokenExpired,

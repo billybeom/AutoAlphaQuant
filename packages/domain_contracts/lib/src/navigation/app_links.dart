@@ -344,6 +344,11 @@ abstract final class AppRoutes {
   /// 🆕 v1.21 — 🔒 `M5-9` 규칙 변경 게이트(M9 `S04` «적용» `ActionResult.handoffRoute` 목적지 · R8) · 본문 = 빈 자리(E13m).
   static const String m5RuleChangeGate = 'aaq://m5/rule-change-gate';
 
+  /// 🆕 v1.39(01 §48 · K345 · 미결 188 · 13 §8 R243 P3 ⓐ) — 🔒 `M5-4` 안전 사건 postmortem 목록 + 쓰기 한 화면(파라미터 0 · 본문 =
+  /// `ui_safety` · VM = `PostmortemListVm` · 창구 = `PostmortemRepository.watchPostmortems` · 쓰기 = `SafetyActions.runPostmortem`) ·
+  /// D-01 배너 조치 «postmortem 쓰기» 목적지 · 본문 = 화면이 생길 때까지 레지스트리 빈 자리(엔진 `hasBody` 거짓 = 조치 부재).
+  static const String m5Postmortem = 'aaq://m5/postmortem';
+
   /// 🔒 X1 **옛 폰 계획 교체 마법사**(`X1-2` · S06 리스 카드 · S09 «폰을 바꾸시나요?» 진입) — 🆕 v1.33(01 §42 · K265) VM = `X1PlanWizardVm`.
   static const String x1Migration = 'aaq://x1/migration';
 
@@ -465,6 +470,7 @@ abstract final class AppRoutes {
     x2ResumeGate,
     x5RepairWizard,
     x5RepairTarget, // 🆕 v1.32 = 85(01 §41 · K248)
+    m5Postmortem, // 🆕 v1.39 = 86(01 §48 · K345 · 파라미터 0 — 첫 일치 겹침 0 · 맨 끝)
   ];
 
   /// [link] 가 [all] 의 패턴 하나와 일치하는가.
@@ -498,5 +504,17 @@ abstract final class AppRoutes {
       }
     }
     return true;
+  }
+}
+
+/// 🆕 v1.39(01 §48 · K342 · 미결 230 ⓐ · 13 §8 R250 ④) — 라우트 조각 → 키(엔진이 링크를 지을 때 `%` · `#` · `?` · `/` 를 퍼센트 꼴로
+/// 감싼다 → 퍼센트 꼴을 **한 번** 푼다 · 풀 수 없는 글자 = 그대로). 엔진 core `journalKeyOf` 와 같은 규칙.
+/// 🔴 화면은 부르지 않는다(규칙 ② — 링크 해석 금지) — 쓰는 곳 = 셸이 경로 조각을 창구 인자로 넘길 때 · 뷰어 일지 회차 필터
+///    (`watchTimeline(rebalanceEventId:)` → `rm_journal.rebalance_event_id` 같음).
+String routeParamKeyOf(String routeParam) {
+  try {
+    return Uri.decodeComponent(routeParam);
+  } on ArgumentError {
+    return routeParam;
   }
 }

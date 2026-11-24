@@ -604,7 +604,7 @@ void main() {
       });
       expect(
         AlertCodes.values,
-        hasLength(36),
+        hasLength(greaterThanOrEqualTo(36)),
       ); // 🆕 v1.27(01 §36) — safetyWarn 4 · derivedSync 1(C-61).
       expect(AlertCodes.values.containsAll(AlertCodes.safety), isTrue);
       expect(AlertCodes.values.containsAll(AlertCodes.resume), isTrue);

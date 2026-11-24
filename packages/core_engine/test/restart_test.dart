@@ -238,8 +238,9 @@ void main() {
       );
       expect(seven.leaseGate!.state, GateState.block);
       expect(seven.ledgerLines!.last, '마지막 접속 뒤 7일이 지났습니다');
-      expect(_links(seven), <String>[AppRoutes.onboardingModePick]);
-      expect(seven.inheritNotice, RestartTexts.inherit);
+      // 🆕 계약 v1.39(앱 01 §48 K349 ⑤ ⑥) — 비상 이전 먼저 · 이어받지 않음 고지.
+      expect(_links(seven), <String>[AppRoutes.x1MigrationEmergency]);
+      expect(seven.inheritNotice, RestartTexts.freshNotice);
     });
 
     test('갭 기준 = 운영 설정 값 그대로(글자도 그 값)', () {

@@ -327,6 +327,9 @@ abstract final class ContractCodes {
     'lease_handover_result': LeaseHandoverResultCodes.values,
     // 🆕 v1.38(01 §47 · K333 · E11l2) — 읽기 모델 push RPC 고유 거부 2(리스 거부 = `lease_rpc_result` 한 벌)
     'read_model_push_result': ReadModelPushResultCodes.values,
+    // 🆕 v1.39(01 §48 · K347 · K349 ④) — 닫힌 원장 쓰기 거부(모든 명령 접수증 · 동작 결과) · o_07 공개 가입 확인
+    'ledger_write_gate': LedgerWriteGateCodes.values,
+    'supabase_signup_result': SupabaseSignupResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

@@ -906,8 +906,9 @@ void main() {
       final RestartVm gap7 = RestartVm.fromJson(
         _vm(FixturePaths.m8RestartVmGap7),
       );
+      // 🆕 v1.39(01 §48 K349 ⑤) — 옛 폰 회수(비상 이전) 뒤에만 첫 클레임이 선다 → 분기 = 비상 이전 먼저(13 R267 L1 · L3).
       expect(gap7.branches.map((LinkAction b) => b.deepLink).toList(), <String>[
-        AppRoutes.onboardingModePick,
+        AppRoutes.x1MigrationEmergency,
       ]);
       expect(gap7.leaseGate!.state, GateState.block);
     });

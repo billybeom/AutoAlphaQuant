@@ -8,7 +8,8 @@
 
 /// 리스 RPC 이름 3(06 M4-3 · 배치 D `operator_lease` 단일 행 · 조건부 쓰기(CAS)만).
 abstract final class LeaseRpcNames {
-  /// 클레임 — 빈 행(첫 클레임 · 🔴 복구 코드 해시 필수 · 같은 트랜잭션) · 만료 · 같은 기기 → 이 기기(다른 기기에서 넘어옴 = epoch+1).
+  /// 클레임 — 빈 행(첫 클레임 · 🔴 복구 코드 해시 필수 · 같은 트랜잭션) · 같은 기기 → 이 기기 · 🆕 v1.39(01 §48 K349 ①) 다른 기기 보유 ∧ 만료 =
+  /// 그 기기가 REVOKED · RETIRED 일 때만 이 기기(epoch+1 · 아니면 `LEASE_HELD_BY_OTHER`) · 첫 클레임 뒤 = 운영 사용자만(`recovery_secret.owner_uid`).
   static const String claim = 'lease_claim';
 
   /// 갱신 — 보유 ∧ epoch 같음 ∧ 만료 전 → `expires_at` = 서버 `now()` + T.

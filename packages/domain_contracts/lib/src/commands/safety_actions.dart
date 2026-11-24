@@ -155,7 +155,7 @@ abstract class SafetyActionResult with _$SafetyActionResult {
     /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
     /// `ReconClearResultCodes` ∪ 🆕 v1.32 `RepairResultCodes` ∪ `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪
     /// 🆕 v1.35 `RepairInputResultCodes` ∪ 🆕 v1.37 `HeldReviewResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ ·
-    /// C-66 · C-68 · C-70 ④).
+    /// C-66 · C-68 · C-70 ④) ∪ 🆕 v1.39 `LedgerWriteGateCodes`(원장에 쓰는 동작 · 닫힌 원장 = 쓰기 0 · `retryable` true · 01 §48 K347).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).
