@@ -1109,6 +1109,322 @@ void main() {
       expect(outputs().containsKey('risk_caps'), isFalse);
       expect(_count(db, 'tier_b_judgement'), 0);
     });
+
+    test('🆕 R259 G-3 🔴 판정 실패 뒤 저장된 계획 → 다시 돌려 전이가 나면 = 보고 «계획 상한 미반영» · 이미 상한이 실린 계획 · 전이 없음 = 표시 0', () async {
+      seed();
+      db.execute("DELETE FROM equity_snapshot WHERE trade_date = '2026-07-31'");
+      await expectLater(
+        job(held: held, tierBCard: () => breach).run(_me),
+        throwsA(isA<MonthlyRebalanceError>()),
+      );
+      db.execute(
+        'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+        "VALUES ('2026-07-31', 90, 0, 90, 90, 0, 'LIVE')",
+      );
+      final MonthlyRebalanceReport again = await job(
+        held: held,
+        tierBCard: () => breach,
+      ).run(_me);
+      expect(again.created, isFalse);
+      expect(again.tierB!.transitioned, hasLength(4));
+      expect(again.capsStale, isTrue);
+      expect(again.toString(), contains('계획 상한 미반영'));
+      // 같은 달 또 돌림 = 이미 판정 · 전이 0 → 표시 0.
+      final MonthlyRebalanceReport third = await job(
+        held: held,
+        tierBCard: () => breach,
+      ).run(_me);
+      expect(third.capsStale, isFalse);
+    });
+
+    test('🆕 R259 G-3 — 다시 돌려 또 전이가 나도 저장된 계획 상한 = 지금 상한이면 표시 0', () async {
+      seed();
+      await job(held: held, tierBCard: () => breach).run(_me);
+      expect(outputs()['risk_caps'], isNotNull);
+      // 판정만 되돌린다(계획은 상한 0.5 가 실린 채) → 다시 돌리면 같은 전이 · 같은 상한.
+      db.execute("DELETE FROM tier_b_judgement WHERE judged_month = '2026-07'");
+      db.execute(
+        "DELETE FROM strategy_state_log WHERE log_id LIKE 'TIERB-2026-07-%'",
+      );
+      db.execute(
+        "UPDATE strategy_state_current SET state = 'ACTIVE', capital_cap = 1.0",
+      );
+      final MonthlyRebalanceReport again = await job(
+        held: held,
+        tierBCard: () => breach,
+      ).run(_me);
+      expect(again.created, isFalse);
+      expect(again.tierB!.transitioned, hasLength(4));
+      expect(again.capsStale, isFalse);
+    });
+
+    test('🆕 R259 G-3 — 판정이 계획 앞에서 전이 · 상한 실림 = 표시 0', () async {
+      seed();
+      final MonthlyRebalanceReport r = await job(
+        held: held,
+        tierBCard: () => breach,
+      ).run(_me);
+      expect(r.tierB!.transitioned, hasLength(4));
+      expect(r.capsStale, isFalse);
+    });
+
+    test('🆕 R259 G-5 🔴 전이 달 weights_after = A 축소 매도(4주 × 월말 종가 12,000) 만큼 A → C(계획 · rebalance_event 같은 값 · 합 1)', () async {
+      seed();
+      await job(held: held, tierBCard: () => breach).run(_me);
+      final Map<String, Object?> o = outputs();
+      Map<String, double> weights(Object? j) => <String, double>{
+        for (final Object? e in j! as List<Object?>)
+          (e! as Map<String, Object?>)['sleeve']! as String:
+              ((e as Map<String, Object?>)['weight']! as num).toDouble(),
+      };
+      final Map<String, double> after = weights(o['weights_after']);
+      // 계획기 after 상태로 다시 센 «축소 전» 비중(sleeveWeightsOf 와 같은 셈).
+      final Map<String, Object?> st = o['after']! as Map<String, Object?>;
+      Decimal p(Object? v) =>
+          v == null ? Decimal.zero : Decimal.parse(v as String);
+      Decimal sum(Object? m) => (m! as Map<String, Object?>).values.fold(
+        Decimal.zero,
+        (Decimal x, Object? y) => x + p(y),
+      );
+      final Decimal total = p(st['total_equity']);
+      final Decimal b = sum(st['b_assets']) + p(st['b_parking']);
+      final Decimal c =
+          p(st['c_bond']) +
+          p(st['c_gold']) +
+          p(st['b_parking_reclassified']) +
+          p(st['krw_cash']) +
+          p(st['reserved_krw']);
+      final Decimal pot = p(st['pot_cash']) + sum(st['pot_assets']);
+      final double t = total.toDouble();
+      final double shift = 48000 / t;
+      expect(
+        after['A'],
+        closeTo((total - b - c - pot).toDouble() / t - shift, 1e-12),
+      );
+      expect(after['C'], closeTo(c.toDouble() / t + shift, 1e-12));
+      expect(after['B'], closeTo(b.toDouble() / t, 1e-12));
+      expect(
+        after.values.fold(0.0, (double x, double y) => x + y),
+        closeTo(1, 1e-9),
+      );
+      final Row e = db
+          .select('SELECT weights_after FROM rebalance_event')
+          .single;
+      expect(weights(jsonDecode(e['weights_after'] as String)), after);
+    });
+  });
+
+  group('🆕 R259 리뷰 3차 카드 ② — 계획 대상 «냄» 판정(G-U1 · G-1)', () {
+    const DraftConfig draftCfg = DraftConfig(
+      limitOffsetPct: 0.005,
+      buyCostRate: 0.00015,
+      accountByStrategy: <String, String>{
+        P0sStrategyIds.sleeveA: 'isa',
+        P0sStrategyIds.sleeveB: 'pension',
+        P0sStrategyIds.sleeveC: 'main',
+      },
+    );
+    final DraftQuote quote = DraftQuote(
+      previousClose: Decimal.parse('120000'),
+      tickSize: Decimal.parse('5'),
+      upperLimit: Decimal.parse('156000'),
+      lowerLimit: Decimal.parse('84000'),
+    );
+    const Map<(String, String), int> holdings = <(String, String), int>{
+      (P0sStrategyIds.sleeveA, '0085P0'): 7,
+      (P0sStrategyIds.sleeveB, '133690'): 100,
+    };
+    OrderTarget target(
+      String logical,
+      String strategy,
+      String symbol,
+      OrderSide side,
+      OrderSizing sizing,
+    ) => OrderTarget(
+      logicalDecisionId: logical,
+      strategyId: strategy,
+      symbol: symbol,
+      side: side,
+      sizing: sizing,
+      instrument: InstrumentKind.etf,
+    );
+    // 월말 계획을 만든 뒤 대상만 갈아 끼운다(계획 · planned_work 행은 진짜 잡이 쓴 것).
+    Future<void> planWith(List<OrderTarget> targets) async {
+      await job().run(_me);
+      final Row p = db
+          .select(
+            "SELECT plan_id, outputs FROM plan_snapshot WHERE kind = 'REBALANCE'",
+          )
+          .single;
+      final Map<String, Object?> o =
+          jsonDecode(p['outputs'] as String) as Map<String, Object?>;
+      o['targets'] = <Object?>[
+        for (final OrderTarget t in targets) orderTargetToJson(t),
+      ];
+      db.execute(
+        'UPDATE plan_snapshot SET outputs = ? WHERE plan_id = ?',
+        <Object?>[jsonEncode(o), p['plan_id']],
+      );
+    }
+
+    // 그 세션 kr_order 와 같은 축: 계획 출처 → 초안(순매매) → 의도 행(상태 [status]).
+    Future<List<OrderIntentDraft>> session(
+      String day, {
+      String status = 'SUBMITTED',
+    }) async {
+      final TradeDate d = TradeDate(day);
+      final List<OrderTarget> ts = await StoredPlanTargetSource(db)
+          .targetsFor(d);
+      final DraftResult r = draftOrders(
+        ts,
+        executionDate: d,
+        quotes: <String, DraftQuote>{
+          for (final OrderTarget t in ts) t.symbol: quote,
+        },
+        holdings: holdings,
+        config: draftCfg,
+      );
+      for (final OrderIntentDraft x in r.drafts) {
+        db.execute(
+          'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
+          "decision_id, symbol, side, order_type, quantity, status, config_hash, updated_at, mode) VALUES (?, ?, ?, ?, 'KR', "
+          "?, ?, ?, ?, ?, 'LIMIT', ?, ?, 'c', 'x', 'LIVE')",
+          <Object?>[
+            'I-${x.idempotencyKey}',
+            x.idempotencyKey,
+            '${day}T00:10:00Z',
+            day,
+            x.account,
+            x.strategyId,
+            x.decisionId,
+            x.symbol,
+            x.side.wire,
+            x.quantity,
+            status,
+          ],
+        );
+      }
+      return r.drafts;
+    }
+
+    test('🔴 G-U1 이틀 연속 — 같은 (계좌 · 종목) 대상 둘(반대 방향)이 상계된 의도 B-SMA+BAND-B@d1 = 두 대상 다 «냄» · d2 · d3 재발주 0 · planned_work DONE', () async {
+      await planWith(<OrderTarget>[
+        target(
+          'BAND-B-2026-07-31',
+          P0sStrategyIds.sleeveB,
+          '133690',
+          OrderSide.sell,
+          const ShareSizing(10),
+        ),
+        target(
+          'B-SMA-2026-07-31',
+          P0sStrategyIds.sleeveB,
+          '133690',
+          OrderSide.buy,
+          const ShareSizing(4),
+        ),
+        target(
+          'C-REBAL-2026-07-31',
+          P0sStrategyIds.sleeveC,
+          '0085P0',
+          OrderSide.buy,
+          const ShareSizing(3),
+        ),
+      ]);
+      final List<OrderIntentDraft> d1 = await session('2026-08-03');
+      expect(
+        d1
+            .map((OrderIntentDraft x) => (x.decisionId, x.side, x.quantity))
+            .toSet(),
+        <(String, OrderSide, int)>{
+          ('B-SMA-2026-07-31+BAND-B-2026-07-31@2026-08-03', OrderSide.sell, 6),
+          ('C-REBAL-2026-07-31@2026-08-03', OrderSide.buy, 3),
+        },
+      );
+      expect(await session('2026-08-04'), isEmpty);
+      expect(await session('2026-08-05'), isEmpty);
+      expect(
+        await SqlitePlannedWorkStore(
+          db,
+          carry: _NoCarry(),
+          clock: _Clock(),
+        ).settle(const TradeDate('2026-08-04')),
+        1,
+      );
+    });
+
+    test('planTargetIssued — 결합 조각 · 단일 · 앞이 같은 다른 id(`…X`) · 재개 child(`#R`) · 다른 종목 · 단일 id 반대 방향 = 구분', () {
+      void intent(String id, String decision, String symbol, String side) =>
+          db.execute(
+            'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
+            "decision_id, symbol, side, order_type, quantity, status, config_hash, updated_at, mode) VALUES (?, ?, 'x', "
+            "'2026-08-03', 'KR', 'pension', 'P0S_B', ?, ?, ?, 'LIMIT', 1, 'SUBMITTED', 'c', 'x', 'LIVE')",
+            <Object?>[id, 'k$id', decision, symbol, side],
+          );
+      OrderTarget t(
+        String logical, {
+        String symbol = '133690',
+        OrderSide side = OrderSide.sell,
+      }) => target(
+        logical,
+        P0sStrategyIds.sleeveB,
+        symbol,
+        side,
+        const ShareSizing(1),
+      );
+      intent('i1', 'A-1+B-SMA-M+Z-9@2026-08-03', '133690', 'BUY');
+      intent('i2', 'SOLO-1@2026-08-03', '133690', 'SELL');
+      expect(planTargetIssued(db, t('B-SMA-M')), isTrue); // 결합 가운데 · 반대 방향
+      expect(planTargetIssued(db, t('A-1')), isTrue); // 결합 첫 조각
+      expect(planTargetIssued(db, t('Z-9')), isTrue); // 결합 끝 조각
+      expect(planTargetIssued(db, t('B-SMA')), isFalse); // 조각의 앞부분
+      expect(planTargetIssued(db, t('SMA-M')), isFalse); // 조각의 뒷부분
+      expect(
+        planTargetIssued(db, t('B-SMA-M#R2026-08-05')),
+        isFalse,
+      ); // 재개 child
+      expect(planTargetIssued(db, t('B-SMA-M', symbol: '411060')), isFalse);
+      expect(planTargetIssued(db, t('SOLO-1')), isTrue);
+      expect(planTargetIssued(db, t('SOLO-1', side: OrderSide.buy)), isFalse);
+      expect(planTargetIssued(db, t('SOLO')), isFalse);
+    });
+
+    test('🔴 G-1 A 축소(RISK-P0S_A) 거부(REJECTED) = 다음 세션 다시(새 키 @d2) · 건너뜀(SKIPPED) = 그대로 «냄» · 다른 대상 거부 = 지금처럼 «냄»', () async {
+      final OrderTarget trim = sleeveACapTrim(
+        symbol: '0085P0',
+        heldShares: 7,
+        capA: 0.5,
+        judgmentDate: _me,
+      )!;
+      await planWith(<OrderTarget>[
+        trim,
+        target(
+          'C-REBAL-2026-07-31',
+          P0sStrategyIds.sleeveC,
+          '0085P1',
+          OrderSide.buy,
+          const ShareSizing(3),
+        ),
+      ]);
+      final List<OrderIntentDraft> d1 = await session(
+        '2026-08-03',
+        status: 'REJECTED',
+      );
+      expect(d1, hasLength(2));
+      final List<OrderIntentDraft> d2 = await session(
+        '2026-08-04',
+        status: 'SKIPPED',
+      );
+      expect(
+        d2
+            .map((OrderIntentDraft x) => (x.decisionId, x.side, x.quantity))
+            .toList(),
+        <(String, OrderSide, int)>[
+          ('RISK-P0S_A-0085P0-2026-07-31@2026-08-04', OrderSide.sell, 4),
+        ],
+      );
+      expect(await session('2026-08-05'), isEmpty);
+    });
   });
 
   test('🆕 E11j — 🔴 월 납입 운영값은 config_hash 밖: 기록이 있어도 월말 계획 바이트 불변(06 M3-6 ⓕ · R54 J7)', () async {

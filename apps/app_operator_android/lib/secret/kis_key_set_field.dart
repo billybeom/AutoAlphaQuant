@@ -51,6 +51,8 @@ abstract final class SecretLabels {
       '다른 서비스의 키 꼴입니다 — KIS Developers 의 값을 붙여넣으세요.',
     KisPasteProblem.notAppKey => '앱키 꼴이 아닙니다(영숫자 16자 이상) — 붙여넣기를 확인하세요.',
     KisPasteProblem.notAccount => '계좌번호는 숫자 8자리입니다(예 12345678 또는 12345678-01).',
+    // 🆕 R262(A-2) — 실전 칸 = 위탁(01)만 · 연금저축(22)은 같은 종합계좌라 엔진이 따로 부른다.
+    KisPasteProblem.notGeneralProduct => '실전 칸에는 위탁(01) 계좌번호를 넣습니다 — 연금저축(22)은 같은 종합계좌라 따로 넣지 않습니다(예 12345678 또는 12345678-01).',
   };
 }
 
@@ -137,7 +139,7 @@ class _KisKeySetFieldState extends State<KisKeySetField>
         appKey: k,
         appSecret: s,
         accountNo: a,
-        productCode: _product ?? '01',
+        productCode: _product ?? kKisGeneralProductCode,
       );
     } on ArgumentError {
       return null;
@@ -163,7 +165,7 @@ class _KisKeySetFieldState extends State<KisKeySetField>
       return;
     }
     widget.janitor.pasted(raw);
-    final KisPasteProblem? p = kisPasteProblem(field, raw);
+    final KisPasteProblem? p = kisPasteProblem(field, raw, set: widget.set);
     setState(() {
       if (p != null) {
         _notes[field] = SecretLabels.problem(p);
@@ -196,7 +198,7 @@ class _KisKeySetFieldState extends State<KisKeySetField>
         final String? v = _account;
         return v == null
             ? SecretLabels.empty
-            : '${maskAccount(v)} · ${SecretLabels.productPrefix}${_product ?? '01'}';
+            : '${maskAccount(v)} · ${SecretLabels.productPrefix}${_product ?? kKisGeneralProductCode}';
     }
   }
 

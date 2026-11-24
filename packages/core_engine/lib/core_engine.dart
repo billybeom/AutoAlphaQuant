@@ -375,6 +375,7 @@ export 'src/mode/sim_to_auto_commit.dart'
         kLiveOpeningSeedReason,
         kSimLedgerDiscardCode,
         kSimLedgerKeepCode,
+        liveAccountMark,
         liveOpeningCash,
         liveOpeningDecisionId,
         simLedgerFateDecisionId,
@@ -514,16 +515,33 @@ export 'src/ops/backup_screen.dart'
         backupVmOf,
         kBackupScreenStaleAfter;
 // 🆕 E11q-j4 — M6 J-4 사후 blind 리뷰 VM(큐 · 카드) · 점수 제출 판정 · 과정 점수 · 접수증 글자(01 §16 · 06 M1-25).
+// 🆕 E11q-j4s — 채점 기록 · 결과(SPEC v2.47 02 §2-6 · §3-3 · 13 §8 R257).
+export 'src/ops/blind_review_outcome.dart'
+    show
+        BlindReviewFill,
+        BlindReviewOutcome,
+        BlindReviewOutcomeKind,
+        BlindReviewOutcomeTexts,
+        blindReviewFillsOf,
+        blindReviewOutcomeOf,
+        blindReviewOutcomeTextOf,
+        blindReviewPctText,
+        krSessionsBetween;
 export 'src/ops/blind_review_view.dart'
     show
         BlindReviewQuestionIds,
+        BlindReviewScoreCommand,
         BlindReviewTexts,
+        blindReviewAnswersJsonOf,
         blindReviewCardOf,
         blindReviewProcessScoreOf,
         blindReviewQueueOf,
         blindReviewRejectOf,
+        blindReviewResultOf,
         blindReviewStateLabelOf,
-        kBlindReviewGoodScore;
+        issueBlindReviewScore,
+        kBlindReviewGoodScore,
+        kBlindReviewTtl;
 export 'src/ops/config_fingerprint.dart'
     show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;
 // 🆕 E11p3d-5f — M9 S07 연결 관리(설계 13 §8 R140).
@@ -732,7 +750,9 @@ export 'src/ops/journal_draft.dart'
 // 🆕 E11q-j4 J-4 대상 · 저널 본문.
 export 'src/ops/journal_view.dart'
     show
+        BlindReviewScoreFact,
         BlindReviewTarget,
+        JournalCorporateActionFact,
         JournalDecisionFact,
         JournalEventFact,
         JournalFacts,
@@ -743,10 +763,12 @@ export 'src/ops/journal_view.dart'
         JournalStepTexts,
         JournalTexts,
         UnknownBoardTexts,
+        blindReviewCandidatesOf,
         blindReviewTargetsOf,
         decisionDetailVmOf,
         decisionJournalVmOf,
         journalBodyOf,
+        journalDecisionLinkOf,
         journalEntriesOf,
         journalEventIdOf,
         journalFilterCatalogOf,
@@ -1114,7 +1136,8 @@ export 'src/ops/tier_b.dart'
         tierBCapReceiver,
         tierBMetrics,
         tierBTrigger,
-        twrIndex;
+        twrIndex,
+        weightsAfterACapTrims;
 // 🆕 E11j — 신뢰 시각 포트(M1-13 · 실물 = E11k · 설계 13 §8 R54 J1) · 🆕 E11k-a 서버 시각 기준점(R197).
 export 'src/ops/trusted_clock.dart'
     show

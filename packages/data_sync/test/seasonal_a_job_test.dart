@@ -753,5 +753,47 @@ void main() {
       );
       expect(potCashOf(f), Decimal.parse('119982'));
     });
+
+    test('🆕 R259(리뷰 3차 V1 부수) 🔴 A 청산이 같은 종목 다른 A 대상과 상계된 결합 id(RISK-…+SEAS-A-OUT-…) = A 청산 매도로 센다 · 앞이 같은 다른 id · POT-LIQ 결합 = 빠짐', () {
+      int n = 0;
+      void fill(String strategy, String decision, String side, int q) {
+        n++;
+        db.execute(
+          'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
+          "decision_id, symbol, side, order_type, quantity, status, config_hash, updated_at, mode) VALUES (?, ?, 'x', "
+          "'2026-05-04', 'KR', 'main', ?, ?, 'S', ?, 'LIMIT', ?, 'FILLED', 'c', 'x', 'LIVE')",
+          <Object?>['i$n', 'k$n', strategy, decision, side, q],
+        );
+        db.execute(
+          "INSERT INTO broker_orders(broker_order_no, intent_id, submitted_at, status) VALUES (?, ?, 'x', 'FILLED')",
+          <Object?>['b$n', 'i$n'],
+        );
+        db.execute(
+          'INSERT INTO executions(execution_id, broker_order_no, executed_at, quantity, price, commission, tax) '
+          "VALUES (?, ?, '2026-05-04T01:00:00Z', ?, 10000, 0, 0)",
+          <Object?>['e$n', 'b$n', q],
+        );
+      }
+
+      fill(
+        'P0S_A',
+        'RISK-P0S_A-S-2026-04-30+SEAS-A-OUT-2026-04-30@2026-05-04',
+        'SELL',
+        7,
+      );
+      fill('P0S_A', 'XSEAS-A-OUT-2026-04-30@2026-05-04', 'SELL', 1);
+      fill('P0S_A', 'RISK-P0S_A-S-2026-04-30@2026-05-04', 'SELL', 2);
+      fill(
+        'P0S_POT',
+        'POT-LIQ-2026-04-30+POT-SMA-2026-04-30@2026-05-04',
+        'SELL',
+        3,
+      );
+      final List<PotCashFlow> f = potCashFlowsSinceLiquidation(db);
+      expect(
+        f.map((PotCashFlow x) => (x.kind, x.quantity)),
+        <(PotCashFlowKind, int)>[(PotCashFlowKind.aExitSell, 7)],
+      );
+    });
   });
 }

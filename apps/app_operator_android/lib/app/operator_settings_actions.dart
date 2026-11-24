@@ -141,6 +141,10 @@ abstract final class CredentialVerifyText {
 
   /// 아직 이 기기에 없는 세트.
   static const String setNotYet = '이 키 세트는 아직 이 기기에서 검증할 수 없습니다.';
+
+  /// 🆕 R262(미결 233 ⓐ · 리뷰 3차 A-2) — 실전 칸에 위탁(01)이 아닌 상품코드를 붙여넣었다(서버 0 · 저장 0).
+  static const String productNotGeneralLive =
+      '실전 칸에는 위탁(01) 계좌번호를 넣습니다 — 연금저축(22)은 같은 종합계좌라 따로 넣지 않습니다. 계좌번호를 다시 붙여넣으십시오.';
 }
 
 /// 검증용 KIS 클라이언트를 만든다(시험 = 가짜 HTTP).
@@ -554,6 +558,17 @@ class OperatorSettingsActions implements SettingsActions {
           ? _result(id, UiLevel.act, CredentialVerifyText.incomplete)
           : _result(id, UiLevel.blocked, CredentialVerifyText.noField);
     }
+    // 🆕 R262(A-2) — 실전 칸에 붙여넣은 키 = 위탁 01 만(칸이 먼저 막는다 · 여기는 다른 원천에도 지키는 두 번째 문) · 서버 0 · 저장 0 ·
+    //    기록 0. 금고에 이미 든 키는 엔진이 일반 위탁 = 01 · 연금저축 = 22 로 갈음해 부른다(`liveAccountKeyOf`).
+    if (draft != null &&
+        set == KisKeySet.live &&
+        draft.productCode != kKisGeneralProductCode) {
+      return _result(
+        id,
+        UiLevel.act,
+        CredentialVerifyText.productNotGeneralLive,
+      );
+    }
     final KisRestClient client = clientOf(creds);
     try {
       await client.token();
@@ -570,11 +585,7 @@ class OperatorSettingsActions implements SettingsActions {
       if (e.status == null) {
         return _result(id, UiLevel.blocked, _unreachable(set), retryable: true);
       }
-      _progress(
-        set,
-        StepState.failed,
-        OnboardingResultCodes.credentialRejected,
-      );
+      await _rejected(set, draft: draft != null);
       return _result(
         id,
         UiLevel.blocked,
@@ -585,11 +596,7 @@ class OperatorSettingsActions implements SettingsActions {
     try {
       await KisOrderBroker(client).orderableCashKrw();
     } on KisRejected {
-      _progress(
-        set,
-        StepState.failed,
-        OnboardingResultCodes.credentialRejected,
-      );
+      await _rejected(set, draft: draft != null);
       return _result(
         id,
         UiLevel.blocked,
@@ -653,8 +660,31 @@ class OperatorSettingsActions implements SettingsActions {
       ? CredentialVerifyText.unreadableLive
       : CredentialVerifyText.unreadable;
 
-  void _progress(KisKeySet set, StepState state, String? code) {
-    _registry(set, state);
+  /// 🆕 R262(미결 233 ⓑ · 리뷰 3차 A-5) — 거절 기록. 금고 키 «다시 검증»의 거절 = 그 키가 거절됐다(INVALID) ·
+  /// 새로 붙여넣은(저장 전) 키의 거절 = 금고에 쓸 키가 없을 때만 실전 기록을 적는다 — 금고에 키가 있거나 금고를 못 열어 모르면
+  /// 그 키의 기록을 그대로 둔다(멀쩡한 금고 키를 INVALID 로 만들어 `LIVE_AWAITING_KEYS` 로 멈추지 않는다). 모의 o_02 = 그대로.
+  Future<void> _rejected(KisKeySet set, {required bool draft}) async {
+    const String code = OnboardingResultCodes.credentialRejected;
+    final bool registry = !draft || await _vaultHasNoKey(set);
+    _progress(set, StepState.failed, code, registry: registry);
+  }
+
+  /// 🆕 R262(A-5) — 금고에 그 세트의 쓸 키가 없다고 확실한가(칸 없음 · 꼴 틀림 = 참 · 금고 못 엶 = 모름 = 거짓).
+  Future<bool> _vaultHasNoKey(KisKeySet set) async {
+    try {
+      return await readKisCredentials(vault, set) is! KisCredentialsStored;
+    } on Object {
+      return false;
+    }
+  }
+
+  void _progress(
+    KisKeySet set,
+    StepState state,
+    String? code, {
+    bool registry = true,
+  }) {
+    if (registry) _registry(set, state);
     final Database? db = sim;
     final String? step = _stepOf(set);
     if (db == null || step == null) return;

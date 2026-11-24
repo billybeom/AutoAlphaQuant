@@ -964,6 +964,41 @@ void main() {
       expect(identical(r.view.value?.db, files.sim), isTrue);
     });
 
+    test('🆕 A-2(미결 233 ⓐ) — 실전 칸에 연금저축 상품코드(22)가 저장돼 있어도 확정 조회 = 위탁 01 · 연금저축 22 두 곳(한 계좌 두 번 조회 · 개시 현금 두 번 0)', () async {
+      await storeKisCredentials(
+        vault,
+        KisKeySet.live,
+        KisCredentials(
+          environment: KisEnvironment.live,
+          appKey: 'PSTESTAPPKEY0000000000001',
+          appSecret: 'TESTSECRETVALUEabcdefghijklmnop9876',
+          accountNo: '87654321',
+          productCode: '22',
+        ),
+      );
+      final (OperatorHandover h, String sid) = await opened();
+      final ActionResult r = await h.run(
+        SettingsActionId.handoverCommit,
+        <String, String>{'handover_session_id': sid},
+      );
+      expect(r.reasonCode, isNull);
+      final List<String?> products = reqs
+          .where((http.Request q) => q.url.path.endsWith('/inquire-balance'))
+          .map((http.Request q) => q.url.queryParameters['ACNT_PRDT_CD'])
+          .toList();
+      expect(products.toSet(), <String>{'01', '22'});
+      expect(
+        files
+            .liveIfExists()!
+            .select(
+              'SELECT account_alias FROM cash_flow ORDER BY account_alias',
+            )
+            .map((Map<String, Object?> row) => row['account_alias'])
+            .toList(),
+        <Object?>['general', 'pension'],
+      );
+    });
+
     test('🔴 보유가 있으면 = 관문 거부 원문 · 바깥 감시 0 · 실전 쓰기 0', () async {
       holdings = 1;
       final (OperatorHandover h, String sid) = await opened();

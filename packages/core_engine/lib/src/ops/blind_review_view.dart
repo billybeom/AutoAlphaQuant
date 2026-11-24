@@ -8,10 +8,15 @@
 //    문항 근거 = 이탈 글자 · 기록 시각뿐. 앱 안 링크 0(K8 — 칩 링크 = 일지 행 그대로).
 // 🔴 글자 = 계약 표본 문장 그대로(«(합성)»만 뺀다 · 표본 개정 0) · 근거 줄 = 원장에 사실이 있는 것만(입력 데이터 기준일 · PIT 수정
 //    기록 = 원장 원천 없음 → 줄 부재 · 지어내지 않는다).
-// 🔴 채점 기록 · 결과 = 점수 기록 표가 로컬 원장(02 데이터모델 v1)에 없다 · 결과 문장 산식(M1-25 ⑥) 미정 → 계약 창 대기(01 §8) —
-//    그 전까지 카드 `result` = 늘 null · 채점된 결정 빼기 0. 거부 판정 · 과정 점수 · 접수증 글자 = 계약 · 03 §8-3 · 표본 그대로
-//    (점수 기록 표가 서면 그대로 쓴다).
+// 🆕 E11q-j4s(SPEC v2.47 · 02 §2-6 `blind_review_score` · §3-3 · 13 §8 R257) — 채점 기록 = data_sync `SqliteBlindReviewStore`
+//    (판정 = [blindReviewRejectOf] · 과정 점수 = [blindReviewProcessScoreOf] · 접수증 = [blindReviewStateLabelOf]) · 큐 = 채점 안 된
+//    대상만(같은 갱신 이탈 — M1-25 ①) · 카드 1건 = 채점 뒤에도 같은 카드 + 결과(`processScoreText` = 저장값 · `outcomeText` =
+//    `blind_review_outcome.dart` 산식 · 가림 = «결과: 숨김» · 보조 줄 0 · «이 결정 보기»).
 
+import 'dart:convert' show jsonEncode, utf8;
+import 'dart:math' show Random;
+
+import 'package:crypto/crypto.dart' show sha256;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AsOf,
@@ -20,20 +25,36 @@ import 'package:domain_contracts/domain_contracts.dart'
         BlindReviewChoice,
         BlindReviewQuestion,
         BlindReviewRejectCodes,
+        BlindReviewResult,
         BlindReviewScore,
+        CommandKind,
+        CommandReceipt,
+        CommandState,
         EmptyKind,
         ListResult,
         RunMode,
         TradeDate,
         TradeJournalEntry;
 
+import 'alert_ack_command.dart' show newCommandId;
+import 'blind_review_outcome.dart'
+    show
+        BlindReviewOutcomeTexts,
+        blindReviewFillsOf,
+        blindReviewOutcomeOf,
+        blindReviewOutcomeTextOf,
+        krSessionsBetween;
 import 'journal_view.dart'
     show
+        BlindReviewScoreFact,
         BlindReviewTarget,
+        JournalCorporateActionFact,
         JournalFacts,
         JournalTexts,
+        blindReviewCandidatesOf,
         blindReviewTargetsOf,
         journalBodyOf,
+        journalDecisionLinkOf,
         journalKeyOf,
         kJournalStaleAfter;
 import 'ledger_views.dart' show kstMinuteText;
@@ -96,7 +117,14 @@ abstract final class BlindReviewTexts {
   /// 접수증 — 이미 채점(표본 REJECTED · ALREADY_SCORED).
   static const String alreadyScored =
       '거부됨 — 이 결정은 이미 채점되었습니다. 먼저 기록된 채점이 유지됩니다';
+
+  /// 🆕 E11q-j4s — 접수증 — 보관(표본 HELD_FOR_INTEGRITY · SPEC 02 §3-3 ①-2).
+  static const String held =
+      '보류됨 — 원장 무결성 점검 중이라 보관했습니다. 복구 뒤 일괄 확정 단계에서 처리됩니다';
 }
+
+/// 🆕 E11q-j4s — 점수 명령 TTL(표본 `blind_review_receipts_6` 의 요청 → 만료 30분 · J-3 · 알림 확인과 같은 값).
+const Duration kBlindReviewTtl = Duration(minutes: 30);
 
 /// 문항 키(표본 · 키 전용 · 사전 등재 0 — 01 §16-3).
 abstract final class BlindReviewQuestionIds {
@@ -140,13 +168,46 @@ ListResult<BlindReviewCard> blindReviewQueueOf(
   );
 }
 
-/// 카드 1건(`watchBlindReviewCard`) — 큐 행과 같은 값(C-43 ④) · 모르는 · 대상이 아닌 결정 = 실패(잠정 규칙 · 01 §8 미결 50 ③).
+/// 카드 1건(`watchBlindReviewCard`) — 큐 행과 같은 값(C-43 ④) · 🆕 E11q-j4s 채점된 결정 = 같은 카드 + 결과(`result` · `asOf` 만 다름 ·
+/// SPEC 02 §3-3 ①-7) · 모르는 · 대상이 아닌 결정 = 실패(잠정 규칙 · 01 §8 미결 50 ③).
 BlindReviewCard blindReviewCardOf(JournalFacts f, String routeDecisionId) {
   final String key = journalKeyOf(routeDecisionId);
-  for (final BlindReviewTarget t in blindReviewTargetsOf(f)) {
-    if (t.decisionId == key) return _card(t, _asOf(f));
+  for (final BlindReviewTarget t in blindReviewCandidatesOf(f)) {
+    if (t.decisionId != key) continue;
+    final BlindReviewScoreFact? s = f.blindReviewScores[key];
+    final BlindReviewCard card = _card(t, _asOf(f));
+    return s == null ? card : card.copyWith(result: blindReviewResultOf(f, s));
   }
   throw StateError('blind 리뷰 대상이 아니다: $key');
+}
+
+/// 🆕 E11q-j4s — 채점된 결정의 결과(SPEC 02 §3-3 ②) — 과정 점수 = 저장값 · 결과 문장 = 원장 체결에서 셈(가림 = «결과: 숨김») ·
+/// 보조 줄 0 · «이 결정 보기»(셸에 본문이 있을 때만). 🔴 금액(원) 0(K6).
+BlindReviewResult blindReviewResultOf(JournalFacts f, BlindReviewScoreFact s) {
+  final String outcome;
+  if (f.integrityHidden) {
+    outcome = BlindReviewOutcomeTexts.hidden;
+  } else {
+    final String today = f.today;
+    outcome = blindReviewOutcomeTextOf(
+      blindReviewOutcomeOf(
+        decisionId: s.decisionId,
+        fills: blindReviewFillsOf(f),
+        corporateActionAxes: <(String, String)>{
+          for (final JournalCorporateActionFact c in f.corporateActions)
+            if (c.effectiveDate.yyyyMmDd.compareTo(today) <= 0)
+              (c.account, c.symbol),
+        },
+        unattributedFills: f.unattributedFills,
+        sessionsBetween: (String a, String b) => krSessionsBetween(f, a, b),
+      ),
+    );
+  }
+  return BlindReviewResult(
+    processScoreText: BlindReviewTexts.processScore(s.processScore),
+    outcomeText: outcome,
+    decisionLink: journalDecisionLinkOf(f, s.decisionId),
+  );
 }
 
 /// 점수 제출 판정(06 M1-25 ⑤ · K10 · K12) — null = 받는다. 이미 채점 = `ALREADY_SCORED`(먼저 집행된 채점이 이긴다 · 답보다 먼저) ·
@@ -177,13 +238,95 @@ String? blindReviewRejectOf(
   return null;
 }
 
-/// 접수증 글자(표본 그대로) — null = 기록 · 사전 밖 코드 = 실패(지어내지 않는다).
-String blindReviewStateLabelOf(String? rejectCode) => switch (rejectCode) {
-  null => BlindReviewTexts.executed,
-  BlindReviewRejectCodes.answersInvalid => BlindReviewTexts.answersInvalid,
-  BlindReviewRejectCodes.alreadyScored => BlindReviewTexts.alreadyScored,
-  final String c => throw ArgumentError.value(c, 'rejectCode', '사전 밖 거부 코드'),
-};
+/// 접수증 글자(표본 그대로) — null = 기록 · 🆕 E11q-j4s [held] = 보관 · 사전 밖 코드 = 실패(지어내지 않는다).
+String blindReviewStateLabelOf(String? rejectCode, {bool held = false}) {
+  if (held) return BlindReviewTexts.held;
+  return switch (rejectCode) {
+    null => BlindReviewTexts.executed,
+    BlindReviewRejectCodes.answersInvalid => BlindReviewTexts.answersInvalid,
+    BlindReviewRejectCodes.alreadyScored => BlindReviewTexts.alreadyScored,
+    final String c => throw ArgumentError.value(c, 'rejectCode', '사전 밖 거부 코드'),
+  };
+}
+
+/// 🆕 E11q-j4s — `answers_json`(SPEC 02 §2-6) — 키 이름 순 JSON(같은 답 = 같은 글자).
+String blindReviewAnswersJsonOf(Map<String, int> answers) {
+  final List<String> keys = answers.keys.toList()..sort();
+  return jsonEncode(<String, int>{for (final String k in keys) k: answers[k]!});
+}
+
+/// 🆕 E11q-j4s — `J-4` 점수 명령(폰 발행 · 기기 시계 — SPEC 02 §3-3 ①-6 · J-3 K299 선례).
+class BlindReviewScoreCommand {
+  /// 만든다.
+  const BlindReviewScoreCommand({
+    required this.commandId,
+    required this.score,
+    required this.requestedAt,
+    required this.expiresAt,
+    required this.nonce,
+    required this.issuedByDeviceId,
+  });
+
+  /// 명령 id.
+  final String commandId;
+
+  /// 제출 원문(원장에는 답 · 과정 점수만 — 수신함 = digest).
+  final BlindReviewScore score;
+
+  /// 요청 시각(기기 시계 UTC).
+  final DateTime requestedAt;
+
+  /// 만료(TTL).
+  final DateTime expiresAt;
+
+  /// 1회용 값.
+  final String nonce;
+
+  /// 낸 기기.
+  final String issuedByDeviceId;
+
+  /// `command_inbox.payload_digest` — 페이로드 JSON 의 SHA-256 16진(원문 재저장 금지).
+  String get payloadDigest =>
+      sha256.convert(utf8.encode(jsonEncode(score.toJson()))).toString();
+
+  /// 접수증.
+  CommandReceipt receipt({
+    required CommandState state,
+    required String stateLabel,
+    String? rejectReasonCode,
+  }) => CommandReceipt(
+    commandId: commandId,
+    kind: CommandKind.blindReviewScore,
+    state: state,
+    stateLabel: stateLabel,
+    requestedAt: requestedAt,
+    expiresAt: expiresAt,
+    nonce: nonce,
+    issuedByDeviceId: issuedByDeviceId,
+    rejectReasonCode: rejectReasonCode,
+  );
+}
+
+/// 🆕 E11q-j4s — 점수 명령을 낸다 — [nowUtc] = 기기 시계 · [random] = 명령 id · nonce 원천.
+BlindReviewScoreCommand issueBlindReviewScore({
+  required BlindReviewScore score,
+  required DateTime nowUtc,
+  required String deviceId,
+  required Random random,
+}) {
+  final DateTime at = nowUtc.toUtc();
+  return BlindReviewScoreCommand(
+    commandId: newCommandId(random),
+    score: score,
+    requestedAt: at,
+    expiresAt: at.add(kBlindReviewTtl),
+    nonce: <String>[
+      for (int i = 0; i < 16; i++)
+        random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+    ].join(),
+    issuedByDeviceId: deviceId,
+  );
+}
 
 /// 과정 점수(03_실행 §8-3 — 충족 개수 → 1~5: 5 → 5 · 4 → 4 · 3 → 3 · 2 → 2 · 0~1 → 1) · 충족 수 = 답 점수 합
 /// (선택지 점수 = 엔진이 정한 1 · 0). 🔴 [blindReviewRejectOf] 를 통과한 답만 넘긴다.

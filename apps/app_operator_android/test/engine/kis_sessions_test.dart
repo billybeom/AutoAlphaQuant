@@ -142,9 +142,10 @@ void main() {
       }
 
       test('별칭 → 키(P0S 대응 · 앞뒤 공백 무시 · 모르는 별칭 = null)', () {
+        // 🆕 R262(A-2) — general = 위탁 01 고정(금고 값을 쓰지 않는다).
         expect(liveAccountKeyOf('general'), (
           set: KisKeySet.live,
-          productCode: null,
+          productCode: '01',
         ));
         expect(liveAccountKeyOf('pension'), (
           set: KisKeySet.live,
@@ -191,6 +192,33 @@ void main() {
             .where((String c) => c == 'read:kis.tokens')
             .toList();
         expect(tokenReads, hasLength(1));
+      });
+
+      test('🆕 A-2(미결 233 ⓐ) — 실전 칸에 연금저축 상품코드(22)가 저장돼 있어도 general = 위탁 01 · pension = 22 · 두 별칭이 한 계좌로 모이지 않는다', () async {
+        await storeKisCredentials(
+          vault,
+          KisKeySet.live,
+          KisCredentials(
+            environment: KisEnvironment.live,
+            appKey: liveKey,
+            appSecret: liveSecret,
+            accountNo: liveAccount,
+            productCode: '22',
+          ),
+        );
+        final KisRestClient g = await s.liveAccountClient('general');
+        final KisRestClient p = await s.liveAccountClient('pension');
+        expect(
+          (g.credentials.accountNo, g.credentials.productCode),
+          (liveAccount, '01'),
+        );
+        expect(
+          (p.credentials.accountNo, p.credentials.productCode),
+          (liveAccount, '22'),
+        );
+        expect(identical(g, p), false);
+        // 같은 앱키 = 같은 유량 문(상품코드만 다르다).
+        expect(identical(g.gate, p.gate), true);
       });
 
       test('🔴 모르는 별칭 = KisSessionUnavailable(별칭만) · 금고를 읽지 않는다', () async {

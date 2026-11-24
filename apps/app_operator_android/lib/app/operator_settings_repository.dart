@@ -132,19 +132,17 @@ class OperatorSettingsRepository implements SettingsRepository {
   LedgerTrustBadge _trust(OperatorView v) => (_trustOf ?? _ownTrust.gradeOf)(v);
 
   /// 🆕 R140 — 모의 키 세트 사실(금고 저장 여부 + 마지막 검증 기록) · 키 목록 · 연결 행(S07)이 같이 쓴다.
+  /// 🆕 R262(미결 233 ⓒ · 리뷰 3차 H1-5 = H2-01) — 금고를 못 열면 그 오류를 그대로 던진다(«저장 안 됨»으로 바꾸지 않는다 · K206 ·
+  /// broker `kis_credential_vault.dart` «못 엶 ≠ 없음») → 화면 = 공용 «읽지 못함»(다시 시도) · 금고 없는 조립 = 저장 안 됨.
   Future<PaperCredentialFacts> paperFacts() async {
     final SecretVault? vault = _rt.vault;
     bool stored = false;
     if (vault != null) {
-      try {
-        final KisCredentialRead read = await readKisCredentials(
-          vault,
-          KisKeySet.paper,
-        );
-        stored = read is KisCredentialsStored;
-      } on Object {
-        stored = false;
-      }
+      final KisCredentialRead read = await readKisCredentials(
+        vault,
+        KisKeySet.paper,
+      );
+      stored = read is KisCredentialsStored;
     }
     final OnboardingProgressRecord? last = SqliteOnboardingProgressStore(
       _rt.files.sim,
@@ -159,6 +157,7 @@ class OperatorSettingsRepository implements SettingsRepository {
   }
 
   /// 🆕 R196(207 ⓑ · K208) — 실전 세트 사실(금고 저장 여부 + 지금 화면 원장의 마지막 조회 검증 기록 · 값 0).
+  /// 🆕 R262(H1-5 = H2-01) — 금고를 못 열면 그 오류 그대로(«미등록»으로 지어내지 않는다 — 사람이 멀쩡한 실키를 다시 넣으러 가지 않게).
   Future<List<LiveCredentialFacts>> liveFacts() async {
     final SecretVault? vault = _rt.vault;
     final Database? db = _rt.view.value?.db;
@@ -169,11 +168,7 @@ class OperatorSettingsRepository implements SettingsRepository {
     for (final KisKeySet set in <KisKeySet>[KisKeySet.live, KisKeySet.isa]) {
       bool stored = false;
       if (vault != null) {
-        try {
-          stored = await readKisCredentials(vault, set) is KisCredentialsStored;
-        } on Object {
-          stored = false;
-        }
+        stored = await readKisCredentials(vault, set) is KisCredentialsStored;
       }
       CredentialHealthRecord? last;
       for (final CredentialHealthRecord r in records) {
@@ -187,22 +182,19 @@ class OperatorSettingsRepository implements SettingsRepository {
   }
 
   /// 🆕 R151 — 모의 계좌 사실(금고의 모의 키 세트 번호 · 마지막 검증 통과 = 모의 서버 잔고 조회).
+  /// 🆕 R262(H1-5) — 금고를 못 열면 그 오류 그대로(«계좌 없음»으로 지어내지 않는다).
   Future<PaperAccountFacts> paperAccount() async {
     final SecretVault? vault = _rt.vault;
     String? no;
     String? product;
     if (vault != null) {
-      try {
-        final KisCredentialRead read = await readKisCredentials(
-          vault,
-          KisKeySet.paper,
-        );
-        if (read is KisCredentialsStored) {
-          no = read.credentials.accountNo;
-          product = read.credentials.productCode;
-        }
-      } on Object {
-        no = null;
+      final KisCredentialRead read = await readKisCredentials(
+        vault,
+        KisKeySet.paper,
+      );
+      if (read is KisCredentialsStored) {
+        no = read.credentials.accountNo;
+        product = read.credentials.productCode;
       }
     }
     final OnboardingProgressRecord? last = SqliteOnboardingProgressStore(

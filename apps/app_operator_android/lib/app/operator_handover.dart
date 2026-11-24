@@ -51,6 +51,7 @@ import 'package:core_engine/core_engine.dart'
         kSimToAutoWatchdogPrepareFailed,
         kSimToAutoWatchdogPrepareFailedHeadline,
         kstDateText,
+        liveAccountMark,
         liveKeysVerifiedOf,
         probeLiveAccount,
         requiredLiveKeyKindsOf,
@@ -417,6 +418,7 @@ class OperatorHandover {
 
   /// 🆕 R202(207 ⓖ) — 대응표 계좌마다 실전 조회(별칭 → 세트 · 연금저축 = 상품코드 22 · 같은 앱키 = 같은 토큰 저장소 — 1분 1회 발급) ·
   /// 금고 · 검증 HTTP 없음 · 키 없음 · 조회 실패 = 그 계좌 조회 0(관문 `PROBE_MISSING` · fail-closed) · 🔴 조회 TR 만(주문 0).
+  /// 🆕 R262(A-2) — 조회마다 실제로 부른 계좌의 표지(`liveAccountMark` · 상품코드 갈음 뒤 값) → 관문이 «다른 별칭 = 같은 계좌»를 거부.
   Future<List<LiveAccountProbe>> _probes(
     Map<String, String> accounts, {
     required DateTime at,
@@ -446,6 +448,10 @@ class OperatorHandover {
       );
       final LiveAccountProbe? p = await probeLiveAccount(
         alias: alias,
+        accountMark: liveAccountMark(
+          accountNo: use.accountNo,
+          productCode: use.productCode,
+        ),
         broker: KisOrderBroker(clientOf(use, tokens)),
         today: TradeDate(kstDateText(at)),
         fetchedAtUtc: at,

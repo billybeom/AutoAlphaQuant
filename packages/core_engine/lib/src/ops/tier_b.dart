@@ -5,6 +5,7 @@
 // 🔴 카드(임계)는 백테스트 부트스트랩 백분위로 **사전 등록**한다(03 §1-4) — 미등록이면 판정하지 않는다(D7 ③ · 부르는 쪽).
 // 🆕 R247(R50 T10) — PROBATION 복귀 · 만료 판정 · 자금 상한(위험 슬리브 A · B · POT 만 · C = 회수처) · A 축소 매도.
 
+import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show OrderSide, TradeDate;
 
@@ -332,6 +333,44 @@ OrderTarget? sleeveACapTrim({
     sizing: capA <= 0 ? const AllHeldSizing() : ShareSizing(sell),
     instrument: InstrumentKind.etf,
   );
+}
+
+/// 🆕 R259(리뷰 3차 G-5) — 계획기 after 비중에 A 축소 매도를 반영한다: 판 주수 × 종가 ÷ 총평가 만큼 A → C
+/// (판 돈 = 원화 = 회수처 C · 비용은 다른 비중처럼 A 잔여에 묻힌다 · `sleeveWeightsOf` 와 같은 double 나눗셈).
+/// [heldShares] = A 종목 → 보유 주(전량 축소 = 보유) · [closeTexts] = 계획기가 쓴 종가 글자(data_sync 는 Decimal 을 쓰지 않는다 ·
+/// 01 §1-1). 축소 0 · 총평가 0 이하 = 그대로.
+/// 🔴 축소 대상의 종가 · 보유를 모르면 ArgumentError(계획기가 이미 그 종가를 요구했다 — 조용히 0 으로 두지 않는다).
+Map<String, double> weightsAfterACapTrims(
+  Map<String, double> after, {
+  required Iterable<OrderTarget> trims,
+  required Map<String, int> heldShares,
+  required Map<String, String> closeTexts,
+  required Decimal totalEquity,
+}) {
+  if (trims.isEmpty || totalEquity <= Decimal.zero) {
+    return Map<String, double>.of(after);
+  }
+  Decimal sold = Decimal.zero;
+  for (final OrderTarget t in trims) {
+    final int shares = switch (t.sizing) {
+      ShareSizing(:final int shares) => shares,
+      AllHeldSizing() =>
+        heldShares[t.symbol] ??
+            (throw ArgumentError.value(t.symbol, 'heldShares', '축소 종목 보유 모름')),
+      _ => throw ArgumentError.value(t.sizing, 'sizing', 'A 축소는 주수 · 전량뿐'),
+    };
+    final String? close = closeTexts[t.symbol];
+    if (close == null) {
+      throw ArgumentError.value(t.symbol, 'closeTexts', '축소 종목 종가 없음');
+    }
+    sold += Decimal.parse(close) * Decimal.fromInt(shares);
+  }
+  final double shift = sold.toDouble() / totalEquity.toDouble();
+  return <String, double>{
+    ...after,
+    'A': (after['A'] ?? 0) - shift,
+    'C': (after['C'] ?? 0) + shift,
+  };
 }
 
 /// 처음 충족한 지표의 (값 · 임계) — `strategy_state_log` 용.

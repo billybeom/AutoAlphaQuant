@@ -629,6 +629,53 @@ void main() {
       );
     });
 
+    test('🆕 R259 G-U1b 🔴 같은 종목 대상 둘이 합쳐진 의도(A+B@d1)가 실효 → 다음 날 이월 = 실패 0 · 결합 id 그대로(A+B@d2)', () async {
+      final _Rig rig = _Rig();
+      rig.targets.byDay[_d1.yyyyMmDd] = <OrderTarget>[
+        _target(10),
+        OrderTarget(
+          logicalDecisionId: 'BAND-B-2026-10-30',
+          strategyId: P0sStrategyIds.sleeveB,
+          symbol: '133690',
+          side: OrderSide.buy,
+          sizing: const ShareSizing(2),
+          instrument: InstrumentKind.etf,
+        ),
+      ];
+      rig.at(_d1, 9, 10);
+      final JobRun<KrOrderOpenReport> open1 = await rig.jobs.runOpen();
+      expect(open1.status, JobStatus.success);
+      expect(rig.broker.submitted.single.quantity, 12);
+      rig.broker.fills[_d1.yyyyMmDd] = <DailyFillRow>[
+        _row(_d1, qty: 12, cum: 6),
+      ];
+      rig.broker.holdings['133690'] = 6;
+      rig.at(_d1, 15, 45);
+      final JobRun<KrOrderCloseReport> close1 = await rig.jobs.runClose();
+      expect(close1.report!.fills.expired.single.expiredQty, 6);
+
+      rig.brokers['pension'] = FakeOrderBroker(orderDate: _d2)
+        ..holdings['133690'] = 6;
+      rig.at(_d2, 9, 10);
+      final JobRun<KrOrderOpenReport> open2 = await rig.jobs.runOpen();
+      expect(open2.error, isNull);
+      expect(open2.status, JobStatus.success);
+      expect(
+        open2.report!.carry!.targets.single.logicalDecisionId,
+        'B-SMA-2026-10-30+BAND-B-2026-10-30',
+      );
+      expect(rig.broker.submitted.single.quantity, 6);
+      expect(
+        rig.ledger.records.values
+            .map((FakeIntentRecord r) => r.row.decisionId)
+            .toList(),
+        <String>[
+          'B-SMA-2026-10-30+BAND-B-2026-10-30@2026-11-04',
+          'B-SMA-2026-10-30+BAND-B-2026-10-30@2026-11-05',
+        ],
+      );
+    });
+
     test(
       '결과 불명 = P0 ORDER_OUTCOME_UNKNOWN 알림(배치) · 마감에 원주문이 없으면 다시 P0',
       () async {
@@ -755,6 +802,7 @@ void main() {
       // ① 위저드 S3 · 커밋 직전 조회 = 조회만.
       final LiveAccountProbe p = (await probeLiveAccount(
         alias: 'pension',
+        accountMark: 'mark-pension',
         broker: rig.broker,
         today: _d1,
         fetchedAtUtc: _kst(_d1, 8, 0),

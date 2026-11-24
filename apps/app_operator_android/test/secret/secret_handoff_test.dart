@@ -92,6 +92,39 @@ void main() {
       expect(splitKisAccount('12345678'), ('12345678', null));
       expect(splitKisAccount(' 12345678-02 '), ('12345678', '02'));
     });
+
+    test('🆕 R262 A-2(미결 233 ⓐ) — 실전 칸(KIS_LIVE) 상품코드 = 위탁 01 만(없음 = 01) · 모의 · ISA · 세트 모름 = 꼴만', () {
+      KisPasteProblem? live(String v) =>
+          kisPasteProblem(KisPasteField.account, v, set: KisKeySet.live);
+      expect(live('12345678'), isNull);
+      expect(live(' 12345678-01 '), isNull);
+      for (final String v in <String>[
+        '12345678-22',
+        '12345678-29',
+        '12345678-02',
+      ]) {
+        expect(live(v), KisPasteProblem.notGeneralProduct, reason: v);
+      }
+      // 꼴 틀림이 먼저(상품코드 판정은 꼴을 지난 값만).
+      expect(live('1234567-22'), KisPasteProblem.notAccount);
+      for (final KisKeySet? set in <KisKeySet?>[
+        KisKeySet.paper,
+        KisKeySet.isa,
+        null,
+      ]) {
+        expect(
+          kisPasteProblem(KisPasteField.account, '12345678-22', set: set),
+          isNull,
+          reason: '$set',
+        );
+      }
+      // 앱키 · 시크릿 칸은 세트와 무관.
+      expect(
+        kisPasteProblem(KisPasteField.appKey, _key, set: KisKeySet.live),
+        isNull,
+      );
+      expect(kKisGeneralProductCode, '01');
+    });
   });
 
   test('🔴 슬롯 이름 → 키 세트 = 엔진에 있는 세트만', () {

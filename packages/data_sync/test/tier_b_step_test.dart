@@ -831,5 +831,72 @@ void main() {
       );
       expect(sleeveACapTrimDue(db), isFalse);
     });
+
+    test('🆕 R259 G-1 🔴 «줄였다» = 나간 A 의도(접수 이후 · 결과 불명 · 체결 있음) — 거부 · 건너뜀 · 체결 0 실효 · 체결 0 취소 = 아직 남음', () {
+      log(
+        P0sStrategyIds.sleeveA,
+        'PROBATION',
+        'TIER_B_B2',
+        '2026-07-31T23:00:00Z',
+      );
+      int k = 0;
+      String at = '2026-08-03T00:10:00Z';
+      void a(String status, {int? filled}) {
+        final String id = 'G1-${k++}';
+        db.execute(
+          'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
+          'decision_id, symbol, side, order_type, quantity, status, config_hash, updated_at, mode) '
+          "VALUES (?, ?, ?, '2026-08-03', 'KR', 'isa', ?, ?, "
+          "'0085P0', 'SELL', 'LIMIT', 4, ?, 'h', 'x', 'LIVE')",
+          <Object?>[
+            id,
+            'K-$id',
+            at,
+            P0sStrategyIds.sleeveA,
+            'RISK-P0S_A-0085P0-2026-07-31@$id',
+            status,
+          ],
+        );
+        if (filled != null) {
+          db.execute(
+            'INSERT INTO broker_orders(broker_order_no, intent_id, submitted_at, status, filled_qty, remaining_qty) '
+            "VALUES (?, ?, 'x', ?, ?, 0)",
+            <Object?>['2026-08-03:$id', id, status, filled],
+          );
+        }
+      }
+
+      for (final String s in <String>['REJECTED', 'SKIPPED']) {
+        a(s);
+      }
+      a('EXPIRED', filled: 0);
+      a('CANCELLED', filled: 0);
+      expect(sleeveACapTrimDue(db), isTrue);
+      a('EXPIRED', filled: 1);
+      expect(sleeveACapTrimDue(db), isFalse);
+      int day = 10;
+      for (final String s in <String>[
+        'RESERVED',
+        'SUBMITTING',
+        'SUBMITTED',
+        'PARTIAL',
+        'FILLED',
+        'UNKNOWN',
+      ]) {
+        // 새 낮춤 전이(그 뒤 의도만 본다) → 거부 = 남음 → 나간 의도 = 끝.
+        day++;
+        log(
+          P0sStrategyIds.sleeveA,
+          'PROBATION',
+          'TIER_B_B2',
+          '2026-09-${day}T00:00:00Z',
+        );
+        at = '2026-09-${day}T00:10:00Z';
+        a('REJECTED');
+        expect(sleeveACapTrimDue(db), isTrue, reason: s);
+        a(s);
+        expect(sleeveACapTrimDue(db), isFalse, reason: s);
+      }
+    });
   });
 }

@@ -507,6 +507,7 @@ class JournalFillFact {
     this.adviceId,
     this.backdateTradingDays = 0,
     this.priceRangeSourceDate,
+    this.reversesFillId,
   });
 
   /// 체결 id.
@@ -550,6 +551,51 @@ class JournalFillFact {
 
   /// 가격 검증 근거일.
   final TradeDate? priceRangeSourceDate;
+
+  /// 🆕 E11q-j4s — `REVERSAL` 이 되돌린 체결 id(그 밖 = null · J-4 결과의 살아 있는 체결 판정).
+  final String? reversesFillId;
+}
+
+/// 🆕 E11q-j4s — blind 리뷰 채점 한 행(`blind_review_score` · SPEC v2.47 02 §2-6).
+class BlindReviewScoreFact {
+  /// 만든다.
+  const BlindReviewScoreFact({
+    required this.decisionId,
+    required this.commandId,
+    required this.processScore,
+    required this.scoredAt,
+  });
+
+  /// 채점한 결정.
+  final String decisionId;
+
+  /// 집행한 명령.
+  final String commandId;
+
+  /// 과정 점수(1~5 · 저장값 — 다시 셈 0).
+  final int processScore;
+
+  /// 집행 시각(UTC · 기기 시계).
+  final DateTime scoredAt;
+}
+
+/// 🆕 E11q-j4s — 되돌리지 않은 기업 행사 한 건(`ledger_event` `CORPORATE_ACTION` — J-4 결과 «셀 수 없음» 판정만).
+class JournalCorporateActionFact {
+  /// 만든다.
+  const JournalCorporateActionFact({
+    required this.account,
+    required this.symbol,
+    required this.effectiveDate,
+  });
+
+  /// 계좌 별칭.
+  final String account;
+
+  /// 종목.
+  final String symbol;
+
+  /// 효력일(권리락일).
+  final TradeDate effectiveDate;
 }
 
 /// 원장 결정 한 줄(`decision_log`).
@@ -685,6 +731,9 @@ class JournalFacts {
     this.integrityHidden = false,
     this.reconSuspect = false,
     WhatIfConfig? config,
+    this.blindReviewScores = const <String, BlindReviewScoreFact>{},
+    this.corporateActions = const <JournalCorporateActionFact>[],
+    this.unattributedFills = false,
   }) : config = config ?? WhatIfConfig.defaults;
 
   /// 이 원장의 실행 모드.
@@ -722,6 +771,15 @@ class JournalFacts {
 
   /// 종목 · 슬리브 이름표.
   final WhatIfConfig config;
+
+  /// 🆕 E11q-j4s — blind 리뷰 채점(결정 → 행 · SPEC v2.47).
+  final Map<String, BlindReviewScoreFact> blindReviewScores;
+
+  /// 🆕 E11q-j4s — 되돌리지 않은 기업 행사(J-4 결과 «셀 수 없음»).
+  final List<JournalCorporateActionFact> corporateActions;
+
+  /// 🆕 E11q-j4s — 의도에 닿지 않는 살아 있는 수기 체결이 있나(J-4 결과 «셀 수 없음»).
+  final bool unattributedFills;
 
   /// 오늘(KST).
   String get today => kstDateText(nowUtc);
@@ -934,12 +992,20 @@ class BlindReviewTarget {
   final DateTime? firstOrderAt;
 }
 
-/// 🆕 E11q-j4 — J-4 blind 리뷰 대상(06 M1-25 ② ③ · 01 §16 K3 · K4 · K24 · 엔진 규칙 — 화면 판정 0):
+/// 🆕 E11q-j4 — J-4 blind 리뷰 대상(06 M1-25 ① ② ③ · 01 §16 K3 · K4 · K24 · 엔진 규칙 — 화면 판정 0) = [blindReviewCandidatesOf] 가운데
+/// 🆕 E11q-j4s **채점되지 않은 것**(SPEC v2.47 02 §3-3 ①-7 — `blind_review_score` 행이 선 갱신에서 큐 · 배지에서 빠진다).
+List<BlindReviewTarget> blindReviewTargetsOf(JournalFacts f) =>
+    <BlindReviewTarget>[
+      for (final BlindReviewTarget t in blindReviewCandidatesOf(f))
+        if (!f.blindReviewScores.containsKey(t.decisionId)) t,
+    ];
+
+/// 🆕 E11q-j4s — J-4 카드가 설 수 있는 결정(채점 전 · 뒤 모두 — 카드 1건 창구는 채점 뒤에도 같은 카드에 결과를 싣는다 · C-43 ④):
 /// ⓐ 이탈 결정만(그 결정의 저널 `is_deviation` — 규칙대로 결정 · 저널 없는 결정 제외) ⓑ 그 결정의 달 월간 리포트가 발행된 뒤
 /// (같은 판정 = [monthlyReportReadinessOf] 닫힌 달 — 한국 오늘 > 그 달 마지막 KR 세션 · 달력 밖 = 아직) ⓓ 사전 3칸이 다 찬 저널만
 /// (`JOURNAL_MISSING` 이 서 있는 결정 = 제외 · J-3 작성 뒤 진입) · K24 = LIVE 원장만(모의 원장 = 0) · 정렬 = 결정 시각 오름차순 · 결정 키.
-/// 🔵 K3 ⓒ X7 «안 함» 결정 = 이 원장에 안내 갈래 기록 0(운영 폰 = 자동 매매) → 0 · 채점된 결정 빼기 = 점수 기록 표(계약 창 대기 · 01 §8).
-List<BlindReviewTarget> blindReviewTargetsOf(JournalFacts f) {
+/// 🔵 K3 ⓒ X7 «안 함» 결정 = 이 원장에 안내 갈래 기록 0(운영 폰 = 자동 매매) → 0.
+List<BlindReviewTarget> blindReviewCandidatesOf(JournalFacts f) {
   if (f.runMode != RunMode.live) return const <BlindReviewTarget>[];
   final _Book b = _Book(f);
   final Set<String> keys = <String>{
@@ -1119,6 +1185,15 @@ DecisionJournalVm decisionJournalVmOf(JournalFacts f, String routeDecisionId) {
     asOf: asOf,
   );
 }
+
+/// 🆕 E11q-j4s — «이 결정 보기» → J-2(셸에 본문이 있을 때만 · J-3R 과 같은 링크 · J-4 결과 섹션).
+LinkAction? journalDecisionLinkOf(JournalFacts f, String decisionId) =>
+    f.hasBody(AppRoutes.journalDecision)
+    ? LinkAction(
+        label: JournalTexts.decisionLink,
+        deepLink: _route(AppRoutes.journalDecision, decisionId),
+      )
+    : null;
 
 /// 사전 저널 본문(J-3R · 🆕 E11q-j4 J-4 카드 — 같은 결정 = 같은 본문 · C-43 ⑦ⓑ) — 미완성(사전 3칸 중 빈 칸) = null(«미작성»).
 DecisionJournalBody? journalBodyOf(JournalNoteFact note) => !_written(note)

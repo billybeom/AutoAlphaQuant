@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `1f8ff77ec4a6c81d1972aef857b92aa2b59062d4436d1b605bb4193fad10faf2`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `3015df2ffc3b02fb4e7e5298a12d303b6ad322fcf31b3f7aa21fecf0f507968c`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS trades (
     holding_days    INTEGER NOT NULL
 );
 
--- ── 02_데이터모델.md L386-714 ──
+-- ── 02_데이터모델.md L386-728 ──
 CREATE TABLE IF NOT EXISTS strategy_state_log (
     log_id               TEXT NOT NULL PRIMARY KEY,
     strategy_id          TEXT NOT NULL,
@@ -599,6 +599,20 @@ CREATE TABLE IF NOT EXISTS ledger_repair_detail (
     chain_hash      TEXT,                                -- 적용 직후 체인(그 날 `ledger_daily_hash.chain_hash`)
     target_json     TEXT,                                -- 대상(행 id · 종목 · 전후 수량 — 금액 0)
     evidence_json   TEXT                                 -- 🔴 로컬 전용(아카이브 · push 제외) — 옛 스탬프 · 브로커 근거 원문(해시 = ledger_repair.evidence_hash)
+);
+-- 🆕 v2.47(설계 13 §8 R257 · 발주자 위임 — 권고대로 2026-11-24 · 앱 E11q-j4s · 앱 06 M1-25 ① ⑤ ⑥ · 앱 계약 01 §16 K10 · K12 · K24) —
+--    `J-4` 사후 blind 리뷰 채점 기록(03_실행 §8-4 ② · 사람 = 문항 O/X · 1~5 매핑 = 엔진). 기록 · 결과 규칙 = §3-3.
+--    🔴 결정 1개 = 1행 — PK 충돌 = 먼저 집행된 채점이 이긴다(뒤 것 = `BLIND_REVIEW_ALREADY_SCORED` · 원장 쓰기 0) · append-only(행 수정 · 삭제 ·
+--       다시 채점 0) · `command_inbox` 집행 행과 같은 트랜잭션 · 이 행이 선 갱신에서 그 결정이 큐 · J-1 «리뷰 대기 n건»에서 빠지고 카드에 결과가 실린다
+--    🔴 X5-1 해시 모집단 밖 · GitHub 아카이브 밖(§2-13 = 모집단과 같은 목록 · `hash_format_version` 불변) — 원장 파일째 백업 · 기기 이전에는 따라간다
+--    🔴 손익 · 금액 칸 0(결과 문장 = 카드를 지을 때 엔진이 원장 체결에서 셈 — §3-3 ②) · `outcome_score`(03_실행 §8-4 ④) 칸 0 = 앱 01 §8 미결 98 창이 따로
+--    🔵 모드 칸 없음 — 파일이 경계 · 앱 v1.7 = LIVE 만(K24 — sim 파일 행 0)
+CREATE TABLE IF NOT EXISTS blind_review_score (
+    decision_id     TEXT    NOT NULL PRIMARY KEY,        -- 채점한 결정(`order_intents.decision_id` = J-4 카드 `decisionId`)
+    command_id      TEXT    NOT NULL UNIQUE,             -- 집행한 `BLIND_REVIEW_SCORE` 명령(`command_inbox.command_id`)
+    answers_json    TEXT    NOT NULL,                    -- 문항 id → 고른 선택지 점수(1 · 0) · 키 이름 순 JSON · 카드 문항 전부(부분 0 — K10)
+    process_score   INTEGER NOT NULL CHECK (process_score BETWEEN 1 AND 5),   -- 03_실행 §8-3 매핑(충족 개수 = 답 점수 합 → 5·4·3·2 · 0~1 → 1)
+    scored_at       TEXT    NOT NULL                     -- 집행 시각 ISO8601(UTC · 기기 시계) — 🔴 신뢰 시각 아님 · 선후 판정 0(선후 = PK · 집행 차례)
 );
 -- 롤링 12개월 횟수: SELECT COUNT(*) FROM discretion_adjustment
 --                    WHERE applied_at >= date('now','-12 months')

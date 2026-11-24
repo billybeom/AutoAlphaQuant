@@ -8,7 +8,8 @@
 // 🔴 키는 회차마다 금고에서 다시 읽는다 — 사람이 키를 바꾸면(회전) 다음 회차부터 새 키다(지문으로만 비교 · 값을 들고 있지 않는다).
 // 🔴 쓸 키가 없으면 [KisSessionUnavailable] — 회차가 실패한다(`job_run` FAILED + fail 핑 · 조용히 건너뛰지 않는다).
 //    사유 = 칸 이름 · 세트 표기 · 계좌 별칭뿐(값 0).
-// 🆕 R207 실전 = 모드 세트(`KIS_LIVE` — 시세 · 현재가) + 계좌별 세트([liveAccountKeyOf] — 별칭 → 세트 · 연금저축 상품코드 22).
+// 🆕 R207 실전 = 모드 세트(`KIS_LIVE` — 시세 · 현재가) + 계좌별 세트([liveAccountKeyOf] — 별칭 → 세트 · 연금저축 상품코드 22 ·
+//    🆕 R262 일반 위탁 상품코드 01 고정 — 실전 칸에 연금저축 번호가 들어가도 위탁 주문이 연금저축 계좌로 가지 않는다).
 //    🔴 클라이언트가 있어도 실주문은 따로 막힌다(실키 검증 hold · 운영 리스 · 커밋 첫 판 dryRun).
 
 import 'package:broker_gateway/broker_gateway.dart'
@@ -51,8 +52,8 @@ class KisSessionUnavailable implements Exception {
 /// 🆕 R207 — 실전 계좌 하나의 키(세트 · 상품코드 덮어쓰기 — null = 금고 값 그대로).
 typedef LiveAccountKey = ({KisKeySet set, String? productCode});
 
-/// 🆕 R207 — 실전 계좌 별칭 → 키(P0S 대응 — `isa` → `KIS_ISA` · `general` → `KIS_LIVE` · `pension` → `KIS_LIVE` 상품코드 22) ·
-/// 모르는 별칭 = null(🔴 다른 세트로 돌지 않는다).
+/// 🆕 R207 — 실전 계좌 별칭 → 키(P0S 대응 — `isa` → `KIS_ISA` · `general` → `KIS_LIVE` 🆕 R262 상품코드 01 고정(A-2) ·
+/// `pension` → `KIS_LIVE` 상품코드 22) · 모르는 별칭 = null(🔴 다른 세트로 돌지 않는다).
 LiveAccountKey? liveAccountKeyOf(String alias) {
   final String a = alias.trim();
   final String? kind = kP0sLiveKeyKindOfAlias[a];
