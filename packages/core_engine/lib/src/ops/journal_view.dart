@@ -15,6 +15,8 @@
 // 🆕 E11q-q4b — J-5 미해소 보드(`unknownBoardVmOf` · UNKNOWN 의도 = 카드 · 4단계 · 경과 = 거래일 달력 · 장기 강조 = 엔진 임계).
 // 🔵 운영 폰의 일지 = 엔진이 지금 쓰는 원장 한 파일(모의 기간 = 모의 원장 · 파일이 모드 경계 · 01 §9-1) — 행마다 `mode` 가
 //    모의 배지를 말한다. `watchTimeline(mode:)` 인자는 J-1 이 넘기지 않는다(01 §8 미결 89) → 조립 앱이 원장 축을 따른다.
+// 🆕 E11q-j4 — J-4 blind 리뷰 대상(`blindReviewTargetsOf` · 06 M1-25 ② ③ · 01 §16 K3 ⓐ ⓑ ⓓ · K4 · K24) · J-1 «리뷰 대기 n건» 배지
+//    (n = 대상 수 · 0 = 배지 부재). 카드 · 큐 VM = `blind_review_view.dart`.
 
 import 'dart:convert';
 
@@ -75,6 +77,8 @@ import '../whatif/what_if_config.dart' show WhatIfConfig;
 import '../whatif/what_if_text.dart' show commaWonText;
 import 'journal_draft.dart' show journalRuleCitedLabelOf;
 import 'ledger_views.dart' show kstDateText, kstMinuteText;
+import 'monthly_report.dart'
+    show MonthlyReportReadiness, monthlyReportReadinessOf;
 import 'ops_home.dart' show opsDDayText;
 import 'rebalance_events_view.dart' show RebalanceEventTexts;
 
@@ -189,6 +193,9 @@ abstract final class JournalTexts {
 
   /// 확인 중 배지(표본 `journal_badges_2`).
   static String unknownBadge(int n) => '확인 중 $n건';
+
+  /// 🆕 E11q-j4 — 리뷰 대기 배지(표본 `journal_badges_2` 둘째 행).
+  static String reviewBadge(int n) => '리뷰 대기 $n건';
 
   /// 출처 선택지(표본 `journal_filter_catalog`).
   static const String optionBroker = '브로커 체결만';
@@ -871,23 +878,126 @@ JournalFilterCatalog journalFilterCatalogOf(JournalFacts f) {
   );
 }
 
-/// J-1 상단 배지 — 미해소(UNKNOWN) 의도가 있을 때만 «확인 중 n건»(0 = 배지 없음 · 무소식) ·
-/// 리뷰 대기 = LIVE 결정만(K24) — 큐 원천 0 → 없음.
+/// J-1 상단 배지 — 미해소(UNKNOWN) 의도가 있을 때만 «확인 중 n건» · 🆕 E11q-j4 blind 리뷰 대상이 있을 때만 «리뷰 대기 n건»
+/// (n = [blindReviewTargetsOf] 의 수 = J-4 큐 행 수 — 06 M1-25 ① · 0 = 배지 부재 · «0건» 금지 · 차례 = 표본 `journal_badges_2`).
 List<JournalTimelineBadge> journalTimelineBadgesOf(JournalFacts f) {
   final int n = f.intents
       .where((JournalIntentFact i) => i.statusWire == 'UNKNOWN')
       .length;
-  if (n == 0) return const <JournalTimelineBadge>[];
+  final int review = blindReviewTargetsOf(f).length;
   return <JournalTimelineBadge>[
-    JournalTimelineBadge(
-      badgeCode: JournalBadgeCodes.unknownOpen,
-      label: JournalTexts.unknownBadge(n),
-      tone: ChipTone.caution,
-      deepLink: f.hasBody(AppRoutes.journalUnknownBoard)
-          ? AppRoutes.journalUnknownBoard
-          : null,
-    ),
+    if (n > 0)
+      JournalTimelineBadge(
+        badgeCode: JournalBadgeCodes.unknownOpen,
+        label: JournalTexts.unknownBadge(n),
+        tone: ChipTone.caution,
+        deepLink: f.hasBody(AppRoutes.journalUnknownBoard)
+            ? AppRoutes.journalUnknownBoard
+            : null,
+      ),
+    if (review > 0)
+      JournalTimelineBadge(
+        badgeCode: JournalBadgeCodes.blindReviewPending,
+        label: JournalTexts.reviewBadge(review),
+        tone: ChipTone.neutral,
+        deepLink: f.hasBody(AppRoutes.journalBlindReview)
+            ? AppRoutes.journalBlindReview
+            : null,
+      ),
   ];
+}
+
+/// 🆕 E11q-j4 — J-4 blind 리뷰 대상 한 건(카드 VM 의 재료 · 엔진 안 사실).
+class BlindReviewTarget {
+  /// 만든다.
+  const BlindReviewTarget({
+    required this.decisionId,
+    required this.entry,
+    required this.note,
+    required this.decidedAt,
+    this.firstOrderAt,
+  });
+
+  /// 결정 키(의도의 `decision_id` · J-2 링크와 같은 키).
+  final String decisionId;
+
+  /// 머리 의도(기록 시각 · 의도 id 순 첫 것)의 J-1 일지 행 — 문맥 칩 · 이탈 배지 · 종목 · 방향 · 거래일(C-43 ⑦ⓒ 와 같은 원천).
+  final TradeJournalEntry entry;
+
+  /// 작성된 이탈 저널(사전 3칸이 다 찬 것 — K3 ⓓ).
+  final JournalNoteFact note;
+
+  /// 결정 시각(UTC — 결정 원천 기록 · 없으면 머리 의도 기록 · 정렬 키 K4).
+  final DateTime decidedAt;
+
+  /// 첫 브로커 주문 전송(UTC · 없으면 null — 문항 ⑤ 근거 줄 부재).
+  final DateTime? firstOrderAt;
+}
+
+/// 🆕 E11q-j4 — J-4 blind 리뷰 대상(06 M1-25 ② ③ · 01 §16 K3 · K4 · K24 · 엔진 규칙 — 화면 판정 0):
+/// ⓐ 이탈 결정만(그 결정의 저널 `is_deviation` — 규칙대로 결정 · 저널 없는 결정 제외) ⓑ 그 결정의 달 월간 리포트가 발행된 뒤
+/// (같은 판정 = [monthlyReportReadinessOf] 닫힌 달 — 한국 오늘 > 그 달 마지막 KR 세션 · 달력 밖 = 아직) ⓓ 사전 3칸이 다 찬 저널만
+/// (`JOURNAL_MISSING` 이 서 있는 결정 = 제외 · J-3 작성 뒤 진입) · K24 = LIVE 원장만(모의 원장 = 0) · 정렬 = 결정 시각 오름차순 · 결정 키.
+/// 🔵 K3 ⓒ X7 «안 함» 결정 = 이 원장에 안내 갈래 기록 0(운영 폰 = 자동 매매) → 0 · 채점된 결정 빼기 = 점수 기록 표(계약 창 대기 · 01 §8).
+List<BlindReviewTarget> blindReviewTargetsOf(JournalFacts f) {
+  if (f.runMode != RunMode.live) return const <BlindReviewTarget>[];
+  final _Book b = _Book(f);
+  final Set<String> keys = <String>{
+    for (final JournalIntentFact i in f.intents) i.decisionId,
+  };
+  final Map<String, TradeJournalEntry> byIntent = <String, TradeJournalEntry>{
+    for (final JournalIntentFact i in f.intents) i.intentId: b.entry(i),
+  };
+  final List<BlindReviewTarget> out = <BlindReviewTarget>[];
+  for (final String key in keys) {
+    final JournalNoteFact? note = b.noteOf(key);
+    if (note == null || !note.isDeviation || !_written(note)) continue;
+    final List<JournalIntentFact> mine = b.intentsOf(key);
+    final JournalIntentFact head = mine.first;
+    if (!_reportPublished(f, head.tradeDate)) continue;
+    final List<DateTime> sent = <DateTime>[
+      for (final JournalIntentFact i in mine)
+        for (final JournalOrderFact o in i.orders) o.submittedAt,
+    ]..sort();
+    out.add(
+      BlindReviewTarget(
+        decisionId: key,
+        entry: byIntent[head.intentId]!,
+        note: note,
+        decidedAt: (b.sourceOf(head)?.createdAt ?? head.createdAt).toUtc(),
+        firstOrderAt: sent.isEmpty ? null : sent.first.toUtc(),
+      ),
+    );
+  }
+  out.sort((BlindReviewTarget x, BlindReviewTarget y) {
+    final int c = x.decidedAt.compareTo(y.decidedAt);
+    return c != 0 ? c : x.decisionId.compareTo(y.decisionId);
+  });
+  return out;
+}
+
+/// 그 날의 달 월간 리포트가 발행됐나(= S7-1 이 지을 수 있는 닫힌 달 · 개시 판정은 결정이 있는 달이라 늘 통과) · 달력 밖 = 아직.
+bool _reportPublished(JournalFacts f, TradeDate day) {
+  final String yyyyMm = day.yyyyMmDd.substring(0, 7);
+  final TradeDate end;
+  try {
+    TradeDate d = TradeDate('$yyyyMm-01');
+    if (!f.kr.isSession(d)) d = f.kr.nextSession(d);
+    while (!f.kr.isLastSessionOfMonth(d)) {
+      d = f.kr.nextSession(d);
+    }
+    end = d;
+  } on StateError {
+    return false;
+  }
+  if (!end.yyyyMmDd.startsWith('$yyyyMm-')) return false;
+  return monthlyReportReadinessOf(
+        yyyyMm: yyyyMm,
+        monthEnd: end,
+        openingDate: day.yyyyMmDd,
+        nowUtc: f.nowUtc,
+      ) ==
+      MonthlyReportReadiness.closed;
 }
 
 /// J-2 거래 상세 — 모르는 결정 = 실패(잠정 규칙 · 01 §8 미결 50 ③).
@@ -997,28 +1107,29 @@ DecisionJournalVm decisionJournalVmOf(JournalFacts f, String routeDecisionId) {
     note = b.noteOf(key);
     decisionId = b.intentsOf(key).isEmpty ? null : key;
   }
-  final bool written = note != null && _written(note);
+  final DecisionJournalBody? body = note == null ? null : journalBodyOf(note);
   final AsOf asOf = b.asOfWith(JournalTexts.journalAsOfLabel(f.today));
   return DecisionJournalVm(
     decisionId: key,
-    journalStateLabel: written
+    journalStateLabel: body != null
         ? JournalTexts.journalWritten
         : JournalTexts.journalNotWritten,
-    body: !written
-        ? null
-        : DecisionJournalBody(
-            writtenAtText: JournalTexts.writtenAt(
-              kstMinuteText(note.createdAt),
-            ),
-            ruleCitedLabel: journalRuleCitedLabelOf(note.ruleCited),
-            rationaleBefore: note.rationaleBefore!,
-            expectedOutcome: note.expectedOutcome!,
-            note: note.note,
-          ),
+    body: body,
     decisionLink: b.decisionLink(decisionId, JournalTexts.decisionLink),
     asOf: asOf,
   );
 }
+
+/// 사전 저널 본문(J-3R · 🆕 E11q-j4 J-4 카드 — 같은 결정 = 같은 본문 · C-43 ⑦ⓑ) — 미완성(사전 3칸 중 빈 칸) = null(«미작성»).
+DecisionJournalBody? journalBodyOf(JournalNoteFact note) => !_written(note)
+    ? null
+    : DecisionJournalBody(
+        writtenAtText: JournalTexts.writtenAt(kstMinuteText(note.createdAt)),
+        ruleCitedLabel: journalRuleCitedLabelOf(note.ruleCited),
+        rationaleBefore: note.rationaleBefore!,
+        expectedOutcome: note.expectedOutcome!,
+        note: note.note,
+      );
 
 /// J-1 회차 범위 — 모르는 회차 = null(칩 부재 · 같은 id 의 타임라인 = 0행 + 봉투 문장) · 아는 회차 = 칩 글자 +
 /// 그 회차에 묶인 행 전부를 덮는 기간(행 0 = 회차 거래일 하루).

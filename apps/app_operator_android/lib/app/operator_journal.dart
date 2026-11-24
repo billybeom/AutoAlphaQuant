@@ -10,8 +10,11 @@
 // 🆕 E11q-q4b — J-5 미해소 보드(같은 원천 · 같은 감시 표).
 // 🆕 미결 220 ⓔ — J-3 사전 저널 폼 스펙(키 = 저널 id · 갈래 = 엔진 `SqliteJournalDraftStore.targetOf` · 모르는 키 = 오류 ·
 //    서약 줄 = sim 원장의 지금 서약(R157 · 재량 예산을 쓰는 목적에만 — 엔진) · 재량 배지 = 재량 예산(신뢰 시각 모름 = 머리만)) ·
-//    J-3R = 저널 id 먼저(엔진 `decisionJournalVmOf`). blind 리뷰 = 실전 전 — 원천 없음 오류(화면 = 공통 오류 · 지어내지 않는다).
+//    J-3R = 저널 id 먼저(엔진 `decisionJournalVmOf`).
 //    조각 조회 셋(`findByDecisionId` · `chainOf` · `fillChain`)은 J-2 가 쓰지 않는다(그 화면은 상세 하나만 구독) → 원천 없음.
+// 🆕 E11q-j4 — J-4 blind 리뷰 큐 · 카드(같은 원천 · 같은 감시 표 · 엔진 `blindReviewQueueOf` · `blindReviewCardOf`) —
+//    K24 = 이 원장의 모드(화면 상태의 실행 모드)와 인자가 모두 LIVE 일 때만 대상(모의 기간 = 해당 없음 빈 문장) ·
+//    카드 = 모르는 · 대상 아닌 결정 = 오류. 채점 기록 = 로컬 원장에 표 없음(계약 창 대기 — 제출 = 명령 API 오류).
 
 import 'package:core_engine/core_engine.dart'
     show JournalDraftTarget, journalDraftFormSpecOf, journalKeyOf;
@@ -198,18 +201,22 @@ class OperatorJournalRepository implements JournalRepository {
   Stream<UnknownBoardVm> watchUnknownBoard() =>
       _follow((SqliteJournalSource s) => s.unknownBoard(), '미해소 보드');
 
+  /// 🆕 E11q-j4 — J-4 대기 목록(K24 · 모의 원장 = 해당 없음 빈 봉투).
   @override
   Stream<ListResult<BlindReviewCard>> watchBlindReviewQueue({
     RunMode mode = RunMode.live,
-  }) => _none('watchBlindReviewQueue');
+  }) => _follow(
+    (SqliteJournalSource s) => s.blindReviewQueue(mode: mode),
+    'blind 리뷰 대기',
+  );
 
+  /// 🆕 E11q-j4 — J-4 카드 1건(모르는 · 대상 아닌 결정 = 오류).
   @override
-  Stream<BlindReviewCard> watchBlindReviewCard(String decisionId) =>
-      _none('watchBlindReviewCard');
+  Stream<BlindReviewCard> watchBlindReviewCard(String decisionId) => _follow(
+    (SqliteJournalSource s) => s.blindReviewCard(decisionId),
+    'blind 리뷰 카드',
+  );
 }
-
-Stream<T> _none<T>(String what) =>
-    Stream<T>.error(UnsupportedError('$what: 원천 없음(계약 창 · 실전 전)'));
 
 Future<T> _noneNow<T>(String what) =>
     Future<T>.error(UnsupportedError('$what: 원천 없음(계약 창 · 실전 전)'));

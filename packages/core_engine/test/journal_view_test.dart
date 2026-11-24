@@ -286,7 +286,7 @@ void main() {
       },
     );
 
-    test('배지 = m6/journal_badges_2 첫 행(미해소 2건) · 리뷰 대기 = LIVE 큐 원천 0 → 없음', () {
+    test('배지 = m6/journal_badges_2 첫 행(미해소 2건) · 리뷰 대기 = 대상 0 → 없음', () {
       final JournalFacts f = _facts(
         intents: <JournalIntentFact>[
           _intent('i_1', decision: 'D1@x', status: 'UNKNOWN'),

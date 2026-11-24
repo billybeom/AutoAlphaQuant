@@ -217,9 +217,13 @@ class OperatorCommandApi implements CommandApi {
     return receipt;
   }
 
+  /// 🆕 E11q-j4 — `J-4` 점수 제출 = 점수 기록 표가 로컬 원장(02 데이터모델 v1)에 없다 → 기록하지 않는다(계약 창 대기 ·
+  /// 판정 · 접수증 글자 = 엔진 `blindReviewRejectOf` · `blindReviewStateLabelOf` 준비됨) · 화면 = 접수 실패 1줄(01 §16-6).
   @override
   Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score) =>
-      _none('submitBlindReviewScore');
+      Future<CommandReceipt>.error(
+        UnsupportedError('submitBlindReviewScore: 점수 기록 표 없음(계약 창 대기)'),
+      );
 
   /// 🆕 E11q-q5b(R223) — `S7-2G` 「그래도 보기」 열람 기록(폰 안 · 같은 원장 한 행 · 무결성 점검 중 = 보류 행) ·
   /// 접수증 글자 = 엔진 글자 그대로 · 화면 상태 · 기기 id 가 없으면 실패(게이트에 머문다 · 접수 실패 1줄).

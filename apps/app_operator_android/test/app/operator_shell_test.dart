@@ -131,6 +131,7 @@ import 'package:ui_journal/ui_journal.dart'
     show
         LedgerDiffs,
         LedgerRepairs,
+        journalBlindReviewCommandApiProvider,
         JournalTimeline,
         journalClockProvider,
         journalConfigRepositoryProvider,
@@ -604,6 +605,14 @@ void main() {
     expect(
       identical(
         container.read(journalCommandApiProvider),
+        container.read(operatorCommandApiProvider),
+      ),
+      true,
+    );
+    // 🆕 E11q-j4 — J-4 명령 칸 = 같은 명령 API 인스턴스(01 §16-8 «같은 API 의 프로바이더가 둘»).
+    expect(
+      identical(
+        container.read(journalBlindReviewCommandApiProvider),
         container.read(operatorCommandApiProvider),
       ),
       true,

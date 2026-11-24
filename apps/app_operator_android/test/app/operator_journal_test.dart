@@ -94,7 +94,7 @@ void main() {
     <Object?>[id, 'k-$id', trade, P0sStrategyIds.sleeveB, decision, status],
   );
 
-  test('🔴 레지스트리 = 일지 읽기 넷 + J-5 미해소 보드 + 🆕 J-3 사전 저널 쓰기(미결 220 ⓔ) · blind 리뷰 = 아직', () {
+  test('🔴 레지스트리 = 일지 읽기 넷 + J-5 미해소 보드 + J-3 사전 저널 쓰기(미결 220 ⓔ) + 🆕 J-4 blind 리뷰(E11q-j4)', () {
     for (final String r in <String>[
       AppRoutes.journalTimeline,
       AppRoutes.journalDecision,
@@ -102,13 +102,10 @@ void main() {
       AppRoutes.journalRebalance,
       AppRoutes.journalUnknownBoard,
       AppRoutes.journalDraft,
+      AppRoutes.journalBlindReview,
     ]) {
       expect(kOperatorRouteBodies.byPattern.containsKey(r), true, reason: r);
     }
-    expect(
-      kOperatorRouteBodies.byPattern.containsKey(AppRoutes.journalBlindReview),
-      false,
-    );
   });
 
   test('빈 원장 = 엔진 빈 문장 · 필터 출처 = 모의 · 배지 없음', () async {
@@ -329,13 +326,22 @@ void main() {
     );
     final OperatorJournalRepository r = repo(rt());
     await expectLater(none.watchUnknownBoard(), emitsError(isA<StateError>()));
+    // 🆕 E11q-j4 — J-4 원천이 섰다: 화면 상태 없음 · 모르는 결정 = 오류 · 모의 원장 = 해당 없음 빈 문장(K24).
     await expectLater(
-      r.watchBlindReviewQueue(),
-      emitsError(isA<UnsupportedError>()),
+      none.watchBlindReviewQueue(),
+      emitsError(isA<StateError>()),
+    );
+    final ListResult<BlindReviewCard> simQueue = await r
+        .watchBlindReviewQueue()
+        .first;
+    expect(simQueue.rows, isEmpty);
+    expect(
+      (simQueue.emptyKind, simQueue.emptyLabel),
+      (EmptyKind.notApplicable, '리뷰할 결정이 없습니다'),
     );
     await expectLater(
       r.watchBlindReviewCard('d'),
-      emitsError(isA<UnsupportedError>()),
+      emitsError(isA<StateError>()),
     );
     // 🆕 미결 220 ⓔ — 폼 스펙 원천이 섰다: 모르는 키 · 화면 상태 없음 = 오류(지어내지 않는다).
     await expectLater(r.draftFormSpec('d'), throwsA(isA<StateError>()));
@@ -346,6 +352,90 @@ void main() {
     );
     await expectLater(r.chainOf('d'), throwsA(isA<UnsupportedError>()));
     await expectLater(r.fillChain('e'), throwsA(isA<UnsupportedError>()));
+  });
+
+  test('🆕 E11q-j4 J-4 — LIVE 원장 · 이탈 저널 · 닫힌 달 = 큐 · 카드 · «리뷰 대기 n건» 배지(링크 = 등록 본문) · 저널 쓰기 = 다시 냄 · 제출 = 기록 표 없음', () async {
+    final Database live = files.openLive();
+    final OperatorRuntime r = OperatorRuntime(files: files, clock: clock);
+    r.view.value = OperatorView(
+      db: live,
+      flags: const FeatureFlags(
+        satelliteEnabled: false,
+        webViewerEnabled: false,
+        calendarEnabled: false,
+        runMode: RunMode.live,
+        operatingMode: OperatingMode.autoTrade,
+        configHash: 'cfg_test',
+      ),
+    );
+    void deviation(String d, String j, String day, String at) {
+      live.execute(
+        'INSERT INTO decision_journal (journal_id, trade_date, strategy_id, signal_value, action_taken, '
+        "is_deviation, rationale_before, expected_outcome, rule_cited, note, created_at) VALUES (?, ?, 'P0S', "
+        "'{}', '{}', 1, '근거', '기대', '재량 예산', NULL, ?)",
+        <Object?>[j, day, at],
+      );
+      live.execute(
+        'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, '
+        "reason_code, config_hash, journal_id) VALUES (?, ?, ?, 'LIVE', 'MANUAL', 'P0S', '월간 정기 리밸런싱', "
+        "'MONTHLY_REGULAR', 'cfg', ?)",
+        <Object?>[d, at, day, j],
+      );
+      live.execute(
+        'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+        'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+        "updated_at, mode) VALUES (?, ?, ?, ?, 'KR', 'pension', ?, ?, '0085P0', 'BUY', 'LIMIT', 10, 38250, "
+        "'SUBMITTED', 'cfg', ?, 'LIVE')",
+        <Object?>['i$d', 'k$d', at, day, P0sStrategyIds.sleeveC, d, at],
+      );
+    }
+
+    deviation('D28', 'J28', '2026-08-11', '2026-08-11T04:55:00.000Z');
+    clock.now = kst(2026, 9, 1, 9, 0);
+    final OperatorJournalRepository j = repo(r);
+    final List<ListResult<BlindReviewCard>> seen =
+        <ListResult<BlindReviewCard>>[];
+    final StreamSubscription<ListResult<BlindReviewCard>> sub = j
+        .watchBlindReviewQueue()
+        .listen(seen.add);
+    addTearDown(sub.cancel);
+    await until(() => seen.isNotEmpty, '큐 첫 값');
+    final BlindReviewCard c = seen.last.rows.single;
+    expect((c.decisionId, c.result), ('D28', null));
+    expect(await j.watchBlindReviewCard('D28').first, c);
+    // K24 — LIVE 원장이어도 SIM 인자 = 해당 없음(SIM 리뷰 = 미결 99).
+    expect(
+      (await j.watchBlindReviewQueue(mode: RunMode.simInternal).first).rows,
+      isEmpty,
+    );
+    final JournalTimelineBadge b = (await j.watchTimelineBadges().first).single;
+    expect(
+      (b.badgeCode, b.label, b.deepLink),
+      (
+        JournalBadgeCodes.blindReviewPending,
+        '리뷰 대기 1건',
+        AppRoutes.journalBlindReview,
+      ),
+    );
+    // 감시 표(결정 로그 · 저널 · 의도)에 쓰면 다시 낸다 — 둘째 이탈 결정.
+    deviation('D29', 'J29', '2026-08-12', '2026-08-12T04:55:00.000Z');
+    await until(() => seen.last.rows.length == 2, '쓰기 뒤 다시 냄');
+    expect(seen.last.rows.map((BlindReviewCard x) => x.decisionId), <String>[
+      'D28',
+      'D29',
+    ]);
+    // 점수 기록 표 없음(계약 창 대기) — 기록하지 않는다(화면 = 접수 실패 1줄).
+    await expectLater(
+      OperatorCommandApi(r).submitBlindReviewScore(
+        BlindReviewScore(
+          decisionId: 'D28',
+          answers: <String, int>{
+            for (final BlindReviewQuestion q in c.questions) q.questionId: 1,
+          },
+        ),
+      ),
+      throwsA(isA<UnsupportedError>()),
+    );
   });
 
   test('🆕 미결 220 ⓔⓕ J-3 — 미완성 저널 폼 스펙 → 제출(엔진 · 접수증) → J-3R(저널 id) 작성됨 · 다시 = 이미 있음 · 새 행 키 · 모르는 키', () async {
