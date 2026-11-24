@@ -458,6 +458,135 @@ void main() {
     },
   );
 
+  test('🆕 R260 F-1 🔴 앱 안 모의 — 그날 마감 평가 뒤 등록 = 기준일 다음 세션 → 계층 B TWR 시리즈 거짓 낙폭 0 · 평가 전 = 그날 · 실전 = 옛 규칙', () async {
+    void snap(Database db, String day, double eq) => db.execute(
+      'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+      "VALUES (?, ?, ?, 0, ?, 0, 'SIM_INTERNAL')",
+      <Object?>[day, eq, eq, eq],
+    );
+    List<String> days(Database db) => <String>[
+      for (final Row c in db.select(
+        'SELECT DISTINCT trade_date AS d FROM cash_flow ORDER BY d',
+      ))
+        c['d'] as String,
+    ];
+    final DateTime night = DateTime.utc(2026, 9, 1, 12); // KST 09-01 21:00
+
+    final Database sim = open(RunMode.simInternal);
+    snap(sim, '2026-08-31', 10000000);
+    snap(sim, '2026-09-01', 10000000); // 09-01 20:30 평가(입금 전)
+    final DepositPlan p = await plan(sim);
+    final CommandReceipt r = await registrar(
+      sim,
+      mode: RunMode.simInternal,
+      now: night.add(const Duration(seconds: 5)),
+    ).register(command(p.planId, at: night));
+    expect(r.state, CommandState.executed);
+    snap(sim, '2026-09-02', 11000000); // 입금이 처음 든 평가
+    expect(twrIndex(tierBSeries(sim, '2026-09-02')), <double>[
+      1.0,
+      1.0,
+      1.0,
+    ], reason: '고치기 전 = 09-01 −10% · 09-02 +10%(지수 0.9 → 0.99)');
+    expect(days(sim), <String>['2026-09-02']);
+    expect(
+      sim.select('SELECT trade_date FROM decision_log').single['trade_date'],
+      '2026-09-02',
+    );
+  });
+
+  test('🆕 R260 F-1 — 그날 평가 전 등록(모의 · 잡 늦음 · 실패) = 그날', () async {
+    void snap(Database db, String day, String mode) => db.execute(
+      'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+      'VALUES (?, 1, 1, 0, 1, 0, ?)',
+      <Object?>[day, mode],
+    );
+    final DateTime night = DateTime.utc(2026, 9, 1, 12); // KST 09-01 21:00
+    final Database sim = open(RunMode.simInternal);
+    snap(sim, '2026-08-31', 'SIM_INTERNAL');
+    final DepositPlan p = await plan(sim);
+    await registrar(
+      sim,
+      mode: RunMode.simInternal,
+      now: night,
+    ).register(command(p.planId, at: night));
+    expect(
+      sim.select('SELECT trade_date FROM decision_log').single['trade_date'],
+      '2026-09-01',
+    );
+  });
+
+  test(
+    '🆕 R260 F-1 — 실전 = 그날 평가가 있어도 등록 날(옛 규칙 · 돈이 평가에 드는 날 = 브로커 입금 날)',
+    () async {
+      void snap(Database db, String day, String mode) => db.execute(
+        'INSERT INTO equity_snapshot(trade_date, total_equity, cash_krw, positions_value, high_water_mark, drawdown, mode) '
+        'VALUES (?, 1, 1, 0, 1, 0, ?)',
+        <Object?>[day, mode],
+      );
+      final DateTime night = DateTime.utc(2026, 9, 1, 12); // KST 09-01 21:00
+      final Database live = open(RunMode.live);
+      snap(live, '2026-09-01', 'LIVE');
+      final DepositPlan q = await plan(live);
+      await registrar(live, now: night).register(command(q.planId, at: night));
+      expect(
+        live.select('SELECT trade_date FROM decision_log').single['trade_date'],
+        '2026-09-01',
+      );
+    },
+  );
+
+  test(
+    '🆕 R260 F-5 🔴 연금 한도 «그해» = 요청 시각(신뢰 시각) KST 연도 — 기기 시계가 해를 넘겨도 그해 한도로 판정',
+    () async {
+      final Database db = open(RunMode.live);
+      final Decimal outside = _d('17600000');
+      final DateTime computed = DateTime.utc(
+        2026,
+        12,
+        31,
+        11,
+      ); // KST 12-31 20:00
+      final DepositPlan dec = await plan(db, at: computed, used: outside);
+      final DepositPlan late = await plan(db, at: computed, used: outside);
+      final Map<int, Decimal> declared = <int, Decimal>{2026: outside};
+      final CommandReceipt a =
+          await registrar(
+            db,
+            declared: declared,
+            calendar: _yearEnd,
+            now: DateTime.utc(2026, 12, 31, 12, 0, 5),
+          ).register(
+            command(
+              dec.planId,
+              id: 'cmd_d',
+              at: DateTime.utc(2026, 12, 31, 12),
+            ),
+          );
+      expect(a.state, CommandState.executed);
+      // 요청 = KST 12-31 22:00(2026 · 한도 꽉 참) · 기기 시계 = KST 01-01 01:00(2027).
+      final CommandReceipt b =
+          await registrar(
+            db,
+            declared: declared,
+            calendar: _yearEnd,
+            now: DateTime.utc(2026, 12, 31, 16),
+          ).register(
+            command(
+              late.planId,
+              id: 'cmd_l',
+              at: DateTime.utc(2026, 12, 31, 13),
+            ),
+          );
+      expect(b.state, CommandState.rejected);
+      expect(
+        b.rejectReasonCode,
+        DepositRegisterRejectCodes.pensionQuotaChanged,
+        reason: '고치기 전 = 기기 시계 연도(2027) 한도로 판정 → 2026 한도 넘겨 기록',
+      );
+    },
+  );
+
   test('해 넘김 — 12-31(휴장) 밤에 넣은 돈은 그해 납입 · 1월 1일에 넣은 돈은 새해 한도', () async {
     final Database db = open(RunMode.live);
     final Decimal outside = _d('17600000');

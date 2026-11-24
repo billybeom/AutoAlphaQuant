@@ -214,7 +214,8 @@ class DepositLedgerEntry {
 }
 
 /// 등록 판정(순수) — [snapshot] null = 이 파일에 그 계획이 없다 · [pensionRemaining] = 지금 남은 연금 납입 한도
-/// (연 한도 − [pensionUsedInYear] · 처리 시점 KST 연도).
+/// (연 한도 − [pensionUsedInYear] · 🆕 R260 명령 요청 시각의 KST 연도).
+/// 🆕 R260(리뷰 3차 F-1) — [snapshotThrough] = 이미 쓴 마감 평가의 마지막 날(앱 안 모의 원장만 · [depositTradeDate]).
 ///
 /// 기록 갈래는 [state] 의 KR 달력이 필요하다 — 없거나 범위 밖이면 [StateError](모르는 날을 지어내지 않는다).
 DepositRegisterOutcome judgeDepositRegistration({
@@ -222,6 +223,7 @@ DepositRegisterOutcome judgeDepositRegistration({
   required DepositPlanSnapshot? snapshot,
   required WhatIfState state,
   required Decimal pensionRemaining,
+  TradeDate? snapshotThrough,
 }) {
   if (snapshot == null || snapshot.plan.planId != command.planId) {
     return const DepositRegisterRejected(
@@ -267,16 +269,37 @@ DepositRegisterOutcome judgeDepositRegistration({
     throw StateError('KR 거래소 달력이 없다 — 입금 기준일을 정할 수 없다');
   }
   return DepositRegisterExecuted(
-    depositLedgerEntry(snapshot, depositTradeDate(command.requestedAt, kr)),
+    depositLedgerEntry(
+      snapshot,
+      depositTradeDate(
+        command.requestedAt,
+        kr,
+        snapshotThrough: snapshotThrough,
+      ),
+    ),
   );
 }
 
 /// 입금 기준일 — [requestedAt] 의 KST 날짜 · 거래일이 아니면 다음 KR 거래일(D10).
-TradeDate depositTradeDate(DateTime requestedAt, ExchangeCalendar kr) {
+///
+/// 🆕 R260(리뷰 3차 F-1) — [snapshotThrough] = 이미 쓴 마감 평가(`equity_snapshot`)의 마지막 날. 기준일이 그날 이하면 그 다음
+/// KR 세션이다 — 앱 안 모의 원장은 등록하는 순간 현금이 생기므로, 그날 마감 평가가 이미 끝났으면 그 돈은 다음 평가에 처음 든다.
+/// 그날 흐름으로 두면 TWR 이 그날 −D/E · 다음 날 +D/E(지수 영구 손실 (D/E)² · 거짓 최대 낙폭 · 계층 B 거짓 PROBATION ·
+/// 03 알고리즘 §5-5b «유출입 당일 = 하위기간 경계»). null = 옛 규칙(실전 · 브로커 모의 — 돈이 평가에 드는 날 = 브로커 입금 날).
+TradeDate depositTradeDate(
+  DateTime requestedAt,
+  ExchangeCalendar kr, {
+  TradeDate? snapshotThrough,
+}) {
   final DateTime k = requestedAt.toUtc().add(const Duration(hours: 9));
   String two(int n) => n.toString().padLeft(2, '0');
   final TradeDate day = TradeDate('${k.year}-${two(k.month)}-${two(k.day)}');
-  return kr.isSession(day) ? day : kr.nextSession(day);
+  final TradeDate base = kr.isSession(day) ? day : kr.nextSession(day);
+  if (snapshotThrough != null &&
+      base.yyyyMmDd.compareTo(snapshotThrough.yyyyMmDd) <= 0) {
+    return kr.nextSession(snapshotThrough);
+  }
+  return base;
 }
 
 /// 계획의 B 몫(연금 계좌로 가는 돈 · 원).

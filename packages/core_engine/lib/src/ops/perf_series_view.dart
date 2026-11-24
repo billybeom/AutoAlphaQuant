@@ -272,12 +272,19 @@ PerformanceSeries performanceSeriesOf({
   }
 
   // 기준 = 첫 점이 덮는 기간의 시작 — 일별 = 첫 점 그날(값 0) · 월별 · 연도별 = 첫 스냅숏(표본 `yearly` 첫 해 0.74%).
+  // 🆕 R260(리뷰 3차 F-2) — 일별 첫 점이 결측이면 첫 «관측» 점 그날(값 0 · 앞 결측 점 = 값 없음). 앞 달 마지막 스냅숏을 쓰면
+  //    첫 세션 결측 여부에 따라 누적 기준(첫 세션 수익이 들고 빠짐)이 바뀐다 · 표본(첫 점 있음) 무변경.
   final List<int?> units = <int?>[];
+  String? firstSnap;
+  for (final _Pt p in pts) {
+    if (p.snap != null) {
+      firstSnap = p.snap;
+      break;
+    }
+  }
   final double? base = granularity != PerfGranularity.daily
       ? index[0]
-      : (pts.first.snap != null
-            ? index[at[pts.first.snap]!]
-            : idxAtOrBefore(pts.first.date));
+      : (firstSnap == null ? null : index[at[firstSnap]!]);
   for (int i = 0; i < n; i++) {
     final String? s = pts[i].snap;
     if (s == null) {

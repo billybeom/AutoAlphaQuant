@@ -300,6 +300,35 @@ void main() {
       expect(s.segments.single.endNormalized, 1.0);
     });
 
+    test('🆕 R260 F-2 🔴 일별 첫 세션 결측 = 누적 기준 = 첫 관측 점 그날(값 0) — 앞 달 마지막 스냅숏이 아니다 · 첫 점 있음 = 그대로', () {
+      List<String?> texts(List<EquityPoint> eq) => <String?>[
+        for (final PerfPoint p in _series(
+          equity: eq,
+          now: DateTime.utc(2026, 8, 5, 9),
+        ).points)
+          p.valueText,
+      ];
+      // 08-03(월) 결측 · 08-04 = 105 · 08-05 = 110(앞 달 끝 07-31 = 100).
+      expect(
+        texts(const <EquityPoint>[
+          EquityPoint('2026-07-31', 100),
+          EquityPoint('2026-08-04', 105),
+          EquityPoint('2026-08-05', 110),
+        ]),
+        <String?>['산출 불가', '0.00%', '4.76%'],
+      );
+      // 첫 세션 있음 = 그날이 기준(옛 규칙 그대로).
+      expect(
+        texts(const <EquityPoint>[
+          EquityPoint('2026-07-31', 100),
+          EquityPoint('2026-08-03', 100),
+          EquityPoint('2026-08-04', 105),
+          EquityPoint('2026-08-05', 110),
+        ]),
+        <String?>['0.00%', '5.00%', '10.00%'],
+      );
+    });
+
     test('월별 누적 기준 = 첫 스냅숏(첫 달 중간 개시) · 진행 중 달 = 마지막 스냅숏 날', () {
       final PerformanceSeries s = _series(
         equity: const <EquityPoint>[
