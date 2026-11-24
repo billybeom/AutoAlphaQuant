@@ -5,7 +5,8 @@
 //    빈 묶음 = 뺀다(계약 «빈 묶음 = 엔진이 뺀다»).
 // 🔴 링크 = 본문이 등록된 화면만([SettingsHomeFacts.hasBody]) — 없는 화면으로 보내지 않는다(05 S01 «route null = 탭 부재»).
 // 🔵 상태 칩 = 실행 모드 × 운영 방식(표본 `operations_sim_*` 글자) · 골든벡터 셀프테스트(S10) 원천 없음 →
-//    실전은 «골든벡터 판정 보류»(WATCH) · 모의는 판정 칸 없이 INFO(표본 그대로) · 승격 줄 = dry-run 관찰 원천 전 → 없음.
+//    실전은 «골든벡터 판정 보류»(WATCH) · 모의는 판정 칸 없이 INFO(표본 그대로) · 승격 줄 = 🆕 R252 실전 관찰 판정(관찰 중일 때만 ·
+//    `S05` 와 같은 값 — 조립 앱이 넘긴다).
 // 🔵 운영 묶음 머리 = «운영»(생체 가드 M5 전 — «들어갈 때 생체 인증»을 약속하지 않는다).
 // 🔵 12월 연간 리뷰 카드 = 🆕 E11p4l(R168) 신뢰 시각 12월 · S12 본문 등록 때만(`annualReviewHomeLinkOf` · 시각 모름 = 부재).
 
@@ -86,7 +87,11 @@ class SettingsHomeFacts {
     required this.hasBody,
     this.contribution,
     this.trustedNowUtc,
+    this.promotionLabel,
   });
+
+  /// 🆕 E11q-s05(R252) — 실전 관찰 칩 문구(관찰 중일 때만 · `S05` 와 같은 값 · 없으면 null).
+  final String? promotionLabel;
 
   /// 🆕 R168 — 신뢰 시각(12월 연간 리뷰 카드 · 모르면 null = 카드 부재).
   final DateTime? trustedNowUtc;
@@ -123,11 +128,20 @@ String _operatingLabel(RunMode r, OperatingMode m) => switch (m) {
   OperatingMode.advisory => '투자 안내',
 };
 
-/// 상태 칩 — 실행 모드 × 운영 방식.
-EngineStatusChip settingsStatusChipOf(RunMode run, OperatingMode op) {
+/// 상태 칩 — 실행 모드 × 운영 방식 · 🆕 E11q-s05(R252) [promotionLabel] = 실전 관찰 판정의 칩 문구(관찰 중일 때만 ·
+/// `S01` · `S05` 가 같은 값을 넘긴다 — v1.18 K-o 생산 하나).
+EngineStatusChip settingsStatusChipOf(
+  RunMode run,
+  OperatingMode op, {
+  String? promotionLabel,
+}) {
   final String head = '${_runLabel(run)} · ${_operatingLabel(run, op)}';
   return run == RunMode.live
-      ? EngineStatusChip(label: '$head · 골든벡터 판정 보류', level: UiLevel.watch)
+      ? EngineStatusChip(
+          label: '$head · 골든벡터 판정 보류',
+          level: UiLevel.watch,
+          promotionLabel: promotionLabel,
+        )
       : EngineStatusChip(label: head, level: UiLevel.info);
 }
 
@@ -296,7 +310,11 @@ SettingsHomeVm settingsHomeVmOf(
   ];
   final DateTime k = nowUtc.toUtc().add(const Duration(hours: 9));
   return SettingsHomeVm(
-    statusChip: settingsStatusChipOf(f.runMode, f.operatingMode),
+    statusChip: settingsStatusChipOf(
+      f.runMode,
+      f.operatingMode,
+      promotionLabel: f.promotionLabel,
+    ),
     annualReviewLink: annualReviewHomeLinkOf(
       trustedNowUtc: f.trustedNowUtc,
       hasBody: f.hasBody,

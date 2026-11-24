@@ -588,9 +588,10 @@ void main() {
     ]);
   });
 
-  test('🔴 나머지 창구 = 원천 없음(오류)', () async {
+  // 🆕 E11q-s05(R252) — S05 운용 관리 = 엔진 VM(뒤집은 단언 — 원천 없음 오류 → 화면 상태 없음만 오류 · 본 시험 = operator_operations_test).
+  test('🔴 운용 관리 — 화면 상태 없음(온보딩 전) = 오류(지어내지 않는다)', () async {
     final OperatorSettingsRepository r = OperatorSettingsRepository(rt);
-    await expectLater(r.watchOperations(), emitsError(isA<UnsupportedError>()));
+    await expectLater(r.watchOperations(), emitsError(isA<StateError>()));
   });
 
   // ── 🆕 E11q-s04a — S04 배분 첫 판(운영 설정 판 · 못 읽으면 오류 — K206) ──────────────

@@ -62,6 +62,14 @@ export 'src/jobs/kr_order_jobs.dart'
         KrOrderOpenReport,
         kKrOrderCutoffKst,
         kKrOrderEarliestKst;
+// 🆕 E11q-s05 — M9 S05 잡 행 · 다음 잡 한 줄(설계 13 §8 R252 · 01 §28 K12).
+export 'src/jobs/operations_jobs.dart'
+    show
+        OperationsJobTexts,
+        operationsJobRowsOf,
+        operationsNextJobTextOf,
+        operationsScheduleTextOf,
+        operationsWhenText;
 export 'src/jobs/watchdog_board.dart'
     show
         RemoteAuditFinding,
