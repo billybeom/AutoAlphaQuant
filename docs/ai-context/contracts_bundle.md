@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 131개 · 계약 v1.37.0 · 조립일 2026-11-24(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 131개 · 계약 v1.38.0 · 조립일 2026-11-24(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -100,7 +100,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개 · 1.33.0 상향 때 390개 · 1.34.0 상향 때 390개 · 1.35.0 상향 때 393개 · 1.36.0 상향 때 393개 · 1.37.0 상향 때 398개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개 · 1.33.0 상향 때 390개 · 1.34.0 상향 때 390개 · 1.35.0 상향 때 393개 · 1.36.0 상향 때 393개 · 1.37.0 상향 때 398개 · 1.38.0 상향 때 398개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -394,12 +394,18 @@ export 'commands/settings_actions.dart';
 //    (`device_retire`) · `LeaseHandoverRpcParams` 3 · 🆕 `LeaseHandoverResultCodes` 3(`lease_handover_result`) · `operator_lease` 티켓 2열 ·
 //    `DecisionReasonCodes` +2(`X1_D03_CONFIRMED` · `X1_EMERGENCY_DECLARED` · kind = `SAFETY` · 스키마 0) · `byDomain` +2 · 🆕 C-70 ·
 //    픽스처 393 → 398(신설 5) — 🆕 tool/gen_v137_m5_x7_x1_fixtures.py · 🔴 엔진 · 조립 = 미결 226 · 227 · 228 · postmortem = 1.38.0.
+// 🆕 '1.38.0'(읽기 모델 push RPC 표 · 01 §47 · 13 §8 R251 · 발주자 위임 2026-11-14 — 권고대로 · K330~K337) — E11l2 선행 작은 창:
+//    🆕 `schema/supabase_rpc.dart` `ReadModelPushRpcNames`(`rm_push`) · `ReadModelPushRpcParams` 4(`p_device_id` · `p_epoch` = 리스 글자 ·
+//    `p_table` · `p_rows`) · `ReadModelPushRpcColumns` 4(`code` · `epoch` · `accepted` · `skipped`) · 🆕 `ReadModelPushResultCodes` 2
+//    (`read_model_push_result` · 리스 거부 = `LeaseRpcResultCodes` 그대로) · 🆕 C-71 · 픽스처 398(버전 줄만) — 🆕 tool/gen_v138_rm_push_rpc_fixtures.py.
+//    🔴 SQL 본문 · 클라이언트 = 엔진 E11l2(미결 222 ⓑ) · 다른 select 전용 표 쓰기 창구 = 미결 229 · 다음 판 = 1.39.0(뷰어 행 표 목록 차례 · 소속 열 ·
+//    postmortem — 미결 230 · 188).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.37.0';
+const String contractVersion = '1.38.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -14818,6 +14824,8 @@ abstract final class ContractCodes {
     // 🆕 v1.37(01 §46) — M5-13 보관 명령 일괄 확정 거부(K319) · X1 계획 이전 리스 넘김 거부(K324 · K325)
     'held_review_result': HeldReviewResultCodes.values,
     'lease_handover_result': LeaseHandoverResultCodes.values,
+    // 🆕 v1.38(01 §47 · K333 · E11l2) — 읽기 모델 push RPC 고유 거부 2(리스 거부 = `lease_rpc_result` 한 벌)
+    'read_model_push_result': ReadModelPushResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -17247,6 +17255,19 @@ abstract final class LeaseHandoverResultCodes {
     ticketInvalid,
     ticketExpired,
   };
+}
+
+/// 🆕 v1.38(01 §47 · K333) — 읽기 모델 push RPC 고유 거부(도메인 `read_model_push_result` · RPC 표 = `schema/supabase_rpc.dart`
+/// `ReadModelPushRpc*` · 본문 = 엔진 E11l2 · 01 §8 미결 222 ⓑ). 🔴 리스 거부(`LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE`)는
+/// [LeaseRpcResultCodes] 그대로 — 다시 적지 않는다(v1.37 [LeaseHandoverResultCodes] 결).
+abstract final class ReadModelPushResultCodes {
+  /// 표 이름이 `ReadModelTables` 에 없다(SQL 은 표 이름을 그 목록과만 맞춘다 — 동적 SQL 은 목록 안 이름만).
+  static const String tableUnknown = 'READ_MODEL_TABLE_UNKNOWN';
+
+  /// 행 묶음을 넣지 못했다(JSON 배열 아님 · 기본 키 · `mode` · 형 · check 위반) — 🔴 그 호출 전부 0행(부분 반영 0).
+  static const String rowsInvalid = 'READ_MODEL_ROWS_INVALID';
+
+  static const Set<String> values = <String>{tableUnknown, rowsInvalid};
 }
 ```
 
@@ -20786,6 +20807,59 @@ abstract final class LeaseHandoverRpcParams {
     ticketTtlMinutes,
     ticketNonce,
   };
+}
+
+// ── 🆕 계약 v1.38(01 §47 · K330~K337 · 01 §8 미결 222 ⓑ · 06 M4-1 · 13 §8 R251) 읽기 모델 push RPC ──────────────────────────
+// 🔴 `rm_*` 쓰기 = 이 RPC 1창구(security definer · 리스 epoch 검사 · 클라이언트 upsert 0 — 01 §6-4 말미 · 규칙 5조 ④).
+//    SQL 본문 · data_sync 클라이언트 · 부트스트랩 대조 시험 = 엔진(E11l2 · 미결 222 ⓑ). 여기는 **글자만**(지도 X18).
+// 🔴 한 호출 = 한 표 · 한 트랜잭션 — 행 하나라도 못 넣으면 그 호출 전부 0행(`READ_MODEL_ROWS_INVALID`) · 삭제 0.
+// 🔴 반환 = 한 행(`ReadModelPushRpcColumns` 넷) · 거부 = [LeaseRpcResultCodes] 의 `LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE` ∪
+//    `ReadModelPushResultCodes` · 성공 = `code` null · 시각 = 서버 `now()`.
+
+/// 읽기 모델 push RPC 이름(06 M4-1 «1개 창구»).
+abstract final class ReadModelPushRpcNames {
+  /// 한 표의 행 묶음을 올린다 — 조건 = 부른 사용자 = 그 기기 `auth_uid` = `owner_uid` ∧ role `operator` ∧ `ACTIVE` ∧
+  /// 리스 행 = 그 기기 ∧ epoch 같음 ∧ 만료 전(아니면 `LEASE_LOST` · 남의 기기 · 뷰어 · `REVOKED` · `RETIRED` = `LEASE_DEVICE_NOT_ELIGIBLE`) ·
+  /// 표 ∈ `ReadModelTables`(아니면 `READ_MODEL_TABLE_UNKNOWN`) · 행 = JSON 배열(열 이름 키 = `ReadModelTables` 열 · 규칙 5조
+  /// `row_version` · `mode` · 키 · 🔴 `lease_epoch` · `pushed_at` 은 서버가 덮어쓴다 = 인자 epoch · `now()`) ·
+  /// 기본 키 충돌 = `row_version` 이 **큰** 행만 반영(같거나 작으면 건너뜀 · 규칙 5조 ②).
+  static const String push = 'rm_push';
+
+  static const Set<String> values = <String>{push};
+}
+
+/// 읽기 모델 push RPC 인자 이름(PostgREST `rpc/rm_push` 본문 키).
+abstract final class ReadModelPushRpcParams {
+  /// 부르는 기기(= [LeaseRpcParams.deviceId] 와 같은 글자).
+  static const String deviceId = LeaseRpcParams.deviceId;
+
+  /// 지금 보유 리스 epoch(= [LeaseRpcParams.epoch] 와 같은 글자 · 행의 `lease_epoch` 원천).
+  static const String epoch = LeaseRpcParams.epoch;
+
+  /// 표 이름(`ReadModelTable.name` 그대로 · `rm_` 접두).
+  static const String table = 'p_table';
+
+  /// 행 묶음(JSON 배열 · 행 = 열 이름 → 와이어 값 · 빈 배열 = 0행 성공).
+  static const String rows = 'p_rows';
+
+  static const Set<String> values = <String>{deviceId, epoch, table, rows};
+}
+
+/// 읽기 모델 push RPC 반환 칸(한 행).
+abstract final class ReadModelPushRpcColumns {
+  /// 거부 코드 · 성공 = null.
+  static const String code = 'code';
+
+  /// 지금 리스 epoch(성공 = 인자 epoch · 거부 = 지금 값 또는 null).
+  static const String epoch = 'epoch';
+
+  /// 넣거나 바꾼 행 수(성공 · 거부 = 0).
+  static const String accepted = 'accepted';
+
+  /// `row_version` 이 크지 않아 건너뛴 행 수(성공 · 거부 = 0).
+  static const String skipped = 'skipped';
+
+  static const Set<String> values = <String>{code, epoch, accepted, skipped};
 }
 ```
 

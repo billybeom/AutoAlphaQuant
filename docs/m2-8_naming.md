@@ -872,3 +872,15 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AP-8 | 🆕 SQL 열 `operator_lease.ticket_hash` · `ticket_expires_at` | `ddl/batch_d_supabase.sql` · 넘김 티켓 |
 | AP-9 | 🆕 `FixturePaths.m5SelfAuditResolveOpen` · `m5SelfAuditResolveHeldBlocked` · `m5SelfAuditResolveClear` · `m5HeldReviewResults` · `m6SelfReportCash2` | `fixtures/` 신설 5 |
 | AP-10 | 🆕 운영 설정 키 이름 `operations.self_report_cash_tolerance_krw`(계약 상수 0 · SPEC 02 §4 등재 = 엔진 미결 227 · 값 = 발주자 수치 대기) | 01 §46 K323 |
+
+## AQ. 🆕 계약 v1.38 (2026-11-24 · 읽기 모델 push RPC 표) — Dart 이름 4 · SQL 함수 이름 1
+
+`contractVersion` = **`1.38.0`**(다음 = 1.39.0 · 뷰어 행 표 목록 차례 · 소속 열 · postmortem). 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — K330~K337 권고대로(정본 = 설계 01 §47 · 13 §8 R251).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AQ-1 | 🆕 `ReadModelPushRpcNames`(`rm_push`) | `schema/supabase_rpc.dart` · 읽기 모델 쓰기 1창구 SQL 함수 이름 |
+| AQ-2 | 🆕 `ReadModelPushRpcParams`(`p_device_id` · `p_epoch` · `p_table` · `p_rows`) | 같은 파일 · 기기 · epoch = 리스 글자 |
+| AQ-3 | 🆕 `ReadModelPushRpcColumns`(`code` · `epoch` · `accepted` · `skipped`) | 같은 파일 · 반환 한 행 |
+| AQ-4 | 🆕 `ReadModelPushResultCodes`(`read_model_push_result` 2) | `labels/supabase_codes.dart` · 표 모름 · 행 묶음 못 넣음 |
+
