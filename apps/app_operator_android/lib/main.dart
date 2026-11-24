@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_shell/ui_shell.dart';
 
+import 'app/operator_read_model_push.dart';
 import 'app/operator_root.dart';
 import 'app/operator_runtime.dart';
 import 'app/operator_shell.dart';
@@ -28,6 +29,13 @@ Future<void> main() async {
     overrides: runtime == null
         ? const <Override>[]
         : operatorShellOverrides(runtime),
+  );
+  // 🆕 E11l2c-2(설계 13 §8 R264) — 깨어남 뒤 읽기 모델 push(화면과 같은 창구 · 리스 · 포트 없으면 0).
+  runtime?.attachReadModelPush(
+    () => runOperatorReadModelPush(
+      rt: runtime,
+      repos: operatorReadModelReposOf(container),
+    ),
   );
   final LinkRelay relay = LinkRelay(
     opener: () => container.read(shellLinkOpenerProvider),
