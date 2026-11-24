@@ -14,6 +14,7 @@
 //      ④ 통과 때만 엔진 오케스트레이터 `runSimToAutoSwitch`(새 감시 체크 → 실전 커밋 → 모의 마감 → 옛 체크 멈춤) · 감시 원격 없음 = 준비 실패 원문.
 //      🆕 R207 커밋 뒤 실전 잡 = 같은 «별칭 → 세트»(`liveAccountKeyOf`)의 KIS 계좌 브로커 · 실주문은 운영 리스(E11k) · dryRun 이 막는다.
 // 🔴 신뢰 시각 = 런타임 시계(E11k 전 = 모름 → 시작 · 확정 = `SIM_TO_AUTO_TRUSTED_TIME_UNAVAILABLE` 원문 · 우회 0 · K176).
+// 🆕 리뷰 3차 H1-2(설계 13 §8 R261) — 커밋 성공 뒤 엔진 깨어남 한 번을 기다린다(화면 상태 = 실전 원장 · 닫힌 모의 원장 = 비움).
 
 import 'dart:async';
 
@@ -409,6 +410,9 @@ class OperatorHandover {
         finishSimToAuto(liveDb: live!, simDb: sim, clock: _rt.clock);
       },
     );
+    // 🆕 리뷰 3차 H1-2(R261 · 미결 235 ⓑ) — 커밋 = 화면 상태가 닫힌 모의 원장으로 남는 전이 → 엔진 깨어남 한 번을 **기다린다**
+    //    (끝나면 화면 상태 = 실전 원장 · 그래도 닫힌 모의 원장이면 비운다 — `wakeNow`) · 그 사이 명령이 sim 파일에 쓰지 않게.
+    if (r.committed) await _rt.wakeNow();
     return _done(id, r.committed ? null : r.code, r.headline);
   }
 

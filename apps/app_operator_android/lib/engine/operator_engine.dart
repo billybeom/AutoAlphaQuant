@@ -189,6 +189,8 @@ class OperatorEngine {
         calendars: _cals,
         clock: _clock,
         trusted: _bootInputs.trusted,
+        // 🆕 리뷰 3차 H1-4(R261) — 표시 hold(이 기기 이전) 재료.
+        deviceId: _bootInputs.deviceId,
       ),
     );
     return EngineWakeReport(

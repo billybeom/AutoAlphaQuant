@@ -7,7 +7,9 @@
 //    · 브레이커 NORMAL = OK · ALERT · REDUCED = WATCH · HALTED = ACT · STOPPED = BLOCKED
 //    · 열린 P0 알림 = ACT(+ `ops_p0` 채널 · 탭 = 그 알림)
 //    · 차단 플래그(하나라도) = ACT — 주문이 막혀 있다
-//    가장 무거운 레벨을 고르고, 같으면 킬스위치 → 정지 · 중지 브레이커 → P0 → 플래그 → 경고 · 축소 브레이커 차례.
+//    · 🆕 리뷰 3차 H1-4(설계 13 §8 R261) hold(`SafetyState.holds` — 기동은 하되 배치를 멈춤 · 하나라도) = ACT — 문구 = 엔진 짝 문장
+//      `holdLabels` 첫째(사전 차례 · 짓지 않는다)
+//    가장 무거운 레벨을 고르고, 같으면 킬스위치 → 정지 · 중지 브레이커 → P0 → 플래그 → hold → 경고 · 축소 브레이커 차례.
 // 🆕 E15g(R110) — 모드 · 운영 방식은 재료에서 그대로 넘긴다(표지 문장 = `buildFgsNotice`).
 
 import 'package:core_engine/core_engine.dart'
@@ -74,7 +76,7 @@ FgsStatus fgsStatusOf(FgsFacts f) {
     final bool hard =
         s.breakerLevel == BreakerLevel.halted ||
         s.breakerLevel == BreakerLevel.stopped;
-    c.add((b, s.breakerLabel, hard ? 1 : 4));
+    c.add((b, s.breakerLabel, hard ? 1 : 5));
   }
   final AlertItem? p0 = f.openP0;
   if (p0 != null) c.add((UiLevel.act, p0.title, 2));
@@ -86,6 +88,8 @@ FgsStatus fgsStatusOf(FgsFacts f) {
       });
     c.add((UiLevel.act, flags.first.label, 3));
   }
+  // 🆕 R261(H1-4) — hold 동안 배치가 멈춘다(04 H-01 배너와 같은 짝 문장) — FGS 가 «정상»으로 남지 않게.
+  if (s.holdLabels.isNotEmpty) c.add((UiLevel.act, s.holdLabels.first, 4));
   if (c.isEmpty) {
     return FgsStatus(
       level: UiLevel.ok,

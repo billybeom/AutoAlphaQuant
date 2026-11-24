@@ -8,11 +8,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app_operator_android/app/operator_command_api.dart';
 import 'package:app_operator_android/app/operator_handover.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_settings_actions.dart';
 import 'package:app_operator_android/app/operator_view.dart';
+import 'package:app_operator_android/engine/engine_boot.dart' show bootEngine;
 import 'package:app_operator_android/engine/ledger_files.dart';
+import 'package:app_operator_android/engine/operator_engine.dart'
+    show EngineWakeReport;
 import 'package:app_operator_android/secret/secret_handoff.dart';
 import 'package:broker_gateway/broker_gateway.dart'
     show
@@ -775,8 +779,8 @@ void main() {
       );
     });
 
-    /// 세션 열고 냉각 뒤(01-09 13:00)까지 — 승인 config 는 [approve] 일 때만.
-    Future<(OperatorHandover, String)> opened({
+    /// 세션 열고 냉각 뒤(01-09 13:00)까지 + 실행 묶음(🆕 R261 — 커밋 뒤 화면 상태 · 명령 원장을 본다) · 승인 config 는 [approve] 일 때만.
+    Future<(OperatorRuntime, OperatorHandover, String)> openedRt({
       bool approve = true,
       bool withRemote = true,
     }) async {
@@ -810,6 +814,18 @@ void main() {
                   .single!
               as String;
       trusted.at = _k('2027-01-09', 13);
+      return (r, h, sid);
+    }
+
+    /// [openedRt] 에서 위저드 · 세션 id 만.
+    Future<(OperatorHandover, String)> opened({
+      bool approve = true,
+      bool withRemote = true,
+    }) async {
+      final (_, OperatorHandover h, String sid) = await openedRt(
+        approve: approve,
+        withRemote: withRemote,
+      );
       return (h, sid);
     }
 
@@ -875,6 +891,77 @@ void main() {
         <String>{for (final http.Request q in reqs) q.url.host},
         <String>{'openapi.koreainvestment.com'},
       );
+    });
+
+    int killRows(Database db) =>
+        db.select('SELECT COUNT(*) AS n FROM kill_switch_state').first['n']!
+            as int;
+
+    test('🆕 리뷰 3차 H1-2(R261) — 커밋 뒤 깨어남 한 번을 기다린다 → 화면 상태 = 실전 원장 → 킬스위치 = 실전 파일(닫힌 모의 0)', () async {
+      final (OperatorRuntime r, OperatorHandover h, String sid) =
+          await openedRt();
+      final List<String> order = <String>[];
+      r.attachWake(() async {
+        order.add('wake');
+        await Future<void>.delayed(Duration.zero);
+        r.onWake(EngineWakeReport(boot: await bootEngine(files, clock: clock)));
+        order.add('woke');
+      });
+      final ActionResult c = await h.run(
+        SettingsActionId.handoverCommit,
+        <String, String>{'handover_session_id': sid},
+      );
+      order.add('result');
+      expect(c.reasonCode, isNull, reason: c.headline);
+      expect(order, <String>[
+        'wake',
+        'woke',
+        'result',
+      ], reason: '결과 전에 깨어남이 끝난다');
+      final OperatorView v = r.view.value!;
+      expect(identical(v.db, files.liveIfExists()), isTrue);
+      expect(v.flags.runMode, RunMode.live);
+      final CommandReceipt k = await OperatorCommandApi(r).activateKillSwitch();
+      expect(k.state, CommandState.executed, reason: k.stateLabel);
+      expect(killRows(files.liveIfExists()!), 1);
+      expect(killRows(files.sim), 0, reason: '닫힌 모의 원장에 쓰지 않는다');
+    });
+
+    test('🆕 R261(H1-2) — 커밋 뒤 깨어남이 화면 상태를 못 바꾸면(창구 없음 · 실패) 비운다 → 킬스위치 = 오류 · 닫힌 모의 원장 쓰기 0', () async {
+      final (OperatorRuntime r, OperatorHandover h, String sid) =
+          await openedRt();
+      int calls = 0;
+      r.attachWake(() async {
+        calls++;
+        throw StateError('깨어남 실패');
+      });
+      final ActionResult c = await h.run(
+        SettingsActionId.handoverCommit,
+        <String, String>{'handover_session_id': sid},
+      );
+      expect(c.reasonCode, isNull, reason: c.headline);
+      expect(calls, 1);
+      expect(r.view.value, isNull);
+      await expectLater(
+        OperatorCommandApi(r).activateKillSwitch(),
+        throwsA(isA<StateError>()),
+      );
+      expect(killRows(files.sim), 0);
+    });
+
+    test('🆕 R261 — 커밋 거부 = 깨어남 0 · 화면 상태 그대로(모의 원장 · 닫히지 않음)', () async {
+      holdings = 1;
+      final (OperatorRuntime r, OperatorHandover h, String sid) =
+          await openedRt();
+      int calls = 0;
+      r.attachWake(() async => calls++);
+      final ActionResult c = await h.run(
+        SettingsActionId.handoverCommit,
+        <String, String>{'handover_session_id': sid},
+      );
+      expect(c.reasonCode, SimToAutoCommitCodes.holdingsNotZero);
+      expect(calls, 0);
+      expect(identical(r.view.value?.db, files.sim), isTrue);
     });
 
     test('🆕 A-2(미결 233 ⓐ) — 실전 칸에 연금저축 상품코드(22)가 저장돼 있어도 확정 조회 = 위탁 01 · 연금저축 22 두 곳(한 계좌 두 번 조회 · 개시 현금 두 번 0)', () async {
@@ -970,15 +1057,19 @@ void main() {
       },
     );
 
-    test('바깥 감시 준비가 실패하면 = 커밋 0 · 엔진 원문', () async {
+    test('바깥 감시 준비가 실패하면 = 커밋 0 · 엔진 원문 · 🆕 R261 깨어남 0', () async {
       remote.failOn[('ensure', '*')] = Exception('down');
-      final (OperatorHandover h, String sid) = await opened();
+      final (OperatorRuntime rt, OperatorHandover h, String sid) =
+          await openedRt();
+      int calls = 0;
+      rt.attachWake(() async => calls++);
       final ActionResult r = await h.run(
         SettingsActionId.handoverCommit,
         <String, String>{'handover_session_id': sid},
       );
       expect(r.reasonCode, kSimToAutoWatchdogPrepareFailed);
       expect(liveRuns(), 0);
+      expect(calls, 0, reason: '오케스트레이터가 커밋하지 않았다 = 전이 아님');
     });
   });
 }

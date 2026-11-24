@@ -108,6 +108,36 @@ void main() {
     expect(s.headline, p0.title);
   });
 
+  test('🆕 리뷰 3차 H1-4(R261) — hold 만 있어도 ACT · 문구 = 짝 문장 첫째 · P0 · 플래그 다음 · 경고 브레이커(WATCH)보다 무겁다 · 킬스위치 그대로', () {
+    SafetyState held(SafetyState s) => s.copyWith(
+      holds: const <String>[
+        SafetyHoldCodes.liveAwaitingKeys,
+        SafetyHoldCodes.migrationInProgress,
+      ],
+      holdLabels: const <String>['키 검증 전 문장', '기기 이전 문장'],
+    );
+    final FgsStatus s = of(held(safety[0]));
+    expect(s.level, UiLevel.act);
+    expect(s.headline, '키 검증 전 문장');
+    expect(s.p0AlertId, isNull);
+    expect(
+      buildFgsNotice(s).text,
+      '키 검증 전 문장 · 마지막 대사 09:05',
+      reason: '«정상» 이 아니다',
+    );
+    expect(of(held(safety[0]), alert: p0).headline, p0.title);
+    expect(of(held(safety[1])).headline, '분기 실사 기한이 다가옵니다');
+    final SafetyState watchOnly = held(
+      safety[1].copyWith(activeFlags: const <BlockFlag>[]),
+    );
+    expect(watchOnly.breakerLevel, BreakerLevel.alert);
+    expect(of(watchOnly).level, UiLevel.act);
+    expect(of(watchOnly).headline, '키 검증 전 문장');
+    expect(of(held(safety[4])).level, UiLevel.blocked);
+    expect(of(held(safety[4])).headline, '작동 중');
+    expect(of(safety[0]).level, UiLevel.ok, reason: 'hold 없음 = 그대로 정상');
+  });
+
   group('다음 리밸런싱까지 세션 수', () {
     final kr = frozenExchangeCalendar(Market.kr);
     int? d(String day) => sessionsUntilNextRebalance(kr, TradeDate(day));

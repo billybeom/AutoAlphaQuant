@@ -5,6 +5,9 @@
 // 🔴 생체 1회 = 런타임 생체(M5 게이트 다이얼로그 · `biometricSign` — 확인 없음 = `BIOMETRIC_UNAVAILABLE` · 자동 승격 0).
 // 🔴 리스 = 실전 파일 판정(원격 = 조립 앱 원천 · 모름 = 거부 — 엔진 사전 판정 차례) · 세션 = 없음(S05 승격 = args `{}`).
 // 🔴 실전 파일이 없거나 관찰 설정이 없으면 = 쓰지 않는다(«관찰 중 아님» 결과 · 지어내지 않는다).
+// 🆕 리뷰 3차 H1(설계 13 §8 R261) — 승격 뒤 엔진 깨어남 한 번(`OperatorRuntime.wakeNow`).
+
+import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
     show
@@ -72,6 +75,9 @@ class OperatorLivePromotion {
           config: config,
           lease: lease,
         );
+    // 🆕 리뷰 3차 H1(R261 · 미결 235) — 승격 = 실행 정책 전이 → 엔진 깨어남 한 번(다음 알람까지 옛 기동 판정으로 두지 않는다 ·
+    //    기다리지 않는다 · 거부 = 0).
+    if (o.reasonCode == null) unawaited(_rt.wakeNow());
     return livePromotionActionResultOf(
       actionRunId: actionRunId,
       code: o.reasonCode,

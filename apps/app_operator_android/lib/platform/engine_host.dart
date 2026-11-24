@@ -138,8 +138,44 @@ class OperatorEngineHost {
 
   /// 🔴 깨어남은 한 줄로 차례대로 — 두 처리가 겹치지 않는다(원장 단일 쓰기).
   void _enqueue(WakeEvent e) {
-    _tail = _tail.then((_) => handleWake(e));
+    _chain(() => handleWake(e));
   }
+
+  /// 줄 끝에 [task] 를 잇는다 — 🆕 R261 앞 처리가 던졌어도(재무장 실패 등) 뒤 처리는 돈다(줄이 멈추지 않게).
+  Future<void> _chain(Future<void> Function() task) {
+    final Future<void> next = _tail.then(
+      (_) => task(),
+      onError: (Object _) => task(),
+    );
+    _tail = next;
+    return next;
+  }
+
+  /// 🆕 리뷰 3차 H1-1~H1-3(설계 13 §8 R261 · 01 §8 미결 235) — 화면 동작(온보딩 마무리 · 모의 개시 · simToAuto 커밋 · 승격 ·
+  /// 안전 명령) 뒤 깨어남 한 번을 **같은 줄**에 넣는다(알람 깨어남과 겹치지 않게 · 원장 단일 쓰기) — 처리기(기동 판정 → 회차 →
+  /// FGS → 화면 상태)만 부르고 끝나면(성공 · 실패) 완료 · 던지지 않는다(실패의 기록 · 알림 = 처리기 몫).
+  /// 🔴 재무장 · CPU 놓기 0 — 이 깨어남은 Kotlin 이 CPU 를 붙잡아 건넨 것이 아니다(그 사이 온 알람 깨어남의 붙잡기를 끊지 않게 ·
+  ///    알람 계획은 모드와 무관).
+  /// 🔴 합치기 — 줄에 아직 시작 안 한 화면 깨어남이 있으면 그것을 돌려준다(그 깨어남이 지금까지의 쓰기를 본다 · 연속 확인 ·
+  ///    재개 문항에도 깨어남 · 신뢰 시각 잼 한 번).
+  Future<void> wakeNow() {
+    final Future<void>? queued = _queuedApp;
+    if (queued != null) return queued;
+    final Future<void> mine = _chain(() async {
+      _queuedApp = null;
+      try {
+        await _handler?.call(
+          WakeEvent(reason: WakeReason.app, firedAtUtc: _now()),
+        );
+      } on Object {
+        // 처리 실패의 기록 · 알림은 처리기(잡 규약 `runJob`) 몫.
+      }
+    });
+    return _queuedApp = mine;
+  }
+
+  /// 줄에 있으나 아직 시작 안 한 화면 깨어남(없음 = null).
+  Future<void>? _queuedApp;
 
   /// 깨어남 한 건 — 처리기 → 재무장 → 놓기(실패해도 뒤 둘은 한다).
   Future<void> handleWake(WakeEvent e) async {

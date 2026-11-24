@@ -190,5 +190,128 @@ void main() {
       await pumpEventQueue();
       expect(seen, <String>['start a', 'end a', 'start b', 'end b']);
     });
+
+    group('🆕 리뷰 3차 H1(R261) — 화면 동작 뒤 깨어남 wakeNow', () {
+      test(
+        '🔴 같은 줄 — 앞 알람 깨어남이 끝난 뒤 · 처리기 한 번(까닭 = app · 부팅 아님) · 재무장 · CPU 놓기 0',
+        () async {
+          final List<String> seen = <String>[];
+          final Completer<void> gate = Completer<void>();
+          final OperatorEngineHost h = host(
+            onWake: (WakeEvent e) async {
+              seen.add('start ${e.reason.wire}');
+              if (e.reason == WakeReason.alarm) await gate.future;
+              seen.add('end ${e.reason.wire}');
+            },
+          );
+          await h.start();
+          native.log.clear();
+          await _wakeFromNative(<String, Object?>{
+            'reason': 'alarm',
+            'tag': 'a',
+            'firedAtMs': 1,
+          });
+          bool done = false;
+          final Future<void> w = h.wakeNow().then((_) => done = true);
+          await pumpEventQueue();
+          expect(seen, <String>['start alarm'], reason: '알람 처리 중엔 기다린다');
+          expect(done, isFalse);
+          gate.complete();
+          await w;
+          expect(seen, <String>[
+            'start alarm',
+            'end alarm',
+            'start app',
+            'end app',
+          ]);
+          // 알람 깨어남 몫(재무장 · 놓기) 하나뿐 — wakeNow 는 둘 다 하지 않는다.
+          expect(native.log, <String>['arm', 'idle']);
+          expect(
+            wakeBootOf(WakeEvent(reason: WakeReason.app, firedAtUtc: now)),
+            (booting: false, bootId: null),
+          );
+        },
+      );
+
+      test('🔴 합치기 — 아직 시작 안 한 화면 깨어남에 합친다 · 시작한 뒤 요청 = 새 깨어남', () async {
+        final List<String> seen = <String>[];
+        final Completer<void> gate = Completer<void>();
+        final Completer<void> appGate = Completer<void>();
+        final OperatorEngineHost h = host(
+          onWake: (WakeEvent e) async {
+            seen.add(e.reason.wire);
+            if (e.reason == WakeReason.alarm) await gate.future;
+            if (e.reason == WakeReason.app && seen.length == 2) {
+              await appGate.future;
+            }
+          },
+        );
+        await h.start();
+        await _wakeFromNative(<String, Object?>{
+          'reason': 'alarm',
+          'tag': 'a',
+          'firedAtMs': 1,
+        });
+        final Future<void> w1 = h.wakeNow();
+        final Future<void> w2 = h.wakeNow();
+        final Future<void> w3 = h.wakeNow();
+        expect(identical(w1, w2) && identical(w2, w3), isTrue);
+        gate.complete();
+        await pumpEventQueue();
+        expect(seen, <String>['alarm', 'app'], reason: '셋이 한 번');
+        // 시작한(처리 중) 화면 깨어남 뒤 요청 = 새 깨어남(그 뒤 쓰기를 보도록).
+        final Future<void> w4 = h.wakeNow();
+        expect(identical(w4, w1), isFalse);
+        appGate.complete();
+        await Future.wait(<Future<void>>[w1, w4]);
+        expect(seen, <String>['alarm', 'app', 'app']);
+      });
+
+      test('🔴 처리기가 던져도 wakeNow 는 끝난다(던지지 않는다) · 뒤 깨어남은 돈다', () async {
+        int calls = 0;
+        final OperatorEngineHost h = host(
+          onWake: (WakeEvent e) async {
+            calls++;
+            if (calls == 1) throw StateError('x');
+          },
+        );
+        await h.wakeNow();
+        await h.wakeNow();
+        expect(calls, 2);
+        expect(native.log, isEmpty);
+      });
+
+      test(
+        '🔴 앞 알람 깨어남의 재무장이 던져도 줄이 멈추지 않는다(뒤 wakeNow · 알람 깨어남이 돈다)',
+        () async {
+          int armCalls = 0;
+          install((MethodCall c) async {
+            native.log.add(c.method);
+            if (c.method == 'arm' && ++armCalls == 2) {
+              throw PlatformException(code: 'arm');
+            }
+            return c.method == 'arm' ? true : null;
+          });
+          final List<String> seen = <String>[];
+          final OperatorEngineHost h = host(
+            onWake: (WakeEvent e) async => seen.add(e.tag ?? e.reason.wire),
+          );
+          await h.start();
+          await _wakeFromNative(<String, Object?>{
+            'reason': 'alarm',
+            'tag': 'a',
+            'firedAtMs': 1,
+          });
+          await h.wakeNow();
+          await _wakeFromNative(<String, Object?>{
+            'reason': 'alarm',
+            'tag': 'b',
+            'firedAtMs': 2,
+          });
+          await pumpEventQueue();
+          expect(seen, <String>['a', 'app', 'b']);
+        },
+      );
+    });
   });
 }

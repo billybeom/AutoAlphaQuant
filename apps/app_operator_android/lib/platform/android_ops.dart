@@ -36,6 +36,9 @@ enum WakeReason {
   /// 서비스 시작(화면 · 콜드 스타트).
   start('start'),
 
+  /// 🆕 리뷰 3차 H1(설계 13 §8 R261) — 화면 동작 뒤 깨어남(`OperatorEngineHost.wakeNow`) · 🔴 Dart 안 전용(Kotlin 은 보내지 않는다).
+  app('app'),
+
   /// 모르는 글자(새 Kotlin · 낡은 Dart) — 버리지 않고 «깨어남»으로 다룬다.
   unknown('?');
 

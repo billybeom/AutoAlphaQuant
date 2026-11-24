@@ -87,6 +87,9 @@ void main() {
 
   test('🆕 R180 발동 → 기록 → 대기(TOO_SOON) → 순차 7문항(차례 · 빈칸 · 1번 = 처음부터) → 해제 · 게이트 = 같은 초안', () async {
     final OperatorRuntime r = rt();
+    // 🆕 리뷰 3차 H1-3(R261) — 상태 전이(발동 · 기록 · 해제) 뒤에만 엔진 깨어남 한 번(문항 받기 · 거부 = 0).
+    int wakes = 0;
+    r.attachWake(() async => wakes++);
     final OperatorKillResumeDraft draft = OperatorKillResumeDraft();
     addTearDown(draft.dispose);
     final OperatorSafetyActions acts = OperatorSafetyActions(r, draft: draft);
@@ -184,6 +187,7 @@ void main() {
       expect((await put(s)).reasonCode, isNull, reason: '${s.itemNo}');
     }
     await until(() => got.last.nextItemNo == 7);
+    expect(wakes, 2, reason: '발동 · 기록 확인 = 2 · 문항 받기 · 거부 = 0');
     final SafetyActionResult done = await put(
       const KillResumeItemSubmission(
         itemNo: 7,
@@ -195,6 +199,7 @@ void main() {
     expect(done.reasonCode, isNull);
     expect(done.level, UiLevel.ok);
     expect(done.headline, KillResumeGateTexts.done);
+    expect(wakes, 3, reason: '해제 = 깨어남 한 번');
     expect(draft.value.accepted, isEmpty);
     await until(() => got.last.readinessLabel == '킬스위치 꺼짐');
     expect(got.last.nextItemNo, isNull);

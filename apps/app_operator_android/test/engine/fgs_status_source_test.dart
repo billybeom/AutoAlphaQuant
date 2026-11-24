@@ -1,21 +1,35 @@
 // E11p3c-4 FGS 상태 원천(설계 13 §8 R102) — 실 SQLite(알림 저장 · 안전 읽기 모델) · 엔진 재료 그대로.
 
+import 'dart:io' show Directory;
+
 import 'package:app_operator_android/engine/engine_boot.dart';
 import 'package:app_operator_android/engine/fgs_status_source.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
-import 'package:core_engine/core_engine.dart' show kSaf405;
-import 'package:data_sync/data_sync.dart' show SqliteAlertSink;
+
+import 'package:core_engine/core_engine.dart'
+    show
+        BackupManifest,
+        MigrationKind,
+        TrustedClock,
+        kSaf405,
+        safetyHoldLabelOf;
+import 'package:data_sync/data_sync.dart'
+    show SqliteAlertSink, SqliteRecoveryJournal;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AckState,
         AlertCodes,
         AlertItem,
         AlertLevel,
+        ExecPolicy,
+        LedgerFile,
         OperatingMode,
         RunMode,
+        SafetyHoldCodes,
         TradeDate,
         UiLevel;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
     show
         FgsChannel,
@@ -25,6 +39,13 @@ import 'package:trading_runtime/trading_runtime.dart'
         sessionsUntilNextRebalance;
 
 import 'support.dart';
+
+class _Trusted implements TrustedClock {
+  _Trusted(this.at);
+  final DateTime at;
+  @override
+  DateTime? trustedNowUtc() => at;
+}
 
 AlertItem _alert(
   String id,
@@ -134,6 +155,100 @@ void main() {
       expect(s.level.index, greaterThanOrEqualTo(UiLevel.act.index));
       expect(s.p0AlertId, isNotNull);
       expect(buildFgsNotice(s).channel, FgsChannel.opsP0);
+    });
+
+    group('🆕 리뷰 3차 H1-4(R261) — hold = 화면(H-01)과 같은 재료', () {
+      EngineReady liveReady(
+        Database live, {
+        Set<String> holds = const <String>{},
+      }) => EngineReady(
+        db: live,
+        file: LedgerFile.live,
+        runMode: RunMode.live,
+        operatingMode: OperatingMode.autoTrade,
+        execPolicy: ExecPolicy.dryRun,
+        holds: holds,
+        repaired: false,
+      );
+
+      test(
+        '🔴 기동 hold(LIVE_AWAITING_KEYS) = ACT · 문구 = 엔진 짝 문장(«정상» 0)',
+        () async {
+          final Database live = writeLiveMode(
+            Directory(files.directory),
+            clock,
+          );
+          addTearDown(live.close);
+          final FgsStatus none = fgsStatusForReady(
+            liveReady(live),
+            calendars: calendars(),
+            clock: clock,
+          );
+          expect(none.level, UiLevel.ok);
+          final FgsStatus s = fgsStatusForReady(
+            liveReady(
+              live,
+              holds: const <String>{SafetyHoldCodes.liveAwaitingKeys},
+            ),
+            calendars: calendars(),
+            clock: clock,
+          );
+          expect(s.level, UiLevel.act);
+          expect(
+            s.headline,
+            safetyHoldLabelOf(SafetyHoldCodes.liveAwaitingKeys),
+          );
+          expect(buildFgsNotice(s).text, isNot(contains('정상')));
+        },
+      );
+
+      test('🔴 이 기기 id 의 표시 hold(MIGRATION_IN_PROGRESS — 새 폰 복구 ~ 생체 전) = ACT · 기기 id 없음 = 0', () async {
+        final Database live = writeLiveMode(Directory(files.directory), clock);
+        addTearDown(live.close);
+        expect(
+          SqliteRecoveryJournal(
+                live,
+                deviceId: 'dev-new',
+                trusted: _Trusted(clock.nowUtc()),
+              )
+              .start(
+                kind: MigrationKind.plan,
+                operatingMode: OperatingMode.autoTrade,
+                decisionId: 'd1',
+                operatorEpoch: 5,
+                manifest: BackupManifest(
+                  sha256: 'a' * 64,
+                  chainHash: 'b' * 64,
+                  authoredDate: '2026-12-21',
+                  schemaVersion: 1,
+                  hashFormatVersion: 1,
+                  operatorEpoch: 4,
+                  writerDeviceId: 'dev-old',
+                ),
+              )
+              .rejectCode,
+          isNull,
+        );
+        final FgsStatus s = fgsStatusForReady(
+          liveReady(live),
+          calendars: calendars(),
+          clock: clock,
+          deviceId: 'dev-new',
+        );
+        expect(s.level, UiLevel.act);
+        expect(
+          s.headline,
+          safetyHoldLabelOf(SafetyHoldCodes.migrationInProgress),
+        );
+        expect(
+          fgsStatusForReady(
+            liveReady(live),
+            calendars: calendars(),
+            clock: clock,
+          ).level,
+          UiLevel.ok,
+        );
+      });
     });
 
     test('🔴 마지막 브로커 대사 시각이 실린다', () async {

@@ -169,7 +169,12 @@ class OperatorSettingsActions implements SettingsActions {
     this.supabaseAuth,
     this.modeSwitch = false,
     this.livePromotion,
+    this.wake,
   });
+
+  /// 🆕 리뷰 3차 H1-1(설계 13 §8 R261 · 01 §8 미결 235 ⓐ) — 엔진 깨어남 창구(실행 묶음 `wakeNow` · 없음 = 깨어남 0 — 시험 ·
+  /// 화면 없는 조립).
+  final Future<void> Function()? wake;
 
   /// 🆕 E11q-s05(R252) — 실전 전환 요청을 위저드로 넘기나(위저드 본문이 레지스트리에 있을 때만 · 아니면 구현 없음).
   final bool modeSwitch;
@@ -749,6 +754,9 @@ class OperatorSettingsActions implements SettingsActions {
       clock: clock,
     ).dryRunStart(card: p0sTierBCard());
     if (out.ok) {
+      // 🆕 리뷰 3차 H1-1(R261 · 미결 235 ⓐ) — 엔진 깨어남 한 번(셸 플래그 · FGS — 다음 알람까지 뼈대로 두지 않는다 · 기다리지 않는다).
+      final Future<void> Function()? w = wake;
+      if (w != null) unawaited(w());
       return Future<ActionResult>.value(
         _result(id, UiLevel.ok, kOnboardingDryRunStartedText),
       );
