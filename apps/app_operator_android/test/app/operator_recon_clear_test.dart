@@ -78,8 +78,13 @@ void main() {
 
   test('🔴 해제 = 사전 저널 + 해제 한 번 · 해제한 사람 «운영 폰» · 신뢰 시각 없이도 · 결과 = 엔진 글자 · watch = 같은 결과', () async {
     block();
-    final OperatorSafetyActions a = actions(rt());
+    final OperatorRuntime runtime = rt();
+    // 🆕 리뷰 3차 H1-3(R261) — 해제 = 차단 플래그 전이 → 엔진 깨어남 한 번(FGS).
+    int wakes = 0;
+    runtime.attachWake(() async => wakes++);
+    final OperatorSafetyActions a = actions(runtime);
     final SafetyActionResult r = await a.runReconClear(ask());
+    expect(wakes, 1);
     expect(
       (r.id, r.level, r.headline, r.reasonCode, r.retryable),
       (
@@ -122,8 +127,12 @@ void main() {
   });
 
   test('🔴 거부 = 엔진 코드 원문(막힘 없음 · 선택지 밖 · 저널 빈칸) · 쓰기 = 명령 행만', () async {
-    final OperatorSafetyActions a = actions(rt());
+    final OperatorRuntime runtime = rt();
+    int wakes = 0;
+    runtime.attachWake(() async => wakes++);
+    final OperatorSafetyActions a = actions(runtime);
     final SafetyActionResult none = await a.runReconClear(ask());
+    expect(wakes, 0, reason: '🆕 R261 — 거부 = 깨어남 0');
     expect(
       (none.level, none.headline, none.reasonCode),
       (

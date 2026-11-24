@@ -13,7 +13,10 @@
 //    엔진 원문 검사(`INPUT_INVALID` 칸 글자 · 세션 밖 `SELF_REPORT_OUTSIDE_SESSION`) → 신뢰 시각 · 리스 · 무결성(보관) →
 //    원장 한 트랜잭션(실사 · 줄 · `ledger_diff` CANON_SELF_REPORT · `command_inbox`) · 접수증 글자 = 엔진.
 // 🔴 기기 id 가 없으면 주입 자체를 하지 않는다(버튼 부재 — 셸 규약) · 화면 상태 없음(온보딩 전) = 오류.
+// 🆕 리뷰 3차 H1(설계 13 §8 R261 · 01 §8 미결 235) — 상태 전이를 낸 명령(킬스위치 발동 · 기록 확인 · 알림 확인 · 모의 개시) 뒤 엔진 깨어남
+//    한 번(`OperatorRuntime.wakeNow` · 기다리지 않는다) — FGS · 화면 상태가 다음 알람까지 옛 상태로 남지 않게.
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
@@ -130,7 +133,15 @@ class OperatorCommandApi implements CommandApi {
       rejectReasonCode: r.reasonCode,
     );
     _issued[c.commandId] = receipt;
+    // 🆕 리뷰 3차 H1-3(R261) — 확인 = FGS 의 열린 P0 줄이 바뀌는 전이 → 깨어남 한 번(기다리지 않는다).
+    _wakeIf(r.executed);
     return receipt;
+  }
+
+  /// 🆕 리뷰 3차 H1(R261 · 미결 235) — 상태를 바꾼 명령 뒤 엔진 깨어남 한 번(화면 상태 · FGS — 다음 알람까지 옛 상태로 두지 않는다 ·
+  /// 기다리지 않는다 · 거부 = 전이 아님 → 0).
+  void _wakeIf(bool changed) {
+    if (changed) unawaited(_rt.wakeNow());
   }
 
   /// 이 인스턴스가 낸 명령만 — 폰 안에서 바로 끝나므로 마지막 상태 하나(모르는 id = 오류).
@@ -178,6 +189,8 @@ class OperatorCommandApi implements CommandApi {
       reasonCode: r.reasonCode,
     );
     _issued[receipt.commandId] = receipt;
+    // 🆕 리뷰 3차 H1-3(R261) — 발동 = 상태 전이(04 §5-6 «갱신 = 상태 전이 시») → FGS BLOCKED 를 다음 알람까지 미루지 않는다.
+    _wakeIf(r.executed);
     return receipt;
   }
 
@@ -380,13 +393,14 @@ class OperatorCommandApi implements CommandApi {
       db,
       clock: _rt.clock,
     ).register(P0sOpsConfig.of(human.inputs).content());
-    return outcome(
-      store.declareSimOpening(
-        wire,
-        accountByStrategy: human.inputs.accountByStrategy,
-        configHash: configHash,
-      ),
+    final OnboardingOutcome declared = store.declareSimOpening(
+      wire,
+      accountByStrategy: human.inputs.accountByStrategy,
+      configHash: configHash,
     );
+    // 🆕 리뷰 3차 B-U1(R261 · 미결 235 ⓕ) — 개시 판 = 지금 설정 지문(셸 플래그 · M5-9 후보) → 깨어남 한 번(빈 글자로 두지 않는다).
+    _wakeIf(declared.ok);
+    return outcome(declared);
   }
 
   @override
@@ -429,6 +443,9 @@ class OperatorCommandApi implements CommandApi {
       reasonCode: r == null ? 'KILL_CHECKLIST_ITEM_MISSING' : r.reasonCode,
     );
     _issued[receipt.commandId] = receipt;
+    // 🆕 리뷰 3차 H1-3(R261) — 기록 확인 = 킬스위치 상태 문장(해제 예정)이 바뀌는 전이 → 깨어남 한 번.
+    // 🔵 B-03(`r.p0` — 확인 3 ≠ 엔진 미체결 → P0 경보) = 알림 코드 · 등급 행이 계약에 없다 → 계약 창 대기(R261 · 엔진 지역 상수 0).
+    _wakeIf(r?.executed ?? false);
     return receipt;
   }
 

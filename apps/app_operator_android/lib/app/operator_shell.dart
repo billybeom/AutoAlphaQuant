@@ -531,6 +531,8 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
         livePromotion: OperatorLivePromotion.availableIn(rt)
             ? OperatorLivePromotion(rt)
             : null,
+        // 🆕 리뷰 3차 H1-1(R261) — 온보딩 마무리 뒤 엔진 깨어남 창구(실행 묶음 하나).
+        wake: rt.wakeNow,
       );
     });
 

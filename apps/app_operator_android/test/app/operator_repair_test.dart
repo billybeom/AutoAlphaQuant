@@ -164,7 +164,11 @@ void main() {
 
   test('🔴 단계 = 엔진 args 그대로 advance · 저널 = 살아 있는 세션에 JIV-<명령 id> · 아무것도 안 하기 = 세션 닫고 받아들임', () async {
     diff('ld-a');
-    final OperatorSafetyActions a = actions(rt());
+    final OperatorRuntime runtime = rt();
+    // 🆕 리뷰 3차 H1-3(R261) — 받아들여진 단계 · 저널 · 받아들임 뒤 엔진 깨어남 한 번씩 · 거부 = 0.
+    int wakes = 0;
+    runtime.attachWake(() async => wakes++);
+    final OperatorSafetyActions a = actions(runtime);
     final SafetyActionResult s1 = await a.run(
       SafetyActionId.interventionStep,
       args: <String, String>{
@@ -192,6 +196,7 @@ void main() {
     );
     expect(early.reasonCode, 'INTERVENTION_STAGE_OUT_OF_ORDER');
     expect(early.headline, '지금은 저널 단계가 아닙니다');
+    expect(wakes, 1, reason: '단계 1 = 1 · 거부 = 0');
     await a.run(
       SafetyActionId.interventionStep,
       args: <String, String>{
@@ -228,6 +233,7 @@ void main() {
       (SafetyActionId.repairAccept, null, RepairResultTexts.accepted),
     );
     expect(steps().last, ('x5:ld-a:1', 4, 'DO_NOTHING'));
+    expect(wakes, 4, reason: '단계 2 · 저널 · 받아들임 = 각 1');
     expect(
       files.sim
           .select("SELECT status FROM ledger_diff WHERE diff_id = 'ld-a'")
@@ -274,7 +280,10 @@ void main() {
     '🔴 정정 — 원문 못 읽음 · 세션 없음 · 재대사 못 함(다시 시도) · 재대사 = 그 집행일 · delta 바뀜 · 체결 아님',
     () async {
       diff('ld-a');
-      final OperatorSafetyActions a = actions(rt());
+      final OperatorRuntime runtime = rt();
+      int wakes = 0;
+      runtime.attachWake(() async => wakes++);
+      final OperatorSafetyActions a = actions(runtime);
       RepairCorrectSubmission ask({bool voidFill = true, String? q}) =>
           RepairCorrectSubmission(
             targetId: 'ld-a',
@@ -317,6 +326,7 @@ void main() {
         (hold.level, hold.reasonCode, hold.retryable, hold.headline),
         (UiLevel.watch, null, true, RepairResultTexts.reconUnavailable),
       );
+      expect(wakes, 0, reason: '🆕 R261 — 거부 · «다시 시도»(바뀐 것 없음) = 깨어남 0');
       expect(reconAsked.single.$2, const TradeDate('2027-01-13'));
       reconAnswer = <String>{'ld-other'};
       expect(

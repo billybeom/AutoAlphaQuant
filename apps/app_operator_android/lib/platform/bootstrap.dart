@@ -13,6 +13,7 @@
 //    깨어날 때마다 한 번 잰다. 금고에 연결 칸(o_07 ②)이 없으면 망에 가지 않고 늘 «모름»(지금과 같다).
 // 🆕 E11k-e3(설계 13 §8 R229) — 리스 RPC 클라이언트 · O-04 ⑤ 첫 클레임 흐름 · 원격 리스 원천을 실행 묶음에 하나씩 — 엔진은 실행 묶음의
 //    원천을 그대로 쓴다(같은 로그인 세션 · 같은 첫 클레임 기록) · 기기 id 가 없으면 셋 다 없음(⑤ 원천 없음 · 원격 0 = 지금과 같다).
+// 🆕 리뷰 3차 H1(설계 13 §8 R261) — 호스트가 서면 실행 묶음에 깨어남 창구(`host.wakeNow`)를 단다 · FGS 상태 = 이 기기 id 의 표시 hold 포함.
 
 import 'dart:io' show Platform;
 
@@ -100,6 +101,8 @@ Future<OperatorEngineHost?> startOperatorPlatform({
     onLink: onLink,
   );
   await host.start();
+  // 🆕 리뷰 3차 H1(R261) — 화면 동작 뒤 깨어남 창구 = 이 호스트의 줄(알람 깨어남과 한 줄).
+  runtime?.attachWake(host.wakeNow);
   return host;
 }
 

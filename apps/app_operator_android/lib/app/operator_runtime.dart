@@ -3,6 +3,8 @@
 // 🔴 원장 연결은 프로세스에 하나 — 엔진(깨어남)과 화면(읽기 모델)이 같은 `LedgerFiles` 를 쓴다(갱신 알림 = 같은 연결).
 // 🔴 화면 상태 = 마지막 깨어남의 기동 판정(`operatorViewOf`) — 깨어남마다 다시 정한다(모드 전환 뒤 낡은 파일을 보지 않게).
 // 🔴 딥링크(FGS 탭 등)는 화면이 설 때까지 기다렸다가 연다 — 차가운 시작에서 내비게이터가 없으면 잃지 않게 맨 마지막 하나를 쥔다.
+// 🆕 리뷰 3차 H1(설계 13 §8 R261 · 01 §8 미결 235) — 화면 동작 뒤 엔진 깨어남 창구(`wakeNow` · 조립 = 호스트 `wakeNow`) — 화면 상태 ·
+//    FGS 가 다음 알람까지 옛 상태로 남지 않게 · 커밋 뒤 닫힌 모의 원장을 화면 상태로 쥐지 않는다.
 
 import 'dart:async';
 
@@ -26,6 +28,7 @@ import 'package:data_sync/data_sync.dart'
     show
         P0sHumanDecision,
         SqliteJournalSource,
+        SqliteModeStore,
         SupabaseAuth,
         SupabaseDeviceLedger,
         SupabaseFirstClaim,
@@ -42,6 +45,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         ContributionSetting,
         DateRange,
         FeatureFlags,
+        LedgerFile,
         SleeveCatalogEntry,
         TradeDate;
 import 'package:flutter/foundation.dart';
@@ -204,6 +208,33 @@ class OperatorRuntime {
   /// 깨어남 보고 → 화면 상태.
   void onWake(EngineWakeReport report) {
     view.value = operatorViewOf(report.boot, files);
+  }
+
+  Future<void> Function()? _wake;
+
+  /// 🆕 리뷰 3차 H1(설계 13 §8 R261 · 01 §8 미결 235) — 엔진 깨어남 창구를 단다(조립 = 플랫폼 호스트 `wakeNow` · 프로세스에 하나).
+  void attachWake(Future<void> Function() wake) => _wake = wake;
+
+  /// 🆕 R261 — 화면 상태를 바꾸는 동작(온보딩 마무리 · 모의 개시 · simToAuto 커밋 · 승격 · 안전 명령) 뒤 엔진 깨어남 한 번
+  /// (기동 판정 → 회차 → FGS → [onWake] — 다음 알람을 기다리지 않는다) · 끝나면 완료 · 던지지 않는다 · 창구 없음(플랫폼 밖 · 시험) =
+  /// 깨어남 0.
+  /// 🔴 끝난 뒤에도 화면 상태가 닫힌(CLOSE) 모의 원장이면 비운다 — 커밋 뒤 깨어남이 실패해도 닫힌 원장에 조용히 쓰지 않게(다음
+  ///    깨어남까지 쓰기 = «화면 상태 없음» 오류 · H1-2 · 거부 접수증 `LEDGER_CLOSED` = 계약 창 대기).
+  Future<void> wakeNow() async {
+    final Future<void> Function()? wake = _wake;
+    if (wake != null) {
+      try {
+        await wake();
+      } on Object {
+        // 깨어남 실패의 기록 · 알림 = 엔진 몫(호스트 줄) — 화면 동작은 이미 끝났다.
+      }
+    }
+    final OperatorView? v = view.value;
+    if (v != null &&
+        identical(v.db, files.sim) &&
+        SqliteModeStore(files.sim, LedgerFile.sim, clock: clock).closed()) {
+      view.value = null;
+    }
   }
 }
 

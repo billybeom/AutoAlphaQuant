@@ -11,7 +11,10 @@
 //    않는다).
 // 🆕 E16j-a(R227 · 01 §41 K252~K256 · 미결 217) — X5 정정 마법사: `run(interventionStep)` · `run(repairAccept)` · `runInterventionJournal` ·
 //    `runRepairCorrect` · `runRepairBaseline` = 구현(`OperatorRepairActions` — 같은 원장 · 결과 글자 = 엔진).
+// 🆕 리뷰 3차 H1-3(설계 13 §8 R261 · 01 §8 미결 235 ⓒ) — 안전 상태를 바꾼 동작(재개 · RECON 해제 · 정정 · 개입 · 기기 이전) 뒤 엔진
+//    깨어남 한 번(`OperatorRuntime.wakeNow` · 기다리지 않는다) — FGS 상시 알림이 다음 알람까지 옛 상태로 남지 않게(04 §5-6).
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:core_engine/core_engine.dart'
@@ -110,6 +113,13 @@ class OperatorSafetyActions implements SafetyActions {
         UnsupportedError('$what: operator 구현 없음(R157)'),
       );
 
+  /// 🆕 리뷰 3차 H1-3(R261) — 받아들여진(사유 코드 없음 · «다시 시도» 아님) 안전 동작 뒤 엔진 깨어남 한 번(기다리지 않는다) ·
+  /// 거부 · 다시 시도(바뀐 것 없음) = 0.
+  SafetyActionResult _woke(SafetyActionResult r) {
+    if (r.reasonCode == null && !r.retryable) unawaited(_rt.wakeNow());
+    return r;
+  }
+
   @override
   Future<SafetyActionResult> runPledge(PledgeSubmission submission) async {
     final SafetyActionId id = submission.id;
@@ -169,7 +179,7 @@ class OperatorSafetyActions implements SafetyActions {
     // 🆕 E16j-b — X1 id 6 = 기기 이전 동작(결과 글자 = 엔진 · 막힌 동작 = 오류).
     if (kX1ActionIds.contains(id)) {
       final SafetyActionResult r = await _x1.run(id, args);
-      return _done[r.actionRunId] = r;
+      return _done[r.actionRunId] = _woke(r);
     }
     if (id == SafetyActionId.seasonalWindowChoice) return _seasonalChoice(args);
     // 🆕 E16j-a(R227) — 개입 단계 · 아무것도 안 하기 = 엔진이 완성한 args 그대로(명령 id = 킬스위치 명령과 같은 꼴).
@@ -178,9 +188,11 @@ class OperatorSafetyActions implements SafetyActions {
       final ({String commandId, String nonce, String payloadDigest}) c =
           issueKillCommand(payload: args, random: _random);
       final OperatorRepairActions repair = OperatorRepairActions(_rt);
-      return _done[c.commandId] = id == SafetyActionId.interventionStep
-          ? repair.step(c.commandId, c.payloadDigest, args)
-          : repair.accept(c.commandId, args);
+      return _done[c.commandId] = _woke(
+        id == SafetyActionId.interventionStep
+            ? repair.step(c.commandId, c.payloadDigest, args)
+            : repair.accept(c.commandId, args),
+      );
     }
     if (id != SafetyActionId.ruleChangeCancel) return _none('run(${id.wire})');
     final String? requestId = args['request_id'];
@@ -314,6 +326,8 @@ class OperatorSafetyActions implements SafetyActions {
     ).resume(commandId: run, payloadDigest: c.payloadDigest, checklist: next);
     if (r.executed) {
       draft.value = ResumeChecklist.empty;
+      // 🆕 R261 — 재개(해제) = 상태 전이 → 깨어남 한 번(FGS BLOCKED → 그 뒤 상태).
+      unawaited(_rt.wakeNow());
       return keep(killResumeResultOf(actionRunId: run, done: true));
     }
     return keep(
@@ -342,8 +356,9 @@ class OperatorSafetyActions implements SafetyActions {
   ) async {
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: submission.toJson(), random: _random);
-    return _done[c.commandId] = await OperatorRepairActions(_rt)
-        .correct(c.commandId, submission);
+    return _done[c.commandId] = _woke(
+      await OperatorRepairActions(_rt).correct(c.commandId, submission),
+    );
   }
 
   /// 🆕 E16j-a(R227 · 01 §41 K256 · 미결 217 ⓐ) — X5 새 기준점(무결성 갈래 · 5단계 커밋).
@@ -353,8 +368,9 @@ class OperatorSafetyActions implements SafetyActions {
   ) async {
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: submission.toJson(), random: _random);
-    return _done[c.commandId] = OperatorRepairActions(_rt)
-        .baseline(c.commandId, submission);
+    return _done[c.commandId] = _woke(
+      OperatorRepairActions(_rt).baseline(c.commandId, submission),
+    );
   }
 
   /// 🆕 E16j-a(R227 · 01 §41 K252 · 미결 217 ⓖ) — 개입 3단계 사전 저널(살아 있는 세션 · 저널 + 단계 한 트랜잭션).
@@ -364,8 +380,10 @@ class OperatorSafetyActions implements SafetyActions {
   ) async {
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: submission.toJson(), random: _random);
-    return _done[c.commandId] = OperatorRepairActions(_rt)
-        .journal(c.commandId, c.payloadDigest, submission);
+    return _done[c.commandId] = _woke(
+      OperatorRepairActions(_rt)
+          .journal(c.commandId, c.payloadDigest, submission),
+    );
   }
 
   /// 🆕 E11q-c0(R188) — 규칙 변경 승인(v1.22 꼴 · 판정 = 엔진 `approve` — 냉각 30일 · 창 · DD · 신뢰 시각 · 사람 칸 · 제3자) ·
@@ -462,6 +480,8 @@ class OperatorSafetyActions implements SafetyActions {
     if (!r.executed && r.reasonCode == null) {
       throw StateError('RECON 해제: 엔진이 사유 없이 거부했다');
     }
+    // 🆕 R261 — 해제 = 차단 플래그 전이 → 깨어남 한 번(FGS ACT → 그 뒤 상태).
+    if (r.executed) unawaited(_rt.wakeNow());
     return _done[run] = reconClearActionResultOf(
       actionRunId: run,
       code: r.executed ? null : r.reasonCode,

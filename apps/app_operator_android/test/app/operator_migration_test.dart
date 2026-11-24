@@ -117,12 +117,16 @@ void main() {
     expect(before.d03Card, kX1D03Card);
     expect(before.startAction?.id, SafetyActionId.x1PlanStart);
 
+    // 🆕 리뷰 3차 H1(R261) — 이전 시작 = 표시 hold(`MIGRATION_IN_PROGRESS`) 전이 → 엔진 깨어남 한 번(FGS).
+    int wakes = 0;
+    r.attachWake(() async => wakes++);
     final OperatorSafetyActions a = actions(r);
     final SafetyActionResult res = await a.run(
       before.startAction!.id,
       args: before.startAction!.args,
     );
     expect((res.level, res.reasonCode), (UiLevel.ok, null));
+    expect(wakes, 1);
     expect(res.headline, X1ScreenTexts.accepted(SafetyActionId.x1PlanStart));
     expect(await a.watch(res.actionRunId).first, res);
     final Database db = r.view.value!.db;
@@ -261,6 +265,8 @@ void main() {
 
   test('모의 화면 = 엔진 X1_LIVE_ONLY(VM · 시작 결과) · 쓰기 0', () async {
     final OperatorRuntime r = rt(liveView: false);
+    int wakes = 0;
+    r.attachWake(() async => wakes++);
     final X1PlanWizardVm vm = await first(
       OperatorMigrationRepository(r).watchPlanWizard(),
     );
@@ -271,6 +277,7 @@ void main() {
       (res.level, res.reasonCode),
       (UiLevel.info, X1StartResultCodes.liveOnly),
     );
+    expect(wakes, 0, reason: '🆕 R261 — 거부 = 깨어남 0');
     expect(
       files.sim.select('SELECT COUNT(*) AS n FROM migration_run').single['n'],
       0,

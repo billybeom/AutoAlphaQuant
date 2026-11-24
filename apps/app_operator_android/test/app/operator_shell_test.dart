@@ -936,22 +936,21 @@ void main() {
     () {
       expect(container.read(settingsActionsProvider), isNull);
       expect(container.read(shellOnboardingActionsProvider), isNull);
+      final OperatorRuntime withVault = OperatorRuntime(
+        files: files,
+        clock: clock,
+        vault: MemorySecretVault(),
+        kisHttp: MockClient((http.Request r) async => http.Response('', 500)),
+      );
       final ProviderContainer c = ProviderContainer(
-        overrides: operatorShellOverrides(
-          OperatorRuntime(
-            files: files,
-            clock: clock,
-            vault: MemorySecretVault(),
-            kisHttp: MockClient(
-              (http.Request r) async => http.Response('', 500),
-            ),
-          ),
-        ),
+        overrides: operatorShellOverrides(withVault),
       );
       addTearDown(c.dispose);
       final Object? a = c.read(settingsActionsProvider);
       expect(a, isA<OperatorSettingsActions>());
       expect(identical(c.read(shellOnboardingActionsProvider), a), true);
+      // 🆕 리뷰 3차 H1-1(R261) — 온보딩 마무리 뒤 깨어남 창구 = 실행 묶음의 것.
+      expect((a! as OperatorSettingsActions).wake, withVault.wakeNow);
     },
   );
 

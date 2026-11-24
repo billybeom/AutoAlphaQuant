@@ -7,6 +7,8 @@
 // 🔴 온보딩 미완 = 띄우지 않는다(아직 아무것도 돌지 않았다 · Kotlin 이 앱 이름만 띄운다 · E11p2).
 // 🔵 신뢰 시각 = 🆕 E11k-a(R197) 엔진과 같은 것(`BootInputs.trusted`) — 연결 전 · 못 잼 = 모름(해제 진행 게이지가 «모름» ·
 //    지어내지 않는다).
+// 🆕 리뷰 3차 H1-4(설계 13 §8 R261) — 안전 상태 = 화면(`OperatorSafetyRepository`)과 같은 재료: 기동 hold(`EngineReady.holds` ·
+//    `LIVE_AWAITING_KEYS`) + 이 기기 id 의 표시 hold(`MIGRATION_IN_PROGRESS`) → FGS 도 hold 를 본다(H-01 배너와 엇갈리지 않게).
 
 import 'package:core_engine/core_engine.dart' show TrustedClock, alertInboxOf;
 import 'package:data_sync/data_sync.dart'
@@ -49,12 +51,14 @@ AlertItem? earliestOpenP0(Iterable<AlertItem> inbox) {
   return best;
 }
 
-/// 🔴 준비된 원장의 FGS 상태(R94 재료 그대로) · 🆕 [trusted] = 엔진 신뢰 시각(R197 · 기본 = 모름).
+/// 🔴 준비된 원장의 FGS 상태(R94 재료 그대로) · 🆕 [trusted] = 엔진 신뢰 시각(R197 · 기본 = 모름) · 🆕 R261 [deviceId] = 이 기기 id
+/// (표시 hold · 없음 = 그 hold 0).
 FgsStatus fgsStatusForReady(
   EngineReady ready, {
   required JobCalendars calendars,
   required Clock clock,
   TrustedClock trusted = const UnknownTrustedClock(),
+  String? deviceId,
 }) {
   final DateTime now = clock.nowUtc();
   return fgsStatusOf(
@@ -66,6 +70,9 @@ FgsStatus fgsStatusForReady(
         mode: ready.runMode,
         clock: clock,
         trusted: trusted,
+        // 🆕 R261(H1-4) — 화면과 같은 hold 재료(이 기기 id · 기동 hold).
+        deviceId: deviceId,
+        startupHolds: ready.holds,
       ).state(),
       openP0: earliestOpenP0(
         alertInboxOf(
