@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 131개 · 계약 v1.38.0 · 조립일 2026-11-24(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 135개 · 계약 v1.39.0 · 조립일 2026-11-25(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -42,6 +42,7 @@
 //    `watchDiagnosticsScreen` · `BackupResultCodes` · `LedgerIntegrityResultCodes`).
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
+export 'src/biometric_prompt_text.dart'; // 🆕 v1.39 영역 E — 생체 대화상자 글자(사전 아님 · 01 §48 K350)
 export 'src/commands.dart';
 export 'src/contract_version.dart';
 export 'src/dto.dart';
@@ -56,6 +57,69 @@ export 'src/schema/ledger_file.dart';
 export 'src/schema/read_model_columns.dart'; // 🆕 v1.28 — rm_config_view S04 배분 7열(01 §37 K201)
 export 'src/schema/read_model_tables.dart'; // 🆕 v1.36 — 읽기 모델 rm_* 표 22 · 열 · 키 · 형 · 결속 DTO(01 §45 K303 · 지도 D15)
 export 'src/schema/supabase_rpc.dart'; // 🆕 v1.29 — operator 리스 RPC 표(01 §39 K228 · 지도 X18)
+```
+
+---
+
+## `packages/domain_contracts/lib/src/biometric_prompt_text.dart`
+
+```dart
+// 🆕 계약 v1.39(01 §48 · K350 · 01 §8 미결 238 · 리뷰 3차 A-3) — OS 생체 대화상자 글자(목적마다 한 벌).
+// 🔴 표지 글자 상수라 C-5 사전 대상(`lib/src/labels/`) 밖에 둔다(`ModeMarkerText` 선례 · byDomain 0).
+// 🔴 무엇에 동의하는지 그대로 말한다 — 서약 글자는 [BiometricPurpose.pledgeSign] 에만 · 실주문을 켜는 동작은 «실제 주문»을 말한다.
+// 🔴 금액 · 계좌 · 종목 · 수치 0(대화상자는 잠금 화면 위에도 뜬다).
+// 🔵 서약 글자 = 엔진 core `BiometricSignTexts.promptTitle` · `promptSubtitle`(R159) 와 같은 글자 — 조립 배선 카드가 엔진을 이 상수로 옮긴다.
+
+import 'enums/biometric.dart';
+
+/// 생체 대화상자 한 벌(제목 · 설명).
+final class BiometricPrompt {
+  const BiometricPrompt(this.title, this.subtitle);
+
+  /// 대화상자 제목.
+  final String title;
+
+  /// 대화상자 설명(한 문장).
+  final String subtitle;
+}
+
+/// 목적 → 대화상자 글자.
+abstract final class BiometricPromptText {
+  /// 취소 버튼(목적 공통).
+  static const String cancel = '취소';
+
+  /// `O-04` ③ 서약 서명.
+  static const BiometricPrompt pledgeSign = BiometricPrompt(
+    '서약에 생체로 서명',
+    '방금 쓴 서약 세 문장을 이 폰의 생체 인증으로 확인합니다.',
+  );
+
+  /// `M5-11` 실전 전환 시작.
+  static const BiometricPrompt handoverStart = BiometricPrompt(
+    '실전 전환 시작',
+    '모의 운영을 마치고 실전 계좌로 옮기는 전환을 시작합니다. 확정 전까지 실제 주문은 나가지 않습니다.',
+  );
+
+  /// `S05` 실전 집행 승격.
+  static const BiometricPrompt livePromotion = BiometricPrompt(
+    '실제 주문 켜기',
+    '관찰을 마치고 다음 회차부터 실전 계좌에 실제 주문을 내기 시작합니다.',
+  );
+
+  /// X1 기기 이전 — 새 폰에서 실거래 다시 열기.
+  static const BiometricPrompt x1Migration = BiometricPrompt(
+    '이 폰에서 운영 이어받기',
+    '기기 이전을 마치고 이 폰에서 실거래를 다시 엽니다.',
+  );
+
+  /// 목적 → 글자(빠짐 0 — 새 목적 = 컴파일 실패).
+  static BiometricPrompt of(BiometricPurpose p) => switch (p) {
+    BiometricPurpose.pledgeSign => pledgeSign,
+    BiometricPurpose.handoverStart => handoverStart,
+    BiometricPurpose.livePromotion => livePromotion,
+    BiometricPurpose.x1Migration => x1Migration,
+  };
+}
 ```
 
 ---
@@ -400,12 +464,24 @@ export 'commands/settings_actions.dart';
 //    (`read_model_push_result` · 리스 거부 = `LeaseRpcResultCodes` 그대로) · 🆕 C-71 · 픽스처 398(버전 줄만) — 🆕 tool/gen_v138_rm_push_rpc_fixtures.py.
 //    🔴 SQL 본문 · 클라이언트 = 엔진 E11l2(미결 222 ⓑ) · 다른 select 전용 표 쓰기 창구 = 미결 229 · 다음 판 = 1.39.0(뷰어 행 표 목록 차례 · 소속 열 ·
 //    postmortem — 미결 230 · 188).
+// 🆕 '1.39.0'(뷰어 목록 열 · postmortem · 리뷰 3차 등재 · 생체 목적 · 01 §48 · 13 §8 R269 · 발주자 위임 2026-11-14 — 권고대로 ·
+//    K338~K352) — 미결 230 ⓐ~ⓔ · 188 postmortem · 238 · 리뷰 3차 엔진 예약 등재(231 · 233 · 235 · 205 ⓓ) · 236 계약 창 대기:
+//    🆕 `ReadModelListColumn`(목록 열 · `listColumns`) — 차례 열 9(`timeline_rank` · `holdings_rank` · `series_rank` · `events_rank` ·
+//    `rm_alert.inbox_rank` · `rm_advice.inbox_rank` · `history_rank` · `open_diffs_rank` · `queue_rank` · null = 목록 밖) · 봉투 +3
+//    (`filtered_empty_label` · `scope_empty_label` · `has_more`) · `rm_config_view.range_presets` · 🆕 `routeParamKeyOf` · 230 ⓒ
+//    `OpsSummaryRepository` 글자(`ReadModelListCodes.opsSummaryWatchRhythm`) · 🆕 `M5-4` `PostmortemListVm` · `PostmortemRow` ·
+//    `PostmortemForm` · 창구 `PostmortemRepository.watchPostmortems` · 라우트 `m5Postmortem`(86) · 등재 `LIVE_PROMOTION_CONFIG_UNAVAILABLE` ·
+//    `SIM_LEDGER_FATE_CONFIG_UNAVAILABLE` · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` · `SIM_TO_AUTO_ACCOUNT_DUPLICATE` · 🆕 `LedgerWriteGateCodes`
+//    (`LEDGER_CLOSED` · `ledger_write_gate`) · `AlertCodes` +3(`KILL_SWITCH_ACK_MISMATCH` P0 · push 2 P1 → 39) · 🆕
+//    `SupabaseSignupResultCodes`(`SUPABASE_SIGNUP_OPEN`) · 배치 D 기기 넣기 정책 좁힘 · 리스 클레임 문언 · 🆕 `BiometricPurpose` 4 ·
+//    `BiometricPromptText` · 🆕 C-72(+ 엔진 코드 ⊆ 계약 원천 대조 — 리뷰 3차 I-2) · 픽스처 398 → 402(신설 4 · 개정 1 gap7) —
+//    🆕 tool/gen_v139_fixtures.py. 🔴 엔진 · 조립 = 미결 242(목록 열 채우기 · 봉투 글자) · 243(postmortem 조립 · 생체 배선 · 경보 · 가입 확인).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.38.0';
+const String contractVersion = '1.39.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -478,6 +554,7 @@ export 'dto/operations.dart';
 export 'dto/ops.dart';
 export 'dto/performance.dart';
 export 'dto/plan.dart';
+export 'dto/postmortem.dart'; // 🆕 v1.39 — M5-4 postmortem 목록(01 §48 K345)
 export 'dto/rebalance.dart';
 export 'dto/repair.dart'; // 🆕 v1.32 — X5 정정 마법사(01 §41)
 export 'dto/resume.dart';
@@ -501,6 +578,7 @@ export 'dto/settings.dart';
 // 근거: 01 §2-1 · 인벤토리 §2.
 
 export 'enums/advice.dart';
+export 'enums/biometric.dart'; // 🆕 v1.39 — 생체 대화상자 목적(01 §48 K350 · 미결 238)
 export 'enums/calendar.dart';
 export 'enums/command.dart';
 export 'enums/draft.dart';
@@ -634,6 +712,7 @@ export 'repositories/ops_repository.dart';
 export 'repositories/pairing_repository.dart';
 export 'repositories/performance_repository.dart';
 export 'repositories/pledge_repository.dart';
+export 'repositories/postmortem_repository.dart'; // 🆕 v1.39 — M5-4(01 §48)
 export 'repositories/rebalance_repository.dart';
 export 'repositories/repair_wizard_repository.dart'; // 🆕 v1.32 — X5 정정 마법사(01 §41)
 export 'repositories/resume_gate_repository.dart';
@@ -862,6 +941,8 @@ abstract class CommandReceipt with _$CommandReceipt {
     /// 🔴 `state == CommandState.rejected` 이면 필수다(§5-2 ·
     ///    `CommandStateMachine.requiresRejectReasonCode`).
     ///    🔴 **거부는 초안을 지우지 않는다**(C17) — 초안 삭제는 `executed` 수신 시에만.
+    ///    🆕 v1.39(01 §48 · K347) — 종류 공통 거부 `LedgerWriteGateCodes.ledgerClosed`(`LEDGER_CLOSED` · 화면 상태가 가리키는 원장이
+    ///    닫혔다 — 실전 전환 커밋 ~ 깨어남 끝 틈 · 쓰기 0 · 다시 누르면 새 원장에 적힌다) — 종류별 거부 사전과 함께 온다.
     String? rejectReasonCode,
 
     /// 🆕 v1.12(01 §21 · K20) — 거부 뒤 엔진이 실은 «재제출 선택지» 1개(B5 시간외·단주 · A9 중복 확인).
@@ -1919,7 +2000,7 @@ abstract class SafetyActionResult with _$SafetyActionResult {
     /// `SeasonalChoiceResultCodes` ∪ `PlannedWorkRejectCodes` ∪ `ResumeItemReasonCodes`(멈춤 사유 7) ∪ 🆕 v1.26
     /// `ReconClearResultCodes` ∪ 🆕 v1.32 `RepairResultCodes` ∪ `BaselineResultCodes` ∪ `BaselineApplyResultCodes` ∪ `AdviceRejectCodes` 정정 3 ∪
     /// 🆕 v1.35 `RepairInputResultCodes` ∪ 🆕 v1.37 `HeldReviewResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`}(C-55 ② · C-56 ② · C-60 ⑩ ·
-    /// C-66 · C-68 · C-70 ④).
+    /// C-66 · C-68 · C-70 ④) ∪ 🆕 v1.39 `LedgerWriteGateCodes`(원장에 쓰는 동작 · 닫힌 원장 = 쓰기 0 · `retryable` true · 01 §48 K347).
     String? reasonCode,
 
     /// ⏸ 1.21.0 · 1.22.0 표본 null(넘김 동작 = 화면 판 · 목적지 = M5·X 라우트 상수만).
@@ -2181,6 +2262,8 @@ abstract class InterventionJournalSubmission
 // 🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드 args 화이트리스트(handover +3 · 확정 = 기존 `handoverCommit`).
 // 🆕 v1.23(01 §32 · K77) — M9 `S13` 월 납입 = 원문 제출 DTO `ContributionUpdateSubmission` + `runContributionUpdate`(표면 run·runContributionUpdate·watch 셋 — C-7) · `run` 화이트리스트 밖.
 // 🆕 v1.31(01 §40 · K239) — 온보딩 검증 +1 `supabaseSignIn` = `{}`(o_07 ③ 로그인 · 결과 = `SupabaseAuthResultCodes` ∪ 전송 6).
+// 🆕 v1.39(01 §48 · K349 ④) — `supabaseSignIn` 통과 뒤 공개 가입 확인 1회(`/auth/v1/settings` `disable_signup`) · 열림 = `SUPABASE_SIGNUP_OPEN`
+//    (`SupabaseSignupResultCodes` · o_07 VERIFIED 아님 · 새로고침 토큰은 금고에 둔다 · 다시 누르면 다시 확인).
 // 🆕 v1.24(01 §33 · K120) — M9 `S09`·`S10` args 화이트리스트(`backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}`) · `backupRestoreStart` = 화면 미호출 · 두 화면은 결과를 읽는다.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -2243,7 +2326,9 @@ part 'settings_actions.g.dart';
 ///      `AdviceRejectCodes.modeCombinationDenied`)
 ///    · `runtimeEngineStop`                 = `{reason_code ∈ EngineStopReasonCodes}`(`EngineControl.stopActions` — 사유마다 1)
 ///    · 🆕 `runtimeLivePromotion`           = `{}`(`RunModeCard.promotionAction` · 생체 1회 = 구현 · 결과 `reasonCode` ∈
-///      `LiveObservationBlockCodes` ∪ `LivePromotionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`})
+///      `LiveObservationBlockCodes` ∪ `LivePromotionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`, 🆕 v1.39 `LEASE_INVALID`}
+///      · 🆕 v1.39(01 §48 K346) 사전 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → 리스 → 설정(`LIVE_PROMOTION_CONFIG_UNAVAILABLE`) → 재판정 ·
+///      생체 대화상자 목적 = `BiometricPurpose.livePromotion`(01 §48 K350))
 ///    🔴 키 `target` 을 쓰지 않는다(C-5 `connection_target` 사전 키). `S05` 는 [ActionResult] 를 읽는다 — `headline` + `reasonCode`
 ///      원문 · `handoffRoute` 가 있으면 `AppLinkOpener.open(handoffRoute)` 하고 끝 · `retryable` 전부 false(버튼 = VM 의 호출뿐)
 ///      (표본 = `m9/operations_action_results`).
@@ -2279,12 +2364,15 @@ part 'settings_actions.g.dart';
 ///      = X4(⏸ R9d · 01 §8 미결 5 · 196) · `settingsGeneralUpdate` = S11 창(⏸ R9e · 미결 197) — args 미정 유지.
 ///    🆕 v1.22(01 §31 · K56) — `M5-11` simToAuto 위저드(🔒 `ui_safety` · 폰 로컬 · 뷰어 경로 0 · M9 `S05` 는 부르지 않는다):
 ///    · `handoverSimLedgerFate` = `{fate ∈ {KEEP, DISCARD}}`(엔진 `SimLedgerFate.wire` · 🔴 **세션 전** — 5단계는 6단계 생체(세션 열림) 앞이라
-///      `handover_session_id` 를 넣지 않는다 · 결과 `reasonCode` ∈ {`SIM_LEDGER_FATE_SIM_CLOSED`, `SIM_TO_AUTO_NOT_SIM_AUTO`})
+///      `handover_session_id` 를 넣지 않는다 · 결과 `reasonCode` ∈ {`SIM_LEDGER_FATE_SIM_CLOSED`, `SIM_TO_AUTO_NOT_SIM_AUTO`,
+///      🆕 v1.39 `SIM_LEDGER_FATE_CONFIG_UNAVAILABLE`(01 §48 K346 · 모의 파일 지금 설정 못 읽음 = 쓰기 0)})
 ///    · `handoverSessionStart`  = `{path ∈ {SIM_TO_AUTO}}`(1.22.0 화이트리스트 = 하나 · 생체 1회 = 구현 · 결과 `reasonCode` ∈
-///      `SimToAutoResultCodes` ∪ `SimToAutoStepIds` ∪ `HandoverSessionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`})
+///      `SimToAutoResultCodes` ∪ `SimToAutoStepIds` ∪ `HandoverSessionResultCodes` ∪ {`BIOMETRIC_UNAVAILABLE`} · 🆕 v1.39 생체 대화상자
+///      목적 = `BiometricPurpose.handoverStart`(«실전 전환 시작» — 서약 글자 0 · 01 §48 K350))
 ///    · `handoverSessionCancel` = `{handover_session_id}`(결과 = 정상 · `HANDOVER_SESSION_INVALID`)
 ///    · `handoverCommit`(simToAuto) = 위 그대로 `{handover_session_id}` · 결과 `reasonCode` ∈ `SimToAutoCommitResultCodes` ∪ `SimToAutoResultCodes` ∪
-///      `SimToAutoStepIds` ∪ {`HANDOVER_SESSION_INVALID`, `LEASE_INVALID`}(구현 = 엔진 오케스트레이터 `SimToAutoSwitchResult`)
+///      `SimToAutoStepIds` ∪ {`HANDOVER_SESSION_INVALID`, `LEASE_INVALID`}(구현 = 엔진 오케스트레이터 `SimToAutoSwitchResult` · 🆕 v1.39 엔진 예약
+///      3 등재 = `SIM_TO_AUTO_CONFIG_NOT_APPROVED` · `SIM_TO_AUTO_ACCOUNT_DUPLICATE` · `SIM_LEDGER_FATE_CONFIG_UNAVAILABLE` — 사전 안)
 ///    🔴 위 «세 동작 모두 필수»(`handover_session_id`)는 adoption·external·commit 셋의 조문이다 — `handoverSimLedgerFate` 는 그 밖.
 ///    🔴 결과 문구 = 엔진 `headline`(확정 성공 문장 = 금액을 품는다 → 표본 0) · 🆕 v1.26 위저드 읽기 창구·VM = `HandoverRepository.watchWizard` · `HandoverWizardVm`(01 §35 · K167~K169 · 미결 187 닫음 · 단계별 허용 id = 행 머리).
 ///
@@ -7571,6 +7659,120 @@ abstract class RebalancePreview with _$RebalancePreview {
 
 ---
 
+## `packages/domain_contracts/lib/src/dto/postmortem.dart`
+
+```dart
+// 🆕 계약 v1.39(01 §48 · K345 · 01 §8 미결 188 · 230 ⓑ · 13 §8 R243 P3) — `M5-4` 안전 사건 postmortem 목록 + 쓰기 한 화면.
+//
+// 🔴 쓰기 = 기존 `SafetyActions.runPostmortem(PostmortemSubmission{incidentId, text})`(v1.22 · 결과 `PostmortemResultCodes` 3 · C-7 표면
+//    무변경) — 이 VM 은 «무엇을 · 언제까지 써야 하는가»와 제출에 넘길 [PostmortemRow.incidentId] 원천이다.
+// 🔴 행 = 열린 사건 가운데 postmortem 칸이 있는 것(SEV1 STOPPED · SEV2 수동 주문 — 엔진 `openIncidentsOf` + postmortem 칸) · 차례 = 엔진
+//    (`compareIncidentUrgency` — 심각도 → 기한 → 연 시각 → id) · 화면은 재정렬 · 거르기 · 세기 0.
+// 🔴 한 번만 쓴다(`POSTMORTEM_ALREADY_RECORDED`) — 쓴 행 = [PostmortemRow.writtenText] 읽기 전용 · [PostmortemRow.form] null.
+//    SEV1 은 써도 열린 채(닫기 = `M5-3` STOPPED 결정) → [PostmortemRow.nextLink] = `m5StoppedDecision`(본문 있을 때만).
+// 🔴 기한 = 엔진 상수(SEV1 3일 · SEV2 7일 — 03_운영 §4-6) · 이 계약에 수치 0 · 글자만(«기한 11-27 18:00» · «기한이 지났습니다»).
+// 🔴 뷰어 = 부재(폰 전용 · 읽기 모델 열 0 · `ui_safety` 만).
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/ui.dart';
+import '../primitives/as_of.dart';
+import 'common.dart';
+
+part 'postmortem.freezed.dart';
+part 'postmortem.g.dart';
+
+/// 쓰기 칸 하나(쓸 차례인 행만).
+@freezed
+abstract class PostmortemForm with _$PostmortemForm {
+  const factory PostmortemForm({
+    /// «무슨 일이 있었고, 무엇을 바꾸겠습니까?» — 엔진.
+    required String promptText,
+
+    /// 입력 칸 안내(엔진) · null = 없음.
+    String? hintText,
+
+    /// «한 번만 씁니다 — 고칠 일은 새 저널로» — 엔진 · null = 없음.
+    String? noticeText,
+
+    /// 저장 버튼 글자 «postmortem 저장» — 엔진(🔴 칸 이름에 쓰기 동사 0 — C-7).
+    required String buttonLabel,
+  }) = _PostmortemForm;
+
+  factory PostmortemForm.fromJson(Map<String, dynamic> json) =>
+      _$PostmortemFormFromJson(json);
+}
+// JSON 키: prompt_text · hint_text · notice_text · button_label
+
+/// 사건 한 건.
+/// 🔴 불변식(C-72 ⑥): [form] non-null ⇒ [writtenText] null · [incidentId] 빈칸 금지 · [nextLink] 목적지 = `AppRoutes.m5StoppedDecision`.
+@freezed
+abstract class PostmortemRow with _$PostmortemRow {
+  const factory PostmortemRow({
+    /// 제출 DTO `PostmortemSubmission.incidentId` 로 그대로 넘긴다 — 🔴 화면 미표시 · 해석 0.
+    required String incidentId,
+
+    /// «서킷브레이커 STOPPED» · «수동 주문 1건» — 엔진(금액 0).
+    required String title,
+
+    /// «SEV1» · «SEV2» — 엔진 글자(화면은 분기 0).
+    required String severityLabel,
+
+    /// 색에만(`blocked` · `act` · `info`).
+    required UiLevel level,
+
+    /// «11-20 10:12 발생» — 엔진.
+    required String occurredText,
+
+    /// «기한 11-23 10:12» · «기한이 지났습니다» — 엔진 · null = 기한 없음(쓴 행).
+    String? dueText,
+
+    /// 기한이 지났다(색 · 정렬 아님 — 정렬은 엔진).
+    required bool overdue,
+
+    /// «쓸 차례» · «썼습니다 — STOPPED 결정이 닫습니다» — 엔진.
+    required String stateLabel,
+
+    /// 쓴 글(읽기 전용 · 원문 그대로) · null = 아직 안 씀.
+    String? writtenText,
+
+    /// 쓰기 칸 · null = 이미 썼다(또는 쓸 수 없는 자리).
+    PostmortemForm? form,
+
+    /// SEV1 을 쓴 뒤 «STOPPED 결정으로» — 엔진(목적지 본문 있을 때만) · null = 부재.
+    LinkAction? nextLink,
+  }) = _PostmortemRow;
+
+  factory PostmortemRow.fromJson(Map<String, dynamic> json) =>
+      _$PostmortemRowFromJson(json);
+}
+// JSON 키: incident_id · title · severity_label · level · occurred_text · due_text · overdue · state_label · written_text · form · next_link
+
+/// `M5-4` 한 화면(목록 + 쓰기).
+/// 🔴 불변식(C-72 ⑥): [rows] 빔 ⇔ [emptyLabel] non-null.
+@freezed
+abstract class PostmortemListVm with _$PostmortemListVm {
+  const factory PostmortemListVm({
+    /// «써야 할 postmortem 1건» · «써야 할 postmortem 이 없습니다» — 엔진.
+    required String headline,
+    required UiLevel level,
+
+    /// 차례 = 엔진(심각도 → 기한 → 연 시각 → id).
+    required List<PostmortemRow> rows,
+
+    /// 행 0 일 때만 — 엔진.
+    String? emptyLabel,
+    required AsOf asOf,
+  }) = _PostmortemListVm;
+
+  factory PostmortemListVm.fromJson(Map<String, dynamic> json) =>
+      _$PostmortemListVmFromJson(json);
+}
+// JSON 키: headline · level · rows · empty_label · as_of
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/dto/rebalance.dart`
 
 ```dart
@@ -9758,6 +9960,45 @@ enum SeasonalEntryGateState {
 
 ---
 
+## `packages/domain_contracts/lib/src/enums/biometric.dart`
+
+```dart
+// 🆕 계약 v1.39(01 §48 · K350 · 01 §8 미결 238 · 리뷰 3차 A-3) — OS 생체 대화상자의 목적(무엇에 동의하는가).
+//
+// 🔴 생체 대화상자 하나(`biometricSign`)를 네 동작이 같이 쓰면서 모두 «서약에 생체로 서명»을 띄웠다 — 실전 집행 승격(실주문을 켜는
+//    동작)에서도 «방금 쓴 서약 세 문장을 확인합니다»라고 알렸다. 목적을 인자로 받고 글자는 [BiometricPurpose] 마다 하나다
+//    (`BiometricPromptText` · 플랫폼(Kotlin)은 문장을 짓지 않는다).
+// 🔴 게이트 판정(생체 확인 결과 · 실패 = `BIOMETRIC_UNAVAILABLE`)은 목적과 무관하다 — 목적은 대화상자 글자만 고른다.
+// 🔵 조립 배선(`biometricSign(purpose)` · 호출 넷) = 다음 카드(미결 238 남은 몫) — 그 전 = 늘 [pledgeSign] 글자(지금 그대로).
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+/// 생체 대화상자 목적(차례 = 사람이 처음 만나는 차례).
+enum BiometricPurpose {
+  /// `O-04` ③ 서약에 생체로 서명(온보딩 · 지금 글자 그대로).
+  @JsonValue('PLEDGE_SIGN')
+  pledgeSign('PLEDGE_SIGN'),
+
+  /// `M5-11` 6단계 — 실전 전환 시작(simToAuto 세션 열기 · 확정 = 냉각 뒤 · 실주문 0 = 관찰부터).
+  @JsonValue('HANDOVER_START')
+  handoverStart('HANDOVER_START'),
+
+  /// `S05` 실전 집행 승격(관찰 → 실주문을 켠다 · 01 §10-2 G-43).
+  @JsonValue('LIVE_PROMOTION')
+  livePromotion('LIVE_PROMOTION'),
+
+  /// X1 기기 이전 — 새 폰에서 실거래를 다시 연다(복구 마지막 단계 `biometricConfirmed`).
+  @JsonValue('X1_MIGRATION')
+  x1Migration('X1_MIGRATION');
+
+  const BiometricPurpose(this.wire);
+
+  /// 채널 · 로그 표기(대화상자 글자 아님).
+  final String wire;
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/enums/calendar.dart`
 
 ```dart
@@ -10045,7 +10286,8 @@ enum SettingsActionId {
   connectionSyncNow('CONNECTION_SYNC_NOW'),
 
   /// 🆕 v1.31(01 §40 · K239 · E11k-d2) — `o_07` ③ Supabase 로그인(이메일 + 비밀번호 = 슬롯 `SECRET_SUPABASE_LOGIN` ↔ 구현 사이만) · args `{}` ·
-  /// 1단(통과 = 구현이 새로고침 토큰을 금고에) · 결과 `reasonCode` ∈ `SupabaseAuthResultCodes` ∪ `SupabaseTimeResultCodes` 전송 6 ∪ null ·
+  /// 1단(통과 = 구현이 새로고침 토큰을 금고에) · 결과 `reasonCode` ∈ `SupabaseAuthResultCodes` ∪ `SupabaseTimeResultCodes` 전송 6 ∪
+  /// 🆕 v1.39 `SupabaseSignupResultCodes`(로그인 통과 뒤 공개 가입 확인 — 열림 = o_07 VERIFIED 아님 · 01 §48 K349 ④) ∪ null ·
   /// 🔴 `connectionTest{SUPABASE}`(o_07 ② 연결)과 다른 동작 — 한 단계 안 두 결과를 섞지 않는다.
   @JsonValue('SUPABASE_SIGN_IN')
   supabaseSignIn('SUPABASE_SIGN_IN'),
@@ -12023,6 +12265,16 @@ abstract final class FixturePaths {
   /// 🆕 v1.37(K319) — 보관 명령 일괄 확정 결과 4행(`HELD_COMMANDS_CONFIRM` · 확정 1 · 거부 3 = `HeldReviewResultCodes`).
   static const String m5HeldReviewResults = 'm5/held_review_results.json';
 
+  /// 🆕 v1.39(01 §48 · K345 · 미결 188 · 13 R243 P3 ⓔ) — `M5-4` postmortem 목록 빈 상태(행 0 · `empty_label`).
+  static const String m5PostmortemListEmpty = 'm5/postmortem_list_empty.json';
+
+  /// 🆕 v1.39 — `M5-4` SEV2 수동 주문 1건 쓸 차례(기한 전 · 쓰기 칸).
+  static const String m5PostmortemListDue = 'm5/postmortem_list_due.json';
+
+  /// 🆕 v1.39 — `M5-4` SEV1 STOPPED 씀(읽기 전용 · STOPPED 결정 링크) + SEV2 기한 넘김(쓰기 칸) · 차례 = 심각도 → 기한.
+  static const String m5PostmortemListWrittenOverdue =
+      'm5/postmortem_list_written_overdue.json';
+
   // ── m6/ — 매매일지·보유·X7 안내·수기 체결 (02 «모의 데이터») ──
   static const String m6Advice12 = 'm6/advice_12.json';
   static const String m6AdviceBlocked = 'm6/advice_blocked.json';
@@ -12523,6 +12775,11 @@ abstract final class FixturePaths {
   static const String m8IncidentBannerOrderRejected =
       'm8/incident_banner_order_rejected.json';
   static const String m8IncidentBannerOther = 'm8/incident_banner_other.json';
+
+  /// 🆕 v1.39(01 §48 · K345 · 13 R243 P3 ⓔ) — `D-01` postmortem 기한 배너(종류 OTHER · 조치 «postmortem 쓰기» → `m5Postmortem`) ·
+  /// 기존 `other` 표본(조치 0) 무변경.
+  static const String m8IncidentBannerPostmortemDue =
+      'm8/incident_banner_postmortem_due.json';
   static const String m8IncidentBannerPhoneDown =
       'm8/incident_banner_phone_down.json';
   static const String m8IncidentBannerTokenExpired =
@@ -13056,6 +13313,9 @@ abstract final class FixturePaths {
     m5SelfAuditResolveHeldBlocked,
     m5SelfAuditResolveClear,
     m5HeldReviewResults,
+    m5PostmortemListEmpty,
+    m5PostmortemListDue,
+    m5PostmortemListWrittenOverdue,
     m6Advice12,
     m6AdviceBlocked,
     m6AdviceDetailOnhold,
@@ -13227,6 +13487,7 @@ abstract final class FixturePaths {
     m8IncidentBannerNone,
     m8IncidentBannerOrderRejected,
     m8IncidentBannerOther,
+    m8IncidentBannerPostmortemDue,
     m8IncidentBannerPhoneDown,
     m8IncidentBannerTokenExpired,
     m8IncidentTokenExpired,
@@ -13675,7 +13936,7 @@ abstract final class SeasonalEntryGateCodes {
 ## `packages/domain_contracts/lib/src/labels/alert_codes.dart`
 
 ```dart
-// 알림 코드 36종 — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11) ·
+// 알림 코드 39종(🆕 v1.39 킬스위치 확인 1 · 읽기 모델 push 2 — 01 §48 K344 · K348) — 04 §5-1b(X7 9 + 전환 2) · §5-1c(자동 매매 11 + 유지보수 2) · §5-1d(운영 1)(🆕 v1.17 `STALE_ORDERS_HELD` · 엔진 D11) ·
 // 🆕 v1.18 안전 3(E13 · 04 §5-3 v2.40·v2.41 제안) · 재개 3(E14 · 04 §5-3 v2.42 제안) ·
 // 🆕 v1.27 SAF 경고 4(E3d · 04 §1 Level 3 · §5-3 v2.46 제안) · 파생 동기 1(E16 · 04 §5-3 v2.45 제안 · 01 §36).
 // 인벤토리 §6-9 의 분류를 그대로 쓴다.
@@ -13825,6 +14086,23 @@ abstract final class AlertCodes {
   /// 할 일 = X1 복원 또는 새 기준점(사람만 · 엔진 `kDerivedForkAlertCode`).
   static const String derivedFork = 'DERIVED_FORK';
 
+  // ── 🆕 v1.39 킬스위치 확인 1 (01 §48 K348 · 13 §8 R261 H7 · 리뷰 3차 B-03 · 04 §5-3 등급 행 = 이 판 제안) ──────────
+  /// 🔴 계약 먼저 등재 — 엔진 등급(`kAlertLevels`) · 글자(`kAlertTexts`) · 내는 자리 = 미결 243(그 전 = 알림 0).
+  /// 잠정 P0 · 킬스위치 발동 뒤 기록 확인이 엔진이 본 미체결 수와 어긋남(core `KillChecklistVerdict` `KILL_ACK_MISMATCH` · `p0: true` —
+  /// 조립이 이 코드로 P0 경보 1건 · 🔴 알림 코드 ≠ 확인 결과 코드(`KillSwitchResultCodes.ackMismatch` = 화면 결과 축) — 같은 사건 두 축).
+  static const String killSwitchAckMismatch = 'KILL_SWITCH_ACK_MISMATCH';
+
+  // ── 🆕 v1.39 읽기 모델 push 2 (01 §48 K344 · 13 §8 R263 C3 · C7 · 미결 230 ⓓ · 04 §5-3 등급 행 = 이 판 제안) ──────────
+  /// 🔴 계약 먼저 등재 — 엔진 등급 · 글자 · 내는 자리(push 보고서 실패 목록 → 알림) = 미결 243(그 전 = 알림 0).
+  /// 잠정 P1 · push 가 시크릿 꼴 글자를 찾아 그 표를 보내지 않았다(PUSH_FAILED · 시크릿 차단 — 뷰어 사본이 멈춘다 · 조치 = 원인 확인).
+  /// 🔴 본문에 찾은 글자 · 값 0(표 이름 · 종류만).
+  static const String readModelPushSecretBlocked =
+      'READ_MODEL_PUSH_SECRET_BLOCKED';
+
+  /// 잠정 P1 · 서버 표와 앱이 어긋나 push 가 거부됐다(PUSH_FAILED · `READ_MODEL_ROWS_INVALID` · `READ_MODEL_TABLE_UNKNOWN` · 응답 꼴 ·
+  /// 행을 못 만듦 — 조치 = 앱 업데이트 · 부트스트랩 다시). 🔴 망 · 서버 · 로그인 · 리스(PUSH_LAG)는 알림 0(다음 깨우기에 다시 — 경보 피로).
+  static const String readModelPushRejected = 'READ_MODEL_PUSH_REJECTED';
+
   /// X7 안내 9종.
   static const Set<String> x7Advice = <String>{
     adviceIssued,
@@ -13893,7 +14171,16 @@ abstract final class AlertCodes {
   /// 🆕 v1.27 파생 동기 1종.
   static const Set<String> derivedSync = <String>{derivedFork};
 
-  /// 전량 36종.
+  /// 🆕 v1.39 킬스위치 확인 1종.
+  static const Set<String> killSwitch = <String>{killSwitchAckMismatch};
+
+  /// 🆕 v1.39 읽기 모델 push 2종.
+  static const Set<String> readModelPush = <String>{
+    readModelPushSecretBlocked,
+    readModelPushRejected,
+  };
+
+  /// 전량 39종(🆕 v1.39 +3).
   static const Set<String> values = <String>{
     ...x7Advice,
     ...handover,
@@ -13904,6 +14191,8 @@ abstract final class AlertCodes {
     ...resume,
     ...safetyWarn,
     ...derivedSync,
+    ...killSwitch,
+    ...readModelPush,
   };
 }
 ```
@@ -14826,6 +15115,9 @@ abstract final class ContractCodes {
     'lease_handover_result': LeaseHandoverResultCodes.values,
     // 🆕 v1.38(01 §47 · K333 · E11l2) — 읽기 모델 push RPC 고유 거부 2(리스 거부 = `lease_rpc_result` 한 벌)
     'read_model_push_result': ReadModelPushResultCodes.values,
+    // 🆕 v1.39(01 §48 · K347 · K349 ④) — 닫힌 원장 쓰기 거부(모든 명령 접수증 · 동작 결과) · o_07 공개 가입 확인
+    'ledger_write_gate': LedgerWriteGateCodes.values,
+    'supabase_signup_result': SupabaseSignupResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -16832,8 +17124,12 @@ abstract final class LiveObservationBlockCodes {
 }
 
 /// 🆕 E15e2(#161) — 승격 커밋 거부·결과(도메인 `live_promotion_result` · 엔진 `LivePromotionCodes` 글자 그대로) —
-/// `runtimeLivePromotion` 결과 `ActionResult.reasonCode`(사전 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → 재판정).
-/// 🔴 생체 없음 = `SettingsResultCodes.biometricUnavailable`(한 벌 — 이 사전에 다시 싣지 않는다) · 재판정 막힘 = [LiveObservationBlockCodes].
+/// `runtimeLivePromotion` 결과 `ActionResult.reasonCode`.
+/// 🆕 v1.39(01 §48 · K346) 사전 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → **리스 → 설정 → 재판정**
+/// (core `livePromotionReject` · 리스 = E15f5 R108 · 설정 = 리뷰 3차 H2-02 · 13 §8 R265 — 설정을 못 읽으면 잡이 실패해 무결일이 0 이라
+/// «일수 부족»이 진짜 사유를 가린다 → 재판정보다 먼저).
+/// 🔴 생체 없음 = `SettingsResultCodes.biometricUnavailable` · 리스 무효 = `JournalReasonCodes.leaseInvalid`(`LEASE_INVALID` · core
+///    `kLeaseInvalidCode`) — 둘 다 한 벌(이 사전에 다시 싣지 않는다) · 재판정 막힘 = [LiveObservationBlockCodes].
 abstract final class LivePromotionResultCodes {
   /// 준 세션이 없거나 닫혔거나 만료.
   static const String sessionInvalid = 'HANDOVER_SESSION_INVALID';
@@ -16850,12 +17146,17 @@ abstract final class LivePromotionResultCodes {
   /// 저장 실패 — 전부 되돌렸다.
   static const String rolledBack = 'LIVE_PROMOTION_ROLLED_BACK';
 
+  /// 🆕 v1.39(01 §48 · K346 · 13 §8 R265 S3) — 실전 파일의 지금 설정(실전 개시 판)을 못 읽었다(빈 지문으로 실주문을 켜지 않는다 ·
+  /// 쓰기 0 · 다시 시도 0 · 화면 = headline 그대로).
+  static const String configUnavailable = 'LIVE_PROMOTION_CONFIG_UNAVAILABLE';
+
   static const Set<String> values = <String>{
     sessionInvalid,
     notObserving,
     notAutoTrade,
     clockBehind,
     rolledBack,
+    configUnavailable,
   };
 }
 
@@ -16972,7 +17273,11 @@ abstract final class SimToAutoResultCodes {
 }
 
 /// 🆕 v1.22(K58) — simToAuto 확정 1단계 · 오케스트레이터 결과(도메인 `sim_to_auto_commit_result` ·
-/// core `SimToAutoCommitCodes` `mode/sim_to_auto_commit.dart:49-79` 10 + `mode/sim_to_auto_switch.dart:21-25` 2).
+/// core `SimToAutoCommitCodes`(`mode/sim_to_auto_commit.dart`) 전부 + `mode/sim_to_auto_switch.dart` 2).
+/// 🆕 v1.39(01 §48 · K346) 엔진 안 예약 3 등재 — [fateConfigUnavailable](13 R265 S4) · [configNotApproved](13 R192 AA4) ·
+/// [accountDuplicate](13 R262 D3) · 🔴 엔진 `SimToAutoCommitCodes` ⊆ 이 사전(C-72 ⑧ 원천 대조 — 리뷰 3차 I-2).
+/// 판정 차례(core `simToAutoCommitReject` · 13 R192 · R262) = 신뢰 시각 → 세션 → 리스 → 이미 커밋 → **승인 config** → 재판정(냉각) →
+/// 계좌 조회 없음 → **별칭 중복** → 신선도 → 보유 → 활동 → 예수금(모름 · 0원).
 abstract final class SimToAutoCommitResultCodes {
   /// 실전 파일에 이미 모드 행이 있다.
   static const String alreadyCommitted = 'SIM_TO_AUTO_ALREADY_COMMITTED';
@@ -17011,6 +17316,19 @@ abstract final class SimToAutoCommitResultCodes {
   /// 오케스트레이터 — 커밋 콜백 결과 모름(보상 0 · 🔴 상수 이름 ≠ 엔진 `kSimToAutoCommitUnknown` — C-7 · K51).
   static const String outcomeUnknown = 'SIM_TO_AUTO_COMMIT_UNKNOWN';
 
+  /// 🆕 v1.39(13 R265 S4 · 리뷰 3차 H2-02) — 모의 파일의 지금 설정(모의 개시 판)을 못 읽어 5단계 고름을 적지 않았다(쓰기 0 · 빈 지문 결정 0) ·
+  /// 축 = `handoverSimLedgerFate` 결과(S5 · [simClosed] 와 같은 자리).
+  static const String fateConfigUnavailable =
+      'SIM_LEDGER_FATE_CONFIG_UNAVAILABLE';
+
+  /// 🆕 v1.39(13 R192 AA4 · 미결 205 ⓓ) — 지금 설정(실전 개시에 붙일 판)이 규칙 변경 승인을 받지 않았다(승인 config 0 · 승인 기록 없음 ·
+  /// 다른 판 승인) — 쓰기 0 · 세션 그대로(SAF-405 · 실전 기동 = 승인 config 필수).
+  static const String configNotApproved = 'SIM_TO_AUTO_CONFIG_NOT_APPROVED';
+
+  /// 🆕 v1.39(13 R262 D3 · 리뷰 3차 A-2) — 서로 다른 별칭이 같은 실전 계좌(종합계좌 · 상품코드)를 가리킨다 — 쓰기 0 · 세션 그대로
+  /// (한 계좌 예수금을 두 번 개시 현금으로 적지 않는다).
+  static const String accountDuplicate = 'SIM_TO_AUTO_ACCOUNT_DUPLICATE';
+
   static const Set<String> values = <String>{
     alreadyCommitted,
     probeMissing,
@@ -17024,7 +17342,22 @@ abstract final class SimToAutoCommitResultCodes {
     simClosed,
     watchdogPrepareFailed,
     outcomeUnknown,
+    fateConfigUnavailable,
+    configNotApproved,
+    accountDuplicate,
   };
+}
+
+/// 🆕 v1.39(01 §48 · K347 · 13 §8 R261 H5 · 리뷰 3차 H1-2) — 닫힌 원장 쓰기 거부(도메인 `ledger_write_gate`).
+/// 축 = `CommandReceipt.rejectReasonCode`(모든 명령 종류) · `ActionResult.reasonCode` · `SafetyActionResult.reasonCode`(원장에 쓰는 동작).
+/// 🔴 뜻 = 화면 상태가 가리키는 원장이 닫혔다(simToAuto 커밋으로 CLOSE 된 모의 원장 · 커밋 ~ 깨어남 끝 몇 초 틈) → 쓰기 0 · 접수증 = rejected ·
+///    다시 누르면 깨어남 뒤 새 원장에 적힌다(`retryable` true · 글자 = 엔진 headline · `stateLabel`).
+/// 🔴 `runMode` 불일치 거부(01 §5-3 · 파일 경계)와 다른 축 — 같은 모드라도 원장 행이 CLOSE 면 이 글자.
+abstract final class LedgerWriteGateCodes {
+  /// 닫힌(CLOSE) 원장에는 쓰지 않는다.
+  static const String ledgerClosed = 'LEDGER_CLOSED';
+
+  static const Set<String> values = <String>{ledgerClosed};
 }
 
 /// 🆕 v1.22(K21) — 전환 세션 결과(도메인 `handover_session_result` · core `HandoverSessionCodes` `mode/handover_session.dart:75-88`
@@ -17206,6 +17539,18 @@ abstract final class SupabaseAuthResultCodes {
     rateLimited,
     vault,
   };
+}
+
+/// 🆕 v1.39(01 §48 · K349 ④ · 13 §8 R267 L4 · 리뷰 3차 C-2 = I-U2) — o_07 공개 가입 확인(도메인 `supabase_signup_result`).
+/// 🔴 자리 = `supabaseSignIn`(o_07 ③) 로그인 통과 뒤 `GET /auth/v1/settings`(공개 키 · 인증 0) 1회 — `disable_signup == true` 만 통과.
+///    열림 = [signupOpen](o_07 = VERIFIED 아님 · IN_PROGRESS 그대로 · 새로고침 토큰은 금고에 둔다 — 로그인 자체는 성공) · 읽기 실패 =
+///    `SupabaseTimeResultCodes` 전송 글자 그대로(새 글자 0) · 칸 없음 · 꼴 아님 = `SUPABASE_BAD_RESPONSE`(모름 = 통과 아님).
+/// 🔴 끄는 곳 = 발주자(Supabase 대시보드 «Allow new users to sign up» · 17 절차서 §3-7 · ✅ 2026-11-24) — 앱은 확인만 한다(설정 바꾸기 0).
+abstract final class SupabaseSignupResultCodes {
+  /// 공개 가입이 열려 있다(아무나 계정을 만들어 리스 · 읽기 모델을 넘볼 수 있다).
+  static const String signupOpen = 'SUPABASE_SIGNUP_OPEN';
+
+  static const Set<String> values = <String>{signupOpen};
 }
 
 /// 리스 RPC 거부(도메인 `lease_rpc_result` · RPC 표 = 01 §6-4 · `schema/supabase_rpc.dart` · 본문 = E11k-e · 🔴 SQL 이 이 글자를
@@ -17863,6 +18208,11 @@ abstract final class AppRoutes {
   /// 🆕 v1.21 — 🔒 `M5-9` 규칙 변경 게이트(M9 `S04` «적용» `ActionResult.handoffRoute` 목적지 · R8) · 본문 = 빈 자리(E13m).
   static const String m5RuleChangeGate = 'aaq://m5/rule-change-gate';
 
+  /// 🆕 v1.39(01 §48 · K345 · 미결 188 · 13 §8 R243 P3 ⓐ) — 🔒 `M5-4` 안전 사건 postmortem 목록 + 쓰기 한 화면(파라미터 0 · 본문 =
+  /// `ui_safety` · VM = `PostmortemListVm` · 창구 = `PostmortemRepository.watchPostmortems` · 쓰기 = `SafetyActions.runPostmortem`) ·
+  /// D-01 배너 조치 «postmortem 쓰기» 목적지 · 본문 = 화면이 생길 때까지 레지스트리 빈 자리(엔진 `hasBody` 거짓 = 조치 부재).
+  static const String m5Postmortem = 'aaq://m5/postmortem';
+
   /// 🔒 X1 **옛 폰 계획 교체 마법사**(`X1-2` · S06 리스 카드 · S09 «폰을 바꾸시나요?» 진입) — 🆕 v1.33(01 §42 · K265) VM = `X1PlanWizardVm`.
   static const String x1Migration = 'aaq://x1/migration';
 
@@ -17984,6 +18334,7 @@ abstract final class AppRoutes {
     x2ResumeGate,
     x5RepairWizard,
     x5RepairTarget, // 🆕 v1.32 = 85(01 §41 · K248)
+    m5Postmortem, // 🆕 v1.39 = 86(01 §48 · K345 · 파라미터 0 — 첫 일치 겹침 0 · 맨 끝)
   ];
 
   /// [link] 가 [all] 의 패턴 하나와 일치하는가.
@@ -18017,6 +18368,18 @@ abstract final class AppRoutes {
       }
     }
     return true;
+  }
+}
+
+/// 🆕 v1.39(01 §48 · K342 · 미결 230 ⓐ · 13 §8 R250 ④) — 라우트 조각 → 키(엔진이 링크를 지을 때 `%` · `#` · `?` · `/` 를 퍼센트 꼴로
+/// 감싼다 → 퍼센트 꼴을 **한 번** 푼다 · 풀 수 없는 글자 = 그대로). 엔진 core `journalKeyOf` 와 같은 규칙.
+/// 🔴 화면은 부르지 않는다(규칙 ② — 링크 해석 금지) — 쓰는 곳 = 셸이 경로 조각을 창구 인자로 넘길 때 · 뷰어 일지 회차 필터
+///    (`watchTimeline(rebalanceEventId:)` → `rm_journal.rebalance_event_id` 같음).
+String routeParamKeyOf(String routeParam) {
+  try {
+    return Uri.decodeComponent(routeParam);
+  } on ArgumentError {
+    return routeParam;
   }
 }
 ```
@@ -19088,6 +19451,24 @@ abstract interface class PledgeRepository {
 
 ---
 
+## `packages/domain_contracts/lib/src/repositories/postmortem_repository.dart`
+
+```dart
+// 01 §4-1 — 🆕 계약 v1.39(01 §48 · K345 · 01 §8 미결 188 · 13 §8 R243 P3 ⓑ) — `M5-4` postmortem 읽기 창구(`ui_safety` 만 · 폰 전용).
+//
+// 🔴 기존 `IncidentRepository`(D-01 배너 · 셸 주입 · 뷰어) 무변경 — 배너는 0/1건, 이 창구는 써야 할 사건 목록(`BlockBoardRepository` 선례).
+// 🔴 쓰기 = `SafetyActions.runPostmortem` 하나(상태를 바꾸는 경로 0 — C-7).
+
+import '../dto/postmortem.dart';
+
+/// `M5-4` 한 화면.
+abstract interface class PostmortemRepository {
+  Stream<PostmortemListVm> watchPostmortems();
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/repositories/rebalance_repository.dart`
 
 ```dart
@@ -19691,6 +20072,33 @@ final class ReadModelExtraColumn {
   final String source;
 }
 
+/// 🆕 v1.39(01 §48 · K339~K341 · 미결 230 ⓐ ⓔ · 13 §8 R250 V3) 목록 열 — 행 표 목록의 엔진 차례 · 소속(+ 봉투 글자 · 기간 프리셋).
+///
+/// 🔴 차례 열 `<목록>_rank bigint` = 그 창구 **기본 호출**(필터 · 구간 인자 없음 — 엔진 기본)의 차례 · **상한(limit) 없이** 1부터 빈틈 없이 ·
+///    null = 그 목록 밖 → 뷰어 `hasMore` = limit+1(v1.36 K310 그대로 · 봉투 `has_more` 열 0).
+///    엔진 push = 목록 전부 + 목록에서 빠진 행(같은 키 · 큰 판 · rank null)을 다시 보낸다(삭제 0 · K335) — 시간이 지나 빠지는 행
+///    (원장 차이 30일 · 알림 7일 · 안내 만료)도 깨어남마다 다시 판정한다. 직전 소속 = 엔진 로컬 push 상태가 안다(뷰어는 모른다).
+/// 🔴 뷰어 = `rank is not null order by rank asc` · 인자 = 같은 행 열과 같음만(일지 `sleeve` · `symbol` · `status` · `fill_origin` ·
+///    `rebalance_event_id`(= `routeParamKeyOf` 한 번) · 구간 = `trade_date` 양끝 포함 · 알림 `min` = `AlertLevel` 선언 차례 앞쪽까지) ·
+///    그 밖 인자(안내 `status` · 안내 이력 구간 · 회차 `range` · 시리즈 구간) = `UnsupportedError`(엔진 의미 0 — 지어내지 않는다).
+/// 🔴 push 빌더(`readModelRow`)는 목록 열을 요구하지 않는다 — 엔진이 채우기 전 = null(01 §8 미결 242) · 뷰어 목록 창구는 그때까지
+///    `UnsupportedError` 그대로(뷰어 V3 카드 = 엔진 채움 뒤). 결속 열 아님(DTO `fromJson` 에 넘기지 않는다 — C-72 ②).
+final class ReadModelListColumn {
+  const ReadModelListColumn(this.name, this.window, this.rule);
+
+  /// 열 이름(`ReadModelTable.columns` 안 · 표 맨 끝).
+  final String name;
+
+  /// 이 열이 섬기는 창구 «저장소.메서드» · 봉투 열 = [everyList].
+  final String window;
+
+  /// 규칙(문서 글자).
+  final String rule;
+
+  /// 봉투 열의 [window] — 모든 `list_code` 행.
+  static const String everyList = '*';
+}
+
 /// 뷰어 판 열 — 열은 있다 · 엔진 push 가 뷰어 판 값을 싣는다(K309).
 final class ReadModelViewerVariant {
   const ReadModelViewerVariant(this.keyPath, this.rule);
@@ -19710,6 +20118,7 @@ final class ReadModelTable {
     required this.columns,
     this.bindings = const <ReadModelBinding>[],
     this.extraColumns = const <ReadModelExtraColumn>[],
+    this.listColumns = const <ReadModelListColumn>[],
     this.viewerVariants = const <ReadModelViewerVariant>[],
     this.listCodes = const <String>[],
   });
@@ -19728,6 +20137,9 @@ final class ReadModelTable {
 
   /// DTO 밖 열.
   final List<ReadModelExtraColumn> extraColumns;
+
+  /// 🆕 v1.39 목록 열(K339) — 이름은 [columns] 맨 끝에도 있다(차례 그대로).
+  final List<ReadModelListColumn> listColumns;
 
   /// 뷰어 판 열.
   final List<ReadModelViewerVariant> viewerVariants;
@@ -19807,8 +20219,13 @@ abstract final class ReadModelListCodes {
   /// `LedgerRepository.watchOpenDiffs` — 행 = `rm_ledger_diff`.
   static const String ledgerWatchOpenDiffs = 'LedgerRepository.watchOpenDiffs';
 
-  /// `OpsStatusRepository.watchRhythm` — 행 = `rm_ops_summary`.
-  static const String opsStatusWatchRhythm = 'OpsStatusRepository.watchRhythm';
+  /// `OpsSummaryRepository.watchRhythm` — 행 = `rm_ops_summary`(🆕 v1.39 글자 정정 · 01 §48 K343 · 미결 230 ⓒ — 옛 값
+  /// `OpsStatusRepository.watchRhythm` 은 그 메서드가 없는 저장소 이름이었다 · 첫 판 전이라 이주 0).
+  static const String opsSummaryWatchRhythm =
+      'OpsSummaryRepository.watchRhythm';
+
+  /// 옛 이름(값 = [opsSummaryWatchRhythm]) — 부르는 곳(뷰어 `watchRhythm`)이 옮기면 지운다.
+  static const String opsStatusWatchRhythm = opsSummaryWatchRhythm;
 
   /// `JournalRepository.watchBlindReviewQueue` — 행 = `rm_blind_review`.
   static const String journalWatchBlindReviewQueue =
@@ -19822,7 +20239,7 @@ abstract final class ReadModelListCodes {
     adviceWatchInbox,
     adviceWatchHistory,
     ledgerWatchOpenDiffs,
-    opsStatusWatchRhythm,
+    opsSummaryWatchRhythm,
     journalWatchBlindReviewQueue,
   ];
 }
@@ -19869,6 +20286,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('rebalance_event_id', ReadModelColumnType.text),
       ReadModelColumn('detail_deep_link', ReadModelColumnType.text),
       ReadModelColumn('as_of', ReadModelColumnType.jsonb),
+      ReadModelColumn('timeline_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -19880,6 +20298,13 @@ abstract final class ReadModelTables {
           'JournalRepository.fillChain',
           'AdviceRepository.fillsOfAdvice',
         ],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'timeline_rank',
+        'JournalRepository.watchTimeline',
+        '무필터 · 전 기간 타임라인 차례(엔진 = 거래일 ↓ · 의도 생성 시각 ↓ · 의도 id ↓) — 필터 = 열 같음 · 구간 = trade_date 양끝 포함',
       ),
     ],
     listCodes: <String>['JournalRepository.watchTimeline'],
@@ -19914,6 +20339,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('pending_text', ReadModelColumnType.text),
       ReadModelColumn('sub_book_label', ReadModelColumnType.text),
       ReadModelColumn('detail_deep_link', ReadModelColumnType.text),
+      ReadModelColumn('holdings_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -19931,6 +20357,13 @@ abstract final class ReadModelTables {
       ReadModelExtraColumn(
         'trade_date',
         'push 스냅숏 거래일 — 그 행 `as_of.trade_date` 와 같은 값(엔진)',
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'holdings_rank',
+        'HoldingsRepository.watchHoldings',
+        '지금 보유(수량 > 0 · 마지막 스냅숏 거래일) 차례 = 엔진 · 옛 거래일 행 = null',
       ),
     ],
     listCodes: <String>['HoldingsRepository.watchHoldings'],
@@ -19951,6 +20384,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('y_normalized', ReadModelColumnType.doublePrecision),
       ReadModelColumn('value', ReadModelColumnType.doublePrecision),
       ReadModelColumn('gap_reason_code', ReadModelColumnType.text),
+      ReadModelColumn('series_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -19970,6 +20404,13 @@ abstract final class ReadModelTables {
       ReadModelExtraColumn(
         'cumulative',
         '부모 시리즈 `PerformanceSeries.cumulative`',
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'series_rank',
+        'PerformanceRepository.series',
+        '그 시리즈 기본 구간(일별 = 이번 달 · 월별 · 연별 = 처음부터)의 점 차례(date 오름차순) — 구간 밖으로 밀려난 옛 점 = null(230 ⓔ · 13 R268 D7)',
       ),
     ],
   );
@@ -20029,6 +20470,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('detail_deep_link', ReadModelColumnType.text),
       ReadModelColumn('scope_label', ReadModelColumnType.text),
       ReadModelColumn('scope_range', ReadModelColumnType.jsonb),
+      ReadModelColumn('events_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -20049,6 +20491,13 @@ abstract final class ReadModelTables {
           ),
         ],
         feeds: <String>['JournalRepository.watchRebalanceScope'],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'events_rank',
+        'RebalanceRepository.watchEvents',
+        '회차 차례(엔진 = 거래일 ↓ · 생성 시각 ↓ · 회차 id ↓) — range 인자 = 엔진 의미 0(뷰어 UnsupportedError)',
       ),
     ],
     listCodes: <String>['RebalanceRepository.watchEvents'],
@@ -20072,11 +20521,19 @@ abstract final class ReadModelTables {
       ReadModelColumn('raised_at_text', ReadModelColumnType.text),
       ReadModelColumn('grouped_text', ReadModelColumnType.text),
       ReadModelColumn('detail_deep_link', ReadModelColumnType.text),
+      ReadModelColumn('inbox_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
         'AlertItem',
         feeds: <String>['AlertRepository.watchInbox'],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'inbox_rank',
+        'AlertRepository.watchInbox',
+        'min 없음 수신함 차례(엔진 = 확인 안 한 P0 → 확인한 P0 → P1 → P2 · 각 발생 시각 ↓) · 소속 = 안 확인 P0 늘 · 나머지 7일 — min = AlertLevel 선언 차례 앞쪽까지',
       ),
     ],
   );
@@ -20159,6 +20616,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('schema_version', ReadModelColumnType.bigint),
       ReadModelColumn('hash_format_version', ReadModelColumnType.bigint),
       ReadModelColumn('contract_version', ReadModelColumnType.text),
+      ReadModelColumn('range_presets', ReadModelColumnType.jsonb),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -20193,6 +20651,13 @@ abstract final class ReadModelTables {
       ReadModelExtraColumn(
         'contract_version',
         '버전 스탬프(G-36) — 계약 `contractVersion`(push 층)',
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'range_presets',
+        'ConfigRepository.watchRangePresets',
+        '[DateRange.toJson()] 엔진 차례 그대로(지금 = 30일(기본) · 이번 달 · 올해 · 전체) — null = 아직 안 채움',
       ),
     ],
   );
@@ -20234,6 +20699,8 @@ abstract final class ReadModelTables {
       ReadModelColumn('expired_confirm_label', ReadModelColumnType.text),
       ReadModelColumn('decision_link', ReadModelColumnType.jsonb),
       ReadModelColumn('close_reason_label', ReadModelColumnType.text),
+      ReadModelColumn('inbox_rank', ReadModelColumnType.bigint),
+      ReadModelColumn('history_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -20291,6 +20758,18 @@ abstract final class ReadModelTables {
     viewerVariants: <ReadModelViewerVariant>[
       ReadModelViewerVariant('sizing_label', '뷰어 판 글자(수량 0 — A6 · v1.12)'),
       ReadModelViewerVariant('progress_label', '뷰어 판 글자(수량 0 — A6)'),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'inbox_rank',
+        'AdviceRepository.watchInbox',
+        '무인자 수신함 차례(엔진 = 확인 카드 → 급함 → 나머지) · 미분류 만료(확인 카드 밖) = null — status 인자 = 엔진 의미 0(뷰어 UnsupportedError)',
+      ),
+      ReadModelListColumn(
+        'history_rank',
+        'AdviceRepository.watchHistory',
+        '엔진 기본 구간 이력 차례 — 다른 구간 = 엔진 의미 0(뷰어 UnsupportedError)',
+      ),
     ],
     listCodes: <String>[
       'AdviceRepository.watchInbox',
@@ -20405,6 +20884,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('route_label', ReadModelColumnType.text),
       ReadModelColumn('candidate_origins', ReadModelColumnType.jsonb),
       ReadModelColumn('detected_at_text', ReadModelColumnType.text),
+      ReadModelColumn('open_diffs_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -20416,6 +20896,13 @@ abstract final class ReadModelTables {
           ),
         ],
         feeds: <String>['LedgerRepository.watchOpenDiffs'],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'open_diffs_rank',
+        'LedgerRepository.watchOpenDiffs',
+        '열린 차단 → 열린 관측 → 닫힌 것(30일) 차례 = 엔진(상한 50 없이 전부) · 30일 지난 닫힌 차이 = null',
       ),
     ],
     listCodes: <String>['LedgerRepository.watchOpenDiffs'],
@@ -20539,16 +21026,16 @@ abstract final class ReadModelTables {
     bindings: <ReadModelBinding>[
       ReadModelBinding(
         'OpsDailySummary',
-        feeds: <String>['OpsStatusRepository.watchToday'],
+        feeds: <String>['OpsSummaryRepository.watchToday'],
       ),
     ],
     extraColumns: <ReadModelExtraColumn>[
       ReadModelExtraColumn(
         'rhythm',
-        '`OpsStatusRepository.watchRhythm` 전체 목록 — `[OpsRhythmRow.toJson()]` 받은 순서(엔진 · v1.12 K29)',
+        '`OpsSummaryRepository.watchRhythm` 전체 목록 — `[OpsRhythmRow.toJson()]` 받은 순서(엔진 · v1.12 K29)',
       ),
     ],
-    listCodes: <String>['OpsStatusRepository.watchRhythm'],
+    listCodes: <String>['OpsSummaryRepository.watchRhythm'],
   );
 
   /// `rm_ledger_trust`.
@@ -20617,6 +21104,7 @@ abstract final class ReadModelTables {
       ReadModelColumn('questions', ReadModelColumnType.jsonb),
       ReadModelColumn('result', ReadModelColumnType.jsonb),
       ReadModelColumn('as_of', ReadModelColumnType.jsonb),
+      ReadModelColumn('queue_rank', ReadModelColumnType.bigint),
     ],
     bindings: <ReadModelBinding>[
       ReadModelBinding(
@@ -20625,6 +21113,13 @@ abstract final class ReadModelTables {
           'JournalRepository.watchBlindReviewQueue',
           'JournalRepository.watchBlindReviewCard',
         ],
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'queue_rank',
+        'JournalRepository.watchBlindReviewQueue',
+        '채점 대기 차례(엔진 = 결정 시각 ↑ · 결정 id ↑) · 채점한 카드 = null(카드 창구는 그 행 그대로)',
       ),
     ],
     listCodes: <String>['JournalRepository.watchBlindReviewQueue'],
@@ -20659,6 +21154,8 @@ abstract final class ReadModelTables {
       ReadModelColumn('as_of', ReadModelColumnType.jsonb),
       ReadModelColumn('empty_kind', ReadModelColumnType.text),
       ReadModelColumn('empty_label', ReadModelColumnType.text),
+      ReadModelColumn('filtered_empty_label', ReadModelColumnType.text),
+      ReadModelColumn('scope_empty_label', ReadModelColumnType.text),
     ],
     extraColumns: <ReadModelExtraColumn>[
       ReadModelExtraColumn(
@@ -20670,6 +21167,18 @@ abstract final class ReadModelTables {
       ReadModelExtraColumn(
         'empty_label',
         '`ListResult.emptyLabel`(엔진 · 없으면 null)',
+      ),
+    ],
+    listColumns: <ReadModelListColumn>[
+      ReadModelListColumn(
+        'filtered_empty_label',
+        ReadModelListColumn.everyList,
+        '필터를 건 조회가 빈 때 엔진 문장(일지 «조건에 맞는 기록이 없습니다») · null = 그 목록에 필터 문장 없음 — 차례: 회차 필터 → scope_empty_label · 목록 전체가 빔 → empty_label · 그 밖 → 이 열',
+      ),
+      ReadModelListColumn(
+        'scope_empty_label',
+        ReadModelListColumn.everyList,
+        '일지 회차 필터(rebalance_event_id)가 빈 때 엔진 문장 · 목록 전체가 비어도 이 글자가 먼저',
       ),
     ],
   );
@@ -20717,7 +21226,8 @@ abstract final class ReadModelTables {
 
 /// 리스 RPC 이름 3(06 M4-3 · 배치 D `operator_lease` 단일 행 · 조건부 쓰기(CAS)만).
 abstract final class LeaseRpcNames {
-  /// 클레임 — 빈 행(첫 클레임 · 🔴 복구 코드 해시 필수 · 같은 트랜잭션) · 만료 · 같은 기기 → 이 기기(다른 기기에서 넘어옴 = epoch+1).
+  /// 클레임 — 빈 행(첫 클레임 · 🔴 복구 코드 해시 필수 · 같은 트랜잭션) · 같은 기기 → 이 기기 · 🆕 v1.39(01 §48 K349 ①) 다른 기기 보유 ∧ 만료 =
+  /// 그 기기가 REVOKED · RETIRED 일 때만 이 기기(epoch+1 · 아니면 `LEASE_HELD_BY_OTHER`) · 첫 클레임 뒤 = 운영 사용자만(`recovery_secret.owner_uid`).
   static const String claim = 'lease_claim';
 
   /// 갱신 — 보유 ∧ epoch 같음 ∧ 만료 전 → `expires_at` = 서버 `now()` + T.
