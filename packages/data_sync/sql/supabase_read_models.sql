@@ -43,6 +43,7 @@ create table if not exists rm_journal (
   rebalance_event_id text,
   detail_deep_link text,
   as_of jsonb,
+  timeline_rank bigint,
   primary key (mode, trade_date, entry_id)
 );
 alter table rm_journal enable row level security;
@@ -79,6 +80,7 @@ create table if not exists rm_holding (
   pending_text text,
   sub_book_label text,
   detail_deep_link text,
+  holdings_rank bigint,
   primary key (mode, trade_date, holding_id)
 );
 alter table rm_holding enable row level security;
@@ -101,6 +103,7 @@ create table if not exists rm_performance_point (
   y_normalized double precision,
   value double precision,
   gap_reason_code text,
+  series_rank bigint,
   primary key (mode, metric, granularity, cumulative, date)
 );
 alter table rm_performance_point enable row level security;
@@ -154,6 +157,7 @@ create table if not exists rm_rebalance_event (
   detail_deep_link text,
   scope_label text,
   scope_range jsonb,
+  events_rank bigint,
   primary key (mode, event_id)
 );
 alter table rm_rebalance_event enable row level security;
@@ -179,6 +183,7 @@ create table if not exists rm_alert (
   raised_at_text text,
   grouped_text text,
   detail_deep_link text,
+  inbox_rank bigint,
   primary key (mode, alert_id)
 );
 alter table rm_alert enable row level security;
@@ -240,6 +245,7 @@ create table if not exists rm_config_view (
   schema_version bigint,
   hash_format_version bigint,
   contract_version text,
+  range_presets jsonb,
   primary key (mode)
 );
 alter table rm_config_view enable row level security;
@@ -284,6 +290,8 @@ create table if not exists rm_advice (
   expired_confirm_label text,
   decision_link jsonb,
   close_reason_label text,
+  inbox_rank bigint,
+  history_rank bigint,
   primary key (mode, trade_date, advice_id)
 );
 alter table rm_advice enable row level security;
@@ -382,6 +390,7 @@ create table if not exists rm_ledger_diff (
   route_label text,
   candidate_origins jsonb,
   detected_at_text text,
+  open_diffs_rank bigint,
   primary key (mode, diff_id)
 );
 alter table rm_ledger_diff enable row level security;
@@ -524,6 +533,7 @@ create table if not exists rm_blind_review (
   questions jsonb,
   result jsonb,
   as_of jsonb,
+  queue_rank bigint,
   primary key (mode, decision_id)
 );
 alter table rm_blind_review enable row level security;
@@ -558,6 +568,8 @@ create table if not exists rm_list_envelope (
   as_of jsonb,
   empty_kind text,
   empty_label text,
+  filtered_empty_label text,
+  scope_empty_label text,
   primary key (mode, list_code)
 );
 alter table rm_list_envelope enable row level security;

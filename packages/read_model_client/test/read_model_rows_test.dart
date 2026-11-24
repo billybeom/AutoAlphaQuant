@@ -34,21 +34,25 @@ void main() {
     }
   });
 
-  test('결속 열 = 표 열(규칙 5조 밖) 을 결속끼리 겹침 없이 나눈다 · 남는 것 = DTO 밖 열', () {
-    for (final ReadModelTable t in ReadModelTables.all) {
-      final List<String> all = <String>[
-        for (final ReadModelBinding b in t.bindings)
-          ...readModelBindingColumns(t, b),
-      ];
-      expect(all.toSet(), hasLength(all.length), reason: '${t.name} 겹침');
-      final Set<String> rest = <String>{
-        for (final ReadModelColumn c in t.columns) c.name,
-      }.difference(all.toSet());
-      expect(rest, <String>{
-        for (final ReadModelExtraColumn e in t.extraColumns) e.name,
-      }, reason: t.name);
-    }
-  });
+  test(
+    '결속 열 = 표 열(규칙 5조 밖) 을 결속끼리 겹침 없이 나눈다 · 남는 것 = DTO 밖 열 + 목록 열(v1.39)',
+    () {
+      for (final ReadModelTable t in ReadModelTables.all) {
+        final List<String> all = <String>[
+          for (final ReadModelBinding b in t.bindings)
+            ...readModelBindingColumns(t, b),
+        ];
+        expect(all.toSet(), hasLength(all.length), reason: '${t.name} 겹침');
+        final Set<String> rest = <String>{
+          for (final ReadModelColumn c in t.columns) c.name,
+        }.difference(all.toSet());
+        expect(rest, <String>{
+          for (final ReadModelExtraColumn e in t.extraColumns) e.name,
+          for (final ReadModelListColumn l in t.listColumns) l.name,
+        }, reason: t.name);
+      }
+    },
+  );
 
   test('표본 왕복 — 행(접두 · 펼침 · 제외) → fromRow → 표본(제외 키 = 뷰어 판 값)', () {
     int n = 0;

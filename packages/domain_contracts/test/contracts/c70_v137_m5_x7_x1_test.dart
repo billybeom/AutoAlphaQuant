@@ -56,8 +56,9 @@ void main() {
             _env(path)['meta']! as Map<String, Object?>;
         expect(meta['contract_version'], contractVersion, reason: path);
       }
-      expect(FixturePaths.all, hasLength(398));
-      expect(allFixtureFilesOnDisk(), hasLength(398));
+      // 🔵 v1.39(01 §48) — 수 고정 = 최신 창 시험(C-72 ①)만.
+      expect(FixturePaths.all.length, greaterThanOrEqualTo(398));
+      expect(allFixtureFilesOnDisk().length, FixturePaths.all.length);
     });
 
     test(

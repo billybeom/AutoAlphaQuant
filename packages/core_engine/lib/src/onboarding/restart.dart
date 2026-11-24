@@ -12,7 +12,9 @@
 //    서버가 `lease_revoke` 를 커밋했는데 응답을 잃은 자리 → «비상 이전 이어 하기» + «방금 적은 새 카드로» 안내(전에는 분기 0 = 막다른 길).
 // 🔵 리뷰 3차 C-1 · D-01(미결 236 ⓐ) — 서버 `lease_claim` 은 이제 만료된 남의 리스를 그 기기가 회수 · 은퇴되기 전에는 넘기지 않는다 →
 //    «신규 온보딩 + 잔고 승계» 분기(표본 `restart_vm_gap7`)도 구 폰 회수(비상 이전) 뒤에야 ⑤ 첫 클레임이 선다(⑤ 거부 글자 = 엔진
-//    `RecoveryCardTexts.heldByOther` 가 비상 이전으로 안내). 분기 링크 · 승계 고지(D-U1 — 승계 구현 없음) 글자 정정 = 표본 = 계약 창 대기.
+//    `RecoveryCardTexts.heldByOther` 가 비상 이전으로 안내). 🆕 계약 v1.39(앱 01 §48 K349 ⑤ ⑥) — 갭 분기 = 비상 이전 먼저
+//    ([RestartTexts.branchRevokeFirst] → `x1MigrationEmergency`) · 고지 = 새로 시작은 이어받지 않음([RestartTexts.freshNotice] — D-U1
+//    승계 구현 0 · 거짓 고지 정정) · 계획 · 비상 분기 고지는 [RestartTexts.inherit] 그대로.
 // 🔴 킬스위치 · 차단 플래그 = 켜진 그대로 승계(«초기화» 선택지 0) — 분기가 있으면 고지가 늘 붙는다(C-50 ⑬).
 // 🔴 돈 · 안전 수치 새로 정함 0 — 갭 기준 = 운영 설정 `resume.backup_gap_days`(재개 사다리 · 잠정 7) 그대로.
 
@@ -57,8 +59,15 @@ abstract final class RestartTexts {
   /// 분기 — 비상 이전(표본).
   static const String branchEmergency = '잃어버렸어요 — 비상 이전';
 
-  /// 분기 — 신규 온보딩 + 잔고 승계(표본).
+  /// 분기 — 신규 온보딩 + 잔고 승계(옛 표본 · v1.38 까지 · 쓰는 곳 0 — 다음 손질 때 지운다).
   static const String branchFresh = '신규 온보딩으로 진행하고 잔고 이어받기';
+
+  /// 🆕 계약 v1.39 분기 — 갭 넘음 = 옛 폰을 비상 이전으로 먼저 끊는다(표본 `restart_vm_gap7`).
+  static const String branchRevokeFirst = '먼저 비상 이전으로 옛 폰을 끊고 새로 시작하기';
+
+  /// 🆕 계약 v1.39 고지 — 새로 시작은 이어받지 않는다(표본 `restart_vm_gap7`).
+  static const String freshNotice =
+      '새로 시작하면 옛 폰의 킬스위치 · 차단 플래그 · 기록을 이어받지 않습니다 — 온보딩을 처음부터 다시 합니다.';
 
   /// 마지막 접속 모름(표본).
   static const String lastSeenUnknown = '마지막 접속: 확인하지 못함';
@@ -307,11 +316,11 @@ RestartVm restartVmOf(RestartFacts f) {
       leaseGate: _gate(GateState.block, RestartTexts.gateEnded),
       branches: const <LinkAction>[
         LinkAction(
-          label: RestartTexts.branchFresh,
-          deepLink: AppRoutes.onboardingModePick,
+          label: RestartTexts.branchRevokeFirst,
+          deepLink: AppRoutes.x1MigrationEmergency,
         ),
       ],
-      inheritNotice: RestartTexts.inherit,
+      inheritNotice: RestartTexts.freshNotice,
     );
   }
   return _x1(<String>[...head, RestartTexts.leaseEnded]);

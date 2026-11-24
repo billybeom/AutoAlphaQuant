@@ -308,12 +308,24 @@
 //    (`read_model_push_result` · 리스 거부 = `LeaseRpcResultCodes` 그대로) · 🆕 C-71 · 픽스처 398(버전 줄만) — 🆕 tool/gen_v138_rm_push_rpc_fixtures.py.
 //    🔴 SQL 본문 · 클라이언트 = 엔진 E11l2(미결 222 ⓑ) · 다른 select 전용 표 쓰기 창구 = 미결 229 · 다음 판 = 1.39.0(뷰어 행 표 목록 차례 · 소속 열 ·
 //    postmortem — 미결 230 · 188).
+// 🆕 '1.39.0'(뷰어 목록 열 · postmortem · 리뷰 3차 등재 · 생체 목적 · 01 §48 · 13 §8 R269 · 발주자 위임 2026-11-14 — 권고대로 ·
+//    K338~K352) — 미결 230 ⓐ~ⓔ · 188 postmortem · 238 · 리뷰 3차 엔진 예약 등재(231 · 233 · 235 · 205 ⓓ) · 236 계약 창 대기:
+//    🆕 `ReadModelListColumn`(목록 열 · `listColumns`) — 차례 열 9(`timeline_rank` · `holdings_rank` · `series_rank` · `events_rank` ·
+//    `rm_alert.inbox_rank` · `rm_advice.inbox_rank` · `history_rank` · `open_diffs_rank` · `queue_rank` · null = 목록 밖) · 봉투 +3
+//    (`filtered_empty_label` · `scope_empty_label` · `has_more`) · `rm_config_view.range_presets` · 🆕 `routeParamKeyOf` · 230 ⓒ
+//    `OpsSummaryRepository` 글자(`ReadModelListCodes.opsSummaryWatchRhythm`) · 🆕 `M5-4` `PostmortemListVm` · `PostmortemRow` ·
+//    `PostmortemForm` · 창구 `PostmortemRepository.watchPostmortems` · 라우트 `m5Postmortem`(86) · 등재 `LIVE_PROMOTION_CONFIG_UNAVAILABLE` ·
+//    `SIM_LEDGER_FATE_CONFIG_UNAVAILABLE` · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` · `SIM_TO_AUTO_ACCOUNT_DUPLICATE` · 🆕 `LedgerWriteGateCodes`
+//    (`LEDGER_CLOSED` · `ledger_write_gate`) · `AlertCodes` +3(`KILL_SWITCH_ACK_MISMATCH` P0 · push 2 P1 → 39) · 🆕
+//    `SupabaseSignupResultCodes`(`SUPABASE_SIGNUP_OPEN`) · 배치 D 기기 넣기 정책 좁힘 · 리스 클레임 문언 · 🆕 `BiometricPurpose` 4 ·
+//    `BiometricPromptText` · 🆕 C-72(+ 엔진 코드 ⊆ 계약 원천 대조 — 리뷰 3차 I-2) · 픽스처 398 → 402(신설 4 · 개정 1 gap7) —
+//    🆕 tool/gen_v139_fixtures.py. 🔴 엔진 · 조립 = 미결 242(목록 열 채우기 · 봉투 글자) · 243(postmortem 조립 · 생체 배선 · 경보 · 가입 확인).
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.38.0';
+const String contractVersion = '1.39.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

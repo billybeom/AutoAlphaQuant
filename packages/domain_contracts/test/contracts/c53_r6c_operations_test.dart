@@ -631,13 +631,17 @@ void main() {
         'SIM_OPENING_ADVISORY_NOT_READY',
         'TIER_B_CARD_MISSING',
       });
-      expect(LivePromotionResultCodes.values, <String>{
-        'HANDOVER_SESSION_INVALID',
-        'LIVE_PROMOTION_NOT_OBSERVING',
-        'LIVE_PROMOTION_NOT_AUTO_TRADE',
-        'LIVE_PROMOTION_CLOCK_BEHIND',
-        'LIVE_PROMOTION_ROLLED_BACK',
-      });
+      // 🔵 v1.39(01 §48 K346) — +1 `LIVE_PROMOTION_CONFIG_UNAVAILABLE`(전량 고정 = C-72 ⑦).
+      expect(
+        LivePromotionResultCodes.values,
+        containsAll(<String>{
+          'HANDOVER_SESSION_INVALID',
+          'LIVE_PROMOTION_NOT_OBSERVING',
+          'LIVE_PROMOTION_NOT_AUTO_TRADE',
+          'LIVE_PROMOTION_CLOCK_BEHIND',
+          'LIVE_PROMOTION_ROLLED_BACK',
+        }),
+      );
       expect(
         LivePromotionResultCodes.values,
         isNot(contains(SettingsResultCodes.biometricUnavailable)),

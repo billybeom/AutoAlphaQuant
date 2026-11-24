@@ -48,7 +48,8 @@ void main() {
     });
 
     test('② values 36 · 두 묶음 ⊂ values · 기존 7 묶음과 서로소', () {
-      expect(AlertCodes.values, hasLength(36));
+      // 🔵 v1.39(01 §48) — +3(킬스위치 확인 1 · push 2) → 39(전량 고정 = C-72 ⑦).
+      expect(AlertCodes.values, hasLength(greaterThanOrEqualTo(36)));
       final Set<String> added = <String>{
         ...AlertCodes.safetyWarn,
         ...AlertCodes.derivedSync,
@@ -66,7 +67,13 @@ void main() {
       };
       expect(before, hasLength(31));
       expect(before.intersection(added), isEmpty);
-      expect(<String>{...before, ...added}, AlertCodes.values);
+      // 🔵 v1.39(01 §48) — 뒤 판 묶음(킬스위치 확인 · push)은 C-72 ⑦ 이 고정한다.
+      expect(<String>{
+        ...before,
+        ...added,
+        ...AlertCodes.killSwitch,
+        ...AlertCodes.readModelPush,
+      }, AlertCodes.values);
     });
 
     test('③ 표본 5행 — 코드 집합 = 두 묶음 합 · 각 1행 · 봉투 = 목록', () {

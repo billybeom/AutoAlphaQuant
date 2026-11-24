@@ -28,6 +28,7 @@ export 'repositories/ops_repository.dart';
 export 'repositories/pairing_repository.dart';
 export 'repositories/performance_repository.dart';
 export 'repositories/pledge_repository.dart';
+export 'repositories/postmortem_repository.dart'; // 🆕 v1.39 — M5-4(01 §48)
 export 'repositories/rebalance_repository.dart';
 export 'repositories/repair_wizard_repository.dart'; // 🆕 v1.32 — X5 정정 마법사(01 §41)
 export 'repositories/resume_gate_repository.dart';

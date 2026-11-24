@@ -64,9 +64,14 @@ ok(r.code === null && r.epoch === 1, `A 첫 클레임 epoch 1 (${JSON.stringify(
 ok((await device('d_a')).status === 'ACTIVE', 'A ACTIVE');
 ok((await db.query(`select owner_uid::text u from recovery_secret`)).rows[0].u === U.op, 'recovery_secret 소유 = 운영자');
 
-// ② ⓑ 공개 가입 사용자 X — 자기 기기 행은 insert 정책을 통과하지만(계약 DDL · 계약 창 대기) 리스 자격은 없다
-await register(U.x, 'd_x');
-ok((await device('d_x'))?.status === 'PENDING', 'X 기기 행 = insert 정책 통과(PENDING)');
+// ② ⓑ 공개 가입 사용자 X — 🆕 계약 v1.39(앱 01 §48 K349 ②) 첫 클레임 뒤 insert 정책 = 운영 사용자만 → X 자기 기기 행도 못 넣는다.
+//    리스 자격 판정(RPC)은 그 전에 넣어 둔 행(첫 클레임 전 틈 · 옛 정책 시절)으로 그대로 잰다 — 행은 관리자 권한으로 넣는다.
+let xInsert = null;
+try { await register(U.x, 'd_x'); } catch (e) { xInsert = e; }
+ok(xInsert !== null && /row-level security/.test(String(xInsert.message)), `ⓑ X 기기 행 insert = RLS 거부(첫 클레임 뒤) (${xInsert?.message})`);
+ok((await device('d_x')) === undefined, 'ⓑ X 기기 행 0');
+await db.query(`insert into app_device(device_id, label, role, status, platform, owner_uid, auth_uid) values ('d_x', '폰', 'viewer', 'PENDING', 'android', $1, $1)`, [U.x]);
+ok((await device('d_x'))?.status === 'PENDING', 'X 기기 행(첫 클레임 전 틈에 넣은 셈) = PENDING');
 r = await claim(U.x, 'd_x', hashOf('XXXX'));
 ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', `ⓑ X claim(리스 유효) = NOT_ELIGIBLE (${r.code})`);
 await expire();

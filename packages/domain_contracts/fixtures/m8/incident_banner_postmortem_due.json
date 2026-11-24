@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "fixture_version": "0.1.0-draft",
+    "contract_version": "1.39.0",
+    "generated_at": "2026-11-25T09:00:00Z",
+    "mode": "LIVE",
+    "config_hash": "cfg_fake_0000000000000000",
+    "seed": 20261125,
+    "notice": "합성 데이터. 실계좌·실키 없음."
+  },
+  "as_of": { "observed_at": "2026-09-01T09:00:00Z", "trade_date": "2026-09-01", "source": "LOCAL_SQLITE", "stale_after_seconds": 93600, "label": "운영 기준 2026-09-01 18:00" },
+  "empty_kind": "NO_DATA",
+  "empty_label": null,
+  "has_more": false,
+  "rows": [
+    { "banner": { "kind": "OTHER", "level": "ACT", "title": "(합성) 써야 할 postmortem 이 있습니다", "body_text": "(합성) 수동 주문 사건의 postmortem 을 기한 09-08 10:12 까지 써야 합니다.", "action_link": { "label": "postmortem 쓰기", "deep_link": "aaq://m5/postmortem" } } }
+  ]
+}

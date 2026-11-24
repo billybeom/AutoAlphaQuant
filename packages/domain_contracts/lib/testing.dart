@@ -68,6 +68,7 @@
 //   🆕 계약 v1.26(01 §35 · K183) — `UnimplementedHandoverRepository` · `UnimplementedRuleChangeGateRepository`(동기 throw) ·
 //   `UnimplementedSafetyActions` +2(`runRuleChangeRequest` · `runReconClear` · `Future` 에러).
 //   🆕 계약 v1.37(01 §46 · K318) — `UnimplementedSelfAuditResolveRepository`(동기 throw · `M5-13`).
+//   🆕 계약 v1.39(01 §48 · K345) — `UnimplementedPostmortemRepository`(동기 throw · `M5-4`).
 //
 // 🔴 `lib/` 의 화면 코드에서 import 하지 않는다 — `test/` 에서만 쓴다(배럴에 없다).
 // 🔴 받침대는 **값을 지어내지 않는다** — 기본 동작은 전부 `UnimplementedError` 다. 값은
@@ -639,6 +640,13 @@ class UnimplementedSelfAuditResolveRepository
   @override
   Stream<SelfAuditResolveVm> watchResolve() =>
       throw UnimplementedError('watchResolve');
+}
+
+/// 🆕 계약 v1.39(01 §48 · K345) — [PostmortemRepository] 받침대(`M5-4`). 🔴 동기로 던진다.
+class UnimplementedPostmortemRepository implements PostmortemRepository {
+  @override
+  Stream<PostmortemListVm> watchPostmortems() =>
+      throw UnimplementedError('watchPostmortems');
 }
 
 /// 🆕 계약 v1.26(01 §35 · K167) — [HandoverRepository] 받침대(`M5-11` 위저드 · `handoverStatus`). 🔴 동기로 던진다.

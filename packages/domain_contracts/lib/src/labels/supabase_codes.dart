@@ -114,6 +114,18 @@ abstract final class SupabaseAuthResultCodes {
   };
 }
 
+/// 🆕 v1.39(01 §48 · K349 ④ · 13 §8 R267 L4 · 리뷰 3차 C-2 = I-U2) — o_07 공개 가입 확인(도메인 `supabase_signup_result`).
+/// 🔴 자리 = `supabaseSignIn`(o_07 ③) 로그인 통과 뒤 `GET /auth/v1/settings`(공개 키 · 인증 0) 1회 — `disable_signup == true` 만 통과.
+///    열림 = [signupOpen](o_07 = VERIFIED 아님 · IN_PROGRESS 그대로 · 새로고침 토큰은 금고에 둔다 — 로그인 자체는 성공) · 읽기 실패 =
+///    `SupabaseTimeResultCodes` 전송 글자 그대로(새 글자 0) · 칸 없음 · 꼴 아님 = `SUPABASE_BAD_RESPONSE`(모름 = 통과 아님).
+/// 🔴 끄는 곳 = 발주자(Supabase 대시보드 «Allow new users to sign up» · 17 절차서 §3-7 · ✅ 2026-11-24) — 앱은 확인만 한다(설정 바꾸기 0).
+abstract final class SupabaseSignupResultCodes {
+  /// 공개 가입이 열려 있다(아무나 계정을 만들어 리스 · 읽기 모델을 넘볼 수 있다).
+  static const String signupOpen = 'SUPABASE_SIGNUP_OPEN';
+
+  static const Set<String> values = <String>{signupOpen};
+}
+
 /// 리스 RPC 거부(도메인 `lease_rpc_result` · RPC 표 = 01 §6-4 · `schema/supabase_rpc.dart` · 본문 = E11k-e · 🔴 SQL 이 이 글자를
 /// 돌려주고 data_sync 클라이언트가 그대로 읽는다 — 클라이언트가 HTTP 상태로 코드를 짓지 않는다).
 abstract final class LeaseRpcResultCodes {

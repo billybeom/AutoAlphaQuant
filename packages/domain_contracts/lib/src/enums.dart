@@ -7,6 +7,7 @@
 // 근거: 01 §2-1 · 인벤토리 §2.
 
 export 'enums/advice.dart';
+export 'enums/biometric.dart'; // 🆕 v1.39 — 생체 대화상자 목적(01 §48 K350 · 미결 238)
 export 'enums/calendar.dart';
 export 'enums/command.dart';
 export 'enums/draft.dart';

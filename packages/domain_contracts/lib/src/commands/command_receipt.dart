@@ -37,6 +37,8 @@ abstract class CommandReceipt with _$CommandReceipt {
     /// 🔴 `state == CommandState.rejected` 이면 필수다(§5-2 ·
     ///    `CommandStateMachine.requiresRejectReasonCode`).
     ///    🔴 **거부는 초안을 지우지 않는다**(C17) — 초안 삭제는 `executed` 수신 시에만.
+    ///    🆕 v1.39(01 §48 · K347) — 종류 공통 거부 `LedgerWriteGateCodes.ledgerClosed`(`LEDGER_CLOSED` · 화면 상태가 가리키는 원장이
+    ///    닫혔다 — 실전 전환 커밋 ~ 깨어남 끝 틈 · 쓰기 0 · 다시 누르면 새 원장에 적힌다) — 종류별 거부 사전과 함께 온다.
     String? rejectReasonCode,
 
     /// 🆕 v1.12(01 §21 · K20) — 거부 뒤 엔진이 실은 «재제출 선택지» 1개(B5 시간외·단주 · A9 중복 확인).

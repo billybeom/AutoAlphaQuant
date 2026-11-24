@@ -82,7 +82,8 @@ void main() {
     //    픽스처 398(신설 5) · C-70 · 다음 판 = 1.38.0(postmortem 쓰기 — 미결 188 · 13 R243).
     // 🔵 '1.38.0'(읽기 모델 push RPC 표 · 01 §47) — `rm_push` 이름 · 인자 4 · 반환 4 · 거부 사전 2 · 픽스처 398(버전 줄만) · C-71 ·
     //    다음 판 = 1.39.0(뷰어 행 표 목록 열 · postmortem).
-    expect(contractVersion, '1.38.0');
+    // 🔵 '1.39.0'(01 §48) — 목록 열 · 봉투 +3 · 기간 프리셋 · postmortem 목록 · 리뷰 3차 등재 · 생체 목적 · 픽스처 402(신설 4 · 개정 1) · C-72.
+    expect(contractVersion, '1.39.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.

@@ -146,12 +146,13 @@ void main() {
       // 🆕 v1.20 — 80 → 81(`m4KeyRotation` · 01 §29).
       // 🆕 v1.21 — 81 → 84(M5 3 · 01 §30).
       // 🆕 v1.32 — 84 → 85(`x5RepairTarget` · X5 정정 대상 · 01 §41 K248).
+      // 🆕 v1.39 — 85 → 86(`m5Postmortem` · M5-4 postmortem · 01 §48 K345 · 맨 끝).
       //    🔴 개수가 바뀌면 01 · 04 셸 라우트 문단을 같은 PR 에서 고친다
       //    (셸은 `all` 을 전량 등록한다 — C-17·C-18 의 모집단이 곧 이 목록이다).
       expect(
         AppRoutes.all,
-        hasLength(85),
-        reason: '라우트 수가 계약(01 §41 · v1.32 = 85)과 다르다.',
+        hasLength(86),
+        reason: '라우트 수가 계약(01 §48 · v1.39 = 86)과 다르다.',
       );
       expect(AppRoutes.all, contains(AppRoutes.m5StoppedDecision));
       expect(AppRoutes.all, contains(AppRoutes.m5Pledge));
@@ -220,6 +221,8 @@ void main() {
         'aaq://m5/rule-change-gate',
         // 🆕 v1.26(01 §35 · K173) — `handoverStatus` = M5-11 위저드와 같은 본문(엔진 알림 2종 목적지 · 소유 = M5).
         'aaq://handover/status',
+        // 🆕 v1.39(01 §48 · K345) — `M5-4` postmortem 목록 + 쓰기(본문 = `ui_safety`).
+        'aaq://m5/postmortem',
       ];
       for (final String route in ownedByClaude) {
         expect(AppRoutes.all, contains(route), reason: '06 §3-5 목록의 $route');

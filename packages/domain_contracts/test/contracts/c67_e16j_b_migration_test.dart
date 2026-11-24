@@ -96,7 +96,10 @@ bool _recNoActions(X1RecoveryVm v) =>
 void main() {
   group('C-67 E16j-b X1 기기 이전 (01 §42)', () {
     test('C-67 ① 라우트 무변경 — 85 · X1 셋 등록 · 인자 0', () {
-      expect(AppRoutes.all, hasLength(85));
+      expect(
+        AppRoutes.all,
+        hasLength(greaterThanOrEqualTo(85)),
+      ); // 🔵 v1.39 = 86(C-33)
       for (final String r in <String>[
         AppRoutes.x1Migration,
         AppRoutes.x1MigrationPlan,

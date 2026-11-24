@@ -34,6 +34,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         ReadModelColumn,
         ReadModelExclusion,
         ReadModelExtraColumn,
+        ReadModelListColumn,
         ReadModelPushColumns,
         ReadModelTable,
         ReadModelTables,
@@ -60,12 +61,14 @@ const Map<String, List<String>> _flattenColumns = <String, List<String>>{
 };
 
 /// 결속 하나가 읽는 열(표 상수 차례) — 접두 결속 = 그 접두 열 · 무접두 = DTO 밖 열 · 다른 접두 열을 뺀 나머지.
+/// 🆕 계약 v1.39(01 §48 K339) — 목록 열(`<목록>_rank` · 봉투 빈 문장 · 기간 프리셋)은 결속 열이 아니다(DTO `fromJson` 에 넘기지 않는다).
 List<String> readModelBindingColumns(
   ReadModelTable table,
   ReadModelBinding binding,
 ) {
   final Set<String> extra = <String>{
     for (final ReadModelExtraColumn c in table.extraColumns) c.name,
+    for (final ReadModelListColumn c in table.listColumns) c.name,
   };
   final List<String> others = <String>[
     for (final ReadModelBinding b in table.bindings)

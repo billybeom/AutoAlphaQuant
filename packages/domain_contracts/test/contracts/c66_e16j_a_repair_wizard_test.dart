@@ -69,7 +69,10 @@ void main() {
       () {
         expect(AppRoutes.x5RepairTarget, 'aaq://x5/repair-wizard/:targetId');
         expect(AppRoutes.all, contains(AppRoutes.x5RepairTarget));
-        expect(AppRoutes.all, hasLength(85));
+        expect(
+          AppRoutes.all,
+          hasLength(greaterThanOrEqualTo(85)),
+        ); // 🔵 v1.39 = 86(C-33)
         expect(
           AppRoutes.isRegistered('aaq://x5/repair-wizard/ld_0001'),
           isTrue,

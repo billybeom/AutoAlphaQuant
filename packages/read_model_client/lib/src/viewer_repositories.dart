@@ -712,7 +712,7 @@ final class _ViewerOpsSummary implements OpsSummaryRepository {
   /// 행 = `rm_ops_summary.rhythm`(받은 순서 · 전부) · 봉투 = `rm_list_envelope` 그 목록 창구 행(K310).
   @override
   Stream<ListResult<OpsRhythmRow>> watchRhythm() {
-    const String code = ReadModelListCodes.opsStatusWatchRhythm;
+    const String code = ReadModelListCodes.opsSummaryWatchRhythm;
     final ReadModelQuery env = _m._query(
       ReadModelTables.listEnvelope,
       where: const <String, Object?>{'list_code': code},
