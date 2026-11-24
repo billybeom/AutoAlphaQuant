@@ -54,7 +54,8 @@ class ReadModelRowInput {
   /// 행 판(규칙 5조 ② — 큰 쪽만 반영).
   final int rowVersion;
 
-  /// 결속 DTO 타입 이름 → `toJson()`(첫 결속 = 필수 · 둘째부터 = 없으면 그 열들 null).
+  /// 결속 DTO 타입 이름 → `toJson()`(첫 결속 = 필수 · 둘째부터 = 없으면 그 열들 null ·
+  /// 🆕 E11l2c-3(R268) 결속이 모두 접두를 가진 표(대등 결속 — `rm_perf_context` 드로다운 · 기여) = 하나 이상).
   final Map<String, Map<String, Object?>> dtos;
 
   /// DTO 밖 열(버전 스탬프 제외 — 빌더가 채운다).
@@ -102,10 +103,18 @@ Map<String, Object?> readModelRow(ReadModelTable t, ReadModelRowInput input) {
     ReadModelPushColumns.rowVersion.name: input.rowVersion,
     ReadModelPushColumns.mode.name: input.mode.wire,
   };
+  // 🆕 E11l2c-3(R268) — 첫 결속에 접두가 없음 = 표의 주 DTO(필수) · 모두 접두 = 대등 결속(하나 이상 · 나머지 열 null).
+  final bool peers =
+      t.bindings.isNotEmpty &&
+      t.bindings.every((ReadModelBinding b) => b.prefix.isNotEmpty);
+  if (peers &&
+      !t.bindings.any((ReadModelBinding b) => input.dtos[b.dto] != null)) {
+    throw ReadModelRowError(t.name, '대등 결속 DTO 하나도 없음');
+  }
   for (final ReadModelBinding b in t.bindings) {
     final Map<String, Object?>? json = input.dtos[b.dto];
     if (json == null) {
-      if (b == t.bindings.first) {
+      if (!peers && b == t.bindings.first) {
         throw ReadModelRowError(t.name, '첫 결속 ${b.dto} 없음');
       }
       continue;
