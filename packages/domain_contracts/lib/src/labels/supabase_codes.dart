@@ -162,3 +162,16 @@ abstract final class LeaseHandoverResultCodes {
     ticketExpired,
   };
 }
+
+/// 🆕 v1.38(01 §47 · K333) — 읽기 모델 push RPC 고유 거부(도메인 `read_model_push_result` · RPC 표 = `schema/supabase_rpc.dart`
+/// `ReadModelPushRpc*` · 본문 = 엔진 E11l2 · 01 §8 미결 222 ⓑ). 🔴 리스 거부(`LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE`)는
+/// [LeaseRpcResultCodes] 그대로 — 다시 적지 않는다(v1.37 [LeaseHandoverResultCodes] 결).
+abstract final class ReadModelPushResultCodes {
+  /// 표 이름이 `ReadModelTables` 에 없다(SQL 은 표 이름을 그 목록과만 맞춘다 — 동적 SQL 은 목록 안 이름만).
+  static const String tableUnknown = 'READ_MODEL_TABLE_UNKNOWN';
+
+  /// 행 묶음을 넣지 못했다(JSON 배열 아님 · 기본 키 · `mode` · 형 · check 위반) — 🔴 그 호출 전부 0행(부분 반영 0).
+  static const String rowsInvalid = 'READ_MODEL_ROWS_INVALID';
+
+  static const Set<String> values = <String>{tableUnknown, rowsInvalid};
+}

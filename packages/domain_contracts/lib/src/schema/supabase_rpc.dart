@@ -99,3 +99,56 @@ abstract final class LeaseHandoverRpcParams {
     ticketNonce,
   };
 }
+
+// ── 🆕 계약 v1.38(01 §47 · K330~K337 · 01 §8 미결 222 ⓑ · 06 M4-1 · 13 §8 R251) 읽기 모델 push RPC ──────────────────────────
+// 🔴 `rm_*` 쓰기 = 이 RPC 1창구(security definer · 리스 epoch 검사 · 클라이언트 upsert 0 — 01 §6-4 말미 · 규칙 5조 ④).
+//    SQL 본문 · data_sync 클라이언트 · 부트스트랩 대조 시험 = 엔진(E11l2 · 미결 222 ⓑ). 여기는 **글자만**(지도 X18).
+// 🔴 한 호출 = 한 표 · 한 트랜잭션 — 행 하나라도 못 넣으면 그 호출 전부 0행(`READ_MODEL_ROWS_INVALID`) · 삭제 0.
+// 🔴 반환 = 한 행(`ReadModelPushRpcColumns` 넷) · 거부 = [LeaseRpcResultCodes] 의 `LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE` ∪
+//    `ReadModelPushResultCodes` · 성공 = `code` null · 시각 = 서버 `now()`.
+
+/// 읽기 모델 push RPC 이름(06 M4-1 «1개 창구»).
+abstract final class ReadModelPushRpcNames {
+  /// 한 표의 행 묶음을 올린다 — 조건 = 부른 사용자 = 그 기기 `auth_uid` = `owner_uid` ∧ role `operator` ∧ `ACTIVE` ∧
+  /// 리스 행 = 그 기기 ∧ epoch 같음 ∧ 만료 전(아니면 `LEASE_LOST` · 남의 기기 · 뷰어 · `REVOKED` · `RETIRED` = `LEASE_DEVICE_NOT_ELIGIBLE`) ·
+  /// 표 ∈ `ReadModelTables`(아니면 `READ_MODEL_TABLE_UNKNOWN`) · 행 = JSON 배열(열 이름 키 = `ReadModelTables` 열 · 규칙 5조
+  /// `row_version` · `mode` · 키 · 🔴 `lease_epoch` · `pushed_at` 은 서버가 덮어쓴다 = 인자 epoch · `now()`) ·
+  /// 기본 키 충돌 = `row_version` 이 **큰** 행만 반영(같거나 작으면 건너뜀 · 규칙 5조 ②).
+  static const String push = 'rm_push';
+
+  static const Set<String> values = <String>{push};
+}
+
+/// 읽기 모델 push RPC 인자 이름(PostgREST `rpc/rm_push` 본문 키).
+abstract final class ReadModelPushRpcParams {
+  /// 부르는 기기(= [LeaseRpcParams.deviceId] 와 같은 글자).
+  static const String deviceId = LeaseRpcParams.deviceId;
+
+  /// 지금 보유 리스 epoch(= [LeaseRpcParams.epoch] 와 같은 글자 · 행의 `lease_epoch` 원천).
+  static const String epoch = LeaseRpcParams.epoch;
+
+  /// 표 이름(`ReadModelTable.name` 그대로 · `rm_` 접두).
+  static const String table = 'p_table';
+
+  /// 행 묶음(JSON 배열 · 행 = 열 이름 → 와이어 값 · 빈 배열 = 0행 성공).
+  static const String rows = 'p_rows';
+
+  static const Set<String> values = <String>{deviceId, epoch, table, rows};
+}
+
+/// 읽기 모델 push RPC 반환 칸(한 행).
+abstract final class ReadModelPushRpcColumns {
+  /// 거부 코드 · 성공 = null.
+  static const String code = 'code';
+
+  /// 지금 리스 epoch(성공 = 인자 epoch · 거부 = 지금 값 또는 null).
+  static const String epoch = 'epoch';
+
+  /// 넣거나 바꾼 행 수(성공 · 거부 = 0).
+  static const String accepted = 'accepted';
+
+  /// `row_version` 이 크지 않아 건너뛴 행 수(성공 · 거부 = 0).
+  static const String skipped = 'skipped';
+
+  static const Set<String> values = <String>{code, epoch, accepted, skipped};
+}
