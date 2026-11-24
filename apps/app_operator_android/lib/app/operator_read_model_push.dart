@@ -2,14 +2,21 @@
 //
 // 🔵 원천 = 화면과 같은 창구(루트 컨테이너의 공급자) · 한 번 = 각 창구의 지금 값 하나(`first` · 상한 [kReadModelSourceWait]) →
 //    data_sync `ReadModelPushJob`(판 · 나눠 보내기 · 상태) → `SupabaseReadModelPush`(시크릿 관문).
-// 🔴 이 판 = 매개 없는 창구 12표 + 봉투 4목록(안전 · 설정 보기 · 공시 게이트 · 신뢰 · 워치독 · 홈 + 리듬 · 배분 · 알림 · 원장 차이 · 보관함 ·
-//    blind 큐 · 회차 + 범위). 구간 · 조합 · 달을 골라야 하는 표(일지 · 성과 시리즈 · 월간 리포트 · 드로다운/기여)는 E11l2c-3 ·
+// 🔴 E11l2c-2 = 매개 없는 창구 12표 + 봉투 4목록(안전 · 설정 보기 · 공시 게이트 · 신뢰 · 워치독 · 홈 + 리듬 · 배분 · 알림 · 원장 차이 ·
+//    보관함 · blind 큐 · 회차 + 범위) · 🆕 E11l2c-3(R268) = 매개 5표 — 매개 값 = 뷰어가 고르는 값 그대로:
+//    성과 시리즈 + 점 = 화면이 고르는 조합 12(지표 2 × 주기 3(주별 = 화면 0 · 원천 없음) × 누적 2 · 엔진 기본 구간) ·
+//    월간 리포트 = 보관함에서 열리는 달(`route` 있는 행 — 안내 모드 · 옛 모의 달 = 0) · 성과 맥락 = 기간 프리셋마다 기여
+//    (이번 달 = 셸 기본 구간 `contributionDefaultRange`) + 드로다운 엔진 기본(운용 전체) = 가장 넓은 프리셋 행(`is_default`) ·
+//    일지 = 가장 넓은 프리셋 · 상한 [kReadModelJournalLimit] + 봉투.
+//    매개 값 하나의 원천 실패 = 그 값만 뺀다(폰 화면도 그 값은 오류 · 표는 OK — 첫 마감 전 기여처럼 고칠 수 없는 지연을 LAG 로 띄우지 않는다).
 //    원천 없는 표(보유 행 · 안내 셋 · 이행 갭) = 보내지 않는다.
 // 🔴 리스 = 이 기기 id + 그 원장의 SUPABASE epoch(0 = 안 보낸다 — 모의 내부 · 첫 클레임 전) · 겹침 0(앞 push 가 끝나기 전 깨어남 = 건너뜀).
 // 🔴 행의 mode = 화면 상태의 실행 모드(`flags.runMode`) — DTO 의 mode 와 다르면 빌더가 그 표를 거부한다(PUSH_FAILED).
 
 import 'dart:async';
 
+import 'package:core_engine/core_engine.dart'
+    show contributionDefaultRange, kContributionDefaultPreset;
 import 'package:data_sync/data_sync.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +32,23 @@ import 'operator_view.dart';
 
 /// 창구 값 하나를 기다리는 상한(넘으면 그 표 = 다음 깨어남에 다시).
 const Duration kReadModelSourceWait = Duration(seconds: 10);
+
+/// 🆕 E11l2c-3 — 성과 시리즈 조합(화면 `S7-2` 가 고르는 값 그대로 · 주별 = 화면 0 · 원천 없음).
+final List<(PerfMetric, PerfGranularity, bool)> kReadModelSeriesCombos =
+    List<(PerfMetric, PerfGranularity, bool)>.unmodifiable(
+      <(PerfMetric, PerfGranularity, bool)>[
+        for (final PerfMetric m in PerfMetric.values)
+          for (final PerfGranularity g in <PerfGranularity>[
+            PerfGranularity.daily,
+            PerfGranularity.monthly,
+            PerfGranularity.yearly,
+          ])
+            for (final bool c in <bool>[true, false]) (m, g, c),
+      ],
+    );
+
+/// 🆕 E11l2c-3 — 일지 한 번에 보내는 행 상한(넘으면 봉투 `has_more` · 연 ~934건).
+const int kReadModelJournalLimit = 2000;
 
 /// push 원천 창구 묶음(화면과 같은 인스턴스).
 class OperatorReadModelRepos {
@@ -109,13 +133,50 @@ ReadModelEnvelopeDraft _env<T>(RunMode mode, String code, ListResult<T> r) =>
       emptyLabel: r.emptyLabel,
     );
 
-/// 표 이름 → 원천(이 판 12표 · 봉투 = 회차 · 원장 차이 · blind 큐 · 리듬).
+/// 매개 값 하나 — 실패(오류 · 상한) = null(그 값만 뺀다).
+Future<T?> _orSkip<T>(Future<T> f) async {
+  try {
+    return await f;
+  } on Object {
+    return null;
+  }
+}
+
+/// 가장 넓은 프리셋(시작이 가장 이른 · 같으면 뒤 — 프리셋 코드 없는 = 사용자 지정 · 뺀다).
+DateRange? _widest(List<DateRange> presets) {
+  DateRange? best;
+  for (final DateRange p in presets) {
+    if (p.presetCode == null) continue;
+    if (best == null || p.from.yyyyMmDd.compareTo(best.from.yyyyMmDd) <= 0) {
+      best = p;
+    }
+  }
+  return best;
+}
+
+/// 표 이름 → 원천(매개 없는 12표 · 🆕 매개 5표 · 봉투 = 회차 · 원장 차이 · blind 큐 · 리듬 · 🆕 일지).
 Map<String, ReadModelSnapshotSource> operatorReadModelSources(
   OperatorReadModelRepos r, {
   required RunMode mode,
+  required DateTime Function() nowUtc,
   Duration wait = kReadModelSourceWait,
 }) {
   Future<T> one<T>(Stream<T> s) => s.first.timeout(wait);
+  Future<List<PerformanceSeries>>? seriesMemo;
+  // 시리즈 + 점 두 표가 한 번 읽은 시리즈를 같이 쓴다(조합마다 한 번 · 차례대로).
+  Future<List<PerformanceSeries>> allSeries() => seriesMemo ??= () async {
+    final List<PerformanceSeries> out = <PerformanceSeries>[];
+    for (final (PerfMetric m, PerfGranularity g, bool c)
+        in kReadModelSeriesCombos) {
+      final PerformanceSeries? s = await _orSkip(
+        r.performance
+            .series(metric: m, granularity: g, cumulative: c)
+            .timeout(wait),
+      );
+      if (s != null) out.add(s);
+    }
+    return out;
+  }();
   ReadModelRowInput row(
     Map<String, Map<String, Object?>> dtos, {
     Map<String, Object?> extras = const <String, Object?>{},
@@ -270,6 +331,101 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
         }),
       ],
     ),
+    // ───── 🆕 E11l2c-3(R268) — 매개 5표 ─────
+    ReadModelTables.performanceSeries.name: () async => ReadModelSnapshot(
+      rows: <ReadModelRowInput>[
+        for (final PerformanceSeries s in await allSeries())
+          row(<String, Map<String, Object?>>{'PerformanceSeries': s.toJson()}),
+      ],
+    ),
+    ReadModelTables.performancePoint.name: () async => ReadModelSnapshot(
+      rows: <ReadModelRowInput>[
+        for (final PerformanceSeries s in await allSeries())
+          for (final PerfPoint p in s.points)
+            row(
+              <String, Map<String, Object?>>{'PerfPoint': p.toJson()},
+              extras: <String, Object?>{
+                'metric': s.metric.wire,
+                'granularity': s.granularity.wire,
+                'cumulative': s.cumulative,
+              },
+            ),
+      ],
+    ),
+    ReadModelTables.monthlyReport.name: () async {
+      final ReportArchiveVm archive = await r.performance
+          .reportArchive()
+          .timeout(wait);
+      final List<ReadModelRowInput> rows = <ReadModelRowInput>[];
+      for (final ReportArchiveRow a in archive.rows) {
+        if (a.route == null) continue; // 열리지 않는 달(안내 모드 · 옛 모의 달) = 원천 없음
+        final MonthlyReport? m = await _orSkip(
+          r.performance.monthlyReport(a.yyyyMm).timeout(wait),
+        );
+        if (m != null) {
+          rows.add(
+            row(<String, Map<String, Object?>>{'MonthlyReport': m.toJson()}),
+          );
+        }
+      }
+      return ReadModelSnapshot(rows: rows);
+    },
+    ReadModelTables.perfContext.name: () async {
+      final List<DateRange> presets = await one(r.config.watchRangePresets());
+      final DateRange? whole = _widest(presets);
+      final DrawdownContextVm? dd = await _orSkip(
+        r.performance.drawdownContext().timeout(wait),
+      );
+      final List<ReadModelRowInput> rows = <ReadModelRowInput>[];
+      for (final DateRange p in presets) {
+        final String? code = p.presetCode;
+        if (code == null) continue;
+        // 이번 달 = 셸이 넘기는 기본 구간(같은 코드 · 폰 기본 화면과 같은 값).
+        final DateRange range = code == kContributionDefaultPreset
+            ? contributionDefaultRange(nowUtc())
+            : p;
+        final ContributionVm? c = await _orSkip(
+          r.performance.contribution(range: range).timeout(wait),
+        );
+        final bool isDefault = identical(p, whole);
+        if (c == null && !(isDefault && dd != null)) continue;
+        rows.add(
+          row(
+            <String, Map<String, Object?>>{
+              'ContributionVm': ?c?.toJson(),
+              if (isDefault) 'DrawdownContextVm': ?dd?.toJson(),
+            },
+            extras: <String, Object?>{
+              'range_preset_code': code,
+              'is_default': isDefault,
+            },
+          ),
+        );
+      }
+      return ReadModelSnapshot(rows: rows);
+    },
+    ReadModelTables.journal.name: () async {
+      final DateRange? whole = _widest(await one(r.config.watchRangePresets()));
+      if (whole == null) return const ReadModelSnapshot(); // 프리셋 0 = 원천 없음
+      final ListResult<TradeJournalEntry> j = await one(
+        r.journal.watchTimeline(
+          range: whole,
+          mode: mode,
+          limit: kReadModelJournalLimit,
+        ),
+      );
+      return ReadModelSnapshot(
+        rows: <ReadModelRowInput>[
+          for (final TradeJournalEntry e in j.rows)
+            row(<String, Map<String, Object?>>{
+              'TradeJournalEntry': e.toJson(),
+            }),
+        ],
+        envelopes: <ReadModelEnvelopeDraft>[
+          _env(mode, ReadModelListCodes.journalWatchTimeline, j),
+        ],
+      );
+    },
   };
 }
 
@@ -287,7 +443,12 @@ Future<ReadModelPushReport?> runOperatorReadModelPush({
   return ReadModelPushJob(
     pusher: pusher,
     status: SqliteReadModelPushStatus(v.db),
-    sources: operatorReadModelSources(repos, mode: mode, wait: wait),
+    sources: operatorReadModelSources(
+      repos,
+      mode: mode,
+      nowUtc: rt.clock.nowUtc,
+      wait: wait,
+    ),
     nowUtc: rt.clock.nowUtc,
   ).run(deviceId: rt.deviceId, epoch: epoch);
 }

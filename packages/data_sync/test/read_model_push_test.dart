@@ -503,6 +503,50 @@ void main() {
   });
 
   group('④ 거부', () {
+    test('🆕 E11l2c-3(R268) 대등 결속(rm_perf_context) = 하나 이상 · 주 DTO 표 = 첫 결속 필수 그대로', () {
+      final ReadModelRowInput s = _samples()['rm_perf_context']!;
+      ReadModelRowInput only(String dto) => ReadModelRowInput(
+        mode: s.mode,
+        rowVersion: 1,
+        dtos: <String, Map<String, Object?>>{dto: s.dtos[dto]!},
+        extras: s.extras,
+      );
+      final Map<String, Object?> c = readModelRow(
+        ReadModelTables.perfContext,
+        only('ContributionVm'),
+      );
+      expect(c['contribution_period_label'], isNotNull);
+      expect(c.containsKey('drawdown_period_label'), isFalse);
+      final Map<String, Object?> d = readModelRow(
+        ReadModelTables.perfContext,
+        only('DrawdownContextVm'),
+      );
+      expect(d['drawdown_period_label'], isNotNull);
+      expect(d.containsKey('contribution_period_label'), isFalse);
+      expect(
+        () => readModelRow(
+          ReadModelTables.perfContext,
+          ReadModelRowInput(mode: s.mode, rowVersion: 1, extras: s.extras),
+        ),
+        throwsA(isA<ReadModelRowError>()),
+      );
+      final ReadModelRowInput e = _samples()['rm_rebalance_event']!;
+      expect(
+        () => readModelRow(
+          ReadModelTables.rebalanceEvent,
+          ReadModelRowInput(
+            mode: e.mode,
+            rowVersion: 1,
+            dtos: <String, Map<String, Object?>>{
+              'JournalRebalanceScope': <String, Object?>{'label': 'x'},
+            },
+          ),
+        ),
+        throwsA(isA<ReadModelRowError>()),
+        reason: '주 DTO 없이 둘째 결속만 = 거부',
+      );
+    });
+
     test('모드 다름 · 첫 결속 없음 · 모르는 list_code', () {
       final ReadModelRowInput s = _samples()['rm_journal']!;
       final RunMode other = RunMode.values.firstWhere(
