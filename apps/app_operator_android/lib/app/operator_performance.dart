@@ -13,11 +13,18 @@
 //    「자세히」 = 등록된 화면만). 안내 모드 = 원천 없음(X7 신뢰 등급 사다리 · 이행 갭 조각 전).
 // 🆕 E11q-q5d(R238) — `S7-9` 목표 경로 = 같은 원장 `ledgerGoalPathOnRead`(읽을 때 짓기 · 월간 리포트와 같은 판정 — 닫힌 달 ·
 //    개시 달부터 · 무결성 점검 중 = 실패 · 자동 매매만 — 진입점 = 월간 리포트 「목표 경로 보기」 하나).
-// 🔴 나머지 M7 창구(아카이브 · 세후 사다리 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류
-//    (아카이브 = 209 ⓔ-4 스냅숏 뒤).
+// 🆕 E11q-s71b(R253) — `S7-1b` 보관함 = 엔진 `reportArchiveVmOf`(S7-1 과 같은 «닫힌 달 · 개시 달부터» 판정 · 지금 원장 ·
+//    링크 = 자동 매매 ∧ 본문 등록 · 실전이면 옛 모의 파일의 달 = 링크 0 + 사유) · 스냅숏 저장(ⓔ-4)은 그대로 남김.
+// 🔴 나머지 M7 창구(세후 사다리 · 롤링 갭)는 원천 조각 전 — 지어내지 않고 «원천 없음» 오류.
 
 import 'package:core_engine/core_engine.dart'
-    show P0sWarnSetup, annualReviewVmOf, executionGapResultOf, p0sExposureMap;
+    show
+        P0sWarnSetup,
+        ReportArchiveFacts,
+        annualReviewVmOf,
+        executionGapResultOf,
+        p0sExposureMap,
+        reportArchiveVmOf;
 import 'package:data_sync/data_sync.dart'
     show
         OpsConfigRead,
@@ -29,6 +36,7 @@ import 'package:data_sync/data_sync.dart'
         SqliteSafetyRepository,
         currentP0sOpsConfig,
         ledgerGoalPathOnRead,
+        openingCashTradeDate,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -161,8 +169,25 @@ class OperatorPerformanceRepository implements PerformanceRepository {
   Future<AfterTaxLadder> afterTaxLadder({required String fiscalYear}) =>
       _noneNow('afterTaxLadder');
 
+  /// 🆕 E11q-s71b(R253) — `S7-1b` 보관함(지금 원장의 닫힌 달 · 최신 달부터 · 링크 = 자동 매매 ∧ 본문 등록 · 실전 = 옛 모의 달 덧붙임).
+  /// 화면 상태 없음 = [StateError].
   @override
-  Future<ReportArchiveVm> reportArchive() => _noneNow('reportArchive');
+  Future<ReportArchiveVm> reportArchive() async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('보관함: 화면 상태 없음(온보딩 전)');
+    final bool live = v.flags.runMode == RunMode.live;
+    return reportArchiveVmOf(
+      ReportArchiveFacts(
+        runMode: v.flags.runMode,
+        operatingMode: v.flags.operatingMode,
+        openingDate: openingCashTradeDate(v.db),
+        pastSimOpeningDate: live ? openingCashTradeDate(_rt.files.sim) : null,
+        nowUtc: _rt.clock.nowUtc(),
+        hasBody: hasBody,
+      ),
+      kr: _rt.calendars.kr,
+    );
+  }
 
   @override
   Stream<DisclosureGateVm> watchDisclosureGate() =>
@@ -240,4 +265,4 @@ class OperatorExecutionGapRepository implements ExecutionGapRepository {
 }
 
 Future<T> _noneNow<T>(String what) =>
-    Future<T>.error(UnsupportedError('$what: 원천 없음(R223 · 209 ⓔ-4)'));
+    Future<T>.error(UnsupportedError('$what: 원천 없음(R223)'));

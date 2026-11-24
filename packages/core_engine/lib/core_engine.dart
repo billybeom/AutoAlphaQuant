@@ -997,6 +997,14 @@ export 'src/ops/rebalance_events_view.dart'
         rebalanceEventVmOf,
         rebalanceEventsVmOf,
         rebalanceWeightLinesOf;
+// 🆕 E11q-s71b — M7 S7-1b 월간 리포트 보관함 VM 짓기(설계 13 §8 R253 · 03 §4 · S7-1 과 같은 «닫힌 달» 판정).
+export 'src/ops/report_archive_view.dart'
+    show
+        ReportArchiveFacts,
+        ReportArchiveTexts,
+        kReportArchiveStaleAfter,
+        reportArchiveMonthsOf,
+        reportArchiveVmOf;
 // 🆕 E11q-d1 — M8 D-02 런북 · D-03 긴급 카드 원고 번들(표본 글자 · 원고 없는 런북 = 준비 중 · 인쇄 = 빌드가 할 수 있을 때만).
 export 'src/ops/runbook_catalog.dart'
     show

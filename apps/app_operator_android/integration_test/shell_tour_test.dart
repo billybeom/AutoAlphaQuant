@@ -8,6 +8,7 @@
 // 🆕 E11q-q5e(R231) — + M7 S7-1 월간 리포트(지난달 · 배지 «대사 완료» · 「자세히」 → S7-3).
 // 🆕 E11q-d1 — + M8 문서(D-02 런북 목록 → 상세 · D-03 긴급 카드 · B-01 핸드북 목차 → B-02 슬리브 B 쪽).
 // 🆕 E11q-s05(R252) — + M9 S05 운용 관리(«실전 전환 요청» → M5-11 위저드 넘김).
+// 🆕 E11q-s71b(R253) — + M7 S7-1b 보관함(지난달 행 → 그 달 S7-1).
 // 🆕 E11q-d2 — + M8 D-01 장애 배너(셸 탭으로 돌아와 연습 SEV2 를 원장에 열면 탭 위에 배너 → 닫으면 사라짐 · 맨 끝).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
@@ -77,7 +78,8 @@ import 'package:ui_analytics/ui_analytics.dart'
         PerformanceExploreScreen,
         RebalanceEventScreen,
         RebalancePreviewScreen,
-        RebalanceTimelineScreen;
+        RebalanceTimelineScreen,
+        ReportArchiveScreen;
 import 'package:ui_journal/ui_journal.dart'
     show
         HoldingDetail,
@@ -1006,6 +1008,16 @@ void main() {
       expect(find.byKey(const Key('s79-unavailable')), findsOneWidget);
       expect(find.text('목표 경로 기준 ${prevEnd.yyyyMmDd}'), findsOneWidget);
       await _at(tester, find.byType(GoalPathScreen), 'IT_S79');
+
+      // 🆕 E11q-s71b(R253) — M7 S7-1b 보관함(S7-1 과 같은 «닫힌 달» — 연습 개시 = 지난달 → 지난달 한 행 · 모의 머리글) →
+      //    행 탭 = 그 달 S7-1.
+      container.read(shellLinkOpenerProvider).open(AppRoutes.reportArchive);
+      final Finder archiveRow = find.byKey(ValueKey<String>('s71b-row-$prev'));
+      await _until(tester, archiveRow);
+      await _at(tester, find.byType(ReportArchiveScreen), 'IT_S71B');
+      await tester.tap(archiveRow);
+      await _until(tester, find.text('리포트 기준 ${prevEnd.yyyyMmDd}'));
+      await _at(tester, find.byType(MonthlyReportScreen), 'IT_S71B_S71');
 
       // 🆕 E11q-d1 — M8 문서 다섯 길(엔진 원고 번들 · 원장 0): 런북 목록 여섯 행 → 상세(host-lost 단계) · 긴급 카드(인쇄 자리 부재) ·
       //    핸드북 목차(원고 없는 장 = 준비 중) → 슬리브 B 쪽(별칭 · live 값 원천 0 = 블록 뺌).
