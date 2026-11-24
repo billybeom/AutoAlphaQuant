@@ -68,6 +68,18 @@ void _history(Database db) {
   _snap(db, '2026-08-03', 999);
 }
 
+/// 판정 행 하나(복귀 · 만료 시험의 이력).
+void _judged(
+  Database db,
+  String month,
+  String id, {
+  bool transitioned = false,
+}) => db.execute(
+  'INSERT INTO tier_b_judgement(judged_month, strategy_id, judged_at, b1_breached, b2_breached, b3_breached, '
+  'transitioned) VALUES (?, ?, ?, 0, 0, 0, ?)',
+  <Object?>[month, id, '$month-28T00:00:00.000Z', transitioned ? 1 : 0],
+);
+
 int _count(Database db, String table) =>
     db.select('SELECT COUNT(*) AS n FROM $table').first['n'] as int;
 
@@ -170,7 +182,11 @@ void main() {
         _strategy(db, P0sStrategyIds.sleeveB, 'ACTIVE', cap: 0.8);
         _strategy(db, P0sStrategyIds.sleeveC, 'PILOT');
         _strategy(db, P0sStrategyIds.deposit, 'PROBATION', cap: 0.5);
+        // 🆕 R247 — PROBATION 은 진입 판정 행이 있어야 한다(없으면 무결성 실패) · 이번 달 B2 충족 = 복귀 안 함.
+        _judged(db, '2026-06', P0sStrategyIds.deposit, transitioned: true);
         final TierBStepReport r = step().run(_me);
+        expect(r.returned, isEmpty);
+        expect(r.retired, isEmpty);
         expect(r.metrics!.r12m, closeTo(0.08, 1e-12));
         expect(r.metrics!.dd, closeTo(-0.28, 1e-12));
         expect(r.metrics!.tuwMonths, closeTo(213 / 30.4375, 1e-12));
@@ -192,7 +208,7 @@ void main() {
         expect(r.toString(), contains('판정 3 · 전이 1'));
 
         final List<Row> rows = db.select(
-          'SELECT * FROM tier_b_judgement ORDER BY strategy_id',
+          "SELECT * FROM tier_b_judgement WHERE judged_month = '2026-07' ORDER BY strategy_id",
         );
         expect(
           <Object?>[
@@ -440,6 +456,380 @@ void main() {
         isFalse,
       );
       expect(await ledger().tierBUnjudged(fourth), isTrue);
+    });
+  });
+
+  // ── 🆕 R247(R50 T10 · 03 §1-5 «P0S 등록») — PROBATION 효과 · 복귀 · 만료 ──
+  group('🆕 R247 복귀 · 만료 · 회수처 C', () {
+    // _history: r12 = +8% · DD = −28% · TUW 7달 — 이 카드면 하나도 안 걸림.
+    const TierBCard quiet = TierBCard(
+      b1R12mFloor: -0.15,
+      b2DdFloor: -0.30,
+      b3TuwMonths: 31,
+    );
+    TierBStep stepR({
+      TierBCard card = quiet,
+      TierBProbationRule rule = const TierBProbationRule(
+        returnR12mFloor: 0.05,
+        maxJudgements: 24,
+      ),
+    }) => TierBStep(db, clock: clock, card: () => card, rule: () => rule);
+
+    Row state(String id) => db.select(
+      'SELECT * FROM strategy_state_current WHERE strategy_id = ?',
+      <Object?>[id],
+    ).single;
+
+    void probation(String id, {double cap = 0.5, String entry = '2026-06'}) {
+      _strategy(db, id, 'PROBATION', cap: cap);
+      _judged(db, entry, id, transitioned: true);
+    }
+
+    test('🔴 진입 = 위험 슬리브만 × 0.5 · 회수처 C 는 상한 그대로(라벨만 함께)', () {
+      _history(db);
+      for (final String id in <String>[
+        P0sStrategyIds.sleeveA,
+        P0sStrategyIds.sleeveB,
+        P0sStrategyIds.sleeveC,
+        P0sStrategyIds.pot,
+      ]) {
+        _strategy(db, id, 'ACTIVE');
+      }
+      final TierBStepReport r = step().run(_me); // _card = B2 −25% → 걸림
+      expect(r.transitioned, hasLength(4));
+      for (final (String id, double cap) in <(String, double)>[
+        (P0sStrategyIds.sleeveA, 0.5),
+        (P0sStrategyIds.sleeveB, 0.5),
+        (P0sStrategyIds.sleeveC, 1.0),
+        (P0sStrategyIds.pot, 0.5),
+      ]) {
+        expect(
+          (state(id)['state'], state(id)['capital_cap']),
+          ('PROBATION', cap),
+        );
+      }
+      expect(p0sRiskCapsOf(db), const P0sRiskCaps(a: 0.5, b: 0.5, pot: 0.5));
+    });
+
+    test('복귀 = r12 ≥ +5% AND B1~B3 안 걸림 → ACTIVE · 상한 1 · 기록 · 판정 행 전이 1', () {
+      _history(db);
+      probation(P0sStrategyIds.sleeveB);
+      probation(P0sStrategyIds.sleeveC, cap: 1.0);
+      final TierBStepReport r = stepR().run(_me);
+      expect(r.returned, <String>[
+        P0sStrategyIds.sleeveB,
+        P0sStrategyIds.sleeveC,
+      ]);
+      expect(r.retired, isEmpty);
+      expect(r.transitioned, isEmpty); // ACTIVE → PROBATION 만
+      expect(r.toString(), contains('복귀 2'));
+      for (final String id in <String>[
+        P0sStrategyIds.sleeveB,
+        P0sStrategyIds.sleeveC,
+      ]) {
+        expect(
+          (state(id)['state'], state(id)['since'], state(id)['capital_cap']),
+          ('ACTIVE', '2026-08-01', 1.0),
+        );
+        final Row j = db.select(
+          "SELECT transitioned FROM tier_b_judgement WHERE judged_month = '2026-07' AND strategy_id = ?",
+          <Object?>[id],
+        ).single;
+        expect(j['transitioned'], 1);
+        final Row log = db.select(
+          'SELECT * FROM strategy_state_log WHERE strategy_id = ?',
+          <Object?>[id],
+        ).single;
+        expect(
+          (
+            log['log_id'],
+            log['from_state'],
+            log['to_state'],
+            log['threshold_registered'],
+            log['reason'],
+          ),
+          (
+            tierBExitLogIdOf(TierBExitCodes.returned, '2026-07', id),
+            'PROBATION',
+            'ACTIVE',
+            0.05,
+            'TIER_B_RETURN',
+          ),
+        );
+        expect(log['trigger_value'] as double, closeTo(0.08, 1e-12));
+      }
+      expect(p0sRiskCapsOf(db), P0sRiskCaps.full);
+    });
+
+    test('복귀 경계 — r12 가 문턱과 같으면 복귀(≥) · 문턱 위면 그대로', () {
+      _history(db);
+      probation(P0sStrategyIds.sleeveB);
+      final double r12 = stepR(
+        rule: const TierBProbationRule(returnR12mFloor: 0.5, maxJudgements: 24),
+      ).run(_me).metrics!.r12m!;
+      expect(state(P0sStrategyIds.sleeveB)['state'], 'PROBATION');
+      db.execute(
+        'DELETE FROM tier_b_judgement WHERE judged_month = ?',
+        <Object?>['2026-07'],
+      );
+      final TierBStepReport r = stepR(
+        rule: TierBProbationRule(returnR12mFloor: r12, maxJudgements: 24),
+      ).run(_me);
+      expect(r.returned, <String>[P0sStrategyIds.sleeveB]);
+    });
+
+    test('B1~B3 하나라도 걸리면 r12 가 넘어도 복귀 안 함(되튐 막기) · 전이 0 · 기록 0', () {
+      _history(db);
+      probation(P0sStrategyIds.sleeveB);
+      final TierBStepReport r = step().run(_me); // _card = B2 걸림 · r12 +8%
+      expect(r.verdict!.any, isTrue);
+      expect(r.returned, isEmpty);
+      expect(state(P0sStrategyIds.sleeveB)['state'], 'PROBATION');
+      expect(_count(db, 'strategy_state_log'), 0);
+      expect(
+        db
+            .select(
+              "SELECT transitioned FROM tier_b_judgement WHERE judged_month = '2026-07'",
+            )
+            .single['transitioned'],
+        0,
+      );
+    });
+
+    test('r12 없음(이력 12달 미만) = 복귀 안 함', () {
+      _snap(db, '2026-03-31', 100);
+      _snap(db, '2026-07-31', 130);
+      probation(P0sStrategyIds.sleeveB);
+      final TierBStepReport r = stepR().run(_me);
+      expect(r.metrics!.r12m, isNull);
+      expect(r.returned, isEmpty);
+      expect(state(P0sStrategyIds.sleeveB)['state'], 'PROBATION');
+    });
+
+    test('🔴 만료 = 진입 뒤 N번째 판정까지 복귀 못 함 → RETIRED · 위험 = 0 · C 상한 그대로 · 기록', () {
+      _history(db);
+      const TierBProbationRule rule = TierBProbationRule(
+        returnR12mFloor: 0.05,
+        maxJudgements: 3,
+      );
+      for (final (String id, double cap) in <(String, double)>[
+        (P0sStrategyIds.sleeveB, 0.5),
+        (P0sStrategyIds.sleeveC, 1.0),
+        (P0sStrategyIds.pot, 0.5),
+      ]) {
+        probation(id, cap: cap, entry: '2026-04');
+        _judged(db, '2026-05', id);
+        _judged(db, '2026-06', id);
+      }
+      final TierBStepReport r = stepR(card: _card, rule: rule).run(_me);
+      expect(r.retired, <String>[
+        P0sStrategyIds.sleeveB,
+        P0sStrategyIds.sleeveC,
+        P0sStrategyIds.pot,
+      ]);
+      expect(r.toString(), contains('은퇴 3'));
+      for (final (String id, double cap) in <(String, double)>[
+        (P0sStrategyIds.sleeveB, 0.0),
+        (P0sStrategyIds.sleeveC, 1.0),
+        (P0sStrategyIds.pot, 0.0),
+      ]) {
+        expect(
+          (state(id)['state'], state(id)['capital_cap']),
+          ('RETIRED', cap),
+        );
+        final Row log = db.select(
+          'SELECT * FROM strategy_state_log WHERE strategy_id = ?',
+          <Object?>[id],
+        ).single;
+        expect(
+          (
+            log['log_id'],
+            log['to_state'],
+            log['trigger_value'],
+            log['threshold_registered'],
+            log['reason'],
+          ),
+          (
+            tierBExitLogIdOf(TierBExitCodes.expired, '2026-07', id),
+            'RETIRED',
+            3.0,
+            3.0,
+            'TIER_B_EXPIRED',
+          ),
+        );
+      }
+      expect(
+        p0sRiskCapsOf(db),
+        const P0sRiskCaps(a: 1.0, b: 0.0, pot: 0.0), // A 행 없음 = 1
+      );
+    });
+
+    test('만료 한 달 전 = 그대로 · 빠진 달은 관측으로 세지 않는다(월말 판정 횟수)', () {
+      _history(db);
+      probation(P0sStrategyIds.sleeveB, entry: '2026-03'); // 04 · 05 판정 없음
+      _judged(db, '2026-06', P0sStrategyIds.sleeveB);
+      final TierBStepReport r = stepR(
+        card: _card,
+        rule: const TierBProbationRule(returnR12mFloor: 0.05, maxJudgements: 3),
+      ).run(_me);
+      expect(r.retired, isEmpty);
+      expect(state(P0sStrategyIds.sleeveB)['state'], 'PROBATION');
+    });
+
+    test('마지막 판정에서 복귀하면 만료가 아니다', () {
+      _history(db);
+      probation(P0sStrategyIds.sleeveB, entry: '2026-05');
+      _judged(db, '2026-06', P0sStrategyIds.sleeveB);
+      final TierBStepReport r = stepR(
+        rule: const TierBProbationRule(returnR12mFloor: 0.05, maxJudgements: 2),
+      ).run(_me);
+      expect(r.returned, <String>[P0sStrategyIds.sleeveB]);
+      expect(r.retired, isEmpty);
+    });
+
+    test('🔴 진입 판정 없는 PROBATION = TierBError · 아무것도 안 씀', () {
+      _history(db);
+      _strategy(db, P0sStrategyIds.sleeveB, 'ACTIVE');
+      _strategy(db, P0sStrategyIds.sleeveC, 'PROBATION', cap: 1.0);
+      expect(
+        () => stepR().run(_me),
+        throwsA(
+          isA<TierBError>().having(
+            (TierBError e) => e.reason,
+            'reason',
+            'PROBATION 진입 판정 없음: ${P0sStrategyIds.sleeveC}',
+          ),
+        ),
+      );
+      expect(_count(db, 'tier_b_judgement'), 0);
+      expect(_count(db, 'strategy_state_log'), 0);
+    });
+
+    test('RETIRED = 판정 행만 · 전이 없음 · 멱등(다시 돌리면 아무것도)', () {
+      _history(db);
+      _strategy(db, P0sStrategyIds.sleeveB, 'RETIRED', cap: 0);
+      final TierBStepReport r = step().run(_me);
+      expect(r.judged, <String>[P0sStrategyIds.sleeveB]);
+      expect(r.transitioned, isEmpty);
+      expect(r.returned, isEmpty);
+      expect(r.retired, isEmpty);
+      expect(state(P0sStrategyIds.sleeveB)['state'], 'RETIRED');
+      final TierBStepReport again = step().run(_me);
+      expect(again.judged, isEmpty);
+      expect(_count(db, 'tier_b_judgement'), 1);
+    });
+
+    test('복귀 다음 달 = 다시 ACTIVE 판정(진입과 같은 길) · 복귀 판정 행이 새 진입이 되지 않는다', () {
+      _history(db);
+      probation(P0sStrategyIds.sleeveB);
+      stepR().run(_me);
+      expect(state(P0sStrategyIds.sleeveB)['state'], 'ACTIVE');
+      _snap(db, '2026-08-31', 100); // −43% · 새로 걸림
+      final TierBStepReport r = stepR().run(const TradeDate('2026-08-31'));
+      expect(r.transitioned, <String>[P0sStrategyIds.sleeveB]);
+      expect(state(P0sStrategyIds.sleeveB)['state'], 'PROBATION');
+      expect(state(P0sStrategyIds.sleeveB)['capital_cap'], 0.5);
+    });
+
+    test('🔴 한 트랜잭션 — 복귀 기록이 실패하면 판정 행 · 상태도 되돌린다', () {
+      _history(db);
+      probation(P0sStrategyIds.sleeveB);
+      db.execute(
+        'INSERT INTO strategy_state_log(log_id, strategy_id, changed_at, from_state, to_state, reason) '
+        "VALUES (?, 'X', 'x', NULL, 'ACTIVE', 'x')",
+        <Object?>[
+          tierBExitLogIdOf(
+            TierBExitCodes.returned,
+            '2026-07',
+            P0sStrategyIds.sleeveB,
+          ),
+        ],
+      );
+      expect(() => stepR().run(_me), throwsA(isA<SqliteException>()));
+      expect(state(P0sStrategyIds.sleeveB)['state'], 'PROBATION');
+      expect(
+        _count(db, 'tier_b_judgement'),
+        1, // 진입 행만
+      );
+    });
+  });
+
+  group('🆕 R247 p0sRiskCapsOf · sleeveACapTrimDue', () {
+    test(
+      '상한 읽기 — 행 없음 · CANDIDATE(상한 0) = 1 · RETIRED = 0 · PROBATION = 값',
+      () {
+        expect(p0sRiskCapsOf(db), P0sRiskCaps.full);
+        _strategy(db, P0sStrategyIds.sleeveA, 'CANDIDATE', cap: 0);
+        _strategy(db, P0sStrategyIds.sleeveB, 'RETIRED', cap: 0.7);
+        _strategy(db, P0sStrategyIds.pot, 'PROBATION', cap: 0.5);
+        expect(p0sRiskCapsOf(db), const P0sRiskCaps(a: 1.0, b: 0.0, pot: 0.5));
+      },
+    );
+
+    void log(String id, String to, String reason, String at) => db.execute(
+      'INSERT INTO strategy_state_log(log_id, strategy_id, changed_at, from_state, to_state, reason) '
+      'VALUES (?, ?, ?, NULL, ?, ?)',
+      <Object?>['L-$at-$to', id, at, to, reason],
+    );
+    int n = 0;
+    void intent(String strategy, String at) => db.execute(
+      'INSERT INTO order_intents(intent_id, idempotency_key, created_at, trade_date, market, account, strategy_id, '
+      'decision_id, symbol, side, order_type, quantity, status, config_hash, updated_at, mode) '
+      "VALUES (?, ?, ?, '2026-08-03', 'KR', 'isa', ?, 'D@2026-08-03', '000000', 'SELL', 'LIMIT', 1, 'SUBMITTED', 'h', ?, 'LIVE')",
+      <Object?>['I${n++}', 'K$n-$at', at, strategy, at],
+    );
+
+    test('A 축소 남음 = 마지막 A 기록이 계층 B 낮춤 전이 · 그 뒤 A 주문 0', () {
+      expect(sleeveACapTrimDue(db), isFalse);
+      log(
+        P0sStrategyIds.sleeveA,
+        'ACTIVE',
+        'SIM_OPENING',
+        '2026-01-02T00:00:00Z',
+      );
+      expect(sleeveACapTrimDue(db), isFalse);
+      intent(P0sStrategyIds.sleeveA, '2026-07-01T00:00:00Z'); // 전이 앞 주문
+      log(
+        P0sStrategyIds.sleeveA,
+        'PROBATION',
+        'TIER_B_B2',
+        '2026-07-31T23:00:00Z',
+      );
+      expect(sleeveACapTrimDue(db), isTrue);
+      intent(P0sStrategyIds.sleeveB, '2026-08-03T00:00:00Z'); // 다른 전략 = 무관
+      expect(sleeveACapTrimDue(db), isTrue);
+      intent(P0sStrategyIds.sleeveA, '2026-08-03T00:00:00Z');
+      expect(sleeveACapTrimDue(db), isFalse);
+      log(
+        P0sStrategyIds.sleeveA,
+        'RETIRED',
+        'TIER_B_EXPIRED',
+        '2028-07-31T23:00:00Z',
+      );
+      expect(sleeveACapTrimDue(db), isTrue);
+      log(
+        P0sStrategyIds.sleeveA,
+        'CANDIDATE',
+        'STOPPED_DECISION_B · J',
+        '2028-08-05T00:00:00Z',
+      );
+      expect(sleeveACapTrimDue(db), isFalse);
+    });
+
+    test('복귀 기록이 마지막이면 축소 없음', () {
+      log(
+        P0sStrategyIds.sleeveA,
+        'PROBATION',
+        'TIER_B_B3',
+        '2026-07-31T23:00:00Z',
+      );
+      log(
+        P0sStrategyIds.sleeveA,
+        'ACTIVE',
+        'TIER_B_RETURN',
+        '2026-08-31T23:00:00Z',
+      );
+      expect(sleeveACapTrimDue(db), isFalse);
     });
   });
 }

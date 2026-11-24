@@ -222,13 +222,29 @@ class MonthEndPlan {
 }
 
 /// 월말 계획 한 벌을 만든다(값만 — 부작용 0).
-MonthEndPlan planMonthEnd(MonthEndState s, MonthEndConfig cfg) =>
-    _Planner(s, cfg).run();
+///
+/// 🆕 R247(R50 T10 · 03 §1-5) — [capB] · [capPot] = 계층 B 자금 상한(목표 배분 대비 · PROBATION 0.5 · RETIRED 0).
+/// null 또는 1 이상 = 상한 없음(🔴 식 자체를 바꾸지 않는다 — 골든 · 평시 계획 바이트 불변).
+/// B = 램프 목표 · 코어 밴드 중심 × 상한 — 초과분은 «B 초과 → 파킹 → 같은 계좌 C 재분류» 길(회수처 C) · 상한이 걸리면
+/// 램프 중에도 줄이는 쪽만 돈다 · 상한 0 = 밴드와 무관하게 전부. POT = 트랜치 목표 × 상한(판 돈 = POT 현금).
+MonthEndPlan planMonthEnd(
+  MonthEndState s,
+  MonthEndConfig cfg, {
+  Decimal? capB,
+  Decimal? capPot,
+}) =>
+    _Planner(s, cfg, capB: _capOrNull(capB), capPot: _capOrNull(capPot)).run();
 
 final Decimal _one = Decimal.one;
 
+Decimal? _capOrNull(Decimal? c) {
+  if (c == null || c >= _one) return null;
+  if (c < Decimal.zero) throw ArgumentError.value(c, 'cap', '음수');
+  return c;
+}
+
 class _Planner {
-  _Planner(this.s, this.cfg)
+  _Planner(this.s, this.cfg, {this.capB, this.capPot})
     : bAssets = Map<String, Decimal?>.of(s.bAssets),
       bParking = s.bParking,
       bParkC = s.bParkingReclassified,
@@ -241,6 +257,9 @@ class _Planner {
 
   final MonthEndState s;
   final MonthEndConfig cfg;
+
+  /// 🆕 R247 — 상한(null = 없음).
+  final Decimal? capB, capPot;
   final List<MonthEndAction> out = <MonthEndAction>[];
   bool bHeld = false;
 
@@ -260,7 +279,8 @@ class _Planner {
             ),
             _one,
           );
-    _rampTopup(eq, f, cfg.allocB * f);
+    final Decimal? cb = capB;
+    _rampTopup(eq, f, cb == null ? cfg.allocB * f : cfg.allocB * f * cb);
     _coreBand(eq, f);
     _sleeveB();
     _sleeveC(eq);
@@ -305,11 +325,21 @@ class _Planner {
   }
 
   // ② 코어 밴드.
+  // 🆕 R247 — 상한이 걸리면 중심 = allocB × f × 상한 · 램프 중에도 줄이는 쪽만 · 상한 0 = 밴드와 무관하게 전부.
+  //    상한 없음(null) = 아래 식이 옛 식과 한 글자도 다르지 않게 돈다(중심 allocB · 램프 중 건너뜀).
   void _coreBand(Decimal eq, Decimal f) {
-    if (cfg.coreBand <= Decimal.zero || f < _one) return;
+    final Decimal? cap = capB;
+    final bool ramping = f < _one;
+    final bool band = cfg.coreBand > Decimal.zero;
+    if (cap == null && (!band || ramping)) return;
+    final Decimal width = band ? cfg.coreBand : Decimal.zero;
     final Decimal b = _bValue;
-    final Decimal tgt = eq * cfg.allocB;
-    if (b > eq * (cfg.allocB + cfg.coreBand)) {
+    final Decimal alloc = cap == null ? cfg.allocB : cfg.allocB * f * cap;
+    final Decimal tgt = eq * alloc;
+    final bool over =
+        b > eq * (alloc + width) ||
+        (cap != null && cap == Decimal.zero && b > _one);
+    if (over) {
       final Decimal need = b - tgt;
       if (bParking < need) {
         _liquidateB(divide(need - bParking, _one - cfg.bSellCostRate));
@@ -320,7 +350,7 @@ class _Planner {
         bParkC += take;
         out.add(MonthEndAction(MonthEndActionKind.coreBandReclassify, take));
       }
-    } else if (b < eq * (cfg.allocB - cfg.coreBand)) {
+    } else if (band && !ramping && b < eq * (alloc - width)) {
       Decimal need = tgt - b;
       final Decimal reclaim = _minD(need, bParkC);
       if (reclaim > _one) {
@@ -503,7 +533,10 @@ class _Planner {
         s.monthlyCloses[t] ?? const <double>[],
         lookbackMonths: cfg.lookbackMonths,
       );
-      final Decimal tgt = base * w * promoteRatio(ratio);
+      final Decimal? cp = capPot;
+      final Decimal tgt = cp == null
+          ? base * w * promoteRatio(ratio)
+          : base * w * promoteRatio(ratio) * cp;
       final Decimal delta = tgt - cur;
       if (delta.abs() <= base * cfg.potOrderThreshold) continue;
       if (delta > Decimal.zero) {

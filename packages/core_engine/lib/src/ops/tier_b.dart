@@ -3,6 +3,15 @@
 // 🔴 판정 단위 = 포트폴리오 `equity_snapshot` 1 시리즈 · 결과는 전 전략에 같다(D7 ①).
 // 🔴 시리즈 = TWR — 입금 · 출금(외부 흐름)은 수익이 아니다. 분배금 · 원천징수 · 단주 대금은 수익(외부 흐름 아님).
 // 🔴 카드(임계)는 백테스트 부트스트랩 백분위로 **사전 등록**한다(03 §1-4) — 미등록이면 판정하지 않는다(D7 ③ · 부르는 쪽).
+// 🆕 R247(R50 T10) — PROBATION 복귀 · 만료 판정 · 자금 상한(위험 슬리브 A · B · POT 만 · C = 회수처) · A 축소 매도.
+
+import 'package:domain_contracts/domain_contracts.dart'
+    show OrderSide, TradeDate;
+
+import '../orders/idempotency.dart' show DecisionIds;
+import '../orders/order_draft.dart'
+    show AllHeldSizing, OrderTarget, P0sStrategyIds, ShareSizing;
+import '../risk/limits.dart' show InstrumentKind;
 
 /// 계층 B 등록 카드(B1~B3 · 03 §1-4 · 카드 §4).
 class TierBCard {
@@ -175,6 +184,155 @@ TierBVerdict judgeTierB(TierBMetrics m, TierBCard card) => TierBVerdict(
   b2: m.dd <= card.b2DdFloor,
   b3: m.tuwMonths > card.b3TuwMonths,
 );
+
+/// 🆕 R247 — PROBATION 복귀 · 최대 관찰 기간(03 §1-5 «P0S 등록» · 카드 §8 · R50 T10).
+class TierBProbationRule {
+  /// 규칙을 만든다.
+  const TierBProbationRule({
+    required this.returnR12mFloor,
+    required this.maxJudgements,
+  });
+
+  /// 복귀 ① — 롤링 12개월 수익률 하한(이상이면 충족 · 이력 12달 없음 = 미충족).
+  final double returnR12mFloor;
+
+  /// 최대 관찰 기간 — 진입 판정 뒤 월말 판정 횟수(이 횟수째 판정에서도 복귀 못 하면 만료).
+  final int maxJudgements;
+}
+
+/// P0S PROBATION 규칙 — ✅ **발주자 위임 — 권고대로 2026-11-23**(03 §1-5 «P0S 등록» · 근거 = 백테스트6
+/// `PROBATION_복귀조건_Q2.md` · 실험대장 Q2): 복귀 = 월말 롤링 12M ≥ +5%(부트스트랩 «월말 전부 모음» 25%ile +5.38% 를
+/// 1%p 내림) **AND** 그 달 B1~B3 안 걸림 · 진입 다음 달 월말부터 · 24회 판정 안에 복귀 못 하면 자동 RETIRED.
+/// 🔴 신호 일치(B5)는 판정이 «보류»라 조건 밖 — 판정이 생기면 «그 달 불일치 0건»을 더한다(사전 등록).
+/// 🔴 사전 등록 — 운영 중 바꾸지 않는다(PROBATION 중 규칙 변경 금지 · 03 §1-5).
+TierBProbationRule p0sProbationRule() =>
+    const TierBProbationRule(returnR12mFloor: 0.05, maxJudgements: 24);
+
+/// PROBATION 월말 판정 결과.
+enum TierBProbationOutcome {
+  /// 그대로 PROBATION.
+  stay,
+
+  /// 복귀 → ACTIVE(상한 100%).
+  returned,
+
+  /// 기간 만료 → 자동 RETIRED(재량 연장 금지).
+  expired,
+}
+
+/// PROBATION 판정 — [observations] = 진입 판정 뒤 월말 판정 횟수(이번 판정 포함 · 1 부터).
+/// 복귀가 먼저다(마지막 판정에서 복귀하면 만료가 아니다).
+TierBProbationOutcome judgeProbation(
+  TierBMetrics m,
+  TierBVerdict v, {
+  required int observations,
+  required TierBProbationRule rule,
+}) {
+  if (observations < 1) {
+    throw ArgumentError.value(observations, 'observations', '1 이상');
+  }
+  if (m.r12m != null && m.r12m! >= rule.returnR12mFloor && !v.any) {
+    return TierBProbationOutcome.returned;
+  }
+  return observations >= rule.maxJudgements
+      ? TierBProbationOutcome.expired
+      : TierBProbationOutcome.stay;
+}
+
+/// 🆕 R247 — 자금 상한(03 §1-5 «목표 배분 대비») · 계층 B 가 쓰는 값.
+abstract final class TierBCaps {
+  /// ACTIVE(복귀 포함).
+  static const double active = 1.0;
+
+  /// PROBATION 진입 = 지금 상한 × 이 값.
+  static const double probationFactor = 0.5;
+
+  /// RETIRED.
+  static const double retired = 0.0;
+}
+
+/// 🆕 R247 🔴 회수처 — 방어 슬리브 C 는 상한을 받지 않는다(03 §1-5 «회수 → C» · §1-3 «C 는 알파를 주장하지 않음»).
+/// 포트폴리오 카드(D7)라 상태 라벨(PROBATION · RETIRED)은 네 전략이 함께 옮기지만 C 의 `capital_cap` 은 그대로 둔다 —
+/// C 를 줄여 C 로 보내는 것은 순환이고, 줄인 돈이 갈 방어 자리가 C 다.
+bool tierBCapReceiver(String strategyId) =>
+    strategyId == P0sStrategyIds.sleeveC;
+
+/// 🆕 R247 — 계획기가 쓰는 상한: ACTIVE · PROBATION = `capital_cap`(0~1 로 자름) · RETIRED = 0 ·
+/// 행 없음 · CANDIDATE · PAPER · PILOT = 1(이 판 밖 — 램프 · STOPPED 결정 B 의 몫 · 지금 동작 그대로).
+double plannerCapOf(String? state, double? capitalCap) => switch (state) {
+  'ACTIVE' || 'PROBATION' => (capitalCap ?? 1.0).clamp(0.0, 1.0),
+  'RETIRED' => TierBCaps.retired,
+  _ => 1.0,
+};
+
+/// 🆕 R247 — P0S 위험 슬리브 상한(A · B · POT · C = 회수처라 없음).
+class P0sRiskCaps {
+  /// 상한을 만든다(0~1).
+  const P0sRiskCaps({this.a = 1.0, this.b = 1.0, this.pot = 1.0})
+    : assert(a >= 0 && a <= 1 && b >= 0 && b <= 1 && pot >= 0 && pot <= 1);
+
+  /// 상한 없음(전부 1).
+  static const P0sRiskCaps full = P0sRiskCaps();
+
+  /// 슬리브 A · B · POT.
+  final double a, b, pot;
+
+  /// 전부 1 인가.
+  bool get isFull => a == 1.0 && b == 1.0 && pot == 1.0;
+
+  /// `plan_snapshot.outputs.risk_caps`(상한이 걸렸을 때만 싣는다 — 평시 계획 바이트 불변).
+  Map<String, Object?> toJson() => <String, Object?>{
+    'A': a,
+    'B': b,
+    'POT': pot,
+  };
+
+  /// [toJson] 의 역(없으면 [full]).
+  static P0sRiskCaps fromJson(Object? j) {
+    if (j == null) return full;
+    final Map<String, Object?> m = j as Map<String, Object?>;
+    double v(String k) => (m[k]! as num).toDouble();
+    return P0sRiskCaps(a: v('A'), b: v('B'), pot: v('POT'));
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is P0sRiskCaps && other.a == a && other.b == b && other.pot == pot;
+
+  @override
+  int get hashCode => Object.hash(a, b, pot);
+
+  @override
+  String toString() => 'P0sRiskCaps(A $a · B $b · POT $pot)';
+}
+
+/// 🆕 R247 — 슬리브 A 축소 매도(PROBATION · RETIRED 전이 뒤 A 를 아직 줄이지 않았을 때 한 번) — 상한 0 = 전량 ·
+/// 그 밖 = 보유 − ⌊보유 × 상한⌋(남는 주식이 상한을 넘지 않게). 줄일 것이 없으면 null.
+/// 논리 id = `RISK-P0S_A-{종목}-{판정일}`(04 §3-2 «한도 청산» 형식 그대로) · 판 돈 = 원화 = 회수처 C.
+OrderTarget? sleeveACapTrim({
+  required String symbol,
+  required int heldShares,
+  required double capA,
+  required TradeDate judgmentDate,
+}) {
+  if (heldShares <= 0 || capA >= 1.0) return null;
+  final int sell = capA <= 0
+      ? heldShares
+      : heldShares - (heldShares * capA).floor();
+  if (sell <= 0) return null;
+  return OrderTarget(
+    logicalDecisionId: DecisionIds.risk(
+      P0sStrategyIds.sleeveA,
+      symbol,
+      judgmentDate,
+    ),
+    strategyId: P0sStrategyIds.sleeveA,
+    symbol: symbol,
+    side: OrderSide.sell,
+    sizing: capA <= 0 ? const AllHeldSizing() : ShareSizing(sell),
+    instrument: InstrumentKind.etf,
+  );
+}
 
 /// 처음 충족한 지표의 (값 · 임계) — `strategy_state_log` 용.
 (double, double)? tierBTrigger(

@@ -4,6 +4,9 @@
 // 🔴 카드 미등록 = 판정 행을 쓰지 않는다(보고 «카드 없음») — `tierBUnjudged` 가 월말 뒤 3세션부터 신규 매수를 막는 것이 정답(D7 ③).
 // 🔴 판정 행 = `strategy_state_current` 의 전 전략에 같은 판정(D7 ①) · ACTIVE → PROBATION 전이와 **한 트랜잭션**(T6).
 // 🔴 멱등 = 그 달 판정 행이 이미 있는 전략은 건너뛴다(T7) · 실패 = 아무것도 쓰지 않고 [TierBError](T8).
+// 🆕 R247(R50 T10 · 03 §1-5 «P0S 등록») — PROBATION 전략은 진입 다음 달 월말부터 복귀 판정(롤링 12M ≥ +5% AND B1~B3 안 걸림 →
+//    ACTIVE · 상한 1) · 진입 판정 뒤 24번째 판정까지 복귀 못 하면 자동 RETIRED(상한 0) · 신호 일치(B5) = 판정 보류라 조건 밖.
+//    🔴 회수처 C(`tierBCapReceiver`)는 상태 라벨만 함께 옮기고 `capital_cap` 은 그대로 · 전이 = 판정 행과 한 트랜잭션.
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
@@ -19,6 +22,19 @@ String tierBReasonOf(String code) => 'TIER_B_$code';
 String tierBLogIdOf(String month, String strategyId) =>
     'TIERB-$month-$strategyId';
 
+/// 🆕 R247 — 복귀 · 만료 사유 코드(`strategy_state_log.reason` = `TIER_B_RETURN` · `TIER_B_EXPIRED`).
+abstract final class TierBExitCodes {
+  /// 복귀.
+  static const String returned = 'RETURN';
+
+  /// 기간 만료 → RETIRED.
+  static const String expired = 'EXPIRED';
+}
+
+/// 🆕 R247 — 복귀 · 만료 기록 id(`TIERB-RETURN-{달}-{전략}` · `TIERB-EXPIRED-{달}-{전략}`).
+String tierBExitLogIdOf(String code, String month, String strategyId) =>
+    'TIERB-$code-$month-$strategyId';
+
 /// 단계 보고.
 class TierBStepReport {
   /// 보고를 만든다.
@@ -29,6 +45,8 @@ class TierBStepReport {
     required this.transitioned,
     this.metrics,
     this.verdict,
+    this.returned = const <String>[],
+    this.retired = const <String>[],
   });
 
   /// 판정 달(`YYYY-MM`).
@@ -49,9 +67,62 @@ class TierBStepReport {
   /// 판정(이번에 판정하지 않았으면 null).
   final TierBVerdict? verdict;
 
+  /// 🆕 R247 — 이번에 PROBATION → ACTIVE 로 돌아온 전략.
+  final List<String> returned;
+
+  /// 🆕 R247 — 이번에 PROBATION 기간 만료로 RETIRED 가 된 전략.
+  final List<String> retired;
+
+  String get _exitsText =>
+      '${returned.isEmpty ? '' : ' · 복귀 ${returned.length}'}'
+      '${retired.isEmpty ? '' : ' · 은퇴 ${retired.length}'}';
+
   @override
   String toString() =>
-      'TierBStepReport($judgedMonth · ${cardMissing ? '카드 없음' : '판정 ${judged.length} · 전이 ${transitioned.length}'})';
+      'TierBStepReport($judgedMonth · ${cardMissing ? '카드 없음' : '판정 ${judged.length} · 전이 ${transitioned.length}$_exitsText'})';
+}
+
+/// 🆕 R247 — 계획기 상한(P0S_A · P0S_B · P0S_POT 의 상태 · `capital_cap` → [plannerCapOf] · C = 회수처라 없음).
+P0sRiskCaps p0sRiskCapsOf(Database db) {
+  double capOf(String id) {
+    final ResultSet rs = db.select(
+      'SELECT state, capital_cap FROM strategy_state_current WHERE strategy_id = ?',
+      <Object?>[id],
+    );
+    return rs.isEmpty
+        ? plannerCapOf(null, null)
+        : plannerCapOf(
+            rs.first['state'] as String,
+            (rs.first['capital_cap'] as num).toDouble(),
+          );
+  }
+
+  return P0sRiskCaps(
+    a: capOf(P0sStrategyIds.sleeveA),
+    b: capOf(P0sStrategyIds.sleeveB),
+    pot: capOf(P0sStrategyIds.pot),
+  );
+}
+
+/// 🆕 R247 — 슬리브 A 축소 매도가 아직 남았나: P0S_A 의 마지막 상태 기록이 계층 B 의 낮춤 전이(→ PROBATION · → RETIRED)
+/// 이고 그 뒤 P0S_A 주문 의도가 하나도 없다(축소 · 계절 진입 · 청산 어느 것이든 나갔으면 지금 보유는 이미 상한 뒤 크기).
+bool sleeveACapTrimDue(Database db) {
+  final ResultSet rs = db.select(
+    'SELECT to_state, changed_at, reason FROM strategy_state_log WHERE strategy_id = ? '
+    'ORDER BY changed_at DESC, rowid DESC LIMIT 1',
+    <Object?>[P0sStrategyIds.sleeveA],
+  );
+  if (rs.isEmpty) return false;
+  final String to = rs.first['to_state'] as String;
+  final String reason = rs.first['reason'] as String;
+  if (!reason.startsWith(tierBReasonOf('')) ||
+      (to != 'PROBATION' && to != 'RETIRED')) {
+    return false;
+  }
+  return db.select(
+    'SELECT 1 FROM order_intents WHERE strategy_id = ? AND created_at > ? LIMIT 1',
+    <Object?>[P0sStrategyIds.sleeveA, rs.first['changed_at'] as String],
+  ).isEmpty;
 }
 
 String _kstYmd(DateTime utc) {
@@ -106,11 +177,37 @@ List<EquityPoint> tierBSeries(Database db, String monthEnd) {
 /// 계층 B 판정 단계(R50 T1).
 class TierBStep {
   /// 단계를 만든다 — [card] = 등록 카드(기본 P0S · 미등록 = null).
-  TierBStep(this._db, {required this._clock, this._card = p0sTierBCard});
+  TierBStep(
+    this._db, {
+    required this._clock,
+    this._card = p0sTierBCard,
+    this._rule = p0sProbationRule,
+  });
 
   final Database _db;
   final Clock _clock;
   final TierBCard? Function() _card;
+  final TierBProbationRule Function() _rule;
+
+  /// 🆕 R247 — PROBATION 진입 판정 달(그 전략의 [month] 앞 마지막 전이 판정 — PROBATION 중이면 그것이 진입).
+  String? _entryMonth(String id, String month) {
+    final ResultSet rs = _db.select(
+      'SELECT judged_month FROM tier_b_judgement WHERE strategy_id = ? AND transitioned = 1 '
+      'AND judged_month < ? ORDER BY judged_month DESC LIMIT 1',
+      <Object?>[id, month],
+    );
+    return rs.isEmpty ? null : rs.first['judged_month'] as String;
+  }
+
+  /// 🆕 R247 — 진입 판정 뒤 판정 횟수(이번 판정 포함 · 빠진 달은 세지 않는다 = «월말 판정 24회»).
+  int _observations(String id, String entry, String month) =>
+      (_db.select(
+            'SELECT COUNT(*) AS n FROM tier_b_judgement WHERE strategy_id = ? '
+            'AND judged_month > ? AND judged_month < ?',
+            <Object?>[id, entry, month],
+          ).first['n']
+          as int) +
+      1;
 
   /// [monthEnd](월 마지막 KR 세션)의 판정 — 실패면 [TierBError](아무것도 쓰지 않음).
   TierBStepReport run(TradeDate monthEnd) {
@@ -143,13 +240,28 @@ class TierBStep {
     final TierBMetrics m = tierBMetrics(tierBSeries(_db, d), d);
     final TierBVerdict v = judgeTierB(m, card);
     final (double, double)? trigger = tierBTrigger(m, card, v);
+    // 🆕 R247 — PROBATION 전략의 복귀 · 만료(쓰기 전에 다 읽는다 · 진입 판정이 없으면 = 무결성 실패 · 아무것도 안 씀).
+    final TierBProbationRule rule = _rule();
+    final Map<String, (TierBProbationOutcome, int)> exits =
+        <String, (TierBProbationOutcome, int)>{};
+    for (final (String id, String state, double _) in pending) {
+      if (state != 'PROBATION') continue;
+      final String? entry = _entryMonth(id, month);
+      if (entry == null) throw TierBError('PROBATION 진입 판정 없음: $id');
+      final int n = _observations(id, entry, month);
+      exits[id] = (judgeProbation(m, v, observations: n, rule: rule), n);
+    }
     final DateTime now = _clock.nowUtc();
     final String at = now.toIso8601String();
     final String since = _kstYmd(now);
     final List<String> moved = <String>[];
+    final List<String> back = <String>[];
+    final List<String> gone = <String>[];
     inLedgerTransaction(_db, () {
       for (final (String id, String state, double cap) in pending) {
         final bool move = v.any && state == 'ACTIVE';
+        final (TierBProbationOutcome, int)? exit = exits[id];
+        final TierBProbationOutcome po = exit?.$1 ?? TierBProbationOutcome.stay;
         _db.execute(
           'INSERT INTO tier_b_judgement(judged_month, strategy_id, judged_at, b1_breached, b2_breached, '
           'b3_breached, transitioned) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -160,13 +272,47 @@ class TierBStep {
             v.b1 ? 1 : 0,
             v.b2 ? 1 : 0,
             v.b3 ? 1 : 0,
-            move ? 1 : 0,
+            move || po != TierBProbationOutcome.stay ? 1 : 0,
           ],
         );
+        if (po == TierBProbationOutcome.returned) {
+          _exit(
+            id,
+            to: 'ACTIVE',
+            cap: TierBCaps.active,
+            since: since,
+            at: at,
+            logId: tierBExitLogIdOf(TierBExitCodes.returned, month, id),
+            value: m.r12m!,
+            threshold: rule.returnR12mFloor,
+            reason: tierBReasonOf(TierBExitCodes.returned),
+          );
+          back.add(id);
+          continue;
+        }
+        if (po == TierBProbationOutcome.expired) {
+          _exit(
+            id,
+            to: 'RETIRED',
+            cap: tierBCapReceiver(id) ? cap : TierBCaps.retired,
+            since: since,
+            at: at,
+            logId: tierBExitLogIdOf(TierBExitCodes.expired, month, id),
+            value: exit!.$2.toDouble(),
+            threshold: rule.maxJudgements.toDouble(),
+            reason: tierBReasonOf(TierBExitCodes.expired),
+          );
+          gone.add(id);
+          continue;
+        }
         if (!move) continue;
         _db.execute(
           "UPDATE strategy_state_current SET state = 'PROBATION', since = ?, capital_cap = ? WHERE strategy_id = ?",
-          <Object?>[since, cap * 0.5, id],
+          <Object?>[
+            since,
+            tierBCapReceiver(id) ? cap : cap * TierBCaps.probationFactor,
+            id,
+          ],
         );
         _db.execute(
           'INSERT INTO strategy_state_log(log_id, strategy_id, changed_at, from_state, to_state, trigger_value, '
@@ -190,6 +336,31 @@ class TierBStep {
       transitioned: moved,
       metrics: m,
       verdict: v,
+      returned: back,
+      retired: gone,
+    );
+  }
+
+  /// 🆕 R247 — PROBATION 에서 나가는 전이 한 건(상태 · 상한 · 기록 — 부르는 쪽 트랜잭션 안).
+  void _exit(
+    String id, {
+    required String to,
+    required double cap,
+    required String since,
+    required String at,
+    required String logId,
+    required double value,
+    required double threshold,
+    required String reason,
+  }) {
+    _db.execute(
+      'UPDATE strategy_state_current SET state = ?, since = ?, capital_cap = ? WHERE strategy_id = ?',
+      <Object?>[to, since, cap, id],
+    );
+    _db.execute(
+      'INSERT INTO strategy_state_log(log_id, strategy_id, changed_at, from_state, to_state, trigger_value, '
+      "threshold_registered, reason) VALUES (?, ?, ?, 'PROBATION', ?, ?, ?, ?)",
+      <Object?>[logId, id, at, to, value, threshold, reason],
     );
   }
 }

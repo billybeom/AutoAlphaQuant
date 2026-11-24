@@ -6,6 +6,10 @@
 //    같은 월말 계획이 이미 있으면 아무것도 바꾸지 않고 그것을 보고한다(멱등 — 다시 돌려도 안전).
 // 🔴 POT 현금 = 체결에서 다시 센다(🆕 E11f3 · R49 Q6 — `potCashFlowsSinceLiquidation`) · 예약 원화 = 0(S7).
 // 🔴 계층 B 판정(E11g)은 저장 뒤에 건다 — 이 판에는 자리만 있다.
+// 🆕 R247(R50 T10) — 🔴 계층 B 판정을 계획 **앞**으로 옮겼다: 계획이 판정 뒤 자금 상한(`p0sRiskCapsOf` — PROBATION 0.5 ·
+//    RETIRED 0 · C = 회수처라 없음)을 읽어 전이한 달의 계획부터 상한이 걸린다(03 §1-5 «진입 즉시»). 판정 실패는 잡아 두고
+//    계획을 저장한 뒤 던진다(R50 T8 «계획은 남는다 · 다시 돌리면 판정만» 그대로). 상한이 걸리면 `outputs.risk_caps` ·
+//    A 를 아직 줄이지 않은 낮춤 전이가 있으면 A 축소 매도 대상(`RISK-P0S_A-{종목}-{월말}`)을 계획에 더한다.
 // 🆕 E13d1 — 월말 이하 마지막 스냅숏이 STOPPED 면 계획 행 0(SPEC v2.40 04 §2 «리밸런싱 모두 중단» · R60 B2) ·
 //    계층 B 판정은 그대로 · 🔴 `exposureMultiplier` 를 곱하지 않는다(곱하면 B · C 가 팔린다 = 청산).
 // 🆕 E3d-3 — SAF-306 과세연도 금융소득 단계(04 §1 Level 3 v2.46 · [P0sIncomeWarnSetup] 을 넘길 때만) — 과세계좌의 해외 ETF
@@ -403,6 +407,31 @@ class MonthlyRebalanceJob {
     setup: setup,
   );
 
+  /// 🆕 R247 — A 축소 매도 대상(상한 < 1 · 아직 줄이지 않은 낮춤 전이가 있을 때만 · 종목 순).
+  List<OrderTarget> _aCapTrims(
+    List<LedgerHolding> held,
+    TradeDate judgment,
+    P0sRiskCaps caps,
+  ) {
+    if (caps.a >= 1.0 || !sleeveACapTrimDue(_db)) return const <OrderTarget>[];
+    final Map<String, int> qty = <String, int>{};
+    for (final LedgerHolding h in held) {
+      if (h.strategyId != P0sStrategyIds.sleeveA) continue;
+      qty[h.symbol] = (qty[h.symbol] ?? 0) + h.quantity;
+    }
+    return <OrderTarget>[
+      for (final String sym in qty.keys.toList()..sort())
+        if (sleeveACapTrim(
+              symbol: sym,
+              heldShares: qty[sym]!,
+              capA: caps.a,
+              judgmentDate: judgment,
+            )
+            case final OrderTarget t)
+          t,
+    ];
+  }
+
   MonthlyRebalanceReport _report(
     String monthEnd,
     Map<String, Object?> o, {
@@ -459,6 +488,8 @@ class MonthlyRebalanceJob {
     final Map<String, Object?> original =
         jsonDecode(orig.first['outputs'] as String) as Map<String, Object?>;
     final int monthIndex = original['month_index']! as int;
+    // 🆕 R247 — 상한도 «M 의 판정» 그대로(원 계획에 실린 값 · 없으면 상한 없음).
+    final P0sRiskCaps caps = P0sRiskCaps.fromJson(original['risk_caps']);
     final String valuation = _kr.nthSessionBefore(today, 1).yyyyMmDd;
     final List<LedgerHolding> held = await _holdings();
     final String month = d.substring(0, 7);
@@ -495,12 +526,16 @@ class MonthlyRebalanceJob {
         instruments: <String, InstrumentKind>{
           for (final String s in _planSymbols) s: InstrumentKind.etf,
         },
+        caps: caps,
       );
     } on MonthEndInputError catch (e) {
       throw MonthlyRebalanceError(e.reason);
     }
     final List<OrderTarget> targets = <OrderTarget>[
-      for (final OrderTarget x in run.targets)
+      for (final OrderTarget x in <OrderTarget>[
+        ...run.targets,
+        ..._aCapTrims(held, monthEnd, caps),
+      ])
         orderTargetFromJson(<String, Object?>{
           ...orderTargetToJson(x),
           'logical_decision_id': resumeLogicalIdOf(x.logicalDecisionId, t),
@@ -525,6 +560,7 @@ class MonthlyRebalanceJob {
       'decision_id': childDecisionId,
       'resume_of': rebalancePlanIdOf(d),
       'valuation_day': valuation,
+      if (!caps.isFull) 'risk_caps': caps.toJson(),
     });
     inLedgerTransaction(_db, () {
       _db.execute(
@@ -596,6 +632,16 @@ class MonthlyRebalanceJob {
       );
     }
 
+    // 🆕 R247 — 계층 B 판정을 계획 앞으로(실패는 잡아 두고 계획 저장 뒤 던진다 · R50 T8).
+    TierBStepReport? tierB;
+    MonthlyRebalanceError? tierBError;
+    try {
+      tierB = _tierB(monthEnd);
+    } on MonthlyRebalanceError catch (e) {
+      tierBError = e;
+    }
+    final P0sRiskCaps caps = p0sRiskCapsOf(_db);
+
     // P3 — 국면을 다시 계산 · 덧붙이고 월말 미국 세션 값이 들어왔는지 본다.
     await DailySignalJob(_db, configHash: _regimeConfigHash).run(monthEnd);
     final String? lastUs = SqliteRegimeStore(_db).lastDate();
@@ -642,13 +688,17 @@ class MonthlyRebalanceJob {
         instruments: <String, InstrumentKind>{
           for (final String s in _planSymbols) s: InstrumentKind.etf,
         },
+        caps: caps,
       );
     } on MonthEndInputError catch (e) {
       throw MonthlyRebalanceError(e.reason);
     }
     final MonthEndState state = run.state;
     final MonthEndPlan plan = run.plan;
-    final List<OrderTarget> targets = run.targets;
+    final List<OrderTarget> targets = <OrderTarget>[
+      ...run.targets,
+      ..._aCapTrims(held, monthEnd, caps),
+    ];
     final String execution = _kr.nextSession(monthEnd).yyyyMmDd;
     final String now = _clock.nowUtc().toIso8601String();
     final Map<String, double> before = run.weightsBefore;
@@ -666,6 +716,7 @@ class MonthlyRebalanceJob {
         for (final MonthEndAction a in plan.actions) monthEndActionToJson(a),
       ],
       'after': monthEndStateToJson(plan.after),
+      if (!caps.isFull) 'risk_caps': caps.toJson(),
     };
     final String decisionId = monthEndDecisionIdOf(d);
     final String expires = _nextJudgementDay(d);
@@ -734,12 +785,13 @@ class MonthlyRebalanceJob {
         createdAtUtc: now,
       );
     });
-    // 🆕 E11g — 계층 B 판정(저장 뒤 · 실패해도 계획은 남는다 → 다시 돌리면 판정만 · R50 T1 · T8).
+    // 🆕 E11g — 계층 B 판정 실패여도 계획은 남는다 → 다시 돌리면 판정만(R50 T1 · T8) · 🆕 R247 판정은 이미 앞에서 돌았다.
+    if (tierBError != null) throw tierBError;
     return _report(
       d,
       outputs,
       created: true,
-      tierB: _tierB(monthEnd),
+      tierB: tierB!,
       incomeWarn: income,
       exposureTally: tally,
     );

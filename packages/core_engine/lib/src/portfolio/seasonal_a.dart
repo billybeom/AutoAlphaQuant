@@ -93,6 +93,7 @@ class SeasonalAInput {
     required this.aPrevClose,
     required this.aHeldShares,
     required this.monthCount,
+    this.capA,
   });
 
   /// 판정 날의 달(1~12).
@@ -121,6 +122,9 @@ class SeasonalAInput {
 
   /// 지난 월말 수(램프).
   final int monthCount;
+
+  /// 🆕 R247 — 계층 B 자금 상한(PROBATION 0.5 · RETIRED 0 · null · 1 이상 = 없음) — 진입 금액에 곱한다.
+  final Decimal? capA;
 }
 
 /// 판정.
@@ -182,7 +186,11 @@ SeasonalADecision decideSeasonalA(
                   Decimal.fromInt(i.monthCount),
                   Decimal.fromInt(config.rampMonths),
                 ));
-    final Decimal delta = i.prevEquity * kP0sAllocA * f - i.aValue;
+    // 🆕 R247 — 상한이 1 이면 옛 식 그대로(골든 불변) · 덜 산 몫 = 원화 = 회수처 C.
+    final Decimal? cap = i.capA;
+    final Decimal delta = cap == null || cap >= Decimal.one
+        ? i.prevEquity * kP0sAllocA * f - i.aValue
+        : i.prevEquity * kP0sAllocA * f * cap - i.aValue;
     final bool enough =
         delta > i.prevEquity * kSeasonalMinDeltaFraction &&
         i.aPrevClose > Decimal.zero;
@@ -319,6 +327,7 @@ Future<SeasonalAInput> seasonalAInputFromLedger({
   required Map<String, OrderBroker> cashAccounts,
   required String aSymbol,
   required int monthCount,
+  double capA = 1.0,
 }) async {
   if (cashAccounts.isEmpty) throw ArgumentError('현금 계좌가 없다');
   Decimal? close(String s) {
@@ -365,5 +374,6 @@ Future<SeasonalAInput> seasonalAInputFromLedger({
     aPrevClose: aClose,
     aHeldShares: aShares,
     monthCount: monthCount,
+    capA: capA >= 1.0 ? null : Decimal.parse(capA.toString()),
   );
 }

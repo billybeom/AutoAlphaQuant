@@ -5,6 +5,7 @@
 // 🔴 연기 계수 = 이번 시즌(10월 1일부터) 마지막 SEASONAL 판정의 «판정 뒤 연기 횟수» · 새 표 0.
 // 🔴 POT 현금 = 체결에서 다시 센다(마지막 POT 청산 판정 날부터 · `SEAS-A-OUT` 매도 순대금 + POT 매도 순대금 − POT 매수 대금) —
 //    월말 계획기의 POT 입력. 예약 원화 = 0(S7).
+// 🆕 R247(R50 T10) — 진입 금액 × 계층 B 상한(P0S_A · PROBATION 0.5 · RETIRED 0 · `p0sRiskCapsOf`) · 덜 산 몫 = 원화 = 회수처 C.
 
 import 'dart:convert';
 
@@ -18,6 +19,7 @@ import '../local/planned_work_store.dart'
 import '../market/market_ids.dart' show MarketSymbols;
 import '../market/market_store.dart';
 import 'daily_jobs.dart';
+import 'tier_b_step.dart' show p0sRiskCapsOf;
 
 /// 판정 실패 — 🔴 사유 = 종목 · 계좌 별칭 · 날짜만(금액 0). 아무것도 쓰지 않았다.
 class SeasonalAError implements Exception {
@@ -239,6 +241,7 @@ class SeasonalAJob {
     }
     final String prev = _kr.nthSessionBefore(today, 1).yyyyMmDd;
     final List<LedgerHolding> held = await _holdings();
+    final double capA = p0sRiskCapsOf(_db).a;
     final SeasonalAInput input;
     try {
       input = await seasonalAInputFromLedger(
@@ -254,6 +257,7 @@ class SeasonalAJob {
         cashAccounts: _cash,
         aSymbol: _aSymbol,
         monthCount: _monthCount(today.yyyyMmDd),
+        capA: capA,
       );
     } on SeasonalAInputError catch (e) {
       throw SeasonalAError(e.reason);
@@ -296,6 +300,7 @@ class SeasonalAJob {
       'a_prev_close': input.aPrevClose.toString(),
       'delta_krw': dec.deltaKrw.toString(),
       'month_count': input.monthCount,
+      if (capA < 1.0) 'cap_a': capA,
     };
     final String kind = switch (dec.outcome) {
       SeasonalAOutcome.enter || SeasonalAOutcome.lateEnter => 'ENTRY',
