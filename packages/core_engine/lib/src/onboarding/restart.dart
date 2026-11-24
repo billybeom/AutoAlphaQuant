@@ -8,6 +8,11 @@
 //    재개 사다리 백업 기준(달력일) 안 = 계획 이전 · 비상 이전 · 끝났고 기준 이상 = 신규 온보딩 + 잔고 승계(RECOVERY_FULL 과
 //    같은 기준) · 리스 행 없음 = 이어받을 기기 없음(분기 0) · 이 폰이 쥠 = 이 폰에 비상 회수 기록(sim `X1_EMERGENCY_REVOKE`)이
 //    있으면 «비상 이전 이어 하기» · 없으면 분기 0(첫 클레임으로 이미 운영 기기).
+// 🆕 리뷰 3차 D-04(01 §8 미결 236 ⓓ · 설계 13 §8 R267) — 이 폰이 쥠 ∧ 비상 회수 기록 0 ∧ 첫 클레임 기록(복구 카드 실행됨 · 대기) 0 =
+//    서버가 `lease_revoke` 를 커밋했는데 응답을 잃은 자리 → «비상 이전 이어 하기» + «방금 적은 새 카드로» 안내(전에는 분기 0 = 막다른 길).
+// 🔵 리뷰 3차 C-1 · D-01(미결 236 ⓐ) — 서버 `lease_claim` 은 이제 만료된 남의 리스를 그 기기가 회수 · 은퇴되기 전에는 넘기지 않는다 →
+//    «신규 온보딩 + 잔고 승계» 분기(표본 `restart_vm_gap7`)도 구 폰 회수(비상 이전) 뒤에야 ⑤ 첫 클레임이 선다(⑤ 거부 글자 = 엔진
+//    `RecoveryCardTexts.heldByOther` 가 비상 이전으로 안내). 분기 링크 · 승계 고지(D-U1 — 승계 구현 없음) 글자 정정 = 표본 = 계약 창 대기.
 // 🔴 킬스위치 · 차단 플래그 = 켜진 그대로 승계(«초기화» 선택지 0) — 분기가 있으면 고지가 늘 붙는다(C-50 ⑬).
 // 🔴 돈 · 안전 수치 새로 정함 0 — 갭 기준 = 운영 설정 `resume.backup_gap_days`(재개 사다리 · 잠정 7) 그대로.
 
@@ -109,6 +114,11 @@ abstract final class RestartTexts {
   /// 분기 — 비상 회수 뒤 이어 하기.
   static const String branchEmergencyResume = '비상 이전 이어 하기';
 
+  /// 🆕 리뷰 3차 D-04(미결 236 ⓓ) — 이 폰이 쥐었는데 이 폰에 회수 · 첫 클레임 기록이 없음(회수 응답 유실).
+  static const String revokeAnswerLost =
+      '이 폰에 비상 회수 기록이 없는데 서버는 이 폰을 운영 기기로 적었습니다 — 비상 회수의 응답을 받지 못했을 수 있습니다. '
+      '옛 복구 카드는 이제 맞지 않습니다 — 비상 회수 때 종이에 새로 적은 복구 코드로 비상 이전을 이어 하십시오.';
+
   static String _platformText(String p) => switch (p) {
     'android' => 'Android',
     'ios' => 'iOS',
@@ -184,6 +194,7 @@ class RestartFacts {
     this.trustedNowUtc,
     this.backupGapDays,
     this.emergencyStarted = false,
+    this.firstClaimRecorded = false,
   });
 
   /// 이 기기에 Supabase 로그인 세션이 있다(접근 토큰을 얻었다).
@@ -203,6 +214,10 @@ class RestartFacts {
 
   /// 이 폰에 비상 회수 한 판 기록이 있다(sim `command_inbox` `X1_EMERGENCY_REVOKE` EXECUTED · R244).
   final bool emergencyStarted;
+
+  /// 🆕 리뷰 3차 D-04(미결 236 ⓓ) — 이 폰에 첫 클레임 기록이 있다(sim `command_inbox` `ONBOARDING_RECOVERY_CARD` 마지막 행이
+  /// 실행됨 · 대기 — O-04 ⑤ · R229). 없음(기본) = 이 폰이 리스를 쥔 까닭을 이 폰이 모른다.
+  final bool firstClaimRecorded;
 }
 
 GateBadge _gate(GateState s, String label) =>
@@ -256,7 +271,12 @@ RestartVm restartVmOf(RestartFacts f) {
   }
   final String? me = f.thisDeviceId;
   if (me != null && lease.deviceId == me) {
-    return _mine(l, me, emergencyStarted: f.emergencyStarted);
+    return _mine(
+      l,
+      me,
+      emergencyStarted: f.emergencyStarted,
+      firstClaimRecorded: f.firstClaimRecorded,
+    );
   }
   RestartDevice? old;
   for (final RestartDevice d in l.devices) {
@@ -298,9 +318,15 @@ RestartVm restartVmOf(RestartFacts f) {
 }
 
 /// 이 폰이 리스를 쥠 — 이 폰의 비상 회수 기록이 있으면 비상 이전 이어 하기(구 폰 줄 = 회수된 다른 기기 가운데
-/// 마지막 접속이 가장 늦은 것 · 없으면 줄 0) · 없으면 분기 0.
-RestartVm _mine(RestartLedger l, String me, {required bool emergencyStarted}) {
-  if (!emergencyStarted) {
+/// 마지막 접속이 가장 늦은 것 · 없으면 줄 0) · 🆕 회수 · 첫 클레임 기록이 둘 다 없으면(회수 응답 유실 · D-04) 같은 링크 + 안내 줄 ·
+/// 첫 클레임 기록이 있으면 분기 0(이미 운영 기기).
+RestartVm _mine(
+  RestartLedger l,
+  String me, {
+  required bool emergencyStarted,
+  required bool firstClaimRecorded,
+}) {
+  if (!emergencyStarted && firstClaimRecorded) {
     return RestartVm(
       headline: RestartTexts.headline,
       ledgerLines: const <String>[RestartTexts.thisPhoneHolds],
@@ -326,6 +352,7 @@ RestartVm _mine(RestartLedger l, String me, {required bool emergencyStarted}) {
         RestartTexts.lastSeen(old.lastSeenAtUtc),
       ],
       RestartTexts.thisPhoneHolds,
+      if (!emergencyStarted) RestartTexts.revokeAnswerLost,
     ],
     leaseGate: _gate(GateState.pass, RestartTexts.gatePass),
     branches: const <LinkAction>[

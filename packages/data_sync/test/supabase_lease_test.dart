@@ -10,7 +10,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:core_engine/core_engine.dart' show LeaseVerdict;
+import 'package:core_engine/core_engine.dart' show LeaseGate, LeaseVerdict;
 import 'package:core_engine/testing.dart';
 import 'package:data_sync/data_sync.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
@@ -358,25 +358,102 @@ void main() {
       expect(row()['last_ok_at'], '2026-12-08T09:00:00.000Z');
     });
 
-    test('🔴 LOST = 클레임 한 번 → 되찾음(새 epoch 기록) · 다른 기기 = 무효', () async {
+    test(
+      '🔴 LOST(서버 epoch = 쥔 epoch · 만료) = 클레임 한 번 → 되찾음 · 다른 기기 = 무효',
+      () async {
+        held(4);
+        final _Rig a = _Rig()
+          ..reply = (_, int i) =>
+              i == 0 ? _row('LEASE_LOST', 4, null) : _row(null, 4, _exp);
+        expect(await gate(a).check(), LeaseVerdict.valid);
+        expect(a.rpc.map((http.Request q) => q.url.path), <String>[
+          '/rest/v1/rpc/lease_renew',
+          '/rest/v1/rpc/lease_claim',
+        ]);
+        expect(a.body(1)['p_recovery_code_hash'], isNull);
+        expect(row()['operator_epoch'], 4);
+        expect(row()['last_ok_at'], '2026-12-08T09:00:00.000Z');
+        final _Rig b = _Rig()
+          ..reply = (_, int i) => i == 0
+              ? _row('LEASE_LOST', 4, null)
+              : _row('LEASE_HELD_BY_OTHER', 4, null);
+        expect(await gate(b).check(), LeaseVerdict.invalid);
+        expect(row()['operator_epoch'], 4, reason: '거부 = 기록 안 바꿈');
+        expect(row()['status'], 'OK', reason: '거부 = 봉인 아님');
+      },
+    );
+
+    // 🆕 리뷰 3차 C-1 · D-01(미결 236 ⓐ) — 서버 epoch 가 쥔 epoch 와 다르면 그 사이 다른 기기 · 회수가 끼었다 → 되찾지 않는다.
+    test(
+      '🔴 LOST(서버 epoch ≠ 쥔 epoch) = 클레임 0 · 무효 · 이 원장 봉인(옛 원장으로 다시 발주 0)',
+      () async {
+        held(4);
+        final _Rig r = _Rig()
+          ..reply = (_, int i) =>
+              i == 0 ? _row('LEASE_LOST', 5, null) : _row(null, 6, _exp);
+        final SupabaseLeaseGate g = gate(r);
+        expect(await g.check(), LeaseVerdict.invalid);
+        expect(r.rpc.map((http.Request q) => q.url.path), <String>[
+          '/rest/v1/rpc/lease_renew',
+        ]);
+        expect(g.last?.code, 'LEASE_LOST');
+        expect(row()['status'], 'SEALED');
+        expect(row()['operator_epoch'], 4, reason: '쥔 epoch 기록 그대로');
+        expect(row()['last_ok_at'], '2026-12-08T08:00:00.000Z');
+        // 봉인 뒤 = SqliteLeaseGate 가 먼저 막는다(RPC 0).
+        final _Rig r2 = _Rig()..reply = (_, _) => _row(null, 4, _exp);
+        final SqliteLeaseGate local = SqliteLeaseGate(
+          db,
+          mode: RunMode.live,
+          clock: r2.clock,
+          remote: gate(r2),
+        );
+        expect(await local.check(), LeaseVerdict.invalid);
+        expect(r2.rpc, isEmpty);
+      },
+    );
+
+    test('🔴 LOST(서버 epoch 더 작음 · 리스 행 다시 섬) = 클레임 0 · 봉인', () async {
       held(4);
-      final _Rig a = _Rig()
-        ..reply = (_, int i) =>
-            i == 0 ? _row('LEASE_LOST', 6, null) : _row(null, 7, _exp);
-      expect(await gate(a).check(), LeaseVerdict.valid);
-      expect(a.rpc.map((http.Request q) => q.url.path), <String>[
-        '/rest/v1/rpc/lease_renew',
-        '/rest/v1/rpc/lease_claim',
-      ]);
-      expect(a.body(1)['p_recovery_code_hash'], isNull);
-      expect(row()['operator_epoch'], 7);
-      final _Rig b = _Rig()
-        ..reply = (_, int i) => i == 0
-            ? _row('LEASE_LOST', 7, null)
-            : _row('LEASE_HELD_BY_OTHER', 8, null);
-      expect(await gate(b).check(), LeaseVerdict.invalid);
-      expect(row()['operator_epoch'], 7, reason: '거부 = 기록 안 바꿈');
+      final _Rig r = _Rig()..reply = (_, _) => _row('LEASE_LOST', 1, null);
+      expect(await gate(r).check(), LeaseVerdict.invalid);
+      expect(r.rpc, hasLength(1));
+      expect(row()['status'], 'SEALED');
     });
+
+    test(
+      'LOST(리스 행 없음 · epoch null) = 클레임 0 · 무효 · 봉인 아님(남이 가져간 증거 없음)',
+      () async {
+        held(4);
+        final _Rig r = _Rig()..reply = (_, _) => _row('LEASE_LOST', null, null);
+        expect(await gate(r).check(), LeaseVerdict.invalid);
+        expect(r.rpc, hasLength(1));
+        expect(row()['status'], 'OK');
+      },
+    );
+
+    test(
+      '🔴 첫 클레임 기록 epoch(원장 행 없음) · LOST 어긋남 = 클레임 0 · 행을 새로 만들지 않는다',
+      () async {
+        final _Rig r = _Rig()
+          ..reply = (_, int i) =>
+              i == 0 ? _row('LEASE_LOST', 3, null) : _row(null, 3, _exp);
+        final SupabaseLeaseGate g = SupabaseLeaseGate(
+          r.client,
+          db,
+          deviceId: _device,
+          clock: r.clock,
+          claimedEpoch: () => 2,
+        );
+        expect(await g.check(), LeaseVerdict.invalid);
+        expect(r.rpc, hasLength(1));
+        expect(r.body(0)['p_epoch'], 2);
+        expect(
+          db.select("SELECT * FROM sync_state WHERE target = 'SUPABASE'"),
+          isEmpty,
+        );
+      },
+    );
 
     for (final String code in <String>[
       'LEASE_HELD_BY_OTHER',
@@ -455,4 +532,122 @@ void main() {
       expect(await local.derivedWritesAllowed(), isTrue);
     });
   });
+
+  // 🆕 리뷰 3차 C-3(미결 236 ⓒ) — 화면(S06)이 읽는 «기록된 사실» 판정 = RPC 0 · 쓰기 0(감시 표를 다시 울리지 않는다).
+  group('기록된 사실 판정(recorded)', () {
+    late Directory dir;
+    late Database db;
+    setUp(() {
+      dir = Directory.systemTemp.createTempSync('aaq_lease_rec_');
+      db = openLocalLedger(
+        dir.path,
+        RunMode.live,
+        clock: () => DateTime.utc(2026, 12, 8),
+      );
+    });
+    tearDown(() {
+      db.close();
+      dir.deleteSync(recursive: true);
+    });
+
+    void held(int epoch, String lastOk, {String status = 'OK'}) => db.execute(
+      "INSERT INTO sync_state(target, last_ok_at, status, operator_epoch, updated_at) VALUES ('SUPABASE', ?, ?, ?, ?)",
+      <Object?>[lastOk, status, epoch, lastOk],
+    );
+
+    String snapshot() => db
+        .select('SELECT * FROM sync_state ORDER BY target')
+        .map((Row x) => x.toString())
+        .join('|');
+
+    SupabaseLeaseGate gate(_Rig r, {int Function()? claimed}) =>
+        SupabaseLeaseGate(
+          r.client,
+          db,
+          deviceId: _device,
+          clock: r.clock,
+          claimedEpoch: claimed,
+        );
+
+    final List<(String, void Function(Database), int Function()?, LeaseVerdict)>
+    cases = <(String, void Function(Database), int Function()?, LeaseVerdict)>[
+      ('쥔 epoch 0', (_) {}, null, LeaseVerdict.invalid),
+      (
+        '마지막 성공 = T 안(29분 전)',
+        (_) => held(4, '2026-12-08T08:31:00.000Z'),
+        null,
+        LeaseVerdict.valid,
+      ),
+      (
+        '마지막 성공 = T 넘음(30분 전)',
+        (_) => held(4, '2026-12-08T08:30:00.000Z'),
+        null,
+        LeaseVerdict.unknown,
+      ),
+      ('첫 클레임 기록만(원장 행 없음)', (_) {}, () => 3, LeaseVerdict.unknown),
+    ];
+    for (final (
+          String name,
+          void Function(Database) seed,
+          int Function()? c,
+          LeaseVerdict want,
+        )
+        in cases) {
+      test('🔴 $name = ${want.name} · RPC 0 · 쓰기 0', () {
+        seed(db);
+        final _Rig r = _Rig()..reply = (_, _) => _row(null, 4, _exp);
+        final String before = snapshot();
+        expect(gate(r, claimed: c).recorded(), want);
+        expect(r.rpc, isEmpty);
+        expect(r.auth, isEmpty);
+        expect(snapshot(), before);
+      });
+    }
+
+    test(
+      '🔴 SqliteLeaseGate.recorded — 봉인 먼저 · 원격 = 기록 판정 · 원격 없음 = 모드 규칙',
+      () {
+        final _Rig r = _Rig()..reply = (_, _) => _row(null, 4, _exp);
+        held(4, '2026-12-08T08:59:00.000Z');
+        SqliteLeaseGate local(RunMode m, {bool remote = true}) =>
+            SqliteLeaseGate(
+              db,
+              mode: m,
+              clock: r.clock,
+              remote: remote ? gate(r) : null,
+            );
+        expect(local(RunMode.live).recorded(), LeaseVerdict.valid);
+        expect(
+          local(RunMode.live, remote: false).recorded(),
+          LeaseVerdict.unknown,
+        );
+        expect(
+          local(RunMode.simInternal, remote: false).recorded(),
+          LeaseVerdict.valid,
+        );
+        db.execute("UPDATE sync_state SET status = 'SEALED'");
+        expect(local(RunMode.live).recorded(), LeaseVerdict.invalid);
+        expect(
+          local(RunMode.simInternal, remote: false).recorded(),
+          LeaseVerdict.invalid,
+        );
+        expect(r.rpc, isEmpty);
+      },
+    );
+
+    test('원격이 기록 판정을 모르면(다른 구현) = 모름', () {
+      final SqliteLeaseGate local = SqliteLeaseGate(
+        db,
+        mode: RunMode.live,
+        clock: _Clock(DateTime.utc(2026, 12, 8, 9)),
+        remote: _PlainGate(),
+      );
+      expect(local.recorded(), LeaseVerdict.unknown);
+    });
+  });
+}
+
+class _PlainGate implements LeaseGate {
+  @override
+  Future<LeaseVerdict> check() async => LeaseVerdict.valid;
 }

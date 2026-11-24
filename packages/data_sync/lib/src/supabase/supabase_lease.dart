@@ -5,8 +5,9 @@
 //    반환 = 한 행(`code` · `epoch` · `expires_at` — 배열 한 칸이어도 · 객체여도 받는다). `code` = 계약 거부 사전 ∪ null(성공).
 // 🔴 클라이언트는 HTTP 상태 · 오류 문장으로 거부 코드를 짓지 않는다(계약) — 거부 = 서버가 돌려준 `code` 뿐. HTTP 실패 = 모름 쪽.
 // 🔴 판정(당겨 쓰는 리스 · 주문 직전 · R71 L1 · L2):
-//    · 이 기기가 쥔 epoch(sync_state SUPABASE `operator_epoch`) > 0 → `lease_renew` · `LEASE_LOST` 면 `lease_claim` 한 번(만료 · 같은 기기 =
-//      되찾음 · 다른 기기가 쥠 = `LEASE_HELD_BY_OTHER`).
+//    · 이 기기가 쥔 epoch(sync_state SUPABASE `operator_epoch`) > 0 → `lease_renew` · `LEASE_LOST` 면 🆕 서버 epoch = 쥔 epoch 일 때만
+//      `lease_claim` 한 번(만료 · 같은 기기 = 되찾음 · 다른 기기가 쥠 = `LEASE_HELD_BY_OTHER`) · 🆕 다르면 클레임 0 · 봉인(리뷰 3차 C-1 ·
+//      01 §8 미결 236 ⓐ · R267 — 다른 기기 인계 · 회수가 끼었다).
 //    · epoch 0(쥔 적 없음) → 클레임하지 않는다 = 무효(첫 클레임 = 복구 코드 해시가 드는 명시 흐름 · 다른 기기에서 넘어오기 = X1).
 //    · 성공 = 유효 + sync_state SUPABASE 행(epoch · `last_ok_at` · OK) · 서버 거부 = 무효 · 망 · 인증 · 꼴 = 모름(🔴 둘 다 막는다).
 // 🔴 이 판정은 실전 · 브로커 모의만 쓴다(`simInternal` = 로컬 단독 리스 그대로 · R70 D8) — 배선 = E11k-e3.
@@ -31,7 +32,8 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:http/http.dart' as http;
 import 'package:sqlite3/sqlite3.dart';
 
-import '../local/lease_store.dart' show kLeaseSyncTarget;
+import '../local/lease_store.dart'
+    show RecordedLeaseGate, kLeaseSyncTarget, sealLeaseRow;
 import 'supabase_auth.dart';
 import 'supabase_server_time.dart';
 
@@ -302,7 +304,7 @@ class SupabaseLeaseRpc {
 }
 
 /// 🆕 원격 리스 판정(당겨 쓰는 리스 — `SqliteLeaseGate(remote:)` 자리 · R71 L3).
-class SupabaseLeaseGate implements LeaseGate {
+class SupabaseLeaseGate implements LeaseGate, RecordedLeaseGate {
   /// 만든다 — [db] = 이 모드의 원장(sync_state SUPABASE 행) · [deviceId] = 이 기기(`app_device.device_id`) ·
   /// 🆕 R229 [claimedEpoch] = 이 기기의 첫 클레임 기록 epoch(복구 카드 · 없음 = 0 · 원장 행이 없을 때만 읽는다).
   SupabaseLeaseGate(
@@ -373,9 +375,38 @@ class SupabaseLeaseGate implements LeaseGate {
       epoch: held,
     );
     if (renewed.code == LeaseRpcResultCodes.lost) {
-      // 만료 · epoch 어긋남 — 한 번만 되찾기를 시도한다(다른 기기가 쥐었으면 서버가 거부).
+      // 🆕 리뷰 3차 C-1 · D-01(01 §8 미결 236 ⓐ · R267) — 되찾기는 서버 epoch = 쥔 epoch(= 이 기기가 쥔 뒤 아무도 안 가져감 ·
+      //    만료만) 일 때 한 번뿐이다. 다르면 그 사이 다른 기기 인계 · 회수(lease_revoke)가 끼었다 — 이 원장은 낡았다:
+      //    클레임 0 · 무효 · 봉인(옛 원장으로 다시 발주하지 않는다 · 해제 = X1 재클레임 흐름). 리스 행 없음(epoch null) = 무효만.
+      final int? now = renewed.epoch;
+      if (now != held) {
+        last = renewed;
+        if (now != null) sealLeaseRow(_db, _clock);
+        return LeaseVerdict.invalid;
+      }
       return _verdict(await _rpc.claim(deviceId: deviceId));
     }
     return _verdict(renewed);
+  }
+
+  /// 🆕 리뷰 3차 C-3(미결 236 ⓒ) — 기록된 사실만(RPC 0 · 원장 쓰기 0) — 쥔 epoch 0 = 무효(자동 클레임 0 · [check] 와 같음) ·
+  /// 마지막 원격 성공(`sync_state` SUPABASE `last_ok_at`)이 T 안 = 유효(서버 만료 = 마지막 성공 + T) · 그 밖 = 모름(주문 직전에
+  /// [check] 가 원격으로 다시 판정한다). 🔴 봉인은 부르는 쪽(`SqliteLeaseGate.recorded`)이 먼저 본다.
+  @override
+  LeaseVerdict recorded() {
+    if (_heldEpoch() <= 0) return LeaseVerdict.invalid;
+    final ResultSet rs = _db.select(
+      'SELECT last_ok_at FROM sync_state WHERE target = ? AND operator_epoch > 0',
+      <Object?>[kLeaseSyncTarget],
+    );
+    final Object? ok = rs.isEmpty ? null : rs.first['last_ok_at'];
+    if (ok is! String) return LeaseVerdict.unknown;
+    final DateTime? at = _offset.hasMatch(ok)
+        ? DateTime.tryParse(ok)?.toUtc()
+        : null;
+    if (at == null) return LeaseVerdict.unknown;
+    return leaseStale(lastOkAtUtc: at, nowUtc: _clock.nowUtc().toUtc())
+        ? LeaseVerdict.unknown
+        : LeaseVerdict.valid;
   }
 }

@@ -8,7 +8,9 @@
 // 🔵 진단 = 원장 진단 원천(E13c2) · 연결 · 기기 접근 · 백업 · 연간 = 원천 없음(R109 — 지어내지 않는다).
 // 🆕 E11q-c2(R201) — 백업(S09) = 엔진 `backupVmOf`(사실 = `OperatorBackup` · 화면 원장 · 백업 폴더 · 아카이브 체크포인트 — E11n 전 없음).
 // 🆕 E11p3d-5h(R146) — 기기 · 접근(S06) = 엔진 `deviceAccessVmOf` · 사실 = 이 기기 id(실행 묶음 · R142) · 화면 상태 원장의 리스 판정
-//    (`SqliteLeaseGate.check` — 주문을 막는 그 판정) · 다시 냄 = 들을 때 · 1분 · 리스 표(`sync_state`) · 화면 상태 변경(새 원장으로 감시를 옮긴다) ·
+//    (🆕 리뷰 3차 C-3 · 01 §8 미결 236 ⓒ · R267 — `SqliteLeaseGate.recorded` = 주문을 막는 그 판정의 «기록된 사실» 판 · 원격 RPC 0 ·
+//    원장 쓰기 0 · 전에는 `check()` 가 원격 성공을 `sync_state` 에 적어 이 감시를 다시 울려 lease_renew 를 끝없이 불렀다) ·
+//    다시 냄 = 들을 때 · 1분 · 리스 표(`sync_state`) · 화면 상태 변경(새 원장으로 감시를 옮긴다) ·
 //    바뀐 값만 · 화면 상태 없음 · 기기 id 없음 = 오류(지어내지 않는다).
 // 🆕 E11p3d-5f(R140) — 연결(S07) = 엔진 `connectionsVmOf` · 사실 = 키 검증 기록(S02 와 같은 원천) · healthchecks 목록(감시 보드와
 //    같은 5분 캐시 · 키 없음 = «연결 안 됨» · 그 밖 실패 = «읽지 못했습니다») · 링크 = 셸 레지스트리에 본문이 있을 때만([hasBody]) ·
@@ -324,13 +326,14 @@ class OperatorOpsStatusRepository implements OpsStatusRepository {
     if (id == null) {
       throw StateError('기기: 기기 id 없음');
     }
-    // 🆕 R229 — 주문을 막는 그 판정(원격 = live · simBroker).
-    final LeaseVerdict lease = await operatorLeaseGate(
+    // 🆕 R229 — 주문을 막는 그 판정(원격 = live · simBroker) · 🆕 리뷰 3차 C-3(미결 236 ⓒ · R267) — 화면은 기록된 사실만 읽는다
+    //    (원격 RPC · 쓰기 0 — 원격 판정 · 갱신은 주문 직전 잡이 한다 · 마지막 원격 성공이 T 안 = 유효 · 그 밖 = 확인 대기).
+    final LeaseVerdict lease = operatorLeaseGate(
       v.db,
       mode: v.flags.runMode,
       clock: _rt.clock,
       remote: _rt.leaseRemote,
-    ).check();
+    ).recorded();
     return deviceAccessVmOf(
       DeviceAccessFacts(
         deviceId: id,

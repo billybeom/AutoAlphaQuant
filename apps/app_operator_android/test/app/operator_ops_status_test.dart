@@ -1,6 +1,7 @@
 // E11p3d-2 운영 상태 원천 operator 판(설계 13 §8 R109) — 실 SQLite(job_run) · 바깥 = 가짜.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:app_operator_android/app/operator_ops_status.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
@@ -12,16 +13,24 @@ import 'package:core_engine/core_engine.dart'
         DeviceRiskFacts,
         JobRunEntry,
         JobRunStatus,
+        LeaseGate,
+        LeaseVerdict,
         RemoteCheck,
         RemoteCheckStatus,
         watchdogCheckName;
-import 'package:core_engine/testing.dart' show FakeWatchdogRemote;
+import 'package:core_engine/testing.dart'
+    show FakeWatchdogRemote, MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
         HealthchecksError,
         HealthchecksErrorKind,
+        ModeAxis,
         SqliteJobRunLog,
-        SqliteOnboardingProgressStore;
+        SqliteModeStore,
+        SqliteOnboardingProgressStore,
+        SupabaseAuth,
+        SupabaseLeaseGate,
+        SupabaseLeaseRpc;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppRoutes,
@@ -31,6 +40,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         DeviceAccessVm,
         DeviceRiskItem,
         DeviceRiskVm,
+        ExecPolicy,
+        LedgerFile,
         StepState,
         OperatingMode,
         RunMode,
@@ -39,10 +50,57 @@ import 'package:domain_contracts/domain_contracts.dart'
         WatchdogBoardVm,
         WatchdogCheck;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart' show MockClient;
+import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
     show kJobWatchdogLabels, watchdogCheckSpecsFor;
 
 import '../engine/support.dart';
+
+/// 🆕 리뷰 3차 C-3(미결 236 ⓒ) — 실물 원격 리스 판정(`SupabaseLeaseGate` · 성공마다 `sync_state` 를 적는다) + 가짜 HTTP(RPC 수를 센다 ·
+/// 늘 «갱신 성공» · 🔴 실 Supabase 호출 0 · 값은 이어 붙여 만든다).
+class _LeaseNet {
+  _LeaseNet(this.clock);
+  final FakeClock clock;
+  int rpc = 0;
+  late final http.Client net = MockClient((http.Request r) async {
+    if (r.url.path.startsWith('/auth/')) {
+      return http.Response(
+        jsonEncode(<String, Object?>{
+          'access_token': 'acc-${'A' * 10}',
+          'expires_in': 3600,
+          'refresh_token': 'ref-${'R' * 10}',
+          'user': <String, Object?>{'id': 'uid-1'},
+        }),
+        200,
+      );
+    }
+    rpc++;
+    return http.Response(
+      jsonEncode(<Object?>[
+        <String, Object?>{
+          'code': null,
+          'epoch': 3,
+          'expires_at': '2027-01-01T00:00:00+00:00',
+        },
+      ]),
+      200,
+    );
+  });
+  late final MemorySecretVault vault = MemorySecretVault(<String, String>{
+    'supabase.project_url': 'https://${'q' * 12}${'7' * 8}.supabase.co',
+    'supabase.publishable_key': 'sb_${'publishable'}_${'K' * 12}${'4' * 10}',
+    'supabase.refresh_token': 'ref-${'R' * 10}-0',
+  });
+  late final SupabaseLeaseRpc client = SupabaseLeaseRpc(
+    net,
+    vault,
+    SupabaseAuth(net, vault, clock: clock),
+  );
+  LeaseGate gate(Database db) =>
+      SupabaseLeaseGate(client, db, deviceId: 'dev-lease', clock: clock);
+}
 
 void main() {
   tearDownAll(deleteTempDirs);
@@ -502,6 +560,74 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     expect(got.length, n);
   });
+
+  // 🆕 리뷰 3차 C-3(미결 236 ⓒ · 설계 13 §8 R267) — S06 은 기록된 사실만 읽는다(원격 RPC 0 · 쓰기 0) — 원격 성공이 sync_state 를
+  //    쓰고 그 쓰기가 감시를 다시 울려 lease_renew 를 끝없이 부르던 고리를 막는다(화면을 떠나도 provider 가 살아 돌았다).
+  test(
+    '🔴 기기 — 브로커 모의 · 원격 리스 = 원격 판정 0 · 고리 0 · 마지막 원격 성공이 T 안이면 유효',
+    () async {
+      final String? denied =
+          SqliteModeStore(files.sim, LedgerFile.sim, clock: clock).record(
+            axis: ModeAxis.runMode,
+            runMode: RunMode.simBroker,
+            execPolicy: ExecPolicy.execute,
+            operatingMode: OperatingMode.autoTrade,
+            handoverSessionValid: false,
+            decisionId: 'D-SIM-BROKER',
+          );
+      expect(denied, isNull);
+      files.sim.execute(
+        'INSERT INTO onboarding_choice (id, operating_mode, chosen_at, committed_at) VALUES (1, ?, ?, ?)',
+        <Object?>[
+          OperatingMode.autoTrade.wire,
+          clock.nowUtc().toIso8601String(),
+          clock.nowUtc().toIso8601String(),
+        ],
+      );
+      files.sim.execute(
+        "INSERT INTO sync_state(target, last_ok_at, status, operator_epoch, updated_at) VALUES ('SUPABASE', '2026-12-22T00:10:00.000Z', 'OK', 3, '2026-12-22T00:10:00.000Z')",
+      );
+      final _LeaseNet lease = _LeaseNet(clock);
+      final OperatorRuntime r = OperatorRuntime(
+        files: files,
+        clock: clock,
+        deviceId: devId,
+        leaseRemote: lease.gate,
+      );
+      r.view.value = operatorViewOf(
+        await bootEngine(files, clock: clock),
+        files,
+      );
+      expect(r.view.value!.flags.runMode, RunMode.simBroker);
+      final List<DeviceAccessVm> got = <DeviceAccessVm>[];
+      final StreamSubscription<DeviceAccessVm> sub =
+          OperatorOpsStatusRepository(r).watchDeviceAccess().listen(got.add);
+      addTearDown(sub.cancel);
+      await until(() => got.isNotEmpty);
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      expect(
+        lease.rpc,
+        0,
+        reason: '화면 읽기가 원격 리스(RPC)를 부르면 sync_state 쓰기 → 감시 → 다시 부름(고리)',
+      );
+      expect(got, hasLength(1));
+      // 기록 = 20분 전 원격 성공(T = 30분 안) → 유효 · 화면은 «마지막 확인»으로 판정을 짓는다.
+      expect(
+        (got.single.leaseStateLabel, got.single.leaseLevel),
+        ('유효', UiLevel.ok),
+      );
+      // 시간이 흘러 T 를 넘기면(1분 tick) = 확인 대기(모름) · 그래도 원격 0.
+      clock.now = clock.now.add(const Duration(minutes: 25));
+      files.sim.execute(
+        "UPDATE sync_state SET updated_at = '2026-12-22T00:40:00.000Z' WHERE target = 'SUPABASE'",
+      );
+      await until(() => got.last.leaseLevel == UiLevel.blocked);
+      expect(lease.rpc, 0);
+      // 주문 직전 판정(`check`)은 그대로 원격을 부른다 — 화면만 기록을 읽는다.
+      expect(await lease.gate(files.sim).check(), LeaseVerdict.valid);
+      expect(lease.rpc, 1);
+    },
+  );
 
   test('🔴 원천 없는 흐름 = 오류(지어내지 않는다) · 기기 측정기 없음(플랫폼 밖) = 기기 리스크도 원천 없음', () async {
     final OperatorOpsStatusRepository r = OperatorOpsStatusRepository(rt);

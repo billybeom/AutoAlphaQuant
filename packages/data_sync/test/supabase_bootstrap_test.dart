@@ -183,6 +183,28 @@ void main() {
       }
     });
 
+    // 🆕 리뷰 3차 C-2 · I-U2(미결 236 ⓑ · R267) — 행동 = PGlite `tool/pglite/lease_harness.mjs`(CI 밖) · CI 는 글자로 지킨다.
+    test('🔴 운영 사용자 고정 — 셋 다 기기 판정 뒤 «해시 소유자 ≠ 부른 사용자 = 자격 없음»', () {
+      const String check =
+          '  perform 1 from public.recovery_secret r where r.owner_uid <> v_uid;\n'
+          '  if found then\n'
+          "    return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;\n"
+          '    return;\n'
+          '  end if;\n';
+      for (final String n in LeaseRpcNames.values) {
+        final String b = _body(n);
+        expect(b, contains(check), reason: n);
+        final int device = b.indexOf("d.status not in ('REVOKED', 'RETIRED')");
+        expect(b.indexOf(check), greaterThan(device), reason: n);
+        // 리스 행을 읽거나 바꾸기 전에 거른다.
+        expect(
+          b.indexOf(check),
+          lessThan(b.indexOf('public.operator_lease')),
+          reason: n,
+        );
+      }
+    });
+
     test('같은 잠금 · CAS(바뀐 행 수 · epoch 조건) · T = 엔진 kLeaseTtl', () {
       for (final String n in LeaseRpcNames.values) {
         expect(
@@ -239,10 +261,20 @@ void main() {
           'case when v_holder = p_device_id then v_epoch else v_epoch + 1 end',
         ),
       );
+      // 🆕 리뷰 3차 C-1 · D-01(미결 236 ⓐ · R267) — 만료된 남의 리스 = 그 기기가 REVOKED · RETIRED 일 때만 넘김.
       expect(
         claim,
-        contains('elsif v_holder = p_device_id or v_exp <= now() then'),
+        contains(
+          'elsif v_holder = p_device_id\n'
+          '     or (v_exp <= now()\n'
+          '         and not exists (\n'
+          '           select 1\n'
+          '             from public.app_device h\n'
+          '            where h.device_id = v_holder\n'
+          "              and h.status not in ('REVOKED', 'RETIRED'))) then",
+        ),
       );
+      expect(claim, isNot(contains('or v_exp <= now() then')));
       final String revoke = _body(LeaseRpcNames.revoke);
       // 대조 = 같은 정규화 · 같은 식 · 틀리면 거부.
       expect(
