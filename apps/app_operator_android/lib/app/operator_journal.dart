@@ -14,7 +14,8 @@
 //    조각 조회 셋(`findByDecisionId` · `chainOf` · `fillChain`)은 J-2 가 쓰지 않는다(그 화면은 상세 하나만 구독) → 원천 없음.
 // 🆕 E11q-j4 — J-4 blind 리뷰 큐 · 카드(같은 원천 · 같은 감시 표 · 엔진 `blindReviewQueueOf` · `blindReviewCardOf`) —
 //    K24 = 이 원장의 모드(화면 상태의 실행 모드)와 인자가 모두 LIVE 일 때만 대상(모의 기간 = 해당 없음 빈 문장) ·
-//    카드 = 모르는 · 대상 아닌 결정 = 오류. 채점 기록 = 로컬 원장에 표 없음(계약 창 대기 — 제출 = 명령 API 오류).
+//    카드 = 모르는 · 대상 아닌 결정 = 오류. 🆕 E11q-j4s 채점 기록 = 명령 API(`SqliteBlindReviewStore` · SPEC v2.47) — 그 갱신에서
+//    큐 · 배지 이탈 + 카드 결과(감시 표 `blind_review_score` · 엔진 `blindReviewCardOf`).
 
 import 'package:core_engine/core_engine.dart'
     show JournalDraftTarget, journalDraftFormSpecOf, journalKeyOf;

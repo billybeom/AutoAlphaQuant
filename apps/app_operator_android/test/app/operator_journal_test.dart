@@ -23,7 +23,7 @@ import 'package:core_engine/core_engine.dart'
 import 'package:data_sync/data_sync.dart' show SqliteJournalSource;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:sqlite3/sqlite3.dart' show Database, Row;
 import 'package:ui_shell/ui_shell.dart' show ShellRouteMatch, matchShellRoute;
 
 import '../engine/support.dart';
@@ -134,6 +134,9 @@ void main() {
         'rebalance_event',
         'plan_snapshot',
         'trading_block',
+        // 🆕 E11q-j4s — J-4 채점(큐 이탈 · 카드 결과 — J-4 시험이 다시 냄을 본다) · 기업 행사(결과 «셀 수 없음»).
+        'blind_review_score',
+        'ledger_event',
       });
       final List<ListResult<TradeJournalEntry>> got =
           <ListResult<TradeJournalEntry>>[];
@@ -354,9 +357,13 @@ void main() {
     await expectLater(r.fillChain('e'), throwsA(isA<UnsupportedError>()));
   });
 
-  test('🆕 E11q-j4 J-4 — LIVE 원장 · 이탈 저널 · 닫힌 달 = 큐 · 카드 · «리뷰 대기 n건» 배지(링크 = 등록 본문) · 저널 쓰기 = 다시 냄 · 제출 = 기록 표 없음', () async {
+  test('🆕 E11q-j4 J-4 — LIVE 원장 · 이탈 저널 · 닫힌 달 = 큐 · 카드 · «리뷰 대기 n건» 배지(링크 = 등록 본문) · 저널 쓰기 = 다시 냄 · 🆕 j4s 제출 = 채점 기록 → 큐 · 배지 이탈 + 카드 결과 · 다시 = 이미 채점', () async {
     final Database live = files.openLive();
-    final OperatorRuntime r = OperatorRuntime(files: files, clock: clock);
+    final OperatorRuntime r = OperatorRuntime(
+      files: files,
+      clock: clock,
+      deviceId: 'dev-1',
+    );
     r.view.value = OperatorView(
       db: live,
       flags: const FeatureFlags(
@@ -424,18 +431,49 @@ void main() {
       'D28',
       'D29',
     ]);
-    // 점수 기록 표 없음(계약 창 대기) — 기록하지 않는다(화면 = 접수 실패 1줄).
-    await expectLater(
-      OperatorCommandApi(r).submitBlindReviewScore(
-        BlindReviewScore(
-          decisionId: 'D28',
-          answers: <String, int>{
-            for (final BlindReviewQuestion q in c.questions) q.questionId: 1,
-          },
-        ),
-      ),
-      throwsA(isA<UnsupportedError>()),
+    // 🆕 E11q-j4s — 채점 기록(SPEC v2.47 02 §3-3 ①) → 같은 갱신에서 큐 · 배지 이탈 + 카드 결과(체결 0 = «체결 없음 — 결과 없음»).
+    final OperatorCommandApi api = OperatorCommandApi(r, random: Random(7));
+    final BlindReviewScore all = BlindReviewScore(
+      decisionId: 'D28',
+      answers: <String, int>{
+        for (final BlindReviewQuestion q in c.questions) q.questionId: 1,
+      },
     );
+    final CommandReceipt ok = await api.submitBlindReviewScore(all);
+    expect(
+      (ok.kind, ok.state, ok.stateLabel, ok.rejectReasonCode),
+      (
+        CommandKind.blindReviewScore,
+        CommandState.executed,
+        '기록됨 — 과정 점수가 저장되었습니다',
+        null,
+      ),
+    );
+    await until(() => seen.last.rows.length == 1, '채점 뒤 큐 이탈');
+    expect(seen.last.rows.single.decisionId, 'D29');
+    expect((await j.watchTimelineBadges().first).single.label, '리뷰 대기 1건');
+    final BlindReviewCard scored = await j.watchBlindReviewCard('D28').first;
+    expect(scored.copyWith(result: null, asOf: c.asOf), c);
+    expect(
+      (scored.result!.processScoreText, scored.result!.outcomeText),
+      ('과정 점수 5점 — 좋은 결정(4점 이상)', '체결 없음 — 결과 없음'),
+    );
+    expect(scored.result!.detailLines, isEmpty);
+    final List<Row> scores = live.select(
+      'SELECT decision_id, process_score FROM blind_review_score',
+    );
+    expect(scores, hasLength(1));
+    expect(
+      (scores.single['decision_id'], scores.single['process_score']),
+      ('D28', 5),
+    );
+    // 다시 = 이미 채점(먼저 집행된 채점이 이긴다 · 원장 쓰기 0).
+    final CommandReceipt again = await api.submitBlindReviewScore(all);
+    expect(
+      (again.state, again.rejectReasonCode),
+      (CommandState.rejected, BlindReviewRejectCodes.alreadyScored),
+    );
+    expect(live.select('SELECT 1 FROM blind_review_score'), hasLength(1));
   });
 
   test('🆕 미결 220 ⓔⓕ J-3 — 미완성 저널 폼 스펙 → 제출(엔진 · 접수증) → J-3R(저널 id) 작성됨 · 다시 = 이미 있음 · 새 행 키 · 모르는 키', () async {

@@ -12,6 +12,9 @@
 // 🆕 E11q-q6 — 셋째 칸 = 정기 실사(`submitSelfReportBalance(periodicAudit)` · `L-3` · 01 §21-3 · §21-4): 세션(이 폰) →
 //    엔진 원문 검사(`INPUT_INVALID` 칸 글자 · 세션 밖 `SELF_REPORT_OUTSIDE_SESSION`) → 신뢰 시각 · 리스 · 무결성(보관) →
 //    원장 한 트랜잭션(실사 · 줄 · `ledger_diff` CANON_SELF_REPORT · `command_inbox`) · 접수증 글자 = 엔진.
+// 🆕 E11q-j4s(SPEC v2.47 02 §3-3 ① · 13 §8 R257) — `J-4` 점수 제출 = 엔진 `SqliteBlindReviewStore`(한 트랜잭션 · 보관 · 이미 채점 ·
+//    카드 = 같은 원장에서 엔진이 다시 지은 큐 카드 · 판정 `blindReviewRejectOf` · 채점 1행 + 수신함) · 시각 = 기기 시계(신뢰 시각 비의존) ·
+//    접수증 글자 = 엔진 문구 그대로.
 // 🔴 기기 id 가 없으면 주입 자체를 하지 않는다(버튼 부재 — 셸 규약) · 화면 상태 없음(온보딩 전) = 오류.
 
 import 'dart:math';
@@ -20,6 +23,7 @@ import 'package:broker_gateway/broker_gateway.dart' show KisKeySet;
 import 'package:core_engine/core_engine.dart'
     show
         AlertAckCommand,
+        BlindReviewScoreCommand,
         DisclosureViewCommand,
         P0sOpsConfig,
         SimOpeningCodes,
@@ -34,6 +38,7 @@ import 'package:core_engine/core_engine.dart'
         OrderBroker,
         depositTradeDate,
         depositTrustedTimeUnknownReceipt,
+        issueBlindReviewScore,
         issueDepositRegister,
         issueJournalDraft,
         issueKillCommand,
@@ -43,15 +48,18 @@ import 'package:core_engine/core_engine.dart'
 import 'package:data_sync/data_sync.dart'
     show
         AlertAckResult,
+        BlindReviewWriteResult,
         OnboardingChoice,
         OnboardingOutcome,
         P0sHumanDecision,
         SqliteAlertSink,
+        SqliteBlindReviewStore,
         SqliteConfigVersionStore,
         KillCommandResult,
         JournalDraftWriteResult,
         SqliteDepositRegistrar,
         SqliteJournalDraftStore,
+        SqliteJournalSource,
         SqliteKillSwitchStore,
         SqliteLeaseGate,
         SqliteOnboardingStore,
@@ -217,13 +225,54 @@ class OperatorCommandApi implements CommandApi {
     return receipt;
   }
 
-  /// 🆕 E11q-j4 — `J-4` 점수 제출 = 점수 기록 표가 로컬 원장(02 데이터모델 v1)에 없다 → 기록하지 않는다(계약 창 대기 ·
-  /// 판정 · 접수증 글자 = 엔진 `blindReviewRejectOf` · `blindReviewStateLabelOf` 준비됨) · 화면 = 접수 실패 1줄(01 §16-6).
+  /// 🆕 E11q-j4s — `J-4` 점수 제출(SPEC v2.47 02 §3-3 ①) — 엔진 기록기 `SqliteBlindReviewStore`(같은 원장 한 트랜잭션 ·
+  /// 카드 = 그 원장에서 엔진이 다시 지은 큐 카드 · 시각 = 기기 시계) · 접수증 글자 = 엔진 · 화면 상태 · 기기 id 가 없으면 실패
+  /// (화면 = 접수 실패 1줄 · 01 §16-6).
   @override
-  Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score) =>
-      Future<CommandReceipt>.error(
-        UnsupportedError('submitBlindReviewScore: 점수 기록 표 없음(계약 창 대기)'),
-      );
+  Future<CommandReceipt> submitBlindReviewScore(BlindReviewScore score) async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('blind 리뷰: 화면 상태 없음(온보딩 전)');
+    final String? deviceId = _rt.deviceId;
+    if (deviceId == null) throw StateError('blind 리뷰: 기기 id 없음');
+    final BlindReviewScoreCommand c = issueBlindReviewScore(
+      score: score,
+      nowUtc: _rt.clock.nowUtc(),
+      deviceId: deviceId,
+      random: _random,
+    );
+    final BlindReviewWriteResult r =
+        SqliteBlindReviewStore(
+          v.db,
+          // 카드 = 판정 재료(문항 · 선택지 · 결정 키)뿐 — 링크 · 계좌 이름표는 판정에 쓰지 않는다.
+          source: SqliteJournalSource(
+            v.db,
+            clock: _rt.clock,
+            kr: _rt.calendars.kr,
+            runMode: v.flags.runMode,
+            accountLabels: const <String, String>{},
+            hasBody: (String _) => false,
+          ),
+          clock: _rt.clock,
+        ).submit(
+          commandId: c.commandId,
+          payloadDigest: c.payloadDigest,
+          score: score,
+          runMode: v.flags.runMode,
+          operatingMode: v.flags.operatingMode,
+          leaseEpoch: SqliteLeaseGate(
+            v.db,
+            mode: v.flags.runMode,
+            clock: _rt.clock,
+          ).epoch(),
+        );
+    final CommandReceipt receipt = c.receipt(
+      state: r.state,
+      stateLabel: r.stateLabel,
+      rejectReasonCode: r.rejectCode,
+    );
+    _issued[c.commandId] = receipt;
+    return receipt;
+  }
 
   /// 🆕 E11q-q5b(R223) — `S7-2G` 「그래도 보기」 열람 기록(폰 안 · 같은 원장 한 행 · 무결성 점검 중 = 보류 행) ·
   /// 접수증 글자 = 엔진 글자 그대로 · 화면 상태 · 기기 id 가 없으면 실패(게이트에 머문다 · 접수 실패 1줄).

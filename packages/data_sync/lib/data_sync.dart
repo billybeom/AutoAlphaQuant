@@ -32,6 +32,8 @@ export 'src/jobs/tier_b_step.dart';
 export 'src/local/alert_read_model.dart';
 export 'src/local/alert_store.dart';
 export 'src/local/biometric_sign_store.dart';
+// 🆕 E11q-j4s — J-4 blind 리뷰 채점 기록(`BLIND_REVIEW_SCORE` · 보관 · 거부 2 · 멱등 · SPEC v2.47 · 설계 13 §8 R257).
+export 'src/local/blind_review_store.dart';
 export 'src/local/config_version_store.dart';
 // 🆕 E11q-c1b — 키 세트 검증 기록(값 0 · 설계 13 §8 R196).
 export 'src/local/credential_registry_store.dart';
