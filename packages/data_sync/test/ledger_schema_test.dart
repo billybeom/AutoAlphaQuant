@@ -56,13 +56,13 @@ void main() {
       (RunMode.simInternal, LedgerFile.sim),
     ]) {
       test(
-        '${file.fileName} — 81표(🆕 v2.40 안전 통제 7표 · 🆕 v2.41 알림 3표 · 🆕 v2.42 job_run · 🆕 v2.43 resume_item · 🆕 v2.44 mode_transition · 🆕 v2.45 이전 저널 3표 · 정정 상세) · schema_version 1행 · application_id · 무결성',
+        '${file.fileName} — 82표(🆕 v2.40 안전 통제 7표 · 🆕 v2.41 알림 3표 · 🆕 v2.42 job_run · 🆕 v2.43 resume_item · 🆕 v2.44 mode_transition · 🆕 v2.45 이전 저널 3표 · 정정 상세 · 🆕 v2.47 blind_review_score) · schema_version 1행 · application_id · 무결성',
         () {
           final Database db = open(mode);
           expect(
             _tableCount(db),
-            81,
-            reason: '02 기본 32 + 🆕 v2.40 안전 통제 7 + 🆕 v2.41 알림 3 + 🆕 v2.42 job_run 1 + 🆕 v2.43 resume_item 1 + 🆕 v2.44 mode_transition 1 + 🆕 v2.45 이전 저널 3 · 정정 상세 1 + 배치 신설 30(ledger_event 포함)',
+            82,
+            reason: '02 기본 32 + 🆕 v2.40 안전 통제 7 + 🆕 v2.41 알림 3 + 🆕 v2.42 job_run 1 + 🆕 v2.43 resume_item 1 + 🆕 v2.44 mode_transition 1 + 🆕 v2.45 이전 저널 3 · 정정 상세 1 + 🆕 v2.47 blind_review_score 1 + 배치 신설 30(ledger_event 포함)',
           );
           expect(
             db
@@ -109,7 +109,7 @@ void main() {
     open(RunMode.live).close();
     final Database again = open(RunMode.live);
     expect(again.select('SELECT * FROM schema_version'), hasLength(1));
-    expect(_tableCount(again), 81);
+    expect(_tableCount(again), 82);
     expect(_pragma(again, 'foreign_keys'), 1, reason: 'FK 는 연결마다 다시 켠다');
   });
 

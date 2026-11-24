@@ -8,13 +8,17 @@
 // 🔴 가림 = 서 있는 차단(`LEDGER_INTEGRITY` · `RECON_MISMATCH` — q1 과 같은 읽기) · 🆕 E11q-q6 `L-3` 실사 세션(그 폰) = «숨김».
 // 🔴 원장 한 파일 = 그 파일의 행 전부(파일이 모드 경계 · 01 §9-1) — 모드 인자로 거르지 않는다(01 §8 미결 89).
 // 🆕 E11q-j4 — J-4 blind 리뷰 큐 · 카드(같은 사실 · 같은 감시 표 — 대상 = 결정 로그 · 저널 · 의도 · 브로커 주문 ·
-//    K24 = 이 원장의 모드가 LIVE 일 때만 · 엔진 `blindReviewQueueOf`). 점수 기록 = 로컬 원장에 표 없음(계약 창 대기).
+//    K24 = 이 원장의 모드가 LIVE 일 때만 · 엔진 `blindReviewQueueOf`).
+// 🆕 E11q-j4s(SPEC v2.47 02 §2-6 · §3-3 · 13 §8 R257) — 채점 행(`blind_review_score`) · 결과 셈 재료(되돌림 대상 ·
+//    되돌리지 않은 기업 행사 · 의도에 닿지 않는 살아 있는 수기 체결) · 감시 표 += `blind_review_score` · `ledger_event`.
 
 import 'dart:convert';
 
 import 'package:core_engine/core_engine.dart'
     show
         ExchangeCalendar,
+        BlindReviewScoreFact,
+        JournalCorporateActionFact,
         JournalDecisionFact,
         JournalEventFact,
         JournalFacts,
@@ -96,6 +100,9 @@ class SqliteJournalSource {
     'rebalance_event',
     'plan_snapshot',
     'trading_block',
+    // 🆕 E11q-j4s — 채점(큐 이탈 · 카드 결과) · 기업 행사(결과 «셀 수 없음»).
+    'blind_review_score',
+    'ledger_event',
   };
 
   /// 기간 프리셋이 다시 낼 표(원장 첫 날).
@@ -215,9 +222,50 @@ class SqliteJournalSource {
           flags.contains(FlagIds.ledgerIntegrity) || _selfReportSessionOpen(),
       reconSuspect: flags.contains(FlagIds.reconMismatch),
       config: _config,
+      blindReviewScores: journalBlindReviewScoresOf(_db),
+      corporateActions: journalCorporateActionsOf(_db),
+      unattributedFills: journalUnattributedFillsOf(_db),
     );
   }
 }
+
+/// 🆕 E11q-j4s — blind 리뷰 채점 행(결정 → 행 · SPEC v2.47 02 §2-6).
+Map<String, BlindReviewScoreFact> journalBlindReviewScoresOf(Database db) =>
+    <String, BlindReviewScoreFact>{
+      for (final Row r in db.select(
+        'SELECT decision_id, command_id, process_score, scored_at FROM blind_review_score',
+      ))
+        r['decision_id'] as String: BlindReviewScoreFact(
+          decisionId: r['decision_id'] as String,
+          commandId: r['command_id'] as String,
+          processScore: r['process_score'] as int,
+          scoredAt: _utc(r['scored_at'] as String),
+        ),
+    };
+
+/// 🆕 E11q-j4s — 되돌리지 않은 기업 행사(`ledger_event` `CORPORATE_ACTION` · 원 행 − 되돌린 행 · 효력일 거르기 = 엔진).
+List<JournalCorporateActionFact> journalCorporateActionsOf(Database db) =>
+    <JournalCorporateActionFact>[
+      for (final Row r in db.select(
+        "SELECT account_alias, symbol, effective_date FROM ledger_event e WHERE kind = 'CORPORATE_ACTION' "
+        "AND entry_kind = 'ORIGINAL' AND symbol IS NOT NULL AND NOT EXISTS (SELECT 1 FROM ledger_event v "
+        "WHERE v.entry_kind = 'REVERSAL' AND v.reverses_event_id = e.event_id) ORDER BY effective_date, event_id",
+      ))
+        JournalCorporateActionFact(
+          account: r['account_alias'] as String,
+          symbol: r['symbol'] as String,
+          effectiveDate: TradeDate(r['effective_date'] as String),
+        ),
+    ];
+
+/// 🆕 E11q-j4s — 의도에 닿지 않는 살아 있는 수기 체결이 있나(`MANUAL` · 브로커 주문 없음 · 되돌림 아님 · 되돌려지지 않음 —
+/// 로트 축을 모른다 → J-4 결과 «셀 수 없음» · SPEC 02 §3-3 ② ⓒ).
+bool journalUnattributedFillsOf(Database db) => db
+    .select(
+      "SELECT 1 FROM executions e WHERE e.broker_order_no IS NULL AND e.fill_kind <> 'REVERSAL' "
+      'AND NOT EXISTS (SELECT 1 FROM executions v WHERE v.reverses_fill_id = e.execution_id) LIMIT 1',
+    )
+    .isNotEmpty;
 
 /// 조회 기간 프리셋 — 거래일 달력 · 전체 = 원장 첫 KR 의도 날부터(없으면 끝 날 · 엔진 규칙). 다시 낼 표 =
 /// [SqliteJournalSource.presetTables].
@@ -257,7 +305,7 @@ List<JournalIntentFact> journalIntentFactsOf(Database db) {
   for (final Row r in db.select(
     'SELECT b.intent_id, e.execution_id, e.broker_order_no, e.executed_at, e.authored_at, e.quantity, '
     'e.price, e.commission, e.tax, e.fill_origin, e.fill_kind, e.cost_source, e.advice_id, '
-    'e.backdate_trading_days, e.price_range_source_date FROM executions e '
+    'e.backdate_trading_days, e.price_range_source_date, e.reverses_fill_id FROM executions e '
     'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
     'ORDER BY e.executed_at, e.execution_id',
   )) {
@@ -283,6 +331,7 @@ List<JournalIntentFact> journalIntentFactsOf(Database db) {
           final String d => TradeDate(d),
           _ => null,
         },
+        reversesFillId: r['reverses_fill_id'] as String?,
       ),
     );
   }
