@@ -325,6 +325,8 @@ abstract final class ContractCodes {
     // 🆕 v1.37(01 §46) — M5-13 보관 명령 일괄 확정 거부(K319) · X1 계획 이전 리스 넘김 거부(K324 · K325)
     'held_review_result': HeldReviewResultCodes.values,
     'lease_handover_result': LeaseHandoverResultCodes.values,
+    // 🆕 v1.38(01 §47 · K333 · E11l2) — 읽기 모델 push RPC 고유 거부 2(리스 거부 = `lease_rpc_result` 한 벌)
+    'read_model_push_result': ReadModelPushResultCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
