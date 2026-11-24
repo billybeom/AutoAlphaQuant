@@ -18,9 +18,8 @@ OperationsVm _fixture(String name) => OperationsVm.fromJson(
 
 ActionResult _result(String runId) => ActionResult.fromJson(
   (_doc('operations_action_results')['rows']! as List<Object?>)
-          .cast<Map<String, Object?>>()
-          .singleWhere((Map<String, Object?> r) => r['action_run_id'] == runId)
-      as Map<String, Object?>,
+      .cast<Map<String, Object?>>()
+      .singleWhere((Map<String, Object?> r) => r['action_run_id'] == runId),
 );
 
 final DateTime _now = DateTime.utc(2026, 11, 24, 0, 0); // 09:00 KST
