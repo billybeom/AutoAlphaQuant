@@ -375,6 +375,7 @@ export 'src/mode/sim_to_auto_commit.dart'
         kLiveOpeningSeedReason,
         kSimLedgerDiscardCode,
         kSimLedgerKeepCode,
+        liveAccountMark,
         liveOpeningCash,
         liveOpeningDecisionId,
         simLedgerFateDecisionId,

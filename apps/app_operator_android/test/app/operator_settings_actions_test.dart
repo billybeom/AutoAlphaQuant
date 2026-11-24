@@ -769,5 +769,95 @@ void main() {
       expect(p.headline, CredentialVerifyText.saved);
       expect(registry(), <String>['KIS_LIVE:OK']);
     });
+
+    KisCredentials other() => KisCredentials(
+      environment: KisEnvironment.live,
+      appKey: 'PSOTHERAPPKEY000000000002',
+      appSecret: _secret,
+      accountNo: '87654321',
+      productCode: '01',
+    );
+
+    Future<String> vaultKey() async => ((await readKisCredentials(
+      vault,
+      KisKeySet.live,
+    )) as KisCredentialsStored).credentials.appKey;
+
+    test('🆕 A-5(미결 233 ⓑ) — 금고에 멀쩡한 키(기록 OK)가 있을 때 새로 붙여넣은 키가 거절되면 = 금고 키 기록 그대로 OK · 금고 키 그대로', () async {
+      expect((await live()).headline, CredentialVerifyText.saved);
+      expect(registry(), <String>['KIS_LIVE:OK']);
+      // 앱키 거절(draft).
+      liveSrc.value = other();
+      token = () => _json(<String, String>{
+        'error_description': '유효하지 않은 AppKey입니다.',
+        'error_code': 'EGW00103',
+      }, 403);
+      expect((await live()).headline, CredentialVerifyText.keyRejected);
+      expect(registry(), <String>['KIS_LIVE:OK']);
+      expect(await vaultKey(), _key);
+      // 계좌 거절(draft).
+      token = () => _json(<String, Object>{
+        'access_token': 'eyFAKE-TOKEN',
+        'token_type': 'Bearer',
+        'expires_in': 86400,
+      });
+      balance = () => _json(<String, String>{
+        'rt_cd': '1',
+        'msg_cd': 'OPSQ2000',
+        'msg1': 'ERROR : INPUT_FIELD_NAME CANO',
+      });
+      liveSrc.value = other();
+      expect((await live()).headline, CredentialVerifyText.accountRejectedLive);
+      expect(registry(), <String>['KIS_LIVE:OK']);
+      expect(await vaultKey(), _key);
+      // 🔴 금고 키 «다시 검증»(칸 비움)의 거절만 = INVALID(그 키가 거절됐다).
+      liveSrc.value = null;
+      expect((await live()).headline, CredentialVerifyText.accountRejectedLive);
+      expect(registry(), <String>['KIS_LIVE:INVALID']);
+    });
+
+    test('🆕 R262 A-2(미결 233 ⓐ) — 실전 칸 draft 상품코드 ≠ 01 = 서버 0 · 저장 0 · 기록 0 · 실전 글자 · ISA 칸은 상품코드를 보지 않는다', () async {
+      liveSrc.value = KisCredentials(
+        environment: KisEnvironment.live,
+        appKey: _key,
+        appSecret: _secret,
+        accountNo: '87654321',
+        productCode: '22',
+      );
+      final ActionResult r = await live();
+      expect(
+        (r.headline, r.level, r.reasonCode),
+        (CredentialVerifyText.productNotGeneralLive, UiLevel.act, null),
+      );
+      expect(urls, isEmpty);
+      expect(
+        await readKisCredentials(vault, KisKeySet.live),
+        isA<KisCredentialsMissing>(),
+      );
+      expect(registry(), isEmpty);
+      expect(liveSrc.cleared, 0);
+      final _Src isaSrc = _Src()
+        ..value = KisCredentials(
+          environment: KisEnvironment.live,
+          appKey: _key,
+          appSecret: _secret,
+          accountNo: '11223344',
+          productCode: '22',
+        );
+      handoff.attach(KisKeySet.isa, isaSrc);
+      expect((await live('KIS_ISA')).headline, CredentialVerifyText.saved);
+    });
+
+    test('🆕 A-5 — 금고를 못 열어 금고 키가 있는지 모르면 = draft 거절은 기록을 바꾸지 않는다(멀쩡한 키를 INVALID 로 만들지 않는다)', () async {
+      expect((await live()).headline, CredentialVerifyText.saved);
+      vault.failReadsOf.add('kis.live.app_key');
+      liveSrc.value = other();
+      token = () => _json(<String, String>{
+        'error_description': '유효하지 않은 AppKey입니다.',
+        'error_code': 'EGW00103',
+      }, 403);
+      expect((await live()).headline, CredentialVerifyText.keyRejected);
+      expect(registry(), <String>['KIS_LIVE:OK']);
+    });
   });
 }

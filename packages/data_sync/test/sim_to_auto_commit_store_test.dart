@@ -25,6 +25,8 @@ import 'package:core_engine/core_engine.dart'
         TrustedClock,
         frozenExchangeCalendar,
         kP0sSeedStrategies,
+        liveAccountMark,
+        simToAutoCommitHeadline,
         startupConfigGate;
 import 'package:data_sync/data_sync.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
@@ -101,8 +103,10 @@ LiveAccountProbe _p(
   int? cash,
   int activity = 0,
   DateTime? at,
+  String? mark,
 }) => LiveAccountProbe(
   alias: alias,
+  accountMark: mark ?? 'mark-$alias',
   holdingsCount: holdings,
   orderableCashKrw: cash ?? (alias == 'general' ? 1200000 : 500000),
   activityToday: activity,
@@ -442,6 +446,46 @@ void main() {
     expect(
       commit(probes: <LiveAccountProbe>[_p('general'), _p('pension')]).headline,
       isNot(contains('DRY_RUN')),
+    );
+  });
+
+  test('🆕 R262 A-2(미결 233 ⓐ) — 다른 별칭이 같은 계좌 = ACCOUNT_DUPLICATE · 쓰기 0(개시 현금 두 번 0) · 세션 그대로 → 고친 조회로 같은 세션 확정 = 계좌별 입금 1행씩', () {
+    final String p22 = liveAccountMark(
+      accountNo: '12345678',
+      productCode: '22',
+    );
+    final SimToAutoCommitOutcome dup = commit(
+      probes: <LiveAccountProbe>[
+        _p('general', mark: p22),
+        _p('pension', mark: p22),
+      ],
+    );
+    expect(dup.ok, isFalse);
+    expect(dup.reasonCode, SimToAutoCommitCodes.accountDuplicate);
+    expect(
+      dup.headline,
+      simToAutoCommitHeadline(SimToAutoCommitCodes.accountDuplicate),
+    );
+    expect(writes(), 0);
+    expect(sessions.session(sessionId)!.closed, isFalse);
+    final SimToAutoCommitOutcome ok = commit(
+      probes: <LiveAccountProbe>[
+        _p(
+          'general',
+          mark: liveAccountMark(accountNo: '12345678', productCode: '01'),
+        ),
+        _p('pension', mark: p22),
+      ],
+    );
+    expect(ok.ok, isTrue, reason: ok.headline);
+    expect(
+      live
+          .select(
+            'SELECT account_alias, amount FROM cash_flow ORDER BY account_alias',
+          )
+          .map((Row r) => (r['account_alias'], r['amount']))
+          .toList(),
+      <(Object?, Object?)>[('general', 1200000.0), ('pension', 500000.0)],
     );
   });
 

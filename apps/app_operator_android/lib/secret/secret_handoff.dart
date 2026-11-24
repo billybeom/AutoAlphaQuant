@@ -233,7 +233,14 @@ enum KisPasteProblem {
 
   /// 계좌번호 꼴이 아니다(숫자 8자리 · `-` 뒤 2자리 선택).
   notAccount,
+
+  /// 🆕 R262(미결 233 ⓐ · 리뷰 3차 A-2) — 실전 칸(`KIS_LIVE`)의 상품코드가 위탁 `01` 이 아니다(연금저축 `22` 등) ·
+  /// 연금저축은 같은 종합계좌라 엔진이 상품코드 22 로 따로 부른다(05 S02 «실전(위탁 01 + 연금저축 22 공유)»).
+  notGeneralProduct,
 }
+
+/// 🆕 R262(A-2) — 위탁 상품코드 — 실전 칸(`KIS_LIVE`)이 받는 유일한 값 · 어느 칸이든 상품코드를 안 붙이면 이 값(`KisKeySetField` 기본).
+const String kKisGeneralProductCode = '01';
 
 final RegExp _space = RegExp(r'''[\s"'`]''');
 final RegExp _account = RegExp(r'^(\d{8})(?:-(\d{2}))?$');
@@ -247,7 +254,12 @@ const List<String> _foreign = <String>[
 ];
 
 /// 🔴 붙여넣기 판정(원칙 6) — 문제 없음 = null. [raw] 는 앞뒤 빈칸을 떼고 본다.
-KisPasteProblem? kisPasteProblem(KisPasteField field, String raw) {
+/// 🆕 R262(A-2) [set] = 그 칸의 세트 — 실전(`KIS_LIVE`) 계좌의 상품코드는 `01` 만(없음 = 01) · 모의 · ISA = 꼴만(그대로).
+KisPasteProblem? kisPasteProblem(
+  KisPasteField field,
+  String raw, {
+  KisKeySet? set,
+}) {
   final String v = raw.trim();
   if (v.isEmpty) return KisPasteProblem.empty;
   if (_space.hasMatch(v)) return KisPasteProblem.whitespace;
@@ -260,7 +272,14 @@ KisPasteProblem? kisPasteProblem(KisPasteField field, String raw) {
       final bool ascii = v.codeUnits.every((int c) => c > 32 && c < 127);
       return ascii && v.length >= 16 ? null : KisPasteProblem.notAppKey;
     case KisPasteField.account:
-      return _account.hasMatch(v) ? null : KisPasteProblem.notAccount;
+      final RegExpMatch? m = _account.firstMatch(v);
+      if (m == null) return KisPasteProblem.notAccount;
+      final String? product = m.group(2);
+      return set == KisKeySet.live &&
+              product != null &&
+              product != kKisGeneralProductCode
+          ? KisPasteProblem.notGeneralProduct
+          : null;
   }
 }
 

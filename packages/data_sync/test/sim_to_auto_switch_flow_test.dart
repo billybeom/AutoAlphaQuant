@@ -263,6 +263,7 @@ void main() {
             probes: <LiveAccountProbe>[
               LiveAccountProbe(
                 alias: 'general',
+                accountMark: 'mark-general',
                 holdingsCount: holdings,
                 orderableCashKrw: 1000000,
                 activityToday: 0,
