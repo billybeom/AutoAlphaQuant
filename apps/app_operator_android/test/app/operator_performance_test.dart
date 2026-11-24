@@ -7,6 +7,7 @@
 //    A 행 탐색 링크 = 레지스트리에 본문이 있을 때만 · 이행 갭 운영 방식 = 화면 상태 · 나머지 M7 창구 = «원천 없음».
 
 import 'dart:async';
+import 'dart:io' show Directory;
 import 'dart:math';
 
 import 'package:app_operator_android/app/operator_command_api.dart';
@@ -28,6 +29,7 @@ import 'package:core_engine/core_engine.dart'
         P0sHumanInputs,
         P0sWarnSetup,
         PerfSeriesTexts,
+        ReportArchiveTexts,
         TrustedClock,
         contributionDefaultRange,
         p0sExposureMap;
@@ -57,7 +59,8 @@ import 'package:ui_analytics/ui_analytics.dart'
         ExecutionGapScreen,
         GoalPathScreen,
         MonthlyReportScreen,
-        PerformanceExploreScreen;
+        PerformanceExploreScreen,
+        ReportArchiveScreen;
 
 import '../engine/support.dart';
 
@@ -269,12 +272,11 @@ void main() {
       // 🆕 R228 — 기여 = 원장 원천(뒤집은 단언 — 아래 «S7-3b» 무리).
       // 🆕 R231 — 월간 리포트 = 원장 원천(뒤집은 단언 — 아래 «S7-1» 무리).
       // 🆕 R238 — 목표 경로 = 원장 원천(뒤집은 단언 — 아래 «S7-9» 무리).
-      for (final Future<Object?> f in <Future<Object?>>[
+      // 🆕 R253 — 보관함 = 엔진 VM(뒤집은 단언 — 아래 «S7-1b» 무리).
+      await expectLater(
         p.afterTaxLadder(fiscalYear: '2026'),
-        p.reportArchive(),
-      ]) {
-        await expectLater(f, throwsA(isA<UnsupportedError>()));
-      }
+        throwsA(isA<UnsupportedError>()),
+      );
     });
   });
 
@@ -635,6 +637,88 @@ void main() {
     });
   });
 
+  group('🆕 S7-1b 보관함(R253)', () {
+    void opening(Database db, String day) => db.execute(
+      'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, note, recorded_at, account_alias) '
+      "VALUES ('IT-OPEN', ?, 1000000, 'KRW', 'DEPOSIT', ?, '2026-10-01T00:00:00Z', NULL)",
+      <Object?>[day, DecisionReasonCodes.simOpeningBalance],
+    );
+
+    test(
+      '🔴 화면 상태 없음 = 오류 · 개시 0 = 빈 글자 · 지금 원장의 닫힌 달 = S7-1 이 여는 달과 같다(최신 달부터)',
+      () async {
+        final OperatorRuntime r = rt();
+        final OperatorPerformanceRepository p = OperatorPerformanceRepository(
+          r,
+          hasBody: _all,
+        );
+        await expectLater(p.reportArchive(), throwsStateError);
+        r.view.value = _viewOf(files.sim, OperatingMode.autoTrade);
+        final ReportArchiveVm empty = await p.reportArchive();
+        expect(empty.rows, isEmpty);
+        expect(empty.emptyLabel, ReportArchiveTexts.empty);
+        opening(files.sim, '2026-09-01');
+        final ReportArchiveVm v = await p.reportArchive();
+        expect(v.rows.map((ReportArchiveRow x) => x.yyyyMm).toList(), <String>[
+          '2026-10',
+          '2026-09',
+        ]);
+        expect(v.rows.first.route, 'aaq://report/2026-10');
+        expect(v.rows.first.sectionLabel, '2026년 · 모의투자');
+        expect(v.asOf.label, '아카이브 기준 2026-11-19');
+        // 보관함이 싣는 달 = S7-1 이 짓는 달 · 이번 달(미생성)은 싣지 않는다.
+        await expectLater(
+          p.monthlyReport('2026-11'),
+          throwsA(isA<UnsupportedError>()),
+        );
+        await expectLater(p.monthlyReport('2026-08'), throwsStateError);
+        // 본문 없음 = 링크 0.
+        final ReportArchiveVm bare = await OperatorPerformanceRepository(
+          r,
+          hasBody: (String _) => false,
+        ).reportArchive();
+        expect(
+          bare.rows.map((ReportArchiveRow x) => x.route).toSet(),
+          <String?>{null},
+        );
+      },
+    );
+
+    test('🔴 실전 = 실전 원장의 달 + 옛 모의 파일의 달(링크 0 · 사유)', () async {
+      final Database live = writeLiveMode(Directory(files.directory), clock);
+      addTearDown(live.close);
+      opening(files.sim, '2026-08-03');
+      final OperatorRuntime r = rt();
+      r.view.value = OperatorView(
+        db: live,
+        flags: const FeatureFlags(
+          satelliteEnabled: false,
+          webViewerEnabled: false,
+          calendarEnabled: false,
+          runMode: RunMode.live,
+          operatingMode: OperatingMode.autoTrade,
+          configHash: 'cfg_test',
+        ),
+      );
+      final ReportArchiveVm v = await OperatorPerformanceRepository(
+        r,
+        hasBody: _all,
+      ).reportArchive();
+      // 실전 개시 0 → 이번 달(11월) 앞까지의 옛 모의 달.
+      expect(v.rows.map((ReportArchiveRow x) => x.yyyyMm).toList(), <String>[
+        '2026-10',
+        '2026-09',
+        '2026-08',
+      ]);
+      for (final ReportArchiveRow x in v.rows) {
+        expect(
+          (x.modeLabel, x.route, x.reasonLabel),
+          ('모의투자', null, ReportArchiveTexts.simClosed),
+        );
+      }
+    });
+  });
+
   group('🆕 S7-9 목표 경로(R238)', () {
     // 오늘 = 2026-11-19(한국) · 닫힌 달 = 10월 · 개시 = 07-01(수) → 10월 = 개시 달부터 3개월(판정).
     void snap(String day, int equity) => files.sim.execute(
@@ -796,10 +880,13 @@ void main() {
           ) as MonthlyReportScreen;
       expect(report.yyyyMm, '2026-10');
       expect(report.key, const ValueKey<String>('2026-10') as Key);
+      // 🆕 R253 — S7-1b 보관함 = 등록(뒤집은 단언 — R231 = 209 ⓔ-4 대기).
       expect(
-        kOperatorRouteBodies.byPattern.containsKey(AppRoutes.reportArchive),
-        isFalse,
-      ); // 아카이브 = 209 ⓔ-4
+        kOperatorRouteBodies.byPattern[AppRoutes.reportArchive]!(
+          const <String, String>{},
+        ),
+        isA<ReportArchiveScreen>(),
+      );
       // 🆕 R238 — S7-9 목표 경로 = 받은 달 그대로 · 키(뒤집은 단언 — R231 = 아직).
       final GoalPathScreen goal =
           kOperatorRouteBodies.byPattern[AppRoutes.reportGoalPath]!(

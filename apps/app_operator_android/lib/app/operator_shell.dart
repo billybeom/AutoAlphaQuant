@@ -85,6 +85,7 @@ import 'package:ui_analytics/ui_analytics.dart'
         RebalanceEventScreen,
         RebalancePreviewScreen,
         RebalanceTimelineScreen,
+        ReportArchiveScreen,
         analyticsClockProvider,
         analyticsCommandApiProvider,
         analyticsLinkOpenerProvider,
@@ -781,6 +782,9 @@ Widget _reportMonthly(Map<String, String> p) {
   return MonthlyReportScreen(key: ValueKey<String>(m), yyyyMm: m);
 }
 
+/// 🆕 R253 — S7-1b 보관함(라우트 인자 0 · VM = 엔진 `reportArchiveVmOf`).
+Widget _reportArchive(Map<String, String> _) => const ReportArchiveScreen();
+
 /// 🆕 R238 — S7-9 목표 경로(받은 달 그대로 · 키 = 달 — 진입점 = S7-1 「목표 경로 보기」).
 Widget _reportGoalPath(Map<String, String> p) {
   final String m = p['yyyyMm'] ?? '';
@@ -939,8 +943,10 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   // 🆕 E11q-q5c2(R228) — M7 S7-3b 슬리브 기여(S7-2 «슬리브 기여 보기» 목적지 · 구간 = 엔진 기본).
   AppRoutes.performanceContribution: _performanceContribution,
   // 🆕 E11q-q5e(R231) — M7 S7-1 월간 리포트(읽을 때 짓기 · 신뢰 배지 = 브로커 대사 · 「자세히」 = S7-3 · S7-10 그 달 ·
-  //    아카이브 = 본문 생기면 — 209 ⓔ-4).
+  //    아카이브 = 🆕 R253 등록).
   AppRoutes.reportMonthly: _reportMonthly,
+  // 🆕 E11q-s71b(R253) — M7 S7-1b 보관함(S7-1 «지난 리포트» 목적지 · 행 = S7-1 과 같은 «닫힌 달» · 링크 = 그 달 S7-1).
+  AppRoutes.reportArchive: _reportArchive,
   // 🆕 E11q-q5d(R238) — M7 S7-9 목표 경로(S7-1 「목표 경로 보기」 목적지 하나 · 받은 달).
   AppRoutes.reportGoalPath: _reportGoalPath,
   // 🆕 E11q-q4a — M6 매매일지 읽기 넷(J-1 = «일지» 탭 본문 · J-2 = 일지 행 · H6-2 «매수 결정 보기» 목적지 ·
