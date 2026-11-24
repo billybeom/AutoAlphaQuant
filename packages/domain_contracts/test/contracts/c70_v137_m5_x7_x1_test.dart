@@ -47,8 +47,8 @@ List<SelfAuditResolveVm> _resolveVms() => <SelfAuditResolveVm>[
 
 void main() {
   group('C-70 M5 판 (01 §46)', () {
-    test('C-70 ① 판 · 표본 — 1.37.0 · 신설 5 = 전량 목록 · 디스크 · 봉투 판 · 398', () {
-      expect(contractVersion, '1.37.0');
+    // 🔵 v1.38(01 §47) — 판 글자 고정 = 최신 창 시험(C-71 ①)만 · 여기는 «봉투 판 = 계약 판».
+    test('C-70 ① 판 · 표본 — 신설 5 = 전량 목록 · 디스크 · 봉투 판 · 398', () {
       for (final String path in _newFixtures) {
         expect(FixturePaths.all, contains(path));
         expect(fixtureExists(path), isTrue, reason: path);
