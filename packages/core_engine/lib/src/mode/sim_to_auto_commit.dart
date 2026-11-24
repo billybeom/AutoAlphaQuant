@@ -7,10 +7,14 @@
 // 🔴 🆕 R192(미결 205 ⓓ · 01 §35 K177) — 지금 설정이 모의 파일에서 규칙 변경 승인을 받지 않았으면 개시하지 않는다
 //    (실전 기동 = `approved == 1` · SAF-405 — 승인 없는 실전 원장을 만들지 않는다 · 냉각 30일 · SAF-405 수치 무변경).
 // 🔵 코드 · 문구 = 엔진 문자열(계약 등재 = 1.20.0 후보 · `SIM_TO_AUTO_CONFIG_NOT_APPROVED` = 1.27.0+ 창).
+// 🔴 🆕 R262(미결 233 ⓐ · 리뷰 3차 A-2) — 서로 다른 별칭이 같은 (종합계좌 · 상품코드)를 가리키면 개시하지 않는다
+//    (`SIM_TO_AUTO_ACCOUNT_DUPLICATE` — 한 계좌의 예수금을 두 번 개시 현금으로 적고 한 별칭의 주문이 남의 계좌로 가는 길) ·
+//    🔵 엔진 안 예약(계약 `SimToAutoCommitResultCodes` 등재 = 다음 계약 창 · 그 전 화면 = headline 만).
 
 import 'package:domain_contracts/domain_contracts.dart' show HandoverPath;
 
 import '../ops/lease_gate.dart' show LeaseVerdict, kLeaseInvalidCode;
+import '../security/secret_mask.dart' show secretFingerprint;
 import 'handover_session.dart'
     show HandoverSessionCodes, HandoverSessionKind, HandoverSessionRecord;
 import 'sim_to_auto.dart'
@@ -20,11 +24,18 @@ import 'sim_to_auto.dart'
         SimToAutoReport,
         kHandoverPlanStaleAfter;
 
+/// 🆕 R262(A-2) — 계좌 표지 = 종합계좌번호 지문 + 상품코드(값 0 — «같은 계좌인가»만 본다 · 화면 · 기록 · 로그에 싣지 않는다).
+String liveAccountMark({
+  required String accountNo,
+  required String productCode,
+}) => '${secretFingerprint(accountNo.trim())}-${productCode.trim()}';
+
 /// 실전 계좌 한 곳의 조회 결과(AG9 — 부르는 쪽이 브로커 잔고 포트로 채운다).
 class LiveAccountProbe {
   /// 조회를 만든다.
   const LiveAccountProbe({
     required this.alias,
+    required this.accountMark,
     required this.holdingsCount,
     required this.orderableCashKrw,
     required this.activityToday,
@@ -33,6 +44,9 @@ class LiveAccountProbe {
 
   /// 계좌 별칭(설정 `accountByStrategy` 의 값).
   final String alias;
+
+  /// 🆕 R262(A-2) — 조회한 계좌의 표지([liveAccountMark] — 실제로 부른 종합계좌 · 상품코드 · 값 0).
+  final String accountMark;
 
   /// 수량이 있는 보유 종목 수(전 종목 — AG3 · ⬜ 범위 확인).
   final int holdingsCount;
@@ -83,6 +97,10 @@ abstract final class SimToAutoCommitCodes {
   /// (모의 파일 승인 config 0 · 승인 기록 없음 · 다른 판이 승인됨).
   /// 🔵 엔진 안 예약 — 계약 `SimToAutoCommitResultCodes` 등재 = 다음 계약 창(1.27.0+) · 그 전 화면 = headline 만.
   static const String configNotApproved = 'SIM_TO_AUTO_CONFIG_NOT_APPROVED';
+
+  /// 🆕 R262(미결 233 ⓐ · 리뷰 3차 A-2) — 서로 다른 별칭이 같은 계좌(종합계좌 · 상품코드)를 가리킨다.
+  /// 🔵 엔진 안 예약 — 계약 `SimToAutoCommitResultCodes` 등재 = 다음 계약 창 · 그 전 화면 = headline 만.
+  static const String accountDuplicate = 'SIM_TO_AUTO_ACCOUNT_DUPLICATE';
 }
 
 /// 🆕 미결 205 ⓓ — SAF-405 승인 config 재확인(R192) — 통과 = null.
@@ -243,6 +261,11 @@ String? simToAutoCommitReject({
     if (p == null) return SimToAutoCommitCodes.probeMissing;
     mine.add(p);
   }
+  // 🆕 R262(A-2) — 서로 다른 별칭 = 서로 다른 계좌(같은 계좌 두 번 개시 · 남의 계좌로 가는 주문 0).
+  final Set<String> marks = <String>{};
+  for (final LiveAccountProbe p in mine) {
+    if (!marks.add(p.accountMark)) return SimToAutoCommitCodes.accountDuplicate;
+  }
   for (final LiveAccountProbe p in mine) {
     final DateTime at = p.fetchedAtUtc.toUtc();
     if (at.isAfter(now) || now.difference(at) > kHandoverPlanStaleAfter) {
@@ -291,6 +314,7 @@ String simToAutoCommitHeadline(String? code, {Map<String, int>? cash}) {
       '전환 세션이 열려 있지 않거나 기한이 지났습니다 — 처음부터 다시 진행해 주세요.',
     SimToAutoCommitCodes.alreadyCommitted => '이미 실전으로 옮겼습니다.',
     SimToAutoCommitCodes.probeMissing => '연결한 실전 계좌 가운데 조회하지 못한 곳이 있습니다.',
+    SimToAutoCommitCodes.accountDuplicate => '연결한 실전 계좌 두 곳이 같은 계좌를 가리켜 확정하지 않았습니다 — 키 관리에서 실전(위탁 01) · ISA 계좌번호를 다시 확인해 주세요.',
     SimToAutoCommitCodes.snapshotStale => '계좌 조회가 오래됐습니다 — 다시 조회한 뒤 확정해 주세요.',
     SimToAutoCommitCodes.holdingsNotZero =>
       '실전 계좌에 보유 종목이 있어 확정하지 않았습니다 — 기존 보유를 넘겨받는 경로로 진행해 주세요.',

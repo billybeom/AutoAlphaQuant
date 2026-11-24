@@ -127,6 +127,71 @@ void main() {
     await tester.pump(const Duration(seconds: 60));
   });
 
+  testWidgets(
+    '🆕 A-2(미결 233 ⓐ) — 실전 칸 = 위탁(01)만 · 연금저축(22) 붙여넣기 = 거부 사유 · 넘김 0 · 앞 값 그대로',
+    (WidgetTester tester) async {
+      await pump(
+        tester,
+        other: KisKeySetField(
+          set: KisKeySet.live,
+          handoff: handoff,
+          janitor: janitor,
+          secure: SecureScreen((bool on) async => secureCalls.add(on)),
+          readClipboard: () async => board,
+        ),
+      );
+      await paste(tester, KisPasteField.appKey, _key);
+      await paste(tester, KisPasteField.appSecret, _secret);
+      await paste(tester, KisPasteField.account, '12345678-22');
+      expect(shown(tester, KisPasteField.account), SecretLabels.empty);
+      expect(find.byKey(const Key('m4-secret-account-note')), findsOneWidget);
+      expect(
+        find.text(SecretLabels.problem(KisPasteProblem.notGeneralProduct)),
+        findsOneWidget,
+      );
+      expect(handoff.draftOf(KisKeySet.live), isNull);
+      // 위탁 01 · 상품코드 없음 = 받는다(01).
+      await paste(tester, KisPasteField.account, '12345678-01');
+      expect(find.byKey(const Key('m4-secret-account-note')), findsNothing);
+      expect(handoff.draftOf(KisKeySet.live)!.productCode, '01');
+      await paste(tester, KisPasteField.account, '12345678');
+      expect(handoff.draftOf(KisKeySet.live)!.productCode, '01');
+      // 앞서 받은 01 이 있어도 22 를 다시 붙이면 = 거부 · 앞 값 그대로(원칙 6).
+      await paste(tester, KisPasteField.account, '12345678-22');
+      expect(find.byKey(const Key('m4-secret-account-note')), findsOneWidget);
+      expect(handoff.draftOf(KisKeySet.live)!.productCode, '01');
+      await tester.pump(const Duration(seconds: 60));
+    },
+  );
+
+  testWidgets('🆕 A-2 — 모의 칸 · ISA 칸 상품코드는 그대로 받는다(제한 = 실전 칸만)', (
+    WidgetTester tester,
+  ) async {
+    for (final KisKeySet set in <KisKeySet>[KisKeySet.paper, KisKeySet.isa]) {
+      await pump(
+        tester,
+        other: KisKeySetField(
+          key: ValueKey<KisKeySet>(set),
+          set: set,
+          handoff: handoff,
+          janitor: janitor,
+          secure: SecureScreen((bool on) async => secureCalls.add(on)),
+          readClipboard: () async => board,
+        ),
+      );
+      await paste(tester, KisPasteField.appKey, _key);
+      await paste(tester, KisPasteField.appSecret, _secret);
+      await paste(tester, KisPasteField.account, '12345678-22');
+      expect(
+        find.byKey(const Key('m4-secret-account-note')),
+        findsNothing,
+        reason: set.wire,
+      );
+      expect(handoff.draftOf(set)!.productCode, '22', reason: set.wire);
+    }
+    await tester.pump(const Duration(seconds: 60));
+  });
+
   testWidgets('🔴 넘김 = 세 칸이 다 찬 뒤에만 · 상품코드 기본 01 · 비우기 · 내려가면 떨어진다', (
     WidgetTester tester,
   ) async {

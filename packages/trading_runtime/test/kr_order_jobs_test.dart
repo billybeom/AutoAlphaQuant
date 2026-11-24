@@ -802,6 +802,7 @@ void main() {
       // ① 위저드 S3 · 커밋 직전 조회 = 조회만.
       final LiveAccountProbe p = (await probeLiveAccount(
         alias: 'pension',
+        accountMark: 'mark-pension',
         broker: rig.broker,
         today: _d1,
         fetchedAtUtc: _kst(_d1, 8, 0),

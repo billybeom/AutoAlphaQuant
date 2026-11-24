@@ -18,7 +18,11 @@ const Map<String, String> kP0sLiveKeyKindOfAlias = <String, String>{
 
 /// 🆕 R202(207 ⓖ) — 계좌 별칭 → 상품코드 갈음(같은 종합계좌의 다른 상품 — 연금저축 = 22 · 그 밖 = 저장된 세트 값) ·
 /// 🟡 연금저축 잔고 조회 TR 이 위탁과 같은지 = 실측 전(실험 16) — 다르면 그 계좌 조회 실패 → 커밋 관문 `PROBE_MISSING`(fail-closed).
+/// 🆕 R262(미결 233 ⓐ · 리뷰 3차 A-2) — 일반 위탁 = 01 고정(03_실행/04 §2 «같은 종합계좌 아래 01/22 앱키 공유» · 05 S02
+/// «실전(위탁 01 + 연금저축 22 공유)») — 실전 칸에 연금저축 번호(`-22`)가 저장돼 있어도 일반 위탁 주문 · 조회가 연금저축 계좌로
+/// 가지 않는다. ISA = 별도 종합계좌라 저장 값 그대로(같은 계좌 두 별칭 = 커밋 관문 `SIM_TO_AUTO_ACCOUNT_DUPLICATE`).
 const Map<String, String> kP0sLiveProductCodeOfAlias = <String, String>{
+  'general': '01',
   'pension': '22',
 };
 

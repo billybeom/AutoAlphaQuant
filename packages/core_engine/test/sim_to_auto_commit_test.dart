@@ -78,8 +78,10 @@ LiveAccountProbe _p(
   int? cash = 1000000,
   int activity = 0,
   DateTime? at,
+  String? mark,
 }) => LiveAccountProbe(
   alias: alias,
+  accountMark: mark ?? 'mark-$alias',
   holdingsCount: holdings,
   orderableCashKrw: cash,
   activityToday: activity,
@@ -277,6 +279,103 @@ void main() {
       SimToAutoCommitCodes.zeroCash,
     );
   });
+
+  test('🆕 R262 A-2(미결 233 ⓐ) — 다른 별칭 = 같은 계좌(종합계좌 · 상품코드) = ACCOUNT_DUPLICATE · 조회 다 있은 뒤 · 신선도 · 보유 앞 · 엔진 예약 코드', () {
+    // 실전 칸에 연금저축 번호(-22)를 넣은 옛 꼴 — general · pension 이 같은 22 계좌를 봄.
+    final String p22 = liveAccountMark(
+      accountNo: '12345678',
+      productCode: '22',
+    );
+    final String g01 = liveAccountMark(
+      accountNo: '12345678',
+      productCode: '01',
+    );
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p('general', mark: p22),
+          _p('pension', mark: p22),
+        ],
+      ),
+      SimToAutoCommitCodes.accountDuplicate,
+    );
+    // 신선도 · 보유 · 예수금보다 먼저(계좌 세트가 틀리면 그 계좌 사실을 볼 까닭이 없다).
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p(
+            'general',
+            mark: p22,
+            holdings: 2,
+            at: _now.subtract(const Duration(minutes: 9)),
+          ),
+          _p('pension', mark: p22, cash: null),
+        ],
+      ),
+      SimToAutoCommitCodes.accountDuplicate,
+    );
+    // 조회가 빠지면 = 조회 없음이 먼저.
+    expect(
+      _reject(probes: <LiveAccountProbe>[_p('general', mark: p22)]),
+      SimToAutoCommitCodes.probeMissing,
+    );
+    // 같은 종합계좌의 위탁 01 · 연금저축 22 = 다른 계좌(통과).
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p('general', mark: g01),
+          _p('pension', mark: p22),
+        ],
+      ),
+      isNull,
+    );
+    // 대응 밖 별칭의 같은 계좌는 보지 않는다(대응 계좌만 판정).
+    expect(
+      _reject(
+        probes: <LiveAccountProbe>[
+          _p('general', mark: g01),
+          _p('pension', mark: p22),
+          _p('isa', mark: g01),
+        ],
+      ),
+      isNull,
+    );
+    expect(
+      SimToAutoCommitCodes.accountDuplicate,
+      'SIM_TO_AUTO_ACCOUNT_DUPLICATE',
+    );
+    // 🔵 엔진 예약 — 계약 사전 등재 = 다음 계약 창(그 전 화면 = headline 만).
+    expect(
+      SimToAutoCommitResultCodes.values,
+      isNot(contains(SimToAutoCommitCodes.accountDuplicate)),
+    );
+    final String h = simToAutoCommitHeadline(
+      SimToAutoCommitCodes.accountDuplicate,
+    );
+    expect(h, contains('같은 계좌'));
+    expect(h, isNot(contains('12345678')));
+  });
+
+  test(
+    '🆕 R262 계좌 표지 = 지문 + 상품코드(값 0) · 같은 계좌 = 같은 표지 · 상품코드 · 번호가 다르면 다름',
+    () {
+      final String a = liveAccountMark(
+        accountNo: '12345678',
+        productCode: '01',
+      );
+      expect(liveAccountMark(accountNo: ' 12345678 ', productCode: '01'), a);
+      expect(
+        liveAccountMark(accountNo: '12345678', productCode: '22'),
+        isNot(a),
+      );
+      expect(
+        liveAccountMark(accountNo: '87654321', productCode: '01'),
+        isNot(a),
+      );
+      expect(a, isNot(contains('12345678')));
+      expect(a, endsWith('-01'));
+    },
+  );
 
   test('🆕 f4a 리스 — 유효 아님 = LEASE_INVALID · 세대 · 기기 다름 = MISMATCH · 세션 뒤 · 이미 커밋 앞', () {
     LeaseSnapshot l(

@@ -16,6 +16,7 @@ import 'package:core_engine/core_engine.dart'
         P0sHumanInputs,
         P0sOpsConfig,
         P0sStrategyIds,
+        SecretVaultError,
         allocationEditorVmOfConfig,
         checkpointLabelOf,
         kSettingsAllocationLabel;
@@ -285,6 +286,49 @@ void main() {
       ('NOT_REGISTERED', null),
     );
   });
+
+  test('🆕 H1-5 = H2-01(미결 233 ⓒ) — 금고를 못 열면 = 키 목록 · 설정 홈 스트림 오류(«미등록»으로 지어내지 않는다 · K206) · 다음 계기에 다시 읽는다', () async {
+    rt.view.value = viewOf(files.sim);
+    vault.failReadsOf.add('kis.live.app_key');
+    final List<CredentialListVm> got = <CredentialListVm>[];
+    final List<Object> errors = <Object>[];
+    final StreamSubscription<CredentialListVm> sub = OperatorSettingsRepository(
+      rt,
+    ).watchCredentials().listen(got.add, onError: errors.add);
+    addTearDown(sub.cancel);
+    await until(() => errors.isNotEmpty || got.isNotEmpty);
+    expect(got, isEmpty);
+    expect(errors.single, isA<SecretVaultError>());
+    expect('${errors.single}', contains('kis.live.app_key'));
+    final List<Object> homeErrors = <Object>[];
+    final StreamSubscription<SettingsHomeVm> h = OperatorSettingsRepository(rt)
+        .watchHome()
+        .listen((_) {}, onError: homeErrors.add);
+    addTearDown(h.cancel);
+    await until(() => homeErrors.isNotEmpty);
+    expect(homeErrors.first, isA<SecretVaultError>());
+    // 금고가 다시 열리면 = 다음 계기(진척 표 갱신)에 정상 카드.
+    vault.failReadsOf.clear();
+    progress().record('o_02', StepState.inProgress);
+    await until(() => got.isNotEmpty);
+    expect(got.last.cards.first.healthCode, 'NOT_REGISTERED');
+  });
+
+  test(
+    '🆕 H1-5 — 모의 세트 금고를 못 열면 = 키 목록 · 계좌 스트림 오류(모의 «미등록» · «계좌 없음» 0)',
+    () async {
+      rt.view.value = viewOf(files.sim);
+      vault.failReadsOf.add('kis.paper.app_key');
+      await expectLater(
+        OperatorSettingsRepository(rt).watchCredentials(),
+        emitsError(isA<SecretVaultError>()),
+      );
+      await expectLater(
+        OperatorSettingsRepository(rt).accountMapping(),
+        throwsA(isA<SecretVaultError>()),
+      );
+    },
+  );
 
   test('🔴 설정 홈 — 화면 상태 없음(온보딩 전) = 오류(지어내지 않는다)', () async {
     await expectLater(

@@ -24,6 +24,7 @@ DailyFillRow _row(String odno, {bool cancel = false, TradeDate day = _today}) =>
 
 Future<LiveAccountProbe?> _probe(FakeOrderBroker b) => probeLiveAccount(
   alias: 'general',
+  accountMark: 'mark-general',
   broker: b,
   today: _today,
   fetchedAtUtc: _at,
@@ -43,6 +44,8 @@ void main() {
       b.holdings.addAll(<String, int>{'133690': 0, '360750': 3, '069500': 1});
       final LiveAccountProbe p = (await _probe(b))!;
       expect(p.alias, 'general');
+      // 🆕 R262(A-2) — 계좌 표지 = 부른 쪽이 준 값 그대로.
+      expect(p.accountMark, 'mark-general');
       expect(p.holdingsCount, 2);
       expect(p.orderableCashKrw, 1200000);
       expect(p.activityToday, 2);
