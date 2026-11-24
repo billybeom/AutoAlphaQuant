@@ -227,8 +227,10 @@ void main() {
             ),
           );
       expect(receipt.state, CommandState.executed, reason: receipt.stateLabel);
-      final String hash =
-          (currentP0sOpsConfig(files.sim) as OpsConfigReady).configHash;
+      final String hash = (currentP0sOpsConfig(
+        files.sim,
+        RunMode.simInternal,
+      ) as OpsConfigReady).configHash;
       final AnnualReviewVm after = await annual(r);
       expect(after.afterTax!.configHash, hash);
       expect(after.afterTaxCounterfactual!.configHash, hash);
@@ -586,7 +588,10 @@ void main() {
             .valueText,
         '0.00%',
       );
-      final OpsConfigRead cfg = currentP0sOpsConfig(files.sim);
+      final OpsConfigRead cfg = currentP0sOpsConfig(
+        files.sim,
+        RunMode.simInternal,
+      );
       final String hash = cfg is OpsConfigReady ? cfg.configHash : '';
       expect(m.configHash, hash);
       expect(

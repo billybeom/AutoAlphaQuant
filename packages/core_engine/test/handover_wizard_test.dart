@@ -652,6 +652,31 @@ void main() {
       );
     });
 
+    test('🆕 리뷰 3차 H2-02(R265) — S5 고름 · 설정 못 읽음 = 그 글자 · 막힘 · 다시 시도 0', () {
+      expect(
+        SimToAutoCommitCodes.fateConfigUnavailable,
+        'SIM_LEDGER_FATE_CONFIG_UNAVAILABLE',
+      );
+      for (final SimLedgerFate f in SimLedgerFate.values) {
+        expect(
+          simLedgerFateResultText(
+            f,
+            SimToAutoCommitCodes.fateConfigUnavailable,
+          ),
+          HandoverWizardTexts.fateConfigUnavailable,
+        );
+      }
+      final ActionResult r = handoverActionResultOf(
+        id: SettingsActionId.handoverSimLedgerFate,
+        actionRunId: 'a',
+        code: SimToAutoCommitCodes.fateConfigUnavailable,
+        headline: HandoverWizardTexts.fateConfigUnavailable,
+      );
+      expect(r.level, UiLevel.blocked);
+      expect(r.retryable, isFalse);
+      expect(r.handoffRoute, isNull);
+    });
+
     test('🔴 확정 성공만 settingsOperations 로 넘긴다(K175) · 거부 = null', () {
       expect(
         handoverActionResultOf(

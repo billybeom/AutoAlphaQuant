@@ -13,7 +13,11 @@ import 'package:app_operator_android/app/operator_handover.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_settings_actions.dart';
 import 'package:app_operator_android/app/operator_view.dart';
+import 'package:app_operator_android/engine/data_job_runners.dart'
+    show JobParts;
 import 'package:app_operator_android/engine/engine_boot.dart' show bootEngine;
+import 'package:app_operator_android/engine/job_runners.dart'
+    show JobContext, JobRunner, composeJobRunners;
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:app_operator_android/engine/operator_engine.dart'
     show EngineWakeReport;
@@ -31,14 +35,22 @@ import 'package:broker_gateway/broker_gateway.dart'
 import 'package:core_engine/core_engine.dart'
     show
         BiometricOutcome,
+        DailyQuoteFeed,
         HandoverSessionCodes,
         HandoverWizardTexts,
         JobRunEntry,
         JobRunStatus,
         LiveObservationConfig,
+        LiveObservationReport,
+        Market,
+        OperationsConfig,
         P0sHumanInputs,
         P0sOpsConfig,
         P0sStrategyIds,
+        PriceAdjust,
+        QuoteFeedDown,
+        QuoteFetch,
+        QuoteKind,
         RuleChangeType,
         SimToAutoCodes,
         SimToAutoCommitCodes,
@@ -49,24 +61,51 @@ import 'package:core_engine/core_engine.dart'
         kNoApprovedConfig,
         kSimToAutoWatchdogPrepareFailed,
         kSimToAutoWatchdogPrepareFailedHeadline,
+        judgeLiveObservation,
+        p0sRegimeConfigHash,
         simToAutoCommitHeadline;
 import 'package:core_engine/testing.dart'
-    show FakeWatchdogRemote, MemorySecretVault;
+    show FakeOrderBroker, FakeWatchdogRemote, MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
+        FredClient,
+        OfrClient,
+        OpsConfigRead,
+        OpsConfigReady,
+        SqliteAlertSink,
         SqliteConfigVersionStore,
         SqliteJobRunLog,
         SqliteCredentialRegistry,
+        SqliteLiveObservationFacts,
         SqliteOnboardingStore,
-        SqliteRuleChangeStore;
+        SqliteRuleChangeStore,
+        currentP0sOpsConfig;
 import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' show MockClient;
 import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:trading_runtime/trading_runtime.dart'
+    show JobCalendars, JobRun, JobStatus, jobSpecOf, occurrenceOn;
 
 import '../engine/support.dart';
+
+/// 🆕 리뷰 3차 A-1(R265) — 실전 잡 시험용 봉 원천(늘 장애 — 시세가 드는 잡은 이 시험 밖 · 네트워크 0).
+class _DownFeed implements DailyQuoteFeed {
+  @override
+  MarketDataSource get source => MarketDataSource.kis;
+
+  @override
+  Future<QuoteFetch> daily({
+    required Market market,
+    required String symbol,
+    required QuoteKind kind,
+    PriceAdjust adjust = PriceAdjust.raw,
+    required String from,
+    required String to,
+  }) async => throw const QuoteFeedDown('시험', attempts: 1);
+}
 
 class _Trusted implements TrustedClock {
   _Trusted(this.at);
@@ -925,6 +964,121 @@ void main() {
       expect(k.state, CommandState.executed, reason: k.stateLabel);
       expect(killRows(files.liveIfExists()!), 1);
       expect(killRows(files.sim), 0, reason: '닫힌 모의 원장에 쓰지 않는다');
+    });
+
+    test('🆕 리뷰 3차 A-1(미결 231 ⓐ · R265) — 커밋으로 만든 실전 원장 → 화면 설정 지문 = 승인 판 → live 대사 · 주문 잡(dryRun · 가짜 브로커) 성공 → 관찰 무결일 2/2 → 승격 가능', () async {
+      // 실전 키 세트 검증 기록(모의 파일 — 커밋이 옮긴다 · 실전 잡의 실키 사실 원천 · 값 0).
+      for (final (String kind, String ref) in <(String, String)>[
+        ('KIS_LIVE', 'kis.live'),
+        ('KIS_ISA', 'kis.isa'),
+      ]) {
+        SqliteCredentialRegistry(files.sim, clock: clock).recordVerification(
+          alias: ref.replaceAll('.', '_'),
+          kind: kind,
+          keystoreRef: ref,
+          passed: true,
+        );
+      }
+      final (OperatorRuntime r, OperatorHandover h, String sid) =
+          await openedRt();
+      r.attachWake(() async {
+        r.onWake(EngineWakeReport(boot: await bootEngine(files, clock: clock)));
+      });
+      final ActionResult c = await h.run(
+        SettingsActionId.handoverCommit,
+        <String, String>{'handover_session_id': sid},
+      );
+      expect(c.reasonCode, isNull, reason: c.headline);
+      final Database live = files.liveIfExists()!;
+      // 🔴 원장 = 커밋이 쓴 그대로 — 개시 결정 = 실전 개시 하나(모의 개시 행을 손으로 심지 않는다).
+      expect(
+        live
+            .select(
+              "SELECT reason_code FROM decision_log WHERE reason_code LIKE '%OPENING_BALANCE'",
+            )
+            .map((row) => row['reason_code']),
+        <String>['OPENING_BALANCE'],
+      );
+      // 지금 설정(실전 원장 · 실전 모드) = 승인 판 · 모의 개시 판으로 읽으면 = 개시 없음(다른 원장 판을 빌리지 않는다).
+      final OpsConfigRead cfg = currentP0sOpsConfig(live, RunMode.live);
+      expect(cfg, isA<OpsConfigReady>(), reason: '$cfg');
+      expect((cfg as OpsConfigReady).configHash, hash);
+      expect(
+        currentP0sOpsConfig(live, RunMode.simInternal),
+        isNot(isA<OpsConfigReady>()),
+      );
+      // 화면 = 실전 원장 · 기능 표지 설정 지문 = 승인 판(빈 글자 = «설정 없음» 아님).
+      final OperatorView v = r.view.value!;
+      expect(identical(v.db, live), isTrue);
+      expect(v.flags.runMode, RunMode.live);
+      expect(v.flags.configHash, hash);
+
+      final JobCalendars cals = calendars();
+      Map<String, JobRunner> runners() => composeJobRunners(
+        JobContext(
+          db: live,
+          runMode: RunMode.live,
+          operatingMode: OperatingMode.autoTrade,
+          execPolicy: ExecPolicy.dryRun,
+          calendars: cals,
+          heartbeat: RecordingHeartbeat(),
+          alerts: SqliteAlertSink(live, clock: clock),
+          runLog: SqliteJobRunLog(live),
+          clock: clock,
+          operations: OperationsConfig.fromJson(<String, Object?>{
+            'resume': <String, Object?>{
+              'gap_ladder_trading_days': <int>[2, 5, 10],
+              'backup_gap_days': 7,
+            },
+          }),
+        ),
+        parts: JobParts(
+          quoteFeed: (RunMode m) async => _DownFeed(),
+          priceFetch: (RunMode m) async =>
+              (String code) async => throw StateError('현재가 없음(시험 · 낼 주문 0)'),
+          fred: FredClient(
+            MockClient((http.Request q) async => http.Response('', 503)),
+            sleep: (Duration _) async {},
+          ),
+          ofr: OfrClient(
+            MockClient((http.Request q) async => http.Response('', 503)),
+            sleep: (Duration _) async {},
+          ),
+          regimeConfigHash: p0sRegimeConfigHash(),
+          liveAccountBroker: (String alias) async => FakeOrderBroker(),
+        ),
+      );
+      Future<JobRun<Object?>> run(String job, String day, int h, int m) {
+        clock.now = _k(day, h, m);
+        return runners()[job]!(
+          occurrenceOn(jobSpecOf(job), TradeDate(day), cals),
+        );
+      }
+
+      // 월 · 화 두 세션 — 07:05 대사 → 09:10 주문(계획 없음 = 주문 0 · 성공).
+      for (final String day in <String>['2027-01-11', '2027-01-12']) {
+        final JobRun<Object?> recon = await run('daily_reconcile', day, 7, 10);
+        expect(recon.status, JobStatus.success, reason: '$day ${recon.error}');
+        final JobRun<Object?> order = await run('kr_order', day, 9, 15);
+        expect(order.status, JobStatus.success, reason: '$day ${order.error}');
+        expect(order.check, 'live-auto-kr_order');
+        final JobRun<Object?> close = await run('kr_order_close', day, 15, 50);
+        expect(close.status, JobStatus.success, reason: '$day ${close.error}');
+      }
+      expect(
+        live.select('SELECT COUNT(*) AS n FROM broker_orders').first['n'],
+        0,
+        reason: 'dryRun = 주문 0',
+      );
+      // 🔴 M1-22 관찰 — 무결 거래일 2/2 → 승격 가능(설정 못 읽음으로 영구 0 이 아니다).
+      clock.now = _k('2027-01-12', 16);
+      final LiveObservationReport obs = judgeLiveObservation(
+        SqliteLiveObservationFacts(live, clock: clock).read(),
+        kr: cals.kr,
+        config: LiveObservationConfig(requiredTradingDays: 2),
+      );
+      expect(obs.observedTradingDays, 2, reason: obs.promotionLabel);
+      expect(obs.promotionAvailable, isTrue, reason: obs.promotionLabel);
     });
 
     test('🆕 R261(H1-2) — 커밋 뒤 깨어남이 화면 상태를 못 바꾸면(창구 없음 · 실패) 비운다 → 킬스위치 = 오류 · 닫힌 모의 원장 쓰기 0', () async {

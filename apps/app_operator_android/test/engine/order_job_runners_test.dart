@@ -37,6 +37,7 @@ import 'package:data_sync/data_sync.dart'
     show
         FredClient,
         OfrClient,
+        OpsConfigCodes,
         OpsConfigUnavailable,
         SeedFile,
         SqliteAlertSink,
@@ -63,6 +64,7 @@ import 'package:domain_contracts/domain_contracts.dart'
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart'
     show
         JobCalendars,
@@ -402,6 +404,7 @@ void main() {
 
   group('🆕 R207 실전 개시 — live 주문 잡 = 계좌마다 KIS 브로커 · 실키 사실 = 원장 키 검증 기록', () {
     late List<String> made;
+    late Database live;
 
     JobParts liveParts() => parts(
       live: (String alias) async {
@@ -410,23 +413,42 @@ void main() {
       },
     );
 
+    // 🆕 리뷰 3차 A-1(R265) — 실전 잡 = 실전 원장(커밋의 live 몫: 모드 행 · 실전 개시 판 · 키 검증 기록) · dryRun.
+    //    (옛 시험은 모의 원장을 실전 모드로 돌려 «모의 개시 판»을 빌렸다 — 실물 커밋 → 잡 = `operator_handover_test` A-1.)
+    JobContext liveCtx() => JobContext(
+      db: live,
+      runMode: RunMode.live,
+      operatingMode: OperatingMode.autoTrade,
+      execPolicy: ExecPolicy.dryRun,
+      calendars: cals,
+      heartbeat: hb,
+      alerts: SqliteAlertSink(live, clock: clock),
+      runLog: SqliteJobRunLog(live),
+      clock: clock,
+      operations: _ops,
+    );
+
     void verify(String kind, String ref) =>
-        SqliteCredentialRegistry(files.sim, clock: clock).recordVerification(
+        SqliteCredentialRegistry(live, clock: clock).recordVerification(
           alias: ref.replaceAll('.', '_'),
           kind: kind,
           keystoreRef: ref,
           passed: true,
         );
 
-    setUp(() => made = <String>[]);
+    setUp(() {
+      made = <String>[];
+      live = writeLiveMode(Directory(files.directory), clock);
+      writeLiveOpening(live, clock, cfg);
+    });
+    tearDown(() => live.close());
 
     test('🔴 실전 계좌 브로커 자리가 없으면 = 미조립(조용히 다른 길로 돌지 않는다)', () async {
-      openSim();
       clock.now = kst(2026, 12, 22, 7, 10);
       final JobRun<Object?> r = await run(
         'daily_reconcile',
         '2026-12-22',
-        c: ctx(mode: RunMode.live),
+        c: liveCtx(),
       );
       expect(
         r.error.toString(),
@@ -435,13 +457,12 @@ void main() {
     });
 
     test('🔴 키 검증 기록 없음 = LIVE_AWAITING_KEYS 로 막힌다 · 실전 브로커 0', () async {
-      openSim();
       verify('KIS_LIVE', 'kis.live');
       clock.now = kst(2026, 12, 22, 7, 10);
       final JobRun<Object?> r = await run(
         'daily_reconcile',
         '2026-12-22',
-        c: ctx(mode: RunMode.live),
+        c: liveCtx(),
         p: liveParts(),
       );
       expect(r.status, JobStatus.failed);
@@ -451,9 +472,22 @@ void main() {
     });
 
     test('🔴 실전 세트 둘 다 검증 = 가드 통과 → 계좌 별칭마다 실전 브로커(처음 쓸 때 · 한 번)', () async {
-      openSim();
       verify('KIS_LIVE', 'kis.live');
       verify('KIS_ISA', 'kis.isa');
+      clock.now = kst(2026, 12, 22, 7, 10);
+      final JobRun<Object?> r = await run(
+        'daily_reconcile',
+        '2026-12-22',
+        c: liveCtx(),
+        p: liveParts(),
+      );
+      expect(r.status, JobStatus.success, reason: '${r.error}');
+      expect(made.toSet(), <String>{'general', 'pension'});
+      expect(made, hasLength(2));
+    });
+
+    test('🆕 리뷰 3차 A-1(R265) — 실전 모드 잡은 실전 개시 판만 — 모의 원장(모의 개시 판만)을 실전 모드로 = 개시 없음 · 회차 실패', () async {
+      openSim();
       clock.now = kst(2026, 12, 22, 7, 10);
       final JobRun<Object?> r = await run(
         'daily_reconcile',
@@ -461,9 +495,16 @@ void main() {
         c: ctx(mode: RunMode.live),
         p: liveParts(),
       );
-      expect(r.status, JobStatus.success, reason: '${r.error}');
-      expect(made.toSet(), <String>{'general', 'pension'});
-      expect(made, hasLength(2));
+      expect(r.status, JobStatus.failed);
+      expect(
+        r.error,
+        isA<OpsConfigUnavailable>().having(
+          (OpsConfigUnavailable u) => u.code,
+          'code',
+          OpsConfigCodes.noOpening,
+        ),
+      );
+      expect(made, isEmpty);
     });
   });
 

@@ -33,6 +33,8 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
+import 'support/ops_config_seed.dart';
+
 class _Clock implements Clock {
   _Clock(this.at);
   DateTime at;
@@ -733,10 +735,7 @@ void main() {
         clock: clock,
       );
       expect(f.current(), isNull);
-      expect(
-        f.choose(SimLedgerFate.keep, configHash: 'cfg-1'),
-        SimToAutoCodes.notSimAuto,
-      );
+      expect(f.choose(SimLedgerFate.keep), SimToAutoCodes.notSimAuto);
       expect(_n(sim, 'decision_log'), 0);
       simModes.record(
         axis: ModeAxis.runMode,
@@ -746,12 +745,14 @@ void main() {
         handoverSessionValid: false,
         decisionId: 'D-SIM',
       );
-      expect(f.choose(SimLedgerFate.keep, configHash: 'cfg-1'), isNull);
+      // 🆕 R265 — 결정의 설정 지문 = 모의 개시 판(저장이 읽는다).
+      final String cfg = seedOpening(sim, RunMode.simBroker, clock: clock);
+      expect(f.choose(SimLedgerFate.keep), isNull);
       expect(f.current(), SimLedgerFate.keep);
-      expect(f.choose(SimLedgerFate.discard, configHash: 'cfg-1'), isNull);
+      expect(f.choose(SimLedgerFate.discard), isNull);
       expect(f.current(), SimLedgerFate.discard);
       final ResultSet rows = sim.select(
-        'SELECT * FROM decision_log ORDER BY decision_id',
+        "SELECT * FROM decision_log WHERE decision_id LIKE 'SIMFATE-%' ORDER BY decision_id",
       );
       expect(rows.map((Row r) => r['decision_id']), <String>[
         'SIMFATE-20270113-110700-001',
@@ -762,7 +763,8 @@ void main() {
       expect(rows.first['strategy_id'], 'P0S');
       expect(rows.first['reason_code'], 'SIM_LEDGER_KEEP');
       expect(rows.last['reason_code'], 'SIM_LEDGER_DISCARD');
-      expect(rows.first['config_hash'], 'cfg-1');
+      expect(rows.first['config_hash'], cfg);
+      expect(rows.last['config_hash'], cfg);
       expect(rows.first['trade_date'], '2027-01-13');
       // 다른 MANUAL 행은 고름이 아니다.
       sim.execute(
@@ -773,12 +775,54 @@ void main() {
       );
       expect(f.current(), SimLedgerFate.discard);
       simModes.close(decisionId: 'D-CLOSE');
-      expect(
-        f.choose(SimLedgerFate.keep, configHash: 'cfg-1'),
-        SimToAutoCommitCodes.simClosed,
-      );
+      expect(f.choose(SimLedgerFate.keep), SimToAutoCommitCodes.simClosed);
       expect(f.current(), SimLedgerFate.discard);
-      expect(_n(sim, 'decision_log'), 3);
+      expect(_n(sim, 'decision_log'), 4, reason: '개시 + 고름 둘 + Z-LAST');
+    });
+
+    test('🆕 리뷰 3차 H2-02(R265) — 지금 설정 못 읽음(개시 없음 · 판 바뀜 · 미등재) = CONFIG_UNAVAILABLE · 쓰기 0(빈 지문 결정 0)', () {
+      final SqliteSimLedgerFateStore f = SqliteSimLedgerFateStore(
+        sim,
+        clock: clock,
+      );
+      simModes.record(
+        axis: ModeAxis.runMode,
+        runMode: RunMode.simInternal,
+        execPolicy: ExecPolicy.execute,
+        operatingMode: OperatingMode.autoTrade,
+        handoverSessionValid: false,
+        decisionId: 'D-SIM',
+      );
+      int fates() => _n(sim, 'decision_log', "decision_id LIKE 'SIMFATE-%'");
+      void refused(String because) {
+        for (final SimLedgerFate x in SimLedgerFate.values) {
+          expect(
+            f.choose(x),
+            SimToAutoCommitCodes.fateConfigUnavailable,
+            reason: because,
+          );
+        }
+        expect(fates(), 0, reason: because);
+        expect(f.current(), isNull, reason: because);
+      }
+
+      refused('개시 없음');
+      // 실전 개시 행만(모의 파일) = 모의 개시 없음.
+      final String hash = seedOpening(
+        sim,
+        RunMode.simInternal,
+        clock: clock,
+        decisionId: 'LIVE-ROW',
+        reasonCode: 'OPENING_BALANCE',
+      );
+      refused('실전 개시 행만');
+      seedOpening(sim, RunMode.simInternal, clock: clock, hash: hash);
+      sim.execute(
+        "UPDATE config_versions SET content = replace(content, '\"spec\":', '\"spec_old\":')",
+      );
+      refused('판 바뀜(DRIFT)');
+      sim.execute('DELETE FROM config_versions');
+      refused('미등재');
     });
   });
 }

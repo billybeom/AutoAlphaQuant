@@ -245,7 +245,7 @@ void main() {
       expect(r.stateLabel, '가상 초기금 10,000,000원을 계좌 3곳에 나눠 넣었습니다.');
       expect(openings(), 1);
       final OpsConfigReady cfg =
-          currentP0sOpsConfig(files.sim) as OpsConfigReady;
+          currentP0sOpsConfig(files.sim, RunMode.simInternal) as OpsConfigReady;
       expect(cfg.configHash, P0sOpsConfig.of(human.inputs).configHash);
       expect(cfg.config.aSymbol, '229200');
       expect(cfg.config.human.accountByStrategy, accounts);

@@ -23,6 +23,7 @@ import 'package:core_engine/core_engine.dart'
         LiveObservationConfig,
         LivePromotionCodes,
         P0sHumanInputs,
+        P0sOpsConfig,
         TrustedClock;
 import 'package:core_engine/testing.dart' show FakeLeaseGate, MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
@@ -188,7 +189,7 @@ void main() {
       expect(v.flags.runMode, RunMode.simInternal);
       expect(v.flags.operatingMode, OperatingMode.autoTrade);
       final OpsConfigReady cfg =
-          currentP0sOpsConfig(files.sim) as OpsConfigReady;
+          currentP0sOpsConfig(files.sim, RunMode.simInternal) as OpsConfigReady;
       expect(v.flags.configHash, cfg.configHash);
       expect(v.flags.configHash, isNotEmpty);
       final FeatureFlags flags = await OperatorConfigRepository(
@@ -289,6 +290,12 @@ void main() {
       clock.now = kst(2027, 1, 12, 15, 0);
       final Database live = writeLiveMode(Directory(files.directory), clock);
       addTearDown(live.close);
+      // 🆕 R265 — 커밋의 live 몫 = 실전 개시 판도(승격 결정의 설정 지문 원천 · 못 읽음 = 거부).
+      final String hash = writeLiveOpening(
+        live,
+        clock,
+        P0sOpsConfig.of(_human.inputs),
+      );
       for (final String d in <String>['2027-01-13', '2027-01-14']) {
         final DateTime at = kst(
           int.parse(d.substring(0, 4)),
@@ -335,6 +342,45 @@ void main() {
       final ActionResult yes = await p.run('ar-2', const <String, String>{});
       expect(yes.reasonCode, isNull, reason: yes.headline);
       expect(wakes, 1);
+      expect(
+        live
+            .select(
+              "SELECT config_hash FROM decision_log WHERE reason_code = 'LIVE_EXECUTE_PROMOTION'",
+            )
+            .single['config_hash'],
+        hash,
+        reason: '승격 결정 = 실전 개시 판 지문(빈 글자 0)',
+      );
+    });
+
+    test('🆕 리뷰 3차 H2-02(R265) — 실전 개시 판을 못 읽음 = CONFIG_UNAVAILABLE · 쓰기 0 · 깨어남 0', () async {
+      clock.now = kst(2027, 1, 12, 15, 0);
+      final Database live = writeLiveMode(Directory(files.directory), clock);
+      addTearDown(live.close);
+      final OperatorRuntime rt = OperatorRuntime(
+        files: files,
+        clock: clock,
+        liveObservation: LiveObservationConfig(requiredTradingDays: 2),
+        biometricSign: () async => BiometricOutcome.ok,
+        leaseRemote: (Database _) => FakeLeaseGate(),
+      );
+      int wakes = 0;
+      rt.attachWake(() async => wakes++);
+      clock.now = kst(2027, 1, 14, 18, 0);
+      final ActionResult r = await OperatorLivePromotion(rt)
+          .run('ar-x', const <String, String>{});
+      expect(r.reasonCode, LivePromotionCodes.configUnavailable);
+      expect(r.level, UiLevel.blocked);
+      expect(r.retryable, isFalse);
+      expect(wakes, 0);
+      expect(
+        live
+            .select(
+              "SELECT COUNT(*) AS n FROM decision_log WHERE reason_code = 'LIVE_EXECUTE_PROMOTION'",
+            )
+            .first['n'],
+        0,
+      );
     });
   });
 

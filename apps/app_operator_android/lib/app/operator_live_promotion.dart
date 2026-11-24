@@ -6,6 +6,8 @@
 // 🔴 리스 = 실전 파일 판정(원격 = 조립 앱 원천 · 모름 = 거부 — 엔진 사전 판정 차례) · 세션 = 없음(S05 승격 = args `{}`).
 // 🔴 실전 파일이 없거나 관찰 설정이 없으면 = 쓰지 않는다(«관찰 중 아님» 결과 · 지어내지 않는다).
 // 🆕 리뷰 3차 H1(설계 13 §8 R261) — 승격 뒤 엔진 깨어남 한 번(`OperatorRuntime.wakeNow`).
+// 🆕 리뷰 3차 H2-02(설계 13 §8 R265 · 미결 231 ⓑ) — 승격 결정의 설정 지문 = 엔진 저장이 트랜잭션 안에서 읽는 실전 개시 판
+//    (못 읽음 = `LIVE_PROMOTION_CONFIG_UNAVAILABLE` · 쓰기 0 — 빈 지문으로 실주문을 켜지 않는다).
 
 import 'dart:async';
 
@@ -18,13 +20,7 @@ import 'package:core_engine/core_engine.dart'
         livePromotionActionResultOf,
         livePromotionHeadline;
 import 'package:data_sync/data_sync.dart'
-    show
-        LivePromotionOutcome,
-        OpsConfigRead,
-        OpsConfigReady,
-        SqliteLeaseGate,
-        SqliteLivePromotionStore,
-        currentP0sOpsConfig;
+    show LivePromotionOutcome, SqliteLeaseGate, SqliteLivePromotionStore;
 import 'package:domain_contracts/domain_contracts.dart'
     show ActionResult, RunMode;
 import 'package:sqlite3/sqlite3.dart' show Database;
@@ -66,11 +62,9 @@ class OperatorLivePromotion {
       remote: _rt.leaseRemote,
     );
     final LeaseVerdict lease = await gate.check();
-    final OpsConfigRead cfg = currentP0sOpsConfig(live);
     final LivePromotionOutcome o =
         SqliteLivePromotionStore(live, clock: _rt.clock).promote(
           biometricConfirmed: confirmed,
-          configHash: cfg is OpsConfigReady ? cfg.configHash : '',
           kr: _rt.calendars.kr,
           config: config,
           lease: lease,

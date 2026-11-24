@@ -4,6 +4,8 @@
 // 🔴 append-only — `decision_log` MANUAL `SIM_LEDGER_KEEP` · `SIM_LEDGER_DISCARD` · 가장 늦은 행이 이긴다.
 //    냉각 24h 동안 앱을 다시 켜도 고름이 남고, 2단계(f3b)가 이 값을 읽어 지움을 마저 한다.
 // 🔴 닫힌 모의 파일 = 거부(커밋 뒤에는 고를 수 없다) · 스키마 0줄.
+// 🆕 리뷰 3차 H2-02(미결 231 ⓑ · 설계 13 §8 R265) — 결정의 설정 지문 = 이 트랜잭션 안에서 읽은 모의 파일의 지금 설정
+//    (`currentP0sOpsConfig(sim, 지금 모의 모드)` · 호출자가 넘기지 않는다) · 못 읽음 = `SIM_LEDGER_FATE_CONFIG_UNAVAILABLE`(쓰기 0).
 
 import 'package:core_engine/core_engine.dart'
     show
@@ -21,6 +23,8 @@ import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
 import 'mode_store.dart' show SqliteModeStore;
+import 'ops_config_source.dart'
+    show OpsConfigRead, OpsConfigReady, currentP0sOpsConfig;
 
 /// S5 고름 저장(R98 AG2).
 class SqliteSimLedgerFateStore {
@@ -47,14 +51,16 @@ class SqliteSimLedgerFateStore {
     return null;
   }
 
-  /// 고른다 — 성공 = null · 닫힌 모의 파일 = `SIM_LEDGER_FATE_SIM_CLOSED` · 모의 모드 행 없음 = `SIM_TO_AUTO_NOT_SIM_AUTO`.
-  String? choose(
-    SimLedgerFate fate, {
-    required String configHash,
-  }) => inLedgerTransaction(_db, () {
+  /// 고른다 — 성공 = null · 닫힌 모의 파일 = `SIM_LEDGER_FATE_SIM_CLOSED` · 모의 모드 행 없음 = `SIM_TO_AUTO_NOT_SIM_AUTO` ·
+  /// 🆕 R265 지금 설정 못 읽음 = `SIM_LEDGER_FATE_CONFIG_UNAVAILABLE`(쓰기 0).
+  String? choose(SimLedgerFate fate) => inLedgerTransaction(_db, () {
     if (_mode.closed()) return SimToAutoCommitCodes.simClosed;
     final ModeRowFacts? c = _mode.current();
     if (c == null) return SimToAutoCodes.notSimAuto;
+    final OpsConfigRead cfg = currentP0sOpsConfig(_db, c.runMode);
+    if (cfg is! OpsConfigReady) {
+      return SimToAutoCommitCodes.fateConfigUnavailable;
+    }
     final DateTime now = _clock.nowUtc().toUtc();
     final int seq =
         (_db.select(
@@ -80,7 +86,7 @@ class SqliteSimLedgerFateStore {
             ? '모의 기록 처리 — 앱 밖 보관본으로 남김'
             : '모의 기록 처리 — 실전 전환 뒤 지움',
         simLedgerFateReasonCode(fate),
-        configHash,
+        cfg.configHash,
       ],
     );
     return null;

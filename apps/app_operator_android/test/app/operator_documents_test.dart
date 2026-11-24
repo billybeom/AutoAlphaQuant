@@ -191,8 +191,10 @@ void main() {
       await pumpEventQueue();
       expect(got.single.configHash, '');
       await openSim(r);
-      final String hash =
-          (currentP0sOpsConfig(files.sim) as OpsConfigReady).configHash;
+      final String hash = (currentP0sOpsConfig(
+        files.sim,
+        RunMode.simInternal,
+      ) as OpsConfigReady).configHash;
       r.view.value = _viewOf(files.sim);
       await pumpEventQueue();
       expect(got, hasLength(2));
@@ -260,7 +262,10 @@ void main() {
         isEmpty,
       );
       final String gold = p0sExposureMap(
-        (currentP0sOpsConfig(files.sim) as OpsConfigReady).config.monthEnd,
+        (currentP0sOpsConfig(
+          files.sim,
+          RunMode.simInternal,
+        ) as OpsConfigReady).config.monthEnd,
       ).goldSymbols.single;
       files.sim
         ..execute(

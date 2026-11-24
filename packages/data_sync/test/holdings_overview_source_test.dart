@@ -27,6 +27,8 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
+import 'support/ops_config_seed.dart';
+
 class _Clock implements Clock {
   _Clock(this.at);
   DateTime at;
@@ -338,9 +340,20 @@ void main() {
       expect(() => src().overview(), throwsStateError);
     });
 
-    test('🔴 모의 밖 = 원천 없음(실계좌 현금 = 트랙 C)', () {
+    test('🔴 모의 밖 = 원천 없음(실계좌 현금 = 트랙 C) · 🆕 R265 모의 파일을 실전 모드로 읽으면 = 실전 개시 없음(모의 판을 빌리지 않는다)', () {
       expect(
         () => src(mode: RunMode.live).overview(),
+        throwsA(
+          isA<OpsConfigUnavailable>().having(
+            (OpsConfigUnavailable u) => u.code,
+            'code',
+            OpsConfigCodes.noOpening,
+          ),
+        ),
+      );
+      // 실전 원장(실전 개시 판) = 설정은 읽고 현금 원천이 없다 — 배분 시험(보유 0)이 실제 실전 파일로 본다.
+      expect(
+        () => src(mode: RunMode.simBroker).overview(),
         throwsA(isA<HoldingsSourceUnavailable>()),
       );
     });
@@ -417,10 +430,58 @@ void main() {
       final SleeveAllocationVm a = src().allocation();
       expect(a.rows.last.bandNoteText, '원화 현금 대기 100.0% — 유휴가 아닙니다');
       expect(src().overview().cards, isEmpty, reason: 'H6-1 = 빈 보유 그대로');
+      // 🆕 R265 — 실전 원장(실전 개시 판) = 설정은 읽지만 실계좌 현금 원천 없음(트랙 C).
+      final Database live = openLocalLedger(
+        dir.path,
+        RunMode.live,
+        clock: () => _t0,
+      );
+      addTearDown(live.close);
+      seedOpening(live, RunMode.live, clock: clock);
       expect(
-        () => src(mode: RunMode.live).allocation(),
+        () => SqliteHoldingsOverviewSource(
+          live,
+          clock: clock,
+          kr: frozenExchangeCalendar(Market.kr),
+          runMode: RunMode.live,
+          accountLabels: _labels,
+          hasBody: (String _) => false,
+        ).allocation(),
         throwsA(isA<HoldingsSourceUnavailable>()),
       );
+    });
+
+    test('🆕 리뷰 3차 E-1(미결 231 ⓒ · R265 · K206) — 개시 결정 없음만 빈 상태 · 판 바뀜 · 미등재 · 꼴 오류 = 그 사유를 던진다', () {
+      open();
+      Matcher code(String c) => throwsA(
+        isA<OpsConfigUnavailable>().having(
+          (OpsConfigUnavailable u) => u.code,
+          'code',
+          c,
+        ),
+      );
+      final String good =
+          db.select('SELECT content FROM config_versions').single['content']!
+              as String;
+      // 앱 업데이트로 SPEC 판이 바뀜(모의 개시 ~ 첫 체결 사이) = DRIFT — «배분 현황이 없습니다»로 가리지 않는다.
+      db.execute(
+        "UPDATE config_versions SET content = replace(content, '\"spec\":\"', '\"spec\":\"old-')",
+      );
+      expect(() => src().allocation(), code(OpsConfigCodes.drift));
+      // 꼴 오류.
+      db.execute("UPDATE config_versions SET content = 'x'");
+      expect(() => src().allocation(), code(OpsConfigCodes.contentInvalid));
+      // 미등재.
+      db.execute('DELETE FROM config_versions');
+      expect(() => src().allocation(), code(OpsConfigCodes.notRegistered));
+      // H6-1(보유 0) = 설정을 묻지 않는다 — 그대로 빈 보유.
+      expect(src().overview().cards, isEmpty);
+      // 되돌리면 다시 읽는다.
+      db.execute(
+        'INSERT INTO config_versions (config_hash, created_at, content, approved) VALUES (?, ?, ?, 0)',
+        <Object?>[_cfg.configHash, _t0.toIso8601String(), good],
+      );
+      expect(src().allocation().rows, isNotEmpty);
     });
   });
 }

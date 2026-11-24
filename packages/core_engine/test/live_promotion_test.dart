@@ -36,6 +36,7 @@ String? _reject({
   DateTime? now,
   LiveObservationReport report = _ok,
   LeaseVerdict lease = LeaseVerdict.valid,
+  bool config = true,
 }) => livePromotionReject(
   biometricConfirmed: bio,
   sessionValid: session,
@@ -45,6 +46,7 @@ String? _reject({
   currentSinceUtc: noSince ? null : (since ?? _since),
   nowUtc: now ?? _now,
   lease: lease,
+  configReadable: config,
   report: report,
 );
 
@@ -131,6 +133,34 @@ void main() {
       expect(
         livePromotionHeadline('LEASE_INVALID'),
         '이 기기의 발주권(리스)을 확인할 수 없어 올리지 않았습니다.',
+      );
+    });
+
+    test('🆕 리뷰 3차 H2-02(R265) 설정 못 읽음 = CONFIG_UNAVAILABLE(리스 뒤 · 재판정보다 먼저 — «일수 부족»이 가리지 않는다)', () {
+      expect(_reject(config: false), LivePromotionCodes.configUnavailable);
+      expect(
+        _reject(config: false, report: _short),
+        LivePromotionCodes.configUnavailable,
+      );
+      expect(
+        _reject(config: false, lease: LeaseVerdict.unknown),
+        'LEASE_INVALID',
+      );
+      expect(
+        _reject(config: false, now: _since),
+        LivePromotionCodes.clockBehind,
+      );
+      expect(
+        _reject(config: false, bio: false),
+        LivePromotionCodes.biometricUnavailable,
+      );
+      expect(
+        LivePromotionCodes.configUnavailable,
+        'LIVE_PROMOTION_CONFIG_UNAVAILABLE',
+      );
+      expect(
+        livePromotionHeadline(LivePromotionCodes.configUnavailable),
+        '지금 운영 설정을 읽지 못해 올리지 않았습니다 — 바뀐 것은 없습니다. 설정 화면에서 설정을 먼저 확인하십시오.',
       );
     });
 

@@ -2,7 +2,8 @@
 // 01 §10-2 G-43 · SPEC v2.44 04 §3-1 ① · 설계 13 §8 R91 AD1~AD5).
 //
 // 🔴 자동 승격 0 — 사람의 생체 1회(호출자 증명)가 있어야 하고, 같은 트랜잭션 안에서 관찰을 다시 판정한다.
-// 🔴 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → 🆕 리스(E15f5 R108 AM4) → 재판정(AD4).
+// 🔴 판정 차례 = 생체 → 세션 → 관찰 중 → 자동 매매 → 시각 → 🆕 리스(E15f5 R108 AM4) → 🆕 설정(리뷰 3차 H2-02 · R265) →
+//    재판정(AD4).
 // 🔴 리스 «모름 = 거부»(SPEC 04 :383) — E11k 전에 올리면 첫 월말 회차가 `LEASE_INVALID` 로 한 달 밀린다.
 // 🔴 문구에 «DRY_RUN» 글자 0(G-63) · 코드 = 엔진 문자열(계약 등재 = 1.19.0 창 후보).
 
@@ -32,6 +33,11 @@ abstract final class LivePromotionCodes {
 
   /// 저장 실패 — 전부 되돌렸다.
   static const String rolledBack = 'LIVE_PROMOTION_ROLLED_BACK';
+
+  /// 🆕 리뷰 3차 H2-02(미결 231 ⓑ · 설계 13 §8 R265) — 실전 파일의 지금 설정(실전 개시 판)을 못 읽었다
+  /// (빈 지문으로 실주문을 켜지 않는다 · 쓰기 0).
+  /// 🔵 엔진 안 예약 — 계약 `LivePromotionResultCodes` 등재 = 다음 계약 창 · 그 전 화면 = headline 만.
+  static const String configUnavailable = 'LIVE_PROMOTION_CONFIG_UNAVAILABLE';
 }
 
 /// 승격 결정의 `decision_log.reason_code`.
@@ -52,7 +58,9 @@ String livePromotionDecisionId(DateTime nowUtc) {
 /// 사전 판정(AD4) — 통과 = null · 아니면 거부 코드.
 ///
 /// [sessionValid] = 세션을 주지 않았으면 null · 줬으면 그 행이 열림 ∧ 만료 전인가.
-/// [report] = 같은 트랜잭션 안에서 다시 판정한 관찰 결과 · 🆕 [lease] = 실전 파일 리스 판정(트랜잭션 앞에서 읽은 값).
+/// [report] = 같은 트랜잭션 안에서 다시 판정한 관찰 결과 · 🆕 [lease] = 실전 파일 리스 판정(트랜잭션 앞에서 읽은 값) ·
+/// 🆕 R265(H2-02) [configReadable] = 실전 파일의 지금 설정(실전 개시 판)을 읽었나 — 못 읽음 = 거부(관찰 재판정보다 먼저:
+/// 설정을 못 읽으면 잡이 실패해 무결일이 0 이므로 «일수 부족»이 진짜 사유를 가린다).
 String? livePromotionReject({
   required bool biometricConfirmed,
   required bool? sessionValid,
@@ -62,6 +70,7 @@ String? livePromotionReject({
   required DateTime? currentSinceUtc,
   required DateTime nowUtc,
   required LeaseVerdict lease,
+  required bool configReadable,
   required LiveObservationReport report,
 }) {
   if (!biometricConfirmed) return LivePromotionCodes.biometricUnavailable;
@@ -76,6 +85,7 @@ String? livePromotionReject({
   }
   if (!nowUtc.isAfter(currentSinceUtc)) return LivePromotionCodes.clockBehind;
   if (lease != LeaseVerdict.valid) return kLeaseInvalidCode;
+  if (!configReadable) return LivePromotionCodes.configUnavailable;
   if (!report.promotionAvailable) {
     return report.block?.code ?? LivePromotionCodes.notObserving;
   }
@@ -97,6 +107,8 @@ String livePromotionHeadline(String? code, {LiveObservationReport? report}) {
     LivePromotionCodes.notAutoTrade => '자동 매매가 아니라 올리지 않았습니다.',
     LivePromotionCodes.clockBehind => '기기 시각이 관찰 시작보다 앞서 올리지 않았습니다.',
     kLeaseInvalidCode => '이 기기의 발주권(리스)을 확인할 수 없어 올리지 않았습니다.',
+    LivePromotionCodes.configUnavailable =>
+      '지금 운영 설정을 읽지 못해 올리지 않았습니다 — 바뀐 것은 없습니다. 설정 화면에서 설정을 먼저 확인하십시오.',
     _ => '실전 집행으로 올리지 못했습니다 — 바뀐 것은 없습니다. 다시 시도해 주세요.',
   };
 }

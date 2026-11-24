@@ -1,7 +1,8 @@
 // M5-8 서약 operator 판 — 읽기 창구(`PledgeRepository`) · 안전 동작(`SafetyActions` — 지금 = 서약만)(E11p4h · 설계 13 §8
 // R157 · 01 §30 K6 · K31 · K32 · 엔진 R67 Z1 · Z2).
 //
-// 🔴 원장 = sim 파일(온보딩 ② 와 같은 갈래 — 마무리 사실 `pledged` 도 여기서 읽는다).
+// 🔴 원장 = 화면 원장(🆕 리뷰 3차 H1-6 · 설계 13 §8 R265 · 미결 231 ⓓ) — 화면 상태 없음(온보딩 ② · 마무리 사실 `pledged`) = 모의 파일 ·
+//    실전 전환 뒤 = 실전 파일(커밋이 서약 전 판 · 편집 저널을 옮긴다 · 12월 창 편집이 같은 원장의 J-3 저널을 찾는다).
 // 🔴 쓰기 = 엔진 `SqlitePledgeStore.writeFirst` · `edit`(같은 원장 · 한 트랜잭션 · `command_inbox` 멱등) · 결과 = 엔진
 //    `pledgeActionResultOf`(등급 · 문장) — 앱이 문장을 짓지 않는다.
 // 🔴 첫 판 저널 id = 명령 id(R67 Z1) · 편집 저널 id = 제출 그대로(사전 저널 원천 = 01 §8 미결 185 · 없으면 엔진 거부).
@@ -54,6 +55,7 @@ import 'package:data_sync/data_sync.dart'
         readKillSwitchRecord,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
 
 import 'operator_kill_switch.dart' show OperatorKillResumeDraft;
 import 'operator_migration.dart' show OperatorMigrationActions, kX1ActionIds;
@@ -62,26 +64,60 @@ import 'operator_rule_change.dart' show operatorRuleChangeGateSourceOf;
 import 'operator_runtime.dart';
 import 'operator_view.dart';
 
-SqlitePledgeStore _store(OperatorRuntime rt) =>
-    SqlitePledgeStore(rt.files.sim, clock: rt.clock, trusted: rt.trusted);
+/// 🆕 R265(H1-6) — 서약 원장 = 화면 원장(화면 상태 없음 = 모의 파일).
+Database _pledgeDb(OperatorRuntime rt) => rt.view.value?.db ?? rt.files.sim;
 
-/// 서약 읽기(operator) — `pledge` 표가 바뀔 때마다 다시 낸다.
+SqlitePledgeStore _store(OperatorRuntime rt, [Database? db]) =>
+    SqlitePledgeStore(
+      db ?? _pledgeDb(rt),
+      clock: rt.clock,
+      trusted: rt.trusted,
+    );
+
+/// 서약 읽기(operator) — `pledge` 표가 바뀔 때마다 · 🆕 R265 화면 원장이 바뀔 때마다(실전 전환) 다시 낸다.
 class OperatorPledgeRepository implements PledgeRepository {
   /// 만든다.
   OperatorPledgeRepository(this._rt);
 
   final OperatorRuntime _rt;
 
-  @override
-  Stream<PledgeVm> watchPledge() => watchLedgerQuery<PledgeVm>(
-    _rt.files.sim,
+  Stream<PledgeVm> _watch(Database db) => watchLedgerQuery<PledgeVm>(
+    db,
     const <String>{'pledge'},
     () => pledgeVmOf(
-      current: _store(_rt).currentPledge(),
+      current: _store(_rt, db).currentPledge(),
       trustedNowUtc: _rt.trusted.trustedNowUtc(),
       nowUtc: _rt.clock.nowUtc(),
     ),
   );
+
+  @override
+  Stream<PledgeVm> watchPledge() {
+    late final StreamController<PledgeVm> c;
+    StreamSubscription<PledgeVm>? sub;
+    Database? on;
+
+    void follow() {
+      final Database db = _pledgeDb(_rt);
+      if (identical(db, on) || c.isClosed) return;
+      on = db;
+      unawaited(sub?.cancel());
+      sub = _watch(db).listen(c.add, onError: c.addError);
+    }
+
+    c = StreamController<PledgeVm>(
+      onListen: () {
+        follow();
+        _rt.view.addListener(follow);
+      },
+      onCancel: () async {
+        _rt.view.removeListener(follow);
+        await sub?.cancel();
+        await c.close();
+      },
+    );
+    return c.stream;
+  }
 }
 
 /// 안전 동작(operator) — 지금 = 서약 첫 판 · 편집.

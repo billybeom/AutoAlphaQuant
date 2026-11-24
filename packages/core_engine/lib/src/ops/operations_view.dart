@@ -392,5 +392,6 @@ Set<String> get livePromotionResultCodes => <String>{
   LivePromotionCodes.clockBehind,
   LivePromotionCodes.rolledBack,
   kLeaseInvalidCode,
+  LivePromotionCodes.configUnavailable,
   for (final LiveObservationBlock b in LiveObservationBlock.values) b.code,
 };
