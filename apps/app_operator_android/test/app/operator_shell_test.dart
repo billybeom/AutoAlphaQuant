@@ -172,6 +172,7 @@ import 'package:ui_settings/ui_settings.dart'
         Devices,
         Diagnostics,
         MonthlyContribution,
+        Operations,
         SettingsHome,
         SettingsSlotBuilder,
         StrategyAllocation,
@@ -2825,7 +2826,7 @@ void main() {
   );
 
   testWidgets(
-    '🔴 더보기 = S01 설정 홈(R134) · 원천 있는 카드 · 링크 = 등록된 화면만(키 → S02 · 운용 = 탭 부재)',
+    '🔴 더보기 = S01 설정 홈(R134) · 원천 있는 카드 · 링크 = 등록된 화면만(키 → S02 · 🆕 R252 운용 → S05)',
     (WidgetTester tester) async {
       await pumpApp(tester);
       await ready(tester);
@@ -2852,10 +2853,31 @@ void main() {
       expect(inHome('월 10만원'), findsOneWidget);
       // 시험 원장 = 운영 설정 없음(지문 '') → 전략 카드는 P0S 를 지어내지 않는다.
       expect(inHome('운영 설정을 읽지 못했습니다'), findsOneWidget);
-      // 운용 관리 = S05 본문 미등록 → 탭 부재(눌러도 그대로).
+      // 🆕 E11q-s05(R252) — 운용 관리 = S05 본문 등록 → 연다(뒤집은 단언 — R134 = 탭 부재) · 닫고 돌아온다.
       await tester.tap(inHome('운용 관리'));
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 30)),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(Operations), findsOneWidget);
       expect(find.byKey(const Key('s01-placeholder')), findsNothing);
+      tester
+          .state<NavigatorState>(
+            find
+                .ancestor(
+                  of: find.byType(Operations),
+                  matching: find.byType(Navigator),
+                )
+                .first,
+          )
+          .pop();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(Operations), findsNothing);
       expect(find.byType(Credentials), findsNothing);
       // 증권사 키 = S02 등록 → 연다.
       await tester.tap(inHome('증권사 키'));

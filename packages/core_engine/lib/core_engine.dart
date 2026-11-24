@@ -907,6 +907,19 @@ export 'src/ops/monthly_report.dart'
 export 'src/ops/next_rebalance_view.dart'
     show NextRebalanceTexts, nextRebalanceVmOf;
 export 'src/ops/operations_config.dart' show OperationsConfig;
+// 🆕 E11q-s05 — M9 S05 운용 관리 VM 짓기 · 실전 전환 요청 · 승격 결과(설계 13 §8 R252 · 01 §28).
+export 'src/ops/operations_view.dart'
+    show
+        OperationsFacts,
+        OperationsTexts,
+        kOperationsStaleAfter,
+        kOpsRampPercent,
+        livePromotionActionResultOf,
+        livePromotionResultCodes,
+        livePromotionResultLevel,
+        operationsRampOf,
+        operationsVmOf,
+        runModeSwitchRequestedResultOf;
 // 🆕 E11p3d-2b — H-01 오늘 요약 · H-02 운영 리듬(설계 13 §8 R133).
 export 'src/ops/ops_home.dart'
     show

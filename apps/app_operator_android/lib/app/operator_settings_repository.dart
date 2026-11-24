@@ -6,10 +6,13 @@
 // 🆕 E11p3d-5e(R134) — M9 S01 설정 홈 = 엔진 `settingsHomeVmOf` · 사실 = 화면 상태(실행 모드 · 운영 방식 · 운영 설정 지문) +
 //    키 목록(위와 같은 VM) + 월 납입 운영값(`operating_param_log`) + 레지스트리 본문 유무([hasBody] — 없는 화면으로 링크하지 않는다).
 //    다시 낸다 = 키 목록과 같은 때 + 월 납입 기록 · 화면 상태 없음(온보딩 전) = 오류.
-// 🔴 나머지 창구(운영 · 계좌 매핑) = 원천 없음(오류 — 지어내지 않는다 · 그 화면은 미등록).
 // 🆕 E11q-s04a(R211) — M9 S04 배분 첫 판 = 엔진 `allocationEditorVmOfConfig`(운영 설정 판 · 못 읽으면 스트림 오류 —
 //    엔진 기본값 대입 0 · K206) · 다시 낸다 = 모의 개시 판이 바뀔 때(`decision_log` · `config_versions`) · 주기 · 화면 상태 변경.
 // 🆕 E11q-d1 — S02 유출 런북 링크 = 엔진 `runbookLinkOf`(그 런북 원고 ∧ 상세 본문 · 지금 원고 준비 중 → 링크 없음).
+// 🆕 E11q-s05(R252) — M9 S05 운용 관리 = 엔진 `operationsVmOf` · 사실 = 화면 상태(모드 · 운영 방식 · hold · 기동 거부) +
+//    실전 관찰 판정(실전 파일 · 관찰 설정) + 모의 체험 판정(모의 파일) + 램프(`ramp_state`) + 잡 행(잡 표 × `job_run` — trading_runtime) +
+//    원장 신뢰 배지(홈 9b 와 같은 판정 [trustOf]) + 버튼 창구 유무([canAct] · 위저드 본문 · 생체 · 관찰 설정).
+//    S01 상태 칩 승격 줄 = 같은 관찰 판정(v1.18 K-o). 다시 낸다 = 화면 상태 원장의 잡 · 모드 · 램프 · 대사 표 · 주기 · 화면 상태 변경.
 
 import 'dart:async';
 
@@ -22,6 +25,9 @@ import 'package:core_engine/core_engine.dart'
         DiagnosticsScreenFacts,
         GoldenCardFacts,
         LiveCredentialFacts,
+        LiveObservationConfig,
+        LiveObservationReport,
+        OperationsFacts,
         PaperAccountFacts,
         PaperCredentialFacts,
         SecretVault,
@@ -33,8 +39,11 @@ import 'package:core_engine/core_engine.dart'
         contributionSettingOf,
         credentialListVmOf,
         diagnosticsScreenVmOf,
+        judgeLiveObservation,
+        judgeSimTrial,
         kDeviceGoldenSuite,
         monthlyContributionVmOf,
+        operationsVmOf,
         runbookLinkOf,
         settingsHomeVmOf;
 import 'package:data_sync/data_sync.dart'
@@ -45,22 +54,29 @@ import 'package:data_sync/data_sync.dart'
         OpsConfigReady,
         OpsConfigUnavailable,
         SqliteCredentialRegistry,
+        SqliteJobRunLog,
+        SqliteLedgerTrustSource,
+        SqliteLiveObservationFacts,
+        SqliteSimTrialFacts,
         SqliteOnboardingProgressStore,
         contributionRowsOf,
         credentialRecordsOf,
         currentP0sOpsConfig,
         kIntegrityOk,
+        modeStartedAtUtc,
         storedLedgerDiffs,
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AccountMappingVm,
+        AppRoutes,
         AllocationEditorVm,
         ContributionSetting,
         CredentialListVm,
         DiagnosticsScreenVm,
         DiffStatus,
         FlagIds,
+        LedgerTrustBadge,
         MonthlyContributionVm,
         OperationsVm,
         RunMode,
@@ -69,9 +85,13 @@ import 'package:domain_contracts/domain_contracts.dart'
         StepState;
 import 'package:flutter/foundation.dart' show Listenable;
 import 'package:sqlite3/sqlite3.dart' show Database, Row;
+import 'package:trading_runtime/trading_runtime.dart'
+    show operationsJobRowsOf, operationsNextJobTextOf;
 
 import 'operator_golden.dart' show GoldenPrepared, OperatorGolden;
+import 'operator_live_promotion.dart' show OperatorLivePromotion;
 import 'operator_runtime.dart';
+import 'operator_self_report.dart' show OperatorSelfReport;
 import 'operator_view.dart';
 
 bool _noBody(String _) => false;
@@ -86,6 +106,8 @@ class OperatorSettingsRepository implements SettingsRepository {
     this._rt, {
     this.tick = const Duration(minutes: 1),
     this.hasBody = _noBody,
+    this.canAct = false,
+    this._trustOf,
   });
 
   final OperatorRuntime _rt;
@@ -95,6 +117,19 @@ class OperatorSettingsRepository implements SettingsRepository {
 
   /// 🆕 R134 — 라우트 본문 유무(없으면 설정 홈 카드에 링크를 싣지 않는다).
   final bool Function(String route) hasBody;
+
+  /// 🆕 R252 — 설정 동작 창구가 있나(`operatorSettingsActionsProvider` 가 null 이 아닌가 — S05 버튼을 싣는 조건).
+  final bool canAct;
+
+  /// 🆕 R252 — 지금 원장 신뢰 배지(홈 9b `watchGrade` 와 같은 판정 · 셸 = 한 인스턴스 · 없음 = 이 저장소가 만든 판정기).
+  final LedgerTrustBadge Function(OperatorView v)? _trustOf;
+
+  late final OperatorSelfReport _ownTrust = OperatorSelfReport(
+    _rt,
+    hasBody: hasBody,
+  );
+
+  LedgerTrustBadge _trust(OperatorView v) => (_trustOf ?? _ownTrust.gradeOf)(v);
 
   /// 🆕 R140 — 모의 키 세트 사실(금고 저장 여부 + 마지막 검증 기록) · 키 목록 · 연결 행(S07)이 같이 쓴다.
   Future<PaperCredentialFacts> paperFacts() async {
@@ -272,6 +307,8 @@ class OperatorSettingsRepository implements SettingsRepository {
         hasBody: hasBody,
         // 🆕 R168 — 12월 연간 리뷰 카드(신뢰 시각 · 모름 = 카드 부재).
         trustedNowUtc: _rt.trusted.trustedNowUtc(),
+        // 🆕 R252 — 상태 칩 승격 줄(S05 와 같은 관찰 판정 · 관찰 중일 때만).
+        promotionLabel: _observation(v)?.promotionLabel,
       ),
       nowUtc: now,
     );
@@ -350,11 +387,77 @@ class OperatorSettingsRepository implements SettingsRepository {
     return c.stream;
   }
 
-  static Stream<T> _none<T>(String what) =>
-      Stream<T>.error(UnsupportedError('$what: 원천 없음(R129)'));
+  /// 🆕 R252 — 실전 관찰 판정(화면 상태 = 실전 ∧ 관찰 설정이 있을 때만 · 그 밖 = null). 관찰 중 아님 = `notObserving`.
+  LiveObservationReport? _observation(OperatorView v) {
+    final LiveObservationConfig? cfg = _rt.liveObservation;
+    if (v.flags.runMode != RunMode.live || cfg == null) return null;
+    return judgeLiveObservation(
+      SqliteLiveObservationFacts(v.db, clock: _rt.clock).read(),
+      kr: _rt.calendars.kr,
+      config: cfg,
+    );
+  }
 
+  /// 🆕 R252 — 운용 관리 다시 읽는 표(잡 · 모드 · 램프 · 대사 · 차단 · 결정 + 신뢰 배지 원천).
+  static final Set<String> operationsTables = <String>{
+    'job_run',
+    'mode_transition',
+    'ramp_state',
+    'decision_log',
+    'trading_block',
+    'kill_switch_state',
+    'reconciliation_log',
+    ...SqliteLedgerTrustSource.watchedTables,
+  };
+
+  /// 🆕 R252 — 지금 운용 관리(화면 상태 없음 = 오류).
+  Future<OperationsVm> operations() async {
+    final OperatorView? v = _rt.view.value;
+    if (v == null) {
+      throw StateError('운용 관리: 화면 상태 없음(온보딩 전)');
+    }
+    final DateTime now = _rt.clock.nowUtc();
+    final bool live = v.flags.runMode == RunMode.live;
+    final Row? ramp = v.db
+        .select('SELECT level, pre_dst_level FROM ramp_state WHERE id = 1')
+        .firstOrNull;
+    final SqliteJobRunLog log = SqliteJobRunLog(v.db);
+    return operationsVmOf(
+      OperationsFacts(
+        runMode: v.flags.runMode,
+        operatingMode: v.flags.operatingMode,
+        holds: v.holds,
+        rejected: v.rejected,
+        observation: _observation(v),
+        trial: live
+            ? null
+            : judgeSimTrial(
+                SqliteSimTrialFacts(_rt.files.sim, clock: _rt.clock).read(),
+                kr: _rt.calendars.kr,
+              ),
+        rampLevel: ramp?['level'] as int?,
+        preDstRampLevel: ramp?['pre_dst_level'] as int?,
+        jobs: operationsJobRowsOf(
+          entriesOf: log.entriesOf,
+          nowUtc: now,
+          notBeforeUtc: modeStartedAtUtc(v.db),
+        ),
+        nextJobText: operationsNextJobTextOf(
+          calendars: _rt.calendars,
+          nowUtc: now,
+        ),
+        trust: _trust(v),
+        canRequestSwitch: canAct && hasBody(AppRoutes.m5HandoverWizard),
+        canPromote: canAct && OperatorLivePromotion.availableIn(_rt),
+        nowUtc: now,
+      ),
+    );
+  }
+
+  /// 🆕 E11q-s05(R252) — M9 S05 운용 관리 = [operations](엔진 VM · 폰 전용).
   @override
-  Stream<OperationsVm> watchOperations() => _none('watchOperations');
+  Stream<OperationsVm> watchOperations() =>
+      _follow(operations, viewTables: operationsTables);
 
   /// 🆕 계약 v1.28(01 §37 · K199) — S04 첫 판 · ✅ E11q-s04a = [allocationEditor](운영 설정 판 · 못 읽으면 오류 — K206) ·
   /// 다시 읽음 = S03 매핑과 같은 원천 표(모의 개시 판이 바뀌면).

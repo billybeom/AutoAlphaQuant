@@ -23,6 +23,7 @@ class OperatorView {
     required this.db,
     required this.flags,
     this.holds = const <String>{},
+    this.rejected = const <String>[],
   });
 
   /// 화면이 읽는 원장(엔진과 같은 연결).
@@ -34,6 +35,10 @@ class OperatorView {
   /// 🆕 미결 220 ⓓ(계약 v1.35 §44 K295) — 기동은 하되 배치를 멈추는 hold(마지막 깨어남의 기동 판정 `EngineReady.holds` ·
   /// 거부 · 온보딩 = 0 · 안전 상태 `holds` · `holdLabels` 원천 — 다음 깨어남에 다시 판정한다).
   final Set<String> holds;
+
+  /// 🆕 E11q-s05(R252) — 마지막 깨어남의 기동 판정이 거부했으면 그 사유(엔진 차례 그대로 · 빈 = 기동함) — `S05` 엔진 제어 줄의 원천
+  /// (FGS 알림 `fgsStatusForRejected` 와 같은 코드 · 다음 깨어남에 다시 판정한다).
+  final List<String> rejected;
 }
 
 /// 🔴 기동 판정 → 화면 상태(온보딩 미완 = null).
@@ -52,7 +57,12 @@ OperatorView? operatorViewOf(EngineBoot boot, LedgerFiles files) {
       final Database? db = boot.runMode == RunMode.live
           ? files.liveIfExists()
           : files.sim;
-      return _view(db ?? files.sim, boot.runMode, boot.operatingMode);
+      return _view(
+        db ?? files.sim,
+        boot.runMode,
+        boot.operatingMode,
+        rejected: boot.triggered,
+      );
   }
 }
 
@@ -61,11 +71,13 @@ OperatorView _view(
   RunMode runMode,
   OperatingMode operating, {
   Set<String> holds = const <String>{},
+  List<String> rejected = const <String>[],
 }) {
   final OpsConfigRead cfg = currentP0sOpsConfig(db);
   return OperatorView(
     db: db,
     holds: Set<String>.unmodifiable(holds),
+    rejected: List<String>.unmodifiable(rejected),
     flags: FeatureFlags(
       satelliteEnabled: false,
       webViewerEnabled: false,

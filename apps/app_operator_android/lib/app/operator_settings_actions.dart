@@ -17,6 +17,11 @@
 // 🆕 E11k-d2(R216 · 계약 v1.31 01 §40) — `supabaseSignIn{}` = o_07 ③ 로그인 1단: 슬롯 칸(`SupabaseLoginPanel`)의 이메일 ·
 //    비밀번호를 넘김으로 받아 `SupabaseAuth.signIn` → 🔴 통과 · 실패 모두 칸을 비운다(비밀번호를 오래 쥐지 않는다) ·
 //    통과 = o_07 진행 중 그대로(VERIFIED 는 내리지 않음 · 확인 글자 «로그인됨» = 엔진 · 사실 = 세션) · 결과 = 엔진 표본 글자.
+// 🆕 E11q-s05(R252 · 01 §28 K4 · K6 · K7) — M9 S05 동작 2:
+//    · `runtimeModeSwitchRequest{run_mode: LIVE}` = M5-11 위저드로 넘김만(상태 변경 0 · 판정 · 생체 = 위저드 · 결과 = 엔진 표본 글자) ·
+//      위저드 본문이 등록됐을 때만([modeSwitch]).
+//    · `runtimeLivePromotion{}` = 엔진 승격 저장(생체 1회 · 리스 · 관찰 재판정 — [OperatorLivePromotion]).
+//    🔴 운영 방식 전환 요청 · 엔진 시작 · 중지 = 그대로 구현 없음(미결 173 · VM 이 버튼을 싣지 않는다).
 
 import 'dart:async';
 
@@ -44,6 +49,7 @@ import 'package:core_engine/core_engine.dart'
         kOnboardingModeCommittedText,
         kOnboardingModeSelectedText,
         p0sTierBCard,
+        runModeSwitchRequestedResultOf,
         selftestGoldenResultOf,
         selftestIntegrityResultOf;
 import 'package:data_sync/data_sync.dart'
@@ -73,6 +79,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         ContributionUpdateSubmission,
         OnboardingResultCodes,
         OperatingMode,
+        RunMode,
         SettingsActionId,
         SettingsActions,
         StepState,
@@ -83,6 +90,7 @@ import '../secret/secret_handoff.dart';
 import 'operator_backup.dart' show OperatorBackup;
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_handover.dart' show OperatorHandover, kOperatorHandoverActions;
+import 'operator_live_promotion.dart' show OperatorLivePromotion;
 
 /// 검증 결과 문구(엔진 몫 — 화면은 그대로 그린다).
 abstract final class CredentialVerifyText {
@@ -155,7 +163,15 @@ class OperatorSettingsActions implements SettingsActions {
     this.supabaseTime,
     this.refreshTrusted,
     this.supabaseAuth,
+    this.modeSwitch = false,
+    this.livePromotion,
   });
+
+  /// 🆕 E11q-s05(R252) — 실전 전환 요청을 위저드로 넘기나(위저드 본문이 레지스트리에 있을 때만 · 아니면 구현 없음).
+  final bool modeSwitch;
+
+  /// 🆕 R252 — S05 승격(없음 = 생체 · 관찰 설정 없음 → 구현 없음).
+  final OperatorLivePromotion? livePromotion;
 
   /// 🆕 E11k-d2(R216) — o_07 ③ 로그인(없음 = 로그인 구현 없음).
   final SupabaseAuth? supabaseAuth;
@@ -410,9 +426,40 @@ class OperatorSettingsActions implements SettingsActions {
     if (id == SettingsActionId.backupRunNow && bk != null) {
       return _backupRun(bk, args);
     }
+    if (id == SettingsActionId.runtimeModeSwitchRequest && modeSwitch) {
+      return _modeSwitchRequest(args);
+    }
+    final OperatorLivePromotion? lp = livePromotion;
+    if (id == SettingsActionId.runtimeLivePromotion && lp != null) {
+      return _promote(lp, args);
+    }
     return Future<ActionResult>.error(
       UnsupportedError('${id.name}: operator 구현 없음(R118)'),
     );
+  }
+
+  /// 🆕 R252 — 실전 전환 요청(args = `{run_mode: LIVE}` 하나 · 그 밖 = [ArgumentError]) → 위저드로 넘김(상태 변경 0).
+  Future<ActionResult> _modeSwitchRequest(Map<String, String> args) {
+    if (args.length != 1 || args['run_mode'] != RunMode.live.wire) {
+      return Future<ActionResult>.error(
+        ArgumentError('runtimeModeSwitchRequest args = {run_mode: LIVE} 하나'),
+      );
+    }
+    final ActionResult r = runModeSwitchRequestedResultOf(
+      actionRunId: _runId(),
+    );
+    _results[r.actionRunId] = r;
+    return Future<ActionResult>.value(r);
+  }
+
+  /// 🆕 R252 — 승격(엔진 저장 · 결과 = 엔진 글자 · 기록해 두고 `watch` 로 다시 준다).
+  Future<ActionResult> _promote(
+    OperatorLivePromotion lp,
+    Map<String, String> args,
+  ) async {
+    final ActionResult r = await lp.run(_runId(), args);
+    _results[r.actionRunId] = r;
+    return r;
   }
 
   /// 🆕 R191 — 위저드 동작(결과 = 엔진 글자 · 기록해 두고 `watch` 로 다시 준다).

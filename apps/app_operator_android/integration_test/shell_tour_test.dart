@@ -7,6 +7,7 @@
 // 🆕 E11q-q4b — + J-5 미해소 보드(연습 UNKNOWN 의도 1 → 카드 → «찾지 못함» 거부로 풀면 같은 화면이 빈 문장).
 // 🆕 E11q-q5e(R231) — + M7 S7-1 월간 리포트(지난달 · 배지 «대사 완료» · 「자세히」 → S7-3).
 // 🆕 E11q-d1 — + M8 문서(D-02 런북 목록 → 상세 · D-03 긴급 카드 · B-01 핸드북 목차 → B-02 슬리브 B 쪽).
+// 🆕 E11q-s05(R252) — + M9 S05 운용 관리(«실전 전환 요청» → M5-11 위저드 넘김).
 // 🆕 E11q-d2 — + M8 D-01 장애 배너(셸 탭으로 돌아와 연습 SEV2 를 원장에 열면 탭 위에 배너 → 닫으면 사라짐 · 맨 끝).
 //
 // 🔴 로컬 실측용(CI 밖 — 기기가 있어야 돈다) · 키 · 계좌 0(금고를 읽기만 · 쓰지 않는다) · 바깥 망 0(healthchecks 읽기 키 없음 = 망에 가지 않는다).
@@ -106,6 +107,7 @@ import 'package:ui_settings/ui_settings.dart'
         Devices,
         Diagnostics,
         MonthlyContribution,
+        Operations,
         SettingsHome;
 import 'package:ui_shell/ui_shell.dart'
     show
@@ -654,6 +656,25 @@ void main() {
         await _until(tester, find.byKey(const Key('m9s13-result')));
       }
       await _at(tester, find.byType(MonthlyContribution), 'IT_S13');
+      await tester.pageBack();
+
+      // 🆕 E11q-s05(R252) — M9 S05 운용 관리(모의 · 체험 카드 · 잡 행 · 엔진 줄) → «실전 전환 요청»이 서 있으면 한 번 = M5-11 위저드로
+      //    넘김(상태 변경 0) → 돌아온다.
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.settingsOperations);
+      await _until(tester, find.byKey(const Key('m9s05-mode')));
+      await _at(tester, find.byType(Operations), 'IT_S05');
+      final Finder switchToLive = find.byKey(
+        const ValueKey<String>('m9s05-switch-0'),
+      );
+      if (switchToLive.evaluate().isNotEmpty) {
+        await tester.ensureVisible(switchToLive);
+        await tester.tap(switchToLive);
+        await _until(tester, find.byType(HandoverWizardScreen));
+        await _at(tester, find.byType(HandoverWizardScreen), 'IT_S05_M511');
+        await tester.pageBack();
+      }
       await tester.pageBack();
 
       // 🆕 R178 — M5-1 킬스위치: 꺼짐(버튼 · 경로 3) → 버튼 한 번 = 발동(확인 대화 0 · 모의 원장) → 취소 보고 · 기록 폼 →

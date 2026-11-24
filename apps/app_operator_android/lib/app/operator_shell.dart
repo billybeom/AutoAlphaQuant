@@ -161,6 +161,7 @@ import 'package:ui_settings/ui_settings.dart'
         Devices,
         Diagnostics,
         MonthlyContribution,
+        Operations,
         SettingsHome,
         StrategyAllocation,
         settingsActionsProvider,
@@ -192,6 +193,7 @@ import 'operator_handover.dart';
 import 'operator_incident.dart';
 import 'operator_journal.dart';
 import 'operator_kill_switch.dart';
+import 'operator_live_promotion.dart';
 import 'operator_migration.dart';
 import 'operator_onboarding.dart';
 import 'operator_ops_status.dart';
@@ -516,6 +518,14 @@ final Provider<SettingsActions?> operatorSettingsActionsProvider =
         refreshTrusted: rt.refreshTrusted,
         // 🆕 E11k-d2(R216) — o_07 ③ 로그인.
         supabaseAuth: rt.supabaseAuth,
+        // 🆕 E11q-s05(R252) — S05 실전 전환 요청 = 위저드 본문이 있을 때만 넘김 · 승격 = 생체 · 관찰 설정이 있을 때만.
+        modeSwitch: ref
+            .watch(shellRouteBodiesProvider)
+            .byPattern
+            .containsKey(AppRoutes.m5HandoverWizard),
+        livePromotion: OperatorLivePromotion.availableIn(rt)
+            ? OperatorLivePromotion(rt)
+            : null,
       );
     });
 
@@ -676,6 +686,9 @@ Widget _settingsAccounts(Map<String, String> _) => const Accounts();
 
 Widget _settingsAllocation(Map<String, String> _) => const StrategyAllocation();
 
+/// 🆕 E11q-s05(R252) — M9 S05 운용 관리(폰 전용 · 라우트 인자 0 · VM = 엔진 `operationsVmOf`).
+Widget _settingsOperations(Map<String, String> _) => const Operations();
+
 Widget _simOpeningCash(Map<String, String> _) => const SimOpeningCash();
 
 Widget _settingsDiagnostics(Map<String, String> _) => const Diagnostics();
@@ -813,6 +826,9 @@ final Provider<OperatorSettingsRepository> operatorSettingsRepositoryProvider =
       return OperatorSettingsRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
+        // 🆕 R252 — S05 버튼 = 동작 창구가 있을 때만 · 신뢰 배지 = 홈 9b 와 한 인스턴스.
+        canAct: ref.watch(operatorSettingsActionsProvider) != null,
+        trustOf: ref.watch(operatorSelfReportProvider).gradeOf,
       );
     });
 
@@ -893,6 +909,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   // 🆕 E11q-s04b — M9 S04 배분 첫 판(보기 전용 · Bob R8b #307 `StrategyAllocation` · VM = R211 운영 설정 판 ·
   //    설정 판을 못 읽으면 공용 오류 화면 — 정본 기본값을 «읽은 것처럼» 보이지 않는다 K206).
   AppRoutes.settingsAllocation: _settingsAllocation,
+  // 🆕 E11q-s05(R252) — M9 S05 운용 관리(모드 · 운영 방식 · 체험 · 램프 · 잡 · 엔진 상태 — 버튼 = 실전 전환 요청(→ M5-11 위저드) ·
+  //    승격(생체 1회) · 운영 방식 전환 · 엔진 시작 · 중지 = 구현 원천 없음 → 엔진이 비운다 · M5-11 확정 성공 목적지 K175).
+  AppRoutes.settingsOperations: _settingsOperations,
   // 🆕 E11p4k(R160) — M9 S10 진단(골든 = 실행기 전 판정 보류 · 무결성 = 정본 자가 대조).
   AppRoutes.settingsDiagnostics: _settingsDiagnostics,
   // 🆕 E11q-c2(R201) — M9 S09 백업·복원(«지금 백업» = X1 스냅숏 `take` · 기기 안만 · 바깥 올리기 = D9 미정 ·
