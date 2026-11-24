@@ -422,6 +422,77 @@ void main() {
     },
   );
 
+  test('🆕 E11q-j4 — J-4 큐 · 카드 = 같은 사실(LIVE 원장 · 이탈 저널 · 닫힌 달) · 배지 n = 행 수 · 모의 원장 = 해당 없음', () {
+    final Database live = openLocalLedger(
+      dir.path,
+      RunMode.live,
+      clock: () => _t0,
+    );
+    addTearDown(live.close);
+    live.execute(
+      'INSERT INTO decision_journal (journal_id, trade_date, strategy_id, signal_value, action_taken, '
+      "is_deviation, rationale_before, expected_outcome, rule_cited, note, created_at) VALUES ('J28', "
+      "'2026-08-11', 'P0S', '{}', '{}', 1, '근거', '기대', '재량 예산', NULL, '2026-08-11T04:55:00.000Z')",
+    );
+    live.execute(
+      'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, '
+      "reason_code, config_hash, journal_id) VALUES ('D28', '2026-08-11T00:05:00.000Z', '2026-08-11', "
+      "'LIVE', 'MANUAL', 'P0S', '월간 정기 리밸런싱', 'MONTHLY_REGULAR', 'cfg', 'J28')",
+    );
+    live.execute(
+      'INSERT INTO order_intents (intent_id, idempotency_key, created_at, trade_date, market, account, '
+      'strategy_id, decision_id, symbol, side, order_type, quantity, limit_price, status, config_hash, '
+      "updated_at, mode) VALUES ('i28', 'k28', '2026-08-11T05:30:00.000Z', '2026-08-11', 'KR', 'pension', "
+      "?, 'D28', '0085P0', 'BUY', 'LIMIT', 10, 38250, 'SUBMITTED', 'cfg', '2026-08-11T05:30:00.000Z', 'LIVE')",
+      <Object?>[P0sStrategyIds.sleeveC],
+    );
+    live.execute(
+      'INSERT INTO broker_orders (broker_order_no, intent_id, submitted_at, status) '
+      "VALUES ('2026-08-11:B0028', 'i28', '2026-08-11T05:39:00.000Z', 'SUBMITTED')",
+    );
+    SqliteJournalSource on(Database d, RunMode m) => SqliteJournalSource(
+      d,
+      clock: clock,
+      kr: frozenExchangeCalendar(Market.kr),
+      runMode: m,
+      accountLabels: const <String, String>{},
+      hasBody: (String _) => true,
+    );
+    // 8월 마지막 세션(08-31) 그날 = 아직(리포트 발행 전).
+    expect(on(live, RunMode.live).blindReviewQueue().rows, isEmpty);
+    clock.at = DateTime.utc(2026, 9, 1); // 09:00 KST
+    final ListResult<BlindReviewCard> q = on(
+      live,
+      RunMode.live,
+    ).blindReviewQueue();
+    final BlindReviewCard c = q.rows.single;
+    expect(c.decisionId, 'D28');
+    expect(c.result, isNull);
+    expect(c.journal!.writtenAtText, '2026-08-11 13:55 작성');
+    expect(
+      c.questions.last.evidenceText,
+      '저널 작성 2026-08-11 13:55 · 주문 2026-08-11 14:39',
+    );
+    expect(on(live, RunMode.live).blindReviewCard('D28'), c);
+    expect(
+      () => on(live, RunMode.live).blindReviewCard('none'),
+      throwsA(isA<StateError>()),
+    );
+    expect(on(live, RunMode.live).badges().single.label, '리뷰 대기 1건');
+    // K24 — 모의 원장(같은 꼴 사실이 있어도) · SIM 인자 = 해당 없음.
+    seedMonthly();
+    final ListResult<BlindReviewCard> sim = src().blindReviewQueue();
+    expect(sim.rows, isEmpty);
+    expect(
+      (sim.emptyKind, sim.emptyLabel),
+      (EmptyKind.notApplicable, '리뷰할 결정이 없습니다'),
+    );
+    expect(
+      on(live, RunMode.live).blindReviewQueue(mode: RunMode.simInternal).rows,
+      isEmpty,
+    );
+  });
+
   test('빈 원장 = 엔진 빈 문장 · 프리셋 전체 = 끝 날', () {
     final ListResult<TradeJournalEntry> r = src().timeline(range: _all);
     expect(r.rows, isEmpty);

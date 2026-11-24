@@ -7,6 +7,8 @@
 //    (월말 = 그 달 계획 스냅샷(재개 child 포함)의 대상 · 계절 = 판정 결정 · POT 청산).
 // 🔴 가림 = 서 있는 차단(`LEDGER_INTEGRITY` · `RECON_MISMATCH` — q1 과 같은 읽기) · 🆕 E11q-q6 `L-3` 실사 세션(그 폰) = «숨김».
 // 🔴 원장 한 파일 = 그 파일의 행 전부(파일이 모드 경계 · 01 §9-1) — 모드 인자로 거르지 않는다(01 §8 미결 89).
+// 🆕 E11q-j4 — J-4 blind 리뷰 큐 · 카드(같은 사실 · 같은 감시 표 — 대상 = 결정 로그 · 저널 · 의도 · 브로커 주문 ·
+//    K24 = 이 원장의 모드가 LIVE 일 때만 · 엔진 `blindReviewQueueOf`). 점수 기록 = 로컬 원장에 표 없음(계약 창 대기).
 
 import 'dart:convert';
 
@@ -21,6 +23,8 @@ import 'package:core_engine/core_engine.dart'
         JournalNoteFact,
         JournalOrderFact,
         WhatIfConfig,
+        blindReviewCardOf,
+        blindReviewQueueOf,
         decisionDetailVmOf,
         decisionJournalVmOf,
         journalEventIdOf,
@@ -33,6 +37,7 @@ import 'package:core_engine/core_engine.dart'
         unknownBoardVmOf;
 import 'package:domain_contracts/domain_contracts.dart'
     show
+        BlindReviewCard,
         Clock,
         DateRange,
         DecisionDetailVm,
@@ -136,6 +141,14 @@ class SqliteJournalSource {
   /// J-1 회차 범위(모르는 회차 = null).
   JournalRebalanceScope? rebalanceScope(String rebalanceEventId) =>
       journalRebalanceScopeOf(facts(), rebalanceEventId);
+
+  /// 🆕 E11q-j4 — J-4 대기 목록(K24 — [mode] · 이 원장 모두 LIVE 일 때만 대상 · 그 밖 = 해당 없음 빈 봉투).
+  ListResult<BlindReviewCard> blindReviewQueue({RunMode mode = RunMode.live}) =>
+      blindReviewQueueOf(facts(), mode: mode);
+
+  /// 🆕 E11q-j4 — J-4 카드 1건(모르는 · 대상이 아닌 결정 = 엔진 실패).
+  BlindReviewCard blindReviewCard(String decisionId) =>
+      blindReviewCardOf(facts(), decisionId);
 
   /// 조회 기간 프리셋(거래일 달력 · 전체 = 원장 첫 의도 날부터).
   List<DateRange> rangePresets() =>

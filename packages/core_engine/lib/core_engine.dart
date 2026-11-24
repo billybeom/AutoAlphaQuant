@@ -513,6 +513,17 @@ export 'src/ops/backup_screen.dart'
         backupSnapshotTimeOf,
         backupVmOf,
         kBackupScreenStaleAfter;
+// 🆕 E11q-j4 — M6 J-4 사후 blind 리뷰 VM(큐 · 카드) · 점수 제출 판정 · 과정 점수 · 접수증 글자(01 §16 · 06 M1-25).
+export 'src/ops/blind_review_view.dart'
+    show
+        BlindReviewQuestionIds,
+        BlindReviewTexts,
+        blindReviewCardOf,
+        blindReviewProcessScoreOf,
+        blindReviewQueueOf,
+        blindReviewRejectOf,
+        blindReviewStateLabelOf,
+        kBlindReviewGoodScore;
 export 'src/ops/config_fingerprint.dart'
     show canonicalConfigJson, configFingerprint, kConfigFingerprintLength;
 // 🆕 E11p3d-5f — M9 S07 연결 관리(설계 13 §8 R140).
@@ -717,9 +728,11 @@ export 'src/ops/journal_draft.dart'
         kJournalPledgePurposes,
         kJournalRationaleMinChars,
         kJournalRuleCitedOptions;
-// 🆕 E11q-q4a — M6 매매일지 읽기 VM(J-1 · 필터 · 배지 · J-2 · J-3R · 회차 범위) · 기간 프리셋 · 슬리브 목록.
+// 🆕 E11q-q4a — M6 매매일지 읽기 VM(J-1 · 필터 · 배지 · J-2 · J-3R · 회차 범위) · 기간 프리셋 · 슬리브 목록 ·
+// 🆕 E11q-j4 J-4 대상 · 저널 본문.
 export 'src/ops/journal_view.dart'
     show
+        BlindReviewTarget,
         JournalDecisionFact,
         JournalEventFact,
         JournalFacts,
@@ -730,8 +743,10 @@ export 'src/ops/journal_view.dart'
         JournalStepTexts,
         JournalTexts,
         UnknownBoardTexts,
+        blindReviewTargetsOf,
         decisionDetailVmOf,
         decisionJournalVmOf,
+        journalBodyOf,
         journalEntriesOf,
         journalEventIdOf,
         journalFilterCatalogOf,

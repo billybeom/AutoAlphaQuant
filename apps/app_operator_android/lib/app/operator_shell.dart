@@ -22,6 +22,8 @@
 // 🆕 E11q-q4a — M6 매매일지 «읽기» 넷(J-1 타임라인 = «일지» 탭 본문 · J-2 거래 상세 · J-3R 사전 저널 읽기 · J-1 회차 조건) ·
 //    읽기 = `OperatorJournalRepository`(원장 한 파일) · 기간 프리셋 · 슬리브 = 셸 설정 원천 한 인스턴스.
 // 🆕 E11q-q4b — J-5 미해소 보드(같은 저장소) · J-3 사전 저널 쓰기 = 계약 창 · M5-6 조립 뒤(지금 엔진이 J-3 로 보내는 길 0).
+// 🆕 E11q-j4 — J-4 사후 blind 리뷰(같은 저장소 · K24 = LIVE 원장만 → 모의 기간 = 빈 문장) · 명령 칸 = 셸 명령 API 한 인스턴스
+//    (점수 기록 = 계약 창 대기 → 제출 = 접수 실패 1줄) → J-1 «리뷰 대기 n건» 배지 링크가 저절로 열린다.
 // 🆕 E11q-q5a(R220) — M7 S7-7 연간 리뷰 · S7-10 이행 갭(인자 없음 · 그 달 = 한 위젯) = `OperatorPerformanceRepository` ·
 //    `OperatorExecutionGapRepository` → S12 목차 두 행 · 월간 리포트 ⑧ 링크 목적지가 열린다.
 // 🆕 E11q-q5b(R223) — M7 S7-2 성과 탐색(게이트 S7-2G → 같은 위젯 안 시리즈) · 열람 기록 = 분석 칸 명령 API(셸과 한 인스턴스) →
@@ -106,12 +108,14 @@ import 'package:ui_journal/ui_journal.dart'
         HoldingDetail,
         HoldingsAllocation,
         HoldingsOverview,
+        JournalBlindReview,
         JournalDecisionDetail,
         JournalReadView,
         JournalTimeline,
         JournalUnknownBoard,
         LedgerDiffs,
         LedgerRepairs,
+        journalBlindReviewCommandApiProvider,
         journalClockProvider,
         journalConfigRepositoryProvider,
         journalHoldingsRepositoryProvider,
@@ -725,6 +729,8 @@ Widget _journalDraft(Map<String, String> p) {
 Widget _journalUnknownBoard(Map<String, String> _) =>
     const JournalUnknownBoard();
 
+Widget _journalBlindReview(Map<String, String> _) => const JournalBlindReview();
+
 Widget _journalRebalance(Map<String, String> p) {
   final String id = p['rebalanceEventId'] ?? '';
   return JournalTimeline(key: ValueKey<String>(id), rebalanceEventId: id);
@@ -959,6 +965,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.journalRebalance: _journalRebalance,
   // 🆕 E11q-q4b — J-5 미해소 보드(J-1 «확인 중 n건» 배지 · `ORDER_OUTCOME_UNKNOWN` 알림 목적지 · 읽기만).
   AppRoutes.journalUnknownBoard: _journalUnknownBoard,
+  // 🆕 E11q-j4 — J-4 사후 blind 리뷰(J-1 «리뷰 대기 n건» 배지 목적지 · 대기 목록의 머리 카드 · K24 = LIVE 원장만).
+  AppRoutes.journalBlindReview: _journalBlindReview,
   // 🆕 E11q3(R174) — M7 S7-4 납입 플래너(미리보기 = 엔진 What-if · 등록 = 신뢰 시각 관문) · M9 S13 월 납입 설정.
   AppRoutes.planDeposit: _planDeposit,
   // 🆕 E11q-b1a(R178) — M5-1 킬스위치(발동 버튼 · 취소 보고 · 발동 뒤 기록 폼 · 체험 ⑤).
@@ -1192,6 +1200,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
     ) as SettingsActions,
   ),
   journalCommandApiProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorCommandApiProvider) as CommandApi,
+  ),
+  // 🆕 E11q-j4 — J-4 명령 칸 = 같은 명령 API 인스턴스(v1.7 «같은 API 의 프로바이더가 둘» · 01 §16-8).
+  journalBlindReviewCommandApiProvider.overrideWith(
     (Ref ref) => ref.watch(operatorCommandApiProvider) as CommandApi,
   ),
   journalDraftStoreProvider.overrideWith(
