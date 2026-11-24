@@ -489,6 +489,47 @@ void main() {
     expect(e.reason, contains('계좌 미지정'));
   });
 
+  test('🆕 R260 F-1 🔴 이미 쓴 마감 평가의 마지막 날(snapshotThrough) 이하 기준일 = 그 다음 KR 세션 · 그보다 뒤 · null = 옛 규칙', () {
+    // KST 09-01(화) 21:00 = UTC 12:00.
+    final DateTime night = DateTime.utc(2026, 9, 1, 12);
+    expect(
+      depositTradeDate(
+        night,
+        _kr,
+        snapshotThrough: const TradeDate('2026-09-01'),
+      ),
+      const TradeDate('2026-09-02'),
+      reason: '그날 20:30 평가가 이미 있다 → 그 돈은 다음 평가에 처음 든다',
+    );
+    expect(
+      depositTradeDate(
+        night,
+        _kr,
+        snapshotThrough: const TradeDate('2026-08-31'),
+      ),
+      const TradeDate('2026-09-01'),
+      reason: '그날 평가 전(잡 늦음 · 실패) = 그날',
+    );
+    expect(depositTradeDate(night, _kr), const TradeDate('2026-09-01'));
+    // 금요일 밤 → 월요일 · 토요일 등록(기준 = 월요일 · 마지막 평가 = 금요일) = 월요일.
+    expect(
+      depositTradeDate(
+        DateTime.utc(2026, 9, 4, 12),
+        _kr,
+        snapshotThrough: const TradeDate('2026-09-04'),
+      ),
+      const TradeDate('2026-09-07'),
+    );
+    expect(
+      depositTradeDate(
+        DateTime.utc(2026, 9, 5, 3),
+        _kr,
+        snapshotThrough: const TradeDate('2026-09-04'),
+      ),
+      const TradeDate('2026-09-07'),
+    );
+  });
+
   test('기준일 = 등록 시점의 KST 날짜 · 휴장이면 다음 KR 거래일 · 달력 밖·없음은 에러', () async {
     expect(
       depositTradeDate(DateTime.utc(2026, 9, 1, 14, 59), _kr),

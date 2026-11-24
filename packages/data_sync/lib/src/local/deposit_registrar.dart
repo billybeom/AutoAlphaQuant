@@ -34,7 +34,7 @@ import 'package:core_engine/core_engine.dart'
         kstYear,
         pensionUsedInYear;
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, CommandKind, CommandReceipt, CommandState, RunMode;
+    show Clock, CommandKind, CommandReceipt, CommandState, RunMode, TradeDate;
 import 'package:sqlite3/sqlite3.dart';
 
 import 'deposit_ledger.dart';
@@ -77,7 +77,8 @@ final class SqliteDepositRegistrar {
     final WhatIfState s = await state.load();
     final DateTime nowUtc = clock.nowUtc().toUtc();
     final String now = nowUtc.toIso8601String();
-    final int year = kstYear(nowUtc);
+    // 🆕 R260(리뷰 3차 F-5) — 연금 한도의 «그해» = 명령 요청 시각(신뢰 시각)의 KST 연도(기기 시계 연도 아님 · 만료 판정과 같은 축).
+    final int year = kstYear(command.requestedAt);
     // 신고값(원) — 트랜잭션 전에 포트에서 읽는다(트랜잭션 안에서는 await 하지 않는다 · 금액 타입은 core 의 것).
     final declared = await declarations.declaredOutside(year);
     _db.execute('BEGIN IMMEDIATE');
@@ -93,6 +94,10 @@ final class SqliteDepositRegistrar {
         command: command,
         snapshot: snapshot,
         state: s,
+        // 🆕 R260(리뷰 3차 F-1) — 앱 안 모의 = 등록 순간 현금이 생긴다 → 이미 쓴 마감 평가 뒤로(실전 · 브로커 모의 = 옛 규칙).
+        snapshotThrough: mode == RunMode.simInternal
+            ? _snapshotThrough()
+            : null,
         pensionRemaining: pensionAlias == null
             ? config.pensionAnnualLimit
             : config.pensionAnnualLimit -
@@ -123,6 +128,14 @@ final class SqliteDepositRegistrar {
       if (!_db.autocommit) _db.execute('ROLLBACK');
       rethrow;
     }
+  }
+
+  /// 🆕 R260(리뷰 3차 F-1) — 이미 쓴 마감 평가(`equity_snapshot`)의 마지막 날(없으면 null).
+  TradeDate? _snapshotThrough() {
+    final Object? d = _db
+        .select('SELECT MAX(trade_date) AS d FROM equity_snapshot')
+        .first['d'];
+    return d == null ? null : TradeDate(d as String);
   }
 
   /// 이미 받은 명령이면 그때의 결과.
