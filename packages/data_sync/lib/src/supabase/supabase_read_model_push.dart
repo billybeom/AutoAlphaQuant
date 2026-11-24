@@ -112,8 +112,19 @@ final Set<String> kReadModelPushCodes = <String>{
   ...ReadModelPushResultCodes.values,
 };
 
+/// 🆕 E11l2c(R263) — push 포트(push 일이 HTTP 없이 시험되게 · 구현 = [SupabaseReadModelPush]).
+abstract interface class ReadModelPusher {
+  /// [table] 에 [rows] 를 올린다.
+  Future<ReadModelPushResult> push({
+    required String deviceId,
+    required int epoch,
+    required ReadModelTable table,
+    required List<Map<String, Object?>> rows,
+  });
+}
+
 /// 🆕 읽기 모델 push 클라이언트(계약 표 이름 · 인자 · 반환 칸 그대로 · 시크릿 관문 포함).
-class SupabaseReadModelPush {
+class SupabaseReadModelPush implements ReadModelPusher {
   /// 만든다 — 연결 칸 · 시크릿 정확 값 = [vault] · 접근 토큰 = [auth].
   SupabaseReadModelPush(
     this._http,
@@ -130,6 +141,7 @@ class SupabaseReadModelPush {
   final Duration timeout;
 
   /// [table] 에 [rows](`readModelRow` 출력)를 올린다 — 이 기기 [deviceId] · 쥔 리스 [epoch].
+  @override
   Future<ReadModelPushResult> push({
     required String deviceId,
     required int epoch,

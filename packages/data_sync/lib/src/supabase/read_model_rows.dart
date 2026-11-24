@@ -62,6 +62,15 @@ class ReadModelRowInput {
 
   /// 바로 열 뷰어 판 값(열 이름 → 값 · `rm_advice` `sizing_label` · `progress_label`).
   final Map<String, Object?> viewer;
+
+  /// 🆕 E11l2c(R263) — 판만 바꾼 사본(원천은 판을 모른다 · push 일이 붙인다).
+  ReadModelRowInput withRowVersion(int v) => ReadModelRowInput(
+    mode: mode,
+    rowVersion: v,
+    dtos: dtos,
+    extras: extras,
+    viewer: viewer,
+  );
 }
 
 /// 행을 만들 수 없다(🔴 값 · 발췌 없음 — 표 · 칸 · 사유만).

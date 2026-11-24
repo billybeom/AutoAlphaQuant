@@ -24,6 +24,7 @@ export 'src/device/local_command_queue.dart';
 export 'src/jobs/daily_archive_job.dart';
 export 'src/jobs/daily_jobs.dart';
 export 'src/jobs/monthly_rebalance_job.dart';
+export 'src/jobs/read_model_push_job.dart'; // 🆕 E11l2c — 읽기 모델 push 일(13 R263 · 01 §8 미결 241)
 export 'src/jobs/resume_job.dart';
 export 'src/jobs/resume_reevaluator.dart';
 export 'src/jobs/seasonal_a_job.dart';
@@ -88,6 +89,7 @@ export 'src/local/performance_source.dart';
 export 'src/local/plan_snapshot_store.dart';
 export 'src/local/planned_work_store.dart';
 export 'src/local/pledge_store.dart';
+export 'src/local/read_model_push_status.dart'; // 🆕 E11l2c — push 로컬 상태 · row_version 정책(13 R263)
 export 'src/local/rebalance_source.dart';
 // 🆕 E11k-e3 — O-04 ⑤ 복구 카드 첫 클레임 기록(command_inbox · 해시만 · 설계 13 §8 R229).
 export 'src/local/recovery_card_store.dart';
