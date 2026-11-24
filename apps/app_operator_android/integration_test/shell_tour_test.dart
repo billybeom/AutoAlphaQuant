@@ -5,6 +5,7 @@
 // 🆕 E11q1b(R172) — + H6-3 슬리브 배분 · H6-2 종목 상세(같은 연습 보유).
 // 🆕 E11q-q4a — + M6 일지 읽기 J-1 · J-2 · J-3R · S7-6b «이 회차의 주문 n건» → J-1 회차 조건(연습 일지 묶음).
 // 🆕 E11q-q4b — + J-5 미해소 보드(연습 UNKNOWN 의도 1 → 카드 → «찾지 못함» 거부로 풀면 같은 화면이 빈 문장).
+// 🆕 E11q-j4 — + J-4 사후 blind 리뷰(모의 원장 = 해당 없음 K24 → 표본 빈 문장).
 // 🆕 E11q-q5e(R231) — + M7 S7-1 월간 리포트(지난달 · 배지 «대사 완료» · 「자세히」 → S7-3).
 // 🆕 E11q-d1 — + M8 문서(D-02 런북 목록 → 상세 · D-03 긴급 카드 · B-01 핸드북 목차 → B-02 슬리브 B 쪽).
 // 🆕 E11q-s05(R252) — + M9 S05 운용 관리(«실전 전환 요청» → M5-11 위저드 넘김).
@@ -85,6 +86,7 @@ import 'package:ui_journal/ui_journal.dart'
         HoldingDetail,
         HoldingsAllocation,
         HoldingsOverview,
+        JournalBlindReview,
         JournalDecisionDetail,
         JournalReadView,
         JournalTimeline,
@@ -625,6 +627,14 @@ void main() {
       );
       await _until(tester, find.text('미해소 건이 없습니다'));
       await _at(tester, find.byType(JournalUnknownBoard), 'IT_J5E');
+      await tester.pageBack();
+
+      // 🆕 E11q-j4 — J-4 사후 blind 리뷰: 모의 원장 = 해당 없음(K24) → 표본 빈 문장 · 실전 원장의 카드 = 단위 시험 몫.
+      container
+          .read(shellLinkOpenerProvider)
+          .open(AppRoutes.journalBlindReview);
+      await _until(tester, find.text('리뷰할 결정이 없습니다'));
+      await _at(tester, find.byType(JournalBlindReview), 'IT_J4');
       await tester.pageBack();
 
       // 🆕 R174 — S7-4 납입 플래너(금액 → 엔진 미리보기) · S13 월 납입(바꾸기 = 신뢰 시각 모름 → 엔진 거부 문장 · 쓰기 0).
