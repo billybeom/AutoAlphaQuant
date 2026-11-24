@@ -232,7 +232,7 @@ A(primitives·enums)
 >
 > 🆕 **v1.37(01 §46 · M5 판 · ~~⬜ PR 대기~~ ✅ 병합 PR #334 squash `f3270253`(2026-11-24 · CI 3/3))** — 🆕 `dto/self_audit.dart` `SelfAuditResolveVm` · `HeldCommandRow` · 🆕 창구 `SelfAuditResolveRepository.watchResolve()`(라우트 = 기존 `m5SelfAuditResolve` · 🔒 `ui_safety`) · `SafetyActionId` += `heldCommandsConfirm`(`run{review_id}` · 표면 무변경 · 버림 0 · 수동 해제 0) · `operator_lease` += `ticket_hash` · `ticket_expires_at` · 🆕 RPC 표 `LeaseHandoverRpcNames`(`device_retire`) · `LeaseHandoverRpcParams` 3(본문 = 엔진 미결 228) · 🔴 엔진 · 조립 = 01 §8 미결 226 · 227 · 228 · 표본 398 · C-70.
 >
-> 🆕 **v1.38(01 §47 · 읽기 모델 push RPC 표 · ⬜ PR 대기)** — 새 DTO · 창구 · 라우트 · 동작 0 · 🆕 `schema/supabase_rpc.dart` `ReadModelPushRpcNames`(`rm_push`) · `ReadModelPushRpcParams` 4 · `ReadModelPushRpcColumns` 4 · 🆕 `labels/supabase_codes.dart` `ReadModelPushResultCodes` 2(`read_model_push_result` · 리스 거부 = `LeaseRpcResultCodes` 그대로) · 🔴 SQL 본문 · 클라이언트 = 엔진 E11l2(미결 222 ⓑ) · 표본 398(버전 줄만) · C-71.
+> 🆕 **v1.38(01 §47 · 읽기 모델 push RPC 표 · ~~⬜ PR 대기~~ ✅ 병합 PR #335 squash `7f83be8b`(2026-11-24 · 발주자 «#335 병합해» · CI 3/3(골든 check 굳음 → 재실행 통과) · 병합 직전 main `3992beb0`(E11q-s05 · s71b — 계약 0줄 · 합친 트리 계약 +697 · 운영 앱 analyze 0) · squash 트리 = 검증 트리))** — 새 DTO · 창구 · 라우트 · 동작 0 · 🆕 `schema/supabase_rpc.dart` `ReadModelPushRpcNames`(`rm_push`) · `ReadModelPushRpcParams` 4 · `ReadModelPushRpcColumns` 4 · 🆕 `labels/supabase_codes.dart` `ReadModelPushResultCodes` 2(`read_model_push_result` · 리스 거부 = `LeaseRpcResultCodes` 그대로) · 🔴 SQL 본문 · 클라이언트 = 엔진 E11l2(미결 222 ⓑ) · 표본 398(버전 줄만) · C-71.
 
 > 🆕 **v1.24(01 §33 · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — `SettingsActionId` 값 0 추가 · args 화이트리스트 `backupRunNow`·`selftestGoldenRun`·`selftestIntegrityRun` = `{}` · `backupRestoreStart` = 화면 미호출(args 미정 유지) · calendar 3 = ⏸ R9d · `settingsGeneralUpdate` = ⏸ R9e(K120).
 
@@ -1034,7 +1034,7 @@ abstract interface class SettingsActions {
 
 🆕 **v1.37(2026-11-24 · 01 §46 · M5 판 · ~~⬜ PR 대기~~ ✅ 병합 PR #334 squash `f3270253`(2026-11-24 · CI 3/3))** — **신설 5 · 개정 0 → 398**(나머지 393 봉투 `contract_version` 한 줄만): `m5/self_audit_resolve_open` · `_held_blocked` · `_clear` · `m5/held_review_results`(4행) · `m6/self_report_cash_2`(2행) · 생성기 `tool/gen_v137_m5_x7_x1_fixtures.py` · 🆕 C-70(11항) · 개정 C-56 ⑰ · C-60 ⑮ · C-68 ① · C-69 ① · `ddl/batch_d_supabase.sql`(티켓 2열 · RPC 서명 주석) + data_sync 부트스트랩 사본 재생성.
 
-🆕 **v1.38(2026-11-24 · 01 §47 · 읽기 모델 push RPC 표 · ⬜ PR 대기)** — 픽스처 398(버전 줄만 · 신설 0) · C-71 6항(판 · 이름 · 인자 · 반환 칸 · 거부 사전 · 글자 꼴) · 개정 C-70 ①(판 글자 고정 = 최신 창 시험만).
+🆕 **v1.38(2026-11-24 · 01 §47 · 읽기 모델 push RPC 표 · ~~⬜ PR 대기~~ ✅ 병합 PR #335 squash `7f83be8b`(2026-11-24 · 발주자 «#335 병합해» · CI 3/3(골든 check 굳음 → 재실행 통과) · 병합 직전 main `3992beb0`(E11q-s05 · s71b — 계약 0줄 · 합친 트리 계약 +697 · 운영 앱 analyze 0) · squash 트리 = 검증 트리))** — 픽스처 398(버전 줄만 · 신설 0) · C-71 6항(판 · 이름 · 인자 · 반환 칸 · 거부 사전 · 글자 꼴) · 개정 C-70 ①(판 글자 고정 = 최신 창 시험만).
 
 🆕 **v1.24(2026-11-18 · 01 §33 · R9 선행 — M9 `S09` · `S10` · `S12` · ✅ 병합 PR #235 squash `bbed5ef` · 2026-11-18 · R8a 병합 뒤)** — **신설 17 · 개정 0 → 322**(나머지 305 봉투 `contract_version` 한 줄만): `m9/` VM 1행 봉투 15(`backup*` 6 · `diagnostics_screen*` 5 · `annual_review_index*` 4) · 목록 봉투 2(`backup_action_results` 10행 · `selftest_action_results` 12행) · 생성기 `tool/gen_r9_v124_fixtures.py` · `board` = `m8/recon_board_*` `rows[0]` 복사.
 
