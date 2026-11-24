@@ -64,6 +64,7 @@ void main() {
       'takeLaunchLink',
       'deviceRisk',
       'deviceId',
+      'appBuild',
       'biometricSign',
     ]) {
       expect(c, contains('"$m" ->'), reason: m);
@@ -71,6 +72,14 @@ void main() {
     for (final String m in <String>['onWake', 'onLink']) {
       expect(c, contains('invokeMethod("$m"'), reason: m);
     }
+  });
+
+  test('🔴 미결 237 — appBuild 응답 키 = Dart 가 읽는 키(버전 이름 · 코드 · 마지막 설치 시각)', () {
+    final String c = _read('$_kt/ops/OpsChannel.kt');
+    expect(c, contains('"versionName" to info.versionName'));
+    expect(c, contains('"versionCode" to code'));
+    expect(c, contains('"updatedAt" to info.lastUpdateTime'));
+    expect(c, contains('r.success(appBuild(ctx))'));
   });
 
   test('🔴 기기 id(R142) = noBackupFilesDir · 있는 파일은 덮어쓰지 않는다 · 첫 생성 잠금', () {
