@@ -6,6 +6,11 @@
 //    O-04 ④ = 온보딩 sim 파일.
 // 🔴 실행기가 «전량»이 아니면 돌리지 않는다(부분 실행으로 «통과»를 지어내지 않는다 · R161 O5).
 // 🔴 같은 실행이 진행 중이면 같은 결과를 기다린다(두 번 누름 = 한 번 실행).
+// 🆕 리뷰 3차 G-2 · G-6(01 §8 미결 237) —
+//    ① «지금 지문» = 벡터 묶음 지문 + 이 앱 설치 판(엔진 `goldenRunDigestOf`). 앱 판 = Android 패키지 정보
+//       (`versionName+versionCode@lastUpdateTime` — 버전을 올리지 않은 다시 설치도 설치 시각이 바뀐다 = R161 O7 «앱 업데이트 = 다시 실행»).
+//       판을 못 읽으면 준비 실패(= 판정 보류 · 다음에 다시) — 옛 통과를 지금 통과로 말하지 않는다(R167 F4).
+//    ② 마지막 기록 = 넣은 차례(`rowid`) — 기기 시계 `run_at` 글자 순이면 시계가 뒤로 간 뒤 옛 OK 가 새 FAILED 를 이긴다.
 
 import 'dart:async';
 import 'dart:isolate';
@@ -17,6 +22,7 @@ import 'package:core_engine/core_engine.dart'
         GoldenRunResult,
         goldenDiscrepanciesJson,
         goldenRecordOf,
+        goldenRunDigestOf,
         selftestGoldenResultOf,
         kDeviceGoldenSuite,
         kGoldenFailed,
@@ -32,17 +38,27 @@ String goldenAssetKey(String file) =>
 
 /// 읽은 묶음 · 지문 · 전체 수.
 class GoldenPrepared {
-  /// 만든다.
-  const GoldenPrepared({
+  /// 만든다 — [digest] = 엔진 `goldenRunDigestOf`(벡터 묶음 + 앱 판).
+  GoldenPrepared({
     required this.files,
-    required this.digest,
+    required this.vectorsDigest,
+    required this.appBuild,
     required this.total,
-  });
+  }) : digest = goldenRunDigestOf(
+         vectorsDigest: vectorsDigest,
+         appBuild: appBuild,
+       );
 
   /// 파일 이름 → 원문.
   final Map<String, String> files;
 
-  /// 묶음 지문.
+  /// 벡터 묶음 지문(엔진 `GoldenBundle.digest`).
+  final String vectorsDigest;
+
+  /// 🆕 미결 237 — 이 앱 설치 판.
+  final String appBuild;
+
+  /// 🔴 지금 앱 판 지문(벡터 묶음 + 앱 판) — 기록 · S10 · O-04 ④ · 위저드가 비교하는 것은 이것뿐.
   final String digest;
 
   /// 돌리기 전 센 전체 수.
@@ -51,10 +67,19 @@ class GoldenPrepared {
 
 /// 골든 기기 실행기(operator).
 class OperatorGolden {
-  /// 만든다 — [load] = 자산 읽기(앱 = `rootBundle.loadString`) · [isolate] = 백그라운드 실행(시험 = false).
-  OperatorGolden(this._load, {required this.clock, this.isolate = true});
+  /// 만든다 — [load] = 자산 읽기(앱 = `rootBundle.loadString`) · [appBuild] = 이 앱 설치 판(앱 = `AndroidOps.appBuild` ·
+  /// null · 빈 글자 = 못 읽음) · [isolate] = 백그라운드 실행(시험 = false).
+  OperatorGolden(
+    this._load, {
+    required this.clock,
+    required this.appBuild,
+    this.isolate = true,
+  });
 
   final Future<String> Function(String key) _load;
+
+  /// 🆕 미결 237 — 이 앱 설치 판 읽기(null · 빈 글자 = 못 읽음 = 판정 보류).
+  final Future<String?> Function() appBuild;
 
   /// 기록 시각.
   final Clock clock;
@@ -85,6 +110,11 @@ class OperatorGolden {
   );
 
   Future<GoldenPrepared> _doPrepare() async {
+    // 🔴 미결 237 — 앱 판을 못 읽으면 준비 실패(판정 보류 · 다음에 다시) — 판을 지어내지 않는다.
+    final String? build = await appBuild();
+    if (build == null || build.isEmpty) {
+      throw StateError('골든: 앱 판을 읽지 못했습니다 — 판정 보류');
+    }
     final Map<String, String> files = <String, String>{
       for (final String n in kDeviceGoldenSuite.files)
         n: await _load(goldenAssetKey(n)),
@@ -93,7 +123,12 @@ class OperatorGolden {
       final GoldenBundle b = GoldenBundle(files);
       return (b.digest, kDeviceGoldenSuite.caseCount(b));
     });
-    return GoldenPrepared(files: files, digest: dt.$1, total: dt.$2);
+    return GoldenPrepared(
+      files: files,
+      vectorsDigest: dt.$1,
+      appBuild: build,
+      total: dt.$2,
+    );
   }
 
   /// 🔴 돌리고 [db] 에 기록한다 — «전량» 아님 = [StateError] · 진행 중 = 같은 결과.
@@ -111,14 +146,14 @@ class OperatorGolden {
       final GoldenRunResult r = await _off<GoldenRunResult>(
         () => kDeviceGoldenSuite.run(GoldenBundle(p.files)),
       );
-      _record(db, r);
+      _record(db, r, p);
       return r;
     } finally {
       running.value = false;
     }
   }
 
-  void _record(Database db, GoldenRunResult r) {
+  void _record(Database db, GoldenRunResult r, GoldenPrepared p) {
     final String at = clock.nowUtc().toUtc().toIso8601String();
     final int n =
         db.select(
@@ -133,7 +168,7 @@ class OperatorGolden {
         '$kGoldenReconPrefix$at#${n + 1}',
         at,
         r.allPassed ? 1 : 0,
-        goldenDiscrepanciesJson(r),
+        goldenDiscrepanciesJson(r, appBuild: p.appBuild),
         r.allPassed ? kGoldenOk : kGoldenFailed,
       ],
     );
@@ -145,13 +180,14 @@ class OperatorGolden {
     result: await run(db),
   ).headline;
 
-  /// [db] 의 마지막 골든 기록(없음 · 읽지 못함 = null).
+  /// [db] 의 마지막 골든 기록(없음 · 읽지 못함 = null) — 🔴 미결 237 G-6: 마지막 = 넣은 차례(`rowid` · 추가만 하는 표) ·
+  /// 기기 시계 글자 순이 아니다.
   static GoldenRecordView? lastRecord(Database db) {
     final Row? row = db
         .select(
           'SELECT run_at, action_taken, discrepancies FROM reconciliation_log '
           "WHERE recon_id GLOB '$kGoldenReconPrefix*' "
-          'ORDER BY run_at DESC, recon_id DESC LIMIT 1',
+          'ORDER BY rowid DESC LIMIT 1',
         )
         .firstOrNull;
     if (row == null) return null;

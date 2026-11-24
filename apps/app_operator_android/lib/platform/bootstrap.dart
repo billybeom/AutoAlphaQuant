@@ -364,8 +364,13 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       biometricSign: ops.biometricSign,
       deviceId: deviceId,
       humanDecision: human,
-      // 🆕 R167 — 골든 기기 실행기(자산 = 엔진 패키지 · 읽기 · 실행 = 처음 부를 때 · 백그라운드 isolate).
-      golden: OperatorGolden(rootBundle.loadString, clock: clock),
+      // 🆕 R167 — 골든 기기 실행기(자산 = 엔진 패키지 · 읽기 · 실행 = 처음 부를 때 · 백그라운드 isolate) ·
+      // 🆕 미결 237 — 지문 = 벡터 묶음 + 이 앱 설치 판(Kotlin 패키지 정보).
+      golden: OperatorGolden(
+        rootBundle.loadString,
+        clock: clock,
+        appBuild: ops.appBuild,
+      ),
       liveObservation: observation,
       operations: operations,
       trusted: trusted,

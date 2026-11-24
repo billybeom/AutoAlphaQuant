@@ -349,7 +349,12 @@ void main() {
       humanDecision: await loadP0sHumanDecision(rootBundle),
       // 🆕 R167 — 설정 동작(S10 실행 버튼) · 골든 기기 실행기(실제 엔진 패키지 자산 · 실제 isolate).
       kisHttp: http.Client(),
-      golden: OperatorGolden(rootBundle.loadString, clock: clock),
+      // 🆕 미결 237 — 지문 = 벡터 묶음 + 이 앱 설치 판(실제 Kotlin 패키지 정보).
+      golden: OperatorGolden(
+        rootBundle.loadString,
+        clock: clock,
+        appBuild: ops.appBuild,
+      ),
       // 🆕 E11q-q4a — M5-11 위저드 관찰 일수(앱 기동과 같은 운영 설정 자산 · R191 단계가 이것 없이 «읽지 못했습니다»로 멈췄다).
       liveObservation: (await loadOperationsConfig(rootBundle)).liveObservation,
     );

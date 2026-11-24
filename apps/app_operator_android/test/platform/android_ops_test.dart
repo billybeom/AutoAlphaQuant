@@ -146,6 +146,49 @@ void main() {
   );
 
   test(
+    '🔴 미결 237 — 앱 설치 판 = «이름+코드@설치 시각» · 칸 없음 · 꼴 틀림 = null(판을 지어내지 않는다)',
+    () async {
+      reply = <String, Object?>{
+        'versionName': '0.1.0',
+        'versionCode': 1,
+        'updatedAt': 1732400000000,
+      };
+      expect(await AndroidOps().appBuild(), '0.1.0+1@1732400000000');
+      expect(calls.single.method, 'appBuild');
+      for (final Object? bad in <Object?>[
+        null,
+        'x',
+        <String, Object?>{},
+        <String, Object?>{'versionCode': 1, 'updatedAt': 1},
+        <String, Object?>{'versionName': '', 'versionCode': 1, 'updatedAt': 1},
+        <String, Object?>{'versionName': 'a', 'versionCode': 0, 'updatedAt': 1},
+        <String, Object?>{'versionName': 'a', 'versionCode': 1, 'updatedAt': 0},
+        <String, Object?>{
+          'versionName': 'a',
+          'versionCode': '1',
+          'updatedAt': 1,
+        },
+        <String, Object?>{
+          'versionName': 'a',
+          'versionCode': 1,
+          'updatedAt': 1.5,
+        },
+      ]) {
+        expect(appBuildFromWire(bad), isNull, reason: '$bad');
+      }
+      // 같은 버전 · 코드라도 다시 설치(설치 시각 다름) = 다른 판.
+      expect(
+        appBuildFromWire(<String, Object?>{
+          'versionName': '0.1.0',
+          'versionCode': 1,
+          'updatedAt': 1732400000001,
+        }),
+        isNot('0.1.0+1@1732400000000'),
+      );
+    },
+  );
+
+  test(
     '🔴 생체 서명(R159) — 대화상자 글자 = 엔진 · 결과 세 값 · 모르는 값 = 던진다(성공을 지어내지 않는다)',
     () async {
       for (final BiometricOutcome o in BiometricOutcome.values) {

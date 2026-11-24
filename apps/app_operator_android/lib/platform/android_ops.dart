@@ -122,6 +122,18 @@ String deviceIdFromWire(Object? raw) {
   throw const FormatException('기기 id 꼴이 아니다');
 }
 
+/// 🆕 리뷰 3차 G-2(01 §8 미결 237) — 와이어 → 이 앱 설치 판 `versionName+versionCode@lastUpdateTime`(골든 기록 «지금 앱 통과» 지문 재료) ·
+/// 🔴 칸이 없거나 꼴이 틀리면 null(부르는 쪽 = 판정 보류 — 판을 지어내지 않는다) · 설치 시각 = 버전을 올리지 않은 다시 설치도 가른다.
+String? appBuildFromWire(Object? raw) {
+  if (raw is! Map) return null;
+  final Object? name = raw['versionName'];
+  final Object? code = raw['versionCode'];
+  final Object? at = raw['updatedAt'];
+  if (name is! String || name.isEmpty) return null;
+  if (code is! int || code <= 0 || at is! int || at <= 0) return null;
+  return '$name+$code@$at';
+}
+
 /// 🆕 R136 — 와이어 → 기기 측정값 · 🔴 모르는 칸 · 꼴 틀림 = null(그 행 부재 — «정상»으로 지어내지 않는다) ·
 /// 남은 공간 음수 = 못 잼 · 충전 횟수 음수 = 못 잼.
 DeviceRiskFacts deviceRiskFactsFromWire(Object? raw, DateTime measuredAtUtc) {
@@ -327,6 +339,10 @@ class AndroidOps {
   /// 🆕 R142 — 기기 id(백업 제외 자리 · 없으면 Kotlin 이 처음 한 번 만든다 · 같은 기기 = 늘 같은 값).
   Future<String> deviceId() async =>
       deviceIdFromWire(await _ch.invokeMethod<Object?>('deviceId'));
+
+  /// 🆕 리뷰 3차 G-2(미결 237) — 이 앱 설치 판(골든 기록 지문 재료 · 꼴이 틀리면 null).
+  Future<String?> appBuild() async =>
+      appBuildFromWire(await _ch.invokeMethod<Object?>('appBuild'));
 
   /// 🆕 R159 — O-04 ③ 생체 서명(대화상자 글자 = 엔진 · 결과 = 세 값 · 모르는 값 = [FormatException]).
   Future<BiometricOutcome> biometricSign() async => biometricOutcomeOfWire(

@@ -10,6 +10,8 @@ import 'dart:math';
 
 import 'package:app_operator_android/app/operator_biometric.dart';
 import 'package:app_operator_android/app/operator_golden.dart';
+import 'package:app_operator_android/app/operator_handover.dart'
+    show operatorGoldenPassedOf;
 import 'package:app_operator_android/app/operator_onboarding.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
 import 'package:app_operator_android/app/operator_settings_actions.dart';
@@ -27,6 +29,8 @@ import 'package:core_engine/core_engine.dart'
         GoldenRunResult,
         GoldenSelfTestTexts,
         TrustedClock,
+        goldenRunDigestOf,
+        goldenSelftestFactOf,
         kDeviceGoldenSuite,
         kGoldenFailed,
         kGoldenOk;
@@ -43,6 +47,10 @@ import '../engine/support.dart';
 
 const String _dev = '3f2b8c1e-9a4d-4b6f-8e2a-1c5d7f9b0a3e';
 const String _vectors = '../../packages/core_engine/test/golden/vectors';
+
+/// 🆕 미결 237 — 이 앱 설치 판(Kotlin `appBuild` 꼴 · 시험 = 고정).
+const String _build = '0.1.0+1@1732400000000';
+Future<String?> _buildA() async => _build;
 
 class _Trusted implements TrustedClock {
   const _Trusted(this.at);
@@ -107,17 +115,32 @@ void main() {
   group('OperatorGolden', () {
     test('🔴 실행기 = «전량» · 자산 = 선언 파일 · 지문 · 전체 수 = 엔진 셈', () async {
       expect(kDeviceGoldenSuite.complete, isTrue);
-      final OperatorGolden g = OperatorGolden(_disk, clock: clock);
+      final OperatorGolden g = OperatorGolden(
+        _disk,
+        clock: clock,
+        appBuild: _buildA,
+      );
       final GoldenPrepared p = await g.prepare();
       expect(p.files.keys.toSet(), kDeviceGoldenSuite.files);
-      expect(p.digest, disk.digest);
+      expect(p.vectorsDigest, disk.digest);
+      expect(p.appBuild, _build);
+      // 🔴 미결 237 — 지금 지문 = 벡터 묶음 + 앱 판(묶음 지문 그대로가 아니다).
+      expect(
+        p.digest,
+        goldenRunDigestOf(vectorsDigest: disk.digest, appBuild: _build),
+      );
+      expect(p.digest, isNot(disk.digest));
       expect(p.total, kDeviceGoldenSuite.caseCount(disk));
       expect(g.prepared, same(p));
       expect(await g.prepare(), same(p), reason: '한 번만 읽는다');
     });
 
     test('🔴 백그라운드 isolate 실행 = 전량 통과 · 기록 1행(gv- · GOLDEN_OK · 결과 JSON) · 실행 중 표시', () async {
-      final OperatorGolden g = OperatorGolden(_disk, clock: clock);
+      final OperatorGolden g = OperatorGolden(
+        _disk,
+        clock: clock,
+        appBuild: _buildA,
+      );
       final List<bool> seen = <bool>[];
       g.running.addListener(() => seen.add(g.running.value));
       final GoldenRunResult r = await g.run(files.sim);
@@ -137,18 +160,22 @@ void main() {
       );
       final Map<String, Object?> j =
           jsonDecode(row['discrepancies'] as String) as Map<String, Object?>;
-      expect(j['digest'], disk.digest);
+      // 🔴 미결 237 — 기록 = 앱 판 지문 · 그 재료(묶음 지문 · 앱 판).
+      expect(j['digest'], g.prepared!.digest);
+      expect(j['vectors'], disk.digest);
+      expect(j['build'], _build);
       expect(j['passed'], r.total);
       expect(j['failed'], isEmpty);
       final GoldenRecordView? last = OperatorGolden.lastRecord(files.sim);
       expect(last?.ok, isTrue);
-      expect(last?.digest, disk.digest);
+      expect(last?.digest, g.prepared!.digest);
     });
 
     test('같은 실행이 진행 중이면 같은 결과(한 번 실행 · 한 행) · 결과 문장 = 엔진', () async {
       final OperatorGolden g = OperatorGolden(
         _disk,
         clock: clock,
+        appBuild: _buildA,
         isolate: false,
       );
       final Future<GoldenRunResult> a = g.run(files.sim);
@@ -167,6 +194,7 @@ void main() {
           return _disk(k);
         },
         clock: clock,
+        appBuild: _buildA,
         isolate: false,
       );
       await expectLater(g.prepare(), throwsStateError);
@@ -174,8 +202,33 @@ void main() {
       await expectLater(g.run(files.sim), throwsStateError);
       expect(_goldenRows(files.sim), 0);
       broken = false;
-      expect((await g.prepare()).digest, disk.digest);
+      expect((await g.prepare()).vectorsDigest, disk.digest);
     });
+
+    test(
+      '🔴 미결 237 — 앱 판을 못 읽으면(null · 빈 글자 · 던짐) 준비 실패 · 실행 0 · 기록 0 · 다음에 다시',
+      () async {
+        final List<Future<String?> Function()> bad =
+            <Future<String?> Function()>[
+              () async => null,
+              () async => '',
+              () async => throw StateError('채널 없음'),
+            ];
+        int i = 0;
+        final OperatorGolden g = OperatorGolden(
+          _disk,
+          clock: clock,
+          appBuild: () => i < bad.length ? bad[i++]() : _buildA(),
+          isolate: false,
+        );
+        for (int k = 0; k < bad.length; k++) {
+          await expectLater(g.prepare(), throwsStateError, reason: '$k');
+          expect(g.prepared, isNull);
+        }
+        expect(_goldenRows(files.sim), 0);
+        expect((await g.prepare()).appBuild, _build);
+      },
+    );
 
     test(
       '다른 기록(rc- · li-)은 골든 기록으로 읽지 않는다 · 더 늦어도 골든 기록을 읽는다 · 꼴 틀린 골든 행 = 없음',
@@ -190,6 +243,7 @@ void main() {
         await OperatorGolden(
           _disk,
           clock: FakeClock(DateTime.utc(2026, 11, 18)),
+          appBuild: _buildA,
           isolate: false,
         ).run(files.sim);
         expect(OperatorGolden.lastRecord(files.sim)?.ok, isTrue);
@@ -209,7 +263,12 @@ void main() {
       vault: MemorySecretVault(),
       kisHttp: http.Client(),
       golden: golden
-          ? OperatorGolden(_disk, clock: clock, isolate: false)
+          ? OperatorGolden(
+              _disk,
+              clock: clock,
+              appBuild: _buildA,
+              isolate: false,
+            )
           : null,
     )..view.value = viewOf(files.sim);
 
@@ -241,7 +300,12 @@ void main() {
         clock: clock,
         vault: MemorySecretVault(),
         kisHttp: http.Client(),
-        golden: OperatorGolden(bent, clock: clock, isolate: false),
+        golden: OperatorGolden(
+          bent,
+          clock: clock,
+          appBuild: _buildA,
+          isolate: false,
+        ),
       )..view.value = viewOf(files.sim);
       final ActionResult res = await actions(r)
           .run(SettingsActionId.selftestGoldenRun);
@@ -343,7 +407,12 @@ void main() {
       trusted: _trusted,
       biometricSign: () async => answers.removeAt(0),
       golden: golden
-          ? OperatorGolden(_disk, clock: clock, isolate: false)
+          ? OperatorGolden(
+              _disk,
+              clock: clock,
+              appBuild: _buildA,
+              isolate: false,
+            )
           : null,
     );
 
@@ -425,5 +494,147 @@ void main() {
       );
       expect(w, isA<SizedBox>());
     });
+  });
+
+  // 🆕 리뷰 3차 G-2 · G-6(01 §8 미결 237 · R161 O7 «앱 업데이트 = 다시 실행» · R167 F4 «옛 통과를 지금 통과로 말하지 않음»).
+  group('🔴 미결 237 — 골든 기록 앱 판', () {
+    /// 옛 판(이 고침 전) 기록 꼴 — 지문 = 벡터 묶음뿐 · 앱 판 0.
+    void oldBuildOk(Database db, String runAt) => db.execute(
+      'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+      'VALUES (?, ?, 1, ?, ?)',
+      <Object?>[
+        'gv-$runAt#1',
+        runAt,
+        jsonEncode(<String, Object?>{
+          'digest': disk.digest,
+          'passed': kDeviceGoldenSuite.caseCount(disk),
+          'total': kDeviceGoldenSuite.caseCount(disk),
+          'complete': true,
+          'failed': <String>[],
+        }),
+        kGoldenOk,
+      ],
+    );
+
+    OperatorRuntime rt(OperatorGolden g) => OperatorRuntime(
+      files: files,
+      clock: clock,
+      deviceId: _dev,
+      trusted: _trusted,
+      vault: MemorySecretVault(),
+      kisHttp: http.Client(),
+      golden: g,
+    )..view.value = viewOf(files.sim);
+
+    test('🔴 G-2 재현 — 벡터 무변경 · 앱만 바뀐 뒤(옛 판 통과 기록뿐) = 위저드 골든 사실 null · S10 «앱이 바뀌어 다시 돌려야 합니다» · O-04 ④ (0, m)', () async {
+      oldBuildOk(files.sim, '2026-11-19T00:00:00.000Z');
+      final OperatorRuntime r = rt(
+        OperatorGolden(_disk, clock: clock, appBuild: _buildA, isolate: false),
+      );
+      await r.golden!.prepare();
+      expect(operatorGoldenPassedOf(r.golden, files.sim), isNull);
+      final DiagnosticsScreenVm vm = await OperatorSettingsRepository(r)
+          .diagnosticsScreen();
+      expect(vm.golden.statusLabel, GoldenSelfTestTexts.stale);
+      expect(vm.golden.level, UiLevel.watch);
+      final int m = kDeviceGoldenSuite.caseCount(disk);
+      expect(
+        goldenSelftestFactOf(
+          currentDigest: r.golden!.prepared!.digest,
+          total: r.golden!.prepared!.total,
+          last: OperatorGolden.lastRecord(files.sim),
+        ),
+        (0, m),
+      );
+    });
+
+    test('🔴 G-2 — 같은 벡터 · 앱 판만 바뀜: 판 A 통과 → 판 B = 위저드 null · S10 stale · ④ (0, m) → 판 B 다시 실행 = 통과 → 판 A 로 돌아가도 stale', () async {
+      Future<String?> buildB() async => '0.1.0+1@1732400099999';
+      final int m = kDeviceGoldenSuite.caseCount(disk);
+
+      Future<void> expectCurrent(OperatorGolden g, {required bool pass}) async {
+        final OperatorRuntime r = rt(g);
+        await g.prepare();
+        expect(
+          operatorGoldenPassedOf(g, files.sim),
+          pass ? isTrue : isNull,
+          reason: '위저드',
+        );
+        final DiagnosticsScreenVm vm = await OperatorSettingsRepository(r)
+            .diagnosticsScreen();
+        expect(
+          vm.golden.statusLabel,
+          pass ? GoldenSelfTestTexts.passed : GoldenSelfTestTexts.stale,
+          reason: 'S10',
+        );
+        expect(
+          goldenSelftestFactOf(
+            currentDigest: g.prepared!.digest,
+            total: g.prepared!.total,
+            last: OperatorGolden.lastRecord(files.sim),
+          ),
+          pass ? (m, m) : (0, m),
+          reason: 'O-04 ④',
+        );
+      }
+
+      final OperatorGolden a = OperatorGolden(
+        _disk,
+        clock: clock,
+        appBuild: _buildA,
+        isolate: false,
+      );
+      expect((await a.run(files.sim)).allPassed, isTrue);
+      await expectCurrent(a, pass: true);
+
+      // 엔진 코드만 바뀐 업데이트(벡터 무변경) = 새 설치 판 · 다시 돌리지 않음.
+      final OperatorGolden b = OperatorGolden(
+        _disk,
+        clock: clock,
+        appBuild: buildB,
+        isolate: false,
+      );
+      await b.prepare();
+      expect(b.prepared!.vectorsDigest, a.prepared!.vectorsDigest);
+      expect(b.prepared!.digest, isNot(a.prepared!.digest));
+      await expectCurrent(b, pass: false);
+
+      // 판 B 에서 다시 돌림 = 통과.
+      expect((await b.run(files.sim)).allPassed, isTrue);
+      await expectCurrent(b, pass: true);
+
+      // 마지막 기록 = 판 B → 판 A 쪽에서 보면 다시 stale.
+      await expectCurrent(
+        OperatorGolden(_disk, clock: clock, appBuild: _buildA, isolate: false),
+        pass: false,
+      );
+    });
+
+    test(
+      '🔴 G-6 재현 — 마지막 기록 = 넣은 차례(rowid) · 기기 시계가 뒤로 가도 새 FAILED 가 옛 OK 를 이긴다',
+      () async {
+        // 11:00(잘못 앞선 시계) OK → 시계가 10:00 으로 바로잡힘 → 10:05 실행 FAILED.
+        oldBuildOk(files.sim, '2026-11-19T02:00:00.000Z');
+        files.sim.execute(
+          'INSERT INTO reconciliation_log (recon_id, run_at, matched, discrepancies, action_taken) '
+          'VALUES (?, ?, 0, ?, ?)',
+          <Object?>[
+            'gv-2026-11-19T01:05:00.000Z#1',
+            '2026-11-19T01:05:00.000Z',
+            jsonEncode(<String, Object?>{
+              'digest': disk.digest,
+              'passed': 1,
+              'total': 2,
+              'complete': true,
+              'failed': <String>['GV-3 x'],
+            }),
+            kGoldenFailed,
+          ],
+        );
+        final GoldenRecordView? last = OperatorGolden.lastRecord(files.sim);
+        expect(last?.ok, isFalse);
+        expect(last?.runAtUtc, DateTime.utc(2026, 11, 19, 1, 5));
+      },
+    );
   });
 }

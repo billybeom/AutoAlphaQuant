@@ -31,6 +31,9 @@ GoldenRunResult _result({int passed = 349, int total = 349}) => GoldenRunResult(
   complete: true,
 );
 
+/// 🆕 미결 237 — 앱 설치 판(시험 고정).
+const String _b = '0.1.0+1@1732400000000';
+
 /// 표본 «마지막 실행 11-17 09:00»(KST) = 2026-11-17T00:00Z.
 final DateTime _fixtureRun = DateTime.utc(2026, 11, 17);
 
@@ -188,7 +191,10 @@ void main() {
 
   group('기록 행 ↔ 기록', () {
     test('JSON 왕복 · OK/FAILED · 꼴 틀림 = null', () {
-      final String j = goldenDiscrepanciesJson(_result(passed: 348));
+      final String j = goldenDiscrepanciesJson(
+        _result(passed: 348),
+        appBuild: _b,
+      );
       final Map<String, Object?> m = jsonDecode(j) as Map<String, Object?>;
       expect(m['failed'], <String>['GV-1a']);
       final GoldenRecordView? r = goldenRecordOf(
@@ -199,13 +205,17 @@ void main() {
       expect(r?.ok, isFalse);
       expect(r?.passed, 348);
       expect(r?.total, 349);
-      expect(r?.digest, 'd1');
+      // 🔴 미결 237 — 기록 지문 = 앱 판 지문(묶음 지문 'd1' 그대로가 아니다) · 재료 = vectors · build.
+      expect(r?.digest, goldenRunDigestOf(vectorsDigest: 'd1', appBuild: _b));
+      expect(r?.digest, isNot('d1'));
+      expect(m['vectors'], 'd1');
+      expect(m['build'], _b);
       expect(r?.runAtUtc, _fixtureRun);
       expect(
         goldenRecordOf(
           runAt: '2026-11-17T00:00:00Z',
           actionTaken: kGoldenOk,
-          discrepancies: goldenDiscrepanciesJson(_result()),
+          discrepancies: goldenDiscrepanciesJson(_result(), appBuild: _b),
         )?.ok,
         isTrue,
       );
@@ -213,7 +223,7 @@ void main() {
         goldenRecordOf(
           runAt: '2026-11-17T00:00:00Z',
           actionTaken: 'INTEGRITY_OK',
-          discrepancies: goldenDiscrepanciesJson(_result()),
+          discrepancies: goldenDiscrepanciesJson(_result(), appBuild: _b),
         ),
         isNull,
       );
@@ -229,11 +239,71 @@ void main() {
         goldenRecordOf(
           runAt: '2026-11-17T00:00:00Z',
           actionTaken: kGoldenOk,
-          discrepancies: goldenDiscrepanciesJson(_result(passed: 348)),
+          discrepancies: goldenDiscrepanciesJson(
+            _result(passed: 348),
+            appBuild: _b,
+          ),
         ),
         isNull,
         reason: 'OK 인데 통과 ≠ 전체 = 읽지 못한 기록',
       );
+    });
+
+    test('🔴 미결 237(G-2) — 앱 판 지문: 같은 벡터 · 다른 판 = 다른 지문 · 같은 재료 = 같은 지문 · 빈 재료 = 던짐 · 옛 기록(묶음 지문만) = stale', () {
+      final String a = goldenRunDigestOf(vectorsDigest: 'd1', appBuild: _b);
+      expect(a, matches(RegExp(r'^[0-9a-f]{64}$')));
+      expect(goldenRunDigestOf(vectorsDigest: 'd1', appBuild: _b), a);
+      expect(
+        goldenRunDigestOf(vectorsDigest: 'd1', appBuild: '0.1.0+1@1'),
+        isNot(a),
+        reason: '엔진 코드만 바뀐 업데이트(벡터 무변경) = 다른 지문',
+      );
+      expect(
+        goldenRunDigestOf(vectorsDigest: 'd2', appBuild: _b),
+        isNot(a),
+        reason: '벡터가 바뀌면 다른 지문(전과 같음)',
+      );
+      // 재료 경계가 섞이지 않는다(NUL 구분).
+      expect(
+        goldenRunDigestOf(vectorsDigest: 'd1x', appBuild: 'y'),
+        isNot(goldenRunDigestOf(vectorsDigest: 'd1', appBuild: 'xy')),
+      );
+      expect(
+        () => goldenRunDigestOf(vectorsDigest: 'd1', appBuild: ''),
+        throwsArgumentError,
+      );
+      expect(
+        () => goldenRunDigestOf(vectorsDigest: '', appBuild: _b),
+        throwsArgumentError,
+      );
+      // 이 고침 전 기록(`digest` = 묶음 지문 'd1') → 지금 앱 판 지문과 다름 = S10 «앱이 바뀌어…» · ④ (0, 전체).
+      final GoldenRecordView old = _rec();
+      expect(
+        goldenSelfTestCardOf(
+          GoldenCardFacts(
+            ready: true,
+            currentDigest: a,
+            last: old,
+            running: false,
+            canRun: true,
+          ),
+        ).statusLabel,
+        GoldenSelfTestTexts.stale,
+      );
+      expect(goldenSelftestFactOf(currentDigest: a, total: 349, last: old), (
+        0,
+        349,
+      ));
+      // 새 꼴 기록(같은 판) = 통과.
+      final GoldenRecordView now = goldenRecordOf(
+        runAt: '2026-11-17T00:00:00Z',
+        actionTaken: kGoldenOk,
+        discrepancies: goldenDiscrepanciesJson(_result(), appBuild: _b),
+      )!;
+      expect(goldenSelftestFactOf(currentDigest: a, total: 349, last: now), (
+        349,
+        349,
+      ));
     });
   });
 
