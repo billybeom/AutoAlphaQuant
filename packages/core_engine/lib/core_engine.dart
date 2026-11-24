@@ -1114,7 +1114,8 @@ export 'src/ops/tier_b.dart'
         tierBCapReceiver,
         tierBMetrics,
         tierBTrigger,
-        twrIndex;
+        twrIndex,
+        weightsAfterACapTrims;
 // 🆕 E11j — 신뢰 시각 포트(M1-13 · 실물 = E11k · 설계 13 §8 R54 J1) · 🆕 E11k-a 서버 시각 기준점(R197).
 export 'src/ops/trusted_clock.dart'
     show

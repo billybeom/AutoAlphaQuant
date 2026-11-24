@@ -271,6 +271,49 @@ void main() {
       expect(d.decisionId, 'B-SMA-2026-10-30+BAND-B-2026-10-30@2026-11-02');
     });
 
+    test('🆕 R259 G-U1b 🔴 이월 대상의 결합 논리 id(A+B) = 조각으로 풀어 다시 결합 — 홀로 = 그대로 · 다른 대상과 = 조각 합집합 · 거부 0', () {
+      final String carried = DecisionIds.combined(<String>[_bSma, _bBand]);
+      final DraftResult alone = _draft(<OrderTarget>[
+        _t(
+          carried,
+          P0sStrategyIds.sleeveB,
+          OrderSide.buy,
+          const ShareSizing(4),
+        ),
+      ]);
+      expect(
+        alone.drafts.single.decisionId,
+        'B-SMA-2026-10-30+BAND-B-2026-10-30@2026-11-02',
+      );
+      final DraftResult merged = _draft(<OrderTarget>[
+        _t(
+          carried,
+          P0sStrategyIds.sleeveB,
+          OrderSide.buy,
+          const ShareSizing(4),
+        ),
+        _t('A-1', P0sStrategyIds.sleeveB, OrderSide.buy, const ShareSizing(1)),
+        _t(_bSma, P0sStrategyIds.sleeveB, OrderSide.buy, const ShareSizing(1)),
+      ]);
+      expect(merged.drafts.single.quantity, 6);
+      expect(
+        merged.drafts.single.logicalDecisionId,
+        'A-1+B-SMA-2026-10-30+BAND-B-2026-10-30',
+      );
+      // 빈 조각(`A++B`) · 접미(@) = 그대로 거부(조각마다 논리 id 규칙).
+      expect(
+        () => _draft(<OrderTarget>[
+          _t(
+            'A-1++B-1',
+            P0sStrategyIds.sleeveB,
+            OrderSide.buy,
+            const ShareSizing(1),
+          ),
+        ]),
+        throwsArgumentError,
+      );
+    });
+
     test('입력 순서가 달라도 같은 키(같은 날 재실행 = 같은 멱등키)', () {
       final List<OrderTarget> a = <OrderTarget>[
         _t(

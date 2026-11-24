@@ -477,6 +477,9 @@ class SeasonalTargetSource implements TargetSource {
 }
 
 /// POT 현금 흐름(R49 Q6) — 마지막 POT 청산 판정 날부터의 체결(`SEAS-A-OUT` 매도 · POT 매수 · 매도 · `POT-LIQ` 제외).
+/// 🆕 R259(리뷰 3차 V1 부수) — A 청산이 같은 (계좌 · 종목)의 다른 A 대상(예 계층 B 축소 `RISK-P0S_A-…`)과 순매매로 합쳐진
+/// 결합 id(`…+SEAS-A-OUT-…@일`)도 A 청산 매도로 센다(접두만 보면 빠져 POT 현금이 모자란다 · 합친 수량 전부를 POT 로 —
+/// 조각별 수량은 원장에 없다). `POT-LIQ` 제외는 지금처럼 접두(결합 id 에서 `POT-LIQ` 가 POT 조각 가운데 늘 앞이다).
 List<PotCashFlow> potCashFlowsSinceLiquidation(Database db) {
   String since = '0000-01-01';
   for (final Row r in db.select(
@@ -497,7 +500,8 @@ List<PotCashFlow> potCashFlowsSinceLiquidation(Database db) {
       '${signedFillSql('e', 'tax')} AS tax '
       'FROM executions e JOIN broker_orders b ON e.broker_order_no = b.broker_order_no '
       'JOIN order_intents i ON b.intent_id = i.intent_id '
-      "WHERE i.trade_date >= ? AND ((i.strategy_id = ? AND i.side = 'SELL' AND i.decision_id LIKE 'SEAS-A-OUT-%') "
+      "WHERE i.trade_date >= ? AND ((i.strategy_id = ? AND i.side = 'SELL' AND (i.decision_id LIKE 'SEAS-A-OUT-%' "
+      "OR i.decision_id LIKE '%+SEAS-A-OUT-%')) "
       "OR (i.strategy_id = ? AND i.decision_id NOT LIKE 'POT-LIQ-%')) ORDER BY e.executed_at",
       <Object?>[since, P0sStrategyIds.sleeveA, P0sStrategyIds.pot],
     ))
