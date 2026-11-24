@@ -396,12 +396,10 @@ void main() {
     );
     expect(w.outcome, ReadModelPushOutcome.lag);
     expect(w.reason, startsWith('SOURCE:'));
-    expect(
-      rep.tables.where(
-        (ReadModelTablePush t) => t.outcome == ReadModelPushOutcome.ok,
-      ),
-      hasLength(12),
-    );
+    final List<ReadModelTablePush> ok = rep.tables
+        .where((ReadModelTablePush t) => t.outcome == ReadModelPushOutcome.ok)
+        .toList();
+    expect(ok, hasLength(12)); // 워치독 뺀 11표 + 봉투
   });
 
   test('③ 실행 = 포트 · 화면 상태 · 리스가 다 있을 때만', () async {
