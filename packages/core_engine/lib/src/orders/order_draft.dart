@@ -503,8 +503,10 @@ DraftResult draftOrders(
     final OrderSide side = net > 0 ? OrderSide.buy : OrderSide.sell;
     final bool market = group.any((OrderTarget t) => t.marketOrder);
     final Decimal price = side == OrderSide.buy ? buyPrice : sellPrice;
+    // 🆕 R259(리뷰 3차 G-U1b) — 이월 대상은 앞날 결합 id(`A+B`)를 그대로 싣는다 → 조각으로 풀어 다시 결합한다
+    //    (`combined` 는 조각만 받는다 — 풀지 않으면 `+` 거부 예외로 그날 배치 전체가 실패).
     final String logical = DecisionIds.combined(
-      group.map((OrderTarget t) => t.logicalDecisionId),
+      group.expand((OrderTarget t) => t.logicalDecisionId.split('+')),
     );
     drafts.add(
       OrderIntentDraft(

@@ -105,7 +105,11 @@ P0sRiskCaps p0sRiskCapsOf(Database db) {
 }
 
 /// 🆕 R247 — 슬리브 A 축소 매도가 아직 남았나: P0S_A 의 마지막 상태 기록이 계층 B 의 낮춤 전이(→ PROBATION · → RETIRED)
-/// 이고 그 뒤 P0S_A 주문 의도가 하나도 없다(축소 · 계절 진입 · 청산 어느 것이든 나갔으면 지금 보유는 이미 상한 뒤 크기).
+/// 이고 그 뒤 **나간** P0S_A 주문 의도가 하나도 없다(축소 · 계절 진입 · 청산 어느 것이든 나갔으면 지금 보유는 이미 상한 뒤 크기).
+/// 🆕 R259(리뷰 3차 G-1) — 🔴 «나갔다» = 예약 · 제출 중 · 접수 · 부분 · 전량 · 결과 불명(브로커에 갔거나 갔을 수 있다 — 겹쳐 팔지
+/// 않는다) ∨ 체결이 있는 실효 · 취소. 거부(리스 무효 · 킬스위치 · UNKNOWN 미해소 · 원장 확인 불가 · 브로커 거절) · 건너뜀(dryRun ·
+/// 수량 0) · 체결 0 실효 · 취소는 «안 나감» — 의도 행이 있다는 것만으로 «했다»로 보면 다음 달에도 축소가 빠져 A 가 상한을
+/// 넘은 채 남는다.
 bool sleeveACapTrimDue(Database db) {
   final ResultSet rs = db.select(
     'SELECT to_state, changed_at, reason FROM strategy_state_log WHERE strategy_id = ? '
@@ -120,7 +124,9 @@ bool sleeveACapTrimDue(Database db) {
     return false;
   }
   return db.select(
-    'SELECT 1 FROM order_intents WHERE strategy_id = ? AND created_at > ? LIMIT 1',
+    'SELECT 1 FROM order_intents i WHERE i.strategy_id = ? AND i.created_at > ? AND ('
+    "i.status IN ('RESERVED','SUBMITTING','SUBMITTED','PARTIAL','FILLED','UNKNOWN') OR EXISTS ("
+    'SELECT 1 FROM broker_orders b WHERE b.intent_id = i.intent_id AND b.filled_qty > 0)) LIMIT 1',
     <Object?>[P0sStrategyIds.sleeveA, rs.first['changed_at'] as String],
   ).isEmpty;
 }

@@ -93,6 +93,7 @@ class MonthlyRebalanceReport implements DailyJobReport {
     this.skippedReason,
     this.incomeWarn,
     this.exposureTally,
+    this.capsStale = false,
   });
 
   /// 계획 id.
@@ -128,6 +129,11 @@ class MonthlyRebalanceReport implements DailyJobReport {
   /// 🆕 E3d-4 — SAF-307 · 원화 유동성 월 집계(단계를 켜지 않았으면 null · 알림 0).
   final P0sExposureTally? exposureTally;
 
+  /// 🆕 R259(리뷰 3차 G-3) — «이미 있음» 길에서 이번 판정이 낮춤 전이를 냈는데 저장된 계획에 상한(`risk_caps`)이 없다
+  /// (앞 회차 판정 실패 뒤 저장된 계획 · 그 달 계획은 상한 없이 집행 · 상한 · A 축소는 전이 뒤 첫 월말 계획부터).
+  /// 🔵 보고 한 줄만 — 경보 코드는 계약 창 후보(지금 사전에 맞는 코드 없음).
+  final bool capsStale;
+
   @override
   Set<String> get alerts => <String>{...?incomeWarn?.alerts};
 
@@ -135,7 +141,8 @@ class MonthlyRebalanceReport implements DailyJobReport {
   String toString() =>
       'MonthlyRebalanceReport($planId · ${created ? '새로' : '이미 있음'} · 대상 ${targets.length} · 집행 $executionDay · $tierB'
       '${incomeWarn == null ? '' : ' · 306 ${incomeWarn!.unavailable ?? (incomeWarn!.exceeded ? '넘음' : '안 넘음')}'}'
-      '${exposureTally == null ? '' : ' · ${exposureTally!.line}'})';
+      '${exposureTally == null ? '' : ' · ${exposureTally!.line}'}'
+      '${capsStale ? ' · 계획 상한 미반영(전이 뒤 첫 월말 계획부터)' : ''})';
 }
 
 List<Map<String, Object?>> _weightsJson(Map<String, double> w) =>
@@ -215,16 +222,32 @@ List<OrderTarget> _targetsOf(Map<String, Object?> outputs) => <OrderTarget>[
     orderTargetFromJson(t! as Map<String, Object?>),
 ];
 
+/// 🆕 R259(리뷰 3차 G-U1) — SQL: [col](`{논리 id}@{집행일}`)의 논리 id 를 `+` 로 쪼갠 조각 가운데 바인드 값(`?` 하나)이 있다.
+/// 단일 id = 조각 하나 · 순매매 결합 id(`A+B@일` · R34 U6) = 조각 여럿. 🔴 `LIKE` 를 쓰지 않는다(`_` · `%` 가 와일드카드 ·
+/// `P0S_A` 에 `_`) — `instr` 로 `+{조각}+` 를 찾는다. `@` 없는 값 = 빈 논리 id(맞는 조각 0).
+String _decisionComponentSql(String col) =>
+    "instr('+' || substr($col, 1, instr($col, '@') - 1) || '+', '+' || ? || '+') > 0";
+
+/// 🆕 R259(리뷰 3차 G-1) — 거부(REJECTED)된 의도를 «냄»으로 보지 않는 계획 대상: 계층 B 의 A 축소 매도
+/// (`RISK-P0S_A-…` · 재개 child `…#R{T}` 포함). 거부(리스 무효 · 킬스위치 · UNKNOWN 미해소 · 원장 확인 불가 · 브로커 거절)면
+/// 다음 세션에 같은 논리 id 의 새 키(`@{그날}`)로 다시 낸다 — 축소는 다음 달 계획이 대신 메우지 못한다(R247 한 번 · 03 §1-5 «진입 즉시»).
+/// 🔵 건너뜀(SKIPPED · dryRun · 수량 0)은 «냄» 그대로(dryRun 날마다 같은 행이 쌓이지 않게) · 다른 대상은 지금처럼 거부도 «냄»
+/// (다음 월말 계획이 흡수 — 리뷰 3차 G-1 범위).
+bool _retriesRejectedPlanTarget(OrderTarget t) =>
+    t.strategyId == P0sStrategyIds.sleeveA &&
+    t.logicalDecisionId.startsWith('RISK-${P0sStrategyIds.sleeveA}-');
+
 /// 이미 낸 대상인가 — 멱등키와 같은 축(논리 id@집행일 · 종목 · 방향 · 04 §3-2). 🔴 논리 id 만으로 보지 않는다 —
 /// 한 논리 id 에 대상이 여럿이다(예 `C-REBAL-{월말}` = 채권 · 금).
+/// 🆕 R259(리뷰 3차 G-U1) — 🔴 같은 (계좌 · 종목)의 대상 둘 이상은 순매매로 의도 하나(`A+B@일`)가 된다 → 논리 id 를 결합 id 의
+/// **조각**과 비교한다(접두만 보면 둘 다 «안 냄» → 계획 만료까지 매 세션 같은 주문 재발주). 결합 의도의 방향은 순방향이라
+/// 대상 방향과 다를 수 있다 → 결합 의도면 방향을 보지 않는다(그 대상은 상계로 이미 쓰였다) · 단일 id = 방향까지 같아야 한다.
+/// 🆕 R259(G-1) — [_retriesRejectedPlanTarget] 대상은 거부 의도를 세지 않는다.
 bool planTargetIssued(Database db, OrderTarget t) => db.select(
-  'SELECT 1 FROM order_intents WHERE substr(decision_id, 1, ?) = ? AND symbol = ? AND side = ? LIMIT 1',
-  <Object?>[
-    t.logicalDecisionId.length + 1,
-    '${t.logicalDecisionId}@',
-    t.symbol,
-    t.side.wire,
-  ],
+  'SELECT 1 FROM order_intents WHERE ${_decisionComponentSql('decision_id')} AND symbol = ? '
+  "AND (side = ? OR instr(decision_id, '+') > 0)"
+  "${_retriesRejectedPlanTarget(t) ? " AND status <> 'REJECTED'" : ''} LIMIT 1",
+  <Object?>[t.logicalDecisionId, t.symbol, t.side.wire],
 ).isNotEmpty;
 
 /// 🆕 E14c2(R74 M4) — 계획의 대상 가운데 아직 낸 적 없는 것(`StoredPlanTargetSource` · 평시 정리가 같은 축).
@@ -432,6 +455,31 @@ class MonthlyRebalanceJob {
     ];
   }
 
+  /// 🆕 R259(리뷰 3차 G-5) — 계획기 after 비중에 A 축소 매도를 반영한다(계획기와 같은 [day] 종가 · 같은 총평가 ·
+  /// 판 돈 = 회수처 C). 축소 0 = 계획기 값 그대로.
+  Map<String, double> _afterWithTrims(
+    MonthEndRun run,
+    List<OrderTarget> trims,
+    List<LedgerHolding> held,
+    String day,
+  ) {
+    if (trims.isEmpty) return run.weightsAfter;
+    final Map<String, int> aShares = <String, int>{};
+    for (final LedgerHolding h in held) {
+      if (h.strategyId != P0sStrategyIds.sleeveA) continue;
+      aShares[h.symbol] = (aShares[h.symbol] ?? 0) + h.quantity;
+    }
+    return weightsAfterACapTrims(
+      run.weightsAfter,
+      trims: trims,
+      heldShares: aShares,
+      closeTexts: _closeTexts(day, <String>{
+        for (final OrderTarget t in trims) t.symbol,
+      }),
+      totalEquity: run.state.totalEquity,
+    );
+  }
+
   MonthlyRebalanceReport _report(
     String monthEnd,
     Map<String, Object?> o, {
@@ -439,6 +487,7 @@ class MonthlyRebalanceJob {
     required TierBStepReport tierB,
     required P0sIncomeWarnStep? incomeWarn,
     required P0sExposureTally? exposureTally,
+    bool capsStale = false,
   }) => MonthlyRebalanceReport(
     planId: rebalancePlanIdOf(monthEnd),
     created: created,
@@ -450,6 +499,7 @@ class MonthlyRebalanceJob {
     tierB: tierB,
     incomeWarn: incomeWarn,
     exposureTally: exposureTally,
+    capsStale: capsStale,
   );
 
   /// 🆕 E14d2a(R76 Q1 · 🔴 발주자 결정 2026-11-13 «M 의 판정 + T 의 금액») — 낡은 월말 계획 [monthEnd] 의 재개일
@@ -531,11 +581,9 @@ class MonthlyRebalanceJob {
     } on MonthEndInputError catch (e) {
       throw MonthlyRebalanceError(e.reason);
     }
+    final List<OrderTarget> trims = _aCapTrims(held, monthEnd, caps);
     final List<OrderTarget> targets = <OrderTarget>[
-      for (final OrderTarget x in <OrderTarget>[
-        ...run.targets,
-        ..._aCapTrims(held, monthEnd, caps),
-      ])
+      for (final OrderTarget x in <OrderTarget>[...run.targets, ...trims])
         orderTargetFromJson(<String, Object?>{
           ...orderTargetToJson(x),
           'logical_decision_id': resumeLogicalIdOf(x.logicalDecisionId, t),
@@ -551,7 +599,9 @@ class MonthlyRebalanceJob {
       'month_index': monthIndex,
       'sleeve_b_held': run.plan.sleeveBHeld,
       'weights_before': _weightsJson(run.weightsBefore),
-      'weights_after': _weightsJson(run.weightsAfter),
+      'weights_after': _weightsJson(
+        _afterWithTrims(run, trims, held, valuation),
+      ),
       'actions': <Object?>[
         for (final MonthEndAction a in run.plan.actions)
           monthEndActionToJson(a),
@@ -607,13 +657,23 @@ class MonthlyRebalanceJob {
     final SqliteRebalancePlanStore plans = SqliteRebalancePlanStore(_db);
     final Map<String, Object?>? existing = plans.outputsOf(d);
     if (existing != null) {
+      final TierBStepReport tierB = _tierB(monthEnd);
+      // 🆕 R259(리뷰 3차 G-3) — 이번 판정이 상태를 옮겼고(앞 회차 판정 실패 뒤 재실행) 저장된 계획의 상한이 지금 상한과 다르면
+      //    보고에 한 줄(계획은 바꾸지 않는다 — 이미 일부 나갔을 수 있다 · 상한 · A 축소는 전이 뒤 첫 월말 계획부터).
+      final bool moved =
+          tierB.transitioned.isNotEmpty ||
+          tierB.returned.isNotEmpty ||
+          tierB.retired.isNotEmpty;
       return _report(
         d,
         existing,
         created: false,
-        tierB: _tierB(monthEnd),
+        tierB: tierB,
         incomeWarn: income,
         exposureTally: tally,
+        capsStale:
+            moved &&
+            P0sRiskCaps.fromJson(existing['risk_caps']) != p0sRiskCapsOf(_db),
       );
     }
     if (_breakerAt(d) == BreakerLevel.stopped) {
@@ -695,14 +755,12 @@ class MonthlyRebalanceJob {
     }
     final MonthEndState state = run.state;
     final MonthEndPlan plan = run.plan;
-    final List<OrderTarget> targets = <OrderTarget>[
-      ...run.targets,
-      ..._aCapTrims(held, monthEnd, caps),
-    ];
+    final List<OrderTarget> trims = _aCapTrims(held, monthEnd, caps);
+    final List<OrderTarget> targets = <OrderTarget>[...run.targets, ...trims];
     final String execution = _kr.nextSession(monthEnd).yyyyMmDd;
     final String now = _clock.nowUtc().toIso8601String();
     final Map<String, double> before = run.weightsBefore;
-    final Map<String, double> after = run.weightsAfter;
+    final Map<String, double> after = _afterWithTrims(run, trims, held, d);
     final Map<String, Object?> outputs = <String, Object?>{
       'targets': <Object?>[
         for (final OrderTarget t in targets) orderTargetToJson(t),

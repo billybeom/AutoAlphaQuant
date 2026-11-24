@@ -1,5 +1,6 @@
 // E11g — 계층 B 계산(설계 13 §8 R50 T2~T4).
 import 'package:core_engine/core_engine.dart';
+import 'package:decimal/decimal.dart';
 import 'package:domain_contracts/domain_contracts.dart'
     show OrderSide, TradeDate;
 import 'package:test/test.dart';
@@ -361,6 +362,67 @@ void main() {
           judgmentDate: me,
         ),
         isNull,
+      );
+    });
+
+    test('🆕 R259 G-5 — after 비중에 A 축소 반영: 판 주수 × 종가 ÷ 총평가 만큼 A → C · 전량(AllHeld) = 보유 · 축소 0 · 총평가 0 = 그대로', () {
+      const TradeDate me = TradeDate('2026-07-31');
+      const Map<String, double> after = <String, double>{
+        'A': 0.2,
+        'B': 0.3,
+        'C': 0.4,
+        'POT': 0.1,
+      };
+      final List<OrderTarget> trims = <OrderTarget>[
+        sleeveACapTrim(
+          symbol: 'S1',
+          heldShares: 7,
+          capA: 0.5,
+          judgmentDate: me,
+        )!,
+        sleeveACapTrim(symbol: 'S2', heldShares: 3, capA: 0, judgmentDate: me)!,
+      ];
+      final Map<String, double> w = weightsAfterACapTrims(
+        after,
+        trims: trims,
+        heldShares: const <String, int>{'S1': 7, 'S2': 3},
+        closeTexts: const <String, String>{'S1': '12000', 'S2': '5000'},
+        totalEquity: Decimal.parse('1000000'),
+      );
+      // S1 4주 × 12,000 + S2 3주 × 5,000 = 63,000 → 0.063.
+      expect(w['A'], closeTo(0.2 - 0.063, 1e-12));
+      expect(w['C'], closeTo(0.4 + 0.063, 1e-12));
+      expect((w['B'], w['POT']), (0.3, 0.1));
+      expect(
+        weightsAfterACapTrims(
+          after,
+          trims: const <OrderTarget>[],
+          heldShares: const <String, int>{},
+          closeTexts: const <String, String>{},
+          totalEquity: Decimal.parse('1000000'),
+        ),
+        after,
+      );
+      expect(
+        weightsAfterACapTrims(
+          after,
+          trims: trims,
+          heldShares: const <String, int>{'S1': 7, 'S2': 3},
+          closeTexts: const <String, String>{'S1': '12000', 'S2': '5000'},
+          totalEquity: Decimal.zero,
+        ),
+        after,
+      );
+      // 종가 없는 축소 = 실패(계획기가 이미 종가를 요구한다 — 조용히 0 으로 두지 않는다).
+      expect(
+        () => weightsAfterACapTrims(
+          after,
+          trims: trims,
+          heldShares: const <String, int>{'S1': 7, 'S2': 3},
+          closeTexts: const <String, String>{'S1': '12000'},
+          totalEquity: Decimal.parse('1000000'),
+        ),
+        throwsArgumentError,
       );
     });
   });
