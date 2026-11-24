@@ -3,7 +3,9 @@
 // 🔴 읽기 = 모의 파일 + 실전 파일(있을 때만) → data_sync 원천 → 엔진 VM(`handoverWizardVmOf`) · 원장 변경 · 동작 뒤 · 주기마다
 //    다시 낸다(냉각 끝 · 확정 기한 = 새 VM — 화면 카운트다운 0) · 같은 값 = 다시 내지 않음 · `handoverStatus` = 같은 흐름(K173).
 // 🔴 바깥 사실 — 골든 = 지금 지문과 같은 마지막 기록(없음 = 아직) · 🆕 R196 실전 키 = 대응표 세트의 조회 검증 기록(207 ⓑ) ·
-//    계좌 별칭 · 설정 지문 = 모의 개시 판(`currentP0sOpsConfig`) · 관찰 일수 = 운영 설정(`live_dry_run_observation_trading_days`).
+//    계좌 별칭 · 설정 지문 = 모의 개시 판(`currentP0sOpsConfig(모의 파일)`) · 관찰 일수 = 운영 설정(`live_dry_run_observation_trading_days`).
+// 🆕 리뷰 3차 H2-02(설계 13 §8 R265 · 미결 231 ⓑ) — S5 고름의 설정 지문 = 엔진 저장이 트랜잭션 안에서 읽는다(못 읽음 = 거부 · 쓰기 0 ·
+//    빈 지문 결정 0) · 확정의 지금 설정 = 모의 파일 개시 판(못 읽음 = 빈 글자 → 엔진 승인 관문이 거부).
 // 🔴 쓰기(`SettingsActions.run` 의 handover 4 · args = 엔진이 행에 완성한 그대로 — 꼴이 틀리면 [ArgumentError]):
 //    · S5 고름 = 모의 파일(엔진 저장 · 세션 전).
 //    · 세션 시작 = 생체 1회(런타임 · 없음 = 할 수 없음) → 엔진 사전 판정(생체 → 신뢰 시각 → 전제 → S1~S5 → 이미 세션) →
@@ -107,6 +109,9 @@ typedef KisProbeClientOf = KisRestClient Function(
   KisTokenStore tokens,
 );
 
+/// 🆕 R265 — 모의 파일의 지금 설정을 읽는 모드(모의 개시 판 — simInternal · simBroker 같은 판 · `LedgerFiles` 가 모의 파일을 여는 값).
+const RunMode _simFile = RunMode.simInternal;
+
 /// 위저드 동작 id(이 판이 받는 넷).
 const Set<SettingsActionId> kOperatorHandoverActions = <SettingsActionId>{
   SettingsActionId.handoverSimLedgerFate,
@@ -156,7 +161,7 @@ class OperatorHandover {
       throw StateError('위저드: 운영 설정(관찰 일수) 없음');
     }
     final Database sim = _rt.files.sim;
-    final OpsConfigRead cfg = currentP0sOpsConfig(sim);
+    final OpsConfigRead cfg = currentP0sOpsConfig(sim, _simFile);
     final Map<String, String> accounts = cfg is OpsConfigReady
         ? cfg.config.human.accountByStrategy
         : const <String, String>{};
@@ -231,12 +236,10 @@ class OperatorHandover {
     if (fate == null) {
       throw ArgumentError.value(args['fate'], 'fate', 'KEEP · DISCARD');
     }
-    final Database sim = _rt.files.sim;
-    final OpsConfigRead cfg = currentP0sOpsConfig(sim);
     final String? code = SqliteSimLedgerFateStore(
-      sim,
+      _rt.files.sim,
       clock: _rt.clock,
-    ).choose(fate, configHash: cfg is OpsConfigReady ? cfg.configHash : '');
+    ).choose(fate);
     return _done(id, code, simLedgerFateResultText(fate, code));
   }
 
@@ -336,7 +339,7 @@ class OperatorHandover {
       epoch: leaseGate.epoch(),
       deviceId: _rt.deviceId ?? '',
     );
-    final OpsConfigRead cfg = currentP0sOpsConfig(sim);
+    final OpsConfigRead cfg = currentP0sOpsConfig(sim, _simFile);
     final String configHash = cfg is OpsConfigReady ? cfg.configHash : '';
     // 🆕 R192 — 승인 판(승인 기록과 맞는 것만) = 지금 설정이어야 한다(SAF-405 · 없음 = `…_CONFIG_NOT_APPROVED`).
     final SimToAutoCarry carry = readSimToAutoCarry(sim);

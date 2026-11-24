@@ -1,4 +1,6 @@
 // 🆕 E15e2 — M1-22 승격 커밋 쓰기(실전 파일 · 한 트랜잭션 · 설계 13 §8 R91 AD2~AD6).
+// 🆕 리뷰 3차 H2-02(R265) — 승격 결정의 설정 지문 = 저장이 읽는 실전 개시 판(커밋이 쓰는 `OPENING_BALANCE` 행 꼴 그대로 심는다 ·
+//    커밋 → 잡 → 관찰 끝까지 = 앱 `operator_handover_test` A-1) · 못 읽음 = 거부 · 쓰기 0.
 
 import 'dart:io';
 
@@ -11,6 +13,9 @@ import 'package:core_engine/core_engine.dart'
         LiveObservationConfig,
         LivePromotionCodes,
         Market,
+        P0sHumanInputs,
+        P0sOpsConfig,
+        P0sStrategyIds,
         frozenExchangeCalendar,
         kLivePromotionReason,
         kLivePromotionReasonCode;
@@ -46,11 +51,22 @@ int _count(Database db, String table, [String where = '1=1']) =>
     db.select('SELECT COUNT(*) AS n FROM $table WHERE $where').first['n']!
         as int;
 
+const Map<String, String> _accounts = <String, String>{
+  P0sStrategyIds.sleeveA: 'general',
+  P0sStrategyIds.sleeveB: 'pension',
+  P0sStrategyIds.sleeveC: 'general',
+  P0sStrategyIds.pot: 'general',
+};
+
 void main() {
   late Directory dir;
   late Database live;
   late Database sim;
   late _Clock clock;
+  late String liveHash;
+
+  int promotions() =>
+      _count(live, 'decision_log', "reason_code = '$kLivePromotionReasonCode'");
 
   SqliteModeStore modes() =>
       SqliteModeStore(live, LedgerFile.live, clock: clock);
@@ -93,6 +109,18 @@ void main() {
       'INSERT INTO onboarding_choice (id, operating_mode, chosen_at, committed_at) VALUES (1, ?, ?, ?)',
       <Object?>[OperatingMode.autoTrade.wire, _iso(_commit), _iso(_commit)],
     );
+    // 🆕 R265 — 실전 개시 결정(커밋이 쓰는 꼴 · 승인 판을 붙인다) + 그 판.
+    liveHash = SqliteConfigVersionStore(live, clock: clock).register(
+      P0sOpsConfig.of(
+        P0sHumanInputs(aSymbol: '229200', accountByStrategy: _accounts),
+      ).content(),
+    );
+    live.execute(
+      'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, '
+      "reason_code, config_hash) VALUES ('OPEN-LIVE', ?, '2027-01-12', 'LIVE', 'MANUAL', 'P0S', '실전 개시', "
+      "'OPENING_BALANCE', ?)",
+      <Object?>[_iso(_commit), liveHash],
+    );
     await cleanDay('2027-01-13');
     await cleanDay('2027-01-14');
     clock.at = _promoteAt;
@@ -110,7 +138,6 @@ void main() {
     LeaseVerdict lease = LeaseVerdict.valid,
   }) => SqliteLivePromotionStore(live, clock: clock).promote(
     biometricConfirmed: bio,
-    configHash: 'cfg-ops-1',
     kr: _kr,
     config: LiveObservationConfig(requiredTradingDays: 2),
     lease: lease,
@@ -118,7 +145,7 @@ void main() {
   );
 
   void nothingWritten() {
-    expect(_count(live, 'decision_log'), 0);
+    expect(promotions(), 0);
     expect(_count(live, 'mode_transition'), 1);
     expect(modes().current()!.execPolicy, ExecPolicy.dryRun);
   }
@@ -148,7 +175,10 @@ void main() {
     expect(o.ok, isTrue);
     expect(o.decisionId, 'PROMOTE-20270114-180000');
     expect(o.headline, '실전 집행으로 올렸습니다 — 다음 회차부터 실제 주문을 냅니다.');
-    final Row d = live.select('SELECT * FROM decision_log').single;
+    final Row d = live.select(
+      'SELECT * FROM decision_log WHERE reason_code = ?',
+      <Object?>[kLivePromotionReasonCode],
+    ).single;
     expect(
       <Object?>[
         d['decision_id'],
@@ -170,7 +200,7 @@ void main() {
         'P0S',
         kLivePromotionReason,
         kLivePromotionReasonCode,
-        'cfg-ops-1',
+        liveHash,
       ],
     );
     final Row m = live
@@ -201,7 +231,7 @@ void main() {
     clock.at = _promoteAt.add(const Duration(minutes: 1));
     final LivePromotionOutcome again = promote();
     expect(again.reasonCode, LivePromotionCodes.notObserving);
-    expect(_count(live, 'decision_log'), 1);
+    expect(promotions(), 1);
     expect(_count(live, 'mode_transition'), 2);
   });
 
@@ -216,6 +246,40 @@ void main() {
         expect(o.headline, '이 기기의 발주권(리스)을 확인할 수 없어 올리지 않았습니다.');
         nothingWritten();
       }
+    });
+
+    test('🆕 리뷰 3차 H2-02(R265) — 실전 개시 판을 못 읽음 = CONFIG_UNAVAILABLE · 쓰기 0 · 리스 거부 뒤 · 관찰 재판정 앞', () {
+      void unavailable({String? because}) {
+        final LivePromotionOutcome o = promote();
+        expect(
+          o.reasonCode,
+          LivePromotionCodes.configUnavailable,
+          reason: because,
+        );
+        expect(o.headline, startsWith('지금 운영 설정을 읽지 못해 올리지 않았습니다'));
+        nothingWritten();
+      }
+
+      // 판이 바뀜(SPEC 판 칸이 맞지 않음) = DRIFT → 거부.
+      live.execute(
+        "UPDATE config_versions SET content = replace(content, '\"spec\":', '\"spec_old\":')",
+      );
+      unavailable(because: '내용 꼴 오류');
+      // 무결 하루(관찰 부족)여도 설정 사유가 먼저 — «일수 부족»이 진짜 사유를 가리지 않는다.
+      clock.at = _k('2027-01-13', 18);
+      unavailable(because: '관찰 부족보다 먼저');
+      // 리스 거부가 먼저(판정 차례).
+      expect(promote(lease: LeaseVerdict.unknown).reasonCode, 'LEASE_INVALID');
+      clock.at = _promoteAt;
+      // 판 미등재.
+      live.execute('DELETE FROM config_versions');
+      unavailable(because: '미등재');
+      // 실전 개시 없음 · 모의 개시 행만 = 개시 없음(다른 원장 판을 빌리지 않는다).
+      live.execute(
+        "UPDATE decision_log SET reason_code = 'SIM_OPENING_BALANCE' WHERE decision_id = 'OPEN-LIVE'",
+      );
+      unavailable(because: '모의 개시 행만');
+      expect(modes().current()!.execPolicy, ExecPolicy.dryRun);
     });
 
     test('생체 없음', () {
@@ -323,7 +387,7 @@ void main() {
     final LivePromotionOutcome o = promote();
     expect(o.reasonCode, LivePromotionCodes.rolledBack);
     expect(o.headline, '실전 집행으로 올리지 못했습니다 — 바뀐 것은 없습니다. 다시 시도해 주세요.');
-    expect(_count(live, 'decision_log'), 1);
+    expect(_count(live, 'decision_log'), 2, reason: '개시 + 미리 넣은 충돌 행');
     expect(_count(live, 'mode_transition'), 1);
     expect(modes().current()!.execPolicy, ExecPolicy.dryRun);
   });
@@ -333,7 +397,10 @@ void main() {
     final LivePromotionOutcome o = promote();
     expect(o.decisionId, 'PROMOTE-20270115-080000');
     expect(
-      live.select('SELECT trade_date FROM decision_log').single['trade_date'],
+      live.select(
+        'SELECT trade_date FROM decision_log WHERE reason_code = ?',
+        <Object?>[kLivePromotionReasonCode],
+      ).single['trade_date'],
       '2027-01-15',
     );
   });

@@ -731,6 +731,32 @@ void main() {
     expect(got, isEmpty);
   });
 
+  test('🆕 리뷰 3차 A-1(R265) — 실전 원장 화면 = S04 배분 · S03 매핑 = 실전 개시 판(모의 원장 판 0 · «개시 없음» 오류 0)', () async {
+    final P0sOpsConfig cfg = P0sOpsConfig.of(
+      P0sHumanInputs(aSymbol: '999990', accountByStrategy: s04Accounts),
+    );
+    final Database live = writeLiveMode(tempLedgerDir(), clock);
+    addTearDown(live.close);
+    writeLiveOpening(live, clock, cfg);
+    rt.view.value = viewOf(live, run: RunMode.live);
+    final OperatorSettingsRepository r = OperatorSettingsRepository(rt);
+    expect(
+      await r.allocationEditor(),
+      allocationEditorVmOfConfig(cfg, nowUtc: clock.nowUtc()),
+    );
+    final AccountMappingVm vm = await r.accountMapping();
+    expect(
+      vm.mappings.map((SleeveMappingRow m) => m.statusLine),
+      isNot(contains('미지정 — 이 슬리브의 주문은 내지 않습니다.')),
+    );
+    // 같은 실전 원장을 모의 모드로 = 모의 개시 없음(실전 판을 빌리지 않는다).
+    rt.view.value = viewOf(live);
+    await expectLater(
+      r.allocationEditor(),
+      throwsA(isA<OpsConfigUnavailable>()),
+    );
+  });
+
   test('🔴 S04 — 화면 상태 없음(온보딩 전) = 오류 · 값 0', () async {
     final OperatorSettingsRepository r = OperatorSettingsRepository(rt);
     await expectLater(r.allocationEditor(), throwsA(isA<StateError>()));

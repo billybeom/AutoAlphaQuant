@@ -387,12 +387,17 @@ void main() {
     expect(got.last.cards[2].rows.single.symbol, '0085P0');
   });
 
-  test('🔴 모의 밖 = 원천 없음 · 화면 상태 없음 = 오류(지어내지 않는다)', () async {
+  test('🔴 모의 밖 = 원천 없음 · 화면 상태 없음 = 오류(지어내지 않는다) · 🆕 R265 모의 파일을 실전 모드로 = 실전 개시 없음', () async {
     open();
     hold(P0sStrategyIds.sleeveB, '133690', 1, 'D-B');
     await expectLater(
-      repo(rt(mode: RunMode.live)).watchHoldingsOverview(),
+      repo(rt(mode: RunMode.simBroker)).watchHoldingsOverview(),
       emitsError(isA<HoldingsSourceUnavailable>()),
+    );
+    // 🆕 R265 — 실전 모드는 실전 개시 판만 본다(모의 판을 빌리지 않는다).
+    await expectLater(
+      repo(rt(mode: RunMode.live)).watchHoldingsOverview(),
+      emitsError(isA<OpsConfigUnavailable>()),
     );
     final OperatorRuntime none = OperatorRuntime(files: files, clock: clock);
     await expectLater(

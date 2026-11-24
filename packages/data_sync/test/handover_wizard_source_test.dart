@@ -25,6 +25,8 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
+import 'support/ops_config_seed.dart';
+
 class _Clock implements Clock {
   _Clock(this.at);
   DateTime at;
@@ -81,7 +83,7 @@ void main() {
     hash = SqliteConfigVersionStore(
       sim,
       clock: clock,
-    ).register(<String, Object?>{'p0s': true, 'v': 1});
+    ).register(seedP0sConfigContent());
   });
 
   tearDown(() {
@@ -192,11 +194,9 @@ void main() {
 
   test('S5 고름 = 모의 파일 최신 행 · 킬스위치 · 차단 플래그(DST 제외) = 판정 입력', () {
     simStarted();
+    seedOpening(sim, RunMode.simInternal, clock: clock, hash: hash);
     expect(
-      SqliteSimLedgerFateStore(
-        sim,
-        clock: clock,
-      ).choose(SimLedgerFate.discard, configHash: hash),
+      SqliteSimLedgerFateStore(sim, clock: clock).choose(SimLedgerFate.discard),
       isNull,
     );
     sim.execute(

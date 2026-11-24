@@ -216,7 +216,7 @@ class OperatorSettingsRepository implements SettingsRepository {
     if (v == null) {
       throw StateError('계좌: 화면 상태 없음(온보딩 전)');
     }
-    final OpsConfigRead cfg = currentP0sOpsConfig(v.db);
+    final OpsConfigRead cfg = currentP0sOpsConfig(v.db, v.flags.runMode);
     return accountMappingVmOf(
       AccountMappingFacts(
         paper: await paperAccount(),
@@ -241,7 +241,7 @@ class OperatorSettingsRepository implements SettingsRepository {
     if (v == null) {
       throw StateError('배분: 화면 상태 없음(온보딩 전)');
     }
-    final OpsConfigRead cfg = currentP0sOpsConfig(v.db);
+    final OpsConfigRead cfg = currentP0sOpsConfig(v.db, v.flags.runMode);
     return switch (cfg) {
       OpsConfigReady(:final config) => allocationEditorVmOfConfig(
         config,

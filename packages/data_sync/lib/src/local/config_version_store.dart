@@ -8,11 +8,11 @@
 
 import 'package:core_engine/core_engine.dart'
     show canonicalConfigJson, configFingerprint;
-import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, DecisionReasonCodes, RunMode;
+import 'package:domain_contracts/domain_contracts.dart' show Clock, RunMode;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
+import 'ops_config_source.dart' show openingConfigHashOf;
 
 /// 설정 판 저장.
 class SqliteConfigVersionStore {
@@ -60,18 +60,11 @@ class SqliteConfigVersionStore {
 /// 🔴 live = 실전 개시 결정(`OPENING_BALANCE` — simToAuto 커밋이 승인 config 를 옮겨 붙인 판) · 그 밖 = 모의 개시
 /// (`SIM_OPENING_BALANCE` — 모의는 SAF-405 무관). 실전에서 규칙 변경이 새 판을 승인하면 개시 판은 0 이 되어 기동이
 /// 멈춘다(자동 적용 0 — 새 판으로 도는 길 = M9 «적용» · 그 전엔 미승인 설정으로 돌지 않는다).
+///
+/// 🆕 R265(리뷰 3차 A-1) — 개시 판 고르기 = `openingConfigHashOf`(지금 설정 `currentP0sOpsConfig` 와 한 원천).
 int? startupConfigApprovalOf(Database db, RunMode mode) {
-  final Row? opening = db.select(
-    "SELECT config_hash FROM decision_log WHERE kind = 'MANUAL' AND reason_code = ? "
-    'ORDER BY created_at LIMIT 1',
-    <Object?>[
-      mode == RunMode.live
-          ? DecisionReasonCodes.openingBalance
-          : DecisionReasonCodes.simOpeningBalance,
-    ],
-  ).firstOrNull;
-  final String? hash = opening?['config_hash'] as String?;
-  if (hash == null || hash.isEmpty) return null;
+  final String? hash = openingConfigHashOf(db, mode);
+  if (hash == null) return null;
   return db.select(
         'SELECT approved FROM config_versions WHERE config_hash = ?',
         <Object?>[hash],

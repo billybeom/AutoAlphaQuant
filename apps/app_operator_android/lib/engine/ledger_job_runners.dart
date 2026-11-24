@@ -1,8 +1,9 @@
 // 사람 값이 드는 잡 실물(E11p3c-2 · 설계 13 §8 R99 · 06 M1-28 · R47 F3 · F6~F9 · R48 · R49) —
 // `daily_data` · `equity_snapshot` · `seasonal_a` · `monthly_rebalance`.
 //
-// 🔴 사람 값(A 종목 · 계좌 넷) = 지금 설정(`currentP0sOpsConfig` — 모의 개시 판 · 다시 지은 지문 대조). 못 얻으면 회차 실패
-//    (`OpsConfigUnavailable` · FAILED + fail 핑) — 지어내지 않는다.
+// 🔴 사람 값(A 종목 · 계좌 넷) = 지금 설정(`currentP0sOpsConfig` — 이 원장 모드의 개시 판 · 다시 지은 지문 대조). 못 얻으면 회차
+//    실패(`OpsConfigUnavailable` · FAILED + fail 핑) — 지어내지 않는다.
+//    🆕 리뷰 3차 A-1(R265 · 미결 231 ⓐ) — live = 실전 개시 판(simToAuto 커밋이 쓴 `OPENING_BALANCE`) · 모의 = 모의 개시 판.
 // 🔴 현금 = 계좌 별칭마다 브로커 하나. simInternal = 엔진 내부 가상 체결(`SimInternalBroker` · 그 계좌 `cash_flow` 합 · R83).
 //    🆕 R207 live = 계좌마다 KIS 브로커(별칭 → 세트 · 처음 쓸 때 만든다). simBroker 의 현금(KIS 모의 계좌)은 아직
 //    `JobNotAssembled`(조용히 0원으로 돌지 않는다).
@@ -55,9 +56,9 @@ import 'data_job_runners.dart' show JobParts;
 import 'job_runners.dart'
     show JobContext, JobNotAssembled, JobRunner, runOccurrence;
 
-/// 🔴 지금 설정 — 못 얻으면 그 사유를 던진다(회차 실패).
+/// 🔴 지금 설정(잡 원장 · 잡 모드의 개시 판) — 못 얻으면 그 사유를 던진다(회차 실패).
 P0sOpsConfig opsConfigOf(JobContext c) {
-  final OpsConfigRead r = currentP0sOpsConfig(c.db);
+  final OpsConfigRead r = currentP0sOpsConfig(c.db, c.runMode);
   switch (r) {
     case OpsConfigReady(config: final P0sOpsConfig cfg):
       return cfg;

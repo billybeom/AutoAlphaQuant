@@ -4,6 +4,8 @@
 // 🔴 한 트랜잭션 = 관찰 재판정 + 사전 판정(core `livePromotionReject`) + `decision_log` MANUAL + `mode_transition`
 //    EXEC_POLICY · 실패 = 전부 되돌림(`LIVE_PROMOTION_ROLLED_BACK`).
 // 🔴 생체는 엔진 밖(호출자 증명) · 자동 승격 0 · 알림 0(AD6) · 세션 닫기는 세션 주인(E15f).
+// 🆕 리뷰 3차 H2-02(미결 231 ⓑ · 설계 13 §8 R265) — 승격 결정의 설정 지문 = 이 트랜잭션 안에서 읽은 실전 파일의 지금 설정
+//    (`currentP0sOpsConfig(live)` · 호출자가 넘기지 않는다) · 못 읽음 = `LIVE_PROMOTION_CONFIG_UNAVAILABLE`(쓰기 0 · 빈 지문 결정 0).
 
 import 'package:core_engine/core_engine.dart'
     show
@@ -28,6 +30,8 @@ import 'package:sqlite3/sqlite3.dart';
 import '../market/market_store.dart' show inLedgerTransaction;
 import 'live_observation_facts.dart' show SqliteLiveObservationFacts;
 import 'mode_store.dart' show ModeAxis, SqliteModeStore;
+import 'ops_config_source.dart'
+    show OpsConfigRead, OpsConfigReady, currentP0sOpsConfig;
 
 final RegExp _offset = RegExp(r'(Z|[+-]\d\d:?\d\d)$');
 
@@ -82,10 +86,10 @@ class SqliteLivePromotionStore {
   }
 
   /// 🔴 승격(AD4 · AD5) — [biometricConfirmed] = 호출자(M5 게이트 대화상자)의 생체 1회 증명 ·
-  /// 🆕 E15f5(R108 AM4) [lease] = 실전 파일 리스 판정(async 라 트랜잭션 앞에서 읽어 넘긴다 · 모름 = 거부).
+  /// 🆕 E15f5(R108 AM4) [lease] = 실전 파일 리스 판정(async 라 트랜잭션 앞에서 읽어 넘긴다 · 모름 = 거부) ·
+  /// 🆕 R265(H2-02) 설정 지문 = 트랜잭션 안에서 읽은 실전 개시 판(못 읽음 = 거부 · 쓰기 0).
   LivePromotionOutcome promote({
     required bool biometricConfirmed,
-    required String configHash,
     required ExchangeCalendar kr,
     required LiveObservationConfig config,
     required LeaseVerdict lease,
@@ -104,6 +108,7 @@ class SqliteLivePromotionStore {
           config: config,
         );
         report = r;
+        final OpsConfigRead cfg = currentP0sOpsConfig(_db, RunMode.live);
         code = livePromotionReject(
           biometricConfirmed: biometricConfirmed,
           sessionValid: handoverSessionId == null
@@ -115,9 +120,12 @@ class SqliteLivePromotionStore {
           currentSinceUtc: f.currentSinceUtc,
           nowUtc: now,
           lease: lease,
+          configReadable: cfg is OpsConfigReady,
           report: r,
         );
         if (code != null) return;
+        // 사전 판정 통과 = 설정을 읽었다(`configReadable`).
+        final String configHash = (cfg as OpsConfigReady).configHash;
         final String id = livePromotionDecisionId(now);
         _db.execute(
           'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, '

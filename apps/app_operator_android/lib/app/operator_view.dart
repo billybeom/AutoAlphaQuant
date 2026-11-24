@@ -4,7 +4,7 @@
 //    아직 모른다(null — 셸은 플래그를 기다린다 · 첫 실행 판정 = M4-11 ② 뒤 조각).
 // 🔴 엔진과 화면은 **같은 연결**을 쓴다(`LedgerFiles` 하나) — 읽기 모델의 갱신(`db.updates`)은 같은 연결의 쓰기만 본다.
 // 🔵 플래그 고정값(R104): 위성 = 꺼짐(P0S 정본 v2.31 = 위성 0) · 웹 뷰어 = 꺼짐(Q-D 미결) · 캘린더 = 꺼짐(X4 미구현) ·
-//    설정 지문 = 지금 설정(모의 개시 판 · R99) — 못 얻으면 빈 글자(지어내지 않는다).
+//    설정 지문 = 지금 설정(그 원장 모드의 개시 판 · R99 · 🆕 R265 live = 실전 개시 판) — 못 얻으면 빈 글자(지어내지 않는다).
 
 import 'package:data_sync/data_sync.dart'
     show OpsConfigRead, OpsConfigReady, currentP0sOpsConfig;
@@ -73,7 +73,7 @@ OperatorView _view(
   Set<String> holds = const <String>{},
   List<String> rejected = const <String>[],
 }) {
-  final OpsConfigRead cfg = currentP0sOpsConfig(db);
+  final OpsConfigRead cfg = currentP0sOpsConfig(db, runMode);
   return OperatorView(
     db: db,
     holds: Set<String>.unmodifiable(holds),

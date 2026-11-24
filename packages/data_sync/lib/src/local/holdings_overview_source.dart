@@ -11,7 +11,10 @@
 // 🔴 B 트랜치 = 기준일까지 달마다 마지막 종가(`close` · 월말 잡과 같은 열) → 월말 계획기 함수 · 다음 판정일 = 다음 정기
 //    리밸런싱 판정일(KR 달력).
 // 🔴 가림 = 서 있는 차단 — `LEDGER_INTEGRITY` = «숨김» · `RECON_MISMATCH` = «?» · 🆕 E11q-q6 `L-3` 실사 세션(그 폰) = «숨김».
-// 🔴 계좌 = 확정 운영 설정(`currentP0sOpsConfig` — 잡이 현금을 셀 때 쓰는 그 별칭) · 표시 이름 = 사람 결정 표(없으면 별칭 그대로).
+// 🔴 계좌 = 확정 운영 설정(`currentP0sOpsConfig` — 잡이 현금을 셀 때 쓰는 그 별칭 · 🆕 R265 이 원장의 모드로) · 표시 이름 = 사람
+//    결정 표(없으면 별칭 그대로).
+// 🆕 리뷰 3차 E-1(미결 231 ⓒ · 설계 13 §8 R265 · K206) — 보유 0 의 H6-3 배분이 «개시 전» 빈 상태가 되는 것은 개시 결정이 없을
+//    때(`OPS_CONFIG_NO_OPENING`) 하나뿐 — 판이 바뀜 · 미등재 · 내용 꼴 오류는 그 사유를 던진다(읽은 것처럼 보이지 않는다).
 
 import 'package:core_engine/core_engine.dart'
     show
@@ -43,6 +46,7 @@ import 'package:sqlite3/sqlite3.dart';
 import '../jobs/seasonal_a_job.dart' show potCashFlowsSinceLiquidation;
 import 'ops_config_source.dart'
     show
+        OpsConfigCodes,
         OpsConfigRead,
         OpsConfigReady,
         OpsConfigUnavailable,
@@ -112,11 +116,15 @@ class SqliteHoldingsOverviewSource {
   HoldingDetailVm detail(String holdingId, {bool includePnl = false}) =>
       holdingDetailVmOf(facts(), holdingId, includePnl: includePnl);
 
-  /// 🆕 R172 — H6-3 슬리브 배분 VM(보유 0 이어도 현금을 센다 · 개시 전 = 빈 상태).
+  /// 🆕 R265(리뷰 3차 A-1) — 이 원장의 지금 설정(원장 모드의 개시 판 · 리밸런싱 미리보기가 같은 원천을 쓴다).
+  OpsConfigRead currentOpsConfig() => currentP0sOpsConfig(_db, _runMode);
+
+  /// 🆕 R172 — H6-3 슬리브 배분 VM(보유 0 이어도 현금을 센다 · 개시 전 = 빈 상태 · 🆕 R265 그 밖 설정 못 읽음 = 그 사유를 던진다).
   SleeveAllocationVm allocation() =>
       sleeveAllocationVmOf(facts(needCash: true));
 
-  /// 엔진 사실 — [needCash] = 보유가 없어도 현금을 센다(H6-3 · 개시 설정이 있을 때만 · 없으면 0 = 개시 전).
+  /// 엔진 사실 — [needCash] = 보유가 없어도 현금을 센다(H6-3 · 개시 설정이 있을 때만 · 개시 결정 없음 = 0 = 개시 전 ·
+  /// 🆕 R265 그 밖 설정 못 읽음 = [OpsConfigUnavailable]).
   HoldingsOverviewFacts facts({bool needCash = false}) {
     final DateTime now = _clock.nowUtc();
     final TradeDate today = TradeDate(kstDateText(now));
@@ -180,9 +188,11 @@ class SqliteHoldingsOverviewSource {
       (r['strategy_id'] as String, r['symbol'] as String): r['n'] as int,
   };
 
-  P0sOpsConfig? _opsConfigOrNull() => switch (currentP0sOpsConfig(_db)) {
+  /// 🔴 R265(E-1) — null = 개시 결정 없음(개시 전) 하나뿐 · 판이 바뀜 · 미등재 · 꼴 오류 = 던진다(K206).
+  P0sOpsConfig? _opsConfigOrNull() => switch (currentOpsConfig()) {
     OpsConfigReady(config: final P0sOpsConfig cfg) => cfg,
-    OpsConfigUnavailable() => null,
+    OpsConfigUnavailable(code: OpsConfigCodes.noOpening) => null,
+    final OpsConfigUnavailable u => throw u,
   };
 
   List<HoldingPositionFact> _positions() => <HoldingPositionFact>[
@@ -215,7 +225,7 @@ class SqliteHoldingsOverviewSource {
   ];
 
   P0sOpsConfig _opsConfig() {
-    final OpsConfigRead r = currentP0sOpsConfig(_db);
+    final OpsConfigRead r = currentOpsConfig();
     switch (r) {
       case OpsConfigReady(config: final P0sOpsConfig cfg):
         return cfg;

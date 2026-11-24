@@ -93,6 +93,12 @@ abstract final class SimToAutoCommitCodes {
   /// 닫힌 모의 파일에는 S5 고름을 적지 않는다.
   static const String simClosed = 'SIM_LEDGER_FATE_SIM_CLOSED';
 
+  /// 🆕 리뷰 3차 H2-02(미결 231 ⓑ · 설계 13 §8 R265) — 모의 파일의 지금 설정(모의 개시 판)을 못 읽어 S5 고름을 적지 않는다
+  /// (빈 지문으로 결정을 남기지 않는다 · 쓰기 0).
+  /// 🔵 엔진 안 예약 — 계약 등재(`settings_actions` S5 결과 코드 목록) = 다음 계약 창 · 그 전 화면 = headline 만.
+  static const String fateConfigUnavailable =
+      'SIM_LEDGER_FATE_CONFIG_UNAVAILABLE';
+
   /// 🆕 미결 205 ⓓ(설계 13 §8 R192 · 01 §35 K177) — 지금 설정(실전 개시에 붙일 판)이 규칙 변경 승인을 받지 않았다
   /// (모의 파일 승인 config 0 · 승인 기록 없음 · 다른 판이 승인됨).
   /// 🔵 엔진 안 예약 — 계약 `SimToAutoCommitResultCodes` 등재 = 다음 계약 창(1.27.0+) · 그 전 화면 = headline 만.

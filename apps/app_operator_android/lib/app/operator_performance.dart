@@ -86,9 +86,14 @@ class OperatorPerformanceRepository implements PerformanceRepository {
   SqlitePerformanceSource _src(OperatorView v) =>
       SqlitePerformanceSource(v.db, clock: _rt.clock);
 
+  /// 🆕 R265(리뷰 3차 A-1) — 연간 리뷰 판 지문 = 화면이 읽는 원장의 개시 판(그 원장 모드로 · 화면 상태 없음 = 모의 파일).
   @override
   Future<AnnualReviewVm> annualReview({String? year}) async {
-    final OpsConfigRead cfg = currentP0sOpsConfig(_rt.files.sim);
+    final OperatorView? v = _rt.view.value;
+    final OpsConfigRead cfg = currentP0sOpsConfig(
+      v?.db ?? _rt.files.sim,
+      v?.flags.runMode ?? RunMode.simInternal,
+    );
     return annualReviewVmOf(
       trustedNowUtc: _rt.trusted.trustedNowUtc(),
       nowUtc: _rt.clock.nowUtc(),
@@ -128,8 +133,8 @@ class OperatorPerformanceRepository implements PerformanceRepository {
     if (v.flags.operatingMode != OperatingMode.autoTrade) {
       throw UnsupportedError('월간 리포트: 안내 모드 = 원천 없음(X7 신뢰 등급 사다리 · 이행 갭 조각 전)');
     }
-    final OpsConfigRead cfg = currentP0sOpsConfig(v.db);
     final RunMode mode = v.flags.runMode;
+    final OpsConfigRead cfg = currentP0sOpsConfig(v.db, mode);
     return SqliteMonthlyReportSource(
       v.db,
       mode: mode,

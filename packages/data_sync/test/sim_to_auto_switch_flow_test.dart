@@ -39,6 +39,8 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
+import 'support/ops_config_seed.dart';
+
 class _Clock implements Clock {
   _Clock(this.at);
   DateTime at;
@@ -119,7 +121,9 @@ String _seedApproval(Database sim, _Clock clock, _Trusted trusted) {
   final String hash = SqliteConfigVersionStore(
     sim,
     clock: clock,
-  ).register(<String, Object?>{'spec': 'r189-flow'});
+  ).register(seedP0sConfigContent());
+  // 🆕 R265 — 모의 개시 판 = 승인 판(S5 고름 · 확정의 «지금 설정»).
+  seedOpening(sim, RunMode.simInternal, clock: clock, hash: hash);
   trusted.at = _k('2026-11-25', 9);
   expect(
     SqlitePledgeStore(sim, clock: clock, trusted: trusted)
@@ -202,10 +206,7 @@ void main() {
       decisionId: 'D-SIM',
     );
     expect(
-      SqliteSimLedgerFateStore(
-        sim,
-        clock: clock,
-      ).choose(SimLedgerFate.keep, configHash: 'c'),
+      SqliteSimLedgerFateStore(sim, clock: clock).choose(SimLedgerFate.keep),
       isNull,
     );
     final HandoverSessionOutcome o =
@@ -316,7 +317,7 @@ void main() {
         SqliteSimLedgerFateStore(
           sim,
           clock: clock,
-        ).choose(SimLedgerFate.discard, configHash: approvedHash),
+        ).choose(SimLedgerFate.discard),
         isNull,
       );
       final SimToAutoSwitchResult x = await run();

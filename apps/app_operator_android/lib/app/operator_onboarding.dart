@@ -53,6 +53,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         OnboardingStepsVm,
         OnboardingTrack,
         RestartVm,
+        RunMode,
         StepState;
 import 'package:sqlite3/sqlite3.dart' show Database;
 
@@ -272,7 +273,8 @@ class OperatorOnboardingRepository implements OnboardingRepository {
     );
     final OnboardingChoice? c = store.choice();
     if (c == null) throw StateError('마무리: 운영 방식을 먼저 고르십시오');
-    final OpsConfigRead cfg = currentP0sOpsConfig(_db);
+    // 온보딩 = 모의 파일 → 모의 개시 판(🆕 R265 모드를 밝힌다).
+    final OpsConfigRead cfg = currentP0sOpsConfig(_db, RunMode.simInternal);
     // 🆕 E11k-e3(R229) — ⑤ 복구 카드 = 첫 클레임 흐름(없음 = 원천 없음 · 카드 줄 = 열렸을 때만 엔진이 부른다 — 그때 발급).
     final SupabaseFirstClaim? claim = _rt.firstClaim;
     final RecoveryCardFact? card = claim?.fact();

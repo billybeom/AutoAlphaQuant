@@ -36,8 +36,7 @@ import '../market/market_store.dart' show PriceBar, SqliteMarketStore;
 import 'deposit_ledger.dart' show SqliteDepositLedger;
 import 'holdings_overview_source.dart' show SqliteHoldingsOverviewSource;
 import 'journal_source.dart' show journalIntentIdsByEvent;
-import 'ops_config_source.dart'
-    show OpsConfigReady, OpsConfigUnavailable, currentP0sOpsConfig;
+import 'ops_config_source.dart' show OpsConfigReady, OpsConfigUnavailable;
 import 'resume_status.dart' show SqliteResumeStatus;
 
 /// 리밸런싱 읽기(동기 — 화면 흐름이 원장 변경 · 주기마다 다시 부른다) · 미리보기 상태.
@@ -92,9 +91,10 @@ class SqliteRebalanceSource {
     config: _config,
   );
 
-  /// 미리보기 상태(월말 잡과 같은 입력) — 개시 전(운영 설정 없음) = [OpsConfigUnavailable].
+  /// 미리보기 상태(월말 잡과 같은 입력) — 개시 전(운영 설정 없음) = [OpsConfigUnavailable] ·
+  /// 🆕 R265(리뷰 3차 A-1) 설정 = 보유 원천과 같은 원장 · 같은 모드(실전 원장 = 실전 개시 판).
   WhatIfState whatIfState() {
-    final P0sOpsConfig cfg = switch (currentP0sOpsConfig(_db)) {
+    final P0sOpsConfig cfg = switch (_holdings.currentOpsConfig()) {
       OpsConfigReady(config: final P0sOpsConfig c) => c,
       final OpsConfigUnavailable u => throw u,
     };

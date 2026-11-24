@@ -4,11 +4,23 @@ import 'dart:io';
 
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:core_engine/core_engine.dart'
-    show JobHeartbeat, Market, PingStatus, frozenExchangeCalendar;
+    show
+        JobHeartbeat,
+        Market,
+        P0sOpsConfig,
+        PingStatus,
+        frozenExchangeCalendar,
+        kstDateText;
 import 'package:data_sync/data_sync.dart'
-    show ModeAxis, SqliteModeStore, openLocalLedger;
+    show ModeAxis, SqliteConfigVersionStore, SqliteModeStore, openLocalLedger;
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, ExecPolicy, LedgerFile, OperatingMode, RunMode;
+    show
+        Clock,
+        DecisionReasonCodes,
+        ExecPolicy,
+        LedgerFile,
+        OperatingMode,
+        RunMode;
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:trading_runtime/trading_runtime.dart' show JobCalendars;
 
@@ -134,4 +146,29 @@ Database writeLiveMode(Directory dir, Clock clock) {
     ],
   );
   return live;
+}
+
+/// 🆕 리뷰 3차 A-1(R265) — live 파일에 실전 개시 결정(`OPENING_BALANCE`) + 그 판(승인 1)을 쓴다(simToAuto 커밋이 쓰는 꼴 ·
+/// [writeLiveMode] 와 함께 = 커밋의 live 몫 흉내) → 판 지문. 🔴 커밋 → 잡 끝까지 = `operator_handover_test` A-1(실물 커밋).
+String writeLiveOpening(Database live, Clock clock, P0sOpsConfig config) {
+  final String hash = SqliteConfigVersionStore(
+    live,
+    clock: clock,
+  ).register(config.content());
+  live.execute(
+    'UPDATE config_versions SET approved = 1 WHERE config_hash = ?',
+    <Object?>[hash],
+  );
+  final DateTime now = clock.nowUtc().toUtc();
+  live.execute(
+    'INSERT INTO decision_log (decision_id, created_at, trade_date, mode, kind, strategy_id, reason, '
+    "reason_code, config_hash) VALUES ('LIVEOPEN-TEST', ?, ?, 'LIVE', 'MANUAL', 'P0S', '실전 개시(시험)', ?, ?)",
+    <Object?>[
+      now.toIso8601String(),
+      kstDateText(now),
+      DecisionReasonCodes.openingBalance,
+      hash,
+    ],
+  );
+  return hash;
 }

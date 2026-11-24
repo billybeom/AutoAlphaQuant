@@ -30,7 +30,7 @@ Future<Set<String>?> operatorFreshReconIds({
   required TradeDate tradeDate,
 }) async {
   try {
-    final OpsConfigRead r = currentP0sOpsConfig(db);
+    final OpsConfigRead r = currentP0sOpsConfig(db, runMode);
     if (r is! OpsConfigReady) return null;
     final Map<String, AccountBroker> brokers = cashBrokersFor(
       db: db,

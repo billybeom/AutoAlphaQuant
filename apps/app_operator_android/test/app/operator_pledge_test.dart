@@ -6,12 +6,15 @@ import 'dart:math';
 import 'package:app_operator_android/app/operator_onboarding.dart';
 import 'package:app_operator_android/app/operator_pledge.dart';
 import 'package:app_operator_android/app/operator_runtime.dart';
+import 'package:app_operator_android/app/operator_view.dart';
 import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:core_engine/core_engine.dart'
     show PledgeCodes, PledgeResultTexts, TrustedClock, pledgeSubmissionDigest;
-import 'package:data_sync/data_sync.dart' show SqliteOnboardingStore;
+import 'package:data_sync/data_sync.dart'
+    show SqliteOnboardingStore, SqlitePledgeStore;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../engine/support.dart';
 
@@ -196,6 +199,63 @@ void main() {
       expect(unknown.lines, hasLength(3));
     },
   );
+  test('🆕 리뷰 3차 H1-6(미결 231 ⓓ · R265) — 서약 원장 = 화면 원장: 실전 전환 뒤 읽기 · 12월 창 편집 = 실전 파일(J-3 저널 · 판) · 모의 파일 0', () async {
+    final OperatorRuntime r = rt();
+    final OperatorSafetyActions a = OperatorSafetyActions(r, random: Random(5));
+    final List<PledgeVm> got = <PledgeVm>[];
+    final StreamSubscription<PledgeVm> sub = OperatorPledgeRepository(r)
+        .watchPledge()
+        .listen(got.add);
+    addTearDown(sub.cancel);
+    // 화면 상태 없음(온보딩 ③) = 모의 파일.
+    expect((await a.runPledge(write(_three))).reasonCode, isNull);
+    expect(pledges(), 1);
+    await until(() => got.isNotEmpty && got.last.lines.length == 3);
+    // 실전 전환 — 커밋이 서약 판을 실전 파일로 옮겼다(같은 판 · 여기서는 실전 파일에 같은 첫 판) → 화면 = 실전 원장.
+    final Database live = files.openLive();
+    expect(
+      SqlitePledgeStore(live, clock: clock, trusted: trusted)
+          .writeFirst(
+            commandId: 'carried',
+            payloadDigest: 'dg',
+            sentences: const <String>['실전 하나', '실전 둘', '실전 셋'],
+            decisionId: 'ON-1',
+          )
+          .executed,
+      isTrue,
+    );
+    r.view.value = OperatorView(
+      db: live,
+      flags: const FeatureFlags(
+        satelliteEnabled: false,
+        webViewerEnabled: false,
+        calendarEnabled: false,
+        runMode: RunMode.live,
+        operatingMode: OperatingMode.autoTrade,
+        configHash: '',
+      ),
+    );
+    await until(() => got.last.lines.first == '실전 하나');
+    // 12월 창 · J-3 저널 = 실전 파일에만.
+    trusted.at = DateTime.utc(2026, 12, 2);
+    live.execute(
+      'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, is_deviation, '
+      "rationale_before, expected_outcome, rule_cited, kind, note, created_at) VALUES ('J-LIVE', '2026-12-02', 'P0S', "
+      "'{}', '{}', 0, '근거', '기대', '03 §6-4', NULL, NULL, '2026-12-02T00:00:00.000Z')",
+    );
+    final SafetyActionResult dec = await a.runPledge(
+      const PledgeSubmission(
+        id: SafetyActionId.pledgeEdit,
+        sentences: <String>['가', '나', '다'],
+        decisionId: 'J-LIVE',
+      ),
+    );
+    expect(dec.reasonCode, isNull, reason: dec.headline);
+    expect(live.select('SELECT MAX(version) AS v FROM pledge').first['v'], 2);
+    expect(pledges(), 1, reason: '모의 파일 서약 그대로');
+    await until(() => got.last.lines.first == '가');
+  });
+
   test('🔴 O-04 ② — 서약 저장 = 마무리 ② 확인됨 · 슬롯 닫힘(같은 원장 · 실제 시간)', () async {
     expect(
       SqliteOnboardingStore(

@@ -918,6 +918,7 @@ void main() {
         currentSinceUtc: since,
         nowUtc: _kst(_d2, 18, 0),
         lease: lease,
+        configReadable: true,
         report: report,
       );
       expect(promote(LeaseVerdict.unknown), 'LEASE_INVALID');

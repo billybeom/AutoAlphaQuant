@@ -39,7 +39,8 @@ import 'package:domain_contracts/domain_contracts.dart'
         HandbookRepository,
         RunbookIndexVm,
         RunbookRepository,
-        RunbookVm;
+        RunbookVm,
+        RunMode;
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:sqlite3/sqlite3.dart' show Database;
 
@@ -79,11 +80,15 @@ class OperatorHandbookRepository implements HandbookRepository {
 
   final OperatorRuntime _rt;
 
-  /// 지금 설정 지문 — 화면이 읽는 원장의 모의 개시 판(없음 · 못 읽음 = 빈 글자).
+  /// 지금 설정 지문 — 화면이 읽는 원장의 개시 판(🆕 R265 그 원장 모드로 · 화면 상태 없음 = 모의 파일 · 없음 · 못 읽음 = 빈 글자).
   String _configHash() {
-    final Database db = _rt.view.value?.db ?? _rt.files.sim;
+    final OperatorView? v = _rt.view.value;
+    final Database db = v?.db ?? _rt.files.sim;
     try {
-      final OpsConfigRead cfg = currentP0sOpsConfig(db);
+      final OpsConfigRead cfg = currentP0sOpsConfig(
+        db,
+        v?.flags.runMode ?? RunMode.simInternal,
+      );
       return cfg is OpsConfigReady ? cfg.configHash : '';
     } on Object {
       // 문서는 원장이 망가져도 연다 — 지문 칸만 비운다(화면은 이 칸을 쓰지 않는다).
@@ -104,7 +109,7 @@ class OperatorHandbookRepository implements HandbookRepository {
     final OperatorView? v = _rt.view.value;
     if (v == null) return const <String, HandbookLiveReading>{};
     try {
-      final OpsConfigRead cfg = currentP0sOpsConfig(v.db);
+      final OpsConfigRead cfg = currentP0sOpsConfig(v.db, v.flags.runMode);
       return ledgerHandbookLiveOf(
         v.db,
         mode: v.flags.runMode,

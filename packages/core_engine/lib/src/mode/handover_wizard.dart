@@ -95,6 +95,10 @@ abstract final class HandoverWizardTexts {
   static const String fateSimClosed = '모의 파일이 이미 닫혀 고른 것을 적지 않았습니다.';
   static const String fateNotSimAuto = '모의투자 자동 매매 중일 때만 실전으로 옮길 수 있습니다.';
 
+  /// 🆕 리뷰 3차 H2-02(R265) — 지금 운영 설정을 못 읽음(쓰기 0).
+  static const String fateConfigUnavailable =
+      '지금 운영 설정을 읽지 못해 고른 것을 적지 않았습니다 — 설정 화면에서 설정을 먼저 확인하십시오.';
+
   /// 체험 항목 상태 글자.
   static String trialState(SimTrialItemState s) => switch (s) {
     SimTrialItemState.passed => '통과',
@@ -403,7 +407,8 @@ ActionResult handoverActionResultOf({
   retryable: false,
 );
 
-/// S5 고름 결과 글자 — 성공 = 고른 쪽 · `SIM_LEDGER_FATE_SIM_CLOSED` · `SIM_TO_AUTO_NOT_SIM_AUTO`.
+/// S5 고름 결과 글자 — 성공 = 고른 쪽 · `SIM_LEDGER_FATE_SIM_CLOSED` · `SIM_TO_AUTO_NOT_SIM_AUTO` ·
+/// 🆕 R265 `SIM_LEDGER_FATE_CONFIG_UNAVAILABLE`.
 String simLedgerFateResultText(SimLedgerFate fate, String? code) =>
     switch (code) {
       null =>
@@ -411,5 +416,7 @@ String simLedgerFateResultText(SimLedgerFate fate, String? code) =>
             ? HandoverWizardTexts.fateKept
             : HandoverWizardTexts.fateDiscarded,
       SimToAutoCommitCodes.simClosed => HandoverWizardTexts.fateSimClosed,
+      SimToAutoCommitCodes.fateConfigUnavailable =>
+        HandoverWizardTexts.fateConfigUnavailable,
       _ => HandoverWizardTexts.fateNotSimAuto,
     };

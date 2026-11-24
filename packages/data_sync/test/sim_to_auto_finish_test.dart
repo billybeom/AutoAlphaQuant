@@ -15,6 +15,8 @@ import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
+import 'support/ops_config_seed.dart';
+
 class _Clock implements Clock {
   _Clock(this.at);
   DateTime at;
@@ -53,10 +55,13 @@ void main() {
     decisionId: 'LIVEOPEN-20270113-110000',
   );
 
-  void choose(SimLedgerFate f) => expect(
-    SqliteSimLedgerFateStore(sim!, clock: clock).choose(f, configHash: 'c'),
-    isNull,
-  );
+  void choose(SimLedgerFate f) {
+    // 🆕 R265 — S5 고름은 모의 파일의 지금 설정(모의 개시 판)을 읽어 붙인다(못 읽음 = 거부).
+    if (openingConfigHashOf(sim!, RunMode.simInternal) == null) {
+      seedOpening(sim!, RunMode.simInternal, clock: clock);
+    }
+    expect(SqliteSimLedgerFateStore(sim!, clock: clock).choose(f), isNull);
+  }
 
   SimToAutoFinishResult finish() =>
       finishSimToAuto(liveDb: live, simDb: sim, clock: clock);
