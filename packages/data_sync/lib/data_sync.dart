@@ -135,6 +135,7 @@ export 'src/migration/x1_screen_source.dart';
 export 'src/migration/x1_startup.dart';
 // 🆕 E11d — 시크릿 스캔 게이트(설계 13 §8 R44 E7 · 06 M4-6).
 export 'src/security/secret_scan.dart';
+export 'src/supabase/read_model_rows.dart'; // 🆕 E11l2b — 읽기 모델 행 빌더(13 R256 · 01 §8 미결 222 ⓒⓓ)
 export 'src/supabase/supabase_auth.dart';
 // 🆕 E11k-e2(설계 13 §8 R221) — o_07 ① 부트스트랩 SQL 묶음 · 복구 코드 해시 꼴(원문 조각 = 내부 생성 파일).
 export 'src/supabase/supabase_bootstrap.dart';
@@ -144,6 +145,7 @@ export 'src/supabase/supabase_device_ledger.dart';
 // 🆕 E11k-e3 — O-04 ⑤ 첫 클레임 명시 흐름(복구 코드 발급 · 기기 행 · lease_claim · 설계 13 §8 R229).
 export 'src/supabase/supabase_first_claim.dart';
 export 'src/supabase/supabase_lease.dart';
+export 'src/supabase/supabase_read_model_push.dart'; // 🆕 E11l2b — rm_push 클라이언트 · 시크릿 관문(13 R256 · 222 ⓒⓔ)
 export 'src/supabase/supabase_read_models.dart'; // 🆕 E11l1 — 읽기 모델 rm_* DDL + RLS 생성기(13 R246 · 01 §8 미결 222 ⓐ)
 export 'src/supabase/supabase_recovery_code.dart';
 export 'src/supabase/supabase_server_time.dart';

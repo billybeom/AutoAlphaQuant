@@ -3,12 +3,13 @@
 // 쓰는 법:
 //   1) 빈 폴더 <pg> 에서: npm init -y && npm install --ignore-scripts @electric-sql/pglite@0.5.15
 //   2) packages/data_sync 에서: dart run tool/gen_supabase_read_models.dart --dump <out>   (bootstrap_full.sql · bootstrap_incomplete.sql)
-//   3) node tool/pglite/read_models_harness.mjs <pg> <out>/bootstrap_full.sql <out>/bootstrap_incomplete.sql
+//   3) node tool/pglite/read_models_harness.mjs <pg> <out>/bootstrap_full.sql <out>/bootstrap_incomplete.sql [<rows.json>]
+//      넷째(선택) = 빌더 22표 행 — packages/data_sync 에서 AAQ_DUMP_ROWS=<rows.json> dart test test/read_model_push_test.dart(E11l2b · R256)
 // 🔵 Supabase 흉내 = auth.users · auth.uid()(= request.jwt.claim.sub) · 역할 anon · authenticated · public 표 기본 권한 ALL(= RLS 가 유일한 벽).
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-const [pgDir, fullPath, incPath] = process.argv.slice(2);
+const [pgDir, fullPath, incPath, rowsPath] = process.argv.slice(2);
 const { PGlite } = await import(pathToFileURL(`${pgDir}/node_modules/@electric-sql/pglite/dist/index.js`).href);
 const full = readFileSync(fullPath, 'utf8');
 const incomplete = readFileSync(incPath, 'utf8');
@@ -177,6 +178,41 @@ ok(true, 'operating_mode ADVISORY 들어감');
     ok(r.code === null && r.accepted === 1, `${t.n} push 1행 (${JSON.stringify(r)})`);
     const seen = (await as('authenticated', U.view, () => db.query(`select count(*)::int n from ${t.n} where mode='SIM_BROKER'`))).rows[0].n;
     ok(seen === 1, `${t.n} 뷰어가 push 행을 읽는다`);
+  }
+}
+
+// ⑧ 🆕 E11l2b(R256) 빌더 행 끝에서 끝까지 — data_sync `readModelRow` 가 계약 표본 DTO 로 만든 22표 행을 rm_push 로 넣고
+//    저장된 값 = 보낸 값(키 차례 무관 깊은 비교 · 덮는 칸 2 제외) · 뷰어가 읽는다. 넷째 인자(AAQ_DUMP_ROWS 출력)가 있을 때만.
+if (rowsPath) {
+  const sample = JSON.parse(readFileSync(rowsPath, 'utf8'));
+  const deq = (a, b) => {
+    if (a === b) return true;
+    if (typeof a === 'number' && typeof b === 'number') return Math.abs(a - b) < 1e-12;
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') return false;
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    if (Array.isArray(a)) return a.length === b.length && a.every((x, i) => deq(x, b[i]));
+    const ka = Object.keys(a), kb = Object.keys(b);
+    return ka.length === kb.length && ka.every(k => Object.prototype.hasOwnProperty.call(b, k) && deq(a[k], b[k]));
+  };
+  await db.exec(`delete from operator_lease; insert into operator_lease(id, device_id, epoch, expires_at) values (1, 'd_op', 9, now() + interval '30 minutes')`);
+  ok(Object.keys(sample).length === 22, `빌더 표본 22표 (${Object.keys(sample).length})`);
+  for (const [table, rows0] of Object.entries(sample)) {
+    // 앞 절이 (mode) 키 표마다 LIVE · row_version 1 행을 넣어 두었다 — 같은 판이면 서버가 건너뛴다(정상) → 판을 올려 보낸다.
+    const rows = rows0.map(x => ({ ...x, row_version: 100 }));
+    const r = (await as('authenticated', U.op, () => db.query(`select * from rm_push('d_op', 9, $1, $2::jsonb)`, [table, JSON.stringify(rows)]))).rows[0];
+    ok(r.code === null && r.accepted === rows.length, `${table} 빌더 행 push (${JSON.stringify(r)})`);
+    const keys = (await db.query(`select a.attname k from pg_index i join pg_attribute a on a.attrelid = i.indrelid and a.attnum = any(i.indkey) where i.indrelid = $1::regclass and i.indisprimary`, [table])).rows.map(x => x.k);
+    for (const row of rows) {
+      const where = keys.map((k, n) => `${k} = $${n + 1}`).join(' and ');
+      const got = (await db.query(`select to_jsonb(t) j from ${table} t where ${where}`, keys.map(k => row[k]))).rows;
+      ok(got.length === 1, `${table} 저장 행 하나`);
+      const stored = got[0]?.j ?? {};
+      const bad = Object.keys(row).filter(k => !deq(row[k], stored[k]));
+      ok(bad.length === 0, `${table} 저장 값 = 보낸 값 (다름: ${bad.join(',')})`);
+      ok(stored.lease_epoch === 9, `${table} lease_epoch = 인자`);
+    }
+    const seen = (await as('authenticated', U.view, () => db.query(`select count(*)::int n from ${table} where lease_epoch = 9`))).rows[0].n;
+    ok(seen === rows.length, `${table} 뷰어가 빌더 행을 읽는다`);
   }
 }
 
