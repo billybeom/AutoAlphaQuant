@@ -40,6 +40,7 @@ import 'package:data_sync/data_sync.dart'
         SupabaseFirstClaim,
         SupabaseLeaseGate,
         SupabaseLeaseRpc,
+        SupabaseReadModelPush,
         SupabaseServerTime,
         SupabaseX1Emergency;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -386,6 +387,12 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
         supabaseAuth,
       ),
       leaseRemote: lease.leaseRemote,
+      // 🆕 E11l2c-2(R264) — 읽기 모델 push(같은 로그인 세션 · 시크릿 관문 · 실행 = 깨어남 뒤 · 조립 = main.dart).
+      readModelPusher: SupabaseReadModelPush(
+        http.Client(),
+        AndroidSecretVault(),
+        supabaseAuth,
+      ),
       // 🆕 E16j-a(R227 · 미결 217 ⓒ) — 정정 직전 재대사(주문 잡과 같은 브로커 조립 · 쓰기 0 · 못 하면 null).
       freshRecon: (OperatorView v, TradeDate day) => operatorFreshReconIds(
         db: v.db,

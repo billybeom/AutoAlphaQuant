@@ -27,13 +27,14 @@ import 'package:core_engine/core_engine.dart'
 import 'package:data_sync/data_sync.dart'
     show
         P0sHumanDecision,
+        ReadModelPusher,
         SqliteJournalSource,
         SqliteModeStore,
         SupabaseAuth,
         SupabaseDeviceLedger,
         SupabaseFirstClaim,
-        SupabaseX1Emergency,
         SupabaseServerTime,
+        SupabaseX1Emergency,
         contributionRowsOf,
         journalRangePresetsFromLedger,
         watchLedgerQuery;
@@ -94,6 +95,7 @@ class OperatorRuntime {
     this.liveObservation,
     this.operations,
     this.freshRecon,
+    this.readModelPusher,
   }) : secure = secure ?? SecureScreen(_noSecure),
        trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
@@ -205,9 +207,35 @@ class OperatorRuntime {
   /// 화면 상태(온보딩 미완 · 첫 깨어남 전 = null).
   final ValueNotifier<OperatorView?> view = ValueNotifier<OperatorView?>(null);
 
-  /// 깨어남 보고 → 화면 상태.
+  /// 🆕 E11l2c-2(설계 13 §8 R264 · 01 §8 미결 241 ⓐ) — 읽기 모델 push 포트(`SupabaseReadModelPush` · 같은 로그인 세션 ·
+  /// 시크릿 관문 · 없음 = 플랫폼 밖 → push 0).
+  final ReadModelPusher? readModelPusher;
+
+  /// 깨어남 보고 → 화면 상태 → 🆕 E11l2c-2 읽기 모델 push 한 번(기다리지 않는다 · 겹침 0).
   void onWake(EngineWakeReport report) {
     view.value = operatorViewOf(report.boot, files);
+    unawaited(pushReadModelsOnce());
+  }
+
+  Future<void> Function()? _readModelPush;
+  bool _pushing = false;
+
+  /// 🆕 E11l2c-2 — 읽기 모델 push 한 번을 단다(조립 = `main.dart` · 화면과 같은 루트 컨테이너의 창구).
+  void attachReadModelPush(Future<void> Function() push) =>
+      _readModelPush = push;
+
+  /// 🆕 E11l2c-2 — 단 push 를 한 번 돌린다(앞 push 가 돌고 있으면 건너뜀 · 던지지 않는다 · 끝나면 완료).
+  Future<void> pushReadModelsOnce() async {
+    final Future<void> Function()? push = _readModelPush;
+    if (push == null || _pushing) return;
+    _pushing = true;
+    try {
+      await push();
+    } on Object {
+      // push 실패의 기록 = data_sync 로컬 상태(PUSH_LAG · PUSH_FAILED) — 화면 · 깨어남은 그대로 간다.
+    } finally {
+      _pushing = false;
+    }
   }
 
   Future<void> Function()? _wake;
