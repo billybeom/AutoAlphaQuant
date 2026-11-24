@@ -84,7 +84,11 @@ void main() {
       );
       expect(
         (unknown.leaseHolderLabel, unknown.leaseStateLabel, unknown.leaseLevel),
-        ('확인할 수 없음', '확인 불가 — 운영 리스 서버 연결 전이라 주문이 막힙니다', UiLevel.blocked),
+        (
+          '확인할 수 없음',
+          '확인 대기 — 최근 리스 확인 기록이 없습니다 · 주문 직전에 다시 확인하고, 확인되지 않으면 주문이 막힙니다',
+          UiLevel.blocked,
+        ),
       );
       expect(
         (unknown.devices.single.statusLabel, unknown.devices.single.level),

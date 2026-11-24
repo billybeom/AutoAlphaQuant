@@ -2,7 +2,7 @@
 //
 // o_07 ① Supabase 부트스트랩 묶음의 원문 조각(설계 13 §8 R221 · E11k-e2) — 묶음 = `supabase_bootstrap.dart`.
 //    packages/domain_contracts/ddl/batch_d_supabase.sql sha256 `3d78065e8d16d951565180725574402c0947ba1c368d818ddad3d87043eec3ad`
-//    packages/data_sync/sql/supabase_lease_rpc.sql sha256 `3015d1608dcff73eff122d4f13df2871e3be834dc4e1b930d433d1ed8f85e0f4`
+//    packages/data_sync/sql/supabase_lease_rpc.sql sha256 `330f2c821ef2f0bdeaab131bb8d12e03573c1c763a3b2d6411a29a5f332234cf`
 //    packages/data_sync/sql/supabase_read_model_push_rpc.sql sha256 `eb14b5a43387cac1daed214921c35f09659dc69879ed03fe455772f2d9f738bb`
 // 🔴 data_sync 시험이 세 원문과 바이트 대조한다(갈라지면 시험이 실패).
 
@@ -342,6 +342,10 @@ const String kSupabaseLeaseRpcSql = r'''
 --   · 부르는 기기 판정(D5) = app_device 행의 auth_uid = auth.uid() ∧ owner_uid = auth.uid()(운영 사용자의 기기) ∧
 --     status ∉ {REVOKED, RETIRED} — 아니면 LEASE_DEVICE_NOT_ELIGIBLE(epoch · expires_at = null).
 --     🔴 JWT app_metadata 에 기대지 않는다 · 뷰어 기기(auth_uid ≠ owner_uid)는 리스를 쥘 수 없다.
+--   · 🆕 운영 사용자 고정(리뷰 3차 C-2 · I-U2 · 01 §8 미결 236 ⓑ · 설계 13 §8 R267) — 첫 클레임 뒤에는 recovery_secret 의 소유자
+--     (= 첫 클레임을 한 운영 사용자)만 세 RPC 를 쓸 수 있다. 다른 Auth 사용자(공개 가입 · 뷰어 사용자)가 insert 정책으로 자기 기기
+--     행을 넣어도 LEASE_DEVICE_NOT_ELIGIBLE(operator · ACTIVE 로 오르지 않는다 → rm_* 0행 · 운영 폰 리스를 못 막는다).
+--     첫 클레임 전(리스 · 해시 0)에는 묶을 신원이 없다 — 그 틈 = 17 절차서 §3-7 «공개 가입 끄기»(필수).
 --   · security definer · search_path = '' (모든 이름을 스키마로 적는다) · 실행 권한 = authenticated 만(anon · public 회수).
 --
 -- 복구 코드 해시(R221 — 이 판이 정한다 · 클라이언트 = data_sync `supabase_recovery_code.dart` · 발급 = E11k-e3)
@@ -354,8 +358,13 @@ const String kSupabaseLeaseRpcSql = r'''
 
 -- ── lease_claim ──────────────────────────────────────────────────────────────
 -- 빈 행 = 첫 클레임 → p_recovery_code_hash 필수(없음 · 꼴 아님 = RECOVERY_CODE_REQUIRED) · 리스 행 + recovery_secret 를
--- 같은 트랜잭션에 · epoch 1. 행 있음 → 보유 기기 = 이 기기 ∨ 만료 → 이 기기(다른 기기에서 넘어옴 = epoch+1 · 같은 기기 = 그대로) ·
--- 다른 기기 유효 = LEASE_HELD_BY_OTHER(지금 epoch · expires_at). 성공 = 이 기기 role='operator' · status='ACTIVE'.
+-- 같은 트랜잭션에 · epoch 1. 행 있음 → 보유 기기 = 이 기기 → 그대로(만료여도 되찾음 · epoch 그대로) ·
+-- 🆕 다른 기기 보유 ∧ 만료 ∧ 그 기기가 REVOKED · RETIRED → 이 기기(epoch+1) · 다른 기기 보유 ∧ (유효 ∨ 그 기기가 아직 자격) =
+-- LEASE_HELD_BY_OTHER(지금 epoch · expires_at). 성공 = 이 기기 role='operator' · status='ACTIVE'.
+-- 🆕 리뷰 3차 C-1 · D-01(01 §8 미결 236 ⓐ · R267) — 만료만으로는 다른 기기로 넘기지 않는다: 새 폰이 R-01 을 거치지 않고
+--    («처음 시작하기» ⑤) 만료 리스를 가져가고 옛 폰이 다시 켜지면 되찾아 두 기기가 번갈아 발주하던 길을 막는다.
+--    다른 기기 인계 = 첫 클레임 · 비상 회수(lease_revoke — 옛 보유 기기 REVOKED · device_id = 부른 기기) · 계획 이전 은퇴(device_retire
+--    — 옛 보유 기기 RETIRED · 01 §8 미결 228) 뒤에만. 🔵 01 §6-4 리스 RPC 표 «만료 ∨ 같은 기기» 문언 정정 = 계약 창 대기.
 -- 🔴 첫 클레임이 아니면 p_recovery_code_hash 는 읽지 않는다(복구 코드를 클레임으로 갈아 끼울 수 없다 — 교체 = lease_revoke 만).
 create or replace function public.lease_claim(p_device_id text, p_recovery_code_hash text default null)
 returns table (code text, epoch bigint, expires_at timestamptz)
@@ -388,6 +397,12 @@ begin
     return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
     return;
   end if;
+  -- 🆕 운영 사용자 고정(리뷰 3차 C-2 · 미결 236 ⓑ) — 첫 클레임을 한 사용자가 아니면 거부(첫 클레임 전 = 해시 0 = 통과).
+  perform 1 from public.recovery_secret r where r.owner_uid <> v_uid;
+  if found then
+    return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
   select l.device_id, l.epoch, l.expires_at into v_holder, v_epoch, v_exp
     from public.operator_lease l
    where l.id = 1
@@ -413,7 +428,13 @@ begin
     on conflict (owner_uid) do update
       set code_hash = excluded.code_hash, algo = excluded.algo, created_at = excluded.created_at, used_at = null;
     v_new_epoch := 1;
-  elsif v_holder = p_device_id or v_exp <= now() then
+  elsif v_holder = p_device_id
+     or (v_exp <= now()
+         and not exists (
+           select 1
+             from public.app_device h
+            where h.device_id = v_holder
+              and h.status not in ('REVOKED', 'RETIRED'))) then
     v_new_epoch := case when v_holder = p_device_id then v_epoch else v_epoch + 1 end;
     update public.operator_lease l
        set device_id = p_device_id, epoch = v_new_epoch, expires_at = v_new_exp, updated_at = now()
@@ -461,6 +482,12 @@ begin
       and d.owner_uid = v_uid
       and d.status not in ('REVOKED', 'RETIRED');
   if not found then
+    return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  -- 🆕 운영 사용자 고정(리뷰 3차 C-2 · 미결 236 ⓑ) — 첫 클레임을 한 사용자가 아니면 거부(첫 클레임 전 = 해시 0 = 통과).
+  perform 1 from public.recovery_secret r where r.owner_uid <> v_uid;
+  if found then
     return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
     return;
   end if;
@@ -515,6 +542,12 @@ begin
      and d.owner_uid = v_uid
      and d.status not in ('REVOKED', 'RETIRED');
   if not found then
+    return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  -- 🆕 운영 사용자 고정(리뷰 3차 C-2 · 미결 236 ⓑ) — 첫 클레임을 한 사용자가 아니면 거부(첫 클레임 전 = 해시 0 = 통과).
+  perform 1 from public.recovery_secret r where r.owner_uid <> v_uid;
+  if found then
     return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
     return;
   end if;

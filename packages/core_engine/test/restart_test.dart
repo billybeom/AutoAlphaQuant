@@ -46,6 +46,7 @@ RestartFacts _facts({
   String holder = _old,
   List<RestartDevice> more = const <RestartDevice>[],
   bool emergency = false,
+  bool claimed = false,
   bool lease = true,
 }) => RestartFacts(
   signedIn: true,
@@ -63,6 +64,7 @@ RestartFacts _facts({
   trustedNowUtc: now,
   backupGapDays: gap,
   emergencyStarted: emergency,
+  firstClaimRecorded: claimed,
 );
 
 List<String> _links(RestartVm vm) =>
@@ -266,12 +268,13 @@ void main() {
       expect(vm.branches, isEmpty);
     });
 
-    test('🔴 이 폰이 쥠 · 비상 회수 기록 없음 = 해당 없음 · 분기 0(첫 클레임으로 이미 운영 기기)', () {
+    test('🔴 이 폰이 쥠 · 비상 회수 기록 없음 · 첫 클레임 기록 있음 = 해당 없음 · 분기 0(이미 운영 기기)', () {
       final RestartVm vm = restartVmOf(
         _facts(
           old: _oldPhone(seen: now),
           now: now,
           holder: _me,
+          claimed: true,
         ),
       );
       expect(vm.ledgerLines, <String>[RestartTexts.thisPhoneHolds]);
@@ -332,6 +335,50 @@ void main() {
       },
     );
 
+    // 🆕 리뷰 3차 D-04(미결 236 ⓓ · R267) — 서버가 lease_revoke 를 커밋했는데 응답을 잃음 → 이 폰에 회수 기록 0 · 첫 클레임 기록 0.
+    test(
+      '🔴 이 폰이 쥠 · 회수 기록 0 · 첫 클레임 기록 0(회수 응답 유실) = «비상 이전 이어 하기» + 새 카드 안내',
+      () {
+        final RestartVm vm = restartVmOf(
+          _facts(
+            now: now,
+            holder: _me,
+            more: <RestartDevice>[
+              RestartDevice(
+                deviceId: 'dev-b',
+                label: '거실 폰',
+                status: kDeviceStatusRevoked,
+                platform: 'android',
+                lastSeenAtUtc: _kst(2026, 8, 29, 21, 40),
+              ),
+            ],
+          ),
+        );
+        expect(vm.ledgerLines, <String>[
+          '구 폰: 거실 폰(Android)',
+          '마지막 접속: 2026-08-29 21:40',
+          RestartTexts.thisPhoneHolds,
+          RestartTexts.revokeAnswerLost,
+        ]);
+        expect(vm.leaseGate!.state, GateState.pass);
+        expect(_links(vm), <String>[AppRoutes.x1MigrationEmergency]);
+        expect(vm.inheritNotice, RestartTexts.inherit);
+        // 회수 기록이 있으면 안내 줄 0(그 기록이 이어 하기의 근거).
+        final RestartVm done = restartVmOf(
+          _facts(now: now, holder: _me, emergency: true),
+        );
+        expect(
+          done.ledgerLines,
+          isNot(contains(RestartTexts.revokeAnswerLost)),
+        );
+        // 첫 클레임 대기 · 실행됨 = 이미 운영 기기(분기 0) — 아래 «첫 클레임 기록 있음».
+        expect(
+          restartVmOf(_facts(now: now, holder: _me, claimed: true)).branches,
+          isEmpty,
+        );
+      },
+    );
+
     test('이 폰 id 를 모르면 «이 폰이 쥠»으로 보지 않는다', () {
       final RestartVm vm = restartVmOf(
         RestartFacts(
@@ -373,16 +420,18 @@ void main() {
             ])
               for (final String holder in <String>[_old, _me, 'dev-x'])
                 for (final bool e in <bool>[false, true])
-                  restartVmOf(
-                    _facts(
-                      old: _oldPhone(seen: seen),
-                      expires: exp,
-                      now: t,
-                      gap: gap,
-                      holder: holder,
-                      emergency: e,
+                  for (final bool c in <bool>[false, true])
+                    restartVmOf(
+                      _facts(
+                        old: _oldPhone(seen: seen),
+                        expires: exp,
+                        now: t,
+                        gap: gap,
+                        holder: holder,
+                        emergency: e,
+                        claimed: c,
+                      ),
                     ),
-                  ),
       restartVmOf(_facts(old: _oldPhone(), now: now, lease: false)),
     ];
     const Set<String> allowed = <String>{

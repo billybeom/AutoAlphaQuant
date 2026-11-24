@@ -32,6 +32,8 @@ import 'package:core_engine/core_engine.dart'
 import 'package:core_engine/testing.dart' show MemorySecretVault;
 import 'package:data_sync/data_sync.dart'
     show
+        RecoveryCardState,
+        SqliteRecoveryCardStore,
         SqliteX1EmergencyStore,
         SupabaseAuth,
         SupabaseDeviceLedger,
@@ -310,7 +312,7 @@ void main() {
     expect(known.leaseGate!.state, GateState.pass);
   });
 
-  test('🔴 이 폰이 쥠 — sim 비상 회수 기록이 있으면 «비상 이전 이어 하기» · 없으면 분기 0', () async {
+  test('🔴 이 폰이 쥠 — sim 비상 회수 기록이 있으면 «비상 이전 이어 하기» · 첫 클레임 기록만 = 분기 0 · 🆕 둘 다 0 = 이어 하기 + 안내(D-04)', () async {
     final DateTime now = clock.nowUtc();
     net
       ..devices = <Object?>[
@@ -318,6 +320,19 @@ void main() {
         _device(_me, '운영 폰'),
       ]
       ..lease = <Object?>[_leaseRow(_me, now)];
+    // 🆕 리뷰 3차 D-04(미결 236 ⓓ · R267) — 회수 응답 유실(서버 = 이 폰 · 이 폰 기록 0) = 막다른 길 대신 이어 하기 링크.
+    final RestartVm lost = await OperatorOnboardingRepository(runtime())
+        .watchRestart()
+        .first;
+    expect(lost.leaseGate!.state, GateState.pass);
+    expect(_links(lost), <String>[AppRoutes.x1MigrationEmergency]);
+    expect(lost.ledgerLines, contains(RestartTexts.revokeAnswerLost));
+    SqliteRecoveryCardStore(files.sim, clock: clock).append(
+      commandId: 'cmd-card-1',
+      state: RecoveryCardState.claimed,
+      hash: 'sha256:${'c' * 32}:${'d' * 64}',
+      epoch: 3,
+    );
     final RestartVm none = await OperatorOnboardingRepository(runtime())
         .watchRestart()
         .first;

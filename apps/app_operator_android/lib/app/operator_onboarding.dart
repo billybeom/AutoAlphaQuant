@@ -34,9 +34,11 @@ import 'package:data_sync/data_sync.dart'
         OpsConfigRead,
         OpsConfigReady,
         RecoveryCardFact,
+        RecoveryCardState,
         SqliteOnboardingProgressStore,
         SqliteOnboardingStore,
         SqlitePledgeStore,
+        SqliteRecoveryCardStore,
         SqliteX1EmergencyStore,
         SupabaseDeviceLedger,
         SupabaseFirstClaim,
@@ -346,6 +348,19 @@ class OperatorOnboardingRepository implements OnboardingRepository {
       // 기록은 있는데 꼴이 깨졌다 — 이어 하기 링크를 주고 X1 화면이 깨짐을 말한다.
       emergency = true;
     }
+    // 🆕 리뷰 3차 D-04(01 §8 미결 236 ⓓ · R267) — 이 폰의 첫 클레임 기록(⑤ 복구 카드 실행됨 · 대기) — 둘 다 없는데 이 폰이 쥐었으면
+    //    회수 응답 유실(엔진이 «비상 이전 이어 하기»를 낸다) · 못 읽음 = 없음 쪽(링크를 주고 X1 화면이 판정).
+    bool claimed;
+    try {
+      final RecoveryCardState? st = SqliteRecoveryCardStore(
+        _db,
+        clock: _rt.clock,
+      ).latest()?.state;
+      claimed =
+          st == RecoveryCardState.claimed || st == RecoveryCardState.pending;
+    } on Object {
+      claimed = false;
+    }
     return RestartFacts(
       signedIn: true,
       ledger: read.ledger,
@@ -353,6 +368,7 @@ class OperatorOnboardingRepository implements OnboardingRepository {
       trustedNowUtc: now,
       backupGapDays: _rt.operations?.resumeLadder?.backupGapDays,
       emergencyStarted: emergency,
+      firstClaimRecorded: claimed,
     );
   }
 

@@ -2,7 +2,9 @@
 //
 // 🔴 글자 = 엔진(표본 `m9/device_access*` 꼴) — 화면은 거르지도 · 세지도 않는다.
 // 🔴 기기 = 이 폰(운영) 한 행 — 조회 전용 기기는 페어링(Supabase)으로만 생기는데 그 원천이 없다 → 0대 = 표본 빈 줄.
-// 🔴 리스 = 로컬 판정(`LeaseGate.check` — 주문을 막는 그 판정) 그대로 · 세대 · 남은 시간 = Supabase 리스 · 신뢰 시각 전 → 없음.
+// 🔴 리스 = 로컬 판정(주문을 막는 그 판정의 «기록된 사실» 판 — data_sync `SqliteLeaseGate.recorded` · 🆕 리뷰 3차 C-3 · 01 §8 미결 236 ⓒ ·
+//    R267 · 화면 읽기가 원격 RPC 를 부르지 않는다) 그대로 · 모름 = «확인 대기»(원격 실물 전 · 최근 원격 성공 기록 없음 — 주문 직전 잡이
+//    다시 판정) · 세대 · 남은 시간 = Supabase 리스 · 신뢰 시각 전 → 없음.
 // 🔴 QR 페어링 카드 = 원천 전 → 부재(«발급 버튼 XOR QR 자리» 를 지어낼 수 없다) · 기기 이전 링크 = 본문이 있을 때만 · 잠김 = 생체 가드 전 → 없음.
 
 import 'package:domain_contracts/domain_contracts.dart'
@@ -45,7 +47,7 @@ class DeviceAccessFacts {
   /// 지금 실행 모드.
   final RunMode runMode;
 
-  /// 지금 리스 판정(주문을 막는 그 판정).
+  /// 지금 리스 판정(주문을 막는 그 판정의 기록된 사실 판 — 원격 RPC 0).
   final LeaseVerdict lease;
 
   /// 조립 앱에 이 라우트의 본문이 있나(없으면 링크를 싣지 않는다).
@@ -75,7 +77,7 @@ String _two(int n) => n.toString().padLeft(2, '0');
   ),
   LeaseVerdict.unknown => (
     '확인할 수 없음',
-    '확인 불가 — 운영 리스 서버 연결 전이라 주문이 막힙니다',
+    '확인 대기 — 최근 리스 확인 기록이 없습니다 · 주문 직전에 다시 확인하고, 확인되지 않으면 주문이 막힙니다',
     UiLevel.blocked,
     '주문 대기 — 리스를 확인할 수 없음',
     UiLevel.watch,
