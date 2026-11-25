@@ -149,6 +149,18 @@ class SqliteLedgerRepository implements LedgerRepository {
     asOf: _asOf('대조 기준'),
   );
 
+  /// 🆕 미결 242(설계 13 §8 R275 · 01 §48 K339) — `L-1` 목록 전부(상한 [kRecentDiffLimit] 없이 · 차례 · 소속 = 엔진 그대로) —
+  /// 읽기 모델 차례 열(`rm_ledger_diff.open_diffs_rank`)의 원천. 화면 창구([watchOpenDiffs])는 그대로 상한 안.
+  ListResult<LedgerDiffRow> recentDiffsAll() {
+    final List<StoredLedgerDiff> rows = storedLedgerDiffs(_db);
+    return recentLedgerDiffsOf(
+      rows,
+      nowUtc: _clock.nowUtc(),
+      asOf: _asOf('대조 기준'),
+      limit: rows.length,
+    );
+  }
+
   @override
   Stream<ListResult<LedgerDiffRow>> watchOpenDiffs() => watchLedgerQuery(
     _db,

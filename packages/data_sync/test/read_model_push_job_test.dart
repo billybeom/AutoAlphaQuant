@@ -2,6 +2,9 @@
 //
 // ① 리스 없음 = 아무것도 안 함 ② 판 = (epoch << 40) + 순번 · 단조 · 새 epoch 가 옛 판을 넘는다 ③ 상태 OK · LAG · FAILED 갈래
 // ④ 나눠 보내기 · 합 ⑤ 리스 거부 = 그 자리에서 멈춤 ⑥ 행을 못 만듦 · 원천 오류 ⑦ 봉투 = 마지막 표 · 같은 목록 하나 ⑧ 계약 차례 · 원천 없는 표 0.
+// 🆕 미결 242(설계 13 §8 R275 · 01 §48 K339 · K340) ⑨ 목록에서 빠진 행 = 같은 키 · 큰 판 · 차례 null 로 한 번 다시 보냄(직전 소속 = 곁 행)
+// ⑩ 판정 밖(다른 모드 · 못 읽은 범위) = 다시 보내지 않고 소속에 둠 ⑪ 보냄 실패 = 직전 ∪ 이번 · 원천 · 빌더 실패 = 그대로
+// ⑫ 봉투 빈 문장 2 · 차례 열 없는 표 = 소속 0 · 차례 열 = 목록 열 중 bigint 9.
 
 import 'dart:io';
 
@@ -71,6 +74,15 @@ ReadModelRowInput _alert(int i) => ReadModelRowInput(
   },
 );
 
+/// 🆕 미결 242 — 차례가 붙은 알림 행([rank] null = 목록 밖).
+ReadModelRowInput _ranked(int i, int? rank, {RunMode mode = RunMode.live}) =>
+    ReadModelRowInput(
+      mode: mode,
+      rowVersion: 0,
+      dtos: _alert(i).dtos,
+      list: <String, Object?>{'inbox_rank': rank},
+    );
+
 ReadModelEnvelopeDraft _env(String code, {RunMode mode = RunMode.live}) =>
     ReadModelEnvelopeDraft(
       mode: mode,
@@ -97,12 +109,14 @@ void main() {
     _Pusher p,
     Map<String, ReadModelSnapshotSource> sources, {
     int chunk = 200,
+    RunMode? mode,
   }) => ReadModelPushJob(
     pusher: p,
     status: status,
     sources: sources,
     nowUtc: () => _t0,
     chunkSize: chunk,
+    mode: mode,
   );
 
   Future<ReadModelSnapshot> Function() src(ReadModelSnapshot s) =>
@@ -441,4 +455,281 @@ void main() {
       throwsArgumentError,
     );
   });
+  // ───── 🆕 미결 242(R275) ─────
+
+  /// 알림 표에 보낸 행(그 호출들을 잇는다).
+  List<Map<String, Object?>> sent(_Pusher p, {int from = 0}) => p.calls
+      .skip(from)
+      .where(
+        ((String, int, List<Map<String, Object?>>) c) => c.$1 == 'rm_alert',
+      )
+      .expand(((String, int, List<Map<String, Object?>>) c) => c.$3)
+      .toList();
+
+  List<Object?> ids(Iterable<Map<String, Object?>> rows) => <Object?>[
+    for (final Map<String, Object?> r in rows) r['alert_id'],
+  ];
+
+  Map<String, ReadModelSnapshotSource> alerts(
+    List<ReadModelRowInput> rows, {
+    List<Map<String, Object?>> unread = const <Map<String, Object?>>[],
+  }) => <String, ReadModelSnapshotSource>{
+    'rm_alert': src(ReadModelSnapshot(rows: rows, unread: unread)),
+  };
+
+  test('⑨ 목록에서 빠진 행 = 같은 키 · 큰 판 · 차례 null 로 한 번 다시 보냄 · 본문 = 마지막으로 보낸 꼴 · 상태 줄 무변경', () async {
+    final _Pusher p = _Pusher();
+    await job(
+      p,
+      alerts(<ReadModelRowInput>[_ranked(1, 1), _ranked(2, 2), _ranked(3, 3)]),
+    ).run(deviceId: 'd', epoch: 3);
+    expect(status.members('rm_alert'), hasLength(3));
+    // 둘째 깨어남 — al_2 가 7일이 지나 목록 밖(원천에 없음) · al_3 이 2위로.
+    final int before = p.calls.length;
+    await job(
+      p,
+      alerts(<ReadModelRowInput>[_ranked(1, 1), _ranked(3, 2)]),
+    ).run(deviceId: 'd', epoch: 3);
+    final List<Map<String, Object?>> second = sent(p, from: before);
+    expect(second, hasLength(3), reason: '이번 둘 + 빠진 하나');
+    final Map<String, Object?> gone = second.singleWhere(
+      (Map<String, Object?> r) => r['alert_id'] == 'al_2',
+    );
+    expect(gone.containsKey('inbox_rank'), isTrue);
+    expect(gone['inbox_rank'], isNull);
+    expect(gone['row_version'], (3 << 40) + 2, reason: '이 판(큰 판)');
+    expect(gone['mode'], 'LIVE');
+    expect(gone['title'], 't', reason: '본문 = 마지막으로 보낸 꼴(rm_push 는 행 전체를 덮는다)');
+    expect(gone.keys.toSet(), sent(p).first.keys.toSet(), reason: '같은 열');
+    expect(
+      second
+          .singleWhere((Map<String, Object?> r) => r['alert_id'] == 'al_3')
+          .cast<String, Object?>()['inbox_rank'],
+      2,
+    );
+    expect(ids(status.members('rm_alert')).toSet(), <Object?>{'al_1', 'al_3'});
+    expect(status.row('rm_alert')!.lastPushedKey, 'snapshot:3');
+    expect(status.row('rm_alert')!.status, ReadModelPushStates.ok);
+    // 셋째 — 다시 보내지 않는다(한 번이면 서버 행 = 목록 밖).
+    final int before3 = p.calls.length;
+    await job(
+      p,
+      alerts(<ReadModelRowInput>[_ranked(1, 1), _ranked(3, 2)]),
+    ).run(deviceId: 'd', epoch: 3);
+    expect(ids(sent(p, from: before3)), <Object?>['al_1', 'al_3']);
+    // 목록이 통째로 비면 = 둘 다 null 로.
+    final int before4 = p.calls.length;
+    await job(
+      p,
+      alerts(const <ReadModelRowInput>[]),
+    ).run(deviceId: 'd', epoch: 3);
+    final List<Map<String, Object?>> fourth = sent(p, from: before4);
+    expect(ids(fourth).toSet(), <Object?>{'al_1', 'al_3'});
+    expect(
+      fourth.every((Map<String, Object?> r) => r['inbox_rank'] == null),
+      isTrue,
+    );
+    expect(status.members('rm_alert'), isEmpty);
+    // 목록 안에 있되 차례 null 로 온 행 = 소속 아님(그 push 가 이미 null 을 보냈다).
+    await job(
+      p,
+      alerts(<ReadModelRowInput>[_ranked(5, 1), _ranked(6, null)]),
+    ).run(deviceId: 'd', epoch: 3);
+    expect(ids(status.members('rm_alert')), <Object?>['al_5']);
+    // 새 epoch(새 기기)도 직전 소속을 이어 빠진 행을 null 로 — 판은 새 epoch 바닥 위.
+    final int before5 = p.calls.length;
+    await job(
+      p,
+      alerts(const <ReadModelRowInput>[]),
+    ).run(deviceId: 'd2', epoch: 4);
+    final Map<String, Object?> carried = sent(p, from: before5).single;
+    expect(carried['alert_id'], 'al_5');
+    expect(carried['row_version'], greaterThan(4 << 40));
+  });
+
+  test(
+    '⑩ 판정 밖 — 다른 모드 행 · 이번에 못 읽은 범위 = 다시 보내지 않고 소속에 둔다 · 풀리면 그때 null',
+    () async {
+      final _Pusher p = _Pusher();
+      await job(
+        p,
+        alerts(<ReadModelRowInput>[
+          _ranked(1, 1, mode: RunMode.simInternal),
+          _ranked(2, 1),
+          _ranked(3, 2),
+        ]),
+      ).run(deviceId: 'd', epoch: 3);
+      // 이번 push 는 LIVE 만 읽었다 — SIM_INTERNAL al_1 은 판정 0 · al_3 은 못 읽은 범위.
+      final int b = p.calls.length;
+      await job(
+        p,
+        alerts(
+          <ReadModelRowInput>[_ranked(2, 1)],
+          unread: <Map<String, Object?>>[
+            <String, Object?>{'alert_id': 'al_3'},
+          ],
+        ),
+        mode: RunMode.live,
+      ).run(deviceId: 'd', epoch: 3);
+      expect(ids(sent(p, from: b)), <Object?>['al_2']);
+      expect(ids(status.members('rm_alert')).toSet(), <Object?>{
+        'al_1',
+        'al_2',
+        'al_3',
+      }, reason: '판정 밖 = 소속에 그대로');
+      // 범위가 풀림 = al_3 null · 다른 모드 al_1 은 계속 둔다.
+      final int b2 = p.calls.length;
+      await job(
+        p,
+        alerts(<ReadModelRowInput>[_ranked(2, 1)]),
+        mode: RunMode.live,
+      ).run(deviceId: 'd', epoch: 3);
+      final List<Map<String, Object?>> got = sent(p, from: b2);
+      expect(ids(got), <Object?>['al_2', 'al_3']);
+      expect(got.last['inbox_rank'], isNull);
+      expect(ids(status.members('rm_alert')).toSet(), <Object?>{
+        'al_1',
+        'al_2',
+      });
+      // 빈 맵 = 표 전체 못 읽음.
+      final int b3 = p.calls.length;
+      await job(
+        p,
+        alerts(
+          const <ReadModelRowInput>[],
+          unread: <Map<String, Object?>>[<String, Object?>{}],
+        ),
+      ).run(deviceId: 'd', epoch: 3);
+      expect(sent(p, from: b3), isEmpty);
+      expect(status.members('rm_alert'), hasLength(2));
+    },
+  );
+
+  test('⑪ 보냄 실패 = 직전 ∪ 이번(빠진 행은 다음에 다시) · 원천 · 빌더 실패 = 소속 그대로', () async {
+    await job(
+      _Pusher(),
+      alerts(<ReadModelRowInput>[_ranked(1, 1), _ranked(2, 2)]),
+    ).run(deviceId: 'd', epoch: 3);
+    // 망 실패 — al_2 빠짐 · al_4 새로. 소속 = al_1 · al_2 · al_4.
+    final _Pusher down = _Pusher(
+      (String t, int i) =>
+          const ReadModelPushResult.failed(ReadModelPushFailure.network),
+    );
+    final ReadModelPushReport lag = await job(
+      down,
+      alerts(<ReadModelRowInput>[_ranked(1, 1), _ranked(4, 2)]),
+    ).run(deviceId: 'd', epoch: 3);
+    expect(lag.tables.single.outcome, ReadModelPushOutcome.lag);
+    expect(ids(sent(down)), <Object?>['al_1', 'al_4', 'al_2']);
+    expect(ids(status.members('rm_alert')).toSet(), <Object?>{
+      'al_1',
+      'al_2',
+      'al_4',
+    });
+    // 다음 — al_4 도 빠짐 → al_2 · al_4 둘 다 null(앞 묶음이 들어갔을 수 있다).
+    final _Pusher up = _Pusher();
+    await job(
+      up,
+      alerts(<ReadModelRowInput>[_ranked(1, 1)]),
+    ).run(deviceId: 'd', epoch: 3);
+    expect(
+      ids(sent(up).where((Map<String, Object?> r) => r['inbox_rank'] == null))
+          .toSet(),
+      <Object?>{'al_2', 'al_4'},
+    );
+    expect(ids(status.members('rm_alert')), <Object?>['al_1']);
+    // 원천 실패 · 빌더 실패 = 소속 그대로(보낸 것 0).
+    await job(_Pusher(), <String, ReadModelSnapshotSource>{
+      'rm_alert': () async => throw StateError('x'),
+    }).run(deviceId: 'd', epoch: 3);
+    await job(
+      _Pusher(),
+      alerts(<ReadModelRowInput>[_ranked(9, 0)]),
+    ).run(deviceId: 'd', epoch: 3);
+    expect(ids(status.members('rm_alert')), <Object?>['al_1']);
+    // 곁 행이 깨져 있으면 = 빈 소속(던지지 않는다).
+    db.execute(
+      "UPDATE read_model_push SET last_pushed_key = '{' WHERE table_name = 'rm_alert#members'",
+    );
+    expect(status.members('rm_alert'), isEmpty);
+  });
+
+  test(
+    '⑫ 봉투 빈 문장 2(K340) · 차례 열 없는 표 = 소속 곁 행 0 · 차례 열 = 목록 열 중 bigint 9',
+    () async {
+      final _Pusher p = _Pusher();
+      await job(p, <String, ReadModelSnapshotSource>{
+        'rm_watchdog': src(
+          ReadModelSnapshot(
+            rows: <ReadModelRowInput>[_watchdog(RunMode.live)],
+            envelopes: <ReadModelEnvelopeDraft>[
+              const ReadModelEnvelopeDraft(
+                mode: RunMode.live,
+                listCode: ReadModelListCodes.journalWatchTimeline,
+                asOf: <String, Object?>{'label': 'x'},
+                emptyKind: EmptyKind.noData,
+                filteredEmptyLabel: '조건에 맞는 기록이 없습니다',
+                scopeEmptyLabel: '이 회차에 묶인 기록이 없습니다',
+              ),
+              _env(ReadModelListCodes.ledgerWatchOpenDiffs),
+            ],
+          ),
+        ),
+      }).run(deviceId: 'd', epoch: 3);
+      final List<Map<String, Object?>> env = p.calls.last.$3;
+      final Map<String, Object?> j = env.firstWhere(
+        (Map<String, Object?> r) =>
+            r['list_code'] == ReadModelListCodes.journalWatchTimeline,
+      );
+      expect(j['filtered_empty_label'], '조건에 맞는 기록이 없습니다');
+      expect(j['scope_empty_label'], '이 회차에 묶인 기록이 없습니다');
+      final Map<String, Object?> d = env.firstWhere(
+        (Map<String, Object?> r) =>
+            r['list_code'] == ReadModelListCodes.ledgerWatchOpenDiffs,
+      );
+      expect(d['filtered_empty_label'], isNull);
+      expect(d['scope_empty_label'], isNull);
+      expect(
+        db.select(
+          "SELECT table_name FROM read_model_push WHERE table_name LIKE '%#members'",
+        ),
+        isEmpty,
+        reason: '워치독 · 봉투 = 차례 열 0',
+      );
+      expect(readModelRankColumns(ReadModelTables.advice), <String>[
+        'inbox_rank',
+        'history_rank',
+      ]);
+      expect(
+        readModelRankColumns(ReadModelTables.configView),
+        isEmpty,
+        reason: 'range_presets = jsonb',
+      );
+      expect(readModelRankColumns(ReadModelTables.listEnvelope), isEmpty);
+      expect(
+        ReadModelTables.all
+            .where((ReadModelTable t) => readModelRankColumns(t).isNotEmpty)
+            .map((ReadModelTable t) => t.name)
+            .toSet(),
+        <String>{
+          'rm_journal',
+          'rm_holding',
+          'rm_performance_point',
+          'rm_rebalance_event',
+          'rm_alert',
+          'rm_advice',
+          'rm_ledger_diff',
+          'rm_blind_review',
+        },
+      );
+      expect(
+        <String>[
+          for (final ReadModelTable t in ReadModelTables.all)
+            ...readModelRankColumns(t),
+        ],
+        hasLength(9),
+        reason: 'K339 차례 열 9',
+      );
+    },
+  );
 }

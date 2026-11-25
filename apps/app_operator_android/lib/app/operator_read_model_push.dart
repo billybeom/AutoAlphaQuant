@@ -13,11 +13,21 @@
 // 🔴 리스 = 이 기기 id + 그 원장의 SUPABASE epoch(0 = 안 보낸다 — 모의 내부 · 첫 클레임 전) · 겹침 0(앞 push 가 끝나기 전 깨어남 = 건너뜀).
 // 🔴 행의 mode = 화면 상태의 실행 모드(`flags.runMode`) — DTO 의 mode 와 다르면 빌더가 그 표를 거부한다(PUSH_FAILED).
 // 🆕 미결 243 ⓒ(설계 13 §8 R273) — 사람이 볼 실패 = K344 P1 경보(낸 곳 `shared_push` · op_push 와 공용 · 한국 날 · 코드마다 한 건).
+// 🆕 미결 242(설계 13 §8 R275 · 01 §48 K339~K341) — 목록 열 채우기:
+//    ⓐ 차례 열 = 그 창구 **기본 호출**(필터 · 구간 인자 없음)의 엔진 차례 그대로 · 1부터 · 상한 없이 — 일지 `timeline_rank`
+//       (전 기간 · 무필터 · 🔴 R268 D5 상한 2000 걷음) · 회차 `events_rank` · 알림 `inbox_rank`(min 없음) · 원장 차이
+//       `open_diffs_rank`(상한 50 없이 — operator 판 [OperatorReadModelRepos.allDiffs]) · blind `queue_rank` · 시리즈 점
+//       `series_rank`(그 시리즈 기본 구간의 점 차례 · 엔진 차례 = 날짜 오름차순).
+//       원천 없는 표(보유 `holdings_rank` · 안내 `inbox_rank` · `history_rank`) = 보내지 않으니 열도 0.
+//    ⓑ 목록에서 빠진 행(시간으로 빠짐 포함) = data_sync push 일이 직전 소속(로컬)으로 차례 null 을 다시 보낸다 — 여기서는
+//       원천을 못 읽은 범위만 알린다(`unread` · 실패 시리즈 조합 · 프리셋 0 일지).
+//    ⓒ 봉투 `filtered_empty_label` · `scope_empty_label` = 일지만(`JournalTexts.filteredEmpty` · `rebalanceEmpty`).
+//    ⓓ `rm_config_view.range_presets` = 기간 프리셋 엔진 차례(`DateRange.toJson()`) · 못 읽음 = 그 열만 null(배분 열과 같다).
 
 import 'dart:async';
 
 import 'package:core_engine/core_engine.dart'
-    show contributionDefaultRange, kContributionDefaultPreset;
+    show JournalTexts, contributionDefaultRange, kContributionDefaultPreset;
 import 'package:data_sync/data_sync.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,8 +58,9 @@ final List<(PerfMetric, PerfGranularity, bool)> kReadModelSeriesCombos =
       ],
     );
 
-/// 🆕 E11l2c-3 — 일지 한 번에 보내는 행 상한(넘으면 봉투 `has_more` · 연 ~934건).
-const int kReadModelJournalLimit = 2000;
+/// 🆕 미결 242(R275 · K339 «상한 없이») — 목록 창구 `limit` 인자에 넣는 «상한 없음»(일지 연 ~934건 — 닿을 일 없는 끝값) ·
+/// R268 D5 의 일지 상한 2000 을 걷는다(차례 열 = 기본 호출의 차례 전부 · 뷰어 limit+1).
+const int kReadModelUncappedLimit = 1 << 31;
 
 /// push 원천 창구 묶음(화면과 같은 인스턴스).
 class OperatorReadModelRepos {
@@ -67,6 +78,7 @@ class OperatorReadModelRepos {
     required this.ledger,
     required this.journal,
     required this.rebalance,
+    this.allDiffs,
   });
 
   /// 플래그 · 월 납입 · 슬리브.
@@ -104,35 +116,60 @@ class OperatorReadModelRepos {
 
   /// 회차.
   final RebalanceRepository rebalance;
+
+  /// 🆕 미결 242(R275) — 원장 차이 목록 전부(화면 창구 상한 50 없이 · operator 판 `SqliteLedgerRepository.recentDiffsAll`) ·
+  /// null = [ledger] 창구 그대로.
+  final ListResult<LedgerDiffRow> Function()? allDiffs;
 }
 
 /// 루트 컨테이너 → 창구 묶음(`operatorShellOverrides` 가 깐 것 그대로).
-OperatorReadModelRepos operatorReadModelReposOf(ProviderContainer c) =>
-    OperatorReadModelRepos(
-      config: c.read(shellConfigRepositoryProvider),
-      settings: c.read(operatorSettingsRepositoryProvider),
-      safety: c.read(operatorSafetyProvider),
-      performance: c.read(operatorPerformanceProvider),
-      ledgerTrust: OperatorLedgerTrustRepository(
-        selfReport: c.read(operatorSelfReportProvider),
-      ),
-      opsStatus: c.read(operatorOpsStatusProvider),
-      opsSummary: c.read(operatorOpsSummaryProvider),
-      holdings: c.read(operatorHoldingsProvider),
-      alerts: c.read(shellAlertRepositoryProvider),
-      ledger: c.read(journalLedgerRepositoryProvider),
-      journal: c.read(operatorJournalProvider),
-      rebalance: c.read(operatorRebalanceProvider),
-    );
+OperatorReadModelRepos operatorReadModelReposOf(ProviderContainer c) {
+  final LedgerRepository ledger = c.read(journalLedgerRepositoryProvider);
+  return OperatorReadModelRepos(
+    config: c.read(shellConfigRepositoryProvider),
+    settings: c.read(operatorSettingsRepositoryProvider),
+    safety: c.read(operatorSafetyProvider),
+    performance: c.read(operatorPerformanceProvider),
+    ledgerTrust: OperatorLedgerTrustRepository(
+      selfReport: c.read(operatorSelfReportProvider),
+    ),
+    opsStatus: c.read(operatorOpsStatusProvider),
+    opsSummary: c.read(operatorOpsSummaryProvider),
+    holdings: c.read(operatorHoldingsProvider),
+    alerts: c.read(shellAlertRepositoryProvider),
+    ledger: ledger,
+    journal: c.read(operatorJournalProvider),
+    rebalance: c.read(operatorRebalanceProvider),
+    allDiffs: ledger is SqliteLedgerRepository ? ledger.recentDiffsAll : null,
+  );
+}
 
-ReadModelEnvelopeDraft _env<T>(RunMode mode, String code, ListResult<T> r) =>
-    ReadModelEnvelopeDraft(
-      mode: mode,
-      listCode: code,
-      asOf: r.asOf.toJson(),
-      emptyKind: r.emptyKind,
-      emptyLabel: r.emptyLabel,
-    );
+ReadModelEnvelopeDraft _env<T>(
+  RunMode mode,
+  String code,
+  ListResult<T> r, {
+  String? filteredEmptyLabel,
+  String? scopeEmptyLabel,
+}) => ReadModelEnvelopeDraft(
+  mode: mode,
+  listCode: code,
+  asOf: r.asOf.toJson(),
+  emptyKind: r.emptyKind,
+  emptyLabel: r.emptyLabel,
+  filteredEmptyLabel: filteredEmptyLabel,
+  scopeEmptyLabel: scopeEmptyLabel,
+);
+
+/// 🆕 미결 242(R275) — 차례 열 값 하나(목록 차례 [i] = 0부터 → 1부터).
+Map<String, Object?> _rank(String column, int i) => <String, Object?>{
+  column: i + 1,
+};
+
+/// 🆕 미결 242(R275) — 한 번 읽은 시리즈 · 못 읽은 조합.
+typedef _SeriesRead = ({
+  List<PerformanceSeries> series,
+  List<(PerfMetric, PerfGranularity, bool)> failed,
+});
 
 /// 매개 값 하나 — 실패(오류 · 상한) = null(그 값만 뺀다).
 Future<T?> _orSkip<T>(Future<T> f) async {
@@ -163,10 +200,12 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
   Duration wait = kReadModelSourceWait,
 }) {
   Future<T> one<T>(Stream<T> s) => s.first.timeout(wait);
-  Future<List<PerformanceSeries>>? seriesMemo;
+  Future<_SeriesRead>? seriesMemo;
   // 시리즈 + 점 두 표가 한 번 읽은 시리즈를 같이 쓴다(조합마다 한 번 · 차례대로).
-  Future<List<PerformanceSeries>> allSeries() => seriesMemo ??= () async {
+  Future<_SeriesRead> allSeries() => seriesMemo ??= () async {
     final List<PerformanceSeries> out = <PerformanceSeries>[];
+    final List<(PerfMetric, PerfGranularity, bool)> failed =
+        <(PerfMetric, PerfGranularity, bool)>[];
     for (final (PerfMetric m, PerfGranularity g, bool c)
         in kReadModelSeriesCombos) {
       final PerformanceSeries? s = await _orSkip(
@@ -174,15 +213,25 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
             .series(metric: m, granularity: g, cumulative: c)
             .timeout(wait),
       );
-      if (s != null) out.add(s);
+      if (s != null) {
+        out.add(s);
+      } else {
+        failed.add((m, g, c));
+      }
     }
-    return out;
+    return (series: out, failed: failed);
   }();
   ReadModelRowInput row(
     Map<String, Map<String, Object?>> dtos, {
     Map<String, Object?> extras = const <String, Object?>{},
-  }) =>
-      ReadModelRowInput(mode: mode, rowVersion: 0, dtos: dtos, extras: extras);
+    Map<String, Object?> list = const <String, Object?>{},
+  }) => ReadModelRowInput(
+    mode: mode,
+    rowVersion: 0,
+    dtos: dtos,
+    extras: extras,
+    list: list,
+  );
   return <String, ReadModelSnapshotSource>{
     ReadModelTables.rebalanceEvent.name: () async {
       final ListResult<RebalanceEvent> ev = await one(
@@ -190,13 +239,13 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
       );
       return ReadModelSnapshot(
         rows: <ReadModelRowInput>[
-          for (final RebalanceEvent e in ev.rows)
+          for (final (int i, RebalanceEvent e) in ev.rows.indexed)
             row(<String, Map<String, Object?>>{
               'RebalanceEvent': e.toJson(),
               if (await one(r.journal.watchRebalanceScope(e.eventId))
                   case final JournalRebalanceScope s)
                 'JournalRebalanceScope': s.toJson(),
-            }),
+            }, list: _rank('events_rank', i)),
         ],
         envelopes: <ReadModelEnvelopeDraft>[
           _env(mode, ReadModelListCodes.rebalanceWatchEvents, ev),
@@ -205,8 +254,12 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
     },
     ReadModelTables.alert.name: () async => ReadModelSnapshot(
       rows: <ReadModelRowInput>[
-        for (final AlertItem a in await one(r.alerts.watchInbox()))
-          row(<String, Map<String, Object?>>{'AlertItem': a.toJson()}),
+        for (final (int i, AlertItem a) in (await one(
+          r.alerts.watchInbox(),
+        )).indexed)
+          row(<String, Map<String, Object?>>{
+            'AlertItem': a.toJson(),
+          }, list: _rank('inbox_rank', i)),
       ],
     ),
     ReadModelTables.safetyState.name: () async => ReadModelSnapshot(
@@ -223,6 +276,10 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
       } on Object {
         allocation = null; // 운영 설정을 못 읽음 — 배분 열만 비운다(뷰어 = 그 부분 «못 읽음»).
       }
+      // 🆕 미결 242 ⓓ(K341) — 기간 프리셋 엔진 차례 · 못 읽음 = 그 열만 null(아직 안 채움과 같다).
+      final List<DateRange>? presets = await _orSkip(
+        one(r.config.watchRangePresets()),
+      );
       return ReadModelSnapshot(
         rows: <ReadModelRowInput>[
           row(
@@ -241,6 +298,11 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
                   s.toJson(),
               ],
             },
+            list: <String, Object?>{
+              'range_presets': presets == null
+                  ? null
+                  : <Object?>[for (final DateRange p in presets) p.toJson()],
+            },
           ),
         ],
       );
@@ -254,11 +316,14 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
       ],
     ),
     ReadModelTables.ledgerDiff.name: () async {
-      final ListResult<LedgerDiffRow> d = await one(r.ledger.watchOpenDiffs());
+      final ListResult<LedgerDiffRow> d =
+          r.allDiffs?.call() ?? await one(r.ledger.watchOpenDiffs());
       return ReadModelSnapshot(
         rows: <ReadModelRowInput>[
-          for (final LedgerDiffRow x in d.rows)
-            row(<String, Map<String, Object?>>{'LedgerDiffRow': x.toJson()}),
+          for (final (int i, LedgerDiffRow x) in d.rows.indexed)
+            row(<String, Map<String, Object?>>{
+              'LedgerDiffRow': x.toJson(),
+            }, list: _rank('open_diffs_rank', i)),
         ],
         envelopes: <ReadModelEnvelopeDraft>[
           _env(mode, ReadModelListCodes.ledgerWatchOpenDiffs, d),
@@ -317,8 +382,10 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
       );
       return ReadModelSnapshot(
         rows: <ReadModelRowInput>[
-          for (final BlindReviewCard c in q.rows)
-            row(<String, Map<String, Object?>>{'BlindReviewCard': c.toJson()}),
+          for (final (int i, BlindReviewCard c) in q.rows.indexed)
+            row(<String, Map<String, Object?>>{
+              'BlindReviewCard': c.toJson(),
+            }, list: _rank('queue_rank', i)),
         ],
         envelopes: <ReadModelEnvelopeDraft>[
           _env(mode, ReadModelListCodes.journalWatchBlindReviewQueue, q),
@@ -335,24 +402,38 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
     // ───── 🆕 E11l2c-3(R268) — 매개 5표 ─────
     ReadModelTables.performanceSeries.name: () async => ReadModelSnapshot(
       rows: <ReadModelRowInput>[
-        for (final PerformanceSeries s in await allSeries())
+        for (final PerformanceSeries s in (await allSeries()).series)
           row(<String, Map<String, Object?>>{'PerformanceSeries': s.toJson()}),
       ],
     ),
-    ReadModelTables.performancePoint.name: () async => ReadModelSnapshot(
-      rows: <ReadModelRowInput>[
-        for (final PerformanceSeries s in await allSeries())
-          for (final PerfPoint p in s.points)
-            row(
-              <String, Map<String, Object?>>{'PerfPoint': p.toJson()},
-              extras: <String, Object?>{
-                'metric': s.metric.wire,
-                'granularity': s.granularity.wire,
-                'cumulative': s.cumulative,
-              },
-            ),
-      ],
-    ),
+    // 🆕 미결 242 ⓔ — 점 차례 = 그 시리즈 기본 구간의 엔진 차례(날짜 오름차순) · 구간 밖 옛 점 = push 일이 null 로 ·
+    // 이번에 못 읽은 조합 = `unread`(그 조합의 옛 점 차례는 그대로 둔다).
+    ReadModelTables.performancePoint.name: () async {
+      final _SeriesRead s = await allSeries();
+      return ReadModelSnapshot(
+        rows: <ReadModelRowInput>[
+          for (final PerformanceSeries x in s.series)
+            for (final (int i, PerfPoint p) in x.points.indexed)
+              row(
+                <String, Map<String, Object?>>{'PerfPoint': p.toJson()},
+                extras: <String, Object?>{
+                  'metric': x.metric.wire,
+                  'granularity': x.granularity.wire,
+                  'cumulative': x.cumulative,
+                },
+                list: _rank('series_rank', i),
+              ),
+        ],
+        unread: <Map<String, Object?>>[
+          for (final (PerfMetric m, PerfGranularity g, bool c) in s.failed)
+            <String, Object?>{
+              'metric': m.wire,
+              'granularity': g.wire,
+              'cumulative': c,
+            },
+        ],
+      );
+    },
     ReadModelTables.monthlyReport.name: () async {
       final ReportArchiveVm archive = await r.performance
           .reportArchive()
@@ -407,23 +488,36 @@ Map<String, ReadModelSnapshotSource> operatorReadModelSources(
     },
     ReadModelTables.journal.name: () async {
       final DateRange? whole = _widest(await one(r.config.watchRangePresets()));
-      if (whole == null) return const ReadModelSnapshot(); // 프리셋 0 = 원천 없음
+      if (whole == null) {
+        // 프리셋 0 = 원천 없음 — 직전 소속 차례를 지우지 않는다(표 전체 = 못 읽음).
+        return const ReadModelSnapshot(
+          unread: <Map<String, Object?>>[<String, Object?>{}],
+        );
+      }
+      // 🆕 미결 242 ⓐ — 기본 호출(무필터 · 전 기간) · 상한 없이 → 차례 = 엔진 차례 그대로.
       final ListResult<TradeJournalEntry> j = await one(
         r.journal.watchTimeline(
           range: whole,
           mode: mode,
-          limit: kReadModelJournalLimit,
+          limit: kReadModelUncappedLimit,
         ),
       );
       return ReadModelSnapshot(
         rows: <ReadModelRowInput>[
-          for (final TradeJournalEntry e in j.rows)
+          for (final (int i, TradeJournalEntry e) in j.rows.indexed)
             row(<String, Map<String, Object?>>{
               'TradeJournalEntry': e.toJson(),
-            }),
+            }, list: _rank('timeline_rank', i)),
         ],
         envelopes: <ReadModelEnvelopeDraft>[
-          _env(mode, ReadModelListCodes.journalWatchTimeline, j),
+          // 🆕 미결 242 ⓒ(K340) — 엔진 빈 문장 차례 = 회차 필터 → 전체 빔(`empty_label`) → 필터.
+          _env(
+            mode,
+            ReadModelListCodes.journalWatchTimeline,
+            j,
+            filteredEmptyLabel: JournalTexts.filteredEmpty,
+            scopeEmptyLabel: JournalTexts.rebalanceEmpty,
+          ),
         ],
       );
     },
@@ -451,6 +545,7 @@ Future<ReadModelPushReport?> runOperatorReadModelPush({
       wait: wait,
     ),
     nowUtc: rt.clock.nowUtc,
+    mode: mode,
   ).run(deviceId: rt.deviceId, epoch: epoch);
   final Set<String> alerts = sharedPushAlertCodes(readModels: report.tables);
   if (alerts.isNotEmpty) {
