@@ -1,4 +1,5 @@
-// 🆕 E11l1(설계 13 §8 R246) · E11l2(R254) · 미결 229(R270) PGlite 하네스 — 부트스트랩 완성 판(배치 D + 리스 RPC + rm_* 22 + rm_push + op_push)을 Postgres 16(WASM)에 실제로 붙여 넣고 RLS 를 잰다.
+// 🆕 E11l1(설계 13 §8 R246) · E11l2(R254) · 미결 229(R270) · 🆕 미결 246(R272) PGlite 하네스 — 부트스트랩 완성 판(배치 D + 리스 RPC + rm_* 22 + rm_push + op_push +
+//    페어링 · 명령 표 읽기)을 Postgres 16(WASM)에 실제로 붙여 넣고 RLS 를 잰다.
 // 🔵 CI 밖 로컬 도구(node + @electric-sql/pglite) — 생성기 · RLS 본문이 바뀌는 PR 에서 손으로 돌린다(R221 · v1.34 하네스를 잇는다).
 // 쓰는 법:
 //   1) 빈 폴더 <pg> 에서: npm init -y && npm install --ignore-scripts @electric-sql/pglite@0.5.15
@@ -6,6 +7,7 @@
 //   3) node tool/pglite/read_models_harness.mjs <pg> <out>/bootstrap_full.sql <out>/bootstrap_incomplete.sql [<rows.json>]
 //      넷째(선택) = 빌더 22표 행 — packages/data_sync 에서 AAQ_DUMP_ROWS=<rows.json> dart test test/read_model_push_test.dart(E11l2b · R256)
 // 🔵 Supabase 흉내 = auth.users · auth.uid()(= request.jwt.claim.sub) · 역할 anon · authenticated · public 표 기본 권한 ALL(= RLS 가 유일한 벽).
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -228,10 +230,10 @@ if (rowsPath) {
   const q1 = async (s, p = []) => (await db.query(s, p)).rows[0];
 
   const C1 = 'aaaaaaaa-0000-0000-0000-000000000001', C2 = 'aaaaaaaa-0000-0000-0000-000000000002', CX = 'aaaaaaaa-0000-0000-0000-00000000000f';
-  await db.exec(`insert into command_queue(command_id, kind, payload, issued_by_device, nonce, expires_at, owner_uid) values
-    ('${C1}','KILL_SWITCH_ACTIVATE','{}','d_v','n1', now() + interval '1 hour','${U.op}'),
-    ('${C2}','JOURNAL_DRAFT','{}','d_v','n2', now() - interval '1 hour','${U.op}'),
-    ('${CX}','JOURNAL_DRAFT','{}','d_x','n3', now() + interval '1 hour','${UX}');`);
+  await db.exec(`insert into command_queue(command_id, kind, payload, issued_by_device, nonce, expires_at, owner_uid, run_mode, operating_mode, lease_epoch) values
+    ('${C1}','KILL_SWITCH_ACTIVATE','{}','d_v','n1', now() + interval '1 hour','${U.op}','LIVE','AUTO_TRADE',3),
+    ('${C2}','JOURNAL_DRAFT','{}','d_v','n2', now() - interval '1 hour','${U.op}','LIVE','AUTO_TRADE',3),
+    ('${CX}','JOURNAL_DRAFT','{}','d_x','n3', now() + interval '1 hour','${UX}','LIVE','AUTO_TRADE',3);`);
   await lease('d_op', 3, 30);
   const ack = (id, cmd, state, extra = {}) => ({ ack_id: id, command_id: cmd, state, state_label: '받음', lease_epoch: 999, acked_at: '2000-01-01T00:00:00Z', ...extra });
   const A = (n) => `bbbbbbbb-0000-0000-0000-00000000000${n}`;
@@ -379,9 +381,264 @@ if (rowsPath) {
 
   // 함수 = 계약 이름만 · 보안 꼴
   const fns = (await db.query(`select p.proname n from pg_proc p join pg_namespace s on s.oid = p.pronamespace where s.nspname = 'public' order by 1`)).rows.map(x => x.n);
-  ok(JSON.stringify(fns) === JSON.stringify(['lease_claim', 'lease_renew', 'lease_revoke', 'op_push', 'rm_push']), `public 함수 = ${fns.join(',')}`);
+  ok(JSON.stringify(fns) === JSON.stringify(['command_open', 'command_status', 'lease_claim', 'lease_renew', 'lease_revoke', 'op_push', 'pairing_claim', 'pairing_revoke', 'pairing_ticket_issue', 'rm_push']), `public 함수 = ${fns.join(',')}`);
   const sec = await q1(`select prosecdef s, proconfig::text c from pg_proc where proname = 'op_push'`);
   ok(sec.s === true && sec.c.includes('search_path='), `op_push security definer · search_path (${sec.c})`);
+}
+
+// ⑩ 🆕 미결 246(R272 · 계약 v1.41) 뷰어 페어링 RPC 셋 · 명령 표 읽는 함수 둘 · 배치 D 명령 표 정정 · op_push 리스 없는 ack 거부 —
+//    티켓(해시만 · 정책 0) · 발급(리스 판정 = op_push · 해시 꼴 · 수명 범위 · 바꿔 넣기) · 클레임(기기 행 0 · 해시 · 낸 기기 ACTIVE · 소유자 ≠ ·
+//    만료 · 뷰어 ACTIVE + 티켓 지움) · 폐기(같은 소유자 뷰어 → REVOKED · 곧바로 차단) · command_open(종단 없는 것 · 킬스위치 먼저 · 상한) ·
+//    command_status(최신 ack · 종단 우선 · 서버 now() 리스 = NO_OPERATOR · REQUESTED · 글자 null) · requested_at = now() · 맥락 not null.
+{
+  const sha = (s) => createHash('sha256').update(s, 'utf8').digest('hex');
+  const q1 = async (s, p = []) => (await db.query(s, p)).rows[0];
+  const rows = async (s, p = []) => (await db.query(s, p)).rows;
+  const lease = async (dev, epoch, mins) => db.exec(`delete from operator_lease; insert into operator_lease(id, device_id, epoch, expires_at) values (1, '${dev}', ${epoch}, now() + interval '${mins} minutes')`);
+  const issue = async (uid, dev, epoch, hash, ttl, role = 'authenticated') =>
+    (await as(role, uid, () => db.query(`select * from pairing_ticket_issue($1, $2, $3, $4)`, [dev, epoch, hash, ttl]))).rows[0];
+  const claim = async (uid, nonce, dev, label, platform = 'web', role = 'authenticated') =>
+    (await as(role, uid, () => db.query(`select * from pairing_claim($1, $2, $3, $4)`, [nonce, dev, label, platform]))).rows[0];
+  const revoke = async (uid, dev, epoch, target, role = 'authenticated') =>
+    (await as(role, uid, () => db.query(`select * from pairing_revoke($1, $2, $3)`, [dev, epoch, target]))).rows[0];
+  const UX = '66666666-6666-6666-6666-666666666666'; // ⑨ 가 넣은 남의 운영 사용자(d_x)
+  const UV2 = '77777777-7777-7777-7777-777777777777', UV3 = '88888888-8888-8888-8888-888888888888';
+  await db.exec(`insert into auth.users values ('${UV2}'), ('${UV3}');`);
+  await lease('d_op', 7, 30);
+
+  // 표 = RLS 켬 · 정책 0 · 클라이언트 읽기 · 쓰기 0
+  const pt = await q1(`select c.relrowsecurity r, (select count(*)::int from pg_policies p where p.tablename = 'pairing_ticket') n from pg_class c where c.relname = 'pairing_ticket'`);
+  ok(pt.r === true && pt.n === 0, `티켓 표 RLS 켬 · 정책 0 (${JSON.stringify(pt)})`);
+  ok((await q1(`select count(*)::int n from pg_indexes where indexname = 'ix_command_ack_command_id'`)).n === 1, 'ack 색인 command_ack(command_id)');
+
+  // 발급 — 리스 판정 · 해시 꼴 · 수명 범위 · 바꿔 넣기
+  const N1 = 'nonce-one-0123456789abcdef', N2 = 'nonce-two-0123456789abcdef';
+  let r = await issue(U.op, 'd_op', 7, sha(N1), 15);
+  ok(r.code === null && r.epoch === 7 && r.expires_at instanceof Date, `발급 성공 (${JSON.stringify(r)})`);
+  let t = await q1(`select owner_uid::text o, issued_by_device d, ticket_hash h, round(extract(epoch from (expires_at - now())) / 60)::int m from pairing_ticket`);
+  ok(t.o === U.op && t.d === 'd_op' && t.h === sha(N1) && t.m === 15, `티켓 = 소유자 · 낸 기기 · 해시 · now()+15분 (${JSON.stringify(t)})`);
+  ok(Math.abs(new Date(r.expires_at) - (await q1(`select expires_at e from pairing_ticket`)).e) < 1000, '반환 expires_at = 티켓 만료 시각');
+  r = await issue(U.op, 'd_op', 7, sha(N2), 15);
+  ok(r.code === null && (await q1(`select count(*)::int n, max(ticket_hash) h from pairing_ticket`)).h === sha(N2), '재발급 = 바꿔 넣기(소유자 한 행 · 옛 해시 무효)');
+  ok((await q1(`select count(*)::int n from pairing_ticket`)).n === 1, '티켓 = 소유자당 1행');
+  for (const [hash, ttl, m] of [[sha(N1).toUpperCase(), 15, '대문자 해시'], ['abc', 15, '짧은 해시'], [null, 15, '해시 없음'], [sha(N1), 0, '수명 0'], [sha(N1), 61, '수명 61'], [sha(N1), null, '수명 없음']]) {
+    r = await issue(U.op, 'd_op', 7, hash, ttl);
+    ok(r.code === 'PAIRING_TICKET_INVALID' && r.epoch === 7 && r.expires_at === null, `발급 ${m} = TICKET_INVALID (${JSON.stringify(r)})`);
+  }
+  ok((await q1(`select ticket_hash h from pairing_ticket`)).h === sha(N2), '발급 거부 = 티켓 그대로');
+  for (const ttl of [1, 60]) {
+    r = await issue(U.op, 'd_op', 7, sha(N2), ttl);
+    ok(r.code === null, `발급 수명 경계 ${ttl}분 = 받음`);
+  }
+  r = await issue(U.op, 'd_op', 6, sha(N2), 15);
+  ok(r.code === 'LEASE_LOST' && r.epoch === 7, '발급 epoch 다름 = LEASE_LOST(지금 epoch)');
+  r = await issue(U.view, 'd_v', 7, sha(N2), 15);
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', '발급 뷰어 기기 = NOT_ELIGIBLE');
+  r = await issue(U.view, 'd_op', 7, sha(N2), 15);
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', '발급 남의 기기 이름 = NOT_ELIGIBLE');
+  r = await issue(UX, 'd_x', 7, sha(N2), 15);
+  ok(r.code === 'LEASE_LOST' && r.epoch === 7, '발급 리스 없는 운영 기기 = LEASE_LOST');
+  r = await issue(null, 'd_op', 7, sha(N2), 15);
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', '발급 로그인 0 = NOT_ELIGIBLE');
+  await throws(() => issue(null, 'd_op', 7, sha(N2), 15, 'anon'), /permission denied/, '발급 anon 실행 권한 0');
+  await db.exec(`insert into app_device(device_id,label,role,status,owner_uid,auth_uid) values ('d_ov2','운영자 뷰어','viewer','ACTIVE','${U.op}','${U.op}')`);
+  await lease('d_ov2', 8, 30);
+  r = await issue(U.op, 'd_ov2', 8, sha(N2), 15);
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', '발급 소유자 본인 뷰어 기기(리스 쥠) = NOT_ELIGIBLE');
+  await db.exec(`delete from operator_lease; delete from app_device where device_id = 'd_ov2'`);
+  await lease('d_op', 7, -1);
+  r = await issue(U.op, 'd_op', 7, sha(N2), 15);
+  ok(r.code === 'LEASE_LOST', '발급 리스 만료 = LEASE_LOST');
+  await lease('d_op', 7, 30);
+  // 직접 읽기 · 쓰기 = 0
+  for (const [role, uid] of [['authenticated', U.op], ['authenticated', U.view], ['anon', null]]) {
+    ok((await as(role, uid, () => db.query(`select count(*)::int n from pairing_ticket`))).rows[0].n === 0, `티켓 ${role} ${uid ?? ''} 읽기 0행(해시 비공개)`);
+    await throws(() => as(role, uid, () => db.exec(`insert into pairing_ticket(owner_uid, ticket_hash, issued_by_device, expires_at) values ('${U.op}', '${sha('x')}', 'd_op', now() + interval '1 hour')`)), /row-level security/, `티켓 ${role} 직접 INSERT 거부`);
+    const u = await as(role, uid, () => db.query(`update pairing_ticket set expires_at = now() + interval '9 days'`));
+    ok((u.affectedRows ?? 0) === 0, `티켓 ${role} UPDATE 0행`);
+  }
+
+  // 클레임 — 거부 갈래(바뀜 0)
+  r = await issue(U.op, 'd_op', 7, sha(N1), 15);
+  const nDev = async () => (await q1(`select count(*)::int n from app_device`)).n;
+  const before = await nDev();
+  r = await claim(UV2, 'wrong-nonce', 'd_v2', '랩탑 2');
+  ok(r.code === 'PAIRING_TICKET_INVALID' && r.epoch === null && r.expires_at === null, `클레임 논스 다름 = TICKET_INVALID (${JSON.stringify(r)})`);
+  for (const n of [null, '']) {
+    r = await claim(UV2, n, 'd_v2', '랩탑 2');
+    ok(r.code === 'PAIRING_TICKET_INVALID', `클레임 논스 없음(${JSON.stringify(n)}) = TICKET_INVALID`);
+  }
+  r = await claim(U.op, N1, 'd_v2', '랩탑 2');
+  ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', '클레임 운영 사용자(기기 행 있음 · 소유자) = DEVICE_NOT_ELIGIBLE');
+  r = await claim(U.view, N1, 'd_v9', '랩탑 9');
+  ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', '클레임 이미 기기 행 있는 사용자 = DEVICE_NOT_ELIGIBLE');
+  r = await claim(UV2, N1, 'd_v', '랩탑 2');
+  ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', '클레임 이미 있는 기기 id = DEVICE_NOT_ELIGIBLE');
+  for (const [dev, label, m] of [['d_v2', '  ', '라벨 빈칸'], ['d_v2', null, '라벨 없음'], ['', '랩탑', '기기 id 빈칸'], [null, '랩탑', '기기 id 없음']]) {
+    r = await claim(UV2, N1, dev, label);
+    ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', `클레임 ${m} = DEVICE_NOT_ELIGIBLE`);
+  }
+  r = await claim(null, N1, 'd_v2', '랩탑 2');
+  ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', '클레임 로그인 0 = DEVICE_NOT_ELIGIBLE');
+  await throws(() => claim(null, N1, 'd_v2', '랩탑 2', 'web', 'anon'), /permission denied/, '클레임 anon 실행 권한 0');
+  // 낸 기기가 더는 operator ACTIVE 아님(비상 회수 뒤) = 옛 티켓 무효
+  await db.exec(`update app_device set status = 'REVOKED' where device_id = 'd_op'`);
+  r = await claim(UV2, N1, 'd_v2', '랩탑 2');
+  ok(r.code === 'PAIRING_TICKET_INVALID', '클레임 낸 기기 REVOKED = TICKET_INVALID(비상 회수 뒤 옛 QR)');
+  await db.exec(`update app_device set status = 'ACTIVE' where device_id = 'd_op'`);
+  // 만료
+  await db.exec(`update pairing_ticket set expires_at = now() - interval '1 second'`);
+  r = await claim(UV2, N1, 'd_v2', '랩탑 2');
+  ok(r.code === 'PAIRING_TICKET_EXPIRED' && r.epoch === null, `클레임 만료 = TICKET_EXPIRED (${JSON.stringify(r)})`);
+  ok((await nDev()) === before && (await q1(`select count(*)::int n from pairing_ticket`)).n === 1, '클레임 거부 = 기기 행 · 티켓 그대로');
+
+  // 클레임 성공 — 뷰어 ACTIVE(소유자 = 티켓 소유자 · 로그인 = 부른 사용자) + 티켓 지움 · 한 번만
+  r = await issue(U.op, 'd_op', 7, sha(N1), 15);
+  r = await claim(UV2, N1, 'd_v2', '  랩탑 2  ', 'web');
+  ok(r.code === null && r.epoch === null && r.expires_at === null, `클레임 성공 (${JSON.stringify(r)})`);
+  const dv = await q1(`select role, status, owner_uid::text o, auth_uid::text a, label, platform from app_device where device_id = 'd_v2'`);
+  ok(dv.role === 'viewer' && dv.status === 'ACTIVE' && dv.o === U.op && dv.a === UV2 && dv.label === '랩탑 2' && dv.platform === 'web', `클레임 기기 행 (${JSON.stringify(dv)})`);
+  ok((await q1(`select count(*)::int n from pairing_ticket`)).n === 0, '클레임 = 티켓 지움');
+  r = await claim(UV3, N1, 'd_v3', '랩탑 3');
+  ok(r.code === 'PAIRING_TICKET_INVALID', '쓴 티켓 다시 = TICKET_INVALID(한 번만)');
+  r = await claim(UV2, N1, 'd_v2b', '랩탑 2b');
+  ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', '클레임한 사용자 다시 = DEVICE_NOT_ELIGIBLE');
+  const rmOne = rmTables[0].n;
+  const rmN = async (uid) => (await as('authenticated', uid, () => db.query(`select count(*)::int n from ${rmOne}`))).rows[0].n;
+  ok((await rmN(UV2)) > 0 && (await rmN(UV2)) === (await rmN(U.op)), `새 뷰어 = 읽기 모델 읽음(${rmOne} · 운영 사용자와 같은 행 수)`);
+
+  // 명령 넣기 — 맥락 not null · check · requested_at = now() · 새 뷰어 = 4종
+  const ins = (uid, id, kind, dev, owner, ctx = `'LIVE','AUTO_TRADE',7`, extra = '') => as('authenticated', uid, () => db.exec(
+    `insert into command_queue(command_id, kind, payload, issued_by_device, nonce, expires_at, owner_uid, run_mode, operating_mode, lease_epoch${extra ? ', requested_at' : ''})
+     values ('${id}', '${kind}', '{}', '${dev}', 'n-${id}', now() + interval '1 day', '${owner}', ${ctx}${extra ? ', ' + extra : ''})`));
+  const CID = (n) => `cccccccc-0000-0000-0000-0000000000${String(n).padStart(2, '0')}`;
+  await ins(UV2, CID(1), 'KILL_SWITCH_ACTIVATE', 'd_v2', U.op);
+  ok((await q1(`select requested_at = now() x, run_mode from command_queue where command_id = $1`, [CID(1)])).run_mode === 'LIVE', '새 뷰어 킬스위치 넣기 = 됨(맥락 · 접수 시각 = 서버)');
+  await throws(() => ins(UV2, CID(2), 'JOURNAL_DRAFT', 'd_v2', U.op, `'LIVE','AUTO_TRADE',7`, `'2000-01-01T00:00:00Z'`), /row-level security/, '뷰어 requested_at 덮기 = RLS 거부');
+  await throws(() => ins(U.op, CID(3), 'DEPOSIT_REGISTER', 'd_op', U.op, `'LIVE','AUTO_TRADE',7`, `now() - interval '1 day'`), /row-level security/, '운영 requested_at 덮기 = RLS 거부');
+  await throws(() => ins(UV2, CID(4), 'JOURNAL_DRAFT', 'd_v2', U.op, `null,'AUTO_TRADE',7`), /null value|not-null/, 'run_mode 없음 = not null');
+  await throws(() => ins(UV2, CID(5), 'JOURNAL_DRAFT', 'd_v2', U.op, `'LIVE',null,7`), /null value|not-null/, 'operating_mode 없음 = not null');
+  await throws(() => ins(UV2, CID(6), 'JOURNAL_DRAFT', 'd_v2', U.op, `'LIVE','AUTO_TRADE',null`), /null value|not-null/, 'lease_epoch 없음 = not null');
+  await throws(() => ins(UV2, CID(7), 'JOURNAL_DRAFT', 'd_v2', U.op, `'PAPER','AUTO_TRADE',7`), /check/, 'run_mode check');
+  await throws(() => ins(UV2, CID(8), 'JOURNAL_DRAFT', 'd_v2', U.op, `'LIVE','MANUAL',7`), /check/, 'operating_mode check');
+  await throws(() => ins(UV2, CID(9), 'DEPOSIT_REGISTER', 'd_v2', U.op), /row-level security/, '뷰어 DEPOSIT_REGISTER = RLS 거부(4종 밖)');
+  await ins(U.op, CID(10), 'DEPOSIT_REGISTER', 'd_op', U.op, `'SIM_INTERNAL','ADVISORY',7`);
+  ok((await q1(`select count(*)::int n from command_queue where command_id = $1`, [CID(10)])).n === 1, '운영 폰 넣기 = 됨(맥락 SIM_INTERNAL · ADVISORY)');
+
+  // 폐기 — 같은 소유자 뷰어 → REVOKED · 곧바로 차단 · 멱등 · 운영 폰 · 남의 기기 = 거부
+  r = await revoke(U.op, 'd_op', 7, 'd_op');
+  ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE' && r.epoch === 7, '폐기 운영 폰 = DEVICE_NOT_ELIGIBLE');
+  r = await revoke(U.op, 'd_op', 7, 'd_x');
+  ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', '폐기 남의 기기 = DEVICE_NOT_ELIGIBLE');
+  r = await revoke(U.op, 'd_op', 7, 'nope');
+  ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', '폐기 없는 기기 = DEVICE_NOT_ELIGIBLE');
+  r = await revoke(U.view, 'd_v', 7, 'd_v2');
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', '폐기 뷰어가 부름 = LEASE_DEVICE_NOT_ELIGIBLE');
+  r = await revoke(U.op, 'd_op', 6, 'd_v2');
+  ok(r.code === 'LEASE_LOST' && r.epoch === 7, '폐기 epoch 다름 = LEASE_LOST');
+  await throws(() => revoke(null, 'd_op', 7, 'd_v2', 'anon'), /permission denied/, '폐기 anon 실행 권한 0');
+  ok((await q1(`select status from app_device where device_id = 'd_v2'`)).status === 'ACTIVE', '폐기 거부 = 그대로');
+  r = await revoke(U.op, 'd_op', 7, 'd_v2');
+  ok(r.code === null && r.epoch === 7 && r.expires_at === null, `폐기 성공 (${JSON.stringify(r)})`);
+  ok((await q1(`select status from app_device where device_id = 'd_v2'`)).status === 'REVOKED', '폐기 = REVOKED');
+  r = await revoke(U.op, 'd_op', 7, 'd_v2');
+  ok(r.code === null && (await q1(`select status from app_device where device_id = 'd_v2'`)).status === 'REVOKED', '폐기 다시 = 성공 · 바뀜 0(멱등)');
+  ok((await rmN(UV2)) === 0 && (await rmN(U.op)) > 0, '폐기된 뷰어 = 읽기 모델 0행(곧바로 차단)');
+  ok((await as('authenticated', UV2, () => db.query(`select count(*)::int n from command_queue`))).rows[0].n === 0, '폐기된 뷰어 = 명령 0행');
+  await throws(() => ins(UV2, CID(11), 'KILL_SWITCH_ACTIVATE', 'd_v2', U.op), /row-level security/, '폐기된 뷰어 명령 넣기 = RLS 거부(PAIRING_TOKEN_REVOKED 경로)');
+  r = await revoke(U.op, 'd_op', 7, 'd_p');
+  ok(r.code === null && (await q1(`select status from app_device where device_id = 'd_p'`)).status === 'REVOKED', '폐기 PENDING 뷰어 = REVOKED');
+
+  // command_open — 종단 ack 없는 것 · 킬스위치 먼저 → requested_at · 상한 · RLS · 리스 판정 0
+  await db.exec(`delete from command_ack; delete from command_queue;`);
+  const Q = (n) => `dddddddd-0000-0000-0000-0000000000${String(n).padStart(2, '0')}`;
+  const put = async (id, kind, hoursAgo, owner = U.op, dev = 'd_v') => db.exec(`insert into command_queue(command_id, kind, payload, issued_by_device, nonce, requested_at, expires_at, owner_uid, run_mode, operating_mode, lease_epoch)
+     values ('${id}', '${kind}', '{}', '${dev}', 'n-${id}', now() - interval '${hoursAgo} hours', now() + interval '1 day', '${owner}', 'LIVE', 'AUTO_TRADE', 7)`);
+  await put(Q(1), 'JOURNAL_DRAFT', 3);          // 열림
+  await put(Q(2), 'JOURNAL_DRAFT', 4);          // EXECUTED(종단)
+  await put(Q(3), 'BLIND_REVIEW_SCORE', 2);     // RECEIVED(비종단)
+  await put(Q(4), 'KILL_SWITCH_ACTIVATE', 1);   // 열림 · 킬스위치
+  await put(Q(5), 'DISCLOSURE_VIEW', 5);        // REJECTED(종단)
+  await put(Q(6), 'JOURNAL_DRAFT', 6);          // EXPIRED(종단)
+  await put(Q(7), 'JOURNAL_DRAFT', 7);          // STALE_CONTEXT(보류 · 비종단)
+  await put(Q(9), 'JOURNAL_DRAFT', 1, UX, 'd_x'); // 남의 명령
+  const ackAt = async (cmd, state, secsAgo, id) => db.exec(`insert into command_ack(ack_id, command_id, state, state_label, reject_reason_code, lease_epoch, acked_at)
+     values ('${id}', '${cmd}', '${state}', '엔진 ${state}', ${state === 'REJECTED' ? `'RUN_MODE_MISMATCH'` : 'null'}, 7, now() - interval '${secsAgo} seconds')`);
+  const K = (n) => `eeeeeeee-0000-0000-0000-0000000000${String(n).padStart(2, '0')}`;
+  await ackAt(Q(2), 'RECEIVED', 60, K(1)); await ackAt(Q(2), 'EXECUTED', 30, K(2));
+  await ackAt(Q(3), 'RECEIVED', 30, K(3));
+  await ackAt(Q(5), 'REJECTED', 30, K(4));
+  await ackAt(Q(6), 'EXPIRED', 30, K(5));
+  await ackAt(Q(7), 'STALE_CONTEXT', 30, K(6));
+  const open = async (uid, lim, role = 'authenticated') => (await as(role, uid, () => db.query(`select command_id::text id from command_open($1)`, [lim]))).rows.map(x => x.id);
+  const want = [Q(4), Q(7), Q(1), Q(3)];
+  ok(JSON.stringify(await open(U.op, null)) === JSON.stringify(want), `open = 킬스위치 먼저 → 오래된 차례 · 종단 0 (${JSON.stringify(await open(U.op, null))})`);
+  ok(JSON.stringify(await open(U.op, 2)) === JSON.stringify(want.slice(0, 2)), 'open 상한 2');
+  for (const lim of [0, -5, 1000]) ok((await open(U.op, lim)).length === 4, `open 상한 ${lim} = 기본 상한(100)`);
+  ok(JSON.stringify(await open(U.view, null)) === JSON.stringify(want), 'open ACTIVE 뷰어 = 소유자 명령(RLS)');
+  ok(JSON.stringify(await open(UX, null)) === JSON.stringify([Q(9)]), 'open 남 = 자기 소유 명령만');
+  ok((await open(U.none, null)).length === 0 && (await open(UV2, null)).length === 0, 'open 기기 없음 · 폐기된 뷰어 = 0');
+  await throws(() => open(null, null, 'anon'), /permission denied/, 'open anon 실행 권한 0');
+  await lease('d_op', 7, -1);
+  ok((await open(U.op, null)).length === 4, 'open = 리스 판정 0(소비기가 원격 확인 뒤에만 부른다)');
+  const cols = (await rows(`select a.attname from pg_attribute a where a.attrelid = 'command_queue'::regclass and a.attnum > 0 and not a.attisdropped order by a.attnum`)).map(x => x.attname);
+  const got = Object.keys((await as('authenticated', U.op, () => db.query(`select * from command_open(1)`))).rows[0]);
+  ok(JSON.stringify(got) === JSON.stringify(cols), `open 칸 = command_queue 열 차례 (${got.join(',')})`);
+
+  // command_status — 최신 ack · 종단 우선 · 리스(서버 now()) = NO_OPERATOR · REQUESTED · 글자 null
+  // 같은 acked_at(한 문장 = 한 트랜잭션 시각) — ack_id 차례로는 RECEIVED 가 이기게 두고 «종단 우선»이 EXECUTED 를 고르는지 본다.
+  await db.exec(`insert into command_ack(ack_id, command_id, state, state_label, lease_epoch, acked_at) values
+     ('${K(18)}', '${Q(1)}', 'RECEIVED', '엔진 RECEIVED', 7, now() - interval '10 seconds'),
+     ('${K(17)}', '${Q(1)}', 'EXECUTED', '엔진 EXECUTED', 7, now() - interval '10 seconds')`);
+  const arr = (ids) => ids === null ? null : `{${ids.join(',')}}`;
+  const st = async (uid, ids, role = 'authenticated') => (await as(role, uid, () => db.query(`select * from command_status($1::uuid[])`, [arr(ids)]))).rows;
+  const byId = (rs) => Object.fromEntries(rs.map(x => [x.command_id, x]));
+  await lease('d_op', 7, 30);
+  let s = await st(U.op, [Q(4), Q(3), Q(2), Q(1), Q(7), Q(5), 'ffffffff-0000-0000-0000-000000000000', Q(9)]);
+  ok(JSON.stringify(s.map(x => x.command_id)) === JSON.stringify([Q(4), Q(3), Q(2), Q(1), Q(7), Q(5)]), `status = 보이는 명령만 · 인자 차례 (${s.map(x => x.command_id.slice(-2)).join(',')})`);
+  let m = byId(s);
+  ok(m[Q(4)].state === 'REQUESTED' && m[Q(4)].state_label === null && m[Q(4)].acked_at === null, `ack 없음 ∧ 리스 유효 = REQUESTED · 글자 null (${JSON.stringify(m[Q(4)])})`);
+  ok(m[Q(3)].state === 'RECEIVED' && m[Q(3)].state_label === '엔진 RECEIVED' && m[Q(3)].acked_at instanceof Date, '비종단 ack ∧ 리스 유효 = 그 ack');
+  ok(m[Q(2)].state === 'EXECUTED' && m[Q(2)].state_label === '엔진 EXECUTED', '최신 ack 종단 = 그 ack');
+  ok(m[Q(1)].state === 'EXECUTED', '같은 acked_at = 종단 우선');
+  ok(m[Q(7)].state === 'STALE_CONTEXT', '보류 ack ∧ 리스 유효 = 그 ack');
+  ok(m[Q(5)].state === 'REJECTED' && m[Q(5)].reject_reason_code === 'RUN_MODE_MISMATCH', '거부 ack = 거부 코드 그대로');
+  ok(JSON.stringify(byId(await st(U.view, [Q(4), Q(3)]))) === JSON.stringify(byId(await st(U.op, [Q(4), Q(3)]))), 'status ACTIVE 뷰어 = 운영 사용자와 같다');
+  ok((await st(U.none, [Q(4)])).length === 0 && (await st(UV2, [Q(4)])).length === 0, 'status 기기 없음 · 폐기된 뷰어 = 0행');
+  ok((await st(U.op, [])).length === 0 && (await st(U.op, null)).length === 0, 'status 빈 배열 · null = 0행');
+  await throws(() => st(null, [Q(4)], 'anon'), /permission denied/, 'status anon 실행 권한 0');
+  for (const [how, f] of [['만료', () => lease('d_op', 7, -1)], ['행 없음', () => db.exec('delete from operator_lease')]]) {
+    await f();
+    m = byId(await st(U.op, [Q(4), Q(3), Q(7), Q(2)]));
+    ok(m[Q(4)].state === 'NO_OPERATOR' && m[Q(4)].state_label === null && m[Q(4)].acked_at === null, `리스 ${how} ∧ ack 없음 = NO_OPERATOR · 글자 null`);
+    ok(m[Q(3)].state === 'NO_OPERATOR' && m[Q(3)].state_label === null, `리스 ${how} ∧ 비종단 ack = NO_OPERATOR`);
+    ok(m[Q(7)].state === 'NO_OPERATOR', `리스 ${how} ∧ 보류 ack = NO_OPERATOR`);
+    ok(m[Q(2)].state === 'EXECUTED' && m[Q(2)].state_label === '엔진 EXECUTED', `리스 ${how} ∧ 종단 ack = 그 ack`);
+  }
+  // 리스가 남의 기기 · 다른 epoch 여도 유효하면 «받을 기기 있음»(판정 = 유효 리스 존재)
+  await lease('d_x', 9, 30);
+  ok(byId(await st(U.op, [Q(4)]))[Q(4)].state === 'REQUESTED', '유효 리스 있음 = REQUESTED');
+
+  // op_push — 리스 없는 상태 ack 2 = ROWS_INVALID · 0행
+  await lease('d_op', 7, 30);
+  const push = async (rs) => (await as('authenticated', U.op, () => db.query(`select * from op_push('d_op', 7, 'command_ack', $1::jsonb)`, [JSON.stringify(rs)]))).rows[0];
+  const nAck = async () => (await q1(`select count(*)::int n from command_ack`)).n;
+  const a0 = await nAck();
+  for (const state of ['PENDING_LEASE_CONFIRM', 'NO_OPERATOR']) {
+    r = await push([{ ack_id: K(20), command_id: Q(4), state, state_label: 'x' }]);
+    ok(r.code === 'OPS_PUSH_ROWS_INVALID' && r.accepted === 0, `op_push ack ${state} = ROWS_INVALID`);
+  }
+  r = await push([{ ack_id: K(21), command_id: Q(4), state: 'RECEIVED', state_label: '받음' }, { ack_id: K(22), command_id: Q(1), state: 'NO_OPERATOR', state_label: 'x' }]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID' && (await nAck()) === a0, 'op_push 좋은 ack + NO_OPERATOR 섞임 = 0행');
+  r = await push([{ ack_id: K(21), command_id: Q(4), state: 'RECEIVED', state_label: '받음' }]);
+  ok(r.code === null && r.accepted === 1, 'op_push RECEIVED = 받음');
+  ok(byId(await st(U.op, [Q(4)]))[Q(4)].state === 'RECEIVED', 'status = op_push 가 쓴 ack');
+
+  // 함수 = 계약 이름만 · 보안 꼴
+  const fns = (await rows(`select p.proname n, p.prosecdef d, p.provolatile v, p.proconfig::text c from pg_proc p join pg_namespace s on s.oid = p.pronamespace where s.nspname = 'public' order by 1`));
+  ok(JSON.stringify(fns.map(x => x.n)) === JSON.stringify(['command_open', 'command_status', 'lease_claim', 'lease_renew', 'lease_revoke', 'op_push', 'pairing_claim', 'pairing_revoke', 'pairing_ticket_issue', 'rm_push']), `public 함수 = ${fns.map(x => x.n).join(',')}`);
+  for (const f of fns.filter(x => ['pairing_claim', 'pairing_revoke', 'pairing_ticket_issue'].includes(x.n))) ok(f.d === true && f.c.includes('search_path='), `${f.n} security definer · search_path`);
+  for (const f of fns.filter(x => ['command_open', 'command_status'].includes(x.n))) ok(f.d === false && f.v === 's' && f.c.includes('search_path='), `${f.n} security invoker · stable · search_path`);
 }
 
 // ⑥ 다시 붙여 넣기 = 가드가 멈춘다 · 아무것도 안 바뀐다
