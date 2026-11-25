@@ -256,6 +256,18 @@ const Map<String, AlertText> kAlertTexts = <String, AlertText>{
     '다음 납입 · 리밸런싱 때 원화 현금이 모자라지 않은지 보십시오.',
     AppRoutes.holdingsAllocation,
   ),
+  // ── 🆕 미결 243 ⓒ 공유 계층 push 실패 2(K344 · K372 · 설계 13 §8 R273) — 조치가 다르면 다르게 말한다 · 🔴 찾은 글자 · 값 0 ──
+  'READ_MODEL_PUSH_SECRET_BLOCKED': AlertText(
+    '원격 사본으로 보내지 않은 표가 있습니다',
+    '보낼 내용에 키처럼 보이는 글자가 있어 그 표를 원격 사본에 보내지 않았습니다. 찾은 글자는 기록하지 않았습니다. 뷰어의 그 화면은 멈춰 있습니다. 주문은 막지 않습니다.',
+    '최근 메모 · 기록 칸에 키나 토큰을 붙여 넣지 않았는지 확인하십시오.',
+  ),
+  'READ_MODEL_PUSH_REJECTED': AlertText(
+    '원격 사본이 이 앱과 맞지 않습니다',
+    '원격 사본(Supabase)이 이 앱이 보낸 표 형식을 받아들이지 않았습니다. 뷰어 화면이 멈춰 있을 수 있습니다. 주문은 막지 않습니다.',
+    '앱을 최신 판으로 올리십시오. 그래도 계속되면 연결 관리에서 원격 사본 설정을 다시 하십시오.',
+    AppRoutes.settingsConnections,
+  ),
 };
 
 /// 코드의 글자 — 🔴 모르는 코드 = [ArgumentError](지어내지 않는다).

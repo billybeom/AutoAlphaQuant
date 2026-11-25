@@ -71,6 +71,10 @@ const Map<String, AlertLevel> kAlertLevels = <String, AlertLevel>{
   kGoldShareAlertCode: AlertLevel.p1,
   kFinancialIncomeAlertCode: AlertLevel.p1,
   kKrwLiquidityAlertCode: AlertLevel.p2,
+  // 🆕 미결 243 ⓒ(설계 13 §8 R273 · 계약 v1.39 K344 · v1.41 K372) 공유 계층 push(`rm_push` · `op_push`) 실패 2 — 잠정 P1(04 §5-3 등급 행 =
+  //    v1.39 제안) · 🔴 PUSH_LAG(망 · 서버 · 로그인 · 리스) = 알림 0.
+  AlertCodes.readModelPushSecretBlocked: AlertLevel.p1,
+  AlertCodes.readModelPushRejected: AlertLevel.p1,
 };
 
 /// 코드의 등급 — 🔴 모르는 코드 = [ArgumentError](지어내지 않는다 · 잡 규약상 fail 핑).

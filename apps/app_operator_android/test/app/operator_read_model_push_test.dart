@@ -341,6 +341,10 @@ OperatorReadModelRepos _repos({
 );
 
 class _Pusher implements ReadModelPusher {
+  _Pusher([this.answer]);
+
+  /// 🆕 R273 — 표 이름 → 답(없음 · null = 성공).
+  final ReadModelPushResult? Function(String table)? answer;
   final List<(String, List<Map<String, Object?>>)> calls =
       <(String, List<Map<String, Object?>>)>[];
   @override
@@ -351,12 +355,13 @@ class _Pusher implements ReadModelPusher {
     required List<Map<String, Object?>> rows,
   }) async {
     calls.add((table.name, rows));
-    return ReadModelPushResult.answered(
-      code: null,
-      epoch: epoch,
-      accepted: rows.length,
-      skipped: 0,
-    );
+    return answer?.call(table.name) ??
+        ReadModelPushResult.answered(
+          code: null,
+          epoch: epoch,
+          accepted: rows.length,
+          skipped: 0,
+        );
   }
 }
 
@@ -776,6 +781,71 @@ void main() {
       RunMode.simInternal,
       reason: '일지 = 화면 상태의 모드로 읽는다',
     );
+  });
+
+  test('🆕 ⑦ R273 사람이 볼 실패 = K344 P1(시크릿 · 거부 · 낸 곳 shared_push · 한국 날 한 건) · LAG = 0', () async {
+    final LedgerFiles f = openFiles(tempLedgerDir(), clock);
+    final _Pusher p = _Pusher(
+      (String t) => switch (t) {
+        'rm_watchdog' => const ReadModelPushResult.answered(
+          code: 'READ_MODEL_ROWS_INVALID',
+          epoch: 2,
+          accepted: 0,
+          skipped: 0,
+        ),
+        'rm_alert' => const ReadModelPushResult.failed(
+          ReadModelPushFailure.secretBlocked,
+          secretFindings: 1,
+        ),
+        'rm_ledger_trust' => const ReadModelPushResult.failed(
+          ReadModelPushFailure.network,
+        ),
+        _ => null,
+      },
+    );
+    final OperatorRuntime rt = OperatorRuntime(
+      files: f,
+      clock: clock,
+      readModelPusher: p,
+      deviceId: 'dev-a',
+    );
+    rt.view.value = OperatorView(
+      db: f.sim,
+      flags: const FeatureFlags(
+        satelliteEnabled: false,
+        webViewerEnabled: false,
+        calendarEnabled: false,
+        runMode: RunMode.live,
+        operatingMode: OperatingMode.autoTrade,
+        configHash: 'cfg_test',
+      ),
+    );
+    claim(f.sim, 2);
+    List<(Object?, Object?, Object?)> alerts() => <(Object?, Object?, Object?)>[
+      for (final row in f.sim.select(
+        'SELECT code, level, source FROM alert_event ORDER BY code',
+      ))
+        (row['code'], row['level'], row['source']),
+    ];
+    final ReadModelPushReport? rep = await runOperatorReadModelPush(
+      rt: rt,
+      repos: _repos(),
+      wait: const Duration(seconds: 2),
+    );
+    expect(rep!.failed.map((ReadModelTablePush t) => t.table).toSet(), <String>{
+      'rm_watchdog',
+      'rm_alert',
+    });
+    expect(alerts(), <(Object?, Object?, Object?)>[
+      (AlertCodes.readModelPushRejected, 'P1', kSharedPushAlertSource),
+      (AlertCodes.readModelPushSecretBlocked, 'P1', kSharedPushAlertSource),
+    ]);
+    await runOperatorReadModelPush(
+      rt: rt,
+      repos: _repos(),
+      wait: const Duration(seconds: 2),
+    );
+    expect(alerts(), hasLength(2), reason: '같은 한국 날 · 같은 낸 곳 = 새 행 0');
   });
 
   test('④ 깨어남 뒤 push = 겹침 0 · 던지지 않는다 · 안 달았으면 0', () async {
