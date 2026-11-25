@@ -29,10 +29,11 @@ List<String> _policiesOn(String table) =>
 
 void main() {
   group('C-73 운영 폰 공유 표 push RPC (01 §49)', () {
-    test('C-73 ① 판 · 표본 — 1.40.0 · 402(버전 줄만) · 봉투 판 = 계약 판', () {
-      expect(contractVersion, '1.40.0');
-      expect(FixturePaths.all, hasLength(402));
-      expect(allFixtureFilesOnDisk(), hasLength(402));
+    // 🔵 v1.41(01 §50) — 판 글자 · 수 고정 = 최신 창 시험(C-74 ①)만 · 여기는 «1.40.0 이상 · 402 이상 · 봉투 판 = 계약 판».
+    test('C-73 ① 판 · 표본 — 1.40.0 이상 · 402 이상(버전 줄만) · 봉투 판 = 계약 판', () {
+      expect(contractVersion, isNot(anyOf('1.38.0', '1.39.0')));
+      expect(FixturePaths.all.length, greaterThanOrEqualTo(402));
+      expect(allFixtureFilesOnDisk().length, FixturePaths.all.length);
       for (final String path in FixturePaths.all) {
         final Map<String, Object?> meta =
             (jsonDecode(readFixture(path)) as Map<String, Object?>)['meta']!

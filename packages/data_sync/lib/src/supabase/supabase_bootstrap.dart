@@ -4,9 +4,11 @@
 // 🔵 조각 차례 = ① 배치 D(계약 사본 `domain_contracts/ddl/batch_d_supabase.sql` 원문) → ② operator 리스 RPC 본문
 //    (`data_sync/sql/supabase_lease_rpc.sql`) → ③ 읽기 모델 `rm_*`(E11l1 생성기 출력) → ④ 읽기 모델 push RPC 본문
 //    (`data_sync/sql/supabase_read_model_push_rpc.sql` · 🆕 E11l2 · 13 §8 R254 · 01 §47 — 쓰는 표가 다 선 다음) →
-//    ⑤ 운영 폰 공유 표 push RPC 본문(`data_sync/sql/supabase_ops_push_rpc.sql` · 🆕 01 §8 미결 229 · 13 §8 R270 — rm_* 밖 쓰기 표 다섯).
-//    ① · ② · ④ · ⑤ = `supabase_bootstrap_sources.dart`(생성 · 바이트 대조 시험) · ③ = [SupabaseBootstrapSql.assemble] 인자.
-// 🔵 판 = 다섯 조각 원문의 sha256 앞 12 — ③ 이 들어오거나 원문 하나가 바뀌면 판이 바뀐다(«같은 판» = 이 묶음 하나 · 따로 붙여 넣는 조각 0).
+//    ⑤ 운영 폰 공유 표 push RPC 본문(`data_sync/sql/supabase_ops_push_rpc.sql` · 🆕 01 §8 미결 229 · 13 §8 R270 — rm_* 밖 쓰기 표 다섯) →
+//    ⑥ 뷰어 페어링 RPC · 명령 표 읽는 함수 본문(`data_sync/sql/supabase_command_pairing_rpc.sql` · 🆕 01 §8 미결 246 · 13 §8 R272 — 티켓 ·
+//    클레임 · 폐기 · `command_open` · `command_status`(NO_OPERATOR 서버 판정 · G-26) — 이주 장치가 없어 첫 판에 싣는다).
+//    ① · ② · ④ · ⑤ · ⑥ = `supabase_bootstrap_sources.dart`(생성 · 바이트 대조 시험) · ③ = [SupabaseBootstrapSql.assemble] 인자.
+// 🔵 판 = 여섯 조각 원문의 sha256 앞 12 — ③ 이 들어오거나 원문 하나가 바뀌면 판이 바뀐다(«같은 판» = 이 묶음 하나 · 따로 붙여 넣는 조각 0).
 // 🔴 ③ 없음 = 미완 판(`complete` false) — o_07 ① 은 보이지 않는다(K232 · E11l1 뒤) · 잘못 보여도 첫 문장이 멈춘다(부분 적용 0 —
 //    부분 적용 뒤에는 «이미 적용됨» 가드가 완성 판까지 막는다).
 // 🔴 한 트랜잭션(`begin` … `commit`) — 중간 실패 = 아무것도 바뀌지 않는다 · 이미 적용된 프로젝트(`operator_lease` 있음) = 첫 문장에서 멈춘다.
@@ -35,7 +37,7 @@ class SupabaseBootstrapSql {
     final String edition = sha256
         .convert(
           utf8.encode(
-            '$kSupabaseBatchDSql\u0000$kSupabaseLeaseRpcSql\u0000${rm ?? ''}\u0000$kSupabaseReadModelPushRpcSql\u0000$kSupabaseOpsPushRpcSql',
+            '$kSupabaseBatchDSql\u0000$kSupabaseLeaseRpcSql\u0000${rm ?? ''}\u0000$kSupabaseReadModelPushRpcSql\u0000$kSupabaseOpsPushRpcSql\u0000$kSupabaseCommandPairingRpcSql',
           ),
         )
         .toString()
@@ -74,16 +76,16 @@ class SupabaseBootstrapSql {
       ..writeln(r'$guard$;')
       ..writeln()
       ..writeln(
-        '-- ════ 1/5 배치 D — 계약 사본(packages/domain_contracts/ddl/batch_d_supabase.sql) ════',
+        '-- ════ 1/6 배치 D — 계약 사본(packages/domain_contracts/ddl/batch_d_supabase.sql) ════',
       )
       ..write(kSupabaseBatchDSql)
       ..writeln()
       ..writeln(
-        '-- ════ 2/5 operator 리스 RPC(packages/data_sync/sql/supabase_lease_rpc.sql) ════',
+        '-- ════ 2/6 operator 리스 RPC(packages/data_sync/sql/supabase_lease_rpc.sql) ════',
       )
       ..write(kSupabaseLeaseRpcSql)
       ..writeln()
-      ..writeln('-- ════ 3/5 읽기 모델 rm_*(E11l1 생성기) ════');
+      ..writeln('-- ════ 3/6 읽기 모델 rm_*(E11l1 생성기) ════');
     if (rm != null) {
       b.write(rm);
       if (!rm.endsWith('\n')) b.writeln();
@@ -93,14 +95,19 @@ class SupabaseBootstrapSql {
     b
       ..writeln()
       ..writeln(
-        '-- ════ 4/5 읽기 모델 push RPC(packages/data_sync/sql/supabase_read_model_push_rpc.sql) ════',
+        '-- ════ 4/6 읽기 모델 push RPC(packages/data_sync/sql/supabase_read_model_push_rpc.sql) ════',
       )
       ..write(kSupabaseReadModelPushRpcSql)
       ..writeln()
       ..writeln(
-        '-- ════ 5/5 운영 폰 공유 표 push RPC(packages/data_sync/sql/supabase_ops_push_rpc.sql) ════',
+        '-- ════ 5/6 운영 폰 공유 표 push RPC(packages/data_sync/sql/supabase_ops_push_rpc.sql) ════',
       )
       ..write(kSupabaseOpsPushRpcSql)
+      ..writeln()
+      ..writeln(
+        '-- ════ 6/6 뷰어 페어링 RPC · 명령 표 읽는 함수(packages/data_sync/sql/supabase_command_pairing_rpc.sql) ════',
+      )
+      ..write(kSupabaseCommandPairingRpcSql)
       ..writeln()
       ..writeln('commit;');
     return SupabaseBootstrapSql._(
@@ -113,10 +120,10 @@ class SupabaseBootstrapSql {
   /// 붙여 넣을 전문.
   final String text;
 
-  /// 판(다섯 조각 원문 sha256 앞 12 · 소문자 16진).
+  /// 판(여섯 조각 원문 sha256 앞 12 · 소문자 16진).
   final String edition;
 
-  /// 다섯 조각이 다 있다(③ 생성기 출력이 들어왔다 — o_07 ① 에 보여도 된다).
+  /// 여섯 조각이 다 있다(③ 생성기 출력이 들어왔다 — o_07 ① 에 보여도 된다).
   final bool complete;
 
   @override

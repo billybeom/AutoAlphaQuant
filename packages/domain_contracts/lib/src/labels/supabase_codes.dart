@@ -202,3 +202,27 @@ abstract final class OpsPushResultCodes {
 
   static const Set<String> values = <String>{tableUnknown, rowsInvalid};
 }
+
+/// 🆕 v1.41(01 §50 · 01 §8 미결 246 · 156 · 13 §8 R272 Y2) — 뷰어 페어링 RPC 고유 거부(도메인 `pairing_rpc_result` · RPC 표 =
+/// `schema/supabase_rpc.dart` `PairingRpc*` · 본문 = data_sync `sql/supabase_command_pairing_rpc.sql`).
+/// 🔴 발급 · 폐기의 부르는 기기 거부(`LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE`)는 [LeaseRpcResultCodes] 그대로 — 다시 적지 않는다(v1.38 ·
+///    v1.40 결). 클레임 실패 사유 = V-01 `PairingResult.reasonCode` 축(티켓 무효 · 만료 · 기기 자격 — 미결 156) · 폐기된 뒤 뷰어 읽기 · 쓰기
+///    거부 = `OnboardingResultCodes.pairingTokenRevoked`(RLS 0행 · 클라이언트 판정 = E11m-b/c · 이 사전 밖).
+abstract final class PairingRpcResultCodes {
+  /// 티켓이 맞지 않는다 — 클레임: 논스 없음 · 대기 티켓 해시와 다름(이미 쓴 · 바뀐 티켓 포함) · 티켓을 낸 기기가 더는 operator `ACTIVE` 아님(비상 회수 · 은퇴 뒤) / 발급: 해시 꼴(16진 64) 아님 · 수명이
+  /// `PairingTicketLimits` 범위 밖(쓰기 0).
+  static const String ticketInvalid = 'PAIRING_TICKET_INVALID';
+
+  /// 티켓이 만료됐다(서버 `now()` 기준) — 운영 폰에서 새 QR 을 띄운다(재발급 = 발급 다시 부름).
+  static const String ticketExpired = 'PAIRING_TICKET_EXPIRED';
+
+  /// 이 기기 · 사용자로는 페어링할 수 없다 — 클레임: 로그인 0 · 이미 기기 행이 있는 사용자 · 이미 있는 기기 id · 기기 id · 라벨 없음 ·
+  /// 티켓 소유자 본인 / 폐기: 대상이 같은 소유자의 뷰어 기기가 아님.
+  static const String deviceNotEligible = 'PAIRING_DEVICE_NOT_ELIGIBLE';
+
+  static const Set<String> values = <String>{
+    ticketInvalid,
+    ticketExpired,
+    deviceNotEligible,
+  };
+}

@@ -1,11 +1,12 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_supabase_bootstrap.py` 로 다시 만든다.
 //
 // o_07 ① Supabase 부트스트랩 묶음의 원문 조각(설계 13 §8 R221 · E11k-e2) — 묶음 = `supabase_bootstrap.dart`.
-//    packages/domain_contracts/ddl/batch_d_supabase.sql sha256 `d4656fa2c0b5b7148ed3beca79a3ae39d5318ecf5c2075717a9641e7896c369b`
+//    packages/domain_contracts/ddl/batch_d_supabase.sql sha256 `910ad40671a4bc0670fe66060d8b804f82b13e5f55887082c35314620efc3405`
 //    packages/data_sync/sql/supabase_lease_rpc.sql sha256 `330f2c821ef2f0bdeaab131bb8d12e03573c1c763a3b2d6411a29a5f332234cf`
 //    packages/data_sync/sql/supabase_read_model_push_rpc.sql sha256 `eb14b5a43387cac1daed214921c35f09659dc69879ed03fe455772f2d9f738bb`
-//    packages/data_sync/sql/supabase_ops_push_rpc.sql sha256 `a91708ff24da0f407e9696c403099151c5cce7ce1be61c13209f9ed4cfabef6b`
-// 🔴 data_sync 시험이 원문 4 개와 바이트 대조한다(갈라지면 시험이 실패).
+//    packages/data_sync/sql/supabase_ops_push_rpc.sql sha256 `ef0970c5f7a64f8fe520642e77a45f4b51428cf6f3ff87cb1098ab64ce96d4e8`
+//    packages/data_sync/sql/supabase_command_pairing_rpc.sql sha256 `1ad790fa0b5e821d20eb1ef5fa5e5a3cc77fb8dc513005b19acb471ef19fcbb3`
+// 🔴 data_sync 시험이 원문 5 개와 바이트 대조한다(갈라지면 시험이 실패).
 
 /// ① 배치 D — 계약 사본(01 §6-4) 원문 그대로 — `packages/domain_contracts/ddl/batch_d_supabase.sql`.
 const String kSupabaseBatchDSql = r'''
@@ -35,13 +36,14 @@ create table if not exists app_device (
   -- 🆕 v1.34(01 §43 · 미결 214 닫음) not null · 🔴 **unique 아님** — X1 새 폰은 같은 운영 사용자로 로그인한다(설계 13 R197 T8 ·
   --    이메일 + 비밀번호) → 옛 폰 · 새 폰 두 행의 `auth_uid` 가 같다(unique 면 새 폰 행을 못 넣는다 · PGlite 실증 13 R221).
   --    기기 하나 = 행 하나는 `device_id` 가 지킨다. 뷰어 기기(`auth_uid` ≠ `owner_uid`) 행 = 페어링 RPC(E11m · 서버)만 넣는다.
+--    🆕 v1.41(01 §50 · 미결 246) = `pairing_claim`(viewer · ACTIVE · 티켓 소유자 = `owner_uid`) · 폐기 = `pairing_revoke`(→ REVOKED).
   auth_uid      uuid not null references auth.users(id)
 );
 -- 🆕 v1.34 — RLS · 리스 RPC 가 `auth_uid = auth.uid()` 로 기기 행을 찾는다(unique 를 뺀 자리의 색인).
 create index if not exists ix_app_device_auth_uid on app_device(auth_uid);
 -- 🔴 최초 INSERT 는 role='viewer' · status='PENDING' 강제. operator 승격은 리스 RPC(서버)만
 -- 🆕 v1.34 — 클라이언트가 넣는 행 = 운영 사용자 자기 기기(`auth_uid` = `owner_uid` = 부른 사용자)뿐이다.
---    뷰어 기기 행(소유자 ≠ 로그인 사용자)은 클라이언트가 못 넣는다 — 페어링 RPC(서버 · E11m) 몫.
+--    뷰어 기기 행(소유자 ≠ 로그인 사용자)은 클라이언트가 못 넣는다 — 페어링 RPC(서버 · E11m) 몫(🆕 v1.41 `pairing_claim` · 아래 페어링 티켓 절).
 -- 🆕 v1.39(01 §48 K349 ② · 13 R267 L4 · 리뷰 3차 C-2 = I-U2) — 첫 클레임 뒤(리스 행 있음)에는 운영 사용자만 넣는다:
 --    리스를 쥔 기기 행이 부른 사용자 소유(`owner_uid = auth.uid()` — `device_select_own` 으로 보인다)일 때만 · 리스 행 없음(첫 클레임 전) =
 --    아무 인증 사용자(그 틈 = 17 §3-7 공개 가입 끄기 · o_07 확인 `SUPABASE_SIGNUP_OPEN`). 공개 가입 사용자 = 자기 PENDING 행도 못 넣는다.
@@ -110,6 +112,30 @@ create table if not exists recovery_secret (
 alter table recovery_secret enable row level security;
 -- 🔴 SELECT 정책 없음 — 검증은 RPC 안에서만 수행한다
 
+-- ── 🆕 v1.41 페어링 티켓 (X3 · S06 QR · V-01) — 🔴 해시만. 평문 논스는 QR 페이로드에만 존재 ───────────
+-- 🆕 v1.41(01 §50 · K361 · 미결 246 · 178 · 13 §8 R272 Y2 ⓐ) 소유자(운영 사용자)당 1행 — 발급 = 바꿔 넣기(쓰지 않은 옛 티켓 무효) ·
+--    클레임 성공 = 지움(한 번만 쓴다). 만료 = 서버 now() + 운영 설정 수명(미결 182 잠정 15분 · 받는 범위 = 계약 `PairingTicketLimits`).
+create table if not exists pairing_ticket (
+  owner_uid         uuid primary key references auth.users(id),
+  ticket_hash       text not null check (ticket_hash ~ '^[0-9a-f]{64}$'),   -- 논스 sha256 16진(평문 0)
+  issued_by_device  text not null references app_device(device_id),
+  issued_at         timestamptz not null default now(),
+  expires_at        timestamptz not null
+);
+alter table pairing_ticket enable row level security;
+-- 🔴 정책 0(SELECT 포함) — 발급 결과 = RPC 반환 한 행 · 해시는 아무 클라이언트도 읽지 못한다 · 쓰기 = 아래 RPC 만.
+-- 🆕 v1.41 — 이름 · 인자 · 반환 칸 = 계약 `schema/supabase_rpc.dart` `PairingRpc*` · 거부 = `LeaseRpcResultCodes`(공용 2) ∪ `PairingRpcResultCodes` ·
+--    본문 = data_sync `sql/supabase_command_pairing_rpc.sql`(부트스트랩 여섯째 조각) · 반환 = 한 행 (code text, epoch bigint, expires_at timestamptz).
+--    pairing_ticket_issue (p_device_id text, p_epoch bigint, p_ticket_nonce_hash text, p_ticket_ttl_minutes int)
+--      · 부르는 기기 · 리스 판정 = op_push 와 같은 문장 · 해시 꼴 · 수명 범위 아님 = PAIRING_TICKET_INVALID · 성공 = 소유자 행 바꿔 넣기 ·
+--        반환 expires_at = 티켓 만료 시각
+--    pairing_claim (p_ticket_nonce text, p_device_id text, p_label text, p_platform text)
+--      · 부른 사용자(뷰어 Auth 사용자)의 기기 행 0 ∧ 새 기기 id ∧ 라벨 · 논스 sha256 = 대기 티켓 ∧ 낸 기기 = 아직 operator ACTIVE ·
+--        부른 사용자 ≠ 티켓 소유자 · 만료 전 →
+--        한 트랜잭션: app_device(viewer · ACTIVE · owner_uid = 티켓 소유자 · auth_uid = 부른 사용자) + 티켓 지움
+--    pairing_revoke (p_device_id text, p_epoch bigint, p_target_device_id text)
+--      · 부르는 기기 · 리스 판정 = 발급과 같음 · 대상 = 같은 소유자 viewer 행 → REVOKED(이미 REVOKED = 성공 · 바뀜 0)
+
 -- ── 명령·이벤트 테이블 (Q-C 권고 a) — 🔴 뷰어 쓰기의 유일한 경로. append-only ────────
 -- 🔴 `kind` CHECK 는 §6-6 말미 «배치 D 추가분»의 X7 7종을 **이미 반영**한 형태다
 --    (신규 생성이므로 재작성이 필요 없다 — 기존 표가 있는 설치는 이 파일 맨 아래 §D-add 를 쓴다).
@@ -136,9 +162,11 @@ create table if not exists command_queue (
   requested_at      timestamptz not null default now(),
   expires_at        timestamptz not null,
   owner_uid         uuid not null references auth.users(id),
-  run_mode          text,                         -- 🆕 A10 — 🔴 발행 시점 맥락
-  operating_mode    text,
-  lease_epoch       bigint,
+  -- 🆕 A10 — 🔴 발행 시점 맥락 · 🆕 v1.41(01 §50 · K369 · H-6 · 13 §8 R272 Y3 ⓑ) not null + check — 소비 규칙(«runMode 불일치 = 예외 없이
+  --    거부» · `RUN_MODE_MISMATCH`)의 입력이 비어서 들어오지 않게(전 명령 · `CommandContext` 4필드 필수 = C-28 ⑦).
+  run_mode          text not null check (run_mode in ('LIVE','SIM_INTERNAL','SIM_BROKER')),
+  operating_mode    text not null check (operating_mode in ('AUTO_TRADE','ADVISORY')),
+  lease_epoch       bigint not null,
   unique (kind, nonce)
 );
 alter table command_queue enable row level security;
@@ -153,9 +181,12 @@ alter table command_queue enable row level security;
 --    **`command_insert_operator` 정책에만** 들어간다.
 --    `command_insert_viewer` 의 4종 화이트리스트는 **그대로 둔다**
 --    (⚠️ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이며 m2-8_naming J-3 은 «허용하지 않는다» ⏸ 권고).
+-- 🆕 v1.41(01 §50 · K369 · 06 M4-2 v1.3 ② · 13 §8 R272 Y3 ⓐ) 두 INSERT 정책 += `requested_at = now()` — 클라이언트가 접수 시각을 덮지 못한다
+--    (기본값 now() 와 같은 트랜잭션 시각 · 다른 값 = 거부) · 집계 월 · 만료 판정의 «서버 시각» 원천.
 create policy command_insert_viewer on command_queue for insert to authenticated
   with check (
     expires_at > now()
+    and requested_at = now()
     and kind in ('KILL_SWITCH_ACTIVATE','JOURNAL_DRAFT','BLIND_REVIEW_SCORE','DISCLOSURE_VIEW')
     and exists (select 1 from app_device d
                  where d.device_id = command_queue.issued_by_device
@@ -165,6 +196,7 @@ create policy command_insert_viewer on command_queue for insert to authenticated
 create policy command_insert_operator on command_queue for insert to authenticated
   with check (
     expires_at > now()
+    and requested_at = now()
     and exists (select 1 from app_device d
                  where d.device_id = command_queue.issued_by_device
                    and d.auth_uid = auth.uid() and d.owner_uid = command_queue.owner_uid
@@ -201,8 +233,17 @@ alter table command_ack enable row level security;
 -- 🆕 v1.40(01 §49 · 미결 229 · 13 R270 W4) — 쓰기 = RPC `op_push`(`OpsPushRpcNames` · security definer · 리스 epoch 검사) 만:
 --    같은 `ack_id` = 건너뜀(바꾸지 않음) · `command_id` = 부른 사용자 소유 명령만 · `lease_epoch` = 인자 epoch · `acked_at` = 서버 now().
 --    🔴 INSERT · UPDATE · DELETE 정책 0 = 클라이언트 직접 쓰기 0(append-only 가 DB 로 강제된다).
+--    🆕 v1.41(01 §50 · 13 §8 R272 Y3 ⓓ · Y4) — op_push 는 `PENDING_LEASE_CONFIRM` · `NO_OPERATOR` ack 를 받지 않는다(OPS_PUSH_ROWS_INVALID) —
+--    리스 보유자가 «리스 없음» 상태를 적을 수 없다 · `NO_OPERATOR` = 아래 `command_status` 의 서버 판정(ack 행 0).
 create policy command_ack_select on command_ack for select to authenticated
   using (exists (select 1 from command_queue q where q.command_id = command_ack.command_id));
+-- 🆕 v1.41(01 §50 · K369 · 13 §8 R272 Y3 ⓒ) — 당김 · 상태 읽기 · `command_ack_select` RLS 가 모두 이 칸으로 찾는다(FK 는 색인을 만들지 않는다).
+create index if not exists ix_command_ack_command_id on command_ack(command_id);
+-- 🆕 v1.41 — 명령 표 읽는 함수 둘(security invoker · stable · RLS 그대로 · 이름 · 인자 · 반환 칸 = 계약 `CommandReadRpc*` · 본문 = 여섯째 조각):
+--    command_open (p_limit int) returns setof command_queue — 종단 ack(EXECUTED · REJECTED · EXPIRED) 없는 명령 · 킬스위치 먼저 → requested_at
+--    command_status (p_command_ids uuid[]) returns table (command_id uuid, state text, state_label text, reject_reason_code text,
+--      decision_id text, acked_at timestamptz) — 최신 ack 종단 = 그 ack · 아니면 유효 리스(서버 now()) 없음 = NO_OPERATOR ·
+--      ack 없음 ∧ 유효 리스 = REQUESTED(보냄 · 수신 대기) · 서버 판정 두 상태의 글자 = 계약 `CommandStatusText`(G-26 ⓑ · SQL 글자 0)
 
 -- ── 작업 원장 미러 (X2) — 🔴 계획 원문 금지. digest + 한 줄 요약만 ────────────────────
 create table if not exists planned_work_mirror (
@@ -337,6 +378,7 @@ create policy calendar_sync_status_select on calendar_sync_status for select to 
 -- alter table command_queue add column if not exists run_mode       text;
 -- alter table command_queue add column if not exists operating_mode text;
 -- alter table command_queue add column if not exists lease_epoch    bigint;
+--   (🆕 v1.41 — 새 설치 = 위 create table 의 not null + check · 옛 설치 = 빈 칸을 채운 뒤 `alter column … set not null` + check 추가)
 --
 -- alter table command_ack drop constraint command_ack_state_check;
 -- alter table command_ack add  constraint command_ack_state_check check (state in
@@ -792,7 +834,9 @@ const String kSupabaseOpsPushRpcSql = r'''
 --   · 표마다 충돌 규칙:
 --       command_ack          = 🔴 append-only — 같은 ack_id = 건너뜀(skipped · 바꾸지 않는다) · command_id = 부른 사용자의 명령만
 --                              (command_queue.owner_uid = auth.uid() · 아니면 ROWS_INVALID) · 한 호출에 같은 command_id 두 번 = ROWS_INVALID
---                              (acked_at = 트랜잭션 시각 하나 — 한 명령의 두 상태가 같은 시각이면 뷰어가 차례를 못 가른다).
+--                              (acked_at = 트랜잭션 시각 하나 — 한 명령의 두 상태가 같은 시각이면 뷰어가 차례를 못 가른다) ·
+--                              🆕 v1.41(01 §50 · 13 §8 R272 Y3 ⓓ · Y4) state ∈ {PENDING_LEASE_CONFIRM, NO_OPERATOR} = ROWS_INVALID — 리스 보유자가
+--                              «리스 없음» 상태를 적을 수 없다(그 행이 최신 상태가 되면 뷰어 판정이 거짓) · NO_OPERATOR = command_status 서버 판정(ack 행 0).
 --       planned_work_mirror  = row_version 이 큰 행만 바꾼다(같거나 작으면 skipped · 규칙 5조 ②).
 --       resume_run_mirror    = 덮는다(마지막 보낸 값).
 --       ledger_stamp         = 덮는다(재생성 = 같은 날 다시 씀 · 판정 = 엔진 derivedSyncActionOf · 리스 판정이 낮은 epoch 쓰기를 막는다).
@@ -865,6 +909,10 @@ begin
           from pg_catalog.jsonb_populate_recordset(null::public.command_ack, p_rows) r
          group by r.command_id
         having count(*) > 1
+      ) or exists (
+        select 1
+          from pg_catalog.jsonb_populate_recordset(null::public.command_ack, p_rows) r
+         where r.state in ('PENDING_LEASE_CONFIRM', 'NO_OPERATOR')
       ) then
         return query select 'OPS_PUSH_ROWS_INVALID'::text, v_epoch, 0, 0;
         return;
@@ -920,4 +968,280 @@ $fn$;
 
 revoke all on function public.op_push(text, bigint, text, jsonb) from public, anon;
 grant execute on function public.op_push(text, bigint, text, jsonb) to authenticated;
+''';
+
+/// ⑥ 뷰어 페어링 RPC · 명령 표 읽는 함수 본문(06 M4-2 · M4-3 · 01 §8 미결 246 · R272) — `packages/data_sync/sql/supabase_command_pairing_rpc.sql`.
+const String kSupabaseCommandPairingRpcSql = r'''
+-- ════════════════════════════════════════════════════════════════════════════
+-- 뷰어 페어링 RPC · 명령 표 읽는 함수 본문 — pairing_ticket_issue · pairing_claim · pairing_revoke · command_open · command_status
+-- (Supabase · Postgres 전용)
+-- 설계 13 §8 R272 Y1~Y4(01 §8 미결 246 · 178 · 156 · 182) · 01 §10-8 G-26 · 06 M4-2 · M4-3 · 04 §9-7 ·
+-- 계약 v1.41(01 §50) `schema/supabase_rpc.dart` PairingRpc* · CommandReadRpc*(이름 · 인자 · 반환 칸 · 상한) ·
+-- `labels/supabase_codes.dart` PairingRpcResultCodes(거부 3) · 배치 D `pairing_ticket` · 명령 표 주석
+-- ════════════════════════════════════════════════════════════════════════════
+-- 🔴 이 파일은 o_07 ① 부트스트랩 묶음의 여섯째 조각이다(⑤ op_push 뒤). 묶음은 적용 뒤 첫 문장에서 멈추고 이주 장치가 없어서
+--    뷰어 페어링 · NO_OPERATOR 서버 판정 함수를 첫 판에 함께 싣는다(R272 Y1). 사본 = `supabase_bootstrap_sources.dart`
+--    (`python -I tool/make_supabase_bootstrap.py` · 시험이 바이트 대조).
+-- 🔴 이름 · 인자 · 반환 칸 · 거부 글자 · 상한 = 계약 그대로(지도 X18) — 본문만 여기서 정한다.
+--
+-- 쓰는 RPC 셋(security definer · search_path = '' · 실행 = authenticated 만)
+--   · 반환 = 언제나 한 행 (code text, epoch bigint, expires_at timestamptz) — 리스 반환 글자 · code = 거부 ∪ null(성공).
+--     거부 = LEASE_DEVICE_NOT_ELIGIBLE · LEASE_LOST(발급 · 폐기의 부르는 기기 · 리스 사전 그대로) ·
+--            PAIRING_TICKET_INVALID · PAIRING_TICKET_EXPIRED · PAIRING_DEVICE_NOT_ELIGIBLE.
+--   · 발급 · 폐기의 기기 · 리스 판정 = op_push 와 같은 문장(부른 사용자의 operator ACTIVE 기기 ∧ 리스 행 = 그 기기 ∧ epoch 같음 ∧
+--     만료 전 · 같은 advisory 잠금을 «공유»로 — 리스 RPC 셋이 «배타»로 잡는다).
+--   · 발급 = 해시 꼴(16진 64 소문자) ∧ 수명 1~60분(계약 PairingTicketLimits) → 소유자 한 행 바꿔 넣기(쓰지 않은 옛 티켓 무효) ·
+--     반환 expires_at = 티켓 만료 시각(서버 now() + 수명).
+--   · 클레임 = 부른 사용자(뷰어 Auth 사용자 · D5)의 기기 행 0 ∧ 새 기기 id ∧ 라벨 → 논스 sha256 = 대기 티켓 ∧ 낸 기기 = 아직 operator
+--     ACTIVE(비상 회수 · 은퇴 뒤 옛 티켓 무효) → 부른 사용자 ≠ 티켓 소유자 → 만료 전 → 한 트랜잭션: app_device(viewer · ACTIVE ·
+--     owner_uid = 티켓 소유자 · auth_uid = 부른 사용자) + 티켓 지움. 같은 티켓 두 클레임 = 티켓 행 잠금으로 하나만.
+--   · 폐기 = 대상 = 같은 소유자 viewer 행 → REVOKED(이미 REVOKED = 성공 · 바뀜 0) · 운영 폰 행은 못 바꾼다.
+--
+-- 읽는 함수 둘(security invoker · stable · RLS 그대로 · 권한 상승 0 · 실행 = authenticated 만)
+--   · command_open(p_limit) = 보이는 명령(command_select_own) 가운데 종단 ack(EXECUTED · REJECTED · EXPIRED) 없는 것 ·
+--     킬스위치 먼저 → requested_at → command_id · 상한 100(계약 CommandReadLimits · null · 1 미만 · 넘침 = 상한).
+--     🔴 리스 보유 판정 0 — 소비기는 리스 원격 확인 뒤에만 부른다(R272 Y5).
+--   · command_status(p_command_ids) = 보이는 명령마다 한 행 · 최신 ack(acked_at 내림 · 같으면 종단 먼저 · 그다음 ack_id) 종단 = 그 ack ·
+--     아니면 유효 리스(서버 now()) 없음 = NO_OPERATOR · ack 없음 ∧ 유효 리스 = REQUESTED · 비종단 ack ∧ 유효 리스 = 그 ack ·
+--     서버가 지은 두 상태의 state_label · ack 칸 = null(글자 = 계약 CommandStatusText · 🔴 SQL 글자 0 — G-26 ⓑ «앱이 두 사실을 조합하지 않는다»).
+--     G-26 «security definer» = «서버가 판정한다»의 뜻 — 재료 셋(명령 · ack · 리스)이 부른 사용자에게 다 보여 invoker 로 충분하다(K364).
+
+-- ── pairing_ticket_issue ─────────────────────────────────────────────────────
+create or replace function public.pairing_ticket_issue(p_device_id text, p_epoch bigint, p_ticket_nonce_hash text, p_ticket_ttl_minutes int)
+returns table (code text, epoch bigint, expires_at timestamptz)
+language plpgsql
+security definer
+set search_path = ''
+as $fn$
+declare
+  v_uid uuid := auth.uid();
+  v_epoch bigint;
+  v_exp timestamptz;
+begin
+  if v_uid is null then
+    return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  perform pg_advisory_xact_lock_shared(1094799692);
+  perform 1
+     from public.app_device d
+    where d.device_id = p_device_id
+      and d.auth_uid = v_uid
+      and d.owner_uid = v_uid
+      and d.role = 'operator'
+      and d.status = 'ACTIVE';
+  if not found then
+    return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  select l.epoch into v_epoch
+    from public.operator_lease l
+   where l.id = 1
+     and l.device_id = p_device_id
+     and l.epoch = p_epoch
+     and l.expires_at > now();
+  if not found then
+    select l.epoch into v_epoch from public.operator_lease l where l.id = 1;
+    return query select 'LEASE_LOST'::text, v_epoch, null::timestamptz;
+    return;
+  end if;
+  if p_ticket_nonce_hash is null or p_ticket_nonce_hash !~ '^[0-9a-f]{64}$'
+     or p_ticket_ttl_minutes is null or p_ticket_ttl_minutes < 1 or p_ticket_ttl_minutes > 60 then
+    return query select 'PAIRING_TICKET_INVALID'::text, v_epoch, null::timestamptz;
+    return;
+  end if;
+  v_exp := now() + make_interval(mins => p_ticket_ttl_minutes);
+  insert into public.pairing_ticket as t (owner_uid, ticket_hash, issued_by_device, issued_at, expires_at)
+  values (v_uid, p_ticket_nonce_hash, p_device_id, now(), v_exp)
+  on conflict (owner_uid) do update
+     set ticket_hash = excluded.ticket_hash, issued_by_device = excluded.issued_by_device,
+         issued_at = excluded.issued_at, expires_at = excluded.expires_at;
+  return query select null::text, v_epoch, v_exp;
+end;
+$fn$;
+
+-- ── pairing_claim ────────────────────────────────────────────────────────────
+-- 🔴 거부 = 바뀜 0(티켓 · 기기 행 그대로) · 논스 평문은 저장 · 로그 0(해시로만 대조).
+create or replace function public.pairing_claim(p_ticket_nonce text, p_device_id text, p_label text, p_platform text)
+returns table (code text, epoch bigint, expires_at timestamptz)
+language plpgsql
+security definer
+set search_path = ''
+as $fn$
+declare
+  v_uid uuid := auth.uid();
+  v_owner uuid;
+  v_exp timestamptz;
+begin
+  if v_uid is null
+     or p_device_id is null or btrim(p_device_id) = ''
+     or p_label is null or btrim(p_label) = '' then
+    return query select 'PAIRING_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  perform 1
+     from public.app_device d
+    where d.auth_uid = v_uid
+       or d.device_id = p_device_id;
+  if found then
+    return query select 'PAIRING_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  if p_ticket_nonce is null or p_ticket_nonce = '' then
+    return query select 'PAIRING_TICKET_INVALID'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  select t.owner_uid, t.expires_at into v_owner, v_exp
+    from public.pairing_ticket t
+    join public.app_device i
+      on i.device_id = t.issued_by_device
+     and i.owner_uid = t.owner_uid
+     and i.role = 'operator'
+     and i.status = 'ACTIVE'
+   where t.ticket_hash = encode(sha256(convert_to(p_ticket_nonce, 'UTF8')), 'hex')
+     for update of t;
+  if not found then
+    return query select 'PAIRING_TICKET_INVALID'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  if v_owner = v_uid then
+    return query select 'PAIRING_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  if v_exp <= now() then
+    return query select 'PAIRING_TICKET_EXPIRED'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  begin
+    insert into public.app_device (device_id, label, role, status, platform, owner_uid, auth_uid)
+    values (p_device_id, btrim(p_label), 'viewer', 'ACTIVE', p_platform, v_owner, v_uid);
+  exception
+    when unique_violation then
+      return query select 'PAIRING_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+      return;
+  end;
+  delete from public.pairing_ticket t where t.owner_uid = v_owner;
+  return query select null::text, null::bigint, null::timestamptz;
+end;
+$fn$;
+
+-- ── pairing_revoke ───────────────────────────────────────────────────────────
+create or replace function public.pairing_revoke(p_device_id text, p_epoch bigint, p_target_device_id text)
+returns table (code text, epoch bigint, expires_at timestamptz)
+language plpgsql
+security definer
+set search_path = ''
+as $fn$
+declare
+  v_uid uuid := auth.uid();
+  v_epoch bigint;
+  v_status text;
+begin
+  if v_uid is null then
+    return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  perform pg_advisory_xact_lock_shared(1094799692);
+  perform 1
+     from public.app_device d
+    where d.device_id = p_device_id
+      and d.auth_uid = v_uid
+      and d.owner_uid = v_uid
+      and d.role = 'operator'
+      and d.status = 'ACTIVE';
+  if not found then
+    return query select 'LEASE_DEVICE_NOT_ELIGIBLE'::text, null::bigint, null::timestamptz;
+    return;
+  end if;
+  select l.epoch into v_epoch
+    from public.operator_lease l
+   where l.id = 1
+     and l.device_id = p_device_id
+     and l.epoch = p_epoch
+     and l.expires_at > now();
+  if not found then
+    select l.epoch into v_epoch from public.operator_lease l where l.id = 1;
+    return query select 'LEASE_LOST'::text, v_epoch, null::timestamptz;
+    return;
+  end if;
+  select d.status into v_status
+    from public.app_device d
+   where d.device_id = p_target_device_id
+     and d.owner_uid = v_uid
+     and d.role = 'viewer'
+     for update;
+  if not found then
+    return query select 'PAIRING_DEVICE_NOT_ELIGIBLE'::text, v_epoch, null::timestamptz;
+    return;
+  end if;
+  if v_status <> 'REVOKED' then
+    update public.app_device d
+       set status = 'REVOKED'
+     where d.device_id = p_target_device_id
+       and d.owner_uid = v_uid
+       and d.role = 'viewer';
+  end if;
+  return query select null::text, v_epoch, null::timestamptz;
+end;
+$fn$;
+
+-- ── command_open ─────────────────────────────────────────────────────────────
+create or replace function public.command_open(p_limit int)
+returns setof public.command_queue
+language sql
+stable
+security invoker
+set search_path = ''
+as $fn$
+  select q.*
+    from public.command_queue q
+   where not exists (select 1
+                       from public.command_ack a
+                      where a.command_id = q.command_id
+                        and a.state in ('EXECUTED', 'REJECTED', 'EXPIRED'))
+   order by (q.kind = 'KILL_SWITCH_ACTIVATE') desc, q.requested_at, q.command_id
+   limit (case when p_limit is null or p_limit < 1 or p_limit > 100 then 100 else p_limit end);
+$fn$;
+
+-- ── command_status ───────────────────────────────────────────────────────────
+create or replace function public.command_status(p_command_ids uuid[])
+returns table (command_id uuid, state text, state_label text, reject_reason_code text, decision_id text, acked_at timestamptz)
+language sql
+stable
+security invoker
+set search_path = ''
+as $fn$
+  select q.command_id,
+         case when a.terminal then a.state
+              when not v.live then 'NO_OPERATOR'
+              when a.ack_id is null then 'REQUESTED'
+              else a.state end,
+         case when a.terminal or v.live then a.state_label end,
+         case when a.terminal or v.live then a.reject_reason_code end,
+         case when a.terminal or v.live then a.decision_id end,
+         case when a.terminal or v.live then a.acked_at end
+    from public.command_queue q
+   cross join (select exists (select 1 from public.operator_lease l where l.expires_at > now()) as live) v
+    left join lateral (
+      select k.ack_id, k.state, k.state_label, k.reject_reason_code, k.decision_id, k.acked_at,
+             k.state in ('EXECUTED', 'REJECTED', 'EXPIRED') as terminal
+        from public.command_ack k
+       where k.command_id = q.command_id
+       order by k.acked_at desc, (k.state in ('EXECUTED', 'REJECTED', 'EXPIRED')) desc, k.ack_id desc
+       limit 1
+    ) a on true
+   where q.command_id = any (p_command_ids)
+   order by array_position(p_command_ids, q.command_id);
+$fn$;
+
+revoke all on function public.pairing_ticket_issue(text, bigint, text, int) from public, anon;
+revoke all on function public.pairing_claim(text, text, text, text) from public, anon;
+revoke all on function public.pairing_revoke(text, bigint, text) from public, anon;
+revoke all on function public.command_open(int) from public, anon;
+revoke all on function public.command_status(uuid[]) from public, anon;
+grant execute on function public.pairing_ticket_issue(text, bigint, text, int) to authenticated;
+grant execute on function public.pairing_claim(text, text, text, text) to authenticated;
+grant execute on function public.pairing_revoke(text, bigint, text) to authenticated;
+grant execute on function public.command_open(int) to authenticated;
+grant execute on function public.command_status(uuid[]) to authenticated;
 ''';

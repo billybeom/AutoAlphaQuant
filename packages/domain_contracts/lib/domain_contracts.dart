@@ -26,6 +26,7 @@
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/biometric_prompt_text.dart'; // 🆕 v1.39 영역 E — 생체 대화상자 글자(사전 아님 · 01 §48 K350)
+export 'src/command_status_text.dart'; // 🆕 v1.41 영역 E — 서버 판정 명령 상태 글자(사전 아님 · 01 §50 K366)
 export 'src/commands.dart';
 export 'src/contract_version.dart';
 export 'src/dto.dart';

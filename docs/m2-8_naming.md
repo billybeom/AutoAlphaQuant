@@ -916,3 +916,22 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AS-3 | 🆕 `OpsPushRpcColumns`(`code` · `epoch` · `accepted` · `skipped`) | 같은 파일 · 반환 한 행(`rm_push` 글자 그대로) |
 | AS-4 | 🆕 `OpsPushTables`(`commandAck` · `plannedWorkMirror` · `resumeRunMirror` · `ledgerStamp` · `calendarSyncStatus` · `all`) | 같은 파일 · 받는 표 다섯(배치 D 차례) |
 | AS-5 | 🆕 `OpsPushResultCodes`(`ops_push_result` · `OPS_PUSH_TABLE_UNKNOWN` · `OPS_PUSH_ROWS_INVALID`) | `labels/supabase_codes.dart` · 표 모름 · 행 묶음 못 넣음 |
+
+## AT. 🆕 계약 v1.41 (2026-11-25 · 뷰어 페어링 · 명령 표 읽기) — Dart 이름 13 · SQL 이름 6 · 와이어 글자 4
+
+`contractVersion` = **`1.41.0`**. 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — 권고대로(정본 = 설계 01 §50 · 13 §8 R272 Y1~Y4 · 01 §8 미결 246).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AT-1 | 🆕 `PairingRpcNames`(`pairing_ticket_issue` · `pairing_claim` · `pairing_revoke`) | `schema/supabase_rpc.dart` · 뷰어 페어링 쓰는 RPC 3(R272 초안 `device_revoke` → `pairing_revoke`) |
+| AT-2 | 🆕 `PairingRpcParams`(`p_device_id` · `p_epoch` · `p_ticket_nonce_hash` · `p_ticket_ttl_minutes` · `p_ticket_nonce` · `p_label` · `p_platform` · `p_target_device_id`) | 같은 파일 · 앞 다섯 = 리스 · X1 넘김 티켓 글자 재사용 |
+| AT-3 | 🆕 `PairingRpcColumns`(`code` · `epoch` · `expires_at`) | 같은 파일 · 리스 반환 글자 그대로 |
+| AT-4 | 🆕 `PairingTicketLimits`(`ttlMinutesMin` 1 · `ttlMinutesMax` 60) | 같은 파일 · 티켓 수명 받는 범위(값 = 운영 설정 · 미결 182) |
+| AT-5 | 🆕 `CommandReadRpcNames`(`command_open` · `command_status`) | 같은 파일 · 명령 표 읽는 함수 2(security invoker) |
+| AT-6 | 🆕 `CommandReadRpcParams`(`p_limit` · `p_command_ids`) · `CommandReadLimits`(`openMax` 100) | 같은 파일 |
+| AT-7 | 🆕 `CommandOpenColumns` · `CommandStatusColumns` | 같은 파일 · `command_queue` 열 차례 · 상태 6칸 |
+| AT-8 | 🆕 `PairingRpcResultCodes`(`pairing_rpc_result` · `PAIRING_TICKET_INVALID` · `PAIRING_TICKET_EXPIRED` · `PAIRING_DEVICE_NOT_ELIGIBLE`) | `labels/supabase_codes.dart` |
+| AT-9 | 🆕 `CommandContextRejectCodes`(`command_context_reject` · `RUN_MODE_MISMATCH`) | 🆕 `labels/command_codes.dart` · 소비 규칙 «runMode 불일치 = 예외 없이 거부» |
+| AT-10 | 🆕 `CommandStatusText`(`requested` · `noOperator` · `of`) | 🆕 `command_status_text.dart` · G-26 고정 카탈로그(뷰어 구현이 고른다) |
+| AT-11 | 🆕 `ViewerCommandTtl`(킬스위치 30일 · 나머지 3 14일 · `kinds` · `of`) | 🆕 `commands/viewer_command_ttl.dart` |
+| AT-12 | 🆕 배치 D 표 `pairing_ticket` · 색인 `ix_command_ack_command_id` | `ddl/batch_d_supabase.sql` |

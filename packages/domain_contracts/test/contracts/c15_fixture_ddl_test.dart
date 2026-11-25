@@ -108,6 +108,19 @@ final List<_Axis> _axes = <_Axis>[
     'kind',
     _wires(CommandKind.values),
   ),
+  // 🆕 v1.41(01 §50 · K369 · H-6) — 명령 봉투 맥락 2칸 not null + check(소비 규칙 «runMode 불일치 = 거부»의 입력).
+  _Axis(
+    'batch_d_supabase.sql',
+    'command_queue',
+    'run_mode',
+    _wires(RunMode.values),
+  ),
+  _Axis(
+    'batch_d_supabase.sql',
+    'command_queue',
+    'operating_mode',
+    _wires(OperatingMode.values),
+  ),
   // 🆕 v1.22(01 §31 · K62) — 재개 미러의 재개 모드(`mode` = RunMode 와 다른 축).
   _Axis(
     'batch_d_supabase.sql',

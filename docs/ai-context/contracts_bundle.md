@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 135개 · 계약 v1.40.0 · 조립일 2026-11-25(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 138개 · 계약 v1.41.0 · 조립일 2026-11-25(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -43,6 +43,7 @@
 //    🔴 화면이 대신 지어내지 않는다 — 이름이 확정된 뒤 계약에 들어온다.
 
 export 'src/biometric_prompt_text.dart'; // 🆕 v1.39 영역 E — 생체 대화상자 글자(사전 아님 · 01 §48 K350)
+export 'src/command_status_text.dart'; // 🆕 v1.41 영역 E — 서버 판정 명령 상태 글자(사전 아님 · 01 §50 K366)
 export 'src/commands.dart';
 export 'src/contract_version.dart';
 export 'src/dto.dart';
@@ -124,6 +125,47 @@ abstract final class BiometricPromptText {
 
 ---
 
+## `packages/domain_contracts/lib/src/command_status_text.dart`
+
+```dart
+// 🆕 계약 v1.41(01 §50 · K366 · 01 §10-8 G-26 ⓑ · 13 §8 R272 Y2 ⓔ · Y4 · Y7) — 서버가 판정한 명령 상태 두 개의 고정 글자 카탈로그.
+// 🔴 표지 글자 상수라 C-5 사전 대상(`lib/src/labels/`) 밖에 둔다(`ModeMarkerText` · `BiometricPromptText` 선례 · byDomain 0).
+// 🔴 누가 쓰나 = 뷰어 `CommandApi` 구현(E11m-b) — `command_status` 가 돌려준 `REQUESTED` · `NO_OPERATOR` 행(`state_label` = null)에
+//    이 글자를 골라 `CommandReceipt.stateLabel` 에 싣는다. 화면은 `stateLabel` 만 그린다(§1-5 — 화면이 상태로 문장을 짓지 않는다).
+//    그 밖 상태 = 최신 ack 의 엔진 글자(`command_ack.state_label`) 그대로 — 이 카탈로그가 대신하지 않는다([of] = null).
+// 🔴 G-26 — «요청됨» 이 «껐다» 로 읽히는 것이 이 설계에서 가장 위험한 오인이다: [requested] 는 «아직 처리 전»을 말하고,
+//    [noOperator] 는 받을 기기가 없다는 사실과 지금 할 수 있는 길(증권사 앱에서 직접)을 말한다. 🔴 SQL · 엔진에 같은 글자 0(원천 하나).
+// 🔴 금액 · 계좌 · 종목 · 수치 0.
+
+import 'enums/command.dart';
+
+/// 서버 판정 명령 상태 → 고정 글자.
+abstract final class CommandStatusText {
+  /// `REQUESTED` — 보냄 · 운영 폰 수신 대기(ack 없음 ∧ 유효 리스).
+  static const String requested = '보냄 — 운영 폰이 아직 받지 않았습니다(처리 전)';
+
+  /// `NO_OPERATOR` — 유효 리스 없음(X1 이전 창 · 비상 대기 · 운영 폰 꺼짐) ∧ 종단 ack 없음.
+  static const String noOperator =
+      '받을 기기 없음 — 지금은 이 요청을 처리할 운영 폰이 없습니다. 급하면 증권사 앱에서 직접 미체결 주문을 취소하십시오.';
+
+  /// 서버 판정 상태 → 글자 · 그 밖 상태 = null(최신 ack 의 엔진 글자를 쓴다).
+  static String? of(CommandState s) => switch (s) {
+    CommandState.requested => requested,
+    CommandState.noOperator => noOperator,
+    // 최신 ack 의 엔진 글자(`command_ack.state_label`) — 전수 나열(C-12 · 새 상태 = 컴파일 실패).
+    CommandState.received ||
+    CommandState.executed ||
+    CommandState.rejected ||
+    CommandState.expired ||
+    CommandState.staleContext ||
+    CommandState.heldForIntegrity ||
+    CommandState.pendingLeaseConfirm => null,
+  };
+}
+```
+
+---
+
 ## `packages/domain_contracts/lib/src/commands.dart`
 
 ```dart
@@ -147,6 +189,7 @@ export 'commands/payloads.dart';
 export 'commands/payloads_x7.dart';
 export 'commands/safety_actions.dart';
 export 'commands/settings_actions.dart';
+export 'commands/viewer_command_ttl.dart'; // 🆕 v1.41 뷰어 명령 4종 TTL(01 §50 K367)
 ```
 
 ---
@@ -164,7 +207,7 @@ export 'commands/settings_actions.dart';
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개 · 1.33.0 상향 때 390개 · 1.34.0 상향 때 390개 · 1.35.0 상향 때 393개 · 1.36.0 상향 때 393개 · 1.37.0 상향 때 398개 · 1.38.0 상향 때 398개 · 1.39.0 상향 때 402개 · 1.40.0 상향 때 402개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개 · 1.33.0 상향 때 390개 · 1.34.0 상향 때 390개 · 1.35.0 상향 때 393개 · 1.36.0 상향 때 393개 · 1.37.0 상향 때 398개 · 1.38.0 상향 때 398개 · 1.39.0 상향 때 402개 · 1.40.0 상향 때 402개 · 1.41.0 상향 때 402개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -483,12 +526,21 @@ export 'commands/settings_actions.dart';
 //    `ReadModelRls.selectUsing`(K311 · ACTIVE 기기) · `command_ack` 머리 «op_push 만 · append-only» · 🆕 C-73 · 픽스처 402(버전 줄만) —
 //    🆕 tool/gen_v140_ops_push_fixtures.py. 🔴 SQL 본문 = data_sync `sql/supabase_ops_push_rpc.sql`(부트스트랩 다섯째 조각 · 같은 PR) ·
 //    실행기(X2 미러 · X5 스탬프) = 미결 244 · ack 쓰기 = E11m.
+// 🆕 '1.41.0'(뷰어 페어링 · 명령 표 읽기 · 01 §50 · 13 §8 R272 · 발주자 위임 2026-11-14 — 권고대로 · K360~) — 미결 246 작은 창(E11m-0):
+//    🆕 `schema/supabase_rpc.dart` `PairingRpcNames` 3(`pairing_ticket_issue` · `pairing_claim` · `pairing_revoke`) · `PairingRpcParams` 8 ·
+//    `PairingRpcColumns`(= 리스 반환 글자) · `PairingTicketLimits`(1~60분) · `CommandReadRpcNames` 2(`command_open` · `command_status` — invoker) ·
+//    `CommandReadRpcParams` 2 · `CommandOpenColumns` · `CommandStatusColumns` · `CommandReadLimits` · 🆕 `PairingRpcResultCodes` 3(`pairing_rpc_result`) ·
+//    🆕 `labels/command_codes.dart` `CommandContextRejectCodes`(`RUN_MODE_MISMATCH`) · 🆕 `command_status_text.dart` `CommandStatusText`(G-26 카탈로그 2) ·
+//    🆕 `commands/viewer_command_ttl.dart` `ViewerCommandTtl`(뷰어 4종) · 배치 D: 🆕 표 `pairing_ticket`(해시만 · 정책 0) · `command_queue` 맥락 3칸
+//    not null + check · 두 INSERT 정책 += `requested_at = now()` · 🆕 색인 `command_ack(command_id)` · 🆕 C-74 · 픽스처 402(버전 줄만) —
+//    🆕 tool/gen_v141_pairing_command_fixtures.py. 🔴 SQL 본문 = data_sync `sql/supabase_command_pairing_rpc.sql`(부트스트랩 여섯째 조각 ·
+//    같은 PR) · 소비기 = E11m-a · 뷰어 `CommandApi` = E11m-b · 페어링 클라이언트 · 뷰어 세션(미결 247) = E11m-c.
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.40.0';
+const String contractVersion = '1.41.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -2450,6 +2502,66 @@ abstract class ContributionUpdateSubmission
       _$ContributionUpdateSubmissionFromJson(json);
 }
 // JSON 키: amount_input
+```
+
+---
+
+## `packages/domain_contracts/lib/src/commands/viewer_command_ttl.dart`
+
+```dart
+// 🆕 계약 v1.41(01 §50 · K367 · 13 §8 R272 Y3 ⓔ · Y7 · 00_README §8-4 ㊵) — 뷰어 명령 4종의 TTL(`command_queue.expires_at` = 낸 시각 + 이 값).
+//
+// 🔴 누가 쓰나 = 뷰어 `CommandApi` 구현(E11m-b · PostgREST INSERT 의 `expires_at`) — 뷰어는 운영 설정(`operations.record_command_ttl_days`)을
+//    읽지 못해 계약 상수로 둔다. 운영 폰이 내는 명령(X7 · 입금 등록 · 알림 확인 등)의 TTL = 엔진 · 운영 설정 몫(여기 밖 · [of] = null).
+// 🔴 서버 상한 0(R272 Y3 ⓔ) — `command_insert_viewer` 는 `expires_at > now()` 만 본다 · 만료 판정 = 소비기(E11m-a)가 `expires_at` 으로.
+// 🔴 뷰어 명령은 늦게 닿아 손해 보는 것이 없다 — 만료는 안전이 아니라 **사실 손실**이다(㊵ 결). 그래서 짧게 두지 않는다:
+//    킬스위치 = 늦게 닿아도 멈춤(안전 쪽) · 만료되면 «요청됨»이 침묵한다(G-26 가장 위험한 오인) · 소비 주체가 없는 창이 길어도 살아남게 30일.
+//    저널 초안 · blind 리뷰 점수 · 열람 이벤트 = 사람이 남긴 사실 · ㊵ 기록 계열과 같은 14일.
+// 🔴 화면 · 표본은 이 값을 글자로 적지 않는다(C-32 결 — 남은 시간 글자는 엔진이 짓는다).
+
+import '../enums/command.dart';
+
+/// 뷰어 명령 4종 TTL.
+abstract final class ViewerCommandTtl {
+  /// `KILL_SWITCH_ACTIVATE`.
+  static const Duration killSwitchActivate = Duration(days: 30);
+
+  /// `JOURNAL_DRAFT`.
+  static const Duration journalDraft = Duration(days: 14);
+
+  /// `BLIND_REVIEW_SCORE`.
+  static const Duration blindReviewScore = Duration(days: 14);
+
+  /// `DISCLOSURE_VIEW`.
+  static const Duration disclosureView = Duration(days: 14);
+
+  /// 뷰어가 낼 수 있는 종류 = 배치 D `command_insert_viewer` 화이트리스트 4종(차례 그대로 · C-74 대조).
+  static const List<CommandKind> kinds = <CommandKind>[
+    CommandKind.killSwitchActivate,
+    CommandKind.journalDraft,
+    CommandKind.blindReviewScore,
+    CommandKind.disclosureView,
+  ];
+
+  /// 종류 → TTL · 뷰어 4종 밖 = null(운영 폰 명령 = 엔진 · 운영 설정).
+  static Duration? of(CommandKind k) => switch (k) {
+    CommandKind.killSwitchActivate => killSwitchActivate,
+    CommandKind.journalDraft => journalDraft,
+    CommandKind.blindReviewScore => blindReviewScore,
+    CommandKind.disclosureView => disclosureView,
+    // 운영 폰 명령 — 전수 나열(C-12 · 새 종류 = 컴파일 실패 → 뷰어 허용 여부를 정하고 더한다).
+    CommandKind.depositRegister ||
+    CommandKind.manualFillRecord ||
+    CommandKind.manualFillAmend ||
+    CommandKind.manualFillVoid ||
+    CommandKind.adviceSkip ||
+    CommandKind.selfReportBalance ||
+    CommandKind.alertAck ||
+    CommandKind.killChecklistConfirm ||
+    CommandKind.ledgerEventRecord ||
+    CommandKind.adviceDeferConfirm => null,
+  };
+}
 ```
 
 ---
@@ -14100,13 +14212,17 @@ abstract final class AlertCodes {
   static const String killSwitchAckMismatch = 'KILL_SWITCH_ACK_MISMATCH';
 
   // ── 🆕 v1.39 읽기 모델 push 2 (01 §48 K344 · 13 §8 R263 C3 · C7 · 미결 230 ⓓ · 04 §5-3 등급 행 = 이 판 제안) ──────────
+  // 🆕 v1.41(01 §50 K372 · 미결 245 · 13 §8 R271 O9) — 두 코드 = **공유 계층 push**(`rm_push` · `op_push`) 실패 — 조치가 같아 한 원인이
+  //    두 RPC 에서 따로 울리지 않게 묶는다 · 어느 RPC 인지 = 본문 표 이름(`rm_*` ↔ `OpsPushTables` 서로소) · 와이어 · 등급 · 표본 0.
   /// 🔴 계약 먼저 등재 — 엔진 등급 · 글자 · 내는 자리(push 보고서 실패 목록 → 알림) = 미결 243(그 전 = 알림 0).
-  /// 잠정 P1 · push 가 시크릿 꼴 글자를 찾아 그 표를 보내지 않았다(PUSH_FAILED · 시크릿 차단 — 뷰어 사본이 멈춘다 · 조치 = 원인 확인).
+  /// 잠정 P1 · 공유 계층 push(`rm_push` · `op_push`)가 시크릿 꼴 글자를 찾아 그 표를 보내지 않았다(PUSH_FAILED · 시크릿 차단 — 뷰어 사본이
+  /// 멈춘다 · 조치 = 원인 확인).
   /// 🔴 본문에 찾은 글자 · 값 0(표 이름 · 종류만).
   static const String readModelPushSecretBlocked =
       'READ_MODEL_PUSH_SECRET_BLOCKED';
 
-  /// 잠정 P1 · 서버 표와 앱이 어긋나 push 가 거부됐다(PUSH_FAILED · `READ_MODEL_ROWS_INVALID` · `READ_MODEL_TABLE_UNKNOWN` · 응답 꼴 ·
+  /// 잠정 P1 · 서버 표와 앱이 어긋나 공유 계층 push 가 거부됐다(PUSH_FAILED · `READ_MODEL_ROWS_INVALID` · `READ_MODEL_TABLE_UNKNOWN` ·
+  /// 🆕 v1.41 `OPS_PUSH_ROWS_INVALID` · `OPS_PUSH_TABLE_UNKNOWN`(미결 245) · 응답 꼴 ·
   /// 행을 못 만듦 — 조치 = 앱 업데이트 · 부트스트랩 다시). 🔴 망 · 서버 · 로그인 · 리스(PUSH_LAG)는 알림 0(다음 깨우기에 다시 — 경보 피로).
   static const String readModelPushRejected = 'READ_MODEL_PUSH_REJECTED';
 
@@ -14270,6 +14386,29 @@ abstract final class AllocationRowCodes {
     goldSleeveCCap,
     goldTotalMonitor,
   };
+}
+```
+
+---
+
+## `packages/domain_contracts/lib/src/labels/command_codes.dart`
+
+```dart
+// 🆕 계약 v1.41(01 §50 · K368 · 01 §10-8 «소비 규칙» · 13 §8 R272 Y5) — 명령 소비(맥락) 공통 거부 사전.
+//
+// 🔴 «어떤 코드가 오는가» 의 상수 목록이지 코드 → 문구 매핑이 아니다(labels.dart 머리) — 문구는 엔진이 ack `state_label` 에 함께 싣는다.
+
+/// 명령 맥락 거부(도메인 `command_context_reject`) — 축 = `CommandReceipt.rejectReasonCode` · `command_ack.reject_reason_code`(모든 명령 종류).
+/// 🔴 01 §10-8 소비 규칙 — «발행 시점 맥락으로 판정 · 소비 시점 런타임과 다르면 거부하지 않고 `staleContext` · 단 `runMode` 불일치는
+///    **예외 없이 거부**(파일 경계는 협상 대상이 아니다)». 이 사전 = 그 «거부» 한 갈래의 글자다(`operatingMode` · `leaseEpoch` 불일치 =
+///    `staleContext` 갈래 · 거부 코드 아님).
+/// 🔴 `AdviceRejectCodes.operatingModeMismatch`(`OPERATING_MODE_MISMATCH` · X7 안내 갈래 · 다른 축)와 다른 글자 ·
+///    `LedgerWriteGateCodes.ledgerClosed`(같은 모드라도 원장 행이 CLOSE)와 다른 축.
+abstract final class CommandContextRejectCodes {
+  /// 명령의 발행 시점 `run_mode` ≠ 소비 시점 실행 모드(모의 명령이 실전 원장에 · 실전 명령이 모의 원장에 닿지 않는다) — 집행 0 · ack `REJECTED`.
+  static const String runModeMismatch = 'RUN_MODE_MISMATCH';
+
+  static const Set<String> values = <String>{runModeMismatch};
 }
 ```
 
@@ -14829,6 +14968,7 @@ abstract final class JournalReasonCodes {
 import 'advice_codes.dart';
 import 'alert_codes.dart';
 import 'allocation_codes.dart'; // 🆕 v1.28
+import 'command_codes.dart'; // 🆕 v1.41
 import 'deviation_kind_codes.dart';
 import 'disclosure_codes.dart';
 import 'exit_kind.dart';
@@ -14851,6 +14991,7 @@ import 'verdict_codes.dart';
 export 'advice_codes.dart';
 export 'alert_codes.dart';
 export 'allocation_codes.dart'; // 🆕 v1.28
+export 'command_codes.dart'; // 🆕 v1.41
 export 'deviation_kind_codes.dart';
 export 'disclosure_codes.dart';
 export 'exit_kind.dart';
@@ -15127,6 +15268,9 @@ abstract final class ContractCodes {
     'supabase_signup_result': SupabaseSignupResultCodes.values,
     // 🆕 v1.40(01 §49 · 미결 229 · 13 R270) — 운영 폰 공유 표 push RPC 고유 거부 2(리스 거부 = `lease_rpc_result` 한 벌)
     'ops_push_result': OpsPushResultCodes.values,
+    // 🆕 v1.41(01 §50 · 미결 246 · 13 R272) — 뷰어 페어링 RPC 고유 거부 3(리스 거부 = `lease_rpc_result` 한 벌) · 명령 runMode 불일치 거부
+    'pairing_rpc_result': PairingRpcResultCodes.values,
+    'command_context_reject': CommandContextRejectCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).
@@ -17637,6 +17781,30 @@ abstract final class OpsPushResultCodes {
   static const String rowsInvalid = 'OPS_PUSH_ROWS_INVALID';
 
   static const Set<String> values = <String>{tableUnknown, rowsInvalid};
+}
+
+/// 🆕 v1.41(01 §50 · 01 §8 미결 246 · 156 · 13 §8 R272 Y2) — 뷰어 페어링 RPC 고유 거부(도메인 `pairing_rpc_result` · RPC 표 =
+/// `schema/supabase_rpc.dart` `PairingRpc*` · 본문 = data_sync `sql/supabase_command_pairing_rpc.sql`).
+/// 🔴 발급 · 폐기의 부르는 기기 거부(`LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE`)는 [LeaseRpcResultCodes] 그대로 — 다시 적지 않는다(v1.38 ·
+///    v1.40 결). 클레임 실패 사유 = V-01 `PairingResult.reasonCode` 축(티켓 무효 · 만료 · 기기 자격 — 미결 156) · 폐기된 뒤 뷰어 읽기 · 쓰기
+///    거부 = `OnboardingResultCodes.pairingTokenRevoked`(RLS 0행 · 클라이언트 판정 = E11m-b/c · 이 사전 밖).
+abstract final class PairingRpcResultCodes {
+  /// 티켓이 맞지 않는다 — 클레임: 논스 없음 · 대기 티켓 해시와 다름(이미 쓴 · 바뀐 티켓 포함) · 티켓을 낸 기기가 더는 operator `ACTIVE` 아님(비상 회수 · 은퇴 뒤) / 발급: 해시 꼴(16진 64) 아님 · 수명이
+  /// `PairingTicketLimits` 범위 밖(쓰기 0).
+  static const String ticketInvalid = 'PAIRING_TICKET_INVALID';
+
+  /// 티켓이 만료됐다(서버 `now()` 기준) — 운영 폰에서 새 QR 을 띄운다(재발급 = 발급 다시 부름).
+  static const String ticketExpired = 'PAIRING_TICKET_EXPIRED';
+
+  /// 이 기기 · 사용자로는 페어링할 수 없다 — 클레임: 로그인 0 · 이미 기기 행이 있는 사용자 · 이미 있는 기기 id · 기기 id · 라벨 없음 ·
+  /// 티켓 소유자 본인 / 폐기: 대상이 같은 소유자의 뷰어 기기가 아님.
+  static const String deviceNotEligible = 'PAIRING_DEVICE_NOT_ELIGIBLE';
+
+  static const Set<String> values = <String>{
+    ticketInvalid,
+    ticketExpired,
+    deviceNotEligible,
+  };
 }
 ```
 
@@ -21478,6 +21646,182 @@ abstract final class OpsPushTables {
     ledgerStamp,
     calendarSyncStatus,
   ];
+}
+
+// ── 🆕 계약 v1.41(01 §50 · K360~ · 01 §8 미결 246 · 178 · 156 · 182 · 01 §10-8 G-26 · 06 M4-2 · 13 §8 R272 Y1~Y4) 뷰어 페어링 · 명령 표 읽기 ──
+// 🔴 o_07 ① 첫 판 묶음 여섯째 조각(data_sync `sql/supabase_command_pairing_rpc.sql`) — 묶음은 적용 뒤 첫 문장에서 멈추고 이주 장치가 없어서
+//    함수를 첫 판에 싣는다(R272 Y1). 여기는 **글자만**(지도 X18 — 이름 · 인자 · 반환 칸 · 상한) · 본문 = 같은 PR 엔진 커밋.
+// 🔴 쓰는 RPC 셋 = security definer · 반환 = 한 행 [LeaseRpcColumns] 셋(`code` · `epoch` · `expires_at`) · 거부 = [LeaseRpcResultCodes] 의
+//    `LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE`(발급 · 폐기의 부르는 기기) ∪ `PairingRpcResultCodes` · 성공 = `code` null · 시각 = 서버 `now()`.
+// 🔴 읽는 함수 둘 = **security invoker** · `stable` · RLS 그대로(권한 상승 0) — 판정 재료(명령 · ack · 리스)가 부른 사용자에게 다 보인다
+//    (`command_select_own` · `command_ack_select` · `lease_select`). G-26 ⓑ «security definer RPC» = «서버가 판정한다»의 뜻으로 읽는다(K364).
+// 🔴 뷰어 세션(Auth 사용자 · 새로고침 토큰)의 원천 = 미결 247(Edge Function `viewer-pair` ★) — 그 함수도 이 `pairing_claim` 을 뷰어 사용자 JWT 로 부른다.
+
+/// 뷰어 페어링 RPC 이름 3(06 M4-3 · S06 `devicePairingTicketCreate` · `deviceTokenRevoke` · V-01 클레임 · 04 §9-7).
+abstract final class PairingRpcNames {
+  /// 티켓 발급 — 부르는 기기 · 리스 판정 = [OpsPushRpcNames.push] 와 **같은 문장**(운영 사용자의 operator `ACTIVE` 기기 ∧ 리스 행 = 그 기기 ∧
+  /// epoch 같음 ∧ 만료 전 · 아니면 `LEASE_DEVICE_NOT_ELIGIBLE` · `LEASE_LOST`) → 해시 꼴(sha256 16진 64 소문자) ∧ 수명
+  /// [PairingTicketLimits.ttlMinutesMin] ~ [PairingTicketLimits.ttlMinutesMax] 분(아니면 `PAIRING_TICKET_INVALID`) → 소유자의 티켓 한 행을
+  /// **바꿔 넣는다**(쓰지 않은 옛 티켓 = 무효 · 재발급 = 다시 부름). 반환 `epoch` = 지금 리스 epoch · `expires_at` = **티켓 만료 시각**
+  /// (서버 `now()` + 수명 — QR 카드 만료 글자 원천).
+  static const String ticketIssue = 'pairing_ticket_issue';
+
+  /// 클레임(뷰어 기기 · V-01) — 부른 사용자(뷰어 Auth 사용자 · 지도 D5)의 기기 행 0 ∧ 새 기기 id ∧ 라벨 있음(아니면 `PAIRING_DEVICE_NOT_ELIGIBLE`) ·
+  /// 논스 sha256 = 대기 티켓 해시 ∧ 티켓을 낸 기기가 아직 operator `ACTIVE`(비상 회수 · 은퇴 뒤 옛 티켓 = 무효 · 아니면 `PAIRING_TICKET_INVALID`) · 부른 사용자 ≠ 티켓 소유자(아니면 `PAIRING_DEVICE_NOT_ELIGIBLE`) · 만료 전
+  /// (서버 `now()` · 아니면 `PAIRING_TICKET_EXPIRED`) → **한 트랜잭션**: `app_device`(role `viewer` · status **`ACTIVE`** · `owner_uid` = 티켓 소유자 ·
+  /// `auth_uid` = 부른 사용자) + 티켓 지움(한 번만 쓴다). 반환 `epoch` · `expires_at` = null(뜻 = `code` 하나).
+  static const String claim = 'pairing_claim';
+
+  /// 뷰어 폐기(S06 · 04 §9-7 «즉시 차단») — 부르는 기기 · 리스 판정 = 발급과 같다 → 대상 = 같은 소유자 · role `viewer` 행(아니면
+  /// `PAIRING_DEVICE_NOT_ELIGIBLE`) → status `REVOKED`(모든 RLS 정책이 `ACTIVE` 를 보므로 곧바로 읽기 · 쓰기 0 = 뷰어 `PAIRING_TOKEN_REVOKED` 경로) ·
+  /// 이미 `REVOKED` = 성공(바뀜 0 · 멱등 재시도). 반환 `epoch` = 지금 리스 epoch · `expires_at` = null. 🔴 운영 폰 행은 이 RPC 로 못 바꾼다
+  /// (운영 폰 은퇴 = `device_retire` · 비상 = `lease_revoke`).
+  static const String revoke = 'pairing_revoke';
+
+  static const Set<String> values = <String>{ticketIssue, claim, revoke};
+}
+
+/// 뷰어 페어링 RPC 인자 이름(PostgREST `rpc/<이름>` 본문 키) — 🔴 같은 꼴 = 같은 글자(기기 · epoch = 리스 · 논스 해시 · 논스 · 수명 = X1 넘김 티켓).
+abstract final class PairingRpcParams {
+  /// 부르는 기기 — 발급 · 폐기 = 운영 폰(= [LeaseRpcParams.deviceId]) · 클레임 = **새 뷰어 기기 id**(뷰어가 지은 값 · 이미 있는 id = 거부).
+  static const String deviceId = LeaseRpcParams.deviceId;
+
+  /// 지금 보유 리스 epoch(발급 · 폐기 · = [LeaseRpcParams.epoch]).
+  static const String epoch = LeaseRpcParams.epoch;
+
+  /// 티켓 논스의 sha256(16진 64 소문자 · 발급 · 평문 0 — 평문은 QR 페이로드에만 · = [LeaseHandoverRpcParams.ticketNonceHash]).
+  static const String ticketNonceHash = LeaseHandoverRpcParams.ticketNonceHash;
+
+  /// 티켓 수명(분 · 발급 · 값 = 운영 설정 · 미결 182 잠정 15분 · = [LeaseHandoverRpcParams.ticketTtlMinutes]).
+  static const String ticketTtlMinutes =
+      LeaseHandoverRpcParams.ticketTtlMinutes;
+
+  /// 티켓 논스 평문(클레임 · QR 에서 읽은 값 · 서버가 sha256 으로 대조 · 🔴 저장 · 로그 0 · = [LeaseHandoverRpcParams.ticketNonce]).
+  static const String ticketNonce = LeaseHandoverRpcParams.ticketNonce;
+
+  /// 새 뷰어 기기 라벨(클레임 · `app_device.label` · 비면 거부).
+  static const String label = 'p_label';
+
+  /// 새 뷰어 기기 플랫폼(클레임 · `app_device.platform` · null 허용).
+  static const String platform = 'p_platform';
+
+  /// 폐기할 뷰어 기기(폐기 · 같은 소유자 · role `viewer`).
+  static const String targetDeviceId = 'p_target_device_id';
+
+  static const Set<String> values = <String>{
+    deviceId,
+    epoch,
+    ticketNonceHash,
+    ticketTtlMinutes,
+    ticketNonce,
+    label,
+    platform,
+    targetDeviceId,
+  };
+}
+
+/// 뷰어 페어링 RPC 반환 칸(한 행 · [LeaseRpcColumns] 글자 그대로 — 클라이언트 해석기 하나).
+abstract final class PairingRpcColumns {
+  /// 거부 코드 · 성공 = null.
+  static const String code = LeaseRpcColumns.code;
+
+  /// 지금 리스 epoch(발급 · 폐기 · 거부 = 지금 값 또는 null · 클레임 = null).
+  static const String epoch = LeaseRpcColumns.epoch;
+
+  /// 티켓 만료 시각(발급 성공만 · 그 밖 = null).
+  static const String expiresAt = LeaseRpcColumns.expiresAt;
+
+  static const Set<String> values = <String>{code, epoch, expiresAt};
+}
+
+/// 페어링 티켓 수명의 **받는 범위**(서버 경계 검사 · 실수 막이) — 🔴 값(운영 설정 · 미결 182 잠정 15분)이 아니다.
+/// 범위 밖 = `PAIRING_TICKET_INVALID`(쓰기 0) · 값이 정해져도(182) 범위 안이면 설정만 바꾼다(이주 SQL 0).
+abstract final class PairingTicketLimits {
+  /// 하한(분).
+  static const int ttlMinutesMin = 1;
+
+  /// 상한(분 · QR 한 장이 1시간 넘게 살지 않는다 · 182 후보 = X1 넘김 티켓 15분).
+  static const int ttlMinutesMax = 60;
+}
+
+/// 명령 표 읽는 함수 이름 2(06 M4-2 · 01 §10-8 G-26 · 13 §8 R272 Y2 ⓔ · Y4 · Y5) — security invoker · RLS 그대로.
+abstract final class CommandReadRpcNames {
+  /// 소비기 당김(운영 폰 · E11m-a) — 보이는 명령 가운데 **종단 ack**(`EXECUTED` · `REJECTED` · `EXPIRED`) 없는 것 · 차례 = 킬스위치 먼저 →
+  /// `requested_at` → `command_id` · 상한 [CommandReadLimits.openMax] · 반환 = `command_queue` 행([CommandOpenColumns]).
+  /// 🔴 리스 보유 판정은 하지 않는다 — 소비기는 리스 원격 확인을 통과한 뒤에만 부른다(Y5 · 소비 주체 = 리스 보유자 하나).
+  static const String open = 'command_open';
+
+  /// 명령 상태(뷰어 `CommandApi.watchCommand` · E11m-b) — 인자 id 가운데 보이는 명령마다 한 행([CommandStatusColumns]) · 보이지 않거나 없는 id = 행 0.
+  /// 판정(**서버 `now()`** · G-26 ⓑ): 최신 ack(`acked_at` 내림 · 같으면 종단 먼저 · 그다음 `ack_id`)가 종단 = 그 ack · 아니면(ack 없음 · 비종단)
+  /// 유효 리스(만료 전) 없음 = **`NO_OPERATOR`** · ack 없음 ∧ 유효 리스 = **`REQUESTED`**(보냄 · 수신 대기) · 비종단 ack ∧ 유효 리스 = 그 ack.
+  /// 서버가 지은 두 상태(`NO_OPERATOR` · `REQUESTED`)의 `state_label` · ack 칸 = null — 글자 = 계약 카탈로그 `CommandStatusText`(뷰어 구현이 고른다).
+  static const String status = 'command_status';
+
+  static const Set<String> values = <String>{open, status};
+}
+
+/// 명령 표 읽는 함수 인자 이름.
+abstract final class CommandReadRpcParams {
+  /// `command_open` 행 수(null · 1 미만 · 상한 초과 = 상한 [CommandReadLimits.openMax]).
+  static const String limit = 'p_limit';
+
+  /// `command_status` 명령 id 배열(uuid[] · 화면 = 보고 있는 명령들).
+  static const String commandIds = 'p_command_ids';
+
+  static const Set<String> values = <String>{limit, commandIds};
+}
+
+/// `command_open` 반환 칸 = 배치 D `command_queue` 열(그 표 차례 그대로 · `setof public.command_queue`).
+abstract final class CommandOpenColumns {
+  static const List<String> all = <String>[
+    'command_id',
+    'kind',
+    'payload',
+    'issued_by_device',
+    'nonce',
+    'requested_at',
+    'expires_at',
+    'owner_uid',
+    'run_mode',
+    'operating_mode',
+    'lease_epoch',
+  ];
+}
+
+/// `command_status` 반환 칸(명령마다 한 행 · ack 칸 = 최신 ack · 서버가 지은 상태면 null).
+abstract final class CommandStatusColumns {
+  /// 명령 id.
+  static const String commandId = 'command_id';
+
+  /// `CommandState.wire`(`REQUESTED` 포함 9값 — `REQUESTED` · `NO_OPERATOR` = 서버 판정 · 나머지 = 최신 ack).
+  static const String state = 'state';
+
+  /// 최신 ack 의 엔진 글자 · 서버 판정 상태 = null(뷰어 구현이 `CommandStatusText` 에서 고른다).
+  static const String stateLabel = 'state_label';
+
+  /// 최신 ack 의 거부 코드(`REJECTED` 일 때 · 그 밖 null).
+  static const String rejectReasonCode = 'reject_reason_code';
+
+  /// 최신 ack 의 결정 id(있으면).
+  static const String decisionId = 'decision_id';
+
+  /// 최신 ack 시각(서버 · 서버 판정 상태 = null).
+  static const String ackedAt = 'acked_at';
+
+  static const List<String> all = <String>[
+    commandId,
+    state,
+    stateLabel,
+    rejectReasonCode,
+    decisionId,
+    ackedAt,
+  ];
+}
+
+/// 명령 표 읽기 상한.
+abstract final class CommandReadLimits {
+  /// `command_open` 한 번에 돌려주는 행 상한(뷰어 명령은 하루 몇 건 · 넘치면 다음 당김).
+  static const int openMax = 100;
 }
 ```
 
