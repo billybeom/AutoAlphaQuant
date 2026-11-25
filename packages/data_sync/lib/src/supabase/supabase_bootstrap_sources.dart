@@ -1,7 +1,7 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_supabase_bootstrap.py` 로 다시 만든다.
 //
 // o_07 ① Supabase 부트스트랩 묶음의 원문 조각(설계 13 §8 R221 · E11k-e2) — 묶음 = `supabase_bootstrap.dart`.
-//    packages/domain_contracts/ddl/batch_d_supabase.sql sha256 `b189ff3645e0ce9fe1ba719b95b10bede5f076eda77cf3883bf9facfbc549112`
+//    packages/domain_contracts/ddl/batch_d_supabase.sql sha256 `d4656fa2c0b5b7148ed3beca79a3ae39d5318ecf5c2075717a9641e7896c369b`
 //    packages/data_sync/sql/supabase_lease_rpc.sql sha256 `330f2c821ef2f0bdeaab131bb8d12e03573c1c763a3b2d6411a29a5f332234cf`
 //    packages/data_sync/sql/supabase_read_model_push_rpc.sql sha256 `eb14b5a43387cac1daed214921c35f09659dc69879ed03fe455772f2d9f738bb`
 // 🔴 data_sync 시험이 세 원문과 바이트 대조한다(갈라지면 시험이 실패).
@@ -179,7 +179,7 @@ create policy command_select_own on command_queue for select to authenticated
 --    ~~⚠️ `role` 클레임을 어디에 싣는가(app_metadata vs 커스텀 클레임 RPC)는 M4-2 에서 확정한다.~~
 --    ✅ v1.34 = `app_device` 행(위 · 01 §8 미결 13 닫음).
 
-create table if not exists command_ack (           -- 엔진(operator)만 INSERT
+create table if not exists command_ack (           -- 🆕 v1.40 쓰기 = op_push 만 · append-only(리스 보유 운영 폰 엔진)
   ack_id            uuid primary key,
   command_id        uuid not null references command_queue(command_id),
   state             text not null check (state in ('RECEIVED','EXECUTED','REJECTED','EXPIRED',
@@ -197,6 +197,9 @@ create table if not exists command_ack (           -- 엔진(operator)만 INSERT
 --    그 구멍이 그대로 운영 DB 가 된다.
 alter table command_ack enable row level security;
 -- 🆕 v1.34 — 보이는 명령(위 `command_select_own` 이 걸린 `command_queue`)의 ack 만 — 뷰어 = 소유자 명령의 ack.
+-- 🆕 v1.40(01 §49 · 미결 229 · 13 R270 W4) — 쓰기 = RPC `op_push`(`OpsPushRpcNames` · security definer · 리스 epoch 검사) 만:
+--    같은 `ack_id` = 건너뜀(바꾸지 않음) · `command_id` = 부른 사용자 소유 명령만 · `lease_epoch` = 인자 epoch · `acked_at` = 서버 now().
+--    🔴 INSERT · UPDATE · DELETE 정책 0 = 클라이언트 직접 쓰기 0(append-only 가 DB 로 강제된다).
 create policy command_ack_select on command_ack for select to authenticated
   using (exists (select 1 from command_queue q where q.command_id = command_ack.command_id));
 
@@ -225,11 +228,17 @@ create table if not exists resume_run_mirror (
   headline text,
   updated_at timestamptz not null default now()
 );
--- 🆕 G-10 — 미러 2표도 RLS 대상이다(단일 소유자 표라 `using (true)` 로 충분하되 **문장은 있어야 한다**)
+-- 🆕 G-10 — 미러 2표도 RLS 대상이다. ~~단일 소유자 표라 `using (true)` 로 충분~~ 🆕 v1.40(01 §49 · 222 ⓕ · 13 R270 W5) select 본문 =
+--    `rm_*` 와 같은 K311(부른 사용자의 ACTIVE 기기 · `ReadModelRls.selectUsing`) — `using (true)` 면 기기 없는 인증 사용자(공개 가입)가
+--    미러를 읽는다(PGlite 재현). 읽는 쪽 = 운영 폰 · ACTIVE 뷰어 · 클레임 뒤 새 폰뿐이라 잃는 것 0.
+-- 🆕 v1.40 쓰기 = RPC `op_push` 만(`planned_work_mirror` = `row_version` 큰 쪽 · `resume_run_mirror` = 덮음 · epoch · 시각 칸 = 서버) ·
+--    클라이언트 쓰기 정책 0.
 alter table planned_work_mirror enable row level security;
-create policy planned_work_mirror_select on planned_work_mirror for select to authenticated using (true);
+create policy planned_work_mirror_select on planned_work_mirror for select to authenticated
+  using (exists (select 1 from app_device d where d.auth_uid = auth.uid() and d.status = 'ACTIVE'));
 alter table resume_run_mirror enable row level security;
-create policy resume_run_mirror_select on resume_run_mirror for select to authenticated using (true);
+create policy resume_run_mirror_select on resume_run_mirror for select to authenticated
+  using (exists (select 1 from app_device d where d.auth_uid = auth.uid() and d.status = 'ACTIVE'));
 
 -- ── 정합 스탬프 (X5) · 캘린더 상태 (X4) ──────────────────────────────────────────
 create table if not exists ledger_stamp (
@@ -253,10 +262,14 @@ create table if not exists calendar_sync_status (
   updated_at timestamptz not null default now()
 );
 -- 🆕 G-10 — 🔴 `ledger_stamp` 위조는 X5 대조를 무력화한다. 두 표 모두 select 전용 정책만 둔다.
+-- 🆕 v1.40(01 §49 · 222 ⓕ · 13 R270 W5) select 본문 = K311(`ReadModelRls.selectUsing` · ~~`using (true)`~~) · 쓰기 = RPC `op_push` 만
+--    (덮음 · `ledger_stamp` = 같은 날 다시 씀 · `operator_epoch` = 인자 epoch · 시각 칸 = 서버) · 클라이언트 쓰기 정책 0.
 alter table ledger_stamp enable row level security;
-create policy ledger_stamp_select on ledger_stamp for select to authenticated using (true);
+create policy ledger_stamp_select on ledger_stamp for select to authenticated
+  using (exists (select 1 from app_device d where d.auth_uid = auth.uid() and d.status = 'ACTIVE'));
 alter table calendar_sync_status enable row level security;
-create policy calendar_sync_status_select on calendar_sync_status for select to authenticated using (true);
+create policy calendar_sync_status_select on calendar_sync_status for select to authenticated
+  using (exists (select 1 from app_device d where d.auth_uid = auth.uid() and d.status = 'ACTIVE'));
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- 읽기 모델 `rm_*` 22표 — 🔴 이 파일에 손으로 적지 않는다

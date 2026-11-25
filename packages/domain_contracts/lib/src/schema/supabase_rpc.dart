@@ -153,3 +153,87 @@ abstract final class ReadModelPushRpcColumns {
 
   static const Set<String> values = <String>{code, epoch, accepted, skipped};
 }
+
+// ── 🆕 계약 v1.40(01 §49 · K353~ · 01 §8 미결 229 · 222 ⓕ · 06 M4-1 · 06 X2-7 · 13 §8 R270 W1~W8) 운영 폰 공유 표 push RPC ──────────────
+// 🔴 `rm_*` 밖 배치 D 쓰기 표 다섯(`OpsPushTables`) = 이 RPC 1창구 — 쓰는 주체 = 다섯 다 운영 폰 엔진 · 리스 보유자(뷰어 · 서버 쓰기 0 ·
+//    클라이언트 INSERT · UPDATE · DELETE 정책 0 그대로). `rm_push`(v1.38)로 받지 않는다 — 열 관례가 다르다(`row_version` 없는 표 2 ·
+//    시각 칸 `acked_at` · `updated_at` · `stamped_at` · epoch 칸 `operator_epoch`) · `rm_push` 표 목록 = `ReadModelTables` 22 그대로(C-71).
+//    SQL 본문 · 부트스트랩 다섯째 조각 · 대조 시험 = 엔진(data_sync `sql/supabase_ops_push_rpc.sql`). 여기는 **글자만**(지도 X18).
+// 🔴 한 호출 = 한 표 · 한 트랜잭션 — 행 하나라도 못 넣으면 그 호출 전부 0행(`OPS_PUSH_ROWS_INVALID`) · 삭제 0 · 표마다 정적 SQL(동적 SQL 0).
+// 🔴 반환 = 한 행(`OpsPushRpcColumns` 넷 = `ReadModelPushRpcColumns` 글자) · 거부 = [LeaseRpcResultCodes] 의 `LEASE_LOST` ·
+//    `LEASE_DEVICE_NOT_ELIGIBLE` ∪ `OpsPushResultCodes` · 성공 = `code` null · 시각 = 서버 `now()`.
+
+/// 운영 폰 공유 표 push RPC 이름(06 M4-1 «쓰기 = security definer RPC · 클라이언트 upsert 0»).
+abstract final class OpsPushRpcNames {
+  /// 한 표의 행 묶음을 올린다 — 기기 · 리스 판정 = [ReadModelPushRpcNames.push] 와 **같은 문장**(부른 사용자 = 그 기기 `auth_uid` =
+  /// `owner_uid` ∧ role `operator` ∧ `ACTIVE`(아니면 `LEASE_DEVICE_NOT_ELIGIBLE`) ∧ 리스 행 = 그 기기 ∧ epoch 같음 ∧ 만료 전(아니면
+  /// `LEASE_LOST`) · 같은 advisory 잠금 공유) · 표 ∈ [OpsPushTables.all](아니면 `OPS_PUSH_TABLE_UNKNOWN`) · 행 = JSON 배열(열 이름 키 =
+  /// 배치 D 그 표 열 · 🔴 epoch 칸(`lease_epoch` · `operator_epoch`) = 인자 epoch · 시각 칸(`acked_at` · `updated_at` · `stamped_at`) =
+  /// 서버 `now()` 로 덮어쓴다 — 행이 실은 값 무시). 표마다 충돌 규칙:
+  /// `command_ack` = **append-only**(같은 `ack_id` = 건너뜀 · 바꾸지 않음 · `command_id` = 부른 사용자 소유 명령만 · 한 호출에 같은 명령 두 번 =
+  /// `OPS_PUSH_ROWS_INVALID` — `acked_at` 이 트랜잭션 시각 하나라 뷰어가 차례를 못 가른다) · `planned_work_mirror` = `row_version` 이 **큰**
+  /// 행만(같거나 작으면 건너뜀) · `resume_run_mirror` · `ledger_stamp`(재생성 = 같은 날 다시 씀) · `calendar_sync_status` = 덮는다.
+  static const String push = 'op_push';
+
+  static const Set<String> values = <String>{push};
+}
+
+/// 운영 폰 공유 표 push RPC 인자 이름(PostgREST `rpc/op_push` 본문 키 · [ReadModelPushRpcParams] 글자 그대로).
+abstract final class OpsPushRpcParams {
+  /// 부르는 기기(= [LeaseRpcParams.deviceId]).
+  static const String deviceId = ReadModelPushRpcParams.deviceId;
+
+  /// 지금 보유 리스 epoch(= [LeaseRpcParams.epoch] · 행의 epoch 칸 원천).
+  static const String epoch = ReadModelPushRpcParams.epoch;
+
+  /// 표 이름([OpsPushTables.all] 가운데 하나 · 배치 D 표 이름 그대로).
+  static const String table = ReadModelPushRpcParams.table;
+
+  /// 행 묶음(JSON 배열 · 행 = 열 이름 → 와이어 값 · 빈 배열 = 0행 성공).
+  static const String rows = ReadModelPushRpcParams.rows;
+
+  static const Set<String> values = <String>{deviceId, epoch, table, rows};
+}
+
+/// 운영 폰 공유 표 push RPC 반환 칸(한 행 · [ReadModelPushRpcColumns] 글자 그대로).
+abstract final class OpsPushRpcColumns {
+  /// 거부 코드 · 성공 = null.
+  static const String code = ReadModelPushRpcColumns.code;
+
+  /// 지금 리스 epoch(성공 = 인자 epoch · 거부 = 지금 값 또는 null).
+  static const String epoch = ReadModelPushRpcColumns.epoch;
+
+  /// 넣거나 바꾼 행 수(성공 · 거부 = 0).
+  static const String accepted = ReadModelPushRpcColumns.accepted;
+
+  /// 건너뛴 행 수(`command_ack` 같은 `ack_id` · `planned_work_mirror` `row_version` 이 크지 않음 · 거부 = 0).
+  static const String skipped = ReadModelPushRpcColumns.skipped;
+
+  static const Set<String> values = <String>{code, epoch, accepted, skipped};
+}
+
+/// `op_push` 가 받는 표 다섯(배치 D `ddl/batch_d_supabase.sql` 표 이름 · 차례 = 그 파일 차례 · `rm_*` 와 서로소).
+abstract final class OpsPushTables {
+  /// 명령 소비 ack(엔진 E11m) — append-only · 명령당 여러 행.
+  static const String commandAck = 'command_ack';
+
+  /// X2 작업 원장 미러(digest + 한 줄 · 원문 0) — `row_version` 큰 쪽.
+  static const String plannedWorkMirror = 'planned_work_mirror';
+
+  /// X2 재개 회차 미러 — 마지막 보낸 값.
+  static const String resumeRunMirror = 'resume_run_mirror';
+
+  /// X5 `canonSupabase` 파생 스탬프 — 같은 날 다시 씀 · `operator_epoch` = 쓴 기기 epoch(FORK 재료).
+  static const String ledgerStamp = 'ledger_stamp';
+
+  /// X4 캘린더 동기 상태(모드마다 한 행 · ⏸ 실전 뒤 K107).
+  static const String calendarSyncStatus = 'calendar_sync_status';
+
+  static const List<String> all = <String>[
+    commandAck,
+    plannedWorkMirror,
+    resumeRunMirror,
+    ledgerStamp,
+    calendarSyncStatus,
+  ];
+}
