@@ -458,13 +458,13 @@ void main() {
   // ───── 🆕 미결 242(R275) ─────
 
   /// 알림 표에 보낸 행(그 호출들을 잇는다).
-  List<Map<String, Object?>> sent(_Pusher p, {int from = 0}) =>
-      <Map<String, Object?>>[
-        for (final (String, int, List<Map<String, Object?>>) c in p.calls.skip(
-          from,
-        ))
-          if (c.$1 == 'rm_alert') ...c.$3,
-      ];
+  List<Map<String, Object?>> sent(_Pusher p, {int from = 0}) => p.calls
+      .skip(from)
+      .where(
+        ((String, int, List<Map<String, Object?>>) c) => c.$1 == 'rm_alert',
+      )
+      .expand(((String, int, List<Map<String, Object?>>) c) => c.$3)
+      .toList();
 
   List<Object?> ids(Iterable<Map<String, Object?>> rows) => <Object?>[
     for (final Map<String, Object?> r in rows) r['alert_id'],
@@ -707,10 +707,10 @@ void main() {
       );
       expect(readModelRankColumns(ReadModelTables.listEnvelope), isEmpty);
       expect(
-        <String>{
-          for (final ReadModelTable t in ReadModelTables.all)
-            if (readModelRankColumns(t).isNotEmpty) t.name,
-        },
+        ReadModelTables.all
+            .where((ReadModelTable t) => readModelRankColumns(t).isNotEmpty)
+            .map((ReadModelTable t) => t.name)
+            .toSet(),
         <String>{
           'rm_journal',
           'rm_holding',

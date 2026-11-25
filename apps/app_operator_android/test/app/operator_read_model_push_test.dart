@@ -1151,18 +1151,24 @@ void main() {
       await push(),
       'rm_performance_point',
     );
-    final List<Map<String, Object?>> nulls = <Map<String, Object?>>[
-      for (final Map<String, Object?> x in second)
-        if (x['series_rank'] == null) x,
-    ];
+    final List<Map<String, Object?>> nulls = second
+        .where((Map<String, Object?> x) => x['series_rank'] == null)
+        .toList();
     // 일별 3조합(못 읽은 하나 · 늘 실패하는 연별 하나 빼고) × 밀린 두 점.
     expect(nulls, hasLength(3 * 2));
-    expect(nulls.map(_keyOf).toSet(), <String>{
-      for (final (PerfMetric, PerfGranularity, bool) c
-          in kReadModelSeriesCombos)
-        if (c.$2 == PerfGranularity.daily && c != _flaky)
-          _key(c.$1.wire, c.$2.wire, c.$3),
-    });
+    expect(
+      nulls.map(_keyOf).toSet(),
+      kReadModelSeriesCombos
+          .where(
+            ((PerfMetric, PerfGranularity, bool) c) =>
+                c.$2 == PerfGranularity.daily && c != _flaky,
+          )
+          .map(
+            ((PerfMetric, PerfGranularity, bool) c) =>
+                _key(c.$1.wire, c.$2.wire, c.$3),
+          )
+          .toSet(),
+    );
     expect(nulls.map((Map<String, Object?> x) => x['date']).toSet(), <Object?>{
       '2024-09-30',
       '2024-10-31',
@@ -1183,13 +1189,15 @@ void main() {
       reason: '못 읽은 조합 = 그 옛 점 차례를 지우지 않는다',
     );
     // 남은 일별 점 = 1..22 로 다시 매김.
-    final List<Object?> daily = <Object?>[
-      for (final Map<String, Object?> x in second)
-        if (x['series_rank'] != null &&
-            _keyOf(x) ==
-                _key(PerfMetric.mwr.wire, PerfGranularity.daily.wire, true))
-          x['series_rank'],
-    ];
+    final List<Object?> daily = second
+        .where(
+          (Map<String, Object?> x) =>
+              x['series_rank'] != null &&
+              _keyOf(x) ==
+                  _key(PerfMetric.mwr.wire, PerfGranularity.daily.wire, true),
+        )
+        .map((Map<String, Object?> x) => x['series_rank'])
+        .toList();
     expect(daily, oneTo(22));
     // 셋째 — 못 읽은 조합이 돌아오면 그 옛 두 점만 null · 앞서 null 로 보낸 점은 다시 안 보냄.
     perf.flakyDown = false;
@@ -1197,10 +1205,9 @@ void main() {
       await push(),
       'rm_performance_point',
     );
-    final List<Map<String, Object?>> nulls3 = <Map<String, Object?>>[
-      for (final Map<String, Object?> x in third)
-        if (x['series_rank'] == null) x,
-    ];
+    final List<Map<String, Object?>> nulls3 = third
+        .where((Map<String, Object?> x) => x['series_rank'] == null)
+        .toList();
     expect(nulls3, hasLength(2));
     expect(nulls3.map(_keyOf).toSet(), <String>{
       _key(_flaky.$1.wire, _flaky.$2.wire, _flaky.$3),
