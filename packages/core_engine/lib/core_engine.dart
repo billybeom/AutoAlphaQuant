@@ -1036,6 +1036,25 @@ export 'src/ops/rebalance_events_view.dart'
         rebalanceEventVmOf,
         rebalanceEventsVmOf,
         rebalanceWeightLinesOf;
+// 🆕 E11m-a(13 §8 R274) — 운영 폰 명령 소비기 순수 몫(command_open 행 → 갈래 · ack 행 · 엔진 글자).
+export 'src/ops/remote_command.dart'
+    show
+        RemoteBlindReviewScore,
+        RemoteCommand,
+        RemoteCommandExecute,
+        RemoteCommandRefuse,
+        RemoteCommandRoute,
+        RemoteCommandSkip,
+        RemoteCommandTexts,
+        RemoteDisclosureView,
+        RemoteJournalDraft,
+        RemoteKillSwitch,
+        commandAckId,
+        commandAckRow,
+        kRemoteKillSwitchChannel,
+        remoteCommandOf,
+        remotePayloadDigest,
+        routeRemoteCommand;
 // 🆕 E11q-s71b — M7 S7-1b 월간 리포트 보관함 VM 짓기(설계 13 §8 R253 · 03 §4 · S7-1 과 같은 «닫힌 달» 판정).
 export 'src/ops/report_archive_view.dart'
     show

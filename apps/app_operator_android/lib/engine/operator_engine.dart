@@ -5,11 +5,14 @@
 // 🔴 원장을 못 열면 그 깨어남은 실패한다(호스트가 받아 재무장 · 다음 깨어남에 다시 연다) — 호스트 기동은 막지 않는다.
 // 🔴 판정 · 문구는 엔진 몫 — 여기는 차례만 잇는다.
 // 🆕 E11p3c-4(R102) — 깨어남 끝에 FGS 상태를 넘긴다(준비 = 엔진 재료 · 거부 = BLOCKED + 거부 코드 · 온보딩 미완 = 넘기지 않음).
+// 🆕 E11m-a(설계 13 §8 R274) — 회차 **앞**에서 뷰어 명령을 한 번 소비한다(킬스위치가 같은 깨어남의 주문 잡보다 먼저) ·
+//    리스는 쥐었는데 명령 표를 못 읽었으면(또는 소비가 던졌으면) 이 깨어남의 주문 잡은 실패로 남는다(`JobContext.commandsBlocked`).
 
 import 'package:core_engine/core_engine.dart'
     show JobHeartbeat, OperationsConfig, WatchdogRemote;
 import 'package:data_sync/data_sync.dart'
     show
+        CommandConsumeReport,
         MaintenanceWindowRunner,
         SqliteAlertSink,
         SqliteJobRunLog,
@@ -40,6 +43,11 @@ typedef SeedAssets = Future<Map<String, List<int>>> Function();
 /// FGS 상태를 받는 쪽(조립 = 호스트 `FgsPresenter.show` · 전이 때만 다시 띄운다).
 typedef FgsSink = Future<void> Function(FgsStatus status);
 
+/// 🆕 E11m-a — 회차 앞 명령 소비 한 번(조립 = `command_wiring.dart` · null 반환 = 소비 자리 아님(모의 내부 · 플랫폼 밖) → 막음 0).
+typedef CommandConsumeHook = Future<CommandConsumeReport?> Function(
+  EngineReady ready,
+);
+
 /// 깨어남 한 번의 결과(시험 · 진단 — 정본 기록은 `job_run`).
 class EngineWakeReport {
   /// 만든다.
@@ -49,6 +57,8 @@ class EngineWakeReport {
     this.runs = const [],
     this.window,
     this.windowError,
+    this.commands,
+    this.commandsError,
   });
 
   /// 기동 판정.
@@ -65,6 +75,16 @@ class EngineWakeReport {
 
   /// 🆕 E16t3b(R149 AA4) — 창 깨어남이 던진 것(회차는 막지 않는다 · 없음 = null).
   final Object? windowError;
+
+  /// 🆕 E11m-a — 회차 앞 명령 소비(자리 아님 · 준비 아님 = null).
+  final CommandConsumeReport? commands;
+
+  /// 🆕 E11m-a — 소비가 던진 것(🔴 이 깨어남의 주문 잡 = 실패로 남김 · 없음 = null).
+  final Object? commandsError;
+
+  /// 🆕 E11m-a — 이 깨어남의 주문 잡을 막았나(명령 표를 못 읽음 · 소비가 던짐).
+  bool get ordersBlockedByCommands =>
+      commandsError != null || (commands?.blocksOrders ?? false);
 }
 
 /// operator 엔진.
@@ -82,7 +102,11 @@ class OperatorEngine {
     this._fgs,
     this._watchdog,
     this._operations,
+    this._commands,
   }) : _cals = calendars;
+
+  /// 🆕 E11m-a(R274) — 회차 앞 명령 소비(없음 = 소비 0 · 막음 0).
+  final CommandConsumeHook? _commands;
 
   final LedgerFilesOpener _openFiles;
   final JobCalendars _cals;
@@ -148,6 +172,19 @@ class OperatorEngine {
         windowError = e;
       }
     }
+    // 🆕 E11m-a(R274 A5) — 회차 앞 명령 소비 · 🔴 던짐 = 모름 쪽(이 깨어남의 주문 잡 = 실패로 남김 · 다른 잡은 그대로).
+    CommandConsumeReport? commands;
+    Object? commandsError;
+    final CommandConsumeHook? consume = _commands;
+    if (consume != null) {
+      try {
+        commands = await consume(ready);
+      } on Object catch (e) {
+        commandsError = e;
+      }
+    }
+    final bool commandsBlocked =
+        commandsError != null || (commands?.blocksOrders ?? false);
     final SqliteJobRunLog log = SqliteJobRunLog(ready.db);
     final JobContext ctx = JobContext(
       db: ready.db,
@@ -163,6 +200,7 @@ class OperatorEngine {
       trusted: _bootInputs.trusted,
       operations: _operations,
       leaseRemote: _bootInputs.leaseRemote,
+      commandsBlocked: commandsBlocked,
     );
     final Map<String, JobRunner> table = _runners(ctx);
     final WakePlan plan = planWake(
@@ -199,6 +237,8 @@ class OperatorEngine {
       runs: runs,
       window: window,
       windowError: windowError,
+      commands: commands,
+      commandsError: commandsError,
     );
   }
 

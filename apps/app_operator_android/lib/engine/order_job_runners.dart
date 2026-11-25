@@ -38,6 +38,7 @@ import 'package:trading_runtime/trading_runtime.dart'
         JobOccurrence,
         JobRun,
         KisDraftQuotes,
+        KrJobs,
         KrOrderConfig,
         KrOrderJobs,
         kstDateOf;
@@ -50,6 +51,25 @@ import 'lease_wiring.dart' show operatorLeaseGate;
 import 'ledger_job_runners.dart'
     show cashBrokersOf, monthlyRebalanceJobOf, opsConfigOf;
 import 'x1_wiring.dart' show X1Wiring;
+
+/// 🆕 E11m-a(설계 13 §8 R274 A5) — 이 깨어남에 뷰어 명령을 확인하지 못했다(리스는 쥐었는데 명령 표를 못 읽음 · 소비가 던짐) —
+/// 🔴 주문 잡은 돌지 않고 실패로 남는다(뷰어 킬스위치가 주문 전에 닿는다는 보장 · 늦은 끝 안 = 다음 깨어남에 다시).
+class OrderJobCommandsUnconfirmed implements Exception {
+  /// 만든다.
+  const OrderJobCommandsUnconfirmed(this.job);
+
+  /// 잡.
+  final String job;
+
+  @override
+  String toString() => 'OrderJobCommandsUnconfirmed: $job — 뷰어 명령 확인 못 함';
+}
+
+/// 명령 확인을 앞세우는 주문 잡(`daily_reconcile` = 주문 0 → 막지 않는다).
+const Set<String> kCommandGatedOrderJobs = <String>{
+  KrJobs.order,
+  KrJobs.orderClose,
+};
 
 /// 회차 세션일이 오늘(KST)이 아니다 — 주문 잡은 오늘로만 돈다.
 class OrderJobNotToday implements Exception {
@@ -182,6 +202,10 @@ JobRunner _orderRunner(
   final TradeDate today = kstDateOf(c.clock.nowUtc());
   final KrOrderJobs jobs;
   try {
+    // 🆕 E11m-a(R274 A5) — 명령 확인이 먼저(조립 · 키 · 시세보다 앞 — 막힌 깨어남엔 브로커를 만들지 않는다).
+    if (c.commandsBlocked && kCommandGatedOrderJobs.contains(job)) {
+      throw OrderJobCommandsUnconfirmed(job);
+    }
     if (o.sessionDay != today) throw OrderJobNotToday(job, o.sessionDay, today);
     jobs = orderJobsOf(c, p, job);
   } on Object catch (e, st) {

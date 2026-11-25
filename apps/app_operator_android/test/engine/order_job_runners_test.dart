@@ -142,6 +142,7 @@ void main() {
     RunMode mode = RunMode.simInternal,
     OperatingMode operating = OperatingMode.autoTrade,
     bool withOperations = true,
+    bool commandsBlocked = false,
   }) => JobContext(
     db: files.sim,
     runMode: mode,
@@ -153,6 +154,7 @@ void main() {
     runLog: log,
     clock: clock,
     operations: withOperations ? _ops : null,
+    commandsBlocked: commandsBlocked,
   );
 
   /// 설정 등재 + 모의 개시(1,000만 원) + DRY_RUN 커밋(simInternal × 자동 매매 × 집행).
@@ -364,6 +366,39 @@ void main() {
     final JobRun<Object?> r = await run('kr_order_close', '2026-12-22');
     expect(r.status, JobStatus.success, reason: '${r.error}');
     expect(log.entriesOf('kr_order_close').single.status, JobRunStatus.success);
+  });
+
+  test('🆕 E11m-a(R274 A5) — 뷰어 명령 확인 못 함 = kr_order · kr_order_close 실패(기록 · 주문 0 · 현재가 0) · daily_reconcile 그대로 · 풀리면 다시 돈다', () async {
+    openSim();
+    clock.now = kst(2026, 12, 22, 7, 10);
+    final JobRun<Object?> recon = await run(
+      'daily_reconcile',
+      '2026-12-22',
+      c: ctx(commandsBlocked: true),
+    );
+    expect(recon.status, JobStatus.success, reason: '${recon.error}');
+    clock.now = kst(2026, 12, 22, 9, 15);
+    final JobRun<Object?> r = await run(
+      'kr_order',
+      '2026-12-22',
+      c: ctx(commandsBlocked: true),
+    );
+    expect(r.status, JobStatus.failed);
+    expect(r.error, isA<OrderJobCommandsUnconfirmed>());
+    expect(r.error.toString(), contains('kr_order'));
+    expect(log.entriesOf('kr_order').single.status, JobRunStatus.failed);
+    expect((brokerOrders(), pricesAsked), (0, 0));
+    expect(hb.pings.last.status, PingStatus.fail);
+    final JobRun<Object?> again = await run('kr_order', '2026-12-22');
+    expect(again.status, JobStatus.success, reason: '${again.error}');
+    clock.now = kst(2026, 12, 22, 15, 50);
+    final JobRun<Object?> close = await run(
+      'kr_order_close',
+      '2026-12-22',
+      c: ctx(commandsBlocked: true),
+    );
+    expect(close.error, isA<OrderJobCommandsUnconfirmed>());
+    expect(kCommandGatedOrderJobs, <String>{'kr_order', 'kr_order_close'});
   });
 
   test('🔴 회차 세션일 ≠ 오늘 = 돌리지 않고 그 회차 실패(지난 날 주문을 오늘 내지 않는다)', () async {
