@@ -904,3 +904,15 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AR-12 | 🆕 `BiometricPurpose`(`PLEDGE_SIGN` · `HANDOVER_START` · `LIVE_PROMOTION` · `X1_MIGRATION`) | `enums/biometric.dart` |
 | AR-13 | 🆕 `BiometricPromptText` · `BiometricPrompt` | `biometric_prompt_text.dart` · 목적마다 제목 · 설명 |
 | AR-14 | 🆕 `UnimplementedPostmortemRepository` | `testing.dart` 받침대 |
+
+## AS. 🆕 계약 v1.40 (2026-11-25 · 운영 폰 공유 표 push RPC) — Dart 이름 5 · SQL 함수 이름 1 · 와이어 글자 2
+
+`contractVersion` = **`1.40.0`**. 상태 = ⬜ PR 대기. 결정 = 발주자 위임 2026-11-14 — 권고대로(정본 = 설계 01 §49 · 13 §8 R270 W1~W8 · 01 §8 미결 229 · 222 ⓕ).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AS-1 | 🆕 `OpsPushRpcNames`(`op_push`) | `schema/supabase_rpc.dart` · `rm_*` 밖 배치 D 쓰기 표 다섯의 1창구 SQL 함수 이름 |
+| AS-2 | 🆕 `OpsPushRpcParams`(`p_device_id` · `p_epoch` · `p_table` · `p_rows`) | 같은 파일 · `rm_push` 인자 글자 그대로 |
+| AS-3 | 🆕 `OpsPushRpcColumns`(`code` · `epoch` · `accepted` · `skipped`) | 같은 파일 · 반환 한 행(`rm_push` 글자 그대로) |
+| AS-4 | 🆕 `OpsPushTables`(`commandAck` · `plannedWorkMirror` · `resumeRunMirror` · `ledgerStamp` · `calendarSyncStatus` · `all`) | 같은 파일 · 받는 표 다섯(배치 D 차례) |
+| AS-5 | 🆕 `OpsPushResultCodes`(`ops_push_result` · `OPS_PUSH_TABLE_UNKNOWN` · `OPS_PUSH_ROWS_INVALID`) | `labels/supabase_codes.dart` · 표 모름 · 행 묶음 못 넣음 |

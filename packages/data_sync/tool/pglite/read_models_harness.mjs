@@ -1,4 +1,4 @@
-// 🆕 E11l1(설계 13 §8 R246) · E11l2(R254) PGlite 하네스 — 부트스트랩 완성 판(배치 D + 리스 RPC + rm_* 22 + rm_push)을 Postgres 16(WASM)에 실제로 붙여 넣고 RLS 를 잰다.
+// 🆕 E11l1(설계 13 §8 R246) · E11l2(R254) · 미결 229(R270) PGlite 하네스 — 부트스트랩 완성 판(배치 D + 리스 RPC + rm_* 22 + rm_push + op_push)을 Postgres 16(WASM)에 실제로 붙여 넣고 RLS 를 잰다.
 // 🔵 CI 밖 로컬 도구(node + @electric-sql/pglite) — 생성기 · RLS 본문이 바뀌는 PR 에서 손으로 돌린다(R221 · v1.34 하네스를 잇는다).
 // 쓰는 법:
 //   1) 빈 폴더 <pg> 에서: npm init -y && npm install --ignore-scripts @electric-sql/pglite@0.5.15
@@ -214,6 +214,174 @@ if (rowsPath) {
     const seen = (await as('authenticated', U.view, () => db.query(`select count(*)::int n from ${table} where lease_epoch = 9`))).rows[0].n;
     ok(seen === rows.length, `${table} 뷰어가 빌더 행을 읽는다`);
   }
+}
+
+// ⑨ 🆕 미결 229(R270) op_push — rm_* 밖 쓰기 표 다섯(command_ack · 미러 2 · ledger_stamp · calendar_sync_status) ·
+//    리스 판정(rm_push 와 같은 축) · 표마다 충돌 규칙 · 덮는 칸 · 전부 또는 0 · 직접 쓰기 0 · 222 ⓕ 읽기(K311 본문).
+{
+  const UX = '66666666-6666-6666-6666-666666666666';
+  await db.exec(`insert into auth.users values ('${UX}');
+    insert into app_device(device_id,label,role,status,owner_uid,auth_uid) values ('d_x','남의 폰','operator','ACTIVE','${UX}','${UX}');`);
+  const push = async (uid, dev, epoch, table, rows, role = 'authenticated') =>
+    (await as(role, uid, () => db.query(`select * from op_push($1, $2, $3, $4::jsonb)`, [dev, epoch, table, JSON.stringify(rows)]))).rows[0];
+  const lease = async (dev, epoch, mins) => db.exec(`delete from operator_lease; insert into operator_lease(id, device_id, epoch, expires_at) values (1, '${dev}', ${epoch}, now() + interval '${mins} minutes')`);
+  const q1 = async (s, p = []) => (await db.query(s, p)).rows[0];
+
+  const C1 = 'aaaaaaaa-0000-0000-0000-000000000001', C2 = 'aaaaaaaa-0000-0000-0000-000000000002', CX = 'aaaaaaaa-0000-0000-0000-00000000000f';
+  await db.exec(`insert into command_queue(command_id, kind, payload, issued_by_device, nonce, expires_at, owner_uid) values
+    ('${C1}','KILL_SWITCH_ACTIVATE','{}','d_v','n1', now() + interval '1 hour','${U.op}'),
+    ('${C2}','JOURNAL_DRAFT','{}','d_v','n2', now() - interval '1 hour','${U.op}'),
+    ('${CX}','JOURNAL_DRAFT','{}','d_x','n3', now() + interval '1 hour','${UX}');`);
+  await lease('d_op', 3, 30);
+  const ack = (id, cmd, state, extra = {}) => ({ ack_id: id, command_id: cmd, state, state_label: '받음', lease_epoch: 999, acked_at: '2000-01-01T00:00:00Z', ...extra });
+  const A = (n) => `bbbbbbbb-0000-0000-0000-00000000000${n}`;
+
+  // command_ack — append-only · 소유자 명령만 · 한 호출 같은 명령 두 번 = 거부
+  let r = await push(U.op, 'd_op', 3, 'command_ack', [ack(A(1), C1, 'RECEIVED'), ack(A(2), C2, 'EXPIRED')]);
+  ok(r.code === null && r.epoch === 3 && r.accepted === 2 && r.skipped === 0, `op ack 2행 (${JSON.stringify(r)})`);
+  let row = await q1(`select lease_epoch::int le, acked_at > now() - interval '1 minute' fresh from command_ack where ack_id = $1`, [A(1)]);
+  ok(row.le === 3 && row.fresh, `op ack 덮는 칸 lease_epoch = 인자 · acked_at = now() (${JSON.stringify(row)})`);
+  r = await push(U.op, 'd_op', 3, 'command_ack', [ack(A(1), C1, 'EXECUTED')]);
+  ok(r.code === null && r.accepted === 0 && r.skipped === 1, 'op ack 같은 ack_id = 건너뜀');
+  ok((await q1(`select state from command_ack where ack_id = $1`, [A(1)])).state === 'RECEIVED', 'op ack 원래 행 그대로(append-only)');
+  r = await push(U.op, 'd_op', 3, 'command_ack', [ack(A(3), C1, 'EXECUTED')]);
+  ok(r.code === null && r.accepted === 1, 'op ack 새 상태 = 새 행');
+  r = await push(U.op, 'd_op', 3, 'command_ack', [ack(A(4), CX, 'RECEIVED')]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID' && r.accepted === 0, 'op ack 남의 명령 = ROWS_INVALID');
+  r = await push(U.op, 'd_op', 3, 'command_ack', [ack(A(5), 'aaaaaaaa-0000-0000-0000-0000000000ee', 'RECEIVED')]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op ack 없는 명령 = ROWS_INVALID');
+  r = await push(U.op, 'd_op', 3, 'command_ack', [ack(A(6), C1, 'RECEIVED'), ack(A(7), C1, 'EXECUTED')]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op ack 한 호출 같은 명령 두 번 = ROWS_INVALID');
+  r = await push(U.op, 'd_op', 3, 'command_ack', [ack(A(8), C2, 'DONE')]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op ack state check = ROWS_INVALID');
+  r = await push(U.op, 'd_op', 3, 'command_ack', [ack(A(8), C2, 'REJECTED', { state_label: null })]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op ack not null = ROWS_INVALID');
+  r = await push(U.op, 'd_op', 3, 'command_ack', [ack('not-a-uuid', C2, 'REJECTED')]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op ack 형 = ROWS_INVALID');
+  r = await push(U.op, 'd_op', 3, 'command_ack', [{ ack_id: A(9) }]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op ack command_id 없음 = ROWS_INVALID');
+  ok((await q1(`select count(*)::int n from command_ack`)).n === 3, 'op ack 거부 = 0행(3 그대로)');
+  const nAck = async (uid) => (await as('authenticated', uid, () => db.query(`select count(*)::int n from command_ack`))).rows[0].n;
+  ok(await nAck(U.view) === 3 && await nAck(U.pend) === 0 && await nAck(U.none) === 0, 'op ack 읽기 = ACTIVE 뷰어 3 · PENDING · 기기 없음 0');
+  await throws(() => as('authenticated', U.op, () => db.exec(`insert into command_ack(ack_id, command_id, state, state_label, lease_epoch) values ('${A(9)}','${C1}','EXECUTED','x',3)`)), /row-level security/, 'op ack 직접 INSERT = RLS 거부');
+
+  // planned_work_mirror — row_version 큰 쪽
+  const pw = (rv, extra = {}) => ({ work_id: 'w1', mode: 'LIVE', digest: 'd'.repeat(64), one_line: '월말 리밸런싱', due_by: '2026-11-28', state: 'PLANNED', row_version: rv, lease_epoch: 999, updated_at: '2000-01-01T00:00:00Z', ...extra });
+  r = await push(U.op, 'd_op', 3, 'planned_work_mirror', [pw(2)]);
+  ok(r.code === null && r.accepted === 1, `op pw 1행 (${JSON.stringify(r)})`);
+  row = await q1(`select lease_epoch::int le, updated_at > now() - interval '1 minute' fresh from planned_work_mirror`);
+  ok(row.le === 3 && row.fresh, 'op pw 덮는 칸 lease_epoch · updated_at');
+  r = await push(U.op, 'd_op', 3, 'planned_work_mirror', [pw(2, { state: 'DONE' })]);
+  ok(r.accepted === 0 && r.skipped === 1, 'op pw 같은 판 = 건너뜀');
+  r = await push(U.op, 'd_op', 3, 'planned_work_mirror', [pw(1, { state: 'DONE' })]);
+  ok(r.accepted === 0 && r.skipped === 1, 'op pw 작은 판 = 건너뜀');
+  r = await push(U.op, 'd_op', 3, 'planned_work_mirror', [pw(3, { state: 'DONE' })]);
+  ok(r.accepted === 1 && (await q1(`select state from planned_work_mirror`)).state === 'DONE', 'op pw 큰 판 = 바꿈');
+  r = await push(U.op, 'd_op', 3, 'planned_work_mirror', [pw(4, { mode: 'PAPER' })]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op pw mode check');
+  r = await push(U.op, 'd_op', 3, 'planned_work_mirror', [pw(4, { work_id: 'w2' }), pw(5, { work_id: 'w2' })]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op pw 같은 키 두 번');
+
+  // resume_run_mirror — 덮음
+  const rr = (extra = {}) => ({ resume_run_id: 'rr1', gap_trading_days: 4, mode: 'SIM_INTERNAL', resume_mode: 'CONSERVATIVE', phase: 'R3', headline: '4거래일 미실행', ...extra });
+  r = await push(U.op, 'd_op', 3, 'resume_run_mirror', [rr()]);
+  ok(r.code === null && r.accepted === 1, `op rr 1행 (${JSON.stringify(r)})`);
+  r = await push(U.op, 'd_op', 3, 'resume_run_mirror', [rr({ phase: 'R8' })]);
+  ok(r.code === null && r.accepted === 1 && (await q1(`select phase from resume_run_mirror`)).phase === 'R8', 'op rr 덮음');
+  r = await push(U.op, 'd_op', 3, 'resume_run_mirror', [rr({ resume_mode: null })]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op rr resume_mode 빠짐 = ROWS_INVALID');
+  r = await push(U.op, 'd_op', 3, 'resume_run_mirror', [rr({ resume_mode: 'FAST' })]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op rr resume_mode check');
+
+  // ledger_stamp — 모드 축 · 재생성(같은 날 다시 씀) · 낮은 epoch = LEASE_LOST
+  const st = (date, hash, extra = {}) => ({ mode: 'LIVE', authored_date: date, chain_hash: hash, operator_epoch: 999, stamped_at: '2000-01-01T00:00:00Z', ...extra });
+  r = await push(U.op, 'd_op', 3, 'ledger_stamp', [st('2026-11-24', 'a'.repeat(64)), st('2026-11-24', 'b'.repeat(64), { mode: 'SIM_BROKER' })]);
+  ok(r.code === null && r.accepted === 2, `op stamp 2행(모드 축) (${JSON.stringify(r)})`);
+  row = await q1(`select operator_epoch::int oe, stamped_at > now() - interval '1 minute' fresh from ledger_stamp where mode = 'LIVE'`);
+  ok(row.oe === 3 && row.fresh, 'op stamp 덮는 칸 operator_epoch = 인자 · stamped_at = now()');
+  await lease('d_op', 4, 30);
+  r = await push(U.op, 'd_op', 4, 'ledger_stamp', [st('2026-11-24', 'c'.repeat(64))]);
+  ok(r.code === null && r.accepted === 1, 'op stamp 재생성 = 같은 날 다시 씀');
+  row = await q1(`select chain_hash, operator_epoch::int oe from ledger_stamp where mode = 'LIVE'`);
+  ok(row.chain_hash === 'c'.repeat(64) && row.oe === 4, 'op stamp 새 체인 · 새 epoch');
+  r = await push(U.op, 'd_op', 3, 'ledger_stamp', [st('2026-11-24', 'd'.repeat(64))]);
+  ok(r.code === 'LEASE_LOST' && r.epoch === 4, 'op stamp 낮은 epoch = LEASE_LOST');
+  ok((await q1(`select chain_hash from ledger_stamp where mode = 'LIVE'`)).chain_hash === 'c'.repeat(64), 'op stamp 낮은 epoch 쓰기 0');
+  r = await push(U.op, 'd_op', 4, 'ledger_stamp', [st('2026-13-01', 'e'.repeat(64))]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op stamp 날 형');
+
+  // calendar_sync_status — 모드 축(LIVE · SIM) · 덮음
+  const cs = (extra = {}) => ({ mode: 'LIVE', last_ok_date: '2026-11-24', status: 'OK', quarantined_count: 0, ...extra });
+  r = await push(U.op, 'd_op', 4, 'calendar_sync_status', [cs(), cs({ mode: 'SIM' })]);
+  ok(r.code === null && r.accepted === 2, `op cal 2행 (${JSON.stringify(r)})`);
+  r = await push(U.op, 'd_op', 4, 'calendar_sync_status', [cs({ status: 'LAGGED', quarantined_count: 2 })]);
+  ok(r.accepted === 1 && (await q1(`select status from calendar_sync_status where mode='LIVE'`)).status === 'LAGGED', 'op cal 덮음');
+  r = await push(U.op, 'd_op', 4, 'calendar_sync_status', [cs({ mode: 'SIM_INTERNAL' })]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op cal mode 축(LIVE·SIM) check');
+  r = await push(U.op, 'd_op', 4, 'calendar_sync_status', [{ mode: 'LIVE', status: 'OK' }]);
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op cal quarantined_count 빠짐 = not null');
+
+  // 공통 — 표 · 행 · 리스 · 기기 · 권한
+  r = await push(U.op, 'd_op', 4, 'rm_alert', [{}]);
+  ok(r.code === 'OPS_PUSH_TABLE_UNKNOWN' && r.epoch === 4, 'op rm 표 = TABLE_UNKNOWN(rm_push 몫)');
+  r = await push(U.op, 'd_op', 4, 'command_queue', [{}]);
+  ok(r.code === 'OPS_PUSH_TABLE_UNKNOWN', 'op command_queue = TABLE_UNKNOWN');
+  r = await push(U.op, 'd_op', 4, 'ledger_stamp; drop table ledger_stamp', [{}]);
+  ok(r.code === 'OPS_PUSH_TABLE_UNKNOWN', 'op 이름 끼워 넣기 = TABLE_UNKNOWN');
+  r = (await as('authenticated', U.op, () => db.query(`select * from op_push('d_op', 4, 'ledger_stamp', '{"a":1}'::jsonb)`))).rows[0];
+  ok(r.code === 'OPS_PUSH_ROWS_INVALID', 'op 배열 아님 = ROWS_INVALID');
+  r = await push(U.op, 'd_op', 4, 'ledger_stamp', []);
+  ok(r.code === null && r.accepted === 0 && r.skipped === 0, 'op 빈 배열 = 0행 성공');
+  r = await push(U.view, 'd_v', 4, 'ledger_stamp', [st('2026-11-25', 'f'.repeat(64))]);
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', 'op 뷰어 기기 = NOT_ELIGIBLE');
+  r = await push(U.view, 'd_op', 4, 'ledger_stamp', [st('2026-11-25', 'f'.repeat(64))]);
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', 'op 남의 기기 이름 = NOT_ELIGIBLE');
+  r = await push(UX, 'd_x', 4, 'ledger_stamp', [st('2026-11-25', 'f'.repeat(64))]);
+  ok(r.code === 'LEASE_LOST' && r.epoch === 4, 'op 리스 없는 운영 기기 = LEASE_LOST');
+  r = await push(null, 'd_op', 4, 'ledger_stamp', []);
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', 'op 로그인 0 = NOT_ELIGIBLE');
+  await throws(() => push(null, 'd_op', 4, 'ledger_stamp', [], 'anon'), /permission denied/, 'op anon 실행 권한 0');
+  await lease('d_op', 4, -1);
+  r = await push(U.op, 'd_op', 4, 'ledger_stamp', [st('2026-11-25', 'f'.repeat(64))]);
+  ok(r.code === 'LEASE_LOST', 'op 만료 = LEASE_LOST');
+  await lease('d_v', 5, 30);
+  r = await push(U.op, 'd_op', 5, 'ledger_stamp', [st('2026-11-25', 'f'.repeat(64))]);
+  ok(r.code === 'LEASE_LOST' && r.epoch === 5, 'op 리스가 다른 기기 = LEASE_LOST');
+  // 소유자 본인의 뷰어 기기(auth_uid = owner_uid = 부른 사용자 · ACTIVE)가 리스 행을 쥐어도 role 'operator' 가 아니면 거부(rm_push 와 같은 판정).
+  await db.exec(`insert into app_device(device_id,label,role,status,owner_uid,auth_uid) values ('d_ov','운영자 뷰어','viewer','ACTIVE','${U.op}','${U.op}')`);
+  await lease('d_ov', 6, 30);
+  r = await push(U.op, 'd_ov', 6, 'ledger_stamp', [st('2026-11-25', 'f'.repeat(64))]);
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', 'op 소유자 본인 뷰어 기기(리스 쥠) = NOT_ELIGIBLE');
+  await db.exec(`delete from operator_lease; delete from app_device where device_id = 'd_ov'`);
+  await lease('d_v', 5, 30);
+  ok((await q1(`select count(*)::int n from ledger_stamp where authored_date = '2026-11-25'`)).n === 0, 'op 거부 = 0행');
+
+  // 직접 쓰기 = 정책 0 · 읽기 = 222 ⓕ K311 본문(ACTIVE 기기만)
+  for (const [t, ins] of [
+    ['planned_work_mirror', `insert into planned_work_mirror(work_id, mode, digest, one_line, due_by, state, row_version, lease_epoch) values ('wz','LIVE','d','x','2026-12-01','PLANNED',9,9)`],
+    ['resume_run_mirror', `insert into resume_run_mirror(resume_run_id, gap_trading_days, mode, resume_mode, phase) values ('rz',1,'LIVE','NORMAL','R0')`],
+    ['ledger_stamp', `insert into ledger_stamp(mode, authored_date, chain_hash, operator_epoch) values ('LIVE','2026-01-01','x',9)`],
+    ['calendar_sync_status', `insert into calendar_sync_status(mode, status) values ('SIM','x')`],
+  ]) {
+    for (const [role, uid] of [['authenticated', U.op], ['anon', null]]) {
+      await throws(() => as(role, uid, () => db.exec(ins)), /row-level security/, `op ${t} ${role} 직접 INSERT 거부`);
+      const u = await as(role, uid, () => db.query(`update ${t} set mode = mode`));
+      ok((u.affectedRows ?? 0) === 0, `op ${t} ${role} UPDATE 0행`);
+      const d = await as(role, uid, () => db.query(`delete from ${t}`));
+      ok((d.affectedRows ?? 0) === 0, `op ${t} ${role} DELETE 0행`);
+    }
+    const n = async (role, uid) => (await as(role, uid, () => db.query(`select count(*)::int n from ${t}`))).rows[0].n;
+    const total = (await q1(`select count(*)::int n from ${t}`)).n;
+    ok(total > 0 && await n('authenticated', U.op) === total && await n('authenticated', U.view) === total, `op ${t} 운영 · ACTIVE 뷰어 읽음(${total})`);
+    ok(await n('authenticated', U.none) === 0 && await n('authenticated', U.pend) === 0 && await n('authenticated', U.ret) === 0 && await n('anon', null) === 0,
+      `op ${t} 기기 없음 · PENDING · RETIRED · anon = 0행(222 ⓕ K311)`);
+  }
+
+  // 함수 = 계약 이름만 · 보안 꼴
+  const fns = (await db.query(`select p.proname n from pg_proc p join pg_namespace s on s.oid = p.pronamespace where s.nspname = 'public' order by 1`)).rows.map(x => x.n);
+  ok(JSON.stringify(fns) === JSON.stringify(['lease_claim', 'lease_renew', 'lease_revoke', 'op_push', 'rm_push']), `public 함수 = ${fns.join(',')}`);
+  const sec = await q1(`select prosecdef s, proconfig::text c from pg_proc where proname = 'op_push'`);
+  ok(sec.s === true && sec.c.includes('search_path='), `op_push security definer · search_path (${sec.c})`);
 }
 
 // ⑥ 다시 붙여 넣기 = 가드가 멈춘다 · 아무것도 안 바뀐다

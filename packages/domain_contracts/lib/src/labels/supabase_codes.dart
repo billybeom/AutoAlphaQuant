@@ -187,3 +187,18 @@ abstract final class ReadModelPushResultCodes {
 
   static const Set<String> values = <String>{tableUnknown, rowsInvalid};
 }
+
+/// 🆕 v1.40(01 §49 · 01 §8 미결 229 · 13 §8 R270) — 운영 폰 공유 표 push RPC 고유 거부(도메인 `ops_push_result` · RPC 표 =
+/// `schema/supabase_rpc.dart` `OpsPushRpc*` · `OpsPushTables` · 본문 = data_sync `sql/supabase_ops_push_rpc.sql`).
+/// 🔴 리스 거부(`LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE`)는 [LeaseRpcResultCodes] 그대로 — 다시 적지 않는다(v1.38
+///    [ReadModelPushResultCodes] 결) · 읽기 모델 push 거부(`READ_MODEL_*`)와 다른 글자 — 표 무리가 다르다(조치는 같다 = 앱 ↔ 서버 표 어긋남).
+abstract final class OpsPushResultCodes {
+  /// 표 이름이 `OpsPushTables.all` 에 없다(표마다 정적 SQL — 목록 밖 이름 = 0행).
+  static const String tableUnknown = 'OPS_PUSH_TABLE_UNKNOWN';
+
+  /// 행 묶음을 넣지 못했다(JSON 배열 아님 · 형 · 기본 키 · not null · check · 참조 위반 · 같은 키 두 번 · `command_ack` 남의 명령 ·
+  /// 한 호출에 같은 명령 두 번) — 🔴 그 호출 전부 0행(부분 반영 0).
+  static const String rowsInvalid = 'OPS_PUSH_ROWS_INVALID';
+
+  static const Set<String> values = <String>{tableUnknown, rowsInvalid};
+}

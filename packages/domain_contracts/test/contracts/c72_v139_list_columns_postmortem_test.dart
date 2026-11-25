@@ -132,10 +132,11 @@ Set<String> _engineTopCodes(String rel, String prefix) {
 
 void main() {
   group('C-72 뷰어 목록 열 · postmortem · 등재 · 생체 목적 (01 §48)', () {
-    test('C-72 ① 판 · 표본 — 1.39.0 · 402(신설 4 · 개정 1) · 봉투 판', () {
-      expect(contractVersion, '1.39.0');
-      expect(FixturePaths.all, hasLength(402));
-      expect(allFixtureFilesOnDisk(), hasLength(402));
+    // 🔵 v1.40(01 §49) — 판 글자 · 수 고정 = 최신 창 시험(C-73 ①)만 · 여기는 «1.39.0 이상 · 402 이상 · 봉투 판 = 계약 판».
+    test('C-72 ① 판 · 표본 — 1.39.0 이상 · 402 이상(신설 4 · 개정 1) · 봉투 판', () {
+      expect(contractVersion, isNot(anyOf('1.37.0', '1.38.0')));
+      expect(FixturePaths.all.length, greaterThanOrEqualTo(402));
+      expect(allFixtureFilesOnDisk().length, FixturePaths.all.length);
       for (final String path in _newFixtures) {
         expect(FixturePaths.all, contains(path));
         expect(fixtureExists(path), isTrue, reason: path);
