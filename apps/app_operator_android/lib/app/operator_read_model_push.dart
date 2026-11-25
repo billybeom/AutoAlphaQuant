@@ -12,6 +12,7 @@
 //    원천 없는 표(보유 행 · 안내 셋 · 이행 갭) = 보내지 않는다.
 // 🔴 리스 = 이 기기 id + 그 원장의 SUPABASE epoch(0 = 안 보낸다 — 모의 내부 · 첫 클레임 전) · 겹침 0(앞 push 가 끝나기 전 깨어남 = 건너뜀).
 // 🔴 행의 mode = 화면 상태의 실행 모드(`flags.runMode`) — DTO 의 mode 와 다르면 빌더가 그 표를 거부한다(PUSH_FAILED).
+// 🆕 미결 243 ⓒ(설계 13 §8 R273) — 사람이 볼 실패 = K344 P1 경보(낸 곳 `shared_push` · op_push 와 공용 · 한국 날 · 코드마다 한 건).
 
 import 'dart:async';
 
@@ -440,7 +441,7 @@ Future<ReadModelPushReport?> runOperatorReadModelPush({
   if (pusher == null || v == null) return null;
   final RunMode mode = v.flags.runMode;
   final int epoch = SqliteLeaseGate(v.db, mode: mode, clock: rt.clock).epoch();
-  return ReadModelPushJob(
+  final ReadModelPushReport report = await ReadModelPushJob(
     pusher: pusher,
     status: SqliteReadModelPushStatus(v.db),
     sources: operatorReadModelSources(
@@ -451,4 +452,12 @@ Future<ReadModelPushReport?> runOperatorReadModelPush({
     ),
     nowUtc: rt.clock.nowUtc,
   ).run(deviceId: rt.deviceId, epoch: epoch);
+  final Set<String> alerts = sharedPushAlertCodes(readModels: report.tables);
+  if (alerts.isNotEmpty) {
+    await SqliteAlertSink(
+      v.db,
+      clock: rt.clock,
+    ).emit(kSharedPushAlertSource, alerts);
+  }
+  return report;
 }

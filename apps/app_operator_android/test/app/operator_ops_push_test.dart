@@ -22,6 +22,10 @@ import 'package:sqlite3/sqlite3.dart' show Database;
 import '../engine/support.dart';
 
 class _Pusher implements OpsPusher {
+  _Pusher([this.answer]);
+
+  /// 🆕 R273 — 표 이름 → 답(없음 · null = 성공).
+  final OpsPushResult? Function(String table)? answer;
   final List<(String, int, List<Map<String, Object?>>)> calls =
       <(String, int, List<Map<String, Object?>>)>[];
   @override
@@ -32,6 +36,8 @@ class _Pusher implements OpsPusher {
     required List<Map<String, Object?>> rows,
   }) async {
     calls.add((table, epoch, rows));
+    final OpsPushResult? a = answer?.call(table);
+    if (a != null) return a;
     return OpsPushResult.answered(
       code: null,
       epoch: epoch,
@@ -228,6 +234,70 @@ void main() {
       (DerivedRelation.empty, DerivedHoldReason.leaseNotValid),
     );
     expect(p.calls.where((c) => c.$1 == 'ledger_stamp'), isEmpty);
+  });
+
+  test('🆕 ⑥ R273 사람이 볼 실패 = K344 P1(낸 곳 shared_push) · 리스 · 망 = 0 · 스탬프 읽기 포트 없어도 미러 실패는 낸다', () async {
+    final LedgerFiles f = openFiles(tempLedgerDir(), clock);
+    OperatorRuntime rtOf(OpsPusher p) =>
+        OperatorRuntime(files: f, clock: clock, opsPusher: p, deviceId: 'dev-a')
+          ..view.value = viewOf(f.sim, RunMode.simBroker);
+    seedMirrors(f.sim);
+    claim(f.sim, 5);
+    List<(Object?, Object?, Object?)> alerts() => <(Object?, Object?, Object?)>[
+      for (final row in f.sim.select(
+        'SELECT code, level, source FROM alert_event ORDER BY code',
+      ))
+        (row['code'], row['level'], row['source']),
+    ];
+    // 리스 거부 · 망 = 알림 0.
+    for (final OpsPushResult quiet in <OpsPushResult>[
+      const OpsPushResult.answered(
+        code: 'LEASE_LOST',
+        epoch: 6,
+        accepted: 0,
+        skipped: 0,
+      ),
+      const OpsPushResult.failed(OpsPushFailure.network),
+    ]) {
+      final OperatorOpsPushReport? r = await runOperatorOpsPush(
+        rt: rtOf(_Pusher((String t) => quiet)),
+      );
+      expect(r!.failed, isEmpty);
+    }
+    expect(alerts(), isEmpty);
+    final OperatorOpsPushReport? r = await runOperatorOpsPush(
+      rt: rtOf(
+        _Pusher(
+          (String t) => t == 'resume_run_mirror'
+              ? const OpsPushResult.answered(
+                  code: 'OPS_PUSH_ROWS_INVALID',
+                  epoch: 5,
+                  accepted: 0,
+                  skipped: 0,
+                )
+              : null,
+        ),
+      ),
+    );
+    expect(r!.stamps, isNull, reason: '읽기 포트 없음');
+    expect(alerts(), <(Object?, Object?, Object?)>[
+      (AlertCodes.readModelPushRejected, 'P1', kSharedPushAlertSource),
+    ]);
+    // 같은 날 시크릿 차단 = 다른 코드 한 건 더 · 다시 거부 = 새 행 0.
+    await runOperatorOpsPush(
+      rt: rtOf(
+        _Pusher(
+          (String t) => const OpsPushResult.failed(
+            OpsPushFailure.secretBlocked,
+            secretFindings: 1,
+          ),
+        ),
+      ),
+    );
+    expect(alerts(), <(Object?, Object?, Object?)>[
+      (AlertCodes.readModelPushRejected, 'P1', kSharedPushAlertSource),
+      (AlertCodes.readModelPushSecretBlocked, 'P1', kSharedPushAlertSource),
+    ]);
   });
 
   test('⑤ 깨어남 뒤 칸 = 읽기 모델 → 운영 표 차례 · 앞이 던져도 다음 · 겹침 0', () async {

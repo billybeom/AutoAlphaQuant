@@ -31,6 +31,7 @@ export 'src/jobs/resume_job.dart';
 export 'src/jobs/resume_reevaluator.dart';
 export 'src/jobs/seasonal_a_job.dart';
 export 'src/jobs/seasonal_choice.dart';
+export 'src/jobs/shared_push_alerts.dart'; // 🆕 미결 243 ⓒ — 공유 계층 push 경보(K344 · K372 · 13 R273)
 export 'src/jobs/supabase_stamp_sync_job.dart'; // 🆕 미결 244 ⓑ — X5 원격 사본 스탬프 실행기(op_push · 13 R271)
 export 'src/jobs/tier_b_step.dart';
 export 'src/local/alert_read_model.dart';

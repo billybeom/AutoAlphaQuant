@@ -5,7 +5,8 @@
 // 🔴 리스 = 이 기기 id + 그 원장의 SUPABASE epoch(0 = 안 보낸다 — 모의 내부 · 첫 클레임 전) · 스탬프 재생성의 리스 판정 = 할 일이 있을 때만
 //    `operatorLeaseGate(...).check()`(원격 = live · simBroker · 하루 한 번 꼴 — 화면 판정처럼 깨어남마다 RPC 를 부르지 않는다).
 // 🔴 하루 재생성 상한 = 운영 설정 `migration.derived_resync_daily_cap`(못 읽음 = 스탬프 실행기 0 · 지어내지 않는다).
-// 🔴 FORK 경보 = P0 `DERIVED_FORK`(바뀐 때만 · 출처 `derived_supabase`) · push 실패 경보 = 미결 243 ⓒ 자리(K344 결 · 보고서 실패 목록).
+// 🔴 FORK 경보 = P0 `DERIVED_FORK`(바뀐 때만 · 출처 `derived_supabase`) · 🆕 push 실패 경보(미결 243 ⓒ · R273) = K344 P1
+//    (낸 곳 `shared_push` · 읽기 모델 push 와 공용 · 한국 날 · 코드마다 한 건).
 
 import 'package:core_engine/core_engine.dart' show LeaseVerdict;
 import 'package:data_sync/data_sync.dart';
@@ -49,7 +50,7 @@ Future<OperatorOpsPushReport?> runOperatorOpsPush({
   final LedgerStampReader? reader = rt.ledgerStampReader;
   final int? cap = rt.operations?.derivedResyncDailyCap;
   if (reader == null || cap == null || cap < 1) {
-    return OperatorOpsPushReport(mirrors: mirrors);
+    return _alerted(rt, v, OperatorOpsPushReport(mirrors: mirrors));
   }
   final SupabaseStampReport stamps =
       await SupabaseStampSyncJob(
@@ -81,5 +82,25 @@ Future<OperatorOpsPushReport?> runOperatorOpsPush({
       clock: rt.clock,
     ).emit(kSupabaseStampCheck, stamps.alerts);
   }
-  return OperatorOpsPushReport(mirrors: mirrors, stamps: stamps);
+  return _alerted(
+    rt,
+    v,
+    OperatorOpsPushReport(mirrors: mirrors, stamps: stamps),
+  );
+}
+
+/// 🆕 미결 243 ⓒ(R273) — 사람이 볼 push 실패 → K344 P1(낸 곳 공용).
+Future<OperatorOpsPushReport> _alerted(
+  OperatorRuntime rt,
+  OperatorView v,
+  OperatorOpsPushReport report,
+) async {
+  final Set<String> alerts = sharedPushAlertCodes(ops: report.failed);
+  if (alerts.isNotEmpty) {
+    await SqliteAlertSink(
+      v.db,
+      clock: rt.clock,
+    ).emit(kSharedPushAlertSource, alerts);
+  }
+  return report;
 }

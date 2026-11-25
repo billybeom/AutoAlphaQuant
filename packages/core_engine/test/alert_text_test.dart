@@ -50,9 +50,9 @@ List<Map<String, Object?>> _fixtureItems(String name) {
 }
 
 void main() {
-  test('사전 = 등급 표 코드 36 그대로 · 빈 글자 0 · 링크 = AppRoutes 상수', () {
+  test('사전 = 등급 표 코드 38(🆕 R273 push 2) 그대로 · 빈 글자 0 · 링크 = AppRoutes 상수', () {
     expect(kAlertTexts.keys.toSet(), kAlertLevels.keys.toSet());
-    expect(kAlertTexts, hasLength(36));
+    expect(kAlertTexts, hasLength(38));
     for (final MapEntry<String, AlertText> e in kAlertTexts.entries) {
       expect(
         <String>[
@@ -72,6 +72,21 @@ void main() {
       kAlertTexts['REBALANCE_D7']!.action,
       isNot(kAlertTexts['REBALANCE_D1']!.action),
     );
+    // 🆕 R273 — push 두 경보 = 조치가 다르다(원인 확인 ↔ 앱 업데이트 · 원격 설정) · 찾은 글자 · 값 0.
+    final AlertText secret = kAlertTexts['READ_MODEL_PUSH_SECRET_BLOCKED']!;
+    final AlertText rejected = kAlertTexts['READ_MODEL_PUSH_REJECTED']!;
+    expect(secret.action, isNot(rejected.action));
+    expect(
+      (secret.deepLink, rejected.deepLink),
+      (null, AppRoutes.settingsConnections),
+    );
+    for (final AlertText t in <AlertText>[secret, rejected]) {
+      expect(t.body, contains('주문은 막지 않습니다'));
+      expect(
+        '${t.title}${t.body}${t.action}',
+        isNot(contains(RegExp(r'rm_|op_push|READ_MODEL'))),
+      );
+    }
   });
 
   test('픽스처 글자 — 그대로 쓴 9코드 · 빈 문장 · 상세 없음 문장', () {

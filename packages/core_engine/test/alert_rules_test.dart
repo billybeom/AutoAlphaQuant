@@ -58,6 +58,8 @@ void main() {
         'MAINTENANCE_WINDOW_OVERDUE',
         'MANUAL_FILL_REJECTED',
         'ORDER_REJECTED',
+        'READ_MODEL_PUSH_REJECTED',
+        'READ_MODEL_PUSH_SECRET_BLOCKED',
         'REBALANCE_D1',
         'RESUME_COMPLETED',
         'STALE_ORDERS_HELD',
@@ -76,14 +78,17 @@ void main() {
       // 계약 코드 전부 등급이 있다 · 🆕 v1.18(앱 01 §27 · K-z) — 제안 6 = 계약 등재 → 표 밖 0.
       // 🆕 E16f3a — 등재 대기 제안 1 = `DERIVED_FORK`(R130 L6) · E3d 제안 4(R177) — 🆕 계약 v1.27(01 §36 K188) 등재 → 표 밖 0.
       // 🆕 계약 v1.39(앱 01 §48 K344 · K348) — 계약 먼저 등재한 묶음 2(킬스위치 확인 · push) = 엔진 등급 · 글자 대기(미결 243).
+      // 🆕 미결 243 ⓒ(R273) — push 2 = 등급 · 글자 실림 → 예외 = 킬스위치 확인 1만(B-03 · 실전 커밋 창 전).
       expect(
         AlertCodes.values
-            .difference(<String>{
-              ...AlertCodes.killSwitch,
-              ...AlertCodes.readModelPush,
-            })
+            .difference(<String>{...AlertCodes.killSwitch})
             .every(kAlertLevels.containsKey),
         isTrue,
+      );
+      expect(AlertCodes.readModelPush.every(kAlertLevels.containsKey), isTrue);
+      expect(
+        kAlertLevels.containsKey(AlertCodes.killSwitchAckMismatch),
+        isFalse,
       );
       expect(
         kAlertLevels.keys.where((String c) => !AlertCodes.values.contains(c)),
