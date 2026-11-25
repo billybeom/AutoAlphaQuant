@@ -4,6 +4,8 @@
 // 🔴 홈 한 줄 = 엔진 완성 문장(화면이 D+n 을 세지 않는다) · 실행 기록 없음 = null(블록 부재).
 // 🔴 `recovery` = `RESUME_INCOMPLETE` 활성 ∧ 가장 최근 회차가 복구 모드(관찰 · 안전 정지 회차는 끝나도 플래그가 남는다).
 // 🔴 미러 = digest · 한 줄뿐(원문 0 · X2 원칙 ②) · 원격 epoch 이 더 높으면 빈 묶음(낮은 epoch 행은 만들지 않는다 · D16).
+// 🆕 미결 244 ⓐ(설계 13 §8 R271 O2) — `resume_run_mirror.resume_mode`(NOT NULL · v1.22 K62) = 로컬 `resume_run.mode`(`ResumeMode`)
+//    · 위 `mode` = 화면 상태의 `RunMode`(이름만 비슷한 두 축) — 빠지면 `op_push` 가 `OPS_PUSH_ROWS_INVALID` 로 통째 거부한다.
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
@@ -12,7 +14,7 @@ import 'package:sqlite3/sqlite3.dart';
 
 import 'job_run_store.dart' show SqliteJobRunLog;
 
-/// Supabase 미러 묶음(push = E11l2).
+/// Supabase 미러 묶음(push = 🆕 `OpsMirrorPushJob` · `op_push` · R271).
 class ResumeMirrorPayload {
   /// 묶음을 만든다.
   const ResumeMirrorPayload({
@@ -108,12 +110,13 @@ class SqliteResumeStatus {
       ],
       resumeRuns: <Map<String, Object?>>[
         for (final Row r in _db.select(
-          'SELECT resume_run_id, gap_trading_days, phase, headline FROM resume_run ORDER BY resume_run_id',
+          'SELECT resume_run_id, gap_trading_days, mode, phase, headline FROM resume_run ORDER BY resume_run_id',
         ))
           <String, Object?>{
             'resume_run_id': r['resume_run_id'],
             'gap_trading_days': r['gap_trading_days'],
             'mode': mode.wire,
+            'resume_mode': r['mode'],
             'phase': r['phase'],
             'headline': r['headline'],
           },

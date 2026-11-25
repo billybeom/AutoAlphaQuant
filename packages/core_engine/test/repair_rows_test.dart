@@ -211,6 +211,32 @@ void main() {
       (repairTargetTextOf(arch), repairLabelOf(arch)),
       ('아카이브 3일', '아카이브 3일을 다시 썼습니다'),
     );
+    // 🆕 미결 244 ⓑ(R271 O6) — 원격 사본 스탬프 재생성(파생 · 결정 없음).
+    final StoredLedgerRepair stamps = _s(
+      'ls',
+      direction: 'DERIVED_RESYNC',
+      origin: 'CHAIN_BROKEN',
+      at: t0,
+      target: const <String, Object?>{'kind': 'LEDGER_STAMPS', 'count': 4},
+      decision: null,
+      from: '2026-08-20',
+    );
+    expect(
+      (repairTargetTextOf(stamps), repairLabelOf(stamps)),
+      ('원격 스탬프 4일', '원격 사본에 스탬프 4일을 다시 보냈습니다 · 2026-08-20부터 재계산'),
+    );
+    expect(RepairTargetKind.ledgerStamps.canon, isFalse);
+    expect(
+      () => repairLabelOf(
+        _s(
+          'x',
+          at: t0,
+          target: const <String, Object?>{'kind': 'LEDGER_STAMPS', 'count': 1},
+        ),
+      ),
+      throwsFormatException,
+      reason: '정본 정정에 파생 종류',
+    );
     final StoredLedgerRepair ts = _s(
       'ts',
       direction: 'DERIVED_RESYNC',

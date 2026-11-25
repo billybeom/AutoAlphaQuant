@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_shell/ui_shell.dart';
 
+import 'app/operator_ops_push.dart';
 import 'app/operator_read_model_push.dart';
 import 'app/operator_root.dart';
 import 'app/operator_runtime.dart';
@@ -37,6 +38,8 @@ Future<void> main() async {
       repos: operatorReadModelReposOf(container),
     ),
   );
+  // 🆕 미결 244(설계 13 §8 R271 O8) — 같은 칸 다음 차례: 운영 폰 공유 표 push(X2 미러 · X5 원격 스탬프 · 포트 · 리스 없으면 0).
+  runtime?.attachOpsPush(() => runOperatorOpsPush(rt: runtime));
   final LinkRelay relay = LinkRelay(
     opener: () => container.read(shellLinkOpenerProvider),
     ready: () => container.read(shellNavigatorKeyProvider).currentState != null,

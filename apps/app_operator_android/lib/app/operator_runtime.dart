@@ -5,6 +5,8 @@
 // 🔴 딥링크(FGS 탭 등)는 화면이 설 때까지 기다렸다가 연다 — 차가운 시작에서 내비게이터가 없으면 잃지 않게 맨 마지막 하나를 쥔다.
 // 🆕 리뷰 3차 H1(설계 13 §8 R261 · 01 §8 미결 235) — 화면 동작 뒤 엔진 깨어남 창구(`wakeNow` · 조립 = 호스트 `wakeNow`) — 화면 상태 ·
 //    FGS 가 다음 알람까지 옛 상태로 남지 않게 · 커밋 뒤 닫힌 모의 원장을 화면 상태로 쥐지 않는다.
+// 🆕 미결 244(설계 13 §8 R271 O8) — 깨어남 뒤 push 칸 = 읽기 모델(`rm_push`) → 운영 폰 공유 표(`op_push` · X2 미러 · X5 스탬프) 차례로
+//    한 칸(겹침 0 · 하나가 던져도 다음은 간다).
 
 import 'dart:async';
 
@@ -26,6 +28,8 @@ import 'package:core_engine/core_engine.dart'
         journalSleeveCatalogOf;
 import 'package:data_sync/data_sync.dart'
     show
+        LedgerStampReader,
+        OpsPusher,
         P0sHumanDecision,
         ReadModelPusher,
         SqliteJournalSource,
@@ -96,6 +100,8 @@ class OperatorRuntime {
     this.operations,
     this.freshRecon,
     this.readModelPusher,
+    this.opsPusher,
+    this.ledgerStampReader,
   }) : secure = secure ?? SecureScreen(_noSecure),
        trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
@@ -211,6 +217,13 @@ class OperatorRuntime {
   /// 시크릿 관문 · 없음 = 플랫폼 밖 → push 0).
   final ReadModelPusher? readModelPusher;
 
+  /// 🆕 미결 244(설계 13 §8 R271 O1 · O8) — 운영 폰 공유 표 push 포트(`SupabaseOpsPush` · 같은 로그인 세션 · 시크릿 관문 ·
+  /// 없음 = 플랫폼 밖 → X2 미러 · X5 스탬프 push 0).
+  final OpsPusher? opsPusher;
+
+  /// 🆕 미결 244 ⓑ(R271 O5) — X5 원격 스탬프 대조 읽기(`ledger_stamp` · 없음 = 플랫폼 밖 → 스탬프 실행기 0).
+  final LedgerStampReader? ledgerStampReader;
+
   /// 깨어남 보고 → 화면 상태 → 🆕 E11l2c-2 읽기 모델 push 한 번(기다리지 않는다 · 겹침 0).
   void onWake(EngineWakeReport report) {
     view.value = operatorViewOf(report.boot, files);
@@ -218,21 +231,33 @@ class OperatorRuntime {
   }
 
   Future<void> Function()? _readModelPush;
+  Future<void> Function()? _opsPush;
   bool _pushing = false;
 
   /// 🆕 E11l2c-2 — 읽기 모델 push 한 번을 단다(조립 = `main.dart` · 화면과 같은 루트 컨테이너의 창구).
   void attachReadModelPush(Future<void> Function() push) =>
       _readModelPush = push;
 
-  /// 🆕 E11l2c-2 — 단 push 를 한 번 돌린다(앞 push 가 돌고 있으면 건너뜀 · 던지지 않는다 · 끝나면 완료).
+  /// 🆕 미결 244(R271 O8) — 운영 폰 공유 표 push 한 번을 단다(조립 = `main.dart` · 읽기 모델 push 뒤 같은 칸).
+  void attachOpsPush(Future<void> Function() push) => _opsPush = push;
+
+  /// 🆕 E11l2c-2 — 단 push 를 한 번 돌린다(앞 push 가 돌고 있으면 건너뜀 · 던지지 않는다 · 끝나면 완료) ·
+  /// 🆕 R271 — 읽기 모델 → 운영 폰 공유 표 차례(하나가 던져도 다음은 간다).
   Future<void> pushReadModelsOnce() async {
-    final Future<void> Function()? push = _readModelPush;
-    if (push == null || _pushing) return;
+    final List<Future<void> Function()> pushes = <Future<void> Function()>[
+      ?_readModelPush,
+      ?_opsPush,
+    ];
+    if (pushes.isEmpty || _pushing) return;
     _pushing = true;
     try {
-      await push();
-    } on Object {
-      // push 실패의 기록 = data_sync 로컬 상태(PUSH_LAG · PUSH_FAILED) — 화면 · 깨어남은 그대로 간다.
+      for (final Future<void> Function() push in pushes) {
+        try {
+          await push();
+        } on Object {
+          // push 실패의 기록 = data_sync 로컬 상태(PUSH_LAG · PUSH_FAILED) · 보고서 — 화면 · 깨어남 · 다음 push 는 그대로 간다.
+        }
+      }
     } finally {
       _pushing = false;
     }
