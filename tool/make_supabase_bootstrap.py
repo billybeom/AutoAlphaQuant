@@ -4,10 +4,11 @@
 
 조각 = ① `packages/domain_contracts/ddl/batch_d_supabase.sql`(계약 사본 · 원문 그대로) +
        ② `packages/data_sync/sql/supabase_lease_rpc.sql`(리스 RPC 본문 · E11k-e2 · 설계 13 §8 R221) +
-       ④ `packages/data_sync/sql/supabase_read_model_push_rpc.sql`(읽기 모델 push RPC 본문 · E11l2 · 설계 13 §8 R254 · 01 §47).
-셋째 조각 `rm_*` 은 E11l1 생성기가 같은 묶음(`SupabaseBootstrapSql.assemble`)에 넣는다 — 이 도구는 세 원문만 옮긴다.
+       ④ `packages/data_sync/sql/supabase_read_model_push_rpc.sql`(읽기 모델 push RPC 본문 · E11l2 · 설계 13 §8 R254 · 01 §47) +
+       ⑤ `packages/data_sync/sql/supabase_ops_push_rpc.sql`(운영 폰 공유 표 push RPC 본문 · 01 §8 미결 229 · 설계 13 §8 R270).
+셋째 조각 `rm_*` 은 E11l1 생성기가 같은 묶음(`SupabaseBootstrapSql.assemble`)에 넣는다 — 이 도구는 나머지 네 원문만 옮긴다.
 
-🔴 원문을 고치면(계약 창 · E11k) 이 도구를 다시 돌린다 — data_sync 시험이 두 파일과 **바이트 대조**한다:
+🔴 원문을 고치면(계약 창 · E11k) 이 도구를 다시 돌린다 — data_sync 시험이 원문 파일들과 **바이트 대조**한다:
 
     python -I tool/make_supabase_bootstrap.py
 """
@@ -27,6 +28,8 @@ SOURCES = [
      '② operator 리스 RPC 본문(06 M4-3 · 01 §6-4 리스 RPC 표 · R221)'),
     ('kSupabaseReadModelPushRpcSql', 'packages/data_sync/sql/supabase_read_model_push_rpc.sql',
      '④ 읽기 모델 push RPC 본문(06 M4-1 · 01 §47 push RPC 표 · R254)'),
+    ('kSupabaseOpsPushRpcSql', 'packages/data_sync/sql/supabase_ops_push_rpc.sql',
+     '⑤ 운영 폰 공유 표 push RPC 본문(06 M4-1 · 01 §8 미결 229 · R270)'),
 ]
 OUT = os.path.join(ROOT, 'packages', 'data_sync', 'lib', 'src', 'supabase', 'supabase_bootstrap_sources.dart')
 
@@ -53,7 +56,7 @@ def main():
     out.append('// o_07 ① Supabase 부트스트랩 묶음의 원문 조각(설계 13 §8 R221 · E11k-e2) — 묶음 = `supabase_bootstrap.dart`.')
     for _const, rel, _note, _text, sha in parts:
         out.append('//    %s sha256 `%s`' % (rel, sha))
-    out.append('// 🔴 data_sync 시험이 세 원문과 바이트 대조한다(갈라지면 시험이 실패).')
+    out.append('// 🔴 data_sync 시험이 원문 %d 개와 바이트 대조한다(갈라지면 시험이 실패).' % len(parts))
     out.append('')
     for const, rel, note, text, _sha in parts:
         out.append('/// %s — `%s`.' % (note, rel))
