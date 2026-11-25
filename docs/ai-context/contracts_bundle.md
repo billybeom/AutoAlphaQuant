@@ -14212,13 +14212,17 @@ abstract final class AlertCodes {
   static const String killSwitchAckMismatch = 'KILL_SWITCH_ACK_MISMATCH';
 
   // ── 🆕 v1.39 읽기 모델 push 2 (01 §48 K344 · 13 §8 R263 C3 · C7 · 미결 230 ⓓ · 04 §5-3 등급 행 = 이 판 제안) ──────────
+  // 🆕 v1.41(01 §50 K372 · 미결 245 · 13 §8 R271 O9) — 두 코드 = **공유 계층 push**(`rm_push` · `op_push`) 실패 — 조치가 같아 한 원인이
+  //    두 RPC 에서 따로 울리지 않게 묶는다 · 어느 RPC 인지 = 본문 표 이름(`rm_*` ↔ `OpsPushTables` 서로소) · 와이어 · 등급 · 표본 0.
   /// 🔴 계약 먼저 등재 — 엔진 등급 · 글자 · 내는 자리(push 보고서 실패 목록 → 알림) = 미결 243(그 전 = 알림 0).
-  /// 잠정 P1 · push 가 시크릿 꼴 글자를 찾아 그 표를 보내지 않았다(PUSH_FAILED · 시크릿 차단 — 뷰어 사본이 멈춘다 · 조치 = 원인 확인).
+  /// 잠정 P1 · 공유 계층 push(`rm_push` · `op_push`)가 시크릿 꼴 글자를 찾아 그 표를 보내지 않았다(PUSH_FAILED · 시크릿 차단 — 뷰어 사본이
+  /// 멈춘다 · 조치 = 원인 확인).
   /// 🔴 본문에 찾은 글자 · 값 0(표 이름 · 종류만).
   static const String readModelPushSecretBlocked =
       'READ_MODEL_PUSH_SECRET_BLOCKED';
 
-  /// 잠정 P1 · 서버 표와 앱이 어긋나 push 가 거부됐다(PUSH_FAILED · `READ_MODEL_ROWS_INVALID` · `READ_MODEL_TABLE_UNKNOWN` · 응답 꼴 ·
+  /// 잠정 P1 · 서버 표와 앱이 어긋나 공유 계층 push 가 거부됐다(PUSH_FAILED · `READ_MODEL_ROWS_INVALID` · `READ_MODEL_TABLE_UNKNOWN` ·
+  /// 🆕 v1.41 `OPS_PUSH_ROWS_INVALID` · `OPS_PUSH_TABLE_UNKNOWN`(미결 245) · 응답 꼴 ·
   /// 행을 못 만듦 — 조치 = 앱 업데이트 · 부트스트랩 다시). 🔴 망 · 서버 · 로그인 · 리스(PUSH_LAG)는 알림 0(다음 깨우기에 다시 — 경보 피로).
   static const String readModelPushRejected = 'READ_MODEL_PUSH_REJECTED';
 
