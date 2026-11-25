@@ -7,6 +7,8 @@
 // 🔴 기록 = 저장소 한 트랜잭션(정본 정정이 아니라 `withLedgerFix` 밖).
 // 🆕 E16f3b — 아카이브 재생성 기록(R131 M3 · M4): REBASED diff RESOLVED + `DERIVED_RESYNC` `ARCHIVE_DAYS` 정정 행 + 상세 ·
 //    id = 대상 · 첫 날 · 체인의 해시(다시 돌려도 한 행) · 오늘 횟수 = 한국 날 그 행 수(하루 상한).
+// 🆕 미결 244 ⓑ(설계 13 §8 R271 O5 · O6) — 같은 길을 대상마다(재생성 종류 = 대상의 [derivedResyncKindOf] · GITHUB = `ARCHIVE_DAYS` ·
+//    SUPABASE = `LEDGER_STAMPS` · CALENDAR = `CALENDAR_EVENTS`) · 원격 사본(Supabase `ledger_stamp`) ↔ 정본 관계 = [supabaseView].
 
 import 'dart:convert' show jsonEncode, utf8;
 
@@ -58,6 +60,13 @@ CanonChain canonChainOf(Database db, {required int operatorEpoch}) =>
           ),
       ],
     );
+
+/// 🆕 미결 244 ⓑ(R271 O6) — 대상의 재생성 정정 대상 종류(`target_json.kind`).
+RepairTargetKind derivedResyncKindOf(DerivedTarget target) => switch (target) {
+  DerivedTarget.github => RepairTargetKind.archiveDays,
+  DerivedTarget.supabase => RepairTargetKind.ledgerStamps,
+  DerivedTarget.calendar => RepairTargetKind.calendarEvents,
+};
 
 /// 🆕 E16f3b — 재생성 정정 행 id(대상 · 첫 날 · 체인 · 다시 돌려도 같은 id · R131 M3).
 String archiveResyncRepairIdOf(
@@ -142,6 +151,17 @@ class SqliteDerivedSyncStore {
     return changed;
   });
 
+  /// 🆕 미결 244 ⓑ(R271 O5 · O6) — 원격 사본(Supabase `ledger_stamp` 그 모드 마지막 한 행 = [remote] · 없음 = null) ↔ 정본 관계 ·
+  /// [operatorEpoch] = 이 기기가 쥔 SUPABASE 리스 epoch(`op_push` 가 `operator_epoch` 를 그 값으로 덮는다 — 더 큰 원격 = EPOCH_AHEAD).
+  DerivedView supabaseView(DerivedStamp? remote, {required int operatorEpoch}) {
+    final CanonChain canon = canonChainOf(_db, operatorEpoch: operatorEpoch);
+    return (
+      canon: canon,
+      derived: remote,
+      relation: derivedRelationOf(canon, remote),
+    );
+  }
+
   /// REBASED 관측 diff(재생성 전 · E16f3b 가 해소한다) — 넣었으면 true · REBASED 아님 = [ArgumentError].
   bool recordRebased(DerivedTarget target, DerivedView view, DateTime atUtc) {
     if (view.relation != DerivedRelation.rebased) {
@@ -159,20 +179,42 @@ class SqliteDerivedSyncStore {
 
   /// 🆕 E16f3b — 한국 날 [kstDay] 의 아카이브 재생성 횟수(`DERIVED_RESYNC` × `ARCHIVE_DAYS` · 하루 상한 · R131 M2).
   int archiveResyncsOn(String kstDay) =>
+      resyncsOn(DerivedTarget.github, kstDay);
+
+  /// 🆕 미결 244 ⓑ(R271 O5) — 한국 날 [kstDay] 의 [target] 재생성 횟수(`DERIVED_RESYNC` × 그 대상 종류 · 하루 상한).
+  int resyncsOn(DerivedTarget target, String kstDay) =>
       _db.select(
             'SELECT COUNT(*) AS n FROM ledger_repair r '
             'JOIN ledger_repair_detail d ON d.repair_id = r.repair_id '
             "WHERE r.direction = 'DERIVED_RESYNC' "
-            "AND json_extract(d.target_json, '\$.kind') = 'ARCHIVE_DAYS' "
+            "AND json_extract(d.target_json, '\$.kind') = ? "
             "AND date(r.applied_at, '+9 hours') = ?",
-            <Object?>[kstDay],
+            <Object?>[derivedResyncKindOf(target).wire, kstDay],
           ).single['n']
           as int;
 
-  /// 🔴 아카이브 재생성 기록(R131 M3 · M4) — 한 트랜잭션: REBASED diff(없으면 넣고) RESOLVED + `DERIVED_RESYNC` 정정 행 + 상세.
+  /// 🔴 아카이브 재생성 기록(R131 M3 · M4) — [recordResync] 그대로(대상 종류 = [derivedResyncKindOf]).
+  LedgerRepairPlanRow recordArchiveResync(
+    DerivedTarget target,
+    DerivedView view, {
+    required String fromDate,
+    required int days,
+    required String chainHash,
+    required DateTime atUtc,
+  }) => recordResync(
+    target,
+    view,
+    fromDate: fromDate,
+    days: days,
+    chainHash: chainHash,
+    atUtc: atUtc,
+  );
+
+  /// 🔴 재생성 기록(R131 M3 · M4 · 🆕 R271 O6 대상마다) — 한 트랜잭션: REBASED diff(없으면 넣고) RESOLVED + `DERIVED_RESYNC` 정정 행 +
+  /// 상세(대상 = `{"kind": 대상 종류, "count": days}`).
   ///
   /// 같은 첫 날 · 체인 = 같은 id(INSERT OR IGNORE · 다시 돌려도 한 행) · REBASED 아님 = [ArgumentError].
-  LedgerRepairPlanRow recordArchiveResync(
+  LedgerRepairPlanRow recordResync(
     DerivedTarget target,
     DerivedView view, {
     required String fromDate,
@@ -205,7 +247,7 @@ class SqliteDerivedSyncStore {
       recomputedFrom: fromDate,
       chainHash: chainHash,
       targetJson: jsonEncode(<String, Object?>{
-        'kind': 'ARCHIVE_DAYS',
+        'kind': derivedResyncKindOf(target).wire,
         'count': days,
       }),
       evidenceJson: d.deltaJson,

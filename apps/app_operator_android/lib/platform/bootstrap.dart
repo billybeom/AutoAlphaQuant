@@ -40,6 +40,8 @@ import 'package:data_sync/data_sync.dart'
         SupabaseFirstClaim,
         SupabaseLeaseGate,
         SupabaseLeaseRpc,
+        SupabaseLedgerStampRead,
+        SupabaseOpsPush,
         SupabaseReadModelPush,
         SupabaseServerTime,
         SupabaseX1Emergency;
@@ -394,6 +396,18 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
       leaseRemote: lease.leaseRemote,
       // 🆕 E11l2c-2(R264) — 읽기 모델 push(같은 로그인 세션 · 시크릿 관문 · 실행 = 깨어남 뒤 · 조립 = main.dart).
       readModelPusher: SupabaseReadModelPush(
+        http.Client(),
+        AndroidSecretVault(),
+        supabaseAuth,
+      ),
+      // 🆕 미결 244(R271 O8) — 운영 폰 공유 표 push(`op_push` · X2 미러 · X5 스탬프 · 같은 로그인 세션 · 시크릿 관문 · 실행 = 깨어남 뒤 ·
+      //    조립 = main.dart) + X5 원격 스탬프 대조 읽기.
+      opsPusher: SupabaseOpsPush(
+        http.Client(),
+        AndroidSecretVault(),
+        supabaseAuth,
+      ),
+      ledgerStampReader: SupabaseLedgerStampRead(
         http.Client(),
         AndroidSecretVault(),
         supabaseAuth,

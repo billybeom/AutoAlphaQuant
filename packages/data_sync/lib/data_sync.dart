@@ -24,11 +24,14 @@ export 'src/device/local_command_queue.dart';
 export 'src/jobs/daily_archive_job.dart';
 export 'src/jobs/daily_jobs.dart';
 export 'src/jobs/monthly_rebalance_job.dart';
+export 'src/jobs/ops_mirror_push_job.dart'; // 🆕 미결 244 ⓐ — X2 미러 push 일(op_push · 13 R271)
+export 'src/jobs/ops_push_send.dart'; // 🆕 미결 244 — op_push 한 표 보내기 · 갈래(13 R271 · 🔵 E11m 재사용)
 export 'src/jobs/read_model_push_job.dart'; // 🆕 E11l2c — 읽기 모델 push 일(13 R263 · 01 §8 미결 241)
 export 'src/jobs/resume_job.dart';
 export 'src/jobs/resume_reevaluator.dart';
 export 'src/jobs/seasonal_a_job.dart';
 export 'src/jobs/seasonal_choice.dart';
+export 'src/jobs/supabase_stamp_sync_job.dart'; // 🆕 미결 244 ⓑ — X5 원격 사본 스탬프 실행기(op_push · 13 R271)
 export 'src/jobs/tier_b_step.dart';
 export 'src/local/alert_read_model.dart';
 export 'src/local/alert_store.dart';
@@ -149,6 +152,8 @@ export 'src/supabase/supabase_device_ledger.dart';
 // 🆕 E11k-e3 — O-04 ⑤ 첫 클레임 명시 흐름(복구 코드 발급 · 기기 행 · lease_claim · 설계 13 §8 R229).
 export 'src/supabase/supabase_first_claim.dart';
 export 'src/supabase/supabase_lease.dart';
+export 'src/supabase/supabase_ledger_stamp_read.dart'; // 🆕 미결 244 ⓑ — X5 원격 스탬프 대조 읽기(13 R271)
+export 'src/supabase/supabase_ops_push.dart'; // 🆕 미결 244 ⓐ — op_push 클라이언트 · 시크릿 관문(13 R271 · 🔵 E11m 재사용)
 export 'src/supabase/supabase_read_model_push.dart'; // 🆕 E11l2b — rm_push 클라이언트 · 시크릿 관문(13 R256 · 222 ⓒⓔ)
 export 'src/supabase/supabase_read_models.dart'; // 🆕 E11l1 — 읽기 모델 rm_* DDL + RLS 생성기(13 R246 · 01 §8 미결 222 ⓐ)
 export 'src/supabase/supabase_recovery_code.dart';

@@ -935,6 +935,7 @@ void main() {
           'resume_run_id',
           'gap_trading_days',
           'mode',
+          'resume_mode', // 🆕 미결 244 ⓐ(R271 O2) — NOT NULL(K62) · 로컬 재개 모드
           'phase',
           'headline',
         });
@@ -943,9 +944,20 @@ void main() {
             p.resumeRuns.single['resume_run_id'],
             p.resumeRuns.single['gap_trading_days'],
             p.resumeRuns.single['mode'],
+            p.resumeRuns.single['resume_mode'],
             p.resumeRuns.single['phase'],
           ),
-          ('RR-2026-11-13-1', 1, 'SIM_INTERNAL', 'R8'),
+          (
+            'RR-2026-11-13-1',
+            1,
+            'SIM_INTERNAL',
+            db.select('SELECT mode FROM resume_run').first['mode'],
+            'R8',
+          ),
+        );
+        expect(
+          ResumeMode.values.map((ResumeMode m) => m.wire),
+          contains(p.resumeRuns.single['resume_mode']),
         );
         expect(
           p.resumeRuns.single['headline'],

@@ -87,6 +87,9 @@ enum RepairTargetKind {
   /// 아카이브 날(파생 재생성).
   archiveDays('ARCHIVE_DAYS'),
 
+  /// 🆕 미결 244 ⓑ(설계 13 §8 R271 O6) — 원격 사본 스탬프 날(`ledger_stamp` · X5 `canonSupabase` 파생 재생성).
+  ledgerStamps('LEDGER_STAMPS'),
+
   /// 시계열 재계산(파생 재생성 — 소급 정본 사실).
   timeseries('TIMESERIES');
 
@@ -167,6 +170,7 @@ String repairTargetTextOf(StoredLedgerRepair r) {
     RepairTargetKind.mirrorExecRows => '미러 체결 행 ${_count(t)}건',
     RepairTargetKind.calendarEvents => '캘린더 이벤트 ${_count(t)}건',
     RepairTargetKind.archiveDays => '아카이브 ${_count(t)}일',
+    RepairTargetKind.ledgerStamps => '원격 스탬프 ${_count(t)}일',
     RepairTargetKind.timeseries => '시계열 재계산',
   };
 }
@@ -183,6 +187,7 @@ String repairLabelOf(StoredLedgerRepair r) {
     RepairTargetKind.mirrorExecRows => '미러에 체결 ${_count(t)}행을 다시 보냈습니다',
     RepairTargetKind.calendarEvents => '캘린더 이벤트 ${_count(t)}건을 다시 썼습니다',
     RepairTargetKind.archiveDays => '아카이브 ${_count(t)}일을 다시 썼습니다',
+    RepairTargetKind.ledgerStamps => '원격 사본에 스탬프 ${_count(t)}일을 다시 보냈습니다',
     RepairTargetKind.timeseries => '시계열을 다시 계산했습니다',
     RepairTargetKind.ledgerIntegrity => '새 기준점 선언 · 다시 스탬프',
     RepairTargetKind.quantity => () {
