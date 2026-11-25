@@ -30,7 +30,9 @@
 --   · 표마다 충돌 규칙:
 --       command_ack          = 🔴 append-only — 같은 ack_id = 건너뜀(skipped · 바꾸지 않는다) · command_id = 부른 사용자의 명령만
 --                              (command_queue.owner_uid = auth.uid() · 아니면 ROWS_INVALID) · 한 호출에 같은 command_id 두 번 = ROWS_INVALID
---                              (acked_at = 트랜잭션 시각 하나 — 한 명령의 두 상태가 같은 시각이면 뷰어가 차례를 못 가른다).
+--                              (acked_at = 트랜잭션 시각 하나 — 한 명령의 두 상태가 같은 시각이면 뷰어가 차례를 못 가른다) ·
+--                              🆕 v1.41(01 §50 · 13 §8 R272 Y3 ⓓ · Y4) state ∈ {PENDING_LEASE_CONFIRM, NO_OPERATOR} = ROWS_INVALID — 리스 보유자가
+--                              «리스 없음» 상태를 적을 수 없다(그 행이 최신 상태가 되면 뷰어 판정이 거짓) · NO_OPERATOR = command_status 서버 판정(ack 행 0).
 --       planned_work_mirror  = row_version 이 큰 행만 바꾼다(같거나 작으면 skipped · 규칙 5조 ②).
 --       resume_run_mirror    = 덮는다(마지막 보낸 값).
 --       ledger_stamp         = 덮는다(재생성 = 같은 날 다시 씀 · 판정 = 엔진 derivedSyncActionOf · 리스 판정이 낮은 epoch 쓰기를 막는다).
@@ -103,6 +105,10 @@ begin
           from pg_catalog.jsonb_populate_recordset(null::public.command_ack, p_rows) r
          group by r.command_id
         having count(*) > 1
+      ) or exists (
+        select 1
+          from pg_catalog.jsonb_populate_recordset(null::public.command_ack, p_rows) r
+         where r.state in ('PENDING_LEASE_CONFIRM', 'NO_OPERATOR')
       ) then
         return query select 'OPS_PUSH_ROWS_INVALID'::text, v_epoch, 0, 0;
         return;
