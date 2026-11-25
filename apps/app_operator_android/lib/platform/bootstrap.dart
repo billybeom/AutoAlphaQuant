@@ -36,6 +36,7 @@ import 'package:data_sync/data_sync.dart'
         OfrClient,
         P0sHumanDecision,
         SupabaseAuth,
+        SupabaseCommandOpen,
         SupabaseDeviceLedger,
         SupabaseFirstClaim,
         SupabaseLeaseGate,
@@ -58,6 +59,7 @@ import '../app/operator_onboarding.dart' show OnboardingProbe;
 import '../app/operator_runtime.dart';
 import '../app/operator_view.dart' show OperatorView;
 import '../app/secure_screen.dart' show SecureScreen;
+import '../engine/command_wiring.dart' show commandConsumeHookOf;
 import '../engine/data_job_runners.dart' show JobParts;
 import '../engine/engine_boot.dart' show BootInputs, registryLiveKeysVerified;
 import '../engine/fgs_status_source.dart' show UnknownTrustedClock;
@@ -188,6 +190,16 @@ Future<OperatorEngine> _assemble(
     runners: (JobContext c) => composeJobRunners(c, parts: parts),
     seed: () => loadSeedAssets(rootBundle),
     fgs: fgs,
+    // 🆕 E11m-a(R274) — 회차 앞 뷰어 명령 소비(실행 묶음의 당김 · ack 포트 · 원격 리스 원천 — 없으면 소비 0).
+    commands: commandConsumeHookOf(
+      reader: runtime?.commandOpen,
+      pusher: runtime?.opsPusher,
+      leaseRemote: runtime?.leaseRemote,
+      deviceId: deviceId,
+      trusted: trusted,
+      clock: clock,
+      calendars: cals,
+    ),
   );
 }
 
@@ -408,6 +420,12 @@ Future<OperatorRuntime?> openOperatorRuntime() async {
         supabaseAuth,
       ),
       ledgerStampReader: SupabaseLedgerStampRead(
+        http.Client(),
+        AndroidSecretVault(),
+        supabaseAuth,
+      ),
+      // 🆕 E11m-a(R274) — 뷰어 명령 당김(`command_open` · 같은 로그인 세션 · 실행 = 엔진 깨어남 회차 앞 · ack = 위 opsPusher).
+      commandOpen: SupabaseCommandOpen(
         http.Client(),
         AndroidSecretVault(),
         supabaseAuth,

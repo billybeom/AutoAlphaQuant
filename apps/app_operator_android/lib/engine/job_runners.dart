@@ -53,6 +53,7 @@ class JobContext {
     this.trusted = const UnknownTrustedClock(),
     this.operations,
     this.leaseRemote,
+    this.commandsBlocked = false,
   });
 
   /// 🆕 E11p3c-1 — 이 모드의 원장(기동 판정이 고른 파일).
@@ -93,6 +94,10 @@ class JobContext {
 
   /// 🆕 E11k-e3(R229 F8) — 원격 리스 원천(기동 입력 그대로 · live · simBroker 만 끼운다).
   final LeaseRemoteOf? leaseRemote;
+
+  /// 🆕 E11m-a(설계 13 §8 R274 A5 · R272 Y6 ⓑ) — 이 깨어남의 회차 앞 명령 소비가 리스를 쥐고도 명령 표를 못 읽었다(또는 던졌다) ·
+  /// 🔴 true = 주문 잡(`kr_order` · `kr_order_close`)을 실패로 남긴다(뷰어 킬스위치가 주문 전에 닿는다는 보장 · 늦은 끝 안 = 다음 깨어남에 다시).
+  final bool commandsBlocked;
 }
 
 /// 🔴 회차를 잡 규약으로 감싼다 — 세션일 · 달력 · 마감 = 회차 값.

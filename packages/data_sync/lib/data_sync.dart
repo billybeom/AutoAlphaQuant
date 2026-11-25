@@ -21,6 +21,7 @@
 export 'src/device/device_draft_store.dart';
 export 'src/device/device_local.dart';
 export 'src/device/local_command_queue.dart';
+export 'src/jobs/command_consume_job.dart'; // 🆕 E11m-a — 운영 폰 명령 소비 일(command_open → 처리기 → command_ack · 13 R274)
 export 'src/jobs/daily_archive_job.dart';
 export 'src/jobs/daily_jobs.dart';
 export 'src/jobs/monthly_rebalance_job.dart';
@@ -146,6 +147,7 @@ export 'src/supabase/read_model_rows.dart'; // 🆕 E11l2b — 읽기 모델 행
 export 'src/supabase/supabase_auth.dart';
 // 🆕 E11k-e2(설계 13 §8 R221) — o_07 ① 부트스트랩 SQL 묶음 · 복구 코드 해시 꼴(원문 조각 = 내부 생성 파일).
 export 'src/supabase/supabase_bootstrap.dart';
+export 'src/supabase/supabase_command_open.dart'; // 🆕 E11m-a — command_open 당김 클라이언트(13 R274 · 계약 v1.41)
 export 'src/supabase/supabase_connect.dart';
 // 🆕 R248 — R-01 기기 원장 읽기(`app_device` · `operator_lease` · 읽기만).
 export 'src/supabase/supabase_device_ledger.dart';

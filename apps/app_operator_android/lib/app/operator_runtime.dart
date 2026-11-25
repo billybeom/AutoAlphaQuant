@@ -28,6 +28,7 @@ import 'package:core_engine/core_engine.dart'
         journalSleeveCatalogOf;
 import 'package:data_sync/data_sync.dart'
     show
+        CommandOpenReader,
         LedgerStampReader,
         OpsPusher,
         P0sHumanDecision,
@@ -102,6 +103,7 @@ class OperatorRuntime {
     this.readModelPusher,
     this.opsPusher,
     this.ledgerStampReader,
+    this.commandOpen,
   }) : secure = secure ?? SecureScreen(_noSecure),
        trusted = trusted ?? const UnknownTrustedClock(),
        secrets = secrets ?? SecretHandoff(),
@@ -220,6 +222,10 @@ class OperatorRuntime {
   /// 🆕 미결 244(설계 13 §8 R271 O1 · O8) — 운영 폰 공유 표 push 포트(`SupabaseOpsPush` · 같은 로그인 세션 · 시크릿 관문 ·
   /// 없음 = 플랫폼 밖 → X2 미러 · X5 스탬프 push 0).
   final OpsPusher? opsPusher;
+
+  /// 🆕 E11m-a(설계 13 §8 R274) — 뷰어 명령 당김 포트(`SupabaseCommandOpen` · 같은 로그인 세션 · 실행 = 엔진 깨어남의 회차 앞 ·
+  /// ack = [opsPusher] · 없음 = 플랫폼 밖 → 소비 0).
+  final CommandOpenReader? commandOpen;
 
   /// 🆕 미결 244 ⓑ(R271 O5) — X5 원격 스탬프 대조 읽기(`ledger_stamp` · 없음 = 플랫폼 밖 → 스탬프 실행기 0).
   final LedgerStampReader? ledgerStampReader;
