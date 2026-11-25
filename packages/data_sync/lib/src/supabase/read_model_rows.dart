@@ -8,6 +8,8 @@
 //    ⓑ 바로 열(`rm_advice` `sizing_label` · `progress_label`) = 생산자가 뷰어 판 값을 [ReadModelRowInput.viewer] 로 줘야 한다 —
 //    없으면 행을 만들지 않는다(폰 판 글자가 뷰어로 새지 않게 · 기본값 0).
 // 🔴 `rm_config_view` 버전 스탬프 3 = 빌더가 계약 상수로 채운다(규칙 5조 ⑥ «push 마다 함께» · 부르는 쪽이 주지 않는다).
+// 🆕 미결 242(설계 13 §8 R275 · 01 §48 K339~K341) — 목록 열(`ReadModelListColumn`)은 [ReadModelRowInput.list] 로 받는다:
+//    요구하지 않는다(빠짐 = 서버 null = 그 목록 밖) · 그 표의 목록 열 밖 이름 = 거부 · 차례 열(bigint) = 1 이상 정수 또는 null.
 
 import 'package:core_engine/core_engine.dart' show HoldingsTexts;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -15,9 +17,11 @@ import 'package:domain_contracts/domain_contracts.dart'
         EmptyKind,
         ReadModelBinding,
         ReadModelColumn,
+        ReadModelColumnType,
         ReadModelExclusion,
         ReadModelExtraColumn,
         ReadModelListCodes,
+        ReadModelListColumn,
         ReadModelPushColumns,
         ReadModelTable,
         ReadModelTables,
@@ -46,6 +50,7 @@ class ReadModelRowInput {
     this.dtos = const <String, Map<String, Object?>>{},
     this.extras = const <String, Object?>{},
     this.viewer = const <String, Object?>{},
+    this.list = const <String, Object?>{},
   });
 
   /// 행의 모드(규칙 5조 ① · 키 첫 칸).
@@ -64,6 +69,9 @@ class ReadModelRowInput {
   /// 바로 열 뷰어 판 값(열 이름 → 값 · `rm_advice` `sizing_label` · `progress_label`).
   final Map<String, Object?> viewer;
 
+  /// 🆕 미결 242(R275) — 목록 열 값(열 이름 → 값 · 그 표의 `ReadModelTable.listColumns` 만 · 빠진 열 = null = 그 목록 밖).
+  final Map<String, Object?> list;
+
   /// 🆕 E11l2c(R263) — 판만 바꾼 사본(원천은 판을 모른다 · push 일이 붙인다).
   ReadModelRowInput withRowVersion(int v) => ReadModelRowInput(
     mode: mode,
@@ -71,8 +79,19 @@ class ReadModelRowInput {
     dtos: dtos,
     extras: extras,
     viewer: viewer,
+    list: list,
   );
 }
+
+/// 🆕 미결 242(R275 · K339) — [t] 의 차례 열(목록 열 중 `bigint` — `<목록>_rank`) 이름 · 계약 차례.
+List<String> readModelRankColumns(ReadModelTable t) => <String>[
+  for (final ReadModelListColumn l in t.listColumns)
+    if (t.columns.any(
+      (ReadModelColumn c) =>
+          c.name == l.name && c.type == ReadModelColumnType.bigint,
+    ))
+      l.name,
+];
 
 /// 행을 만들 수 없다(🔴 값 · 발췌 없음 — 표 · 칸 · 사유만).
 class ReadModelRowError implements Exception {
@@ -152,6 +171,20 @@ Map<String, Object?> readModelRow(ReadModelTable t, ReadModelRowInput input) {
     throw ReadModelRowError(t.name, 'DTO 밖 열 = ${needExtras.toList()..sort()}');
   }
   row.addAll(input.extras);
+  // 🆕 미결 242(R275) — 목록 열: 요구 0 · 그 표의 목록 열만 · 차례 = 1 이상 정수 또는 null.
+  final Set<String> listNames = <String>{
+    for (final ReadModelListColumn l in t.listColumns) l.name,
+  };
+  final List<String> ranks = readModelRankColumns(t);
+  input.list.forEach((String k, Object? v) {
+    if (!listNames.contains(k)) {
+      throw ReadModelRowError(t.name, '목록 열 밖 칸 $k');
+    }
+    if (ranks.contains(k) && v != null && (v is! int || v < 1)) {
+      throw ReadModelRowError(t.name, '차례 $k = 1 이상 정수 · null');
+    }
+    row[k] = v;
+  });
   if (stamps.isNotEmpty) {
     row['schema_version'] = schemaVersion;
     row['hash_format_version'] = hashFormatVersion;
@@ -191,6 +224,8 @@ Map<String, Object?> readModelRow(ReadModelTable t, ReadModelRowInput input) {
 }
 
 /// 목록 봉투 행(`rm_list_envelope` · 01 §45 K310) — [asOf] = `AsOf.toJson()`.
+/// 🆕 미결 242(R275 · K340) — [filteredEmptyLabel](필터 건 조회가 빈 때) · [scopeEmptyLabel](일지 회차 필터가 빈 때) =
+/// 엔진 문장 · 없으면 null(그 목록에 그 문장 없음).
 Map<String, Object?> listEnvelopeRow({
   required RunMode mode,
   required int rowVersion,
@@ -198,6 +233,8 @@ Map<String, Object?> listEnvelopeRow({
   required Map<String, Object?> asOf,
   required EmptyKind emptyKind,
   String? emptyLabel,
+  String? filteredEmptyLabel,
+  String? scopeEmptyLabel,
 }) {
   if (!ReadModelListCodes.all.contains(listCode)) {
     throw ReadModelRowError(ReadModelTables.listEnvelope.name, '모르는 list_code');
@@ -212,6 +249,10 @@ Map<String, Object?> listEnvelopeRow({
         'as_of': asOf,
         'empty_kind': emptyKind.wire,
         'empty_label': emptyLabel,
+      },
+      list: <String, Object?>{
+        'filtered_empty_label': filteredEmptyLabel,
+        'scope_empty_label': scopeEmptyLabel,
       },
     ),
   );

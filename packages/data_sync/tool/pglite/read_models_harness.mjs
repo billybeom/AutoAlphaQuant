@@ -216,6 +216,22 @@ if (rowsPath) {
     const seen = (await as('authenticated', U.view, () => db.query(`select count(*)::int n from ${table} where lease_epoch = 9`))).rows[0].n;
     ok(seen === rows.length, `${table} 뷰어가 빌더 행을 읽는다`);
   }
+  // 🆕 미결 242(R275 · K339) 목록에서 빠진 행 = 같은 키 · 큰 판 · 차례 null 로 다시 보냄 → 서버 차례 null · 나머지 칸 그대로 ·
+  //    뷰어 목록(`rank is not null`)에서 빠진다 · 옛 판 = 건너뜀(차례가 되살아나지 않는다).
+  const alert0 = { ...sample.rm_alert[0], row_version: 100 };
+  ok(alert0.inbox_rank === 1, `표본 알림 차례 1 (${alert0.inbox_rank})`);
+  const listed = async () => (await as('authenticated', U.view, () => db.query(`select count(*)::int n from rm_alert where inbox_rank is not null`))).rows[0].n;
+  ok(await listed() === 1, '빠지기 전 = 뷰어 목록 1행');
+  const gone = { ...alert0, row_version: 101, inbox_rank: null };
+  const r1 = (await as('authenticated', U.op, () => db.query(`select * from rm_push('d_op', 9, 'rm_alert', $1::jsonb)`, [JSON.stringify([gone])]))).rows[0];
+  ok(r1.code === null && r1.accepted === 1, `빠진 행 다시 보냄 (${JSON.stringify(r1)})`);
+  const st = (await db.query(`select to_jsonb(t) j from rm_alert t where mode = $1 and alert_id = $2`, [gone.mode, gone.alert_id])).rows[0].j;
+  ok(st.inbox_rank === null && st.row_version === 101, `서버 차례 null · 판 101 (${st.inbox_rank} · ${st.row_version})`);
+  ok(Object.keys(gone).filter(k => k !== 'inbox_rank' && !deq(gone[k], st[k])).length === 0, '나머지 칸 = 마지막으로 보낸 꼴 그대로');
+  ok(await listed() === 0, '빠진 뒤 = 뷰어 목록 0행');
+  const r2 = (await as('authenticated', U.op, () => db.query(`select * from rm_push('d_op', 9, 'rm_alert', $1::jsonb)`, [JSON.stringify([alert0])]))).rows[0];
+  ok(r2.code === null && r2.accepted === 0 && r2.skipped === 1, `옛 판(차례 1) = 건너뜀 (${JSON.stringify(r2)})`);
+  ok(await listed() === 0, '옛 판이 차례를 되살리지 않는다');
 }
 
 // ⑨ 🆕 미결 229(R270) op_push — rm_* 밖 쓰기 표 다섯(command_ack · 미러 2 · ledger_stamp · calendar_sync_status) ·

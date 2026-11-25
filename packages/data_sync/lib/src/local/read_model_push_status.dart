@@ -7,11 +7,20 @@
 // 🔴 status = OK(받아들여짐) · PUSH_LAG(망 · 서버 · 로그인 · 리스 — 다음 깨우기에 다시) · PUSH_FAILED(시크릿 차단 · 행 틀림 ·
 //    표 모름 · 응답 꼴 — 사람이 볼 일 · 알림 = 부르는 쪽).
 // 🔴 `last_pushed_key` = 통째 판(`snapshot:<행 수>`) — 증분 키 대신 그 표의 지금 모습 전부를 보낸다(백필 = 같은 길).
+// 🆕 미결 242(설계 13 §8 R275 · 01 §48 K339) — **직전 소속** = 차례 열이 있는 표마다 곁 행 하나(`<표>#members` · 같은 표 ·
+//    계약 DDL 0줄): `last_pushed_key` = 차례가 붙어 나간 행들의 마지막 모습(JSON 목록 · 보낸 꼴 그대로). 목록에서 빠진 행을
+//    같은 키 · 큰 판 · 차례 null 로 다시 보낼 때 그 본문이 된다(`rm_push` 는 행 전체를 덮는다 — 키만으로는 못 보낸다).
+//    못 읽음(꼴 깨짐) = 빈 소속(다음 성공이 다시 쓴다).
+
+import 'dart:convert';
 
 import 'package:sqlite3/sqlite3.dart';
 
 /// 판 순번이 들어갈 아래 비트 수(epoch 는 그 위 · epoch < 2^22 → bigint 안).
 const int kReadModelRowVersionShift = 40;
+
+/// 🆕 미결 242(R275) — 직전 소속 곁 행 이름 꼬리(`read_model_push.table_name` = 표 이름 + 이 꼬리).
+const String kReadModelMembersSuffix = '#members';
 
 /// 이 epoch 의 판 바닥(그 epoch 의 첫 판 = 바닥 + 1).
 int readModelRowVersionFloor(int epoch) {
@@ -94,6 +103,48 @@ class SqliteReadModelPushStatus {
   /// 사람이 볼 일.
   void recordFailed(String table, int rowVersion) =>
       _put(table, rowVersion, ReadModelPushStates.failed);
+
+  /// 🆕 미결 242(R275) — [table] 의 직전 소속(차례가 붙어 나간 행의 마지막 모습 · 없음 · 못 읽음 = 빈 목록).
+  List<Map<String, Object?>> members(String table) {
+    final ResultSet rs = _db.select(
+      'SELECT last_pushed_key FROM read_model_push WHERE table_name = ?',
+      <Object?>['$table$kReadModelMembersSuffix'],
+    );
+    if (rs.isEmpty) return const <Map<String, Object?>>[];
+    try {
+      final Object? v = jsonDecode(rs.first['last_pushed_key'] as String);
+      if (v is! List<Object?>) return const <Map<String, Object?>>[];
+      return <Map<String, Object?>>[
+        for (final Object? r in v)
+          if (r is Map<String, Object?>) r,
+      ];
+    } on FormatException {
+      return const <Map<String, Object?>>[];
+    }
+  }
+
+  /// 🆕 미결 242(R275) — [table] 의 직전 소속을 [rows] 로 바꾼다([rowVersion] = 그 push 의 판).
+  void recordMembers(
+    String table,
+    int rowVersion,
+    List<Map<String, Object?>> rows,
+    DateTime atUtc,
+  ) => _db.execute(
+    'INSERT INTO read_model_push(table_name, last_pushed_key, last_ok_at, row_version, status) '
+    'VALUES (?, ?, ?, ?, ?) '
+    'ON CONFLICT(table_name) DO UPDATE SET '
+    'last_pushed_key = excluded.last_pushed_key, '
+    'last_ok_at = excluded.last_ok_at, '
+    'row_version = MAX(row_version, excluded.row_version), '
+    'status = excluded.status',
+    <Object?>[
+      '$table$kReadModelMembersSuffix',
+      jsonEncode(rows),
+      atUtc.toUtc().toIso8601String(),
+      rowVersion,
+      ReadModelPushStates.ok,
+    ],
+  );
 
   /// 표 하나(없으면 null).
   ReadModelPushStatusRow? row(String table) {

@@ -3,6 +3,8 @@
 // ① 22표 — 계약 표본 DTO 로 행 하나씩(열 ⊆ 계약 · 키 non-null · 제외 키 0 · 덮는 칸 0)
 // ② 뷰어 판 — 보유 배분 금액 = 가림 글자 · 안내 글자 = 생산자 값 없으면 거부 ③ 스탬프 · 펼침(v1.28 allocation_*) · DTO 밖 열
 // ④ 거부 — 모드 다름 · 첫 결속 없음 · 모르는 list_code ⑤ 클라이언트 — 인자 4 · 성공 · 거부 · 꼴 · 401 재시도 · 5xx · 시크릿 차단(망 0).
+// 🆕 미결 242(설계 13 §8 R275 · 01 §48 K339~K341) ⑥ 목록 열 — 요구 0 · 그 표 목록 열만 · 차례 = 1 이상 정수 · null · 봉투 빈 문장 2 ·
+// 표본 행에 차례 · 프리셋 · 봉투 문장을 실어 PGlite 덤프가 실제로 넣어 본다.
 // 🔵 AAQ_DUMP_ROWS=<파일> 이면 22표 행을 JSON 으로 써서 PGlite 하네스(tool/pglite/read_models_harness.mjs 넷째 인자)가 실제로 push 한다.
 
 import 'dart:convert';
@@ -54,6 +56,7 @@ Map<String, ReadModelRowInput> _samples() {
       mode: _mode(journal['mode']),
       rowVersion: 1,
       dtos: <String, Map<String, Object?>>{'TradeJournalEntry': journal},
+      list: const <String, Object?>{'timeline_rank': 1},
     ),
     'rm_holding': ReadModelRowInput(
       mode: live,
@@ -72,6 +75,7 @@ Map<String, ReadModelRowInput> _samples() {
         'granularity': series['granularity'],
         'cumulative': series['cumulative'],
       },
+      list: const <String, Object?>{'series_rank': 1},
     ),
     'rm_performance_series': ReadModelRowInput(
       mode: live,
@@ -87,6 +91,7 @@ Map<String, ReadModelRowInput> _samples() {
           _row0('m6/journal_rebalance_scope_1.json'),
         ).toJson(),
       },
+      list: const <String, Object?>{'events_rank': 1},
     ),
     'rm_alert': ReadModelRowInput(
       mode: live,
@@ -94,6 +99,7 @@ Map<String, ReadModelRowInput> _samples() {
       dtos: <String, Map<String, Object?>>{
         'AlertItem': AlertItem.fromJson(_row0('alerts_12.json')).toJson(),
       },
+      list: const <String, Object?>{'inbox_rank': 1},
     ),
     'rm_safety_state': ReadModelRowInput(
       mode: _mode(safety['mode']),
@@ -123,6 +129,12 @@ Map<String, ReadModelRowInput> _samples() {
         'sleeve_catalog': <Object?>[
           for (final Map<String, Object?> r in _rows('sleeve_catalog_4.json'))
             SleeveCatalogEntry.fromJson(r).toJson(),
+        ],
+      },
+      list: <String, Object?>{
+        'range_presets': <Object?>[
+          for (final Map<String, Object?> r in _rows('range_presets_4.json'))
+            DateRange.fromJson(r).toJson(),
         ],
       },
     ),
@@ -274,6 +286,8 @@ Map<String, List<Map<String, Object?>>> _allRows() {
           listCode: ReadModelListCodes.journalWatchTimeline,
           asOf: _env('journal_30.json')['as_of']! as Map<String, Object?>,
           emptyKind: EmptyKind.noData,
+          filteredEmptyLabel: '조건에 맞는 기록이 없습니다',
+          scopeEmptyLabel: '이 회차에 묶인 기록이 없습니다',
         ),
       ];
       continue;
@@ -610,6 +624,73 @@ void main() {
       expect(readModelTableNamed('rm_watchdog'), ReadModelTables.watchdog);
       expect(readModelTableNamed('app_device'), isNull);
       expect(ReadModelRowError('rm_x', '이유').toString(), isNot(contains('{')));
+    });
+  });
+
+  group('⑥ 목록 열(미결 242 · K339~K341)', () {
+    test('요구 0 · 그 표 목록 열만 · 차례 = 1 이상 정수 또는 null · 봉투 빈 문장 2 · 프리셋 jsonb', () {
+      final Map<String, ReadModelRowInput> s = _samples();
+      final Map<String, List<Map<String, Object?>>> all = _allRows();
+      expect(all['rm_journal']!.single['timeline_rank'], 1);
+      expect(all['rm_alert']!.single['inbox_rank'], 1);
+      expect(all['rm_performance_point']!.single['series_rank'], 1);
+      expect(all['rm_rebalance_event']!.single['events_rank'], 1);
+      expect(all['rm_config_view']!.single['range_presets'], hasLength(4));
+      final Map<String, Object?> env = all['rm_list_envelope']!.single;
+      expect(env['filtered_empty_label'], '조건에 맞는 기록이 없습니다');
+      expect(env['scope_empty_label'], '이 회차에 묶인 기록이 없습니다');
+      // 요구 0 — 목록 열 없이도 행(서버 null = 그 목록 밖).
+      final ReadModelRowInput a = s['rm_alert']!;
+      ReadModelRowInput alert(Map<String, Object?> list) => ReadModelRowInput(
+        mode: a.mode,
+        rowVersion: 1,
+        dtos: a.dtos,
+        list: list,
+      );
+      expect(
+        readModelRow(
+          ReadModelTables.alert,
+          alert(const <String, Object?>{}),
+        ).containsKey('inbox_rank'),
+        isFalse,
+      );
+      expect(
+        readModelRow(
+          ReadModelTables.alert,
+          alert(const <String, Object?>{'inbox_rank': null}),
+        )['inbox_rank'],
+        isNull,
+      );
+      // 거부 — 다른 표 목록 열 · 목록 열 아닌 열 · 0 · 음수 · 글자 · 실수.
+      for (final Map<String, Object?> bad in <Map<String, Object?>>[
+        <String, Object?>{'timeline_rank': 1},
+        <String, Object?>{'alert_id': 'x'},
+        <String, Object?>{'inbox_rank': 0},
+        <String, Object?>{'inbox_rank': -2},
+        <String, Object?>{'inbox_rank': '1'},
+        <String, Object?>{'inbox_rank': 1.0},
+      ]) {
+        expect(
+          () => readModelRow(ReadModelTables.alert, alert(bad)),
+          throwsA(isA<ReadModelRowError>()),
+          reason: '$bad',
+        );
+      }
+      // 판만 바꾼 사본도 목록 열을 잇는다.
+      expect(
+        alert(const <String, Object?>{'inbox_rank': 7}).withRowVersion(9).list,
+        <String, Object?>{'inbox_rank': 7},
+      );
+      // 봉투 문장 없음 = 두 열 null(그 목록에 그 문장 없음).
+      final Map<String, Object?> bare = listEnvelopeRow(
+        mode: RunMode.live,
+        rowVersion: 1,
+        listCode: ReadModelListCodes.ledgerWatchOpenDiffs,
+        asOf: const <String, Object?>{},
+        emptyKind: EmptyKind.noData,
+      );
+      expect(bare['filtered_empty_label'], isNull);
+      expect(bare['scope_empty_label'], isNull);
     });
   });
 

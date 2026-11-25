@@ -7,11 +7,19 @@
 // 🔴 표 하나의 실패는 그 표만 멈춘다(앞 묶음은 이미 들어갔을 수 있다 — 행마다 독립 upsert · 다음 판이 덮는다).
 // 🔴 PUSH_FAILED(시크릿 차단 · 행 틀림 · 표 모름 · 응답 꼴 · 행을 못 만듦) = 보고서에 실어 돌려준다 — P1 알림 코드는 계약 창 몫(1.39.0).
 // 🔴 버전 스탬프(규칙 5조 ⑥) = 빌더가 `rm_config_view` 행마다 싣는다 — 그 표에 원천이 있으면 push 마다 함께 간다.
+// 🆕 미결 242(설계 13 §8 R275 · 01 §48 K339) — 차례 열이 있는 표: 직전 소속(로컬 곁 행)에 있었는데 이번 행에 키가 없는 행 =
+//    같은 키 · 이 판 · 차례 null 로 다시 보낸다(삭제 0 · K335 — 시간이 지나 빠지는 원장 차이 30일 · 알림 7일 · 안내 만료 ·
+//    시리즈 기본 구간 밖 옛 점 포함). 판정 밖 = 다른 모드 행([mode]) · 이번에 원천을 못 읽은 범위([ReadModelSnapshot.unread]) —
+//    그대로 소속에 둔다(다음 깨어남에 다시). 소속 = 보냄 성공 = 이번 차례 행(+판정 밖) · 보냄 실패 = 직전 ∪ 이번(앞 묶음이
+//    들어갔을 수 있다 — 빠진 행은 다음에 다시) · 원천 · 빌더 실패 = 그대로.
+
+import 'dart:convert';
 
 import 'package:domain_contracts/domain_contracts.dart'
     show
         EmptyKind,
         LeaseRpcResultCodes,
+        ReadModelPushColumns,
         ReadModelPushResultCodes,
         ReadModelTable,
         ReadModelTables,
@@ -30,6 +38,8 @@ class ReadModelEnvelopeDraft {
     required this.asOf,
     required this.emptyKind,
     this.emptyLabel,
+    this.filteredEmptyLabel,
+    this.scopeEmptyLabel,
   });
 
   /// 모드.
@@ -46,6 +56,12 @@ class ReadModelEnvelopeDraft {
 
   /// 빈 문장.
   final String? emptyLabel;
+
+  /// 🆕 미결 242(K340) — 필터를 건 조회가 빈 때 엔진 문장(없으면 null).
+  final String? filteredEmptyLabel;
+
+  /// 🆕 미결 242(K340) — 일지 회차 필터가 빈 때 엔진 문장(없으면 null).
+  final String? scopeEmptyLabel;
 }
 
 /// 표 하나의 지금 모습(판 없음 — 이 일이 붙인다).
@@ -54,6 +70,7 @@ class ReadModelSnapshot {
   const ReadModelSnapshot({
     this.rows = const <ReadModelRowInput>[],
     this.envelopes = const <ReadModelEnvelopeDraft>[],
+    this.unread = const <Map<String, Object?>>[],
   });
 
   /// 행 입력(판은 무시된다).
@@ -61,6 +78,10 @@ class ReadModelSnapshot {
 
   /// 이 표가 행 원천인 목록의 봉투.
   final List<ReadModelEnvelopeDraft> envelopes;
+
+  /// 🆕 미결 242(R275) — 이번에 원천을 못 읽은 범위(열 → 값 · 다 같으면 그 범위 · 빈 맵 = 표 전체) — 직전 소속 중
+  /// 이 범위 행은 «빠짐» 판정을 하지 않는다(매개 값 하나 실패 = 그 값만 뺀다 · R268 D4 — 그 값의 옛 행 차례를 지우지 않는다).
+  final List<Map<String, Object?>> unread;
 }
 
 /// 표 하나의 원천.
@@ -147,6 +168,7 @@ class ReadModelPushJob {
     required this.sources,
     required this.nowUtc,
     this.chunkSize = 200,
+    this.mode,
   }) {
     if (chunkSize < 1) throw ArgumentError.value(chunkSize, 'chunkSize');
     for (final String name in sources.keys) {
@@ -171,6 +193,9 @@ class ReadModelPushJob {
 
   /// 한 번에 보내는 행 수 상한.
   final int chunkSize;
+
+  /// 🆕 미결 242(R275) — 이 push 가 읽은 원장 모드(직전 소속 중 다른 모드 행 = 빠짐 판정 0 · null = 모드를 가리지 않는다).
+  final RunMode? mode;
 
   /// 한 번 돈다 — 이 기기 [deviceId] · 쥔 리스 [epoch].
   Future<ReadModelPushReport> run({
@@ -228,7 +253,22 @@ class ReadModelPushJob {
         );
         continue;
       }
-      final ReadModelTablePush r = await _send(t, rv, rows, deviceId, epoch);
+      final _Membership? m = _membership(t, rv, rows, snap.unread);
+      final ReadModelTablePush r = await _send(
+        t,
+        rv,
+        m == null ? rows : <Map<String, Object?>>[...rows, ...m.dropped],
+        deviceId,
+        epoch,
+      );
+      if (m != null) {
+        status.recordMembers(
+          t.name,
+          rv,
+          r.outcome == ReadModelPushOutcome.ok ? m.afterOk : m.afterFail,
+          nowUtc(),
+        );
+      }
       out.add(r);
       if (_isLeaseCode(r.reason)) leaseGone = true;
     }
@@ -254,6 +294,8 @@ class ReadModelPushJob {
                 asOf: e.asOf,
                 emptyKind: e.emptyKind,
                 emptyLabel: e.emptyLabel,
+                filteredEmptyLabel: e.filteredEmptyLabel,
+                scopeEmptyLabel: e.scopeEmptyLabel,
               ),
           ];
         } on ReadModelRowError catch (e) {
@@ -327,6 +369,65 @@ class ReadModelPushJob {
     );
   }
 
+  /// 🆕 미결 242(R275) — 차례 열이 있는 표의 빠진 행 · 다음 소속(차례 열 없는 표 = null).
+  _Membership? _membership(
+    ReadModelTable t,
+    int rv,
+    List<Map<String, Object?>> rows,
+    List<Map<String, Object?>> unread,
+  ) {
+    final List<String> ranks = readModelRankColumns(t);
+    if (ranks.isEmpty) return null;
+    String keyOf(Map<String, Object?> r) =>
+        jsonEncode(<Object?>[for (final String k in t.keyColumns) r[k]]);
+    bool isMember(Map<String, Object?> r) =>
+        ranks.any((String c) => r[c] != null);
+    bool judged(Map<String, Object?> r) =>
+        (mode == null || r[ReadModelPushColumns.mode.name] == mode!.wire) &&
+        !unread.any(
+          (Map<String, Object?> s) => s.entries.every(
+            (MapEntry<String, Object?> e) => r[e.key] == e.value,
+          ),
+        );
+    final Set<String> now = <String>{
+      for (final Map<String, Object?> r in rows) keyOf(r),
+    };
+    final Map<String, Map<String, Object?>> current =
+        <String, Map<String, Object?>>{
+          for (final Map<String, Object?> r in rows)
+            if (isMember(r)) keyOf(r): r,
+        };
+    final Map<String, Map<String, Object?>> prev =
+        <String, Map<String, Object?>>{
+          for (final Map<String, Object?> r in status.members(t.name))
+            keyOf(r): r,
+        };
+    final List<Map<String, Object?>> dropped = <Map<String, Object?>>[];
+    final Map<String, Map<String, Object?>> carried =
+        <String, Map<String, Object?>>{};
+    prev.forEach((String k, Map<String, Object?> r) {
+      if (now.contains(k)) return;
+      if (judged(r)) {
+        dropped.add(<String, Object?>{
+          ...r,
+          ReadModelPushColumns.rowVersion.name: rv,
+          for (final String c in ranks) c: null,
+        });
+      } else {
+        carried[k] = r;
+      }
+    });
+    return _Membership(
+      dropped: dropped,
+      afterOk: <Map<String, Object?>>[
+        ...<String, Map<String, Object?>>{...carried, ...current}.values,
+      ],
+      afterFail: <Map<String, Object?>>[
+        ...<String, Map<String, Object?>>{...prev, ...current}.values,
+      ],
+    );
+  }
+
   static bool _isLeaseCode(String? reason) =>
       reason == LeaseRpcResultCodes.lost ||
       reason == LeaseRpcResultCodes.deviceNotEligible;
@@ -337,4 +438,22 @@ class ReadModelPushJob {
     return r.failure == ReadModelPushFailure.secretBlocked ||
         r.failure == ReadModelPushFailure.badResponse;
   }
+}
+
+/// 🆕 미결 242(R275) — 한 표의 빠진 행 · 보냄 결과별 다음 소속.
+class _Membership {
+  const _Membership({
+    required this.dropped,
+    required this.afterOk,
+    required this.afterFail,
+  });
+
+  /// 다시 보낼 빠진 행(같은 키 · 이 판 · 차례 null).
+  final List<Map<String, Object?>> dropped;
+
+  /// 보냄 성공 뒤 소속(이번 차례 행 + 판정 밖 직전 행).
+  final List<Map<String, Object?>> afterOk;
+
+  /// 보냄 실패 뒤 소속(직전 ∪ 이번 차례 행).
+  final List<Map<String, Object?>> afterFail;
 }

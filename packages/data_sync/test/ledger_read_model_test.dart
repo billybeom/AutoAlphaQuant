@@ -4,6 +4,7 @@
 //    ③ 닫힌 시각 = 탐지 뒤 첫 해제 로그(실제 `clearReconBlock`) · 다시 열리면 «열림» ④ 갱신 = 관계 표만 · 같은 값은 다시 안 냄
 //    ⑤ 정정 · 시스템 밖 자산 = 빈 봉투 · 행이 생기면 스트림 오류 ⑥ 5칸 = 대사 전 · 일치 · 차단 · 연결된 파생 지연 ·
 //    해당 없는 행 무시 · 안내 모드 · 기준 = 브로커 대사(해제 · 무결성 행 제외) · 구독 갱신.
+// 🆕 미결 242(R275) — `recentDiffsAll` = 상한 50 없이 전부(읽기 모델 차례 열 원천).
 import 'dart:io';
 
 import 'package:core_engine/core_engine.dart';
@@ -84,6 +85,31 @@ void main() {
         ('최근 대조 차이가 없습니다', false, _t0, '대조 기준 2026-11-05'),
       );
     });
+
+    test(
+      '🆕 미결 242(R275) recentDiffsAll — 상한 50 없이 전부 · 앞쪽 차례 = 화면 창구 · 봉투 같음',
+      () {
+        for (int i = 0; i < kRecentDiffLimit + 7; i++) {
+          diff(
+            'd${i.toString().padLeft(3, '0')}',
+            severity: i.isEven ? 'BLOCKING' : 'OBSERVATIONAL',
+            detected: DateTime.utc(2026, 11, 4).add(Duration(minutes: i)),
+          );
+        }
+        final ListResult<LedgerDiffRow> capped = repo.recentDiffs();
+        final ListResult<LedgerDiffRow> all = repo.recentDiffsAll();
+        expect(capped.rows, hasLength(kRecentDiffLimit));
+        expect(capped.hasMore, isTrue);
+        expect(all.rows, hasLength(kRecentDiffLimit + 7));
+        expect(all.hasMore, isFalse);
+        expect(
+          all.rows.take(kRecentDiffLimit).map((LedgerDiffRow x) => x.diffId),
+          capped.rows.map((LedgerDiffRow x) => x.diffId),
+          reason: '차례 = 엔진 그대로(앞 50 = 화면 창구)',
+        );
+        expect((all.asOf, all.emptyLabel), (capped.asOf, capped.emptyLabel));
+      },
+    );
 
     test('브로커 행 → 라벨 · 정렬 · 조치 링크 · 기준 = 마지막 브로커 대사(해제 · 무결성 제외)', () {
       reconLog('rc-0#1', DateTime.utc(2026, 11, 3), 'MATCHED');
