@@ -347,6 +347,13 @@ if (rowsPath) {
   await lease('d_v', 5, 30);
   r = await push(U.op, 'd_op', 5, 'ledger_stamp', [st('2026-11-25', 'f'.repeat(64))]);
   ok(r.code === 'LEASE_LOST' && r.epoch === 5, 'op 리스가 다른 기기 = LEASE_LOST');
+  // 소유자 본인의 뷰어 기기(auth_uid = owner_uid = 부른 사용자 · ACTIVE)가 리스 행을 쥐어도 role 'operator' 가 아니면 거부(rm_push 와 같은 판정).
+  await db.exec(`insert into app_device(device_id,label,role,status,owner_uid,auth_uid) values ('d_ov','운영자 뷰어','viewer','ACTIVE','${U.op}','${U.op}')`);
+  await lease('d_ov', 6, 30);
+  r = await push(U.op, 'd_ov', 6, 'ledger_stamp', [st('2026-11-25', 'f'.repeat(64))]);
+  ok(r.code === 'LEASE_DEVICE_NOT_ELIGIBLE', 'op 소유자 본인 뷰어 기기(리스 쥠) = NOT_ELIGIBLE');
+  await db.exec(`delete from operator_lease; delete from app_device where device_id = 'd_ov'`);
+  await lease('d_v', 5, 30);
   ok((await q1(`select count(*)::int n from ledger_stamp where authored_date = '2026-11-25'`)).n === 0, 'op 거부 = 0행');
 
   // 직접 쓰기 = 정책 0 · 읽기 = 222 ⓕ K311 본문(ACTIVE 기기만)
