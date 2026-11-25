@@ -253,7 +253,7 @@ void main() {
       expect(
         _fn(PairingRpcNames.ticketIssue),
         contains(
-          'p_ticket_ttl_minutes < ${PairingTicketLimits.ttlMinutesMin} or p_ticket_ttl_minutes > ${PairingTicketLimits.ttlMinutesMax}',
+          'p_ticket_ttl_minutes < ${PairingTicketLimits.ttlMinutesMin} or p_ticket_ttl_minutes > ${PairingTicketLimits.ttlMinutesMax} then',
         ),
       );
       final String hashRe = RegExp(r"ticket_hash ~ '([^']+)'")

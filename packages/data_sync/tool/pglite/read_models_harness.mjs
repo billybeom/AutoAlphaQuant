@@ -530,6 +530,10 @@ if (rowsPath) {
   ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE' && r.epoch === 7, '폐기 운영 폰 = DEVICE_NOT_ELIGIBLE');
   r = await revoke(U.op, 'd_op', 7, 'd_x');
   ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', '폐기 남의 기기 = DEVICE_NOT_ELIGIBLE');
+  const UV4 = '99999999-9999-9999-9999-999999999999';
+  await db.exec(`insert into auth.users values ('${UV4}'); insert into app_device(device_id,label,role,status,owner_uid,auth_uid) values ('d_xv','남의 뷰어','viewer','ACTIVE','${UX}','${UV4}')`);
+  r = await revoke(U.op, 'd_op', 7, 'd_xv');
+  ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE' && (await q1(`select status from app_device where device_id = 'd_xv'`)).status === 'ACTIVE', '폐기 남의 소유자 뷰어 = DEVICE_NOT_ELIGIBLE · 그대로');
   r = await revoke(U.op, 'd_op', 7, 'nope');
   ok(r.code === 'PAIRING_DEVICE_NOT_ELIGIBLE', '폐기 없는 기기 = DEVICE_NOT_ELIGIBLE');
   r = await revoke(U.view, 'd_v', 7, 'd_v2');
