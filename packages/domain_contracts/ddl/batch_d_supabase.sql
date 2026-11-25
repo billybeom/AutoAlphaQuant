@@ -24,13 +24,14 @@ create table if not exists app_device (
   -- 🆕 v1.34(01 §43 · 미결 214 닫음) not null · 🔴 **unique 아님** — X1 새 폰은 같은 운영 사용자로 로그인한다(설계 13 R197 T8 ·
   --    이메일 + 비밀번호) → 옛 폰 · 새 폰 두 행의 `auth_uid` 가 같다(unique 면 새 폰 행을 못 넣는다 · PGlite 실증 13 R221).
   --    기기 하나 = 행 하나는 `device_id` 가 지킨다. 뷰어 기기(`auth_uid` ≠ `owner_uid`) 행 = 페어링 RPC(E11m · 서버)만 넣는다.
+--    🆕 v1.41(01 §50 · 미결 246) = `pairing_claim`(viewer · ACTIVE · 티켓 소유자 = `owner_uid`) · 폐기 = `pairing_revoke`(→ REVOKED).
   auth_uid      uuid not null references auth.users(id)
 );
 -- 🆕 v1.34 — RLS · 리스 RPC 가 `auth_uid = auth.uid()` 로 기기 행을 찾는다(unique 를 뺀 자리의 색인).
 create index if not exists ix_app_device_auth_uid on app_device(auth_uid);
 -- 🔴 최초 INSERT 는 role='viewer' · status='PENDING' 강제. operator 승격은 리스 RPC(서버)만
 -- 🆕 v1.34 — 클라이언트가 넣는 행 = 운영 사용자 자기 기기(`auth_uid` = `owner_uid` = 부른 사용자)뿐이다.
---    뷰어 기기 행(소유자 ≠ 로그인 사용자)은 클라이언트가 못 넣는다 — 페어링 RPC(서버 · E11m) 몫.
+--    뷰어 기기 행(소유자 ≠ 로그인 사용자)은 클라이언트가 못 넣는다 — 페어링 RPC(서버 · E11m) 몫(🆕 v1.41 `pairing_claim` · 아래 페어링 티켓 절).
 -- 🆕 v1.39(01 §48 K349 ② · 13 R267 L4 · 리뷰 3차 C-2 = I-U2) — 첫 클레임 뒤(리스 행 있음)에는 운영 사용자만 넣는다:
 --    리스를 쥔 기기 행이 부른 사용자 소유(`owner_uid = auth.uid()` — `device_select_own` 으로 보인다)일 때만 · 리스 행 없음(첫 클레임 전) =
 --    아무 인증 사용자(그 틈 = 17 §3-7 공개 가입 끄기 · o_07 확인 `SUPABASE_SIGNUP_OPEN`). 공개 가입 사용자 = 자기 PENDING 행도 못 넣는다.
@@ -99,6 +100,30 @@ create table if not exists recovery_secret (
 alter table recovery_secret enable row level security;
 -- 🔴 SELECT 정책 없음 — 검증은 RPC 안에서만 수행한다
 
+-- ── 🆕 v1.41 페어링 티켓 (X3 · S06 QR · V-01) — 🔴 해시만. 평문 논스는 QR 페이로드에만 존재 ───────────
+-- 🆕 v1.41(01 §50 · K361 · 미결 246 · 178 · 13 §8 R272 Y2 ⓐ) 소유자(운영 사용자)당 1행 — 발급 = 바꿔 넣기(쓰지 않은 옛 티켓 무효) ·
+--    클레임 성공 = 지움(한 번만 쓴다). 만료 = 서버 now() + 운영 설정 수명(미결 182 잠정 15분 · 받는 범위 = 계약 `PairingTicketLimits`).
+create table if not exists pairing_ticket (
+  owner_uid         uuid primary key references auth.users(id),
+  ticket_hash       text not null check (ticket_hash ~ '^[0-9a-f]{64}$'),   -- 논스 sha256 16진(평문 0)
+  issued_by_device  text not null references app_device(device_id),
+  issued_at         timestamptz not null default now(),
+  expires_at        timestamptz not null
+);
+alter table pairing_ticket enable row level security;
+-- 🔴 정책 0(SELECT 포함) — 발급 결과 = RPC 반환 한 행 · 해시는 아무 클라이언트도 읽지 못한다 · 쓰기 = 아래 RPC 만.
+-- 🆕 v1.41 — 이름 · 인자 · 반환 칸 = 계약 `schema/supabase_rpc.dart` `PairingRpc*` · 거부 = `LeaseRpcResultCodes`(공용 2) ∪ `PairingRpcResultCodes` ·
+--    본문 = data_sync `sql/supabase_command_pairing_rpc.sql`(부트스트랩 여섯째 조각) · 반환 = 한 행 (code text, epoch bigint, expires_at timestamptz).
+--    pairing_ticket_issue (p_device_id text, p_epoch bigint, p_ticket_nonce_hash text, p_ticket_ttl_minutes int)
+--      · 부르는 기기 · 리스 판정 = op_push 와 같은 문장 · 해시 꼴 · 수명 범위 아님 = PAIRING_TICKET_INVALID · 성공 = 소유자 행 바꿔 넣기 ·
+--        반환 expires_at = 티켓 만료 시각
+--    pairing_claim (p_ticket_nonce text, p_device_id text, p_label text, p_platform text)
+--      · 부른 사용자(뷰어 Auth 사용자)의 기기 행 0 ∧ 새 기기 id ∧ 라벨 · 논스 sha256 = 대기 티켓 ∧ 낸 기기 = 아직 operator ACTIVE ·
+--        부른 사용자 ≠ 티켓 소유자 · 만료 전 →
+--        한 트랜잭션: app_device(viewer · ACTIVE · owner_uid = 티켓 소유자 · auth_uid = 부른 사용자) + 티켓 지움
+--    pairing_revoke (p_device_id text, p_epoch bigint, p_target_device_id text)
+--      · 부르는 기기 · 리스 판정 = 발급과 같음 · 대상 = 같은 소유자 viewer 행 → REVOKED(이미 REVOKED = 성공 · 바뀜 0)
+
 -- ── 명령·이벤트 테이블 (Q-C 권고 a) — 🔴 뷰어 쓰기의 유일한 경로. append-only ────────
 -- 🔴 `kind` CHECK 는 §6-6 말미 «배치 D 추가분»의 X7 7종을 **이미 반영**한 형태다
 --    (신규 생성이므로 재작성이 필요 없다 — 기존 표가 있는 설치는 이 파일 맨 아래 §D-add 를 쓴다).
@@ -125,9 +150,11 @@ create table if not exists command_queue (
   requested_at      timestamptz not null default now(),
   expires_at        timestamptz not null,
   owner_uid         uuid not null references auth.users(id),
-  run_mode          text,                         -- 🆕 A10 — 🔴 발행 시점 맥락
-  operating_mode    text,
-  lease_epoch       bigint,
+  -- 🆕 A10 — 🔴 발행 시점 맥락 · 🆕 v1.41(01 §50 · K369 · H-6 · 13 §8 R272 Y3 ⓑ) not null + check — 소비 규칙(«runMode 불일치 = 예외 없이
+  --    거부» · `RUN_MODE_MISMATCH`)의 입력이 비어서 들어오지 않게(전 명령 · `CommandContext` 4필드 필수 = C-28 ⑦).
+  run_mode          text not null check (run_mode in ('LIVE','SIM_INTERNAL','SIM_BROKER')),
+  operating_mode    text not null check (operating_mode in ('AUTO_TRADE','ADVISORY')),
+  lease_epoch       bigint not null,
   unique (kind, nonce)
 );
 alter table command_queue enable row level security;
@@ -142,9 +169,12 @@ alter table command_queue enable row level security;
 --    **`command_insert_operator` 정책에만** 들어간다.
 --    `command_insert_viewer` 의 4종 화이트리스트는 **그대로 둔다**
 --    (⚠️ `ALERT_ACK` 의 뷰어 허용만 §8-10 미결이며 m2-8_naming J-3 은 «허용하지 않는다» ⏸ 권고).
+-- 🆕 v1.41(01 §50 · K369 · 06 M4-2 v1.3 ② · 13 §8 R272 Y3 ⓐ) 두 INSERT 정책 += `requested_at = now()` — 클라이언트가 접수 시각을 덮지 못한다
+--    (기본값 now() 와 같은 트랜잭션 시각 · 다른 값 = 거부) · 집계 월 · 만료 판정의 «서버 시각» 원천.
 create policy command_insert_viewer on command_queue for insert to authenticated
   with check (
     expires_at > now()
+    and requested_at = now()
     and kind in ('KILL_SWITCH_ACTIVATE','JOURNAL_DRAFT','BLIND_REVIEW_SCORE','DISCLOSURE_VIEW')
     and exists (select 1 from app_device d
                  where d.device_id = command_queue.issued_by_device
@@ -154,6 +184,7 @@ create policy command_insert_viewer on command_queue for insert to authenticated
 create policy command_insert_operator on command_queue for insert to authenticated
   with check (
     expires_at > now()
+    and requested_at = now()
     and exists (select 1 from app_device d
                  where d.device_id = command_queue.issued_by_device
                    and d.auth_uid = auth.uid() and d.owner_uid = command_queue.owner_uid
@@ -190,8 +221,17 @@ alter table command_ack enable row level security;
 -- 🆕 v1.40(01 §49 · 미결 229 · 13 R270 W4) — 쓰기 = RPC `op_push`(`OpsPushRpcNames` · security definer · 리스 epoch 검사) 만:
 --    같은 `ack_id` = 건너뜀(바꾸지 않음) · `command_id` = 부른 사용자 소유 명령만 · `lease_epoch` = 인자 epoch · `acked_at` = 서버 now().
 --    🔴 INSERT · UPDATE · DELETE 정책 0 = 클라이언트 직접 쓰기 0(append-only 가 DB 로 강제된다).
+--    🆕 v1.41(01 §50 · 13 §8 R272 Y3 ⓓ · Y4) — op_push 는 `PENDING_LEASE_CONFIRM` · `NO_OPERATOR` ack 를 받지 않는다(OPS_PUSH_ROWS_INVALID) —
+--    리스 보유자가 «리스 없음» 상태를 적을 수 없다 · `NO_OPERATOR` = 아래 `command_status` 의 서버 판정(ack 행 0).
 create policy command_ack_select on command_ack for select to authenticated
   using (exists (select 1 from command_queue q where q.command_id = command_ack.command_id));
+-- 🆕 v1.41(01 §50 · K369 · 13 §8 R272 Y3 ⓒ) — 당김 · 상태 읽기 · `command_ack_select` RLS 가 모두 이 칸으로 찾는다(FK 는 색인을 만들지 않는다).
+create index if not exists ix_command_ack_command_id on command_ack(command_id);
+-- 🆕 v1.41 — 명령 표 읽는 함수 둘(security invoker · stable · RLS 그대로 · 이름 · 인자 · 반환 칸 = 계약 `CommandReadRpc*` · 본문 = 여섯째 조각):
+--    command_open (p_limit int) returns setof command_queue — 종단 ack(EXECUTED · REJECTED · EXPIRED) 없는 명령 · 킬스위치 먼저 → requested_at
+--    command_status (p_command_ids uuid[]) returns table (command_id uuid, state text, state_label text, reject_reason_code text,
+--      decision_id text, acked_at timestamptz) — 최신 ack 종단 = 그 ack · 아니면 유효 리스(서버 now()) 없음 = NO_OPERATOR ·
+--      ack 없음 ∧ 유효 리스 = REQUESTED(보냄 · 수신 대기) · 서버 판정 두 상태의 글자 = 계약 `CommandStatusText`(G-26 ⓑ · SQL 글자 0)
 
 -- ── 작업 원장 미러 (X2) — 🔴 계획 원문 금지. digest + 한 줄 요약만 ────────────────────
 create table if not exists planned_work_mirror (
@@ -326,6 +366,7 @@ create policy calendar_sync_status_select on calendar_sync_status for select to 
 -- alter table command_queue add column if not exists run_mode       text;
 -- alter table command_queue add column if not exists operating_mode text;
 -- alter table command_queue add column if not exists lease_epoch    bigint;
+--   (🆕 v1.41 — 새 설치 = 위 create table 의 not null + check · 옛 설치 = 빈 칸을 채운 뒤 `alter column … set not null` + check 추가)
 --
 -- alter table command_ack drop constraint command_ack_state_check;
 -- alter table command_ack add  constraint command_ack_state_check check (state in

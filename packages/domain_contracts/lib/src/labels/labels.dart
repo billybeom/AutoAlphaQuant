@@ -34,6 +34,7 @@
 import 'advice_codes.dart';
 import 'alert_codes.dart';
 import 'allocation_codes.dart'; // 🆕 v1.28
+import 'command_codes.dart'; // 🆕 v1.41
 import 'deviation_kind_codes.dart';
 import 'disclosure_codes.dart';
 import 'exit_kind.dart';
@@ -56,6 +57,7 @@ import 'verdict_codes.dart';
 export 'advice_codes.dart';
 export 'alert_codes.dart';
 export 'allocation_codes.dart'; // 🆕 v1.28
+export 'command_codes.dart'; // 🆕 v1.41
 export 'deviation_kind_codes.dart';
 export 'disclosure_codes.dart';
 export 'exit_kind.dart';
@@ -332,6 +334,9 @@ abstract final class ContractCodes {
     'supabase_signup_result': SupabaseSignupResultCodes.values,
     // 🆕 v1.40(01 §49 · 미결 229 · 13 R270) — 운영 폰 공유 표 push RPC 고유 거부 2(리스 거부 = `lease_rpc_result` 한 벌)
     'ops_push_result': OpsPushResultCodes.values,
+    // 🆕 v1.41(01 §50 · 미결 246 · 13 R272) — 뷰어 페어링 RPC 고유 거부 3(리스 거부 = `lease_rpc_result` 한 벌) · 명령 runMode 불일치 거부
+    'pairing_rpc_result': PairingRpcResultCodes.values,
+    'command_context_reject': CommandContextRejectCodes.values,
   };
 
   /// 전 도메인의 코드 합집합(중복 문자열은 한 번만 남는다).

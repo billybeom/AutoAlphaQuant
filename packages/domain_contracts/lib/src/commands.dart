@@ -18,3 +18,4 @@ export 'commands/payloads.dart';
 export 'commands/payloads_x7.dart';
 export 'commands/safety_actions.dart';
 export 'commands/settings_actions.dart';
+export 'commands/viewer_command_ttl.dart'; // 🆕 v1.41 뷰어 명령 4종 TTL(01 §50 K367)

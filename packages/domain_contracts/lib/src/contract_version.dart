@@ -8,7 +8,7 @@
 //    「영역 E 첫 커밋은 올리지 않는다(보류)」는 그 커밋이 아니었다는 뜻이며, 지금 해제된다.
 // 🔴 이 상수와 **전 픽스처 봉투**의 `meta.contract_version` 은 언제나 **같은 커밋에서 함께**
 //    움직인다(1.0.0 상향 때 77개 · 1.1.0 상향 때 96개 · 1.2.0 상향 때 104개 · 1.3.0 상향 때 115개 ·
-//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개 · 1.33.0 상향 때 390개 · 1.34.0 상향 때 390개 · 1.35.0 상향 때 393개 · 1.36.0 상향 때 393개 · 1.37.0 상향 때 398개 · 1.38.0 상향 때 398개 · 1.39.0 상향 때 402개 · 1.40.0 상향 때 402개) — 한쪽만 올리면 C-1·C-15 가
+//    1.4.0 상향 때 122개 · 1.5.0 상향 때 126개 · 1.6.0 상향 때 135개 · 1.7.0 상향 때 141개 · 1.8.0 상향 때 159개 · 1.12.0 상향 때 174개 · 1.13.0 상향 때 176개 · 1.14.0 상향 때 176개 · 1.17.0 상향 때 240개 · 1.18.0 상향 때 248개 · 1.19.0 상향 때 256개 · 1.20.0 상향 때 271개 · 1.21.0 상향 때 283개 · 1.22.0 상향 때 298개 · 1.23.0 상향 때 305개 · 1.24.0 상향 때 322개 · 1.25.0 상향 때 339개 · 1.29.0 상향 때 365개 · 1.30.0 상향 때 365개 · 1.31.0 상향 때 367개 · 1.32.0 상향 때 375개 · 1.33.0 상향 때 390개 · 1.34.0 상향 때 390개 · 1.35.0 상향 때 393개 · 1.36.0 상향 때 393개 · 1.37.0 상향 때 398개 · 1.38.0 상향 때 398개 · 1.39.0 상향 때 402개 · 1.40.0 상향 때 402개 · 1.41.0 상향 때 402개) — 한쪽만 올리면 C-1·C-15 가
 //    갈라진 채로 통과한다.
 // 🆕 '1.2.0'(R2b 선행 M2 보강 · 01 §12) — 초안 포트 `DraftStore`·`DraftKind`·`DraftRecord`·입력 4종 ·
 //    `JournalRepository.watchDecisionJournal`·`DecisionJournalVm` · 라우트 `journalRead`(41).
@@ -327,12 +327,21 @@
 //    `ReadModelRls.selectUsing`(K311 · ACTIVE 기기) · `command_ack` 머리 «op_push 만 · append-only» · 🆕 C-73 · 픽스처 402(버전 줄만) —
 //    🆕 tool/gen_v140_ops_push_fixtures.py. 🔴 SQL 본문 = data_sync `sql/supabase_ops_push_rpc.sql`(부트스트랩 다섯째 조각 · 같은 PR) ·
 //    실행기(X2 미러 · X5 스탬프) = 미결 244 · ack 쓰기 = E11m.
+// 🆕 '1.41.0'(뷰어 페어링 · 명령 표 읽기 · 01 §50 · 13 §8 R272 · 발주자 위임 2026-11-14 — 권고대로 · K360~) — 미결 246 작은 창(E11m-0):
+//    🆕 `schema/supabase_rpc.dart` `PairingRpcNames` 3(`pairing_ticket_issue` · `pairing_claim` · `pairing_revoke`) · `PairingRpcParams` 8 ·
+//    `PairingRpcColumns`(= 리스 반환 글자) · `PairingTicketLimits`(1~60분) · `CommandReadRpcNames` 2(`command_open` · `command_status` — invoker) ·
+//    `CommandReadRpcParams` 2 · `CommandOpenColumns` · `CommandStatusColumns` · `CommandReadLimits` · 🆕 `PairingRpcResultCodes` 3(`pairing_rpc_result`) ·
+//    🆕 `labels/command_codes.dart` `CommandContextRejectCodes`(`RUN_MODE_MISMATCH`) · 🆕 `command_status_text.dart` `CommandStatusText`(G-26 카탈로그 2) ·
+//    🆕 `commands/viewer_command_ttl.dart` `ViewerCommandTtl`(뷰어 4종) · 배치 D: 🆕 표 `pairing_ticket`(해시만 · 정책 0) · `command_queue` 맥락 3칸
+//    not null + check · 두 INSERT 정책 += `requested_at = now()` · 🆕 색인 `command_ack(command_id)` · 🆕 C-74 · 픽스처 402(버전 줄만) —
+//    🆕 tool/gen_v141_pairing_command_fixtures.py. 🔴 SQL 본문 = data_sync `sql/supabase_command_pairing_rpc.sql`(부트스트랩 여섯째 조각 ·
+//    같은 PR) · 소비기 = E11m-a · 뷰어 `CommandApi` = E11m-b · 페어링 클라이언트 · 뷰어 세션(미결 247) = E11m-c.
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.40.0';
+const String contractVersion = '1.41.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값

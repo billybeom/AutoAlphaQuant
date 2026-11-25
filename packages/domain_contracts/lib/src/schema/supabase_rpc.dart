@@ -237,3 +237,179 @@ abstract final class OpsPushTables {
     calendarSyncStatus,
   ];
 }
+
+// ── 🆕 계약 v1.41(01 §50 · K360~ · 01 §8 미결 246 · 178 · 156 · 182 · 01 §10-8 G-26 · 06 M4-2 · 13 §8 R272 Y1~Y4) 뷰어 페어링 · 명령 표 읽기 ──
+// 🔴 o_07 ① 첫 판 묶음 여섯째 조각(data_sync `sql/supabase_command_pairing_rpc.sql`) — 묶음은 적용 뒤 첫 문장에서 멈추고 이주 장치가 없어서
+//    함수를 첫 판에 싣는다(R272 Y1). 여기는 **글자만**(지도 X18 — 이름 · 인자 · 반환 칸 · 상한) · 본문 = 같은 PR 엔진 커밋.
+// 🔴 쓰는 RPC 셋 = security definer · 반환 = 한 행 [LeaseRpcColumns] 셋(`code` · `epoch` · `expires_at`) · 거부 = [LeaseRpcResultCodes] 의
+//    `LEASE_LOST` · `LEASE_DEVICE_NOT_ELIGIBLE`(발급 · 폐기의 부르는 기기) ∪ `PairingRpcResultCodes` · 성공 = `code` null · 시각 = 서버 `now()`.
+// 🔴 읽는 함수 둘 = **security invoker** · `stable` · RLS 그대로(권한 상승 0) — 판정 재료(명령 · ack · 리스)가 부른 사용자에게 다 보인다
+//    (`command_select_own` · `command_ack_select` · `lease_select`). G-26 ⓑ «security definer RPC» = «서버가 판정한다»의 뜻으로 읽는다(K364).
+// 🔴 뷰어 세션(Auth 사용자 · 새로고침 토큰)의 원천 = 미결 247(Edge Function `viewer-pair` ★) — 그 함수도 이 `pairing_claim` 을 뷰어 사용자 JWT 로 부른다.
+
+/// 뷰어 페어링 RPC 이름 3(06 M4-3 · S06 `devicePairingTicketCreate` · `deviceTokenRevoke` · V-01 클레임 · 04 §9-7).
+abstract final class PairingRpcNames {
+  /// 티켓 발급 — 부르는 기기 · 리스 판정 = [OpsPushRpcNames.push] 와 **같은 문장**(운영 사용자의 operator `ACTIVE` 기기 ∧ 리스 행 = 그 기기 ∧
+  /// epoch 같음 ∧ 만료 전 · 아니면 `LEASE_DEVICE_NOT_ELIGIBLE` · `LEASE_LOST`) → 해시 꼴(sha256 16진 64 소문자) ∧ 수명
+  /// [PairingTicketLimits.ttlMinutesMin] ~ [PairingTicketLimits.ttlMinutesMax] 분(아니면 `PAIRING_TICKET_INVALID`) → 소유자의 티켓 한 행을
+  /// **바꿔 넣는다**(쓰지 않은 옛 티켓 = 무효 · 재발급 = 다시 부름). 반환 `epoch` = 지금 리스 epoch · `expires_at` = **티켓 만료 시각**
+  /// (서버 `now()` + 수명 — QR 카드 만료 글자 원천).
+  static const String ticketIssue = 'pairing_ticket_issue';
+
+  /// 클레임(뷰어 기기 · V-01) — 부른 사용자(뷰어 Auth 사용자 · 지도 D5)의 기기 행 0 ∧ 새 기기 id ∧ 라벨 있음(아니면 `PAIRING_DEVICE_NOT_ELIGIBLE`) ·
+  /// 논스 sha256 = 대기 티켓 해시 ∧ 티켓을 낸 기기가 아직 operator `ACTIVE`(비상 회수 · 은퇴 뒤 옛 티켓 = 무효 · 아니면 `PAIRING_TICKET_INVALID`) · 부른 사용자 ≠ 티켓 소유자(아니면 `PAIRING_DEVICE_NOT_ELIGIBLE`) · 만료 전
+  /// (서버 `now()` · 아니면 `PAIRING_TICKET_EXPIRED`) → **한 트랜잭션**: `app_device`(role `viewer` · status **`ACTIVE`** · `owner_uid` = 티켓 소유자 ·
+  /// `auth_uid` = 부른 사용자) + 티켓 지움(한 번만 쓴다). 반환 `epoch` · `expires_at` = null(뜻 = `code` 하나).
+  static const String claim = 'pairing_claim';
+
+  /// 뷰어 폐기(S06 · 04 §9-7 «즉시 차단») — 부르는 기기 · 리스 판정 = 발급과 같다 → 대상 = 같은 소유자 · role `viewer` 행(아니면
+  /// `PAIRING_DEVICE_NOT_ELIGIBLE`) → status `REVOKED`(모든 RLS 정책이 `ACTIVE` 를 보므로 곧바로 읽기 · 쓰기 0 = 뷰어 `PAIRING_TOKEN_REVOKED` 경로) ·
+  /// 이미 `REVOKED` = 성공(바뀜 0 · 멱등 재시도). 반환 `epoch` = 지금 리스 epoch · `expires_at` = null. 🔴 운영 폰 행은 이 RPC 로 못 바꾼다
+  /// (운영 폰 은퇴 = `device_retire` · 비상 = `lease_revoke`).
+  static const String revoke = 'pairing_revoke';
+
+  static const Set<String> values = <String>{ticketIssue, claim, revoke};
+}
+
+/// 뷰어 페어링 RPC 인자 이름(PostgREST `rpc/<이름>` 본문 키) — 🔴 같은 꼴 = 같은 글자(기기 · epoch = 리스 · 논스 해시 · 논스 · 수명 = X1 넘김 티켓).
+abstract final class PairingRpcParams {
+  /// 부르는 기기 — 발급 · 폐기 = 운영 폰(= [LeaseRpcParams.deviceId]) · 클레임 = **새 뷰어 기기 id**(뷰어가 지은 값 · 이미 있는 id = 거부).
+  static const String deviceId = LeaseRpcParams.deviceId;
+
+  /// 지금 보유 리스 epoch(발급 · 폐기 · = [LeaseRpcParams.epoch]).
+  static const String epoch = LeaseRpcParams.epoch;
+
+  /// 티켓 논스의 sha256(16진 64 소문자 · 발급 · 평문 0 — 평문은 QR 페이로드에만 · = [LeaseHandoverRpcParams.ticketNonceHash]).
+  static const String ticketNonceHash = LeaseHandoverRpcParams.ticketNonceHash;
+
+  /// 티켓 수명(분 · 발급 · 값 = 운영 설정 · 미결 182 잠정 15분 · = [LeaseHandoverRpcParams.ticketTtlMinutes]).
+  static const String ticketTtlMinutes =
+      LeaseHandoverRpcParams.ticketTtlMinutes;
+
+  /// 티켓 논스 평문(클레임 · QR 에서 읽은 값 · 서버가 sha256 으로 대조 · 🔴 저장 · 로그 0 · = [LeaseHandoverRpcParams.ticketNonce]).
+  static const String ticketNonce = LeaseHandoverRpcParams.ticketNonce;
+
+  /// 새 뷰어 기기 라벨(클레임 · `app_device.label` · 비면 거부).
+  static const String label = 'p_label';
+
+  /// 새 뷰어 기기 플랫폼(클레임 · `app_device.platform` · null 허용).
+  static const String platform = 'p_platform';
+
+  /// 폐기할 뷰어 기기(폐기 · 같은 소유자 · role `viewer`).
+  static const String targetDeviceId = 'p_target_device_id';
+
+  static const Set<String> values = <String>{
+    deviceId,
+    epoch,
+    ticketNonceHash,
+    ticketTtlMinutes,
+    ticketNonce,
+    label,
+    platform,
+    targetDeviceId,
+  };
+}
+
+/// 뷰어 페어링 RPC 반환 칸(한 행 · [LeaseRpcColumns] 글자 그대로 — 클라이언트 해석기 하나).
+abstract final class PairingRpcColumns {
+  /// 거부 코드 · 성공 = null.
+  static const String code = LeaseRpcColumns.code;
+
+  /// 지금 리스 epoch(발급 · 폐기 · 거부 = 지금 값 또는 null · 클레임 = null).
+  static const String epoch = LeaseRpcColumns.epoch;
+
+  /// 티켓 만료 시각(발급 성공만 · 그 밖 = null).
+  static const String expiresAt = LeaseRpcColumns.expiresAt;
+
+  static const Set<String> values = <String>{code, epoch, expiresAt};
+}
+
+/// 페어링 티켓 수명의 **받는 범위**(서버 경계 검사 · 실수 막이) — 🔴 값(운영 설정 · 미결 182 잠정 15분)이 아니다.
+/// 범위 밖 = `PAIRING_TICKET_INVALID`(쓰기 0) · 값이 정해져도(182) 범위 안이면 설정만 바꾼다(이주 SQL 0).
+abstract final class PairingTicketLimits {
+  /// 하한(분).
+  static const int ttlMinutesMin = 1;
+
+  /// 상한(분 · QR 한 장이 1시간 넘게 살지 않는다 · 182 후보 = X1 넘김 티켓 15분).
+  static const int ttlMinutesMax = 60;
+}
+
+/// 명령 표 읽는 함수 이름 2(06 M4-2 · 01 §10-8 G-26 · 13 §8 R272 Y2 ⓔ · Y4 · Y5) — security invoker · RLS 그대로.
+abstract final class CommandReadRpcNames {
+  /// 소비기 당김(운영 폰 · E11m-a) — 보이는 명령 가운데 **종단 ack**(`EXECUTED` · `REJECTED` · `EXPIRED`) 없는 것 · 차례 = 킬스위치 먼저 →
+  /// `requested_at` → `command_id` · 상한 [CommandReadLimits.openMax] · 반환 = `command_queue` 행([CommandOpenColumns]).
+  /// 🔴 리스 보유 판정은 하지 않는다 — 소비기는 리스 원격 확인을 통과한 뒤에만 부른다(Y5 · 소비 주체 = 리스 보유자 하나).
+  static const String open = 'command_open';
+
+  /// 명령 상태(뷰어 `CommandApi.watchCommand` · E11m-b) — 인자 id 가운데 보이는 명령마다 한 행([CommandStatusColumns]) · 보이지 않거나 없는 id = 행 0.
+  /// 판정(**서버 `now()`** · G-26 ⓑ): 최신 ack(`acked_at` 내림 · 같으면 종단 먼저 · 그다음 `ack_id`)가 종단 = 그 ack · 아니면(ack 없음 · 비종단)
+  /// 유효 리스(만료 전) 없음 = **`NO_OPERATOR`** · ack 없음 ∧ 유효 리스 = **`REQUESTED`**(보냄 · 수신 대기) · 비종단 ack ∧ 유효 리스 = 그 ack.
+  /// 서버가 지은 두 상태(`NO_OPERATOR` · `REQUESTED`)의 `state_label` · ack 칸 = null — 글자 = 계약 카탈로그 `CommandStatusText`(뷰어 구현이 고른다).
+  static const String status = 'command_status';
+
+  static const Set<String> values = <String>{open, status};
+}
+
+/// 명령 표 읽는 함수 인자 이름.
+abstract final class CommandReadRpcParams {
+  /// `command_open` 행 수(null · 1 미만 · 상한 초과 = 상한 [CommandReadLimits.openMax]).
+  static const String limit = 'p_limit';
+
+  /// `command_status` 명령 id 배열(uuid[] · 화면 = 보고 있는 명령들).
+  static const String commandIds = 'p_command_ids';
+
+  static const Set<String> values = <String>{limit, commandIds};
+}
+
+/// `command_open` 반환 칸 = 배치 D `command_queue` 열(그 표 차례 그대로 · `setof public.command_queue`).
+abstract final class CommandOpenColumns {
+  static const List<String> all = <String>[
+    'command_id',
+    'kind',
+    'payload',
+    'issued_by_device',
+    'nonce',
+    'requested_at',
+    'expires_at',
+    'owner_uid',
+    'run_mode',
+    'operating_mode',
+    'lease_epoch',
+  ];
+}
+
+/// `command_status` 반환 칸(명령마다 한 행 · ack 칸 = 최신 ack · 서버가 지은 상태면 null).
+abstract final class CommandStatusColumns {
+  /// 명령 id.
+  static const String commandId = 'command_id';
+
+  /// `CommandState.wire`(`REQUESTED` 포함 9값 — `REQUESTED` · `NO_OPERATOR` = 서버 판정 · 나머지 = 최신 ack).
+  static const String state = 'state';
+
+  /// 최신 ack 의 엔진 글자 · 서버 판정 상태 = null(뷰어 구현이 `CommandStatusText` 에서 고른다).
+  static const String stateLabel = 'state_label';
+
+  /// 최신 ack 의 거부 코드(`REJECTED` 일 때 · 그 밖 null).
+  static const String rejectReasonCode = 'reject_reason_code';
+
+  /// 최신 ack 의 결정 id(있으면).
+  static const String decisionId = 'decision_id';
+
+  /// 최신 ack 시각(서버 · 서버 판정 상태 = null).
+  static const String ackedAt = 'acked_at';
+
+  static const List<String> all = <String>[
+    commandId,
+    state,
+    stateLabel,
+    rejectReasonCode,
+    decisionId,
+    ackedAt,
+  ];
+}
+
+/// 명령 표 읽기 상한.
+abstract final class CommandReadLimits {
+  /// `command_open` 한 번에 돌려주는 행 상한(뷰어 명령은 하루 몇 건 · 넘치면 다음 당김).
+  static const int openMax = 100;
+}
