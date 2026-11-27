@@ -898,6 +898,7 @@ export 'src/ops/ledger_views.dart'
         routeLabelOf,
         routeOf,
         selfReportCellOf,
+        selfReportReauditLinkOf,
         severityLabelOf,
         statusLabelOf;
 // 🆕 E11q-c1b — 실전 키 검증 사실(별칭 → 세트 · S3 · 기동 · 설계 13 §8 R196 · 미결 207 ⓑ).
@@ -1083,6 +1084,29 @@ export 'src/ops/runbook_catalog.dart'
         runbookIndexVmOf,
         runbookLinkOf,
         runbookVmOf;
+// 🆕 R280 — `M5-13` 원장 실사 해소 게이트(VM · 두 카운터 · 플래그 발동 · 해제 · 실사 링크 · 보관 묶음 · 일괄 확정 — 01 §8 미결 226 ·
+//    §46 K318~K322).
+export 'src/ops/self_audit_resolve.dart'
+    show
+        AdviceWindow,
+        LapsedAdvice,
+        SelfAuditGap,
+        SelfAuditResolveTexts,
+        StoredHeldCommand,
+        adviceLedgerUnverifiedRaiseOf,
+        adviceLedgerUnverifiedReleaseOf,
+        heldCommandRowOf,
+        heldCommandsInOrder,
+        heldReviewIdOf,
+        heldReviewRejectOf,
+        heldReviewResultOf,
+        kHeldReplayKinds,
+        selfAuditCounterLinesOf,
+        selfAuditGapOf,
+        selfAuditLinksOf,
+        selfAuditReleaseMonthOf,
+        selfAuditResolveVmOf,
+        selfAuditUnprocessedGapOf;
 // 🆕 E11q-q6 — `L-3` 정기 실사(세션 판정 · 원문 → 와이어 · 수량 대조 · 결과 · 세션 VM · 접수증 · 01 §21-3 · §21-4).
 // 🆕 R278 — 현금 축(원장 현금 원천 · 허용 오차 · 판정 · 차이 행 · 0오차 — 01 §8 미결 227 · §46 K323).
 // 🆕 R281 — 판정 원장 기록(실사 행 두 칸 ↔ 판정 · 결과 까닭 — 01 §8 미결 256 · §51).
@@ -1111,6 +1135,7 @@ export 'src/ops/self_report.dart'
         kSelfReportStaleAfter,
         selfReportAccountOfDelta,
         selfReportAccountsOf,
+        selfReportAlreadyAuditedOf,
         selfReportAsOfOf,
         selfReportCashDiffIdOf,
         selfReportCashDiffRowsOf,

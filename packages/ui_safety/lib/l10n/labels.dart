@@ -225,4 +225,23 @@ abstract final class SafetyLabels {
 
   /// 정정 제출.
   static const String repairCorrectSubmit = '정정 실행';
+
+  // ── 🆕 M5-13 원장 실사 해소 게이트(설계 13 §8 R280 · 01 §46 K318 · 06 M5-13) ──
+  //    (머리 · 플래그 줄 · 해제 규칙 · 카운터 · 차이 · 링크 · 보관 행 · 확정 버튼 · 막힘 · 결과 글자 = 엔진 ·
+  //    🔴 수동 해제 버튼 0 · 제출 자체 실패 = [submitNotAccepted]) ──
+
+  /// 읽기 실패.
+  static const String selfAuditResolveReadFailed = '원장 실사 해소 화면을 읽지 못했습니다.';
+
+  /// 두 카운터 머리.
+  static const String selfAuditResolveCounters = '기록 갭';
+
+  /// 열린 자가 보고 차이 머리.
+  static const String selfAuditResolveDiffs = '열린 자가 보고 차이';
+
+  /// 0오차 실사가 아직 필요한 계좌 머리.
+  static const String selfAuditResolveAudits = '실사가 필요한 계좌';
+
+  /// 보관 명령 머리.
+  static const String selfAuditResolveHeld = '보관된 명령';
 }

@@ -107,6 +107,12 @@ abstract final class SelfReportTexts {
   /// 결과 — 해소 링크(→ `M5-13`).
   static const String resolve = '차이 해소하기';
 
+  /// 🆕 R280(K320) — 자가 보고 차이의 경로 글자(관측 · 자동 재동기화도 승인 필요도 아니다 — 해소 = 다시 실사 0오차).
+  static const String routeReaudit = '다시 실사로 해소';
+
+  /// 🆕 R280(K320) — 자가 보고 차이 행의 폰 조치(그 달 · 그 계좌 `L-3`).
+  static const String reaudit = '다시 실사하기';
+
   /// 결과 — 다음 계좌.
   static String nextAccount(String alias) => '다음 계좌 실사 — ${account(alias)}';
 
@@ -882,6 +888,14 @@ SelfReportResult selfReportResultOf({
           ),
   );
 }
+
+/// 🆕 R280(01 §8 미결 226 · K320 «다시 실사») — 그 달 · 그 계좌 실사를 «이미 기록함 · 결과만»으로 닫나 = 실사가 있고 그 기준일 ·
+/// 그 계좌의 열린 자가 보고 차이가 없을 때만. 열린 차이가 있으면 같은 달 · 같은 계좌를 다시 실사한다(세션을 연다 · 차이 행의
+/// «다시 실사하기» 목적지 — 해소 = 다시 실사 0오차).
+bool selfReportAlreadyAuditedOf({
+  required bool audited,
+  required bool openDiffs,
+}) => audited && !openDiffs;
 
 /// 이 달 아직 실사하지 않은 다음 계좌 — [accounts] 차례로 [current] 뒤 먼저 · 다음 앞쪽(없음 = null).
 String? selfReportNextAccountOf({

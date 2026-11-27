@@ -9,6 +9,9 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:domain_contracts/domain_contracts.dart';
 
+import 'self_report.dart'
+    show SelfReportTexts, selfReportAccountOfDelta, selfReportLinkOf;
+
 /// `L-1` 최근 창(R59 S1) — 닫힌 차이는 이 기간 안의 것만.
 const Duration kRecentDiffWindow = Duration(days: 30);
 
@@ -208,9 +211,29 @@ class StoredLedgerDiff {
   final bool applicable;
 }
 
+/// 🆕 R280(01 §8 미결 226 ⓕ · 계약 v1.37 §46 K320) — 자가 보고 차이의 «다시 실사하기»(그 달 · 그 계좌 `L-3`) — 달 = 차이의
+/// 기준일(`authored_date`) 달 · 계좌 = `delta` 의 별칭 · 열린 행만 · 별칭 없음 · 링크를 지을 수 없음(`/` `?` `#`) = null.
+LinkAction? selfReportReauditLinkOf(StoredLedgerDiff d) {
+  if (d.pair != LedgerPair.canonSelfReport || d.status != DiffStatus.open) {
+    return null;
+  }
+  final String? alias = selfReportAccountOfDelta(d.delta);
+  if (alias == null) return null;
+  final String? link = selfReportLinkOf(
+    d.authoredDate.yyyyMmDd.substring(0, 7),
+    alias,
+  );
+  return link == null
+      ? null
+      : LinkAction(label: SelfReportTexts.reaudit, deepLink: link);
+}
+
 /// 저장 행 → `LedgerDiffRow`(R59 S3 · S4) — [phone] = operator 폰(조치 링크를 단다).
+/// 🆕 R280(K320) — `CANON_SELF_REPORT` 행 = 경로 글자 «다시 실사로 해소»(관측 · `route` = `AUTO` 그대로 — 정정 마법사 대상 아님) ·
+/// 폰 조치 = «다시 실사하기»([selfReportReauditLinkOf]).
 LedgerDiffRow ledgerDiffRowOf(StoredLedgerDiff d, {bool phone = true}) {
   final RepairRoute route = routeOf(d.severity);
+  final bool selfReport = d.pair == LedgerPair.canonSelfReport;
   final List<String> candidates = candidatesOfDelta(d.delta);
   return LedgerDiffRow(
     diffId: d.diffId,
@@ -228,14 +251,17 @@ LedgerDiffRow ledgerDiffRowOf(StoredLedgerDiff d, {bool phone = true}) {
     axisLabel: axisLabelOf(d.axis),
     severityLabel: severityLabelOf(d.severity),
     statusLabel: statusLabelOf(d.status, d.closedAtUtc),
-    routeLabel: routeLabelOf(route),
+    routeLabel: selfReport ? SelfReportTexts.routeReaudit : routeLabelOf(route),
     candidateOrigins: <ReasonChip>[
       for (final String c in candidates) originChipOf(c),
     ],
     detectedAtText: '탐지 ${kstMinuteText(d.detectedAtUtc)}',
     // 🆕 E16j-a(01 §8 미결 217 ⓕ · 계약 v1.32 K248) — 대상 라우트(어느 차이인지 싣는다 · 허브 = 목록).
-    actionLink:
-        phone && d.status == DiffStatus.open && route == RepairRoute.approval
+    actionLink: !phone
+        ? null
+        : selfReport
+        ? selfReportReauditLinkOf(d)
+        : d.status == DiffStatus.open && route == RepairRoute.approval
         ? LinkAction(
             label: '정정하기',
             deepLink: AppRoutes.x5RepairTarget.replaceFirst(

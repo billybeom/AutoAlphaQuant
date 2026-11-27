@@ -38,6 +38,7 @@ import 'package:data_sync/data_sync.dart'
         SqliteConfigVersionStore,
         SqliteJobRunLog,
         SqliteOnboardingStore,
+        SqliteSelfAuditResolveSource,
         importSeedBundle,
         kSeedFiles;
 import 'package:decimal/decimal.dart';
@@ -297,6 +298,19 @@ void main() {
       "declared_complete, device_id, command_id, reported_at, cash_check) VALUES ('sr-1', '2026-10-30', 'pension', "
       "'2026-11-01T00:00:00Z', 0, 1, 'dev-1', 'c-1', '2026-11-01T00:00:00Z', 'NO_TOLERANCE')",
     );
+    // 🆕 R280 — 기록 없이 만료된 안내(미처리 갭 수십 거래일) — 강등 문턱 = 미결 118 ⓐ 대기(null) → `ADVICE_LEDGER_UNVERIFIED` 발동 0.
+    files.sim.execute(
+      'INSERT INTO advice (advice_id, batch_id, decision_id, mode, trade_date, valid_until_date, kind, sleeve, '
+      'reason, reason_code, account_alias, status, sizing_label, config_hash, created_at) '
+      "VALUES ('adv-1', 'b-1', 'd-1', 'SIM_INTERNAL', '2026-11-02', '2026-11-03', 'ENTRY', 'B', 'r', 'rc', "
+      "'pension', 'EXPIRED', 's', 'cfg', '2026-11-02T00:00:00Z')",
+    );
+    files.sim.execute(
+      'INSERT INTO advice (advice_id, batch_id, decision_id, mode, trade_date, valid_until_date, kind, sleeve, '
+      'reason, reason_code, account_alias, status, sizing_label, config_hash, created_at) '
+      "VALUES ('adv-2', 'b-1', 'd-2', 'SIM_INTERNAL', '2026-11-04', '2026-12-31', 'ENTRY', 'B', 'r', 'rc', "
+      "'pension', 'OPEN', 's', 'cfg', '2026-11-04T00:00:00Z')",
+    );
     clock.now = kst(2026, 12, 21, 18, 35);
     JobContext of(OperatingMode m, TrustedClock t) => JobContext(
       db: files.sim,
@@ -334,7 +348,15 @@ void main() {
     expect(r.status, JobStatus.failed);
     expect(flags(), <String, String>{
       FlagIds.selfAuditDue: 'aaq://ledger/self-report/2026-11/pension',
-    });
+    }, reason: 'R280 — 문턱 null = ADVICE_LEDGER_UNVERIFIED 발동 0');
+    expect(
+      SqliteSelfAuditResolveSource(files.sim).unprocessedGap(
+        accounts: const <String>['pension'],
+        today: const TradeDate('2026-12-21'),
+        kr: cals.kr,
+      ),
+      greaterThan(20),
+    );
     expect(
       files.sim
           .select('SELECT source FROM alert_event WHERE code = ?', <Object?>[

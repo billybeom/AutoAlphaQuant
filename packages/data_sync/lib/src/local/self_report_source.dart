@@ -4,7 +4,11 @@
 //    (`krSignedFillsAfter` — 슬리브 기여 · 월간 리포트와 같은 «그날 보유» 규칙). 화면에 싣지 않는다(앵커링 금지).
 // 🔴 기록 = 한 트랜잭션: `self_report_balance` 1 + `self_report_line` n + `ledger_diff`(CANON_SELF_REPORT · 수량 축 · 🆕 R278 현금 축 ·
 //    OBSERVATIONAL) + `command_inbox`(EXECUTED · 엔진 글자) — 실패 = 전부 되돌림. 무결성 점검 중 = 보관 행만(B18).
-// 🔴 그 달 그 계좌 실사 = 한 번(같은 기준일 · 같은 별칭 행이 있으면 [StateError] — 부르는 쪽이 세션으로 막는다).
+// 🔴 그 달 그 계좌 실사 = 한 번(같은 기준일 · 같은 별칭 행이 있으면 [StateError] — 부르는 쪽이 세션으로 막는다) · 🆕 R280 단 그 기준일 ·
+//    그 계좌에 열린 자가 보고 차이가 남았으면 다시 실사(K320 — 차이 행의 «다시 실사하기» 목적지)를 받는다.
+// 🆕 R280(01 §8 미결 226 · 계약 v1.37 §46 K320 · K321 ④) — 다시 실사 = 같은 기준일 · 계좌의 열린 차이를 새 대조로 갈음(다시 나온 행 =
+//    같은 id 로 고쳐 씀 · 안 나온 행 = RESOLVED) · 0오차 실사 = 그 계좌의 기준일까지 열린 자가 보고 차이 전부 RESOLVED · 그 뒤
+//    `ADVICE_LEDGER_UNVERIFIED` 가 서 있고 대응 계좌 전부가 발동한 날 이후 기준일 0오차면 같은 트랜잭션에서 내린다(수동 해제 0).
 // 🆕 R278(01 §8 미결 227 · 계약 v1.37 §46 K323) — 현금 축 원천 = 그 계좌 원화 `cash_flow`(별칭) + 그 계좌(`order_intents.account`)
 //    KR 브로커 체결 대금 · 기준일까지(수량 축과 같은 «그날» = 집행일) · 계좌를 모르는 현금 · 체결 = 모름 · 셈 = core.
 //    🔴 이 패키지는 Decimal 을 쓰지 않는다 — 원천 사실만 읽어 넘긴다(셈 · 판정 = core `selfReportLedgerCashOf`).
@@ -42,6 +46,7 @@ import 'package:sqlite3/sqlite3.dart' show Database, Row;
 import 'fill_sign_sql.dart' show signedFillSql;
 import 'ledger_read_model.dart' show storedLedgerDiffs;
 import 'position_replay_sql.dart' show krSignedFillsAfter;
+import 'self_audit_resolve_source.dart' show releaseAdviceLedgerUnverifiedIn;
 
 /// 정기 실사 원장 원천.
 class SqliteSelfReportSource {
@@ -198,22 +203,35 @@ class SqliteSelfReportSource {
     );
   }
 
-  /// 🆕 R278 — 그 기준일 · 계좌 실사가 0오차였나(K321 ④ · `M5-13` 해제가 읽는다 — 미결 226) = 실사가 있고 그 실사가 남긴 차이
-  /// 행(수량 · 현금 · 상태 무관) 0 — 현금 행은 대조해 넘은 때만 생기므로 «현금 축은 대조한 때만 센다»와 같다 · 실사 없음 = false.
+  /// 🆕 R280 — 그 기준일 · 계좌에 열린 자가 보고 차이가 남았나(다시 실사를 받는 조건 · K320).
+  bool openDiffsAt(TradeDate asOf, String alias) => diffsOf(
+    asOf,
+    alias,
+  ).any((StoredLedgerDiff d) => d.status == DiffStatus.open);
+
+  /// 🆕 R278 — 그 기준일 · 계좌 실사가 0오차였나(K321 ④ · `M5-13` 해제가 읽는다 — 미결 226) = 실사가 있고 그 기준일 · 계좌의 열린
+  /// 차이 행(수량 · 현금) 0 — 현금 행은 대조해 넘은 때만 생기므로 «현금 축은 대조한 때만 센다»와 같다 · 실사 없음 = false.
+  /// 🆕 R280 «상태 무관» → «열림만» — 다시 실사(K320)가 닫은(RESOLVED) 옛 행은 세지 않는다 · 차이를 남긴 실사의 행은 다시 실사 ·
+  /// 0오차 실사로만 닫힌다(그 계좌 · 그 기준일까지 — 더 늦은 기준일의 0오차 실사도 같다).
   bool zeroErrorAudit(TradeDate asOf, String alias) =>
-      auditedAccounts(asOf).contains(alias) && diffsOf(asOf, alias).isEmpty;
+      auditedAccounts(asOf).contains(alias) && !openDiffsAt(asOf, alias);
+
+  /// 🆕 R280 — 계좌 → 가장 늦은 0오차 실사 기준일(`M5-13` 미처리 갭 덮임 · 플래그 해제 · 실사 링크 원천 · 0오차 실사 없음 = 빠짐).
+  Map<String, TradeDate> latestZeroErrorByAccount() =>
+      latestZeroErrorByAccountIn(_db);
 
   /// 🆕 R281 — 그 기준일 · 계좌 실사에 적힌 현금 축 판정(결과 빈 문장의 원천) · 실사 없음 = [StateError](결과는 실사가 있을 때만
-  /// 짓는다 — 지어내지 않는다).
+  /// 짓는다 — 지어내지 않는다) · 🆕 R280 다시 실사(K320)로 여럿이면 = 가장 늦게 적은 실사의 판정.
   SelfReportCashCheck cashCheckOf(TradeDate asOf, String alias) {
     final List<Row> rows = _db.select(
-      'SELECT cash_check FROM self_report_balance WHERE as_of_trade_date = ? AND account_alias = ?',
+      'SELECT cash_check FROM self_report_balance WHERE as_of_trade_date = ? AND account_alias = ? '
+      'ORDER BY reported_at DESC, rowid DESC LIMIT 1',
       <Object?>[asOf.yyyyMmDd, alias],
     );
     if (rows.isEmpty) {
       throw StateError('실사 없음: ${asOf.yyyyMmDd} $alias');
     }
-    final Object? v = rows.single['cash_check'];
+    final Object? v = rows.first['cash_check'];
     return SelfReportCashCheck.values.firstWhere(
       (SelfReportCashCheck c) => c.wire == v,
     );
@@ -221,7 +239,8 @@ class SqliteSelfReportSource {
 
   /// 🔴 실사 기록(한 트랜잭션) — [diffs] = 엔진 대조 결과 · [stateLabel] = 엔진 접수증 글자 · 🆕 R281 [cashCheck] ·
   /// [cashToleranceKrw] = 제출 순간 현금 축 판정(core `selfReportCashRecordOf` — 대조함일 때만 허용 오차 · DDL 짝 CHECK) ·
-  /// 같은 기준일 · 계좌 실사가 이미 있으면 [StateError](쓰기 0).
+  /// 같은 기준일 · 계좌 실사가 이미 있으면 [StateError](쓰기 0) — 🆕 R280 단 그 기준일 · 계좌에 열린 자가 보고 차이가 남았으면 다시
+  /// 실사(K320) · [accounts] = 대응 계좌 차례(`ADVICE_LEDGER_UNVERIFIED` 해제 판정 — 빈 목록 = 풀지 않는다).
   void record({
     required SelfReportBalance wire,
     required String commandId,
@@ -234,18 +253,29 @@ class SqliteSelfReportSource {
     required RunMode runMode,
     required OperatingMode operatingMode,
     int? leaseEpoch,
+    List<String> accounts = const <String>[],
   }) {
     final String at = reportedAtUtc.toUtc().toIso8601String();
     final String reportId = 'sr_$commandId';
+    final String asOf = wire.asOfTradeDate.yyyyMmDd;
+    final String alias = wire.accountAlias;
     _db.execute('BEGIN IMMEDIATE');
     try {
-      if (_db.select(
+      final bool again = _db.select(
         'SELECT 1 FROM self_report_balance WHERE as_of_trade_date = ? AND account_alias = ?',
-        <Object?>[wire.asOfTradeDate.yyyyMmDd, wire.accountAlias],
-      ).isNotEmpty) {
-        throw StateError(
-          '실사 이미 있음: ${wire.asOfTradeDate.yyyyMmDd} ${wire.accountAlias}',
-        );
+        <Object?>[asOf, alias],
+      ).isNotEmpty;
+      final List<StoredLedgerDiff> before = again
+          ? <StoredLedgerDiff>[
+              for (final StoredLedgerDiff d in diffsOf(
+                wire.asOfTradeDate,
+                alias,
+              ))
+                if (d.status == DiffStatus.open) d,
+            ]
+          : const <StoredLedgerDiff>[];
+      if (again && before.isEmpty) {
+        throw StateError('실사 이미 있음: $asOf $alias');
       }
       _db.execute(
         'INSERT INTO self_report_balance (report_id, as_of_trade_date, account_alias, session_started_at, '
@@ -271,7 +301,40 @@ class SqliteSelfReportSource {
           <Object?>[reportId, l.symbol, l.quantity],
         );
       }
+      // 🆕 R280 다시 실사 — 같은 기준일 · 계좌의 열린 행 가운데 이번 대조에 다시 나오지 않은 것 = RESOLVED(다시 실사로 해소).
+      final Set<String> again2 = <String>{
+        for (final SelfReportDiffRow d in diffs) d.diffId,
+      };
+      for (final StoredLedgerDiff d in before) {
+        if (!again2.contains(d.diffId)) _resolve(d.diffId);
+      }
+      // 다시 나온 행(이 기록 전에 있던 같은 id) = 고쳐 쓴다(값 · 글자 · 탐지 시각 · 열림) · 새 행 = 넣는다 — 한 묶음 안 같은 id 두 번 =
+      // 넣기 실패(되돌림 · 대조 결과가 틀렸다).
+      final Set<String> existed = <String>{
+        for (final SelfReportDiffRow d in diffs)
+          if (_db.select(
+            'SELECT 1 FROM ledger_diff WHERE diff_id = ?',
+            <Object?>[d.diffId],
+          ).isNotEmpty)
+            d.diffId,
+      };
+      final Set<String> rewrote = <String>{};
       for (final SelfReportDiffRow d in diffs) {
+        if (existed.contains(d.diffId) && rewrote.add(d.diffId)) {
+          _db.execute(
+            'UPDATE ledger_diff SET delta = ?, delta_label = ?, severity = ?, status = ?, '
+            'detected_at = ? WHERE diff_id = ?',
+            <Object?>[
+              d.delta,
+              d.deltaLabel,
+              d.severity.wire,
+              DiffStatus.open.wire,
+              at,
+              d.diffId,
+            ],
+          );
+          continue;
+        }
         _db.execute(
           'INSERT INTO ledger_diff (diff_id, pair, axis, authored_date, delta, delta_label, severity, '
           'origin_code, status, detected_at, applicable) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 1)',
@@ -279,7 +342,7 @@ class SqliteSelfReportSource {
             d.diffId,
             LedgerPair.canonSelfReport.wire,
             d.axis.wire,
-            wire.asOfTradeDate.yyyyMmDd,
+            asOf,
             d.delta,
             d.deltaLabel,
             d.severity.wire,
@@ -287,6 +350,17 @@ class SqliteSelfReportSource {
             at,
           ],
         );
+      }
+      if (diffs.isEmpty) {
+        // 🆕 R280 0오차(K320 · K321 ④) — 그 계좌의 기준일까지 열린 자가 보고 차이 전부 RESOLVED.
+        for (final StoredLedgerDiff d in storedLedgerDiffs(_db)) {
+          if (d.pair == LedgerPair.canonSelfReport &&
+              d.status == DiffStatus.open &&
+              d.authoredDate.yyyyMmDd.compareTo(asOf) <= 0 &&
+              selfReportAccountOfDelta(d.delta) == alias) {
+            _resolve(d.diffId);
+          }
+        }
       }
       _inbox(
         commandId: commandId,
@@ -297,12 +371,23 @@ class SqliteSelfReportSource {
         leaseEpoch: leaseEpoch,
         payloadDigest: selfReportPayloadDigestOf(wire),
       );
+      // 🆕 R280(K321 ④) — 플래그 해제(서 있고 · 대응 계좌 전부가 발동한 날 이후 기준일 0오차) = 같은 트랜잭션.
+      releaseAdviceLedgerUnverifiedIn(
+        _db,
+        accounts: accounts,
+        nowUtc: reportedAtUtc,
+      );
       _db.execute('COMMIT');
     } catch (_) {
       _db.execute('ROLLBACK');
       rethrow;
     }
   }
+
+  void _resolve(String diffId) => _db.execute(
+    'UPDATE ledger_diff SET status = ? WHERE diff_id = ? AND status = ?',
+    <Object?>[DiffStatus.resolved.wire, diffId, DiffStatus.open.wire],
+  );
 
   /// 무결성 점검 중 보관 — `command_inbox` 보관 행 하나(원장 쓰기 0 · 원문 재저장 0 — 초안은 기기에 남는다).
   void hold({
@@ -346,4 +431,25 @@ class SqliteSelfReportSource {
       payloadDigest,
     ],
   );
+}
+
+/// 🆕 R280 — 계좌 → 가장 늦은 0오차 실사 기준일(실사가 있고 그 기준일 · 계좌의 열린 자가 보고 차이 0 · 없음 = 빠짐).
+Map<String, TradeDate> latestZeroErrorByAccountIn(Database db) {
+  final Set<String> open = <String>{
+    for (final StoredLedgerDiff d in storedLedgerDiffs(db))
+      if (d.pair == LedgerPair.canonSelfReport && d.status == DiffStatus.open)
+        if (selfReportAccountOfDelta(d.delta) case final String a)
+          '${d.authoredDate.yyyyMmDd}|$a',
+  };
+  final Map<String, TradeDate> out = <String, TradeDate>{};
+  for (final Row r in db.select(
+    'SELECT DISTINCT as_of_trade_date AS d, account_alias AS a FROM self_report_balance '
+    'ORDER BY as_of_trade_date DESC, account_alias',
+  )) {
+    final String a = r['a'] as String;
+    final String d = r['d'] as String;
+    if (out.containsKey(a) || open.contains('$d|$a')) continue;
+    out[a] = TradeDate(d);
+  }
+  return out;
 }

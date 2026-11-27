@@ -107,6 +107,7 @@ export 'src/local/resume_store.dart';
 export 'src/local/rule_change_gate_source.dart';
 export 'src/local/rule_change_store.dart';
 export 'src/local/safety_read_model.dart';
+export 'src/local/self_audit_resolve_source.dart';
 export 'src/local/self_report_source.dart';
 export 'src/local/sim_ledger_fate_store.dart';
 export 'src/local/sim_ledger_view.dart';

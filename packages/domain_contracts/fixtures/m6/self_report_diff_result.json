@@ -39,14 +39,14 @@
             "severity": "OBSERVATIONAL",
             "candidate_origin_codes": ["UNRECORDED_FILL", "SELF_REPORT_CORRECTION"],
             "status": "OPEN",
-            "route": "APPROVAL",
+            "route": "AUTO",
             "evidence_hash": "ev_4e1b7c90d2a8",
             "applicable": true,
             "pair_label": "자가 보고 대조",
             "axis_label": "수량",
             "severity_label": "관측 항목 — 주문을 막지 않습니다",
             "status_label": "열림",
-            "route_label": "승인 필요",
+            "route_label": "다시 실사로 해소",
             "candidate_origins": [
               { "code": "UNRECORDED_FILL", "label": "기록되지 않은 체결", "tone": "NEUTRAL" },
               { "code": "SELF_REPORT_CORRECTION", "label": "실사 보고와 원장이 다름", "tone": "NEUTRAL" }

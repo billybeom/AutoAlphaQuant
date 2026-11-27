@@ -297,4 +297,39 @@ void main() {
       1,
     );
   });
+
+  test(
+    '🆕 R280 ⑦ M5-13 일괄 확정(보관 → RECEIVED) 뒤 같은 명령 = 집행(보통 소비 규칙 · 접수 행 고쳐 씀)',
+    () {
+      incomplete('J-M');
+      db.execute(
+        'INSERT INTO trading_block (flag_id, set_at, reason) VALUES (?, ?, ?)',
+        <Object?>[FlagIds.ledgerIntegrity, _t0.toIso8601String(), '시험'],
+      );
+      expect(
+        submit('J-M', commandId: 'm').state,
+        CommandState.heldForIntegrity,
+      );
+      db.execute(
+        'UPDATE trading_block SET cleared_at = ?, cleared_by = ? WHERE flag_id = ?',
+        <Object?>[_t0.toIso8601String(), 'test', FlagIds.ledgerIntegrity],
+      );
+      final SqliteSelfAuditResolveSource gate = SqliteSelfAuditResolveSource(
+        db,
+      );
+      final String id = heldReviewIdOf(gate.heldCommands())!;
+      expect(
+        gate
+            .confirmHeld(args: <String, String>{'review_id': id}, nowUtc: _t0)
+            .code,
+        isNull,
+      );
+      expect(inbox('m')['state'], 'RECEIVED');
+      clock.at = _t0.add(const Duration(minutes: 5));
+      final JournalDraftWriteResult done = submit('J-M', commandId: 'm');
+      expect((done.state, done.replayed), (CommandState.executed, false));
+      expect(journal('J-M')['rationale_before'], _rationale);
+      expect(inbox('m')['state'], 'EXECUTED');
+    },
+  );
 }
