@@ -114,6 +114,8 @@ void main() {
     List<SelfReportDiffRow> diffs = const <SelfReportDiffRow>[],
     String commandId = 'cmd-1',
     Map<String, int>? lines,
+    SelfReportCashCheck cashCheck = SelfReportCashCheck.noTolerance,
+    double? cashToleranceKrw,
   }) => src().record(
     wire: lines == null
         ? _wire(alias: alias)
@@ -122,6 +124,8 @@ void main() {
     deviceId: 'dev-1',
     reportedAtUtc: _t0,
     diffs: diffs,
+    cashCheck: cashCheck,
+    cashToleranceKrw: cashToleranceKrw,
     stateLabel: SelfReportTexts.executed,
     runMode: RunMode.live,
     operatingMode: OperatingMode.advisory,
@@ -192,6 +196,8 @@ void main() {
         'dev-1',
         'cmd-1',
         '2026-09-02T03:00:00.000Z',
+        'NO_TOLERANCE',
+        null,
       ],
     );
     expect(
@@ -476,7 +482,11 @@ void main() {
         ),
       );
       expect(src().zeroErrorAudit(asOf, '연금저축'), isFalse, reason: '실사 없음');
-      recordDefault(diffs: cash);
+      recordDefault(
+        diffs: cash,
+        cashCheck: SelfReportCashCheck.compared,
+        cashToleranceKrw: 0,
+      );
       final StoredLedgerDiff got = src().diffsOf(asOf, '연금저축').single;
       expect(got.axis, LedgerAxis.cash);
       expect(got.pair, LedgerPair.canonSelfReport);
@@ -493,6 +503,102 @@ void main() {
         src().zeroErrorAudit(const TradeDate('2026-07-31'), '일반'),
         isFalse,
       );
+    });
+  });
+
+  group('🆕 R281 실사 현금 판정 원장 기록(01 §8 미결 256 · 계약 v1.42 §51)', () {
+    const TradeDate asOf = TradeDate('2026-08-31');
+
+    void raw(String id, String alias, String check, double? tol) => db.execute(
+      'INSERT INTO self_report_balance (report_id, as_of_trade_date, account_alias, session_started_at, cash_krw, '
+      'declared_complete, device_id, command_id, reported_at, cash_check, cash_tolerance_krw) '
+      "VALUES (?, '2026-08-31', ?, '2026-09-02T02:00:00Z', 0, 1, 'dev-1', ?, '2026-09-02T03:00:00Z', ?, ?)",
+      <Object?>[id, alias, 'c-$id', check, tol],
+    );
+
+    test('🔴 기록한 판정 = 그대로 읽는다(대조함 + 허용 오차 · 허용 오차 없음 · 원장 모름) · 실사 없음 = StateError', () {
+      expect(() => src().cashCheckOf(asOf, '연금저축'), throwsStateError);
+      recordDefault(
+        cashCheck: SelfReportCashCheck.compared,
+        cashToleranceKrw: 1000,
+      );
+      recordDefault(alias: '일반', commandId: 'cmd-2');
+      recordDefault(
+        alias: 'ISA',
+        commandId: 'cmd-3',
+        cashCheck: SelfReportCashCheck.ledgerUnknown,
+      );
+      expect(src().cashCheckOf(asOf, '연금저축'), SelfReportCashCheck.compared);
+      expect(src().cashCheckOf(asOf, '일반'), SelfReportCashCheck.noTolerance);
+      expect(src().cashCheckOf(asOf, 'ISA'), SelfReportCashCheck.ledgerUnknown);
+      expect(
+        <Object?>[
+          for (final Row r in db.select(
+            'SELECT account_alias, cash_tolerance_krw FROM self_report_balance ORDER BY account_alias',
+          ))
+            (r['account_alias'], r['cash_tolerance_krw']),
+        ],
+        <Object?>[('ISA', null), ('연금저축', 1000.0), ('일반', null)],
+      );
+      expect(
+        () => src().cashCheckOf(const TradeDate('2026-07-31'), '연금저축'),
+        throwsStateError,
+      );
+    });
+
+    test('🔴 DDL 이 판정 꼴을 지킨다 — 3값 밖 · 대조함인데 허용 오차 없음 · 대조 안 함인데 허용 오차 · 음수 · 판정 없음 = 거부', () {
+      expect(
+        () => raw('a', 'x1', 'MAYBE', null),
+        throwsA(isA<SqliteException>()),
+      );
+      expect(
+        () => raw('b', 'x2', 'COMPARED', null),
+        throwsA(isA<SqliteException>()),
+      );
+      expect(
+        () => raw('c', 'x3', 'NO_TOLERANCE', 0),
+        throwsA(isA<SqliteException>()),
+      );
+      expect(
+        () => raw('d', 'x4', 'COMPARED', -1),
+        throwsA(isA<SqliteException>()),
+      );
+      expect(
+        () => db.execute(
+          'INSERT INTO self_report_balance (report_id, as_of_trade_date, account_alias, session_started_at, cash_krw, '
+          'declared_complete, device_id, command_id, reported_at) '
+          "VALUES ('e', '2026-08-31', 'x5', '2026-09-02T02:00:00Z', 0, 1, 'dev-1', 'c-e', '2026-09-02T03:00:00Z')",
+        ),
+        throwsA(isA<SqliteException>()),
+      );
+      expect(count('SELECT COUNT(*) FROM self_report_balance'), 0);
+      raw('f', 'x6', 'COMPARED', 0);
+      raw('g', 'x7', 'LEDGER_UNKNOWN', null);
+      expect(count('SELECT COUNT(*) FROM self_report_balance'), 2);
+    });
+
+    test('🔴 판정 칸은 원장 해시 투영 밖(엔진 판정) — 같은 실사 · 다른 판정 = 같은 정규 행', () {
+      final LedgerHashTable t = kLedgerHashPopulationV1.singleWhere(
+        (LedgerHashTable t) => t.table == 'self_report_balance',
+      );
+      expect(t.excluded, <String>['cash_check', 'cash_tolerance_krw']);
+      expect(t.columns, isNot(contains('cash_check')));
+      raw('h', 'x8', 'COMPARED', 5);
+      raw('i', 'x9', 'NO_TOLERANCE', null);
+      String canon(String id) {
+        final Row r = db.select(
+          'SELECT * FROM self_report_balance WHERE report_id = ?',
+          <Object?>[id],
+        ).single;
+        return canonicalRow(<String, Object?>{
+          for (final String c in t.columns)
+            c: c == 'report_id' || c == 'account_alias' || c == 'command_id'
+                ? 'same'
+                : r[c],
+        }, t.columns);
+      }
+
+      expect(canon('h'), canon('i'));
     });
   });
 

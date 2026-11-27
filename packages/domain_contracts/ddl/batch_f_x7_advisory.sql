@@ -161,8 +161,16 @@ CREATE TABLE IF NOT EXISTS self_report_balance (
     declared_complete INTEGER NOT NULL CHECK (declared_complete IN (0,1)),
     device_id       TEXT    NOT NULL,
     command_id      TEXT    NOT NULL,
-    reported_at     TEXT    NOT NULL                -- 🔴 X5 authored 축
+    reported_at     TEXT    NOT NULL,               -- 🔴 X5 authored 축
+    cash_check      TEXT    NOT NULL CHECK (cash_check IN ('COMPARED','NO_TOLERANCE','LEDGER_UNKNOWN')
+                            AND ((cash_check = 'COMPARED') = (cash_tolerance_krw IS NOT NULL))),
+                            -- 🆕 v1.42(01 §51 · 미결 256) 제출 순간 엔진의 현금 축 판정 — 대조함 · 허용 오차 없음 · 원장 현금 모름
+    cash_tolerance_krw REAL CHECK (cash_tolerance_krw IS NULL OR cash_tolerance_krw >= 0)
+                            -- 🆕 v1.42 대조할 때 쓴 허용 오차(원 · 대조함일 때만 값)
 );
+-- 🔴 v1.42 — 두 칸 = 엔진 판정(사람이 적은 사실 아님) → 원장 해시 모집단 밖(`ledger_diff` 와 같은 결 · 투영 칸 무변경 ·
+--    `hash_format_version` 무변경). 결과 · 0오차는 이 칸을 읽는다(읽을 때 다시 정하지 않는다).
+--    로컬 스키마 v1 동결 전(R20 Q0)이라 표 본문에 둔다(ALTER 0 · 마이그레이션 0).
 CREATE TABLE IF NOT EXISTS self_report_line (
     report_id       TEXT    NOT NULL,
     symbol          TEXT    NOT NULL,

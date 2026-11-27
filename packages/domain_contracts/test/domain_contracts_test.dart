@@ -87,8 +87,11 @@ void main() {
     // 🔵 '1.40.0'(운영 폰 공유 표 push RPC · 01 §49) — `op_push` 이름 · 인자 4 · 반환 4 · 표 5 · 거부 사전 2 · 배치 D 옛 4표 select = K311 ·
     //    픽스처 402(버전 줄만) · C-73 · 다음 판 = 1.41.0(미결 246 페어링 · 명령 표 읽기).
     // 🔵 '1.41.0'(뷰어 페어링 · 명령 표 읽기 · 01 §50) — 페어링 RPC 3 · 읽는 함수 2 · 거부 사전 3 · `RUN_MODE_MISMATCH` · 카탈로그 2 ·
-    //    뷰어 TTL 4 · 배치 D(`pairing_ticket` · 맥락 not null · `requested_at = now()` · ack 색인) · 픽스처 402(버전 줄만) · C-74.
-    expect(contractVersion, '1.41.0');
+    //    뷰어 TTL 4 · 배치 D(`pairing_ticket` · 맥락 not null · `requested_at = now()` · ack 색인) · 픽스처 402(버전 줄만) · C-74 ·
+    //    다음 판 = 1.42.0(미결 256 실사 현금 판정 칸).
+    // 🔵 '1.42.0'(실사 현금 판정 원장 기록 · 01 §51) — 배치 F `self_report_balance` 판정 칸 2 · `SelfReportCashCheck` 3 · C-15 축 +1 ·
+    //    픽스처 402(버전 줄만) · C-75.
+    expect(contractVersion, '1.42.0');
     expect(schemaVersion, 1);
     expect(hashFormatVersion, 1);
     // 🔴 draft 표식이 남아 있으면 화면이 «필드명을 굳혀도 되는가»를 판단할 수 없다.

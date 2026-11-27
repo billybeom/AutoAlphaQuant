@@ -8,7 +8,8 @@
 // 🔴 읽기(`watch`) = 부작용 0(01 §1-4) · 제출 = 엔진 판정 → 원장 한 트랜잭션 → 세션 닫음(원장 값은 제출 뒤에 보인다).
 // 🔴 접수증 글자 · 사유 코드 = 엔진(`selfReportReceiptOf` · 로컬 거부 = `INPUT_INVALID` 칸 글자) · 큐 적재 0(폰 안에서 끝난다).
 // 🆕 R278(01 §8 미결 227) — 현금 축 = 엔진 판정(허용 오차 = 운영 설정 `self_report_cash_tolerance_krw` · 표식 = 0원 · 둘 다 없음 =
-//    대조 안 함) · 원천 = ds `cashFactsOf` · 결과 빈 문장 = 같은 차례(`selfReportCashSkipOf`).
+//    대조 안 함) · 원천 = ds `cashFactsOf` · 🆕 R281(미결 256 · 계약 v1.42) 판정 = 실사 행에 같이 적고 결과 빈 문장은 그 판정을
+//    읽는다(`cashCheckOf` → `selfReportCashSkipOfCheck` — 나중 설정 · 표식으로 다시 정하지 않는다).
 
 import 'dart:async';
 import 'dart:convert';
@@ -33,7 +34,8 @@ import 'package:core_engine/core_engine.dart'
         selfReportAccountsOf,
         selfReportAsOfOf,
         selfReportCashDiffRowsOf,
-        selfReportCashSkipOf,
+        selfReportCashRecordOf,
+        selfReportCashSkipOfCheck,
         selfReportCashToleranceOf,
         selfReportCashVerdictOf,
         selfReportDiffRowsOf,
@@ -65,6 +67,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         LedgerTrustBadge,
         OperatingMode,
         SelfReportBalance,
+        SelfReportCashCheck,
         SelfReportPurpose,
         SelfReportResult,
         SelfReportSession,
@@ -254,13 +257,7 @@ class OperatorSelfReport {
             audited: audited,
           ),
           resolveRegistered: hasBody(AppRoutes.m5SelfAuditResolve),
-          cashSkipped: selfReportCashSkipOf(
-            toleranceKrw: selfReportCashToleranceOf(
-              configuredKrw: _rt.operations?.selfReportCashToleranceKrw,
-              patternMarker: src.patternUnverifiedStanding(),
-            ),
-            ledgerKnown: !src.cashFactsOf(asOf, alias).unattributed,
-          ),
+          cashSkipped: selfReportCashSkipOfCheck(src.cashCheckOf(asOf, alias)),
         );
       }
     }
@@ -408,6 +405,8 @@ class OperatorSelfReport {
       ledgerKrw: selfReportLedgerCashOf(src.cashFactsOf(state.asOf, alias)),
       reportedKrw: wire.cashKrw,
     );
+    final ({SelfReportCashCheck check, double? toleranceKrw}) judged =
+        selfReportCashRecordOf(cash);
     final CommandReceipt done = outcome(SelfReportOutcome.executed);
     src.record(
       wire: wire,
@@ -422,6 +421,8 @@ class OperatorSelfReport {
           verdict: cash,
         ),
       ],
+      cashCheck: judged.check,
+      cashToleranceKrw: judged.toleranceKrw,
       stateLabel: done.stateLabel,
       runMode: v.flags.runMode,
       operatingMode: mode,

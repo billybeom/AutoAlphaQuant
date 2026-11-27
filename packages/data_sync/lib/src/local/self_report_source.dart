@@ -8,6 +8,8 @@
 // 🆕 R278(01 §8 미결 227 · 계약 v1.37 §46 K323) — 현금 축 원천 = 그 계좌 원화 `cash_flow`(별칭) + 그 계좌(`order_intents.account`)
 //    KR 브로커 체결 대금 · 기준일까지(수량 축과 같은 «그날» = 집행일) · 계좌를 모르는 현금 · 체결 = 모름 · 셈 = core.
 //    🔴 이 패키지는 Decimal 을 쓰지 않는다 — 원천 사실만 읽어 넘긴다(셈 · 판정 = core `selfReportLedgerCashOf`).
+// 🆕 R281(01 §8 미결 256 · 계약 v1.42 §51) — 실사 행에 제출 순간의 현금 축 판정(`cash_check` · `cash_tolerance_krw`)을 같이 적고
+//    결과는 그 칸을 읽는다(읽을 때 다시 정하지 않는다) · 두 칸 = 원장 해시 투영 밖.
 
 import 'package:core_engine/core_engine.dart'
     show
@@ -31,6 +33,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         OrderSide,
         RunMode,
         SelfReportBalance,
+        SelfReportCashCheck,
         SelfReportLine,
         SleeveId,
         TradeDate;
@@ -200,14 +203,33 @@ class SqliteSelfReportSource {
   bool zeroErrorAudit(TradeDate asOf, String alias) =>
       auditedAccounts(asOf).contains(alias) && diffsOf(asOf, alias).isEmpty;
 
-  /// 🔴 실사 기록(한 트랜잭션) — [diffs] = 엔진 대조 결과 · [stateLabel] = 엔진 접수증 글자 · 같은 기준일 · 계좌 실사가
-  /// 이미 있으면 [StateError](쓰기 0).
+  /// 🆕 R281 — 그 기준일 · 계좌 실사에 적힌 현금 축 판정(결과 빈 문장의 원천) · 실사 없음 = [StateError](결과는 실사가 있을 때만
+  /// 짓는다 — 지어내지 않는다).
+  SelfReportCashCheck cashCheckOf(TradeDate asOf, String alias) {
+    final List<Row> rows = _db.select(
+      'SELECT cash_check FROM self_report_balance WHERE as_of_trade_date = ? AND account_alias = ?',
+      <Object?>[asOf.yyyyMmDd, alias],
+    );
+    if (rows.isEmpty) {
+      throw StateError('실사 없음: ${asOf.yyyyMmDd} $alias');
+    }
+    final Object? v = rows.single['cash_check'];
+    return SelfReportCashCheck.values.firstWhere(
+      (SelfReportCashCheck c) => c.wire == v,
+    );
+  }
+
+  /// 🔴 실사 기록(한 트랜잭션) — [diffs] = 엔진 대조 결과 · [stateLabel] = 엔진 접수증 글자 · 🆕 R281 [cashCheck] ·
+  /// [cashToleranceKrw] = 제출 순간 현금 축 판정(core `selfReportCashRecordOf` — 대조함일 때만 허용 오차 · DDL 짝 CHECK) ·
+  /// 같은 기준일 · 계좌 실사가 이미 있으면 [StateError](쓰기 0).
   void record({
     required SelfReportBalance wire,
     required String commandId,
     required String deviceId,
     required DateTime reportedAtUtc,
     required List<SelfReportDiffRow> diffs,
+    required SelfReportCashCheck cashCheck,
+    required double? cashToleranceKrw,
     required String stateLabel,
     required RunMode runMode,
     required OperatingMode operatingMode,
@@ -227,7 +249,8 @@ class SqliteSelfReportSource {
       }
       _db.execute(
         'INSERT INTO self_report_balance (report_id, as_of_trade_date, account_alias, session_started_at, '
-        'cash_krw, declared_complete, device_id, command_id, reported_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'cash_krw, declared_complete, device_id, command_id, reported_at, cash_check, cash_tolerance_krw) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         <Object?>[
           reportId,
           wire.asOfTradeDate.yyyyMmDd,
@@ -238,6 +261,8 @@ class SqliteSelfReportSource {
           deviceId,
           commandId,
           at,
+          cashCheck.wire,
+          cashToleranceKrw,
         ],
       );
       for (final SelfReportLine l in wire.lines) {

@@ -109,6 +109,29 @@ enum LedgerTrustGrade {
   final String wire;
 }
 
+/// 🆕 v1.42(01 §51 · 미결 256) — `L-3` 정기 실사 한 건의 **현금 축 판정**(`self_report_balance.cash_check`).
+///
+/// 🔴 제출 순간 엔진이 정해 실사 행에 같이 적는다 — 결과 빈 문장 · 0오차는 이 값을 읽는다(나중 설정 · 표식으로
+///    다시 정하지 않는다). 화면 · VM · 표본 = 0(엔진 · 원장 전용).
+enum SelfReportCashCheck {
+  /// 허용 오차로 대조했다(차이가 넘으면 `CASH` 관측 차이 행이 같이 선다).
+  @JsonValue('COMPARED')
+  compared('COMPARED'),
+
+  /// 허용 오차 값도 `SELF_AUDIT_PATTERN_UNVERIFIED` 표식도 없어 대조하지 않았다.
+  @JsonValue('NO_TOLERANCE')
+  noTolerance('NO_TOLERANCE'),
+
+  /// 그 계좌의 기준일 원장 현금을 셀 수 없어 대조하지 않았다(계좌 모를 현금 · 체결).
+  @JsonValue('LEDGER_UNKNOWN')
+  ledgerUnknown('LEDGER_UNKNOWN');
+
+  const SelfReportCashCheck(this.wire);
+
+  /// DDL 표기.
+  final String wire;
+}
+
 /// 01 §2-1 · X7 ㊲ — **매매가 아닌데 원장을 바꾸는 사실**(계약 v1.10 · 설계 13 §8 R21 · `m2-8_naming.md`
 /// A-15 · J-6 이름 그대로).
 ///

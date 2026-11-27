@@ -37,6 +37,11 @@ const Map<String, Map<String, Object?>> _extra = <String, Map<String, Object?>>{
     'error_message': null,
     'updated_at': '2026-11-04T00:10:01.000Z',
   },
+  // 🆕 R281(계약 v1.42 §51) — 현금 축 판정 = 투영 밖 NOT NULL 칸.
+  'self_report_balance': <String, Object?>{
+    'cash_check': 'NO_TOLERANCE',
+    'cash_tolerance_krw': null,
+  },
 };
 
 /// 한 행을 넣는다(투영 밖 NOT NULL 칸은 채운다).

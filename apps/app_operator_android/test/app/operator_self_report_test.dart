@@ -544,12 +544,78 @@ void main() {
       );
       expect(src().zeroErrorAudit(asOf, '일반'), isTrue);
     });
+
+    test('🆕 R281 🔴 결과 = 실사 행에 적힌 판정 — 나중에 허용 오차가 생겨도 «대조하지 않았습니다» 그대로(옛 실사가 «맞습니다»로 바뀌지 않는다)', () {
+      withTolerance(null);
+      sr.start('ar1', _args);
+      sr.submit(_sub(b: '245'), random: Random(1));
+      expect(src().cashCheckOf(asOf, '연금저축'), SelfReportCashCheck.noTolerance);
+      expect(
+        resultOf('연금저축').emptyLabel,
+        SelfReportTexts.resultCashNoTolerance,
+      );
+      expect(
+        files.sim
+            .select('SELECT cash_tolerance_krw FROM self_report_balance')
+            .single['cash_tolerance_krw'],
+        isNull,
+      );
+      withTolerance(1000);
+      deposit('연금저축', 1000000);
+      expect(
+        resultOf('연금저축').emptyLabel,
+        SelfReportTexts.resultCashNoTolerance,
+        reason: '판정은 제출 순간 한 번 — 다시 정하지 않는다',
+      );
+    });
+
+    test(
+      '🆕 R281 🔴 표식 0원으로 대조한 실사 = 대조함 + 허용 오차 0 기록 · 표식이 내려가도 «맞습니다» 그대로',
+      () {
+        withTolerance(null);
+        files.sim.execute(
+          "INSERT INTO trading_block (flag_id, set_at, reason) VALUES ('SELF_AUDIT_PATTERN_UNVERIFIED', "
+          "'2026-09-01T00:00:00Z', 'x')",
+        );
+        deposit('연금저축', 1000000);
+        sr.start('ar1', _args);
+        sr.submit(_sub(b: '245'), random: Random(1));
+        expect(src().cashCheckOf(asOf, '연금저축'), SelfReportCashCheck.compared);
+        expect(
+          files.sim
+              .select('SELECT cash_tolerance_krw FROM self_report_balance')
+              .single['cash_tolerance_krw'],
+          0.0,
+        );
+        files.sim.execute(
+          "UPDATE trading_block SET cleared_at = '2026-09-03T00:00:00Z' "
+          "WHERE flag_id = 'SELF_AUDIT_PATTERN_UNVERIFIED'",
+        );
+        expect(resultOf('연금저축').emptyLabel, SelfReportTexts.resultEmpty);
+      },
+    );
+
+    test('🆕 R281 🔴 원장 모름으로 대조 안 한 실사 = 모름 기록 · 계좌 모를 현금이 사라져도 모름 문장 그대로', () {
+      withTolerance(0);
+      deposit(null, 5, day: '2026-07-01');
+      sr.start('ar1', general);
+      sr.submit(
+        _sub(alias: '일반', b: '0'),
+        random: Random(1),
+      );
+      expect(src().cashCheckOf(asOf, '일반'), SelfReportCashCheck.ledgerUnknown);
+      files.sim.execute('DELETE FROM cash_flow WHERE account_alias IS NULL');
+      expect(
+        resultOf('일반').emptyLabel,
+        SelfReportTexts.resultCashLedgerUnknown,
+      );
+    });
   });
 
   group('🆕 E11q-q6c 신뢰 등급 · 실사 표식', () {
     void audit(String alias, String asOf) => files.sim.execute(
       'INSERT INTO self_report_balance (report_id, as_of_trade_date, account_alias, session_started_at, cash_krw, '
-      'declared_complete, device_id, command_id, reported_at) VALUES (?, ?, ?, ?, 0, 1, ?, ?, ?)',
+      "declared_complete, device_id, command_id, reported_at, cash_check) VALUES (?, ?, ?, ?, 0, 1, ?, ?, ?, 'NO_TOLERANCE')",
       <Object?>[
         'sr-$alias-$asOf',
         asOf,
