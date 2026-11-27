@@ -244,6 +244,8 @@ void main() {
           false,
         ),
       );
+      expect(r.headline, PostmortemTexts.notFound);
+      expect(r.headline, '이 사건을 찾지 못했습니다. 목록을 다시 확인하십시오.');
       expect(
         () => postmortemActionResultOf(actionRunId: 'ar-1', code: 'NOPE'),
         throwsArgumentError,
