@@ -60,3 +60,6 @@ export 'src/resume/resume_screens.dart'
 // 🆕 M5-9 규칙 변경 게이트 «첫 승인 최소판»(설계 13 §8 R188 · 요청 · 승인 · 취소 = 안전 동작 창구).
 export 'src/rule_change/rule_change_gate_screen.dart'
     show RuleChangeGateScreen, safetyRuleChangeGateRepositoryProvider;
+// 🆕 M5-13 원장 실사 해소 게이트(설계 13 §8 R280 · 01 §46 K318 — 읽기 + 보관 일괄 확정 = 안전 동작 창구 `run` · 수동 해제 0).
+export 'src/self_audit/self_audit_resolve_screen.dart'
+    show SelfAuditResolveScreen, safetySelfAuditResolveRepositoryProvider;

@@ -140,6 +140,7 @@ import 'package:ui_safety/ui_safety.dart'
         ResumeReportScreen,
         RuleChangeGateScreen,
         SafetyX1SlotBuilder,
+        SelfAuditResolveScreen,
         X1PlanWizardScreen,
         X1RecoveryRoute,
         X1RecoveryScreen,
@@ -154,6 +155,7 @@ import 'package:ui_safety/ui_safety.dart'
         safetyRepairWizardRepositoryProvider,
         safetyResumeGateRepositoryProvider,
         safetyRuleChangeGateRepositoryProvider,
+        safetySelfAuditResolveRepositoryProvider,
         safetySettingsActionsProvider,
         safetyX1SlotBuilderProvider;
 import 'package:ui_settings/ui_settings.dart'
@@ -210,6 +212,7 @@ import 'operator_resume.dart';
 import 'operator_rule_change.dart';
 import 'operator_runtime.dart';
 import 'operator_safety.dart';
+import 'operator_self_audit_resolve.dart';
 import 'operator_self_report.dart';
 import 'operator_settings_actions.dart';
 import 'operator_settings_repository.dart';
@@ -381,6 +384,13 @@ final Provider<OperatorBlockBoardRepository> operatorBlockBoardProvider =
         reconClearable: true,
       );
     });
+
+/// 🆕 R280 — M5-13 원장 실사 해소 게이트 읽기(한 인스턴스 · 쓰기 = 안전 동작 인스턴스 `run(heldCommandsConfirm)`).
+final Provider<OperatorSelfAuditResolveRepository>
+operatorSelfAuditResolveProvider = Provider<OperatorSelfAuditResolveRepository>(
+  (Ref ref) =>
+      OperatorSelfAuditResolveRepository(ref.watch(operatorRuntimeProvider)),
+);
 
 /// 🆕 R186 — X2 재개 리포트 · 게이트 읽기(한 인스턴스 · 리포트 링크 = 레지스트리에 본문이 있을 때만 · 🆕 R195 계절 3택 = 켜짐).
 final Provider<OperatorResumeGateRepository> operatorResumeGateProvider =
@@ -750,6 +760,9 @@ Widget _resumeGate(Map<String, String> _) => const ResumeGateScreen();
 
 Widget _ruleChangeGate(Map<String, String> _) => const RuleChangeGateScreen();
 
+Widget _selfAuditResolve(Map<String, String> _) =>
+    const SelfAuditResolveScreen();
+
 Widget _x1Plan(Map<String, String> _) => const X1PlanWizardScreen();
 
 Widget _x1Receive(Map<String, String> _) =>
@@ -983,6 +996,9 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.x2ResumeGate: _resumeGate,
   // 🆕 E11q-c0(R188) — M5-9 규칙 변경 게이트 «첫 승인 최소판»(SAF-405 첫 승인 요청 · 냉각 · 승인 · 취소).
   AppRoutes.m5RuleChangeGate: _ruleChangeGate,
+  // 🆕 R280 — M5-13 원장 실사 해소 게이트(L-3 결과 «차이 해소하기» · 차단 보드 «실사 해소 열기» · `ADVICE_SUPPRESSED` 알림 ·
+  //    `ADVICE_LEDGER_UNVERIFIED` 해제 목적지 · 보관 일괄 확정 = 안전 동작 `run(heldCommandsConfirm)` · 수동 해제 0).
+  AppRoutes.m5SelfAuditResolve: _selfAuditResolve,
   // 🆕 E16j-b — X1 기기 이전(옛 폰 마법사 = S06 · S09 `migrationLink` 목적지 · 새 폰 받기 · 비상 = R-01 분기 · 진행 = 1~3단계까지 ·
   //    4단계 이후 · 새 폰 복원 = 엔진 막힘 문장 — 미결 218) · 🆕 E16t3c 비상 앞쪽(시작 · 펜싱 · 재발급) 열림.
   AppRoutes.x1Migration: _x1Plan,
@@ -1053,6 +1069,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 R185 — M5-5 차단 보드 읽기(링크 = 위 셸 링크 열기 그대로).
   safetyBlockBoardRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorBlockBoardProvider),
+  ),
+  // 🆕 R280 — M5-13 원장 실사 해소 게이트 읽기(링크 = 위 셸 링크 열기 · 확정 = 위 안전 동작 인스턴스).
+  safetySelfAuditResolveRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorSelfAuditResolveProvider),
   ),
   // 🆕 R186 — X2 재개 리포트 · 게이트 읽기(링크 = 위 셸 링크 열기 · 계절 3택 쓰기 = 위 안전 동작 인스턴스 — R195).
   safetyResumeGateRepositoryProvider.overrideWith(

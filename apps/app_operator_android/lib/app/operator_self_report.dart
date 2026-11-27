@@ -10,6 +10,8 @@
 // 🆕 R278(01 §8 미결 227) — 현금 축 = 엔진 판정(허용 오차 = 운영 설정 `self_report_cash_tolerance_krw` · 표식 = 0원 · 둘 다 없음 =
 //    대조 안 함) · 원천 = ds `cashFactsOf` · 🆕 R281(미결 256 · 계약 v1.42) 판정 = 실사 행에 같이 적고 결과 빈 문장은 그 판정을
 //    읽는다(`cashCheckOf` → `selfReportCashSkipOfCheck` — 나중 설정 · 표식으로 다시 정하지 않는다).
+// 🆕 R280(01 §8 미결 226 · K320) — 다시 실사: 그 달 · 그 계좌 실사가 있어도 그 기준일 · 계좌에 열린 자가 보고 차이가 남았으면 세션을
+//    연다(차이 행 «다시 실사하기» 목적지) · 세션이 열린 동안 = 폼(결과 0) · 기록 = 같은 트랜잭션에서 0오차 리셋 · 플래그 해제(대응 계좌).
 
 import 'dart:async';
 import 'dart:convert';
@@ -32,6 +34,7 @@ import 'package:core_engine/core_engine.dart'
         SelfReportWireResult,
         SimOpeningCommand,
         selfReportAccountsOf,
+        selfReportAlreadyAuditedOf,
         selfReportAsOfOf,
         selfReportCashDiffRowsOf,
         selfReportCashRecordOf,
@@ -178,11 +181,15 @@ class OperatorSelfReport {
       trustedNowUtc: _rt.trusted.trustedNowUtc(),
       kr: _rt.calendars.kr,
     );
+    final SqliteSelfReportSource src = SqliteSelfReportSource(
+      v.db,
+      clock: _rt.clock,
+    );
     if (verdict is SelfReportStartOpen &&
-        SqliteSelfReportSource(
-          v.db,
-          clock: _rt.clock,
-        ).auditedAccounts(verdict.asOf).contains(alias)) {
+        selfReportAlreadyAuditedOf(
+          audited: src.auditedAccounts(verdict.asOf).contains(alias),
+          openDiffs: src.openDiffsAt(verdict.asOf, alias),
+        )) {
       verdict = SelfReportStartRefused(
         SelfReportTexts.alreadyAudited,
         asOf: verdict.asOf,
@@ -244,8 +251,10 @@ class OperatorSelfReport {
     );
     final TradeDate? asOf = selfReportAsOfOf(yyyyMm, _rt.calendars.kr);
     final List<String> strategies = selfReportStrategiesOf(accounts, alias);
+    final SelfReportStartVerdict? state = sessions.of(yyyyMm, alias);
     SelfReportResult? result;
-    if (asOf != null) {
+    // 🆕 R280 — 다시 실사 세션이 열린 동안 = 폼(결과를 싣지 않는다 · 화면은 결과가 있으면 폼을 그리지 않는다).
+    if (asOf != null && state is! SelfReportStartOpen) {
       final Set<String> audited = src.auditedAccounts(asOf);
       if (audited.contains(alias)) {
         result = selfReportResultOf(
@@ -261,7 +270,6 @@ class OperatorSelfReport {
         );
       }
     }
-    final SelfReportStartVerdict? state = sessions.of(yyyyMm, alias);
     return selfReportSessionVmOf(
       yyyyMm: yyyyMm,
       accountAlias: alias,
@@ -427,6 +435,8 @@ class OperatorSelfReport {
       runMode: v.flags.runMode,
       operatingMode: mode,
       leaseEpoch: epoch,
+      // 🆕 R280(K321 ④) — 플래그 해제 판정의 대응 계좌.
+      accounts: selfReportAccountsOf(human.inputs.accountByStrategy),
     );
     sessions.close(m, alias);
     // 🆕 E11q-q6c(R240) — 실사 1회 = 그 계좌 갭이 기준일부터 다시 센다 → 표식을 곧바로 맞춘다(엔진 일정과 같은 판정).

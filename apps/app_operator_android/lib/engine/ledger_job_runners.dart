@@ -44,6 +44,7 @@ import 'package:data_sync/data_sync.dart'
         SeasonalAReport,
         SqliteLedgerTrustSource,
         SqliteOrderLedger,
+        SqliteSelfAuditResolveSource,
         SqliteSimLedgerView,
         currentP0sOpsConfig;
 import 'package:domain_contracts/domain_contracts.dart'
@@ -192,14 +193,26 @@ JobRunner dailyDataRunner(JobContext c, JobParts p) =>
         });
 
 /// 🆕 E11q-q6c(R240) — 실사 예정 · 기한 표식(엔진 일정) — 신뢰 시각 모름 = 0(돌려준 값 = 맞췄나).
+/// 🆕 R280(01 §8 미결 226 ⓒ · K321 ①) — 이어서 `ADVICE_LEDGER_UNVERIFIED` 발동 맞춤(미처리 갭 ≥ 강등 문턱) — 🔴 문턱 = 미결 118 ⓐ
+/// 발주자 수치 대기 → null(발동 0 · 엔진 기본값 없음).
 bool refreshSelfAuditOf(JobContext c, P0sOpsConfig cfg) {
   final DateTime? trusted = c.trusted.trustedNowUtc();
   if (trusted == null) return false;
+  final List<String> accounts = selfReportAccountsOf(
+    cfg.human.accountByStrategy,
+  );
   SqliteLedgerTrustSource(c.db, clock: c.clock).refreshSelfAuditFor(
     operatingMode: c.operatingMode,
-    accounts: selfReportAccountsOf(cfg.human.accountByStrategy),
+    accounts: accounts,
     trustedNowUtc: trusted,
     kr: c.calendars.kr,
+  );
+  SqliteSelfAuditResolveSource(c.db).refreshUnverified(
+    operatingMode: c.operatingMode,
+    accounts: accounts,
+    trustedNowUtc: trusted,
+    kr: c.calendars.kr,
+    thresholdTradingDays: null,
   );
   return true;
 }

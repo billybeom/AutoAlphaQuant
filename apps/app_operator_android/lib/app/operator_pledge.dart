@@ -16,6 +16,7 @@
 //    깨어남 한 번(`OperatorRuntime.wakeNow` · 기다리지 않는다) — FGS 상시 알림이 다음 알람까지 옛 상태로 남지 않게(04 §5-6).
 // 🆕 미결 249(설계 13 §8 R279 · 계약 v1.39 K347 둘째 축) — 화면 원장에 쓰는 동작(서약 · 계절 3택 · 개입 · 정정 · 재개 · 규칙 변경 ·
 //    RECON 해제)이 쓸 원장이 닫혔으면(전환 커밋 ~ 깨어남 끝 틈) 결과 `LEDGER_CLOSED`(쓰기 0 · 깨어남 0) · X1 = 실전 파일 · 원격 대상이라 뺀다.
+// 🆕 R280(01 §8 미결 226 ⓓ) — `run(heldCommandsConfirm)` = `M5-13` 보관 묶음 일괄 확정(엔진 판정 · 한 트랜잭션 · 생체 0 = 미결 169 · 258 · 닫힌 원장 = `LEDGER_CLOSED` R279 관문).
 
 import 'dart:async';
 import 'dart:math';
@@ -66,6 +67,7 @@ import 'operator_migration.dart' show OperatorMigrationActions, kX1ActionIds;
 import 'operator_repair.dart' show OperatorRepairActions;
 import 'operator_rule_change.dart' show operatorRuleChangeGateSourceOf;
 import 'operator_runtime.dart';
+import 'operator_self_audit_resolve.dart' show operatorHeldCommandsConfirm;
 import 'operator_view.dart';
 
 /// 🆕 R265(H1-6) — 서약 원장 = 화면 원장(화면 상태 없음 = 모의 파일).
@@ -180,6 +182,8 @@ class OperatorSafetyActions implements SafetyActions {
     SafetyActionId.interventionStep,
     SafetyActionId.repairAccept,
     SafetyActionId.ruleChangeCancel,
+    // 🆕 R280 — `M5-13` 보관 일괄 확정(화면 원장 `command_inbox` 에 쓴다).
+    SafetyActionId.heldCommandsConfirm,
   };
 
   @override
@@ -250,6 +254,11 @@ class OperatorSafetyActions implements SafetyActions {
       if (closed != null) return closed;
     }
     if (id == SafetyActionId.seasonalWindowChoice) return _seasonalChoice(args);
+    // 🆕 R280(01 §8 미결 226 ⓓ · K319) — `M5-13` 보관 명령 일괄 확정(엔진 완성 `{review_id}` 그대로 · 거부 = 쓰기 0).
+    if (id == SafetyActionId.heldCommandsConfirm) {
+      final String run = newCommandId(_random);
+      return _done[run] = _woke(operatorHeldCommandsConfirm(_rt, run, args));
+    }
     // 🆕 E16j-a(R227) — 개입 단계 · 아무것도 안 하기 = 엔진이 완성한 args 그대로(명령 id = 킬스위치 명령과 같은 꼴).
     if (id == SafetyActionId.interventionStep ||
         id == SafetyActionId.repairAccept) {

@@ -119,7 +119,7 @@ void main() {
     expect(operatorLedgerClosed(live, clock: clock), isFalse);
   });
 
-  test('🔴 안전 동작 — 화면 원장에 쓰는 13 자리 = LEDGER_CLOSED(지켜보기 · 다시 해 볼 만함 · 동작 id 그대로) · 쓰기 0 · 깨어남 0 · watch 같은 값', () async {
+  test('🔴 안전 동작 — 화면 원장에 쓰는 14 자리(🆕 R280 보관 일괄 확정) = LEDGER_CLOSED(지켜보기 · 다시 해 볼 만함 · 동작 id 그대로) · 쓰기 0 · 깨어남 0 · watch 같은 값', () async {
     closeSim();
     final OperatorRuntime r = rt();
     int wakes = 0;
@@ -213,6 +213,14 @@ void main() {
             expectedOutcome: '기대',
             ruleCited: 'R',
           ),
+        ),
+      ),
+      // 🆕 R280 — `M5-13` 보관 일괄 확정(화면 원장 `command_inbox`).
+      (
+        SafetyActionId.heldCommandsConfirm,
+        () => a.run(
+          SafetyActionId.heldCommandsConfirm,
+          args: const <String, String>{'review_id': 'hr_000000000000'},
         ),
       ),
       (

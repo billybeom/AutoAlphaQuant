@@ -224,10 +224,12 @@ class CommandConsumeJob {
       }
       final _Inbox? before = _inbox(c.commandId);
       _Inbox? after = before;
-      // 처음 · 보관(무결성)된 기록 둘 = 처리기를 부른다(보관 = 처리기가 풀림을 보고 집행하거나 그대로 둔다).
+      // 처음 · 보관(무결성)된 기록 둘 = 처리기를 부른다(보관 = 처리기가 풀림을 보고 집행하거나 그대로 둔다) ·
+      // 🆕 R280(K319) — `M5-13` 일괄 확정이 `RECEIVED` 로 옮긴 행도 같다(보통 소비 규칙).
       final bool call =
           before == null ||
-          (before.state == CommandState.heldForIntegrity &&
+          ((before.state == CommandState.heldForIntegrity ||
+                  before.state == CommandState.received) &&
               (route is RemoteJournalDraft || route is RemoteBlindReviewScore));
       if (call) {
         try {

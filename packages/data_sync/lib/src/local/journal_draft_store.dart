@@ -109,9 +109,11 @@ class SqliteJournalDraftStore {
       'SELECT state, state_label, reject_reason_code FROM command_inbox WHERE command_id = ?',
       <Object?>[commandId],
     );
+    // 🆕 R280(K319) — `M5-13` 일괄 확정이 `RECEIVED` 로 옮긴 보관 행도 같은 명령이 다시 오면 그때 집행한다(보통 소비 규칙).
     final bool wasHeld =
         prior.isNotEmpty &&
-        prior.first['state'] == CommandState.heldForIntegrity.wire;
+        (prior.first['state'] == CommandState.heldForIntegrity.wire ||
+            prior.first['state'] == CommandState.received.wire);
     if (prior.isNotEmpty && (!wasHeld || integrityBroken())) {
       final Row p = prior.first;
       return JournalDraftWriteResult(

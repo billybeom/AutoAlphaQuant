@@ -395,6 +395,50 @@ void main() {
         _rationale,
       );
     });
+
+    test('🆕 R280 보관 → M5-13 일괄 확정(RECEIVED) 뒤 당김 = 처리기 다시 → 집행(보통 소비 규칙)', () async {
+      db.execute(
+        'INSERT INTO decision_journal(journal_id, trade_date, strategy_id, signal_value, action_taken, '
+        'is_deviation, rationale_before, expected_outcome, rule_cited, kind, note, created_at) '
+        "VALUES ('J-M', '2026-12-09', 'P0S', '{}', '{}', 1, NULL, NULL, NULL, 'RECON_CLEAR', NULL, "
+        "'2026-12-09T01:00:00.000Z')",
+      );
+      db.execute(
+        'INSERT INTO trading_block (flag_id, set_at, reason) VALUES (?, ?, ?)',
+        <Object?>[FlagIds.ledgerIntegrity, _t0.toIso8601String(), '시험'],
+      );
+      final String id = _id();
+      reader.rows = <Map<String, Object?>>[
+        _row('JOURNAL_DRAFT', id: id, payload: _journal('J-M')),
+      ];
+      expect((await run()).held, 1);
+      db.execute(
+        'UPDATE trading_block SET cleared_at = ?, cleared_by = ? WHERE flag_id = ?',
+        <Object?>[_t0.toIso8601String(), 'test', FlagIds.ledgerIntegrity],
+      );
+      final SqliteSelfAuditResolveSource gate = SqliteSelfAuditResolveSource(
+        db,
+      );
+      expect(
+        gate
+            .confirmHeld(
+              args: <String, String>{
+                'review_id': heldReviewIdOf(gate.heldCommands())!,
+              },
+              nowUtc: _t0,
+            )
+            .code,
+        isNull,
+      );
+      expect(inbox(id)?['state'], 'RECEIVED');
+      clock.at = _t0.add(const Duration(minutes: 5));
+      final CommandConsumeReport done = await run();
+      expect(done.executed, 1);
+      expect(
+        (lastAcks().single['ack_id'], lastAcks().single['state']),
+        (commandAckId(id, CommandState.executed), 'EXECUTED'),
+      );
+    });
   });
 
   group('집행 0', () {

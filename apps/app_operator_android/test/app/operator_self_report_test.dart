@@ -275,8 +275,33 @@ void main() {
           deepLink: 'aaq://m5/self-audit-resolve',
         ),
       );
-      // 같은 달 다시 열기 = 열지 않는다(결과만).
-      expect(sr.start('ar2', _args).headline, SelfReportTexts.alreadyAudited);
+      // 🆕 R280(K320) — 같은 달 다시 열기 = 열린 차이가 남았으면 다시 실사(세션 · 폼 = 결과 0) → 0오차 = 차이 RESOLVED →
+      // 그 뒤 = 열지 않는다(결과만).
+      expect(sr.start('ar2', _args).level, UiLevel.ok);
+      expect(sr.sessions.anyOpen(), isTrue);
+      final SelfReportSession again = sr.sessionOf(
+        rt.view.value!,
+        '2026-08',
+        '연금저축',
+      );
+      expect((again.result, again.sessionClosedText), (null, null));
+      expect(
+        sr.submit(_sub(b: '245'), random: Random(5)).state,
+        CommandState.executed,
+      );
+      expect(count('SELECT COUNT(*) FROM self_report_balance'), 2);
+      expect(
+        files.sim.select('SELECT status FROM ledger_diff').single['status'],
+        'RESOLVED',
+      );
+      final SelfReportResult after = sr
+          .sessionOf(rt.view.value!, '2026-08', '연금저축')
+          .result!;
+      // 결과 = 그 달 · 그 계좌 차이 그대로(닫힌 행 = «해소됨») · 열린 차이 0 = 해소 링크 0.
+      expect(after.diffs.single.statusLabel, '해소됨');
+      expect(after.diffs.single.routeLabel, '다시 실사로 해소');
+      expect(after.resolveLink, isNull);
+      expect(sr.start('ar3', _args).headline, SelfReportTexts.alreadyAudited);
       expect(sr.sessions.anyOpen(), isFalse);
       expect(
         sr.submit(_sub(), random: Random(4)).rejectReasonCode,
@@ -744,12 +769,13 @@ void main() {
         routePatternOf('aaq://ledger/self-report/2026-08/연금저축'),
         AppRoutes.ledgerSelfReport,
       );
+      // 🆕 R280 — 뒤집은 단언(R234 «M5-13 = 아직») · L-3 결과 «차이 해소하기» · 차단 보드 «실사 해소 열기»가 저절로 선다.
       expect(
         kOperatorRouteBodies.byPattern.containsKey(
           AppRoutes.m5SelfAuditResolve,
         ),
-        isFalse,
-        reason: 'M5-13 = 아직(해소 링크 0)',
+        isTrue,
+        reason: 'M5-13 본문 = R280',
       );
     });
 

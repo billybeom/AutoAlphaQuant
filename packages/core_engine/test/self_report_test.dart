@@ -228,6 +228,10 @@ void main() {
       expect(row.applicable, isTrue);
       // 🔵 경로 = L-1 과 같은 엔진 규칙(관측 = 자동 · R59 S4) — 같은 차이가 두 화면에서 같게 읽힌다.
       expect(row.route, RepairRoute.auto);
+      // 🆕 R280(01 §8 미결 226 ⓗ · K320) — 옛 표본 `APPROVAL` «승인 필요» 정정 → 표본 = 엔진 경로 · 글자 «다시 실사로 해소».
+      expect(row.route.wire, d0['route']);
+      expect(row.routeLabel, d0['route_label']);
+      expect(row.routeLabel, '다시 실사로 해소');
       expect(r.emptyLabel, isNull);
       expect(
         r.resolveLink,

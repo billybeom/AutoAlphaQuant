@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:core_engine/core_engine.dart'
-    show Market, P0sStrategyIds, frozenExchangeCalendar;
+    show Market, P0sStrategyIds, frozenExchangeCalendar, heldReviewIdOf;
 import 'package:data_sync/data_sync.dart';
 import 'package:domain_contracts/domain_contracts.dart' hide BreakerLevel;
 import 'package:sqlite3/sqlite3.dart';
@@ -391,6 +391,47 @@ void main() {
       );
     },
   );
+
+  test('🆕 R280 보관 → M5-13 일괄 확정(RECEIVED) 뒤 같은 명령 = 집행(보통 소비 규칙)', () {
+    seed(live);
+    final BlindReviewCard c = src(
+      live,
+      RunMode.live,
+    ).blindReviewQueue().rows.single;
+    live.execute(
+      'INSERT INTO trading_block (flag_id, set_at, reason) VALUES (?, ?, ?)',
+      <Object?>[FlagIds.ledgerIntegrity, _t0.toIso8601String(), '시험'],
+    );
+    final BlindReviewScore s = BlindReviewScore(
+      decisionId: c.decisionId,
+      answers: answers(c),
+    );
+    expect(
+      submit(live, s, commandId: 'm').state,
+      CommandState.heldForIntegrity,
+    );
+    live.execute(
+      'UPDATE trading_block SET cleared_at = ?, cleared_by = ? WHERE flag_id = ?',
+      <Object?>[_t0.toIso8601String(), 'test', FlagIds.ledgerIntegrity],
+    );
+    final SqliteSelfAuditResolveSource gate = SqliteSelfAuditResolveSource(
+      live,
+    );
+    expect(
+      gate
+          .confirmHeld(
+            args: <String, String>{
+              'review_id': heldReviewIdOf(gate.heldCommands())!,
+            },
+            nowUtc: _t0,
+          )
+          .code,
+      isNull,
+    );
+    final BlindReviewWriteResult done = submit(live, s, commandId: 'm');
+    expect((done.state, done.replayed), (CommandState.executed, false));
+    expect(count(live, 'blind_review_score'), 1);
+  });
 
   test(
     '결과 재료 읽기 — 되돌림 · 정정 = 살아 있는 체결 · 되돌린 기업 행사 = 없음 · 축 모르는 수기 체결 = 셀 수 없음',
