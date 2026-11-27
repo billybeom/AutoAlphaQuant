@@ -56,10 +56,11 @@ class OverduePostmortem {
 /// 🆕 E11q-d2 — `D-01` 장애 배너가 지켜보는 표(같은 연결의 `db.updates` · 건이 열리고 닫히는 곳 하나).
 const Set<String> kIncidentWatchedTables = <String>{'incidents'};
 
-/// 🆕 E11q-d2 — 열린 사건(`resolved_at` 빈칸 · 배너 원천 · 차례 = 엔진 `incidentBannerVmOf` 몫 — 여기선 id 차례).
+/// 🆕 E11q-d2 — 열린 사건(`resolved_at` 빈칸 · 배너 원천 · 차례 = 엔진 `incidentBannerVmOf` 몫 — 여기선 id 차례) ·
+/// 🆕 R282 — 쓴 postmortem 원문(`M5-4` 목록 · 배너 «쓸 차례» 판정).
 List<OpenIncident> openIncidentsOf(Database db) => <OpenIncident>[
   for (final Row r in db.select(
-    'SELECT incident_id, occurred_at, severity, category, due_at FROM incidents '
+    'SELECT incident_id, occurred_at, severity, category, due_at, postmortem FROM incidents '
     'WHERE resolved_at IS NULL ORDER BY incident_id',
   ))
     OpenIncident(
@@ -71,6 +72,7 @@ List<OpenIncident> openIncidentsOf(Database db) => <OpenIncident>[
         final String due => DateTime.parse(due).toUtc(),
         _ => null,
       },
+      postmortem: r['postmortem'] as String?,
     ),
 ];
 

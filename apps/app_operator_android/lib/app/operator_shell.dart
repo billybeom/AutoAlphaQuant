@@ -135,6 +135,7 @@ import 'package:ui_safety/ui_safety.dart'
         KillSwitchScreen,
         KillSwitchSlot,
         PledgePanel,
+        PostmortemScreen,
         RepairWizardScreen,
         ResumeGateScreen,
         ResumeReportScreen,
@@ -151,6 +152,7 @@ import 'package:ui_safety/ui_safety.dart'
         safetyLinkOpenerProvider,
         safetyMigrationRepositoryProvider,
         safetyPledgeRepositoryProvider,
+        safetyPostmortemRepositoryProvider,
         safetyRepairWizardRepositoryProvider,
         safetyResumeGateRepositoryProvider,
         safetyRuleChangeGateRepositoryProvider,
@@ -205,6 +207,7 @@ import 'operator_ops_status.dart';
 import 'operator_ops_summary.dart';
 import 'operator_performance.dart';
 import 'operator_pledge.dart';
+import 'operator_postmortem.dart';
 import 'operator_repair.dart';
 import 'operator_resume.dart';
 import 'operator_rule_change.dart';
@@ -472,6 +475,16 @@ final Provider<OperatorIncidentRepository> operatorIncidentProvider =
     Provider<OperatorIncidentRepository>((Ref ref) {
       final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
       return OperatorIncidentRepository(
+        ref.watch(operatorRuntimeProvider),
+        hasBody: bodies.byPattern.containsKey,
+      );
+    });
+
+/// 🆕 미결 243 ⓐ(R282) — `M5-4` postmortem 목록 + 쓰기(화면 원장의 열린 의무 건 · STOPPED 결정 링크 = 레지스트리에 본문이 있을 때만).
+final Provider<OperatorPostmortemRepository> operatorPostmortemProvider =
+    Provider<OperatorPostmortemRepository>((Ref ref) {
+      final ShellRouteBodies bodies = ref.watch(shellRouteBodiesProvider);
+      return OperatorPostmortemRepository(
         ref.watch(operatorRuntimeProvider),
         hasBody: bodies.byPattern.containsKey,
       );
@@ -749,6 +762,7 @@ Widget _resumeReport(Map<String, String> _) => const ResumeReportScreen();
 Widget _resumeGate(Map<String, String> _) => const ResumeGateScreen();
 
 Widget _ruleChangeGate(Map<String, String> _) => const RuleChangeGateScreen();
+Widget _postmortem(Map<String, String> _) => const PostmortemScreen();
 
 Widget _x1Plan(Map<String, String> _) => const X1PlanWizardScreen();
 
@@ -983,6 +997,8 @@ kOperatorRouteBodies = ShellRouteBodies(<String, ShellBodyBuilder>{
   AppRoutes.x2ResumeGate: _resumeGate,
   // 🆕 E11q-c0(R188) — M5-9 규칙 변경 게이트 «첫 승인 최소판»(SAF-405 첫 승인 요청 · 냉각 · 승인 · 취소).
   AppRoutes.m5RuleChangeGate: _ruleChangeGate,
+  // 🆕 미결 243 ⓐ(R282 · K345) — M5-4 postmortem 목록 + 쓰기(D-01 «postmortem 쓰기» 배너 목적지 · 쓰기 = 안전 동작 `runPostmortem`).
+  AppRoutes.m5Postmortem: _postmortem,
   // 🆕 E16j-b — X1 기기 이전(옛 폰 마법사 = S06 · S09 `migrationLink` 목적지 · 새 폰 받기 · 비상 = R-01 분기 · 진행 = 1~3단계까지 ·
   //    4단계 이후 · 새 폰 복원 = 엔진 막힘 문장 — 미결 218) · 🆕 E16t3c 비상 앞쪽(시작 · 펜싱 · 재발급) 열림.
   AppRoutes.x1Migration: _x1Plan,
@@ -1067,6 +1083,10 @@ List<Override> operatorShellOverrides(OperatorRuntime runtime) => <Override>[
   // 🆕 R227 — X5 정정 마법사 읽기(쓰기 = 위 안전 동작 인스턴스 · 링크 = 위 셸 링크 열기).
   safetyRepairWizardRepositoryProvider.overrideWith(
     (Ref ref) => ref.watch(operatorRepairWizardProvider),
+  ),
+  // 🆕 R282 — M5-4 postmortem 읽기(쓰기 = 위 안전 동작 인스턴스 · 링크 = 위 셸 링크 열기).
+  safetyPostmortemRepositoryProvider.overrideWith(
+    (Ref ref) => ref.watch(operatorPostmortemProvider),
   ),
   // 🆕 R188 — M5-9 규칙 변경 게이트 읽기(요청 · 승인 · 취소 = 위 안전 동작 인스턴스).
   safetyRuleChangeGateRepositoryProvider.overrideWith(

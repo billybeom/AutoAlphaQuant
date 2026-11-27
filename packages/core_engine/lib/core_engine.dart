@@ -1665,8 +1665,10 @@ export 'src/safety/incident_banner.dart'
         compareIncidentUrgency,
         incidentBannerOf,
         incidentBannerVmOf,
+        incidentCategoryLabelOf,
         incidentKindOf,
-        incidentLevelOf;
+        incidentLevelOf,
+        incidentMinuteText;
 // 🆕 E13f2 — 수동 개입 5단계 상태기계(M5-6 · 설계 13 §8 R65).
 export 'src/safety/intervention.dart'
     show
@@ -1766,6 +1768,13 @@ export 'src/safety/pledge_view.dart'
         pledgeAsOf,
         pledgeSubmissionDigest,
         pledgeVmOf;
+// 🆕 미결 243 ⓐ — `M5-4` postmortem 목록 + 쓰기 VM · 결과(설계 13 §8 R282 · 계약 v1.39 K345).
+export 'src/safety/postmortem_list.dart'
+    show
+        PostmortemTexts,
+        postmortemActionResultOf,
+        postmortemAsOf,
+        postmortemListVmOf;
 // 🆕 E11q-c4 — M5-5 RECON 해제 폼 · 판정 · 결과 글자(설계 13 §8 R189 · 01 §35 K181 · K182).
 export 'src/safety/recon_clear.dart'
     show
