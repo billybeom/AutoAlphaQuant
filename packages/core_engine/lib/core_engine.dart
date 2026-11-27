@@ -303,9 +303,14 @@ export 'src/mode/handover_wizard.dart'
         simLedgerFateResultText,
         simTrialCardOf,
         simTrialStateLevel;
-// 🆕 미결 243 ⓓ — 닫힌 원장 쓰기 거부 접수증(`LEDGER_CLOSED` · 계약 v1.39 K347 · 설계 13 §8 R276).
+// 🆕 미결 243 ⓓ — 닫힌 원장 쓰기 거부 접수증(`LEDGER_CLOSED` · 계약 v1.39 K347 · 설계 13 §8 R276) · 🆕 미결 249 동작 결과(R279).
 export 'src/mode/ledger_write_gate.dart'
-    show LedgerWriteGateTexts, kLedgerClosedReceiptTtl, ledgerClosedReceiptOf;
+    show
+        LedgerWriteGateTexts,
+        kLedgerClosedReceiptTtl,
+        ledgerClosedActionResultOf,
+        ledgerClosedReceiptOf,
+        ledgerClosedSafetyResultOf;
 // 🆕 E15f4a — 커밋 직전 계좌 조회 어댑터(브로커 포트 → LiveAccountProbe · 설계 13 §8 R103 AI6).
 export 'src/mode/live_account_probe.dart' show probeLiveAccount;
 // 🆕 E15e1 — M1-22 실전 드라이런 관찰 창(연속 무결 거래일 · 승격 가능 판정 · 설계 13 §8 R89).
