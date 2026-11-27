@@ -205,52 +205,39 @@ void main() {
     );
   });
 
-  test(
-    '🆕 E11q-d2 — 열린 사건(배너 원천) = 닫히지 않은 건만 · 칸 그대로 · 기한 없음 = null · 지켜보는 표',
-    () {
-      incident('S2', 'SEV2', due: '2026-11-08T00:00:00.000Z');
-      incident('S1', 'SEV1', due: '2026-11-04T00:00:00.000Z');
-      incident('closed', 'SEV2', resolved: '2026-11-02T00:00:00.000Z');
-      incident('S3', 'SEV3');
-      expect(
-        openIncidentsOf(db).map(
-          (OpenIncident x) => (
-            x.incidentId,
-            x.severity,
-            x.category,
-            x.occurredAtUtc,
-            x.dueAtUtc,
-          ),
-        ),
-        <(String, String, String, DateTime, DateTime?)>[
-          (
-            'S1',
-            'SEV1',
-            'C',
-            DateTime.utc(2026, 11),
-            DateTime.utc(2026, 11, 4),
-          ),
-          (
-            'S2',
-            'SEV2',
-            'C',
-            DateTime.utc(2026, 11),
-            DateTime.utc(2026, 11, 8),
-          ),
-          ('S3', 'SEV3', 'C', DateTime.utc(2026, 11), null),
-        ],
-      );
-      expect(openIncidentsOf(db).first.occurredAtUtc.isUtc, isTrue);
-      // 🔴 원인 해소 = 배너가 사라진다 — SEV2 · SEV3 = postmortem 이 닫는다 · SEV1 = 열린 채(STOPPED 결정이 닫는다).
-      write('S2', '원인 정리', cmd: 'p2');
-      write('S1', '원인 정리', cmd: 'p1');
-      expect(
-        openIncidentsOf(db).map((OpenIncident x) => x.incidentId),
-        <String>['S1', 'S3'],
-      );
-      expect(kIncidentWatchedTables, <String>{'incidents'});
-    },
-  );
+  test('🆕 E11q-d2 — 열린 사건(배너 원천) = 닫히지 않은 건만 · 칸 그대로 · 기한 없음 = null · 지켜보는 표', () {
+    incident('S2', 'SEV2', due: '2026-11-08T00:00:00.000Z');
+    incident('S1', 'SEV1', due: '2026-11-04T00:00:00.000Z');
+    incident('closed', 'SEV2', resolved: '2026-11-02T00:00:00.000Z');
+    incident('S3', 'SEV3');
+    expect(
+      openIncidentsOf(db).map(
+        (OpenIncident x) =>
+            (x.incidentId, x.severity, x.category, x.occurredAtUtc, x.dueAtUtc),
+      ),
+      <(String, String, String, DateTime, DateTime?)>[
+        ('S1', 'SEV1', 'C', DateTime.utc(2026, 11), DateTime.utc(2026, 11, 4)),
+        ('S2', 'SEV2', 'C', DateTime.utc(2026, 11), DateTime.utc(2026, 11, 8)),
+        ('S3', 'SEV3', 'C', DateTime.utc(2026, 11), null),
+      ],
+    );
+    expect(openIncidentsOf(db).first.occurredAtUtc.isUtc, isTrue);
+    // 🔴 원인 해소 = 배너가 사라진다 — SEV2 · SEV3 = postmortem 이 닫는다 · SEV1 = 열린 채(STOPPED 결정이 닫는다).
+    write('S2', '원인 정리', cmd: 'p2');
+    write('S1', '원인 정리', cmd: 'p1');
+    expect(openIncidentsOf(db).map((OpenIncident x) => x.incidentId), <String>[
+      'S1',
+      'S3',
+    ]);
+    // 🆕 R282 — 쓴 postmortem 원문이 실린다(`M5-4` 쓴 행 · 배너 «쓸 차례» 판정) · 안 쓴 건 = null.
+    expect(
+      openIncidentsOf(db).map(
+        (OpenIncident x) => (x.incidentId, x.postmortem, x.postmortemWritten),
+      ),
+      <(String, String?, bool)>[('S1', '원인 정리', true), ('S3', null, false)],
+    );
+    expect(kIncidentWatchedTables, <String>{'incidents'});
+  });
 
   test('🆕 E11q-d2 — 빈 원장 = 열린 사건 0', () {
     expect(openIncidentsOf(db), isEmpty);

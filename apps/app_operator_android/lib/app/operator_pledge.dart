@@ -8,8 +8,8 @@
 // 🔴 첫 판 저널 id = 명령 id(R67 Z1) · 편집 저널 id = 제출 그대로(사전 저널 원천 = 01 §8 미결 185 · 없으면 엔진 거부).
 // 🔴 신뢰 시각 = `OperatorRuntime.trusted`(E11k 전 = 모름 → 엔진 `TRUSTED_TIME_UNKNOWN`).
 // 🔴 서약 밖 안전 동작 — 재개판(R180) · 규칙 변경 요청 · 승인 · 취소(R188 — `run` 은 `ruleChangeCancel` 만) · 🆕 RECON 해제(R189 ·
-//    `runReconClear` — `run(reconClear)` = ArgumentError) = 구현 · STOPPED 결정 · 사후 검토 · 재량 조정 = operator 구현 전(오류 — 지어내지
-//    않는다).
+//    `runReconClear` — `run(reconClear)` = ArgumentError) = 구현 · STOPPED 결정 · 재량 조정 = operator 구현 전(오류 — 지어내지
+//    않는다) · 🆕 사후 검토(`runPostmortem` · 미결 243 ⓐ · R282) = 구현.
 // 🆕 E16j-a(R227 · 01 §41 K252~K256 · 미결 217) — X5 정정 마법사: `run(interventionStep)` · `run(repairAccept)` · `runInterventionJournal` ·
 //    `runRepairCorrect` · `runRepairBaseline` = 구현(`OperatorRepairActions` — 같은 원장 · 결과 글자 = 엔진).
 // 🆕 리뷰 3차 H1-3(설계 13 §8 R261 · 01 §8 미결 235 ⓒ) — 안전 상태를 바꾼 동작(재개 · RECON 해제 · 정정 · 개입 · 기기 이전) 뒤 엔진
@@ -38,6 +38,7 @@ import 'package:core_engine/core_engine.dart'
         ledgerClosedSafetyResultOf,
         newCommandId,
         pledgeActionResultOf,
+        postmortemActionResultOf,
         pledgeSubmissionDigest,
         pledgeVmOf,
         reconClearActionResultOf,
@@ -48,11 +49,13 @@ import 'package:data_sync/data_sync.dart'
     show
         KillCommandResult,
         PledgeResult,
+        PostmortemResult,
         ReconClearWriteResult,
         RuleChangeResult,
         SqliteOrderLedger,
         SqliteRuleChangeStore,
         SqliteSeasonalChoice,
+        SqliteIncidentStore,
         SqliteKillSwitchStore,
         SqlitePledgeStore,
         readKillSwitchRecord,
@@ -418,9 +421,37 @@ class OperatorSafetyActions implements SafetyActions {
     StoppedDecisionSubmission submission,
   ) => _none('runStoppedDecision');
 
+  /// 🆕 미결 243 ⓐ(설계 13 §8 R282 · R243 P4 · 계약 v1.39 K345) — `M5-4` postmortem 쓰기: 엔진 저장 `SqliteIncidentStore.recordPostmortem`
+  /// (같은 원장 · 판정 = 엔진 — 건 없음 · 빈 글 · 이미 씀 · 한 번만 · SEV2 · SEV3 = 같은 트랜잭션에서 건을 닫음 · SEV1 = 열린 채 ·
+  /// `command_inbox` 멱등) · 원문 그대로(손질 0) · 생체 = 구현 0(서약 · 규칙 변경 선례 · 운영 등급 공통 관문 = 미결 169) ·
+  /// 결과 글자 = 엔진(`postmortemActionResultOf`) · 닫힌 원장 = `LEDGER_CLOSED`(R279) · 받아들여짐 = 깨어남 한 번(건이 닫힌다).
   @override
-  Future<SafetyActionResult> runPostmortem(PostmortemSubmission submission) =>
-      _none('runPostmortem');
+  Future<SafetyActionResult> runPostmortem(
+    PostmortemSubmission submission,
+  ) async {
+    final SafetyActionResult? closed = _closed(SafetyActionId.postmortemRecord);
+    if (closed != null) return closed;
+    final OperatorView? v = _rt.view.value;
+    if (v == null) throw StateError('postmortem: 화면 상태 없음(온보딩 전)');
+    final ({String commandId, String nonce, String payloadDigest}) c =
+        issueKillCommand(payload: submission.toJson(), random: _random);
+    final PostmortemResult r = SqliteIncidentStore(v.db, clock: _rt.clock)
+        .recordPostmortem(
+          commandId: c.commandId,
+          payloadDigest: c.payloadDigest,
+          incidentId: submission.incidentId,
+          text: submission.text,
+        );
+    if (!r.executed && r.reasonCode == null) {
+      throw StateError('postmortem: 엔진이 사유 없이 거부했다');
+    }
+    return _done[c.commandId] = _woke(
+      postmortemActionResultOf(
+        actionRunId: c.commandId,
+        code: r.executed ? null : r.reasonCode,
+      ),
+    );
+  }
 
   /// 🆕 E16j-a(R227 · 01 §41 K255 · 미결 217 ⓐⓒⓓ) — X5 정본 정정: 원문 파싱(엔진) → 대상의 열린 세션 → 직전 재대사 → 정정 커밋(5단계).
   @override

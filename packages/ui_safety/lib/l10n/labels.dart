@@ -225,4 +225,7 @@ abstract final class SafetyLabels {
 
   /// 정정 제출.
   static const String repairCorrectSubmit = '정정 실행';
+
+  /// 🆕 R282 — `M5-4` postmortem 화면을 못 읽음(정적 · 원천 오류).
+  static const String postmortemReadFailed = 'postmortem 화면을 읽지 못했습니다.';
 }

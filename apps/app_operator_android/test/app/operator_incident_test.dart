@@ -43,6 +43,18 @@ void _close(Database db, String id) => db.execute(
 
 const IncidentBannerVm _none = IncidentBannerVm();
 
+/// 🆕 R282(미결 243 ⓐ · K345) — 기한 있는 미작성 건 = «써야 할 postmortem» 글자 · 조치 = `M5-4`(본문 있음) — 기한 = `_open` 의
+/// 2026-11-27T06:00Z = 한국 11-27 15:00.
+IncidentBannerVm _due(UiLevel level, String label) => IncidentBannerVm(
+  banner: IncidentBanner(
+    kind: IncidentKind.other,
+    level: level,
+    title: IncidentBannerTexts.postmortemDueTitle,
+    bodyText: IncidentBannerTexts.postmortemDueBody(label, '11-27 15:00'),
+    actionLink: IncidentBannerTexts.postmortemAction,
+  ),
+);
+
 IncidentBannerVm _other(UiLevel level) => IncidentBannerVm(
   banner: IncidentBanner(
     kind: IncidentKind.other,
@@ -89,10 +101,10 @@ void main() {
         category: 'MANUAL_ORDER',
       );
       await pumpEventQueue();
-      expect(got.last, _other(UiLevel.act));
+      expect(got.last, _due(UiLevel.act, '수동 주문'));
       _close(files.sim, 'SEV2-MANUAL_ORDER-d1');
       await pumpEventQueue();
-      expect(got, <IncidentBannerVm>[_none, _other(UiLevel.act), _none]);
+      expect(got, <IncidentBannerVm>[_none, _due(UiLevel.act, '수동 주문'), _none]);
       expect(errors, isEmpty);
       await sub.cancel();
     },
@@ -113,14 +125,17 @@ void main() {
     await pumpEventQueue();
     _open(files.sim, 'SEV2-Y', 'SEV2', category: 'MANUAL_ORDER');
     await pumpEventQueue();
-    expect(got, <IncidentBannerVm>[_none, _other(UiLevel.blocked)]);
+    expect(got, <IncidentBannerVm>[
+      _none,
+      _due(UiLevel.blocked, '서킷브레이커 STOPPED'),
+    ]);
     // SEV1 이 닫히면(STOPPED 결정) 다음 무거운 건.
     _close(files.sim, 'SEV1-BREAKER_STOPPED-20261120');
     await pumpEventQueue();
-    expect(got.last, _other(UiLevel.act));
+    expect(got.last, _due(UiLevel.act, '수동 주문'));
     _close(files.sim, 'SEV2-Y');
     await pumpEventQueue();
-    expect(got.last, _other(UiLevel.info));
+    expect(got.last, _due(UiLevel.info, '안전 사건'));
     await sub.cancel();
   });
 
@@ -138,7 +153,7 @@ void main() {
       await pumpEventQueue();
       _open(files.sim, 'SEV1-sim', 'SEV1');
       await pumpEventQueue();
-      expect(got.last, _other(UiLevel.blocked));
+      expect(got.last, _due(UiLevel.blocked, '서킷브레이커 STOPPED'));
       r.view.value = _viewOf(files.sim); // 깨어남(같은 원장).
       await pumpEventQueue();
       expect(got, hasLength(2));
@@ -152,7 +167,7 @@ void main() {
       expect(got.last, _none);
       _open(live, 'SEV2-live', 'SEV2');
       await pumpEventQueue();
-      expect(got.last, _other(UiLevel.act));
+      expect(got.last, _due(UiLevel.act, '서킷브레이커 STOPPED'));
       // 다른 원장으로 옮겨도 값이 같으면(둘 다 열린 SEV2) 다시 내지 않는다.
       final int n = got.length;
       r.view.value = _viewOf(files.sim);
@@ -189,19 +204,26 @@ void main() {
     await sub.cancel();
   });
 
-  test('조치 링크 판정 = 주입한 hasBody 를 엔진에 넘긴다(지금 사건 = 조치 없는 종류 → 묻지 않는다)', () async {
+  test('조치 링크 판정 = 주입한 hasBody 를 엔진에 넘긴다 — 🆕 R282 쓸 차례 = `M5-4` 를 묻는다 · 쓴 건 = 조치 없는 종류(묻지 않는다)', () async {
     final List<String> asked = <String>[];
     final OperatorRuntime r = rt();
     _open(files.sim, 'SEV1-a', 'SEV1');
-    final IncidentBannerVm v = await OperatorIncidentRepository(
+    final OperatorIncidentRepository repo = OperatorIncidentRepository(
       r,
       hasBody: (String route) {
         asked.add(route);
-        return true;
+        return false;
       },
-    ).watchIncident().first;
-    expect(v, _other(UiLevel.blocked));
-    expect(v.banner!.actionLink, isNull);
+    );
+    final IncidentBannerVm v = await repo.watchIncident().first;
+    expect(v.banner!.title, IncidentBannerTexts.postmortemDueTitle);
+    expect(v.banner!.actionLink, isNull, reason: '본문 없음 = 조치 0');
+    expect(asked, <String>[AppRoutes.m5Postmortem]);
+    asked.clear();
+    files.sim.execute(
+      "UPDATE incidents SET postmortem = '썼다' WHERE incident_id = 'SEV1-a'",
+    );
+    expect(await repo.watchIncident().first, _other(UiLevel.blocked));
     expect(asked, isEmpty);
   });
 }

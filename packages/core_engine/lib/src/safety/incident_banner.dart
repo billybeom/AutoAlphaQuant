@@ -11,6 +11,10 @@
 //    SEV2(postmortem 7일 필수) = act · SEV3(선택 · 월말 일괄) = info · 🔴 ok 는 오지 않는다.
 // 🔴 글자 = 표본 제안 문장 그대로(종류마다 한 벌 · 뷰어도 같은 번들) · 조치 링크 = 조립 앱에 그 목적지의 본문이 있을 때만
 //    (`hasBody` · 없으면 null = 버튼 부재).
+// 🆕 미결 243 ⓐ(설계 13 §8 R282 · 계약 v1.39 K345 · 표본 `m8/incident_banner_postmortem_due`) — 가장 급한 건이 postmortem 의무 건
+//    (기한 `due_at` 있음 — SEV1 STOPPED 3일 · SEV2 수동 주문 7일)이고 아직 안 썼으면 같은 `other` 종류 · 같은 등급에 글자만 «써야 할
+//    postmortem» 한 벌 + 조치 «postmortem 쓰기» → `m5Postmortem`(본문 있을 때만). 쓴 건(SEV1 — STOPPED 결정이 닫는다) · 기한 없는 건
+//    (SEV3 선택 · 옛 행)은 기존 `other` 글자 그대로. 🔴 시간만 흐르는 몫 0(기한 글자 = 기한 시각 · 넘김 판정 없음).
 
 import 'package:domain_contracts/domain_contracts.dart'
     show
@@ -32,6 +36,7 @@ class OpenIncident {
     required this.category,
     required this.occurredAtUtc,
     this.dueAtUtc,
+    this.postmortem,
   });
 
   /// id · `SEV1` · `SEV2` · `SEV3` · 분류.
@@ -42,6 +47,30 @@ class OpenIncident {
 
   /// postmortem 기한(v2.40 전 행 = 없음).
   final DateTime? dueAtUtc;
+
+  /// 🆕 R282 — 쓴 postmortem(원문 · 없음 = null — 빈칸 · 공백도 «안 씀»).
+  final String? postmortem;
+
+  /// 🆕 R282 — postmortem 을 썼나(공백만 = 안 씀 · 엔진 `postmortemRejectCode` 와 같은 판정).
+  bool get postmortemWritten =>
+      postmortem != null && postmortem!.trim().isNotEmpty;
+
+  /// 🆕 R282 — postmortem 의무 건인가(기한이 적힌 건 — SEV1 STOPPED · SEV2 수동 주문 · SEV3 선택 · 옛 행 = 아님).
+  bool get postmortemDuty => dueAtUtc != null;
+}
+
+/// 🆕 R282 — 사건 분류 → 사람 글자(금액 0 · 모르는 분류 = «안전 사건»).
+String incidentCategoryLabelOf(String category) => switch (category) {
+  'BREAKER_STOPPED' => '서킷브레이커 STOPPED',
+  'MANUAL_ORDER' => '수동 주문',
+  _ => '안전 사건',
+};
+
+/// 🆕 R282 — 한국 시각 `MM-DD HH:mm`(사건 · 기한 글자).
+String incidentMinuteText(DateTime utc) {
+  final DateTime k = utc.toUtc().add(const Duration(hours: 9));
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '${two(k.month)}-${two(k.day)} ${two(k.hour)}:${two(k.minute)}';
 }
 
 /// 배너 한 종류의 글자 한 벌.
@@ -91,6 +120,19 @@ abstract final class IncidentBannerTexts {
           bodyText: '자세한 내용은 운영 화면에서 확인하세요.',
         ),
       };
+
+  /// 🆕 R282 — 써야 할 postmortem(표본 `m8/incident_banner_postmortem_due` 제안 문장 · 종류 = `other`).
+  static const String postmortemDueTitle = '써야 할 postmortem 이 있습니다';
+
+  /// 🆕 R282 — 본문(분류 글자 · 기한 `MM-DD HH:mm`).
+  static String postmortemDueBody(String categoryLabel, String dueText) =>
+      '$categoryLabel 사건의 postmortem 을 기한 $dueText 까지 써야 합니다.';
+
+  /// 🆕 R282 — 조치(목적지 = `M5-4` · 본문이 있는 빌드에서만).
+  static const LinkAction postmortemAction = LinkAction(
+    label: 'postmortem 쓰기',
+    deepLink: AppRoutes.m5Postmortem,
+  );
 }
 
 /// 종류 · 등급 → 배너 한 건 — 글자 = 번들 · 조치 = 조립 앱에 그 목적지의 본문이 있을 때만([hasBody] = 계약 라우트 패턴).
@@ -145,11 +187,24 @@ IncidentBannerVm incidentBannerVmOf(
   final List<OpenIncident> all = open.toList()..sort(compareIncidentUrgency);
   if (all.isEmpty) return const IncidentBannerVm();
   final OpenIncident first = all.first;
+  final IncidentBanner banner = incidentBannerOf(
+    incidentKindOf(first.category),
+    incidentLevelOf(first.severity),
+    hasBody: hasBody,
+  );
+  final DateTime? due = first.dueAtUtc;
+  if (due == null || first.postmortemWritten) {
+    return IncidentBannerVm(banner: banner);
+  }
+  // 🆕 R282 — 쓸 차례 = 같은 종류 · 등급 · 글자만 «써야 할 postmortem» · 조치 = `M5-4`(본문 있을 때만).
   return IncidentBannerVm(
-    banner: incidentBannerOf(
-      incidentKindOf(first.category),
-      incidentLevelOf(first.severity),
-      hasBody: hasBody,
+    banner: banner.copyWith(
+      title: IncidentBannerTexts.postmortemDueTitle,
+      bodyText: IncidentBannerTexts.postmortemDueBody(
+        incidentCategoryLabelOf(first.category),
+        incidentMinuteText(due),
+      ),
+      actionLink: _actionOf(IncidentBannerTexts.postmortemAction, hasBody),
     ),
   );
 }
