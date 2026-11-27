@@ -16,13 +16,15 @@ import 'package:app_operator_android/engine/ledger_files.dart';
 import 'package:core_engine/core_engine.dart'
     show
         LedgerTrustTexts,
+        OperationsConfig,
         P0sHumanInputs,
         P0sStrategyIds,
         SelfReportTexts,
         TrustedClock,
         routePatternOf,
         selfReportTrustBadgeOf;
-import 'package:data_sync/data_sync.dart' show P0sHumanDecision;
+import 'package:data_sync/data_sync.dart'
+    show P0sHumanDecision, SqliteSelfReportSource;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database, Row;
@@ -283,32 +285,43 @@ void main() {
       await sub.cancel();
     });
 
-    test('🔴 차이 0 = 맞음 문장 · 마지막 계좌 = 다음 링크 0', () {
-      sr.start('ar1', <String, String>{
-        'yyyy_mm': '2026-08',
-        'account_alias': '일반',
-      });
-      expect(
-        sr
-            .submit(
-              _sub(alias: '일반', b: '0'),
-              random: Random(1),
-            )
-            .state,
-        CommandState.executed,
-      );
-      sr.start('ar2', _args);
-      expect(
-        sr.submit(_sub(b: '245'), random: Random(2)).state,
-        CommandState.executed,
-      );
-      final SelfReportResult res = sr
-          .sessionOf(rt.view.value!, '2026-08', '연금저축')
-          .result!;
-      expect(res.diffs, isEmpty);
-      expect(res.emptyLabel, '실사 결과가 원장과 맞습니다');
-      expect(res.nextAccountLink, isNull);
-    });
+    test(
+      '🔴 차이 0 · 허용 오차 값 없음(🆕 R278) = 현금 미대조 문장 · 현금 행 0 · 마지막 계좌 = 다음 링크 0',
+      () {
+        sr.start('ar1', <String, String>{
+          'yyyy_mm': '2026-08',
+          'account_alias': '일반',
+        });
+        expect(
+          sr
+              .submit(
+                _sub(alias: '일반', b: '0'),
+                random: Random(1),
+              )
+              .state,
+          CommandState.executed,
+        );
+        sr.start('ar2', _args);
+        expect(
+          sr.submit(_sub(b: '245'), random: Random(2)).state,
+          CommandState.executed,
+        );
+        final SelfReportResult res = sr
+            .sessionOf(rt.view.value!, '2026-08', '연금저축')
+            .result!;
+        expect(res.diffs, isEmpty);
+        // 🆕 R278(K323 ④) — 운영 설정 없음 · 표식 없음 = 현금은 대조하지 않는다(원장 0원 ≠ 적은 1,000,000원이어도 차이 0).
+        expect(
+          res.emptyLabel,
+          '수량은 원장과 맞습니다 · 현금은 허용 오차가 정해지기 전이라 대조하지 않았습니다(적은 값은 기록에 남습니다)',
+        );
+        expect(
+          count("SELECT COUNT(*) FROM ledger_diff WHERE axis = 'CASH'"),
+          0,
+        );
+        expect(res.nextAccountLink, isNull);
+      },
+    );
 
     test(
       '🔴 거부 차례 — 달 없음 → 세션 밖 · 다른 계좌 세션 → 자동 매매 → 원문 → 신뢰 시각 → 리스 → 무결성 보관',
@@ -423,6 +436,114 @@ void main() {
         );
       },
     );
+  });
+
+  group('🆕 R278 현금 축(01 §8 미결 227 · §46 K323)', () {
+    const TradeDate asOf = TradeDate('2026-08-31');
+    const Map<String, String> general = <String, String>{
+      'yyyy_mm': '2026-08',
+      'account_alias': '일반',
+    };
+
+    /// 운영 설정 허용 오차를 실은 조립으로 바꾼다(세션 장부 새로).
+    void withTolerance(int? krw) {
+      sr.sessions.dispose();
+      rt = OperatorRuntime(
+        files: files,
+        clock: clock,
+        deviceId: _dev,
+        trusted: trusted,
+        humanDecision: rt.humanDecision,
+        operations: OperationsConfig.fromJson(<String, Object?>{
+          'self_report_cash_tolerance_krw': krw,
+        }),
+      );
+      rt.view.value = _viewOf(files.sim, OperatingMode.advisory);
+      sr = OperatorSelfReport(
+        rt,
+        hasBody: (String _) => true,
+        tick: const Duration(milliseconds: 20),
+      );
+    }
+
+    void deposit(String? alias, double amount, {String day = '2026-08-03'}) =>
+        files.sim.execute(
+          'INSERT INTO cash_flow (flow_id, trade_date, amount, currency, kind, account_alias) '
+          "VALUES (?, ?, ?, 'KRW', 'DEPOSIT', ?)",
+          <Object?>['cf-${alias ?? 'none'}-$day', day, amount, alias],
+        );
+
+    SelfReportResult resultOf(String alias) =>
+        sr.sessionOf(rt.view.value!, '2026-08', alias).result!;
+
+    SqliteSelfReportSource src() =>
+        SqliteSelfReportSource(files.sim, clock: clock);
+
+    test('🔴 허용 오차 값 = 대조 — 안 = 맞음 문장 · 넘음 = 현금 관측 차이(L-1 사전 글자 · 결과 안 링크 0) · 0오차 판정', () {
+      withTolerance(1000);
+      deposit('연금저축', 999500);
+      sr.start('ar1', _args);
+      expect(
+        sr.submit(_sub(b: '245'), random: Random(1)).state,
+        CommandState.executed,
+      );
+      final SelfReportResult ok = resultOf('연금저축');
+      expect(ok.diffs, isEmpty);
+      expect(ok.emptyLabel, SelfReportTexts.resultEmpty);
+      sr.start('ar2', general);
+      expect(
+        sr
+            .submit(
+              _sub(alias: '일반', b: '0'),
+              random: Random(2),
+            )
+            .state,
+        CommandState.executed,
+      );
+      final SelfReportResult bad = resultOf('일반');
+      final LedgerDiffRow row = bad.diffs.single;
+      expect(row.axis, LedgerAxis.cash);
+      expect(row.pair, LedgerPair.canonSelfReport);
+      expect(row.severity, DiffSeverity.observational);
+      expect(row.deltaLabel, '원화 현금이 기록과 다릅니다 (원장 0원 / 자가 보고 1,000,000원)');
+      expect(row.actionLink, isNull);
+      expect(bad.emptyLabel, isNull);
+      expect(bad.resolveLink, isNotNull, reason: 'M5-13 본문 있음 · 열린 차이');
+      expect(src().zeroErrorAudit(asOf, '연금저축'), isTrue);
+      expect(src().zeroErrorAudit(asOf, '일반'), isFalse);
+    });
+
+    test('🔴 표식(SELF_AUDIT_PATTERN_UNVERIFIED)이 서 있으면 값이 없어도 0원으로 대조한다', () {
+      withTolerance(null);
+      files.sim.execute(
+        "INSERT INTO trading_block (flag_id, set_at, reason) VALUES ('SELF_AUDIT_PATTERN_UNVERIFIED', "
+        "'2026-09-01T00:00:00Z', 'x')",
+      );
+      deposit('연금저축', 999999);
+      sr.start('ar1', _args);
+      sr.submit(_sub(b: '245'), random: Random(1));
+      expect(
+        resultOf('연금저축').diffs.single.deltaLabel,
+        '원화 현금이 기록과 다릅니다 (원장 999,999원 / 자가 보고 1,000,000원)',
+      );
+      expect(count("SELECT COUNT(*) FROM ledger_diff WHERE axis = 'CASH'"), 1);
+    });
+
+    test('🔴 계좌를 모르는 현금이 기준일까지 있으면 = 대조 안 함(차이 행 0 · 모름 문장 · 0오차엔 세지 않음)', () {
+      withTolerance(0);
+      deposit(null, 5, day: '2026-07-01');
+      sr.start('ar1', general);
+      sr.submit(
+        _sub(alias: '일반', b: '0'),
+        random: Random(1),
+      );
+      expect(count('SELECT COUNT(*) FROM ledger_diff'), 0);
+      expect(
+        resultOf('일반').emptyLabel,
+        SelfReportTexts.resultCashLedgerUnknown,
+      );
+      expect(src().zeroErrorAudit(asOf, '일반'), isTrue);
+    });
   });
 
   group('🆕 E11q-q6c 신뢰 등급 · 실사 표식', () {

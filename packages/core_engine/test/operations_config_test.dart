@@ -131,6 +131,39 @@ void main() {
     );
   });
 
+  test('🆕 R278 실사 현금 허용 오차 = 최상위 self_report_cash_tolerance_krw(정수 원 · 없음 · null = null · 꼴 틀림 = FormatException)', () {
+    expect(
+      OperationsConfig.fromJson(_full()).selfReportCashToleranceKrw,
+      isNull,
+    );
+    expect(
+      OperationsConfig.fromJson(<String, Object?>{
+        'self_report_cash_tolerance_krw': null,
+      }).selfReportCashToleranceKrw,
+      isNull,
+      reason: '발주자 수치 대기 = null(엔진 기본값 0)',
+    );
+    expect(
+      OperationsConfig.fromJson(<String, Object?>{
+        'self_report_cash_tolerance_krw': 5000,
+      }).selfReportCashToleranceKrw,
+      5000,
+    );
+    expect(
+      OperationsConfig.fromJson(<String, Object?>{
+        'migration': <String, Object?>{'self_report_cash_tolerance_krw': 1},
+      }).selfReportCashToleranceKrw,
+      isNull,
+      reason: '다른 블록 안의 같은 이름은 읽지 않는다',
+    );
+    expect(
+      () => OperationsConfig.fromJson(<String, Object?>{
+        'self_report_cash_tolerance_krw': 0.5,
+      }).selfReportCashToleranceKrw,
+      throwsFormatException,
+    );
+  });
+
   test('🔴 키 없음 · 값 null = null(기능 꺼짐 · 지어내지 않음)', () {
     final OperationsConfig empty = OperationsConfig.fromJson(
       <String, Object?>{},

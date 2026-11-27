@@ -2,14 +2,19 @@
 //
 // 🔴 원장 수량(기준일) = 보유 화면과 같은 원천 — 지금 포지션(그 계좌에 묶인 전략 · KR) − 기준일 뒤 브로커 체결
 //    (`krSignedFillsAfter` — 슬리브 기여 · 월간 리포트와 같은 «그날 보유» 규칙). 화면에 싣지 않는다(앵커링 금지).
-// 🔴 기록 = 한 트랜잭션: `self_report_balance` 1 + `self_report_line` n + `ledger_diff`(CANON_SELF_REPORT · 수량 축 ·
+// 🔴 기록 = 한 트랜잭션: `self_report_balance` 1 + `self_report_line` n + `ledger_diff`(CANON_SELF_REPORT · 수량 축 · 🆕 R278 현금 축 ·
 //    OBSERVATIONAL) + `command_inbox`(EXECUTED · 엔진 글자) — 실패 = 전부 되돌림. 무결성 점검 중 = 보관 행만(B18).
 // 🔴 그 달 그 계좌 실사 = 한 번(같은 기준일 · 같은 별칭 행이 있으면 [StateError] — 부르는 쪽이 세션으로 막는다).
+// 🆕 R278(01 §8 미결 227 · 계약 v1.37 §46 K323) — 현금 축 원천 = 그 계좌 원화 `cash_flow`(별칭) + 그 계좌(`order_intents.account`)
+//    KR 브로커 체결 대금 · 기준일까지(수량 축과 같은 «그날» = 집행일) · 계좌를 모르는 현금 · 체결 = 모름 · 셈 = core.
+//    🔴 이 패키지는 Decimal 을 쓰지 않는다 — 원천 사실만 읽어 넘긴다(셈 · 판정 = core `selfReportLedgerCashOf`).
 
 import 'package:core_engine/core_engine.dart'
     show
         LedgerHolding,
+        SelfReportCashFacts,
         SelfReportDiffRow,
+        SimExecution,
         StoredLedgerDiff,
         selfReportAccountOfDelta,
         selfReportPayloadDigestOf,
@@ -21,9 +26,9 @@ import 'package:domain_contracts/domain_contracts.dart'
         CommandState,
         DiffStatus,
         FlagIds,
-        LedgerAxis,
         LedgerPair,
         OperatingMode,
+        OrderSide,
         RunMode,
         SelfReportBalance,
         SelfReportLine,
@@ -31,6 +36,7 @@ import 'package:domain_contracts/domain_contracts.dart'
         TradeDate;
 import 'package:sqlite3/sqlite3.dart' show Database, Row;
 
+import 'fill_sign_sql.dart' show signedFillSql;
 import 'ledger_read_model.dart' show storedLedgerDiffs;
 import 'position_replay_sql.dart' show krSignedFillsAfter;
 
@@ -50,6 +56,7 @@ class SqliteSelfReportSource {
     'positions',
     'executions',
     'trading_block',
+    'cash_flow',
   };
 
   /// 🔴 기준일 원장 수량(종목 → 수량 · 0 = 빠짐) — [strategies] = 그 계좌에 묶인 전략.
@@ -119,10 +126,79 @@ class SqliteSelfReportSource {
       });
 
   /// 원장 무결성 점검 중인가(`LEDGER_INTEGRITY` 가 서 있다 — 기록 명령 = 보관).
-  bool integrityBroken() => _db.select(
+  bool integrityBroken() => _flagStanding(FlagIds.ledgerIntegrity);
+
+  /// 🆕 R278 — 실사 패턴 미검증 표식이 서 있나(`SELF_AUDIT_PATTERN_UNVERIFIED` — 서 있으면 현금 허용 오차 = 0원 · K323 ③).
+  bool patternUnverifiedStanding() =>
+      _flagStanding(FlagIds.selfAuditPatternUnverified);
+
+  bool _flagStanding(String flagId) => _db.select(
     'SELECT 1 FROM trading_block WHERE flag_id = ? AND cleared_at IS NULL',
-    <Object?>[FlagIds.ledgerIntegrity],
+    <Object?>[flagId],
   ).isNotEmpty;
+
+  /// 🆕 R278 🔴 기준일 계좌 원장 현금 원천(K323 ①) — 그 계좌 원화 `cash_flow` 합(거래일 ≤ 기준일) + 그 계좌 KR 브로커 체결
+  /// (집행일 ≤ 기준일 · `REVERSAL` = 수량 · 비용 음수 — 시뮬레이터 현금 셈과 같은 부호) · 모름 = 기준일까지 별칭 빈 `cash_flow` 행 ·
+  /// 계좌 빈 의도의 체결 · 살아 있는 수기 체결(브로커 주문 없음 · 되돌림 아님 · 되돌려지지 않음 — 행에 계좌 칸이 없다 · 한국
+  /// 날짜 ≤ 기준일)이 하나라도 있으면.
+  SelfReportCashFacts cashFactsOf(TradeDate asOf, String alias) {
+    final String d = asOf.yyyyMmDd;
+    bool any(String sql) => _db.select(sql, <Object?>[d]).isNotEmpty;
+    final bool unattributed =
+        any(
+          "SELECT 1 FROM cash_flow WHERE (account_alias IS NULL OR TRIM(account_alias) = '') "
+          'AND trade_date <= ? LIMIT 1',
+        ) ||
+        any(
+          'SELECT 1 FROM executions e '
+          'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
+          'JOIN order_intents i ON i.intent_id = b.intent_id '
+          "WHERE i.market = 'KR' AND TRIM(i.account) = '' AND i.trade_date <= ? LIMIT 1",
+        ) ||
+        any(
+          "SELECT 1 FROM executions e WHERE e.broker_order_no IS NULL AND e.fill_kind <> 'REVERSAL' "
+          'AND NOT EXISTS (SELECT 1 FROM executions v WHERE v.reverses_fill_id = e.execution_id) '
+          "AND date(e.executed_at, '+9 hours') <= ? LIMIT 1",
+        );
+    final double sum =
+        (_db.select(
+                  'SELECT COALESCE(SUM(amount), 0) AS s FROM cash_flow '
+                  "WHERE account_alias = ? AND trade_date <= ? AND currency = 'KRW'",
+                  <Object?>[alias, d],
+                ).first['s']!
+                as num)
+            .toDouble();
+    return SelfReportCashFacts(
+      cashFlowSum: sum,
+      executions: <SimExecution>[
+        for (final Row r in _db.select(
+          'SELECT i.side, ${signedFillSql('e', 'quantity')} AS quantity, e.price, '
+          '${signedFillSql('e', 'commission')} AS commission, '
+          '${signedFillSql('e', 'tax')} AS tax FROM executions e '
+          'JOIN broker_orders b ON b.broker_order_no = e.broker_order_no '
+          'JOIN order_intents i ON i.intent_id = b.intent_id '
+          "WHERE i.account = ? AND i.market = 'KR' AND i.trade_date <= ? "
+          'ORDER BY e.execution_id',
+          <Object?>[alias, d],
+        ))
+          SimExecution(
+            side: OrderSide.values.firstWhere(
+              (OrderSide s) => s.wire == r['side'],
+            ),
+            quantity: r['quantity'] as int,
+            price: (r['price'] as num).toDouble(),
+            commission: (r['commission'] as num).toDouble(),
+            tax: (r['tax'] as num).toDouble(),
+          ),
+      ],
+      unattributed: unattributed,
+    );
+  }
+
+  /// 🆕 R278 — 그 기준일 · 계좌 실사가 0오차였나(K321 ④ · `M5-13` 해제가 읽는다 — 미결 226) = 실사가 있고 그 실사가 남긴 차이
+  /// 행(수량 · 현금 · 상태 무관) 0 — 현금 행은 대조해 넘은 때만 생기므로 «현금 축은 대조한 때만 센다»와 같다 · 실사 없음 = false.
+  bool zeroErrorAudit(TradeDate asOf, String alias) =>
+      auditedAccounts(asOf).contains(alias) && diffsOf(asOf, alias).isEmpty;
 
   /// 🔴 실사 기록(한 트랜잭션) — [diffs] = 엔진 대조 결과 · [stateLabel] = 엔진 접수증 글자 · 같은 기준일 · 계좌 실사가
   /// 이미 있으면 [StateError](쓰기 0).
@@ -177,7 +253,7 @@ class SqliteSelfReportSource {
           <Object?>[
             d.diffId,
             LedgerPair.canonSelfReport.wire,
-            LedgerAxis.quantity.wire,
+            d.axis.wire,
             wire.asOfTradeDate.yyyyMmDd,
             d.delta,
             d.deltaLabel,

@@ -101,7 +101,7 @@ StoredLedgerDiff _stored(SelfReportDiffRow d, {DiffStatus? status}) =>
     StoredLedgerDiff(
       diffId: d.diffId,
       pair: LedgerPair.canonSelfReport,
-      axis: LedgerAxis.quantity,
+      axis: d.axis,
       authoredDate: const TradeDate('2026-08-31'),
       delta: d.delta,
       deltaLabel: d.deltaLabel,
@@ -204,6 +204,7 @@ void main() {
         yyyyMm: '2026-08',
         nextAlias: '일반',
         resolveRegistered: true,
+        cashSkipped: null,
       );
       final Map<String, dynamic> fx =
           _row(FixturePaths.m6SelfReportDiffResult)['result']
@@ -302,6 +303,7 @@ void main() {
         yyyyMm: '2026-08',
         nextAlias: null,
         resolveRegistered: true,
+        cashSkipped: null,
       );
       expect(empty.diffs, isEmpty);
       expect(empty.emptyLabel, '실사 결과가 원장과 맞습니다');
@@ -320,6 +322,7 @@ void main() {
           yyyyMm: '2026-08',
           nextAlias: null,
           resolveRegistered: false,
+          cashSkipped: null,
         ).resolveLink,
         isNull,
       );
@@ -329,6 +332,7 @@ void main() {
           yyyyMm: '2026-08',
           nextAlias: null,
           resolveRegistered: true,
+          cashSkipped: null,
         ).resolveLink,
         isNull,
       );
@@ -376,6 +380,357 @@ void main() {
       expect(selfReportLinkOf('2026-08', 'a?b'), isNull);
       expect(selfReportLinkOf('2026-08', 'a#b'), isNull);
       expect(selfReportLinkOf('2026-08', ''), isNull);
+    });
+  });
+
+  group('🆕 R278 현금 축(01 §8 미결 227 · §46 K323)', () {
+    const TradeDate asOf = TradeDate('2026-08-31');
+    Decimal won(int v) => Decimal.fromInt(v);
+
+    test('🔴 현금 차이 → 저장 행 → 결과 = 표본 `self_report_cash_2` 첫 행(글자 · 쌍 · 축 · 심각도 · 후보 · 행 링크 0 · 해소 링크)', () {
+      final SelfReportCashVerdict v = selfReportCashVerdictOf(
+        toleranceKrw: Decimal.zero,
+        ledgerKrw: won(412300),
+        reportedKrw: won(405300),
+      );
+      final SelfReportDiffRow row = selfReportCashDiffRowsOf(
+        asOf: asOf,
+        alias: '연금저축',
+        verdict: v,
+      ).single;
+      expect(row.axis, LedgerAxis.cash);
+      final SelfReportResult r = selfReportResultOf(
+        diffs: <StoredLedgerDiff>[_stored(row)],
+        yyyyMm: '2026-08',
+        nextAlias: '일반',
+        resolveRegistered: true,
+        cashSkipped: null,
+      );
+      final Map<String, dynamic> fx =
+          _rows(FixturePaths.m6SelfReportCash2)[0]['result']
+              as Map<String, dynamic>;
+      final Map<String, dynamic> d0 =
+          (fx['diffs'] as List<dynamic>).single as Map<String, dynamic>;
+      final LedgerDiffRow got = r.diffs.single;
+      expect(got.deltaLabel, d0['delta_label']);
+      expect(got.pair.wire, d0['pair']);
+      expect(got.axis.wire, d0['axis']);
+      expect(got.severity.wire, d0['severity']);
+      expect(got.candidateOriginCodes, d0['candidate_origin_codes']);
+      expect(got.status.wire, d0['status']);
+      expect(got.route.wire, d0['route']);
+      expect(got.pairLabel, d0['pair_label']);
+      expect(got.axisLabel, d0['axis_label']);
+      expect(got.severityLabel, d0['severity_label']);
+      expect(got.statusLabel, d0['status_label']);
+      expect(got.actionLink, isNull, reason: '결과 안 = 자기 자신으로 가는 고리 0');
+      // 🔵 경로 글자 «다시 실사로 해소» · 칩 글자 = 미결 226 ⓕ(자가 보고 행 글자) 몫 — 여기는 L-1 엔진 사전 그대로.
+      expect(r.emptyLabel, isNull);
+      expect(
+        r.resolveLink,
+        LinkAction.fromJson(fx['resolve_link'] as Map<String, dynamic>),
+      );
+    });
+
+    test('🔴 차이 0 · 현금 미대조 = 표본 둘째 행 빈 문장 그대로 · 모름 = 엔진 문장 · 대조함 = 맞음 · 차이 있으면 빈 문장 0', () {
+      SelfReportResult res(SelfReportCashSkip? skip, {bool withRow = false}) =>
+          selfReportResultOf(
+            diffs: <StoredLedgerDiff>[
+              if (withRow)
+                _stored(
+                  selfReportDiffRowsOf(
+                    asOf: asOf,
+                    alias: '연금저축',
+                    diffs: const <SelfReportQuantityDiff>[
+                      SelfReportQuantityDiff(
+                        symbol: '133690',
+                        ledger: 245,
+                        reported: 242,
+                      ),
+                    ],
+                  ).single,
+                ),
+            ],
+            yyyyMm: '2026-08',
+            nextAlias: '일반',
+            resolveRegistered: true,
+            cashSkipped: skip,
+          );
+      final Map<String, dynamic> fx =
+          _rows(FixturePaths.m6SelfReportCash2)[1]['result']
+              as Map<String, dynamic>;
+      final SelfReportResult none = res(SelfReportCashSkip.noTolerance);
+      expect(none.diffs, isEmpty);
+      expect(none.emptyLabel, fx['empty_label']);
+      expect(none.resolveLink, isNull);
+      expect(
+        none.nextAccountLink?.deepLink,
+        (fx['next_account_link'] as Map<String, dynamic>)['deep_link'],
+      );
+      expect(
+        res(SelfReportCashSkip.ledgerUnknown).emptyLabel,
+        '수량은 원장과 맞습니다 · 현금은 계좌별 원장 현금을 셀 수 없어 대조하지 않았습니다(적은 값은 기록에 남습니다)',
+      );
+      expect(res(null).emptyLabel, '실사 결과가 원장과 맞습니다');
+      for (final SelfReportCashSkip? s in <SelfReportCashSkip?>[
+        null,
+        ...SelfReportCashSkip.values,
+      ]) {
+        expect(res(s, withRow: true).emptyLabel, isNull);
+      }
+    });
+
+    test('🔴 허용 오차 — 표식 = 0원(설정 값보다 앞) · 설정 값 · 둘 다 없음 = null(엔진 기본값 0) · 음수 = ArgumentError', () {
+      expect(
+        selfReportCashToleranceOf(configuredKrw: 5000, patternMarker: true),
+        Decimal.zero,
+      );
+      expect(
+        selfReportCashToleranceOf(configuredKrw: null, patternMarker: true),
+        Decimal.zero,
+      );
+      expect(
+        selfReportCashToleranceOf(configuredKrw: 5000, patternMarker: false),
+        won(5000),
+      );
+      expect(
+        selfReportCashToleranceOf(configuredKrw: 0, patternMarker: false),
+        Decimal.zero,
+      );
+      expect(
+        selfReportCashToleranceOf(configuredKrw: null, patternMarker: false),
+        isNull,
+      );
+      expect(
+        () => selfReportCashToleranceOf(configuredKrw: -1, patternMarker: true),
+        throwsArgumentError,
+      );
+    });
+
+    test('🔴 대조 안 하는 까닭 차례 = 허용 오차 → 원장 현금(제출 판정 · 결과 글자 같은 차례)', () {
+      expect(
+        selfReportCashSkipOf(toleranceKrw: null, ledgerKnown: false),
+        SelfReportCashSkip.noTolerance,
+      );
+      expect(
+        selfReportCashSkipOf(toleranceKrw: null, ledgerKnown: true),
+        SelfReportCashSkip.noTolerance,
+      );
+      expect(
+        selfReportCashSkipOf(toleranceKrw: Decimal.zero, ledgerKnown: false),
+        SelfReportCashSkip.ledgerUnknown,
+      );
+      expect(
+        selfReportCashSkipOf(toleranceKrw: Decimal.zero, ledgerKnown: true),
+        isNull,
+      );
+      SelfReportCashSkip? reason(SelfReportCashVerdict v) => switch (v) {
+        SelfReportCashSkipped(:final SelfReportCashSkip reason) => reason,
+        SelfReportCashWithin() || SelfReportCashMismatch() => null,
+      };
+      expect(
+        reason(
+          selfReportCashVerdictOf(
+            toleranceKrw: null,
+            ledgerKrw: null,
+            reportedKrw: won(1),
+          ),
+        ),
+        SelfReportCashSkip.noTolerance,
+      );
+      expect(
+        reason(
+          selfReportCashVerdictOf(
+            toleranceKrw: won(10),
+            ledgerKrw: null,
+            reportedKrw: won(1),
+          ),
+        ),
+        SelfReportCashSkip.ledgerUnknown,
+      );
+    });
+
+    test('🔴 판정 — 경계(= 허용 오차 = 안 · 넘으면 차이) · 원장 = 원 단위 반올림 · 음수 원장 글자', () {
+      SelfReportCashVerdict v(String ledger, int reported, int tol) =>
+          selfReportCashVerdictOf(
+            toleranceKrw: won(tol),
+            ledgerKrw: Decimal.parse(ledger),
+            reportedKrw: won(reported),
+          );
+      expect(v('1000', 1000, 0), isA<SelfReportCashWithin>());
+      expect(v('1500', 1000, 500), isA<SelfReportCashWithin>());
+      expect(v('500', 1000, 500), isA<SelfReportCashWithin>());
+      expect(v('1501', 1000, 500), isA<SelfReportCashMismatch>());
+      expect(v('405300.4', 405300, 0), isA<SelfReportCashWithin>());
+      final SelfReportCashMismatch m =
+          v('405300.5', 405300, 0) as SelfReportCashMismatch;
+      expect(m.ledgerKrw, won(405301));
+      expect(m.reportedKrw, won(405300));
+      expect(m.toleranceKrw, Decimal.zero);
+      expect(
+        selfReportCashDiffRowsOf(
+          asOf: asOf,
+          alias: '일반',
+          verdict: m,
+        ).single.deltaLabel,
+        '원화 현금이 기록과 다릅니다 (원장 405,301원 / 자가 보고 405,300원)',
+      );
+      expect(
+        SelfReportTexts.cashDelta(won(-12000), won(0)),
+        '원화 현금이 기록과 다릅니다 (원장 −12,000원 / 자가 보고 0원)',
+      );
+      expect(
+        SelfReportTexts.cashDelta(won(1234567890), won(999)),
+        '원화 현금이 기록과 다릅니다 (원장 1,234,567,890원 / 자가 보고 999원)',
+      );
+    });
+
+    test('🔴 저장 행 — CANON_SELF_REPORT 관측 · delta = 계좌 · 두 값 · 적용 허용 오차 · 후보(표본 차례) · id = 기준일 · 계좌 · 안 · 미대조 = 0행', () {
+      final SelfReportDiffRow row = selfReportCashDiffRowsOf(
+        asOf: asOf,
+        alias: '연금저축',
+        verdict: SelfReportCashMismatch(
+          ledgerKrw: won(412300),
+          reportedKrw: won(405300),
+          toleranceKrw: won(1000),
+        ),
+      ).single;
+      expect(row.severity, DiffSeverity.observational);
+      expect(selfReportAccountOfDelta(row.delta), '연금저축');
+      expect(candidatesOfDelta(row.delta), <String>[
+        'EXTERNAL_CASHFLOW',
+        'UNRECORDED_FILL',
+        'SELF_REPORT_CORRECTION',
+      ]);
+      expect(kSelfReportCashDiffCandidates, candidatesOfDelta(row.delta));
+      final Map<String, dynamic> delta =
+          jsonDecode(row.delta) as Map<String, dynamic>;
+      expect(delta['axis'], 'CASH');
+      expect(delta['ledger_krw'], '412300');
+      expect(delta['reported_krw'], '405300');
+      expect(delta['tolerance_krw'], '1000');
+      expect(row.diffId, selfReportCashDiffIdOf(asOf, '연금저축'));
+      expect(row.diffId, startsWith('ld_sr_'));
+      expect(<String>{
+        row.diffId,
+        selfReportCashDiffIdOf(asOf, '일반'),
+        selfReportCashDiffIdOf(const TradeDate('2026-07-31'), '연금저축'),
+        selfReportDiffIdOf(asOf, '연금저축', '133690'),
+        selfReportDiffIdOf(asOf, '연금저축', 'CASH'),
+      }, hasLength(5));
+      expect(
+        selfReportCashDiffRowsOf(
+          asOf: asOf,
+          alias: '연금저축',
+          verdict: const SelfReportCashWithin(),
+        ),
+        isEmpty,
+      );
+      for (final SelfReportCashSkip s in SelfReportCashSkip.values) {
+        expect(
+          selfReportCashDiffRowsOf(
+            asOf: asOf,
+            alias: '연금저축',
+            verdict: SelfReportCashSkipped(s),
+          ),
+          isEmpty,
+        );
+      }
+    });
+
+    test('🔴 원장 현금 = 현금 흐름 합 + 체결(매도 = 대금 − 비용 · 매수 = −(대금 + 비용) · 되돌림 = 음수) · 모름 = null', () {
+      const List<SimExecution> fills = <SimExecution>[
+        SimExecution(
+          side: OrderSide.sell,
+          quantity: 10,
+          price: 1000,
+          commission: 15,
+          tax: 20,
+        ),
+        SimExecution(
+          side: OrderSide.buy,
+          quantity: 5,
+          price: 2000,
+          commission: 10,
+          tax: 0,
+        ),
+        // 위 매수의 되돌림(수량 · 비용 음수).
+        SimExecution(
+          side: OrderSide.buy,
+          quantity: -5,
+          price: 2000,
+          commission: -10,
+          tax: 0,
+        ),
+      ];
+      expect(
+        selfReportLedgerCashOf(
+          const SelfReportCashFacts(
+            cashFlowSum: 1000000,
+            executions: fills,
+            unattributed: false,
+          ),
+        ),
+        won(1009965),
+      );
+      expect(
+        selfReportLedgerCashOf(
+          const SelfReportCashFacts(
+            cashFlowSum: 1000000,
+            executions: fills,
+            unattributed: true,
+          ),
+        ),
+        isNull,
+      );
+      expect(
+        selfReportLedgerCashOf(
+          const SelfReportCashFacts(
+            cashFlowSum: 0,
+            executions: <SimExecution>[],
+            unattributed: false,
+          ),
+        ),
+        Decimal.zero,
+      );
+    });
+
+    test('🔴 0오차(K321 ④) = 수량 전부 일치 ∧ 현금은 대조한 때만 센다', () {
+      const List<SelfReportQuantityDiff> q = <SelfReportQuantityDiff>[
+        SelfReportQuantityDiff(symbol: '133690', ledger: 245, reported: 242),
+      ];
+      final SelfReportCashMismatch m = SelfReportCashMismatch(
+        ledgerKrw: won(2),
+        reportedKrw: won(1),
+        toleranceKrw: Decimal.zero,
+      );
+      for (final SelfReportCashSkip s in SelfReportCashSkip.values) {
+        expect(
+          selfReportZeroErrorOf(
+            quantity: const <SelfReportQuantityDiff>[],
+            cash: SelfReportCashSkipped(s),
+          ),
+          isTrue,
+        );
+      }
+      expect(
+        selfReportZeroErrorOf(
+          quantity: const <SelfReportQuantityDiff>[],
+          cash: const SelfReportCashWithin(),
+        ),
+        isTrue,
+      );
+      expect(
+        selfReportZeroErrorOf(
+          quantity: const <SelfReportQuantityDiff>[],
+          cash: m,
+        ),
+        isFalse,
+      );
+      expect(
+        selfReportZeroErrorOf(quantity: q, cash: const SelfReportCashWithin()),
+        isFalse,
+      );
     });
   });
 

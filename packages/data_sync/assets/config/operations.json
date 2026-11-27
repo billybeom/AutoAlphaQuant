@@ -9,6 +9,7 @@
   "reentry_grace_trading_days": 5,
   "record_command_ttl_days": 14,
   "amend_chain_max": 2,
+  "self_report_cash_tolerance_krw": null,
   "live_dry_run_observation_trading_days": 2,
   "advisory_resume_observation_trading_days": null,
   "watchdog_grace_minutes": null,
