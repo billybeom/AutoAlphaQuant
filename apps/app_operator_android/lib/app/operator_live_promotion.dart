@@ -22,7 +22,7 @@ import 'package:core_engine/core_engine.dart'
 import 'package:data_sync/data_sync.dart'
     show LivePromotionOutcome, SqliteLeaseGate, SqliteLivePromotionStore;
 import 'package:domain_contracts/domain_contracts.dart'
-    show ActionResult, RunMode;
+    show ActionResult, BiometricPurpose, RunMode;
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import '../engine/lease_wiring.dart' show operatorLeaseGate;
@@ -53,8 +53,11 @@ class OperatorLivePromotion {
         headline: livePromotionHeadline(LivePromotionCodes.notObserving),
       );
     }
-    final Future<BiometricOutcome> Function()? ask = _rt.biometricSign;
-    final bool confirmed = ask != null && (await ask()) == BiometricOutcome.ok;
+    // 🆕 미결 243 ⓑ(R276 · K350) — 대화상자 = «실제 주문 켜기»(실주문을 켜는 동작임을 그대로 말한다) · 판정 = 결과뿐.
+    final BiometricAsk? ask = _rt.biometricSign;
+    final bool confirmed =
+        ask != null &&
+        (await ask(BiometricPurpose.livePromotion)) == BiometricOutcome.ok;
     final SqliteLeaseGate gate = operatorLeaseGate(
       live,
       mode: RunMode.live,

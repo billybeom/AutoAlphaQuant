@@ -303,7 +303,7 @@ void main() {
   OperatorRuntime rt({
     bool withTrusted = true,
     bool observation = true,
-    Future<BiometricOutcome> Function()? bio,
+    BiometricAsk? bio,
     bool noBio = false,
     String? device = 'dev-1',
     MemorySecretVault? vault,
@@ -316,7 +316,7 @@ void main() {
       deviceId: device,
       vault: vault,
       watchdogRemote: remote,
-      biometricSign: noBio ? null : (bio ?? () async => BiometricOutcome.ok),
+      biometricSign: noBio ? null : (bio ?? (_) async => BiometricOutcome.ok),
       liveObservation: observation
           ? LiveObservationConfig(requiredTradingDays: 2)
           : null,
@@ -476,12 +476,11 @@ void main() {
 
   const Map<String, String> start = <String, String>{'path': 'SIM_TO_AUTO'};
 
-  for (final (String name, Future<BiometricOutcome> Function()? bio)
-      in <(String, Future<BiometricOutcome> Function()?)>[
-        ('생체 창구 없음', null),
-        ('취소', () async => BiometricOutcome.canceled),
-        ('할 수 없음', () async => BiometricOutcome.unavailable),
-      ]) {
+  for (final (String name, BiometricAsk? bio) in <(String, BiometricAsk?)>[
+    ('생체 창구 없음', null),
+    ('취소', (_) async => BiometricOutcome.canceled),
+    ('할 수 없음', (_) async => BiometricOutcome.unavailable),
+  ]) {
     test('🔴 시작 — $name = BIOMETRIC_UNAVAILABLE · 실전 파일 0', () async {
       final OperatorRuntime r = rt(noBio: bio == null, bio: bio);
       final OperatorHandover h = await chosen(r);
@@ -547,7 +546,13 @@ void main() {
   });
 
   test('🔴 시작 성공 → 실전 파일 · 세션 1 → 냉각 VM(취소 · 시각 글자) → 확정 = 관문 거부(쓰기 0) → 취소 → 다시 시작 자리', () async {
-    final OperatorRuntime r = rt();
+    final List<BiometricPurpose> asked = <BiometricPurpose>[];
+    final OperatorRuntime r = rt(
+      bio: (BiometricPurpose p) async {
+        asked.add(p);
+        return BiometricOutcome.ok;
+      },
+    );
     final OperatorHandover h = await chosen(r);
     expect(liveFile(), isFalse);
     final ActionResult res = await h.run(
@@ -555,6 +560,8 @@ void main() {
       start,
     );
     expect((res.reasonCode, res.level), (null, UiLevel.ok));
+    // 🆕 미결 243 ⓑ(R276 · K350) — 대화상자 = «실전 전환 시작»(서약 글자 아님).
+    expect(asked, <BiometricPurpose>[BiometricPurpose.handoverStart]);
     expect(res.headline, startsWith('생체 확인 완료 — 24시간 냉각 뒤 2027-01-09 12:00부터'));
     expect(liveFile(), isTrue);
     final Database live = files.liveIfExists()!;

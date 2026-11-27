@@ -83,6 +83,7 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart'
     show
         ActionResult,
+        BiometricPurpose,
         HandoverPath,
         HandoverRepository,
         HandoverWizardVm,
@@ -256,8 +257,11 @@ class OperatorHandover {
       throw ArgumentError.value(args['path'], 'path', 'SIM_TO_AUTO 하나');
     }
     final SqliteHandoverWizardSource src = source(canAct: true);
-    final Future<BiometricOutcome> Function()? ask = _rt.biometricSign;
-    final bool confirmed = ask != null && (await ask()) == BiometricOutcome.ok;
+    // 🆕 미결 243 ⓑ(R276) — 대화상자 = «실전 전환 시작»(서약 글자 아님) · 판정 = 결과뿐.
+    final BiometricAsk? ask = _rt.biometricSign;
+    final bool confirmed =
+        ask != null &&
+        (await ask(BiometricPurpose.handoverStart)) == BiometricOutcome.ok;
     final DateTime? now = _rt.trusted.trustedNowUtc()?.toUtc();
     final SimToAutoFacts f = src.facts(trustedNowUtc: now, session: null);
     // 엔진 사전 판정(세션 칸 = 없음 · 저장과 같은 차례) — 거부면 실전 파일을 만들지 않는다.

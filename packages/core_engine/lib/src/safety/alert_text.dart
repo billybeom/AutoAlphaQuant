@@ -256,6 +256,13 @@ const Map<String, AlertText> kAlertTexts = <String, AlertText>{
     '다음 납입 · 리밸런싱 때 원화 현금이 모자라지 않은지 보십시오.',
     AppRoutes.holdingsAllocation,
   ),
+  // ── 🆕 미결 243 ⓒ 킬스위치 기록 확인 불일치(K348 · 설계 13 §8 R276 · 리뷰 3차 B-03) — 🔴 건수 · 종목 · 계좌 0 ──
+  'KILL_SWITCH_ACK_MISMATCH': AlertText(
+    '킬스위치 기록과 미체결 주문이 어긋납니다',
+    '발동 뒤 기록에서 미체결 주문을 모두 취소했다고 확인했지만 엔진이 본 미체결 주문이 남아 있습니다. 기록 확인을 받지 않았고 킬스위치는 켜진 채입니다.',
+    '증권사 앱에서 미체결 주문을 다시 조회해 남은 주문을 취소한 뒤 킬스위치 화면에서 기록을 다시 확인하십시오.',
+    AppRoutes.m5KillSwitch,
+  ),
   // ── 🆕 미결 243 ⓒ 공유 계층 push 실패 2(K344 · K372 · 설계 13 §8 R273) — 조치가 다르면 다르게 말한다 · 🔴 찾은 글자 · 값 0 ──
   'READ_MODEL_PUSH_SECRET_BLOCKED': AlertText(
     '원격 사본으로 보내지 않은 표가 있습니다',

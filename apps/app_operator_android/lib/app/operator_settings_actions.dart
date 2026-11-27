@@ -16,7 +16,8 @@
 //    🔴 결과 글자 · 사유 코드 = 엔진(표본 그대로) · 금고 쓰기 = 통과 뒤에만 · 그 밖 대상 = 그대로 구현 없음.
 // 🆕 E11k-d2(R216 · 계약 v1.31 01 §40) — `supabaseSignIn{}` = o_07 ③ 로그인 1단: 슬롯 칸(`SupabaseLoginPanel`)의 이메일 ·
 //    비밀번호를 넘김으로 받아 `SupabaseAuth.signIn` → 🔴 통과 · 실패 모두 칸을 비운다(비밀번호를 오래 쥐지 않는다) ·
-//    통과 = o_07 진행 중 그대로(VERIFIED 는 내리지 않음 · 확인 글자 «로그인됨» = 엔진 · 사실 = 세션) · 결과 = 엔진 표본 글자.
+//    통과 = o_07 진행 중 그대로(VERIFIED 는 내리지 않음 · 확인 글자 «로그인됨» = 엔진 · 사실 = 세션) · 결과 = 엔진 표본 글자 ·
+//    🆕 R276(미결 243 ⓔ · K349 ④) — 통과 뒤 공개 가입 확인 1회(열림 = `SUPABASE_SIGNUP_OPEN` · 결과 글자 = data_sync).
 // 🆕 E11q-s05(R252 · 01 §28 K4 · K6 · K7) — M9 S05 동작 2:
 //    · `runtimeModeSwitchRequest{run_mode: LIVE}` = M5-11 위저드로 넘김만(상태 변경 0 · 판정 · 생체 = 위저드 · 결과 = 엔진 표본 글자) ·
 //      위저드 본문이 등록됐을 때만([modeSwitch]).
@@ -61,8 +62,8 @@ import 'package:data_sync/data_sync.dart'
         SupabaseConnectOutcome,
         SupabaseServerTime,
         checkSupabaseConnection,
-        kSupabaseSignInOk,
         supabaseSignInOutcome,
+        supabaseSignupOutcome,
         storeSupabaseConnection,
         LedgerIntegrityCheck,
         LedgerIntegrityReport,
@@ -292,8 +293,10 @@ class OperatorSettingsActions implements SettingsActions {
       password: draft?.password ?? '',
     );
     secrets.clearSupabaseLogin();
+    // 🆕 미결 243 ⓔ(설계 13 §8 R276 · 계약 v1.39 K349 ④) — 로그인 통과 뒤 공개 가입 확인 1회(`/auth/v1/settings`):
+    //    꺼짐 = 통과 글자 · 열림 = `SUPABASE_SIGNUP_OPEN` · 못 읽음 = 전송 글자(모름 = 통과 아님) · 🔴 로그인 상태 = 금고에 둔다(o_07 진행 중).
     final SupabaseConnectOutcome o = r.ok
-        ? kSupabaseSignInOk
+        ? supabaseSignupOutcome(await auth.readSignup())
         : supabaseSignInOutcome(r.failure!);
     if (r.ok) {
       final Database? db = sim;

@@ -18,6 +18,9 @@
 // 🔴 기기 id 가 없으면 주입 자체를 하지 않는다(버튼 부재 — 셸 규약) · 화면 상태 없음(온보딩 전) = 오류.
 // 🆕 리뷰 3차 H1(설계 13 §8 R261 · 01 §8 미결 235) — 상태 전이를 낸 명령(킬스위치 발동 · 기록 확인 · 알림 확인 · 모의 개시) 뒤 엔진 깨어남
 //    한 번(`OperatorRuntime.wakeNow` · 기다리지 않는다) — FGS · 화면 상태가 다음 알람까지 옛 상태로 남지 않게.
+// 🆕 미결 243 ⓓ(설계 13 §8 R276 · 계약 v1.39 K347 · R261 H5) — 원장에 쓰는 모든 명령: 쓸 원장이 닫혔으면(CLOSE · simToAuto 커밋 ~
+//    깨어남 끝 틈) 쓰기 0 · 거부 접수증 `LEDGER_CLOSED`(글자 = 엔진 · 깨어남 0 · 다시 누르면 깨어남 뒤 새 원장) — 킬스위치 발동 포함
+//    (닫힌 원장에 «실행됨»을 적으면 실전 엔진이 못 본다 — 거짓 안심보다 다시 누르게 한다).
 
 import 'dart:async';
 import 'dart:math';
@@ -47,6 +50,7 @@ import 'package:core_engine/core_engine.dart'
         issueKillCommand,
         killChecklistAnswersOf,
         killCommandReceiptOf,
+        ledgerClosedReceiptOf,
         simOpeningWireOf;
 import 'package:data_sync/data_sync.dart'
     show
@@ -65,9 +69,11 @@ import 'package:data_sync/data_sync.dart'
         SqliteJournalSource,
         SqliteKillSwitchStore,
         SqliteLeaseGate,
+        SqliteModeStore,
         SqliteOnboardingStore,
         SqlitePerformanceSource,
         SqliteWhatIfStateSource,
+        kKillSwitchAlertSource,
         onboardingRejected;
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:sqlite3/sqlite3.dart' show Database, ResultSet;
@@ -97,6 +103,26 @@ class OperatorCommandApi implements CommandApi {
         UnsupportedError('$what: operator 구현 없음(R147)'),
       );
 
+  /// 🆕 미결 243 ⓓ(R276 · K347) — [db] 가 닫힌(CLOSE) 원장이면 거부 접수증(쓰기 0 · 이 인스턴스 접수증에 남긴다) · 아니면 null.
+  /// 판정 = 엔진 정본 `SqliteModeStore.closed`(CLOSE 행 = 모의 파일만).
+  CommandReceipt? _ledgerClosed(
+    Database db,
+    CommandKind kind,
+    String deviceId,
+  ) {
+    final LedgerFile file = identical(db, _rt.files.sim)
+        ? LedgerFile.sim
+        : LedgerFile.live;
+    if (!SqliteModeStore(db, file, clock: _rt.clock).closed()) return null;
+    final CommandReceipt r = ledgerClosedReceiptOf(
+      kind: kind,
+      requestedAtUtc: _rt.clock.nowUtc(),
+      deviceId: deviceId,
+      random: _random,
+    );
+    return _issued[r.commandId] = r;
+  }
+
   @override
   Future<CommandReceipt> acknowledgeAlert(String alertId) async {
     final OperatorView? v = _rt.view.value;
@@ -107,6 +133,12 @@ class OperatorCommandApi implements CommandApi {
     if (deviceId == null) {
       throw StateError('알림 확인: 기기 id 없음');
     }
+    final CommandReceipt? closed = _ledgerClosed(
+      v.db,
+      CommandKind.alertAck,
+      deviceId,
+    );
+    if (closed != null) return closed;
     final AlertAckCommand c = AlertAckCommand.issue(
       alertId: alertId,
       context: CommandContext(
@@ -173,6 +205,12 @@ class OperatorCommandApi implements CommandApi {
     if (v == null) throw StateError('킬스위치 발동: 화면 상태 없음(온보딩 전)');
     final String? deviceId = _rt.deviceId;
     if (deviceId == null) throw StateError('킬스위치 발동: 기기 id 없음');
+    final CommandReceipt? closed = _ledgerClosed(
+      v.db,
+      CommandKind.killSwitchActivate,
+      deviceId,
+    );
+    if (closed != null) return closed;
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: const <String, Object?>{}, random: _random);
     final KillCommandResult r =
@@ -210,6 +248,12 @@ class OperatorCommandApi implements CommandApi {
     if (v == null) throw StateError('사전 저널: 화면 상태 없음(온보딩 전)');
     final String? deviceId = _rt.deviceId;
     if (deviceId == null) throw StateError('사전 저널: 기기 id 없음');
+    final CommandReceipt? closed = _ledgerClosed(
+      v.db,
+      CommandKind.journalDraft,
+      deviceId,
+    );
+    if (closed != null) return closed;
     final JournalDraftCommand c = issueJournalDraft(
       draft: draft,
       nowUtc: _rt.clock.nowUtc(),
@@ -247,6 +291,12 @@ class OperatorCommandApi implements CommandApi {
     if (v == null) throw StateError('blind 리뷰: 화면 상태 없음(온보딩 전)');
     final String? deviceId = _rt.deviceId;
     if (deviceId == null) throw StateError('blind 리뷰: 기기 id 없음');
+    final CommandReceipt? closed = _ledgerClosed(
+      v.db,
+      CommandKind.blindReviewScore,
+      deviceId,
+    );
+    if (closed != null) return closed;
     final BlindReviewScoreCommand c = issueBlindReviewScore(
       score: score,
       nowUtc: _rt.clock.nowUtc(),
@@ -295,6 +345,12 @@ class OperatorCommandApi implements CommandApi {
     if (v == null) throw StateError('열람 기록: 화면 상태 없음(온보딩 전)');
     final String? deviceId = _rt.deviceId;
     if (deviceId == null) throw StateError('열람 기록: 기기 id 없음');
+    final CommandReceipt? closed = _ledgerClosed(
+      v.db,
+      CommandKind.disclosureView,
+      deviceId,
+    );
+    if (closed != null) return closed;
     final DisclosureViewCommand c = DisclosureViewCommand.issue(
       event: event,
       deviceId: deviceId,
@@ -327,6 +383,12 @@ class OperatorCommandApi implements CommandApi {
     if (v == null) throw StateError('실입금 등록: 화면 상태 없음(온보딩 전)');
     final String? deviceId = _rt.deviceId;
     if (deviceId == null) throw StateError('실입금 등록: 기기 id 없음');
+    final CommandReceipt? closed = _ledgerClosed(
+      v.db,
+      CommandKind.depositRegister,
+      deviceId,
+    );
+    if (closed != null) return closed;
     final DateTime? trusted = _rt.trusted.trustedNowUtc();
     final CommandReceipt receipt = trusted == null
         ? depositTrustedTimeUnknownReceipt(
@@ -380,6 +442,17 @@ class OperatorCommandApi implements CommandApi {
     if (submission.purpose != SelfReportPurpose.simOpening) {
       final OperatorSelfReport? sr = selfReport;
       if (sr == null) return _none('submitSelfReportBalance(정기 실사)');
+      // 🆕 R276 ⓓ — 정기 실사 = 화면 상태의 원장에 쓴다(화면 상태 · 기기 id 없음 오류 = 정기 실사 몫 그대로).
+      final OperatorView? v = _rt.view.value;
+      final String? dev = _rt.deviceId;
+      if (v != null && dev != null) {
+        final CommandReceipt? closed = _ledgerClosed(
+          v.db,
+          CommandKind.selfReportBalance,
+          dev,
+        );
+        if (closed != null) return closed;
+      }
       final CommandReceipt r = sr.submit(submission, random: _random);
       _issued[r.commandId] = r;
       return r;
@@ -389,6 +462,13 @@ class OperatorCommandApi implements CommandApi {
       throw StateError('모의 개시: 기기 id 없음');
     }
     final Database db = _rt.files.sim;
+    // 🆕 R276 ⓓ — 모의 개시 = 모의 파일에 쓴다 · 닫힌 모의 파일(전환 커밋 뒤) = 쓰기 0.
+    final CommandReceipt? closed = _ledgerClosed(
+      db,
+      CommandKind.selfReportBalance,
+      deviceId,
+    );
+    if (closed != null) return closed;
     final DateTime now = _rt.clock.nowUtc();
     final SimOpeningCommand c = SimOpeningCommand.issue(
       deviceId: deviceId,
@@ -463,6 +543,12 @@ class OperatorCommandApi implements CommandApi {
     if (v == null) throw StateError('킬스위치 기록: 화면 상태 없음(온보딩 전)');
     final String? deviceId = _rt.deviceId;
     if (deviceId == null) throw StateError('킬스위치 기록: 기기 id 없음');
+    final CommandReceipt? closed = _ledgerClosed(
+      v.db,
+      CommandKind.killChecklistConfirm,
+      deviceId,
+    );
+    if (closed != null) return closed;
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: submission.toJson(), random: _random);
     final (KillActivationAnswers, KillAckAnswers)? parsed =
@@ -492,9 +578,18 @@ class OperatorCommandApi implements CommandApi {
       reasonCode: r == null ? 'KILL_CHECKLIST_ITEM_MISSING' : r.reasonCode,
     );
     _issued[receipt.commandId] = receipt;
-    // 🆕 리뷰 3차 H1-3(R261) — 기록 확인 = 킬스위치 상태 문장(해제 예정)이 바뀌는 전이 → 깨어남 한 번.
-    // 🔵 B-03(`r.p0` — 확인 3 ≠ 엔진 미체결 → P0 경보) = 알림 코드 · 등급 행이 계약에 없다 → 계약 창 대기(R261 · 엔진 지역 상수 0).
-    _wakeIf(r?.executed ?? false);
+    // 🆕 미결 243 ⓒ(설계 13 §8 R276 · 계약 v1.39 K348 · 리뷰 3차 B-03) — `p0`(확인 3 ≠ 엔진 미체결) → `KILL_SWITCH_ACK_MISMATCH` P0 한 건
+    //    (같은 원장 · 낸 곳 = 킬스위치 · 같은 한국 날 다시 = 새 행 0 · 사다리 = 엔진) · 접수증(거부 `KILL_ACK_MISMATCH`)은 그대로.
+    final Set<String> alerts = r?.alertCodes ?? const <String>{};
+    if (alerts.isNotEmpty) {
+      await SqliteAlertSink(
+        v.db,
+        clock: _rt.clock,
+      ).emit(kKillSwitchAlertSource, alerts);
+    }
+    // 🆕 리뷰 3차 H1-3(R261) — 기록 확인 = 킬스위치 상태 문장(해제 예정)이 바뀌는 전이 → 깨어남 한 번 · 🆕 R276 — 새 P0 = FGS 의 열린 P0 줄이
+    //    바뀌는 전이(알림 확인과 같은 결) → 깨어남 한 번.
+    _wakeIf((r?.executed ?? false) || alerts.isNotEmpty);
     return receipt;
   }
 

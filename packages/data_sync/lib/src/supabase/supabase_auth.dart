@@ -97,6 +97,43 @@ class SupabaseAuthResult {
             '${statusCode == null ? '' : ' · HTTP $statusCode'})';
 }
 
+/// 🆕 미결 243 ⓔ(설계 13 §8 R276 · 계약 v1.39 K349 ④ · 리뷰 3차 C-2) — o_07 ③ 공개 가입 확인 한 번의 결과
+/// (🔴 주소 · 키 · 응답 본문 없음 — 닫힘 · 열림 · 실패 종류 · HTTP 상태만).
+class SupabaseSignupRead {
+  /// 가입이 꺼져 있다(`disable_signup == true`).
+  const SupabaseSignupRead.closed()
+    : signupOpen = false,
+      failure = null,
+      statusCode = null;
+
+  /// 가입이 열려 있다(`disable_signup == false`).
+  const SupabaseSignupRead.open()
+    : signupOpen = true,
+      failure = null,
+      statusCode = null;
+
+  /// 읽지 못했다(🔴 모름 = 닫힘 아님).
+  const SupabaseSignupRead.failed(
+    SupabaseAuthFailure this.failure, {
+    this.statusCode,
+  }) : signupOpen = null;
+
+  /// 열려 있나(읽지 못함 = null).
+  final bool? signupOpen;
+
+  /// 실패 종류(읽었음 = null).
+  final SupabaseAuthFailure? failure;
+
+  /// HTTP 상태(있으면).
+  final int? statusCode;
+
+  @override
+  String toString() => failure == null
+      ? 'SupabaseSignupRead(${signupOpen! ? 'open' : 'closed'})'
+      : 'SupabaseSignupRead(${failure!.name}'
+            '${statusCode == null ? '' : ' · HTTP $statusCode'})';
+}
+
 /// 메모리 세션(🔴 문자열에 토큰 0).
 class _Session {
   _Session(this.accessToken, this.expiresAtUtc, this.userId);
@@ -294,6 +331,55 @@ class SupabaseAuth {
       );
     }
     return _adopt(p.$1, p.$2);
+  }
+
+  /// 🆕 미결 243 ⓔ(설계 13 §8 R276 · 계약 v1.39 K349 ④) — 공개 가입이 꺼져 있나 — `GET /auth/v1/settings` 1회(공개 키 머리만 ·
+  /// 접근 토큰 0 · 설정 바꾸기 0) · 🔴 던지지 않는다.
+  /// `disable_signup == true` 만 닫힘 · `false` = 열림 · 칸 없음 · 꼴 아님 = [SupabaseAuthFailure.badResponse](모름 = 닫힘 아님) ·
+  /// HTTP 실패 = 전송 글자(400 = 응답 꼴 · 401 · 403 = 키 · 429 = 과속 · 5xx = 서버) · 망 · 시간 초과 = 망.
+  Future<SupabaseSignupRead> readSignup() async {
+    SupabaseAuthFailure? cfgFail;
+    final (Uri, String)? cfg = await _config((SupabaseAuthFailure f) {
+      cfgFail = f;
+    });
+    if (cfg == null) return SupabaseSignupRead.failed(cfgFail!);
+    final http.Response r;
+    try {
+      r = await _http
+          .get(
+            cfg.$1.replace(
+              pathSegments: const <String>['auth', 'v1', 'settings'],
+            ),
+            headers: <String, String>{'apikey': cfg.$2},
+          )
+          .timeout(timeout);
+    } on Exception {
+      return const SupabaseSignupRead.failed(SupabaseAuthFailure.network);
+    }
+    if (r.statusCode != 200) {
+      return SupabaseSignupRead.failed(
+        _httpFailure(r.statusCode, on400: SupabaseAuthFailure.badResponse),
+        statusCode: r.statusCode,
+      );
+    }
+    Object? body;
+    try {
+      body = jsonDecode(r.body);
+    } on FormatException {
+      body = null;
+    }
+    final Object? disabled = body is Map<String, Object?>
+        ? body['disable_signup']
+        : null;
+    if (disabled is! bool) {
+      return SupabaseSignupRead.failed(
+        SupabaseAuthFailure.badResponse,
+        statusCode: r.statusCode,
+      );
+    }
+    return disabled
+        ? const SupabaseSignupRead.closed()
+        : const SupabaseSignupRead.open();
   }
 
   /// 새로고침한다(금고의 새로고침 토큰 · 겹쳐 불러도 한 번만) — 🔴 던지지 않는다.

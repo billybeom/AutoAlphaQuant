@@ -405,7 +405,7 @@ void main() {
       clock: clock,
       deviceId: _dev,
       trusted: _trusted,
-      biometricSign: () async => answers.removeAt(0),
+      biometricSign: (_) async => answers.removeAt(0),
       golden: golden
           ? OperatorGolden(
               _disk,

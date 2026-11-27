@@ -6,7 +6,8 @@
 //    여기서 나올 수 없다(나오면 [StateError] — 조용히 다른 글자로 덮지 않는다).
 // 🔴 주소 · 키 값은 어떤 글자에도 싣지 않는다.
 
-import 'package:domain_contracts/domain_contracts.dart' show UiLevel;
+import 'package:domain_contracts/domain_contracts.dart'
+    show SupabaseSignupResultCodes, UiLevel;
 
 import 'supabase_auth.dart';
 import 'supabase_server_time.dart';
@@ -134,6 +135,25 @@ const SupabaseConnectOutcome kSupabaseSignInOk = (
   reasonCode: null,
   retryable: false,
 );
+
+/// 🆕 미결 243 ⓔ(설계 13 §8 R276 · 계약 v1.39 K349 ④) — 로그인은 됐지만 공개 가입이 열려 있다(o_07 = VERIFIED 아님 · 진행 중 그대로 ·
+/// 로그인 상태는 금고에 둔다 · 다시 로그인하면 다시 확인) · 🔴 할 일 = 대시보드에서 가입 끄기(앱은 설정을 바꾸지 않는다).
+const SupabaseConnectOutcome kSupabaseSignupOpen = (
+  level: UiLevel.blocked,
+  headline:
+      '로그인했지만 이 Supabase 프로젝트는 누구나 가입할 수 있게 열려 있습니다. '
+      'Authentication 설정에서 새 사용자 가입(Allow new users to sign up)을 끈 뒤 다시 로그인하십시오.',
+  reasonCode: SupabaseSignupResultCodes.signupOpen,
+  retryable: true,
+);
+
+/// 🆕 R276 ⓔ — 로그인 통과 뒤 공개 가입 확인 → 결과: 닫힘 = [kSupabaseSignInOk] · 열림 = [kSupabaseSignupOpen] ·
+/// 못 읽음 = 로그인 결과와 같은 전송 글자(같은 코드 = 같은 글자 · 🔴 모름 = 통과 아님).
+SupabaseConnectOutcome supabaseSignupOutcome(SupabaseSignupRead r) {
+  final SupabaseAuthFailure? f = r.failure;
+  if (f != null) return supabaseSignInOutcome(f);
+  return r.signupOpen! ? kSupabaseSignupOpen : kSupabaseSignInOk;
+}
 
 /// 로그인 실패 → 결과(표본 8줄 · 🔴 나올 수 없는 넷 = [StateError]).
 SupabaseConnectOutcome supabaseSignInOutcome(SupabaseAuthFailure f) {

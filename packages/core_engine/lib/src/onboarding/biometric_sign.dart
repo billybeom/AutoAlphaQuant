@@ -4,7 +4,7 @@
 //    생체가 이 폰에 등록돼 작동하는지 온보딩에서 처음 확인하는 자리.
 // 🔴 서명 대상 지문 = SHA-256(종류 · 서약 판 · 세 문장 · 기기 id) — 서약을 고치면(새 판) 지문이 달라진다.
 // 🔴 기기 암호(PIN · 패턴) 대체 0(05 §63 «비밀번호 대체 경로를 만들지 않는다») · 실패 3회 · 미등록 · 잠금 = 할 수 없음.
-// 🔴 글자 = 엔진(대화상자 · 버튼 · 결과) — 플랫폼(Kotlin)은 문장을 짓지 않는다.
+// 🔴 글자 = 엔진(버튼 · 결과) · 대화상자 = 계약 `BiometricPromptText`(목적마다) — 플랫폼(Kotlin)은 문장을 짓지 않는다.
 
 import 'dart:convert' show jsonEncode, utf8;
 
@@ -40,17 +40,10 @@ BiometricOutcome biometricOutcomeOfWire(Object? v) {
   throw FormatException('생체 결과 꼴이 아니다', v);
 }
 
-/// ③ 생체 서명 글자(엔진).
+/// ③ 생체 서명 글자(엔진 — 칸 버튼 · 결과 문장).
+/// 🆕 미결 243 ⓑ(설계 13 §8 R276 · 계약 v1.39 K350) — OS 대화상자 글자(제목 · 설명 · 취소)는 계약 `BiometricPromptText`(목적마다 한 벌)로
+///    옮겼다 — 엔진 사본 0(서약 글자 = `BiometricPromptText.pledgeSign` · 실주문을 켜는 동작이 서약 글자를 띄우지 않게).
 abstract final class BiometricSignTexts {
-  /// 대화상자 제목.
-  static const String promptTitle = '서약에 생체로 서명';
-
-  /// 대화상자 설명.
-  static const String promptSubtitle = '방금 쓴 서약 세 문장을 이 폰의 생체 인증으로 확인합니다.';
-
-  /// 대화상자 취소 버튼.
-  static const String promptCancel = '취소';
-
   /// 칸 버튼.
   static const String button = '생체로 서명';
 

@@ -46,6 +46,7 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart'
     show
         AppLinkOpener,
+        BiometricPurpose,
         Clock,
         ConfigRepository,
         ContributionSetting,
@@ -68,6 +69,12 @@ import 'operator_onboarding.dart' show OnboardingProbe;
 import 'operator_view.dart';
 import 'secure_screen.dart';
 import 'view_stream.dart';
+
+/// 🆕 미결 243 ⓑ(설계 13 §8 R276 · 계약 v1.39 K350) — 생체 확인 창구(플랫폼 `AndroidOps.biometricSign`) · [BiometricPurpose] = 무엇에
+/// 동의하는가(대화상자 글자만 고른다 · 🔴 게이트 판정 = 결과뿐 · 목적 무관).
+typedef BiometricAsk = Future<BiometricOutcome> Function(
+  BiometricPurpose purpose,
+);
 
 /// operator 실행 묶음.
 class OperatorRuntime {
@@ -197,8 +204,9 @@ class OperatorRuntime {
   final Future<Set<String>?> Function(OperatorView view, TradeDate tradeDate)?
   freshRecon;
 
-  /// 🆕 E11p4j(R159) — O-04 ③ 생체 확인(플랫폼 · `AndroidOps.biometricSign` · 없음 = 할 수 없음).
-  final Future<BiometricOutcome> Function()? biometricSign;
+  /// 🆕 E11p4j(R159) — 생체 확인(플랫폼 · `AndroidOps.biometricSign` · 없음 = 할 수 없음) · 🆕 R276 — 부르는 곳이 목적을 넘긴다
+  /// (서약 서명 · 실전 전환 시작 · 실제 주문 켜기 · X1 이어받기).
+  final BiometricAsk? biometricSign;
 
   /// 🆕 E11p3d-2c(R136) — H-03 기기 측정(저장공간 · 배터리 · 보안 패치 · 온도 — 값만 · 없음 = 기기 리스크 원천 없음).
   final Future<DeviceRiskFacts> Function()? deviceProbe;
@@ -278,7 +286,8 @@ class OperatorRuntime {
   /// (기동 판정 → 회차 → FGS → [onWake] — 다음 알람을 기다리지 않는다) · 끝나면 완료 · 던지지 않는다 · 창구 없음(플랫폼 밖 · 시험) =
   /// 깨어남 0.
   /// 🔴 끝난 뒤에도 화면 상태가 닫힌(CLOSE) 모의 원장이면 비운다 — 커밋 뒤 깨어남이 실패해도 닫힌 원장에 조용히 쓰지 않게(다음
-  ///    깨어남까지 쓰기 = «화면 상태 없음» 오류 · H1-2 · 거부 접수증 `LEDGER_CLOSED` = 계약 창 대기).
+  ///    깨어남까지 쓰기 = «화면 상태 없음» 오류 · H1-2) · 🆕 R276(미결 243 ⓓ · K347) — 커밋 ~ 깨어남 끝 틈의 명령 = 명령 창구가
+  ///    거부 접수증 `LEDGER_CLOSED`(쓰기 0).
   Future<void> wakeNow() async {
     final Future<void> Function()? wake = _wake;
     if (wake != null) {

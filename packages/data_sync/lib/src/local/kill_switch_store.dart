@@ -8,7 +8,7 @@ import 'dart:convert';
 
 import 'package:core_engine/core_engine.dart';
 import 'package:domain_contracts/domain_contracts.dart'
-    show Clock, DecisionJournalKinds;
+    show AlertCodes, Clock, DecisionJournalKinds;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../market/market_store.dart' show inLedgerTransaction;
@@ -48,6 +48,9 @@ KillSwitchRecord readKillSwitchRecord(Database db) {
   );
 }
 
+/// 🆕 미결 243 ⓒ(설계 13 §8 R276 · 계약 v1.39 K348) — 킬스위치 경보의 낸 곳(`alert_event.source` · 묶음 = 한국 날 · 낸 곳 · 코드).
+const String kKillSwitchAlertSource = 'kill_switch';
+
 /// 명령 결과.
 class KillCommandResult {
   /// 결과를 만든다.
@@ -77,6 +80,11 @@ class KillCommandResult {
 
   /// 발동이면 그 결과(재전달이면 null).
   final KillActivationResult? activation;
+
+  /// 🆕 미결 243 ⓒ(R276 · K348 · 리뷰 3차 B-03) — 낼 경보 코드(조립이 [kKillSwitchAlertSource] 로 낸다): [p0] = 확인 3 ≠ 엔진 미체결 →
+  /// `KILL_SWITCH_ACK_MISMATCH`(P0) 한 건 · 그 밖 = 0. 🔴 알림 코드 ≠ 확인 결과 코드([reasonCode] `KILL_ACK_MISMATCH`) — 같은 사건 두 축.
+  Set<String> get alertCodes =>
+      p0 ? const <String>{AlertCodes.killSwitchAckMismatch} : const <String>{};
 }
 
 /// 킬스위치 저장 · 집행(R57).

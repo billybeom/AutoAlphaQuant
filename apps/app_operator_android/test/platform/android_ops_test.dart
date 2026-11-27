@@ -2,7 +2,9 @@
 
 import 'package:app_operator_android/platform/platform.dart';
 import 'package:core_engine/core_engine.dart'
-    show BiometricOutcome, BiometricSignTexts, DeviceRiskFacts;
+    show BiometricOutcome, DeviceRiskFacts;
+import 'package:domain_contracts/domain_contracts.dart'
+    show BiometricPromptText, BiometricPurpose;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -188,30 +190,44 @@ void main() {
     },
   );
 
-  test(
-    '🔴 생체 서명(R159) — 대화상자 글자 = 엔진 · 결과 세 값 · 모르는 값 = 던진다(성공을 지어내지 않는다)',
-    () async {
+  test('🔴 생체 확인(R159 · 🆕 미결 243 ⓑ R276 · K350) — 대화상자 글자 = 계약 BiometricPromptText(목적마다 한 벌) · 결과 세 값 · '
+      '모르는 값 = 던진다(성공을 지어내지 않는다)', () async {
+    for (final BiometricPurpose p in BiometricPurpose.values) {
       for (final BiometricOutcome o in BiometricOutcome.values) {
         calls.clear();
         reply = o.wire;
-        expect(await AndroidOps().biometricSign(), o);
+        expect(await AndroidOps().biometricSign(p), o);
         expect(calls.single.method, 'biometricSign');
         expect(calls.single.arguments, <String, String>{
-          'title': BiometricSignTexts.promptTitle,
-          'subtitle': BiometricSignTexts.promptSubtitle,
-          'cancel': BiometricSignTexts.promptCancel,
-        });
+          'title': BiometricPromptText.of(p).title,
+          'subtitle': BiometricPromptText.of(p).subtitle,
+          'cancel': '취소',
+        }, reason: p.wire);
       }
-      for (final Object? bad in <Object?>[null, 'ok', 'FAILED', 1]) {
-        reply = bad;
-        await expectLater(
-          AndroidOps().biometricSign(),
-          throwsA(isA<FormatException>()),
-          reason: '$bad',
-        );
-      }
-    },
-  );
+    }
+    // 서약 글자 = 서약 목적에만 · 실주문을 켜는 동작 = «실제 주문»(리뷰 3차 A-3).
+    Future<Map<Object?, Object?>> argsOf(BiometricPurpose p) async {
+      calls.clear();
+      reply = 'OK';
+      await AndroidOps().biometricSign(p);
+      return calls.single.arguments as Map<Object?, Object?>;
+    }
+
+    expect((await argsOf(BiometricPurpose.pledgeSign))['title'], '서약에 생체로 서명');
+    final Map<Object?, Object?> live = await argsOf(
+      BiometricPurpose.livePromotion,
+    );
+    expect(live['title'], '실제 주문 켜기');
+    expect('${live['title']}${live['subtitle']}', isNot(contains('서약')));
+    for (final Object? bad in <Object?>[null, 'ok', 'FAILED', 1]) {
+      reply = bad;
+      await expectLater(
+        AndroidOps().biometricSign(BiometricPurpose.pledgeSign),
+        throwsA(isA<FormatException>()),
+        reason: '$bad',
+      );
+    }
+  });
 
   test('🔴 자가진단 — 모르는 칸 · 꼴 틀림은 «좋음»으로 지어내지 않는다(false · 0)', () async {
     reply = <String, Object?>{

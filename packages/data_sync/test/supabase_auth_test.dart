@@ -422,4 +422,134 @@ void main() {
       'SupabaseAuthResult(network)',
     ]);
   });
+
+  // 🆕 미결 243 ⓔ(설계 13 §8 R276 · 계약 v1.39 K349 ④) — o_07 ③ 공개 가입 확인(`GET /auth/v1/settings` · 실 Supabase 0).
+  group('🆕 R276 공개 가입 확인', () {
+    http.Response settings(Object? disabled, {bool field = true}) =>
+        http.Response(
+          jsonEncode(<String, Object?>{
+            'external': <String, Object?>{'email': true},
+            if (field) 'disable_signup': disabled,
+          }),
+          200,
+        );
+
+    test('🔴 GET /auth/v1/settings 1회 · apikey 만(접근 토큰 · 본문 0) · true = 닫힘 · false = 열림', () async {
+      final _Rig r = _Rig(respond: (_, int i) async => settings(i == 0));
+      final SupabaseSignupRead closed = await r.auth.readSignup();
+      expect((closed.signupOpen, closed.failure), (false, null));
+      final SupabaseSignupRead open = await r.auth.readSignup();
+      expect((open.signupOpen, open.failure), (true, null));
+      expect(r.requests, hasLength(2));
+      for (final http.Request q in r.requests) {
+        expect((q.method, q.url.toString()), ('GET', '$_url/auth/v1/settings'));
+        expect(q.headers['apikey'], _pub);
+        expect(q.headers.containsKey('authorization'), isFalse);
+        expect(q.body, isEmpty);
+      }
+      expect(r.vault.calls.where((String c) => c.startsWith('write')), isEmpty);
+      expect(closed.toString(), 'SupabaseSignupRead(closed)');
+      expect(open.toString(), 'SupabaseSignupRead(open)');
+    });
+
+    for (final (
+          String name,
+          Future<http.Response> Function() res,
+          SupabaseAuthFailure f,
+        )
+        in <(String, Future<http.Response> Function(), SupabaseAuthFailure)>[
+          (
+            '칸 없음',
+            () async => settings(null, field: false),
+            SupabaseAuthFailure.badResponse,
+          ),
+          ('null', () async => settings(null), SupabaseAuthFailure.badResponse),
+          (
+            '글자 «true»',
+            () async => settings('true'),
+            SupabaseAuthFailure.badResponse,
+          ),
+          (
+            'JSON 아님',
+            () async => http.Response('<html>', 200),
+            SupabaseAuthFailure.badResponse,
+          ),
+          (
+            '목록',
+            () async => http.Response('[]', 200),
+            SupabaseAuthFailure.badResponse,
+          ),
+          (
+            '400',
+            () async => http.Response('{}', 400),
+            SupabaseAuthFailure.badResponse,
+          ),
+          (
+            '401',
+            () async => http.Response('{}', 401),
+            SupabaseAuthFailure.unauthorized,
+          ),
+          (
+            '403',
+            () async => http.Response('{}', 403),
+            SupabaseAuthFailure.unauthorized,
+          ),
+          (
+            '429',
+            () async => http.Response('{}', 429),
+            SupabaseAuthFailure.rateLimited,
+          ),
+          (
+            '500',
+            () async => http.Response('{}', 500),
+            SupabaseAuthFailure.server,
+          ),
+          (
+            '망',
+            () async => throw http.ClientException('$_url $_pub'),
+            SupabaseAuthFailure.network,
+          ),
+        ]) {
+      test('🔴 $name = ${f.name}(모름 = 닫힘 아님 · 열림 아님)', () async {
+        final _Rig r = _Rig(respond: (_, _) => res());
+        final SupabaseSignupRead s = await r.auth.readSignup();
+        expect((s.signupOpen, s.failure), (null, f));
+        for (final String secret in <String>[_ref, _pub, _url]) {
+          expect(s.toString(), isNot(contains(secret)));
+        }
+      });
+    }
+
+    test('시간 초과 = 망', () async {
+      final _Rig r = _Rig(respond: (_, _) async => settings(true));
+      r.hold = Completer<void>();
+      final SupabaseSignupRead s = await r.auth.readSignup();
+      expect(s.failure, SupabaseAuthFailure.network);
+      r.hold!.complete();
+    });
+
+    test('연결 칸 없음 = 망 0(notConfigured) · 꼴 아님 = badConfig', () async {
+      final _Rig none = _Rig(
+        vault: const <String, String>{},
+        respond: (_, _) async => settings(true),
+      );
+      expect(
+        (await none.auth.readSignup()).failure,
+        SupabaseAuthFailure.notConfigured,
+      );
+      final _Rig bad = _Rig(
+        vault: <String, String>{
+          'supabase.project_url': 'http://x',
+          'supabase.publishable_key': _pub,
+        },
+        respond: (_, _) async => settings(true),
+      );
+      expect(
+        (await bad.auth.readSignup()).failure,
+        SupabaseAuthFailure.badConfig,
+      );
+      expect(none.requests, isEmpty);
+      expect(bad.requests, isEmpty);
+    });
+  });
 }
