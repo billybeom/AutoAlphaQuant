@@ -7,7 +7,7 @@
 > (`*.freezed.dart`·`*.g.dart`는 `build_runner` 산출물이라 뺐습니다 — 필요하면 저장소에서 생성합니다).
 > 담지 않은 것 = 픽스처 JSON · 계약 테스트 · DDL · 엔진 명세 · 청사진 HTML.
 >
-> 파일 138개 · 계약 v1.41.0 · 조립일 2026-11-25(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
+> 파일 138개 · 계약 v1.42.0 · 조립일 2026-11-27(`python tool/make_contracts_bundle.py`). 각 절의 제목이 저장소 기준 파일 경로입니다.
 
 
 ---
@@ -535,12 +535,17 @@ export 'commands/viewer_command_ttl.dart'; // 🆕 v1.41 뷰어 명령 4종 TTL(
 //    not null + check · 두 INSERT 정책 += `requested_at = now()` · 🆕 색인 `command_ack(command_id)` · 🆕 C-74 · 픽스처 402(버전 줄만) —
 //    🆕 tool/gen_v141_pairing_command_fixtures.py. 🔴 SQL 본문 = data_sync `sql/supabase_command_pairing_rpc.sql`(부트스트랩 여섯째 조각 ·
 //    같은 PR) · 소비기 = E11m-a · 뷰어 `CommandApi` = E11m-b · 페어링 클라이언트 · 뷰어 세션(미결 247) = E11m-c.
+// 🆕 '1.42.0'(실사 현금 판정 원장 기록 · 01 §51 · 13 §8 R281 · 발주자 위임 2026-11-14 — 권고대로 · K373~) — 미결 256 작은 창(DDL 만):
+//    배치 F `self_report_balance` += `cash_check`(NOT NULL · CHECK 3값 + «대조함 ⇔ 허용 오차 값» 짝) · `cash_tolerance_krw`(0 이상 ·
+//    대조함일 때만) · 🆕 `enums/ledger.dart` `SelfReportCashCheck` 3(`COMPARED` · `NO_TOLERANCE` · `LEDGER_UNKNOWN`) · C-15 축 +1 ·
+//    🆕 C-75 · 픽스처 402(버전 줄만) — 🆕 tool/gen_v142_self_report_cash_check_fixtures.py. 🔴 두 칸 = 엔진 판정 → 원장 해시 모집단 밖
+//    (투영 칸 · `hash_format_version` 무변경) · 로컬 스키마 v1 동결 전(R20 Q0)이라 표 본문(ALTER 0) · DTO · 창구 · 라우트 · `ui_*` = 0.
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.41.0';
+const String contractVersion = '1.42.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
@@ -10891,6 +10896,29 @@ enum LedgerTrustGrade {
   const LedgerTrustGrade(this.wire);
 
   /// JSON·DDL 표기.
+  final String wire;
+}
+
+/// 🆕 v1.42(01 §51 · 미결 256) — `L-3` 정기 실사 한 건의 **현금 축 판정**(`self_report_balance.cash_check`).
+///
+/// 🔴 제출 순간 엔진이 정해 실사 행에 같이 적는다 — 결과 빈 문장 · 0오차는 이 값을 읽는다(나중 설정 · 표식으로
+///    다시 정하지 않는다). 화면 · VM · 표본 = 0(엔진 · 원장 전용).
+enum SelfReportCashCheck {
+  /// 허용 오차로 대조했다(차이가 넘으면 `CASH` 관측 차이 행이 같이 선다).
+  @JsonValue('COMPARED')
+  compared('COMPARED'),
+
+  /// 허용 오차 값도 `SELF_AUDIT_PATTERN_UNVERIFIED` 표식도 없어 대조하지 않았다.
+  @JsonValue('NO_TOLERANCE')
+  noTolerance('NO_TOLERANCE'),
+
+  /// 그 계좌의 기준일 원장 현금을 셀 수 없어 대조하지 않았다(계좌 모를 현금 · 체결).
+  @JsonValue('LEDGER_UNKNOWN')
+  ledgerUnknown('LEDGER_UNKNOWN');
+
+  const SelfReportCashCheck(this.wire);
+
+  /// DDL 표기.
   final String wire;
 }
 

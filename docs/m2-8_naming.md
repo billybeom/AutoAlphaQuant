@@ -935,3 +935,13 @@ R9 🔀 3분할(K104)의 세 장(R9a `S09` · R9b `S10` · R9c `S12`)이 읽는 
 | AT-10 | 🆕 `CommandStatusText`(`requested` · `noOperator` · `of`) | 🆕 `command_status_text.dart` · G-26 고정 카탈로그(뷰어 구현이 고른다) |
 | AT-11 | 🆕 `ViewerCommandTtl`(킬스위치 30일 · 나머지 3 14일 · `kinds` · `of`) | 🆕 `commands/viewer_command_ttl.dart` |
 | AT-12 | 🆕 배치 D 표 `pairing_ticket` · 색인 `ix_command_ack_command_id` | `ddl/batch_d_supabase.sql` |
+
+## AU. 🆕 계약 v1.42 (2026-11-27 · 실사 현금 판정 원장 기록) — Dart 이름 1 · SQL 칸 2 · 와이어 글자 3
+
+`contractVersion` = **`1.42.0`**. 상태 = ⬜ PR #363 대기. 결정 = 발주자 위임 2026-11-14 — 권고대로(정본 = 설계 01 §51 · 13 §8 R281 · 01 §8 미결 256).
+
+| # | 이름 | 뜻 · 위치 |
+|---|---|---|
+| AU-1 | 🆕 `SelfReportCashCheck`(`compared` · `noTolerance` · `ledgerUnknown`) | `enums/ledger.dart` · 실사 한 건의 현금 축 판정(엔진 · 원장 전용) |
+| AU-2 | 🆕 와이어 `COMPARED` · `NO_TOLERANCE` · `LEDGER_UNKNOWN` | `self_report_balance.cash_check` CHECK |
+| AU-3 | 🆕 배치 F 칸 `cash_check` · `cash_tolerance_krw` | `ddl/batch_f_x7_advisory.sql` · 원장 해시 모집단 밖 |
