@@ -48,4 +48,37 @@ void main() {
     expect(LedgerWriteGateTexts.closed, contains('다시 누르면'));
     expect(LedgerWriteGateTexts.closed, isNot(contains(RegExp(r'\d|LEDGER_'))));
   });
+
+  test('🆕 R279(미결 249) — 동작 결과 = LEDGER_CLOSED · retryable · 지켜보기 · 동작 id 그대로 · 글자 = 엔진 한 벌', () {
+    for (final SafetyActionId id in SafetyActionId.values) {
+      final SafetyActionResult r = ledgerClosedSafetyResultOf(
+        actionRunId: 'run-$id',
+        id: id,
+      );
+      expect(
+        (r.actionRunId, r.id, r.level, r.reasonCode, r.retryable),
+        ('run-$id', id, UiLevel.watch, 'LEDGER_CLOSED', true),
+      );
+      expect(r.headline, LedgerWriteGateTexts.closedAction);
+      expect(r.handoffRoute, isNull);
+    }
+    for (final SettingsActionId id in SettingsActionId.values) {
+      final ActionResult r = ledgerClosedActionResultOf(
+        actionRunId: 'run-$id',
+        id: id,
+      );
+      expect(
+        (r.actionRunId, r.id, r.level, r.reasonCode, r.retryable),
+        ('run-$id', id, UiLevel.watch, LedgerWriteGateCodes.ledgerClosed, true),
+      );
+      expect(r.headline, LedgerWriteGateTexts.closedAction);
+      expect(r.handoffRoute, isNull);
+    }
+    expect(LedgerWriteGateTexts.closedAction, contains('다시 누르면'));
+    expect(LedgerWriteGateTexts.closedAction, isNot(startsWith('거부됨')));
+    expect(
+      LedgerWriteGateTexts.closedAction,
+      isNot(contains(RegExp(r'\d|LEDGER_'))),
+    );
+  });
 }

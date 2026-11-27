@@ -14,6 +14,8 @@
 //    `runRepairCorrect` · `runRepairBaseline` = 구현(`OperatorRepairActions` — 같은 원장 · 결과 글자 = 엔진).
 // 🆕 리뷰 3차 H1-3(설계 13 §8 R261 · 01 §8 미결 235 ⓒ) — 안전 상태를 바꾼 동작(재개 · RECON 해제 · 정정 · 개입 · 기기 이전) 뒤 엔진
 //    깨어남 한 번(`OperatorRuntime.wakeNow` · 기다리지 않는다) — FGS 상시 알림이 다음 알람까지 옛 상태로 남지 않게(04 §5-6).
+// 🆕 미결 249(설계 13 §8 R279 · 계약 v1.39 K347 둘째 축) — 화면 원장에 쓰는 동작(서약 · 계절 3택 · 개입 · 정정 · 재개 · 규칙 변경 ·
+//    RECON 해제)이 쓸 원장이 닫혔으면(전환 커밋 ~ 깨어남 끝 틈) 결과 `LEDGER_CLOSED`(쓰기 0 · 깨어남 0) · X1 = 실전 파일 · 원격 대상이라 뺀다.
 
 import 'dart:async';
 import 'dart:math';
@@ -33,6 +35,7 @@ import 'package:core_engine/core_engine.dart'
         kstDateText,
         killResumeItemAnswerOf,
         killResumeResultOf,
+        ledgerClosedSafetyResultOf,
         newCommandId,
         pledgeActionResultOf,
         pledgeSubmissionDigest,
@@ -58,6 +61,7 @@ import 'package:domain_contracts/domain_contracts.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 
 import 'operator_kill_switch.dart' show OperatorKillResumeDraft;
+import 'operator_ledger_gate.dart' show operatorLedgerClosed;
 import 'operator_migration.dart' show OperatorMigrationActions, kX1ActionIds;
 import 'operator_repair.dart' show OperatorRepairActions;
 import 'operator_rule_change.dart' show operatorRuleChangeGateSourceOf;
@@ -156,12 +160,36 @@ class OperatorSafetyActions implements SafetyActions {
     return r;
   }
 
+  /// 🆕 미결 249(설계 13 §8 R279 · 계약 v1.39 K347 둘째 축) — 이 동작이 쓸 원장([db] · 기본 = 화면 상태 원장)이 닫혔으면(CLOSE ·
+  /// 전환 커밋 ~ 깨어남 끝 틈) 결과 `LEDGER_CLOSED`(쓰기 0 · 깨어남 0 · `retryable` true · 이 인스턴스 결과에 남김) · 아니면 null
+  /// (화면 상태 없음 = 그 동작의 오류 그대로).
+  SafetyActionResult? _closed(SafetyActionId id, [Database? db]) {
+    final Database? on = db ?? _rt.view.value?.db;
+    if (on == null || !operatorLedgerClosed(on, clock: _rt.clock)) return null;
+    final SafetyActionResult r = ledgerClosedSafetyResultOf(
+      actionRunId: newCommandId(_random),
+      id: id,
+    );
+    return _done[r.actionRunId] = r;
+  }
+
+  /// 🆕 R279 — 화면 원장에 쓰는 `run` 동작(계절 3택 · 개입 단계 · 정정 수락 · 규칙 변경 취소) · 🔴 X1 = 실전 파일 · 원격 대상(자체 실전 전용
+  /// 판정)이라 뺀다.
+  static const Set<SafetyActionId> _ledgerRunIds = <SafetyActionId>{
+    SafetyActionId.seasonalWindowChoice,
+    SafetyActionId.interventionStep,
+    SafetyActionId.repairAccept,
+    SafetyActionId.ruleChangeCancel,
+  };
+
   @override
   Future<SafetyActionResult> runPledge(PledgeSubmission submission) async {
     final SafetyActionId id = submission.id;
     if (id != SafetyActionId.pledgeWrite && id != SafetyActionId.pledgeEdit) {
       throw ArgumentError.value(id, 'id', '서약 동작이 아니다');
     }
+    final SafetyActionResult? closed = _closed(id, _pledgeDb(_rt));
+    if (closed != null) return closed;
     final String commandId = newCommandId(_random);
     final String digest = pledgeSubmissionDigest(submission);
     final SqlitePledgeStore store = _store(_rt);
@@ -216,6 +244,10 @@ class OperatorSafetyActions implements SafetyActions {
     if (kX1ActionIds.contains(id)) {
       final SafetyActionResult r = await _x1.run(id, args);
       return _done[r.actionRunId] = _woke(r);
+    }
+    if (_ledgerRunIds.contains(id)) {
+      final SafetyActionResult? closed = _closed(id);
+      if (closed != null) return closed;
     }
     if (id == SafetyActionId.seasonalWindowChoice) return _seasonalChoice(args);
     // 🆕 E16j-a(R227) — 개입 단계 · 아무것도 안 하기 = 엔진이 완성한 args 그대로(명령 id = 킬스위치 명령과 같은 꼴).
@@ -305,6 +337,11 @@ class OperatorSafetyActions implements SafetyActions {
   ) async {
     final OperatorView? v = _rt.view.value;
     if (v == null) throw StateError('재개: 화면 상태 없음(온보딩 전)');
+    final SafetyActionResult? closed = _closed(
+      SafetyActionId.killSwitchResume,
+      v.db,
+    );
+    if (closed != null) return closed;
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: submission.toJson(), random: _random);
     final String run = c.commandId;
@@ -390,6 +427,8 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runRepairCorrect(
     RepairCorrectSubmission submission,
   ) async {
+    final SafetyActionResult? closed = _closed(SafetyActionId.repairCorrect);
+    if (closed != null) return closed;
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: submission.toJson(), random: _random);
     return _done[c.commandId] = _woke(
@@ -402,6 +441,8 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runRepairBaseline(
     RepairBaselineSubmission submission,
   ) async {
+    final SafetyActionResult? closed = _closed(SafetyActionId.repairBaseline);
+    if (closed != null) return closed;
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: submission.toJson(), random: _random);
     return _done[c.commandId] = _woke(
@@ -414,6 +455,10 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runInterventionJournal(
     InterventionJournalSubmission submission,
   ) async {
+    final SafetyActionResult? closed = _closed(
+      SafetyActionId.interventionJournal,
+    );
+    if (closed != null) return closed;
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: submission.toJson(), random: _random);
     return _done[c.commandId] = _woke(
@@ -428,6 +473,10 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runRuleChangeApproval(
     RuleChangeApprovalSubmission submission,
   ) async {
+    final SafetyActionResult? closed = _closed(
+      SafetyActionId.ruleChangeApprove,
+    );
+    if (closed != null) return closed;
     final (OperatorView v, String run, String digest) = _safetyCommand(
       submission.toJson(),
     );
@@ -454,6 +503,10 @@ class OperatorSafetyActions implements SafetyActions {
   Future<SafetyActionResult> runRuleChangeRequest(
     RuleChangeRequestSubmission submission,
   ) async {
+    final SafetyActionResult? closed = _closed(
+      SafetyActionId.ruleChangeRequest,
+    );
+    if (closed != null) return closed;
     final (OperatorView v, String run, String digest) = _safetyCommand(
       submission.toJson(),
     );
@@ -494,6 +547,8 @@ class OperatorSafetyActions implements SafetyActions {
   ) async {
     final OperatorView? v = _rt.view.value;
     if (v == null) throw StateError('RECON 해제: 화면 상태 없음(온보딩 전)');
+    final SafetyActionResult? closed = _closed(SafetyActionId.reconClear, v.db);
+    if (closed != null) return closed;
     final ({String commandId, String nonce, String payloadDigest}) c =
         issueKillCommand(payload: submission.toJson(), random: _random);
     final String run = c.commandId;

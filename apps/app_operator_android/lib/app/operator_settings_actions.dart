@@ -18,6 +18,8 @@
 //    비밀번호를 넘김으로 받아 `SupabaseAuth.signIn` → 🔴 통과 · 실패 모두 칸을 비운다(비밀번호를 오래 쥐지 않는다) ·
 //    통과 = o_07 진행 중 그대로(VERIFIED 는 내리지 않음 · 확인 글자 «로그인됨» = 엔진 · 사실 = 세션) · 결과 = 엔진 표본 글자 ·
 //    🆕 R276(미결 243 ⓔ · K349 ④) — 통과 뒤 공개 가입 확인 1회(열림 = `SUPABASE_SIGNUP_OPEN` · 결과 글자 = data_sync).
+// 🆕 미결 249(설계 13 §8 R279 · K347 둘째 축) — 원장에 쓰는 동작(무결성 · 골든 · 월 납입 = 화면 원장 · 운영 방식 고름 · 모의 개시 ·
+//    모의 파일 처리 = 모의 파일)이 쓸 원장이 닫혔으면 결과 `LEDGER_CLOSED`(쓰기 0) · 금고 · 원격 · 전환 시작/취소/확정 · 백업 · 승격 = 그대로.
 // 🆕 E11q-s05(R252 · 01 §28 K4 · K6 · K7) — M9 S05 동작 2:
 //    · `runtimeModeSwitchRequest{run_mode: LIVE}` = M5-11 위저드로 넘김만(상태 변경 0 · 판정 · 생체 = 위저드 · 결과 = 엔진 표본 글자) ·
 //      위저드 본문이 등록됐을 때만([modeSwitch]).
@@ -49,6 +51,7 @@ import 'package:core_engine/core_engine.dart'
         kOnboardingDryRunStartedText,
         kOnboardingModeCommittedText,
         kOnboardingModeSelectedText,
+        ledgerClosedActionResultOf,
         p0sTierBCard,
         runModeSwitchRequestedResultOf,
         selftestGoldenResultOf,
@@ -91,6 +94,7 @@ import '../secret/secret_handoff.dart';
 import 'operator_backup.dart' show OperatorBackup;
 import 'operator_golden.dart' show OperatorGolden;
 import 'operator_handover.dart' show OperatorHandover, kOperatorHandoverActions;
+import 'operator_ledger_gate.dart' show operatorLedgerClosed;
 import 'operator_live_promotion.dart' show OperatorLivePromotion;
 
 /// 검증 결과 문구(엔진 몫 — 화면은 그대로 그린다).
@@ -242,6 +246,11 @@ class OperatorSettingsActions implements SettingsActions {
     if (args.isNotEmpty) throw ArgumentError('selftestGoldenRun args = {}');
     final Database? db = book();
     if (db == null) throw StateError('골든: 화면 상태 없음(온보딩 전)');
+    final ActionResult? closed = _closed(
+      SettingsActionId.selftestGoldenRun,
+      db,
+    );
+    if (closed != null) return closed;
     final ActionResult r = selftestGoldenResultOf(
       actionRunId: _runId(),
       result: await g.run(db),
@@ -265,6 +274,11 @@ class OperatorSettingsActions implements SettingsActions {
     if (db == null) {
       return Future<ActionResult>.error(StateError('무결성: 화면 상태 없음(온보딩 전)'));
     }
+    final ActionResult? closed = _closed(
+      SettingsActionId.selftestIntegrityRun,
+      db,
+    );
+    if (closed != null) return Future<ActionResult>.value(closed);
     final LedgerIntegrityReport rep = LedgerIntegrityCheck(
       db,
       clock: clock,
@@ -362,6 +376,18 @@ class OperatorSettingsActions implements SettingsActions {
   int _seq = 0;
 
   String _runId() => 'ar_op_${clock.nowUtc().microsecondsSinceEpoch}_${++_seq}';
+
+  /// 🆕 미결 249(설계 13 §8 R279 · 계약 v1.39 K347 둘째 축) — 이 동작이 쓸 원장 [db] 가 닫혔으면(CLOSE · 전환 커밋 ~ 깨어남 끝 틈)
+  /// 결과 `LEDGER_CLOSED`(쓰기 0 · `retryable` true · 결과에 남김) · 아니면 null(원장 없음 = 그 동작의 오류 그대로).
+  ActionResult? _closed(SettingsActionId id, Database? db) {
+    if (db == null || !operatorLedgerClosed(db, clock: clock)) return null;
+    final ActionResult r = ledgerClosedActionResultOf(
+      actionRunId: _runId(),
+      id: id,
+    );
+    _results[r.actionRunId] = r;
+    return r;
+  }
 
   ActionResult _result(
     SettingsActionId id,
@@ -480,6 +506,11 @@ class OperatorSettingsActions implements SettingsActions {
     SettingsActionId id,
     Map<String, String> args,
   ) async {
+    // 🆕 R279 — 모의 파일 처리 고름 = 모의 파일에 쓴다 · 닫힌 모의 파일 = 쓰기 0(시작 · 취소 · 확정 = 실전 쪽 · 세션 판정이 따로 막는다).
+    if (id == SettingsActionId.handoverSimLedgerFate) {
+      final ActionResult? closed = _closed(id, sim);
+      if (closed != null) return closed;
+    }
     final ActionResult r = await h.run(id, args);
     _results[r.actionRunId] = r;
     return r;
@@ -492,6 +523,11 @@ class OperatorSettingsActions implements SettingsActions {
   ) {
     // 🆕 E11q3(R174) — 판정 · 기록 · 문장 = 엔진(`ContributionSettingSource.change` · `contributionUpdateResultOf`) ·
     //    입력칸 글자 그대로 · 신뢰 시각을 모르면 `TRUSTED_TIME_UNKNOWN`(기기 시계로 대신 쓰지 않는다).
+    final ActionResult? closed = _closed(
+      SettingsActionId.settingsContributionUpdate,
+      ledger?.call(),
+    );
+    if (closed != null) return Future<ActionResult>.value(closed);
     final ContributionSettingSource? src = contribution?.call();
     if (src == null) {
       return Future<ActionResult>.error(
@@ -725,6 +761,8 @@ class OperatorSettingsActions implements SettingsActions {
         ),
       );
     }
+    final ActionResult? closed = _closed(id, db);
+    if (closed != null) return Future<ActionResult>.value(closed);
     final OnboardingOutcome out = SqliteOnboardingStore(
       db,
       clock: clock,
@@ -752,6 +790,8 @@ class OperatorSettingsActions implements SettingsActions {
         ArgumentError('onboardingDryRunStart args = {}'),
       );
     }
+    final ActionResult? closed = _closed(id, db);
+    if (closed != null) return Future<ActionResult>.value(closed);
     final OnboardingOutcome out = SqliteOnboardingStore(
       db,
       clock: clock,

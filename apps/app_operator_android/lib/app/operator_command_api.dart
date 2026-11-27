@@ -69,7 +69,6 @@ import 'package:data_sync/data_sync.dart'
         SqliteJournalSource,
         SqliteKillSwitchStore,
         SqliteLeaseGate,
-        SqliteModeStore,
         SqliteOnboardingStore,
         SqlitePerformanceSource,
         SqliteWhatIfStateSource,
@@ -78,6 +77,7 @@ import 'package:data_sync/data_sync.dart'
 import 'package:domain_contracts/domain_contracts.dart';
 import 'package:sqlite3/sqlite3.dart' show Database, ResultSet;
 
+import 'operator_ledger_gate.dart' show operatorLedgerClosed;
 import 'operator_ops_summary.dart' show operatorRebalanceSourceOf;
 import 'operator_runtime.dart';
 import 'operator_self_report.dart' show OperatorSelfReport;
@@ -104,16 +104,13 @@ class OperatorCommandApi implements CommandApi {
       );
 
   /// 🆕 미결 243 ⓓ(R276 · K347) — [db] 가 닫힌(CLOSE) 원장이면 거부 접수증(쓰기 0 · 이 인스턴스 접수증에 남긴다) · 아니면 null.
-  /// 판정 = 엔진 정본 `SqliteModeStore.closed`(CLOSE 행 = 모의 파일만).
+  /// 판정 = 앱 한 곳 `operatorLedgerClosed`(엔진 정본 `SqliteModeStore.closed` · 🆕 R279 — 안전 · 설정 동작과 같은 판정).
   CommandReceipt? _ledgerClosed(
     Database db,
     CommandKind kind,
     String deviceId,
   ) {
-    final LedgerFile file = identical(db, _rt.files.sim)
-        ? LedgerFile.sim
-        : LedgerFile.live;
-    if (!SqliteModeStore(db, file, clock: _rt.clock).closed()) return null;
+    if (!operatorLedgerClosed(db, clock: _rt.clock)) return null;
     final CommandReceipt r = ledgerClosedReceiptOf(
       kind: kind,
       requestedAtUtc: _rt.clock.nowUtc(),
