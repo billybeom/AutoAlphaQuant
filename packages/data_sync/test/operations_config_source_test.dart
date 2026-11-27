@@ -25,6 +25,9 @@ void main() {
     expect(c.backupUpload, isFalse);
     // 🆕 미결 220 ⓑ — 정정 체인 상한 = 01 §10-3 B6 문서값(SPEC 02 §4 v2.45 정정 · 새 수치 0).
     expect(c.amendChainMax, 2);
+    // 🆕 R278(미결 227 · §46 K323 ②) — 실사 현금 허용 오차 = 발주자 수치 대기(키는 있고 값 = null · 엔진 기본값 0).
+    expect(c.raw.containsKey('self_report_cash_tolerance_krw'), isTrue);
+    expect(c.selfReportCashToleranceKrw, isNull);
     expect(c.maintenanceOverdue, const Duration(hours: 72));
     // 🆕 R150 — 재개 사다리 = SPEC 권고값(core 참조 값과 같다 · 동작 0 변경).
     expect(

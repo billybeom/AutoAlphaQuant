@@ -8,6 +8,10 @@
 // 🔴 차이 = `ledger_diff(pair = CANON_SELF_REPORT)` · 심각도 = 쌍 규칙(`OBSERVATIONAL` — 차단은 실사의 «부재»에만 · A12) ·
 //    실사 경로의 등급 상한 = `SELF_REPORTED`(실사만으로는 `RECONCILED` 에 닿지 않는다).
 // 🔵 글자 = 표본(`m6/self_report_*`) 문장 그대로 · 표본 밖 갈래(세션을 열지 못한 까닭 · 칸별 거부) = 이 글자표.
+// 🆕 R278(01 §8 미결 227 · 계약 v1.37 §46 K323 · K321 ④) — 현금 축: 계좌별 원장 현금(`cash_flow.account_alias` + 그 계좌
+//    브로커 체결 대금 · 기준일 종가까지 = 수량 축과 같은 «그날») · 허용 오차 = 운영 설정 `self_report_cash_tolerance_krw`
+//    (값 = 발주자 수치 대기 · 🔴 엔진 기본값 0) · `SELF_AUDIT_PATTERN_UNVERIFIED` 가 서 있으면 0원 · 둘 다 없음 = 대조 안 함 ·
+//    계좌를 모르는 현금 · 체결이 기준일까지 있으면 = 모름(대조 안 함) · 차이 = 원 단위 대조(02 §3-10 «원 단위»).
 
 import 'dart:convert';
 
@@ -19,6 +23,8 @@ import '../calendar/exchange_calendar.dart';
 import '../data/quote_feed.dart' show lastFinishedSession;
 import '../orders/ledger_pairs.dart' show diffSeverityFor;
 import '../orders/order_draft.dart' show P0sStrategyIds;
+import '../sim/sim_internal_broker.dart'
+    show SimExecution, SimOrder, simOrderableCashOf;
 import '../whatif/what_if_config.dart' show WhatIfConfig, kP0sParkingSymbol;
 import 'ledger_views.dart' show StoredLedgerDiff, ledgerDiffRowOf, kstDateText;
 import 'p0s_ops_config.dart' show P0sOpsConfig, kP0sMappedStrategies;
@@ -85,6 +91,18 @@ abstract final class SelfReportTexts {
 
   /// 결과 — 차이 없음.
   static const String resultEmpty = '실사 결과가 원장과 맞습니다';
+
+  /// 🆕 R278 결과 — 차이 없음 · 현금 미대조(허용 오차 값 · 표식 둘 다 없음 — 표본 `m6/self_report_cash_2` 둘째 행).
+  static const String resultCashNoTolerance =
+      '수량은 원장과 맞습니다 · 현금은 허용 오차가 정해지기 전이라 대조하지 않았습니다(적은 값은 기록에 남습니다)';
+
+  /// 🆕 R278 결과 — 차이 없음 · 현금 미대조(그 계좌 원장 현금을 셀 수 없음 — 표본 밖 갈래 · K323 ①).
+  static const String resultCashLedgerUnknown =
+      '수량은 원장과 맞습니다 · 현금은 계좌별 원장 현금을 셀 수 없어 대조하지 않았습니다(적은 값은 기록에 남습니다)';
+
+  /// 🆕 R278 차이 글자 «원화 현금이 기록과 다릅니다 (원장 412,300원 / 자가 보고 405,300원)»(L-1 엔진 사전 · 원 단위 정수).
+  static String cashDelta(Decimal ledgerKrw, Decimal reportedKrw) =>
+      '원화 현금이 기록과 다릅니다 (원장 ${_cashWon(ledgerKrw)} / 자가 보고 ${_cashWon(reportedKrw)})';
 
   /// 결과 — 해소 링크(→ `M5-13`).
   static const String resolve = '차이 해소하기';
@@ -172,6 +190,25 @@ const List<String> kSelfReportDiffCandidates = <String>[
   OriginCodes.unrecordedFill,
   OriginCodes.selfReportCorrection,
 ];
+
+/// 🆕 R278 현금 차이의 후보 원인(표본 `m6/self_report_cash_2` 차례 · K323 ⑤ — 사전 무변경).
+const List<String> kSelfReportCashDiffCandidates = <String>[
+  OriginCodes.externalCashflow,
+  OriginCodes.unrecordedFill,
+  OriginCodes.selfReportCorrection,
+];
+
+/// 원 단위 정수 글자 «412,300원» · 음수 = U+2212(수량 차이 글자와 같은 빼기).
+String _cashWon(Decimal won) {
+  final BigInt n = won.round().toBigInt();
+  final String d = n.abs().toString();
+  final StringBuffer b = StringBuffer();
+  for (int i = 0; i < d.length; i++) {
+    if (i > 0 && (d.length - i) % 3 == 0) b.write(',');
+    b.write(d[i]);
+  }
+  return '${n.isNegative ? '−' : ''}$b원';
+}
 
 final RegExp _yyyyMm = RegExp(r'^(\d{4})-(0[1-9]|1[0-2])$');
 final RegExp _quantity = RegExp(r'^(?:\d+|\d{1,3}(?:,\d{3})+)$');
@@ -499,7 +536,7 @@ class SelfReportQuantityDiff {
 }
 
 /// 🔴 수량 대조 — [ledger] = 기준일 원장 수량(종목 → 수량 · 없음 = 0) · [reported] = 와이어 줄(차례 그대로) · 같으면 빠진다.
-/// 🔵 현금 축은 대조하지 않는다(계좌별 원장 현금 원천 · 허용 오차 = 계약 창 대기) — 보고 값은 원장에 남긴다.
+/// 🔵 현금 축 = [selfReportCashVerdictOf](R278 · 허용 오차가 없으면 대조하지 않는다 — 보고 값은 원장에 남긴다).
 List<SelfReportQuantityDiff> selfReportQuantityDiffsOf({
   required Map<String, int> ledger,
   required List<SelfReportLine> reported,
@@ -540,6 +577,7 @@ class SelfReportDiffRow {
   /// 만든다.
   const SelfReportDiffRow({
     required this.diffId,
+    required this.axis,
     required this.delta,
     required this.deltaLabel,
     required this.severity,
@@ -547,6 +585,9 @@ class SelfReportDiffRow {
 
   /// id.
   final String diffId;
+
+  /// 🆕 R278 축(수량 · 현금).
+  final LedgerAxis axis;
 
   /// 원값 JSON.
   final String delta;
@@ -567,6 +608,7 @@ List<SelfReportDiffRow> selfReportDiffRowsOf({
   for (final SelfReportQuantityDiff d in diffs)
     SelfReportDiffRow(
       diffId: selfReportDiffIdOf(asOf, alias, d.symbol),
+      axis: LedgerAxis.quantity,
       delta: selfReportDeltaOf(alias, d),
       deltaLabel: SelfReportTexts.quantityDelta(d.symbol, d.ledger, d.reported),
       severity: diffSeverityFor(
@@ -575,6 +617,175 @@ List<SelfReportDiffRow> selfReportDiffRowsOf({
       ),
     ),
 ];
+
+// ── 🆕 R278 현금 축(01 §8 미결 227 · 계약 v1.37 §46 K323) ─────────────────────────────
+
+/// 계좌 원장 현금 원천(기준일 종가까지 · ds 가 원장에서 읽는다 — 🔴 원값은 VM 에 싣지 않는다).
+class SelfReportCashFacts {
+  /// 만든다.
+  const SelfReportCashFacts({
+    required this.cashFlowSum,
+    required this.executions,
+    required this.unattributed,
+  });
+
+  /// 그 계좌 원화 `cash_flow` 합(거래일 ≤ 기준일 · 들어오면 + · 나가면 −).
+  final double cashFlowSum;
+
+  /// 그 계좌(`order_intents.account`) KR 브로커 체결(집행일 ≤ 기준일 · `REVERSAL` = 수량 · 비용 음수).
+  final List<SimExecution> executions;
+
+  /// 기준일까지 계좌를 모르는 현금 · 체결이 있다(별칭 빈 `cash_flow` 행 · 계좌 빈 의도의 체결 · 살아 있는 수기 체결 — 수기 체결
+  /// 행에는 계좌 칸이 없다) → 그 계좌 원장 현금 = 모름.
+  final bool unattributed;
+}
+
+/// 🔴 기준일 계좌 원장 현금(원 · 정확값) — 모름 = null · 셈 = 시뮬레이터 · 보유 화면과 같은 한 셈(`simOrderableCashOf` ·
+/// 매도 = 대금 − 비용 · 매수 = −(대금 + 비용) · 판정 전 주문 예약 0 — 원장에 적힌 것만).
+Decimal? selfReportLedgerCashOf(SelfReportCashFacts f) => f.unattributed
+    ? null
+    : simOrderableCashOf(f.cashFlowSum, f.executions, const <SimOrder>[]);
+
+/// 🔴 현금 축 허용 오차(원) — `SELF_AUDIT_PATTERN_UNVERIFIED` 가 서 있으면 0원(02 §3-10 «원 단위» · K323 ③) · 아니면 운영 설정
+/// [configuredKrw](`operations.self_report_cash_tolerance_krw` · 값 = 발주자 수치 대기) · 둘 다 없음 = null(대조 안 함 — 🔴 엔진
+/// 기본값 0) · 음수 = [ArgumentError](설정 꼴 틀림을 조용히 넘기지 않는다).
+Decimal? selfReportCashToleranceOf({
+  required int? configuredKrw,
+  required bool patternMarker,
+}) {
+  if (configuredKrw != null && configuredKrw < 0) {
+    throw ArgumentError.value(
+      configuredKrw,
+      'self_report_cash_tolerance_krw',
+      '0 이상이어야',
+    );
+  }
+  if (patternMarker) return Decimal.zero;
+  return configuredKrw == null ? null : Decimal.fromInt(configuredKrw);
+}
+
+/// 현금 축을 대조하지 않은 까닭.
+enum SelfReportCashSkip {
+  /// 허용 오차 값도 표식도 없다(K323 ④).
+  noTolerance,
+
+  /// 그 계좌의 기준일 원장 현금을 셀 수 없다(K323 ① — 별칭 빈 행 · 계좌 모를 체결).
+  ledgerUnknown,
+}
+
+/// 🔴 대조하지 않는 까닭(차례 = 허용 오차 → 원장 현금) — null = 대조한다. 제출(판정)과 결과 글자(읽기)가 같은 차례를 쓴다.
+SelfReportCashSkip? selfReportCashSkipOf({
+  required Decimal? toleranceKrw,
+  required bool ledgerKnown,
+}) => toleranceKrw == null
+    ? SelfReportCashSkip.noTolerance
+    : !ledgerKnown
+    ? SelfReportCashSkip.ledgerUnknown
+    : null;
+
+/// 현금 축 판정.
+sealed class SelfReportCashVerdict {
+  const SelfReportCashVerdict();
+}
+
+/// 대조하지 않았다(차이 행 0 · 결과 글자가 말한다).
+final class SelfReportCashSkipped extends SelfReportCashVerdict {
+  /// 만든다.
+  const SelfReportCashSkipped(this.reason);
+
+  /// 까닭.
+  final SelfReportCashSkip reason;
+}
+
+/// 대조했고 허용 오차 안이다.
+final class SelfReportCashWithin extends SelfReportCashVerdict {
+  /// 만든다.
+  const SelfReportCashWithin();
+}
+
+/// 대조했고 허용 오차를 넘었다(관측 차이 1행).
+final class SelfReportCashMismatch extends SelfReportCashVerdict {
+  /// 만든다.
+  const SelfReportCashMismatch({
+    required this.ledgerKrw,
+    required this.reportedKrw,
+    required this.toleranceKrw,
+  });
+
+  /// 원장 현금(원 단위로 반올림).
+  final Decimal ledgerKrw;
+
+  /// 자가 보고 현금(원 단위 — 와이어가 이미 막았다).
+  final Decimal reportedKrw;
+
+  /// 적용한 허용 오차.
+  final Decimal toleranceKrw;
+}
+
+/// 🔴 현금 대조(K323) — 대조 안 함 = [selfReportCashSkipOf] · 원장 = 원 단위로 반올림해 대조(자가 보고는 원 단위 정수) ·
+/// |원장 − 보고| ≤ 허용 오차 = 안 · 넘으면 차이.
+SelfReportCashVerdict selfReportCashVerdictOf({
+  required Decimal? toleranceKrw,
+  required Decimal? ledgerKrw,
+  required Decimal reportedKrw,
+}) {
+  final SelfReportCashSkip? skip = selfReportCashSkipOf(
+    toleranceKrw: toleranceKrw,
+    ledgerKnown: ledgerKrw != null,
+  );
+  if (skip != null) return SelfReportCashSkipped(skip);
+  final Decimal ledger = ledgerKrw!.round();
+  return (ledger - reportedKrw).abs() > toleranceKrw!
+      ? SelfReportCashMismatch(
+          ledgerKrw: ledger,
+          reportedKrw: reportedKrw,
+          toleranceKrw: toleranceKrw,
+        )
+      : const SelfReportCashWithin();
+}
+
+/// 현금 차이 id — 기준일 · 계좌가 같으면 같은 id(종목 id 와 원문 꼴이 달라 겹치지 않는다 · 그 달 그 계좌 실사는 한 번).
+String selfReportCashDiffIdOf(TradeDate asOf, String alias) =>
+    'ld_sr_${sha256.convert(utf8.encode(jsonEncode(<String>[asOf.yyyyMmDd, alias]))).toString().substring(0, 12)}';
+
+/// 🔴 현금 판정 → 저장 행(차이 = 1 · 그 밖 = 0) — 쌍 = `CANON_SELF_REPORT` · 축 = 현금 · 심각도 = 쌍 규칙(관측) · delta = 계좌 ·
+/// 두 값 · 적용한 허용 오차 · 후보(표본 차례).
+List<SelfReportDiffRow> selfReportCashDiffRowsOf({
+  required TradeDate asOf,
+  required String alias,
+  required SelfReportCashVerdict verdict,
+}) => switch (verdict) {
+  SelfReportCashMismatch(
+    :final Decimal ledgerKrw,
+    :final Decimal reportedKrw,
+    :final Decimal toleranceKrw,
+  ) =>
+    <SelfReportDiffRow>[
+      SelfReportDiffRow(
+        diffId: selfReportCashDiffIdOf(asOf, alias),
+        axis: LedgerAxis.cash,
+        delta: jsonEncode(<String, Object?>{
+          'account': alias,
+          'axis': LedgerAxis.cash.wire,
+          'ledger_krw': ledgerKrw.toString(),
+          'reported_krw': reportedKrw.toString(),
+          'tolerance_krw': toleranceKrw.toString(),
+          'candidates': kSelfReportCashDiffCandidates,
+        }),
+        deltaLabel: SelfReportTexts.cashDelta(ledgerKrw, reportedKrw),
+        severity: diffSeverityFor(LedgerPair.canonSelfReport, LedgerAxis.cash),
+      ),
+    ],
+  SelfReportCashSkipped() ||
+  SelfReportCashWithin() => const <SelfReportDiffRow>[],
+};
+
+/// 🔴 0오차 실사(K321 ④ · M5-13 해제가 읽는다 — 미결 226) = 수량 축 전부 일치 ∧ 현금 축은 대조한 때만 센다(대조 안 함 = 세지
+/// 않음 · 대조해 넘음 = 0오차 아님). 원장에서는 «그 실사가 남긴 차이 행 0»과 같다(현금 행은 대조해 넘은 때만 생긴다).
+bool selfReportZeroErrorOf({
+  required List<SelfReportQuantityDiff> quantity,
+  required SelfReportCashVerdict cash,
+}) => quantity.isEmpty && cash is! SelfReportCashMismatch;
 
 String? _linkOf(String pattern, Map<String, String> args) {
   String out = pattern;
@@ -593,12 +804,14 @@ String? selfReportLinkOf(String yyyyMm, String alias) => _linkOf(
 
 /// 🔴 실사 결과(02 §3-10 «제출 후 = 엔진이 준 차이 목록만») — 행 = `L-1` 과 같은 엔진 사전(같은 차이가 두 화면에서 같게 읽힌다) ·
 /// 행 `actionLink` = null(자기 자신으로 가는 고리 방지) · [resolveRegistered] = `M5-13` 본문이 있나(없으면 해소 링크 0 ·
-/// 열린 차이가 있을 때만) · [nextAlias] = 이 달 아직 실사하지 않은 다음 계좌(없음 = 이 달 실사 끝).
+/// 열린 차이가 있을 때만) · [nextAlias] = 이 달 아직 실사하지 않은 다음 계좌(없음 = 이 달 실사 끝) · 🆕 R278 [cashSkipped] = 현금 축을
+/// 대조하지 않은 까닭(null = 대조함) — 차이 0 일 때 빈 문장이 말한다(K323 ④ · 표본 `m6/self_report_cash_2`).
 SelfReportResult selfReportResultOf({
   required List<StoredLedgerDiff> diffs,
   required String yyyyMm,
   required String? nextAlias,
   required bool resolveRegistered,
+  required SelfReportCashSkip? cashSkipped,
 }) {
   final List<LedgerDiffRow> rows = <LedgerDiffRow>[
     for (final StoredLedgerDiff d in diffs)
@@ -612,7 +825,15 @@ SelfReportResult selfReportResultOf({
       : selfReportLinkOf(yyyyMm, nextAlias);
   return SelfReportResult(
     diffs: rows,
-    emptyLabel: rows.isEmpty ? SelfReportTexts.resultEmpty : null,
+    emptyLabel: rows.isNotEmpty
+        ? null
+        : switch (cashSkipped) {
+            null => SelfReportTexts.resultEmpty,
+            SelfReportCashSkip.noTolerance =>
+              SelfReportTexts.resultCashNoTolerance,
+            SelfReportCashSkip.ledgerUnknown =>
+              SelfReportTexts.resultCashLedgerUnknown,
+          },
     resolveLink: open && resolveRegistered
         ? const LinkAction(
             label: SelfReportTexts.resolve,

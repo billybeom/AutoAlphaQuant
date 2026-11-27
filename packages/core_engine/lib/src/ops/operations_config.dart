@@ -73,6 +73,12 @@ final class OperationsConfig {
   /// 1 미만 = core 판정(`amendFillRejectCode`)의 [ArgumentError] 그대로.
   int? get amendChainMax => _int(const <String>['amend_chain_max']);
 
+  /// 🆕 R278(01 §8 미결 227 · 계약 v1.37 §46 K323 ②) — `L-3` 실사 현금 축 허용 오차(원 · 브로커 현금 축 미결 9 와 다른 축) ·
+  /// **값 = 발주자 수치 대기**(SPEC 02 §4 null) · 없음 = null(현금 대조 안 함 — 지어내지 않음) · 음수 = core 판정
+  /// (`selfReportCashToleranceOf`)의 [ArgumentError] 그대로.
+  int? get selfReportCashToleranceKrw =>
+      _int(const <String>['self_report_cash_tolerance_krw']);
+
   /// M1-22 live × dryRun 관찰 거래일.
   int? get liveDryRunObservationTradingDays =>
       _int(const <String>['live_dry_run_observation_trading_days']);

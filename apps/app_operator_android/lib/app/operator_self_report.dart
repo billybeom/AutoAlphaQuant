@@ -7,6 +7,8 @@
 //    [OperatorSelfReportSessions.anyOpen] · 바뀜 = [OperatorSelfReportSessions.changes](감시 흐름이 곧바로 다시 읽는다).
 // 🔴 읽기(`watch`) = 부작용 0(01 §1-4) · 제출 = 엔진 판정 → 원장 한 트랜잭션 → 세션 닫음(원장 값은 제출 뒤에 보인다).
 // 🔴 접수증 글자 · 사유 코드 = 엔진(`selfReportReceiptOf` · 로컬 거부 = `INPUT_INVALID` 칸 글자) · 큐 적재 0(폰 안에서 끝난다).
+// 🆕 R278(01 §8 미결 227) — 현금 축 = 엔진 판정(허용 오차 = 운영 설정 `self_report_cash_tolerance_krw` · 표식 = 0원 · 둘 다 없음 =
+//    대조 안 함) · 원천 = ds `cashFactsOf` · 결과 빈 문장 = 같은 차례(`selfReportCashSkipOf`).
 
 import 'dart:async';
 import 'dart:convert';
@@ -15,6 +17,8 @@ import 'dart:math';
 import 'package:core_engine/core_engine.dart'
     show
         P0sOpsConfig,
+        SelfReportCashVerdict,
+        SelfReportDiffRow,
         SelfReportInputInvalid,
         SelfReportOpenSession,
         SelfReportOutcome,
@@ -28,7 +32,12 @@ import 'package:core_engine/core_engine.dart'
         SimOpeningCommand,
         selfReportAccountsOf,
         selfReportAsOfOf,
+        selfReportCashDiffRowsOf,
+        selfReportCashSkipOf,
+        selfReportCashToleranceOf,
+        selfReportCashVerdictOf,
         selfReportDiffRowsOf,
+        selfReportLedgerCashOf,
         selfReportNextAccountOf,
         selfReportQuantityDiffsOf,
         selfReportReceiptOf,
@@ -245,6 +254,13 @@ class OperatorSelfReport {
             audited: audited,
           ),
           resolveRegistered: hasBody(AppRoutes.m5SelfAuditResolve),
+          cashSkipped: selfReportCashSkipOf(
+            toleranceKrw: selfReportCashToleranceOf(
+              configuredKrw: _rt.operations?.selfReportCashToleranceKrw,
+              patternMarker: src.patternUnverifiedStanding(),
+            ),
+            ledgerKnown: !src.cashFactsOf(asOf, alias).unattributed,
+          ),
         );
       }
     }
@@ -383,13 +399,29 @@ class OperatorSelfReport {
       ledger: src.ledgerQuantities(state.asOf, strategies),
       reported: wire.lines,
     );
+    // 🆕 R278 — 현금 축(K323): 허용 오차 = 표식이면 0원 · 아니면 운영 설정 값 · 없음 = 대조 안 함 · 원장 현금 모름 = 대조 안 함.
+    final SelfReportCashVerdict cash = selfReportCashVerdictOf(
+      toleranceKrw: selfReportCashToleranceOf(
+        configuredKrw: _rt.operations?.selfReportCashToleranceKrw,
+        patternMarker: src.patternUnverifiedStanding(),
+      ),
+      ledgerKrw: selfReportLedgerCashOf(src.cashFactsOf(state.asOf, alias)),
+      reportedKrw: wire.cashKrw,
+    );
     final CommandReceipt done = outcome(SelfReportOutcome.executed);
     src.record(
       wire: wire,
       commandId: c.commandId,
       deviceId: deviceId,
       reportedAtUtc: trusted,
-      diffs: selfReportDiffRowsOf(asOf: state.asOf, alias: alias, diffs: diffs),
+      diffs: <SelfReportDiffRow>[
+        ...selfReportDiffRowsOf(asOf: state.asOf, alias: alias, diffs: diffs),
+        ...selfReportCashDiffRowsOf(
+          asOf: state.asOf,
+          alias: alias,
+          verdict: cash,
+        ),
+      ],
       stateLabel: done.stateLabel,
       runMode: v.flags.runMode,
       operatingMode: mode,
