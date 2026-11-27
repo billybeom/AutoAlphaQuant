@@ -323,4 +323,42 @@ void main() {
       });
     }
   });
+
+  // 🆕 미결 243 ⓔ(설계 13 §8 R276 · 계약 v1.39 K349 ④) — 로그인 통과 뒤 공개 가입 확인 결과.
+  group('🆕 R276 공개 가입 확인 결과', () {
+    test('🔴 닫힘 = 로그인 통과 글자 · 열림 = SUPABASE_SIGNUP_OPEN(막힘 · 다시 해 볼 만함 · 할 일 = 가입 끄기)', () {
+      expect(
+        supabaseSignupOutcome(const SupabaseSignupRead.closed()),
+        kSupabaseSignInOk,
+      );
+      final SupabaseConnectOutcome open = supabaseSignupOutcome(
+        const SupabaseSignupRead.open(),
+      );
+      expect(open, kSupabaseSignupOpen);
+      expect(
+        (open.level, open.reasonCode, open.retryable),
+        (UiLevel.blocked, 'SUPABASE_SIGNUP_OPEN', true),
+      );
+      expect(open.headline, contains('누구나 가입할 수 있게 열려 있습니다'));
+      expect(open.headline, contains('다시 로그인하십시오'));
+      expect(open.headline, isNot(contains(RegExp(r'\d|SUPABASE_'))));
+    });
+
+    test('🔴 못 읽음 = 로그인 결과와 같은 전송 글자(같은 코드 = 같은 글자) · 통과 아님', () {
+      for (final SupabaseAuthFailure f in <SupabaseAuthFailure>[
+        SupabaseAuthFailure.unauthorized,
+        SupabaseAuthFailure.rateLimited,
+        SupabaseAuthFailure.server,
+        SupabaseAuthFailure.badResponse,
+        SupabaseAuthFailure.network,
+      ]) {
+        final SupabaseConnectOutcome o = supabaseSignupOutcome(
+          SupabaseSignupRead.failed(f),
+        );
+        expect(o, supabaseSignInOutcome(f), reason: f.name);
+        expect(o.level, isNot(UiLevel.ok), reason: f.name);
+        expect(o.reasonCode, f.wire);
+      }
+    });
+  });
 }

@@ -38,6 +38,7 @@ void main() {
         'BREAKER_STOPPED',
         'BROKER_AUTH_FAILED',
         'DERIVED_FORK',
+        'KILL_SWITCH_ACK_MISMATCH',
         'LEDGER_INTEGRITY_BROKEN',
         'MAINTENANCE_RESUME_FAILED',
         'ORDER_OUTCOME_UNKNOWN',
@@ -79,17 +80,10 @@ void main() {
       // 🆕 E16f3a — 등재 대기 제안 1 = `DERIVED_FORK`(R130 L6) · E3d 제안 4(R177) — 🆕 계약 v1.27(01 §36 K188) 등재 → 표 밖 0.
       // 🆕 계약 v1.39(앱 01 §48 K344 · K348) — 계약 먼저 등재한 묶음 2(킬스위치 확인 · push) = 엔진 등급 · 글자 대기(미결 243).
       // 🆕 미결 243 ⓒ(R273) — push 2 = 등급 · 글자 실림 → 예외 = 킬스위치 확인 1만(B-03 · 실전 커밋 창 전).
-      expect(
-        AlertCodes.values
-            .difference(<String>{...AlertCodes.killSwitch})
-            .every(kAlertLevels.containsKey),
-        isTrue,
-      );
+      // 🆕 미결 243 ⓒ(R276) — 킬스위치 확인 1 = 등급(P0) · 글자 실림 → 예외 0(계약 코드 전부 등급이 있다).
+      expect(AlertCodes.values.every(kAlertLevels.containsKey), isTrue);
       expect(AlertCodes.readModelPush.every(kAlertLevels.containsKey), isTrue);
-      expect(
-        kAlertLevels.containsKey(AlertCodes.killSwitchAckMismatch),
-        isFalse,
-      );
+      expect(alertLevelOf(AlertCodes.killSwitchAckMismatch), AlertLevel.p0);
       expect(
         kAlertLevels.keys.where((String c) => !AlertCodes.values.contains(c)),
         isEmpty,
@@ -113,6 +107,7 @@ void main() {
     expect(alertHasLadder('ORDER_OUTCOME_UNKNOWN'), isTrue);
     expect(alertHasLadder('BREAKER_STOPPED'), isTrue);
     expect(alertHasLadder('RESUME_TRADING_HALTED'), isTrue);
+    expect(alertHasLadder('KILL_SWITCH_ACK_MISMATCH'), isTrue);
     expect(alertHasLadder('RESUME_COMPLETED'), isFalse);
     expect(alertHasLadder('ADVICE_EXIT_URGENT'), isFalse);
     expect(alertHasLadder('ORDER_REJECTED'), isFalse);

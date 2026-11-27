@@ -48,6 +48,7 @@ import 'package:data_sync/data_sync.dart'
         watchLedgerQuery;
 import 'package:domain_contracts/domain_contracts.dart'
     show
+        BiometricPurpose,
         MigrationRepository,
         OperatingMode,
         RunMode,
@@ -403,11 +404,12 @@ class OperatorMigrationActions {
         );
       case RecoveryStep.biometricConfirmed:
         if (obs == null) return _closed('X1 생체(운영 설정 없음)');
-        final Future<BiometricOutcome> Function()? sign = _rt.biometricSign;
+        final BiometricAsk? sign = _rt.biometricSign;
         if (sign == null) {
           return _result(id, run, SettingsResultCodes.biometricUnavailable);
         }
-        final BiometricOutcome o = await sign();
+        // 🆕 미결 243 ⓑ(R276) — 대화상자 = «이 폰에서 운영 이어받기» · 판정 = 결과뿐.
+        final BiometricOutcome o = await sign(BiometricPurpose.x1Migration);
         if (o == BiometricOutcome.unavailable) {
           return _result(id, run, SettingsResultCodes.biometricUnavailable);
         }

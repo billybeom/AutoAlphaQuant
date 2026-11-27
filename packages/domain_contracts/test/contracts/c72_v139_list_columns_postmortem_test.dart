@@ -479,12 +479,15 @@ void main() {
         contains('실제 주문은 나가지 않습니다'),
       );
       expect(BiometricPromptText.cancel, '취소');
-      // 서약 글자 = 엔진 R159 글자 그대로(지금 대화상자 — 배선 카드가 이 상수로 옮긴다).
+      // 서약 글자 = 엔진 R159 글자 그대로였다 → 🆕 배선 카드(미결 243 ⓑ · 13 §8 R276)가 이 상수로 옮겼다 = 엔진 사본 0(한 원천).
       final String eng = File(
         '${repoRoot.path}/packages/core_engine/lib/src/onboarding/biometric_sign.dart',
       ).readAsStringSync();
-      expect(eng, contains("'${BiometricPromptText.pledgeSign.title}'"));
-      expect(eng, contains("'${BiometricPromptText.pledgeSign.subtitle}'"));
+      expect(eng, isNot(contains("'${BiometricPromptText.pledgeSign.title}'")));
+      expect(
+        eng,
+        isNot(contains("'${BiometricPromptText.pledgeSign.subtitle}'")),
+      );
     });
 
     test('C-72 ⑩ 배치 D — 넣기 정책 = 첫 클레임 뒤 운영 사용자만 · 리스 표 뒤 · 클레임 문언 정정 · rm_* RLS 무변경', () {

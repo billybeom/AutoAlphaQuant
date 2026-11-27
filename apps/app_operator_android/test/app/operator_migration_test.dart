@@ -20,6 +20,8 @@ import 'package:app_operator_android/secret/secret_handoff.dart'
     show X1SecretDraftSource;
 import 'package:core_engine/core_engine.dart'
     show
+        BiometricOutcome,
+        OperationsConfig,
         TrustedClock,
         X1ScreenTexts,
         kX1D03Card,
@@ -330,6 +332,35 @@ void main() {
       unawaited(Future<void>.value());
     },
   );
+
+  test('🆕 미결 243 ⓑ(R276 · K350) — X1 복구 생체 단계 = 대화상자 «이 폰에서 운영 이어받기» · 할 수 없음 = BIOMETRIC_UNAVAILABLE', () async {
+    live();
+    final List<BiometricPurpose> asked = <BiometricPurpose>[];
+    final OperatorRuntime r = OperatorRuntime(
+      files: files,
+      clock: clock,
+      trusted: trusted,
+      deviceId: _dev,
+      operations: OperationsConfig.fromJson(<String, Object?>{
+        'migration': <String, Object?>{
+          'observation_trading_days': <String, Object?>{
+            'plan': 5,
+            'emergency': 10,
+          },
+        },
+      }),
+      biometricSign: (BiometricPurpose p) async {
+        asked.add(p);
+        return BiometricOutcome.unavailable;
+      },
+    );
+    final SafetyActionResult res = await actions(r).run(
+      SafetyActionId.x1RecoveryStep,
+      args: <String, String>{'step': 'BIOMETRIC_CONFIRMED'},
+    );
+    expect(res.reasonCode, SettingsResultCodes.biometricUnavailable);
+    expect(asked, <BiometricPurpose>[BiometricPurpose.x1Migration]);
+  });
 
   group('🆕 E16t3c 비상 앞쪽', () {
     final String url = 'https://${'q' * 12}${'7' * 8}.supabase.co';

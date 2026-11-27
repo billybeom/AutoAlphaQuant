@@ -329,7 +329,7 @@ void main() {
         files: files,
         clock: clock,
         liveObservation: LiveObservationConfig(requiredTradingDays: 2),
-        biometricSign: () async => answer,
+        biometricSign: (_) async => answer,
         leaseRemote: (Database _) => FakeLeaseGate(),
       );
       int wakes = 0;
@@ -361,7 +361,7 @@ void main() {
         files: files,
         clock: clock,
         liveObservation: LiveObservationConfig(requiredTradingDays: 2),
-        biometricSign: () async => BiometricOutcome.ok,
+        biometricSign: (_) async => BiometricOutcome.ok,
         leaseRemote: (Database _) => FakeLeaseGate(),
       );
       int wakes = 0;

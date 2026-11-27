@@ -47,17 +47,20 @@ void main() {
   late LedgerFiles files;
   late List<BiometricOutcome> answers;
   late int asked;
+  late List<BiometricPurpose> purposes;
 
   setUp(() {
     clock = FakeClock(kst(2026, 11, 19, 9, 30));
     files = openFiles(tempLedgerDir(), clock);
     answers = <BiometricOutcome>[];
     asked = 0;
+    purposes = <BiometricPurpose>[];
   });
   tearDown(() => files.close());
 
-  Future<BiometricOutcome> ask() async {
+  Future<BiometricOutcome> ask(BiometricPurpose p) async {
     asked++;
+    purposes.add(p);
     return answers.removeAt(0);
   }
 
@@ -140,6 +143,11 @@ void main() {
       // 두 번째 OK = 효과 0.
       expect(await bio().sign(), BiometricSignTexts.signed);
       expect(signs(), 1);
+      // 🆕 미결 243 ⓑ(R276 · K350) — 서약 글자 = 서약 목적에만.
+      expect(purposes, <BiometricPurpose>[
+        BiometricPurpose.pledgeSign,
+        BiometricPurpose.pledgeSign,
+      ]);
     },
   );
 

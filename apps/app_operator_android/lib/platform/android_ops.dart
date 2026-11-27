@@ -6,11 +6,9 @@
 // 🆕 E11p3d-2c(R136) — H-03 기기 측정(`deviceRisk` · 값만 · 임계 · 판정 · 문구 = 엔진 `deviceRiskVmOf`).
 
 import 'package:core_engine/core_engine.dart'
-    show
-        BiometricOutcome,
-        BiometricSignTexts,
-        DeviceRiskFacts,
-        biometricOutcomeOfWire;
+    show BiometricOutcome, DeviceRiskFacts, biometricOutcomeOfWire;
+import 'package:domain_contracts/domain_contracts.dart'
+    show BiometricPrompt, BiometricPromptText, BiometricPurpose;
 import 'package:flutter/services.dart';
 import 'package:trading_runtime/trading_runtime.dart' show FgsNotice;
 
@@ -344,14 +342,19 @@ class AndroidOps {
   Future<String?> appBuild() async =>
       appBuildFromWire(await _ch.invokeMethod<Object?>('appBuild'));
 
-  /// 🆕 R159 — O-04 ③ 생체 서명(대화상자 글자 = 엔진 · 결과 = 세 값 · 모르는 값 = [FormatException]).
-  Future<BiometricOutcome> biometricSign() async => biometricOutcomeOfWire(
-    await _ch.invokeMethod<Object?>('biometricSign', <String, String>{
-      'title': BiometricSignTexts.promptTitle,
-      'subtitle': BiometricSignTexts.promptSubtitle,
-      'cancel': BiometricSignTexts.promptCancel,
-    }),
-  );
+  /// 🆕 R159 — 생체 확인(결과 = 세 값 · 모르는 값 = [FormatException]) · 🆕 미결 243 ⓑ(R276 · 계약 v1.39 K350) — 대화상자 글자 =
+  /// 계약 `BiometricPromptText.of(purpose)`(무엇에 동의하는가 · 목적마다 한 벌) · 채널 인자 = 제목 · 설명 · 취소(Kotlin 은 받은 그대로
+  /// 띄운다 · 문장을 짓지 않는다) · 🔴 판정(결과)은 목적과 무관.
+  Future<BiometricOutcome> biometricSign(BiometricPurpose purpose) async {
+    final BiometricPrompt p = BiometricPromptText.of(purpose);
+    return biometricOutcomeOfWire(
+      await _ch.invokeMethod<Object?>('biometricSign', <String, String>{
+        'title': p.title,
+        'subtitle': p.subtitle,
+        'cancel': BiometricPromptText.cancel,
+      }),
+    );
+  }
 
   /// 🆕 R136 — H-03 기기 측정([measuredAtUtc] = 잰 시각 · 기기 시계).
   Future<DeviceRiskFacts> deviceRisk(DateTime measuredAtUtc) async =>

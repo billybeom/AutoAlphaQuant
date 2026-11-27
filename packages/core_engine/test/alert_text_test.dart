@@ -50,9 +50,9 @@ List<Map<String, Object?>> _fixtureItems(String name) {
 }
 
 void main() {
-  test('사전 = 등급 표 코드 38(🆕 R273 push 2) 그대로 · 빈 글자 0 · 링크 = AppRoutes 상수', () {
+  test('사전 = 등급 표 코드 39(🆕 R273 push 2 · R276 킬스위치 확인 1) 그대로 · 빈 글자 0 · 링크 = AppRoutes 상수', () {
     expect(kAlertTexts.keys.toSet(), kAlertLevels.keys.toSet());
-    expect(kAlertTexts, hasLength(38));
+    expect(kAlertTexts, hasLength(39));
     for (final MapEntry<String, AlertText> e in kAlertTexts.entries) {
       expect(
         <String>[
@@ -87,6 +87,14 @@ void main() {
         isNot(contains(RegExp(r'rm_|op_push|READ_MODEL'))),
       );
     }
+    // 🆕 R276(K348 · B-03) — 킬스위치 확인 불일치 = 할 일(다시 조회 · 취소 · 다시 확인) · 링크 = 킬스위치 화면 · 건수 · 코드 글자 0.
+    final AlertText kill = kAlertTexts['KILL_SWITCH_ACK_MISMATCH']!;
+    expect(kill.deepLink, AppRoutes.m5KillSwitch);
+    expect(kill.action, contains('다시 조회'));
+    expect(
+      '${kill.title}${kill.body}${kill.action}',
+      isNot(contains(RegExp(r'\d|KILL_'))),
+    );
   });
 
   test('픽스처 글자 — 그대로 쓴 9코드 · 빈 문장 · 상세 없음 문장', () {

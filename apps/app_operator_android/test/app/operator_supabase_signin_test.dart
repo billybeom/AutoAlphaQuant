@@ -57,6 +57,18 @@ http.Response _tokens() => http.Response(
   200,
 );
 
+/// 🆕 R276 ⓔ — `GET /auth/v1/settings` 응답(가입 꺼짐 = true).
+http.Response _settings(Object? disableSignup) => http.Response(
+  jsonEncode(<String, Object?>{
+    'external': <String, Object?>{'email': true},
+    'disable_signup': disableSignup,
+    'mailer_autoconfirm': false,
+  }),
+  200,
+);
+
+bool _isSettings(http.Request r) => r.url.path == '/auth/v1/settings';
+
 void main() {
   tearDownAll(deleteTempDirs);
 
@@ -80,7 +92,8 @@ void main() {
     handoff.attachSupabaseLogin(draft);
     files = openFiles(tempLedgerDir(), FakeClock(DateTime.utc(2026, 12, 8)));
     requests = <http.Request>[];
-    respond = (_) async => _tokens();
+    respond = (http.Request r) async =>
+        _isSettings(r) ? _settings(true) : _tokens();
     hold = null;
     auth = SupabaseAuth(
       MockClient((http.Request r) async {
@@ -123,11 +136,18 @@ void main() {
       expect(r.headline, '로그인했습니다. SQL 단계가 남았습니다.');
       expect(r.reasonCode, isNull);
       expect(r.retryable, isFalse);
-      expect(requests.single.url.queryParameters['grant_type'], 'password');
-      expect(jsonDecode(requests.single.body), <String, Object?>{
+      expect(requests, hasLength(2));
+      expect(requests.first.url.queryParameters['grant_type'], 'password');
+      expect(jsonDecode(requests.first.body), <String, Object?>{
         'email': _email,
         'password': _password,
       });
+      // 🆕 R276 ⓔ — 로그인 통과 뒤 공개 가입 확인 1회(GET · 공개 키 머리만 · 접근 토큰 · 본문 0).
+      final http.Request s = requests[1];
+      expect((s.method, s.url.toString()), ('GET', '$_url/auth/v1/settings'));
+      expect(s.headers['apikey'], _pub);
+      expect(s.headers.containsKey('authorization'), isFalse);
+      expect(s.body, isEmpty);
       expect(vault.peek('supabase.refresh_token'), isNotNull);
       expect(auth.userId, 'uid-1');
       expect(draft.cleared, 1);
@@ -225,12 +245,88 @@ void main() {
     expect(requests, hasLength(1));
     hold!.complete();
     expect(identical(await a, await b), isTrue);
+    expect(requests, hasLength(2), reason: '로그인 1 + 가입 확인 1');
     hold = null;
     draft
       ..email = _email
       ..password = _password;
     await run();
-    expect(requests, hasLength(2));
+    expect(requests, hasLength(4));
+  });
+
+  group('🆕 미결 243 ⓔ(R276 · K349 ④) — 로그인 통과 뒤 공개 가입 확인', () {
+    test('🔴 열림 = SUPABASE_SIGNUP_OPEN(막힘 · 다시 해 볼 만함 · 할 일 = 대시보드에서 가입 끄기) · 로그인 상태 금고에 둠 · o_07 진행 중', () async {
+      respond = (http.Request r) async =>
+          _isSettings(r) ? _settings(false) : _tokens();
+      final ActionResult r = await run();
+      expect(
+        (r.reasonCode, r.level, r.retryable),
+        ('SUPABASE_SIGNUP_OPEN', UiLevel.blocked, true),
+      );
+      expect(r.headline, contains('누구나 가입할 수 있게 열려 있습니다'));
+      expect(r.headline, contains('Allow new users to sign up'));
+      expect(vault.peek('supabase.refresh_token'), isNotNull);
+      expect(auth.userId, 'uid-1');
+      expect(o07(), StepState.inProgress);
+      expect(draft.cleared, 1);
+      expect(r.toString(), isNot(contains(_password)));
+    });
+
+    for (final (
+          String name,
+          Future<http.Response> Function() settings,
+          String reason,
+        )
+        in <(String, Future<http.Response> Function(), String)>[
+          (
+            '서버 오류',
+            () async => http.Response('{}', 503),
+            'SUPABASE_SERVER_ERROR',
+          ),
+          (
+            '키 거절',
+            () async => http.Response('{}', 401),
+            'SUPABASE_UNAUTHORIZED',
+          ),
+          (
+            '칸 없음',
+            () async => http.Response('{"external":{}}', 200),
+            'SUPABASE_BAD_RESPONSE',
+          ),
+          ('글자 꼴', () async => _settings('false'), 'SUPABASE_BAD_RESPONSE'),
+          (
+            'JSON 아님',
+            () async => http.Response('<html>', 200),
+            'SUPABASE_BAD_RESPONSE',
+          ),
+          (
+            '망 끊김',
+            () async => throw http.ClientException('끊김'),
+            'SUPABASE_NETWORK',
+          ),
+        ]) {
+      test(
+        '🔴 확인 못 함($name) = $reason(로그인 결과와 같은 전송 글자 · 모름 = 통과 아님) · 로그인 상태 둠',
+        () async {
+          respond = (http.Request r) async =>
+              _isSettings(r) ? settings() : _tokens();
+          final ActionResult r = await run();
+          expect(r.reasonCode, reason);
+          expect(r.level, isNot(UiLevel.ok));
+          expect(r.headline, isNot('로그인했습니다. SQL 단계가 남았습니다.'));
+          expect(vault.peek('supabase.refresh_token'), isNotNull);
+          expect(o07(), StepState.inProgress);
+          expect(requests, hasLength(2));
+        },
+      );
+    }
+
+    test('로그인 실패 = 가입 확인 0(망 1번)', () async {
+      respond = (http.Request r) async => http.Response('{}', 400);
+      expect((await run()).reasonCode, 'SUPABASE_CREDENTIALS_REJECTED');
+      expect(requests, hasLength(1));
+      expect(requests.where(_isSettings), isEmpty);
+    });
   });
 
   test('args 더 = ArgumentError · Auth 없음 = 구현 없음', () async {

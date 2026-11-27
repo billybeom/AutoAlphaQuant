@@ -444,6 +444,19 @@ void main() {
         ('KILL_ACK_MISMATCH', true, false),
       );
       expect(readKillSwitchRecord(db).checklistConfirmedAtUtc, isNull);
+      // 🆕 미결 243 ⓒ(R276 · K348) — 낼 경보 = P0 코드 한 건(확인 결과 코드와 다른 축) · 낸 곳 = 킬스위치.
+      expect(r.alertCodes, <String>{'KILL_SWITCH_ACK_MISMATCH'});
+      expect(r.alertCodes, isNot(contains(r.reasonCode)));
+      expect(kKillSwitchAlertSource, 'kill_switch');
+      // 그 밖 거부 · 실행 = 경보 0.
+      expect(
+        const KillCommandResult(
+          executed: false,
+          reasonCode: 'KILL_ACK_INCOMPLETE',
+        ).alertCodes,
+        isEmpty,
+      );
+      expect(const KillCommandResult(executed: true).alertCodes, isEmpty);
     });
 
     test('같은 command_id 재전달 = 처음 결과 그대로 · 새 행 0', () async {

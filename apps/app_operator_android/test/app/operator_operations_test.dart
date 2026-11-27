@@ -29,6 +29,7 @@ import 'package:domain_contracts/domain_contracts.dart'
     show
         ActionResult,
         AppRoutes,
+        BiometricPurpose,
         FeatureFlags,
         OperatingMode,
         OperationsVm,
@@ -60,18 +61,16 @@ void main() {
   });
   tearDown(() => files.close());
 
-  OperatorRuntime runtime({
-    bool observe = true,
-    Future<BiometricOutcome> Function()? bio,
-  }) => OperatorRuntime(
-    files: files,
-    clock: clock,
-    vault: MemorySecretVault(),
-    liveObservation: observe
-        ? LiveObservationConfig(requiredTradingDays: 2)
-        : null,
-    biometricSign: bio,
-  );
+  OperatorRuntime runtime({bool observe = true, BiometricAsk? bio}) =>
+      OperatorRuntime(
+        files: files,
+        clock: clock,
+        vault: MemorySecretVault(),
+        liveObservation: observe
+            ? LiveObservationConfig(requiredTradingDays: 2)
+            : null,
+        biometricSign: bio,
+      );
 
   OperatorView viewOf(
     Database db, {
@@ -105,7 +104,7 @@ void main() {
 
     test('🔴 모의 = 엔진 VM — 칩 · 모드 · 체험 카드 · 램프 빈 까닭 · 잡 표 전부 · 엔진 줄 = 다음 잡 · 버튼 = 창구가 있을 때만', () async {
       writeSimMode(files.sim, clock);
-      final OperatorRuntime rt = runtime(bio: () async => BiometricOutcome.ok);
+      final OperatorRuntime rt = runtime(bio: (_) async => BiometricOutcome.ok);
       rt.view.value = viewOf(files.sim);
       final OperationsVm bare = await OperatorSettingsRepository(
         rt,
@@ -159,7 +158,7 @@ void main() {
         addTearDown(live.close);
         clock.now = kst(2026, 11, 24, 20, 0);
         final OperatorRuntime rt = runtime(
-          bio: () async => BiometricOutcome.ok,
+          bio: (_) async => BiometricOutcome.ok,
         );
         rt.view.value = viewOf(live, run: RunMode.live);
         final OperatorSettingsRepository repo = OperatorSettingsRepository(
@@ -328,10 +327,12 @@ void main() {
 
     test('🔴 승격 — 실전 파일 없음 = 관찰 아님(INFO) · 생체 취소 = BIOMETRIC_UNAVAILABLE · 리스 모름 = LEASE_INVALID · 쓰기 0', () async {
       int asked = 0;
+      final Set<BiometricPurpose> purposes = <BiometricPurpose>{};
       BiometricOutcome answer = BiometricOutcome.canceled;
       final OperatorRuntime rt = runtime(
-        bio: () async {
+        bio: (BiometricPurpose p) async {
           asked++;
+          purposes.add(p);
           return answer;
         },
       );
@@ -358,6 +359,8 @@ void main() {
         (bio.level, bio.reasonCode, asked),
         (UiLevel.blocked, LivePromotionCodes.biometricUnavailable, 1),
       );
+      // 🆕 미결 243 ⓑ(R276 · K350) — 대화상자 = «실제 주문 켜기»(실주문을 켜는 동작 · 서약 글자 아님).
+      expect(purposes, <BiometricPurpose>{BiometricPurpose.livePromotion});
       answer = BiometricOutcome.ok;
       final ActionResult lease = await a.run(
         SettingsActionId.runtimeLivePromotion,
@@ -396,13 +399,13 @@ void main() {
       expect(OperatorLivePromotion.availableIn(runtime()), isFalse);
       expect(
         OperatorLivePromotion.availableIn(
-          runtime(bio: () async => BiometricOutcome.ok),
+          runtime(bio: (_) async => BiometricOutcome.ok),
         ),
         isTrue,
       );
       expect(
         OperatorLivePromotion.availableIn(
-          runtime(observe: false, bio: () async => BiometricOutcome.ok),
+          runtime(observe: false, bio: (_) async => BiometricOutcome.ok),
         ),
         isFalse,
       );

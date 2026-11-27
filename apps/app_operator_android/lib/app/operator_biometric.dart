@@ -17,6 +17,7 @@ import 'package:core_engine/core_engine.dart'
         newCommandId;
 import 'package:data_sync/data_sync.dart'
     show SqliteBiometricSignStore, SqlitePledgeStore;
+import 'package:domain_contracts/domain_contracts.dart' show BiometricPurpose;
 
 import 'operator_runtime.dart';
 
@@ -52,11 +53,12 @@ class OperatorBiometricSign {
     final Pledge? p = _pledge();
     if (p == null) return BiometricSignTexts.noPledge;
     final String? dev = _rt.deviceId;
-    final Future<BiometricOutcome> Function()? ask = _rt.biometricSign;
+    final BiometricAsk? ask = _rt.biometricSign;
     if (dev == null || ask == null) {
       return biometricSignResultText(BiometricOutcome.unavailable);
     }
-    final BiometricOutcome o = await ask();
+    // 🆕 미결 243 ⓑ(R276) — 서약 글자는 이 목적에만.
+    final BiometricOutcome o = await ask(BiometricPurpose.pledgeSign);
     if (o == BiometricOutcome.ok) {
       _store.record(
         commandId: newCommandId(_random),

@@ -35,6 +35,9 @@ const Map<String, AlertLevel> kAlertLevels = <String, AlertLevel>{
   AlertCodes.adviceExitUrgent: AlertLevel.p0,
   AlertCodes.adviceRevoked: AlertLevel.p0,
   AlertCodes.adviceSuppressed: AlertLevel.p0,
+  // 🆕 미결 243 ⓒ(설계 13 §8 R276 · 계약 v1.39 K348 · 리뷰 3차 B-03) 킬스위치 발동 뒤 기록 확인 ≠ 엔진 미체결 — 잠정 P0(04 §5-3 등급 행 =
+  //    v1.39 제안 · 사다리 있음 · 낸 곳 = 조립 명령 창구 `confirmKillChecklist`).
+  AlertCodes.killSwitchAckMismatch: AlertLevel.p0,
   // P1(04 §5-3).
   AlertCodes.orderRejected: AlertLevel.p1,
   AlertCodes.rebalanceD1: AlertLevel.p1,
