@@ -33,7 +33,7 @@ class LedgerHashTable {
   /// 해시 투영 칸(전부 · 순서 무관 — 정규 행은 이름 순).
   final List<String> columns;
 
-  /// 상태 전이 칸(투영에서 뺀 칸 — 시험이 «스키마 − 투영 = 이것»을 단언한다).
+  /// 상태 전이 칸 · 🆕 R281 엔진 판정 칸(투영에서 뺀 칸 — 시험이 «스키마 − 투영 = 이것»을 단언한다).
   final List<String> excluded;
 
   /// 축을 부모 표에서 읽을 때 그 표.
@@ -270,6 +270,9 @@ const List<LedgerHashTable> kLedgerHashPopulationV1 = <LedgerHashTable>[
       'command_id',
       'reported_at',
     ],
+    // 🆕 R281(계약 v1.42 §51 · 미결 256) — 현금 축 판정 = 엔진 판정(사람이 적은 사실 아님 · `ledger_diff` 와 같은 결) →
+    // 투영 밖 · `hash_format_version` 무변경.
+    excluded: <String>['cash_check', 'cash_tolerance_krw'],
   ),
   LedgerHashTable(
     'self_report_line',

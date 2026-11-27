@@ -294,8 +294,8 @@ void main() {
     openSim();
     files.sim.execute(
       'INSERT INTO self_report_balance (report_id, as_of_trade_date, account_alias, session_started_at, cash_krw, '
-      "declared_complete, device_id, command_id, reported_at) VALUES ('sr-1', '2026-10-30', 'pension', "
-      "'2026-11-01T00:00:00Z', 0, 1, 'dev-1', 'c-1', '2026-11-01T00:00:00Z')",
+      "declared_complete, device_id, command_id, reported_at, cash_check) VALUES ('sr-1', '2026-10-30', 'pension', "
+      "'2026-11-01T00:00:00Z', 0, 1, 'dev-1', 'c-1', '2026-11-01T00:00:00Z', 'NO_TOLERANCE')",
     );
     clock.now = kst(2026, 12, 21, 18, 35);
     JobContext of(OperatingMode m, TrustedClock t) => JobContext(

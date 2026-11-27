@@ -212,6 +212,13 @@ final List<_Axis> _axes = <_Axis>[
     'kind',
     _wires(CashFlowKind.values),
   ),
+  // 🆕 v1.42(01 §51 · 미결 256) — 실사 한 건의 현금 축 판정.
+  _Axis(
+    'batch_f_x7_advisory.sql',
+    'self_report_balance',
+    'cash_check',
+    _wires(SelfReportCashCheck.values),
+  ),
   // 🆕 v1.14(E8a · R25 G3) — 시세·지표 원천.
   _Axis(
     'batch_g_market_data.sql',
@@ -635,6 +642,7 @@ String _wireOf(Object v) => switch (v) {
   final OperatingMode m => m.wire,
   final CalendarOrigin o => o.wire,
   final LedgerAxis a => a.wire,
+  final SelfReportCashCheck c => c.wire,
   final DiffSeverity s => s.wire,
   final DiffStatus s => s.wire,
   final CommandKind k => k.wire,

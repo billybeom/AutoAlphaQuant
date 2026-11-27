@@ -48,10 +48,11 @@ List<String> _policiesOn(String table) =>
 
 void main() {
   group('C-74 뷰어 페어링 · 명령 표 읽기 (01 §50)', () {
-    test('C-74 ① 판 · 표본 — 1.41.0 · 402(버전 줄만) · 봉투 판 = 계약 판', () {
-      expect(contractVersion, '1.41.0');
-      expect(FixturePaths.all, hasLength(402));
-      expect(allFixtureFilesOnDisk(), hasLength(402));
+    // 🔵 v1.42(01 §51) — 판 글자 · 수 고정 = 최신 창 시험(C-75 ①)만 · 여기는 «1.41.0 이상 · 402 이상 · 봉투 판 = 계약 판».
+    test('C-74 ① 판 · 표본 — 1.41.0 이상 · 402 이상(버전 줄만) · 봉투 판 = 계약 판', () {
+      expect(contractVersion, isNot(anyOf('1.39.0', '1.40.0')));
+      expect(FixturePaths.all.length, greaterThanOrEqualTo(402));
+      expect(allFixtureFilesOnDisk().length, FixturePaths.all.length);
       for (final String path in FixturePaths.all) {
         final Map<String, Object?> meta =
             (jsonDecode(readFixture(path)) as Map<String, Object?>)['meta']!

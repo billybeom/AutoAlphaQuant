@@ -1085,6 +1085,7 @@ export 'src/ops/runbook_catalog.dart'
         runbookVmOf;
 // 🆕 E11q-q6 — `L-3` 정기 실사(세션 판정 · 원문 → 와이어 · 수량 대조 · 결과 · 세션 VM · 접수증 · 01 §21-3 · §21-4).
 // 🆕 R278 — 현금 축(원장 현금 원천 · 허용 오차 · 판정 · 차이 행 · 0오차 — 01 §8 미결 227 · §46 K323).
+// 🆕 R281 — 판정 원장 기록(실사 행 두 칸 ↔ 판정 · 결과 까닭 — 01 §8 미결 256 · §51).
 export 'src/ops/self_report.dart'
     show
         SelfReportCashFacts,
@@ -1113,7 +1114,9 @@ export 'src/ops/self_report.dart'
         selfReportAsOfOf,
         selfReportCashDiffIdOf,
         selfReportCashDiffRowsOf,
+        selfReportCashRecordOf,
         selfReportCashSkipOf,
+        selfReportCashSkipOfCheck,
         selfReportCashToleranceOf,
         selfReportCashVerdictOf,
         selfReportDeltaOf,

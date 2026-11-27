@@ -48,7 +48,7 @@ void main() {
 
   void audit(String alias, String asOf) => db.execute(
     'INSERT INTO self_report_balance (report_id, as_of_trade_date, account_alias, session_started_at, cash_krw, '
-    'declared_complete, device_id, command_id, reported_at) VALUES (?, ?, ?, ?, 0, 1, ?, ?, ?)',
+    "declared_complete, device_id, command_id, reported_at, cash_check) VALUES (?, ?, ?, ?, 0, 1, ?, ?, ?, 'NO_TOLERANCE')",
     <Object?>[
       'sr-$alias-$asOf',
       asOf,

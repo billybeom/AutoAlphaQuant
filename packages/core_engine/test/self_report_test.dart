@@ -622,7 +622,7 @@ void main() {
         selfReportCashDiffRowsOf(
           asOf: asOf,
           alias: '연금저축',
-          verdict: const SelfReportCashWithin(),
+          verdict: SelfReportCashWithin(toleranceKrw: Decimal.zero),
         ),
         isEmpty,
       );
@@ -695,6 +695,62 @@ void main() {
       );
     });
 
+    test('🆕 R281 🔴 판정 → 실사 행 두 칸(대조함 = 적용 허용 오차 · 대조 안 함 = 까닭 · null) → 결과 까닭(대조함 = null)', () {
+      ({SelfReportCashCheck check, double? toleranceKrw}) rec(
+        SelfReportCashVerdict v,
+      ) => selfReportCashRecordOf(v);
+      expect(
+        rec(
+          selfReportCashVerdictOf(
+            toleranceKrw: won(1000),
+            ledgerKrw: won(1500),
+            reportedKrw: won(1000),
+          ),
+        ),
+        (check: SelfReportCashCheck.compared, toleranceKrw: 1000.0),
+      );
+      expect(
+        rec(
+          selfReportCashVerdictOf(
+            toleranceKrw: Decimal.zero,
+            ledgerKrw: won(2),
+            reportedKrw: won(1),
+          ),
+        ),
+        (check: SelfReportCashCheck.compared, toleranceKrw: 0.0),
+      );
+      expect(rec(const SelfReportCashSkipped(SelfReportCashSkip.noTolerance)), (
+        check: SelfReportCashCheck.noTolerance,
+        toleranceKrw: null,
+      ));
+      expect(
+        rec(const SelfReportCashSkipped(SelfReportCashSkip.ledgerUnknown)),
+        (check: SelfReportCashCheck.ledgerUnknown, toleranceKrw: null),
+      );
+      expect(selfReportCashSkipOfCheck(SelfReportCashCheck.compared), isNull);
+      expect(
+        selfReportCashSkipOfCheck(SelfReportCashCheck.noTolerance),
+        SelfReportCashSkip.noTolerance,
+      );
+      expect(
+        selfReportCashSkipOfCheck(SelfReportCashCheck.ledgerUnknown),
+        SelfReportCashSkip.ledgerUnknown,
+      );
+      // 왕복: 대조 안 함 까닭은 기록 → 읽기에서 그대로 돌아온다.
+      for (final SelfReportCashSkip k in SelfReportCashSkip.values) {
+        expect(
+          selfReportCashSkipOfCheck(rec(SelfReportCashSkipped(k)).check),
+          k,
+        );
+      }
+      final SelfReportCashWithin w = selfReportCashVerdictOf(
+        toleranceKrw: won(10),
+        ledgerKrw: won(5),
+        reportedKrw: won(0),
+      ) as SelfReportCashWithin;
+      expect(w.toleranceKrw, won(10));
+    });
+
     test('🔴 0오차(K321 ④) = 수량 전부 일치 ∧ 현금은 대조한 때만 센다', () {
       const List<SelfReportQuantityDiff> q = <SelfReportQuantityDiff>[
         SelfReportQuantityDiff(symbol: '133690', ledger: 245, reported: 242),
@@ -716,7 +772,7 @@ void main() {
       expect(
         selfReportZeroErrorOf(
           quantity: const <SelfReportQuantityDiff>[],
-          cash: const SelfReportCashWithin(),
+          cash: SelfReportCashWithin(toleranceKrw: Decimal.zero),
         ),
         isTrue,
       );
@@ -728,7 +784,10 @@ void main() {
         isFalse,
       );
       expect(
-        selfReportZeroErrorOf(quantity: q, cash: const SelfReportCashWithin()),
+        selfReportZeroErrorOf(
+          quantity: q,
+          cash: SelfReportCashWithin(toleranceKrw: Decimal.zero),
+        ),
         isFalse,
       );
     });

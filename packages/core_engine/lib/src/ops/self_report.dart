@@ -673,7 +673,8 @@ enum SelfReportCashSkip {
   ledgerUnknown,
 }
 
-/// 🔴 대조하지 않는 까닭(차례 = 허용 오차 → 원장 현금) — null = 대조한다. 제출(판정)과 결과 글자(읽기)가 같은 차례를 쓴다.
+/// 🔴 대조하지 않는 까닭(차례 = 허용 오차 → 원장 현금) — null = 대조한다. 🆕 R281 — 제출 순간 판정만 이 차례를 쓴다(결과 글자는
+/// 실사 행에 적힌 판정 `cash_check` 를 읽는다 — [selfReportCashSkipOfCheck]).
 SelfReportCashSkip? selfReportCashSkipOf({
   required Decimal? toleranceKrw,
   required bool ledgerKnown,
@@ -700,7 +701,10 @@ final class SelfReportCashSkipped extends SelfReportCashVerdict {
 /// 대조했고 허용 오차 안이다.
 final class SelfReportCashWithin extends SelfReportCashVerdict {
   /// 만든다.
-  const SelfReportCashWithin();
+  const SelfReportCashWithin({required this.toleranceKrw});
+
+  /// 적용한 허용 오차(🆕 R281 — 실사 행 `cash_tolerance_krw` 로 적는다).
+  final Decimal toleranceKrw;
 }
 
 /// 대조했고 허용 오차를 넘었다(관측 차이 1행).
@@ -741,7 +745,7 @@ SelfReportCashVerdict selfReportCashVerdictOf({
           reportedKrw: reportedKrw,
           toleranceKrw: toleranceKrw,
         )
-      : const SelfReportCashWithin();
+      : SelfReportCashWithin(toleranceKrw: toleranceKrw);
 }
 
 /// 현금 차이 id — 기준일 · 계좌가 같으면 같은 id(종목 id 와 원문 꼴이 달라 겹치지 않는다 · 그 달 그 계좌 실사는 한 번).
@@ -779,6 +783,36 @@ List<SelfReportDiffRow> selfReportCashDiffRowsOf({
   SelfReportCashSkipped() ||
   SelfReportCashWithin() => const <SelfReportDiffRow>[],
 };
+
+// ── 🆕 R281 판정 원장 기록(01 §8 미결 256 · 계약 v1.42 §51 · `self_report_balance.cash_check` · `cash_tolerance_krw`) ──
+
+/// 🔴 판정 → 실사 행에 적을 두 칸 그대로(`cash_check` · `cash_tolerance_krw` REAL — 대조함 = 적용한 허용 오차(원 단위 정수라
+/// 실수로 정확) · 대조 안 함 = 까닭 · 허용 오차 null) — 제출 순간 한 번만 정한다.
+({SelfReportCashCheck check, double? toleranceKrw}) selfReportCashRecordOf(
+  SelfReportCashVerdict verdict,
+) => switch (verdict) {
+  SelfReportCashWithin(:final Decimal toleranceKrw) ||
+  SelfReportCashMismatch(:final Decimal toleranceKrw) => (
+    check: SelfReportCashCheck.compared,
+    toleranceKrw: toleranceKrw.toDouble(),
+  ),
+  SelfReportCashSkipped(reason: SelfReportCashSkip.noTolerance) => (
+    check: SelfReportCashCheck.noTolerance,
+    toleranceKrw: null,
+  ),
+  SelfReportCashSkipped(reason: SelfReportCashSkip.ledgerUnknown) => (
+    check: SelfReportCashCheck.ledgerUnknown,
+    toleranceKrw: null,
+  ),
+};
+
+/// 🔴 실사 행에 적힌 판정 → 결과 빈 문장의 까닭(대조함 = null) — 🔴 나중에 바뀐 설정 · 표식으로 다시 정하지 않는다(R278 D9 닫음).
+SelfReportCashSkip? selfReportCashSkipOfCheck(SelfReportCashCheck check) =>
+    switch (check) {
+      SelfReportCashCheck.compared => null,
+      SelfReportCashCheck.noTolerance => SelfReportCashSkip.noTolerance,
+      SelfReportCashCheck.ledgerUnknown => SelfReportCashSkip.ledgerUnknown,
+    };
 
 /// 🔴 0오차 실사(K321 ④ · M5-13 해제가 읽는다 — 미결 226) = 수량 축 전부 일치 ∧ 현금 축은 대조한 때만 센다(대조 안 함 = 세지
 /// 않음 · 대조해 넘음 = 0오차 아님). 원장에서는 «그 실사가 남긴 차이 행 0»과 같다(현금 행은 대조해 넘은 때만 생긴다).

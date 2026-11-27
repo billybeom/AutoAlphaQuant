@@ -1,13 +1,13 @@
 // 🔴 생성 파일 — 손으로 고치지 않는다. `python -I tool/make_local_schema.py <02 경로>` 로 다시 만든다.
 //
 // 로컬 원장 스키마 v1 자산(설계 13 §8 R19 E9-10 · R20 Q0·Q2 · E9c).
-// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `3015df2ffc3b02fb4e7e5298a12d303b6ad322fcf31b3f7aa21fecf0f507968c`
+// ① 02 기본 — 설계 저장소 `06_시스템설계/02_데이터모델.md` sha256 `845d6355aa306a9fabb9987891c77d5b67d57e12b6dfb02305de86633024403c`
 //    ```sql 블록 2~9(1번 PRAGMA 블록 제외 — 연결 설정은 `openLedgerDatabase` · §2-7 이후 배치 블록 제외) · 정정 0(02 v2.33 본문이 `executions.broker_order_no` NULL 허용 — R20 Q2)
 // ② 배치 — `packages/domain_contracts/ddl/` LIVE 판 원문(SIM 판은 `ledgerDdlFor`):
 //    batch_a_decision_mode.sql sha256 `8ffb88f7957cc9baf835935f3c253b5c297990a25e99226ce37a91d48d1e5004`
 //    batch_b_plan_command.sql sha256 `f05a26c489df40de92c693b221696fb7fa7ce4c5657659e11bbc38a121009df3`
 //    batch_c_x2_x5_local.sql sha256 `4d60e20b8246304359fadab187e484dfe2d2e151b088bb1e0e65bb10e05afa14`
-//    batch_f_x7_advisory.sql sha256 `e6298ab4bb4f5b03dcd7a19f416ae4626ab1242d51db6b16cfd9ef68e207fac9`
+//    batch_f_x7_advisory.sql sha256 `84c4532514ea2d2fe28a8747682697cccb2b7c1ba29718472e35c0e741c6a290`
 //    batch_g_market_data.sql sha256 `0a7844b0398e722184b61629d80db18e20cbec4f56952e22f27e363a6210b90e`
 // 🔴 배치 사본은 data_sync 시험이 `domain_contracts/ddl` 과 바이트 대조한다.
 
@@ -1241,8 +1241,16 @@ CREATE TABLE IF NOT EXISTS self_report_balance (
     declared_complete INTEGER NOT NULL CHECK (declared_complete IN (0,1)),
     device_id       TEXT    NOT NULL,
     command_id      TEXT    NOT NULL,
-    reported_at     TEXT    NOT NULL                -- 🔴 X5 authored 축
+    reported_at     TEXT    NOT NULL,               -- 🔴 X5 authored 축
+    cash_check      TEXT    NOT NULL CHECK (cash_check IN ('COMPARED','NO_TOLERANCE','LEDGER_UNKNOWN')
+                            AND ((cash_check = 'COMPARED') = (cash_tolerance_krw IS NOT NULL))),
+                            -- 🆕 v1.42(01 §51 · 미결 256) 제출 순간 엔진의 현금 축 판정 — 대조함 · 허용 오차 없음 · 원장 현금 모름
+    cash_tolerance_krw REAL CHECK (cash_tolerance_krw IS NULL OR cash_tolerance_krw >= 0)
+                            -- 🆕 v1.42 대조할 때 쓴 허용 오차(원 · 대조함일 때만 값)
 );
+-- 🔴 v1.42 — 두 칸 = 엔진 판정(사람이 적은 사실 아님) → 원장 해시 모집단 밖(`ledger_diff` 와 같은 결 · 투영 칸 무변경 ·
+--    `hash_format_version` 무변경). 결과 · 0오차는 이 칸을 읽는다(읽을 때 다시 정하지 않는다).
+--    로컬 스키마 v1 동결 전(R20 Q0)이라 표 본문에 둔다(ALTER 0 · 마이그레이션 0).
 CREATE TABLE IF NOT EXISTS self_report_line (
     report_id       TEXT    NOT NULL,
     symbol          TEXT    NOT NULL,

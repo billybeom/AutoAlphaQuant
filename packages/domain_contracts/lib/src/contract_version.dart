@@ -336,12 +336,17 @@
 //    not null + check · 두 INSERT 정책 += `requested_at = now()` · 🆕 색인 `command_ack(command_id)` · 🆕 C-74 · 픽스처 402(버전 줄만) —
 //    🆕 tool/gen_v141_pairing_command_fixtures.py. 🔴 SQL 본문 = data_sync `sql/supabase_command_pairing_rpc.sql`(부트스트랩 여섯째 조각 ·
 //    같은 PR) · 소비기 = E11m-a · 뷰어 `CommandApi` = E11m-b · 페어링 클라이언트 · 뷰어 세션(미결 247) = E11m-c.
+// 🆕 '1.42.0'(실사 현금 판정 원장 기록 · 01 §51 · 13 §8 R281 · 발주자 위임 2026-11-14 — 권고대로 · K373~) — 미결 256 작은 창(DDL 만):
+//    배치 F `self_report_balance` += `cash_check`(NOT NULL · CHECK 3값 + «대조함 ⇔ 허용 오차 값» 짝) · `cash_tolerance_krw`(0 이상 ·
+//    대조함일 때만) · 🆕 `enums/ledger.dart` `SelfReportCashCheck` 3(`COMPARED` · `NO_TOLERANCE` · `LEDGER_UNKNOWN`) · C-15 축 +1 ·
+//    🆕 C-75 · 픽스처 402(버전 줄만) — 🆕 tool/gen_v142_self_report_cash_check_fixtures.py. 🔴 두 칸 = 엔진 판정 → 원장 해시 모집단 밖
+//    (투영 칸 · `hash_format_version` 무변경) · 로컬 스키마 v1 동결 전(R20 Q0)이라 표 본문(ALTER 0) · DTO · 창구 · 라우트 · `ui_*` = 0.
 // 🔴 '1.0.0' 은 «⚠️ M2-8 이름 미확정이 코드에서 사라졌다»는 뜻이지 «미결이 0건»이라는 뜻이
 //    아니다. `docs/m2-8_naming.md` 의 ⏸ 22행은 **이름만 확정**이고 그 기능은 여전히 대기다
 //    (01 §8). ⏸ 항목에 걸린 화면은 계속 «픽스처 고정 모드»다.
 
 /// 이 패키지가 표현하는 M2 계약의 버전.
-const String contractVersion = '1.41.0';
+const String contractVersion = '1.42.0';
 
 // ════════════════════════════════════════════════════════════════════════════
 // G-36 버전 스탬프 3필드 — `rm_config_view` 가 push 때마다 함께 갱신하는 값
