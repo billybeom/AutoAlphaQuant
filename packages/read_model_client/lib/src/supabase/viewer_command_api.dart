@@ -505,12 +505,11 @@ final class ViewerCommandApi implements CommandApi {
     // ② 그 화면 모드 설정 행 — 실행 모드 · 운영 방식.
     if (config.statusCode != 200) throw _failureOf(config);
     final List<Map<String, Object?>>? cfg = config.rows;
-    final RunMode? runMode = cfg != null && cfg.length == 1
-        ? _runModeOf(cfg.single['run_mode'])
+    final Map<String, Object?>? one = cfg != null && cfg.length == 1
+        ? cfg.single
         : null;
-    final OperatingMode? operating = cfg != null && cfg.length == 1
-        ? _operatingModeOf(cfg.single['operating_mode'])
-        : null;
+    final RunMode? runMode = _runModeOf(one?['run_mode']);
+    final OperatingMode? operating = _operatingModeOf(one?['operating_mode']);
     if (runMode == null || operating == null) {
       throw const ViewerCommandFailure(ViewerCommandFailureKind.context);
     }

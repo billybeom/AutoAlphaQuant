@@ -435,6 +435,9 @@ void main() {
           ),
         ),
       );
+      // 폐기된 뷰어는 rm_* 도 0행(RLS) — «맥락 없음»으로 둔갑하지 않는다(기기 판정이 먼저).
+      server.configRows = <Map<String, Object?>>[];
+      await failsWith(api.activateKillSwitch, ViewerCommandFailureKind.revoked);
     });
 
     test('그 모드 설정 행 없음 · 둘 · 모르는 글자 = context · 리스 꼴 아님 = context', () async {
@@ -489,13 +492,16 @@ void main() {
       expect(server.requests, isEmpty);
     });
 
-    test('401 = 토큰 새로 한 번 → 통과', () async {
-      server.insertScript.add(401);
-      final CommandReceipt r = await api.activateKillSwitch();
-      expect(r.state, CommandState.requested);
-      expect(session.refreshes, 1);
-      expect(server.requests.last.headers['authorization'], 'Bearer tok-2');
-      expect(server.inserts, 2);
+    test('401 · 403 = 토큰 새로 한 번 → 통과', () async {
+      for (final int status in <int>[401, 403]) {
+        server.insertScript.add(status);
+        session.refreshes = 0;
+        final CommandReceipt r = await api.activateKillSwitch();
+        expect(r.state, CommandState.requested);
+        expect(session.refreshes, 1, reason: '$status');
+        expect(server.requests.last.headers['authorization'], 'Bearer tok-2');
+      }
+      expect(server.inserts, 4);
     });
 
     test('403 두 번 — 기기 ACTIVE = unauthorized · 기기가 폐기로 보이면 revoked', () async {
